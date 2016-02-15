@@ -235,6 +235,7 @@ typedef struct
 	UINT8 cutscenenum;    ///< Cutscene number to use, 0 for none.
 	INT16 countdown;      ///< Countdown until level end?
 	UINT16 palette;       ///< PAL lump to use on this map
+    boolean automap;      ///< Displays a level's white map outline in modified games       // SRB2kart 16/02/15
 	UINT8 numlaps;        ///< Number of laps in circuit mode, unless overridden.
 	SINT8 unlockrequired; ///< Is an unlockable required to play this level? -1 if no.
 	UINT8 levelselect;    ///< Is this map available in the level select? If so, which map list is it available in?
@@ -289,7 +290,10 @@ enum TypeOfLevel
 	TOL_MARIO  = 0x0200, ///< Mario
 	TOL_NIGHTS = 0x0400, ///< NiGHTS
 	TOL_ERZ3   = 0x0800, ///< ERZ3
-	TOL_XMAS   = 0x1000  ///< Christmas NiGHTS
+	TOL_XMAS   = 0x1000, ///< Christmas NiGHTS
+    
+    TOL_RETROKART   = 0x2000, ///< SRB2kart 'Retro' mode    // SRB2kart 16/02/15
+    TOL_NEOKART     = 0x4000  ///< SRB2kart 'Neo' mode
 };
 
 // Gametypes

@@ -987,6 +987,14 @@ static const struct {
 	{"XMAS",TOL_XMAS},
 	{"CHRISTMAS",TOL_XMAS},
 	{"WINTER",TOL_XMAS},
+    
+    {"RETRO",TOL_RETROKART},        // SRB2kart 16/02/15
+    {"RETROKART",TOL_RETROKART},
+    {"MARIOKART",TOL_RETROKART},
+    
+    {"NEO",TOL_NEOKART},
+    {"NEOKART",TOL_NEOKART},
+    {"SONICKART",TOL_NEOKART},
 
 	{NULL, 0}
 };
@@ -1185,6 +1193,8 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				mapheaderinfo[num-1]->countdown = (INT16)i;
 			else if (fastcmp(word, "PALETTE"))
 				mapheaderinfo[num-1]->palette = (UINT16)i;
+            else if (fastcmp(word, "AUTOMAP"))                  // SRB2kart 16/02/15
+				mapheaderinfo[num-1]->automap = (UINT16)i;
 			else if (fastcmp(word, "NUMLAPS"))
 				mapheaderinfo[num-1]->numlaps = (UINT8)i;
 			else if (fastcmp(word, "UNLOCKABLE"))
@@ -2008,9 +2018,9 @@ static void readsound(MYFILE *f, INT32 num, const char *savesfxnames[])
 /** Checks if a game data file name for a mod is good.
  * "Good" means that it contains only alphanumerics, _, and -;
  * ends in ".dat"; has at least one character before the ".dat";
- * and is not "gamedata.dat" (tested case-insensitively).
+ * and is not "srb2kart.dat" (tested case-insensitively).
  *
- * Assumption: that gamedata.dat is the only .dat file that will
+ * Assumption: that srb2kart.dat is the only .dat file that will
  * ever be treated specially by the game.
  *
  * Note: Check for the tail ".dat" case-insensitively since at
@@ -2034,9 +2044,9 @@ static boolean GoodDataFileName(const char *s)
 	if (p <= s) return false; // too short
 	if (!fasticmp(p, tail)) return false; // doesn't end in .dat
 #ifdef DELFILE
-	if (fasticmp(s, "gamedata.dat") && !disableundo) return false;
+	if (fasticmp(s, "srb2kart.dat") && !disableundo) return false;  // SRB2kart 16/02/15
 #else
-	if (fasticmp(s, "gamedata.dat")) return false;
+	if (fasticmp(s, "srb2kart.dat")) return false;
 #endif
 
 	return true;

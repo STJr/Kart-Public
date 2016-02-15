@@ -41,6 +41,8 @@ typedef enum
 	BT_CUSTOM1    = 1<<13,
 	BT_CUSTOM2    = 1<<14,
 	BT_CUSTOM3    = 1<<15,
+    BT_FORWARD    = 1<<16, // SRB2kart 16/02/15
+    BT_BACKWARD   = 1<<17,
 } buttoncode_t;
 
 // The data sampled per tick (single player)
