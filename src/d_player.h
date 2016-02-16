@@ -227,17 +227,17 @@ typedef enum
 	pw_nocontrol,
 	pw_ingoop, // In goop
 
-    // /////////////// //
-    // SRB2kart Powers //       // SRB2kart 16/02/15  (TODO: Remove Riders powers we don't need.)
-    // /////////////// //
+	// /////////////// //
+	// SRB2kart Powers //		// SRB2kart 16/02/15  (TODO: Remove Riders powers we don't need.)
+	// /////////////// //
     
     // Riders
 	pw_boost,
 	pw_brake,
-	pw_exrun,           // Are you on your gear?
-	pw_exspeed,         // Extreme Gear speed
-	pw_airtank,         // Air points for your gear
-	pw_airstartpoint,   // More points = Less airtank points
+	pw_exrun,			// Are you on your gear?
+	pw_exspeed,			// Extreme Gear speed
+	pw_airtank,			// Air points for your gear
+	pw_airstartpoint,	// More points = Less airtank points
 	pw_bustable,
 	pw_ramp,
 	pw_rampspeed,
@@ -246,74 +246,74 @@ typedef enum
 	pw_rampheight2,
 	pw_rampangle,
 	pw_rampscore,
-	pw_jmpcharge,       // Hold the jump button to charge it first
+	pw_jmpcharge,		// Hold the jump button to charge it first
 
 	// Race
-	pw_drift,           // Drifting Left or Right, plus a bigger counter = sharper turn
-	pw_driftcharge,     // Charge your drift so you can release a burst of speed
-	pw_jmp,             // In Mario Kart, letting go of the jump button stops the drift
-	pw_positiondelay,   // Similar to P_PlayTauntSound's delay
+	pw_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
+	pw_driftcharge,		// Charge your drift so you can release a burst of speed
+	pw_jmp,				// In Mario Kart, letting go of the jump button stops the drift
+	pw_positiondelay,	// Similar to P_PlayTauntSound's delay
 	pw_oldposition,
 
 	// Kart
 	pw_kartitem,
-	pw_itemslot,        // If you have X item, and kartitem chose X too, save it.
+	pw_itemslot,		// If you have X item, and kartitem chose X too, save it.
 
-	pw_star,            // 1 = Star in inventory
+	pw_star,			// 1 = Star in inventory
 
-	pw_mushroom,        // Whether you are currently shroom boosting
+	pw_mushroom,		// Whether you are currently shroom boosting
 
-	pw_shroom,          // 1 = 1 Mushroom in inventory, 2 = 2 Mushrooms in inventory, 
-                        // 4 = 3 Mushrooms in inventory, 8 = Gold Shroom in inventory
-	pw_goldshroom,      // Timer for gold shroom usage
+	pw_shroom,			// 1 = 1 Mushroom in inventory, 2 = 2 Mushrooms in inventory, 
+						// 4 = 3 Mushrooms in inventory, 8 = Gold Shroom in inventory
+	pw_goldshroom,		// Timer for gold shroom usage
 
-	pw_megamushroom,    // 1 = mega shroom in inventory
+	pw_megamushroom,	// 1 = mega shroom in inventory
 
 	// Moved here because I don't want to break maps
-	pw_bananacam,       // Player turning timer
+	pw_bananacam,		// Player turning timer
 
-	pw_thunder,         // 1 = lightning in inventory
+	pw_thunder,			// 1 = lightning in inventory
 
-	pw_blueshell,       // 1 = Blue Shell in inventory
+	pw_blueshell,		// 1 = Blue Shell in inventory
 
-	pw_shell,           // 1 = shell being held, 2 = shell in inventory
-	pw_tripleshell,     // 1 = 1 shell circling, 2 = 2 shells circling, 
-                        // 4 = 3 shells circling, 8 = triple shells in inventory
+	pw_shell,			// 1 = shell being held, 2 = shell in inventory
+	pw_tripleshell,		// 1 = 1 shell circling, 2 = 2 shells circling, 
+						// 4 = 3 shells circling, 8 = triple shells in inventory
 
-	pw_redshell,        // 1 = redshell being held, 2 = redshell in inventory
-	pw_tripleredshell,  // 1 = 1 red shell circling, 2 = 2 red shells circling, 
-                        // 4 = 3 red shells circling, 8 = triple red shells in inventory
+	pw_redshell,		// 1 = redshell being held, 2 = redshell in inventory
+	pw_tripleredshell,	// 1 = 1 red shell circling, 2 = 2 red shells circling, 
+						// 4 = 3 red shells circling, 8 = triple red shells in inventory
 
-	pw_banana,          // 1 = banana being held, 2 = banana in inventory
-	pw_triplebanana,    // 1 = 1 banana following, 2 = 2 bananas following, 
-                        // 4 = 3 bananas following, 8 = triple bananas in inventory
+	pw_banana,			// 1 = banana being held, 2 = banana in inventory
+	pw_triplebanana,	// 1 = 1 banana following, 2 = 2 bananas following, 
+						// 4 = 3 bananas following, 8 = triple bananas in inventory
 
-	pw_fakeitem,        // 1 = fake being held, 2 = fake in inventory
+	pw_fakeitem,		// 1 = fake being held, 2 = fake in inventory
 
-	pw_bomb,            // 1 = bomb being held, 2 = bomb in inventory
+	pw_bomb,			// 1 = bomb being held, 2 = bomb in inventory
 
-	pw_shrink,          // > 0  = small, < 0 = big
-	pw_squished,        // Squashed timer
-	pw_boostcharge,     // Charge your engine at the start of the race for a boost
-	pw_fishing,         // Set up a timer that forces you to be in the air while respawning
+	pw_shrink,			// > 0  = small, < 0 = big
+	pw_squished,		// Squashed timer
+	pw_boostcharge,		// Charge your engine at the start of the race for a boost
+	pw_fishing,			// Set up a timer that forces you to be in the air while respawning
 	
 	// Misc
-	pw_psychic,         // Silver's floating power
+	pw_psychic,			// Silver's floating power
 
-	pw_waypoint,        // Waypoints. 'nuff said.
-	pw_introcam,        // Early joiners need this, or a new joiner's camera will randomly rotate
-	pw_sounds,          // We use this to avoid sounds being played every tic
+	pw_waypoint,		// Waypoints. 'nuff said.
+	pw_introcam,		// Early joiners need this, or a new joiner's camera will randomly rotate
+	pw_sounds,			// We use this to avoid sounds being played every tic
 
-	pw_boo,             // The initial boo, when used we decide who to swap with and 
+	pw_boo,				// The initial boo, when used we decide who to swap with and 
                         // if we will actually swap, 1 = have boo in inventory
-	pw_bootake,         // You are stealing an item from another player with boo, this is your timer
-	pw_boostolen,       // you are the player being stolen from, this is your timer
+	pw_bootake,			// You are stealing an item from another player with boo, this is your timer
+	pw_boostolen,		// you are the player being stolen from, this is your timer
 
 	pw_greenboo,
 	pw_kitchensink,
 
-	pw_pcd, // Past Checkpoint Distance
-	pw_ncd, // Next Chekpoint Distance
+	pw_pcd,				// Past Checkpoint Distance
+	pw_ncd,				// Next Chekpoint Distance
     
     
 	NUMPOWERS

@@ -292,8 +292,8 @@ enum TypeOfLevel
 	TOL_ERZ3   = 0x0800, ///< ERZ3
 	TOL_XMAS   = 0x1000, ///< Christmas NiGHTS
     
-    TOL_RETROKART   = 0x2000, ///< SRB2kart 'Retro' mode    // SRB2kart 16/02/15
-    TOL_NEOKART     = 0x4000  ///< SRB2kart 'Neo' mode
+	TOL_RETROKART   = 0x2000, ///< SRB2kart 'Retro' mode	// SRB2kart 16/02/15
+	TOL_NEOKART     = 0x4000  ///< SRB2kart 'Neo' mode
 };
 
 // Gametypes

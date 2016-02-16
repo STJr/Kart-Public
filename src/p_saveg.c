@@ -94,7 +94,7 @@ static inline void P_UnArchivePlayer(void)
 	savedata.lives = READINT32(save_p);
 	savedata.continues = READINT32(save_p);
 
-    savedata.starpostwp = READUINT8(save_p);    // SRB2kart 16/02/15
+	savedata.starpostwp = READUINT8(save_p);    // SRB2kart 16/02/15
 	savedata.position = READUINT8(save_p);      // "
 
 	if (savedata.botcolor)
@@ -183,7 +183,7 @@ static inline void P_NetArchivePlayers(void)
 		WRITEUINT32(save_p, players[i].realtime);
 		WRITEUINT8(save_p, players[i].laps);
         
-        for (j = 0; j < (256); j++)                             // SRB2kart 16/02/15
+		for (j = 0; j < (256); j++)                             // SRB2kart 16/02/15
 			WRITEUINT32(save_p, players[i].checkpointtimes[j]); // "
 		WRITEINT32(save_p, players[i].playerahead);             // "
 
@@ -281,8 +281,8 @@ static inline void P_NetArchivePlayers(void)
 		WRITEUINT8(save_p, players[i].accelstart);
 		WRITEUINT8(save_p, players[i].acceleration);
 		WRITEFIXED(save_p, players[i].jumpfactor);
-        
-        WRITEINT32(save_p, players[i].position);    // SRB2kart 16/02/15
+
+		WRITEINT32(save_p, players[i].position);    // SRB2kart 16/02/15
 	}
 }
 
@@ -364,7 +364,7 @@ static inline void P_NetUnArchivePlayers(void)
 		players[i].realtime = READUINT32(save_p); // integer replacement for leveltime
 		players[i].laps = READUINT8(save_p); // Number of laps (optional)
 
-        for (j = 0; j < (256); j++)                             // SRB2kart 16/02/15
+		for (j = 0; j < (256); j++)                             // SRB2kart 16/02/15
 			players[i].checkpointtimes[j] = READUINT32(save_p); // "
 		players[i].playerahead = READINT32(save_p);             // "
 
@@ -454,7 +454,7 @@ static inline void P_NetUnArchivePlayers(void)
 		players[i].acceleration = READUINT8(save_p);
 		players[i].jumpfactor = READFIXED(save_p);
         
-        players[i].position = READINT32(save_p);
+		players[i].position = READINT32(save_p);
 	}
 }
 

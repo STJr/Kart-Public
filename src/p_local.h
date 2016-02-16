@@ -59,7 +59,7 @@
 #define mariomode (maptol & TOL_MARIO)
 #define twodlevel (maptol & TOL_2D)
 
-#define retrokart (maptol & TOL_RETROKART)  // SRB2kart 16/02/15
+#define retrokart (maptol & TOL_RETROKART)	// SRB2kart 16/02/15
 #define neokart   (maptol & TOL_NEOKART)
 
 //
@@ -363,10 +363,10 @@ void P_CheckPointLimit(void);
 void P_CheckSurvivors(void);
 boolean P_CheckRacers(void);
 
-void P_PlayBoardSound(mobj_t *source);                      // SRB2kart 16/02/15
-void P_LookForWaypoints(player_t *player);                  // "
-void P_Waypoint(mobj_t *source, mobj_t *enemy);             // "
-INT32  P_CheckPlayerAhead(player_t *player, INT32 tocheck); // "
+void P_PlayBoardSound(mobj_t *source);						// SRB2kart 16/02/15
+void P_LookForWaypoints(player_t *player);					// "
+void P_Waypoint(mobj_t *source, mobj_t *enemy);				// "
+INT32  P_CheckPlayerAhead(player_t *player, INT32 tocheck);	// "
 
 void P_ClearStarPost(INT32 postnum);
 void P_ResetStarposts(void);

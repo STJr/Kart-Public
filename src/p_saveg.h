@@ -39,12 +39,12 @@ typedef struct
 	INT32 continues;
 	UINT16 emeralds;
     
-    INT32 starpostwp;       // SRB2kart 16/02/15
-	INT32 position;         // "
-	INT32 helddir;          // Held dir of controls; 1 = forward, 0 = none, -1 = backward
-	INT32 turning;          // "
-	INT32 newfloorz;        // "
-	INT32 lakitu;           // "
+	INT32 starpostwp;		// SRB2kart 16/02/15
+	INT32 position;			// "
+	INT32 helddir;			// Held dir of controls; 1 = forward, 0 = none, -1 = backward
+	INT32 turning;			// "
+	INT32 newfloorz;		// "
+	INT32 lakitu;			// "
     
 } savedata_t;
 

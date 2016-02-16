@@ -988,13 +988,13 @@ static const struct {
 	{"CHRISTMAS",TOL_XMAS},
 	{"WINTER",TOL_XMAS},
     
-    {"RETRO",TOL_RETROKART},        // SRB2kart 16/02/15
-    {"RETROKART",TOL_RETROKART},
-    {"MARIOKART",TOL_RETROKART},
+	{"RETRO",TOL_RETROKART},		// SRB2kart 16/02/15
+	{"RETROKART",TOL_RETROKART},
+	{"MARIOKART",TOL_RETROKART},
     
-    {"NEO",TOL_NEOKART},
-    {"NEOKART",TOL_NEOKART},
-    {"SONICKART",TOL_NEOKART},
+	{"NEO",TOL_NEOKART},
+	{"NEOKART",TOL_NEOKART},
+	{"SONICKART",TOL_NEOKART},
 
 	{NULL, 0}
 };
@@ -1193,7 +1193,7 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				mapheaderinfo[num-1]->countdown = (INT16)i;
 			else if (fastcmp(word, "PALETTE"))
 				mapheaderinfo[num-1]->palette = (UINT16)i;
-            else if (fastcmp(word, "AUTOMAP"))                  // SRB2kart 16/02/15
+			else if (fastcmp(word, "AUTOMAP"))					// SRB2kart 16/02/15
 				mapheaderinfo[num-1]->automap = (UINT16)i;
 			else if (fastcmp(word, "NUMLAPS"))
 				mapheaderinfo[num-1]->numlaps = (UINT8)i;
@@ -2044,7 +2044,7 @@ static boolean GoodDataFileName(const char *s)
 	if (p <= s) return false; // too short
 	if (!fasticmp(p, tail)) return false; // doesn't end in .dat
 #ifdef DELFILE
-	if (fasticmp(s, "srb2kart.dat") && !disableundo) return false;  // SRB2kart 16/02/15
+	if (fasticmp(s, "srb2kart.dat") && !disableundo) return false;	// SRB2kart 16/02/15
 #else
 	if (fasticmp(s, "srb2kart.dat")) return false;
 #endif
