@@ -995,7 +995,7 @@ static const char *credits[] = {
 	"",
 	"\1Sprite Artists",
 	"Odi \"Iceman404\" Atunzu",
-	"Victor \"VAdaPEGA\" Ara\x1Fjo", // Araújo -- sorry for our limited font! D:
+	"Victor \"VAdaPEGA\" Ara\x1Fjo", // AraÃºjo -- sorry for our limited font! D:
 	"Jim \"MotorRoach\" DeMello",
 	"Desmond \"Blade\" DesJardins",
 	"Sherman \"CoatRack\" DesJardins",
@@ -1317,10 +1317,10 @@ void F_GameEvaluationDrawer(void)
 
 			if (ALL7EMERALDS(emeralds))
 				++timesBeatenWithEmeralds;
-
-			if (ultimatemode)
+/*
+			if (ultimatemode)				// SRB2kart 16/02/21 - I don't think we need Ultimate mode
 				++timesBeatenUltimate;
-
+*/
 			if (M_UpdateUnlockablesAndExtraEmblems())
 				S_StartSound(NULL, sfx_ncitem);
 

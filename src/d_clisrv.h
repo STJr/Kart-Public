@@ -228,6 +228,18 @@ typedef struct
 	UINT8 timeshit;
 	INT32 onconveyor;
 
+	INT32 starpostwp;			// SRB2kart 16/02/21
+	INT32 position;
+	INT32 heldDir;
+	INT32 turning;
+	INT32 newfloorz;
+	INT32 lakitu;
+
+	INT32 spinout;
+	UINT8 spinouttype;
+
+	UINT8 boosting;
+
 	//player->mo stuff
 	UINT8 hasmo; //boolean
 

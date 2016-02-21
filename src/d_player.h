@@ -228,7 +228,7 @@ typedef enum
 	pw_ingoop, // In goop
 
 	// /////////////// //
-	// SRB2kart Powers //		// SRB2kart 16/02/15  (TODO: Remove Riders powers we don't need.)
+	// SRB2kart Powers //		// SRB2kart 16/02/15
 	// /////////////// //
     
 	// Basic gameplay things
@@ -257,7 +257,7 @@ typedef enum
 	pw_squishedtimer,		// Squished frame timer
 	pw_goldshroomtimer,		// Gold Mushroom duration timer
 	pw_startimer,			// Invincibility timer
-	pw_spinouttimer			// Wipe-out from a banana peel or oil slick
+	pw_spinouttimer,		// Wipe-out from a banana peel or oil slick
 	pw_laserwisptimer,		// The duration and relative angle of the laser
 	pw_fireflowertimer,		// Duration of Fire Flower
 

@@ -1241,7 +1241,7 @@ void D_SRB2Main(void)
 	if (dedicated)
 		COM_ImmedExecute(va("exec \"%s"PATHSEP"adedserv.cfg\"\n", srb2home));
 	else
-		COM_ImmedExecute(va("exec \"%s"PATHSEP"autoexec.cfg\" -noerror\n", srb2home));
+		COM_ImmedExecute(va("exec \"%s"PATHSEP"kartexec.cfg\" -noerror\n", srb2home));
 
 	if (!autostart)
 		M_PushSpecialParameters(); // push all "+" parameters at the command buffer
@@ -1282,11 +1282,13 @@ void D_SRB2Main(void)
 		return;
 	}
 
-	if (M_CheckParm("-ultimatemode"))
+/*
+	if (M_CheckParm("-ultimatemode"))	// SRB2kart 16/02/21 - I don't think we need Ultimate mode
 	{
 		autostart = true;
 		ultimatemode = true;
 	}
+*/
 
 	if (autostart || netgame || M_CheckParm("+connect") || M_CheckParm("-connect"))
 	{

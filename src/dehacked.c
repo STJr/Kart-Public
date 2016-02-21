@@ -7374,7 +7374,69 @@ static const char *const POWERS_LIST[] = {
 
 	//for linedef exec 427
 	"NOCONTROL",
-	"INGOOP" // In goop
+	"INGOOP", // In goop
+	
+	// /////////////// //
+	// SRB2kart Powers //		// SRB2kart 16/02/21
+	// /////////////// //
+    
+	// Basic gameplay things
+	"WAYPOINT",			// Waypoints.
+	"INTROCAM",			// Early joiners need this, or a new joiner's camera will randomly rotate
+	"SOUNDS",			// Used this to avoid sounds being played every tic
+	"PCD",				// Past Checkpoint Distance
+	"NCD",				// Next Chekpoint Distance
+	"DRIFT",			// Drifting Left or Right, plus a bigger counter = sharper turn
+	"DRIFTSPEED",		// (Do we still need this?) (was 'pw_exspeed')
+	"DRIFTCHARGE",		// Charge your drift so you can release a burst of speed
+	"JMP",				// In Mario Kart, letting go of the jump button stops the drift
+	"FISHING",			// Lakitu is fishing you out of the pit and you have to wait to be dropped
+	"KARTITEM",			// Used for the roulette when deciding what item to give you
+	"ITEMSLOT",			// If you have X item, and kartitem chose X too, save it
+	"ITEMCLOSE",		// Used to animate the item window closing (was 'pw_psychic')
+
+	// Some Items use timers for their duration or relative effects
+
+	"MAGNETTIMER",			// Duration of Magnet's item-break and item box pull
+	"BOOTAKETIMER",			// You are stealing an item, this is your timer
+	"BOOSTOLENTIMER",		// You are being stolen from, this is your timer
+	"MUSHROOMTIMER",		// Duration of the Mushroom Boost itself
+	"GROWSHRINKTIMER",		// > 0 = Big, < 0 = small
+	"SQUISHEDTIMER",		// Squished frame timer
+	"GOLDSHROOMTIMER",		// Gold Mushroom duration timer
+	"STARTIMER",			// Invincibility timer
+	"SPINOUTTIMER"			// Wipe-out from a banana peel or oil slick
+	"LASERWISPTIMER",		// The duration and relative angle of the laser
+	"FIREFLOWERTIMER",		// Duration of Fire Flower
+
+	// Each item needs its own power slot, for the HUD and held use
+
+	"MAGNET",				// 0x1 = Magnet in inventory
+	"BOO",					// 0x1 = Boo in inventory
+	"MUSHROOM",				// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
+							// 0x4 = 3 Mushrooms in inventory
+	"MEGASHROOM",			// 0x1 = Mega Mushroom in inventory
+	"GOLDSHROOM",			// 0x1 = Gold Mushroom in inventory
+	"STAR",					// 0x1 = Star in inventory
+	"TRIPLEBANANA",			// 0x1 = 1 Banana following, 0x2 = 2 Bananas following
+							// 0x4 = 3 Bananas following, 0x8 = Triple Banana in inventory
+	"FAKEITEM",				// 0x1 = Fake Item being held, 0x2 = Fake Item in inventory
+	"BANANA",				// 0x1 = Banana being held, 0x2 = Banana in inventory
+	"GREENSHELL",			// 0x1 = Green Shell being held, 0x2 = Green Shell in inventory
+	"REDSHELL",				// 0x1 = Red Shell being held, 0x2 = Red Shell in inventory
+	"LASERWISP",			// 0x1 = Laser Wisp in inventory
+	"TRIPLEGREENSHELL",		// 0x1 = 1 Green Shell orbiting, 0x2 = 2 Green Shells orbiting
+							// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
+	"BOBOMB",				// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
+	"BLUESHELL",			// 0x1 = Blue Shell in inventory
+	"JAWS",					// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting, 
+							// 0x8 = 2x Jaws in inventory
+	"TOSSFEATHER",			// 0x1 = Feather in inventory
+	"FIREFLOWER",			// 0x1 = Fire Flower in inventory
+	"TRIPLEREDSHELL",		// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
+							// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
+	"BOWSERSHELL",			// 0x1 = Bowser Shell in inventory
+	"LIGHTNING"				// 0x1 = Lightning in inventory
 };
 
 static const char *const HUDITEMS_LIST[] = {
@@ -7514,6 +7576,8 @@ struct {
 	{"TOL_NIGHTS",TOL_NIGHTS},
 	{"TOL_ERZ3",TOL_ERZ3},
 	{"TOL_XMAS",TOL_XMAS},
+	{"TOL_RETROKART",TOL_RETROKART},	// SRB2kart 21/02/16
+	{"TOL_NEOKART",TOL_NEOKART},
 
 	// Level flags
 	{"LF_SCRIPTISFILE",LF_SCRIPTISFILE},
@@ -7797,6 +7861,8 @@ struct {
 	{"BT_CUSTOM1",BT_CUSTOM1}, // Lua customizable
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable
+	{"BT_FORWARD",BT_FORWARD},		// SRB2kart 16/02/21
+	{"BT_BACKWARD",BT_BACKWARD},
 
 	// cvflags_t
 	{"CV_SAVE",CV_SAVE},

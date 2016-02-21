@@ -96,6 +96,12 @@ extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, c
 extern consvar_t cv_1up, cv_eggmanbox;
 extern consvar_t cv_recycler;
 
+// SRB2kart settings - basically every item  	// SRB2kart 21/02/16
+extern consvar_t cv_magnet, cv_boo, cv_mushroom, cv_megashroom, cv_goldshroom, cv_star;
+extern consvar_t cv_triplebanana, cv_fakeitem, cv_banana, cv_greenshell, cv_redshell;
+extern consvar_t cv_laserwisp, cv_triplegreenshell, cv_bobomb, cv_blueshell, cv_jaws;
+extern consvar_t cv_tossfeather, cv_fireflower, cv_tripleredshell, cv_bowsershell, cv_lightning;
+
 extern consvar_t cv_itemfinder;
 
 extern consvar_t cv_inttime, cv_advancemap, cv_playersforexit;

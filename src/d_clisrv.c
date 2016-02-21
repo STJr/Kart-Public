@@ -568,6 +568,18 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->losstime = (tic_t)LONG(players[i].losstime);
 	rsp->timeshit = players[i].timeshit;
 	rsp->onconveyor = LONG(players[i].onconveyor);
+	
+	rsp->starpostwp = LONG(players[i].starpostwp);		// SRB2kart 16/02/21
+	rsp->position = LONG(players[i].position);
+	rsp->heldDir = LONG(players[i].heldDir);
+	rsp->turning = LONG(players[i].turning);
+	rsp->newfloorz = LONG(players[i].newfloorz);
+	rsp->lakitu = LONG(players[i].lakitu);
+
+	rsp->spinout = LONG(players[i].spinout);
+	rsp->spinouttype = players[i].spinouttype;
+
+	rsp->boosting = players[i].boosting;
 
 	rsp->hasmo = false;
 	//Transfer important mo information if the player has a body.

@@ -932,7 +932,7 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
   * kicked with a consistency failure.
   *
   * This function prints a message indicating the name change, unless the game
-  * is currently showing the intro, e.g. when processing autoexec.cfg.
+  * is currently showing the intro, e.g. when processing kartexec.cfg.
   *
   * \param playernum Player number who has requested a name change.
   * \param newname   New name for that player. Should be good, but won't
