@@ -231,90 +231,64 @@ typedef enum
 	// SRB2kart Powers //		// SRB2kart 16/02/15  (TODO: Remove Riders powers we don't need.)
 	// /////////////// //
     
-    // Riders
-	pw_boost,
-	pw_brake,
-	pw_exrun,			// Are you on your gear?
-	pw_exspeed,			// Extreme Gear speed
-	pw_airtank,			// Air points for your gear
-	pw_airstartpoint,	// More points = Less airtank points
-	pw_bustable,
-	pw_ramp,
-	pw_rampspeed,
-	pw_rampheight,
-	pw_rampspeed2,
-	pw_rampheight2,
-	pw_rampangle,
-	pw_rampscore,
-	pw_jmpcharge,		// Hold the jump button to charge it first
+	// Basic gameplay things
 
-	// Race
-	pw_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
-	pw_driftcharge,		// Charge your drift so you can release a burst of speed
-	pw_jmp,				// In Mario Kart, letting go of the jump button stops the drift
-	pw_positiondelay,	// Similar to P_PlayTauntSound's delay
-	pw_oldposition,
+	pw_waypoint,			// Waypoints.
+	pw_introcam,			// Early joiners need this, or a new joiner's camera will randomly rotate
+	pw_sounds,				// Used this to avoid sounds being played every tic
+	pw_pcd,					// Past Checkpoint Distance
+	pw_ncd,					// Next Chekpoint Distance
+	pw_drift,				// Drifting Left or Right, plus a bigger counter = sharper turn
+	pw_driftspeed,			// (Do we still need this?) (was 'pw_exspeed')
+	pw_driftcharge,			// Charge your drift so you can release a burst of speed
+	pw_jmp,					// In Mario Kart, letting go of the jump button stops the drift
+	pw_fishing,				// Lakitu is fishing you out of the pit and you have to wait to be dropped
+	pw_kartitem,			// Used for the roulette when deciding what item to give you
+	pw_itemslot,			// If you have X item, and kartitem chose X too, save it
+	pw_itemclose,			// Used to animate the item window closing (was 'pw_psychic')
 
-	// Kart
-	pw_kartitem,
-	pw_itemslot,		// If you have X item, and kartitem chose X too, save it.
+	// Some Items use timers for their duration or relative effects
 
-	pw_star,			// 1 = Star in inventory
+	pw_magnettimer,			// Duration of Magnet's item-break and item box pull
+	pw_bootaketimer,		// You are stealing an item, this is your timer
+	pw_boostolentimer,		// You are being stolen from, this is your timer
+	pw_mushroomtimer,		// Duration of the Mushroom Boost itself
+	pw_growshrinktimer,		// > 0 = Big, < 0 = small
+	pw_squishedtimer,		// Squished frame timer
+	pw_goldshroomtimer,		// Gold Mushroom duration timer
+	pw_startimer,			// Invincibility timer
+	pw_spinouttimer			// Wipe-out from a banana peel or oil slick
+	pw_laserwisptimer,		// The duration and relative angle of the laser
+	pw_fireflowertimer,		// Duration of Fire Flower
 
-	pw_mushroom,		// Whether you are currently shroom boosting
+	// Each item needs its own power slot, for the HUD and held use
 
-	pw_shroom,			// 1 = 1 Mushroom in inventory, 2 = 2 Mushrooms in inventory, 
-						// 4 = 3 Mushrooms in inventory, 8 = Gold Shroom in inventory
-	pw_goldshroom,		// Timer for gold shroom usage
-
-	pw_megamushroom,	// 1 = mega shroom in inventory
-
-	// Moved here because I don't want to break maps
-	pw_bananacam,		// Player turning timer
-
-	pw_thunder,			// 1 = lightning in inventory
-
-	pw_blueshell,		// 1 = Blue Shell in inventory
-
-	pw_shell,			// 1 = shell being held, 2 = shell in inventory
-	pw_tripleshell,		// 1 = 1 shell circling, 2 = 2 shells circling, 
-						// 4 = 3 shells circling, 8 = triple shells in inventory
-
-	pw_redshell,		// 1 = redshell being held, 2 = redshell in inventory
-	pw_tripleredshell,	// 1 = 1 red shell circling, 2 = 2 red shells circling, 
-						// 4 = 3 red shells circling, 8 = triple red shells in inventory
-
-	pw_banana,			// 1 = banana being held, 2 = banana in inventory
-	pw_triplebanana,	// 1 = 1 banana following, 2 = 2 bananas following, 
-						// 4 = 3 bananas following, 8 = triple bananas in inventory
-
-	pw_fakeitem,		// 1 = fake being held, 2 = fake in inventory
-
-	pw_bomb,			// 1 = bomb being held, 2 = bomb in inventory
-
-	pw_shrink,			// > 0  = small, < 0 = big
-	pw_squished,		// Squashed timer
-	pw_boostcharge,		// Charge your engine at the start of the race for a boost
-	pw_fishing,			// Set up a timer that forces you to be in the air while respawning
-	
-	// Misc
-	pw_psychic,			// Silver's floating power
-
-	pw_waypoint,		// Waypoints. 'nuff said.
-	pw_introcam,		// Early joiners need this, or a new joiner's camera will randomly rotate
-	pw_sounds,			// We use this to avoid sounds being played every tic
-
-	pw_boo,				// The initial boo, when used we decide who to swap with and 
-                        // if we will actually swap, 1 = have boo in inventory
-	pw_bootake,			// You are stealing an item from another player with boo, this is your timer
-	pw_boostolen,		// you are the player being stolen from, this is your timer
-
-	pw_greenboo,
-	pw_kitchensink,
-
-	pw_pcd,				// Past Checkpoint Distance
-	pw_ncd,				// Next Chekpoint Distance
-    
+	pw_magnet,				// 0x1 = Magnet in inventory
+	pw_boo,					// 0x1 = Boo in inventory
+	pw_mushroom,			// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
+							// 0x4 = 3 Mushrooms in inventory
+	pw_megashroom,			// 0x1 = Mega Mushroom in inventory
+	pw_goldshroom,			// 0x1 = Gold Mushroom in inventory
+	pw_star,				// 0x1 = Star in inventory
+	pw_triplebanana,		// 0x1 = 1 Banana following, 0x2 = 2 Bananas following
+							// 0x4 = 3 Bananas following, 0x8 = Triple Banana in inventory
+	pw_fakeitem,			// 0x1 = Fake Item being held, 0x2 = Fake Item in inventory
+	pw_banana,				// 0x1 = Banana being held, 0x2 = Banana in inventory
+	pw_greenshell,			// 0x1 = Green Shell being held, 0x2 = Green Shell in inventory
+	pw_redshell,			// 0x1 = Red Shell being held, 0x2 = Red Shell in inventory
+	pw_laserwisp,			// 0x1 = Laser Wisp in inventory
+	pw_triplegreenshell,	// 0x1 = 1 Green Shell orbiting, 0x2 = 2 Green Shells orbiting
+							// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
+	pw_bobomb,				// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
+	pw_blueshell,			// 0x1 = Blue Shell in inventory
+	pw_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting, 
+							// 0x8 = 2x Jaws in inventory
+	pw_tossfeather,			// 0x1 = Feather in inventory
+	pw_fireflower,			// 0x1 = Fire Flower in inventory
+	pw_tripleredshell,		// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
+							// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
+	pw_bowsershell,			// 0x1 = Bowser Shell in inventory
+	pw_lightning,			// 0x1 = Lightning in inventory
     
 	NUMPOWERS
 } powertype_t;
