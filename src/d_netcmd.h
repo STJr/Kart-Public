@@ -96,11 +96,18 @@ extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, c
 extern consvar_t cv_1up, cv_eggmanbox;
 extern consvar_t cv_recycler;
 
-// SRB2kart settings - basically every item  	// SRB2kart 21/02/16
-extern consvar_t cv_magnet, cv_boo, cv_mushroom, cv_megashroom, cv_goldshroom, cv_star;
-extern consvar_t cv_triplebanana, cv_fakeitem, cv_banana, cv_greenshell, cv_redshell;
-extern consvar_t cv_laserwisp, cv_triplegreenshell, cv_bobomb, cv_blueshell, cv_jaws;
-extern consvar_t cv_tossfeather, cv_fireflower, cv_tripleredshell, cv_bowsershell, cv_lightning;
+// SRB2kart specific settings	// SRB2kart 16/02/27
+// SRB2kart Retro
+extern consvar_t cv_r_magnet,      cv_r_boo,        cv_r_mushroom,         cv_r_triplemushroom, cv_r_megashroom;
+extern consvar_t cv_r_goldshroom,  cv_r_star,       cv_r_triplebanana,     cv_r_fakeitem,       cv_r_banana;
+extern consvar_t cv_r_greenshell,  cv_r_redshell,   cv_r_triplegreenshell, cv_r_bobomb,         cv_r_blueshell;
+extern consvar_t cv_r_tossfeather, cv_r_fireflower, cv_r_tripleredshell,   cv_r_bowsershell,    cv_r_lightning;
+// SRB2kart Neo
+extern consvar_t cv_n_magnet,     cv_n_ghost,         cv_n_speedshoe,    cv_n_tripleshoe,       cv_n_sizeup;
+extern consvar_t cv_n_rocketshoe, cv_n_invincibility, cv_n_triplebanana, cv_n_fakemonitor,      cv_n_banana;
+extern consvar_t cv_n_orbitspike, cv_n_jaws,          cv_n_laserwisp,    cv_n_tripleorbitspike, cv_n_mine;
+extern consvar_t cv_n_deton,      cv_n_doublejaws,    cv_n_spring,       cv_n_ghzwrecker,       cv_n_lightning;
+//
 
 extern consvar_t cv_itemfinder;
 

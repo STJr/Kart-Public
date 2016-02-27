@@ -947,8 +947,8 @@ void D_SRB2Main(void)
 	dedicated = M_CheckParm("-dedicated") != 0;
 #endif
 
-	strcpy(title, "Sonic Robo Blast 2");
-	strcpy(srb2, "Sonic Robo Blast 2");
+	strcpy(title, "SRB2 Kart");  // SRB2kart 16/02/25
+	strcpy(srb2, "SRB2 Kart");
 	D_MakeTitleString(srb2);
 
 #ifdef PC_DOS
@@ -958,7 +958,7 @@ void D_SRB2Main(void)
 #if defined (__OS2__) && !defined (HAVE_SDL)
 	// set PM window title
 	snprintf(pmData->title, sizeof (pmData->title),
-		"Sonic Robo Blast 2" VERSIONSTRING ": %s",
+		"SRB2 Kart" VERSIONSTRING ": %s",
 		title);
 	pmData->title[sizeof (pmData->title) - 1] = '\0';
 #endif
@@ -1112,7 +1112,7 @@ void D_SRB2Main(void)
 #endif
 	D_CleanFile();
 
-#if 1 // md5s last updated 12/14/14
+#if 1 // SRB2kart md5s last updated 00/00/00
 
 	// Check MD5s of autoloaded files
 	W_VerifyFileMD5(0, "c1b9577687f8a795104aef4600720ea7"); // srb2.srb/srb2.wad

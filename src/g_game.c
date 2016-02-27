@@ -3601,7 +3601,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	// Don't carry over custom music change to another map.
 	mapmusic |= MUSIC_RELOADRESET;
 
-	//ultimatemode = pultmode;		// SRB2kart 21/02/16 - I don't think we need Ultimate mode
+	//ultimatemode = pultmode;		// SRB2kart 16/02/21 - I don't think we need Ultimate mode
 	playerdeadview = false;
 	automapactive = false;
 	imcontinuing = false;

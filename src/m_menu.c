@@ -1390,6 +1390,67 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Eggman Box",        &cv_eggmanbox,    130},
 };
 
+// SRB2kart specific settings	// SRB2kart 16/02/27
+// SRB2kart Retro
+static menuitem_t OP_KartRetroToggleMenu1[] =
+{
+	// Speed Items
+	{IT_STRING | IT_CVAR, NULL, "Magnet",          &cv_r_magnet,         20}, 
+	{IT_STRING | IT_CVAR, NULL, "Boo",             &cv_r_boo,            30}, 
+	{IT_STRING | IT_CVAR, NULL, "Mushroom",        &cv_r_mushroom,       40}, 
+	{IT_STRING | IT_CVAR, NULL, "Triple Mushroom", &cv_r_triplemushroom, 50}, 
+	{IT_STRING | IT_CVAR, NULL, "Mega Mushroom",   &cv_r_megashroom,     60}, 
+	{IT_STRING | IT_CVAR, NULL, "Gold Mushroom",   &cv_r_goldshroom,     70}, 
+	{IT_STRING | IT_CVAR, NULL, "Star",            &cv_r_star,           80},
+};
+static menuitem_t OP_KartRetroToggleMenu2[] =
+{
+	// Attack Items
+	{IT_STRING | IT_CVAR, NULL, "Triple Banana",      &cv_r_triplebanana,     20}, 
+	{IT_STRING | IT_CVAR, NULL, "Fake Item",          &cv_r_fakeitem,         30}, 
+	{IT_STRING | IT_CVAR, NULL, "Banana",             &cv_r_banana,           40}, 
+	{IT_STRING | IT_CVAR, NULL, "Green Shell",        &cv_r_greenshell,       50}, 
+	{IT_STRING | IT_CVAR, NULL, "Red Shell",          &cv_r_redshell,         60}, 
+	{IT_STRING | IT_CVAR, NULL, "Triple Green Shell", &cv_r_triplegreenshell, 70}, 
+	{IT_STRING | IT_CVAR, NULL, "Bob-omb",            &cv_r_bobomb,           80}, 
+	{IT_STRING | IT_CVAR, NULL, "Blue Shell",         &cv_r_blueshell,        90}, 
+	{IT_STRING | IT_CVAR, NULL, "Toss-Feather",       &cv_r_tossfeather,     100}, 
+	{IT_STRING | IT_CVAR, NULL, "Fire Flower",        &cv_r_fireflower,      110}, 
+	{IT_STRING | IT_CVAR, NULL, "Triple Red Shell",   &cv_r_tripleredshell,  120}, 
+	{IT_STRING | IT_CVAR, NULL, "Bowser Shell",       &cv_r_bowsershell,     130}, 
+	{IT_STRING | IT_CVAR, NULL, "Lightning",          &cv_r_lightning,       140}, 
+};
+// SRB2kart Neo
+static menuitem_t OP_KartNeoToggleMenu1[] =
+{
+	// Speed Items
+	{IT_STRING | IT_CVAR, NULL, "Magnet",        &cv_n_magnet,        20}, 
+	{IT_STRING | IT_CVAR, NULL, "Ghost",         &cv_n_ghost,         30}, 
+	{IT_STRING | IT_CVAR, NULL, "Speed Shoe",    &cv_n_speedshoe,     40}, 
+	{IT_STRING | IT_CVAR, NULL, "Triple Shoe",   &cv_n_tripleshoe,    50}, 
+	{IT_STRING | IT_CVAR, NULL, "Size-up",       &cv_n_sizeup,        60}, 
+	{IT_STRING | IT_CVAR, NULL, "Rocket Shoe",   &cv_n_rocketshoe,    70}, 
+	{IT_STRING | IT_CVAR, NULL, "Invincibility", &cv_n_invincibility, 80},
+};
+static menuitem_t OP_KartNeoToggleMenu2[] =
+{
+	// Attack Items
+	{IT_STRING | IT_CVAR, NULL, "Triple Banana",      &cv_n_triplebanana,     20}, 
+	{IT_STRING | IT_CVAR, NULL, "Fake Monitor",       &cv_n_fakemonitor,      30}, 
+	{IT_STRING | IT_CVAR, NULL, "Banana",             &cv_n_banana,           40}, 
+	{IT_STRING | IT_CVAR, NULL, "Orbit Spike",        &cv_n_orbitspike,       50}, 
+	{IT_STRING | IT_CVAR, NULL, "Jaws",               &cv_n_jaws,             60}, 
+	{IT_STRING | IT_CVAR, NULL, "Laser Wisp",         &cv_n_laserwisp,        70}, 
+	{IT_STRING | IT_CVAR, NULL, "Triple Orbit Spike", &cv_n_tripleorbitspike, 80}, 
+	{IT_STRING | IT_CVAR, NULL, "Mine",               &cv_n_mine,             90}, 
+	{IT_STRING | IT_CVAR, NULL, "Deton",              &cv_n_deton,           100}, 
+	{IT_STRING | IT_CVAR, NULL, "Double Jaws",        &cv_n_doublejaws,      110}, 
+	{IT_STRING | IT_CVAR, NULL, "Spring",             &cv_n_spring,          120}, 
+	{IT_STRING | IT_CVAR, NULL, "GHZ Wrecking Ball",  &cv_n_ghzwrecker,      130}, 
+	{IT_STRING | IT_CVAR, NULL, "Lightning",          &cv_n_lightning,       140}, 
+};
+//
+
 // ==========================================================================
 // ALL MENU DEFINITIONS GO HERE
 // ==========================================================================

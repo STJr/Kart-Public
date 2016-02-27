@@ -290,6 +290,51 @@ consvar_t cv_bombshield =    {"tv_bombshield",    "5", CV_NETVAR|CV_CHEAT, chanc
 consvar_t cv_1up =           {"tv_1up",           "5", CV_NETVAR|CV_CHEAT, chances_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_eggmanbox =     {"tv_eggman",        "5", CV_NETVAR|CV_CHEAT, chances_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+// SRB2kart specific settings	// SRB2kart 16/02/27
+// SRB2kart Retro
+consvar_t cv_r_magnet           = {"retro_magnet",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_boo              = {"retro_boo",              "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_mushroom         = {"retro_mushroom",         "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_triplemushroom   = {"retro_triplemushroom",   "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_megashroom       = {"retro_megashroom",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_goldshroom       = {"retro_goldshroom",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_star             = {"retro_star",             "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_triplebanana     = {"retro_triplebanana",     "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_fakeitem         = {"retro_fakeitem",         "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_banana           = {"retro_banana",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_greenshell       = {"retro_greenshell",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_redshell         = {"retro_redshell",         "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_triplegreenshell = {"retro_triplegreenshell", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_bobomb           = {"retro_bobomb",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_blueshell        = {"retro_blueshell",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_tossfeather      = {"retro_tossfeather",      "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_fireflower       = {"retro_fireflower",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_tripleredshell   = {"retro_tripleredshell",   "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_bowsershell      = {"retro_bowsershell",      "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_r_lightning        = {"retro_lightning",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+// SRB2kart Neo
+consvar_t cv_n_magnet           = {"neo_magnet",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_ghost            = {"neo_ghost",            "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_speedshoe        = {"neo_speedshoe",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_tripleshoe       = {"neo_tripleshoe",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_sizeup           = {"neo_sizeup",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_rocketshoe       = {"neo_rocketshoe",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_invincibility    = {"neo_invincibility",    "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_triplebanana     = {"neo_triplebanana",     "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_fakemonitor      = {"neo_fakemonitor",      "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_banana           = {"neo_banana",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_orbitspike       = {"neo_orbitspike",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_jaws             = {"neo_jaws",             "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_laserwisp        = {"neo_laserwisp",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_tripleorbitspike = {"neo_tripleorbitspike", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_mine             = {"neo_mine",             "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_deton            = {"neo_deton",            "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_doublejaws       = {"neo_doublejaws",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_spring           = {"neo_spring",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_ghzwrecker       = {"neo_ghzwrecker",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_n_lightning        = {"neo_lightning",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+//
+
 consvar_t cv_ringslinger = {"ringslinger", "No", CV_NETVAR|CV_NOSHOWHELP|CV_CALL|CV_CHEAT, CV_YesNo,
 	Ringslinger_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_gravity = {"gravity", "0.5", CV_RESTRICT|CV_FLOAT|CV_CALL, NULL, Gravity_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -495,6 +540,31 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_bombshield);
 	CV_RegisterVar(&cv_1up);
 	CV_RegisterVar(&cv_eggmanbox);
+
+//	// SRB2kart 16/02/27
+	CV_RegisterVar(&cv_magnet);
+	CV_RegisterVar(&cv_boo);
+	CV_RegisterVar(&cv_mushroom);
+	CV_RegisterVar(&cv_triplemushroom);
+	CV_RegisterVar(&cv_megashroom);
+	CV_RegisterVar(&cv_goldshroom);
+	CV_RegisterVar(&cv_star);
+	CV_RegisterVar(&cv_triplebanana);
+	CV_RegisterVar(&cv_fakeitem);
+	CV_RegisterVar(&cv_banana);
+	CV_RegisterVar(&cv_greenshell);
+	CV_RegisterVar(&cv_redshell);
+	CV_RegisterVar(&cv_laserwisp);
+	CV_RegisterVar(&cv_triplegreenshell);
+	CV_RegisterVar(&cv_bobomb);
+	CV_RegisterVar(&cv_blueshell);
+	CV_RegisterVar(&cv_jaws);
+	CV_RegisterVar(&cv_tossfeather);
+	CV_RegisterVar(&cv_fireflower);
+	CV_RegisterVar(&cv_tripleredshell);
+	CV_RegisterVar(&cv_bowsershell);
+	CV_RegisterVar(&cv_lightning);
+//
 
 	CV_RegisterVar(&cv_ringslinger);
 
