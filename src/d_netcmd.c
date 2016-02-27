@@ -541,30 +541,50 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_1up);
 	CV_RegisterVar(&cv_eggmanbox);
 
-//	// SRB2kart 16/02/27
-	CV_RegisterVar(&cv_magnet);
-	CV_RegisterVar(&cv_boo);
-	CV_RegisterVar(&cv_mushroom);
-	CV_RegisterVar(&cv_triplemushroom);
-	CV_RegisterVar(&cv_megashroom);
-	CV_RegisterVar(&cv_goldshroom);
-	CV_RegisterVar(&cv_star);
-	CV_RegisterVar(&cv_triplebanana);
-	CV_RegisterVar(&cv_fakeitem);
-	CV_RegisterVar(&cv_banana);
-	CV_RegisterVar(&cv_greenshell);
-	CV_RegisterVar(&cv_redshell);
-	CV_RegisterVar(&cv_laserwisp);
-	CV_RegisterVar(&cv_triplegreenshell);
-	CV_RegisterVar(&cv_bobomb);
-	CV_RegisterVar(&cv_blueshell);
-	CV_RegisterVar(&cv_jaws);
-	CV_RegisterVar(&cv_tossfeather);
-	CV_RegisterVar(&cv_fireflower);
-	CV_RegisterVar(&cv_tripleredshell);
-	CV_RegisterVar(&cv_bowsershell);
-	CV_RegisterVar(&cv_lightning);
-//
+	// SRB2kart specific settings	// SRB2kart 16/02/27
+	// SRB2kart Retro
+	CV_RegisterVar(&cv_r_magnet);
+	CV_RegisterVar(&cv_r_boo);
+	CV_RegisterVar(&cv_r_mushroom);
+	CV_RegisterVar(&cv_r_triplemushroom);
+	CV_RegisterVar(&cv_r_megashroom);
+	CV_RegisterVar(&cv_r_goldshroom);
+	CV_RegisterVar(&cv_r_star);
+	CV_RegisterVar(&cv_r_triplebanana);
+	CV_RegisterVar(&cv_r_fakeitem);
+	CV_RegisterVar(&cv_r_banana);
+	CV_RegisterVar(&cv_r_greenshell);
+	CV_RegisterVar(&cv_r_redshell);
+	CV_RegisterVar(&cv_r_triplegreenshell);
+	CV_RegisterVar(&cv_r_bobomb);
+	CV_RegisterVar(&cv_r_blueshell);
+	CV_RegisterVar(&cv_r_tossfeather);
+	CV_RegisterVar(&cv_r_fireflower);
+	CV_RegisterVar(&cv_r_tripleredshell);
+	CV_RegisterVar(&cv_r_bowsershell);
+	CV_RegisterVar(&cv_r_lightning);
+	// SRB2kart Neo
+	CV_RegisterVar(&cv_n_magnet);
+	CV_RegisterVar(&cv_n_ghost);
+	CV_RegisterVar(&cv_n_speedshoe);
+	CV_RegisterVar(&cv_n_tripleshoe);
+	CV_RegisterVar(&cv_n_sizeup);
+	CV_RegisterVar(&cv_n_rocketshoe);
+	CV_RegisterVar(&cv_n_invincibility);
+	CV_RegisterVar(&cv_n_triplebanana);
+	CV_RegisterVar(&cv_n_fakemonitor);
+	CV_RegisterVar(&cv_n_banana);
+	CV_RegisterVar(&cv_n_orbitspike);
+	CV_RegisterVar(&cv_n_jaws);
+	CV_RegisterVar(&cv_n_laserwisp);
+	CV_RegisterVar(&cv_n_tripleorbitspike);
+	CV_RegisterVar(&cv_n_mine);
+	CV_RegisterVar(&cv_n_deton);
+	CV_RegisterVar(&cv_n_doublejaws);
+	CV_RegisterVar(&cv_n_spring);
+	CV_RegisterVar(&cv_n_ghzwrecker);
+	CV_RegisterVar(&cv_n_lightning);
+	//
 
 	CV_RegisterVar(&cv_ringslinger);
 
