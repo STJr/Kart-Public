@@ -61,7 +61,7 @@ JoyType_t Joystick2;
 #define SAVEGAMESIZE (1024)
 
 char gamedatafilename[64] = "srb2kart.dat";		// SRB2kart 16/02/15
-char timeattackfolder[64] = "main";
+char timeattackfolder[64] = "kart";
 char customversionstring[32] = "\0";
 
 static void G_DoCompleted(void);
@@ -953,6 +953,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 {
 	boolean forcestrafe = false;
 	INT32 tspeed, forward, side, axis, i;
+	INT32 turnspeed;							// SRB2kart 16/02/28
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
 	boolean turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
@@ -1220,20 +1221,54 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	
+	// SRB2kart 16/02/28
+	// Hopefully they'll ALWAYS be in one of these modes, but semantics.
+	if (retrokart || neokart)
+	{
+		axis = JoyAxis(AXISTURN);
+		if (turnright || axis > 0)
+			cmd->buttons |= BT_WEAPONNEXT;
+		else
+			cmd->buttons &= ~BT_WEAPONNEXT;
+
+		if (turnleft || axis < 0)
+			cmd->buttons |= BT_WEAPONPREV;
+		else
+			cmd->buttons &= ~BT_WEAPONPREV;
+	}
+	
+	// Ensure the player can't turn when not moving.			// SRB2kart 16/02/28
+	if (players[consoleplayer].mo 
+		&& (players[consoleplayer].powers[pw_introcam] > 1 || players[consoleplayer].speed == 0))
+		turnspeed = 0;
+	else
+		turnspeed = 16;
+	
+	// Sryder's turn-speed fix.									// SRB2kart 16/02/28
+	cmd->angleturn = (FixedMul(cmd->angleturn,FixedDiv((80-players[consoleplayer].speed),80)));
+	
+	if (players[consoleplayer].powers[pw_invulnerability] 
+		|| players[consoleplayer].powers[pw_mushroom] || players[consoleplayer].powers[pw_shrink] < 0)
+		cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
+	//
 
 	if (cv_analog.value) {
-		cmd->angleturn = (INT16)(thiscam->angle >> 16);
+		//cmd->angleturn = (INT16)(thiscam->angle >> 16);		// SRB2kart 16/02/28
+		cmd->angleturn = (INT16)(thiscam->angle >> turnspeed);
 		if (player->awayviewtics)
 			cmd->angleturn = (INT16)(player->awayviewmobj->angle >> 16);
 	}
 	else
 	{
-		localangle += (cmd->angleturn<<16);
+		//localangle += (cmd->angleturn<<16);					// SRB2kart 16/02/28
+		localangle += (cmd->angleturn << turnspeed);
 		cmd->angleturn = (INT16)(localangle >> 16);
 	}
 
 	//Reset away view if a command is given.
 	if ((cmd->forwardmove || cmd->sidemove || cmd->buttons)
+		&& !players[consoleplayer].spectator					// SRB2kart 16/02/28
 		&& displayplayer != consoleplayer)
 		displayplayer = consoleplayer;
 }
@@ -1243,6 +1278,7 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 {
 	boolean forcestrafe = false;
 	INT32 tspeed, forward, side, axis, i;
+	INT32 turnspeed;							// SRB2kart 16/02/28
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
 	boolean turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
@@ -1508,6 +1544,37 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	// SRB2kart 16/02/28
+	// Hopefully they'll ALWAYS be in one of these modes, but semantics.
+	if (retrokart || neokart)
+	{
+		axis = JoyAxis(AXISTURN);
+		if (turnright || axis > 0)
+			cmd->buttons |= BT_WEAPONNEXT;
+		else
+			cmd->buttons &= ~BT_WEAPONNEXT;
+
+		if (turnleft || axis < 0)
+			cmd->buttons |= BT_WEAPONPREV;
+		else
+			cmd->buttons &= ~BT_WEAPONPREV;
+	}
+	
+	// Ensure the player can't turn when not moving.			// SRB2kart 16/02/28
+	if (players[secondarydisplayplayer].mo 
+		&& (players[secondarydisplayplayer].powers[pw_introcam] > 1 || players[secondarydisplayplayer].speed == 0))
+		turnspeed = 0;
+	else
+		turnspeed = 16;
+	
+	// Sryder's turn-speed fix.									// SRB2kart 16/02/28
+	cmd->angleturn = (FixedMul(cmd->angleturn,FixedDiv((80-players[secondarydisplayplayer].speed),80)));
+	
+	if (players[secondarydisplayplayer].powers[pw_invulnerability] 
+		|| players[secondarydisplayplayer].powers[pw_mushroom] || players[secondarydisplayplayer].powers[pw_shrink] < 0)
+		cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
+	//
+
 	if (player->bot == 1) {
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
 		{
@@ -1522,13 +1589,15 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	}
 
 	if (cv_analog2.value) {
-		cmd->angleturn = (INT16)(thiscam->angle >> 16);
+		// cmd->angleturn = (INT16)(thiscam->angle >> 16);		// SRB2kart 16/02/28
+		cmd->angleturn = (INT16)(thiscam->angle >> turnspeed);
 		if (player->awayviewtics)
 			cmd->angleturn = (INT16)(player->awayviewmobj->angle >> 16);
 	}
 	else
 	{
-		localangle2 += (cmd->angleturn<<16);
+		// localangle2 += (cmd->angleturn<<16);					// SRB2kart 16/02/28
+		localangle2 += (cmd->angleturn << turnspeed);
 		cmd->angleturn = (INT16)(localangle2 >> 16);
 	}
 }
