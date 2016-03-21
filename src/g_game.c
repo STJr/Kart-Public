@@ -1993,6 +1993,15 @@ void G_Ticker(boolean run)
 	{
 		if (playeringame[i])
 			G_CopyTiccmd(&players[i].cmd, &netcmds[buf][i], 1);
+			
+		// Save the dir the player is holding					// SRB2kart 16/03/20
+		//  to allow items to be thrown forward or backward.
+		if (cmd->forwardmove > 0)
+			players[i].heldDir = 1;
+		else if (cmd->forwardmove < 0)
+			players[i].heldDir = -1;
+		else
+			players[i].heldDir = 0;
 	}
 
 	// do main actions
@@ -2114,6 +2123,16 @@ void G_PlayerReborn(INT32 player)
 	INT32 continues;
 	UINT8 charability;
 	UINT8 charability2;
+	//											// SRB2kart 16/03/20
+	INT32 starpostwp;
+	INT32 newfloorz;
+	INT32 lakitu;
+	INT32 airtime;
+	INT32 x;
+	INT32 racescore;
+	tic_t checkpointtimes[256];
+	INT32 playerahead;
+	//
 	fixed_t normalspeed;
 	fixed_t runspeed;
 	UINT8 thrustfactor;
@@ -2154,6 +2173,16 @@ void G_PlayerReborn(INT32 player)
 	exiting = players[player].exiting;
 	jointime = players[player].jointime;
 	spectator = players[player].spectator;
+	//											// SRB2kart 16/03/20
+	starpostwp = players[player].starpostwp;
+	newfloorz = players[player].newfloorz;
+	lakitu = players[player].lakitu;
+	airtime = players[player].airtime;
+	racescore = players[player].racescore;
+    for (x = 0; x < (256); x++)  //...
+	    checkpointtimes[x] = players[player].checkpointtimes[x];
+	playerahead = players[player].playerahead;
+	//
 	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE));
 
 	// As long as we're not in multiplayer, carry over cheatcodes from map to map
@@ -2221,6 +2250,16 @@ void G_PlayerReborn(INT32 player)
 	p->actionspd = actionspd;
 	p->mindash = mindash;
 	p->maxdash = maxdash;
+	//											// SRB2kart 16/03/20
+	p->starpostwp = starpostwp;
+	p->newfloorz = newfloorz;
+	p->lakitu = lakitu;
+	p->airtime = airtime;
+	p->racescore = racescore;
+    for (x = 0; x < 256; x++)  //!
+        players[player].checkpointtimes[x] = checkpointtimes[x];
+	p->playerahead = playerahead;
+	//
 
 	p->starposttime = starposttime;
 	p->starpostx = starpostx;
@@ -2253,7 +2292,7 @@ void G_PlayerReborn(INT32 player)
 	&& gametype != GT_RACE)
 		p->powers[pw_flashing] = flashingtics-1; // Babysitting deterrent
 
-	if (p-players == consoleplayer)
+/*	if (p-players == consoleplayer)
 	{
 		if (mapmusic & MUSIC_RELOADRESET) // TODO: Might not need this here
 		{
@@ -2261,8 +2300,25 @@ void G_PlayerReborn(INT32 player)
 				| (mapheaderinfo[gamemap-1]->musicslottrack << MUSIC_TRACKSHIFT);
 		}
 		S_ChangeMusic(mapmusic, true);
-	}
+	}*/
+	//											// SRB2kart 16/03/20
+	if (kartmode && leveltime < 157 && p-players == consoleplayer)  // TODO: Might not need 'kartmode' check
+		S_StopMusic();
 
+	if (kartmode && leveltime > 157 && p-players == consoleplayer)
+	{
+		if (mapmusic & MUSIC_RELOADRESET) // TODO: Might not need this here
+		{
+			mapmusic = mapheaderinfo[gamemap-1]->musicslot
+				| (mapheaderinfo[gamemap-1]->musicslottrack << MUSIC_TRACKSHIFT);
+		}
+		S_ChangeMusic(mapmusic, true);
+
+		if (p->laps == (unsigned)(cv_numlaps.value - 1))
+			S_SpeedMusic(1.2f);
+	}
+	//
+	
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for
 
@@ -2583,7 +2639,7 @@ void G_DoReborn(INT32 playernum)
 			// Do a wipe
 			wipegamestate = -1;
 
-			if (player->starposttime)
+			if (player->starpostnum)	// if (player->starposttime)	// SRB2kart 16/03/20
 				starpost = true;
 
 			if (camera.chase)
@@ -2628,7 +2684,7 @@ void G_DoReborn(INT32 playernum)
 		// respawn at the start
 		mobj_t *oldmo = NULL;
 
-		if (player->starposttime)
+		if (player->starpostnum)	// if (player->starposttime)	// SRB2kart 16/03/20
 			starpost = true;
 
 		// first dissasociate the corpse
@@ -3629,6 +3685,11 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			{
 				players[i].lives = 3;
 				players[i].continues = 1;
+				//								// SRB2kart 16/03/20
+				players[i].racescore = 0;
+				players[i].newfloorz = 0;
+				players[i].lakitu = 0;
+				//
 			}
 
 			// The latter two should clear by themselves, but just in case
