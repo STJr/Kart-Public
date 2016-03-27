@@ -69,6 +69,7 @@ patch_t *nightsnum[10]; // 0-9
 // Level title and credits fonts
 patch_t *lt_font[LT_FONTSIZE];
 patch_t *cred_font[CRED_FONTSIZE];
+patch_t *kart_font[KART_FONTSIZE];			// SRB2kart 16/03/27
 
 static player_t *plr;
 boolean chat_on; // entering a chat message?
@@ -106,6 +107,7 @@ static patch_t *crosshair[HU_CROSSHAIRS]; // 3 precached crosshair graphics
 static void HU_DrawRankings(void);
 static void HU_DrawCoopOverlay(void);
 static void HU_DrawNetplayCoopOverlay(void);
+static void HU_DrawRaceRankings(void);
 
 //======================================================================
 //                 KEYBOARD LAYOUTS FOR ENTERING TEXT
@@ -237,6 +239,34 @@ void HU_LoadGraphics(void)
 		else
 			cred_font[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
+	
+	//																		// SRB2kart 16/03/27
+	// cache the level title font for entire game execution
+	kart_font[0] = (patch_t *)W_CachePatchName("MKFNT034", PU_HUDGFX); /// \note fake start hack
+	kart_font[5] = (patch_t *)W_CachePatchName("MKFNT039", PU_HUDGFX); /// \note fake start hack
+
+	// Number support
+	kart_font[13] = (patch_t *)W_CachePatchName("MKFNT047", PU_HUDGFX);
+	kart_font[14] = (patch_t *)W_CachePatchName("MKFNT048", PU_HUDGFX);
+	kart_font[15] = (patch_t *)W_CachePatchName("MKFNT049", PU_HUDGFX);
+	kart_font[16] = (patch_t *)W_CachePatchName("MKFNT050", PU_HUDGFX);
+	kart_font[17] = (patch_t *)W_CachePatchName("MKFNT051", PU_HUDGFX);
+	kart_font[18] = (patch_t *)W_CachePatchName("MKFNT052", PU_HUDGFX);
+	kart_font[19] = (patch_t *)W_CachePatchName("MKFNT053", PU_HUDGFX);
+	kart_font[20] = (patch_t *)W_CachePatchName("MKFNT054", PU_HUDGFX);
+	kart_font[21] = (patch_t *)W_CachePatchName("MKFNT055", PU_HUDGFX);
+	kart_font[22] = (patch_t *)W_CachePatchName("MKFNT056", PU_HUDGFX);
+	kart_font[23] = (patch_t *)W_CachePatchName("MKFNT057", PU_HUDGFX);
+	kart_font[24] = (patch_t *)W_CachePatchName("MKFNT058", PU_HUDGFX);
+
+	j = KART_REALFONTSTART;
+	for (i = KART_REALFONTSTART - KART_FONTSTART; i < KART_FONTSIZE; i++)
+	{
+		sprintf(buffer, "MKFNT%.3d", j);
+		j++;
+		kart_font[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+	}
+	//
 
 	//cache numbers too!
 	for (i = 0; i < 10; i++)
@@ -1050,10 +1080,88 @@ static void HU_DrawDemoInfo(void)
 	}
 }
 
+// Heads up displays drawer for the Automap, call each frame
+//
+void HU_AutomapDrawer(void)									// SRB2kart 16/03/27
+{
+	// Automap HUD.
+	INT32 amnumxpos;
+	INT32 amnumypos;
+	INT32 amxpos;
+	INT32 amypos;
+	INT32 lumpnum;
+	patch_t *AutomapPic;
+	INT32 i = 0;
+
+	// Draw the HUD only when playing in a level.
+	// hu_stuff needs this, unlike st_stuff.
+	if (Playing() && gamestate == GS_LEVEL)
+	{
+		INT32 x, y;
+
+		lumpnum = W_CheckNumForName(va("%sR", G_BuildAutoMapName(gamemap)));
+
+		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
+			AutomapPic = W_CachePatchName(va("%sR", G_BuildAutoMapName(gamemap)), PU_CACHE);
+		else
+			AutomapPic = W_CachePatchName(va("NOMAPR"), PU_CACHE);
+
+		if (splitscreen)
+		{
+			x = 160 - (AutomapPic->width/4);
+			y = 100 - (AutomapPic->height/4);
+		}
+		else
+		{
+			x = 312 - (AutomapPic->width/2);
+			y = 60;
+		}
+
+		V_DrawSmallScaledPatch(x, y, 0, AutomapPic);
+
+		// Player's tiny icons on the Automap.
+		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (players[i].mo && !players[i].spectator)
+				{
+					// amnum xpos & ypos are the icon's speed around the HUD.
+					// The number being divided by is for how fast it moves.
+					// The higher the number, the slower it moves.
+
+					// am xpos & ypos are the icon's starting position. Withouht
+					// it, they wouldn't 'spawn' on the top-right side of the HUD.
+					amnumxpos = (players[i].mo->x / 320) >> FRACBITS;
+					amnumypos = (-players[i].mo->y / 340) >> FRACBITS;
+					
+					amxpos = (x + amnumxpos) - (iconprefix[players[i].skin]->width/4);
+					amypos = (y + amnumypos) - (iconprefix[players[i].skin]->height/4);
+
+					if (!players[i].skincolor) // 'default' color
+					{
+						V_DrawSmallScaledPatch(amxpos, amypos, 0, iconprefix[players[i].skin]);
+					}
+					else
+					{
+						UINT8 *colormap = translationtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+						V_DrawSmallMappedPatch(amxpos, amypos, 0,iconprefix[players[i].skin], colormap);
+					}
+				}
+			}
+		}
+		if (!splitscreen && (maptol & TOL_RIDERS || maptol & TOL_KART) && !hu_showscores)
+			HU_DrawRaceRankings();
+	}
+}
+
 // Heads up displays drawer, call each frame
 //
 void HU_Drawer(void)
 {
+	// SRB2kart 16/03/27
+	HU_AutomapDrawer();
+	
 	// draw chat string plus cursor
 	if (chat_on)
 		HU_DrawChat();
@@ -1179,6 +1287,114 @@ void HU_Erase(void)
 //======================================================================
 
 //
+// HU_DrawRaceRankings									// SRB2kart 16/03/27
+//
+static void HU_DrawRaceRankings(void)
+{
+	playersort_t tab[MAXPLAYERS];
+	INT32 i, j, scorelines;
+	boolean completed[MAXPLAYERS];
+	UINT32 whiteplayer;
+	INT32 y; // Let's move them closer to the center when there's less
+
+	scorelines = 0;
+	memset(completed, 0, sizeof (completed));
+	memset(tab, 0, sizeof (playersort_t)*MAXPLAYERS);
+
+	// When you play, you quickly see your score because your name is displayed in white.
+	// When playing back a demo, you quickly see who's the view.
+	whiteplayer = demoplayback ? displayplayer : consoleplayer;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		tab[i].num = -1;
+		tab[i].name = 0;
+	}
+
+	for (j = 0; j < MAXPLAYERS; j++)
+	{
+		if (!playeringame[j])
+			continue;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (playeringame[i])
+			{
+			//the counting formula I use for race is a slight bit complex, so put it out here for simplicity
+				int checkpointnum = ((players[i].starpostnum - 1) + (numstarposts+1)*players[i].laps) + 1;
+
+				if (completed[i] == false && ((unsigned)checkpointnum > tab[scorelines].count
+					|| ((unsigned)checkpointnum == tab[scorelines].count)) 
+					&& (tab[scorelines].num < 0 || players[i].position < players[tab[scorelines].num].position))
+				{
+					tab[scorelines].count = checkpointnum;
+					tab[scorelines].num = i;
+					tab[scorelines].color = players[i].skincolor;
+				}
+			}
+		}
+		completed[tab[scorelines].num] = true;
+		scorelines++;
+	}
+
+	if (scorelines > 8) // Let's have 8 shall we
+		scorelines = 8; //dont draw past bottom of screen, show the best only
+
+	y = 84 - (8*scorelines);
+
+	HU_DrawRaceRanking(15, y, tab, scorelines, whiteplayer);
+}
+
+//
+// HU_DrawRaceRanking									// SRB2kart 16/03/27
+//
+void HU_DrawRaceRanking(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer)
+{
+	INT32 i;
+	UINT8 *colormap;
+
+	//this function is designed for 8 or less score lines only
+	I_Assert(scorelines <= 8);
+
+	for (i = 0; i < scorelines; i++)
+	{
+		if (players[tab[i].num].spectator)
+			continue; //ignore them.
+
+		if (tab[i].color == 0)
+		{
+			colormap = colormaps;
+			if (players[tab[i].num].powers[pw_super])
+				V_DrawSmallScaledPatch (x, y-4, 0, superprefix[players[tab[i].num].skin]);
+			else
+			{
+				if (tab[i].num != whiteplayer)
+					V_DrawSmallTranslucentPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin]);
+				else
+					V_DrawSmallScaledPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin]);
+			}
+		}
+		else
+		{
+			if (players[tab[i].num].powers[pw_super])
+			{
+				colormap = (UINT8 *) translationtables[players[tab[i].num].skin] - 256 + (((players[tab[i].num].powers[pw_super]) ? 15 : players[tab[i].num].skincolor)<<8);
+				V_DrawSmallMappedPatch (x, y-4, 0, superprefix[players[tab[i].num].skin], colormap);
+			}
+			else
+			{
+				colormap = (UINT8 *) translationtables[players[tab[i].num].skin] - 256 + (tab[i].color<<8);
+				if (tab[i].num != whiteplayer)
+					V_DrawSmallTranslucentMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
+				else
+					V_DrawSmallMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
+			}
+		}
+		y += 16;
+	}
+}
+
+//
 // HU_DrawTabRankings
 //
 void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer)
@@ -1257,10 +1473,23 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		{
 			if (circuitmap)
 			{
-				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedString(x+240, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
+				if (players[tab[i].num].exiting)											// SRB2kart 16/03/27
+					V_DrawRightAlignedString(x+240, y, V_YELLOWMAP, va("%d:%02d.%02d", 
+						players[tab[i].num].realtime/(60*TICRATE), 
+						players[tab[i].num].realtime/TICRATE % 60, 
+						players[tab[i].num].realtime % TICRATE));
 				else
-					V_DrawRightAlignedString(x+240, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%u", tab[i].count));
+					V_DrawRightAlignedString(x+240, y, 0, va("(CP%02d) %d:%02d.%02d",
+						tab[i].count,
+						players[tab[i].num].starposttime/(60*TICRATE),
+						players[tab[i].num].starposttime/TICRATE % 60,
+						(int)((players[tab[i].num].starposttime % TICRATE) * (100.00f/TICRATE))));
+				/*	
+				 * if (players[tab[i].num].exiting)
+				 * 	V_DrawRightAlignedString(x+240, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
+				 * else
+				 * 	V_DrawRightAlignedString(x+240, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%u", tab[i].count));
+				 * */
 			}
 			else
 				V_DrawRightAlignedString(x+240, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
@@ -1635,9 +1864,18 @@ static void HU_DrawRankings(void)
 				{
 					if (circuitmap)
 					{
-						if ((unsigned)players[i].laps+1 >= tab[scorelines].count && completed[i] == false)
+						// SRB2kart 16/03/27
+						//the counting formula used for race is a slight bit complex, so it's out here for simplicity
+						int checkpointnum = ((players[i].starpostnum - 1) + (numstarposts+1)*players[i].laps) + 1;
+						
+						if (completed[i] == false && ((unsigned)checkpointnum > tab[scorelines].count
+							|| ((unsigned)checkpointnum == tab[scorelines].count && (tab[scorelines].num < 0
+							|| players[i].starposttime < players[tab[scorelines].num].starposttime))))
 						{
-							tab[scorelines].count = players[i].laps+1;
+							tab[scorelines].count = checkpointnum;
+						//if ((unsigned)players[i].laps+1 >= tab[scorelines].count && completed[i] == false)
+						//{
+						//	tab[scorelines].count = players[i].laps+1;
 							tab[scorelines].num = i;
 							tab[scorelines].color = players[i].skincolor;
 							tab[scorelines].name = player_names[i];

@@ -91,6 +91,7 @@ static UINT8 cheatf_warp(void)
 	return 1;
 }
 
+/*															// SRB2kart 16/03/27
 static cheatseq_t cheat_ultimate = {
 	0, cheatf_ultimate,
 	{ SCRAMBLE('u'), SCRAMBLE('l'), SCRAMBLE('t'), SCRAMBLE('i'), SCRAMBLE('m'), SCRAMBLE('a'), SCRAMBLE('t'), SCRAMBLE('e'), 0xff }
@@ -102,6 +103,7 @@ static cheatseq_t cheat_ultimate_joy = {
 	  SCRAMBLE(KEY_LEFTARROW), SCRAMBLE(KEY_RIGHTARROW), SCRAMBLE(KEY_LEFTARROW), SCRAMBLE(KEY_RIGHTARROW),
 	  SCRAMBLE(KEY_ENTER), 0xff }
 };
+ * */
 
 static cheatseq_t cheat_warp = {
 	0, cheatf_warp,
@@ -217,8 +219,8 @@ boolean cht_Responder(event_t *ev)
 	else
 		ch = (UINT8)ev->data1;
 
-	ret += cht_CheckCheat(&cheat_ultimate, (char)ch);
-	ret += cht_CheckCheat(&cheat_ultimate_joy, (char)ch);
+	//ret += cht_CheckCheat(&cheat_ultimate, (char)ch);			// SRB2kart 16/03/27
+	//ret += cht_CheckCheat(&cheat_ultimate_joy, (char)ch);
 	ret += cht_CheckCheat(&cheat_warp, (char)ch);
 	ret += cht_CheckCheat(&cheat_warp_joy, (char)ch);
 	return (ret != 0);

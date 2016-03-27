@@ -35,6 +35,11 @@
 #define CRED_FONTEND 'Z' // the last font character
 #define CRED_FONTSIZE (CRED_FONTEND - CRED_FONTSTART + 1)
 
+#define KART_FONTSTART '\"' // the first font characters			// SRB2kart 16/03/27
+#define KART_REALFONTSTART 'A'
+#define KART_FONTEND 'Z' // the last font characters
+#define KART_FONTSIZE (KART_FONTEND - KART_FONTSTART + 1)
+
 #define HU_CROSSHAIRS 3 // maximum of 9 - see HU_Init();
 
 extern char *shiftxform; // english translation shift table
@@ -63,6 +68,7 @@ extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
 extern patch_t *lt_font[LT_FONTSIZE];
 extern patch_t *cred_font[CRED_FONTSIZE];
+extern patch_t *kart_font[KART_FONTSIZE];			// SRB2kart 16/03/27
 extern patch_t *emeraldpics[7];
 extern patch_t *tinyemeraldpics[7];
 extern patch_t *rflagico;
@@ -93,6 +99,7 @@ boolean HU_Responder(event_t *ev);
 
 void HU_Ticker(void);
 void HU_Drawer(void);
+void HU_AutomapDrawer(void);
 char HU_dequeueChatChar(void);
 void HU_Erase(void);
 void HU_clearChatChars(void);
@@ -100,6 +107,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
 void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds);
+void HU_DrawRaceRanking(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 
 INT32 HU_CreateTeamScoresTbl(playersort_t *tab, UINT32 dmtotals[]);
 
