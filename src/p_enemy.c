@@ -236,6 +236,16 @@ void A_BrakFireShot(mobj_t *actor);
 void A_BrakLobShot(mobj_t *actor);
 void A_NapalmScatter(mobj_t *actor);
 void A_SpawnFreshCopy(mobj_t *actor);
+// SRB2kart 16/03/27
+void A_ItemPop(mobj_t *actor);
+void A_AirBox(mobj_t *actor);
+void A_CapsulePop(mobj_t *actor);
+void A_KartItems(mobj_t *actor);
+void A_Hover(mobj_t *actor);
+void A_Lakitu(mobj_t *actor);
+void A_RedShellChase(mobj_t *actor);
+void A_BobombExplode(mobj_t *actor);
+//
 
 //
 // ENEMY THINKING
@@ -843,6 +853,11 @@ void A_Look(mobj_t *actor)
 
 	if (!P_LookForPlayers(actor, locvar1 & 65535, false , FixedMul((locvar1 >> 16)*FRACUNIT, actor->scale)))
 		return;
+
+	// SRB2kart 16/03/27
+	if (leveltime < 4*TICRATE && gametype == GT_RACE)
+		return;
+	//
 
 	// go into chase state
 	if (!locvar2)
@@ -3004,7 +3019,9 @@ void A_RingShield(mobj_t *actor)
 		P_SpawnShieldOrb(player);
 	}
 
-	S_StartSound(player->mo, actor->info->seesound);
+	// SRB2kart 16/03/27
+	if (!player->exiting)
+		S_StartSound(player->mo, actor->info->seesound);
 }
 
 // Function: A_RingBox
@@ -3030,8 +3047,11 @@ void A_RingBox(mobj_t *actor)
 
 	player = actor->target->player;
 
-	P_GivePlayerRings(player, actor->info->reactiontime);
-	if (actor->info->seesound)
+	// SRB2kart 16/03/27
+	if (!player->exiting)
+		P_GivePlayerRings(player, actor->info->reactiontime);
+	
+	if (!player->exiting && actor->info->seesound)
 		S_StartSound(player->mo, actor->info->seesound);
 }
 
@@ -3059,7 +3079,7 @@ void A_Invincibility(mobj_t *actor)
 	player = actor->target->player;
 	player->powers[pw_invulnerability] = invulntics + 1;
 
-	if (P_IsLocalPlayer(player) && !player->powers[pw_super])
+	if (P_IsLocalPlayer(player) && !player->powers[pw_super] && !player->exiting)
 	{
 		S_StopMusic();
 		if (mariomode)
@@ -3067,6 +3087,10 @@ void A_Invincibility(mobj_t *actor)
 			S_ChangeMusic(mus_minvnc, false);
 			G_GhostAddColor(GHC_INVINCIBLE);
 		}
+		else if (retrokart)						// SRB2kart 16/03/27
+			S_ChangeMusic(mus_rinvnc, true);
+		else if (neokart)
+			S_ChangeMusic(mus_rinvnc, true);
 		else
 			S_ChangeMusic(mus_invinc, false);
 	}
@@ -3753,6 +3777,7 @@ void A_ThrownRing(mobj_t *actor)
 	INT32 stop;
 	player_t *player;
 	fixed_t dist;
+	fixed_t SHELL_DIST;		// SRB2kart 16/03/27
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_ThrownRing", actor))
 		return;
@@ -3819,13 +3844,13 @@ void A_ThrownRing(mobj_t *actor)
 		// sure to stop the attraction!
 		if ((!actor->tracer->health) || (actor->tracer->player && (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
 		    && P_AproxDistance(P_AproxDistance(actor->tracer->x-actor->x,
-		    actor->tracer->y-actor->y), actor->tracer->z-actor->z) > FixedMul(RING_DIST/4, actor->tracer->scale)))
+		    actor->tracer->y-actor->y), actor->tracer->z-actor->z) > FixedMul(RING_DIST, actor->tracer->scale)))	// SRB2kart 16/03/27
 		{
 			P_SetTarget(&actor->tracer, NULL);
 		}
 
-		if (actor->tracer && (actor->tracer->health)
-			&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT)// Already found someone to follow.
+		if (actor->tracer && (actor->tracer->health) && (retrokart || neokart))	// SRB2kart 16/03/27
+			//&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT)// Already found someone to follow.
 		{
 			const INT32 temp = actor->threshold;
 			actor->threshold = 32000;
@@ -3875,6 +3900,13 @@ void A_ThrownRing(mobj_t *actor)
 			if (gametype == GT_CTF
 				&& actor->target->player->ctfteam == player->ctfteam)
 				continue;
+			
+			// SRB2kart 16/03/27
+			if (actor->target->player->position < player->position) // Red Shells only go after people ahead of you
+				continue;
+
+			SHELL_DIST = 2048;
+			SHELL_DIST = SHELL_DIST*FRACUNIT;
 		}
 
 		dist = P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
@@ -3894,7 +3926,7 @@ void A_ThrownRing(mobj_t *actor)
 			continue; // out of sight
 
 		if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
-			&& dist < FixedMul(RING_DIST/4, player->mo->scale))
+			&& dist < FixedMul(SHELL_DIST/4, player->mo->scale))		// SRB2kart 16/03/27
 			P_SetTarget(&actor->tracer, player->mo);
 		return;
 	}
@@ -5257,9 +5289,14 @@ void A_RingExplode(mobj_t *actor)
 		return;
 #endif
 
+	// SRB2kart 16/03/27
+	for (d = 0; d < 16; d++)
+		P_SpawnParaloop(actor->x, actor->y, actor->z, 32*FRACUNIT, 32, MT_EXPLOSION, d*(ANGLE_45/4), true, false); // 32 <-> 64
+	/* 
 	for (d = 0; d < 16; d++)
 		P_SpawnParaloop(actor->x, actor->y, actor->z + actor->height, FixedMul(actor->info->painchance, actor->scale), 16, MT_NIGHTSPARKLE, S_NULL, d*(ANGLE_22h), true);
-
+	*/
+	
 	S_StartSound(actor, sfx_prloop);
 
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
@@ -7512,7 +7549,17 @@ void A_MoveAbsolute(mobj_t *actor)
 		return;
 #endif
 
-	P_InstaThrust(actor, FixedAngle(locvar1*FRACUNIT), FixedMul(locvar2*FRACUNIT, actor->scale));
+	// SRB2kart 16/03/27
+	INT32 newangle;
+	if (actor->flags & MF_AMBUSH)
+		newangle = actor->angle+FixedAngle(locvar1*FRACUNIT);
+	else
+		newangle = FixedAngle(locvar1*FRACUNIT);
+
+	P_InstaThrust(actor, newangle, locvar2*FRACUNIT);
+	//
+
+	//P_InstaThrust(actor, FixedAngle(locvar1*FRACUNIT), FixedMul(locvar2*FRACUNIT, actor->scale));
 }
 
 // Function: A_Thrust
@@ -8005,6 +8052,330 @@ void A_ToggleFlameJet(mobj_t* actor)
 			actor->tics = actor->movecount;
 	}
 }
+
+// 													SRB2kart 16/03/27
+// Function: A_ItemPop
+//
+// Description: Used by Kart monitors when they explode.
+//
+// var1 = unused
+// var2 = unused
+//
+void A_ItemPop(mobj_t *actor)
+{
+	mobj_t *remains;
+	mobjtype_t item = 0;
+
+	// 16/03/27 	TODO: Make Item boxes not 'solid', or make it less obvious when the player
+	//					  hits more than one at once. It's very noticable if a player hits a
+	//					  cluster of boxes, and you can see momentum changing from collision.
+
+	// de-solidify
+	P_UnsetThingPosition(actor);
+	actor->flags &= ~MF_SOLID;
+	actor->flags |= MF_NOCLIP;
+	P_SetThingPosition(actor);
+
+	remains = P_SpawnMobj(actor->x, actor->y, actor->z, MT_ITEMEXPLOSION);
+	remains->type = actor->type; // Transfer type information
+	P_UnsetThingPosition(remains);
+	if (sector_list)
+	{
+		P_DelSeclist(sector_list);
+		sector_list = NULL;
+	}
+	remains->flags = actor->flags; // Transfer flags
+	P_SetThingPosition(remains);
+	remains->flags2 = actor->flags2; // Transfer flags2
+	remains->fuse = actor->fuse; // Transfer respawn timer
+	remains->threshold = 68;
+	remains->skin = NULL;
+
+	actor->flags2 |= MF2_BOSSNOTRAP; // Dummy flag to mark this as an exploded TV until it respawns
+	tmthing = remains;
+
+	if (actor->info->deathsound) S_StartSound(remains, actor->info->deathsound);
+
+	switch (actor->type)
+	{
+		case MT_QUESTIONBOX2: // Random!
+		{
+			if (actor->target && actor->target->player
+				&& !(actor->target->player->powers[pw_shell]      & 2 || actor->target->player->powers[pw_tripleshell] & 8
+				||   actor->target->player->powers[pw_redshell]   & 2 || actor->target->player->powers[pw_tripleredshell] & 8
+				||   actor->target->player->powers[pw_banana]     & 2 || actor->target->player->powers[pw_triplebanana] & 8
+				||   actor->target->player->powers[pw_fakeitem]   & 2 || actor->target->player->powers[pw_kitchensink]
+				||   actor->target->player->powers[pw_bomb]       & 2 || actor->target->player->powers[pw_blueshell]
+				||   actor->target->player->powers[pw_shroom]
+				||   actor->target->player->powers[pw_star]            || actor->target->player->powers[pw_goldshroom]
+				||   actor->target->player->powers[pw_thunder]         || actor->target->player->powers[pw_megamushroom]
+				||   actor->target->player->powers[pw_kartitem]        || actor->target->player->powers[pw_itemslot]
+				||   actor->target->player->powers[pw_boo]             || actor->target->player->powers[pw_bootake]
+				|| actor->target->player->powers[pw_boostolen]         || actor->target->player->powers[pw_greenboo])
+			   )
+				actor->target->player->powers[pw_kartitem] = 1;
+			else if(cv_debug && !(actor->target && actor->target->player))
+				CONS_Printf("ERROR: Powerup has no target!\n");
+
+			remains->flags &= ~MF_AMBUSH;
+			break;
+		}
+		default:
+			item = actor->info->damage;
+			break;
+	}
+
+	P_RemoveMobj(actor);
+}
+
+// Function: A_Hover
+//
+// Description: Makes the Thing hover on the ground.
+//
+// var1 = slow hover
+// var2 = unused
+//
+void A_Hover(mobj_t *actor)
+{
+	fixed_t thefloor;
+	thefloor = actor->floorz;
+
+	if (actor->z < thefloor + (16*FRACUNIT))
+		actor->momz += FRACUNIT;
+	else if (actor->z < thefloor + (32*FRACUNIT))
+		actor->momz += FRACUNIT/2;
+	else
+		actor->momz += 16;
+}
+
+// Function: A_Lakitu
+//
+// Description: Lowers the object down, or it rises up.
+//
+// var1 = 1 is to descend, 2 is to ascend and disappear
+// var2 = unused
+//
+void A_Lakitu(mobj_t *actor)
+{
+	fixed_t thefloor;
+	thefloor = actor->target->player->mo->z;
+	if (!actor->target->player)
+	{
+		P_SetMobjState(actor, S_DISS);
+		return;
+	}
+
+	if (var1 == 1 || var1 > 3)
+	{
+		if (actor->target->eflags & MFE_VERTICALFLIP)
+		{
+			if (actor->z < thefloor - (86*FRACUNIT))
+				actor->momz += FRACUNIT/3;
+			if (actor->z > thefloor - (60*FRACUNIT))
+				actor->momz = 0;
+			if (leveltime >= 52 && var1 == 1)
+				P_SetMobjState(actor, S_LAKITUSL2);
+		}
+		else
+		{
+			if (actor->z > thefloor + (86*FRACUNIT))
+				actor->momz -= FRACUNIT/3;
+			if (actor->z < thefloor + (60*FRACUNIT))
+				actor->momz = 0;
+			if (leveltime >= 52 && var1 == 1)
+				P_SetMobjState(actor, S_LAKITUSL2);
+		}
+
+		if (actor->momz == 0 && var1 == 4)
+			P_SetMobjState(actor, S_LAKITULAP1B);
+		if (actor->momz == 0 && var1 == 5)
+			P_SetMobjState(actor, S_LAKITULAP2B);
+		if (actor->momz == 0 && var1 == 6)
+			P_SetMobjState(actor, S_LAKITULAP3B);
+		if (actor->momz == 0 && var1 == 7)
+			P_SetMobjState(actor, S_LAKITULAP4B);
+		if (actor->momz == 0 && var1 == 8)
+			P_SetMobjState(actor, S_LAKITULAP5B);
+		if (actor->momz == 0 && var1 == 9)
+			P_SetMobjState(actor, S_LAKITULAP6B);
+		if (actor->momz == 0 && var1 == 10)
+			P_SetMobjState(actor, S_LAKITULAP7B);
+		if (actor->momz == 0 && var1 == 11)
+			P_SetMobjState(actor, S_LAKITULAP8B);
+		if (actor->momz == 0 && var1 == 12)
+			P_SetMobjState(actor, S_LAKITULAPFB);
+	}
+	else if (var1 == 2 || var1 == 3)
+	{
+		if (actor->target->eflags & MFE_VERTICALFLIP)
+			actor->momz -= FRACUNIT;
+		else
+			actor->momz += FRACUNIT;
+
+		if (leveltime > 175 && actor->target->player->airtime == 0)
+			P_SetMobjState(actor, S_DISS);
+	}
+	if (actor->target->player != &players[displayplayer] && !splitscreen)
+		actor->flags2 |= MF2_DONTDRAW;
+	else
+		actor->flags2 &= ~MF2_DONTDRAW;
+}
+
+// Function: A_RedShellChase
+//
+// Description: Chase routine for Red Shells
+//
+// var1 = unused
+// var2 = unused
+//
+void A_RedShellChase(mobj_t *actor)
+{
+
+	INT32 c = 0;
+	INT32 stop;
+	player_t *player;
+
+	if (actor->tracer)
+	{
+		if (!actor->tracer->health)
+		{
+			P_SetTarget(&actor->tracer, NULL);
+		}
+
+		if (actor->tracer && (actor->tracer->health))
+		{
+			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
+			return;
+		}
+	}
+
+	// first time init, this allow minimum lastlook changes
+	if (actor->lastlook == -1)
+		actor->lastlook = P_Random();
+
+	actor->lastlook %= MAXPLAYERS;
+
+	stop = (actor->lastlook - 1) & PLAYERSMASK;
+
+	if (actor->lastlook >= 0)
+	{
+		for (; ; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
+		{
+			if (!playeringame[actor->lastlook])
+				continue;
+
+			if (c++ == 2)
+				return;
+
+			player = &players[actor->lastlook];
+
+			if (!player->mo)
+				continue;
+
+			if (player->mo->health <= 0)
+				continue; // dead
+
+			if ((netgame || multiplayer) && player->spectator)
+				continue; // spectator
+
+			if (actor->target && actor->target->player)
+			{
+				if (player->mo == actor->target)
+					continue;
+
+				// Don't home in on teammates.
+				if (gametype == GT_CTF
+					&& actor->target->player->ctfteam == player->ctfteam)
+					continue;
+
+				if (gametype == GT_RACE) // Only in races, in match and CTF you should go after any nearby players
+				{
+					//                 USER               TARGET
+					if (actor->target->player->position != (player->position + 1)) // Red Shells only go after the person directly ahead of you -Sryder
+						continue;
+				}
+
+				if (!(gametype == GT_RACE))
+				{
+					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
+						player->mo->y-actor->y), player->mo->z-actor->z) > RING_DIST)
+						continue;
+				}
+			}
+
+			if ((gametype == GT_RACE) || (gametype != GT_RACE // If in match etc. only home in when you get close enough, in race etc. home in all the time
+				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
+				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST))
+				P_SetTarget(&actor->tracer, player->mo);
+			return;
+
+			// Moved to bottom so it doesn't not check the last player
+			// done looking
+			if (actor->lastlook == stop)
+			{
+				if (gametype == GT_RACE)
+					actor->lastlook = -2;
+				return;
+			}
+		}
+	}
+
+	return;
+
+}
+
+// Function: A_BobombExplode
+//
+// Description: Slightly altered Ring Explode, allows you to use var1 to specify the object spawned
+//
+// var1 = Object spawned.
+// var2 = unused
+//
+void A_BobombExplode(mobj_t *actor)
+{
+	mobj_t *mo2;
+	thinker_t *th;
+	INT32 d;
+	INT32 locvar1 = var1;
+	mobjtype_t type;
+
+	type = (mobjtype_t)locvar1;
+
+	for (d = 0; d < 16; d++)
+		P_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false); // 32 <-> 64
+
+	S_StartSound(actor, sfx_prloop);
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+			continue;
+
+		mo2 = (mobj_t *)th;
+
+		if (mo2 == actor) // Don't explode yourself! Endless loop!
+			continue;
+
+		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)
+			continue;
+
+		if ((mo2->flags & MF_SHOOTABLE) && !(mo2->flags & MF_SCENERY))
+		{
+			actor->flags2 |= MF2_DEBRIS;
+
+			if (mo2->player) // Looks like we're going to have to need a seperate function for this too
+				P_ExplodePlayerMobj(mo2, actor->target);
+			else
+				P_DamageMobj(mo2, actor, actor->target, 1);
+
+			
+
+			continue;
+		}
+	}
+	return;
+}
+//
 
 // Function: A_OrbitNights
 //

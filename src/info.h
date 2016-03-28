@@ -209,7 +209,6 @@ void A_BrakLobShot();
 void A_NapalmScatter();
 void A_SpawnFreshCopy();
 void A_ItemPop();
-void A_CapsulePop();
 void A_KartItems();
 void A_Hover();
 void A_Lakitu();
