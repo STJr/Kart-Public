@@ -1813,10 +1813,19 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 	sector_t *actionsector;
 	INT32 secnum;
 
+	// Put up a timer before you start falling down.
+	// I could of used rowoffset, but the FOF actually
+	// modifies the textures's Y offset. It doesn't with
+	// textureoffset, so Effect 4 can be ignored as usual.				// SRB2kart 16/04/10
+	if (thwomp->sourceline->flags & ML_EFFECT1 
+	&& leveltime < (unsigned)(sides[thwomp->sourceline->sidenum[0]].textureoffset>>FRACBITS))
+		thwomp->direction = 0;
+
 	// If you just crashed down, wait a second before coming back up.
 	if (--thwomp->distance > 0)
 	{
-		sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].bottomtexture;
+		// SRB2kart 16/04/10
+		sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].toptexture;
 		return;
 	}
 
@@ -1931,6 +1940,9 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 		thinker_t *th;
 		mobj_t *mo;
 
+		thwomp->direction = -1;						// SRB2kart 16/04/10
+
+		/*
 		// scan the thinkers to find players!
 		for (th = thinkercap.next; th != &thinkercap; th = th->next)
 		{
@@ -1945,6 +1957,7 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 				break;
 			}
 		}
+		*/
 
 		thwomp->sector->ceilspeed = 0;
 		thwomp->sector->floorspeed = 0;
@@ -2841,7 +2854,7 @@ INT32 EV_DoElevator(line_t *line, elevator_e elevtype, boolean customspeed)
 	return rtn;
 }
 
-void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
+void EV_CrumbleChain(sector_t *sec, ffloor_t *rover, INT32 sound)
 {
 	size_t i;
 	size_t leftmostvertex = 0, rightmostvertex = 0;
@@ -2859,7 +2872,9 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 
 	// soundorg z height never gets set normally, so MEH.
 	sec->soundorg.z = sec->floorheight;
-	S_StartSound(&sec->soundorg, sfx_crumbl);
+
+	if (sound)	// SRB2kart 16/04/10
+		S_StartSound(&sec->soundorg, sfx_crumbl);
 
 	// Find the outermost vertexes in the subsector
 	for (i = 0; i < sec->linecount; i++)

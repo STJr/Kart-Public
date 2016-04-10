@@ -203,6 +203,8 @@ static animdef_t harddefs[] =
 	{true,      "ERFANX4",      "ERFANX1",      1},
 	{true,      "DISCOD4",      "DISCOD1",     15},
 	{true,      "DANCE4",       "DANCE1",       8},
+	{true,      "LGHTNNG2",     "LGHTNNG1",     2},					// SRB2kart 16/04/10
+	{true,      "EFZFAN4",      "EFZFAN1",      2},					//
 	{true,      "SKY135",       "SKY132",       2},
 	{true,      "APPLMS4",      "APPLMS1",      2},
 	{true,      "APBOXW3",      "APBOXW1",      2},
@@ -2370,6 +2372,9 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					if (!dest)
 						return;
 
+					if (mo->player)								// SRB2kart 16/04/10
+						mo->player->powers[pw_ramp] = 0;		//
+
 					if (bot)
 						P_Teleport(bot, dest->x, dest->y, dest->z, (line->flags & ML_NOCLIMB) ?  mo->angle : dest->angle, (line->flags & ML_BLOCKMONSTERS) == 0, (line->flags & ML_EFFECT4) == ML_EFFECT4);
 					if (line->flags & ML_BLOCKMONSTERS)
@@ -2879,7 +2884,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 						return;
 					}
 
-					EV_CrumbleChain(sec, rover);
+					EV_CrumbleChain(sec, rover, 1);				// SRB2kart 16/04/10
 				}
 			}
 			break;
@@ -3114,6 +3119,9 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 			break;
 		case 491:
 			PolyTranslucency(line);
+			break;
+		case 492: // DeNiGHTserize player				// SRB2kart 16/04/10
+			mo->player->nightstime = 0;
 			break;
 #endif
 
@@ -3679,6 +3687,10 @@ DoneSection2:
 
 				P_InstaThrust(player->mo, player->mo->angle, linespeed);
 
+				player->cmd.forwardmove = 1;							// SRB2kart 16/04/10
+				player->powers[pw_exspeed] = 60;						//
+				P_SetPlayerMobjState(player->mo, S_PLAY_SPD1);			//
+
 				if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH))
 				{
 					if (!(player->pflags & PF_SPINNING))
@@ -3907,15 +3919,17 @@ DoneSection2:
 
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
-				player->pflags |= PF_SPINNING;
+				player->powers[pw_tailsfly] = 0;			// SRB2kart 16/04/10
+				player->pflags &= ~PF_SPINNING;				//
 				player->pflags &= ~PF_JUMPED;
 				player->pflags &= ~PF_GLIDING;
 				player->climbing = 0;
 
-				if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4]))
+				// SRB2kart 16/04/10
+				if (!(player->mo->state >= &states[S_PLAY_KARTRUN1] && player->mo->state <= &states[S_PLAY_KARTRUN2]))
 				{
-					P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-					S_StartSound(player->mo, sfx_spin);
+					P_SetPlayerMobjState(player->mo, S_PLAY_KARTRUN1);
+					S_StartSound(player->mo, sfx_spin); // Do we want/need this? -Zarro
 				}
 			}
 			break;
@@ -3981,18 +3995,23 @@ DoneSection2:
 
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
-				player->pflags |= PF_SPINNING;
+				player->powers[pw_tailsfly] = 0;			// SRB2kart 16/04/10
+				player->pflags &= ~PF_SPINNING;				//
 				player->pflags &= ~PF_JUMPED;
 
-				if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4]))
+				// SRB2kart 16/04/10
+				if (!(player->mo->state >= &states[S_PLAY_KARTRUN1] && player->mo->state <= &states[S_PLAY_KARTRUN2]))
 				{
-					P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-					S_StartSound(player->mo, sfx_spin);
+					P_SetPlayerMobjState(player->mo, S_PLAY_KARTRUN1);
+					S_StartSound(player->mo, sfx_spin); // Do we want/need this? -Zarro
 				}
 			}
 			break;
 
 		case 10: // Finish Line
+			if (gametype == GT_RACE)										// SRB2kart 16/04/10
+				if (player->starpostnum == numstarposts || player->exiting) // Must have touched all the starposts
+					player->starpostwp = player->powers[pw_waypoint] = 0;	//
 			if (gametype == GT_RACE && !player->exiting)
 			{
 				if (player->starpostnum == numstarposts) // Must have touched all the starposts
@@ -4004,12 +4023,43 @@ DoneSection2:
 
 					if (player->laps >= (UINT8)cv_numlaps.value)
 						CONS_Printf(M_GetText("%s has finished the race.\n"), player_names[player-players]);
-					else
+					if (player->laps == (unsigned)(cv_numlaps.value - 1))								// SRB2kart 16/04/10
+						CONS_Printf(M_GetText("%s started the final lap\n"), player_names[player-players]);		//
+					if (player->laps < (unsigned)(cv_numlaps.value - 1))
 						CONS_Printf(M_GetText("%s started lap %u\n"), player_names[player-players], (UINT32)player->laps+1);
 
-					// Reset starposts (checkpoints) info
+					// Reset starposts (checkpoints) info									// SRB2kart 16/04/10 ~
+					player->starpostangle = player->starpostnum = player->starpostbit = 0;
+					player->starpostx = player->starposty = player->starpostz = 0;
+					//except the time!
+					player->starposttime = player->realtime;
+					if (((numstarposts+1)*player->laps - 1) < 256) //SIGSEGV prevention
+						player->checkpointtimes[(numstarposts+1)*player->laps - 1] = player->realtime;
+					player->playerahead = P_CheckPlayerAhead(player, (numstarposts+1)*player->laps - 1);
+
+					if (P_IsLocalPlayer(player))
+					{
+						if (player->laps < (unsigned)(cv_numlaps.value - 1))
+						{
+							S_StartSound(NULL, sfx_mlap);
+							player->airtime = -64; // ?
+						}
+						else if (player->laps == (unsigned)(cv_numlaps.value - 1))
+						{
+							player->airtime = -64; // ?
+
+							if (!splitscreen || (splitscreen && !players[consoleplayer].exiting
+							&& !players[secondarydisplayplayer].exiting))
+							{
+								player->powers[pw_sounds] = 1;
+								S_ChangeMusic(mus_chrsel, false);
+							}
+						}
+					}																		// SRB2kart 16/04/10 ~
+					/*
 					player->starpostangle = player->starposttime = player->starpostnum = 0;
 					player->starpostx = player->starposty = player->starpostz = 0;
+					*/
 					P_ResetStarposts();
 
 					// Play the starpost sound for 'consistency'
@@ -4027,9 +4077,22 @@ DoneSection2:
 				{
 					if (P_IsLocalPlayer(player))
 					{
+						if (!splitscreen)													// SRB2kart 16/04/10 ~
+						{
+							if (player->position == 1)
+								S_ChangeMusic(mus_mwin, true);
+							else if (player->position == 2 || player->position == 3)
+								S_ChangeMusic(mus_mok, true);
+							else if (player->position >= 4)
+								S_ChangeMusic(mus_mlose, true);
+						}
+						else
+							S_ChangeMusic(mus_mwin, true);								// SRB2kart 16/04/10 ~
+						/*
 						HU_SetCEchoFlags(0);
 						HU_SetCEchoDuration(5);
 						HU_DoCEcho("FINISHED!");
+						*/
 					}
 
 					P_DoPlayerExit(player);
@@ -4059,6 +4122,11 @@ DoneSection2:
 					break;
 
 				if (player->cmd.buttons & BT_USE)
+					break;
+
+				// SRB2kart 16/04/10
+				if (player->mo->state == &states[S_PLAY_PAIN] || player->mo->state == &states[S_PLAY_KARTPAIN] 
+				|| player->mo->state == &states[S_PLAY_KARTSPAIN] || player->mo->state == &states[S_PLAY_RPAIN])
 					break;
 
 				if (!(player->pflags & PF_SLIDING) && player->mo->state == &states[player->mo->info->painstate])
@@ -7435,7 +7503,15 @@ void T_Pusher(pusher_t *p)
 		if (thing->player && thing->player->pflags & PF_ROPEHANG)
 			continue;
 
-		if (thing->player && (thing->state == &states[thing->info->painstate]) && (thing->player->powers[pw_flashing] > (flashingtics/4)*3 && thing->player->powers[pw_flashing] <= flashingtics))
+		//if (thing->player && (thing->state == &states[thing->info->painstate]) 
+		//&& (thing->player->powers[pw_flashing] > (flashingtics/4)*3 
+		//&& thing->player->powers[pw_flashing] <= flashingtics))
+		
+		// SRB2kart 16/04/10
+		if (thing->player && (thing->state == &states[S_PLAY_PAIN] || thing->state == &states[S_PLAY_KARTPAIN] 
+		|| thing->state == &states[S_PLAY_KARTSPAIN] || thing->state == &states[S_PLAY_RPAIN]) 
+		&& (thing->player->powers[pw_flashing] > (flashingtics/4)*3 
+		&& thing->player->powers[pw_flashing] <= flashingtics))
 			continue;
 
 		inFOF = touching = moved = false;

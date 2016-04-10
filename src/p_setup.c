@@ -218,6 +218,8 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	mapheaderinfo[num]->levelflags = 0;
 	DEH_WriteUndoline("MENUFLAGS", va("%d", mapheaderinfo[num]->menuflags), UNDO_NONE);
 	mapheaderinfo[num]->menuflags = 0;
+	DEH_WriteUndoline("AUTOMAP", va("%d", mapheaderinfo[num].automap), UNDO_NONE);			// SRB2kart 16/04/10
+	mapheaderinfo[num].automap = false;
 	// TODO grades support for delfile (pfft yeah right)
 	P_DeleteGrades(num);
 	// an even further impossibility, delfile custom opts support
@@ -967,6 +969,7 @@ static void P_LoadThings(lumpnum_t lumpnum)
 	}
 }
 
+/*													// SRB2kart 16/04/10
 static inline void P_SpawnEmblems(void)
 {
 	INT32 i, color;
@@ -1002,9 +1005,13 @@ static inline void P_SpawnEmblems(void)
 			emblemmobj->frame &= ~FF_TRANSMASK;
 	}
 }
+*/
 
 static void P_SpawnSecretItems(boolean loademblems)
 {
+	(void)loademblems;						// SRB2kart 16/04/10
+	return; //no secret items here!
+	
 	// Now let's spawn those funky emblem things! Tails 12-08-2002
 	if (netgame || multiplayer || (modifiedgame && !savemoddata)) // No cheating!!
 		return;
@@ -2061,6 +2068,9 @@ static void P_LevelInitStuff(void)
 		players[i].aiming = 0;
 		players[i].pflags &= ~PF_TIMEOVER;
 
+		memset(players[i].checkpointtimes, 0, sizeof(players[i].checkpointtimes));		// SRB2kart 16/04/10
+		players[i].playerahead = 0;
+
 		players[i].losstime = 0;
 		players[i].timeshit = 0;
 
@@ -2429,7 +2439,10 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// As oddly named as this is, this handles music only.
 	// We should be fine starting it here.
-	S_Start();
+	if (leveltime < 157)									// SRB2kart 16/04/10
+		S_StopMusic();
+	if (leveltime > 157)
+		S_Start();
 
 	// Let's fade to black here
 	if (rendermode != render_none)
@@ -2586,7 +2599,7 @@ boolean P_SetupLevel(boolean skipprecip)
 			{
 				players[i].mo = NULL;
 
-				if (players[i].starposttime)
+				if (players[i].starpostnum) // .starposttime		// SRB2kart 16/04/10
 				{
 					G_SpawnPlayer(i, true);
 					P_ClearStarPost(players[i].starpostnum);
