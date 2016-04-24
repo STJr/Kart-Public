@@ -2803,7 +2803,9 @@ boolean G_RingSlingerGametype(void)
 //
 boolean G_PlatformGametype(void)
 {
-	return (gametype == GT_COOP || gametype == GT_RACE || gametype == GT_COMPETITION);
+	return (gametype == GT_COOP 
+		 //|| gametype == GT_RACE 			// SRB2kart 16/04/24  // Do we need this removed?
+		 || gametype == GT_COMPETITION);
 }
 
 //

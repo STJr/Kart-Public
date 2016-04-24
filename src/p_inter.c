@@ -1127,6 +1127,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_STARPOST:
 			if (player->bot)
 				return;
+			
+			if (player->exiting) 									// SRB2kart 16/04/24
+			{
+				player->starpostwp = player->powers[pw_waypoint];
+				return;
+			}
+			
 			// In circuit, player must have touched all previous starposts
 			if (circuitmap
 				&& special->health - player->starpostnum > 1)
@@ -1148,14 +1155,18 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (player->starpostnum >= special->health)
 				return; // Already hit this post
 
-			// Save the player's time and position.
-			player->starposttime = leveltime;
+			// Save the player's time and position.					// SRB2kart 16/04/24
+			player->starposttime = player->realtime; //this makes race mode's timers work correctly whilst not affecting sp -x
+			if (((special->health - 1) + (numstarposts+1)*player->laps) < 256) // SIGSEGV prevention
+				player->checkpointtimes[(special->health - 1) + (numstarposts+1)*player->laps] = player->realtime;
+			//player->starposttime = leveltime;
 			player->starpostx = toucher->x>>FRACBITS;
 			player->starposty = toucher->y>>FRACBITS;
 			player->starpostz = special->z>>FRACBITS;
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
 			P_ClearStarPost(special->health);
+			player->playerahead = P_CheckPlayerAhead(player, (special->health - 1) + (numstarposts+1)*player->laps);
 
 			// Find all starposts in the level with this value.
 			{
@@ -1314,6 +1325,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			return;
 		case MT_SMALLMACECHAIN:
 		case MT_BIGMACECHAIN:
+		case MT_FIRECHAIN:										// SRB2kart 16/04/24
 			// Is this the last link in the chain?
 			if (toucher->momz > 0 || !(special->flags & MF_AMBUSH)
 				|| (player->pflags & PF_ITEMHANG) || (player->pflags & PF_MACESPIN))
@@ -1447,6 +1459,57 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 	S_StartSound(toucher, special->info->deathsound); // was NULL, but changed to player so you could hear others pick up rings
 	P_KillMobj(special, NULL, toucher);
+}
+
+// SRB2kart 16/04/24
+INT32 P_CheckPlayerAhead(player_t *player, INT32 tocheck)
+{
+	INT32 i, retvalue = 0, me = -1;
+	tic_t besttime = 0xffffffff;
+
+	if (tocheck >= 256)
+		return 0; //Don't SIGSEGV.
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
+
+		if (player == &players[i]) //you're me!
+		{
+			me = i;
+			continue;
+		}
+
+		if (!players[i].checkpointtimes[tocheck])
+			continue;
+
+		if (players[i].checkpointtimes[tocheck] >= besttime)
+			continue;
+
+		besttime = players[i].checkpointtimes[tocheck];
+		retvalue = i+1;
+	}
+
+	if (!retvalue)
+		return 0;
+
+	if (besttime >= player->realtime) // > sign is practically paranoia
+	{
+		if (!players[retvalue-1].playerahead && me != -1
+			&& players[retvalue-1].laps == player->laps
+			&& players[retvalue-1].starpostnum == player->starpostnum)
+			players[retvalue-1].playerahead = 65536;
+		return 65536; //we're tied!
+	}
+
+	//checkplayerahead does this too!
+	if (!players[retvalue-1].playerahead && me != -1
+		&& players[retvalue-1].laps == player->laps
+		&& players[retvalue-1].starpostnum == player->starpostnum)
+		players[retvalue-1].playerahead = 257 + me;
+
+	return retvalue;
 }
 
 #define CTFTEAMCODE(pl) pl->ctfteam ? (pl->ctfteam == 1 ? "\x85" : "\x84") : ""
@@ -1822,6 +1885,41 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	if (target->flags2 & MF2_NIGHTSPULL)
 		P_SetTarget(&target->tracer, NULL);
 
+	// SRB2kart 16/04/24
+	// I wish I knew a better way to do this
+	if (target->target && target->target->player && target->target->player->mo)
+	{
+		if (target->type == MT_SHELLSHIELD && target->target->player->powers[pw_shell] & 1)
+			target->target->player->powers[pw_shell] &= ~1;
+		else if (target->type == MT_REDSHELLSHIELD && target->target->player->powers[pw_redshell] & 1)
+			target->target->player->powers[pw_redshell] &= ~1;
+		else if (target->type == MT_BANANASHIELD && target->target->player->powers[pw_banana] & 1)
+			target->target->player->powers[pw_banana] &= ~1;
+		else if (target->type == MT_FAKESHIELD && target->target->player->powers[pw_fakeitem] & 1)
+			target->target->player->powers[pw_fakeitem] &= ~1;
+		else if (target->type == MT_BOMBSHIELD && target->target->player->powers[pw_bomb] & 1)
+			target->target->player->powers[pw_bomb] &= ~1;
+		else if (target->type == MT_TSHELLSHIELD && target->target->player->powers[pw_tripleshell] & 1)
+			target->target->player->powers[pw_tripleshell] &= ~1;
+		else if (target->type == MT_TSHELLSHIELD2 && target->target->player->powers[pw_tripleshell] & 2)
+			target->target->player->powers[pw_tripleshell] &= ~2;
+		else if (target->type == MT_TSHELLSHIELD3 && target->target->player->powers[pw_tripleshell] & 4)
+			target->target->player->powers[pw_tripleshell] &= ~4;
+		else if (target->type == MT_TREDSHELLSHIELD && target->target->player->powers[pw_tripleredshell] & 1)
+			target->target->player->powers[pw_tripleredshell] &= ~1;
+		else if (target->type == MT_TREDSHELLSHIELD2 && target->target->player->powers[pw_tripleredshell] & 2)
+			target->target->player->powers[pw_tripleredshell] &= ~2;
+		else if (target->type == MT_TREDSHELLSHIELD3 && target->target->player->powers[pw_tripleredshell] & 4)
+			target->target->player->powers[pw_tripleredshell] &= ~4;
+		else if (target->type == MT_TBANANASHIELD && target->target->player->powers[pw_triplebanana] & 1)
+			target->target->player->powers[pw_triplebanana] &= ~1;
+		else if (target->type == MT_TBANANASHIELD2 && target->target->player->powers[pw_triplebanana] & 2)
+			target->target->player->powers[pw_triplebanana] &= ~2;
+		else if (target->type == MT_TBANANASHIELD3 && target->target->player->powers[pw_triplebanana] & 4)
+			target->target->player->powers[pw_triplebanana] &= ~4;
+	}
+
+
 	// dead target is no more shootable
 	target->flags &= ~(MF_SHOOTABLE|MF_FLOAT|MF_SPECIAL);
 	target->flags2 &= ~(MF2_SKULLFLY|MF2_NIGHTSPULL);
@@ -1831,6 +1929,18 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	if (LUAh_MobjDeath(target, inflictor, source) || P_MobjWasRemoved(target))
 		return;
 #endif
+
+	// SRB2kart 16/04/24
+	if (target->type != MT_PLAYER && !(target->flags & MF_MONITOR)
+		 && !(target->type == MT_SHELLITEM || target->type == MT_SHELLSHIELD || target->type == MT_TSHELLSHIELD 
+		 || target->type == MT_TSHELLSHIELD2 || target->type == MT_TSHELLSHIELD3 || target->type == MT_REDSHELLITEM 
+		 || target->type == MT_REDSHELLITEM2 || target->type == MT_REDSHELLSHIELD || target->type == MT_TREDSHELLSHIELD 
+		 || target->type == MT_TREDSHELLSHIELD2 || target->type == MT_TREDSHELLSHIELD3 || target->type == MT_BANANAITEM 
+		 || target->type == MT_BANANASHIELD || target->type == MT_TBANANASHIELD || target->type == MT_TBANANASHIELD2 
+		 || target->type == MT_TBANANASHIELD3 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD)) // kart dead items
+		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
+	else
+		target->flags &= ~MF_NOGRAVITY; // lose it if you for whatever reason have it, I'm looking at you shields
 
 	// Let EVERYONE know what happened to a player! 01-29-2002 Tails
 	if (target->player && !target->player->spectator)
@@ -2439,9 +2549,9 @@ static inline boolean P_PlayerHitsPlayer(mobj_t *target, mobj_t *inflictor, mobj
 {
 	player_t *player = target->player;
 
-	// You can't kill yourself, idiot...
-	if (source == target)
-		return false;
+	// You can't kill yourself, idiot...  			(hah) // SRB2kart 16/04/24
+	//if (source == target)
+	//	return false;
 
 	// In COOP/RACE/CHAOS, you can't hurt other players unless cv_friendlyfire is on
 	if (!cv_friendlyfire.value && (G_PlatformGametype()))
@@ -2758,6 +2868,12 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return false;
 	}
 
+	if (target->type == MT_POKEY)					// SRB2kart 16/04/24
+	{
+		target->threshold = 1;
+		return false;
+	}
+
 	// Special case for Crawla Commander
 	if (target->type == MT_CRAWLACOMMANDER)
 	{
@@ -2849,6 +2965,47 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				return false; // Don't get hurt by fire generated from friends.
 		}
 
+		// SRB2kart 16/04/24	// TODO: Kill all in-map objects. Probably not here.
+		// Special code for being hit by Thunder in Mario Kart mode.
+		if (damage == 64 && player != source->player && !player->blackow)
+		{
+			// Don't flip out while super!
+			if (!player->powers[pw_invulnerability] && player->powers[pw_shrink] >= 0)
+			{
+				// Start slipping!
+				P_SpinPlayerMobj(player->mo, source);
+
+				// Start shrinking!
+				player->mo->destscale = 70;
+				player->powers[pw_shrink] = (100+20*(16-(player->position)))-((player->accelstart/40)*35);
+
+				// No longer should you have mushroom
+				player->powers[pw_mushroom] = 0;
+			}
+			// Mega Mushroom? Let's take that away.
+			if (player->powers[pw_shrink] < 0)
+			{
+				player->powers[pw_shrink] = -2;
+			}
+			// Invincible or not, we still need this.
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNDERSHIELD);
+			return true;
+		}
+		else if (damage == 64 && player == source->player)
+			return false;
+
+		// Blue Thunder
+		if (damage == 65 && player->position == 1)
+		{
+			// Just need to do this now! Being thrown upwards is done by the explosion.
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNBERSHIELD);
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLODE);
+			return true;
+		} else if (damage == 65 && player->position > 1) return false;
+
+		player->powers[pw_mushroom] = 0;
+		//
+
 		// Sudden-Death mode
 		if (source && source->type == MT_PLAYER)
 		{
@@ -2912,7 +3069,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			P_ShieldDamage(player, inflictor, source, damage);
 			damage = 0;
 		}
-		else if (player->mo->health > 1) // No shield but have rings.
+		else if (player->mo->health < 1002)			// SRB2kart 16/04/24
+		//else if (player->mo->health > 1) // No shield but have rings.
 		{
 			damage = player->mo->health - 1;
 			P_RingDamage(player, inflictor, source, damage);
@@ -2958,8 +3116,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (damage < 10000)
 			{
 				target->player->powers[pw_flashing] = flashingtics;
-				if (damage > 0) // don't spill emeralds/ammo/panels for shield damage
-					P_PlayerRingBurst(player, damage);
+				//if (damage > 0) // don't spill emeralds/ammo/panels for shield damage			// SRB2kart 16/04/24
+				//	P_PlayerRingBurst(player, damage);
 			}
 		}
 
