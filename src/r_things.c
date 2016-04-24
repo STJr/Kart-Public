@@ -70,7 +70,7 @@ INT16 screenheightarray[MAXVIDWIDTH];
 spritedef_t *sprites;
 size_t numsprites;
 
-static spriteframe_t sprtemp[64];
+static spriteframe_t sprtemp[84];	// SRB2kart 16/04/24
 static size_t maxframe;
 static const char *spritename;
 
@@ -99,7 +99,7 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 	lumppat <<= 16;
 	lumppat += lump;
 
-	if (frame >= 64 || rotation > 8)
+	if (frame >= 84 || rotation > 8)	// SRB2kart 16/04/24
 		I_Error("R_InstallSpriteLump: Bad frame characters in lump %s", W_CheckNameForNum(lumppat));
 
 	if (maxframe ==(size_t)-1 || frame > maxframe)
@@ -194,7 +194,7 @@ static boolean R_AddSingleSpriteDef(const char *sprname, spritedef_t *spritedef,
 			frame = R_Char2Frame(lumpinfo[l].name[4]);
 			rotation = (UINT8)(lumpinfo[l].name[5] - '0');
 
-			if (frame >= 64 || rotation > 8) // Give an actual NAME error -_-...
+			if (frame >= 84 || rotation > 8) // Give an actual NAME error -_-...		// SRB2kart 16/04/24
 			{
 				CONS_Alert(CONS_WARNING, M_GetText("Bad sprite name: %s\n"), W_CheckNameForNumPwad(wadnum,l));
 				continue;
@@ -2234,6 +2234,7 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	strncpy(skin->charsel, "CHRSONIC", 8);
 	strncpy(skin->face, "MISSING", 8);
 	strncpy(skin->superface, "MISSING", 8);
+	strncpy(skin->mapface, "MISSING", 8);
 
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
@@ -2295,6 +2296,7 @@ void R_InitSkins(void)
 	strncpy(skin->charsel,   "CHRSONIC", 8);
 	strncpy(skin->face,      "LIVSONIC", 8);
 	strncpy(skin->superface, "LIVSUPER", 8);
+	strncpy(skin->mapface,   "MAPSONIC", 8);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
 	skin->ability =   CA_THOK;
@@ -2308,7 +2310,7 @@ void R_InitSkins(void)
 
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
-	ST_LoadFaceGraphics(skin->face, skin->superface, 0);
+	ST_LoadFaceGraphics(skin->face, skin->superface, skin->mapface, 0);
 
 	//MD2 for sonic doesn't want to load in Linux.
 #ifdef HWRENDER
@@ -2449,7 +2451,7 @@ void R_AddSkins(UINT16 wadnum)
 	char *value;
 	size_t size;
 	skin_t *skin;
-	boolean hudname, realname, superface;
+	boolean hudname, realname, superface, mapface;
 
 	//
 	// search for all skin markers in pwad
@@ -2479,7 +2481,7 @@ void R_AddSkins(UINT16 wadnum)
 		skin = &skins[numskins];
 		Sk_SetDefaultValue(skin);
 		skin->wadnum = wadnum;
-		hudname = realname = superface = false;
+		hudname = realname = superface = mapface = false;
 		// parse
 		stoken = strtok (buf2, "\r\n= ");
 		while (stoken)
@@ -2581,6 +2583,11 @@ void R_AddSkins(UINT16 wadnum)
 				superface = true;
 				strupr(value);
 				strncpy(skin->superface, value, sizeof skin->superface);
+			}
+			else if (!stricmp(stoken, "mapface"))
+			{
+				strupr(value);
+				strncpy(skin->mapface, value, sizeof skin->mapface);
 			}
 
 #define FULLPROCESS(field) else if (!stricmp(stoken, #field)) skin->field = get_number(value);
@@ -2721,7 +2728,7 @@ next_token:
 #endif
 
 		// add face graphics
-		ST_LoadFaceGraphics(skin->face, skin->superface, numskins);
+		ST_LoadFaceGraphics(skin->face, skin->superface, skin->mapface, numskins);
 
 #ifdef HWRENDER
 		if (rendermode == render_opengl)

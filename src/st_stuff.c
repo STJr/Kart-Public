@@ -51,6 +51,7 @@ UINT16 objectsdrawn = 0;
 
 patch_t *faceprefix[MAXSKINS]; // face status patches
 patch_t *superprefix[MAXSKINS]; // super face status patches
+patch_t *mapprefix[MAXSKINS]; // super face status patches
 
 // ------------------------------------------
 //             status bar overlay
@@ -340,10 +341,11 @@ void ST_LoadGraphics(void)
 }
 
 // made separate so that skins code can reload custom face graphics
-void ST_LoadFaceGraphics(char *facestr, char *superstr, INT32 skinnum)
+void ST_LoadFaceGraphics(char *facestr, char *superstr, char *mapstr, INT32 skinnum)
 {
 	faceprefix[skinnum] = W_CachePatchName(facestr, PU_HUDGFX);
 	superprefix[skinnum] = W_CachePatchName(superstr, PU_HUDGFX);
+	mapprefix[skinnum] = W_CachePatchName(mapstr, PU_HUDGFX);
 	facefreed[skinnum] = false;
 }
 
@@ -352,6 +354,7 @@ void ST_UnLoadFaceGraphics(INT32 skinnum)
 {
 	Z_Free(faceprefix[skinnum]);
 	Z_Free(superprefix[skinnum]);
+	Z_Free(mapprefix[skinnum]);
 	facefreed[skinnum] = true;
 }
 #endif
@@ -361,7 +364,7 @@ void ST_ReloadSkinFaceGraphics(void)
 	INT32 i;
 
 	for (i = 0; i < numskins; i++)
-		ST_LoadFaceGraphics(skins[i].face, skins[i].superface, i);
+		ST_LoadFaceGraphics(skins[i].face, skins[i].superface, skins[i].mapface, i);
 }
 
 static inline void ST_InitData(void)
