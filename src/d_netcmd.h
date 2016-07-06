@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -81,7 +81,9 @@ extern consvar_t cv_useranalog, cv_useranalog2;
 extern consvar_t cv_analog, cv_analog2;
 
 extern consvar_t cv_netstat;
+#ifdef WALLSPLATS
 extern consvar_t cv_splats;
+#endif
 
 extern consvar_t cv_countdowntime;
 extern consvar_t cv_runscripts;
@@ -95,19 +97,6 @@ extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibilit
 extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
 extern consvar_t cv_1up, cv_eggmanbox;
 extern consvar_t cv_recycler;
-
-// SRB2kart specific settings	// SRB2kart 16/02/27
-// SRB2kart Retro
-extern consvar_t cv_r_magnet,      cv_r_boo,        cv_r_mushroom,         cv_r_triplemushroom, cv_r_megashroom;
-extern consvar_t cv_r_goldshroom,  cv_r_star,       cv_r_triplebanana,     cv_r_fakeitem,       cv_r_banana;
-extern consvar_t cv_r_greenshell,  cv_r_redshell,   cv_r_triplegreenshell, cv_r_bobomb,         cv_r_blueshell;
-extern consvar_t cv_r_tossfeather, cv_r_fireflower, cv_r_tripleredshell,   cv_r_bowsershell,    cv_r_lightning;
-// SRB2kart Neo
-extern consvar_t cv_n_magnet,     cv_n_ghost,         cv_n_speedshoe,    cv_n_tripleshoe,       cv_n_sizeup;
-extern consvar_t cv_n_rocketshoe, cv_n_invincibility, cv_n_triplebanana, cv_n_fakemonitor,      cv_n_banana;
-extern consvar_t cv_n_orbitspike, cv_n_jaws,          cv_n_laserwisp,    cv_n_tripleorbitspike, cv_n_mine;
-extern consvar_t cv_n_deton,      cv_n_doublejaws,    cv_n_spring,       cv_n_ghzwrecker,       cv_n_lightning;
-//
 
 extern consvar_t cv_itemfinder;
 

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -51,7 +51,6 @@ UINT16 objectsdrawn = 0;
 
 patch_t *faceprefix[MAXSKINS]; // face status patches
 patch_t *superprefix[MAXSKINS]; // super face status patches
-patch_t *mapprefix[MAXSKINS]; // super face status patches
 
 // ------------------------------------------
 //             status bar overlay
@@ -341,11 +340,10 @@ void ST_LoadGraphics(void)
 }
 
 // made separate so that skins code can reload custom face graphics
-void ST_LoadFaceGraphics(char *facestr, char *superstr, char *mapstr, INT32 skinnum)
+void ST_LoadFaceGraphics(char *facestr, char *superstr, INT32 skinnum)
 {
 	faceprefix[skinnum] = W_CachePatchName(facestr, PU_HUDGFX);
 	superprefix[skinnum] = W_CachePatchName(superstr, PU_HUDGFX);
-	mapprefix[skinnum] = W_CachePatchName(mapstr, PU_HUDGFX);
 	facefreed[skinnum] = false;
 }
 
@@ -354,7 +352,6 @@ void ST_UnLoadFaceGraphics(INT32 skinnum)
 {
 	Z_Free(faceprefix[skinnum]);
 	Z_Free(superprefix[skinnum]);
-	Z_Free(mapprefix[skinnum]);
 	facefreed[skinnum] = true;
 }
 #endif
@@ -364,7 +361,7 @@ void ST_ReloadSkinFaceGraphics(void)
 	INT32 i;
 
 	for (i = 0; i < numskins; i++)
-		ST_LoadFaceGraphics(skins[i].face, skins[i].superface, skins[i].mapface, i);
+		ST_LoadFaceGraphics(skins[i].face, skins[i].superface, i);
 }
 
 static inline void ST_InitData(void)
@@ -595,9 +592,13 @@ static void ST_drawDebugInfo(void)
 
 	if (cv_debug & DBG_RANDOMIZER) // randomizer testing
 	{
+		fixed_t peekres = P_RandomPeek();
+		peekres *= 10000;     // Change from fixed point
+		peekres >>= FRACBITS; // to displayable decimal
+
 		V_DrawRightAlignedString(320, height - 16, V_MONOSPACE, va("Init: %08x", P_GetInitSeed()));
 		V_DrawRightAlignedString(320, height - 8,  V_MONOSPACE, va("Seed: %08x", P_GetRandSeed()));
-		V_DrawRightAlignedString(320, height,      V_MONOSPACE, va("==  : %8d", P_RandomPeek()));
+		V_DrawRightAlignedString(320, height,      V_MONOSPACE, va("==  :    .%04d", peekres));
 
 		height -= 32;
 	}
@@ -1593,7 +1594,7 @@ static void ST_drawSpecialStageHUD(void)
 	if (sstimer)
 	{
 		V_DrawString(hudinfo[HUD_TIMELEFT].x, STRINGY(hudinfo[HUD_TIMELEFT].y), V_HUDTRANS, M_GetText("TIME LEFT"));
-		ST_DrawNightsOverlayNum(SCX(hudinfo[HUD_TIMELEFTNUM].x), SCY(hudinfo[HUD_TIMELEFTNUM].y), V_HUDTRANS, sstimer/TICRATE, tallnum, SKINCOLOR_WHITE);
+		ST_DrawNumFromHud(HUD_TIMELEFTNUM, sstimer/TICRATE);
 	}
 	else
 		ST_DrawPatchFromHud(HUD_TIMEUP, timeup);
@@ -1845,37 +1846,6 @@ static void ST_overlayDrawer(void)
 		LUAh_GameHUD(stplyr);
 #endif
 
-#if 0 // Pope XVI
-	if (!(netgame || multiplayer) && !modifiedgame && gamemap == 11 && ALL7EMERALDS(emeralds)
-		&& stplyr->mo && stplyr->mo->subsector && stplyr->mo->subsector->sector-sectors == 1361)
-	{
-		if (grade & 2048) // NAGZ
-		{
-			V_DrawCenteredString(BASEVIDWIDTH/2, 70, 0, M_GetText("I, Pope Rededict XVI proclaim"));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 80, 0, M_GetText("AJ & Amy"));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 90, 0, M_GetText("Husband & Wife"));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 100, 0, M_GetText("on this day"));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 110, 0, M_GetText("May 16, 2009"));
-
-			P_GivePlayerRings(stplyr, 9999);
-		}
-		else
-		{
-			V_DrawCenteredString(BASEVIDWIDTH/2,  60, 0, M_GetText("Oh... it's you again..."));
-			V_DrawCenteredString(BASEVIDWIDTH/2,  80, 0, M_GetText("Look, I wanted to apologize for the way"));
-			V_DrawCenteredString(BASEVIDWIDTH/2,  90, 0, M_GetText("I've acted in the past."));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 110, 0, M_GetText("I've seen the error of my ways"));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 120, 0, M_GetText("and turned over a new leaf."));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 140, 0, M_GetText("Instead of sending people to hell,"));
-			V_DrawCenteredString(BASEVIDWIDTH/2, 150, 0, M_GetText("I now send them to heaven!"));
-
-			P_LinedefExecute(4200, stplyr->mo, stplyr->mo->subsector->sector);
-			P_LinedefExecute(4201, stplyr->mo, stplyr->mo->subsector->sector);
-			stplyr->mo->momx = stplyr->mo->momy = 0;
-		}
-	}
-#endif
-
 	// draw level title Tails
 	if (*mapheaderinfo[gamemap-1]->lvlttl != '\0' && !(hu_showscores && (netgame || multiplayer))
 #ifdef HAVE_BLUA
@@ -1923,7 +1893,7 @@ static void ST_overlayDrawer(void)
 	ST_drawDebugInfo();
 }
 
-void ST_Drawer(boolean refresh)
+void ST_Drawer(void)
 {
 #ifdef SEENAMES
 	if (cv_seenames.value && cv_allowseenames.value && displayplayer == consoleplayer && seenplayer && seenplayer->mo)
@@ -1940,8 +1910,11 @@ void ST_Drawer(boolean refresh)
 	}
 #endif
 
+	// Doom's status bar only updated if necessary.
+	// However, ours updates every frame regardless, so the "refresh" param was removed
+	//(void)refresh;
+
 	// force a set of the palette by using doPaletteStuff()
-	(void)refresh; //?
 	if (vid.recalc)
 		st_palette = -1;
 

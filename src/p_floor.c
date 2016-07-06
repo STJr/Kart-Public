@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1174,12 +1174,15 @@ void T_SpikeSector(levelspecthink_t *spikes)
 
 		if (affectsec == spikes->sector) // Applied to an actual sector
 		{
+			fixed_t affectfloor = P_GetSpecialBottomZ(thing, affectsec, affectsec);
+			fixed_t affectceil = P_GetSpecialTopZ(thing, affectsec, affectsec);
+
 			if (affectsec->flags & SF_FLIPSPECIAL_FLOOR)
 			{
 				if (!(thing->eflags & MFE_VERTICALFLIP) && thing->momz > 0)
 					continue;
 
-				if (thing->z == affectsec->floorheight)
+				if (thing->z == affectfloor)
 					dothepain = true;
 			}
 
@@ -1188,18 +1191,20 @@ void T_SpikeSector(levelspecthink_t *spikes)
 				if ((thing->eflags & MFE_VERTICALFLIP) && thing->momz < 0)
 					continue;
 
-				if (thing->z + thing->height == affectsec->ceilingheight)
+				if (thing->z + thing->height == affectceil)
 					dothepain = true;
 			}
 		}
 		else
 		{
+			fixed_t affectfloor = P_GetSpecialBottomZ(thing, affectsec, spikes->sector);
+			fixed_t affectceil = P_GetSpecialTopZ(thing, affectsec, spikes->sector);
 			if (affectsec->flags & SF_FLIPSPECIAL_FLOOR)
 			{
 				if (!(thing->eflags & MFE_VERTICALFLIP) && thing->momz > 0)
 					continue;
 
-				if (thing->z == affectsec->ceilingheight)
+				if (thing->z == affectceil)
 					dothepain = true;
 			}
 
@@ -1208,7 +1213,7 @@ void T_SpikeSector(levelspecthink_t *spikes)
 				if ((thing->eflags & MFE_VERTICALFLIP) && thing->momz < 0)
 					continue;
 
-				if (thing->z + thing->height == affectsec->floorheight)
+				if (thing->z + thing->height == affectfloor)
 					dothepain = true;
 			}
 		}
@@ -1813,19 +1818,10 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 	sector_t *actionsector;
 	INT32 secnum;
 
-	// Put up a timer before you start falling down.
-	// I could of used rowoffset, but the FOF actually
-	// modifies the textures's Y offset. It doesn't with
-	// textureoffset, so Effect 4 can be ignored as usual.				// SRB2kart 16/04/10
-	if (thwomp->sourceline->flags & ML_EFFECT1 
-	&& leveltime < (unsigned)(sides[thwomp->sourceline->sidenum[0]].textureoffset>>FRACBITS))
-		thwomp->direction = 0;
-
 	// If you just crashed down, wait a second before coming back up.
 	if (--thwomp->distance > 0)
 	{
-		// SRB2kart 16/04/10
-		sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].toptexture;
+		sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].bottomtexture;
 		return;
 	}
 
@@ -1940,9 +1936,6 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 		thinker_t *th;
 		mobj_t *mo;
 
-		thwomp->direction = -1;						// SRB2kart 16/04/10
-
-		/*
 		// scan the thinkers to find players!
 		for (th = thinkercap.next; th != &thinkercap; th = th->next)
 		{
@@ -1957,7 +1950,6 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 				break;
 			}
 		}
-		*/
 
 		thwomp->sector->ceilspeed = 0;
 		thwomp->sector->floorspeed = 0;
@@ -2080,6 +2072,7 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 	boolean FOFsector = false;
 	boolean inAndOut = false;
 	boolean floortouch = false;
+	fixed_t bottomheight, topheight;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2144,10 +2137,13 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 					if (players[j].mo->subsector->sector != targetsec)
 						continue;
 
-					if (players[j].mo->z > sec->ceilingheight)
+					topheight = P_GetSpecialTopZ(players[j].mo, sec, targetsec);
+					bottomheight = P_GetSpecialBottomZ(players[j].mo, sec, targetsec);
+
+					if (players[j].mo->z > topheight)
 						continue;
 
-					if (players[j].mo->z + players[j].mo->height < sec->floorheight)
+					if (players[j].mo->z + players[j].mo->height < bottomheight)
 						continue;
 
 					if (floortouch == true && P_IsObjectOnGroundIn(players[j].mo, targetsec))
@@ -2230,7 +2226,7 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 		oldPlayersArea = oldPlayersInArea;
 	}
 
-	if ((affectPlayer = P_HavePlayersEnteredArea(playersArea, oldPlayersArea, inAndOut)) != -1)
+	while ((affectPlayer = P_HavePlayersEnteredArea(playersArea, oldPlayersArea, inAndOut)) != -1)
 	{
 		if (GETSECSPECIAL(sec->special, 2) == 2 || GETSECSPECIAL(sec->special, 2) == 3)
 		{
@@ -2263,6 +2259,8 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 
 		if (!eachtime->sourceline->special) // this happens only for "Trigger on X calls" linedefs
 			P_RemoveThinker(&eachtime->thinker);
+
+		oldPlayersArea[affectPlayer]=playersArea[affectPlayer];
 	}
 }
 
@@ -2305,7 +2303,7 @@ void T_RaiseSector(levelspecthink_t *raise)
 			if (raise->vars[1] && !(thing->player->pflags & PF_STARTDASH))
 				continue;
 
-			if (!(thing->z == raise->sector->ceilingheight))
+			if (!(thing->z == P_GetSpecialTopZ(thing, raise->sector, sector)))
 				continue;
 
 			playeronme = true;
@@ -2854,7 +2852,7 @@ INT32 EV_DoElevator(line_t *line, elevator_e elevtype, boolean customspeed)
 	return rtn;
 }
 
-void EV_CrumbleChain(sector_t *sec, ffloor_t *rover, INT32 sound)
+void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 {
 	size_t i;
 	size_t leftmostvertex = 0, rightmostvertex = 0;
@@ -2872,9 +2870,7 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover, INT32 sound)
 
 	// soundorg z height never gets set normally, so MEH.
 	sec->soundorg.z = sec->floorheight;
-
-	if (sound)	// SRB2kart 16/04/10
-		S_StartSound(&sec->soundorg, sfx_crumbl);
+	S_StartSound(&sec->soundorg, sfx_crumbl);
 
 	// Find the outermost vertexes in the subsector
 	for (i = 0; i < sec->linecount; i++)

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -227,69 +227,6 @@ typedef enum
 	pw_nocontrol,
 	pw_ingoop, // In goop
 
-	// /////////////// //
-	// SRB2kart Powers //		// SRB2kart 16/02/15
-	// /////////////// //
-    
-	// Basic gameplay things
-
-	pw_waypoint,			// Waypoints.
-	pw_introcam,			// Early joiners need this, or a new joiner's camera will randomly rotate
-	pw_sounds,				// Used this to avoid sounds being played every tic
-	pw_pcd,					// Past Checkpoint Distance
-	pw_ncd,					// Next Chekpoint Distance
-	pw_drift,				// Drifting Left or Right, plus a bigger counter = sharper turn
-	pw_driftspeed,			// (Do we still need this?) (was 'pw_exspeed')
-	pw_driftcharge,			// Charge your drift so you can release a burst of speed
-	pw_jmp,					// In Mario Kart, letting go of the jump button stops the drift
-	pw_fishing,				// Lakitu is fishing you out of the pit and you have to wait to be dropped
-	pw_kartitem,			// Used for the roulette when deciding what item to give you
-	pw_itemslot,			// If you have X item, and kartitem chose X too, save it
-	pw_itemclose,			// Used to animate the item window closing (was 'pw_psychic')
-
-	// Some Items use timers for their duration or relative effects
-
-	pw_magnettimer,			// Duration of Magnet's item-break and item box pull
-	pw_bootaketimer,		// You are stealing an item, this is your timer
-	pw_boostolentimer,		// You are being stolen from, this is your timer
-	pw_mushroomtimer,		// Duration of the Mushroom Boost itself
-	pw_growshrinktimer,		// > 0 = Big, < 0 = small
-	pw_squishedtimer,		// Squished frame timer
-	pw_goldshroomtimer,		// Gold Mushroom duration timer
-	pw_startimer,			// Invincibility timer
-	pw_spinouttimer,		// Wipe-out from a banana peel or oil slick
-	pw_laserwisptimer,		// The duration and relative angle of the laser
-	pw_fireflowertimer,		// Duration of Fire Flower
-
-	// Each item needs its own power slot, for the HUD and held use
-
-	pw_magnet,				// 0x1 = Magnet in inventory
-	pw_boo,					// 0x1 = Boo in inventory
-	pw_mushroom,			// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
-							// 0x4 = 3 Mushrooms in inventory
-	pw_megashroom,			// 0x1 = Mega Mushroom in inventory
-	pw_goldshroom,			// 0x1 = Gold Mushroom in inventory
-	pw_star,				// 0x1 = Star in inventory
-	pw_triplebanana,		// 0x1 = 1 Banana following, 0x2 = 2 Bananas following
-							// 0x4 = 3 Bananas following, 0x8 = Triple Banana in inventory
-	pw_fakeitem,			// 0x1 = Fake Item being held, 0x2 = Fake Item in inventory
-	pw_banana,				// 0x1 = Banana being held, 0x2 = Banana in inventory
-	pw_greenshell,			// 0x1 = Green Shell being held, 0x2 = Green Shell in inventory
-	pw_redshell,			// 0x1 = Red Shell being held, 0x2 = Red Shell in inventory
-	pw_laserwisp,			// 0x1 = Laser Wisp in inventory
-	pw_triplegreenshell,	// 0x1 = 1 Green Shell orbiting, 0x2 = 2 Green Shells orbiting
-							// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
-	pw_bobomb,				// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
-	pw_blueshell,			// 0x1 = Blue Shell in inventory
-	pw_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting, 
-							// 0x8 = 2x Jaws in inventory
-	pw_tossfeather,			// 0x1 = Feather in inventory
-	pw_fireflower,			// 0x1 = Fire Flower in inventory
-	pw_tripleredshell,		// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
-							// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
-	pw_bowsershell,			// 0x1 = Bowser Shell in inventory
-	pw_lightning,			// 0x1 = Lightning in inventory
-    
 	NUMPOWERS
 } powertype_t;
 
@@ -429,9 +366,6 @@ typedef struct player_s
 	tic_t realtime; // integer replacement for leveltime
 	UINT8 laps; // Number of laps (optional)
 
-    tic_t checkpointtimes[256]; // Checkpoints for race mode, etc       // SRB2kart 16/02/15
-	INT32 playerahead; // is someone ahead of me or not?                // "
-
 	////////////////////
 	// CTF Mode Stuff //
 	////////////////////
@@ -500,21 +434,6 @@ typedef struct player_s
 #ifdef HWRENDER
 	fixed_t fovadd; // adjust FOV for hw rendering
 #endif
-
-	INT32 chargei;      // SRB2kart 16/02/15  ++ All lines below until end of enum
-
-	INT32 starpostwp;
-	INT32 position;
-	INT32 heldDir;      // Held dir of controls; 1 = forward, 0 = none, -1 = backward
-	INT32 turning;
-	INT32 newfloorz;
-	INT32 lakitu;
-
-	INT32 spinout;      // Seperate timer from pw_bananacam so that you can't get stuck spinning
-	UINT8 spinouttype;  // The type of spinout you are currently suffering, 0 = slipping forwards, 1 = completely still
-
-	UINT8 boosting;     // if you're currently shroomboosting
-
 } player_t;
 
 #endif

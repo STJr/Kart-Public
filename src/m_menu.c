@@ -2,8 +2,8 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 2011-2014 by Matthew "Inuyasha" Walsh.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 2011-2016 by Matthew "Inuyasha" Walsh.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1390,67 +1390,6 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Eggman Box",        &cv_eggmanbox,    130},
 };
 
-// SRB2kart specific settings	// SRB2kart 16/02/27
-// SRB2kart Retro
-static menuitem_t OP_KartRetroToggleMenu1[] =
-{
-	// Speed Items
-	{IT_STRING | IT_CVAR, NULL, "Magnet",          &cv_r_magnet,         20}, 
-	{IT_STRING | IT_CVAR, NULL, "Boo",             &cv_r_boo,            30}, 
-	{IT_STRING | IT_CVAR, NULL, "Mushroom",        &cv_r_mushroom,       40}, 
-	{IT_STRING | IT_CVAR, NULL, "Triple Mushroom", &cv_r_triplemushroom, 50}, 
-	{IT_STRING | IT_CVAR, NULL, "Mega Mushroom",   &cv_r_megashroom,     60}, 
-	{IT_STRING | IT_CVAR, NULL, "Gold Mushroom",   &cv_r_goldshroom,     70}, 
-	{IT_STRING | IT_CVAR, NULL, "Star",            &cv_r_star,           80},
-};
-static menuitem_t OP_KartRetroToggleMenu2[] =
-{
-	// Attack Items
-	{IT_STRING | IT_CVAR, NULL, "Triple Banana",      &cv_r_triplebanana,     20}, 
-	{IT_STRING | IT_CVAR, NULL, "Fake Item",          &cv_r_fakeitem,         30}, 
-	{IT_STRING | IT_CVAR, NULL, "Banana",             &cv_r_banana,           40}, 
-	{IT_STRING | IT_CVAR, NULL, "Green Shell",        &cv_r_greenshell,       50}, 
-	{IT_STRING | IT_CVAR, NULL, "Red Shell",          &cv_r_redshell,         60}, 
-	{IT_STRING | IT_CVAR, NULL, "Triple Green Shell", &cv_r_triplegreenshell, 70}, 
-	{IT_STRING | IT_CVAR, NULL, "Bob-omb",            &cv_r_bobomb,           80}, 
-	{IT_STRING | IT_CVAR, NULL, "Blue Shell",         &cv_r_blueshell,        90}, 
-	{IT_STRING | IT_CVAR, NULL, "Toss-Feather",       &cv_r_tossfeather,     100}, 
-	{IT_STRING | IT_CVAR, NULL, "Fire Flower",        &cv_r_fireflower,      110}, 
-	{IT_STRING | IT_CVAR, NULL, "Triple Red Shell",   &cv_r_tripleredshell,  120}, 
-	{IT_STRING | IT_CVAR, NULL, "Bowser Shell",       &cv_r_bowsershell,     130}, 
-	{IT_STRING | IT_CVAR, NULL, "Lightning",          &cv_r_lightning,       140}, 
-};
-// SRB2kart Neo
-static menuitem_t OP_KartNeoToggleMenu1[] =
-{
-	// Speed Items
-	{IT_STRING | IT_CVAR, NULL, "Magnet",        &cv_n_magnet,        20}, 
-	{IT_STRING | IT_CVAR, NULL, "Ghost",         &cv_n_ghost,         30}, 
-	{IT_STRING | IT_CVAR, NULL, "Speed Shoe",    &cv_n_speedshoe,     40}, 
-	{IT_STRING | IT_CVAR, NULL, "Triple Shoe",   &cv_n_tripleshoe,    50}, 
-	{IT_STRING | IT_CVAR, NULL, "Size-up",       &cv_n_sizeup,        60}, 
-	{IT_STRING | IT_CVAR, NULL, "Rocket Shoe",   &cv_n_rocketshoe,    70}, 
-	{IT_STRING | IT_CVAR, NULL, "Invincibility", &cv_n_invincibility, 80},
-};
-static menuitem_t OP_KartNeoToggleMenu2[] =
-{
-	// Attack Items
-	{IT_STRING | IT_CVAR, NULL, "Triple Banana",      &cv_n_triplebanana,     20}, 
-	{IT_STRING | IT_CVAR, NULL, "Fake Monitor",       &cv_n_fakemonitor,      30}, 
-	{IT_STRING | IT_CVAR, NULL, "Banana",             &cv_n_banana,           40}, 
-	{IT_STRING | IT_CVAR, NULL, "Orbit Spike",        &cv_n_orbitspike,       50}, 
-	{IT_STRING | IT_CVAR, NULL, "Jaws",               &cv_n_jaws,             60}, 
-	{IT_STRING | IT_CVAR, NULL, "Laser Wisp",         &cv_n_laserwisp,        70}, 
-	{IT_STRING | IT_CVAR, NULL, "Triple Orbit Spike", &cv_n_tripleorbitspike, 80}, 
-	{IT_STRING | IT_CVAR, NULL, "Mine",               &cv_n_mine,             90}, 
-	{IT_STRING | IT_CVAR, NULL, "Deton",              &cv_n_deton,           100}, 
-	{IT_STRING | IT_CVAR, NULL, "Double Jaws",        &cv_n_doublejaws,      110}, 
-	{IT_STRING | IT_CVAR, NULL, "Spring",             &cv_n_spring,          120}, 
-	{IT_STRING | IT_CVAR, NULL, "GHZ Wrecking Ball",  &cv_n_ghzwrecker,      130}, 
-	{IT_STRING | IT_CVAR, NULL, "Lightning",          &cv_n_lightning,       140}, 
-};
-//
-
 // ==========================================================================
 // ALL MENU DEFINITIONS GO HERE
 // ==========================================================================
@@ -2120,6 +2059,10 @@ static void M_PrevOpt(void)
 	} while (oldItemOn != itemOn && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_SPACE);
 }
 
+// lock out further input in a tic when important buttons are pressed
+// (in other words -- stop bullshit happening by mashing buttons in fades)
+static boolean noFurtherInput = false;
+
 //
 // M_Responder
 //
@@ -2140,6 +2083,12 @@ boolean M_Responder(event_t *ev)
 	if (ev->type == ev_keyup && (ev->data1 == KEY_LSHIFT || ev->data1 == KEY_RSHIFT))
 	{
 		shiftdown = false;
+		return false;
+	}
+	if (noFurtherInput)
+	{
+		// Ignore input after enter/escape/other buttons
+		// (but still allow shift keyup so caps doesn't get stuck)
 		return false;
 	}
 	else if (ev->type == ev_keydown)
@@ -2243,6 +2192,7 @@ boolean M_Responder(event_t *ev)
 	// F-Keys
 	if (!menuactive)
 	{
+		noFurtherInput = true;
 		switch (ch)
 		{
 			case KEY_F1: // Help key
@@ -2264,6 +2214,7 @@ boolean M_Responder(event_t *ev)
 				if (modeattacking)
 					return true;
 				M_StartControlPanel();
+				M_Options(0);
 				currentMenu = &OP_SoundOptionsDef;
 				itemOn = 0;
 				return true;
@@ -2273,6 +2224,7 @@ boolean M_Responder(event_t *ev)
 				if (modeattacking)
 					return true;
 				M_StartControlPanel();
+				M_Options(0);
 				M_VideoModeMenu(0);
 				return true;
 #endif
@@ -2284,6 +2236,7 @@ boolean M_Responder(event_t *ev)
 				if (modeattacking)
 					return true;
 				M_StartControlPanel();
+				M_Options(0);
 				M_SetupNextMenu(&OP_MainDef);
 				return true;
 
@@ -2310,6 +2263,7 @@ boolean M_Responder(event_t *ev)
 					M_StartControlPanel();
 				return true;
 		}
+		noFurtherInput = false; // turns out we didn't care
 		return false;
 	}
 
@@ -2333,6 +2287,7 @@ boolean M_Responder(event_t *ev)
 				if (routine)
 					routine(ch);
 				M_StopMessage(0);
+				noFurtherInput = true;
 				return true;
 			}
 			return true;
@@ -2412,6 +2367,7 @@ boolean M_Responder(event_t *ev)
 			return true;
 
 		case KEY_ENTER:
+			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
 			if (routine)
 			{
@@ -2445,6 +2401,7 @@ boolean M_Responder(event_t *ev)
 			return true;
 
 		case KEY_ESCAPE:
+			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
 			if (currentMenu->prevMenu)
 			{
@@ -2501,31 +2458,44 @@ void M_Drawer(void)
 	if (currentMenu == &MessageDef)
 		menuactive = true;
 
-	if (!menuactive)
-		return;
-
-	// now that's more readable with a faded background (yeah like Quake...)
-	if (!WipeInAction)
-		V_DrawFadeScreen();
-
-	if (currentMenu->drawroutine)
-		currentMenu->drawroutine(); // call current menu Draw routine
-
-	// Draw version down in corner
-	// ... but only in the MAIN MENU.  I'm a picky bastard.
-	if (currentMenu == &MainDef)
+	if (menuactive)
 	{
-		if (customversionstring[0] != '\0')
+		// now that's more readable with a faded background (yeah like Quake...)
+		if (!WipeInAction)
+			V_DrawFadeScreen();
+
+		if (currentMenu->drawroutine)
+			currentMenu->drawroutine(); // call current menu Draw routine
+
+		// Draw version down in corner
+		// ... but only in the MAIN MENU.  I'm a picky bastard.
+		if (currentMenu == &MainDef)
 		{
-			V_DrawThinString(vid.dupx, vid.height - 17*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT, "Mod version:");
-			V_DrawThinString(vid.dupx, vid.height - 9*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, customversionstring);
-		}
-		else
-#if VERSION > 0 || SUBVERSION > 0
-			V_DrawThinString(vid.dupx, vid.height - 9*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, va("%s", VERSIONSTRING));
-#else // Trunk build, show revision info
-			V_DrawThinString(vid.dupx, vid.height - 9*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, va("%s (%s)", VERSIONSTRING, comprevision));
+			if (customversionstring[0] != '\0')
+			{
+				V_DrawThinString(vid.dupx, vid.height - 17*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT, "Mod version:");
+				V_DrawThinString(vid.dupx, vid.height - 9*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, customversionstring);
+			}
+			else
+			{
+#ifdef DEVELOP // Development -- show revision / branch info
+				V_DrawThinString(vid.dupx, vid.height - 17*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, compbranch);
+				V_DrawThinString(vid.dupx, vid.height - 9*vid.dupy,  V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, comprevision);
+#else // Regular build
+				V_DrawThinString(vid.dupx, vid.height - 9*vid.dupy, V_NOSCALESTART|V_TRANSLUCENT|V_ALLOWLOWERCASE, va("%s", VERSIONSTRING));
 #endif
+			}
+		}
+	}
+
+	// focus lost notification goes on top of everything, even the former everything
+	if (window_notinfocus)
+	{
+		M_DrawTextBox((BASEVIDWIDTH/2) - (60), (BASEVIDHEIGHT/2) - (16), 13, 2);
+		if (gamestate == GS_LEVEL && (P_AutoPause() || paused))
+			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), V_YELLOWMAP, "Game Paused");
+		else
+			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), V_YELLOWMAP, "Focus Lost");
 	}
 }
 
@@ -2711,6 +2681,9 @@ void M_SetupNextMenu(menu_t *menudef)
 //
 void M_Ticker(void)
 {
+	// reset input trigger
+	noFurtherInput = false;
+
 	if (dedicated)
 		return;
 
@@ -4806,7 +4779,7 @@ static void M_SetupChoosePlayer(INT32 choice)
 	if (Playing() == false)
 	{
 		S_StopMusic();
-		S_ChangeMusic(mus_chrsel, true);
+		S_ChangeMusicInternal("chrsel", true);
 	}
 
 	SP_PlayerDef.prevMenu = currentMenu;
@@ -5257,7 +5230,7 @@ void M_DrawTimeAttackMenu(void)
 	lumpnum_t lumpnum;
 	char beststr[40];
 
-	S_ChangeMusic(mus_racent, true); // Eww, but needed for when user hits escape during demo playback
+	S_ChangeMusicInternal("racent", true); // Eww, but needed for when user hits escape during demo playback
 
 	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
 
@@ -5420,7 +5393,7 @@ static void M_TimeAttack(INT32 choice)
 	itemOn = tastart; // "Start" is selected.
 
 	G_SetGamestate(GS_TIMEATTACK);
-	S_ChangeMusic(mus_racent, true);
+	S_ChangeMusicInternal("racent", true);
 }
 
 // Drawing function for Nights Attack
@@ -5430,7 +5403,7 @@ void M_DrawNightsAttackMenu(void)
 	lumpnum_t lumpnum;
 	char beststr[40];
 
-	S_ChangeMusic(mus_racent, true); // Eww, but needed for when user hits escape during demo playback
+	S_ChangeMusicInternal("racent", true); // Eww, but needed for when user hits escape during demo playback
 
 	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
 
@@ -5553,7 +5526,7 @@ static void M_NightsAttack(INT32 choice)
 	itemOn = nastart; // "Start" is selected.
 
 	G_SetGamestate(GS_TIMEATTACK);
-	S_ChangeMusic(mus_racent, true);
+	S_ChangeMusicInternal("racent", true);
 }
 
 // Player has selected the "START" from the nights attack screen
@@ -5787,7 +5760,7 @@ static void M_ModeAttackEndGame(INT32 choice)
 	itemOn = currentMenu->lastOn;
 	G_SetGamestate(GS_TIMEATTACK);
 	modeattacking = ATTACKING_NONE;
-	S_ChangeMusic(mus_racent, true);
+	S_ChangeMusicInternal("racent", true);
 	// Update replay availability.
 	CV_AddValue(&cv_nextmap, 1);
 	CV_AddValue(&cv_nextmap, -1);
@@ -6129,7 +6102,7 @@ static void M_RoomMenu(INT32 choice)
 
 	for (i = 0; room_list[i].header.buffer[0]; i++)
 	{
-		if(room_list[i].name != '\0')
+		if(*room_list[i].name != '\0')
 		{
 			MP_RoomMenu[i+1].text = room_list[i].name;
 			roomIds[i] = room_list[i].id;
@@ -6999,7 +6972,7 @@ static void M_ToggleDigital(void)
 		if (nodigimusic) return;
 		S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
 		S_StopMusic();
-		S_ChangeMusic(mus_lclear, false);
+		S_ChangeMusicInternal("lclear", false);
 		M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
@@ -7026,7 +6999,7 @@ static void M_ToggleMIDI(void)
 		I_InitMIDIMusic();
 		if (nomidimusic) return;
 		S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
-		S_ChangeMusic(mus_lclear, false);
+		S_ChangeMusicInternal("lclear", false);
 		M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
@@ -7457,7 +7430,7 @@ static void M_HandleFogColor(INT32 choice)
 				l = strlen(temp);
 				for (i = 0; i < l; i++)
 					cv_grfogcolor.zstring[5 - i] = temp[l - i];
-					cv_grfogcolor.zstring[5] = (char)choice;
+				cv_grfogcolor.zstring[5] = (char)choice;
 			}
 			break;
 	}

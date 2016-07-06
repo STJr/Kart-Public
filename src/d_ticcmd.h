@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -41,8 +41,6 @@ typedef enum
 	BT_CUSTOM1    = 1<<13,
 	BT_CUSTOM2    = 1<<14,
 	BT_CUSTOM3    = 1<<15,
-	BT_FORWARD    = 1<<16,	// SRB2kart 16/02/15
-	BT_BACKWARD   = 1<<17
 } buttoncode_t;
 
 // The data sampled per tick (single player)

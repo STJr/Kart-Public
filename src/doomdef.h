@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -101,6 +101,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _USE_MATH_DEFINES // fixes M_PI errors in r_plane.c for Visual Studio
 #include <math.h>
 
 #ifdef GETTEXT
@@ -138,17 +139,26 @@
 extern FILE *logstream;
 #endif
 
-#if 0
+//#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+#ifdef DEVELOP
 #define VERSION    0 // Game version
 #define SUBVERSION 0 // more precise version number
-#define VERSIONSTRING "Trunk"
+#define VERSIONSTRING "Development EXE"
+#define VERSIONSTRINGW L"Development EXE"
+// most interface strings are ignored in development mode.
+// we use comprevision and compbranch instead.
 #else
-#define VERSION    1602 // Game version						// SRB2kart 16/02/15
-#define SUBVERSION 15   // more precise version number
-#define VERSIONSTRING "v16.02.15"
+#define VERSION    201 // Game version
+#define SUBVERSION 15  // more precise version number
+#define VERSIONSTRING "v2.1.15"
+#define VERSIONSTRINGW L"v2.1.15"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
+
+// Does this version require an added patch file?
+// Comment or uncomment this as necessary.
+#define USE_PATCH_DTA
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
@@ -160,9 +170,8 @@ extern FILE *logstream;
 
 // The string used in the alert that pops up in the event of an update being available.
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
-// SRB2kart 16/02/15  (TODO: Put mod URL here)
 #define UPDATE_ALERT_STRING \
-"A new update is available for SRB2Kart.\n"\
+"A new update is available for SRB2.\n"\
 "Please visit SRB2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
@@ -178,9 +187,8 @@ extern FILE *logstream;
 
 // The string used in the I_Error alert upon trying to host through command line parameters.
 // Generally less filled with newlines, since Windows gives you lots more room to work with.
-// SRB2kart 16/02/15  (TODO: Put mod URL here)
 #define UPDATE_ALERT_STRING_CONSOLE \
-"A new update is available for SRB2Kart.\n"\
+"A new update is available for SRB2.\n"\
 "Please visit SRB2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
@@ -199,20 +207,13 @@ extern FILE *logstream;
 // The Modification ID; must be obtained from Inuyasha ( http://mb.srb2.org/private.php?do=newpm&u=2604 ).
 // DO NOT try to set this otherwise, or your modification will be unplayable through the Master Server.
 // "12" is the default mod ID for version 2.1
-#define MODID 9									// SRB2kart 16/02/15	(TODO: Check if this needs to be updated)
+#define MODID 12
 
 // The Modification Version, starting from 1. Do not follow your version string for this,
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 7
-
-
-
-
-
-// some tests, enable or disable it if it run or not
-#define SPLITSCREEN
+#define MODVERSION 20
 
 // =========================================================================
 
@@ -349,11 +350,7 @@ void CONS_Debug(INT32 debugflags, const char *fmt, ...) FUNCDEBUG;
 #include "m_swap.h"
 
 // Things that used to be in dstrings.h
-#define DEVMAPS "devmaps"
-#define DEVDATA "devdata"
-
-#define SAVEGAMENAME "srb2kartsav"	// SRB2kart 16/02/15
-
+#define SAVEGAMENAME "srb2sav"
 char savegamename[256];
 
 // m_misc.h
@@ -425,18 +422,14 @@ INT32 I_GetKey(void);
 #endif
 
 // Compile date and time and revision.
-extern const char *compdate, *comptime, *comprevision;
+extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 // Disabled code and code under testing
 // None of these that are disabled in the normal build are guaranteed to work perfectly
 // Compile them at your own risk!
 
-///	Max recursive portal renders
-///	\note	obsoleted by cv_maxportals
-//#define PORTAL_LIMIT 8
-
-///	Fun experimental slope stuff!
-//#define SLOPENESS
+/// Kalaron/Eternity Engine slope code (SRB2CB ported)
+#define ESLOPE
 
 ///	Delete file while the game is running.
 ///	\note	EXTREMELY buggy, tends to crash game.
@@ -453,10 +446,6 @@ extern const char *compdate, *comptime, *comprevision;
 
 ///	Polyobject fake flat code
 #define POLYOBJECTS_PLANES
-
-///	Blue spheres for future use.
-///	\todo	Remove this define.
-#define BLUE_SPHERES // Blue spheres for future use.
 
 ///	Improved way of dealing with ping values and a ping limit.
 #define NEWPING
@@ -494,5 +483,9 @@ extern const char *compdate, *comptime, *comprevision;
 
 /// Experimental tweaks to analog mode. (Needs a lot of work before it's ready for primetime.)
 //#define REDSANALOG
+
+/// Backwards compatibility with musicslots.
+/// \note	You should leave this enabled unless you're working with a future SRB2 version.
+#define MUSICSLOT_COMPATIBILITY
 
 #endif // __DOOMDEF__

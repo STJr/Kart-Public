@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -290,51 +290,6 @@ consvar_t cv_bombshield =    {"tv_bombshield",    "5", CV_NETVAR|CV_CHEAT, chanc
 consvar_t cv_1up =           {"tv_1up",           "5", CV_NETVAR|CV_CHEAT, chances_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_eggmanbox =     {"tv_eggman",        "5", CV_NETVAR|CV_CHEAT, chances_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-// SRB2kart specific settings	// SRB2kart 16/02/27
-// SRB2kart Retro
-consvar_t cv_r_magnet           = {"retro_magnet",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_boo              = {"retro_boo",              "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_mushroom         = {"retro_mushroom",         "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_triplemushroom   = {"retro_triplemushroom",   "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_megashroom       = {"retro_megashroom",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_goldshroom       = {"retro_goldshroom",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_star             = {"retro_star",             "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_triplebanana     = {"retro_triplebanana",     "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_fakeitem         = {"retro_fakeitem",         "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_banana           = {"retro_banana",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_greenshell       = {"retro_greenshell",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_redshell         = {"retro_redshell",         "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_triplegreenshell = {"retro_triplegreenshell", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_bobomb           = {"retro_bobomb",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_blueshell        = {"retro_blueshell",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_tossfeather      = {"retro_tossfeather",      "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_fireflower       = {"retro_fireflower",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_tripleredshell   = {"retro_tripleredshell",   "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_bowsershell      = {"retro_bowsershell",      "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_r_lightning        = {"retro_lightning",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-// SRB2kart Neo
-consvar_t cv_n_magnet           = {"neo_magnet",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_ghost            = {"neo_ghost",            "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_speedshoe        = {"neo_speedshoe",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_tripleshoe       = {"neo_tripleshoe",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_sizeup           = {"neo_sizeup",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_rocketshoe       = {"neo_rocketshoe",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_invincibility    = {"neo_invincibility",    "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_triplebanana     = {"neo_triplebanana",     "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_fakemonitor      = {"neo_fakemonitor",      "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_banana           = {"neo_banana",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_orbitspike       = {"neo_orbitspike",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_jaws             = {"neo_jaws",             "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_laserwisp        = {"neo_laserwisp",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_tripleorbitspike = {"neo_tripleorbitspike", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_mine             = {"neo_mine",             "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_deton            = {"neo_deton",            "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_doublejaws       = {"neo_doublejaws",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_spring           = {"neo_spring",           "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_ghzwrecker       = {"neo_ghzwrecker",       "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_n_lightning        = {"neo_lightning",        "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-//
-
 consvar_t cv_ringslinger = {"ringslinger", "No", CV_NETVAR|CV_NOSHOWHELP|CV_CALL|CV_CHEAT, CV_YesNo,
 	Ringslinger_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_gravity = {"gravity", "0.5", CV_RESTRICT|CV_FLOAT|CV_CALL, NULL, Gravity_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -541,51 +496,6 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_1up);
 	CV_RegisterVar(&cv_eggmanbox);
 
-	// SRB2kart specific settings	// SRB2kart 16/02/27
-	// SRB2kart Retro
-	CV_RegisterVar(&cv_r_magnet);
-	CV_RegisterVar(&cv_r_boo);
-	CV_RegisterVar(&cv_r_mushroom);
-	CV_RegisterVar(&cv_r_triplemushroom);
-	CV_RegisterVar(&cv_r_megashroom);
-	CV_RegisterVar(&cv_r_goldshroom);
-	CV_RegisterVar(&cv_r_star);
-	CV_RegisterVar(&cv_r_triplebanana);
-	CV_RegisterVar(&cv_r_fakeitem);
-	CV_RegisterVar(&cv_r_banana);
-	CV_RegisterVar(&cv_r_greenshell);
-	CV_RegisterVar(&cv_r_redshell);
-	CV_RegisterVar(&cv_r_triplegreenshell);
-	CV_RegisterVar(&cv_r_bobomb);
-	CV_RegisterVar(&cv_r_blueshell);
-	CV_RegisterVar(&cv_r_tossfeather);
-	CV_RegisterVar(&cv_r_fireflower);
-	CV_RegisterVar(&cv_r_tripleredshell);
-	CV_RegisterVar(&cv_r_bowsershell);
-	CV_RegisterVar(&cv_r_lightning);
-	// SRB2kart Neo
-	CV_RegisterVar(&cv_n_magnet);
-	CV_RegisterVar(&cv_n_ghost);
-	CV_RegisterVar(&cv_n_speedshoe);
-	CV_RegisterVar(&cv_n_tripleshoe);
-	CV_RegisterVar(&cv_n_sizeup);
-	CV_RegisterVar(&cv_n_rocketshoe);
-	CV_RegisterVar(&cv_n_invincibility);
-	CV_RegisterVar(&cv_n_triplebanana);
-	CV_RegisterVar(&cv_n_fakemonitor);
-	CV_RegisterVar(&cv_n_banana);
-	CV_RegisterVar(&cv_n_orbitspike);
-	CV_RegisterVar(&cv_n_jaws);
-	CV_RegisterVar(&cv_n_laserwisp);
-	CV_RegisterVar(&cv_n_tripleorbitspike);
-	CV_RegisterVar(&cv_n_mine);
-	CV_RegisterVar(&cv_n_deton);
-	CV_RegisterVar(&cv_n_doublejaws);
-	CV_RegisterVar(&cv_n_spring);
-	CV_RegisterVar(&cv_n_ghzwrecker);
-	CV_RegisterVar(&cv_n_lightning);
-	//
-
 	CV_RegisterVar(&cv_ringslinger);
 
 	CV_RegisterVar(&cv_startinglives);
@@ -687,7 +597,9 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_gif_optimize);
 	CV_RegisterVar(&cv_gif_downscale);
 
+#ifdef WALLSPLATS
 	CV_RegisterVar(&cv_splats);
+#endif
 
 	// register these so it is saved to config
 	if ((username = I_GetUserName()))
@@ -898,7 +810,7 @@ static boolean IsNameGood(char *name, INT32 playernum)
 			else if (len == 1) // Agh!
 			{
 				// Last ditch effort...
-				sprintf(name, "%d", M_Random() & 7);
+				sprintf(name, "%d", M_RandomKey(10));
 				if (!IsNameGood (name, playernum))
 					return false;
 			}
@@ -1022,7 +934,7 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
   * kicked with a consistency failure.
   *
   * This function prints a message indicating the name change, unless the game
-  * is currently showing the intro, e.g. when processing kartexec.cfg.
+  * is currently showing the intro, e.g. when processing autoexec.cfg.
   *
   * \param playernum Player number who has requested a name change.
   * \param newname   New name for that player. Should be good, but won't
@@ -1201,6 +1113,13 @@ static void SendNameAndColor(void)
 					players[consoleplayer].mo->color = (UINT8)players[consoleplayer].skincolor;
 			}
 		}
+		else
+		{
+			cv_skin.value = players[consoleplayer].skin;
+			CV_StealthSet(&cv_skin, skins[players[consoleplayer].skin].name);
+			// will always be same as current
+			SetPlayerSkin(consoleplayer, cv_skin.string);
+		}
 
 		return;
 	}
@@ -1317,6 +1236,13 @@ static void SendNameAndColor2(void)
 				if (players[secondplaya].mo)
 					players[secondplaya].mo->color = players[secondplaya].skincolor;
 			}
+		}
+		else
+		{
+			cv_skin2.value = players[secondplaya].skin;
+			CV_StealthSet(&cv_skin2, skins[players[secondplaya].skin].name);
+			// will always be same as current
+			SetPlayerSkin(secondplaya, cv_skin2.string);
 		}
 		return;
 	}
@@ -1944,10 +1870,10 @@ static void Got_Pause(UINT8 **cp, INT32 playernum)
 		if (paused)
 		{
 			if (!menuactive || netgame)
-				S_PauseSound();
+				S_PauseAudio();
 		}
 		else
-			S_ResumeSound();
+			S_ResumeAudio();
 	}
 }
 
@@ -2672,11 +2598,13 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 	memset(dest, 0, 16);
 #else
 	XBOXSTATIC char tmpbuf[256];
+	const size_t sl = strlen(salt);
 
-	if (len > 256-strlen(salt))
-		len = 256-strlen(salt);
+	if (len > 256-sl)
+		len = 256-sl;
 	memcpy(tmpbuf, buffer, len);
-	strcpy(&tmpbuf[len], salt);
+	memmove(&tmpbuf[len], salt, sl);
+	//strcpy(&tmpbuf[len], salt);
 	len += strlen(salt);
 	if (len < 256)
 		memset(&tmpbuf[len],0,256-len);
@@ -3269,7 +3197,11 @@ static void Command_ListWADS_f(void)
   */
 static void Command_Version_f(void)
 {
+#ifdef DEVELOP
+	CONS_Printf("Sonic Robo Blast 2 %s-%s (%s %s)\n", compbranch, comprevision, compdate, comptime);
+#else
 	CONS_Printf("Sonic Robo Blast 2 %s (%s %s %s)\n", VERSIONSTRING, compdate, comptime, comprevision);
+#endif
 }
 
 #ifdef UPDATE_ALERT
@@ -3283,7 +3215,27 @@ static void Command_ModDetails_f(void)
 //
 static void Command_ShowGametype_f(void)
 {
-	CONS_Printf(M_GetText("Current gametype is %d\n"), gametype);
+	INT32 j;
+	const char *gametypestr = NULL;
+
+	if (!(netgame || multiplayer)) // print "Single player" instead of "Co-op"
+	{
+		CONS_Printf(M_GetText("Current gametype is %s\n"), M_GetText("Single player"));
+		return;
+	}
+	// find name string for current gametype
+	for (j = 0; gametype_cons_t[j].strvalue; j++)
+	{
+		if (gametype_cons_t[j].value == gametype)
+		{
+			gametypestr = gametype_cons_t[j].strvalue;
+			break;
+		}
+	}
+	if (gametypestr)
+		CONS_Printf(M_GetText("Current gametype is %s\n"), gametypestr);
+	else // string for current gametype was not found above (should never happen)
+		CONS_Printf(M_GetText("Unknown gametype set (%d)\n"), gametype);
 }
 
 /** Plays the intro.
@@ -3649,7 +3601,7 @@ retryscramble:
 		for (i = 0; i < playercount; i++)
 		{
 			if (repick)
-				newteam = (INT16)((M_Random() % 2) + 1);
+				newteam = (INT16)((M_RandomByte() % 2) + 1);
 
 			// One team has the most players they can get, assign the rest to the other team.
 			if (red == maxcomposition || blue == maxcomposition)
@@ -3694,7 +3646,7 @@ retryscramble:
 		{
 			if (repick)
 			{
-				newteam = (INT16)((M_Random() % 2) + 1);
+				newteam = (INT16)((M_RandomByte() % 2) + 1);
 				repick = false;
 			}
 			else
@@ -3827,50 +3779,66 @@ static void Command_Displayplayer_f(void)
 static void Command_Tunes_f(void)
 {
 	const char *tunearg;
-	UINT16 tune, track = 0;
+	UINT16 tunenum, track = 0;
 	const size_t argc = COM_Argc();
 
 	if (argc < 2) //tunes slot ...
 	{
-		CONS_Printf("tunes <slot #/map name/\"default\"> <speed> <track>:\n");
-		CONS_Printf(M_GetText("Play a music slot at a set speed (\"1\" being normal speed).\n"));
-		CONS_Printf(M_GetText("If the format supports multiple songs, you can specify which one to play.\n"));
-		CONS_Printf(M_GetText("The current tune is: %d\nThe current track is: %d\n"),
-			(mapmusic & MUSIC_SONGMASK), ((mapmusic & MUSIC_TRACKMASK) >> MUSIC_TRACKSHIFT));
+		CONS_Printf("tunes <name/num> [track] [speed] / <-show> / <-default> / <-none>:\n");
+		CONS_Printf(M_GetText("Play an arbitrary music lump. If a map number is used, 'MAP##M' is played.\n"));
+		CONS_Printf(M_GetText("If the format supports multiple songs, you can specify which one to play.\n\n"));
+		CONS_Printf(M_GetText("* With \"-show\", shows the currently playing tune and track.\n"));
+		CONS_Printf(M_GetText("* With \"-default\", returns to the default music for the map.\n"));
+		CONS_Printf(M_GetText("* With \"-none\", any music playing will be stopped.\n"));
 		return;
 	}
 
 	tunearg = COM_Argv(1);
-	tune = (UINT16)atoi(tunearg);
+	tunenum = (UINT16)atoi(tunearg);
 	track = 0;
 
-	if (!strcasecmp(tunearg, "default"))
+	if (!strcasecmp(tunearg, "-show"))
 	{
-		tune = mapheaderinfo[gamemap-1]->musicslot;
-		track = mapheaderinfo[gamemap-1]->musicslottrack;
-	}
-	else if (toupper(tunearg[0]) >= 'A' && toupper(tunearg[0]) <= 'Z')
-		tune = (UINT16)M_MapNumber(tunearg[0], tunearg[1]);
-
-	if (tune >= NUMMUSIC)
-	{
-		CONS_Alert(CONS_NOTICE, M_GetText("Valid slots are 1 to %d, or 0 to stop music\n"), NUMMUSIC - 1);
+		CONS_Printf(M_GetText("The current tune is: %s [track %d]\n"),
+			mapmusname, (mapmusflags & MUSIC_TRACKMASK));
 		return;
 	}
-
-	if (argc > 3)
-		track = (UINT16)atoi(COM_Argv(3))-1;
-
-	mapmusic = tune | (track << MUSIC_TRACKSHIFT);
-
-	if (tune == mus_None)
+	if (!strcasecmp(tunearg, "-none"))
+	{
 		S_StopMusic();
-	else
-		S_ChangeMusic(mapmusic, true);
+		return;
+	}
+	else if (!strcasecmp(tunearg, "-default"))
+	{
+		tunearg = mapheaderinfo[gamemap-1]->musname;
+		track = mapheaderinfo[gamemap-1]->mustrack;
+	}
+	else if (!tunearg[2] && toupper(tunearg[0]) >= 'A' && toupper(tunearg[0]) <= 'Z')
+		tunenum = (UINT16)M_MapNumber(tunearg[0], tunearg[1]);
+
+	if (tunenum && tunenum >= 1036)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Valid music slots are 1 to 1035.\n"));
+		return;
+	}
+	if (!tunenum && strlen(tunearg) > 6) // This is automatic -- just show the error just in case
+		CONS_Alert(CONS_NOTICE, M_GetText("Music name too long - truncated to six characters.\n"));
 
 	if (argc > 2)
+		track = (UINT16)atoi(COM_Argv(2))-1;
+
+	if (tunenum)
+		snprintf(mapmusname, 7, "%sM", G_BuildMapName(tunenum));
+	else
+		strncpy(mapmusname, tunearg, 7);
+	mapmusname[6] = 0;
+	mapmusflags = (track & MUSIC_TRACKMASK);
+
+	S_ChangeMusic(mapmusname, mapmusflags, true);
+
+	if (argc > 3)
 	{
-		float speed = (float)atof(COM_Argv(2));
+		float speed = (float)atof(COM_Argv(3));
 		if (speed > 0.0f)
 			S_SpeedMusic(speed);
 	}

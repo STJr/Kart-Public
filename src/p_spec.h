@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -314,7 +314,7 @@ result_e T_MovePlane(sector_t *sector, fixed_t speed, fixed_t dest, boolean crus
 	INT32 floorOrCeiling, INT32 direction);
 INT32 EV_DoFloor(line_t *line, floor_e floortype);
 INT32 EV_DoElevator(line_t *line, elevator_e elevtype, boolean customspeed);
-void EV_CrumbleChain(sector_t *sec, ffloor_t *rover, INT32 sound);					// SRB2kart 16/04/10
+void EV_CrumbleChain(sector_t *sec, ffloor_t *rover);
 INT32 EV_BounceSector(sector_t *sector, fixed_t momz, line_t *sourceline);
 
 // Some other special 3dfloor types
