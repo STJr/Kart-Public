@@ -53,6 +53,7 @@
 #include "byteptr.h"
 #include "st_stuff.h"
 #include "i_sound.h"
+#include "k_kart.h" // SRB2kart
 
 // Condition Sets
 #include "m_cond.h"
@@ -6403,7 +6404,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 	// draw the name of the color you have chosen
 	// Just so people don't go thinking that "Default" is Green.
-	V_DrawString(208, 72, V_YELLOWMAP|V_ALLOWLOWERCASE, Color_Names[setupm_fakecolor]);
+	V_DrawString(208, 72, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);				// SRB2kart
 
 	// draw text cursor for name
 	if (!itemOn && skullAnimCounter < 4) // blink cursor

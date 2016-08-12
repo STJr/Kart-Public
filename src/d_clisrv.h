@@ -154,6 +154,8 @@ typedef struct
 	INT32 ringweapons;
 	UINT16 powers[NUMPOWERS];
 
+	INT32 kartstuff[NUMKARTSTUFF]; // SRB2kart
+
 	// Score is resynched in the confirm resync packet
 	INT32 health;
 	SINT8 lives;

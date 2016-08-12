@@ -29,6 +29,9 @@
 // as commands per game tick.
 #include "d_ticcmd.h"
 
+// SRB2kart stuff
+#include "k_kart.h"
+
 // Extra abilities/settings for skins (combinable stuff)
 typedef enum
 {
@@ -286,6 +289,9 @@ typedef struct player_s
 	// Power ups. invinc and invis are tic counters.
 	UINT16 powers[NUMPOWERS];
 
+	// SRB2kart stuff
+	INT32 kartstuff[NUMKARTSTUFF];
+
 	// Bit flags.
 	// See pflags_t, above.
 	pflags_t pflags;
@@ -365,6 +371,7 @@ typedef struct player_s
 	INT16 totalring; // Total number of rings obtained for Race Mode
 	tic_t realtime; // integer replacement for leveltime
 	UINT8 laps; // Number of laps (optional)
+	tic_t checkpointtimes[256]; // Individual checkpoint times	// SRB2kart
 
 	////////////////////
 	// CTF Mode Stuff //

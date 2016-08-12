@@ -45,6 +45,7 @@
 #include "b_bot.h"
 #include "m_cond.h" // condition sets
 #include "md5.h" // demo checksums
+#include "k_kart.h" // SRB2kart
 
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
@@ -2078,6 +2079,14 @@ void G_PlayerReborn(INT32 player)
 	INT16 bot;
 	SINT8 pity;
 
+	// SRB2kart
+	INT32 x;
+	tic_t checkpointtimes[256];
+	INT32 playerahead;
+	INT32 starpostwp;
+	INT32 lakitu;
+
+
 	score = players[player].score;
 	lives = players[player].lives;
 	continues = players[player].continues;
@@ -2123,6 +2132,12 @@ void G_PlayerReborn(INT32 player)
 	mare = players[player].mare;
 	bot = players[player].bot;
 	pity = players[player].pity;
+
+	// SRB2kart
+	for (x = 0; x < (256); x++) checkpointtimes[x] = players[player].checkpointtimes[x];
+	playerahead = players[player].kartstuff[k_playerahead];
+	starpostwp = players[player].kartstuff[k_starpostwp];
+	lakitu = players[player].kartstuff[k_lakitu];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2171,6 +2186,12 @@ void G_PlayerReborn(INT32 player)
 		p->bot = 1; // reset to AI-controlled
 	p->pity = pity;
 
+	// SRB2kart
+	for (x = 0; x < 256; x++) p->checkpointtimes[x] = checkpointtimes[x];
+	p->kartstuff[k_playerahead] = playerahead;
+	p->kartstuff[k_starpostwp] = starpostwp;
+	p->kartstuff[k_lakitu] = lakitu;
+
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
 	p->pflags |= PF_ATTACKDOWN;
@@ -2191,9 +2212,15 @@ void G_PlayerReborn(INT32 player)
 			mapmusname[6] = 0;
 			mapmusflags = mapheaderinfo[gamemap-1]->mustrack & MUSIC_TRACKMASK;
 		}
-		S_ChangeMusic(mapmusname, mapmusflags, true);
+		//SRB2kart - leveltime stuff
+		if (leveltime > 157)
+		{
+			S_ChangeMusic(mapmusname, mapmusflags, true);
+			if (p->laps == (unsigned)(cv_numlaps.value - 1))
+				S_SpeedMusic(1.2f);
+		}
 	}
-
+	
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for
 
@@ -5106,7 +5133,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	// Set color
 	for (i = 0; i < MAXSKINCOLORS; i++)
-		if (!stricmp(Color_Names[i],color))
+		if (!stricmp(KartColor_Names[i],color))				// SRB2kart
 		{
 			players[0].skincolor = i;
 			break;
@@ -5352,7 +5379,7 @@ void G_AddGhost(char *defdemoname)
 	// Set color
 	gh->mo->color = ((skin_t*)gh->mo->skin)->prefcolor;
 	for (i = 0; i < MAXSKINCOLORS; i++)
-		if (!stricmp(Color_Names[i],color))
+		if (!stricmp(KartColor_Names[i],color))				// SRB2kart
 		{
 			gh->mo->color = (UINT8)i;
 			break;

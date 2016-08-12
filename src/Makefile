@@ -409,6 +409,7 @@ DBGNAME?=$(EXENAME).debug
 # $(OBJDIR)/dstrings.o \
 
 # not too sophisticated dependency
+# SRB2kart kart.o on line 433 below
 OBJS:=$(i_main_o) \
 		$(OBJDIR)/comptime.o \
 		$(OBJDIR)/string.o   \
@@ -429,6 +430,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/hu_stuff.o \
 		$(OBJDIR)/y_inter.o  \
 		$(OBJDIR)/st_stuff.o \
+		$(OBJDIR)/k_kart.o   \
 		$(OBJDIR)/m_anigif.o \
 		$(OBJDIR)/m_argv.o   \
 		$(OBJDIR)/m_bbox.o   \

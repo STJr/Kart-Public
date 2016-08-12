@@ -28,6 +28,7 @@
 #include "dehacked.h" // get_number (for thok)
 #include "d_netfil.h" // blargh. for nameonly().
 #include "m_cheat.h" // objectplace
+#include "k_kart.h" // SRB2kart
 #ifdef HWRENDER
 #include "hardware/hw_md2.h"
 #endif
@@ -2653,7 +2654,7 @@ void R_AddSkins(UINT16 wadnum)
 				skin->starttranscolor = atoi(value);
 
 			else if (!stricmp(stoken, "prefcolor"))
-				skin->prefcolor = R_GetColorByName(value);
+				skin->prefcolor = K_GetKartColorByName(value);
 			else if (!stricmp(stoken, "jumpfactor"))
 				skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
 			else if (!stricmp(stoken, "highresscale"))

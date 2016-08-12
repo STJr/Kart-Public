@@ -6817,33 +6817,72 @@ static const char *const ML_LIST[16] = {
 
 // This DOES differ from r_draw's Color_Names, unfortunately.
 // Also includes Super colors
-static const char *COLOR_ENUMS[] = {
-	"NONE",     	// SKINCOLOR_NONE
-	"WHITE",    	// SKINCOLOR_WHITE
-	"SILVER",   	// SKINCOLOR_SILVER
-	"GREY",	    	// SKINCOLOR_GREY
-	"BLACK",    	// SKINCOLOR_BLACK
-	"CYAN",     	// SKINCOLOR_CYAN
-	"TEAL",     	// SKINCOLOR_TEAL
-	"STEELBLUE",	// SKINCOLOR_STEELBLUE
-	"BLUE",     	// SKINCOLOR_BLUE
-	"PEACH",    	// SKINCOLOR_PEACH
-	"TAN",      	// SKINCOLOR_TAN
-	"PINK",     	// SKINCOLOR_PINK
-	"LAVENDER", 	// SKINCOLOR_LAVENDER
-	"PURPLE",   	// SKINCOLOR_PURPLE
-	"ORANGE",   	// SKINCOLOR_ORANGE
-	"ROSEWOOD", 	// SKINCOLOR_ROSEWOOD
-	"BEIGE",    	// SKINCOLOR_BEIGE
-	"BROWN",    	// SKINCOLOR_BROWN
-	"RED",      	// SKINCOLOR_RED
-	"DARKRED",  	// SKINCOLOR_DARKRED
-	"NEONGREEN",	// SKINCOLOR_NEONGREEN
-	"GREEN",    	// SKINCOLOR_GREEN
-	"ZIM",      	// SKINCOLOR_ZIM
-	"OLIVE",    	// SKINCOLOR_OLIVE
-	"YELLOW",   	// SKINCOLOR_YELLOW
-	"GOLD",     	// SKINCOLOR_GOLD
+static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
+	"NONE",                // 00 // SKINCOLOR_NONE
+	"IVORY",               // 01 // SKINCOLOR_IVORY
+	"WHITE",               // 02 // SKINCOLOR_WHITE
+	"SILVER",              // 03 // SKINCOLOR_SILVER
+	"CLOUDY",              // 04 // SKINCOLOR_CLOUDY
+	"GREY",                // 05 // SKINCOLOR_GREY
+	"DARKGREY",            // 06 // SKINCOLOR_DARKGREY
+	"BLACK",               // 07 // SKINCOLOR_BLACK
+	"SALMON",              // 08 // SKINCOLOR_SALMON
+	"PINK",                // 09 // SKINCOLOR_PINK
+	"LIGHTRED",            // 10 // SKINCOLOR_LIGHTRED
+	"FULLRANGERED",        // 11 // SKINCOLOR_FULLRANGERED
+	"RED",                 // 12 // SKINCOLOR_RED
+	"DARKPINK",            // 13 // SKINCOLOR_DARKPINK
+	"DARKRED",             // 14 // SKINCOLOR_DARKRED
+	"DAWN",                // 15 // SKINCOLOR_DAWN
+	"ORANGE",              // 16 // SKINCOLOR_ORANGE
+	"FULLRANGEORANGE",     // 17 // SKINCOLOR_FULLRANGEORANGE
+	"DARKORANGE",          // 18 // SKINCOLOR_DARKORANGE
+	"GOLDENBROWN",         // 19 // SKINCOLOR_GOLDENBROWN
+	"ROSEWOOD",            // 20 // SKINCOLOR_ROSEWOOD
+	"DARKROSEWOOD",        // 21 // SKINCOLOR_DARKROSEWOOD
+	"SEPIA",               // 22 // SKINCOLOR_SEPIA
+	"BEIGE",               // 23 // SKINCOLOR_BEIGE
+	"BROWN",               // 24 // SKINCOLOR_BROWN
+	"LEATHER",             // 25 // SKINCOLOR_LEATHER
+	"YELLOW",              // 26 // SKINCOLOR_YELLOW
+	"PEACH",               // 27 // SKINCOLOR_PEACH
+	"LIGHTORANGE",         // 28 // SKINCOLOR_LIGHTORANGE
+	"PEACHBROWN",          // 29 // SKINCOLOR_PEACHBROWN
+	"GOLD",                // 30 // SKINCOLOR_GOLD
+	"FULLRANGEPEACHBROWN", // 31 // SKINCOLOR_FULLRANGEPEACHBROWN
+	"GYPSYVOMIT",          // 32 // SKINCOLOR_GYPSYVOMIT
+	"GARDEN",              // 33 // SKINCOLOR_GARDEN
+	"LIGHTARMY",           // 34 // SKINCOLOR_LIGHTARMY
+	"ARMY",                // 35 // SKINCOLOR_ARMY
+	"PISTACHIO",           // 36 // SKINCOLOR_PISTACHIO
+	"ROBOHOODGREEN",       // 37 // SKINCOLOR_ROBOHOODGREEN
+	"OLIVE",               // 38 // SKINCOLOR_OLIVE
+	"DARKARMY",            // 39 // SKINCOLOR_DARKARMY
+	"LIGHTGREEN",          // 40 // SKINCOLOR_LIGHTGREEN
+	"UGLYGREEN",           // 41 // SKINCOLOR_UGLYGREEN
+	"NEONGREEN",           // 42 // SKINCOLOR_NEONGREEN
+	"GREEN",               // 43 // SKINCOLOR_GREEN
+	"DARKGREEN",           // 44 // SKINCOLOR_DARKGREEN
+	"DARKNEONGREEN",       // 45 // SKINCOLOR_DARKNEONGREEN
+	"FROST",               // 46 // SKINCOLOR_FROST
+	"LIGHTSTEELBLUE",      // 47 // SKINCOLOR_LIGHTSTEELBLUE
+	"LIGHTBLUE",           // 48 // SKINCOLOR_LIGHTBLUE
+	"CYAN",                // 49 // SKINCOLOR_CYAN
+	"CERULEAN",            // 50 // SKINCOLOR_CERULEAN
+	"TURQUOISE",           // 51 // SKINCOLOR_TURQUOISE
+	"TEAL",                // 52 // SKINCOLOR_TEAL
+	"STEELBLUE",           // 53 // SKINCOLOR_STEELBLUE
+	"BLUE",                // 54 // SKINCOLOR_BLUE
+	"FULLRANGEBLUE",       // 55 // SKINCOLOR_FULLRANGEBLUE
+	"DARKSTEELBLUE",       // 56 // SKINCOLOR_DARKSTEELBLUE
+	"DARKBLUE",            // 57 // SKINCOLOR_DARKBLUE
+	"JETBLACK",            // 58 // SKINCOLOR_JETBLACK
+	"LILAC",               // 59 // SKINCOLOR_LILAC
+	"PURPLE",              // 60 // SKINCOLOR_PURPLE
+	"LAVENDER",            // 61 // SKINCOLOR_LAVENDER
+	"BYZANTIUM",           // 62 // SKINCOLOR_BYZANTIUM
+	"INDIGO",              // 63 // SKINCOLOR_INDIGO
+
 	// Super special awesome Super flashing colors!
 	"SUPER1",   	// SKINCOLOR_SUPER1
 	"SUPER2",   	// SKINCOLOR_SUPER2,
@@ -7718,7 +7757,7 @@ static fixed_t find_const(const char **rword)
 		free(word);
 		return r;
 	}
-	else if (fastncmp("SKINCOLOR_",word,10)) {
+	else if (fastncmp("SKINCOLOR_",word,20)) {
 		char *p = word+10;
 		for (i = 0; i < MAXTRANSLATIONS; i++)
 			if (fastcmp(p, COLOR_ENUMS[i])) {
@@ -8128,7 +8167,7 @@ static inline int lib_getenum(lua_State *L)
 		if (mathlib) return luaL_error(L, "huditem '%s' could not be found.\n", word);
 		return 0;
 	}
-	else if (fastncmp("SKINCOLOR_",word,10)) {
+	else if (fastncmp("SKINCOLOR_",word,20)) {
 		p = word+10;
 		for (i = 0; i < MAXTRANSLATIONS; i++)
 			if (fastcmp(p, COLOR_ENUMS[i])) {

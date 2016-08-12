@@ -975,9 +975,11 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		case SKINCOLOR_PEACH:
 			blendcolor = V_GetColor(71);
 			break;
+		/*
 		case SKINCOLOR_TAN:
 			blendcolor = V_GetColor(79);
 			break;
+		*/
 		case SKINCOLOR_PINK:
 			blendcolor = V_GetColor(147);
 			break;
@@ -1011,9 +1013,11 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		case SKINCOLOR_GREEN:
 			blendcolor = V_GetColor(166);
 			break;
+		/*
 		case SKINCOLOR_ZIM:
 			blendcolor = V_GetColor(180);
 			break;
+		*/
 		case SKINCOLOR_OLIVE:
 			blendcolor = V_GetColor(108);
 			break;
