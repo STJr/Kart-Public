@@ -822,6 +822,9 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
 #endif
 
+	// SRB2kart - Add graphics (temp)
+	D_AddFile(va(pandf,srb2waddir,"AllKartGraphics.wad"));
+
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{
 #if defined (DC) && 0

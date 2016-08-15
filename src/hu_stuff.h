@@ -26,6 +26,13 @@
 
 #define HU_FONTSIZE (HU_FONTEND - HU_FONTSTART + 1)
 
+// SRB2kart
+#define KART_FONTSTART '\"' // the first font character
+#define KART_FONTEND 'Z'
+
+#define KART_FONTSIZE (KART_FONTEND - KART_FONTSTART + 1)
+//
+
 // Level title font
 #define LT_FONTSTART '!' // the first font characters
 #define LT_FONTEND 'Z' // the last font characters
@@ -58,7 +65,7 @@ typedef struct
 //------------------------------------
 #define HU_MAXMSGLEN 224
 
-extern patch_t *hu_font[HU_FONTSIZE], *tny_font[HU_FONTSIZE];
+extern patch_t *hu_font[HU_FONTSIZE], *kart_font[KART_FONTSIZE], *tny_font[HU_FONTSIZE];	// SRB2kart
 extern patch_t *tallnum[10];
 extern patch_t *nightsnum[10];
 extern patch_t *lt_font[LT_FONTSIZE];

@@ -201,6 +201,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		pflags = object->player->pflags & (PF_JUMPED|PF_SPINNING|PF_THOKKED); // I still need these.
 		P_ResetPlayer(object->player);
 
+		/* // SRB2kart - Springs don't need to change player state in kart.
 		if (P_MobjFlip(object)*vertispeed > 0)
 			P_SetPlayerMobjState(object, S_PLAY_SPRING);
 		else if (P_MobjFlip(object)*vertispeed < 0)
@@ -218,6 +219,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			object->player->pflags |= PF_JUMPED;
 			P_SetPlayerMobjState(object, S_PLAY_ATK1);
 		}
+		*/
 	}
 	return true;
 }
@@ -262,12 +264,14 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 			if (flipval*object->momz > FixedMul(speed, spring->scale))
 				object->momz = flipval*FixedMul(speed, spring->scale);
 
+			/* // SRB2kart - don't need state change
 			if (p && !p->powers[pw_tailsfly]) // doesn't reset anim for Tails' flight
 			{
 				P_ResetPlayer(p);
 				if (p->panim != PA_FALL)
 					P_SetPlayerMobjState(object, S_PLAY_FALL1);
 			}
+			*/
 			break;
 		case MT_STEAM: // Steam
 			if (zdist > FixedMul(16*FRACUNIT, spring->scale))
@@ -277,12 +281,14 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 
 			object->momz = flipval*FixedMul(speed, FixedSqrt(FixedMul(spring->scale, object->scale))); // scale the speed with both objects' scales, just like with springs!
 
+			/* // SRB2kart - don't need state change
 			if (p)
 			{
 				P_ResetPlayer(p);
 				if (p->panim != PA_FALL)
 					P_SetPlayerMobjState(object, S_PLAY_FALL1);
 			}
+			*/
 			break;
 		default:
 			break;
@@ -299,8 +305,8 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 	if ((sonic->pflags & PF_CARRIED) && sonic->mo->tracer == tails->mo)
 		return;
 
-	if (!tails->powers[pw_tailsfly] && !(tails->charability == CA_FLY && (tails->mo->state >= &states[S_PLAY_SPC1] && tails->mo->state <= &states[S_PLAY_SPC4])))
-		return;
+	//if (!tails->powers[pw_tailsfly] && !(tails->charability == CA_FLY && (tails->mo->state >= &states[S_PLAY_SPC1] && tails->mo->state <= &states[S_PLAY_SPC4])))
+	//	return; // SRB2kart - no changey statey
 
 	if (tails->bot == 1)
 		return;
@@ -1929,9 +1935,11 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 
 				// Don't 'step up' while springing,
 				// Only step up "if needed".
+				/* // SRB2kart - don't need
 				if (thing->state == &states[S_PLAY_SPRING]
 				&& P_MobjFlip(thing)*thing->momz > FixedMul(FRACUNIT, thing->scale))
 					maxstep = 0;
+				*/
 			}
 
 			if (thing->type == MT_SKIM)

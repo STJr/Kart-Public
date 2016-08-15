@@ -26,6 +26,7 @@
 #include "m_cheat.h" // objectplace
 #include "m_misc.h"
 #include "v_video.h" // video flags for CEchos
+#include "k_kart.h" // SRB2kart
 
 // CTF player names
 #define CTFTEAMCODE(pl) pl->ctfteam ? (pl->ctfteam == 1 ? "\x85" : "\x84") : ""
@@ -309,6 +310,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			toucher->momy = -toucher->momy;
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
+		/*
 		else if (((toucher->z < special->z && !(toucher->eflags & MFE_VERTICALFLIP))
 		|| (toucher->z + toucher->height > special->z + special->height && (toucher->eflags & MFE_VERTICALFLIP)))
 		&& player->charability == CA_FLY
@@ -319,6 +321,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
+		*/																						// SRB2kart - Removed: No more fly states
 		else
 			P_DamageMobj(toucher, special, special, 1);
 
@@ -351,6 +354,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
+		/*
 		else if (((toucher->z < special->z && !(toucher->eflags & MFE_VERTICALFLIP))
 		|| (toucher->z + toucher->height > special->z + special->height && (toucher->eflags & MFE_VERTICALFLIP))) // Flame is bad at logic - JTE
 		&& player->charability == CA_FLY
@@ -362,6 +366,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
+		*/																						// SRB2kart - Removed: No more fly states
 		else
 			P_DamageMobj(toucher, special, special, 1);
 
@@ -887,7 +892,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 					P_ResetPlayer(player);
 
-					P_SetPlayerMobjState(toucher, S_PLAY_FALL1);
+					P_SetPlayerMobjState(toucher, S_KART_STND); // SRB2kart - was S_PLAY_FALL1
 				}
 			}
 			return;
@@ -1224,7 +1229,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				if (player->pflags & PF_GLIDING)
 				{
 					player->pflags &= ~(PF_GLIDING|PF_JUMPED);
-					P_SetPlayerMobjState(toucher, S_PLAY_FALL1);
+					P_SetPlayerMobjState(toucher, S_KART_STND); // SRB2kart - was S_PLAY_FALL1
 				}
 
 				// Play a bounce sound?
@@ -1233,7 +1238,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			return;
 
 		case MT_BLACKEGGMAN_GOOPFIRE:
-			if (toucher->state != &states[S_PLAY_PAIN] && !player->powers[pw_flashing])
+			if (!player->powers[pw_flashing]) // SRB2kart
 			{
 				toucher->momx = 0;
 				toucher->momy = 0;
@@ -1291,7 +1296,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					if (player->pflags & PF_GLIDING)
 					{
 						player->pflags &= ~(PF_GLIDING|PF_JUMPED);
-						P_SetPlayerMobjState(toucher, S_PLAY_FALL1);
+						P_SetPlayerMobjState(toucher, S_KART_STND); // SRB2kart - was S_PLAY_FALL1
 					}
 
 					// Play a bounce sound?
@@ -1347,7 +1352,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				player->pflags |= PF_MACESPIN;
 				S_StartSound(toucher, sfx_spin);
-				P_SetPlayerMobjState(toucher, S_PLAY_ATK1);
+				P_SetPlayerMobjState(toucher, S_KART_STND); // SRB2kart - was S_PLAY_ATK1
 			}
 			else
 				player->pflags |= PF_ITEMHANG;
@@ -1408,7 +1413,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			return;
 
-		case MT_EXTRALARGEBUBBLE:
+		case MT_EXTRALARGEBUBBLE: 
+			return; // SRB2kart - don't need bubbles mucking with the player
 			if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL)
 				return;
 			if (maptol & TOL_NIGHTS)
@@ -1432,11 +1438,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (player->powers[pw_underwater] < underwatertics + 1)
 				player->powers[pw_underwater] = underwatertics + 1;
 
+			/* 
 			if (!player->climbing)
 			{
 				P_SetPlayerMobjState(toucher, S_PLAY_GASP);
 				P_ResetPlayer(player);
 			}
+			*/
 
 			toucher->momx = toucher->momy = toucher->momz = 0;
 			break;
@@ -2687,9 +2695,11 @@ static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *so
 
 	P_InstaThrust(player->mo, ang, fallbackspeed);
 
+	/* // SRB2kart - This shouldn't be reachable, but this frame is invalid.
 	if (player->charflags & SF_SUPERANIMS)
-		P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
+		P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT); 
 	else
+	*/
 		P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
 
 	P_ResetPlayer(player);
@@ -2967,6 +2977,47 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				return false; // Don't get hurt by fire generated from friends.
 		}
 
+		//{ SRB2kart - special damage sources
+		
+		player->kartstuff[k_mushroomtimer] = 0;
+		
+		// Thunder
+		if (damage == 64 && player != source->player)
+		{
+			// Don't flip out while super!
+			if (!player->kartstuff[k_startimer] && player->kartstuff[k_growshrinktimer] <= 0)
+			{
+				// Start slipping!
+				P_SpinPlayerMobj(player->mo, source);
+
+				// Start shrinking!
+				player->mo->destscale = 70;
+				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
+			}
+			// Mega Mushroom? Let's take that away.
+			if (player->kartstuff[k_growshrinktimer] > 0)
+			{
+				player->kartstuff[k_growshrinktimer] = 2;
+			}
+			// Invincible or not, we still need this.
+			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNDERSHIELD);  // TODO: Add this
+			return true;
+		}
+		else if (damage == 64 && player == source->player)
+			return false;
+
+		// Blue Thunder
+		if (damage == 65 && player->kartstuff[k_position] == 1)
+		{
+			// Just need to do this now! Being thrown upwards is done by the explosion.
+			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNBERSHIELD);  // TODO: Add this
+			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLODE);  // TODO: Add this
+			return true;
+		}
+		else if (damage == 65 && player->kartstuff[k_position] > 1)
+			return false;
+		//}
+
 		// Sudden-Death mode
 		if (source && source->type == MT_PLAYER)
 		{
@@ -2988,6 +3039,14 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		// Instant-Death
 		if (damage == 10000)
 			P_KillPlayer(player, source, damage);
+		else if (player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
+			return false;
+		else
+		{
+			damage = player->mo->health - 1;
+			P_RingDamage(player, inflictor, source, damage);
+		}
+		/* // SRB2kart - don't need these
 		else if (metalrecording)
 		{
 			if (!inflictor)
@@ -3052,6 +3111,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				P_ShieldDamage(player, inflictor, source, damage);
 			}
 		}
+		*/
 
 		if (inflictor && ((inflictor->flags & MF_MISSILE) || inflictor->player) && player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))
 		{

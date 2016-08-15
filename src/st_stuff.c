@@ -28,6 +28,7 @@
 #include "m_menu.h"
 #include "m_cheat.h"
 #include "p_setup.h" // NiGHTS grading
+#include "k_kart.h" // SRB2kart
 
 //random index
 #include "m_random.h"
@@ -122,6 +123,10 @@ static patch_t *minus5sec;
 static patch_t *minicaps;
 static patch_t *gotrflag;
 static patch_t *gotbflag;
+
+// SRB2kart
+
+//
 
 static boolean facefreed[MAXPLAYERS];
 
@@ -337,6 +342,8 @@ void ST_LoadGraphics(void)
 
 	for (i = 0; i < 7; ++i)
 		ngradeletters[i] = W_CachePatchName(va("GRADE%d", i), PU_HUDGFX);
+
+	K_LoadKartHUDGraphics();
 }
 
 // made separate so that skins code can reload custom face graphics
@@ -1731,6 +1738,7 @@ static void ST_doItemFinderIconsAndSound(void)
 //
 static void ST_overlayDrawer(void)
 {
+	/* SRB2kart doesn't need this stuff
 	//hu_showscores = auto hide score/time/rings when tab rankings are shown
 	if (!(hu_showscores && (netgame || multiplayer)))
 	{
@@ -1758,6 +1766,7 @@ static void ST_overlayDrawer(void)
 				ST_drawLives();
 		}
 	}
+	*/
 
 	// GAME OVER pic
 	if (G_GametypeUsesLives() && stplyr->lives <= 0 && !(hu_showscores && (netgame || multiplayer)))
@@ -1772,13 +1781,15 @@ static void ST_overlayDrawer(void)
 		V_DrawScaledPatch((BASEVIDWIDTH - SHORT(p->width))/2, STRINGY(BASEVIDHEIGHT/2 - (SHORT(p->height)/2)), 0, p);
 	}
 
-
 	if (!hu_showscores) // hide the following if TAB is held
 	{
 		// Countdown timer for Race Mode
 		if (countdown)
 			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(176), 0, va("%d", countdown/TICRATE));
 
+		K_drawKartHUD();
+
+		/* SRB2kart doesn't need this stuff, I think
 		// If you are in overtime, put a big honkin' flashin' message on the screen.
 		if (G_RingSlingerGametype() && cv_overtime.value
 			&& (leveltime > (timelimitintics + TICRATE/2)) && cv_timelimit.value && (leveltime/TICRATE % 2 == 0))
@@ -1821,6 +1832,7 @@ static void ST_overlayDrawer(void)
 
 		if (stplyr->powers[pw_gravityboots] > 3*TICRATE || (stplyr->powers[pw_gravityboots] && leveltime & 1))
 			V_DrawScaledPatch(hudinfo[HUD_GRAVBOOTSICO].x, STRINGY(hudinfo[HUD_GRAVBOOTSICO].y), V_SNAPTORIGHT, gravboots);
+		*/
 
 		if(!P_IsLocalPlayer(stplyr))
 		{

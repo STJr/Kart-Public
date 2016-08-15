@@ -42,6 +42,8 @@
 #include "b_bot.h"
 // Objectplace
 #include "m_cheat.h"
+// SRB2kart
+#include "k_kart.h"
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
@@ -605,7 +607,7 @@ static void P_DeNightserizePlayer(player_t *player)
 
 	if (player->mo->tracer)
 		P_RemoveMobj(player->mo->tracer);
-	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
+	//P_SetPlayerMobjState(player->mo, S_PLAY_FALL1); // SRB2kart
 	player->pflags |= PF_NIGHTSFALL;
 
 	// If in a special stage, add some preliminary exit time.
@@ -958,6 +960,7 @@ void P_GivePlayerLives(player_t *player, INT32 numlives)
 // Transform into Super Sonic!
 void P_DoSuperTransformation(player_t *player, boolean giverings)
 {
+	return; // SRB2kart - this is not a thing we need
 	player->powers[pw_super] = 1;
 	if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOSSMUSIC) && P_IsLocalPlayer(player))
 	{
@@ -968,7 +971,7 @@ void P_DoSuperTransformation(player_t *player, boolean giverings)
 	S_StartSound(NULL, sfx_supert); //let all players hear it -mattw_cfi
 
 	// Transformation animation
-	P_SetPlayerMobjState(player->mo, S_PLAY_SUPERTRANS1);
+	//P_SetPlayerMobjState(player->mo, S_PLAY_SUPERTRANS1);
 
 	player->mo->momx = player->mo->momy = player->mo->momz = 0;
 
@@ -1590,12 +1593,14 @@ void P_DoPlayerExit(player_t *player)
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
 
 	//player->pflags &= ~PF_GLIDING;
+	/*	// SRB2kart - don't need
 	if (player->climbing)
 	{
 		player->climbing = 0;
 		player->pflags |= PF_JUMPED;
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 	}
+	*/
 	player->powers[pw_underwater] = 0;
 	player->powers[pw_spacetime] = 0;
 	P_RestoreMusic(player);
@@ -2275,6 +2280,7 @@ static void P_DoPlayerHeadSigns(player_t *player)
 //
 static void P_DoClimbing(player_t *player)
 {
+	return; // SRB2kart - don't need
 	ticcmd_t *cmd = &player->cmd;
 	fixed_t platx;
 	fixed_t platy;
@@ -2653,6 +2659,7 @@ static void P_DoClimbing(player_t *player)
 		else
 			climb = false;
 
+		/* // SRB2kart - don't need
 		if (player->climbing && climb && (player->mo->momx || player->mo->momy || player->mo->momz)
 			&& !(player->mo->state >= &states[S_PLAY_CLIMB2] && player->mo->state <= &states[S_PLAY_CLIMB5]))
 			P_SetPlayerMobjState(player->mo, S_PLAY_CLIMB2);
@@ -2677,12 +2684,13 @@ static void P_DoClimbing(player_t *player)
 			player->pflags |= PF_JUMPED;
 			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 		}
+		*/
 	}
 	else
 	{
 		player->climbing = 0;
 		player->pflags |= PF_JUMPED;
-		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+		//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 	}
 
 	if (cmd->sidemove != 0 || cmd->forwardmove != 0)
@@ -2690,6 +2698,7 @@ static void P_DoClimbing(player_t *player)
 	else
 		climb = false;
 
+	/*
 	if (player->climbing && climb && (player->mo->momx || player->mo->momy || player->mo->momz)
 		&& !(player->mo->state >= &states[S_PLAY_CLIMB2] && player->mo->state <= &states[S_PLAY_CLIMB5]))
 		P_SetPlayerMobjState(player->mo, S_PLAY_CLIMB2);
@@ -2715,11 +2724,12 @@ static void P_DoClimbing(player_t *player)
 
 	if (player->climbing == 0)
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+	*/
 
 	if (player->climbing && P_IsObjectOnGround(player->mo))
 	{
 		P_ResetPlayer(player);
-		P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart
 	}
 }
 
@@ -2849,6 +2859,7 @@ static boolean PIT_CheckSolidsTeeter(mobj_t *thing)
 //
 static void P_DoTeeter(player_t *player)
 {
+	return; // SRB2kart - don't need
 	msecnode_t *node;
 	boolean teeter = false;
 	boolean roverfloor; // solid 3d floors?
@@ -3142,6 +3153,7 @@ teeterdone:
 			tmthing = oldtmthing; // restore old tmthing, goodness knows what the game does with this before mobj thinkers
 		}
 	}
+	/*
 	if (teeter)
 	{
 		if ((player->mo->state == &states[S_PLAY_STND] || player->mo->state == &states[S_PLAY_TAP1] || player->mo->state == &states[S_PLAY_TAP2] || player->mo->state == &states[S_PLAY_SUPERSTAND]))
@@ -3149,6 +3161,7 @@ teeterdone:
 	}
 	else if (checkedforteeter && (player->mo->state == &states[S_PLAY_TEETER1] || player->mo->state == &states[S_PLAY_TEETER2] || player->mo->state == &states[S_PLAY_SUPERTEETER]))
 		P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+	*/
 }
 
 //
@@ -3393,10 +3406,11 @@ firenormal:
 //
 static void P_DoSuperStuff(player_t *player)
 {
+	return; // SRB2kart - don't neeeeed
 	mobj_t *spark;
 	ticcmd_t *cmd = &player->cmd;
-	if (player->mo->state >= &states[S_PLAY_SUPERTRANS1] && player->mo->state <= &states[S_PLAY_SUPERTRANS9])
-		return; // don't do anything right now, we're in the middle of transforming!
+	//if (player->mo->state >= &states[S_PLAY_SUPERTRANS1] && player->mo->state <= &states[S_PLAY_SUPERTRANS9])
+	//	return; // don't do anything right now, we're in the middle of transforming!
 
 	if (player->pflags & PF_NIGHTSMODE)
 		return; // NiGHTS Super doesn't mix with normal super
@@ -3413,7 +3427,7 @@ static void P_DoSuperStuff(player_t *player)
 		if (!((ALL7EMERALDS(emeralds)) && (player->charflags & SF_SUPER)) && !(ALL7EMERALDS(player->powers[pw_emeralds])))
 		{
 			player->powers[pw_super] = 0;
-			P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+			P_SetPlayerMobjState(player->mo, S_KART_STND);
 			P_RestoreMusic(player);
 			P_SpawnShieldOrb(player);
 
@@ -3487,6 +3501,7 @@ static void P_DoSuperStuff(player_t *player)
 			if (gametype != GT_COOP)
 				player->powers[pw_flashing] = flashingtics-1;
 
+/*
 			if (player->mo->health > 0)
 			{
 				if ((player->pflags & PF_JUMPED) || (player->pflags & PF_SPINNING))
@@ -3504,6 +3519,7 @@ static void P_DoSuperStuff(player_t *player)
 					player->mo->health = 1;
 				}
 			}
+*/
 
 			// Inform the netgame that the champion has fallen in the heat of battle.
 			if (gametype != GT_COOP)
@@ -3710,10 +3726,12 @@ void P_DoJump(player_t *player, boolean soundandstate)
 		if (!player->spectator)
 			S_StartSound(player->mo, sfx_jump); // Play jump sound!
 
+		/* // SRB2kart - don't need jump frames
 		if (!(player->charability2 == CA2_SPINDASH))
 			P_SetPlayerMobjState(player->mo, S_PLAY_SPRING);
 		else
 			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+		*/
 	}
 }
 
@@ -3724,6 +3742,7 @@ void P_DoJump(player_t *player, boolean soundandstate)
 //
 static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 {
+	return; // SRB2kart - what's a spindash?
 	if (player->pflags & PF_STASIS)
 		return;
 
@@ -3750,7 +3769,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 			player->pflags |= PF_STARTDASH|PF_SPINNING;
 			player->dashspeed = FixedMul(FRACUNIT, player->mo->scale);
 			player->dashtime = 0;
-			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+			//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 			player->pflags |= PF_USEDOWN;
 		}
 		else if ((cmd->buttons & BT_USE) && (player->pflags & PF_STARTDASH))
@@ -3779,7 +3798,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 			) && !(player->pflags & PF_USEDOWN) && !(player->pflags & PF_SPINNING))
 		{
 			player->pflags |= PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+			//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 			if (!player->spectator)
 				S_StartSound(player->mo, sfx_spin);
 			player->pflags |= PF_USEDOWN;
@@ -3800,7 +3819,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 		{
 			player->skidtime = 0;
 			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+			P_SetPlayerMobjState(player->mo, S_KART_STND);
 			player->mo->momx = player->cmomx;
 			player->mo->momy = player->cmomy;
 		}
@@ -3822,8 +3841,8 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 		player->dashspeed = 0;
 	}
 
-	if (onground && (player->pflags & PF_SPINNING) && !(player->panim == PA_ROLL))
-		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+	//if (onground && (player->pflags & PF_SPINNING) && !(player->panim == PA_ROLL))
+	//	P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 }
 
 //
@@ -3833,6 +3852,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 //
 void P_DoJumpShield(player_t *player)
 {
+	return; // SRB2kart - Would be useful for feathers, but those are impossible to balance, so nuts to it.
 	if (player->pflags & PF_THOKKED)
 		return;
 
@@ -3843,7 +3863,7 @@ void P_DoJumpShield(player_t *player)
 	player->jumping = 0;
 	player->pflags |= PF_THOKKED;
 	player->pflags &= ~PF_SPINNING;
-	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
+	//P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 	S_StartSound(player->mo, sfx_wdjump);
 }
 
@@ -3994,6 +4014,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 			player->secondjump = 0;
 			player->pflags &= ~PF_THOKKED;
 		}
+		/* // SRB2kart - no jumpy power things
 		else if (player->pflags & PF_MACESPIN && player->mo->tracer)
 		{
 			player->pflags &= ~PF_MACESPIN;
@@ -4070,7 +4091,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 						; // Can't do anything if you're a fish out of water!
 					else if (!(player->pflags & PF_THOKKED) && !(player->powers[pw_tailsfly]))
 					{
-						P_SetPlayerMobjState(player->mo, S_PLAY_ABL1); // Change to the flying animation
+						//P_SetPlayerMobjState(player->mo, S_PLAY_ABL1); // Change to the flying animation
 
 						player->powers[pw_tailsfly] = tailsflytics + 1; // Set the fly timer
 
@@ -4096,7 +4117,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 							player->pflags &= ~PF_THOKKED;
 						}
 
-						P_SetPlayerMobjState(player->mo, S_PLAY_ABL1);
+						//P_SetPlayerMobjState(player->mo, S_PLAY_ABL1);
 						P_InstaThrust(player->mo, player->mo->angle, FixedMul(glidespeed, player->mo->scale));
 						player->pflags &= ~(PF_SPINNING|PF_STARTDASH);
 					}
@@ -4178,6 +4199,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		}
 		else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_JUMP && !player->powers[pw_super])
 			P_DoJumpShield(player);
+		*/
 	}
 
 	if (cmd->buttons & BT_JUMP)
@@ -4330,14 +4352,14 @@ static void P_2dMovement(player_t *player)
 			else if (player->exiting)
 			{
 				player->pflags &= ~PF_GLIDING;
-				P_SetPlayerMobjState(player->mo, S_PLAY_RUN1);
+				P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 				player->skidtime = 0;
 			}
 		}
 		if (player->pflags & PF_SPINNING && !player->exiting)
 		{
 			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+			P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
 		}
 	}
 
@@ -4521,14 +4543,14 @@ static void P_3dMovement(player_t *player)
 			else if (player->exiting)
 			{
 				player->pflags &= ~PF_GLIDING;
-				P_SetPlayerMobjState(player->mo, S_PLAY_RUN1);
+				P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 				player->skidtime = 0;
 			}
 		}
 		if (player->pflags & PF_SPINNING && !player->exiting)
 		{
 			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+			P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
 		}
 	}
 
@@ -6234,6 +6256,7 @@ static void P_SkidStuff(player_t *player)
 	fixed_t pmy = player->rmomy + player->cmomy;
 
 	// Knuckles glides into the dirt.
+	/* // SRB2kart - don't need
 	if (player->pflags & PF_GLIDING && player->skidtime)
 	{
 		// Fell off a ledge...
@@ -6271,7 +6294,7 @@ static void P_SkidStuff(player_t *player)
 		}
 	}
 	// Skidding!
-	else if (onground && !(player->mo->eflags & MFE_GOOWATER) && !(player->pflags & (PF_JUMPED|PF_SPINNING|PF_SLIDING)) && !(player->charflags & SF_NOSKID))
+	else*/if (onground && !(player->mo->eflags & MFE_GOOWATER) && !(player->pflags & (PF_JUMPED|PF_SPINNING|PF_SLIDING)) && !(player->charflags & SF_NOSKID))
 	{
 		if (player->skidtime)
 		{
@@ -6307,7 +6330,7 @@ static void P_SkidStuff(player_t *player)
 				player->skidtime = TICRATE/2;
 				S_StartSound(player->mo, sfx_skid);
 				if (player->panim != PA_WALK)
-					P_SetPlayerMobjState(player->mo, S_PLAY_RUN4); // this switches to S_PLAY_SUPERWALK1 for superanims
+					P_SetPlayerMobjState(player->mo, S_KART_WALK2); // SRB2kart - was S_PLAY_RUN4
 				player->mo->tics = player->skidtime;
 			}
 		}
@@ -6332,11 +6355,13 @@ static void P_MovePlayer(player_t *player)
 	if (countdowntimeup)
 		return;
 
+	/* // SRB2kart - junk
 	if (player->mo->state >= &states[S_PLAY_SUPERTRANS1] && player->mo->state <= &states[S_PLAY_SUPERTRANS9])
 	{
 		player->mo->momx = player->mo->momy = player->mo->momz = 0;
 		return;
 	}
+	*/
 
 	cmd = &player->cmd;
 	runspd = FixedMul(player->runspeed, player->mo->scale);
@@ -6480,28 +6505,121 @@ static void P_MovePlayer(player_t *player)
 		// If the player is moving fast enough,
 		// break into a run!
 		if (player->speed >= runspd && player->panim == PA_WALK && !player->skidtime && (onground || player->powers[pw_super]))
-			P_SetPlayerMobjState (player->mo, S_PLAY_SPD1);
+			P_SetPlayerMobjState (player->mo, S_KART_RUN1); // SRB2kart - was S_PLAY_SPD1
 
 		// Otherwise, just walk.
 		else if ((player->rmomx || player->rmomy) && player->panim == PA_IDLE)
-			P_SetPlayerMobjState (player->mo, S_PLAY_RUN1);
+			P_SetPlayerMobjState (player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 	}
+
+	//{ SRB2kart
+	// Kart frames
+	{
+		if (player->kartstuff[k_squishedtimer] > 0)
+		{
+			if (player->mo->state != &states[S_KART_SQUISH])
+				P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
+		}
+		else if (player->kartstuff[k_spinouttimer] > 0)
+		{
+			if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
+				P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+		}
+		else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_squishedtimer] == 0)
+		{
+			// Standing frames - S_KART_STND   S_KART_STND_L   S_KART_STND_R
+			if (player->speed == 0)
+			{
+				if (cmd->buttons & BT_WEAPONNEXT && !(player->mo->state == &states[S_KART_STND_R]))
+					P_SetPlayerMobjState(player->mo, S_KART_STND_R);
+				else if (cmd->buttons & BT_WEAPONPREV && !(player->mo->state == &states[S_KART_STND_L]))
+					P_SetPlayerMobjState(player->mo, S_KART_STND_L);
+				else if (!(cmd->buttons & BT_WEAPONNEXT || cmd->buttons & BT_WEAPONPREV) && !(player->mo->state == &states[S_KART_STND]))
+					P_SetPlayerMobjState(player->mo, S_KART_STND);
+			}
+			// Drifting Left - S_KART_DRIFT_L1
+			else if (player->kartstuff[k_drift] < 0 && onground)
+			{
+				if (!(player->mo->state == &states[S_KART_DRIFT_L1] || player->mo->state == &states[S_KART_DRIFT_L2]))
+					P_SetPlayerMobjState(player->mo, S_KART_DRIFT_L1);
+			}
+			// Drifting Right - S_KART_DRIFT_R1
+			else if (player->kartstuff[k_drift] > 0 && onground)
+			{
+				if (!(player->mo->state == &states[S_KART_DRIFT_R1] || player->mo->state == &states[S_KART_DRIFT_R2]))
+					P_SetPlayerMobjState(player->mo, S_KART_DRIFT_R1);
+			}
+			// Run frames - S_KART_RUN1   S_KART_RUN_L1   S_KART_RUN_R1
+			else if (player->speed > runspd)
+			{
+				if (cmd->buttons & BT_WEAPONNEXT && !(player->mo->state == &states[S_KART_RUN_R1] || player->mo->state == &states[S_KART_RUN_R2]))
+					P_SetPlayerMobjState(player->mo, S_KART_RUN_R1);
+				else if (cmd->buttons & BT_WEAPONPREV && !(player->mo->state == &states[S_KART_RUN_L1] || player->mo->state == &states[S_KART_RUN_L2]))
+					P_SetPlayerMobjState(player->mo, S_KART_RUN_L1);
+				else if (!(cmd->buttons & BT_WEAPONNEXT || cmd->buttons & BT_WEAPONPREV) && !(player->mo->state == &states[S_KART_RUN1] || player->mo->state == &states[S_KART_RUN2]))
+					P_SetPlayerMobjState(player->mo, S_KART_RUN1);
+			}
+			// Walk frames - S_KART_WALK1   S_KART_WALK_L1   S_KART_WALK_R1
+			else if (player->speed <= runspd)
+			{
+				if (cmd->buttons & BT_WEAPONNEXT && !(player->mo->state == &states[S_KART_WALK_R1] || player->mo->state == &states[S_KART_WALK_R2]))
+					P_SetPlayerMobjState(player->mo, S_KART_WALK_R1);
+				else if (cmd->buttons & BT_WEAPONPREV && !(player->mo->state == &states[S_KART_WALK_L1] || player->mo->state == &states[S_KART_WALK_L2]))
+					P_SetPlayerMobjState(player->mo, S_KART_WALK_L1);
+				else if (!(cmd->buttons & BT_WEAPONNEXT || cmd->buttons & BT_WEAPONPREV) && !(player->mo->state == &states[S_KART_WALK1] || player->mo->state == &states[S_KART_WALK2]))
+					P_SetPlayerMobjState(player->mo, S_KART_WALK1);
+			}
+		}
+	}
+	//}
 
 	// If your running animation is playing, and you're
 	// going too slow, switch back to the walking frames.
 	if (player->panim == PA_RUN && player->speed < runspd)
-		P_SetPlayerMobjState(player->mo, S_PLAY_RUN1);
+		P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 
 	// If Springing, but travelling DOWNWARD, change back!
-	if (player->mo->state == &states[S_PLAY_SPRING] && P_MobjFlip(player->mo)*player->mo->momz < 0)
-		P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
+	//if (player->mo->state == &states[S_PLAY_SPRING] && P_MobjFlip(player->mo)*player->mo->momz < 0)
+	//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 	// If Springing but on the ground, change back!
-	else if (onground && (player->mo->state == &states[S_PLAY_SPRING] || player->panim == PA_FALL || player->mo->state == &states[S_PLAY_CARRY]) && !player->mo->momz)
-		P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+	//else if (onground && (player->mo->state == &states[S_PLAY_SPRING] || player->panim == PA_FALL || player->mo->state == &states[S_PLAY_CARRY]) && !player->mo->momz)
+	//	P_SetPlayerMobjState(player->mo, S_PLAY_STND);
 
 	// If you are stopped and are still walking, stand still!
 	if (!player->mo->momx && !player->mo->momy && !player->mo->momz && player->panim == PA_WALK)
-		P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+
+	//{ SRB2kart
+	// Engine Sounds.
+	/* // -- Need to load these sounds into game first
+	if (!player->exiting)
+	{
+		if (player->speed == 0 && onground && player->speed == 0 && leveltime % 6 == 0 && kartmode)
+			S_StartSound(player->mo, sfx_kart1);
+
+		if ((player->speed < runspd && player->speed != 0) && leveltime % 8 == 0 && kartmode)
+			S_StartSound(player->mo, sfx_kart2);
+
+		if ((player->speed > runspd) && leveltime % 8 == 0 && kartmode)
+			S_StartSound(player->mo, sfx_kart3);
+
+		// Drifting sound
+		if (kartmode)
+		{
+			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
+			if ((player->powers[pw_drift] == 1 || player->powers[pw_drift] == -1) && onground && !S_SoundPlaying(NULL, sfx_mkdrft))
+				S_StartSound(player->mo, sfx_mkdrft);
+			// Start looping the sound now.
+			else if (leveltime % 50 == 0 && ((player->powers[pw_drift] == 1 || player->powers[pw_drift] == -1) && onground))
+				S_StartSound(player->mo, sfx_mkdrft);
+			// Ok, we'll stop now.
+			else if ((player->powers[pw_drift] == 0)
+			&& (player == &players[consoleplayer] || (splitscreen && player == &players[secondarydisplayplayer])))
+				S_StopSoundByID(player->mo, sfx_mkdrft);
+		}
+	}
+	*/
+	//}
 
 
 //////////////////
@@ -6516,7 +6634,7 @@ static void P_MovePlayer(player_t *player)
 		player->jumping = 0;
 		player->secondjump = 0;
 		player->pflags &= ~PF_THOKKED;
-		P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
 	}
 
 	// Cap the speed limit on a spindash
@@ -6528,6 +6646,7 @@ static void P_MovePlayer(player_t *player)
 
 	if (!(player->charability == CA_GLIDEANDCLIMB) || player->gotflag) // If you can't glide, then why the heck would you be gliding?
 	{
+		/* // SRB2kart - ???
 		if (player->pflags & PF_GLIDING || player->climbing)
 		{
 			if (onground)
@@ -6538,6 +6657,7 @@ static void P_MovePlayer(player_t *player)
 				P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 			}
 		}
+		*/
 		player->pflags &= ~PF_GLIDING;
 		player->glidetime = 0;
 		player->climbing = 0;
@@ -6545,6 +6665,7 @@ static void P_MovePlayer(player_t *player)
 
 	// Glide MOMZ
 	// AKA my own gravity. =)
+	/* // SRB2kart - gliding is illegal, go to jail
 	if (player->pflags & PF_GLIDING)
 	{
 		fixed_t leeway;
@@ -6619,6 +6740,7 @@ static void P_MovePlayer(player_t *player)
 				player->mo->momz = 0;
 		}
 	}
+	*/
 
 	// If you're running fast enough, you can create splashes as you run in shallow water.
 	if (!player->climbing
@@ -6653,6 +6775,7 @@ static void P_MovePlayer(player_t *player)
 	//TAILS FLYING//
 	////////////////
 
+	/* // SRB2kart - nah
 	if (!(player->charability == CA_FLY || player->charability == CA_SWIM)) // why are you flying when you cannot fly?!
 	{
 		if (player->powers[pw_tailsfly]
@@ -6740,12 +6863,13 @@ static void P_MovePlayer(player_t *player)
 		if (demorecording)
 			G_GhostAddSpin();
 	}
-
+	*/
 
 	////////////////////////////
 	//SPINNING AND SPINDASHING//
 	////////////////////////////
 
+	/* // SRB2kart - nadah
 	// If the player isn't on the ground, make sure they aren't in a "starting dash" position.
 	if (!onground)
 	{
@@ -6759,13 +6883,15 @@ static void P_MovePlayer(player_t *player)
 		P_ElementalFireTrail(player);
 
 	P_DoSpinDash(player, cmd);
-
+	*/
 	// jumping
 	P_DoJumpStuff(player, cmd);
 
+	/*
 	// If you're not spinning, you'd better not be spindashing!
 	if (!(player->pflags & PF_SPINNING))
 		player->pflags &= ~PF_STARTDASH;
+	*/
 
 	//////////////////
 	//ANALOG CONTROL//
@@ -6814,7 +6940,7 @@ static void P_MovePlayer(player_t *player)
 		}
 		// Otherwise, face the direction you're travelling.
 		else if (player->panim == PA_WALK || player->panim == PA_RUN || player->panim == PA_ROLL
-		|| ((player->mo->state >= &states[S_PLAY_ABL1] && player->mo->state <= &states[S_PLAY_SPC4]) && player->charability == CA_FLY))
+		|| (/*(player->mo->state >= &states[S_PLAY_ABL1] && player->mo->state <= &states[S_PLAY_SPC4]) && */player->charability == CA_FLY)) // SRB2kart - idk
 			player->mo->angle = R_PointToAngle2(0, 0, player->rmomx, player->rmomy);
 
 		// Update the local angle control.
@@ -6830,6 +6956,7 @@ static void P_MovePlayer(player_t *player)
 	//STUFF!                 //
 	///////////////////////////
 
+	/* // SRB2kart - what's a shield? Never heard of it. Never happened. Nope.
 	if (cmd->buttons & BT_USE) // Spin button effects
 	{
 		if (player->pflags & PF_JUMPED) // If the player is jumping
@@ -6959,25 +7086,30 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->eflags & MFE_VERTICALFLIP && player->mo->height != oldheight) // adjust z height for reverse gravity, similar to how it's done for scaling
 			player->mo->z -= player->mo->height - oldheight;
 	}
+	*/
 
 	// Crush test...
 	if ((player->mo->ceilingz - player->mo->floorz < player->mo->height)
 		&& !(player->mo->flags & MF_NOCLIP))
 	{
+		/* // SRB2kart - no, we're not making the playerspin
 		if ((player->charability2 == CA2_SPINDASH) && !(player->pflags & PF_SPINNING))
 		{
 			player->pflags |= PF_SPINNING;
 			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 		}
-		else if (player->mo->ceilingz - player->mo->floorz < player->mo->height)
+		else */if (player->mo->ceilingz - player->mo->floorz < player->mo->height)
 		{
 			if ((netgame || multiplayer) && player->spectator)
 				P_DamageMobj(player->mo, NULL, NULL, 42000); // Respawn crushed spectators
 			else
 			{
+				P_SquishPlayerMobj(player->mo, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
+				/*
 				mobj_t *killer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_NULL);
 				killer->threshold = 44; // Special flag that it was crushing which killed you.
 				P_DamageMobj(player->mo, killer, killer, 10000);
+				*/
 			}
 
 			if (player->playerstate == PST_DEAD)
@@ -7228,6 +7360,8 @@ static void P_DoZoomTube(player_t *player)
 //
 static void P_DoRopeHang(player_t *player)
 {
+	return; // SRB2kart - errr
+	/*
 	INT32 sequence;
 	fixed_t speed;
 	thinker_t *th;
@@ -7379,6 +7513,7 @@ static void P_DoRopeHang(player_t *player)
 		player->mo->momy = speedy;
 		player->mo->momz = speedz;
 	}
+	*/
 }
 
 #if 0
@@ -8691,6 +8826,7 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 #endif
+	/*
 	if (player->pflags & PF_GLIDING)
 	{
 		if (player->panim != PA_ABILITY)
@@ -8698,6 +8834,7 @@ void P_PlayerThink(player_t *player)
 	}
 	else if ((player->pflags & PF_JUMPED) && !player->powers[pw_super] && player->panim != PA_ROLL && player->charability2 == CA2_SPINDASH)
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+	*/
 
 	if (player->flashcount)
 		player->flashcount--;
@@ -8924,24 +9061,25 @@ void P_PlayerThink(player_t *player)
 		player->mo->reactiontime--;
 	else if (player->mo->tracer && player->mo->tracer->type == MT_TUBEWAYPOINT)
 	{
-		if (player->pflags & PF_ROPEHANG)
-		{
-			if (!P_AnalogMove(player))
-				player->mo->angle = (cmd->angleturn<<16 /* not FRACBITS */);
+		// SRB2kart - don't need no rope hangin'
+		//if (player->pflags & PF_ROPEHANG)
+		//{
+		//	if (!P_AnalogMove(player))
+		//		player->mo->angle = (cmd->angleturn<<16 /* not FRACBITS */);
 
-			ticruned++;
-			if ((cmd->angleturn & TICCMD_RECEIVED) == 0)
-				ticmiss++;
+		//	ticruned++;
+		//	if ((cmd->angleturn & TICCMD_RECEIVED) == 0)
+		//		ticmiss++;
 
-			P_DoRopeHang(player);
-			P_SetPlayerMobjState(player->mo, S_PLAY_CARRY);
-			P_DoJumpStuff(player, &player->cmd);
-		}
-		else
+		//	P_DoRopeHang(player);
+		//	P_SetPlayerMobjState(player->mo, S_PLAY_CARRY);
+		//	P_DoJumpStuff(player, &player->cmd);
+		//}
+		//else
 		{
 			P_DoZoomTube(player);
-			if (!(player->panim == PA_ROLL) && player->charability2 == CA2_SPINDASH)
-				P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+			//if (!(player->panim == PA_ROLL) && player->charability2 == CA2_SPINDASH) // SRB2kart
+			//	P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 		}
 		player->rmomx = player->rmomy = 0; // no actual momentum from your controls
 		P_ResetScore(player);
@@ -9070,7 +9208,7 @@ void P_PlayerThink(player_t *player)
 
 	if (player->powers[pw_ingoop])
 	{
-		if (player->mo->state == &states[S_PLAY_STND])
+		if (player->mo->state == &states[S_KART_STND]) // SRB2kart - was S_PLAY_STND
 			player->mo->tics = 2;
 
 		player->powers[pw_ingoop]--;
@@ -9125,7 +9263,7 @@ void P_PlayerThink(player_t *player)
 
 	player->pflags &= ~PF_SLIDING;
 	
-	P_KartPlayerThink(player); // SRB2kart
+	K_KartPlayerThink(player, cmd); // SRB2kart
 
 /*
 //	Colormap verification
@@ -9318,19 +9456,22 @@ void P_PlayerAfterThink(player_t *player)
 	if (P_IsLocalPlayer(player) && (player->pflags & PF_WPNDOWN) && player->currentweapon != oldweapon)
 		S_StartSound(NULL, sfx_wepchg);
 
+	/* // SRB2kart
 	if (player->pflags & PF_GLIDING)
 	{
 		if (player->panim != PA_ABILITY)
 			P_SetPlayerMobjState(player->mo, S_PLAY_ABL1);
 	}
-	else if (player->pflags & PF_SLIDING)
+	else */
+	if (player->pflags & PF_SLIDING)
 		P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
-	else if (player->pflags & PF_JUMPED
+	/*else if (player->pflags & PF_JUMPED
 	&& ((!player->powers[pw_super] && player->panim != PA_ROLL)
 	|| player->mo->state == &states[player->mo->info->painstate])
 	&& player->charability2 == CA2_SPINDASH)
-		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);*/
 
+	/* // SRB2kart - fight! fight! fight!
 	if (player->pflags & PF_CARRIED && player->mo->tracer)
 	{
 		player->mo->height = FixedDiv(P_GetPlayerHeight(player), FixedDiv(14*FRACUNIT,10*FRACUNIT));
@@ -9423,7 +9564,7 @@ void P_PlayerAfterThink(player_t *player)
 			}
 		}
 	}
-	else if (player->pflags & PF_MACESPIN && player->mo->tracer && player->mo->tracer->target)
+	else */if (player->pflags & PF_MACESPIN && player->mo->tracer && player->mo->tracer->target)
 	{
 		player->mo->height = P_GetPlayerSpinHeight(player);
 		// tracer is what you're hanging onto....

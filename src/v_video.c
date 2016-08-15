@@ -1225,6 +1225,101 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 	}
 }
 
+// SRB2kart
+void V_DrawKartString(INT32 x, INT32 y, INT32 option, const char *string)
+{
+	INT32 w, c, cx = x, cy = y, dupx, dupy, scrwidth = BASEVIDWIDTH, center = 0;
+	const char *ch = string;
+	INT32 charflags = 0;
+	const UINT8 *colormap = NULL;
+	INT32 spacewidth = 12, charwidth = 0;
+
+	INT32 lowercase = (option & V_ALLOWLOWERCASE);
+	option &= ~V_FLIP; // which is also shared with V_ALLOWLOWERCASE...
+
+	if (option & V_NOSCALESTART)
+	{
+		dupx = vid.dupx;
+		dupy = vid.dupy;
+		scrwidth = vid.width;
+	}
+	else
+		dupx = dupy = 1;
+
+	charflags = (option & V_CHARCOLORMASK);
+
+	switch (option & V_SPACINGMASK)
+	{
+		case V_MONOSPACE:
+			spacewidth = 12;
+		case V_OLDSPACING:
+			charwidth = 12;
+			break;
+		case V_6WIDTHSPACE:
+			spacewidth = 6;
+		default:
+			break;
+	}
+
+	for (;;ch++)
+	{
+		if (!*ch)
+			break;
+		if (*ch & 0x80) //color parsing -x 2.16.09
+		{
+			// manually set flags override color codes
+			if (!(option & V_CHARCOLORMASK))
+				charflags = ((*ch & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+			continue;
+		}
+		if (*ch == '\n')
+		{
+			cx = x;
+
+			if (option & V_RETURN8)
+				cy += 8*dupy;
+			else
+				cy += 12*dupy;
+
+			continue;
+		}
+
+		c = *ch;
+		if (!lowercase)
+			c = toupper(c);
+		c -= KART_FONTSTART;
+
+		// character does not exist or is a space
+		if (c < 0 || c >= KART_FONTSIZE || !kart_font[c])
+		{
+			cx += spacewidth * dupx;
+			continue;
+		}
+
+		if (charwidth)
+		{
+			w = charwidth * dupx;
+			center = w/2 - SHORT(kart_font[c]->width)*dupx/2;
+		}
+		else
+			w = SHORT(kart_font[c]->width) * dupx;
+
+		if (cx + w > scrwidth)
+			break;
+		if (cx < 0) //left boundary check
+		{
+			cx += w;
+			continue;
+		}
+
+		colormap = V_GetStringColormap(charflags);
+		V_DrawFixedPatch((cx + center)<<FRACBITS, cy<<FRACBITS, FRACUNIT, option, kart_font[c], colormap);
+
+		cx += w;
+	}
+}
+//
+
 void V_DrawCenteredString(INT32 x, INT32 y, INT32 option, const char *string)
 {
 	x -= V_StringWidth(string, option)/2;

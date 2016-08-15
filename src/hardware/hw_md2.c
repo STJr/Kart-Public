@@ -1347,7 +1347,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			else
 			{
 				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL
-					&& !(spr->mobj->player && (spr->mobj->state->nextstate == S_PLAY_TAP1 || spr->mobj->state->nextstate == S_PLAY_TAP2) && spr->mobj->state == &states[S_PLAY_STND]))
+					&& !(spr->mobj->player && spr->mobj->state == &states[S_KART_STND])) // SRB2kart
 				{
 					const UINT32 nextframe = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % md2->model->header.numFrames;
 					next = &md2->model->frames[nextframe];

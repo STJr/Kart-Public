@@ -62,6 +62,11 @@ CV_PossibleValue_t CV_YesNo[] = {{0, "No"}, {1, "Yes"}, {0, NULL}};
 CV_PossibleValue_t CV_Unsigned[] = {{0, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 CV_PossibleValue_t CV_Natural[] = {{1, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 
+//SRB2kart
+CV_PossibleValue_t karthud_cons_t[] = {
+	{0, "Off"}, {1, "Default"}, {2, "SNES"}, {3, "MK64"}, 
+	{0, NULL}};
+
 #define COM_BUF_SIZE 8192 // command buffer size
 
 static INT32 com_wait; // one command per frame (for cmd sequences)

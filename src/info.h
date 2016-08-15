@@ -592,6 +592,37 @@ typedef enum state
 	// Thok
 	S_THOK,
 
+	// SRB2kart Frames
+	S_KART_STND,
+	S_KART_STND_L,
+	S_KART_STND_R,
+	S_KART_WALK1,
+	S_KART_WALK2,
+	S_KART_WALK_L1,
+	S_KART_WALK_L2,
+	S_KART_WALK_R1,
+	S_KART_WALK_R2,
+	S_KART_RUN1,
+	S_KART_RUN2,
+	S_KART_RUN_L1,
+	S_KART_RUN_L2,
+	S_KART_RUN_R1,
+	S_KART_RUN_R2,
+	S_KART_DRIFT_L1,
+	S_KART_DRIFT_L2,
+	S_KART_DRIFT_R1,
+	S_KART_DRIFT_R2,
+	S_KART_SPIN1,
+	S_KART_SPIN2,
+	S_KART_SPIN3,
+	S_KART_SPIN4,
+	S_KART_SPIN5,
+	S_KART_SPIN6,
+	S_KART_SPIN7,
+	S_KART_SPIN8,
+	S_KART_PAIN,
+	S_KART_SQUISH,
+	/*
 	S_PLAY_STND,
 	S_PLAY_TAP1,
 	S_PLAY_TAP2,
@@ -647,6 +678,7 @@ typedef enum state
 	S_PLAY_SUPERTRANS7,
 	S_PLAY_SUPERTRANS8,
 	S_PLAY_SUPERTRANS9, // This has special significance in the code. If you add more frames, search for it and make the appropriate changes.
+	*/
 
 	// technically the player goes here but it's an infinite tic state
 	S_OBJPLACE_DUMMY,

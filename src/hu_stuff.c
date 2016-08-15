@@ -62,6 +62,7 @@
 //              heads up font
 //-------------------------------------------
 patch_t *hu_font[HU_FONTSIZE];
+patch_t *kart_font[KART_FONTSIZE];	// SRB2kart
 patch_t *tny_font[HU_FONTSIZE];
 patch_t *tallnum[10]; // 0-9
 patch_t *nightsnum[10]; // 0-9
@@ -212,6 +213,19 @@ void HU_LoadGraphics(void)
 	lt_font[16] = (patch_t *)W_CachePatchName("LTFNT055", PU_HUDGFX);
 	lt_font[17] = (patch_t *)W_CachePatchName("LTFNT056", PU_HUDGFX);
 	lt_font[18] = (patch_t *)W_CachePatchName("LTFNT057", PU_HUDGFX);
+
+	// SRB2kart
+	j = KART_FONTSTART;
+	for (i = 0; i < KART_FONTSIZE; i++, j++)
+	{
+		// cache the heads-up font for entire game execution
+		sprintf(buffer, "MKFNT%.3d", j);
+		if (W_CheckNumForName(buffer) == LUMPERROR)
+			kart_font[i] = NULL;
+		else
+			kart_font[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+	}
+	//
 
 	j = LT_FONTSTART;
 	for (i = 0; i < LT_FONTSIZE; i++)

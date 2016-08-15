@@ -2743,7 +2743,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				mo->player->rmomx = mo->player->rmomy = 1;
 				mo->player->cmomx = mo->player->cmomy = 0;
 				P_ResetPlayer(mo->player);
-				P_SetPlayerMobjState(mo, S_PLAY_STND);
+				P_SetPlayerMobjState(mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
 
 				// Reset bot too.
 				if (bot) {
@@ -2754,7 +2754,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					bot->player->rmomx = bot->player->rmomy = 1;
 					bot->player->cmomx = bot->player->cmomy = 0;
 					P_ResetPlayer(bot->player);
-					P_SetPlayerMobjState(bot, S_PLAY_STND);
+					P_SetPlayerMobjState(bot, S_KART_STND); // SRB2kart - was S_PLAY_STND
 				}
 			}
 			break;
@@ -3700,7 +3700,7 @@ DoneSection2:
 					if (!(player->pflags & PF_SPINNING))
 						player->pflags |= PF_SPINNING;
 
-					P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); // SRB2kart
 				}
 
 				player->powers[pw_flashing] = TICRATE/3;
@@ -3841,8 +3841,8 @@ DoneSection2:
 				player->mo->momz = mobjinfo[MT_FAN].mass;
 
 			P_ResetPlayer(player);
-			if (player->panim != PA_FALL)
-				P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
+			//if (player->panim != PA_FALL) 					// SRB2kart
+			//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 			break;
 
 		case 6: // Super Sonic transformer
@@ -3851,6 +3851,7 @@ DoneSection2:
 			break;
 
 		case 7: // Make player spin
+			/* // SRB2kart - no.
 			if (!(player->pflags & PF_SPINNING) && P_IsObjectOnGround(player->mo) && (player->charability2 == CA2_SPINDASH))
 			{
 				player->pflags |= PF_SPINNING;
@@ -3860,7 +3861,7 @@ DoneSection2:
 				if (abs(player->rmomx) < FixedMul(5*FRACUNIT, player->mo->scale)
 				&& abs(player->rmomy) < FixedMul(5*FRACUNIT, player->mo->scale))
 					P_InstaThrust(player->mo, player->mo->angle, FixedMul(10*FRACUNIT, player->mo->scale));
-			}
+			}*/
 			break;
 
 		case 8: // Zoom Tube Start
@@ -3928,11 +3929,11 @@ DoneSection2:
 				player->pflags &= ~PF_GLIDING;
 				player->climbing = 0;
 
-				if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4]))
-				{
-					P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-					S_StartSound(player->mo, sfx_spin);
-				}
+				//if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4])) // SRB2kart
+				//{
+				//	P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+				//	S_StartSound(player->mo, sfx_spin);
+				//}
 			}
 			break;
 
@@ -4000,11 +4001,11 @@ DoneSection2:
 				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 
-				if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4]))
-				{
-					P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-					S_StartSound(player->mo, sfx_spin);
-				}
+				//if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4])) // SRB2kart
+				//{
+				//	P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
+				//	S_StartSound(player->mo, sfx_spin);
+				//}
 			}
 			break;
 
@@ -4305,7 +4306,7 @@ DoneSection2:
 				player->pflags &= ~PF_SLIDING;
 				player->climbing = 0;
 				P_SetThingPosition(player->mo);
-				P_SetPlayerMobjState(player->mo, S_PLAY_CARRY);
+				//P_SetPlayerMobjState(player->mo, S_PLAY_CARRY); // SRB2kart
 			}
 			break;
 		case 12: // Camera noclip

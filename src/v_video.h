@@ -157,6 +157,7 @@ char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string);
 
 // draw a string using the hu_font
 void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string);
+void V_DrawKartString(INT32 x, INT32 y, INT32 option, const char *string);	// SRB2kart
 void V_DrawCenteredString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawRightAlignedString(INT32 x, INT32 y, INT32 option, const char *string);
 
