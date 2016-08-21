@@ -68,6 +68,10 @@ extern fixed_t finetangent[FINEANGLES/2];
 #define ANGLE_337h 0xF0000000
 #define ANGLE_MAX  0xFFFFFFFF
 
+// SRB2kart
+#define ANGLE_120  0x53333333
+#define ANGLE_240  0xA6666666
+
 typedef UINT32 angle_t;
 
 // To get a global angle from Cartesian coordinates, the coordinates are

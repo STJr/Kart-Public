@@ -2988,7 +2988,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (!player->kartstuff[k_startimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
 				// Start slipping!
-				P_SpinPlayerMobj(player->mo, source);
+				K_SpinPlayer(player, source);
 
 				// Start shrinking!
 				player->mo->destscale = 70;
@@ -3000,7 +3000,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->kartstuff[k_growshrinktimer] = 2;
 			}
 			// Invincible or not, we still need this.
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNDERSHIELD);  // TODO: Add this
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			return true;
 		}
 		else if (damage == 64 && player == source->player)
@@ -3010,8 +3010,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		if (damage == 65 && player->kartstuff[k_position] == 1)
 		{
 			// Just need to do this now! Being thrown upwards is done by the explosion.
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNBERSHIELD);  // TODO: Add this
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLODE);  // TODO: Add this
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
 			return true;
 		}
 		else if (damage == 65 && player->kartstuff[k_position] > 1)
@@ -3043,8 +3043,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return false;
 		else
 		{
+			player->kartstuff[k_spinouttype] = 1;
+			K_SpinPlayer(player, source);
 			damage = player->mo->health - 1;
 			P_RingDamage(player, inflictor, source, damage);
+			player->mo->momx = player->mo->momy = 0;
 		}
 		/* // SRB2kart - don't need these
 		else if (metalrecording)

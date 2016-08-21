@@ -1698,6 +1698,7 @@ static actionpointer_t actionpointers[] =
 	{{A_DropMine},             "A_DROPMINE"},
 	{{A_FishJump},             "A_FISHJUMP"},
 	{{A_ThrownRing},           "A_THROWNRING"},
+	{{A_GrenadeRing},          "A_GRENADERING"}, // SRB2kart
 	{{A_SetSolidSteam},        "A_SETSOLIDSTEAM"},
 	{{A_UnsetSolidSteam},      "A_UNSETSOLIDSTEAM"},
 	{{A_SignPlayer},           "A_SIGNPLAYER"},
@@ -1800,6 +1801,8 @@ static actionpointer_t actionpointers[] =
 	{{A_DualAction},           "A_DUALACTION"},
 	{{A_RemoteAction},         "A_REMOTEACTION"},
 	{{A_ToggleFlameJet},       "A_TOGGLEFLAMEJET"},
+	{{A_RedShellChase},        "A_REDSHELLCHASE"}, // SRB2kart
+	{{A_BobombExplode},        "A_BOBOMBEXPLODE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -7379,17 +7382,17 @@ struct {
 	{"DI_SOUTHEAST",DI_SOUTHEAST},
 	{"NUMDIRS",NUMDIRS},
 
-	// Buttons (ticcmd_t)
+	// Buttons (ticcmd_t)	// SRB2kart
 	{"BT_WEAPONMASK",BT_WEAPONMASK}, //our first four bits.
-	{"BT_WEAPONNEXT",BT_WEAPONNEXT},
-	{"BT_WEAPONPREV",BT_WEAPONPREV},
+	{"BT_DRIFTLEFT",BT_DRIFTLEFT},
+	{"BT_DRIFTRIGHT",BT_DRIFTRIGHT},
 	{"BT_ATTACK",BT_ATTACK}, // shoot rings
-	{"BT_USE",BT_USE}, // spin
-	{"BT_CAMLEFT",BT_CAMLEFT}, // turn camera left
-	{"BT_CAMRIGHT",BT_CAMRIGHT}, // turn camera right
-	{"BT_TOSSFLAG",BT_TOSSFLAG},
+	{"BT_BRAKE",BT_BRAKE}, // brake
+	{"BT_FORWARD",BT_FORWARD}, // turn camera left
+	{"BT_BACKWARD",BT_BACKWARD}, // turn camera right
+	{"BT_SPECTATE",BT_SPECTATE},
 	{"BT_JUMP",BT_JUMP},
-	{"BT_FIRENORMAL",BT_FIRENORMAL}, // Fire a normal ring no matter what
+	{"BT_ACCELERATE",BT_ACCELERATE}, // Fire a normal ring no matter what
 	{"BT_CUSTOM1",BT_CUSTOM1}, // Lua customizable
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable

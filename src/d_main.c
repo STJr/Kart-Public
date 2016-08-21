@@ -824,6 +824,8 @@ static void IdentifyVersion(void)
 
 	// SRB2kart - Add graphics (temp)
 	D_AddFile(va(pandf,srb2waddir,"AllKartGraphics.wad"));
+	D_AddFile(va(pandf,srb2waddir,"AllKartChars.wad"));
+	D_AddFile(va(pandf,srb2waddir,"AllKartSounds.wad"));
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{

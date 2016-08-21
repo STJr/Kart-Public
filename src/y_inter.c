@@ -685,7 +685,7 @@ void Y_Ticker(void)
 			return;
 
 		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && (players[i].cmd.buttons & BT_USE))
+			if (playeringame[i] && (players[i].cmd.buttons & BT_BRAKE || players[i].cmd.buttons & BT_ACCELERATE))
 				skip = true;
 
 		// bonuses count down by 222 each tic
@@ -748,7 +748,7 @@ void Y_Ticker(void)
 			return;
 
 		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] && (players[i].cmd.buttons & BT_USE))
+			if (playeringame[i] && (players[i].cmd.buttons & BT_BRAKE || players[i].cmd.buttons & BT_ACCELERATE))
 				skip = true;
 
 		if (tallydonetic != 0)

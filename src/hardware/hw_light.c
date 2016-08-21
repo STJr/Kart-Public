@@ -497,6 +497,26 @@ light_t *t_lspr[NUMSPRITES] =
 	&lspr[NOLIGHT],     // SPR_SRBN
 	&lspr[NOLIGHT],     // SPR_SRBO
 
+	&lspr[NOLIGHT],     //"SPRG",
+	&lspr[NOLIGHT],     //"BSPR",
+	&lspr[NOLIGHT],     //"RNDM",
+	&lspr[NOLIGHT],     //"SPRK",
+	&lspr[NOLIGHT],     //"KFRE",
+	&lspr[NOLIGHT],     //"DRIF",
+	&lspr[NOLIGHT],     //"FAKE",
+	&lspr[NOLIGHT],     //"DFAK",
+	&lspr[NOLIGHT],     //"BANA",
+	&lspr[NOLIGHT],     //"DBAN",
+	&lspr[NOLIGHT],     //"GSHE",
+	&lspr[NOLIGHT],     //"GSTR",
+	&lspr[NOLIGHT],     //"DGSH",
+	&lspr[NOLIGHT],     //"RSHE",
+	&lspr[NOLIGHT],     //"RSTR",
+	&lspr[NOLIGHT],     //"DRSH",
+	&lspr[NOLIGHT],     //"BOMB",
+	&lspr[NOLIGHT],     //"BLIG",
+	&lspr[NOLIGHT],     //"LIGH"
+
 	// Free slots
 	&lspr[NOLIGHT],
 	&lspr[NOLIGHT],

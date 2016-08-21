@@ -968,7 +968,7 @@ void OP_NightsObjectplace(player_t *player)
 	if (player->pflags & PF_ATTACKDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
-		if (!(cmd->buttons & (BT_ATTACK|BT_TOSSFLAG|BT_USE|BT_CAMRIGHT|BT_CAMLEFT)))
+		if (!(cmd->buttons & (BT_ATTACK|BT_ACCELERATE|BT_BRAKE|BT_FORWARD|BT_BACKWARD)))
 			player->pflags &= ~PF_ATTACKDOWN;
 
 		// Do nothing.
@@ -1008,7 +1008,7 @@ void OP_NightsObjectplace(player_t *player)
 	}
 
 	// This places a bumper!
-	if (cmd->buttons & BT_TOSSFLAG)
+	if (cmd->buttons & BT_SPECTATE)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		if (!OP_HeightOkay(player, false))
@@ -1019,7 +1019,7 @@ void OP_NightsObjectplace(player_t *player)
 	}
 
 	// This places a ring!
-	if (cmd->buttons & BT_CAMRIGHT)
+	if (cmd->buttons & BT_BACKWARD)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		if (!OP_HeightOkay(player, false))
@@ -1030,7 +1030,7 @@ void OP_NightsObjectplace(player_t *player)
 	}
 
 	// This places a wing item!
-	if (cmd->buttons & BT_CAMLEFT)
+	if (cmd->buttons & BT_FORWARD)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		if (!OP_HeightOkay(player, false))
@@ -1041,7 +1041,7 @@ void OP_NightsObjectplace(player_t *player)
 	}
 
 	// This places a custom object as defined in the console cv_mapthingnum.
-	if (cmd->buttons & BT_USE)
+	if (cmd->buttons & BT_BRAKE)
 	{
 		UINT16 angle;
 
@@ -1101,7 +1101,7 @@ void OP_ObjectplaceMovement(player_t *player)
 
 	if (cmd->buttons & BT_JUMP)
 		player->mo->z += FRACUNIT*cv_speed.value;
-	else if (cmd->buttons & BT_USE)
+	else if (cmd->buttons & BT_BRAKE)
 		player->mo->z -= FRACUNIT*cv_speed.value;
 
 	if (cmd->forwardmove != 0)
@@ -1165,19 +1165,19 @@ void OP_ObjectplaceMovement(player_t *player)
 	if (player->pflags & PF_ATTACKDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
-		if (!(cmd->buttons & (BT_ATTACK|BT_TOSSFLAG|BT_CAMRIGHT|BT_CAMLEFT)))
+		if (!(cmd->buttons & (BT_ATTACK|BT_SPECTATE|BT_BACKWARD|BT_FORWARD)))
 			player->pflags &= ~PF_ATTACKDOWN;
 
 		// Do nothing.
 		return;
 	}
 
-	if (cmd->buttons & BT_CAMLEFT)
+	if (cmd->buttons & BT_FORWARD)
 	{
 		OP_CycleThings(-1);
 		player->pflags |= PF_ATTACKDOWN;
 	}
-	else if (cmd->buttons & BT_CAMRIGHT)
+	else if (cmd->buttons & BT_BACKWARD)
 	{
 		OP_CycleThings(1);
 		player->pflags |= PF_ATTACKDOWN;

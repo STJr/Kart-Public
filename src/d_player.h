@@ -234,6 +234,7 @@ typedef enum
 typedef enum
 {
 	// Basic gameplay things
+	k_introcam,			// Something to do with the map intro
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
 	k_playerahead,		// Is someone ahead of me or not?
 	k_oldposition,		// Used for taunting when you pass someone
@@ -252,11 +253,11 @@ typedef enum
 	
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
+	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_lakitu,			// > 0 = Lakitu fishing, < 0 = Lakitu lap counter (was "player->airtime") // NOTE: Check for ->lakitu, replace with this
 	
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
-	k_itemslot,			// If you have X item, and kartitem chose X too, save it
 	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
 
 	// Some items use timers for their duration or effects

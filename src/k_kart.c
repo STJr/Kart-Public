@@ -307,25 +307,355 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 {
 	// 1 Active Player
 	{  //1st //
-		{  0 },	// Magnet
-		{  0 },	// Boo
-		{ 40 },	// Mushroom
-		{  0 },	// Triple Mushroom
-		{  0 },	// Mega Mushroom
-		{  0 },	// Gold Mushroom
-		{  0 },	// Star
-		{  0 },	// Triple Banana
-		{  0 },	// Fake Item
-		{  0 },	// Banana
-		{  0 },	// Green Shell
-		{  0 },	// Red Shell
-		{  0 },	// Triple Green Shell
-		{  0 },	// Bob-omb
-		{  0 },	// Blue Shell
-		{  0 },	// Fire Flower
-		{  0 },	// Triple Red Shell
-		{  0 }	// Lightning
-	} //1st //
+		{  0 }, // Magnet
+		{  0 }, // Boo
+		{ 40 }, // Mushroom
+		{  0 }, // Triple Mushroom
+		{  0 }, // Mega Mushroom
+		{  0 }, // Gold Mushroom
+		{  0 }, // Star
+		{  0 }, // Triple Banana
+		{  0 }, // Fake Item
+		{  0 }, // Banana
+		{  0 }, // Green Shell
+		{  0 }, // Red Shell
+		{  0 }, // Triple Green Shell
+		{  0 }, // Bob-omb
+		{  0 }, // Blue Shell
+		{  0 }, // Fire Flower
+		{  0 }, // Triple Red Shell
+		{  0 }  // Lightning
+	}, //1st //
+
+	// 2 Active Players
+	{  //1st 2nd //
+		{  0,  0 }, // Magnet
+		{  0,  0 }, // Boo
+		{  0,  0 }, // Mushroom
+		{  0,  0 }, // Triple Mushroom
+		{  0,  0 }, // Mega Mushroom
+		{  0,  0 }, // Gold Mushroom
+		{  0,  0 }, // Star
+		{  0,  0 }, // Triple Banana
+		{  0,  0 }, // Fake Item
+		{  0,  0 }, // Banana
+		{  0,  0 }, // Green Shell
+		{  0,  0 }, // Red Shell
+		{  0,  0 }, // Triple Green Shell
+		{  0,  0 }, // Bob-omb
+		{  0,  0 }, // Blue Shell
+		{  0,  0 }, // Fire Flower
+		{  0,  0 }, // Triple Red Shell
+		{  0,  0 }  // Lightning
+	}, //1st 2nd //
+
+	// 3 Active Players
+	{  //1st 2nd 3rd //
+		{  0,  0,  0 }, // Magnet
+		{  0,  0,  0 }, // Boo
+		{  0,  0,  0 }, // Mushroom
+		{  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0 }, // Star
+		{  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0 }, // Fake Item
+		{  0,  0,  0 }, // Banana
+		{  0,  0,  0 }, // Green Shell
+		{  0,  0,  0 }, // Red Shell
+		{  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd //
+
+	// 4 Active Players
+	{  //1st 2nd 3rd 4th //
+		{  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th //
+
+	// 5 Active Players
+	{  //1st 2nd 3rd 4th 5th //
+		{  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th //
+
+	// 6 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th //
+		{  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th //
+
+	// 7 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th //
+		{  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th //
+
+	// 8 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th //
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th //
+
+	// 9 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th //
+
+	// 10 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t //
+
+	// 11 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t //
+
+	// 12 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t //
+
+	// 13 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t //
+
+	// 14 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t //
+
+	// 15 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t //
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t //
+
+	// 16 Active Players
+	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t 16t //
+		{  1,  2,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  2,  4,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  4,  6,  8, 10,  9,  7,  4,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  2,  4,  7, 10, 13, 16, 18, 15, 14, 12,  8,  7,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  2,  5,  6,  8,  8,  5,  2,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  2,  4,  8, 11, 13, 14, 23, 27 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  5,  7, 10, 13 }, // Star
+		{  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  7,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{ 15,  8,  6,  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{ 10,  8,  6,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  3, 10,  9,  8,  7,  6,  5,  3,  2,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  2,  4,  5,  8,  7,  5,  3,  2,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  2,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  2,  3,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  3,  5,  6,  4,  2,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  2,  3,  3,  3,  2,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  5,  8, 11,  0,  0 }  // Lightning
+	}  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t 16t //
 };
 
 /**	\brief	Item Roulette for Kart
@@ -415,8 +745,8 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	
 	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
 	
-	//if (P_IsLocalPlayer(player))
-	//	S_StartSound(NULL, sfx_mkitemF);
+	if (P_IsLocalPlayer(player))
+		S_StartSound(NULL, sfx_mkitemF);
 }
 
 /**	\brief	Item Roulette for Kart
@@ -429,7 +759,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
 {
 	prevchance = chance;
-	basechance = K_KartItemOdds_Retro[pingame][giveitem][position];		// Number of slots in the array, based on odds
+	basechance = K_KartItemOdds_Retro[pingame][giveitem][position]; // Number of slots in the array, based on odds
 	for (; chance < prevchance + basechance; chance++) 
 	{ 
 		spawnchance[chance] = giveitem;
@@ -452,8 +782,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		return;
 		
 	// This makes the roulette produce the random noises.
-	//if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-	//	S_StartSound(NULL,sfx_mkitem1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
+		S_StartSound(NULL,sfx_mkitem1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
@@ -553,6 +883,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
+INT32 bootime = 7*TICRATE;
+INT32 mushroomtime = 120;
+INT32 bonustime = 700;
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -563,9 +897,9 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	// This spawns the drift sparks when k_driftcharge hits 30. Its own AI handles life/death and color
-	//if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) 
-	//	&& player->kartstuff[k_driftcharge] == 30)
-	//	P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
+	if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) 
+		&& player->kartstuff[k_driftcharge] == 30)
+		P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
 	
 	if (player->kartstuff[k_itemclose])
 		player->kartstuff[k_itemclose]--;
@@ -593,8 +927,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	
 	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
 	{
-		player->mo->destscale = 100;
-		//P_RestoreMusic(player);
+		player->mo->destscale = FRACUNIT;
+		P_RestoreMusic(player);
 	}
 	
 	if (player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_boostolentimer] == 0
@@ -617,9 +951,12 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_laserwisptimer])
 		player->kartstuff[k_laserwisptimer]--;
 	
+	if (player->kartstuff[k_sounds])
+		player->kartstuff[k_sounds]--;
+	
 	// Restores music if too many sounds are playing (?)
-	if (player->kartstuff[k_sounds] >= 1 && player->kartstuff[k_sounds] < 120)
-		player->kartstuff[k_sounds] += 1;
+	//if (player->kartstuff[k_sounds] >= 1 && player->kartstuff[k_sounds] < 120)
+	//	player->kartstuff[k_sounds] += 1;
 	//if (player->kartstuff[k_sounds] < 120 && player->kartstuff[k_sounds] > 116)	//&& P_IsLocalPlayer(player))
 	//	P_RestoreMusic(player);
 	
@@ -646,14 +983,14 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	{
 		if (!P_IsLocalPlayer(player)) // If it isn't the current player
 		{
-			//if (!S_SoundPlaying(NULL, sfx_star)) // and it isn't still playing
-			//	S_StartSound(player->mo, sfx_star); // play it again
+			if (!S_SoundPlaying(NULL, sfx_star)) // and it isn't still playing
+				S_StartSound(player->mo, sfx_star); // play it again
 		}
 	}
 	else if (player->mo->health <= 0 || player->mo->player->kartstuff[k_startimer] <= 0 || player->mo->player->kartstuff[k_growshrinktimer] > 0) // If you don't have invincibility (or mega is active too)
 	{
-		//if (S_SoundPlaying(player->mo, sfx_star)) // But the sound is playing
-		//	S_StopSoundByID(player->mo, sfx_star); // Stop it
+		if (S_SoundPlaying(player->mo, sfx_star)) // But the sound is playing
+			S_StopSoundByID(player->mo, sfx_star); // Stop it
 	}
 
 	// And now the same for the mega mushroom SFX ~Sryder
@@ -661,143 +998,1260 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	{
 		if (!P_IsLocalPlayer(player)) // If it isn't the current player
 		{
-			//if (!S_SoundPlaying(NULL, sfx_mega)) // and it isn't still playing
-			//	S_StartSound(player->mo, sfx_mega); // play it again
+			if (!S_SoundPlaying(NULL, sfx_mega)) // and it isn't still playing
+				S_StartSound(player->mo, sfx_mega); // play it again
 		}
 	}
 	else // If you aren't big
 	{
-		//if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
-		//	S_StopSoundByID(player->mo, sfx_mega); // Stop it
+		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
+			S_StopSoundByID(player->mo, sfx_mega); // Stop it
 	}
 }
 
-boolean P_SpinPlayerMobj(mobj_t *target, mobj_t *source)
+void K_PlayTauntSound(mobj_t *source)
 {
-	player_t *player;
+	INT32 prandom;
 
-	if (!(target->flags & MF_SHOOTABLE))
-		return false; // shouldn't happen...
+	prandom = P_RandomFixed();
 
-	if (target->health <= 0)
+	if (prandom <= 63)
+		S_StartSound(source, sfx_taunt1);
+	else if (prandom <= 127)
+		S_StartSound(source, sfx_taunt2);
+	else if (prandom <= 191)
+		S_StartSound(source, sfx_taunt3);
+	else
+		S_StartSound(source, sfx_taunt4);
+}
+
+boolean K_SpinPlayer(player_t *player, mobj_t *source)
+{
+	if (player->health <= 0)
 		return false;
-
-	if (!target || !target->player)
-		return false; // Just for players
-
-	player = target->player;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return false;
 
-	if (player)
+	player->kartstuff[k_mushroomtimer] = 0;
+
+	if (player->kartstuff[k_spinouttype] == 0)
 	{
-		player->kartstuff[k_mushroomtimer] = 0;
+		player->kartstuff[k_spinouttimer] = 2*TICRATE;
 
-		if (player->kartstuff[k_spinouttype] == 0)
-		{
-			player->kartstuff[k_spinouttimer] = 2*TICRATE;
+		if (player->speed < player->normalspeed/4)
+			P_InstaThrust(player->mo, player->mo->angle, player->normalspeed*FRACUNIT/4);
 
-			if (player->speed < player->normalspeed/4)
-				P_InstaThrust(player->mo, player->mo->angle, player->normalspeed*FRACUNIT/4);
-
-			//S_StartSound(player->mo, sfx_slip); // TODO: add this sound
-		}
-		else
-			player->kartstuff[k_spinouttimer] = 1*TICRATE;
-
-		player->powers[pw_flashing] = flashingtics;
-
-		player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
-
-		if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8])) // Turning the player seems like a bad way to do it, so we'll use states instead
-			P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
-
-		player->kartstuff[k_spinouttype] = 0;
+		S_StartSound(player->mo, sfx_slip);
 	}
+	else
+		player->kartstuff[k_spinouttimer] = 1*TICRATE;
+
+	player->powers[pw_flashing] = flashingtics;
+
+	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
+
+	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+
+	player->kartstuff[k_spinouttype] = 0;
+
 	return true;
 }
 
-boolean P_SquishPlayerMobj(mobj_t *target, mobj_t *source)
+boolean K_SquishPlayer(player_t *player, mobj_t *source)
 {
-	player_t *player;
-
-	if (!(target->flags & MF_SHOOTABLE))
-		return false; // shouldn't happen...
-
-	if (target->health <= 0)
+	if (player->health <= 0)
 		return false;
-
-	if (!target || !target->player)
-		return false; // Just for players
-
-	player = target->player;
 
 	if (player->powers[pw_flashing] > 0	|| player->kartstuff[k_squishedtimer] > 0 
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return false;
 
-	if (player)
-	{
-		player->kartstuff[k_mushroomtimer] = 0;
+	player->kartstuff[k_mushroomtimer] = 0;
 
-		player->kartstuff[k_squishedtimer] = 2*TICRATE;
+	player->kartstuff[k_squishedtimer] = 2*TICRATE;
 
-		player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = flashingtics;
 
-		player->mo->flags |= MF_NOCLIP;
+	player->mo->flags |= MF_NOCLIP;
 
-		if (player->mo->state != &states[S_KART_SQUISH]) // Squash
-			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
+	if (player->mo->state != &states[S_KART_SQUISH]) // Squash
+		P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
 
-		P_PlayRinglossSound(player->mo);
-	}
+	P_PlayRinglossSound(player->mo);
+
 	return true;
 }
 
-boolean P_ExplodePlayerMobj(mobj_t *target, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
+boolean K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
-	player_t *player;
-
-	if (!(target->flags & MF_SHOOTABLE))
-		return false; // shouldn't happen...
-
-	if (target->health <= 0)
+	if (player->health <= 0)
 		return false;
-
-	if (!target || !target->player)
-		return false; // Just for players
-
-	player = target->player;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return false;
 
-	if (player)
-	{
-		player->mo->momz = 18*FRACUNIT;
-		player->mo->momx = player->mo->momy = 0;
+	player->mo->momz = 18*FRACUNIT;
+	player->mo->momx = player->mo->momy = 0;
 
-		player->kartstuff[k_mushroomtimer] = 0;
+	player->kartstuff[k_mushroomtimer] = 0;
 
-		player->kartstuff[k_spinouttype] = 1;
-		player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
-		player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
+	player->kartstuff[k_spinouttype] = 1;
+	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
+	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
-		player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = flashingtics;
 
+	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
 
-		if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8])) // Turning the player seems like a bad way to do it, so we'll use states instead
-			P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+	player->kartstuff[k_spinouttype] = 0;
 
-		player->kartstuff[k_spinouttype] = 0;
+	P_PlayRinglossSound(player->mo);
 
-		P_PlayRinglossSound(player->mo);
-	}
 	return true;
+}
 
+void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit)
+{
+	mobj_t *mobj;
+	mobj_t *ghost = NULL;
+	INT32 i;
+	TVector v;
+	TVector *res;
+	fixed_t finalx, finaly, finalz, dist;
+	//mobj_t hoopcenter;
+	angle_t degrees, fa, closestangle;
+	fixed_t mobjx, mobjy, mobjz;
+
+	//hoopcenter.x = x;
+	//hoopcenter.y = y;
+	//hoopcenter.z = z;
+
+	//hoopcenter.z = z - mobjinfo[type].height/2;
+
+	degrees = FINEANGLES/number;
+
+	radius = FixedDiv(radius,5*(FRACUNIT/4));
+
+	closestangle = 0;
+
+	// Create the hoop!
+	for (i = 0; i < number; i++)
+	{
+		fa = (i*degrees);
+		v[0] = FixedMul(FINECOSINE(fa),radius);
+		v[1] = 0;
+		v[2] = FixedMul(FINESINE(fa),radius);
+		v[3] = FRACUNIT;
+
+		res = VectorMatrixMultiply(v, *RotateXMatrix(rotangle));
+		M_Memcpy(&v, res, sizeof (v));
+		res = VectorMatrixMultiply(v, *RotateZMatrix(closestangle));
+		M_Memcpy(&v, res, sizeof (v));
+
+		finalx = x + v[0];
+		finaly = y + v[1];
+		finalz = z + v[2];
+
+		mobj = P_SpawnMobj(finalx, finaly, finalz, type);
+
+		mobj->z -= mobj->height>>1;
+
+		// change angle
+		mobj->angle = R_PointToAngle2(mobj->x, mobj->y, x, y);
+
+		// change slope
+		dist = P_AproxDistance(P_AproxDistance(x - mobj->x, y - mobj->y), z - mobj->z);
+
+		if (dist < 1)
+			dist = 1;
+
+		mobjx = mobj->x;
+		mobjy = mobj->y;
+		mobjz = mobj->z;
+
+		if (ghostit)
+		{
+			ghost = P_SpawnGhostMobj(mobj);
+			P_SetMobjState(mobj, S_NULL);
+			mobj = ghost;
+		}
+
+		mobj->momx = FixedMul(FixedDiv(mobjx - x, dist), 2*FRACUNIT);
+		mobj->momy = FixedMul(FixedDiv(mobjy - y, dist), 2*FRACUNIT);
+		mobj->momz = FixedMul(FixedDiv(mobjz - z, dist), 2*FRACUNIT);
+
+		if (spawncenter)
+		{
+			mobj->x = x;
+			mobj->y = y;
+			mobj->z = z;
+		}
+
+		mobj->flags |= MF_NOCLIPTHING;
+		mobj->flags &= ~MF_SPECIAL;
+
+	}
+}
+
+mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle, INT32 flags2, fixed_t speed)
+{
+	mobj_t *th;
+	angle_t an;
+	fixed_t x, y, z;
+	//INT32 dir;
+
+	// angle at which you fire, is player angle
+	an = angle;
+
+	//if (source->player->kartstuff[k_throwdir] != 0)
+	//	dir = source->player->kartstuff[k_throwdir];
+	//else
+	//	dir = 1;
+
+	x = source->x + source->momx;
+	y = source->y + source->momy;
+	z = source->z + source->height/3;
+
+	th = P_SpawnMobj(x, y, z, type);
+
+	th->flags2 |= flags2;
+
+	th->threshold = 10;
+
+#ifdef WEAPON_SFX
+	//Since rail and bounce have no thrown objects, this hack is necessary.
+	//Is creating thrown objects for rail and bounce more or less desirable than this?
+	if (th->info->seesound && !(th->flags2 & MF2_RAILRING) && !(th->flags2 & MF2_SCATTER))
+		S_StartSound(source, th->info->seesound);
+#else
+	if (th->info->seesound)
+		S_StartSound(source, th->info->seesound);
+#endif
+
+	P_SetTarget(&th->target, source);
+
+	th->angle = an;
+	th->momx = FixedMul(speed, FINECOSINE(an>>ANGLETOFINESHIFT));
+	th->momy = FixedMul(speed, FINESINE(an>>ANGLETOFINESHIFT));
+
+	return NULL;
+}
+
+static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean bobombthrow)
+{
+	mobj_t *mo;
+	INT32 dir;
+	angle_t newangle;
+	fixed_t newx;
+	fixed_t newy;
+
+	if (!player)
+		return NULL;
+
+	if (bobombthrow)
+	{
+		if (player->kartstuff[k_throwdir] == 1)
+			dir = 2;
+		else if (player->kartstuff[k_throwdir] == -1)
+			dir = -1;
+		else
+			dir = 1;
+	}
+	else
+	{
+		if (player->kartstuff[k_throwdir] != 0)
+			dir = player->kartstuff[k_throwdir];
+		else
+			dir = defaultDir;
+	}
+
+	if (missile)
+	{
+		if (dir == -1)
+		{
+			// Shoot backward
+			mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
+
+			if (mo)
+			{
+				if (player->mo->eflags & MFE_VERTICALFLIP)
+					mo->eflags |= MFE_VERTICALFLIP;
+			}
+		}
+		else
+		{
+			// Shoot forward
+			mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
+
+			if (mo)
+			{
+				if (player->mo->eflags & MFE_VERTICALFLIP)
+					mo->eflags |= MFE_VERTICALFLIP;
+			}
+		}
+	}
+	else
+	{
+		if (dir == 1 || dir == 2)
+		{
+			// Shoot forward
+			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + 80*FRACUNIT, mapthing);
+
+			mo->threshold = 10;
+
+			P_SetTarget(&mo->target, player->mo);
+
+			if (mo)
+			{
+				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
+				int DIST = 50*FRACUNIT + player->speed*FRACUNIT; // 6 when dropping CTF flag
+				if (DIST > 64*FRACUNIT)
+					DIST = 64*FRACUNIT;
+
+				int HEIGHT;
+
+				if (dir == 2)
+					HEIGHT = 16*FRACUNIT + player->mo->momz;
+				else
+					HEIGHT = 8*FRACUNIT + player->mo->momz;
+
+				if (HEIGHT > 64*FRACUNIT)
+					HEIGHT = 64*FRACUNIT;
+
+				mo->momx = FixedMul(FINECOSINE(fa), DIST);
+				mo->momy = FixedMul(FINESINE(fa), DIST);
+				mo->momz = HEIGHT;
+
+				if (player->mo->eflags & MFE_VERTICALFLIP)
+					mo->eflags |= MFE_VERTICALFLIP;
+			}
+		}
+		else
+		{
+			// Drop it directly behind you.
+			newangle = player->mo->angle;
+
+			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, mapthing);
+
+			mo->threshold = 10;
+
+			P_SetTarget(&mo->target, player->mo);
+
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, player->mo->radius*2 + mo->radius*3);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, player->mo->radius*2 + mo->radius*3);
+
+			mo->x = newx;
+			mo->y = newy;
+
+			if (mo)
+			{
+				if (player->mo->eflags & MFE_VERTICALFLIP)
+					mo->eflags |= MFE_VERTICALFLIP;
+			}
+		}
+	}
+	return mo;
+}
+
+static void K_DoBooSteal(player_t * player)
+{
+	INT32 i, numplayers = 0;
+	INT32 playerswappable[MAXPLAYERS];
+	INT32 stealplayer = 0; // The player that's getting stolen from
+	INT32 prandom = 0;
+
+	if (!multiplayer)
+		return;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && players[i].mo && players[i].mo->health > 0 && players[i].playerstate == PST_LIVE
+			&& !players[i].exiting && !players[i].powers[pw_super] && !((netgame || multiplayer) && players[i].spectator)
+			&& players[i].kartstuff[k_position] < player->kartstuff[k_position] && player != &players[i]
+
+			&& (players[i].kartstuff[k_star] || players[i].kartstuff[k_mushroom] || players[i].kartstuff[k_goldshroom] 
+			|| players[i].kartstuff[k_megashroom] || players[i].kartstuff[k_lightning] || players[i].kartstuff[k_blueshell]
+			|| players[i].kartstuff[k_greenshell] & 2 || players[i].kartstuff[k_triplegreenshell] & 8
+			|| players[i].kartstuff[k_redshell] & 2 || players[i].kartstuff[k_tripleredshell] & 8
+			|| players[i].kartstuff[k_banana] & 2 || players[i].kartstuff[k_triplebanana] & 8
+			|| players[i].kartstuff[k_fakeitem] & 2 || players[i].kartstuff[k_bobomb] & 2
+			|| players[i].kartstuff[k_boo])) // Stealing boos with boos? sounds like fun
+		{
+			playerswappable[numplayers] = i+1;
+			numplayers++;
+		}
+	}
+
+	prandom = P_RandomFixed();
+
+	if (player->kartstuff[k_position] == 1 || numplayers < 1) // No-one can be stolen from? Get longer invisibility for nothing
+	{
+		player->kartstuff[k_bootaketimer] = bootime;
+		player->kartstuff[k_boo] = 0;
+		return;
+	}
+	else if (numplayers == 1) // With just 2 players, we just need to set the other player to be the one to steal from
+	{
+		stealplayer = playerswappable[numplayers - 1];
+	}
+	else if (numplayers > 1) // We need to choose between the available candidates for the 2nd player
+	{
+		stealplayer = playerswappable[prandom%(numplayers-1)];
+	}
+
+	if (stealplayer) // Now here's where we do the stealing, has to be done here because we still know the player we're stealing from
+	{
+		stealplayer -= 1; // stealplayer is +1 so we know if it found there actually WAS a player
+
+		player->kartstuff[k_bootaketimer] = bootime;
+		player->kartstuff[k_boo] = 0;
+		players[stealplayer].kartstuff[k_boostolentimer] = bootime;
+
+		if (players[stealplayer].kartstuff[k_star])
+		{
+			player->kartstuff[k_star] = players[stealplayer].kartstuff[k_star];
+			players[stealplayer].kartstuff[k_star] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_mushroom])
+		{
+			player->kartstuff[k_mushroom] = players[stealplayer].kartstuff[k_mushroom];
+			players[stealplayer].kartstuff[k_mushroom] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_goldshroom])
+		{
+			player->kartstuff[k_goldshroom] = players[stealplayer].kartstuff[k_goldshroom];
+			players[stealplayer].kartstuff[k_goldshroom] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_megashroom])
+		{
+			player->kartstuff[k_megashroom] = players[stealplayer].kartstuff[k_megashroom];
+			players[stealplayer].kartstuff[k_megashroom] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_lightning])
+		{
+			player->kartstuff[k_lightning] = players[stealplayer].kartstuff[k_lightning];
+			players[stealplayer].kartstuff[k_lightning] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_blueshell])
+		{
+			player->kartstuff[k_blueshell] = players[stealplayer].kartstuff[k_blueshell];
+			players[stealplayer].kartstuff[k_blueshell] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_greenshell] & 2)
+		{
+			player->kartstuff[k_greenshell] |= 2;
+			players[stealplayer].kartstuff[k_greenshell] &= ~2;
+		}
+		else if (players[stealplayer].kartstuff[k_triplegreenshell] & 8)
+		{
+			player->kartstuff[k_triplegreenshell] |= 8;
+			players[stealplayer].kartstuff[k_triplegreenshell] &= ~8;
+		}
+		else if (players[stealplayer].kartstuff[k_redshell] & 2)
+		{
+			player->kartstuff[k_redshell] |= 2;
+			players[stealplayer].kartstuff[k_redshell] &= ~2;
+		}
+		else if (players[stealplayer].kartstuff[k_tripleredshell] & 8)
+		{
+			player->kartstuff[k_tripleredshell] |= 8;
+			players[stealplayer].kartstuff[k_tripleredshell] &= ~8;
+		}
+		else if (players[stealplayer].kartstuff[k_banana] & 2)
+		{
+			player->kartstuff[k_banana] |= 2;
+			players[stealplayer].kartstuff[k_banana] &= ~2;
+		}
+		else if (players[stealplayer].kartstuff[k_triplebanana] & 8)
+		{
+			player->kartstuff[k_triplebanana] |= 8;
+			players[stealplayer].kartstuff[k_triplebanana] &= ~8;
+		}
+		else if (players[stealplayer].kartstuff[k_fakeitem] & 2)
+		{
+			player->kartstuff[k_fakeitem] |= 2;
+			players[stealplayer].kartstuff[k_fakeitem] &= ~2;
+		}
+		else if (players[stealplayer].kartstuff[k_bobomb] & 2)
+		{
+			player->kartstuff[k_bobomb] |= 2;
+			players[stealplayer].kartstuff[k_bobomb] &= ~2;
+		}
+		if (players[stealplayer].kartstuff[k_boo])
+		{
+			player->kartstuff[k_boo] = players[stealplayer].kartstuff[k_boo];
+			players[stealplayer].kartstuff[k_boo] = 0;
+		}
+	}
+}
+
+void K_DoMushroom(player_t *player, boolean doPFlag)
+{
+	S_StartSound(player->mo, sfx_mush);
+	player->kartstuff[k_mushroomtimer] = mushroomtime;
+	
+	if (doPFlag)
+		player->pflags |= PF_ATTACKDOWN;
+
+	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	K_PlayTauntSound(player->mo);
+	player->kartstuff[k_sounds] = 70;
+}
+
+void K_DoLightning(player_t *player, boolean bluelightning)
+{
+	INT32 i;
+	S_StartSound(player->mo, sfx_bkpoof); // Sound the BANG!
+	K_PlayTauntSound(player->mo);
+	player->pflags |= PF_ATTACKDOWN;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i])
+			P_FlashPal(&players[i], PAL_NUKE, 10);
+
+		if (bluelightning)
+			P_DamageMobj(players[i].mo, player->mo, player->mo, bluelightning ? 65 : 64);
+	}
+
+	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	K_PlayTauntSound(player->mo);
+	player->kartstuff[k_sounds] = 70;
+}
+
+void K_MoveKartPlayer(player_t *player, boolean onground)
+{
+	ticcmd_t *cmd;
+
+	cmd = &player->cmd;
+
+	boolean ATTACK_IS_DOWN = ((cmd->buttons & BT_ATTACK) && !(player->pflags & PF_ATTACKDOWN));
+	boolean HOLDING_ITEM = (player->kartstuff[k_greenshell] == 1 || player->kartstuff[k_redshell] == 1
+		|| player->kartstuff[k_banana] == 1 || player->kartstuff[k_fakeitem] == 1 || player->kartstuff[k_bobomb] == 1
+		|| player->kartstuff[k_triplegreenshell] & 1 || player->kartstuff[k_triplegreenshell] & 2 || player->kartstuff[k_triplegreenshell] & 4
+		|| player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4
+		|| player->kartstuff[k_triplebanana] & 1 || player->kartstuff[k_triplebanana] & 2 || player->kartstuff[k_triplebanana] & 4);
+	boolean NO_BOO = (player->kartstuff[k_boostolentimer] == 0 && player->kartstuff[k_bootaketimer] == 0);
+
+	if (!(cmd->buttons & BT_ATTACK))
+		player->pflags |= PF_ATTACKDOWN;
+	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_introcam] < 2 && player->kartstuff[k_spinouttimer] == 0)
+	{
+		// GoldenMushroom power
+		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1 && player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
+		{
+			K_DoMushroom(player, true);
+			player->kartstuff[k_goldshroomtimer] = bonustime;
+			player->kartstuff[k_goldshroom] = 0;
+		}
+		// GoldenMushroom power
+		else if (ATTACK_IS_DOWN && player->kartstuff[k_goldshroomtimer] > 1 && onground && NO_BOO)
+		{
+			K_DoMushroom(player, true);
+			player->kartstuff[k_goldshroomtimer] -= 5;
+			if (player->kartstuff[k_goldshroomtimer] < 1)
+				player->kartstuff[k_goldshroomtimer] = 1;
+		}
+		// TripleMushroom power
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 4 && onground && NO_BOO)
+		{
+			K_DoMushroom(player, true);
+			player->kartstuff[k_mushroom] = 2;
+		}
+		// DoubleMushroom power
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 2 && onground && NO_BOO)
+		{
+			K_DoMushroom(player, true);
+			player->kartstuff[k_mushroom] = 1;
+		}
+		// Mushroom power
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 1 && onground && NO_BOO)
+		{
+			K_DoMushroom(player, true);
+			player->kartstuff[k_mushroom] = 0;
+		}
+		// Star power
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_star] == 1 && NO_BOO)
+		{
+			if (P_IsLocalPlayer(player) && !player->exiting)
+				S_ChangeMusicInternal("minvnc", true);
+			if (!P_IsLocalPlayer(player))
+				S_StartSound(player->mo, sfx_star);
+			player->kartstuff[k_startimer] = bonustime; // Activate it
+			K_PlayTauntSound(player->mo);
+			player->kartstuff[k_star] = 0;
+			player->kartstuff[k_itemclose] = 10;
+			player->pflags |= PF_ATTACKDOWN;
+		}
+		// Green Shell
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_greenshell] & 2 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo;
+			player->kartstuff[k_greenshell] &= ~2;
+			player->kartstuff[k_greenshell] |= 1;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_GREENSHIELD);
+			mo->threshold = 10;
+			if (mo)
+				P_SetTarget(&mo->target, player->mo);
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_greenshell] & 1)
+		{
+			player->kartstuff[k_greenshell] &= ~1;
+
+			P_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
+			K_PlayTauntSound(player->mo);
+
+		}
+		// Triple Green Shell
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_triplegreenshell] & 8 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo, *mo2, *mo3;
+			player->kartstuff[k_triplegreenshell] &= ~8;
+			player->kartstuff[k_triplegreenshell] |= 7;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			K_PlayTauntSound(player->mo);
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEGREENSHIELD1);
+			mo->threshold = 10;
+			P_SetTarget(&mo->target, player->mo);
+			mo->angle = 0;
+			mo2 = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEGREENSHIELD2);
+			mo2->threshold = 10;
+			P_SetTarget(&mo2->target, player->mo);
+			mo2->angle = ANGLE_120;
+			mo3 = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEGREENSHIELD3);
+			mo3->threshold = 10;
+			P_SetTarget(&mo3->target, player->mo);
+			mo3->angle = ANGLE_240;
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (ATTACK_IS_DOWN && (player->kartstuff[k_triplegreenshell] & 1 || player->kartstuff[k_triplegreenshell] & 2 || player->kartstuff[k_triplegreenshell] & 4))
+		{
+			P_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
+			K_PlayTauntSound(player->mo);
+			player->pflags |= PF_ATTACKDOWN;
+
+			if (player->kartstuff[k_triplegreenshell] & 4)
+				player->kartstuff[k_triplegreenshell] &= ~4;
+			else if (player->kartstuff[k_triplegreenshell] & 2)
+				player->kartstuff[k_triplegreenshell] &= ~2;
+			else if (player->kartstuff[k_triplegreenshell] & 1)
+				player->kartstuff[k_triplegreenshell] &= ~1;
+
+		}
+		// Red Shell
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_redshell] & 2 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo;
+			player->kartstuff[k_redshell] &= ~2;
+			player->kartstuff[k_redshell] |= 1;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_REDSHIELD);
+			mo->threshold = 10;
+			if (mo)
+				P_SetTarget(&mo->target, player->mo);
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_redshell] & 1 && (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0))
+		{
+			player->kartstuff[k_redshell] &= ~1;
+
+			P_ThrowKartItem(player, true, MT_REDITEM, 1, false);
+			K_PlayTauntSound(player->mo);
+		}
+		// Red Shell Dud
+		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_redshell] & 1 && player->kartstuff[k_throwdir] == -1)
+		{
+			player->kartstuff[k_redshell] &= ~1;
+
+			P_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
+			K_PlayTauntSound(player->mo);
+		}
+		// Triple Red Shell
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_tripleredshell] & 8 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo, *mo2, *mo3;
+			player->kartstuff[k_tripleredshell] &= ~8;
+			player->kartstuff[k_tripleredshell] |= 7;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			K_PlayTauntSound(player->mo);
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEREDSHIELD1);
+			mo->threshold = 10;
+			P_SetTarget(&mo->target, player->mo);
+			mo->angle = 0;
+			mo2 = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEREDSHIELD2);
+			mo2->threshold = 10;
+			P_SetTarget(&mo2->target, player->mo);
+			mo2->angle = ANGLE_120;
+			mo3 = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEREDSHIELD3);
+			mo3->threshold = 10;
+			P_SetTarget(&mo3->target, player->mo);
+			mo3->angle = ANGLE_240;
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (ATTACK_IS_DOWN && (player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4)
+			&& (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0))
+		{
+			P_ThrowKartItem(player, true, MT_REDITEM, 1, false);
+			K_PlayTauntSound(player->mo);
+			player->pflags |= PF_ATTACKDOWN;
+			if (player->kartstuff[k_tripleredshell] & 4)
+				player->kartstuff[k_tripleredshell] &= ~4;
+			else if (player->kartstuff[k_tripleredshell] & 2)
+				player->kartstuff[k_tripleredshell] &= ~2;
+			else if (player->kartstuff[k_tripleredshell] & 1)
+				player->kartstuff[k_tripleredshell] &= ~1;
+		}
+		else if (ATTACK_IS_DOWN && (player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4)
+		&& player->kartstuff[k_throwdir] == -1)
+		{
+			P_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
+			K_PlayTauntSound(player->mo);
+			player->pflags |= PF_ATTACKDOWN;
+			if (player->kartstuff[k_tripleredshell] & 4)
+				player->kartstuff[k_tripleredshell] &= ~4;
+			else if (player->kartstuff[k_tripleredshell] & 2)
+				player->kartstuff[k_tripleredshell] &= ~2;
+			else if (player->kartstuff[k_tripleredshell] & 1)
+				player->kartstuff[k_tripleredshell] &= ~1;
+		}
+		// Banana Peel
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_banana] & 2 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo;
+			player->kartstuff[k_banana] &= ~2;
+			player->kartstuff[k_banana] |= 1;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANASHIELD);
+			mo->threshold = 10;
+			if (mo)
+				P_SetTarget(&mo->target, player->mo);
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_banana] & 1)
+		{
+			P_ThrowKartItem(player, false, MT_BANANAITEM, -1, false);
+			K_PlayTauntSound(player->mo);
+			player->kartstuff[k_banana] &= ~1;
+		}
+		// Triple Banana Peel
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_triplebanana] & 8 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo, *mo2, *mo3;
+			K_PlayTauntSound(player->mo);
+			player->kartstuff[k_triplebanana] &= ~8;
+			player->kartstuff[k_triplebanana] |= 7;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEBANANASHIELD1);
+			mo->threshold = 10;
+			if (mo) {
+				P_SetTarget(&mo->target, player->mo);
+				mo->angle = 0; }
+			mo2 = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEBANANASHIELD2);
+			mo2->threshold = 10;
+			if (mo2) {
+				P_SetTarget(&mo2->target, player->mo);
+				mo2->angle = ANGLE_135; }
+			mo3 = P_SpawnMobj(newx, newy, player->mo->z, MT_TRIPLEBANANASHIELD3);
+			mo3->threshold = 10;
+			if (mo3) {
+				P_SetTarget(&mo3->target, player->mo);
+				mo3->angle = ANGLE_225; }
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (ATTACK_IS_DOWN && (player->kartstuff[k_triplebanana] & 1 || player->kartstuff[k_triplebanana] & 2 || player->kartstuff[k_triplebanana] & 4))
+		{
+			P_ThrowKartItem(player, false, MT_BANANAITEM, -1,false );
+			K_PlayTauntSound(player->mo);
+			player->pflags |= PF_ATTACKDOWN;
+			if (player->kartstuff[k_triplebanana] & 4)
+				player->kartstuff[k_triplebanana] &= ~4;
+			else if (player->kartstuff[k_triplebanana] & 2)
+				player->kartstuff[k_triplebanana] &= ~2;
+			else if (player->kartstuff[k_triplebanana] & 1)
+				player->kartstuff[k_triplebanana] &= ~1;
+		}
+		// Fake Itembox
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_fakeitem] & 2 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo;
+			player->kartstuff[k_fakeitem] &= ~2;
+			player->kartstuff[k_fakeitem] |= 1;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_FAKESHIELD);
+			mo->threshold = 10;
+			if (mo)
+				P_SetTarget(&mo->target, player->mo);
+			player->kartstuff[k_itemclose] = 10;
+		}
+		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_fakeitem] & 1)
+		{
+			P_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
+			K_PlayTauntSound(player->mo);
+			player->kartstuff[k_fakeitem] &= ~1;
+		}
+		// Bomb
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_bobomb] & 2 && NO_BOO)
+		{
+			angle_t newangle;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo;
+			player->kartstuff[k_bobomb] &= ~2;
+			player->kartstuff[k_bobomb] |= 1;
+			player->pflags |= PF_ATTACKDOWN;
+			newangle = player->mo->angle;
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BOMBSHIELD);
+			mo->threshold = 10;
+			if (mo)
+				P_SetTarget(&mo->target, player->mo);
+			player->kartstuff[k_itemclose] = 10;
+		}
+		if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_bobomb] & 1)
+		{
+			P_ThrowKartItem(player, false, MT_BOMBITEM, 1, true);
+			K_PlayTauntSound(player->mo);
+			player->kartstuff[k_bobomb] &= ~1;
+		}
+		// Thunder
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_lightning] == 1 && NO_BOO)
+		{
+			K_DoLightning(player, false);
+			player->kartstuff[k_lightning] = 0;
+			player->kartstuff[k_itemclose] = 10;
+		}
+		// Blue Shell
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_blueshell] == 1 && NO_BOO)
+		{
+			K_DoLightning(player, true);
+			player->kartstuff[k_blueshell] = 0;
+			player->kartstuff[k_itemclose] = 10;
+		}
+		// Mega Mushroom
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_megashroom] == 1 && NO_BOO)
+		{
+			if (P_IsLocalPlayer(player) && !player->exiting)
+				S_ChangeMusicInternal("mega", true);
+			if (!P_IsLocalPlayer(player))
+				S_StartSound(player->mo, sfx_mega);
+			K_PlayTauntSound(player->mo);
+			player->kartstuff[k_growshrinktimer] = bonustime;
+			player->mo->destscale = FRACUNIT*3/2;
+			S_StartSound(player->mo, sfx_mario3);
+			player->pflags |= PF_ATTACKDOWN;
+			player->kartstuff[k_megashroom] = 0;
+			player->kartstuff[k_itemclose] = 10;
+		}
+		// Boo
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_boo] == 1 && NO_BOO)
+		{
+			K_DoBooSteal(player);
+			player->pflags |= PF_ATTACKDOWN;
+			player->kartstuff[k_boo] = 0;
+		}
+
+		if (player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0 && onground)
+		{
+			cmd->forwardmove = 1;
+			if (player->kartstuff[k_drift] == 1)
+				P_InstaThrust(player->mo, player->mo->angle+ANGLE_45, 55*FRACUNIT);
+			else if (player->kartstuff[k_drift] == -1)
+				P_InstaThrust(player->mo, player->mo->angle-ANGLE_45, 55*FRACUNIT);
+			else
+				P_InstaThrust(player->mo, player->mo->angle, 55*FRACUNIT);
+			player->kartstuff[k_boosting] = 1;
+		}
+		else if (player->kartstuff[k_mushroomtimer] == 0 && player->kartstuff[k_boosting] == 1)
+			player->kartstuff[k_boosting] = 0;
+		
+		if (player->kartstuff[k_bootaketimer] > 0)
+		{
+			if ((player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
+				|| (!(player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer])) 
+				&& (player->kartstuff[k_bootaketimer] < 1*TICRATE/2 || player->kartstuff[k_bootaketimer] > bootime-(1*TICRATE/2))))
+			{
+				if (leveltime & 1)
+					player->mo->flags2 |= MF2_DONTDRAW;
+				else
+					player->mo->flags2 &= ~MF2_DONTDRAW;
+			}
+			else
+				player->mo->flags2 |= MF2_DONTDRAW;
+
+			player->powers[pw_flashing] = player->kartstuff[k_bootaketimer]; // We'll do this for now, let's people know about the invisible people through subtle hints
+		}
+		else if (player->kartstuff[k_bootaketimer] == 0)
+		{
+			player->mo->flags2 &= ~MF2_DONTDRAW;
+		}
+	}
+		
+	if (player->kartstuff[k_growshrinktimer] > 1)
+		player->powers[pw_flashing] = 2;
+
+	// Friction
+	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
+	player->mo->friction += 4608;
+	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
+	player->mo->friction += 1608;
+
+	// Splitscreen camera
+	if (splitscreen && player == &players[consoleplayer])
+		CV_SetValue(&cv_cam_dist, 190);
+	if (splitscreen && player == &players[secondarydisplayplayer])
+		CV_SetValue(&cv_cam2_dist, 190);
+
+	// DRRRRIIIIFFFFFFTTT!!!!
+	// Drifting is actually straffing + automatic turning.
+	// Holding the Jump button will enable drifting.
+
+	// Instead of instantly straffing, you go from running
+	// straight to slowly turning left/right.
+	// 536870912 is the normal straffing angle, 90 degrees.
+	// 35791394 is the speed that's added from 0 to 90.
+
+	// localangle is SRB2's turning code, not angle direction.
+	// Adding or subtracting by 300 is how much you can turn.
+	// The higher it is, the faster you turn.
+
+	if (cmd->buttons & BT_DRIFTRIGHT)
+		player->kartstuff[k_turndir] = 1;
+	else if (cmd->buttons & BT_DRIFTLEFT)
+		player->kartstuff[k_turndir] = -1;
+	else
+		player->kartstuff[k_turndir] = 0;
+
+	// Moved here so you can't "chain" drifts
+	// Drift Release
+	if (((player->kartstuff[k_drift] == 0) || (player->kartstuff[k_drift] == 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] == -1 && player->kartstuff[k_turndir] != -1))
+		&& player->kartstuff[k_driftcharge] < 30
+		&& onground)
+	{
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+	else if (((player->kartstuff[k_drift] == 0) || (player->kartstuff[k_drift] == 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] == -1 && player->kartstuff[k_turndir] != -1))
+		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
+		&& onground)
+	{
+		player->powers[pw_sneakers] += 16 + (player->acceleration-34);
+		S_StartSound(player->mo, sfx_mush);
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+	else if (((player->kartstuff[k_drift] == 0) || (player->kartstuff[k_drift] == 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] == -1 && player->kartstuff[k_turndir] != -1))
+		&& player->kartstuff[k_driftcharge] >= 60
+		&& onground)
+	{
+		player->powers[pw_sneakers] += 36 + (player->acceleration-34);
+		S_StartSound(player->mo, sfx_mush);
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+
+	if (player->kartstuff[k_turndir] == 1 && player->speed > 10
+		&& player->kartstuff[k_jmp] == 1
+		&& player->kartstuff[k_drift] != 1)
+		player->kartstuff[k_drift] = 1;
+	else if (player->kartstuff[k_turndir] == -1 && player->speed > 10
+		&& player->kartstuff[k_jmp] == 1
+		&& player->kartstuff[k_drift] != -1)
+		player->kartstuff[k_drift] = -1;
+	else if (player->kartstuff[k_jmp] == 0 || player->kartstuff[k_turndir] == 0)
+		player->kartstuff[k_drift] = 0;
+
+	/*
+	if (cmd->forwardmove == 0)
+		player->powers[pw_exspeed]--;
+
+	if (cmd->forwardmove > 0)
+		player->powers[pw_exspeed]++;
+	*/
+
+	// If you press any strafe key while turning right, then drift right.
+	if (player->kartstuff[k_introcam] < 2 && player->kartstuff[k_spinouttimer] == 0
+	&& player->kartstuff[k_jmp] == 1 && (player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1)
+	&& onground) //Right
+	{
+		player->kartstuff[k_driftcharge]++;
+	}
+	// Stop drifting
+	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
+	|| player->speed < 10) // you're too slow!
+	{
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+
+	// Quick Turning
+	// You can't turn your kart when you're not moving.
+	// So now it's time to burn some rubber!
+	if (player->kartstuff[k_introcam] < 2 && player->speed < 2 && leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)
+	{
+		if (player->kartstuff[k_turndir])
+			player->kartstuff[k_drift] = 1;
+		if (leveltime % 20 == 0 && player->kartstuff[k_drift])
+			S_StartSound(player->mo, sfx_mkslid);
+
+		if (player == &players[consoleplayer] && player->kartstuff[k_turndir] == 1)
+			localangle -= 800*FRACUNIT;
+		if (player == &players[consoleplayer] && player->kartstuff[k_turndir] == -1)
+			localangle += 800*FRACUNIT;
+
+		if (splitscreen && player == &players[secondarydisplayplayer]
+			&& player->kartstuff[k_turndir] == 1)
+			localangle2 -= 800*FRACUNIT;
+		if (splitscreen && player == &players[secondarydisplayplayer]
+			&& player->kartstuff[k_turndir] == -1)
+			localangle2 += 800*FRACUNIT;
+	}
+
+	// Squishing
+	// If a Mega Mushroom or a Thwomp crushes you, get flattened instead of being killed.
+
+	if (player->kartstuff[k_squishedtimer] <= 0)
+	{
+		player->mo->flags &= ~MF_NOCLIP;
+	}
+	else
+	{
+		player->mo->flags |= MF_NOCLIP;
+		player->mo->momx = 0;
+		player->mo->momy = 0;
+	}
+
+	  ///////////////////////
+	 //LAKITU START SIGNAL//
+	///////////////////////
+
+	// Spawn at the beggining of the level,
+	// not joiner-friendly.
+	/*
+	if (leveltime == 3)
+	{
+		mobj_t *mo;
+		angle_t newangle;
+		fixed_t newx;
+		fixed_t newy;
+		fixed_t newz;
+		newangle = player->mo->angle;
+		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 128*FRACUNIT);
+		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 128*FRACUNIT);
+		if (player->mo->eflags & MFE_VERTICALFLIP)
+			newz = player->mo->z - 320*FRACUNIT;
+		else
+			newz = player->mo->z + 256*FRACUNIT;
+		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
+		if (mo)
+		{
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				mo->eflags |= MFE_VERTICALFLIP;
+			P_SetTarget(&mo->target, player->mo);
+		}
+	}
+	*/
+	player->kartstuff[k_boostcharge] = 0;
+	
+	// Play the stop light's sounds
+	if ((leveltime == (TICRATE-4)*2) || (leveltime == (TICRATE-2)*3))
+		S_StartSound(NULL, sfx_lkt1);
+	if (leveltime == (TICRATE)*4)
+		S_StartSound(NULL, sfx_lkt2);
+	// Start charging once you're given the opportunity.
+	if (leveltime >= 70 && leveltime <= 140 && cmd->buttons & BT_ACCELERATE && leveltime % 5 == 0)
+		player->kartstuff[k_boostcharge]++;
+	if (leveltime >= 70 && leveltime <= 140 && !(cmd->buttons & BT_ACCELERATE))
+		player->kartstuff[k_boostcharge] = 0;
+	// Increase your size while charging your engine.
+	if (leveltime < 150)
+		player->mo->destscale = FRACUNIT*((100 + player->kartstuff[k_boostcharge])/100);
+
+	// Determine the outcome of your charge.
+	if (leveltime > 140 && player->kartstuff[k_boostcharge])
+	{
+		// Get an instant boost!
+		if (player->kartstuff[k_boostcharge] >= 7 && player->kartstuff[k_boostcharge] <= 10)
+		{
+			K_DoMushroom(player, false);
+		}
+		// You overcharged your engine? Those things are expensive!!!
+		if (player->kartstuff[k_boostcharge] > 10)
+			player->kartstuff[k_boostcharge] = 40;
+
+		player->kartstuff[k_boostcharge] = 0;
+	}
+
+	  //////////////////
+	 //FISHING LAKITU//
+	//////////////////
+
+	// If you die and respawn in Mario Kart, have Lakitu fish you back in.
+	/*
+	if (player->airtime == 60)
+	{
+		mobj_t *mo;
+		angle_t newangle;
+		fixed_t newx;
+		fixed_t newy;
+		fixed_t newz;
+		newangle = player->mo->angle;
+		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 0);
+		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 0);
+		if (player->mo->eflags & MFE_VERTICALFLIP)
+			newz = player->mo->z - 128*FRACUNIT;
+		else
+			newz = player->mo->z + 64*FRACUNIT;
+		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
+		if (mo)
+		{
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				mo->eflags |= MFE_VERTICALFLIP;
+			mo->angle = newangle+ANGLE_180;
+			P_SetTarget(&mo->target, player->mo);
+			P_SetMobjState(mo, S_LAKITUFSH1);
+		}
+	}
+	*/
+	if (player->kartstuff[k_lakitu] > 3)
+	{
+		player->kartstuff[k_lakitu]--;
+		player->mo->momz = 0;
+		player->powers[pw_flashing] = 2;
+		player->powers[pw_nocontrol] = 2;
+		if (leveltime % 15 == 0)
+			S_StartSound(player->mo, sfx_lkt3);
+	}
+	// That's enough pointless fishing for now.
+	if (player->kartstuff[k_lakitu] > 0 && player->kartstuff[k_lakitu] <= 3)
+	{
+		if (!onground)
+		{
+			player->powers[pw_flashing] = 2;
+			// If you tried to boost while in the air,
+			// you lose your chance of boosting at all.
+			if (cmd->buttons & BT_ACCELERATE)
+			{
+				player->powers[pw_flashing] = 0;
+				player->kartstuff[k_lakitu] = 0;
+			}
+		}
+		else
+		{
+			player->kartstuff[k_lakitu]--;
+			// Quick! You only have three tics to boost!
+			if (cmd->buttons & BT_ACCELERATE)
+			{
+				K_DoMushroom(player, false);
+			}
+		}
+	}
+
+	  //////////////////
+	 //NEW LAP LAKITU//
+	//////////////////
+
+	/*
+	if (player->kartstuff[k_lakitu] == -60)
+	{
+		mobj_t *mo;
+		angle_t newangle;
+		fixed_t newx;
+		fixed_t newy;
+		fixed_t newz;
+		newangle = player->mo->angle;
+		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 128*FRACUNIT);
+		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 128*FRACUNIT);
+		if (player->mo->eflags & MFE_VERTICALFLIP)
+			newz = player->mo->z - 320*FRACUNIT;
+		else
+			newz = player->mo->z + 256*FRACUNIT;
+		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
+		if (mo)
+		{
+			P_SetTarget(&mo->target, player->mo);
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				mo->eflags |= MFE_VERTICALFLIP;
+
+			if (player->laps < (unsigned)(cv_numlaps.value - 1))
+			{
+				if (player->laps == 1)
+					P_SetMobjState(mo, S_LAKITULAP1A);
+				if (player->laps == 2)
+					P_SetMobjState(mo, S_LAKITULAP2A);
+				if (player->laps == 3)
+					P_SetMobjState(mo, S_LAKITULAP3A);
+				if (player->laps == 4)
+					P_SetMobjState(mo, S_LAKITULAP4A);
+				if (player->laps == 5)
+					P_SetMobjState(mo, S_LAKITULAP5A);
+				if (player->laps == 6)
+					P_SetMobjState(mo, S_LAKITULAP6A);
+				if (player->laps == 7)
+					P_SetMobjState(mo, S_LAKITULAP7A);
+				if (player->laps == 8)
+					P_SetMobjState(mo, S_LAKITULAP8A);
+			}
+			else if (player->laps == (unsigned)(cv_numlaps.value - 1))
+				P_SetMobjState(mo, S_LAKITULAPFA);
+		}
+	}
+	*/
+	if (player->kartstuff[k_lakitu] < 0)
+		player->kartstuff[k_lakitu]++;
 }
 
 //}
@@ -1569,7 +3023,8 @@ void K_drawKartHUD(void)
 		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 	
 	// Draw the numerical position
-	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+	K_DrawKartPositionNum(stplyr->kartstuff[k_spinout]);
+	//K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 	
 	// Why is this here?????
 	/*

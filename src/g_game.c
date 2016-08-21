@@ -947,7 +947,7 @@ angle_t localangle, localangle2;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
-static fixed_t angleturn[3] = {640, 1280, 320}; // + slow turn
+static fixed_t angleturn[3] = {400/NEWTICRATERATIO, 800/NEWTICRATERATIO, 200/NEWTICRATERATIO}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 {
@@ -1030,9 +1030,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		if (turnright)
+		if (turnright && !(turnleft))
 			cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
-		else if (turnleft)
+		else if (turnleft && !(turnright))
 			cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
 
 		if (analogjoystickmove && axis != 0)
@@ -1073,10 +1073,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	if (PLAYER1INPUTDOWN(gc_strafeleft))
 		side -= sidemove[speed];
 
-	if (PLAYER1INPUTDOWN(gc_weaponnext))
+	/* // SRB2kart - these aren't used in kart
+	if (PLAYER1INPUTDOWN(gc_driftleft))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
-	if (PLAYER1INPUTDOWN(gc_weaponprev))
+	if (PLAYER1INPUTDOWN(gc_driftright))
 		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
+	*/
 
 #if NUM_WEAPONS > 10
 "Add extra inputs to g_input.h/gamecontrols_e"
@@ -1097,11 +1099,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	// fire normal with any button/key
 	axis = JoyAxis(AXISFIRENORMAL);
-	if (PLAYER1INPUTDOWN(gc_firenormal) || (cv_usejoystick.value && axis > 0))
-		cmd->buttons |= BT_FIRENORMAL;
+	if (PLAYER1INPUTDOWN(gc_accelerate) || (cv_usejoystick.value && axis > 0))
+		cmd->buttons |= BT_ACCELERATE;
 
-	if (PLAYER1INPUTDOWN(gc_tossflag))
-		cmd->buttons |= BT_TOSSFLAG;
+	if (PLAYER1INPUTDOWN(gc_spectate))
+		cmd->buttons |= BT_SPECTATE;
 
 	// Lua scriptable buttons
 	if (PLAYER1INPUTDOWN(gc_custom1))
@@ -1112,22 +1114,22 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_CUSTOM3;
 
 	// use with any button/key
-	if (PLAYER1INPUTDOWN(gc_use))
-		cmd->buttons |= BT_USE;
+	if (PLAYER1INPUTDOWN(gc_brake))
+		cmd->buttons |= BT_BRAKE;
 
 	// Camera Controls
 	if (cv_debug || cv_analog.value || demoplayback || objectplacing || player->pflags & PF_NIGHTSMODE)
 	{
-		if (PLAYER1INPUTDOWN(gc_camleft))
-			cmd->buttons |= BT_CAMLEFT;
-		if (PLAYER1INPUTDOWN(gc_camright))
-			cmd->buttons |= BT_CAMRIGHT;
+		if (PLAYER1INPUTDOWN(gc_aimforward))
+			cmd->buttons |= BT_FORWARD;
+		if (PLAYER1INPUTDOWN(gc_aimbackward))
+			cmd->buttons |= BT_BACKWARD;
 	}
 
-	if (PLAYER1INPUTDOWN(gc_camreset))
+	if (PLAYER1INPUTDOWN(gc_lookback))
 	{
 		if (camera.chase && !resetdown)
-			P_ResetCamera(&players[displayplayer], &camera);
+			P_ResetCamera(&players[displayplayer], &camera); // TODO: Replace with a camflip
 		resetdown = true;
 	}
 	else
@@ -1222,6 +1224,20 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	//{ SRB2kart - Drift support
+	axis = JoyAxis(AXISTURN);
+	
+	if (turnleft || axis < 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+	
+	if (turnright || axis > 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	//}
+
 	if (cv_analog.value) {
 		cmd->angleturn = (INT16)(thiscam->angle >> 16);
 		if (player->awayviewtics)
@@ -1229,7 +1245,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		localangle += (cmd->angleturn<<16);
+		// SRB2kart
+		INT32 turnspeed;
+		
+		if (players[consoleplayer].mo && (players[consoleplayer].kartstuff[k_introcam] > 1 || players[consoleplayer].speed == 0))
+			turnspeed = 0;
+		else
+			turnspeed = 16;
+
+		localangle += (cmd->angleturn<<turnspeed); // << 16
 		cmd->angleturn = (INT16)(localangle >> 16);
 	}
 
@@ -1364,10 +1388,12 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	if (PLAYER2INPUTDOWN(gc_strafeleft))
 		side -= sidemove[speed];
 
-	if (PLAYER2INPUTDOWN(gc_weaponnext))
+	/* // SRB2kart - these aren't used in kart
+	if (PLAYER2INPUTDOWN(gc_driftleft))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
-	if (PLAYER2INPUTDOWN(gc_weaponprev))
+	if (PLAYER2INPUTDOWN(gc_driftright))
 		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
+	*/
 
 	//use the four avaliable bits to determine the weapon.
 	cmd->buttons &= ~BT_WEAPONMASK;
@@ -1385,11 +1411,11 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 
 	// fire normal with any button/key
 	axis = Joy2Axis(AXISFIRENORMAL);
-	if (PLAYER2INPUTDOWN(gc_firenormal) || (cv_usejoystick2.value && axis > 0))
-		cmd->buttons |= BT_FIRENORMAL;
+	if (PLAYER2INPUTDOWN(gc_accelerate) || (cv_usejoystick2.value && axis > 0))
+		cmd->buttons |= BT_ACCELERATE;
 
-	if (PLAYER2INPUTDOWN(gc_tossflag))
-		cmd->buttons |= BT_TOSSFLAG;
+	if (PLAYER2INPUTDOWN(gc_spectate))
+		cmd->buttons |= BT_SPECTATE;
 
 	// Lua scriptable buttons
 	if (PLAYER2INPUTDOWN(gc_custom1))
@@ -1400,22 +1426,22 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_CUSTOM3;
 
 	// use with any button/key
-	if (PLAYER2INPUTDOWN(gc_use))
-		cmd->buttons |= BT_USE;
+	if (PLAYER2INPUTDOWN(gc_brake))
+		cmd->buttons |= BT_BRAKE;
 
 	// Camera Controls
 	if (cv_debug || cv_analog2.value || player->pflags & PF_NIGHTSMODE)
 	{
-		if (PLAYER2INPUTDOWN(gc_camleft))
-			cmd->buttons |= BT_CAMLEFT;
-		if (PLAYER2INPUTDOWN(gc_camright))
-			cmd->buttons |= BT_CAMRIGHT;
+		if (PLAYER2INPUTDOWN(gc_aimforward))
+			cmd->buttons |= BT_FORWARD;
+		if (PLAYER2INPUTDOWN(gc_aimbackward))
+			cmd->buttons |= BT_BACKWARD;
 	}
 
-	if (PLAYER2INPUTDOWN(gc_camreset))
+	if (PLAYER2INPUTDOWN(gc_lookback))
 	{
 		if (camera2.chase && !resetdown)
-			P_ResetCamera(&players[secondarydisplayplayer], &camera2);
+			P_ResetCamera(&players[secondarydisplayplayer], &camera2); // TODO: Replace with a camflip
 		resetdown = true;
 	}
 	else
@@ -1508,6 +1534,26 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
+
+	//{ SRB2kart - Drift support
+	axis = Joy2Axis(AXISTURN);
+	
+	if (turnleft || axis < 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+	
+	if (turnright || axis > 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	
+	if (turnright && turnleft)
+	{
+		cmd->buttons &= ~BT_DRIFTLEFT;
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	}
+	//}
 
 	if (player->bot == 1) {
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
@@ -3784,7 +3830,7 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 	if (ziptic & ZT_ANGLE)
 		oldcmd.angleturn = READINT16(demo_p);
 	if (ziptic & ZT_BUTTONS)
-		oldcmd.buttons = (oldcmd.buttons & (BT_CAMLEFT|BT_CAMRIGHT)) | (READUINT16(demo_p) & ~(BT_CAMLEFT|BT_CAMRIGHT));
+		oldcmd.buttons = (oldcmd.buttons & (BT_FORWARD|BT_BACKWARD)) | (READUINT16(demo_p) & ~(BT_FORWARD|BT_BACKWARD));
 	if (ziptic & ZT_AIMING)
 		oldcmd.aiming = READINT16(demo_p);
 

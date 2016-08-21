@@ -23,6 +23,7 @@
 #include "r_things.h"
 #include "i_video.h"
 #include "lua_hook.h"
+#include "k_kart.h" // SRB2kart
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
@@ -113,6 +114,7 @@ void A_AttractChase(mobj_t *actor);
 void A_DropMine(mobj_t *actor);
 void A_FishJump(mobj_t *actor);
 void A_ThrownRing(mobj_t *actor);
+void A_GrenadeRing(mobj_t *actor);
 void A_SetSolidSteam(mobj_t *actor);
 void A_UnsetSolidSteam(mobj_t *actor);
 void A_SignPlayer(mobj_t *actor);
@@ -185,6 +187,8 @@ void A_RandomStateRange(mobj_t *actor);
 void A_DualAction(mobj_t *actor);
 void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
+void A_RedShellChase(mobj_t *actor); // SRB2kart
+void A_BobombExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -3892,6 +3896,74 @@ void A_ThrownRing(mobj_t *actor)
 
 	return;
 }
+
+//{ SRB2kart - A_GRENADERING
+static mobj_t *grenade;
+
+static inline boolean PIT_GrenadeRing(mobj_t *thing)
+{
+	if (!grenade)
+		return true;
+
+	if (thing->type != MT_PLAYER) // Don't explode for anything but an actual player.
+		return true;
+
+	if (thing == grenade->target && !(grenade->threshold == 0)) // Don't blow up at your owner.
+		return true;
+
+	if (thing->player && thing->player->kartstuff[k_bootaketimer])
+		return true;
+
+	if ((gametype == GT_CTF || gametype == GT_MATCH)
+		&& !cv_friendlyfire.value && grenade->target->player && thing->player
+		&& grenade->target->player->ctfteam == thing->player->ctfteam) // Don't blow up at your teammates, unless friendlyfire is on
+		return true;
+
+	// see if it went over / under
+	if (grenade->z - grenade->info->painchance > thing->z + thing->height)
+		return true; // overhead
+	if (grenade->z + grenade->height + grenade->info->painchance < thing->z)
+		return true; // underneath
+
+	if (netgame && thing->player && thing->player->spectator)
+		return true;
+
+	if (!(thing->flags & MF_SHOOTABLE))
+	{
+		// didn't do any damage
+		return true;
+	}
+
+	if (P_AproxDistance(P_AproxDistance(thing->x - grenade->x, thing->y - grenade->y),
+		thing->z - grenade->z) > grenade->info->painchance)
+		return true; // Too far away
+
+	// Explode!
+	P_SetMobjState(grenade, grenade->info->deathstate);
+	return false;
+}
+
+void A_GrenadeRing(mobj_t *actor)
+{
+	INT32 bx, by, xl, xh, yl, yh;
+	const fixed_t explodedist = actor->info->painchance;
+
+	if (leveltime % 35 == 0)
+		S_StartSound(actor, actor->info->activesound);
+
+	// Use blockmap to check for nearby shootables
+	yh = (unsigned)(actor->y + explodedist - bmaporgy)>>MAPBLOCKSHIFT;
+	yl = (unsigned)(actor->y - explodedist - bmaporgy)>>MAPBLOCKSHIFT;
+	xh = (unsigned)(actor->x + explodedist - bmaporgx)>>MAPBLOCKSHIFT;
+	xl = (unsigned)(actor->x - explodedist - bmaporgx)>>MAPBLOCKSHIFT;
+
+	grenade = actor;
+
+	for (by = yl; by <= yh; by++)
+		for (bx = xl; bx <= xh; bx++)
+			P_BlockThingsIterator(bx, by, PIT_GrenadeRing);
+}
+//}
 
 // Function: A_SetSolidSteam
 //
@@ -8000,6 +8072,149 @@ void A_ToggleFlameJet(mobj_t* actor)
 			actor->tics = actor->movecount;
 	}
 }
+
+//{ SRB2kart - A_RedShellChase and A_BobombExplode
+void A_RedShellChase(mobj_t *actor)
+{
+
+	INT32 c = 0;
+	INT32 stop;
+	player_t *player;
+
+	if (actor->tracer)
+	{
+		if (!actor->tracer->health)
+		{
+			P_SetTarget(&actor->tracer, NULL);
+		}
+
+		if (actor->tracer && (actor->tracer->health))
+		{
+			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
+			return;
+		}
+	}
+
+	// first time init, this allow minimum lastlook changes
+	if (actor->lastlook == -1)
+		actor->lastlook = P_RandomFixed();
+
+	actor->lastlook %= MAXPLAYERS;
+
+	stop = (actor->lastlook - 1) & PLAYERSMASK;
+
+	if (actor->lastlook >= 0)
+	{
+		for (; ; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
+		{
+			if (!playeringame[actor->lastlook])
+				continue;
+
+			if (c++ == 2)
+				return;
+
+			player = &players[actor->lastlook];
+
+			if (!player->mo)
+				continue;
+
+			if (player->mo->health <= 0)
+				continue; // dead
+
+			if ((netgame || multiplayer) && player->spectator)
+				continue; // spectator
+
+			if (actor->target && actor->target->player)
+			{
+				if (player->mo == actor->target)
+					continue;
+
+				// Don't home in on teammates.
+				if (gametype == GT_CTF
+					&& actor->target->player->ctfteam == player->ctfteam)
+					continue;
+
+				if (gametype == GT_RACE) // Only in races, in match and CTF you should go after any nearby players
+				{
+					//                 USER               TARGET
+					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Red Shells only go after the person directly ahead of you -Sryder
+						continue;
+				}
+
+				if (!(gametype == GT_RACE))
+				{
+					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
+						player->mo->y-actor->y), player->mo->z-actor->z) > RING_DIST)
+						continue;
+				}
+			}
+
+			if ((gametype == GT_RACE) || (gametype != GT_RACE // If in match etc. only home in when you get close enough, in race etc. home in all the time
+				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
+				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST))
+				P_SetTarget(&actor->tracer, player->mo);
+			return;
+
+			// Moved to bottom so it doesn't not check the last player
+			// done looking
+			if (actor->lastlook == stop)
+			{
+				if (gametype == GT_RACE)
+					actor->lastlook = -2;
+				return;
+			}
+		}
+	}
+
+	return;
+
+}
+
+void A_BobombExplode(mobj_t *actor)
+{
+	mobj_t *mo2;
+	thinker_t *th;
+	INT32 d;
+	INT32 locvar1 = var1;
+	mobjtype_t type;
+
+	type = (mobjtype_t)locvar1;
+
+	for (d = 0; d < 16; d++)
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false); // 32 <-> 64
+
+	S_StartSound(actor, sfx_prloop);
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+			continue;
+
+		mo2 = (mobj_t *)th;
+
+		if (mo2 == actor) // Don't explode yourself! Endless loop!
+			continue;
+
+		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)
+			continue;
+
+		if ((mo2->flags & MF_SHOOTABLE) && !(mo2->flags & MF_SCENERY))
+		{
+			actor->flags2 |= MF2_DEBRIS;
+
+			if (mo2->player) // Looks like we're going to have to need a seperate function for this too
+				K_ExplodePlayer(mo2->player, actor->target);
+			else
+				P_DamageMobj(mo2, actor, actor->target, 1);
+
+			
+
+			continue;
+		}
+	}
+	return;
+}
+//}
 
 // Function: A_OrbitNights
 //

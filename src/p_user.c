@@ -907,17 +907,20 @@ void P_GivePlayerRings(player_t *player, INT32 num_rings)
 	if (!G_IsSpecialStage(gamemap) || !useNightsSS)
 		player->totalring += num_rings;
 
+	//{ SRB2kart - rings don't really do anything, but we don't want the player spilling them later.
+	/*
 	// Can only get up to 9999 rings, sorry!
 	if (player->mo->health > 10000)
 	{
 		player->mo->health = 10000;
 		player->health = 10000;
 	}
-	else if (player->mo->health < 1)
+	else if (player->mo->health < 1)*/
 	{
 		player->mo->health = 1;
 		player->health = 1;
 	}
+	//}
 
 	// Now extra life bonuses are handled here instead of in P_MovePlayer, since why not?
 	if (!ultimatemode && !modeattacking && !G_IsSpecialStage(gamemap) && G_GametypeUsesLives())
@@ -2705,7 +2708,7 @@ static void P_DoClimbing(player_t *player)
 	else if ((!(player->mo->momx || player->mo->momy || player->mo->momz) || !climb) && player->mo->state != &states[S_PLAY_CLIMB1])
 		P_SetPlayerMobjState(player->mo, S_PLAY_CLIMB1);
 
-	if (cmd->buttons & BT_USE && !(player->pflags & PF_JUMPSTASIS))
+	if (cmd->buttons & BT_BRAKE && !(player->pflags & PF_JUMPSTASIS))
 	{
 		player->climbing = 0;
 		player->pflags |= PF_JUMPED;
@@ -3194,7 +3197,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 	I_Assert(player != NULL);
 	I_Assert(!P_MobjWasRemoved(player->mo));
 
-	if (cmd->buttons & BT_ATTACK || cmd->buttons & BT_FIRENORMAL)
+	if (cmd->buttons & BT_ATTACK)
 	{
 		if (!(player->pflags & PF_ATTACKDOWN) && player->powers[pw_shield] & SH_FIREFLOWER && !player->climbing)
 		{
@@ -3209,10 +3212,10 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 			mobj_t *mo = NULL;
 			player->pflags |= PF_ATTACKDOWN;
 
-			if (cmd->buttons & BT_FIRENORMAL) // No powers, just a regular ring.
-				goto firenormal; //code repetition sucks.
+			//if (cmd->buttons & BT_FIRENORMAL) // No powers, just a regular ring.
+			//	goto firenormal; //code repetition sucks.
 			// Bounce ring
-			else if (player->currentweapon == WEP_BOUNCE && player->powers[pw_bouncering])
+			if (player->currentweapon == WEP_BOUNCE && player->powers[pw_bouncering])
 			{
 				if (player->health <= 1)
 					return;
@@ -3333,7 +3336,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 			// No powers, just a regular ring.
 			else
 			{
-firenormal:
+//firenormal:
 				// Infinity ring was selected.
 				// Mystic wants this ONLY to happen specifically if it's selected,
 				// and to not be able to get around it EITHER WAY with firenormal.
@@ -3572,6 +3575,9 @@ void P_DoJump(player_t *player, boolean soundandstate)
 
 	if (!player->jumpfactor)
 		return;
+	
+	if (player->kartstuff[k_spinouttimer]) // SRB2kart
+		return;
 
 	if (player->climbing)
 	{
@@ -3747,7 +3753,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 		return;
 
 #ifdef HAVE_BLUA
-	if (cmd->buttons & BT_USE)
+	if (cmd->buttons & BT_BRAKE)
 	{
 		if (LUAh_SpinSpecial(player))
 			return;
@@ -3758,7 +3764,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 	if ((player->charability2 == CA2_SPINDASH) && !(player->pflags & PF_SLIDING) && !player->exiting
 		&& !P_PlayerInPain(player)) // subsequent revs
 	{
-		if ((cmd->buttons & BT_USE) && player->speed < FixedMul(5<<FRACBITS, player->mo->scale) && !player->mo->momz && onground && !(player->pflags & PF_USEDOWN) && !(player->pflags & PF_SPINNING)
+		if ((cmd->buttons & BT_BRAKE) && player->speed < FixedMul(5<<FRACBITS, player->mo->scale) && !player->mo->momz && onground && !(player->pflags & PF_USEDOWN) && !(player->pflags & PF_SPINNING)
 #ifdef ESLOPE
 			&& (!player->mo->standingslope || abs(player->mo->standingslope->zdelta) < FRACUNIT/2)
 #endif
@@ -3772,7 +3778,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 			//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 			player->pflags |= PF_USEDOWN;
 		}
-		else if ((cmd->buttons & BT_USE) && (player->pflags & PF_STARTDASH))
+		else if ((cmd->buttons & BT_BRAKE) && (player->pflags & PF_STARTDASH))
 		{
 			player->dashspeed += FixedMul(FRACUNIT, player->mo->scale);
 
@@ -3790,7 +3796,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 		// If not moving up or down, and travelling faster than a speed of four while not holding
 		// down the spin button and not spinning.
 		// AKA Just go into a spin on the ground, you idiot. ;)
-		else if ((cmd->buttons & BT_USE || ((twodlevel || (player->mo->flags2 & MF2_TWOD)) && cmd->forwardmove < -20))
+		else if ((cmd->buttons & BT_BRAKE || ((twodlevel || (player->mo->flags2 & MF2_TWOD)) && cmd->forwardmove < -20))
 			&& !player->climbing && !player->mo->momz && onground && (player->speed > FixedMul(5<<FRACBITS, player->mo->scale)
 #ifdef ESLOPE
 			|| (player->mo->standingslope && abs(player->mo->standingslope->zdelta) >= FRACUNIT/2)
@@ -3929,7 +3935,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 	if (player->pflags & PF_JUMPSTASIS)
 		return;
 
-	if (cmd->buttons & BT_USE && !(player->pflags & PF_JUMPDOWN) && !player->exiting && !P_PlayerInPain(player))
+	if (cmd->buttons & BT_BRAKE && !(player->pflags & PF_JUMPDOWN) && !player->exiting && !P_PlayerInPain(player))
 	{
 		if (onground || player->climbing || player->pflags & (PF_CARRIED|PF_ITEMHANG|PF_ROPEHANG))
 		{}
@@ -4533,7 +4539,7 @@ static void P_3dMovement(player_t *player)
 
 	cmd = &player->cmd;
 
-	if (player->exiting || player->pflags & PF_STASIS)
+	if (player->exiting || player->pflags & PF_STASIS || player->kartstuff[k_spinouttimer]) // pw_introcam?
 	{
 		cmd->forwardmove = cmd->sidemove = 0;
 		if (player->pflags & PF_GLIDING)
@@ -4875,7 +4881,7 @@ static void P_SpectatorMovement(player_t *player)
 
 	if (cmd->buttons & BT_JUMP)
 		player->mo->z += FRACUNIT*16;
-	else if (cmd->buttons & BT_USE)
+	else if (cmd->buttons & BT_BRAKE)
 		player->mo->z -= FRACUNIT*16;
 
 	// Aiming needed for SEENAMES, etc.
@@ -5916,8 +5922,8 @@ static void P_NiGHTSMovement(player_t *player)
 
 	// No more bumper braking
 	if (!player->bumpertime
-	 && ((cmd->buttons & (BT_CAMLEFT|BT_CAMRIGHT)) == (BT_CAMLEFT|BT_CAMRIGHT)
-	  || (cmd->buttons & BT_USE)))
+	 && ((cmd->buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)
+	  || (cmd->buttons & BT_BRAKE)))
 	{
 		if (!(player->pflags & PF_SKIDDOWN))
 			S_StartSound(player->mo, sfx_ngskid);
@@ -6477,6 +6483,23 @@ static void P_MovePlayer(player_t *player)
 	// MOVEMENT CODE	//
 	//////////////////////
 
+	//{ SRB2kart slip net
+
+	if (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] == 0)
+	{
+		K_SpinPlayer(player, NULL); // Here just for in-level oil spills now
+	}
+	// If you have one but not the other, we should get rid of the one we have
+	else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_spinout] > 0)
+		player->kartstuff[k_spinout] = 0;
+
+	// If somehow the power has gotten larger than the timer, it should be lowered back to it
+	if (player->kartstuff[k_spinouttimer] > player->kartstuff[k_spinout])
+		player->kartstuff[k_spinouttimer] = player->kartstuff[k_spinout];
+
+	//}
+
+
 	if (twodlevel || player->mo->flags2 & MF2_TWOD) // 2d-level, so special control applies.
 		P_2dMovement(player);
 	else
@@ -6530,11 +6553,11 @@ static void P_MovePlayer(player_t *player)
 			// Standing frames - S_KART_STND   S_KART_STND_L   S_KART_STND_R
 			if (player->speed == 0)
 			{
-				if (cmd->buttons & BT_WEAPONNEXT && !(player->mo->state == &states[S_KART_STND_R]))
+				if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state == &states[S_KART_STND_R]))
 					P_SetPlayerMobjState(player->mo, S_KART_STND_R);
-				else if (cmd->buttons & BT_WEAPONPREV && !(player->mo->state == &states[S_KART_STND_L]))
+				else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state == &states[S_KART_STND_L]))
 					P_SetPlayerMobjState(player->mo, S_KART_STND_L);
-				else if (!(cmd->buttons & BT_WEAPONNEXT || cmd->buttons & BT_WEAPONPREV) && !(player->mo->state == &states[S_KART_STND]))
+				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_STND]))
 					P_SetPlayerMobjState(player->mo, S_KART_STND);
 			}
 			// Drifting Left - S_KART_DRIFT_L1
@@ -6552,21 +6575,21 @@ static void P_MovePlayer(player_t *player)
 			// Run frames - S_KART_RUN1   S_KART_RUN_L1   S_KART_RUN_R1
 			else if (player->speed > runspd)
 			{
-				if (cmd->buttons & BT_WEAPONNEXT && !(player->mo->state == &states[S_KART_RUN_R1] || player->mo->state == &states[S_KART_RUN_R2]))
+				if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state == &states[S_KART_RUN_R1] || player->mo->state == &states[S_KART_RUN_R2]))
 					P_SetPlayerMobjState(player->mo, S_KART_RUN_R1);
-				else if (cmd->buttons & BT_WEAPONPREV && !(player->mo->state == &states[S_KART_RUN_L1] || player->mo->state == &states[S_KART_RUN_L2]))
+				else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state == &states[S_KART_RUN_L1] || player->mo->state == &states[S_KART_RUN_L2]))
 					P_SetPlayerMobjState(player->mo, S_KART_RUN_L1);
-				else if (!(cmd->buttons & BT_WEAPONNEXT || cmd->buttons & BT_WEAPONPREV) && !(player->mo->state == &states[S_KART_RUN1] || player->mo->state == &states[S_KART_RUN2]))
+				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_RUN1] || player->mo->state == &states[S_KART_RUN2]))
 					P_SetPlayerMobjState(player->mo, S_KART_RUN1);
 			}
 			// Walk frames - S_KART_WALK1   S_KART_WALK_L1   S_KART_WALK_R1
 			else if (player->speed <= runspd)
 			{
-				if (cmd->buttons & BT_WEAPONNEXT && !(player->mo->state == &states[S_KART_WALK_R1] || player->mo->state == &states[S_KART_WALK_R2]))
+				if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state == &states[S_KART_WALK_R1] || player->mo->state == &states[S_KART_WALK_R2]))
 					P_SetPlayerMobjState(player->mo, S_KART_WALK_R1);
-				else if (cmd->buttons & BT_WEAPONPREV && !(player->mo->state == &states[S_KART_WALK_L1] || player->mo->state == &states[S_KART_WALK_L2]))
+				else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state == &states[S_KART_WALK_L1] || player->mo->state == &states[S_KART_WALK_L2]))
 					P_SetPlayerMobjState(player->mo, S_KART_WALK_L1);
-				else if (!(cmd->buttons & BT_WEAPONNEXT || cmd->buttons & BT_WEAPONPREV) && !(player->mo->state == &states[S_KART_WALK1] || player->mo->state == &states[S_KART_WALK2]))
+				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_WALK1] || player->mo->state == &states[S_KART_WALK2]))
 					P_SetPlayerMobjState(player->mo, S_KART_WALK1);
 			}
 		}
@@ -6575,7 +6598,7 @@ static void P_MovePlayer(player_t *player)
 
 	// If your running animation is playing, and you're
 	// going too slow, switch back to the walking frames.
-	if (player->panim == PA_RUN && player->speed < runspd)
+	if (player->panim == PA_RUN && player->speed < runspd && player->kartstuff[k_spinouttimer] == 0)
 		P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 
 	// If Springing, but travelling DOWNWARD, change back!
@@ -6591,34 +6614,33 @@ static void P_MovePlayer(player_t *player)
 
 	//{ SRB2kart
 	// Engine Sounds.
-	/* // -- Need to load these sounds into game first
 	if (!player->exiting)
 	{
-		if (player->speed == 0 && onground && player->speed == 0 && leveltime % 6 == 0 && kartmode)
+		if (player->speed == 0 && onground && player->speed == 0 && leveltime % 6 == 0)
 			S_StartSound(player->mo, sfx_kart1);
 
-		if ((player->speed < runspd && player->speed != 0) && leveltime % 8 == 0 && kartmode)
+		if ((player->speed < runspd && player->speed != 0) && leveltime % 8 == 0)
 			S_StartSound(player->mo, sfx_kart2);
 
-		if ((player->speed > runspd) && leveltime % 8 == 0 && kartmode)
+		if ((player->speed > runspd) && leveltime % 8 == 0)
 			S_StartSound(player->mo, sfx_kart3);
 
 		// Drifting sound
-		if (kartmode)
 		{
 			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
-			if ((player->powers[pw_drift] == 1 || player->powers[pw_drift] == -1) && onground && !S_SoundPlaying(NULL, sfx_mkdrft))
+			if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground && !S_SoundPlaying(NULL, sfx_mkdrft))
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Start looping the sound now.
-			else if (leveltime % 50 == 0 && ((player->powers[pw_drift] == 1 || player->powers[pw_drift] == -1) && onground))
+			else if (leveltime % 50 == 0 && ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground))
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Ok, we'll stop now.
-			else if ((player->powers[pw_drift] == 0)
+			else if ((player->kartstuff[k_drift] == 0)
 			&& (player == &players[consoleplayer] || (splitscreen && player == &players[secondarydisplayplayer])))
 				S_StopSoundByID(player->mo, sfx_mkdrft);
 		}
 	}
-	*/
+	
+	K_MoveKartPlayer(player, onground);
 	//}
 
 
@@ -6829,7 +6851,7 @@ static void P_MovePlayer(player_t *player)
 				S_StartSound(player->mo, sfx_putput);
 
 			// Descend
-			if (cmd->buttons & BT_USE && !(player->pflags & PF_STASIS) && !player->exiting)
+			if (cmd->buttons & BT_BRAKE && !(player->pflags & PF_STASIS) && !player->exiting)
 				if (P_MobjFlip(player->mo)*player->mo->momz > -FixedMul(5*actionspd, player->mo->scale))
 					P_SetObjectMomZ(player->mo, -actionspd/2, true);
 
@@ -6914,7 +6936,7 @@ static void P_MovePlayer(player_t *player)
 			{
 				fixed_t tweenvalue = max(abs(cmd->forwardmove), abs(cmd->sidemove));
 
-				if (tweenvalue < 10 && (cmd->buttons & (BT_CAMLEFT|BT_CAMRIGHT)) == (BT_CAMLEFT|BT_CAMRIGHT)) {
+				if (tweenvalue < 10 && (cmd->buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)) {
 					tempangle = (cmd->angleturn << 16);
 					tweenvalue = 16;
 				}
@@ -6957,11 +6979,11 @@ static void P_MovePlayer(player_t *player)
 	///////////////////////////
 
 	/* // SRB2kart - what's a shield? Never heard of it. Never happened. Nope.
-	if (cmd->buttons & BT_USE) // Spin button effects
+	if (cmd->buttons & BT_BRAKE) // Spin button effects
 	{
 		if (player->pflags & PF_JUMPED) // If the player is jumping
 		{
-			if (!(player->pflags & PF_USEDOWN)) // If the player is not holding down BT_USE
+			if (!(player->pflags & PF_USEDOWN)) // If the player is not holding down BT_BRAKE
 			{
 				// Jump shield activation
 				if (!P_PlayerInPain(player) // If the player is not in pain
@@ -7059,7 +7081,7 @@ static void P_MovePlayer(player_t *player)
 		P_DoTeeter(player);
 
 	// Toss a flag
-	if (G_GametypeHasTeams() && (cmd->buttons & BT_TOSSFLAG) && !(player->powers[pw_super]) && !(player->tossdelay))
+	if (G_GametypeHasTeams() && (cmd->buttons & BT_SPECTATE) && !(player->powers[pw_super]) && !(player->tossdelay))
 	{
 		if (!(player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
 			P_PlayerEmeraldBurst(player, true); // Toss emeralds
@@ -7104,7 +7126,7 @@ static void P_MovePlayer(player_t *player)
 				P_DamageMobj(player->mo, NULL, NULL, 42000); // Respawn crushed spectators
 			else
 			{
-				P_SquishPlayerMobj(player->mo, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
+				K_SquishPlayer(player, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
 				/*
 				mobj_t *killer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_NULL);
 				killer->threshold = 44; // Special flag that it was crushing which killed you.
@@ -7373,7 +7395,7 @@ static void P_DoRopeHang(player_t *player)
 
 	player->mo->height = P_GetPlayerHeight(player);
 
-	if (player->cmd.buttons & BT_USE && !(player->pflags & PF_STASIS)) // Drop off of the rope
+	if (player->cmd.buttons & BT_BRAKE && !(player->pflags & PF_STASIS)) // Drop off of the rope
 	{
 		P_SetTarget(&player->mo->tracer, NULL);
 
@@ -7780,7 +7802,7 @@ static void P_DeathThink(player_t *player)
 	// continue logic
 	if (!(netgame || multiplayer) && player->lives <= 0)
 	{
-		if (player->deadtimer > TICRATE && (cmd->buttons & BT_USE || cmd->buttons & BT_JUMP) && player->continues > 0)
+		if (player->deadtimer > TICRATE && (cmd->buttons & BT_BRAKE || cmd->buttons & BT_ACCELERATE || cmd->buttons & BT_JUMP) && player->continues > 0)
 			G_UseContinue();
 		else if (player->deadtimer >= gameovertics)
 			G_UseContinue(); // Even if we don't have one this handles ending the game
@@ -8091,7 +8113,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 #ifdef REDSANALOG
-	if (P_AnalogMove(player) && (player->cmd.buttons & (BT_CAMLEFT|BT_CAMRIGHT)) == (BT_CAMLEFT|BT_CAMRIGHT)) {
+	if (P_AnalogMove(player) && (player->cmd.buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)) {
 		camstill = true;
 
 		if (camspeed < 4*FRACUNIT/5)
@@ -8148,9 +8170,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (!objectplacing && !(twodlevel || (mo->flags2 & MF2_TWOD)) && !(player->pflags & PF_NIGHTSMODE) && displayplayer == consoleplayer)
 	{
 #ifdef REDSANALOG
-		if ((player->cmd.buttons & (BT_CAMLEFT|BT_CAMRIGHT)) == (BT_CAMLEFT|BT_CAMRIGHT)); else
+		if ((player->cmd.buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)); else
 #endif
-		if (player->cmd.buttons & BT_CAMLEFT)
+		if (player->cmd.buttons & BT_FORWARD)
 		{
 			if (thiscam == &camera)
 			{
@@ -8169,7 +8191,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 						: camrotate - 2);
 			}
 		}
-		else if (player->cmd.buttons & BT_CAMRIGHT)
+		else if (player->cmd.buttons & BT_BACKWARD)
 		{
 			if (thiscam == &camera)
 			{
@@ -8992,7 +9014,7 @@ void P_PlayerThink(player_t *player)
 
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
 	{
-		cmd->buttons &= BT_USE; // Remove all buttons except BT_USE
+		cmd->buttons &= BT_BRAKE; // Remove all buttons except BT_BRAKE // TODO: ?
 		cmd->forwardmove = 0;
 		cmd->sidemove = 0;
 	}
@@ -9132,7 +9154,7 @@ void P_PlayerThink(player_t *player)
 	// check for use
 	if (!(player->pflags & PF_NIGHTSMODE))
 	{
-		if (cmd->buttons & BT_USE)
+		if (cmd->buttons & BT_BRAKE)
 			player->pflags |= PF_USEDOWN;
 		else
 			player->pflags &= ~PF_USEDOWN;
@@ -9345,6 +9367,7 @@ void P_PlayerAfterThink(player_t *player)
 		//player->mo->eflags &= ~MFE_VERTICALFLIP;
 	}
 
+	/* SRB2kart - don't need no weapon rings
 	if (!(player->pflags & PF_WPNDOWN))
 	{
 		if (cmd->buttons & BT_WEAPONNEXT)
@@ -9455,6 +9478,7 @@ void P_PlayerAfterThink(player_t *player)
 
 	if (P_IsLocalPlayer(player) && (player->pflags & PF_WPNDOWN) && player->currentweapon != oldweapon)
 		S_StartSound(NULL, sfx_wepchg);
+	*/
 
 	/* // SRB2kart
 	if (player->pflags & PF_GLIDING)

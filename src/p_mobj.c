@@ -1484,7 +1484,7 @@ static void P_XYFriction(mobj_t *mo, fixed_t oldx, fixed_t oldy)
 				)
 		{
 			// if in a walking frame, stop moving
-			if (player->panim == PA_WALK)
+			if (player->panim == PA_WALK && player->kartstuff[k_spinouttimer] == 0)
 				P_SetPlayerMobjState(mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
 			mo->momx = player->cmomx;
 			mo->momy = player->cmomy;
@@ -1907,6 +1907,14 @@ void P_XYMovement(mobj_t *mo)
 			&& (mo->standingslope && abs(mo->standingslope->zdelta) > FRACUNIT>>8)) // Special exception for tumbleweeds on slopes
 		return;
 #endif
+
+	//{ SRB2kart stuff
+	//if (mo->type == MT_SHELLITEM || mo->type == MT_REDSHELLITEM2 || (mo->type == MT_REDSHELLITEM && !mo->tracer))
+	//	return;
+
+	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/4)
+		return;
+	//}
 
 	if (((!(mo->eflags & MFE_VERTICALFLIP) && mo->z > mo->floorz) || (mo->eflags & MFE_VERTICALFLIP && mo->z+mo->height < mo->ceilingz))
 		&& !(player && player->pflags & PF_SLIDING))
@@ -2671,7 +2679,8 @@ static void P_PlayerZMovement(mobj_t *mo)
 			goto nightsdone;
 		}
 		// Get up if you fell.
-		if (mo->state == &states[mo->info->painstate]) // SRB2kart
+		if ((mo->state == &states[mo->info->painstate] || (mo->state >= &states[S_KART_SPIN1] && mo->state <= &states[S_KART_SPIN8]))
+			&& mo->player->kartstuff[k_spinouttimer] == 0 && mo->player->kartstuff[k_squishedtimer] == 0) // SRB2kart
 			P_SetPlayerMobjState(mo, S_KART_STND);
 
 #ifdef ESLOPE
@@ -2760,7 +2769,8 @@ static void P_PlayerZMovement(mobj_t *mo)
 
 					// Cut momentum in half when you hit the ground and
 					// aren't pressing any controls.
-					if (!(mo->player->cmd.forwardmove || mo->player->cmd.sidemove) && !mo->player->cmomx && !mo->player->cmomy && !(mo->player->pflags & PF_SPINNING))
+					if (!(mo->player->cmd.forwardmove || mo->player->cmd.sidemove) && !mo->player->cmomx && !mo->player->cmomy 
+						&& !(mo->player->pflags & PF_SPINNING) && !(mo->player->kartstuff[k_spinouttimer]))
 					{
 						mo->momx = mo->momx/2;
 						mo->momy = mo->momy/2;
@@ -2774,26 +2784,54 @@ static void P_PlayerZMovement(mobj_t *mo)
 						mo->player->skidtime = TICRATE;
 						mo->tics = -1;
 					}
-					else if (mo->player->pflags & PF_JUMPED || (mo->player->pflags & (PF_SPINNING|PF_USEDOWN)) != (PF_SPINNING|PF_USEDOWN)
-					|| mo->player->powers[pw_tailsfly]) // SRB2kart
+					else if ((mo->player->pflags & PF_JUMPED || (mo->player->pflags & (PF_SPINNING|PF_USEDOWN)) != (PF_SPINNING|PF_USEDOWN)
+					|| mo->player->powers[pw_tailsfly]) && (mo->player->kartstuff[k_spinouttimer] == 0)) // SRB2kart
 					{
-						if (mo->player->cmomx || mo->player->cmomy)
+						ticcmd_t *cmd;
+						
+						cmd = &mo->player->cmd;
+						
+						// Standing frames - S_KART_STND   S_KART_STND_L   S_KART_STND_R
+						if (mo->player->speed == 0)
 						{
-							if (mo->player->speed >= FixedMul(mo->player->runspeed, mo->scale) && mo->player->panim != PA_RUN)
-								P_SetPlayerMobjState(mo, S_KART_RUN1);
-							else if ((mo->player->rmomx || mo->player->rmomy) && mo->player->panim != PA_WALK)
-								P_SetPlayerMobjState(mo, S_KART_WALK1);
-							else if (!mo->player->rmomx && !mo->player->rmomy && mo->player->panim != PA_IDLE)
+							if (cmd->buttons & BT_DRIFTRIGHT && !(mo->state == &states[S_KART_STND_R]))
+								P_SetPlayerMobjState(mo, S_KART_STND_R);
+							else if (cmd->buttons & BT_DRIFTLEFT && !(mo->state == &states[S_KART_STND_L]))
+								P_SetPlayerMobjState(mo, S_KART_STND_L);
+							else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(mo->state == &states[S_KART_STND]))
 								P_SetPlayerMobjState(mo, S_KART_STND);
 						}
-						else
+						// Drifting Left - S_KART_DRIFT_L1
+						else if (mo->player->kartstuff[k_drift] < 0 && P_IsObjectOnGround(mo))
 						{
-							if (mo->player->speed >= FixedMul(mo->player->runspeed, mo->scale) && mo->player->panim != PA_RUN)
+							if (!(mo->state == &states[S_KART_DRIFT_L1] || mo->state == &states[S_KART_DRIFT_L2]))
+								P_SetPlayerMobjState(mo, S_KART_DRIFT_L1);
+						}
+						// Drifting Right - S_KART_DRIFT_R1
+						else if (mo->player->kartstuff[k_drift] > 0 && P_IsObjectOnGround(mo))
+						{
+							if (!(mo->state == &states[S_KART_DRIFT_R1] || mo->state == &states[S_KART_DRIFT_R2]))
+								P_SetPlayerMobjState(mo, S_KART_DRIFT_R1);
+						}
+						// Run frames - S_KART_RUN1   S_KART_RUN_L1   S_KART_RUN_R1
+						else if (mo->player->speed > FixedMul(mo->player->runspeed, mo->scale))
+						{
+							if (cmd->buttons & BT_DRIFTRIGHT && !(mo->state == &states[S_KART_RUN_R1] || mo->state == &states[S_KART_RUN_R2]))
+								P_SetPlayerMobjState(mo, S_KART_RUN_R1);
+							else if (cmd->buttons & BT_DRIFTLEFT && !(mo->state == &states[S_KART_RUN_L1] || mo->state == &states[S_KART_RUN_L2]))
+								P_SetPlayerMobjState(mo, S_KART_RUN_L1);
+							else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(mo->state == &states[S_KART_RUN1] || mo->state == &states[S_KART_RUN2]))
 								P_SetPlayerMobjState(mo, S_KART_RUN1);
-							else if ((mo->momx || mo->momy) && mo->player->panim != PA_WALK)
+						}
+						// Walk frames - S_KART_WALK1   S_KART_WALK_L1   S_KART_WALK_R1
+						else if (mo->player->speed <= FixedMul(mo->player->runspeed, mo->scale))
+						{
+							if (cmd->buttons & BT_DRIFTRIGHT && !(mo->state == &states[S_KART_WALK_R1] || mo->state == &states[S_KART_WALK_R2]))
+								P_SetPlayerMobjState(mo, S_KART_WALK_R1);
+							else if (cmd->buttons & BT_DRIFTLEFT && !(mo->state == &states[S_KART_WALK_L1] || mo->state == &states[S_KART_WALK_L2]))
+								P_SetPlayerMobjState(mo, S_KART_WALK_L1);
+							else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(mo->state == &states[S_KART_WALK1] || mo->state == &states[S_KART_WALK2]))
 								P_SetPlayerMobjState(mo, S_KART_WALK1);
-							else if (!mo->momx && !mo->momy && mo->player->panim != PA_IDLE)
-								P_SetPlayerMobjState(mo, S_KART_STND);
 						}
 					}
 

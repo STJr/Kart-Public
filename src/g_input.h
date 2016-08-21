@@ -88,8 +88,8 @@ typedef enum
 	gc_straferight,
 	gc_turnleft,
 	gc_turnright,
-	gc_weaponnext,
-	gc_weaponprev,
+	gc_driftleft, // gc_weaponnext
+	gc_driftright, // gc_weaponprev
 	gc_wepslot1,
 	gc_wepslot2,
 	gc_wepslot3,
@@ -101,13 +101,13 @@ typedef enum
 	gc_wepslot9,
 	gc_wepslot10,
 	gc_fire,
-	gc_firenormal,
-	gc_tossflag,
-	gc_use,
+	gc_accelerate,  // gc_firenormal
+	gc_spectate,    // gc_tossflag
+	gc_brake,       // gc_use
 	gc_camtoggle,
-	gc_camleft,
-	gc_camright,
-	gc_camreset,
+	gc_aimforward,  // gc_camleft
+	gc_aimbackward, // gc_camright
+	gc_lookback,    // gc_camreset
 	gc_lookup,
 	gc_lookdown,
 	gc_centerview,

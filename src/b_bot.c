@@ -191,7 +191,7 @@ void B_KeysToTiccmd(mobj_t *mo, ticcmd_t *cmd, boolean forward, boolean backward
 	if (jump)
 		cmd->buttons |= BT_JUMP;
 	if (spin)
-		cmd->buttons |= BT_USE;
+		cmd->buttons |= BT_BRAKE;
 }
 
 void B_MoveBlocked(player_t *player)
