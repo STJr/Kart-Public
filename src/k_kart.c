@@ -883,10 +883,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
-INT32 bootime = 7*TICRATE;
-INT32 mushroomtime = 120;
-INT32 bonustime = 700;
-
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -1544,7 +1540,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	if (!(cmd->buttons & BT_ATTACK))
 		player->pflags |= PF_ATTACKDOWN;
-	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_introcam] < 2 && player->kartstuff[k_spinouttimer] == 0)
+	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
 		// GoldenMushroom power
 		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1 && player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
@@ -1988,7 +1984,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
 		&& onground)
 	{
-		player->powers[pw_sneakers] += 16 + (player->acceleration-34);
+		player->powers[pw_sneakers] += 17;
 		S_StartSound(player->mo, sfx_mush);
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
@@ -1997,7 +1993,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= 60
 		&& onground)
 	{
-		player->powers[pw_sneakers] += 36 + (player->acceleration-34);
+		player->powers[pw_sneakers] += 35;
 		S_StartSound(player->mo, sfx_mush);
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
@@ -2014,16 +2010,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	else if (player->kartstuff[k_jmp] == 0 || player->kartstuff[k_turndir] == 0)
 		player->kartstuff[k_drift] = 0;
 
-	/*
-	if (cmd->forwardmove == 0)
-		player->powers[pw_exspeed]--;
-
-	if (cmd->forwardmove > 0)
-		player->powers[pw_exspeed]++;
-	*/
-
 	// If you press any strafe key while turning right, then drift right.
-	if (player->kartstuff[k_introcam] < 2 && player->kartstuff[k_spinouttimer] == 0
+	if (player->kartstuff[k_spinouttimer] == 0
 	&& player->kartstuff[k_jmp] == 1 && (player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1)
 	&& onground) //Right
 	{
@@ -2040,7 +2028,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	// Quick Turning
 	// You can't turn your kart when you're not moving.
 	// So now it's time to burn some rubber!
-	if (player->kartstuff[k_introcam] < 2 && player->speed < 2 && leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)
+	if (player->speed < 2 && leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)
 	{
 		if (player->kartstuff[k_turndir])
 			player->kartstuff[k_drift] = 1;

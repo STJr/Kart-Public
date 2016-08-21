@@ -826,6 +826,8 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"AllKartGraphics.wad"));
 	D_AddFile(va(pandf,srb2waddir,"AllKartChars.wad"));
 	D_AddFile(va(pandf,srb2waddir,"AllKartSounds.wad"));
+	D_AddFile(va(pandf,srb2waddir,"KartTextures.wad"));
+	D_AddFile(va(pandf,srb2waddir,"KMFixes3.wad"));
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{

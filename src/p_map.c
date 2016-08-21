@@ -3010,6 +3010,12 @@ retry:
 	{
 		mmomx = mo->player->rmomx;
 		mmomy = mo->player->rmomy;
+		
+		if (mo->player->kartstuff[k_drift] != 0) // SRB2kart
+		{
+			mo->player->kartstuff[k_drift] = 0;
+			mo->player->kartstuff[k_driftcharge] = 0;
+		}
 	}
 	else
 	{

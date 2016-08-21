@@ -3579,6 +3579,7 @@ void P_DoJump(player_t *player, boolean soundandstate)
 	if (player->kartstuff[k_spinouttimer]) // SRB2kart
 		return;
 
+	/* // SRB2kart - climbing in a kart?
 	if (player->climbing)
 	{
 		// Jump this high.
@@ -3613,7 +3614,7 @@ void P_DoJump(player_t *player, boolean soundandstate)
 		else if (player->mo->momz < 0) // still descending?
 			player->mo->momz = (39*(FRACUNIT/4))>>1; // just default to the jump height.
 	}
-	else if (!(player->pflags & PF_JUMPED)) // Spin Attack
+	else*/ if (!(player->pflags & PF_JUMPED)) // Spin Attack
 	{
 		if (player->mo->ceilingz-player->mo->floorz <= player->mo->height-1)
 			return;
@@ -3650,6 +3651,9 @@ void P_DoJump(player_t *player, boolean soundandstate)
 		}
 		else if (maptol & TOL_NIGHTS)
 			player->mo->momz = 24*FRACUNIT;
+		else
+			player->mo->momz = 3*FRACUNIT; // Kart jump momentum.
+		/* // SRB2kart - Okay enough of that.
 		else if (player->powers[pw_super])
 		{
 			if (player->charability == CA_FLOAT)
@@ -3691,6 +3695,7 @@ void P_DoJump(player_t *player, boolean soundandstate)
 					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
 			}
 		}
+		*/
 
 		// Reduce player momz by 58.5% when underwater.
 		if (player->mo->eflags & MFE_UNDERWATER)
@@ -4566,7 +4571,12 @@ static void P_3dMovement(player_t *player)
 	}
 	else
 	{
-		movepushangle = player->mo->angle;
+		if (player->kartstuff[k_drift] == 1)
+			movepushangle = player->mo->angle+ANGLE_45;
+		else if (player->kartstuff[k_drift] == -1)
+			movepushangle = player->mo->angle-ANGLE_45;
+		else
+			movepushangle = player->mo->angle;
 	}
 	movepushsideangle = movepushangle-ANGLE_90;
 
@@ -4640,33 +4650,45 @@ static void P_3dMovement(player_t *player)
 		else
 			topspeed = normalspd;
 	}
-	else if (player->powers[pw_super] || player->powers[pw_sneakers])
+	else if (player->powers[pw_super] || player->powers[pw_sneakers] || player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer])
 	{
-		thrustfactor = player->thrustfactor*2;
+		if (player->powers[pw_sneakers] && (player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_mushroomtimer] > 0 || player->kartstuff[k_startimer] > 0))
+			thrustfactor = player->thrustfactor*3;
+		else
+			thrustfactor = player->thrustfactor*2;
 		acceleration = player->accelstart/2 + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration/2;
 
+		/*
 		if (player->powers[pw_tailsfly])
 			topspeed = normalspd;
 		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
 		{
 			topspeed = normalspd;
 			acceleration = 2*acceleration/3;
-		}
+		}*/
+		
+		if (cmd->forwardmove < 0)
+			topspeed = 5<<16;
 		else
-			topspeed = normalspd * 2;
+			topspeed = normalspd * 2 > 60<<16 ? 60<<16 : normalspd * 2;
+			
+		CONS_Printf("topspeed = %d\n", topspeed>>16);
 	}
 	else
 	{
 		thrustfactor = player->thrustfactor;
 		acceleration = player->accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration;
 
+		/*
 		if (player->powers[pw_tailsfly])
 			topspeed = normalspd/2;
 		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
 		{
 			topspeed = normalspd/2;
 			acceleration = 2*acceleration/3;
-		}
+		}*/
+		if (cmd->forwardmove < 0)
+			topspeed = 5<<16;
 		else
 			topspeed = normalspd;
 	}
@@ -4710,6 +4732,9 @@ static void P_3dMovement(player_t *player)
 		}
 
 		movepushforward = FixedMul(movepushforward, player->mo->scale);
+		
+		if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
+			movepushforward /= 32;
 
 #ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushangle, movepushforward);
@@ -4760,6 +4785,9 @@ static void P_3dMovement(player_t *player)
 			movepushsideangle = controldirection;
 
 			movepushforward = FixedMul(movepushforward, player->mo->scale);
+
+			if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
+				movepushforward /= 32;
 
 #ifdef ESLOPE
 			totalthrust.x += P_ReturnThrustX(player->mo, controldirection, movepushforward);
@@ -6628,7 +6656,7 @@ static void P_MovePlayer(player_t *player)
 		// Drifting sound
 		{
 			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
-			if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground && !S_SoundPlaying(NULL, sfx_mkdrft))
+			if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground && player->kartstuff[k_driftcharge] < 5) //!S_SoundPlaying(NULL, sfx_mkdrft))
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Start looping the sound now.
 			else if (leveltime % 50 == 0 && ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground))

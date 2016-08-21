@@ -394,6 +394,11 @@ extern UINT16 underwatertics;
 extern UINT16 spacetimetics;
 extern UINT16 extralifetics;
 
+// SRB2kart
+extern INT32 bootime;
+extern INT32 mushroomtime;
+extern INT32 bonustime;
+
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;
 

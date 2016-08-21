@@ -3203,19 +3203,23 @@ void P_MobjCheckWater(mobj_t *mobj)
 		}
 
 		// Drown timer setting
+		/* // SRB2kart - Can't drown.
 		if ((p->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL // Has elemental
 		 || (p->exiting) // Or exiting
 		 || (maptol & TOL_NIGHTS) // Or in NiGHTS mode
 		 || (mariomode)) // Or in Mario mode...
+		*/
 		{
 			// Can't drown.
 			p->powers[pw_underwater] = 0;
 		}
+		/*
 		else if (p->powers[pw_underwater] <= 0) // No underwater timer set
 		{
 			// Then we'll set it!
 			p->powers[pw_underwater] = underwatertics + 1;
 		}
+		*/
 	}
 
 	// The rest of this code only executes on a water state change.
@@ -6329,6 +6333,167 @@ void P_MobjThinker(mobj_t *mobj)
 				if (!P_AddShield(mobj))
 					return;
 				break;
+			//{ SRB2kart mobs
+			case MT_DRIFT:
+				if ((mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
+					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= 30))
+				{
+					INT32 HEIGHT;
+					fixed_t radius;
+
+					if (mobj->target->player->kartstuff[k_bootaketimer] > 0)
+					{
+						if ((mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
+							|| (!(mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer])) 
+							&& (mobj->target->player->kartstuff[k_bootaketimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootaketimer] > bootime-(1*TICRATE/2))))
+						{
+							if (leveltime & 1)
+								mobj->flags2 |= MF2_DONTDRAW;
+							else
+								mobj->flags2 &= ~MF2_DONTDRAW;
+						}
+						else
+							mobj->flags2 |= MF2_DONTDRAW;
+					}
+					else if (mobj->target->player->kartstuff[k_bootaketimer] == 0)
+					{
+						mobj->flags2 &= ~MF2_DONTDRAW;
+					}
+
+					// Actor's distance from its Target, or Radius.
+					radius = FixedDiv(7, mobj->target->scale)*FRACUNIT;
+
+					// Switch blue flames to red flames
+					if (mobj->target->player && mobj->type == MT_DRIFT
+					&& mobj->target->player->kartstuff[k_driftcharge] > 60
+					&& !(mobj->state >= &states[S_DRIFTSPARK4] && mobj->state <= &states[S_DRIFTSPARK6]))
+						P_SetMobjStateNF(mobj, S_DRIFTSPARK4);
+
+					// Get the angle
+					mobj->angle = ANGLE_180 + mobj->target->angle;
+
+					// If the player is on the ceiling, then flip
+					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
+					{
+						mobj->eflags |= MFE_VERTICALFLIP;
+						HEIGHT = mobj->target->height;
+					}
+					else
+					{
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+						HEIGHT = mobj->target->height-mobj->target->height;
+					}
+
+					// Shrink if the player shrunk too.
+					if (mobj->target->player)
+						mobj->scale = mobj->target->scale;
+
+					P_UnsetThingPosition(mobj);
+					{
+						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
+						mobj->x = mobj->target->x + FixedMul(finecosine[fa],radius);
+						mobj->y = mobj->target->y + FixedMul(finesine[fa],radius);
+						mobj->z = mobj->target->z + HEIGHT;
+						P_SetThingPosition(mobj);
+					}
+				}
+				else
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				break;
+			case MT_GREENSHIELD:
+			case MT_REDSHIELD:
+			case MT_BANANASHIELD:
+			case MT_FAKESHIELD:
+			case MT_BOMBSHIELD:
+			case MT_TRIPLEGREENSHIELD1:
+			case MT_TRIPLEGREENSHIELD2:
+			case MT_TRIPLEGREENSHIELD3:
+			case MT_TRIPLEREDSHIELD1:
+			case MT_TRIPLEREDSHIELD2:
+			case MT_TRIPLEREDSHIELD3:
+			case MT_TRIPLEBANANASHIELD1:
+			case MT_TRIPLEBANANASHIELD2:
+			case MT_TRIPLEBANANASHIELD3:
+				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
+				{
+					INT32 zfixds = 56;
+					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
+						zfixds = 64;
+					else
+						zfixds = 56;
+
+					INT32 DIST = FixedDiv(zfixds, mobj->target->scale);
+					INT32 HEIGHT;
+					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
+				
+					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
+					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3 
+					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
+						mobj->angle += FixedAngle(mobj->info->speed);
+					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
+						mobj->angle = (mobj->target->angle + ANGLE_135);
+					else if (mobj->type == MT_TRIPLEBANANASHIELD3)
+						mobj->angle = (mobj->target->angle + ANGLE_225);
+					else
+						mobj->angle = (mobj->target->angle + ANGLE_180);
+
+					// If the player is on the ceiling, then flip your items as well.
+					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
+					{
+						mobj->eflags |= MFE_VERTICALFLIP;
+						HEIGHT = mobj->target->height / 2;
+					}
+					else
+					{
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+						HEIGHT = mobj->target->height / 5;
+					}
+
+					// Shrink your items if the player shrunk too.
+					if (mobj->target->player)
+						mobj->scale = mobj->target->scale;
+
+					P_UnsetThingPosition(mobj);
+					{
+						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
+						mobj->x = mobj->target->x + FixedMul(FINECOSINE(fa),radius);
+						mobj->y = mobj->target->y + FixedMul(FINESINE(fa), radius);
+						mobj->z = mobj->target->z + HEIGHT;
+						P_SetThingPosition(mobj);
+					}
+
+					// Was this so hard?
+					if ((mobj->type == MT_GREENSHIELD && !(mobj->target->player->kartstuff[k_greenshell] & 1))
+						|| (mobj->type == MT_REDSHIELD && !(mobj->target->player->kartstuff[k_redshell] & 1))
+						|| (mobj->type == MT_BANANASHIELD && !(mobj->target->player->kartstuff[k_banana] & 1))
+						|| (mobj->type == MT_TRIPLEGREENSHIELD1 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 1)) 
+						|| (mobj->type == MT_TRIPLEGREENSHIELD2 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 2)) 
+						|| (mobj->type == MT_TRIPLEGREENSHIELD3 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 4))
+						|| (mobj->type == MT_TRIPLEREDSHIELD1 && !(mobj->target->player->kartstuff[k_tripleredshell] & 1)) 
+						|| (mobj->type == MT_TRIPLEREDSHIELD2 && !(mobj->target->player->kartstuff[k_tripleredshell] & 2)) 
+						|| (mobj->type == MT_TRIPLEREDSHIELD3 && !(mobj->target->player->kartstuff[k_tripleredshell] & 4))
+						|| (mobj->type == MT_TRIPLEBANANASHIELD1 && !(mobj->target->player->kartstuff[k_triplebanana] & 1)) 
+						|| (mobj->type == MT_TRIPLEBANANASHIELD2 && !(mobj->target->player->kartstuff[k_triplebanana] & 2)) 
+						|| (mobj->type == MT_TRIPLEBANANASHIELD3 && !(mobj->target->player->kartstuff[k_triplebanana] & 4))
+						|| (mobj->type == MT_BOMBSHIELD && !(mobj->target->player->kartstuff[k_bobomb] & 1))
+						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1)))
+					{
+						P_RemoveMobj(mobj);
+						return;
+					}
+				}
+				else if ((mobj->health > 0
+					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
+					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)) // When in death state
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				break;
+			//}
 			case MT_WATERDROP:
 				P_SceneryCheckWater(mobj);
 				if ((mobj->z <= mobj->floorz || mobj->z <= mobj->watertop)

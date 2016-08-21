@@ -195,6 +195,11 @@ UINT16 underwatertics = 30*TICRATE;
 UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
 UINT16 extralifetics = 4*TICRATE;
 
+// SRB2kart
+INT32 bootime = 7*TICRATE;
+INT32 mushroomtime = 120;
+INT32 bonustime = 700;
+
 INT32 gameovertics = 15*TICRATE;
 
 UINT8 use1upSound = 0;
@@ -1042,6 +1047,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		}
 	}
 
+	/*
 	axis = JoyAxis(AXISSTRAFE);
 	if (gamepadjoystickmove && axis != 0)
 	{
@@ -1055,16 +1061,36 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
 		side += ((axis * sidemove[1]) >> 10);
 	}
+	*/
 
-	// forward with key or button
+	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
+	if (PLAYER1INPUTDOWN(gc_accelerate))
+	{
+		cmd->buttons |= BT_ACCELERATE;
+		forward = forwardmove[speed];
+	}
+	if (PLAYER1INPUTDOWN(gc_brake))
+	{
+		cmd->buttons |= BT_BRAKE;
+		forward -= forwardmove[speed];
+	}
+	// But forward/backward IS used for aiming.
 	axis = JoyAxis(AXISMOVE);
+	if (PLAYER1INPUTDOWN(gc_aimforward) || (gamepadjoystickmove && axis < 0))
+		cmd->buttons |= BT_FORWARD;
+	if (PLAYER1INPUTDOWN(gc_aimbackward) || (gamepadjoystickmove && axis > 0))
+		cmd->buttons |= BT_BACKWARD;
+	/*
 	if (PLAYER1INPUTDOWN(gc_forward) || (gamepadjoystickmove && axis < 0))
 		forward = forwardmove[speed];
 	if (PLAYER1INPUTDOWN(gc_backward) || (gamepadjoystickmove && axis > 0))
 		forward -= forwardmove[speed];
+	*/
 
+	/*
 	if (analogjoystickmove && axis != 0)
 		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
+	*/
 
 	// some people strafe left & right with mouse buttons
 	// those people are weird
@@ -1098,9 +1124,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_ATTACK;
 
 	// fire normal with any button/key
+	/*
 	axis = JoyAxis(AXISFIRENORMAL);
 	if (PLAYER1INPUTDOWN(gc_accelerate) || (cv_usejoystick.value && axis > 0))
 		cmd->buttons |= BT_ACCELERATE;
+	*/
 
 	if (PLAYER1INPUTDOWN(gc_spectate))
 		cmd->buttons |= BT_SPECTATE;
@@ -1114,10 +1142,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_CUSTOM3;
 
 	// use with any button/key
+	/*
 	if (PLAYER1INPUTDOWN(gc_brake))
 		cmd->buttons |= BT_BRAKE;
+	*/
 
 	// Camera Controls
+	/*
 	if (cv_debug || cv_analog.value || demoplayback || objectplacing || player->pflags & PF_NIGHTSMODE)
 	{
 		if (PLAYER1INPUTDOWN(gc_aimforward))
@@ -1125,6 +1156,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		if (PLAYER1INPUTDOWN(gc_aimbackward))
 			cmd->buttons |= BT_BACKWARD;
 	}
+	*/
 
 	if (PLAYER1INPUTDOWN(gc_lookback))
 	{
@@ -1248,10 +1280,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		// SRB2kart
 		INT32 turnspeed;
 		
-		if (players[consoleplayer].mo && (players[consoleplayer].kartstuff[k_introcam] > 1 || players[consoleplayer].speed == 0))
+		if (players[consoleplayer].mo && (players[consoleplayer].speed == 0))
 			turnspeed = 0;
 		else
 			turnspeed = 16;
+
+		cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80)); 
+
+		if (players[consoleplayer].kartstuff[k_startimer] || players[consoleplayer].kartstuff[k_mushroomtimer] || players[consoleplayer].kartstuff[k_growshrinktimer] > 0)
+			cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
 
 		localangle += (cmd->angleturn<<turnspeed); // << 16
 		cmd->angleturn = (INT16)(localangle >> 16);
@@ -1357,6 +1394,7 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		}
 	}
 
+	/*
 	axis = Joy2Axis(AXISSTRAFE);
 	if (gamepadjoystickmove && axis != 0)
 	{
@@ -1370,16 +1408,30 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
 		side += ((axis * sidemove[1]) >> 10);
 	}
+	*/
 
 	// forward with key or button
-	axis = Joy2Axis(AXISMOVE);
-	if (PLAYER2INPUTDOWN(gc_forward) || (gamepadjoystickmove && axis < 0))
+	if (PLAYER1INPUTDOWN(gc_accelerate))
+	{
+		cmd->buttons |= BT_ACCELERATE;
 		forward = forwardmove[speed];
-	if (PLAYER2INPUTDOWN(gc_backward) || (gamepadjoystickmove && axis > 0))
+	}
+	if (PLAYER1INPUTDOWN(gc_brake))
+	{
+		cmd->buttons |= BT_BRAKE;
 		forward -= forwardmove[speed];
+	}
+	// forward/backward is used for aiming.
+	axis = Joy2Axis(AXISMOVE);
+	if (PLAYER2INPUTDOWN(gc_aimforward) || (gamepadjoystickmove && axis < 0))
+		cmd->buttons |= BT_FORWARD;
+	if (PLAYER2INPUTDOWN(gc_aimbackward) || (gamepadjoystickmove && axis > 0))
+		cmd->buttons |= BT_BACKWARD;
 
+	/*
 	if (analogjoystickmove && axis != 0)
 		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
+	*/
 
 	// some people strafe left & right with mouse buttons
 	// those people are (still) weird
@@ -1389,9 +1441,9 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		side -= sidemove[speed];
 
 	/* // SRB2kart - these aren't used in kart
-	if (PLAYER2INPUTDOWN(gc_driftleft))
+	if (PLAYER2INPUTDOWN(gc_weaponnext))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
-	if (PLAYER2INPUTDOWN(gc_driftright))
+	if (PLAYER2INPUTDOWN(gc_weaponprev))
 		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
 	*/
 
@@ -1410,9 +1462,11 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_ATTACK;
 
 	// fire normal with any button/key
+	/*
 	axis = Joy2Axis(AXISFIRENORMAL);
 	if (PLAYER2INPUTDOWN(gc_accelerate) || (cv_usejoystick2.value && axis > 0))
 		cmd->buttons |= BT_ACCELERATE;
+	*/
 
 	if (PLAYER2INPUTDOWN(gc_spectate))
 		cmd->buttons |= BT_SPECTATE;

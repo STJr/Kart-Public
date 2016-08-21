@@ -234,7 +234,6 @@ typedef enum
 typedef enum
 {
 	// Basic gameplay things
-	k_introcam,			// Something to do with the map intro
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
 	k_playerahead,		// Is someone ahead of me or not?
 	k_oldposition,		// Used for taunting when you pass someone

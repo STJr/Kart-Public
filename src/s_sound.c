@@ -587,7 +587,7 @@ void S_StartSound(const void *origin, sfxenum_t sfx_id)
 	if (sound_disabled)
 		return;
 
-	if (mariomode) // Sounds change in Mario mode!
+	if (true) // Sounds change in Mario mode! // SRB2kart - every sound is mario.
 	{
 		switch (sfx_id)
 		{
