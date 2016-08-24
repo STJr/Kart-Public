@@ -1083,7 +1083,7 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		diff |= MD_TRACER;
 	if (mobj->friction != ORIG_FRICTION)
 		diff |= MD_FRICTION;
-	if (mobj->movefactor != ORIG_FRICTION_FACTOR)
+	if (mobj->movefactor != FRACUNIT) //if (mobj->movefactor != ORIG_FRICTION_FACTOR)
 		diff |= MD_MOVEFACTOR;
 	if (mobj->fuse)
 		diff |= MD_FUSE;
@@ -2060,7 +2060,7 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	if (diff & MD_MOVEFACTOR)
 		mobj->movefactor = READFIXED(save_p);
 	else
-		mobj->movefactor = ORIG_FRICTION_FACTOR;
+		mobj->movefactor = FRACUNIT; //mobj->movefactor = ORIG_FRICTION_FACTOR;
 	if (diff & MD_FUSE)
 		mobj->fuse = READINT32(save_p);
 	if (diff & MD_WATERTOP)

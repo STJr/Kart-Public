@@ -260,7 +260,7 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		// Adjust the player's animation speed to match their velocity.
 		if (!(disableSpeedAdjust || player->charflags & SF_NOSPEEDADJUST))
 		{
-			fixed_t speed = FixedDiv(player->speed, mobj->scale);
+			fixed_t speed = FixedDiv(player->speed, FixedMul(mobj->scale, player->mo->movefactor)); // fixed_t speed = FixedDiv(player->speed, mobj->scale);
 			if (player->panim == PA_ROLL)
 			{
 				if (speed > 16<<FRACBITS)
@@ -1413,7 +1413,7 @@ void P_CheckGravity(mobj_t *mo, boolean affect)
 }
 
 #define STOPSPEED (FRACUNIT)
-#define FRICTION (ORIG_FRICTION) // 0.90625
+//#define FRICTION (ORIG_FRICTION) // 0.90625
 
 //
 // P_SceneryXYFriction
@@ -1446,7 +1446,7 @@ static void P_SceneryXYFriction(mobj_t *mo, fixed_t oldx, fixed_t oldy)
 		{
 			// Stolen from P_SpawnFriction
 			mo->friction = FRACUNIT - 0x100;
-			mo->movefactor = ((0x10092 - mo->friction)*(0x70))/0x158;
+			//mo->movefactor = ((0x10092 - mo->friction)*(0x70))/0x158;
 		}
 		else
 			mo->friction = ORIG_FRICTION;
@@ -1471,7 +1471,7 @@ static void P_XYFriction(mobj_t *mo, fixed_t oldx, fixed_t oldy)
 		// spinning friction
 		if (player->pflags & PF_SPINNING && (player->rmomx || player->rmomy) && !(player->pflags & PF_STARTDASH))
 		{
-			const fixed_t ns = FixedDiv(549*FRICTION,500*FRACUNIT);
+			const fixed_t ns = FixedDiv(549*ORIG_FRICTION,500*FRACUNIT); //const fixed_t ns = FixedDiv(549*FRICTION,500*FRACUNIT);
 			mo->momx = FixedMul(mo->momx, ns);
 			mo->momy = FixedMul(mo->momy, ns);
 		}
@@ -2490,7 +2490,7 @@ static boolean P_ZMovement(mobj_t *mo)
 
 					// Stolen from P_SpawnFriction
 					mo->friction = FRACUNIT - 0x100;
-					mo->movefactor = ((0x10092 - mo->friction)*(0x70))/0x158;
+					//mo->movefactor = ((0x10092 - mo->friction)*(0x70))/0x158;
 				}
 				else if (mo->type == MT_FALLINGROCK)
 				{
@@ -7827,7 +7827,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
 	mobj->friction = ORIG_FRICTION;
 
-	mobj->movefactor = ORIG_FRICTION_FACTOR;
+	mobj->movefactor = FRACUNIT; //mobj->movefactor = ORIG_FRICTION_FACTOR;
 
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
@@ -9920,7 +9920,7 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 		mthing->mobj = mobj;
 	}
 	// All manners of rings and coins
-	else if (mthing->type == mobjinfo[MT_RING].doomednum || mthing->type == mobjinfo[MT_COIN].doomednum ||
+	else if (mthing->type == mobjinfo[MT_RING].doomednum || mthing->type == mobjinfo[MT_COIN].doomednum || mthing->type == mobjinfo[MT_RANDOMITEM].doomednum || 
 	         mthing->type == mobjinfo[MT_REDTEAMRING].doomednum || mthing->type == mobjinfo[MT_BLUETEAMRING].doomednum)
 	{
 		mobjtype_t ringthing = MT_RING;
@@ -9940,6 +9940,9 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 				break;
 			case 309: // No team rings in non-CTF
 				ringthing = (gametype == GT_CTF) ? MT_BLUETEAMRING : MT_RING;
+				break;
+			case 2000: // SRB2kart
+				ringthing = MT_RANDOMITEM;
 				break;
 			default:
 				// Spawn rings as blue spheres in special stages, ala S3+K.

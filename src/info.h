@@ -163,6 +163,7 @@ void A_RandomStateRange();
 void A_DualAction();
 void A_RemoteAction();
 void A_ToggleFlameJet();
+void A_ItemPop(); // SRB2kart
 void A_RedShellChase(); // SRB2kart
 void A_BobombExplode(); // SRB2kart
 void A_OrbitNights();
@@ -3026,6 +3027,7 @@ typedef enum state
 	S_RANDOMITEM22,
 	S_RANDOMITEM23,
 	S_RANDOMITEM24,
+	S_DEADRANDOMITEM,
 
 	// Random Item Pop
 	S_RANDOMITEMPOP1,

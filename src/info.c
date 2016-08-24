@@ -2557,6 +2557,7 @@ state_t states[NUMSTATES] =
 	{SPR_RNDM, 21, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM23}, // S_RANDOMITEM22
 	{SPR_RNDM, 22, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM24}, // S_RANDOMITEM23
 	{SPR_RNDM, 23, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM1},  // S_RANDOMITEM24
+	{SPR_RNDM,  0, 1, {A_ItemPop},      0, 0, S_NULL},         // S_DEADRANDOMITEM
 
 	{SPR_SPRK, 0,  2, {NULL}, 0, 0, S_RANDOMITEMPOP2}, // S_RANDOMITEMPOP1
 	{SPR_SPRK, 1,  2, {NULL}, 0, 0, S_RANDOMITEMPOP3}, // S_RANDOMITEMPOP2
@@ -14048,7 +14049,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_RANDOMBOX3,   // deathstate
+		S_DEADRANDOMITEM, // deathstate
 		S_NULL,         // xdeathstate
 		sfx_pop,        // deathsound
 		64*FRACUNIT,    // speed
@@ -14058,7 +14059,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_SOLID|MF_SHOOTABLE|MF_MONITOR,     // flags
+		MF_SOLID|MF_SHOOTABLE|MF_MONITOR, // flags
 		S_NULL          // raisestate
 	},
 
@@ -14139,7 +14140,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16,             // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY, // flags
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 

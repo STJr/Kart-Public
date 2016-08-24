@@ -187,6 +187,7 @@ void A_RandomStateRange(mobj_t *actor);
 void A_DualAction(mobj_t *actor);
 void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
+void A_ItemPop(mobj_t *actor);       // SRB2kart
 void A_RedShellChase(mobj_t *actor); // SRB2kart
 void A_BobombExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
@@ -8073,7 +8074,70 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_RedShellChase and A_BobombExplode
+//{ SRB2kart - A_ItemPop, A_RedShellChase and A_BobombExplode
+void A_ItemPop(mobj_t *actor)
+{
+	mobj_t *remains;
+	mobjtype_t item = 0;
+
+	// de-solidify
+	P_UnsetThingPosition(actor);
+	actor->flags &= ~MF_SOLID;
+	actor->flags |= MF_NOCLIP;
+	P_SetThingPosition(actor);
+
+	remains = P_SpawnMobj(actor->x, actor->y, actor->z, MT_RANDOMITEMPOP);
+	remains->type = actor->type; // Transfer type information
+	P_UnsetThingPosition(remains);
+	if (sector_list)
+	{
+		P_DelSeclist(sector_list);
+		sector_list = NULL;
+	}
+	remains->flags = actor->flags; // Transfer flags
+	P_SetThingPosition(remains);
+	remains->flags2 = actor->flags2; // Transfer flags2
+	remains->fuse = actor->fuse; // Transfer respawn timer
+	remains->threshold = 68;
+	remains->skin = NULL;
+
+	actor->flags2 |= MF2_BOSSNOTRAP; // Dummy flag to mark this as an exploded TV until it respawns
+	tmthing = remains;
+
+	if (actor->info->deathsound) S_StartSound(remains, actor->info->deathsound);
+
+	switch (actor->type)
+	{
+		case MT_RANDOMITEM: // Random!
+		{
+			if (actor->target && actor->target->player
+				&& !(actor->target->player->kartstuff[k_greenshell] & 2 || actor->target->player->kartstuff[k_triplegreenshell] & 8
+				||   actor->target->player->kartstuff[k_redshell]   & 2 || actor->target->player->kartstuff[k_tripleredshell] & 8
+				||   actor->target->player->kartstuff[k_banana]     & 2 || actor->target->player->kartstuff[k_triplebanana] & 8
+				||   actor->target->player->kartstuff[k_fakeitem]   & 2 || actor->target->player->kartstuff[k_magnet]
+				||   actor->target->player->kartstuff[k_bobomb]     & 2 || actor->target->player->kartstuff[k_blueshell]
+				||   actor->target->player->kartstuff[k_mushroom]       || actor->target->player->kartstuff[k_fireflower]
+				||   actor->target->player->kartstuff[k_star]           || actor->target->player->kartstuff[k_goldshroom]
+				||   actor->target->player->kartstuff[k_lightning]      || actor->target->player->kartstuff[k_megashroom]
+				||   actor->target->player->kartstuff[k_itemroulette]
+				||   actor->target->player->kartstuff[k_boo]            || actor->target->player->kartstuff[k_bootaketimer]
+				||   actor->target->player->kartstuff[k_boostolentimer])
+			   )
+				actor->target->player->kartstuff[k_itemroulette] = 1;
+			else if(cv_debug && !(actor->target && actor->target->player))
+				CONS_Printf("ERROR: Powerup has no target!\n");
+
+			remains->flags &= ~MF_AMBUSH;
+			break;
+		}
+		default:
+			item = actor->info->damage;
+			break;
+	}
+
+	P_RemoveMobj(actor);
+}
+
 void A_RedShellChase(mobj_t *actor)
 {
 

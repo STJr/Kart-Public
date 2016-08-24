@@ -828,6 +828,8 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"AllKartSounds.wad"));
 	D_AddFile(va(pandf,srb2waddir,"KartTextures.wad"));
 	D_AddFile(va(pandf,srb2waddir,"KMFixes3.wad"));
+	D_AddFile(va(pandf,srb2waddir,"SNSAssets.wad"));
+	D_AddFile(va(pandf,srb2waddir,"k_SNSRainbowRoad.wad"));
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{

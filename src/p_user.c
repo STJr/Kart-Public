@@ -4694,11 +4694,14 @@ static void P_3dMovement(player_t *player)
 	}
 
 	// Better maneuverability while flying
-	if(player->powers[pw_tailsfly])
-	{
-		thrustfactor = player->thrustfactor*2;
-		acceleration = player->accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration;
-	}
+	//if(player->powers[pw_tailsfly])
+	//{
+	//	thrustfactor = player->thrustfactor*2;
+	//	acceleration = player->accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration;
+	//}
+
+	if (player->mo->movefactor != FRACUNIT) // Friction-scaled acceleration...
+		acceleration = FixedMul(acceleration<<FRACBITS, player->mo->movefactor)>>FRACBITS;
 
 	// Forward movement
 	if (player->climbing)
@@ -6361,7 +6364,7 @@ static void P_SkidStuff(player_t *player)
 			// If your push angle is more than this close to a full 180 degrees, trigger a skid.
 			if (dang > ANGLE_157h)
 			{
-				player->skidtime = TICRATE/2;
+				player->skidtime = (player->mo->movefactor == FRACUNIT) ? TICRATE/2 : (FixedDiv(35<<(FRACBITS-1), FixedSqrt(player->mo->movefactor)))>>FRACBITS; //player->skidtime = TICRATE/2;
 				S_StartSound(player->mo, sfx_skid);
 				if (player->panim != PA_WALK)
 					P_SetPlayerMobjState(player->mo, S_KART_WALK2); // SRB2kart - was S_PLAY_RUN4
@@ -6399,6 +6402,11 @@ static void P_MovePlayer(player_t *player)
 
 	cmd = &player->cmd;
 	runspd = FixedMul(player->runspeed, player->mo->scale);
+
+	// Let's have some movement speed fun on low-friction surfaces, JUST for players... 
+	// (high friction surfaces shouldn't have any adjustment, since the acceleration in 
+	// this game is super high and that ends up cheesing high-friction surfaces.)
+	runspd = FixedMul(runspd, player->mo->movefactor);
 
 	// Control relinquishing stuff!
 	if (player->powers[pw_ingoop])
@@ -6635,6 +6643,8 @@ static void P_MovePlayer(player_t *player)
 	// If Springing but on the ground, change back!
 	//else if (onground && (player->mo->state == &states[S_PLAY_SPRING] || player->panim == PA_FALL || player->mo->state == &states[S_PLAY_CARRY]) && !player->mo->momz)
 	//	P_SetPlayerMobjState(player->mo, S_PLAY_STND);
+
+	player->mo->movefactor = FRACUNIT; // We're not going to do any more with this, so let's change it back for the next frame.
 
 	// If you are stopped and are still walking, stand still!
 	if (!player->mo->momx && !player->mo->momy && !player->mo->momz && player->panim == PA_WALK)

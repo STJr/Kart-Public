@@ -746,7 +746,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
 	
 	if (P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitemF);
+		S_StartSound(NULL, sfx_mkitmF);
 }
 
 /**	\brief	Item Roulette for Kart
@@ -783,7 +783,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-		S_StartSound(NULL,sfx_mkitem1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
@@ -814,10 +814,15 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->pflags |= PF_ATTACKDOWN;
 	
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
+	player->kartstuff[k_itemroulette] = 0; // And the roulette is done!
 	
 	// Yes I know I'm defining variables half-way into the function, but they aren't needed until now :/
 	fixed_t prandom = P_RandomFixed();
 	fixed_t ppos = player->kartstuff[k_position] - 1;
+	
+	// Tiny catcher in case player position is unset.
+	if (ppos == 0)
+		ppos = 1;
 	
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)

@@ -1801,6 +1801,7 @@ static actionpointer_t actionpointers[] =
 	{{A_DualAction},           "A_DUALACTION"},
 	{{A_RemoteAction},         "A_REMOTEACTION"},
 	{{A_ToggleFlameJet},       "A_TOGGLEFLAMEJET"},
+	{{A_ItemPop},              "A_ITEMPOP"},       // SRB2kart
 	{{A_RedShellChase},        "A_REDSHELLCHASE"}, // SRB2kart
 	{{A_BobombExplode},        "A_BOBOMBEXPLODE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
