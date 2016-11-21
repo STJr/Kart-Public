@@ -55,8 +55,8 @@ char sprnames[NUMSPRITES + 1][5] =
 	"GWLR","SRBA","SRBB","SRBC","SRBD","SRBE","SRBF","SRBG","SRBH","SRBI",
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
-	"SPRG","BSPR","RNDM","SPRK","KFRE","DRIF","FAKE","DFAK","BANA","DBAN",
-	"GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH"
+	"SPRG","BSPR","RNDM","SPRK","KFRE","DRIF","DSMO","FAKE","DFAK","BANA",
+	"DBAN","GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2524,6 +2524,8 @@ state_t states[NUMSTATES] =
 	{SPR_SPRG, 2, 1, {NULL}, 0, 0, S_GRAYSPRING5},   // S_GRAYSPRING4
 	{SPR_SPRG, 1, 1, {NULL}, 0, 0, S_GRAYSPRING},    // S_GRAYSPRING5
 
+	{SPR_NULL, 0, 1, {A_Pain}, 0, 0, S_INVISIBLE}, // S_INVISSPRING
+
 	{SPR_BSPR, 0, -1, {NULL}, 0, 0, S_NULL},    // S_BDIAG1
 	{SPR_BSPR, 1, 1, {A_Pain}, 0, 0, S_BDIAG3}, // S_BDIAG2
 	{SPR_BSPR, 2, 1, {NULL}, 0, 0, S_BDIAG4},   // S_BDIAG3
@@ -2571,6 +2573,12 @@ state_t states[NUMSTATES] =
 	{SPR_DRIF, 3,  2, {NULL}, 0, 0, S_DRIFTSPARK5}, // S_DRIFTSPARK4
 	{SPR_DRIF, 4,  2, {NULL}, 0, 0, S_DRIFTSPARK6}, // S_DRIFTSPARK5
 	{SPR_DRIF, 5,  2, {NULL}, 0, 0, S_DRIFTSPARK4}, // S_DRIFTSPARK6
+
+	{SPR_DSMO, FF_TRANS50|0,  2, {NULL}, 0, 0, S_DRIFTSMOKE2}, // S_DRIFTSMOKE1
+	{SPR_DSMO, FF_TRANS50|1,  2, {NULL}, 0, 0, S_DRIFTSMOKE3}, // S_DRIFTSMOKE2
+	{SPR_DSMO, FF_TRANS50|2,  2, {NULL}, 0, 0, S_DRIFTSMOKE4}, // S_DRIFTSMOKE3
+	{SPR_DSMO, FF_TRANS50|3,  2, {NULL}, 0, 0, S_DRIFTSMOKE5}, // S_DRIFTSMOKE4
+	{SPR_DSMO, FF_TRANS50|4,  2, {NULL}, 0, 0, S_NULL},        // S_DRIFTSMOKE5
 
 	{SPR_NULL, 0,               10, {NULL}, 0, 0, S_KARTFIRE2}, // S_KARTFIRE1
 	{SPR_KFRE, FF_FULLBRIGHT,    2, {NULL}, 0, 0, S_KARTFIRE3}, // S_KARTFIRE2
@@ -5617,17 +5625,17 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_STARPOST
+	{           // MT_STARPOST				// SRB2kart - Set states to S_INVISIBLE, and sfx to _None
 		502,            // doomednum
-		S_STARPOST_IDLE, // spawnstate
+		S_INVISIBLE,    // spawnstate
 		1,              // spawnhealth
-		S_STARPOST_FLASH, // seestate
+		S_INVISIBLE,    // seestate
 		sfx_None,       // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
-		S_STARPOST_SPIN, // painstate
+		S_INVISIBLE,    // painstate
 		0,              // painchance
-		sfx_strpst,     // painsound
+		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
 		S_NULL,         // deathstate
@@ -13984,9 +13992,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_INVISSPRING
 		554,            // doomednum
-		SPR_NULL,       // spawnstate
+		S_INVISIBLE,    // spawnstate
 		100,            // spawnhealth
-		SPR_NULL,       // seestate
+		S_INVISSPRING,  // seestate
 		sfx_None,       // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
@@ -14006,7 +14014,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
-		SPR_NULL        // raisestate
+		S_INVISSPRING   // raisestate
 	},
 
 	{           // MT_BLUEDIAG
@@ -14059,7 +14067,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_SOLID|MF_SHOOTABLE|MF_MONITOR, // flags
+		MF_SLIDEME|MF_SPECIAL|MF_NOGRAVITY|MF_NOCLIPHEIGHT, // flags
 		S_NULL          // raisestate
 	},
 
@@ -14113,7 +14121,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_FIRE, // flags
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
@@ -14138,6 +14146,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		64*FRACUNIT,    // height
 		0,              // display offset
 		16,             // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_DRIFTSMOKE
+		-1,             // doomednum
+		S_DRIFTSMOKE1,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		12,             // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		20*FRACUNIT,    // radius
+		16*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags

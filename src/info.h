@@ -582,6 +582,7 @@ typedef enum sprite
 	SPR_RPOP, // Random Item Box Pop
 	SPR_KFRE, // Mushroom fire trail
 	SPR_DRIF, // Drift Sparks
+	SPR_DSMO, // Drift Smoke
 	
 	// Kart Items
 	SPR_FITE, // Fake Item box
@@ -2992,6 +2993,9 @@ typedef enum state
 	S_GRAYSPRING4,
 	S_GRAYSPRING5,
 
+	// Invis-spring - this is used just for the sproing sound.
+	S_INVISSPRING,
+
 	// Blue Diagonal Spring
 	S_BDIAG1,
 	S_BDIAG2,
@@ -3044,6 +3048,13 @@ typedef enum state
 	S_DRIFTSPARK4,
 	S_DRIFTSPARK5,
 	S_DRIFTSPARK6,
+
+	// Drift Smoke
+	S_DRIFTSMOKE1,
+	S_DRIFTSMOKE2,
+	S_DRIFTSMOKE3,
+	S_DRIFTSMOKE4,
+	S_DRIFTSMOKE5,
 
 	// Magnet Burst
 
@@ -3719,6 +3730,7 @@ typedef enum mobj_type
 
 	MT_MUSHROOMTRAIL,
 	MT_DRIFT,
+	MT_DRIFTSMOKE,
 
 	MT_FAKESHIELD,
 	MT_FAKEITEM,

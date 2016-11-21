@@ -8081,10 +8081,10 @@ void A_ItemPop(mobj_t *actor)
 	mobjtype_t item = 0;
 
 	// de-solidify
-	P_UnsetThingPosition(actor);
-	actor->flags &= ~MF_SOLID;
-	actor->flags |= MF_NOCLIP;
-	P_SetThingPosition(actor);
+	//P_UnsetThingPosition(actor);
+	//actor->flags &= ~MF_SOLID;
+	//actor->flags |= MF_NOCLIP;
+	//P_SetThingPosition(actor);
 
 	remains = P_SpawnMobj(actor->x, actor->y, actor->z, MT_RANDOMITEMPOP);
 	remains->type = actor->type; // Transfer type information
@@ -8109,7 +8109,6 @@ void A_ItemPop(mobj_t *actor)
 	switch (actor->type)
 	{
 		case MT_RANDOMITEM: // Random!
-		{
 			if (actor->target && actor->target->player
 				&& !(actor->target->player->kartstuff[k_greenshell] & 2 || actor->target->player->kartstuff[k_triplegreenshell] & 8
 				||   actor->target->player->kartstuff[k_redshell]   & 2 || actor->target->player->kartstuff[k_tripleredshell] & 8
@@ -8129,7 +8128,6 @@ void A_ItemPop(mobj_t *actor)
 
 			remains->flags &= ~MF_AMBUSH;
 			break;
-		}
 		default:
 			item = actor->info->damage;
 			break;

@@ -2252,6 +2252,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_BLUETEAMRING:
 		case MT_FLINGRING:
 		case MT_FLINGCOIN:
+		case MT_RANDOMITEM:
 			// Remove flinged stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
@@ -7225,6 +7226,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BLUEBALL:
 		case MT_REDTEAMRING:
 		case MT_BLUETEAMRING:
+		case MT_RANDOMITEM:
 			// No need to check water. Who cares?
 			P_RingThinker(mobj);
 			if (mobj->flags2 & MF2_NIGHTSPULL)
@@ -7313,6 +7315,7 @@ void P_MobjThinker(mobj_t *mobj)
 #endif
 			break;
 		case MT_SPINFIRE:
+		case MT_MUSHROOMTRAIL:
 			if (mobj->eflags & MFE_VERTICALFLIP)
 				mobj->z = mobj->ceilingz - mobj->height;
 			else
@@ -8125,6 +8128,7 @@ void P_RemoveMobj(mobj_t *mobj)
 	if (mobj->spawnpoint &&
 		(mobj->type == MT_RING
 		|| mobj->type == MT_COIN
+		|| mobj->type == MT_RANDOMITEM
 		|| mobj->type == MT_BLUEBALL
 		|| mobj->type == MT_REDTEAMRING
 		|| mobj->type == MT_BLUETEAMRING

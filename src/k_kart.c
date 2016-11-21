@@ -668,6 +668,7 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 */
 static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retrokart)
 {
+	getitem++;
 	switch (getitem)
 	{
 		case  1:	// Magnet
@@ -742,11 +743,6 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 			player->kartstuff[k_mushroom] = 1;
 			break;
 	}
-	
-	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
-	
-	if (P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitmF);
 }
 
 /**	\brief	Item Roulette for Kart
@@ -759,7 +755,8 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
 {
 	prevchance = chance;
-	basechance = K_KartItemOdds_Retro[pingame][giveitem][position]; // Number of slots in the array, based on odds
+	basechance = K_KartItemOdds_Retro[pingame-1][giveitem][position]; // Number of slots in the array, based on odds
+	
 	for (; chance < prevchance + basechance; chance++) 
 	{ 
 		spawnchance[chance] = giveitem;
@@ -814,15 +811,13 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->pflags |= PF_ATTACKDOWN;
 	
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
-	player->kartstuff[k_itemroulette] = 0; // And the roulette is done!
 	
 	// Yes I know I'm defining variables half-way into the function, but they aren't needed until now :/
 	fixed_t prandom = P_RandomFixed();
 	fixed_t ppos = player->kartstuff[k_position] - 1;
 	
 	// Tiny catcher in case player position is unset.
-	if (ppos == 0)
-		ppos = 1;
+	if (ppos < 0) ppos = 0;
 	
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
@@ -850,7 +845,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (numchoices > 0)
 			K_KartGetItemResult(player, spawnchance[prandom%numchoices], true);
 		else
-			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette.\n");
+			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
 	//}
 	/*else if (gametype == GT_NEO)
 	{
@@ -877,11 +872,16 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (numchoices > 0)
 			K_KartGetItemResult(player, spawnchance[prandom%numchoices], false)
 		else
-			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette.\n");
+			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
 	}
 	else
 		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
 	*/
+	
+	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
+	
+	if (P_IsLocalPlayer(player))
+		S_StartSound(NULL, sfx_mkitmF);
 }
 
 //}
@@ -976,7 +976,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_jmp] = 1;
 	else 
 		player->kartstuff[k_jmp] = 0;
-		
+	
 	K_KartItemRoulette(player, cmd); // Roulette Code
 	
 	// Looping and stopping of the horrible horrible star SFX ~Sryder
@@ -1243,6 +1243,71 @@ mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle, INT32
 	return NULL;
 }
 
+void K_SpawnDriftTrail(player_t *player)
+{
+	fixed_t newx;
+	fixed_t newy;
+	fixed_t ground;
+	mobj_t *flame;
+	angle_t travelangle;
+	INT32 i;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	if (player->mo->eflags & MFE_VERTICALFLIP)
+		ground = player->mo->ceilingz - FixedMul(mobjinfo[MT_MUSHROOMTRAIL].height, player->mo->scale);
+	else
+		ground = player->mo->floorz;
+
+	if (player->kartstuff[k_drift])
+		travelangle = player->mo->angle;
+	else
+		travelangle = R_PointToAngle2(0, 0, player->rmomx, player->rmomy);
+
+	for (i = 0; i < 2; i++)
+	{
+		if (player->kartstuff[k_bootaketimer] != 0)
+			continue;
+
+		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
+		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
+#ifdef ESLOPE
+		if (player->mo->standingslope)
+		{
+			ground = P_GetZAt(player->mo->standingslope, newx, newy);
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				ground -= FixedMul(mobjinfo[MT_MUSHROOMTRAIL].height, player->mo->scale);
+		}
+#endif
+		if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && player->kartstuff[k_mushroomtimer] == 0)
+			flame = P_SpawnMobj(newx, newy, ground, MT_DRIFTSMOKE);
+		else
+			flame = P_SpawnMobj(newx, newy, ground, MT_MUSHROOMTRAIL);
+
+		P_SetTarget(&flame->target, player->mo);
+		flame->angle = travelangle;
+		flame->fuse = TICRATE*2;
+		flame->destscale = player->mo->scale;
+		P_SetScale(flame, player->mo->scale);
+		flame->eflags = (flame->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+
+		flame->momx = 8;
+		P_XYMovement(flame);
+		if (P_MobjWasRemoved(flame))
+			continue;
+
+		if (player->mo->eflags & MFE_VERTICALFLIP)
+		{
+			if (flame->z + flame->height < flame->ceilingz)
+				P_RemoveMobj(flame);
+		}
+		else if (flame->z > flame->floorz)
+			P_RemoveMobj(flame);
+	}
+}
+
 static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean bobombthrow)
 {
 	mobj_t *mo;
@@ -1502,7 +1567,7 @@ void K_DoMushroom(player_t *player, boolean doPFlag)
 	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
 		return;
 
-	K_PlayTauntSound(player->mo);
+	//K_PlayTauntSound(player->mo);
 	player->kartstuff[k_sounds] = 70;
 }
 
@@ -1529,12 +1594,8 @@ void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 70;
 }
 
-void K_MoveKartPlayer(player_t *player, boolean onground)
+void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 {
-	ticcmd_t *cmd;
-
-	cmd = &player->cmd;
-
 	boolean ATTACK_IS_DOWN = ((cmd->buttons & BT_ATTACK) && !(player->pflags & PF_ATTACKDOWN));
 	boolean HOLDING_ITEM = (player->kartstuff[k_greenshell] == 1 || player->kartstuff[k_redshell] == 1
 		|| player->kartstuff[k_banana] == 1 || player->kartstuff[k_fakeitem] == 1 || player->kartstuff[k_bobomb] == 1
@@ -1543,8 +1604,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		|| player->kartstuff[k_triplebanana] & 1 || player->kartstuff[k_triplebanana] & 2 || player->kartstuff[k_triplebanana] & 4);
 	boolean NO_BOO = (player->kartstuff[k_boostolentimer] == 0 && player->kartstuff[k_bootaketimer] == 0);
 
-	if (!(cmd->buttons & BT_ATTACK))
+	if ((player->pflags & PF_ATTACKDOWN) && !(cmd->buttons & BT_ATTACK))
+		player->pflags &= ~PF_ATTACKDOWN;
+	else if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
+	
 	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
 		// GoldenMushroom power
@@ -2682,8 +2746,8 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_mushroom] & 4)								localpatch = kp_triplemushroom;
 	else if (stplyr->kartstuff[k_mushroom] & 2)								localpatch = kp_doublemushroom;
 	else if (stplyr->kartstuff[k_mushroom] == 1)							localpatch = kp_mushroom;
-	else if (stplyr->kartstuff[k_boo] & 8)									localpatch = kp_boo;
-	else if (stplyr->kartstuff[k_magnet] & 8)								localpatch = kp_magnet;
+	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
+	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
 	
 	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
 }

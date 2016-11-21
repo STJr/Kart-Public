@@ -4670,9 +4670,7 @@ static void P_3dMovement(player_t *player)
 		if (cmd->forwardmove < 0)
 			topspeed = 5<<16;
 		else
-			topspeed = normalspd * 2 > 60<<16 ? 60<<16 : normalspd * 2;
-			
-		CONS_Printf("topspeed = %d\n", topspeed>>16);
+			topspeed = (normalspd * 3)/2; //> 60<<16 ? 60<<16 : normalspd * 2;
 	}
 	else
 	{
@@ -6665,11 +6663,11 @@ static void P_MovePlayer(player_t *player)
 
 		// Drifting sound
 		{
-			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
-			if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground && player->kartstuff[k_driftcharge] < 5) //!S_SoundPlaying(NULL, sfx_mkdrft))
-				S_StartSound(player->mo, sfx_mkdrft);
 			// Start looping the sound now.
-			else if (leveltime % 50 == 0 && ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground))
+			if (leveltime % 50 == 0 && ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground))
+				S_StartSound(player->mo, sfx_mkdrft);
+			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
+			else if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && !S_SoundPlaying(player->mo, sfx_mkdrft) && onground)
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Ok, we'll stop now.
 			else if ((player->kartstuff[k_drift] == 0)
@@ -6678,7 +6676,7 @@ static void P_MovePlayer(player_t *player)
 		}
 	}
 	
-	K_MoveKartPlayer(player, onground);
+	K_MoveKartPlayer(player, cmd, onground);
 	//}
 
 
@@ -6928,6 +6926,10 @@ static void P_MovePlayer(player_t *player)
 	////////////////////////////
 	//SPINNING AND SPINDASHING//
 	////////////////////////////
+
+	// SRB2kart - Drifting smoke and fire
+	if ((player->kartstuff[k_drift] || player->kartstuff[k_mushroomtimer] > 0) && onground && (leveltime & 1))
+		K_SpawnDriftTrail(player);
 
 	/* // SRB2kart - nadah
 	// If the player isn't on the ground, make sure they aren't in a "starting dash" position.
@@ -7852,16 +7854,16 @@ static void P_DeathThink(player_t *player)
 	else if (player->lives > 0 && !G_IsSpecialStage(gamemap)) // Don't allow "click to respawn" in special stages!
 	{
 		// Respawn with jump button, force respawn time (3 second default, cheat protected) in shooter modes.
-		if ((cmd->buttons & BT_JUMP) && player->deadtimer > cv_respawntime.value*TICRATE
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > cv_respawntime.value*TICRATE
 			&& gametype != GT_RACE && gametype != GT_COOP)
 			player->playerstate = PST_REBORN;
 
 		// Instant respawn in race or if you're spectating.
-		if ((cmd->buttons & BT_JUMP) && (gametype == GT_RACE || player->spectator))
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && (gametype == GT_RACE || player->spectator))
 			player->playerstate = PST_REBORN;
 
 		// One second respawn in coop.
-		if ((cmd->buttons & BT_JUMP) && player->deadtimer > TICRATE && (gametype == GT_COOP || gametype == GT_COMPETITION))
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > TICRATE && (gametype == GT_COOP || gametype == GT_COMPETITION))
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn

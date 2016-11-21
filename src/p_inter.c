@@ -382,6 +382,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	// We now identify by object type, not sprite! Tails 04-11-2001
 	switch (special->type)
 	{
+		case MT_RANDOMITEM: // SRB2kart
+			if (!(P_CanPickupItem(player, false)))
+				return;
+			special->momx = special->momy = special->momz = 0;
+			P_SetTarget(&special->target, toucher);
+			P_SetMobjState(special, special->info->deathstate);
+			break;
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //
 // ***************************************** //
@@ -1549,6 +1556,7 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
 						str = M_GetText("%s%s's tagging hand %s %s.\n");
 					break;
 				case MT_SPINFIRE:
+				case MT_MUSHROOMTRAIL:
 					str = M_GetText("%s%s's elemental fire trail %s %s.\n");
 					break;
 				case MT_THROWNBOUNCE:

@@ -601,26 +601,29 @@ void S_StartSound(const void *origin, sfxenum_t sfx_id)
 				sfx_id = sfx_mario7;
 				break;
 			case sfx_pop:
-				sfx_id = sfx_mario5;
+				sfx_id = sfx_mkitem; // SRB2kart
 				break;
 			case sfx_jump:
 				sfx_id = sfx_mario6;
 				break;
-			case sfx_shield:
-				sfx_id = sfx_mario3;
-				break;
-			case sfx_itemup:
-				sfx_id = sfx_mario4;
-				break;
-//			case sfx_tink:
-//				sfx_id = sfx_mario1;
+//			case sfx_shield:
+//				sfx_id = sfx_mario3;
 //				break;
+			case sfx_itemup:
+				sfx_id = sfx_None;
+				break;
+			case sfx_tink:
+				sfx_id = sfx_mario1;
+				break;
 //			case sfx_cgot:
 //				sfx_id = sfx_mario9;
 //				break;
-//			case sfx_lose:
-//				sfx_id = sfx_mario2;
-//				break;
+			case sfx_lose:
+				sfx_id = sfx_mario2;
+				break;
+			case sfx_prloop:
+				sfx_id = sfx_bomb2;
+				break;
 			default:
 				break;
 		}

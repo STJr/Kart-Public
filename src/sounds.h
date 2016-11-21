@@ -549,7 +549,7 @@ typedef enum
 	sfx_shbrk,
 	sfx_mkdrft,
 	sfx_mkslid,
-	sfx_mkitm,
+	sfx_mkitem,
 	sfx_mkitm1,
 	sfx_mkitm2,
 	sfx_mkitm3,
