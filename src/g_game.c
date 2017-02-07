@@ -61,8 +61,9 @@ JoyType_t Joystick2;
 // 1024 bytes is plenty for a savegame
 #define SAVEGAMESIZE (1024)
 
-char gamedatafilename[64] = "gamedata.dat";
-char timeattackfolder[64] = "main";
+// SRB2kart
+char gamedatafilename[64] = "kartdata.dat";
+char timeattackfolder[64] = "kart";
 char customversionstring[32] = "\0";
 
 static void G_DoCompleted(void);
@@ -189,7 +190,7 @@ boolean CheckForReverseGravity;
 // Powerup durations
 UINT16 invulntics = 20*TICRATE;
 UINT16 sneakertics = 20*TICRATE;
-UINT16 flashingtics = 3*TICRATE;
+UINT16 flashingtics = 3*TICRATE/2; // SRB2kart
 UINT16 tailsflytics = 8*TICRATE;
 UINT16 underwatertics = 30*TICRATE;
 UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
@@ -446,7 +447,7 @@ consvar_t cv_firenaxis2 = {"joyaxis2_firenormal", "None", CV_SAVE, joyaxis_cons_
 #endif
 
 
-#if MAXPLAYERS > 32
+#if MAXPLAYERS > 16
 #error "please update player_name table using the new value for MAXPLAYERS"
 #endif
 
@@ -471,24 +472,8 @@ char player_names[MAXPLAYERS][MAXPLAYERNAME+1] =
 	"Player 13",
 	"Player 14",
 	"Player 15",
-	"Player 16",
-	"Player 17",
-	"Player 18",
-	"Player 19",
-	"Player 20",
-	"Player 21",
-	"Player 22",
-	"Player 23",
-	"Player 24",
-	"Player 25",
-	"Player 26",
-	"Player 27",
-	"Player 28",
-	"Player 29",
-	"Player 30",
-	"Player 31",
-	"Player 32"
-};
+	"Player 16"
+}; // SRB2kart - removed Players 17 through 32
 
 INT16 rw_maximums[NUM_WEAPONS] =
 {
@@ -1094,12 +1079,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	// some people strafe left & right with mouse buttons
 	// those people are weird
+
+	/* // SRB2kart - these aren't used in kart
 	if (PLAYER1INPUTDOWN(gc_straferight))
 		side += sidemove[speed];
 	if (PLAYER1INPUTDOWN(gc_strafeleft))
 		side -= sidemove[speed];
 
-	/* // SRB2kart - these aren't used in kart
 	if (PLAYER1INPUTDOWN(gc_driftleft))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
 	if (PLAYER1INPUTDOWN(gc_driftright))
@@ -1983,6 +1969,7 @@ void G_Ticker(boolean run)
 {
 	UINT32 i;
 	INT32 buf;
+	ticcmd_t *cmd;
 
 	P_MapStart();
 	// do player reborns if needed
@@ -2023,8 +2010,20 @@ void G_Ticker(boolean run)
 	// read/write demo and check turbo cheat
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		cmd = &players[i].cmd;
+		
 		if (playeringame[i])
-			G_CopyTiccmd(&players[i].cmd, &netcmds[buf][i], 1);
+			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
+			
+			// SRB2kart
+			// Save the dir the player is holding
+			//  to allow items to be thrown forward or backward.
+			if (cmd->forwardmove > 0)
+					players[i].kartstuff[k_throwdir] = 1;
+			else if (cmd->forwardmove < 0)
+					players[i].kartstuff[k_throwdir] = -1;
+			else
+					players[i].kartstuff[k_throwdir] = 0;
 	}
 
 	// do main actions
@@ -2146,6 +2145,10 @@ void G_PlayerReborn(INT32 player)
 	INT32 continues;
 	UINT8 charability;
 	UINT8 charability2;
+	// SRB2kart
+	UINT8 kartspeed;
+	UINT8 kartweight;
+	//
 	fixed_t normalspeed;
 	fixed_t runspeed;
 	UINT8 thrustfactor;
@@ -2185,7 +2188,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 playerahead;
 	INT32 starpostwp;
 	INT32 lakitu;
-
+	INT32 offroad;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2208,6 +2211,10 @@ void G_PlayerReborn(INT32 player)
 	skin = players[player].skin;
 	charability = players[player].charability;
 	charability2 = players[player].charability2;
+	// SRB2kart
+	kartspeed = players[player].kartspeed;
+	kartweight = players[player].kartweight;
+	//
 	normalspeed = players[player].normalspeed;
 	runspeed = players[player].runspeed;
 	thrustfactor = players[player].thrustfactor;
@@ -2238,6 +2245,7 @@ void G_PlayerReborn(INT32 player)
 	playerahead = players[player].kartstuff[k_playerahead];
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	lakitu = players[player].kartstuff[k_lakitu];
+	offroad = players[player].kartstuff[k_offroad];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2255,6 +2263,10 @@ void G_PlayerReborn(INT32 player)
 	p->skin = skin;
 	p->charability = charability;
 	p->charability2 = charability2;
+	// SRB2kart
+	p->kartspeed = kartspeed;
+	p->kartweight = kartweight;
+	//
 	p->normalspeed = normalspeed;
 	p->runspeed = runspeed;
 	p->thrustfactor = thrustfactor;
@@ -2291,6 +2303,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_playerahead] = playerahead;
 	p->kartstuff[k_starpostwp] = starpostwp;
 	p->kartstuff[k_lakitu] = lakitu;
+	p->kartstuff[k_offroad] = offroad;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -2646,7 +2659,7 @@ void G_DoReborn(INT32 playernum)
 			// Do a wipe
 			wipegamestate = -1;
 
-			if (player->starposttime)
+			if (player->starpostnum) // SRB2kart
 				starpost = true;
 
 			if (camera.chase)
@@ -2691,7 +2704,7 @@ void G_DoReborn(INT32 playernum)
 		// respawn at the start
 		mobj_t *oldmo = NULL;
 
-		if (player->starposttime)
+		if (player->starpostnum) // SRB2kart
 			starpost = true;
 
 		// first dissasociate the corpse
@@ -2832,7 +2845,7 @@ boolean G_TagGametype(void)
 INT16 G_TOLFlag(INT32 pgametype)
 {
 	if (!multiplayer)                 return TOL_SP;
-	if (pgametype == GT_COOP)         return TOL_COOP;
+	if (pgametype == GT_COOP)         return TOL_RACE; // SRB2kart
 	if (pgametype == GT_COMPETITION)  return TOL_COMPETITION;
 	if (pgametype == GT_RACE)         return TOL_RACE;
 	if (pgametype == GT_MATCH)        return TOL_MATCH;
@@ -3050,7 +3063,7 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		if (gametype == GT_COOP)
+		if (gametype == GT_RACE) // SRB2kart
 			// don't reset player between maps
 			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 		else
@@ -3683,6 +3696,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			{
 				players[i].lives = cv_startinglives.value;
 				players[i].continues = 0;
+				players[i].kartstuff[k_lakitu] = 0; // SRB2kart
 			}
 			else if (pultmode)
 			{
@@ -3693,6 +3707,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			{
 				players[i].lives = 3;
 				players[i].continues = 1;
+				players[i].kartstuff[k_lakitu] = 0; // SRB2kart
 			}
 
 			// The latter two should clear by themselves, but just in case
@@ -4806,6 +4821,10 @@ void G_BeginRecording(void)
 	WRITEUINT8(demo_p,player->actionspd>>FRACBITS);
 	WRITEUINT8(demo_p,player->mindash>>FRACBITS);
 	WRITEUINT8(demo_p,player->maxdash>>FRACBITS);
+	// SRB2kart
+	WRITEUINT8(demo_p,player->kartspeed>>FRACBITS);
+	WRITEUINT8(demo_p,player->kartweight>>FRACBITS);
+	//
 	WRITEUINT8(demo_p,player->normalspeed>>FRACBITS);
 	WRITEUINT8(demo_p,player->runspeed>>FRACBITS);
 	WRITEUINT8(demo_p,player->thrustfactor);
@@ -5041,7 +5060,7 @@ void G_DoPlayDemo(char *defdemoname)
 	char skin[17],color[17],*n,*pdemoname;
 	UINT8 version,subversion,charability,charability2,thrustfactor,accelstart,acceleration;
 	UINT32 randseed;
-	fixed_t actionspd,mindash,maxdash,normalspeed,runspeed,jumpfactor;
+	fixed_t actionspd,mindash,maxdash,kartspeed,kartweight,normalspeed,runspeed,jumpfactor;
 	char msg[1024];
 
 	skin[16] = '\0';
@@ -5182,6 +5201,10 @@ void G_DoPlayDemo(char *defdemoname)
 	actionspd = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+	// SRB2kart
+	kartspeed = READUINT8(demo_p)<<FRACBITS;
+	kartweight = READUINT8(demo_p)<<FRACBITS;
+	//
 	normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	thrustfactor = READUINT8(demo_p);
@@ -5226,7 +5249,8 @@ void G_DoPlayDemo(char *defdemoname)
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = true;
 	P_SetRandSeed(randseed);
-	G_InitNew(false, G_BuildMapName(gamemap), true, true);
+	//G_InitNew(false, G_BuildMapName(gamemap), true, true); // resetplayer needs to be false to retain score
+	G_InitNew(false, G_BuildMapName(gamemap), false, true);
 
 	// Set skin
 	SetPlayerSkin(0, skin);
@@ -5255,6 +5279,10 @@ void G_DoPlayDemo(char *defdemoname)
 	players[0].actionspd = actionspd;
 	players[0].mindash = mindash;
 	players[0].maxdash = maxdash;
+	// SRB2kart
+	players[0].kartspeed = kartspeed;
+	players[0].kartweight = kartweight;
+	//
 	players[0].normalspeed = normalspeed;
 	players[0].runspeed = runspeed;
 	players[0].thrustfactor = thrustfactor;
@@ -5397,6 +5425,10 @@ void G_AddGhost(char *defdemoname)
 	p++; // actionspd
 	p++; // mindash
 	p++; // maxdash
+	// SRB2kart
+	p++; // kartspeed
+	p++; // kartweight
+	//
 	p++; // normalspeed
 	p++; // runspeed
 	p++; // thrustfactor

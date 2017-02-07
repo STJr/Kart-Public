@@ -1068,6 +1068,79 @@ static void HU_DrawDemoInfo(void)
 //
 void HU_Drawer(void)
 {
+	// SRB2kart 010217 - Automap Hud (temporarily commented out)
+	/*
+	INT32 amnumxpos;
+	INT32 amnumypos;
+	INT32 amxpos;
+	INT32 amypos;
+	INT32 lumpnum;
+	patch_t *AutomapPic;
+	INT32 i = 0;
+
+	// Draw the HUD only when playing in a level.
+	// hu_stuff needs this, unlike st_stuff.
+	if (Playing() && gamestate == GS_LEVEL)
+	{
+		INT32 x, y;
+
+		lumpnum = W_CheckNumForName(va("%sR", G_BuildAutoMapName(gamemap)));
+
+		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
+			AutomapPic = W_CachePatchName(va("%sR", G_BuildAutoMapName(gamemap)), PU_CACHE);
+		else
+			AutomapPic = W_CachePatchName(va("NOMAPR"), PU_CACHE);
+
+		if (splitscreen)
+		{
+			x = 160 - (AutomapPic->width/4);
+			y = 100 - (AutomapPic->height/4);
+		}
+		else
+		{
+			x = 312 - (AutomapPic->width/2);
+			y = 60;
+		}
+
+		V_DrawSmallScaledPatch(x, y, 0, AutomapPic);
+
+		// Player's tiny icons on the Automap.
+		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (players[i].mo && !players[i].spectator)
+				{
+					// amnum xpos & ypos are the icon's speed around the HUD.
+					// The number being divided by is for how fast it moves.
+					// The higher the number, the slower it moves.
+
+					// am xpos & ypos are the icon's starting position. Withouht
+					// it, they wouldn't 'spawn' on the top-right side of the HUD.
+					amnumxpos = (players[i].mo->x / 320) >> FRACBITS;
+					amnumypos = (-players[i].mo->y / 340) >> FRACBITS;
+					
+					amxpos = (x + amnumxpos) - (iconprefix[players[i].skin]->width/4);
+					amypos = (y + amnumypos) - (iconprefix[players[i].skin]->height/4);
+
+					if (!players[i].skincolor) // 'default' color
+					{
+						V_DrawSmallScaledPatch(amxpos, amypos, 0, iconprefix[players[i].skin]);
+					}
+					else
+					{
+						UINT8 *colormap = translationtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+						V_DrawSmallMappedPatch(amxpos, amypos, 0,iconprefix[players[i].skin], colormap);
+					}
+				}
+			}
+		}
+		if (!splitscreen && maptol & TOL_KART && !hu_showscores)
+			HU_DrawRaceRankings();
+	}
+	*/
+	//
+	
 	// draw chat string plus cursor
 	if (chat_on)
 		HU_DrawChat();
@@ -1272,9 +1345,18 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			if (circuitmap)
 			{
 				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedString(x+240, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
+					V_DrawRightAlignedString(x+240, y, V_YELLOWMAP, va("%d:%02d.%02d", 
+						players[tab[i].num].realtime/(60*TICRATE), 
+						players[tab[i].num].realtime/TICRATE % 60, 
+						players[tab[i].num].realtime % TICRATE));
+					//V_DrawRightAlignedString(x+240, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
 				else
-					V_DrawRightAlignedString(x+240, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%u", tab[i].count));
+					V_DrawRightAlignedString(x+240, y, 0, va("(CP%02d) %d:%02d.%02d",
+						tab[i].count,
+						players[tab[i].num].starposttime/(60*TICRATE),
+						players[tab[i].num].starposttime/TICRATE % 60,
+						(int)((players[tab[i].num].starposttime % TICRATE) * (100.00f/TICRATE))));
+					//V_DrawRightAlignedString(x+240, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%u", tab[i].count));
 			}
 			else
 				V_DrawRightAlignedString(x+240, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));

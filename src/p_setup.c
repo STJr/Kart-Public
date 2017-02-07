@@ -2481,9 +2481,13 @@ boolean P_SetupLevel(boolean skipprecip)
 	S_StopSounds();
 	S_ClearSfx();
 
-	// As oddly named as this is, this handles music only.
-	// We should be fine starting it here.
-	S_Start();
+	// SRB2kart 010217
+	if (leveltime < 157)
+		S_StopMusic();
+	if (leveltime > 157)
+		// As oddly named as this is, this handles music only.
+		// We should be fine starting it here.
+		S_Start();
 
 	// Let's fade to black here
 	// But only if we didn't do the special stage wipe

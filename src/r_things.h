@@ -86,6 +86,11 @@ typedef struct
 	fixed_t mindash;
 	fixed_t maxdash;
 
+	// SRB2kart
+	UINT8 kartspeed; // Normal ground
+	UINT8 kartweight; // Normal ground
+	//
+
 	fixed_t normalspeed; // Normal ground
 	fixed_t runspeed; // Speed that you break into your run animation
 

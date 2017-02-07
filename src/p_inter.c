@@ -1151,6 +1151,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_STARPOST:
 			if (player->bot)
 				return;
+			// SRB2kart - 150117
+			if (player->exiting) //STOP MESSING UP MY STATS FASDFASDF
+			{
+				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint];
+				return;
+			}
+			//
 			// In circuit, player must have touched all previous starposts
 			if (circuitmap
 				&& special->health - player->starpostnum > 1)
@@ -1173,13 +1180,20 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return; // Already hit this post
 
 			// Save the player's time and position.
-			player->starposttime = leveltime;
+			player->starposttime = player->realtime; //this makes race mode's timers work correctly whilst not affecting sp -x
+			if (((special->health - 1) + (numstarposts+1)*player->laps) < 256) // SIGSEGV prevention
+				player->checkpointtimes[(special->health - 1) + (numstarposts+1)*player->laps] = player->realtime;
+			//player->starposttime = leveltime;
 			player->starpostx = toucher->x>>FRACBITS;
 			player->starposty = toucher->y>>FRACBITS;
 			player->starpostz = special->z>>FRACBITS;
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
 			P_ClearStarPost(special->health);
+
+			// SRB2kart
+			if (gametype == GT_RACE)
+				player->kartstuff[k_playerahead] = P_CheckPlayerAhead(player, (special->health - 1) + (numstarposts+1)*player->laps);
 
 			// Find all starposts in the level with this value.
 			{
@@ -1478,6 +1492,58 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	S_StartSound(toucher, special->info->deathsound); // was NULL, but changed to player so you could hear others pick up rings
 	P_KillMobj(special, NULL, toucher);
 }
+
+// SRB2kart
+INT32 P_CheckPlayerAhead(player_t *player, INT32 tocheck)
+{
+	INT32 i, retvalue = 0, me = -1;
+	tic_t besttime = 0xffffffff;
+
+	if (tocheck >= 256)
+		return 0; //Don't SIGSEGV.
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
+
+		if (player == &players[i]) //you're me!
+		{
+			me = i;
+			continue;
+		}
+
+		if (!players[i].checkpointtimes[tocheck])
+			continue;
+
+		if (players[i].checkpointtimes[tocheck] >= besttime)
+			continue;
+
+		besttime = players[i].checkpointtimes[tocheck];
+		retvalue = i+1;
+	}
+
+	if (!retvalue)
+		return 0;
+
+	if (besttime >= player->realtime) // > sign is practically paranoia
+	{
+		if (!players[retvalue-1].kartstuff[k_playerahead] && me != -1
+			&& players[retvalue-1].laps == player->laps
+			&& players[retvalue-1].starpostnum == player->starpostnum)
+			players[retvalue-1].kartstuff[k_playerahead] = 65536;
+		return 65536; //we're tied!
+	}
+
+	//checkplayerahead does this too!
+	if (!players[retvalue-1].kartstuff[k_playerahead] && me != -1
+		&& players[retvalue-1].laps == player->laps
+		&& players[retvalue-1].starpostnum == player->starpostnum)
+		players[retvalue-1].kartstuff[k_playerahead] = 257 + me;
+
+	return retvalue;
+}
+//
 
 /** Prints death messages relating to a dying or hit player.
   *
@@ -1956,14 +2022,60 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	if (inflictor && (inflictor->type == MT_SHELL || inflictor->type == MT_FIREBALL))
 		P_SetTarget(&target->tracer, inflictor);
 
+	// SRB2kart
+	// I wish I knew a better way to do this
+	if (target->target && target->target->player && target->target->player->mo)
+	{
+		if (target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_greenshell] & 1)
+			target->target->player->kartstuff[k_greenshell] &= ~1;
+		else if (target->type == MT_REDSHIELD && target->target->player->kartstuff[k_redshell] & 1)
+			target->target->player->kartstuff[k_redshell] &= ~1;
+		else if (target->type == MT_BANANASHIELD && target->target->player->kartstuff[k_banana] & 1)
+			target->target->player->kartstuff[k_banana] &= ~1;
+		else if (target->type == MT_FAKESHIELD && target->target->player->kartstuff[k_fakeitem] & 1)
+			target->target->player->kartstuff[k_fakeitem] &= ~1;
+		else if (target->type == MT_BOMBSHIELD && target->target->player->kartstuff[k_bobomb] & 1)
+			target->target->player->kartstuff[k_bobomb] &= ~1;
+		else if (target->type == MT_TRIPLEGREENSHIELD1 && target->target->player->kartstuff[k_triplegreenshell] & 1)
+			target->target->player->kartstuff[k_triplegreenshell] &= ~1;
+		else if (target->type == MT_TRIPLEGREENSHIELD2 && target->target->player->kartstuff[k_triplegreenshell] & 2)
+			target->target->player->kartstuff[k_triplegreenshell] &= ~2;
+		else if (target->type == MT_TRIPLEGREENSHIELD3 && target->target->player->kartstuff[k_triplegreenshell] & 4)
+			target->target->player->kartstuff[k_triplegreenshell] &= ~4;
+		else if (target->type == MT_TRIPLEREDSHIELD1 && target->target->player->kartstuff[k_tripleredshell] & 1)
+			target->target->player->kartstuff[k_tripleredshell] &= ~1;
+		else if (target->type == MT_TRIPLEREDSHIELD2 && target->target->player->kartstuff[k_tripleredshell] & 2)
+			target->target->player->kartstuff[k_tripleredshell] &= ~2;
+		else if (target->type == MT_TRIPLEREDSHIELD3 && target->target->player->kartstuff[k_tripleredshell] & 4)
+			target->target->player->kartstuff[k_tripleredshell] &= ~4;
+		else if (target->type == MT_TRIPLEBANANASHIELD1 && target->target->player->kartstuff[k_triplebanana] & 1)
+			target->target->player->kartstuff[k_triplebanana] &= ~1;
+		else if (target->type == MT_TRIPLEBANANASHIELD2 && target->target->player->kartstuff[k_triplebanana] & 2)
+			target->target->player->kartstuff[k_triplebanana] &= ~2;
+		else if (target->type == MT_TRIPLEBANANASHIELD3 && target->target->player->kartstuff[k_triplebanana] & 4)
+			target->target->player->kartstuff[k_triplebanana] &= ~4;
+	}
+	//
+
 	if (!useNightsSS && G_IsSpecialStage(gamemap) && target->player && sstimer > 6)
 		sstimer = 6; // Just let P_Ticker take care of the rest.
 
 	if (target->flags & (MF_ENEMY|MF_BOSS))
 		target->momx = target->momy = target->momz = 0;
 
-	if (target->type != MT_PLAYER && !(target->flags & MF_MONITOR))
-		target->flags |= MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT; // Don't drop Tails 03-08-2000
+	// SRB2kart
+	if (target->type != MT_PLAYER && !(target->flags & MF_MONITOR)
+		 && !(target->type == MT_GREENITEM || target->type == MT_GREENSHIELD 
+		 || target->type == MT_TRIPLEGREENSHIELD1 || target->type == MT_TRIPLEGREENSHIELD2 || target->type == MT_TRIPLEGREENSHIELD3
+		 || target->type == MT_REDITEM || target->type == MT_REDITEMDUD || target->type == MT_REDSHIELD 
+		 || target->type == MT_TRIPLEREDSHIELD1 || target->type == MT_TRIPLEREDSHIELD2 || target->type == MT_TRIPLEREDSHIELD3
+		 || target->type == MT_BANANAITEM || target->type == MT_BANANASHIELD 
+		 || target->type == MT_TRIPLEBANANASHIELD1 || target->type == MT_TRIPLEBANANASHIELD2 || target->type == MT_TRIPLEBANANASHIELD3
+		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD)) // kart dead items
+		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
+	else
+		target->flags &= ~MF_NOGRAVITY; // lose it if you for whatever reason have it, I'm looking at you shields
+	//
 
 	if (target->flags2 & MF2_NIGHTSPULL)
 		P_SetTarget(&target->tracer, NULL);
@@ -2892,6 +3004,13 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 
 		if (target->type == MT_BLUERINGBOX && !(source->player->ctfteam == 2))
 			return false;
+	}
+
+	// SRB2kart 011617 - Special Case for Pokey so it doesn't die.
+	if (target->type == MT_POKEY)
+	{
+		target->threshold = 1;
+		return false;
 	}
 
 	// Special case for Crawla Commander

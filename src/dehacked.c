@@ -994,6 +994,8 @@ static const struct {
 	{"CHRISTMAS",TOL_XMAS},
 	{"WINTER",TOL_XMAS},
 
+	{"KART",TOL_KART}, // SRB2kart
+
 	{NULL, 0}
 };
 

@@ -38,7 +38,7 @@ void M_StopMovie(void);
 #elif defined (PSP)
 #define CONFIGFILENAME "srb2psp.cfg"
 #else
-#define CONFIGFILENAME "config.cfg"
+#define CONFIGFILENAME "kartconfig.cfg"
 #endif
 
 INT32 M_MapNumber(char first, char second);

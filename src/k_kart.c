@@ -9,6 +9,7 @@
 #include "g_game.h"
 #include "m_random.h"
 #include "p_local.h"
+#include "p_slopes.h"
 #include "r_draw.h"
 #include "r_local.h"
 #include "s_sound.h"
@@ -898,7 +899,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	// This spawns the drift sparks when k_driftcharge hits 30. Its own AI handles life/death and color
-	if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) 
+	if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) 
 		&& player->kartstuff[k_driftcharge] == 30)
 		P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
 	
@@ -911,11 +912,17 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_spinouttimer])
 		player->kartstuff[k_spinouttimer]--;
 	
+	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == flashingtics)
+		player->powers[pw_flashing]--;
+	
 	if (player->kartstuff[k_magnettimer])
 		player->kartstuff[k_magnettimer]--;
 	
 	if (player->kartstuff[k_mushroomtimer])
 		player->kartstuff[k_mushroomtimer]--;
+	
+	if (player->kartstuff[k_floorboost])
+		player->kartstuff[k_floorboost]--;
 	
 	if (player->kartstuff[k_startimer])
 		player->kartstuff[k_startimer]--;
@@ -1026,23 +1033,26 @@ void K_PlayTauntSound(mobj_t *source)
 		S_StartSound(source, sfx_taunt4);
 }
 
-boolean K_SpinPlayer(player_t *player, mobj_t *source)
+void K_SpinPlayer(player_t *player, mobj_t *source)
 {
 	if (player->health <= 0)
-		return false;
+		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
-		return false;
+		return;
 
 	player->kartstuff[k_mushroomtimer] = 0;
 
-	if (player->kartstuff[k_spinouttype] == 0)
+	if (player->kartstuff[k_spinouttype] <= 0)
 	{
-		player->kartstuff[k_spinouttimer] = 2*TICRATE;
+		if (player->kartstuff[k_spinouttype] == 0)
+			player->kartstuff[k_spinouttimer] = 2*TICRATE;
+		else
+			player->kartstuff[k_spinouttimer] = 3*TICRATE/2;
 
 		if (player->speed < player->normalspeed/4)
-			P_InstaThrust(player->mo, player->mo->angle, player->normalspeed*FRACUNIT/4);
+			P_InstaThrust(player->mo, player->mo->angle, FixedMul(player->normalspeed/4, player->mo->scale));
 
 		S_StartSound(player->mo, sfx_slip);
 	}
@@ -1058,17 +1068,17 @@ boolean K_SpinPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_spinouttype] = 0;
 
-	return true;
+	return;
 }
 
-boolean K_SquishPlayer(player_t *player, mobj_t *source)
+void K_SquishPlayer(player_t *player, mobj_t *source)
 {
 	if (player->health <= 0)
-		return false;
+		return;
 
 	if (player->powers[pw_flashing] > 0	|| player->kartstuff[k_squishedtimer] > 0 
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
-		return false;
+		return;
 
 	player->kartstuff[k_mushroomtimer] = 0;
 
@@ -1083,17 +1093,17 @@ boolean K_SquishPlayer(player_t *player, mobj_t *source)
 
 	P_PlayRinglossSound(player->mo);
 
-	return true;
+	return;
 }
 
-boolean K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
+void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
 	if (player->health <= 0)
-		return false;
+		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
-		return false;
+		return;
 
 	player->mo->momz = 18*FRACUNIT;
 	player->mo->momx = player->mo->momy = 0;
@@ -1113,7 +1123,7 @@ boolean K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we
 
 	P_PlayRinglossSound(player->mo);
 
-	return true;
+	return;
 }
 
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit)
@@ -1281,7 +1291,7 @@ void K_SpawnDriftTrail(player_t *player)
 				ground -= FixedMul(mobjinfo[MT_MUSHROOMTRAIL].height, player->mo->scale);
 		}
 #endif
-		if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && player->kartstuff[k_mushroomtimer] == 0)
+		if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) && player->kartstuff[k_mushroomtimer] == 0)
 			flame = P_SpawnMobj(newx, newy, ground, MT_DRIFTSMOKE);
 		else
 			flame = P_SpawnMobj(newx, newy, ground, MT_MUSHROOMTRAIL);
@@ -1558,9 +1568,11 @@ static void K_DoBooSteal(player_t * player)
 
 void K_DoMushroom(player_t *player, boolean doPFlag)
 {
-	S_StartSound(player->mo, sfx_mush);
+	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+		S_StartSound(player->mo, sfx_mush);
+
 	player->kartstuff[k_mushroomtimer] = mushroomtime;
-	
+
 	if (doPFlag)
 		player->pflags |= PF_ATTACKDOWN;
 
@@ -1592,6 +1604,187 @@ void K_DoLightning(player_t *player, boolean bluelightning)
 
 	K_PlayTauntSound(player->mo);
 	player->kartstuff[k_sounds] = 70;
+}
+
+void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
+{
+	// Drifting is actually straffing + automatic turning.
+	// Holding the Jump button will enable drifting.
+	if (cmd->buttons & BT_DRIFTRIGHT)
+		player->kartstuff[k_turndir] = 1;
+	else if (cmd->buttons & BT_DRIFTLEFT)
+		player->kartstuff[k_turndir] = -1;
+	else
+		player->kartstuff[k_turndir] = 0;
+
+	// Drift Release (Moved here so you can't "chain" drifts)
+	if ((player->kartstuff[k_drift] == 0) 
+		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
+		&& player->kartstuff[k_driftcharge] < 30
+		&& onground)
+	{
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+	else if ((player->kartstuff[k_drift] == 0) 
+		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
+		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
+		&& onground)
+	{
+		player->powers[pw_sneakers] += 17;
+		S_StartSound(player->mo, sfx_mush);
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+	else if ((player->kartstuff[k_drift] == 0) 
+		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
+		&& player->kartstuff[k_driftcharge] >= 60
+		&& onground)
+	{
+		player->powers[pw_sneakers] += 35;
+		S_StartSound(player->mo, sfx_mush);
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+
+	// Drifting: left or right?
+	if (player->kartstuff[k_turndir] == 1 && player->speed > 10 && player->kartstuff[k_jmp] == 1
+		&& player->kartstuff[k_drift] < 3 && player->kartstuff[k_drift] > -1) // && player->kartstuff[k_drift] != 1)
+		player->kartstuff[k_drift] = 1;
+	else if (player->kartstuff[k_turndir] == -1 && player->speed > 10 && player->kartstuff[k_jmp] == 1
+		&& player->kartstuff[k_drift] > -3 && player->kartstuff[k_drift] < 1) // && player->kartstuff[k_drift] != -1)
+		player->kartstuff[k_drift] = -1;
+	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
+		player->kartstuff[k_drift] = 0;
+
+	// Incease/decrease the drift value to continue drifting in that direction
+	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground
+		&& (player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1))
+	{
+		player->kartstuff[k_driftcharge]++;
+
+		if (player->kartstuff[k_drift] >= 1) // Drifting to the Right
+		{
+			player->kartstuff[k_drift]++;
+			if (player->kartstuff[k_drift] > 3)
+				player->kartstuff[k_drift] = 3;
+			
+			// Left = +450 Right = -450
+			// Player 1
+			if (player == &players[consoleplayer])
+			{
+				if (player->kartstuff[k_turndir] == -1)     // Turning Left  while Drifting Right
+					localangle -=  600*FRACUNIT;
+				else if (player->kartstuff[k_turndir] == 1) // Turning Right while Drifting Right
+					localangle -=  225*FRACUNIT;
+				else                                        // No Direction  while Drifting Right
+					localangle -=  450*FRACUNIT;
+			}
+
+			// Player 2
+			if (splitscreen	&& player == &players[secondarydisplayplayer])
+			{
+				
+			}
+		}
+		else if (player->kartstuff[k_drift] <= -1) // Drifting to the Left
+		{
+			player->kartstuff[k_drift]--;
+			if (player->kartstuff[k_drift] < -3)
+				player->kartstuff[k_drift] = -3;
+			
+			// Left = +450 Right = -450
+			// Player 1
+			if (player == &players[consoleplayer])
+			{
+				if (player->kartstuff[k_turndir] == 1)       // Turning Right  while Drifting Left
+					localangle +=  600*FRACUNIT;
+				else if (player->kartstuff[k_turndir] == -1) // Turning Left while Drifting Left
+					localangle +=  225*FRACUNIT;
+				else                                         // No Direction  while Drifting Left
+					localangle +=  450*FRACUNIT;
+			}
+
+			// Player 2
+			if (splitscreen	&& player == &players[secondarydisplayplayer] && player->kartstuff[k_turndir] == 1)
+				localangle2 += (300+192)*FRACUNIT;
+			else if (splitscreen && player == &players[secondarydisplayplayer])
+				localangle2 += (300)*FRACUNIT;
+		}
+	}
+
+	// Stop drifting
+	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
+	|| player->speed < 10) // you're too slow!
+	{
+		player->kartstuff[k_drift] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
+}
+
+UINT64 K_GetKartSpeed(player_t *player)
+{
+	UINT64 k_speed = 47*FRACUNIT + FRACUNIT/2;
+	
+	// Speed is a value between 48 and 52, incremented by halves
+	k_speed += player->kartspeed*FRACUNIT/2;
+	
+	return k_speed;
+}
+
+UINT64 K_GetKartAccel(player_t *player)
+{
+	UINT64 k_accel = 45;
+	
+	// Acceleration is a given base, minus the speed value.
+	k_accel -= 3*player->kartspeed;
+	
+	return k_accel;
+}
+
+fixed_t K_3dKartMovement(player_t *player, boolean onground)
+{
+	// If the player isn't on the ground, there is no change in speed
+	if (!onground) return 0;
+	
+	fixed_t accelmax = 2000;	// AccelMax
+	fixed_t f_beater = 2*FRACUNIT - (0xE8<<(FRACBITS-8)); //1.10345f;	// Friction Beater  Friction = (0xE8 << (FRACBITS-8))
+	fixed_t g_cc = 1*FRACUNIT; 					// Game CC
+	
+	fixed_t newspeed, oldspeed, finalspeed;
+	fixed_t boostpower = 1*FRACUNIT;
+	fixed_t p_speed = K_GetKartSpeed(player);
+	fixed_t p_accel = K_GetKartAccel(player);
+	
+	sector_t *nextsector = R_PointInSubsector(player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
+	
+	// Determine boostpower by checking every power. There's probably a cleaner way to do this, but eh whatever.
+	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->powers[pw_sneakers] || 
+		  player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1) && P_IsObjectOnGround(player->mo) &&
+		  nextsector->special & 256 && nextsector->special != 768 && (nextsector->special != 1024 || nextsector->special != 4864))
+													boostpower = FixedMul(boostpower, FRACUNIT/4);	// Off-road, unless you're ignoring off-road.
+	if (player->kartstuff[k_growshrinktimer] < -1) 	boostpower = FixedMul(boostpower, FRACUNIT/3);	// Shrink
+	if (player->kartstuff[k_squishedtimer] > 0) 	boostpower = FixedMul(boostpower, FRACUNIT/2);	// Squished
+	if (player->powers[pw_sneakers]) 				boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/4);	// Slide Boost
+	if (player->kartstuff[k_growshrinktimer] > 1) 	boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/3);	// Mega Mushroom
+	if (player->kartstuff[k_startimer]) 			boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/2);	// Star
+	if (player->kartstuff[k_mushroomtimer]) 		boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/1);	// Mushroom
+	
+	// Boostpower is applied to each stat individually, and NOT the calculation.
+	// Applying to the calculation fails due to friction never getting beaten, or getting overshot really far.
+	// It's easier this way.
+	// Similarly, the CC of the game is also multiplied directly. 
+	// This assures a growth in speed without affecting acceleration curving.
+	p_speed  = FixedMul(FixedMul(p_speed,  boostpower), g_cc);
+	p_accel  = FixedMul(FixedMul(p_accel,  boostpower), g_cc);
+	accelmax = FixedMul(FixedMul(accelmax, boostpower), g_cc);
+
+	// Now, the code that made Iceman's eyes rub erotically against a toaster.
+	oldspeed = FixedMul(FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale), f_beater);
+	newspeed = FixedMul(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), f_beater);
+	finalspeed = newspeed - oldspeed;
+
+	return (fixed_t)finalspeed;
 }
 
 void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
@@ -1972,9 +2165,9 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		if (player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0 && onground)
 		{
 			cmd->forwardmove = 1;
-			if (player->kartstuff[k_drift] == 1)
+			if (player->kartstuff[k_drift] >= 1)
 				P_InstaThrust(player->mo, player->mo->angle+ANGLE_45, 55*FRACUNIT);
-			else if (player->kartstuff[k_drift] == -1)
+			else if (player->kartstuff[k_drift] <= -1)
 				P_InstaThrust(player->mo, player->mo->angle-ANGLE_45, 55*FRACUNIT);
 			else
 				P_InstaThrust(player->mo, player->mo->angle, 55*FRACUNIT);
@@ -2020,79 +2213,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 	if (splitscreen && player == &players[secondarydisplayplayer])
 		CV_SetValue(&cv_cam2_dist, 190);
 
-	// DRRRRIIIIFFFFFFTTT!!!!
-	// Drifting is actually straffing + automatic turning.
-	// Holding the Jump button will enable drifting.
-
-	// Instead of instantly straffing, you go from running
-	// straight to slowly turning left/right.
-	// 536870912 is the normal straffing angle, 90 degrees.
-	// 35791394 is the speed that's added from 0 to 90.
-
-	// localangle is SRB2's turning code, not angle direction.
-	// Adding or subtracting by 300 is how much you can turn.
-	// The higher it is, the faster you turn.
-
-	if (cmd->buttons & BT_DRIFTRIGHT)
-		player->kartstuff[k_turndir] = 1;
-	else if (cmd->buttons & BT_DRIFTLEFT)
-		player->kartstuff[k_turndir] = -1;
-	else
-		player->kartstuff[k_turndir] = 0;
-
-	// Moved here so you can't "chain" drifts
-	// Drift Release
-	if (((player->kartstuff[k_drift] == 0) || (player->kartstuff[k_drift] == 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] == -1 && player->kartstuff[k_turndir] != -1))
-		&& player->kartstuff[k_driftcharge] < 30
-		&& onground)
-	{
-		player->kartstuff[k_drift] = 0;
-		player->kartstuff[k_driftcharge] = 0;
-	}
-	else if (((player->kartstuff[k_drift] == 0) || (player->kartstuff[k_drift] == 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] == -1 && player->kartstuff[k_turndir] != -1))
-		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
-		&& onground)
-	{
-		player->powers[pw_sneakers] += 17;
-		S_StartSound(player->mo, sfx_mush);
-		player->kartstuff[k_drift] = 0;
-		player->kartstuff[k_driftcharge] = 0;
-	}
-	else if (((player->kartstuff[k_drift] == 0) || (player->kartstuff[k_drift] == 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] == -1 && player->kartstuff[k_turndir] != -1))
-		&& player->kartstuff[k_driftcharge] >= 60
-		&& onground)
-	{
-		player->powers[pw_sneakers] += 35;
-		S_StartSound(player->mo, sfx_mush);
-		player->kartstuff[k_drift] = 0;
-		player->kartstuff[k_driftcharge] = 0;
-	}
-
-	if (player->kartstuff[k_turndir] == 1 && player->speed > 10
-		&& player->kartstuff[k_jmp] == 1
-		&& player->kartstuff[k_drift] != 1)
-		player->kartstuff[k_drift] = 1;
-	else if (player->kartstuff[k_turndir] == -1 && player->speed > 10
-		&& player->kartstuff[k_jmp] == 1
-		&& player->kartstuff[k_drift] != -1)
-		player->kartstuff[k_drift] = -1;
-	else if (player->kartstuff[k_jmp] == 0 || player->kartstuff[k_turndir] == 0)
-		player->kartstuff[k_drift] = 0;
-
-	// If you press any strafe key while turning right, then drift right.
-	if (player->kartstuff[k_spinouttimer] == 0
-	&& player->kartstuff[k_jmp] == 1 && (player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1)
-	&& onground) //Right
-	{
-		player->kartstuff[k_driftcharge]++;
-	}
-	// Stop drifting
-	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
-	|| player->speed < 10) // you're too slow!
-	{
-		player->kartstuff[k_drift] = 0;
-		player->kartstuff[k_driftcharge] = 0;
-	}
+	K_KartDrift(player, cmd, onground);
 
 	// Quick Turning
 	// You can't turn your kart when you're not moving.
@@ -2161,7 +2282,6 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		}
 	}
 	*/
-	player->kartstuff[k_boostcharge] = 0;
 	
 	// Play the stop light's sounds
 	if ((leveltime == (TICRATE-4)*2) || (leveltime == (TICRATE-2)*3))
@@ -2175,7 +2295,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		player->kartstuff[k_boostcharge] = 0;
 	// Increase your size while charging your engine.
 	if (leveltime < 150)
-		player->mo->destscale = FRACUNIT*((100 + player->kartstuff[k_boostcharge])/100);
+		player->mo->destscale = FRACUNIT + (player->kartstuff[k_boostcharge]*655);
 
 	// Determine the outcome of your charge.
 	if (leveltime > 140 && player->kartstuff[k_boostcharge])
@@ -2187,7 +2307,10 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		if (player->kartstuff[k_boostcharge] > 10)
-			player->kartstuff[k_boostcharge] = 40;
+		{
+			player->powers[pw_nocontrol] = 40;
+			S_StartSound(player->mo, sfx_slip);
+		}
 
 		player->kartstuff[k_boostcharge] = 0;
 	}
@@ -2351,6 +2474,7 @@ static patch_t *kp_blueshell;
 static patch_t *kp_fireflower;
 static patch_t *kp_tripleredshell;
 static patch_t *kp_lightning;
+static patch_t *kp_kitchensink;
 static patch_t *kp_itemused1;
 static patch_t *kp_itemused2;
 static patch_t *kp_itemused3;
@@ -2447,6 +2571,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_fireflower = 			W_CachePatchName("K_ITFIRE", PU_HUDGFX);
 	kp_tripleredshell = 		W_CachePatchName("K_ITTRED", PU_HUDGFX);
 	kp_lightning = 				W_CachePatchName("K_ITLIGH", PU_HUDGFX);
+	kp_kitchensink = 			W_CachePatchName("K_ITSINK", PU_HUDGFX);
 	
 	// Item-used - Closing the item window after an item is used
 	kp_itemused1 = 				W_CachePatchName("K_ITUSE1", PU_HUDGFX);
@@ -2725,6 +2850,7 @@ static void K_drawKartRetroItem(void)
 	if 		((stplyr->kartstuff[k_bootaketimer] > 0 
 		|| stplyr->kartstuff[k_boostolentimer] > 0) && (leveltime & 2)) 	localpatch = kp_boosteal;
 	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))	localpatch = kp_noitem;
+	else if (stplyr->kartstuff[k_kitchensink] == 1)							localpatch = kp_kitchensink;
 	else if (stplyr->kartstuff[k_lightning] == 1)							localpatch = kp_lightning;
 	else if (stplyr->kartstuff[k_tripleredshell] & 8)						localpatch = kp_tripleredshell;
 	else if (stplyr->kartstuff[k_fireflower] == 1)							localpatch = kp_fireflower;
@@ -3083,15 +3209,9 @@ void K_drawKartHUD(void)
 	K_DrawKartPositionNum(stplyr->kartstuff[k_spinout]);
 	//K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 	
-	// Why is this here?????
-	/*
+	// Plays the music after the starting countdown. This is here since it checks every frame regularly.
 	if (leveltime > 157 && leveltime < (TICRATE+1)*7)
-	{
-		if (!(mapmusic & 2048)) // TODO: Might not need this here
-			mapmusic = mapheaderinfo[gamemap-1].musicslot;
-
-		S_ChangeMusic(mapmusic & 2047, true);
-	}*/
+		S_ChangeMusicInternal(mapmusname, true);
 }
 
 //}

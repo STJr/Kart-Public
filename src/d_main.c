@@ -259,7 +259,7 @@ static void D_Display(void)
 		{
 			if (intertype == int_spec) // Special Stage
 				wipedefindex = wipe_specinter_toblack;
-			else if (intertype != int_coop) // Multiplayer
+			else //if (intertype != int_coop) // Multiplayer
 				wipedefindex = wipe_multinter_toblack;
 		}
 
@@ -642,7 +642,7 @@ void D_StartTitle(void)
 	INT32 i;
 	if (netgame)
 	{
-		if (gametype == GT_COOP)
+		if (gametype == GT_RACE) // SRB2kart
 		{
 			G_SetGamestate(GS_WAITINGPLAYERS); // hack to prevent a command repeat
 
@@ -687,7 +687,7 @@ void D_StartTitle(void)
 	playerdeadview = false;
 	displayplayer = consoleplayer = 0;
 	//demosequence = -1;
-	gametype = GT_COOP;
+	gametype = GT_RACE; // SRB2kart
 	paused = false;
 	advancedemo = false;
 	F_StartTitleScreen();
@@ -1244,9 +1244,9 @@ void D_SRB2Main(void)
 
 	// user settings come before "+" parameters.
 	if (dedicated)
-		COM_ImmedExecute(va("exec \"%s"PATHSEP"adedserv.cfg\"\n", srb2home));
+		COM_ImmedExecute(va("exec \"%s"PATHSEP"kartserv.cfg\"\n", srb2home));
 	else
-		COM_ImmedExecute(va("exec \"%s"PATHSEP"autoexec.cfg\" -noerror\n", srb2home));
+		COM_ImmedExecute(va("exec \"%s"PATHSEP"kartexec.cfg\" -noerror\n", srb2home));
 
 	if (!autostart)
 		M_PushSpecialParameters(); // push all "+" parameters at the command buffer

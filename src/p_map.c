@@ -24,6 +24,7 @@
 #include "r_sky.h"
 #include "s_sound.h"
 #include "w_wad.h"
+#include "k_kart.h" // SRB2kart 011617
 
 #include "r_splats.h"
 
@@ -552,6 +553,537 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return false; // stop moving
 		}
 	}
+
+	// SRB2kart 011617 - Colission code for kart items //{
+	
+	if (tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD || 
+		tmthing->type == MT_GREENSHIELD || tmthing->type == MT_REDSHIELD || 
+		tmthing->type == MT_TRIPLEGREENSHIELD1 || tmthing->type == MT_TRIPLEGREENSHIELD2 || tmthing->type == MT_TRIPLEGREENSHIELD3 || 
+		tmthing->type == MT_TRIPLEREDSHIELD1 || tmthing->type == MT_TRIPLEREDSHIELD2 || tmthing->type == MT_TRIPLEREDSHIELD3)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
+			return true;
+
+		if (tmthing->health <= 0 || thing->health <= 0)
+			return true;
+
+		if (((tmthing->type == MT_TRIPLEGREENSHIELD1 || tmthing->type == MT_TRIPLEGREENSHIELD2 || tmthing->type == MT_TRIPLEGREENSHIELD3
+			|| tmthing->type == MT_TRIPLEREDSHIELD1 || tmthing->type == MT_TRIPLEREDSHIELD2 || tmthing->type == MT_TRIPLEREDSHIELD3)
+			&& (thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
+			|| thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3))
+			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
+			return true;
+
+		if (thing->type == MT_PLAYER)
+		{
+			// Player Damage
+			P_DamageMobj(thing, tmthing, tmthing->target, 1);
+
+
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
+			|| thing->type == MT_GREENSHIELD || thing->type == MT_REDSHIELD
+			|| thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
+			|| thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
+			|| thing->type == MT_BANANAITEM || thing->type == MT_BANANASHIELD
+			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
+			)
+		{
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+			
+
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_FAKEITEM || thing->type == MT_FAKESHIELD)
+		{
+			if (tmthing->type == MT_GREENSHIELD || tmthing->type == MT_REDSHIELD
+				|| tmthing->type == MT_TRIPLEGREENSHIELD1 || tmthing->type == MT_TRIPLEGREENSHIELD2 || tmthing->type == MT_TRIPLEGREENSHIELD3
+				|| tmthing->type == MT_TRIPLEREDSHIELD1 || tmthing->type == MT_TRIPLEREDSHIELD2 || tmthing->type == MT_TRIPLEREDSHIELD3)
+			{
+				// This Item Damage
+				if (tmthing->eflags & MFE_VERTICALFLIP)
+					tmthing->z -= tmthing->height;
+				else
+					tmthing->z += tmthing->height;
+
+				S_StartSound(tmthing, tmthing->info->deathsound);
+				P_KillMobj(tmthing, thing, thing);
+
+				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+			}
+			
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM)
+		{
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+
+
+			// Bomb death
+			P_KillMobj(thing, tmthing, tmthing);
+		}
+		else if (thing->flags & MF_SPRING && (tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD || tmthing->type == MT_GREENITEM))
+			P_DoSpring(thing, tmthing);
+
+		return true;
+	}
+	else if (tmthing->flags & MF_SPRING && (thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD || thing->type == MT_GREENITEM))
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (thing->health <= 0)
+			return true;
+
+		P_DoSpring(tmthing, thing);
+
+		return true;
+	}
+	else if (tmthing->type == MT_SINK)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
+			return true;
+
+		if (thing->type == MT_PLAYER)
+		{
+			S_StartSound(NULL, sfx_cgot); //let all players hear it.
+			HU_SetCEchoFlags(0);
+			HU_SetCEchoDuration(5);
+			HU_DoCEcho(va("%s\\was hit by a kitchen sink.\\\\\\\\", player_names[thing->player-players]));
+			I_OutputMsg("%s was hit by a kitchen sink.\n", player_names[thing->player-players]);
+			P_DamageMobj(thing, tmthing, tmthing->target, 10000);
+			P_KillMobj(tmthing, thing, thing);
+		}
+
+		return true;
+	}
+	else if (tmthing->type == MT_BOMBEXPLOSION)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (!(thing->type == MT_PLAYER))
+			return true;
+
+		if (thing->type == MT_PLAYER)
+		{
+			K_SpinPlayer(thing->player, tmthing->target);
+		}
+
+		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
+	}
+	else if (tmthing->type == MT_BANANASHIELD || tmthing->type == MT_BANANAITEM 
+		|| tmthing->type == MT_TRIPLEBANANASHIELD1 || tmthing->type == MT_TRIPLEBANANASHIELD2 || tmthing->type == MT_TRIPLEBANANASHIELD3)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
+			return true;
+
+		if (tmthing->health <= 0 || thing->health <= 0)
+			return true;
+
+		if (((tmthing->type == MT_BANANASHIELD || tmthing->type == MT_TRIPLEBANANASHIELD1 || tmthing->type == MT_TRIPLEBANANASHIELD2 || tmthing->type == MT_TRIPLEBANANASHIELD3)
+			&& (thing->type == MT_BANANASHIELD || thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3))
+			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
+			return true;
+
+		if (thing->type == MT_PLAYER)
+		{
+			// Player Damage
+			K_SpinPlayer(thing->player, tmthing->target);
+
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_BANANASHIELD || thing->type == MT_BANANAITEM
+			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
+			|| thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
+			|| thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
+			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3)
+		{
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+			
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_FAKEITEM || thing->type == MT_FAKESHIELD)
+		{
+			if (tmthing->type == MT_BANANASHIELD || tmthing->type == MT_TRIPLEBANANASHIELD1 || tmthing->type == MT_TRIPLEBANANASHIELD2 || tmthing->type == MT_TRIPLEBANANASHIELD3)
+			{
+				// This Item Damage
+				if (tmthing->eflags & MFE_VERTICALFLIP)
+					tmthing->z -= tmthing->height;
+				else
+					tmthing->z += tmthing->height;
+
+				S_StartSound(tmthing, tmthing->info->deathsound);
+				P_KillMobj(tmthing, thing, thing);
+
+				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+			}
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+
+		return true;
+	}
+	else if (tmthing->type == MT_FAKESHIELD || tmthing->type == MT_FAKEITEM)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
+			return true;
+
+		if (tmthing->health <= 0 || thing->health <= 0)
+			return true;
+
+		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
+			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD 
+			|| thing->type == MT_BOMBITEM
+			|| thing->type == MT_BANANAITEM)
+		{
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3 // When these items collide with the fake item, both of them are destroyed
+			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
+			|| thing->type == MT_BOMBSHIELD 
+			|| thing->type == MT_BANANASHIELD || thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
+			|| thing->type == MT_FAKEITEM || thing->type == MT_FAKESHIELD)
+		{
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+			
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_PLAYER)
+		{
+			// Player Damage
+			P_DamageMobj(thing, tmthing, tmthing->target, 1);
+
+			// This Item Damage
+			if (tmthing->eflags & MFE_VERTICALFLIP)
+				tmthing->z -= tmthing->height;
+			else
+				tmthing->z += tmthing->height;
+
+			S_StartSound(tmthing, tmthing->info->deathsound);
+			P_KillMobj(tmthing, thing, thing);
+
+			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
+			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+
+		return true;
+	}
+	else if (tmthing->type == MT_BOMBSHIELD || tmthing->type == MT_BOMBITEM)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
+			return true;
+
+		if (tmthing->health <= 0 || thing->health <= 0)
+			return true;
+
+		if (thing->type == MT_PLAYER) 
+		{
+			P_KillMobj(tmthing, thing, thing);
+		}
+		else if (thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
+			|| thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
+			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3)
+		{
+			P_KillMobj(tmthing, thing, thing);
+
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+
+		return true;
+	}
+	else if (tmthing->type == MT_PLAYER && 
+			(thing->type == MT_GREENSHIELD || thing->type == MT_GREENITEM
+			|| thing->type == MT_REDSHIELD || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
+			|| thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
+			|| thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
+			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM
+			|| thing->type == MT_BANANASHIELD || thing->type == MT_BANANAITEM
+			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3 
+			|| thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM
+			|| thing->type == MT_BOMBEXPLOSION
+			|| thing->type == MT_SINK
+			))
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
+			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
+			|| thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
+			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM)
+		{
+			if ((thing->target == tmthing) && (thing->threshold > 0))
+				return true;
+
+			if (tmthing->health <= 0 || thing->health <= 0)
+				return true;
+
+			// Player Damage
+			P_DamageMobj(tmthing, thing, thing->target, 1);
+
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_BANANASHIELD || thing->type == MT_BANANAITEM
+			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3)
+		{
+			if ((thing->target == tmthing) && (thing->threshold > 0))
+				return true;
+
+			if (tmthing->health <= 0 || thing->health <= 0)
+				return true;
+
+			// Player Damage
+			K_SpinPlayer(tmthing->player, thing->target);
+
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_KillMobj(thing, tmthing, tmthing);
+
+			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
+			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM)
+		{
+			if ((thing->target == tmthing) && (thing->threshold > 0))
+				return true;
+
+			if (tmthing->health <= 0 || thing->health <= 0)
+				return true;
+
+			P_KillMobj(thing, tmthing, tmthing);
+		}
+		else if (thing->type == MT_BOMBEXPLOSION)
+		{
+			// Player Damage
+			K_SpinPlayer(tmthing->player, thing->target);
+
+			return true;
+		}
+		else if (thing->type == MT_SINK)
+		{
+			if ((thing->target == tmthing) && (thing->threshold > 0))
+				return true;
+
+			S_StartSound(NULL, sfx_cgot); //let all players hear it.
+			HU_SetCEchoFlags(0);
+			HU_SetCEchoDuration(5);
+			HU_DoCEcho(va("%s\\was hit by a kitchen sink.\\\\\\\\", player_names[tmthing->player-players]));
+			I_OutputMsg("%s was hit by a kitchen sink.\n", player_names[tmthing->player-players]);
+			P_DamageMobj(tmthing, thing, thing->target, 10000);
+			P_KillMobj(thing, tmthing, tmthing);
+		}
+
+		return true;
+	}
+
+
+	if (thing->type == MT_POKEY)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (tmthing->type == MT_ENEMYFLIP)
+		{
+			if (tmthing->angle)
+				P_SetMobjState(thing, S_POKEY5);
+			else
+				P_SetMobjState(thing, S_POKEY1);
+		}
+		if (tmthing->type == MT_PLAYER && !thing->threshold)
+			P_DamageMobj(tmthing, thing, thing->target, 1);
+	}
+	
+	//}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
 	 && (tmthing->player || (tmthing->flags & MF_PUSHABLE)) && tmthing->health > 0)

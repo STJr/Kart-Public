@@ -56,7 +56,8 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","SPRK","KFRE","DRIF","DSMO","FAKE","DFAK","BANA",
-	"DBAN","GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH"
+	"DBAN","GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH",
+	"SINK","SITR","POKE"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2589,30 +2590,30 @@ state_t states[NUMSTATES] =
 	{SPR_KFRE, FF_FULLBRIGHT|5,  2, {NULL}, 0, 0, S_KARTFIRE8}, // S_KARTFIRE7
 	{SPR_KFRE, FF_FULLBRIGHT|6,  2, {NULL}, 0, 0, S_NULL},      // S_KARTFIRE8
 
-	{SPR_FAKE,  0,   3, {NULL}, 0, 0, S_FAKEITEM2},  // S_FAKEITEM1
-	{SPR_FAKE,  1,   3, {NULL}, 0, 0, S_FAKEITEM3},  // S_FAKEITEM2
-	{SPR_FAKE,  2,   3, {NULL}, 0, 0, S_FAKEITEM4},  // S_FAKEITEM3
-	{SPR_FAKE,  3,   3, {NULL}, 0, 0, S_FAKEITEM5},  // S_FAKEITEM4
-	{SPR_FAKE,  4,   3, {NULL}, 0, 0, S_FAKEITEM6},  // S_FAKEITEM5
-	{SPR_FAKE,  5,   3, {NULL}, 0, 0, S_FAKEITEM7},  // S_FAKEITEM6
-	{SPR_FAKE,  6,   3, {NULL}, 0, 0, S_FAKEITEM8},  // S_FAKEITEM7
-	{SPR_FAKE,  7,   3, {NULL}, 0, 0, S_FAKEITEM9},  // S_FAKEITEM8
-	{SPR_FAKE,  8,   3, {NULL}, 0, 0, S_FAKEITEM10}, // S_FAKEITEM9
-	{SPR_FAKE,  9,   3, {NULL}, 0, 0, S_FAKEITEM11}, // S_FAKEITEM10
-	{SPR_FAKE, 10,   3, {NULL}, 0, 0, S_FAKEITEM12}, // S_FAKEITEM11
-	{SPR_FAKE, 11,   3, {NULL}, 0, 0, S_FAKEITEM13}, // S_FAKEITEM12
-	{SPR_FAKE, 12,   3, {NULL}, 0, 0, S_FAKEITEM14}, // S_FAKEITEM13
-	{SPR_FAKE, 13,   3, {NULL}, 0, 0, S_FAKEITEM15}, // S_FAKEITEM14
-	{SPR_FAKE, 14,   3, {NULL}, 0, 0, S_FAKEITEM16}, // S_FAKEITEM15
-	{SPR_FAKE, 15,   3, {NULL}, 0, 0, S_FAKEITEM17}, // S_FAKEITEM16
-	{SPR_FAKE, 16,   3, {NULL}, 0, 0, S_FAKEITEM18}, // S_FAKEITEM17
-	{SPR_FAKE, 17,   3, {NULL}, 0, 0, S_FAKEITEM19}, // S_FAKEITEM18
-	{SPR_FAKE, 18,   3, {NULL}, 0, 0, S_FAKEITEM20}, // S_FAKEITEM19
-	{SPR_FAKE, 19,   3, {NULL}, 0, 0, S_FAKEITEM21}, // S_FAKEITEM20
-	{SPR_FAKE, 20,   3, {NULL}, 0, 0, S_FAKEITEM22}, // S_FAKEITEM21
-	{SPR_FAKE, 21,   3, {NULL}, 0, 0, S_FAKEITEM23}, // S_FAKEITEM22
-	{SPR_FAKE, 22,   3, {NULL}, 0, 0, S_FAKEITEM24}, // S_FAKEITEM23
-	{SPR_FAKE, 23,   3, {NULL}, 0, 0, S_FAKEITEM1},  // S_FAKEITEM24
+	{SPR_FITE,  0,   3, {NULL}, 0, 0, S_FAKEITEM2},  // S_FAKEITEM1
+	{SPR_FITE,  1,   3, {NULL}, 0, 0, S_FAKEITEM3},  // S_FAKEITEM2
+	{SPR_FITE,  2,   3, {NULL}, 0, 0, S_FAKEITEM4},  // S_FAKEITEM3
+	{SPR_FITE,  3,   3, {NULL}, 0, 0, S_FAKEITEM5},  // S_FAKEITEM4
+	{SPR_FITE,  4,   3, {NULL}, 0, 0, S_FAKEITEM6},  // S_FAKEITEM5
+	{SPR_FITE,  5,   3, {NULL}, 0, 0, S_FAKEITEM7},  // S_FAKEITEM6
+	{SPR_FITE,  6,   3, {NULL}, 0, 0, S_FAKEITEM8},  // S_FAKEITEM7
+	{SPR_FITE,  7,   3, {NULL}, 0, 0, S_FAKEITEM9},  // S_FAKEITEM8
+	{SPR_FITE,  8,   3, {NULL}, 0, 0, S_FAKEITEM10}, // S_FAKEITEM9
+	{SPR_FITE,  9,   3, {NULL}, 0, 0, S_FAKEITEM11}, // S_FAKEITEM10
+	{SPR_FITE, 10,   3, {NULL}, 0, 0, S_FAKEITEM12}, // S_FAKEITEM11
+	{SPR_FITE, 11,   3, {NULL}, 0, 0, S_FAKEITEM13}, // S_FAKEITEM12
+	{SPR_FITE, 12,   3, {NULL}, 0, 0, S_FAKEITEM14}, // S_FAKEITEM13
+	{SPR_FITE, 13,   3, {NULL}, 0, 0, S_FAKEITEM15}, // S_FAKEITEM14
+	{SPR_FITE, 14,   3, {NULL}, 0, 0, S_FAKEITEM16}, // S_FAKEITEM15
+	{SPR_FITE, 15,   3, {NULL}, 0, 0, S_FAKEITEM17}, // S_FAKEITEM16
+	{SPR_FITE, 16,   3, {NULL}, 0, 0, S_FAKEITEM18}, // S_FAKEITEM17
+	{SPR_FITE, 17,   3, {NULL}, 0, 0, S_FAKEITEM19}, // S_FAKEITEM18
+	{SPR_FITE, 18,   3, {NULL}, 0, 0, S_FAKEITEM20}, // S_FAKEITEM19
+	{SPR_FITE, 19,   3, {NULL}, 0, 0, S_FAKEITEM21}, // S_FAKEITEM20
+	{SPR_FITE, 20,   3, {NULL}, 0, 0, S_FAKEITEM22}, // S_FAKEITEM21
+	{SPR_FITE, 21,   3, {NULL}, 0, 0, S_FAKEITEM23}, // S_FAKEITEM22
+	{SPR_FITE, 22,   3, {NULL}, 0, 0, S_FAKEITEM24}, // S_FAKEITEM23
+	{SPR_FITE, 23,   3, {NULL}, 0, 0, S_FAKEITEM1},  // S_FAKEITEM24
 	{SPR_DFAK,  0, 175, {NULL}, 0, 0, S_FAKEITEM1},  // S_DEADFAKEITEM
 
 	{SPR_BANA, 0,  -1, {NULL}, 0, 0, S_NULL}, // S_BANANAITEM
@@ -2642,15 +2643,15 @@ state_t states[NUMSTATES] =
 	{SPR_GSHE, 5, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM7}, // S_GREENITEM6
 	{SPR_GSHE, 6, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM8}, // S_GREENITEM7
 	{SPR_GSHE, 7, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM1}, // S_GREENITEM8
-	{SPR_GSHE, 0, 1, {NULL}, 0, 0, S_GREENTRAIL2},                      // S_GREENTRAIL1
-	{SPR_GSHE, 1, 1, {NULL}, 0, 0, S_GREENTRAIL3},                      // S_GREENTRAIL2
-	{SPR_GSHE, 2, 1, {NULL}, 0, 0, S_GREENTRAIL4},                      // S_GREENTRAIL3
-	{SPR_GSHE, 3, 1, {NULL}, 0, 0, S_GREENTRAIL5},                      // S_GREENTRAIL4
-	{SPR_GSHE, 4, 1, {NULL}, 0, 0, S_GREENTRAIL6},                      // S_GREENTRAIL5
-	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_GREENTRAIL7},                      // S_GREENTRAIL6
-	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_GREENTRAIL8},                      // S_GREENTRAIL7
-	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_GREENTRAIL9},                      // S_GREENTRAIL8
-	{SPR_GSHE, 8, 1, {NULL}, 0, 0, S_NULL},                             // S_GREENTRAIL9
+	{SPR_GSTR, 0, 1, {NULL}, 0, 0, S_GREENTRAIL2},                      // S_GREENTRAIL1
+	{SPR_GSTR, 1, 1, {NULL}, 0, 0, S_GREENTRAIL3},                      // S_GREENTRAIL2
+	{SPR_GSTR, 2, 1, {NULL}, 0, 0, S_GREENTRAIL4},                      // S_GREENTRAIL3
+	{SPR_GSTR, 3, 1, {NULL}, 0, 0, S_GREENTRAIL5},                      // S_GREENTRAIL4
+	{SPR_GSTR, 4, 1, {NULL}, 0, 0, S_GREENTRAIL6},                      // S_GREENTRAIL5
+	{SPR_GSTR, 5, 1, {NULL}, 0, 0, S_GREENTRAIL7},                      // S_GREENTRAIL6
+	{SPR_GSTR, 6, 1, {NULL}, 0, 0, S_GREENTRAIL8},                      // S_GREENTRAIL7
+	{SPR_GSTR, 7, 1, {NULL}, 0, 0, S_GREENTRAIL9},                      // S_GREENTRAIL8
+	{SPR_GSTR, 8, 1, {NULL}, 0, 0, S_NULL},                             // S_GREENTRAIL9
 	{SPR_DGSH, 0, 175, {NULL}, 0, 0, S_NULL},                           // S_DEADGREEN
 
 	{SPR_RSHE, 0, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD2},              // S_TRIPLEREDSHIELD1
@@ -2679,15 +2680,15 @@ state_t states[NUMSTATES] =
 	{SPR_RSHE, 7, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM1}, // S_REDITEM8
 	{SPR_RSHE, 0, 2, {A_RedShellChase}, 0, 0, S_REDITEM2},                        // S_REDITEMCHASE
 	{SPR_RSHE, 1, 2, {A_SmokeTrailer}, MT_REDTRAIL, 0, S_REDITEM3},               // S_REDITEMTRAIL
-	{SPR_RSHE, 0, 1, {NULL}, 0, 0, S_REDTRAIL2},                                  // S_REDTRAIL1
-	{SPR_RSHE, 1, 1, {NULL}, 0, 0, S_REDTRAIL3},                                  // S_REDTRAIL2
-	{SPR_RSHE, 2, 1, {NULL}, 0, 0, S_REDTRAIL4},                                  // S_REDTRAIL3
-	{SPR_RSHE, 3, 1, {NULL}, 0, 0, S_REDTRAIL5},                                  // S_REDTRAIL4
-	{SPR_RSHE, 4, 1, {NULL}, 0, 0, S_REDTRAIL6},                                  // S_REDTRAIL5
-	{SPR_RSHE, 5, 1, {NULL}, 0, 0, S_REDTRAIL7},                                  // S_REDTRAIL6
-	{SPR_RSHE, 6, 1, {NULL}, 0, 0, S_REDTRAIL8},                                  // S_REDTRAIL7
-	{SPR_RSHE, 7, 1, {NULL}, 0, 0, S_REDTRAIL9},                                  // S_REDTRAIL8
-	{SPR_RSHE, 8, 1, {NULL}, 0, 0, S_NULL},                                       // S_REDTRAIL9
+	{SPR_RSTR, 0, 1, {NULL}, 0, 0, S_REDTRAIL2},                                  // S_REDTRAIL1
+	{SPR_RSTR, 1, 1, {NULL}, 0, 0, S_REDTRAIL3},                                  // S_REDTRAIL2
+	{SPR_RSTR, 2, 1, {NULL}, 0, 0, S_REDTRAIL4},                                  // S_REDTRAIL3
+	{SPR_RSTR, 3, 1, {NULL}, 0, 0, S_REDTRAIL5},                                  // S_REDTRAIL4
+	{SPR_RSTR, 4, 1, {NULL}, 0, 0, S_REDTRAIL6},                                  // S_REDTRAIL5
+	{SPR_RSTR, 5, 1, {NULL}, 0, 0, S_REDTRAIL7},                                  // S_REDTRAIL6
+	{SPR_RSTR, 6, 1, {NULL}, 0, 0, S_REDTRAIL8},                                  // S_REDTRAIL7
+	{SPR_RSTR, 7, 1, {NULL}, 0, 0, S_REDTRAIL9},                                  // S_REDTRAIL8
+	{SPR_RSTR, 8, 1, {NULL}, 0, 0, S_NULL},                                       // S_REDTRAIL9
 	{SPR_DRSH, 0, 175, {NULL}, 0, 0, S_NULL},                                     // S_DEADRED
 
 	{SPR_BOMB, 0,  1, {NULL}, 0, 0, S_BOMBSHIELD},                 // S_BOMBSHIELD
@@ -2706,6 +2707,20 @@ state_t states[NUMSTATES] =
 	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_LIGHTNING4}, // S_LIGHTNING3
 	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_NULL},       // S_LIGHTNING4
 
+	{SPR_SINK, 0,  4, {A_SmokeTrailer}, MT_SINKTRAIL, 0, S_SINK}, // S_SINK
+	{SPR_SITR, 0,  1, {NULL}, 0, 0, S_SINKTRAIL2},                       // S_SINKTRAIL1
+	{SPR_SITR, 1,  5, {NULL}, 0, 0, S_SINKTRAIL3},                       // S_SINKTRAIL2
+	{SPR_SITR, 2,  3, {NULL}, 0, 0, S_NULL},                             // S_SINKTRAIL3
+
+	{SPR_POKE, 0,  2, {A_MoveAbsolute},   0, 2, S_POKEY2}, // S_POKEY1
+	{SPR_POKE, 1,  2, {A_MoveAbsolute},   0, 2, S_POKEY3}, // S_POKEY2
+	{SPR_POKE, 2,  2, {A_MoveAbsolute},   0, 2, S_POKEY4}, // S_POKEY3
+	{SPR_POKE, 3,  2, {A_MoveAbsolute},   0, 2, S_POKEY1}, // S_POKEY4
+	{SPR_POKE, 0,  2, {A_MoveAbsolute}, 180, 2, S_POKEY6}, // S_POKEY5
+	{SPR_POKE, 1,  2, {A_MoveAbsolute}, 180, 2, S_POKEY7}, // S_POKEY6
+	{SPR_POKE, 2,  2, {A_MoveAbsolute}, 180, 2, S_POKEY8}, // S_POKEY7
+	{SPR_POKE, 3,  2, {A_MoveAbsolute}, 180, 2, S_POKEY5}, // S_POKEY8
+	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_NULL},               // S_POKEYIDLE
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -14878,6 +14893,141 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SINK
+		-1,             // doomednum
+		S_SINK,         // spawnstate
+		105,            // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		256*FRACUNIT,   // painstate
+		100,            // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_shbrk,      // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		24*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_bomb,       // activesound
+		MF_BOUNCE|MF_FLOAT|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SINKTRAIL
+		-1,             // doomednum
+		S_SINKTRAIL1,   // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		20*FRACUNIT,    // radius
+		16*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_POKEY
+		2002,           // doomednum
+		S_POKEY1,       // spawnstate
+		1000,           // spawnhealth
+		S_POKEY1,       // seestate
+		sfx_None,       // seesound
+		32,             // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		100,            // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		3,              // speed
+		21*FRACUNIT,    // radius
+		69*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SPECIAL|MF_SHOOTABLE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_ENEMYFLIP
+		2003,           // doomednum
+		S_NULL,         // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		100,            // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		32*FRACUNIT,    // radius
+		64*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SCENERY,     // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_WAYPOINT
+		2001,           // doomednum
+		S_NULL,         // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		0,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		100,            // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		1*FRACUNIT,     // radius
+		2*FRACUNIT,     // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOCLIP|MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
 

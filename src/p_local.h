@@ -387,6 +387,10 @@ void P_CheckPointLimit(void);
 void P_CheckSurvivors(void);
 boolean P_CheckRacers(void);
 
+// SRB2kart
+INT32  P_CheckPlayerAhead(player_t *player, INT32 tocheck);
+//
+
 void P_ClearStarPost(INT32 postnum);
 void P_ResetStarposts(void);
 

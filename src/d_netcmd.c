@@ -351,7 +351,7 @@ static CV_PossibleValue_t timelimit_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NUL
 consvar_t cv_timelimit = {"timelimit", "0", CV_NETVAR|CV_CALL|CV_NOINIT, timelimit_cons_t,
 	TimeLimit_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t numlaps_cons_t[] = {{0, "MIN"}, {50, "MAX"}, {0, NULL}};
-consvar_t cv_numlaps = {"numlaps", "4", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_cons_t,
+consvar_t cv_numlaps = {"numlaps", "3", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_cons_t,
 	NumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usemapnumlaps = {"usemaplaps", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -386,9 +386,9 @@ consvar_t cv_mute = {"mute", "Off", CV_NETVAR|CV_CALL, CV_OnOff, Mute_OnChange, 
 
 consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
 
-INT16 gametype = GT_COOP;
+INT16 gametype = GT_RACE; // SRB2kart
 boolean splitscreen = false;
-boolean circuitmap = false;
+boolean circuitmap = true; // SRB2kart
 INT32 adminplayer = -1;
 
 // =========================================================================
@@ -1017,8 +1017,8 @@ UINT8 CanChangeSkin(INT32 playernum)
 		if (gametype == GT_COOP)
 			return true;
 
-		// Can change skin during initial countdown.
-		if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
+		// Can change skin during initial countdown. // SRB2kart - Can always change skin in the level
+		if (gametype == GT_RACE || gametype == GT_COMPETITION) // if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
 			return true;
 
 		if (G_TagGametype())
@@ -2601,7 +2601,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	// Clear player score and rings if a spectator.
 	if (players[playernum].spectator)
 	{
-		players[playernum].score = 0;
+		//players[playernum].score = 0; // SRB2kart
 		players[playernum].health = 1;
 		if (players[playernum].mo)
 			players[playernum].mo->health = 1;
@@ -3453,7 +3453,7 @@ void D_GameTypeChanged(INT32 lastgametype)
 	}
 	else if (!multiplayer && !netgame)
 	{
-		gametype = GT_COOP;
+		gametype = GT_RACE; // SRB2kart
 		// These shouldn't matter anymore
 		//CV_Set(&cv_itemrespawntime, cv_itemrespawntime.defaultvalue);
 		//CV_SetValue(&cv_itemrespawn, 0);

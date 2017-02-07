@@ -220,8 +220,8 @@ extern FILE *logstream;
 // The maximum number of players, multiplayer/networking.
 // NOTE: it needs more than this to increase the number of players...
 
-#define MAXPLAYERS 32
-#define MAXSKINS MAXPLAYERS
+#define MAXPLAYERS 16
+#define MAXSKINS 32
 #define PLAYERSMASK (MAXPLAYERS-1)
 #define MAXPLAYERNAME 21
 
@@ -325,7 +325,7 @@ typedef enum
 #define NEWTICRATERATIO 1 // try 4 for 140 fps :)
 #define NEWTICRATE (TICRATE*NEWTICRATERATIO)
 
-#define RING_DIST 512*FRACUNIT // how close you need to be to a ring to attract it
+#define RING_DIST 1280*FRACUNIT // how close you need to be to a ring to attract it
 
 #define PUSHACCEL (2*FRACUNIT) // Acceleration for MF2_SLIDEPUSH items.
 

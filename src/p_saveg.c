@@ -268,6 +268,10 @@ static void P_NetArchivePlayers(void)
 		WRITEFIXED(save_p, players[i].actionspd);
 		WRITEFIXED(save_p, players[i].mindash);
 		WRITEFIXED(save_p, players[i].maxdash);
+		// SRB2kart
+		WRITEUINT8(save_p, players[i].kartspeed);
+		WRITEUINT8(save_p, players[i].kartweight);
+		//
 		WRITEFIXED(save_p, players[i].normalspeed);
 		WRITEFIXED(save_p, players[i].runspeed);
 		WRITEUINT8(save_p, players[i].thrustfactor);
@@ -434,6 +438,10 @@ static void P_NetUnArchivePlayers(void)
 		players[i].actionspd = READFIXED(save_p);
 		players[i].mindash = READFIXED(save_p);
 		players[i].maxdash = READFIXED(save_p);
+		// SRB2kart
+		players[i].kartspeed = READUINT8(save_p);
+		players[i].kartweight = READUINT8(save_p);
+		//
 		players[i].normalspeed = READFIXED(save_p);
 		players[i].runspeed = READFIXED(save_p);
 		players[i].thrustfactor = READUINT8(save_p);

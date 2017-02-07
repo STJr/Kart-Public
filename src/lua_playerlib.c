@@ -144,6 +144,12 @@ static int player_get(lua_State *L)
 		lua_pushfixed(L, plr->dashspeed);
 	else if (fastcmp(field,"dashtime"))
 		lua_pushinteger(L, plr->dashtime);
+	// SRB2kart
+	else if (fastcmp(field,"kartspeed"))
+		lua_pushfixed(L, plr->kartspeed);
+	else if (fastcmp(field,"kartweight"))
+		lua_pushfixed(L, plr->kartweight);
+	//
 	else if (fastcmp(field,"normalspeed"))
 		lua_pushfixed(L, plr->normalspeed);
 	else if (fastcmp(field,"runspeed"))
@@ -401,6 +407,12 @@ static int player_set(lua_State *L)
 		plr->dashspeed = luaL_checkfixed(L, 3);
 	else if (fastcmp(field,"dashtime"))
 		plr->dashtime = (INT32)luaL_checkinteger(L, 3);
+	// SRB2kart
+	else if (fastcmp(field,"kartspeed"))
+		plr->kartspeed = (UINT8)luaL_checkfixed(L, 3);
+	else if (fastcmp(field,"kartweight"))
+		plr->kartweight = (UINT8)luaL_checkfixed(L, 3);
+	//
 	else if (fastcmp(field,"normalspeed"))
 		plr->normalspeed = luaL_checkfixed(L, 3);
 	else if (fastcmp(field,"runspeed"))

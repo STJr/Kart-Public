@@ -247,6 +247,7 @@ typedef enum
 	k_sounds,			// Used this to avoid sounds being played every tic
 	
 	k_boosting,			// Determines if you're currently shroom-boosting to change how drifting works
+	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
 	k_spinout,			// Separate confirmation to prevent endless wipeout loops
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
 	
@@ -255,6 +256,7 @@ typedef enum
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_lakitu,			// > 0 = Lakitu fishing, < 0 = Lakitu lap counter (was "player->airtime") // NOTE: Check for ->lakitu, replace with this
+	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
 	
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
@@ -297,6 +299,7 @@ typedef enum
 	k_tripleredshell,	// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
 						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
 	k_lightning,		// 0x1 = Lightning in inventory
+	k_kitchensink,		// 0x1 = Sink in inventory
 
 	NUMKARTSTUFF
 } kartstufftype_t;
@@ -380,6 +383,11 @@ typedef struct player_s
 	UINT32 score; // player score
 	fixed_t dashspeed; // dashing speed
 	INT32 dashtime; // tics dashing, used for rev sound
+
+	// SRB2kart
+	UINT8 kartspeed; // Kart speed stat between 1 and 9
+	UINT8 kartweight; // Kart weight stat between 1 and 9
+	//
 
 	fixed_t normalspeed; // Normal ground
 	fixed_t runspeed; // Speed you break into the run animation

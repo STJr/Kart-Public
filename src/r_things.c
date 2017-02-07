@@ -2279,6 +2279,11 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
 
+	// SRB2kart
+	skin->kartspeed = 7;
+	skin->kartweight = 5;
+	//
+
 	skin->normalspeed = 36<<FRACBITS;
 	skin->runspeed = 28<<FRACBITS;
 	skin->thrustfactor = 5;
@@ -2421,6 +2426,11 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		player->actionspd = skin->actionspd;
 		player->mindash = skin->mindash;
 		player->maxdash = skin->maxdash;
+
+		// SRB2kart
+		player->kartspeed = skin->kartspeed;
+		player->kartweight = skin->kartweight;
+		//
 
 		player->normalspeed = skin->normalspeed;
 		player->runspeed = skin->runspeed;
@@ -2644,6 +2654,10 @@ void R_AddSkins(UINT16 wadnum)
 #undef GETSPEED
 
 #define GETINT(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value);
+			// SRB2kart
+			GETINT(kartspeed)
+			GETINT(kartweight)
+			//
 			GETINT(thrustfactor)
 			GETINT(accelstart)
 			GETINT(acceleration)

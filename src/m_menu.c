@@ -376,6 +376,9 @@ consvar_t cv_chooseskin = {"chooseskin", DEFAULTSKIN, CV_HIDEN|CV_CALL, skins_co
 // When you add gametypes here, don't forget to update them in CV_AddValue!
 CV_PossibleValue_t gametype_cons_t[] =
 {
+	{GT_RACE, "Race"}, {GT_MATCH, "Match"},
+
+	/*						// SRB2kart
 	{GT_COOP, "Co-op"},
 
 	{GT_COMPETITION, "Competition"},
@@ -388,9 +391,10 @@ CV_PossibleValue_t gametype_cons_t[] =
 	{GT_HIDEANDSEEK, "Hide and Seek"},
 
 	{GT_CTF, "CTF"},
+	*/
 	{0, NULL}
 };
-consvar_t cv_newgametype = {"newgametype", "Co-op", CV_HIDEN|CV_CALL, gametype_cons_t, Newgametype_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_newgametype = {"newgametype", "Race", CV_HIDEN|CV_CALL, gametype_cons_t, Newgametype_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t serversort_cons_t[] = {
 	{0,"Ping"},
@@ -1899,19 +1903,19 @@ static void Newgametype_OnChange(void)
 		if(!mapheaderinfo[cv_nextmap.value-1])
 			P_AllocMapHeader((INT16)(cv_nextmap.value-1));
 
-		if ((cv_newgametype.value == GT_COOP && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_COOP)) ||
-			(cv_newgametype.value == GT_COMPETITION && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_COMPETITION)) ||
-			(cv_newgametype.value == GT_RACE && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_RACE)) ||
-			((cv_newgametype.value == GT_MATCH || cv_newgametype.value == GT_TEAMMATCH) && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_MATCH)) ||
-			((cv_newgametype.value == GT_TAG || cv_newgametype.value == GT_HIDEANDSEEK) && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_TAG)) ||
-			(cv_newgametype.value == GT_CTF && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_CTF)))
+		if ((cv_newgametype.value == GT_RACE && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_RACE)) || // SRB2kart
+			//(cv_newgametype.value == GT_COMPETITION && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_COMPETITION)) ||
+			//(cv_newgametype.value == GT_RACE && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_RACE)) ||
+			((cv_newgametype.value == GT_MATCH || cv_newgametype.value == GT_TEAMMATCH) && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_MATCH))) // ||
+			//((cv_newgametype.value == GT_TAG || cv_newgametype.value == GT_HIDEANDSEEK) && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_TAG)) ||
+			//(cv_newgametype.value == GT_CTF && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_CTF)))
 		{
 			INT32 value = 0;
 
 			switch (cv_newgametype.value)
 			{
 				case GT_COOP:
-					value = TOL_COOP;
+					value = TOL_RACE; // SRB2kart
 					break;
 				case GT_COMPETITION:
 					value = TOL_COMPETITION;
@@ -4264,7 +4268,7 @@ static void M_NewGame(void)
 	fromlevelselect = false;
 
 	startmap = spstage_start;
-	CV_SetValue(&cv_newgametype, GT_COOP); // Graue 09-08-2004
+	CV_SetValue(&cv_newgametype, GT_RACE); // SRB2kart
 
 	M_SetupChoosePlayer(0);
 }
@@ -6212,6 +6216,15 @@ static void M_DrawServerMenu(void)
 			                         V_YELLOWMAP, room_list[menuRoomIndex].name);
 	}
 #endif
+
+	// SRB2kart
+	// A 70x70 image of the level's gametype
+	/*
+	if (mapheaderinfo[cv_nextmap.value-1].typeoflevel & TOL_KART)
+		V_DrawSmallScaledPatch(BASEVIDWIDTH/2,130,0,W_CachePatchName("KART", PU_STATIC));
+	else
+		V_DrawSmallScaledPatch(BASEVIDWIDTH/2,130,0,W_CachePatchName("SONR", PU_STATIC));
+	*/
 
 	//  A 160x100 image of the level as entry MAPxxP
 	lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));

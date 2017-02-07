@@ -20,15 +20,15 @@ void Y_EndGame(void);
 typedef enum
 {
 	int_none,
-	int_coop,     // Single Player/Cooperative
-	int_match,    // Match
-	int_teammatch,// Team Match
-//	int_tag,      // Tag
-	int_ctf,      // CTF
-	int_spec,     // Special Stage
-	int_nights,   // NiGHTS into Dreams
-	int_nightsspec,// NiGHTS special stage
-	int_race,     // Race
+	int_timeattack,  // Time Attack
+	int_match,       // Match
+	int_teammatch,   // Team Match
+//	int_tag,         // Tag
+	int_ctf,         // CTF
+	int_spec,        // Special Stage
+	int_nights,      // NiGHTS into Dreams
+	int_nightsspec,  // NiGHTS special stage
+	int_race,        // Race
 	int_classicrace, // Competition
 } intertype_t;
 extern intertype_t intertype;

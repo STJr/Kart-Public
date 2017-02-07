@@ -506,6 +506,10 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->skin = LONG(players[i].skin);
 	// Just in case Lua does something like
 	// modify these at runtime
+	// SRB2kart
+	rsp->kartspeed = (fixed_t)LONG(players[i].kartspeed);
+	rsp->kartweight = (fixed_t)LONG(players[i].kartweight);
+	//
 	rsp->normalspeed = (fixed_t)LONG(players[i].normalspeed);
 	rsp->runspeed = (fixed_t)LONG(players[i].runspeed);
 	rsp->thrustfactor = players[i].thrustfactor;

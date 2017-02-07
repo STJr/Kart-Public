@@ -168,6 +168,10 @@ typedef struct
 	INT32 skin;
 	// Just in case Lua does something like
 	// modify these at runtime
+	// SRB2kart
+	UINT8 kartspeed;
+	UINT8 kartweight;
+	//
 	fixed_t normalspeed;
 	fixed_t runspeed;
 	UINT8 thrustfactor;

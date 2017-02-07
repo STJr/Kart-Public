@@ -4571,9 +4571,9 @@ static void P_3dMovement(player_t *player)
 	}
 	else
 	{
-		if (player->kartstuff[k_drift] == 1)
+		if (player->kartstuff[k_drift] >= 1)
 			movepushangle = player->mo->angle+ANGLE_45;
-		else if (player->kartstuff[k_drift] == -1)
+		else if (player->kartstuff[k_drift] <= -1)
 			movepushangle = player->mo->angle-ANGLE_45;
 		else
 			movepushangle = player->mo->angle;
@@ -4715,7 +4715,11 @@ static void P_3dMovement(player_t *player)
 		&& cmd->forwardmove != 0 && !(player->pflags & PF_GLIDING || player->exiting
 		|| (P_PlayerInPain(player) && !onground)))
 	{
-		movepushforward = cmd->forwardmove * (thrustfactor * acceleration);
+		//movepushforward = cmd->forwardmove * (thrustfactor * acceleration);
+		if (cmd->forwardmove > 0)
+			movepushforward = K_3dKartMovement(player, onground);
+		else
+			movepushforward = -(K_3dKartMovement(player, onground));
 
 		// allow very small movement while in air for gameplay
 		if (!onground)
@@ -4764,7 +4768,11 @@ static void P_3dMovement(player_t *player)
 			// (Why was it so complicated before? ~Red)
 			controldirection = R_PointToAngle2(0, 0, cmd->forwardmove*FRACUNIT, -cmd->sidemove*FRACUNIT)+movepushangle;
 
-			movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
+			//movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
+			if (max(abs(cmd->sidemove), abs(cmd->forwardmove)) > 0)
+				movepushforward = K_3dKartMovement(player, onground);
+			else
+				movepushforward = -(K_3dKartMovement(player, onground));
 
 			// allow very small movement while in air for gameplay
 			if (!onground)
@@ -4800,7 +4808,11 @@ static void P_3dMovement(player_t *player)
 	}
 	else if (cmd->sidemove && !(player->pflags & PF_GLIDING) && !player->exiting && !P_PlayerInPain(player))
 	{
-		movepushside = cmd->sidemove * (thrustfactor * acceleration);
+		//movepushside = cmd->sidemove * (thrustfactor * acceleration);
+		if (cmd->sidemove > 0)
+			movepushside = K_3dKartMovement(player, onground);
+		else
+			movepushside = -(K_3dKartMovement(player, onground));
 
 		if (!onground)
 		{
@@ -6664,10 +6676,12 @@ static void P_MovePlayer(player_t *player)
 		// Drifting sound
 		{
 			// Start looping the sound now.
-			if (leveltime % 50 == 0 && ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && onground))
+			if (leveltime % 50 == 0 && onground
+			&& ((player->kartstuff[k_drift] >= 1 && player->kartstuff[k_drift] <= 3)
+			|| (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_drift] >= -3)))
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
-			else if ((player->kartstuff[k_drift] == 1 || player->kartstuff[k_drift] == -1) && !S_SoundPlaying(player->mo, sfx_mkdrft) && onground)
+			else if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) && !S_SoundPlaying(player->mo, sfx_mkdrft) && onground)
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Ok, we'll stop now.
 			else if ((player->kartstuff[k_drift] == 0)
@@ -7906,11 +7920,13 @@ static void P_DeathThink(player_t *player)
 				countdown2 = 1*TICRATE;
 				skipstats = true;
 
+				/* // SRB2kart 010217 - Score doesn't need to be reset in Kart.
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
 					if (playeringame[i])
 						players[i].score = 0;
 				}
+				*/
 
 				//emeralds = 0;
 				tokenbits = 0;
@@ -9037,7 +9053,7 @@ void P_PlayerThink(player_t *player)
 	// Make sure spectators always have a score and ring count of 0.
 	if (player->spectator)
 	{
-		player->score = 0;
+		//player->score = 0;
 		player->mo->health = 1;
 		player->health = 1;
 	}
@@ -9052,12 +9068,17 @@ void P_PlayerThink(player_t *player)
 	if (player == &players[displayplayer])
 		playerdeadview = false;
 
+	// SRB2kart 010217
+	if (gametype == GT_RACE && leveltime < 4*TICRATE)
+		player->powers[pw_nocontrol] = 2;
+	/*
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
 	{
-		cmd->buttons &= BT_BRAKE; // Remove all buttons except BT_BRAKE // TODO: ?
+		cmd->buttons &= BT_BRAKE; // Remove all buttons except BT_BRAKE
 		cmd->forwardmove = 0;
 		cmd->sidemove = 0;
 	}
+	*/
 
 	// Synchronizes the "real" amount of time spent in the level.
 	if (!player->exiting)

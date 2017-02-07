@@ -35,6 +35,8 @@
 #include "m_cond.h" //unlock triggers
 #include "lua_hook.h" // LUAh_LinedefExecute
 
+#include "k_kart.h" // SRB2kart
+
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
 #endif
@@ -50,6 +52,9 @@ mobj_t *skyboxmo[2];
 
 // Amount (dx, dy) vector linedef is shifted right to get scroll amount
 #define SCROLL_SHIFT 5
+ 
+// This must be updated whenever we up the max flat size - quicker to assume rather than figuring out the sqrt of the specific flat's filesize.
+#define MAXFLATSIZE (2048<<FRACBITS)
 
 /** Animated texture descriptor
   * This keeps track of an animated texture or an animated flat.
@@ -3845,14 +3850,25 @@ DoneSection2:
 			//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 			break;
 
-		case 6: // Super Sonic transformer
-			if (player->mo->health > 0 && !player->bot && (player->charflags & SF_SUPER) && !player->powers[pw_super] && ALL7EMERALDS(emeralds))
-				P_DoSuperTransformation(player, true);
+
+		case 6: // Super Sonic transformer // SRB2kart 190117- Replaced. This is now a Mushroom Boost Panel
+			if (!player->kartstuff[k_floorboost])
+				player->kartstuff[k_floorboost] = 3;
+			else
+				player->kartstuff[k_floorboost] = 2;
+			K_DoMushroom(player, false);
 			break;
 
-		case 7: // Make player spin
-			/* // SRB2kart - no.
-			if (!(player->pflags & PF_SPINNING) && P_IsObjectOnGround(player->mo) && (player->charability2 == CA2_SPINDASH))
+			/* if (player->mo->health > 0 && !player->bot && (player->charflags & SF_SUPER) && !player->powers[pw_super] && ALL7EMERALDS(emeralds))
+				P_DoSuperTransformation(player, true);
+			break; */
+
+		case 7: // Make player spin // SRB2kart 190117- Replaced. This is now an Oil Slick (Oddly ironic considering)
+			player->kartstuff[k_spinouttype] = -1;
+			K_SpinPlayer(player, NULL);
+			break;
+
+			/* if (!(player->pflags & PF_SPINNING) && P_IsObjectOnGround(player->mo) && (player->charability2 == CA2_SPINDASH))
 			{
 				player->pflags |= PF_SPINNING;
 				P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
@@ -3861,8 +3877,8 @@ DoneSection2:
 				if (abs(player->rmomx) < FixedMul(5*FRACUNIT, player->mo->scale)
 				&& abs(player->rmomy) < FixedMul(5*FRACUNIT, player->mo->scale))
 					P_InstaThrust(player->mo, player->mo->angle, FixedMul(10*FRACUNIT, player->mo->scale));
-			}*/
-			break;
+			}
+			break; */
 
 		case 8: // Zoom Tube Start
 			{
@@ -3924,10 +3940,14 @@ DoneSection2:
 
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
+				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
 				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 				player->pflags &= ~PF_GLIDING;
 				player->climbing = 0;
+
+				if (!(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
+					P_SetPlayerMobjState(player->mo, S_KART_RUN1);
 
 				//if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4])) // SRB2kart
 				//{
@@ -3998,8 +4018,12 @@ DoneSection2:
 
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
+				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
 				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
+
+				if (!(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
+					P_SetPlayerMobjState(player->mo, S_KART_RUN1);
 
 				//if (!(player->mo->state >= &states[S_PLAY_ATK1] && player->mo->state <= &states[S_PLAY_ATK4])) // SRB2kart
 				//{
@@ -4010,6 +4034,10 @@ DoneSection2:
 			break;
 
 		case 10: // Finish Line
+			// SRB2kart - 150117
+			if (gametype == GT_RACE && (player->starpostnum == numstarposts || player->exiting))
+				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
+			//
 			if (gametype == GT_RACE && !player->exiting)
 			{
 				if (player->starpostnum == numstarposts) // Must have touched all the starposts
@@ -4021,16 +4049,47 @@ DoneSection2:
 
 					if (player->laps >= (UINT8)cv_numlaps.value)
 						CONS_Printf(M_GetText("%s has finished the race.\n"), player_names[player-players]);
+					else if (player->laps == (UINT8)(cv_numlaps.value - 1))
+						CONS_Printf("%s started the final lap\n", player_names[player-players]);
 					else
 						CONS_Printf(M_GetText("%s started lap %u\n"), player_names[player-players], (UINT32)player->laps+1);
 
 					// Reset starposts (checkpoints) info
-					player->starpostangle = player->starposttime = player->starpostnum = 0;
+					// SRB2kart 200117
+					player->starpostangle = player->starpostnum = 0;
 					player->starpostx = player->starposty = player->starpostz = 0;
+					//except the time!
+					player->starposttime = player->realtime;
+					if (((numstarposts+1)*player->laps - 1) < 256) //SIGSEGV prevention
+						player->checkpointtimes[(numstarposts+1)*player->laps - 1] = player->realtime;
+					player->kartstuff[k_playerahead] = P_CheckPlayerAhead(player, (numstarposts+1)*player->laps - 1);
+
+					if (P_IsLocalPlayer(player))
+					{
+						if (player->laps < (UINT8)(cv_numlaps.value - 1))
+						{
+							S_StartSound(NULL, sfx_mlap);
+							player->kartstuff[k_lakitu] = -64;
+						}
+						else if (player->laps == (UINT8)(cv_numlaps.value - 1))
+						{
+							player->kartstuff[k_lakitu] = -64;
+
+							if (!splitscreen || (splitscreen && !players[consoleplayer].exiting
+							&& !players[secondarydisplayplayer].exiting))
+							{
+								//player->powers[pw_sounds] = 1;
+								S_ChangeMusicInternal("finlap", false);
+							}
+						}
+					}
+					//
+					//player->starpostangle = player->starposttime = player->starpostnum = 0;
+					//player->starpostx = player->starposty = player->starpostz = 0;
 					P_ResetStarposts();
 
 					// Play the starpost sound for 'consistency'
-					S_StartSound(player->mo, sfx_strpst);
+					// S_StartSound(player->mo, sfx_strpst);
 				}
 				else if (player->starpostnum)
 				{
@@ -4044,9 +4103,22 @@ DoneSection2:
 				{
 					if (P_IsLocalPlayer(player))
 					{
-						HU_SetCEchoFlags(0);
-						HU_SetCEchoDuration(5);
-						HU_DoCEcho("FINISHED!");
+						// SRB2kart 200117
+						if (!splitscreen)
+						{
+							if (player->kartstuff[k_position] == 1)
+								S_ChangeMusicInternal("karwin", true);
+							else if (player->kartstuff[k_position] == 2 || player->kartstuff[k_position] == 3)
+								S_ChangeMusicInternal("karok", true);
+							else if (player->kartstuff[k_position] >= 4)
+								S_ChangeMusicInternal("karlos", true);
+						}
+						else
+							S_ChangeMusicInternal("karwin", true);
+						//
+						//HU_SetCEchoFlags(0);
+						//HU_SetCEchoDuration(5);
+						//HU_DoCEcho("FINISHED!");
 					}
 
 					P_DoPlayerExit(player);
@@ -5485,37 +5557,31 @@ void P_SpawnSpecials(INT32 fromnetsave)
 			secthinkers[secnum].thinkers[secthinkers[secnum].count++] = th;
 	}
 
-
 	// Init line EFFECTs
 	for (i = 0; i < numlines; i++)
 	{
-		// set line specials to 0 here too, same reason as above
-		if (netgame || multiplayer)
+		if (lines[i].special != 7) // This is a hack. I can at least hope nobody wants to prevent flat alignment with arbitrary skin setups...
 		{
-			// future: nonet flag?
-		}
-		else if ((lines[i].flags & ML_NETONLY) == ML_NETONLY)
-		{
-			lines[i].special = 0;
-			continue;
-		}
-		else
-		{
-			if (players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
+			// set line specials to 0 here too, same reason as above
+			if (netgame || multiplayer)
+			{
+				// future: nonet flag?
+			}
+			else if ((lines[i].flags & ML_NETONLY) == ML_NETONLY)
 			{
 				lines[i].special = 0;
 				continue;
 			}
-			if (players[consoleplayer].charability == CA_FLY && (lines[i].flags & ML_NOTAILS))
+			/*else -- commented out because irrelevant to kart
 			{
-				lines[i].special = 0;
-				continue;
-			}
-			if (players[consoleplayer].charability == CA_GLIDEANDCLIMB && (lines[i].flags & ML_NOKNUX))
-			{
-				lines[i].special = 0;
-				continue;
-			}
+				if ((players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
+				|| (players[consoleplayer].charability == CA_FLY && (lines[i].flags & ML_NOTAILS))
+				|| (players[consoleplayer].charability == CA_GLIDEANDCLIMB && (lines[i].flags & ML_NOKNUX)))
+				{
+					lines[i].special = 0;
+					continue;
+				}
+			}*/
 		}
 
 		switch (lines[i].special)
@@ -5559,50 +5625,55 @@ void P_SpawnSpecials(INT32 fromnetsave)
 				I_Error("Failed to catch a disable linedef");
 				break;
 #endif
-
-			case 7: // Flat alignment
-				if (lines[i].flags & ML_EFFECT4) // Align angle
+			case 7: // Flat alignment - redone by toast
+				if ((lines[i].flags & (ML_NOSONIC|ML_NOTAILS)) != (ML_NOSONIC|ML_NOTAILS)) // If you can do something...
 				{
-					if (!(lines[i].flags & ML_EFFECT5)) // Align floor unless ALLTRIGGER flag is set
+					angle_t flatangle = InvAngle(R_PointToAngle2(lines[i].v1->x, lines[i].v1->y, lines[i].v2->x, lines[i].v2->y));
+					fixed_t xoffs;
+					fixed_t yoffs;
+ 
+					if (lines[i].flags & ML_NOKNUX) // Set offset through x and y texture offsets if NOKNUX flag is set
 					{
-						for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
-							sectors[s].spawn_flrpic_angle = sectors[s].floorpic_angle = R_PointToAngle2(lines[i].v1->x, lines[i].v1->y, lines[i].v2->x, lines[i].v2->y);
+						xoffs = sides[lines[i].sidenum[0]].textureoffset;
+						yoffs = sides[lines[i].sidenum[0]].rowoffset;
 					}
-
-					if (!(lines[i].flags & ML_BOUNCY)) // Align ceiling unless BOUNCY flag is set
+					else // Otherwise, set calculated offsets such that line's v1 is the apparent origin
 					{
-						for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
-							sectors[s].spawn_ceilpic_angle = sectors[s].ceilingpic_angle = R_PointToAngle2(lines[i].v1->x, lines[i].v1->y, lines[i].v2->x, lines[i].v2->y);
+						fixed_t cosinecomponent = FINECOSINE(flatangle>>ANGLETOFINESHIFT);
+						fixed_t sinecomponent = FINESINE(flatangle>>ANGLETOFINESHIFT);
+						xoffs = (-FixedMul(lines[i].v1->x, cosinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, sinecomponent) % MAXFLATSIZE); // No danger of overflow thanks to the strategically placed modulo operations.
+						yoffs = (FixedMul(lines[i].v1->x, sinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, cosinecomponent) % MAXFLATSIZE); // Ditto.
 					}
-				}
-				else // Do offsets
-				{
-					if (!(lines[i].flags & ML_BLOCKMONSTERS)) // Align floor unless BLOCKMONSTERS flag is set
+ 
+					for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
 					{
-						for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
+						if (!(lines[i].flags & ML_NOSONIC)) // Modify floor flat alignment unless NOSONIC flag is set
 						{
-							sectors[s].floor_xoffs += lines[i].dx;
-							sectors[s].floor_yoffs += lines[i].dy;
+							sectors[s].spawn_flrpic_angle = sectors[s].floorpic_angle = flatangle;
+							sectors[s].floor_xoffs += xoffs;
+							sectors[s].floor_yoffs += yoffs;
 							// saved for netgames
 							sectors[s].spawn_flr_xoffs = sectors[s].floor_xoffs;
 							sectors[s].spawn_flr_yoffs = sectors[s].floor_yoffs;
 						}
-					}
-
-					if (!(lines[i].flags & ML_NOCLIMB)) // Align ceiling unless NOCLIMB flag is set
-					{
-						for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
+ 
+						if (!(lines[i].flags & ML_NOTAILS)) // Modify ceiling flat alignment unless NOTAILS flag is set
 						{
-							sectors[s].ceiling_xoffs += lines[i].dx;
-							sectors[s].ceiling_yoffs += lines[i].dy;
+							sectors[s].spawn_ceilpic_angle = sectors[s].ceilingpic_angle = flatangle;
+							sectors[s].ceiling_xoffs += xoffs;
+							sectors[s].ceiling_yoffs += yoffs;
 							// saved for netgames
 							sectors[s].spawn_ceil_xoffs = sectors[s].ceiling_xoffs;
 							sectors[s].spawn_ceil_yoffs = sectors[s].ceiling_yoffs;
 						}
 					}
 				}
+				else // Otherwise, print a helpful warning. Can I do no less?
+					CONS_Alert(CONS_WARNING,
+					M_GetText("Flat alignment linedef (tag %d) doesn't have anything to do.\nConsider changing the linedef's flag configuration or removing it entirely.\n"),
+					lines[i].tag);
 				break;
-
+ 
 			case 8: // Sector Parameters
 				for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
 				{
@@ -6976,7 +7047,9 @@ void T_Friction(friction_t *f)
 		// apparently, all I had to do was comment out part of the next line and
 		// friction works for all mobj's
 		// (or at least MF_PUSHABLEs, which is all I care about anyway)
-		if (!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz)
+		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player 
+			&& (thing->player->kartstuff[k_startimer] && thing->player->kartstuff[k_bootaketimer] 
+			&& thing->player->kartstuff[k_mushroomtimer] && thing->player->kartstuff[k_growshrinktimer] <= 0)))
 		{
 			if (f->roverfriction)
 			{

@@ -114,6 +114,9 @@ typedef union
 		patch_t *redflag; // int_ctf uses this struct too.
 		INT32 numplayers; // Number of players being displayed
 		char levelstring[40]; // holds levelnames up to 32 characters
+		// SRB2kart
+		int increase[MAXPLAYERS]; //how much did the score increase by?
+		int time[MAXPLAYERS]; //Tournament Time
 	} match;
 
 	struct
@@ -151,10 +154,12 @@ static INT32 endtic = -1;
 
 intertype_t intertype = int_none;
 
-static void Y_AwardCoopBonuses(void);
-static void Y_AwardSpecialStageBonus(void);
+//static void Y_AwardCoopBonuses(void);
+//static void Y_AwardSpecialStageBonus(void);
+static void Y_CalculateTournamentPoints(void); // SRB2kart
+
 static void Y_CalculateCompetitionWinners(void);
-static void Y_CalculateTimeRaceWinners(void);
+//static void Y_CalculateTimeRaceWinners(void);
 static void Y_CalculateMatchWinners(void);
 static void Y_FollowIntermission(void);
 static void Y_UnloadData(void);
@@ -199,34 +204,32 @@ void Y_IntermissionDrawer(void)
 	else
 		V_DrawPatchFill(bgtile);
 
-	if (intertype == int_coop)
+	// SRB2kart 290117 - compeltely replaced this block.
+	if (intertype == int_timeattack)
 	{
-		INT32 bonusy;
-
-		// draw score
-		V_DrawScaledPatch(hudinfo[HUD_SCORE].x, hudinfo[HUD_SCORE].y, V_SNAPTOLEFT, sboscore);
-		V_DrawTallNum(hudinfo[HUD_SCORENUM].x, hudinfo[HUD_SCORENUM].y, V_SNAPTOLEFT, data.coop.score);
-
 		// draw time
 		V_DrawScaledPatch(hudinfo[HUD_TIME].x, hudinfo[HUD_TIME].y, V_SNAPTOLEFT, sbotime);
-		if (cv_timetic.value == 1)
+		if (cv_timetic.value)
 			V_DrawTallNum(hudinfo[HUD_SECONDS].x, hudinfo[HUD_SECONDS].y, V_SNAPTOLEFT, data.coop.tics);
 		else
 		{
-			// we should show centiseconds on the intermission screen too, if the conditions are right.
-			if (modeattacking || cv_timetic.value == 2)
-			{
-				V_DrawPaddedTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, V_SNAPTOLEFT,
-					G_TicsToCentiseconds(data.coop.tics), 2);
-				V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, V_SNAPTOLEFT, sboperiod);
-			}
-
-			V_DrawPaddedTallNum(hudinfo[HUD_SECONDS].x, hudinfo[HUD_SECONDS].y, V_SNAPTOLEFT,
-				G_TicsToSeconds(data.coop.tics), 2);
-			V_DrawScaledPatch(hudinfo[HUD_TIMECOLON].x, hudinfo[HUD_TIMECOLON].y, V_SNAPTOLEFT, sbocolon);
-			V_DrawTallNum(hudinfo[HUD_MINUTES].x, hudinfo[HUD_MINUTES].y, V_SNAPTOLEFT,
-				G_TicsToMinutes(data.coop.tics, false));
+			if (G_TicsToSeconds(data.coop.tics) < 10)
+				V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, 0);
+			V_DrawTallNum(hudinfo[HUD_SECONDS].x, hudinfo[HUD_SECONDS].y, 0, G_TicsToSeconds(data.coop.tics));
+			V_DrawTallNum(hudinfo[HUD_MINUTES].x, hudinfo[HUD_MINUTES].y, 0, G_TicsToMinutes(data.coop.tics, false));
+			V_DrawScaledPatch(hudinfo[HUD_TIMECOLON].x, hudinfo[HUD_TIMECOLON].y, 0, sbocolon);
+			V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, (int)((data.coop.tics%TICRATE) * (100.00f/TICRATE)));
+			V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, 0, sbocolon);
 		}
+		
+		/* // SRB2kart - pulled from old coop block, just in case we need it
+		// we should show centiseconds on the intermission screen too, if the conditions are right.
+		if (modeattacking || cv_timetic.value == 2)
+		{
+			V_DrawPaddedTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, V_SNAPTOLEFT,
+				G_TicsToCentiseconds(data.coop.tics), 2);
+			V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, V_SNAPTOLEFT, sboperiod);
+		}*/
 
 		// draw the "got through act" lines and act number
 		V_DrawLevelTitle(data.coop.passedx1, 49, 0, data.coop.passed1);
@@ -235,114 +238,141 @@ void Y_IntermissionDrawer(void)
 		if (mapheaderinfo[gamemap-1]->actnum)
 			V_DrawScaledPatch(244, 57, 0, data.coop.ttlnum);
 
-		bonusy = 150;
-		// Total
-		V_DrawScaledPatch(152, bonusy, 0, data.coop.ptotal);
-		V_DrawTallNum(BASEVIDWIDTH - 68, bonusy + 1, 0, data.coop.total);
-		bonusy -= (3*SHORT(tallnum[0]->height)/2) + 1;
+		//if (gottimebonus && endtic != -1)
+		//	V_DrawCenteredString(BASEVIDWIDTH/2, 172, V_YELLOWMAP, "TIME BONUS UNLOCKED!");
 
-		// Draw bonuses
-		for (i = 3; i >= 0; --i)
+		V_DrawString(70, 106, V_YELLOWMAP, "LAP 1");
+		V_DrawString(70, 116, V_YELLOWMAP, "LAP 2");
+		V_DrawString(70, 126, V_YELLOWMAP, "LAP 3");
+
 		{
-			if (data.coop.bonuses[i].display)
-			{
-				V_DrawScaledPatch(152, bonusy, 0, data.coop.bonuspatches[i]);
-				V_DrawTallNum(BASEVIDWIDTH - 68, bonusy + 1, 0, data.coop.bonuses[i].points);
-			}
-			bonusy -= (3*SHORT(tallnum[0]->height)/2) + 1;
+			INT32 laptime;
+			laptime = stplyr->checkpointtimes[(numstarposts+1) - 1];
+			V_DrawRightAlignedString(250, 106, 0, va("%d:%02d.%02d", laptime/(60*TICRATE), laptime/TICRATE % 60, (int)((laptime%TICRATE) * (100.00f/TICRATE))));
+			laptime = stplyr->checkpointtimes[((numstarposts+1)*2) - 1] - stplyr->checkpointtimes[(numstarposts+1) - 1];
+			V_DrawRightAlignedString(250, 116, 0, va("%d:%02d.%02d", laptime/(60*TICRATE), laptime/TICRATE % 60, (int)((laptime%TICRATE) * (100.00f/TICRATE))));
+			laptime = stplyr->realtime - stplyr->checkpointtimes[((numstarposts+1)*2) - 1];
+			V_DrawRightAlignedString(250, 126, 0, va("%d:%02d.%02d", laptime/(60*TICRATE), laptime/TICRATE % 60, (int)((laptime%TICRATE) * (100.00f/TICRATE))));
 		}
 	}
-	else if (intertype == int_spec)
+	else if (intertype == int_race)
 	{
-		static tic_t animatetic = 0;
-		INT32 ttheight = 16;
-		INT32 xoffset1 = 0; // Line 1 x offset
-		INT32 xoffset2 = 0; // Line 2 x offset
-		INT32 xoffset3 = 0; // Line 3 x offset
-		UINT8 drawsection = 0;
+		INT32 i = 0, j = 0;
+		INT32 x = 4;
+		INT32 y = 48;
+		char name[MAXPLAYERNAME+1];
 
-		// draw the header
-		if (intertic <= TICRATE)
-			animatetic = 0;
-		else if (!animatetic && data.spec.bonus.points == 0 && data.spec.passed3[0] != '\0')
-			animatetic = intertic;
+		boolean completed[MAXPLAYERS];
+		memset(completed, 0, sizeof (completed));
 
-		if (animatetic)
+		// draw the level name
+		V_DrawCenteredString(BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
+		V_DrawFill(4, 42, 312, 1, 0);
+
+		if (data.match.numplayers > 8)
 		{
-			INT32 animatetimer = (intertic - animatetic);
-			if (animatetimer <= 8)
-			{
-				xoffset1 = -(animatetimer     * 40);
-				xoffset2 = -((animatetimer-2) * 40);
-				if (xoffset2 > 0) xoffset2 = 0;
-			}
-			else if (animatetimer <= 19)
-			{
-				drawsection = 1;
-				xoffset1 = (16-animatetimer) * 40;
-				xoffset2 = (18-animatetimer) * 40;
-				xoffset3 = (20-animatetimer) * 40;
-				if (xoffset1 < 0) xoffset1 = 0;
-				if (xoffset2 < 0) xoffset2 = 0;
-			}
-			else
-				drawsection = 1;
+			V_DrawFill(160, 32, 1, 152, 0);
+
+			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, V_YELLOWMAP, "#");
+			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, V_YELLOWMAP, "NAME");
+
+			V_DrawRightAlignedString(x+110, 32, V_YELLOWMAP, "TIME");
+
+			V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "SCORE");
 		}
 
-		if (drawsection == 1)
+		V_DrawCenteredString(x+6, 32, V_YELLOWMAP, "#");
+		V_DrawString(x+36, 32, V_YELLOWMAP, "NAME");
+
+		if (data.match.numplayers > 8)
 		{
-			ttheight = 16;
-			V_DrawLevelTitle(data.spec.passedx1 + xoffset1, ttheight, 0, data.spec.passed1);
-			ttheight += V_LevelNameHeight(data.spec.passed3) + 2;
-			V_DrawLevelTitle(data.spec.passedx3 + xoffset2, ttheight, 0, data.spec.passed3);
-			ttheight += V_LevelNameHeight(data.spec.passed4) + 2;
-			V_DrawLevelTitle(data.spec.passedx4 + xoffset3, ttheight, 0, data.spec.passed4);
-		}
-		else if (data.spec.passed1[0] != '\0')
-		{
-			ttheight = 24;
-			V_DrawLevelTitle(data.spec.passedx1 + xoffset1, ttheight, 0, data.spec.passed1);
-			ttheight += V_LevelNameHeight(data.spec.passed2) + 2;
-			V_DrawLevelTitle(data.spec.passedx2 + xoffset2, ttheight, 0, data.spec.passed2);
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+110, 32, V_YELLOWMAP, "TIME");
 		}
 		else
 		{
-			ttheight = 24 + (V_LevelNameHeight(data.spec.passed2)/2) + 2;
-			V_DrawLevelTitle(data.spec.passedx2 + xoffset1, ttheight, 0, data.spec.passed2);
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+62, 32, V_YELLOWMAP, "TIME");
 		}
 
-		// draw the emeralds
-		if (intertic & 1)
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "SCORE");
+
+		for (i = 0; i < data.match.numplayers; i++)
 		{
-			INT32 emeraldx = 80;
-			for (i = 0; i < 7; ++i)
+			char strtime[10];
+
+			if (data.match.spectator[i])
+				continue;
+
+			V_DrawCenteredString(x+6, y, 0, va("%d", j+1));
+			j++; //We skip spectators, but not their number.
+
+			if (playeringame[data.match.num[i]])
 			{
-				if (emeralds & (1 << i))
-					V_DrawScaledPatch(emeraldx, 74, 0, emeraldpics[i]);
-				emeraldx += 24;
+				if (data.match.color[i] == 0)
+					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]]);
+				else
+				{
+					UINT8 *colormap = R_GetTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
+					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
+				}
+
+				if (data.match.numplayers > 8)
+				{
+					strlcpy(name, data.match.name[i], 6);
+				}
+				else
+					STRBUFCPY(name, data.match.name[i]);
+
+				V_DrawString(x+36, y, V_ALLOWLOWERCASE, name);
+
+				snprintf(strtime, sizeof strtime, "%d", data.match.scores[i]-data.match.increase[i]);
+
+				if (data.match.numplayers > 8)
+				{
+					V_DrawRightAlignedString(x+152, y, V_YELLOWMAP, strtime);
+				}
+				else
+				{
+					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, V_YELLOWMAP, strtime);
+				}
+
+				if (data.match.increase[i] > 9)
+					snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[i]);
+				else
+					snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[i]);
+
+				if (data.match.numplayers <= 8) // Only draw this with less than 8 players, otherwise we won't be able to fit the times in
+				{
+					V_DrawString(x+84+BASEVIDWIDTH/2, y, 0, strtime);
+				}
+
+				snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.time[i], true),
+				G_TicsToSeconds(data.match.time[i]), G_TicsToCentiseconds(data.match.time[i]));
+
+				strtime[sizeof strtime - 1] = '\0';
+
+				if (data.match.numplayers > 8)
+				{
+					V_DrawRightAlignedString(x+134, y, 0, strtime);
+				}
+				else
+				{
+					V_DrawRightAlignedString(x+80+BASEVIDWIDTH/2, y, 0, strtime);
+				}
+
+
+				completed[i] = true;
 			}
-		}
 
-		V_DrawScaledPatch(152, 108, 0, data.spec.bonuspatch);
-		V_DrawTallNum(BASEVIDWIDTH - 68, 109, 0, data.spec.bonus.points);
-		V_DrawScaledPatch(152, 124, 0, data.spec.pscore);
-		V_DrawTallNum(BASEVIDWIDTH - 68, 125, 0, data.spec.score);
+			y += 16;
 
-		// Draw continues!
-		if (!multiplayer /* && (data.spec.continues & 0x80) */) // Always draw outside of netplay
-		{
-			UINT8 continues = data.spec.continues & 0x7F;
-
-			V_DrawScaledPatch(152, 150, 0, data.spec.pcontinues);
-			for (i = 0; i < continues; ++i)
+			if (y > 160)
 			{
-				if ((data.spec.continues & 0x80) && i == continues-1 && (endtic < 0 || intertic%20 < 10))
-					break;
-				V_DrawContinueIcon(246 - (i*12), 162, 0, *data.spec.playerchar, *data.spec.playercolor);
+				y = 48;
+				x += BASEVIDWIDTH/2;
 			}
 		}
 	}
-	else if (intertype == int_match || intertype == int_race)
+	else if (intertype == int_match)
 	{
 		INT32 j = 0;
 		INT32 x = 4;
@@ -671,6 +701,7 @@ void Y_Ticker(void)
 	if (endtic != -1)
 		return; // tally is done
 
+	/* // SRB2kart
 	if (intertype == int_coop) // coop or single player, normal level
 	{
 		INT32 i;
@@ -798,6 +829,39 @@ void Y_Ticker(void)
 			--data.spec.gotlife;
 		}
 	}
+	*/
+	if (intertype == int_timeattack)
+	{
+		if (!intertic)
+			endtic = intertic + 10*TICRATE; // 10 second pause after end of tally
+	}
+	else if (intertype == int_race)
+	{
+		INT32 q=0,r=0;
+
+		/* // SRB2kart - removed temporarily.
+		if (!intertic) {
+			if (!((music_playing == "karwin") // Mario Kart Win
+			|| (music_playing == "karok") // Mario Kart Ok
+			|| (music_playing == "karlos"))) // Mario Kart Lose
+				S_ChangeMusicInternal("racent", true); // Backup Plan
+		}*/
+
+		if (intertic < TICRATE || intertic % 8)
+			return;
+
+		for (q = 0; q < data.match.numplayers; q++)
+		{
+			if (data.match.increase[q]) {
+				data.match.increase[q]--;
+				r++;
+			}
+		}
+		if (r)
+			S_StartSound(NULL, sfx_menu1);
+		else
+			endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
+	}
 	else if (intertype == int_match || intertype == int_ctf || intertype == int_teammatch) // match
 	{
 		if (!intertic) // first time only
@@ -924,10 +988,16 @@ void Y_StartIntermission(void)
 	{
 		timer = 0;
 
+		/*
 		if (G_IsSpecialStage(gamemap))
 			intertype = (maptol & TOL_NIGHTS) ? int_nightsspec : int_spec;
 		else
 			intertype = (maptol & TOL_NIGHTS) ? int_nights : int_coop;
+		*/
+		if (modeattacking)
+			intertype = int_timeattack;
+		else
+			intertype = int_race;
 	}
 	else
 	{
@@ -941,6 +1011,7 @@ void Y_StartIntermission(void)
 				timer = 1;
 		}
 
+		/* // SRB2kart
 		if (gametype == GT_COOP)
 		{
 			// Nights intermission is single player only
@@ -950,7 +1021,8 @@ void Y_StartIntermission(void)
 			else
 				intertype = int_coop;
 		}
-		else if (gametype == GT_TEAMMATCH)
+		else */
+		if (gametype == GT_TEAMMATCH)
 			intertype = int_teammatch;
 		else if (gametype == GT_MATCH
 		 || gametype == GT_TAG
@@ -985,11 +1057,11 @@ void Y_StartIntermission(void)
 			}
 
 			// fall back into the coop intermission for now
-			intertype = int_coop;
-		case int_coop: // coop or single player, normal level
+			intertype = int_timeattack;
+		case int_timeattack: // coop or single player, normal level // SRB2kart 230117 - replaced int_coop
 		{
 			// award time and ring bonuses
-			Y_AwardCoopBonuses();
+			// Y_AwardCoopBonuses();
 
 			// setup time data
 			data.coop.tics = players[consoleplayer].realtime;
@@ -1079,6 +1151,7 @@ void Y_StartIntermission(void)
 			break;
 		}
 
+		/*	// SRB2kart 230117 - removed
 		case int_nightsspec:
 			if (modeattacking && stagefailed)
 			{
@@ -1144,7 +1217,7 @@ void Y_StartIntermission(void)
 				data.spec.headx = 48;
 				data.spec.nowsuper = NULL;
 			} */
-
+/*
 			// Super form stuff (normally blank)
 			data.spec.passed3[0] = '\0';
 			data.spec.passed4[0] = '\0';
@@ -1190,7 +1263,7 @@ void Y_StartIntermission(void)
 			data.spec.passedx3 = (BASEVIDWIDTH - V_LevelNameWidth(data.spec.passed3))/2;
 			data.spec.passedx4 = (BASEVIDWIDTH - V_LevelNameWidth(data.spec.passed4))/2;
 			break;
-		}
+		}*/
 
 		case int_match:
 		{
@@ -1224,7 +1297,7 @@ void Y_StartIntermission(void)
 		case int_race: // (time-only race)
 		{
 			// Calculate who won
-			Y_CalculateTimeRaceWinners();
+			Y_CalculateTournamentPoints();
 
 			// set up the levelstring
 			if (mapheaderinfo[prevmap]->actnum)
@@ -1241,7 +1314,7 @@ void Y_StartIntermission(void)
 			data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
 
 			// get RESULT header
-			data.match.result = W_CachePatchName("RESULT", PU_STATIC);
+			//data.match.result = W_CachePatchName("RESULT", PU_STATIC);
 
 			bgtile = W_CachePatchName("SRB2BACK", PU_STATIC);
 			usetile = true;
@@ -1360,6 +1433,7 @@ static void Y_CalculateMatchWinners(void)
 	}
 }
 
+/*
 //
 // Y_CalculateTimeRaceWinners
 //
@@ -1403,6 +1477,7 @@ static void Y_CalculateTimeRaceWinners(void)
 		data.match.numplayers++;
 	}
 }
+*/
 
 //
 // Y_CalculateCompetitionWinners
@@ -1665,7 +1740,7 @@ bonus_f bonuses_list[4][4] = {
 };
 
 
-
+/*  // SRB2kart 230117 - Replaced with Y_CalculateTournamentPoints
 //
 // Y_AwardCoopBonuses
 //
@@ -1757,6 +1832,86 @@ static void Y_AwardSpecialStageBonus(void)
 			data.spec.playercolor = &players[i].skincolor;
 			data.spec.playerchar = &players[i].skin;
 		}
+	}
+}
+*/
+
+//
+// Y_CalculateTournamentPoints
+//
+static void Y_CalculateTournamentPoints(void)
+{
+	INT32 i, j;
+	boolean completed[MAXPLAYERS];
+	INT32 numplayersingame = 0;
+	INT32 zz1  = 0, zz2  = 0, zz3  = 0, zz4  = 0, zz5  = 0, zz6  = 0, zz7  = 0, zz8  = 0,
+		  zz9  = 0, zz10 = 0, zz11 = 0, zz12 = 0, zz13 = 0, zz14 = 0, zz15 = 0, zz16 = 0;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i])
+			numplayersingame++;
+	}
+
+	zz1 = numplayersingame;		zz2 = numplayersingame-1;	zz3 = numplayersingame-2;	zz4 = numplayersingame-3;
+	zz5 = numplayersingame-4;	zz6 = numplayersingame-5;	zz7 = numplayersingame-6;	zz8 = numplayersingame-7;
+	zz9 = numplayersingame-8;	zz10= numplayersingame-9;	zz11= numplayersingame-10;	zz12= numplayersingame-11;
+	zz13= numplayersingame-12;	zz14= numplayersingame-13;	zz15= numplayersingame-14;	zz16= numplayersingame-15;
+	
+	if (zz1 < 0) zz1 = 0;	if (zz2 < 0) zz2 = 0;	if (zz3 < 0) zz3 = 0;	if (zz4 < 0) zz4 = 0;
+	if (zz5 < 0) zz5 = 0;	if (zz6 < 0) zz6 = 0;	if (zz7 < 0) zz7 = 0;	if (zz8 < 0) zz8 = 0;
+	if (zz9 < 0) zz9 = 0;	if (zz10< 0) zz10= 0;	if (zz11< 0) zz11= 0;	if (zz12< 0) zz12= 0;
+	if (zz13< 0) zz13= 0;	if (zz14< 0) zz14= 0;	if (zz15< 0) zz15= 0;	if (zz16< 0) zz16= 0;
+
+	INT32 increase[MAXPLAYERS] = {zz1,zz2,zz3,zz4,zz5,zz6,zz7,zz8,zz9,zz10,zz11,zz12,zz13,zz14,zz15,zz16};
+
+	// Initialize variables
+
+	for (j = 0; j < MAXPLAYERS; j++)
+		data.match.scores[j] = INT32_MAX;
+
+	memset(data.match.time, 0, sizeof (data.match.time));
+	memset(data.match.color, 0, sizeof (data.match.color));
+	memset(data.match.character, 0, sizeof (data.match.character));
+	memset(data.match.spectator, 0, sizeof (data.match.spectator));
+	memset(data.match.increase, 0, sizeof (data.match.increase));
+	memset(completed, 0, sizeof (completed));
+	data.match.numplayers = 0;
+	i = j = 0;
+
+	for (j = 0; j < MAXPLAYERS; j++)
+	{
+		if (!playeringame[j])
+			continue;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i])
+				continue;
+
+			if (players[i].realtime <= data.match.scores[data.match.numplayers] && completed[i] == false)
+			{
+				data.match.time[data.match.numplayers] = players[i].realtime;
+				data.match.scores[data.match.numplayers] = players[i].realtime;
+				data.match.color[data.match.numplayers] = &players[i].skincolor;
+				data.match.character[data.match.numplayers] = &players[i].skin;
+				data.match.name[data.match.numplayers] = player_names[i];
+				data.match.spectator[data.match.numplayers] = players[i].spectator;
+				data.match.num[data.match.numplayers] = i;
+			}
+		}
+		completed[data.match.num[data.match.numplayers]] = true;
+		if (!(players[data.match.num[data.match.numplayers]].pflags & PF_TIMEOVER
+		|| players[data.match.num[data.match.numplayers]].spectator))
+			data.match.increase[data.match.numplayers] = increase[data.match.numplayers];
+		players[data.match.num[data.match.numplayers]].score += data.match.increase[data.match.numplayers];
+		data.match.scores[data.match.numplayers] = players[data.match.num[data.match.numplayers]].score;
+
+		//players[data.match.num[data.match.numplayers]].newfloorz = 0;
+		players[data.match.num[data.match.numplayers]].kartstuff[k_lakitu] = 0;
+		//players[data.match.num[data.match.numplayers]].airtime = 0;
+
+		data.match.numplayers++;
 	}
 }
 
@@ -1853,6 +2008,7 @@ static void Y_UnloadData(void)
 
 	switch (intertype)
 	{
+		/*
 		case int_coop:
 			// unload the coop and single player patches
 			UNLOAD(data.coop.ttlnum);
@@ -1870,6 +2026,7 @@ static void Y_UnloadData(void)
 			UNLOAD(data.spec.pscore);
 			UNLOAD(data.spec.pcontinues);
 			break;
+		*/
 		case int_match:
 		case int_race:
 			UNLOAD(data.match.result);

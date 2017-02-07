@@ -38,6 +38,10 @@ enum skin {
 	skin_actionspd,
 	skin_mindash,
 	skin_maxdash,
+	// SRB2kart
+	skin_kartspeed,
+	skin_kartweight,
+	//
 	skin_normalspeed,
 	skin_runspeed,
 	skin_thrustfactor,
@@ -68,6 +72,10 @@ static const char *const skin_opt[] = {
 	"actionspd",
 	"mindash",
 	"maxdash",
+	// SRB2kart
+	"kartspeed",
+	"kartweight",
+	//
 	"normalspeed",
 	"runspeed",
 	"thrustfactor",
@@ -155,6 +163,14 @@ static int skin_get(lua_State *L)
 	case skin_maxdash:
 		lua_pushfixed(L, skin->maxdash);
 		break;
+	// SRB2kart
+	case skin_kartspeed:
+		lua_pushfixed(L, skin->kartspeed);
+		break;
+	case skin_kartweight:
+		lua_pushfixed(L, skin->kartweight);
+		break;
+	//
 	case skin_normalspeed:
 		lua_pushfixed(L, skin->normalspeed);
 		break;

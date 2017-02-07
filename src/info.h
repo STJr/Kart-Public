@@ -598,6 +598,11 @@ typedef enum sprite
 	SPR_BOMB, // Bob-omb
 	SPR_BLIG, // Blue Lightning
 	SPR_LIGH, // Lightning
+	SPR_SINK, // Kitchen Sink
+	SPR_SITR, // Kitchen Sink Trail
+	
+	// Additional Kart Objects
+	SPR_POKE, // Lightning
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3194,6 +3199,23 @@ typedef enum state
 	S_LIGHTNING3,
 	S_LIGHTNING4,
 
+	// The legend
+	S_SINK,
+	S_SINKTRAIL1,
+	S_SINKTRAIL2,
+	S_SINKTRAIL3,
+
+	// Pokey
+	S_POKEY1,
+	S_POKEY2,
+	S_POKEY3,
+	S_POKEY4,
+	S_POKEY5,
+	S_POKEY6,
+	S_POKEY7,
+	S_POKEY8,
+	S_POKEYIDLE,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -3763,6 +3785,13 @@ typedef enum mobj_type
 	MT_BLUELIGHTNING, // Lightning stuff
 	MT_BLUEEXPLOSION,
 	MT_LIGHTNING,
+
+	MT_SINK, // Kitchen Sink Stuff
+	MT_SINKTRAIL,
+
+	MT_POKEY, // Huh, thought this was a default asset for some reason, guess not.
+	MT_ENEMYFLIP,
+	MT_WAYPOINT,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
