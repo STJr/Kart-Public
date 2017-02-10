@@ -4876,10 +4876,10 @@ static void P_3dMovement(player_t *player)
 	// If "no" to 1, we're not reaching any limits yet, so ignore this entirely!
 	// -Shadow Hog
 	newMagnitude = R_PointToDist2(player->mo->momx - player->cmomx, player->mo->momy - player->cmomy, 0, 0);
-	if (newMagnitude > topspeed)
+	if (newMagnitude > K_GetKartSpeed(player)) //topspeed)
 	{
 		fixed_t tempmomx, tempmomy;
-		if (oldMagnitude > topspeed)
+		if (oldMagnitude > K_GetKartSpeed(player)) //topspeed)
 		{
 			if (newMagnitude > oldMagnitude)
 			{
@@ -4892,8 +4892,8 @@ static void P_3dMovement(player_t *player)
 		}
 		else
 		{
-			tempmomx = FixedMul(FixedDiv(player->mo->momx - player->cmomx, newMagnitude), topspeed);
-			tempmomy = FixedMul(FixedDiv(player->mo->momy - player->cmomy, newMagnitude), topspeed);
+			tempmomx = FixedMul(FixedDiv(player->mo->momx - player->cmomx, newMagnitude), K_GetKartSpeed(player)); //topspeed)
+			tempmomy = FixedMul(FixedDiv(player->mo->momy - player->cmomy, newMagnitude), K_GetKartSpeed(player)); //topspeed)
 			player->mo->momx = tempmomx + player->cmomx;
 			player->mo->momy = tempmomy + player->cmomy;
 		}
@@ -7876,8 +7876,8 @@ static void P_DeathThink(player_t *player)
 		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && (gametype == GT_RACE || player->spectator))
 			player->playerstate = PST_REBORN;
 
-		// One second respawn in coop.
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > TICRATE && (gametype == GT_COOP || gametype == GT_COMPETITION))
+		// One second respawn in coop. // SRB2kart - Race maybe?
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > TICRATE && gametype == GT_RACE)//(gametype == GT_COOP || gametype == GT_COMPETITION))
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn

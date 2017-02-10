@@ -1051,8 +1051,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		else
 			player->kartstuff[k_spinouttimer] = 3*TICRATE/2;
 
-		if (player->speed < player->normalspeed/4)
-			P_InstaThrust(player->mo, player->mo->angle, FixedMul(player->normalspeed/4, player->mo->scale));
+		if (player->speed < K_GetKartSpeed(player)/4) // player->normalspeed/4)
+			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player)/4, player->mo->scale)); // FixedMul(player->normalspeed/4, player->mo->scale));
 
 		S_StartSound(player->mo, sfx_slip);
 	}
@@ -1722,23 +1722,24 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 	}
 }
 
-UINT64 K_GetKartSpeed(player_t *player)
+// Game CC - This will become a netgame variable, just here for testing now
+fixed_t g_cc = ((2) + 6)*FRACUNIT/8;
+
+fixed_t K_GetKartSpeed(player_t *player)
 {
-	UINT64 k_speed = 47*FRACUNIT + FRACUNIT/2;
-	
-	// Speed is a value between 48 and 52, incremented by halves
-	k_speed += player->kartspeed*FRACUNIT/2;
-	
-	return k_speed;
+	fixed_t k_speed = 151;
+
+	k_speed += player->kartspeed; // 152 - 160
+
+	return FixedMul(k_speed<<14, g_cc);
 }
 
-UINT64 K_GetKartAccel(player_t *player)
+fixed_t K_GetKartAccel(player_t *player)
 {
-	UINT64 k_accel = 45;
-	
-	// Acceleration is a given base, minus the speed value.
-	k_accel -= 3*player->kartspeed;
-	
+	fixed_t k_accel = 36;
+
+	k_accel += 3 * (9 - player->kartspeed); // 36 - 60
+
 	return k_accel;
 }
 
@@ -1746,18 +1747,15 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground)
 {
 	// If the player isn't on the ground, there is no change in speed
 	if (!onground) return 0;
-	
-	fixed_t accelmax = 2000;	// AccelMax
-	fixed_t f_beater = 2*FRACUNIT - (0xE8<<(FRACBITS-8)); //1.10345f;	// Friction Beater  Friction = (0xE8 << (FRACBITS-8))
-	fixed_t g_cc = 1*FRACUNIT; 					// Game CC
-	
+
+	fixed_t accelmax = 4000;					// AccelMax
 	fixed_t newspeed, oldspeed, finalspeed;
 	fixed_t boostpower = 1*FRACUNIT;
 	fixed_t p_speed = K_GetKartSpeed(player);
 	fixed_t p_accel = K_GetKartAccel(player);
-	
+
 	sector_t *nextsector = R_PointInSubsector(player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
-	
+
 	// Determine boostpower by checking every power. There's probably a cleaner way to do this, but eh whatever.
 	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->powers[pw_sneakers] || 
 		  player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1) && P_IsObjectOnGround(player->mo) &&
@@ -1769,22 +1767,26 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground)
 	if (player->kartstuff[k_growshrinktimer] > 1) 	boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/3);	// Mega Mushroom
 	if (player->kartstuff[k_startimer]) 			boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/2);	// Star
 	if (player->kartstuff[k_mushroomtimer]) 		boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/1);	// Mushroom
-	
+
 	// Boostpower is applied to each stat individually, and NOT the calculation.
 	// Applying to the calculation fails due to friction never getting beaten, or getting overshot really far.
 	// It's easier this way.
-	// Similarly, the CC of the game is also multiplied directly. 
-	// This assures a growth in speed without affecting acceleration curving.
-	p_speed  = FixedMul(FixedMul(p_speed,  boostpower), g_cc);
-	p_accel  = FixedMul(FixedMul(p_accel,  boostpower), g_cc);
-	accelmax = FixedMul(FixedMul(accelmax, boostpower), g_cc);
+	p_speed  = FixedMul(p_speed,  boostpower);
+	p_accel  = FixedMul(p_accel,  boostpower);
+	accelmax = FixedMul(accelmax, boostpower);
 
 	// Now, the code that made Iceman's eyes rub erotically against a toaster.
-	oldspeed = FixedMul(FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale), f_beater);
-	newspeed = FixedMul(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), f_beater);
+	oldspeed = FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
+	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
 	finalspeed = newspeed - oldspeed;
 
-	return (fixed_t)finalspeed;
+	CONS_Printf("Game CC    = %d\n", g_cc);
+	CONS_Printf("finalspeed = %d\n", finalspeed);
+	
+	// 245498
+	// 498024
+
+	return finalspeed;
 }
 
 void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)

@@ -241,23 +241,23 @@ typedef enum
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
-	
+
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_turndir,			// Turn direction for drifting; -1 = Left, 1 = Right, 0 = none
 	k_sounds,			// Used this to avoid sounds being played every tic
-	
+
 	k_boosting,			// Determines if you're currently shroom-boosting to change how drifting works
 	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
 	k_spinout,			// Separate confirmation to prevent endless wipeout loops
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
-	
+
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_lakitu,			// > 0 = Lakitu fishing, < 0 = Lakitu lap counter (was "player->airtime") // NOTE: Check for ->lakitu, replace with this
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
-	
+
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
 
