@@ -946,8 +946,8 @@ void D_SRB2Main(void)
 	dedicated = M_CheckParm("-dedicated") != 0;
 #endif
 
-	strcpy(title, "Sonic Robo Blast 2");
-	strcpy(srb2, "Sonic Robo Blast 2");
+	strcpy(title, "SRB2Kart");
+	strcpy(srb2, "SRB2Kart");
 	D_MakeTitleString(srb2);
 
 #ifdef PC_DOS
@@ -957,7 +957,7 @@ void D_SRB2Main(void)
 #if defined (__OS2__) && !defined (HAVE_SDL)
 	// set PM window title
 	snprintf(pmData->title, sizeof (pmData->title),
-		"Sonic Robo Blast 2" VERSIONSTRING ": %s",
+		"SRB2Kart" VERSIONSTRING ": %s",
 		title);
 	pmData->title[sizeof (pmData->title) - 1] = '\0';
 #endif

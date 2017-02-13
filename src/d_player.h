@@ -237,6 +237,7 @@ typedef enum
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
 	k_playerahead,		// Is someone ahead of me or not?
 	k_oldposition,		// Used for taunting when you pass someone
+	k_positiondelay,	// Prevents player from taunting continuously if two people were neck-and-neck
 	k_prevcheck,		// Previous checkpoint distance; for p_user.c (was "pw_pcd")
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.

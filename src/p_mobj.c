@@ -9466,6 +9466,10 @@ ML_NOCLIMB : Direction not controllable
 		if (!foundanother)
 			numstarposts++;
 	}
+	else if (i == MT_BOSS3WAYPOINT) // SRB2kart 120217 - Used to store checkpoint num
+	{
+		mobj->health = mthing->angle;
+	}
 	else if (i == MT_SPIKE)
 	{
 		// Pop up spikes!

@@ -1529,7 +1529,7 @@ INT32 VID_SetMode(INT32 modeNum)
 		}
 		vid.modenum = -1;
 	}
-	Impl_SetWindowName("SRB2 "VERSIONSTRING);
+	Impl_SetWindowName("SRB2Kart "VERSIONSTRING);
 
 	SDLSetMode(windowedModes[modeNum][0], windowedModes[modeNum][1], USE_FULLSCREEN);
 
@@ -1568,7 +1568,7 @@ static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
-		window = SDL_CreateWindow("SRB2 "VERSIONSTRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+		window = SDL_CreateWindow("SRB2Kart "VERSIONSTRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 				realwidth, realheight, flags | SDL_WINDOW_OPENGL);
 		if (window != NULL)
 		{
@@ -1588,7 +1588,7 @@ static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
 #endif
 	if (rendermode == render_soft)
 	{
-		window = SDL_CreateWindow("SRB2 "VERSIONSTRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+		window = SDL_CreateWindow("SRB2Kart "VERSIONSTRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 				realwidth, realheight, flags);
 		if (window != NULL)
 		{
@@ -1766,7 +1766,7 @@ void I_StartupGraphics(void)
 
 	// Create window
 	//Impl_CreateWindow(USE_FULLSCREEN);
-	//Impl_SetWindowName("SRB2 "VERSIONSTRING);
+	//Impl_SetWindowName("SRB2Kart "VERSIONSTRING);
 	VID_SetMode(VID_GetModeForSize(BASEVIDWIDTH, BASEVIDHEIGHT));
 
 	vid.width = BASEVIDWIDTH; // Default size for startup

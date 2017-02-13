@@ -325,8 +325,8 @@ static inline VOID OpenTextConsole(VOID)
 	{
 		if (AllocConsole()) //Let get the real console HANDLEs, because Mingw's Bash is bad!
 		{
-			SetConsoleTitleA("SRB2 Console");
-			CONS_Printf(M_GetText("Hello, it's me, SRB2's Console Window\n"));
+			SetConsoleTitleA("SRB2Kart Console");
+			CONS_Printf(M_GetText("Hello, it's me, SRB2Kart's Console Window\n"));
 		}
 		else
 		{
@@ -612,7 +612,7 @@ static int WINAPI HandledWinMain(HINSTANCE hInstance)
 #endif
 
 	// open a dummy window, both OpenGL and DirectX need one.
-	if ((hWndMain = OpenMainWindow(hInstance, va("SRB2 "VERSIONSTRING))) == INVALID_HANDLE_VALUE)
+	if ((hWndMain = OpenMainWindow(hInstance, va("SRB2Kart "VERSIONSTRING))) == INVALID_HANDLE_VALUE)
 	{
 		tlErrorMessage(TEXT("Couldn't open window"));
 		return FALSE;
@@ -624,7 +624,7 @@ static int WINAPI HandledWinMain(HINSTANCE hInstance)
 	MakeCodeWritable();
 
 	// startup SRB2
-	CONS_Printf("Setting up SRB2...\n");
+	CONS_Printf("Setting up SRB2Kart...\n");
 	D_SRB2Main();
 	CONS_Printf("Entering main game loop...\n");
 	// never return

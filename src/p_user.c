@@ -1581,12 +1581,42 @@ void P_DoPlayerExit(player_t *player)
 		return;
 	else if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
-		if (!countdown) // a 60-second wait ala Sonic 2.
+		// SRB2kart 120217
+		if (!countdown && !(netgame || multiplayer))
+			countdown = 60*TICRATE + 1; // 60 seconds to finish, get going!
+		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
+
+/*
+		if (circuitmap)
+		{
+			if (player->kartstuff[k_position] <= 3)
+				S_StartSound(player->mo, sfx_kwin);
+			else
+				S_StartSound(player->mo, sfx_klose);
+		}*/
+
+		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
+		{
+			if (!splitscreen)
+			{
+				if (player->kartstuff[k_position] == 1)
+					S_ChangeMusicInternal("karwin", true);
+				else if (player->kartstuff[k_position] == 2 || player->kartstuff[k_position] == 3)
+					S_ChangeMusicInternal("karok", true);
+				else if (player->kartstuff[k_position] >= 4)
+					S_ChangeMusicInternal("karlos", true);
+			}
+			else
+				S_ChangeMusicInternal("karwin", true);
+		}
 
 		player->exiting = 3*TICRATE;
 
-		if (!countdown2)
+		// SRB2kart 120217
+		if (!countdown2 && !(netgame || multiplayer))
+			countdown2 = (66)*TICRATE + 1; // 6 seconds past the time over
+		else if (!countdown2)
 			countdown2 = (8 + cv_countdowntime.value)*TICRATE + 1; // 8 sec more than countdowntime -- 11 is too much
 
 		if (P_CheckRacers())
@@ -4819,7 +4849,7 @@ static void P_3dMovement(player_t *player)
 			movepushside >>= 2;
 
 			// Reduce movepushslide even more if over "max" flight speed
-			if (player->powers[pw_tailsfly] && player->speed > topspeed)
+			if (player->powers[pw_tailsfly] && player->speed > K_GetKartSpeed(player)) //topspeed)
 				movepushside >>= 2;
 		}
 

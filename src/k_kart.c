@@ -290,6 +290,8 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_fireflower);
 	CV_RegisterVar(&cv_tripleredshell);
 	CV_RegisterVar(&cv_lightning);
+
+	CV_RegisterVar(&cv_kartcc);
 }
 
 //}
@@ -889,6 +891,39 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
+/**	\brief	Updates the Player's offroad value once per frame
+
+	\param	player	player object passed from K_KartPlayerThink
+
+	\return	void
+*/
+void K_UpdateOffroad(player_t *player)
+{
+	fixed_t kartweight = player->kartweight;
+	sector_t *nextsector = R_PointInSubsector(
+		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
+
+	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
+	if (nextsector->special & 256 && nextsector->special != 768 && (nextsector->special != 1024 || nextsector->special != 4864))
+	{
+		if (P_IsObjectOnGround(player->mo) && player->kartstuff[k_offroad] == 0)
+			player->kartstuff[k_offroad] = 16;
+		if (player->kartstuff[k_offroad] > 0)
+		{
+			if (kartweight < 1) kartweight = 1; if (kartweight > 9) kartweight = 9; // Safety Net
+
+			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
+			// A higher kart weight means you can stay offroad for longer without losing speed
+			player->kartstuff[k_offroad] += (1872 + 5*156 - kartweight*156);
+		}
+
+		if (player->kartstuff[k_offroad] > FRACUNIT)
+			player->kartstuff[k_offroad] = FRACUNIT;
+	}
+	else
+		player->kartstuff[k_offroad] = 0;
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -898,6 +933,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 */
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
+	K_UpdateOffroad(player);
+
 	// This spawns the drift sparks when k_driftcharge hits 30. Its own AI handles life/death and color
 	if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) 
 		&& player->kartstuff[k_driftcharge] == 30)
@@ -1031,6 +1068,62 @@ void K_PlayTauntSound(mobj_t *source)
 		S_StartSound(source, sfx_taunt3);
 	else
 		S_StartSound(source, sfx_taunt4);
+}
+
+fixed_t K_GetKartBoostPower(player_t *player)
+{
+	fixed_t boostpower = FRACUNIT;
+
+	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1) 
+		&& player->kartstuff[k_offroad] >= 0)
+			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
+	if (player->kartstuff[k_growshrinktimer] < -1) 
+		boostpower = FixedMul(boostpower, 6*FRACUNIT/8);	// Shrink
+	if (player->kartstuff[k_squishedtimer] > 0) 
+		boostpower = FixedMul(boostpower, 7*FRACUNIT/8);	// Squished
+	if (player->powers[pw_sneakers]) 
+		boostpower = FixedMul(boostpower, 10*FRACUNIT/8);	// Slide Boost
+	if (player->kartstuff[k_growshrinktimer] > 1) 
+		boostpower = FixedMul(boostpower, 10*FRACUNIT/8);	// Mega Mushroom
+	if (player->kartstuff[k_startimer]) 
+		boostpower = FixedMul(boostpower, 11*FRACUNIT/8);	// Star
+	if (player->kartstuff[k_mushroomtimer]) 
+		boostpower = FixedMul(boostpower, 12*FRACUNIT/8);	// Mushroom
+
+	return boostpower;
+}
+fixed_t K_GetKartSpeed(player_t *player)
+{
+	fixed_t k_speed = 151;
+	fixed_t g_cc = (cv_kartcc.value/50 + 6)*FRACUNIT/8; // Game CC - 50cc = 0, 100cc = 1, etc.
+
+	k_speed += player->kartspeed; // 152 - 160
+
+	return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player));
+}
+fixed_t K_GetKartAccel(player_t *player)
+{
+	fixed_t k_accel = 36;
+
+	k_accel += 3 * (9 - player->kartspeed); // 36 - 60
+
+	return k_accel;
+}
+fixed_t K_3dKartMovement(player_t *player, boolean onground)
+{
+	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
+
+	fixed_t accelmax = 4000;
+	fixed_t newspeed, oldspeed, finalspeed;
+	fixed_t p_speed = K_GetKartSpeed(player);
+	fixed_t p_accel = K_GetKartAccel(player);
+
+	// ACCELCODE!!!1!11!
+	oldspeed = FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
+	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
+	finalspeed = newspeed - oldspeed;
+
+	return finalspeed;
 }
 
 void K_SpinPlayer(player_t *player, mobj_t *source)
@@ -1721,74 +1814,93 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 		player->kartstuff[k_driftcharge] = 0;
 	}
 }
-
-// Game CC - This will become a netgame variable, just here for testing now
-fixed_t g_cc = ((2) + 6)*FRACUNIT/8;
-
-fixed_t K_GetKartSpeed(player_t *player)
+//
+// K_KartUpdatePosition
+//
+static void K_KartUpdatePosition(player_t *player)
 {
-	fixed_t k_speed = 151;
+	fixed_t position = 1;
+	fixed_t i, ppcd, pncd, ipcd, incd;
+	fixed_t pmo, imo;
+	thinker_t *th;
+	mobj_t *mo;	
 
-	k_speed += player->kartspeed; // 152 - 160
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)	// If you don't exist, you aren't in the race.
+			continue;
 
-	return FixedMul(k_speed<<14, g_cc);
+		if (((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) > 
+			((player->starpostnum) + (numstarposts + 1) * player->laps))
+			position++;
+
+		ppcd = pncd = ipcd = incd = 0;
+
+		player->kartstuff[k_prevcheck] = players[i].kartstuff[k_prevcheck] = 0;
+		player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
+		
+		// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
+		for (th = thinkercap.next; th != &thinkercap; th = th->next) 
+		{
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
+				continue;
+
+			mo = (mobj_t *)th;
+
+			pmo = P_AproxDistance(P_AproxDistance(mo->x - player->mo->x, mo->y - player->mo->y), mo->z - player->mo->z) / FRACUNIT;
+			imo = P_AproxDistance(P_AproxDistance(mo->x - players[i].mo->x, mo->y - players[i].mo->y), mo->z - players[i].mo->z) / FRACUNIT;
+
+			if (mo->type != MT_BOSS3WAYPOINT)
+				continue;
+
+			if (mo->health == player->starpostnum)
+			{
+				player->kartstuff[k_prevcheck] += pmo;
+				ppcd++;
+			}
+			if (mo->health == (player->starpostnum + 1))
+			{
+				player->kartstuff[k_nextcheck] += pmo;
+				pncd++;
+			}
+			if (mo->health == players[i].starpostnum)
+			{
+				players[i].kartstuff[k_prevcheck] += imo;
+				ipcd++;
+			}
+			if (mo->health == (players[i].starpostnum + 1))
+			{
+				players[i].kartstuff[k_nextcheck] += imo;
+				incd++;
+			}
+		}
+
+		if (ppcd > 1) player->kartstuff[k_prevcheck] /= ppcd;
+		if (pncd > 1) player->kartstuff[k_nextcheck] /= pncd;
+		if (ipcd > 1) players[i].kartstuff[k_prevcheck] /= ipcd;
+		if (incd > 1) players[i].kartstuff[k_nextcheck] /= incd;
+
+		if ((players[i].kartstuff[k_nextcheck] > 0 || player->kartstuff[k_nextcheck] > 0) && !player->exiting)
+		{
+			if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) < (player->kartstuff[k_nextcheck] - player->kartstuff[k_prevcheck]))
+				position++;
+		}
+		else if (!player->exiting)
+		{
+			if (players[i].kartstuff[k_prevcheck] > player->kartstuff[k_prevcheck])
+				position++;
+		}
+		else
+		{
+			if (players[i].starposttime < player->starposttime)
+				position++;
+		}
+	}
+	player->kartstuff[k_position] = position;
 }
-
-fixed_t K_GetKartAccel(player_t *player)
-{
-	fixed_t k_accel = 36;
-
-	k_accel += 3 * (9 - player->kartspeed); // 36 - 60
-
-	return k_accel;
-}
-
-fixed_t K_3dKartMovement(player_t *player, boolean onground)
-{
-	// If the player isn't on the ground, there is no change in speed
-	if (!onground) return 0;
-
-	fixed_t accelmax = 4000;					// AccelMax
-	fixed_t newspeed, oldspeed, finalspeed;
-	fixed_t boostpower = 1*FRACUNIT;
-	fixed_t p_speed = K_GetKartSpeed(player);
-	fixed_t p_accel = K_GetKartAccel(player);
-
-	sector_t *nextsector = R_PointInSubsector(player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
-
-	// Determine boostpower by checking every power. There's probably a cleaner way to do this, but eh whatever.
-	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->powers[pw_sneakers] || 
-		  player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1) && P_IsObjectOnGround(player->mo) &&
-		  nextsector->special & 256 && nextsector->special != 768 && (nextsector->special != 1024 || nextsector->special != 4864))
-													boostpower = FixedMul(boostpower, FRACUNIT/4);	// Off-road, unless you're ignoring off-road.
-	if (player->kartstuff[k_growshrinktimer] < -1) 	boostpower = FixedMul(boostpower, FRACUNIT/3);	// Shrink
-	if (player->kartstuff[k_squishedtimer] > 0) 	boostpower = FixedMul(boostpower, FRACUNIT/2);	// Squished
-	if (player->powers[pw_sneakers]) 				boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/4);	// Slide Boost
-	if (player->kartstuff[k_growshrinktimer] > 1) 	boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/3);	// Mega Mushroom
-	if (player->kartstuff[k_startimer]) 			boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/2);	// Star
-	if (player->kartstuff[k_mushroomtimer]) 		boostpower = FixedMul(boostpower, FRACUNIT+FRACUNIT/1);	// Mushroom
-
-	// Boostpower is applied to each stat individually, and NOT the calculation.
-	// Applying to the calculation fails due to friction never getting beaten, or getting overshot really far.
-	// It's easier this way.
-	p_speed  = FixedMul(p_speed,  boostpower);
-	p_accel  = FixedMul(p_accel,  boostpower);
-	accelmax = FixedMul(accelmax, boostpower);
-
-	// Now, the code that made Iceman's eyes rub erotically against a toaster.
-	oldspeed = FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
-	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
-	finalspeed = newspeed - oldspeed;
-
-	CONS_Printf("Game CC    = %d\n", g_cc);
-	CONS_Printf("finalspeed = %d\n", finalspeed);
-	
-	// 245498
-	// 498024
-
-	return finalspeed;
-}
-
+//
+// K_MoveKartPlayer
+//
 void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 {
 	boolean ATTACK_IS_DOWN = ((cmd->buttons & BT_ATTACK) && !(player->pflags & PF_ATTACKDOWN));
@@ -1798,6 +1910,32 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		|| player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4
 		|| player->kartstuff[k_triplebanana] & 1 || player->kartstuff[k_triplebanana] & 2 || player->kartstuff[k_triplebanana] & 4);
 	boolean NO_BOO = (player->kartstuff[k_boostolentimer] == 0 && player->kartstuff[k_bootaketimer] == 0);
+
+	K_KartUpdatePosition(player);
+
+	// Position Taunt
+	// If you were behind someone but just passed them, taunt at them!
+	if (!player->kartstuff[k_positiondelay] && !player->exiting)
+	{
+		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
+			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // then the other player taunts.
+		else if (player->kartstuff[k_oldposition] > player->kartstuff[k_position]) // Otherwise,
+		{
+			//S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
+			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // Restore the old position,
+			player->kartstuff[k_positiondelay] = 5*TICRATE; // and set up a timer.
+		}
+	}
+	if (player->kartstuff[k_positiondelay])
+		player->kartstuff[k_positiondelay]--;
+
+	// Race Spectator
+	if (netgame && player->jointime < 1
+	&& gametype == GT_RACE && countdown)
+	{
+		player->spectator = true;
+		player->powers[pw_nocontrol] = 5;
+	}
 
 	if ((player->pflags & PF_ATTACKDOWN) && !(cmd->buttons & BT_ATTACK))
 		player->pflags &= ~PF_ATTACKDOWN;
@@ -2925,7 +3063,7 @@ static void K_drawKartNeoItem(void)
 }
 */
 
-static void K_drawKartTripleItem(void)
+static void K_DrawKartTripleItem(void)
 {
 	// TRIP_X = 143;				// 143
 	// TRIP_Y = BASEVIDHEIGHT-34;	// 166
@@ -3155,7 +3293,7 @@ static void K_DrawKartPositionFaces(void)
 				V_DrawSmallMappedPatch(FACE_X, Y, 0, faceprefix[players[rankplayer[i]].skin], colormap);
 		}
 		// Draws the little number over the face
-		switch (ranklines)
+		switch (players[rankplayer[i]].kartstuff[k_position])
 		{
 			case 1: localpatch = kp_facefirst; break;
 			case 2: localpatch = kp_facesecond; break;
@@ -3193,7 +3331,7 @@ void K_drawKartHUD(void)
 	// Draw the little triple-item icons at the bottom
 	if (!splitscreen)
 	{
-		K_drawKartTripleItem();
+		K_DrawKartTripleItem();
 		K_DrawKartPositionFaces();
 	}
 	
@@ -3208,8 +3346,7 @@ void K_drawKartHUD(void)
 		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 	
 	// Draw the numerical position
-	K_DrawKartPositionNum(stplyr->kartstuff[k_spinout]);
-	//K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 	
 	// Plays the music after the starting countdown. This is here since it checks every frame regularly.
 	if (leveltime > 157 && leveltime < (TICRATE+1)*7)

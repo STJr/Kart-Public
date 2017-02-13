@@ -529,6 +529,7 @@ typedef enum
 	sfx_s3kdbs,
 	sfx_s3kdbl,
 
+	// SRB2kart
 	sfx_lkt1,
 	sfx_lkt2,
 	sfx_lkt3,
@@ -559,6 +560,10 @@ typedef enum
 	sfx_mkitm7,
 	sfx_mkitm8,
 	sfx_mkitmF,
+	sfx_kwin,
+	sfx_klose,
+	sfx_slow,
+	//
 
 	sfx_taunt1,
 	sfx_taunt2,
