@@ -1163,6 +1163,9 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, con
 
 	HWD.pfnSetTexture(newmip);
 	Z_ChangeTag(newmip->grInfo.data, PU_HWRCACHE_UNLOCKED);
+
+	HWD.pfnSetTexture(newmip);
+	Z_ChangeTag(newmip->grInfo.data, PU_HWRCACHE_UNLOCKED);
 }
 
 

@@ -7379,8 +7379,6 @@ void T_Pusher(pusher_t *p)
 	//else if (!(GETSECSPECIAL(sec->special, 3) == 2
 	//		|| GETSECSPECIAL(sec->special, 3) == 3))
 	else if (GETSECSPECIAL(sec->special, 3) != 2)
-		return;
-
 	// For constant pushers (wind/current) there are 3 situations:
 	//
 	// 1) Affected Thing is above the floor.

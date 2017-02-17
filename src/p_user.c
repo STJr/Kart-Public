@@ -4801,7 +4801,6 @@ static void P_3dMovement(player_t *player)
 			//movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
 			if (max(abs(cmd->sidemove), abs(cmd->forwardmove)) > 0)
 				movepushforward = K_3dKartMovement(player, onground, true);
-			else
 				movepushforward = -(K_3dKartMovement(player, onground, false));
 
 			// allow very small movement while in air for gameplay

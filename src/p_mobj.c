@@ -890,7 +890,7 @@ fixed_t P_MobjFloorZ(mobj_t *mobj, sector_t *sector, sector_t *boundsec, fixed_t
 		testy += y;
 
 		// If the highest point is in the sector, then we have it easy! Just get the Z at that point
-		if (R_PointInSubsector(testx, testy)->sector == (boundsec ? boundsec : sector))
+		if (R_PointInSubsector(testx, testy)->sector == (boundsec ?: sector))
 			return P_GetZAt(slope, testx, testy);
 
 		// If boundsec is set, we're looking for specials. In that case, iterate over every line in this sector to find the TRUE highest/lowest point
@@ -978,7 +978,7 @@ fixed_t P_MobjCeilingZ(mobj_t *mobj, sector_t *sector, sector_t *boundsec, fixed
 		testy += y;
 
 		// If the highest point is in the sector, then we have it easy! Just get the Z at that point
-		if (R_PointInSubsector(testx, testy)->sector == (boundsec ? boundsec : sector))
+		if (R_PointInSubsector(testx, testy)->sector == (boundsec ?: sector))
 			return P_GetZAt(slope, testx, testy);
 
 		// If boundsec is set, we're looking for specials. In that case, iterate over every line in this sector to find the TRUE highest/lowest point
@@ -1067,7 +1067,7 @@ fixed_t P_CameraFloorZ(camera_t *mobj, sector_t *sector, sector_t *boundsec, fix
 		testy += y;
 
 		// If the highest point is in the sector, then we have it easy! Just get the Z at that point
-		if (R_PointInSubsector(testx, testy)->sector == (boundsec ? boundsec : sector))
+		if (R_PointInSubsector(testx, testy)->sector == (boundsec ?: sector))
 			return P_GetZAt(slope, testx, testy);
 
 		// If boundsec is set, we're looking for specials. In that case, iterate over every line in this sector to find the TRUE highest/lowest point
@@ -1155,7 +1155,7 @@ fixed_t P_CameraCeilingZ(camera_t *mobj, sector_t *sector, sector_t *boundsec, f
 		testy += y;
 
 		// If the highest point is in the sector, then we have it easy! Just get the Z at that point
-		if (R_PointInSubsector(testx, testy)->sector == (boundsec ? boundsec : sector))
+		if (R_PointInSubsector(testx, testy)->sector == (boundsec ?: sector))
 			return P_GetZAt(slope, testx, testy);
 
 		// If boundsec is set, we're looking for specials. In that case, iterate over every line in this sector to find the TRUE highest/lowest point
@@ -2691,6 +2691,13 @@ static void P_PlayerZMovement(mobj_t *mo)
 		}
 #endif
 
+#ifdef ESLOPE
+		if (!mo->standingslope && (mo->eflags & MFE_VERTICALFLIP ? tmceilingslope : tmfloorslope)) {
+			// Handle landing on slope during Z movement
+			P_HandleSlopeLanding(mo, (mo->eflags & MFE_VERTICALFLIP ? tmceilingslope : tmfloorslope));
+		}
+#endif
+
 		if (P_MobjFlip(mo)*mo->momz < 0) // falling
 		{
 			mo->pmomz = 0; // We're on a new floor, don't keep doing platform movement.
@@ -2770,7 +2777,7 @@ static void P_PlayerZMovement(mobj_t *mo)
 
 					// Cut momentum in half when you hit the ground and
 					// aren't pressing any controls.
-					if (!(mo->player->cmd.forwardmove || mo->player->cmd.sidemove) && !mo->player->cmomx && !mo->player->cmomy 
+					if (!(mo->player->cmd.forwardmove || mo->player->cmd.sidemove) && !mo->player->cmomx && !mo->player->cmomy
 						&& !(mo->player->pflags & PF_SPINNING) && !(mo->player->kartstuff[k_spinouttimer]))
 					{
 						mo->momx = mo->momx/2;
@@ -2789,9 +2796,9 @@ static void P_PlayerZMovement(mobj_t *mo)
 					|| mo->player->powers[pw_tailsfly]) && (mo->player->kartstuff[k_spinouttimer] == 0)) // SRB2kart
 					{
 						ticcmd_t *cmd;
-						
+
 						cmd = &mo->player->cmd;
-						
+
 						// Standing frames - S_KART_STND   S_KART_STND_L   S_KART_STND_R
 						if (mo->player->speed == 0)
 						{
@@ -6345,7 +6352,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if (mobj->target->player->kartstuff[k_bootaketimer] > 0)
 					{
 						if ((mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
-							|| (!(mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer])) 
+							|| (!(mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
 							&& (mobj->target->player->kartstuff[k_bootaketimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootaketimer] > bootime-(1*TICRATE/2))))
 						{
 							if (leveltime & 1)
@@ -6429,9 +6436,9 @@ void P_MobjThinker(mobj_t *mobj)
 					INT32 DIST = FixedDiv(zfixds, mobj->target->scale);
 					INT32 HEIGHT;
 					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
-				
+
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
-					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3 
+					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
 					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
 						mobj->angle += FixedAngle(mobj->info->speed);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
@@ -6470,14 +6477,14 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((mobj->type == MT_GREENSHIELD && !(mobj->target->player->kartstuff[k_greenshell] & 1))
 						|| (mobj->type == MT_REDSHIELD && !(mobj->target->player->kartstuff[k_redshell] & 1))
 						|| (mobj->type == MT_BANANASHIELD && !(mobj->target->player->kartstuff[k_banana] & 1))
-						|| (mobj->type == MT_TRIPLEGREENSHIELD1 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 1)) 
-						|| (mobj->type == MT_TRIPLEGREENSHIELD2 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 2)) 
+						|| (mobj->type == MT_TRIPLEGREENSHIELD1 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 1))
+						|| (mobj->type == MT_TRIPLEGREENSHIELD2 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 2))
 						|| (mobj->type == MT_TRIPLEGREENSHIELD3 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 4))
-						|| (mobj->type == MT_TRIPLEREDSHIELD1 && !(mobj->target->player->kartstuff[k_tripleredshell] & 1)) 
-						|| (mobj->type == MT_TRIPLEREDSHIELD2 && !(mobj->target->player->kartstuff[k_tripleredshell] & 2)) 
+						|| (mobj->type == MT_TRIPLEREDSHIELD1 && !(mobj->target->player->kartstuff[k_tripleredshell] & 1))
+						|| (mobj->type == MT_TRIPLEREDSHIELD2 && !(mobj->target->player->kartstuff[k_tripleredshell] & 2))
 						|| (mobj->type == MT_TRIPLEREDSHIELD3 && !(mobj->target->player->kartstuff[k_tripleredshell] & 4))
-						|| (mobj->type == MT_TRIPLEBANANASHIELD1 && !(mobj->target->player->kartstuff[k_triplebanana] & 1)) 
-						|| (mobj->type == MT_TRIPLEBANANASHIELD2 && !(mobj->target->player->kartstuff[k_triplebanana] & 2)) 
+						|| (mobj->type == MT_TRIPLEBANANASHIELD1 && !(mobj->target->player->kartstuff[k_triplebanana] & 1))
+						|| (mobj->type == MT_TRIPLEBANANASHIELD2 && !(mobj->target->player->kartstuff[k_triplebanana] & 2))
 						|| (mobj->type == MT_TRIPLEBANANASHIELD3 && !(mobj->target->player->kartstuff[k_triplebanana] & 4))
 						|| (mobj->type == MT_BOMBSHIELD && !(mobj->target->player->kartstuff[k_bobomb] & 1))
 						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1)))
@@ -8793,6 +8800,7 @@ void P_MovePlayerToStarpost(INT32 playernum)
 #endif
 	sector->ceilingheight;
 
+
 	//z = p->starpostz << FRACBITS;
 	z = (p->starpostz + 128) << FRACBITS; // SRB2kart - Spawns off the ground for Lakitu
 	if (z < floor)
@@ -9931,7 +9939,7 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 		mthing->mobj = mobj;
 	}
 	// All manners of rings and coins
-	else if (mthing->type == mobjinfo[MT_RING].doomednum || mthing->type == mobjinfo[MT_COIN].doomednum || mthing->type == mobjinfo[MT_RANDOMITEM].doomednum || 
+	else if (mthing->type == mobjinfo[MT_RING].doomednum || mthing->type == mobjinfo[MT_COIN].doomednum || mthing->type == mobjinfo[MT_RANDOMITEM].doomednum ||
 	         mthing->type == mobjinfo[MT_REDTEAMRING].doomednum || mthing->type == mobjinfo[MT_BLUETEAMRING].doomednum)
 	{
 		mobjtype_t ringthing = MT_RING;

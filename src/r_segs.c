@@ -844,6 +844,17 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 			leftheight -= viewz;
 			rightheight -= viewz;
 
+			if (leftheight > pfloorleft && rightheight > pfloorright && i+1 < dc_numlights)
+			{
+				lightlist_t *nextlight = &frontsector->lightlist[i+1];
+				if (nextlight->slope ? P_GetZAt(nextlight->slope, ds->leftpos.x, ds->leftpos.y) : nextlight->height > pfloorleft
+				 && nextlight->slope ? P_GetZAt(nextlight->slope, ds->rightpos.x, ds->rightpos.y) : nextlight->height > pfloorright)
+					continue;
+			}
+
+			leftheight -= viewz;
+			rightheight -= viewz;
+
 			overflow_test = (INT64)centeryfrac - (((INT64)leftheight*ds->scale1)>>FRACBITS);
 			if (overflow_test < 0) overflow_test = -overflow_test;
 			if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;
@@ -1883,13 +1894,12 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 		// a single sided line is terminal, so it must mark ends
 		markfloor = markceiling = true;
 #ifdef ESLOPE
-		if (linedef->flags & ML_EFFECT2) {
+		if (!(linedef->flags & ML_EFFECT1)) {
 			if (linedef->flags & ML_DONTPEGBOTTOM)
 				rw_midtexturemid = frontsector->floorheight + textureheight[sidedef->midtexture] - viewz;
 			else
-				rw_midtexturemid = frontsector->ceilingheight - viewz;
+				rw_midtexturemid = frontsector->ceilingheight;
 		}
-		else
 #endif
 		if (linedef->flags & ML_DONTPEGBOTTOM)
 		{
@@ -2506,17 +2516,8 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 				ds_p->maskedtexturecol = ds_p->thicksidecol;
 
 #ifdef ESLOPE
-			maskedtextureheight = ds_p->maskedtextureheight; // note to red, this == &(ds_p->maskedtextureheight[0])
+			maskedtextureheight = &(ds_p->maskedtextureheight[0]); // ????
 
-#ifdef POLYOBJECTS
-			if (curline->polyseg) { // use REAL front and back floors please, so midtexture rendering isn't mucked up
-				rw_midtextureslide = rw_midtexturebackslide = 0;
-				if (!!(linedef->flags & ML_DONTPEGBOTTOM) ^ !!(linedef->flags & ML_EFFECT3))
-					rw_midtexturemid = rw_midtextureback = max(curline->frontsector->floorheight, curline->backsector->floorheight) - viewz;
-				else
-					rw_midtexturemid = rw_midtextureback = min(curline->frontsector->ceilingheight, curline->backsector->ceilingheight) - viewz;
-			} else
-#endif
 			// Set midtexture starting height
 			if (linedef->flags & ML_EFFECT2) { // Ignore slopes when texturing
 				rw_midtextureslide = rw_midtexturebackslide = 0;

@@ -221,7 +221,7 @@ void Y_IntermissionDrawer(void)
 			V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, (int)((data.coop.tics%TICRATE) * (100.00f/TICRATE)));
 			V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, 0, sbocolon);
 		}
-		
+
 		/* // SRB2kart - pulled from old coop block, just in case we need it
 		// we should show centiseconds on the intermission screen too, if the conditions are right.
 		if (modeattacking || cv_timetic.value == 2)
@@ -1222,6 +1222,10 @@ void Y_StartIntermission(void)
 			data.spec.passed3[0] = '\0';
 			data.spec.passed4[0] = '\0';
 
+			// Super form stuff (normally blank)
+			data.spec.passed3[0] = '\0';
+			data.spec.passed4[0] = '\0';
+
 			// set up the "got through act" message according to skin name
 			if (stagefailed)
 			{
@@ -1857,7 +1861,7 @@ static void Y_CalculateTournamentPoints(void)
 	zz5 = numplayersingame-4;	zz6 = numplayersingame-5;	zz7 = numplayersingame-6;	zz8 = numplayersingame-7;
 	zz9 = numplayersingame-8;	zz10= numplayersingame-9;	zz11= numplayersingame-10;	zz12= numplayersingame-11;
 	zz13= numplayersingame-12;	zz14= numplayersingame-13;	zz15= numplayersingame-14;	zz16= numplayersingame-15;
-	
+
 	if (zz1 < 0) zz1 = 0;	if (zz2 < 0) zz2 = 0;	if (zz3 < 0) zz3 = 0;	if (zz4 < 0) zz4 = 0;
 	if (zz5 < 0) zz5 = 0;	if (zz6 < 0) zz6 = 0;	if (zz7 < 0) zz7 = 0;	if (zz8 < 0) zz8 = 0;
 	if (zz9 < 0) zz9 = 0;	if (zz10< 0) zz10= 0;	if (zz11< 0) zz11= 0;	if (zz12< 0) zz12= 0;

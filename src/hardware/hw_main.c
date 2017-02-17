@@ -1675,9 +1675,9 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				else
 				{
 					// Skewed by bottom
-					wallVerts[0].t = wallVerts[1].t = (texturevpegtop + worldtop - worldhigh) * grTex->scaleY;
-					wallVerts[3].t = wallVerts[0].t - (worldtop - worldhigh) * grTex->scaleY;
-					wallVerts[2].t = wallVerts[1].t - (worldtopslope - worldhighslope) * grTex->scaleY;
+					wallVerts[0].t = (texturevpegtop + worldhigh - worldtop) * grTex->scaleY;
+					wallVerts[2].t = wallVerts[3].t - (worldhighslope - worldhigh) * grTex->scaleY;
+					wallVerts[1].t = wallVerts[2].t - (worldhighslope - worldtopslope) * grTex->scaleY;
 				}
 #endif
 			}
@@ -1719,9 +1719,9 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				if (!(gr_linedef->flags & ML_DONTPEGBOTTOM))
 					texturevpegbottom = 0;
 				else if (gr_linedef->flags & ML_EFFECT1)
-					texturevpegbottom = worldbottom - worldlow;
+					texturevpegbottom = worldtop - worldlow;
 				else
-					texturevpegbottom = gr_frontsector->floorheight - gr_backsector->floorheight;
+					texturevpegbottom = gr_frontsector->ceilingheight - gr_backsector->floorheight;
 #else
 				if (gr_linedef->flags & ML_DONTPEGBOTTOM)
 					texturevpegbottom = worldbottom - worldlow;
@@ -1752,9 +1752,9 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				else if (gr_linedef->flags & ML_DONTPEGBOTTOM)
 				{
 					// Skewed by bottom
-					wallVerts[0].t = wallVerts[1].t = (texturevpegbottom + worldlow - worldbottom) * grTex->scaleY;
-					//wallVerts[3].t = wallVerts[0].t - (worldlow - worldbottom) * grTex->scaleY; // no need, [3] is already this
-					wallVerts[2].t = wallVerts[1].t - (worldlowslope - worldbottomslope) * grTex->scaleY;
+					wallVerts[0].t = (texturevpegbottom + worldlow - worldbottom) * grTex->scaleY;
+					wallVerts[2].t = wallVerts[3].t - (worldlowslope - worldlow) * grTex->scaleY;
+					wallVerts[1].t = wallVerts[2].t - (worldbottomslope - worldlowslope) * grTex->scaleY;
 				}
 				else
 				{
@@ -2292,7 +2292,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				else if (drawtextured)
 				{
 #ifdef ESLOPE // P.S. this is better-organized than the old version
-					fixed_t offs = sides[(newline ? newline : rover->master)->sidenum[0]].rowoffset;
+					fixed_t offs = sides[(newline ?: rover->master)->sidenum[0]].rowoffset;
 					grTex = HWR_GetTexture(texnum);
 
 					wallVerts[3].t = (*rover->topheight - h + offs) * grTex->scaleY;

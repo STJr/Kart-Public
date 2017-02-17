@@ -32,6 +32,10 @@
 #define CTFTEAMCODE(pl) pl->ctfteam ? (pl->ctfteam == 1 ? "\x85" : "\x84") : ""
 #define CTFTEAMENDCODE(pl) pl->ctfteam ? "\x80" : ""
 
+// CTF player names
+#define CTFTEAMCODE(pl) pl->ctfteam ? (pl->ctfteam == 1 ? "\x85" : "\x84") : ""
+#define CTFTEAMENDCODE(pl) pl->ctfteam ? "\x80" : ""
+
 void P_ForceFeed(const player_t *player, INT32 attack, INT32 fade, tic_t duration, INT32 period)
 {
 	BasicFF_t Basicfeed;
@@ -1544,7 +1548,6 @@ INT32 P_CheckPlayerAhead(player_t *player, INT32 tocheck)
 	return retvalue;
 }
 //
-
 /** Prints death messages relating to a dying or hit player.
   *
   * \param player    Affected player.
