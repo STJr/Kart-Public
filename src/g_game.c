@@ -702,6 +702,10 @@ void G_SetGameModified(boolean silent)
 
 	if (!silent)
 		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to record statistics.\n"));
+
+	// If in record attack recording, cancel it.
+	if (modeattacking)
+		M_EndModeAttackRun();
 }
 
 /** Builds an original game map name from a map number.
@@ -3024,7 +3028,7 @@ static void G_DoCompleted(void)
 	if (nextmap < NUMMAPS && !mapheaderinfo[nextmap])
 		P_AllocMapHeader(nextmap);
 
-	if (skipstats)
+	if (skipstats && !modeattacking) // Don't skip stats if we're in record attack
 		G_AfterIntermission();
 	else
 	{
@@ -5734,7 +5738,7 @@ boolean G_CheckDemoStatus(void)
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 		md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
 #endif
-		saved = FIL_WriteFile(demoname, demobuffer, demo_p - demobuffer); // finally output the file.
+		saved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
 		free(demobuffer);
 		demorecording = false;
 

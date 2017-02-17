@@ -2049,14 +2049,14 @@ void I_StartupMouse2(void)
 //
 // I_Tactile
 //
-void I_Tactile(FFType pFFType, const JoyFF_t *FFEffect)
+FUNCMATH void I_Tactile(FFType pFFType, const JoyFF_t *FFEffect)
 {
 	// UNUSED.
 	(void)pFFType;
 	(void)FFEffect;
 }
 
-void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
+FUNCMATH void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
 {
 	// UNUSED.
 	(void)pFFType;
@@ -2067,7 +2067,7 @@ void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
 */
 static ticcmd_t emptycmd;
 
-ticcmd_t *I_BaseTiccmd(void)
+FUNCMATH ticcmd_t *I_BaseTiccmd(void)
 {
 	return &emptycmd;
 }
@@ -2076,7 +2076,7 @@ ticcmd_t *I_BaseTiccmd(void)
 */
 static ticcmd_t emptycmd2;
 
-ticcmd_t *I_BaseTiccmd2(void)
+FUNCMATH ticcmd_t *I_BaseTiccmd2(void)
 {
 	return &emptycmd2;
 }
@@ -2179,7 +2179,7 @@ tic_t I_GetTime (void)
 //
 //I_StartupTimer
 //
-void I_StartupTimer(void)
+FUNCMATH void I_StartupTimer(void)
 {
 #if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
 	// for win2k time bug
@@ -2313,11 +2313,11 @@ void I_WaitVBL(INT32 count)
 	SDL_Delay(count);
 }
 
-void I_BeginRead(void)
+FUNCMATH void I_BeginRead(void)
 {
 }
 
-void I_EndRead(void)
+FUNCMATH void I_EndRead(void)
 {
 }
 
@@ -2645,6 +2645,47 @@ INT32 I_PutEnv(char *variable)
 #else
 	return putenv(variable);
 #endif
+}
+
+INT32 I_ClipboardCopy(const char *data, size_t size)
+{
+	char storage[256];
+	if (size > 255)
+		size = 255;
+	memcpy(storage, data, size);
+	storage[size] = 0;
+
+	if (SDL_SetClipboardText(storage))
+		return 0;
+	return -1;
+}
+
+const char *I_ClipboardPaste(void)
+{
+	static char clipboard_modified[256];
+	char *clipboard_contents, *i = clipboard_modified;
+
+	if (!SDL_HasClipboardText())
+		return NULL;
+	clipboard_contents = SDL_GetClipboardText();
+	memcpy(clipboard_modified, clipboard_contents, 255);
+	SDL_free(clipboard_contents);
+	clipboard_modified[255] = 0;
+
+	while (*i)
+	{
+		if (*i == '\n' || *i == '\r')
+		{ // End on newline
+			*i = 0;
+			break;
+		}
+		else if (*i == '\t')
+			*i = ' '; // Tabs become spaces
+		else if (*i < 32 || (unsigned)*i > 127)
+			*i = '?'; // Nonprintable chars become question marks
+		++i;
+	}
+	return (const char *)&clipboard_modified;
 }
 
 /**	\brief	The isWadPathOk function
@@ -3067,5 +3108,5 @@ const CPUInfoFlags *I_CPUInfo(void)
 }
 
 // note CPUAFFINITY code used to reside here
-void I_RegisterSysCommands(void) {}
+FUNCMATH void I_RegisterSysCommands(void) {}
 #endif

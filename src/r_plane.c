@@ -431,6 +431,9 @@ static visplane_t *new_visplane(unsigned hash)
 visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 	fixed_t xoff, fixed_t yoff, angle_t plangle, extracolormap_t *planecolormap,
 	ffloor_t *pfloor
+#ifdef POLYOBJECTS_PLANES
+			, polyobj_t *polyobj
+#endif
 #ifdef ESLOPE
 			, pslope_t *slope
 #endif
@@ -470,6 +473,8 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 #ifdef POLYOBJECTS_PLANES
 		if (check->polyobj && pfloor)
 			continue;
+		if (polyobj != check->polyobj)
+			continue;
 #endif
 		if (height == check->height && picnum == check->picnum
 			&& lightlevel == check->lightlevel
@@ -504,7 +509,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 	check->viewangle = viewangle;
 	check->plangle = plangle;
 #ifdef POLYOBJECTS_PLANES
-	check->polyobj = NULL;
+	check->polyobj = polyobj;
 #endif
 #ifdef ESLOPE
 	check->slope = slope;
@@ -719,7 +724,11 @@ void R_DrawPlanes(void)
 				continue;
 			}
 
-			if (pl->ffloor != NULL)
+			if (pl->ffloor != NULL
+#ifdef POLYOBJECTS_PLANES
+			|| pl->polyobj != NULL
+#endif
+			)
 				continue;
 
 			R_DrawSinglePlane(pl);
@@ -955,8 +964,8 @@ void R_DrawSinglePlane(visplane_t *pl)
 		// Okay, look, don't ask me why this works, but without this setup there's a disgusting-looking misalignment with the textures. -Red
 		fudge = ((1<<nflatshiftup)+1.0f)/(1<<nflatshiftup);
 
-		xoffs *= fudge;
-		yoffs /= fudge;
+		xoffs = (fixed_t)(xoffs*fudge);
+		yoffs = (fixed_t)(yoffs/fudge);
 
 		vx = FIXED_TO_FLOAT(pl->viewx+xoffs);
 		vy = FIXED_TO_FLOAT(pl->viewy-yoffs);

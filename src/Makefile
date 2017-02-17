@@ -179,6 +179,9 @@ endif
 
 ifdef LINUX
 UNIXCOMMON=1
+ifndef NOGME
+HAVE_LIBGME=1
+endif
 endif
 
 ifdef SOLARIS
@@ -186,6 +189,10 @@ UNIXCOMMON=1
 endif
 
 ifdef FREEBSD
+UNIXCOMMON=1
+endif
+
+ifdef MACOSX
 UNIXCOMMON=1
 endif
 
@@ -311,6 +318,13 @@ LIBS+=$(PNG_LDFLAGS)
 CFLAGS+=$(PNG_CFLAGS)
 endif
 
+ZLIB_PKGCONFIG?=zlib
+ZLIB_CFLAGS?=$(shell $(PKG_CONFIG) $(ZLIB_PKGCONFIG) --cflags)
+ZLIB_LDFLAGS?=$(shell $(PKG_CONFIG) $(ZLIB_PKGCONFIG) --libs)
+
+LIBS+=$(ZLIB_LDFLAGS)
+CFLAGS+=$(ZLIB_CFLAGS)
+
 ifdef HAVE_LIBGME
 OPTS+=-DHAVE_LIBGME
 
@@ -362,6 +376,14 @@ endif
 
 	OPTS:=-fno-exceptions $(OPTS)
 
+ifdef MOBJCONSISTANCY
+	OPTS+=-DMOBJCONSISTANCY
+endif
+
+ifdef PACKETDROP
+	OPTS+=-DPACKETDROP
+endif
+
 ifdef DEBUGMODE
 
 	# build with debugging information
@@ -371,13 +393,13 @@ ifdef GCC48
 else
 	CFLAGS+=-O0
 endif
-	CFLAGS+= -Wall -DPARANOIA -DRANGECHECK
+	CFLAGS+= -Wall -DPARANOIA -DRANGECHECK -DPACKETDROP -DMOBJCONSISTANCY
 else
 
 
 	# build a normal optimised version
 	WINDRESFLAGS = -DNDEBUG
-	#CFLAGS+=-O2
+	CFLAGS+=-O3
 endif
 	CFLAGS+=-g $(OPTS) $(M5) $(WINDRESFLAGS)
 
@@ -431,6 +453,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/y_inter.o  \
 		$(OBJDIR)/st_stuff.o \
 		$(OBJDIR)/k_kart.o   \
+		$(OBJDIR)/m_aatree.o \
 		$(OBJDIR)/m_anigif.o \
 		$(OBJDIR)/m_argv.o   \
 		$(OBJDIR)/m_bbox.o   \
@@ -595,10 +618,14 @@ ifndef WINDOWSHELL
 	-$(GZIP) $(GZIP_OPT2) $(BIN)/$(DBGNAME).txt
 endif
 endif
+
+# mac os x lsdlsrb2 does not like objcopy
+ifndef MACOSX
 ifndef PSP
 	$(OBJCOPY) $(BIN)/$(EXENAME) $(BIN)/$(DBGNAME)
 	$(OBJCOPY) --strip-debug $(BIN)/$(EXENAME)
 	-$(OBJCOPY) --add-gnu-debuglink=$(BIN)/$(DBGNAME) $(BIN)/$(EXENAME)
+endif
 endif
 ifndef NOUPX
 	-$(UPX) $(UPX_OPTS) $(BIN)/$(EXENAME)
@@ -746,6 +773,11 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/%.o: $(INTERFACE)/%.c
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
+
+ifdef MACOSX
+$(OBJDIR)/%.o: sdl/macosx/%.c
+	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
+endif
 
 $(OBJDIR)/%.o: hardware/%.c
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@

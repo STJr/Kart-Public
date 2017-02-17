@@ -60,6 +60,7 @@
 #endif
 
 #ifdef _WINDOWS
+#define NONET
 #if !defined (HWRENDER) && !defined (NOHW)
 #define HWRENDER
 #endif
@@ -431,6 +432,9 @@ extern INT32 cv_debug;
 // Misc stuff for later...
 // =======================
 
+// Modifier key variables, accessible anywhere
+extern UINT8 shiftdown, ctrldown, altdown;
+
 // if we ever make our alloc stuff...
 #define ZZ_Alloc(x) Z_Malloc(x, PU_STATIC, NULL)
 
@@ -468,6 +472,12 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 /// Kalaron/Eternity Engine slope code (SRB2CB ported)
 #define ESLOPE
+
+#ifdef ESLOPE
+/// Backwards compatibility with SRB2CB's slope linedef types.
+///	\note	A simple shim that prints a warning.
+#define ESLOPE_TYPESHIM
+#endif
 
 ///	Delete file while the game is running.
 ///	\note	EXTREMELY buggy, tends to crash game.

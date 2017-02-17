@@ -16,6 +16,7 @@
 #include "st_stuff.h"
 #include "v_video.h"
 #include "z_zone.h"
+#include "m_misc.h"
 
 //{ SRB2kart Color Code
 
@@ -98,14 +99,14 @@ const char *KartColor_Names[MAXSKINCOLORS] =
 
 	\return	INT32	Returns the pulled value of the sixteen fed to it
 */
-static INT32 R_KartColorSetter(UINT8 i, 
-	INT32 cZero,   INT32 cOne,      INT32 cTwo,      INT32 cThree, 
-	INT32 cFour,   INT32 cFive,     INT32 cSix,      INT32 cSeven, 
-	INT32 cEight,  INT32 cNine,     INT32 cTen,      INT32 cEleven, 
+static INT32 R_KartColorSetter(UINT8 i,
+	INT32 cZero,   INT32 cOne,      INT32 cTwo,      INT32 cThree,
+	INT32 cFour,   INT32 cFive,     INT32 cSix,      INT32 cSeven,
+	INT32 cEight,  INT32 cNine,     INT32 cTen,      INT32 cEleven,
 	INT32 cTwelve, INT32 cThirteen, INT32 cFourteen, INT32 cFifteen)
 {
 	INT32 ThisColorIs = 0;
-	
+
 	switch (i)
 	{
 		case 0:  ThisColorIs = cZero;     break;
@@ -124,8 +125,8 @@ static INT32 R_KartColorSetter(UINT8 i,
 		case 13: ThisColorIs = cThirteen; break;
 		case 14: ThisColorIs = cFourteen; break;
 		case 15: ThisColorIs = cFifteen;  break;
-	} 
-	
+	}
+
 	return ThisColorIs;
 }
 
@@ -236,7 +237,7 @@ void K_GenerateKartColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color)
 			case SKINCOLOR_LAVENDER:			dest_colormap[starttranscolor + i] = R_KartColorSetter(i, 248, 248, 249, 249, 250, 250, 251, 251, 252, 252, 253, 253, 254, 254, 255, 255); break;
 			case SKINCOLOR_BYZANTIUM:			dest_colormap[starttranscolor + i] = R_KartColorSetter(i, 192, 248, 249, 250, 251, 252, 253, 254, 255, 255,  29,  29,  30,  30,  31,  31); break;
 			case SKINCOLOR_INDIGO:				dest_colormap[starttranscolor + i] = R_KartColorSetter(i, 192, 193, 194, 195, 196, 197, 198, 199, 255, 255,  29,  29,  30,  30,  31,  31); break;
-			/* 
+			/*
 			 * Removed Colors:
 			 * case SKINCOLOR_DUSK: 			dest_colormap[starttranscolor + i] = R_KartColorSetter(i, 192, 192, 248, 249, 250, 251, 229, 204, 230, 205, 206, 239, 240, 241, 242, 243); break;
 			 * case SKINCOLOR_RAINBOW:			dest_colormap[starttranscolor + i] = R_KartColorSetter(i,   1, 145, 125,  73,  83, 114, 106, 180, 187, 168, 219, 205, 236, 206, 199, 255); break;
@@ -759,9 +760,9 @@ static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
 {
 	prevchance = chance;
 	basechance = K_KartItemOdds_Retro[pingame-1][giveitem][position]; // Number of slots in the array, based on odds
-	
-	for (; chance < prevchance + basechance; chance++) 
-	{ 
+
+	for (; chance < prevchance + basechance; chance++)
+	{
 		spawnchance[chance] = giveitem;
 		numchoices++;
 	}
@@ -780,7 +781,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemroulette]++;
 	else
 		return;
-		
+
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
@@ -790,17 +791,17 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
 	if (!(player->kartstuff[k_itemroulette] > (TICRATE*3)-1 || ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] > ((TICRATE*2)/3)-1)))
 		return;
-	
+
 	// Initializes existing values
 	basechance = chance = prevchance = 0;
 	numchoices = pingame = pexiting = 0;
-	
+
 	INT32 i;
-	
+
 	// Initializes existing spawnchance values
 	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
 		spawnchance[i] = 0;
-	
+
 	// Gotta check how many players are active at this moment.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -809,19 +810,19 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (players[i].exiting)
 			pexiting++;
 	}
-	
+
 	if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
-	
+
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
-	
+
 	// Yes I know I'm defining variables half-way into the function, but they aren't needed until now :/
 	fixed_t prandom = P_RandomFixed();
 	fixed_t ppos = player->kartstuff[k_position] - 1;
-	
+
 	// Tiny catcher in case player position is unset.
 	if (ppos < 0) ppos = 0;
-	
+
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
 	//{
@@ -843,7 +844,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
-			
+
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
 			K_KartGetItemResult(player, spawnchance[prandom%numchoices], true);
@@ -870,7 +871,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_blueshell.value && pexiting == 0)		K_KartSetItemResult(ppos, 16)	// Deton
 		if (cv_jaws.value)								K_KartSetItemResult(ppos, 17)	// 2x Jaws
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18)	// Size-Down Monitor
-		
+
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
 			K_KartGetItemResult(player, spawnchance[prandom%numchoices], false)
@@ -880,9 +881,9 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	else
 		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
 	*/
-	
+
 	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
-	
+
 	if (P_IsLocalPlayer(player))
 		S_StartSound(NULL, sfx_mkitmF);
 }
@@ -936,75 +937,75 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	K_UpdateOffroad(player);
 
 	// This spawns the drift sparks when k_driftcharge hits 30. Its own AI handles life/death and color
-	if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) 
+	if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1)
 		&& player->kartstuff[k_driftcharge] == 30)
 		P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
-	
+
 	if (player->kartstuff[k_itemclose])
 		player->kartstuff[k_itemclose]--;
-	
+
 	if (player->kartstuff[k_spinout])
 		player->kartstuff[k_spinout]--;
-	
+
 	if (player->kartstuff[k_spinouttimer])
 		player->kartstuff[k_spinouttimer]--;
-	
+
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == flashingtics)
 		player->powers[pw_flashing]--;
-	
+
 	if (player->kartstuff[k_magnettimer])
 		player->kartstuff[k_magnettimer]--;
-	
+
 	if (player->kartstuff[k_mushroomtimer])
 		player->kartstuff[k_mushroomtimer]--;
-	
+
 	if (player->kartstuff[k_floorboost])
 		player->kartstuff[k_floorboost]--;
-	
+
 	if (player->kartstuff[k_startimer])
 		player->kartstuff[k_startimer]--;
-	
+
 	if (player->kartstuff[k_growshrinktimer] > 0)
 		player->kartstuff[k_growshrinktimer]--;
-	
+
 	if (player->kartstuff[k_growshrinktimer] < 0)
 		player->kartstuff[k_growshrinktimer]++;
-	
+
 	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
 	{
 		player->mo->destscale = FRACUNIT;
 		P_RestoreMusic(player);
 	}
-	
+
 	if (player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_boostolentimer] == 0
 		&& player->kartstuff[k_goldshroomtimer])
 		player->kartstuff[k_goldshroomtimer]--;
-	
+
 	if (player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_boostolentimer] == 0
 		&& player->kartstuff[k_fireflowertimer])
 		player->kartstuff[k_fireflowertimer]--;
-	
+
 	if (player->kartstuff[k_bootaketimer])
 		player->kartstuff[k_bootaketimer]--;
-	
+
 	if (player->kartstuff[k_boostolentimer])
 		player->kartstuff[k_boostolentimer]--;
-	
+
 	if (player->kartstuff[k_squishedtimer])
 		player->kartstuff[k_squishedtimer]--;
-	
+
 	if (player->kartstuff[k_laserwisptimer])
 		player->kartstuff[k_laserwisptimer]--;
-	
+
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
-	
+
 	// Restores music if too many sounds are playing (?)
 	//if (player->kartstuff[k_sounds] >= 1 && player->kartstuff[k_sounds] < 120)
 	//	player->kartstuff[k_sounds] += 1;
 	//if (player->kartstuff[k_sounds] < 120 && player->kartstuff[k_sounds] > 116)	//&& P_IsLocalPlayer(player))
 	//	P_RestoreMusic(player);
-	
+
 	// ???
 	/*
 	if (player->kartstuff[k_jmp] > 1 && onground)
@@ -1018,11 +1019,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (cmd->buttons & BT_JUMP)
 		player->kartstuff[k_jmp] = 1;
-	else 
+	else
 		player->kartstuff[k_jmp] = 0;
-	
+
 	K_KartItemRoulette(player, cmd); // Roulette Code
-	
+
 	// Looping and stopping of the horrible horrible star SFX ~Sryder
 	if (player->mo->health > 0 && player->mo->player->kartstuff[k_startimer])// If you have invincibility
 	{
@@ -1074,20 +1075,20 @@ fixed_t K_GetKartBoostPower(player_t *player)
 {
 	fixed_t boostpower = FRACUNIT;
 
-	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1) 
+	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1)
 		&& player->kartstuff[k_offroad] >= 0)
 			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
-	if (player->kartstuff[k_growshrinktimer] < -1) 
+	if (player->kartstuff[k_growshrinktimer] < -1)
 		boostpower = FixedMul(boostpower, 6*FRACUNIT/8);	// Shrink
-	if (player->kartstuff[k_squishedtimer] > 0) 
+	if (player->kartstuff[k_squishedtimer] > 0)
 		boostpower = FixedMul(boostpower, 7*FRACUNIT/8);	// Squished
-	if (player->powers[pw_sneakers]) 
+	if (player->powers[pw_sneakers])
 		boostpower = FixedMul(boostpower, 10*FRACUNIT/8);	// Slide Boost
-	if (player->kartstuff[k_growshrinktimer] > 1) 
+	if (player->kartstuff[k_growshrinktimer] > 1)
 		boostpower = FixedMul(boostpower, 10*FRACUNIT/8);	// Mega Mushroom
-	if (player->kartstuff[k_startimer]) 
+	if (player->kartstuff[k_startimer])
 		boostpower = FixedMul(boostpower, 11*FRACUNIT/8);	// Star
-	if (player->kartstuff[k_mushroomtimer]) 
+	if (player->kartstuff[k_mushroomtimer])
 		boostpower = FixedMul(boostpower, 12*FRACUNIT/8);	// Mushroom
 
 	return boostpower;
@@ -1174,7 +1175,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	if (player->health <= 0)
 		return;
 
-	if (player->powers[pw_flashing] > 0	|| player->kartstuff[k_squishedtimer] > 0 
+	if (player->powers[pw_flashing] > 0	|| player->kartstuff[k_squishedtimer] > 0
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return;
 
@@ -1548,7 +1549,7 @@ static void K_DoBooSteal(player_t * player)
 			&& !players[i].exiting && !players[i].powers[pw_super] && !((netgame || multiplayer) && players[i].spectator)
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position] && player != &players[i]
 
-			&& (players[i].kartstuff[k_star] || players[i].kartstuff[k_mushroom] || players[i].kartstuff[k_goldshroom] 
+			&& (players[i].kartstuff[k_star] || players[i].kartstuff[k_mushroom] || players[i].kartstuff[k_goldshroom]
 			|| players[i].kartstuff[k_megashroom] || players[i].kartstuff[k_lightning] || players[i].kartstuff[k_blueshell]
 			|| players[i].kartstuff[k_greenshell] & 2 || players[i].kartstuff[k_triplegreenshell] & 8
 			|| players[i].kartstuff[k_redshell] & 2 || players[i].kartstuff[k_tripleredshell] & 8
@@ -1716,7 +1717,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 		player->kartstuff[k_turndir] = 0;
 
 	// Drift Release (Moved here so you can't "chain" drifts)
-	if ((player->kartstuff[k_drift] == 0) 
+	if ((player->kartstuff[k_drift] == 0)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
 		&& player->kartstuff[k_driftcharge] < 30
 		&& onground)
@@ -1724,7 +1725,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
-	else if ((player->kartstuff[k_drift] == 0) 
+	else if ((player->kartstuff[k_drift] == 0)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
 		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
 		&& onground)
@@ -1734,7 +1735,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
-	else if ((player->kartstuff[k_drift] == 0) 
+	else if ((player->kartstuff[k_drift] == 0)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
 		&& player->kartstuff[k_driftcharge] >= 60
 		&& onground)
@@ -1766,7 +1767,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			player->kartstuff[k_drift]++;
 			if (player->kartstuff[k_drift] > 3)
 				player->kartstuff[k_drift] = 3;
-			
+
 			// Left = +450 Right = -450
 			// Player 1
 			if (player == &players[consoleplayer])
@@ -1782,7 +1783,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			// Player 2
 			if (splitscreen	&& player == &players[secondarydisplayplayer])
 			{
-				
+
 			}
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the Left
@@ -1790,7 +1791,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			player->kartstuff[k_drift]--;
 			if (player->kartstuff[k_drift] < -3)
 				player->kartstuff[k_drift] = -3;
-			
+
 			// Left = +450 Right = -450
 			// Player 1
 			if (player == &players[consoleplayer])
@@ -1828,36 +1829,36 @@ static void K_KartUpdatePosition(player_t *player)
 	fixed_t i, ppcd, pncd, ipcd, incd;
 	fixed_t pmo, imo;
 	thinker_t *th;
-	mobj_t *mo;	
+	mobj_t *mo;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator &&
-			(((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) > 
+			(((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) >
 			((player->starpostnum) + (numstarposts + 1) * player->laps)))
 			position++;
 		else if (playeringame[i] && !players[i].spectator
-			&& (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) == 
+			&& (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) ==
 			((player->starpostnum) + (numstarposts+1)*player->laps)))
 		{
 			ppcd = pncd = ipcd = incd = 0;
 
 			player->kartstuff[k_prevcheck] = players[i].kartstuff[k_prevcheck] = 0;
 			player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
-			
+
 			// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
-			for (th = thinkercap.next; th != &thinkercap; th = th->next) 
+			for (th = thinkercap.next; th != &thinkercap; th = th->next)
 			{
 				if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
 					continue;
 
 				mo = (mobj_t *)th;
 
-				pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x, 
-														mo->y - player->mo->y), 
+				pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x,
+														mo->y - player->mo->y),
 														mo->z - player->mo->z) / FRACUNIT;
-				imo = P_AproxDistance(P_AproxDistance(	mo->x - players[i].mo->x, 
-														mo->y - players[i].mo->y), 
+				imo = P_AproxDistance(P_AproxDistance(	mo->x - players[i].mo->x,
+														mo->y - players[i].mo->y),
 														mo->z - players[i].mo->z) / FRACUNIT;
 
 				if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
@@ -1892,7 +1893,7 @@ static void K_KartUpdatePosition(player_t *player)
 
 			if ((players[i].kartstuff[k_nextcheck] > 0 || player->kartstuff[k_nextcheck] > 0) && !player->exiting)
 			{
-				if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) < 
+				if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) <
 					(player->kartstuff[k_nextcheck] - player->kartstuff[k_prevcheck]))
 					position++;
 			}
@@ -1953,7 +1954,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		player->pflags &= ~PF_ATTACKDOWN;
 	else if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
-	
+
 	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
 		// GoldenMushroom power
@@ -2327,11 +2328,11 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		}
 		else if (player->kartstuff[k_mushroomtimer] == 0 && player->kartstuff[k_boosting] == 1)
 			player->kartstuff[k_boosting] = 0;
-		
+
 		if (player->kartstuff[k_bootaketimer] > 0)
 		{
 			if ((player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
-				|| (!(player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer])) 
+				|| (!(player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
 				&& (player->kartstuff[k_bootaketimer] < 1*TICRATE/2 || player->kartstuff[k_bootaketimer] > bootime-(1*TICRATE/2))))
 			{
 				if (leveltime & 1)
@@ -2349,7 +2350,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
 	}
-		
+
 	if (player->kartstuff[k_growshrinktimer] > 1)
 		player->powers[pw_flashing] = 2;
 
@@ -2434,7 +2435,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		}
 	}
 	*/
-	
+
 	// Play the stop light's sounds
 	if ((leveltime == (TICRATE-4)*2) || (leveltime == (TICRATE-2)*3))
 		S_StartSound(NULL, sfx_lkt1);
@@ -2591,7 +2592,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 //{ SRB2kart HUD Code
 
 #define NUMPOSNUMS 10
-#define NUMPOSFRAMES 7 // White, three blues, three reds 
+#define NUMPOSFRAMES 7 // White, three blues, three reds
 
 //{ 	Patch Definitions
 static patch_t *kp_nodraw;
@@ -2674,18 +2675,18 @@ void K_LoadKartHUDGraphics(void)
 {
 	INT32 i, j;
 	char buffer[9];
-	
+
 	// Null Stuff
 	kp_nodraw = 				W_CachePatchName("K_TRNULL", PU_HUDGFX);
 	kp_noitem = 				W_CachePatchName("K_ITNULL", PU_HUDGFX);
 	//kp_neonoitem = 				W_CachePatchName("KNITNULL", PU_HUDGFX);
-	
+
 	// Stickers
 	kp_timesticker = 			W_CachePatchName("K_STTIME", PU_HUDGFX);
 	kp_timestickerwide = 		W_CachePatchName("K_STTIMW", PU_HUDGFX);
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
-	
+
 	// Position numbers
 	for (i = 0; i < NUMPOSNUMS; i++)
 	{
@@ -2701,7 +2702,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_facesecond = 			W_CachePatchName("K_PFACE2", PU_HUDGFX);
 	kp_facethird = 				W_CachePatchName("K_PFACE3", PU_HUDGFX);
 	kp_facefourth = 			W_CachePatchName("K_PFACE4", PU_HUDGFX);
-	
+
 	// Kart Item Windows
 	kp_magnet = 				W_CachePatchName("K_ITMAGN", PU_HUDGFX);
 	kp_boo = 					W_CachePatchName("K_ITBOO1", PU_HUDGFX);
@@ -2724,14 +2725,14 @@ void K_LoadKartHUDGraphics(void)
 	kp_tripleredshell = 		W_CachePatchName("K_ITTRED", PU_HUDGFX);
 	kp_lightning = 				W_CachePatchName("K_ITLIGH", PU_HUDGFX);
 	kp_kitchensink = 			W_CachePatchName("K_ITSINK", PU_HUDGFX);
-	
+
 	// Item-used - Closing the item window after an item is used
 	kp_itemused1 = 				W_CachePatchName("K_ITUSE1", PU_HUDGFX);
 	kp_itemused2 = 				W_CachePatchName("K_ITUSE2", PU_HUDGFX);
 	kp_itemused3 = 				W_CachePatchName("K_ITUSE3", PU_HUDGFX);
 	kp_itemused4 = 				W_CachePatchName("K_ITUSE4", PU_HUDGFX);
 	kp_itemused5 = 				W_CachePatchName("K_ITUSE5", PU_HUDGFX);
-	
+
 	// Triple-item HUD icons
 	kp_singlebananaicon = 		W_CachePatchName("K_TRBAN1", PU_HUDGFX);
 	kp_doublebananaicon = 		W_CachePatchName("K_TRBAN2", PU_HUDGFX);
@@ -2764,7 +2765,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_laserwisp = 				W_CachePatchName("KTITLASE", PU_HUDGFX);
 	kp_doublejaws = 			W_CachePatchName("KTITDJAW", PU_HUDGFX);
 	kp_sizedownmonitor = 		W_CachePatchName("KTITSDOW", PU_HUDGFX);
-	
+
 	// Item-used - Closing the item window after an item is used (Neo-Kart)
 	kp_neoitemused1 = 			W_CachePatchName("KNITUSE1", PU_HUDGFX);
 	kp_neoitemused2 = 			W_CachePatchName("KNITUSE2", PU_HUDGFX);
@@ -2806,37 +2807,37 @@ static void K_initKartHUD(void)
 	/*
 		BASEVIDWIDTH  = 320
 		BASEVIDHEIGHT = 200
-		
+
 		Item window graphic is 41 x 33
-		
+
 		Time Sticker graphic is 116 x 11
 		Time Font is a solid block of (8 x [12) x 14], equal to 96 x 14
 		Therefore, timestamp is 116 x 14 altogether
-		
+
 		Lap Sticker is 80 x 11
 		Lap flag is 22 x 20
 		Lap Font is a solid block of (3 x [12) x 14], equal to 36 x 14
 		Therefore, lapstamp is 80 x 20 altogether
-		
+
 		Position numbers are 43 x 53
-		
-		Faces are 32 x 32 
+
+		Faces are 32 x 32
 		Faces draw downscaled at 16 x 16
 		Therefore, the allocated space for them is 16 x 67 altogether
-		
+
 		----
-		
+
 		ORIGINAL CZ64 SPLITSCREEN:
-		
+
 		Item window:
 		if (!splitscreen) 	{ ICONX = 139; 				ICONY = 20; }
 		else 				{ ICONX = BASEVIDWIDTH-315; ICONY = 60; }
-		
+
 		Time: 			   236, STRINGY(			   12)
 		Lap:  BASEVIDWIDTH-304, STRINGY(BASEVIDHEIGHT-189)
-		
-	*/	
-	
+
+	*/
+
 	if (!splitscreen)						// Local Single-Player
 	{
 		switch (cv_karthud.value)		// Item Window
@@ -2867,19 +2868,19 @@ static void K_initKartHUD(void)
 	{
 		ITEM_X = 9;					//   9
 		ITEM_Y = 48;				//  48
-		
+
 		TRIP_X = 143;				// 143
 		TRIP_Y = BASEVIDHEIGHT- 34;	// 166
-		
+
 		TIME_X = BASEVIDWIDTH -114;	// 206  / Sticker is 196 (Base - 124) - Inside the boundry by 8px
 		TIME_Y = 6;					//   6  / Sticker is  +2
-		
+
 		LAPS_X = 9;					//   9
 		LAPS_Y = BASEVIDHEIGHT- 31;	// 169
-		
+
 		POSI_X = BASEVIDWIDTH - 51;	// 269
 		POSI_Y = BASEVIDHEIGHT-128;	//  72
-		
+
 		FACE_X = 15;				//  15
 		FACE_Y = 72;				//  72
 	}
@@ -2893,11 +2894,11 @@ static void K_drawKartItemClose(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
-	
+
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no draw' just in case.
 	patch_t *localpatch = kp_nodraw;
-	
+
 	/*if ()
 		switch (stplyr->kartstuff[k_itemclose])
 		{
@@ -2918,7 +2919,7 @@ static void K_drawKartItemClose(void)
 			case  9: localpatch = kp_itemused1; break;
 			default: break;
 		}
-	
+
 	if (localpatch != kp_nodraw)
 		V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
 }
@@ -2927,11 +2928,11 @@ static void K_drawKartItemRoulette(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
-	
+
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
-	
+
 	/*if ()
 				switch(stplyr->kartstuff[k_itemroulette] % 53)
 		{
@@ -2955,7 +2956,7 @@ static void K_drawKartItemRoulette(void)
 			case 45: case 46: case 47: localpatch = kp_jaws; break;				// 1x Jaws
 			case 48: case 49: case 50: localpatch = kp_deton; break;			// Deton
 			case 51: case 52: case 53: localpatch = kp_sizedownmonitor; break;	// Size-Down Monitor
-			default: break;		
+			default: break;
 		}
 	else*/
 		switch(stplyr->kartstuff[k_itemroulette] % 53)
@@ -2980,9 +2981,9 @@ static void K_drawKartItemRoulette(void)
 			case 45: case 46: case 47: localpatch = kp_redshell; break;			// Red Shell
 			case 48: case 49: case 50: localpatch = kp_blueshell; break;		// Blue Shell
 			case 51: case 52: case 53: localpatch = kp_lightning; break;		// Lightning
-			default: break;		
+			default: break;
 		}
-	
+
 	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
 }
 
@@ -2990,16 +2991,16 @@ static void K_drawKartRetroItem(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
-	
+
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
-	
+
 	// I'm doing this a little weird and drawing mostly in reverse order
 	// The only actual reason is to make triple/double/single mushrooms line up this way in the code below
 	// This shouldn't have any actual baring over how it functions
 	// Boo is first, because we're drawing it on top of the player's current item
-	if 		((stplyr->kartstuff[k_bootaketimer] > 0 
+	if 		((stplyr->kartstuff[k_bootaketimer] > 0
 		|| stplyr->kartstuff[k_boostolentimer] > 0) && (leveltime & 2)) 	localpatch = kp_boosteal;
 	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))	localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_kitchensink] == 1)							localpatch = kp_kitchensink;
@@ -3015,10 +3016,10 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_fakeitem] & 2)								localpatch = kp_fakeitem;
 	else if (stplyr->kartstuff[k_triplebanana] & 8)							localpatch = kp_triplebanana;
 	else if (stplyr->kartstuff[k_star] == 1)								localpatch = kp_star;
-	else if (stplyr->kartstuff[k_goldshroom] == 1 
+	else if (stplyr->kartstuff[k_goldshroom] == 1
 		|| (stplyr->kartstuff[k_goldshroomtimer] > 1 && (leveltime & 1)))	localpatch = kp_goldshroom;
 	else if (stplyr->kartstuff[k_goldshroomtimer] > 1 && !(leveltime & 1))	localpatch = kp_noitem;
-	else if (stplyr->kartstuff[k_megashroom] == 1 
+	else if (stplyr->kartstuff[k_megashroom] == 1
 		|| (stplyr->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1)))	localpatch = kp_megashroom;
 	else if (stplyr->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))	localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_mushroom] & 4)								localpatch = kp_triplemushroom;
@@ -3026,7 +3027,7 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_mushroom] == 1)							localpatch = kp_mushroom;
 	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
 	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
-	
+
 	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
 }
 
@@ -3035,16 +3036,16 @@ static void K_drawKartNeoItem(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
-	
+
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_noitem;
-	
+
 	// I'm doing this a little weird and drawing mostly in reverse order
 	// The only actual reason is to make triple/double/single mushrooms line up this way in the code below
 	// This shouldn't have any actual baring over how it functions
 	// Boo is first, because we're drawing it on top of the player's current item
-	if 		((stplyr->kartstuff[k_bootaketimer] > 0 
+	if 		((stplyr->kartstuff[k_bootaketimer] > 0
 		|| stplyr->kartstuff[k_boostolentimer] > 0) && (leveltime & 2)) 	localpatch = kp_skghoststeal;
 	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))	localpatch = kp_neonoitem;
 	else if (stplyr->kartstuff[k_lightning] == 1)							localpatch = kp_sizedownmonitor;
@@ -3059,10 +3060,10 @@ static void K_drawKartNeoItem(void)
 	else if (stplyr->kartstuff[k_fakeitem] & 2)								localpatch = kp_eggmanmonitor;
 	else if (stplyr->kartstuff[k_triplebanana] & 8)							localpatch = kp_neotriplebanana;
 	else if (stplyr->kartstuff[k_star] == 1)								localpatch = kp_invincibility;
-	else if (stplyr->kartstuff[k_goldshroom] == 1 
+	else if (stplyr->kartstuff[k_goldshroom] == 1
 		|| (stplyr->kartstuff[k_goldshroomtimer] > 1 && (leveltime & 1)))	localpatch = kp_rocketshoe;
 	else if (stplyr->kartstuff[k_goldshroomtimer] > 1 && !(leveltime & 1))	localpatch = kp_neonoitem;
-	else if (stplyr->kartstuff[k_megashroom] == 1 
+	else if (stplyr->kartstuff[k_megashroom] == 1
 		|| (stplyr->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1)))	localpatch = kp_sizeupmonitor;
 	else if (stplyr->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))	localpatch = kp_neonoitem;
 	else if (stplyr->kartstuff[k_mushroom] & 4)								localpatch = kp_triplespeedshoe;
@@ -3070,7 +3071,7 @@ static void K_drawKartNeoItem(void)
 	else if (stplyr->kartstuff[k_mushroom] == 1)							localpatch = kp_speedshoe;
 	else if (stplyr->kartstuff[k_boo] & 8)									localpatch = kp_skghost;
 	else if (stplyr->kartstuff[k_magnet] & 8)								localpatch = kp_electroshield;
-	
+
 	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_TRANSLUCENT, localpatch);
 }
 */
@@ -3079,24 +3080,24 @@ static void K_DrawKartTripleItem(void)
 {
 	// TRIP_X = 143;				// 143
 	// TRIP_Y = BASEVIDHEIGHT-34;	// 166
-				
+
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no draw' just in case.
 	patch_t *localpatch = kp_nodraw;
 	INT32 thisitem;
-	
+
 	/*if ()
 	{
 		thisitem = stplyr->kartstuff[k_triplebanana];
 		if 		(thisitem & 1) localpatch = kp_singleneobananaicon;
 		else if (thisitem & 2) localpatch = kp_doubleneobananaicon;
 		else if (thisitem & 4) localpatch = kp_tripleneobananaicon;
-		
+
 		thisitem = stplyr->kartstuff[k_triplegreenshell];
 		if 		(thisitem & 1) localpatch = kp_singleorbitauricon;
 		else if (thisitem & 2) localpatch = kp_doubleorbitauricon;
 		else if (thisitem & 4) localpatch = kp_tripleorbitauricon;
-		
+
 		thisitem = stplyr->kartstuff[k_jaws];
 		if 		(thisitem & 1) localpatch = kp_singlejawsicon;
 		else if (thisitem & 2) localpatch = kp_doublejawsicon;
@@ -3107,18 +3108,18 @@ static void K_DrawKartTripleItem(void)
 		if 		(thisitem & 1) localpatch = kp_singlebananaicon;
 		else if (thisitem & 2) localpatch = kp_doublebananaicon;
 		else if (thisitem & 4) localpatch = kp_triplebananaicon;
-		
+
 		thisitem = stplyr->kartstuff[k_triplegreenshell];
 		if 		(thisitem & 1) localpatch = kp_singlegreenshellicon;
 		else if (thisitem & 2) localpatch = kp_doublegreenshellicon;
 		else if (thisitem & 4) localpatch = kp_triplegreenshellicon;
-		
+
 		thisitem = stplyr->kartstuff[k_tripleredshell];
 		if 		(thisitem & 1) localpatch = kp_singleredshellicon;
 		else if (thisitem & 2) localpatch = kp_doubleredshellicon;
 		else if (thisitem & 4) localpatch = kp_tripleredshellicon;
 	//}
-	
+
 	if (localpatch != kp_nodraw)
 		V_DrawScaledPatch(TRIP_X, STRINGY(TRIP_Y), V_SNAPTORIGHT|V_TRANSLUCENT, localpatch);
 }
@@ -3183,11 +3184,11 @@ static void K_DrawKartPositionNum(INT32 num)
 {
 	// POSI_X = BASEVIDWIDTH - 51;	// 269
 	// POSI_Y = BASEVIDHEIGHT- 64;	// 136
-	
+
 	INT32 X = POSI_X+SCX(43); // +43 to offset where it's being drawn if there are more than one
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
 	patch_t *localpatch = kp_positionnum[0][0];
-	
+
 	// Special case for 0
 	if (!num)
 	{
@@ -3196,12 +3197,12 @@ static void K_DrawKartPositionNum(INT32 num)
 	}
 
 	I_Assert(num >= 0); // This function does not draw negative numbers
-	
+
 	// Draw the number
 	while (num)
 	{
 		X -= (W*vid.dupx);
-		
+
 		// Check for the final lap
 		if (stplyr->laps+1 == cv_numlaps.value)
 		{
@@ -3233,7 +3234,7 @@ static void K_DrawKartPositionNum(INT32 num)
 		}
 		else
 			localpatch = kp_positionnum[num % 10][0];
-			
+
 		V_DrawTranslucentPatch(X, POSI_Y, V_NOSCALESTART|V_TRANSLUCENT|V_SNAPTORIGHT|V_SNAPTOBOTTOM, localpatch);
 		num /= 10;
 	}
@@ -3243,7 +3244,7 @@ static void K_DrawKartPositionFaces(void)
 {
 	// FACE_X = 15;				//  15
 	// FACE_Y = 72;				//  72
-	
+
 	INT32 Y = FACE_Y+9; // +9 to offset where it's being drawn if there are more than one
 	INT32 i, j, ranklines;
 	boolean completed[MAXPLAYERS];
@@ -3252,16 +3253,16 @@ static void K_DrawKartPositionFaces(void)
 	UINT32 myplayer;
 	UINT8 *colormap;
 	patch_t *localpatch = kp_facenull;
-	
+
 	ranklines = 0;
 	memset(completed, 0, sizeof (completed));
 	memset(rankplayer, 0, sizeof (rankplayer));
 	memset(rankcolor, 0, sizeof (rankcolor));
 	myplayer = demoplayback ? displayplayer : consoleplayer;
-	
+
 	for (i = 0; i < MAXPLAYERS; i++)
 		rankplayer[i] = -1;
-	
+
 	for (j = 0; j < MAXPLAYERS; j++)
 	{
 		if (!playeringame[j])
@@ -3269,7 +3270,7 @@ static void K_DrawKartPositionFaces(void)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i] && completed[i] == false 
+			if (playeringame[i] && completed[i] == false
 				&& (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position]))
 			{
 				rankplayer[ranklines] = i;
@@ -3279,7 +3280,7 @@ static void K_DrawKartPositionFaces(void)
 		completed[rankplayer[ranklines]] = true;
 		ranklines++;
 	}
-	
+
 	if (ranklines > 4) ranklines = 4; // Only draw the top 4 players
 
 	Y -= (9*ranklines);
@@ -3326,12 +3327,12 @@ void K_drawKartHUD(void)
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
-	
+
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])
 		K_drawKartItemClose();
-	
-	// If the item-roulette is going, draw that 
+
+	// If the item-roulette is going, draw that
 	// Otherwise, draw the item window normally (separated for retro/neo, to prevent this block from becoming a mess
 	if (stplyr->kartstuff[k_itemroulette])
 		K_drawKartItemRoulette();
@@ -3339,27 +3340,27 @@ void K_drawKartHUD(void)
 	//	K_drawKartNeoItem();
 	else
 		K_drawKartRetroItem();
-	
+
 	// Draw the little triple-item icons at the bottom
 	if (!splitscreen)
 	{
 		K_DrawKartTripleItem();
 		K_DrawKartPositionFaces();
 	}
-	
+
 	// Draw the timestamp
 	K_drawKartTimestamp();
-	
+
 	// Draw the lap counter
 	V_DrawScaledPatch(LAPS_X, STRINGY(LAPS_Y), 0, kp_lapsticker);
 	if (stplyr->exiting)
 		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, "FIN");
 	else
 		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
-	
+
 	// Draw the numerical position
 	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
-	
+
 	// Plays the music after the starting countdown. This is here since it checks every frame regularly.
 	if (leveltime > 157 && leveltime < (TICRATE+1)*7)
 		S_ChangeMusicInternal(mapmusname, true);
