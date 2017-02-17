@@ -14951,7 +14951,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_POKEY
-		2002,           // doomednum
+		2100,           // doomednum
 		S_POKEY1,       // spawnstate
 		1000,           // spawnhealth
 		S_POKEY1,       // seestate
@@ -14978,7 +14978,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_ENEMYFLIP
-		2003,           // doomednum
+		2101,           // doomednum
 		S_NULL,         // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate

@@ -4747,9 +4747,9 @@ static void P_3dMovement(player_t *player)
 	{
 		//movepushforward = cmd->forwardmove * (thrustfactor * acceleration);
 		if (cmd->forwardmove > 0)
-			movepushforward = K_3dKartMovement(player, onground);
+			movepushforward = K_3dKartMovement(player, onground, true);
 		else
-			movepushforward = -(K_3dKartMovement(player, onground));
+			movepushforward = -(K_3dKartMovement(player, onground, false));
 
 		// allow very small movement while in air for gameplay
 		if (!onground)
@@ -4767,9 +4767,9 @@ static void P_3dMovement(player_t *player)
 		}
 
 		movepushforward = FixedMul(movepushforward, player->mo->scale);
-		
-		if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
-			movepushforward /= 32;
+
+		//if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
+		//	movepushforward /= 32;
 
 #ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushangle, movepushforward);
@@ -4800,9 +4800,9 @@ static void P_3dMovement(player_t *player)
 
 			//movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
 			if (max(abs(cmd->sidemove), abs(cmd->forwardmove)) > 0)
-				movepushforward = K_3dKartMovement(player, onground);
+				movepushforward = K_3dKartMovement(player, onground, true);
 			else
-				movepushforward = -(K_3dKartMovement(player, onground));
+				movepushforward = -(K_3dKartMovement(player, onground, false));
 
 			// allow very small movement while in air for gameplay
 			if (!onground)
@@ -4825,8 +4825,8 @@ static void P_3dMovement(player_t *player)
 
 			movepushforward = FixedMul(movepushforward, player->mo->scale);
 
-			if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
-				movepushforward /= 32;
+			//if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
+			//	movepushforward /= 32;
 
 #ifdef ESLOPE
 			totalthrust.x += P_ReturnThrustX(player->mo, controldirection, movepushforward);
@@ -4840,9 +4840,9 @@ static void P_3dMovement(player_t *player)
 	{
 		//movepushside = cmd->sidemove * (thrustfactor * acceleration);
 		if (cmd->sidemove > 0)
-			movepushside = K_3dKartMovement(player, onground);
+			movepushside = K_3dKartMovement(player, onground, true);
 		else
-			movepushside = -(K_3dKartMovement(player, onground));
+			movepushside = -(K_3dKartMovement(player, onground, true));
 
 		if (!onground)
 		{

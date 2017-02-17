@@ -149,9 +149,9 @@ extern FILE *logstream;
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    100 // Game version
-#define SUBVERSION 0  // more precise version number
-#define VERSIONSTRING "v1.0.00"
-#define VERSIONSTRINGW L"v1.0.00"
+#define SUBVERSION 3  // more precise version number
+#define VERSIONSTRING "v1.0.03"
+#define VERSIONSTRINGW L"v1.0.03"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
@@ -171,8 +171,8 @@ extern FILE *logstream;
 // The string used in the alert that pops up in the event of an update being available.
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
 #define UPDATE_ALERT_STRING \
-"A new update is available for SRB2.\n"\
-"Please visit SRB2.org to download it.\n"\
+"A new update is available for SRB2kart.\n"\
+"Please visit the forums on SRB2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -188,8 +188,8 @@ extern FILE *logstream;
 // The string used in the I_Error alert upon trying to host through command line parameters.
 // Generally less filled with newlines, since Windows gives you lots more room to work with.
 #define UPDATE_ALERT_STRING_CONSOLE \
-"A new update is available for SRB2.\n"\
-"Please visit SRB2.org to download it.\n"\
+"A new update is available for SRB2kart.\n"\
+"Please visit the forums on SRB2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -213,7 +213,7 @@ extern FILE *logstream;
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 20
+#define MODVERSION 1
 
 // =========================================================================
 

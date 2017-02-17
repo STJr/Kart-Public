@@ -310,9 +310,9 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 {
 	// 1 Active Player
 	{  //1st //
-		{  0 }, // Magnet
+		{ 40 }, // Magnet
 		{  0 }, // Boo
-		{ 40 }, // Mushroom
+		{  0 }, // Mushroom
 		{  0 }, // Triple Mushroom
 		{  0 }, // Mega Mushroom
 		{  0 }, // Gold Mushroom
@@ -332,21 +332,21 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 
 	// 2 Active Players
 	{  //1st 2nd //
-		{  0,  0 }, // Magnet
+		{  1,  0 }, // Magnet
 		{  0,  0 }, // Boo
-		{  0,  0 }, // Mushroom
-		{  0,  0 }, // Triple Mushroom
-		{  0,  0 }, // Mega Mushroom
-		{  0,  0 }, // Gold Mushroom
+		{  6, 11 }, // Mushroom
+		{  0,  3 }, // Triple Mushroom
+		{  0,  1 }, // Mega Mushroom
+		{  0,  1 }, // Gold Mushroom
 		{  0,  0 }, // Star
-		{  0,  0 }, // Triple Banana
-		{  0,  0 }, // Fake Item
-		{  0,  0 }, // Banana
-		{  0,  0 }, // Green Shell
-		{  0,  0 }, // Red Shell
-		{  0,  0 }, // Triple Green Shell
+		{  4,  0 }, // Triple Banana
+		{  7,  0 }, // Fake Item
+		{ 12,  0 }, // Banana
+		{  8,  6 }, // Green Shell
+		{  2, 12 }, // Red Shell
+		{  0,  4 }, // Triple Green Shell
 		{  0,  0 }, // Bob-omb
-		{  0,  0 }, // Blue Shell
+		{  0,  2 }, // Blue Shell
 		{  0,  0 }, // Fire Flower
 		{  0,  0 }, // Triple Red Shell
 		{  0,  0 }  // Lightning
@@ -354,90 +354,90 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 
 	// 3 Active Players
 	{  //1st 2nd 3rd //
-		{  0,  0,  0 }, // Magnet
-		{  0,  0,  0 }, // Boo
-		{  0,  0,  0 }, // Mushroom
-		{  0,  0,  0 }, // Triple Mushroom
-		{  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0 }, // Gold Mushroom
-		{  0,  0,  0 }, // Star
-		{  0,  0,  0 }, // Triple Banana
-		{  0,  0,  0 }, // Fake Item
-		{  0,  0,  0 }, // Banana
-		{  0,  0,  0 }, // Green Shell
-		{  0,  0,  0 }, // Red Shell
-		{  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0 }, // Blue Shell
+		{  1,  0,  0 }, // Magnet
+		{  0,  1,  0 }, // Boo
+		{  4, 10,  0 }, // Mushroom
+		{  0,  4, 11 }, // Triple Mushroom
+		{  0,  0,  2 }, // Mega Mushroom
+		{  0,  0, 16 }, // Gold Mushroom
+		{  0,  0,  6 }, // Star
+		{  4,  0,  0 }, // Triple Banana
+		{  7,  2,  0 }, // Fake Item
+		{ 13,  4,  0 }, // Banana
+		{  9,  4,  0 }, // Green Shell
+		{  2,  8,  0 }, // Red Shell
+		{  0,  3,  0 }, // Triple Green Shell
+		{  0,  2,  0 }, // Bob-omb
+		{  0,  2,  0 }, // Blue Shell
 		{  0,  0,  0 }, // Fire Flower
 		{  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0 }  // Lightning
+		{  0,  0,  5 }  // Lightning
 	}, //1st 2nd 3rd //
 
 	// 4 Active Players
 	{  //1st 2nd 3rd 4th //
-		{  0,  0,  0,  0 }, // Magnet
-		{  0,  0,  0,  0 }, // Boo
-		{  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0 }, // Gold Mushroom
-		{  0,  0,  0,  0 }, // Star
-		{  0,  0,  0,  0 }, // Triple Banana
-		{  0,  0,  0,  0 }, // Fake Item
-		{  0,  0,  0,  0 }, // Banana
-		{  0,  0,  0,  0 }, // Green Shell
-		{  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0 }  // Lightning
+		{  1,  1,  0,  0 }, // Magnet
+		{  0,  3,  0,  0 }, // Boo
+		{  2, 10,  0,  0 }, // Mushroom
+		{  0,  3,  9, 10 }, // Triple Mushroom
+		{  0,  0,  3,  0 }, // Mega Mushroom
+		{  0,  0,  9, 16 }, // Gold Mushroom
+		{  0,  0,  0,  8 }, // Star
+		{  4,  0,  0,  0 }, // Triple Banana
+		{  7,  2,  0,  0 }, // Fake Item
+		{ 14,  4,  0,  0 }, // Banana
+		{  9,  5,  0,  0 }, // Green Shell
+		{  3,  8,  6,  0 }, // Red Shell
+		{  0,  2,  4,  0 }, // Triple Green Shell
+		{  0,  2,  0,  0 }, // Bob-omb
+		{  0,  0,  3,  0 }, // Blue Shell
+		{  0,  0,  3,  0 }, // Fire Flower
+		{  0,  0,  3,  0 }, // Triple Red Shell
+		{  0,  0,  0,  6 }  // Lightning
 	}, //1st 2nd 3rd 4th //
 
 	// 5 Active Players
 	{  //1st 2nd 3rd 4th 5th //
-		{  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  0,  0,  0,  0 }, // Boo
-		{  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  0,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0 }, // Star
-		{  0,  0,  0,  0,  0 }, // Triple Banana
-		{  0,  0,  0,  0,  0 }, // Fake Item
-		{  0,  0,  0,  0,  0 }, // Banana
-		{  0,  0,  0,  0,  0 }, // Green Shell
-		{  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0 }  // Lightning
+		{  1,  2,  0,  0,  0 }, // Magnet
+		{  0,  3,  0,  0,  0 }, // Boo
+		{  0,  9,  7,  0,  0 }, // Mushroom
+		{  0,  0,  8, 12, 12 }, // Triple Mushroom
+		{  0,  0,  2,  2,  0 }, // Mega Mushroom
+		{  0,  0,  0,  9, 20 }, // Gold Mushroom
+		{  0,  0,  0,  3,  8 }, // Star
+		{  4,  2,  0,  0,  0 }, // Triple Banana
+		{  7,  3,  0,  0,  0 }, // Fake Item
+		{ 15,  4,  0,  0,  0 }, // Banana
+		{ 10,  6,  3,  0,  0 }, // Green Shell
+		{  3,  9,  6,  0,  0 }, // Red Shell
+		{  0,  2,  4,  0,  0 }, // Triple Green Shell
+		{  0,  0,  3,  0,  0 }, // Bob-omb
+		{  0,  0,  4,  0,  0 }, // Blue Shell
+		{  0,  0,  3,  4,  0 }, // Fire Flower
+		{  0,  0,  0,  3,  0 }, // Triple Red Shell
+		{  0,  0,  0,  7,  0 }  // Lightning
 	}, //1st 2nd 3rd 4th 5th //
 
 	// 6 Active Players
 	{  //1st 2nd 3rd 4th 5th 6th //
-		{  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0 }, // Star
-		{  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{  0,  0,  0,  0,  0,  0 }, // Banana
-		{  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  0,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0 }  // Lightning
+		{  1,  2,  0,  0,  0,  0 }, // Magnet
+		{  0,  2,  2,  0,  0,  0 }, // Boo
+		{  0,  9,  8,  0,  0,  0 }, // Mushroom
+		{  0,  0,  5, 11, 14, 12 }, // Triple Mushroom
+		{  0,  0,  0,  2,  2,  0 }, // Mega Mushroom
+		{  0,  0,  0,  6, 11, 20 }, // Gold Mushroom
+		{  0,  0,  0,  0,  3,  8 }, // Star
+		{  4,  2,  0,  0,  0,  0 }, // Triple Banana
+		{  7,  3,  0,  0,  0,  0 }, // Fake Item
+		{ 15,  5,  3,  0,  0,  0 }, // Banana
+		{ 10,  6,  4,  0,  0,  0 }, // Green Shell
+		{  3,  9,  8,  6,  0,  0 }, // Red Shell
+		{  0,  2,  4,  5,  0,  0 }, // Triple Green Shell
+		{  0,  0,  3,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  3,  3,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  4,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  3,  3,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  7,  0 }  // Lightning
 	}, //1st 2nd 3rd 4th 5th 6th //
 
 	// 7 Active Players
@@ -618,24 +618,24 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 
 	// 15 Active Players
 	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t //
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Star
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }  // Lightning
+		{  1,  2,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
+		{  0,  2,  4,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
+		{  0,  4,  6,  8, 10,  9,  8,  4,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
+		{  0,  0,  0,  2,  4,  8, 11, 13, 17, 18, 15, 13,  9,  8,  0 }, // Triple Mushroom
+		{  0,  0,  0,  0,  0,  0,  2,  5,  6,  8,  7,  3,  0,  0,  0 }, // Mega Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  3,  5,  8, 11, 13, 22, 27 }, // Gold Mushroom
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  5,  7, 10, 13 }, // Star
+		{  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
+		{  7,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
+		{ 15,  8,  6,  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
+		{ 10,  8,  6,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
+		{  3, 10,  9,  8,  7,  6,  4,  3,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
+		{  0,  0,  2,  4,  5,  7,  6,  5,  3,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
+		{  0,  0,  0,  2,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
+		{  0,  0,  0,  0,  2,  3,  4,  3,  2,  0,  0,  0,  0,  0,  0 }, // Blue Shell
+		{  0,  0,  0,  0,  0,  0,  3,  5,  6,  2,  0,  0,  0,  0,  0 }, // Fire Flower
+		{  0,  0,  0,  0,  0,  0,  0,  2,  3,  3,  2,  0,  0,  0,  0 }, // Triple Red Shell
+		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  5,  8, 11,  0,  0 }  // Lightning
 	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t //
 
 	// 16 Active Players
@@ -1109,7 +1109,7 @@ fixed_t K_GetKartAccel(player_t *player)
 
 	return k_accel;
 }
-fixed_t K_3dKartMovement(player_t *player, boolean onground)
+fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmovement)
 {
 	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
 
@@ -1122,6 +1122,11 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground)
 	oldspeed = FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
 	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
 	finalspeed = newspeed - oldspeed;
+
+	if (!forwardmovement && finalspeed > FRACUNIT*2)
+		return FRACUNIT/8;
+	else if (!forwardmovement)
+		return FRACUNIT/2;
 
 	return finalspeed;
 }
@@ -1827,73 +1832,80 @@ static void K_KartUpdatePosition(player_t *player)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[i] || players[i].spectator)	// If you don't exist, you aren't in the race.
-			continue;
-
-		if (((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) > 
-			((player->starpostnum) + (numstarposts + 1) * player->laps))
+		if (playeringame[i] && !players[i].spectator &&
+			(((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) > 
+			((player->starpostnum) + (numstarposts + 1) * player->laps)))
 			position++;
-
-		ppcd = pncd = ipcd = incd = 0;
-
-		player->kartstuff[k_prevcheck] = players[i].kartstuff[k_prevcheck] = 0;
-		player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
-		
-		// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
-		for (th = thinkercap.next; th != &thinkercap; th = th->next) 
+		else if (playeringame[i] && !players[i].spectator
+			&& (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) == 
+			((player->starpostnum) + (numstarposts+1)*player->laps)))
 		{
-			if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
-				continue;
+			ppcd = pncd = ipcd = incd = 0;
 
-			mo = (mobj_t *)th;
-
-			pmo = P_AproxDistance(P_AproxDistance(mo->x - player->mo->x, mo->y - player->mo->y), mo->z - player->mo->z) / FRACUNIT;
-			imo = P_AproxDistance(P_AproxDistance(mo->x - players[i].mo->x, mo->y - players[i].mo->y), mo->z - players[i].mo->z) / FRACUNIT;
-
-			if (mo->type != MT_BOSS3WAYPOINT)
-				continue;
-
-			if (mo->health == player->starpostnum)
+			player->kartstuff[k_prevcheck] = players[i].kartstuff[k_prevcheck] = 0;
+			player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
+			
+			// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
+			for (th = thinkercap.next; th != &thinkercap; th = th->next) 
 			{
-				player->kartstuff[k_prevcheck] += pmo;
-				ppcd++;
-			}
-			if (mo->health == (player->starpostnum + 1))
-			{
-				player->kartstuff[k_nextcheck] += pmo;
-				pncd++;
-			}
-			if (mo->health == players[i].starpostnum)
-			{
-				players[i].kartstuff[k_prevcheck] += imo;
-				ipcd++;
-			}
-			if (mo->health == (players[i].starpostnum + 1))
-			{
-				players[i].kartstuff[k_nextcheck] += imo;
-				incd++;
-			}
-		}
+				if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
+					continue;
 
-		if (ppcd > 1) player->kartstuff[k_prevcheck] /= ppcd;
-		if (pncd > 1) player->kartstuff[k_nextcheck] /= pncd;
-		if (ipcd > 1) players[i].kartstuff[k_prevcheck] /= ipcd;
-		if (incd > 1) players[i].kartstuff[k_nextcheck] /= incd;
+				mo = (mobj_t *)th;
 
-		if ((players[i].kartstuff[k_nextcheck] > 0 || player->kartstuff[k_nextcheck] > 0) && !player->exiting)
-		{
-			if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) < (player->kartstuff[k_nextcheck] - player->kartstuff[k_prevcheck]))
-				position++;
-		}
-		else if (!player->exiting)
-		{
-			if (players[i].kartstuff[k_prevcheck] > player->kartstuff[k_prevcheck])
-				position++;
-		}
-		else
-		{
-			if (players[i].starposttime < player->starposttime)
-				position++;
+				pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x, 
+														mo->y - player->mo->y), 
+														mo->z - player->mo->z) / FRACUNIT;
+				imo = P_AproxDistance(P_AproxDistance(	mo->x - players[i].mo->x, 
+														mo->y - players[i].mo->y), 
+														mo->z - players[i].mo->z) / FRACUNIT;
+
+				if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
+					continue;
+
+				if (mo->health == player->starpostnum)
+				{
+					player->kartstuff[k_prevcheck] += pmo;
+					ppcd++;
+				}
+				if (mo->health == (player->starpostnum + 1))
+				{
+					player->kartstuff[k_nextcheck] += pmo;
+					pncd++;
+				}
+				if (mo->health == players[i].starpostnum)
+				{
+					players[i].kartstuff[k_prevcheck] += imo;
+					ipcd++;
+				}
+				if (mo->health == (players[i].starpostnum + 1))
+				{
+					players[i].kartstuff[k_nextcheck] += imo;
+					incd++;
+				}
+			}
+
+			if (ppcd > 1) player->kartstuff[k_prevcheck] /= ppcd;
+			if (pncd > 1) player->kartstuff[k_nextcheck] /= pncd;
+			if (ipcd > 1) players[i].kartstuff[k_prevcheck] /= ipcd;
+			if (incd > 1) players[i].kartstuff[k_nextcheck] /= incd;
+
+			if ((players[i].kartstuff[k_nextcheck] > 0 || player->kartstuff[k_nextcheck] > 0) && !player->exiting)
+			{
+				if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) < 
+					(player->kartstuff[k_nextcheck] - player->kartstuff[k_prevcheck]))
+					position++;
+			}
+			else if (!player->exiting)
+			{
+				if (players[i].kartstuff[k_prevcheck] > player->kartstuff[k_prevcheck])
+					position++;
+			}
+			else
+			{
+				if (players[i].starposttime < player->starposttime)
+					position++;
+			}
 		}
 	}
 	player->kartstuff[k_position] = position;
@@ -3198,21 +3210,21 @@ static void K_DrawKartPositionNum(INT32 num)
 			{
 				case 1: case 2: case 3:
 					if (stplyr->kartstuff[k_position] >= 4)
-						localpatch = kp_positionnum[num % 10][1];
-					else
 						localpatch = kp_positionnum[num % 10][4];
+					else
+						localpatch = kp_positionnum[num % 10][1];
 					break;
 				case 4: case 5: case 6:
 					if (stplyr->kartstuff[k_position] >= 4)
-						localpatch = kp_positionnum[num % 10][2];
-					else
 						localpatch = kp_positionnum[num % 10][5];
+					else
+						localpatch = kp_positionnum[num % 10][2];
 					break;
 				case 7: case 8: case 9:
 					if (stplyr->kartstuff[k_position] >= 4)
-						localpatch = kp_positionnum[num % 10][3];
-					else
 						localpatch = kp_positionnum[num % 10][6];
+					else
+						localpatch = kp_positionnum[num % 10][3];
 					break;
 				default:
 					localpatch = kp_positionnum[num % 10][0];

@@ -8793,7 +8793,8 @@ void P_MovePlayerToStarpost(INT32 playernum)
 #endif
 	sector->ceilingheight;
 
-	z = p->starpostz << FRACBITS;
+	//z = p->starpostz << FRACBITS;
+	z = (p->starpostz + 128) << FRACBITS; // SRB2kart - Spawns off the ground for Lakitu
 	if (z < floor)
 		z = floor;
 	else if (z > ceiling - mobjinfo[MT_PLAYER].height)
@@ -8808,10 +8809,12 @@ void P_MovePlayerToStarpost(INT32 playernum)
 
 	mobj->angle = p->starpostangle;
 
+	p->kartstuff[k_waypoint] = p->kartstuff[k_starpostwp]; // SRB2kart
+
 	P_AfterPlayerSpawn(playernum);
 
-	if (!(netgame || multiplayer))
-		leveltime = p->starposttime;
+	//if (!(netgame || multiplayer))
+	//	leveltime = p->starposttime;
 }
 
 #define MAXHUNTEMERALDS 64
