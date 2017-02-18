@@ -7113,8 +7113,8 @@ void T_Friction(friction_t *f)
 		// friction works for all mobj's
 		// (or at least MF_PUSHABLEs, which is all I care about anyway)
 		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player
-			&& (thing->player->kartstuff[k_startimer] && thing->player->kartstuff[k_bootaketimer]
-			&& thing->player->kartstuff[k_mushroomtimer] && thing->player->kartstuff[k_growshrinktimer] <= 0)))
+			&& (thing->player->kartstuff[k_startimer] == 0 && thing->player->kartstuff[k_bootaketimer] == 0
+			&& thing->player->kartstuff[k_mushroomtimer] == 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)))
 		{
 			if (f->roverfriction)
 			{

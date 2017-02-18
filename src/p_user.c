@@ -9309,10 +9309,13 @@ void P_PlayerThink(player_t *player)
 	// Flash player after being hit.
 	if (!(player->pflags & PF_NIGHTSMODE))
 	{
-		if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < flashingtics && (leveltime & 1))
-			player->mo->flags2 |= MF2_DONTDRAW;
-		else
-			player->mo->flags2 &= ~MF2_DONTDRAW;
+		if (player->kartstuff[k_bootaketimer] == 0) // SRB2kart - fixes boo not flashing when it should
+		{
+			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < flashingtics && (leveltime & 1))
+				player->mo->flags2 |= MF2_DONTDRAW;
+			else
+				player->mo->flags2 &= ~MF2_DONTDRAW;
+		}
 	}
 	else if (player->mo->tracer)
 	{
