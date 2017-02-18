@@ -26,6 +26,9 @@
 #include "w_wad.h"
 #include "k_kart.h" // SRB2kart 011617
 
+#include "hu_stuff.h" // SRB2kart
+#include "i_system.h" // SRB2kart
+
 #include "r_splats.h"
 
 #ifdef ESLOPE
@@ -112,7 +115,7 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
 
 boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 {
-	INT32 pflags;
+	//INT32 pflags;
 	fixed_t offx, offy;
 	fixed_t vertispeed = spring->info->mass;
 	fixed_t horizspeed = spring->info->damage;
@@ -203,7 +206,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			}
 		}
 
-		pflags = object->player->pflags & (PF_JUMPED|PF_SPINNING|PF_THOKKED); // I still need these.
+		//pflags = object->player->pflags & (PF_JUMPED|PF_SPINNING|PF_THOKKED); // I still need these.
 		P_ResetPlayer(object->player);
 
 		/* // SRB2kart - Springs don't need to change player state in kart.

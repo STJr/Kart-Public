@@ -1204,7 +1204,7 @@ void Y_StartIntermission(void)
 			usetile = !useinterpic;
 
 			// get special stage specific patches
-/*			if (!stagefailed && ALL7EMERALDS(emeralds))
+			if (!stagefailed && ALL7EMERALDS(emeralds))
 			{
 				data.spec.cemerald = W_CachePatchName("GOTEMALL", PU_STATIC);
 				data.spec.headx = 70;
@@ -1216,8 +1216,8 @@ void Y_StartIntermission(void)
 				data.spec.cemerald = W_CachePatchName("CEMERALD", PU_STATIC);
 				data.spec.headx = 48;
 				data.spec.nowsuper = NULL;
-			} */
-/*
+			}
+
 			// Super form stuff (normally blank)
 			data.spec.passed3[0] = '\0';
 			data.spec.passed4[0] = '\0';
@@ -1658,12 +1658,14 @@ static void Y_SetRingBonus(player_t *player, y_bonus_t *bstruct)
 //
 // Y_SetLinkBonus
 //
-static void Y_SetLinkBonus(player_t *player, y_bonus_t *bstruct)
+/*
+static void Y_SetLinkBonus(player_t *player, y_bonus_t *bstruct) // SRB2kart - unused.
 {
 	strncpy(bstruct->patch, "YB_LINK", sizeof(bstruct->patch));
 	bstruct->display = true;
 	bstruct->points = max(0, (player->maxlink - 1) * 100);
 }
+*/
 
 //
 // Y_SetGuardBonus

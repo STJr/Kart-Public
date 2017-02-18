@@ -386,7 +386,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	// We now identify by object type, not sprite! Tails 04-11-2001
 	switch (special->type)
 	{
-		case MT_RANDOMITEM: // SRB2kart
+		case MT_RANDOMITEM:			// SRB2kart
+		case MT_FLINGRANDOMITEM:
 			if (!(P_CanPickupItem(player, false)))
 				return;
 			special->momx = special->momy = special->momz = 0;
@@ -2859,7 +2860,8 @@ void P_RemoveShield(player_t *player)
 		player->powers[pw_shield] = player->powers[pw_shield] & SH_STACK;
 }
 
-static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
+/*
+static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage) // SRB2kart - unused.
 {
 	// Must do pain first to set flashing -- P_RemoveShield can cause damage
 	P_DoPlayerPain(player, source, inflictor);
@@ -2890,6 +2892,7 @@ static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, 
 			P_AddPlayerScore(source->player, cv_match_scoring.value == 1 ? 25 : 50);
 	}
 }
+*/
 
 static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
 {

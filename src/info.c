@@ -2536,37 +2536,36 @@ state_t states[NUMSTATES] =
 	{SPR_BSPR, 2, 1, {NULL}, 0, 0, S_BDIAG8},   // S_BDIAG7
 	{SPR_BSPR, 1, 1, {NULL}, 0, 0, S_BDIAG1},   // S_BDIAG8
 
-	{SPR_RNDM,  0, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM2},  // S_RANDOMITEM1
-	{SPR_RNDM,  1, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM3},  // S_RANDOMITEM2
-	{SPR_RNDM,  2, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM4},  // S_RANDOMITEM3
-	{SPR_RNDM,  3, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM5},  // S_RANDOMITEM4
-	{SPR_RNDM,  4, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM6},  // S_RANDOMITEM5
-	{SPR_RNDM,  5, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM7},  // S_RANDOMITEM6
-	{SPR_RNDM,  6, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM8},  // S_RANDOMITEM7
-	{SPR_RNDM,  7, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM9},  // S_RANDOMITEM8
-	{SPR_RNDM,  8, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM10}, // S_RANDOMITEM9
-	{SPR_RNDM,  9, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM11}, // S_RANDOMITEM10
-	{SPR_RNDM, 10, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM12}, // S_RANDOMITEM11
-	{SPR_RNDM, 11, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM13}, // S_RANDOMITEM12
-	{SPR_RNDM, 12, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM14}, // S_RANDOMITEM13
-	{SPR_RNDM, 13, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM15}, // S_RANDOMITEM14
-	{SPR_RNDM, 14, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM16}, // S_RANDOMITEM15
-	{SPR_RNDM, 15, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM17}, // S_RANDOMITEM16
-	{SPR_RNDM, 16, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM18}, // S_RANDOMITEM17
-	{SPR_RNDM, 17, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM19}, // S_RANDOMITEM18
-	{SPR_RNDM, 18, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM20}, // S_RANDOMITEM19
-	{SPR_RNDM, 19, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM21}, // S_RANDOMITEM20
-	{SPR_RNDM, 20, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM22}, // S_RANDOMITEM21
-	{SPR_RNDM, 21, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM23}, // S_RANDOMITEM22
-	{SPR_RNDM, 22, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM24}, // S_RANDOMITEM23
-	{SPR_RNDM, 23, 3, {A_AttractChase}, 0, 0, S_RANDOMITEM1},  // S_RANDOMITEM24
+	{SPR_RNDM,  0, 3, {NULL}, 0, 0, S_RANDOMITEM2},  // S_RANDOMITEM1
+	{SPR_RNDM,  1, 3, {NULL}, 0, 0, S_RANDOMITEM3},  // S_RANDOMITEM2
+	{SPR_RNDM,  2, 3, {NULL}, 0, 0, S_RANDOMITEM4},  // S_RANDOMITEM3
+	{SPR_RNDM,  3, 3, {NULL}, 0, 0, S_RANDOMITEM5},  // S_RANDOMITEM4
+	{SPR_RNDM,  4, 3, {NULL}, 0, 0, S_RANDOMITEM6},  // S_RANDOMITEM5
+	{SPR_RNDM,  5, 3, {NULL}, 0, 0, S_RANDOMITEM7},  // S_RANDOMITEM6
+	{SPR_RNDM,  6, 3, {NULL}, 0, 0, S_RANDOMITEM8},  // S_RANDOMITEM7
+	{SPR_RNDM,  7, 3, {NULL}, 0, 0, S_RANDOMITEM9},  // S_RANDOMITEM8
+	{SPR_RNDM,  8, 3, {NULL}, 0, 0, S_RANDOMITEM10}, // S_RANDOMITEM9
+	{SPR_RNDM,  9, 3, {NULL}, 0, 0, S_RANDOMITEM11}, // S_RANDOMITEM10
+	{SPR_RNDM, 10, 3, {NULL}, 0, 0, S_RANDOMITEM12}, // S_RANDOMITEM11
+	{SPR_RNDM, 11, 3, {NULL}, 0, 0, S_RANDOMITEM13}, // S_RANDOMITEM12
+	{SPR_RNDM, 12, 3, {NULL}, 0, 0, S_RANDOMITEM14}, // S_RANDOMITEM13
+	{SPR_RNDM, 13, 3, {NULL}, 0, 0, S_RANDOMITEM15}, // S_RANDOMITEM14
+	{SPR_RNDM, 14, 3, {NULL}, 0, 0, S_RANDOMITEM16}, // S_RANDOMITEM15
+	{SPR_RNDM, 15, 3, {NULL}, 0, 0, S_RANDOMITEM17}, // S_RANDOMITEM16
+	{SPR_RNDM, 16, 3, {NULL}, 0, 0, S_RANDOMITEM18}, // S_RANDOMITEM17
+	{SPR_RNDM, 17, 3, {NULL}, 0, 0, S_RANDOMITEM19}, // S_RANDOMITEM18
+	{SPR_RNDM, 18, 3, {NULL}, 0, 0, S_RANDOMITEM20}, // S_RANDOMITEM19
+	{SPR_RNDM, 19, 3, {NULL}, 0, 0, S_RANDOMITEM21}, // S_RANDOMITEM20
+	{SPR_RNDM, 20, 3, {NULL}, 0, 0, S_RANDOMITEM22}, // S_RANDOMITEM21
+	{SPR_RNDM, 21, 3, {NULL}, 0, 0, S_RANDOMITEM23}, // S_RANDOMITEM22
+	{SPR_RNDM, 22, 3, {NULL}, 0, 0, S_RANDOMITEM24}, // S_RANDOMITEM23
+	{SPR_RNDM, 23, 3, {NULL}, 0, 0, S_RANDOMITEM1},  // S_RANDOMITEM24
 	{SPR_RNDM,  0, 1, {A_ItemPop},      0, 0, S_NULL},         // S_DEADRANDOMITEM
 
-	{SPR_SPRK, 0,  2, {NULL}, 0, 0, S_RANDOMITEMPOP2}, // S_RANDOMITEMPOP1
-	{SPR_SPRK, 1,  2, {NULL}, 0, 0, S_RANDOMITEMPOP3}, // S_RANDOMITEMPOP2
-	{SPR_SPRK, 2,  2, {NULL}, 0, 0, S_RANDOMITEMPOP4}, // S_RANDOMITEMPOP3
-	{SPR_SPRK, 3,  2, {NULL}, 0, 0, S_RANDOMITEMPOP5}, // S_RANDOMITEMPOP4
-	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_NULL},           // S_RANDOMITEMPOP5
+	{SPR_SPRK, FF_FULLBRIGHT,   5, {NULL}, 0, 0, S_RANDOMITEMPOP2}, // S_RANDOMITEMPOP1
+	{SPR_SPRK, FF_FULLBRIGHT|1, 5, {NULL}, 0, 0, S_RANDOMITEMPOP3}, // S_RANDOMITEMPOP2
+	{SPR_SPRK, FF_FULLBRIGHT|2, 5, {NULL}, 0, 0, S_RANDOMITEMPOP4}, // S_RANDOMITEMPOP3
+	{SPR_SPRK, FF_FULLBRIGHT|3, 5, {NULL}, 0, 0, S_NULL},           // S_RANDOMITEMPOP4
 
 	{SPR_DRIF, 0,  2, {NULL}, 0, 0, S_DRIFTSPARK2}, // S_DRIFTSPARK1
 	{SPR_DRIF, 1,  2, {NULL}, 0, 0, S_DRIFTSPARK3}, // S_DRIFTSPARK2
@@ -14062,12 +14061,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_RANDOMITEM
 		2000,           // doomednum
 		S_RANDOMITEM1,  // spawnstate
-		1,              // spawnhealth
+		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
-		8,              // reactiontime
+		MT_FLINGRANDOMITEM, // reactiontime
 		sfx_None,       // attacksound
-		S_RANDOMITEM1,  // painstate
+		S_NULL,         // painstate
 		0,              // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
@@ -14075,7 +14074,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_DEADRANDOMITEM, // deathstate
 		S_NULL,         // xdeathstate
 		sfx_pop,        // deathsound
-		64*FRACUNIT,    // speed
+		60*FRACUNIT,    // speed
 		32*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset
@@ -14086,13 +14085,40 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
+	{           // MT_FLINGRANDOMITEM
+		-1,             // doomednum
+		S_RANDOMITEM1,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		MT_FLINGRANDOMITEM, // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		MT_RANDOMITEM,  // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_DEADRANDOMITEM, // deathstate
+		S_NULL,         // xdeathstate
+		sfx_pop,        // deathsound
+		60*FRACUNIT,    // speed
+		31*FRACUNIT,    // radius
+		16*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SLIDEME|MF_SPECIAL, // flags
+		S_NULL          // raisestate
+	},
+
 	{           // MT_RANDOMITEMPOP
 		-1,             // doomednum
 		S_RANDOMITEMPOP1, // spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
-		8,              // reactiontime
+		0,              // reactiontime
 		sfx_None,       // attacksound
 		S_RANDOMITEMPOP1, // painstate
 		0,              // painchance

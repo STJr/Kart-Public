@@ -1347,6 +1347,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 			{
 				case MT_FLINGRING:
 				case MT_FLINGCOIN:
+				case MT_FLINGRANDOMITEM: // SRB2kart
 				case MT_FLINGEMERALD:
 				case MT_BOUNCERING:
 				case MT_RAILRING:
@@ -2257,6 +2258,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_BLUETEAMRING:
 		case MT_FLINGRING:
 		case MT_FLINGCOIN:
+		case MT_FLINGRANDOMITEM:
 		case MT_FLINGEMERALD:
 		case MT_RANDOMITEM:
 			// Remove flinged stuff from death pits.
@@ -2450,6 +2452,7 @@ static boolean P_ZMovement(mobj_t *mo)
 			// Flingrings bounce
 			if (mo->type == MT_FLINGRING
 				|| mo->type == MT_FLINGCOIN
+				|| mo->type == MT_FLINGRANDOMITEM
 				|| P_WeaponOrPanel(mo->type)
 				|| mo->type == MT_FLINGEMERALD
 				|| mo->type == MT_BIGTUMBLEWEED
@@ -5873,6 +5876,9 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 	fixed_t tx = dest->x;
 	fixed_t ty = dest->y;
 	fixed_t tz = dest->z + (dest->height/2); // Aim for center
+	
+	if (source->type == MT_RANDOMITEM || source->type == MT_FLINGRANDOMITEM) // SRB2kart - item boxes are sorta tall
+		tz = dest->z;
 
 	if (!dest || dest->health <= 0 || !dest->player || !source->tracer)
 		return;
@@ -7255,6 +7261,7 @@ void P_MobjThinker(mobj_t *mobj)
 		// Flung items
 		case MT_FLINGRING:
 		case MT_FLINGCOIN:
+		case MT_FLINGRANDOMITEM:
 			if (mobj->flags2 & MF2_NIGHTSPULL)
 				P_NightsItemChase(mobj);
 			else
@@ -7590,6 +7597,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 #ifdef ESLOPE // Sliding physics for slidey mobjs!
 	if (mobj->type == MT_FLINGRING
 		|| mobj->type == MT_FLINGCOIN
+		|| mobj->type == MT_FLINGRANDOMITEM
 		|| P_WeaponOrPanel(mobj->type)
 		|| mobj->type == MT_FLINGEMERALD
 		|| mobj->type == MT_BIGTUMBLEWEED

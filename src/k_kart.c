@@ -672,7 +672,6 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 */
 static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retrokart)
 {
-	getitem++;
 	switch (getitem)
 	{
 		case  1:	// Magnet
@@ -758,8 +757,11 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 */
 static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
 {
+	fixed_t this_pingame = pingame-1;
+	fixed_t this_giveitem = giveitem-1;
+
 	prevchance = chance;
-	basechance = K_KartItemOdds_Retro[pingame-1][giveitem][position]; // Number of slots in the array, based on odds
+	basechance = K_KartItemOdds_Retro[this_pingame][this_giveitem][position]; // Number of slots in the array, based on odds
 
 	for (; chance < prevchance + basechance; chance++)
 	{
@@ -1533,6 +1535,13 @@ static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	return mo;
 }
 
+static void K_DoMagnet(player_t * player)
+{
+	S_StartSound(player->mo, sfx_s3k45);
+	player->kartstuff[k_magnettimer] = 35;
+	P_NukeEnemies(player->mo, player->mo, 16*FRACUNIT);
+}
+
 static void K_DoBooSteal(player_t * player)
 {
 	INT32 i, numplayers = 0;
@@ -1957,6 +1966,26 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 
 	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
+
+// Magnet
+// Boo
+// Mushroom
+// Triple Mushroom
+// Mega Mushroom
+// Gold Mushroom
+// Star
+// Triple Banana
+// Fake Item
+// Banana
+// Green Shell
+// Red Shell
+// Triple Green Shell
+// Bob-omb
+// Blue Shell
+// Fire Flower
+// Triple Red Shell
+// Lightning
+
 		// GoldenMushroom power
 		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1 && player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
 		{
@@ -2313,6 +2342,13 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			K_DoBooSteal(player);
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_boo] = 0;
+		}
+		// Magnet
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_magnet] == 1 && NO_BOO)
+		{
+			K_DoMagnet(player);
+			player->pflags |= PF_ATTACKDOWN;
+			player->kartstuff[k_magnet] = 0;
 		}
 
 		if (player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0 && onground)

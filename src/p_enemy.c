@@ -740,8 +740,9 @@ static boolean P_LookForShield(mobj_t *actor)
 			(actor->type == MT_BLUETEAMRING && player->ctfteam != 2))
 			continue;
 
-		if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
-			&& (P_AproxDistance(P_AproxDistance(actor->x-player->mo->x, actor->y-player->mo->y), actor->z-player->mo->z) < FixedMul(RING_DIST, player->mo->scale)))
+		// SRB2kart - magnet item
+		if (player->kartstuff[k_magnettimer] //(player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
+			&& (P_AproxDistance(P_AproxDistance(actor->x-player->mo->x, actor->y-player->mo->y), actor->z-player->mo->z) < FixedMul(RING_DIST/2, player->mo->scale)))
 		{
 			P_SetTarget(&actor->tracer, player->mo);
 			return true;
@@ -847,6 +848,9 @@ void A_Look(mobj_t *actor)
 #endif
 
 	if (!P_LookForPlayers(actor, locvar1 & 65535, false , FixedMul((locvar1 >> 16)*FRACUNIT, actor->scale)))
+		return;
+
+	if (leveltime < 4*TICRATE && gametype == GT_RACE) // SRB2kart - no looking before race starts
 		return;
 
 	// go into chase state
@@ -3004,7 +3008,8 @@ void A_RingShield(mobj_t *actor)
 		P_SpawnShieldOrb(player);
 	}
 
-	S_StartSound(player->mo, actor->info->seesound);
+	if (!player->exiting) // SRB2kart
+		S_StartSound(player->mo, actor->info->seesound);
 }
 
 // Function: A_RingBox
@@ -3608,7 +3613,8 @@ void A_AttractChase(mobj_t *actor)
 
 	// Turn flingrings back into regular rings if attracted.
 	if (actor->tracer && actor->tracer->player
-		&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT && actor->info->reactiontime && actor->type != (mobjtype_t)actor->info->reactiontime)
+		&& actor->tracer->player->kartstuff[k_magnettimer] //&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT 
+		&& actor->info->reactiontime && actor->type != (mobjtype_t)actor->info->reactiontime)
 	{
 		mobj_t *newring;
 		newring = P_SpawnMobj(actor->x, actor->y, actor->z, actor->info->reactiontime);
@@ -3813,15 +3819,15 @@ void A_ThrownRing(mobj_t *actor)
 		// A non-homing ring getting attracted by a
 		// magnetic player. If he gets too far away, make
 		// sure to stop the attraction!
-		if ((!actor->tracer->health) || (actor->tracer->player && (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
-		    && P_AproxDistance(P_AproxDistance(actor->tracer->x-actor->x,
-		    actor->tracer->y-actor->y), actor->tracer->z-actor->z) > FixedMul(RING_DIST/4, actor->tracer->scale)))
+		if ((!actor->tracer->health) // || (actor->tracer->player && (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
+		    || P_AproxDistance(P_AproxDistance(actor->tracer->x-actor->x,
+		    actor->tracer->y-actor->y), actor->tracer->z-actor->z) > FixedMul(RING_DIST, actor->tracer->scale)) // SRB2kart
 		{
 			P_SetTarget(&actor->tracer, NULL);
 		}
 
-		if (actor->tracer && (actor->tracer->health)
-			&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT)// Already found someone to follow.
+		if (actor->tracer && (actor->tracer->health)) // SRB2kart - red shells always follow
+			//&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT)// Already found someone to follow.
 		{
 			const INT32 temp = actor->threshold;
 			actor->threshold = 32000;
@@ -3871,6 +3877,10 @@ void A_ThrownRing(mobj_t *actor)
 			if (gametype == GT_CTF
 				&& actor->target->player->ctfteam == player->ctfteam)
 				continue;
+			
+			if (actor->target->player->kartstuff[k_position] < player->kartstuff[k_position]) // SRB2kart - Red Shells only go after people ahead of you
+				continue;
+			
 		}
 
 		dist = P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
@@ -3889,8 +3899,7 @@ void A_ThrownRing(mobj_t *actor)
 		if (!P_CheckSight(actor, player->mo))
 			continue; // out of sight
 
-		if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
-			&& dist < FixedMul(RING_DIST/4, player->mo->scale))
+		if (dist < FixedMul(2048*FRACUNIT, player->mo->scale)) // SRB2kart  // (player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT && 
 			P_SetTarget(&actor->tracer, player->mo);
 		return;
 	}
@@ -8078,7 +8087,6 @@ void A_ToggleFlameJet(mobj_t* actor)
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
-	mobjtype_t item = 0;
 
 	// de-solidify
 	//P_UnsetThingPosition(actor);
@@ -8104,34 +8112,32 @@ void A_ItemPop(mobj_t *actor)
 	actor->flags2 |= MF2_BOSSNOTRAP; // Dummy flag to mark this as an exploded TV until it respawns
 	tmthing = remains;
 
-	if (actor->info->deathsound) S_StartSound(remains, actor->info->deathsound);
+	if (actor->info->deathsound)
+		S_StartSound(remains, actor->info->deathsound);
 
-	switch (actor->type)
+	if (actor->type != MT_RANDOMITEM)
 	{
-		case MT_RANDOMITEM: // Random!
-			if (actor->target && actor->target->player
-				&& !(actor->target->player->kartstuff[k_greenshell] & 2 || actor->target->player->kartstuff[k_triplegreenshell] & 8
-				||   actor->target->player->kartstuff[k_redshell]   & 2 || actor->target->player->kartstuff[k_tripleredshell] & 8
-				||   actor->target->player->kartstuff[k_banana]     & 2 || actor->target->player->kartstuff[k_triplebanana] & 8
-				||   actor->target->player->kartstuff[k_fakeitem]   & 2 || actor->target->player->kartstuff[k_magnet]
-				||   actor->target->player->kartstuff[k_bobomb]     & 2 || actor->target->player->kartstuff[k_blueshell]
-				||   actor->target->player->kartstuff[k_mushroom]       || actor->target->player->kartstuff[k_fireflower]
-				||   actor->target->player->kartstuff[k_star]           || actor->target->player->kartstuff[k_goldshroom]
-				||   actor->target->player->kartstuff[k_lightning]      || actor->target->player->kartstuff[k_megashroom]
-				||   actor->target->player->kartstuff[k_itemroulette]
-				||   actor->target->player->kartstuff[k_boo]            || actor->target->player->kartstuff[k_bootaketimer]
-				||   actor->target->player->kartstuff[k_boostolentimer])
-			   )
-				actor->target->player->kartstuff[k_itemroulette] = 1;
-			else if(cv_debug && !(actor->target && actor->target->player))
-				CONS_Printf("ERROR: Powerup has no target!\n");
-
-			remains->flags &= ~MF_AMBUSH;
-			break;
-		default:
-			item = actor->info->damage;
-			break;
+		P_RemoveMobj(actor);
+		return;
 	}
+
+	if (actor->target && actor->target->player
+		&& !(actor->target->player->kartstuff[k_greenshell] & 2 || actor->target->player->kartstuff[k_triplegreenshell] & 8
+		||   actor->target->player->kartstuff[k_redshell]   & 2 || actor->target->player->kartstuff[k_tripleredshell] & 8
+		||   actor->target->player->kartstuff[k_banana]     & 2 || actor->target->player->kartstuff[k_triplebanana] & 8
+		||   actor->target->player->kartstuff[k_fakeitem]   & 2 || actor->target->player->kartstuff[k_magnet]
+		||   actor->target->player->kartstuff[k_bobomb]     & 2 || actor->target->player->kartstuff[k_blueshell]
+		||   actor->target->player->kartstuff[k_mushroom]       || actor->target->player->kartstuff[k_fireflower]
+		||   actor->target->player->kartstuff[k_star]           || actor->target->player->kartstuff[k_goldshroom]
+		||   actor->target->player->kartstuff[k_lightning]      || actor->target->player->kartstuff[k_megashroom]
+		||   actor->target->player->kartstuff[k_itemroulette]
+		||   actor->target->player->kartstuff[k_boo]            || actor->target->player->kartstuff[k_bootaketimer]
+		||   actor->target->player->kartstuff[k_boostolentimer]))
+		actor->target->player->kartstuff[k_itemroulette] = 1;
+	else if(cv_debug && !(actor->target && actor->target->player))
+		CONS_Printf("ERROR: Powerup has no target!\n");
+
+	remains->flags &= ~MF_AMBUSH;
 
 	P_RemoveMobj(actor);
 }

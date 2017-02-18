@@ -689,7 +689,8 @@ static inline void ST_drawRings(void)
 	ST_DrawNumFromHudWS(HUD_RINGSNUM, ringnum);
 }
 
-static void ST_drawLives(void)
+/*
+static void ST_drawLives(void) // SRB2kart - unused.
 {
 	const INT32 v_splitflag = (splitscreen && stplyr == &players[displayplayer] ? V_SPLITSCREEN : 0);
 
@@ -733,6 +734,7 @@ static void ST_drawLives(void)
 	V_DrawRightAlignedString(hudinfo[HUD_LIVESNUM].x, hudinfo[HUD_LIVESNUM].y + (v_splitflag ? -4 : 0),
 		V_SNAPTOLEFT|V_SNAPTOBOTTOM|V_HUDTRANS|v_splitflag, va("%d",stplyr->lives));
 }
+*/
 
 static void ST_drawLevelTitle(void)
 {
@@ -970,7 +972,8 @@ static void ST_drawNightsRecords(void)
 	}
 }
 
-static void ST_drawNiGHTSHUD(void)
+/*
+static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 {
 	INT32 origamount;
 	INT32 minlink = 1;
@@ -1144,7 +1147,7 @@ static void ST_drawNiGHTSHUD(void)
 		INT32 i;
 		total_ringcount = 0;
 		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] /*&& players[i].pflags & PF_NIGHTSMODE*/ && players[i].health)
+			if (playeringame[i] && players[i].pflags & PF_NIGHTSMODE && players[i].health)
 				total_ringcount += players[i].health - 1;
 	}
 	else
@@ -1349,6 +1352,7 @@ static void ST_drawNiGHTSHUD(void)
 	if (nosshack)
 		splitscreen = true;
 }
+*/
 
 static void ST_drawWeaponRing(powertype_t weapon, INT32 rwflag, INT32 wepflag, INT32 xoffs, patch_t *pat)
 {
@@ -1382,7 +1386,8 @@ static void ST_drawWeaponRing(powertype_t weapon, INT32 rwflag, INT32 wepflag, I
 		V_DrawScaledPatch(8 + xoffs, STRINGY(162), V_SNAPTOLEFT|V_TRANSLUCENT, pat);
 }
 
-static void ST_drawMatchHUD(void)
+/*
+static void ST_drawMatchHUD(void) // SRB2kart - unused.
 {
 	INT32 offset = (BASEVIDWIDTH / 2) - (NUM_WEAPONS * 10);
 
@@ -1461,6 +1466,7 @@ static void ST_drawMatchHUD(void)
 	}
 #endif
 }
+*/
 
 static inline void ST_drawRaceHUD(void)
 {
@@ -1482,7 +1488,8 @@ static inline void ST_drawRaceHUD(void)
 	}
 }
 
-static void ST_drawTagHUD(void)
+/*
+static void ST_drawTagHUD(void) // SRB2kart - unused.
 {
 	char pstime[33] = "";
 	char pstext[33] = "";
@@ -1541,7 +1548,7 @@ static void ST_drawTagHUD(void)
 	}
 }
 
-static void ST_drawCTFHUD(void)
+static void ST_drawCTFHUD(void) // SRB2kart - unused.
 {
 	INT32 i;
 	UINT16 whichflag = 0;
@@ -1589,6 +1596,7 @@ static void ST_drawCTFHUD(void)
 		}
 	}
 }
+*/
 
 // Draws "Red Team", "Blue Team", or "Spectator" for team gametypes.
 static inline void ST_drawTeamName(void)
@@ -1601,7 +1609,8 @@ static inline void ST_drawTeamName(void)
 		V_DrawString(244, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "SPECTATOR");
 }
 
-static void ST_drawSpecialStageHUD(void)
+/*
+static void ST_drawSpecialStageHUD(void) // SRB2kart - unused.
 {
 	if (totalrings > 0)
 		ST_DrawNumFromHudWS(HUD_SS_TOTALRINGS, totalrings);
@@ -1620,6 +1629,7 @@ static void ST_drawSpecialStageHUD(void)
 	else
 		ST_DrawPatchFromHud(HUD_TIMEUP, timeup);
 }
+*/
 
 static INT32 ST_drawEmeraldHuntIcon(mobj_t *hunt, patch_t **patches, INT32 offset)
 {
@@ -1661,8 +1671,9 @@ static INT32 ST_drawEmeraldHuntIcon(mobj_t *hunt, patch_t **patches, INT32 offse
 	return interval;
 }
 
+/*
 // Separated a few things to stop the SOUND EFFECTS BLARING UGH SHUT UP AAAA
-static void ST_doHuntIconsAndSound(void)
+static void ST_doHuntIconsAndSound(void) // SRB2kart - unused.
 {
 	INT32 interval = 0, newinterval = 0;
 
@@ -1687,7 +1698,7 @@ static void ST_doHuntIconsAndSound(void)
 		S_StartSound(NULL, sfx_emfind);
 }
 
-static void ST_doItemFinderIconsAndSound(void)
+static void ST_doItemFinderIconsAndSound(void) // SRB2kart - unused.
 {
 	INT32 emblems[16];
 	thinker_t *th;
@@ -1746,6 +1757,7 @@ static void ST_doItemFinderIconsAndSound(void)
 	if (!(P_AutoPause() || paused) && interval > 0 && leveltime && leveltime % interval == 0)
 		S_StartSound(NULL, sfx_emfind);
 }
+*/
 
 // Draw the status bar overlay, customisable: the user chooses which
 // kind of information to overlay

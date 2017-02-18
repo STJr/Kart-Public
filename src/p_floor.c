@@ -1819,10 +1819,20 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 	sector_t *actionsector;
 	INT32 secnum;
 
+	// SRB2kart 170217 - Thwomps are automatic.
+	// Put up a timer before you start falling down.
+	// I could of used rowoffset, but the FOF actually
+	// modifies the textures's Y offset. It doesn't with
+	// textureoffset, so Effect 4 can be ignored as usual.
+	if (thwomp->sourceline->flags & ML_EFFECT1 
+		&& leveltime < (unsigned)(sides[thwomp->sourceline->sidenum[0]].textureoffset>>FRACBITS))
+		thwomp->direction = 0;
+
 	// If you just crashed down, wait a second before coming back up.
 	if (--thwomp->distance > 0)
 	{
-		sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].bottomtexture;
+		sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].toptexture;
+		//sides[thwomp->sourceline->sidenum[0]].midtexture = sides[thwomp->sourceline->sidenum[0]].bottomtexture;
 		return;
 	}
 
@@ -1934,9 +1944,12 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 	}
 	else // Not going anywhere, so look for players.
 	{
-		thinker_t *th;
-		mobj_t *mo;
+		//thinker_t *th;
+		//mobj_t *mo;
 
+		thwomp->direction = -1;
+
+		/* // SRB2kart 170217 - Thwomps are automatic.
 		// scan the thinkers to find players!
 		for (th = thinkercap.next; th != &thinkercap; th = th->next)
 		{
@@ -1950,7 +1963,7 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 				thwomp->direction = -1;
 				break;
 			}
-		}
+		}*/
 
 		thwomp->sector->ceilspeed = 0;
 		thwomp->sector->floorspeed = 0;
@@ -3118,7 +3131,7 @@ INT32 EV_MarioBlock(sector_t *sec, sector_t *roversector, fixed_t topheight, mob
 		P_SetThingPosition(thing);
 		if (thing->flags & MF_SHOOTABLE)
 			P_DamageMobj(thing, puncher, puncher, 1);
-		else if (thing->type == MT_RING || thing->type == MT_COIN)
+		else if (thing->type == MT_RING || thing->type == MT_COIN || thing->type == MT_RANDOMITEM)
 		{
 			thing->momz = FixedMul(3*FRACUNIT, thing->scale);
 			P_TouchSpecialThing(thing, puncher, false);

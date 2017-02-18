@@ -2311,14 +2311,15 @@ static void P_DoPlayerHeadSigns(player_t *player)
 //
 // Handles player climbing
 //
-static void P_DoClimbing(player_t *player)
+/*
+static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 {
 	return; // SRB2kart - don't need
 	ticcmd_t *cmd = &player->cmd;
 	fixed_t platx;
 	fixed_t platy;
 	subsector_t *glidesector;
-	boolean climb = true;
+	//boolean climb = true; // SRB2kart - unused
 
 	platx = P_ReturnThrustX(player->mo, player->mo->angle, player->mo->radius + FixedMul(8*FRACUNIT, player->mo->scale));
 	platy = P_ReturnThrustY(player->mo, player->mo->angle, player->mo->radius + FixedMul(8*FRACUNIT, player->mo->scale));
@@ -2328,9 +2329,9 @@ static void P_DoClimbing(player_t *player)
 	if (!glidesector || glidesector->sector != player->mo->subsector->sector)
 	{
 		boolean floorclimb = false;
-		boolean thrust = false;
-		boolean boostup = false;
-		boolean skyclimber = false;
+		//boolean thrust = false; // SRB2kart - unused
+		//boolean boostup = false; // SRB2kart - unused
+		//boolean skyclimber = false; // SRB2kart - unused
 		fixed_t floorheight, ceilingheight; // ESLOPE
 
 		if (!glidesector)
@@ -2693,7 +2694,6 @@ static void P_DoClimbing(player_t *player)
 		else
 			climb = false;
 
-		/* // SRB2kart - don't need
 		if (player->climbing && climb && (player->mo->momx || player->mo->momy || player->mo->momz)
 			&& !(player->mo->state >= &states[S_PLAY_CLIMB2] && player->mo->state <= &states[S_PLAY_CLIMB5]))
 			P_SetPlayerMobjState(player->mo, S_PLAY_CLIMB2);
@@ -2718,7 +2718,6 @@ static void P_DoClimbing(player_t *player)
 			player->pflags |= PF_JUMPED;
 			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 		}
-		*/
 	}
 	else
 	{
@@ -2732,7 +2731,6 @@ static void P_DoClimbing(player_t *player)
 	else
 		climb = false;
 
-	/*
 	if (player->climbing && climb && (player->mo->momx || player->mo->momy || player->mo->momz)
 		&& !(player->mo->state >= &states[S_PLAY_CLIMB2] && player->mo->state <= &states[S_PLAY_CLIMB5]))
 		P_SetPlayerMobjState(player->mo, S_PLAY_CLIMB2);
@@ -2758,7 +2756,7 @@ static void P_DoClimbing(player_t *player)
 
 	if (player->climbing == 0)
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-	*/
+	
 
 	if (player->climbing && P_IsObjectOnGround(player->mo))
 	{
@@ -2766,6 +2764,7 @@ static void P_DoClimbing(player_t *player)
 		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart
 	}
 }
+*/
 
 //
 // PIT_CheckSolidsTeeter
@@ -2780,7 +2779,8 @@ static boolean couldteeter;
 static fixed_t teeterxl, teeterxh;
 static fixed_t teeteryl, teeteryh;
 
-static boolean PIT_CheckSolidsTeeter(mobj_t *thing)
+/*
+static boolean PIT_CheckSolidsTeeter(mobj_t *thing) // SRB2kart - unused.
 {
 	fixed_t blockdist;
 	fixed_t tiptop = FixedMul(MAXSTEPMOVE, teeterer->scale);
@@ -2885,13 +2885,15 @@ static boolean PIT_CheckSolidsTeeter(mobj_t *thing)
 	solidteeter = false;
 	return true; // you're not teetering but it's not neccessarily over, YET
 }
+*/
 
 //
 // P_DoTeeter
 //
 // Handles player teetering
 //
-static void P_DoTeeter(player_t *player)
+/*
+static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 {
 	return; // SRB2kart - don't need
 	boolean teeter = false;
@@ -3137,7 +3139,6 @@ teeterdone:
 			tmthing = oldtmthing; // restore old tmthing, goodness knows what the game does with this before mobj thinkers
 		}
 	}
-	/*
 	if (teeter)
 	{
 		if ((player->mo->state == &states[S_PLAY_STND] || player->mo->state == &states[S_PLAY_TAP1] || player->mo->state == &states[S_PLAY_TAP2] || player->mo->state == &states[S_PLAY_SUPERSTAND]))
@@ -3145,8 +3146,8 @@ teeterdone:
 	}
 	else if ((player->mo->state == &states[S_PLAY_TEETER1] || player->mo->state == &states[S_PLAY_TEETER2] || player->mo->state == &states[S_PLAY_SUPERTEETER]))
 		P_SetPlayerMobjState(player->mo, S_PLAY_STND);
-	*/
 }
+*/
 
 //
 // P_SetWeaponDelay
@@ -3171,7 +3172,8 @@ static void P_SetWeaponDelay(player_t *player, INT32 delay)
 //
 // Handles firing ring weapons and Mario fireballs.
 //
-static void P_DoFiring(player_t *player, ticcmd_t *cmd)
+/*
+static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 {
 	INT32 i;
 
@@ -3382,6 +3384,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd)
 	// Release the grenade / whatever.
 	player->pflags &= ~PF_ATTACKDOWN;
 }
+*/
 
 //
 // P_DoSuperStuff()
@@ -3732,7 +3735,8 @@ void P_DoJump(player_t *player, boolean soundandstate)
 //
 // Player spindash handling
 //
-static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
+/*
+static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 {
 	return; // SRB2kart - what's a spindash?
 	if (player->pflags & PF_STASIS)
@@ -3836,6 +3840,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd)
 	//if (onground && (player->pflags & PF_SPINNING) && !(player->panim == PA_ROLL))
 	//	P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 }
+*/
 
 //
 // P_DoJumpShield
@@ -7404,10 +7409,9 @@ static void P_DoZoomTube(player_t *player)
 // Kinda like P_DoZoomTube
 // but a little different.
 //
-static void P_DoRopeHang(player_t *player)
+/*
+static void P_DoRopeHang(player_t *player) // SRB2kart - unused.
 {
-	return; // SRB2kart - errr
-	/*
 	INT32 sequence;
 	fixed_t speed;
 	thinker_t *th;
@@ -7553,8 +7557,8 @@ static void P_DoRopeHang(player_t *player)
 			CONS_Debug(DBG_GAMELOGIC, "Next waypoint not found!\n");
 		}
 	}
-	*/
 }
+*/
 
 #if 0
 //
@@ -7645,7 +7649,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			P_KillMobj(mo->tracer, inflictor, source);
 
 		if (mo->flags & MF_BOSS || mo->type == MT_PLAYER) //don't OHKO bosses nor players!
-			P_DamageMobj(mo, inflictor, source, 1);
+			continue; // SRB2kart - P_Nuke is for magnet (for now), and doesn't hurt other players, only obstacles. // P_DamageMobj(mo, inflictor, source, 1);
 		else
 			P_DamageMobj(mo, inflictor, source, 1000);
 	}
@@ -9092,7 +9096,7 @@ void P_PlayerThink(player_t *player)
 			mo2 = (mobj_t *)th;
 
 			if (!(mo2->type == MT_NIGHTSWING || mo2->type == MT_RING || mo2->type == MT_COIN
-			   || mo2->type == MT_BLUEBALL))
+			   || mo2->type == MT_BLUEBALL || mo2->type == MT_RANDOMITEM))
 				continue;
 
 			if (P_AproxDistance(P_AproxDistance(mo2->x - x, mo2->y - y), mo2->z - z) > FixedMul(128*FRACUNIT, player->mo->scale))
@@ -9367,7 +9371,7 @@ void P_PlayerThink(player_t *player)
 void P_PlayerAfterThink(player_t *player)
 {
 	ticcmd_t *cmd;
-	INT32 oldweapon = player->currentweapon;
+	//INT32 oldweapon = player->currentweapon; // SRB2kart - unused
 	camera_t *thiscam = NULL; // if not one of the displayed players, just don't bother
 
 #ifdef PARANOIA
