@@ -140,26 +140,26 @@
 extern FILE *logstream;
 #endif
 
-//#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
-#define VERSION    0 // Game version
-#define SUBVERSION 0 // more precise version number
+#define VERSION    100 // Game version
+#define SUBVERSION 4 // more precise version number
 #define VERSIONSTRING "Development EXE"
 #define VERSIONSTRINGW L"Development EXE"
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    100 // Game version
-#define SUBVERSION 3  // more precise version number
-#define VERSIONSTRING "v1.0.03"
-#define VERSIONSTRINGW L"v1.0.03"
+#define SUBVERSION 4  // more precise version number
+#define VERSIONSTRING "v1.0.04"
+#define VERSIONSTRINGW L"v1.0.04"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
 
 // Does this version require an added patch file?
 // Comment or uncomment this as necessary.
-#define USE_PATCH_DTA
+//#define USE_PATCH_DTA
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
