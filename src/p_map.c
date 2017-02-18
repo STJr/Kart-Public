@@ -567,6 +567,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	// SRB2kart 011617 - Colission code for kart items //{
 
+	if (tmthing->type == MT_RANDOMITEM)
+		return true;
 	if (tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD ||
 		tmthing->type == MT_GREENSHIELD || tmthing->type == MT_REDSHIELD ||
 		tmthing->type == MT_TRIPLEGREENSHIELD1 || tmthing->type == MT_TRIPLEGREENSHIELD2 || tmthing->type == MT_TRIPLEGREENSHIELD3 ||

@@ -311,8 +311,8 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 {
 	// 1 Active Player
 	{  //1st //
-		{ 40 }, // Magnet
-		{  0 }, // Boo
+		{  0 }, // Magnet
+		{ 40 }, // Boo
 		{  0 }, // Mushroom
 		{  0 }, // Triple Mushroom
 		{  0 }, // Mega Mushroom
