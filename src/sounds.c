@@ -465,7 +465,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kdal", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kdbs", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kdbl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  
+
   // SRB2kart
   {"lkt1",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"lkt2",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

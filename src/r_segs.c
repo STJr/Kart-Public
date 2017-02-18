@@ -859,17 +859,6 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 			leftheight -= viewz;
 			rightheight -= viewz;
 
-			if (leftheight > pfloorleft && rightheight > pfloorright && i+1 < dc_numlights)
-			{
-				lightlist_t *nextlight = &frontsector->lightlist[i+1];
-				if (nextlight->slope ? P_GetZAt(nextlight->slope, ds->leftpos.x, ds->leftpos.y) : nextlight->height > pfloorleft
-				 && nextlight->slope ? P_GetZAt(nextlight->slope, ds->rightpos.x, ds->rightpos.y) : nextlight->height > pfloorright)
-					continue;
-			}
-
-			leftheight -= viewz;
-			rightheight -= viewz;
-
 			overflow_test = (INT64)centeryfrac - (((INT64)leftheight*ds->scale1)>>FRACBITS);
 			if (overflow_test < 0) overflow_test = -overflow_test;
 			if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;

@@ -554,7 +554,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_bombshield);
 	CV_RegisterVar(&cv_1up);
 	CV_RegisterVar(&cv_eggmanbox);
-	
+
 	K_RegisterKartStuff(); // SRB2kart
 
 	CV_RegisterVar(&cv_ringslinger);

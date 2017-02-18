@@ -577,13 +577,13 @@ typedef enum sprite
 	// Springs
 	SPR_SPRG, // Gray Spring
 	SPR_BSPR, // Blue Diagonal Spring
-	
+
 	SPR_RNDM, // Random Item Box
 	SPR_RPOP, // Random Item Box Pop
 	SPR_KFRE, // Mushroom fire trail
 	SPR_DRIF, // Drift Sparks
 	SPR_DSMO, // Drift Smoke
-	
+
 	// Kart Items
 	SPR_FITE, // Fake Item box
 	SPR_DFAK, // Dead Fake Item
@@ -600,7 +600,7 @@ typedef enum sprite
 	SPR_LIGH, // Lightning
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
-	
+
 	// Additional Kart Objects
 	SPR_POKE, // Lightning
 

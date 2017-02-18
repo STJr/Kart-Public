@@ -3556,7 +3556,7 @@ void P_DoJump(player_t *player, boolean soundandstate)
 
 	if (!player->jumpfactor)
 		return;
-	
+
 	if (player->kartstuff[k_spinouttimer]) // SRB2kart
 		return;
 
@@ -4647,7 +4647,7 @@ static void P_3dMovement(player_t *player)
 			topspeed = normalspd;
 			acceleration = 2*acceleration/3;
 		}*/
-		
+
 		if (cmd->forwardmove < 0)
 			topspeed = 5<<16;
 		else
@@ -6393,8 +6393,8 @@ static void P_MovePlayer(player_t *player)
 	cmd = &player->cmd;
 	runspd = FixedMul(player->runspeed, player->mo->scale);
 
-	// Let's have some movement speed fun on low-friction surfaces, JUST for players... 
-	// (high friction surfaces shouldn't have any adjustment, since the acceleration in 
+	// Let's have some movement speed fun on low-friction surfaces, JUST for players...
+	// (high friction surfaces shouldn't have any adjustment, since the acceleration in
 	// this game is super high and that ends up cheesing high-friction surfaces.)
 	runspd = FixedMul(runspd, player->mo->movefactor);
 
@@ -6669,7 +6669,7 @@ static void P_MovePlayer(player_t *player)
 				S_StopSoundByID(player->mo, sfx_mkdrft);
 		}
 	}
-	
+
 	K_MoveKartPlayer(player, cmd, onground);
 	//}
 
@@ -9319,7 +9319,7 @@ void P_PlayerThink(player_t *player)
 	}
 
 	player->pflags &= ~PF_SLIDING;
-	
+
 	K_KartPlayerThink(player, cmd); // SRB2kart
 
 /*

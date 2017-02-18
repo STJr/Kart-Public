@@ -8269,7 +8269,7 @@ void A_BobombExplode(mobj_t *actor)
 			else
 				P_DamageMobj(mo2, actor, actor->target, 1);
 
-			
+
 
 			continue;
 		}

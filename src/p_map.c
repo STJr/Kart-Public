@@ -563,10 +563,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	// SRB2kart 011617 - Colission code for kart items //{
-	
-	if (tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD || 
-		tmthing->type == MT_GREENSHIELD || tmthing->type == MT_REDSHIELD || 
-		tmthing->type == MT_TRIPLEGREENSHIELD1 || tmthing->type == MT_TRIPLEGREENSHIELD2 || tmthing->type == MT_TRIPLEGREENSHIELD3 || 
+
+	if (tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD ||
+		tmthing->type == MT_GREENSHIELD || tmthing->type == MT_REDSHIELD ||
+		tmthing->type == MT_TRIPLEGREENSHIELD1 || tmthing->type == MT_TRIPLEGREENSHIELD2 || tmthing->type == MT_TRIPLEGREENSHIELD3 ||
 		tmthing->type == MT_TRIPLEREDSHIELD1 || tmthing->type == MT_TRIPLEREDSHIELD2 || tmthing->type == MT_TRIPLEREDSHIELD3)
 	{
 		// see if it went over / under
@@ -625,7 +625,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
-			
+
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -657,7 +657,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
 			}
-			
+
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
 				thing->z -= thing->height;
@@ -750,7 +750,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
 	}
-	else if (tmthing->type == MT_BANANASHIELD || tmthing->type == MT_BANANAITEM 
+	else if (tmthing->type == MT_BANANASHIELD || tmthing->type == MT_BANANAITEM
 		|| tmthing->type == MT_TRIPLEBANANASHIELD1 || tmthing->type == MT_TRIPLEBANANASHIELD2 || tmthing->type == MT_TRIPLEBANANASHIELD3)
 	{
 		// see if it went over / under
@@ -804,7 +804,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
-			
+
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
 				tmthing->z -= tmthing->height;
@@ -863,7 +863,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true;
 
 		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
-			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD 
+			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_BOMBITEM
 			|| thing->type == MT_BANANAITEM)
 		{
@@ -881,7 +881,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		else if (thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3 // When these items collide with the fake item, both of them are destroyed
 			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
-			|| thing->type == MT_BOMBSHIELD 
+			|| thing->type == MT_BOMBSHIELD
 			|| thing->type == MT_BANANASHIELD || thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
 			|| thing->type == MT_FAKEITEM || thing->type == MT_FAKESHIELD)
 		{
@@ -896,7 +896,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
-			
+
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
 				tmthing->z -= tmthing->height;
@@ -943,7 +943,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->health <= 0 || thing->health <= 0)
 			return true;
 
-		if (thing->type == MT_PLAYER) 
+		if (thing->type == MT_PLAYER)
 		{
 			P_KillMobj(tmthing, thing, thing);
 		}
@@ -968,14 +968,14 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		return true;
 	}
-	else if (tmthing->type == MT_PLAYER && 
+	else if (tmthing->type == MT_PLAYER &&
 			(thing->type == MT_GREENSHIELD || thing->type == MT_GREENITEM
 			|| thing->type == MT_REDSHIELD || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
 			|| thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
 			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM
 			|| thing->type == MT_BANANASHIELD || thing->type == MT_BANANAITEM
-			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3 
+			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
 			|| thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM
 			|| thing->type == MT_BOMBEXPLOSION
 			|| thing->type == MT_SINK
@@ -1090,7 +1090,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->type == MT_PLAYER && !thing->threshold)
 			P_DamageMobj(tmthing, thing, thing->target, 1);
 	}
-	
+
 	//}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
@@ -3572,7 +3572,7 @@ retry:
 	{
 		mmomx = mo->player->rmomx;
 		mmomy = mo->player->rmomy;
-		
+
 		if (mo->player->kartstuff[k_drift] != 0) // SRB2kart
 		{
 			mo->player->kartstuff[k_drift] = 0;

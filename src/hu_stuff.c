@@ -1120,7 +1120,7 @@ void HU_Drawer(void)
 					// it, they wouldn't 'spawn' on the top-right side of the HUD.
 					amnumxpos = (players[i].mo->x / 320) >> FRACBITS;
 					amnumypos = (-players[i].mo->y / 340) >> FRACBITS;
-					
+
 					amxpos = (x + amnumxpos) - (iconprefix[players[i].skin]->width/4);
 					amypos = (y + amnumypos) - (iconprefix[players[i].skin]->height/4);
 
@@ -1141,7 +1141,7 @@ void HU_Drawer(void)
 	}
 	*/
 	//
-	
+
 	// draw chat string plus cursor
 	if (chat_on)
 		HU_DrawChat();
@@ -1358,9 +1358,9 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			if (circuitmap)
 			{
 				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedString(x+240, y, V_YELLOWMAP, va("%d:%02d.%02d", 
-						players[tab[i].num].realtime/(60*TICRATE), 
-						players[tab[i].num].realtime/TICRATE % 60, 
+					V_DrawRightAlignedString(x+240, y, V_YELLOWMAP, va("%d:%02d.%02d",
+						players[tab[i].num].realtime/(60*TICRATE),
+						players[tab[i].num].realtime/TICRATE % 60,
 						players[tab[i].num].realtime % TICRATE));
 					//V_DrawRightAlignedString(x+240, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
 				else

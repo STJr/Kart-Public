@@ -1438,7 +1438,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			return;
 
-		case MT_EXTRALARGEBUBBLE: 
+		case MT_EXTRALARGEBUBBLE:
 			return; // SRB2kart - don't need bubbles mucking with the player
 			if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL)
 				return;
@@ -1463,7 +1463,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (player->powers[pw_underwater] < underwatertics + 1)
 				player->powers[pw_underwater] = underwatertics + 1;
 
-			/* 
+			/*
 			if (!player->climbing)
 			{
 				P_SetPlayerMobjState(toucher, S_PLAY_GASP);
@@ -2068,11 +2068,11 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 
 	// SRB2kart
 	if (target->type != MT_PLAYER && !(target->flags & MF_MONITOR)
-		 && !(target->type == MT_GREENITEM || target->type == MT_GREENSHIELD 
+		 && !(target->type == MT_GREENITEM || target->type == MT_GREENSHIELD
 		 || target->type == MT_TRIPLEGREENSHIELD1 || target->type == MT_TRIPLEGREENSHIELD2 || target->type == MT_TRIPLEGREENSHIELD3
-		 || target->type == MT_REDITEM || target->type == MT_REDITEMDUD || target->type == MT_REDSHIELD 
+		 || target->type == MT_REDITEM || target->type == MT_REDITEMDUD || target->type == MT_REDSHIELD
 		 || target->type == MT_TRIPLEREDSHIELD1 || target->type == MT_TRIPLEREDSHIELD2 || target->type == MT_TRIPLEREDSHIELD3
-		 || target->type == MT_BANANAITEM || target->type == MT_BANANASHIELD 
+		 || target->type == MT_BANANAITEM || target->type == MT_BANANASHIELD
 		 || target->type == MT_TRIPLEBANANASHIELD1 || target->type == MT_TRIPLEBANANASHIELD2 || target->type == MT_TRIPLEBANANASHIELD3
 		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
@@ -2820,7 +2820,7 @@ static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *so
 
 	/* // SRB2kart - This shouldn't be reachable, but this frame is invalid.
 	if (player->charflags & SF_SUPERANIMS)
-		P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT); 
+		P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
 	else
 	*/
 		P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
@@ -3108,9 +3108,9 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		}
 
 		//{ SRB2kart - special damage sources
-		
+
 		player->kartstuff[k_mushroomtimer] = 0;
-		
+
 		// Thunder
 		if (damage == 64 && player != source->player)
 		{

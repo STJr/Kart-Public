@@ -1248,12 +1248,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN);
-	
+
 	if (turnleft || axis < 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
 	else
 		cmd->buttons &= ~BT_DRIFTLEFT;
-	
+
 	if (turnright || axis > 0) // Drifting to the right
 		cmd->buttons |= BT_DRIFTRIGHT;
 	else
@@ -1269,13 +1269,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	{
 		// SRB2kart
 		INT32 turnspeed;
-		
+
 		if (players[consoleplayer].mo && (players[consoleplayer].speed == 0))
 			turnspeed = 0;
 		else
 			turnspeed = 16;
 
-		cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80)); 
+		cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80));
 
 		if (players[consoleplayer].kartstuff[k_startimer] || players[consoleplayer].kartstuff[k_mushroomtimer] || players[consoleplayer].kartstuff[k_growshrinktimer] > 0)
 			cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
@@ -1581,17 +1581,17 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 
 	//{ SRB2kart - Drift support
 	axis = Joy2Axis(AXISTURN);
-	
+
 	if (turnleft || axis < 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
 	else
 		cmd->buttons &= ~BT_DRIFTLEFT;
-	
+
 	if (turnright || axis > 0) // Drifting to the right
 		cmd->buttons |= BT_DRIFTRIGHT;
 	else
 		cmd->buttons &= ~BT_DRIFTRIGHT;
-	
+
 	if (turnright && turnleft)
 	{
 		cmd->buttons &= ~BT_DRIFTLEFT;
@@ -2015,10 +2015,10 @@ void G_Ticker(boolean run)
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		cmd = &players[i].cmd;
-		
+
 		if (playeringame[i])
 			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
-			
+
 			// SRB2kart
 			// Save the dir the player is holding
 			//  to allow items to be thrown forward or backward.
@@ -2337,7 +2337,7 @@ void G_PlayerReborn(INT32 player)
 				S_SpeedMusic(1.2f);
 		}
 	}
-	
+
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for
 

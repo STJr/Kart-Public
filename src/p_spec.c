@@ -52,7 +52,7 @@ mobj_t *skyboxmo[2];
 
 // Amount (dx, dy) vector linedef is shifted right to get scroll amount
 #define SCROLL_SHIFT 5
- 
+
 // This must be updated whenever we up the max flat size - quicker to assume rather than figuring out the sqrt of the specific flat's filesize.
 #define MAXFLATSIZE (2048<<FRACBITS)
 
@@ -5691,7 +5691,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					angle_t flatangle = InvAngle(R_PointToAngle2(lines[i].v1->x, lines[i].v1->y, lines[i].v2->x, lines[i].v2->y));
 					fixed_t xoffs;
 					fixed_t yoffs;
- 
+
 					if (lines[i].flags & ML_NOKNUX) // Set offset through x and y texture offsets if NOKNUX flag is set
 					{
 						xoffs = sides[lines[i].sidenum[0]].textureoffset;
@@ -5704,7 +5704,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 						xoffs = (-FixedMul(lines[i].v1->x, cosinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, sinecomponent) % MAXFLATSIZE); // No danger of overflow thanks to the strategically placed modulo operations.
 						yoffs = (FixedMul(lines[i].v1->x, sinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, cosinecomponent) % MAXFLATSIZE); // Ditto.
 					}
- 
+
 					for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
 					{
 						if (!(lines[i].flags & ML_NOSONIC)) // Modify floor flat alignment unless NOSONIC flag is set
@@ -5716,7 +5716,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 							sectors[s].spawn_flr_xoffs = sectors[s].floor_xoffs;
 							sectors[s].spawn_flr_yoffs = sectors[s].floor_yoffs;
 						}
- 
+
 						if (!(lines[i].flags & ML_NOTAILS)) // Modify ceiling flat alignment unless NOTAILS flag is set
 						{
 							sectors[s].spawn_ceilpic_angle = sectors[s].ceilingpic_angle = flatangle;
@@ -5733,7 +5733,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					M_GetText("Flat alignment linedef (tag %d) doesn't have anything to do.\nConsider changing the linedef's flag configuration or removing it entirely.\n"),
 					lines[i].tag);
 				break;
- 
+
 			case 8: // Sector Parameters
 				for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)
 				{
@@ -7112,8 +7112,8 @@ void T_Friction(friction_t *f)
 		// apparently, all I had to do was comment out part of the next line and
 		// friction works for all mobj's
 		// (or at least MF_PUSHABLEs, which is all I care about anyway)
-		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player 
-			&& (thing->player->kartstuff[k_startimer] && thing->player->kartstuff[k_bootaketimer] 
+		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player
+			&& (thing->player->kartstuff[k_startimer] && thing->player->kartstuff[k_bootaketimer]
 			&& thing->player->kartstuff[k_mushroomtimer] && thing->player->kartstuff[k_growshrinktimer] <= 0)))
 		{
 			if (f->roverfriction)
