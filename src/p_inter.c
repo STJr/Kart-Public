@@ -3181,6 +3181,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			damage = player->mo->health - 1;
 			P_RingDamage(player, inflictor, source, damage);
 			player->mo->momx = player->mo->momy = 0;
+			return true;
 		}
 		/* // SRB2kart - don't need these
 		else if (metalrecording)

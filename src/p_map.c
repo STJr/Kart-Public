@@ -1332,13 +1332,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	// check for special pickup
-	if (thing->flags & MF_SPECIAL && tmthing->player)
+	if (thing->flags & MF_SPECIAL && tmthing->player && thing->type != MT_POKEY)
 	{
 		P_TouchSpecialThing(thing, tmthing, true); // can remove thing
 		return true;
 	}
 	// check again for special pickup
-	if (tmthing->flags & MF_SPECIAL && thing->player)
+	if (tmthing->flags & MF_SPECIAL && thing->player && tmthing->type != MT_POKEY)
 	{
 		P_TouchSpecialThing(tmthing, thing, true); // can remove thing
 		return true;
@@ -1394,6 +1394,24 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Make sure they aren't able to damage you ANYWHERE along the Z axis, you have to be TOUCHING the person.
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
+		// SRB2kart - Squish!
+		if ((tmthing->player->kartstuff[k_growshrinktimer] > 0 && thing->player->kartstuff[k_growshrinktimer] <= 0) 
+			|| (tmthing->player->kartstuff[k_growshrinktimer] == 0 && thing->player->kartstuff[k_growshrinktimer] < 0))
+		{
+			K_SquishPlayer(thing->player, tmthing);
+		}
+		else if ((thing->player->kartstuff[k_growshrinktimer] > 0 && tmthing->player->kartstuff[k_growshrinktimer] <= 0) 
+			|| (thing->player->kartstuff[k_growshrinktimer] == 0 && tmthing->player->kartstuff[k_growshrinktimer] < 0))
+		{
+			K_SquishPlayer(tmthing->player, thing);
+		}
+
+		// SRB2kart - Starpower!
+		if (tmthing->player->kartstuff[k_startimer] && !thing->player->kartstuff[k_startimer])
+			P_DamageMobj(thing, tmthing, tmthing, 1);
+		else if (thing->player->kartstuff[k_startimer] && !tmthing->player->kartstuff[k_startimer])
+			P_DamageMobj(tmthing, thing, thing, 1);
+
 		if (G_RingSlingerGametype() && (!G_GametypeHasTeams() || tmthing->player->ctfteam != thing->player->ctfteam))
 		{
 			if ((tmthing->player->powers[pw_invulnerability] || tmthing->player->powers[pw_super])

@@ -312,10 +312,10 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 	// 1 Active Player
 	{  //1st //
 		{  0 }, // Magnet
-		{ 40 }, // Boo
+		{  0 }, // Boo
 		{  0 }, // Mushroom
 		{  0 }, // Triple Mushroom
-		{  0 }, // Mega Mushroom
+		{ 40 }, // Mega Mushroom
 		{  0 }, // Gold Mushroom
 		{  0 }, // Star
 		{  0 }, // Triple Banana
@@ -903,6 +903,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 void K_UpdateOffroad(player_t *player)
 {
 	fixed_t kartweight = player->kartweight;
+	fixed_t offroad;
 	sector_t *nextsector = R_PointInSubsector(
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
 
@@ -917,7 +918,12 @@ void K_UpdateOffroad(player_t *player)
 
 			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
 			// A higher kart weight means you can stay offroad for longer without losing speed
-			player->kartstuff[k_offroad] += (1872 + 5*156 - kartweight*156);
+			offroad = (1872 + 5*156 - kartweight*156);
+
+			if (player->kartstuff[k_growshrinktimer] > 1) // megashroom slows down half as fast
+				offroad /= 2;
+
+			player->kartstuff[k_offroad] += offroad;
 		}
 
 		if (player->kartstuff[k_offroad] > FRACUNIT)
@@ -964,6 +970,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_floorboost])
 		player->kartstuff[k_floorboost]--;
 
+	if (player->kartstuff[k_driftboost])
+		player->kartstuff[k_driftboost]--;
+
 	if (player->kartstuff[k_startimer])
 		player->kartstuff[k_startimer]--;
 
@@ -1002,11 +1011,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
 
-	// Restores music if too many sounds are playing (?)
-	//if (player->kartstuff[k_sounds] >= 1 && player->kartstuff[k_sounds] < 120)
-	//	player->kartstuff[k_sounds] += 1;
-	//if (player->kartstuff[k_sounds] < 120 && player->kartstuff[k_sounds] > 116)	//&& P_IsLocalPlayer(player))
-	//	P_RestoreMusic(player);
+	// Restores music automatically for the final lap, among other things
+	if (player->kartstuff[k_sounds] <= 4 && player->kartstuff[k_sounds] > 0 && P_IsLocalPlayer(player))
+		P_RestoreMusic(player);
 
 	// ???
 	/*
@@ -1076,22 +1083,49 @@ void K_PlayTauntSound(mobj_t *source)
 fixed_t K_GetKartBoostPower(player_t *player)
 {
 	fixed_t boostpower = FRACUNIT;
+	fixed_t boostvalue = 0;
+	fixed_t numboosts = 0;
 
-	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 1)
+	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
+	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer])
 		&& player->kartstuff[k_offroad] >= 0)
 			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
-	if (player->kartstuff[k_growshrinktimer] < -1)
-		boostpower = FixedMul(boostpower, 6*FRACUNIT/8);	// Shrink
-	if (player->kartstuff[k_squishedtimer] > 0)
-		boostpower = FixedMul(boostpower, 7*FRACUNIT/8);	// Squished
-	if (player->powers[pw_sneakers])
-		boostpower = FixedMul(boostpower, 10*FRACUNIT/8);	// Slide Boost
-	if (player->kartstuff[k_growshrinktimer] > 1)
-		boostpower = FixedMul(boostpower, 10*FRACUNIT/8);	// Mega Mushroom
-	if (player->kartstuff[k_startimer])
-		boostpower = FixedMul(boostpower, 11*FRACUNIT/8);	// Star
-	if (player->kartstuff[k_mushroomtimer])
-		boostpower = FixedMul(boostpower, 12*FRACUNIT/8);	// Mushroom
+
+	if (player->kartstuff[k_growshrinktimer] < -1) 	// Shrink
+	{
+		boostvalue +=  6; //  6/8 speed (*0.750)
+		numboosts++;
+	}
+	if (player->kartstuff[k_squishedtimer] > 0) 	// Squished
+	{
+		boostvalue +=  7; //  7/8 speed (*0.875)
+		numboosts++;
+	}
+	if (player->kartstuff[k_growshrinktimer] > 1) 	// Mega Mushroom
+	{
+		boostvalue += 10; // 10/8 speed (*1.250)
+		numboosts++;
+	}
+	if (player->kartstuff[k_startimer]) 			// Star
+	{
+		boostvalue += 11; // 11/8 speed (*1.375)
+		numboosts++;
+	}
+	if (player->kartstuff[k_driftboost]) 			// Drift Boost
+	{
+		boostvalue += 12; // 12/8 speed (*1.500)
+		numboosts++;
+	}
+	if (player->kartstuff[k_mushroomtimer]) 		// Mushroom
+	{
+		boostvalue += 14; // 14/8 speed (*1.750)
+		numboosts++;
+	}
+	if (numboosts) // If any of the above apply...
+	{
+		boostvalue = (boostvalue*2)/numboosts; 	// Doubled to avoid .5's
+		boostpower = FixedMul(boostpower, boostvalue*FRACUNIT/16);
+	}
 
 	return boostpower;
 }
@@ -1122,7 +1156,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmove
 	fixed_t p_accel = K_GetKartAccel(player);
 
 	// ACCELCODE!!!1!11!
-	oldspeed = FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
+	oldspeed = P_AproxDistance(player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
 	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
 	finalspeed = newspeed - oldspeed;
 
@@ -1144,6 +1178,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		return;
 
 	player->kartstuff[k_mushroomtimer] = 0;
+	player->kartstuff[k_driftboost] = 0;
 
 	if (player->kartstuff[k_spinouttype] <= 0)
 	{
@@ -1182,6 +1217,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		return;
 
 	player->kartstuff[k_mushroomtimer] = 0;
+	player->kartstuff[k_driftboost] = 0;
 
 	player->kartstuff[k_squishedtimer] = 2*TICRATE;
 
@@ -1210,6 +1246,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	player->mo->momx = player->mo->momy = 0;
 
 	player->kartstuff[k_mushroomtimer] = 0;
+	player->kartstuff[k_driftboost] = 0;
 
 	player->kartstuff[k_spinouttype] = 1;
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
@@ -1688,7 +1725,7 @@ void K_DoMushroom(player_t *player, boolean doPFlag)
 		return;
 
 	//K_PlayTauntSound(player->mo);
-	player->kartstuff[k_sounds] = 70;
+	player->kartstuff[k_sounds] = 50;
 }
 
 void K_DoLightning(player_t *player, boolean bluelightning)
@@ -1711,7 +1748,7 @@ void K_DoLightning(player_t *player, boolean bluelightning)
 		return;
 
 	K_PlayTauntSound(player->mo);
-	player->kartstuff[k_sounds] = 70;
+	player->kartstuff[k_sounds] = 50;
 }
 
 void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
@@ -1739,7 +1776,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
 		&& onground)
 	{
-		player->powers[pw_sneakers] += 17;
+		player->kartstuff[k_driftboost] = 20;
 		S_StartSound(player->mo, sfx_mush);
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
@@ -1749,7 +1786,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= 60
 		&& onground)
 	{
-		player->powers[pw_sneakers] += 35;
+		player->kartstuff[k_driftboost] = 40;
 		S_StartSound(player->mo, sfx_mush);
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
@@ -2328,9 +2365,8 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 				S_ChangeMusicInternal("mega", true);
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_mega);
-			K_PlayTauntSound(player->mo);
-			player->kartstuff[k_growshrinktimer] = bonustime;
-			player->mo->destscale = FRACUNIT*3/2;
+			//K_PlayTauntSound(player->mo);
+			player->kartstuff[k_growshrinktimer] = bonustime/2;
 			S_StartSound(player->mo, sfx_mario3);
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_megashroom] = 0;
@@ -2351,6 +2387,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			player->kartstuff[k_magnet] = 0;
 		}
 
+		// Mushroom Boost
 		if (player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0 && onground)
 		{
 			cmd->forwardmove = 1;
@@ -2364,6 +2401,29 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		}
 		else if (player->kartstuff[k_mushroomtimer] == 0 && player->kartstuff[k_boosting] == 1)
 			player->kartstuff[k_boosting] = 0;
+
+		// Megashroom - Make the player grow!
+		if (player->kartstuff[k_growshrinktimer] > (bonustime/2 - 25))
+		{
+			if (leveltime & 2)
+				player->mo->destscale = FRACUNIT*3/2;
+			else
+				player->mo->destscale = FRACUNIT;
+		}
+		else if (player->kartstuff[k_growshrinktimer] > 26
+			&& player->kartstuff[k_growshrinktimer] <= (bonustime/2 - 25))
+			player->mo->destscale = FRACUNIT*3/2;
+		// Megashroom - Back to normal...
+		else if (player->kartstuff[k_growshrinktimer] > 1
+			&& player->kartstuff[k_growshrinktimer] <= 26)
+		{
+			if (leveltime & 2)
+				player->mo->destscale = FRACUNIT;
+			else
+				player->mo->destscale = FRACUNIT*3/2;
+		}
+		if (player->kartstuff[k_growshrinktimer] == 26)
+			S_StartSound(player->mo, sfx_mario8);
 
 		if (player->kartstuff[k_bootaketimer] > 0)
 		{

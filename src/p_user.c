@@ -812,7 +812,8 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 
 	if (inflictor)
 	{
-		ang = R_PointToAngle2(inflictor->x-inflictor->momx, inflictor->y - inflictor->momy, player->mo->x - player->mo->momx, player->mo->y - player->mo->momy);
+		ang = R_PointToAngle2(inflictor->x, inflictor->y, player->mo->x, player->mo->y); // SRB2kart
+		//ang = R_PointToAngle2(inflictor->x-inflictor->momx, inflictor->y - inflictor->momy, player->mo->x - player->mo->momx, player->mo->y - player->mo->momy);
 
 		// explosion and rail rings send you farther back, making it more difficult
 		// to recover
@@ -1121,6 +1122,32 @@ void P_RestoreMusic(player_t *player)
 	if (player->powers[pw_extralife] > 1)
 		return;
 	S_SpeedMusic(1.0f);
+
+	if (player->kartstuff[k_sounds] >= 5) // SRB2kart - Don't reset music during the final lap roll!
+		return;
+
+	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
+	if (!player->exiting)
+	{
+		// Item - Mega Mushroom
+		if (player->kartstuff[k_growshrinktimer] > 1)
+			S_ChangeMusicInternal("mega", true);
+
+		// Item - Star
+		else if (player->kartstuff[k_startimer] > 1)
+			S_ChangeMusicInternal("minvnc", false);
+
+		// Event - Final Lap
+		else if (player->laps == (UINT8)(cv_numlaps.value - 1))
+		{
+			S_SpeedMusic(1.2f);
+			S_ChangeMusic(mapmusname, mapmusflags, true);
+		}
+		else
+			S_ChangeMusic(mapmusname, mapmusflags, true);
+	}
+
+	/* SRB2kart - old stuff
 	if (player->powers[pw_super] && !(mapheaderinfo[gamemap-1]->levelflags & LF_NOSSMUSIC))
 		S_ChangeMusicInternal("supers", true);
 	else if (player->powers[pw_invulnerability] > 1)
@@ -1137,6 +1164,7 @@ void P_RestoreMusic(player_t *player)
 	}
 	else
 		S_ChangeMusic(mapmusname, mapmusflags, true);
+	*/
 }
 
 //
@@ -2022,8 +2050,8 @@ static void P_CheckSneakerAndLivesTimer(player_t *player)
 	if (player->powers[pw_extralife] == 1) // Extra Life!
 		P_RestoreMusic(player);
 
-	if (player->powers[pw_sneakers] == 1)
-		P_RestoreMusic(player);
+	//if (player->powers[pw_sneakers] == 1) // SRB2kart
+	//	P_RestoreMusic(player);
 }
 
 //
@@ -9170,7 +9198,9 @@ void P_PlayerThink(player_t *player)
 
 #if 1
 	// "Blur" a bit when you have speed shoes and are going fast enough
-	if ((player->powers[pw_super] || player->powers[pw_sneakers]) && (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
+	if ((player->powers[pw_super] || player->powers[pw_sneakers] 
+		|| player->kartstuff[k_driftboost] || player->kartstuff[k_mushroomtimer]) // SRB2kart
+		&& (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
 	{
 		mobj_t *gmobj = P_SpawnGhostMobj(player->mo);
 		gmobj->fuse = 2;
@@ -9309,7 +9339,9 @@ void P_PlayerThink(player_t *player)
 	// Flash player after being hit.
 	if (!(player->pflags & PF_NIGHTSMODE))
 	{
-		if (player->kartstuff[k_bootaketimer] == 0) // SRB2kart - fixes boo not flashing when it should
+		// SRB2kart - fixes boo not flashing when it should. Mega doesn't flash either. Flashing is local.
+		if ((player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
+			&& player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0)
 		{
 			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < flashingtics && (leveltime & 1))
 				player->mo->flags2 |= MF2_DONTDRAW;

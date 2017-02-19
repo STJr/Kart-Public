@@ -4116,7 +4116,7 @@ DoneSection2:
 							if (!splitscreen || (splitscreen && !players[consoleplayer].exiting
 							&& !players[secondarydisplayplayer].exiting))
 							{
-								//player->powers[pw_sounds] = 1;
+								player->kartstuff[k_sounds] = 130;
 								S_ChangeMusicInternal("finlap", false);
 							}
 						}
