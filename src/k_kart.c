@@ -1091,33 +1091,41 @@ fixed_t K_GetKartBoostPower(player_t *player)
 		&& player->kartstuff[k_offroad] >= 0)
 			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_growshrinktimer] < -1) 	// Shrink
-	{
+	if (player->kartstuff[k_growshrinktimer] < -1)
+	{												// Shrink
 		boostvalue +=  6; //  6/8 speed (*0.750)
 		numboosts++;
 	}
-	if (player->kartstuff[k_squishedtimer] > 0) 	// Squished
-	{
+	if (player->kartstuff[k_squishedtimer] > 0)
+	{												// Squished
 		boostvalue +=  7; //  7/8 speed (*0.875)
 		numboosts++;
 	}
-	if (player->kartstuff[k_growshrinktimer] > 1) 	// Mega Mushroom
-	{
+	if (player->kartstuff[k_growshrinktimer] > 1
+		&& (player->kartstuff[k_growshrinktimer] > (bonustime - 25)
+		|| player->kartstuff[k_growshrinktimer] <= 26))
+	{												// Mega Mushroom - Mid-size
+		boostvalue +=  9; //  9/8 speed (*1.125)
+		numboosts++;
+	}
+	if (player->kartstuff[k_growshrinktimer] < (bonustime - 25)
+		&& player->kartstuff[k_growshrinktimer] > 26)
+	{												// Mega Mushroom
 		boostvalue += 10; // 10/8 speed (*1.250)
 		numboosts++;
 	}
-	if (player->kartstuff[k_startimer]) 			// Star
-	{
+	if (player->kartstuff[k_startimer])
+	{												// Star
 		boostvalue += 11; // 11/8 speed (*1.375)
 		numboosts++;
 	}
-	if (player->kartstuff[k_driftboost]) 			// Drift Boost
-	{
+	if (player->kartstuff[k_driftboost])
+	{												// Drift Boost
 		boostvalue += 12; // 12/8 speed (*1.500)
 		numboosts++;
 	}
-	if (player->kartstuff[k_mushroomtimer]) 		// Mushroom
-	{
+	if (player->kartstuff[k_mushroomtimer])
+	{												// Mushroom
 		boostvalue += 14; // 14/8 speed (*1.750)
 		numboosts++;
 	}
@@ -1957,17 +1965,33 @@ static void K_KartUpdatePosition(player_t *player)
 	}
 	player->kartstuff[k_position] = position;
 }
+
+boolean K_CheckForHoldItem(player_t *player)
+{
+	if (	player->kartstuff[k_greenshell] == 1 
+		|| 	player->kartstuff[k_redshell] == 1
+		|| 	player->kartstuff[k_banana] == 1 
+		|| 	player->kartstuff[k_fakeitem] == 1 
+		|| 	player->kartstuff[k_bobomb] == 1
+		|| 	player->kartstuff[k_triplegreenshell] & 1 
+		|| 	player->kartstuff[k_triplegreenshell] & 2 
+		|| 	player->kartstuff[k_triplegreenshell] & 4
+		|| 	player->kartstuff[k_tripleredshell] & 1 
+		|| 	player->kartstuff[k_tripleredshell] & 2 
+		|| 	player->kartstuff[k_tripleredshell] & 4
+		|| 	player->kartstuff[k_triplebanana] & 1 
+		|| 	player->kartstuff[k_triplebanana] & 2 
+		|| 	player->kartstuff[k_triplebanana] & 4
+		) return true;
+	return false;
+}
 //
 // K_MoveKartPlayer
 //
 void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 {
 	boolean ATTACK_IS_DOWN = ((cmd->buttons & BT_ATTACK) && !(player->pflags & PF_ATTACKDOWN));
-	boolean HOLDING_ITEM = (player->kartstuff[k_greenshell] == 1 || player->kartstuff[k_redshell] == 1
-		|| player->kartstuff[k_banana] == 1 || player->kartstuff[k_fakeitem] == 1 || player->kartstuff[k_bobomb] == 1
-		|| player->kartstuff[k_triplegreenshell] & 1 || player->kartstuff[k_triplegreenshell] & 2 || player->kartstuff[k_triplegreenshell] & 4
-		|| player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4
-		|| player->kartstuff[k_triplebanana] & 1 || player->kartstuff[k_triplebanana] & 2 || player->kartstuff[k_triplebanana] & 4);
+	boolean HOLDING_ITEM = K_CheckForHoldItem(player);
 	boolean NO_BOO = (player->kartstuff[k_boostolentimer] == 0 && player->kartstuff[k_bootaketimer] == 0);
 
 	K_KartUpdatePosition(player);
@@ -2024,7 +2048,8 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 // Lightning
 
 		// GoldenMushroom power
-		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1 && player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
+		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1 
+			&& player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
 		{
 			K_DoMushroom(player, true);
 			player->kartstuff[k_goldshroomtimer] = bonustime;
@@ -2034,9 +2059,9 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_goldshroomtimer] > 1 && onground && NO_BOO)
 		{
 			K_DoMushroom(player, true);
-			player->kartstuff[k_goldshroomtimer] -= 5;
-			if (player->kartstuff[k_goldshroomtimer] < 1)
-				player->kartstuff[k_goldshroomtimer] = 1;
+			//player->kartstuff[k_goldshroomtimer] -= 10;
+			//if (player->kartstuff[k_goldshroomtimer] < 1)
+			//	player->kartstuff[k_goldshroomtimer] = 1;
 		}
 		// TripleMushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 4 && onground && NO_BOO)
@@ -2366,7 +2391,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_mega);
 			//K_PlayTauntSound(player->mo);
-			player->kartstuff[k_growshrinktimer] = bonustime/2;
+			player->kartstuff[k_growshrinktimer] = bonustime;
 			S_StartSound(player->mo, sfx_mario3);
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_megashroom] = 0;
@@ -2388,7 +2413,9 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		}
 
 		// Mushroom Boost
-		if (player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0 && onground)
+		if (((player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0)
+			|| (player->kartstuff[k_mushroomtimer] > 0 && ATTACK_IS_DOWN 
+			&& player->kartstuff[k_goldshroomtimer] > 1 && NO_BOO)) && onground)
 		{
 			cmd->forwardmove = 1;
 			if (player->kartstuff[k_drift] >= 1)
@@ -2403,7 +2430,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			player->kartstuff[k_boosting] = 0;
 
 		// Megashroom - Make the player grow!
-		if (player->kartstuff[k_growshrinktimer] > (bonustime/2 - 25))
+		if (player->kartstuff[k_growshrinktimer] > (bonustime - 25))
 		{
 			if (leveltime & 2)
 				player->mo->destscale = FRACUNIT*3/2;
@@ -2411,7 +2438,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 				player->mo->destscale = FRACUNIT;
 		}
 		else if (player->kartstuff[k_growshrinktimer] > 26
-			&& player->kartstuff[k_growshrinktimer] <= (bonustime/2 - 25))
+			&& player->kartstuff[k_growshrinktimer] <= (bonustime - 25))
 			player->mo->destscale = FRACUNIT*3/2;
 		// Megashroom - Back to normal...
 		else if (player->kartstuff[k_growshrinktimer] > 1

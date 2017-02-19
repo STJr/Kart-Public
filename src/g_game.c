@@ -199,7 +199,7 @@ UINT16 extralifetics = 4*TICRATE;
 // SRB2kart
 INT32 bootime = 7*TICRATE;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
-INT32 bonustime = 20*TICRATE;
+INT32 bonustime = 10*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 

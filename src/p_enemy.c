@@ -8132,7 +8132,9 @@ void A_ItemPop(mobj_t *actor)
 		||   actor->target->player->kartstuff[k_lightning]      || actor->target->player->kartstuff[k_megashroom]
 		||   actor->target->player->kartstuff[k_itemroulette]
 		||   actor->target->player->kartstuff[k_boo]            || actor->target->player->kartstuff[k_bootaketimer]
-		||   actor->target->player->kartstuff[k_boostolentimer]))
+		||   actor->target->player->kartstuff[k_boostolentimer]
+		||   actor->target->player->kartstuff[k_growshrinktimer] > 1 
+		||   actor->target->player->kartstuff[k_goldshroomtimer]))
 		actor->target->player->kartstuff[k_itemroulette] = 1;
 	else if(cv_debug && !(actor->target && actor->target->player))
 		CONS_Printf("ERROR: Powerup has no target!\n");

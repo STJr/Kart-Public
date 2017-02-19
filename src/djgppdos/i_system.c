@@ -1597,8 +1597,8 @@ void I_RemoveExitFunc(void (*func)())
 static inline void exception_handler(int num)
 {
 	static char msg[255];
-	sprintf(msg,"Sonic Robo Blast 2 "VERSIONSTRING"\r\n"
-	        "This is a error of SRB2, try to send the following info to programmers\r\n");
+	sprintf(msg,"SRB2Kart "VERSIONSTRING"\r\n"
+	        "This is a error of SRB2Kart, try to send the following info to programmers\r\n");
 
 	//D_QuitNetGame ();  //say 'byebye' to other players when your machine
 						// crashes?... hmm... do they have to die with you???

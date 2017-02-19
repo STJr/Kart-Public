@@ -2823,7 +2823,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum);
 // called one time at init
 void D_ClientServerInit(void)
 {
-	DEBFILE(va("- - -== SRB2 v%d.%.2d.%d "VERSIONSTRING" debugfile ==- - -\n",
+	DEBFILE(va("- - -== SRB2Kart v%d.%.2d.%d "VERSIONSTRING" debugfile ==- - -\n",
 		VERSION/100, VERSION%100, SUBVERSION));
 
 #ifndef NONET
