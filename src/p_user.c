@@ -2176,12 +2176,12 @@ static void P_CheckUnderwaterAndSpaceTimer(player_t *player)
 //
 static void P_CheckInvincibilityTimer(player_t *player)
 {
-	if (!player->powers[pw_invulnerability])
+	if (!player->powers[pw_invulnerability] && !player->kartstuff[k_startimer])
 		return;
 
-	if (mariomode && !player->powers[pw_super])
+	//if (mariomode && !player->powers[pw_super]) // SRB2kart
 		player->mo->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
-	else if (leveltime % (TICRATE/7) == 0)
+	if (leveltime % (TICRATE/7) == 0)
 	{
 		mobj_t *sparkle = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_IVSP);
 		sparkle->destscale = player->mo->scale;
@@ -2189,18 +2189,18 @@ static void P_CheckInvincibilityTimer(player_t *player)
 	}
 
 	// Resume normal music stuff.
-	if (player->powers[pw_invulnerability] == 1)
+	if (player->powers[pw_invulnerability] == 1 || player->kartstuff[k_startimer] == 1)
 	{
 		if (!player->powers[pw_super])
 		{
-			if (mariomode)
+			//if (mariomode)
 			{
-				if (player->powers[pw_shield] & SH_FIREFLOWER)
-				{
-					player->mo->color = SKINCOLOR_WHITE;
-					G_GhostAddColor(GHC_FIREFLOWER);
-				}
-				else
+				//if (player->powers[pw_shield] & SH_FIREFLOWER)
+				//{
+				//	player->mo->color = SKINCOLOR_WHITE;
+				//	G_GhostAddColor(GHC_FIREFLOWER);
+				//}
+				//else
 				{
 					player->mo->color = player->skincolor;
 					G_GhostAddColor(GHC_NORMAL);

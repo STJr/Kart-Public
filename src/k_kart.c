@@ -313,9 +313,9 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 	{  //1st //
 		{  0 }, // Magnet
 		{  0 }, // Boo
-		{  0 }, // Mushroom
+		{ 40 }, // Mushroom
 		{  0 }, // Triple Mushroom
-		{ 40 }, // Mega Mushroom
+		{  0 }, // Mega Mushroom
 		{  0 }, // Gold Mushroom
 		{  0 }, // Star
 		{  0 }, // Triple Banana
@@ -835,6 +835,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_megashroom.value)						K_KartSetItemResult(ppos, 5);	// Mega Mushroom
 		if (cv_goldshroom.value)						K_KartSetItemResult(ppos, 6);	// Gold Mushroom
 		if (cv_star.value)								K_KartSetItemResult(ppos, 7);	// Star
+		/*
 		if (cv_triplebanana.value)						K_KartSetItemResult(ppos, 8);	// Triple Banana
 		if (cv_fakeitem.value)							K_KartSetItemResult(ppos, 9);	// Fake Item
 		if (cv_banana.value)							K_KartSetItemResult(ppos, 10);	// Banana
@@ -846,6 +847,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
+		*/
 
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
@@ -2089,7 +2091,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_star);
 			player->kartstuff[k_startimer] = bonustime; // Activate it
-			K_PlayTauntSound(player->mo);
+			//K_PlayTauntSound(player->mo);
 			player->kartstuff[k_star] = 0;
 			player->kartstuff[k_itemclose] = 10;
 			player->pflags |= PF_ATTACKDOWN;
