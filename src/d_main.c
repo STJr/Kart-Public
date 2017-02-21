@@ -863,7 +863,6 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 	D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
-	//D_AddFile(va(pandf,srb2waddir,"k_SNSRainbowRoad.wad"));
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{
@@ -1151,7 +1150,12 @@ void D_SRB2Main(void)
 #ifndef DEVELOP // md5s last updated 12/14/14
 
 	// Check MD5s of autoloaded files
-	W_VerifyFileMD5(0, ASSET_HASH_SRB2_SRB); // srb2.srb/srb2.wad
+	W_VerifyFileMD5(0, ASSET_HASH_SRB2_SRB);  // srb2.srb/srb2.wad
+	W_VerifyFileMD5(1, ASSET_HASH_GFX_DTA);   // gfx.kart
+	W_VerifyFileMD5(2, ASSET_HASH_CHARS_DTA); // chars.kart
+	W_VerifyFileMD5(3, ASSET_HASH_MAPS_DTA);  // maps.kart
+											  // sounds.kart - since music is large, we'll ignore it for now.
+
 #ifdef USE_PATCH_DTA
 	W_VerifyFileMD5(4, ASSET_HASH_PATCH_DTA); // patch.dta
 #endif

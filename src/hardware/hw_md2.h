@@ -23,7 +23,7 @@
 
 #include "hw_glob.h"
 
-#define MD2_MAX_TRIANGLES               8192
+#define MD2_MAX_TRIANGLES              16384
 #define MD2_MAX_VERTICES                4096
 #define MD2_MAX_TEXCOORDS               4096
 #define MD2_MAX_FRAMES                  512

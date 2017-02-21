@@ -255,7 +255,6 @@ typedef enum
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
-	//k_driftboosting,	// Similar to k_boosting, determines if you're currently drift boosting
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_lakitu,			// > 0 = Lakitu fishing, < 0 = Lakitu lap counter (was "player->airtime") // NOTE: Check for ->lakitu, replace with this

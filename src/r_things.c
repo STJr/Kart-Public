@@ -2311,8 +2311,8 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	skin->prefcolor = SKINCOLOR_GREEN;
 
 	// SRB2kart
-	skin->kartspeed = 7;
-	skin->kartweight = 5;
+	skin->kartspeed = 6;
+	skin->kartweight = 4;
 	//
 
 	skin->normalspeed = 36<<FRACBITS;

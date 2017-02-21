@@ -675,7 +675,8 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	switch (getitem)
 	{
 		case  1:	// Magnet
-			player->kartstuff[k_magnet] = 1;
+			player->kartstuff[k_mushroom] = 1; // TEMPORARY COVER UNTIL OTHER ITEMS ARE WORKING
+			//player->kartstuff[k_magnet] = 1;
 			break;
 		case  2:	// Boo
 			player->kartstuff[k_boo] = 1;
@@ -835,7 +836,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_megashroom.value)						K_KartSetItemResult(ppos, 5);	// Mega Mushroom
 		if (cv_goldshroom.value)						K_KartSetItemResult(ppos, 6);	// Gold Mushroom
 		if (cv_star.value)								K_KartSetItemResult(ppos, 7);	// Star
-		/*
 		if (cv_triplebanana.value)						K_KartSetItemResult(ppos, 8);	// Triple Banana
 		if (cv_fakeitem.value)							K_KartSetItemResult(ppos, 9);	// Fake Item
 		if (cv_banana.value)							K_KartSetItemResult(ppos, 10);	// Banana
@@ -847,7 +847,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
-		*/
 
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
