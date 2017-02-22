@@ -1267,21 +1267,19 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		// SRB2kart
-		INT32 turnspeed;
+		cmd->angleturn = K_GetKartTurnValue(cmd, player);
 
-		if (players[consoleplayer].mo && (players[consoleplayer].speed == 0))
-			turnspeed = 0;
-		else
-			turnspeed = 16;
+		//cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80));
 
-		cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80));
+		//if (players[consoleplayer].kartstuff[k_startimer] 
+		//	|| players[consoleplayer].kartstuff[k_mushroomtimer] 
+		//	|| players[consoleplayer].kartstuff[k_growshrinktimer] > 0)
+		//	cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
 
-		if (players[consoleplayer].kartstuff[k_startimer] || players[consoleplayer].kartstuff[k_mushroomtimer] 
-		|| players[consoleplayer].kartstuff[k_growshrinktimer] > 0)
-			cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
+		// SRB2kart - no additional angle if not moving
+		if (!(player->mo && player->speed == 0))
+			localangle += (cmd->angleturn<<16);
 
-		localangle += (cmd->angleturn<<turnspeed); // << 16
 		cmd->angleturn = (INT16)(localangle >> 16);
 	}
 

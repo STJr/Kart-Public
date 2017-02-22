@@ -2792,7 +2792,6 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart
 	}
 }
-*/
 
 //
 // PIT_CheckSolidsTeeter
@@ -2807,7 +2806,6 @@ static boolean couldteeter;
 static fixed_t teeterxl, teeterxh;
 static fixed_t teeteryl, teeteryh;
 
-/*
 static boolean PIT_CheckSolidsTeeter(mobj_t *thing) // SRB2kart - unused.
 {
 	fixed_t blockdist;
@@ -3182,7 +3180,8 @@ teeterdone:
 //
 // Sets weapon delay.  Properly accounts for Knux's firing rate bonus.
 //
-static void P_SetWeaponDelay(player_t *player, INT32 delay)
+/*
+static void P_SetWeaponDelay(player_t *player, INT32 delay) // SRB2kart - unused.
 {
 	player->weapondelay = delay;
 
@@ -3200,7 +3199,6 @@ static void P_SetWeaponDelay(player_t *player, INT32 delay)
 //
 // Handles firing ring weapons and Mario fireballs.
 //
-/*
 static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 {
 	INT32 i;
@@ -4785,6 +4783,7 @@ static void P_3dMovement(player_t *player)
 			//movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
 			if (max(abs(cmd->sidemove), abs(cmd->forwardmove)) > 0)
 				movepushforward = K_3dKartMovement(player, onground, true);
+			else
 				movepushforward = -(K_3dKartMovement(player, onground, false));
 
 			// allow very small movement while in air for gameplay

@@ -67,7 +67,7 @@ CV_PossibleValue_t karthud_cons_t[] = {
 	{0, "Off"}, {1, "Default"}, {2, "SNES"}, {3, "MK64"},
 	{0, NULL}};
 CV_PossibleValue_t kartcc_cons_t[] = {
-	{50, "50cc"}, {100, "100cc"}, {150, "150cc"}, {200, "200cc"},
+	{50, "50cc"}, {100, "100cc"}, {150, "150cc"},
 	{0, NULL}};
 
 #define COM_BUF_SIZE 8192 // command buffer size

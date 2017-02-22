@@ -836,6 +836,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_megashroom.value)						K_KartSetItemResult(ppos, 5);	// Mega Mushroom
 		if (cv_goldshroom.value)						K_KartSetItemResult(ppos, 6);	// Gold Mushroom
 		if (cv_star.value)								K_KartSetItemResult(ppos, 7);	// Star
+		/*
 		if (cv_triplebanana.value)						K_KartSetItemResult(ppos, 8);	// Triple Banana
 		if (cv_fakeitem.value)							K_KartSetItemResult(ppos, 9);	// Fake Item
 		if (cv_banana.value)							K_KartSetItemResult(ppos, 10);	// Banana
@@ -847,6 +848,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
+		*/
 
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
@@ -1035,6 +1037,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	K_KartItemRoulette(player, cmd); // Roulette Code
 
 	// Looping and stopping of the horrible horrible star SFX ~Sryder
+	/*
 	if (player->mo->health > 0 && player->mo->player->kartstuff[k_startimer])// If you have invincibility
 	{
 		if (!P_IsLocalPlayer(player)) // If it isn't the current player
@@ -1063,6 +1066,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
 			S_StopSoundByID(player->mo, sfx_mega); // Stop it
 	}
+	*/
 }
 
 void K_PlayTauntSound(mobj_t *source)
@@ -1081,7 +1085,7 @@ void K_PlayTauntSound(mobj_t *source)
 		S_StartSound(source, sfx_taunt4);
 }
 
-fixed_t K_GetKartBoostPower(player_t *player)
+fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 {
 	fixed_t boostpower = FRACUNIT;
 	fixed_t boostvalue = 0;
@@ -1089,33 +1093,33 @@ fixed_t K_GetKartBoostPower(player_t *player)
 
 	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
 	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer])
-		&& player->kartstuff[k_offroad] >= 0)
+		&& player->kartstuff[k_offroad] >= 0 && speedonly)
 			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_growshrinktimer] < -1)
+	if (player->kartstuff[k_growshrinktimer] < -1 && speedonly)
 	{												// Shrink
 		boostvalue +=  6; //  6/8 speed (*0.750)
 		numboosts++;
 	}
-	if (player->kartstuff[k_squishedtimer] > 0)
+	if (player->kartstuff[k_squishedtimer] > 0 && speedonly)
 	{												// Squished
 		boostvalue +=  7; //  7/8 speed (*0.875)
 		numboosts++;
 	}
 	if (player->kartstuff[k_growshrinktimer] > 1
 		&& (player->kartstuff[k_growshrinktimer] > (bonustime - 25)
-		|| player->kartstuff[k_growshrinktimer] <= 26))
+		|| player->kartstuff[k_growshrinktimer] <= 26) && speedonly)
 	{												// Mega Mushroom - Mid-size
 		boostvalue +=  9; //  9/8 speed (*1.125)
 		numboosts++;
 	}
 	if (player->kartstuff[k_growshrinktimer] < (bonustime - 25)
-		&& player->kartstuff[k_growshrinktimer] > 26)
+		&& player->kartstuff[k_growshrinktimer] > 26 && speedonly)
 	{												// Mega Mushroom
 		boostvalue += 10; // 10/8 speed (*1.250)
 		numboosts++;
 	}
-	if (player->kartstuff[k_startimer])
+	if (player->kartstuff[k_startimer] && speedonly)
 	{												// Star
 		boostvalue += 11; // 11/8 speed (*1.375)
 		numboosts++;
@@ -1125,7 +1129,7 @@ fixed_t K_GetKartBoostPower(player_t *player)
 		boostvalue += 12; // 12/8 speed (*1.500)
 		numboosts++;
 	}
-	if (player->kartstuff[k_mushroomtimer])
+	if (player->kartstuff[k_mushroomtimer] && speedonly)
 	{												// Mushroom
 		boostvalue += 14; // 14/8 speed (*1.750)
 		numboosts++;
@@ -1141,11 +1145,24 @@ fixed_t K_GetKartBoostPower(player_t *player)
 fixed_t K_GetKartSpeed(player_t *player)
 {
 	fixed_t k_speed = 151;
-	fixed_t g_cc = (cv_kartcc.value/50 + 6)*FRACUNIT/8; // Game CC - 50cc = 0, 100cc = 1, etc.
+	fixed_t g_cc;
+
+	switch (cv_kartcc.value)
+	{
+		case 50:
+			g_cc = 27*FRACUNIT/32; //  50cc - 0.84375
+			break;
+		case 150:
+			g_cc = 39*FRACUNIT/32; // 150cc - 1.21875
+			break;
+		default:
+			g_cc = 33*FRACUNIT/32; // 100cc - 1.03125
+			break;
+	}
 
 	k_speed += player->kartspeed; // 152 - 160
 
-	return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player));
+	return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true));
 }
 fixed_t K_GetKartAccel(player_t *player)
 {
@@ -1153,7 +1170,7 @@ fixed_t K_GetKartAccel(player_t *player)
 
 	k_accel += 3 * (9 - player->kartspeed); // 36 - 60
 
-	return k_accel;
+	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
 fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmovement)
 {
@@ -1760,6 +1777,38 @@ void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 50;
 }
 
+fixed_t K_GetKartTurnValue(ticcmd_t *cmd, player_t *player)
+{
+	fixed_t p_angle = cmd->angleturn;
+
+	p_angle = FixedMul(p_angle, FixedDiv(80 - (player->speed >> 16), 80));
+
+	if (player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 0)
+		p_angle = FixedMul(p_angle, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
+
+	return p_angle;
+}
+
+fixed_t K_GetKartDriftValue(fixed_t turntype)
+{
+	fixed_t driftangle = FRACUNIT;
+
+	switch (turntype)
+	{
+		case 1:
+			driftangle = 600*FRACUNIT;	// Drifting outward
+			break;
+		case 2:
+			driftangle = 225*FRACUNIT;	// Drifting inward
+			break;
+		case 3:
+			driftangle = 450*FRACUNIT;	// Drifting with no input
+			break;
+	}
+
+	return driftangle;
+}
+
 void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 {
 	// Drifting is actually straffing + automatic turning.
@@ -1828,11 +1877,11 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (player == &players[consoleplayer])
 			{
 				if (player->kartstuff[k_turndir] == -1)     // Turning Left  while Drifting Right
-					localangle -=  600*FRACUNIT;
+					localangle -= K_GetKartDriftValue(1);
 				else if (player->kartstuff[k_turndir] == 1) // Turning Right while Drifting Right
-					localangle -=  225*FRACUNIT;
+					localangle -= K_GetKartDriftValue(2);
 				else                                        // No Direction  while Drifting Right
-					localangle -=  450*FRACUNIT;
+					localangle -= K_GetKartDriftValue(3);
 			}
 
 			// Player 2
@@ -1851,12 +1900,12 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			// Player 1
 			if (player == &players[consoleplayer])
 			{
-				if (player->kartstuff[k_turndir] == 1)       // Turning Right  while Drifting Left
-					localangle +=  600*FRACUNIT;
-				else if (player->kartstuff[k_turndir] == -1) // Turning Left while Drifting Left
-					localangle +=  225*FRACUNIT;
+				if (player->kartstuff[k_turndir] == 1)       // Turning Right while Drifting Left
+					localangle += K_GetKartDriftValue(1);
+				else if (player->kartstuff[k_turndir] == -1) // Turning Left  while Drifting Left
+					localangle += K_GetKartDriftValue(2);
 				else                                         // No Direction  while Drifting Left
-					localangle +=  450*FRACUNIT;
+					localangle += K_GetKartDriftValue(3);
 			}
 
 			// Player 2
