@@ -941,7 +941,7 @@ angle_t localangle, localangle2;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
-static fixed_t angleturn[3] = {400/NEWTICRATERATIO, 800/NEWTICRATERATIO, 200/NEWTICRATERATIO}; // + slow turn
+static fixed_t angleturn[3] = {400, 800, 200}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 {
@@ -1267,7 +1267,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		cmd->angleturn = K_GetKartTurnValue(cmd, player);
+		cmd->angleturn = K_GetKartTurnValue(player, cmd);
 
 		//cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80));
 

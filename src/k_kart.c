@@ -947,9 +947,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
 
-	// This spawns the drift sparks when k_driftcharge hits 30. Its own AI handles life/death and color
+	// This spawns the drift sparks when k_driftcharge hits 26 + player->kartspeed. Its own AI handles life/death and color
 	if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1)
-		&& player->kartstuff[k_driftcharge] == 30)
+		&& player->kartstuff[k_driftcharge] == (26 + player->kartspeed))
 		P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
 
 	if (player->kartstuff[k_itemclose])
@@ -1124,14 +1124,15 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 		boostvalue += 11; // 11/8 speed (*1.375)
 		numboosts++;
 	}
-	if (player->kartstuff[k_driftboost])
+	if ((player->kartstuff[k_driftboost] && speedonly)
+		|| (player->kartstuff[k_driftboost] && !player->kartstuff[k_mushroomtimer]))
 	{												// Drift Boost
 		boostvalue += 12; // 12/8 speed (*1.500)
 		numboosts++;
 	}
 	if (player->kartstuff[k_mushroomtimer] && speedonly)
 	{												// Mushroom
-		boostvalue += 14; // 14/8 speed (*1.750)
+		boostvalue += 12; // 12/8 speed (*1.500)
 		numboosts++;
 	}
 	if (numboosts) // If any of the above apply...
@@ -1142,27 +1143,30 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 
 	return boostpower;
 }
-fixed_t K_GetKartSpeed(player_t *player)
+fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 {
 	fixed_t k_speed = 151;
-	fixed_t g_cc;
+	fixed_t g_cc = FRACUNIT;
+	fixed_t xspd = 3072;		// 4.6875 aka 3/64
 
 	switch (cv_kartcc.value)
 	{
 		case 50:
-			g_cc = 27*FRACUNIT/32; //  50cc - 0.84375
+			g_cc = 53248 + xspd; //  50cc =  81.25 + 4.69 =  85.94%
 			break;
 		case 150:
-			g_cc = 39*FRACUNIT/32; // 150cc - 1.21875
+			g_cc = 77824 + xspd; // 150cc = 118.75 + 4.69 = 123.44%
 			break;
 		default:
-			g_cc = 33*FRACUNIT/32; // 100cc - 1.03125
+			g_cc = 65536 + xspd; // 100cc = 100.00 + 4.69 = 104.69%
 			break;
 	}
 
 	k_speed += player->kartspeed; // 152 - 160
 
-	return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true));
+	if (doboostpower)
+		return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true));
+	return FixedMul(k_speed<<14, g_cc);
 }
 fixed_t K_GetKartAccel(player_t *player)
 {
@@ -1178,7 +1182,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmove
 
 	fixed_t accelmax = 4000;
 	fixed_t newspeed, oldspeed, finalspeed;
-	fixed_t p_speed = K_GetKartSpeed(player);
+	fixed_t p_speed = K_GetKartSpeed(player, true);
 	fixed_t p_accel = K_GetKartAccel(player);
 
 	// ACCELCODE!!!1!11!
@@ -1213,8 +1217,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		else
 			player->kartstuff[k_spinouttimer] = 3*TICRATE/2;
 
-		if (player->speed < K_GetKartSpeed(player)/4) // player->normalspeed/4)
-			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player)/4, player->mo->scale)); // FixedMul(player->normalspeed/4, player->mo->scale));
+		if (player->speed < K_GetKartSpeed(player, true)/4) // player->normalspeed/4)
+			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale)); // FixedMul(player->normalspeed/4, player->mo->scale));
 
 		S_StartSound(player->mo, sfx_slip);
 	}
@@ -1777,32 +1781,43 @@ void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 50;
 }
 
-fixed_t K_GetKartTurnValue(ticcmd_t *cmd, player_t *player)
+fixed_t K_GetKartTurnValue(player_t *player, ticcmd_t *cmd)
 {
 	fixed_t p_angle = cmd->angleturn;
+	fixed_t p_maxspeed = K_GetKartSpeed(player, false);
+	
+	p_maxspeed = FixedMul(p_maxspeed, 2*FRACUNIT + FRACUNIT/4);
 
-	p_angle = FixedMul(p_angle, FixedDiv(80 - (player->speed >> 16), 80));
+	p_angle = FixedMul(p_angle, FixedDiv((p_maxspeed>>16) - (player->speed>>16), 
+		(p_maxspeed>>16) + player->kartweight)); // Weight has a small effect on turning
 
 	if (player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 0)
 		p_angle = FixedMul(p_angle, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
 
+	player->kartstuff[k_driftangle] = p_angle;
+
 	return p_angle;
 }
 
-fixed_t K_GetKartDriftValue(fixed_t turntype)
+fixed_t K_GetKartDriftValue(player_t *player, fixed_t turntype)
 {
 	fixed_t driftangle = FRACUNIT;
+	fixed_t p_angle = player->kartstuff[k_driftangle];
+	fixed_t driftweight = player->kartweight*10;
+
+	if (player->kartstuff[k_drift] <= -1)
+		p_angle *= -1;
 
 	switch (turntype)
 	{
 		case 1:
-			driftangle = 600*FRACUNIT;	// Drifting outward
+			driftangle = (p_angle + 300 - driftweight*1)*FRACUNIT;	// Drifting outward
 			break;
 		case 2:
-			driftangle = 225*FRACUNIT;	// Drifting inward
+			driftangle = (p_angle + 700 - driftweight*3)*FRACUNIT;	// Drifting inward
 			break;
 		case 3:
-			driftangle = 450*FRACUNIT;	// Drifting with no input
+			driftangle = (      0 + 500 - driftweight*2)*FRACUNIT;	// Drifting with no input
 			break;
 	}
 
@@ -1811,6 +1826,9 @@ fixed_t K_GetKartDriftValue(fixed_t turntype)
 
 void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 {
+	fixed_t dsone = 26 + player->kartspeed;
+	fixed_t dstwo = 52 + player->kartspeed*2;
+	
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
 	if (cmd->buttons & BT_DRIFTRIGHT)
@@ -1823,7 +1841,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 	// Drift Release (Moved here so you can't "chain" drifts)
 	if ((player->kartstuff[k_drift] == 0)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
-		&& player->kartstuff[k_driftcharge] < 30
+		&& player->kartstuff[k_driftcharge] < dsone
 		&& onground)
 	{
 		player->kartstuff[k_drift] = 0;
@@ -1831,7 +1849,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 	}
 	else if ((player->kartstuff[k_drift] == 0)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
-		&& (player->kartstuff[k_driftcharge] >= 30 && player->kartstuff[k_driftcharge] < 60)
+		&& (player->kartstuff[k_driftcharge] >= dsone && player->kartstuff[k_driftcharge] < dstwo)
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 20;
@@ -1841,7 +1859,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 	}
 	else if ((player->kartstuff[k_drift] == 0)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
-		&& player->kartstuff[k_driftcharge] >= 60
+		&& player->kartstuff[k_driftcharge] >= dstwo
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 40;
@@ -1877,17 +1895,22 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (player == &players[consoleplayer])
 			{
 				if (player->kartstuff[k_turndir] == -1)     // Turning Left  while Drifting Right
-					localangle -= K_GetKartDriftValue(1);
+					localangle -= K_GetKartDriftValue(player, 1);
 				else if (player->kartstuff[k_turndir] == 1) // Turning Right while Drifting Right
-					localangle -= K_GetKartDriftValue(2);
+					localangle -= K_GetKartDriftValue(player, 2);
 				else                                        // No Direction  while Drifting Right
-					localangle -= K_GetKartDriftValue(3);
+					localangle -= K_GetKartDriftValue(player, 3);
 			}
 
 			// Player 2
 			if (splitscreen	&& player == &players[secondarydisplayplayer])
 			{
-
+				if (player->kartstuff[k_turndir] == -1)     // Turning Left  while Drifting Right
+					localangle2 -= K_GetKartDriftValue(player, 1);
+				else if (player->kartstuff[k_turndir] == 1) // Turning Right while Drifting Right
+					localangle2 -= K_GetKartDriftValue(player, 2);
+				else                                        // No Direction  while Drifting Right
+					localangle2 -= K_GetKartDriftValue(player, 3);
 			}
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the Left
@@ -1901,18 +1924,24 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (player == &players[consoleplayer])
 			{
 				if (player->kartstuff[k_turndir] == 1)       // Turning Right while Drifting Left
-					localangle += K_GetKartDriftValue(1);
+					localangle += K_GetKartDriftValue(player, 1);
 				else if (player->kartstuff[k_turndir] == -1) // Turning Left  while Drifting Left
-					localangle += K_GetKartDriftValue(2);
+					localangle += K_GetKartDriftValue(player, 2);
 				else                                         // No Direction  while Drifting Left
-					localangle += K_GetKartDriftValue(3);
+					localangle += K_GetKartDriftValue(player, 3);
 			}
 
 			// Player 2
-			if (splitscreen	&& player == &players[secondarydisplayplayer] && player->kartstuff[k_turndir] == 1)
-				localangle2 += (300+192)*FRACUNIT;
-			else if (splitscreen && player == &players[secondarydisplayplayer])
-				localangle2 += (300)*FRACUNIT;
+			// Player 2
+			if (splitscreen	&& player == &players[secondarydisplayplayer])
+			{
+				if (player->kartstuff[k_turndir] == 1)       // Turning Right while Drifting Left
+					localangle2 += K_GetKartDriftValue(player, 1);
+				else if (player->kartstuff[k_turndir] == -1) // Turning Left  while Drifting Left
+					localangle2 += K_GetKartDriftValue(player, 2);
+				else                                         // No Direction  while Drifting Left
+					localangle2 += K_GetKartDriftValue(player, 3);
+			}
 		}
 	}
 

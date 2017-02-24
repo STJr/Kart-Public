@@ -4539,6 +4539,7 @@ static void P_3dMovement(player_t *player)
 	fixed_t movepushforward = 0, movepushside = 0;
 	INT32 mforward = 0, mbackward = 0;
 	angle_t dangle; // replaces old quadrants bits
+	boolean dangleflip = false; // SRB2kart - toaster
 	fixed_t normalspd = FixedMul(player->normalspeed, player->mo->scale);
 	boolean analogmove = false;
 	fixed_t oldMagnitude, newMagnitude;
@@ -4619,7 +4620,10 @@ static void P_3dMovement(player_t *player)
 	// Get delta angle from rmom angle and player angle first
 	dangle = R_PointToAngle2(0,0, player->rmomx, player->rmomy) - player->mo->angle;
 	if (dangle > ANGLE_180) //flip to keep to one side
+	{
 		dangle = InvAngle(dangle);
+		dangleflip = true;
+	}
 
 	// now use it to determine direction!
 	if (dangle <= ANGLE_45) // angles 0-45 or 315-360
@@ -4628,6 +4632,24 @@ static void P_3dMovement(player_t *player)
 		mbackward = 1; // going backwards
 
 	// anything else will leave both at 0, so no need to do anything else
+
+	//{ SRB2kart 220217 - Toaster Code for misplaced thrust
+	/*
+	if (!player->kartstuff[k_drift]) // Not Drifting
+	{
+		angle_t difference = dangle/2;
+		boolean reverse = (dangle >= ANGLE_90);
+ 
+		if (dangleflip)
+			difference = InvAngle(difference);
+ 
+		if (reverse)
+			difference += ANGLE_180;
+ 
+		P_InstaThrust(player->mo, player->mo->angle + difference, player->speed);
+	}
+	*/
+	//}
 
 	// When sliding, don't allow forward/back
 	if (player->pflags & PF_SLIDING)
@@ -4831,7 +4853,7 @@ static void P_3dMovement(player_t *player)
 			movepushside >>= 2;
 
 			// Reduce movepushslide even more if over "max" flight speed
-			if (player->powers[pw_tailsfly] && player->speed > K_GetKartSpeed(player)) //topspeed)
+			if (player->powers[pw_tailsfly] && player->speed > K_GetKartSpeed(player, true)) //topspeed)
 				movepushside >>= 2;
 		}
 
@@ -4888,10 +4910,10 @@ static void P_3dMovement(player_t *player)
 	// If "no" to 1, we're not reaching any limits yet, so ignore this entirely!
 	// -Shadow Hog
 	newMagnitude = R_PointToDist2(player->mo->momx - player->cmomx, player->mo->momy - player->cmomy, 0, 0);
-	if (newMagnitude > K_GetKartSpeed(player)) //topspeed)
+	if (newMagnitude > K_GetKartSpeed(player, true)) //topspeed)
 	{
 		fixed_t tempmomx, tempmomy;
-		if (oldMagnitude > K_GetKartSpeed(player)) //topspeed)
+		if (oldMagnitude > K_GetKartSpeed(player, true)) //topspeed)
 		{
 			if (newMagnitude > oldMagnitude)
 			{
@@ -4904,8 +4926,8 @@ static void P_3dMovement(player_t *player)
 		}
 		else
 		{
-			tempmomx = FixedMul(FixedDiv(player->mo->momx - player->cmomx, newMagnitude), K_GetKartSpeed(player)); //topspeed)
-			tempmomy = FixedMul(FixedDiv(player->mo->momy - player->cmomy, newMagnitude), K_GetKartSpeed(player)); //topspeed)
+			tempmomx = FixedMul(FixedDiv(player->mo->momx - player->cmomx, newMagnitude), K_GetKartSpeed(player, true)); //topspeed)
+			tempmomy = FixedMul(FixedDiv(player->mo->momy - player->cmomy, newMagnitude), K_GetKartSpeed(player, true)); //topspeed)
 			player->mo->momx = tempmomx + player->cmomx;
 			player->mo->momy = tempmomy + player->cmomy;
 		}

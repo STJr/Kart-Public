@@ -253,6 +253,7 @@ typedef enum
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
 
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
+	k_driftangle,		// Stores player turn angle for drifting
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
