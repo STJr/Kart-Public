@@ -1785,16 +1785,30 @@ fixed_t K_GetKartTurnValue(player_t *player, ticcmd_t *cmd)
 {
 	fixed_t p_angle = cmd->angleturn;
 	fixed_t p_maxspeed = K_GetKartSpeed(player, false);
-	
-	p_maxspeed = FixedMul(p_maxspeed, 2*FRACUNIT + FRACUNIT/4);
 
-	p_angle = FixedMul(p_angle, FixedDiv((p_maxspeed>>16) - (player->speed>>16), 
-		(p_maxspeed>>16) + player->kartweight)); // Weight has a small effect on turning
+	p_maxspeed = FixedMul(p_maxspeed, 3*FRACUNIT);
+	
+	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
+
+	p_angle = FixedMul(p_angle, adjustangle); // Weight has a small effect on turning
 
 	if (player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 0)
 		p_angle = FixedMul(p_angle, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
 
 	player->kartstuff[k_driftangle] = p_angle;
+
+	if (!player->kartstuff[k_drift] && player->kartstuff[k_driftfix] > 0)
+	{
+		if (P_IsObjectOnGround(player->mo))
+			p_angle += FixedMul(800, adjustangle);
+		player->kartstuff[k_driftfix]--;
+	}
+	else if (!player->kartstuff[k_drift] && player->kartstuff[k_driftfix] < 0)
+	{
+		if (P_IsObjectOnGround(player->mo))
+			p_angle -= FixedMul(800, adjustangle);
+		player->kartstuff[k_driftfix]++;
+	}
 
 	return p_angle;
 }
@@ -1811,13 +1825,13 @@ fixed_t K_GetKartDriftValue(player_t *player, fixed_t turntype)
 	switch (turntype)
 	{
 		case 1:
-			driftangle = (p_angle + 300 - driftweight*1)*FRACUNIT;	// Drifting outward
+			driftangle = (p_angle + 200 + driftweight)*FRACUNIT;	// Drifting outward
 			break;
 		case 2:
-			driftangle = (p_angle + 700 - driftweight*3)*FRACUNIT;	// Drifting inward
+			driftangle = (p_angle + 700 - driftweight)*FRACUNIT;	// Drifting inward
 			break;
 		case 3:
-			driftangle = (      0 + 500 - driftweight*2)*FRACUNIT;	// Drifting with no input
+			driftangle =           (450)              *FRACUNIT;	// Drifting with no input
 			break;
 	}
 
