@@ -6441,7 +6441,8 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_TRIPLEBANANASHIELD1:
 			case MT_TRIPLEBANANASHIELD2:
 			case MT_TRIPLEBANANASHIELD3:
-				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
+				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo 
+					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					INT32 zfixds = 56;
 					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
@@ -6859,6 +6860,19 @@ void P_MobjThinker(mobj_t *mobj)
 					P_SetObjectMomZ(mobj, -2*FRACUNIT/3, true);
 			}
 			break;
+		//{ SRB2kart Items - Death States
+		case MT_GREENITEM:
+		case MT_REDITEM:
+		case MT_REDITEMDUD:
+		case MT_BANANAITEM:
+		case MT_FAKEITEM:
+			if (mobj->z <= mobj->floorz)
+				P_RemoveMobj(mobj);
+			break;
+		case MT_BOMBITEM:
+			P_SetMobjState(mobj, mobj->info->deathstate);
+			break;
+		//}
 		default:
 			break;
 		}
@@ -7281,6 +7295,167 @@ void P_MobjThinker(mobj_t *mobj)
 				P_InstaThrust(mobj, mobj->angle, FixedMul(mobj->info->speed, mobj->scale));
 			}
 			break;
+		//{ SRB2kart Items
+		/*case MT_LAKITU:
+			if (!mobj->target->player)
+			{
+				P_SetMobjState(mobj, S_DISS);
+				return;
+			}
+			if (mobj->target->player && !splitscreen
+			&& !(mobj->target->player == &players[displayplayer])
+				&& !(mobj->state >= &states[S_LAKITUFSH1] && mobj->state <= &states[S_LAKITUFSH2]))
+				mobj->flags2 |= MF2_DONTDRAW;
+			else
+				mobj->flags2 &= ~MF2_DONTDRAW;
+
+			if ((mobj->state >= &states[S_LAKITUSL1] && mobj->state <= &states[S_LAKITUSL12])
+            || (mobj->state >= &states[S_LAKITULAP1A] && mobj->state <= &states[S_LAKITUFLG8]))
+			{
+				const fixed_t radius = FIXEDSCALE(128, mobj->target->scale)*FRACUNIT;
+				mobj->angle = (mobj->target->angle);
+				P_UnsetThingPosition(mobj);
+				{
+					const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
+					mobj->x = mobj->target->x + FixedMul(FINECOSINE(fa),radius);
+					mobj->y = mobj->target->y + FixedMul(FINESINE(fa),radius);
+					if (mobj->state >= &states[S_LAKITUFLG1] && mobj->state <= &states[S_LAKITUFLG8])
+					{
+						if (mobj->target->eflags & MFE_VERTICALFLIP)
+							mobj->z = mobj->target->z - 128*FRACUNIT;
+						else
+							mobj->z = mobj->target->z + 64*FRACUNIT;
+					}
+					P_SetThingPosition(mobj);
+				}
+			}
+			break;*/
+		case MT_POKEY:
+			if (mobj->threshold)
+			{
+				if (mobj->state == &states[S_POKEY1])
+					mobj->health = 1;
+				else if (mobj->state == &states[S_POKEY2])
+					mobj->health = 2;
+				else if (mobj->state == &states[S_POKEY3])
+					mobj->health = 3;
+				else if (mobj->state == &states[S_POKEY4])
+					mobj->health = 4;
+				else if (mobj->state == &states[S_POKEY5])
+					mobj->health = 5;
+				else if (mobj->state == &states[S_POKEY6])
+					mobj->health = 6;
+				else if (mobj->state == &states[S_POKEY7])
+					mobj->health = 7;
+				else if (mobj->state == &states[S_POKEY8])
+					mobj->health = 8;
+
+				mobj->threshold++;
+				P_SetMobjState(mobj, S_POKEYIDLE);
+			}
+			if (mobj->state == &states[S_POKEYIDLE] && mobj->threshold >= 105)
+			{
+				if (mobj->health == 1)
+					P_SetMobjState(mobj, S_POKEY1);
+				else if (mobj->health == 2)
+					P_SetMobjState(mobj, S_POKEY2);
+				else if (mobj->health == 3)
+					P_SetMobjState(mobj, S_POKEY3);
+				else if (mobj->health == 4)
+					P_SetMobjState(mobj, S_POKEY4);
+				else if (mobj->health == 5)
+					P_SetMobjState(mobj, S_POKEY5);
+				else if (mobj->health == 6)
+					P_SetMobjState(mobj, S_POKEY6);
+				else if (mobj->health == 7)
+					P_SetMobjState(mobj, S_POKEY7);
+				else if (mobj->health == 8)
+					P_SetMobjState(mobj, S_POKEY8);
+				mobj->threshold = 0;
+			}
+			break;
+		case MT_GREENITEM:
+			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
+			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			if (leveltime % 6 == 0)
+				S_StartSound(mobj, mobj->info->activesound);
+			break;
+		case MT_REDITEM:
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			if (leveltime % 7 == 0)
+				S_StartSound(mobj, mobj->info->activesound);
+			break;
+		case MT_REDITEMDUD:
+			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
+			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			if (leveltime % 7 == 0)
+				S_StartSound(mobj, mobj->info->activesound);
+			break;
+		case MT_BANANAITEM:
+		case MT_FAKEITEM:
+			if (mobj->z <= mobj->floorz && mobj->health > 1)
+			{
+				S_StartSound(mobj, mobj->info->activesound);
+				mobj->momx = mobj->momy = 0;
+				mobj->health = 1;
+			}
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			break;
+		case MT_SINK:
+			if (mobj->z <= mobj->floorz)
+			{
+				S_StartSound(mobj, mobj->info->deathsound);
+				P_SetMobjState(mobj, S_NULL);
+			}
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			break;
+		case MT_BOMBITEM:
+			if (mobj->z <= mobj->floorz)
+			{
+				if (mobj->health > mobj->info->spawnhealth-1)
+				{
+					if (mobj->state == &states[S_BOMBAIR])
+						P_SetMobjState(mobj, S_BOMBITEM);
+
+					mobj->momx = mobj->momy = 0;
+					S_StartSound(mobj, mobj->info->activesound);
+				}
+				mobj->health--;
+			}
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			break;
+		case MT_BOMBEXPLOSION:
+			if ((mobj->z < mobj->floorz - mobj->height) || (mobj->z > mobj->ceilingz + mobj->height))
+			{
+				P_KillMobj(mobj, NULL, NULL);
+				break;
+			}
+
+			if (mobj->tics != -1)
+			{
+				mobj->tics--;
+
+				// you can cycle through multiple states in a tic
+				if (!mobj->tics)
+					if (!P_SetMobjState(mobj, mobj->state->nextstate))
+						return; // freed itself
+			}
+
+			P_UnsetThingPosition(mobj);
+			mobj->x += mobj->momx;
+			mobj->y += mobj->momy;
+			mobj->z += mobj->momz;
+			P_SetThingPosition(mobj);
+			return;
+		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);
 			P_CheckPosition(mobj, mobj->x, mobj->y);

@@ -313,13 +313,13 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 	{  //1st //
 		{  0 }, // Magnet
 		{  0 }, // Boo
-		{ 40 }, // Mushroom
+		{  0 }, // Mushroom
 		{  0 }, // Triple Mushroom
 		{  0 }, // Mega Mushroom
 		{  0 }, // Gold Mushroom
 		{  0 }, // Star
 		{  0 }, // Triple Banana
-		{  0 }, // Fake Item
+		{ 40 }, // Fake Item
 		{  0 }, // Banana
 		{  0 }, // Green Shell
 		{  0 }, // Red Shell
@@ -836,7 +836,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_megashroom.value)						K_KartSetItemResult(ppos, 5);	// Mega Mushroom
 		if (cv_goldshroom.value)						K_KartSetItemResult(ppos, 6);	// Gold Mushroom
 		if (cv_star.value)								K_KartSetItemResult(ppos, 7);	// Star
-		/*
 		if (cv_triplebanana.value)						K_KartSetItemResult(ppos, 8);	// Triple Banana
 		if (cv_fakeitem.value)							K_KartSetItemResult(ppos, 9);	// Fake Item
 		if (cv_banana.value)							K_KartSetItemResult(ppos, 10);	// Banana
@@ -848,7 +847,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
-		*/
 
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
@@ -1071,6 +1069,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 void K_PlayTauntSound(mobj_t *source)
 {
+	return; // Doesn't work yet...
 	INT32 prandom;
 
 	prandom = P_RandomFixed();
@@ -1754,7 +1753,7 @@ void K_DoMushroom(player_t *player, boolean doPFlag)
 	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
 		return;
 
-	//K_PlayTauntSound(player->mo);
+	K_PlayTauntSound(player->mo);
 	player->kartstuff[k_sounds] = 50;
 }
 
@@ -2182,7 +2181,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_star);
 			player->kartstuff[k_startimer] = bonustime; // Activate it
-			//K_PlayTauntSound(player->mo);
+			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_star] = 0;
 			player->kartstuff[k_itemclose] = 10;
 			player->pflags |= PF_ATTACKDOWN;
@@ -2426,6 +2425,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 			mo = P_SpawnMobj(newx, newy, player->mo->z, MT_FAKESHIELD);
+			mo->scale = FRACUNIT/2;
 			mo->threshold = 10;
 			if (mo)
 				P_SetTarget(&mo->target, player->mo);
@@ -2483,7 +2483,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 				S_ChangeMusicInternal("mega", true);
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_mega);
-			//K_PlayTauntSound(player->mo);
+			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_growshrinktimer] = bonustime;
 			S_StartSound(player->mo, sfx_mario3);
 			player->pflags |= PF_ATTACKDOWN;

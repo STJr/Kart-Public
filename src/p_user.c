@@ -855,10 +855,10 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 	// Discourages players from intentionally hurting themselves to avoid being tagged.
 	if (gametype == GT_TAG && (!(player->pflags & PF_TAGGED) && !(player->pflags & PF_TAGIT)))
 	{
-		if (player->score >= 50)
-			player->score -= 50;
-		else
-			player->score = 0;
+		//if (player->score >= 50)
+		//	player->score -= 50;
+		//else
+		//	player->score = 0;
 	}
 
 	P_ResetPlayer(player);
@@ -1005,6 +1005,7 @@ void P_DoSuperTransformation(player_t *player, boolean giverings)
 // Adds to the player's score
 void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
+	return; // SRB2kart - no score.
 	UINT32 oldscore;
 
 	if (player->bot)
@@ -8246,6 +8247,36 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->angle = angle;
 	}
 
+	// SRB2kart - Camera flipper
+	if (!objectplacing && displayplayer == consoleplayer)
+	{
+		if (player->kartstuff[k_camspin] == 1)
+		{
+			if (thiscam == &camera)
+			{
+				CV_SetValue(&cv_cam_rotate, camrotate + 180);
+			}
+			else
+			{
+				CV_SetValue(&cv_cam2_rotate, camrotate + 180);
+			}
+			player->kartstuff[k_camspin] = 2;
+		}
+		if (player->kartstuff[k_camspin] == -1)
+		{
+			if (thiscam == &camera)
+			{
+				CV_SetValue(&cv_cam_rotate, camrotate - 180);
+			}
+			else
+			{
+				CV_SetValue(&cv_cam2_rotate, camrotate - 180);
+			}
+			player->kartstuff[k_camspin] = 0;
+		}
+	}
+
+	/* // SRB2kart - camera controls are disabled... for now.
 	if (!objectplacing && !(twodlevel || (mo->flags2 & MF2_TWOD)) && !(player->pflags & PF_NIGHTSMODE) && displayplayer == consoleplayer)
 	{
 #ifdef REDSANALOG
@@ -8288,6 +8319,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			}
 		}
 	}
+	*/
 
 	// sets ideal cam pos
 	if (twodlevel || (mo->flags2 & MF2_TWOD))

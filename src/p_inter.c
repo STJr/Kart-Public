@@ -2101,11 +2101,11 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			G_StopMetalRecording();
 		if (gametype == GT_MATCH && cv_match_scoring.value == 0 // note, no team match suicide penalty
 			&& ((target == source) || (source == NULL && inflictor == NULL) || (source && !source->player)))
-		{ // Suicide penalty
-			if (target->player->score >= 50)
-				target->player->score -= 50;
-			else
-				target->player->score = 0;
+		{ // Suicide penalty - Not in Kart
+			//if (target->player->score >= 50)
+			//	target->player->score -= 50;
+			//else
+			//	target->player->score = 0;
 		}
 
 		target->flags2 &= ~MF2_DONTDRAW;
@@ -2689,13 +2689,14 @@ static inline boolean P_PlayerHitsPlayer(mobj_t *target, mobj_t *inflictor, mobj
 {
 	player_t *player = target->player;
 
-	// You can't kill yourself, idiot...
-	if (source == target)
-		return false;
+	// You can't kill yourself, idiot... // Unless it's Mario kart. Which it is. In this mod. All the time.
+	//if (source == target)
+	//	return false;
 
 	// In COOP/RACE/CHAOS, you can't hurt other players unless cv_friendlyfire is on
-	if (!cv_friendlyfire.value && (G_PlatformGametype()))
-		return false;
+	// ...But in SRB2kart, you can!
+	//if (!cv_friendlyfire.value && (G_PlatformGametype()))
+	//	return false;
 
 	// Tag handling
 	if (G_TagGametype())

@@ -585,7 +585,7 @@ typedef enum sprite
 	SPR_DSMO, // Drift Smoke
 
 	// Kart Items
-	SPR_FITE, // Fake Item box
+	SPR_FITM, // Fake Item box
 	SPR_DFAK, // Dead Fake Item
  	SPR_BANA, // Banana Peel
 	SPR_DBAN, // Dead Banana Peel

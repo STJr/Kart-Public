@@ -955,7 +955,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	static INT32 turnheld; // for accelerative turning
 	static boolean keyboard_look; // true if lookup/down using keyboard
-	static boolean resetdown; // don't cam reset every frame
 
 	G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
 
@@ -1065,9 +1064,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	// But forward/backward IS used for aiming.
 	axis = JoyAxis(AXISMOVE);
-	if (PLAYER1INPUTDOWN(gc_aimforward) || (gamepadjoystickmove && axis < 0))
+	if (PLAYER1INPUTDOWN(gc_aimforward) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
 		cmd->buttons |= BT_FORWARD;
-	if (PLAYER1INPUTDOWN(gc_aimbackward) || (gamepadjoystickmove && axis > 0))
+	if (PLAYER1INPUTDOWN(gc_aimbackward) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
 		cmd->buttons |= BT_BACKWARD;
 	/*
 	if (PLAYER1INPUTDOWN(gc_forward) || (gamepadjoystickmove && axis < 0))
@@ -1150,12 +1149,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	if (PLAYER1INPUTDOWN(gc_lookback))
 	{
-		if (camera.chase && !resetdown)
-			P_ResetCamera(&players[displayplayer], &camera); // TODO: Replace with a camflip
-		resetdown = true;
+		if (camera.chase && !player->kartstuff[k_camspin])
+			player->kartstuff[k_camspin] = 1;
 	}
-	else
-		resetdown = false;
+	else if (player->kartstuff[k_camspin] > 0)
+		player->kartstuff[k_camspin] = -1;
 
 	// jump button
 	if (PLAYER1INPUTDOWN(gc_jump))
@@ -2021,9 +2019,9 @@ void G_Ticker(boolean run)
 			// SRB2kart
 			// Save the dir the player is holding
 			//  to allow items to be thrown forward or backward.
-			if (cmd->forwardmove > 0)
+			if (cmd->buttons & BT_FORWARD)
 					players[i].kartstuff[k_throwdir] = 1;
-			else if (cmd->forwardmove < 0)
+			else if (cmd->buttons & BT_BACKWARD)
 					players[i].kartstuff[k_throwdir] = -1;
 			else
 					players[i].kartstuff[k_throwdir] = 0;
