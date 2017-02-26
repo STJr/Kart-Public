@@ -479,7 +479,7 @@ static int WINAPI HandledWinMain(HINSTANCE hInstance,
 
 	// open a dummy window, both OpenGL and DirectX need one.
 	if ((hWndMain = OpenMainWindow(hInstance,nCmdShow,
-				va("SRB2 "VERSIONSTRING))) == (HANDLE)-1)
+				va("SRB2Kart "VERSIONSTRING))) == (HANDLE)-1)
 	{
 		tlErrorMessage(TEXT("Couldn't open window"));
 		return FALSE;

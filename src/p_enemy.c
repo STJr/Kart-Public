@@ -8243,6 +8243,7 @@ void A_RedShellChase(mobj_t *actor)
 void A_BobombExplode(mobj_t *actor)
 {
 	mobj_t *mo2;
+	mobj_t *mo3;
 	thinker_t *th;
 	INT32 d;
 	INT32 locvar1 = var1;
@@ -8253,7 +8254,9 @@ void A_BobombExplode(mobj_t *actor)
 	for (d = 0; d < 16; d++)
 		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false); // 32 <-> 64
 
-	S_StartSound(actor, sfx_prloop);
+	mo3 = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
+
+	//S_StartSound(actor, sfx_prloop);
 
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
@@ -8262,7 +8265,7 @@ void A_BobombExplode(mobj_t *actor)
 
 		mo2 = (mobj_t *)th;
 
-		if (mo2 == actor) // Don't explode yourself! Endless loop!
+		if (mo2 == actor || mo2->type == MT_BOMBEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)
@@ -8276,8 +8279,6 @@ void A_BobombExplode(mobj_t *actor)
 				K_ExplodePlayer(mo2->player, actor->target);
 			else
 				P_DamageMobj(mo2, actor, actor->target, 1);
-
-
 
 			continue;
 		}

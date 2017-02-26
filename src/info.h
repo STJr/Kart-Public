@@ -3781,6 +3781,7 @@ typedef enum mobj_type
 	MT_BOMBSHIELD, // Bob-omb stuff
 	MT_BOMBITEM,
 	MT_BOMBEXPLOSION,
+	MT_BOMBEXPLOSIONSOUND,
 
 	MT_BLUELIGHTNING, // Lightning stuff
 	MT_BLUEEXPLOSION,

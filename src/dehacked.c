@@ -3617,7 +3617,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				{
 					INT32 ver = searchvalue(strtok(NULL, "\n"));
 					if (ver != PATCHVERSION)
-						deh_warning("Patch is for SRB2 version %d,\nonly version %d is supported", ver, PATCHVERSION);
+						deh_warning("Patch is for SRB2Kart version %d,\nonly version %d is supported", ver, PATCHVERSION);
 					//DEH_WriteUndoline(word, va("%d", ver), UNDO_NONE);
 				}
 				// Clear all data in certain locations (mostly for unlocks)

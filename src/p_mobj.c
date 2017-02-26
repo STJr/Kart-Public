@@ -1702,12 +1702,57 @@ void P_XYMovement(mobj_t *mo)
 			if (player->bot)
 				B_MoveBlocked(player);
 		}
+		//{ SRB2kart - Red Shell
+		if (mo->type == MT_REDITEM || mo->type == MT_REDITEMDUD)
+		{
+			if (mo->health == 1)
+			{
+				// This Item Damage
+				S_StartSound(mo, mo->info->deathsound);
+				P_KillMobj(mo, NULL, NULL);
 
-		if (mo->flags & MF_BOUNCE)
+				P_SetObjectMomZ(mo, 8*FRACUNIT, false);
+				P_InstaThrust(mo, R_PointToAngle2(mo->x, mo->y, mo->x + xmove, mo->y + ymove)+ANGLE_90, 16*FRACUNIT);
+			}
+		}
+		//}
+		else if (mo->flags & MF_BOUNCE)
 		{
 			P_BounceMove(mo);
 			xmove = ymove = 0;
-			S_StartSound(mo, mo->info->activesound);
+			//S_StartSound(mo, mo->info->activesound);
+			//{ SRB2kart - Shell and fireball
+			if (mo->type == MT_GREENITEM)
+			{
+				if (mo->health > 1)
+				{
+				S_StartSound(mo, mo->info->attacksound);
+				mo->health--;
+				mo->threshold = 0;
+				}
+				else if (mo->health == 1)
+				{
+					// This Item Damage
+					S_StartSound(mo, mo->info->deathsound);
+					P_KillMobj(mo, NULL, NULL);
+
+					P_SetObjectMomZ(mo, 8*FRACUNIT, false);
+					P_InstaThrust(mo, R_PointToAngle2(mo->x, mo->y, mo->x + xmove, mo->y + ymove)+ANGLE_90, 16*FRACUNIT);
+				}
+			}
+			if (mo->type == MT_FIREBALL)
+			{
+				S_StartSound(mo, mo->info->attacksound);
+				mo->health--;
+				if (mo->health <= 0)
+				{
+					S_StartSound(mo, mo->info->deathsound);
+					P_SetMobjState(mo, mo->info->deathstate);
+				}
+			}
+			else
+				S_StartSound(mo, mo->info->activesound);
+			//}
 
 			// Bounce ring algorithm
 			if (mo->type == MT_THROWNBOUNCE)
@@ -1913,8 +1958,8 @@ void P_XYMovement(mobj_t *mo)
 #endif
 
 	//{ SRB2kart stuff
-	//if (mo->type == MT_SHELLITEM || mo->type == MT_REDSHELLITEM2 || (mo->type == MT_REDSHELLITEM && !mo->tracer))
-	//	return;
+	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || (mo->type == MT_REDITEM && !mo->tracer))
+		return;
 
 	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/4)
 		return;
@@ -6450,7 +6495,7 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						zfixds = 56;
 
-					INT32 DIST = FixedDiv(zfixds, mobj->target->scale);
+					INT32 DIST = FixedMul(zfixds, mobj->target->scale);
 					INT32 HEIGHT;
 					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
 
@@ -6870,7 +6915,17 @@ void P_MobjThinker(mobj_t *mobj)
 				P_RemoveMobj(mobj);
 			break;
 		case MT_BOMBITEM:
-			P_SetMobjState(mobj, mobj->info->deathstate);
+		case MT_BLUEEXPLOSION:
+			if (mobj->health > -100)
+			{
+				P_SetMobjState(mobj, mobj->info->deathstate);
+				mobj->health = -100;
+			}
+			else
+				P_RemoveMobj(mobj);
+			break;
+		case MT_BOMBEXPLOSIONSOUND:
+			P_RemoveMobj(mobj);
 			break;
 		//}
 		default:
@@ -7432,6 +7487,9 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
+		case MT_BLUEEXPLOSION:
+			mobj->health--;
+			break;
 		case MT_BOMBEXPLOSION:
 			if ((mobj->z < mobj->floorz - mobj->height) || (mobj->z > mobj->ceilingz + mobj->height))
 			{
@@ -7455,6 +7513,11 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->z += mobj->momz;
 			P_SetThingPosition(mobj);
 			return;
+		case MT_BOMBEXPLOSIONSOUND:
+			if (mobj->health == 100)
+				S_StartSound(mobj, sfx_prloop);
+			mobj->health--;
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);

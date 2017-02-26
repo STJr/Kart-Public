@@ -74,7 +74,7 @@ extern FILE             *gllogstream;
 
 #ifndef DRIVER_STRING
 //    #define USE_PALETTED_TEXTURE
-#define DRIVER_STRING "HWRAPI Init(): SRB2 OpenGL renderer" // Tails
+#define DRIVER_STRING "HWRAPI Init(): SRB2Kart OpenGL renderer" // Tails
 #endif
 
 // ==========================================================================

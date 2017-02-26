@@ -683,7 +683,7 @@ static void I_StartupConsole(void)
 
 	if (gotConsole)
 	{
-		SetConsoleTitleA("SRB2 Console");
+		SetConsoleTitleA("SRB2Kart Console");
 		consolevent = SDL_TRUE;
 	}
 
@@ -1659,7 +1659,7 @@ void I_UpdateMumble(const mobj_t *mobj, const listener_t listener)
 		return;
 
 	if(mumble->uiVersion != 2) {
-		wcsncpy(mumble->name, L"SRB2 "VERSIONSTRINGW, 256);
+		wcsncpy(mumble->name, L"SRB2Kart "VERSIONSTRINGW, 256);
 		wcsncpy(mumble->description, L"Sonic Robo Blast 2 with integrated Mumble Link support.", 2048);
 		mumble->uiVersion = 2;
 	}
@@ -2374,7 +2374,7 @@ void I_Error(const char *error, ...)
 			// which should fail gracefully if it can't put a message box up
 			// on the target system
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-				"SRB2 "VERSIONSTRING" Recursive Error",
+				"SRB2Kart "VERSIONSTRING" Recursive Error",
 				buffer, NULL);
 
 			W_Shutdown();
@@ -2427,7 +2427,7 @@ void I_Error(const char *error, ...)
 	// which should fail gracefully if it can't put a message box up
 	// on the target system
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-		"SRB2 "VERSIONSTRING" Error",
+		"SRB2Kart "VERSIONSTRING" Error",
 		buffer, NULL);
 	// Note that SDL_ShowSimpleMessageBox does *not* require SDL to be
 	// initialized at the time, so calling it after SDL_Quit() is

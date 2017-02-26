@@ -23,7 +23,7 @@
 // tell r_opengl.cpp to compile for ATI Rage Pro OpenGL driver
 //#define ATI_RAGE_PRO_COMPATIBILITY
 
-#define DRIVER_STRING "HWRAPI Init(): SRB2 MiniGL renderer"
+#define DRIVER_STRING "HWRAPI Init(): SRB2Kart MiniGL renderer"
 
 // Include this at end
 #include "../r_opengl/r_opengl.c"

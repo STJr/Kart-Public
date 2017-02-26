@@ -532,7 +532,7 @@ void M_SaveConfig(const char *filename)
 	}
 
 	// header message
-	fprintf(f, "// SRB2 configuration file.\n");
+	fprintf(f, "// SRB2Kart configuration file.\n");
 
 	// FIXME: save key aliases if ever implemented..
 
@@ -652,8 +652,8 @@ static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png
 	char titletxt[] = "Sonic Robo Blast 2 " VERSIONSTRING;
 	png_charp authortxt = I_GetUserName();
 	png_charp playertxt =  cv_playername.zstring;
-	char desctxt[] = "SRB2 Screenshot";
-	char Movietxt[] = "SRB2 Movie";
+	char desctxt[] = "SRB2Kart Screenshot";
+	char Movietxt[] = "SRB2Kart Movie";
 	size_t i;
 	char interfacetxt[] =
 #ifdef HAVE_SDL

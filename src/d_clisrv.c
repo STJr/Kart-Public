@@ -1783,7 +1783,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 					"modified the game in some way, and\n"
 					"your file list does not match\n"
 					"the server's file list.\n"
-					"Please restart SRB2 before connecting.\n\n"
+					"Please restart SRB2Kart before connecting.\n\n"
 					"Press ESC\n"
 				), NULL, MM_NOTHING);
 				return false;

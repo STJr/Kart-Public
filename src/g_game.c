@@ -3188,7 +3188,7 @@ void G_LoadGameData(void)
 	// Version check
 	if (READUINT32(save_p) != 0xFCAFE211)
 	{
-		const char *gdfolder = "the SRB2 folder";
+		const char *gdfolder = "the SRB2Kart folder";
 		if (strcmp(srb2home,"."))
 			gdfolder = srb2home;
 
@@ -3298,7 +3298,7 @@ void G_LoadGameData(void)
 	// Landing point for corrupt gamedata
 	datacorrupt:
 	{
-		const char *gdfolder = "the SRB2 folder";
+		const char *gdfolder = "the SRB2Kart folder";
 		if (strcmp(srb2home,"."))
 			gdfolder = srb2home;
 
@@ -5106,7 +5106,7 @@ void G_DoPlayDemo(char *defdemoname)
 	demoplayback = true;
 	if (memcmp(demo_p, DEMOHEADER, 12))
 	{
-		snprintf(msg, 1024, M_GetText("%s is not a SRB2 replay file.\n"), pdemoname);
+		snprintf(msg, 1024, M_GetText("%s is not a SRB2Kart replay file.\n"), pdemoname);
 		CONS_Alert(CONS_ERROR, "%s", msg);
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
@@ -5342,7 +5342,7 @@ void G_AddGhost(char *defdemoname)
 	// read demo header
 	if (memcmp(p, DEMOHEADER, 12))
 	{
-		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Not a SRB2 replay.\n"), pdemoname);
+		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Not a SRB2Kart replay.\n"), pdemoname);
 		Z_Free(pdemoname);
 		Z_Free(buffer);
 		return;

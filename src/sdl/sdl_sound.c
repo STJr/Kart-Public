@@ -1942,7 +1942,7 @@ boolean I_StartDigSong(const char *musicname, boolean looping)
 		loopstartDig = 0.0l;
 #else
 	if (looping && strcmp(data, "OggS")  == 0)
-		I_OutputMsg("I_StartDigSong: SRB2 was not compiled with looping music support(no Mix_FadeInMusicPos)\n");
+		I_OutputMsg("I_StartDigSong: SRB2Kart was not compiled with looping music support(no Mix_FadeInMusicPos)\n");
 #endif
 
 	if (!LoadSong(data, lumplength, 1))

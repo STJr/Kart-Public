@@ -2618,14 +2618,14 @@ state_t states[NUMSTATES] =
 	{SPR_BANA, 0,  -1, {NULL}, 0, 0, S_NULL}, // S_BANANAITEM
 	{SPR_DBAN, 0, 175, {NULL}, 0, 0, S_NULL}, // S_DEADBANANA
 
-	{SPR_GSHE, 0, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD2},  // S_TRIPLEGREENSHIELD1
-	{SPR_GSHE, 1, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD3},  // S_TRIPLEGREENSHIELD2
-	{SPR_GSHE, 2, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD4},  // S_TRIPLEGREENSHIELD3
-	{SPR_GSHE, 3, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD5},  // S_TRIPLEGREENSHIELD4
-	{SPR_GSHE, 4, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD6},  // S_TRIPLEGREENSHIELD5
-	{SPR_GSHE, 5, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD7},  // S_TRIPLEGREENSHIELD6
-	{SPR_GSHE, 6, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD8},  // S_TRIPLEGREENSHIELD7
-	{SPR_GSHE, 7, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEGREENSHIELD1},  // S_TRIPLEGREENSHIELD8
+	{SPR_GSHE, 0, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD2},               // S_TRIPLEGREENSHIELD1
+	{SPR_GSHE, 1, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD3},               // S_TRIPLEGREENSHIELD2
+	{SPR_GSHE, 2, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD4},               // S_TRIPLEGREENSHIELD3
+	{SPR_GSHE, 3, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD5},               // S_TRIPLEGREENSHIELD4
+	{SPR_GSHE, 4, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD6},               // S_TRIPLEGREENSHIELD5
+	{SPR_GSHE, 5, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD7},               // S_TRIPLEGREENSHIELD6
+	{SPR_GSHE, 6, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD8},               // S_TRIPLEGREENSHIELD7
+	{SPR_GSHE, 7, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD1},               // S_TRIPLEGREENSHIELD8
 	{SPR_GSHE, 0, 2, {NULL}, 0, 0, S_GREENSHIELD2},                     // S_GREENSHIELD1
 	{SPR_GSHE, 1, 2, {NULL}, 0, 0, S_GREENSHIELD3},                     // S_GREENSHIELD2
 	{SPR_GSHE, 2, 2, {NULL}, 0, 0, S_GREENSHIELD4},                     // S_GREENSHIELD3
@@ -2653,14 +2653,14 @@ state_t states[NUMSTATES] =
 	{SPR_GSTR, 8, 1, {NULL}, 0, 0, S_NULL},                             // S_GREENTRAIL9
 	{SPR_DGSH, 0, 175, {NULL}, 0, 0, S_NULL},                           // S_DEADGREEN
 
-	{SPR_RSHE, 0, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD2},              // S_TRIPLEREDSHIELD1
-	{SPR_RSHE, 1, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD3},              // S_TRIPLEREDSHIELD2
-	{SPR_RSHE, 2, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD4},              // S_TRIPLEREDSHIELD3
-	{SPR_RSHE, 3, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD5},              // S_TRIPLEREDSHIELD4
-	{SPR_RSHE, 4, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD6},              // S_TRIPLEREDSHIELD5
-	{SPR_RSHE, 5, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD7},              // S_TRIPLEREDSHIELD6
-	{SPR_RSHE, 6, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD8},              // S_TRIPLEREDSHIELD7
-	{SPR_RSHE, 7, 2, {A_RotateSpikeBall}, 0, 0, S_TRIPLEREDSHIELD1},              // S_TRIPLEREDSHIELD8
+	{SPR_RSHE, 0, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD2},                           // S_TRIPLEREDSHIELD1
+	{SPR_RSHE, 1, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD3},                           // S_TRIPLEREDSHIELD2
+	{SPR_RSHE, 2, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD4},                           // S_TRIPLEREDSHIELD3
+	{SPR_RSHE, 3, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD5},                           // S_TRIPLEREDSHIELD4
+	{SPR_RSHE, 4, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD6},                           // S_TRIPLEREDSHIELD5
+	{SPR_RSHE, 5, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD7},                           // S_TRIPLEREDSHIELD6
+	{SPR_RSHE, 6, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD8},                           // S_TRIPLEREDSHIELD7
+	{SPR_RSHE, 7, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD1},                           // S_TRIPLEREDSHIELD8
 	{SPR_RSHE, 0, 2, {NULL}, 0, 0, S_REDSHIELD2},                                 // S_REDSHIELD1
 	{SPR_RSHE, 1, 2, {NULL}, 0, 0, S_REDSHIELD3},                                 // S_REDSHIELD2
 	{SPR_RSHE, 2, 2, {NULL}, 0, 0, S_REDSHIELD4},                                 // S_REDSHIELD3
@@ -2699,12 +2699,12 @@ state_t states[NUMSTATES] =
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
 	{SPR_BLIG, 2,  2, {NULL}, 0, 0, S_BLUELIGHTNING4},             // S_BLUELIGHTNING3
 	{SPR_BLIG, 3,  2, {NULL}, 0, 0, S_NULL},                       // S_BLUELIGHTNING4
-	{SPR_NULL, 0,  1, {A_BobombExplode}, MT_BLUEEXPLOSION, 0, S_NULL}, // S_BLUEEXPLODE
+	{SPR_BOMB, 0,  1, {A_BobombExplode}, MT_BLUEEXPLOSION, 0, S_NULL}, // S_BLUEEXPLODE
 
 	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_LIGHTNING2}, // S_LIGHTNING1
-	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_LIGHTNING3}, // S_LIGHTNING2
-	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_LIGHTNING4}, // S_LIGHTNING3
-	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_NULL},       // S_LIGHTNING4
+	{SPR_LIGH, 1,  2, {NULL}, 0, 0, S_LIGHTNING3}, // S_LIGHTNING2
+	{SPR_LIGH, 2,  2, {NULL}, 0, 0, S_LIGHTNING4}, // S_LIGHTNING3
+	{SPR_LIGH, 3,  2, {NULL}, 0, 0, S_NULL},       // S_LIGHTNING4
 
 	{SPR_SINK, 0,  4, {A_SmokeTrailer}, MT_SINKTRAIL, 0, S_SINK}, // S_SINK
 	{SPR_SITR, 0,  1, {NULL}, 0, 0, S_SINKTRAIL2},                       // S_SINKTRAIL1
@@ -14841,6 +14841,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
+	{           // MT_BOMBEXPLOSIONSOUND
+		-1,             // doomednum
+		S_INVISIBLE,    // spawnstate
+		100,            // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		16*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY, // flags
+		S_NULL          // raisestate
+	},
+
 	{           // MT_BLUELIGHTNING
 		-1,             // doomednum
 		S_BLUELIGHTNING1, // spawnstate
@@ -14870,8 +14897,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_BLUEEXPLOSION
 		-1,             // doomednum
-		S_BLUEEXPLODE,  // spawnstate
-		1000,           // spawnhealth
+		S_INVISIBLE,    // spawnstate
+		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
 		8,              // reactiontime
@@ -14881,17 +14908,17 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_NULL,         // deathstate
+		S_BOMBEXPLODE,  // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
-		8,              // speed
-		64*FRACUNIT,    // radius
-		64*FRACUNIT,    // height
+		0,              // speed
+		16*FRACUNIT,    // radius
+		24*FRACUNIT,    // height
 		0,              // display offset
-		16,             // mass
-		0,              // damage
+		100,            // mass
+		1,              // damage
 		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY|MF_RUNSPAWNFUNC, // flags
+		MF_BOUNCE|MF_FLOAT|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE, // flags
 		S_NULL          // raisestate
 	},
 

@@ -3125,7 +3125,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				K_SpinPlayer(player, source);
 
 				// Start shrinking!
-				player->mo->destscale = 70;
+				player->mo->destscale = 6*FRACUNIT/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
 			// Mega Mushroom? Let's take that away.

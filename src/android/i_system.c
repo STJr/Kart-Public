@@ -106,7 +106,7 @@ ticcmd_t *I_BaseTiccmd2(void)
 
 void I_Quit(void)
 {
-  LOGD("SRB2 quitting!");
+  LOGD("SRB2Kart quitting!");
   exit(0);
 }
 

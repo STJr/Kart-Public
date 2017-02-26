@@ -313,13 +313,13 @@ static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 	{  //1st //
 		{  0 }, // Magnet
 		{  0 }, // Boo
-		{  0 }, // Mushroom
+		{ 40 }, // Mushroom
 		{  0 }, // Triple Mushroom
 		{  0 }, // Mega Mushroom
 		{  0 }, // Gold Mushroom
 		{  0 }, // Star
 		{  0 }, // Triple Banana
-		{ 40 }, // Fake Item
+		{  0 }, // Fake Item
 		{  0 }, // Banana
 		{  0 }, // Green Shell
 		{  0 }, // Red Shell
@@ -844,7 +844,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_triplegreenshell.value)					K_KartSetItemResult(ppos, 13);	// Triple Green Shell
 		if (cv_bobomb.value)							K_KartSetItemResult(ppos, 14);	// Bob-omb
 		if (cv_blueshell.value && pexiting == 0)		K_KartSetItemResult(ppos, 15);	// Blue Shell
-		if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
+		//if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
 
@@ -1097,12 +1097,7 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 
 	if (player->kartstuff[k_growshrinktimer] < -1 && speedonly)
 	{												// Shrink
-		boostvalue +=  6; //  6/8 speed (*0.750)
-		numboosts++;
-	}
-	if (player->kartstuff[k_squishedtimer] > 0 && speedonly)
-	{												// Squished
-		boostvalue +=  7; //  7/8 speed (*0.875)
+		boostvalue += 16; // This is basically speed x2 due to friction and being smaller. Really translates to about 80%.
 		numboosts++;
 	}
 	if (player->kartstuff[k_growshrinktimer] > 1
@@ -1759,24 +1754,35 @@ void K_DoMushroom(player_t *player, boolean doPFlag)
 
 void K_DoLightning(player_t *player, boolean bluelightning)
 {
+	mobj_t *mo;
+	thinker_t *think;
 	INT32 i;
 	S_StartSound(player->mo, sfx_bkpoof); // Sound the BANG!
-	K_PlayTauntSound(player->mo);
 	player->pflags |= PF_ATTACKDOWN;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i])
 			P_FlashPal(&players[i], PAL_NUKE, 10);
+	}
 
-		if (bluelightning)
-			P_DamageMobj(players[i].mo, player->mo, player->mo, bluelightning ? 65 : 64);
+	for (think = thinkercap.next; think != &thinkercap; think = think->next)
+	{
+		if (think->function.acp1 != (actionf_p1)P_MobjThinker)
+			continue; // not a mobj thinker
+
+		mo = (mobj_t *)think;
+
+		if (mo->type == MT_PLAYER)
+			P_DamageMobj(mo, player->mo, player->mo, bluelightning ? 65 : 64);
+		else
+			continue;
 	}
 
 	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
 		return;
 
-	K_PlayTauntSound(player->mo);
+	//K_PlayTauntSound(player->mo);
 	player->kartstuff[k_sounds] = 50;
 }
 

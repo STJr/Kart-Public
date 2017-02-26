@@ -1314,7 +1314,7 @@ void CONS_Error(const char *msg)
 #ifdef RPC_NO_WINDOWS_H
 	if (!graphics_started)
 	{
-		MessageBoxA(vid.WndParent, msg, "SRB2 Warning", MB_OK);
+		MessageBoxA(vid.WndParent, msg, "SRB2Kart Warning", MB_OK);
 		return;
 	}
 #endif
