@@ -675,8 +675,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	switch (getitem)
 	{
 		case  1:	// Magnet
-			player->kartstuff[k_mushroom] = 1; // TEMPORARY COVER UNTIL OTHER ITEMS ARE WORKING
-			//player->kartstuff[k_magnet] = 1;
+			player->kartstuff[k_magnet] = 1;
 			break;
 		case  2:	// Boo
 			player->kartstuff[k_boo] = 1;
