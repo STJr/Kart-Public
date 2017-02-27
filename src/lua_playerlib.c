@@ -128,6 +128,8 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->ringweapons);
 	else if (fastcmp(field,"powers"))
 		LUA_PushUserdata(L, plr->powers, META_POWERS);
+	else if (fastcmp(field,"kartstuff"))
+		LUA_PushUserdata(L, plr->kartstuff, META_KARTSTUFF);
 	else if (fastcmp(field,"pflags"))
 		lua_pushinteger(L, plr->pflags);
 	else if (fastcmp(field,"panim"))

@@ -199,7 +199,7 @@ UINT16 extralifetics = 4*TICRATE;
 // SRB2kart
 INT32 bootime = 7*TICRATE;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
-INT32 bonustime = 10*TICRATE;
+INT32 bonustime = 8*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 
@@ -2119,6 +2119,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p = &players[player];
 
 	memset(p->powers, 0, sizeof (p->powers));
+	memset(p->kartstuff, 0, sizeof (p->kartstuff)); // SRB2kart
 	p->ringweapons = 0;
 
 	p->mo->flags2 &= ~MF2_SHADOW; // cancel invisibility
