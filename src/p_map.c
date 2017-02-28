@@ -365,7 +365,7 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 			|| (gametype == GT_MATCH)
 			|| (G_GametypeHasTeams() && tails->ctfteam != sonic->ctfteam))
 			sonic->pflags &= ~PF_CARRIED; */
-		if (tails->spectator || sonic->spectator)
+		if (tails->spectator || sonic->spectator || gametype == GT_RACE) // SRB2kart
 			sonic->pflags &= ~PF_CARRIED;
 		else
 		{

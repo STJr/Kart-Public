@@ -788,12 +788,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
-	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
-	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
-	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if (!(player->kartstuff[k_itemroulette] > (TICRATE*3)-1)) // || ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] > ((TICRATE*2)/3)-1)))
-		return;
-
 	// Initializes existing values
 	basechance = chance = prevchance = 0;
 	numchoices = pingame = pexiting = 0;
@@ -812,6 +806,15 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (players[i].exiting)
 			pexiting++;
 	}
+
+	INT32 roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+
+	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
+	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
+	// Finally, if you get past this check, now you can actually start calculating what item you get.
+	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3) 
+		|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
+		return;
 
 	if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
@@ -1887,10 +1890,10 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 	}
 
 	// Drifting: left or right?
-	if (player->kartstuff[k_turndir] == 1 && player->speed > 10 && player->kartstuff[k_jmp] == 1
+	if (player->kartstuff[k_turndir] == 1 && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
 		&& player->kartstuff[k_drift] < 3 && player->kartstuff[k_drift] > -1) // && player->kartstuff[k_drift] != 1)
 		player->kartstuff[k_drift] = 1;
-	else if (player->kartstuff[k_turndir] == -1 && player->speed > 10 && player->kartstuff[k_jmp] == 1
+	else if (player->kartstuff[k_turndir] == -1 && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
 		&& player->kartstuff[k_drift] > -3 && player->kartstuff[k_drift] < 1) // && player->kartstuff[k_drift] != -1)
 		player->kartstuff[k_drift] = -1;
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
@@ -1965,7 +1968,7 @@ void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 
 	// Stop drifting
 	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
-	|| player->speed < 10) // you're too slow!
+		|| player->speed < (10<<16)) // you're too slow!
 	{
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
@@ -2512,8 +2515,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 
 		// Mushroom Boost
 		if (((player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0)
-			|| (player->kartstuff[k_mushroomtimer] > 0 && ATTACK_IS_DOWN 
-			&& player->kartstuff[k_goldshroomtimer] > 1 && NO_BOO)) && onground)
+			|| (player->kartstuff[k_mushroomtimer] > 0 && ATTACK_IS_DOWN && NO_BOO)) && onground)
 		{
 			cmd->forwardmove = 1;
 			if (player->kartstuff[k_drift] >= 1)

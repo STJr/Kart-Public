@@ -1958,7 +1958,7 @@ void P_XYMovement(mobj_t *mo)
 #endif
 
 	//{ SRB2kart stuff
-	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || (mo->type == MT_REDITEM && !mo->tracer))
+	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || mo->type == MT_REDITEM) //(mo->type == MT_REDITEM && !mo->tracer))
 		return;
 
 	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/4)
