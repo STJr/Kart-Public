@@ -1052,12 +1052,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	*/
 
 	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
-	if (PLAYER1INPUTDOWN(gc_accelerate))
+	if (PLAYER1INPUTDOWN(gc_accelerate) || player->kartstuff[k_mushroomtimer])
 	{
 		cmd->buttons |= BT_ACCELERATE;
 		forward = forwardmove[speed];
 	}
-	if (PLAYER1INPUTDOWN(gc_brake))
+	if (PLAYER1INPUTDOWN(gc_brake) && !player->kartstuff[k_mushroomtimer])
 	{
 		cmd->buttons |= BT_BRAKE;
 		forward -= forwardmove[speed];

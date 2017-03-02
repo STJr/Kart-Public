@@ -1036,54 +1036,39 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	K_KartItemRoulette(player, cmd); // Roulette Code
 
-	// Looping and stopping of the horrible horrible star SFX ~Sryder
-	/*
-	if (player->mo->health > 0 && player->mo->player->kartstuff[k_startimer])// If you have invincibility
+	// Stopping of the horrible star SFX
+	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_startimer] <= 0 
+		|| player->mo->player->kartstuff[k_growshrinktimer] > 0) 	// If you don't have invincibility (or mega is active too)
 	{
-		if (!P_IsLocalPlayer(player)) // If it isn't the current player
-		{
-			if (!S_SoundPlaying(NULL, sfx_star)) // and it isn't still playing
-				S_StartSound(player->mo, sfx_star); // play it again
-		}
-	}
-	else if (player->mo->health <= 0 || player->mo->player->kartstuff[k_startimer] <= 0 || player->mo->player->kartstuff[k_growshrinktimer] > 0) // If you don't have invincibility (or mega is active too)
-	{
-		if (S_SoundPlaying(player->mo, sfx_star)) // But the sound is playing
-			S_StopSoundByID(player->mo, sfx_star); // Stop it
+		if (S_SoundPlaying(player->mo, sfx_star)) 					// But the sound is playing
+			S_StopSoundByID(player->mo, sfx_star); 					// Stop it
 	}
 
-	// And now the same for the mega mushroom SFX ~Sryder
-	if (player->mo->health > 0 && player->mo->player->kartstuff[k_growshrinktimer] > 0) // If you are big
-	{
-		if (!P_IsLocalPlayer(player)) // If it isn't the current player
-		{
-			if (!S_SoundPlaying(NULL, sfx_mega)) // and it isn't still playing
-				S_StartSound(player->mo, sfx_mega); // play it again
-		}
-	}
-	else // If you aren't big
+	// And the same for the mega mushroom SFX
+	if (!(player->mo->health > 0 && player->mo->player->kartstuff[k_growshrinktimer] > 0)) // If you aren't big
 	{
 		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
 			S_StopSoundByID(player->mo, sfx_mega); // Stop it
 	}
-	*/
 }
 
 void K_PlayTauntSound(mobj_t *source)
 {
-	return; // Doesn't work yet...
-	INT32 prandom;
-
-	prandom = P_RandomFixed();
-
-	if (prandom <= 63)
-		S_StartSound(source, sfx_taunt1);
-	else if (prandom <= 127)
-		S_StartSound(source, sfx_taunt2);
-	else if (prandom <= 191)
-		S_StartSound(source, sfx_taunt3);
-	else
-		S_StartSound(source, sfx_taunt4);
+	switch (P_RandomFixed() % 4)
+	{
+		case 1:
+			S_StartSound(source, sfx_taunt1);
+			return;
+		case 2:
+			S_StartSound(source, sfx_taunt2);
+			return;
+		case 3:
+			S_StartSound(source, sfx_taunt3);
+			return;
+		case 4:
+			S_StartSound(source, sfx_taunt4);
+			return;
+	}
 }
 
 fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
@@ -1115,7 +1100,7 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 		boostvalue += 10; // 10/8 speed (*1.250)
 		numboosts++;
 	}
-	if (player->kartstuff[k_startimer] && speedonly)
+	if (player->kartstuff[k_startimer])
 	{												// Star
 		boostvalue += 11; // 11/8 speed (*1.375)
 		numboosts++;
@@ -1126,9 +1111,15 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 		boostvalue += 12; // 12/8 speed (*1.500)
 		numboosts++;
 	}
-	if (player->kartstuff[k_mushroomtimer] && speedonly)
+	if ((player->kartstuff[k_mushroomtimer] && speedonly)
+		|| (player->kartstuff[k_mushroomtimer] > mushroomtime/4))
 	{												// Mushroom
-		boostvalue += 12; // 12/8 speed (*1.500)
+		if (speedonly)
+			boostvalue += 12; // 12/8 speed (*1.500)
+		else if (player->kartstuff[k_driftboost])
+			boostvalue += 68;
+		else
+			boostvalue += 80;
 		numboosts++;
 	}
 	if (numboosts) // If any of the above apply...
@@ -1784,7 +1775,7 @@ void K_DoLightning(player_t *player, boolean bluelightning)
 	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
 		return;
 
-	//K_PlayTauntSound(player->mo);
+	K_PlayTauntSound(player->mo);
 	player->kartstuff[k_sounds] = 50;
 }
 
@@ -2517,13 +2508,6 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 		if (((player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0)
 			|| (player->kartstuff[k_mushroomtimer] > 0 && ATTACK_IS_DOWN && NO_BOO)) && onground)
 		{
-			cmd->forwardmove = 1;
-			if (player->kartstuff[k_drift] >= 1)
-				P_InstaThrust(player->mo, player->mo->angle+ANGLE_45, 55*FRACUNIT);
-			else if (player->kartstuff[k_drift] <= -1)
-				P_InstaThrust(player->mo, player->mo->angle-ANGLE_45, 55*FRACUNIT);
-			else
-				P_InstaThrust(player->mo, player->mo->angle, 55*FRACUNIT);
 			player->kartstuff[k_boosting] = 1;
 		}
 		else if (player->kartstuff[k_mushroomtimer] == 0 && player->kartstuff[k_boosting] == 1)

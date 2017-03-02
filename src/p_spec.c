@@ -3888,8 +3888,9 @@ DoneSection2:
 			//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 			break;
 
-
-		case 6: // Super Sonic transformer // SRB2kart 190117- Replaced. This is now a Mushroom Boost Panel
+		case 6: // SRB2kart 190117 - Mushroom Boost Panel
+			if (!P_IsObjectOnGround(player->mo))
+				break;
 			if (!player->kartstuff[k_floorboost])
 				player->kartstuff[k_floorboost] = 3;
 			else
@@ -3897,26 +3898,12 @@ DoneSection2:
 			K_DoMushroom(player, false);
 			break;
 
-			/* if (player->mo->health > 0 && !player->bot && (player->charflags & SF_SUPER) && !player->powers[pw_super] && ALL7EMERALDS(emeralds))
-				P_DoSuperTransformation(player, true);
-			break; */
-
-		case 7: // Make player spin // SRB2kart 190117- Replaced. This is now an Oil Slick (Oddly ironic considering)
+		case 7: // SRB2kart 190117 - Oil Slick
+			if (!P_IsObjectOnGround(player->mo))
+				break;
 			player->kartstuff[k_spinouttype] = -1;
 			K_SpinPlayer(player, NULL);
 			break;
-
-			/* if (!(player->pflags & PF_SPINNING) && P_IsObjectOnGround(player->mo) && (player->charability2 == CA2_SPINDASH))
-			{
-				player->pflags |= PF_SPINNING;
-				P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-				S_StartAttackSound(player->mo, sfx_spin);
-
-				if (abs(player->rmomx) < FixedMul(5*FRACUNIT, player->mo->scale)
-				&& abs(player->rmomy) < FixedMul(5*FRACUNIT, player->mo->scale))
-					P_InstaThrust(player->mo, player->mo->angle, FixedMul(10*FRACUNIT, player->mo->scale));
-			}
-			break; */
 
 		case 8: // Zoom Tube Start
 			{
