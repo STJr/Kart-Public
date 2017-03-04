@@ -3613,7 +3613,7 @@ void A_AttractChase(mobj_t *actor)
 
 	// Turn flingrings back into regular rings if attracted.
 	if (actor->tracer && actor->tracer->player
-		&& actor->tracer->player->kartstuff[k_magnettimer] //&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT 
+		&& actor->tracer->player->kartstuff[k_magnettimer] //&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT
 		&& actor->info->reactiontime && actor->type != (mobjtype_t)actor->info->reactiontime)
 	{
 		mobj_t *newring;
@@ -3877,10 +3877,10 @@ void A_ThrownRing(mobj_t *actor)
 			if (gametype == GT_CTF
 				&& actor->target->player->ctfteam == player->ctfteam)
 				continue;
-			
+
 			if (actor->target->player->kartstuff[k_position] < player->kartstuff[k_position]) // SRB2kart - Red Shells only go after people ahead of you
 				continue;
-			
+
 		}
 
 		dist = P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
@@ -3899,7 +3899,7 @@ void A_ThrownRing(mobj_t *actor)
 		if (!P_CheckSight(actor, player->mo))
 			continue; // out of sight
 
-		if (dist < FixedMul(2048*FRACUNIT, player->mo->scale)) // SRB2kart  // (player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT && 
+		if (dist < FixedMul(2048*FRACUNIT, player->mo->scale)) // SRB2kart  // (player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT &&
 			P_SetTarget(&actor->tracer, player->mo);
 		return;
 	}
@@ -8133,7 +8133,7 @@ void A_ItemPop(mobj_t *actor)
 		||   actor->target->player->kartstuff[k_itemroulette]
 		||   actor->target->player->kartstuff[k_boo]            || actor->target->player->kartstuff[k_bootaketimer]
 		||   actor->target->player->kartstuff[k_boostolentimer]
-		||   actor->target->player->kartstuff[k_growshrinktimer] > 1 
+		||   actor->target->player->kartstuff[k_growshrinktimer] > 1
 		||   actor->target->player->kartstuff[k_goldshroomtimer]))
 		actor->target->player->kartstuff[k_itemroulette] = 1;
 	else if(cv_debug && !(actor->target && actor->target->player))
@@ -8243,7 +8243,6 @@ void A_RedShellChase(mobj_t *actor)
 void A_BobombExplode(mobj_t *actor)
 {
 	mobj_t *mo2;
-	mobj_t *mo3;
 	thinker_t *th;
 	INT32 d;
 	INT32 locvar1 = var1;
@@ -8254,7 +8253,7 @@ void A_BobombExplode(mobj_t *actor)
 	for (d = 0; d < 16; d++)
 		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false); // 32 <-> 64
 
-	mo3 = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
+	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
 
 	//S_StartSound(actor, sfx_prloop);
 

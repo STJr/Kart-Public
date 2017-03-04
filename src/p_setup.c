@@ -816,7 +816,7 @@ void P_ReloadRings(void)
 			}
 			continue;
 		}
-		if (!(mo->type == MT_RING || mo->type == MT_NIGHTSWING || mo->type == MT_COIN 
+		if (!(mo->type == MT_RING || mo->type == MT_NIGHTSWING || mo->type == MT_COIN
 			|| mo->type == MT_BLUEBALL || mo->type == MT_RANDOMITEM))
 			continue;
 

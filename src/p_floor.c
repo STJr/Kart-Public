@@ -1824,7 +1824,7 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 	// I could of used rowoffset, but the FOF actually
 	// modifies the textures's Y offset. It doesn't with
 	// textureoffset, so Effect 4 can be ignored as usual.
-	if (thwomp->sourceline->flags & ML_EFFECT1 
+	if (thwomp->sourceline->flags & ML_EFFECT1
 		&& leveltime < (unsigned)(sides[thwomp->sourceline->sidenum[0]].textureoffset>>FRACBITS))
 		thwomp->direction = 0;
 

@@ -1395,12 +1395,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
 		// SRB2kart - Squish!
-		if ((tmthing->player->kartstuff[k_growshrinktimer] > 0 && thing->player->kartstuff[k_growshrinktimer] <= 0) 
+		if ((tmthing->player->kartstuff[k_growshrinktimer] > 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)
 			|| (tmthing->player->kartstuff[k_growshrinktimer] == 0 && thing->player->kartstuff[k_growshrinktimer] < 0))
 		{
 			K_SquishPlayer(thing->player, tmthing);
 		}
-		else if ((thing->player->kartstuff[k_growshrinktimer] > 0 && tmthing->player->kartstuff[k_growshrinktimer] <= 0) 
+		else if ((thing->player->kartstuff[k_growshrinktimer] > 0 && tmthing->player->kartstuff[k_growshrinktimer] <= 0)
 			|| (thing->player->kartstuff[k_growshrinktimer] == 0 && tmthing->player->kartstuff[k_growshrinktimer] < 0))
 		{
 			K_SquishPlayer(tmthing->player, thing);
@@ -3925,8 +3925,10 @@ static boolean PIT_ChangeSector(mobj_t *thing, boolean realcrush)
 					killer = P_SpawnMobj(thing->x, thing->y, thing->z, MT_NULL);
 					killer->threshold = 44; // Special flag for crushing
 				}
-				//P_DamageMobj(thing, killer, killer, 10000);
-				K_SquishPlayer(thing, killer); // SRB2kart - Squish instead of kill
+				if (thing->player)
+					P_DamageMobj(thing, killer, killer, 10000);
+				else
+					K_SquishPlayer(thing->player, killer); // SRB2kart - Squish instead of kill
 			}
 		}
 	}

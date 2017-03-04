@@ -1005,8 +1005,10 @@ void P_DoSuperTransformation(player_t *player, boolean giverings)
 // Adds to the player's score
 void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
-	return; // SRB2kart - no score.
 	UINT32 oldscore;
+
+	return; // SRB2kart - no score.
+	// This will probably be temporary until we do battle modes?
 
 	if (player->bot)
 		player = &players[consoleplayer];
@@ -2785,7 +2787,7 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 
 	if (player->climbing == 0)
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-	
+
 
 	if (player->climbing && P_IsObjectOnGround(player->mo))
 	{
@@ -3413,6 +3415,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 }
 */
 
+#if 0
 //
 // P_DoSuperStuff()
 //
@@ -3420,7 +3423,6 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 //
 static void P_DoSuperStuff(player_t *player)
 {
-	return; // SRB2kart - don't neeeeed
 	mobj_t *spark;
 	ticcmd_t *cmd = &player->cmd;
 	//if (player->mo->state >= &states[S_PLAY_SUPERTRANS1] && player->mo->state <= &states[S_PLAY_SUPERTRANS9])
@@ -3552,6 +3554,7 @@ static void P_DoSuperStuff(player_t *player)
 		}
 	}
 }
+#endif
 
 //
 // P_SuperReady
@@ -4536,12 +4539,12 @@ static void P_3dMovement(player_t *player)
 {
 	ticcmd_t *cmd;
 	angle_t movepushangle, movepushsideangle; // Analog
-	INT32 topspeed, acceleration, thrustfactor;
+	//INT32 topspeed, acceleration, thrustfactor;
 	fixed_t movepushforward = 0, movepushside = 0;
 	INT32 mforward = 0, mbackward = 0;
 	angle_t dangle; // replaces old quadrants bits
-	boolean dangleflip = false; // SRB2kart - toaster
-	fixed_t normalspd = FixedMul(player->normalspeed, player->mo->scale);
+	//boolean dangleflip = false; // SRB2kart - toaster
+	//fixed_t normalspd = FixedMul(player->normalspeed, player->mo->scale);
 	boolean analogmove = false;
 	fixed_t oldMagnitude, newMagnitude;
 #ifdef ESLOPE
@@ -4629,7 +4632,7 @@ static void P_3dMovement(player_t *player)
 	if (dangle > ANGLE_180) //flip to keep to one side
 	{
 		dangle = InvAngle(dangle);
-		dangleflip = true;
+		//dangleflip = true;
 	}
 
 	// now use it to determine direction!
@@ -4646,13 +4649,13 @@ static void P_3dMovement(player_t *player)
 	{
 		angle_t difference = dangle/2;
 		boolean reverse = (dangle >= ANGLE_90);
- 
+
 		if (dangleflip)
 			difference = InvAngle(difference);
- 
+
 		if (reverse)
 			difference += ANGLE_180;
- 
+
 		P_InstaThrust(player->mo, player->mo->angle + difference, player->speed);
 	}
 	*/
@@ -4668,7 +4671,7 @@ static void P_3dMovement(player_t *player)
 	player->aiming = cmd->aiming<<FRACBITS;
 
 	// Set the player speeds.
-	if (player->pflags & PF_SLIDING)
+	/*if (player->pflags & PF_SLIDING)
 	{
 		normalspd = FixedMul(36<<FRACBITS, player->mo->scale);
 		thrustfactor = 5;
@@ -4699,14 +4702,14 @@ static void P_3dMovement(player_t *player)
 			thrustfactor = player->thrustfactor*2;
 		acceleration = player->accelstart/2 + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration/2;
 
-		/*
+
 		if (player->powers[pw_tailsfly])
 			topspeed = normalspd;
 		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
 		{
 			topspeed = normalspd;
 			acceleration = 2*acceleration/3;
-		}*/
+		}
 
 		if (cmd->forwardmove < 0)
 			topspeed = 5<<16;
@@ -4718,14 +4721,14 @@ static void P_3dMovement(player_t *player)
 		thrustfactor = player->thrustfactor;
 		acceleration = player->accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration;
 
-		/*
+
 		if (player->powers[pw_tailsfly])
 			topspeed = normalspd/2;
 		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
 		{
 			topspeed = normalspd/2;
 			acceleration = 2*acceleration/3;
-		}*/
+		}
 		if (cmd->forwardmove < 0)
 			topspeed = 5<<16;
 		else
@@ -4741,6 +4744,7 @@ static void P_3dMovement(player_t *player)
 
 	if (player->mo->movefactor != FRACUNIT) // Friction-scaled acceleration...
 		acceleration = FixedMul(acceleration<<FRACBITS, player->mo->movefactor)>>FRACBITS;
+	*/
 
 	// Forward movement
 	if (player->climbing)
@@ -9248,7 +9252,7 @@ void P_PlayerThink(player_t *player)
 			player->cmomy = player->cmomx = 0;
 #endif
 
-	P_DoSuperStuff(player);
+	//P_DoSuperStuff(player);
 	P_CheckSneakerAndLivesTimer(player);
 	P_DoBubbleBreath(player); // Spawn Sonic's bubbles
 	P_CheckUnderwaterAndSpaceTimer(player); // Display the countdown drown numbers!
@@ -9257,7 +9261,7 @@ void P_PlayerThink(player_t *player)
 
 #if 1
 	// "Blur" a bit when you have speed shoes and are going fast enough
-	if ((player->powers[pw_super] || player->powers[pw_sneakers] 
+	if ((player->powers[pw_super] || player->powers[pw_sneakers]
 		|| player->kartstuff[k_driftboost] || player->kartstuff[k_mushroomtimer]) // SRB2kart
 		&& (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
 	{

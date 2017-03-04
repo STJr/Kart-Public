@@ -497,7 +497,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"mkitm7",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mkitm8",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mkitmF",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  
+
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
   {"klose",  false,  64,  0, -1, NULL, 0,   SKSLOSE,  -1, LUMPERROR},

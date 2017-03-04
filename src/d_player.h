@@ -298,7 +298,7 @@ typedef enum
 						// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
 	k_bobomb,			// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
 	k_blueshell,		// 0x1 = Blue Shell in inventory
-	k_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting, 
+	k_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting,
 						// 0x4 = 2x Jaws in inventory
 	k_fireflower,		// 0x1 = Fire Flower in inventory
 	k_tripleredshell,	// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting

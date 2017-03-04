@@ -5921,7 +5921,7 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 	fixed_t tx = dest->x;
 	fixed_t ty = dest->y;
 	fixed_t tz = dest->z + (dest->height/2); // Aim for center
-	
+
 	if (source->type == MT_RANDOMITEM || source->type == MT_FLINGRANDOMITEM) // SRB2kart - item boxes are sorta tall
 		tz = dest->z;
 
@@ -6486,18 +6486,18 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_TRIPLEBANANASHIELD1:
 			case MT_TRIPLEBANANASHIELD2:
 			case MT_TRIPLEBANANASHIELD3:
-				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo 
+				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					INT32 zfixds = 56;
+					INT32 DIST = FixedMul(zfixds, mobj->target->scale);
+					INT32 HEIGHT;
+					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
+
 					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
 						zfixds = 64;
 					else
 						zfixds = 56;
-
-					INT32 DIST = FixedMul(zfixds, mobj->target->scale);
-					INT32 HEIGHT;
-					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
 					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3

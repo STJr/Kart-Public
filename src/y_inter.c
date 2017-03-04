@@ -257,7 +257,7 @@ void Y_IntermissionDrawer(void)
 	}
 	else if (intertype == int_race)
 	{
-		INT32 i = 0, j = 0;
+		INT32 j = 0;
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
@@ -1850,29 +1850,20 @@ static void Y_CalculateTournamentPoints(void)
 	INT32 i, j;
 	boolean completed[MAXPLAYERS];
 	INT32 numplayersingame = 0;
-	INT32 zz1  = 0, zz2  = 0, zz3  = 0, zz4  = 0, zz5  = 0, zz6  = 0, zz7  = 0, zz8  = 0,
-		  zz9  = 0, zz10 = 0, zz11 = 0, zz12 = 0, zz13 = 0, zz14 = 0, zz15 = 0, zz16 = 0;
+	INT32 increase[MAXPLAYERS];
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i])
 			numplayersingame++;
+
+		increase[i] = numplayersingame-i;
+
+		if (increase[i] < 0)
+			increase[i] = 0;
 	}
 
-	zz1 = numplayersingame;		zz2 = numplayersingame-1;	zz3 = numplayersingame-2;	zz4 = numplayersingame-3;
-	zz5 = numplayersingame-4;	zz6 = numplayersingame-5;	zz7 = numplayersingame-6;	zz8 = numplayersingame-7;
-	zz9 = numplayersingame-8;	zz10= numplayersingame-9;	zz11= numplayersingame-10;	zz12= numplayersingame-11;
-	zz13= numplayersingame-12;	zz14= numplayersingame-13;	zz15= numplayersingame-14;	zz16= numplayersingame-15;
-
-	if (zz1 < 0) zz1 = 0;	if (zz2 < 0) zz2 = 0;	if (zz3 < 0) zz3 = 0;	if (zz4 < 0) zz4 = 0;
-	if (zz5 < 0) zz5 = 0;	if (zz6 < 0) zz6 = 0;	if (zz7 < 0) zz7 = 0;	if (zz8 < 0) zz8 = 0;
-	if (zz9 < 0) zz9 = 0;	if (zz10< 0) zz10= 0;	if (zz11< 0) zz11= 0;	if (zz12< 0) zz12= 0;
-	if (zz13< 0) zz13= 0;	if (zz14< 0) zz14= 0;	if (zz15< 0) zz15= 0;	if (zz16< 0) zz16= 0;
-
-	INT32 increase[MAXPLAYERS] = {zz1,zz2,zz3,zz4,zz5,zz6,zz7,zz8,zz9,zz10,zz11,zz12,zz13,zz14,zz15,zz16};
-
 	// Initialize variables
-
 	for (j = 0; j < MAXPLAYERS; j++)
 		data.match.scores[j] = INT32_MAX;
 

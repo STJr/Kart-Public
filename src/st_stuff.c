@@ -468,6 +468,7 @@ static INT32 STRINGY(INT32 y)
 	return y;
 }
 
+/*
 static INT32 SPLITFLAGS(INT32 f)
 {
 	// Pass this V_SNAPTO(TOP|BOTTOM) and it'll trim them to account for splitscreen! -Red
@@ -480,6 +481,7 @@ static INT32 SPLITFLAGS(INT32 f)
 	}
 	return f;
 }
+*/
 
 static INT32 SCX(INT32 x)
 {
@@ -518,11 +520,12 @@ static INT32 SCR(INT32 r)
 #define ST_DrawPadNumFromHudWS(h,n,q) V_DrawPaddedTallNum(SCX(hudinfo[h+!!splitscreen].x), SCY(hudinfo[h+!!splitscreen].y), V_NOSCALESTART|V_HUDTRANS, n, q)
 #define ST_DrawPatchFromHudWS(h,p)    V_DrawScaledPatch(SCX(hudinfo[h+!!splitscreen].x), SCY(hudinfo[h+!!splitscreen].y), V_NOSCALESTART|V_HUDTRANS, p)
 
+/*
 // Draw a number, scaled, over the view, maybe with set translucency
 // Always draw the number completely since it's overlay
 //
 // Supports different colors! woo!
-static void ST_DrawNightsOverlayNum(INT32 x /* right border */, INT32 y, INT32 a,
+static void ST_DrawNightsOverlayNum(INT32 x, INT32 y, INT32 a,
 	INT32 num, patch_t **numpat, skincolors_t colornum)
 {
 	INT32 w = SHORT(numpat[0]->width);
@@ -548,6 +551,7 @@ static void ST_DrawNightsOverlayNum(INT32 x /* right border */, INT32 y, INT32 a
 
 	// Sorry chum, this function only draws UNSIGNED values!
 }
+*/
 
 // Devmode information
 static void ST_drawDebugInfo(void)
@@ -616,6 +620,7 @@ static void ST_drawDebugInfo(void)
 	}
 }
 
+/*
 static void ST_drawScore(void)
 {
 	// SCORE:
@@ -630,7 +635,9 @@ static void ST_drawScore(void)
 	else
 		ST_DrawNumFromHud(HUD_SCORENUM, stplyr->score);
 }
+*/
 
+/*
 static void ST_drawTime(void)
 {
 	INT32 seconds, minutes, tictrn, tics;
@@ -668,6 +675,7 @@ static void ST_drawTime(void)
 		}
 	}
 }
+*/
 
 static inline void ST_drawRings(void)
 {
@@ -899,6 +907,7 @@ static void ST_drawFirstPersonHUD(void)
 			V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, p);
 }
 
+/*
 // [21:42] <+Rob> Beige - Lavender - Steel Blue - Peach - Orange - Purple - Silver - Yellow - Pink - Red - Blue - Green - Cyan - Gold
 static skincolors_t linkColor[14] =
 {SKINCOLOR_BEIGE,  SKINCOLOR_LAVENDER, SKINCOLOR_STEELBLUE, SKINCOLOR_PEACH, SKINCOLOR_ORANGE,
@@ -971,6 +980,7 @@ static void ST_drawNightsRecords(void)
 		}
 	}
 }
+*/
 
 /*
 static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
@@ -1354,6 +1364,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 }
 */
 
+/*
 static void ST_drawWeaponRing(powertype_t weapon, INT32 rwflag, INT32 wepflag, INT32 xoffs, patch_t *pat)
 {
 	INT32 txtflags = 0, patflags = 0;
@@ -1385,6 +1396,7 @@ static void ST_drawWeaponRing(powertype_t weapon, INT32 rwflag, INT32 wepflag, I
 	else if (stplyr->ringweapons & rwflag)
 		V_DrawScaledPatch(8 + xoffs, STRINGY(162), V_SNAPTOLEFT|V_TRANSLUCENT, pat);
 }
+*/
 
 /*
 static void ST_drawMatchHUD(void) // SRB2kart - unused.
@@ -1631,6 +1643,7 @@ static void ST_drawSpecialStageHUD(void) // SRB2kart - unused.
 }
 */
 
+/*
 static INT32 ST_drawEmeraldHuntIcon(mobj_t *hunt, patch_t **patches, INT32 offset)
 {
 	INT32 interval, i;
@@ -1670,6 +1683,7 @@ static INT32 ST_drawEmeraldHuntIcon(mobj_t *hunt, patch_t **patches, INT32 offse
 	V_DrawScaledPatch(hudinfo[HUD_HUNTPICS].x+offset, STRINGY(hudinfo[HUD_HUNTPICS].y), V_HUDTRANS, patches[i]);
 	return interval;
 }
+*/
 
 /*
 // Separated a few things to stop the SOUND EFFECTS BLARING UGH SHUT UP AAAA

@@ -17,6 +17,7 @@
 #include "v_video.h"
 #include "z_zone.h"
 #include "m_misc.h"
+#include "k_kart.h"
 
 //{ SRB2kart Color Code
 
@@ -778,6 +779,11 @@ static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
 */
 static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 {
+	INT32 i;
+	INT32 roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+	fixed_t prandom = P_RandomFixed();
+	fixed_t ppos = player->kartstuff[k_position] - 1;
+
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
 		player->kartstuff[k_itemroulette]++;
@@ -792,8 +798,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	basechance = chance = prevchance = 0;
 	numchoices = pingame = pexiting = 0;
 
-	INT32 i;
-
 	// Initializes existing spawnchance values
 	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
 		spawnchance[i] = 0;
@@ -807,12 +811,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			pexiting++;
 	}
 
-	INT32 roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
-
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3) 
+	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)
 		|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
 		return;
 
@@ -820,10 +822,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->pflags |= PF_ATTACKDOWN;
 
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
-
-	// Yes I know I'm defining variables half-way into the function, but they aren't needed until now :/
-	fixed_t prandom = P_RandomFixed();
-	fixed_t ppos = player->kartstuff[k_position] - 1;
 
 	// Tiny catcher in case player position is unset.
 	if (ppos < 0) ppos = 0;
@@ -903,7 +901,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 	\return	void
 */
-void K_UpdateOffroad(player_t *player)
+static void K_UpdateOffroad(player_t *player)
 {
 	fixed_t kartweight = player->kartweight;
 	fixed_t offroad;
@@ -911,13 +909,13 @@ void K_UpdateOffroad(player_t *player)
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
 
 	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
-	if (nextsector->special & 256 && nextsector->special != 768 && (nextsector->special != 1024 || nextsector->special != 4864))
+	if ((nextsector->special & 256) && nextsector->special != 768 && nextsector->special != 1024 && nextsector->special != 4864)
 	{
 		if (P_IsObjectOnGround(player->mo) && player->kartstuff[k_offroad] == 0)
 			player->kartstuff[k_offroad] = 16;
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			if (kartweight < 1) kartweight = 1; if (kartweight > 9) kartweight = 9; // Safety Net
+			if (kartweight < 1) { kartweight = 1; } if (kartweight > 9) { kartweight = 9; } // Safety Net
 
 			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
 			// A higher kart weight means you can stay offroad for longer without losing speed
@@ -1037,7 +1035,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	K_KartItemRoulette(player, cmd); // Roulette Code
 
 	// Stopping of the horrible star SFX
-	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_startimer] <= 0 
+	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_startimer] <= 0
 		|| player->mo->player->kartstuff[k_growshrinktimer] > 0) 	// If you don't have invincibility (or mega is active too)
 	{
 		if (S_SoundPlaying(player->mo, sfx_star)) 					// But the sound is playing
@@ -1052,7 +1050,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	}
 }
 
-void K_PlayTauntSound(mobj_t *source)
+static void K_PlayTauntSound(mobj_t *source)
 {
 	switch (P_RandomFixed() % 4)
 	{
@@ -1071,7 +1069,7 @@ void K_PlayTauntSound(mobj_t *source)
 	}
 }
 
-fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
+static fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 {
 	fixed_t boostpower = FRACUNIT;
 	fixed_t boostvalue = 0;
@@ -1088,13 +1086,13 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 		numboosts++;
 	}
 	if (player->kartstuff[k_growshrinktimer] > 1
-		&& (player->kartstuff[k_growshrinktimer] > (bonustime - 25)
+		&& (player->kartstuff[k_growshrinktimer] > (itemtime - 25)
 		|| player->kartstuff[k_growshrinktimer] <= 26) && speedonly)
 	{												// Mega Mushroom - Mid-size
 		boostvalue +=  9; //  9/8 speed (*1.125)
 		numboosts++;
 	}
-	if (player->kartstuff[k_growshrinktimer] < (bonustime - 25)
+	if (player->kartstuff[k_growshrinktimer] < (itemtime - 25)
 		&& player->kartstuff[k_growshrinktimer] > 26 && speedonly)
 	{												// Mega Mushroom
 		boostvalue += 10; // 10/8 speed (*1.250)
@@ -1130,6 +1128,7 @@ fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
 
 	return boostpower;
 }
+
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 {
 	fixed_t k_speed = 151;
@@ -1155,7 +1154,8 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 		return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true));
 	return FixedMul(k_speed<<14, g_cc);
 }
-fixed_t K_GetKartAccel(player_t *player)
+
+static fixed_t K_GetKartAccel(player_t *player)
 {
 	fixed_t k_accel = 36;
 
@@ -1163,14 +1163,15 @@ fixed_t K_GetKartAccel(player_t *player)
 
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
+
 fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmovement)
 {
-	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
-
 	fixed_t accelmax = 4000;
 	fixed_t newspeed, oldspeed, finalspeed;
 	fixed_t p_speed = K_GetKartSpeed(player, true);
 	fixed_t p_accel = K_GetKartAccel(player);
+
+	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
 
 	// ACCELCODE!!!1!11!
 	oldspeed = P_AproxDistance(player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
@@ -1187,6 +1188,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmove
 
 void K_SpinPlayer(player_t *player, mobj_t *source)
 {
+	(void) source;
 	if (player->health <= 0)
 		return;
 
@@ -1226,6 +1228,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 void K_SquishPlayer(player_t *player, mobj_t *source)
 {
+	(void) source;
 	if (player->health <= 0)
 		return;
 
@@ -1252,6 +1255,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
+	(void) source;
 	if (player->health <= 0)
 		return;
 
@@ -1364,7 +1368,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 	}
 }
 
-mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle, INT32 flags2, fixed_t speed)
+static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle, INT32 flags2, fixed_t speed)
 {
 	mobj_t *th;
 	angle_t an;
@@ -1540,11 +1544,10 @@ static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				int DIST = 50*FRACUNIT + player->speed*FRACUNIT; // 6 when dropping CTF flag
+				INT32 DIST = 50*FRACUNIT + player->speed*FRACUNIT; // 6 when dropping CTF flag
+				INT32 HEIGHT;
 				if (DIST > 64*FRACUNIT)
 					DIST = 64*FRACUNIT;
-
-				int HEIGHT;
 
 				if (dir == 2)
 					HEIGHT = 16*FRACUNIT + player->mo->momz;
@@ -1745,7 +1748,7 @@ void K_DoMushroom(player_t *player, boolean doPFlag)
 	player->kartstuff[k_sounds] = 50;
 }
 
-void K_DoLightning(player_t *player, boolean bluelightning)
+static void K_DoLightning(player_t *player, boolean bluelightning)
 {
 	mobj_t *mo;
 	thinker_t *think;
@@ -1783,10 +1786,9 @@ fixed_t K_GetKartTurnValue(player_t *player, ticcmd_t *cmd)
 {
 	fixed_t p_angle = cmd->angleturn;
 	fixed_t p_maxspeed = K_GetKartSpeed(player, false);
+	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
 
 	p_maxspeed = FixedMul(p_maxspeed, 3*FRACUNIT);
-	
-	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
 
 	p_angle = FixedMul(p_angle, adjustangle); // Weight has a small effect on turning
 
@@ -1811,7 +1813,7 @@ fixed_t K_GetKartTurnValue(player_t *player, ticcmd_t *cmd)
 	return p_angle;
 }
 
-fixed_t K_GetKartDriftValue(player_t *player, fixed_t turntype)
+static fixed_t K_GetKartDriftValue(player_t *player, fixed_t turntype)
 {
 	fixed_t driftangle = FRACUNIT;
 	fixed_t p_angle = player->kartstuff[k_driftangle];
@@ -1836,11 +1838,11 @@ fixed_t K_GetKartDriftValue(player_t *player, fixed_t turntype)
 	return driftangle;
 }
 
-void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
+static void K_KartDrift(player_t *player, ticcmd_t *cmd, boolean onground)
 {
 	fixed_t dsone = 26 + player->kartspeed;
 	fixed_t dstwo = 52 + player->kartspeed*2;
-	
+
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
 	if (cmd->buttons & BT_DRIFTRIGHT)
@@ -2057,21 +2059,21 @@ static void K_KartUpdatePosition(player_t *player)
 	player->kartstuff[k_position] = position;
 }
 
-boolean K_CheckForHoldItem(player_t *player)
+static boolean K_CheckForHoldItem(player_t *player)
 {
-	if (	player->kartstuff[k_greenshell] == 1 
+	if (	player->kartstuff[k_greenshell] == 1
 		|| 	player->kartstuff[k_redshell] == 1
-		|| 	player->kartstuff[k_banana] == 1 
-		|| 	player->kartstuff[k_fakeitem] == 1 
+		|| 	player->kartstuff[k_banana] == 1
+		|| 	player->kartstuff[k_fakeitem] == 1
 		|| 	player->kartstuff[k_bobomb] == 1
-		|| 	player->kartstuff[k_triplegreenshell] & 1 
-		|| 	player->kartstuff[k_triplegreenshell] & 2 
+		|| 	player->kartstuff[k_triplegreenshell] & 1
+		|| 	player->kartstuff[k_triplegreenshell] & 2
 		|| 	player->kartstuff[k_triplegreenshell] & 4
-		|| 	player->kartstuff[k_tripleredshell] & 1 
-		|| 	player->kartstuff[k_tripleredshell] & 2 
+		|| 	player->kartstuff[k_tripleredshell] & 1
+		|| 	player->kartstuff[k_tripleredshell] & 2
 		|| 	player->kartstuff[k_tripleredshell] & 4
-		|| 	player->kartstuff[k_triplebanana] & 1 
-		|| 	player->kartstuff[k_triplebanana] & 2 
+		|| 	player->kartstuff[k_triplebanana] & 1
+		|| 	player->kartstuff[k_triplebanana] & 2
 		|| 	player->kartstuff[k_triplebanana] & 4
 		) return true;
 	return false;
@@ -2139,11 +2141,11 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 // Lightning
 
 		// GoldenMushroom power
-		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1 
+		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1
 			&& player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
 		{
 			K_DoMushroom(player, true);
-			player->kartstuff[k_goldshroomtimer] = bonustime;
+			player->kartstuff[k_goldshroomtimer] = itemtime;
 			player->kartstuff[k_goldshroom] = 0;
 		}
 		// GoldenMushroom power
@@ -2179,7 +2181,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 				S_ChangeMusicInternal("minvnc", true);
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_star);
-			player->kartstuff[k_startimer] = bonustime; // Activate it
+			player->kartstuff[k_startimer] = itemtime; // Activate it
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_star] = 0;
 			player->kartstuff[k_itemclose] = 10;
@@ -2483,7 +2485,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_mega);
 			K_PlayTauntSound(player->mo);
-			player->kartstuff[k_growshrinktimer] = bonustime;
+			player->kartstuff[k_growshrinktimer] = itemtime;
 			S_StartSound(player->mo, sfx_mario3);
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_megashroom] = 0;
@@ -2514,7 +2516,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 			player->kartstuff[k_boosting] = 0;
 
 		// Megashroom - Make the player grow!
-		if (player->kartstuff[k_growshrinktimer] > (bonustime - 25))
+		if (player->kartstuff[k_growshrinktimer] > (itemtime - 25))
 		{
 			if (leveltime & 2)
 				player->mo->destscale = FRACUNIT*3/2;
@@ -2522,7 +2524,7 @@ void K_MoveKartPlayer(player_t *player, ticcmd_t *cmd, boolean onground)
 				player->mo->destscale = FRACUNIT;
 		}
 		else if (player->kartstuff[k_growshrinktimer] > 26
-			&& player->kartstuff[k_growshrinktimer] <= (bonustime - 25))
+			&& player->kartstuff[k_growshrinktimer] <= (itemtime - 25))
 			player->mo->destscale = FRACUNIT*3/2;
 		// Megashroom - Back to normal...
 		else if (player->kartstuff[k_growshrinktimer] > 1
@@ -3457,7 +3459,7 @@ static void K_DrawKartPositionFaces(void)
 	boolean completed[MAXPLAYERS];
 	INT32 rankplayer[MAXPLAYERS];
 	INT32 rankcolor[MAXPLAYERS];
-	UINT32 myplayer;
+	INT32 myplayer;
 	UINT8 *colormap;
 	patch_t *localpatch = kp_facenull;
 
