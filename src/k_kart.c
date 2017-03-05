@@ -1785,10 +1785,8 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 fixed_t K_GetKartTurnValue(player_t *player, ticcmd_t *cmd)
 {
 	fixed_t p_angle = cmd->angleturn;
-	fixed_t p_maxspeed = K_GetKartSpeed(player, false);
+	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
 	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
-
-	p_maxspeed = FixedMul(p_maxspeed, 3*FRACUNIT);
 
 	p_angle = FixedMul(p_angle, adjustangle); // Weight has a small effect on turning
 
