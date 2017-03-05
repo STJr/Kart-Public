@@ -803,7 +803,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if (ppos < 0) ppos = 0;
 
 #define SETITEMRESULT(pos, numplayers, itemnum) \
-	for (chance = K_KartItemOdds_Retro[numplayers][itemnum-1][pos]; chance; chance--) spawnchance[numchoices++] = itemnum
+	for (chance = K_KartItemOdds_Retro[numplayers-1][itemnum-1][pos]; chance; chance--) spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
