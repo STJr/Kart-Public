@@ -394,7 +394,7 @@ typedef struct
 
 // SRB2kart - TODO: To satisfy Iceman's craving, I'll leave this here: 62914 : Is the number he wants friction to be.
 // Friction defines.
-#define ORIG_FRICTION          (0xE8 << (FRACBITS-8)) ///< Original value.
+#define ORIG_FRICTION          (62914) ///< Original value.
 #define ORIG_FRICTION_FACTOR   (8 << (FRACBITS-8))    ///< Original value.
 
 void T_Friction(friction_t *f);

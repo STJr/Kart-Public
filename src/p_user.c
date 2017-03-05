@@ -3584,6 +3584,8 @@ void P_DoJump(player_t *player, boolean soundandstate)
 	fixed_t factor;
 	const fixed_t dist6 = FixedMul(FixedDiv(player->speed, player->mo->scale), player->actionspd)/20;
 
+	return;
+
 	if (player->pflags & PF_JUMPSTASIS)
 		return;
 
