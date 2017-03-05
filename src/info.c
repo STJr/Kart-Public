@@ -2618,30 +2618,30 @@ state_t states[NUMSTATES] =
 	{SPR_BANA, 0,  -1, {NULL}, 0, 0, S_NULL}, // S_BANANAITEM
 	{SPR_DBAN, 0, 175, {NULL}, 0, 0, S_NULL}, // S_DEADBANANA
 
-	{SPR_GSHE, 0, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD2},               // S_TRIPLEGREENSHIELD1
-	{SPR_GSHE, 1, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD3},               // S_TRIPLEGREENSHIELD2
-	{SPR_GSHE, 2, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD4},               // S_TRIPLEGREENSHIELD3
-	{SPR_GSHE, 3, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD5},               // S_TRIPLEGREENSHIELD4
-	{SPR_GSHE, 4, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD6},               // S_TRIPLEGREENSHIELD5
-	{SPR_GSHE, 5, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD7},               // S_TRIPLEGREENSHIELD6
-	{SPR_GSHE, 6, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD8},               // S_TRIPLEGREENSHIELD7
-	{SPR_GSHE, 7, 2, {NULL}, 0, 0, S_TRIPLEGREENSHIELD1},               // S_TRIPLEGREENSHIELD8
-	{SPR_GSHE, 0, 2, {NULL}, 0, 0, S_GREENSHIELD2},                     // S_GREENSHIELD1
-	{SPR_GSHE, 1, 2, {NULL}, 0, 0, S_GREENSHIELD3},                     // S_GREENSHIELD2
-	{SPR_GSHE, 2, 2, {NULL}, 0, 0, S_GREENSHIELD4},                     // S_GREENSHIELD3
-	{SPR_GSHE, 3, 2, {NULL}, 0, 0, S_GREENSHIELD5},                     // S_GREENSHIELD4
-	{SPR_GSHE, 4, 2, {NULL}, 0, 0, S_GREENSHIELD6},                     // S_GREENSHIELD5
-	{SPR_GSHE, 5, 2, {NULL}, 0, 0, S_GREENSHIELD7},                     // S_GREENSHIELD6
-	{SPR_GSHE, 6, 2, {NULL}, 0, 0, S_GREENSHIELD8},                     // S_GREENSHIELD7
-	{SPR_GSHE, 7, 2, {NULL}, 0, 0, S_GREENSHIELD1},                     // S_GREENSHIELD8
-	{SPR_GSHE, 0, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM2}, // S_GREENITEM1
-	{SPR_GSHE, 1, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM3}, // S_GREENITEM2
-	{SPR_GSHE, 2, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM4}, // S_GREENITEM3
-	{SPR_GSHE, 3, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM5}, // S_GREENITEM4
-	{SPR_GSHE, 4, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM6}, // S_GREENITEM5
-	{SPR_GSHE, 5, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM7}, // S_GREENITEM6
-	{SPR_GSHE, 6, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM8}, // S_GREENITEM7
-	{SPR_GSHE, 7, 2, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM1}, // S_GREENITEM8
+	{SPR_GSHE, 0, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD2},               // S_TRIPLEGREENSHIELD1
+	{SPR_GSHE, 1, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD3},               // S_TRIPLEGREENSHIELD2
+	{SPR_GSHE, 2, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD4},               // S_TRIPLEGREENSHIELD3
+	{SPR_GSHE, 3, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD5},               // S_TRIPLEGREENSHIELD4
+	{SPR_GSHE, 4, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD6},               // S_TRIPLEGREENSHIELD5
+	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD7},               // S_TRIPLEGREENSHIELD6
+	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD8},               // S_TRIPLEGREENSHIELD7
+	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_TRIPLEGREENSHIELD1},               // S_TRIPLEGREENSHIELD8
+	{SPR_GSHE, 0, 1, {NULL}, 0, 0, S_GREENSHIELD2},                     // S_GREENSHIELD1
+	{SPR_GSHE, 1, 1, {NULL}, 0, 0, S_GREENSHIELD3},                     // S_GREENSHIELD2
+	{SPR_GSHE, 2, 1, {NULL}, 0, 0, S_GREENSHIELD4},                     // S_GREENSHIELD3
+	{SPR_GSHE, 3, 1, {NULL}, 0, 0, S_GREENSHIELD5},                     // S_GREENSHIELD4
+	{SPR_GSHE, 4, 1, {NULL}, 0, 0, S_GREENSHIELD6},                     // S_GREENSHIELD5
+	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_GREENSHIELD7},                     // S_GREENSHIELD6
+	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_GREENSHIELD8},                     // S_GREENSHIELD7
+	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_GREENSHIELD1},                     // S_GREENSHIELD8
+	{SPR_GSHE, 0, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM2}, // S_GREENITEM1
+	{SPR_GSHE, 1, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM3}, // S_GREENITEM2
+	{SPR_GSHE, 2, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM4}, // S_GREENITEM3
+	{SPR_GSHE, 3, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM5}, // S_GREENITEM4
+	{SPR_GSHE, 4, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM6}, // S_GREENITEM5
+	{SPR_GSHE, 5, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM7}, // S_GREENITEM6
+	{SPR_GSHE, 6, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM8}, // S_GREENITEM7
+	{SPR_GSHE, 7, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM1}, // S_GREENITEM8
 	{SPR_GSTR, 0, 1, {NULL}, 0, 0, S_GREENTRAIL2},                      // S_GREENTRAIL1
 	{SPR_GSTR, 1, 1, {NULL}, 0, 0, S_GREENTRAIL3},                      // S_GREENTRAIL2
 	{SPR_GSTR, 2, 1, {NULL}, 0, 0, S_GREENTRAIL4},                      // S_GREENTRAIL3
@@ -2653,32 +2653,32 @@ state_t states[NUMSTATES] =
 	{SPR_GSTR, 8, 1, {NULL}, 0, 0, S_NULL},                             // S_GREENTRAIL9
 	{SPR_DGSH, 0, 175, {NULL}, 0, 0, S_NULL},                           // S_DEADGREEN
 
-	{SPR_RSHE, 0, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD2},                           // S_TRIPLEREDSHIELD1
-	{SPR_RSHE, 1, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD3},                           // S_TRIPLEREDSHIELD2
-	{SPR_RSHE, 2, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD4},                           // S_TRIPLEREDSHIELD3
-	{SPR_RSHE, 3, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD5},                           // S_TRIPLEREDSHIELD4
-	{SPR_RSHE, 4, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD6},                           // S_TRIPLEREDSHIELD5
-	{SPR_RSHE, 5, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD7},                           // S_TRIPLEREDSHIELD6
-	{SPR_RSHE, 6, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD8},                           // S_TRIPLEREDSHIELD7
-	{SPR_RSHE, 7, 2, {NULL}, 0, 0, S_TRIPLEREDSHIELD1},                           // S_TRIPLEREDSHIELD8
-	{SPR_RSHE, 0, 2, {NULL}, 0, 0, S_REDSHIELD2},                                 // S_REDSHIELD1
-	{SPR_RSHE, 1, 2, {NULL}, 0, 0, S_REDSHIELD3},                                 // S_REDSHIELD2
-	{SPR_RSHE, 2, 2, {NULL}, 0, 0, S_REDSHIELD4},                                 // S_REDSHIELD3
-	{SPR_RSHE, 3, 2, {NULL}, 0, 0, S_REDSHIELD5},                                 // S_REDSHIELD4
-	{SPR_RSHE, 4, 2, {NULL}, 0, 0, S_REDSHIELD6},                                 // S_REDSHIELD5
-	{SPR_RSHE, 5, 2, {NULL}, 0, 0, S_REDSHIELD7},                                 // S_REDSHIELD6
-	{SPR_RSHE, 6, 2, {NULL}, 0, 0, S_REDSHIELD8},                                 // S_REDSHIELD7
-	{SPR_RSHE, 7, 2, {NULL}, 0, 0, S_REDSHIELD1},                                 // S_REDSHIELD8
-	{SPR_RSHE, 0, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM2}, // S_REDITEM1
-	{SPR_RSHE, 1, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM3}, // S_REDITEM2
-	{SPR_RSHE, 2, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM4}, // S_REDITEM3
-	{SPR_RSHE, 3, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM5}, // S_REDITEM4
-	{SPR_RSHE, 4, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM6}, // S_REDITEM5
-	{SPR_RSHE, 5, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM7}, // S_REDITEM6
-	{SPR_RSHE, 6, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM8}, // S_REDITEM7
-	{SPR_RSHE, 7, 2, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM1}, // S_REDITEM8
-	{SPR_RSHE, 0, 2, {A_RedShellChase}, 0, 0, S_REDITEM2},                        // S_REDITEMCHASE
-	{SPR_RSHE, 1, 2, {A_SmokeTrailer}, MT_REDTRAIL, 0, S_REDITEM3},               // S_REDITEMTRAIL
+	{SPR_RSHE, 0, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD2},                           // S_TRIPLEREDSHIELD1
+	{SPR_RSHE, 1, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD3},                           // S_TRIPLEREDSHIELD2
+	{SPR_RSHE, 2, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD4},                           // S_TRIPLEREDSHIELD3
+	{SPR_RSHE, 3, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD5},                           // S_TRIPLEREDSHIELD4
+	{SPR_RSHE, 4, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD6},                           // S_TRIPLEREDSHIELD5
+	{SPR_RSHE, 5, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD7},                           // S_TRIPLEREDSHIELD6
+	{SPR_RSHE, 6, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD8},                           // S_TRIPLEREDSHIELD7
+	{SPR_RSHE, 7, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD1},                           // S_TRIPLEREDSHIELD8
+	{SPR_RSHE, 0, 1, {NULL}, 0, 0, S_REDSHIELD2},                                 // S_REDSHIELD1
+	{SPR_RSHE, 1, 1, {NULL}, 0, 0, S_REDSHIELD3},                                 // S_REDSHIELD2
+	{SPR_RSHE, 2, 1, {NULL}, 0, 0, S_REDSHIELD4},                                 // S_REDSHIELD3
+	{SPR_RSHE, 3, 1, {NULL}, 0, 0, S_REDSHIELD5},                                 // S_REDSHIELD4
+	{SPR_RSHE, 4, 1, {NULL}, 0, 0, S_REDSHIELD6},                                 // S_REDSHIELD5
+	{SPR_RSHE, 5, 1, {NULL}, 0, 0, S_REDSHIELD7},                                 // S_REDSHIELD6
+	{SPR_RSHE, 6, 1, {NULL}, 0, 0, S_REDSHIELD8},                                 // S_REDSHIELD7
+	{SPR_RSHE, 7, 1, {NULL}, 0, 0, S_REDSHIELD1},                                 // S_REDSHIELD8
+	{SPR_RSHE, 0, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM2}, // S_REDITEM1
+	{SPR_RSHE, 1, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM3}, // S_REDITEM2
+	{SPR_RSHE, 2, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM4}, // S_REDITEM3
+	{SPR_RSHE, 3, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM5}, // S_REDITEM4
+	{SPR_RSHE, 4, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM6}, // S_REDITEM5
+	{SPR_RSHE, 5, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM7}, // S_REDITEM6
+	{SPR_RSHE, 6, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM8}, // S_REDITEM7
+	{SPR_RSHE, 7, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM1}, // S_REDITEM8
+	{SPR_RSHE, 0, 1, {A_RedShellChase}, 0, 0, S_REDITEM2},                        // S_REDITEMCHASE
+	{SPR_RSHE, 1, 1, {A_SmokeTrailer}, MT_REDTRAIL, 0, S_REDITEM3},               // S_REDITEMTRAIL
 	{SPR_RSTR, 0, 1, {NULL}, 0, 0, S_REDTRAIL2},                                  // S_REDTRAIL1
 	{SPR_RSTR, 1, 1, {NULL}, 0, 0, S_REDTRAIL3},                                  // S_REDTRAIL2
 	{SPR_RSTR, 2, 1, {NULL}, 0, 0, S_REDTRAIL4},                                  // S_REDTRAIL3
