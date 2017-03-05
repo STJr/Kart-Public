@@ -303,12 +303,8 @@ void K_RegisterKartStuff(void)
 #define NUMKARTITEMS 	18
 #define NUMKARTODDS 	40
 
-fixed_t spawnchance[NUMKARTITEMS * NUMKARTODDS];	// Holds the actual odds.
-fixed_t basechance, chance, prevchance;				// Base chance (item itself), current chance (counter), previous chance
-fixed_t numchoices, pingame, pexiting;
-
 // Ugly ol' 3D array
-static fixed_t K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
+static INT32 K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 {
 	// 1 Active Player
 	{  //1st //
@@ -751,28 +747,6 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 
 /**	\brief	Item Roulette for Kart
 
-	\param	position	player position in the race
-	\param	giveitem	what item we're slotting into the basechance
-
-	\return	void
-*/
-static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
-{
-	fixed_t this_pingame = pingame-1;
-	fixed_t this_giveitem = giveitem-1;
-
-	prevchance = chance;
-	basechance = K_KartItemOdds_Retro[this_pingame][this_giveitem][position]; // Number of slots in the array, based on odds
-
-	for (; chance < prevchance + basechance; chance++)
-	{
-		spawnchance[chance] = giveitem;
-		numchoices++;
-	}
-}
-
-/**	\brief	Item Roulette for Kart
-
 	\param	player	player object passed from P_KartPlayerThink
 
 	\return	void
@@ -780,9 +754,13 @@ static void K_KartSetItemResult(fixed_t position, fixed_t giveitem)
 static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 {
 	INT32 i;
-	INT32 roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+	INT32 pingame = 0, pexiting = 0;
+	INT32 roulettestop;
 	fixed_t prandom = P_RandomFixed();
 	fixed_t ppos = player->kartstuff[k_position] - 1;
+	fixed_t spawnchance[NUMKARTITEMS * NUMKARTODDS];
+	fixed_t chance = 0, numchoices = 0;
+
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -793,10 +771,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
-
-	// Initializes existing values
-	basechance = chance = prevchance = 0;
-	numchoices = pingame = pexiting = 0;
 
 	// Initializes existing spawnchance values
 	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
@@ -810,6 +784,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (players[i].exiting)
 			pexiting++;
 	}
+
+	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
@@ -826,27 +802,30 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	// Tiny catcher in case player position is unset.
 	if (ppos < 0) ppos = 0;
 
+#define SETITEMRESULT(pos, numplayers, itemnum) \
+	for (chance = K_KartItemOdds_Retro[numplayers][itemnum-1][pos]; chance; chance--) spawnchance[numchoices++] = itemnum
+
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
 	//{
-		if (cv_magnet.value) 							K_KartSetItemResult(ppos, 1);	// Magnet
-		if (cv_boo.value)								K_KartSetItemResult(ppos, 2);	// Boo
-		if (cv_mushroom.value)							K_KartSetItemResult(ppos, 3);	// Mushroom
-		if (cv_mushroom.value)							K_KartSetItemResult(ppos, 4);	// Triple Mushroom
-		if (cv_megashroom.value)						K_KartSetItemResult(ppos, 5);	// Mega Mushroom
-		if (cv_goldshroom.value)						K_KartSetItemResult(ppos, 6);	// Gold Mushroom
-		if (cv_star.value)								K_KartSetItemResult(ppos, 7);	// Star
-		if (cv_triplebanana.value)						K_KartSetItemResult(ppos, 8);	// Triple Banana
-		if (cv_fakeitem.value)							K_KartSetItemResult(ppos, 9);	// Fake Item
-		if (cv_banana.value)							K_KartSetItemResult(ppos, 10);	// Banana
-		if (cv_greenshell.value)						K_KartSetItemResult(ppos, 11);	// Green Shell
-		if (cv_redshell.value)							K_KartSetItemResult(ppos, 12);	// Red Shell
-		if (cv_triplegreenshell.value)					K_KartSetItemResult(ppos, 13);	// Triple Green Shell
-		if (cv_bobomb.value)							K_KartSetItemResult(ppos, 14);	// Bob-omb
-		if (cv_blueshell.value && pexiting == 0)		K_KartSetItemResult(ppos, 15);	// Blue Shell
-		//if (cv_fireflower.value)						K_KartSetItemResult(ppos, 16);	// Fire Flower
-		if (cv_tripleredshell.value)					K_KartSetItemResult(ppos, 17);	// Triple Red Shell
-		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18);	// Lightning
+		if (cv_magnet.value) 							SETITEMRESULT(ppos, pingame, 1);	// Magnet
+		if (cv_boo.value)								SETITEMRESULT(ppos, pingame, 2);	// Boo
+		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 3);	// Mushroom
+		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 4);	// Triple Mushroom
+		if (cv_megashroom.value)						SETITEMRESULT(ppos, pingame, 5);	// Mega Mushroom
+		if (cv_goldshroom.value)						SETITEMRESULT(ppos, pingame, 6);	// Gold Mushroom
+		if (cv_star.value)								SETITEMRESULT(ppos, pingame, 7);	// Star
+		if (cv_triplebanana.value)						SETITEMRESULT(ppos, pingame, 8);	// Triple Banana
+		if (cv_fakeitem.value)							SETITEMRESULT(ppos, pingame, 9);	// Fake Item
+		if (cv_banana.value)							SETITEMRESULT(ppos, pingame, 10);	// Banana
+		if (cv_greenshell.value)						SETITEMRESULT(ppos, pingame, 11);	// Green Shell
+		if (cv_redshell.value)							SETITEMRESULT(ppos, pingame, 12);	// Red Shell
+		if (cv_triplegreenshell.value)					SETITEMRESULT(ppos, pingame, 13);	// Triple Green Shell
+		if (cv_bobomb.value)							SETITEMRESULT(ppos, pingame, 14);	// Bob-omb
+		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(ppos, pingame, 15);	// Blue Shell
+		//if (cv_fireflower.value)						SETITEMRESULT(ppos, pingame, 16);	// Fire Flower
+		if (cv_tripleredshell.value)					SETITEMRESULT(ppos, pingame, 17);	// Triple Red Shell
+		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(ppos, pingame, 18);	// Lightning
 
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
@@ -856,24 +835,24 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	//}
 	/*else if (gametype == GT_NEO)
 	{
-		if (cv_magnet.value) 							K_KartSetItemResult(ppos, 1)	// Electro-Shield
-		if (cv_boo.value)								K_KartSetItemResult(ppos, 2)	// S3K Ghost
-		if (cv_mushroom.value)							K_KartSetItemResult(ppos, 3)	// Speed Shoe
-		if (cv_mushroom.value)							K_KartSetItemResult(ppos, 4)	// Triple Speed Shoe
-		if (cv_megashroom.value)						K_KartSetItemResult(ppos, 5)	// Size-Up Monitor
-		if (cv_goldshroom.value)						K_KartSetItemResult(ppos, 6)	// Rocket Shoe
-		if (cv_star.value)								K_KartSetItemResult(ppos, 7)	// Invincibility
-		if (cv_triplebanana.value)						K_KartSetItemResult(ppos, 8)	// Triple Banana
-		if (cv_fakeitem.value)							K_KartSetItemResult(ppos, 9)	// Eggman Monitor
-		if (cv_banana.value)							K_KartSetItemResult(ppos, 10)	// Banana
-		if (cv_greenshell.value)						K_KartSetItemResult(ppos, 11)	// 1x Orbinaut
-		if (cv_redshell.value)							K_KartSetItemResult(ppos, 12)	// 1x Jaws
-		if (cv_laserwisp.value)							K_KartSetItemResult(ppos, 13)	// Laser Wisp
-		if (cv_triplegreenshell.value)					K_KartSetItemResult(ppos, 14)	// 3x Orbinaut
-		if (cv_bobomb.value)							K_KartSetItemResult(ppos, 15)	// Specialstage Mines
-		if (cv_blueshell.value && pexiting == 0)		K_KartSetItemResult(ppos, 16)	// Deton
-		if (cv_jaws.value)								K_KartSetItemResult(ppos, 17)	// 2x Jaws
-		if (cv_lightning.value && pingame > pexiting)	K_KartSetItemResult(ppos, 18)	// Size-Down Monitor
+		if (cv_magnet.value) 							SETITEMRESULT(ppos, pingame, 1)	// Electro-Shield
+		if (cv_boo.value)								SETITEMRESULT(ppos, pingame, 2)	// S3K Ghost
+		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 3)	// Speed Shoe
+		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 4)	// Triple Speed Shoe
+		if (cv_megashroom.value)						SETITEMRESULT(ppos, pingame, 5)	// Size-Up Monitor
+		if (cv_goldshroom.value)						SETITEMRESULT(ppos, pingame, 6)	// Rocket Shoe
+		if (cv_star.value)								SETITEMRESULT(ppos, pingame, 7)	// Invincibility
+		if (cv_triplebanana.value)						SETITEMRESULT(ppos, pingame, 8)	// Triple Banana
+		if (cv_fakeitem.value)							SETITEMRESULT(ppos, pingame, 9)	// Eggman Monitor
+		if (cv_banana.value)							SETITEMRESULT(ppos, pingame, 10)	// Banana
+		if (cv_greenshell.value)						SETITEMRESULT(ppos, pingame, 11)	// 1x Orbinaut
+		if (cv_redshell.value)							SETITEMRESULT(ppos, pingame, 12)	// 1x Jaws
+		if (cv_laserwisp.value)							SETITEMRESULT(ppos, pingame, 13)	// Laser Wisp
+		if (cv_triplegreenshell.value)					SETITEMRESULT(ppos, pingame, 14)	// 3x Orbinaut
+		if (cv_bobomb.value)							SETITEMRESULT(ppos, pingame, 15)	// Specialstage Mines
+		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(ppos, pingame, 16)	// Deton
+		if (cv_jaws.value)								SETITEMRESULT(ppos, pingame, 17)	// 2x Jaws
+		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(ppos, pingame, 18)	// Size-Down Monitor
 
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
@@ -884,6 +863,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	else
 		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
 	*/
+
+#undef SETITEMRESULT
 
 	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
 
