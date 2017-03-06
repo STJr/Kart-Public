@@ -877,6 +877,49 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		S_StartSound(NULL, sfx_mkitmF);
 }
 
+//}
+
+//{ SRB2kart p_user.c Stuff
+
+/**	\brief	Updates the Player's offroad value once per frame
+
+	\param	player	player object passed from K_KartPlayerThink
+
+	\return	void
+*/
+static void K_UpdateOffroad(player_t *player)
+{
+	fixed_t kartweight = player->kartweight;
+	fixed_t offroad;
+	sector_t *nextsector = R_PointInSubsector(
+		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
+
+	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
+	if ((nextsector->special & 256) && nextsector->special != 768 && nextsector->special != 1024 && nextsector->special != 4864)
+	{
+		if (P_IsObjectOnGround(player->mo) && player->kartstuff[k_offroad] == 0)
+			player->kartstuff[k_offroad] = 16;
+		if (player->kartstuff[k_offroad] > 0)
+		{
+			if (kartweight < 1) { kartweight = 1; } if (kartweight > 9) { kartweight = 9; } // Safety Net
+
+			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
+			// A higher kart weight means you can stay offroad for longer without losing speed
+			offroad = (1872 + 5*156 - kartweight*156);
+
+			if (player->kartstuff[k_growshrinktimer] > 1) // megashroom slows down half as fast
+				offroad /= 2;
+
+			player->kartstuff[k_offroad] += offroad;
+		}
+
+		if (player->kartstuff[k_offroad] > FRACUNIT)
+			player->kartstuff[k_offroad] = FRACUNIT;
+	}
+	else
+		player->kartstuff[k_offroad] = 0;
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -886,6 +929,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 */
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
+	K_UpdateOffroad(player);
+
 	if (player->kartstuff[k_itemclose])
 		player->kartstuff[k_itemclose]--;
 
@@ -1008,6 +1053,11 @@ static void K_PlayTauntSound(mobj_t *source)
 void K_MomentumToFacing(player_t *player)
 {
 	angle_t dangle = player->mo->angle - R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
+
+	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
+	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer])
+		&& player->kartstuff[k_offroad] >= 0 && speedonly)
+			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
 	if (dangle > ANGLE_180)
 		dangle = InvAngle(dangle);

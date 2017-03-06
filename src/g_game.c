@@ -2194,6 +2194,7 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	INT32 starpostwp;
+	INT32 offroad;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2247,6 +2248,7 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
+	offroad = players[player].kartstuff[k_offroad];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2301,6 +2303,7 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp;
+	p->kartstuff[k_offroad] = offroad;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
