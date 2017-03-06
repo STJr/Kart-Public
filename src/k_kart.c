@@ -1105,7 +1105,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmove
 	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
 
 	// ACCELCODE!!!1!11!
-	oldspeed = P_AproxDistance(player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
+	oldspeed = R_PointToDist2(0, 0, player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
 	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
 	finalspeed = newspeed - oldspeed;
 
