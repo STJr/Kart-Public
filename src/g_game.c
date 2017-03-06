@@ -2190,7 +2190,6 @@ void G_PlayerReborn(INT32 player)
 	INT32 playerahead;
 	INT32 starpostwp;
 	INT32 lakitu;
-	INT32 offroad;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2247,7 +2246,6 @@ void G_PlayerReborn(INT32 player)
 	playerahead = players[player].kartstuff[k_playerahead];
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	lakitu = players[player].kartstuff[k_lakitu];
-	offroad = players[player].kartstuff[k_offroad];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2305,7 +2303,6 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_playerahead] = playerahead;
 	p->kartstuff[k_starpostwp] = starpostwp;
 	p->kartstuff[k_lakitu] = lakitu;
-	p->kartstuff[k_offroad] = offroad;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
