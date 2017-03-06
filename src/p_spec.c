@@ -4085,9 +4085,6 @@ DoneSection2:
 					player->starpostx = player->starposty = player->starpostz = 0;
 					//except the time!
 					player->starposttime = player->realtime;
-					if (((numstarposts+1)*player->laps - 1) < 256) //SIGSEGV prevention
-						player->checkpointtimes[(numstarposts+1)*player->laps - 1] = player->realtime;
-					player->kartstuff[k_playerahead] = P_CheckPlayerAhead(player, (numstarposts+1)*player->laps - 1);
 
 					if (P_IsLocalPlayer(player))
 					{

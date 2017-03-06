@@ -2185,9 +2185,6 @@ void G_PlayerReborn(INT32 player)
 	SINT8 pity;
 
 	// SRB2kart
-	INT32 x;
-	tic_t checkpointtimes[256];
-	INT32 playerahead;
 	INT32 starpostwp;
 	INT32 lakitu;
 	INT32 offroad;
@@ -2243,8 +2240,6 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	for (x = 0; x < (256); x++) checkpointtimes[x] = players[player].checkpointtimes[x];
-	playerahead = players[player].kartstuff[k_playerahead];
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	lakitu = players[player].kartstuff[k_lakitu];
 	offroad = players[player].kartstuff[k_offroad];
@@ -2301,8 +2296,6 @@ void G_PlayerReborn(INT32 player)
 	p->pity = pity;
 
 	// SRB2kart
-	for (x = 0; x < 256; x++) p->checkpointtimes[x] = checkpointtimes[x];
-	p->kartstuff[k_playerahead] = playerahead;
 	p->kartstuff[k_starpostwp] = starpostwp;
 	p->kartstuff[k_lakitu] = lakitu;
 	p->kartstuff[k_offroad] = offroad;

@@ -235,7 +235,6 @@ typedef enum
 {
 	// Basic gameplay things
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
-	k_playerahead,		// Is someone ahead of me or not?
 	k_oldposition,		// Used for taunting when you pass someone
 	k_positiondelay,	// Prevents player from taunting continuously if two people were neck-and-neck
 	k_prevcheck,		// Previous checkpoint distance; for p_user.c (was "pw_pcd")
@@ -453,7 +452,6 @@ typedef struct player_s
 	INT16 totalring; // Total number of rings obtained for Race Mode
 	tic_t realtime; // integer replacement for leveltime
 	UINT8 laps; // Number of laps (optional)
-	tic_t checkpointtimes[256]; // Individual checkpoint times	// SRB2kart
 
 	////////////////////
 	// CTF Mode Stuff //

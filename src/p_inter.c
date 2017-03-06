@@ -1186,8 +1186,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			// Save the player's time and position.
 			player->starposttime = player->realtime; //this makes race mode's timers work correctly whilst not affecting sp -x
-			if (((special->health - 1) + (numstarposts+1)*player->laps) < 256) // SIGSEGV prevention
-				player->checkpointtimes[(special->health - 1) + (numstarposts+1)*player->laps] = player->realtime;
 			//player->starposttime = leveltime;
 			player->starpostx = toucher->x>>FRACBITS;
 			player->starposty = toucher->y>>FRACBITS;
@@ -1195,10 +1193,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
 			P_ClearStarPost(special->health);
-
-			// SRB2kart
-			if (gametype == GT_RACE)
-				player->kartstuff[k_playerahead] = P_CheckPlayerAhead(player, (special->health - 1) + (numstarposts+1)*player->laps);
 
 			// Find all starposts in the level with this value.
 			{
@@ -1498,56 +1492,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	P_KillMobj(special, NULL, toucher);
 }
 
-// SRB2kart
-INT32 P_CheckPlayerAhead(player_t *player, INT32 tocheck)
-{
-	INT32 i, retvalue = 0, me = -1;
-	tic_t besttime = 0xffffffff;
-
-	if (tocheck >= 256)
-		return 0; //Don't SIGSEGV.
-
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (!playeringame[i])
-			continue;
-
-		if (player == &players[i]) //you're me!
-		{
-			me = i;
-			continue;
-		}
-
-		if (!players[i].checkpointtimes[tocheck])
-			continue;
-
-		if (players[i].checkpointtimes[tocheck] >= besttime)
-			continue;
-
-		besttime = players[i].checkpointtimes[tocheck];
-		retvalue = i+1;
-	}
-
-	if (!retvalue)
-		return 0;
-
-	if (besttime >= player->realtime) // > sign is practically paranoia
-	{
-		if (!players[retvalue-1].kartstuff[k_playerahead] && me != -1
-			&& players[retvalue-1].laps == player->laps
-			&& players[retvalue-1].starpostnum == player->starpostnum)
-			players[retvalue-1].kartstuff[k_playerahead] = 65536;
-		return 65536; //we're tied!
-	}
-
-	//checkplayerahead does this too!
-	if (!players[retvalue-1].kartstuff[k_playerahead] && me != -1
-		&& players[retvalue-1].laps == player->laps
-		&& players[retvalue-1].starpostnum == player->starpostnum)
-		players[retvalue-1].kartstuff[k_playerahead] = 257 + me;
-
-	return retvalue;
-}
 //
 /** Prints death messages relating to a dying or hit player.
   *
