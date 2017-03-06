@@ -756,10 +756,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	INT32 i;
 	INT32 pingame = 0, pexiting = 0;
 	INT32 roulettestop;
-	fixed_t prandom = P_RandomFixed();
-	fixed_t ppos = player->kartstuff[k_position] - 1;
-	fixed_t spawnchance[NUMKARTITEMS * NUMKARTODDS];
-	fixed_t chance = 0, numchoices = 0;
+	INT32 prandom;
+	INT32 ppos = player->kartstuff[k_position] - 1;
+	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
+	INT32 chance = 0, numchoices = 0;
 
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
@@ -803,7 +803,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if (ppos < 0) ppos = 0;
 
 #define SETITEMRESULT(pos, numplayers, itemnum) \
-	for (chance = K_KartItemOdds_Retro[numplayers-1][itemnum-1][pos]; chance; chance--) spawnchance[numchoices++] = itemnum
+	for (chance = 0; chance < K_KartItemOdds_Retro[numplayers-1][itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
@@ -827,9 +827,11 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_tripleredshell.value)					SETITEMRESULT(ppos, pingame, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(ppos, pingame, 18);	// Lightning
 
+		prandom = P_RandomKey(numchoices);
+
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
-			K_KartGetItemResult(player, spawnchance[prandom%numchoices], true);
+			K_KartGetItemResult(player, spawnchance[prandom], true);
 		else
 			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
 	//}
@@ -854,9 +856,11 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (cv_jaws.value)								SETITEMRESULT(ppos, pingame, 17)	// 2x Jaws
 		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(ppos, pingame, 18)	// Size-Down Monitor
 
+		prandom = P_RandomKey(numchoices);
+
 		// Award the player whatever power is rolled
 		if (numchoices > 0)
-			K_KartGetItemResult(player, spawnchance[prandom%numchoices], false)
+			K_KartGetItemResult(player, spawnchance[prandom], false)
 		else
 			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
 	}
