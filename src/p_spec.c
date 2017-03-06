@@ -7167,7 +7167,7 @@ static void P_SpawnFriction(void)
 			//	movefactor = ((0x10092 - friction)*(0x70))/0x158;
 			movefactor = FixedDiv(ORIG_FRICTION, friction);
 			if (movefactor < FRACUNIT)
-				movefactor = 8*movefactor - 7*FRACUNIT;
+				movefactor = 19*movefactor - 18*FRACUNIT;
 			else
 				movefactor = FRACUNIT; //movefactor = ((friction - 0xDB34)*(0xA))/0x80;
 
