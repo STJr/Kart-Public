@@ -4785,6 +4785,9 @@ static void P_3dMovement(player_t *player)
 
 		movepushforward = FixedMul(movepushforward, player->mo->scale);
 
+		if (player->mo->movefactor != FRACUNIT) // Friction-scaled acceleration...
+			movepushforward = FixedMul(movepushforward, player->mo->movefactor);
+
 		//if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
 		//	movepushforward /= 32;
 
