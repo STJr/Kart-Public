@@ -240,20 +240,6 @@ void Y_IntermissionDrawer(void)
 
 		//if (gottimebonus && endtic != -1)
 		//	V_DrawCenteredString(BASEVIDWIDTH/2, 172, V_YELLOWMAP, "TIME BONUS UNLOCKED!");
-
-		V_DrawString(70, 106, V_YELLOWMAP, "LAP 1");
-		V_DrawString(70, 116, V_YELLOWMAP, "LAP 2");
-		V_DrawString(70, 126, V_YELLOWMAP, "LAP 3");
-
-		{
-			INT32 laptime;
-			laptime = stplyr->checkpointtimes[(numstarposts+1) - 1];
-			V_DrawRightAlignedString(250, 106, 0, va("%d:%02d.%02d", laptime/(60*TICRATE), laptime/TICRATE % 60, (int)((laptime%TICRATE) * (100.00f/TICRATE))));
-			laptime = stplyr->checkpointtimes[((numstarposts+1)*2) - 1] - stplyr->checkpointtimes[(numstarposts+1) - 1];
-			V_DrawRightAlignedString(250, 116, 0, va("%d:%02d.%02d", laptime/(60*TICRATE), laptime/TICRATE % 60, (int)((laptime%TICRATE) * (100.00f/TICRATE))));
-			laptime = stplyr->realtime - stplyr->checkpointtimes[((numstarposts+1)*2) - 1];
-			V_DrawRightAlignedString(250, 126, 0, va("%d:%02d.%02d", laptime/(60*TICRATE), laptime/TICRATE % 60, (int)((laptime%TICRATE) * (100.00f/TICRATE))));
-		}
 	}
 	else if (intertype == int_race)
 	{

@@ -235,7 +235,6 @@ typedef enum
 {
 	// Basic gameplay things
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
-	k_playerahead,		// Is someone ahead of me or not?
 	k_oldposition,		// Used for taunting when you pass someone
 	k_positiondelay,	// Prevents player from taunting continuously if two people were neck-and-neck
 	k_prevcheck,		// Previous checkpoint distance; for p_user.c (was "pw_pcd")
@@ -257,7 +256,6 @@ typedef enum
 	k_driftangle,		// Stores player turn angle for drifting
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
-	k_driftfix,			// Used to fix your angle after releasing drift.
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_lakitu,			// > 0 = Lakitu fishing, < 0 = Lakitu lap counter (was "player->airtime") // NOTE: Check for ->lakitu, replace with this
@@ -452,7 +450,6 @@ typedef struct player_s
 	INT16 totalring; // Total number of rings obtained for Race Mode
 	tic_t realtime; // integer replacement for leveltime
 	UINT8 laps; // Number of laps (optional)
-	tic_t checkpointtimes[256]; // Individual checkpoint times	// SRB2kart
 
 	////////////////////
 	// CTF Mode Stuff //
