@@ -1780,19 +1780,6 @@ fixed_t K_GetKartTurnValue(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_driftangle] = p_angle;
 
-	if (!player->kartstuff[k_drift] && player->kartstuff[k_driftfix] > 0)
-	{
-		if (P_IsObjectOnGround(player->mo))
-			p_angle += FixedMul(800, adjustangle);
-		player->kartstuff[k_driftfix]--;
-	}
-	else if (!player->kartstuff[k_drift] && player->kartstuff[k_driftfix] < 0)
-	{
-		if (P_IsObjectOnGround(player->mo))
-			p_angle -= FixedMul(800, adjustangle);
-		player->kartstuff[k_driftfix]++;
-	}
-
 	return p_angle;
 }
 

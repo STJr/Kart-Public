@@ -1147,6 +1147,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	*/
 
+	/*
 	if (PLAYER1INPUTDOWN(gc_lookback))
 	{
 		if (camera.chase && !player->kartstuff[k_camspin])
@@ -1154,6 +1155,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else if (player->kartstuff[k_camspin] > 0)
 		player->kartstuff[k_camspin] = -1;
+	*/
 
 	// jump button
 	if (PLAYER1INPUTDOWN(gc_jump))
