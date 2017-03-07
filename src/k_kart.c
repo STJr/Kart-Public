@@ -1806,13 +1806,18 @@ static void K_KartDrift(player_t *player, boolean onground)
 
 	// Drifting: left or right?
 	if ((player->cmd.buttons & BT_DRIFTLEFT) && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
-		&& player->kartstuff[k_drift] < 3 && player->kartstuff[k_drift] > -1) // && player->kartstuff[k_drift] != 1)
+		&& player->kartstuff[k_drift] < 5 && player->kartstuff[k_drift] > -1) // && player->kartstuff[k_drift] != 1)
 		player->kartstuff[k_drift] = 1;
 	else if ((player->cmd.buttons & BT_DRIFTRIGHT) && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
-		&& player->kartstuff[k_drift] > -3 && player->kartstuff[k_drift] < 1) // && player->kartstuff[k_drift] != -1)
+		&& player->kartstuff[k_drift] > -5 && player->kartstuff[k_drift] < 1) // && player->kartstuff[k_drift] != -1)
 		player->kartstuff[k_drift] = -1;
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
-		player->kartstuff[k_drift] = 0;
+	{
+		if (player->kartstuff[k_drift] > 0)
+			player->kartstuff[k_drift]--;
+		else if (player->kartstuff[k_drift] < 0)
+			player->kartstuff[k_drift]++;
+	}
 
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground
@@ -1823,14 +1828,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 		if (player->kartstuff[k_drift] >= 1) // Drifting to the left
 		{
 			player->kartstuff[k_drift]++;
-			if (player->kartstuff[k_drift] > 3)
-				player->kartstuff[k_drift] = 3;
+			if (player->kartstuff[k_drift] > 5)
+				player->kartstuff[k_drift] = 5;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
 			player->kartstuff[k_drift]--;
-			if (player->kartstuff[k_drift] < -3)
-				player->kartstuff[k_drift] = -3;
+			if (player->kartstuff[k_drift] < -5)
+				player->kartstuff[k_drift] = -5;
 		}
 	}
 

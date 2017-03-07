@@ -4590,13 +4590,9 @@ static void P_3dMovement(player_t *player)
 	}
 	else
 	{
-		if (player->kartstuff[k_drift] < 0)
+		if (player->kartstuff[k_drift] != 0)
 		{
-			movepushangle = player->mo->angle+ANGLE_45;
-		}
-		else if (player->kartstuff[k_drift] > 0)
-		{
-			movepushangle = player->mo->angle-ANGLE_45;
+			movepushangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
 		}
 		else
 			movepushangle = player->mo->angle;
