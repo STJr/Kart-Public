@@ -1717,47 +1717,26 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 50;
 }
 
+// countersteer is how strong the controls are telling us we are turning
 // turndir is the direction the controls are telling us to turn, -1 if turning right and 1 if turning left
-static INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
+static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 {
-	fixed_t driftangle = FRACUNIT;
+	INT16 basedrift, driftangle;
 	fixed_t driftweight = player->kartweight*10;
-	UINT8 turntype = 3;
 
 	// If they aren't drifting or on the ground this doesn't apply
 	if (player->kartstuff[k_drift] == 0 || !P_IsObjectOnGround(player->mo))
 		return 0;
 
-	if ((player->kartstuff[k_drift] > 0 && turndir == 1) || (player->kartstuff[k_drift] < 0 && turndir == -1))
+	if (player->kartstuff[k_driftend] != 0)
 	{
-		turntype = 2;
-	}
-	else if ((player->kartstuff[k_drift] > 0 && turndir == -1) || (player->kartstuff[k_drift] < 0 && turndir == 1))
-	{
-		turntype = 1;
-	}
-	else if (player->kartstuff[k_driftend] != 0)
-	{
-		turntype = 4;
+		return -266*player->kartstuff[k_drift]; // Drift has ended and we are tweaking their angle back a bit
 	}
 
-	switch (turntype)
-	{
-		case 1:
-			driftangle = (200 + driftweight)/5*player->kartstuff[k_drift];	// Drifting outward
-			break;
-		case 2:
-			driftangle = (700 - driftweight)/5*player->kartstuff[k_drift];	// Drifting inward
-			break;
-		case 3:
-			driftangle = 90*player->kartstuff[k_drift];						// Drifting with no input
-			break;
-		case 4:
-			driftangle = -266*player->kartstuff[k_drift];// Drift has ended and we are tweaking their angle back a bit
-			break;
-	}
+	basedrift = 90*player->kartstuff[k_drift];
+	driftangle = abs((250 - driftweight)/5*player->kartstuff[k_drift]);
 
-	return driftangle;
+	return basedrift+FixedMul(driftangle, countersteer);
 }
 
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
@@ -1765,25 +1744,25 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
 	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
 
+	if (player->kartstuff[k_drift] != 0)
+	{
+		// If we're drifting we have a completely different turning value
+		if (player->kartstuff[k_driftend] == 0)
+		{
+			// 800 is the max set in g_game.c with angleturn
+			fixed_t countersteer = FixedDiv(turnvalue*FRACUNIT, 800*FRACUNIT);
+			turnvalue = K_GetKartDriftValue(player, countersteer);
+		}
+		else
+			turnvalue = (INT16)(turnvalue + K_GetKartDriftValue(player, FRACUNIT));
+
+		return turnvalue;
+	}
+
 	turnvalue = FixedMul(turnvalue, adjustangle); // Weight has a small effect on turning
 
 	if (player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 0)
 		turnvalue = FixedMul(turnvalue, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
-
-	if (player->kartstuff[k_drift] != 0)
-	{
-		if (player->kartstuff[k_driftend] == 0)
-		{
-			if (turnvalue < 0)
-				turnvalue = K_GetKartDriftValue(player, -1);
-			else if (turnvalue > 0)
-				turnvalue = K_GetKartDriftValue(player, 1);
-			else
-				turnvalue = K_GetKartDriftValue(player, 0);
-		}
-		else
-			turnvalue = (INT16)(turnvalue + K_GetKartDriftValue(player, 0));
-	}
 
 	return turnvalue;
 }
