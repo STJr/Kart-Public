@@ -1749,6 +1749,10 @@ INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
 	{
 		turntype = 1;
 	}
+	else if (player->kartstuff[k_driftend] != 0)
+	{
+		turntype = 4;
+	}
 
 	switch (turntype)
 	{
@@ -1760,6 +1764,13 @@ INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
 			break;
 		case 3:
 			driftangle = 450;				// Drifting with no input
+			break;
+		case 4:
+		{
+			fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
+			fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
+			driftangle = FixedMul(-800, adjustangle);// Drift has ended and we are tweaking their angle back a bit
+		}
 			break;
 	}
 
@@ -1814,9 +1825,17 @@ static void K_KartDrift(player_t *player, boolean onground)
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
 	{
 		if (player->kartstuff[k_drift] > 0)
+		{
 			player->kartstuff[k_drift]--;
+			player->kartstuff[k_driftend] = 1;
+		}
 		else if (player->kartstuff[k_drift] < 0)
+		{
 			player->kartstuff[k_drift]++;
+			player->kartstuff[k_driftend] = 1;
+		}
+		else
+			player->kartstuff[k_driftend] = 0;
 	}
 
 	// Incease/decrease the drift value to continue drifting in that direction
