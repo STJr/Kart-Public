@@ -1744,24 +1744,20 @@ static INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
 	switch (turntype)
 	{
 		case 1:
-			driftangle = 200 + driftweight;	// Drifting outward
+			driftangle = (200 + driftweight)/5*player->kartstuff[k_drift];	// Drifting outward
 			break;
 		case 2:
-			driftangle = 700 - driftweight;	// Drifting inward
+			driftangle = (700 - driftweight)/5*player->kartstuff[k_drift];	// Drifting inward
 			break;
 		case 3:
-			driftangle = 450;				// Drifting with no input
+			driftangle = 90*player->kartstuff[k_drift];						// Drifting with no input
 			break;
 		case 4:
-		{
-			fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
-			fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
-			driftangle = FixedMul(-800, adjustangle);// Drift has ended and we are tweaking their angle back a bit
-		}
+			driftangle = -266*player->kartstuff[k_drift];// Drift has ended and we are tweaking their angle back a bit
 			break;
 	}
 
-	return driftangle*(player->kartstuff[k_drift] / abs(player->kartstuff[k_drift]));
+	return driftangle;
 }
 
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
