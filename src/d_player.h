@@ -243,7 +243,6 @@ typedef enum
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
-	k_turndir,			// Turn direction for drifting; -1 = Left, 1 = Right, 0 = none
 	k_camspin,			// Used to 180 the camera while a button is held
 	k_sounds,			// Used this to stop and then force music restores as it hits zero
 
@@ -253,7 +252,6 @@ typedef enum
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
 
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
-	k_driftangle,		// Stores player turn angle for drifting
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you

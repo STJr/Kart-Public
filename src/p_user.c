@@ -4590,11 +4590,11 @@ static void P_3dMovement(player_t *player)
 	}
 	else
 	{
-		if (player->kartstuff[k_drift] >= 1)
+		if (player->kartstuff[k_drift] < 0)
 		{
 			movepushangle = player->mo->angle+ANGLE_45;
 		}
-		else if (player->kartstuff[k_drift] <= -1)
+		else if (player->kartstuff[k_drift] > 0)
 		{
 			movepushangle = player->mo->angle-ANGLE_45;
 		}
@@ -6655,13 +6655,13 @@ static void P_MovePlayer(player_t *player)
 					P_SetPlayerMobjState(player->mo, S_KART_STND);
 			}
 			// Drifting Left - S_KART_DRIFT_L1
-			else if (player->kartstuff[k_drift] < 0 && onground)
+			else if (player->kartstuff[k_drift] > 0 && onground)
 			{
 				if (!(player->mo->state == &states[S_KART_DRIFT_L1] || player->mo->state == &states[S_KART_DRIFT_L2]))
 					P_SetPlayerMobjState(player->mo, S_KART_DRIFT_L1);
 			}
 			// Drifting Right - S_KART_DRIFT_R1
-			else if (player->kartstuff[k_drift] > 0 && onground)
+			else if (player->kartstuff[k_drift] < 0 && onground)
 			{
 				if (!(player->mo->state == &states[S_KART_DRIFT_R1] || player->mo->state == &states[S_KART_DRIFT_R2]))
 					P_SetPlayerMobjState(player->mo, S_KART_DRIFT_R1);
@@ -6725,8 +6725,7 @@ static void P_MovePlayer(player_t *player)
 		{
 			// Start looping the sound now.
 			if (leveltime % 50 == 0 && onground
-			&& ((player->kartstuff[k_drift] >= 1 && player->kartstuff[k_drift] <= 3)
-			|| (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_drift] >= -3)))
+			&& player->kartstuff[k_drift] != 0)
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
 			else if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) && !S_SoundPlaying(player->mo, sfx_mkdrft) && onground)
@@ -6738,7 +6737,7 @@ static void P_MovePlayer(player_t *player)
 		}
 	}
 
-	K_MoveKartPlayer(player, cmd, onground);
+	K_MoveKartPlayer(player, onground);
 	//}
 
 
@@ -6990,7 +6989,7 @@ static void P_MovePlayer(player_t *player)
 	////////////////////////////
 
 	// SRB2kart - Drifting smoke and fire
-	if ((player->kartstuff[k_drift] || player->kartstuff[k_mushroomtimer] > 0) && onground && (leveltime & 1))
+	if ((player->kartstuff[k_drift] != 0 || player->kartstuff[k_mushroomtimer] > 0) && onground && (leveltime & 1))
 		K_SpawnDriftTrail(player);
 
 	/* // SRB2kart - nadah
