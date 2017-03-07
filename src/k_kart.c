@@ -1717,21 +1717,8 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 50;
 }
 
-INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
-{
-	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
-	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
-
-	turnvalue = FixedMul(turnvalue, adjustangle); // Weight has a small effect on turning
-
-	if (player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 0)
-		turnvalue = FixedMul(turnvalue, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
-
-	return turnvalue;
-}
-
-// turndir is the direction the controls are telling us to turn, 1 if turning right and -1 if turning left
-INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
+// turndir is the direction the controls are telling us to turn, -1 if turning right and 1 if turning left
+static INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
 {
 	fixed_t driftangle = FRACUNIT;
 	fixed_t driftweight = player->kartweight*10;
@@ -1777,6 +1764,34 @@ INT16 K_GetKartDriftValue(player_t *player, SINT8 turndir)
 	return driftangle*(player->kartstuff[k_drift] / abs(player->kartstuff[k_drift]));
 }
 
+INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
+{
+	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
+	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
+
+	turnvalue = FixedMul(turnvalue, adjustangle); // Weight has a small effect on turning
+
+	if (player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer] || player->kartstuff[k_growshrinktimer] > 0)
+		turnvalue = FixedMul(turnvalue, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
+
+	if (player->kartstuff[k_drift] != 0)
+	{
+		if (player->kartstuff[k_driftend] == 0)
+		{
+			if (turnvalue < 0)
+				turnvalue = K_GetKartDriftValue(player, -1);
+			else if (turnvalue > 0)
+				turnvalue = K_GetKartDriftValue(player, 1);
+			else
+				turnvalue = K_GetKartDriftValue(player, 0);
+		}
+		else
+			turnvalue = (INT16)(turnvalue + K_GetKartDriftValue(player, 0));
+	}
+
+	return turnvalue;
+}
+
 static void K_KartDrift(player_t *player, boolean onground)
 {
 	fixed_t dsone = 26 + player->kartspeed;
@@ -1786,44 +1801,52 @@ static void K_KartDrift(player_t *player, boolean onground)
 	// Holding the Jump button will enable drifting.
 
 	// Drift Release (Moved here so you can't "chain" drifts)
-	if ((player->kartstuff[k_drift] == 0)
+	if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
 		&& player->kartstuff[k_driftcharge] < dsone
 		&& onground)
 	{
-		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
-	else if ((player->kartstuff[k_drift] == 0)
+	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
 		&& (player->kartstuff[k_driftcharge] >= dsone && player->kartstuff[k_driftcharge] < dstwo)
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 20;
 		S_StartSound(player->mo, sfx_mush);
-		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
-	else if ((player->kartstuff[k_drift] == 0)
+	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
 		&& player->kartstuff[k_driftcharge] >= dstwo
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 40;
 		S_StartSound(player->mo, sfx_mush);
-		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
 
 	// Drifting: left or right?
 	if ((player->cmd.buttons & BT_DRIFTLEFT) && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
-		&& player->kartstuff[k_drift] < 5 && player->kartstuff[k_drift] > -1) // && player->kartstuff[k_drift] != 1)
+		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != 1)
+	{
+		// Starting left drift
 		player->kartstuff[k_drift] = 1;
+		player->kartstuff[k_driftend] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
 	else if ((player->cmd.buttons & BT_DRIFTRIGHT) && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
-		&& player->kartstuff[k_drift] > -5 && player->kartstuff[k_drift] < 1) // && player->kartstuff[k_drift] != -1)
+		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
+	{
+		// Starting right drift
 		player->kartstuff[k_drift] = -1;
+		player->kartstuff[k_driftend] = 0;
+		player->kartstuff[k_driftcharge] = 0;
+	}
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
 	{
+		// drift is not being performed so if we're just finishing set driftend and decrement counters
 		if (player->kartstuff[k_drift] > 0)
 		{
 			player->kartstuff[k_drift]--;
@@ -1840,9 +1863,10 @@ static void K_KartDrift(player_t *player, boolean onground)
 
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground
-		&& (player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1))
+		&& player->kartstuff[k_drift] != 0)
 	{
 		player->kartstuff[k_driftcharge]++;
+		player->kartstuff[k_driftend] = 0;
 
 		if (player->kartstuff[k_drift] >= 1) // Drifting to the left
 		{
