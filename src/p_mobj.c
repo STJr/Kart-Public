@@ -2866,13 +2866,13 @@ static void P_PlayerZMovement(mobj_t *mo)
 								P_SetPlayerMobjState(mo, S_KART_STND);
 						}
 						// Drifting Left - S_KART_DRIFT_L1
-						else if (mo->player->kartstuff[k_drift] < 0 && P_IsObjectOnGround(mo))
+						else if (mo->player->kartstuff[k_drift] > 0 && P_IsObjectOnGround(mo))
 						{
 							if (!(mo->state == &states[S_KART_DRIFT_L1] || mo->state == &states[S_KART_DRIFT_L2]))
 								P_SetPlayerMobjState(mo, S_KART_DRIFT_L1);
 						}
 						// Drifting Right - S_KART_DRIFT_R1
-						else if (mo->player->kartstuff[k_drift] > 0 && P_IsObjectOnGround(mo))
+						else if (mo->player->kartstuff[k_drift] < 0 && P_IsObjectOnGround(mo))
 						{
 							if (!(mo->state == &states[S_KART_DRIFT_R1] || mo->state == &states[S_KART_DRIFT_R2]))
 								P_SetPlayerMobjState(mo, S_KART_DRIFT_R1);

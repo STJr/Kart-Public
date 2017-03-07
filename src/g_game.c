@@ -1249,12 +1249,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN);
 
-	if (turnleft || axis < 0) // Drifting to the left
+	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
 	else
 		cmd->buttons &= ~BT_DRIFTLEFT;
 
-	if (turnright || axis > 0) // Drifting to the right
+	if (cmd->angleturn < 0) // Drifting to the right
 		cmd->buttons |= BT_DRIFTRIGHT;
 	else
 		cmd->buttons &= ~BT_DRIFTRIGHT;
@@ -1267,17 +1267,16 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		cmd->angleturn = K_GetKartTurnValue(player, cmd);
-
-		//cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(80 - (players[consoleplayer].speed >> 16), 80));
-
-		//if (players[consoleplayer].kartstuff[k_startimer]
-		//	|| players[consoleplayer].kartstuff[k_mushroomtimer]
-		//	|| players[consoleplayer].kartstuff[k_growshrinktimer] > 0)
-		//	cmd->angleturn = FixedMul(cmd->angleturn, FixedDiv(5*FRACUNIT, 4*FRACUNIT));
+		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+		if (cmd->angleturn < 0)
+			cmd->angleturn = (INT16)(cmd->angleturn + K_GetKartDriftValue(player, 1));
+		else if (cmd->angleturn > 0)
+			cmd->angleturn = (INT16)(cmd->angleturn + K_GetKartDriftValue(player, -1));
+		else
+			cmd->angleturn = (INT16)(cmd->angleturn + K_GetKartDriftValue(player, 0));
 
 		// SRB2kart - no additional angle if not moving
-		if (!(player->mo && player->speed == 0))
+		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
 			localangle += (cmd->angleturn<<16);
 
 		cmd->angleturn = (INT16)(localangle >> 16);
@@ -1581,21 +1580,15 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	//{ SRB2kart - Drift support
 	axis = Joy2Axis(AXISTURN);
 
-	if (turnleft || axis < 0) // Drifting to the left
+	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
 	else
 		cmd->buttons &= ~BT_DRIFTLEFT;
 
-	if (turnright || axis > 0) // Drifting to the right
+	if (cmd->angleturn < 0) // Drifting to the right
 		cmd->buttons |= BT_DRIFTRIGHT;
 	else
 		cmd->buttons &= ~BT_DRIFTRIGHT;
-
-	if (turnright && turnleft)
-	{
-		cmd->buttons &= ~BT_DRIFTLEFT;
-		cmd->buttons &= ~BT_DRIFTRIGHT;
-	}
 	//}
 
 	if (player->bot == 1) {
@@ -1618,6 +1611,13 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
+		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+		if (cmd->angleturn < 0)
+			cmd->angleturn = (INT16)(cmd->angleturn + K_GetKartDriftValue(player, 1));
+		else if (cmd->angleturn > 0)
+			cmd->angleturn = (INT16)(cmd->angleturn + K_GetKartDriftValue(player, -1));
+		else
+			cmd->angleturn = (INT16)(cmd->angleturn + K_GetKartDriftValue(player, 0));
 		localangle2 += (cmd->angleturn<<16);
 		cmd->angleturn = (INT16)(localangle2 >> 16);
 	}
