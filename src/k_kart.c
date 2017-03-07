@@ -1744,7 +1744,7 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
 	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
 
-	if (player->kartstuff[k_drift] != 0)
+	if (player->kartstuff[k_drift] != 0 && P_IsObjectOnGround(player->mo))
 	{
 		// If we're drifting we have a completely different turning value
 		if (player->kartstuff[k_driftend] == 0)
