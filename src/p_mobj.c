@@ -7438,11 +7438,21 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, mobj->info->activesound);
 			break;
 		case MT_REDITEM:
+		{
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
+
+			// Do a similar thing to what is done to the player to keep the red shell at a speed cap
+			fixed_t magnitude = P_AproxDistance(mobj->momx, mobj->momy);
+			if (magnitude > 64*FRACUNIT)
+			{
+				mobj->momx = FixedMul(FixedDiv(mobj->momx, magnitude), 64*FRACUNIT);
+				mobj->momy = FixedMul(FixedDiv(mobj->momy, magnitude), 64*FRACUNIT);
+			}
 			break;
+		}
 		case MT_REDITEMDUD:
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
