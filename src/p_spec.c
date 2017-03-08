@@ -4089,21 +4089,9 @@ DoneSection2:
 					if (P_IsLocalPlayer(player))
 					{
 						if (player->laps < (UINT8)(cv_numlaps.value - 1))
-						{
 							S_StartSound(NULL, sfx_mlap);
-							player->kartstuff[k_lakitu] = -64;
-						}
 						else if (player->laps == (UINT8)(cv_numlaps.value - 1))
-						{
-							player->kartstuff[k_lakitu] = -64;
-
-							if (!splitscreen || (splitscreen && !players[consoleplayer].exiting
-							&& !players[secondarydisplayplayer].exiting))
-							{
-								player->kartstuff[k_sounds] = 130;
-								S_ChangeMusicInternal("finlap", false);
-							}
-						}
+							S_StartSound(NULL, sfx_mlap);
 					}
 					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;

@@ -952,10 +952,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
 
-	// Restores music automatically for the final lap, among other things
-	if (player->kartstuff[k_sounds] <= 4 && player->kartstuff[k_sounds] > 0 && P_IsLocalPlayer(player))
-		P_RestoreMusic(player);
-
 	// ???
 	/*
 	if (player->kartstuff[k_jmp] > 1 && onground)
@@ -2500,37 +2496,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		player->mo->momy = 0;
 	}
 
-	  ///////////////////////
-	 //LAKITU START SIGNAL//
-	///////////////////////
-
-	// Spawn at the beggining of the level,
-	// not joiner-friendly.
-	/*
-	if (leveltime == 3)
-	{
-		mobj_t *mo;
-		angle_t newangle;
-		fixed_t newx;
-		fixed_t newy;
-		fixed_t newz;
-		newangle = player->mo->angle;
-		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 128*FRACUNIT);
-		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 128*FRACUNIT);
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			newz = player->mo->z - 320*FRACUNIT;
-		else
-			newz = player->mo->z + 256*FRACUNIT;
-		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
-		if (mo)
-		{
-			if (player->mo->eflags & MFE_VERTICALFLIP)
-				mo->eflags |= MFE_VERTICALFLIP;
-			P_SetTarget(&mo->target, player->mo);
-		}
-	}
-	*/
-
 	// Play the stop light's sounds
 	if ((leveltime == (TICRATE-4)*2) || (leveltime == (TICRATE-2)*3))
 		S_StartSound(NULL, sfx_lkt1);
@@ -2562,124 +2527,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		player->kartstuff[k_boostcharge] = 0;
 	}
-
-	  //////////////////
-	 //FISHING LAKITU//
-	//////////////////
-
-	// If you die and respawn in Mario Kart, have Lakitu fish you back in.
-	/*
-	if (player->airtime == 60)
-	{
-		mobj_t *mo;
-		angle_t newangle;
-		fixed_t newx;
-		fixed_t newy;
-		fixed_t newz;
-		newangle = player->mo->angle;
-		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 0);
-		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 0);
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			newz = player->mo->z - 128*FRACUNIT;
-		else
-			newz = player->mo->z + 64*FRACUNIT;
-		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
-		if (mo)
-		{
-			if (player->mo->eflags & MFE_VERTICALFLIP)
-				mo->eflags |= MFE_VERTICALFLIP;
-			mo->angle = newangle+ANGLE_180;
-			P_SetTarget(&mo->target, player->mo);
-			P_SetMobjState(mo, S_LAKITUFSH1);
-		}
-	}
-	*/
-	if (player->kartstuff[k_lakitu] > 3)
-	{
-		player->kartstuff[k_lakitu]--;
-		player->mo->momz = 0;
-		player->powers[pw_flashing] = 2;
-		player->powers[pw_nocontrol] = 2;
-		if (leveltime % 15 == 0)
-			S_StartSound(player->mo, sfx_lkt3);
-	}
-	// That's enough pointless fishing for now.
-	if (player->kartstuff[k_lakitu] > 0 && player->kartstuff[k_lakitu] <= 3)
-	{
-		if (!onground)
-		{
-			player->powers[pw_flashing] = 2;
-			// If you tried to boost while in the air,
-			// you lose your chance of boosting at all.
-			if (cmd->buttons & BT_ACCELERATE)
-			{
-				player->powers[pw_flashing] = 0;
-				player->kartstuff[k_lakitu] = 0;
-			}
-		}
-		else
-		{
-			player->kartstuff[k_lakitu]--;
-			// Quick! You only have three tics to boost!
-			if (cmd->buttons & BT_ACCELERATE)
-			{
-				K_DoMushroom(player, false);
-			}
-		}
-	}
-
-	  //////////////////
-	 //NEW LAP LAKITU//
-	//////////////////
-
-	/*
-	if (player->kartstuff[k_lakitu] == -60)
-	{
-		mobj_t *mo;
-		angle_t newangle;
-		fixed_t newx;
-		fixed_t newy;
-		fixed_t newz;
-		newangle = player->mo->angle;
-		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 128*FRACUNIT);
-		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 128*FRACUNIT);
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			newz = player->mo->z - 320*FRACUNIT;
-		else
-			newz = player->mo->z + 256*FRACUNIT;
-		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
-		if (mo)
-		{
-			P_SetTarget(&mo->target, player->mo);
-			if (player->mo->eflags & MFE_VERTICALFLIP)
-				mo->eflags |= MFE_VERTICALFLIP;
-
-			if (player->laps < (unsigned)(cv_numlaps.value - 1))
-			{
-				if (player->laps == 1)
-					P_SetMobjState(mo, S_LAKITULAP1A);
-				if (player->laps == 2)
-					P_SetMobjState(mo, S_LAKITULAP2A);
-				if (player->laps == 3)
-					P_SetMobjState(mo, S_LAKITULAP3A);
-				if (player->laps == 4)
-					P_SetMobjState(mo, S_LAKITULAP4A);
-				if (player->laps == 5)
-					P_SetMobjState(mo, S_LAKITULAP5A);
-				if (player->laps == 6)
-					P_SetMobjState(mo, S_LAKITULAP6A);
-				if (player->laps == 7)
-					P_SetMobjState(mo, S_LAKITULAP7A);
-				if (player->laps == 8)
-					P_SetMobjState(mo, S_LAKITULAP8A);
-			}
-			else if (player->laps == (unsigned)(cv_numlaps.value - 1))
-				P_SetMobjState(mo, S_LAKITULAPFA);
-		}
-	}
-	*/
-	if (player->kartstuff[k_lakitu] < 0)
-		player->kartstuff[k_lakitu]++;
 }
 
 //}

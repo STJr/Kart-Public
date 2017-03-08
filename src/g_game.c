@@ -2192,7 +2192,6 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	INT32 starpostwp;
-	INT32 lakitu;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2246,7 +2245,6 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
-	lakitu = players[player].kartstuff[k_lakitu];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2301,7 +2299,6 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp;
-	p->kartstuff[k_lakitu] = lakitu;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -3694,7 +3691,6 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			{
 				players[i].lives = cv_startinglives.value;
 				players[i].continues = 0;
-				players[i].kartstuff[k_lakitu] = 0; // SRB2kart
 			}
 			else if (pultmode)
 			{
@@ -3705,7 +3701,6 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			{
 				players[i].lives = 3;
 				players[i].continues = 1;
-				players[i].kartstuff[k_lakitu] = 0; // SRB2kart
 			}
 
 			// The latter two should clear by themselves, but just in case

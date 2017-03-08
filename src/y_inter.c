@@ -1890,10 +1890,6 @@ static void Y_CalculateTournamentPoints(void)
 		players[data.match.num[data.match.numplayers]].score += data.match.increase[data.match.numplayers];
 		data.match.scores[data.match.numplayers] = players[data.match.num[data.match.numplayers]].score;
 
-		//players[data.match.num[data.match.numplayers]].newfloorz = 0;
-		players[data.match.num[data.match.numplayers]].kartstuff[k_lakitu] = 0;
-		//players[data.match.num[data.match.numplayers]].airtime = 0;
-
 		data.match.numplayers++;
 	}
 }

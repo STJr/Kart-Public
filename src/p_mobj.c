@@ -7351,40 +7351,6 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		//{ SRB2kart Items
-		/*case MT_LAKITU:
-			if (!mobj->target->player)
-			{
-				P_SetMobjState(mobj, S_DISS);
-				return;
-			}
-			if (mobj->target->player && !splitscreen
-			&& !(mobj->target->player == &players[displayplayer])
-				&& !(mobj->state >= &states[S_LAKITUFSH1] && mobj->state <= &states[S_LAKITUFSH2]))
-				mobj->flags2 |= MF2_DONTDRAW;
-			else
-				mobj->flags2 &= ~MF2_DONTDRAW;
-
-			if ((mobj->state >= &states[S_LAKITUSL1] && mobj->state <= &states[S_LAKITUSL12])
-            || (mobj->state >= &states[S_LAKITULAP1A] && mobj->state <= &states[S_LAKITUFLG8]))
-			{
-				const fixed_t radius = FIXEDSCALE(128, mobj->target->scale)*FRACUNIT;
-				mobj->angle = (mobj->target->angle);
-				P_UnsetThingPosition(mobj);
-				{
-					const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
-					mobj->x = mobj->target->x + FixedMul(FINECOSINE(fa),radius);
-					mobj->y = mobj->target->y + FixedMul(FINESINE(fa),radius);
-					if (mobj->state >= &states[S_LAKITUFLG1] && mobj->state <= &states[S_LAKITUFLG8])
-					{
-						if (mobj->target->eflags & MFE_VERTICALFLIP)
-							mobj->z = mobj->target->z - 128*FRACUNIT;
-						else
-							mobj->z = mobj->target->z + 64*FRACUNIT;
-					}
-					P_SetThingPosition(mobj);
-				}
-			}
-			break;*/
 		case MT_POKEY:
 			if (mobj->threshold)
 			{
@@ -9072,8 +9038,7 @@ void P_MovePlayerToStarpost(INT32 playernum)
 	sector->ceilingheight;
 
 
-	//z = p->starpostz << FRACBITS;
-	z = (p->starpostz + 128) << FRACBITS; // SRB2kart - Spawns off the ground for Lakitu
+	z = p->starpostz << FRACBITS;
 	if (z < floor)
 		z = floor;
 	else if (z > ceiling - mobjinfo[MT_PLAYER].height)

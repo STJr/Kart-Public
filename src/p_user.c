@@ -1126,9 +1126,6 @@ void P_RestoreMusic(player_t *player)
 		return;
 	S_SpeedMusic(1.0f);
 
-	if (player->kartstuff[k_sounds] >= 5) // SRB2kart - Don't reset music during the final lap roll!
-		return;
-
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
 	if (!player->exiting)
 	{
