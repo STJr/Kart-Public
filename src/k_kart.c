@@ -3417,6 +3417,12 @@ static void K_DrawKartPositionFaces(void)
 	}
 }
 
+static void K_drawKartSpeedometer(void)
+{
+	fixed_t kmphSpeed = FixedMul(stplyr->speed, 142371)/FRACUNIT; // 2.172409058
+	V_DrawKartString(9, STRINGY(155), 0, va("%3d km/h", kmphSpeed));
+}
+
 void K_drawKartHUD(void)
 {
 	// Define the X and Y for each drawn object
@@ -3455,6 +3461,8 @@ void K_drawKartHUD(void)
 
 	// Draw the numerical position
 	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+
+	K_drawKartSpeedometer();
 
 	// Plays the music after the starting countdown. This is here since it checks every frame regularly.
 	if (leveltime > 157 && leveltime < (TICRATE+1)*7)
