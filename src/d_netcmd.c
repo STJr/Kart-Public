@@ -316,6 +316,7 @@ consvar_t cv_lightning = 		{"lightning", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, 
 
 consvar_t cv_karthud = {"karthud", "Default", CV_SAVE|CV_CALL, karthud_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartcc = {"kartcc", "100cc", CV_NETVAR, kartcc_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mphspeed = {"mphspeed", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 //
 
 consvar_t cv_ringslinger = {"ringslinger", "No", CV_NETVAR|CV_NOSHOWHELP|CV_CALL|CV_CHEAT, CV_YesNo,

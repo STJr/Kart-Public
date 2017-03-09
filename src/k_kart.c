@@ -294,6 +294,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_lightning);
 
 	CV_RegisterVar(&cv_kartcc);
+	CV_RegisterVar(&cv_mphspeed);
 }
 
 //}
@@ -3266,8 +3267,17 @@ static void K_DrawKartPositionFaces(void)
 
 static void K_drawKartSpeedometer(void)
 {
-	fixed_t kmphSpeed = FixedMul(stplyr->speed, 142371)/FRACUNIT; // 2.172409058
-	V_DrawKartString(9, STRINGY(155), 0, va("%3d km/h", kmphSpeed));
+	fixed_t convSpeed;
+	if (!cv_mphspeed.value)
+	{
+		convSpeed = FixedMul(stplyr->speed, 142371)/FRACUNIT; // 2.172409058
+		V_DrawKartString(9, STRINGY(155), 0, va("%3d km/h", convSpeed));
+	}
+	else
+	{
+		convSpeed = FixedMul(stplyr->speed, 88465)/FRACUNIT; // 1.349868774
+		V_DrawKartString(9, STRINGY(155), 0, va("%3d mph", convSpeed));
+	}
 }
 
 void K_drawKartHUD(void)
