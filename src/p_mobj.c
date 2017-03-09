@@ -7405,13 +7405,14 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_REDITEM:
 		{
+			fixed_t magnitude;
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			// Do a similar thing to what is done to the player to keep the red shell at a speed cap
-			fixed_t magnitude = P_AproxDistance(mobj->momx, mobj->momy);
+			magnitude = P_AproxDistance(mobj->momx, mobj->momy);
 			if (magnitude > 64*FRACUNIT)
 			{
 				mobj->momx = FixedMul(FixedDiv(mobj->momx, magnitude), 64*FRACUNIT);
