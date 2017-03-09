@@ -1006,59 +1006,54 @@ static void K_PlayTauntSound(mobj_t *source)
 	}
 }
 
-static fixed_t K_GetKartBoostPower(player_t *player, boolean speedonly)
-{
-	fixed_t boostpower = FRACUNIT;
-	fixed_t boostvalue = 0;
-	fixed_t numboosts = 0;
 
-	if (player->kartstuff[k_growshrinktimer] < -1 && speedonly)
-	{												// Shrink
-		boostvalue += 16; // This is basically speed x2 due to friction and being smaller. Really translates to about 80%.
-		numboosts++;
-	}
+// if speed is true it gets the speed boost power, otherwise it gets the acceleration
+static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
+{
+	fixed_t boostvalue = 0;
+
 	if (player->kartstuff[k_growshrinktimer] > 1
 		&& (player->kartstuff[k_growshrinktimer] > (itemtime - 25)
-		|| player->kartstuff[k_growshrinktimer] <= 26) && speedonly)
+		|| player->kartstuff[k_growshrinktimer] <= 26))
 	{												// Mega Mushroom - Mid-size
-		boostvalue +=  9; //  9/8 speed (*1.125)
-		numboosts++;
+		if (speed)
+		{
+			boostvalue = max(boostvalue, FRACUNIT/8); // + 12.5%
+		}
 	}
 	if (player->kartstuff[k_growshrinktimer] < (itemtime - 25)
-		&& player->kartstuff[k_growshrinktimer] > 26 && speedonly)
+		&& player->kartstuff[k_growshrinktimer] > 26)
 	{												// Mega Mushroom
-		boostvalue += 10; // 10/8 speed (*1.250)
-		numboosts++;
+		if (speed)
+		{
+			boostvalue = max(boostvalue, 2*(FRACUNIT/8)); // + 25%
+		}
 	}
 	if (player->kartstuff[k_startimer])
 	{												// Star
-		boostvalue += 11; // 11/8 speed (*1.375)
-		numboosts++;
-	}
-	if ((player->kartstuff[k_driftboost] && speedonly)
-		|| (player->kartstuff[k_driftboost] && !player->kartstuff[k_mushroomtimer]))
-	{												// Drift Boost
-		boostvalue += 12; // 12/8 speed (*1.500)
-		numboosts++;
-	}
-	if ((player->kartstuff[k_mushroomtimer] && speedonly)
-		|| (player->kartstuff[k_mushroomtimer] > mushroomtime/4))
-	{												// Mushroom
-		if (speedonly)
-			boostvalue += 12; // 12/8 speed (*1.500)
-		else if (player->kartstuff[k_driftboost])
-			boostvalue += 68;
+		if (speed)
+			boostvalue = max(boostvalue, 3*(FRACUNIT/8)); // + 37.5%
 		else
-			boostvalue += 80;
-		numboosts++;
+			boostvalue = max(boostvalue, 3*FRACUNIT); // + 300%
 	}
-	if (numboosts) // If any of the above apply...
-	{
-		boostvalue = (boostvalue*2)/numboosts; 	// Doubled to avoid .5's
-		boostpower = FixedMul(boostpower, boostvalue*FRACUNIT/16);
+	if (player->kartstuff[k_driftboost])
+	{												// Drift Boost
+		if (speed)
+			boostvalue = max(boostvalue, FRACUNIT/2); // + 50%
+		else
+			boostvalue = max(boostvalue, 4*FRACUNIT); // + 400%
 	}
+	if (player->kartstuff[k_mushroomtimer])
+	{												// Mushroom
+		if (speed)
+			boostvalue = max(boostvalue, FRACUNIT/2); // + 50%
+		else
+			boostvalue = max(boostvalue, 8*FRACUNIT); // + 800%
+	}
+	// don't average them anymore, this would make a small boost and a high boost less useful
+	// just take the highest we want instead
 
-	return boostpower;
+	return FRACUNIT + boostvalue;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
