@@ -1110,6 +1110,9 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmove
 	else if (!forwardmovement)
 		return FRACUNIT/2;
 
+	if (finalspeed < 0)
+		finalspeed = 0;
+
 	return finalspeed;
 }
 
