@@ -1842,7 +1842,10 @@ static void Y_CalculateTournamentPoints(void)
 	{
 		if (playeringame[i])
 			numplayersingame++;
+	}
 
+	for (i = 0; i < numplayersingame; i++)
+	{
 		increase[i] = numplayersingame-i;
 
 		if (increase[i] < 0)
