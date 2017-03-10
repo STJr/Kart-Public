@@ -3531,7 +3531,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		24*FRACUNIT,    // radius
 		40*FRACUNIT,    // height
 		0,              // display offset
-		15*FRACUNIT,    // mass
+		19*FRACUNIT,    // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_ENEMY|MF_SPECIAL|MF_SHOOTABLE, // flags
@@ -3558,7 +3558,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		24*FRACUNIT,    // radius
 		40*FRACUNIT,    // height
 		0,              // display offset
-		20*FRACUNIT,    // mass
+		26*FRACUNIT,    // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_ENEMY|MF_SPECIAL|MF_SHOOTABLE, // flags
@@ -5362,7 +5362,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		20*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		11*FRACUNIT,    // mass
+		14*FRACUNIT,    // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
@@ -5389,7 +5389,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		20*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		20*FRACUNIT,    // mass
+		26*FRACUNIT,    // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
@@ -5416,7 +5416,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		20*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		32*FRACUNIT,    // mass
+		40*FRACUNIT,    // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
@@ -5443,8 +5443,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		20*FRACUNIT,    // mass
-		20*FRACUNIT,    // damage
+		26*FRACUNIT,    // mass
+		26*FRACUNIT,    // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
 		S_YDIAG2        // raisestate
@@ -5470,8 +5470,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		32*FRACUNIT,    // mass
-		32*FRACUNIT,    // damage
+		40*FRACUNIT,    // mass
+		40*FRACUNIT,    // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
 		S_RDIAG2        // raisestate
@@ -13997,7 +13997,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		20*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		5*FRACUNIT,     // mass
+		6*FRACUNIT,     // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
@@ -14024,7 +14024,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		20*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		5*FRACUNIT,     // mass
+		6*FRACUNIT,     // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
@@ -14051,8 +14051,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16*FRACUNIT,    // radius
 		16*FRACUNIT,    // height
 		0,              // display offset
-		11*FRACUNIT,    // mass
-		11*FRACUNIT,    // damage
+		14*FRACUNIT,    // mass
+		14*FRACUNIT,    // damage
 		sfx_None,       // activesound
 		MF_SOLID|MF_SPRING, // flags
 		S_BDIAG2        // raisestate

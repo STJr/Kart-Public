@@ -5473,7 +5473,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 	(void)fromnetsave;
 
 	// Set the default gravity. Custom gravity overrides this setting.
-	gravity = FRACUNIT/2;
+	gravity = (FRACUNIT*8)/10;
 
 	// Defaults in case levels don't have them set.
 	sstimer = 90*TICRATE + 6;

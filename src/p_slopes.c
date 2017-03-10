@@ -792,12 +792,12 @@ void P_SlopeLaunch(mobj_t *mo)
 		vector3_t slopemom;
 		slopemom.x = mo->momx;
 		slopemom.y = mo->momy;
-		slopemom.z = mo->momz*2;
+		slopemom.z = mo->momz;
 		P_QuantizeMomentumToSlope(&slopemom, mo->standingslope);
 
 		mo->momx = slopemom.x;
 		mo->momy = slopemom.y;
-		mo->momz = slopemom.z/2;
+		mo->momz = slopemom.z;
 	}
 
 	//CONS_Printf("Launched off of slope.\n");
