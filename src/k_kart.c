@@ -1077,6 +1077,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	fixed_t k_speed = 150;
 	fixed_t g_cc = FRACUNIT;
 	fixed_t xspd = 3072;		// 4.6875 aka 3/64
+	fixed_t finalspeed;
 
 	switch (cv_kartcc.value)
 	{
@@ -1093,9 +1094,11 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 
 	k_speed += player->kartspeed*3; // 153 - 177
 
+	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
+
 	if (doboostpower)
-		return FixedMul(FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true)), player->mo->scale);
-	return FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
+		return FixedMul(finalspeed, K_GetKartBoostPower(player, true));
+	return finalspeed;
 }
 
 static fixed_t K_GetKartAccel(player_t *player)

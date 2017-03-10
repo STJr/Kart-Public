@@ -1273,7 +1273,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		else if (cmd->angleturn < -angleturn[1])
 			cmd->angleturn = -angleturn[1];
 
-		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+		if (player->mo)
+			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
 
 		// SRB2kart - no additional angle if not moving
 		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
@@ -1617,7 +1618,8 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		else if (cmd->angleturn < -angleturn[1])
 			cmd->angleturn = -angleturn[1];
 
-		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+		if (player->mo)
+			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
 
 		// SRB2kart - no additional angle if not moving
 		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
