@@ -1009,7 +1009,6 @@ static void K_PlayTauntSound(mobj_t *source)
 void K_MomentumToFacing(player_t *player)
 {
 	angle_t dangle = player->mo->angle - R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
-	fixed_t speed = R_PointToDist2(0, 0, player->rmomx, player->rmomy);
 
 	if (dangle > ANGLE_180)
 		dangle = InvAngle(dangle);
@@ -1018,9 +1017,9 @@ void K_MomentumToFacing(player_t *player)
 	if (!P_IsObjectOnGround(player->mo) || dangle > ANGLE_90)
 		return;
 
-	P_Thrust(player->mo, player->mo->angle, speed - FixedMul(speed, player->mo->friction));
-	player->mo->momx = FixedMul(player->mo->momx, player->mo->friction);
-	player->mo->momy = FixedMul(player->mo->momy, player->mo->friction);
+	P_Thrust(player->mo, player->mo->angle, player->speed - FixedMul(player->speed, player->mo->friction));
+	player->mo->momx = FixedMul(player->mo->momx - player->cmomx, player->mo->friction) + player->cmomx;
+	player->mo->momy = FixedMul(player->mo->momy - player->cmomy, player->mo->friction) + player->cmomy;
 }
 
 // if speed is true it gets the speed boost power, otherwise it gets the acceleration
