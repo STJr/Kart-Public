@@ -1050,7 +1050,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 		if (speed)
 			boostvalue = max(boostvalue, 3*(FRACUNIT/8)); // + 37.5%
 		else
-			boostvalue = max(boostvalue, 3*FRACUNIT); // + 300%
+			boostvalue = max(boostvalue, 3*FRACUNIT); // + 600%
 	}
 	if (player->kartstuff[k_driftboost])
 	{												// Drift Boost
