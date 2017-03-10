@@ -6532,8 +6532,8 @@ static void P_DoScrollMove(mobj_t *thing, fixed_t dx, fixed_t dy, INT32 exclusiv
 		{
 			thing->player->cmomx += dx;
 			thing->player->cmomy += dy;
-			thing->player->cmomx = FixedMul(thing->player->cmomx, 0xe800);
-			thing->player->cmomy = FixedMul(thing->player->cmomy, 0xe800);
+			thing->player->cmomx = FixedMul(thing->player->cmomx, ORIG_FRICTION);
+			thing->player->cmomy = FixedMul(thing->player->cmomy, ORIG_FRICTION);
 		}
 	}
 
@@ -7306,8 +7306,8 @@ static inline boolean PIT_PushThing(mobj_t *thing)
 					{
 						thing->player->cmomx += tmpmomx;
 						thing->player->cmomy += tmpmomy;
-						thing->player->cmomx = FixedMul(thing->player->cmomx, 0xe800);
-						thing->player->cmomy = FixedMul(thing->player->cmomy, 0xe800);
+						thing->player->cmomx = FixedMul(thing->player->cmomx, ORIG_FRICTION);
+						thing->player->cmomy = FixedMul(thing->player->cmomy, ORIG_FRICTION);
 					}
 				}
 				else
@@ -7325,8 +7325,8 @@ static inline boolean PIT_PushThing(mobj_t *thing)
 					{
 						thing->player->cmomx += FixedMul(speed, FINECOSINE(pushangle));
 						thing->player->cmomy += FixedMul(speed, FINESINE(pushangle));
-						thing->player->cmomx = FixedMul(thing->player->cmomx, 0xe800);
-						thing->player->cmomy = FixedMul(thing->player->cmomy, 0xe800);
+						thing->player->cmomx = FixedMul(thing->player->cmomx, ORIG_FRICTION);
+						thing->player->cmomy = FixedMul(thing->player->cmomy, ORIG_FRICTION);
 					}
 				}
 			}
@@ -7365,8 +7365,8 @@ static inline boolean PIT_PushThing(mobj_t *thing)
 				{
 					thing->player->cmomx += tmpmomx;
 					thing->player->cmomy += tmpmomy;
-					thing->player->cmomx = FixedMul(thing->player->cmomx, 0xe800);
-					thing->player->cmomy = FixedMul(thing->player->cmomy, 0xe800);
+					thing->player->cmomx = FixedMul(thing->player->cmomx, ORIG_FRICTION);
+					thing->player->cmomy = FixedMul(thing->player->cmomy, ORIG_FRICTION);
 				}
 			}
 		}
