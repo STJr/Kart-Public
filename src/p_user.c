@@ -4789,6 +4789,10 @@ static void P_3dMovement(player_t *player)
 		P_Thrust(player->mo, movepushangle, movepushforward);
 #endif
 	}
+	else if (!player->kartstuff[k_spinouttimer])
+	{
+		K_MomentumToFacing(player);
+	}
 	// Sideways movement
 	if (player->climbing)
 	{

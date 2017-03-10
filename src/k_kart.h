@@ -23,6 +23,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 void K_SpawnDriftTrail(player_t *player);
 void K_DoMushroom(player_t *player, boolean doPFlag);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
+void K_MomentumToFacing(player_t *player);
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower);
 fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmovement);
 void K_MoveKartPlayer(player_t *player, boolean onground);

@@ -1006,6 +1006,22 @@ static void K_PlayTauntSound(mobj_t *source)
 	}
 }
 
+void K_MomentumToFacing(player_t *player)
+{
+	angle_t dangle = player->mo->angle - R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
+	fixed_t speed = R_PointToDist2(0, 0, player->rmomx, player->rmomy);
+
+	if (dangle > ANGLE_180)
+		dangle = InvAngle(dangle);
+
+	// If you aren't on the ground or are moving in too different of a direction don't do this
+	if (!P_IsObjectOnGround(player->mo) || dangle > ANGLE_90)
+		return;
+
+	P_Thrust(player->mo, player->mo->angle, speed - FixedMul(speed, player->mo->friction));
+	player->mo->momx = FixedMul(player->mo->momx, player->mo->friction);
+	player->mo->momy = FixedMul(player->mo->momy, player->mo->friction);
+}
 
 // if speed is true it gets the speed boost power, otherwise it gets the acceleration
 static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
