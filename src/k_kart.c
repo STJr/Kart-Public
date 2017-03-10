@@ -1042,7 +1042,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	{												// Mega Mushroom
 		if (speed)
 		{
-			boostvalue = max(boostvalue, 2*(FRACUNIT/8)); // + 25%
+			boostvalue = max(boostvalue, FRACUNIT/4); // + 25%
 		}
 	}
 	if (player->kartstuff[k_startimer])
@@ -1055,7 +1055,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	if (player->kartstuff[k_driftboost])
 	{												// Drift Boost
 		if (speed)
-			boostvalue = max(boostvalue, FRACUNIT/2); // + 50%
+			boostvalue = max(boostvalue, FRACUNIT/4); // + 25%
 		else
 			boostvalue = max(boostvalue, 4*FRACUNIT); // + 400%
 	}
