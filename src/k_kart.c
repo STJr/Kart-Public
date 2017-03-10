@@ -1094,8 +1094,8 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	k_speed += player->kartspeed*3; // 153 - 177
 
 	if (doboostpower)
-		return FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true));
-	return FixedMul(k_speed<<14, g_cc);
+		return FixedMul(FixedMul(FixedMul(k_speed<<14, g_cc), K_GetKartBoostPower(player, true)), player->mo->scale);
+	return FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 }
 
 static fixed_t K_GetKartAccel(player_t *player)

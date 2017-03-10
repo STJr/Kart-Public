@@ -4774,7 +4774,8 @@ static void P_3dMovement(player_t *player)
 				movepushforward = 0;
 		}
 
-		movepushforward = FixedMul(movepushforward, player->mo->scale);
+		// don't need to account for scale here with kart accel code
+		//movepushforward = FixedMul(movepushforward, player->mo->scale);
 
 		if (player->mo->movefactor != FRACUNIT) // Friction-scaled acceleration...
 			movepushforward = FixedMul(movepushforward, player->mo->movefactor);
@@ -4838,7 +4839,8 @@ static void P_3dMovement(player_t *player)
 
 			movepushsideangle = controldirection;
 
-			movepushforward = FixedMul(movepushforward, player->mo->scale);
+			// don't need to account for scale here with kart accel code
+			//movepushforward = FixedMul(movepushforward, player->mo->scale);
 
 			//if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
 			//	movepushforward /= 32;
@@ -4878,7 +4880,8 @@ static void P_3dMovement(player_t *player)
 		}
 
 		// Finally move the player now that his speed/direction has been decided.
-		movepushside = FixedMul(movepushside, player->mo->scale);
+		// don't need to account for scale here with kart accel code
+		//movepushside = FixedMul(movepushside, player->mo->scale);
 
 #ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushsideangle, movepushside);
