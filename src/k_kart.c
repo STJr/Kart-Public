@@ -985,6 +985,10 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
 			S_StopSoundByID(player->mo, sfx_mega); // Stop it
 	}
+
+	// Plays the music after the starting countdown.
+	if (P_IsLocalPlayer(player) && leveltime == 158)
+		S_ChangeMusicInternal(mapmusname, true);
 }
 
 static void K_PlayTauntSound(mobj_t *source)
@@ -3336,10 +3340,6 @@ void K_drawKartHUD(void)
 	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 
 	K_drawKartSpeedometer();
-
-	// Plays the music after the starting countdown. This is here since it checks every frame regularly.
-	if (leveltime > 157 && leveltime < (TICRATE+1)*7)
-		S_ChangeMusicInternal(mapmusname, true);
 }
 
 //}
