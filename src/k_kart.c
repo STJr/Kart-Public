@@ -1781,8 +1781,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
-	fixed_t dsone = 35*3 + player->kartspeed;
-	fixed_t dstwo = 70*3 + player->kartspeed*2;
+	fixed_t dsone = 26*2 + player->kartspeed;
+	fixed_t dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -1861,7 +1861,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = 5;
 
 			if (player->cmd.buttons & BT_DRIFTLEFT)
-				driftadditive = 3;
+				driftadditive = 2;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
@@ -1870,7 +1870,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = -5;
 
 			if (player->cmd.buttons & BT_DRIFTRIGHT)
-				driftadditive = 3;
+				driftadditive = 2;
 		}
 
 		// This spawns the drift sparks
