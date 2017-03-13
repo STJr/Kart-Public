@@ -886,11 +886,6 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 */
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
-	// This spawns the drift sparks when k_driftcharge hits 26 + player->kartspeed. Its own AI handles life/death and color
-	if (player->kartstuff[k_drift] != 0
-		&& player->kartstuff[k_driftcharge] == (26 + player->kartspeed))
-		P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
-
 	if (player->kartstuff[k_itemclose])
 		player->kartstuff[k_itemclose]--;
 
@@ -1786,8 +1781,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
-	fixed_t dsone = 26 + player->kartspeed;
-	fixed_t dstwo = 52 + player->kartspeed*2;
+	fixed_t dsone = 35*3 + player->kartspeed;
+	fixed_t dstwo = 70*3 + player->kartspeed*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -1857,21 +1852,33 @@ static void K_KartDrift(player_t *player, boolean onground)
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground
 		&& player->kartstuff[k_drift] != 0)
 	{
-		player->kartstuff[k_driftcharge]++;
-		player->kartstuff[k_driftend] = 0;
+		fixed_t driftadditive = 1;
 
 		if (player->kartstuff[k_drift] >= 1) // Drifting to the left
 		{
 			player->kartstuff[k_drift]++;
 			if (player->kartstuff[k_drift] > 5)
 				player->kartstuff[k_drift] = 5;
+
+			if (player->cmd.buttons & BT_DRIFTLEFT)
+				driftadditive = 3;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
 			player->kartstuff[k_drift]--;
 			if (player->kartstuff[k_drift] < -5)
 				player->kartstuff[k_drift] = -5;
+
+			if (player->cmd.buttons & BT_DRIFTRIGHT)
+				driftadditive = 3;
 		}
+
+		// This spawns the drift sparks
+		if (player->kartstuff[k_driftcharge] < dsone && player->kartstuff[k_driftcharge] + driftadditive >= dsone)
+			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
+
+		player->kartstuff[k_driftcharge] += driftadditive;
+		player->kartstuff[k_driftend] = 0;
 	}
 
 	// Stop drifting

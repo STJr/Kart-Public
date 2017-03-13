@@ -6405,7 +6405,7 @@ void P_MobjThinker(mobj_t *mobj)
 			//{ SRB2kart mobs
 			case MT_DRIFT:
 				if ((mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
-					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= (26 + mobj->target->player->kartspeed)))
+					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= 35*3 + mobj->target->player->kartspeed))
 				{
 					INT32 HEIGHT;
 					fixed_t radius;
@@ -6434,7 +6434,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 					// Switch blue flames to red flames
 					if (mobj->target->player && mobj->type == MT_DRIFT
-					&& mobj->target->player->kartstuff[k_driftcharge] > 52 + (mobj->target->player->kartspeed*2)
+					&& mobj->target->player->kartstuff[k_driftcharge] >= 70*3 + mobj->target->player->kartspeed*2
 					&& !(mobj->state >= &states[S_DRIFTSPARK4] && mobj->state <= &states[S_DRIFTSPARK6]))
 						P_SetMobjStateNF(mobj, S_DRIFTSPARK4);
 
