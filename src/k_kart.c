@@ -1054,11 +1054,6 @@ void K_MomentumToFacing(player_t *player)
 {
 	angle_t dangle = player->mo->angle - R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
 
-	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
-	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer])
-		&& player->kartstuff[k_offroad] >= 0 && speedonly)
-			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
-
 	if (dangle > ANGLE_180)
 		dangle = InvAngle(dangle);
 
@@ -1074,7 +1069,13 @@ void K_MomentumToFacing(player_t *player)
 // if speed is true it gets the speed boost power, otherwise it gets the acceleration
 static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 {
+	fixed_t boostpower = FRACUNIT;
 	fixed_t boostvalue = 0;
+
+	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
+	if (!(player->kartstuff[k_startimer] || player->kartstuff[k_bootaketimer] || player->kartstuff[k_mushroomtimer])
+		&& player->kartstuff[k_offroad] >= 0 && speed)
+			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
 	if (player->kartstuff[k_growshrinktimer] > 1
 		&& (player->kartstuff[k_growshrinktimer] > (itemtime - 25)
@@ -1117,7 +1118,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	// don't average them anymore, this would make a small boost and a high boost less useful
 	// just take the highest we want instead
 
-	return FRACUNIT + boostvalue;
+	return boostpower + boostvalue;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
