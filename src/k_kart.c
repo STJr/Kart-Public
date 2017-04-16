@@ -881,6 +881,26 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
+/**	\brief	Checks that the player is on an offroad subsector for realsies
+
+	\param	mo	player mobj object
+
+	\return	boolean
+*/
+static boolean K_CheckOffroadCollide(mobj_t *mo)
+{
+	I_Assert(mo != NULL);
+	I_Assert(!P_MobjWasRemoved(mo));
+
+	if (((mo->z <= mo->subsector->sector->floorheight
+		&& !(mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_FLOOR))
+	|| (mo->z + mo->height >= mo->subsector->sector->ceilingheight
+		&& (mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_CEILING))))
+		return true;
+
+	return false;
+}
+
 /**	\brief	Updates the Player's offroad value once per frame
 
 	\param	player	player object passed from K_KartPlayerThink
@@ -897,7 +917,7 @@ static void K_UpdateOffroad(player_t *player)
 	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
 	if ((nextsector->special & 256) && nextsector->special != 768 && nextsector->special != 1024 && nextsector->special != 4864)
 	{
-		if (P_IsObjectOnGround(player->mo) && player->kartstuff[k_offroad] == 0)
+		if (K_CheckOffroadCollide(player->mo) && player->kartstuff[k_offroad] == 0)
 			player->kartstuff[k_offroad] = 16;
 		if (player->kartstuff[k_offroad] > 0)
 		{
@@ -905,7 +925,7 @@ static void K_UpdateOffroad(player_t *player)
 
 			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
 			// A higher kart weight means you can stay offroad for longer without losing speed
-			offroad = (1872 + 5*156 - kartweight*156);
+			offroad = (1872 + 5*156 - kartweight*156)*2;
 
 			if (player->kartstuff[k_growshrinktimer] > 1) // megashroom slows down half as fast
 				offroad /= 2;
@@ -913,8 +933,8 @@ static void K_UpdateOffroad(player_t *player)
 			player->kartstuff[k_offroad] += offroad;
 		}
 
-		if (player->kartstuff[k_offroad] > FRACUNIT)
-			player->kartstuff[k_offroad] = FRACUNIT;
+		if (player->kartstuff[k_offroad] > FRACUNIT*2)
+			player->kartstuff[k_offroad] = FRACUNIT*2;
 	}
 	else
 		player->kartstuff[k_offroad] = 0;
