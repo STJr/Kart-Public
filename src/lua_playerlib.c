@@ -130,6 +130,8 @@ static int player_get(lua_State *L)
 		LUA_PushUserdata(L, plr->powers, META_POWERS);
 	else if (fastcmp(field,"kartstuff"))
 		LUA_PushUserdata(L, plr->kartstuff, META_KARTSTUFF);
+	else if (fastcmp(field,"collide"))
+		LUA_PushUserdata(L, plr->collide, META_COLLIDE);
 	else if (fastcmp(field,"pflags"))
 		lua_pushinteger(L, plr->pflags);
 	else if (fastcmp(field,"panim"))

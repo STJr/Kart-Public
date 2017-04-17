@@ -107,6 +107,10 @@ extern consvar_t cv_blueshell, cv_jaws, cv_fireflower, cv_tripleredshell, cv_lig
 extern consvar_t cv_karthud;
 extern consvar_t cv_kartcc;
 extern consvar_t cv_speedometer;
+
+extern consvar_t cv_collideminimum;
+extern consvar_t cv_collidesoundnum;
+extern consvar_t cv_collidesounds;
 //
 
 extern consvar_t cv_itemfinder;

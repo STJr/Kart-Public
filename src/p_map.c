@@ -3500,7 +3500,7 @@ retry:
 		PT_ADDLINES, PTR_SlideTraverse);
 
 	// Some walls are bouncy even if you're not
-	if (bestslideline && bestslideline->flags & ML_BOUNCY)
+	if (bestslideline && !(bestslideline->flags & ML_BOUNCY)) // SRB2kart - All walls are bouncy unless specified otherwise
 	{
 		P_BounceMove(mo);
 		return;

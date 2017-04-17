@@ -295,6 +295,9 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartcc);
 	CV_RegisterVar(&cv_speedometer);
+	CV_RegisterVar(&cv_collideminimum);
+	CV_RegisterVar(&cv_collidesoundnum);
+	CV_RegisterVar(&cv_collidesounds);
 }
 
 //}
@@ -881,6 +884,110 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
+boolean K_IsTouching(mobj_t *mobj1, mobj_t *mobj2)
+{
+	if (mobj1 == NULL || mobj2 == NULL)
+		return false;
+	fixed_t absx = abs(mobj1->x - mobj2->x);
+	fixed_t absy = abs(mobj1->y - mobj2->y);
+	fixed_t absz = abs(mobj1->z - mobj2->z);
+
+	if (absx < 32*FRACUNIT && absy < 32*FRACUNIT && absz < 32*FRACUNIT)
+		return true;
+	else
+		return false;
+}
+
+void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
+{
+	if (mobj1 == NULL || mobj2 == NULL)
+		return;
+	
+	fixed_t meanX = (mobj1->momx + mobj2->momx) / 2;
+	fixed_t meanY = (mobj1->momy + mobj2->momy) / 2;
+	fixed_t deltaV1 = P_AproxDistance((mobj1->momx - meanX), (mobj1->momy - meanY));
+	fixed_t deltaV2 = P_AproxDistance((mobj2->momx - meanX), (mobj2->momy - meanY));
+	//fixed_t clashvolume = (deltaV1 / FRACUNIT) * 8; // In case you want to do a scaling bump sound volume.
+	if (cv_collidesounds.value == 1)
+	{
+		S_StartSound(mobj1, cv_collidesoundnum.value);
+		S_StartSound(mobj2, cv_collidesoundnum.value);
+	}
+	if (deltaV1 < (cv_collideminimum.value * FRACUNIT / 2))
+	{
+		fixed_t a = 0;
+		if (deltaV1 != 0)
+			a = FixedDiv((cv_collideminimum.value * FRACUNIT / 2), deltaV1);
+		else if (deltaV2 != 0)
+			a = FixedDiv((cv_collideminimum.value * FRACUNIT / 2), deltaV2);
+		else
+			a = 0;
+		fixed_t deltax1 = (mobj1->momx - meanX);
+		fixed_t deltax2 = (mobj2->momx - meanX);
+		fixed_t deltay1 = (mobj1->momy - meanY);
+		fixed_t deltay2 = (mobj2->momy - meanY);
+		mobj1->momx = meanX + FixedMul(deltax1, a);
+		mobj1->momy = meanY + FixedMul(deltay1, a);
+		mobj2->momx = meanX + FixedMul(deltax2, a);
+		mobj2->momy = meanY + FixedMul(deltay2, a);
+	}
+	fixed_t newx = mobj1->momx;
+	fixed_t newy = mobj1->momy;
+	fixed_t newz = mobj1->momz;
+	mobj1->momx = mobj2->momx;
+	mobj1->momy = mobj2->momy;
+	mobj2->momx = newx;
+	mobj2->momy = newy;
+	if (bounce == true) // Perform a Goomba Bounce.
+		mobj1->momz = -mobj1->momz;
+	else
+	{
+		mobj1->momz = mobj2->momz;
+		mobj2->momz = newz;
+	}
+}
+
+void K_KartBouncer(void)
+{
+	fixed_t i, j;
+	
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+			for (j = 0; j < MAXPLAYERS; j++)
+				players[i].collide[j] = false;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+		{
+			for (j = i+1; j < MAXPLAYERS; j++)
+				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo))
+				{
+					if (players[j].mo == players[i].mo)
+						break;
+					
+					if (K_IsTouching(players[i].mo, players[j].mo))
+					{
+						if (!players[i].collide[j] && !players[j].collide[i])
+						{
+							if (P_IsObjectOnGround(players[j].mo) && players[i].mo->momz < 0)
+								K_SwapMomentum(players[i].mo, players[j].mo, true);
+							else if (P_IsObjectOnGround(players[i].mo) && players[j].mo->momz < 0)
+								K_SwapMomentum(players[j].mo, players[i].mo, true);
+							else
+								K_SwapMomentum(players[i].mo, players[j].mo, false);
+							players[i].collide[j] = true;
+							players[j].collide[i] = true;
+						}
+					}
+					else
+					{
+						players[i].collide[j] = false;
+						players[j].collide[i] = false;
+					}
+				}
+		}
+}
+
 /**	\brief	Checks that the player is on an offroad subsector for realsies
 
 	\param	mo	player mobj object
@@ -895,7 +1002,10 @@ static boolean K_CheckOffroadCollide(mobj_t *mo)
 	if (((mo->z <= mo->subsector->sector->floorheight
 		&& !(mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_FLOOR))
 	|| (mo->z + mo->height >= mo->subsector->sector->ceilingheight
-		&& (mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_CEILING))))
+		&& (mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_CEILING)))
+	&& (GETSECSPECIAL(mo->subsector->sector->special, 1) == 2
+	|| GETSECSPECIAL(mo->subsector->sector->special, 1) == 3
+	|| GETSECSPECIAL(mo->subsector->sector->special, 1) == 4))
 		return true;
 
 	return false;
@@ -1621,14 +1731,14 @@ static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	return mo;
 }
 
-static void K_DoMagnet(player_t * player)
+static void K_DoMagnet(player_t *player)
 {
 	S_StartSound(player->mo, sfx_s3k45);
 	player->kartstuff[k_magnettimer] = 35;
 	P_NukeEnemies(player->mo, player->mo, 16*FRACUNIT);
 }
 
-static void K_DoBooSteal(player_t * player)
+static void K_DoBooSteal(player_t *player)
 {
 	INT32 i, numplayers = 0;
 	INT32 playerswappable[MAXPLAYERS];
@@ -1863,8 +1973,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
-	fixed_t dsone = 26*2 + player->kartspeed;
-	fixed_t dstwo = dsone*2;
+	fixed_t dsone = 51 + player->kartspeed; //  52 -  60
+	fixed_t dstwo = dsone*2;				// 104 - 120
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -1891,7 +2001,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= dstwo
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 40;
+		player->kartstuff[k_driftboost] = 60;
 		S_StartSound(player->mo, sfx_mush);
 		player->kartstuff[k_driftcharge] = 0;
 	}

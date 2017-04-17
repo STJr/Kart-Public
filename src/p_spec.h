@@ -392,9 +392,10 @@ typedef struct
 	UINT8 roverfriction;  ///< flag for whether friction originated from a FOF or not
 } friction_t;
 
-// SRB2kart - TODO: To satisfy Iceman's craving, I'll leave this here: 62914 : Is the number he wants friction to be.
 // Friction defines.
 #define ORIG_FRICTION          (62914) ///< Original value.
+//#define ORIG_FRICTION_RETRO    (0xE8 << (FRACBITS-8))
+//#define ORIG_FRICTION_NEO      (62914)
 #define ORIG_FRICTION_FACTOR   (8 << (FRACBITS-8))    ///< Original value.
 
 void T_Friction(friction_t *f);

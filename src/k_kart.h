@@ -15,6 +15,7 @@ UINT8 K_GetKartColorByName(const char *name);
 
 void K_RegisterKartStuff(void);
 
+void K_KartBouncer(void);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_SpinPlayer(player_t *player, mobj_t *source);
 void K_SquishPlayer(player_t *player, mobj_t *source);

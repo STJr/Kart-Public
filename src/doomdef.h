@@ -143,16 +143,16 @@ extern FILE *logstream;
 #define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
 #define VERSION    103 // Game version
-#define SUBVERSION 3 // more precise version number
+#define SUBVERSION 4 // more precise version number
 #define VERSIONSTRING "Development EXE"
-#define VERSIONSTRINGW "v1.3.03"
+#define VERSIONSTRINGW "v1.3.04"
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    103 // Game version
-#define SUBVERSION 3  // more precise version number
-#define VERSIONSTRING "DevEXE v1.3.03"
-#define VERSIONSTRINGW L"v1.3.03"
+#define SUBVERSION 4  // more precise version number
+#define VERSIONSTRING "DevEXE v1.3.04"
+#define VERSIONSTRINGW L"v1.3.04"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
