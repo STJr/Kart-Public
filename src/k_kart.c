@@ -916,11 +916,11 @@ static void K_UpdateOffroad(player_t *player)
 
 	fixed_t offroadstrength = 0;
 	
-	if (nextsector->special & 2)		// Weak Offroad
+	if (GETSECSPECIAL(nextsector->special, 1) == 2)		// Weak Offroad
 		offroadstrength = 1;
-	else if (nextsector->special & 3)	// Mid Offroad
+	else if (GETSECSPECIAL(nextsector->special, 1) == 3)	// Mid Offroad
 		offroadstrength = 2;
-	else if (nextsector->special & 4)	// Strong Offroad
+	else if (GETSECSPECIAL(nextsector->special, 1) == 4)	// Strong Offroad
 		offroadstrength = 3;
 
 	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
