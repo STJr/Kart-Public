@@ -914,8 +914,19 @@ static void K_UpdateOffroad(player_t *player)
 	sector_t *nextsector = R_PointInSubsector(
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
 
+	fixed_t offroadstrength = 0;
+	
+	if (nextsector->special & 2)		// Weak Offroad
+		offroadstrength = 1;
+	else if (nextsector->special & 3)	// Mid Offroad
+		offroadstrength = 2;
+	else if (nextsector->special & 4)	// Strong Offroad
+		offroadstrength = 3;
+
 	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
-	if ((nextsector->special & 256) && nextsector->special != 768 && nextsector->special != 1024 && nextsector->special != 4864)
+	//if ((nextsector->special & 256) && nextsector->special != 768 
+	//	&& nextsector->special != 1024 && nextsector->special != 4864)
+	if (offroadstrength)
 	{
 		if (K_CheckOffroadCollide(player->mo) && player->kartstuff[k_offroad] == 0)
 			player->kartstuff[k_offroad] = 16;
@@ -925,7 +936,7 @@ static void K_UpdateOffroad(player_t *player)
 
 			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
 			// A higher kart weight means you can stay offroad for longer without losing speed
-			offroad = (1872 + 5*156 - kartweight*156)*2;
+			offroad = (1872 + 5*156 - kartweight*156)*offroadstrength;
 
 			if (player->kartstuff[k_growshrinktimer] > 1) // megashroom slows down half as fast
 				offroad /= 2;
@@ -933,8 +944,8 @@ static void K_UpdateOffroad(player_t *player)
 			player->kartstuff[k_offroad] += offroad;
 		}
 
-		if (player->kartstuff[k_offroad] > FRACUNIT*2)
-			player->kartstuff[k_offroad] = FRACUNIT*2;
+		if (player->kartstuff[k_offroad] > FRACUNIT*offroadstrength)
+			player->kartstuff[k_offroad] = FRACUNIT*offroadstrength;
 	}
 	else
 		player->kartstuff[k_offroad] = 0;

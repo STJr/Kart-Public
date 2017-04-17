@@ -181,7 +181,20 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		object->momz = FixedMul(vertispeed,FixedSqrt(FixedMul(object->scale, spring->scale)));
 
 	if (horizspeed)
-		P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(object->scale, spring->scale))));
+	{
+		if (!object->player)
+			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(object->scale, spring->scale))));
+		else
+		{
+			fixed_t finalSpeed = horizspeed;
+			fixed_t pSpeed = object->player->speed;
+
+			if (pSpeed > finalSpeed)
+				finalSpeed = pSpeed;
+
+			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(finalSpeed,FixedSqrt(FixedMul(object->scale, spring->scale))));
+		}
+	}
 
 	// Re-solidify
 	spring->flags |= (spring->info->flags & (MF_SPECIAL|MF_SOLID));
