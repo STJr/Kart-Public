@@ -1973,6 +1973,7 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
+	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
 	fixed_t dsone = 51 + player->kartspeed; //  52 -  60
 	fixed_t dstwo = dsone*2;				// 104 - 120
 
