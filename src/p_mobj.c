@@ -6405,8 +6405,9 @@ void P_MobjThinker(mobj_t *mobj)
 			//{ SRB2kart mobs
 			case MT_DRIFT:
 			{
-				fixed_t dsone = 51 + mobj->target->player->kartspeed;	//  52 -  60
-				fixed_t dstwo = dsone*2;								// 104 - 120
+				fixed_t dsone = 43 + mobj->target->player->kartspeed*2 + 
+								(10 - mobj->target->player->kartweight);	//  46 -  70
+				fixed_t dstwo = dsone*2;									//  92 - 140
 				if ((mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= dsone))
 				{
