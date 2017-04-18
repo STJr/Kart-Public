@@ -902,7 +902,6 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
 	if (mobj1 == NULL || mobj2 == NULL)
 		return;
-	
 	fixed_t meanX = (mobj1->momx + mobj2->momx) / 2;
 	fixed_t meanY = (mobj1->momy + mobj2->momy) / 2;
 	fixed_t deltaV1 = P_AproxDistance((mobj1->momx - meanX), (mobj1->momy - meanY));
@@ -950,12 +949,10 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 void K_KartBouncer(void)
 {
 	fixed_t i, j;
-	
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 			for (j = 0; j < MAXPLAYERS; j++)
 				players[i].collide[j] = false;
-
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 		{
@@ -964,7 +961,6 @@ void K_KartBouncer(void)
 				{
 					if (players[j].mo == players[i].mo)
 						break;
-					
 					if (K_IsTouching(players[i].mo, players[j].mo))
 					{
 						if (!players[i].collide[j] && !players[j].collide[i])
@@ -1926,7 +1922,7 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 {
 	INT16 basedrift, driftangle;
-	fixed_t driftweight = player->kartweight*10;
+	fixed_t driftweight = player->kartweight*12;
 
 	// If they aren't drifting or on the ground this doesn't apply
 	if (player->kartstuff[k_drift] == 0 || !P_IsObjectOnGround(player->mo))
