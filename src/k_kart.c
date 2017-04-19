@@ -936,13 +936,13 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	}
 	if (mobj1->player && mobj2->player) // Weight is applicable if both are players
 	{
-		fixed_t m1w = 7 + mobj1->player->kartweight;
-		fixed_t m2w = 7 + mobj2->player->kartweight;
+		fixed_t m1w = 15 + mobj1->player->kartweight;
+		fixed_t m2w = 15 + mobj2->player->kartweight;
 
-		newx = FixedMul(mobj1->momx, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
-		newy = FixedMul(mobj1->momy, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
-		mobj1->momx = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
-		mobj1->momy = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
+		newx = FixedMul(mobj1->momy, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
+		newy = FixedMul(mobj1->momx, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
+		mobj1->momx = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
+		mobj1->momy = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
 	}
 	else
 	{
@@ -1950,8 +1950,9 @@ static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 		return -266*player->kartstuff[k_drift]; // Drift has ended and we are tweaking their angle back a bit
 	}
 
-			//  90*player->kartstuff[k_drift]; = 450
-	basedrift = 94*player->kartstuff[k_drift] - driftweight*player->kartstuff[k_drift]/3;
+	//basedrift = 90*player->kartstuff[k_drift];
+	//basedrift = 94*player->kartstuff[k_drift] - driftweight*player->kartstuff[k_drift]/3;
+	basedrift = 93*player->kartstuff[k_drift] - driftweight*3*player->kartstuff[k_drift]/10;
 	driftangle = abs((252 - driftweight)*player->kartstuff[k_drift]/5);
 
 	return basedrift + FixedMul(driftangle, countersteer);
@@ -1988,8 +1989,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 static void K_KartDrift(player_t *player, boolean onground)
 {
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	fixed_t dsone = 49 + player->kartspeed*2;	//  50 -  67
-	fixed_t dstwo = dsone*2;					// 100 - 134
+	fixed_t dsone = 52 + player->kartspeed;	//  53 -  61
+	fixed_t dstwo = dsone*2;				// 106 - 122
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
