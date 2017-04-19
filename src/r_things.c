@@ -2461,6 +2461,12 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		// SRB2kart
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
+		
+		// Cheat Checks
+		if (player->kartspeed < 1) player->kartspeed = 1;
+		if (player->kartspeed > 9) player->kartspeed = 9;
+		if (player->kartweight < 1) player->kartweight = 1;
+		if (player->kartweight > 9) player->kartweight = 9;
 		//
 
 		player->normalspeed = skin->normalspeed;

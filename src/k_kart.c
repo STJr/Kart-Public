@@ -900,8 +900,12 @@ boolean K_IsTouching(mobj_t *mobj1, mobj_t *mobj2)
 
 void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
+	fixed_t newx;
+	fixed_t newy;
+
 	if (mobj1 == NULL || mobj2 == NULL)
 		return;
+
 	fixed_t meanX = (mobj1->momx + mobj2->momx) / 2;
 	fixed_t meanY = (mobj1->momy + mobj2->momy) / 2;
 	fixed_t deltaV1 = P_AproxDistance((mobj1->momx - meanX), (mobj1->momy - meanY));
@@ -910,7 +914,7 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	if (cv_collidesounds.value == 1)
 	{
 		S_StartSound(mobj1, cv_collidesoundnum.value);
-		S_StartSound(mobj2, cv_collidesoundnum.value);
+		//S_StartSound(mobj2, cv_collidesoundnum.value);
 	}
 	if (deltaV1 < (cv_collideminimum.value * FRACUNIT / 2))
 	{
@@ -930,17 +934,30 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj2->momx = meanX + FixedMul(deltax2, a);
 		mobj2->momy = meanY + FixedMul(deltay2, a);
 	}
-	fixed_t newx = mobj1->momx;
-	fixed_t newy = mobj1->momy;
-	fixed_t newz = mobj1->momz;
-	mobj1->momx = mobj2->momx;
-	mobj1->momy = mobj2->momy;
+	if (mobj1->player && mobj2->player) // Weight is applicable if both are players
+	{
+		fixed_t m1w = 7 + mobj1->player->kartweight;
+		fixed_t m2w = 7 + mobj2->player->kartweight;
+
+		newx = FixedMul(mobj1->momx, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
+		newy = FixedMul(mobj1->momy, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
+		mobj1->momx = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
+		mobj1->momy = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
+	}
+	else
+	{
+		newx = mobj1->momx;
+		newy = mobj1->momy;
+		mobj1->momx = mobj2->momx;
+		mobj1->momy = mobj2->momy;
+	}
 	mobj2->momx = newx;
 	mobj2->momy = newy;
 	if (bounce == true) // Perform a Goomba Bounce.
 		mobj1->momz = -mobj1->momz;
 	else
 	{
+		fixed_t newz = mobj1->momz;
 		mobj1->momz = mobj2->momz;
 		mobj2->momz = newz;
 	}
@@ -1933,10 +1950,11 @@ static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 		return -266*player->kartstuff[k_drift]; // Drift has ended and we are tweaking their angle back a bit
 	}
 
-	basedrift = 90*player->kartstuff[k_drift];
-	driftangle = abs((250 - driftweight)/5*player->kartstuff[k_drift]);
+			//  90*player->kartstuff[k_drift]; = 450
+	basedrift = 94*player->kartstuff[k_drift] - driftweight*player->kartstuff[k_drift]/3;
+	driftangle = abs((252 - driftweight)*player->kartstuff[k_drift]/5);
 
-	return basedrift+FixedMul(driftangle, countersteer);
+	return basedrift + FixedMul(driftangle, countersteer);
 }
 
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
@@ -1970,8 +1988,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 static void K_KartDrift(player_t *player, boolean onground)
 {
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	fixed_t dsone = 43 + player->kartspeed*2 + (10 - player->kartweight);	//  46 -  70
-	fixed_t dstwo = dsone*2;												//  92 - 140
+	fixed_t dsone = 49 + player->kartspeed*2;	//  50 -  67
+	fixed_t dstwo = dsone*2;					// 100 - 134
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -1998,7 +2016,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= dstwo
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 60;
+		player->kartstuff[k_driftboost] = 50;
 		S_StartSound(player->mo, sfx_mush);
 		player->kartstuff[k_driftcharge] = 0;
 	}
