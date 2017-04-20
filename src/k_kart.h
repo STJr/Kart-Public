@@ -26,7 +26,7 @@ void K_DoMushroom(player_t *player, boolean doPFlag);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
 void K_MomentumToFacing(player_t *player);
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower);
-fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmovement);
+fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove);
 void K_MoveKartPlayer(player_t *player, boolean onground);
 
 void K_LoadKartHUDGraphics(void);

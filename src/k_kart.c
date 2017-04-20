@@ -939,10 +939,10 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		fixed_t m1w = 15 + mobj1->player->kartweight;
 		fixed_t m2w = 15 + mobj2->player->kartweight;
 
-		newx = FixedMul(mobj1->momy, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
-		newy = FixedMul(mobj1->momx, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
-		mobj1->momx = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
-		mobj1->momy = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
+		newx = FixedMul(mobj1->momx, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
+		newy = FixedMul(mobj1->momy, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
+		mobj1->momx = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
+		mobj1->momy = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
 	}
 	else
 	{
@@ -1313,7 +1313,7 @@ static fixed_t K_GetKartAccel(player_t *player)
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
 
-fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmovement)
+fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove)
 {
 	fixed_t accelmax = 4000;
 	fixed_t newspeed, oldspeed, finalspeed;
@@ -1327,10 +1327,19 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, boolean forwardmove
 	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
 	finalspeed = newspeed - oldspeed;
 
-	if (!forwardmovement && finalspeed > FRACUNIT*2)
-		return FRACUNIT/8;
-	else if (!forwardmovement)
-		return FRACUNIT/2;
+	// forwardmove is:
+	//  50 while accelerating,
+	//  25 while clutching,
+	//   0 with no gas, and
+	// -25 when only braking.
+
+	finalspeed *= forwardmove/25;
+	finalspeed /= 2;
+
+	if (forwardmove < 0 && finalspeed > FRACUNIT*2)
+		return finalspeed/2;
+	else if (forwardmove < 0)
+		return -FRACUNIT/2;
 
 	if (finalspeed < 0)
 		finalspeed = 0;

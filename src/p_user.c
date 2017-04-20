@@ -4750,14 +4750,12 @@ static void P_3dMovement(player_t *player)
 		}
 	}
 	else if (!analogmove
-		&& cmd->forwardmove != 0 && !(player->pflags & PF_GLIDING || player->exiting
+		//&& cmd->forwardmove != 0
+		&& !(player->pflags & PF_GLIDING || player->exiting
 		|| (P_PlayerInPain(player) && !onground)))
 	{
 		//movepushforward = cmd->forwardmove * (thrustfactor * acceleration);
-		if (cmd->forwardmove > 0)
-			movepushforward = K_3dKartMovement(player, onground, true);
-		else
-			movepushforward = -(K_3dKartMovement(player, onground, false));
+		movepushforward = K_3dKartMovement(player, onground, cmd->forwardmove);
 
 		// allow very small movement while in air for gameplay
 		if (!onground)
@@ -4815,10 +4813,7 @@ static void P_3dMovement(player_t *player)
 			controldirection = R_PointToAngle2(0, 0, cmd->forwardmove*FRACUNIT, -cmd->sidemove*FRACUNIT)+movepushangle;
 
 			//movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
-			if (max(abs(cmd->sidemove), abs(cmd->forwardmove)) > 0)
-				movepushforward = K_3dKartMovement(player, onground, true);
-			else
-				movepushforward = -(K_3dKartMovement(player, onground, false));
+			movepushforward = K_3dKartMovement(player, onground, max(abs(cmd->sidemove), abs(cmd->forwardmove)));
 
 			// allow very small movement while in air for gameplay
 			if (!onground)
@@ -4857,9 +4852,9 @@ static void P_3dMovement(player_t *player)
 	{
 		//movepushside = cmd->sidemove * (thrustfactor * acceleration);
 		if (cmd->sidemove > 0)
-			movepushside = K_3dKartMovement(player, onground, true);
+			movepushside = K_3dKartMovement(player, onground, 50);
 		else
-			movepushside = -(K_3dKartMovement(player, onground, true));
+			movepushside = -(K_3dKartMovement(player, onground, 50));
 
 		if (!onground)
 		{

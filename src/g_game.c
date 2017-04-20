@@ -1055,12 +1055,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	if (PLAYER1INPUTDOWN(gc_accelerate) || player->kartstuff[k_mushroomtimer])
 	{
 		cmd->buttons |= BT_ACCELERATE;
-		forward = forwardmove[speed];
+		forward = forwardmove[1];	// 50
 	}
-	if (PLAYER1INPUTDOWN(gc_brake) && !player->kartstuff[k_mushroomtimer])
+	if (PLAYER1INPUTDOWN(gc_brake))
 	{
 		cmd->buttons |= BT_BRAKE;
-		forward -= forwardmove[speed];
+		forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
 	}
 	// But forward/backward IS used for aiming.
 	axis = JoyAxis(AXISMOVE);
@@ -1400,15 +1400,15 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	*/
 
 	// forward with key or button
-	if (PLAYER2INPUTDOWN(gc_accelerate))
+	if (PLAYER2INPUTDOWN(gc_accelerate) || player->kartstuff[k_mushroomtimer])
 	{
 		cmd->buttons |= BT_ACCELERATE;
-		forward = forwardmove[speed];
+		forward = forwardmove[1];
 	}
 	if (PLAYER2INPUTDOWN(gc_brake))
 	{
 		cmd->buttons |= BT_BRAKE;
-		forward -= forwardmove[speed];
+		forward -= forwardmove[0];
 	}
 	// forward/backward is used for aiming.
 	axis = Joy2Axis(AXISMOVE);

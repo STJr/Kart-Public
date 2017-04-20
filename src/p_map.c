@@ -3938,7 +3938,7 @@ static boolean PIT_ChangeSector(mobj_t *thing, boolean realcrush)
 					killer = P_SpawnMobj(thing->x, thing->y, thing->z, MT_NULL);
 					killer->threshold = 44; // Special flag for crushing
 				}
-				if (thing->player)
+				if (!thing->player)
 					P_DamageMobj(thing, killer, killer, 10000);
 				else
 					K_SquishPlayer(thing->player, killer); // SRB2kart - Squish instead of kill
