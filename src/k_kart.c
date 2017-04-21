@@ -1306,9 +1306,10 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 
 static fixed_t K_GetKartAccel(player_t *player)
 {
-	fixed_t k_accel = 36;
+	fixed_t k_accel = 32; // 36;
 
-	k_accel += 3 * (9 - player->kartspeed); // 36 - 60
+	//k_accel += 3 * (9 - player->kartspeed); // 36 - 60
+	k_accel += 4 * (9 - player->kartspeed); // 32 - 64
 
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
@@ -1948,7 +1949,7 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 {
 	INT16 basedrift, driftangle;
-	fixed_t driftweight = player->kartweight*12;
+	fixed_t driftweight = player->kartweight*14; // 12
 
 	// If they aren't drifting or on the ground this doesn't apply
 	if (player->kartstuff[k_drift] == 0 || !P_IsObjectOnGround(player->mo))
@@ -1959,9 +1960,9 @@ static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 		return -266*player->kartstuff[k_drift]; // Drift has ended and we are tweaking their angle back a bit
 	}
 
-	//basedrift = 90*player->kartstuff[k_drift];
-	//basedrift = 94*player->kartstuff[k_drift] - driftweight*player->kartstuff[k_drift]/3;
-	basedrift = 93*player->kartstuff[k_drift] - driftweight*3*player->kartstuff[k_drift]/10;
+	//basedrift = 90*player->kartstuff[k_drift]; // 450
+	//basedrift = 93*player->kartstuff[k_drift] - driftweight*3*player->kartstuff[k_drift]/10; // 447 - 303
+	basedrift = 83*player->kartstuff[k_drift] - (driftweight - 14)*player->kartstuff[k_drift]/5; // 415 - 303
 	driftangle = abs((252 - driftweight)*player->kartstuff[k_drift]/5);
 
 	return basedrift + FixedMul(driftangle, countersteer);
@@ -1998,8 +1999,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 static void K_KartDrift(player_t *player, boolean onground)
 {
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	fixed_t dsone = 52 + player->kartspeed;	//  53 -  61
-	fixed_t dstwo = dsone*2;				// 106 - 122
+	fixed_t dsone = 26*4 + player->kartspeed*2 + (9 - player->kartweight);
+	fixed_t dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -2069,7 +2070,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground
 		&& player->kartstuff[k_drift] != 0)
 	{
-		fixed_t driftadditive = 1;
+		fixed_t driftadditive = 3;
 
 		if (player->kartstuff[k_drift] >= 1) // Drifting to the left
 		{
@@ -2077,8 +2078,10 @@ static void K_KartDrift(player_t *player, boolean onground)
 			if (player->kartstuff[k_drift] > 5)
 				player->kartstuff[k_drift] = 5;
 
-			if (player->cmd.buttons & BT_DRIFTLEFT)
-				driftadditive = 2;
+			if (player->cmd.buttons & BT_DRIFTLEFT) // Inward
+				driftadditive++;
+			if (player->cmd.buttons & BT_DRIFTRIGHT) // Outward
+				driftadditive--;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
@@ -2086,8 +2089,10 @@ static void K_KartDrift(player_t *player, boolean onground)
 			if (player->kartstuff[k_drift] < -5)
 				player->kartstuff[k_drift] = -5;
 
-			if (player->cmd.buttons & BT_DRIFTRIGHT)
-				driftadditive = 2;
+			if (player->cmd.buttons & BT_DRIFTRIGHT) // Inward
+				driftadditive++;
+			if (player->cmd.buttons & BT_DRIFTLEFT) // Outward
+				driftadditive--;
 		}
 
 		// This spawns the drift sparks
