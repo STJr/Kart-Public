@@ -302,13 +302,13 @@ void K_RegisterKartStuff(void)
 
 //}
 
-//{ SRB2kart Roulette Code
+//{ SRB2kart Roulette Code - Position Based
 
 #define NUMKARTITEMS 	18
 #define NUMKARTODDS 	40
 
-// Ugly ol' 3D array
-static INT32 K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
+// Ugly ol' 3D arrays
+static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 {
 	// 1 Active Player
 	{  //1st //
@@ -663,6 +663,30 @@ static INT32 K_KartItemOdds_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 	}  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t 16t //
 };
 
+// Less ugly 2D arrays
+static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
+{
+				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
+				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
+			  /*Mushroom*/ {20, 0, 0, 3, 5, 5, 0, 0, 0 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 1, 3, 7, 6, 4, 0 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Mega Mushroom
+		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
+				  /*Star*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
+
+		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
+			 /*Fake Item*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 0, 9, 6, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 0, 6, 5, 3, 2, 0, 0, 0, 0 }, // Green Shell
+			 /*Red Shell*/ { 0, 0, 1, 4, 3, 1, 0, 0, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Bob-omb
+			/*Blue Shell*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Blue Shell
+		   /*Fire Flower*/ { 0, 0, 0, 0, 1, 1, 1, 0, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 0, 0, 0, 0, 1, 1, 0, 0, 0 }, // Triple Red Shell
+			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
+};
+
 /**	\brief	Item Roulette for Kart
 
 	\param	player		player
@@ -755,7 +779,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 
 	\return	void
 */
-static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
+static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 {
 	INT32 i;
 	INT32 pingame = 0, pexiting = 0;
@@ -807,7 +831,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if (ppos < 0) ppos = 0;
 
 #define SETITEMRESULT(pos, numplayers, itemnum) \
-	for (chance = 0; chance < K_KartItemOdds_Retro[numplayers-1][itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
+	for (chance = 0; chance < K_KartItemOddsPosition_Retro[numplayers-1][itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
@@ -867,6 +891,130 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			K_KartGetItemResult(player, spawnchance[prandom], false)
 		else
 			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
+	}
+	else
+		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
+	*/
+
+#undef SETITEMRESULT
+
+	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
+
+	if (P_IsLocalPlayer(player))
+		S_StartSound(NULL, sfx_mkitmF);
+}
+
+//}
+
+//{ SRB2kart Roulette Code - Distance Based, no waypoints
+
+static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
+{
+	INT32 i;
+	INT32 pingame = 0, pexiting = 0;
+	INT32 roulettestop;
+	INT32 prandom;
+	//INT32 ppos = player->kartstuff[k_position] - 1; // TODO: Delete
+	INT32 pdis = 0, useodds = 0;
+	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
+	INT32 chance = 0, numchoices = 0;
+
+
+	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
+	if (player->kartstuff[k_itemroulette])
+		player->kartstuff[k_itemroulette]++;
+	else
+		return;
+
+	// This makes the roulette produce the random noises.
+	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
+		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+
+	// Initializes existing spawnchance values
+	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
+		spawnchance[i] = 0;
+
+	// Gotta check how many players are active at this moment.
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && !players[i].spectator)
+			pingame++;
+		if (players[i].exiting)
+			pexiting++;
+	}
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			pdis = P_AproxDistance(P_AproxDistance( players[i].mo->x - player->mo->x,
+													players[i].mo->y - player->mo->y),
+													players[i].mo->z - player->mo->z) / FRACUNIT 
+													* (pingame - players[i].kartstuff[k_position])
+													/ ((pingame - 1) * (pingame + 1) / 3);
+	}
+
+	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+
+	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
+	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
+	// Finally, if you get past this check, now you can actually start calculating what item you get.
+	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)
+		|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
+		return;
+
+	if (cmd->buttons & BT_ATTACK)
+		player->pflags |= PF_ATTACKDOWN;
+
+	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
+
+	if (pingame == 1)		useodds = 0;
+	else if (pdis <=     0)	useodds = 1;
+	else if (pdis <=  1000)	useodds = 2;
+	else if (pdis <=  2000)	useodds = 3;
+	else if (pdis <=  3500)	useodds = 4;
+	else if (pdis <=  5500)	useodds = 5;
+	else if (pdis <=  8000)	useodds = 6;
+	else if (pdis <= 11000)	useodds = 7;
+	else 					useodds = 8;
+
+	CONS_Printf("pdis = %d\n", pdis);
+	CONS_Printf("useodds = %d\n", useodds);
+
+#define SETITEMRESULT(pos, itemnum) \
+	for (chance = 0; chance < K_KartItemOddsDistance_Retro[itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
+
+	// Check the game type to differentiate odds.
+	//if (gametype == GT_RETRO)
+	//{
+		if (cv_magnet.value) 							SETITEMRESULT(useodds,  1);	// Magnet
+		if (cv_boo.value)								SETITEMRESULT(useodds,  2);	// Boo
+		if (cv_mushroom.value)							SETITEMRESULT(useodds,  3);	// Mushroom
+		if (cv_mushroom.value)							SETITEMRESULT(useodds,  4);	// Triple Mushroom
+		if (cv_megashroom.value)						SETITEMRESULT(useodds,  5);	// Mega Mushroom
+		if (cv_goldshroom.value)						SETITEMRESULT(useodds,  6);	// Gold Mushroom
+		if (cv_star.value)								SETITEMRESULT(useodds,  7);	// Star
+		if (cv_triplebanana.value)						SETITEMRESULT(useodds,  8);	// Triple Banana
+		if (cv_fakeitem.value)							SETITEMRESULT(useodds,  9);	// Fake Item
+		if (cv_banana.value)							SETITEMRESULT(useodds, 10);	// Banana
+		if (cv_greenshell.value)						SETITEMRESULT(useodds, 11);	// Green Shell
+		if (cv_redshell.value)							SETITEMRESULT(useodds, 12);	// Red Shell
+		if (cv_triplegreenshell.value)					SETITEMRESULT(useodds, 13);	// Triple Green Shell
+		if (cv_bobomb.value)							SETITEMRESULT(useodds, 14);	// Bob-omb
+		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(useodds, 15);	// Blue Shell
+		//if (cv_fireflower.value)						SETITEMRESULT(useodds, 16);	// Fire Flower
+		if (cv_tripleredshell.value)					SETITEMRESULT(useodds, 17);	// Triple Red Shell
+		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(useodds, 18);	// Lightning
+
+		prandom = P_RandomKey(numchoices);
+
+		// Award the player whatever power is rolled
+		if (numchoices > 0)
+			K_KartGetItemResult(player, spawnchance[prandom], true);
+		else
+			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (useodds = %d).\n", useodds);
+	//}
+	/*else if (gametype == GT_NEO)
+	{
+		
 	}
 	else
 		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
@@ -971,10 +1119,14 @@ void K_KartBouncer(void)
 			for (j = 0; j < MAXPLAYERS; j++)
 				players[i].collide[j] = false;
 	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
+		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo)
+			&& !players[i].kartstuff[k_growshrinktimer] 
+			&& !players[i].kartstuff[k_squishedtimer])
 		{
 			for (j = i+1; j < MAXPLAYERS; j++)
-				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo))
+				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo)
+					&& !players[i].kartstuff[k_squishedtimer]
+					&& !players[j].kartstuff[k_growshrinktimer])
 				{
 					if (players[j].mo == players[i].mo)
 						break;
@@ -1163,7 +1315,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else
 		player->kartstuff[k_jmp] = 0;
 
-	K_KartItemRoulette(player, cmd); // Roulette Code
+	// Roulette Code
+	//K_KartItemRouletteByPosition(player, cmd); // Old, position-based
+	K_KartItemRouletteByDistance(player, cmd); // New, distance-based
 
 	// Stopping of the horrible star SFX
 	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_startimer] <= 0

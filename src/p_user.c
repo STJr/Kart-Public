@@ -9022,6 +9022,7 @@ void P_PlayerThink(player_t *player)
 
 		// If 10 seconds are left on the timer,
 		// begin the drown music for countdown!
+		/*
 		if (countdown == 11*TICRATE - 1)
 		{
 			if (P_IsLocalPlayer(player))
@@ -9030,7 +9031,8 @@ void P_PlayerThink(player_t *player)
 
 		// If you've hit the countdown and you haven't made
 		//  it to the exit, you're a goner!
-		else if (countdown == 1 && !player->exiting && player->lives > 0)
+		else */
+		if (countdown == 1 && !player->exiting && player->lives > 0)
 		{
 			if (netgame && player->health > 0)
 				CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);
@@ -9054,11 +9056,11 @@ void P_PlayerThink(player_t *player)
 
 	// If it is set, start subtracting
 	// Don't allow it to go back to 0
-	if (player->exiting > 1 && player->exiting < 3*TICRATE)
+	if (player->exiting > 1 && player->exiting < 3*TICRATE && player->exiting > 1) // SRB2kart - " && player->exiting > 1"
 		player->exiting--;
 
 	if (player->exiting && countdown2)
-		player->exiting = 5;
+		player->exiting = 99; // SRB2kart
 
 	if (player->exiting == 2 || countdown2 == 2)
 	{
