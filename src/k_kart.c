@@ -666,6 +666,7 @@ static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] 
 // Less ugly 2D arrays
 static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 {
+				/*P-Odds	 0  1  2  3  4  5  6  7  8
 				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
 			  /*Mushroom*/ {20, 0, 0, 3, 5, 5, 0, 0, 0 }, // Mushroom
@@ -914,7 +915,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 pingame = 0, pexiting = 0;
 	INT32 roulettestop;
 	INT32 prandom;
-	//INT32 ppos = player->kartstuff[k_position] - 1; // TODO: Delete
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
@@ -945,7 +945,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
-			pdis = P_AproxDistance(P_AproxDistance( players[i].mo->x - player->mo->x,
+			pdis += P_AproxDistance(P_AproxDistance( players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
 													players[i].mo->z - player->mo->z) / FRACUNIT 
 													* (pingame - players[i].kartstuff[k_position])
@@ -1121,12 +1121,14 @@ void K_KartBouncer(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo)
 			&& !players[i].kartstuff[k_growshrinktimer] 
-			&& !players[i].kartstuff[k_squishedtimer])
+			&& !players[i].kartstuff[k_squishedtimer]
+			&& !players[i].kartstuff[k_bootaketimer])
 		{
 			for (j = i+1; j < MAXPLAYERS; j++)
 				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo)
 					&& !players[i].kartstuff[k_squishedtimer]
-					&& !players[j].kartstuff[k_growshrinktimer])
+					&& !players[j].kartstuff[k_growshrinktimer]
+					&& !players[i].kartstuff[k_bootaketimer])
 				{
 					if (players[j].mo == players[i].mo)
 						break;
