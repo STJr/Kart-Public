@@ -8121,12 +8121,12 @@ void A_ItemPop(mobj_t *actor)
 		return;
 	}
 
-	if (actor->target && actor->target->player
-		&& !(actor->target->player->kartstuff[k_greenshell] & 2 || actor->target->player->kartstuff[k_triplegreenshell] & 8
-		||   actor->target->player->kartstuff[k_redshell]   & 2 || actor->target->player->kartstuff[k_tripleredshell] & 8
-		||   actor->target->player->kartstuff[k_banana]     & 2 || actor->target->player->kartstuff[k_triplebanana] & 8
-		||   actor->target->player->kartstuff[k_fakeitem]   & 2 || actor->target->player->kartstuff[k_magnet]
-		||   actor->target->player->kartstuff[k_bobomb]     & 2 || actor->target->player->kartstuff[k_blueshell]
+	if (actor->target && actor->target->player // These used to be &2's and &8's for box only, but are now universal.
+		&& !(actor->target->player->kartstuff[k_greenshell]     || actor->target->player->kartstuff[k_triplegreenshell]
+		||   actor->target->player->kartstuff[k_redshell]       || actor->target->player->kartstuff[k_tripleredshell]
+		||   actor->target->player->kartstuff[k_banana]         || actor->target->player->kartstuff[k_triplebanana]
+		||   actor->target->player->kartstuff[k_fakeitem]       || actor->target->player->kartstuff[k_magnet]
+		||   actor->target->player->kartstuff[k_bobomb]         || actor->target->player->kartstuff[k_blueshell]
 		||   actor->target->player->kartstuff[k_mushroom]       || actor->target->player->kartstuff[k_fireflower]
 		||   actor->target->player->kartstuff[k_star]           || actor->target->player->kartstuff[k_goldshroom]
 		||   actor->target->player->kartstuff[k_lightning]      || actor->target->player->kartstuff[k_megashroom]
@@ -8136,7 +8136,7 @@ void A_ItemPop(mobj_t *actor)
 		||   actor->target->player->kartstuff[k_growshrinktimer] > 1
 		||   actor->target->player->kartstuff[k_goldshroomtimer]))
 		actor->target->player->kartstuff[k_itemroulette] = 1;
-	else if(cv_debug && !(actor->target && actor->target->player))
+	else if (cv_debug && !(actor->target && actor->target->player))
 		CONS_Printf("ERROR: Powerup has no target!\n");
 
 	remains->flags &= ~MF_AMBUSH;

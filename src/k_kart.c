@@ -308,6 +308,7 @@ void K_RegisterKartStuff(void)
 #define NUMKARTODDS 	40
 
 // Ugly ol' 3D arrays
+/*
 static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
 {
 	// 1 Active Player
@@ -662,14 +663,15 @@ static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] 
 		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  5,  8, 11,  0,  0 }  // Lightning
 	}  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t 16t //
 };
+*/
 
 // Less ugly 2D arrays
 static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 {
-				/*P-Odds	 0  1  2  3  4  5  6  7  8
+				//P-Odds	 0  1  2  3  4  5  6  7  8
 				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ {20, 0, 0, 3, 5, 5, 0, 0, 0 }, // Mushroom
+			  /*Mushroom*/ { 1, 0, 0, 3, 5, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 1, 3, 7, 6, 4, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
@@ -678,7 +680,7 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
 			 /*Fake Item*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Fake Item
 				/*Banana*/ { 0, 9, 6, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 0, 6, 5, 3, 2, 0, 0, 0, 0 }, // Green Shell
+		   /*Green Shell*/ { 1, 6, 5, 3, 2, 0, 0, 0, 0 }, // Green Shell
 			 /*Red Shell*/ { 0, 0, 1, 4, 3, 1, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
 			   /*Bob-omb*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Bob-omb
@@ -779,7 +781,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	\param	player	player object passed from P_KartPlayerThink
 
 	\return	void
-*/
+/
 static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 {
 	INT32 i;
@@ -864,7 +866,7 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 		else
 			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
 	//}
-	/*else if (gametype == GT_NEO)
+	//else if (gametype == GT_NEO)
 	{
 		if (cv_magnet.value) 							SETITEMRESULT(ppos, pingame, 1)	// Electro-Shield
 		if (cv_boo.value)								SETITEMRESULT(ppos, pingame, 2)	// S3K Ghost
@@ -895,7 +897,7 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 	}
 	else
 		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
-	*/
+	//
 
 #undef SETITEMRESULT
 
@@ -903,7 +905,7 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 
 	if (P_IsLocalPlayer(player))
 		S_StartSound(NULL, sfx_mkitmF);
-}
+}*/
 
 //}
 
@@ -975,9 +977,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	else if (pdis <=  8000)	useodds = 6;
 	else if (pdis <= 11000)	useodds = 7;
 	else 					useodds = 8;
-
-	CONS_Printf("pdis = %d\n", pdis);
-	CONS_Printf("useodds = %d\n", useodds);
 
 #define SETITEMRESULT(pos, itemnum) \
 	for (chance = 0; chance < K_KartItemOddsDistance_Retro[itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
@@ -1082,6 +1081,7 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj2->momx = meanX + FixedMul(deltax2, a);
 		mobj2->momy = meanY + FixedMul(deltay2, a);
 	}
+	/*
 	if (mobj1->player && mobj2->player) // Weight is applicable if both are players
 	{
 		fixed_t m1w = 15 + mobj1->player->kartweight;
@@ -1093,12 +1093,12 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj1->momy = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
 	}
 	else
-	{
+	{*/
 		newx = mobj1->momx;
 		newy = mobj1->momy;
 		mobj1->momx = mobj2->momx;
 		mobj1->momy = mobj2->momy;
-	}
+	//}
 	mobj2->momx = newx;
 	mobj2->momy = newy;
 	if (bounce == true) // Perform a Goomba Bounce.
@@ -1122,13 +1122,15 @@ void K_KartBouncer(void)
 		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo)
 			&& !players[i].kartstuff[k_growshrinktimer] 
 			&& !players[i].kartstuff[k_squishedtimer]
-			&& !players[i].kartstuff[k_bootaketimer])
+			&& !players[i].kartstuff[k_bootaketimer]
+			&& !players[i].kartstuff[k_startimer])
 		{
 			for (j = i+1; j < MAXPLAYERS; j++)
 				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo)
-					&& !players[i].kartstuff[k_squishedtimer]
+					&& !players[j].kartstuff[k_squishedtimer]
 					&& !players[j].kartstuff[k_growshrinktimer]
-					&& !players[i].kartstuff[k_bootaketimer])
+					&& !players[j].kartstuff[k_bootaketimer]
+					&& !players[j].kartstuff[k_startimer])
 				{
 					if (players[j].mo == players[i].mo)
 						break;
@@ -1421,7 +1423,20 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	if (player->kartstuff[k_mushroomtimer])
 	{												// Mushroom
 		if (speed)
-			boostvalue = max(boostvalue, FRACUNIT/2); // + 50%
+		{
+			switch (cv_kartcc.value)
+			{
+				case 50:
+					boostvalue = max(boostvalue, 53740+768);
+					break;
+				case 150:
+					boostvalue = max(boostvalue, 17294+768);
+					break;
+				default:
+					boostvalue = max(boostvalue, 32768);
+					break;
+			}
+		}
 		else
 			boostvalue = max(boostvalue, 8*FRACUNIT); // + 800%
 	}
@@ -3453,23 +3468,27 @@ static void K_DrawKartTripleItem(void)
 	else*/
 	//{
 		thisitem = stplyr->kartstuff[k_triplebanana];
-		if 		(thisitem & 1) localpatch = kp_singlebananaicon;
+		if 		(thisitem & 4) localpatch = kp_triplebananaicon;
 		else if (thisitem & 2) localpatch = kp_doublebananaicon;
-		else if (thisitem & 4) localpatch = kp_triplebananaicon;
+		else if (thisitem & 1) localpatch = kp_singlebananaicon;
 
 		thisitem = stplyr->kartstuff[k_triplegreenshell];
-		if 		(thisitem & 1) localpatch = kp_singlegreenshellicon;
+		if 		(thisitem & 4) localpatch = kp_triplegreenshellicon;
 		else if (thisitem & 2) localpatch = kp_doublegreenshellicon;
-		else if (thisitem & 4) localpatch = kp_triplegreenshellicon;
+		else if (thisitem & 1) localpatch = kp_singlegreenshellicon;
 
 		thisitem = stplyr->kartstuff[k_tripleredshell];
-		if 		(thisitem & 1) localpatch = kp_singleredshellicon;
+		if 		(thisitem & 4) localpatch = kp_tripleredshellicon;
 		else if (thisitem & 2) localpatch = kp_doubleredshellicon;
-		else if (thisitem & 4) localpatch = kp_tripleredshellicon;
+		else if (thisitem & 1) localpatch = kp_singleredshellicon;
+
+		if (stplyr->kartstuff[k_banana] & 1)	 localpatch = kp_singlebananaicon;
+		if (stplyr->kartstuff[k_greenshell] & 1) localpatch = kp_singlegreenshellicon;
+		if (stplyr->kartstuff[k_redshell] & 1)	 localpatch = kp_singleredshellicon;
 	//}
 
 	if (localpatch != kp_nodraw)
-		V_DrawScaledPatch(TRIP_X, STRINGY(TRIP_Y), V_SNAPTORIGHT|V_TRANSLUCENT, localpatch);
+		V_DrawScaledPatch(TRIP_X, STRINGY(TRIP_Y), V_SNAPTOBOTTOM, localpatch);
 }
 
 static void K_drawKartTimestamp(void)

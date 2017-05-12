@@ -2305,7 +2305,24 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_FLINGCOIN:
 		case MT_FLINGRANDOMITEM:
 		case MT_FLINGEMERALD:
+		// SRB2kart stuff that should die in pits
 		case MT_RANDOMITEM:
+		case MT_BANANASHIELD:
+		case MT_TRIPLEBANANASHIELD1:
+		case MT_TRIPLEBANANASHIELD2:
+		case MT_TRIPLEBANANASHIELD3:
+		case MT_BANANAITEM:
+		case MT_GREENSHIELD:
+		case MT_TRIPLEGREENSHIELD1:
+		case MT_TRIPLEGREENSHIELD2:
+		case MT_TRIPLEGREENSHIELD3:
+		case MT_GREENITEM:
+		case MT_REDSHIELD:
+		case MT_TRIPLEREDSHIELD1:
+		case MT_TRIPLEREDSHIELD2:
+		case MT_TRIPLEREDSHIELD3:
+		case MT_REDITEM:
+		case MT_REDITEMDUD:
 			// Remove flinged stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{

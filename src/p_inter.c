@@ -147,8 +147,8 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (player->bot && weapon)
 		return false;
 
-	if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
-		return false;
+	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
+	//	return false;
 
 	return true;
 }
