@@ -630,7 +630,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			|| thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
 			|| thing->type == MT_BANANAITEM || thing->type == MT_BANANASHIELD
 			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
-			)
+			|| thing->type == MT_FIREBALL)
 		{
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -769,7 +769,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
 	}
 	else if (tmthing->type == MT_BANANASHIELD || tmthing->type == MT_BANANAITEM
-		|| tmthing->type == MT_TRIPLEBANANASHIELD1 || tmthing->type == MT_TRIPLEBANANASHIELD2 || tmthing->type == MT_TRIPLEBANANASHIELD3)
+		|| tmthing->type == MT_TRIPLEBANANASHIELD1 || tmthing->type == MT_TRIPLEBANANASHIELD2 || tmthing->type == MT_TRIPLEBANANASHIELD3
+		|| tmthing->type == MT_FIREBALL)
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -787,6 +788,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			&& (thing->type == MT_BANANASHIELD || thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3))
 			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
 			return true;
+
+		if (tmthing->type == MT_FIREBALL && thing->type == MT_FIREBALL)
+			return true; // Fireballs don't collide with eachother
 
 		if (thing->type == MT_PLAYER)
 		{
@@ -809,7 +813,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
 			|| thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
-			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3)
+			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
+			|| thing->type == MT_FIREBALL)
 		{
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -883,7 +888,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
 			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_BOMBITEM
-			|| thing->type == MT_BANANAITEM)
+			|| thing->type == MT_BANANAITEM || thing->type == MT_FIREBALL)
 		{
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -996,7 +1001,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
 			|| thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM
 			|| thing->type == MT_BOMBEXPLOSION
-			|| thing->type == MT_SINK
+			|| thing->type == MT_SINK || thing->type == MT_FIREBALL
 			))
 	{
 		// see if it went over / under
@@ -1032,7 +1037,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 		}
 		else if (thing->type == MT_BANANASHIELD || thing->type == MT_BANANAITEM
-			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3)
+			|| thing->type == MT_TRIPLEBANANASHIELD1 || thing->type == MT_TRIPLEBANANASHIELD2 || thing->type == MT_TRIPLEBANANASHIELD3
+			|| thing->type == MT_FIREBALL)
 		{
 			if ((thing->target == tmthing) && (thing->threshold > 0))
 				return true;

@@ -680,7 +680,7 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
 			 /*Fake Item*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Fake Item
 				/*Banana*/ { 0, 9, 6, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 1, 6, 5, 3, 2, 0, 0, 0, 0 }, // Green Shell
+		   /*Green Shell*/ { 0, 6, 5, 3, 2, 0, 0, 0, 0 }, // Green Shell
 			 /*Red Shell*/ { 0, 0, 1, 4, 3, 1, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
 			   /*Bob-omb*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Bob-omb
@@ -999,7 +999,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_triplegreenshell.value)					SETITEMRESULT(useodds, 13);	// Triple Green Shell
 		if (cv_bobomb.value)							SETITEMRESULT(useodds, 14);	// Bob-omb
 		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(useodds, 15);	// Blue Shell
-		//if (cv_fireflower.value)						SETITEMRESULT(useodds, 16);	// Fire Flower
+		if (cv_fireflower.value)						SETITEMRESULT(useodds, 16);	// Fire Flower
 		if (cv_tripleredshell.value)					SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(useodds, 18);	// Lightning
 
@@ -1283,10 +1283,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_boostolentimer] == 0
 		&& player->kartstuff[k_goldshroomtimer])
 		player->kartstuff[k_goldshroomtimer]--;
-
-	if (player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_boostolentimer] == 0
-		&& player->kartstuff[k_fireflowertimer])
-		player->kartstuff[k_fireflowertimer]--;
 
 	if (player->kartstuff[k_bootaketimer])
 		player->kartstuff[k_bootaketimer]--;
@@ -1810,7 +1806,7 @@ void K_SpawnDriftTrail(player_t *player)
 	}
 }
 
-static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean bobombthrow)
+static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean bobombthrow)
 {
 	mobj_t *mo;
 	INT32 dir;
@@ -1840,26 +1836,78 @@ static mobj_t *P_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 	if (missile)
 	{
-		if (dir == -1)
+		if (mapthing == MT_FIREBALL) // Messy
 		{
-			// Shoot backward
-			mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
-
-			if (mo)
+			mobj_t *mo2;
+			mobj_t *mo3;
+			mobj_t *mo4;
+			mobj_t *mo5;
+			if (dir == -1)
 			{
-				if (player->mo->eflags & MFE_VERTICALFLIP)
-					mo->eflags |= MFE_VERTICALFLIP;
+				// Shoot backward
+				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x08000000, 0, 64*FRACUNIT);
+				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x04000000, 0, 64*FRACUNIT);
+				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
+				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x04000000, 0, 64*FRACUNIT);
+				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x08000000, 0, 64*FRACUNIT);
+
+				if (mo)
+				{
+					if (player->mo->eflags & MFE_VERTICALFLIP)
+					{
+						mo->eflags  |= MFE_VERTICALFLIP;
+						mo2->eflags |= MFE_VERTICALFLIP;
+						mo3->eflags |= MFE_VERTICALFLIP;
+						mo4->eflags |= MFE_VERTICALFLIP;
+						mo5->eflags |= MFE_VERTICALFLIP;
+					}
+				}
+			}
+			else
+			{
+				// Shoot forward
+				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x08000000, 0, 64*FRACUNIT);
+				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x04000000, 0, 64*FRACUNIT);
+				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
+				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x04000000, 0, 64*FRACUNIT);
+				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x08000000, 0, 64*FRACUNIT);
+
+				if (mo)
+				{
+					if (player->mo->eflags & MFE_VERTICALFLIP)
+					{
+						mo->eflags  |= MFE_VERTICALFLIP;
+						mo2->eflags |= MFE_VERTICALFLIP;
+						mo3->eflags |= MFE_VERTICALFLIP;
+						mo4->eflags |= MFE_VERTICALFLIP;
+						mo5->eflags |= MFE_VERTICALFLIP;
+					}
+				}
 			}
 		}
 		else
 		{
-			// Shoot forward
-			mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
-
-			if (mo)
+			if (dir == -1)
 			{
-				if (player->mo->eflags & MFE_VERTICALFLIP)
-					mo->eflags |= MFE_VERTICALFLIP;
+				// Shoot backward
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
+
+				if (mo)
+				{
+					if (player->mo->eflags & MFE_VERTICALFLIP)
+						mo->eflags |= MFE_VERTICALFLIP;
+				}
+			}
+			else
+			{
+				// Shoot forward
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
+
+				if (mo)
+				{
+					if (player->mo->eflags & MFE_VERTICALFLIP)
+						mo->eflags |= MFE_VERTICALFLIP;
+				}
 			}
 		}
 	}
@@ -2526,9 +2574,19 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			player->kartstuff[k_greenshell] &= ~1;
 
-			P_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
+			K_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
 			K_PlayTauntSound(player->mo);
 
+		}
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_fireflower] && NO_BOO)
+		{
+			player->kartstuff[k_fireflower] = 0;
+
+			K_ThrowKartItem(player, true, MT_FIREBALL, 1, false);
+			S_StartSound(player->mo, sfx_mario7);
+			K_PlayTauntSound(player->mo);
+
+			player->kartstuff[k_itemclose] = 10;
 		}
 		// Triple Green Shell
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_triplegreenshell] & 8 && NO_BOO)
@@ -2560,7 +2618,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		else if (ATTACK_IS_DOWN && (player->kartstuff[k_triplegreenshell] & 1 || player->kartstuff[k_triplegreenshell] & 2 || player->kartstuff[k_triplegreenshell] & 4))
 		{
-			P_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
+			K_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
 			K_PlayTauntSound(player->mo);
 			player->pflags |= PF_ATTACKDOWN;
 
@@ -2595,7 +2653,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			player->kartstuff[k_redshell] &= ~1;
 
-			P_ThrowKartItem(player, true, MT_REDITEM, 1, false);
+			K_ThrowKartItem(player, true, MT_REDITEM, 1, false);
 			K_PlayTauntSound(player->mo);
 		}
 		// Red Shell Dud
@@ -2603,7 +2661,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			player->kartstuff[k_redshell] &= ~1;
 
-			P_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
+			K_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
 			K_PlayTauntSound(player->mo);
 		}
 		// Triple Red Shell
@@ -2637,7 +2695,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && (player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4)
 			&& (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0))
 		{
-			P_ThrowKartItem(player, true, MT_REDITEM, 1, false);
+			K_ThrowKartItem(player, true, MT_REDITEM, 1, false);
 			K_PlayTauntSound(player->mo);
 			player->pflags |= PF_ATTACKDOWN;
 			if (player->kartstuff[k_tripleredshell] & 4)
@@ -2650,7 +2708,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && (player->kartstuff[k_tripleredshell] & 1 || player->kartstuff[k_tripleredshell] & 2 || player->kartstuff[k_tripleredshell] & 4)
 		&& player->kartstuff[k_throwdir] == -1)
 		{
-			P_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
+			K_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
 			K_PlayTauntSound(player->mo);
 			player->pflags |= PF_ATTACKDOWN;
 			if (player->kartstuff[k_tripleredshell] & 4)
@@ -2681,7 +2739,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_banana] & 1)
 		{
-			P_ThrowKartItem(player, false, MT_BANANAITEM, -1, false);
+			K_ThrowKartItem(player, false, MT_BANANAITEM, -1, false);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_banana] &= ~1;
 		}
@@ -2718,7 +2776,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		else if (ATTACK_IS_DOWN && (player->kartstuff[k_triplebanana] & 1 || player->kartstuff[k_triplebanana] & 2 || player->kartstuff[k_triplebanana] & 4))
 		{
-			P_ThrowKartItem(player, false, MT_BANANAITEM, -1,false );
+			K_ThrowKartItem(player, false, MT_BANANAITEM, -1,false );
 			K_PlayTauntSound(player->mo);
 			player->pflags |= PF_ATTACKDOWN;
 			if (player->kartstuff[k_triplebanana] & 4)
@@ -2750,7 +2808,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_fakeitem] & 1)
 		{
-			P_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
+			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_fakeitem] &= ~1;
 		}
@@ -2775,7 +2833,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_bobomb] & 1)
 		{
-			P_ThrowKartItem(player, false, MT_BOMBITEM, 1, true);
+			K_ThrowKartItem(player, false, MT_BOMBITEM, 1, true);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_bobomb] &= ~1;
 		}

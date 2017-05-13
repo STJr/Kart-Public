@@ -1693,6 +1693,17 @@ void P_XYMovement(mobj_t *mo)
 	if (CheckForBustableBlocks && mo->flags & MF_PUSHABLE)
 		P_PushableCheckBustables(mo);
 
+	//{ SRB2kart - Fireball
+	if (mo->type == MT_FIREBALL)
+	{
+		mo->health--;
+		if (mo->health == 0)
+		{
+			S_StartSound(mo, mo->info->deathsound);
+			P_SetMobjState(mo, mo->info->deathstate);
+		}
+	}
+	//}
 	if (!P_TryMove(mo, mo->x + xmove, mo->y + ymove, true) && !(mo->eflags & MFE_SPRUNG))
 	{
 		// blocked move
@@ -1721,7 +1732,7 @@ void P_XYMovement(mobj_t *mo)
 			P_BounceMove(mo);
 			xmove = ymove = 0;
 			//S_StartSound(mo, mo->info->activesound);
-			//{ SRB2kart - Shell and fireball
+			//{ SRB2kart - Green Shell, Fireball
 			if (mo->type == MT_GREENITEM)
 			{
 				if (mo->health > 1)
@@ -1741,15 +1752,7 @@ void P_XYMovement(mobj_t *mo)
 				}
 			}
 			if (mo->type == MT_FIREBALL)
-			{
 				S_StartSound(mo, mo->info->attacksound);
-				mo->health--;
-				if (mo->health <= 0)
-				{
-					S_StartSound(mo, mo->info->deathsound);
-					P_SetMobjState(mo, mo->info->deathstate);
-				}
-			}
 			else
 				S_StartSound(mo, mo->info->activesound);
 			//}
@@ -1822,7 +1825,7 @@ void P_XYMovement(mobj_t *mo)
 			// draw damage on wall
 			//SPLAT TEST ----------------------------------------------------------
 #ifdef WALLSPLATS
-			if (blockingline && mo->type != MT_REDRING && mo->type != MT_FIREBALL
+			if (blockingline && mo->type != MT_REDRING //&& mo->type != MT_FIREBALL
 			&& !(mo->flags2 & (MF2_AUTOMATIC|MF2_RAILRING|MF2_BOUNCERING|MF2_EXPLOSION|MF2_SCATTER)))
 				// set by last P_TryMove() that failed
 			{
@@ -1958,7 +1961,7 @@ void P_XYMovement(mobj_t *mo)
 #endif
 
 	//{ SRB2kart stuff
-	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || mo->type == MT_REDITEM) //(mo->type == MT_REDITEM && !mo->tracer))
+	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || mo->type == MT_REDITEM || mo->type == MT_FIREBALL) //(mo->type == MT_REDITEM && !mo->tracer))
 		return;
 
 	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/4)
@@ -2307,22 +2310,11 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_FLINGEMERALD:
 		// SRB2kart stuff that should die in pits
 		case MT_RANDOMITEM:
-		case MT_BANANASHIELD:
-		case MT_TRIPLEBANANASHIELD1:
-		case MT_TRIPLEBANANASHIELD2:
-		case MT_TRIPLEBANANASHIELD3:
 		case MT_BANANAITEM:
-		case MT_GREENSHIELD:
-		case MT_TRIPLEGREENSHIELD1:
-		case MT_TRIPLEGREENSHIELD2:
-		case MT_TRIPLEGREENSHIELD3:
 		case MT_GREENITEM:
-		case MT_REDSHIELD:
-		case MT_TRIPLEREDSHIELD1:
-		case MT_TRIPLEREDSHIELD2:
-		case MT_TRIPLEREDSHIELD3:
 		case MT_REDITEM:
 		case MT_REDITEMDUD:
+		case MT_FIREBALL:
 			// Remove flinged stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
@@ -6578,7 +6570,8 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
-					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)) // When in death state
+					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
 					P_RemoveMobj(mobj);
 					return;
@@ -6786,7 +6779,7 @@ void P_MobjThinker(mobj_t *mobj)
 		P_PushableThinker(mobj);
 
 		// Extinguish fire objects in water. (Yes, it's extraordinarily rare to have a pushable flame object, but Brak uses such a case.)
-		if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA && mobj->type != MT_FIREBALL
+		if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA //&& mobj->type != MT_FIREBALL
 			&& (mobj->eflags & (MFE_UNDERWATER|MFE_TOUCHWATER)))
 		{
 			P_KillMobj(mobj, NULL, NULL);
@@ -7472,6 +7465,10 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
+		case MT_FIREBALL:
+			if (mobj->threshold > 0)
+				mobj->threshold--;
+			break;
 		case MT_SINK:
 			if (mobj->z <= mobj->floorz)
 			{
@@ -7599,7 +7596,7 @@ void P_MobjThinker(mobj_t *mobj)
 			P_MobjCheckWater(mobj);
 
 			// Extinguish fire objects in water
-			if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA && mobj->type != MT_FIREBALL
+			if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA //&& mobj->type != MT_FIREBALL
 				&& (mobj->eflags & (MFE_UNDERWATER|MFE_TOUCHWATER)))
 			{
 				P_KillMobj(mobj, NULL, NULL);

@@ -1967,8 +1967,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	mobjtype_t item;
 	mobj_t *mo;
 
-	if (inflictor && (inflictor->type == MT_SHELL || inflictor->type == MT_FIREBALL))
-		P_SetTarget(&target->tracer, inflictor);
+	//if (inflictor && (inflictor->type == MT_SHELL || inflictor->type == MT_FIREBALL))
+	//	P_SetTarget(&target->tracer, inflictor);
 
 	// SRB2kart
 	// I wish I knew a better way to do this
@@ -2019,7 +2019,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		 || target->type == MT_TRIPLEREDSHIELD1 || target->type == MT_TRIPLEREDSHIELD2 || target->type == MT_TRIPLEREDSHIELD3
 		 || target->type == MT_BANANAITEM || target->type == MT_BANANASHIELD
 		 || target->type == MT_TRIPLEBANANASHIELD1 || target->type == MT_TRIPLEBANANASHIELD2 || target->type == MT_TRIPLEBANANASHIELD3
-		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD)) // kart dead items
+		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD
+		 || target->type == MT_FIREBALL)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
 	else
 		target->flags &= ~MF_NOGRAVITY; // lose it if you for whatever reason have it, I'm looking at you shields
