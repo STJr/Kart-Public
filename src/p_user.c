@@ -7690,8 +7690,8 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		if (mo->flags & MF_MONITOR)
 			continue; // Monitors cannot be 'nuked'.
 
-		if (!G_RingSlingerGametype() && mo->type == MT_PLAYER)
-			continue; // Don't hurt players in Co-Op!
+		//if (!G_RingSlingerGametype() && mo->type == MT_PLAYER)
+		//	continue; // Don't hurt players in Co-Op!
 
 		if (abs(inflictor->x - mo->x) > radius || abs(inflictor->y - mo->y) > radius || abs(inflictor->z - mo->z) > radius)
 			continue; // Workaround for possible integer overflow in the below -Red
@@ -7705,8 +7705,37 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		if (mo->type == MT_EGGGUARD && mo->tracer) //nuke Egg Guard's shield!
 			P_KillMobj(mo->tracer, inflictor, source);
 
-		if (mo->flags & MF_BOSS || mo->type == MT_PLAYER) //don't OHKO bosses nor players!
-			continue; // SRB2kart - P_Nuke is for magnet (for now), and doesn't hurt other players, only obstacles. // P_DamageMobj(mo, inflictor, source, 1);
+		if (mo->flags & MF_BOSS) //don't OHKO bosses!
+			P_DamageMobj(mo, inflictor, source, 1);
+
+		//{ SRB2kart
+		if (mo->type == MT_GREENITEM || mo->type == MT_REDITEM || mo->type == MT_REDITEMDUD
+			|| mo->type == MT_GREENSHIELD || mo->type == MT_REDSHIELD
+			|| mo->type == MT_TRIPLEGREENSHIELD1 || mo->type == MT_TRIPLEGREENSHIELD2 || mo->type == MT_TRIPLEGREENSHIELD3
+			|| mo->type == MT_TRIPLEREDSHIELD1 || mo->type == MT_TRIPLEREDSHIELD2 || mo->type == MT_TRIPLEREDSHIELD3
+			|| mo->type == MT_BANANAITEM || mo->type == MT_BANANASHIELD
+			|| mo->type == MT_TRIPLEBANANASHIELD1 || mo->type == MT_TRIPLEBANANASHIELD2 || mo->type == MT_TRIPLEBANANASHIELD3
+			|| mo->type == MT_FAKEITEM || mo->type == MT_FAKESHIELD
+			|| mo->type == MT_FIREBALL)
+		{
+			if (mo->eflags & MFE_VERTICALFLIP)
+				mo->z -= mo->height;
+			else
+				mo->z += mo->height;
+
+			S_StartSound(mo, mo->info->deathsound);
+			P_KillMobj(mo, inflictor, source);
+
+			P_SetObjectMomZ(mo, 8*FRACUNIT, false);
+			P_InstaThrust(mo, R_PointToAngle2(inflictor->x, inflictor->y, mo->x, mo->y)+ANGLE_90, 16*FRACUNIT);
+		}
+
+		if (mo == inflictor) // Don't nuke yourself, dummy!
+			continue;
+
+		if (mo->type == MT_PLAYER) // Players wipe out in Kart
+			K_SpinPlayer(mo->player, source);
+		//}
 		else
 			P_DamageMobj(mo, inflictor, source, 1000);
 	}

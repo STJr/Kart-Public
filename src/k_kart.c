@@ -1845,11 +1845,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (dir == -1)
 			{
 				// Shoot backward
-				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x08000000, 0, 64*FRACUNIT);
-				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x04000000, 0, 64*FRACUNIT);
+				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, 64*FRACUNIT);
+				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, 64*FRACUNIT);
 				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
-				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x04000000, 0, 64*FRACUNIT);
-				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x08000000, 0, 64*FRACUNIT);
+				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, 64*FRACUNIT);
+				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, 64*FRACUNIT);
 
 				if (mo)
 				{
@@ -1866,11 +1866,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			else
 			{
 				// Shoot forward
-				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x08000000, 0, 64*FRACUNIT);
-				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x04000000, 0, 64*FRACUNIT);
+				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x06000000, 0, 64*FRACUNIT);
+				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x03000000, 0, 64*FRACUNIT);
 				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
-				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x04000000, 0, 64*FRACUNIT);
-				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x08000000, 0, 64*FRACUNIT);
+				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x03000000, 0, 64*FRACUNIT);
+				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x06000000, 0, 64*FRACUNIT);
 
 				if (mo)
 				{
@@ -1977,7 +1977,7 @@ static void K_DoMagnet(player_t *player)
 {
 	S_StartSound(player->mo, sfx_s3k45);
 	player->kartstuff[k_magnettimer] = 35;
-	P_NukeEnemies(player->mo, player->mo, 16*FRACUNIT);
+	P_NukeEnemies(player->mo, player->mo, RING_DIST/4);
 }
 
 static void K_DoBooSteal(player_t *player)
@@ -2859,7 +2859,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			if (!P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_mega);
 			K_PlayTauntSound(player->mo);
-			player->kartstuff[k_growshrinktimer] = itemtime;
+			player->kartstuff[k_growshrinktimer] = itemtime + TICRATE*2;
 			S_StartSound(player->mo, sfx_mario3);
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_megashroom] = 0;
@@ -3426,16 +3426,16 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))	localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_kitchensink] == 1)							localpatch = kp_kitchensink;
 	else if (stplyr->kartstuff[k_lightning] == 1)							localpatch = kp_lightning;
-	else if (stplyr->kartstuff[k_tripleredshell] & 8)						localpatch = kp_tripleredshell;
+	else if (stplyr->kartstuff[k_tripleredshell])							localpatch = kp_tripleredshell; // &8
 	else if (stplyr->kartstuff[k_fireflower] == 1)							localpatch = kp_fireflower;
 	else if (stplyr->kartstuff[k_blueshell] == 1)							localpatch = kp_blueshell;
-	else if (stplyr->kartstuff[k_bobomb] & 2)								localpatch = kp_bobomb;
-	else if (stplyr->kartstuff[k_triplegreenshell] & 8)						localpatch = kp_triplegreenshell;
-	else if (stplyr->kartstuff[k_redshell] & 2)								localpatch = kp_redshell;
-	else if (stplyr->kartstuff[k_greenshell] & 2)							localpatch = kp_greenshell;
-	else if (stplyr->kartstuff[k_banana] & 2)								localpatch = kp_banana;
+	else if (stplyr->kartstuff[k_bobomb])									localpatch = kp_bobomb; // &2
+	else if (stplyr->kartstuff[k_triplegreenshell])							localpatch = kp_triplegreenshell; // &8
+	else if (stplyr->kartstuff[k_redshell])									localpatch = kp_redshell; // &2
+	else if (stplyr->kartstuff[k_greenshell])								localpatch = kp_greenshell;  // &2
+	else if (stplyr->kartstuff[k_banana])									localpatch = kp_banana; // &2
 	else if (stplyr->kartstuff[k_fakeitem] & 2)								localpatch = kp_fakeitem;
-	else if (stplyr->kartstuff[k_triplebanana] & 8)							localpatch = kp_triplebanana;
+	else if (stplyr->kartstuff[k_triplebanana])								localpatch = kp_triplebanana; // &8
 	else if (stplyr->kartstuff[k_star] == 1)								localpatch = kp_star;
 	else if (stplyr->kartstuff[k_goldshroom] == 1
 		|| (stplyr->kartstuff[k_goldshroomtimer] > 1 && (leveltime & 1)))	localpatch = kp_goldshroom;
@@ -3789,7 +3789,7 @@ void K_drawKartHUD(void)
 	// Draw the little triple-item icons at the bottom
 	if (!splitscreen)
 	{
-		K_DrawKartTripleItem();
+		//K_DrawKartTripleItem();
 		K_DrawKartPositionFaces();
 	}
 

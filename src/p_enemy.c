@@ -742,7 +742,7 @@ static boolean P_LookForShield(mobj_t *actor)
 
 		// SRB2kart - magnet item
 		if (player->kartstuff[k_magnettimer] //(player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
-			&& (P_AproxDistance(P_AproxDistance(actor->x-player->mo->x, actor->y-player->mo->y), actor->z-player->mo->z) < FixedMul(RING_DIST/2, player->mo->scale)))
+			&& (P_AproxDistance(P_AproxDistance(actor->x-player->mo->x, actor->y-player->mo->y), actor->z-player->mo->z) < FixedMul(RING_DIST/4, player->mo->scale)))
 		{
 			P_SetTarget(&actor->tracer, player->mo);
 			return true;
@@ -8125,7 +8125,7 @@ void A_ItemPop(mobj_t *actor)
 		&& !(actor->target->player->kartstuff[k_greenshell]     || actor->target->player->kartstuff[k_triplegreenshell]
 		||   actor->target->player->kartstuff[k_redshell]       || actor->target->player->kartstuff[k_tripleredshell]
 		||   actor->target->player->kartstuff[k_banana]         || actor->target->player->kartstuff[k_triplebanana]
-		||   actor->target->player->kartstuff[k_fakeitem]       || actor->target->player->kartstuff[k_magnet]
+		||   actor->target->player->kartstuff[k_fakeitem] & 2   || actor->target->player->kartstuff[k_magnet]
 		||   actor->target->player->kartstuff[k_bobomb]         || actor->target->player->kartstuff[k_blueshell]
 		||   actor->target->player->kartstuff[k_mushroom]       || actor->target->player->kartstuff[k_fireflower]
 		||   actor->target->player->kartstuff[k_star]           || actor->target->player->kartstuff[k_goldshroom]
