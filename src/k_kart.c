@@ -3012,6 +3012,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 //{ SRB2kart HUD Code
 
+#define NUMLAKIFRAMES 13
 #define NUMPOSNUMS 10
 #define NUMPOSFRAMES 7 // White, three blues, three reds
 
@@ -3022,6 +3023,7 @@ static patch_t *kp_timesticker;
 static patch_t *kp_timestickerwide;
 static patch_t *kp_lapsticker;
 static patch_t *kp_lapstickernarrow;
+static patch_t *kp_lakitustart[NUMLAKIFRAMES];
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_facenull;
 static patch_t *kp_facefirst;
@@ -3107,6 +3109,21 @@ void K_LoadKartHUDGraphics(void)
 	kp_timestickerwide = 		W_CachePatchName("K_STTIMW", PU_HUDGFX);
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
+
+	// Lakitu Start-up Frames
+	kp_lakitustart[0] = 		W_CachePatchName("K_LAKISA", PU_HUDGFX);
+	kp_lakitustart[1] = 		W_CachePatchName("K_LAKISB", PU_HUDGFX);
+	kp_lakitustart[2] = 		W_CachePatchName("K_LAKISC", PU_HUDGFX);
+	kp_lakitustart[3] = 		W_CachePatchName("K_LAKISD", PU_HUDGFX);
+	kp_lakitustart[4] = 		W_CachePatchName("K_LAKISE", PU_HUDGFX);
+	kp_lakitustart[5] = 		W_CachePatchName("K_LAKISF", PU_HUDGFX);
+	kp_lakitustart[6] = 		W_CachePatchName("K_LAKISG", PU_HUDGFX);
+	kp_lakitustart[7] = 		W_CachePatchName("K_LAKISH", PU_HUDGFX);
+	kp_lakitustart[8] = 		W_CachePatchName("K_LAKISI", PU_HUDGFX);
+	kp_lakitustart[9] = 		W_CachePatchName("K_LAKISJ", PU_HUDGFX);
+	kp_lakitustart[10] = 		W_CachePatchName("K_LAKISK", PU_HUDGFX);
+	kp_lakitustart[11] = 		W_CachePatchName("K_LAKISL", PU_HUDGFX);
+	kp_lakitustart[12] = 		W_CachePatchName("K_LAKISM", PU_HUDGFX);
 
 	// Position numbers
 	for (i = 0; i < NUMPOSNUMS; i++)
@@ -3222,6 +3239,7 @@ INT32 LAPS_X, LAPS_Y;	// Lap Sticker
 INT32 POSI_X, POSI_Y;	// Position Number
 INT32 FACE_X, FACE_Y;	// Top-four Faces
 INT32 METE_X, METE_Y;	// Speed Meter
+INT32 LAKI_X, LAKI_Y;	// Lakitu
 
 static void K_initKartHUD(void)
 {
@@ -3282,6 +3300,9 @@ static void K_initKartHUD(void)
 				// Top-Four Faces
 				FACE_X = 9;					//   9
 				FACE_Y = 92;				//  92
+				// Lakitu
+				LAKI_X = 136;				// 138
+				LAKI_Y = -44;				// -34
 				break;
 		}
 	}
@@ -3665,7 +3686,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	}
 }
 
-static void K_DrawKartPositionFaces(void)
+static void K_drawKartPositionFaces(void)
 {
 	// FACE_X = 15;				//  15
 	// FACE_Y = 72;				//  72
@@ -3767,6 +3788,56 @@ static void K_drawKartSpeedometer(void)
 	}
 }
 
+static void K_drawStartLakitu(void)
+{
+	patch_t *localpatch = kp_nodraw;
+	INT16 adjustY;
+
+	if (leveltime >= 158)
+		return;
+
+	if (leveltime >=   0 && leveltime <  52) localpatch = kp_lakitustart[0];
+	if (leveltime >=  52 && leveltime <  56) localpatch = kp_lakitustart[1];
+	if (leveltime >=  56 && leveltime <  60) localpatch = kp_lakitustart[2];
+	if (leveltime >=  60 && leveltime <  64) localpatch = kp_lakitustart[3];
+	if (leveltime >=  64 && leveltime <  91) localpatch = kp_lakitustart[4];
+	if (leveltime >=  91 && leveltime <  95) localpatch = kp_lakitustart[5];
+	if (leveltime >=  95 && leveltime <  99) localpatch = kp_lakitustart[6];
+	if (leveltime >=  99 && leveltime < 103) localpatch = kp_lakitustart[7];
+	if (leveltime >= 103 && leveltime < 130) localpatch = kp_lakitustart[8];
+	if (leveltime >= 130 && leveltime < 134) localpatch = kp_lakitustart[9];
+	if (leveltime >= 134 && leveltime < 138) localpatch = kp_lakitustart[10];
+	if (leveltime >= 138 && leveltime < 142) localpatch = kp_lakitustart[11];
+	if (leveltime >= 142 && leveltime < 158) localpatch = kp_lakitustart[12];
+
+	// I am sorry for this mess, I can't math right now.
+	if (leveltime <= 33)
+	{
+		switch (leveltime)
+		{
+			case  0: adjustY =   0; break; 
+			case  1: adjustY =   4; break; case  2: adjustY =  10; break; case  3: adjustY =  16; break;
+			case  4: adjustY =  22; break; case  5: adjustY =  27; break; case  6: adjustY =  32; break;
+			case  7: adjustY =  37; break; case  8: adjustY =  42; break; case  9: adjustY =  46; break;
+			case 10: adjustY =  50; break; case 11: adjustY =  54; break; case 12: adjustY =  58; break;
+			case 13: adjustY =  62; break; case 14: adjustY =  65; break; case 15: adjustY =  68; break;
+			case 16: adjustY =  71; break; case 17: adjustY =  74; break; case 18: adjustY =  77; break;
+			case 19: adjustY =  80; break; case 20: adjustY =  82; break; case 21: adjustY =  84; break;
+			case 22: adjustY =  86; break; case 23: adjustY =  88; break; case 24: adjustY =  90; break;
+			case 25: adjustY =  92; break; case 26: adjustY =  94; break; case 27: adjustY =  95; break;
+			case 28: adjustY =  96; break; case 29: adjustY =  97; break; case 30: adjustY =  98; break;
+			case 31: adjustY =  99; break; case 32: adjustY = 100; break; case 33: adjustY = 101; break;
+			default: adjustY = 102; break;
+		}
+	}
+	else if (leveltime >= 146)
+		adjustY = (158 - leveltime)*8;
+	else
+		adjustY = 102;
+
+	V_DrawSmallScaledPatch(LAKI_X, STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
+}
+
 void K_drawKartHUD(void)
 {
 	// Define the X and Y for each drawn object
@@ -3786,11 +3857,15 @@ void K_drawKartHUD(void)
 	else
 		K_drawKartRetroItem();
 
-	// Draw the little triple-item icons at the bottom
+	// If not splitscreen, draw...
+	// The little triple-item icons at the bottom
+	// The top-four faces on the left
+	// Lakitu!
 	if (!splitscreen)
 	{
 		//K_DrawKartTripleItem();
-		K_DrawKartPositionFaces();
+		K_drawKartPositionFaces();
+		K_drawStartLakitu();
 	}
 
 	// Draw the timestamp
