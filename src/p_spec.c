@@ -4060,6 +4060,7 @@ DoneSection2:
 				if (player->starpostnum == numstarposts) // Must have touched all the starposts
 				{
 					player->laps++;
+					player->kartstuff[k_lapanimation] = 80;
 
 					if (player->pflags & PF_NIGHTSMODE)
 						player->drillmeter += 48*20;
