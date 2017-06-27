@@ -2194,8 +2194,8 @@ void G_PlayerReborn(INT32 player)
 	SINT8 pity;
 
 	// SRB2kart
-	INT32 starpostwp;
-	INT32 offroad;
+	//INT32 starpostwp;
+	//INT32 offroad;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2248,8 +2248,8 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	starpostwp = players[player].kartstuff[k_starpostwp];
-	offroad = players[player].kartstuff[k_offroad];
+	//starpostwp = players[player].kartstuff[k_starpostwp];
+	//offroad = players[player].kartstuff[k_offroad];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2303,8 +2303,8 @@ void G_PlayerReborn(INT32 player)
 	p->pity = pity;
 
 	// SRB2kart
-	p->kartstuff[k_starpostwp] = starpostwp;
-	p->kartstuff[k_offroad] = offroad;
+	//p->kartstuff[k_starpostwp] = starpostwp;
+	//p->kartstuff[k_offroad] = offroad;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

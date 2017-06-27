@@ -520,7 +520,7 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		rsp->kartstuff[j] = (UINT16)SHORT(players[i].kartstuff[j]); // SRB2kart
 	for (j = 0; j < MAXPLAYERS; ++j)
-		rsp->collide[j] = players[i].collide[j]; // SRB2kart
+		rsp->collide[j] = (UINT16)SHORT(players[i].collide[j]); // SRB2kart
 
 	// Score is resynched in the rspfirm resync packet
 	rsp->health = 0; // resynched with mo health
@@ -654,7 +654,7 @@ static void resynch_read_player(resynch_pak *rsp)
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		players[i].kartstuff[j] = (UINT16)SHORT(rsp->kartstuff[j]); // SRB2kart
 	for (j = 0; j < MAXPLAYERS; ++j)
-		players[i].collide[j] = rsp->collide[j]; // SRB2kart
+		players[i].collide[j] = (UINT16)SHORT(rsp->collide[j]); // SRB2kart
 
 	// Score is resynched in the rspfirm resync packet
 	players[i].health = rsp->health;
