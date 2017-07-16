@@ -57,7 +57,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
 	"DBAN","GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH",
-	"SINK","SITR","POKE"
+	"SINK","SITR","LAKI","POKE"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2716,6 +2716,9 @@ state_t states[NUMSTATES] =
 	{SPR_SITR, 0,  1, {NULL}, 0, 0, S_SINKTRAIL2},                       // S_SINKTRAIL1
 	{SPR_SITR, 1,  5, {NULL}, 0, 0, S_SINKTRAIL3},                       // S_SINKTRAIL2
 	{SPR_SITR, 2,  3, {NULL}, 0, 0, S_NULL},                             // S_SINKTRAIL3
+
+	{SPR_LAKI, 0, 64, {NULL}, 1, 0, S_LAKITU2},  // S_LAKITU1
+	{SPR_LAKI, 1, 35, {NULL}, 0, 0, S_NULL},     // S_LAKITU2
 
 	{SPR_POKE, 0,  2, {A_MoveAbsolute},   0, 2, S_POKEY2}, // S_POKEY1
 	{SPR_POKE, 1,  2, {A_MoveAbsolute},   0, 2, S_POKEY3}, // S_POKEY2
@@ -15006,6 +15009,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_LAKITU
+		-1,             // doomednum
+		S_LAKITU1,      // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		64*FRACUNIT,    // radius
+		57*FRACUNIT,    // height
+		0,              // display offset
+		16,             // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY,   // flags
 		S_NULL          // raisestate
 	},
 

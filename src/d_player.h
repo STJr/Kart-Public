@@ -241,6 +241,7 @@ typedef enum
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
+	k_lakitu,			// Timer for Lakitu to carry and drop the player
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_camspin,			// Used to 180 the camera while a button is held

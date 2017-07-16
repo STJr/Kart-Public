@@ -601,8 +601,10 @@ typedef enum sprite
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
 
+	SPR_LAKI, // Lakitu
+
 	// Additional Kart Objects
-	SPR_POKE, // Lightning
+	SPR_POKE, // Pokey
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3210,6 +3212,10 @@ typedef enum state
 	S_SINKTRAIL2,
 	S_SINKTRAIL3,
 
+	// Lakitu
+	S_LAKITU1,
+	S_LAKITU2,
+
 	// Pokey
 	S_POKEY1,
 	S_POKEY2,
@@ -3796,7 +3802,10 @@ typedef enum mobj_type
 	MT_SINK, // Kitchen Sink Stuff
 	MT_SINKTRAIL,
 
+	MT_LAKITU,
+
 	MT_POKEY, // Huh, thought this was a default asset for some reason, guess not.
+
 	MT_ENEMYFLIP,
 	MT_WAYPOINT,
 

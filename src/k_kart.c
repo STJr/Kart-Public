@@ -1230,6 +1230,73 @@ static void K_UpdateOffroad(player_t *player)
 		player->kartstuff[k_offroad] = 0;
 }
 
+/**	\brief	Calculates the lakitu timer and drop-boosting
+
+	\param	player	player object passed from K_KartPlayerThink
+
+	\return	void
+*/
+void K_LakituChecker(player_t *player)
+{
+	ticcmd_t *cmd = &player->cmd;
+
+	if (player->kartstuff[k_lakitu] == 60)
+	{
+		mobj_t *mo;
+		angle_t newangle;
+		fixed_t newx;
+		fixed_t newy;
+		fixed_t newz;
+		newangle = player->mo->angle;
+		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 0);
+		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 0);
+		if (player->mo->eflags & MFE_VERTICALFLIP)
+			newz = player->mo->z - 128*FRACUNIT;
+		else
+			newz = player->mo->z + 64*FRACUNIT;
+		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
+		if (mo)
+		{
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				mo->eflags |= MFE_VERTICALFLIP;
+			mo->angle = newangle+ANGLE_180;
+			P_SetTarget(&mo->target, player->mo);
+		}
+	}
+
+	if (player->kartstuff[k_lakitu] > 3)
+	{
+		player->kartstuff[k_lakitu]--;
+		player->mo->momz = 0;
+		player->powers[pw_flashing] = 2;
+		player->powers[pw_nocontrol] = 2;
+		if (leveltime % 15 == 0)
+			S_StartSound(player->mo, sfx_lkt3);
+	}
+	// That's enough pointless fishing for now.
+	if (player->kartstuff[k_lakitu] > 0 && player->kartstuff[k_lakitu] <= 3)
+	{
+		if (!P_IsObjectOnGround(player->mo))
+		{
+			player->powers[pw_flashing] = 2;
+			// If you tried to boost while in the air,
+			// you lose your chance of boosting at all.
+			if (cmd->buttons & BT_ACCELERATE)
+			{
+				player->powers[pw_flashing] = 0;
+				player->kartstuff[k_lakitu] = 0;
+			}
+		}
+		else
+		{
+			player->kartstuff[k_lakitu]--;
+			// Quick! You only have three tics to boost!
+			if (cmd->buttons & BT_ACCELERATE)
+				K_DoMushroom(player, true);
+		}
+	}
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -1317,6 +1384,10 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_jmp] = 1;
 	else
 		player->kartstuff[k_jmp] = 0;
+
+	// Lakitu Checker
+	if (player->kartstuff[k_lakitu])
+		K_LakituChecker(player);
 
 	// Roulette Code
 	//K_KartItemRouletteByPosition(player, cmd); // Old, position-based
@@ -3027,7 +3098,7 @@ static patch_t *kp_timestickerwide;
 static patch_t *kp_lapsticker;
 static patch_t *kp_lapstickernarrow;
 static patch_t *kp_lakitustart[NUMLAKIFRAMES];
-static patch_t *kp_lakitulaps[9];
+static patch_t *kp_lakitulaps[17];
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_facenull;
 static patch_t *kp_facefirst;
@@ -3139,6 +3210,14 @@ void K_LoadKartHUDGraphics(void)
 	kp_lakitulaps[6] = 		W_CachePatchName("K_LAKIL8", PU_HUDGFX);
 	kp_lakitulaps[7] = 		W_CachePatchName("K_LAKIL9", PU_HUDGFX);
 	kp_lakitulaps[8] = 		W_CachePatchName("K_LAKILF", PU_HUDGFX);
+	kp_lakitulaps[9] = 		W_CachePatchName("K_LAKIF1", PU_HUDGFX);
+	kp_lakitulaps[10] = 	W_CachePatchName("K_LAKIF2", PU_HUDGFX);
+	kp_lakitulaps[11] = 	W_CachePatchName("K_LAKIF3", PU_HUDGFX);
+	kp_lakitulaps[12] = 	W_CachePatchName("K_LAKIF4", PU_HUDGFX);
+	kp_lakitulaps[13] = 	W_CachePatchName("K_LAKIF5", PU_HUDGFX);
+	kp_lakitulaps[14] = 	W_CachePatchName("K_LAKIF6", PU_HUDGFX);
+	kp_lakitulaps[15] = 	W_CachePatchName("K_LAKIF7", PU_HUDGFX);
+	kp_lakitulaps[16] = 	W_CachePatchName("K_LAKIF8", PU_HUDGFX);
 
 	// Position numbers
 	for (i = 0; i < NUMPOSNUMS; i++)
@@ -3848,6 +3927,7 @@ static void K_drawLapLakitu(void)
 	fixed_t adjustY;
 	fixed_t numFrames = 32; 	// Number of frames for the animation
 	fixed_t finalOffset = 206; 	// Number of pixels to offset the patch (This is actually 200, the 6 is a buffer for the parabola)
+	boolean finishLine = false;
 
 	if (stplyr->laps < (UINT8)(cv_numlaps.value - 1))
 	{
@@ -3863,8 +3943,33 @@ static void K_drawLapLakitu(void)
 			case 8:	localpatch = kp_lakitulaps[7]; break;
 		}
 	}
-	else
+	else if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
 		localpatch = kp_lakitulaps[8];
+	else
+	{
+		// Change flag frame every 4 frames
+		switch (leveltime % 32)
+		{
+			case  0: case  1: case  2: case  3:
+				localpatch = kp_lakitulaps[9];  break;
+			case  4: case  5: case  6: case  7:
+				localpatch = kp_lakitulaps[10]; break;
+			case  8: case  9: case 10: case 11:
+				localpatch = kp_lakitulaps[11]; break;
+			case 12: case 13: case 14: case 15:
+				localpatch = kp_lakitulaps[12]; break;
+			case 16: case 17: case 18: case 19:
+				localpatch = kp_lakitulaps[13]; break;
+			case 20: case 21: case 22: case 23:
+				localpatch = kp_lakitulaps[14]; break;
+			case 24: case 25: case 26: case 27:
+				localpatch = kp_lakitulaps[15]; break;
+			case 28: case 29: case 30: case 31:
+				localpatch = kp_lakitulaps[16]; break;
+		}
+		finishLine = true;
+		finalOffset = 226;
+	}
 
 	if (swoopTimer <= numFrames)
 		adjustY = (finalOffset - 1) - FixedMul((finalOffset), FRACUNIT / (swoopTimer + 3));
@@ -3874,9 +3979,14 @@ static void K_drawLapLakitu(void)
 		adjustY = (finalOffset - 1) - FixedMul((finalOffset), FRACUNIT / (numFrames + 3 - templeveltime));
 	}
 	else
-		adjustY = 200;
+	{
+		if (finishLine)
+			adjustY = 220;
+		else
+			adjustY = 200;
+	}
 
-	V_DrawSmallScaledPatch(LAKI_X+24, STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
+	V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
 }
 
 void K_drawKartHUD(void)
@@ -3884,6 +3994,18 @@ void K_drawKartHUD(void)
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
+
+	// Draw Lakitu
+	// This is done first so that regardless of HUD layers,
+	// he'll appear to be in the 'real world'
+	if (!splitscreen)
+	{
+		if (leveltime < 178)
+			K_drawStartLakitu();
+			
+		if (stplyr->kartstuff[k_lapanimation])
+			K_drawLapLakitu();
+	}
 
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])
@@ -3901,18 +4023,10 @@ void K_drawKartHUD(void)
 	// If not splitscreen, draw...
 	// The little triple-item icons at the bottom
 	// The top-four faces on the left
-	// Lakitu!
 	if (!splitscreen)
 	{
 		//K_DrawKartTripleItem();
 		K_drawKartPositionFaces();
-
-		if (leveltime < 178)
-			K_drawStartLakitu();
-			
-		if (stplyr->kartstuff[k_lapanimation])
-			K_drawLapLakitu();
-
 	}
 
 	// Draw the timestamp
@@ -3928,12 +4042,9 @@ void K_drawKartHUD(void)
 	// Draw the numerical position
 	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 
+	// Draw the speedometer
+	// TODO: Make a better speedometer.
 	K_drawKartSpeedometer();
 }
 
 //}
-
-
-
-
-

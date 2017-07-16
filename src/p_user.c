@@ -7898,7 +7898,6 @@ void P_FindEmerald(void)
 // Fall on your face when dying.
 // Decrease POV height to floor height.
 //
-
 static void P_DeathThink(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
@@ -7919,19 +7918,23 @@ static void P_DeathThink(player_t *player)
 	// Force respawn if idle for more than 30 seconds in shooter modes.
 	if (player->deadtimer > 30*TICRATE && !G_PlatformGametype())
 		player->playerstate = PST_REBORN;
-	else if (player->lives > 0 && !G_IsSpecialStage(gamemap)) // Don't allow "click to respawn" in special stages!
+	else if (player->lives > 0 && !G_IsSpecialStage(gamemap) && leveltime >= 140) // Don't allow "click to respawn" in special stages!
 	{
-		// Respawn with jump button, force respawn time (3 second default, cheat protected) in shooter modes.
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > cv_respawntime.value*TICRATE
-			&& gametype != GT_RACE && gametype != GT_COOP)
+		// SRB2kart
+		if (player->spectator)
+		{
+			CONS_Printf("%s entered the game.\n", player_names[player-players]);
+			player->spectator = false;
+		}
+		//player->kartstuff[k_lakitu] = 64; // See G_PlayerReborn in g_game.c
+
+		// SRB2kart - spawn automatically after 2 seconds
+		if (player->deadtimer > 2*TICRATE && (gametype == GT_RACE || player->spectator))
 			player->playerstate = PST_REBORN;
 
-		// Instant respawn in race or if you're spectating.
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && (gametype == GT_RACE || player->spectator))
-			player->playerstate = PST_REBORN;
-
-		// One second respawn in coop. // SRB2kart - Race maybe?
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > TICRATE && gametype == GT_RACE)//(gametype == GT_COOP || gametype == GT_COMPETITION))
+		// SRB2kart - spawn after 2 seconds & Button press
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > 2*TICRATE 
+			&& (gametype == GT_RACE || player->spectator))
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn
