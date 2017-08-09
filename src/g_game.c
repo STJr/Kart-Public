@@ -2303,7 +2303,7 @@ void G_PlayerReborn(INT32 player)
 	p->pity = pity;
 
 	// SRB2kart
-	p->kartstuff[k_starpostwp] = starpostwp;
+	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
 
 	// Don't do anything immediately

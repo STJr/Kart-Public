@@ -1460,7 +1460,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
 	if (player->kartstuff[k_growshrinktimer] > 1
-		&& (player->kartstuff[k_growshrinktimer] > (itemtime - 25)
+		&& (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25)
 		|| player->kartstuff[k_growshrinktimer] <= 26))
 	{												// Mega Mushroom - Mid-size
 		if (speed)
@@ -1468,7 +1468,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 			boostvalue = max(boostvalue, FRACUNIT/8); // + 12.5%
 		}
 	}
-	if (player->kartstuff[k_growshrinktimer] < (itemtime - 25)
+	if (player->kartstuff[k_growshrinktimer] < ((itemtime + TICRATE*2) - 25)
 		&& player->kartstuff[k_growshrinktimer] > 26)
 	{												// Mega Mushroom
 		if (speed)
@@ -2964,7 +2964,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->kartstuff[k_boosting] = 0;
 
 		// Megashroom - Make the player grow!
-		if (player->kartstuff[k_growshrinktimer] > (itemtime - 25))
+		if (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25))
 		{
 			if (leveltime & 2)
 				player->mo->destscale = FRACUNIT*3/2;
@@ -2972,7 +2972,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				player->mo->destscale = FRACUNIT;
 		}
 		else if (player->kartstuff[k_growshrinktimer] > 26
-			&& player->kartstuff[k_growshrinktimer] <= (itemtime - 25))
+			&& player->kartstuff[k_growshrinktimer] <= ((itemtime + TICRATE*2) - 25))
 			player->mo->destscale = FRACUNIT*3/2;
 		// Megashroom - Back to normal...
 		else if (player->kartstuff[k_growshrinktimer] > 1

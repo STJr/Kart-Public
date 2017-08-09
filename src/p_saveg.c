@@ -137,7 +137,7 @@ static void P_NetArchivePlayers(void)
 		for (j = 0; j < NUMPOWERS; j++)
 			WRITEUINT16(save_p, players[i].powers[j]);
 		for (j = 0; j < NUMKARTSTUFF; j++)
-			WRITEUINT16(save_p, players[i].kartstuff[j]);
+			WRITEINT32(save_p, players[i].kartstuff[j]);
 		for (j = 0; j < MAXPLAYERS; j++)
 			WRITEUINT8(save_p, players[i].collide[j]);
 
@@ -320,7 +320,7 @@ static void P_NetUnArchivePlayers(void)
 		for (j = 0; j < NUMPOWERS; j++)
 			players[i].powers[j] = READUINT16(save_p);
 		for (j = 0; j < NUMKARTSTUFF; j++)
-			players[i].kartstuff[j] = READUINT16(save_p);
+			players[i].kartstuff[j] = READINT32(save_p);
 		for (j = 0; j < MAXPLAYERS; j++)
 			players[i].collide[j] = (boolean)READUINT8(save_p);
 
