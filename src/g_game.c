@@ -2332,9 +2332,11 @@ void G_PlayerReborn(INT32 player)
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 			if (p->laps == (unsigned)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
-			p->kartstuff[k_lakitu] = 64; // Lakitu Spawner
 		}
 	}
+
+	if (leveltime > 157)
+		p->kartstuff[k_lakitu] = 64; // Lakitu Spawner
 
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for
