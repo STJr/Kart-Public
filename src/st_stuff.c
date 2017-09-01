@@ -770,8 +770,8 @@ static void ST_drawLevelTitle(void)
 		lvlttlxpos = ((BASEVIDWIDTH/2) - (V_LevelNameWidth(lvlttl)/2));
 
 	ttlnumxpos = lvlttlxpos + V_LevelNameWidth(lvlttl);
-	if (zonttl)
-		zonexpos = ttlnumxpos - V_LevelNameWidth(M_GetText(zonttl)); // SRB2kart
+	if (strlen(zonttl) > 0)
+		zonexpos = ttlnumxpos - V_LevelNameWidth(zonttl); // SRB2kart
 	else
 		zonexpos = ttlnumxpos - V_LevelNameWidth(M_GetText("ZONE"));
 
@@ -802,8 +802,8 @@ static void ST_drawLevelTitle(void)
 
 	V_DrawLevelTitle(lvlttlxpos, lvlttly, 0, lvlttl);
 
-	if (zonttl)
-		V_DrawLevelTitle(zonexpos, zoney, 0, M_GetText(zonttl));
+	if (strlen(zonttl) > 0)
+		V_DrawLevelTitle(zonexpos, zoney, 0, zonttl);
 	else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
 		V_DrawLevelTitle(zonexpos, zoney, 0, M_GetText("ZONE"));
 
