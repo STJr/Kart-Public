@@ -1124,14 +1124,15 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		fixed_t tmz     = ((thing->eflags & MFE_VERTICALFLIP) ? -(tmthing->z + tmthing->height) : tmthing->z);
 		fixed_t tmznext = ((thing->eflags & MFE_VERTICALFLIP) ? -tmthing->momz : tmthing->momz) + tmz;
 		fixed_t thzh    = ((thing->eflags & MFE_VERTICALFLIP) ? -thing->z : thing->z + thing->height);
-		fixed_t sprarea = FixedMul(8*FRACUNIT, thing->scale) * P_MobjFlip(thing);
+		//fixed_t sprarea = FixedMul(8*FRACUNIT, thing->scale) * P_MobjFlip(thing);
 
-		if ((tmznext <= thzh && tmz > thzh) || (tmznext > thzh - sprarea && tmznext < thzh))
+		//if ((tmznext <= thzh && tmz > thzh) || (tmznext > thzh - sprarea && tmznext < thzh))
+		if (tmznext <= thzh)
 		{
 			P_DoSpring(thing, tmthing);
-			return true;
+		//	return true;
 		}
-		else if (tmz > thzh - sprarea && tmz < thzh) // Don't damage people springing up / down
+		//else if (tmz > thzh - sprarea && tmz < thzh) // Don't damage people springing up / down
 			return true;
 	}
 	// missiles can hit other things
