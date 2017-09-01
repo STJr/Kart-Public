@@ -1182,6 +1182,8 @@ static int mapheaderinfo_get(lua_State *L)
 		lua_pushstring(L, header->lvlttl);
 	else if (fastcmp(field,"subttl"))
 		lua_pushstring(L, header->subttl);
+	else if (fastcmp(field,"zonttl"))
+		lua_pushstring(L, header->zonttl);
 	else if (fastcmp(field,"actnum"))
 		lua_pushinteger(L, header->actnum);
 	else if (fastcmp(field,"typeoflevel"))

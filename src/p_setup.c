@@ -174,6 +174,8 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	mapheaderinfo[num]->lvlttl[0] = '\0';
 	DEH_WriteUndoline("SUBTITLE", mapheaderinfo[num]->subttl, UNDO_NONE);
 	mapheaderinfo[num]->subttl[0] = '\0';
+	DEH_WriteUndoline("ZONETITLE", mapheaderinfo[num]->zonttl, UNDO_NONE); // SRB2kart
+	mapheaderinfo[num]->zonttl[0] = '\0';
 	DEH_WriteUndoline("ACT", va("%d", mapheaderinfo[num]->actnum), UNDO_NONE);
 	mapheaderinfo[num]->actnum = 0;
 	DEH_WriteUndoline("TYPEOFLEVEL", va("%d", mapheaderinfo[num]->typeoflevel), UNDO_NONE);
@@ -2614,7 +2616,8 @@ boolean P_SetupLevel(boolean skipprecip)
 		V_DrawSmallString(1, 191, V_ALLOWLOWERCASE, M_GetText("Speeding off to..."));
 		snprintf(tx, 63, "%s%s%s",
 			mapheaderinfo[gamemap-1]->lvlttl,
-			(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE",
+			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? mapheaderinfo[gamemap-1]->zonttl : // SRB2kart
+			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE"),
 			(mapheaderinfo[gamemap-1]->actnum > 0) ? va(", Act %d",mapheaderinfo[gamemap-1]->actnum) : "");
 		V_DrawSmallString(1, 195, V_ALLOWLOWERCASE, tx);
 		I_UpdateNoVsync();

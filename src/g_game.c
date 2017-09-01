@@ -3787,7 +3787,12 @@ char *G_BuildMapTitle(INT32 mapnum)
 		const INT32 actnum = mapheaderinfo[mapnum-1]->actnum;
 
 		len += strlen(mapheaderinfo[mapnum-1]->lvlttl);
-		if (!(mapheaderinfo[mapnum-1]->levelflags & LF_NOZONE))
+		if (strcmp(mapheaderinfo[mapnum-1]->zonttl, ""))
+		{
+			zonetext = M_GetText(mapheaderinfo[mapnum-1]->zonttl);
+			len += strlen(zonetext) + 1;	// ' ' + zonetext
+		}
+		else if (!(mapheaderinfo[mapnum-1]->levelflags & LF_NOZONE))
 		{
 			zonetext = M_GetText("ZONE");
 			len += strlen(zonetext) + 1;	// ' ' + zonetext
