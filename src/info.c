@@ -2804,6 +2804,10 @@ state_t states[NUMSTATES] =
 	{SPR_DOOD, 15, 4, {NULL}, 0, 0, S_DOOD_RING5}, // S_DOOD_RING4
 	{SPR_DOOD, 16, 4, {NULL}, 0, 0, S_DOOD_RING1}, // S_DOOD_RING5
 
+	{SPR_SNES, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH1
+	{SPR_SNES, 1, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH2
+	{SPR_SNES, 2, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH3
+
 	{SPR_GBAS, 131072, 12, {NULL}, 0, 0, S_GBA_BOO2}, // S_GBA_BOO1
 	{SPR_GBAS, 196609, 12, {NULL}, 0, 0, S_GBA_BOO3}, // S_GBA_BOO2
 	{SPR_GBAS, 262146, 12, {NULL}, 0, 0, S_GBA_BOO4}, // S_GBA_BOO3
@@ -15959,6 +15963,87 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		33554944,       // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SNES_DONUTBUSH1
+		2301,           // doomednum
+		S_SNES_DONUTBUSH1, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		14*FRACUNIT,    // radius
+		15*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SNES_DONUTBUSH2
+		2302,           // doomednum
+		S_SNES_DONUTBUSH2, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		13*FRACUNIT,    // radius
+		13*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SNES_DONUTBUSH3
+		2303,           // doomednum
+		S_SNES_DONUTBUSH3, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		7*FRACUNIT,     // radius
+		7*FRACUNIT,     // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
