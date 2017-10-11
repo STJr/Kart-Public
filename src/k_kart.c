@@ -681,10 +681,10 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 			 /*Fake Item*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
 		   /*Green Shell*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
-			 /*Red Shell*/ { 0, 0, 3, 2, 1, 0, 0, 0, 0 }, // Red Shell
+			 /*Red Shell*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 0, 0, 1, 2, 2, 0, 0, 0, 0 }, // Bob-omb
-			/*Blue Shell*/ { 0, 0, 0, 0, 0, 2, 2, 0, 0 }, // Blue Shell
+			   /*Bob-omb*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
+			/*Blue Shell*/ { 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
 		   /*Fire Flower*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
 	  /*Triple Red Shell*/ { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
@@ -920,7 +920,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
-	INT32 distvar = (64*15);
+	INT32 distvar = (64*14);
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -969,14 +969,14 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
 	if (pingame == 1)				useodds = 0;
-	else if (pdis <= distvar *  0)	useodds = 1;
-	else if (pdis <= distvar *  1)	useodds = 2;
-	else if (pdis <= distvar *  2)	useodds = 3;
-	else if (pdis <= distvar *  4)	useodds = 4;
-	else if (pdis <= distvar *  6)	useodds = 5;
-	else if (pdis <= distvar *  9)	useodds = 6;
-	else if (pdis <= distvar * 12)	useodds = 7;
-	else 					useodds = 8;
+	else if (pdis <= distvar *  0)	useodds = 1; // (64*14) *  0 =     0
+	else if (pdis <= distvar *  1)	useodds = 2; // (64*14) *  1 =   896
+	else if (pdis <= distvar *  2)	useodds = 3; // (64*14) *  2 =  1792
+	else if (pdis <= distvar *  4)	useodds = 4; // (64*14) *  4 =  3584
+	else if (pdis <= distvar *  6)	useodds = 5; // (64*14) *  6 =  5376
+	else if (pdis <= distvar *  9)	useodds = 6; // (64*14) *  9 =  8064
+	else if (pdis <= distvar * 12)	useodds = 7; // (64*14) * 12 = 10752
+	else 							useodds = 8;
 
 #define SETITEMRESULT(pos, itemnum) \
 	for (chance = 0; chance < K_KartItemOddsDistance_Retro[itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
@@ -1883,13 +1883,27 @@ void K_SpawnDriftTrail(player_t *player)
 static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean bobombthrow)
 {
 	mobj_t *mo;
-	INT32 dir;
+	INT32 dir, PROJSPEED;
 	angle_t newangle;
 	fixed_t newx;
 	fixed_t newy;
 
 	if (!player)
 		return NULL;
+
+	// Figure out projectile speed by CC
+	switch (cv_kartcc.value)
+	{
+		case 50:
+			PROJSPEED = 85*FRACUNIT; // Avg Speed is 34
+			break;
+		case 150:
+			PROJSPEED = 120*FRACUNIT; // Avg Speed is 48
+			break;
+		default:
+			PROJSPEED = 102*FRACUNIT+FRACUNIT/2; // Avg Speed is 41
+			break;
+	}
 
 	if (bobombthrow)
 	{
@@ -1919,11 +1933,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (dir == -1)
 			{
 				// Shoot backward
-				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, 64*FRACUNIT);
-				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, 64*FRACUNIT);
-				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
-				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, 64*FRACUNIT);
-				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, 64*FRACUNIT);
+				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, PROJSPEED/2);
+				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, PROJSPEED/2);
+				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
+				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, PROJSPEED/2);
+				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, PROJSPEED/2);
 
 				if (mo)
 				{
@@ -1940,11 +1954,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			else
 			{
 				// Shoot forward
-				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x06000000, 0, 64*FRACUNIT);
-				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x03000000, 0, 64*FRACUNIT);
-				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
-				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x03000000, 0, 64*FRACUNIT);
-				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x06000000, 0, 64*FRACUNIT);
+				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x06000000, 0, PROJSPEED);
+				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x03000000, 0, PROJSPEED);
+				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED);
+				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x03000000, 0, PROJSPEED);
+				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x06000000, 0, PROJSPEED);
 
 				if (mo)
 				{
@@ -1964,7 +1978,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (dir == -1)
 			{
 				// Shoot backward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, 64*FRACUNIT);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
 
 				if (mo)
 				{
@@ -1975,7 +1989,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			else
 			{
 				// Shoot forward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, 64*FRACUNIT);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED);
 
 				if (mo)
 				{
@@ -1999,10 +2013,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 DIST = 50*FRACUNIT + player->speed*FRACUNIT; // 6 when dropping CTF flag
 				INT32 HEIGHT;
-				if (DIST > 64*FRACUNIT)
-					DIST = 64*FRACUNIT;
 
 				if (dir == 2)
 					HEIGHT = 16*FRACUNIT + player->mo->momz;
@@ -2012,8 +2023,8 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				if (HEIGHT > 64*FRACUNIT)
 					HEIGHT = 64*FRACUNIT;
 
-				mo->momx = FixedMul(FINECOSINE(fa), DIST);
-				mo->momy = FixedMul(FINESINE(fa), DIST);
+				mo->momx = FixedMul(FINECOSINE(fa), PROJSPEED);
+				mo->momy = FixedMul(FINESINE(fa), PROJSPEED);
 				mo->momz = HEIGHT;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
