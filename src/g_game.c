@@ -2022,17 +2022,19 @@ void G_Ticker(boolean run)
 		cmd = &players[i].cmd;
 
 		if (playeringame[i])
+		{
 			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
 
-		// SRB2kart
-		// Save the dir the player is holding
-		//  to allow items to be thrown forward or backward.
-		if (cmd->buttons & BT_FORWARD)
-				players[i].kartstuff[k_throwdir] = 1;
-		else if (cmd->buttons & BT_BACKWARD)
-				players[i].kartstuff[k_throwdir] = -1;
-		else
-				players[i].kartstuff[k_throwdir] = 0;
+			// SRB2kart
+			// Save the dir the player is holding
+			//  to allow items to be thrown forward or backward.
+			if (cmd->buttons & BT_FORWARD)
+					players[i].kartstuff[k_throwdir] = 1;
+			else if (cmd->buttons & BT_BACKWARD)
+					players[i].kartstuff[k_throwdir] = -1;
+			else
+					players[i].kartstuff[k_throwdir] = 0;
+		}
 	}
 
 	// do main actions

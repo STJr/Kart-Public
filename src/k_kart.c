@@ -671,22 +671,22 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 				//P-Odds	 0  1  2  3  4  5  6  7  8
 				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 1, 0, 0, 3, 5, 5, 0, 0, 0 }, // Mushroom
-	   /*Triple Mushroom*/ { 0, 0, 0, 1, 3, 7, 6, 4, 0 }, // Triple Mushroom
+			  /*Mushroom*/ { 1, 0, 0, 3, 7, 6, 0, 0, 0 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3, 8, 6, 4, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
 		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
-			 /*Fake Item*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Fake Item
-				/*Banana*/ { 0, 9, 6, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 0, 6, 5, 3, 2, 0, 0, 0, 0 }, // Green Shell
-			 /*Red Shell*/ { 0, 0, 1, 4, 3, 1, 0, 0, 0 }, // Red Shell
+			 /*Fake Item*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
+			 /*Red Shell*/ { 0, 0, 3, 2, 1, 0, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Bob-omb
-			/*Blue Shell*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 0, 0, 0, 0, 1, 1, 1, 0, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 0, 0, 0, 0, 1, 1, 0, 0, 0 }, // Triple Red Shell
+			   /*Bob-omb*/ { 0, 0, 1, 2, 2, 0, 0, 0, 0 }, // Bob-omb
+			/*Blue Shell*/ { 0, 0, 0, 0, 0, 2, 2, 0, 0 }, // Blue Shell
+		   /*Fire Flower*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
 };
 
@@ -920,7 +920,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
-
+	INT32 distvar = (64*15);
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -968,14 +968,14 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
-	if (pingame == 1)		useodds = 0;
-	else if (pdis <=     0)	useodds = 1;
-	else if (pdis <=  1000)	useodds = 2;
-	else if (pdis <=  2000)	useodds = 3;
-	else if (pdis <=  3500)	useodds = 4;
-	else if (pdis <=  5500)	useodds = 5;
-	else if (pdis <=  8000)	useodds = 6;
-	else if (pdis <= 11000)	useodds = 7;
+	if (pingame == 1)				useodds = 0;
+	else if (pdis <= distvar *  0)	useodds = 1;
+	else if (pdis <= distvar *  1)	useodds = 2;
+	else if (pdis <= distvar *  2)	useodds = 3;
+	else if (pdis <= distvar *  4)	useodds = 4;
+	else if (pdis <= distvar *  6)	useodds = 5;
+	else if (pdis <= distvar *  9)	useodds = 6;
+	else if (pdis <= distvar * 12)	useodds = 7;
 	else 					useodds = 8;
 
 #define SETITEMRESULT(pos, itemnum) \
