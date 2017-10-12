@@ -8274,6 +8274,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			break;
 	}
 
+	if (mobj->type == MT_PLAYER)
+		P_SpawnShadowMobj(mobj);
+
 	if (!(mobj->flags & MF_NOTHINK))
 		P_AddThinker(&mobj->thinker);
 
@@ -8305,6 +8308,115 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
 	if (CheckForReverseGravity && !(mobj->flags & MF_NOBLOCKMAP))
 		P_CheckGravity(mobj, false);
+
+	return mobj;
+}
+
+//
+// P_SpawnShadowMobj
+// warning: Do not send a shadow mobj as a caster into here, or try to spawn spawn shadows for shadows in P_SpawnMobj, we do not want recursive shadows
+//
+mobj_t *P_SpawnShadowMobj(mobj_t * caster)
+{
+	const mobjinfo_t *info = &mobjinfo[MT_SHADOW];
+	state_t *st;
+	mobj_t *mobj = Z_Calloc(sizeof (*mobj), PU_LEVEL, NULL);
+
+	// this is officially a mobj, declared as soon as possible.
+	mobj->thinker.function.acp1 = (actionf_p1)P_MobjThinker;
+	mobj->type = MT_SHADOW;
+	mobj->info = info;
+
+	mobj->x = caster->x;
+	mobj->y = caster->y;
+
+	mobj->radius = info->radius;
+	mobj->height = info->height;
+	mobj->flags = info->flags;
+
+	mobj->health = info->spawnhealth;
+
+	mobj->reactiontime = info->reactiontime;
+
+	mobj->lastlook = -1; // stuff moved in P_enemy.P_LookForPlayer
+
+	// do not set the state with P_SetMobjState,
+	// because action routines can not be called yet
+	if (caster->frame & FF_FULLBRIGHT)
+		st = &states[S_WHITESHADOW];
+	else
+		st = &states[info->spawnstate];
+
+	mobj->state = st;
+	mobj->tics = st->tics;
+	mobj->sprite = st->sprite;
+	mobj->frame = st->frame; // FF_FRAMEMASK for frame, and other bits..
+
+	mobj->friction = ORIG_FRICTION;
+
+	mobj->movefactor = ORIG_FRICTION_FACTOR;
+
+	// All mobjs are created at 100% scale.
+	mobj->scale = FRACUNIT;
+	mobj->destscale = mobj->scale;
+	mobj->scalespeed = FRACUNIT/12;
+
+	// TODO: Make this a special map header
+	if ((maptol & TOL_ERZ3) && !(mobj->type == MT_BLACKEGGMAN))
+		mobj->destscale = FRACUNIT/2;
+
+	// set subsector and/or block links
+	P_SetThingPosition(mobj);
+	I_Assert(mobj->subsector != NULL);
+
+	// Make sure scale matches destscale immediately when spawned
+	P_SetScale(mobj, mobj->destscale);
+
+	mobj->floorz = mobj->subsector->sector->floorheight;
+	mobj->ceilingz = mobj->subsector->sector->ceilingheight;
+
+	// Tells MobjCheckWater that the water height was not set.
+	mobj->watertop = INT32_MAX;
+
+	mobj->z = mobj->floorz;
+
+	// defaults onground
+	if (mobj->z == mobj->floorz)
+		mobj->eflags |= MFE_ONGROUND;
+
+	if (!(mobj->flags & MF_NOTHINK))
+		P_AddThinker(&mobj->thinker);
+
+	// Call action functions when the state is set
+	if (st->action.acp1 && (mobj->flags & MF_RUNSPAWNFUNC))
+	{
+		if (levelloading)
+		{
+			// Cache actions in a linked list
+			// with function pointer, and
+			// var1 & var2, which will be executed
+			// when the level finishes loading.
+			P_AddCachedAction(mobj, mobj->info->spawnstate);
+		}
+		else
+		{
+			var1 = st->var1;
+			var2 = st->var2;
+#ifdef HAVE_BLUA
+			astate = st;
+#endif
+			st->action.acp1(mobj);
+			// DANGER! This is the ONLY way for P_SpawnMobj to return NULL!
+			// Avoid using MF_RUNSPAWNFUNC on mobjs whose spawn state expects target or tracer to already be set!
+			if (P_MobjWasRemoved(mobj))
+				return NULL;
+		}
+	}
+
+	if (CheckForReverseGravity && !(mobj->flags & MF_NOBLOCKMAP))
+		P_CheckGravity(mobj, false);
+
+	P_SetTarget(&mobj->target, caster); // set the shadow's caster as the target
 
 	return mobj;
 }

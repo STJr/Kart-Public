@@ -6389,6 +6389,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_POKEY8",
 	"S_POKEYIDLE",
 
+	"S_SHADOW",
+	"S_WHITESHADOW",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -6950,6 +6953,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_POKEY", // Huh, thought this was a default asset for some reason, guess not.
 	"MT_ENEMYFLIP",
 	"MT_WAYPOINT",
+	"MT_SHADOW",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

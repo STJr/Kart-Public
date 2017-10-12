@@ -615,6 +615,7 @@ typedef enum sprite
 	SPR_CHOM, // Sapphire Coast Chomper
 	SPR_SACO, // Sapphire Coast Fauna
 	SPR_CRAB, // Crystal Abyss mobs
+	SPR_SHAD, // TD shadows
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3360,6 +3361,8 @@ typedef enum state
 	S_FLYINGGARG8,
 	S_LAMPPOST,
 	S_MOSSYTREE,
+	S_SHADOW,
+	S_WHITESHADOW,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -3996,6 +3999,7 @@ typedef enum mobj_type
 	MT_FLYINGGARG,
 	MT_LAMPPOST,
 	MT_MOSSYTREE,
+	MT_SHADOW,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
