@@ -6206,6 +6206,66 @@ static void P_RemoveOverlay(mobj_t *thing)
 		}
 }
 
+void P_RunShadows(void)
+{
+	thinker_t * th;
+	mobj_t * mobj;
+
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+			continue;
+
+		mobj = (mobj_t *)th;
+
+		if (mobj->type != MT_SHADOW)
+			continue;
+
+		if (mobj->target && (mobj->target->health || mobj->target->player)) // only players keep shadows after death, but only until their mobj is killed
+		{
+			if ((mobj->target->flags2 & MF2_DONTDRAW)
+				|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
+				|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < mobj->target->floorz)))
+				mobj->flags2 |= MF2_DONTDRAW;
+			else
+				mobj->flags2 &= ~MF2_DONTDRAW;
+
+			// First scale to the same radius
+			P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
+
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+
+			if (mobj->floorz < mobj->z)
+			{
+				INT32 i;
+				fixed_t prevz;
+
+				mobj->z = mobj->floorz;
+
+				for (i = 0; i < MAXFFLOORS; i++)
+				{
+					prevz = mobj->z;
+
+					// Now scale again based on height difference
+					P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
+
+					// Check new position to see if you should still be on that ledge
+					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
+
+					mobj->z = mobj->floorz;
+
+					if (mobj->z == prevz)
+						break;
+				}
+			}
+		}
+		else
+		{
+			P_KillMobj(mobj, NULL, NULL);
+		}
+	}
+}
+
 void A_BossDeath(mobj_t *mo);
 // AI for the Koopa boss.
 static void P_KoopaThinker(mobj_t *koopa)
