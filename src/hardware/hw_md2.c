@@ -794,12 +794,12 @@ void HWR_InitMD2(void)
 		md2_models[i].error = false;
 	}
 
-	// read the md2.dat file
-	f = fopen("md2.dat", "rt");
+	// read the kmd2.dat file
+	f = fopen("kmd2.dat", "rt");
 
 	if (!f)
 	{
-		CONS_Printf("%s", M_GetText("Error while loading md2.dat\n"));
+		CONS_Printf("%s", M_GetText("Error while loading kmd2.dat\n"));
 		nomd2s = true;
 		return;
 	}
@@ -807,7 +807,7 @@ void HWR_InitMD2(void)
 	{
 		if (stricmp(name, "PLAY") == 0)
 		{
-			CONS_Printf("MD2 for sprite PLAY detected in md2.dat, use a player skin instead!\n");
+			CONS_Printf("MD2 for sprite PLAY detected in kmd2.dat, use a player skin instead!\n");
 			continue;
 		}
 
@@ -841,7 +841,7 @@ void HWR_InitMD2(void)
 			}
 		}
 		// no sprite/player skin name found?!?
-		CONS_Printf("Unknown sprite/player skin %s detected in md2.dat\n", name);
+		CONS_Printf("Unknown sprite/player skin %s detected in kmd2.dat\n", name);
 md2found:
 		// move on to next line...
 		continue;
@@ -860,12 +860,12 @@ void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 
 	CONS_Printf("AddPlayerMD2()...\n");
 
-	// read the md2.dat file
-	f = fopen("md2.dat", "rt");
+	// read the kmd2.dat file
+	f = fopen("kmd2.dat", "rt");
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading md2.dat\n");
+		CONS_Printf("Error while loading kmd2.dat\n");
 		nomd2s = true;
 		return;
 	}
@@ -894,7 +894,7 @@ playermd2found:
 void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startup
 {
 	FILE *f;
-	// name[18] is used to check for names in the md2.dat file that match with sprites or player skins
+	// name[18] is used to check for names in the kmd2.dat file that match with sprites or player skins
 	// sprite names are always 4 characters long, and names is for player skins can be up to 19 characters long
 	char name[18], filename[32];
 	float scale, offset;
@@ -905,12 +905,12 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 	if (spritenum == SPR_PLAY) // Handled already NEWMD2: Per sprite, per-skin check
 		return;
 
-	// Read the md2.dat file
-	f = fopen("md2.dat", "rt");
+	// Read the kmd2.dat file
+	f = fopen("kmd2.dat", "rt");
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading md2.dat\n");
+		CONS_Printf("Error while loading kmd2.dat\n");
 		nomd2s = true;
 		return;
 	}
