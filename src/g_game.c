@@ -2338,7 +2338,7 @@ void G_PlayerReborn(INT32 player)
 	}
 
 	if (leveltime > 157)
-		p->kartstuff[k_lakitu] = 64; // Lakitu Spawner
+		p->kartstuff[k_lakitu] = 48; // Lakitu Spawner
 
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for

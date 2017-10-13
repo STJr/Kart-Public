@@ -7926,14 +7926,14 @@ static void P_DeathThink(player_t *player)
 			CONS_Printf("%s entered the game.\n", player_names[player-players]);
 			player->spectator = false;
 		}
-		//player->kartstuff[k_lakitu] = 64; // See G_PlayerReborn in g_game.c
+		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
 
-		// SRB2kart - spawn automatically after 2 seconds
-		if (player->deadtimer > 2*TICRATE && (gametype == GT_RACE || player->spectator))
+		// SRB2kart - spawn automatically after 1.5 seconds
+		if (player->deadtimer > (TICRATE + TICRATE/2) && (gametype == GT_RACE || player->spectator))
 			player->playerstate = PST_REBORN;
 
-		// SRB2kart - spawn after 2 seconds & Button press
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > 2*TICRATE 
+		// SRB2kart - spawn after 1.5 seconds & Button press
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > (TICRATE + TICRATE/2) 
 			&& (gametype == GT_RACE || player->spectator))
 			player->playerstate = PST_REBORN;
 

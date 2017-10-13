@@ -671,9 +671,9 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 				//P-Odds	 0  1  2  3  4  5  6  7  8
 				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 1, 0, 0, 3, 7, 6, 0, 0, 0 }, // Mushroom
-	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3, 8, 6, 4, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Mega Mushroom
+			  /*Mushroom*/ { 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
@@ -686,7 +686,7 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 			   /*Bob-omb*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
 		   /*Fire Flower*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, // Triple Red Shell
+	  /*Triple Red Shell*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
 };
 
@@ -1092,8 +1092,8 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj1->momx = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
 		mobj1->momy = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
 	}
-	else
-	{*/
+	else*/
+	//{
 		newx = mobj1->momx;
 		newy = mobj1->momy;
 		mobj1->momx = mobj2->momx;
@@ -1123,6 +1123,7 @@ void K_KartBouncer(void)
 			&& !players[i].kartstuff[k_growshrinktimer] 
 			&& !players[i].kartstuff[k_squishedtimer]
 			&& !players[i].kartstuff[k_bootaketimer]
+			&& !players[i].kartstuff[k_spinouttimer]
 			&& !players[i].kartstuff[k_startimer])
 		{
 			for (j = i+1; j < MAXPLAYERS; j++)
@@ -1130,6 +1131,7 @@ void K_KartBouncer(void)
 					&& !players[j].kartstuff[k_squishedtimer]
 					&& !players[j].kartstuff[k_growshrinktimer]
 					&& !players[j].kartstuff[k_bootaketimer]
+					&& !players[j].kartstuff[k_spinouttimer]
 					&& !players[j].kartstuff[k_startimer])
 				{
 					if (players[j].mo == players[i].mo)
@@ -1217,8 +1219,8 @@ static void K_UpdateOffroad(player_t *player)
 			// A higher kart weight means you can stay offroad for longer without losing speed
 			offroad = (1872 + 5*156 - kartweight*156)*offroadstrength;
 
-			if (player->kartstuff[k_growshrinktimer] > 1) // megashroom slows down half as fast
-				offroad /= 2;
+			//if (player->kartstuff[k_growshrinktimer] > 1) // megashroom slows down half as fast
+			//	offroad /= 2;
 
 			player->kartstuff[k_offroad] += offroad;
 		}
@@ -1240,7 +1242,7 @@ void K_LakituChecker(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 
-	if (player->kartstuff[k_lakitu] == 60)
+	if (player->kartstuff[k_lakitu] == 44)
 	{
 		mobj_t *mo;
 		angle_t newangle;
@@ -1473,7 +1475,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	{												// Mega Mushroom
 		if (speed)
 		{
-			boostvalue = max(boostvalue, FRACUNIT/4); // + 25%
+			boostvalue = max(boostvalue, FRACUNIT/5); // + 20%
 		}
 	}
 	if (player->kartstuff[k_startimer])
@@ -1605,17 +1607,18 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	if (player->kartstuff[k_spinouttype] <= 0)
 	{
 		if (player->kartstuff[k_spinouttype] == 0)
-			player->kartstuff[k_spinouttimer] = 2*TICRATE;
+			player->kartstuff[k_spinouttimer] = 3*TICRATE/2; // Explosion/Banana Wipeout
 		else
-			player->kartstuff[k_spinouttimer] = 3*TICRATE/2;
+			player->kartstuff[k_spinouttimer] = 3*TICRATE/2; // Oil Slick Wipeout
 
-		if (player->speed < K_GetKartSpeed(player, true)/4) // player->normalspeed/4)
-			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale)); // FixedMul(player->normalspeed/4, player->mo->scale));
+		// At Wipeout, playerspeed is increased to 1/4 their regular speed, moving them forward
+		if (player->speed < K_GetKartSpeed(player, true)/4)
+			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
 
 		S_StartSound(player->mo, sfx_slip);
 	}
 	else
-		player->kartstuff[k_spinouttimer] = 1*TICRATE;
+		player->kartstuff[k_spinouttimer] = 1*TICRATE; // ? Whipeout
 
 	player->powers[pw_flashing] = flashingtics;
 
@@ -1642,7 +1645,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	player->kartstuff[k_squishedtimer] = 2*TICRATE;
+	player->kartstuff[k_squishedtimer] = 1*TICRATE;
 
 	player->powers[pw_flashing] = flashingtics;
 
@@ -1973,7 +1976,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				}
 			}
 		}
-		else
+		else // Shells
 		{
 			if (dir == -1)
 			{
@@ -1989,7 +1992,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			else
 			{
 				// Shoot forward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED + player->speed);
 
 				if (mo)
 				{

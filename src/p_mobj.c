@@ -1964,7 +1964,7 @@ void P_XYMovement(mobj_t *mo)
 	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || mo->type == MT_REDITEM || mo->type == MT_FIREBALL) //(mo->type == MT_REDITEM && !mo->tracer))
 		return;
 
-	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/4)
+	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/2)
 		return;
 	//}
 
@@ -8334,8 +8334,23 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			break;
 	}
 
-	if (mobj->type == MT_PLAYER)
-		P_SpawnShadowMobj(mobj);
+	switch (mobj->type)
+	{
+		case MT_PLAYER:
+		//case MT_RANDOMITEM:
+		case MT_BANANAITEM:				case MT_BANANASHIELD:
+		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:
+		case MT_GREENITEM:				case MT_GREENSHIELD:
+		case MT_TRIPLEGREENSHIELD1: 	case MT_TRIPLEGREENSHIELD2: 	case MT_TRIPLEGREENSHIELD3: 
+		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD: 
+		case MT_TRIPLEREDSHIELD1: 		case MT_TRIPLEREDSHIELD2: 		case MT_TRIPLEREDSHIELD3: 
+		case MT_FAKEITEM: 				case MT_FAKESHIELD: 
+		case MT_BOMBITEM: 				case MT_BOMBSHIELD: 
+		case MT_FIREBALL: 
+			P_SpawnShadowMobj(mobj);
+		default:
+			break;
+	}
 
 	if (!(mobj->flags & MF_NOTHINK))
 		P_AddThinker(&mobj->thinker);
