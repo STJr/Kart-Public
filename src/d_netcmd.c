@@ -1863,6 +1863,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 		// a copy of color
 		if (players[0].mo)
 			players[0].mo->color = players[0].skincolor;
+			
+		CV_StealthSetValue(&cv_kartcc, 150); // srb2kart
 	}
 	if (metalrecording)
 		G_BeginMetal();

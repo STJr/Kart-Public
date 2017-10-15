@@ -3816,8 +3816,8 @@ char *G_BuildMapTitle(INT32 mapnum)
 // DEMO RECORDING
 //
 
-#define DEMOVERSION 0x0009
-#define DEMOHEADER  "\xF0" "SRB2Replay" "\x0F"
+#define DEMOVERSION 0x0001
+#define DEMOHEADER  "\xF0" "KartReplay" "\x0F"
 
 #define DF_GHOST        0x01 // This demo contains ghost data too!
 #define DF_RECORDATTACK 0x02 // This demo is from record attack and contains its final completion time, score, and rings!
@@ -4991,8 +4991,6 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	switch(oldversion) // demoversion
 	{
 	case DEMOVERSION: // latest always supported
-	// compatibility available?
-	case 0x0008:
 		break;
 	// too old, cannot support.
 	default:
@@ -5007,10 +5005,7 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 		Z_Free(buffer);
 		return UINT8_MAX;
 	} p += 4; // "PLAY"
-	if (oldversion <= 0x0008)
-		p++; // gamemap
-	else
-		p += 2; // gamemap
+	p += 2; // gamemap
 	p += 16; // mapmd5
 	flags = READUINT8(p);
 	if (!(flags & aflags))
@@ -5131,8 +5126,6 @@ void G_DoPlayDemo(char *defdemoname)
 	switch(demoversion)
 	{
 	case DEMOVERSION: // latest always supported
-	// compatibility available?
-	case 0x0008:
 		break;
 	// too old, cannot support.
 	default:
@@ -5158,10 +5151,7 @@ void G_DoPlayDemo(char *defdemoname)
 		return;
 	}
 	demo_p += 4; // "PLAY"
-	if (demoversion <= 0x0008)
-		gamemap = READUINT8(demo_p);
-	else
-		gamemap = READINT16(demo_p);
+	gamemap = READINT16(demo_p);
 	demo_p += 16; // mapmd5
 
 	demoflags = READUINT8(demo_p);
@@ -5361,8 +5351,6 @@ void G_AddGhost(char *defdemoname)
 	switch(ghostversion)
 	{
 	case DEMOVERSION: // latest always supported
-	// compatibility available?
-	case 0x0008:
 		break;
 	// too old, cannot support.
 	default:
@@ -5387,10 +5375,7 @@ void G_AddGhost(char *defdemoname)
 		Z_Free(buffer);
 		return;
 	} p += 4; // "PLAY"
-	if (ghostversion <= 0x0008)
-		p++; // gamemap
-	else
-		p += 2; // gamemap
+	p += 2; // gamemap
 	p += 16; // mapmd5 (possibly check for consistency?)
 	flags = READUINT8(p);
 	if (!(flags & DF_GHOST))
@@ -5591,8 +5576,6 @@ void G_DoPlayMetal(void)
 	switch(metalversion)
 	{
 	case DEMOVERSION: // latest always supported
-	// compatibility available?
-	case 0x0008:
 		break;
 	// too old, cannot support.
 	default:

@@ -8920,9 +8920,7 @@ void P_RespawnSpecials(void)
 	mapthing_t *mthing = NULL;
 
 	// only respawn items when cv_itemrespawn is on
-	if (!(netgame || multiplayer) // Never respawn in single player
-	|| gametype == GT_COOP        // Never respawn in co-op gametype
-	|| !cv_itemrespawn.value)     // cvar is turned off
+	if (!cv_itemrespawn.value)
 		return;
 
 	// Don't respawn in special stages!
@@ -9505,12 +9503,8 @@ void P_SpawnMapThing(mapthing_t *mthing)
 
 	if (modeattacking) // Record Attack special stuff
 	{
-		// Don't spawn starposts that wouldn't be usable
-		if (i == MT_STARPOST)
-			return;
-
 		// Emerald Tokens -->> Score Tokens
-		else if (i == MT_EMMY)
+		if (i == MT_EMMY)
 			return; /// \todo
 
 		// 1UPs -->> Score TVs
