@@ -4831,8 +4831,8 @@ void G_BeginRecording(void)
 	WRITEUINT8(demo_p,player->mindash>>FRACBITS);
 	WRITEUINT8(demo_p,player->maxdash>>FRACBITS);
 	// SRB2kart
-	WRITEUINT8(demo_p,player->kartspeed>>FRACBITS);
-	WRITEUINT8(demo_p,player->kartweight>>FRACBITS);
+	WRITEUINT8(demo_p,player->kartspeed);
+	WRITEUINT8(demo_p,player->kartweight);
 	//
 	WRITEUINT8(demo_p,player->normalspeed>>FRACBITS);
 	WRITEUINT8(demo_p,player->runspeed>>FRACBITS);
@@ -5062,9 +5062,9 @@ void G_DoPlayDemo(char *defdemoname)
 	UINT8 i;
 	lumpnum_t l;
 	char skin[17],color[17],*n,*pdemoname;
-	UINT8 version,subversion,charability,charability2,thrustfactor,accelstart,acceleration;
+	UINT8 version,subversion,charability,charability2,kartspeed,kartweight,thrustfactor,accelstart,acceleration;
 	UINT32 randseed;
-	fixed_t actionspd,mindash,maxdash,kartspeed,kartweight,normalspeed,runspeed,jumpfactor;
+	fixed_t actionspd,mindash,maxdash,normalspeed,runspeed,jumpfactor;
 	char msg[1024];
 
 	skin[16] = '\0';
@@ -5201,8 +5201,8 @@ void G_DoPlayDemo(char *defdemoname)
 	mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	// SRB2kart
-	kartspeed = READUINT8(demo_p)<<FRACBITS;
-	kartweight = READUINT8(demo_p)<<FRACBITS;
+	kartspeed = READUINT8(demo_p);
+	kartweight = READUINT8(demo_p);
 	//
 	normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
