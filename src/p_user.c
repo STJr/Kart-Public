@@ -631,7 +631,7 @@ static void P_DeNightserizePlayer(player_t *player)
 		if (!(mo2->type == MT_NIGHTSDRONE))
 			continue;
 
-		if (mo2->flags & MF_AMBUSH)
+		if (mo2->flags2 & MF2_AMBUSH)
 			P_DamageMobj(player->mo, NULL, NULL, 10000);
 
 		break;
@@ -5092,7 +5092,7 @@ static void P_NightsTransferPoints(player_t *player, fixed_t xspeed, fixed_t rad
 		boolean transfer1last = false;
 		boolean transfer2last = false;
 		vertex_t vertices[4];
-		fixed_t truexspeed = xspeed*(!(player->pflags & PF_TRANSFERTOCLOSEST) && player->mo->target->flags & MF_AMBUSH ? -1 : 1);
+		fixed_t truexspeed = xspeed*(!(player->pflags & PF_TRANSFERTOCLOSEST) && player->mo->target->flags2 & MF2_AMBUSH ? -1 : 1);
 
 		// Find next waypoint
 		for (th = thinkercap.next; th != &thinkercap; th = th->next)
@@ -5757,7 +5757,7 @@ static void P_NiGHTSMovement(player_t *player)
 
 	// The 'ambush' flag says you should rotate
 	// the other way around the axis.
-	if (player->mo->target->flags & MF_AMBUSH)
+	if (player->mo->target->flags2 & MF2_AMBUSH)
 		backwardaxis = true;
 
 	player->angle_pos = R_PointToAngle2(player->mo->target->x, player->mo->target->y, player->mo->x, player->mo->y);
@@ -8063,18 +8063,18 @@ static CV_PossibleValue_t CV_CamSpeed[] = {{0, "MIN"}, {1*FRACUNIT, "MAX"}, {0, 
 static CV_PossibleValue_t rotation_cons_t[] = {{1, "MIN"}, {45, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t CV_CamRotate[] = {{-720, "MIN"}, {720, "MAX"}, {0, NULL}};
 
-consvar_t cv_cam_dist = {"cam_dist", "128", CV_FLOAT, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam_height = {"cam_height", "40", CV_FLOAT, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam_dist = {"cam_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam_height = {"cam_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_still = {"cam_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam_speed = {"cam_speed", "0.25", CV_FLOAT, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam_speed = {"cam_speed", "0.3", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_rotate = {"cam_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam_rotspeed = {"cam_rotspeed", "10", 0, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam2_dist = {"cam2_dist", "128", CV_FLOAT, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam2_height = {"cam2_height", "40", CV_FLOAT, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam_rotspeed = {"cam_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam2_dist = {"cam2_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam2_height = {"cam2_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_still = {"cam2_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam2_speed = {"cam2_speed", "0.25", CV_FLOAT, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam2_speed = {"cam2_speed", "0.3", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_rotate = {"cam2_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate2_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam2_rotspeed = {"cam2_rotspeed", "10", 0, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam2_rotspeed = {"cam2_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 fixed_t t_cam_dist = -42;
 fixed_t t_cam_height = -42;
@@ -8128,7 +8128,7 @@ void P_ResetCamera(player_t *player, camera_t *thiscam)
 boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcalled)
 {
 	angle_t angle = 0, focusangle = 0, focusaiming = 0;
-	fixed_t x, y, z, dist, checkdist, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
+	fixed_t x, y, z, dist, height, checkdist, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
 	INT32 camrotate;
 	boolean camstill, cameranoclip;
 	mobj_t *mo;
@@ -8250,7 +8250,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		}
 		else if (player->mo->target)
 		{
-			if (player->mo->target->flags & MF_AMBUSH)
+			if (player->mo->target->flags2 & MF2_AMBUSH)
 				angle = R_PointToAngle2(player->mo->target->x, player->mo->target->y, player->mo->x, player->mo->y);
 			else
 				angle = R_PointToAngle2(player->mo->x, player->mo->y, player->mo->target->x, player->mo->target->y);
@@ -8354,6 +8354,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 	*/
 
+	height = camheight;
+
 	// sets ideal cam pos
 	if (twodlevel || (mo->flags2 & MF2_TWOD))
 		dist = 480<<FRACBITS;
@@ -8362,6 +8364,20 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	else
 	{
 		dist = camdist;
+
+		// x1.5 dist for splitscreen
+		if (splitscreen)
+		{
+			dist = FixedMul(dist, 3*FRACUNIT/2);
+			height = FixedMul(height, 3*FRACUNIT/2);
+		}
+
+		// x1.2 dist for analog
+		if (P_AnalogMove(player))
+		{
+			dist = FixedMul(dist, 6*FRACUNIT/5);
+			height = FixedMul(height, 6*FRACUNIT/5);
+		}
 
 		if (player->climbing || player->exiting || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
 			dist <<= 1;
