@@ -585,7 +585,7 @@ static const char *Newsnapshotfile(const char *pathname, const char *ext)
 
 		i += add * result;
 
-		if (add < 0 || add > 9999)
+		if (i < 0 || i > 9999)
 			return NULL;
 	}
 
@@ -1080,7 +1080,7 @@ void M_StartMovie(void)
 				moviemode = M_StartMovieGIF(pathname);
 				break;
 			}
-			// fall thru
+			/* FALLTHRU */
 		case MM_APNG:
 			moviemode = M_StartMovieAPNG(pathname);
 			break;

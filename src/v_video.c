@@ -758,79 +758,80 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 {
 	UINT8 *dest;
 	const UINT8 *deststop;
-	INT32 u, v, dupx, dupy;
+
+	if (rendermode == render_none)
+		return;
 
 #ifdef HWRENDER
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode != render_soft && !con_startup)
 	{
 		HWR_DrawFill(x, y, w, h, c);
 		return;
 	}
 #endif
 
-	dupx = vid.dupx;
-	dupy = vid.dupy;
-
-	if (!screens[0])
-		return;
-
-	if (c & V_NOSCALESTART)
+	if (!(c & V_NOSCALESTART))
 	{
-		dest = screens[0] + y*vid.width + x;
-		deststop = screens[0] + vid.rowbytes * vid.height;
-	}
-	else
-	{
+		INT32 dupx = vid.dupx, dupy = vid.dupy;
+
 		if (x == 0 && y == 0 && w == BASEVIDWIDTH && h == BASEVIDHEIGHT)
 		{ // Clear the entire screen, from dest to deststop. Yes, this really works.
 			memset(screens[0], (UINT8)(c&255), vid.width * vid.height * vid.bpp);
 			return;
 		}
 
-		dest = screens[0] + y*dupy*vid.width + x*dupx;
-		deststop = screens[0] + vid.rowbytes * vid.height;
+		x *= dupx;
+		y *= dupy;
+		w *= dupx;
+		h *= dupy;
 
-		if (w == BASEVIDWIDTH)
-			w = vid.width;
-		else
-			w *= dupx;
-		if (h == BASEVIDHEIGHT)
-			h = vid.height;
-		else
-			h *= dupy;
-
-		if (x && y && x + w < vid.width && y + h < vid.height)
+		// Center it if necessary
+		if (vid.width != BASEVIDWIDTH * dupx)
 		{
-			// Center it if necessary
-			if (vid.width != BASEVIDWIDTH * dupx)
-			{
-				// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
-				// so center this imaginary screen
-				if (c & V_SNAPTORIGHT)
-					dest += (vid.width - (BASEVIDWIDTH * dupx));
-				else if (!(c & V_SNAPTOLEFT))
-					dest += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
-			}
-			if (vid.height != BASEVIDHEIGHT * dupy)
-			{
-				// same thing here
-				if (c & V_SNAPTOBOTTOM)
-					dest += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width;
-				else if (!(c & V_SNAPTOTOP))
-					dest += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width / 2;
-			}
+			// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
+			// so center this imaginary screen
+			if (c & V_SNAPTORIGHT)
+				x += (vid.width - (BASEVIDWIDTH * dupx));
+			else if (!(c & V_SNAPTOLEFT))
+				x += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
+		}
+		if (vid.height != BASEVIDHEIGHT * dupy)
+		{
+			// same thing here
+			if (c & V_SNAPTOBOTTOM)
+				y += (vid.height - (BASEVIDHEIGHT * dupy));
+			else if (!(c & V_SNAPTOTOP))
+				y += (vid.height - (BASEVIDHEIGHT * dupy)) / 2;
 		}
 	}
 
+	if (x >= vid.width || y >= vid.height)
+		return; // off the screen
+	if (x < 0)
+	{
+		w += x;
+		x = 0;
+	}
+	if (y < 0)
+	{
+		h += y;
+		y = 0;
+	}
+
+	if (w <= 0 || h <= 0)
+		return; // zero width/height wouldn't draw anything
+	if (x + w > vid.width)
+		w = vid.width - x;
+	if (y + h > vid.height)
+		h = vid.height - y;
+
+	dest = screens[0] + y*vid.width + x;
+	deststop = screens[0] + vid.rowbytes * vid.height;
+
 	c &= 255;
 
-	for (v = 0; v < h; v++, dest += vid.width)
-		for (u = 0; u < w; u++)
-		{
-			if (dest > deststop)
-				return;
-			dest[u] = (UINT8)c;
-		}
+	for (;(--h >= 0) && dest < deststop; dest += vid.width)
+		memset(dest, (UINT8)(c&255), w * vid.bpp);
 }
 
 //
@@ -1082,6 +1083,7 @@ char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	{
 		case V_MONOSPACE:
 			spacewidth = 8;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 8;
 			break;
@@ -1159,6 +1161,7 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 	{
 		case V_MONOSPACE:
 			spacewidth = 8;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 8;
 			break;
@@ -1363,6 +1366,7 @@ void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 	{
 		case V_MONOSPACE:
 			spacewidth = 4;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 4;
 			break;
@@ -1464,6 +1468,7 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 	{
 		case V_MONOSPACE:
 			spacewidth = 5;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 5;
 			break;
@@ -1557,6 +1562,7 @@ void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 	{
 		case V_MONOSPACE:
 			spacewidth = 8;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 8;
 			break;
@@ -1841,6 +1847,7 @@ INT32 V_StringWidth(const char *string, INT32 option)
 	{
 		case V_MONOSPACE:
 			spacewidth = 8;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 8;
 			break;
@@ -1879,6 +1886,7 @@ INT32 V_SmallStringWidth(const char *string, INT32 option)
 	{
 		case V_MONOSPACE:
 			spacewidth = 4;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 4;
 			break;
@@ -1917,6 +1925,7 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 	{
 		case V_MONOSPACE:
 			spacewidth = 5;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 5;
 			break;
