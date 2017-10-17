@@ -716,6 +716,12 @@ void Net_CloseConnection(INT32 node)
 	if (!node)
 		return;
 
+	if (node < 0 || node >= MAXNETNODES) // prevent invalid nodes from crashing the game
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Net_CloseConnection: invalid node %d detected!\n"), node);
+		return;
+	}
+
 	nodes[node].flags |= NF_CLOSE;
 
 	// try to Send ack back (two army problem)
@@ -991,11 +997,13 @@ void Command_Droprate(void)
 	packetdroprate = droprate;
 }
 
+#ifndef NONET
 static boolean ShouldDropPacket(void)
 {
 	return (packetdropquantity[netbuffer->packettype])
 		|| (packetdroprate != 0 && rand() < (RAND_MAX * (packetdroprate / 100.f))) || packetdroprate == 100;
 }
+#endif
 #endif
 
 //

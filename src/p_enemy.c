@@ -1111,7 +1111,7 @@ void A_JetJawChomp(mobj_t *actor)
 	if (!actor->target || !(actor->target->flags & MF_SHOOTABLE)
 		|| actor->target->health <= 0 || !P_CheckSight(actor, actor->target))
 	{
-		P_SetMobjState(actor, actor->info->spawnstate);
+		P_SetMobjStateNF(actor, actor->info->spawnstate);
 		return;
 	}
 
@@ -2634,7 +2634,7 @@ for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 			newbox = spawnchance[P_RandomKey(numchoices)];
 			item = mobjinfo[newbox].damage;
 
-			remains->flags &= ~MF_AMBUSH;
+			remains->flags2 &= ~MF2_AMBUSH;
 			break;
 		}
 		default:
@@ -3454,7 +3454,7 @@ void A_BubbleSpawn(mobj_t *actor)
 	}
 	actor->flags2 &= ~MF2_DONTDRAW;
 
-	if (!(actor->flags & MF_AMBUSH))
+	if (!(actor->flags2 & MF2_AMBUSH))
 	{
 		// Quick! Look through players!
 		// Don't spawn bubbles unless a player is relatively close by (var2).
@@ -3502,7 +3502,7 @@ void A_FanBubbleSpawn(mobj_t *actor)
 	if (!(actor->eflags & MFE_UNDERWATER))
 		return;
 
-	if (!(actor->flags & MF_AMBUSH))
+	if (!(actor->flags2 & MF2_AMBUSH))
 	{
 	// Quick! Look through players!
 	// Don't spawn bubbles unless a player is relatively close by (var2).
@@ -4120,7 +4120,7 @@ void A_JetChase(mobj_t *actor)
 		return;
 #endif
 
-	if (actor->flags & MF_AMBUSH)
+	if (actor->flags2 & MF2_AMBUSH)
 		return;
 
 	if (actor->z >= actor->waterbottom && actor->watertop > actor->floorz
@@ -5013,7 +5013,7 @@ void A_SlingAppear(mobj_t *actor)
 		if (firsttime)
 		{
 			// This is the outermost link in the chain
-			spawnee->flags |= MF_AMBUSH;
+			spawnee->flags2 |= MF2_AMBUSH;
 			firsttime = false;
 		}
 
@@ -5998,7 +5998,7 @@ void A_Boss2Chase(mobj_t *actor)
 	{
 		actor->watertop = -actor->watertop;
 		actor->extravalue1 = 18;
-		if (actor->flags & MF_AMBUSH)
+		if (actor->flags2 & MF2_AMBUSH)
 			actor->extravalue1 -= (actor->info->spawnhealth - actor->health)*2;
 		actor->extravalue2 = actor->extravalue1;
 	}
@@ -6024,7 +6024,7 @@ void A_Boss2Chase(mobj_t *actor)
 	else
 	{
 		// Only speed up if you have the 'Deaf' flag.
-		if (actor->flags & MF_AMBUSH)
+		if (actor->flags2 & MF2_AMBUSH)
 			speedvar = actor->health;
 		else
 			speedvar = actor->info->spawnhealth;
@@ -6615,7 +6615,7 @@ void A_BuzzFly(mobj_t *actor)
 	if (LUA_CallAction("A_BuzzFly", actor))
 		return;
 #endif
-	if (actor->flags & MF_AMBUSH)
+	if (actor->flags2 & MF2_AMBUSH)
 		return;
 
 	if (actor->reactiontime)
@@ -6755,7 +6755,7 @@ void A_GuardChase(mobj_t *actor)
 		return; // got a new target
 
 	// chase towards player
-	if (--actor->movecount < 0 || !P_Move(actor, (actor->flags & MF_AMBUSH) ? actor->info->speed * 2 : actor->info->speed))
+	if (--actor->movecount < 0 || !P_Move(actor, (actor->flags2 & MF2_AMBUSH) ? actor->info->speed * 2 : actor->info->speed))
 	{
 		P_NewChaseDir(actor);
 		actor->movecount += 5; // Increase tics before change in direction allowed.
@@ -8139,7 +8139,7 @@ void A_ItemPop(mobj_t *actor)
 	else if (cv_debug && !(actor->target && actor->target->player))
 		CONS_Printf("ERROR: Powerup has no target!\n");
 
-	remains->flags &= ~MF_AMBUSH;
+	remains->flags2 &= ~MF2_AMBUSH;
 
 	P_RemoveMobj(actor);
 }
