@@ -313,6 +313,7 @@ void T_MoveFloor(floormove_t *movefloor)
 				case moveFloorByFrontSector:
 					if (movefloor->texture < -1) // chained linedef executing
 						P_LinedefExecute((INT16)(movefloor->texture + INT16_MAX + 2), NULL, NULL);
+					/* FALLTHRU */
 				case instantMoveFloorByFrontSector:
 					if (movefloor->texture > -1) // flat changing
 						movefloor->sector->floorpic = movefloor->texture;
@@ -361,6 +362,7 @@ void T_MoveFloor(floormove_t *movefloor)
 				case moveFloorByFrontSector:
 					if (movefloor->texture < -1) // chained linedef executing
 						P_LinedefExecute((INT16)(movefloor->texture + INT16_MAX + 2), NULL, NULL);
+					/* FALLTHRU */
 				case instantMoveFloorByFrontSector:
 					if (movefloor->texture > -1) // flat changing
 						movefloor->sector->floorpic = movefloor->texture;
@@ -2036,6 +2038,33 @@ foundenemy:
 }
 
 //
+// P_IsObjectOnRealGround
+//
+// Helper function for T_EachTimeThinker
+// Like P_IsObjectOnGroundIn, except ONLY THE REAL GROUND IS CONSIDERED, NOT FOFS
+// I'll consider whether to make this a more globally accessible function or whatever in future
+// -- Monster Iestyn
+//
+static boolean P_IsObjectOnRealGround(mobj_t *mo, sector_t *sec)
+{
+	// Is the object in reverse gravity?
+	if (mo->eflags & MFE_VERTICALFLIP)
+	{
+		// Detect if the player is on the ceiling.
+		if (mo->z+mo->height >= P_GetSpecialTopZ(mo, sec, sec))
+			return true;
+	}
+	// Nope!
+	else
+	{
+		// Detect if the player is on the floor.
+		if (mo->z <= P_GetSpecialBottomZ(mo, sec, sec))
+			return true;
+	}
+	return false;
+}
+
+//
 // P_HavePlayersEnteredArea
 //
 // Helper function for T_EachTimeThinker
@@ -2087,6 +2116,7 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 	boolean inAndOut = false;
 	boolean floortouch = false;
 	fixed_t bottomheight, topheight;
+	msecnode_t *node;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2148,7 +2178,23 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 					if ((netgame || multiplayer) && players[j].spectator)
 						continue;
 
-					if (players[j].mo->subsector->sector != targetsec)
+					if (players[j].mo->subsector->sector == targetsec)
+						;
+					else if (sec->flags & SF_TRIGGERSPECIAL_TOUCH)
+					{
+						boolean insector = false;
+						for (node = players[j].mo->touching_sectorlist; node; node = node->m_sectorlist_next)
+						{
+							if (node->m_sector == targetsec)
+							{
+								insector = true;
+								break;
+							}
+						}
+						if (!insector)
+							continue;
+					}
+					else
 						continue;
 
 					topheight = P_GetSpecialTopZ(players[j].mo, sec, targetsec);
@@ -2198,10 +2244,30 @@ void T_EachTimeThinker(levelspecthink_t *eachtime)
 				if ((netgame || multiplayer) && players[i].spectator)
 					continue;
 
-				if (players[i].mo->subsector->sector != sec)
+				if (players[i].mo->subsector->sector == sec)
+					;
+				else if (sec->flags & SF_TRIGGERSPECIAL_TOUCH)
+				{
+					boolean insector = false;
+					for (node = players[i].mo->touching_sectorlist; node; node = node->m_sectorlist_next)
+					{
+						if (node->m_sector == sec)
+						{
+							insector = true;
+							break;
+						}
+					}
+					if (!insector)
+						continue;
+				}
+				else
 					continue;
 
-				if (floortouch == true && P_IsObjectOnGroundIn(players[i].mo, sec))
+				if (!(players[i].mo->subsector->sector == sec
+					|| P_PlayerTouchingSectorSpecial(&players[i], 2, (GETSECSPECIAL(sec->special, 2))) == sec))
+					continue;
+
+				if (floortouch == true && P_IsObjectOnRealGround(players[i].mo, sec))
 				{
 					if (i & 1)
 						eachtime->var2s[i/2] |= 1;
