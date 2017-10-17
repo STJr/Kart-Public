@@ -1597,8 +1597,8 @@ void I_RemoveExitFunc(void (*func)())
 static inline void exception_handler(int num)
 {
 	static char msg[255];
-	sprintf(msg,"Sonic Robo Blast 2 "VERSIONSTRING"\r\n"
-	        "This is a error of SRB2, try to send the following info to programmers\r\n");
+	sprintf(msg,"SRB2Kart "VERSIONSTRING"\r\n"
+	        "This is a error of SRB2Kart, try to send the following info to programmers\r\n");
 
 	//D_QuitNetGame ();  //say 'byebye' to other players when your machine
 						// crashes?... hmm... do they have to die with you???
@@ -1719,6 +1719,18 @@ char * I_GetEnv(const char *name)
 INT32 I_PutEnv(char *variable)
 {
 	return putenv(variable);
+}
+
+INT32 I_ClipboardCopy(const char *data, size_t size)
+{
+	(void)data;
+	(void)size;
+	return -1;
+}
+
+char *I_ClipboardPaste(void)
+{
+	return NULL;
 }
 
 const CPUInfoFlags *I_CPUInfo(void)

@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -16,7 +16,6 @@
 #include "g_input.h"
 #include "keys.h"
 #include "hu_stuff.h" // need HUFONT start & end
-#include "keys.h"
 #include "d_net.h"
 #include "console.h"
 
@@ -1042,12 +1041,12 @@ INT32 G_KeyStringtoNum(const char *keystr)
 	if (!keystr[1] && keystr[0] > ' ' && keystr[0] <= 'z')
 		return keystr[0];
 
+	if (!strncmp(keystr, "KEY", 3) && keystr[3] >= '0' && keystr[3] <= '9')
+		return atoi(&keystr[3]);
+
 	for (j = 0; j < NUMKEYNAMES; j++)
 		if (!stricmp(keynames[j].name, keystr))
 			return keynames[j].keynum;
-
-	if (strlen(keystr) > 3)
-		return atoi(&keystr[3]);
 
 	return 0;
 }
@@ -1065,19 +1064,19 @@ void G_Controldefault(void)
 	gamecontrol[gc_turnleft   ][1] = KEY_LEFTARROW;
 	gamecontrol[gc_turnright  ][0] = KEY_HAT1+3; //Right
 	gamecontrol[gc_turnright  ][1] = KEY_RIGHTARROW;
-	gamecontrol[gc_weaponnext ][0] = ']';
-	gamecontrol[gc_weaponprev ][0] = '[';
+	gamecontrol[gc_driftleft  ][0] = ']';
+	gamecontrol[gc_driftright ][0] = '[';
 	gamecontrol[gc_fire       ][0] = KEY_JOY1+6; //X
 	gamecontrol[gc_fire       ][1] = KEY_RCTRL;
-	gamecontrol[gc_firenormal ][0] = KEY_JOY1+5; //Y
-	gamecontrol[gc_firenormal ][1] = ';';
-	gamecontrol[gc_tossflag   ][0] = '\'';
-	gamecontrol[gc_use        ][0] = KEY_JOY1+1; //B
-	gamecontrol[gc_use        ][1] = '.';
+	gamecontrol[gc_accelerate ][0] = KEY_JOY1+5; //Y
+	gamecontrol[gc_accelerate ][1] = ';';
+	gamecontrol[gc_spectate   ][0] = '\'';
+	gamecontrol[gc_brake      ][0] = KEY_JOY1+1; //B
+	gamecontrol[gc_brake      ][1] = '.';
 	gamecontrol[gc_camtoggle  ][1] = ',';
-	gamecontrol[gc_camleft    ][0] = 'o';
-	gamecontrol[gc_camright   ][0] = 'p';
-	gamecontrol[gc_camreset   ][0] = 'c';
+	gamecontrol[gc_aimforward ][0] = 'o';
+	gamecontrol[gc_aimbackward][0] = 'p';
+	gamecontrol[gc_lookback   ][0] = 'c';
 	gamecontrol[gc_lookup     ][0] = KEY_PGUP;
 	gamecontrol[gc_lookdown   ][0] = KEY_PGDN;
 	gamecontrol[gc_centerview ][0] = KEY_END;
@@ -1098,11 +1097,11 @@ void G_Controldefault(void)
 	gamecontrolbis[gc_turnleft  ][1] = 'a';
 	gamecontrolbis[gc_turnright ][0] = KEY_2HAT1+3;
 	gamecontrolbis[gc_turnright ][1] = 'd';
-	gamecontrolbis[gc_weaponnext][0] = 't';
-	gamecontrolbis[gc_weaponprev][0] = 'r';
+	gamecontrolbis[gc_driftleft ][0] = 't';
+	gamecontrolbis[gc_driftright][0] = 'r';
 	gamecontrolbis[gc_fire      ][0] = KEY_2JOY1+6; //X
-	gamecontrolbis[gc_firenormal][0] = KEY_2JOY1+5; //Y
-	gamecontrolbis[gc_use       ][0] = KEY_2JOY1+1; //B
+	gamecontrolbis[gc_accelerate][0] = KEY_2JOY1+5; //Y
+	gamecontrolbis[gc_brake       ][0] = KEY_2JOY1+1; //B
 	gamecontrolbis[gc_jump      ][0] = KEY_2JOY1+2; //A
 	//gamecontrolbis[gc_straferight][0] = 'x';
 	//gamecontrolbis[gc_strafeleft ][0] = 'z';
@@ -1116,10 +1115,10 @@ void G_Controldefault(void)
 	gamecontrol[gc_turnright  ][0] = KEY_HAT1+3; // Right
 	gamecontrol[gc_strafeleft ][0] = KEY_JOY1+4; // L
 	gamecontrol[gc_straferight][0] = KEY_JOY1+5; // R
-	gamecontrol[gc_tossflag   ][0] = KEY_JOY1+0; // Triangle
-	gamecontrol[gc_use        ][0] = KEY_JOY1+1; // Circle
+	gamecontrol[gc_spectate   ][0] = KEY_JOY1+0; // Triangle
+	gamecontrol[gc_brake      ][0] = KEY_JOY1+1; // Circle
 	gamecontrol[gc_camtoggle  ][0] = KEY_JOY1+6; // Select
-	gamecontrol[gc_camreset   ][0] = KEY_JOY1+3; // Square
+	gamecontrol[gc_lookback   ][0] = KEY_JOY1+3; // Square
 	gamecontrol[gc_centerview ][0] = KEY_JOY1+9; // Hold
 	gamecontrol[gc_pause      ][0] = KEY_JOY1+8; // Start
 	gamecontrol[gc_jump       ][0] = KEY_JOY1+2; // Cross
@@ -1130,7 +1129,7 @@ void G_Controldefault(void)
 	gamecontrol[gc_fire       ][0] = KEY_JOY1+0; //A
 	gamecontrol[gc_forward    ][0] = KEY_JOY1+1; //Y
 	gamecontrol[gc_jump       ][0] = KEY_JOY1+2; //B
-	gamecontrol[gc_use        ][0] = KEY_JOY1+3; //X
+	gamecontrol[gc_brake      ][0] = KEY_JOY1+3; //X
 	gamecontrol[gc_strafeleft ][0] = KEY_JOY1+4; //L
 	gamecontrol[gc_straferight][0] = KEY_JOY1+5; //R
 	gamecontrol[gc_lookup     ][0] = KEY_JOY1+6; //U
@@ -1144,13 +1143,13 @@ void G_Controldefault(void)
 	gamecontrol[gc_forward    ][0] = KEY_UPARROW;
 	gamecontrol[gc_backward   ][0] = KEY_DOWNARROW;
 	gamecontrol[gc_jump       ][0] = KEY_JOY1+0; //A
-	gamecontrol[gc_use        ][0] = KEY_JOY1+3; //Y
+	gamecontrol[gc_brake        ][0] = KEY_JOY1+3; //Y
 	gamecontrol[gc_strafeleft ][0] = KEY_JOY1+4; //L
 	gamecontrol[gc_straferight][0] = KEY_JOY1+5; //R
 	gamecontrol[gc_turnleft   ][0] = KEY_LEFTARROW;
 	gamecontrol[gc_turnright  ][0] = KEY_RIGHTARROW;
 	gamecontrol[gc_pause      ][0] = KEY_JOY1+6; //Start
-	gamecontrol[gc_weaponnext ][0] = KEY_JOY1+7; //Select
+	gamecontrol[gc_driftleft  ][0] = KEY_JOY1+7; //Select
 }
 #else
 void G_Controldefault(void)
@@ -1163,8 +1162,8 @@ void G_Controldefault(void)
 	gamecontrol[gc_straferight][0] = 'd';
 	gamecontrol[gc_turnleft   ][0] = KEY_LEFTARROW;
 	gamecontrol[gc_turnright  ][0] = KEY_RIGHTARROW;
-	gamecontrol[gc_weaponnext ][0] = 'e';
-	gamecontrol[gc_weaponprev ][0] = 'q';
+	gamecontrol[gc_driftleft  ][0] = 'e';
+	gamecontrol[gc_driftright ][0] = 'q';
 	gamecontrol[gc_wepslot1   ][0] = '1';
 	gamecontrol[gc_wepslot2   ][0] = '2';
 	gamecontrol[gc_wepslot3   ][0] = '3';
@@ -1177,13 +1176,13 @@ void G_Controldefault(void)
 	gamecontrol[gc_wepslot10  ][0] = '0';
 	gamecontrol[gc_fire       ][0] = KEY_RCTRL;
 	gamecontrol[gc_fire       ][1] = KEY_MOUSE1+0;
-	gamecontrol[gc_firenormal ][0] = 'c';
-	gamecontrol[gc_tossflag   ][0] = '\'';
-	gamecontrol[gc_use        ][0] = 'x';
+	gamecontrol[gc_accelerate ][0] = 'c';
+	gamecontrol[gc_spectate   ][0] = '\'';
+	gamecontrol[gc_brake      ][0] = 'x';
 	gamecontrol[gc_camtoggle  ][0] = 'v';
-	gamecontrol[gc_camleft    ][0] = '[';
-	gamecontrol[gc_camright   ][0] = ']';
-	gamecontrol[gc_camreset   ][0] = 'r';
+	gamecontrol[gc_aimforward ][0] = '[';
+	gamecontrol[gc_aimbackward][0] = ']';
+	gamecontrol[gc_lookback   ][0] = 'r';
 	gamecontrol[gc_lookup     ][0] = KEY_PGUP;
 	gamecontrol[gc_lookdown   ][0] = KEY_PGDN;
 	gamecontrol[gc_centerview ][0] = KEY_END;
@@ -1199,12 +1198,12 @@ void G_Controldefault(void)
 	gamecontrol[gc_backward   ][0] = KEY_JOY1+03; //DOWN
 	gamecontrol[gc_turnleft   ][0] = KEY_JOY1+04; //LEFT
 	gamecontrol[gc_turnright  ][0] = KEY_JOY1+05; //RIGHT
-	gamecontrol[gc_weaponnext ][0] = KEY_JOY1+10; //y
-	gamecontrol[gc_weaponprev ][0] = KEY_JOY1+9;  //x
+	gamecontrol[gc_driftleft  ][0] = KEY_JOY1+10; //y
+	gamecontrol[gc_driftright ][0] = KEY_JOY1+9;  //x
 	gamecontrol[gc_fire       ][0] = KEY_JOY1+12; //L
-	gamecontrol[gc_firenormal ][0] = KEY_JOY1+13; //R
-	gamecontrol[gc_use        ][0] = KEY_JOY1+00; //B
-	gamecontrol[gc_use        ][1] = KEY_JOY1+07; //b
+	gamecontrol[gc_accelerate ][0] = KEY_JOY1+13; //R
+	gamecontrol[gc_brake      ][0] = KEY_JOY1+00; //B
+	gamecontrol[gc_brake      ][1] = KEY_JOY1+07; //b
 	gamecontrol[gc_jump       ][0] = KEY_JOY1+01; //A
 	gamecontrol[gc_jump       ][1] = KEY_JOY1+06; //a
 	gamecontrol[gc_pause      ][0] = KEY_JOY1+18; //Home
@@ -1212,12 +1211,12 @@ void G_Controldefault(void)
 	gamecontrolbis[gc_backward   ][0] = KEY_2JOY1+03; //DOWN
 	gamecontrolbis[gc_turnleft   ][0] = KEY_2JOY1+04; //LEFT
 	gamecontrolbis[gc_turnright  ][0] = KEY_2JOY1+05; //RIGHT
-	gamecontrolbis[gc_weaponnext ][0] = KEY_2JOY1+10; //y
-	gamecontrolbis[gc_weaponprev ][0] = KEY_2JOY1+9;  //x
+	gamecontrolbis[gc_driftleft  ][0] = KEY_2JOY1+10; //y
+	gamecontrolbis[gc_driftright ][0] = KEY_2JOY1+9;  //x
 	gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+12; //L
-	gamecontrolbis[gc_firenormal ][0] = KEY_2JOY1+13; //R
-	gamecontrolbis[gc_use        ][0] = KEY_2JOY1+00; //B
-	gamecontrolbis[gc_use        ][1] = KEY_2JOY1+07; //b
+	gamecontrolbis[gc_accelerate ][0] = KEY_2JOY1+13; //R
+	gamecontrolbis[gc_brake      ][0] = KEY_2JOY1+00; //B
+	gamecontrolbis[gc_brake      ][1] = KEY_2JOY1+07; //b
 	gamecontrolbis[gc_jump       ][0] = KEY_2JOY1+01; //A
 	gamecontrolbis[gc_jump       ][1] = KEY_2JOY1+06; //a
 	gamecontrolbis[gc_pause      ][0] = KEY_2JOY1+18; //Home
@@ -1229,14 +1228,14 @@ void G_Controldefault(void)
 	gamecontrol[gc_strafeleft ][1] = KEY_JOY1+15; //ZL
 	gamecontrol[gc_turnleft   ][1] = KEY_HAT1+02; //LEFT
 	gamecontrol[gc_turnright  ][1] = KEY_HAT1+03; //RIGHT
-	gamecontrol[gc_weaponnext ][1] = KEY_JOY1+11; //x
+	gamecontrol[gc_driftleft  ][1] = KEY_JOY1+11; //x
 	gamecontrol[gc_fire       ][0] = KEY_JOY1+12; //y
 	gamecontrol[gc_fire       ][1] = KEY_JOY1+01; //B
-	gamecontrol[gc_firenormal ][0] = KEY_JOY1+13; //L
-	gamecontrol[gc_firenormal ][1] = KEY_JOY1+00; //A
-	gamecontrol[gc_tossflag   ][1] = KEY_JOY1+17; //Plus CC
-	gamecontrol[gc_use        ][0] = KEY_JOY1+9;  //a
-	gamecontrol[gc_use        ][1] = KEY_JOY1+02; //1
+	gamecontrol[gc_accelerate ][0] = KEY_JOY1+13; //L
+	gamecontrol[gc_accelerate ][1] = KEY_JOY1+00; //A
+	gamecontrol[gc_spectate   ][1] = KEY_JOY1+17; //Plus CC
+	gamecontrol[gc_brake      ][0] = KEY_JOY1+9;  //a
+	gamecontrol[gc_brake      ][1] = KEY_JOY1+02; //1
 	gamecontrol[gc_centerview ][1] = KEY_JOY1+14; //R
 	gamecontrol[gc_scores     ][0] = KEY_JOY1+04; //Minus
 	gamecontrol[gc_scores     ][1] = KEY_JOY1+18; //Minus
@@ -1250,14 +1249,14 @@ void G_Controldefault(void)
 	gamecontrolbis[gc_strafeleft ][1] = KEY_2JOY1+15; //ZL
 	gamecontrolbis[gc_turnleft   ][1] = KEY_2HAT1+02; //LEFT
 	gamecontrolbis[gc_turnright  ][1] = KEY_2HAT1+03; //RIGHT
-	gamecontrolbis[gc_weaponnext ][1] = KEY_2JOY1+11; //x
+	gamecontrolbis[gc_driftleft  ][1] = KEY_2JOY1+11; //x
 	gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+12; //y
 	gamecontrolbis[gc_fire       ][1] = KEY_2JOY1+01; //B
-	gamecontrolbis[gc_firenormal ][0] = KEY_2JOY1+13; //L
-	gamecontrolbis[gc_firenormal ][1] = KEY_2JOY1+00; //A
-	gamecontrolbis[gc_tossflag   ][1] = KEY_2JOY1+17; //Plus CC
-	gamecontrolbis[gc_use        ][0] = KEY_2JOY1+9;  //a
-	gamecontrolbis[gc_use        ][1] = KEY_2JOY1+02; //1
+	gamecontrolbis[gc_accelerate ][0] = KEY_2JOY1+13; //L
+	gamecontrolbis[gc_accelerate ][1] = KEY_2JOY1+00; //A
+	gamecontrolbis[gc_spectate   ][1] = KEY_2JOY1+17; //Plus CC
+	gamecontrolbis[gc_brake      ][0] = KEY_2JOY1+9;  //a
+	gamecontrolbis[gc_brake      ][1] = KEY_2JOY1+02; //1
 	gamecontrolbis[gc_centerview ][1] = KEY_2JOY1+14; //R
 	gamecontrolbis[gc_scores     ][0] = KEY_2JOY1+04; //Minus
 	gamecontrolbis[gc_scores     ][1] = KEY_2JOY1+18; //Minus

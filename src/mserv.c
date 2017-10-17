@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -65,7 +65,7 @@
 #endif
 
 #ifdef _arch_dreamcast
-#include "sdl/SRB2DC/dchelp.h"
+#include "sdl12/SRB2DC/dchelp.h"
 #endif
 
 #include <sys/time.h> // timeval,... (TIMEOUT)
@@ -92,7 +92,7 @@
 #include "m_misc.h" //  GetRevisionString()
 
 #ifdef _WIN32_WCE
-#include "sdl/SRB2CE/cehelp.h"
+#include "sdl12/SRB2CE/cehelp.h"
 #endif
 
 #include "i_addrinfo.h"
@@ -206,7 +206,7 @@ static void ServerName_OnChange(void);
 
 #define DEF_PORT "28900"
 consvar_t cv_masterserver = {"masterserver", "ms.srb2.org:"DEF_PORT, CV_SAVE, NULL, MasterServer_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_servername = {"servername", "SRB2 server", CV_SAVE, NULL, ServerName_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_servername = {"servername", "SRB2Kart server", CV_SAVE, NULL, ServerName_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 INT16 ms_RoomId = -1;
 
@@ -350,33 +350,6 @@ static INT32 GetServersList(void)
 	return MS_READ_ERROR;
 }
 #endif
-
-/** Get the MOTD from the master server.
-  */
-static inline INT32 GetMSMOTD(void)
-{
-	msg_t msg;
-	INT32 count = 0;
-
-	msg.type = GET_MOTD_MSG;
-	msg.length = 0;
-	if (MS_Write(&msg) < 0)
-		return MS_WRITE_ERROR;
-
-	while (MS_Read(&msg) >= 0)
-	{
-		if (!msg.length)
-		{
-			if (!count)
-				CONS_Alert(CONS_NOTICE, M_GetText("No servers currently running.\n"));
-			return MS_NO_ERROR;
-		}
-		count++;
-		CONS_Printf("%s",msg.buffer);
-	}
-
-	return MS_READ_ERROR;
-}
 
 //
 // MS_Connect()

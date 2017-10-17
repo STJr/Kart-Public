@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -25,6 +25,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "console.h" // Until buffering gets finished
+#include "k_kart.h" // SRB2kart
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -103,6 +104,12 @@ fixed_t ds_xfrac, ds_yfrac, ds_xstep, ds_ystep;
 UINT8 *ds_source; // start of a 64*64 tile image
 UINT8 *ds_transmap; // one of the translucency tables
 
+#ifdef ESLOPE
+pslope_t *ds_slope; // Current slope being used
+floatv3_t ds_su, ds_sv, ds_sz; // Vectors for... stuff?
+float focallengthf, zeroheight;
+#endif
+
 /**	\brief Variable flat sizes
 */
 
@@ -129,6 +136,7 @@ static UINT8** translationtablecache[MAXSKINS + 4] = {NULL};
 
 // See also the enum skincolors_t
 // TODO Callum: Can this be translated?
+/*
 const char *Color_Names[MAXSKINCOLORS] =
 {
 	"None",      // SKINCOLOR_NONE
@@ -158,6 +166,7 @@ const char *Color_Names[MAXSKINCOLORS] =
 	"Yellow",    // SKINCOLOR_YELLOW
 	"Gold"       // SKINCOLOR_GOLD
 };
+*/
 
 const UINT8 Color_Opposite[MAXSKINCOLORS*2] =
 {
@@ -228,6 +237,7 @@ void R_InitTranslationTables(void)
 
 	\return	void
 */
+/*
 static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color)
 {
 	// Table of indices into the palette of the first entries of each translated ramp
@@ -490,7 +500,7 @@ static void R_GenerateTranslationColormap(UINT8 *dest_colormap, INT32 skinnum, U
 		break;
 	}
 }
-
+*/
 
 /**	\brief	Retrieves a translation colormap from the cache.
 
@@ -528,7 +538,7 @@ UINT8* R_GetTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags)
 	if (!ret)
 	{
 		ret = Z_MallocAlign(NUM_PALETTE_ENTRIES, (flags & GTC_CACHE) ? PU_LEVEL : PU_STATIC, NULL, 8);
-		R_GenerateTranslationColormap(ret, skinnum, color);
+		K_GenerateKartColormap(ret, skinnum, color); //R_GenerateTranslationColormap(ret, skinnum, color);		// SRB2kart
 
 		// Cache the colormap if desired
 		if (flags & GTC_CACHE)
@@ -555,6 +565,7 @@ void R_FlushTranslationColormapCache(void)
 			memset(translationtablecache[i], 0, MAXTRANSLATIONS * sizeof(UINT8**));
 }
 
+/*
 UINT8 R_GetColorByName(const char *name)
 {
 	UINT8 color = (UINT8)atoi(name);
@@ -565,6 +576,7 @@ UINT8 R_GetColorByName(const char *name)
 			return color;
 	return 0;
 }
+*/
 
 // ==========================================================================
 //               COMMON DRAWER FOR 8 AND 16 BIT COLOR MODES
@@ -795,4 +807,6 @@ void R_DrawViewBorder(void)
 //                   INCLUDE 16bpp DRAWING CODE HERE
 // ==========================================================================
 
+#ifdef HIGHCOLOR
 #include "r_draw16.c"
+#endif

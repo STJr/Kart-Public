@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2014 by Matthew "Inuyasha" Walsh.
-// Copyright (C) 2012-2014 by Sonic Team Junior.
+// Copyright (C) 2012-2016 by Matthew "Inuyasha" Walsh.
+// Copyright (C) 2012-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -19,7 +19,8 @@
 
 #include "g_game.h" // record info
 #include "r_things.h" // numskins
-#include "r_draw.h" // R_GetColorByName
+//#include "r_draw.h" // R_GetColorByName
+#include "k_kart.h" // K_GetKartColorByName
 
 // Map triggers for linedef executors
 // 32 triggers, one bit each

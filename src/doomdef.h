@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -60,6 +60,7 @@
 #endif
 
 #ifdef _WINDOWS
+#define NONET
 #if !defined (HWRENDER) && !defined (NOHW)
 #define HWRENDER
 #endif
@@ -101,6 +102,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _USE_MATH_DEFINES // fixes M_PI errors in r_plane.c for Visual Studio
 #include <math.h>
 
 #ifdef GETTEXT
@@ -138,17 +140,26 @@
 extern FILE *logstream;
 #endif
 
-#if 0
-#define VERSION    0 // Game version
-#define SUBVERSION 0 // more precise version number
-#define VERSIONSTRING "Trunk"
+#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+#ifdef DEVELOP
+#define VERSION    104 // Game version
+#define SUBVERSION 7 // more precise version number
+#define VERSIONSTRING "Development EXE"
+#define VERSIONSTRINGW "v1.4.7"
+// most interface strings are ignored in development mode.
+// we use comprevision and compbranch instead.
 #else
-#define VERSION    201 // Game version
-#define SUBVERSION 14  // more precise version number
-#define VERSIONSTRING "v2.1.14"
+#define VERSION    104 // Game version
+#define SUBVERSION 7 // more precise version number
+#define VERSIONSTRING "DevEXE v1.4.7"
+#define VERSIONSTRINGW L"v1.4.7"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
+
+// Does this version require an added patch file?
+// Comment or uncomment this as necessary.
+//#define USE_PATCH_DTA
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
@@ -161,8 +172,8 @@ extern FILE *logstream;
 // The string used in the alert that pops up in the event of an update being available.
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
 #define UPDATE_ALERT_STRING \
-"A new update is available for SRB2.\n"\
-"Please visit SRB2.org to download it.\n"\
+"A new update is available for SRB2kart.\n"\
+"Please visit the forums on SRB2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -178,8 +189,8 @@ extern FILE *logstream;
 // The string used in the I_Error alert upon trying to host through command line parameters.
 // Generally less filled with newlines, since Windows gives you lots more room to work with.
 #define UPDATE_ALERT_STRING_CONSOLE \
-"A new update is available for SRB2.\n"\
-"Please visit SRB2.org to download it.\n"\
+"A new update is available for SRB2kart.\n"\
+"Please visit the forums on SRB2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -203,55 +214,86 @@ extern FILE *logstream;
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 19
-
-
-
-
-
-// some tests, enable or disable it if it run or not
-#define SPLITSCREEN
+#define MODVERSION 1
 
 // =========================================================================
 
 // The maximum number of players, multiplayer/networking.
 // NOTE: it needs more than this to increase the number of players...
 
-#define MAXPLAYERS 32
-#define MAXSKINS MAXPLAYERS
+#define MAXPLAYERS 16
+#define MAXSKINS 32
 #define PLAYERSMASK (MAXPLAYERS-1)
 #define MAXPLAYERNAME 21
 
 typedef enum
 {
 	SKINCOLOR_NONE = 0,
+	SKINCOLOR_IVORY,
 	SKINCOLOR_WHITE,
 	SKINCOLOR_SILVER,
+	SKINCOLOR_CLOUDY,
 	SKINCOLOR_GREY,
+	SKINCOLOR_DARKGREY,
 	SKINCOLOR_BLACK,
+	SKINCOLOR_SALMON,
+	SKINCOLOR_PINK,
+	SKINCOLOR_LIGHTRED,
+	SKINCOLOR_FULLRANGERED,
+	SKINCOLOR_RED,
+	SKINCOLOR_DARKPINK,
+	SKINCOLOR_DARKRED,
+	SKINCOLOR_DAWN,
+	SKINCOLOR_ORANGE,
+	SKINCOLOR_FULLRANGEORANGE,
+	SKINCOLOR_DARKORANGE,
+	SKINCOLOR_GOLDENBROWN,
+	SKINCOLOR_ROSEWOOD,
+	SKINCOLOR_DARKROSEWOOD,
+	SKINCOLOR_SEPIA,
+	SKINCOLOR_BEIGE,
+	SKINCOLOR_BROWN,
+	SKINCOLOR_LEATHER,
+	SKINCOLOR_YELLOW,
+	SKINCOLOR_PEACH,
+	SKINCOLOR_LIGHTORANGE,
+	SKINCOLOR_PEACHBROWN,
+	SKINCOLOR_GOLD,
+	SKINCOLOR_FULLRANGEPEACHBROWN,
+	SKINCOLOR_GYPSYVOMIT,
+	SKINCOLOR_GARDEN,
+	SKINCOLOR_LIGHTARMY,
+	SKINCOLOR_ARMY,
+	SKINCOLOR_PISTACHIO,
+	SKINCOLOR_ROBOHOODGREEN,
+	SKINCOLOR_OLIVE,
+	SKINCOLOR_DARKARMY,
+	SKINCOLOR_LIGHTGREEN,
+	SKINCOLOR_UGLYGREEN,
+	SKINCOLOR_NEONGREEN,
+	SKINCOLOR_GREEN,
+	SKINCOLOR_DARKGREEN,
+	SKINCOLOR_DARKNEONGREEN,
+	SKINCOLOR_FROST,
+	SKINCOLOR_LIGHTSTEELBLUE,
+	SKINCOLOR_LIGHTBLUE,
 	SKINCOLOR_CYAN,
+	SKINCOLOR_CERULEAN,
+	SKINCOLOR_TURQUOISE,
 	SKINCOLOR_TEAL,
 	SKINCOLOR_STEELBLUE,
 	SKINCOLOR_BLUE,
-	SKINCOLOR_PEACH,
-	SKINCOLOR_TAN,
-	SKINCOLOR_PINK,
-	SKINCOLOR_LAVENDER,
+	SKINCOLOR_FULLRANGEBLUE,
+	SKINCOLOR_DARKSTEELBLUE,
+	SKINCOLOR_DARKBLUE,
+	SKINCOLOR_JETBLACK,
+	SKINCOLOR_LILAC,
 	SKINCOLOR_PURPLE,
-	SKINCOLOR_ORANGE,
-	SKINCOLOR_ROSEWOOD,
-	SKINCOLOR_BEIGE,
-	SKINCOLOR_BROWN,
-	SKINCOLOR_RED,
-	SKINCOLOR_DARKRED,
-	SKINCOLOR_NEONGREEN,
-	SKINCOLOR_GREEN,
-	SKINCOLOR_ZIM,
-	SKINCOLOR_OLIVE,
-	SKINCOLOR_YELLOW,
-	SKINCOLOR_GOLD,
+	SKINCOLOR_LAVENDER,
+	SKINCOLOR_BYZANTIUM,
+	SKINCOLOR_INDIGO,
 
-	// Careful! MAXSKINCOLORS cannot be greater than 0x20!
+	// Careful! MAXSKINCOLORS cannot be greater than 0x40 -- Which it is now.
 	MAXSKINCOLORS,
 
 	// Super special awesome Super flashing colors!
@@ -284,7 +326,7 @@ typedef enum
 #define NEWTICRATERATIO 1 // try 4 for 140 fps :)
 #define NEWTICRATE (TICRATE*NEWTICRATERATIO)
 
-#define RING_DIST 512*FRACUNIT // how close you need to be to a ring to attract it
+#define RING_DIST 1280*FRACUNIT // how close you need to be to a ring to attract it
 
 #define PUSHACCEL (2*FRACUNIT) // Acceleration for MF2_SLIDEPUSH items.
 
@@ -347,11 +389,7 @@ void CONS_Debug(INT32 debugflags, const char *fmt, ...) FUNCDEBUG;
 #include "m_swap.h"
 
 // Things that used to be in dstrings.h
-#define DEVMAPS "devmaps"
-#define DEVDATA "devdata"
-
 #define SAVEGAMENAME "srb2sav"
-
 char savegamename[256];
 
 // m_misc.h
@@ -394,6 +432,9 @@ extern INT32 cv_debug;
 // Misc stuff for later...
 // =======================
 
+// Modifier key variables, accessible anywhere
+extern UINT8 shiftdown, ctrldown, altdown;
+
 // if we ever make our alloc stuff...
 #define ZZ_Alloc(x) Z_Malloc(x, PU_STATIC, NULL)
 
@@ -423,18 +464,20 @@ INT32 I_GetKey(void);
 #endif
 
 // Compile date and time and revision.
-extern const char *compdate, *comptime, *comprevision;
+extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 // Disabled code and code under testing
 // None of these that are disabled in the normal build are guaranteed to work perfectly
 // Compile them at your own risk!
 
-///	Max recursive portal renders
-///	\note	obsoleted by cv_maxportals
-//#define PORTAL_LIMIT 8
+/// Kalaron/Eternity Engine slope code (SRB2CB ported)
+#define ESLOPE
 
-///	Fun experimental slope stuff!
-//#define SLOPENESS
+#ifdef ESLOPE
+/// Backwards compatibility with SRB2CB's slope linedef types.
+///	\note	A simple shim that prints a warning.
+#define ESLOPE_TYPESHIM
+#endif
 
 ///	Delete file while the game is running.
 ///	\note	EXTREMELY buggy, tends to crash game.
@@ -451,10 +494,6 @@ extern const char *compdate, *comptime, *comprevision;
 
 ///	Polyobject fake flat code
 #define POLYOBJECTS_PLANES
-
-///	Blue spheres for future use.
-///	\todo	Remove this define.
-#define BLUE_SPHERES // Blue spheres for future use.
 
 ///	Improved way of dealing with ping values and a ping limit.
 #define NEWPING
@@ -492,5 +531,13 @@ extern const char *compdate, *comptime, *comprevision;
 
 /// Experimental tweaks to analog mode. (Needs a lot of work before it's ready for primetime.)
 //#define REDSANALOG
+
+/// Backwards compatibility with musicslots.
+/// \note	You should leave this enabled unless you're working with a future SRB2 version.
+#define MUSICSLOT_COMPATIBILITY
+
+/// Handle touching sector specials in P_PlayerAfterThink instead of P_PlayerThink.
+/// \note   Required for proper collision with moving sloped surfaces that have sector specials on them.
+#define SECTORSPECIALSAFTERTHINK
 
 #endif // __DOOMDEF__

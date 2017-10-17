@@ -23,7 +23,7 @@
 
 #include "hw_glob.h"
 
-#define MD2_MAX_TRIANGLES               8192
+#define MD2_MAX_TRIANGLES              16384
 #define MD2_MAX_VERTICES                4096
 #define MD2_MAX_TEXCOORDS               4096
 #define MD2_MAX_FRAMES                  512
@@ -120,8 +120,10 @@ typedef struct
 	float       offset;
 	md2_model_t *model;
 	void        *grpatch;
+	void        *blendgrpatch;
 	boolean     notfound;
 	INT32       skin;
+	boolean     error;
 } md2_t;
 
 extern md2_t md2_models[NUMSPRITES];

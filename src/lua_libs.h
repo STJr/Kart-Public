@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2014 by John "JTE" Muniz.
-// Copyright (C) 2012-2014 by Sonic Team Junior.
+// Copyright (C) 2012-2016 by John "JTE" Muniz.
+// Copyright (C) 2012-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -30,6 +30,8 @@ extern lua_State *gL;
 #define META_TICCMD "TICCMD_T*"
 #define META_SKIN "SKIN_T*"
 #define META_POWERS "PLAYER_T*POWERS"
+#define META_KARTSTUFF "PLAYER_T*KARTSTUFF"
+#define META_COLLIDE "PLAYER_T*COLLIDE"
 #define META_SOUNDSID "SKIN_T*SOUNDSID"
 
 #define META_VERTEX "VERTEX_T*"
@@ -42,6 +44,7 @@ extern lua_State *gL;
 
 #define META_CVAR "CONSVAR_T*"
 
+#define META_SECTORLINES "SECTOR_T*LINES"
 #define META_SIDENUM "LINE_T*SIDENUM"
 
 #define META_HUDINFO "HUDINFO_T*"

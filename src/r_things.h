@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -16,6 +16,10 @@
 
 #include "sounds.h"
 #include "r_plane.h"
+
+// "Left" and "Right" character symbols for additional rotation functionality
+#define ROT_L ('L' - '0')
+#define ROT_R ('R' - '0')
 
 // number of sprite lumps for spritewidth,offset,topoffset lookup tables
 // Fab: this is a hack : should allocate the lookup tables per sprite
@@ -86,6 +90,11 @@ typedef struct
 	fixed_t mindash;
 	fixed_t maxdash;
 
+	// SRB2kart
+	UINT8 kartspeed; // Normal ground
+	UINT8 kartweight; // Normal ground
+	//
+
 	fixed_t normalspeed; // Normal ground
 	fixed_t runspeed; // Speed that you break into your run animation
 
@@ -131,7 +140,8 @@ typedef struct vissprite_s
 	fixed_t pz, pzt; // physical bottom/top for sorting with 3D floors
 
 	fixed_t startfrac; // horizontal position of x1
-	fixed_t scale;
+	fixed_t scale, sortscale; // sortscale only differs from scale for flat sprites
+	fixed_t scalestep; // only for flat sprites, 0 otherwise
 	fixed_t xiscale; // negative if flipped
 
 	fixed_t texturemid;
@@ -162,6 +172,7 @@ typedef struct vissprite_s
 	boolean precip;
 	boolean vflip; // Flip vertically
 	boolean isScaled;
+	INT32 dispoffset; // copy of info->dispoffset, affects ordering but not drawing
 } vissprite_t;
 
 // A drawnode is something that points to a 3D floor, 3D side, or masked
@@ -227,6 +238,11 @@ FUNCMATH FUNCINLINE static ATTRINLINE UINT8 R_Char2Frame(char cn)
 	if (cn == '@') return 63;
 	return 255;
 #endif
+}
+
+FUNCMATH FUNCINLINE static ATTRINLINE boolean R_ValidSpriteAngle(UINT8 rotation)
+{
+	return ((rotation <= 8) || (rotation == ROT_L) || (rotation == ROT_R));
 }
 
 #endif //__R_THINGS__

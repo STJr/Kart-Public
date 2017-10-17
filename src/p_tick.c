@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -21,6 +21,7 @@
 #include "m_random.h"
 #include "lua_script.h"
 #include "lua_hook.h"
+#include "k_kart.h"
 
 // Object place
 #include "m_cheat.h"
@@ -363,7 +364,7 @@ static void P_DoAutobalanceTeams(void)
 	{
 		if (totalred > totalblue)
 		{
-			i = M_Random() % red;
+			i = M_RandomKey(red);
 			NetPacket.packet.newteam = 2;
 			NetPacket.packet.playernum = redarray[i];
 			NetPacket.packet.verification = true;
@@ -375,7 +376,7 @@ static void P_DoAutobalanceTeams(void)
 
 		if (totalblue > totalred)
 		{
-			i = M_Random() % blue;
+			i = M_RandomKey(blue);
 			NetPacket.packet.newteam = 1;
 			NetPacket.packet.playernum = bluearray[i];
 			NetPacket.packet.verification = true;
@@ -624,6 +625,9 @@ void P_Ticker(boolean run)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				P_PlayerAfterThink(&players[i]);
 
+		// SRB2kart - runs bounce collision for players
+		K_KartBouncer();
+
 #ifdef HAVE_BLUA
 		LUAh_ThinkFrame();
 #endif
@@ -631,6 +635,9 @@ void P_Ticker(boolean run)
 
 	// Run shield positioning
 	P_RunShields();
+	P_RunOverlays();
+
+	P_RunShadows();
 
 	P_UpdateSpecials();
 	P_RespawnSpecials();
@@ -736,12 +743,16 @@ void P_PreTicker(INT32 frames)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				P_PlayerAfterThink(&players[i]);
 
+		// SRB2kart - runs bounce collision for players
+		K_KartBouncer();
+
 #ifdef HAVE_BLUA
 		LUAh_ThinkFrame();
 #endif
 
 		// Run shield positioning
 		P_RunShields();
+		P_RunOverlays();
 
 		P_UpdateSpecials();
 		P_RespawnSpecials();

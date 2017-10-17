@@ -33,7 +33,7 @@ boolean I_InitNetwork(void)
 {
 	if (M_CheckParm ("-net"))
 	{
-		I_Error("The Win32 version of SRB2 doesn't work with external drivers like ipxsetup, sersetup, or doomatic\n"
+		I_Error("The Win32 version of SRB2Kart doesn't work with external drivers like ipxsetup, sersetup, or doomatic\n"
 		        "Read the documentation about \"-server\" and \"-connect\" parameters or just use the launcher\n");
 	}
 

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -230,6 +230,83 @@ typedef enum
 	NUMPOWERS
 } powertype_t;
 
+//{ SRB2kart - kartstuff
+typedef enum
+{
+	// Basic gameplay things
+	k_position,			// Used for Kart positions, mostly for deterministic stuff
+	k_oldposition,		// Used for taunting when you pass someone
+	k_positiondelay,	// Prevents player from taunting continuously if two people were neck-and-neck
+	k_prevcheck,		// Previous checkpoint distance; for p_user.c (was "pw_pcd")
+	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
+	k_waypoint,			// Waypoints.
+	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
+	k_lakitu,			// Timer for Lakitu to carry and drop the player
+
+	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
+	k_camspin,			// Used to 180 the camera while a button is held
+	k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
+	k_sounds,			// Used this to stop and then force music restores as it hits zero
+
+	k_boosting,			// Determines if you're currently shroom-boosting
+	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
+	k_spinout,			// Separate confirmation to prevent endless wipeout loops
+	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
+
+	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
+	k_driftend,			// Drift has ended, used to adjust character angle after drift
+	k_driftcharge,		// Charge your drift so you can release a burst of speed
+	k_driftboost,		// Boost you get from drifting
+	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
+	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
+	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
+
+	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
+	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
+
+	// Some items use timers for their duration or effects
+	k_magnettimer,		// Duration of Magnet's item-break and item box pull
+	k_bootaketimer,		// You are stealing an item, this is your timer
+	k_boostolentimer,	// You are being stolen from, this is your timer
+	k_mushroomtimer,	// Duration of the Mushroom Boost itself
+	k_growshrinktimer,	// > 0 = Big, < 0 = small
+	k_squishedtimer,	// Squished frame timer
+	k_goldshroomtimer,	// Gold Mushroom duration timer
+	k_startimer,		// Invincibility timer
+	k_spinouttimer,		// Wipe-out from a banana peel or oil slick (was "pw_bananacam")
+	k_laserwisptimer,	// The duration and relative angle of the laser
+
+	// Each item needs its own power slot, for the HUD and held use
+	k_magnet,			// 0x1 = Magnet in inventory
+	k_boo,				// 0x1 = Boo in inventory
+	k_mushroom,			// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
+						// 0x4 = 3 Mushrooms in inventory
+	k_megashroom,		// 0x1 = Mega Mushroom in inventory
+	k_goldshroom,		// 0x1 = Gold Mushroom in inventory
+	k_star,				// 0x1 = Star in inventory
+	k_triplebanana,		// 0x1 = 1 Banana following, 0x2 = 2 Bananas following
+						// 0x4 = 3 Bananas following, 0x8 = Triple Banana in inventory
+	k_fakeitem,			// 0x1 = Fake Item being held, 0x2 = Fake Item in inventory
+	k_banana,			// 0x1 = Banana being held, 0x2 = Banana in inventory
+	k_greenshell,		// 0x1 = Green Shell being held, 0x2 = Green Shell in inventory
+	k_redshell,			// 0x1 = Red Shell being held, 0x2 = Red Shell in inventory
+	k_laserwisp,		// 0x1 = Laser Wisp in inventory
+	k_triplegreenshell,	// 0x1 = 1 Green Shell orbiting, 0x2 = 2 Green Shells orbiting
+						// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
+	k_bobomb,			// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
+	k_blueshell,		// 0x1 = Blue Shell in inventory
+	k_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting,
+						// 0x4 = 2x Jaws in inventory
+	k_fireflower,		// 0x1 = Fire Flower in inventory
+	k_tripleredshell,	// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
+						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
+	k_lightning,		// 0x1 = Lightning in inventory
+	k_kitchensink,		// 0x1 = Sink in inventory
+
+	NUMKARTSTUFF
+} kartstufftype_t;
+//}
+
 #define WEP_AUTO    1
 #define WEP_BOUNCE  2
 #define WEP_SCATTER 3
@@ -286,6 +363,10 @@ typedef struct player_s
 	// Power ups. invinc and invis are tic counters.
 	UINT16 powers[NUMPOWERS];
 
+	// SRB2kart stuff
+	INT32 kartstuff[NUMKARTSTUFF];
+	boolean collide[MAXPLAYERS];
+
 	// Bit flags.
 	// See pflags_t, above.
 	pflags_t pflags;
@@ -305,6 +386,11 @@ typedef struct player_s
 	UINT32 score; // player score
 	fixed_t dashspeed; // dashing speed
 	INT32 dashtime; // tics dashing, used for rev sound
+
+	// SRB2kart
+	UINT8 kartspeed; // Kart speed stat between 1 and 9
+	UINT8 kartweight; // Kart weight stat between 1 and 9
+	//
 
 	fixed_t normalspeed; // Normal ground
 	fixed_t runspeed; // Speed you break into the run animation

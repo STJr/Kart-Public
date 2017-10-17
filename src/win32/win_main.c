@@ -69,7 +69,7 @@ static HCURSOR windowCursor = NULL; // main window cursor
 
 static LPCSTR wClassName = "SRB2WC";
 
-boolean appActive = false; // app window is active
+INT appActive = false; // app window is active
 
 #ifdef LOGMESSAGES
 FILE *logstream;
@@ -88,8 +88,7 @@ static LRESULT CALLBACK MainWndproc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	if (message == MSHWheelMessage)
 	{
 		message = WM_MOUSEWHEEL;
-		if (win9x)
-			wParam <<= 16;
+		wParam <<= 16;
 	}
 
 	//I_OutputMsg("MainWndproc: %p,%i,%i,%i",hWnd, message, wParam, (UINT)lParam);
@@ -326,8 +325,8 @@ static inline VOID OpenTextConsole(VOID)
 	{
 		if (AllocConsole()) //Let get the real console HANDLEs, because Mingw's Bash is bad!
 		{
-			SetConsoleTitleA("SRB2 Console");
-			CONS_Printf(M_GetText("Hello, it's me, SRB2's Console Window\n"));
+			SetConsoleTitleA("SRB2Kart Console");
+			CONS_Printf(M_GetText("Hello, it's me, SRB2Kart's Console Window\n"));
 		}
 		else
 		{
@@ -613,7 +612,7 @@ static int WINAPI HandledWinMain(HINSTANCE hInstance)
 #endif
 
 	// open a dummy window, both OpenGL and DirectX need one.
-	if ((hWndMain = OpenMainWindow(hInstance, va("SRB2 "VERSIONSTRING))) == INVALID_HANDLE_VALUE)
+	if ((hWndMain = OpenMainWindow(hInstance, va("SRB2Kart "VERSIONSTRING))) == INVALID_HANDLE_VALUE)
 	{
 		tlErrorMessage(TEXT("Couldn't open window"));
 		return FALSE;
@@ -625,7 +624,7 @@ static int WINAPI HandledWinMain(HINSTANCE hInstance)
 	MakeCodeWritable();
 
 	// startup SRB2
-	CONS_Printf("Setting up SRB2...\n");
+	CONS_Printf("Setting up SRB2Kart...\n");
 	D_SRB2Main();
 	CONS_Printf("Entering main game loop...\n");
 	// never return
@@ -645,13 +644,16 @@ int WINAPI WinMain (HINSTANCE hInstance,
 {
 	int Result = -1;
 
+#if 0
 	// Win95 and NT <4 don't have this, so link at runtime.
 	p_IsDebuggerPresent pfnIsDebuggerPresent = (p_IsDebuggerPresent)GetProcAddress(GetModuleHandleA("kernel32.dll"),"IsDebuggerPresent");
+#endif
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	UNREFERENCED_PARAMETER(nCmdShow);
 
+#if 0
 #ifdef BUGTRAP
 	// Try BugTrap first.
 	if((!pfnIsDebuggerPresent || !pfnIsDebuggerPresent()) && InitBugTrap())
@@ -661,6 +663,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
 #endif
 		// Try Dr MinGW's exception handler.
 		if (!pfnIsDebuggerPresent || !pfnIsDebuggerPresent())
+#endif
 			LoadLibraryA("exchndl.dll");
 
 		prevExceptionFilter = SetUnhandledExceptionFilter(RecordExceptionInfo);

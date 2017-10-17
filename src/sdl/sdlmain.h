@@ -25,7 +25,11 @@ extern SDL_bool framebuffer;
 #include "../m_fixed.h"
 
 // SDL2 stub macro
-#define SDL2STUB(name) CONS_Printf("SDL2: stubbed: %s:%d\n", __func__, __LINE__)
+#ifdef _MSC_VER
+#define SDL2STUB() CONS_Printf("SDL2: stubbed: %s:%d\n", __FUNCTION__, __LINE__)
+#else
+#define SDL2STUB() CONS_Printf("SDL2: stubbed: %s:%d\n", __func__, __LINE__)
+#endif
 
 /**	\brief	The JoyInfo_s struct
 
@@ -66,5 +70,8 @@ extern SDLJoyInfo_t JoyInfo2;
 void I_GetConsoleEvents(void);
 
 void SDLforceUngrabMouse(void);
+
+// Needed for some WIN32 functions
+extern SDL_Window *window;
 
 #endif

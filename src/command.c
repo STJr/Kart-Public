@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -61,6 +61,14 @@ CV_PossibleValue_t CV_OnOff[] = {{0, "Off"}, {1, "On"}, {0, NULL}};
 CV_PossibleValue_t CV_YesNo[] = {{0, "No"}, {1, "Yes"}, {0, NULL}};
 CV_PossibleValue_t CV_Unsigned[] = {{0, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 CV_PossibleValue_t CV_Natural[] = {{1, "MIN"}, {999999999, "MAX"}, {0, NULL}};
+
+//SRB2kart
+CV_PossibleValue_t karthud_cons_t[] = {
+	{0, "Off"}, {1, "Default"}, {2, "SNES"}, {3, "MK64"},
+	{0, NULL}};
+CV_PossibleValue_t kartcc_cons_t[] = {
+	{50, "50cc"}, {100, "100cc"}, {150, "150cc"},
+	{0, NULL}};
 
 #define COM_BUF_SIZE 8192 // command buffer size
 
@@ -966,9 +974,11 @@ void CV_RegisterVar(consvar_t *variable)
 	// check net variables
 	if (variable->flags & CV_NETVAR)
 	{
+		const consvar_t *netvar;
 		variable->netid = CV_ComputeNetid(variable->name);
-		if (CV_FindNetVar(variable->netid))
-			I_Error("Variables %s and %s have same netid\n", variable->name, CV_FindNetVar(variable->netid)->name);
+		netvar = CV_FindNetVar(variable->netid);
+		if (netvar)
+			I_Error("Variables %s and %s have same netid\n", variable->name, netvar->name);
 	}
 
 	// link the variable in
@@ -1178,7 +1188,10 @@ finish:
 		CONS_Printf(M_GetText("%s set to %s\n"), var->name, var->string);
 		var->flags &= ~CV_SHOWMODIFONETIME;
 	}
-	DEBFILE(va("%s set to %s\n", var->name, var->string));
+	else // display message in debug file only
+	{
+		DEBFILE(va("%s set to %s\n", var->name, var->string));
+	}
 	var->flags |= CV_MODIFIED;
 	// raise 'on change' code
 #ifdef HAVE_BLUA

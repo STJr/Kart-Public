@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -30,7 +30,7 @@ typedef struct
 {
 	// Block origin (always UL), which has already accounted for the internal origin of the patch.
 	INT16 originx, originy;
-	INT16 wad, lump;
+	UINT16 wad, lump;
 } texpatch_t;
 
 // A maptexturedef_t describes a rectangular texture,
@@ -64,6 +64,9 @@ extern CV_PossibleValue_t Color_cons_t[];
 // Load TEXTURE1/TEXTURE2/PNAMES definitions, create lookup tables
 void R_LoadTextures(void);
 void R_FlushTextureCache(void);
+
+INT32 R_GetTextureNum(INT32 texnum);
+void R_CheckTextureCache(INT32 tex);
 
 // Retrieve column data for span blitting.
 UINT8 *R_GetColumn(fixed_t tex, INT32 col);

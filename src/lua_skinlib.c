@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-// Copyright (C) 2014      by John "JTE" Muniz.
-// Copyright (C) 2014      by Sonic Team Junior.
+// Copyright (C) 2014-2016 by John "JTE" Muniz.
+// Copyright (C) 2014-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -38,6 +38,10 @@ enum skin {
 	skin_actionspd,
 	skin_mindash,
 	skin_maxdash,
+	// SRB2kart
+	skin_kartspeed,
+	skin_kartweight,
+	//
 	skin_normalspeed,
 	skin_runspeed,
 	skin_thrustfactor,
@@ -68,6 +72,10 @@ static const char *const skin_opt[] = {
 	"actionspd",
 	"mindash",
 	"maxdash",
+	// SRB2kart
+	"kartspeed",
+	"kartweight",
+	//
 	"normalspeed",
 	"runspeed",
 	"thrustfactor",
@@ -147,19 +155,27 @@ static int skin_get(lua_State *L)
 		lua_pushinteger(L, skin->revitem);
 		break;
 	case skin_actionspd:
-		lua_pushinteger(L, skin->actionspd);
+		lua_pushfixed(L, skin->actionspd);
 		break;
 	case skin_mindash:
-		lua_pushinteger(L, skin->mindash);
+		lua_pushfixed(L, skin->mindash);
 		break;
 	case skin_maxdash:
-		lua_pushinteger(L, skin->maxdash);
+		lua_pushfixed(L, skin->maxdash);
 		break;
+	// SRB2kart
+	case skin_kartspeed:
+		lua_pushfixed(L, skin->kartspeed);
+		break;
+	case skin_kartweight:
+		lua_pushfixed(L, skin->kartweight);
+		break;
+	//
 	case skin_normalspeed:
-		lua_pushinteger(L, skin->normalspeed);
+		lua_pushfixed(L, skin->normalspeed);
 		break;
 	case skin_runspeed:
-		lua_pushinteger(L, skin->runspeed);
+		lua_pushfixed(L, skin->runspeed);
 		break;
 	case skin_thrustfactor:
 		lua_pushinteger(L, skin->thrustfactor);
@@ -171,7 +187,7 @@ static int skin_get(lua_State *L)
 		lua_pushinteger(L, skin->acceleration);
 		break;
 	case skin_jumpfactor:
-		lua_pushinteger(L, skin->jumpfactor);
+		lua_pushfixed(L, skin->jumpfactor);
 		break;
 	case skin_starttranscolor:
 		lua_pushinteger(L, skin->starttranscolor);
@@ -244,7 +260,7 @@ static int lib_getSkin(lua_State *L)
 	{
 		i = luaL_checkinteger(L, 2);
 		if (i < 0 || i >= MAXSKINS)
-			return luaL_error(L, "skins[] index cannot exceed MAXSKINS");
+			return luaL_error(L, "skins[] index %d out of range (0 - %d)", i, MAXSKINS-1);
 		if (i >= numskins)
 			return 0;
 		LUA_PushUserdata(L, &skins[i], META_SKIN);

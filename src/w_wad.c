@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -32,6 +32,7 @@
 
 #include "w_wad.h"
 #include "z_zone.h"
+#include "fastcmp.h"
 
 #include "i_video.h" // rendermode
 #include "d_netfil.h"
@@ -132,6 +133,47 @@ void W_Shutdown(void)
 
 static char filenamebuf[MAX_WADPATH];
 
+// W_OpenWadFile
+// Helper function for opening the WAD file.
+// Returns the FILE * handle for the file, or NULL if not found or could not be opened
+// If "useerrors" is true then print errors in the console, else just don't bother
+// "filename" may be modified to have the correct path the actual file is located in, if necessary
+FILE *W_OpenWadFile(const char **filename, boolean useerrors)
+{
+	FILE *handle;
+
+	strncpy(filenamebuf, *filename, MAX_WADPATH);
+	filenamebuf[MAX_WADPATH - 1] = '\0';
+	*filename = filenamebuf;
+
+	// open wad file
+	if ((handle = fopen(*filename, "rb")) == NULL)
+	{
+		// If we failed to load the file with the path as specified by
+		// the user, strip the directories and search for the file.
+		nameonly(filenamebuf);
+
+		// If findfile finds the file, the full path will be returned
+		// in filenamebuf == *filename.
+		if (findfile(filenamebuf, NULL, true))
+		{
+			if ((handle = fopen(*filename, "rb")) == NULL)
+			{
+				if (useerrors)
+					CONS_Alert(CONS_ERROR, M_GetText("Can't open %s\n"), *filename);
+				return NULL;
+			}
+		}
+		else
+		{
+			if (useerrors)
+				CONS_Alert(CONS_ERROR, M_GetText("File %s not found.\n"), *filename);
+			return NULL;
+		}
+	}
+	return handle;
+}
+
 // search for all DEHACKED lump in all wads and load it
 static inline void W_LoadDehackedLumps(UINT16 wadnum)
 {
@@ -147,24 +189,32 @@ static inline void W_LoadDehackedLumps(UINT16 wadnum)
 	}
 #endif
 
-	// Check for MAINCFG
-	for (lump = 0;lump != INT16_MAX;lump++)
 	{
-		lump = W_CheckNumForNamePwad("MAINCFG", wadnum, lump);
-		if (lump == INT16_MAX)
-			break;
-		CONS_Printf(M_GetText("Loading main config from %s\n"), wadfiles[wadnum]->filename);
-		DEH_LoadDehackedLumpPwad(wadnum, lump);
-	}
-
-	// Check for OBJCTCFG
-	for (lump = 0;lump < INT16_MAX;lump++)
-	{
-		lump = W_CheckNumForNamePwad("OBJCTCFG", wadnum, lump);
-		if (lump == INT16_MAX)
-			break;
-		CONS_Printf(M_GetText("Loading object config from %s\n"), wadfiles[wadnum]->filename);
-		DEH_LoadDehackedLumpPwad(wadnum, lump);
+		lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo;
+		for (lump = 0; lump < wadfiles[wadnum]->numlumps; lump++, lump_p++)
+			if (memcmp(lump_p->name,"SOC_",4)==0) // Check for generic SOC lump
+			{	// shameless copy+paste of code from LUA_LoadLump
+				char *name = malloc(strlen(wadfiles[wadnum]->filename)+10);
+				strcpy(name, wadfiles[wadnum]->filename);
+				if (!fasticmp(&name[strlen(name) - 4], ".soc")) {
+					// If it's not a .soc file, copy the lump name in too.
+					name[strlen(wadfiles[wadnum]->filename)] = '|';
+					M_Memcpy(name+strlen(wadfiles[wadnum]->filename)+1, lump_p->name, 8);
+					name[strlen(wadfiles[wadnum]->filename)+9] = '\0';
+				}
+				CONS_Printf(M_GetText("Loading SOC from %s\n"), name);
+				DEH_LoadDehackedLumpPwad(wadnum, lump);
+			}
+			else if (memcmp(lump_p->name,"MAINCFG",8)==0) // Check for MAINCFG
+			{
+				CONS_Printf(M_GetText("Loading main config from %s\n"), wadfiles[wadnum]->filename);
+				DEH_LoadDehackedLumpPwad(wadnum, lump);
+			}
+			else if (memcmp(lump_p->name,"OBJCTCFG",8)==0) // Check for OBJCTCFG
+			{
+				CONS_Printf(M_GetText("Loading object config from %s\n"), wadfiles[wadnum]->filename);
+				DEH_LoadDehackedLumpPwad(wadnum, lump);
+			}
 	}
 
 #ifdef SCANTHINGS
@@ -225,7 +275,6 @@ static void W_InvalidateLumpnumCache(void)
 	memset(lumpnumcache, 0, sizeof (lumpnumcache));
 }
 
-
 //  Allocate a wadfile, setup the lumpinfo (directory) and
 //  lumpcache, add the wadfile to the current active wadfiles
 //
@@ -262,33 +311,9 @@ UINT16 W_LoadWadFile(const char *filename)
 		return INT16_MAX;
 	}
 
-	strncpy(filenamebuf, filename, MAX_WADPATH);
-	filenamebuf[MAX_WADPATH - 1] = '\0';
-	filename = filenamebuf;
-
 	// open wad file
-	if ((handle = fopen(filename, "rb")) == NULL)
-	{
-		// If we failed to load the file with the path as specified by
-		// the user, strip the directories and search for the file.
-		nameonly(filenamebuf);
-
-		// If findfile finds the file, the full path will be returned
-		// in filenamebuf == filename.
-		if (findfile(filenamebuf, NULL, true))
-		{
-			if ((handle = fopen(filename, "rb")) == NULL)
-			{
-				CONS_Alert(CONS_ERROR, M_GetText("Can't open %s\n"), filename);
-				return INT16_MAX;
-			}
-		}
-		else
-		{
-			CONS_Alert(CONS_ERROR, M_GetText("File %s not found.\n"), filename);
-			return INT16_MAX;
-		}
-	}
+	if ((handle = W_OpenWadFile(&filename, true)) == NULL)
+		return INT16_MAX;
 
 	// Check if wad files will overflow fileneededbuffer. Only the filename part
 	// is send in the packet; cf.
@@ -413,6 +438,7 @@ UINT16 W_LoadWadFile(const char *filename)
 				lump_p->disksize -= 4;
 			}
 			else lump_p->compressed = 0;
+			memset(lump_p->name, 0x00, 9);
 			strncpy(lump_p->name, fileinfo->name, 8);
 		}
 		free(fileinfov);
@@ -465,11 +491,11 @@ UINT16 W_LoadWadFile(const char *filename)
 	//
 	CONS_Printf(M_GetText("Added file %s (%u lumps)\n"), filename, numlumps);
 	wadfiles[numwadfiles] = wadfile;
-	W_LoadDehackedLumps(numwadfiles);
+	numwadfiles++; // must come BEFORE W_LoadDehackedLumps, so any addfile called by COM_BufInsertText called by Lua doesn't overwrite what we just loaded
+	W_LoadDehackedLumps(numwadfiles-1);
 
 	W_InvalidateLumpnumCache();
 
-	numwadfiles++;
 	return wadfile->numlumps;
 }
 
@@ -1105,21 +1131,11 @@ static int W_VerifyFile(const char *filename, lumpchecklist_t *checklist,
 	size_t i, j;
 	int goodfile = false;
 
-	if (!checklist) I_Error("No checklist for %s\n", filename);
-	strlcpy(filenamebuf, filename, MAX_WADPATH);
-	filename = filenamebuf;
+	if (!checklist)
+		I_Error("No checklist for %s\n", filename);
 	// open wad file
-	if ((handle = fopen(filename, "rb")) == NULL)
-	{
-		nameonly(filenamebuf); // leave full path here
-		if (findfile(filenamebuf, NULL, true))
-		{
-			if ((handle = fopen(filename, "rb")) == NULL)
-				return -1;
-		}
-		else
-			return -1;
-	}
+	if ((handle = W_OpenWadFile(&filename, false)) == NULL)
+		return -1;
 
 	// detect dehacked file with the "soc" extension
 	if (stricmp(&filename[strlen(filename) - 4], ".soc") != 0
@@ -1213,6 +1229,7 @@ int W_VerifyNMUSlumps(const char *filename)
 		{"COLORMAP", 8},
 		{"PAL", 3},
 		{"CLM", 3},
+		{"TRANS", 5},
 		{NULL, 0},
 	};
 	return W_VerifyFile(filename, NMUSlist, false);

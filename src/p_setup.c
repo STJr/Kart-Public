@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -70,6 +70,10 @@
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
 #include "hardware/hw_light.h"
+#endif
+
+#ifdef ESLOPE
+#include "p_slopes.h"
 #endif
 
 //
@@ -170,16 +174,19 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	mapheaderinfo[num]->lvlttl[0] = '\0';
 	DEH_WriteUndoline("SUBTITLE", mapheaderinfo[num]->subttl, UNDO_NONE);
 	mapheaderinfo[num]->subttl[0] = '\0';
+	DEH_WriteUndoline("ZONETITLE", mapheaderinfo[num]->zonttl, UNDO_NONE); // SRB2kart
+	mapheaderinfo[num]->zonttl[0] = '\0';
 	DEH_WriteUndoline("ACT", va("%d", mapheaderinfo[num]->actnum), UNDO_NONE);
 	mapheaderinfo[num]->actnum = 0;
 	DEH_WriteUndoline("TYPEOFLEVEL", va("%d", mapheaderinfo[num]->typeoflevel), UNDO_NONE);
 	mapheaderinfo[num]->typeoflevel = 0;
 	DEH_WriteUndoline("NEXTLEVEL", va("%d", mapheaderinfo[num]->nextlevel), UNDO_NONE);
 	mapheaderinfo[num]->nextlevel = (INT16)(i + 1);
-	DEH_WriteUndoline("MUSICSLOT", va("%d", mapheaderinfo[num]->musicslot), UNDO_NONE);
-	mapheaderinfo[num]->musicslot = mus_map01m + num;
-	DEH_WriteUndoline("MUSICSLOTTRACK", va("%d", mapheaderinfo[num]->musicslottrack), UNDO_NONE);
-	mapheaderinfo[num]->musicslottrack = 0;
+	DEH_WriteUndoline("MUSIC", mapheaderinfo[num]->musname, UNDO_NONE);
+	snprintf(mapheaderinfo[num]->musname, 7, "%sM", G_BuildMapName(i));
+	mapheaderinfo[num]->musname[6] = 0;
+	DEH_WriteUndoline("MUSICTRACK", va("%d", mapheaderinfo[num]->mustrack), UNDO_NONE);
+	mapheaderinfo[num]->mustrack = 0;
 	DEH_WriteUndoline("FORCECHARACTER", va("%d", mapheaderinfo[num]->forcecharacter), UNDO_NONE);
 	mapheaderinfo[num]->forcecharacter[0] = '\0';
 	DEH_WriteUndoline("WEATHER", va("%d", mapheaderinfo[num]->weather), UNDO_NONE);
@@ -569,6 +576,69 @@ INT32 P_AddLevelFlat(const char *flatname, levelflat_t *levelflat)
 	return (INT32)i;
 }
 
+// help function for Lua and $$$.sav reading
+// same as P_AddLevelFlat, except this is not setup so we must realloc levelflats to fit in the new flat
+// no longer a static func in lua_maplib.c because p_saveg.c also needs it
+//
+INT32 P_AddLevelFlatRuntime(const char *flatname)
+{
+	size_t i;
+	levelflat_t *levelflat = levelflats;
+
+	//
+	//  first scan through the already found flats
+	//
+	for (i = 0; i < numlevelflats; i++, levelflat++)
+		if (strnicmp(levelflat->name,flatname,8)==0)
+			break;
+
+	// that flat was already found in the level, return the id
+	if (i == numlevelflats)
+	{
+		// allocate new flat memory
+		levelflats = Z_Realloc(levelflats, (numlevelflats + 1) * sizeof(*levelflats), PU_LEVEL, NULL);
+		levelflat = levelflats+i;
+
+		// store the name
+		strlcpy(levelflat->name, flatname, sizeof (levelflat->name));
+		strupr(levelflat->name);
+
+		// store the flat lump number
+		levelflat->lumpnum = R_GetFlatNumForName(flatname);
+
+#ifndef ZDEBUG
+		CONS_Debug(DBG_SETUP, "flat #%03d: %s\n", atoi(sizeu1(numlevelflats)), levelflat->name);
+#endif
+
+		numlevelflats++;
+	}
+
+	// level flat id
+	return (INT32)i;
+}
+
+// help function for $$$.sav checking
+// this simply returns the flat # for the name given
+//
+INT32 P_CheckLevelFlat(const char *flatname)
+{
+	size_t i;
+	levelflat_t *levelflat = levelflats;
+
+	//
+	//  scan through the already found flats
+	//
+	for (i = 0; i < numlevelflats; i++, levelflat++)
+		if (strnicmp(levelflat->name,flatname,8)==0)
+			break;
+
+	if (i == numlevelflats)
+		return 0; // ??? flat was not found, this should not happen!
+
+	// level flat id
+	return (INT32)i;
+}
+
 static void P_LoadSectors(lumpnum_t lumpnum)
 {
 	UINT8 *data;
@@ -609,6 +679,7 @@ static void P_LoadSectors(lumpnum_t lumpnum)
 		ss->special = SHORT(ms->special);
 		ss->tag = SHORT(ms->tag);
 		ss->nexttag = ss->firsttag = -1;
+		ss->spawn_nexttag = ss->spawn_firsttag = -1;
 
 		memset(&ss->soundorg, 0, sizeof(ss->soundorg));
 		ss->validcount = 0;
@@ -747,7 +818,8 @@ void P_ReloadRings(void)
 			}
 			continue;
 		}
-		if (!(mo->type == MT_RING || mo->type == MT_NIGHTSWING || mo->type == MT_COIN || mo->type == MT_BLUEBALL))
+		if (!(mo->type == MT_RING || mo->type == MT_NIGHTSWING || mo->type == MT_COIN
+			|| mo->type == MT_BLUEBALL || mo->type == MT_RANDOMITEM))
 			continue;
 
 		// Don't auto-disintegrate things being pulled to us
@@ -846,7 +918,7 @@ void P_ScanThings(INT16 mapnum, INT16 wadnum, INT16 lumpnum)
 //
 // P_LoadThings
 //
-static void P_LoadThings(lumpnum_t lumpnum)
+static void P_PrepareThings(lumpnum_t lumpnum)
 {
 	size_t i;
 	mapthing_t *mt;
@@ -884,13 +956,27 @@ static void P_LoadThings(lumpnum_t lumpnum)
 	}
 	Z_Free(datastart);
 
+}
+
+static void P_LoadThings(void)
+{
+	size_t i;
+	mapthing_t *mt;
+
+	// Loading the things lump itself into memory is now handled in P_PrepareThings, above
+
 	mt = mapthings;
 	numhuntemeralds = 0;
 	for (i = 0; i < nummapthings; i++, mt++)
 	{
+		sector_t *mtsector = R_PointInSubsector(mt->x << FRACBITS, mt->y << FRACBITS)->sector;
+
 		// Z for objects
-		mt->z = (INT16)(R_PointInSubsector(mt->x << FRACBITS, mt->y << FRACBITS)
-			->sector->floorheight>>FRACBITS);
+		mt->z = (INT16)(
+#ifdef ESLOPE
+				mtsector->f_slope ? P_GetZAt(mtsector->f_slope, mt->x << FRACBITS, mt->y << FRACBITS) :
+#endif
+				mtsector->floorheight)>>FRACBITS;
 
 		if (mt->type == 1700 // MT_AXIS
 			|| mt->type == 1701 // MT_AXISTRANSFER
@@ -1195,7 +1281,7 @@ static void P_LoadLineDefs2(void)
 		case 443: // Calls a named Lua function
 			if (sides[ld->sidenum[0]].text)
 			{
-				UINT8 len = strlen(sides[ld->sidenum[0]].text)+1;
+				size_t len = strlen(sides[ld->sidenum[0]].text)+1;
 				if (ld->sidenum[1] != 0xffff && sides[ld->sidenum[1]].text)
 					len += strlen(sides[ld->sidenum[1]].text);
 				ld->text = Z_Malloc(len, PU_LEVEL, NULL);
@@ -1421,6 +1507,29 @@ static void P_LoadSideDefs2(lumpnum_t lumpnum)
 #endif
 
 			case 413: // Change music
+			{
+				char process[8+1];
+
+				sd->toptexture = sd->midtexture = sd->bottomtexture = 0;
+				if (msd->bottomtexture[0] != '-' || msd->bottomtexture[1] != '\0')
+				{
+					M_Memcpy(process,msd->bottomtexture,8);
+					process[8] = '\0';
+					sd->bottomtexture = get_number(process)-1;
+				}
+				M_Memcpy(process,msd->toptexture,8);
+				process[8] = '\0';
+				sd->text = Z_Malloc(7, PU_LEVEL, NULL);
+
+				// If they type in O_ or D_ and their music name, just shrug,
+				// then copy the rest instead.
+				if ((process[0] == 'O' || process[0] == 'D') && process[7])
+					M_Memcpy(sd->text, process+2, 6);
+				else // Assume it's a proper music name.
+					M_Memcpy(sd->text, process, 6);
+				sd->text[6] = 0;
+				break;
+			}
 			case 414: // Play SFX
 			{
 				sd->toptexture = sd->midtexture = sd->bottomtexture = 0;
@@ -1430,13 +1539,6 @@ static void P_LoadSideDefs2(lumpnum_t lumpnum)
 					M_Memcpy(process,msd->toptexture,8);
 					process[8] = '\0';
 					sd->toptexture = get_number(process);
-				}
-				if (sd->special == 413 && (msd->bottomtexture[0] != '-' || msd->bottomtexture[1] != '\0'))
-				{
-					char process[8+1];
-					M_Memcpy(process,msd->bottomtexture,8);
-					process[8] = '\0';
-					sd->bottomtexture = get_number(process)-1;
 				}
 				break;
 			}
@@ -1853,7 +1955,7 @@ static boolean P_LoadBlockMap(lumpnum_t lumpnum)
 //
 static void P_GroupLines(void)
 {
-	size_t i, j, total = 0;
+	size_t i, j;
 	line_t *li;
 	sector_t *sector;
 	subsector_t *ss = subsectors;
@@ -1887,23 +1989,27 @@ static void P_GroupLines(void)
 	// count number of lines in each sector
 	for (i = 0, li = lines; i < numlines; i++, li++)
 	{
-		total++;
 		li->frontsector->linecount++;
 
 		if (li->backsector && li->backsector != li->frontsector)
-		{
 			li->backsector->linecount++;
-			total++;
-		}
 	}
 
 	// allocate linebuffers for each sector
 	for (i = 0, sector = sectors; i < numsectors; i++, sector++)
 	{
-		sector->lines = Z_Calloc(sector->linecount * sizeof(line_t*), PU_LEVEL, NULL);
+		if (sector->linecount == 0) // no lines found?
+		{
+			sector->lines = NULL;
+			CONS_Debug(DBG_SETUP, "P_GroupLines: sector %s has no lines\n", sizeu1(i));
+		}
+		else
+		{
+			sector->lines = Z_Calloc(sector->linecount * sizeof(line_t*), PU_LEVEL, NULL);
 
-		// zero the count, since we'll later use this to track how many we've recorded
-		sector->linecount = 0;
+			// zero the count, since we'll later use this to track how many we've recorded
+			sector->linecount = 0;
+		}
 	}
 
 	// iterate through lines, assigning them to sectors' linebuffers,
@@ -1921,11 +2027,14 @@ static void P_GroupLines(void)
 	{
 		M_ClearBox(bbox);
 
-		for (j = 0; j < sector->linecount; j++)
+		if (sector->linecount != 0)
 		{
-			li = sector->lines[j];
-			M_AddToBox(bbox, li->v1->x, li->v1->y);
-			M_AddToBox(bbox, li->v2->x, li->v2->y);
+			for (j = 0; j < sector->linecount; j++)
+			{
+				li = sector->lines[j];
+				M_AddToBox(bbox, li->v1->x, li->v1->y);
+				M_AddToBox(bbox, li->v2->x, li->v2->y);
+			}
 		}
 
 		// set the degenmobj_t to the middle of the bounding box
@@ -1933,6 +2042,35 @@ static void P_GroupLines(void)
 		sector->soundorg.y = (((bbox[BOXTOP]>>FRACBITS) + (bbox[BOXBOTTOM]>>FRACBITS))/2)<<FRACBITS;
 		sector->soundorg.z = sector->floorheight; // default to sector's floor height
 	}
+}
+
+//
+// P_LoadReject
+//
+// Detect if the REJECT lump is valid,
+// if not, rejectmatrix will be NULL
+static void P_LoadReject(lumpnum_t lumpnum)
+{
+	size_t count;
+	const char *lumpname = W_CheckNameForNum(lumpnum);
+
+	// Check if the lump exists, and if it's named "REJECT"
+	if (!lumpname || memcmp(lumpname, "REJECT\0\0", 8) != 0)
+	{
+		rejectmatrix = NULL;
+		CONS_Debug(DBG_SETUP, "P_LoadReject: No valid REJECT lump found\n");
+		return;
+	}
+
+	count = W_LumpLength(lumpnum);
+
+	if (!count) // zero length, someone probably used ZDBSP
+	{
+		rejectmatrix = NULL;
+		CONS_Debug(DBG_SETUP, "P_LoadReject: REJECT lump has size 0, will not be loaded\n");
+	}
+	else
+		rejectmatrix = W_CacheLumpNum(lumpnum, PU_LEVEL);
 }
 
 #if 0
@@ -2114,7 +2252,8 @@ void P_LoadThingsOnly(void)
 
 	P_LevelInitStuff();
 
-	P_LoadThings(lastloadedmaplumpnum + ML_THINGS);
+	P_PrepareThings(lastloadedmaplumpnum + ML_THINGS);
+	P_LoadThings();
 
 	P_SpawnSecretItems(true);
 }
@@ -2350,7 +2489,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	// use gamemap to get map number.
 	// 99% of the things already did, so.
 	// Map header should always be in place at this point
-	INT32 i, loadprecip = 1;
+	INT32 i, loadprecip = 1, ranspecialwipe = 0;
 	INT32 loademblems = 1;
 	INT32 fromnetsave = 0;
 	boolean loadedbm = false;
@@ -2408,8 +2547,9 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	if (!dedicated)
 	{
-		if (!cv_cam_speed.changed)
-			CV_Set(&cv_cam_speed, cv_cam_speed.defaultvalue);
+		// Salt: CV_ClearChangedFlags() messes with your settings :(
+		/*if (!cv_cam_speed.changed)
+			CV_Set(&cv_cam_speed, cv_cam_speed.defaultvalue);*/
 
 		if (!cv_chasecam.changed)
 			CV_SetValue(&cv_chasecam, chase);
@@ -2423,34 +2563,65 @@ boolean P_SetupLevel(boolean skipprecip)
 	// will be set by player think.
 	players[consoleplayer].viewz = 1;
 
+	// Special stage fade to white
+	// This is handled BEFORE sounds are stopped.
+	if (rendermode != render_none && G_IsSpecialStage(gamemap))
+	{
+		tic_t starttime = I_GetTime();
+		tic_t endtime = starttime + (3*TICRATE)/2;
+
+		S_StartSound(NULL, sfx_s3kaf);
+
+		F_WipeStartScreen();
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 0);
+
+		F_WipeEndScreen();
+		F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
+
+		// Hold on white for extra effect.
+		while (I_GetTime() < endtime)
+			I_Sleep();
+
+		ranspecialwipe = 1;
+	}
+
 	// Make sure all sounds are stopped before Z_FreeTags.
 	S_StopSounds();
 	S_ClearSfx();
 
+
 	// As oddly named as this is, this handles music only.
 	// We should be fine starting it here.
 	S_Start();
+	// SRB2 Kart - Yes this is weird, but we don't want the music to start until after the countdown is finished
+	// but we do still need the mapmusname to be changed
+	if (leveltime < 158)
+		S_StopMusic();
 
 	// Let's fade to black here
-	if (rendermode != render_none)
+	// But only if we didn't do the special stage wipe
+	if (rendermode != render_none && !ranspecialwipe)
 	{
 		F_WipeStartScreen();
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 		F_WipeEndScreen();
 		F_RunWipe(wipedefs[wipe_level_toblack], false);
+	}
 
+	// Print "SPEEDING OFF TO [ZONE] [ACT 1]..."
+	if (rendermode != render_none)
+	{
 		// Don't include these in the fade!
-		{
-			char tx[64];
-			V_DrawSmallString(1, 191, V_ALLOWLOWERCASE, M_GetText("Speeding off to..."));
-			snprintf(tx, 63, "%s%s%s",
-				mapheaderinfo[gamemap-1]->lvlttl,
-				(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE",
-				(mapheaderinfo[gamemap-1]->actnum > 0) ? va(", Act %d",mapheaderinfo[gamemap-1]->actnum) : "");
-			V_DrawSmallString(1, 195, V_ALLOWLOWERCASE, tx);
-			I_UpdateNoVsync();
-		}
+		char tx[64];
+		V_DrawSmallString(1, 191, V_ALLOWLOWERCASE, M_GetText("Speeding off to..."));
+		snprintf(tx, 63, "%s%s%s",
+			mapheaderinfo[gamemap-1]->lvlttl,
+			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? mapheaderinfo[gamemap-1]->zonttl : // SRB2kart
+			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE"),
+			(mapheaderinfo[gamemap-1]->actnum > 0) ? va(", Act %d",mapheaderinfo[gamemap-1]->actnum) : "");
+		V_DrawSmallString(1, 195, V_ALLOWLOWERCASE, tx);
+		I_UpdateNoVsync();
 	}
 
 #ifdef HAVE_BLUA
@@ -2488,11 +2659,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	lastloadedmaplumpnum = W_GetNumForName(maplumpname = G_BuildMapName(gamemap));
 
 	R_ReInitColormaps(mapheaderinfo[gamemap-1]->palette);
-	CON_ReSetupBackColormap(mapheaderinfo[gamemap-1]->palette);
-
-	// now part of level loading since in future each level may have
-	// its own anim texture sequences, switches etc.
-	P_InitPicAnims();
+	CON_SetupBackColormap();
 
 	// SRB2 determines the sky texture to be used depending on the map header.
 	P_SetupLevelSky(mapheaderinfo[gamemap-1]->skynum, true);
@@ -2517,7 +2684,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	P_LoadSubsectors(lastloadedmaplumpnum + ML_SSECTORS);
 	P_LoadNodes(lastloadedmaplumpnum + ML_NODES);
 	P_LoadSegs(lastloadedmaplumpnum + ML_SEGS);
-	rejectmatrix = W_CacheLumpNum(lastloadedmaplumpnum + ML_REJECT, PU_LEVEL);
+	P_LoadReject(lastloadedmaplumpnum + ML_REJECT);
 	P_GroupLines();
 
 	numdmstarts = numredctfstarts = numbluectfstarts = 0;
@@ -2531,7 +2698,13 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	P_MapStart();
 
-	P_LoadThings(lastloadedmaplumpnum + ML_THINGS);
+	P_PrepareThings(lastloadedmaplumpnum + ML_THINGS);
+
+#ifdef ESLOPE
+	P_ResetDynamicSlopes();
+#endif
+
+	P_LoadThings();
 
 	P_SpawnSecretItems(loademblems);
 
@@ -2679,20 +2852,22 @@ boolean P_SetupLevel(boolean skipprecip)
 			}
 		}
 
-		if (!cv_cam_height.changed)
+		// Salt: CV_ClearChangedFlags() messes with your settings :(
+		/*if (!cv_cam_height.changed)
 			CV_Set(&cv_cam_height, cv_cam_height.defaultvalue);
-
-		if (!cv_cam_dist.changed)
-			CV_Set(&cv_cam_dist, cv_cam_dist.defaultvalue);
-
-		if (!cv_cam_rotate.changed)
-			CV_Set(&cv_cam_rotate, cv_cam_rotate.defaultvalue);
 
 		if (!cv_cam2_height.changed)
 			CV_Set(&cv_cam2_height, cv_cam2_height.defaultvalue);
+		
+		if (!cv_cam_dist.changed)
+			CV_Set(&cv_cam_dist, cv_cam_dist.defaultvalue);
 
 		if (!cv_cam2_dist.changed)
-			CV_Set(&cv_cam2_dist, cv_cam2_dist.defaultvalue);
+			CV_Set(&cv_cam2_dist, cv_cam2_dist.defaultvalue);*/
+
+		// Though, I don't think anyone would care about cam_rotate being reset back to the only value that makes sense :P
+		if (!cv_cam_rotate.changed)
+			CV_Set(&cv_cam_rotate, cv_cam_rotate.defaultvalue);
 
 		if (!cv_cam2_rotate.changed)
 			CV_Set(&cv_cam2_rotate, cv_cam2_rotate.defaultvalue);
@@ -2742,7 +2917,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Remove the loading shit from the screen
 	if (rendermode != render_none)
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (ranspecialwipe) ? 0 : 31);
 
 	if (precache || dedicated)
 		R_PrecacheLevel();
@@ -2775,7 +2950,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		savedata.lives = 0;
 	}
 
-	skyVisible = true; // assume the skybox is visible on level load.
+	skyVisible = skyVisible1 = skyVisible2 = true; // assume the skybox is visible on level load.
 	if (loadprecip) // uglier hack
 	{ // to make a newly loaded level start on the second frame.
 		INT32 buf = gametic % BACKUPTICS;
@@ -2897,6 +3072,9 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 		R_LoadTextures(); // numtexture changes
 	else
 		R_FlushTextureCache(); // just reload it from file
+
+	// Reload ANIMATED / ANIMDEFS
+	P_InitPicAnims();
 
 	// Flush and reload HUD graphics
 	ST_UnloadGraphics();

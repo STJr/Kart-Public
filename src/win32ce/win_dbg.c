@@ -357,7 +357,7 @@ int __cdecl RecordExceptionInfo (PEXCEPTION_POINTERS data/*, LPCSTR Message, LPS
 	FPrintf (fileHandle, "Email Sonic Team Junior so we can fix the bugs\r\n"); // Tails
 	FPrintf (fileHandle, "Make sure you tell us what you were doing to cause the crash, and if possible, record a demo!\r\n"); // Tails
 	FPrintf (fileHandle, "\r\n\r\n\r\n\r\n");
-	FPrintf (fileHandle, "SRB2 %s -ERROR LOG-\r\n\r\n", VERSIONSTRING);
+	FPrintf (fileHandle, "SRB2Kart %s -ERROR LOG-\r\n\r\n", VERSIONSTRING);
 	FPrintf (fileHandle, "\r\n");
 	// VirtualQuery can be used to get the allocation base associated with a
 	// code address, which is the same as the ModuleHandle. This can be used

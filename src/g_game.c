@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -45,6 +45,7 @@
 #include "b_bot.h"
 #include "m_cond.h" // condition sets
 #include "md5.h" // demo checksums
+#include "k_kart.h" // SRB2kart
 
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
@@ -60,8 +61,9 @@ JoyType_t Joystick2;
 // 1024 bytes is plenty for a savegame
 #define SAVEGAMESIZE (1024)
 
-char gamedatafilename[64] = "gamedata.dat";
-char timeattackfolder[64] = "main";
+// SRB2kart
+char gamedatafilename[64] = "kartdata.dat";
+char timeattackfolder[64] = "kart";
 char customversionstring[32] = "\0";
 
 static void G_DoCompleted(void);
@@ -69,8 +71,10 @@ static void G_DoStartContinue(void);
 static void G_DoContinued(void);
 static void G_DoWorldDone(void);
 
+char   mapmusname[7]; // Music name
+UINT16 mapmusflags; // Track and reset bit
+
 INT16 gamemap = 1;
-UINT32 mapmusic; // music, track, and reset bit
 INT16 maptol;
 UINT8 globalweather = 0;
 INT32 curWeather = PRECIP_NONE;
@@ -186,11 +190,16 @@ boolean CheckForReverseGravity;
 // Powerup durations
 UINT16 invulntics = 20*TICRATE;
 UINT16 sneakertics = 20*TICRATE;
-UINT16 flashingtics = 3*TICRATE;
+UINT16 flashingtics = 3*TICRATE/2; // SRB2kart
 UINT16 tailsflytics = 8*TICRATE;
 UINT16 underwatertics = 30*TICRATE;
 UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
 UINT16 extralifetics = 4*TICRATE;
+
+// SRB2kart
+INT32 bootime = 7*TICRATE;
+INT32 mushroomtime = TICRATE + (TICRATE/3);
+INT32 itemtime = 8*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 
@@ -293,9 +302,6 @@ static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 #endif
 #if JOYAXISSET > 2
 {5, "RTrigger"}, {6, "LTrigger"}, {-5, "RTrigger-"}, {-6, "LTrigger-"},
-#endif
-#if JOYAXISSET > 3
-{7, "Pitch"}, {8, "Roll"}, {-7, "Pitch-"}, {-8, "Roll-"},
 #endif
 #if JOYAXISSET > 3
 {7, "Pitch"}, {8, "Roll"}, {-7, "Pitch-"}, {-8, "Roll-"},
@@ -441,7 +447,7 @@ consvar_t cv_firenaxis2 = {"joyaxis2_firenormal", "None", CV_SAVE, joyaxis_cons_
 #endif
 
 
-#if MAXPLAYERS > 32
+#if MAXPLAYERS > 16
 #error "please update player_name table using the new value for MAXPLAYERS"
 #endif
 
@@ -466,24 +472,8 @@ char player_names[MAXPLAYERS][MAXPLAYERNAME+1] =
 	"Player 13",
 	"Player 14",
 	"Player 15",
-	"Player 16",
-	"Player 17",
-	"Player 18",
-	"Player 19",
-	"Player 20",
-	"Player 21",
-	"Player 22",
-	"Player 23",
-	"Player 24",
-	"Player 25",
-	"Player 26",
-	"Player 27",
-	"Player 28",
-	"Player 29",
-	"Player 30",
-	"Player 31",
-	"Player 32"
-};
+	"Player 16"
+}; // SRB2kart - removed Players 17 through 32
 
 INT16 rw_maximums[NUM_WEAPONS] =
 {
@@ -712,6 +702,10 @@ void G_SetGameModified(boolean silent)
 
 	if (!silent)
 		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to record statistics.\n"));
+
+	// If in record attack recording, cancel it.
+	if (modeattacking)
+		M_EndModeAttackRun();
 }
 
 /** Builds an original game map name from a map number.
@@ -723,7 +717,7 @@ void G_SetGameModified(boolean silent)
   */
 const char *G_BuildMapName(INT32 map)
 {
-	static char mapname[9] = "MAPXX"; // internal map name (wad resource name)
+	static char mapname[10] = "MAPXX"; // internal map name (wad resource name)
 
 	I_Assert(map > 0);
 	I_Assert(map <= NUMMAPS);
@@ -947,7 +941,7 @@ angle_t localangle, localangle2;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
-static fixed_t angleturn[3] = {640, 1280, 320}; // + slow turn
+static fixed_t angleturn[3] = {400, 800, 200}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 {
@@ -961,7 +955,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 
 	static INT32 turnheld; // for accelerative turning
 	static boolean keyboard_look; // true if lookup/down using keyboard
-	static boolean resetdown; // don't cam reset every frame
 
 	G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
 
@@ -1010,10 +1003,10 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	if (cv_analog.value || twodlevel
 		|| (player->mo && (player->mo->flags2 & MF2_TWOD))
-		|| player->climbing
+		|| (!demoplayback && (player->climbing
 		|| (player->pflags & PF_NIGHTSMODE)
 		|| (player->pflags & PF_SLIDING)
-		|| (player->pflags & PF_FORCESTRAFE)) // Analog
+		|| (player->pflags & PF_FORCESTRAFE)))) // Analog
 			forcestrafe = true;
 	if (forcestrafe) // Analog
 	{
@@ -1030,9 +1023,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		if (turnright)
+		if (turnright && !(turnleft))
 			cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
-		else if (turnleft)
+		else if (turnleft && !(turnright))
 			cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
 
 		if (analogjoystickmove && axis != 0)
@@ -1042,6 +1035,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		}
 	}
 
+	/*
 	axis = JoyAxis(AXISSTRAFE);
 	if (gamepadjoystickmove && axis != 0)
 	{
@@ -1055,28 +1049,51 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
 		side += ((axis * sidemove[1]) >> 10);
 	}
+	*/
 
-	// forward with key or button
+	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
+	if (PLAYER1INPUTDOWN(gc_accelerate) || player->kartstuff[k_mushroomtimer])
+	{
+		cmd->buttons |= BT_ACCELERATE;
+		forward = forwardmove[1];	// 50
+	}
+	if (PLAYER1INPUTDOWN(gc_brake))
+	{
+		cmd->buttons |= BT_BRAKE;
+		forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+	}
+	// But forward/backward IS used for aiming.
 	axis = JoyAxis(AXISMOVE);
+	if (PLAYER1INPUTDOWN(gc_aimforward) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+		cmd->buttons |= BT_FORWARD;
+	if (PLAYER1INPUTDOWN(gc_aimbackward) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+		cmd->buttons |= BT_BACKWARD;
+	/*
 	if (PLAYER1INPUTDOWN(gc_forward) || (gamepadjoystickmove && axis < 0))
 		forward = forwardmove[speed];
 	if (PLAYER1INPUTDOWN(gc_backward) || (gamepadjoystickmove && axis > 0))
 		forward -= forwardmove[speed];
+	*/
 
+	/*
 	if (analogjoystickmove && axis != 0)
 		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
+	*/
 
 	// some people strafe left & right with mouse buttons
 	// those people are weird
+
+	/* // SRB2kart - these aren't used in kart
 	if (PLAYER1INPUTDOWN(gc_straferight))
 		side += sidemove[speed];
 	if (PLAYER1INPUTDOWN(gc_strafeleft))
 		side -= sidemove[speed];
 
-	if (PLAYER1INPUTDOWN(gc_weaponnext))
+	if (PLAYER1INPUTDOWN(gc_driftleft))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
-	if (PLAYER1INPUTDOWN(gc_weaponprev))
+	if (PLAYER1INPUTDOWN(gc_driftright))
 		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
+	*/
 
 #if NUM_WEAPONS > 10
 "Add extra inputs to g_input.h/gamecontrols_e"
@@ -1096,12 +1113,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_ATTACK;
 
 	// fire normal with any button/key
+	/*
 	axis = JoyAxis(AXISFIRENORMAL);
-	if (PLAYER1INPUTDOWN(gc_firenormal) || (cv_usejoystick.value && axis > 0))
-		cmd->buttons |= BT_FIRENORMAL;
+	if (PLAYER1INPUTDOWN(gc_accelerate) || (cv_usejoystick.value && axis > 0))
+		cmd->buttons |= BT_ACCELERATE;
+	*/
 
-	if (PLAYER1INPUTDOWN(gc_tossflag))
-		cmd->buttons |= BT_TOSSFLAG;
+	if (PLAYER1INPUTDOWN(gc_spectate))
+		cmd->buttons |= BT_SPECTATE;
 
 	// Lua scriptable buttons
 	if (PLAYER1INPUTDOWN(gc_custom1))
@@ -1112,26 +1131,31 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_CUSTOM3;
 
 	// use with any button/key
-	if (PLAYER1INPUTDOWN(gc_use))
-		cmd->buttons |= BT_USE;
+	/*
+	if (PLAYER1INPUTDOWN(gc_brake))
+		cmd->buttons |= BT_BRAKE;
+	*/
 
 	// Camera Controls
+	/*
 	if (cv_debug || cv_analog.value || demoplayback || objectplacing || player->pflags & PF_NIGHTSMODE)
 	{
-		if (PLAYER1INPUTDOWN(gc_camleft))
-			cmd->buttons |= BT_CAMLEFT;
-		if (PLAYER1INPUTDOWN(gc_camright))
-			cmd->buttons |= BT_CAMRIGHT;
+		if (PLAYER1INPUTDOWN(gc_aimforward))
+			cmd->buttons |= BT_FORWARD;
+		if (PLAYER1INPUTDOWN(gc_aimbackward))
+			cmd->buttons |= BT_BACKWARD;
 	}
+	*/
 
-	if (PLAYER1INPUTDOWN(gc_camreset))
+	/*
+	if (PLAYER1INPUTDOWN(gc_lookback))
 	{
-		if (camera.chase && !resetdown)
-			P_ResetCamera(&players[displayplayer], &camera);
-		resetdown = true;
+		if (camera.chase && !player->kartstuff[k_camspin])
+			player->kartstuff[k_camspin] = 1;
 	}
-	else
-		resetdown = false;
+	else if (player->kartstuff[k_camspin] > 0)
+		player->kartstuff[k_camspin] = -1;
+	*/
 
 	// jump button
 	if (PLAYER1INPUTDOWN(gc_jump))
@@ -1185,8 +1209,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	if (!mouseaiming && cv_mousemove.value)
 		forward += mousey;
 
-	if (cv_analog.value || player->climbing
-		|| (player->pflags & PF_SLIDING)) // Analog for mouse
+	if (cv_analog.value ||
+		(!demoplayback && (player->climbing
+		|| (player->pflags & PF_SLIDING)))) // Analog for mouse
 		side += mousex*2;
 	else
 		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*8));
@@ -1221,6 +1246,20 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	//{ SRB2kart - Drift support
+	axis = JoyAxis(AXISTURN);
+
+	if (cmd->angleturn > 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+
+	if (cmd->angleturn < 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	//}
+
 	if (cv_analog.value) {
 		cmd->angleturn = (INT16)(thiscam->angle >> 16);
 		if (player->awayviewtics)
@@ -1228,7 +1267,19 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		localangle += (cmd->angleturn<<16);
+		// limit turning to angleturn[1] to stop mouselook letting you look too fast
+		if (cmd->angleturn > angleturn[1])
+			cmd->angleturn = angleturn[1];
+		else if (cmd->angleturn < -angleturn[1])
+			cmd->angleturn = -angleturn[1];
+
+		if (player->mo)
+			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+
+		// SRB2kart - no additional angle if not moving
+		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
+			localangle += (cmd->angleturn<<16);
+
 		cmd->angleturn = (INT16)(localangle >> 16);
 	}
 
@@ -1332,6 +1383,7 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		}
 	}
 
+	/*
 	axis = Joy2Axis(AXISSTRAFE);
 	if (gamepadjoystickmove && axis != 0)
 	{
@@ -1345,16 +1397,30 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
 		side += ((axis * sidemove[1]) >> 10);
 	}
+	*/
 
 	// forward with key or button
+	if (PLAYER2INPUTDOWN(gc_accelerate) || player->kartstuff[k_mushroomtimer])
+	{
+		cmd->buttons |= BT_ACCELERATE;
+		forward = forwardmove[1];
+	}
+	if (PLAYER2INPUTDOWN(gc_brake))
+	{
+		cmd->buttons |= BT_BRAKE;
+		forward -= forwardmove[0];
+	}
+	// forward/backward is used for aiming.
 	axis = Joy2Axis(AXISMOVE);
-	if (PLAYER2INPUTDOWN(gc_forward) || (gamepadjoystickmove && axis < 0))
-		forward = forwardmove[speed];
-	if (PLAYER2INPUTDOWN(gc_backward) || (gamepadjoystickmove && axis > 0))
-		forward -= forwardmove[speed];
+	if (PLAYER2INPUTDOWN(gc_aimforward) || (gamepadjoystickmove && axis < 0))
+		cmd->buttons |= BT_FORWARD;
+	if (PLAYER2INPUTDOWN(gc_aimbackward) || (gamepadjoystickmove && axis > 0))
+		cmd->buttons |= BT_BACKWARD;
 
+	/*
 	if (analogjoystickmove && axis != 0)
 		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
+	*/
 
 	// some people strafe left & right with mouse buttons
 	// those people are (still) weird
@@ -1363,10 +1429,12 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	if (PLAYER2INPUTDOWN(gc_strafeleft))
 		side -= sidemove[speed];
 
+	/* // SRB2kart - these aren't used in kart
 	if (PLAYER2INPUTDOWN(gc_weaponnext))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
 	if (PLAYER2INPUTDOWN(gc_weaponprev))
 		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
+	*/
 
 	//use the four avaliable bits to determine the weapon.
 	cmd->buttons &= ~BT_WEAPONMASK;
@@ -1383,12 +1451,14 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_ATTACK;
 
 	// fire normal with any button/key
+	/*
 	axis = Joy2Axis(AXISFIRENORMAL);
-	if (PLAYER2INPUTDOWN(gc_firenormal) || (cv_usejoystick2.value && axis > 0))
-		cmd->buttons |= BT_FIRENORMAL;
+	if (PLAYER2INPUTDOWN(gc_accelerate) || (cv_usejoystick2.value && axis > 0))
+		cmd->buttons |= BT_ACCELERATE;
+	*/
 
-	if (PLAYER2INPUTDOWN(gc_tossflag))
-		cmd->buttons |= BT_TOSSFLAG;
+	if (PLAYER2INPUTDOWN(gc_spectate))
+		cmd->buttons |= BT_SPECTATE;
 
 	// Lua scriptable buttons
 	if (PLAYER2INPUTDOWN(gc_custom1))
@@ -1399,22 +1469,22 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 		cmd->buttons |= BT_CUSTOM3;
 
 	// use with any button/key
-	if (PLAYER2INPUTDOWN(gc_use))
-		cmd->buttons |= BT_USE;
+	if (PLAYER2INPUTDOWN(gc_brake))
+		cmd->buttons |= BT_BRAKE;
 
 	// Camera Controls
 	if (cv_debug || cv_analog2.value || player->pflags & PF_NIGHTSMODE)
 	{
-		if (PLAYER2INPUTDOWN(gc_camleft))
-			cmd->buttons |= BT_CAMLEFT;
-		if (PLAYER2INPUTDOWN(gc_camright))
-			cmd->buttons |= BT_CAMRIGHT;
+		if (PLAYER2INPUTDOWN(gc_aimforward))
+			cmd->buttons |= BT_FORWARD;
+		if (PLAYER2INPUTDOWN(gc_aimbackward))
+			cmd->buttons |= BT_BACKWARD;
 	}
 
-	if (PLAYER2INPUTDOWN(gc_camreset))
+	if (PLAYER2INPUTDOWN(gc_lookback))
 	{
 		if (camera2.chase && !resetdown)
-			P_ResetCamera(&players[secondarydisplayplayer], &camera2);
+			P_ResetCamera(&players[secondarydisplayplayer], &camera2); // TODO: Replace with a camflip
 		resetdown = true;
 	}
 	else
@@ -1508,6 +1578,20 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	//{ SRB2kart - Drift support
+	axis = Joy2Axis(AXISTURN);
+
+	if (cmd->angleturn > 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+
+	if (cmd->angleturn < 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	//}
+
 	if (player->bot == 1) {
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
 		{
@@ -1528,7 +1612,19 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	}
 	else
 	{
-		localangle2 += (cmd->angleturn<<16);
+		// limit turning to angleturn[1] to stop mouselook letting you look too fast
+		if (cmd->angleturn > angleturn[1])
+			cmd->angleturn = angleturn[1];
+		else if (cmd->angleturn < -angleturn[1])
+			cmd->angleturn = -angleturn[1];
+
+		if (player->mo)
+			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+
+		// SRB2kart - no additional angle if not moving
+		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
+			localangle2 += (cmd->angleturn<<16);
+
 		cmd->angleturn = (INT16)(localangle2 >> 16);
 	}
 }
@@ -1561,11 +1657,6 @@ static void Analog_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	if (leveltime > 1)
-		CV_SetValue(&cv_cam_dist, 128);
-	if (cv_analog.value || demoplayback)
-		CV_SetValue(&cv_cam_dist, 192);
-
 	if (!cv_chasecam.value && cv_analog.value) {
 		CV_SetValue(&cv_analog, 0);
 		return;
@@ -1585,11 +1676,6 @@ static void Analog2_OnChange(void)
 		return;
 
 	// cameras are not initialized at this point
-
-	if (leveltime > 1)
-		CV_SetValue(&cv_cam2_dist, 128);
-	if (cv_analog2.value)
-		CV_SetValue(&cv_cam2_dist, 192);
 
 	if (!cv_chasecam2.value && cv_analog2.value) {
 		CV_SetValue(&cv_analog2, 0);
@@ -1882,6 +1968,7 @@ void G_Ticker(boolean run)
 {
 	UINT32 i;
 	INT32 buf;
+	ticcmd_t *cmd;
 
 	P_MapStart();
 	// do player reborns if needed
@@ -1922,8 +2009,22 @@ void G_Ticker(boolean run)
 	// read/write demo and check turbo cheat
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		cmd = &players[i].cmd;
+
 		if (playeringame[i])
-			G_CopyTiccmd(&players[i].cmd, &netcmds[buf][i], 1);
+		{
+			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
+
+			// SRB2kart
+			// Save the dir the player is holding
+			//  to allow items to be thrown forward or backward.
+			if (cmd->buttons & BT_FORWARD)
+					players[i].kartstuff[k_throwdir] = 1;
+			else if (cmd->buttons & BT_BACKWARD)
+					players[i].kartstuff[k_throwdir] = -1;
+			else
+					players[i].kartstuff[k_throwdir] = 0;
+		}
 	}
 
 	// do main actions
@@ -2018,6 +2119,8 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p = &players[player];
 
 	memset(p->powers, 0, sizeof (p->powers));
+	memset(p->kartstuff, 0, sizeof (p->kartstuff)); // SRB2kart
+	memset(p->collide, 0, sizeof (p->collide)); // SRB2kart
 	p->ringweapons = 0;
 
 	p->mo->flags2 &= ~MF2_SHADOW; // cancel invisibility
@@ -2045,6 +2148,10 @@ void G_PlayerReborn(INT32 player)
 	INT32 continues;
 	UINT8 charability;
 	UINT8 charability2;
+	// SRB2kart
+	UINT8 kartspeed;
+	UINT8 kartweight;
+	//
 	fixed_t normalspeed;
 	fixed_t runspeed;
 	UINT8 thrustfactor;
@@ -2078,6 +2185,10 @@ void G_PlayerReborn(INT32 player)
 	INT16 bot;
 	SINT8 pity;
 
+	// SRB2kart
+	INT32 starpostwp;
+	INT32 offroad;
+
 	score = players[player].score;
 	lives = players[player].lives;
 	continues = players[player].continues;
@@ -2099,6 +2210,10 @@ void G_PlayerReborn(INT32 player)
 	skin = players[player].skin;
 	charability = players[player].charability;
 	charability2 = players[player].charability2;
+	// SRB2kart
+	kartspeed = players[player].kartspeed;
+	kartweight = players[player].kartweight;
+	//
 	normalspeed = players[player].normalspeed;
 	runspeed = players[player].runspeed;
 	thrustfactor = players[player].thrustfactor;
@@ -2124,6 +2239,10 @@ void G_PlayerReborn(INT32 player)
 	bot = players[player].bot;
 	pity = players[player].pity;
 
+	// SRB2kart
+	starpostwp = players[player].kartstuff[k_starpostwp];
+	offroad = players[player].kartstuff[k_offroad];
+
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
 
@@ -2140,6 +2259,10 @@ void G_PlayerReborn(INT32 player)
 	p->skin = skin;
 	p->charability = charability;
 	p->charability2 = charability2;
+	// SRB2kart
+	p->kartspeed = kartspeed;
+	p->kartweight = kartweight;
+	//
 	p->normalspeed = normalspeed;
 	p->runspeed = runspeed;
 	p->thrustfactor = thrustfactor;
@@ -2171,6 +2294,10 @@ void G_PlayerReborn(INT32 player)
 		p->bot = 1; // reset to AI-controlled
 	p->pity = pity;
 
+	// SRB2kart
+	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
+	p->kartstuff[k_offroad] = offroad;
+
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
 	p->pflags |= PF_ATTACKDOWN;
@@ -2180,19 +2307,28 @@ void G_PlayerReborn(INT32 player)
 	p->health = 1; // 0 rings
 	p->panim = PA_IDLE; // standing animation
 
-	if ((netgame || multiplayer) && !p->spectator
-	&& gametype != GT_RACE)
+	if ((netgame || multiplayer) && !p->spectator)
 		p->powers[pw_flashing] = flashingtics-1; // Babysitting deterrent
 
 	if (p-players == consoleplayer)
 	{
-		if (mapmusic & MUSIC_RELOADRESET) // TODO: Might not need this here
+		if (mapmusflags & MUSIC_RELOADRESET)
 		{
-			mapmusic = mapheaderinfo[gamemap-1]->musicslot
-				| (mapheaderinfo[gamemap-1]->musicslottrack << MUSIC_TRACKSHIFT);
+			strncpy(mapmusname, mapheaderinfo[gamemap-1]->musname, 7);
+			mapmusname[6] = 0;
+			mapmusflags = mapheaderinfo[gamemap-1]->mustrack & MUSIC_TRACKMASK;
 		}
-		S_ChangeMusic(mapmusic, true);
+		//SRB2kart - leveltime stuff
+		if (leveltime > 157)
+		{
+			S_ChangeMusic(mapmusname, mapmusflags, true);
+			if (p->laps == (unsigned)(cv_numlaps.value - 1))
+				S_SpeedMusic(1.2f);
+		}
 	}
+
+	if (leveltime > 157)
+		p->kartstuff[k_lakitu] = 48; // Lakitu Spawner
 
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for
@@ -2284,6 +2420,9 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 	if (starpost) //Don't even bother with looking for a place to spawn.
 	{
 		P_MovePlayerToStarpost(playernum);
+#ifdef HAVE_BLUA
+		LUAh_PlayerSpawn(&players[playernum]); // Lua hook for player spawning :)
+#endif
 		return;
 	}
 
@@ -2332,6 +2471,11 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 		}
 	}
 	P_MovePlayerToSpawn(playernum, spawnpoint);
+
+#ifdef HAVE_BLUA
+	LUAh_PlayerSpawn(&players[playernum]); // Lua hook for player spawning :)
+#endif
+
 }
 
 mapthing_t *G_FindCTFStart(INT32 playernum)
@@ -2345,7 +2489,7 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		return NULL;
 	}
 
-	if ((!players[playernum].ctfteam && numredctfstarts && (!numbluectfstarts || P_Random() & 1)) || players[playernum].ctfteam == 1) //red
+	if ((!players[playernum].ctfteam && numredctfstarts && (!numbluectfstarts || P_RandomChance(FRACUNIT/2))) || players[playernum].ctfteam == 1) //red
 	{
 		if (!numredctfstarts)
 		{
@@ -2514,7 +2658,7 @@ void G_DoReborn(INT32 playernum)
 			// Do a wipe
 			wipegamestate = -1;
 
-			if (player->starposttime)
+			if (player->starpostnum) // SRB2kart
 				starpost = true;
 
 			if (camera.chase)
@@ -2559,7 +2703,7 @@ void G_DoReborn(INT32 playernum)
 		// respawn at the start
 		mobj_t *oldmo = NULL;
 
-		if (player->starposttime)
+		if (player->starpostnum) // SRB2kart
 			starpost = true;
 
 		// first dissasociate the corpse
@@ -2700,7 +2844,7 @@ boolean G_TagGametype(void)
 INT16 G_TOLFlag(INT32 pgametype)
 {
 	if (!multiplayer)                 return TOL_SP;
-	if (pgametype == GT_COOP)         return TOL_COOP;
+	if (pgametype == GT_COOP)         return TOL_RACE; // SRB2kart
 	if (pgametype == GT_COMPETITION)  return TOL_COMPETITION;
 	if (pgametype == GT_RACE)         return TOL_RACE;
 	if (pgametype == GT_MATCH)        return TOL_MATCH;
@@ -2875,10 +3019,11 @@ static void G_DoCompleted(void)
 
 	// We are committed to this map now.
 	// We may as well allocate its header if it doesn't exist
-	if(!mapheaderinfo[nextmap])
+	// (That is, if it's a real map)
+	if (nextmap < NUMMAPS && !mapheaderinfo[nextmap])
 		P_AllocMapHeader(nextmap);
 
-	if (skipstats)
+	if (skipstats && !modeattacking) // Don't skip stats if we're in record attack
 		G_AfterIntermission();
 	else
 	{
@@ -2917,7 +3062,7 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		if (gametype == GT_COOP)
+		if (gametype == GT_RACE) // SRB2kart
 			// don't reset player between maps
 			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 		else
@@ -3041,7 +3186,7 @@ void G_LoadGameData(void)
 	// Version check
 	if (READUINT32(save_p) != 0xFCAFE211)
 	{
-		const char *gdfolder = "the SRB2 folder";
+		const char *gdfolder = "the SRB2Kart folder";
 		if (strcmp(srb2home,"."))
 			gdfolder = srb2home;
 
@@ -3151,7 +3296,7 @@ void G_LoadGameData(void)
 	// Landing point for corrupt gamedata
 	datacorrupt:
 	{
-		const char *gdfolder = "the SRB2 folder";
+		const char *gdfolder = "the SRB2Kart folder";
 		if (strcmp(srb2home,"."))
 			gdfolder = srb2home;
 
@@ -3525,7 +3670,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	if (paused)
 	{
 		paused = false;
-		S_ResumeSound();
+		S_ResumeAudio();
 	}
 
 	if (netgame || multiplayer) // Nice try, haxor.
@@ -3599,7 +3744,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	globalweather = mapheaderinfo[gamemap-1]->weather;
 
 	// Don't carry over custom music change to another map.
-	mapmusic |= MUSIC_RELOADRESET;
+	mapmusflags |= MUSIC_RELOADRESET;
 
 	ultimatemode = pultmode;
 	playerdeadview = false;
@@ -3637,7 +3782,12 @@ char *G_BuildMapTitle(INT32 mapnum)
 		const INT32 actnum = mapheaderinfo[mapnum-1]->actnum;
 
 		len += strlen(mapheaderinfo[mapnum-1]->lvlttl);
-		if (!(mapheaderinfo[mapnum-1]->levelflags & LF_NOZONE))
+		if (strcmp(mapheaderinfo[mapnum-1]->zonttl, ""))
+		{
+			zonetext = M_GetText(mapheaderinfo[mapnum-1]->zonttl);
+			len += strlen(zonetext) + 1;	// ' ' + zonetext
+		}
+		else if (!(mapheaderinfo[mapnum-1]->levelflags & LF_NOZONE))
 		{
 			zonetext = M_GetText("ZONE");
 			len += strlen(zonetext) + 1;	// ' ' + zonetext
@@ -3751,7 +3901,7 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 	if (ziptic & ZT_ANGLE)
 		oldcmd.angleturn = READINT16(demo_p);
 	if (ziptic & ZT_BUTTONS)
-		oldcmd.buttons = (oldcmd.buttons & (BT_CAMLEFT|BT_CAMRIGHT)) | (READUINT16(demo_p) & ~(BT_CAMLEFT|BT_CAMRIGHT));
+		oldcmd.buttons = (oldcmd.buttons & (BT_FORWARD|BT_BACKWARD)) | (READUINT16(demo_p) & ~(BT_FORWARD|BT_BACKWARD));
 	if (ziptic & ZT_AIMING)
 		oldcmd.aiming = READINT16(demo_p);
 
@@ -3862,7 +4012,7 @@ void G_GhostAddColor(ghostcolor_t color)
 	ghostext.color = (UINT8)color;
 }
 
-void G_GhostAddScale(UINT16 scale)
+void G_GhostAddScale(fixed_t scale)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
@@ -4330,20 +4480,8 @@ void G_GhostTicker(void)
 		switch(g->color)
 		{
 		case GHC_SUPER: // Super Sonic (P_DoSuperStuff)
-			// Yousa yellow now!
-			g->mo->color = SKINCOLOR_SUPER1 + (leveltime/2) % 5;
-			if (g->mo->skin)
-				switch (((skin_t*)g->mo->skin)-skins)
-				{
-				case 1: // Golden orange supertails.
-					g->mo->color = SKINCOLOR_TSUPER1 + (leveltime/2) % 5;
-					break;
-				case 2: // Pink superknux.
-					g->mo->color = SKINCOLOR_KSUPER1 + (leveltime/2) % 5;
-					break;
-				default:
-					break;
-				}
+			g->mo->color = SKINCOLOR_SUPER1;
+			g->mo->color += abs( ( (signed)( (unsigned)leveltime >> 1 ) % 9) - 4);
 			break;
 		case GHC_INVINCIBLE: // Mario invincibility (P_CheckInvincibilityTimer)
 			g->mo->color = (UINT8)(leveltime % MAXSKINCOLORS);
@@ -4685,6 +4823,10 @@ void G_BeginRecording(void)
 	WRITEUINT8(demo_p,player->actionspd>>FRACBITS);
 	WRITEUINT8(demo_p,player->mindash>>FRACBITS);
 	WRITEUINT8(demo_p,player->maxdash>>FRACBITS);
+	// SRB2kart
+	WRITEUINT8(demo_p,player->kartspeed>>FRACBITS);
+	WRITEUINT8(demo_p,player->kartweight>>FRACBITS);
+	//
 	WRITEUINT8(demo_p,player->normalspeed>>FRACBITS);
 	WRITEUINT8(demo_p,player->runspeed>>FRACBITS);
 	WRITEUINT8(demo_p,player->thrustfactor);
@@ -4920,7 +5062,7 @@ void G_DoPlayDemo(char *defdemoname)
 	char skin[17],color[17],*n,*pdemoname;
 	UINT8 version,subversion,charability,charability2,thrustfactor,accelstart,acceleration;
 	UINT32 randseed;
-	fixed_t actionspd,mindash,maxdash,normalspeed,runspeed,jumpfactor;
+	fixed_t actionspd,mindash,maxdash,kartspeed,kartweight,normalspeed,runspeed,jumpfactor;
 	char msg[1024];
 
 	skin[16] = '\0';
@@ -4965,7 +5107,7 @@ void G_DoPlayDemo(char *defdemoname)
 	demoplayback = true;
 	if (memcmp(demo_p, DEMOHEADER, 12))
 	{
-		snprintf(msg, 1024, M_GetText("%s is not a SRB2 replay file.\n"), pdemoname);
+		snprintf(msg, 1024, M_GetText("%s is not a SRB2Kart replay file.\n"), pdemoname);
 		CONS_Alert(CONS_ERROR, "%s", msg);
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
@@ -5061,6 +5203,10 @@ void G_DoPlayDemo(char *defdemoname)
 	actionspd = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+	// SRB2kart
+	kartspeed = READUINT8(demo_p)<<FRACBITS;
+	kartweight = READUINT8(demo_p)<<FRACBITS;
+	//
 	normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
 	thrustfactor = READUINT8(demo_p);
@@ -5105,14 +5251,15 @@ void G_DoPlayDemo(char *defdemoname)
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = true;
 	P_SetRandSeed(randseed);
-	G_InitNew(false, G_BuildMapName(gamemap), true, true);
+	//G_InitNew(false, G_BuildMapName(gamemap), true, true); // resetplayer needs to be false to retain score
+	G_InitNew(false, G_BuildMapName(gamemap), false, true);
 
 	// Set skin
 	SetPlayerSkin(0, skin);
 
 	// Set color
 	for (i = 0; i < MAXSKINCOLORS; i++)
-		if (!stricmp(Color_Names[i],color))
+		if (!stricmp(KartColor_Names[i],color))				// SRB2kart
 		{
 			players[0].skincolor = i;
 			break;
@@ -5134,6 +5281,10 @@ void G_DoPlayDemo(char *defdemoname)
 	players[0].actionspd = actionspd;
 	players[0].mindash = mindash;
 	players[0].maxdash = maxdash;
+	// SRB2kart
+	players[0].kartspeed = kartspeed;
+	players[0].kartweight = kartweight;
+	//
 	players[0].normalspeed = normalspeed;
 	players[0].runspeed = runspeed;
 	players[0].thrustfactor = thrustfactor;
@@ -5192,7 +5343,7 @@ void G_AddGhost(char *defdemoname)
 	// read demo header
 	if (memcmp(p, DEMOHEADER, 12))
 	{
-		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Not a SRB2 replay.\n"), pdemoname);
+		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Not a SRB2Kart replay.\n"), pdemoname);
 		Z_Free(pdemoname);
 		Z_Free(buffer);
 		return;
@@ -5276,6 +5427,10 @@ void G_AddGhost(char *defdemoname)
 	p++; // actionspd
 	p++; // mindash
 	p++; // maxdash
+	// SRB2kart
+	p++; // kartspeed
+	p++; // kartweight
+	//
 	p++; // normalspeed
 	p++; // runspeed
 	p++; // thrustfactor
@@ -5336,7 +5491,7 @@ void G_AddGhost(char *defdemoname)
 		gh->mo = P_SpawnMobj(x, y, z, MT_GHOST);
 		gh->mo->angle = FixedAngle(mthing->angle*FRACUNIT);
 	}
-	gh->mo->state = states+S_PLAY_STND;
+	gh->mo->state = states+S_KART_STND; // SRB2kart - was S_PLAY_STND
 	gh->mo->sprite = gh->mo->state->sprite;
 	gh->mo->frame = (gh->mo->state->frame & FF_FRAMEMASK) | tr_trans20<<FF_TRANSSHIFT;
 	gh->mo->tics = -1;
@@ -5358,7 +5513,7 @@ void G_AddGhost(char *defdemoname)
 	// Set color
 	gh->mo->color = ((skin_t*)gh->mo->skin)->prefcolor;
 	for (i = 0; i < MAXSKINCOLORS; i++)
-		if (!stricmp(Color_Names[i],color))
+		if (!stricmp(KartColor_Names[i],color))				// SRB2kart
 		{
 			gh->mo->color = (UINT8)i;
 			break;
@@ -5494,7 +5649,7 @@ ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void)
 		UINT8 i;
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 		for (i = 0; i < 16; i++, p++)
-			*p = P_Random(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
+			*p = P_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
 #else
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 		md5_buffer((char *)p+16, demo_p - (p+16), (void *)p); // make a checksum of everything after the checksum in the file.
@@ -5576,16 +5731,16 @@ boolean G_CheckDemoStatus(void)
 		UINT8 i;
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 		for (i = 0; i < 16; i++, p++)
-			*p = P_Random(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
+			*p = P_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
 #else
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 		md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
 #endif
-		saved = FIL_WriteFile(demoname, demobuffer, demo_p - demobuffer); // finally output the file.
+		saved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
 		free(demobuffer);
 		demorecording = false;
 
-		if (!modeattacking == ATTACKING_RECORD)
+		if (modeattacking != ATTACKING_RECORD)
 		{
 			if (saved)
 				CONS_Printf(M_GetText("Demo %s recorded\n"), demoname);

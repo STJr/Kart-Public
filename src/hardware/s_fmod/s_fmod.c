@@ -443,7 +443,7 @@ EXPORT INT32 HWRAPI(Startup) (I_Error_t FatalErrorFunction, snddev_t *snd_dev)
 		return inited;
 	}
 	else
-		DBG_Printf("S_FMOD Init(): FMOD_SOUND driver for SRB2 %s\n",VERSIONSTRING);
+		DBG_Printf("S_FMOD Init(): FMOD_SOUND driver for SRB2Kart %s\n",VERSIONSTRING);
 
 	if (!FSOUND_SetMinHardwareChannels(STATIC_SOURCES_NUM*4))
 		DBG_Printf("FMOD(Startup,FSOUND_SetMinHardwareChannels,# of Channels Min: %i): %s\n",STATIC_SOURCES_NUM*4, FMOD_ErrorString(FSOUND_GetError()));

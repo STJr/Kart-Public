@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -31,15 +31,11 @@
 
 // Selected by user.
 extern INT16 gamemap;
-
-// ----------------xxxxxxxxxxxxxxxx = music slot
-// -xxxxxxxxxxxxxxx---------------- = track slot
-// x------------------------------- = reset music bit
-extern UINT32 mapmusic;
-#define MUSIC_TRACKSHIFT  16
-#define MUSIC_SONGMASK    0x0000FFFF
-#define MUSIC_TRACKMASK   0x7FFF0000
-#define MUSIC_RELOADRESET 0x80000000
+extern char mapmusname[7];
+extern UINT16 mapmusflags;
+#define MUSIC_TRACKMASK   0x0FFF // ----************
+#define MUSIC_RELOADRESET 0x8000 // *---------------
+// Use other bits if necessary.
 
 extern INT16 maptol;
 extern UINT8 globalweather;
@@ -146,10 +142,12 @@ typedef struct
 	UINT16 xcoord[8];
 	UINT16 ycoord[8];
 	UINT16 picduration[8];
-	UINT16 musicslot;
 	UINT8 musicloop;
 	UINT16 textxpos;
 	UINT16 textypos;
+
+	char   musswitch[7];
+	UINT16 musswitchflags;
 
 	UINT8 fadecolor; // Color number for fade, 0 means don't do the first fade
 	UINT8 fadeinid;  // ID of the first fade, to a color -- ignored if fadecolor is 0
@@ -215,11 +213,12 @@ typedef struct
 	// The original eight, plus one.
 	char lvlttl[22];       ///< Level name without "Zone". (21 character limit instead of 32, 21 characters can display on screen max anyway)
 	char subttl[33];       ///< Subtitle for level
+	char zonttl[22];       ///< "ZONE" replacement name
 	UINT8 actnum;          ///< Act number or 0 for none.
 	UINT16 typeoflevel;    ///< Combination of typeoflevel flags.
 	INT16 nextlevel;       ///< Map number of next level, or 1100-1102 to end.
-	UINT16 musicslot;      ///< Music slot number to play. 0 for no music.
-	UINT16 musicslottrack; ///< Subsong to play. Only really relevant for music modules and specific formats supported by GME. 0 to ignore.
+	char musname[7];       ///< Music track to play. "" for no music.
+	UINT16 mustrack;       ///< Subsong to play. Only really relevant for music modules and specific formats supported by GME. 0 to ignore.
 	char forcecharacter[17];  ///< (SKINNAMESIZE+1) Skin to switch to or "" to disable.
 	UINT8 weather;         ///< 0 = sunny day, 1 = storm, 2 = snow, 3 = rain, 4 = blank, 5 = thunder w/o rain, 6 = rain w/o lightning, 7 = heat wave.
 	INT16 skynum;          ///< Sky number to use.
@@ -251,6 +250,9 @@ typedef struct
 	// (This is not ifdeffed so the map header structure can stay identical, just in case.)
 	UINT8 numCustomOptions;     ///< Internal. For Lua custom value support.
 	customoption_t *customopts; ///< Custom options. Allocated dynamically for space reasons. Be careful.
+
+	// SRB2kart
+	boolean automap;      ///< Displays a level's white map outline in modified games
 } mapheader_t;
 
 // level flags
@@ -289,7 +291,8 @@ enum TypeOfLevel
 	TOL_MARIO  = 0x0200, ///< Mario
 	TOL_NIGHTS = 0x0400, ///< NiGHTS
 	TOL_ERZ3   = 0x0800, ///< ERZ3
-	TOL_XMAS   = 0x1000  ///< Christmas NiGHTS
+	TOL_XMAS   = 0x1000, ///< Christmas NiGHTS
+	TOL_KART   = 0x4000  ///< Kart 32768
 };
 
 // Gametypes
@@ -395,6 +398,11 @@ extern UINT16 tailsflytics;
 extern UINT16 underwatertics;
 extern UINT16 spacetimetics;
 extern UINT16 extralifetics;
+
+// SRB2kart
+extern INT32 bootime;
+extern INT32 mushroomtime;
+extern INT32 itemtime;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;

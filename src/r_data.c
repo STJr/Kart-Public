@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -304,6 +304,32 @@ done:
 }
 
 //
+// R_GetTextureNum
+//
+// Returns the actual texture id that we should use.
+// This can either be texnum, the current frame for texnum's anim (if animated),
+// or 0 if not valid.
+//
+INT32 R_GetTextureNum(INT32 texnum)
+{
+	if (texnum < 0 || texnum >= numtextures)
+		return 0;
+	return texturetranslation[texnum];
+}
+
+//
+// R_CheckTextureCache
+//
+// Use this if you need to make sure the texture is cached before R_GetColumn calls
+// e.g.: midtextures and FOF walls
+//
+void R_CheckTextureCache(INT32 tex)
+{
+	if (!texturecache[tex])
+		R_GenerateTexture(tex);
+}
+
+//
 // R_GetColumn
 //
 UINT8 *R_GetColumn(fixed_t tex, INT32 col)
@@ -497,7 +523,7 @@ void R_LoadTextures(void)
 static texpatch_t *R_ParsePatch(boolean actuallyLoadPatch)
 {
 	char *texturesToken;
-	UINT8 texturesTokenLength;
+	size_t texturesTokenLength;
 	char *endPos;
 	char *patchName = NULL;
 	INT16 patchXPos;
@@ -623,13 +649,13 @@ static texpatch_t *R_ParsePatch(boolean actuallyLoadPatch)
 static texture_t *R_ParseTexture(boolean actuallyLoadTexture)
 {
 	char *texturesToken;
-	UINT8 texturesTokenLength;
+	size_t texturesTokenLength;
 	char *endPos;
-	char *newTextureName = NULL;
 	INT32 newTextureWidth;
 	INT32 newTextureHeight;
 	texture_t *resultTexture = NULL;
 	texpatch_t *newPatch;
+	char newTextureName[9]; // no longer dynamically allocated
 
 	// Texture name
 	texturesToken = M_GetToken(NULL);
@@ -644,13 +670,10 @@ static texture_t *R_ParseTexture(boolean actuallyLoadTexture)
 	}
 	else
 	{
-		if (newTextureName != NULL)
-		{
-			Z_Free(newTextureName);
-		}
-		newTextureName = (char *)Z_Malloc((texturesTokenLength+1)*sizeof(char),PU_STATIC,NULL);
-		M_Memcpy(newTextureName,texturesToken,texturesTokenLength*sizeof(char));
-		newTextureName[texturesTokenLength] = '\0';
+		memset(&newTextureName, 0, 9);
+		M_Memcpy(newTextureName, texturesToken, texturesTokenLength);
+		// ^^ we've confirmed that the token is <= 8 characters so it will never overflow a 9 byte char buffer
+		strupr(newTextureName); // Just do this now so we don't have to worry about it
 	}
 	Z_Free(texturesToken);
 
@@ -734,7 +757,6 @@ static texture_t *R_ParseTexture(boolean actuallyLoadTexture)
 		{
 			// Allocate memory for a zero-patch texture. Obviously, we'll be adding patches momentarily.
 			resultTexture = (texture_t *)Z_Calloc(sizeof(texture_t),PU_STATIC,NULL);
-			strupr(newTextureName);
 			M_Memcpy(resultTexture->name, newTextureName, 8);
 			resultTexture->width = newTextureWidth;
 			resultTexture->height = newTextureHeight;
@@ -790,7 +812,6 @@ static texture_t *R_ParseTexture(boolean actuallyLoadTexture)
 	}
 	Z_Free(texturesToken);
 
-	Z_Free(newTextureName); // Can't BELIEVE I forgot to free this before ._.;
 	if (actuallyLoadTexture) return resultTexture;
 	else return NULL;
 }
@@ -923,23 +944,24 @@ static void R_InitExtraColormaps(void)
 	for (cfile = clump = 0; cfile < numwadfiles; cfile++, clump = 0)
 	{
 		startnum = W_CheckNumForNamePwad("C_START", cfile, clump);
-		if (startnum == LUMPERROR)
+		if (startnum == INT16_MAX)
 			continue;
 
 		endnum = W_CheckNumForNamePwad("C_END", cfile, clump);
 
-		if (endnum == LUMPERROR)
+		if (endnum == INT16_MAX)
 			I_Error("R_InitExtraColormaps: C_START without C_END\n");
 
-		if (WADFILENUM(startnum) != WADFILENUM(endnum))
-			I_Error("R_InitExtraColormaps: C_START and C_END in different wad files!\n");
+		// This shouldn't be possible when you use the Pwad function, silly
+		//if (WADFILENUM(startnum) != WADFILENUM(endnum))
+			//I_Error("R_InitExtraColormaps: C_START and C_END in different wad files!\n");
 
 		if (numcolormaplumps >= maxcolormaplumps)
 			maxcolormaplumps *= 2;
 		colormaplumps = Z_Realloc(colormaplumps,
 			sizeof (*colormaplumps) * maxcolormaplumps, PU_STATIC, NULL);
-		colormaplumps[numcolormaplumps].wadfile = WADFILENUM(startnum);
-		colormaplumps[numcolormaplumps].firstlump = LUMPNUM(startnum+1);
+		colormaplumps[numcolormaplumps].wadfile = cfile;
+		colormaplumps[numcolormaplumps].firstlump = startnum+1;
 		colormaplumps[numcolormaplumps].numlumps = endnum - (startnum + 1);
 		numcolormaplumps++;
 	}
@@ -1504,6 +1526,9 @@ void R_InitData(void)
 	CONS_Printf("R_LoadTextures()...\n");
 	R_LoadTextures();
 
+	CONS_Printf("P_InitPicAnims()...\n");
+	P_InitPicAnims();
+
 	CONS_Printf("R_InitSprites()...\n");
 	R_InitSpriteLumps();
 	R_InitSprites();
@@ -1615,11 +1640,11 @@ void R_PrecacheLevel(void)
 	for (j = 0; j < numsides; j++)
 	{
 		// huh, a potential bug here????
-		if (sides[j].toptexture < numtextures)
+		if (sides[j].toptexture >= 0 && sides[j].toptexture < numtextures)
 			texturepresent[sides[j].toptexture] = 1;
-		if (sides[j].midtexture < numtextures)
+		if (sides[j].midtexture >= 0 && sides[j].midtexture < numtextures)
 			texturepresent[sides[j].midtexture] = 1;
-		if (sides[j].bottomtexture < numtextures)
+		if (sides[j].bottomtexture >= 0 && sides[j].bottomtexture < numtextures)
 			texturepresent[sides[j].bottomtexture] = 1;
 	}
 

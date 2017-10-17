@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -27,16 +27,16 @@ typedef enum
 	// First 4 bits are weapon change info, DO NOT USE!
 	BT_WEAPONMASK = 0x0F, //our first four bits.
 
-	BT_WEAPONNEXT = 1<<4,
-	BT_WEAPONPREV = 1<<5,
+	BT_DRIFTLEFT  = 1<<4,  // Drift Left		// BT_WEAPONNEXT
+	BT_DRIFTRIGHT = 1<<5,  // Drift Right		// BT_WEAPONPREV
 
-	BT_ATTACK     = 1<<6, // shoot rings
-	BT_USE        = 1<<7, // spin
-	BT_CAMLEFT    = 1<<8, // turn camera left
-	BT_CAMRIGHT   = 1<<9, // turn camera right
-	BT_TOSSFLAG   = 1<<10,
+	BT_ATTACK     = 1<<6,  // use kart item		// SRB2kart
+	BT_BRAKE      = 1<<7,  // brake				// BT_USE
+	BT_FORWARD    = 1<<8,  // toss item forward	// BT_CAMLEFT
+	BT_BACKWARD   = 1<<9,  // drop item behind	// BT_CAMRIGHT
+	BT_SPECTATE   = 1<<10, // toggle spectate	// BT_TOSSFLAG
 	BT_JUMP       = 1<<11,
-	BT_FIRENORMAL = 1<<12, // Fire a normal ring no matter what
+	BT_ACCELERATE = 1<<12, // Accelerate		// BT_FIRENORMAL
 
 	BT_CUSTOM1    = 1<<13,
 	BT_CUSTOM2    = 1<<14,

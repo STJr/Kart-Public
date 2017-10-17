@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -107,8 +107,8 @@ typedef enum
 	MF_NOSECTOR         = 1<<3,
 	// Don't use the blocklinks (inert but displayable)
 	MF_NOBLOCKMAP       = 1<<4,
-	// Not to be activated by sound, deaf monster.
-	MF_AMBUSH           = 1<<5,
+	// Thin, paper-like collision bound (for visual equivalent, see FF_PAPERSPRITE)
+	MF_PAPERCOLLISION            = 1<<5,
 	// You can push this object. It can activate switches and things by pushing it on top.
 	MF_PUSHABLE         = 1<<6,
 	// Object is a boss.
@@ -193,6 +193,7 @@ typedef enum
 	MF2_BOSSNOTRAP     = 1<<25, // No Egg Trap after boss
 	MF2_BOSSFLEE       = 1<<26, // Boss is fleeing!
 	MF2_BOSSDEAD       = 1<<27, // Boss is dead! (Not necessarily fleeing, if a fleeing point doesn't exist.)
+	MF2_AMBUSH         = 1<<28, // Alternate behaviour typically set by MTF_AMBUSH
 	// free: to and including 1<<31
 } mobjflag2_t;
 
@@ -233,6 +234,11 @@ typedef enum
 	// Goo water
 	MFE_GOOWATER          = 1<<6,
 	// free: to and including 1<<7
+	// Mobj was already sprung this tic
+	MFE_SPRUNG            = 1<<8,
+	// Platform movement
+	MFE_APPLYPMOMZ        = 1<<9,
+	// free: to and including 1<<15
 } mobjeflag_t;
 
 //
@@ -265,6 +271,7 @@ typedef struct mobj_s
 	angle_t angle;  // orientation
 	spritenum_t sprite; // used to find patch_t and flip value
 	UINT32 frame; // frame number, plus bits see p_pspr.h
+	UINT16 anim_duration; // for FF_ANIMATE states
 
 	struct msecnode_s *touching_sectorlist; // a linked list of sectors where this object appears
 
@@ -286,7 +293,7 @@ typedef struct mobj_s
 	state_t *state;
 	UINT32 flags; // flags from mobjinfo tables
 	UINT32 flags2; // MF2_ flags
-	UINT8 eflags; // extra flags
+	UINT16 eflags; // extra flags
 
 	void *skin; // overrides 'sprite' when non-NULL (for player bodies to 'remember' the skin)
 	// Player and mobj sprites in multiplayer modes are modified
@@ -349,6 +356,10 @@ typedef struct mobj_s
 	INT32 cusval;
 	INT32 cvmem;
 
+#ifdef ESLOPE
+	struct pslope_s *standingslope; // The slope that the object is standing on (shouldn't need synced in savegames, right?)
+#endif
+
 	// WARNING: New fields must be added separately to savegame and Lua.
 } mobj_t;
 
@@ -374,7 +385,8 @@ typedef struct precipmobj_s
 	// More drawing info: to determine current sprite.
 	angle_t angle;  // orientation
 	spritenum_t sprite; // used to find patch_t and flip value
-	INT32 frame; // frame number, plus bits see p_pspr.h
+	UINT32 frame; // frame number, plus bits see p_pspr.h
+	UINT16 anim_duration; // for FF_ANIMATE states
 
 	struct mprecipsecnode_s *touching_sectorlist; // a linked list of sectors where this object appears
 
@@ -430,7 +442,7 @@ boolean P_SupermanLook4Players(mobj_t *actor);
 void P_DestroyRobots(void);
 void P_SnowThinker(precipmobj_t *mobj);
 void P_RainThinker(precipmobj_t *mobj);
-void P_NullPrecipThinker(precipmobj_t *mobj);
+FUNCMATH void P_NullPrecipThinker(precipmobj_t *mobj);
 void P_RemovePrecipMobj(precipmobj_t *mobj);
 void P_SetScale(mobj_t *mobj, fixed_t newscale);
 void P_XYMovement(mobj_t *mo);

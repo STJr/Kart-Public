@@ -12,12 +12,12 @@
 int srb2_main()
 {
         // startup SRB2
-        CONS_Printf ("Setting up SRB2 (fo' real)...");
+        CONS_Printf ("Setting up SRB2Kart (fo' real)...");
         D_SRB2Main();
         CONS_Printf ("Entering main game loop...");
         // never return
         D_SRB2Loop();
-        LOGD("Control left SRB2.  Good bye.");
+        LOGD("Control left SRB2Kart.  Good bye.");
 
         // return to OS
         return 0;

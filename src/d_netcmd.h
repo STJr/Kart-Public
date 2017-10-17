@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -81,7 +81,9 @@ extern consvar_t cv_useranalog, cv_useranalog2;
 extern consvar_t cv_analog, cv_analog2;
 
 extern consvar_t cv_netstat;
+#ifdef WALLSPLATS
 extern consvar_t cv_splats;
+#endif
 
 extern consvar_t cv_countdowntime;
 extern consvar_t cv_runscripts;
@@ -95,6 +97,21 @@ extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibilit
 extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
 extern consvar_t cv_1up, cv_eggmanbox;
 extern consvar_t cv_recycler;
+
+// SRB2kart items
+extern consvar_t cv_magnet, cv_boo, cv_mushroom, cv_triplemushroom, cv_megashroom;
+extern consvar_t cv_goldshroom, cv_star, cv_triplebanana, cv_fakeitem, cv_banana;
+extern consvar_t cv_greenshell, cv_redshell, cv_laserwisp, cv_triplegreenshell, cv_bobomb;
+extern consvar_t cv_blueshell, cv_jaws, cv_fireflower, cv_tripleredshell, cv_lightning;
+
+extern consvar_t cv_karthud;
+extern consvar_t cv_kartcc;
+extern consvar_t cv_speedometer;
+
+extern consvar_t cv_collideminimum;
+extern consvar_t cv_collidesoundnum;
+extern consvar_t cv_collidesounds;
+//
 
 extern consvar_t cv_itemfinder;
 
@@ -159,6 +176,8 @@ typedef enum
 #endif
 	MAXNETXCMD
 } netxcmd_t;
+
+extern const char *netxcmdnames[MAXNETXCMD - 1];
 
 #if defined(_MSC_VER)
 #pragma pack(1)

@@ -106,7 +106,7 @@ ticcmd_t *I_BaseTiccmd2(void)
 
 void I_Quit(void)
 {
-  LOGD("SRB2 quitting!");
+  LOGD("SRB2Kart quitting!");
   exit(0);
 }
 
@@ -256,6 +256,18 @@ INT32 I_PutEnv(char *variable)
 {
   (void)variable;
   return -1;
+}
+
+INT32 I_ClipboardCopy(const char *data, size_t size)
+{
+	(void)data;
+	(void)size;
+	return -1;
+}
+
+char *I_ClipboardPaste(void)
+{
+	return NULL;
 }
 
 void I_RegisterSysCommands(void) {}

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2014 by Sonic Team Junior.
+// Copyright (C) 1999-2016 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -393,7 +393,9 @@ typedef struct
 } friction_t;
 
 // Friction defines.
-#define ORIG_FRICTION          (0xE8 << (FRACBITS-8)) ///< Original value.
+#define ORIG_FRICTION          (62914) ///< Original value.
+//#define ORIG_FRICTION_RETRO    (0xE8 << (FRACBITS-8))
+//#define ORIG_FRICTION_NEO      (62914)
 #define ORIG_FRICTION_FACTOR   (8 << (FRACBITS-8))    ///< Original value.
 
 void T_Friction(friction_t *f);

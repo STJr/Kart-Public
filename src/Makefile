@@ -179,6 +179,9 @@ endif
 
 ifdef LINUX
 UNIXCOMMON=1
+ifndef NOGME
+HAVE_LIBGME=1
+endif
 endif
 
 ifdef SOLARIS
@@ -186,6 +189,10 @@ UNIXCOMMON=1
 endif
 
 ifdef FREEBSD
+UNIXCOMMON=1
+endif
+
+ifdef MACOSX
 UNIXCOMMON=1
 endif
 
@@ -202,7 +209,13 @@ LIBS+=-lm
 endif
 
 ifdef SDL
-include sdl/Makefile.cfg
+#SDL 2.0
+ifndef SDL12
+	include sdl/Makefile.cfg
+#SDL 1.2
+else
+	include sdl12/Makefile.cfg
+endif #ifndef SDL12
 endif #ifdef SDL
 
 ifdef DISTCC
@@ -262,9 +275,7 @@ else
 	OBJS+=$(OBJDIR)/hw3sound.o
 endif
 
-ifndef NOVERSION
 OPTS += -DCOMPVERSION
-endif
 
 ifndef NONX86
 ifndef GCC29
@@ -305,9 +316,20 @@ PNG_LDFLAGS?=$(shell $(PNG_CONFIG) --ldflags)
 endif
 endif
 
+ifdef LINUX
+PNG_CFLAGS+=-D_LARGEFILE64_SOURCE
+endif
+
 LIBS+=$(PNG_LDFLAGS)
 CFLAGS+=$(PNG_CFLAGS)
 endif
+
+ZLIB_PKGCONFIG?=zlib
+ZLIB_CFLAGS?=$(shell $(PKG_CONFIG) $(ZLIB_PKGCONFIG) --cflags)
+ZLIB_LDFLAGS?=$(shell $(PKG_CONFIG) $(ZLIB_PKGCONFIG) --libs)
+
+LIBS+=$(ZLIB_LDFLAGS)
+CFLAGS+=$(ZLIB_CFLAGS)
 
 ifdef HAVE_LIBGME
 OPTS+=-DHAVE_LIBGME
@@ -360,17 +382,30 @@ endif
 
 	OPTS:=-fno-exceptions $(OPTS)
 
+ifdef MOBJCONSISTANCY
+	OPTS+=-DMOBJCONSISTANCY
+endif
+
+ifdef PACKETDROP
+	OPTS+=-DPACKETDROP
+endif
+
 ifdef DEBUGMODE
 
 	# build with debugging information
 	WINDRESFLAGS = -D_DEBUG
-	CFLAGS+=-O0 -Wall -DPARANOIA -DRANGECHECK
+ifdef GCC48
+	CFLAGS+=-Og
+else
+	CFLAGS+=-O0
+endif
+	CFLAGS+= -Wall -DPARANOIA -DRANGECHECK -DPACKETDROP -DMOBJCONSISTANCY
 else
 
 
 	# build a normal optimised version
 	WINDRESFLAGS = -DNDEBUG
-	CFLAGS+=-O2
+	CFLAGS+=-O3
 endif
 	CFLAGS+=-g $(OPTS) $(M5) $(WINDRESFLAGS)
 
@@ -402,6 +437,7 @@ DBGNAME?=$(EXENAME).debug
 # $(OBJDIR)/dstrings.o \
 
 # not too sophisticated dependency
+# SRB2kart kart.o on line 433 below
 OBJS:=$(i_main_o) \
 		$(OBJDIR)/comptime.o \
 		$(OBJDIR)/string.o   \
@@ -422,6 +458,8 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/hu_stuff.o \
 		$(OBJDIR)/y_inter.o  \
 		$(OBJDIR)/st_stuff.o \
+		$(OBJDIR)/k_kart.o   \
+		$(OBJDIR)/m_aatree.o \
 		$(OBJDIR)/m_anigif.o \
 		$(OBJDIR)/m_argv.o   \
 		$(OBJDIR)/m_bbox.o   \
@@ -435,7 +473,6 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/info.o     \
 		$(OBJDIR)/p_ceilng.o \
 		$(OBJDIR)/p_enemy.o  \
-		$(OBJDIR)/p_fab.o    \
 		$(OBJDIR)/p_floor.o  \
 		$(OBJDIR)/p_inter.o  \
 		$(OBJDIR)/p_lights.o \
@@ -450,6 +487,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/p_telept.o \
 		$(OBJDIR)/p_tick.o   \
 		$(OBJDIR)/p_user.o   \
+		$(OBJDIR)/p_slopes.o \
 		$(OBJDIR)/tables.o   \
 		$(OBJDIR)/r_bsp.o    \
 		$(OBJDIR)/r_data.o   \
@@ -481,12 +519,10 @@ OBJS:=$(i_main_o) \
 # For reference, this is the command I use to build a srb2.pot file from the source code.
 # (The listed source files are the ones containing translated strings).
 # FILES=""; for file in `find ./ | grep "\.c" | grep -v svn`; do [ "`grep "M_GetText(" $file`" ] && FILES="$FILES $file"; done; xgettext -d srb2 -o locale/srb2.pot -kM_GetText -F --no-wrap $FILES
-ifndef NOGETTEXT
 ifdef GETTEXT
 POS:=$(BIN)/en.mo
 
 OPTS+=-DGETTEXT
-endif
 endif
 
 ifdef DJGPPDOS
@@ -546,14 +582,10 @@ cleandep:
 	$(REMOVE) comptime.h
 
 pre-build:
-ifdef NOVERSION
-	-@touch comptime.c
-else
 ifdef WINDOWSHELL
 	-..\comptime.bat .
 else
 	-@../comptime.sh .
-endif
 endif
 
 clean:
@@ -590,10 +622,14 @@ ifndef WINDOWSHELL
 	-$(GZIP) $(GZIP_OPT2) $(BIN)/$(DBGNAME).txt
 endif
 endif
+
+# mac os x lsdlsrb2 does not like objcopy
+ifndef MACOSX
 ifndef PSP
 	$(OBJCOPY) $(BIN)/$(EXENAME) $(BIN)/$(DBGNAME)
 	$(OBJCOPY) --strip-debug $(BIN)/$(EXENAME)
 	-$(OBJCOPY) --add-gnu-debuglink=$(BIN)/$(DBGNAME) $(BIN)/$(EXENAME)
+endif
 endif
 ifndef NOUPX
 	-$(UPX) $(UPX_OPTS) $(BIN)/$(EXENAME)
@@ -625,7 +661,10 @@ opengl_dll: $(BIN)/r_opengl.dll
 $(BIN)/r_opengl.dll: $(OBJDIR)/ogl_win.o $(OBJDIR)/r_opengl.o
 	-$(MKDIR) $(BIN)
 	@echo Linking R_OpenGL.dll...
-	$(CC) --shared  $^ -o $@ -g -Wl,--add-stdcall-alias -lgdi32
+	$(CC) --shared  $^ -o $@ -g -Wl,--add-stdcall-alias -lgdi32 -static-libgcc
+ifndef NOUPX
+	-$(UPX) $(UPX_OPTS) $@
+endif
 
 minigl_dll: $(BIN)/r_minigl.dll
 $(BIN)/r_minigl.dll: $(OBJDIR)/r_minigl.o
@@ -738,6 +777,11 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/%.o: $(INTERFACE)/%.c
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
+
+ifdef MACOSX
+$(OBJDIR)/%.o: sdl/macosx/%.c
+	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
+endif
 
 $(OBJDIR)/%.o: hardware/%.c
 	$(CC) $(CFLAGS) $(WFLAGS) -c $< -o $@
