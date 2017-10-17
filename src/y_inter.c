@@ -222,28 +222,32 @@ void Y_IntermissionDrawer(void)
 	if (intertype == int_timeattack)
 	{
 		// draw time
-		V_DrawScaledPatch(hudinfo[HUD_TIME].x, hudinfo[HUD_TIME].y, V_SNAPTOLEFT, sbotime);
+		ST_DrawPatchFromHud(HUD_TIME, sbotime);
 		if (cv_timetic.value)
-			V_DrawTallNum(hudinfo[HUD_SECONDS].x, hudinfo[HUD_SECONDS].y, V_SNAPTOLEFT, data.coop.tics);
+			ST_DrawNumFromHud(HUD_SECONDS, data.coop.tics);
 		else
 		{
-			if (G_TicsToSeconds(data.coop.tics) < 10)
-				V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, 0);
-			V_DrawTallNum(hudinfo[HUD_SECONDS].x, hudinfo[HUD_SECONDS].y, 0, G_TicsToSeconds(data.coop.tics));
-			V_DrawTallNum(hudinfo[HUD_MINUTES].x, hudinfo[HUD_MINUTES].y, 0, G_TicsToMinutes(data.coop.tics, true));
-			V_DrawScaledPatch(hudinfo[HUD_TIMECOLON].x, hudinfo[HUD_TIMECOLON].y, 0, sbocolon);
-			V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, (int)((data.coop.tics%TICRATE) * (100.00f/TICRATE)));
-			V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, 0, sbocolon);
-		}
+			INT32 seconds, minutes, tictrn;
 
-		/* // SRB2kart - pulled from old coop block, just in case we need it
-		// we should show centiseconds on the intermission screen too, if the conditions are right.
-		if (modeattacking || cv_timetic.value == 2)
-		{
-			V_DrawPaddedTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, V_SNAPTOLEFT,
-				G_TicsToCentiseconds(data.coop.tics), 2);
-			V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, V_SNAPTOLEFT, sboperiod);
-		}*/
+			seconds = G_TicsToSeconds(data.coop.tics);
+			minutes = G_TicsToMinutes(data.coop.tics, true);
+			tictrn  = G_TicsToCentiseconds(data.coop.tics);
+
+			ST_DrawNumFromHud(HUD_MINUTES, minutes); // Minutes
+			ST_DrawPatchFromHud(HUD_TIMECOLON, sbocolon); // Colon
+			ST_DrawPadNumFromHud(HUD_SECONDS, seconds, 2); // Seconds
+
+			/* // SRB2kart - pulled from old coop block, just in case we need it
+			// we should show centiseconds on the intermission screen too, if the conditions are right.
+			if (modeattacking || cv_timetic.value == 2)
+			{
+				ST_DrawPatchFromHud(HUD_TIMETICCOLON, sboperiod); // Period
+				ST_DrawPadNumFromHud(HUD_TICS, tictrn, 2); // Tics
+			}*/
+
+			ST_DrawPatchFromHud(HUD_TIMETICCOLON, sboperiod); // Period
+			ST_DrawPadNumFromHud(HUD_TICS, tictrn, 2); // Tics
+		}
 
 		// draw the "got through act" lines and act number
 		V_DrawLevelTitle(data.coop.passedx1, 49, 0, data.coop.passed1);
@@ -1174,7 +1178,7 @@ void Y_StartIntermission(void)
 
 			// fall back into the special stage intermission for now
 			intertype = int_spec;
-			/* FALLTHRU */
+			// FALLTHRU
 		case int_spec: // coop or single player, special stage
 		{
 			// Update visitation flags?
