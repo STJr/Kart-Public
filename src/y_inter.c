@@ -1290,16 +1290,32 @@ void Y_StartIntermission(void)
 			Y_CalculateTournamentPoints();
 
 			// set up the levelstring
-			if (mapheaderinfo[prevmap]->actnum)
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"%.32s * %d *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
+			if (mapheaderinfo[prevmap]->zonttl)
+			{
+				if (mapheaderinfo[prevmap]->actnum)
+					snprintf(data.match.levelstring,
+						sizeof data.match.levelstring,
+						"%.32s %.32s * %d *",
+						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
+				else
+					snprintf(data.match.levelstring,
+						sizeof data.match.levelstring,
+						"* %.32s %.32s *",
+						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl);
+			}
 			else
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s *",
-					mapheaderinfo[prevmap]->lvlttl);
+			{
+				if (mapheaderinfo[prevmap]->actnum)
+					snprintf(data.match.levelstring,
+						sizeof data.match.levelstring,
+						"%.32s * %d *",
+						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
+				else
+					snprintf(data.match.levelstring,
+						sizeof data.match.levelstring,
+						"* %.32s *",
+						mapheaderinfo[prevmap]->lvlttl);
+			}
 
 			data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
 
