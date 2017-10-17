@@ -645,7 +645,7 @@ void G_SetNightsRecords(void)
 	// Save demo!
 	bestdemo[255] = '\0';
 	lastdemo[255] = '\0';
-	G_SetDemoTime(totaltime, totalscore, 0);
+	G_SetDemoTime(totaltime, totalscore);
 	G_CheckDemoStatus();
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
@@ -2939,7 +2939,7 @@ static void G_DoCompleted(void)
 	// a map of the proper gametype -- skip levels that don't support
 	// the current gametype. (Helps avoid playing boss levels in Race,
 	// for instance).
-	if (!token && !G_IsSpecialStage(gamemap)
+	if (!token && !G_IsSpecialStage(gamemap) && !modeattacking
 		&& (nextmap >= 0 && nextmap < NUMMAPS))
 	{
 		register INT16 cm = nextmap;
@@ -4786,8 +4786,6 @@ void G_BeginRecording(void)
 	case ATTACKING_RECORD: // 1
 		demotime_p = demo_p;
 		WRITEUINT32(demo_p,UINT32_MAX); // time
-		WRITEUINT32(demo_p,0); // score
-		WRITEUINT16(demo_p,0); // rings
 		break;
 	case ATTACKING_NIGHTS: // 2
 		demotime_p = demo_p;
@@ -4894,15 +4892,13 @@ void G_BeginMetal(void)
 	oldmetal.angle = mo->angle;
 }
 
-void G_SetDemoTime(UINT32 ptime, UINT32 pscore, UINT16 prings)
+void G_SetDemoTime(UINT32 ptime, UINT32 pscore)
 {
 	if (!demorecording || !demotime_p)
 		return;
 	if (demoflags & DF_RECORDATTACK)
 	{
 		WRITEUINT32(demotime_p, ptime);
-		WRITEUINT32(demotime_p, pscore);
-		WRITEUINT16(demotime_p, prings);
 		demotime_p = NULL;
 	}
 	else if (demoflags & DF_NIGHTSATTACK)
@@ -4922,7 +4918,7 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	UINT8 *buffer,*p;
 	UINT8 flags;
 	UINT32 oldtime, newtime, oldscore, newscore;
-	UINT16 oldrings, newrings, oldversion;
+	UINT16 oldversion;
 	size_t bufsize ATTRUNUSED;
 	UINT8 c;
 	UINT16 s ATTRUNUSED;
@@ -4955,14 +4951,12 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	if (flags & DF_RECORDATTACK)
 	{
 		newtime = READUINT32(p);
-		newscore = READUINT32(p);
-		newrings = READUINT16(p);
+		newscore = 0;
 	}
 	else if (flags & DF_NIGHTSATTACK)
 	{
 		newtime = READUINT32(p);
 		newscore = READUINT32(p);
-		newrings = 0;
 	}
 	else // appease compiler
 		return 0;
@@ -5017,14 +5011,12 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	if (flags & DF_RECORDATTACK)
 	{
 		oldtime = READUINT32(p);
-		oldscore = READUINT32(p);
-		oldrings = READUINT16(p);
+		oldscore = 0;
 	}
 	else if (flags & DF_NIGHTSATTACK)
 	{
 		oldtime = READUINT32(p);
 		oldscore = READUINT32(p);
-		oldrings = 0;
 	}
 	else // appease compiler
 		return UINT8_MAX;
@@ -5033,14 +5025,11 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 
 	c = 0;
 	if (newtime < oldtime
-	|| (newtime == oldtime && (newscore > oldscore || newrings > oldrings)))
+	|| (newtime == oldtime && (newscore > oldscore)))
 		c |= 1; // Better time
 	if (newscore > oldscore
 	|| (newscore == oldscore && newtime < oldtime))
 		c |= 1<<1; // Better score
-	if (newrings > oldrings
-	|| (newrings == oldrings && newtime < oldtime))
-		c |= 1<<2; // Better rings
 	return c;
 }
 
@@ -5160,7 +5149,6 @@ void G_DoPlayDemo(char *defdemoname)
 
 	hu_demoscore = 0;
 	hu_demotime = UINT32_MAX;
-	hu_demorings = 0;
 
 	switch (modeattacking)
 	{
@@ -5168,8 +5156,6 @@ void G_DoPlayDemo(char *defdemoname)
 		break;
 	case ATTACKING_RECORD: // 1
 		hu_demotime  = READUINT32(demo_p);
-		hu_demoscore = READUINT32(demo_p);
-		hu_demorings = READUINT16(demo_p);
 		break;
 	case ATTACKING_NIGHTS: // 2
 		hu_demotime  = READUINT32(demo_p);
@@ -5390,7 +5376,7 @@ void G_AddGhost(char *defdemoname)
 	case ATTACKING_NONE: // 0
 		break;
 	case ATTACKING_RECORD: // 1
-		p += 10; // demo time, score, and rings
+		p += 4; // demo time
 		break;
 	case ATTACKING_NIGHTS: // 2
 		p += 8; // demo time left, score

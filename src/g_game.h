@@ -120,7 +120,7 @@ void G_BeginRecording(void);
 void G_BeginMetal(void);
 
 // Only called by shutdown code.
-void G_SetDemoTime(UINT32 ptime, UINT32 pscore, UINT16 prings);
+void G_SetDemoTime(UINT32 ptime, UINT32 pscore);
 UINT8 G_CmpDemoTime(char *oldname, char *newname);
 
 typedef enum

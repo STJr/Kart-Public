@@ -111,14 +111,14 @@ const char *quitmsg[NUM_QUITMESSAGES];
 // Stuff for customizing the player select screen Tails 09-22-2003
 description_t description[32] =
 {
-	{"\x82Sonic\x80 is the fastest of the three, but also the hardest to control. Beginners beware, but experts will find Sonic very powerful.\n\n\x82""Ability:\x80 Speed Thok\nDouble jump to zoom forward with a huge burst of speed.\n\n\x82Tip:\x80 Simply letting go of forward does not slow down in SRB2. To slow down, hold the opposite direction.", "", "sonic"},
-	{"\x82Tails\x80 is the most mobile of the three, but has the slowest speed. Because of his mobility, he's well-\nsuited to beginners.\n\n\x82""Ability:\x80 Fly\nDouble jump to start flying for a limited time. Repetitively hit the jump button to ascend.\n\n\x82Tip:\x80 To quickly descend while flying, hit the spin button.", "", "tails"},
-	{"\x82Knuckles\x80 is well-\nrounded and can destroy breakable walls simply by touching them, but he can't jump as high as the other two.\n\n\x82""Ability:\x80 Glide & Climb\nDouble jump to glide in the air as long as jump is held. Glide into a wall to climb it.\n\n\x82Tip:\x80 Press spin while climbing to jump off the wall; press jump instead to jump off\nand face away from\nthe wall.", "", "knuckles"},
-	{"\x82Sonic & Tails\x80 team up to take on Dr. Eggman!\nControl Sonic while Tails desperately struggles to keep up.\n\nPlayer 2 can control Tails directly by setting the controls in the options menu.\nTails's directional controls are relative to Player 1's camera.\n\nTails can pick up Sonic while flying and carry him around.", "CHRS&T", "sonic&tails"},
-	{"???", "", ""},
-	{"???", "", ""},
-	{"???", "", ""},
-	{"???", "", ""},
+	{"\x82Sonic\x80", "", "sonic"},
+	{"\x82Tails\x80", "", "tails"},
+	{"\x82Knuckles\x80", "", "knuckles"},
+	{"\x82Metal Sonic\x80", "", "metalsonic"},
+	{"???", "", ""}, // {"\x82Blonic\x80", "", "blonic"},
+	{"???", "", ""}, // {"\x82Blails\x80", "", "blails"},
+	{"???", "", ""}, // {"\x82Bluckles\x80", "", "bluckles"},
+	{"???", "", ""}, // {"\x82Bletal Blonic\x80", "", "bletalblonic"},
 	{"???", "", ""},
 	{"???", "", ""},
 	{"???", "", ""},
@@ -723,9 +723,7 @@ enum
 
 static menuitem_t SP_ReplayMenu[] =
 {
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimeAttack, 0},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimeAttack, 8},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Rings", M_ReplayTimeAttack,16},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimeAttack, 16},
 
 	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,29},
 	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,37},
@@ -1829,7 +1827,7 @@ static void Nextmap_OnChange(void)
 
 		// Check if file exists, if not, disable REPLAY option
 		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), cv_chooseskin.string);
-		for (i = 0; i < 5; i++) {
+		for (i = 0; i < 3; i++) {
 			SP_ReplayMenu[i].status = IT_DISABLED;
 			SP_GuestReplayMenu[i].status = IT_DISABLED;
 		}
@@ -1838,24 +1836,14 @@ static void Nextmap_OnChange(void)
 			SP_GuestReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
 			active = true;
 		}
-		if (FIL_FileExists(va("%s-score-best.lmp", tabase))) {
+		if (FIL_FileExists(va("%s-last.lmp", tabase))) {
 			SP_ReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
 			active = true;
 		}
-		if (FIL_FileExists(va("%s-rings-best.lmp", tabase))) {
+		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)))) {
 			SP_ReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
-			active = true;
-		}
-		if (FIL_FileExists(va("%s-last.lmp", tabase))) {
-			SP_ReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			SP_GuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			active = true;
-		}
-		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)))) {
-			SP_ReplayMenu[4].status = IT_WHITESTRING|IT_CALL;
-			SP_GuestReplayMenu[4].status = IT_WHITESTRING|IT_CALL;
 			active = true;
 		}
 		if (active) {
@@ -5588,19 +5576,16 @@ static void M_ReplayTimeAttack(INT32 choice)
 	{
 		switch(choice) {
 		default:
-		case 0: // best score
-			which = "score-best";
-			break;
-		case 1: // best time
+		case 0: // best time
 			which = "time-best";
 			break;
-		case 2: // best rings
-			which = "rings-best";
-			break;
-		case 3: // last
+		case 1: // last
 			which = "last";
 			break;
-		case 4: // guest
+		/*case 2: // best staff
+			which = "staff-best";
+			break;*/
+		case 2: // guest
 			// srb2/replay/main/map01-guest.lmp
 			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)));
 			return;
@@ -5621,6 +5606,9 @@ static void M_ReplayTimeAttack(INT32 choice)
 		case 2: // last
 			which = "last";
 			break;
+		/*case 3: // best staff
+			which = "staff-best";
+			break;*/
 		case 3: // guest
 			which = "guest";
 			break;
