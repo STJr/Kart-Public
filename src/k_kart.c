@@ -3031,12 +3031,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
 	player->mo->friction += 1608;
 
-	// Splitscreen camera
-	if (splitscreen && player == &players[consoleplayer])
-		CV_SetValue(&cv_cam_dist, 190);
-	if (splitscreen && player == &players[secondarydisplayplayer])
-		CV_SetValue(&cv_cam2_dist, 190);
-
 	K_KartDrift(player, onground);
 
 	// Quick Turning
