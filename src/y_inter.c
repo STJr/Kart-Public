@@ -57,7 +57,7 @@ typedef union
 {
 	struct
 	{
-		char passed1[14]; // KNUCKLES GOT    / CRAWLA HONCHO
+		char passed1[21]; // KNUCKLES GOT    / CRAWLA HONCHO
 		char passed2[16]; // THROUGH THE ACT / PASSED THE ACT
 		INT32 passedx1;
 		INT32 passedx2;
@@ -77,7 +77,7 @@ typedef union
 
 	struct
 	{
-		char passed1[SKINNAMESIZE+1]; // KNUCKLES GOT    / CRAWLA HONCHO
+		char passed1[29]; // KNUCKLES GOT    / CRAWLA HONCHO
 		char passed2[17];             // A CHAOS EMERALD / GOT THEM ALL!
 		char passed3[15];             //                   CAN NOW BECOME
 		char passed4[SKINNAMESIZE+7]; //                   SUPER CRAWLA HONCHO
@@ -164,6 +164,20 @@ static void Y_CalculateMatchWinners(void);
 static void Y_FollowIntermission(void);
 static void Y_UnloadData(void);
 
+// Stuff copy+pasted from st_stuff.c
+static INT32 SCX(INT32 x)
+{
+	return FixedInt(FixedMul(x<<FRACBITS, vid.fdupx));
+}
+static INT32 SCY(INT32 z)
+{
+	return FixedInt(FixedMul(z<<FRACBITS, vid.fdupy));
+}
+
+#define ST_DrawNumFromHud(h,n)        V_DrawTallNum(SCX(hudinfo[h].x), SCY(hudinfo[h].y), V_NOSCALESTART, n)
+#define ST_DrawPadNumFromHud(h,n,q)   V_DrawPaddedTallNum(SCX(hudinfo[h].x), SCY(hudinfo[h].y), V_NOSCALESTART, n, q)
+#define ST_DrawPatchFromHud(h,p)      V_DrawScaledPatch(SCX(hudinfo[h].x), SCY(hudinfo[h].y), V_NOSCALESTART, p)
+
 //
 // Y_IntermissionDrawer
 //
@@ -216,7 +230,7 @@ void Y_IntermissionDrawer(void)
 			if (G_TicsToSeconds(data.coop.tics) < 10)
 				V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, 0);
 			V_DrawTallNum(hudinfo[HUD_SECONDS].x, hudinfo[HUD_SECONDS].y, 0, G_TicsToSeconds(data.coop.tics));
-			V_DrawTallNum(hudinfo[HUD_MINUTES].x, hudinfo[HUD_MINUTES].y, 0, G_TicsToMinutes(data.coop.tics, false));
+			V_DrawTallNum(hudinfo[HUD_MINUTES].x, hudinfo[HUD_MINUTES].y, 0, G_TicsToMinutes(data.coop.tics, true));
 			V_DrawScaledPatch(hudinfo[HUD_TIMECOLON].x, hudinfo[HUD_TIMECOLON].y, 0, sbocolon);
 			V_DrawTallNum(hudinfo[HUD_TICS].x, hudinfo[HUD_TICS].y, 0, (int)((data.coop.tics%TICRATE) * (100.00f/TICRATE)));
 			V_DrawScaledPatch(hudinfo[HUD_TIMETICCOLON].x, hudinfo[HUD_TIMETICCOLON].y, 0, sbocolon);
@@ -1023,7 +1037,8 @@ void Y_StartIntermission(void)
 	}
 
 	// We couldn't display the intermission even if we wanted to.
-	if (dedicated) return;
+	// But we still need to give the players their score bonuses, dummy.
+	//if (dedicated) return;
 
 	// This should always exist, but just in case...
 	if(!mapheaderinfo[prevmap])
@@ -1044,6 +1059,7 @@ void Y_StartIntermission(void)
 
 			// fall back into the coop intermission for now
 			intertype = int_timeattack;
+			/* FALLTHRU */
 		case int_timeattack: // coop or single player, normal level // SRB2kart 230117 - replaced int_coop
 		{
 			// award time and ring bonuses
@@ -1158,6 +1174,7 @@ void Y_StartIntermission(void)
 
 			// fall back into the special stage intermission for now
 			intertype = int_spec;
+			/* FALLTHRU */
 		case int_spec: // coop or single player, special stage
 		{
 			// Update visitation flags?

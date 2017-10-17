@@ -1669,12 +1669,18 @@ static inline void SaveWhatThinker(const thinker_t *th, const UINT8 type)
 static void P_NetArchiveThinkers(void)
 {
 	const thinker_t *th;
+	UINT32 numsaved = 0;
 
 	WRITEUINT32(save_p, ARCHIVEBLOCK_THINKERS);
 
 	// save off the current thinkers
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
+		if (!(th->function.acp1 == (actionf_p1)P_RemoveThinkerDelayed
+		 || th->function.acp1 == (actionf_p1)P_RainThinker
+		 || th->function.acp1 == (actionf_p1)P_SnowThinker))
+			numsaved++;
+
 		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
 		{
 			SaveMobjThinker(th, tc_mobj);
@@ -1861,6 +1867,8 @@ static void P_NetArchiveThinkers(void)
 			I_Error("unknown thinker type %p", th->function.acp1);
 #endif
 	}
+
+	CONS_Debug(DBG_NETPLAY, "%u thinkers saved\n", numsaved);
 
 	WRITEUINT8(save_p, tc_end);
 }
@@ -2626,6 +2634,7 @@ static void P_NetUnArchiveThinkers(void)
 	UINT8 tclass;
 	UINT8 restoreNum = false;
 	UINT32 i;
+	UINT32 numloaded = 0;
 
 	if (READUINT32(save_p) != ARCHIVEBLOCK_THINKERS)
 		I_Error("Bad $$$.sav at archive block Thinkers");
@@ -2659,6 +2668,7 @@ static void P_NetUnArchiveThinkers(void)
 
 		if (tclass == tc_end)
 			break; // leave the saved thinker reading loop
+		numloaded++;
 
 		switch (tclass)
 		{
@@ -2809,6 +2819,8 @@ static void P_NetUnArchiveThinkers(void)
 				I_Error("P_UnarchiveSpecials: Unknown tclass %d in savegame", tclass);
 		}
 	}
+
+	CONS_Debug(DBG_NETPLAY, "%u thinkers loaded\n", numloaded);
 
 	if (restoreNum)
 	{
