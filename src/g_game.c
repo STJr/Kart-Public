@@ -3813,7 +3813,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DEMOHEADER  "\xF0" "KartReplay" "\x0F"
 
 #define DF_GHOST        0x01 // This demo contains ghost data too!
-#define DF_RECORDATTACK 0x02 // This demo is from record attack and contains its final completion time, score, and rings!
+#define DF_RECORDATTACK 0x02 // This demo is from record attack and contains its final completion time!
 #define DF_NIGHTSATTACK 0x04 // This demo is from NiGHTS attack and contains its time left, score, and mares!
 #define DF_ATTACKMASK   0x06 // This demo is from ??? attack and contains ???
 #define DF_ATTACKSHIFT  1

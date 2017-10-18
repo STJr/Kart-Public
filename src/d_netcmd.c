@@ -704,6 +704,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_ghost_bestrings);
 	CV_RegisterVar(&cv_ghost_last);
 	CV_RegisterVar(&cv_ghost_guest);
+	CV_RegisterVar(&cv_ghost_staff);
 
 	COM_AddCommand("displayplayer", Command_Displayplayer_f);
 	COM_AddCommand("tunes", Command_Tunes_f);

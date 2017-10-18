@@ -4031,7 +4031,7 @@ void K_drawKartHUD(void)
 	// If not splitscreen, draw...
 	// The little triple-item icons at the bottom
 	// The top-four faces on the left
-	if (!splitscreen)
+	if (!(splitscreen || modeattacking))
 	{
 		//K_DrawKartTripleItem();
 		K_drawKartPositionFaces();
@@ -4048,7 +4048,8 @@ void K_drawKartHUD(void)
 		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 
 	// Draw the numerical position
-	K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+	if (!modeattacking)
+		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 
 	// Draw the speedometer
 	// TODO: Make a better speedometer.
