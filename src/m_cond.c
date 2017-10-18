@@ -574,8 +574,8 @@ extraemblem_t extraemblems[MAXEXTRAEMBLEMS] =
 unlockable_t unlockables[MAXUNLOCKABLES] =
 {
 	// Name, Objective, Menu Height, ConditionSet, Unlock Type, Variable, NoCecho, NoChecklist
-	/* 01 */ {"Record Attack",     "Complete Greenflower Zone, Act 1", 0, 1, SECRET_RECORDATTACK,  0,  true,  true, 0},
-	/* 02 */ {"NiGHTS Mode",       "Complete Floral Field",            0, 2, SECRET_NIGHTSMODE,    0,  true,  true, 0},
+	/* 01 */ {"Record Attack",     "Complete Greenflower Zone, Act 1", 0, -1, SECRET_RECORDATTACK,  0,  true,  true, 0},
+	/* 02 */ {"NiGHTS Mode",       "Complete Floral Field",            0, -1, SECRET_NIGHTSMODE,    0,  true,  true, 0},
 
 	/* 03 */ {"Play Credits",      "Complete 1P Mode", 30, 10, SECRET_CREDITS,   0,  true,  true, 0},
 	/* 04 */ {"Sound Test",        "Complete 1P Mode", 40, 10, SECRET_SOUNDTEST, 0, false, false, 0},

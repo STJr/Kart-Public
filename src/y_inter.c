@@ -864,7 +864,10 @@ void Y_Ticker(void)
 		if (r)
 			S_StartSound(NULL, sfx_menu1);
 		else
-			endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
+			if (modeattacking)
+				endtic = intertic + 10*TICRATE; // 10 second pause after end of tally
+			else
+				endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
 	}
 	else if (intertype == int_match || intertype == int_ctf || intertype == int_teammatch) // match
 	{
@@ -901,19 +904,13 @@ static void Y_UpdateRecordReplays(void)
 	if (!mainrecords[gamemap-1])
 		G_AllocMainRecordData(gamemap-1);
 
-	if (players[consoleplayer].score > mainrecords[gamemap-1]->score)
-		mainrecords[gamemap-1]->score = players[consoleplayer].score;
-
 	if ((mainrecords[gamemap-1]->time == 0) || (players[consoleplayer].realtime < mainrecords[gamemap-1]->time))
 		mainrecords[gamemap-1]->time = players[consoleplayer].realtime;
-
-	if ((UINT16)(players[consoleplayer].health - 1) > mainrecords[gamemap-1]->rings)
-		mainrecords[gamemap-1]->rings = (UINT16)(players[consoleplayer].health - 1);
 
 	// Save demo!
 	bestdemo[255] = '\0';
 	lastdemo[255] = '\0';
-	G_SetDemoTime(players[consoleplayer].realtime, players[consoleplayer].score, (UINT16)(players[consoleplayer].health-1));
+	G_SetDemoTime(players[consoleplayer].realtime, 0);
 	G_CheckDemoStatus();
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
@@ -937,24 +934,6 @@ static void Y_UpdateRecordReplays(void)
 				remove(bestdemo);
 			FIL_WriteFile(bestdemo, buf, len);
 			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW RECORD TIME!"), M_GetText("Saved replay as"), bestdemo);
-		}
-
-		snprintf(bestdemo, 255, "%s-%s-score-best.lmp", gpath, cv_chooseskin.string);
-		if (!FIL_FileExists(bestdemo) || (G_CmpDemoTime(bestdemo, lastdemo) & (1<<1)))
-		{ // Better score, save this demo.
-			if (FIL_FileExists(bestdemo))
-				remove(bestdemo);
-			FIL_WriteFile(bestdemo, buf, len);
-			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW HIGH SCORE!"), M_GetText("Saved replay as"), bestdemo);
-		}
-
-		snprintf(bestdemo, 255, "%s-%s-rings-best.lmp", gpath, cv_chooseskin.string);
-		if (!FIL_FileExists(bestdemo) || (G_CmpDemoTime(bestdemo, lastdemo) & (1<<2)))
-		{ // Better rings, save this demo.
-			if (FIL_FileExists(bestdemo))
-				remove(bestdemo);
-			FIL_WriteFile(bestdemo, buf, len);
-			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW MOST RINGS!"), M_GetText("Saved replay as"), bestdemo);
 		}
 
 		//CONS_Printf("%s '%s'\n", M_GetText("Saved replay as"), lastdemo);
@@ -998,9 +977,11 @@ void Y_StartIntermission(void)
 		else
 			intertype = (maptol & TOL_NIGHTS) ? int_nights : int_coop;
 		*/
+		/* // srb2kart: time attack tally is UGLY rn
 		if (modeattacking)
 			intertype = int_timeattack;
 		else
+		*/
 			intertype = int_race;
 	}
 	else
@@ -1323,6 +1304,24 @@ void Y_StartIntermission(void)
 
 		case int_race: // (time-only race)
 		{
+			if ((!modifiedgame || savemoddata) && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
+			{
+				// setup time data
+				data.coop.tics = players[consoleplayer].realtime;
+				
+				// Update visitation flags
+				mapvisited[gamemap-1] |= MV_BEATEN;
+				if (ALL7EMERALDS(emeralds))
+					mapvisited[gamemap-1] |= MV_ALLEMERALDS;
+				if (ultimatemode)
+					mapvisited[gamemap-1] |= MV_ULTIMATE;
+				if (data.coop.gotperfbonus)
+					mapvisited[gamemap-1] |= MV_PERFECT;
+
+				if (modeattacking == ATTACKING_RECORD)
+					Y_UpdateRecordReplays();
+			}
+			
 			// Calculate who won
 			Y_CalculateTournamentPoints();
 

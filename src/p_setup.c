@@ -224,7 +224,7 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	DEH_WriteUndoline("LEVELFLAGS", va("%d", mapheaderinfo[num]->levelflags), UNDO_NONE);
 	mapheaderinfo[num]->levelflags = 0;
 	DEH_WriteUndoline("MENUFLAGS", va("%d", mapheaderinfo[num]->menuflags), UNDO_NONE);
-	mapheaderinfo[num]->menuflags = 0;
+	mapheaderinfo[num]->menuflags = LF2_RECORDATTACK|LF2_NOVISITNEEDED; // 0
 	// TODO grades support for delfile (pfft yeah right)
 	P_DeleteGrades(num);
 	// an even further impossibility, delfile custom opts support
@@ -2392,7 +2392,7 @@ static void P_LoadRecordGhosts(void)
 	sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timeattackfolder, G_BuildMapName(gamemap));
 
 	// Best Score ghost
-	if (cv_ghost_bestscore.value)
+	/*if (cv_ghost_bestscore.value)
 	{
 		for (i = 0; i < numskins; ++i)
 		{
@@ -2402,7 +2402,7 @@ static void P_LoadRecordGhosts(void)
 			if (FIL_FileExists(va("%s-%s-score-best.lmp", gpath, skins[i].name)))
 				G_AddGhost(va("%s-%s-score-best.lmp", gpath, skins[i].name));
 		}
-	}
+	}*/
 
 	// Best Time ghost
 	if (cv_ghost_besttime.value)
@@ -2418,7 +2418,7 @@ static void P_LoadRecordGhosts(void)
 	}
 
 	// Best Rings ghost
-	if (cv_ghost_bestrings.value)
+	/*if (cv_ghost_bestrings.value)
 	{
 		for (i = 0; i < numskins; ++i)
 		{
@@ -2428,7 +2428,7 @@ static void P_LoadRecordGhosts(void)
 			if (FIL_FileExists(va("%s-%s-rings-best.lmp", gpath, skins[i].name)))
 				G_AddGhost(va("%s-%s-rings-best.lmp", gpath, skins[i].name));
 		}
-	}
+	}*/
 
 	// Last ghost
 	if (cv_ghost_last.value)
@@ -2446,6 +2446,18 @@ static void P_LoadRecordGhosts(void)
 	// Guest ghost
 	if (cv_ghost_guest.value && FIL_FileExists(va("%s-guest.lmp", gpath)))
 		G_AddGhost(va("%s-guest.lmp", gpath));
+	
+	// Staff Attack ghosts
+	if (cv_ghost_staff.value)
+	{
+		lumpnum_t l;
+		UINT8 i = 1;
+		while (i <= 99 && (l = W_CheckNumForName(va("%sK%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
+		{
+			G_AddGhost(va("%sK%02u",G_BuildMapName(gamemap),i));
+			i++;
+		}
+	}
 
 	free(gpath);
 }
@@ -2475,6 +2487,18 @@ static void P_LoadNightsGhosts(void)
 	// Guest ghost
 	if (cv_ghost_guest.value && FIL_FileExists(va("%s-guest.lmp", gpath)))
 		G_AddGhost(va("%s-guest.lmp", gpath));
+
+	// Staff Attack ghosts
+	if (cv_ghost_staff.value)
+	{
+		lumpnum_t l;
+		UINT8 i = 1;
+		while (i <= 99 && (l = W_CheckNumForName(va("%sN%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
+		{
+			G_AddGhost(va("%sN%02u",G_BuildMapName(gamemap),i));
+			i++;
+		}
+	}
 
 	free(gpath);
 }

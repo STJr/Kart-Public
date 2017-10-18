@@ -704,6 +704,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_ghost_bestrings);
 	CV_RegisterVar(&cv_ghost_last);
 	CV_RegisterVar(&cv_ghost_guest);
+	CV_RegisterVar(&cv_ghost_staff);
 
 	COM_AddCommand("displayplayer", Command_Displayplayer_f);
 	COM_AddCommand("tunes", Command_Tunes_f);
@@ -1868,6 +1869,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 		// a copy of color
 		if (players[0].mo)
 			players[0].mo->color = players[0].skincolor;
+			
+		CV_StealthSetValue(&cv_kartcc, 150); // srb2kart
 	}
 	if (metalrecording)
 		G_BeginMetal();
