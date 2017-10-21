@@ -5309,7 +5309,10 @@ void M_DrawTimeAttackMenu(void)
 				soffset = 80;
 
 			// Should see nothing but strings
-			V_DrawString(BASEVIDWIDTH - x - soffset - V_StringWidth(cv->string, 0), y, V_YELLOWMAP, cv->string);
+			if (cv == &cv_chooseskin)
+				V_DrawString(BASEVIDWIDTH - x - soffset - V_StringWidth(skins[cv_chooseskin.value-1].realname, 0), y, V_YELLOWMAP, skins[cv_chooseskin.value-1].realname);
+			else
+				V_DrawString(BASEVIDWIDTH - x - soffset - V_StringWidth(cv->string, 0), y, V_YELLOWMAP, cv->string);
 		}
 		else if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_KEYHANDLER && cv_dummystaff.value) // bad hacky assumption: IT_KEYHANDLER is assumed to be staff ghost selector
 		{
@@ -5365,14 +5368,6 @@ void M_DrawTimeAttackMenu(void)
 		V_DrawString(104-72, 58, V_YELLOWMAP, "TIME:");
 		V_DrawRightAlignedString(104+72, 58, V_ALLOWLOWERCASE, beststr);
 
-		/*if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->rings)
-			sprintf(beststr, "(none)");
-		else
-			sprintf(beststr, "%hu", mainrecords[cv_nextmap.value-1]->rings);
-
-		V_DrawString(104-72, 68, V_YELLOWMAP, "RINGS:");
-		V_DrawRightAlignedString(104+72, 68, V_ALLOWLOWERCASE, beststr);*/
-
 		// Draw record emblems.
 		em = M_GetLevelEmblems(cv_nextmap.value);
 		while (em)
@@ -5381,7 +5376,6 @@ void M_DrawTimeAttackMenu(void)
 			{
 				//case ET_SCORE: yHeight = 48; break;
 				case ET_TIME:  yHeight = 58; break;
-				//case ET_RINGS: yHeight = 68; break;
 				default:
 					goto skipThisOne;
 			}
@@ -5410,8 +5404,12 @@ void M_DrawTimeAttackMenu(void)
 			ncv = (consvar_t *)SP_TimeAttackMenu[i].itemaction;
 
 			V_DrawString(x, y + SP_TimeAttackMenu[i].alphaKey, V_TRANSLUCENT, SP_TimeAttackMenu[i].text);
-			V_DrawString(BASEVIDWIDTH - x - 40 - V_StringWidth(ncv->string, 0),
-			             y + SP_TimeAttackMenu[i].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, ncv->string);
+			if (ncv == &cv_chooseskin)
+				V_DrawString(BASEVIDWIDTH - x - 40 - V_StringWidth(skins[cv_chooseskin.value-1].realname, 0),
+							y + SP_TimeAttackMenu[i].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, skins[cv_chooseskin.value-1].realname);
+			else
+				V_DrawString(BASEVIDWIDTH - x - 40 - V_StringWidth(ncv->string, 0),
+							y + SP_TimeAttackMenu[i].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, ncv->string);
 		}
 	}
 }
