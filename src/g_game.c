@@ -3649,11 +3649,13 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, b
 		SplitScreen_OnChange();
 	}
 
-	if (!color)
+	if (!color && !modeattacking)
 		color = skins[pickedchar].prefcolor;
 	SetPlayerSkinByNum(consoleplayer, pickedchar);
 	CV_StealthSet(&cv_skin, skins[pickedchar].name);
-	CV_StealthSetValue(&cv_playercolor, color);
+
+	if (color)
+		CV_StealthSetValue(&cv_playercolor, color);
 
 	if (mapname)
 		D_MapChange(M_MapNumber(mapname[3], mapname[4]), gametype, pultmode, true, 1, false, FLS);
@@ -5227,8 +5229,8 @@ void G_DoPlayDemo(char *defdemoname)
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = true;
 	P_SetRandSeed(randseed);
-	//G_InitNew(false, G_BuildMapName(gamemap), true, true); // resetplayer needs to be false to retain score
-	G_InitNew(false, G_BuildMapName(gamemap), false, true);
+	//G_InitNew(false, G_BuildMapName(gamemap), false, true); // resetplayer needs to be false to retain score
+	G_InitNew(false, G_BuildMapName(gamemap), true, true); // ...but uh, for demos? doing that makes them start in different positions depending on the last demo you watched
 
 	// Set skin
 	SetPlayerSkin(0, skin);

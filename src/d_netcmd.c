@@ -1148,7 +1148,7 @@ static void SendNameAndColor(void)
 		return;
 
 	// If you're not in a netgame, merely update the skin, color, and name.
-	if (!netgame)
+	if (!netgame && !modeattacking)
 	{
 		INT32 foundskin;
 
@@ -1271,7 +1271,7 @@ static void SendNameAndColor2(void)
 		SetPlayerSkinByNum(secondplaya, botskin-1);
 		return;
 	}
-	else if (!netgame)
+	else if (!netgame && !modeattacking)
 	{
 		INT32 foundskin;
 
@@ -1863,8 +1863,7 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	if (modeattacking)
 	{
 		SetPlayerSkinByNum(0, cv_chooseskin.value-1);
-		players[0].skincolor = skins[players[0].skin].prefcolor;
-		CV_StealthSetValue(&cv_playercolor, players[0].skincolor);
+		players[0].skincolor = cv_playercolor.value; // srb2kart
 
 		// a copy of color
 		if (players[0].mo)
@@ -4211,7 +4210,7 @@ static void Color_OnChange(void)
 	if (!Playing())
 		return; // do whatever you want
 
-	if (!(cv_debug || devparm) && !(multiplayer || netgame)) // In single player.
+	if (!(cv_debug || devparm) && !(multiplayer || netgame || modeattacking)) // In single player.
 	{
 		CV_StealthSet(&cv_skin, skins[players[consoleplayer].skin].name);
 		return;

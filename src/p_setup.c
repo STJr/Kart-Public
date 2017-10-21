@@ -2363,7 +2363,7 @@ static void P_ForceCharacter(const char *forcecharskin)
 		if (splitscreen)
 		{
 			SetPlayerSkin(secondarydisplayplayer, forcecharskin);
-			if ((unsigned)cv_playercolor2.value != skins[players[secondarydisplayplayer].skin].prefcolor)
+			if ((unsigned)cv_playercolor2.value != skins[players[secondarydisplayplayer].skin].prefcolor && !modeattacking)
 			{
 				CV_StealthSetValue(&cv_playercolor2, skins[players[secondarydisplayplayer].skin].prefcolor);
 				players[secondarydisplayplayer].skincolor = skins[players[secondarydisplayplayer].skin].prefcolor;
@@ -2372,7 +2372,7 @@ static void P_ForceCharacter(const char *forcecharskin)
 
 		SetPlayerSkin(consoleplayer, forcecharskin);
 		// normal player colors in single player
-		if ((unsigned)cv_playercolor.value != skins[players[consoleplayer].skin].prefcolor)
+		if ((unsigned)cv_playercolor.value != skins[players[consoleplayer].skin].prefcolor && !modeattacking)
 		{
 			CV_StealthSetValue(&cv_playercolor, skins[players[consoleplayer].skin].prefcolor);
 			players[consoleplayer].skincolor = skins[players[consoleplayer].skin].prefcolor;
@@ -2417,16 +2417,16 @@ static void P_LoadRecordGhosts(void)
 		}
 	}
 
-	// Best Rings ghost
-	/*if (cv_ghost_bestrings.value)
+	// Best lap ghost
+	/*if (cv_ghost_bestlap.value)
 	{
 		for (i = 0; i < numskins; ++i)
 		{
-			if (cv_ghost_bestrings.value == 1 && players[consoleplayer].skin != i)
+			if (cv_ghost_bestlap.value == 1 && players[consoleplayer].skin != i)
 				continue;
 
-			if (FIL_FileExists(va("%s-%s-rings-best.lmp", gpath, skins[i].name)))
-				G_AddGhost(va("%s-%s-rings-best.lmp", gpath, skins[i].name));
+			if (FIL_FileExists(va("%s-%s-lap-best.lmp", gpath, skins[i].name)))
+				G_AddGhost(va("%s-%s-lap-best.lmp", gpath, skins[i].name));
 		}
 	}*/
 
@@ -2452,9 +2452,9 @@ static void P_LoadRecordGhosts(void)
 	{
 		lumpnum_t l;
 		UINT8 i = 1;
-		while (i <= 99 && (l = W_CheckNumForName(va("%sK%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
+		while (i <= 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
 		{
-			G_AddGhost(va("%sK%02u",G_BuildMapName(gamemap),i));
+			G_AddGhost(va("%sS%02u",G_BuildMapName(gamemap),i));
 			i++;
 		}
 	}
@@ -2493,9 +2493,9 @@ static void P_LoadNightsGhosts(void)
 	{
 		lumpnum_t l;
 		UINT8 i = 1;
-		while (i <= 99 && (l = W_CheckNumForName(va("%sN%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
+		while (i <= 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
 		{
-			G_AddGhost(va("%sN%02u",G_BuildMapName(gamemap),i));
+			G_AddGhost(va("%sS%02u",G_BuildMapName(gamemap),i));
 			i++;
 		}
 	}
