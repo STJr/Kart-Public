@@ -701,7 +701,7 @@ void D_RegisterClientCommands(void)
 	// time attack ghost options are also saved to config
 	CV_RegisterVar(&cv_ghost_bestscore);
 	CV_RegisterVar(&cv_ghost_besttime);
-	CV_RegisterVar(&cv_ghost_bestrings);
+	//CV_RegisterVar(&cv_ghost_bestlap);
 	CV_RegisterVar(&cv_ghost_last);
 	CV_RegisterVar(&cv_ghost_guest);
 	CV_RegisterVar(&cv_ghost_staff);
