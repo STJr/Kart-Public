@@ -3878,7 +3878,7 @@ DoneSection2:
 					mo->spawnpoint = bflagpoint;
 					mo->flags2 |= MF2_JUSTATTACKED;
 					redscore += 1;
-					P_AddPlayerScore(player, 250);
+					P_AddPlayerScore(player, 5);
 				}
 			}
 			break;
@@ -3911,7 +3911,7 @@ DoneSection2:
 					mo->spawnpoint = rflagpoint;
 					mo->flags2 |= MF2_JUSTATTACKED;
 					bluescore += 1;
-					P_AddPlayerScore(player, 250);
+					P_AddPlayerScore(player, 5);
 				}
 			}
 			break;

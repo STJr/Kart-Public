@@ -2188,6 +2188,7 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	INT32 starpostwp;
 	INT32 offroad;
+	INT32 balloon;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2242,6 +2243,7 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	offroad = players[player].kartstuff[k_offroad];
+	balloon = players[player].kartstuff[k_balloon];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2297,6 +2299,7 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
+	p->kartstuff[k_balloon] = balloon;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -2801,7 +2804,8 @@ boolean G_GametypeHasTeams(void)
 //
 boolean G_GametypeHasSpectators(void)
 {
-	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
+	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE
+			&& gametype != GT_MATCH); // srb2kart: temporary?
 }
 
 //

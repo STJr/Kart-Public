@@ -685,7 +685,7 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 				   /*Boo*/ { 1, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
 			  /*Mushroom*/ { 1, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
+		 /*Mega Mushroom*/ { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 1, 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
@@ -1633,8 +1633,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 			//return;
 		}
 
-		if (source && source->player)
-			source->player->score++;
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
 
 		K_CheckBalloons();
 	}
@@ -1697,8 +1697,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 			//return;
 		}
 
-		if (source && source->player)
-			source->player->score++;
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
 
 		K_CheckBalloons();
 	}
@@ -1750,8 +1750,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 			//return;
 		}
 
-		if (source && source->player)
-			source->player->score++;
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
 
 		K_CheckBalloons();
 	}
@@ -2156,15 +2156,15 @@ static void K_DoBooSteal(player_t *player)
 	INT32 stealplayer = 0; // The player that's getting stolen from
 	INT32 prandom = 0;
 
-	if (!multiplayer)
+	if (!multiplayer || (gametype == GT_MATCH && player->kartstuff[k_balloon] <= 0))
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && players[i].mo && players[i].mo->health > 0 && players[i].playerstate == PST_LIVE
-			&& !players[i].exiting && !players[i].powers[pw_super] && !((netgame || multiplayer) && players[i].spectator)
-			&& players[i].kartstuff[k_position] < player->kartstuff[k_position] && player != &players[i]
-			&& (gametype == GT_MATCH && players[i].kartstuff[k_balloon] > 0)
+			&& player != &players[i] && !players[i].exiting && !players[i].powers[pw_super] && !(players[i].spectator)
+			&& ((gametype == GT_RACE && players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			|| (gametype == GT_MATCH && players[i].kartstuff[k_balloon] > 0))
 
 			&& (players[i].kartstuff[k_star] || players[i].kartstuff[k_mushroom] || players[i].kartstuff[k_goldshroom]
 			|| players[i].kartstuff[k_megashroom] || players[i].kartstuff[k_lightning] || players[i].kartstuff[k_blueshell]
@@ -2623,30 +2623,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	if (gametype == GT_RACE)
 		K_KartUpdatePosition(player);
-	else if (gametype == GT_MATCH && player->kartstuff[k_balloon] <= 0) // dead in match? BOO!
-	{
-		player->kartstuff[k_bootaketimer] = bootime;
-		player->kartstuff[k_magnet] = 0; // reset all those dang items
-		player->kartstuff[k_boo] = 0;
-		player->kartstuff[k_mushroom] = 0;
-		player->kartstuff[k_megashroom] = 0;
-		player->kartstuff[k_goldshroom] = 0;
-		player->kartstuff[k_star] = 0;
-		player->kartstuff[k_triplebanana] = 0;
-		player->kartstuff[k_fakeitem] = 0;
-		player->kartstuff[k_banana] = 0;
-		player->kartstuff[k_greenshell] = 0;
-		player->kartstuff[k_redshell] = 0;
-		player->kartstuff[k_laserwisp] = 0;
-		player->kartstuff[k_triplegreenshell] = 0;
-		player->kartstuff[k_bobomb] = 0;
-		player->kartstuff[k_blueshell] = 0;
-		player->kartstuff[k_jaws] = 0;
-		player->kartstuff[k_fireflower] = 0;
-		player->kartstuff[k_tripleredshell] = 0;
-		player->kartstuff[k_lightning] = 0;
-		player->kartstuff[k_kitchensink] = 0;
-	}
 
 	// Position Taunt
 	// If you were behind someone but just passed them, taunt at them!
@@ -3195,32 +3171,62 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		player->kartstuff[k_boostcharge] = 0;
 	}
+
+	if (gametype == GT_MATCH && player->kartstuff[k_balloon] <= 0) // dead in match? BOO!
+	{
+		player->kartstuff[k_bootaketimer] = bootime;
+		player->kartstuff[k_magnet] = 0; // reset all those dang items
+		player->kartstuff[k_boo] = 0;
+		player->kartstuff[k_mushroom] = 0;
+		player->kartstuff[k_megashroom] = 0;
+		player->kartstuff[k_goldshroom] = 0;
+		player->kartstuff[k_star] = 0;
+		player->kartstuff[k_triplebanana] = 0;
+		player->kartstuff[k_fakeitem] = 0;
+		player->kartstuff[k_banana] = 0;
+		player->kartstuff[k_greenshell] = 0;
+		player->kartstuff[k_redshell] = 0;
+		player->kartstuff[k_laserwisp] = 0;
+		player->kartstuff[k_triplegreenshell] = 0;
+		player->kartstuff[k_bobomb] = 0;
+		player->kartstuff[k_blueshell] = 0;
+		player->kartstuff[k_jaws] = 0;
+		player->kartstuff[k_fireflower] = 0;
+		player->kartstuff[k_tripleredshell] = 0;
+		player->kartstuff[k_lightning] = 0;
+		player->kartstuff[k_kitchensink] = 0;
+	}
 }
 
 void K_CheckBalloons(void)
 {
 	UINT8 i;
+	UINT8 numingame = 0;
 	INT8 winnernum = -1;
-	
-	if (gameaction == ga_completed)
-		return;
 
-	if (!D_NumPlayers())
+	if (gameaction == ga_completed)
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[i] || players[i].spectator || players[i].kartstuff[k_balloon] <= 0)
+		if (!playeringame[i] || players[i].spectator) // not even in-game :V
 			continue;
 
-		if (winnernum > -1)
-			return;
+		numingame++;
 
+		if (players[i].kartstuff[k_balloon] <= 0) // if you don't have any balloons, you're probably not a winner
+			continue;
+		else if (winnernum > -1) // TWO winners? that's dumb :V
+			return;
 		winnernum = i;
 	}
 
-	players[winnernum].score += 20;
-	CONS_Printf(M_GetText("%s has recieved 20 points for surviving!\n"), player_names[winnernum]);
+	if (numingame <= 1)
+		return;
+
+	P_AddPlayerScore(&players[winnernum], numingame);
+	CONS_Printf(M_GetText("%s recieved %d points for surviving!\n"), player_names[winnernum], numingame); // numingame/2 == 1 ? "" : "s"
+
 	if (server)
 		SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 }
@@ -3679,31 +3685,32 @@ static void K_drawKartRetroItem(void)
 	// The only actual reason is to make triple/double/single mushrooms line up this way in the code below
 	// This shouldn't have any actual baring over how it functions
 	// Boo is first, because we're drawing it on top of the player's current item
-	if 		((stplyr->kartstuff[k_bootaketimer] > 0
-		|| stplyr->kartstuff[k_boostolentimer] > 0) && (leveltime & 2)) 	localpatch = kp_boosteal;
-	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))	localpatch = kp_noitem;
+	if ((stplyr->kartstuff[k_bootaketimer] > 0 || stplyr->kartstuff[k_boostolentimer] > 0)
+		&& !(gametype == GT_MATCH && stplyr->kartstuff[k_balloon] <= 0)
+		&& (leveltime & 2))													localpatch = kp_boosteal;
+	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))		localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_kitchensink] == 1)							localpatch = kp_kitchensink;
-	else if (stplyr->kartstuff[k_lightning] == 1)							localpatch = kp_lightning;
-	else if (stplyr->kartstuff[k_tripleredshell])							localpatch = kp_tripleredshell; // &8
+	else if (stplyr->kartstuff[k_lightning] == 1)								localpatch = kp_lightning;
+	else if (stplyr->kartstuff[k_tripleredshell])								localpatch = kp_tripleredshell; // &8
 	else if (stplyr->kartstuff[k_fireflower] == 1)							localpatch = kp_fireflower;
-	else if (stplyr->kartstuff[k_blueshell] == 1)							localpatch = kp_blueshell;
-	else if (stplyr->kartstuff[k_bobomb])									localpatch = kp_bobomb; // &2
+	else if (stplyr->kartstuff[k_blueshell] == 1)								localpatch = kp_blueshell;
+	else if (stplyr->kartstuff[k_bobomb])										localpatch = kp_bobomb; // &2
 	else if (stplyr->kartstuff[k_triplegreenshell])							localpatch = kp_triplegreenshell; // &8
 	else if (stplyr->kartstuff[k_redshell])									localpatch = kp_redshell; // &2
-	else if (stplyr->kartstuff[k_greenshell])								localpatch = kp_greenshell;  // &2
-	else if (stplyr->kartstuff[k_banana])									localpatch = kp_banana; // &2
+	else if (stplyr->kartstuff[k_greenshell])									localpatch = kp_greenshell;  // &2
+	else if (stplyr->kartstuff[k_banana])										localpatch = kp_banana; // &2
 	else if (stplyr->kartstuff[k_fakeitem] & 2)								localpatch = kp_fakeitem;
 	else if (stplyr->kartstuff[k_triplebanana])								localpatch = kp_triplebanana; // &8
-	else if (stplyr->kartstuff[k_star] == 1)								localpatch = kp_star;
+	else if (stplyr->kartstuff[k_star] == 1)									localpatch = kp_star;
 	else if (stplyr->kartstuff[k_goldshroom] == 1
-		|| (stplyr->kartstuff[k_goldshroomtimer] > 1 && (leveltime & 1)))	localpatch = kp_goldshroom;
+		|| (stplyr->kartstuff[k_goldshroomtimer] > 1 && (leveltime & 1)))		localpatch = kp_goldshroom;
 	else if (stplyr->kartstuff[k_goldshroomtimer] > 1 && !(leveltime & 1))	localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_megashroom] == 1
-		|| (stplyr->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1)))	localpatch = kp_megashroom;
+		|| (stplyr->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1)))		localpatch = kp_megashroom;
 	else if (stplyr->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))	localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_mushroom] & 4)								localpatch = kp_triplemushroom;
 	else if (stplyr->kartstuff[k_mushroom] & 2)								localpatch = kp_doublemushroom;
-	else if (stplyr->kartstuff[k_mushroom] == 1)							localpatch = kp_mushroom;
+	else if (stplyr->kartstuff[k_mushroom] == 1)								localpatch = kp_mushroom;
 	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
 	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
 

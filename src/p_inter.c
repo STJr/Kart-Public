@@ -150,6 +150,30 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
 	//	return false;
 
+	if (player->kartstuff[k_bootaketimer]
+		|| player->kartstuff[k_boostolentimer]
+		|| player->kartstuff[k_magnet]
+		|| player->kartstuff[k_boo]
+		|| player->kartstuff[k_mushroom]
+		|| player->kartstuff[k_megashroom]
+		|| player->kartstuff[k_goldshroom]
+		|| player->kartstuff[k_star]
+		|| player->kartstuff[k_triplebanana] == 0x8
+		|| player->kartstuff[k_fakeitem] == 0x2
+		|| player->kartstuff[k_banana] == 0x2
+		|| player->kartstuff[k_greenshell] == 0x2
+		|| player->kartstuff[k_redshell] == 0x2
+		|| player->kartstuff[k_laserwisp]
+		|| player->kartstuff[k_triplegreenshell] == 0x8
+		|| player->kartstuff[k_bobomb] == 0x2
+		|| player->kartstuff[k_blueshell]
+		|| player->kartstuff[k_jaws] == 0x4
+		|| player->kartstuff[k_fireflower]
+		|| player->kartstuff[k_tripleredshell] == 0x8
+		|| player->kartstuff[k_lightning]
+		|| player->kartstuff[k_kitchensink])
+		return false;
+
 	return true;
 }
 
@@ -2224,7 +2248,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 						for (w=0; w < MAXPLAYERS; w++)
 						{
 							if (players[w].pflags & PF_TAGIT)
-								P_AddPlayerScore(&players[w], 100);
+								P_AddPlayerScore(&players[w], 1);
 						}
 
 						target->player->pflags |= PF_TAGGED;
@@ -2594,7 +2618,7 @@ static inline boolean P_TagDamage(mobj_t *target, mobj_t *inflictor, mobj_t *sou
 	// The tag occurs so long as you aren't shooting another tagger with friendlyfire on.
 	if (source->player->pflags & PF_TAGIT && !(player->pflags & PF_TAGIT))
 	{
-		P_AddPlayerScore(source->player, 100); //award points to tagger.
+		P_AddPlayerScore(source->player, 1); //award points to tagger.
 		P_HitDeathMessages(player, inflictor, source);
 
 		if (gametype == GT_TAG) //survivor
@@ -2708,21 +2732,21 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	P_ResetPlayer(player);
 
 	P_SetPlayerMobjState(player->mo, player->mo->info->deathstate);
-	if (gametype == GT_CTF && (player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
+	/*if (gametype == GT_CTF && (player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
 	{
 		P_PlayerFlagBurst(player, false);
 		if (source && source->player)
 		{
 			// Award no points when players shoot each other when cv_friendlyfire is on.
 			if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
-				P_AddPlayerScore(source->player, 25);
+				P_AddPlayerScore(source->player, 1);
 		}
 	}
 	if (source && source->player && !player->powers[pw_super]) //don't score points against super players
 	{
 		// Award no points when players shoot each other when cv_friendlyfire is on.
 		if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
-			P_AddPlayerScore(source->player, 100);
+			P_AddPlayerScore(source->player, 1);
 	}
 
 	// If the player was super, tell them he/she ain't so super nomore.
@@ -2732,6 +2756,20 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		HU_SetCEchoFlags(0);
 		HU_SetCEchoDuration(5);
 		HU_DoCEcho(va("%s\\is no longer super.\\\\\\\\", player_names[player-players]));
+	}*/
+
+	if (player->kartstuff[k_balloon])
+	{
+		if (player->kartstuff[k_balloon] & 16)
+			player->kartstuff[k_balloon] &= ~16;
+		else if (player->kartstuff[k_balloon] & 8)
+			player->kartstuff[k_balloon] &= ~8;
+		else if (player->kartstuff[k_balloon] & 4)
+			player->kartstuff[k_balloon] &= ~4;
+		else if (player->kartstuff[k_balloon] & 2)
+			player->kartstuff[k_balloon] &= ~2;
+		else if (player->kartstuff[k_balloon] & 1)
+			player->kartstuff[k_balloon] &= ~1;
 	}
 }
 
@@ -2868,11 +2906,11 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 			S_StartSound(player->mo, sfx_spkdth);
 	}
 
-	if (source && source->player && !player->powers[pw_super]) //don't score points against super players
+	/*if (source && source->player && !player->powers[pw_super]) //don't score points against super players
 	{
 		// Award no points when players shoot each other when cv_friendlyfire is on.
 		if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
-			P_AddPlayerScore(source->player, 50);
+			P_AddPlayerScore(source->player, 1);
 	}
 
 	if (gametype == GT_CTF && (player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
@@ -2882,9 +2920,9 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 		{
 			// Award no points when players shoot each other when cv_friendlyfire is on.
 			if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
-				P_AddPlayerScore(source->player, 25);
+				P_AddPlayerScore(source->player, 1);
 		}
-	}
+	}*/
 
 	// Ring loss sound plays despite hitting spikes
 	P_PlayRinglossSound(player->mo); // Ringledingle!

@@ -6382,7 +6382,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SINKTRAIL3",
 
 	// Battle Mode balloon
-	"S_BATTLEBALLOON",
+	"S_BATTLEBALLOON1",
+	"S_BATTLEBALLOON2",
+	"S_BATTLEBALLOON3",
 
 	// Pokey
 	"S_POKEY1",

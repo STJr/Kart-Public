@@ -853,13 +853,13 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 
 	// Point penalty for hitting a hazard during tag.
 	// Discourages players from intentionally hurting themselves to avoid being tagged.
-	if (gametype == GT_TAG && (!(player->pflags & PF_TAGGED) && !(player->pflags & PF_TAGIT)))
+	/*if (gametype == GT_TAG && (!(player->pflags & PF_TAGGED) && !(player->pflags & PF_TAGIT)))
 	{
-		//if (player->score >= 50)
-		//	player->score -= 50;
-		//else
-		//	player->score = 0;
-	}
+		if (player->score >= 50)
+			player->score -= 50;
+		else
+			player->score = 0;
+	}*/
 
 	P_ResetPlayer(player);
 	P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
@@ -1006,9 +1006,6 @@ void P_DoSuperTransformation(player_t *player, boolean giverings)
 void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
 	UINT32 oldscore;
-
-	return; // SRB2kart - no score.
-	// This will probably be temporary until we do battle modes?
 
 	if (player->bot)
 		player = &players[consoleplayer];
@@ -7973,13 +7970,12 @@ static void P_DeathThink(player_t *player)
 		}
 		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
 
-		// SRB2kart - spawn automatically after 1.5 seconds
-		if (player->deadtimer > (TICRATE + TICRATE/2) && (gametype == GT_RACE || player->spectator))
+		// SRB2kart - spawn automatically after 1 second
+		if (player->deadtimer > TICRATE)
 			player->playerstate = PST_REBORN;
 
-		// SRB2kart - spawn after 1.5 seconds & Button press
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > (TICRATE + TICRATE/2) 
-			&& (gametype == GT_RACE || player->spectator))
+		// SRB2kart - spawn after 5 tics & Button press
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > 5)
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn

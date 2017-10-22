@@ -6581,21 +6581,21 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					INT32 zfixds = 56;
-					INT32 DIST = FixedMul(zfixds, mobj->target->scale);
-					INT32 HEIGHT;
-					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
+					fixed_t HEIGHT;
+					fixed_t radius = 56*mobj->target->scale; // mobj's distance from its Target, or Radius.
 
 					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
-						zfixds = 64;
+						radius = 64*mobj->target->scale;
+					else if (mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3 || mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
+						radius = 32*mobj->target->scale;
 					else
-						zfixds = 56;
+						radius = 56*mobj->target->scale;
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
 					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
-					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3
-					|| mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
-					|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
+						|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3
+						|| mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
+						|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
 						mobj->angle += FixedAngle(mobj->info->speed);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
@@ -6603,10 +6603,6 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->angle = (mobj->target->angle + ANGLE_225);
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
-
-					if (mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
-					|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
-						mobj->color = mobj->target->color;
 
 					// If the player is on the ceiling, then flip your items as well.
 					if (mobj->target->eflags & MFE_VERTICALFLIP)
@@ -6618,6 +6614,27 @@ void P_MobjThinker(mobj_t *mobj)
 					{
 						mobj->eflags &= ~MFE_VERTICALFLIP;
 						HEIGHT = mobj->target->height / 5;
+					}
+
+					if (mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
+						|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
+					{
+						mobj->color = mobj->target->color;
+
+						if (!(mobj->target->player->kartstuff[k_balloon] & 4))
+							P_SetMobjState(mobj, S_BATTLEBALLOON2);
+						else if (!(mobj->target->player->kartstuff[k_balloon] & 2))
+							P_SetMobjState(mobj, S_BATTLEBALLOON3);
+
+						if (mobj->target->flags2 & MF2_DONTDRAW)
+							mobj->flags2 |= MF2_DONTDRAW;
+						else
+							mobj->flags2 &= !MF2_DONTDRAW;
+
+						if (mobj->target->eflags & MFE_VERTICALFLIP)
+							HEIGHT += 4*FRACUNIT;
+						else
+							HEIGHT -= 4*FRACUNIT;
 					}
 
 					// Shrink your items if the player shrunk too.
@@ -8369,10 +8386,11 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_GREENITEM:				case MT_GREENSHIELD:
 		case MT_TRIPLEGREENSHIELD1: 	case MT_TRIPLEGREENSHIELD2: 	case MT_TRIPLEGREENSHIELD3: 
 		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD: 
-		case MT_TRIPLEREDSHIELD1: 		case MT_TRIPLEREDSHIELD2: 		case MT_TRIPLEREDSHIELD3: 
+		case MT_TRIPLEREDSHIELD1: 		case MT_TRIPLEREDSHIELD2: 		case MT_TRIPLEREDSHIELD3:
+		case MT_BATTLEBALLOON1:			case MT_BATTLEBALLOON2:			case MT_BATTLEBALLOON3:
+		case MT_BATTLEBALLOON4:			case MT_BATTLEBALLOON5:			case MT_FIREBALL:
 		case MT_FAKEITEM: 				case MT_FAKESHIELD: 
 		case MT_BOMBITEM: 				case MT_BOMBSHIELD: 
-		case MT_FIREBALL: 
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;
@@ -9123,41 +9141,49 @@ void P_SpawnPlayer(INT32 playernum)
 	// Spawn with a pity shield if necessary.
 	//P_DoPityCheck(p);
 
-	if (gametype == GT_MATCH && p->playerstate != PST_REBORN) // srb2kart
+	if (gametype == GT_MATCH && (leveltime < 1 || p->kartstuff[k_balloon] > 0)) // srb2kart
 	{
 		angle_t newangle, diff;
 		fixed_t newx;
 		fixed_t newy;
 		mobj_t *mo, *mo2, *mo3, *mo4, *mo5;
-		
-		switch (cv_kartballoons.value) // Fallthrough intentional
+
+		if (leveltime < 1) // Start of the map?
 		{
-			case 5:
-				p->kartstuff[k_balloon] |= 0x16;
-			case 4:
-				p->kartstuff[k_balloon] |= 0x08;
-			case 3:
-				p->kartstuff[k_balloon] |= 0x04;
-			case 2:
-				p->kartstuff[k_balloon] |= 0x02;
-			case 1:
-				p->kartstuff[k_balloon] |= 0x01;
-				break;
-			default:
-				p->kartstuff[k_balloon] = 0x01|0x02|0x04;
-				break;
+			p->kartstuff[k_balloon] = 0; // Reset those balloons!
+			switch (cv_kartballoons.value)
+			{
+				case 5:
+					p->kartstuff[k_balloon] |= 0x16; 
+				case 4: // Fallthru's are intentional
+					p->kartstuff[k_balloon] |= 0x08;
+				case 3:
+					p->kartstuff[k_balloon] |= 0x04;
+				case 2:
+					p->kartstuff[k_balloon] |= 0x02;
+				case 1:
+					p->kartstuff[k_balloon] |= 0x01;
+					break;
+				default:
+					p->kartstuff[k_balloon] = 0x01|0x02|0x04; // 3 balloons
+					break;
+			}
 		}
 
 		newangle = mobj->angle;
 		diff = FixedAngle(360*FRACUNIT/cv_kartballoons.value);
 		newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
 		newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
-		
+
 		mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON1);
 		mo->threshold = 10;
 		P_SetTarget(&mo->target, mobj);
 		mo->angle = 0;
 		mo->color = mobj->color;
+		if (mobj->flags2 & MF2_DONTDRAW)
+			mo->flags2 |= MF2_DONTDRAW;
+		else
+			mo->flags2 &= !MF2_DONTDRAW;
 
 		if (p->kartstuff[k_balloon] & 2)
 		{
@@ -9166,6 +9192,10 @@ void P_SpawnPlayer(INT32 playernum)
 			P_SetTarget(&mo2->target, mobj);
 			mo2->angle = diff;
 			mo2->color = mobj->color;
+			if (mobj->flags2 & MF2_DONTDRAW)
+				mo2->flags2 |= MF2_DONTDRAW;
+			else
+				mo2->flags2 &= !MF2_DONTDRAW;
 		}
 
 		if (p->kartstuff[k_balloon] & 4)
@@ -9175,6 +9205,10 @@ void P_SpawnPlayer(INT32 playernum)
 			P_SetTarget(&mo3->target, mobj);
 			mo3->angle = diff*2;
 			mo3->color = mobj->color;
+			if (mobj->flags2 & MF2_DONTDRAW)
+				mo3->flags2 |= MF2_DONTDRAW;
+			else
+				mo3->flags2 &= !MF2_DONTDRAW;
 		}
 
 		if (p->kartstuff[k_balloon] & 8)
@@ -9184,6 +9218,10 @@ void P_SpawnPlayer(INT32 playernum)
 			P_SetTarget(&mo4->target, mobj);
 			mo4->angle = diff*3;
 			mo4->color = mobj->color;
+			if (mobj->flags2 & MF2_DONTDRAW)
+				mo4->flags2 |= MF2_DONTDRAW;
+			else
+				mo4->flags2 &= !MF2_DONTDRAW;
 		}
 
 		if (p->kartstuff[k_balloon] & 16)
@@ -9193,6 +9231,10 @@ void P_SpawnPlayer(INT32 playernum)
 			P_SetTarget(&mo5->target, mobj);
 			mo5->angle = diff*4;
 			mo5->color = mobj->color;
+			if (mobj->flags2 & MF2_DONTDRAW)
+				mo5->flags2 |= MF2_DONTDRAW;
+			else
+				mo5->flags2 &= !MF2_DONTDRAW;
 		}
 	}
 }

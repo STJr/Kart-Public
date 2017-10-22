@@ -3225,7 +3225,9 @@ typedef enum state
 	S_SINKTRAIL3,
 
 	// Battle Mode balloons
-	S_BATTLEBALLOON,
+	S_BATTLEBALLOON1,
+	S_BATTLEBALLOON2,
+	S_BATTLEBALLOON3,
 
 	// Lakitu
 	S_LAKITU1,
