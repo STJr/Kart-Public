@@ -6621,10 +6621,10 @@ void P_MobjThinker(mobj_t *mobj)
 					{
 						mobj->color = mobj->target->color;
 
-						if (!(mobj->target->player->kartstuff[k_balloon] & 4))
-							P_SetMobjState(mobj, S_BATTLEBALLOON2);
-						else if (!(mobj->target->player->kartstuff[k_balloon] & 2))
+						if (!(mobj->target->player->kartstuff[k_balloon] & 2))
 							P_SetMobjState(mobj, S_BATTLEBALLOON3);
+						else if (!(mobj->target->player->kartstuff[k_balloon] & 4))
+							P_SetMobjState(mobj, S_BATTLEBALLOON2);
 
 						if (mobj->target->flags2 & MF2_DONTDRAW)
 							mobj->flags2 |= MF2_DONTDRAW;
