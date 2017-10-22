@@ -35,6 +35,8 @@
 #include "p_slopes.h"
 #endif
 
+#include "k_kart.h"
+
 // protos.
 static CV_PossibleValue_t viewheight_cons_t[] = {{16, "MIN"}, {56, "MAX"}, {0, NULL}};
 consvar_t cv_viewheight = {"viewheight", VIEWHEIGHTS, 0, viewheight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -7505,19 +7507,39 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_REDITEM:
 		{
-			fixed_t magnitude;
+			fixed_t topspeed = 64*FRACUNIT;
+			fixed_t distbarrier = 512*FRACUNIT;
+			fixed_t distaway;
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
-			// Do a similar thing to what is done to the player to keep the red shell at a speed cap
-			magnitude = P_AproxDistance(mobj->momx, mobj->momy);
-			if (magnitude > 64*FRACUNIT)
+			if (cv_kartcc.value == 50)
 			{
-				mobj->momx = FixedMul(FixedDiv(mobj->momx, magnitude), 64*FRACUNIT);
-				mobj->momy = FixedMul(FixedDiv(mobj->momy, magnitude), 64*FRACUNIT);
+				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
+				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
 			}
+			else if (cv_kartcc.value == 150)
+			{
+				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
+				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
+			}
+
+			if (mobj->tracer)
+			{
+				distaway = P_AproxDistance(mobj->tracer->x - mobj->x, mobj->tracer->y - mobj->y);
+				if (distaway < distbarrier)
+				{
+					if (mobj->tracer->player)
+					{
+						fixed_t speeddifference = abs(topspeed - min(mobj->tracer->player->speed, K_GetKartSpeed(mobj->tracer->player, false)));
+						topspeed = topspeed - FixedMul(speeddifference, FRACUNIT-FixedDiv(distaway, distbarrier));
+					}
+				}
+			}
+
+			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
 			break;
 		}
 		case MT_REDITEMDUD:
