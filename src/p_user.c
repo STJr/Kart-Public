@@ -8038,41 +8038,33 @@ static void P_DeathThink(player_t *player)
 		}
 	}
 
-	if (gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame)))
+	// Keep time rolling
+	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
 	{
-		// Keep time rolling in race mode
-		if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
-		{
-			if (gametype == GT_RACE || gametype == GT_COMPETITION)
-			{
-				if (leveltime >= 4*TICRATE)
-					player->realtime = leveltime - 4*TICRATE;
-				else
-					player->realtime = 0;
-			}
-			else
-				player->realtime = leveltime;
-		}
-
+		if (leveltime >= 4*TICRATE)
+			player->realtime = leveltime - 4*TICRATE;
+		else
+			player->realtime = 0;
+	}
+	
+	if ((gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
+	{
 		// Return to level music
-		if (player->lives <= 0)
+		if (netgame)
 		{
-			if (netgame)
-			{
-				if (player->deadtimer == gameovertics && P_IsLocalPlayer(player))
-					S_ChangeMusic(mapmusname, mapmusflags, true);
-			}
-			else if (multiplayer) // local multiplayer only
-			{
-				if (player->deadtimer != gameovertics)
-					;
-				// Restore the other player's music once we're dead for long enough
-				// -- that is, as long as they aren't dead too
-				else if (player == &players[displayplayer] && players[secondarydisplayplayer].lives > 0)
-					P_RestoreMusic(&players[secondarydisplayplayer]);
-				else if (player == &players[secondarydisplayplayer] && players[displayplayer].lives > 0)
-					P_RestoreMusic(&players[displayplayer]);
-			}
+			if (player->deadtimer == gameovertics && P_IsLocalPlayer(player))
+				S_ChangeMusic(mapmusname, mapmusflags, true);
+		}
+		else if (multiplayer) // local multiplayer only
+		{
+			if (player->deadtimer != gameovertics)
+				;
+			// Restore the other player's music once we're dead for long enough
+			// -- that is, as long as they aren't dead too
+			else if (player == &players[displayplayer] && players[secondarydisplayplayer].lives > 0)
+				P_RestoreMusic(&players[secondarydisplayplayer]);
+			else if (player == &players[secondarydisplayplayer] && players[displayplayer].lives > 0)
+				P_RestoreMusic(&players[displayplayer]);
 		}
 	}
 
@@ -9007,7 +8999,7 @@ static void P_CalcPostImg(player_t *player)
 #endif
 }
 
-void P_DoPityCheck(player_t *player)
+/*void P_DoPityCheck(player_t *player)
 {
 	// No pity outside of match or CTF.
 	if (player->spectator
@@ -9024,7 +9016,7 @@ void P_DoPityCheck(player_t *player)
 		player->powers[pw_shield] = SH_PITY;
 		P_SpawnShieldOrb(player);
 	}
-}
+}*/
 
 //
 // P_PlayerThink
@@ -9252,7 +9244,7 @@ void P_PlayerThink(player_t *player)
 		playerdeadview = false;
 
 	// SRB2kart 010217
-	if (gametype == GT_RACE && leveltime < 4*TICRATE)
+	if (leveltime < 4*TICRATE)
 		player->powers[pw_nocontrol] = 2;
 	/*
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
@@ -9266,15 +9258,10 @@ void P_PlayerThink(player_t *player)
 	// Synchronizes the "real" amount of time spent in the level.
 	if (!player->exiting)
 	{
-		if (gametype == GT_RACE || gametype == GT_COMPETITION)
-		{
-			if (leveltime >= 4*TICRATE)
-				player->realtime = leveltime - 4*TICRATE;
-			else
-				player->realtime = 0;
-		}
+		if (leveltime >= 4*TICRATE)
+			player->realtime = leveltime - 4*TICRATE;
 		else
-			player->realtime = leveltime;
+			player->realtime = 0;
 	}
 
 	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])

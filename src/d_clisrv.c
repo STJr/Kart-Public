@@ -43,6 +43,7 @@
 #include "lzf.h"
 #include "lua_script.h"
 #include "lua_hook.h"
+#include "k_kart.h"
 
 #ifdef CLIENT_LOADINGSCREEN
 // cl loading screen
@@ -2421,6 +2422,8 @@ static void CL_RemovePlayer(INT32 playernum)
 
 	if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
 		P_CheckSurvivors();
+	else if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF)
+		K_CheckBalloons(); // SRB2Kart
 	else if (gametype == GT_RACE || gametype == GT_COMPETITION)
 		P_CheckRacers();
 }

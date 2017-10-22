@@ -600,6 +600,7 @@ typedef enum sprite
 	SPR_LIGH, // Lightning
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
+	SPR_KBLN, // Battle Mode Balloon
 
 	SPR_LAKI, // Lakitu
 
@@ -3223,6 +3224,9 @@ typedef enum state
 	S_SINKTRAIL2,
 	S_SINKTRAIL3,
 
+	// Battle Mode balloons
+	S_BATTLEBALLOON,
+
 	// Lakitu
 	S_LAKITU1,
 	S_LAKITU2,
@@ -3938,6 +3942,12 @@ typedef enum mobj_type
 
 	MT_SINK, // Kitchen Sink Stuff
 	MT_SINKTRAIL,
+
+	MT_BATTLEBALLOON1, // Battle Mode balloons
+	MT_BATTLEBALLOON2,
+	MT_BATTLEBALLOON3,
+	MT_BATTLEBALLOON4,
+	MT_BATTLEBALLOON5,
 
 	MT_LAKITU,
 

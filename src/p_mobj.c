@@ -218,7 +218,7 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 	{
 		// Start flashing, since you've landed.
 		player->powers[pw_flashing] = flashingtics-1;
-		P_DoPityCheck(player);
+		//P_DoPityCheck(player);
 	}
 
 	// Set animation state
@@ -6573,6 +6573,11 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_TRIPLEBANANASHIELD1:
 			case MT_TRIPLEBANANASHIELD2:
 			case MT_TRIPLEBANANASHIELD3:
+			case MT_BATTLEBALLOON1:
+			case MT_BATTLEBALLOON2:
+			case MT_BATTLEBALLOON3:
+			case MT_BATTLEBALLOON4:
+			case MT_BATTLEBALLOON5:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -6588,7 +6593,9 @@ void P_MobjThinker(mobj_t *mobj)
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
 					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
-					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
+					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3
+					|| mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
+					|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
 						mobj->angle += FixedAngle(mobj->info->speed);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
@@ -6597,8 +6604,12 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
 
+					if (mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
+					|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
+						mobj->color = mobj->target->color;
+
 					// If the player is on the ceiling, then flip your items as well.
-					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
 					{
 						mobj->eflags |= MFE_VERTICALFLIP;
 						HEIGHT = mobj->target->height / 2;
@@ -6610,8 +6621,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 
 					// Shrink your items if the player shrunk too.
-					if (mobj->target->player)
-						mobj->scale = mobj->target->scale;
+					mobj->scale = mobj->target->scale;
 
 					P_UnsetThingPosition(mobj);
 					{
@@ -6636,7 +6646,12 @@ void P_MobjThinker(mobj_t *mobj)
 						|| (mobj->type == MT_TRIPLEBANANASHIELD2 && !(mobj->target->player->kartstuff[k_triplebanana] & 2))
 						|| (mobj->type == MT_TRIPLEBANANASHIELD3 && !(mobj->target->player->kartstuff[k_triplebanana] & 4))
 						|| (mobj->type == MT_BOMBSHIELD && !(mobj->target->player->kartstuff[k_bobomb] & 1))
-						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1)))
+						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1))
+						|| (mobj->type == MT_BATTLEBALLOON1 && !(mobj->target->player->kartstuff[k_balloon] & 1))
+						|| (mobj->type == MT_BATTLEBALLOON2 && !(mobj->target->player->kartstuff[k_balloon] & 2))
+						|| (mobj->type == MT_BATTLEBALLOON3 && !(mobj->target->player->kartstuff[k_balloon] & 4))
+						|| (mobj->type == MT_BATTLEBALLOON4 && !(mobj->target->player->kartstuff[k_balloon] & 8))
+						|| (mobj->type == MT_BATTLEBALLOON5 && !(mobj->target->player->kartstuff[k_balloon] & 16)))
 					{
 						P_RemoveMobj(mobj);
 						return;
@@ -9030,13 +9045,13 @@ void P_SpawnPlayer(INT32 playernum)
 	{
 		// Special case for (NiGHTS) special stages!
 		// if stage has already started, force players to become spectators until the next stage
-		if (multiplayer && netgame && G_IsSpecialStage(gamemap) && useNightsSS && leveltime > 0)
+		/*if (multiplayer && netgame && G_IsSpecialStage(gamemap) && useNightsSS && leveltime > 0)
 			p->spectator = true;
-		else
+		else*/
 			p->spectator = false;
 	}
 	else if (netgame && p->jointime < 1)
-		p->spectator = true;
+		/*p->spectator = true*/;
 	else if (multiplayer && !netgame)
 	{
 		// If you're in a team game and you don't have a team assigned yet...
@@ -9106,7 +9121,80 @@ void P_SpawnPlayer(INT32 playernum)
 	P_FlashPal(p, 0, 0); // Resets
 
 	// Spawn with a pity shield if necessary.
-	P_DoPityCheck(p);
+	//P_DoPityCheck(p);
+
+	if (gametype == GT_MATCH && p->playerstate != PST_REBORN) // srb2kart
+	{
+		angle_t newangle, diff;
+		fixed_t newx;
+		fixed_t newy;
+		mobj_t *mo, *mo2, *mo3, *mo4, *mo5;
+		
+		switch (cv_kartballoons.value) // Fallthrough intentional
+		{
+			case 5:
+				p->kartstuff[k_balloon] |= 0x16;
+			case 4:
+				p->kartstuff[k_balloon] |= 0x08;
+			case 3:
+				p->kartstuff[k_balloon] |= 0x04;
+			case 2:
+				p->kartstuff[k_balloon] |= 0x02;
+			case 1:
+				p->kartstuff[k_balloon] |= 0x01;
+				break;
+			default:
+				p->kartstuff[k_balloon] = 0x01|0x02|0x04;
+				break;
+		}
+
+		newangle = mobj->angle;
+		diff = FixedAngle(360*FRACUNIT/cv_kartballoons.value);
+		newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
+		newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
+		
+		mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON1);
+		mo->threshold = 10;
+		P_SetTarget(&mo->target, mobj);
+		mo->angle = 0;
+		mo->color = mobj->color;
+
+		if (p->kartstuff[k_balloon] & 2)
+		{
+			mo2 = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON2);
+			mo2->threshold = 10;
+			P_SetTarget(&mo2->target, mobj);
+			mo2->angle = diff;
+			mo2->color = mobj->color;
+		}
+
+		if (p->kartstuff[k_balloon] & 4)
+		{
+			mo3 = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON3);
+			mo3->threshold = 10;
+			P_SetTarget(&mo3->target, mobj);
+			mo3->angle = diff*2;
+			mo3->color = mobj->color;
+		}
+
+		if (p->kartstuff[k_balloon] & 8)
+		{
+			mo4 = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON4);
+			mo4->threshold = 10;
+			P_SetTarget(&mo4->target, mobj);
+			mo4->angle = diff*3;
+			mo4->color = mobj->color;
+		}
+
+		if (p->kartstuff[k_balloon] & 16)
+		{
+			mo5 = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON5);
+			mo5->threshold = 10;
+			P_SetTarget(&mo5->target, mobj);
+			mo5->angle = diff*4;
+			mo5->color = mobj->color;
+		}
+	}
 }
 
 void P_AfterPlayerSpawn(INT32 playernum)

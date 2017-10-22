@@ -2004,6 +2004,16 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			target->target->player->kartstuff[k_triplebanana] &= ~2;
 		else if (target->type == MT_TRIPLEBANANASHIELD3 && target->target->player->kartstuff[k_triplebanana] & 4)
 			target->target->player->kartstuff[k_triplebanana] &= ~4;
+		else if (target->type == MT_BATTLEBALLOON1 && target->target->player->kartstuff[k_balloon] & 1)
+			target->target->player->kartstuff[k_balloon] &= ~1;
+		else if (target->type == MT_BATTLEBALLOON2 && target->target->player->kartstuff[k_balloon] & 2)
+			target->target->player->kartstuff[k_balloon] &= ~2;
+		else if (target->type == MT_BATTLEBALLOON3 && target->target->player->kartstuff[k_balloon] & 4)
+			target->target->player->kartstuff[k_balloon] &= ~4;
+		else if (target->type == MT_BATTLEBALLOON4 && target->target->player->kartstuff[k_balloon] & 8)
+			target->target->player->kartstuff[k_balloon] &= ~8;
+		else if (target->type == MT_BATTLEBALLOON5 && target->target->player->kartstuff[k_balloon] & 16)
+			target->target->player->kartstuff[k_balloon] &= ~16;
 	}
 	//
 
@@ -2223,6 +2233,10 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 					}
 				}
 			}
+		}
+		else if (gametype == GT_MATCH)
+		{
+			K_CheckBalloons();
 		}
 	}
 

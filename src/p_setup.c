@@ -2566,8 +2566,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// chasecam on in chaos, race, coop
 	// chasecam off in match, tag, capture the flag
-	chase = (gametype == GT_RACE || gametype == GT_COMPETITION || gametype == GT_COOP)
-		|| (maptol & TOL_2D);
+	chase = true; // srb2kart: always on
 
 	if (!dedicated)
 	{

@@ -6381,6 +6381,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SINKTRAIL2",
 	"S_SINKTRAIL3",
 
+	// Battle Mode balloon
+	"S_BATTLEBALLOON",
+
 	// Pokey
 	"S_POKEY1",
 	"S_POKEY2",
@@ -6952,6 +6955,14 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_SINK", // Kitchen Sink Stuff
 	"MT_SINKTRAIL",
+
+	"MT_BATTLEBALLOON1", // Battle Mode balloon stuff
+	"MT_BATTLEBALLOON2",
+	"MT_BATTLEBALLOON3",
+	"MT_BATTLEBALLOON4",
+	"MT_BATTLEBALLOON5",
+
+	"MT_LAKITU",
 
 	"MT_POKEY", // Huh, thought this was a default asset for some reason, guess not.
 	"MT_ENEMYFLIP",

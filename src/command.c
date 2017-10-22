@@ -1447,8 +1447,8 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 	INT32 newvalue, max;
 
 	// count pointlimit better
-	if (var == &cv_pointlimit && (gametype == GT_MATCH))
-		increment *= 50;
+	/*if (var == &cv_pointlimit && (gametype == GT_MATCH))
+		increment *= 50;*/
 	newvalue = var->value + increment;
 
 	if (var->PossibleValue)
