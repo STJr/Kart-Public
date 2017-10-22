@@ -7498,13 +7498,38 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		case MT_GREENITEM:
+		{
+			fixed_t finalspeed = mobj->info->speed;
+
+			if (cv_kartcc.value == 50)
+			{
+				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+			}
+			else if (cv_kartcc.value == 150)
+			{
+				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
+			}
+
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
-			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+			if (mobj->health <= 5)
+			{
+				INT32 i;
+				for (i = 5; i >= mobj->health; i--)
+				{
+					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+				}
+				P_InstaThrust(mobj, mobj->angle, finalspeed);
+			}
+			else
+			{
+				P_InstaThrust(mobj, mobj->angle, finalspeed);
+			}
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 6 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 			break;
+		}
 		case MT_REDITEM:
 		{
 			fixed_t topspeed = 64*FRACUNIT;
