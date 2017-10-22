@@ -4684,7 +4684,7 @@ static void P_RunSpecialSectorCheck(player_t *player, sector_t *sector)
 	// Check Section 1
 	switch(GETSECSPECIAL(sector->special, 1))
 	{
-		case 2: // Damage (water)
+		//case 2: // Damage (water)
 		case 8: // Instant kill
 		case 10: // Ring drainer that doesn't require floor touch
 		case 12: // Space countdown

@@ -149,7 +149,12 @@ static void R_InstallSpriteLump(UINT16 wad,            // graphics patch
 			sprtemp[frame].lumppat[r + rightfactor] = lumppat;
 			sprtemp[frame].lumpid[r + rightfactor] = lumpid;
 		}
-		sprtemp[frame].flip |= (flipped ? (0x0F << rightfactor) : 0); // 00001111 or 11110000 in binary, depending on rotation being ROT_L or ROT_R
+
+		if (flipped)
+			sprtemp[frame].flip |= (0x0F<<rightfactor); // 00001111 or 11110000 in binary, depending on rotation being ROT_L or ROT_R
+		else
+			sprtemp[frame].flip &= ~(0x0F<<rightfactor); // ditto
+
 		return;
 	}
 
@@ -2615,7 +2620,7 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 
 		player->jumpfactor = skin->jumpfactor;
 
-		if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback))
+		if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
 		{
 			if (playernum == consoleplayer)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);

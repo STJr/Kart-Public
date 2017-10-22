@@ -35,6 +35,8 @@
 #include "p_slopes.h"
 #endif
 
+#include "k_kart.h"
+
 // protos.
 static CV_PossibleValue_t viewheight_cons_t[] = {{16, "MIN"}, {56, "MAX"}, {0, NULL}};
 consvar_t cv_viewheight = {"viewheight", VIEWHEIGHTS, 0, viewheight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -7496,28 +7498,73 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		case MT_GREENITEM:
+		{
+			fixed_t finalspeed = mobj->info->speed;
+
+			if (cv_kartcc.value == 50)
+			{
+				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+			}
+			else if (cv_kartcc.value == 150)
+			{
+				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
+			}
+
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
-			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+			if (mobj->health <= 5)
+			{
+				INT32 i;
+				for (i = 5; i >= mobj->health; i--)
+				{
+					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+				}
+				P_InstaThrust(mobj, mobj->angle, finalspeed);
+			}
+			else
+			{
+				P_InstaThrust(mobj, mobj->angle, finalspeed);
+			}
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 6 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 			break;
+		}
 		case MT_REDITEM:
 		{
-			fixed_t magnitude;
+			fixed_t topspeed = 64*FRACUNIT;
+			fixed_t distbarrier = 512*FRACUNIT;
+			fixed_t distaway;
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
-			// Do a similar thing to what is done to the player to keep the red shell at a speed cap
-			magnitude = P_AproxDistance(mobj->momx, mobj->momy);
-			if (magnitude > 64*FRACUNIT)
+			if (cv_kartcc.value == 50)
 			{
-				mobj->momx = FixedMul(FixedDiv(mobj->momx, magnitude), 64*FRACUNIT);
-				mobj->momy = FixedMul(FixedDiv(mobj->momy, magnitude), 64*FRACUNIT);
+				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
+				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
 			}
+			else if (cv_kartcc.value == 150)
+			{
+				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
+				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
+			}
+
+			if (mobj->tracer)
+			{
+				distaway = P_AproxDistance(mobj->tracer->x - mobj->x, mobj->tracer->y - mobj->y);
+				if (distaway < distbarrier)
+				{
+					if (mobj->tracer->player)
+					{
+						fixed_t speeddifference = abs(topspeed - min(mobj->tracer->player->speed, K_GetKartSpeed(mobj->tracer->player, false)));
+						topspeed = topspeed - FixedMul(speeddifference, FRACUNIT-FixedDiv(distaway, distbarrier));
+					}
+				}
+			}
+
+			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
 			break;
 		}
 		case MT_REDITEMDUD:
@@ -8932,9 +8979,7 @@ void P_RespawnSpecials(void)
 	mapthing_t *mthing = NULL;
 
 	// only respawn items when cv_itemrespawn is on
-	if (!(netgame || multiplayer) // Never respawn in single player
-	|| gametype == GT_COOP        // Never respawn in co-op gametype
-	|| !cv_itemrespawn.value)     // cvar is turned off
+	if (!cv_itemrespawn.value)
 		return;
 
 	// Don't respawn in special stages!
@@ -9517,12 +9562,8 @@ void P_SpawnMapThing(mapthing_t *mthing)
 
 	if (modeattacking) // Record Attack special stuff
 	{
-		// Don't spawn starposts that wouldn't be usable
-		if (i == MT_STARPOST)
-			return;
-
 		// Emerald Tokens -->> Score Tokens
-		else if (i == MT_EMMY)
+		if (i == MT_EMMY)
 			return; /// \todo
 
 		// 1UPs -->> Score TVs

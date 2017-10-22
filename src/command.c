@@ -1548,6 +1548,30 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 					return;
 				}
 			}
+			else if (var == &cv_playercolor)
+			{
+				// Special case for the playercolor variable, used only directly from the menu
+				if (increment > 0) // Going up!
+				{
+					newvalue = var->value + 1;
+					if (newvalue > MAXSKINCOLORS-1)
+						newvalue = 1;
+					var->value = newvalue;
+					var->string = var->PossibleValue[var->value].strvalue;
+					var->func();
+					return;
+				}
+				else if (increment < 0) // Going down!
+				{
+					newvalue = var->value - 1;
+					if (newvalue < 1)
+						newvalue = MAXSKINCOLORS-1;
+					var->value = newvalue;
+					var->string = var->PossibleValue[var->value].strvalue;
+					var->func();
+					return;
+				}
+			}
 #ifdef PARANOIA
 			if (currentindice == -1)
 				I_Error("CV_AddValue: current value %d not found in possible value\n",

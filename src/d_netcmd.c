@@ -701,9 +701,10 @@ void D_RegisterClientCommands(void)
 	// time attack ghost options are also saved to config
 	CV_RegisterVar(&cv_ghost_bestscore);
 	CV_RegisterVar(&cv_ghost_besttime);
-	CV_RegisterVar(&cv_ghost_bestrings);
+	//CV_RegisterVar(&cv_ghost_bestlap);
 	CV_RegisterVar(&cv_ghost_last);
 	CV_RegisterVar(&cv_ghost_guest);
+	CV_RegisterVar(&cv_ghost_staff);
 
 	COM_AddCommand("displayplayer", Command_Displayplayer_f);
 	COM_AddCommand("tunes", Command_Tunes_f);
@@ -1147,7 +1148,7 @@ static void SendNameAndColor(void)
 		return;
 
 	// If you're not in a netgame, merely update the skin, color, and name.
-	if (!netgame)
+	if (!netgame && !modeattacking)
 	{
 		INT32 foundskin;
 
@@ -1270,7 +1271,7 @@ static void SendNameAndColor2(void)
 		SetPlayerSkinByNum(secondplaya, botskin-1);
 		return;
 	}
-	else if (!netgame)
+	else if (!netgame && !modeattacking)
 	{
 		INT32 foundskin;
 
@@ -1862,12 +1863,13 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	if (modeattacking)
 	{
 		SetPlayerSkinByNum(0, cv_chooseskin.value-1);
-		players[0].skincolor = skins[players[0].skin].prefcolor;
-		CV_StealthSetValue(&cv_playercolor, players[0].skincolor);
+		players[0].skincolor = cv_playercolor.value; // srb2kart
 
 		// a copy of color
 		if (players[0].mo)
 			players[0].mo->color = players[0].skincolor;
+			
+		CV_StealthSetValue(&cv_kartcc, 150); // srb2kart
 	}
 	if (metalrecording)
 		G_BeginMetal();
@@ -4208,7 +4210,7 @@ static void Color_OnChange(void)
 	if (!Playing())
 		return; // do whatever you want
 
-	if (!(cv_debug || devparm) && !(multiplayer || netgame)) // In single player.
+	if (!(cv_debug || devparm) && !(multiplayer || netgame || modeattacking)) // In single player.
 	{
 		CV_StealthSet(&cv_skin, skins[players[consoleplayer].skin].name);
 		return;

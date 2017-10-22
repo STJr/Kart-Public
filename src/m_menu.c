@@ -111,10 +111,10 @@ const char *quitmsg[NUM_QUITMESSAGES];
 // Stuff for customizing the player select screen Tails 09-22-2003
 description_t description[32] =
 {
-	{"\x82Sonic\x80 is the fastest of the three, but also the hardest to control. Beginners beware, but experts will find Sonic very powerful.\n\n\x82""Ability:\x80 Speed Thok\nDouble jump to zoom forward with a huge burst of speed.\n\n\x82Tip:\x80 Simply letting go of forward does not slow down in SRB2. To slow down, hold the opposite direction.", "", "sonic"},
-	{"\x82Tails\x80 is the most mobile of the three, but has the slowest speed. Because of his mobility, he's well-\nsuited to beginners.\n\n\x82""Ability:\x80 Fly\nDouble jump to start flying for a limited time. Repetitively hit the jump button to ascend.\n\n\x82Tip:\x80 To quickly descend while flying, hit the spin button.", "", "tails"},
-	{"\x82Knuckles\x80 is well-\nrounded and can destroy breakable walls simply by touching them, but he can't jump as high as the other two.\n\n\x82""Ability:\x80 Glide & Climb\nDouble jump to glide in the air as long as jump is held. Glide into a wall to climb it.\n\n\x82Tip:\x80 Press spin while climbing to jump off the wall; press jump instead to jump off\nand face away from\nthe wall.", "", "knuckles"},
-	{"\x82Sonic & Tails\x80 team up to take on Dr. Eggman!\nControl Sonic while Tails desperately struggles to keep up.\n\nPlayer 2 can control Tails directly by setting the controls in the options menu.\nTails's directional controls are relative to Player 1's camera.\n\nTails can pick up Sonic while flying and carry him around.", "CHRS&T", "sonic&tails"},
+	{"\x82Sonic\x80\n\x82Speed:\x80 6\n\x82Weight:\x80 4", "", "sonic"},
+	{"???", "", ""},
+	{"???", "", ""},
+	{"???", "", ""},
 	{"???", "", ""},
 	{"???", "", ""},
 	{"???", "", ""},
@@ -240,6 +240,7 @@ static void M_LoadGame(INT32 choice);
 static void M_TimeAttack(INT32 choice);
 static void M_NightsAttack(INT32 choice);
 static void M_Statistics(INT32 choice);
+static void M_HandleStaffReplay(INT32 choice);
 static void M_ReplayTimeAttack(INT32 choice);
 static void M_ChooseTimeAttack(INT32 choice);
 static void M_ChooseNightsAttack(INT32 choice);
@@ -355,6 +356,7 @@ static void M_HandleVideoMode(INT32 choice);
 static void Nextmap_OnChange(void);
 static void Newgametype_OnChange(void);
 static void Dummymares_OnChange(void);
+static void Dummystaff_OnChange(void);
 
 // ==========================================================================
 // CONSOLE VARIABLES AND THEIR POSSIBLE VALUES GO HERE.
@@ -410,11 +412,12 @@ static consvar_t cv_autorecord = {"autorecord", "Yes", 0, CV_YesNo, NULL, 0, NUL
 CV_PossibleValue_t ghost_cons_t[] = {{0, "Hide"}, {1, "Show"}, {2, "Show All"}, {0, NULL}};
 CV_PossibleValue_t ghost2_cons_t[] = {{0, "Hide"}, {1, "Show"}, {0, NULL}};
 
-consvar_t cv_ghost_bestscore = {"ghost_bestscore", "Show", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_ghost_besttime  = {"ghost_besttime",  "Show", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_ghost_bestrings = {"ghost_bestrings", "Show", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_ghost_last      = {"ghost_last",      "Show", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ghost_bestscore = {"ghost_bestscore", "Show All", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ghost_besttime  = {"ghost_besttime",  "Show All", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+//consvar_t cv_ghost_bestlap   = {"ghost_bestlap",   "Show All", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ghost_last      = {"ghost_last",      "Show All", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_ghost_guest     = {"ghost_guest",     "Show", CV_SAVE, ghost2_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ghost_staff     = {"ghost_staff",     "Show", CV_SAVE, ghost2_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 //Console variables used solely in the menu system.
 //todo: add a way to use non-console variables in the menu
@@ -426,6 +429,7 @@ static CV_PossibleValue_t liveslimit_cons_t[] = {{0, "MIN"}, {99, "MAX"}, {0, NU
 static CV_PossibleValue_t dummymares_cons_t[] = {
 	{-1, "END"}, {0,"Overall"}, {1,"Mare 1"}, {2,"Mare 2"}, {3,"Mare 3"}, {4,"Mare 4"}, {5,"Mare 5"}, {6,"Mare 6"}, {7,"Mare 7"}, {8,"Mare 8"}, {0,NULL}
 };
+static CV_PossibleValue_t dummystaff_cons_t[] = {{0, "MIN"}, {100, "MAX"}, {0, NULL}};
 
 static consvar_t cv_dummyteam = {"dummyteam", "Spectator", CV_HIDEN, dummyteam_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummyscramble = {"dummyscramble", "Random", CV_HIDEN, dummyscramble_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -433,6 +437,7 @@ static consvar_t cv_dummyrings = {"dummyrings", "0", CV_HIDEN, ringlimit_cons_t,
 static consvar_t cv_dummylives = {"dummylives", "0", CV_HIDEN, liveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummycontinues = {"dummycontinues", "0", CV_HIDEN, liveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummymares = {"dummymares", "Overall", CV_HIDEN|CV_CALL, dummymares_cons_t, Dummymares_OnChange, 0, NULL, NULL, 0, 0, NULL};
+static consvar_t cv_dummystaff = {"dummystaff", "0", CV_HIDEN|CV_CALL, dummystaff_cons_t, Dummystaff_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 // ==========================================================================
 // ORGANIZATION START.
@@ -449,10 +454,10 @@ static consvar_t cv_dummymares = {"dummymares", "Overall", CV_HIDEN|CV_CALL, dum
 static menuitem_t MainMenu[] =
 {
 	{IT_CALL   |IT_STRING, NULL, "Secrets",     M_SecretsMenu,      84},
-	{IT_CALL   |IT_STRING, NULL, "1  player",   M_SinglePlayerMenu, 92},
-	{IT_SUBMENU|IT_STRING, NULL, "multiplayer", &MP_MainDef,       100},
-	{IT_CALL   |IT_STRING, NULL, "options",     M_Options,         108},
-	{IT_CALL   |IT_STRING, NULL, "quit  game",  M_QuitSRB2,        116},
+	{IT_CALL   |IT_STRING, NULL, "1 Player",   M_SinglePlayerMenu, 92},
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,       100},
+	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,         108},
+	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,        116},
 };
 
 typedef enum
@@ -703,6 +708,7 @@ static menuitem_t SP_TimeAttackMenu[] =
 {
 	{IT_STRING|IT_CVAR,        NULL, "Level",      &cv_nextmap,          52},
 	{IT_STRING|IT_CVAR,        NULL, "Player",     &cv_chooseskin,       62},
+	{IT_STRING|IT_CVAR,        NULL, "Color",      &cv_playercolor,      72},
 
 	{IT_DISABLED,              NULL, "Guest Option...", &SP_GuestReplayDef, 100},
 	{IT_DISABLED,              NULL, "Replay...",     &SP_ReplayDef,        110},
@@ -714,6 +720,7 @@ enum
 {
 	talevel,
 	taplayer,
+	tacolor,
 
 	taguest,
 	tareplay,
@@ -723,32 +730,30 @@ enum
 
 static menuitem_t SP_ReplayMenu[] =
 {
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimeAttack, 0},
 	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimeAttack, 8},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Rings", M_ReplayTimeAttack,16},
 
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,29},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,37},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,21},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,29},
+	{IT_WHITESTRING|IT_KEYHANDLER, NULL, "Replay Staff",M_HandleStaffReplay,37},
 
 	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",           &SP_TimeAttackDef, 50}
 };
 
 static menuitem_t SP_NightsReplayMenu[] =
 {
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimeAttack, 8},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Score", M_ReplayTimeAttack, 0},
 	{IT_WHITESTRING|IT_CALL, NULL, "Replay Best Time",  M_ReplayTimeAttack,16},
 
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,29},
-	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,37},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Last",       M_ReplayTimeAttack,21},
+	{IT_WHITESTRING|IT_CALL, NULL, "Replay Guest",      M_ReplayTimeAttack,29},
+	{IT_WHITESTRING|IT_KEYHANDLER, NULL, "Replay Staff",M_HandleStaffReplay,37},
 
 	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",           &SP_NightsAttackDef, 50}
 };
 
 static menuitem_t SP_GuestReplayMenu[] =
 {
-	{IT_WHITESTRING|IT_CALL, NULL, "Save Best Score as Guest", M_SetGuestReplay, 0},
-	{IT_WHITESTRING|IT_CALL, NULL, "Save Best Time as Guest",  M_SetGuestReplay, 8},
-	{IT_WHITESTRING|IT_CALL, NULL, "Save Best Rings as Guest", M_SetGuestReplay,16},
+	{IT_WHITESTRING|IT_CALL, NULL, "Save Best Time as Guest",  M_SetGuestReplay,16},
 	{IT_WHITESTRING|IT_CALL, NULL, "Save Last as Guest",       M_SetGuestReplay,24},
 
 	{IT_WHITESTRING|IT_CALL, NULL, "Delete Guest Replay",      M_SetGuestReplay,37},
@@ -769,25 +774,25 @@ static menuitem_t SP_NightsGuestReplayMenu[] =
 
 static menuitem_t SP_GhostMenu[] =
 {
-	{IT_STRING|IT_CVAR,         NULL, "Best Score", &cv_ghost_bestscore, 0},
-	{IT_STRING|IT_CVAR,         NULL, "Best Time",  &cv_ghost_besttime,  8},
-	{IT_STRING|IT_CVAR,         NULL, "Best Rings", &cv_ghost_bestrings,16},
-	{IT_STRING|IT_CVAR,         NULL, "Last",       &cv_ghost_last,     24},
+	{IT_STRING|IT_CVAR,         NULL, "Best Time",   &cv_ghost_besttime,  8},
+	{IT_STRING|IT_CVAR,         NULL, "Last",        &cv_ghost_last,     16},
 
-	{IT_STRING|IT_CVAR,         NULL, "Guest",      &cv_ghost_guest,    37},
+	{IT_STRING|IT_CVAR,         NULL, "Guest",       &cv_ghost_guest,    29},
+	{IT_STRING|IT_CVAR,         NULL, "Staff Attack",&cv_ghost_staff,    37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",       &SP_TimeAttackDef,  50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",        &SP_TimeAttackDef,  50}
 };
 
 static menuitem_t SP_NightsGhostMenu[] =
 {
-	{IT_STRING|IT_CVAR,         NULL, "Best Score", &cv_ghost_bestscore, 8},
-	{IT_STRING|IT_CVAR,         NULL, "Best Time",  &cv_ghost_besttime, 16},
-	{IT_STRING|IT_CVAR,         NULL, "Last",       &cv_ghost_last,     24},
+	{IT_STRING|IT_CVAR,         NULL, "Best Score",  &cv_ghost_bestscore, 0},
+	{IT_STRING|IT_CVAR,         NULL, "Best Time",   &cv_ghost_besttime,  8},
+	{IT_STRING|IT_CVAR,         NULL, "Last",        &cv_ghost_last,     16},
 
-	{IT_STRING|IT_CVAR,         NULL, "Guest",      &cv_ghost_guest,    37},
+	{IT_STRING|IT_CVAR,         NULL, "Guest",       &cv_ghost_guest,    29},
+	{IT_STRING|IT_CVAR,         NULL, "Staff Attack",&cv_ghost_staff,    37},
 
-	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",       &SP_NightsAttackDef,  50}
+	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",        &SP_NightsAttackDef,  50}
 };
 
 // Single Player Nights Attack
@@ -830,9 +835,9 @@ static menuitem_t SP_LevelStatsMenu[] =
 menuitem_t PlayerMenu[32] =
 {
 	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
+	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
+	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
+	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
 	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
 	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
 	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
@@ -1761,7 +1766,8 @@ static void Nextmap_OnChange(void)
 	char *leveltitle;
 	char tabase[256];
 	short i;
-	boolean active;
+	UINT8 active;
+	lumpnum_t l;
 
 	// Update the string in the consvar.
 	Z_Free(cv_nextmap.zstring);
@@ -1777,6 +1783,8 @@ static void Nextmap_OnChange(void)
 		else
 			SP_NightsAttackMenu[narecords].status = IT_STRING|IT_CVAR;
 
+		CV_StealthSetValue(&cv_dummystaff, 0);
+
 		// Do the replay things.
 		active = false;
 		SP_NightsAttackMenu[naguest].status = IT_DISABLED;
@@ -1785,33 +1793,40 @@ static void Nextmap_OnChange(void)
 
 		// Check if file exists, if not, disable REPLAY option
 		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value));
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 5; i++) {
 			SP_NightsReplayMenu[i].status = IT_DISABLED;
 			SP_NightsGuestReplayMenu[i].status = IT_DISABLED;
 		}
 		if (FIL_FileExists(va("%s-score-best.lmp", tabase))) {
 			SP_NightsReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
 			SP_NightsGuestReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			active |= 3;
 		}
 		if (FIL_FileExists(va("%s-time-best.lmp", tabase))) {
 			SP_NightsReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
 			SP_NightsGuestReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			active |= 3;
 		}
 		if (FIL_FileExists(va("%s-last.lmp", tabase))) {
 			SP_NightsReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
 			SP_NightsGuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			active |= 3;
 		}
 		if (FIL_FileExists(va("%s-guest.lmp", tabase))) {
 			SP_NightsReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
 			SP_NightsGuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			active |= 3;
+		}
+		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR) {
+			SP_NightsReplayMenu[4].status = IT_WHITESTRING|IT_KEYHANDLER;
+			CV_StealthSetValue(&cv_dummystaff, 1);
+			active |= 1;
 		}
 		if (active) {
-			SP_NightsAttackMenu[naguest].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_NightsAttackMenu[nareplay].status = IT_WHITESTRING|IT_SUBMENU;
+			if (active & 1)
+				SP_NightsAttackMenu[nareplay].status = IT_WHITESTRING|IT_SUBMENU;
+			if (active & 2)
+				SP_NightsAttackMenu[naguest].status = IT_WHITESTRING|IT_SUBMENU;
 			SP_NightsAttackMenu[naghost].status = IT_WHITESTRING|IT_SUBMENU;
 		}
 		else if(itemOn == nareplay) // Reset lastOn so replay isn't still selected when not available.
@@ -1822,6 +1837,8 @@ static void Nextmap_OnChange(void)
 	}
 	else if (currentMenu == &SP_TimeAttackDef)
 	{
+		CV_StealthSetValue(&cv_dummystaff, 0);
+
 		active = false;
 		SP_TimeAttackMenu[taguest].status = IT_DISABLED;
 		SP_TimeAttackMenu[tareplay].status = IT_DISABLED;
@@ -1829,38 +1846,35 @@ static void Nextmap_OnChange(void)
 
 		// Check if file exists, if not, disable REPLAY option
 		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), cv_chooseskin.string);
-		for (i = 0; i < 5; i++) {
+		for (i = 0; i < 4; i++) {
 			SP_ReplayMenu[i].status = IT_DISABLED;
 			SP_GuestReplayMenu[i].status = IT_DISABLED;
 		}
 		if (FIL_FileExists(va("%s-time-best.lmp", tabase))) {
 			SP_ReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
-			active = true;
-		}
-		if (FIL_FileExists(va("%s-score-best.lmp", tabase))) {
-			SP_ReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
-			SP_GuestReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
-			active = true;
-		}
-		if (FIL_FileExists(va("%s-rings-best.lmp", tabase))) {
-			SP_ReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
-			SP_GuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			active |= 3;
 		}
 		if (FIL_FileExists(va("%s-last.lmp", tabase))) {
-			SP_ReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			SP_GuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			SP_ReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
+			SP_GuestReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
+			active |= 3;
 		}
 		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)))) {
-			SP_ReplayMenu[4].status = IT_WHITESTRING|IT_CALL;
-			SP_GuestReplayMenu[4].status = IT_WHITESTRING|IT_CALL;
-			active = true;
+			SP_ReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
+			SP_GuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
+			active |= 3;
+		}
+		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR) {
+			SP_ReplayMenu[3].status = IT_WHITESTRING|IT_KEYHANDLER;
+			CV_StealthSetValue(&cv_dummystaff, 1);
+			active |= 1;
 		}
 		if (active) {
-			SP_TimeAttackMenu[taguest].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_TimeAttackMenu[tareplay].status = IT_WHITESTRING|IT_SUBMENU;
+			if (active & 1)
+				SP_TimeAttackMenu[tareplay].status = IT_WHITESTRING|IT_SUBMENU;
+			if (active & 2)
+				SP_TimeAttackMenu[taguest].status = IT_WHITESTRING|IT_SUBMENU;
 			SP_TimeAttackMenu[taghost].status = IT_WHITESTRING|IT_SUBMENU;
 		}
 		else if(itemOn == tareplay) // Reset lastOn so replay isn't still selected when not available.
@@ -1889,6 +1903,27 @@ static void Dummymares_OnChange(void)
 			CV_StealthSetValue(&cv_dummymares, mares);
 		else if (cv_dummymares.value > mares)
 			CV_StealthSetValue(&cv_dummymares, 0);
+	}
+}
+
+static void Dummystaff_OnChange(void)
+{
+	lumpnum_t l;
+	if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) == LUMPERROR)
+	{
+		CV_StealthSetValue(&cv_dummystaff, 0);
+		return;
+	}
+	else
+	{
+		UINT8 numstaff = 1;
+		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value),numstaff+1))) != LUMPERROR)
+			numstaff++;
+
+		if (cv_dummystaff.value < 1)
+			CV_StealthSetValue(&cv_dummystaff, numstaff);
+		else if (cv_dummystaff.value > numstaff)
+			CV_StealthSetValue(&cv_dummystaff, 1);
 	}
 }
 
@@ -2712,6 +2747,7 @@ void M_Init(void)
 	CV_RegisterVar(&cv_dummylives);
 	CV_RegisterVar(&cv_dummycontinues);
 	CV_RegisterVar(&cv_dummymares);
+	CV_RegisterVar(&cv_dummystaff);
 
 	quitmsg[QUITMSG] = M_GetText("Eggman's tied explosives\nto your girlfriend, and\nwill activate them if\nyou press the 'Y' key!\nPress 'N' to save her!\n\n(Press 'Y' to quit)");
 	quitmsg[QUITMSG1] = M_GetText("What would Tails say if\nhe saw you quitting the game?\n\n(Press 'Y' to quit)");
@@ -5183,23 +5219,23 @@ static void M_DrawGameStats(void)
 
 	V_DrawCenteredString(BASEVIDWIDTH/2, 90, 0, "* COMBINED RECORDS *");
 
-	sprintf(beststr, "%u", bestscore);
+	/*sprintf(beststr, "%u", bestscore);
 	V_DrawString(32, 100, V_YELLOWMAP, "SCORE:");
 	V_DrawRightAlignedString(BASEVIDWIDTH-32, 100, 0, beststr);
 	if (mapsunfinished[0])
-		V_DrawRightAlignedString(BASEVIDWIDTH-32, 108, V_REDMAP, va("(%d unfinished)", mapsunfinished[0]));
+		V_DrawRightAlignedString(BASEVIDWIDTH-32, 108, V_REDMAP, va("(%d unfinished)", mapsunfinished[0]));*/
 
 	sprintf(beststr, "%i:%02i:%02i.%02i", G_TicsToHours(besttime), G_TicsToMinutes(besttime, false), G_TicsToSeconds(besttime), G_TicsToCentiseconds(besttime));
-	V_DrawString(32, 120, V_YELLOWMAP, "TIME:");
-	V_DrawRightAlignedString(BASEVIDWIDTH-32, 120, 0, beststr);
+	V_DrawString(32, 100, V_YELLOWMAP, "TIME:");
+	V_DrawRightAlignedString(BASEVIDWIDTH-32, 100, 0, beststr);
 	if (mapsunfinished[1])
-		V_DrawRightAlignedString(BASEVIDWIDTH-32, 128, V_REDMAP, va("(%d unfinished)", mapsunfinished[1]));
+		V_DrawRightAlignedString(BASEVIDWIDTH-32, 108, V_REDMAP, va("(%d unfinished)", mapsunfinished[1]));
 
-	sprintf(beststr, "%u", bestrings);
+	/*sprintf(beststr, "%u", bestrings);
 	V_DrawString(32, 140, V_YELLOWMAP, "RINGS:");
 	V_DrawRightAlignedString(BASEVIDWIDTH-32, 140, 0, beststr);
 	if (mapsunfinished[2])
-		V_DrawRightAlignedString(BASEVIDWIDTH-32, 148, V_REDMAP, va("(%d unfinished)", mapsunfinished[2]));
+		V_DrawRightAlignedString(BASEVIDWIDTH-32, 148, V_REDMAP, va("(%d unfinished)", mapsunfinished[2]));*/
 }
 
 static void M_HandleGameStats(INT32 choice)
@@ -5266,14 +5302,21 @@ void M_DrawTimeAttackMenu(void)
 		if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_CVAR)
 		{
 			consvar_t *cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
-			INT32 soffset = 0;
+			INT32 soffset = 40;
 
 			// hack to keep the menu from overlapping the player icon
 			if (currentMenu != &SP_TimeAttackDef)
 				soffset = 80;
 
 			// Should see nothing but strings
-			V_DrawString(BASEVIDWIDTH - x - soffset - V_StringWidth(cv->string, 0), y, V_YELLOWMAP, cv->string);
+			if (cv == &cv_chooseskin)
+				V_DrawString(BASEVIDWIDTH - x - soffset - V_StringWidth(skins[cv_chooseskin.value-1].realname, 0), y, V_YELLOWMAP, skins[cv_chooseskin.value-1].realname);
+			else
+				V_DrawString(BASEVIDWIDTH - x - soffset - V_StringWidth(cv->string, 0), y, V_YELLOWMAP, cv->string);
+		}
+		else if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_KEYHANDLER && cv_dummystaff.value) // bad hacky assumption: IT_KEYHANDLER is assumed to be staff ghost selector
+		{
+			V_DrawString(BASEVIDWIDTH - x - 80 - V_StringWidth(cv_dummystaff.string, 0), y, V_YELLOWMAP, cv_dummystaff.string);
 		}
 	}
 
@@ -5292,13 +5335,11 @@ void M_DrawTimeAttackMenu(void)
 	V_DrawSmallScaledPatch(208, 32, 0, PictureOfLevel);
 
 	// Character face!
-	if (W_CheckNumForName(skins[cv_chooseskin.value-1].charsel) != LUMPERROR)
+	if (W_CheckNumForName(skins[cv_chooseskin.value-1].face) != LUMPERROR)
 	{
-		PictureOfUrFace = W_CachePatchName(skins[cv_chooseskin.value-1].charsel, PU_CACHE);
-		if (PictureOfUrFace->width >= 256)
-			V_DrawTinyScaledPatch(224, 120, 0, PictureOfUrFace);
-		else
-			V_DrawSmallScaledPatch(224, 120, 0, PictureOfUrFace);
+		UINT8 *colormap = R_GetTranslationColormap(cv_chooseskin.value-1, cv_playercolor.value, 0);
+		PictureOfUrFace = W_CachePatchName(skins[cv_chooseskin.value-1].face, PU_CACHE);
+		V_DrawMappedPatch(256,90,0,PictureOfUrFace, colormap);
 	}
 
 	// Level record list
@@ -5309,13 +5350,13 @@ void M_DrawTimeAttackMenu(void)
 
 		V_DrawCenteredString(104, 32, 0, "* LEVEL RECORDS *");
 
-		if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->score)
+		/*if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->score)
 			sprintf(beststr, "(none)");
 		else
 			sprintf(beststr, "%u", mainrecords[cv_nextmap.value-1]->score);
 
 		V_DrawString(104-72, 48, V_YELLOWMAP, "SCORE:");
-		V_DrawRightAlignedString(104+72, 48, V_ALLOWLOWERCASE, beststr);
+		V_DrawRightAlignedString(104+72, 48, V_ALLOWLOWERCASE, beststr);*/
 
 		if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->time)
 			sprintf(beststr, "(none)");
@@ -5327,23 +5368,14 @@ void M_DrawTimeAttackMenu(void)
 		V_DrawString(104-72, 58, V_YELLOWMAP, "TIME:");
 		V_DrawRightAlignedString(104+72, 58, V_ALLOWLOWERCASE, beststr);
 
-		if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->rings)
-			sprintf(beststr, "(none)");
-		else
-			sprintf(beststr, "%hu", mainrecords[cv_nextmap.value-1]->rings);
-
-		V_DrawString(104-72, 68, V_YELLOWMAP, "RINGS:");
-		V_DrawRightAlignedString(104+72, 68, V_ALLOWLOWERCASE, beststr);
-
 		// Draw record emblems.
 		em = M_GetLevelEmblems(cv_nextmap.value);
 		while (em)
 		{
 			switch (em->type)
 			{
-				case ET_SCORE: yHeight = 48; break;
+				//case ET_SCORE: yHeight = 48; break;
 				case ET_TIME:  yHeight = 58; break;
-				case ET_RINGS: yHeight = 68; break;
 				default:
 					goto skipThisOne;
 			}
@@ -5359,7 +5391,7 @@ void M_DrawTimeAttackMenu(void)
 		}
 	}
 
-	// ALWAYS DRAW level name and skin even when not on this menu!
+	// ALWAYS DRAW level name, skin and color even when not on this menu!
 	if (currentMenu != &SP_TimeAttackDef)
 	{
 		consvar_t *ncv;
@@ -5367,13 +5399,17 @@ void M_DrawTimeAttackMenu(void)
 		x = SP_TimeAttackDef.x;
 		y = SP_TimeAttackDef.y;
 
-		for (i = 0; i < 2; ++i)
+		for (i = 0; i < 3; ++i)
 		{
 			ncv = (consvar_t *)SP_TimeAttackMenu[i].itemaction;
 
 			V_DrawString(x, y + SP_TimeAttackMenu[i].alphaKey, V_TRANSLUCENT, SP_TimeAttackMenu[i].text);
-			V_DrawString(BASEVIDWIDTH - x - V_StringWidth(ncv->string, 0),
-			             y + SP_TimeAttackMenu[i].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, ncv->string);
+			if (ncv == &cv_chooseskin)
+				V_DrawString(BASEVIDWIDTH - x - 40 - V_StringWidth(skins[cv_chooseskin.value-1].realname, 0),
+							y + SP_TimeAttackMenu[i].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, skins[cv_chooseskin.value-1].realname);
+			else
+				V_DrawString(BASEVIDWIDTH - x - 40 - V_StringWidth(ncv->string, 0),
+							y + SP_TimeAttackMenu[i].alphaKey, V_YELLOWMAP|V_TRANSLUCENT, ncv->string);
 		}
 	}
 }
@@ -5588,6 +5624,52 @@ static void M_ChooseTimeAttack(INT32 choice)
 	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), (UINT8)(cv_chooseskin.value-1), false, false);
 }
 
+static void M_HandleStaffReplay(INT32 choice)
+{
+	boolean exitmenu = false; // exit to previous menu
+	lumpnum_t l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value),cv_dummystaff.value));
+
+	switch (choice)
+	{
+		case KEY_DOWNARROW:
+			M_NextOpt();
+			S_StartSound(NULL, sfx_bewar1);
+			break;
+		case KEY_UPARROW:
+			M_PrevOpt();
+			S_StartSound(NULL, sfx_bewar1);
+			break;
+		case KEY_BACKSPACE:
+		case KEY_ESCAPE:
+			exitmenu = true;
+			break;
+		case KEY_RIGHTARROW:
+			CV_AddValue(&cv_dummystaff, 1);
+			S_StartSound(NULL, sfx_menu1);
+			break;
+		case KEY_LEFTARROW:
+			CV_AddValue(&cv_dummystaff, -1);
+			S_StartSound(NULL, sfx_menu1);
+			break;
+		case KEY_ENTER:
+			if (l == LUMPERROR)
+				break;
+			M_ClearMenus(true);
+			modeattacking = ATTACKING_RECORD;
+			G_DoPlayDemo(va("%sS%02u",G_BuildMapName(cv_nextmap.value),cv_dummystaff.value));
+			break;
+		default:
+			break;
+	}
+	if (exitmenu)
+	{
+		if (currentMenu->prevMenu)
+			M_SetupNextMenu(currentMenu->prevMenu);
+		else
+			M_ClearMenus(true);
+	}
+}
+
 // Player has selected the "REPLAY" from the time attack screen
 static void M_ReplayTimeAttack(INT32 choice)
 {
@@ -5599,19 +5681,15 @@ static void M_ReplayTimeAttack(INT32 choice)
 	{
 		switch(choice) {
 		default:
-		case 0: // best score
-			which = "score-best";
-			break;
-		case 1: // best time
+		case 0: // best time
 			which = "time-best";
 			break;
-		case 2: // best rings
-			which = "rings-best";
-			break;
-		case 3: // last
+		case 1: // last
 			which = "last";
 			break;
-		case 4: // guest
+		case 2: // best staff
+			return; // M_HandleStaffReplay
+		case 3: // guest
 			// srb2/replay/main/map01-guest.lmp
 			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)));
 			return;
@@ -5632,7 +5710,9 @@ static void M_ReplayTimeAttack(INT32 choice)
 		case 2: // last
 			which = "last";
 			break;
-		case 3: // guest
+		case 3: // staff
+			return; // M_HandleStaffReplay
+		case 4: // guest
 			which = "guest";
 			break;
 		}
@@ -5695,11 +5775,12 @@ static void M_OverwriteGuest_Score(INT32 choice)
 	M_OverwriteGuest("score-best", currentMenu == &SP_NightsGuestReplayDef);
 }
 
+/* // srb2kart
 static void M_OverwriteGuest_Rings(INT32 choice)
 {
 	(void)choice;
 	M_OverwriteGuest("rings-best", false);
-}
+}*/
 
 static void M_OverwriteGuest_Last(INT32 choice)
 {
@@ -5710,8 +5791,8 @@ static void M_OverwriteGuest_Last(INT32 choice)
 static void M_SetGuestReplay(INT32 choice)
 {
 	void (*which)(INT32);
-	if (currentMenu == &SP_NightsGuestReplayDef && choice >= 2)
-		choice++; // skip best rings
+	if (currentMenu == &SP_TimeAttackDef && choice <= 0)
+		choice++; // skip best score
 	switch(choice)
 	{
 	case 0: // best score
@@ -5719,9 +5800,6 @@ static void M_SetGuestReplay(INT32 choice)
 		break;
 	case 1: // best time
 		which = M_OverwriteGuest_Time;
-		break;
-	case 2: // best rings
-		which = M_OverwriteGuest_Rings;
 		break;
 	case 3: // last
 		which = M_OverwriteGuest_Last;
