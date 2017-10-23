@@ -150,28 +150,19 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
 	//	return false;
 
-	if (player->kartstuff[k_bootaketimer]
+	if (player->kartstuff[k_greenshell]				|| player->kartstuff[k_triplegreenshell]
+		|| player->kartstuff[k_redshell]				|| player->kartstuff[k_tripleredshell]
+		|| player->kartstuff[k_banana]					|| player->kartstuff[k_triplebanana]
+		|| player->kartstuff[k_fakeitem] & 2			|| player->kartstuff[k_magnet]
+		|| player->kartstuff[k_bobomb]					|| player->kartstuff[k_blueshell]
+		|| player->kartstuff[k_mushroom]				|| player->kartstuff[k_fireflower]
+		|| player->kartstuff[k_star]					|| player->kartstuff[k_goldshroom]
+		|| player->kartstuff[k_lightning]				|| player->kartstuff[k_megashroom]
+		|| player->kartstuff[k_itemroulette]
+		|| player->kartstuff[k_boo]					|| player->kartstuff[k_bootaketimer]
 		|| player->kartstuff[k_boostolentimer]
-		|| player->kartstuff[k_magnet]
-		|| player->kartstuff[k_boo]
-		|| player->kartstuff[k_mushroom]
-		|| player->kartstuff[k_megashroom]
-		|| player->kartstuff[k_goldshroom]
-		|| player->kartstuff[k_star]
-		|| player->kartstuff[k_triplebanana] == 0x8
-		|| player->kartstuff[k_fakeitem] == 0x2
-		|| player->kartstuff[k_banana] == 0x2
-		|| player->kartstuff[k_greenshell] == 0x2
-		|| player->kartstuff[k_redshell] == 0x2
-		|| player->kartstuff[k_laserwisp]
-		|| player->kartstuff[k_triplegreenshell] == 0x8
-		|| player->kartstuff[k_bobomb] == 0x2
-		|| player->kartstuff[k_blueshell]
-		|| player->kartstuff[k_jaws] == 0x4
-		|| player->kartstuff[k_fireflower]
-		|| player->kartstuff[k_tripleredshell] == 0x8
-		|| player->kartstuff[k_lightning]
-		|| player->kartstuff[k_kitchensink])
+		|| player->kartstuff[k_growshrinktimer] > 1
+		|| player->kartstuff[k_goldshroomtimer])
 		return false;
 
 	return true;
