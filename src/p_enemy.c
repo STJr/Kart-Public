@@ -8091,7 +8091,11 @@ void A_ItemPop(mobj_t *actor)
 	mobj_t *remains;
 
 	if (!(actor->target && actor->target->player && P_CanPickupItem(actor->target->player, false)))
+	{
+		if (cv_debug && !(actor->target && actor->target->player))
+			CONS_Printf("ERROR: Powerup has no target!\n");
 		return;
+	}
 
 	// de-solidify
 	//P_UnsetThingPosition(actor);
@@ -8126,10 +8130,7 @@ void A_ItemPop(mobj_t *actor)
 		return;
 	}
 
-	if (actor->target && actor->target->player)
-		actor->target->player->kartstuff[k_itemroulette] = 1;
-	else if (cv_debug && !(actor->target && actor->target->player))
-		CONS_Printf("ERROR: Powerup has no target!\n");
+	actor->target->player->kartstuff[k_itemroulette] = 1;
 
 	remains->flags2 &= ~MF2_AMBUSH;
 
