@@ -8206,6 +8206,9 @@ void A_RedShellChase(mobj_t *actor)
 
 				if (!(gametype == GT_RACE))
 				{
+					if (player->kartstuff[k_balloon] <= 0)
+						continue;
+
 					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
 						player->mo->y-actor->y), player->mo->z-actor->z) > RING_DIST)
 						continue;
@@ -8214,7 +8217,8 @@ void A_RedShellChase(mobj_t *actor)
 
 			if ((gametype == GT_RACE) || (gametype != GT_RACE // If in match etc. only home in when you get close enough, in race etc. home in all the time
 				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
-				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST))
+				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
+				&& player->kartstuff[k_balloon] > 0))
 				P_SetTarget(&actor->tracer, player->mo);
 			return;
 
