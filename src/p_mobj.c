@@ -6631,7 +6631,7 @@ void P_MobjThinker(mobj_t *mobj)
 						if (mobj->target->flags2 & MF2_DONTDRAW)
 							mobj->flags2 |= MF2_DONTDRAW;
 						else
-							mobj->flags2 &= !MF2_DONTDRAW;
+							mobj->flags2 &= ~MF2_DONTDRAW;
 
 						if (mobj->target->eflags & MFE_VERTICALFLIP)
 							HEIGHT += 4*FRACUNIT;
@@ -9230,7 +9230,7 @@ void P_SpawnPlayer(INT32 playernum)
 		if (mobj->flags2 & MF2_DONTDRAW)
 			mo->flags2 |= MF2_DONTDRAW;
 		else
-			mo->flags2 &= !MF2_DONTDRAW;
+			mo->flags2 &= ~MF2_DONTDRAW;
 
 		if (p->kartstuff[k_balloon] & 2)
 		{
@@ -9242,7 +9242,7 @@ void P_SpawnPlayer(INT32 playernum)
 			if (mobj->flags2 & MF2_DONTDRAW)
 				mo2->flags2 |= MF2_DONTDRAW;
 			else
-				mo2->flags2 &= !MF2_DONTDRAW;
+				mo2->flags2 &= ~MF2_DONTDRAW;
 		}
 
 		if (p->kartstuff[k_balloon] & 4)
@@ -9255,7 +9255,7 @@ void P_SpawnPlayer(INT32 playernum)
 			if (mobj->flags2 & MF2_DONTDRAW)
 				mo3->flags2 |= MF2_DONTDRAW;
 			else
-				mo3->flags2 &= !MF2_DONTDRAW;
+				mo3->flags2 &= ~MF2_DONTDRAW;
 		}
 
 		if (p->kartstuff[k_balloon] & 8)
@@ -9268,7 +9268,7 @@ void P_SpawnPlayer(INT32 playernum)
 			if (mobj->flags2 & MF2_DONTDRAW)
 				mo4->flags2 |= MF2_DONTDRAW;
 			else
-				mo4->flags2 &= !MF2_DONTDRAW;
+				mo4->flags2 &= ~MF2_DONTDRAW;
 		}
 
 		if (p->kartstuff[k_balloon] & 16)
@@ -9281,7 +9281,7 @@ void P_SpawnPlayer(INT32 playernum)
 			if (mobj->flags2 & MF2_DONTDRAW)
 				mo5->flags2 |= MF2_DONTDRAW;
 			else
-				mo5->flags2 &= !MF2_DONTDRAW;
+				mo5->flags2 &= ~MF2_DONTDRAW;
 		}
 	}
 }

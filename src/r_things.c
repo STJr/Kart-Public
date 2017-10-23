@@ -1249,7 +1249,7 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	offset2 = FixedMul(spritecachedinfo[lump].width, this_scale);
 	tx += FixedMul(offset2, ang_scale);
-	x2 = ((centerxfrac + FixedMul (tx,xscale)) >>FRACBITS) - 1;
+	x2 = ((centerxfrac + FixedMul (tx,xscale)) >> FRACBITS) - (papersprite ? 2 : 1);
 
 	// off the left side
 	if (x2 < 0)
