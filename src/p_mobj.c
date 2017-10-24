@@ -6244,7 +6244,7 @@ void P_RunShadows(void)
 		if (mobj->type != MT_SHADOW)
 			continue;
 
-		if (mobj->target && (mobj->target->health || mobj->target->player)) // only players keep shadows after death, but only until their mobj is killed
+		if (mobj->target)
 		{
 			if ((mobj->target->flags2 & MF2_DONTDRAW)
 				|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
