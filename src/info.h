@@ -618,6 +618,7 @@ typedef enum sprite
 	SPR_SHAD, // TD shadows
 
 	SPR_BUMP, // Player/shell bump
+	SPR_FLEN, // Shell hit graphics stuff
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3370,6 +3371,10 @@ typedef enum state
 	S_BUMP2,
 	S_BUMP3,
 
+	S_FLINGENERGY1,
+	S_FLINGENERGY2,
+	S_FLINGENERGY3,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4008,6 +4013,8 @@ typedef enum mobj_type
 	MT_SHADOW,
 
 	MT_BUMP,
+
+	MT_FLINGENERGY,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
