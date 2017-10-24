@@ -6598,7 +6598,11 @@ void P_MobjThinker(mobj_t *mobj)
 						|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3
 						|| mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
 						|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5)
-						mobj->angle += FixedAngle(mobj->info->speed);
+						if ((mobj->type == MT_BATTLEBALLOON1 || mobj->type == MT_BATTLEBALLOON2 || mobj->type == MT_BATTLEBALLOON3
+							|| mobj->type == MT_BATTLEBALLOON4 || mobj->type == MT_BATTLEBALLOON5) && !((mobj->target->player-players) & 1))
+							mobj->angle -= FixedAngle(mobj->info->speed);
+						else
+							mobj->angle += FixedAngle(mobj->info->speed);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD3)
