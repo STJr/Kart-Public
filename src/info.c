@@ -58,7 +58,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
 	"DBAN","GSHE","DGSH","RSHE","DRSH","BOMB","BLIG","LIGH","SINK","SITR",
 	"LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
-	"SACO","CRAB","SHAD","BUMP","FLEN","CLAS"
+	"SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2849,11 +2849,17 @@ state_t states[NUMSTATES] =
 	{SPR_FLEN, FF_FULLBRIGHT|1, 3, {NULL}, 0, 0, S_FLINGENERGY3}, // S_FLINGENERGY2,
 	{SPR_FLEN, FF_FULLBRIGHT|2, 3, {NULL}, 0, 0, S_NULL}, // S_FLINGENERGY3,
 
-	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|1, 2, {NULL}, 0, 0, S_CLASH2},
-	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|2, 2, {NULL}, 0, 0, S_CLASH3},
-	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|3, 2, {NULL}, 0, 0, S_CLASH4},
-	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|4, 2, {NULL}, 0, 0, S_CLASH5},
-	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|5, 2, {NULL}, 0, 0, S_NULL},
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30, 2, {NULL}, 0, 0, S_CLASH2}, // S_CLASH1
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|1, 2, {NULL}, 0, 0, S_CLASH3}, // S_CLASH2
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|2, 2, {NULL}, 0, 0, S_CLASH4}, // S_CLASH3
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|3, 2, {NULL}, 0, 0, S_CLASH5}, // S_CLASH4
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|4, 2, {NULL}, 0, 0, S_CLASH6}, // S_CLASH5
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|5, 2, {NULL}, 0, 0, S_NULL}, // S_CLASH6
+
+	{SPR_PSHW, 0, 3, {NULL}, 0, 0, S_FIREDITEM2}, // S_FIREDITEM1
+	{SPR_PSHW, 1, 3, {NULL}, 0, 0, S_FIREDITEM3}, // S_FIREDITEM2
+	{SPR_PSHW, 2, 3, {NULL}, 0, 0, S_FIREDITEM4}, // S_FIREDITEM3
+	{SPR_PSHW, 3, 3, {NULL}, 0, 0, S_NULL}, // S_FIREDITEM4
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -16544,6 +16550,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_ITEMCLASH
 		-1,             // doomednum
 		S_CLASH1,       // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		0,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		60*FRACUNIT,    // speed
+		32*FRACUNIT,    // radius
+		64*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_FIREDITEM
+		-1,             // doomednum
+		S_FIREDITEM1,   // spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound

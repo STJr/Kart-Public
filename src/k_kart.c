@@ -1824,6 +1824,13 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	th->momx = FixedMul(speed, FINECOSINE(an>>ANGLETOFINESHIFT));
 	th->momy = FixedMul(speed, FINESINE(an>>ANGLETOFINESHIFT));
 
+	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
+	x = y + P_ReturnThrustY(source, an, source->radius + th->radius);
+	mobj_t *throwmo = P_SpawnMobj(x, y, z, MT_FIREDITEM);
+	throwmo->movecount = 1;
+	throwmo->movedir = source->angle - an;
+	P_SetTarget(&throwmo->target, source);
+
 	return NULL;
 }
 
@@ -2042,6 +2049,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
 			}
+
+			mobj_t *throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + 80*FRACUNIT, MT_FIREDITEM);
+			P_SetTarget(&throwmo->target, player->mo);
+			throwmo->movecount = 0; // above player
 		}
 		else
 		{
