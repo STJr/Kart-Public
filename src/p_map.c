@@ -744,6 +744,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+
+				P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 			}
 
 			// Other Item Damage
@@ -926,6 +928,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+
+				P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 			}
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
