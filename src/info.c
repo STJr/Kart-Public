@@ -14419,7 +14419,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_BANANAITEM,   // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
-		sfx_tossed,     // seesound
+		sfx_None,       // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
@@ -14527,7 +14527,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_BANANAITEM,   // spawnstate
 		2,              // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
