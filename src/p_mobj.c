@@ -7467,6 +7467,13 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->flags2 & MF2_NIGHTSPULL)
 				P_NightsItemChase(mobj);
 			break;
+		case MT_SMALLMACE:
+		case MT_BIGMACE:
+			{
+				mobj_t *ghostmo = P_SpawnGhostMobj(mobj);
+				ghostmo->fuse = 4;
+			}
+			break;
 		case MT_SHELL:
 			if (mobj->threshold > TICRATE)
 				mobj->threshold--;
@@ -8432,6 +8439,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	switch (mobj->type)
 	{
 		case MT_PLAYER:
+		case MT_BIGMACE:				case MT_SMALLMACE:
 		//case MT_RANDOMITEM:
 		case MT_BANANAITEM:				case MT_BANANASHIELD:
 		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:
