@@ -681,23 +681,23 @@ static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] 
 static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8  9
-				/*Magnet*/ { 1, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 1, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 1, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
+				/*Magnet*/ { 2, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
+				   /*Boo*/ { 0, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
+			  /*Mushroom*/ { 0, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 1, 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
-		 /*Triple Banana*/ { 1, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
-			 /*Fake Item*/ { 1, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
-				/*Banana*/ { 1, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 1, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
-			 /*Red Shell*/ { 1, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
-	/*Triple Green Shell*/ { 1, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 1, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
+		 /*Triple Banana*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
+			 /*Fake Item*/ { 2, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 2, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 4, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
+			 /*Red Shell*/ { 2, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 2, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 1, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
+		   /*Fire Flower*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
 	  /*Triple Red Shell*/ { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
 };
