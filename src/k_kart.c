@@ -1697,6 +1697,12 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	P_PlayRinglossSound(player->mo);
 
+	if (P_IsLocalPlayer(player))
+	{
+		quake.intensity = 64*FRACUNIT;
+		quake.time = 5;
+	}
+
 	return;
 }
 

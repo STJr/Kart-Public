@@ -3131,6 +3131,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD)
 				P_PlayerRingBurst(player, 5);
 			player->mo->momx = player->mo->momy = 0;
+			if (P_IsLocalPlayer(player))
+			{
+				quake.intensity = 32*FRACUNIT;
+				quake.time = 5;
+			}
 			return true;
 		}
 		/* // SRB2kart - don't need these
