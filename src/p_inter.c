@@ -3386,13 +3386,13 @@ void P_PlayerRingBurst(player_t *player, INT32 num_rings)
 				momz = 3*FRACUNIT;
 			}
 
-			ns = FixedMul(FixedMul(momxy, FRACUNIT + FixedDiv(player->losstime<<FRACBITS, 10*TICRATE<<FRACBITS)), mo->scale);
+			ns = FixedMul(momxy, mo->scale);
 			mo->momx = FixedMul(FINECOSINE(fa),ns);
 
 			if (!(twodlevel || (player->mo->flags2 & MF2_TWOD)))
 				mo->momy = FixedMul(FINESINE(fa),ns);
 
-			ns = FixedMul(momz, FRACUNIT + FixedDiv(player->losstime<<FRACBITS, 10*TICRATE<<FRACBITS));
+			ns = momz;
 			P_SetObjectMomZ(mo, ns, false);
 
 			if (i & 1)
