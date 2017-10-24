@@ -2029,6 +2029,8 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 			P_SetTarget(&mo->target, player->mo);
 
+			S_StartSound(player->mo, mo->info->seesound);
+
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;

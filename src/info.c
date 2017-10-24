@@ -14392,7 +14392,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_FAKEITEM1,    // spawnstate
 		2,              // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
@@ -14419,7 +14419,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_BANANAITEM,   // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
@@ -14662,7 +14662,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_GREENITEM1,   // spawnstate
 		7,              // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_tink,       // attacksound
 		S_NULL,         // painstate
@@ -14824,7 +14824,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_REDITEM1,     // spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
@@ -14851,7 +14851,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_REDITEM1,     // spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
@@ -14905,7 +14905,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_BOMBAIR,      // spawnstate
 		105,            // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate

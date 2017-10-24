@@ -678,6 +678,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			// Player Damage
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
 
+			if (tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD)
+				S_StartSound(thing, sfx_shelit);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1094,6 +1096,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
+
+			if (thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD)
+				S_StartSound(tmthing, sfx_shelit);
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)

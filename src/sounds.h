@@ -569,6 +569,8 @@ typedef enum
 	sfx_mkitm8,
 	sfx_mkitmF,
 	sfx_clash,
+	sfx_tossed,
+	sfx_shelit,
 
 	sfx_kwin,
 	sfx_klose,
