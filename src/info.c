@@ -2849,7 +2849,7 @@ state_t states[NUMSTATES] =
 	{SPR_FLEN, FF_FULLBRIGHT|1, 3, {NULL}, 0, 0, S_FLINGENERGY3}, // S_FLINGENERGY2,
 	{SPR_FLEN, FF_FULLBRIGHT|2, 3, {NULL}, 0, 0, S_NULL}, // S_FLINGENERGY3,
 
-	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30, 2, {NULL}, 0, 0, S_CLASH2}, // S_CLASH1
+	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30, 2, {A_PlayActiveSound}, 0, 0, S_CLASH2}, // S_CLASH1
 	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|1, 2, {NULL}, 0, 0, S_CLASH3}, // S_CLASH2
 	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|2, 2, {NULL}, 0, 0, S_CLASH4}, // S_CLASH3
 	{SPR_CLAS, FF_FULLBRIGHT|FF_TRANS30|3, 2, {NULL}, 0, 0, S_CLASH5}, // S_CLASH4
@@ -16569,8 +16569,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		0,              // damage
-		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_SCENERY, // flags
+		sfx_clash,      // activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_SCENERY|MF_RUNSPAWNFUNC, // flags
 		S_NULL          // raisestate
 	},
 
@@ -16625,7 +16625,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		0,              // damage
-		sfx_None,       // activesound
+		sfx_None,      // activesound
 		MF_NOBLOCKMAP|MF_MISSILE|MF_NOGRAVITY|MF_NOSECTOR, // flags
 		S_NULL          // raisestate
 	},

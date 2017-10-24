@@ -568,6 +568,8 @@ typedef enum
 	sfx_mkitm7,
 	sfx_mkitm8,
 	sfx_mkitmF,
+	sfx_clash,
+
 	sfx_kwin,
 	sfx_klose,
 	sfx_slow,
