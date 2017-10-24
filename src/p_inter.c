@@ -2091,7 +2091,12 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			P_SetTarget(&target->target, source);
 			source->player->numboxes++;
 			if ((cv_itemrespawn.value && gametype != GT_COOP && (modifiedgame || netgame || multiplayer)))
-				target->fuse = cv_itemrespawntime.value*TICRATE + 2; // Random box generation
+			{
+				if (gametype == GT_RACE)
+					target->fuse = TICRATE + 2;
+				else
+					target->fuse = cv_itemrespawntime.value*TICRATE + 2; // Random box generation
+			}
 		}
 
 		// Award Score Tails
