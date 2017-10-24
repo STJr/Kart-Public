@@ -56,9 +56,9 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
-	"DBAN","GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH",
-	"SINK","SITR","LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS",
-	"BUZB","CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS"
+	"DBAN","GSHE","DGSH","RSHE","DRSH","BOMB","BLIG","LIGH","SINK","SITR",
+	"LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
+	"SACO","CRAB","SHAD","BUMP","FLEN","CLAS"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2128,13 +2128,13 @@ state_t states[NUMSTATES] =
 	{SPR_FFWR, 3, 3, {NULL}, 0, 0, S_FIREFLOWER1}, // S_FIREFLOWER4
 
 	// Thrown Mario Fireball
-	{SPR_FBLL, FF_FULLBRIGHT,    3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL2},    // S_FIREBALL1
-	{SPR_FBLL, FF_FULLBRIGHT|1,  3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL3},    // S_FIREBALL2
-	{SPR_FBLL, FF_FULLBRIGHT|2,  3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL4},    // S_FIREBALL3
-	{SPR_FBLL, FF_FULLBRIGHT|3,  3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL5},    // S_FIREBALL4
-	{SPR_FBLL, FF_FULLBRIGHT|4,  3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL6},    // S_FIREBALL5
-	{SPR_FBLL, FF_FULLBRIGHT|5,  3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL7},    // S_FIREBALL6
-	{SPR_FBLL, FF_FULLBRIGHT|6,  3, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_FIREBALL1},    // S_FIREBALL7
+	{SPR_FBLL, FF_FULLBRIGHT,    3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL2},    // S_FIREBALL1
+	{SPR_FBLL, FF_FULLBRIGHT|1,  3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL3},    // S_FIREBALL2
+	{SPR_FBLL, FF_FULLBRIGHT|2,  3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL4},    // S_FIREBALL3
+	{SPR_FBLL, FF_FULLBRIGHT|3,  3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL5},    // S_FIREBALL4
+	{SPR_FBLL, FF_FULLBRIGHT|4,  3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL6},    // S_FIREBALL5
+	{SPR_FBLL, FF_FULLBRIGHT|5,  3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL7},    // S_FIREBALL6
+	{SPR_FBLL, FF_FULLBRIGHT|6,  3, {NULL}, MT_FIRETRAIL, 0, S_FIREBALL1},    // S_FIREBALL7
 	{SPR_FBLL, FF_FULLBRIGHT|7,  3, {NULL}, 0, 0, S_FIREBALLEXP2}, // S_FIREBALLEXP1
 	{SPR_FBLL, FF_FULLBRIGHT|8,  3, {NULL}, 0, 0, S_FIREBALLEXP3}, // S_FIREBALLEXP2
 	{SPR_FBLL, FF_FULLBRIGHT|9,  3, {NULL}, 0, 0, S_FIREBALLEXP4}, // S_FIREBALLEXP3
@@ -2641,23 +2641,14 @@ state_t states[NUMSTATES] =
 	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_GREENSHIELD7},                     // S_GREENSHIELD6
 	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_GREENSHIELD8},                     // S_GREENSHIELD7
 	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_GREENSHIELD1},                     // S_GREENSHIELD8
-	{SPR_GSHE, 0, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM2}, // S_GREENITEM1
-	{SPR_GSHE, 1, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM3}, // S_GREENITEM2
-	{SPR_GSHE, 2, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM4}, // S_GREENITEM3
-	{SPR_GSHE, 3, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM5}, // S_GREENITEM4
-	{SPR_GSHE, 4, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM6}, // S_GREENITEM5
-	{SPR_GSHE, 5, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM7}, // S_GREENITEM6
-	{SPR_GSHE, 6, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM8}, // S_GREENITEM7
-	{SPR_GSHE, 7, 1, {A_SmokeTrailer}, MT_GREENTRAIL, 0, S_GREENITEM1}, // S_GREENITEM8
-	{SPR_GSTR, 0, 1, {NULL}, 0, 0, S_GREENTRAIL2},                      // S_GREENTRAIL1
-	{SPR_GSTR, 1, 1, {NULL}, 0, 0, S_GREENTRAIL3},                      // S_GREENTRAIL2
-	{SPR_GSTR, 2, 1, {NULL}, 0, 0, S_GREENTRAIL4},                      // S_GREENTRAIL3
-	{SPR_GSTR, 3, 1, {NULL}, 0, 0, S_GREENTRAIL5},                      // S_GREENTRAIL4
-	{SPR_GSTR, 4, 1, {NULL}, 0, 0, S_GREENTRAIL6},                      // S_GREENTRAIL5
-	{SPR_GSTR, 5, 1, {NULL}, 0, 0, S_GREENTRAIL7},                      // S_GREENTRAIL6
-	{SPR_GSTR, 6, 1, {NULL}, 0, 0, S_GREENTRAIL8},                      // S_GREENTRAIL7
-	{SPR_GSTR, 7, 1, {NULL}, 0, 0, S_GREENTRAIL9},                      // S_GREENTRAIL8
-	{SPR_GSTR, 8, 1, {NULL}, 0, 0, S_NULL},                             // S_GREENTRAIL9
+	{SPR_GSHE, 0, 1, {NULL}, 0, 0, S_GREENITEM2}, // S_GREENITEM1
+	{SPR_GSHE, 1, 1, {NULL}, 0, 0, S_GREENITEM3}, // S_GREENITEM2
+	{SPR_GSHE, 2, 1, {NULL}, 0, 0, S_GREENITEM4}, // S_GREENITEM3
+	{SPR_GSHE, 3, 1, {NULL}, 0, 0, S_GREENITEM5}, // S_GREENITEM4
+	{SPR_GSHE, 4, 1, {NULL}, 0, 0, S_GREENITEM6}, // S_GREENITEM5
+	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_GREENITEM7}, // S_GREENITEM6
+	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_GREENITEM8}, // S_GREENITEM7
+	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_GREENITEM1}, // S_GREENITEM8
 	{SPR_DGSH, 0, 175, {NULL}, 0, 0, S_NULL},                           // S_DEADGREEN
 
 	{SPR_RSHE, 0, 1, {NULL}, 0, 0, S_TRIPLEREDSHIELD2},                           // S_TRIPLEREDSHIELD1
@@ -2676,26 +2667,25 @@ state_t states[NUMSTATES] =
 	{SPR_RSHE, 5, 1, {NULL}, 0, 0, S_REDSHIELD7},                                 // S_REDSHIELD6
 	{SPR_RSHE, 6, 1, {NULL}, 0, 0, S_REDSHIELD8},                                 // S_REDSHIELD7
 	{SPR_RSHE, 7, 1, {NULL}, 0, 0, S_REDSHIELD1},                                 // S_REDSHIELD8
-	{SPR_RSHE, 0, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM2}, // S_REDITEM1
-	{SPR_RSHE, 1, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM3}, // S_REDITEM2
-	{SPR_RSHE, 2, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM4}, // S_REDITEM3
-	{SPR_RSHE, 3, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM5}, // S_REDITEM4
-	{SPR_RSHE, 4, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM6}, // S_REDITEM5
-	{SPR_RSHE, 5, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM7}, // S_REDITEM6
-	{SPR_RSHE, 6, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM8}, // S_REDITEM7
-	{SPR_RSHE, 7, 1, {A_DualAction}, S_REDITEMCHASE, S_REDITEMTRAIL, S_REDITEM1}, // S_REDITEM8
-	{SPR_RSHE, 0, 1, {A_RedShellChase}, 0, 0, S_REDITEM2},                        // S_REDITEMCHASE
-	{SPR_RSHE, 1, 1, {A_SmokeTrailer}, MT_REDTRAIL, 0, S_REDITEM3},               // S_REDITEMTRAIL
-	{SPR_RSTR, 0, 1, {NULL}, 0, 0, S_REDTRAIL2},                                  // S_REDTRAIL1
-	{SPR_RSTR, 1, 1, {NULL}, 0, 0, S_REDTRAIL3},                                  // S_REDTRAIL2
-	{SPR_RSTR, 2, 1, {NULL}, 0, 0, S_REDTRAIL4},                                  // S_REDTRAIL3
-	{SPR_RSTR, 3, 1, {NULL}, 0, 0, S_REDTRAIL5},                                  // S_REDTRAIL4
-	{SPR_RSTR, 4, 1, {NULL}, 0, 0, S_REDTRAIL6},                                  // S_REDTRAIL5
-	{SPR_RSTR, 5, 1, {NULL}, 0, 0, S_REDTRAIL7},                                  // S_REDTRAIL6
-	{SPR_RSTR, 6, 1, {NULL}, 0, 0, S_REDTRAIL8},                                  // S_REDTRAIL7
-	{SPR_RSTR, 7, 1, {NULL}, 0, 0, S_REDTRAIL9},                                  // S_REDTRAIL8
-	{SPR_RSTR, 8, 1, {NULL}, 0, 0, S_NULL},                                       // S_REDTRAIL9
+	{SPR_RSHE, 0, 1, {A_RedShellChase}, 0, 0, S_REDITEM2}, // S_REDITEM1
+	{SPR_RSHE, 1, 1, {A_RedShellChase}, 0, 0, S_REDITEM3}, // S_REDITEM2
+	{SPR_RSHE, 2, 1, {A_RedShellChase}, 0, 0, S_REDITEM4}, // S_REDITEM3
+	{SPR_RSHE, 3, 1, {A_RedShellChase}, 0, 0, S_REDITEM5}, // S_REDITEM4
+	{SPR_RSHE, 4, 1, {A_RedShellChase}, 0, 0, S_REDITEM6}, // S_REDITEM5
+	{SPR_RSHE, 5, 1, {A_RedShellChase}, 0, 0, S_REDITEM7}, // S_REDITEM6
+	{SPR_RSHE, 6, 1, {A_RedShellChase}, 0, 0, S_REDITEM8}, // S_REDITEM7
+	{SPR_RSHE, 7, 1, {A_RedShellChase}, 0, 0, S_REDITEM1}, // S_REDITEM8
 	{SPR_DRSH, 0, 175, {NULL}, 0, 0, S_NULL},                                     // S_DEADRED
+
+	{SPR_FBLL, 13, 3, {NULL}, 0, 0, S_FIRETRAIL2},                      // S_FIRETRAIL1
+	{SPR_FBLL, 14, 3, {NULL}, 0, 0, S_FIRETRAIL3},                      // S_FIRETRAIL2
+	{SPR_FBLL, 15, 3, {NULL}, 0, 0, S_FIRETRAIL4},                      // S_FIRETRAIL3
+	{SPR_FBLL, 16, 3, {NULL}, 0, 0, S_FIRETRAIL5},                      // S_FIRETRAIL4
+	{SPR_FBLL, 17, 3, {NULL}, 0, 0, S_FIRETRAIL6},                      // S_FIRETRAIL5
+	{SPR_FBLL, 18, 3, {NULL}, 0, 0, S_FIRETRAIL7},                      // S_FIRETRAIL6
+	{SPR_FBLL, 19, 3, {NULL}, 0, 0, S_FIRETRAIL8},                      // S_FIRETRAIL7
+	{SPR_FBLL, 20, 3, {NULL}, 0, 0, S_FIRETRAIL9},                      // S_FIRETRAIL8
+	{SPR_FBLL, 21, 3, {NULL}, 0, 0, S_NULL},                            // S_FIRETRAIL9
 
 	{SPR_BOMB, 0,  1, {NULL}, 0, 0, S_BOMBSHIELD},                 // S_BOMBSHIELD
 	{SPR_BOMB, 0,  1, {A_GrenadeRing}, 0, 0, S_BOMBITEM},          // S_BOMBITEM
@@ -14688,9 +14678,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_GREENTRAIL
+	{           // MT_FIRETRAIL
 		-1,             // doomednum
-		S_GREENTRAIL1,  // spawnstate
+		S_FIRETRAIL1,  // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14874,33 +14864,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,              // damage
 		sfx_redshl,     // activesound
 		MF_SHOOTABLE,   // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_REDTRAIL
-		-1,             // doomednum
-		S_REDTRAIL1,    // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		8,              // speed
-		20*FRACUNIT,    // radius
-		16*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 

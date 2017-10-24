@@ -7508,6 +7508,8 @@ void P_MobjThinker(mobj_t *mobj)
 		{
 			fixed_t finalspeed = mobj->info->speed;
 
+			P_SpawnGhostMobj(mobj);
+
 			if (cv_kartcc.value == 50)
 			{
 				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
@@ -7542,6 +7544,9 @@ void P_MobjThinker(mobj_t *mobj)
 			fixed_t topspeed = 64*FRACUNIT;
 			fixed_t distbarrier = 512*FRACUNIT;
 			fixed_t distaway;
+
+			P_SpawnGhostMobj(mobj);
+
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 7 == 0)
@@ -7575,6 +7580,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		}
 		case MT_REDITEMDUD:
+			P_SpawnGhostMobj(mobj);
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
 			if (mobj->threshold > 0)
@@ -7584,6 +7590,8 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_BANANAITEM:
 		case MT_FAKEITEM:
+			if (mobj->momx || mobj->momy)
+				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz && mobj->health > 1)
 			{
 				S_StartSound(mobj, mobj->info->activesound);
@@ -7594,6 +7602,8 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_FIREBALL:
+			var1 = MT_FIRETRAIL;
+			A_SmokeTrailer(mobj);
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
@@ -7607,6 +7617,8 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_BOMBITEM:
+			if (mobj->momx || mobj->momy)
+				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz)
 			{
 				if (mobj->health > mobj->info->spawnhealth-1)
