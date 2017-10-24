@@ -1060,8 +1060,8 @@ boolean K_IsTouching(mobj_t *mobj1, mobj_t *mobj2)
 
 void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
-	fixed_t newx;
-	fixed_t newy;
+	fixed_t newx, newy;
+	mobj_t *fx;
 
 	if (mobj1 == NULL || mobj2 == NULL)
 		return;
@@ -1076,6 +1076,14 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		S_StartSound(mobj1, cv_collidesoundnum.value);
 		//S_StartSound(mobj2, cv_collidesoundnum.value);
 	}
+
+	fx = P_SpawnMobj((mobj1->x + mobj2->x)/2, (mobj1->y + mobj2->y)/2, (mobj1->z + mobj2->z)/2, MT_BUMP);
+	if (mobj1->eflags & MFE_VERTICALFLIP)
+		fx->eflags |= MFE_VERTICALFLIP;
+	else
+		fx->eflags &= ~MFE_VERTICALFLIP;
+	fx->scale = mobj1->scale;
+	
 	if (deltaV1 < (cv_collideminimum.value * FRACUNIT / 2))
 	{
 		fixed_t a = 0;
@@ -1769,6 +1777,12 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	P_PlayRinglossSound(player->mo);
 
+	if (P_IsLocalPlayer(player))
+	{
+		quake.intensity = 64*FRACUNIT;
+		quake.time = 5;
+	}
+
 	return;
 }
 
@@ -1895,6 +1909,13 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	th->angle = an;
 	th->momx = FixedMul(speed, FINECOSINE(an>>ANGLETOFINESHIFT));
 	th->momy = FixedMul(speed, FINESINE(an>>ANGLETOFINESHIFT));
+
+	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
+	x = y + P_ReturnThrustY(source, an, source->radius + th->radius);
+	mobj_t *throwmo = P_SpawnMobj(x, y, z, MT_FIREDITEM);
+	throwmo->movecount = 1;
+	throwmo->movedir = source->angle - an;
+	P_SetTarget(&throwmo->target, source);
 
 	return NULL;
 }
@@ -2094,6 +2115,8 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 			P_SetTarget(&mo->target, player->mo);
 
+			S_StartSound(player->mo, mo->info->seesound);
+
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
@@ -2114,6 +2137,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
 			}
+
+			mobj_t *throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + 80*FRACUNIT, MT_FIREDITEM);
+			P_SetTarget(&throwmo->target, player->mo);
+			throwmo->movecount = 0; // above player
 		}
 		else
 		{

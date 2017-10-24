@@ -1737,11 +1737,18 @@ void P_XYMovement(mobj_t *mo)
 			//{ SRB2kart - Green Shell, Fireball
 			if (mo->type == MT_GREENITEM)
 			{
+				mobj_t *fx;
+				fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+				if (mo->eflags & MFE_VERTICALFLIP)
+					fx->eflags |= MFE_VERTICALFLIP;
+				else
+					fx->eflags &= ~MFE_VERTICALFLIP;
+				fx->scale = mo->scale;
 				if (mo->health > 1)
 				{
-				S_StartSound(mo, mo->info->attacksound);
-				mo->health--;
-				mo->threshold = 0;
+					S_StartSound(mo, mo->info->attacksound);
+					mo->health--;
+					mo->threshold = 0;
 				}
 				else if (mo->health == 1)
 				{
@@ -6237,7 +6244,7 @@ void P_RunShadows(void)
 		if (mobj->type != MT_SHADOW)
 			continue;
 
-		if (mobj->target && (mobj->target->health || mobj->target->player)) // only players keep shadows after death, but only until their mobj is killed
+		if (mobj->target)
 		{
 			if ((mobj->target->flags2 & MF2_DONTDRAW)
 				|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
@@ -6848,6 +6855,24 @@ void P_MobjThinker(mobj_t *mobj)
 					return;
 				}
 				break;
+			case MT_FIREDITEM:
+			{
+				fixed_t x, y, z;
+				if (mobj->movecount)
+				{
+					x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+					y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+					z = mobj->target->z + mobj->target->height/3;
+				}
+				else
+				{
+					x = mobj->target->x;
+					y = mobj->target->y;
+					z = mobj->target->z + 80*FRACUNIT;
+				}
+				P_TeleportMove(mobj, x, y, z);
+				break;
+			}
 			default:
 				if (mobj->fuse)
 				{ // Scenery object fuse! Very basic!
@@ -7478,6 +7503,13 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->flags2 & MF2_NIGHTSPULL)
 				P_NightsItemChase(mobj);
 			break;
+		case MT_SMALLMACE:
+		case MT_BIGMACE:
+			{
+				mobj_t *ghostmo = P_SpawnGhostMobj(mobj);
+				ghostmo->fuse = 4;
+			}
+			break;
 		case MT_SHELL:
 			if (mobj->threshold > TICRATE)
 				mobj->threshold--;
@@ -7537,6 +7569,8 @@ void P_MobjThinker(mobj_t *mobj)
 		{
 			fixed_t finalspeed = mobj->info->speed;
 
+			P_SpawnGhostMobj(mobj);
+
 			if (cv_kartcc.value == 50)
 			{
 				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
@@ -7571,6 +7605,9 @@ void P_MobjThinker(mobj_t *mobj)
 			fixed_t topspeed = 64*FRACUNIT;
 			fixed_t distbarrier = 512*FRACUNIT;
 			fixed_t distaway;
+
+			P_SpawnGhostMobj(mobj);
+
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			if (leveltime % 7 == 0)
@@ -7604,6 +7641,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		}
 		case MT_REDITEMDUD:
+			P_SpawnGhostMobj(mobj);
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
 			if (mobj->threshold > 0)
@@ -7613,6 +7651,8 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_BANANAITEM:
 		case MT_FAKEITEM:
+			if (mobj->momx || mobj->momy)
+				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz && mobj->health > 1)
 			{
 				S_StartSound(mobj, mobj->info->activesound);
@@ -7623,6 +7663,8 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_FIREBALL:
+			var1 = MT_FIRETRAIL;
+			A_SmokeTrailer(mobj);
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
@@ -7636,6 +7678,8 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_BOMBITEM:
+			if (mobj->momx || mobj->momy)
+				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz)
 			{
 				if (mobj->health > mobj->info->spawnhealth-1)
@@ -8435,6 +8479,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	switch (mobj->type)
 	{
 		case MT_PLAYER:
+		case MT_BIGMACE:				case MT_SMALLMACE:
 		//case MT_RANDOMITEM:
 		case MT_BANANAITEM:				case MT_BANANASHIELD:
 		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:

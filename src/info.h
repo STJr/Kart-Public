@@ -590,10 +590,8 @@ typedef enum sprite
  	SPR_BANA, // Banana Peel
 	SPR_DBAN, // Dead Banana Peel
 	SPR_GSHE, // Green Shell
-	SPR_GSTR, // Green Shell Trail
 	SPR_DGSH, // Dead Green Shell
 	SPR_RSHE, // Red Shell
-	SPR_RSTR, // Red Shell Trail
 	SPR_DRSH, // Dead Red Shell
 	SPR_BOMB, // Bob-omb
 	SPR_BLIG, // Blue Lightning
@@ -617,6 +615,11 @@ typedef enum sprite
 	SPR_SACO, // Sapphire Coast Fauna
 	SPR_CRAB, // Crystal Abyss mobs
 	SPR_SHAD, // TD shadows
+
+	SPR_BUMP, // Player/shell bump
+	SPR_FLEN, // Shell hit graphics stuff
+	SPR_CLAS, // items clash
+	SPR_PSHW, // thrown indicator
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3149,15 +3152,6 @@ typedef enum state
 	S_GREENITEM6,
 	S_GREENITEM7,
 	S_GREENITEM8,
-	S_GREENTRAIL1,
-	S_GREENTRAIL2,
-	S_GREENTRAIL3,
-	S_GREENTRAIL4,
-	S_GREENTRAIL5,
-	S_GREENTRAIL6,
-	S_GREENTRAIL7,
-	S_GREENTRAIL8,
-	S_GREENTRAIL9,
 	S_DEADGREEN,
 	//}
 	//{ Red Shell
@@ -3185,19 +3179,18 @@ typedef enum state
 	S_REDITEM6,
 	S_REDITEM7,
 	S_REDITEM8,
-	S_REDITEMCHASE,
-	S_REDITEMTRAIL,
-	S_REDTRAIL1,
-	S_REDTRAIL2,
-	S_REDTRAIL3,
-	S_REDTRAIL4,
-	S_REDTRAIL5,
-	S_REDTRAIL6,
-	S_REDTRAIL7,
-	S_REDTRAIL8,
-	S_REDTRAIL9,
 	S_DEADRED,
 	//}
+
+	S_FIRETRAIL1,
+	S_FIRETRAIL2,
+	S_FIRETRAIL3,
+	S_FIRETRAIL4,
+	S_FIRETRAIL5,
+	S_FIRETRAIL6,
+	S_FIRETRAIL7,
+	S_FIRETRAIL8,
+	S_FIRETRAIL9,
 
 	// Bob-omb
 	S_BOMBSHIELD,
@@ -3369,6 +3362,26 @@ typedef enum state
 	S_MOSSYTREE,
 	S_SHADOW,
 	S_WHITESHADOW,
+
+	S_BUMP1,
+	S_BUMP2,
+	S_BUMP3,
+
+	S_FLINGENERGY1,
+	S_FLINGENERGY2,
+	S_FLINGENERGY3,
+
+	S_CLASH1,
+	S_CLASH2,
+	S_CLASH3,
+	S_CLASH4,
+	S_CLASH5,
+	S_CLASH6,
+
+	S_FIREDITEM1,
+	S_FIREDITEM2,
+	S_FIREDITEM3,
+	S_FIREDITEM4,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -3923,7 +3936,7 @@ typedef enum mobj_type
 	MT_TRIPLEGREENSHIELD3,
 	MT_GREENSHIELD,
 	MT_GREENITEM,
-	MT_GREENTRAIL,
+	MT_FIRETRAIL,
 
 	MT_TRIPLEREDSHIELD1, // Red shell stuff
 	MT_TRIPLEREDSHIELD2,
@@ -3931,7 +3944,6 @@ typedef enum mobj_type
 	MT_REDSHIELD,
 	MT_REDITEM,
 	MT_REDITEMDUD,
-	MT_REDTRAIL,
 
 	MT_BOMBSHIELD, // Bob-omb stuff
 	MT_BOMBITEM,
@@ -4012,6 +4024,14 @@ typedef enum mobj_type
 	MT_LAMPPOST,
 	MT_MOSSYTREE,
 	MT_SHADOW,
+
+	MT_BUMP,
+
+	MT_FLINGENERGY,
+
+	MT_ITEMCLASH,
+
+	MT_FIREDITEM,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

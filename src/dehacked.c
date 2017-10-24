@@ -6306,15 +6306,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_GREENITEM6",
 	"S_GREENITEM7",
 	"S_GREENITEM8",
-	"S_GREENTRAIL1",
-	"S_GREENTRAIL2",
-	"S_GREENTRAIL3",
-	"S_GREENTRAIL4",
-	"S_GREENTRAIL5",
-	"S_GREENTRAIL6",
-	"S_GREENTRAIL7",
-	"S_GREENTRAIL8",
-	"S_GREENTRAIL9",
 	"S_DEADGREEN",
 	//}
 	//{ Red Shell
@@ -6342,19 +6333,18 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_REDITEM6",
 	"S_REDITEM7",
 	"S_REDITEM8",
-	"S_REDITEMCHASE",
-	"S_REDITEMTRAIL",
-	"S_REDTRAIL1",
-	"S_REDTRAIL2",
-	"S_REDTRAIL3",
-	"S_REDTRAIL4",
-	"S_REDTRAIL5",
-	"S_REDTRAIL6",
-	"S_REDTRAIL7",
-	"S_REDTRAIL8",
-	"S_REDTRAIL9",
 	"S_DEADRED",
 	//}
+
+	"S_FIRETRAIL1",
+	"S_FIRETRAIL2",
+	"S_FIRETRAIL3",
+	"S_FIRETRAIL4",
+	"S_FIRETRAIL5",
+	"S_FIRETRAIL6",
+	"S_FIRETRAIL7",
+	"S_FIRETRAIL8",
+	"S_FIRETRAIL9",
 
 	// Bob-omb
 	"S_BOMBSHIELD",
@@ -6399,6 +6389,26 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_SHADOW",
 	"S_WHITESHADOW",
+
+	"S_BUMP1",
+	"S_BUMP2",
+	"S_BUMP3",
+
+	"S_FLINGENERGY1",
+	"S_FLINGENERGY2",
+	"S_FLINGENERGY3",
+
+	"S_CLASH1",
+	"S_CLASH2",
+	"S_CLASH3",
+	"S_CLASH4",
+	"S_CLASH5",
+	"S_CLASH6",
+
+	"S_FIREDITEM1",
+	"S_FIREDITEM2",
+	"S_FIREDITEM3",
+	"S_FIREDITEM4",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -6936,7 +6946,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_TRIPLEGREENSHIELD3",
 	"MT_GREENSHIELD",
 	"MT_GREENITEM",
-	"MT_GREENTRAIL",
+	"MT_FIRETRAIL",
 
 	"MT_TRIPLEREDSHIELD1", // Red shell stuff
 	"MT_TRIPLEREDSHIELD2",
@@ -6944,7 +6954,6 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_REDSHIELD",
 	"MT_REDITEM",
 	"MT_REDITEMDUD",
-	"MT_REDTRAIL",
 
 	"MT_BOMBSHIELD", // Bob-omb stuff
 	"MT_BOMBITEM",
@@ -6970,6 +6979,12 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_ENEMYFLIP",
 	"MT_WAYPOINT",
 	"MT_SHADOW",
+
+	"MT_BUMP",
+
+	"MT_ITEMCLASH",
+	
+	"MT_FIREDITEM",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

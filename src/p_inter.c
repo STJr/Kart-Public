@@ -3176,7 +3176,14 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			K_SpinPlayer(player, source);
 			damage = player->mo->health - 1;
 			P_RingDamage(player, inflictor, source, damage);
+			if (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD)
+				P_PlayerRingBurst(player, 5);
 			player->mo->momx = player->mo->momy = 0;
+			if (P_IsLocalPlayer(player))
+			{
+				quake.intensity = 32*FRACUNIT;
+				quake.time = 5;
+			}
 			return true;
 		}
 		/* // SRB2kart - don't need these
@@ -3367,9 +3374,9 @@ void P_PlayerRingBurst(player_t *player, INT32 num_rings)
 	if (!player)
 		return;
 
-	// If no health, don't spawn ring!
+	// Never have health in kart I think
 	if (player->mo->health <= 1)
-		num_rings = 0;
+		num_rings = 5;
 
 	if (num_rings > 32 && !(player->pflags & PF_NIGHTSFALL))
 		num_rings = 32;
@@ -3384,11 +3391,10 @@ void P_PlayerRingBurst(player_t *player, INT32 num_rings)
 	// Spill the ammo
 	P_PlayerWeaponAmmoBurst(player);
 
+	// There's no ring spilling in kart, so I'm hijacking this for the same thing as TD
 	for (i = 0; i < num_rings; i++)
 	{
-		INT32 objType = mobjinfo[MT_RING].reactiontime;
-		if (mariomode)
-			objType = mobjinfo[MT_COIN].reactiontime;
+		INT32 objType = mobjinfo[MT_FLINGENERGY].reactiontime;
 
 		z = player->mo->z;
 		if (player->mo->eflags & MFE_VERTICALFLIP)
@@ -3429,17 +3435,17 @@ void P_PlayerRingBurst(player_t *player, INT32 num_rings)
 			}
 			else
 			{
-				momxy = 2*FRACUNIT;
+				momxy = 28*FRACUNIT;
 				momz = 3*FRACUNIT;
 			}
 
-			ns = FixedMul(FixedMul(momxy, FRACUNIT + FixedDiv(player->losstime<<FRACBITS, 10*TICRATE<<FRACBITS)), mo->scale);
+			ns = FixedMul(momxy, mo->scale);
 			mo->momx = FixedMul(FINECOSINE(fa),ns);
 
 			if (!(twodlevel || (player->mo->flags2 & MF2_TWOD)))
 				mo->momy = FixedMul(FINESINE(fa),ns);
 
-			ns = FixedMul(momz, FRACUNIT + FixedDiv(player->losstime<<FRACBITS, 10*TICRATE<<FRACBITS));
+			ns = momz;
 			P_SetObjectMomZ(mo, ns, false);
 
 			if (i & 1)

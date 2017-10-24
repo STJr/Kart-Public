@@ -678,6 +678,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			// Player Damage
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
 
+			if (tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD)
+				S_StartSound(thing, sfx_shelit);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -711,6 +713,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 
+			P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -741,6 +744,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+
+				P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 			}
 
 			// Other Item Damage
@@ -768,7 +773,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
-
 
 			// Bomb death
 			P_KillMobj(thing, tmthing, tmthing);
@@ -895,6 +899,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 
+			P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
+
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
 				tmthing->z -= tmthing->height;
@@ -922,6 +928,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 				P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 				P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+
+				P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 			}
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -986,6 +994,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+
+			P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1090,6 +1100,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
+
+			if (thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD)
+				S_StartSound(tmthing, sfx_shelit);
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
