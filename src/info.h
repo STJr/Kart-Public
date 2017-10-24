@@ -617,6 +617,8 @@ typedef enum sprite
 	SPR_CRAB, // Crystal Abyss mobs
 	SPR_SHAD, // TD shadows
 
+	SPR_BUMP, // Player/shell bump
+
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
 	NUMSPRITES
@@ -3364,6 +3366,10 @@ typedef enum state
 	S_SHADOW,
 	S_WHITESHADOW,
 
+	S_BUMP1,
+	S_BUMP2,
+	S_BUMP3,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4000,6 +4006,8 @@ typedef enum mobj_type
 	MT_LAMPPOST,
 	MT_MOSSYTREE,
 	MT_SHADOW,
+
+	MT_BUMP,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

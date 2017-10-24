@@ -1737,11 +1737,18 @@ void P_XYMovement(mobj_t *mo)
 			//{ SRB2kart - Green Shell, Fireball
 			if (mo->type == MT_GREENITEM)
 			{
+				mobj_t *fx;
+				fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+				if (mo->eflags & MFE_VERTICALFLIP)
+					fx->eflags |= MFE_VERTICALFLIP;
+				else
+					fx->eflags &= ~MFE_VERTICALFLIP;
+				fx->scale = mo->scale;
 				if (mo->health > 1)
 				{
-				S_StartSound(mo, mo->info->attacksound);
-				mo->health--;
-				mo->threshold = 0;
+					S_StartSound(mo, mo->info->attacksound);
+					mo->health--;
+					mo->threshold = 0;
 				}
 				else if (mo->health == 1)
 				{

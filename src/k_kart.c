@@ -1048,8 +1048,8 @@ boolean K_IsTouching(mobj_t *mobj1, mobj_t *mobj2)
 
 void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
-	fixed_t newx;
-	fixed_t newy;
+	fixed_t newx, newy;
+	mobj_t *fx;
 
 	if (mobj1 == NULL || mobj2 == NULL)
 		return;
@@ -1064,6 +1064,14 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		S_StartSound(mobj1, cv_collidesoundnum.value);
 		//S_StartSound(mobj2, cv_collidesoundnum.value);
 	}
+
+	fx = P_SpawnMobj((mobj1->x + mobj2->x)/2, (mobj1->y + mobj2->y)/2, (mobj1->z + mobj2->z)/2, MT_BUMP);
+	if (mobj1->eflags & MFE_VERTICALFLIP)
+		fx->eflags |= MFE_VERTICALFLIP;
+	else
+		fx->eflags &= ~MFE_VERTICALFLIP;
+	fx->scale = mobj1->scale;
+	
 	if (deltaV1 < (cv_collideminimum.value * FRACUNIT / 2))
 	{
 		fixed_t a = 0;

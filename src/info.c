@@ -58,7 +58,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
 	"DBAN","GSHE","GSTR","DGSH","RSHE","RSTR","DRSH","BOMB","BLIG","LIGH",
 	"SINK","SITR","LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS",
-	"BUZB","CHOM","SACO","CRAB", "SHAD"
+	"BUZB","CHOM","SACO","CRAB", "SHAD", "BUMP"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2850,6 +2850,10 @@ state_t states[NUMSTATES] =
 	// Fake Shadow
 	{SPR_SHAD, FF_TRANS50, -1, {NULL}, 0, 0, S_NULL}, // S_SHADOW
 	{SPR_SHAD, FF_FULLBRIGHT|FF_TRANS50|1, -1, {NULL}, 0, 0, S_NULL}, // S_WHITESHADOW
+
+	{SPR_BUMP, 0, 5, {NULL}, 0, 0, S_BUMP2}, // S_BUMP1
+	{SPR_BUMP, 1, 5, {NULL}, 0, 0, S_BUMP3}, // S_BUMP2
+	{SPR_BUMP, 2, 5, {NULL}, 0, 0, S_NULL}, // S_BUMP3
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -16510,6 +16514,32 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
+	{           // MT_BUMP
+		-1,             // doomednum
+		S_BUMP1,        // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		32*FRACUNIT,    // radius
+		64*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_SCENERY|MF_NOCLIP|MF_NOCLIPHEIGHT, // flags
+		S_NULL          // raisestate
+	},
 	// ============================================================================================================================//
 
 #ifdef SEENAMES
