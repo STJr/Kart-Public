@@ -619,6 +619,7 @@ typedef enum sprite
 
 	SPR_BUMP, // Player/shell bump
 	SPR_FLEN, // Shell hit graphics stuff
+	SPR_CLAS, // items clash
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3375,6 +3376,12 @@ typedef enum state
 	S_FLINGENERGY2,
 	S_FLINGENERGY3,
 
+	S_CLASH1,
+	S_CLASH2,
+	S_CLASH3,
+	S_CLASH4,
+	S_CLASH5,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4015,6 +4022,8 @@ typedef enum mobj_type
 	MT_BUMP,
 
 	MT_FLINGENERGY,
+
+	MT_ITEMCLASH,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

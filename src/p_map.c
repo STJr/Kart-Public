@@ -711,6 +711,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 
+			P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -768,7 +769,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
-
 
 			// Bomb death
 			P_KillMobj(thing, tmthing, tmthing);
@@ -895,6 +895,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 
+			P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
+
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
 				tmthing->z -= tmthing->height;
@@ -986,6 +988,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+
+			P_SpawnMobj(thing->x/2 + tmthing->x/2, thing->y/2 + tmthing->y/2, thing->z/2 + tmthing->z/2, MT_ITEMCLASH);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
