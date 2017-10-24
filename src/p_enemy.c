@@ -8134,6 +8134,9 @@ void A_ItemPop(mobj_t *actor)
 
 	remains->flags2 &= ~MF2_AMBUSH;
 
+	if (gametype != GT_RACE)
+		numgotboxes++;
+
 	P_RemoveMobj(actor);
 }
 

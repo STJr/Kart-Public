@@ -179,6 +179,10 @@ UINT32 bluescore, redscore; // CTF and Team Match team scores
 // ring count... for PERFECT!
 INT32 nummaprings = 0;
 
+// box respawning in battle mode
+INT32 nummapboxes = 0;
+INT32 numgotboxes = 0;
+
 // Elminates unnecessary searching.
 boolean CheckForBustableBlocks;
 boolean CheckForBouncySector;

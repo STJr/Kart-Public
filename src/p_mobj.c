@@ -8420,6 +8420,10 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_COIN:
 		case MT_BLUEBALL:
 			nummaprings++;
+			break;
+		case MT_RANDOMITEM:
+			nummapboxes++;
+			break;
 		default:
 			break;
 	}
@@ -8799,7 +8803,7 @@ void P_RemoveSavegameMobj(mobj_t *mobj)
 }
 
 static CV_PossibleValue_t respawnitemtime_cons_t[] = {{1, "MIN"}, {300, "MAX"}, {0, NULL}};
-consvar_t cv_itemrespawntime = {"respawnitemtime", "5", CV_NETVAR|CV_CHEAT, respawnitemtime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_itemrespawntime = {"respawnitemtime", "3", CV_NETVAR|CV_CHEAT, respawnitemtime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_itemrespawn = {"respawnitem", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t flagtime_cons_t[] = {{0, "MIN"}, {300, "MAX"}, {0, NULL}};
 consvar_t cv_flagtime = {"flagtime", "30", CV_NETVAR|CV_CHEAT, flagtime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -9011,6 +9015,12 @@ void P_RespawnSpecials(void)
 	mobj_t *mo = NULL;
 	mapthing_t *mthing = NULL;
 
+	if (gametype != GT_RACE) // Battle Mode vers
+	{
+		P_RespawnBattleSpecials();
+		return;
+	}
+
 	// only respawn items when cv_itemrespawn is on
 	if (!cv_itemrespawn.value)
 		return;
@@ -9090,6 +9100,97 @@ void P_RespawnSpecials(void)
 	}
 	// pull it from the que
 	iquetail = (iquetail+1)&(ITEMQUESIZE-1);
+}
+
+//
+// P_RespawnBattleSpecials
+//
+void P_RespawnBattleSpecials(void)
+{
+	fixed_t x, y, z;
+	subsector_t *ss;
+	mobj_t *mo = NULL;
+	mapthing_t *mthing = NULL;
+
+	// only respawn items when cv_itemrespawn is on
+	if (!cv_itemrespawn.value)
+		return;
+
+	// Didn't collect enough boxes
+	if (numgotboxes < nummapboxes)
+		return;
+
+	// wait a teeeensy bit after collecting everything
+	if (leveltime - itemrespawntime[iquehead-1] < (tic_t)cv_itemrespawntime.value*TICRATE)
+		return;
+
+	while (iquehead != iquetail) // respawn EVERYTHING in que!
+	{
+		mthing = itemrespawnque[iquetail];
+
+#ifdef PARANOIA
+		if (!mthing)
+			I_Error("itemrespawnque[iquetail] is NULL!");
+#endif
+
+		if (mthing)
+		{
+			mobjtype_t i;
+			x = mthing->x << FRACBITS;
+			y = mthing->y << FRACBITS;
+			ss = R_PointInSubsector(x, y);
+
+			// find which type to spawn
+			for (i = 0; i < NUMMOBJTYPES; i++)
+				if (mthing->type == mobjinfo[i].doomednum)
+					break;
+
+			//CTF rings should continue to respawn as normal rings outside of CTF.
+			if (gametype != GT_CTF)
+			{
+				if (i == MT_REDTEAMRING || i == MT_BLUETEAMRING)
+					i = MT_RING;
+			}
+
+			if (mthing->options & MTF_OBJECTFLIP)
+			{
+				z = (
+#ifdef ESLOPE
+				ss->sector->c_slope ? P_GetZAt(ss->sector->c_slope, x, y) :
+#endif
+				ss->sector->ceilingheight) - (mthing->options >> ZSHIFT) * FRACUNIT;
+				if (mthing->options & MTF_AMBUSH
+				&& (i == MT_RING || i == MT_REDTEAMRING || i == MT_BLUETEAMRING || i == MT_COIN || P_WeaponOrPanel(i)))
+					z -= 24*FRACUNIT;
+				z -= mobjinfo[i].height; // Don't forget the height!
+			}
+			else
+			{
+				z = (
+#ifdef ESLOPE
+				ss->sector->f_slope ? P_GetZAt(ss->sector->f_slope, x, y) :
+#endif
+				ss->sector->floorheight) + (mthing->options >> ZSHIFT) * FRACUNIT;
+				if (mthing->options & MTF_AMBUSH
+				&& (i == MT_RING || i == MT_REDTEAMRING || i == MT_BLUETEAMRING || i == MT_COIN || P_WeaponOrPanel(i)))
+					z += 24*FRACUNIT;
+			}
+
+			mo = P_SpawnMobj(x, y, z, i);
+			mo->spawnpoint = mthing;
+			mo->angle = ANGLE_45 * (mthing->angle/45);
+
+			if (mthing->options & MTF_OBJECTFLIP)
+			{
+				mo->eflags |= MFE_VERTICALFLIP;
+				mo->flags2 |= MF2_OBJECTFLIP;
+			}
+		}
+		// pull it from the que
+		iquetail = (iquetail+1)&(ITEMQUESIZE-1);
+	}
+	
+	numgotboxes = 0;
 }
 
 //
