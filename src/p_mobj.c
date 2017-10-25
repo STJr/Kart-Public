@@ -1809,7 +1809,7 @@ void P_XYMovement(mobj_t *mo)
 		}
 		else if (player || mo->flags & (MF_SLIDEME|MF_PUSHABLE))
 		{ // try to slide along it
-			P_SlideMove(mo);
+			P_SlideMove(mo, false);
 			xmove = ymove = 0;
 		}
 		else if (mo->type == MT_SPINFIRE)
@@ -1990,7 +1990,7 @@ static void P_RingXYMovement(mobj_t *mo)
 	I_Assert(!P_MobjWasRemoved(mo));
 
 	if (!P_SceneryTryMove(mo, mo->x + mo->momx, mo->y + mo->momy))
-		P_SlideMove(mo);
+		P_SlideMove(mo, false);
 }
 
 static void P_SceneryXYMovement(mobj_t *mo)
@@ -2004,7 +2004,7 @@ static void P_SceneryXYMovement(mobj_t *mo)
 	oldy = mo->y;
 
 	if (!P_SceneryTryMove(mo, mo->x + mo->momx, mo->y + mo->momy))
-		P_SlideMove(mo);
+		P_SlideMove(mo, false);
 
 	if ((!(mo->eflags & MFE_VERTICALFLIP) && mo->z > mo->floorz) || (mo->eflags & MFE_VERTICALFLIP && mo->z+mo->height < mo->ceilingz))
 		return; // no friction when airborne
@@ -6622,14 +6622,13 @@ void P_MobjThinker(mobj_t *mobj)
 					if (mobj->target->player)
 						mobj->scale = mobj->target->scale;
 
-					P_UnsetThingPosition(mobj);
-					{
-						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
-						mobj->x = mobj->target->x + FixedMul(FINECOSINE(fa),radius);
-						mobj->y = mobj->target->y + FixedMul(FINESINE(fa), radius);
-						mobj->z = mobj->target->z + HEIGHT;
-						P_SetThingPosition(mobj);
-					}
+					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+					mobj->momx = FixedMul(FINECOSINE(mobj->angle>>ANGLETOFINESHIFT),radius);
+					mobj->momy = FixedMul(FINESINE(mobj->angle>>ANGLETOFINESHIFT), radius);
+					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, false))
+						P_SlideMove(mobj, true);
+					mobj->z = mobj->floorz;
+					mobj->momx = mobj->momy = 0;
 
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && !(mobj->target->player->kartstuff[k_greenshell] & 1))

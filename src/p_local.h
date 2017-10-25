@@ -326,7 +326,7 @@ boolean P_CheckCameraPosition(fixed_t x, fixed_t y, camera_t *thiscam);
 boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff);
 boolean P_Move(mobj_t *actor, fixed_t speed);
 boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z);
-void P_SlideMove(mobj_t *mo);
+void P_SlideMove(mobj_t *mo, boolean forceslide);
 void P_BounceMove(mobj_t *mo);
 boolean P_CheckSight(mobj_t *t1, mobj_t *t2);
 void P_CheckHoopPosition(mobj_t *hoopthing, fixed_t x, fixed_t y, fixed_t z, fixed_t radius);
