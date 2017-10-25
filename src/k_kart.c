@@ -1624,7 +1624,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (gametype == GT_MATCH && gameaction != ga_completed)
+	if (gametype == GT_MATCH)
 	{
 		if (player->kartstuff[k_balloon] & 16)
 			player->kartstuff[k_balloon] &= ~16;
@@ -1637,6 +1637,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		else if (player->kartstuff[k_balloon] & 1)
 		{
 			player->kartstuff[k_balloon] &= ~1;
+			CONS_Printf(M_GetText("%s lost all of their balloons!"), player_names[players-player]);
 			//P_DamageMobj(player->mo, NULL, NULL, 10000);
 			//return;
 		}
@@ -1688,7 +1689,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (gametype == GT_MATCH && gameaction != ga_completed)
+	if (gametype == GT_MATCH)
 	{
 		if (player->kartstuff[k_balloon] & 16)
 			player->kartstuff[k_balloon] &= ~16;
@@ -1701,6 +1702,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		else if (player->kartstuff[k_balloon] & 1)
 		{
 			player->kartstuff[k_balloon] &= ~1;
+			CONS_Printf(M_GetText("%s lost all of their balloons!"), player_names[players-player]);
 			//P_DamageMobj(player->mo, NULL, NULL, 10000);
 			//return;
 		}
@@ -1741,7 +1743,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (gametype == GT_MATCH && gameaction != ga_completed)
+	if (gametype == GT_MATCH)
 	{
 		if (player->kartstuff[k_balloon] & 16)
 			player->kartstuff[k_balloon] &= ~16;
@@ -1754,6 +1756,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		else if (player->kartstuff[k_balloon] & 1)
 		{
 			player->kartstuff[k_balloon] &= ~1;
+			CONS_Printf(M_GetText("%s lost all of their balloons!"), player_names[players-player]);
 			//P_DamageMobj(player->mo, NULL, NULL, 10000);
 			//return;
 		}
@@ -3231,12 +3234,12 @@ void K_CheckBalloons(void)
 	UINT8 numingame = 0;
 	INT8 winnernum = -1;
 
-	if (gameaction == ga_completed)
+	if (gamestate == GS_INTERMISSION)
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[i] || players[i].spectator) // not even in-game :V
+		if (!playeringame[i] || players[i].spectator) // not even in-game
 			continue;
 
 		numingame++;
