@@ -1303,7 +1303,7 @@ void K_LakituChecker(player_t *player)
 			player->kartstuff[k_lakitu]--;
 			// Quick! You only have three tics to boost!
 			if (cmd->buttons & BT_ACCELERATE)
-				K_DoMushroom(player, true);
+				K_DoMushroom(player, true, false);
 		}
 	}
 }
@@ -2228,10 +2228,14 @@ static void K_DoBooSteal(player_t *player)
 	}
 }
 
-void K_DoMushroom(player_t *player, boolean doPFlag)
+void K_DoMushroom(player_t *player, boolean doPFlag, boolean startboost)
 {
+	sfxenum_t boostsound = sfx_mush;
+	if (startboost)
+		boostsound = sfx_sboost;
+
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-		S_StartSound(player->mo, sfx_mush);
+		S_StartSound(player->mo, boostsound);
 
 	player->kartstuff[k_mushroomtimer] = mushroomtime;
 
@@ -2624,14 +2628,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1
 			&& player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
 		{
-			K_DoMushroom(player, true);
+			K_DoMushroom(player, true, false);
 			player->kartstuff[k_goldshroomtimer] = itemtime;
 			player->kartstuff[k_goldshroom] = 0;
 		}
 		// GoldenMushroom power
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_goldshroomtimer] > 1 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true);
+			K_DoMushroom(player, true, false);
 			//player->kartstuff[k_goldshroomtimer] -= 10;
 			//if (player->kartstuff[k_goldshroomtimer] < 1)
 			//	player->kartstuff[k_goldshroomtimer] = 1;
@@ -2639,19 +2643,19 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// TripleMushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 4 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true);
+			K_DoMushroom(player, true, false);
 			player->kartstuff[k_mushroom] = 2;
 		}
 		// DoubleMushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 2 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true);
+			K_DoMushroom(player, true, false);
 			player->kartstuff[k_mushroom] = 1;
 		}
 		// Mushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 1 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true);
+			K_DoMushroom(player, true, false);
 			player->kartstuff[k_mushroom] = 0;
 		}
 		// Star power
@@ -3105,7 +3109,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Get an instant boost!
 		if (player->kartstuff[k_boostcharge] >= 7 && player->kartstuff[k_boostcharge] <= 10)
 		{
-			K_DoMushroom(player, false);
+			K_DoMushroom(player, false, true);
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		if (player->kartstuff[k_boostcharge] > 10)

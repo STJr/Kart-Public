@@ -474,6 +474,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kart2",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kart3",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mlap",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"sboost",  true,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mush",   false,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"star",   false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mega",   false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
