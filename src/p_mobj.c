@@ -8469,9 +8469,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_BLUEBALL:
 			nummaprings++;
 			break;
-		case MT_RANDOMITEM:
-			nummapboxes++;
-			break;
 		default:
 			break;
 	}

@@ -7974,8 +7974,8 @@ static void P_DeathThink(player_t *player)
 		if (player->deadtimer > TICRATE)
 			player->playerstate = PST_REBORN;
 
-		// SRB2kart - spawn after 5 tics & Button press
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > 5)
+		// SRB2kart - spawn after 1 second & Button press
+		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > TICRATE)
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn
