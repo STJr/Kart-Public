@@ -571,6 +571,7 @@ typedef enum
 	sfx_clash,
 	sfx_tossed,
 	sfx_shelit,
+	sfx_vroom,
 
 	sfx_kwin,
 	sfx_klose,
