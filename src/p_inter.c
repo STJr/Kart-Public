@@ -3176,7 +3176,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			K_SpinPlayer(player, source);
 			damage = player->mo->health - 1;
 			P_RingDamage(player, inflictor, source, damage);
-			if (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD)
+			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD))
 				P_PlayerRingBurst(player, 5);
 			player->mo->momx = player->mo->momy = 0;
 			if (P_IsLocalPlayer(player))
