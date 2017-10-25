@@ -877,6 +877,14 @@ static void IdentifyVersion(void)
 			D_AddFile(musicpath);
 		else if (ms == 0)
 			I_Error("File %s has been modified with non-music lumps",musicfile);
+
+		const char* kmusicfile = "music.kart";
+		const char* kmusicpath = va(pandf,srb2waddir,kmusicfile);
+		ms = W_VerifyNMUSlumps(kmusicpath);
+		if (ms == 1)
+			D_AddFile(kmusicpath);
+		else if (ms == 0)
+			I_Error("File %s has been modified with non-music lumps",kmusicfile);
 	}
 #endif
 }
