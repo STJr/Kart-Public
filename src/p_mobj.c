@@ -6587,7 +6587,7 @@ void P_MobjThinker(mobj_t *mobj)
 				{
 					INT32 zfixds = 56;
 					INT32 DIST = FixedMul(zfixds, mobj->target->scale);
-					INT32 HEIGHT;
+					fixed_t z;
 					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
 
 					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
@@ -6610,24 +6610,48 @@ void P_MobjThinker(mobj_t *mobj)
 					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
 					{
 						mobj->eflags |= MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height / 2;
 					}
 					else
 					{
 						mobj->eflags &= ~MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height / 5;
 					}
 
 					// Shrink your items if the player shrunk too.
 					if (mobj->target->player)
 						mobj->scale = mobj->target->scale;
 
-					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+					if (P_MobjFlip(mobj) > 0)
+					{
+						z = mobj->target->z;
+					}
+					else
+					{
+						z = mobj->target->z + mobj->target->height - mobj->height;
+					}
+
+					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, z);
 					mobj->momx = FixedMul(FINECOSINE(mobj->angle>>ANGLETOFINESHIFT),radius);
 					mobj->momy = FixedMul(FINESINE(mobj->angle>>ANGLETOFINESHIFT), radius);
-					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, false))
+					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, true))
 						P_SlideMove(mobj, true);
-					mobj->z = mobj->floorz;
+					if (P_IsObjectOnGround(mobj->target))
+					{
+						if (P_MobjFlip(mobj) > 0)
+						{
+							if (mobj->floorz > mobj->target->z - mobj->height)
+							{
+								z = mobj->floorz;
+							}
+						}
+						else
+						{
+							if (mobj->ceilingz < mobj->target->z + mobj->target->height + mobj->height)
+							{
+								z = mobj->ceilingz - mobj->height;
+							}
+						}
+					}
+					mobj->z = z;
 					mobj->momx = mobj->momy = 0;
 
 					// Was this so hard?
