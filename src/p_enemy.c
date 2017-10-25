@@ -3924,7 +3924,7 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (thing->player && thing->player->kartstuff[k_bootaketimer])
 		return true;
 
-	if ((gametype == GT_CTF || gametype == GT_MATCH)
+	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
 		&& !cv_friendlyfire.value && grenade->target->player && thing->player
 		&& grenade->target->player->ctfteam == thing->player->ctfteam) // Don't blow up at your teammates, unless friendlyfire is on
 		return true;
