@@ -312,6 +312,7 @@ static void F_IntroDrawScene(void)
 			S_StartSound(NULL, rsound);
 		}
 		background = W_CachePatchName("KARTKREW", PU_CACHE);
+		highres = true;
 	}
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
