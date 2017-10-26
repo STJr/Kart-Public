@@ -681,7 +681,7 @@ static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] 
 static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8  9
-				/*Magnet*/ { 2, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
+				/*Magnet*/ { 0, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
 			  /*Mushroom*/ { 0, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
@@ -980,7 +980,9 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
-	if (gametype == GT_MATCH)		useodds = 0; // Battle Mode
+	if (gametype == GT_MATCH
+		|| gametype == GT_TEAMMATCH
+		|| gametype == GT_CTF)		useodds = 0; // Battle Mode
 	else if (pingame == 1)			useodds = 1; // Record Attack, or just alone
 	else if (pdis <= distvar *  0)	useodds = 2; // (64*14) *  0 =     0
 	else if (pdis <= distvar *  1)	useodds = 3; // (64*14) *  1 =   896
@@ -1637,7 +1639,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		else if (player->kartstuff[k_balloon] & 1)
 		{
 			player->kartstuff[k_balloon] &= ~1;
-			CONS_Printf(M_GetText("%s lost all of their balloons!"), player_names[players-player]);
+			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			//P_DamageMobj(player->mo, NULL, NULL, 10000);
 			//return;
 		}
@@ -1702,7 +1704,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		else if (player->kartstuff[k_balloon] & 1)
 		{
 			player->kartstuff[k_balloon] &= ~1;
-			CONS_Printf(M_GetText("%s lost all of their balloons!"), player_names[players-player]);
+			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			//P_DamageMobj(player->mo, NULL, NULL, 10000);
 			//return;
 		}
@@ -1756,7 +1758,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		else if (player->kartstuff[k_balloon] & 1)
 		{
 			player->kartstuff[k_balloon] &= ~1;
-			CONS_Printf(M_GetText("%s lost all of their balloons!"), player_names[players-player]);
+			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			//P_DamageMobj(player->mo, NULL, NULL, 10000);
 			//return;
 		}

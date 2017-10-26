@@ -6696,6 +6696,77 @@ void P_MobjThinker(mobj_t *mobj)
 					return;
 				}
 				break;
+			case MT_PLAYERARROW:
+				if (mobj->target && mobj->target->health
+					&& mobj->target->player && mobj->target->player->mo
+					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
+					&& !(gametype != GT_RACE && mobj->target->player->kartstuff[k_balloon] <= 0))
+				{
+					fixed_t scale = mobj->target->scale;
+					mobj->color = mobj->target->color;
+
+					if (mobj->target->player == &players[displayplayer])
+						mobj->flags2 |= MF2_DONTDRAW;
+					else
+						mobj->flags2 &= ~MF2_DONTDRAW;
+
+					if ((splitscreen || !netgame)
+						|| (gametype == GT_RACE)
+						|| (mobj->target->player->kartstuff[k_bootaketimer] > 0))
+						mobj->flags2 |= MF2_DONTDRAW;
+						
+					P_UnsetThingPosition(mobj);
+					mobj->x = mobj->target->x;
+					mobj->y = mobj->target->y;
+
+					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
+					{
+						mobj->z = mobj->target->z + P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT;
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+					}
+					else
+					{
+						mobj->z = mobj->target->z - P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT;
+						mobj->eflags |= MFE_VERTICALFLIP;
+					}
+					P_SetThingPosition(mobj);
+
+					// Set it to use the correct states for its condition
+					if (mobj->target->player->kartstuff[k_kitchensink])					P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK);
+					else if (mobj->target->player->kartstuff[k_megashroom] == 1
+						|| (mobj->target->player->kartstuff[k_growshrinktimer] > 1
+						&& (leveltime & 1)))												P_SetMobjState(mobj, S_PLAYERARROW_MEGASHROOM);
+					else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1
+						&& !(leveltime & 1))												P_SetMobjState(mobj, S_PLAYERARROW_EMPTY); // S_INVISIBLE
+					else if (mobj->target->player->kartstuff[k_star] == 1)				P_SetMobjState(mobj, S_PLAYERARROW_STAR);
+					else if (mobj->target->player->kartstuff[k_tripleredshell])			P_SetMobjState(mobj, S_PLAYERARROW_TRIPLEREDSHELL);
+					else if (mobj->target->player->kartstuff[k_triplebanana])				P_SetMobjState(mobj, S_PLAYERARROW_TRIPLEBANANA);
+					else if (mobj->target->player->kartstuff[k_triplegreenshell])			P_SetMobjState(mobj, S_PLAYERARROW_TRIPLEGREENSHELL);
+					else if (mobj->target->player->kartstuff[k_fireflower])				P_SetMobjState(mobj, S_PLAYERARROW_FIREFLOWER);
+					else if (mobj->target->player->kartstuff[k_bobomb])					P_SetMobjState(mobj, S_PLAYERARROW_BOBOMB);
+					else if (mobj->target->player->kartstuff[k_redshell])					P_SetMobjState(mobj, S_PLAYERARROW_REDSHELL);
+					//else if (mobj->target->player->kartstuff[k_feather])					P_SetMobjState(mobj, S_PLAYERARROW_FEATHER);
+					else if (mobj->target->player->kartstuff[k_boo] == 1)					P_SetMobjState(mobj, S_PLAYERARROW_BOO);
+					else if (mobj->target->player->kartstuff[k_fakeitem] & 2)				P_SetMobjState(mobj, S_PLAYERARROW_FAKEITEM);
+					else if (mobj->target->player->kartstuff[k_banana])					P_SetMobjState(mobj, S_PLAYERARROW_BANANA);
+					else if (mobj->target->player->kartstuff[k_greenshell])				P_SetMobjState(mobj, S_PLAYERARROW_GREENSHELL);
+					else if (mobj->target->player->kartstuff[k_mushroom])					P_SetMobjState(mobj, S_PLAYERARROW_MUSHROOM);
+					else																	P_SetMobjState(mobj, S_PLAYERARROW); // S_INVISIBLE
+
+					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
+					if (scale > 16*FRACUNIT)
+					{
+						scale = 16*FRACUNIT;
+					}
+					mobj->destscale = scale;
+				}
+				else if (mobj->health > 0)
+				{
+					P_KillMobj(mobj, NULL, NULL);
+					return;
+				}
+				break;
 			//}
 			case MT_WATERDROP:
 				P_SceneryCheckWater(mobj);
@@ -8849,7 +8920,7 @@ void P_RemoveSavegameMobj(mobj_t *mobj)
 }
 
 static CV_PossibleValue_t respawnitemtime_cons_t[] = {{1, "MIN"}, {300, "MAX"}, {0, NULL}};
-consvar_t cv_itemrespawntime = {"respawnitemtime", "3", CV_NETVAR|CV_CHEAT, respawnitemtime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_itemrespawntime = {"respawnitemtime", "1", CV_NETVAR|CV_CHEAT, respawnitemtime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_itemrespawn = {"respawnitem", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t flagtime_cons_t[] = {{0, "MIN"}, {300, "MAX"}, {0, NULL}};
 consvar_t cv_flagtime = {"flagtime", "30", CV_NETVAR|CV_CHEAT, flagtime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -9167,7 +9238,7 @@ void P_RespawnBattleSpecials(void)
 		return;
 
 	// wait a teeeensy bit after collecting everything
-	if (leveltime - itemrespawntime[iquehead-1] < (tic_t)cv_itemrespawntime.value*TICRATE)
+	if (leveltime - itemrespawntime[iquehead-1] < (tic_t)cv_itemrespawntime.value*(5*TICRATE))
 		return;
 
 	while (iquehead != iquetail) // respawn EVERYTHING in que!
@@ -9248,6 +9319,7 @@ void P_SpawnPlayer(INT32 playernum)
 {
 	player_t *p = &players[playernum];
 	mobj_t *mobj;
+	mobj_t *overheadarrow;
 
 	if (p->playerstate == PST_REBORN)
 		G_PlayerReborn(playernum);
@@ -9335,7 +9407,12 @@ void P_SpawnPlayer(INT32 playernum)
 	// Spawn with a pity shield if necessary.
 	//P_DoPityCheck(p);
 
-	if (gametype == GT_MATCH && (leveltime < 1 || p->kartstuff[k_balloon] > 0)) // srb2kart
+	overheadarrow = P_SpawnMobj(mobj->x, mobj->y, mobj->z + P_GetPlayerHeight(p)+16*FRACUNIT, MT_PLAYERARROW);
+	P_SetTarget(&overheadarrow->target, mobj);
+	overheadarrow->flags2 |= MF2_DONTDRAW;
+	P_SetScale(overheadarrow, mobj->destscale);
+
+	if (gametype != GT_RACE && (leveltime < 1 || p->kartstuff[k_balloon] > 0)) // srb2kart
 	{
 		angle_t newangle, diff;
 		fixed_t newx;

@@ -7974,10 +7974,6 @@ static void P_DeathThink(player_t *player)
 		if (player->deadtimer > TICRATE)
 			player->playerstate = PST_REBORN;
 
-		// SRB2kart - spawn after 1 second & Button press
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > TICRATE)
-			player->playerstate = PST_REBORN;
-
 		// Single player auto respawn
 		if (!(netgame || multiplayer) && player->deadtimer > 5*TICRATE)
 			player->playerstate = PST_REBORN;

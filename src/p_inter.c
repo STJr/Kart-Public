@@ -2092,10 +2092,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			source->player->numboxes++;
 			if ((cv_itemrespawn.value && gametype != GT_COOP && (modifiedgame || netgame || multiplayer)))
 			{
-				if (gametype == GT_RACE)
-					target->fuse = TICRATE + 2;
-				else
-					target->fuse = cv_itemrespawntime.value*TICRATE + 2; // Random box generation
+				target->fuse = cv_itemrespawntime.value*TICRATE + 2; // Random box generation
 			}
 		}
 

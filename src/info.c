@@ -58,7 +58,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
 	"DBAN","GSHE","DGSH","RSHE","DRSH","BOMB","BLIG","LIGH","SINK","SITR",
 	"KBLN","LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB",
-	"CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW"
+	"CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2864,6 +2864,25 @@ state_t states[NUMSTATES] =
 	{SPR_PSHW, 1, 3, {NULL}, 0, 0, S_FIREDITEM3}, // S_FIREDITEM2
 	{SPR_PSHW, 2, 3, {NULL}, 0, 0, S_FIREDITEM4}, // S_FIREDITEM3
 	{SPR_PSHW, 3, 3, {NULL}, 0, 0, S_NULL}, // S_FIREDITEM4
+
+	// Above player arrow
+	{SPR_ARRO, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW
+	{SPR_ARRO, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_MUSHROOM
+	{SPR_ARRO, FF_FULLBRIGHT|2, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_GREENSHELL
+	{SPR_ARRO, FF_FULLBRIGHT|3, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_BANANA
+	{SPR_ARRO, FF_FULLBRIGHT|4, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_FAKEITEM
+	{SPR_ARRO, FF_FULLBRIGHT|5, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_BOO
+	{SPR_ARRO, FF_FULLBRIGHT|6, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_FEATHER
+	{SPR_ARRO, FF_FULLBRIGHT|7, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_REDSHELL
+	{SPR_ARRO, FF_FULLBRIGHT|8, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_BOBOMB
+	{SPR_ARRO, FF_FULLBRIGHT|9, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_FIREFLOWER
+	{SPR_ARRO, FF_FULLBRIGHT|10, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_TRIPLEGREENSHELL
+	{SPR_ARRO, FF_FULLBRIGHT|11, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_TRIPLEBANANA
+	{SPR_ARRO, FF_FULLBRIGHT|12, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_TRIPLEREDSHELL
+	{SPR_ARRO, FF_FULLBRIGHT|13, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_STAR
+	{SPR_ARRO, FF_FULLBRIGHT|14, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_MEGASHROOM
+	{SPR_ARRO, FF_FULLBRIGHT|15, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_KITCHENSINK
+	{SPR_ARRO, FF_FULLBRIGHT|16, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_EMPTY
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -16739,6 +16758,34 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
+
+	{           // MT_PLAYERARROW
+		-1,             // doomednum
+		S_PLAYERARROW,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		36*FRACUNIT,    // radius
+		37*FRACUNIT,    // height
+		0,              // display offset
+		16,             // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
 	// ============================================================================================================================//
 
 #ifdef SEENAMES
