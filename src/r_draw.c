@@ -127,11 +127,12 @@ UINT32 nflatxshift, nflatyshift, nflatshiftup, nflatmask;
 #define BOSS_TT_CACHE_INDEX (MAXSKINS + 1)
 #define METALSONIC_TT_CACHE_INDEX (MAXSKINS + 2)
 #define ALLWHITE_TT_CACHE_INDEX (MAXSKINS + 3)
+#define STARMAN_TT_CACHE_INDEX (MAXSKINS + 4)
 #define SKIN_RAMP_LENGTH 16
 #define DEFAULT_STARTTRANSCOLOR 160
 #define NUM_PALETTE_ENTRIES 256
 
-static UINT8** translationtablecache[MAXSKINS + 4] = {NULL};
+static UINT8** translationtablecache[MAXSKINS + 5] = {NULL};
 
 
 // See also the enum skincolors_t
@@ -520,6 +521,7 @@ UINT8* R_GetTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags)
 	else if (skinnum == TC_BOSS) skintableindex = BOSS_TT_CACHE_INDEX;
 	else if (skinnum == TC_METALSONIC) skintableindex = METALSONIC_TT_CACHE_INDEX;
 	else if (skinnum == TC_ALLWHITE) skintableindex = ALLWHITE_TT_CACHE_INDEX;
+	else if (skinnum == TC_STARMAN) skintableindex = STARMAN_TT_CACHE_INDEX;
 	else skintableindex = skinnum;
 
 	if (flags & GTC_CACHE)

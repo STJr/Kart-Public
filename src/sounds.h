@@ -545,6 +545,7 @@ typedef enum
 	sfx_kart2,
 	sfx_kart3,
 	sfx_mlap,
+	sfx_sboost,
 	sfx_mush,
 	sfx_star,
 	sfx_mega,
@@ -571,6 +572,7 @@ typedef enum
 	sfx_clash,
 	sfx_tossed,
 	sfx_shelit,
+	sfx_vroom,
 
 	sfx_kwin,
 	sfx_klose,

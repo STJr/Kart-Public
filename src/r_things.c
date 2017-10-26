@@ -827,8 +827,13 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		dc_transmap = vis->transmap;
 		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
 		{
-			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
+			if (vis->mobj->player && vis->mobj->player->kartstuff[k_startimer])
+				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
+			else
+			{
+				size_t skinnum = (skin_t*)vis->mobj->skin-skins;
+				dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
+			}
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
@@ -846,8 +851,13 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		// New colormap stuff for skins Tails 06-07-2002
 		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
 		{
-			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
+			if (vis->mobj->player && vis->mobj->player->kartstuff[k_startimer])
+				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
+			else
+			{
+				size_t skinnum = (skin_t*)vis->mobj->skin-skins;
+				dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
+			}
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);

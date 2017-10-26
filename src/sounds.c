@@ -474,6 +474,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kart2",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kart3",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mlap",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"sboost",  true,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mush",   false,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"star",   false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mega",   false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -499,7 +500,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"mkitmF",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"clash",   false, 64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"tossed",  false,150,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"shelit",  false, 64,  16, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"shelit",  false, 64, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"vroom",   false, 64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
