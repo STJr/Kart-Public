@@ -3236,7 +3236,7 @@ void K_CheckBalloons(void)
 	UINT8 numingame = 0;
 	INT8 winnernum = -1;
 
-	if (gamestate == GS_INTERMISSION)
+	if (gamestate != GS_LEVEL)
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -3256,8 +3256,11 @@ void K_CheckBalloons(void)
 	if (numingame <= 1)
 		return;
 
-	P_AddPlayerScore(&players[winnernum], numingame);
-	CONS_Printf(M_GetText("%s recieved %d points for surviving!\n"), player_names[winnernum], numingame); // numingame/2 == 1 ? "" : "s"
+	if (playeringame[winnernum])
+	{
+		P_AddPlayerScore(&players[winnernum], numingame);
+		CONS_Printf(M_GetText("%s recieved %d points for surviving!\n"), player_names[winnernum], numingame); // numingame/2 == 1 ? "" : "s"
+	}
 
 	if (server)
 		SendNetXCmd(XD_EXITLEVEL, NULL, 0);
@@ -3696,8 +3699,8 @@ static void K_drawKartItemRoulette(void)
 			case 39: case 40: case 41: localpatch = kp_goldshroom; break;		// Gold Mushroom
 			case 42: case 43: case 44: localpatch = kp_fakeitem; break;			// Fake Item
 			case 45: case 46: case 47: localpatch = kp_redshell; break;			// Red Shell
-			case 48: case 49: case 50: localpatch = kp_blueshell; break;		// Blue Shell
-			case 51: case 52: case 53: localpatch = kp_lightning; break;		// Lightning
+			case 48: case 49: case 50: localpatch = kp_blueshell; break;			// Blue Shell
+			case 51: case 52: case 53: localpatch = kp_lightning; break;			// Lightning
 			default: break;
 		}
 
