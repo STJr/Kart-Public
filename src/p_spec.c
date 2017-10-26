@@ -3934,7 +3934,7 @@ DoneSection2:
 				player->kartstuff[k_floorboost] = 3;
 			else
 				player->kartstuff[k_floorboost] = 2;
-			K_DoMushroom(player, false);
+			K_DoMushroom(player, false, false);
 			break;
 
 		case 7: // SRB2kart 190117 - Oil Slick

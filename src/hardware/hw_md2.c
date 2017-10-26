@@ -963,20 +963,158 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 
 	switch (color)
 	{
+		case SKINCOLOR_IVORY:
+			blendcolor = V_GetColor(0);
+			break;
 		case SKINCOLOR_WHITE:
 			blendcolor = V_GetColor(3);
 			break;
 		case SKINCOLOR_SILVER:
-			blendcolor = V_GetColor(10);
+			blendcolor = V_GetColor(7);
+			break;
+		case SKINCOLOR_CLOUDY:
+			blendcolor = V_GetColor(13);
 			break;
 		case SKINCOLOR_GREY:
 			blendcolor = V_GetColor(15);
 			break;
+		case SKINCOLOR_DARKGREY:
+			blendcolor = V_GetColor(23);
+			break;
 		case SKINCOLOR_BLACK:
 			blendcolor = V_GetColor(27);
 			break;
-		case SKINCOLOR_CYAN:
+		case SKINCOLOR_SALMON:
+			blendcolor = V_GetColor(123);
+			break;
+		case SKINCOLOR_PINK:
+			blendcolor = V_GetColor(147);
+			break;
+		case SKINCOLOR_LIGHTRED:
+			blendcolor = V_GetColor(127);
+			break;
+		case SKINCOLOR_SHINYRED:
+			blendcolor = V_GetColor(130);
+			break;
+		case SKINCOLOR_RED:
+			blendcolor = V_GetColor(132);
+			break;
+		case SKINCOLOR_DARKPINK:
+			blendcolor = V_GetColor(151);
+			break;
+		case SKINCOLOR_DARKRED:
+			blendcolor = V_GetColor(139);
+			break;
+		case SKINCOLOR_DAWN:
+			blendcolor = V_GetColor(89);
+			break;
+		case SKINCOLOR_ORANGE:
+			blendcolor = V_GetColor(87);
+			break;
+		case SKINCOLOR_SHINYORANGE:
+			blendcolor = V_GetColor(91);
+			break;
+		case SKINCOLOR_DARKORANGE:
+			blendcolor = V_GetColor(95);
+			break;
+		case SKINCOLOR_GOLDENBROWN:
+			blendcolor = V_GetColor(119);
+			break;
+		case SKINCOLOR_ROSEWOOD:
+			blendcolor = V_GetColor(155);
+			break;
+		case SKINCOLOR_DARKROSEWOOD:
+			blendcolor = V_GetColor(159);
+			break;
+		case SKINCOLOR_SEPIA:
+			blendcolor = V_GetColor(37);
+			break;
+		case SKINCOLOR_BEIGE:
+			blendcolor = V_GetColor(39);
+			break;
+		case SKINCOLOR_BROWN:
+			blendcolor = V_GetColor(55);
+			break;
+		case SKINCOLOR_LEATHER:
+			blendcolor = V_GetColor(61);
+			break;
+		case SKINCOLOR_YELLOW:
+			blendcolor = V_GetColor(104);
+			break;
+		case SKINCOLOR_PEACH:
+			blendcolor = V_GetColor(71);
+			break;
+		case SKINCOLOR_LIGHTORANGE:
+			blendcolor = V_GetColor(83);
+			break;
+		case SKINCOLOR_CARAMEL:
+			blendcolor = V_GetColor(79);
+			break;
+		case SKINCOLOR_GOLD:
+			blendcolor = V_GetColor(115);
+			break;
+		case SKINCOLOR_SHINYCARAMEL:
+			blendcolor = V_GetColor(78);
+			break;
+		case SKINCOLOR_VOMIT:
+			blendcolor = V_GetColor(114);
+			break;
+		case SKINCOLOR_GARDEN:
+			blendcolor = V_GetColor(179);
+			break;
+		case SKINCOLOR_LIGHTARMY:
+			blendcolor = V_GetColor(177);
+			break;
+		case SKINCOLOR_ARMY:
+			blendcolor = V_GetColor(179);
+			break;
+		case SKINCOLOR_PISTACHIO:
+			blendcolor = V_GetColor(166);
+			break;
+		case SKINCOLOR_ROBOHOOD:
+			blendcolor = V_GetColor(182);
+			break;
+		case SKINCOLOR_OLIVE:
+			blendcolor = V_GetColor(108);
+			break;
+		case SKINCOLOR_DARKARMY:
+			blendcolor = V_GetColor(183);
+			break;
+		case SKINCOLOR_LIGHTGREEN:
+			blendcolor = V_GetColor(163);
+			break;
+		case SKINCOLOR_UGLYGREEN:
+			blendcolor = V_GetColor(185);
+			break;
+		case SKINCOLOR_NEONGREEN:
+			blendcolor = V_GetColor(187);
+			break;
+		case SKINCOLOR_GREEN:
+			blendcolor = V_GetColor(167);
+			break;
+		case SKINCOLOR_DARKGREEN:
+			blendcolor = V_GetColor(171);
+			break;
+		case SKINCOLOR_SWAMP:
+			blendcolor = V_GetColor(190);
+			break;
+		case SKINCOLOR_FROST:
 			blendcolor = V_GetColor(215);
+			break;
+		case SKINCOLOR_SLATE:
+			blendcolor = V_GetColor(201);
+			break;
+		case SKINCOLOR_LIGHTBLUE:
+			blendcolor = V_GetColor(227);
+			break;
+		case SKINCOLOR_CYAN:
+			blendcolor = V_GetColor(213);
+			break;
+		case SKINCOLOR_CERULEAN:
+			blendcolor = V_GetColor(217);
+			break;
+		case SKINCOLOR_TURQUOISE:
+			blendcolor = V_GetColor(220);
 			break;
 		case SKINCOLOR_TEAL:
 			blendcolor = V_GetColor(221);
@@ -985,62 +1123,34 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 			blendcolor = V_GetColor(203);
 			break;
 		case SKINCOLOR_BLUE:
-			blendcolor = V_GetColor(232);
+			blendcolor = V_GetColor(231);
 			break;
-		case SKINCOLOR_PEACH:
-			blendcolor = V_GetColor(71);
+		case SKINCOLOR_SHINYBLUE:
+			blendcolor = V_GetColor(234);
 			break;
-		/*
-		case SKINCOLOR_TAN:
-			blendcolor = V_GetColor(79);
+		case SKINCOLOR_NAVY:
+			blendcolor = V_GetColor(206);
 			break;
-		*/
-		case SKINCOLOR_PINK:
-			blendcolor = V_GetColor(147);
+		case SKINCOLOR_DARKBLUE:
+			blendcolor = V_GetColor(238);
 			break;
-		case SKINCOLOR_LAVENDER:
-			blendcolor = V_GetColor(251);
+		case SKINCOLOR_JETBLACK:
+			blendcolor = V_GetColor(207);
+			break;
+		case SKINCOLOR_LILAC:
+			blendcolor = V_GetColor(123);
 			break;
 		case SKINCOLOR_PURPLE:
 			blendcolor = V_GetColor(195);
 			break;
-		case SKINCOLOR_ORANGE:
-			blendcolor = V_GetColor(87);
+		case SKINCOLOR_LAVENDER:
+			blendcolor = V_GetColor(251);
 			break;
-		case SKINCOLOR_ROSEWOOD:
-			blendcolor = V_GetColor(94);
+		case SKINCOLOR_BYZANTIUM:
+			blendcolor = V_GetColor(254);
 			break;
-		case SKINCOLOR_BEIGE:
-			blendcolor = V_GetColor(40);
-			break;
-		case SKINCOLOR_BROWN:
-			blendcolor = V_GetColor(57);
-			break;
-		case SKINCOLOR_RED:
-			blendcolor = V_GetColor(130);
-			break;
-		case SKINCOLOR_DARKRED:
-			blendcolor = V_GetColor(139);
-			break;
-		case SKINCOLOR_NEONGREEN:
-			blendcolor = V_GetColor(184);
-			break;
-		case SKINCOLOR_GREEN:
-			blendcolor = V_GetColor(166);
-			break;
-		/*
-		case SKINCOLOR_ZIM:
-			blendcolor = V_GetColor(180);
-			break;
-		*/
-		case SKINCOLOR_OLIVE:
-			blendcolor = V_GetColor(108);
-			break;
-		case SKINCOLOR_YELLOW:
-			blendcolor = V_GetColor(104);
-			break;
-		case SKINCOLOR_GOLD:
-			blendcolor = V_GetColor(115);
+		case SKINCOLOR_INDIGO:
+			blendcolor = V_GetColor(199);
 			break;
 
 		case SKINCOLOR_SUPER1:
