@@ -1927,13 +1927,13 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	switch (cv_kartcc.value)
 	{
 		case 50:
-			PROJSPEED = 40*FRACUNIT; // Avg Speed is 34
+			PROJSPEED = 68*FRACUNIT; // Avg Speed is 34
 			break;
 		case 150:
-			PROJSPEED = 60*FRACUNIT; // Avg Speed is 48
+			PROJSPEED = 96*FRACUNIT; // Avg Speed is 48
 			break;
 		default:
-			PROJSPEED = 50*FRACUNIT; // Avg Speed is 41
+			PROJSPEED = 82*FRACUNIT; // Avg Speed is 41
 			break;
 	}
 
@@ -2050,9 +2050,9 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				INT32 HEIGHT;
 
 				if (dir == 2)
-					HEIGHT = 30*FRACUNIT + player->mo->momz;
+					HEIGHT = 40*FRACUNIT + player->mo->momz;
 				else
-					HEIGHT = 20*FRACUNIT + player->mo->momz;
+					HEIGHT = 30*FRACUNIT + player->mo->momz;
 
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
