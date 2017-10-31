@@ -275,6 +275,7 @@ typedef enum
 	k_startimer,		// Invincibility timer
 	k_spinouttimer,		// Wipe-out from a banana peel or oil slick (was "pw_bananacam")
 	k_laserwisptimer,	// The duration and relative angle of the laser
+	k_justbumped,		// Prevent players from endlessly bumping into each other
 
 	// Each item needs its own power slot, for the HUD and held use
 	k_magnet,			// 0x1 = Magnet in inventory

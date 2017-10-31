@@ -1140,7 +1140,8 @@ void K_KartBouncer(void)
 			&& !players[i].kartstuff[k_squishedtimer]
 			&& !players[i].kartstuff[k_bootaketimer]
 			&& !players[i].kartstuff[k_spinouttimer]
-			&& !players[i].kartstuff[k_startimer])
+			&& !players[i].kartstuff[k_startimer]
+			&& !players[i].kartstuff[k_justbumped])
 		{
 			for (j = i+1; j < MAXPLAYERS; j++)
 				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo)
@@ -1148,7 +1149,8 @@ void K_KartBouncer(void)
 					&& !players[j].kartstuff[k_growshrinktimer]
 					&& !players[j].kartstuff[k_bootaketimer]
 					&& !players[j].kartstuff[k_spinouttimer]
-					&& !players[j].kartstuff[k_startimer])
+					&& !players[j].kartstuff[k_startimer]
+					&& !players[j].kartstuff[k_justbumped])
 				{
 					if (players[j].mo == players[i].mo)
 						break;
@@ -1163,7 +1165,9 @@ void K_KartBouncer(void)
 							else
 								K_SwapMomentum(players[i].mo, players[j].mo, false);
 							players[i].collide[j] = true;
+							players[i].kartstuff[k_justbumped] = 6; // let the animation finish before letting you bump again :V
 							players[j].collide[i] = true;
+							players[j].kartstuff[k_justbumped] = 6;
 						}
 					}
 					else
@@ -1386,6 +1390,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
+
+	if (player->kartstuff[k_justbumped])
+		player->kartstuff[k_justbumped]--;
 
 	// ???
 	/*
