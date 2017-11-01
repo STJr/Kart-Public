@@ -1006,24 +1006,24 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
 	//{
-		if (cv_magnet.value) 							SETITEMRESULT(useodds,  1);	// Magnet
-		if (cv_boo.value)								SETITEMRESULT(useodds,  2);	// Boo
-		if (cv_mushroom.value)							SETITEMRESULT(useodds,  3);	// Mushroom
-		if (cv_mushroom.value)							SETITEMRESULT(useodds,  4);	// Triple Mushroom
-		if (cv_megashroom.value)						SETITEMRESULT(useodds,  5);	// Mega Mushroom
-		if (cv_goldshroom.value)						SETITEMRESULT(useodds,  6);	// Gold Mushroom
-		if (cv_star.value)								SETITEMRESULT(useodds,  7);	// Star
-		if (cv_triplebanana.value)						SETITEMRESULT(useodds,  8);	// Triple Banana
-		if (cv_fakeitem.value)							SETITEMRESULT(useodds,  9);	// Fake Item
-		if (cv_banana.value)							SETITEMRESULT(useodds, 10);	// Banana
-		if (cv_greenshell.value)						SETITEMRESULT(useodds, 11);	// Green Shell
-		if (cv_redshell.value)							SETITEMRESULT(useodds, 12);	// Red Shell
-		if (cv_triplegreenshell.value)					SETITEMRESULT(useodds, 13);	// Triple Green Shell
-		if (cv_bobomb.value)							SETITEMRESULT(useodds, 14);	// Bob-omb
-		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(useodds, 15);	// Blue Shell
-		if (cv_fireflower.value)						SETITEMRESULT(useodds, 16);	// Fire Flower
-		if (cv_tripleredshell.value)					SETITEMRESULT(useodds, 17);	// Triple Red Shell
-		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(useodds, 18);	// Lightning
+		if (cv_magnet.value) 												SETITEMRESULT(useodds,  1);	// Magnet
+		if (cv_boo.value)													SETITEMRESULT(useodds,  2);	// Boo
+		if (cv_mushroom.value)												SETITEMRESULT(useodds,  3);	// Mushroom
+		if (cv_mushroom.value)												SETITEMRESULT(useodds,  4);	// Triple Mushroom
+		if (cv_megashroom.value && !player->kartstuff[k_poweritemtimer])	SETITEMRESULT(useodds,  5);	// Mega Mushroom
+		if (cv_goldshroom.value)											SETITEMRESULT(useodds,  6);	// Gold Mushroom
+		if (cv_star.value && !player->kartstuff[k_poweritemtimer])			SETITEMRESULT(useodds,  7);	// Star
+		if (cv_triplebanana.value)											SETITEMRESULT(useodds,  8);	// Triple Banana
+		if (cv_fakeitem.value)												SETITEMRESULT(useodds,  9);	// Fake Item
+		if (cv_banana.value)												SETITEMRESULT(useodds, 10);	// Banana
+		if (cv_greenshell.value)											SETITEMRESULT(useodds, 11);	// Green Shell
+		if (cv_redshell.value)												SETITEMRESULT(useodds, 12);	// Red Shell
+		if (cv_triplegreenshell.value)										SETITEMRESULT(useodds, 13);	// Triple Green Shell
+		if (cv_bobomb.value)												SETITEMRESULT(useodds, 14);	// Bob-omb
+		if (cv_blueshell.value && pexiting == 0)							SETITEMRESULT(useodds, 15);	// Blue Shell
+		if (cv_fireflower.value)											SETITEMRESULT(useodds, 16);	// Fire Flower
+		if (cv_tripleredshell.value)										SETITEMRESULT(useodds, 17);	// Triple Red Shell
+		if (cv_lightning.value && pingame > pexiting)						SETITEMRESULT(useodds, 18);	// Lightning
 
 		prandom = P_RandomKey(numchoices);
 
@@ -1394,6 +1394,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_laserwisptimer])
 		player->kartstuff[k_laserwisptimer]--;
+
+	if (player->kartstuff[k_poweritemtimer])
+		player->kartstuff[k_poweritemtimer]--;
 
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
@@ -2654,6 +2657,57 @@ static boolean K_CheckForHoldItem(player_t *player)
 		) return true;
 	return false;
 }
+
+static void K_StripItems(player_t *player)
+{
+	if (	player->kartstuff[k_kitchensink]
+		|| 	player->kartstuff[k_lightning]
+		|| 	player->kartstuff[k_tripleredshell]
+		|| 	player->kartstuff[k_fireflower]
+		|| 	player->kartstuff[k_blueshell]
+		|| 	player->kartstuff[k_bobomb]
+		|| 	player->kartstuff[k_triplegreenshell]
+		|| 	player->kartstuff[k_redshell]
+		|| 	player->kartstuff[k_greenshell]
+		|| 	player->kartstuff[k_banana]
+		|| 	player->kartstuff[k_fakeitem] & 2
+		|| 	player->kartstuff[k_triplebanana]
+		|| 	player->kartstuff[k_star]
+		|| 	player->kartstuff[k_goldshroom]
+		|| 	player->kartstuff[k_megashroom]
+		|| 	player->kartstuff[k_mushroom]
+		|| 	player->kartstuff[k_boo]
+		|| 	player->kartstuff[k_magnet]
+		//|| 	player->kartstuff[k_bootaketimer] // uncomment when proper comeback mechanic is in
+		|| 	player->kartstuff[k_boostolentimer]
+		|| 	player->kartstuff[k_goldshroomtimer]
+		|| 	player->kartstuff[k_growshrinktimer]
+		)	player->kartstuff[k_itemclose] = 10;
+	player->kartstuff[k_kitchensink] = 0;
+	player->kartstuff[k_lightning] = 0;
+	player->kartstuff[k_tripleredshell] = 0;
+	player->kartstuff[k_fireflower] = 0;
+	player->kartstuff[k_blueshell] = 0;
+	player->kartstuff[k_bobomb] = 0;
+	player->kartstuff[k_triplegreenshell] = 0;
+	player->kartstuff[k_redshell] = 0;
+	player->kartstuff[k_greenshell] = 0;
+	player->kartstuff[k_banana] = 0;
+	player->kartstuff[k_fakeitem] = 0;
+	player->kartstuff[k_triplebanana] = 0;
+	player->kartstuff[k_star] = 0;
+	player->kartstuff[k_goldshroom] = 0;
+	player->kartstuff[k_megashroom] = 0;
+	player->kartstuff[k_mushroom] = 0;
+	player->kartstuff[k_boo] = 0;
+	player->kartstuff[k_magnet] = 0;
+	//player->kartstuff[k_bootaketimer] = 0;
+	player->kartstuff[k_boostolentimer] = 0;
+	player->kartstuff[k_goldshroomtimer] = 0;
+	player->kartstuff[k_growshrinktimer] = 0;
+	player->kartstuff[k_magnettimer] = 0;
+	player->kartstuff[k_startimer] = 0;
+}
 //
 // K_MoveKartPlayer
 //
@@ -2762,6 +2816,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->kartstuff[k_startimer] = itemtime; // Activate it
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_star] = 0;
+			if (gametype != GT_RACE)
+				player->kartstuff[k_poweritemtimer] = 10*TICRATE;
 			player->kartstuff[k_itemclose] = 10;
 			player->pflags |= PF_ATTACKDOWN;
 		}
@@ -3077,6 +3133,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			S_StartSound(player->mo, sfx_mario3);
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_megashroom] = 0;
+			if (gametype != GT_RACE)
+				player->kartstuff[k_poweritemtimer] = 10*TICRATE;
 			player->kartstuff[k_itemclose] = 10;
 		}
 		// Boo
@@ -3125,6 +3183,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		if (player->kartstuff[k_growshrinktimer] == 26)
 			S_StartSound(player->mo, sfx_mario8);
+
+		if ((gametype != GT_RACE)
+			&& (player->kartstuff[k_star] || player->kartstuff[k_megashroom]
+			|| player->kartstuff[k_startimer] || player->kartstuff[k_growshrinktimer] > 0))
+			player->kartstuff[k_poweritemtimer] = 10*TICRATE;
 
 		if (player->kartstuff[k_bootaketimer] > 0)
 		{
@@ -3217,27 +3280,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	if (gametype == GT_MATCH && player->kartstuff[k_balloon] <= 0) // dead in match? BOO!
 	{
+		K_StripItems(player);
 		player->kartstuff[k_bootaketimer] = bootime;
-		player->kartstuff[k_magnet] = 0; // reset all those dang items
-		player->kartstuff[k_boo] = 0;
-		player->kartstuff[k_mushroom] = 0;
-		player->kartstuff[k_megashroom] = 0;
-		player->kartstuff[k_goldshroom] = 0;
-		player->kartstuff[k_star] = 0;
-		player->kartstuff[k_triplebanana] = 0;
-		player->kartstuff[k_fakeitem] = 0;
-		player->kartstuff[k_banana] = 0;
-		player->kartstuff[k_greenshell] = 0;
-		player->kartstuff[k_redshell] = 0;
-		player->kartstuff[k_laserwisp] = 0;
-		player->kartstuff[k_triplegreenshell] = 0;
-		player->kartstuff[k_bobomb] = 0;
-		player->kartstuff[k_blueshell] = 0;
-		player->kartstuff[k_jaws] = 0;
-		player->kartstuff[k_fireflower] = 0;
-		player->kartstuff[k_tripleredshell] = 0;
-		player->kartstuff[k_lightning] = 0;
-		player->kartstuff[k_kitchensink] = 0;
 	}
 }
 
