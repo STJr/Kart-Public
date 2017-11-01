@@ -303,6 +303,7 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartcc);
 	CV_RegisterVar(&cv_kartballoons);
+	CV_RegisterVar(&cv_kartfrantic);
 	CV_RegisterVar(&cv_speedometer);
 	CV_RegisterVar(&cv_collideminimum);
 	CV_RegisterVar(&cv_collidesoundnum);
@@ -987,6 +988,12 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
+	if (cv_kartfrantic.value) // Stupid items
+	{
+		pdis = (13*pdis/14); // multiply...
+		pdis += distvar; // then set everyone back another place...
+	}
+
 	if (gametype == GT_MATCH
 		|| gametype == GT_TEAMMATCH
 		|| gametype == GT_CTF)		useodds = 0; // Battle Mode
@@ -1636,23 +1643,12 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (gametype == GT_MATCH)
+	if (gametype != GT_RACE)
 	{
-		if (player->kartstuff[k_balloon] & 16)
-			player->kartstuff[k_balloon] &= ~16;
-		else if (player->kartstuff[k_balloon] & 8)
-			player->kartstuff[k_balloon] &= ~8;
-		else if (player->kartstuff[k_balloon] & 4)
-			player->kartstuff[k_balloon] &= ~4;
-		else if (player->kartstuff[k_balloon] & 2)
-			player->kartstuff[k_balloon] &= ~2;
-		else if (player->kartstuff[k_balloon] & 1)
-		{
-			player->kartstuff[k_balloon] &= ~1;
+		player->kartstuff[k_balloon]--;
+
+		if (player->kartstuff[k_balloon] <= 0)
 			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
-			//P_DamageMobj(player->mo, NULL, NULL, 10000);
-			//return;
-		}
 
 		if (source && source->player && player != source->player)
 			P_AddPlayerScore(source->player, 1);
@@ -1701,23 +1697,12 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (gametype == GT_MATCH)
+	if (gametype != GT_RACE)
 	{
-		if (player->kartstuff[k_balloon] & 16)
-			player->kartstuff[k_balloon] &= ~16;
-		else if (player->kartstuff[k_balloon] & 8)
-			player->kartstuff[k_balloon] &= ~8;
-		else if (player->kartstuff[k_balloon] & 4)
-			player->kartstuff[k_balloon] &= ~4;
-		else if (player->kartstuff[k_balloon] & 2)
-			player->kartstuff[k_balloon] &= ~2;
-		else if (player->kartstuff[k_balloon] & 1)
-		{
-			player->kartstuff[k_balloon] &= ~1;
+		player->kartstuff[k_balloon]--;
+
+		if (player->kartstuff[k_balloon] <= 0)
 			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
-			//P_DamageMobj(player->mo, NULL, NULL, 10000);
-			//return;
-		}
 
 		if (source && source->player && player != source->player)
 			P_AddPlayerScore(source->player, 1);
@@ -1755,23 +1740,12 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (gametype == GT_MATCH)
+	if (gametype != GT_RACE)
 	{
-		if (player->kartstuff[k_balloon] & 16)
-			player->kartstuff[k_balloon] &= ~16;
-		else if (player->kartstuff[k_balloon] & 8)
-			player->kartstuff[k_balloon] &= ~8;
-		else if (player->kartstuff[k_balloon] & 4)
-			player->kartstuff[k_balloon] &= ~4;
-		else if (player->kartstuff[k_balloon] & 2)
-			player->kartstuff[k_balloon] &= ~2;
-		else if (player->kartstuff[k_balloon] & 1)
-		{
-			player->kartstuff[k_balloon] &= ~1;
+		player->kartstuff[k_balloon]--;
+
+		if (player->kartstuff[k_balloon] <= 0)
 			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
-			//P_DamageMobj(player->mo, NULL, NULL, 10000);
-			//return;
-		}
 
 		if (source && source->player && player != source->player)
 			P_AddPlayerScore(source->player, 1);
@@ -1800,6 +1774,84 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	return;
 }
+
+/*void K_StealBalloon(player_t *player, player_t *victim)
+{
+	//(void) source;
+	if (gametype == GT_RACE)
+		return;
+
+	if (player->health <= 0 || victim->health <= 0)
+		return;
+
+	if (player == victim)
+		return;
+
+	if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
+		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0 || player->kartstuff[k_balloon] >= 3)
+		|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || (victim->kartstuff[k_spinouttimer] > 0 && victim->kartstuff[k_spinout] > 0)
+		|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootaketimer] > 0 || victim->kartstuff[k_balloon] <= 0))
+		return;
+
+	victim->kartstuff[k_mushroomtimer] = 0;
+	victim->kartstuff[k_driftboost] = 0;
+
+	CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
+
+	player->kartstuff[k_balloon]++;
+
+	{
+		angle_t newangle, diff;
+		fixed_t newx;
+		fixed_t newy;
+		mobj_t *mo;
+
+		newangle = player->mo->angle;
+		diff = FixedAngle(360*FRACUNIT/cv_kartballoons.value);
+		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+
+		mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BATTLEBALLOON);
+		mo->threshold = 10;
+		P_SetTarget(&mo->target, player->mo);
+		P_SetTarget(&mo->tracer, victim->mo);
+		mo->angle = 0;
+		mo->color = player->mo->color;
+		if (player->mo->flags2 & MF2_DONTDRAW)
+			mo->flags2 |= MF2_DONTDRAW;
+		else
+			mo->flags2 &= ~MF2_DONTDRAW;
+	}
+
+	victim->kartstuff[k_balloon]--;
+
+	if (victim->kartstuff[k_balloon] <= 0)
+		CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[victim-players]);
+
+	P_AddPlayerScore(player, 1);
+	K_CheckBalloons();
+
+	player->kartstuff[k_spinouttype] = 1;
+	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
+	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
+
+	player->powers[pw_flashing] = flashingtics;
+
+	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+
+	player->kartstuff[k_spinouttype] = 0;
+
+	P_PlayRinglossSound(player->mo);
+
+	if (P_IsLocalPlayer(player))
+	{
+		quake.intensity = 64*FRACUNIT;
+		quake.time = 5;
+	}
+
+	return;
+}*/
 
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit)
 {

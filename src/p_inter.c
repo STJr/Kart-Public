@@ -2019,16 +2019,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			target->target->player->kartstuff[k_triplebanana] &= ~2;
 		else if (target->type == MT_TRIPLEBANANASHIELD3 && target->target->player->kartstuff[k_triplebanana] & 4)
 			target->target->player->kartstuff[k_triplebanana] &= ~4;
-		else if (target->type == MT_BATTLEBALLOON1 && target->target->player->kartstuff[k_balloon] & 1)
-			target->target->player->kartstuff[k_balloon] &= ~1;
-		else if (target->type == MT_BATTLEBALLOON2 && target->target->player->kartstuff[k_balloon] & 2)
-			target->target->player->kartstuff[k_balloon] &= ~2;
-		else if (target->type == MT_BATTLEBALLOON3 && target->target->player->kartstuff[k_balloon] & 4)
-			target->target->player->kartstuff[k_balloon] &= ~4;
-		else if (target->type == MT_BATTLEBALLOON4 && target->target->player->kartstuff[k_balloon] & 8)
-			target->target->player->kartstuff[k_balloon] &= ~8;
-		else if (target->type == MT_BATTLEBALLOON5 && target->target->player->kartstuff[k_balloon] & 16)
-			target->target->player->kartstuff[k_balloon] &= ~16;
+		else if (target->type == MT_BATTLEBALLOON && target->target->player->kartstuff[k_balloon] >= target->threshold)
+			target->target->player->kartstuff[k_triplebanana] = target->threshold-1;
 	}
 	//
 
@@ -2751,18 +2743,14 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		HU_DoCEcho(va("%s\\is no longer super.\\\\\\\\", player_names[player-players]));
 	}*/
 
-	if (player->kartstuff[k_balloon])
+	if (gametype != GT_RACE)
 	{
-		if (player->kartstuff[k_balloon] & 16)
-			player->kartstuff[k_balloon] &= ~16;
-		else if (player->kartstuff[k_balloon] & 8)
-			player->kartstuff[k_balloon] &= ~8;
-		else if (player->kartstuff[k_balloon] & 4)
-			player->kartstuff[k_balloon] &= ~4;
-		else if (player->kartstuff[k_balloon] & 2)
-			player->kartstuff[k_balloon] &= ~2;
-		else if (player->kartstuff[k_balloon] & 1)
-			player->kartstuff[k_balloon] &= ~1;
+		player->kartstuff[k_balloon]--;
+
+		if (player->kartstuff[k_balloon] <= 0)
+			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+
+		K_CheckBalloons();
 	}
 }
 

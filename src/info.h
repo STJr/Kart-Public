@@ -3977,11 +3977,7 @@ typedef enum mobj_type
 	MT_SINK, // Kitchen Sink Stuff
 	MT_SINKTRAIL,
 
-	MT_BATTLEBALLOON1, // Battle Mode balloons
-	MT_BATTLEBALLOON2,
-	MT_BATTLEBALLOON3,
-	MT_BATTLEBALLOON4,
-	MT_BATTLEBALLOON5,
+	MT_BATTLEBALLOON, // Battle Mode balloons
 
 	MT_LAKITU,
 
