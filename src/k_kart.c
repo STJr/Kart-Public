@@ -1039,20 +1039,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
-boolean K_IsTouching(mobj_t *mobj1, mobj_t *mobj2)
-{
-	if (mobj1 == NULL || mobj2 == NULL)
-		return false;
-	fixed_t absx = abs(mobj1->x - mobj2->x);
-	fixed_t absy = abs(mobj1->y - mobj2->y);
-	fixed_t absz = abs(mobj1->z - mobj2->z);
-
-	if (absx < 32*FRACUNIT && absy < 32*FRACUNIT && absz < 32*FRACUNIT)
-		return true;
-	else
-		return false;
-}
-
 void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
 	fixed_t newx, newy;
@@ -1072,7 +1058,7 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		//S_StartSound(mobj2, cv_collidesoundnum.value);
 	}
 
-	fx = P_SpawnMobj((mobj1->x + mobj2->x)/2, (mobj1->y + mobj2->y)/2, (mobj1->z + mobj2->z)/2, MT_BUMP);
+	fx = P_SpawnMobj(mobj1->x/2 + mobj2->x/2, mobj1->y/2 + mobj2->y/2, mobj1->z/2 + mobj2->z/2, MT_BUMP);
 	if (mobj1->eflags & MFE_VERTICALFLIP)
 		fx->eflags |= MFE_VERTICALFLIP;
 	else
@@ -1125,58 +1111,20 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj1->momz = mobj2->momz;
 		mobj2->momz = newz;
 	}
-}
 
-void K_KartBouncer(void)
-{
-	fixed_t i, j;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
-			for (j = 0; j < MAXPLAYERS; j++)
-				players[i].collide[j] = false;
-	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo)
-			&& !players[i].kartstuff[k_growshrinktimer] 
-			&& !players[i].kartstuff[k_squishedtimer]
-			&& !players[i].kartstuff[k_bootaketimer]
-			&& !players[i].kartstuff[k_spinouttimer]
-			&& !players[i].kartstuff[k_startimer]
-			&& !players[i].kartstuff[k_justbumped])
-		{
-			for (j = i+1; j < MAXPLAYERS; j++)
-				if (playeringame[j] && players[j].mo && !P_MobjWasRemoved(players[j].mo)
-					&& !players[j].kartstuff[k_squishedtimer]
-					&& !players[j].kartstuff[k_growshrinktimer]
-					&& !players[j].kartstuff[k_bootaketimer]
-					&& !players[j].kartstuff[k_spinouttimer]
-					&& !players[j].kartstuff[k_startimer]
-					&& !players[j].kartstuff[k_justbumped])
-				{
-					if (players[j].mo == players[i].mo)
-						break;
-					if (K_IsTouching(players[i].mo, players[j].mo))
-					{
-						if (!players[i].collide[j] && !players[j].collide[i])
-						{
-							if (P_IsObjectOnGround(players[j].mo) && players[i].mo->momz < 0)
-								K_SwapMomentum(players[i].mo, players[j].mo, true);
-							else if (P_IsObjectOnGround(players[i].mo) && players[j].mo->momz < 0)
-								K_SwapMomentum(players[j].mo, players[i].mo, true);
-							else
-								K_SwapMomentum(players[i].mo, players[j].mo, false);
-							players[i].collide[j] = true;
-							players[i].kartstuff[k_justbumped] = 6; // let the animation finish before letting you bump again :V
-							players[j].collide[i] = true;
-							players[j].kartstuff[k_justbumped] = 6;
-						}
-					}
-					else
-					{
-						players[i].collide[j] = false;
-						players[j].collide[i] = false;
-					}
-				}
-		}
+	// Because this is done during collision now, rmomx and rmomy need to be recalculated
+	// so that friction doesn't immediately decide to stop the player if they're at a standstill
+	if (mobj1->player)
+	{
+		mobj1->player->rmomx = mobj1->momx - mobj1->player->cmomx;
+		mobj1->player->rmomy = mobj1->momy - mobj1->player->cmomy;
+	}
+
+	if (mobj2->player)
+	{
+		mobj2->player->rmomx = mobj2->momx - mobj2->player->cmomx;
+		mobj2->player->rmomy = mobj2->momy - mobj2->player->cmomy;
+	}
 }
 
 /**	\brief	Checks that the player is on an offroad subsector for realsies
