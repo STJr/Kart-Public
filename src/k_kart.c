@@ -4394,10 +4394,6 @@ void K_drawKartHUD(void)
 	// This is handled by console/menu values
 	K_initKartHUD();
 
-	// Draw the CHECK indicator first, so it's overlapped by everything else
-	if (cv_kartcheck.value)
-		K_drawKartPlayerCheck();
-
 	// Draw Lakitu
 	// This is done first so that regardless of HUD layers,
 	// he'll appear to be in the 'real world'
@@ -4409,6 +4405,10 @@ void K_drawKartHUD(void)
 		if (stplyr->kartstuff[k_lapanimation])
 			K_drawLapLakitu();
 	}
+
+	// Draw the CHECK indicator first, so it's overlapped by everything else
+	if (cv_kartcheck.value)
+		K_drawKartPlayerCheck();
 
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])
