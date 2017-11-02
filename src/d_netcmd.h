@@ -105,6 +105,7 @@ extern consvar_t cv_greenshell, cv_redshell, cv_laserwisp, cv_triplegreenshell, 
 extern consvar_t cv_blueshell, cv_jaws, cv_fireflower, cv_tripleredshell, cv_lightning;
 
 extern consvar_t cv_karthud;
+extern consvar_t cv_kartcheck;
 extern consvar_t cv_kartcc;
 extern consvar_t cv_kartballoons;
 extern consvar_t cv_kartfrantic;

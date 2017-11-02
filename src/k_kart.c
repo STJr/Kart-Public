@@ -301,6 +301,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_tripleredshell);
 	CV_RegisterVar(&cv_lightning);
 
+	CV_RegisterVar(&cv_kartcheck);
 	CV_RegisterVar(&cv_kartcc);
 	CV_RegisterVar(&cv_kartballoons);
 	CV_RegisterVar(&cv_kartfrantic);
@@ -3431,6 +3432,12 @@ static patch_t *kp_triplegreenshellicon;
 static patch_t *kp_singleredshellicon;
 static patch_t *kp_doubleredshellicon;
 static patch_t *kp_tripleredshellicon;
+static patch_t *kp_check;
+static patch_t *kp_checkw;
+static patch_t *kp_checkstar;
+static patch_t *kp_checkstarw;
+static patch_t *kp_checkmega;
+static patch_t *kp_checkmegaw;
 /*
 static patch_t *kp_neonoitem;
 static patch_t *kp_electroshield;
@@ -3566,6 +3573,14 @@ void K_LoadKartHUDGraphics(void)
 	kp_singleredshellicon = 	W_CachePatchName("K_TRRED1", PU_HUDGFX);
 	kp_doubleredshellicon = 	W_CachePatchName("K_TRRED2", PU_HUDGFX);
 	kp_tripleredshellicon = 	W_CachePatchName("K_TRRED3", PU_HUDGFX);
+
+	// CHECK indicators
+	kp_check = 					W_CachePatchName("K_CHECK1", PU_HUDGFX);
+	kp_checkw = 				W_CachePatchName("K_CHECK2", PU_HUDGFX);
+	kp_checkstar = 				W_CachePatchName("K_CHECK3", PU_HUDGFX);
+	kp_checkstarw = 			W_CachePatchName("K_CHECK4", PU_HUDGFX);
+	kp_checkmega = 				W_CachePatchName("K_CHECK5", PU_HUDGFX);
+	kp_checkmegaw = 			W_CachePatchName("K_CHECK6", PU_HUDGFX);
 
 	/*
 	// Neo-Kart item windows
@@ -4176,6 +4191,98 @@ static void K_drawKartSpeedometer(void)
 	}
 }
 
+fixed_t K_FindCheckX(INT32 p, fixed_t mx, fixed_t my)
+{
+	fixed_t camx, camy, dist, x;
+	angle_t camangle;
+	camera_t *c = &camera;
+
+	if (players[p].awayviewtics)
+	{
+		camx = players[p].awayviewmobj->x;
+		camy = players[p].awayviewmobj->y;
+		camangle = players[p].awayviewmobj->angle;
+	}
+	else if (c->chase)
+	{
+		camx = c->x;
+		camy = c->y;
+		camangle = c->angle;
+	}
+	else
+	{
+		camx = players[p].mo->x;
+		camy = players[p].mo->y;
+		camangle = players[p].mo->angle;
+	}
+
+	dist = abs(R_PointToDist2(camx, camy, mx, my));
+	if (dist > RING_DIST)
+		return -320;
+
+	camangle = camangle+ANGLE_180;
+	x = camangle-R_PointToAngle2(camx, camy, mx, my);
+
+	if (x > ANGLE_90 || x < ANGLE_270)
+		return -320;
+	else
+		x = FixedMul(FINETANGENT(((x+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), 160<<FRACBITS)+(160<<FRACBITS);
+
+	return 160-(x>>FRACBITS);
+}
+
+static void K_drawKartPlayerCheck(void)
+{
+	INT32 i;
+	UINT8 *colormap;
+	fixed_t x;
+	patch_t *localpatch;
+
+	if (splitscreen)
+		return;
+
+	if (players[displayplayer].mo == NULL)
+		return;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (i == displayplayer)
+			continue;
+		if (players[i].mo == NULL)
+			continue;
+
+		if ((players[i].kartstuff[k_startimer] <= 0) && (leveltime & 2))
+		{
+			if (players[i].kartstuff[k_megashroom] || players[i].kartstuff[k_growshrinktimer] > 0)
+				localpatch = kp_checkmegaw;
+			else if (players[i].kartstuff[k_star] || players[i].kartstuff[k_startimer])
+				localpatch = kp_checkstarw;
+			else
+				localpatch = kp_checkw;
+		}
+		else
+		{
+			if (players[i].kartstuff[k_megashroom] || players[i].kartstuff[k_growshrinktimer] > 0)
+				localpatch = kp_checkmega;
+			else if (players[i].kartstuff[k_star] || players[i].kartstuff[k_startimer])
+				localpatch = kp_checkstar;
+			else
+				localpatch = kp_check;
+		}
+		
+		x = K_FindCheckX(displayplayer, players[i].mo->x, players[i].mo->y);
+		if (x <= 320 && x >= 0)
+		{
+			if (x < 14)
+				x = 14;
+			else if (x > 306)
+				x = 306;
+			colormap = R_GetTranslationColormap(-1, players[i].mo->color, 0);
+			V_DrawMappedPatch(x, 200, 0, localpatch, colormap);
+		}
+	}
+}
+
 static void K_drawStartLakitu(void)
 {
 	patch_t *localpatch = kp_nodraw;
@@ -4286,6 +4393,10 @@ void K_drawKartHUD(void)
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
+
+	// Draw the CHECK indicator first, so it's overlapped by everything else
+	if (cv_kartcheck.value)
+		K_drawKartPlayerCheck();
 
 	// Draw Lakitu
 	// This is done first so that regardless of HUD layers,
