@@ -698,16 +698,16 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 1, 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
-		 /*Triple Banana*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
-			 /*Fake Item*/ { 2, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
-				/*Banana*/ { 2, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 4, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
+		 /*Triple Banana*/ { 2, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
+			 /*Fake Item*/ { 6, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 6, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 6, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
 			 /*Red Shell*/ { 2, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 2, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
 			   /*Bob-omb*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
 		   /*Fire Flower*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
+	  /*Triple Red Shell*/ { 1, 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
 };
 
