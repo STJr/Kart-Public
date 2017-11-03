@@ -1128,8 +1128,6 @@ void K_KartBilliards(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj2->momz = newz;
 	}
 
-void K_KartBouncer(void)
-{
 	// Because this is done during collision now, rmomx and rmomy need to be recalculated
 	// so that friction doesn't immediately decide to stop the player if they're at a standstill
 	if (mobj1->player)
@@ -1359,6 +1357,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
+
+	if (player->kartstuff[k_justbumped])
+		player->kartstuff[k_justbumped]--;
 
 	// ???
 	/*
@@ -2020,13 +2021,13 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	switch (K_GetKartCC())
 	{
 		case 50:
-			PROJSPEED = 85*FRACUNIT; // Avg Speed is 34
+			PROJSPEED = 68*FRACUNIT; // Avg Speed is 34
 			break;
 		case 150:
-			PROJSPEED = 120*FRACUNIT; // Avg Speed is 48
+			PROJSPEED = 96*FRACUNIT; // Avg Speed is 48
 			break;
 		default:
-			PROJSPEED = 102*FRACUNIT+FRACUNIT/2; // Avg Speed is 41
+			PROJSPEED = 82*FRACUNIT; // Avg Speed is 41
 			break;
 	}
 
@@ -2129,7 +2130,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		if (dir == 1 || dir == 2)
 		{
 			// Shoot forward
-			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + 80*FRACUNIT, mapthing);
+			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, mapthing);
 
 			mo->threshold = 10;
 
@@ -2143,22 +2144,19 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				INT32 HEIGHT;
 
 				if (dir == 2)
-					HEIGHT = 16*FRACUNIT + player->mo->momz;
+					HEIGHT = 40*FRACUNIT + player->mo->momz;
 				else
-					HEIGHT = 8*FRACUNIT + player->mo->momz;
+					HEIGHT = 30*FRACUNIT + player->mo->momz;
 
-				if (HEIGHT > 64*FRACUNIT)
-					HEIGHT = 64*FRACUNIT;
-
-				mo->momx = FixedMul(FINECOSINE(fa), PROJSPEED);
-				mo->momy = FixedMul(FINESINE(fa), PROJSPEED);
+				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
+				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
 				mo->momz = HEIGHT;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
 			}
 
-			mobj_t *throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + 80*FRACUNIT, MT_FIREDITEM);
+			mobj_t *throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FIREDITEM);
 			P_SetTarget(&throwmo->target, player->mo);
 			throwmo->movecount = 0; // above player
 		}

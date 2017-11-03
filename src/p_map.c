@@ -1617,9 +1617,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (gametype != GT_RACE)
 			{
 				if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
-					K_StealBalloon(&thing->player, &tmthing->player);
+					K_StealBalloon(thing->player, tmthing->player);
 				else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
-					K_StealBalloon(&tmthing->player, &thing->player);
+					K_StealBalloon(tmthing->player, thing->player);
 			}
 
 			thing->player->kartstuff[k_justbumped] = 6;

@@ -1378,6 +1378,10 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					break;
 				case MT_WATERDROP:
 					gravityadd >>= 1;
+				case MT_BANANAITEM:
+				case MT_FAKEITEM:
+				case MT_BOMBITEM:
+					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
 				default:
 					break;
 			}
@@ -7686,11 +7690,11 @@ void P_MobjThinker(mobj_t *mobj)
 
 			P_SpawnGhostMobj(mobj);
 
-			if (cv_kartcc.value == 50)
+			if (K_GetKartCC() == 50)
 			{
 				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
 			}
-			else if (cv_kartcc.value == 150)
+			else if (K_GetKartCC() == 150)
 			{
 				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
 			}
@@ -7728,18 +7732,18 @@ void P_MobjThinker(mobj_t *mobj)
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
-			if (cv_kartcc.value == 50)
+			if (K_GetKartCC() == 50)
 			{
 				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
 			}
-			else if (cv_kartcc.value == 150)
+			else if (K_GetKartCC() == 150)
 			{
 				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
 			}
 
-			if (mobj->tracer)
+			if (gametype == GT_RACE && mobj->tracer)
 			{
 				distaway = P_AproxDistance(mobj->tracer->x - mobj->x, mobj->tracer->y - mobj->y);
 				if (distaway < distbarrier)
