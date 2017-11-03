@@ -1039,23 +1039,20 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
-void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
+void K_KartBilliards(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
-	fixed_t newx, newy;
 	mobj_t *fx;
+	fixed_t ndistx, ndisty, ndistlength;
+	fixed_t a1, a2;
+	fixed_t optimizedP;
+	fixed_t mass1, mass2;
 
-	if (mobj1 == NULL || mobj2 == NULL)
+	if (!mobj1 || !mobj2)
 		return;
 
-	fixed_t meanX = (mobj1->momx + mobj2->momx) / 2;
-	fixed_t meanY = (mobj1->momy + mobj2->momy) / 2;
-	fixed_t deltaV1 = P_AproxDistance((mobj1->momx - meanX), (mobj1->momy - meanY));
-	fixed_t deltaV2 = P_AproxDistance((mobj2->momx - meanX), (mobj2->momy - meanY));
-	//fixed_t clashvolume = (deltaV1 / FRACUNIT) * 8; // In case you want to do a scaling bump sound volume.
 	if (cv_collidesounds.value == 1)
 	{
 		S_StartSound(mobj1, cv_collidesoundnum.value);
-		//S_StartSound(mobj2, cv_collidesoundnum.value);
 	}
 
 	fx = P_SpawnMobj(mobj1->x/2 + mobj2->x/2, mobj1->y/2 + mobj2->y/2, mobj1->z/2 + mobj2->z/2, MT_BUMP);
@@ -1064,45 +1061,42 @@ void K_SwapMomentum(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	else
 		fx->eflags &= ~MFE_VERTICALFLIP;
 	fx->scale = mobj1->scale;
-	
-	if (deltaV1 < (cv_collideminimum.value * FRACUNIT / 2))
-	{
-		fixed_t a = 0;
-		if (deltaV1 != 0)
-			a = FixedDiv((cv_collideminimum.value * FRACUNIT / 2), deltaV1);
-		else if (deltaV2 != 0)
-			a = FixedDiv((cv_collideminimum.value * FRACUNIT / 2), deltaV2);
-		else
-			a = 0;
-		fixed_t deltax1 = (mobj1->momx - meanX);
-		fixed_t deltax2 = (mobj2->momx - meanX);
-		fixed_t deltay1 = (mobj1->momy - meanY);
-		fixed_t deltay2 = (mobj2->momy - meanY);
-		mobj1->momx = meanX + FixedMul(deltax1, a);
-		mobj1->momy = meanY + FixedMul(deltay1, a);
-		mobj2->momx = meanX + FixedMul(deltax2, a);
-		mobj2->momy = meanY + FixedMul(deltay2, a);
-	}
-	/*
-	if (mobj1->player && mobj2->player) // Weight is applicable if both are players
-	{
-		fixed_t m1w = 15 + mobj1->player->kartweight;
-		fixed_t m2w = 15 + mobj2->player->kartweight;
 
-		newx = FixedMul(mobj1->momx, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
-		newy = FixedMul(mobj1->momy, FixedDiv(m1w*FRACUNIT, m2w*FRACUNIT));
-		mobj1->momx = FixedMul(mobj2->momx, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
-		mobj1->momy = FixedMul(mobj2->momy, FixedDiv(m2w*FRACUNIT, m1w*FRACUNIT));
-	}
-	else*/
-	//{
-		newx = mobj1->momx;
-		newy = mobj1->momy;
-		mobj1->momx = mobj2->momx;
-		mobj1->momy = mobj2->momy;
-	//}
-	mobj2->momx = newx;
-	mobj2->momy = newy;
+	mass1 = mass2 = 1*FRACUNIT;
+	if (mobj1->player)
+		mass1 = (1+mobj1->player->kartweight*20)*FRACUNIT;
+	if (mobj2->player)
+		mass2 = (1+mobj2->player->kartweight*20)*FRACUNIT;
+
+	// find normalised vector from centre of each mobj
+	ndistx = mobj1->x - mobj2->x;
+	ndisty = mobj1->y - mobj2->y;
+	ndistlength = P_AproxDistance(ndistx, ndisty);
+	ndistx = FixedDiv(ndistx, ndistlength);
+	ndisty = FixedDiv(ndisty, ndistlength);
+
+	// find length of the component from the movement along n
+	a1 = FixedMul(mobj1->momx, ndistx) + FixedMul(mobj1->momy, ndisty);
+	a2 = FixedMul(mobj2->momx, ndistx) + FixedMul(mobj2->momy, ndisty);
+
+	optimizedP = FixedDiv(FixedMul(2*FRACUNIT, a1 - a2), mass1 + mass2);
+
+	// calculate new movement of mobj1
+	mobj1->momx = mobj1->momx - FixedMul(FixedMul(optimizedP, mass2), ndistx);
+	mobj1->momy = mobj1->momy - FixedMul(FixedMul(optimizedP, mass2), ndisty);
+
+	// calculate new movement of mobj2
+	mobj2->momx = mobj2->momx + FixedMul(FixedMul(optimizedP, mass1), ndistx);
+	mobj2->momy = mobj2->momy + FixedMul(FixedMul(optimizedP, mass1), ndisty);
+
+	// In addition to knocking players based on their momentum into each other
+	// I will bounce them away from each other based on weight
+	optimizedP = FixedDiv(cv_collideminimum.value*FRACUNIT, mass1 + mass2); // reuse these variables for helping decide bounce speed
+	a1 = FixedMul(optimizedP, mass2);
+	a2 = FixedMul(optimizedP, mass1);
+	P_Thrust(mobj1, R_PointToAngle2(mobj1->x, mobj1->y, mobj2->x, mobj2->y)+ANGLE_180, a1);
+	P_Thrust(mobj2, R_PointToAngle2(mobj1->x, mobj1->y, mobj2->x, mobj2->y), a2);
+
 	if (bounce == true) // Perform a Goomba Bounce.
 		mobj1->momz = -mobj1->momz;
 	else

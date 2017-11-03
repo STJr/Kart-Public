@@ -1608,11 +1608,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			}
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
-				K_SwapMomentum(tmthing, thing, true);
+				K_KartBilliards(tmthing, thing, true);
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
-				K_SwapMomentum(thing, tmthing, true);
+				K_KartBilliards(thing, tmthing, true);
 			else
-				K_SwapMomentum(tmthing, thing, false);
+				K_KartBilliards(tmthing, thing, false);
 
 			thing->player->kartstuff[k_justbumped] = 6;
 			tmthing->player->kartstuff[k_justbumped] = 6;
