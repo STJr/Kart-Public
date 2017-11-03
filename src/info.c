@@ -2708,9 +2708,9 @@ state_t states[NUMSTATES] =
 	{SPR_SITR, 1,  5, {NULL}, 0, 0, S_SINKTRAIL3},                       // S_SINKTRAIL2
 	{SPR_SITR, 2,  3, {NULL}, 0, 0, S_NULL},                             // S_SINKTRAIL3
 
-	{SPR_KBLN, FF_FULLBRIGHT, 1, {NULL}, 0, 0, S_BATTLEBALLOON1}, // S_BATTLEBALLOON1
-	{SPR_KBLN, FF_FULLBRIGHT|1, 1, {NULL}, 0, 0, S_BATTLEBALLOON2}, // S_BATTLEBALLOON2
-	{SPR_KBLN, FF_FULLBRIGHT|2, 1, {NULL}, 0, 0, S_BATTLEBALLOON3}, // S_BATTLEBALLOON3
+	{SPR_KBLN, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_BATTLEBALLOON1}, // S_BATTLEBALLOON1
+	{SPR_KBLN, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_BATTLEBALLOON2}, // S_BATTLEBALLOON2
+	{SPR_KBLN, FF_FULLBRIGHT|2, -1, {NULL}, 0, 0, S_BATTLEBALLOON3}, // S_BATTLEBALLOON3
 
 	{SPR_LAKI, 0, 64, {NULL}, 1, 0, S_LAKITU2},  // S_LAKITU1
 	{SPR_LAKI, 1, 35, {NULL}, 0, 0, S_NULL},     // S_LAKITU2
@@ -15155,7 +15155,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,          // deathstate
 		S_NULL,          // xdeathstate
 		sfx_None,        // deathsound
-		5*FRACUNIT,      // speed
+		4*FRACUNIT,      // speed
 		8*FRACUNIT,      // radius
 		16*FRACUNIT,     // height
 		0,               // display offset

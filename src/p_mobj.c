@@ -6582,28 +6582,21 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_TRIPLEBANANASHIELD1:
 			case MT_TRIPLEBANANASHIELD2:
 			case MT_TRIPLEBANANASHIELD3:
-			case MT_BATTLEBALLOON:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					fixed_t HEIGHT;
-					fixed_t radius = 56*mobj->target->scale; // mobj's distance from its Target, or Radius.
+					fixed_t radius; // mobj's distance from its Target, or Radius.
 
 					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
 						radius = 64*mobj->target->scale;
-					else if (mobj->type == MT_BATTLEBALLOON)
-						radius = 32*mobj->target->scale;
 					else
 						radius = 56*mobj->target->scale;
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
 					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
-						|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3
-						|| mobj->type == MT_BATTLEBALLOON)
-						if ((mobj->type == MT_BATTLEBALLOON) && !((mobj->target->player-players) & 1))
-							mobj->angle -= FixedAngle(mobj->info->speed);
-						else
-							mobj->angle += FixedAngle(mobj->info->speed);
+						|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
+						mobj->angle += FixedAngle(mobj->info->speed);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD3)
@@ -6621,26 +6614,6 @@ void P_MobjThinker(mobj_t *mobj)
 					{
 						mobj->eflags &= ~MFE_VERTICALFLIP;
 						HEIGHT = mobj->target->height / 5;
-					}
-
-					if (mobj->type == MT_BATTLEBALLOON)
-					{
-						mobj->color = mobj->target->color;
-
-						if (mobj->target->player->kartstuff[k_balloon] <= 1)
-							P_SetMobjState(mobj, S_BATTLEBALLOON3);
-						else if (mobj->target->player->kartstuff[k_balloon] == 2)
-							P_SetMobjState(mobj, S_BATTLEBALLOON2);
-
-						if (mobj->target->flags2 & MF2_DONTDRAW)
-							mobj->flags2 |= MF2_DONTDRAW;
-						else
-							mobj->flags2 &= ~MF2_DONTDRAW;
-
-						if (mobj->target->eflags & MFE_VERTICALFLIP)
-							HEIGHT += 4*FRACUNIT;
-						else
-							HEIGHT -= 4*FRACUNIT;
 					}
 
 					// Shrink your items if the player shrunk too.
@@ -6669,8 +6642,90 @@ void P_MobjThinker(mobj_t *mobj)
 						|| (mobj->type == MT_TRIPLEBANANASHIELD2 && !(mobj->target->player->kartstuff[k_triplebanana] & 2))
 						|| (mobj->type == MT_TRIPLEBANANASHIELD3 && !(mobj->target->player->kartstuff[k_triplebanana] & 4))
 						|| (mobj->type == MT_BOMBSHIELD && !(mobj->target->player->kartstuff[k_bobomb] & 1))
-						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1))
-						|| (mobj->type == MT_BATTLEBALLOON && (mobj->target->player->kartstuff[k_balloon] <= mobj->threshold)))
+						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1)))
+					{
+						P_RemoveMobj(mobj);
+						return;
+					}
+				}
+				else if ((mobj->health > 0
+					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
+					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| P_CheckDeathPitCollide(mobj)) // When in death state
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				break;
+			case MT_BATTLEBALLOON:
+				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
+					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
+				{
+					fixed_t rad = 32*mobj->target->scale;
+					fixed_t offz;
+					angle_t ang, diff;
+
+					if (!((mobj->target->player-players) & 1))
+						ang = (FixedAngle(mobj->info->speed) * -1);
+					else
+						ang = FixedAngle(mobj->info->speed);
+
+					if (mobj->target->player->kartstuff[k_balloon] <= 1)
+						diff = 0;
+					else
+						diff = FixedAngle(360*FRACUNIT/mobj->target->player->kartstuff[k_balloon]);
+
+					ang = (ang*leveltime) + (diff * (mobj->threshold-1));
+
+					// If the player is on the ceiling, then flip your items as well.
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
+					{
+						mobj->eflags |= MFE_VERTICALFLIP;
+						offz = mobj->target->height / 2;
+					}
+					else
+					{
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+						offz = mobj->target->height / 5;
+					}
+
+					if (mobj->target->flags2 & MF2_DONTDRAW)
+						mobj->flags2 |= MF2_DONTDRAW;
+					else
+						mobj->flags2 &= ~MF2_DONTDRAW;
+
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
+						offz += 4*FRACUNIT;
+					else
+						offz -= 4*FRACUNIT;
+
+					if (mobj->tracer && mobj->tracer->player && mobj->tracer->player->mo
+						&& mobj->tracer->player->health > 0 && !mobj->tracer->player->spectator) // STOLEN
+						mobj->color = mobj->tracer->player->skincolor; // don't do star flashing for stolen balloons
+					else
+						mobj->color = mobj->target->color; // but do so if it belongs to you :B
+
+					if (mobj->target->player->kartstuff[k_balloon] <= 1)
+						P_SetMobjState(mobj, S_BATTLEBALLOON3);
+					else if (mobj->target->player->kartstuff[k_balloon] == 2)
+						P_SetMobjState(mobj, S_BATTLEBALLOON2);
+					else
+						P_SetMobjState(mobj, S_BATTLEBALLOON1);
+
+					// Shrink your items if the player shrunk too.
+					mobj->scale = mobj->target->scale;
+
+					P_UnsetThingPosition(mobj);
+					{
+						const angle_t fa = ang>>ANGLETOFINESHIFT;
+						mobj->x = mobj->target->x + FixedMul(FINECOSINE(fa), rad);
+						mobj->y = mobj->target->y + FixedMul(FINESINE(fa), rad);
+						mobj->z = mobj->target->z + offz;
+						P_SetThingPosition(mobj);
+					}
+
+					// Was this so hard?
+					if (mobj->target->player->kartstuff[k_balloon] <= mobj->threshold)
 					{
 						P_RemoveMobj(mobj);
 						return;
@@ -9400,7 +9455,7 @@ void P_SpawnPlayer(INT32 playernum)
 	overheadarrow->flags2 |= MF2_DONTDRAW;
 	P_SetScale(overheadarrow, mobj->destscale);
 
-	if (gametype != GT_RACE && (leveltime < 1 || p->kartstuff[k_balloon] > 0)) // srb2kart
+	if (gametype != GT_RACE && ((leveltime < 1 || D_NumPlayers() <= 1) || p->kartstuff[k_balloon] > 0)) // srb2kart
 	{
 		INT32 i;
 		angle_t newangle, diff;
@@ -9408,15 +9463,19 @@ void P_SpawnPlayer(INT32 playernum)
 		fixed_t newy;
 		mobj_t *mo;
 
-		if (leveltime < 1) // Start of the map?
+		if (leveltime < 1 || D_NumPlayers() <= 1) // Start of the map?
 			p->kartstuff[k_balloon] = cv_kartballoons.value; // Reset those balloons!
 
+		if (p->kartstuff[k_balloon] <= 1)
+			diff = 0;
+		else
+			diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_balloon]);
+
 		newangle = mobj->angle;
-		diff = FixedAngle(360*FRACUNIT/cv_kartballoons.value);
 		newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
 		newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
 
-		for (i = 0; i < cv_kartballoons.value; i++)
+		for (i = 0; i < p->kartstuff[k_balloon]; i++)
 		{
 			mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON);
 			mo->threshold = i;

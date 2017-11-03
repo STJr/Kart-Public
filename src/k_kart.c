@@ -692,16 +692,16 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 				//P-Odds	 0  1  2  3  4  5  6  7  8  9
 				/*Magnet*/ { 0, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 0, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
+			  /*Mushroom*/ { 5, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 1, 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
 		 /*Triple Banana*/ { 2, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
-			 /*Fake Item*/ { 6, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
-				/*Banana*/ { 6, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 6, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
+			 /*Fake Item*/ { 5, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 5, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 5, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
 			 /*Red Shell*/ { 2, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 2, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
 			   /*Bob-omb*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
@@ -1184,6 +1184,12 @@ void K_KartBouncer(void)
 								K_SwapMomentum(players[j].mo, players[i].mo, true);
 							else
 								K_SwapMomentum(players[i].mo, players[j].mo, false);
+
+							if (players[i].kartstuff[k_mushroomtimer] && !(players[j].kartstuff[k_mushroomtimer]))
+								K_StealBalloon(&players[i], &players[j]);
+							else if (players[j].kartstuff[k_mushroomtimer] && !(players[i].kartstuff[k_mushroomtimer]))
+								K_StealBalloon(&players[j], &players[i]);
+
 							players[i].collide[j] = true;
 							players[j].collide[i] = true;
 						}
@@ -1776,8 +1782,13 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	return;
 }
 
-/*void K_StealBalloon(player_t *player, player_t *victim)
+void K_StealBalloon(player_t *player, player_t *victim)
 {
+	INT32 newballoon;
+	angle_t newangle, diff;
+	fixed_t newx, newy;
+	mobj_t *newmo;
+
 	//(void) source;
 	if (gametype == GT_RACE)
 		return;
@@ -1785,13 +1796,13 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	if (player->health <= 0 || victim->health <= 0)
 		return;
 
-	if (player == victim)
+	if (victim->kartstuff[k_balloon] <= 0) // || player->kartstuff[k_balloon] >= cv_kartballoons.value+2
 		return;
 
 	if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0 || player->kartstuff[k_balloon] >= 3)
+		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || (victim->kartstuff[k_spinouttimer] > 0 && victim->kartstuff[k_spinout] > 0)
-		|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootaketimer] > 0 || victim->kartstuff[k_balloon] <= 0))
+		|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootaketimer] > 0))
 		return;
 
 	victim->kartstuff[k_mushroomtimer] = 0;
@@ -1799,31 +1810,30 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
 
+	newballoon = player->kartstuff[k_balloon];
+	newangle = player->mo->angle;
+	if (newballoon <= 1)
+		diff = 0;
+	else
+		diff = FixedAngle(360*FRACUNIT/newballoon);
+	newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+	newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+
+	newmo = P_SpawnMobj(newx, newy, player->mo->z, MT_BATTLEBALLOON);
+	newmo->threshold = newballoon;
+	P_SetTarget(&newmo->tracer, victim->mo);
+	P_SetTarget(&newmo->target, player->mo);
+	newmo->angle = (diff * (newballoon-1));
+	newmo->color = victim->skincolor;
+
+	if (newballoon+1 <= 1)
+		P_SetMobjState(newmo, S_BATTLEBALLOON3);
+	else if (newballoon+1 == 2)
+		P_SetMobjState(newmo, S_BATTLEBALLOON2);
+	else
+		P_SetMobjState(newmo, S_BATTLEBALLOON1);
+
 	player->kartstuff[k_balloon]++;
-
-	{
-		angle_t newangle, diff;
-		fixed_t newx;
-		fixed_t newy;
-		mobj_t *mo;
-
-		newangle = player->mo->angle;
-		diff = FixedAngle(360*FRACUNIT/cv_kartballoons.value);
-		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-
-		mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BATTLEBALLOON);
-		mo->threshold = 10;
-		P_SetTarget(&mo->target, player->mo);
-		P_SetTarget(&mo->tracer, victim->mo);
-		mo->angle = 0;
-		mo->color = player->mo->color;
-		if (player->mo->flags2 & MF2_DONTDRAW)
-			mo->flags2 |= MF2_DONTDRAW;
-		else
-			mo->flags2 &= ~MF2_DONTDRAW;
-	}
-
 	victim->kartstuff[k_balloon]--;
 
 	if (victim->kartstuff[k_balloon] <= 0)
@@ -1832,27 +1842,27 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	P_AddPlayerScore(player, 1);
 	K_CheckBalloons();
 
-	player->kartstuff[k_spinouttype] = 1;
-	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
-	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
+	victim->kartstuff[k_spinouttype] = 1;
+	victim->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
+	victim->kartstuff[k_spinout] = victim->kartstuff[k_spinouttimer];
 
-	player->powers[pw_flashing] = flashingtics;
+	victim->powers[pw_flashing] = flashingtics;
 
-	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+	if (!(victim->mo->state >= &states[S_KART_SPIN1] && victim->mo->state <= &states[S_KART_SPIN8]))
+		P_SetPlayerMobjState(victim->mo, S_KART_SPIN1);
 
-	player->kartstuff[k_spinouttype] = 0;
+	victim->kartstuff[k_spinouttype] = 0;
 
-	P_PlayRinglossSound(player->mo);
+	P_PlayRinglossSound(victim->mo);
 
-	if (P_IsLocalPlayer(player))
+	if (P_IsLocalPlayer(victim))
 	{
 		quake.intensity = 64*FRACUNIT;
 		quake.time = 5;
 	}
 
 	return;
-}*/
+}
 
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit)
 {
