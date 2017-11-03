@@ -2124,7 +2124,6 @@ static inline void G_PlayerFinishLevel(INT32 player)
 
 	memset(p->powers, 0, sizeof (p->powers));
 	memset(p->kartstuff, 0, sizeof (p->kartstuff)); // SRB2kart
-	memset(p->collide, 0, sizeof (p->collide)); // SRB2kart
 	p->ringweapons = 0;
 
 	p->mo->flags2 &= ~MF2_SHADOW; // cancel invisibility

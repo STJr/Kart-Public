@@ -320,6 +320,7 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 	}
 }
 
+#if 0
 static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 {
 	INT32 p;
@@ -400,6 +401,7 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 		sonic->pflags &= ~PF_CARRIED;
 	}
 }
+#endif
 
 //
 // PIT_CheckThing
@@ -1534,7 +1536,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	// Force solid players in hide and seek to avoid corner stacking.
-	if (cv_tailspickup.value && gametype != GT_HIDEANDSEEK)
+	// Kart: No Tailspickup ever, players are always solid
+	/*if (cv_tailspickup.value && gametype != GT_HIDEANDSEEK)
 	{
 		if (tmthing->player && thing->player)
 		{
@@ -1546,7 +1549,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->player-players == consoleplayer && botingame)
 			CV_SetValue(&cv_analog2, true);
 		thing->player->pflags &= ~PF_CARRIED;
-	}
+	}*/
 
 	if (thing->player)
 	{
@@ -1591,6 +1594,36 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if ( thing->z <= tmthing->z + tmthing->height
 			&& tmthing->z <= thing->z + thing->height)
 				iwassprung = P_DoSpring(thing, tmthing);
+		}
+		else if (thing->player) // bounce when players collide
+		{
+			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
+				|| thing->player->kartstuff[k_bootaketimer] || thing->player->kartstuff[k_spinouttimer]
+				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
+				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
+				|| tmthing->player->kartstuff[k_bootaketimer] || tmthing->player->kartstuff[k_spinouttimer]
+				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped])
+			{
+				return true;
+			}
+
+			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
+				K_KartBilliards(tmthing, thing, true);
+			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
+				K_KartBilliards(thing, tmthing, true);
+			else
+				K_KartBilliards(tmthing, thing, false);
+
+			if (gametype != GT_RACE)
+			{
+				if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
+					K_StealBalloon(&thing->player, &tmthing->player);
+				else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
+					K_StealBalloon(&tmthing->player, &thing->player);
+			}
+
+			thing->player->kartstuff[k_justbumped] = 6;
+			tmthing->player->kartstuff[k_justbumped] = 6;
 		}
 		// Are you touching the side of the object you're interacting with?
 		else if (thing->z - FixedMul(FRACUNIT, thing->scale) <= tmthing->z + tmthing->height

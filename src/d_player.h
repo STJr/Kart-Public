@@ -368,7 +368,6 @@ typedef struct player_s
 
 	// SRB2kart stuff
 	INT32 kartstuff[NUMKARTSTUFF];
-	boolean collide[MAXPLAYERS];
 
 	// Bit flags.
 	// See pflags_t, above.
