@@ -1640,8 +1640,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
-	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 	player->kartstuff[k_spinouttype] = 0;
 
@@ -1697,8 +1697,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	player->powers[pw_flashing] = flashingtics;
 
-	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 	player->kartstuff[k_spinouttype] = 0;
 

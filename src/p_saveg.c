@@ -141,6 +141,8 @@ static void P_NetArchivePlayers(void)
 		for (j = 0; j < MAXPLAYERS; j++)
 			WRITEUINT8(save_p, players[i].collide[j]);
 
+		WRITEANGLE(save_p, players[i].frameangle);
+
 		WRITEUINT8(save_p, players[i].playerstate);
 		WRITEUINT32(save_p, players[i].pflags);
 		WRITEUINT8(save_p, players[i].panim);
@@ -323,6 +325,8 @@ static void P_NetUnArchivePlayers(void)
 			players[i].kartstuff[j] = READINT32(save_p);
 		for (j = 0; j < MAXPLAYERS; j++)
 			players[i].collide[j] = (boolean)READUINT8(save_p);
+
+		players[i].frameangle = READANGLE(save_p);
 
 		players[i].playerstate = READUINT8(save_p);
 		players[i].pflags = READUINT32(save_p);

@@ -106,14 +106,7 @@ state_t states[NUMSTATES] =
 	{SPR_PLAY,    10,   2, {NULL},   0, 0, S_KART_DRIFT_L1}, // S_KART_DRIFT_L2 K
 	{SPR_PLAY,    11,   2, {NULL},   0, 0, S_KART_DRIFT_R2}, // S_KART_DRIFT_R1 L
 	{SPR_PLAY,    12,   2, {NULL},   0, 0, S_KART_DRIFT_R1}, // S_KART_DRIFT_R2 M
-	{SPR_PLAY,    13,   2, {NULL},   0, 0, S_KART_SPIN2},    // S_KART_SPIN1	N
-	{SPR_PLAY,    14,   2, {NULL},   0, 0, S_KART_SPIN3},    // S_KART_SPIN2	O
-	{SPR_PLAY,    15,   2, {NULL},   0, 0, S_KART_SPIN4},    // S_KART_SPIN3	P
-	{SPR_PLAY,    16,   2, {NULL},   0, 0, S_KART_SPIN5},    // S_KART_SPIN4	Q
-	{SPR_PLAY,    17,   2, {NULL},   0, 0, S_KART_SPIN6},    // S_KART_SPIN5	R
-	{SPR_PLAY,    18,   2, {NULL},   0, 0, S_KART_SPIN7},    // S_KART_SPIN6	S
-	{SPR_PLAY,    19,   2, {NULL},   0, 0, S_KART_SPIN8},    // S_KART_SPIN7	T
-	{SPR_PLAY,    20,   2, {NULL},   0, 0, S_KART_SPIN1},    // S_KART_SPIN8	U
+	{SPR_PLAY,    13,  -1, {NULL},   0, 0, S_KART_SPIN},     // S_KART_SPIN		N
 	{SPR_PLAY,    13, 350, {NULL},   0, 0, S_KART_STND},     // S_KART_PAIN		N
 	{SPR_PLAY,    21, 350, {NULL},   0, 0, S_KART_STND},     // S_KART_SQUISH	V
 	/*

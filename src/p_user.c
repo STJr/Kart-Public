@@ -6679,8 +6679,10 @@ static void P_MovePlayer(player_t *player)
 		}
 		else if (player->kartstuff[k_spinouttimer] > 0)
 		{
-			if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-				P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+			if (player->mo->state != &states[S_KART_SPIN])
+				P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+
+			player->frameangle -= ANGLE_22h;
 		}
 		else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_squishedtimer] == 0)
 		{
@@ -6726,6 +6728,8 @@ static void P_MovePlayer(player_t *player)
 				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_WALK1] || player->mo->state == &states[S_KART_WALK2]))
 					P_SetPlayerMobjState(player->mo, S_KART_WALK1);
 			}
+
+			player->frameangle = player->mo->angle;
 		}
 	}
 	//}

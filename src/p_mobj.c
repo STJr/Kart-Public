@@ -226,7 +226,7 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 	// Set animation state
 	// The pflags version of this was just as convoluted.
 	// Rewriten for SRB2kart ... though I don't know what this is.
-	if ((state >= S_KART_STND && state <= S_KART_STND_R) || state == S_KART_SQUISH || (state >= S_KART_SPIN1 && state <= S_KART_SPIN8))
+	if ((state >= S_KART_STND && state <= S_KART_STND_R) || state == S_KART_SQUISH || state == S_KART_SPIN)
 		player->panim = PA_IDLE;
 	else if (state >= S_KART_WALK1 && state <= S_KART_WALK_R2)
 		player->panim = PA_WALK;
@@ -2762,7 +2762,7 @@ static void P_PlayerZMovement(mobj_t *mo)
 			goto nightsdone;
 		}
 		// Get up if you fell.
-		if ((mo->state == &states[mo->info->painstate] || (mo->state >= &states[S_KART_SPIN1] && mo->state <= &states[S_KART_SPIN8]))
+		if ((mo->state == &states[mo->info->painstate] || mo->state == &states[S_KART_SPIN])
 			&& mo->player->kartstuff[k_spinouttimer] == 0 && mo->player->kartstuff[k_squishedtimer] == 0) // SRB2kart
 			P_SetPlayerMobjState(mo, S_KART_STND);
 
