@@ -1662,13 +1662,18 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 void K_SpinPlayer(player_t *player, mobj_t *source)
 {
-	(void) source;
 	if (player->health <= 0)
 		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return;
+
+	if (source && source->player && !source->player->kartstuff[k_sounds])
+	{
+		S_StartSound(source, sfx_hitem);
+		source->player->kartstuff[k_sounds] = 50;
+	}
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;

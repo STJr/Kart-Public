@@ -506,11 +506,12 @@ sfxinfo_t S_sfx[NUMSFX] =
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
   {"klose",  false,  64,  0, -1, NULL, 0,   SKSLOSE,  -1, LUMPERROR},
-  {"slow",   false, 128,  0, -1, NULL, 0,   SKSSLOW,  -1, LUMPERROR},
-  {"taunt1", false,  64, 64, -1, NULL, 0, SKSPLTNT1,  -1, LUMPERROR},
-  {"taunt2", false,  64, 64, -1, NULL, 0, SKSPLTNT2,  -1, LUMPERROR},
-  {"taunt3", false,  64, 64, -1, NULL, 0, SKSPLTNT3,  -1, LUMPERROR},
-  {"taunt4", false,  64, 64, -1, NULL, 0, SKSPLTNT4,  -1, LUMPERROR},
+  {"slow",   false, 128, 32, -1, NULL, 0,   SKSSLOW,  -1, LUMPERROR},
+  {"taunt1", false,  64, 96, -1, NULL, 0, SKSPLTNT1,  -1, LUMPERROR},
+  {"taunt2", false,  64, 96, -1, NULL, 0, SKSPLTNT2,  -1, LUMPERROR},
+  {"taunt3", false,  64, 96, -1, NULL, 0, SKSPLTNT3,  -1, LUMPERROR},
+  {"taunt4", false,  64, 96, -1, NULL, 0, SKSPLTNT4,  -1, LUMPERROR},
+  {"hitem",  false,  64, 32, -1, NULL, 0,  SKSHITEM,  -1, LUMPERROR},
 
   // skin sounds free slots to add sounds at run time (Boris HACK!!!)
   // initialized to NULL
