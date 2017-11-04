@@ -2784,7 +2784,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				mo->player->rmomx = mo->player->rmomy = 1;
 				mo->player->cmomx = mo->player->cmomy = 0;
 				P_ResetPlayer(mo->player);
-				P_SetPlayerMobjState(mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+				P_SetPlayerMobjState(mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 
 				// Reset bot too.
 				if (bot) {
@@ -2795,7 +2795,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					bot->player->rmomx = bot->player->rmomy = 1;
 					bot->player->cmomx = bot->player->cmomy = 0;
 					P_ResetPlayer(bot->player);
-					P_SetPlayerMobjState(bot, S_KART_STND); // SRB2kart - was S_PLAY_STND
+					P_SetPlayerMobjState(bot, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 				}
 			}
 			break;

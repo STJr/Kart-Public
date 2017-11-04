@@ -87,28 +87,31 @@ state_t states[NUMSTATES] =
 	{SPR_THOK, FF_TRANS50, 8, {NULL}, 0, 0, S_NULL}, // S_THOK
 
 	// Player // SRB2kart
-	{SPR_PLAY,     0,  -1, {NULL},   0, 0, S_KART_STND},     // S_KART_STND		A
-	{SPR_PLAY,     1,  -1, {NULL},   0, 0, S_KART_STND_L},   // S_KART_STND_L	B
-	{SPR_PLAY,     2,  -1, {NULL},   0, 0, S_KART_STND_R},   // S_KART_STND_R	C
-	{SPR_PLAY,     3,   4, {NULL},   0, 0, S_KART_WALK2},    // S_KART_WALK1	D
-	{SPR_PLAY,     4,   4, {NULL},   0, 0, S_KART_WALK1},    // S_KART_WALK2	E
-	{SPR_PLAY,     5,   4, {NULL},   0, 0, S_KART_WALK_L2},  // S_KART_WALK_L1	F
-	{SPR_PLAY,     6,   4, {NULL},   0, 0, S_KART_WALK_L1},  // S_KART_WALK_L2	G
-	{SPR_PLAY,     7,   4, {NULL},   0, 0, S_KART_WALK_R2},  // S_KART_WALK_R1	H
-	{SPR_PLAY,     8,   4, {NULL},   0, 0, S_KART_WALK_R1},  // S_KART_WALK_R2	I
-	{SPR_PLAY,     0,   2, {NULL},   0, 0, S_KART_RUN2},     // S_KART_RUN1		A
-	{SPR_PLAY,     3,   2, {NULL},   0, 0, S_KART_RUN1},     // S_KART_RUN2		D
-	{SPR_PLAY,     1,   2, {NULL},   0, 0, S_KART_RUN_L2},   // S_KART_RUN_L1	B
-	{SPR_PLAY,     5,   2, {NULL},   0, 0, S_KART_RUN_L1},   // S_KART_RUN_L2	F
-	{SPR_PLAY,     2,   2, {NULL},   0, 0, S_KART_RUN_R2},   // S_KART_RUN_R1	C
-	{SPR_PLAY,     7,   2, {NULL},   0, 0, S_KART_RUN_R1},   // S_KART_RUN_R2	H
-	{SPR_PLAY,     9,   2, {NULL},   0, 0, S_KART_DRIFT_L2}, // S_KART_DRIFT_L1	J
-	{SPR_PLAY,    10,   2, {NULL},   0, 0, S_KART_DRIFT_L1}, // S_KART_DRIFT_L2 K
-	{SPR_PLAY,    11,   2, {NULL},   0, 0, S_KART_DRIFT_R2}, // S_KART_DRIFT_R1 L
-	{SPR_PLAY,    12,   2, {NULL},   0, 0, S_KART_DRIFT_R1}, // S_KART_DRIFT_R2 M
-	{SPR_PLAY,    13,  -1, {NULL},   0, 0, S_KART_SPIN},     // S_KART_SPIN		N
-	{SPR_PLAY,    13, 350, {NULL},   0, 0, S_KART_STND},     // S_KART_PAIN		N
-	{SPR_PLAY,    21, 350, {NULL},   0, 0, S_KART_STND},     // S_KART_SQUISH	V
+	{SPR_PLAY,     0,   1, {NULL},   0, 0, S_KART_STND2},    // S_KART_STND1	A
+	{SPR_PLAY,     1,   1, {NULL},   0, 0, S_KART_STND1},    // S_KART_STND2	B
+	{SPR_PLAY,     2,   1, {NULL},   0, 0, S_KART_STND2_L},  // S_KART_STND1_L	C
+	{SPR_PLAY,     3,   1, {NULL},   0, 0, S_KART_STND1_L},  // S_KART_STND2_L	D
+	{SPR_PLAY,     4,   1, {NULL},   0, 0, S_KART_STND2_R},  // S_KART_STND1_R	E
+	{SPR_PLAY,     5,   1, {NULL},   0, 0, S_KART_STND1_R},  // S_KART_STND2_R	F
+	{SPR_PLAY,     6,   4, {NULL},   0, 0, S_KART_WALK2},    // S_KART_WALK1	G
+	{SPR_PLAY,     7,   4, {NULL},   0, 0, S_KART_WALK1},    // S_KART_WALK2	H
+	{SPR_PLAY,     8,   4, {NULL},   0, 0, S_KART_WALK2_L},  // S_KART_WALK1_L	I
+	{SPR_PLAY,     9,   4, {NULL},   0, 0, S_KART_WALK1_L},  // S_KART_WALK2_L	J
+	{SPR_PLAY,    10,   4, {NULL},   0, 0, S_KART_WALK2_R},  // S_KART_WALK1_R	K
+	{SPR_PLAY,    11,   4, {NULL},   0, 0, S_KART_WALK1_R},  // S_KART_WALK2_R	L
+	{SPR_PLAY,    12,   2, {NULL},   0, 0, S_KART_RUN2},     // S_KART_RUN1		M
+	{SPR_PLAY,    13,   2, {NULL},   0, 0, S_KART_RUN1},     // S_KART_RUN2		N
+	{SPR_PLAY,    14,   2, {NULL},   0, 0, S_KART_RUN2_L},   // S_KART_RUN1_L	O
+	{SPR_PLAY,    15,   2, {NULL},   0, 0, S_KART_RUN1_L},   // S_KART_RUN2_L	P
+	{SPR_PLAY,    16,   2, {NULL},   0, 0, S_KART_RUN2_R},   // S_KART_RUN1_R	Q
+	{SPR_PLAY,    17,   2, {NULL},   0, 0, S_KART_RUN1_R},   // S_KART_RUN2_R	R
+	{SPR_PLAY,    18,   2, {NULL},   0, 0, S_KART_DRIFT2_L}, // S_KART_DRIFT1_L	S
+	{SPR_PLAY,    19,   2, {NULL},   0, 0, S_KART_DRIFT1_L}, // S_KART_DRIFT2_L	T
+	{SPR_PLAY,    20,   2, {NULL},   0, 0, S_KART_DRIFT2_R}, // S_KART_DRIFT1_R	U
+	{SPR_PLAY,    21,   2, {NULL},   0, 0, S_KART_DRIFT1_R}, // S_KART_DRIFT2_R	V
+	{SPR_PLAY,    22,  -1, {NULL},   0, 0, S_KART_SPIN},     // S_KART_SPIN		W
+	{SPR_PLAY,    22, 350, {NULL},   0, 0, S_KART_STND1},    // S_KART_PAIN		W
+	{SPR_PLAY,    23, 350, {NULL},   0, 0, S_KART_STND1},    // S_KART_SQUISH	X
 	/*
 	{SPR_PLAY,     0, 105, {NULL},   0, 0, S_PLAY_TAP1},        // S_PLAY_STND
 	{SPR_PLAY,     1,  16, {NULL},   0, 0, S_PLAY_TAP2},        // S_PLAY_TAP1
@@ -2944,7 +2947,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_PLAYER
 		-1,             // doomednum
-		S_KART_STND,    // spawnstate
+		S_KART_STND1,    // spawnstate
 		1,              // spawnhealth
 		S_KART_WALK1,    // seestate
 		sfx_None,       // seesound
