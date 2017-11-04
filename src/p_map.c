@@ -1597,6 +1597,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		else if (thing->player) // bounce when players collide
 		{
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
 				|| thing->player->kartstuff[k_bootaketimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
@@ -1608,14 +1614,15 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			}
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
-				K_KartBilliards(tmthing, thing, true);
+				K_KartBouncing(tmthing, thing, true);
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
-				K_KartBilliards(thing, tmthing, true);
+				K_KartBouncing(thing, tmthing, true);
 			else
-				K_KartBilliards(tmthing, thing, false);
+				K_KartBouncing(tmthing, thing, false);
 
 			thing->player->kartstuff[k_justbumped] = 6;
 			tmthing->player->kartstuff[k_justbumped] = 6;
+			return true;
 		}
 		// Are you touching the side of the object you're interacting with?
 		else if (thing->z - FixedMul(FRACUNIT, thing->scale) <= tmthing->z + tmthing->height
