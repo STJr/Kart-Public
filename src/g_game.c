@@ -87,7 +87,7 @@ boolean modifiedgame; // Set if homebrew PWAD stuff has been added.
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
-boolean disableSpeedAdjust = false;
+boolean disableSpeedAdjust = true;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 

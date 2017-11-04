@@ -93,18 +93,18 @@ state_t states[NUMSTATES] =
 	{SPR_PLAY,     3,   1, {NULL},   0, 0, S_KART_STND1_L},  // S_KART_STND2_L	D
 	{SPR_PLAY,     4,   1, {NULL},   0, 0, S_KART_STND2_R},  // S_KART_STND1_R	E
 	{SPR_PLAY,     5,   1, {NULL},   0, 0, S_KART_STND1_R},  // S_KART_STND2_R	F
-	{SPR_PLAY,     6,   4, {NULL},   0, 0, S_KART_WALK2},    // S_KART_WALK1	G
-	{SPR_PLAY,     7,   4, {NULL},   0, 0, S_KART_WALK1},    // S_KART_WALK2	H
-	{SPR_PLAY,     8,   4, {NULL},   0, 0, S_KART_WALK2_L},  // S_KART_WALK1_L	I
-	{SPR_PLAY,     9,   4, {NULL},   0, 0, S_KART_WALK1_L},  // S_KART_WALK2_L	J
-	{SPR_PLAY,    10,   4, {NULL},   0, 0, S_KART_WALK2_R},  // S_KART_WALK1_R	K
-	{SPR_PLAY,    11,   4, {NULL},   0, 0, S_KART_WALK1_R},  // S_KART_WALK2_R	L
-	{SPR_PLAY,    12,   2, {NULL},   0, 0, S_KART_RUN2},     // S_KART_RUN1		M
-	{SPR_PLAY,    13,   2, {NULL},   0, 0, S_KART_RUN1},     // S_KART_RUN2		N
-	{SPR_PLAY,    14,   2, {NULL},   0, 0, S_KART_RUN2_L},   // S_KART_RUN1_L	O
-	{SPR_PLAY,    15,   2, {NULL},   0, 0, S_KART_RUN1_L},   // S_KART_RUN2_L	P
-	{SPR_PLAY,    16,   2, {NULL},   0, 0, S_KART_RUN2_R},   // S_KART_RUN1_R	Q
-	{SPR_PLAY,    17,   2, {NULL},   0, 0, S_KART_RUN1_R},   // S_KART_RUN2_R	R
+	{SPR_PLAY,     6,   1, {NULL},   0, 0, S_KART_WALK2},    // S_KART_WALK1	G
+	{SPR_PLAY,     7,   1, {NULL},   0, 0, S_KART_WALK1},    // S_KART_WALK2	H
+	{SPR_PLAY,     8,   1, {NULL},   0, 0, S_KART_WALK2_L},  // S_KART_WALK1_L	I
+	{SPR_PLAY,     9,   1, {NULL},   0, 0, S_KART_WALK1_L},  // S_KART_WALK2_L	J
+	{SPR_PLAY,    10,   1, {NULL},   0, 0, S_KART_WALK2_R},  // S_KART_WALK1_R	K
+	{SPR_PLAY,    11,   1, {NULL},   0, 0, S_KART_WALK1_R},  // S_KART_WALK2_R	L
+	{SPR_PLAY,    12,   1, {NULL},   0, 0, S_KART_RUN2},     // S_KART_RUN1		M
+	{SPR_PLAY,    13,   1, {NULL},   0, 0, S_KART_RUN1},     // S_KART_RUN2		N
+	{SPR_PLAY,    14,   1, {NULL},   0, 0, S_KART_RUN2_L},   // S_KART_RUN1_L	O
+	{SPR_PLAY,    15,   1, {NULL},   0, 0, S_KART_RUN1_L},   // S_KART_RUN2_L	P
+	{SPR_PLAY,    16,   1, {NULL},   0, 0, S_KART_RUN2_R},   // S_KART_RUN1_R	Q
+	{SPR_PLAY,    17,   1, {NULL},   0, 0, S_KART_RUN1_R},   // S_KART_RUN2_R	R
 	{SPR_PLAY,    18,   2, {NULL},   0, 0, S_KART_DRIFT2_L}, // S_KART_DRIFT1_L	S
 	{SPR_PLAY,    19,   2, {NULL},   0, 0, S_KART_DRIFT1_L}, // S_KART_DRIFT2_L	T
 	{SPR_PLAY,    20,   2, {NULL},   0, 0, S_KART_DRIFT2_R}, // S_KART_DRIFT1_R	U
