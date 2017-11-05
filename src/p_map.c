@@ -1598,13 +1598,53 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		else if (thing->player) // bounce when players collide
 		{
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
-				|| thing->player->kartstuff[k_bootaketimer] || thing->player->kartstuff[k_spinouttimer]
+				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
+				|| (gametype != GT_RACE && (thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer]))
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
-				|| tmthing->player->kartstuff[k_bootaketimer] || tmthing->player->kartstuff[k_spinouttimer]
-				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped])
+				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer]
+				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped]
+				|| (gametype != GT_RACE && (tmthing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_comebacktimer])))
 			{
 				return true;
+			}
+
+			if (gametype != GT_RACE)
+			{
+				if (thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
+				{
+					thing->player->kartstuff[k_justbumped] = 6;
+					tmthing->player->kartstuff[k_justbumped] = 6;
+					if (tmthing->player->kartstuff[k_balloon] > 0)
+					{
+						if (tmthing->player->kartstuff[k_balloon] == 1)
+							K_StealBalloon(thing->player, tmthing->player);
+						thing->player->kartstuff[k_comebacktimer] = comebacktime;
+						K_ExplodePlayer(tmthing->player, thing);
+						return true;
+					}
+					else if (thing->player->kartstuff[k_balloon] > 0)
+					{
+						if (thing->player->kartstuff[k_balloon] == 1)
+							K_StealBalloon(tmthing->player, thing->player);
+						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
+						K_ExplodePlayer(thing->player, thing);
+						return true;
+					}
+				}
+				else
+				{
+					if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
+					{
+						K_StealBalloon(thing->player, tmthing->player);
+						K_SpinPlayer(tmthing->player, thing);
+					}
+					else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
+					{
+						K_StealBalloon(tmthing->player, thing->player);
+						K_SpinPlayer(thing->player, tmthing);
+					}
+				}
 			}
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
@@ -1613,14 +1653,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				K_KartBilliards(thing, tmthing, true);
 			else
 				K_KartBilliards(tmthing, thing, false);
-
-			if (gametype != GT_RACE)
-			{
-				if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
-					K_StealBalloon(thing->player, tmthing->player);
-				else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
-					K_StealBalloon(tmthing->player, thing->player);
-			}
 
 			thing->player->kartstuff[k_justbumped] = 6;
 			tmthing->player->kartstuff[k_justbumped] = 6;

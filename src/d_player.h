@@ -266,6 +266,7 @@ typedef enum
 
 	// Some items use timers for their duration or effects
 	k_magnettimer,		// Duration of Magnet's item-break and item box pull
+	k_bootimer,			// Duration of the boo offroad effect itself
 	k_bootaketimer,		// You are stealing an item, this is your timer
 	k_boostolentimer,	// You are being stolen from, this is your timer
 	k_mushroomtimer,	// Duration of the Mushroom Boost itself
@@ -277,6 +278,7 @@ typedef enum
 	k_laserwisptimer,	// The duration and relative angle of the laser
 	k_justbumped,		// Prevent players from endlessly bumping into each other
 	k_poweritemtimer,	// Battle mode, how long before you're allowed another power item (Star, Megashroom)
+	k_comebacktimer,	// Battle mode, how long before you become a bomb after death
 
 	// Each item needs its own power slot, for the HUD and held use
 	k_magnet,			// 0x1 = Magnet in inventory
@@ -304,8 +306,7 @@ typedef enum
 						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
 	k_lightning,		// 0x1 = Lightning in inventory
 	k_kitchensink,		// 0x1 = Sink in inventory
-	k_balloon,			// 0x1 = 1 hit left, 0x2 = 2 hits left, 0x4 = 3 hits left
-						// 0x8 = 4 hits left, 0x16 = 5 hits left
+	k_balloon,			// Number of balloons left
 
 	NUMKARTSTUFF
 } kartstufftype_t;

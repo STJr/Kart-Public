@@ -6509,11 +6509,11 @@ void P_MobjThinker(mobj_t *mobj)
 					INT32 HEIGHT;
 					fixed_t radius;
 
-					if (mobj->target->player->kartstuff[k_bootaketimer] > 0)
+					if (mobj->target->player->kartstuff[k_bootimer] > 0)
 					{
 						if ((mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
 							|| (!(mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
-							&& (mobj->target->player->kartstuff[k_bootaketimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootaketimer] > bootime-(1*TICRATE/2))))
+							&& (mobj->target->player->kartstuff[k_bootimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
 						{
 							if (leveltime & 1)
 								mobj->flags2 |= MF2_DONTDRAW;
@@ -6523,7 +6523,7 @@ void P_MobjThinker(mobj_t *mobj)
 						else
 							mobj->flags2 |= MF2_DONTDRAW;
 					}
-					else if (mobj->target->player->kartstuff[k_bootaketimer] == 0)
+					else if (mobj->target->player->kartstuff[k_bootimer] == 0)
 					{
 						mobj->flags2 &= ~MF2_DONTDRAW;
 					}
@@ -6709,9 +6709,9 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						mobj->color = mobj->target->color; // but do so if it belongs to you :B
 
-					if (mobj->target->player->kartstuff[k_balloon] <= 1)
+					if (mobj->target->player->kartstuff[k_balloon] < 2)
 						P_SetMobjState(mobj, S_BATTLEBALLOON3);
-					else if (mobj->target->player->kartstuff[k_balloon] == 2)
+					else if (mobj->target->player->kartstuff[k_balloon] < 3)
 						P_SetMobjState(mobj, S_BATTLEBALLOON2);
 					else
 						P_SetMobjState(mobj, S_BATTLEBALLOON1);
@@ -6759,8 +6759,9 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->flags2 &= ~MF2_DONTDRAW;
 
 					if ((splitscreen || !netgame)
-						|| (gametype == GT_RACE)
-						|| (mobj->target->player->kartstuff[k_bootaketimer] > 0))
+						|| gametype == GT_RACE
+						|| mobj->target->player->kartstuff[k_bootimer]
+						|| (mobj->target->player->kartstuff[k_balloon] <= 0 && mobj->target->player->kartstuff[k_comebacktimer]))
 						mobj->flags2 |= MF2_DONTDRAW;
 						
 					P_UnsetThingPosition(mobj);
@@ -6780,7 +6781,12 @@ void P_MobjThinker(mobj_t *mobj)
 					P_SetThingPosition(mobj);
 
 					// Set it to use the correct states for its condition
-					if (mobj->target->player->kartstuff[k_kitchensink])					P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK);
+					if (mobj->target->player->kartstuff[k_itemroulette])
+					{
+						if (mobj->state != &states[S_PLAYERARROW_ROULETTE]) // don't reset FF_ANIMATE
+							P_SetMobjState(mobj, S_PLAYERARROW_ROULETTE);
+					}
+					else if (mobj->target->player->kartstuff[k_kitchensink])				P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK);
 					else if (mobj->target->player->kartstuff[k_megashroom] == 1
 						|| (mobj->target->player->kartstuff[k_growshrinktimer] > 1
 						&& (leveltime & 1)))												P_SetMobjState(mobj, S_PLAYERARROW_MEGASHROOM);
@@ -9459,37 +9465,50 @@ void P_SpawnPlayer(INT32 playernum)
 	overheadarrow->flags2 |= MF2_DONTDRAW;
 	P_SetScale(overheadarrow, mobj->destscale);
 
-	if (gametype != GT_RACE && ((leveltime < 1 || D_NumPlayers() <= 1) || p->kartstuff[k_balloon] > 0)) // srb2kart
+	if (gametype != GT_RACE)
 	{
 		INT32 i;
-		angle_t newangle, diff;
-		fixed_t newx;
-		fixed_t newy;
-		mobj_t *mo;
+		INT32 pcount = 0;
 
-		if (leveltime < 1 || D_NumPlayers() <= 1) // Start of the map?
-			p->kartstuff[k_balloon] = cv_kartballoons.value; // Reset those balloons!
-
-		if (p->kartstuff[k_balloon] <= 1)
-			diff = 0;
-		else
-			diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_balloon]);
-
-		newangle = mobj->angle;
-		newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
-		newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
-
-		for (i = 0; i < p->kartstuff[k_balloon]; i++)
+		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON);
-			mo->threshold = i;
-			P_SetTarget(&mo->target, mobj);
-			mo->angle = (diff * (i-1));
-			mo->color = mobj->color;
-			if (mobj->flags2 & MF2_DONTDRAW)
-				mo->flags2 |= MF2_DONTDRAW;
+			if (!playeringame[i] || players[i].spectator || &players[i] == p)
+				continue;
+			pcount++;
+		}
+
+		if (p->kartstuff[k_balloon] > 0 || leveltime < 1 || pcount <= 1) // srb2kart
+		{
+			angle_t newangle;
+			angle_t diff;
+			fixed_t newx;
+			fixed_t newy;
+			mobj_t *mo;
+
+			if (leveltime < 1 || pcount <= 1) // Start of the map?
+				p->kartstuff[k_balloon] = cv_kartballoons.value; // Reset those balloons!
+
+			if (p->kartstuff[k_balloon] <= 1)
+				diff = 0;
 			else
-				mo->flags2 &= ~MF2_DONTDRAW;
+				diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_balloon]);
+
+			newangle = mobj->angle;
+			newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
+			newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
+
+			for (i = 0; i < p->kartstuff[k_balloon]; i++)
+			{
+				mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON);
+				mo->threshold = i;
+				P_SetTarget(&mo->target, mobj);
+				mo->angle = (diff * (i-1));
+				mo->color = mobj->color;
+				if (mobj->flags2 & MF2_DONTDRAW)
+					mo->flags2 |= MF2_DONTDRAW;
+				else
+					mo->flags2 &= ~MF2_DONTDRAW;
+			}
 		}
 	}
 }

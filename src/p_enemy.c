@@ -3921,7 +3921,8 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (thing == grenade->target && !(grenade->threshold == 0)) // Don't blow up at your owner.
 		return true;
 
-	if (thing->player && thing->player->kartstuff[k_bootaketimer])
+	if (thing->player && (thing->player->kartstuff[k_bootimer]
+	|| (thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
 		return true;
 
 	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
@@ -8207,7 +8208,7 @@ void A_RedShellChase(mobj_t *actor)
 						continue;
 				}
 
-				if (!(gametype == GT_RACE))
+				if (gametype != GT_RACE)
 				{
 					if (player->kartstuff[k_balloon] <= 0)
 						continue;
@@ -8265,6 +8266,9 @@ void A_BobombExplode(mobj_t *actor)
 		mo2 = (mobj_t *)th;
 
 		if (mo2 == actor || mo2->type == MT_BOMBEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
+			continue;
+
+		if (actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)

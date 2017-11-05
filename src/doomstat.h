@@ -401,8 +401,10 @@ extern UINT16 extralifetics;
 
 // SRB2kart
 extern INT32 bootime;
+extern INT32 boostealtime;
 extern INT32 mushroomtime;
 extern INT32 itemtime;
+extern INT32 comebacktime;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;

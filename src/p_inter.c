@@ -150,7 +150,11 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
 	//	return false;
 
-	if (player->kartstuff[k_greenshell]				|| player->kartstuff[k_triplegreenshell]
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+		return false;
+	
+	if (player->kartstuff[k_itemroulette]
+		|| player->kartstuff[k_greenshell]				|| player->kartstuff[k_triplegreenshell]
 		|| player->kartstuff[k_redshell]				|| player->kartstuff[k_tripleredshell]
 		|| player->kartstuff[k_banana]					|| player->kartstuff[k_triplebanana]
 		|| player->kartstuff[k_fakeitem] & 2			|| player->kartstuff[k_magnet]
@@ -158,7 +162,6 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 		|| player->kartstuff[k_mushroom]				|| player->kartstuff[k_fireflower]
 		|| player->kartstuff[k_star]					|| player->kartstuff[k_goldshroom]
 		|| player->kartstuff[k_lightning]				|| player->kartstuff[k_megashroom]
-		|| player->kartstuff[k_itemroulette]
 		|| player->kartstuff[k_boo]					|| player->kartstuff[k_bootaketimer]
 		|| player->kartstuff[k_boostolentimer]
 		|| player->kartstuff[k_growshrinktimer] > 1
@@ -2745,10 +2748,12 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 
 	if (gametype != GT_RACE)
 	{
-		player->kartstuff[k_balloon]--;
-
-		if (player->kartstuff[k_balloon] <= 0)
-			CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+		if (player->kartstuff[k_balloon] > 0)
+		{
+			if (player->kartstuff[k_balloon] == 1)
+				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+			player->kartstuff[k_balloon]--;
+		}
 
 		K_CheckBalloons();
 	}

@@ -6427,6 +6427,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW_MEGASHROOM",
 	"S_PLAYERARROW_KITCHENSINK",
 	"S_PLAYERARROW_EMPTY",
+	"S_PLAYERARROW_ROULETTE",
+
+	"S_PLAYERBOMB", // Player bomb overlay
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
