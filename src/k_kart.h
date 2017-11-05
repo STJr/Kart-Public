@@ -16,14 +16,14 @@ UINT8 K_GetKartColorByName(const char *name);
 void K_RegisterKartStuff(void);
 
 UINT8 K_GetKartCC(void);
-void K_KartMoveAnimation(player_t *player);
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce);
+void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_SpinPlayer(player_t *player, mobj_t *source);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source);
 void K_StealBalloon(player_t *player, player_t *victim);
-void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit);
+void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source);
 void K_SpawnDriftTrail(player_t *player);
 void K_DoMushroom(player_t *player, boolean doPFlag, boolean startboost);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);

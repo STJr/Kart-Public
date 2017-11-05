@@ -6544,7 +6544,6 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					fixed_t HEIGHT;
 					fixed_t radius; // mobj's distance from its Target, or Radius.
 
 					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
@@ -6562,18 +6561,6 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->angle = (mobj->target->angle + ANGLE_225);
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
-
-					// If the player is on the ceiling, then flip your items as well.
-					if (mobj->target->eflags & MFE_VERTICALFLIP)
-					{
-						mobj->eflags |= MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height / 2;
-					}
-					else
-					{
-						mobj->eflags &= ~MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height / 5;
-					}
 
 					// Shrink your items if the player shrunk too.
 					mobj->scale = mobj->target->scale;
@@ -6701,23 +6688,19 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_PLAYERARROW:
 				if (mobj->target && mobj->target->health
 					&& mobj->target->player && mobj->target->player->mo
-					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
-					&& !(gametype != GT_RACE && mobj->target->player->kartstuff[k_balloon] <= 0))
+					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD)
 				{
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					if (mobj->target->player == &players[displayplayer])
+					if ((splitscreen || !netgame)
+						|| gametype == GT_RACE
+						|| mobj->target->player == &players[displayplayer]
+						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
 						mobj->flags2 |= MF2_DONTDRAW;
 					else
 						mobj->flags2 &= ~MF2_DONTDRAW;
 
-					if ((splitscreen || !netgame)
-						|| gametype == GT_RACE
-						|| mobj->target->player->kartstuff[k_bootimer]
-						|| (mobj->target->player->kartstuff[k_balloon] <= 0 && mobj->target->player->kartstuff[k_comebacktimer]))
-						mobj->flags2 |= MF2_DONTDRAW;
-						
 					P_UnsetThingPosition(mobj);
 					mobj->x = mobj->target->x;
 					mobj->y = mobj->target->y;

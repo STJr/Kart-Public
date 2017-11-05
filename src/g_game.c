@@ -205,7 +205,7 @@ INT32 bootime = 7*TICRATE;
 INT32 boostealtime = TICRATE/2;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
-INT32 comebacktime = 5*TICRATE;
+INT32 comebacktime = 15*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 

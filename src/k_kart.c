@@ -1092,6 +1092,17 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
+
+	// if the speed difference is less than this let's assume they're going proportionately faster from each other
+	if (P_AproxDistance(momdifx, momdify) < 25*FRACUNIT/2)
+	{
+		fixed_t momdiflength = P_AproxDistance(momdifx, momdify);
+		fixed_t normalisedx = FixedDiv(momdifx, momdiflength);
+		fixed_t normalisedy = FixedDiv(momdify, momdiflength);
+		momdifx = FixedMul(25*FRACUNIT/2, normalisedx);
+		momdify = FixedMul(25*FRACUNIT/2, normalisedy);
+	}
+
 	distx = mobj1->x - mobj2->x;
 	disty = mobj1->y - mobj2->y;
 	dot = FixedMul(momdifx, distx) + FixedMul(momdify, disty);
@@ -1276,8 +1287,13 @@ void K_LakituChecker(player_t *player)
 void K_KartMoveAnimation(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
+	// Battle Mode bomb overrides everything else
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+	{
+		P_SetPlayerMobjState(player->mo, S_PLAYERBOMB);
+	}
 	// Standing frames - S_KART_STND1   S_KART_STND1_L   S_KART_STND1_R
-	if (player->speed == 0)
+	else if (player->speed == 0)
 	{
 		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_STND1_R] && player->mo->state <= &states[S_KART_STND2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_STND1_R);
@@ -1633,7 +1649,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		|| (gametype != GT_RACE && (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
 		return;
 
-	if (source && source->player && !source->player->kartstuff[k_sounds])
+	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
 	{
 		S_StartSound(source, sfx_hitem);
 		source->player->kartstuff[k_sounds] = 50;
@@ -1840,7 +1856,8 @@ void K_StealBalloon(player_t *player, player_t *victim)
 	return;
 }
 
-void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit)
+// source is the mobj that originally threw the bomb that exploded etc.
+void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source)
 {
 	mobj_t *mobj;
 	mobj_t *ghost = NULL;
@@ -1920,6 +1937,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 		mobj->flags |= MF_NOCLIPTHING;
 		mobj->flags &= ~MF_SPECIAL;
 
+		P_SetTarget(&mobj->target, source);
 	}
 }
 
@@ -1999,7 +2017,7 @@ void K_SpawnDriftTrail(player_t *player)
 
 	for (i = 0; i < 2; i++)
 	{
-		if (player->kartstuff[k_bootimer] != 0 || (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0))
+		if (player->kartstuff[k_bootimer] != 0 || (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
 			continue;
 
 		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
@@ -3249,29 +3267,24 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		else if (player->kartstuff[k_bootimer] == 0)
 		{
-			player->mo->flags2 &= ~MF2_DONTDRAW;
+			if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb
+			{
+				K_StripItems(player);
+				if (player->kartstuff[k_comebacktimer] > 0)
+				{
+					if (leveltime & 1)
+						player->mo->flags2 |= MF2_DONTDRAW;
+					else
+						player->mo->flags2 &= ~MF2_DONTDRAW;
+
+					player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
+				}
+				else
+					player->mo->flags2 &= ~MF2_DONTDRAW;
+			}
+			else if (player->kartstuff[k_balloon] > 0)
+				player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
-	}
-
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb
-	{
-		K_StripItems(player);
-		player->mo->flags2 |= MF2_DONTDRAW;
-
-		if (player->kartstuff[k_comebacktimer])
-			player->powers[pw_flashing] = 2;
-
-		if (!(player->mo->tracer))
-			player->mo->tracer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
-
-		P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
-		P_SetTarget(&player->mo->tracer, player->mo);
-		player->mo->tracer->color = player->mo->color;
-	}
-	else if (player->mo->tracer && player->mo->tracer->state == &states[S_PLAYERBOMB])
-	{
-		player->mo->flags2 &= ~MF2_DONTDRAW;
-		P_RemoveMobj(player->mo->tracer);
 	}
 
 	if (player->kartstuff[k_growshrinktimer] > 1)
