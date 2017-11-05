@@ -2685,7 +2685,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		if (!(thing->flags & MF_NOCLIP))
 		{
 			//All things are affected by their scale.
-			fixed_t maxstep = FixedMul(MAXSTEPMOVE, thing->scale);
+			fixed_t maxstep = MAXSTEPMOVE; //FixedMul(MAXSTEPMOVE, thing->scale);
 
 			if (thing->player)
 			{
