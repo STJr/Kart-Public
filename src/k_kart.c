@@ -1070,6 +1070,17 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
+
+	// if the speed difference is less than this let's assume they're going proportionately faster from each other
+	if (P_AproxDistance(momdifx, momdify) < 25*FRACUNIT/2)
+	{
+		fixed_t momdiflength = P_AproxDistance(momdifx, momdify);
+		fixed_t normalisedx = FixedDiv(momdifx, momdiflength);
+		fixed_t normalisedy = FixedDiv(momdify, momdiflength);
+		momdifx = FixedMul(25*FRACUNIT/2, normalisedx);
+		momdify = FixedMul(25*FRACUNIT/2, normalisedy);
+	}
+
 	distx = mobj1->x - mobj2->x;
 	disty = mobj1->y - mobj2->y;
 	dot = FixedMul(momdifx, distx) + FixedMul(momdify, disty);
