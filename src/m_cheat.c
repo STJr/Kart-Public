@@ -1279,7 +1279,7 @@ void Command_ObjectPlace_f(void)
 		op_oldmomy = players[0].mo->momy;
 		op_oldmomz = players[0].mo->momz;
 		op_oldheight = players[0].mo->height;
-		op_oldstate = S_KART_STND; // SRB2kart - was S_PLAY_STND
+		op_oldstate = S_KART_STND1; // SRB2kart - was S_PLAY_STND
 		op_oldcolor = players[0].mo->color; // save color too in case of super/fireflower
 
 		// Remove ALL flags and motion.

@@ -2836,7 +2836,7 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 	if (player->climbing && P_IsObjectOnGround(player->mo))
 	{
 		P_ResetPlayer(player);
-		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart
+		P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart
 	}
 }
 
@@ -3485,7 +3485,7 @@ static void P_DoSuperStuff(player_t *player)
 		if (!((ALL7EMERALDS(emeralds)) && (player->charflags & SF_SUPER)) && !(ALL7EMERALDS(player->powers[pw_emeralds])))
 		{
 			player->powers[pw_super] = 0;
-			P_SetPlayerMobjState(player->mo, S_KART_STND);
+			P_SetPlayerMobjState(player->mo, S_KART_STND1);
 			P_RestoreMusic(player);
 			P_SpawnShieldOrb(player);
 
@@ -3889,7 +3889,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 		{
 			player->skidtime = 0;
 			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_KART_STND);
+			P_SetPlayerMobjState(player->mo, S_KART_STND1);
 			player->mo->momx = player->cmomx;
 			player->mo->momy = player->cmomy;
 		}
@@ -4430,7 +4430,7 @@ static void P_2dMovement(player_t *player)
 		if (player->pflags & PF_SPINNING && !player->exiting)
 		{
 			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+			P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 		}
 	}
 
@@ -4622,7 +4622,7 @@ static void P_3dMovement(player_t *player)
 		if (player->pflags & PF_SPINNING && !player->exiting)
 		{
 			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+			P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 		}
 	}
 
@@ -6657,6 +6657,7 @@ static void P_MovePlayer(player_t *player)
 	// MOVEMENT ANIMATIONS //
 	/////////////////////////
 
+	/*
 	if ((cmd->forwardmove != 0 || cmd->sidemove != 0) || (player->powers[pw_super] && player->mo->z > player->mo->floorz))
 	{
 		// If the player is moving fast enough,
@@ -6668,72 +6669,12 @@ static void P_MovePlayer(player_t *player)
 		else if ((player->rmomx || player->rmomy) && player->panim == PA_IDLE)
 			P_SetPlayerMobjState (player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 	}
-
-	//{ SRB2kart
-	// Kart frames
-	{
-		if (player->kartstuff[k_squishedtimer] > 0)
-		{
-			if (player->mo->state != &states[S_KART_SQUISH])
-				P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
-		}
-		else if (player->kartstuff[k_spinouttimer] > 0)
-		{
-			if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-				P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
-		}
-		else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_squishedtimer] == 0)
-		{
-			// Standing frames - S_KART_STND   S_KART_STND_L   S_KART_STND_R
-			if (player->speed == 0)
-			{
-				if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state == &states[S_KART_STND_R]))
-					P_SetPlayerMobjState(player->mo, S_KART_STND_R);
-				else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state == &states[S_KART_STND_L]))
-					P_SetPlayerMobjState(player->mo, S_KART_STND_L);
-				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_STND]))
-					P_SetPlayerMobjState(player->mo, S_KART_STND);
-			}
-			// Drifting Left - S_KART_DRIFT_L1
-			else if (player->kartstuff[k_drift] > 0 && onground)
-			{
-				if (!(player->mo->state == &states[S_KART_DRIFT_L1] || player->mo->state == &states[S_KART_DRIFT_L2]))
-					P_SetPlayerMobjState(player->mo, S_KART_DRIFT_L1);
-			}
-			// Drifting Right - S_KART_DRIFT_R1
-			else if (player->kartstuff[k_drift] < 0 && onground)
-			{
-				if (!(player->mo->state == &states[S_KART_DRIFT_R1] || player->mo->state == &states[S_KART_DRIFT_R2]))
-					P_SetPlayerMobjState(player->mo, S_KART_DRIFT_R1);
-			}
-			// Run frames - S_KART_RUN1   S_KART_RUN_L1   S_KART_RUN_R1
-			else if (player->speed > runspd)
-			{
-				if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state == &states[S_KART_RUN_R1] || player->mo->state == &states[S_KART_RUN_R2]))
-					P_SetPlayerMobjState(player->mo, S_KART_RUN_R1);
-				else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state == &states[S_KART_RUN_L1] || player->mo->state == &states[S_KART_RUN_L2]))
-					P_SetPlayerMobjState(player->mo, S_KART_RUN_L1);
-				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_RUN1] || player->mo->state == &states[S_KART_RUN2]))
-					P_SetPlayerMobjState(player->mo, S_KART_RUN1);
-			}
-			// Walk frames - S_KART_WALK1   S_KART_WALK_L1   S_KART_WALK_R1
-			else if (player->speed <= runspd)
-			{
-				if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state == &states[S_KART_WALK_R1] || player->mo->state == &states[S_KART_WALK_R2]))
-					P_SetPlayerMobjState(player->mo, S_KART_WALK_R1);
-				else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state == &states[S_KART_WALK_L1] || player->mo->state == &states[S_KART_WALK_L2]))
-					P_SetPlayerMobjState(player->mo, S_KART_WALK_L1);
-				else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state == &states[S_KART_WALK1] || player->mo->state == &states[S_KART_WALK2]))
-					P_SetPlayerMobjState(player->mo, S_KART_WALK1);
-			}
-		}
-	}
-	//}
+	*/
 
 	// If your running animation is playing, and you're
 	// going too slow, switch back to the walking frames.
-	if (player->panim == PA_RUN && player->speed < runspd && player->kartstuff[k_spinouttimer] == 0)
-		P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
+	//if (player->panim == PA_RUN && player->speed < runspd && player->kartstuff[k_spinouttimer] == 0)
+		//P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 
 	// If Springing, but travelling DOWNWARD, change back!
 	//if (player->mo->state == &states[S_PLAY_SPRING] && P_MobjFlip(player->mo)*player->mo->momz < 0)
@@ -6742,11 +6683,32 @@ static void P_MovePlayer(player_t *player)
 	//else if (onground && (player->mo->state == &states[S_PLAY_SPRING] || player->panim == PA_FALL || player->mo->state == &states[S_PLAY_CARRY]) && !player->mo->momz)
 	//	P_SetPlayerMobjState(player->mo, S_PLAY_STND);
 
+	// Kart frames
+	if (player->kartstuff[k_squishedtimer] > 0)
+	{
+		if (player->mo->state != &states[S_KART_SQUISH])
+			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
+	}
+	else if (player->kartstuff[k_spinouttimer] > 0)
+	{
+		if (player->mo->state != &states[S_KART_SPIN])
+			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+
+		player->frameangle -= ANGLE_22h;
+	}
+	else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_squishedtimer] == 0)
+	{
+		K_KartMoveAnimation(player);
+
+		player->frameangle = player->mo->angle;
+	}
+
+
 	player->mo->movefactor = FRACUNIT; // We're not going to do any more with this, so let's change it back for the next frame.
 
 	// If you are stopped and are still walking, stand still!
 	if (!player->mo->momx && !player->mo->momy && !player->mo->momz && player->panim == PA_WALK)
-		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+		P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 
 	//{ SRB2kart
 	// Engine Sounds.
@@ -6793,7 +6755,7 @@ static void P_MovePlayer(player_t *player)
 		player->jumping = 0;
 		player->secondjump = 0;
 		player->pflags &= ~PF_THOKKED;
-		P_SetPlayerMobjState(player->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+		P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 	}
 
 	// Cap the speed limit on a spindash
@@ -9476,7 +9438,7 @@ void P_PlayerThink(player_t *player)
 
 	if (player->powers[pw_ingoop])
 	{
-		if (player->mo->state == &states[S_KART_STND]) // SRB2kart - was S_PLAY_STND
+		if (player->mo->state == &states[S_KART_STND1]) // SRB2kart - was S_PLAY_STND
 			player->mo->tics = 2;
 
 		player->powers[pw_ingoop]--;

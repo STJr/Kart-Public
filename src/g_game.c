@@ -87,7 +87,7 @@ boolean modifiedgame; // Set if homebrew PWAD stuff has been added.
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
-boolean disableSpeedAdjust = false;
+boolean disableSpeedAdjust = true;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 
@@ -5463,7 +5463,7 @@ void G_AddGhost(char *defdemoname)
 		gh->mo = P_SpawnMobj(x, y, z, MT_GHOST);
 		gh->mo->angle = FixedAngle(mthing->angle*FRACUNIT);
 	}
-	gh->mo->state = states+S_KART_STND; // SRB2kart - was S_PLAY_STND
+	gh->mo->state = states+S_KART_STND1; // SRB2kart - was S_PLAY_STND
 	gh->mo->sprite = gh->mo->state->sprite;
 	gh->mo->frame = (gh->mo->state->frame & FF_FRAMEMASK) | tr_trans20<<FF_TRANSSHIFT;
 	gh->mo->tics = -1;

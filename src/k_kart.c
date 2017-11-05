@@ -1245,6 +1245,59 @@ void K_LakituChecker(player_t *player)
 	}
 }
 
+/**	\brief Handles the state changing for moving players, moved here to eliminate duplicate code
+
+	\param	player	player data
+
+	\return	void
+*/
+void K_KartMoveAnimation(player_t *player)
+{
+	ticcmd_t *cmd = &player->cmd;
+	// Standing frames - S_KART_STND1   S_KART_STND1_L   S_KART_STND1_R
+	if (player->speed == 0)
+	{
+		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_STND1_R] && player->mo->state <= &states[S_KART_STND2_R]))
+			P_SetPlayerMobjState(player->mo, S_KART_STND1_R);
+		else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state >= &states[S_KART_STND1_L] && player->mo->state <= &states[S_KART_STND2_L]))
+			P_SetPlayerMobjState(player->mo, S_KART_STND1_L);
+		else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state >= &states[S_KART_STND1] && player->mo->state <= &states[S_KART_STND2]))
+			P_SetPlayerMobjState(player->mo, S_KART_STND1);
+	}
+	// Drifting Left - S_KART_DRIFT1_L
+	else if (player->kartstuff[k_drift] > 0 && P_IsObjectOnGround(player->mo))
+	{
+		if (!(player->mo->state >= &states[S_KART_DRIFT1_L] && player->mo->state <= &states[S_KART_DRIFT2_L]))
+			P_SetPlayerMobjState(player->mo, S_KART_DRIFT1_L);
+	}
+	// Drifting Right - S_KART_DRIFT1_R
+	else if (player->kartstuff[k_drift] < 0 && P_IsObjectOnGround(player->mo))
+	{
+		if (!(player->mo->state >= &states[S_KART_DRIFT1_R] && player->mo->state <= &states[S_KART_DRIFT2_R]))
+			P_SetPlayerMobjState(player->mo, S_KART_DRIFT1_R);
+	}
+	// Run frames - S_KART_RUN1   S_KART_RUN1_L   S_KART_RUN1_R
+	else if (player->speed > FixedMul(player->runspeed, player->mo->scale))
+	{
+		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_RUN1_R] && player->mo->state <= &states[S_KART_RUN2_R]))
+			P_SetPlayerMobjState(player->mo, S_KART_RUN1_R);
+		else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state >= &states[S_KART_RUN1_L] && player->mo->state <= &states[S_KART_RUN2_L]))
+			P_SetPlayerMobjState(player->mo, S_KART_RUN1_L);
+		else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
+			P_SetPlayerMobjState(player->mo, S_KART_RUN1);
+	}
+	// Walk frames - S_KART_WALK1   S_KART_WALK1_L   S_KART_WALK1_R
+	else if (player->speed <= FixedMul(player->runspeed, player->mo->scale))
+	{
+		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_WALK1_R] && player->mo->state <= &states[S_KART_WALK2_R]))
+			P_SetPlayerMobjState(player->mo, S_KART_WALK1_R);
+		else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state >= &states[S_KART_WALK1_L] && player->mo->state <= &states[S_KART_WALK2_L]))
+			P_SetPlayerMobjState(player->mo, S_KART_WALK1_L);
+		else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state >= &states[S_KART_WALK1] && player->mo->state <= &states[S_KART_WALK2]))
+			P_SetPlayerMobjState(player->mo, S_KART_WALK1);
+	}
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -1542,13 +1595,18 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 void K_SpinPlayer(player_t *player, mobj_t *source)
 {
-	(void) source;
 	if (player->health <= 0)
 		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return;
+
+	if (source && source->player && !source->player->kartstuff[k_sounds])
+	{
+		S_StartSound(source, sfx_hitem);
+		source->player->kartstuff[k_sounds] = 50;
+	}
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
@@ -1573,8 +1631,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
-	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 	player->kartstuff[k_spinouttype] = 0;
 
@@ -1630,8 +1688,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	player->powers[pw_flashing] = flashingtics;
 
-	if (!(player->mo->state >= &states[S_KART_SPIN1] && player->mo->state <= &states[S_KART_SPIN8]))
-		P_SetPlayerMobjState(player->mo, S_KART_SPIN1);
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 	player->kartstuff[k_spinouttype] = 0;
 

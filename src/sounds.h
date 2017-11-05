@@ -46,6 +46,7 @@ typedef enum
 	SKSPLTNT2,
 	SKSPLTNT3,
 	SKSPLTNT4,
+	SKSHITEM,
 	NUMSKINSOUNDS
 } skinsound_t;
 
@@ -583,6 +584,7 @@ typedef enum
 	sfx_taunt2,
 	sfx_taunt3,
 	sfx_taunt4,
+	sfx_hitem,
 
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

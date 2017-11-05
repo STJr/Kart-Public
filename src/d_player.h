@@ -366,6 +366,7 @@ typedef struct player_s
 
 	// SRB2kart stuff
 	INT32 kartstuff[NUMKARTSTUFF];
+	angle_t frameangle; // for the player add the ability to have the sprite only face other angles
 
 	// Bit flags.
 	// See pflags_t, above.
