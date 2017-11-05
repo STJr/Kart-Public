@@ -1084,6 +1084,15 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		fx->eflags &= ~MFE_VERTICALFLIP;
 	fx->scale = mobj1->scale;
 
+	if (bounce == true) // Perform a Goomba Bounce.
+		mobj1->momz = -mobj1->momz;
+	else
+	{
+		fixed_t newz = mobj1->momz;
+		mobj1->momz = mobj2->momz;
+		mobj2->momz = newz;
+	}
+
 	mass1 = mass2 = 1*FRACUNIT;
 	if (mobj1->player)
 		mass1 = (mobj1->player->kartweight)*FRACUNIT;
@@ -1094,18 +1103,32 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	momdify = mobj1->momy - mobj2->momy;
 
 	// if the speed difference is less than this let's assume they're going proportionately faster from each other
-	if (P_AproxDistance(momdifx, momdify) < 25*FRACUNIT/2)
+	if (P_AproxDistance(momdifx, momdify) < 25*FRACUNIT)
 	{
 		fixed_t momdiflength = P_AproxDistance(momdifx, momdify);
 		fixed_t normalisedx = FixedDiv(momdifx, momdiflength);
 		fixed_t normalisedy = FixedDiv(momdify, momdiflength);
-		momdifx = FixedMul(25*FRACUNIT/2, normalisedx);
-		momdify = FixedMul(25*FRACUNIT/2, normalisedy);
+		momdifx = FixedMul(25*FRACUNIT, normalisedx);
+		momdify = FixedMul(25*FRACUNIT, normalisedy);
 	}
 
 	distx = mobj1->x - mobj2->x;
 	disty = mobj1->y - mobj2->y;
+
+	if (distx == 0 && disty == 0)
+	{
+		// if there's no distance between the 2, they're directly on top of each other, don't run this
+		return;
+	}
+
 	dot = FixedMul(momdifx, distx) + FixedMul(momdify, disty);
+
+	if (dot >= 0)
+	{
+		// They're moving away from each other
+		return;
+	}
+
 	p = FixedDiv(dot, FixedMul(distx, distx)+FixedMul(disty, disty));
 
 	mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), distx);
@@ -1113,15 +1136,6 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 
 	mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
 	mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
-
-	if (bounce == true) // Perform a Goomba Bounce.
-		mobj1->momz = -mobj1->momz;
-	else
-	{
-		fixed_t newz = mobj1->momz;
-		mobj1->momz = mobj2->momz;
-		mobj2->momz = newz;
-	}
 
 	// Because this is done during collision now, rmomx and rmomy need to be recalculated
 	// so that friction doesn't immediately decide to stop the player if they're at a standstill
