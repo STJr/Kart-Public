@@ -1061,12 +1061,12 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
-void K_KartBilliards(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
+void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
 	mobj_t *fx;
-	fixed_t ndistx, ndisty, ndistlength;
-	fixed_t a1, a2;
-	fixed_t optimizedP;
+	fixed_t momdifx, momdify;
+	fixed_t distx, disty;
+	fixed_t dot, p;
 	fixed_t mass1, mass2;
 
 	if (!mobj1 || !mobj2)
@@ -1086,38 +1086,22 @@ void K_KartBilliards(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 
 	mass1 = mass2 = 1*FRACUNIT;
 	if (mobj1->player)
-		mass1 = (1+mobj1->player->kartweight*20)*FRACUNIT;
+		mass1 = (mobj1->player->kartweight)*FRACUNIT;
 	if (mobj2->player)
-		mass2 = (1+mobj2->player->kartweight*20)*FRACUNIT;
+		mass2 = (mobj2->player->kartweight)*FRACUNIT;
 
-	// find normalised vector from centre of each mobj
-	ndistx = mobj1->x - mobj2->x;
-	ndisty = mobj1->y - mobj2->y;
-	ndistlength = P_AproxDistance(ndistx, ndisty);
-	ndistx = FixedDiv(ndistx, ndistlength);
-	ndisty = FixedDiv(ndisty, ndistlength);
+	momdifx = mobj1->momx - mobj2->momx;
+	momdify = mobj1->momy - mobj2->momy;
+	distx = mobj1->x - mobj2->x;
+	disty = mobj1->y - mobj2->y;
+	dot = FixedMul(momdifx, distx) + FixedMul(momdify, disty);
+	p = FixedDiv(dot, FixedMul(distx, distx)+FixedMul(disty, disty));
 
-	// find length of the component from the movement along n
-	a1 = FixedMul(mobj1->momx, ndistx) + FixedMul(mobj1->momy, ndisty);
-	a2 = FixedMul(mobj2->momx, ndistx) + FixedMul(mobj2->momy, ndisty);
+	mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), distx);
+	mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
 
-	optimizedP = FixedDiv(FixedMul(2*FRACUNIT, a1 - a2), mass1 + mass2);
-
-	// calculate new movement of mobj1
-	mobj1->momx = mobj1->momx - FixedMul(FixedMul(optimizedP, mass2), ndistx);
-	mobj1->momy = mobj1->momy - FixedMul(FixedMul(optimizedP, mass2), ndisty);
-
-	// calculate new movement of mobj2
-	mobj2->momx = mobj2->momx + FixedMul(FixedMul(optimizedP, mass1), ndistx);
-	mobj2->momy = mobj2->momy + FixedMul(FixedMul(optimizedP, mass1), ndisty);
-
-	// In addition to knocking players based on their momentum into each other
-	// I will bounce them away from each other based on weight
-	optimizedP = FixedDiv(cv_collideminimum.value*FRACUNIT, mass1 + mass2); // reuse these variables for helping decide bounce speed
-	a1 = FixedMul(optimizedP, mass2);
-	a2 = FixedMul(optimizedP, mass1);
-	P_Thrust(mobj1, R_PointToAngle2(mobj1->x, mobj1->y, mobj2->x, mobj2->y)+ANGLE_180, a1);
-	P_Thrust(mobj2, R_PointToAngle2(mobj1->x, mobj1->y, mobj2->x, mobj2->y), a2);
+	mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
+	mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
 
 	if (bounce == true) // Perform a Goomba Bounce.
 		mobj1->momz = -mobj1->momz;
