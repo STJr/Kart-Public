@@ -3587,7 +3587,7 @@ stairstep:
 //
 // This is a kludgy mess.
 //
-void P_SlideMove(mobj_t *mo)
+void P_SlideMove(mobj_t *mo, boolean forceslide)
 {
 	fixed_t leadx, leady, trailx, traily, newx, newy;
 	INT16 hitcount = 0;
@@ -3665,7 +3665,7 @@ retry:
 		PT_ADDLINES, PTR_SlideTraverse);
 
 	// Some walls are bouncy even if you're not
-	if (bestslideline && !(bestslideline->flags & ML_BOUNCY)) // SRB2kart - All walls are bouncy unless specified otherwise
+	if (!forceslide && bestslideline && !(bestslideline->flags & ML_BOUNCY)) // SRB2kart - All walls are bouncy unless specified otherwise
 	{
 		P_BounceMove(mo);
 		return;
