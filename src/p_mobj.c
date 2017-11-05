@@ -226,11 +226,11 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 	// Set animation state
 	// The pflags version of this was just as convoluted.
 	// Rewriten for SRB2kart ... though I don't know what this is.
-	if ((state >= S_KART_STND && state <= S_KART_STND_R) || state == S_KART_SQUISH || (state >= S_KART_SPIN1 && state <= S_KART_SPIN8))
+	if ((state >= S_KART_STND1 && state <= S_KART_STND2_R) || state == S_KART_SQUISH || state == S_KART_SPIN)
 		player->panim = PA_IDLE;
-	else if (state >= S_KART_WALK1 && state <= S_KART_WALK_R2)
+	else if (state >= S_KART_WALK1 && state <= S_KART_WALK2_R)
 		player->panim = PA_WALK;
-	else if (state >= S_KART_RUN1 && state <= S_KART_DRIFT_R2)
+	else if (state >= S_KART_RUN1 && state <= S_KART_DRIFT2_R)
 		player->panim = PA_RUN;
 	//else if (state >= S_PLAY_ATK1 && state <= S_PLAY_ATK4)
 	//	player->panim = PA_ROLL;
@@ -1494,7 +1494,7 @@ static void P_XYFriction(mobj_t *mo, fixed_t oldx, fixed_t oldy)
 		{
 			// if in a walking frame, stop moving
 			if (player->panim == PA_WALK && player->kartstuff[k_spinouttimer] == 0)
-				P_SetPlayerMobjState(mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+				P_SetPlayerMobjState(mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 			mo->momx = player->cmomx;
 			mo->momy = player->cmomy;
 		}
@@ -1813,7 +1813,7 @@ void P_XYMovement(mobj_t *mo)
 		}
 		else if (player || mo->flags & (MF_SLIDEME|MF_PUSHABLE))
 		{ // try to slide along it
-			P_SlideMove(mo);
+			P_SlideMove(mo, false);
 			xmove = ymove = 0;
 		}
 		else if (mo->type == MT_SPINFIRE)
@@ -1994,7 +1994,7 @@ static void P_RingXYMovement(mobj_t *mo)
 	I_Assert(!P_MobjWasRemoved(mo));
 
 	if (!P_SceneryTryMove(mo, mo->x + mo->momx, mo->y + mo->momy))
-		P_SlideMove(mo);
+		P_SlideMove(mo, false);
 }
 
 static void P_SceneryXYMovement(mobj_t *mo)
@@ -2008,7 +2008,7 @@ static void P_SceneryXYMovement(mobj_t *mo)
 	oldy = mo->y;
 
 	if (!P_SceneryTryMove(mo, mo->x + mo->momx, mo->y + mo->momy))
-		P_SlideMove(mo);
+		P_SlideMove(mo, false);
 
 	if ((!(mo->eflags & MFE_VERTICALFLIP) && mo->z > mo->floorz) || (mo->eflags & MFE_VERTICALFLIP && mo->z+mo->height < mo->ceilingz))
 		return; // no friction when airborne
@@ -2766,9 +2766,9 @@ static void P_PlayerZMovement(mobj_t *mo)
 			goto nightsdone;
 		}
 		// Get up if you fell.
-		if ((mo->state == &states[mo->info->painstate] || (mo->state >= &states[S_KART_SPIN1] && mo->state <= &states[S_KART_SPIN8]))
+		if ((mo->state == &states[mo->info->painstate] || mo->state == &states[S_KART_SPIN])
 			&& mo->player->kartstuff[k_spinouttimer] == 0 && mo->player->kartstuff[k_squishedtimer] == 0) // SRB2kart
-			P_SetPlayerMobjState(mo, S_KART_STND);
+			P_SetPlayerMobjState(mo, S_KART_STND1);
 
 #ifdef ESLOPE
 		if (!mo->standingslope && (mo->eflags & MFE_VERTICALFLIP ? tmceilingslope : tmfloorslope)) {
@@ -2881,52 +2881,7 @@ static void P_PlayerZMovement(mobj_t *mo)
 					else if ((mo->player->pflags & PF_JUMPED || (mo->player->pflags & (PF_SPINNING|PF_USEDOWN)) != (PF_SPINNING|PF_USEDOWN)
 					|| mo->player->powers[pw_tailsfly]) && (mo->player->kartstuff[k_spinouttimer] == 0)) // SRB2kart
 					{
-						ticcmd_t *cmd;
-
-						cmd = &mo->player->cmd;
-
-						// Standing frames - S_KART_STND   S_KART_STND_L   S_KART_STND_R
-						if (mo->player->speed == 0)
-						{
-							if (cmd->buttons & BT_DRIFTRIGHT && !(mo->state == &states[S_KART_STND_R]))
-								P_SetPlayerMobjState(mo, S_KART_STND_R);
-							else if (cmd->buttons & BT_DRIFTLEFT && !(mo->state == &states[S_KART_STND_L]))
-								P_SetPlayerMobjState(mo, S_KART_STND_L);
-							else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(mo->state == &states[S_KART_STND]))
-								P_SetPlayerMobjState(mo, S_KART_STND);
-						}
-						// Drifting Left - S_KART_DRIFT_L1
-						else if (mo->player->kartstuff[k_drift] > 0 && P_IsObjectOnGround(mo))
-						{
-							if (!(mo->state == &states[S_KART_DRIFT_L1] || mo->state == &states[S_KART_DRIFT_L2]))
-								P_SetPlayerMobjState(mo, S_KART_DRIFT_L1);
-						}
-						// Drifting Right - S_KART_DRIFT_R1
-						else if (mo->player->kartstuff[k_drift] < 0 && P_IsObjectOnGround(mo))
-						{
-							if (!(mo->state == &states[S_KART_DRIFT_R1] || mo->state == &states[S_KART_DRIFT_R2]))
-								P_SetPlayerMobjState(mo, S_KART_DRIFT_R1);
-						}
-						// Run frames - S_KART_RUN1   S_KART_RUN_L1   S_KART_RUN_R1
-						else if (mo->player->speed > FixedMul(mo->player->runspeed, mo->scale))
-						{
-							if (cmd->buttons & BT_DRIFTRIGHT && !(mo->state == &states[S_KART_RUN_R1] || mo->state == &states[S_KART_RUN_R2]))
-								P_SetPlayerMobjState(mo, S_KART_RUN_R1);
-							else if (cmd->buttons & BT_DRIFTLEFT && !(mo->state == &states[S_KART_RUN_L1] || mo->state == &states[S_KART_RUN_L2]))
-								P_SetPlayerMobjState(mo, S_KART_RUN_L1);
-							else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(mo->state == &states[S_KART_RUN1] || mo->state == &states[S_KART_RUN2]))
-								P_SetPlayerMobjState(mo, S_KART_RUN1);
-						}
-						// Walk frames - S_KART_WALK1   S_KART_WALK_L1   S_KART_WALK_R1
-						else if (mo->player->speed <= FixedMul(mo->player->runspeed, mo->scale))
-						{
-							if (cmd->buttons & BT_DRIFTRIGHT && !(mo->state == &states[S_KART_WALK_R1] || mo->state == &states[S_KART_WALK_R2]))
-								P_SetPlayerMobjState(mo, S_KART_WALK_R1);
-							else if (cmd->buttons & BT_DRIFTLEFT && !(mo->state == &states[S_KART_WALK_L1] || mo->state == &states[S_KART_WALK_L2]))
-								P_SetPlayerMobjState(mo, S_KART_WALK_L1);
-							else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(mo->state == &states[S_KART_WALK1] || mo->state == &states[S_KART_WALK2]))
-								P_SetPlayerMobjState(mo, S_KART_WALK1);
-						}
+						K_KartMoveAnimation(mo->player);
 					}
 
 					if (mo->player->pflags & PF_JUMPED)
@@ -6623,14 +6578,13 @@ void P_MobjThinker(mobj_t *mobj)
 					// Shrink your items if the player shrunk too.
 					mobj->scale = mobj->target->scale;
 
-					P_UnsetThingPosition(mobj);
-					{
-						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
-						mobj->x = mobj->target->x + FixedMul(FINECOSINE(fa),radius);
-						mobj->y = mobj->target->y + FixedMul(FINESINE(fa), radius);
-						mobj->z = mobj->target->z + HEIGHT;
-						P_SetThingPosition(mobj);
-					}
+					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+					mobj->momx = FixedMul(FINECOSINE(mobj->angle>>ANGLETOFINESHIFT),radius);
+					mobj->momy = FixedMul(FINESINE(mobj->angle>>ANGLETOFINESHIFT), radius);
+					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, false))
+						P_SlideMove(mobj, true);
+					mobj->z = mobj->floorz;
+					mobj->momx = mobj->momy = 0;
 
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && !(mobj->target->player->kartstuff[k_greenshell] & 1))
@@ -9530,7 +9484,7 @@ void P_AfterPlayerSpawn(INT32 playernum)
 	else
 		p->viewz = p->mo->z + p->viewheight;
 
-	P_SetPlayerMobjState(p->mo, S_KART_STND); // SRB2kart - was S_PLAY_STND
+	P_SetPlayerMobjState(p->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 	p->pflags &= ~PF_SPINNING;
 
 	if (playernum == consoleplayer)

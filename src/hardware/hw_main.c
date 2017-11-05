@@ -5144,7 +5144,12 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		}
 	}
 	else if (sprframe->rotate != SRF_SINGLE)
-		ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
+	{
+		if (thing->player)
+			ang = R_PointToAngle (thing->x, thing->y) - thing->player->frameangle;
+		else
+			ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
+	}
 
 	if (sprframe->rotate == SRF_SINGLE)
 	{

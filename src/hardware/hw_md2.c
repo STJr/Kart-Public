@@ -1474,8 +1474,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			}
 			else
 			{
-				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL
-					&& !(spr->mobj->player && spr->mobj->state == &states[S_KART_STND])) // SRB2kart
+				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL)
 				{
 					const UINT32 nextframe = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % md2->model->header.numFrames;
 					next = &md2->model->frames[nextframe];
@@ -1501,7 +1500,11 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 
 		if (sprframe->rotate)
 		{
-			const fixed_t anglef = AngleFixed(spr->mobj->angle);
+			fixed_t anglef;
+			if (spr->mobj->player)
+				anglef = AngleFixed(spr->mobj->player->frameangle);
+			else
+				anglef = AngleFixed(spr->mobj->angle);
 			p.angley = FIXED_TO_FLOAT(anglef);
 		}
 		else
