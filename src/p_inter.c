@@ -3092,7 +3092,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		{
 			// Just need to do this now! Being thrown upwards is done by the explosion.
 			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
-			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+			mobj_t *blueexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+			P_SetTarget(&blueexplode->target, source);
 			return true;
 		}
 		else if (damage == 65 && player->kartstuff[k_position] > 1)

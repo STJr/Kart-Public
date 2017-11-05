@@ -8253,7 +8253,7 @@ void A_BobombExplode(mobj_t *actor)
 	type = (mobjtype_t)locvar1;
 
 	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false); // 32 <-> 64
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false, actor->target); // 32 <-> 64
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
 

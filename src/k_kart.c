@@ -1613,7 +1613,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootaketimer] > 0)
 		return;
 
-	if (source && source->player && !source->player->kartstuff[k_sounds])
+	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
 	{
 		S_StartSound(source, sfx_hitem);
 		source->player->kartstuff[k_sounds] = 50;
@@ -1715,7 +1715,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	return;
 }
 
-void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit)
+// source is the mobj that originally threw the bomb that exploded etc.
+void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source)
 {
 	mobj_t *mobj;
 	mobj_t *ghost = NULL;
@@ -1795,6 +1796,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 		mobj->flags |= MF_NOCLIPTHING;
 		mobj->flags &= ~MF_SPECIAL;
 
+		P_SetTarget(&mobj->target, source);
 	}
 }
 
