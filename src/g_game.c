@@ -2305,6 +2305,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
 	p->kartstuff[k_balloon] = balloon;
+	p->kartstuff[k_comebacktimer] = comebacktime;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

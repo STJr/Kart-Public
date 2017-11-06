@@ -1683,8 +1683,10 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		}
 
 		if (source && source->player && player != source->player)
+		{
 			P_AddPlayerScore(source->player, 1);
 			source->player->kartstuff[k_comebacktimer] = comebacktime;
+		}
 
 		K_CheckBalloons();
 	}
@@ -1741,8 +1743,10 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		}
 
 		if (source && source->player && player != source->player)
+		{
 			P_AddPlayerScore(source->player, 1);
 			source->player->kartstuff[k_comebacktimer] = comebacktime;
+		}
 
 		K_CheckBalloons();
 	}
@@ -1788,8 +1792,10 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		}
 
 		if (source && source->player && player != source->player)
+		{
 			P_AddPlayerScore(source->player, 1);
 			source->player->kartstuff[k_comebacktimer] = comebacktime;
+		}
 
 		K_CheckBalloons();
 	}
@@ -3296,7 +3302,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				else
 					player->mo->flags2 &= ~MF2_DONTDRAW;
 			}
-			else if (player->kartstuff[k_balloon] > 0)
+			else if (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)
 				player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
 	}
