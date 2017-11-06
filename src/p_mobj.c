@@ -6456,8 +6456,16 @@ void P_MobjThinker(mobj_t *mobj)
 			//{ SRB2kart mobs
 			case MT_DRIFT:
 			{
-				fixed_t dsone = 26*4 + mobj->target->player->kartspeed*2 + (9 - mobj->target->player->kartweight);
-				fixed_t dstwo = dsone*2;
+				fixed_t dsone;
+				fixed_t dstwo;
+
+				if (gametype != GT_RACE && mobj->target->player->kartstuff[k_balloon] <= 0)
+					dsone = 26*4 + 2 + (9 - mobj->target->player->kartweight);
+				else
+					dsone = 26*4 + mobj->target->player->kartspeed*2 + (9 - mobj->target->player->kartweight);
+
+				dstwo = dsone*2;
+
 				if ((mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= dsone))
 				{
@@ -6696,6 +6704,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((splitscreen || !netgame)
 						|| gametype == GT_RACE
 						|| mobj->target->player == &players[displayplayer]
+						|| mobj->target->player->kartstuff[k_balloon] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
 						mobj->flags2 |= MF2_DONTDRAW;
 					else

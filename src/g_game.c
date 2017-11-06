@@ -205,7 +205,7 @@ INT32 bootime = 7*TICRATE;
 INT32 boostealtime = TICRATE/2;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
-INT32 comebacktime = 15*TICRATE;
+INT32 comebacktime = 10*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 
@@ -2194,6 +2194,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 starpostwp;
 	INT32 offroad;
 	INT32 balloon;
+	INT32 comebackhits;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2249,6 +2250,7 @@ void G_PlayerReborn(INT32 player)
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	offroad = players[player].kartstuff[k_offroad];
 	balloon = players[player].kartstuff[k_balloon];
+	comebackhits = players[player].kartstuff[k_comebackhits];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2305,7 +2307,8 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
 	p->kartstuff[k_balloon] = balloon;
-	p->kartstuff[k_comebacktimer] = comebacktime;
+	p->kartstuff[k_comebackhits] = comebackhits;
+	p->kartstuff[k_comebacktimer] = comebacktime * (comebackhits+1);
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

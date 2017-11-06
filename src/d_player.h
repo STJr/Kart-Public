@@ -306,7 +306,8 @@ typedef enum
 						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
 	k_lightning,		// 0x1 = Lightning in inventory
 	k_kitchensink,		// 0x1 = Sink in inventory
-	k_balloon,			// Number of balloons left
+	k_balloon,			// Battle mode, number of balloons left
+	k_comebackhits,		// Battle mode, number of times hit in comeback mode
 
 	NUMKARTSTUFF
 } kartstufftype_t;

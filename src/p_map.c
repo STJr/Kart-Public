@@ -1621,34 +1621,41 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				{
 					thing->player->kartstuff[k_justbumped] = 6;
 					tmthing->player->kartstuff[k_justbumped] = 6;
+
 					if (tmthing->player->kartstuff[k_balloon] > 0)
 					{
 						if (tmthing->player->kartstuff[k_balloon] == 1)
 							K_StealBalloon(thing->player, tmthing->player);
-						thing->player->kartstuff[k_comebacktimer] = comebacktime;
+
 						K_ExplodePlayer(tmthing->player, thing);
+
+						thing->player->kartstuff[k_comebackhits]++;
+						thing->player->kartstuff[k_comebacktimer] = comebacktime * (thing->player->kartstuff[k_comebackhits]+1);
 						return true;
 					}
 					else if (thing->player->kartstuff[k_balloon] > 0)
 					{
 						if (thing->player->kartstuff[k_balloon] == 1)
 							K_StealBalloon(tmthing->player, thing->player);
-						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
-						K_ExplodePlayer(thing->player, thing);
+
+						K_ExplodePlayer(thing->player, tmthing);
+
+						tmthing->player->kartstuff[k_comebackhits]++;
+						tmthing->player->kartstuff[k_comebacktimer] = comebacktime * (tmthing->player->kartstuff[k_comebackhits]+1);
 						return true;
 					}
-				}
-				else
-				{
-					if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
+					else if (thing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_balloon] <= 0)
 					{
-						K_StealBalloon(thing->player, tmthing->player);
-						K_SpinPlayer(tmthing->player, thing);
-					}
-					else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
-					{
-						K_StealBalloon(tmthing->player, thing->player);
+						K_KartBouncing(tmthing, thing, false);
+
 						K_SpinPlayer(thing->player, tmthing);
+						K_SpinPlayer(tmthing->player, thing);
+
+						thing->player->kartstuff[k_comebackhits]++;
+						thing->player->kartstuff[k_comebacktimer] = comebacktime * (thing->player->kartstuff[k_comebackhits]+1);
+						tmthing->player->kartstuff[k_comebackhits]++;
+						tmthing->player->kartstuff[k_comebacktimer] = comebacktime * (tmthing->player->kartstuff[k_comebackhits]+1);
+						return true;
 					}
 				}
 			}
@@ -1659,6 +1666,17 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				K_KartBouncing(thing, tmthing, true);
 			else
 				K_KartBouncing(tmthing, thing, false);
+
+			if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
+			{
+				K_StealBalloon(thing->player, tmthing->player);
+				K_SpinPlayer(tmthing->player, thing);
+			}
+			else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
+			{
+				K_StealBalloon(tmthing->player, thing->player);
+				K_SpinPlayer(thing->player, tmthing);
+			}
 
 			thing->player->kartstuff[k_justbumped] = 6;
 			tmthing->player->kartstuff[k_justbumped] = 6;

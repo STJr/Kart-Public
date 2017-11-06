@@ -1301,13 +1301,8 @@ void K_LakituChecker(player_t *player)
 void K_KartMoveAnimation(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
-	// Battle Mode bomb overrides everything else
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
-	{
-		P_SetPlayerMobjState(player->mo, S_PLAYERBOMB);
-	}
 	// Standing frames - S_KART_STND1   S_KART_STND1_L   S_KART_STND1_R
-	else if (player->speed == 0)
+	if (player->speed == 0)
 	{
 		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_STND1_R] && player->mo->state <= &states[S_KART_STND2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_STND1_R);
@@ -1433,6 +1428,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
+
+	if (player->kartstuff[k_comebackhits] > 5)
+		player->kartstuff[k_comebackhits] = 5;
 
 	// ???
 	/*
@@ -1600,7 +1598,10 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 			break;
 	}
 
-	k_speed += player->kartspeed*3; // 153 - 177
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)	
+		k_speed += 3; // 153
+	else
+		k_speed += player->kartspeed*3; // 153 - 177
 
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
@@ -1613,8 +1614,11 @@ static fixed_t K_GetKartAccel(player_t *player)
 {
 	fixed_t k_accel = 32; // 36;
 
-	//k_accel += 3 * (9 - player->kartspeed); // 36 - 60
-	k_accel += 4 * (9 - player->kartspeed); // 32 - 64
+	if (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)
+	{
+		//k_accel += 3 * (9 - player->kartspeed); // 36 - 60
+		k_accel += 4 * (9 - player->kartspeed); // 32 - 64
+	}
 
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
@@ -1671,7 +1675,6 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	if (gametype != GT_RACE)
 	{
@@ -1681,15 +1684,16 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
+		else
+			player->kartstuff[k_comebackhits]++;
 
 		if (source && source->player && player != source->player)
-		{
 			P_AddPlayerScore(source->player, 1);
-			source->player->kartstuff[k_comebacktimer] = comebacktime;
-		}
 
 		K_CheckBalloons();
 	}
+
+	player->kartstuff[k_comebacktimer] = comebacktime * (player->kartstuff[k_comebackhits]+1);
 
 	if (player->kartstuff[k_spinouttype] <= 0)
 	{
@@ -1731,7 +1735,6 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	if (gametype != GT_RACE)
 	{
@@ -1741,15 +1744,16 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
+		else
+			player->kartstuff[k_comebackhits]++;
 
 		if (source && source->player && player != source->player)
-		{
 			P_AddPlayerScore(source->player, 1);
-			source->player->kartstuff[k_comebacktimer] = comebacktime;
-		}
 
 		K_CheckBalloons();
 	}
+
+	player->kartstuff[k_comebacktimer] = comebacktime * (player->kartstuff[k_comebackhits]+1);
 
 	player->kartstuff[k_squishedtimer] = 1*TICRATE;
 
@@ -1780,7 +1784,6 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	if (gametype != GT_RACE)
 	{
@@ -1790,15 +1793,16 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
+		else
+			player->kartstuff[k_comebackhits]++;
 
 		if (source && source->player && player != source->player)
-		{
 			P_AddPlayerScore(source->player, 1);
-			source->player->kartstuff[k_comebacktimer] = comebacktime;
-		}
 
 		K_CheckBalloons();
 	}
+
+	player->kartstuff[k_comebacktimer] = comebacktime * (player->kartstuff[k_comebackhits]+1);
 
 	player->kartstuff[k_spinouttype] = 1;
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
@@ -2509,9 +2513,16 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
+	fixed_t dsone;
+	fixed_t dstwo;
+	
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	fixed_t dsone = 26*4 + player->kartspeed*2 + (9 - player->kartweight);
-	fixed_t dstwo = dsone*2;
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+		dsone = 26*4 + 2;
+	else
+		dsone = 26*4 + player->kartspeed*2 + (9 - player->kartweight);
+
+	dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -3287,23 +3298,38 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 		else if (player->kartstuff[k_bootimer] == 0)
 		{
-			if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb
-			{
-				K_StripItems(player);
-				if (player->kartstuff[k_comebacktimer] > 0)
-				{
-					if (leveltime & 1)
-						player->mo->flags2 |= MF2_DONTDRAW;
-					else
-						player->mo->flags2 &= ~MF2_DONTDRAW;
+			player->mo->flags2 &= ~MF2_DONTDRAW;
+		}
+		
+		if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb
+		{
+			K_StripItems(player);
+			player->mo->flags2 |= MF2_SHADOW;
 
-					player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
-				}
+			if (!(player->mo->tracer))
+				player->mo->tracer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
+
+			P_SetTarget(&player->mo->tracer->target, player->mo);
+			P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
+			player->mo->tracer->color = player->mo->color;
+
+			if (player->kartstuff[k_comebacktimer] > 0)
+			{
+				if (leveltime & 1)
+					player->mo->tracer->flags2 |= MF2_DONTDRAW;
 				else
-					player->mo->flags2 &= ~MF2_DONTDRAW;
+					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
+
+				player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 			}
-			else if (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)
-				player->mo->flags2 &= ~MF2_DONTDRAW;
+			else
+				player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
+		}
+		else if (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)
+		{
+			player->mo->flags2 &= ~MF2_SHADOW;
+			if (player->mo->tracer && player->mo->tracer->state == &states[S_PLAYERBOMB])
+				P_RemoveMobj(player->mo->tracer);
 		}
 	}
 
@@ -3380,6 +3406,11 @@ void K_CheckBalloons(void)
 	UINT8 i;
 	UINT8 numingame = 0;
 	INT8 winnernum = -1;
+
+// Quick thing for testing comeback in splitscreen
+#if 0
+	return;
+#endif
 
 	if (!(multiplayer || netgame))
 		return;
@@ -4236,10 +4267,13 @@ static void K_drawKartSpeedometer(void)
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
 {
 	fixed_t dist, x;
+	fixed_t range = RING_DIST/4;
 	angle_t diff;
 
+	range *= (K_GetKartCC()/50);
+
 	dist = abs(R_PointToDist2(px, py, mx, my));
-	if (dist > RING_DIST/4)
+	if (dist > range)
 		return -320;
 
 	diff = R_PointToAngle2(px, py, mx, my) - ang;
