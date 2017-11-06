@@ -6544,15 +6544,8 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					INT32 zfixds = 56;
-					INT32 DIST = FixedMul(zfixds, mobj->target->scale);
 					fixed_t z;
-					const fixed_t radius = DIST*FRACUNIT; // mobj's distance from its Target, or Radius.
-
-					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
-						zfixds = 64;
-					else
-						zfixds = 56;
+					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
 					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
