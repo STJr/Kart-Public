@@ -6552,16 +6552,12 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					fixed_t radius; // mobj's distance from its Target, or Radius.
-
-					if (mobj->type == MT_BANANASHIELD || mobj->type == MT_TRIPLEBANANASHIELD1 || mobj->type == MT_TRIPLEBANANASHIELD2 || mobj->type == MT_TRIPLEBANANASHIELD3)
-						radius = 64*mobj->target->scale;
-					else
-						radius = 56*mobj->target->scale;
+					fixed_t z;
+					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
 					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
-						|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
+					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
 						mobj->angle += FixedAngle(mobj->info->speed);
 					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
@@ -6570,15 +6566,52 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
 
-					// Shrink your items if the player shrunk too.
-					mobj->scale = mobj->target->scale;
+					// If the player is on the ceiling, then flip your items as well.
+					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
+					{
+						mobj->eflags |= MFE_VERTICALFLIP;
+					}
+					else
+					{
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+					}
 
-					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+					// Shrink your items if the player shrunk too.
+					if (mobj->target->player)
+						mobj->scale = mobj->target->scale;
+
+					if (P_MobjFlip(mobj) > 0)
+					{
+						z = mobj->target->z;
+					}
+					else
+					{
+						z = mobj->target->z + mobj->target->height - mobj->height;
+					}
+
+					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, z);
 					mobj->momx = FixedMul(FINECOSINE(mobj->angle>>ANGLETOFINESHIFT),radius);
 					mobj->momy = FixedMul(FINESINE(mobj->angle>>ANGLETOFINESHIFT), radius);
-					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, false))
+					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, true))
 						P_SlideMove(mobj, true);
-					mobj->z = mobj->floorz;
+					if (P_IsObjectOnGround(mobj->target))
+					{
+						if (P_MobjFlip(mobj) > 0)
+						{
+							if (mobj->floorz > mobj->target->z - mobj->height)
+							{
+								z = mobj->floorz;
+							}
+						}
+						else
+						{
+							if (mobj->ceilingz < mobj->target->z + mobj->target->height + mobj->height)
+							{
+								z = mobj->ceilingz - mobj->height;
+							}
+						}
+					}
+					mobj->z = z;
 					mobj->momx = mobj->momy = 0;
 
 					// Was this so hard?

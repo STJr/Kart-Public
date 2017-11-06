@@ -1982,11 +1982,28 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 
 	x = source->x + source->momx;
 	y = source->y + source->momy;
-	z = source->z + source->height/3;
+	z = source->z; // spawn on the ground please
+
+	if (P_MobjFlip(source) < 0)
+	{
+		z = source->z+source->height - mobjinfo[type].height;
+	}
 
 	th = P_SpawnMobj(x, y, z, type);
 
 	th->flags2 |= flags2;
+
+	if (P_IsObjectOnGround(source))
+	{
+		// spawn on the ground if the player is on the ground
+		if (P_MobjFlip(source) < 0)
+		{
+			th->z = th->ceilingz - th->height;
+			th->eflags |= MFE_VERTICALFLIP;
+		}
+		else
+			th->z = th->floorz;
+	}
 
 	th->threshold = 10;
 
@@ -2127,51 +2144,23 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	{
 		if (mapthing == MT_FIREBALL) // Messy
 		{
-			mobj_t *mo2;
-			mobj_t *mo3;
-			mobj_t *mo4;
-			mobj_t *mo5;
 			if (dir == -1)
 			{
 				// Shoot backward
-				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, PROJSPEED/2);
-				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, PROJSPEED/2);
-				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
-				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, PROJSPEED/2);
-				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, PROJSPEED/2);
-
-				if (mo)
-				{
-					if (player->mo->eflags & MFE_VERTICALFLIP)
-					{
-						mo->eflags  |= MFE_VERTICALFLIP;
-						mo2->eflags |= MFE_VERTICALFLIP;
-						mo3->eflags |= MFE_VERTICALFLIP;
-						mo4->eflags |= MFE_VERTICALFLIP;
-						mo5->eflags |= MFE_VERTICALFLIP;
-					}
-				}
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, PROJSPEED/2);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, PROJSPEED/2);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, PROJSPEED/2);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, PROJSPEED/2);
 			}
 			else
 			{
 				// Shoot forward
-				mo  = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x06000000, 0, PROJSPEED);
-				mo2 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x03000000, 0, PROJSPEED);
-				mo3 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED);
-				mo4 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x03000000, 0, PROJSPEED);
-				mo5 = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x06000000, 0, PROJSPEED);
-
-				if (mo)
-				{
-					if (player->mo->eflags & MFE_VERTICALFLIP)
-					{
-						mo->eflags  |= MFE_VERTICALFLIP;
-						mo2->eflags |= MFE_VERTICALFLIP;
-						mo3->eflags |= MFE_VERTICALFLIP;
-						mo4->eflags |= MFE_VERTICALFLIP;
-						mo5->eflags |= MFE_VERTICALFLIP;
-					}
-				}
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x06000000, 0, PROJSPEED);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle - 0x03000000, 0, PROJSPEED);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x03000000, 0, PROJSPEED);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x06000000, 0, PROJSPEED);
 			}
 		}
 		else // Shells
@@ -2180,23 +2169,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			{
 				// Shoot backward
 				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
-
-				if (mo)
-				{
-					if (player->mo->eflags & MFE_VERTICALFLIP)
-						mo->eflags |= MFE_VERTICALFLIP;
-				}
 			}
 			else
 			{
 				// Shoot forward
 				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED + player->speed);
-
-				if (mo)
-				{
-					if (player->mo->eflags & MFE_VERTICALFLIP)
-						mo->eflags |= MFE_VERTICALFLIP;
-				}
 			}
 		}
 	}
@@ -2208,7 +2185,6 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, mapthing);
 
 			mo->threshold = 10;
-
 			P_SetTarget(&mo->target, player->mo);
 
 			S_StartSound(player->mo, mo->info->seesound);
@@ -2225,7 +2201,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
-				mo->momz = HEIGHT;
+				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
@@ -2237,20 +2213,18 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		}
 		else
 		{
+			fixed_t dropradius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(mobjinfo[mapthing].radius, mobjinfo[mapthing].radius);
+
 			// Drop it directly behind you.
 			newangle = player->mo->angle;
 
-			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, mapthing);
+			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, dropradius);
+			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, dropradius);
+
+			mo = P_SpawnMobj(newx, newy, player->mo->z, mapthing);
 
 			mo->threshold = 10;
-
 			P_SetTarget(&mo->target, player->mo);
-
-			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, player->mo->radius*2 + mo->radius*3);
-			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, player->mo->radius*2 + mo->radius*3);
-
-			mo->x = newx;
-			mo->y = newy;
 
 			if (mo)
 			{
