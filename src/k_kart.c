@@ -3701,19 +3701,21 @@ static INT32 STRINGY(INT32 y)
 	return y;
 }
 
-static INT32 SCX(INT32 x)
+/*static INT32 SCX(INT32 x)
 {
 	return FixedInt(FixedMul(x<<FRACBITS, vid.fdupx));
-}
+}*/
 
 INT32 ITEM_X, ITEM_Y;	// Item Window
 INT32 TRIP_X, TRIP_Y;	// Triple Item Icon
 INT32 TIME_X, TIME_Y;	// Time Sticker
 INT32 LAPS_X, LAPS_Y;	// Lap Sticker
+INT32 SPDM_X, SPDM_Y;	// Lap Sticker
 INT32 POSI_X, POSI_Y;	// Position Number
 INT32 FACE_X, FACE_Y;	// Top-four Faces
 INT32 METE_X, METE_Y;	// Speed Meter
 INT32 LAKI_X, LAKI_Y;	// Lakitu
+INT32 CHEK_Y;			// CHECK graphic
 
 static void K_initKartHUD(void)
 {
@@ -3768,6 +3770,9 @@ static void K_initKartHUD(void)
 				// Level Laps
 				LAPS_X = 9;					//   9
 				LAPS_Y = BASEVIDHEIGHT- 29;	// 171
+				// Speedometer
+				SPDM_X = 9;					//   9
+				SPDM_Y = BASEVIDHEIGHT- 45;	// 155
 				// Position Number
 				POSI_X = BASEVIDWIDTH - 52;	// 268
 				POSI_Y = BASEVIDHEIGHT- 62;	// 138
@@ -3777,6 +3782,8 @@ static void K_initKartHUD(void)
 				// Lakitu
 				LAKI_X = 136;				// 138
 				LAKI_Y = 58 - 200;			//  58
+				// CHECK graphic
+				CHEK_Y = BASEVIDHEIGHT;		// 200
 				break;
 		}
 	}
@@ -3788,28 +3795,35 @@ static void K_initKartHUD(void)
 		TRIP_X = 143;				// 143
 		TRIP_Y = BASEVIDHEIGHT- 34;	// 166
 
-		TIME_X = BASEVIDWIDTH -114;	// 206  / Sticker is 196 (Base - 124) - Inside the boundry by 8px
+		TIME_X = BASEVIDWIDTH -148;	// 172  / Sticker is 196 (Base - 124) - Inside the boundry by 8px
 		TIME_Y = 6;					//   6  / Sticker is  +2
 
 		LAPS_X = 9;					//   9
-		LAPS_Y = BASEVIDHEIGHT- 31;	// 169
+		LAPS_Y = BASEVIDHEIGHT- 48;	// 152
 
-		POSI_X = BASEVIDWIDTH - 51;	// 269
-		POSI_Y = BASEVIDHEIGHT-128;	//  72
+		SPDM_X = 9;					//   9
+		SPDM_Y = BASEVIDHEIGHT- 80;	// 120
+
+		POSI_X = BASEVIDWIDTH - 52;	// 268
+		POSI_Y = BASEVIDHEIGHT-122;	// 108
 
 		FACE_X = 15;				//  15
 		FACE_Y = 72;				//  72
+
+		CHEK_Y = BASEVIDHEIGHT;		// 200
 	}
 
 	// To correct the weird render location
-	POSI_X = SCX(POSI_X);
-	POSI_Y = SCX(POSI_Y);
+	/*POSI_X = SCX(POSI_X);
+	POSI_Y = SCX(POSI_Y);*/
 }
 
 static void K_drawKartItemClose(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
+
+	INT32 flags = V_SNAPTORIGHT|V_SNAPTOTOP;
 
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no draw' just in case.
@@ -3836,14 +3850,19 @@ static void K_drawKartItemClose(void)
 			default: break;
 		}
 
+	if (splitscreen)
+		flags = 0;
+
 	if (localpatch != kp_nodraw)
-		V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
+		V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), flags, localpatch);
 }
 
 static void K_drawKartItemRoulette(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
+
+	INT32 flags = V_SNAPTORIGHT|V_SNAPTOTOP;
 
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
@@ -3900,13 +3919,17 @@ static void K_drawKartItemRoulette(void)
 			default: break;
 		}
 
-	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
+	if (splitscreen)
+		flags = 0;
+	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), flags, localpatch);
 }
 
 static void K_drawKartRetroItem(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
 	// ITEM_Y = 24;					//  24
+
+	INT32 flags = V_SNAPTORIGHT|V_SNAPTOTOP;
 
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
@@ -3944,7 +3967,9 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
 	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
 
-	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), V_SNAPTORIGHT|V_SNAPTOTOP, localpatch);
+	if (splitscreen)
+		flags = 0;
+	V_DrawScaledPatch(ITEM_X, STRINGY(ITEM_Y), flags, localpatch);
 }
 
 /*
@@ -4052,8 +4077,12 @@ static void K_drawKartTimestamp(void)
 	// TIME_Y = 6;					//   6
 
 	INT32 TIME_XB;
+	INT32 flags = V_SNAPTORIGHT|V_SNAPTOTOP;
+	
+	if (splitscreen)
+		flags = 0;
 
-	V_DrawScaledPatch(TIME_X, STRINGY(TIME_Y), 0, kp_timestickerwide);
+	V_DrawScaledPatch(TIME_X, STRINGY(TIME_Y), flags, kp_timestickerwide);
 
 	TIME_XB = TIME_X+33;
 
@@ -4062,44 +4091,44 @@ static void K_drawKartTimestamp(void)
 		// zero minute
 		if (stplyr->realtime/(60*TICRATE) < 10)
 		{
-			V_DrawKartString(TIME_XB, STRINGY(TIME_Y+3), 0, va("0"));
+			V_DrawKartString(TIME_XB, STRINGY(TIME_Y+3), flags, va("0"));
 			// minutes time       0 __ __
-			V_DrawKartString(TIME_XB+12, STRINGY(TIME_Y+3), 0, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB+12, STRINGY(TIME_Y+3), flags, va("%d", stplyr->realtime/(60*TICRATE)));
 		}
 		// minutes time       0 __ __
 		else
-			V_DrawKartString(TIME_XB, STRINGY(TIME_Y+3), 0, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB, STRINGY(TIME_Y+3), flags, va("%d", stplyr->realtime/(60*TICRATE)));
 
 		// apostrophe location     _'__ __
-		V_DrawKartString(TIME_XB+24, STRINGY(TIME_Y+3), 0, va("'"));
+		V_DrawKartString(TIME_XB+24, STRINGY(TIME_Y+3), flags, va("'"));
 
 		// zero second        _ 0_ __
 		if ((stplyr->realtime/TICRATE % 60) < 10)
 		{
-			V_DrawKartString(TIME_XB+36, STRINGY(TIME_Y+3), 0, va("0"));
+			V_DrawKartString(TIME_XB+36, STRINGY(TIME_Y+3), flags, va("0"));
 		// seconds time       _ _0 __
-			V_DrawKartString(TIME_XB+48, STRINGY(TIME_Y+3), 0, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+48, STRINGY(TIME_Y+3), flags, va("%d", stplyr->realtime/TICRATE % 60));
 		}
 		// zero second        _ 00 __
 		else
-			V_DrawKartString(TIME_XB+36, STRINGY(TIME_Y+3), 0, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+36, STRINGY(TIME_Y+3), flags, va("%d", stplyr->realtime/TICRATE % 60));
 
 		// quotation mark location    _ __"__
-		V_DrawKartString(TIME_XB+60, STRINGY(TIME_Y+3), 0, va("\""));
+		V_DrawKartString(TIME_XB+60, STRINGY(TIME_Y+3), flags, va("\""));
 
 		// zero tick          _ __ 0_
 		if (G_TicsToCentiseconds(stplyr->realtime) < 10)
 		{
-			V_DrawKartString(TIME_XB+72, STRINGY(TIME_Y+3), 0, va("0"));
+			V_DrawKartString(TIME_XB+72, STRINGY(TIME_Y+3), flags, va("0"));
 		// tics               _ __ _0
-			V_DrawKartString(TIME_XB+84, STRINGY(TIME_Y+3), 0, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+84, STRINGY(TIME_Y+3), flags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
 		}
 		// zero tick          _ __ 00
 		if (G_TicsToCentiseconds(stplyr->realtime) >= 10)
-			V_DrawKartString(TIME_XB+72, STRINGY(TIME_Y+3), 0, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+72, STRINGY(TIME_Y+3), flags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
 	}
 	else
-		V_DrawKartString(TIME_XB, STRINGY(TIME_Y+3), 0, va("99'59\"99"));
+		V_DrawKartString(TIME_XB, STRINGY(TIME_Y+3), flags, va("99'59\"99"));
 }
 
 static void K_DrawKartPositionNum(INT32 num)
@@ -4107,14 +4136,18 @@ static void K_DrawKartPositionNum(INT32 num)
 	// POSI_X = BASEVIDWIDTH - 51;	// 269
 	// POSI_Y = BASEVIDHEIGHT- 64;	// 136
 
-	INT32 X = POSI_X+SCX(43); // +43 to offset where it's being drawn if there are more than one
+	INT32 X = POSI_X+43; // +43 to offset where it's being drawn if there are more than one
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
+	INT32 flags = V_TRANSLUCENT|V_SNAPTORIGHT|V_SNAPTOBOTTOM;
 	patch_t *localpatch = kp_positionnum[0][0];
+
+	if (splitscreen)
+		flags = V_TRANSLUCENT;
 
 	// Special case for 0
 	if (!num)
 	{
-		V_DrawTranslucentPatch(X-(W*vid.dupx), POSI_Y, V_NOSCALESTART|V_TRANSLUCENT|V_SNAPTORIGHT|V_SNAPTOBOTTOM, kp_positionnum[0][0]);
+		V_DrawTranslucentPatch(X-W, STRINGY(POSI_Y), flags, kp_positionnum[0][0]);
 		return;
 	}
 
@@ -4123,7 +4156,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	// Draw the number
 	while (num)
 	{
-		X -= (W*vid.dupx);
+		X -= W;
 
 		// Check for the final lap
 		if (stplyr->laps+1 == cv_numlaps.value)
@@ -4132,19 +4165,19 @@ static void K_DrawKartPositionNum(INT32 num)
 			switch (leveltime % 9)
 			{
 				case 1: case 2: case 3:
-					if (stplyr->kartstuff[k_position] >= 4)
+					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= 2))
 						localpatch = kp_positionnum[num % 10][4];
 					else
 						localpatch = kp_positionnum[num % 10][1];
 					break;
 				case 4: case 5: case 6:
-					if (stplyr->kartstuff[k_position] >= 4)
+					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= 2))
 						localpatch = kp_positionnum[num % 10][5];
 					else
 						localpatch = kp_positionnum[num % 10][2];
 					break;
 				case 7: case 8: case 9:
-					if (stplyr->kartstuff[k_position] >= 4)
+					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= 2))
 						localpatch = kp_positionnum[num % 10][6];
 					else
 						localpatch = kp_positionnum[num % 10][3];
@@ -4157,7 +4190,7 @@ static void K_DrawKartPositionNum(INT32 num)
 		else
 			localpatch = kp_positionnum[num % 10][0];
 
-		V_DrawTranslucentPatch(X, POSI_Y, V_NOSCALESTART|V_TRANSLUCENT|V_SNAPTORIGHT|V_SNAPTOBOTTOM, localpatch);
+		V_DrawTranslucentPatch(X, STRINGY(POSI_Y), flags, localpatch);
 		num /= 10;
 	}
 }
@@ -4215,17 +4248,17 @@ static void K_drawKartPositionFaces(void)
 		{
 			colormap = colormaps;
 			if (rankplayer[i] != myplayer)
-				V_DrawSmallTranslucentPatch(FACE_X, Y, 0, faceprefix[players[rankplayer[i]].skin]);
+				V_DrawSmallTranslucentPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
 			else
-				V_DrawSmallScaledPatch(FACE_X, Y, 0, faceprefix[players[rankplayer[i]].skin]);
+				V_DrawSmallScaledPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
 		}
 		else
 		{
 			colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
 			if (rankplayer[i] != myplayer)
-				V_DrawSmallTranslucentMappedPatch(FACE_X, Y, 0, faceprefix[players[rankplayer[i]].skin], colormap);
+				V_DrawSmallTranslucentMappedPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
 			else
-				V_DrawSmallMappedPatch(FACE_X, Y, 0, faceprefix[players[rankplayer[i]].skin], colormap);
+				V_DrawSmallMappedPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
 		}
 		// Draws the little number over the face
 		switch (players[rankplayer[i]].kartstuff[k_position])
@@ -4237,30 +4270,47 @@ static void K_drawKartPositionFaces(void)
 			default: break;
 		}
 		if (rankplayer[i] != myplayer)
-			V_DrawSmallTranslucentPatch(FACE_X, Y, 0, localpatch);
+			V_DrawSmallTranslucentPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, localpatch);
 		else
-			V_DrawSmallScaledPatch(FACE_X, Y, 0, localpatch);
+			V_DrawSmallScaledPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, localpatch);
 		Y += 18;
 	}
+}
+
+static void K_drawKartLaps(void)
+{
+	INT32 flags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+	if (splitscreen)
+		flags = 0;
+
+	V_DrawScaledPatch(LAPS_X, STRINGY(LAPS_Y), flags, kp_lapsticker);
+
+	if (stplyr->exiting)
+		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), flags, "FIN");
+	else
+		V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), flags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 }
 
 static void K_drawKartSpeedometer(void)
 {
 	fixed_t convSpeed;
+	INT32 flags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+	if (splitscreen)
+		flags = 0;
 	if (cv_speedometer.value == 1)
 	{
 		convSpeed = FixedMul(stplyr->speed, 142371)/FRACUNIT; // 2.172409058
-		V_DrawKartString(9, STRINGY(155), 0, va("%3d km/h", convSpeed));
+		V_DrawKartString(SPDM_X, STRINGY(SPDM_Y), flags, va("%3d km/h", convSpeed));
 	}
 	else if (cv_speedometer.value == 2)
 	{
 		convSpeed = FixedMul(stplyr->speed, 88465)/FRACUNIT; // 1.349868774
-		V_DrawKartString(9, STRINGY(155), 0, va("%3d mph", convSpeed));
+		V_DrawKartString(SPDM_X, STRINGY(SPDM_Y), flags, va("%3d mph", convSpeed));
 	}
 	else if (cv_speedometer.value == 3)
 	{
 		convSpeed = stplyr->speed/FRACUNIT;
-		V_DrawKartString(9, STRINGY(155), 0, va("%3d Fracunits/s", convSpeed));
+		V_DrawKartString(SPDM_X, STRINGY(SPDM_Y), flags, va("%3d Fracunits/s", convSpeed));
 	}
 }
 
@@ -4290,23 +4340,20 @@ static void K_drawKartPlayerCheck(void)
 {
 	INT32 i;
 	UINT8 *colormap;
-	fixed_t x;
+	INT32 x;
 	patch_t *localpatch;
 
-	if (splitscreen)
+	if (!(stplyr->mo))
 		return;
 
-	if (!(players[displayplayer].mo))
-		return;
-
-	if (players[displayplayer].awayviewtics)
+	if (stplyr->awayviewtics)
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (i == displayplayer)
+		if (&players[i] == stplyr)
 			continue;
-		if (players[i].mo == NULL)
+		if (!(players[i].mo))
 			continue;
 
 		if ((players[i].kartstuff[k_startimer] <= 0) && (leveltime & 2))
@@ -4328,15 +4375,16 @@ static void K_drawKartPlayerCheck(void)
 				localpatch = kp_check;
 		}
 
-		x = K_FindCheckX(players[displayplayer].mo->x, players[displayplayer].mo->y, players[displayplayer].mo->angle, players[i].mo->x, players[i].mo->y);
+		x = K_FindCheckX(stplyr->mo->x, stplyr->mo->y, stplyr->mo->angle, players[i].mo->x, players[i].mo->y);
 		if (x <= 320 && x >= 0)
 		{
 			if (x < 14)
 				x = 14;
 			else if (x > 306)
 				x = 306;
+
 			colormap = R_GetTranslationColormap(-1, players[i].mo->color, 0);
-			V_DrawMappedPatch(x, 200, 0, localpatch, colormap);
+			V_DrawMappedPatch(x, STRINGY(CHEK_Y), V_SNAPTOBOTTOM, localpatch, colormap);
 		}
 	}
 }
@@ -4462,11 +4510,11 @@ void K_drawKartHUD(void)
 			
 		if (stplyr->kartstuff[k_lapanimation])
 			K_drawLapLakitu();
-	}
 
-	// Draw the CHECK indicator first, so it's overlapped by everything else
-	if (cv_kartcheck.value)
-		K_drawKartPlayerCheck();
+		// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
+		if (cv_kartcheck.value)
+			K_drawKartPlayerCheck();
+	}
 
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])
@@ -4485,22 +4533,19 @@ void K_drawKartHUD(void)
 
 	if (gametype == GT_RACE) // Race-only elements
 	{
-		// If not splitscreen, draw...
-		// The little triple-item icons at the bottom
-		// The top-four faces on the left
 		if (!(splitscreen || modeattacking))
 		{
+			// If not splitscreen, draw...
+			// The little triple-item icons at the bottom
+			// The top-four faces on the left
 			K_drawKartPositionFaces();
-			// Draw the numerical position
-			K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 		}
 
+		// Draw the numerical position
+		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+	
 		// Draw the lap counter
-		V_DrawScaledPatch(LAPS_X, STRINGY(LAPS_Y), 0, kp_lapsticker);
-		if (stplyr->exiting)
-			V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, "FIN");
-		else
-			V_DrawKartString(LAPS_X+33, STRINGY(LAPS_Y+3), 0, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+		K_drawKartLaps();
 	}
 
 	// Draw the timestamp
