@@ -3728,7 +3728,17 @@ DoneSection2:
 	// Process Section 3
 	switch (special)
 	{
-		case 1: // Unused   (was "Ice/Sludge")
+		case 1: // SRB2kart: bounce pad
+			if (!P_IsObjectOnGround(player->mo))
+				break;
+
+			if (player->speed < K_GetKartSpeed(player, true)/16 && !(player->mo->eflags & MFE_SPRUNG)) // Push forward to prevent getting stuck
+				P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/16, player->mo->scale));
+	
+			K_DoBouncePad(player, 12<<FRACBITS);
+
+			break;
+
 		case 2: // Wind/Current
 		case 3: // Unused   (was "Ice/Sludge and Wind/Current")
 		case 4: // Conveyor Belt

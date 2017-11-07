@@ -2444,6 +2444,26 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 50;
 }
 
+void K_DoBouncePad(player_t *player, fixed_t vertispeed)
+{
+	if (player->spectator || !player->mo)
+		return;
+
+	if (player->mo->eflags & MFE_SPRUNG)
+		return;
+
+#ifdef ESLOPE
+	player->mo->standingslope = NULL;
+#endif
+	player->mo->eflags |= MFE_SPRUNG;
+
+	if (player->mo->eflags & MFE_VERTICALFLIP)
+		vertispeed *= -1;
+
+	player->mo->momz = FixedMul(vertispeed, player->mo->scale);
+	S_StartSound(player->mo, sfx_boing);
+}
+
 // countersteer is how strong the controls are telling us we are turning
 // turndir is the direction the controls are telling us to turn, -1 if turning right and 1 if turning left
 static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
@@ -3232,10 +3252,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Feather
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_feather] & 1 && NO_BOO)
 		{
-			S_StartSound(player->mo, sfx_boing); // Boing!
 			K_PlayTauntSound(player->mo);
-
-			player->mo->momz = FixedMul(15<<FRACBITS, player->mo->scale);
+			K_DoBouncePad(player, 16<<FRACBITS);
 
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_feather] |= 2;

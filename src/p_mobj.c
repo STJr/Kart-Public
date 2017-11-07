@@ -9266,7 +9266,7 @@ void P_RespawnBattleSpecials(void)
 		return;
 
 	// Didn't collect enough boxes
-	if (numgotboxes < (9*nummapboxes/10))
+	if (numgotboxes < (4*nummapboxes/5))
 		return;
 
 	// wait a teeeensy bit after collecting everything
