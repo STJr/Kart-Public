@@ -692,26 +692,26 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8  9
 				/*Magnet*/ { 0, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 4, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 4, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
+				   /*Boo*/ { 3, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
+			  /*Mushroom*/ { 5, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
 				  /*Star*/ { 1, 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
-		 /*Triple Banana*/ { 2, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
-			 /*Fake Item*/ { 4, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
-				/*Banana*/ { 4, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 4, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
-			 /*Red Shell*/ { 2, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
-	/*Triple Green Shell*/ { 2, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
+		 /*Triple Banana*/ { 3, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
+			 /*Fake Item*/ { 5, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 5, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 5, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
+			 /*Red Shell*/ { 3, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 3, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 3, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
+		   /*Fire Flower*/ { 3, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
 	  /*Triple Red Shell*/ { 1, 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Lightning
 
-			   /*Feather*/ { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // Feather
+			   /*Feather*/ { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -936,6 +936,16 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 
 //}
 
+static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
+{
+	INT32 newodds = (K_KartItemOddsDistance_Retro[itemnum-1][pos]);
+	if ((cv_kartfrantic.value) && (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
+		|| itemnum == 7 || itemnum == 8 || itemnum == 12 || itemnum == 13 || itemnum == 14 || itemnum == 15
+		|| itemnum == 16 || itemnum == 17 || itemnum == 18))
+		newodds *= 2;
+	return newodds;
+}
+
 //{ SRB2kart Roulette Code - Distance Based, no waypoints
 
 static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
@@ -997,8 +1007,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	if (cv_kartfrantic.value) // Stupid items
 	{
-		pdis = (13*pdis/14); // multiply...
-		pdis += distvar; // then set everyone back another place...
+		pdis = (15*pdis/14); // multiply...
+		pdis += distvar; // set everyone back another place...
 	}
 
 	if (gametype == GT_MATCH
@@ -1015,7 +1025,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	else 							useodds = 9;
 
 #define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartItemOddsDistance_Retro[itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
+	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum); chance++) \
+		spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
 	//if (gametype == GT_RETRO)
@@ -1038,7 +1049,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)											SETITEMRESULT(useodds, 16);	// Fire Flower
 		if (cv_tripleredshell.value)										SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)						SETITEMRESULT(useodds, 18);	// Lightning
-		if (cv_feather.value)												SETITEMRESULT(useodds, 19);	// Triple Red Shell
+		if (cv_feather.value)												SETITEMRESULT(useodds, 19);	// Feather
 
 		prandom = P_RandomKey(numchoices);
 
