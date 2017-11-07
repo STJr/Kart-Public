@@ -502,6 +502,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"tossed",  false,150,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"shelit",  false, 64, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"vroom",   false, 64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"boing",   false, 64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},

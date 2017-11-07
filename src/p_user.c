@@ -6700,9 +6700,11 @@ static void P_MovePlayer(player_t *player)
 	{
 		K_KartMoveAnimation(player);
 
-		player->frameangle = player->mo->angle;
+		if (player->kartstuff[k_feather] & 2)
+			player->frameangle += ANGLE_22h;
+		else
+			player->frameangle = player->mo->angle;
 	}
-
 
 	player->mo->movefactor = FRACUNIT; // We're not going to do any more with this, so let's change it back for the next frame.
 

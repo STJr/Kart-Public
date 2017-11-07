@@ -150,9 +150,13 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
 	//	return false;
 
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // No balloons in Match
 		return false;
-	
+
+	if (player->kartstuff[k_bootaketimer]				|| player->kartstuff[k_boostolentimer]
+		|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_goldshroomtimer]) // Item-specific timer going off
+		return false;
+
 	if (player->kartstuff[k_itemroulette]
 		|| player->kartstuff[k_greenshell]				|| player->kartstuff[k_triplegreenshell]
 		|| player->kartstuff[k_redshell]				|| player->kartstuff[k_tripleredshell]
@@ -162,10 +166,7 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 		|| player->kartstuff[k_mushroom]				|| player->kartstuff[k_fireflower]
 		|| player->kartstuff[k_star]					|| player->kartstuff[k_goldshroom]
 		|| player->kartstuff[k_lightning]				|| player->kartstuff[k_megashroom]
-		|| player->kartstuff[k_boo]					|| player->kartstuff[k_bootaketimer]
-		|| player->kartstuff[k_boostolentimer]
-		|| player->kartstuff[k_growshrinktimer] > 1
-		|| player->kartstuff[k_goldshroomtimer])
+		|| player->kartstuff[k_boo]					|| player->kartstuff[k_feather] & 1) // Item slot already taken up
 		return false;
 
 	return true;

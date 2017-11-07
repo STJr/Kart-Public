@@ -305,6 +305,7 @@ typedef enum
 	k_tripleredshell,	// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
 						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
 	k_lightning,		// 0x1 = Lightning in inventory
+	k_feather,			// 0x1 = Feather in inventory, 0x2 = Player is feather jumping
 	k_kitchensink,		// 0x1 = Sink in inventory
 	k_balloon,			// Battle mode, number of balloons left
 	k_comebackhits,		// Battle mode, number of times hit in comeback mode

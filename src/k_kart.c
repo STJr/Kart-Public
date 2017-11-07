@@ -300,6 +300,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_fireflower);
 	CV_RegisterVar(&cv_tripleredshell);
 	CV_RegisterVar(&cv_lightning);
+	CV_RegisterVar(&cv_feather);
 
 	CV_RegisterVar(&cv_kartcheck);
 	CV_RegisterVar(&cv_kartcc);
@@ -325,7 +326,7 @@ UINT8 K_GetKartCC(void)
 
 //{ SRB2kart Roulette Code - Position Based
 
-#define NUMKARTITEMS 	18
+#define NUMKARTITEMS 	19
 #define NUMKARTODDS 	40
 
 // Ugly ol' 3D arrays
@@ -708,7 +709,9 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
 			/*Blue Shell*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
 		   /*Fire Flower*/ { 2, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
 	  /*Triple Red Shell*/ { 1, 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
-			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 0, 1, 2, 0 }  // Lightning
+			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Lightning
+
+			   /*Feather*/ { 4, 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -788,6 +791,9 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 			break;
 		case 18:	// Lightning
 			player->kartstuff[k_lightning] = 1;
+			break;
+		case 19:	// Feather
+			player->kartstuff[k_feather] |= 1;
 			break;
 		default:	// Mushroom - Doing it here as a fail-safe
 			if (getitem != 3)
@@ -1032,6 +1038,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_fireflower.value)											SETITEMRESULT(useodds, 16);	// Fire Flower
 		if (cv_tripleredshell.value)										SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)						SETITEMRESULT(useodds, 18);	// Lightning
+		if (cv_feather.value)												SETITEMRESULT(useodds, 19);	// Triple Red Shell
 
 		prandom = P_RandomKey(numchoices);
 
@@ -1441,7 +1448,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->mo->momz *= player->kartstuff[k_jmp];
 		player->kartstuff[k_jmp] = 0;
 	}
-	 */
+	*/
+
+	if (P_IsObjectOnGround(player->mo) && !(player->mo->momz)
+		&& player->kartstuff[k_feather] & 2)
+		player->kartstuff[k_feather] &= ~2;
 
 	if (cmd->buttons & BT_JUMP)
 		player->kartstuff[k_jmp] = 1;
@@ -2722,6 +2733,7 @@ static boolean K_CheckForHoldItem(player_t *player)
 static void K_StripItems(player_t *player)
 {
 	if (	player->kartstuff[k_kitchensink]
+		|| 	player->kartstuff[k_feather] & 1
 		|| 	player->kartstuff[k_lightning]
 		|| 	player->kartstuff[k_tripleredshell]
 		|| 	player->kartstuff[k_fireflower]
@@ -2747,6 +2759,7 @@ static void K_StripItems(player_t *player)
 		|| 	player->kartstuff[k_itemroulette]
 		)	player->kartstuff[k_itemclose] = 10;
 	player->kartstuff[k_kitchensink] = 0;
+	player->kartstuff[k_feather] = 0;
 	player->kartstuff[k_lightning] = 0;
 	player->kartstuff[k_tripleredshell] = 0;
 	player->kartstuff[k_fireflower] = 0;
@@ -3216,6 +3229,20 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_magnet] = 0;
 		}
+		// Feather
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_feather] & 1 && NO_BOO)
+		{
+			S_StartSound(player->mo, sfx_boing); // Boing!
+			K_PlayTauntSound(player->mo);
+
+			player->mo->momz = FixedMul(15<<FRACBITS, player->mo->scale);
+
+			player->pflags |= PF_ATTACKDOWN;
+			player->kartstuff[k_feather] |= 2;
+			player->kartstuff[k_feather] &= ~1;
+
+			player->kartstuff[k_itemclose] = 10;
+		}
 
 		// Mushroom Boost
 		if (((player->kartstuff[k_mushroomtimer] > 0 && player->kartstuff[k_boosting] == 0)
@@ -3465,6 +3492,7 @@ static patch_t *kp_blueshell;
 static patch_t *kp_fireflower;
 static patch_t *kp_tripleredshell;
 static patch_t *kp_lightning;
+static patch_t *kp_feather;
 static patch_t *kp_kitchensink;
 static patch_t *kp_itemused1;
 static patch_t *kp_itemused2;
@@ -3602,6 +3630,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_fireflower = 			W_CachePatchName("K_ITFIRE", PU_HUDGFX);
 	kp_tripleredshell = 		W_CachePatchName("K_ITTRED", PU_HUDGFX);
 	kp_lightning = 				W_CachePatchName("K_ITLIGH", PU_HUDGFX);
+	kp_feather = 				W_CachePatchName("K_ITFETH", PU_HUDGFX);
 	kp_kitchensink = 			W_CachePatchName("K_ITSINK", PU_HUDGFX);
 
 	// Item-used - Closing the item window after an item is used
@@ -3917,6 +3946,7 @@ static void K_drawKartRetroItem(void)
 		&& (leveltime & 2))													localpatch = kp_boosteal;
 	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))		localpatch = kp_noitem;
 	else if (stplyr->kartstuff[k_kitchensink] == 1)							localpatch = kp_kitchensink;
+	else if (stplyr->kartstuff[k_feather] & 1)									localpatch = kp_feather;
 	else if (stplyr->kartstuff[k_lightning] == 1)								localpatch = kp_lightning;
 	else if (stplyr->kartstuff[k_tripleredshell])								localpatch = kp_tripleredshell; // &8
 	else if (stplyr->kartstuff[k_fireflower] == 1)							localpatch = kp_fireflower;

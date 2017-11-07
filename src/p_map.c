@@ -1661,9 +1661,23 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			}
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
+			{
 				K_KartBouncing(tmthing, thing, true);
+				if (tmthing->player->kartstuff[k_feather] & 2)
+				{
+					K_StealBalloon(tmthing->player, thing->player);
+					K_SpinPlayer(thing->player, tmthing);
+				}
+			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
+			{
 				K_KartBouncing(thing, tmthing, true);
+				if (thing->player->kartstuff[k_feather] & 2)
+				{
+					K_StealBalloon(thing->player, tmthing->player);
+					K_SpinPlayer(tmthing->player, thing);
+				}
+			}
 			else
 				K_KartBouncing(tmthing, thing, false);
 

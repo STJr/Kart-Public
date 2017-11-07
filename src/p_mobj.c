@@ -6778,7 +6778,7 @@ void P_MobjThinker(mobj_t *mobj)
 					else if (mobj->target->player->kartstuff[k_fireflower])				P_SetMobjState(mobj, S_PLAYERARROW_FIREFLOWER);
 					else if (mobj->target->player->kartstuff[k_bobomb])					P_SetMobjState(mobj, S_PLAYERARROW_BOBOMB);
 					else if (mobj->target->player->kartstuff[k_redshell])					P_SetMobjState(mobj, S_PLAYERARROW_REDSHELL);
-					//else if (mobj->target->player->kartstuff[k_feather])					P_SetMobjState(mobj, S_PLAYERARROW_FEATHER);
+					else if (mobj->target->player->kartstuff[k_feather] & 1)				P_SetMobjState(mobj, S_PLAYERARROW_FEATHER);
 					else if (mobj->target->player->kartstuff[k_boo] == 1)					P_SetMobjState(mobj, S_PLAYERARROW_BOO);
 					else if (mobj->target->player->kartstuff[k_fakeitem] & 2)				P_SetMobjState(mobj, S_PLAYERARROW_FAKEITEM);
 					else if (mobj->target->player->kartstuff[k_banana])					P_SetMobjState(mobj, S_PLAYERARROW_BANANA);
