@@ -1111,7 +1111,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		mobj2->momz = newz;
 	}
 
-	mass1 = mass2 = 1*FRACUNIT;
+	mass1 = mass2 = 5*FRACUNIT;
 	if (mobj1->player)
 		mass1 = (mobj1->player->kartweight)*FRACUNIT;
 	if (mobj2->player)

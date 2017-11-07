@@ -6499,7 +6499,7 @@ static void P_MovePlayer(player_t *player)
 	*/
 
 	cmd = &player->cmd;
-	runspd = FixedMul(player->runspeed, player->mo->scale);
+	runspd = 14*player->mo->scale; //srb2kart
 
 	// Let's have some movement speed fun on low-friction surfaces, JUST for players...
 	// (high friction surfaces shouldn't have any adjustment, since the acceleration in
