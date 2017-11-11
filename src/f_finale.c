@@ -1345,7 +1345,7 @@ void F_CutsceneTicker(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (netgame && i != serverplayer && i != adminplayer)
+		if (netgame && i != serverplayer && !IsPlayerAdmin(i))
 			continue;
 
 		if (players[i].cmd.buttons & BT_BRAKE || players[i].cmd.buttons & BT_ACCELERATE) // SRB2kart
