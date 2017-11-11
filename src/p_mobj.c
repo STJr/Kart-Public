@@ -2303,6 +2303,14 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_BIGTUMBLEWEED:
 		case MT_LITTLETUMBLEWEED:
 		case MT_SHELL:
+		// SRB2kart stuff that should die in pits
+		// Shouldn't stop moving along the Z if there's no speed though!
+		case MT_FAKEITEM:
+		case MT_BANANAITEM:
+		case MT_GREENITEM:
+		case MT_REDITEM:
+		case MT_REDITEMDUD:
+		case MT_FIREBALL:
 			// Remove stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
@@ -2329,13 +2337,6 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_FLINGCOIN:
 		case MT_FLINGRANDOMITEM:
 		case MT_FLINGEMERALD:
-		// SRB2kart stuff that should die in pits
-		case MT_RANDOMITEM:
-		case MT_BANANAITEM:
-		case MT_GREENITEM:
-		case MT_REDITEM:
-		case MT_REDITEMDUD:
-		case MT_FIREBALL:
 			// Remove flinged stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
