@@ -303,6 +303,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_feather);
 
 	CV_RegisterVar(&cv_kartcheck);
+	CV_RegisterVar(&cv_kartstarsfx);
 	CV_RegisterVar(&cv_kartcc);
 	CV_RegisterVar(&cv_kartballoons);
 	CV_RegisterVar(&cv_kartfrantic);
@@ -1382,6 +1383,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_spinouttimer])
 		player->kartstuff[k_spinouttimer]--;
+	else if (player->kartstuff[k_comebacktimer])
+		player->kartstuff[k_comebacktimer]--;
 
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == flashingtics)
 		player->powers[pw_flashing]--;
@@ -1438,9 +1441,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_poweritemtimer])
 		player->kartstuff[k_poweritemtimer]--;
 
-	if (player->kartstuff[k_comebacktimer])
-		player->kartstuff[k_comebacktimer]--;
-
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
 
@@ -1492,6 +1492,15 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
 			S_StopSoundByID(player->mo, sfx_mega); // Stop it
 	}
+
+	if (player->mo->health > 0 && (player->mo->player->kartstuff[k_startimer] > 0
+		|| player->mo->player->kartstuff[k_growshrinktimer] > 0))
+	{
+		if (leveltime % 13 == 0 && !P_IsLocalPlayer(player))
+			S_StartSound(player->mo, sfx_smkinv);
+	}
+	else if (S_SoundPlaying(player->mo, sfx_smkinv))
+		S_StopSoundByID(player->mo, sfx_smkinv);
 
 	// Plays the music after the starting countdown.
 	if (P_IsLocalPlayer(player) && leveltime == 158)
@@ -1652,7 +1661,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	fixed_t p_speed = K_GetKartSpeed(player, true);
 	fixed_t p_accel = K_GetKartAccel(player);
 
-	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
+	if (!onground && !(player->kartstuff[k_feather] & 2)) return 0; // If the player isn't on the ground, there is no change in speed
 
 	// ACCELCODE!!!1!11!
 	oldspeed = R_PointToDist2(0, 0, player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
@@ -2920,7 +2929,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			if (P_IsLocalPlayer(player) && !player->exiting)
 				S_ChangeMusicInternal("minvnc", true);
-			if (!P_IsLocalPlayer(player))
+			if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_star);
 			player->kartstuff[k_startimer] = itemtime; // Activate it
 			K_PlayTauntSound(player->mo);
@@ -3235,7 +3244,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			if (P_IsLocalPlayer(player) && !player->exiting)
 				S_ChangeMusicInternal("mega", true);
-			if (!P_IsLocalPlayer(player))
+			if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
 				S_StartSound(player->mo, sfx_mega);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_growshrinktimer] = itemtime + TICRATE*2;
@@ -3264,7 +3273,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_feather] & 1 && NO_BOO)
 		{
 			K_PlayTauntSound(player->mo);
-			K_DoBouncePad(player, 16<<FRACBITS);
+			K_DoBouncePad(player, 30<<FRACBITS);
 
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_feather] |= 2;
@@ -3345,10 +3354,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 			if (player->kartstuff[k_comebacktimer] > 0)
 			{
-				if (leveltime & 1)
-					player->mo->tracer->flags2 |= MF2_DONTDRAW;
-				else
+				if (player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
 					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
+				else
+					player->mo->tracer->flags2 |= MF2_DONTDRAW;
 
 				player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 			}
@@ -4587,6 +4596,10 @@ void K_drawKartHUD(void)
 	// Draw the speedometer
 	// TODO: Make a better speedometer.
 	K_drawKartSpeedometer();
+	
+	if (gametype != GT_RACE && !stplyr->kartstuff[k_spinouttimer]
+		&& stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer])
+		V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(176), 0, va("%d", (stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE));
 }
 
 //}

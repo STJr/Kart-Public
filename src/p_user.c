@@ -9465,7 +9465,7 @@ void P_PlayerThink(player_t *player)
 		// SRB2kart - fixes boo not flashing when it should. Mega doesn't flash either. Flashing is local.
 		if ((player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
 			&& player->kartstuff[k_bootimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
-			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype != GT_RACE && player->kartstuff[k_balloon] > 0)))
+			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
 		{
 			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < flashingtics && (leveltime & 1))
 				player->mo->flags2 |= MF2_DONTDRAW;

@@ -107,6 +107,7 @@ extern consvar_t cv_feather;
 
 extern consvar_t cv_karthud;
 extern consvar_t cv_kartcheck;
+extern consvar_t cv_kartstarsfx;
 extern consvar_t cv_kartcc;
 extern consvar_t cv_kartballoons;
 extern consvar_t cv_kartfrantic;
