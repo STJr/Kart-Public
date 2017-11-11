@@ -2475,6 +2475,28 @@ void K_DoBouncePad(player_t *player, fixed_t vertispeed)
 	S_StartSound(player->mo, sfx_boing);
 }
 
+// Returns false if this player being placed here causes them to collide with any other player
+// Used in g_game.c for match etc. respawning
+// This does not check along the z because the z is not correctly set for the spawnee at this point
+boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y)
+{
+	INT32 i;
+	fixed_t p1radius = players[playernum].mo->radius;
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playernum == i || !playeringame[i] || players[i].spectator || !players[i].mo || players[i].mo->health <= 0
+			|| players[i].playerstate != PST_LIVE || (players[i].mo->flags & MF_NOCLIP) || (players[i].mo->flags & MF_NOCLIPTHING))
+			continue;
+
+		if (abs(x - players[i].mo->x) < (p1radius + players[i].mo->radius)
+			&& abs(y - players[i].mo->y) < (p1radius + players[i].mo->radius))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 // countersteer is how strong the controls are telling us we are turning
 // turndir is the direction the controls are telling us to turn, -1 if turning right and 1 if turning left
 static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
