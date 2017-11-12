@@ -8091,7 +8091,7 @@ void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
 
-	if (!(actor->target && actor->target->player && P_CanPickupItem(actor->target->player, false)))
+	if (!(actor->target && actor->target->player))
 	{
 		if (cv_debug && !(actor->target && actor->target->player))
 			CONS_Printf("ERROR: Powerup has no target!\n");

@@ -153,6 +153,9 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // No balloons in Match
 		return false;
 
+	if (player->kartstuff[k_magnettimer]) // You should probably collect stuff when you're attracting it :V
+		return true;
+
 	if (player->kartstuff[k_bootaketimer]				|| player->kartstuff[k_boostolentimer]
 		|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_goldshroomtimer]) // Item-specific timer going off
 		return false;
@@ -407,7 +410,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	{
 		case MT_RANDOMITEM:			// SRB2kart
 		case MT_FLINGRANDOMITEM:
-			if (!(P_CanPickupItem(player, false)))
+			if (!P_CanPickupItem(player, false) && special->tracer != toucher)
 				return;
 			special->momx = special->momy = special->momz = 0;
 			P_SetTarget(&special->target, toucher);
@@ -3164,7 +3167,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return false;
 		else
 		{
-			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD))
+			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD || inflictor->player))
 			{
 				player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);
