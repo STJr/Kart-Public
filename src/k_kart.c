@@ -2031,18 +2031,6 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 
 	th->flags2 |= flags2;
 
-	if (P_IsObjectOnGround(source))
-	{
-		// spawn on the ground if the player is on the ground
-		if (P_MobjFlip(source) < 0)
-		{
-			th->z = th->ceilingz - th->height;
-			th->eflags |= MFE_VERTICALFLIP;
-		}
-		else
-			th->z = th->floorz;
-	}
-
 	th->threshold = 10;
 
 #ifdef WEAPON_SFX
@@ -2056,6 +2044,21 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 #endif
 
 	P_SetTarget(&th->target, source);
+
+	if (P_IsObjectOnGround(source))
+	{
+		// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
+		// This should set it for FOFs
+		P_TeleportMove(th, th->x, th->y, th->z);
+		// spawn on the ground if the player is on the ground
+		if (P_MobjFlip(source) < 0)
+		{
+			th->z = th->ceilingz - th->height;
+			th->eflags |= MFE_VERTICALFLIP;
+		}
+		else
+			th->z = th->floorz;
+	}
 
 	th->angle = an;
 	th->momx = FixedMul(speed, FINECOSINE(an>>ANGLETOFINESHIFT));
@@ -2261,8 +2264,33 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 			mo = P_SpawnMobj(newx, newy, player->mo->z, mapthing);
 
+			if (P_MobjFlip(player->mo) < 0)
+				mo->z = player->mo->z + player->mo->height - mo->height;
+
 			mo->threshold = 10;
 			P_SetTarget(&mo->target, player->mo);
+
+			if (P_IsObjectOnGround(player->mo))
+			{
+				// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
+				// This should set it for FOFs
+				P_TeleportMove(mo, mo->x, mo->y, mo->z);
+
+				if (P_MobjFlip(mo) > 0)
+				{
+					if (mo->floorz > mo->target->z - mo->height)
+					{
+						mo->z = mo->floorz;
+					}
+				}
+				else
+				{
+					if (mo->ceilingz < mo->target->z + mo->target->height + mo->height)
+					{
+						mo->z = mo->ceilingz - mo->height;
+					}
+				}
+			}
 
 			if (mo)
 			{
