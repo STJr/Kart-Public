@@ -1010,9 +1010,6 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 	if (player->bot)
 		player = &players[consoleplayer];
 
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
-		return;
-
 	// NiGHTS does it different!
 	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->typeoflevel & TOL_NIGHTS)
 	{

@@ -410,8 +410,39 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	{
 		case MT_RANDOMITEM:			// SRB2kart
 		case MT_FLINGRANDOMITEM:
+			if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+			{
+				if (player->kartstuff[k_comebackmode] == 0 && !player->kartstuff[k_comebacktimer])
+				{
+					P_SetTarget(&special->tracer, toucher);
+					player->kartstuff[k_comebackmode] = 1;
+				}
+				return;
+			}
+
 			if (!P_CanPickupItem(player, false) && special->tracer != toucher)
 				return;
+
+			if (gametype != GT_RACE && special->tracer && special->tracer->player)
+			{
+				special->tracer->player->kartstuff[k_comebackmode] = 0;
+
+				special->tracer->player->kartstuff[k_comebackpoints]++;
+				CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->tracer->player-players], player_names[player-players]);
+
+				if (special->tracer->player->kartstuff[k_comebackpoints] >= 3)
+				{
+					K_StealBalloon(special->tracer->player, player);
+					special->tracer->player->kartstuff[k_comebackpoints] = 0;
+					CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[special->tracer->player-players]);
+				}
+
+				special->tracer->player->kartstuff[k_comebackhits]--;
+				if (special->tracer->player->kartstuff[k_comebackhits] < 0)
+					special->tracer->player->kartstuff[k_comebackhits] = 0;
+				special->tracer->player->kartstuff[k_comebacktimer] = comebacktime * (special->tracer->player->kartstuff[k_comebackhits]+1);
+			}
+
 			special->momx = special->momy = special->momz = 0;
 			P_SetTarget(&special->target, toucher);
 			P_SetMobjState(special, special->info->deathstate);
@@ -3167,7 +3198,12 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return false;
 		else
 		{
-			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_REDITEM || inflictor->type == MT_REDITEMDUD || inflictor->player))
+			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_GREENSHIELD
+				|| inflictor->type == MT_REDITEM || inflictor->type == MT_REDSHIELD || inflictor->type == MT_REDITEMDUD
+				|| inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD
+				|| inflictor->type == MT_TRIPLEGREENSHIELD1 || inflictor->type == MT_TRIPLEGREENSHIELD2 || inflictor->type == MT_TRIPLEGREENSHIELD3
+				|| inflictor->type == MT_TRIPLEREDSHIELD1 || inflictor->type == MT_TRIPLEREDSHIELD2 || inflictor->type == MT_TRIPLEREDSHIELD3
+				|| inflictor->player))
 			{
 				player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);

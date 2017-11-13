@@ -3633,6 +3633,8 @@ void A_AttractChase(mobj_t *actor)
 		|| !P_CheckSight(actor, actor->tracer)) // You have to be able to SEE it...sorta
 	{
 		// Lost attracted rings don't through walls anymore.
+		if (actor->tracer && actor->tracer->player)
+			actor->tracer->player->kartstuff[k_comebackmode] = 0;
 		actor->flags &= ~MF_NOCLIP;
 		P_SetTarget(&actor->tracer, NULL);
 		return;

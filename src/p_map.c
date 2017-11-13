@@ -675,6 +675,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
@@ -810,6 +813,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_PLAYER)
 		{
 			S_StartSound(NULL, sfx_cgot); //let all players hear it.
@@ -832,6 +838,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // underneath
 
 		if (!(thing->type == MT_PLAYER))
+			return true;
+
+		if (thing->player && thing->player->powers[pw_flashing])
 			return true;
 
 		if (thing->type == MT_PLAYER)
@@ -864,6 +873,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (tmthing->type == MT_FIREBALL && thing->type == MT_FIREBALL)
 			return true; // Fireballs don't collide with eachother
+
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
 
 		if (thing->type == MT_PLAYER)
 		{
@@ -962,6 +974,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->health <= 0 || thing->health <= 0)
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
 			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_BOMBITEM
@@ -1045,6 +1060,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->health <= 0 || thing->health <= 0)
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_PLAYER)
 		{
 			P_KillMobj(tmthing, thing, thing);
@@ -1088,6 +1106,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // overhead
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
+
+		if (tmthing->player && tmthing->player->powers[pw_flashing])
+			return true;
 
 		if (thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
 			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
@@ -1606,49 +1627,71 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
 				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
-				|| (gametype != GT_RACE && (thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer]))
+				|| (gametype != GT_RACE && (thing->player->kartstuff[k_balloon] <= 0
+				&& (thing->player->kartstuff[k_comebacktimer] || thing->player->kartstuff[k_comebackmode] == 1)))
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
 				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer]
 				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped]
-				|| (gametype != GT_RACE && (tmthing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_comebacktimer])))
+				|| (gametype != GT_RACE && (tmthing->player->kartstuff[k_balloon] <= 0
+				&& (tmthing->player->kartstuff[k_comebacktimer] || tmthing->player->kartstuff[k_comebackmode] == 1))))
 			{
 				return true;
 			}
 
 			if (gametype != GT_RACE)
 			{
-				if (thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
+				if ((thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
+					&& (thing->player->kartstuff[k_comebackmode] == 0 && tmthing->player->kartstuff[k_comebackmode] == 0))
 				{
-					thing->player->kartstuff[k_justbumped] = 6;
-					tmthing->player->kartstuff[k_justbumped] = 6;
-
 					if (tmthing->player->kartstuff[k_balloon] > 0)
 					{
-						if (tmthing->player->kartstuff[k_balloon] == 1)
+						thing->player->kartstuff[k_comebackpoints]++;
+						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
+
+						if (thing->player->kartstuff[k_comebackpoints] >= 3)
+						{
 							K_StealBalloon(thing->player, tmthing->player);
+							thing->player->kartstuff[k_comebackpoints] = 0;
+							CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[thing->player-players]);
+						}
 
 						K_ExplodePlayer(tmthing->player, thing);
-						P_AddPlayerScore(thing->player, 1); // 2 points instead of 1 for getting someone in comeback mode
+						P_AddPlayerScore(thing->player, 1); // 2 points instead of 1 for getting someone in comeback mode, since it's REALLY tough :V
 
-						thing->player->kartstuff[k_comebackhits]++;
+						thing->player->kartstuff[k_comebackhits]--;
+						if (thing->player->kartstuff[k_comebackhits] < 0)
+							thing->player->kartstuff[k_comebackhits] = 0;
+
 						thing->player->kartstuff[k_comebacktimer] = comebacktime * (thing->player->kartstuff[k_comebackhits]+1);
 						return true;
 					}
 					else if (thing->player->kartstuff[k_balloon] > 0)
 					{
-						if (thing->player->kartstuff[k_balloon] == 1)
+						tmthing->player->kartstuff[k_comebackpoints]++;
+						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
+
+						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
+						{
 							K_StealBalloon(tmthing->player, thing->player);
+							thing->player->kartstuff[k_comebackpoints] = 0;
+							CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[tmthing->player-players]);
+						}
 
 						K_ExplodePlayer(thing->player, tmthing);
-						P_AddPlayerScore(thing->player, 1); // 2 points instead of 1 for getting someone in comeback mode
+						P_AddPlayerScore(tmthing->player, 1); // 2 points instead of 1 for getting someone in comeback mode, since it's REALLY tough :V
 
-						tmthing->player->kartstuff[k_comebackhits]++;
+						tmthing->player->kartstuff[k_comebackhits]--;
+						if (tmthing->player->kartstuff[k_comebackhits] < 0)
+							tmthing->player->kartstuff[k_comebackhits] = 0;
+
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime * (tmthing->player->kartstuff[k_comebackhits]+1);
 						return true;
 					}
 					else if (thing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_balloon] <= 0)
 					{
 						K_KartBouncing(tmthing, thing, false);
+						thing->player->kartstuff[k_justbumped] = 6;
+						tmthing->player->kartstuff[k_justbumped] = 6;
 
 						K_SpinPlayer(thing->player, tmthing);
 						K_SpinPlayer(tmthing->player, thing);
@@ -1669,6 +1712,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				{
 					K_StealBalloon(tmthing->player, thing->player);
 					K_SpinPlayer(thing->player, tmthing);
+					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 				}
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
@@ -1678,6 +1722,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				{
 					K_StealBalloon(thing->player, tmthing->player);
 					K_SpinPlayer(tmthing->player, thing);
+					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 				}
 			}
 			else
@@ -1689,11 +1734,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				{
 					K_StealBalloon(thing->player, tmthing->player);
 					K_SpinPlayer(tmthing->player, thing);
+					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 				}
 				else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
 				{
 					K_StealBalloon(tmthing->player, thing->player);
 					K_SpinPlayer(thing->player, tmthing);
+					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 				}
 			}
 

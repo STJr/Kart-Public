@@ -1449,6 +1449,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_comebackhits] > 5)
 		player->kartstuff[k_comebackhits] = 5;
+	else if (player->kartstuff[k_comebackhits] < 0)
+		player->kartstuff[k_comebackhits] = 0;
 
 	// ???
 	/*
@@ -1460,6 +1462,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_jmp] = 0;
 	}
 	*/
+
+	if (player->kartstuff[k_comebacktimer])
+		player->kartstuff[k_comebackmode] = 0;
 
 	if (P_IsObjectOnGround(player->mo) && !(player->mo->momz)
 		&& player->kartstuff[k_feather] & 2)
@@ -1493,10 +1498,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			S_StopSoundByID(player->mo, sfx_mega); // Stop it
 	}
 
+	// AAAAAAND handle the SMK star alarm
 	if (player->mo->health > 0 && (player->mo->player->kartstuff[k_startimer] > 0
 		|| player->mo->player->kartstuff[k_growshrinktimer] > 0))
 	{
-		if (leveltime % 13 == 0 && !P_IsLocalPlayer(player))
+		if (leveltime % 13 == 0 && cv_kartstarsfx.value && !P_IsLocalPlayer(player))
 			S_StartSound(player->mo, sfx_smkinv);
 	}
 	else if (S_SoundPlaying(player->mo, sfx_smkinv))
@@ -1880,7 +1886,7 @@ void K_StealBalloon(player_t *player, player_t *victim)
 		|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootimer] > 0))
 		return;
 
-	CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
+	//CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
 
 	newballoon = player->kartstuff[k_balloon];
 	if (newballoon <= 1)
@@ -1907,6 +1913,7 @@ void K_StealBalloon(player_t *player, player_t *victim)
 		P_SetMobjState(newmo, S_BATTLEBALLOON1);
 
 	player->kartstuff[k_balloon]++;
+	player->powers[pw_flashing] = flashingtics;
 
 	return;
 }
@@ -3361,7 +3368,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 		}
-		
+
 		if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb
 		{
 			K_StripItems(player);
@@ -3383,6 +3390,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 				player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 			}
+			else if (player->kartstuff[k_comebackmode] != 0)
+				player->mo->tracer->flags2 |= MF2_DONTDRAW;
 			else
 				player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
 		}
@@ -3468,7 +3477,7 @@ void K_CheckBalloons(void)
 	UINT8 numingame = 0;
 	INT8 winnernum = -1;
 
-// Quick thing for testing comeback in splitscreen
+// Set to 1 if you need to test comeback in splitscreen
 #if 0
 	return;
 #endif
@@ -3527,6 +3536,7 @@ static patch_t *kp_lapstickernarrow;
 static patch_t *kp_lakitustart[NUMLAKIFRAMES];
 static patch_t *kp_lakitulaps[17];
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
+static patch_t *kp_winnernum[NUMPOSFRAMES];
 static patch_t *kp_facenull;
 static patch_t *kp_facefirst;
 static patch_t *kp_facesecond;
@@ -3663,6 +3673,13 @@ void K_LoadKartHUDGraphics(void)
 			kp_positionnum[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 		}
 	}
+
+	for (i = 0; i < NUMPOSFRAMES; i++)
+	{
+		sprintf(buffer, "K_POSNW%d", i);
+		kp_winnernum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
 	kp_facenull = 				W_CachePatchName("K_PFACE0", PU_HUDGFX);
 	kp_facefirst = 				W_CachePatchName("K_PFACE1", PU_HUDGFX);
 	kp_facesecond = 			W_CachePatchName("K_PFACE2", PU_HUDGFX);
@@ -4222,8 +4239,38 @@ static void K_DrawKartPositionNum(INT32 num)
 	{
 		X -= W;
 
-		// Check for the final lap
-		if (stplyr->laps+1 == cv_numlaps.value)
+		if (stplyr->exiting && num == 1) // 1st place winner? You get rainbows!!
+		{
+			// Alternate frame every three frames
+			switch (leveltime % 21)
+			{
+				case 1: case 2: case 3: 
+					localpatch = kp_winnernum[0];
+					break;
+				case 4: case 5: case 6:
+					localpatch = kp_winnernum[1];
+					break;
+				case 7: case 8: case 9:
+					localpatch = kp_winnernum[2];
+					break;
+				case 10: case 11: case 12:
+					localpatch = kp_winnernum[3];
+					break;
+				case 13: case 14: case 15:
+					localpatch = kp_winnernum[4];
+					break;
+				case 16: case 17: case 18:
+					localpatch = kp_winnernum[5];
+					break;
+				case 19: case 20: case 21:
+					localpatch = kp_winnernum[6];
+					break;
+				default:
+					localpatch = kp_positionnum[1][0];
+					break;
+			}
+		}
+		else if (stplyr->laps+1 == cv_numlaps.value || stplyr->exiting) // Check for the final lap, or won
 		{
 			// Alternate frame every three frames
 			switch (leveltime % 9)
