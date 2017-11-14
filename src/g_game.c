@@ -1790,7 +1790,7 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].spectator)
 					continue;
 
-				if (G_GametypeHasTeams())
+				/*if (G_GametypeHasTeams())
 				{
 					if (players[consoleplayer].ctfteam
 					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
@@ -1811,6 +1811,12 @@ boolean G_Responder(event_t *ev)
 				else if (G_GametypeHasSpectators() && G_RingSlingerGametype())
 				{
 					if (!players[consoleplayer].spectator)
+						continue;
+				}*/
+
+				if (gametype != GT_RACE) // srb2kart
+				{
+					if (players[consoleplayer].kartstuff[k_balloon] > 0)
 						continue;
 				}
 
@@ -3082,7 +3088,7 @@ static void G_DoWorldDone(void)
 			// don't reset player between maps
 			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 		else
-			// resetplayer in match/chaos/tag/CTF/race for more equality
+			// resetplayer in match/tag/CTF for more equality
 			D_MapChange(nextmap+1, gametype, ultimatemode, true, 0, false, false);
 	}
 

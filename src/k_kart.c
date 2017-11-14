@@ -18,6 +18,7 @@
 #include "z_zone.h"
 #include "m_misc.h"
 #include "k_kart.h"
+#include "f_finale.h"
 
 //{ SRB2kart Color Code
 
@@ -307,6 +308,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcc);
 	CV_RegisterVar(&cv_kartballoons);
 	CV_RegisterVar(&cv_kartfrantic);
+	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_speedometer);
 	CV_RegisterVar(&cv_collideminimum);
 	CV_RegisterVar(&cv_collidesoundnum);
@@ -1383,8 +1385,14 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_spinouttimer])
 		player->kartstuff[k_spinouttimer]--;
+	else if (!cv_kartcomeback.value)
+		player->kartstuff[k_comebacktimer] = comebacktime;
 	else if (player->kartstuff[k_comebacktimer])
+	{
 		player->kartstuff[k_comebacktimer]--;
+		if (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
+			player->kartstuff[k_comebackshowninfo] = 1;
+	}
 
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == flashingtics)
 		player->powers[pw_flashing]--;
@@ -3524,6 +3532,9 @@ void K_CheckBalloons(void)
 		if (!playeringame[i] || players[i].spectator) // not even in-game
 			continue;
 
+		if (players[i].exiting) // we're already exiting! stop!
+			return;
+
 		numingame++;
 
 		if (players[i].kartstuff[k_balloon] <= 0) // if you don't have any balloons, you're probably not a winner
@@ -3539,11 +3550,11 @@ void K_CheckBalloons(void)
 	if (playeringame[winnernum])
 	{
 		P_AddPlayerScore(&players[winnernum], numingame);
-		CONS_Printf(M_GetText("%s recieved %d points for surviving!\n"), player_names[winnernum], numingame); // numingame/2 == 1 ? "" : "s"
+		CONS_Printf(M_GetText("%s recieved %d points for winning!\n"), player_names[winnernum], numingame); // numingame/2 == 1 ? "" : "s"
 	}
 
-	if (server)
-		SendNetXCmd(XD_EXITLEVEL, NULL, 0);
+	for (i = 0; i < MAXPLAYERS; i++)
+		P_DoPlayerExit(&players[i]);
 }
 
 //}
@@ -3561,6 +3572,10 @@ static patch_t *kp_timesticker;
 static patch_t *kp_timestickerwide;
 static patch_t *kp_lapsticker;
 static patch_t *kp_lapstickernarrow;
+static patch_t *kp_balloonsticker;
+static patch_t *kp_balloonstickerwide;
+static patch_t *kp_karmasticker;
+static patch_t *kp_timeoutsticker;
 static patch_t *kp_lakitustart[NUMLAKIFRAMES];
 static patch_t *kp_lakitulaps[17];
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
@@ -3570,6 +3585,10 @@ static patch_t *kp_facefirst;
 static patch_t *kp_facesecond;
 static patch_t *kp_facethird;
 static patch_t *kp_facefourth;
+static patch_t *kp_battlewin;
+static patch_t *kp_battlelose;
+static patch_t *kp_battlewait;
+static patch_t *kp_battleinfo;
 static patch_t *kp_magnet;
 static patch_t *kp_boo;
 static patch_t *kp_boosteal;
@@ -3656,6 +3675,10 @@ void K_LoadKartHUDGraphics(void)
 	kp_timestickerwide = 		W_CachePatchName("K_STTIMW", PU_HUDGFX);
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
+	kp_balloonsticker = 		W_CachePatchName("K_STBALN", PU_HUDGFX);
+	kp_balloonstickerwide = 	W_CachePatchName("K_STBALW", PU_HUDGFX);
+	kp_karmasticker = 			W_CachePatchName("K_STKARM", PU_HUDGFX);
+	kp_timeoutsticker = 		W_CachePatchName("K_STTOUT", PU_HUDGFX);
 
 	// Lakitu Start-up Frames
 	kp_lakitustart[0] = 		W_CachePatchName("K_LAKISA", PU_HUDGFX);
@@ -3713,6 +3736,12 @@ void K_LoadKartHUDGraphics(void)
 	kp_facesecond = 			W_CachePatchName("K_PFACE2", PU_HUDGFX);
 	kp_facethird = 				W_CachePatchName("K_PFACE3", PU_HUDGFX);
 	kp_facefourth = 			W_CachePatchName("K_PFACE4", PU_HUDGFX);
+
+	// Battle graphics
+	kp_battlewin = 				W_CachePatchName("K_BWIN", PU_HUDGFX);
+	kp_battlelose = 			W_CachePatchName("K_BLOSE", PU_HUDGFX);
+	kp_battlewait = 			W_CachePatchName("K_BWAIT", PU_HUDGFX);
+	kp_battleinfo = 			W_CachePatchName("K_BINFO", PU_HUDGFX);
 
 	// Kart Item Windows
 	kp_magnet = 				W_CachePatchName("K_ITMAGN", PU_HUDGFX);
@@ -4453,6 +4482,36 @@ static void K_drawKartSpeedometer(void)
 	}
 }
 
+static void K_drawKartBalloonsOrKarma(void)
+{
+	UINT8 *colormap = R_GetTranslationColormap(-1, stplyr->skincolor, 0);
+	INT32 flags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+	if (splitscreen)
+		flags = 0;
+
+	if (stplyr->kartstuff[k_balloon] <= 0)
+	{
+		V_DrawScaledPatch(LAPS_X, STRINGY(LAPS_Y), flags, kp_karmasticker);
+		V_DrawKartString(LAPS_X+58, STRINGY(LAPS_Y+3), flags, va("%d", stplyr->kartstuff[k_comebackhits]));
+		V_DrawKartString(LAPS_X+85, STRINGY(LAPS_Y+3), flags, va("3"));
+	}
+	else
+	{
+		if (cv_kartballoons.value > 9)
+		{
+			V_DrawMappedPatch(LAPS_X, STRINGY(LAPS_Y), flags, kp_balloonstickerwide, colormap);
+			V_DrawKartString(LAPS_X+46, STRINGY(LAPS_Y+3), flags, va("%2d", stplyr->kartstuff[k_balloon]));
+			V_DrawKartString(LAPS_X+83, STRINGY(LAPS_Y+3), flags, va("%2d", cv_kartballoons.value));
+		}
+		else
+		{
+			V_DrawMappedPatch(LAPS_X, STRINGY(LAPS_Y), flags, kp_balloonsticker, colormap);
+			V_DrawKartString(LAPS_X+46, STRINGY(LAPS_Y+3), flags, va("%d", stplyr->kartstuff[k_balloon]));
+			V_DrawKartString(LAPS_X+73, STRINGY(LAPS_Y+3), flags, va("%d", cv_kartballoons.value));
+		}
+	}
+}
+
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
 {
 	fixed_t dist, x;
@@ -4525,6 +4584,54 @@ static void K_drawKartPlayerCheck(void)
 			colormap = R_GetTranslationColormap(-1, players[i].mo->color, 0);
 			V_DrawMappedPatch(x, STRINGY(CHEK_Y), V_SNAPTOBOTTOM, localpatch, colormap);
 		}
+	}
+}
+
+static void K_drawBattleWait(void)
+{
+	INT32 t = ((stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE);
+	INT32 X = BASEVIDWIDTH/2;
+
+	if (!WipeInAction || !menuactive || !splitscreen)
+		V_DrawFadeScreen();
+
+	while (t)
+	{
+		X -= 8;
+		t /= 10;
+	}
+
+	if (!stplyr->kartstuff[k_comebackshowninfo])
+	{
+		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battleinfo);
+		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 66), 0, kp_timeoutsticker);
+		V_DrawKartString(X, STRINGY((BASEVIDHEIGHT/2) + 66), 0, va("%d", ((stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE)));
+	}
+	else
+	{
+		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewait);
+		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 30), 0, kp_timeoutsticker);
+		V_DrawKartString(X, STRINGY((BASEVIDHEIGHT/2) + 30), 0, va("%d", ((stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE)));
+	}
+}
+
+static void K_drawBattleExit(void)
+{
+	if (!WipeInAction || !menuactive || !(splitscreen && stplyr != &players[consoleplayer]))
+		V_DrawFadeScreen();
+	if (splitscreen)
+	{
+		if (stplyr->kartstuff[k_balloon])
+			V_DrawScaledPatch(96, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewin);
+		else
+			V_DrawScaledPatch(BASEVIDWIDTH-96, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlelose);
+	}
+	else
+	{
+		if (stplyr->kartstuff[k_balloon])
+			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewin);
+		else
+			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlelose);
 	}
 }
 
@@ -4639,6 +4746,21 @@ void K_drawKartHUD(void)
 	// This is handled by console/menu values
 	K_initKartHUD();
 
+	// Draw full screen stuff that turns off the rest of the HUD
+	if (gametype != GT_RACE)
+	{
+		if (stplyr->exiting)
+		{
+			K_drawBattleExit();
+			return;
+		}
+		else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)
+		{
+			K_drawBattleWait();
+			return;
+		}
+	}
+
 	// Draw Lakitu
 	// This is done first so that regardless of HUD layers,
 	// he'll appear to be in the 'real world'
@@ -4669,6 +4791,9 @@ void K_drawKartHUD(void)
 		K_drawKartRetroItem();
 
 	//K_DrawKartTripleItem();
+	
+	// Draw the timestamp
+	K_drawKartTimestamp();
 
 	if (gametype == GT_RACE) // Race-only elements
 	{
@@ -4682,21 +4807,19 @@ void K_drawKartHUD(void)
 
 		// Draw the numerical position
 		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
-	
+
+		// Draw the speedometer
+		// TODO: Make a better speedometer.
+		K_drawKartSpeedometer();
+
 		// Draw the lap counter
 		K_drawKartLaps();
 	}
-
-	// Draw the timestamp
-	K_drawKartTimestamp();
-
-	// Draw the speedometer
-	// TODO: Make a better speedometer.
-	K_drawKartSpeedometer();
-	
-	if (gametype != GT_RACE && !stplyr->kartstuff[k_spinouttimer]
-		&& stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer])
-		V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(176), 0, va("%d", (stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE));
+	else if (gametype == GT_MATCH) // Battle-only
+	{
+		// Draw the hits left!
+		K_drawKartBalloonsOrKarma();
+	}
 }
 
 //}

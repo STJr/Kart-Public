@@ -1010,6 +1010,9 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 	if (player->bot)
 		player = &players[consoleplayer];
 
+	if (player->exiting) // srb2kart
+		return;
+
 	// NiGHTS does it different!
 	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->typeoflevel & TOL_NIGHTS)
 	{
@@ -1604,9 +1607,9 @@ void P_DoPlayerExit(player_t *player)
 	if (player->exiting)
 		return;
 
-	if (cv_allowexitlevel.value == 0 && !G_PlatformGametype())
+	/*if (cv_allowexitlevel.value == 0 && !G_PlatformGametype()) // srb2kart
 		return;
-	else if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
+	else*/ if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
 		// SRB2kart 120217
 		if (!countdown && !(netgame || multiplayer))
@@ -1665,8 +1668,8 @@ void P_DoPlayerExit(player_t *player)
 	player->powers[pw_spacetime] = 0;
 	P_RestoreMusic(player);
 
-	if (playeringame[player-players] && netgame && !circuitmap)
-		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);
+	/*if (playeringame[player-players] && netgame && !circuitmap)
+		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
 }
 
 #define SPACESPECIAL 12

@@ -318,11 +318,12 @@ consvar_t cv_feather = 			{"feathers", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NU
 consvar_t cv_karthud = {"karthud", "Default", CV_SAVE|CV_CALL, karthud_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartcheck = {"kartcheck", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartstarsfx_cons_t[] = {{0, "Music"}, {1, "SMK"}, {0, NULL}};
-consvar_t cv_kartstarsfx = {"kartstarsfx", "Music", CV_SAVE, kartstarsfx_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // change default to "SMK"?
+consvar_t cv_kartstarsfx = {"kartstarsfx", "SMK", CV_SAVE, kartstarsfx_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // change default to "SMK"?
 consvar_t cv_kartcc = {"kartcc", "100cc", CV_NETVAR, kartcc_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartballoons_cons_t[] = {{1, "MIN"}, {12, "MAX"}, {0, NULL}};
 consvar_t cv_kartballoons = {"kartballoons", "3", CV_NETVAR, kartballoons_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t speedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_speedometer = {"speedometer", "Kilometers", CV_SAVE, speedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 
