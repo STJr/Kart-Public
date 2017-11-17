@@ -3627,7 +3627,9 @@ void A_AttractChase(mobj_t *actor)
 
 	P_LookForShield(actor); // Go find 'em, boy!
 
-	if (!actor->tracer
+	if (actor->tracer && actor->tracer->player && actor->tracer->player->kartstuff[k_comebackmode] == 1)
+		;
+	else if (!actor->tracer
 		|| !actor->tracer->player
 		|| !actor->tracer->health
 		|| !P_CheckSight(actor, actor->tracer)) // You have to be able to SEE it...sorta

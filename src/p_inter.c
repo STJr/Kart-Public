@@ -414,6 +414,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				if (player->kartstuff[k_comebackmode] == 0 && !player->kartstuff[k_comebacktimer])
 				{
+					if (special->tracer && special->tracer->player)
+						special->tracer->player->kartstuff[k_comebackmode] = 0;
 					P_SetTarget(&special->tracer, toucher);
 					player->kartstuff[k_comebackmode] = 1;
 				}
@@ -437,10 +439,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[special->tracer->player-players]);
 				}
 
-				special->tracer->player->kartstuff[k_comebackhits]--;
-				if (special->tracer->player->kartstuff[k_comebackhits] < 0)
-					special->tracer->player->kartstuff[k_comebackhits] = 0;
-				special->tracer->player->kartstuff[k_comebacktimer] = comebacktime * (special->tracer->player->kartstuff[k_comebackhits]+1);
+				special->tracer->player->kartstuff[k_comebacktimer] = comebacktime;
 			}
 
 			special->momx = special->momy = special->momz = 0;
@@ -2596,7 +2595,7 @@ static inline void P_NiGHTSDamage(mobj_t *target, mobj_t *source)
 			target->momy = FixedMul(FINESINE(fa),target->target->radius);
 		}
 
-		player->powers[pw_flashing] = flashingtics;
+		player->powers[pw_flashing] = K_GetKartFlashing(player);
 		P_SetMobjState(target->tracer, S_NIGHTSHURT1);
 		S_StartSound(target, sfx_nghurt);
 
@@ -3313,7 +3312,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			player->health -= damage; // mirror mobj health here
 			if (damage < 10000)
 			{
-				target->player->powers[pw_flashing] = flashingtics;
+				target->player->powers[pw_flashing] = K_GetKartFlashing(target->player);
 				if (damage > 0) // don't spill emeralds/ammo/panels for shield damage
 					P_PlayerRingBurst(player, damage);
 			}

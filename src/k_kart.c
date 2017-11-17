@@ -1394,7 +1394,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			player->kartstuff[k_comebackshowninfo] = 1;
 	}
 
-	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == flashingtics)
+	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing(player))
 		player->powers[pw_flashing]--;
 
 	if (player->kartstuff[k_magnettimer])
@@ -1454,11 +1454,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
-
-	if (player->kartstuff[k_comebackhits] > 5)
-		player->kartstuff[k_comebackhits] = 5;
-	else if (player->kartstuff[k_comebackhits] < 0)
-		player->kartstuff[k_comebackhits] = 0;
 
 	// ???
 	/*
@@ -1643,10 +1638,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 			break;
 	}
 
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)	
-		k_speed += 3; // 153
-	else
-		k_speed += player->kartspeed*3; // 153 - 177
+	k_speed += player->kartspeed*3; // 153 - 177
 
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
@@ -1655,17 +1647,25 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	return finalspeed;
 }
 
-static fixed_t K_GetKartAccel(player_t *player)
+fixed_t K_GetKartAccel(player_t *player)
 {
 	fixed_t k_accel = 32; // 36;
 
-	if (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)
-	{
-		//k_accel += 3 * (9 - player->kartspeed); // 36 - 60
-		k_accel += 4 * (9 - player->kartspeed); // 32 - 64
-	}
+	//k_accel += 3 * (9 - player->kartspeed); // 36 - 60
+	k_accel += 4 * (9 - player->kartspeed); // 32 - 64
 
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
+}
+
+UINT16 K_GetKartFlashing(player_t *player)
+{
+	UINT16 tics = flashingtics;
+	if (gametype != GT_RACE)
+	{
+		tics *= 2;
+		//tics += (3*TICRATE/8) * (player->kartspeed-1);
+	}
+	return tics;
 }
 
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove)
@@ -1729,8 +1729,6 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
-		else
-			player->kartstuff[k_comebackhits]++;
 
 		if (source && source->player && player != source->player)
 			P_AddPlayerScore(source->player, 1);
@@ -1738,7 +1736,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		K_CheckBalloons();
 	}
 
-	player->kartstuff[k_comebacktimer] = comebacktime * (player->kartstuff[k_comebackhits]+1);
+	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	if (player->kartstuff[k_spinouttype] <= 0)
 	{
@@ -1756,7 +1754,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	else
 		player->kartstuff[k_spinouttimer] = 1*TICRATE; // ? Whipeout
 
-	player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
@@ -1789,8 +1787,6 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
-		else
-			player->kartstuff[k_comebackhits]++;
 
 		if (source && source->player && player != source->player)
 			P_AddPlayerScore(source->player, 1);
@@ -1798,11 +1794,11 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		K_CheckBalloons();
 	}
 
-	player->kartstuff[k_comebacktimer] = comebacktime * (player->kartstuff[k_comebackhits]+1);
+	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_squishedtimer] = 1*TICRATE;
 
-	player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	player->mo->flags |= MF_NOCLIP;
 
@@ -1838,8 +1834,6 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
-		else
-			player->kartstuff[k_comebackhits]++;
 
 		if (source && source->player && player != source->player)
 			P_AddPlayerScore(source->player, 1);
@@ -1847,13 +1841,13 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		K_CheckBalloons();
 	}
 
-	player->kartstuff[k_comebacktimer] = comebacktime * (player->kartstuff[k_comebackhits]+1);
+	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_spinouttype] = 1;
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
 	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
-	player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -1921,7 +1915,7 @@ void K_StealBalloon(player_t *player, player_t *victim)
 		P_SetMobjState(newmo, S_BATTLEBALLOON1);
 
 	player->kartstuff[k_balloon]++;
-	player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	return;
 }
@@ -4492,7 +4486,7 @@ static void K_drawKartBalloonsOrKarma(void)
 	if (stplyr->kartstuff[k_balloon] <= 0)
 	{
 		V_DrawScaledPatch(LAPS_X, STRINGY(LAPS_Y), flags, kp_karmasticker);
-		V_DrawKartString(LAPS_X+58, STRINGY(LAPS_Y+3), flags, va("%d", stplyr->kartstuff[k_comebackhits]));
+		V_DrawKartString(LAPS_X+58, STRINGY(LAPS_Y+3), flags, va("%d", stplyr->kartstuff[k_comebackpoints]));
 		V_DrawKartString(LAPS_X+85, STRINGY(LAPS_Y+3), flags, va("3"));
 	}
 	else
@@ -4515,7 +4509,7 @@ static void K_drawKartBalloonsOrKarma(void)
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
 {
 	fixed_t dist, x;
-	fixed_t range = RING_DIST/4;
+	fixed_t range = RING_DIST/3;
 	angle_t diff;
 
 	range *= (K_GetKartCC()/50);
@@ -4587,51 +4581,51 @@ static void K_drawKartPlayerCheck(void)
 	}
 }
 
-static void K_drawBattleWait(void)
+static void K_drawBattleFullscreen(void)
 {
-	INT32 t = ((stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE);
-	INT32 X = BASEVIDWIDTH/2;
-
-	if (!WipeInAction || !menuactive || !splitscreen)
+	if (!WipeInAction && !menuactive && !splitscreen)
 		V_DrawFadeScreen();
 
-	while (t)
+	if (stplyr->exiting)
 	{
-		X -= 8;
-		t /= 10;
-	}
-
-	if (!stplyr->kartstuff[k_comebackshowninfo])
-	{
-		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battleinfo);
-		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 66), 0, kp_timeoutsticker);
-		V_DrawKartString(X, STRINGY((BASEVIDHEIGHT/2) + 66), 0, va("%d", ((stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE)));
-	}
-	else
-	{
-		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewait);
-		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 30), 0, kp_timeoutsticker);
-		V_DrawKartString(X, STRINGY((BASEVIDHEIGHT/2) + 30), 0, va("%d", ((stplyr->kartstuff[k_comebacktimer]+TICRATE)/TICRATE)));
-	}
-}
-
-static void K_drawBattleExit(void)
-{
-	if (!WipeInAction || !menuactive || !(splitscreen && stplyr != &players[consoleplayer]))
-		V_DrawFadeScreen();
-	if (splitscreen)
-	{
-		if (stplyr->kartstuff[k_balloon])
-			V_DrawScaledPatch(96, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewin);
+		if (splitscreen)
+		{
+			if (stplyr->kartstuff[k_balloon])
+				V_DrawScaledPatch(96, STRINGY(100), 0, kp_battlewin);
+			else
+				V_DrawScaledPatch(BASEVIDWIDTH-96, STRINGY(100), 0, kp_battlelose);
+		}
 		else
-			V_DrawScaledPatch(BASEVIDWIDTH-96, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlelose);
+		{
+			if (stplyr->kartstuff[k_balloon])
+				V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(100), 0, kp_battlewin);
+			else
+				V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(100), 0, kp_battlelose);
+		}
 	}
-	else
+	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)
 	{
-		if (stplyr->kartstuff[k_balloon])
-			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewin);
+		INT32 t = stplyr->kartstuff[k_comebacktimer]/TICRATE;
+		INT32 X = BASEVIDWIDTH/2;
+
+		while (t)
+		{
+			X -= 8;
+			t /= 10;
+		}
+
+		if (!stplyr->kartstuff[k_comebackshowninfo])
+		{
+			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battleinfo);
+			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 66), 0, kp_timeoutsticker);
+			V_DrawKartString(X, STRINGY((BASEVIDHEIGHT/2) + 66), 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+		}
 		else
-			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlelose);
+		{
+			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY(BASEVIDHEIGHT/2), 0, kp_battlewait);
+			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 30), 0, kp_timeoutsticker);
+			V_DrawKartString(X, STRINGY((BASEVIDHEIGHT/2) + 30), 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+		}
 	}
 }
 
@@ -4747,18 +4741,10 @@ void K_drawKartHUD(void)
 	K_initKartHUD();
 
 	// Draw full screen stuff that turns off the rest of the HUD
-	if (gametype != GT_RACE)
+	if ((gametype != GT_RACE) && (stplyr->exiting || (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)))
 	{
-		if (stplyr->exiting)
-		{
-			K_drawBattleExit();
-			return;
-		}
-		else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)
-		{
-			K_drawBattleWait();
-			return;
-		}
+		K_drawBattleFullscreen();
+		return;
 	}
 
 	// Draw Lakitu

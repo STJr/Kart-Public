@@ -310,7 +310,6 @@ typedef enum
 
 	// Battle Mode vars
 	k_balloon,			// Number of balloons left
-	k_comebackhits,		// Number of times hit in comeback mode
 	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a balloon
 	k_comebackmode, 	// 0 = bomb, 1 = item
 	k_comebackshowninfo,// Have you already seen the info screen before?

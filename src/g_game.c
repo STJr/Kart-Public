@@ -2200,7 +2200,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 starpostwp;
 	INT32 offroad;
 	INT32 balloon;
-	INT32 comebackhits;
+	INT32 comebackpoints;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2256,7 +2256,7 @@ void G_PlayerReborn(INT32 player)
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	offroad = players[player].kartstuff[k_offroad];
 	balloon = players[player].kartstuff[k_balloon];
-	comebackhits = players[player].kartstuff[k_comebackhits];
+	comebackpoints = players[player].kartstuff[k_comebackpoints];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2313,8 +2313,8 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
 	p->kartstuff[k_balloon] = balloon;
-	p->kartstuff[k_comebackhits] = comebackhits;
-	p->kartstuff[k_comebacktimer] = comebacktime * (comebackhits+1);
+	p->kartstuff[k_comebackpoints] = comebackpoints;
+	p->kartstuff[k_comebacktimer] = comebacktime;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -2326,7 +2326,7 @@ void G_PlayerReborn(INT32 player)
 	p->panim = PA_IDLE; // standing animation
 
 	if ((netgame || multiplayer) && !p->spectator)
-		p->powers[pw_flashing] = flashingtics-1; // Babysitting deterrent
+		p->powers[pw_flashing] = K_GetKartFlashing(p)-1; // Babysitting deterrent
 
 	if (p-players == consoleplayer)
 	{

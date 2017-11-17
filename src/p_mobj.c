@@ -216,10 +216,10 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		}
 	}
 	// You were in pain state after taking a hit, and you're moving out of pain state now?
-	else */if (mobj->state == &states[mobj->info->painstate] && player->powers[pw_flashing] == flashingtics && state != mobj->info->painstate)
+	else */if (mobj->state == &states[mobj->info->painstate] && player->powers[pw_flashing] == K_GetKartFlashing(player) && state != mobj->info->painstate)
 	{
 		// Start flashing, since you've landed.
-		player->powers[pw_flashing] = flashingtics-1;
+		player->powers[pw_flashing] = K_GetKartFlashing(player)-1;
 		//P_DoPityCheck(player);
 	}
 
@@ -9455,6 +9455,8 @@ void P_SpawnPlayer(INT32 playernum)
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (!playeringame[i] || players[i].spectator || &players[i] == p)
+				continue;
+			if (players[i].jointime > 0)
 				continue;
 			pcount++;
 		}

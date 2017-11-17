@@ -2139,6 +2139,26 @@ static int lib_kGetKartSpeed(lua_State *L)
 	return 0;
 }
 
+static int lib_kGetKartAccel(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushinteger(L, K_GetKartAccel(player));
+	return 0;
+}
+
+static int lib_kGetKartFlashing(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushinteger(L, K_GetKartFlashing(player));
+	return 0;
+}
+
 static luaL_Reg lib[] = {
 	{"print", lib_print},
 	{"EvalMath", lib_evalMath},
@@ -2326,6 +2346,8 @@ static luaL_Reg lib[] = {
 	{"K_DoBouncePad",lib_kDoBouncePad},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
+	{"K_GetKartAccel",lib_kGetKartAccel},
+	{"K_GetKartFlashing",lib_kGetKartFlashing},
 
 	{NULL, NULL}
 };

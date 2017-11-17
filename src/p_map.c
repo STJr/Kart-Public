@@ -675,7 +675,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
 			return true;
 
-		if (thing->player && thing->player->powers[pw_flashing])
+		if (thing->player && thing->player->powers[pw_flashing]
+			&& !(tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD))
 			return true;
 
 		if (thing->type == MT_PLAYER)
@@ -1107,7 +1108,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
 
-		if (tmthing->player && tmthing->player->powers[pw_flashing])
+		if (tmthing->player && tmthing->player->powers[pw_flashing]
+			&& !(thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD))
 			return true;
 
 		if (thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
@@ -1656,13 +1658,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 						}
 
 						K_ExplodePlayer(tmthing->player, thing);
-						P_AddPlayerScore(thing->player, 1); // 2 points instead of 1 for getting someone in comeback mode, since it's REALLY tough :V
 
-						thing->player->kartstuff[k_comebackhits]--;
-						if (thing->player->kartstuff[k_comebackhits] < 0)
-							thing->player->kartstuff[k_comebackhits] = 0;
-
-						thing->player->kartstuff[k_comebacktimer] = comebacktime * (thing->player->kartstuff[k_comebackhits]+1);
+						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (thing->player->kartstuff[k_balloon] > 0)
@@ -1678,28 +1675,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 						}
 
 						K_ExplodePlayer(thing->player, tmthing);
-						P_AddPlayerScore(tmthing->player, 1); // 2 points instead of 1 for getting someone in comeback mode, since it's REALLY tough :V
 
-						tmthing->player->kartstuff[k_comebackhits]--;
-						if (tmthing->player->kartstuff[k_comebackhits] < 0)
-							tmthing->player->kartstuff[k_comebackhits] = 0;
-
-						tmthing->player->kartstuff[k_comebacktimer] = comebacktime * (tmthing->player->kartstuff[k_comebackhits]+1);
-						return true;
-					}
-					else if (thing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_balloon] <= 0)
-					{
-						K_KartBouncing(tmthing, thing, false);
-						thing->player->kartstuff[k_justbumped] = 6;
-						tmthing->player->kartstuff[k_justbumped] = 6;
-
-						K_SpinPlayer(thing->player, tmthing);
-						K_SpinPlayer(tmthing->player, thing);
-
-						thing->player->kartstuff[k_comebackhits]++;
-						thing->player->kartstuff[k_comebacktimer] = comebacktime * (thing->player->kartstuff[k_comebackhits]+1);
-						tmthing->player->kartstuff[k_comebackhits]++;
-						tmthing->player->kartstuff[k_comebacktimer] = comebacktime * (tmthing->player->kartstuff[k_comebackhits]+1);
+						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 				}

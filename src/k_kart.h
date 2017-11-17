@@ -31,6 +31,8 @@ boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
 void K_MomentumToFacing(player_t *player);
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower);
+fixed_t K_GetKartAccel(player_t *player);
+UINT16 K_GetKartFlashing(player_t *player);
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove);
 void K_MoveKartPlayer(player_t *player, boolean onground);
 void K_CheckBalloons(void);
