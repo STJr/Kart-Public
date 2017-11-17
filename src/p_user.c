@@ -1650,6 +1650,8 @@ void P_DoPlayerExit(player_t *player)
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
 	}
+	else if (gametype != GT_RACE)
+		player->exiting = 10*TICRATE + 2; // Accidental death safeguard???
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
 

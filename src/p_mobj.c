@@ -6459,15 +6459,8 @@ void P_MobjThinker(mobj_t *mobj)
 			//{ SRB2kart mobs
 			case MT_DRIFT:
 			{
-				fixed_t dsone;
-				fixed_t dstwo;
-
-				if (gametype != GT_RACE && mobj->target->player->kartstuff[k_balloon] <= 0)
-					dsone = 26*4 + 2 + (9 - mobj->target->player->kartweight);
-				else
-					dsone = 26*4 + mobj->target->player->kartspeed*2 + (9 - mobj->target->player->kartweight);
-
-				dstwo = dsone*2;
+				fixed_t dsone = 26*4 + mobj->target->player->kartspeed*2 + (9 - mobj->target->player->kartweight);
+				fixed_t dstwo = dsone*2;
 
 				if ((mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= dsone))
@@ -9449,7 +9442,7 @@ void P_SpawnPlayer(INT32 playernum)
 
 	if (gametype != GT_RACE)
 	{
-		INT32 i;
+		/*INT32 i;
 		INT32 pcount = 0;
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -9459,17 +9452,18 @@ void P_SpawnPlayer(INT32 playernum)
 			if (players[i].jointime > 0)
 				continue;
 			pcount++;
-		}
+		}*/
 
-		if (p->kartstuff[k_balloon] > 0 || leveltime < 1 || pcount <= 1) // srb2kart
+		if (p->kartstuff[k_balloon] > 0 || leveltime < 1/* || pcount <= 1*/) // srb2kart
 		{
+			INT32 i;
 			angle_t newangle;
 			angle_t diff;
 			fixed_t newx;
 			fixed_t newy;
 			mobj_t *mo;
 
-			if (leveltime < 1 || pcount <= 1) // Start of the map?
+			if (leveltime < 1 /*|| pcount <= 1*/) // Start of the map?
 				p->kartstuff[k_balloon] = cv_kartballoons.value; // Reset those balloons!
 
 			if (p->kartstuff[k_balloon] <= 1)

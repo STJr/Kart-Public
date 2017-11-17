@@ -2597,16 +2597,9 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
-	fixed_t dsone;
-	fixed_t dstwo;
-	
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
-		dsone = 26*4 + 2;
-	else
-		dsone = 26*4 + player->kartspeed*2 + (9 - player->kartweight);
-
-	dstwo = dsone*2;
+	fixed_t dsone = 26*4 + player->kartspeed*2 + (9 - player->kartweight);
+	fixed_t dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
