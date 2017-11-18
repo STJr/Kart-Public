@@ -6585,9 +6585,11 @@ void P_MobjThinker(mobj_t *mobj)
 						z = mobj->target->z + mobj->target->height - mobj->height;
 					}
 
+					mobj->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
 					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, z);
 					mobj->momx = FixedMul(FINECOSINE(mobj->angle>>ANGLETOFINESHIFT),radius);
 					mobj->momy = FixedMul(FINESINE(mobj->angle>>ANGLETOFINESHIFT), radius);
+					mobj->flags &= ~MF_NOCLIPTHING;
 					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, true))
 						P_SlideMove(mobj, true);
 					if (P_IsObjectOnGround(mobj->target))

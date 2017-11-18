@@ -1093,6 +1093,11 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	if (!mobj1 || !mobj2)
 		return;
 
+	// Don't bump when you're being reborn
+	if ((mobj1->player && mobj1->player->playerstate != PST_LIVE)
+		|| (mobj2->player && mobj2->player->playerstate != PST_LIVE))
+		return;
+
 	if (cv_collidesounds.value == 1)
 	{
 		S_StartSound(mobj1, cv_collidesoundnum.value);
