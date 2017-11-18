@@ -7313,6 +7313,80 @@ static const char *const POWERS_LIST[] = {
 	"INGOOP" // In goop
 };
 
+static const char *const KARTSTUFF_LIST[] = {
+	"POSITION",
+	"OLDPOSITION",
+	"POSITIONDELAY",
+	"PREVCHECK",
+	"NEXTCHECK",
+	"WAYPOINT",
+	"STARPOSTWP",
+	"LAKITU",
+
+	"THROWDIR",
+	"CAMSPIN",
+	"LAPANIMATION",
+	"SOUNDS",
+
+	"BOOSTING",
+	"FLOORBOOST",
+	"SPINOUT",
+	"SPINOUTTYPE",
+
+	"DRIFT",
+	"DRIFTEND",
+	"DRIFTCHARGE",
+	"DRIFTBOOST",
+	"BOOSTCHARGE",
+	"JMP",
+	"OFFROAD",
+
+	"ITEMROULETTE",
+	"ITEMCLOSE",
+
+	"MAGNETTIMER",
+	"BOOTIMER",
+	"BOOTAKETIMER",
+	"BOOSTOLENTIMER",
+	"MUSHROOMTIMER",
+	"GROWSHRINKTIMER",
+	"SQUISHEDTIMER",
+	"GOLDSHROOMTIMER",
+	"STARTIMER",
+	"SPINOUTTIMER",
+	"LASERWISPTIMER",
+	"JUSTBUMPED",
+	"POWERITEMTIMER",
+	"COMEBACKTIMER",
+
+	"MAGNET",
+	"BOO",
+	"MUSHROOM",
+	"MEGASHROOM",
+	"GOLDSHROOM",
+	"STAR",
+	"TRIPLEBANANA",
+	"FAKEITEM",
+	"BANANA",
+	"GREENSHELL",
+	"REDSHELL",
+	"LASERWISP",
+	"TRIPLEGREENSHELL",
+	"BOBOMB",
+	"BLUESHELL",
+	"JAWS",
+	"FIREFLOWER",
+	"TRIPLEREDSHELL",
+	"LIGHTNING",
+	"FEATHER",
+	"KITCHENSINK",
+
+	"BALLOON",
+	"COMEBACKPOINTS",
+	"COMEBACKMODE",
+	"COMEBACKSHOWNINFO"
+};
+
 static const char *const HUDITEMS_LIST[] = {
 	"LIVESNAME",
 	"LIVESPIC",
@@ -8183,6 +8257,7 @@ void FUNCMATH DEH_Check(void)
 	const size_t dehstates = sizeof(STATE_LIST)/sizeof(const char*);
 	const size_t dehmobjs  = sizeof(MOBJTYPE_LIST)/sizeof(const char*);
 	const size_t dehpowers = sizeof(POWERS_LIST)/sizeof(const char*);
+	const size_t dehkartstuff = sizeof(KARTSTUFF_LIST)/sizeof(const char*);
 	const size_t dehcolors = sizeof(COLOR_ENUMS)/sizeof(const char*);
 
 	if (dehstates != S_FIRSTFREESLOT)
@@ -8193,6 +8268,9 @@ void FUNCMATH DEH_Check(void)
 
 	if (dehpowers != NUMPOWERS)
 		I_Error("You forgot to update the Dehacked powers list, you dolt!\n(%d powers defined, versus %s in the Dehacked list)\n", NUMPOWERS, sizeu1(dehpowers));
+
+	if (dehkartstuff != NUMKARTSTUFF)
+		I_Error("You forgot to update the Dehacked powers list, you dolt!\n(%d kartstuff defined, versus %s in the Dehacked list)\n", NUMKARTSTUFF, sizeu1(dehkartstuff));
 
 	if (dehcolors != MAXTRANSLATIONS)
 		I_Error("You forgot to update the Dehacked colors list, you dolt!\n(%d colors defined, versus %s in the Dehacked list)\n", MAXTRANSLATIONS, sizeu1(dehcolors));
@@ -8532,6 +8610,24 @@ static inline int lib_getenum(lua_State *L)
 				return 1;
 			}
 		return luaL_error(L, "power '%s' could not be found.\n", word);
+	}
+	else if (!mathlib && fastncmp("k_",word,3)) {
+		p = word+3;
+		for (i = 0; i < NUMKARTSTUFF; i++)
+			if (fasticmp(p, KARTSTUFF_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return 0;
+	}
+	else if (mathlib && fastncmp("K_",word,3)) { // SOCs are ALL CAPS!
+		p = word+3;
+		for (i = 0; i < NUMKARTSTUFF; i++)
+			if (fastcmp(p, KARTSTUFF_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "kartstuff '%s' could not be found.\n", word);
 	}
 	else if (fastncmp("HUD_",word,4)) {
 		p = word+4;
