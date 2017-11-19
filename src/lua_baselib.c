@@ -2109,12 +2109,12 @@ static int lib_kDoMushroom(lua_State *L)
 
 static int lib_kDoBouncePad(lua_State *L)
 {
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	fixed_t vertispeed = luaL_checkfixed(L, 2);
 	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_DoBouncePad(player, vertispeed);
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_DoBouncePad(mo, vertispeed);
 	return 0;
 }
 

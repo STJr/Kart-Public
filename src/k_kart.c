@@ -2506,24 +2506,49 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 	player->kartstuff[k_sounds] = 50;
 }
 
-void K_DoBouncePad(player_t *player, fixed_t vertispeed)
+void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
 {
-	if (player->spectator || !player->mo)
+	if (mo->player && mo->player->spectator)
 		return;
 
-	if (player->mo->eflags & MFE_SPRUNG)
+	if (mo->eflags & MFE_SPRUNG)
 		return;
 
 #ifdef ESLOPE
-	player->mo->standingslope = NULL;
+	mo->standingslope = NULL;
 #endif
-	player->mo->eflags |= MFE_SPRUNG;
 
-	if (player->mo->eflags & MFE_VERTICALFLIP)
+	mo->eflags |= MFE_SPRUNG;
+
+	if (mo->eflags & MFE_VERTICALFLIP)
 		vertispeed *= -1;
 
-	player->mo->momz = FixedMul(vertispeed, player->mo->scale);
-	S_StartSound(player->mo, sfx_boing);
+	if (vertispeed == 0)
+	{
+		fixed_t thrust;
+
+		if (mo->player)
+		{
+			thrust = 3*mo->player->speed/2;
+			if (thrust < 48<<FRACBITS)
+				thrust = 48<<FRACBITS;
+		}
+		else
+		{
+			thrust = P_AproxDistance(mo->momx,mo->momy);
+			if (thrust < 8<<FRACBITS)
+				thrust = 8<<FRACBITS;
+		}
+
+		if (thrust > 72<<FRACBITS)
+			thrust = 72<<FRACBITS;
+
+		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
+	}
+	else
+		mo->momz = FixedMul(vertispeed, mo->scale);
+
+	S_StartSound(mo, sfx_boing);
 }
 
 // Returns false if this player being placed here causes them to collide with any other player
@@ -3330,7 +3355,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_feather] & 1 && NO_BOO)
 		{
 			K_PlayTauntSound(player->mo);
-			K_DoBouncePad(player, 30<<FRACBITS);
+			K_DoBouncePad(player->mo, 32<<FRACBITS);
 
 			player->pflags |= PF_ATTACKDOWN;
 			player->kartstuff[k_feather] |= 2;
@@ -4470,7 +4495,7 @@ static void K_drawKartSpeedometer(void)
 	else if (cv_speedometer.value == 3)
 	{
 		convSpeed = stplyr->speed/FRACUNIT;
-		V_DrawKartString(SPDM_X, STRINGY(SPDM_Y), flags, va("%3d Fracunits/s", convSpeed));
+		V_DrawKartString(SPDM_X, STRINGY(SPDM_Y), flags, va("%3d fu/s", convSpeed));
 	}
 }
 

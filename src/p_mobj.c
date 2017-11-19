@@ -7669,6 +7669,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_GREENITEM:
 		{
+			sector_t *sec2;
 			fixed_t finalspeed = mobj->info->speed;
 
 			P_SpawnGhostMobj(mobj);
@@ -7696,14 +7697,21 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 			}
+
+			sec2 = P_ThingOnSpecial3DFloor(mobj);
+			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1) || (P_IsObjectOnGround(mobj) && GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+				K_DoBouncePad(mobj, 0);
+
 			if (mobj->threshold > 0)
 				mobj->threshold--;
+
 			if (leveltime % 6 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 			break;
 		}
 		case MT_REDITEM:
 		{
+			sector_t *sec2;
 			fixed_t topspeed = 64*FRACUNIT;
 			fixed_t distbarrier = 512*FRACUNIT;
 			fixed_t distaway;
@@ -7740,17 +7748,33 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
+
+			sec2 = P_ThingOnSpecial3DFloor(mobj);
+			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1) || (P_IsObjectOnGround(mobj) && GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+				K_DoBouncePad(mobj, 0);
+
 			break;
 		}
 		case MT_REDITEMDUD:
+		{
+			sector_t *sec2;
+
 			P_SpawnGhostMobj(mobj);
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+
+			sec2 = P_ThingOnSpecial3DFloor(mobj);
+			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1) || (P_IsObjectOnGround(mobj) && GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+				K_DoBouncePad(mobj, 0);
+
 			if (mobj->threshold > 0)
 				mobj->threshold--;
+
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
+
 			break;
+		}
 		case MT_BANANAITEM:
 		case MT_FAKEITEM:
 			if (mobj->momx || mobj->momy)

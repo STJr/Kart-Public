@@ -1976,11 +1976,11 @@ static void Command_Suicide(void)
 		return;
 	}
 
-	if (!G_PlatformGametype())
+	/*if (!G_PlatformGametype()) // srb2kart: not necessary, suiciding makes you lose a balloon in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
 		return;
-	}
+	}*/
 
 	// Retry is quicker.  Probably should force people to use it.
 	if (!(netgame || multiplayer))
@@ -1997,7 +1997,7 @@ static void Got_Suicide(UINT8 **cp, INT32 playernum)
 	INT32 suicideplayer = READINT32(*cp);
 
 	// You can't suicide someone else.  Nice try, there.
-	if (suicideplayer != playernum || (!G_PlatformGametype()))
+	if (suicideplayer != playernum) // srb2kart: "|| (!G_PlatformGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal suicide command received from %s\n"), player_names[playernum]);
 		if (server)
