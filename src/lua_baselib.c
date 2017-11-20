@@ -2057,12 +2057,13 @@ static int lib_kStealBalloon(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	player_t *victim = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
+	boolean force = luaL_checkboolean(L, 3);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!victim)
 		return LUA_ErrInvalid(L, "player_t");
-	K_StealBalloon(player, victim);
+	K_StealBalloon(player, victim, force);
 	return 0;
 }
 

@@ -165,10 +165,10 @@ static int skin_get(lua_State *L)
 		break;
 	// SRB2kart
 	case skin_kartspeed:
-		lua_pushfixed(L, skin->kartspeed);
+		lua_pushinteger(L, skin->kartspeed);
 		break;
 	case skin_kartweight:
-		lua_pushfixed(L, skin->kartweight);
+		lua_pushinteger(L, skin->kartweight);
 		break;
 	//
 	case skin_normalspeed:

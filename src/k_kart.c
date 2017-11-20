@@ -1629,7 +1629,9 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	fixed_t k_speed = 150;
 	fixed_t g_cc = FRACUNIT;
 	fixed_t xspd = 3072;		// 4.6875 aka 3/64
+	UINT8 kartspeed = player->kartspeed;
 	fixed_t finalspeed;
+
 	switch (K_GetKartCC())
 	{
 		case 50:
@@ -1643,7 +1645,10 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 			break;
 	}
 
-	k_speed += player->kartspeed*3; // 153 - 177
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+		kartspeed = 1;
+
+	k_speed += kartspeed*3; // 153 - 177
 
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
@@ -1655,9 +1660,13 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 fixed_t K_GetKartAccel(player_t *player)
 {
 	fixed_t k_accel = 32; // 36;
+	UINT8 kartspeed = player->kartspeed;
 
-	//k_accel += 3 * (9 - player->kartspeed); // 36 - 60
-	k_accel += 4 * (9 - player->kartspeed); // 32 - 64
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+		kartspeed = 1;
+
+	//k_accel += 3 * (9 - kartspeed); // 36 - 60
+	k_accel += 4 * (9 - kartspeed); // 32 - 64
 
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
@@ -1714,7 +1723,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
-		|| (gametype != GT_RACE && (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
+		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
 	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
@@ -1777,8 +1786,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_startimer] > 0
-	|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
-	|| (gametype != GT_RACE && (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
+		|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
 	player->kartstuff[k_mushroomtimer] = 0;
@@ -1822,7 +1831,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
 		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
-		|| (gametype != GT_RACE && (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
+		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
 	player->mo->momz = 18*FRACUNIT;
@@ -1870,7 +1879,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	return;
 }
 
-void K_StealBalloon(player_t *player, player_t *victim)
+void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 {
 	INT32 newballoon;
 	angle_t newangle, diff;
@@ -1883,17 +1892,25 @@ void K_StealBalloon(player_t *player, player_t *victim)
 	if (player->health <= 0 || victim->health <= 0)
 		return;
 
-	if (victim->kartstuff[k_balloon] <= 0) // || player->kartstuff[k_balloon] >= cv_kartballoons.value+2
-		return;
+	if (force)
+		;
+	else
+	{
+		if (victim->kartstuff[k_balloon] <= 0) // || player->kartstuff[k_balloon] >= cv_kartballoons.value+2
+			return;
 
-	if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
-		|| (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
-		|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || (victim->kartstuff[k_spinouttimer] > 0 && victim->kartstuff[k_spinout] > 0)
-		|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootimer] > 0))
-		return;
+		if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
+			|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+			|| (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
+			|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || (victim->kartstuff[k_spinouttimer] > 0 && victim->kartstuff[k_spinout] > 0)
+			|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootimer] > 0))
+			return;
+	}
 
-	//CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
+	if (player->kartstuff[k_balloon] <= 0)
+		CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
+	else
+		CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
 
 	newballoon = player->kartstuff[k_balloon];
 	if (newballoon <= 1)
@@ -1920,8 +1937,8 @@ void K_StealBalloon(player_t *player, player_t *victim)
 		P_SetMobjState(newmo, S_BATTLEBALLOON1);
 
 	player->kartstuff[k_balloon]++;
+	player->kartstuff[k_comebackpoints] = 0;
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
-
 	return;
 }
 
@@ -2627,9 +2644,15 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
+	UINT8 kartspeed = player->kartspeed;
+	fixed_t dsone, dstwo;
+
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+		kartspeed = 1;
+
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	fixed_t dsone = 26*4 + player->kartspeed*2 + (9 - player->kartweight);
-	fixed_t dstwo = dsone*2;
+	dsone = 26*4 + kartspeed*2 + (9 - player->kartweight);
+	dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -3461,9 +3484,28 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	// Friction
 	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
-	player->mo->friction += 4608;
+		player->mo->friction += 4608;
 	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
-	player->mo->friction += 1608;
+		player->mo->friction += 1608;
+	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+	{
+		player->mo->friction += 1228;
+
+		if (player->mo->friction > FRACUNIT)
+			player->mo->friction = FRACUNIT;
+		if (player->mo->friction < 0)
+			player->mo->friction = 0;
+
+		player->mo->movefactor = FixedDiv(ORIG_FRICTION, player->mo->friction);
+
+		if (player->mo->movefactor < FRACUNIT)
+			player->mo->movefactor = 19*player->mo->movefactor - 18*FRACUNIT;
+		else
+			player->mo->movefactor = FRACUNIT; //player->mo->movefactor = ((player->mo->friction - 0xDB34)*(0xA))/0x80;
+
+		if (player->mo->movefactor < 32)
+			player->mo->movefactor = 32;
+	}
 
 	K_KartDrift(player, onground);
 

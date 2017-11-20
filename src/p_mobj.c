@@ -6459,14 +6459,24 @@ void P_MobjThinker(mobj_t *mobj)
 			//{ SRB2kart mobs
 			case MT_DRIFT:
 			{
-				fixed_t dsone = 26*4 + mobj->target->player->kartspeed*2 + (9 - mobj->target->player->kartweight);
-				fixed_t dstwo = dsone*2;
-
-				if ((mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
-					&& (mobj->type == MT_DRIFT && mobj->target->player->kartstuff[k_driftcharge] >= dsone))
+				if (mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
+					UINT8 kartspeed = mobj->target->player->kartspeed;
+					fixed_t dsone, dstwo;
 					INT32 HEIGHT;
 					fixed_t radius;
+
+					if (gametype != GT_RACE && mobj->target->player->kartstuff[k_balloon] <= 0)
+						kartspeed = 1;
+
+					dsone = 26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight);
+					dstwo = dsone*2;
+
+					if (mobj->target->player->kartstuff[k_driftcharge] < dsone)
+					{
+						P_RemoveMobj(mobj);
+						return;
+					}
 
 					if (mobj->target->player->kartstuff[k_bootimer] > 0)
 					{

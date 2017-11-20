@@ -1647,15 +1647,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				{
 					if (tmthing->player->kartstuff[k_balloon] > 0)
 					{
-						thing->player->kartstuff[k_comebackpoints]++;
+						thing->player->kartstuff[k_comebackpoints] += 2;
 						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 
 						if (thing->player->kartstuff[k_comebackpoints] >= 3)
-						{
-							K_StealBalloon(thing->player, tmthing->player);
-							thing->player->kartstuff[k_comebackpoints] = 0;
-							CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[thing->player-players]);
-						}
+							K_StealBalloon(thing->player, tmthing->player, true);
 
 						K_ExplodePlayer(tmthing->player, thing);
 
@@ -1664,15 +1660,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 					}
 					else if (thing->player->kartstuff[k_balloon] > 0)
 					{
-						tmthing->player->kartstuff[k_comebackpoints]++;
+						tmthing->player->kartstuff[k_comebackpoints] += 2;
 						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 
 						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
-						{
-							K_StealBalloon(tmthing->player, thing->player);
-							thing->player->kartstuff[k_comebackpoints] = 0;
-							CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[tmthing->player-players]);
-						}
+							K_StealBalloon(tmthing->player, thing->player, true);
 
 						K_ExplodePlayer(thing->player, tmthing);
 
@@ -1687,9 +1679,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				K_KartBouncing(tmthing, thing, true);
 				if (gametype != GT_RACE && tmthing->player->kartstuff[k_feather] & 2)
 				{
-					K_StealBalloon(tmthing->player, thing->player);
+					K_StealBalloon(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing);
-					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 				}
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
@@ -1697,9 +1688,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				K_KartBouncing(thing, tmthing, true);
 				if (gametype != GT_RACE && thing->player->kartstuff[k_feather] & 2)
 				{
-					K_StealBalloon(thing->player, tmthing->player);
+					K_StealBalloon(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing);
-					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 				}
 			}
 			else
@@ -1709,15 +1699,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			{
 				if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
 				{
-					K_StealBalloon(thing->player, tmthing->player);
+					K_StealBalloon(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing);
-					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 				}
 				else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
 				{
-					K_StealBalloon(tmthing->player, thing->player);
+					K_StealBalloon(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing);
-					CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 				}
 			}
 

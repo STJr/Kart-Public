@@ -433,11 +433,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->tracer->player-players], player_names[player-players]);
 
 				if (special->tracer->player->kartstuff[k_comebackpoints] >= 3)
-				{
-					K_StealBalloon(special->tracer->player, player);
-					special->tracer->player->kartstuff[k_comebackpoints] = 0;
-					CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[special->tracer->player-players]);
-				}
+					K_StealBalloon(special->tracer->player, player, true);
 
 				special->tracer->player->kartstuff[k_comebacktimer] = comebacktime;
 			}

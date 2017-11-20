@@ -8021,6 +8021,20 @@ static powertype_t get_power(const char *word)
 	return pw_invulnerability;
 }
 
+static kartstufftype_t get_kartstuff(const char *word)
+{ // Returns the vlaue of k_ enumerations
+	kartstufftype_t i;
+	if (*word >= '0' && *word <= '9')
+		return atoi(word);
+	if (fastncmp("K_",word,2))
+		word += 2; // take off the k_
+	for (i = 0; i < NUMKARTSTUFF; i++)
+		if (fastcmp(word, KARTSTUFF_LIST[i]))
+			return i;
+	deh_warning("Couldn't find power named 'k_%s'",word);
+	return k_position;
+}
+
 /// \todo Make ANY of this completely over-the-top math craziness obey the order of operations.
 static fixed_t op_mul(fixed_t a, fixed_t b) { return a*b; }
 static fixed_t op_div(fixed_t a, fixed_t b) { return a/b; }
@@ -8611,8 +8625,8 @@ static inline int lib_getenum(lua_State *L)
 			}
 		return luaL_error(L, "power '%s' could not be found.\n", word);
 	}
-	else if (!mathlib && fastncmp("k_",word,3)) {
-		p = word+3;
+	else if (!mathlib && fastncmp("k_",word,2)) {
+		p = word+2;
 		for (i = 0; i < NUMKARTSTUFF; i++)
 			if (fasticmp(p, KARTSTUFF_LIST[i])) {
 				lua_pushinteger(L, i);
@@ -8620,8 +8634,8 @@ static inline int lib_getenum(lua_State *L)
 			}
 		return 0;
 	}
-	else if (mathlib && fastncmp("K_",word,3)) { // SOCs are ALL CAPS!
-		p = word+3;
+	else if (mathlib && fastncmp("K_",word,2)) { // SOCs are ALL CAPS!
+		p = word+2;
 		for (i = 0; i < NUMKARTSTUFF; i++)
 			if (fastcmp(p, KARTSTUFF_LIST[i])) {
 				lua_pushinteger(L, i);
