@@ -4110,12 +4110,12 @@ DoneSection2:
 
 		case 10: // Finish Line
 			// SRB2kart - 150117
-			if (gametype == GT_RACE && (player->starpostnum == numstarposts || player->exiting))
+			if (gametype == GT_RACE && (player->starpostcount >= numstarposts/2 || player->exiting))
 				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
 			//
 			if (gametype == GT_RACE && !player->exiting)
 			{
-				if (player->starpostnum == numstarposts) // Must have touched all the starposts
+				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
 					player->laps++;
 					player->kartstuff[k_lapanimation] = 80;
@@ -4134,6 +4134,7 @@ DoneSection2:
 					// SRB2kart 200117
 					player->starpostangle = player->starpostnum = 0;
 					player->starpostx = player->starposty = player->starpostz = 0;
+					player->starpostcount = 0;
 					//except the time!
 					player->starposttime = player->realtime;
 

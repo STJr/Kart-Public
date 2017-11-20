@@ -2142,6 +2142,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p->starposty = 0;
 	p->starpostz = 0;
 	p->starpostnum = 0;
+	p->starpostcount = 0;
 
 	if (rendermode == render_soft)
 		V_SetPaletteLump(GetPalette()); // Reset the palette
@@ -2182,6 +2183,7 @@ void G_PlayerReborn(INT32 player)
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
+	INT32 starpostcount;
 	INT32 starpostangle;
 	fixed_t jumpfactor;
 	INT32 exiting;
@@ -2239,6 +2241,7 @@ void G_PlayerReborn(INT32 player)
 	starposty = players[player].starposty;
 	starpostz = players[player].starpostz;
 	starpostnum = players[player].starpostnum;
+	starpostcount = players[player].starpostcount;
 	starpostangle = players[player].starpostangle;
 	jumpfactor = players[player].jumpfactor;
 	thokitem = players[player].thokitem;
@@ -2296,6 +2299,7 @@ void G_PlayerReborn(INT32 player)
 	p->starposty = starposty;
 	p->starpostz = starpostz;
 	p->starpostnum = starpostnum;
+	p->starpostcount = starpostcount;
 	p->starpostangle = starpostangle;
 	p->jumpfactor = jumpfactor;
 	p->exiting = exiting;
@@ -2665,6 +2669,7 @@ void G_DoReborn(INT32 playernum)
 			player->starposty = 0;
 			player->starpostz = 0;
 			player->starpostnum = 0;
+			player->starpostcount = 0;
 		}
 		if (!countdowntimeup && (mapheaderinfo[gamemap-1]->levelflags & LF_NORELOAD))
 		{
@@ -3714,6 +3719,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			players[i].playerstate = PST_REBORN;
 			players[i].starpostangle = players[i].starpostnum = players[i].starposttime = 0;
 			players[i].starpostx = players[i].starposty = players[i].starpostz = 0;
+			players[i].starpostcount = 0; // srb2kart
 
 			if (netgame || multiplayer)
 			{

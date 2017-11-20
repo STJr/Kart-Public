@@ -1213,9 +1213,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			}
 			//
-			// In circuit, player must have touched all previous starposts
+			// SRB2kart: make sure the player will have enough checkpoints to touch
 			if (circuitmap
-				&& special->health - player->starpostnum > 1)
+				&& special->health >= (numstarposts/2 + player->starpostnum))
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
@@ -1242,6 +1242,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostz = special->z>>FRACBITS;
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
+			player->starpostcount++;
 			P_ClearStarPost(special->health);
 
 			// Find all starposts in the level with this value.
