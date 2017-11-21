@@ -163,7 +163,7 @@ typedef struct
 	UINT16 powers[NUMPOWERS];
 
 	INT32 kartstuff[NUMKARTSTUFF]; // SRB2kart
-	UINT8 collide[MAXPLAYERS]; // SRB2kart
+	angle_t frameangle; // SRB2kart
 
 	// Score is resynched in the confirm resync packet
 	INT32 health;
@@ -219,6 +219,7 @@ typedef struct
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
+	INT32 starpostcount;
 	tic_t starposttime;
 	angle_t starpostangle;
 

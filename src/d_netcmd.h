@@ -103,9 +103,15 @@ extern consvar_t cv_magnet, cv_boo, cv_mushroom, cv_triplemushroom, cv_megashroo
 extern consvar_t cv_goldshroom, cv_star, cv_triplebanana, cv_fakeitem, cv_banana;
 extern consvar_t cv_greenshell, cv_redshell, cv_laserwisp, cv_triplegreenshell, cv_bobomb;
 extern consvar_t cv_blueshell, cv_jaws, cv_fireflower, cv_tripleredshell, cv_lightning;
+extern consvar_t cv_feather;
 
 extern consvar_t cv_karthud;
+extern consvar_t cv_kartcheck;
+extern consvar_t cv_kartstarsfx;
 extern consvar_t cv_kartcc;
+extern consvar_t cv_kartballoons;
+extern consvar_t cv_kartfrantic;
+extern consvar_t cv_kartcomeback;
 extern consvar_t cv_speedometer;
 
 extern consvar_t cv_collideminimum;

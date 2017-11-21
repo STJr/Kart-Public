@@ -983,6 +983,9 @@ static void P_LoadThings(void)
 			|| mt->type == 1702) // MT_AXISTRANSFERLINE
 			continue; // These were already spawned
 
+		if (mt->type == 2000) // MT_RANDOMITEM
+			nummapboxes++;
+
 		mt->mobj = NULL;
 		P_SpawnMapThing(mt);
 	}
@@ -2154,6 +2157,8 @@ static void P_LevelInitStuff(void)
 	tokenbits = 0;
 	runemeraldmanager = false;
 	nummaprings = 0;
+	nummapboxes = 0;
+	numgotboxes = 0;
 
 	// emerald hunt
 	hunt1 = hunt2 = hunt3 = NULL;
@@ -2566,8 +2571,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// chasecam on in chaos, race, coop
 	// chasecam off in match, tag, capture the flag
-	chase = (gametype == GT_RACE || gametype == GT_COMPETITION || gametype == GT_COOP)
-		|| (maptol & TOL_2D);
+	chase = true; // srb2kart: always on
 
 	if (!dedicated)
 	{

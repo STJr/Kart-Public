@@ -20,6 +20,7 @@
 #include "m_random.h"
 #include "s_sound.h"
 #include "g_game.h"
+#include "k_kart.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -1009,10 +1010,11 @@ static int lib_pTeleportMove(lua_State *L)
 static int lib_pSlideMove(lua_State *L)
 {
 	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	boolean forceslide = luaL_checkboolean(L, 2);
 	NOHUD
 	if (!mo)
 		return LUA_ErrInvalid(L, "mobj_t");
-	P_SlideMove(mo);
+	P_SlideMove(mo, forceslide);
 	return 0;
 }
 
@@ -1980,6 +1982,184 @@ static int lib_gTicsToMilliseconds(lua_State *L)
 	return 1;
 }
 
+// K_KART
+////////////
+
+static int lib_kGetKartColorByName(lua_State *L)
+{
+	const char *name = luaL_checkstring(L, 1);
+	//HUDSAFE
+	lua_pushinteger(L, K_GetKartColorByName(name));
+	return 1;
+}
+
+static int lib_kGetKartCC(lua_State *L)
+{
+	//HUDSAFE
+	lua_pushinteger(L, K_GetKartCC());
+	return 1;
+}
+
+static int lib_kKartBouncing(lua_State *L)
+{
+	mobj_t *mobj1 = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *mobj2 = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	boolean bounce = luaL_checkboolean(L, 3);
+	NOHUD
+	if (!mobj1)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!mobj2)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_KartBouncing(mobj1, mobj2, bounce);
+	return 0;
+}
+
+static int lib_kSpinPlayer(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	if (!source)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_SpinPlayer(player, source);
+	return 0;
+}
+
+static int lib_kSquishPlayer(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	if (!source)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_SquishPlayer(player, source);
+	return 0;
+}
+
+static int lib_kExplodePlayer(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	if (!source)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_ExplodePlayer(player, source);
+	return 0;
+}
+
+static int lib_kStealBalloon(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	player_t *victim = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
+	boolean force = luaL_checkboolean(L, 3);
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	if (!victim)
+		return LUA_ErrInvalid(L, "player_t");
+	K_StealBalloon(player, victim, force);
+	return 0;
+}
+
+static int lib_kSpawnKartExplosion(lua_State *L)
+{
+	fixed_t x = luaL_checkfixed(L, 1);
+	fixed_t y = luaL_checkfixed(L, 2);
+	fixed_t z = luaL_checkfixed(L, 3);
+	fixed_t radius = luaL_checkfixed(L, 4);
+	INT32 number = (INT32)luaL_checkinteger(L, 5);
+	mobjtype_t type = luaL_checkinteger(L, 6);
+	angle_t rotangle = luaL_checkangle(L, 7);
+	boolean spawncenter = luaL_checkboolean(L, 8);
+	boolean ghostit = luaL_checkboolean(L, 9);
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 10, META_MOBJ));
+	NOHUD
+	if (!source)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_SpawnKartExplosion(x, y, z, radius, number, type, rotangle, spawncenter, ghostit, source);
+	return 0;
+}
+
+static int lib_kSpawnDriftTrail(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_SpawnDriftTrail(player);
+	return 0;
+}
+
+static int lib_kDoMushroom(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	boolean doPFlag = luaL_checkboolean(L, 2);
+	boolean startboost = luaL_checkboolean(L, 3);
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_DoMushroom(player, doPFlag, startboost);
+	return 0;
+}
+
+static int lib_kDoBouncePad(lua_State *L)
+{
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	fixed_t vertispeed = luaL_checkfixed(L, 2);
+	NOHUD
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_DoBouncePad(mo, vertispeed);
+	return 0;
+}
+
+static int lib_kMomentumToFacing(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_MomentumToFacing(player);
+	return 0;
+}
+
+static int lib_kGetKartSpeed(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	boolean doboostpower = luaL_checkboolean(L, 2);
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushinteger(L, K_GetKartSpeed(player, doboostpower));
+	return 0;
+}
+
+static int lib_kGetKartAccel(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushinteger(L, K_GetKartAccel(player));
+	return 0;
+}
+
+static int lib_kGetKartFlashing(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushinteger(L, K_GetKartFlashing(player));
+	return 0;
+}
+
 static luaL_Reg lib[] = {
 	{"print", lib_print},
 	{"EvalMath", lib_evalMath},
@@ -2152,6 +2332,23 @@ static luaL_Reg lib[] = {
 	{"G_TicsToSeconds",lib_gTicsToSeconds},
 	{"G_TicsToCentiseconds",lib_gTicsToCentiseconds},
 	{"G_TicsToMilliseconds",lib_gTicsToMilliseconds},
+
+	// k_kart
+	{"K_GetKartColorByName",lib_kGetKartColorByName},
+	{"K_GetKartCC",lib_kGetKartCC},
+	{"K_KartBouncing",lib_kKartBouncing},
+	{"K_SpinPlayer",lib_kSpinPlayer},
+	{"K_SquishPlayer",lib_kSquishPlayer},
+	{"K_ExplodePlayer",lib_kExplodePlayer},
+	{"K_StealBalloon",lib_kStealBalloon},
+	{"K_SpawnKartExplosion",lib_kSpawnKartExplosion},
+	{"K_SpawnDriftTrail",lib_kSpawnDriftTrail},
+	{"K_DoMushroom",lib_kDoMushroom},
+	{"K_DoBouncePad",lib_kDoBouncePad},
+	{"K_MomentumToFacing",lib_kMomentumToFacing},
+	{"K_GetKartSpeed",lib_kGetKartSpeed},
+	{"K_GetKartAccel",lib_kGetKartAccel},
+	{"K_GetKartFlashing",lib_kGetKartFlashing},
 
 	{NULL, NULL}
 };

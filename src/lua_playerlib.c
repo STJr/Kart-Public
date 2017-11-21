@@ -130,8 +130,6 @@ static int player_get(lua_State *L)
 		LUA_PushUserdata(L, plr->powers, META_POWERS);
 	else if (fastcmp(field,"kartstuff"))
 		LUA_PushUserdata(L, plr->kartstuff, META_KARTSTUFF);
-	else if (fastcmp(field,"collide"))
-		LUA_PushUserdata(L, plr->collide, META_COLLIDE);
 	else if (fastcmp(field,"frameangle"))
 		lua_pushangle(L, plr->frameangle);
 	else if (fastcmp(field,"pflags"))
@@ -248,6 +246,8 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->starpostz);
 	else if (fastcmp(field,"starpostnum"))
 		lua_pushinteger(L, plr->starpostnum);
+	else if (fastcmp(field,"starpostcount"))
+		lua_pushinteger(L, plr->starpostcount);
 	else if (fastcmp(field,"starposttime"))
 		lua_pushinteger(L, plr->starposttime);
 	else if (fastcmp(field,"starpostangle"))
@@ -414,10 +414,14 @@ static int player_set(lua_State *L)
 	else if (fastcmp(field,"dashtime"))
 		plr->dashtime = (INT32)luaL_checkinteger(L, 3);
 	// SRB2kart
+	else if (fastcmp(field,"kartstuff"))
+		return NOSET;
+	else if (fastcmp(field,"frameangle"))
+		plr->frameangle = luaL_checkangle(L, 3);
 	else if (fastcmp(field,"kartspeed"))
-		plr->kartspeed = (UINT8)luaL_checkfixed(L, 3);
+		plr->kartspeed = (UINT8)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"kartweight"))
-		plr->kartweight = (UINT8)luaL_checkfixed(L, 3);
+		plr->kartweight = (UINT8)luaL_checkinteger(L, 3);
 	//
 	else if (fastcmp(field,"normalspeed"))
 		plr->normalspeed = luaL_checkfixed(L, 3);
@@ -511,6 +515,8 @@ static int player_set(lua_State *L)
 		plr->starpostz = (INT16)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starpostnum"))
 		plr->starpostnum = (INT32)luaL_checkinteger(L, 3);
+	else if (fastcmp(field,"starpostcount"))
+		plr->starpostcount = (INT32)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starposttime"))
 		plr->starposttime = (tic_t)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starpostangle"))
@@ -672,6 +678,38 @@ static int power_len(lua_State *L)
 	return 1;
 }
 
+// kartstuff, ks -> kartstuff[ks]
+static int kartstuff_get(lua_State *L)
+{
+	INT32 *kartstuff = *((INT32 **)luaL_checkudata(L, 1, META_KARTSTUFF));
+	kartstufftype_t ks = luaL_checkinteger(L, 2);
+	if (ks >= NUMKARTSTUFF)
+		return luaL_error(L, LUA_QL("kartstufftype_t") " cannot be %u", ks);
+	lua_pushinteger(L, kartstuff[ks]);
+	return 1;
+}
+
+// kartstuff, ks, value -> kartstuff[ks] = value
+static int kartstuff_set(lua_State *L)
+{
+	INT32 *kartstuff = *((INT32 **)luaL_checkudata(L, 1, META_KARTSTUFF));
+	kartstufftype_t ks = luaL_checkinteger(L, 2);
+	INT32 i = (INT32)luaL_checkinteger(L, 3);
+	if (ks >= NUMKARTSTUFF)
+		return luaL_error(L, LUA_QL("kartstufftype_t") " cannot be %u", ks);
+	if (hud_running)
+		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	kartstuff[ks] = i;
+	return 0;
+}
+
+// #kartstuff -> NUMKARTSTUFF
+static int kartstuff_len(lua_State *L)
+{
+	lua_pushinteger(L, NUMKARTSTUFF);
+	return 1;
+}
+
 #define NOFIELD luaL_error(L, LUA_QL("ticcmd_t") " has no field named " LUA_QS, field)
 
 static int ticcmd_get(lua_State *L)
@@ -746,6 +784,17 @@ int LUA_PlayerLib(lua_State *L)
 		lua_setfield(L, -2, "__newindex");
 
 		lua_pushcfunction(L, power_len);
+		lua_setfield(L, -2, "__len");
+	lua_pop(L,1);
+
+	luaL_newmetatable(L, META_KARTSTUFF);
+		lua_pushcfunction(L, kartstuff_get);
+		lua_setfield(L, -2, "__index");
+
+		lua_pushcfunction(L, kartstuff_set);
+		lua_setfield(L, -2, "__newindex");
+
+		lua_pushcfunction(L, kartstuff_len);
 		lua_setfield(L, -2, "__len");
 	lua_pop(L,1);
 

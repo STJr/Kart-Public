@@ -3728,7 +3728,18 @@ DoneSection2:
 	// Process Section 3
 	switch (special)
 	{
-		case 1: // Unused   (was "Ice/Sludge")
+		case 1: // SRB2kart: bounce pad
+			if (!P_IsObjectOnGround(player->mo))
+				break;
+
+			if (player->speed < K_GetKartSpeed(player, true)/16 && !(player->mo->eflags & MFE_SPRUNG)) // Push forward to prevent getting stuck
+				P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/16, player->mo->scale));
+
+			player->kartstuff[k_feather] |= 2;
+			K_DoBouncePad(player->mo, 0);
+
+			break;
+
 		case 2: // Wind/Current
 		case 3: // Unused   (was "Ice/Sludge and Wind/Current")
 		case 4: // Conveyor Belt
@@ -3878,7 +3889,7 @@ DoneSection2:
 					mo->spawnpoint = bflagpoint;
 					mo->flags2 |= MF2_JUSTATTACKED;
 					redscore += 1;
-					P_AddPlayerScore(player, 250);
+					P_AddPlayerScore(player, 5);
 				}
 			}
 			break;
@@ -3911,7 +3922,7 @@ DoneSection2:
 					mo->spawnpoint = rflagpoint;
 					mo->flags2 |= MF2_JUSTATTACKED;
 					bluescore += 1;
-					P_AddPlayerScore(player, 250);
+					P_AddPlayerScore(player, 5);
 				}
 			}
 			break;
@@ -4099,12 +4110,12 @@ DoneSection2:
 
 		case 10: // Finish Line
 			// SRB2kart - 150117
-			if (gametype == GT_RACE && (player->starpostnum == numstarposts || player->exiting))
+			if (gametype == GT_RACE && (player->starpostcount >= numstarposts/2 || player->exiting))
 				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
 			//
 			if (gametype == GT_RACE && !player->exiting)
 			{
-				if (player->starpostnum == numstarposts) // Must have touched all the starposts
+				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
 					player->laps++;
 					player->kartstuff[k_lapanimation] = 80;
@@ -4123,6 +4134,7 @@ DoneSection2:
 					// SRB2kart 200117
 					player->starpostangle = player->starpostnum = 0;
 					player->starpostx = player->starposty = player->starpostz = 0;
+					player->starpostcount = 0;
 					//except the time!
 					player->starposttime = player->realtime;
 
@@ -7140,7 +7152,7 @@ void T_Friction(friction_t *f)
 		// friction works for all mobj's
 		// (or at least MF_PUSHABLEs, which is all I care about anyway)
 		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player
-			&& (thing->player->kartstuff[k_startimer] == 0 && thing->player->kartstuff[k_bootaketimer] == 0
+			&& (thing->player->kartstuff[k_startimer] == 0 && thing->player->kartstuff[k_bootimer] == 0
 			&& thing->player->kartstuff[k_mushroomtimer] == 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)))
 		{
 			if (f->roverfriction)
@@ -7537,7 +7549,7 @@ void T_Pusher(pusher_t *p)
 		if (thing->player && thing->player->pflags & PF_ROPEHANG)
 			continue;
 
-		if (thing->player && (thing->state == &states[thing->info->painstate]) && (thing->player->powers[pw_flashing] > (flashingtics/4)*3 && thing->player->powers[pw_flashing] <= flashingtics))
+		if (thing->player && (thing->state == &states[thing->info->painstate]) && (thing->player->powers[pw_flashing] > (K_GetKartFlashing(thing->player)/4)*3 && thing->player->powers[pw_flashing] <= K_GetKartFlashing(thing->player)))
 			continue;
 
 		inFOF = touching = moved = false;

@@ -91,8 +91,8 @@ typedef struct
 	fixed_t maxdash;
 
 	// SRB2kart
-	UINT8 kartspeed; // Normal ground
-	UINT8 kartweight; // Normal ground
+	UINT8 kartspeed;
+	UINT8 kartweight;
 	//
 
 	fixed_t normalspeed; // Normal ground

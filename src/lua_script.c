@@ -435,7 +435,6 @@ void LUA_InvalidatePlayer(player_t *player)
 	LUA_InvalidateUserdata(player);
 	LUA_InvalidateUserdata(player->powers);
 	LUA_InvalidateUserdata(player->kartstuff);
-	LUA_InvalidateUserdata(player->collide);
 	LUA_InvalidateUserdata(&player->cmd);
 }
 

@@ -329,7 +329,7 @@ extern UINT16 emeralds;
 #define EMERALD7 64
 #define ALL7EMERALDS(v) ((v & (EMERALD1|EMERALD2|EMERALD3|EMERALD4|EMERALD5|EMERALD6|EMERALD7)) == (EMERALD1|EMERALD2|EMERALD3|EMERALD4|EMERALD5|EMERALD6|EMERALD7))
 
-extern INT32 nummaprings; //keep track of spawned rings/coins
+extern INT32 nummaprings, nummapboxes, numgotboxes; //keep track of spawned rings/coins/battle mode items
 
 /** Time attack information, currently a very small structure.
   */
@@ -401,8 +401,10 @@ extern UINT16 extralifetics;
 
 // SRB2kart
 extern INT32 bootime;
+extern INT32 boostealtime;
 extern INT32 mushroomtime;
 extern INT32 itemtime;
+extern INT32 comebacktime;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;

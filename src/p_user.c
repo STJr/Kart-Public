@@ -853,17 +853,17 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 
 	// Point penalty for hitting a hazard during tag.
 	// Discourages players from intentionally hurting themselves to avoid being tagged.
-	if (gametype == GT_TAG && (!(player->pflags & PF_TAGGED) && !(player->pflags & PF_TAGIT)))
+	/*if (gametype == GT_TAG && (!(player->pflags & PF_TAGGED) && !(player->pflags & PF_TAGIT)))
 	{
-		//if (player->score >= 50)
-		//	player->score -= 50;
-		//else
-		//	player->score = 0;
-	}
+		if (player->score >= 50)
+			player->score -= 50;
+		else
+			player->score = 0;
+	}*/
 
 	P_ResetPlayer(player);
 	P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
-	player->powers[pw_flashing] = flashingtics;
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (player->timeshit != UINT8_MAX)
 		++player->timeshit;
@@ -1007,11 +1007,11 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
 	UINT32 oldscore;
 
-	return; // SRB2kart - no score.
-	// This will probably be temporary until we do battle modes?
-
 	if (player->bot)
 		player = &players[consoleplayer];
+
+	if (player->exiting) // srb2kart
+		return;
 
 	// NiGHTS does it different!
 	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->typeoflevel & TOL_NIGHTS)
@@ -1607,9 +1607,7 @@ void P_DoPlayerExit(player_t *player)
 	if (player->exiting)
 		return;
 
-	if (cv_allowexitlevel.value == 0 && !G_PlatformGametype())
-		return;
-	else if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
+	if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
 		// SRB2kart 120217
 		if (!countdown && !(netgame || multiplayer))
@@ -1652,6 +1650,8 @@ void P_DoPlayerExit(player_t *player)
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
 	}
+	else if (gametype != GT_RACE)
+		player->exiting = 10*TICRATE + 2; // Accidental death safeguard???
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
 
@@ -1668,8 +1668,8 @@ void P_DoPlayerExit(player_t *player)
 	player->powers[pw_spacetime] = 0;
 	P_RestoreMusic(player);
 
-	if (playeringame[player-players] && netgame && !circuitmap)
-		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);
+	/*if (playeringame[player-players] && netgame && !circuitmap)
+		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
 }
 
 #define SPACESPECIAL 12
@@ -3557,7 +3557,7 @@ static void P_DoSuperStuff(player_t *player)
 			}
 
 			if (gametype != GT_COOP)
-				player->powers[pw_flashing] = flashingtics-1;
+				player->powers[pw_flashing] = K_GetKartFlashing(player)-1;
 
 /*
 			if (player->mo->health > 0)
@@ -5842,7 +5842,7 @@ static void P_NiGHTSMovement(player_t *player)
 	}
 
 	// Currently reeling from being hit.
-	if (player->powers[pw_flashing] > (2*flashingtics)/3)
+	if (player->powers[pw_flashing] > (2*K_GetKartFlashing(player))/3)
 	{
 		{
 			const angle_t fa = (FixedAngle(player->flyangle*FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK;
@@ -6499,7 +6499,7 @@ static void P_MovePlayer(player_t *player)
 	*/
 
 	cmd = &player->cmd;
-	runspd = FixedMul(player->runspeed, player->mo->scale);
+	runspd = 14*player->mo->scale; //srb2kart
 
 	// Let's have some movement speed fun on low-friction surfaces, JUST for players...
 	// (high friction surfaces shouldn't have any adjustment, since the acceleration in
@@ -6700,9 +6700,11 @@ static void P_MovePlayer(player_t *player)
 	{
 		K_KartMoveAnimation(player);
 
-		player->frameangle = player->mo->angle;
+		if (player->kartstuff[k_feather] & 2)
+			player->frameangle += ANGLE_22h;
+		else
+			player->frameangle = player->mo->angle;
 	}
-
 
 	player->mo->movefactor = FRACUNIT; // We're not going to do any more with this, so let's change it back for the next frame.
 
@@ -7935,13 +7937,8 @@ static void P_DeathThink(player_t *player)
 		}
 		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
 
-		// SRB2kart - spawn automatically after 1.5 seconds
-		if (player->deadtimer > (TICRATE + TICRATE/2) && (gametype == GT_RACE || player->spectator))
-			player->playerstate = PST_REBORN;
-
-		// SRB2kart - spawn after 1.5 seconds & Button press
-		if ((cmd->buttons & BT_JUMP || cmd->buttons & BT_ACCELERATE) && player->deadtimer > (TICRATE + TICRATE/2) 
-			&& (gametype == GT_RACE || player->spectator))
+		// SRB2kart - spawn automatically after 1 second
+		if (player->deadtimer > TICRATE)
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn
@@ -8000,41 +7997,33 @@ static void P_DeathThink(player_t *player)
 		}
 	}
 
-	if (gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame)))
+	// Keep time rolling
+	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
 	{
-		// Keep time rolling in race mode
-		if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
-		{
-			if (gametype == GT_RACE || gametype == GT_COMPETITION)
-			{
-				if (leveltime >= 4*TICRATE)
-					player->realtime = leveltime - 4*TICRATE;
-				else
-					player->realtime = 0;
-			}
-			else
-				player->realtime = leveltime;
-		}
-
+		if (leveltime >= 4*TICRATE)
+			player->realtime = leveltime - 4*TICRATE;
+		else
+			player->realtime = 0;
+	}
+	
+	if ((gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
+	{
 		// Return to level music
-		if (player->lives <= 0)
+		if (netgame)
 		{
-			if (netgame)
-			{
-				if (player->deadtimer == gameovertics && P_IsLocalPlayer(player))
-					S_ChangeMusic(mapmusname, mapmusflags, true);
-			}
-			else if (multiplayer) // local multiplayer only
-			{
-				if (player->deadtimer != gameovertics)
-					;
-				// Restore the other player's music once we're dead for long enough
-				// -- that is, as long as they aren't dead too
-				else if (player == &players[displayplayer] && players[secondarydisplayplayer].lives > 0)
-					P_RestoreMusic(&players[secondarydisplayplayer]);
-				else if (player == &players[secondarydisplayplayer] && players[displayplayer].lives > 0)
-					P_RestoreMusic(&players[displayplayer]);
-			}
+			if (player->deadtimer == gameovertics && P_IsLocalPlayer(player))
+				S_ChangeMusic(mapmusname, mapmusflags, true);
+		}
+		else if (multiplayer) // local multiplayer only
+		{
+			if (player->deadtimer != gameovertics)
+				;
+			// Restore the other player's music once we're dead for long enough
+			// -- that is, as long as they aren't dead too
+			else if (player == &players[displayplayer] && players[secondarydisplayplayer].lives > 0)
+				P_RestoreMusic(&players[secondarydisplayplayer]);
+			else if (player == &players[secondarydisplayplayer] && players[displayplayer].lives > 0)
+				P_RestoreMusic(&players[displayplayer]);
 		}
 	}
 
@@ -8707,7 +8696,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 	// Make player translucent if camera is too close (only in single player).
-	if (!(multiplayer || netgame) && !splitscreen)
+	/*if (!(multiplayer || netgame) && !splitscreen)
 	{
 		fixed_t vx = 0, vy = 0;
 		if (player->awayviewtics) {
@@ -8726,7 +8715,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			player->mo->flags2 &= ~MF2_SHADOW;
 	}
 	else
-		player->mo->flags2 &= ~MF2_SHADOW;
+		player->mo->flags2 &= ~MF2_SHADOW;*/
 
 /*	if (!resetcalled && (player->pflags & PF_NIGHTSMODE && player->exiting))
 	{
@@ -8969,7 +8958,7 @@ static void P_CalcPostImg(player_t *player)
 #endif
 }
 
-void P_DoPityCheck(player_t *player)
+/*void P_DoPityCheck(player_t *player)
 {
 	// No pity outside of match or CTF.
 	if (player->spectator
@@ -8986,7 +8975,7 @@ void P_DoPityCheck(player_t *player)
 		player->powers[pw_shield] = SH_PITY;
 		P_SpawnShieldOrb(player);
 	}
-}
+}*/
 
 //
 // P_PlayerThink
@@ -9131,7 +9120,7 @@ void P_PlayerThink(player_t *player)
 
 	// If it is set, start subtracting
 	// Don't allow it to go back to 0
-	if (player->exiting > 1 && player->exiting < 3*TICRATE && player->exiting > 1) // SRB2kart - " && player->exiting > 1"
+	if (player->exiting > 1 && (player->exiting < 3*TICRATE || gametype != GT_RACE)) // SRB2kart - "&& player->exiting > 1"
 		player->exiting--;
 
 	if (player->exiting && countdown2)
@@ -9214,7 +9203,7 @@ void P_PlayerThink(player_t *player)
 		playerdeadview = false;
 
 	// SRB2kart 010217
-	if (gametype == GT_RACE && leveltime < 4*TICRATE)
+	if (leveltime < 4*TICRATE)
 		player->powers[pw_nocontrol] = 2;
 	/*
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
@@ -9228,15 +9217,10 @@ void P_PlayerThink(player_t *player)
 	// Synchronizes the "real" amount of time spent in the level.
 	if (!player->exiting)
 	{
-		if (gametype == GT_RACE || gametype == GT_COMPETITION)
-		{
-			if (leveltime >= 4*TICRATE)
-				player->realtime = leveltime - 4*TICRATE;
-			else
-				player->realtime = 0;
-		}
+		if (leveltime >= 4*TICRATE)
+			player->realtime = leveltime - 4*TICRATE;
 		else
-			player->realtime = leveltime;
+			player->realtime = 0;
 	}
 
 	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
@@ -9391,7 +9375,7 @@ void P_PlayerThink(player_t *player)
 	if (player->powers[pw_invulnerability] && player->powers[pw_invulnerability] < UINT16_MAX)
 		player->powers[pw_invulnerability]--;
 
-	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && ((player->pflags & PF_NIGHTSMODE) || player->powers[pw_flashing] < flashingtics))
+	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && ((player->pflags & PF_NIGHTSMODE) || player->powers[pw_flashing] < K_GetKartFlashing(player)))
 		player->powers[pw_flashing]--;
 
 	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX && player->charability != CA_SWIM && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
@@ -9480,9 +9464,10 @@ void P_PlayerThink(player_t *player)
 	{
 		// SRB2kart - fixes boo not flashing when it should. Mega doesn't flash either. Flashing is local.
 		if ((player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
-			&& player->kartstuff[k_bootaketimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0)
+			&& player->kartstuff[k_bootimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
+			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
 		{
-			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < flashingtics && (leveltime & 1))
+			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing(player) && (leveltime & 1))
 				player->mo->flags2 |= MF2_DONTDRAW;
 			else
 				player->mo->flags2 &= ~MF2_DONTDRAW;

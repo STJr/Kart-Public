@@ -598,6 +598,7 @@ typedef enum sprite
 	SPR_LIGH, // Lightning
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
+	SPR_KBLN, // Battle Mode Balloon
 
 	SPR_LAKI, // Lakitu
 
@@ -619,6 +620,10 @@ typedef enum sprite
 	SPR_FLEN, // Shell hit graphics stuff
 	SPR_CLAS, // items clash
 	SPR_PSHW, // thrown indicator
+
+	SPR_ARRO, // player arrows
+
+	SPR_PBOM, // player bomb
 
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
@@ -3212,6 +3217,11 @@ typedef enum state
 	S_SINKTRAIL2,
 	S_SINKTRAIL3,
 
+	// Battle Mode balloons
+	S_BATTLEBALLOON1,
+	S_BATTLEBALLOON2,
+	S_BATTLEBALLOON3,
+
 	// Lakitu
 	S_LAKITU1,
 	S_LAKITU2,
@@ -3372,6 +3382,27 @@ typedef enum state
 	S_FIREDITEM2,
 	S_FIREDITEM3,
 	S_FIREDITEM4,
+
+	S_PLAYERARROW, // Above player arrow
+	S_PLAYERARROW_MUSHROOM,
+	S_PLAYERARROW_GREENSHELL,
+	S_PLAYERARROW_BANANA,
+	S_PLAYERARROW_FAKEITEM,
+	S_PLAYERARROW_BOO,
+	S_PLAYERARROW_FEATHER,
+	S_PLAYERARROW_REDSHELL,
+	S_PLAYERARROW_BOBOMB,
+	S_PLAYERARROW_FIREFLOWER,
+	S_PLAYERARROW_TRIPLEGREENSHELL,
+	S_PLAYERARROW_TRIPLEBANANA,
+	S_PLAYERARROW_TRIPLEREDSHELL,
+	S_PLAYERARROW_STAR,
+	S_PLAYERARROW_MEGASHROOM,
+	S_PLAYERARROW_KITCHENSINK,
+	S_PLAYERARROW_EMPTY,
+	S_PLAYERARROW_ROULETTE,
+
+	S_PLAYERBOMB,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -3947,6 +3978,8 @@ typedef enum mobj_type
 	MT_SINK, // Kitchen Sink Stuff
 	MT_SINKTRAIL,
 
+	MT_BATTLEBALLOON, // Battle Mode balloons
+
 	MT_LAKITU,
 
 	MT_POKEY, // Huh, thought this was a default asset for some reason, guess not.
@@ -4016,6 +4049,8 @@ typedef enum mobj_type
 	MT_ITEMCLASH,
 
 	MT_FIREDITEM,
+
+	MT_PLAYERARROW,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
