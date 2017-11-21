@@ -871,19 +871,23 @@ static void IdentifyVersion(void)
 #else
 		const char *musicfile = "music.dta";
 #endif
+		const char *kmusicfile;
 		const char *musicpath = va(pandf,srb2waddir,musicfile);
+		const char *kmusicpath;
 		int ms = W_VerifyNMUSlumps(musicpath); // Don't forget the music!
+		int kms;
 		if (ms == 1)
 			D_AddFile(musicpath);
 		else if (ms == 0)
 			I_Error("File %s has been modified with non-music lumps",musicfile);
 
-		const char* kmusicfile = "music.kart";
-		const char* kmusicpath = va(pandf,srb2waddir,kmusicfile);
-		ms = W_VerifyNMUSlumps(kmusicpath);
-		if (ms == 1)
+		kmusicfile = "music.kart";
+		kmusicpath = va(pandf,srb2waddir,kmusicfile);
+		kms = W_VerifyNMUSlumps(kmusicpath); // kill me now
+
+		if (kms == 1)
 			D_AddFile(kmusicpath);
-		else if (ms == 0)
+		else if (kms == 0)
 			I_Error("File %s has been modified with non-music lumps",kmusicfile);
 	}
 #endif
