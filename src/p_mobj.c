@@ -6507,7 +6507,8 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetMobjStateNF(mobj, S_DRIFTSPARK4);
 
 					// Get the angle
-					mobj->angle = ANGLE_180 + mobj->target->angle;
+					if (mobj->target->player)
+						mobj->angle = ANGLE_180 + mobj->target->player->frameangle;
 
 					// If the player is on the ceiling, then flip
 					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)

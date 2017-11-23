@@ -691,30 +691,56 @@ static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] 
 */
 
 // Less ugly 2D arrays
-static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][10] =
+static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 {
-				//P-Odds	 0  1  2  3  4  5  6  7  8  9
-				/*Magnet*/ { 0, 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 3, 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 5, 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
-	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
-		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
-				  /*Star*/ { 1, 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
+				//P-Odds	 0  1  2  3  4  5  6  7  8
+				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
+				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
+			  /*Mushroom*/ { 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
+		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
+				  /*Star*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
 
-		 /*Triple Banana*/ { 3, 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
-			 /*Fake Item*/ { 5, 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
-				/*Banana*/ { 5, 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-		   /*Green Shell*/ { 5, 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
-			 /*Red Shell*/ { 3, 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
-	/*Triple Green Shell*/ { 3, 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 3, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
-			/*Blue Shell*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 3, 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 1, 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
-			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Lightning
+		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
+			 /*Fake Item*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+		   /*Green Shell*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Green Shell
+			 /*Red Shell*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
+			/*Blue Shell*/ { 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
+		   /*Fire Flower*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
+			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Lightning
 
-			   /*Feather*/ { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // Feather
+			   /*Feather*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // Feather
+};
+
+static INT32 K_KartItemOddsDistance_Battle[NUMKARTITEMS][5] =
+{
+				//P-Odds	 0  1  2  3  4
+				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
+				   /*Boo*/ { 0, 1, 1, 2, 2 }, // Boo
+			  /*Mushroom*/ { 0, 1, 2, 2, 2 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 0, 1 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 0, 0, 0, 1, 2 }, // Mega Mushroom
+		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
+				  /*Star*/ { 0, 0, 0, 1, 2 }, // Star
+
+		 /*Triple Banana*/ { 0, 1, 1, 1, 1 }, // Triple Banana
+			 /*Fake Item*/ { 6, 5, 3, 1, 0 }, // Fake Item
+				/*Banana*/ { 6, 4, 3, 1, 0 }, // Banana
+		   /*Green Shell*/ { 5, 4, 4, 1, 0 }, // Green Shell
+			 /*Red Shell*/ { 0, 1, 2, 2, 1 }, // Red Shell
+	/*Triple Green Shell*/ { 0, 1, 1, 2, 1 }, // Triple Green Shell
+			   /*Bob-omb*/ { 0, 0, 1, 2, 2 }, // Bob-omb
+			/*Blue Shell*/ { 0, 0, 0, 0, 0 }, // Blue Shell
+		   /*Fire Flower*/ { 0, 0, 1, 2, 3 }, // Fire Flower
+	  /*Triple Red Shell*/ { 0, 0, 0, 1, 2 }, // Triple Red Shell
+			 /*Lightning*/ { 0, 0, 0, 0, 0 }, // Lightning
+
+			   /*Feather*/ { 3, 2, 1, 1, 1 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -942,6 +968,8 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
 {
 	INT32 newodds = (K_KartItemOddsDistance_Retro[itemnum-1][pos]);
+	if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF)
+		newodds = (K_KartItemOddsDistance_Battle[itemnum-1][pos]);
 	if ((cv_kartfrantic.value) && (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
 		|| itemnum == 7 || itemnum == 8 || itemnum == 12 || itemnum == 13 || itemnum == 14 || itemnum == 15
 		|| itemnum == 16 || itemnum == 17 || itemnum == 18))
@@ -961,6 +989,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
 	INT32 distvar = (64*14);
+	INT32 avgballoon = 0, balloondiff = 0;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -981,17 +1010,29 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	{
 		if (playeringame[i] && !players[i].spectator)
 			pingame++;
+		else if (gametype != GT_RACE && players[i].kartstuff[k_balloon])
+			avgballoon += players[i].kartstuff[k_balloon];
 		if (players[i].exiting)
 			pexiting++;
 	}
-	for (i = 0; i < MAXPLAYERS; i++)
+
+	if (pingame && gametype != GT_RACE)
 	{
-		if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
-			pdis += P_AproxDistance(P_AproxDistance( players[i].mo->x - player->mo->x,
-													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / FRACUNIT 
-													* (pingame - players[i].kartstuff[k_position])
-													/ ((pingame - 1) * (pingame + 1) / 3);
+		avgballoon /= pingame;
+		balloondiff = player->kartstuff[k_balloon] - avgballoon;
+	}
+
+	if (gametype == GT_RACE)
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
+				pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
+														players[i].mo->y - player->mo->y),
+														players[i].mo->z - player->mo->z) / FRACUNIT 
+														* (pingame - players[i].kartstuff[k_position])
+														/ ((pingame - 1) * (pingame + 1) / 3);
+		}
 	}
 
 	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
@@ -1010,22 +1051,31 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	if (cv_kartfrantic.value) // Stupid items
 	{
-		pdis = (15*pdis/14); // multiply...
+		pdis = (13*pdis/12); // multiply...
 		pdis += distvar; // set everyone back another place...
 	}
 
-	if (gametype == GT_MATCH
-		|| gametype == GT_TEAMMATCH
-		|| gametype == GT_CTF)		useodds = 0; // Battle Mode
-	else if (pingame == 1)			useodds = 1; // Record Attack, or just alone
-	else if (pdis <= distvar *  0)	useodds = 2; // (64*14) *  0 =     0
-	else if (pdis <= distvar *  1)	useodds = 3; // (64*14) *  1 =   896
-	else if (pdis <= distvar *  2)	useodds = 4; // (64*14) *  2 =  1792
-	else if (pdis <= distvar *  4)	useodds = 5; // (64*14) *  4 =  3584
-	else if (pdis <= distvar *  6)	useodds = 6; // (64*14) *  6 =  5376
-	else if (pdis <= distvar *  9)	useodds = 7; // (64*14) *  9 =  8064
-	else if (pdis <= distvar * 12)	useodds = 8; // (64*14) * 12 = 10752
-	else 							useodds = 9;
+	if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF) // Battle Mode
+	{
+		useodds = balloondiff;
+		if (balloondiff > 2)
+			balloondiff = 2;
+		if (balloondiff < -2)
+			balloondiff = -2;
+		useodds += 2; // 0 is two balloons ahead of average, 2 is average, 4 is two balloons below average
+	}
+	else
+	{
+		if (pingame == 1)				useodds = 0; // Record Attack, or just alone
+		else if (pdis <= distvar *  0)	useodds = 1; // (64*14) *  0 =     0
+		else if (pdis <= distvar *  1)	useodds = 2; // (64*14) *  1 =   896
+		else if (pdis <= distvar *  2)	useodds = 3; // (64*14) *  2 =  1792
+		else if (pdis <= distvar *  4)	useodds = 4; // (64*14) *  4 =  3584
+		else if (pdis <= distvar *  6)	useodds = 5; // (64*14) *  6 =  5376
+		else if (pdis <= distvar *  9)	useodds = 6; // (64*14) *  9 =  8064
+		else if (pdis <= distvar * 12)	useodds = 7; // (64*14) * 12 = 10752
+		else 							useodds = 8;
+	}
 
 #define SETITEMRESULT(pos, itemnum) \
 	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum); chance++) \
@@ -1189,10 +1239,7 @@ static boolean K_CheckOffroadCollide(mobj_t *mo)
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	if (((mo->z <= mo->subsector->sector->floorheight
-		&& !(mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_FLOOR))
-	|| (mo->z + mo->height >= mo->subsector->sector->ceilingheight
-		&& (mo->eflags & MFE_VERTICALFLIP) && (mo->subsector->sector->flags & SF_FLIPSPECIAL_CEILING)))
+	if (P_IsObjectOnGround(mo)
 	&& (GETSECSPECIAL(mo->subsector->sector->special, 1) == 2
 	|| GETSECSPECIAL(mo->subsector->sector->special, 1) == 3
 	|| GETSECSPECIAL(mo->subsector->sector->special, 1) == 4))
@@ -1939,6 +1986,8 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 	player->kartstuff[k_balloon]++;
 	player->kartstuff[k_comebackpoints] = 0;
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
+	player->kartstuff[k_comebacktimer] = comebacktime;
+
 	return;
 }
 
@@ -2356,6 +2405,7 @@ static void K_DoBooSteal(player_t *player)
 			|| players[i].kartstuff[k_redshell] & 2 || players[i].kartstuff[k_tripleredshell] & 8
 			|| players[i].kartstuff[k_banana] & 2 || players[i].kartstuff[k_triplebanana] & 8
 			|| players[i].kartstuff[k_fakeitem] & 2 || players[i].kartstuff[k_bobomb] & 2
+			|| players[i].kartstuff[k_feather] & 1
 			|| players[i].kartstuff[k_boo])) // Stealing boos with boos? sounds like fun
 		{
 			playerswappable[numplayers] = i+1;
@@ -2460,6 +2510,11 @@ static void K_DoBooSteal(player_t *player)
 			player->kartstuff[k_bobomb] |= 2;
 			players[stealplayer].kartstuff[k_bobomb] &= ~2;
 		}
+		else if (players[stealplayer].kartstuff[k_feather] & 1)
+		{
+			player->kartstuff[k_feather] |= 1;
+			players[stealplayer].kartstuff[k_feather] &= ~1;
+		}
 		if (players[stealplayer].kartstuff[k_boo])
 		{
 			player->kartstuff[k_boo] = players[stealplayer].kartstuff[k_boo];
@@ -2549,18 +2604,19 @@ void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
 			thrust = 3*mo->player->speed/2;
 			if (thrust < 48<<FRACBITS)
 				thrust = 48<<FRACBITS;
+			if (thrust > 72<<FRACBITS)
+				thrust = 72<<FRACBITS;
+			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
 		}
 		else
 		{
 			thrust = P_AproxDistance(mo->momx,mo->momy);
 			if (thrust < 8<<FRACBITS)
 				thrust = 8<<FRACBITS;
+			if (thrust > 32<<FRACBITS)
+				thrust = 32<<FRACBITS;
+			mo->momz = FixedMul(FINESINE(ANGLE_11hh>>ANGLETOFINESHIFT), thrust);
 		}
-
-		if (thrust > 72<<FRACBITS)
-			thrust = 72<<FRACBITS;
-
-		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
 	}
 	else
 		mo->momz = FixedMul(vertispeed, mo->scale);
@@ -2618,6 +2674,9 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 {
 	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
 	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
+
+	if (player->kartstuff[k_feather] & 2 && !P_IsObjectOnGround(player->mo))
+		adjustangle /= 2;
 
 	if (player->kartstuff[k_drift] != 0 && P_IsObjectOnGround(player->mo))
 	{
@@ -2776,85 +2835,97 @@ static void K_KartUpdatePosition(player_t *player)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].spectator &&
-			(((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) >
-			((player->starpostnum) + (numstarposts + 1) * player->laps)))
-			position++;
-		else if (playeringame[i] && !players[i].spectator
-			&& (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) ==
-			((player->starpostnum) + (numstarposts+1)*player->laps)))
+		if (gametype == GT_RACE)
 		{
-			ppcd = pncd = ipcd = incd = 0;
-
-			player->kartstuff[k_prevcheck] = players[i].kartstuff[k_prevcheck] = 0;
-			player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
-
-			// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
-			for (th = thinkercap.next; th != &thinkercap; th = th->next)
+			if (playeringame[i] && !players[i].spectator &&
+				(((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) >
+				((player->starpostnum) + (numstarposts + 1) * player->laps)))
+				position++;
+			else if (playeringame[i] && !players[i].spectator
+				&& (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) ==
+				((player->starpostnum) + (numstarposts+1)*player->laps)))
 			{
-				if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
-					continue;
+				ppcd = pncd = ipcd = incd = 0;
 
-				mo = (mobj_t *)th;
+				player->kartstuff[k_prevcheck] = players[i].kartstuff[k_prevcheck] = 0;
+				player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
 
-				pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x,
-														mo->y - player->mo->y),
-														mo->z - player->mo->z) / FRACUNIT;
-				imo = P_AproxDistance(P_AproxDistance(	mo->x - players[i].mo->x,
-														mo->y - players[i].mo->y),
-														mo->z - players[i].mo->z) / FRACUNIT;
-
-				if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
-					continue;
-
-				if (mo->health == player->starpostnum)
+				// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
+				for (th = thinkercap.next; th != &thinkercap; th = th->next)
 				{
-					player->kartstuff[k_prevcheck] += pmo;
-					ppcd++;
+					if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
+						continue;
+
+					mo = (mobj_t *)th;
+
+					pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x,
+															mo->y - player->mo->y),
+															mo->z - player->mo->z) / FRACUNIT;
+					imo = P_AproxDistance(P_AproxDistance(	mo->x - players[i].mo->x,
+															mo->y - players[i].mo->y),
+															mo->z - players[i].mo->z) / FRACUNIT;
+
+					if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
+						continue;
+
+					if (mo->health == player->starpostnum)
+					{
+						player->kartstuff[k_prevcheck] += pmo;
+						ppcd++;
+					}
+					if (mo->health == (player->starpostnum + 1))
+					{
+						player->kartstuff[k_nextcheck] += pmo;
+						pncd++;
+					}
+					if (mo->health == players[i].starpostnum)
+					{
+						players[i].kartstuff[k_prevcheck] += imo;
+						ipcd++;
+					}
+					if (mo->health == (players[i].starpostnum + 1))
+					{
+						players[i].kartstuff[k_nextcheck] += imo;
+						incd++;
+					}
 				}
-				if (mo->health == (player->starpostnum + 1))
+
+				if (ppcd > 1) player->kartstuff[k_prevcheck] /= ppcd;
+				if (pncd > 1) player->kartstuff[k_nextcheck] /= pncd;
+				if (ipcd > 1) players[i].kartstuff[k_prevcheck] /= ipcd;
+				if (incd > 1) players[i].kartstuff[k_nextcheck] /= incd;
+
+				if ((players[i].kartstuff[k_nextcheck] > 0 || player->kartstuff[k_nextcheck] > 0) && !player->exiting)
 				{
-					player->kartstuff[k_nextcheck] += pmo;
-					pncd++;
+					if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) <
+						(player->kartstuff[k_nextcheck] - player->kartstuff[k_prevcheck]))
+						position++;
 				}
-				if (mo->health == players[i].starpostnum)
+				else if (!player->exiting)
 				{
-					players[i].kartstuff[k_prevcheck] += imo;
-					ipcd++;
+					if (players[i].kartstuff[k_prevcheck] > player->kartstuff[k_prevcheck])
+						position++;
 				}
-				if (mo->health == (players[i].starpostnum + 1))
+				else
 				{
-					players[i].kartstuff[k_nextcheck] += imo;
-					incd++;
+					if (players[i].starposttime < player->starposttime)
+						position++;
 				}
 			}
-
-			if (ppcd > 1) player->kartstuff[k_prevcheck] /= ppcd;
-			if (pncd > 1) player->kartstuff[k_nextcheck] /= pncd;
-			if (ipcd > 1) players[i].kartstuff[k_prevcheck] /= ipcd;
-			if (incd > 1) players[i].kartstuff[k_nextcheck] /= incd;
-
-			if ((players[i].kartstuff[k_nextcheck] > 0 || player->kartstuff[k_nextcheck] > 0) && !player->exiting)
-			{
-				if ((players[i].kartstuff[k_nextcheck] - players[i].kartstuff[k_prevcheck]) <
-					(player->kartstuff[k_nextcheck] - player->kartstuff[k_prevcheck]))
-					position++;
-			}
-			else if (!player->exiting)
-			{
-				if (players[i].kartstuff[k_prevcheck] > player->kartstuff[k_prevcheck])
-					position++;
-			}
-			else
-			{
-				if (players[i].starposttime < player->starposttime)
-					position++;
-			}
+		}
+		else if (gametype == GT_MATCH)
+		{
+			if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+				position++;
+			else if (players[i].score > player->score)
+				position++;
 		}
 	}
 	player->kartstuff[k_position] = position;
 }
-
+//
+// K_CheckForHoldItem
+//
 static boolean K_CheckForHoldItem(player_t *player)
 {
 	if (	player->kartstuff[k_greenshell] == 1
@@ -2874,7 +2945,9 @@ static boolean K_CheckForHoldItem(player_t *player)
 		) return true;
 	return false;
 }
-
+//
+// K_StripItems
+//
 static void K_StripItems(player_t *player)
 {
 	if (	player->kartstuff[k_kitchensink]
@@ -2941,8 +3014,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	boolean HOLDING_ITEM = K_CheckForHoldItem(player);
 	boolean NO_BOO = (player->kartstuff[k_boostolentimer] == 0 && player->kartstuff[k_bootaketimer] == 0);
 
-	if (gametype == GT_RACE)
-		K_KartUpdatePosition(player);
+	K_KartUpdatePosition(player);
 
 	// Position Taunt
 	// If you were behind someone but just passed them, taunt at them!
@@ -2994,6 +3066,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 // Fire Flower
 // Triple Red Shell
 // Lightning
+// Feather
 
 		// GoldenMushroom power
 		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1
@@ -3375,7 +3448,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->kartstuff[k_magnet] = 0;
 		}
 		// Feather
-		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_feather] & 1 && NO_BOO)
+		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_feather] & 1 && onground && NO_BOO)
 		{
 			K_PlayTauntSound(player->mo);
 			K_DoBouncePad(player->mo, 32<<FRACBITS);
@@ -3508,6 +3581,18 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	K_KartDrift(player, onground);
+
+	if (player->kartstuff[k_feather] & 2)
+	{
+		fixed_t strafe = 0;
+		fixed_t strength = FRACUNIT/4;
+		if (cmd->buttons & BT_DRIFTLEFT)
+			strafe -= 1;
+		if (cmd->buttons & BT_DRIFTRIGHT)
+			strafe += 1;
+		strength += FixedDiv(player->speed, K_GetKartSpeed(player, true));
+		P_Thrust(player->mo, player->mo->angle-ANGLE_90, strafe*strength);
+	}
 
 	// Quick Turning
 	// You can't turn your kart when you're not moving.
@@ -4846,16 +4931,16 @@ void K_drawKartHUD(void)
 	// Draw the timestamp
 	K_drawKartTimestamp();
 
+	if (!(splitscreen || modeattacking))
+	{
+		// If not splitscreen, draw...
+		// The little triple-item icons at the bottom
+		// The top-four faces on the left
+		K_drawKartPositionFaces();
+	}
+
 	if (gametype == GT_RACE) // Race-only elements
 	{
-		if (!(splitscreen || modeattacking))
-		{
-			// If not splitscreen, draw...
-			// The little triple-item icons at the bottom
-			// The top-four faces on the left
-			K_drawKartPositionFaces();
-		}
-
 		// Draw the numerical position
 		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 

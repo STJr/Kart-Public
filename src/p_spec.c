@@ -3732,8 +3732,11 @@ DoneSection2:
 			if (!P_IsObjectOnGround(player->mo))
 				break;
 
-			if (player->speed < K_GetKartSpeed(player, true)/16 && !(player->mo->eflags & MFE_SPRUNG)) // Push forward to prevent getting stuck
-				P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/16, player->mo->scale));
+			if (player->mo->eflags & MFE_SPRUNG)
+				break;
+
+			if (player->speed < K_GetKartSpeed(player, true)/4) // Push forward to prevent getting stuck
+				P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
 
 			player->kartstuff[k_feather] |= 2;
 			K_DoBouncePad(player->mo, 0);
