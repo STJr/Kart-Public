@@ -721,26 +721,26 @@ static INT32 K_KartItemOddsDistance_Battle[NUMKARTITEMS][5] =
 {
 				//P-Odds	 0  1  2  3  4
 				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 0, 1, 1, 2, 2 }, // Boo
-			  /*Mushroom*/ { 0, 1, 2, 2, 2 }, // Mushroom
-	   /*Triple Mushroom*/ { 0, 0, 0, 0, 1 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 0, 0, 0, 1, 2 }, // Mega Mushroom
+				   /*Boo*/ { 2, 2, 2, 1, 0 }, // Boo
+			  /*Mushroom*/ { 2, 2, 2, 1, 0 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 2, 1, 0, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
-				  /*Star*/ { 0, 0, 0, 1, 2 }, // Star
+				  /*Star*/ { 2, 1, 0, 0, 0 }, // Star
 
-		 /*Triple Banana*/ { 0, 1, 1, 1, 1 }, // Triple Banana
-			 /*Fake Item*/ { 6, 5, 3, 1, 0 }, // Fake Item
-				/*Banana*/ { 6, 4, 3, 1, 0 }, // Banana
-		   /*Green Shell*/ { 5, 4, 4, 1, 0 }, // Green Shell
-			 /*Red Shell*/ { 0, 1, 2, 2, 1 }, // Red Shell
-	/*Triple Green Shell*/ { 0, 1, 1, 2, 1 }, // Triple Green Shell
-			   /*Bob-omb*/ { 0, 0, 1, 2, 2 }, // Bob-omb
+		 /*Triple Banana*/ { 1, 1, 1, 1, 0 }, // Triple Banana
+			 /*Fake Item*/ { 0, 1, 2, 4, 6 }, // Fake Item
+				/*Banana*/ { 0, 1, 3, 4, 6 }, // Banana
+		   /*Green Shell*/ { 0, 1, 3, 4, 6 }, // Green Shell
+			 /*Red Shell*/ { 1, 2, 2, 1, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 1, 2, 2, 1, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 3, 2, 1, 1, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 0, 0, 1, 2, 3 }, // Fire Flower
-	  /*Triple Red Shell*/ { 0, 0, 0, 1, 2 }, // Triple Red Shell
+		   /*Fire Flower*/ { 3, 2, 1, 1, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 2, 1, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0 }, // Lightning
 
-			   /*Feather*/ { 3, 2, 1, 1, 1 }  // Feather
+			   /*Feather*/ { 0, 1, 1, 1, 2 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -965,15 +965,20 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 
 //}
 
-static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
+static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum, boolean battle)
 {
-	INT32 newodds = (K_KartItemOddsDistance_Retro[itemnum-1][pos]);
-	if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF)
-		newodds = (K_KartItemOddsDistance_Battle[itemnum-1][pos]);
+	INT32 newodds;
+
+	if (battle)
+		newodds = K_KartItemOddsDistance_Battle[itemnum-1][pos];
+	else
+		newodds = K_KartItemOddsDistance_Retro[itemnum-1][pos];
+
 	if ((cv_kartfrantic.value) && (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
 		|| itemnum == 7 || itemnum == 8 || itemnum == 12 || itemnum == 13 || itemnum == 14 || itemnum == 15
 		|| itemnum == 16 || itemnum == 17 || itemnum == 18))
 		newodds *= 2;
+
 	return newodds;
 }
 
@@ -989,7 +994,11 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
 	INT32 distvar = (64*14);
-	INT32 avgballoon = 0, balloondiff = 0;
+	INT32 avgballoon = 0;
+	boolean battle = false;
+
+	if (gametype == GT_MATCH)
+		battle = true;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -1000,40 +1009,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
-
-	// Initializes existing spawnchance values
-	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
-		spawnchance[i] = 0;
-
-	// Gotta check how many players are active at this moment.
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i] && !players[i].spectator)
-			pingame++;
-		else if (gametype != GT_RACE && players[i].kartstuff[k_balloon])
-			avgballoon += players[i].kartstuff[k_balloon];
-		if (players[i].exiting)
-			pexiting++;
-	}
-
-	if (pingame && gametype != GT_RACE)
-	{
-		avgballoon /= pingame;
-		balloondiff = player->kartstuff[k_balloon] - avgballoon;
-	}
-
-	if (gametype == GT_RACE)
-	{
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
-				pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
-														players[i].mo->y - player->mo->y),
-														players[i].mo->z - player->mo->z) / FRACUNIT 
-														* (pingame - players[i].kartstuff[k_position])
-														/ ((pingame - 1) * (pingame + 1) / 3);
-		}
-	}
 
 	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
 
@@ -1047,6 +1022,37 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
 
+	// Initializes existing spawnchance values
+	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
+		spawnchance[i] = 0;
+
+	// Gotta check how many players are active at this moment.
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && !players[i].spectator)
+		{
+			pingame++;
+			continue;
+		}
+		if (players[i].exiting)
+			pexiting++;
+		if (players[i].kartstuff[k_balloon] > 0)
+			avgballoon += players[i].kartstuff[k_balloon];
+	}
+
+	if (pingame)
+		avgballoon /= pingame;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
+													players[i].mo->y - player->mo->y),
+													players[i].mo->z - player->mo->z) / FRACUNIT 
+													* (pingame - players[i].kartstuff[k_position])
+													/ ((pingame - 1) * (pingame + 1) / 3);
+	}
+
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
 	if (cv_kartfrantic.value) // Stupid items
@@ -1057,12 +1063,11 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF) // Battle Mode
 	{
-		useodds = balloondiff;
-		if (balloondiff > 2)
-			balloondiff = 2;
-		if (balloondiff < -2)
-			balloondiff = -2;
-		useodds += 2; // 0 is two balloons ahead of average, 2 is average, 4 is two balloons below average
+		useodds = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average, 4 is two balloons above average
+		if (useodds > 4)
+			useodds = 4;
+		if (useodds < 0)
+			useodds = 0;
 	}
 	else
 	{
@@ -1078,7 +1083,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	}
 
 #define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum); chance++) \
+	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, battle); chance++) \
 		spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
