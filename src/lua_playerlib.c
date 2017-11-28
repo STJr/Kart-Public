@@ -150,9 +150,9 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->dashtime);
 	// SRB2kart
 	else if (fastcmp(field,"kartspeed"))
-		lua_pushfixed(L, plr->kartspeed);
+		lua_pushinteger(L, plr->kartspeed);
 	else if (fastcmp(field,"kartweight"))
-		lua_pushfixed(L, plr->kartweight);
+		lua_pushinteger(L, plr->kartweight);
 	//
 	else if (fastcmp(field,"normalspeed"))
 		lua_pushfixed(L, plr->normalspeed);

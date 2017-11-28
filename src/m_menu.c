@@ -375,7 +375,7 @@ consvar_t cv_chooseskin = {"chooseskin", DEFAULTSKIN, CV_HIDEN|CV_CALL, skins_co
 // When you add gametypes here, don't forget to update them in CV_AddValue!
 CV_PossibleValue_t gametype_cons_t[] =
 {
-	{GT_RACE, "Race"}, {GT_MATCH, "Match"},
+	{GT_RACE, "Race"}, {GT_MATCH, "Battle"},
 
 	/*						// SRB2kart
 	{GT_COOP, "Co-op"},
@@ -977,9 +977,9 @@ static menuitem_t MP_SplitServerMenu[] =
 
 static menuitem_t MP_PlayerSetupMenu[] =
 {
-	{IT_KEYHANDLER | IT_STRING,   NULL, "Your name",   M_HandleSetupMultiPlayer,   0},
-	{IT_KEYHANDLER | IT_STRING,   NULL, "Your color",  M_HandleSetupMultiPlayer,  16},
-	{IT_KEYHANDLER | IT_STRING,   NULL, "Your player", M_HandleSetupMultiPlayer,  96}, // Tails 01-18-2001
+	{IT_KEYHANDLER | IT_STRING,   NULL, "Name",      M_HandleSetupMultiPlayer,   0},
+	{IT_KEYHANDLER | IT_STRING,   NULL, "Character", M_HandleSetupMultiPlayer,  16}, // Tails 01-18-2001
+	{IT_KEYHANDLER | IT_STRING,   NULL, "Color",     M_HandleSetupMultiPlayer, 152},
 };
 
 // ------------------------------------
@@ -1657,12 +1657,12 @@ menu_t MP_RoomDef =
 menu_t MP_SplitServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
 menu_t MP_PlayerSetupDef =
 {
-	"M_SPLAYR",
+	NULL, //"M_SPLAYR"
 	sizeof (MP_PlayerSetupMenu)/sizeof (menuitem_t),
 	&MP_MainDef,
 	MP_PlayerSetupMenu,
 	M_DrawSetupMultiPlayerMenu,
-	27, 40,
+	32, 16,
 	0,
 	M_QuitMultiPlayerMenu
 };
@@ -5637,11 +5637,11 @@ static void M_HandleStaffReplay(INT32 choice)
 	{
 		case KEY_DOWNARROW:
 			M_NextOpt();
-			S_StartSound(NULL, sfx_bewar1);
+			S_StartSound(NULL, sfx_menu1);
 			break;
 		case KEY_UPARROW:
 			M_PrevOpt();
-			S_StartSound(NULL, sfx_bewar1);
+			S_StartSound(NULL, sfx_menu1);
 			break;
 		case KEY_BACKSPACE:
 		case KEY_ESCAPE:
@@ -6483,8 +6483,13 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	INT32 mx, my, st, flags = 0;
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
+	patch_t *statbg = W_CachePatchName("K_STATBG", PU_CACHE);
+	patch_t *statdot = W_CachePatchName("K_SDOT0", PU_CACHE);
 	patch_t *patch;
 	UINT8 frame;
+	UINT8 speed;
+	UINT8 weight;
+	UINT8 i;
 
 	mx = MP_PlayerSetupDef.x;
 	my = MP_PlayerSetupDef.y;
@@ -6493,21 +6498,34 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	M_DrawGenericMenu();
 
 	// draw name string
-	M_DrawTextBox(mx + 90, my - 8, MAXPLAYERNAME, 1);
-	V_DrawString(mx + 98, my, V_ALLOWLOWERCASE, setupm_name);
+	M_DrawTextBox(mx + 40, my - 8, MAXPLAYERNAME, 1);
+	V_DrawString(mx + 56, my, V_ALLOWLOWERCASE, setupm_name);
 
 	// draw skin string
-	V_DrawString(mx + 90, my + 96,
+	V_DrawString(mx + 88, my + 16,
 	             ((MP_PlayerSetupMenu[2].status & IT_TYPE) == IT_SPACE ? V_TRANSLUCENT : 0)|V_YELLOWMAP|V_ALLOWLOWERCASE,
 	             skins[setupm_fakeskin].realname);
 
 	// draw the name of the color you have chosen
 	// Just so people don't go thinking that "Default" is Green.
-	V_DrawString(208, 72, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);				// SRB2kart
+	V_DrawString(mx + 56, my + 152, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);	// SRB2kart
 
 	// draw text cursor for name
 	if (!itemOn && skullAnimCounter < 4) // blink cursor
-		V_DrawCharacter(mx + 98 + V_StringWidth(setupm_name, 0), my, '_',false);
+		V_DrawCharacter(mx + 56 + V_StringWidth(setupm_name, 0), my, '_',false);
+
+	// SRB2Kart: draw the stat backer
+	V_DrawFixedPatch((mx+142)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, NULL);
+
+	for (i = 0; i < numskins; i++)
+	{
+		if (i != setupm_fakeskin && R_SkinAvailable(skins[i].name) != -1)
+		{
+			speed = skins[i].kartspeed;
+			weight = skins[i].kartweight;
+			V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, NULL);
+		}
+	}
 
 	// anim the player in the box
 	if (--multi_tics <= 0)
@@ -6534,25 +6552,34 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		frame = 0; // Try to use standing frame
 
 	sprframe = &sprdef->spriteframes[frame];
-	patch = W_CachePatchNum(sprframe->lumppat[0], PU_CACHE);
+	patch = W_CachePatchNum(sprframe->lumppat[1], PU_CACHE);
 	if (sprframe->flip & 1) // Only for first sprite
 		flags |= V_FLIP; // This sprite is left/right flipped!
 
 	// draw box around guy
-	M_DrawTextBox(mx + 90, my + 8, PLBOXW, PLBOXH);
+	M_DrawTextBox(mx + 42, my + 66, PLBOXW, PLBOXH);
+
+	if (skullAnimCounter < 4) // SRB2Kart: we draw this dot later so that it's not covered if there's multiple skins with the same stats
+		statdot = W_CachePatchName("K_SDOT2", PU_CACHE);
+	else
+		statdot = W_CachePatchName("K_SDOT1", PU_CACHE);
+
+	speed = skins[setupm_fakeskin].kartspeed;
+	weight = skins[setupm_fakeskin].kartweight;
 
 	// draw player sprite
 	if (!setupm_fakecolor) // should never happen but hey, who knows
 	{
 		if (skins[setupm_fakeskin].flags & SF_HIRES)
 		{
-			V_DrawSciencePatch((mx+98+(PLBOXW*8/2))<<FRACBITS,
-						(my+16+(PLBOXH*8)-12)<<FRACBITS,
+			V_DrawSciencePatch((mx+50+(PLBOXW*8/2))<<FRACBITS,
+						(my+74+(PLBOXH*8)-12)<<FRACBITS,
 						flags, patch,
 						skins[setupm_fakeskin].highresscale);
 		}
 		else
-			V_DrawScaledPatch(mx + 98 + (PLBOXW*8/2), my + 16 + (PLBOXH*8) - 12, flags, patch);
+			V_DrawScaledPatch(mx + 50 + (PLBOXW*8/2), my + 74 + (PLBOXH*8) - 12, flags, patch);
+		V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, NULL);
 	}
 	else
 	{
@@ -6560,14 +6587,15 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 		if (skins[setupm_fakeskin].flags & SF_HIRES)
 		{
-			V_DrawFixedPatch((mx+98+(PLBOXW*8/2))<<FRACBITS,
-						(my+16+(PLBOXH*8)-12)<<FRACBITS,
+			V_DrawFixedPatch((mx+50+(PLBOXW*8/2))<<FRACBITS,
+						(my+74+(PLBOXH*8)-12)<<FRACBITS,
 						skins[setupm_fakeskin].highresscale,
 						flags, patch, colormap);
 		}
 		else
-			V_DrawMappedPatch(mx + 98 + (PLBOXW*8/2), my + 16 + (PLBOXH*8) - 12, flags, patch, colormap);
+			V_DrawMappedPatch(mx + 50 + (PLBOXW*8/2), my + 74 + (PLBOXH*8) - 12, flags, patch, colormap);
 
+		V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, colormap);
 		Z_Free(colormap);
 	}
 }
@@ -6591,12 +6619,12 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		case KEY_LEFTARROW:
-			if (itemOn == 2)       //player skin
+			if (itemOn == 1)       //player skin
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakeskin--;
 			}
-			else if (itemOn == 1) // player color
+			else if (itemOn == 2) // player color
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakecolor--;
@@ -6604,12 +6632,12 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		case KEY_RIGHTARROW:
-			if (itemOn == 2)       //player skin
+			if (itemOn == 1)       //player skin
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakeskin++;
 			}
-			else if (itemOn == 1) // player color
+			else if (itemOn == 2) // player color
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakecolor++;

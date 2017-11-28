@@ -7710,7 +7710,9 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			sec2 = P_ThingOnSpecial3DFloor(mobj);
-			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1) || (P_IsObjectOnGround(mobj) && GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
+				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
+				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
 				K_DoBouncePad(mobj, 0);
 
 			if (mobj->threshold > 0)
@@ -7761,7 +7763,9 @@ void P_MobjThinker(mobj_t *mobj)
 			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
 
 			sec2 = P_ThingOnSpecial3DFloor(mobj);
-			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1) || (P_IsObjectOnGround(mobj) && GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
+				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
+				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
 				K_DoBouncePad(mobj, 0);
 
 			break;
@@ -7775,7 +7779,9 @@ void P_MobjThinker(mobj_t *mobj)
 			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
 
 			sec2 = P_ThingOnSpecial3DFloor(mobj);
-			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1) || (P_IsObjectOnGround(mobj) && GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
+				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
+				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
 				K_DoBouncePad(mobj, 0);
 
 			if (mobj->threshold > 0)

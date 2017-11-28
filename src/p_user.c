@@ -1313,6 +1313,36 @@ boolean P_IsObjectOnGroundIn(mobj_t *mo, sector_t *sec)
 }
 
 //
+// P_IsObjectOnRealGround
+//
+// Helper function for T_EachTimeThinker
+// Like P_IsObjectOnGroundIn, except ONLY THE REAL GROUND IS CONSIDERED, NOT FOFS
+// I'll consider whether to make this a more globally accessible function or whatever in future
+// -- Monster Iestyn
+//
+// Really simple, but personally I think it's also incredibly helpful. I think this is fine in p_user.c
+// -- Sal
+
+boolean P_IsObjectOnRealGround(mobj_t *mo, sector_t *sec)
+{
+	// Is the object in reverse gravity?
+	if (mo->eflags & MFE_VERTICALFLIP)
+	{
+		// Detect if the player is on the ceiling.
+		if (mo->z+mo->height >= P_GetSpecialTopZ(mo, sec, sec))
+			return true;
+	}
+	// Nope!
+	else
+	{
+		// Detect if the player is on the floor.
+		if (mo->z <= P_GetSpecialBottomZ(mo, sec, sec))
+			return true;
+	}
+	return false;
+}
+
+//
 // P_SetObjectMomZ
 //
 // Sets the player momz appropriately.
@@ -4705,6 +4735,10 @@ static void P_3dMovement(player_t *player)
 
 	// Do not let the player control movement if not onground.
 	onground = P_IsObjectOnGround(player->mo);
+
+	// SRB2Kart: shhhhhhh don't question me, feather and speed bumps are supposed to control like you're on the ground :p
+	if (player->kartstuff[k_feather] & 2)
+		onground = true;
 
 	player->aiming = cmd->aiming<<FRACBITS;
 

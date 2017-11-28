@@ -534,8 +534,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	// Just in case Lua does something like
 	// modify these at runtime
 	// SRB2kart
-	rsp->kartspeed = (fixed_t)LONG(players[i].kartspeed);
-	rsp->kartweight = (fixed_t)LONG(players[i].kartweight);
+	rsp->kartspeed = (UINT8)LONG(players[i].kartspeed);
+	rsp->kartweight = (UINT8)LONG(players[i].kartweight);
 	//
 	rsp->normalspeed = (fixed_t)LONG(players[i].normalspeed);
 	rsp->runspeed = (fixed_t)LONG(players[i].runspeed);
@@ -666,8 +666,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].skin = LONG(rsp->skin);
 	// Just in case Lua does something like
 	// modify these at runtime
-	players[i].kartspeed = (fixed_t)LONG(rsp->kartspeed);
-	players[i].kartweight = (fixed_t)LONG(rsp->kartweight);
+	players[i].kartspeed = (UINT8)LONG(rsp->kartspeed);
+	players[i].kartweight = (UINT8)LONG(rsp->kartweight);
 
 	players[i].normalspeed = (fixed_t)LONG(rsp->normalspeed);
 	players[i].runspeed = (fixed_t)LONG(rsp->runspeed);

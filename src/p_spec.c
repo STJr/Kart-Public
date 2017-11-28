@@ -3729,18 +3729,17 @@ DoneSection2:
 	switch (special)
 	{
 		case 1: // SRB2kart: bounce pad
-			if (!P_IsObjectOnGround(player->mo))
-				break;
+			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
+			{
+				if (player->mo->eflags & MFE_SPRUNG)
+					break;
 
-			if (player->mo->eflags & MFE_SPRUNG)
-				break;
+				if (player->speed < K_GetKartSpeed(player, true)/4) // Push forward to prevent getting stuck
+					P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
 
-			if (player->speed < K_GetKartSpeed(player, true)/4) // Push forward to prevent getting stuck
-				P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
-
-			player->kartstuff[k_feather] |= 2;
-			K_DoBouncePad(player->mo, 0);
-
+				player->kartstuff[k_feather] |= 2;
+				K_DoBouncePad(player->mo, 0);
+			}
 			break;
 
 		case 2: // Wind/Current
@@ -3942,20 +3941,22 @@ DoneSection2:
 			break;
 
 		case 6: // SRB2kart 190117 - Mushroom Boost Panel
-			if (!P_IsObjectOnGround(player->mo))
-				break;
-			if (!player->kartstuff[k_floorboost])
-				player->kartstuff[k_floorboost] = 3;
-			else
-				player->kartstuff[k_floorboost] = 2;
-			K_DoMushroom(player, false, false);
+			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
+			{
+				if (!player->kartstuff[k_floorboost])
+					player->kartstuff[k_floorboost] = 3;
+				else
+					player->kartstuff[k_floorboost] = 2;
+				K_DoMushroom(player, false, false);
+			}
 			break;
 
 		case 7: // SRB2kart 190117 - Oil Slick
-			if (!P_IsObjectOnGround(player->mo))
-				break;
-			player->kartstuff[k_spinouttype] = -1;
-			K_SpinPlayer(player, NULL);
+			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
+			{
+				player->kartstuff[k_spinouttype] = -1;
+				K_SpinPlayer(player, NULL);
+			}
 			break;
 
 		case 8: // Zoom Tube Start

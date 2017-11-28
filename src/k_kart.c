@@ -721,26 +721,26 @@ static INT32 K_KartItemOddsDistance_Battle[NUMKARTITEMS][5] =
 {
 				//P-Odds	 0  1  2  3  4
 				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 2, 2, 2, 1, 0 }, // Boo
-			  /*Mushroom*/ { 2, 2, 2, 1, 0 }, // Mushroom
+				   /*Boo*/ { 1, 2, 3, 1, 0 }, // Boo
+			  /*Mushroom*/ { 3, 2, 3, 1, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 2, 1, 0, 0, 0 }, // Mega Mushroom
+		 /*Mega Mushroom*/ { 3, 1, 0, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
-				  /*Star*/ { 2, 1, 0, 0, 0 }, // Star
+				  /*Star*/ { 3, 1, 0, 0, 0 }, // Star
 
-		 /*Triple Banana*/ { 1, 1, 1, 1, 0 }, // Triple Banana
-			 /*Fake Item*/ { 0, 1, 2, 4, 6 }, // Fake Item
-				/*Banana*/ { 0, 1, 3, 4, 6 }, // Banana
-		   /*Green Shell*/ { 0, 1, 3, 4, 6 }, // Green Shell
-			 /*Red Shell*/ { 1, 2, 2, 1, 0 }, // Red Shell
-	/*Triple Green Shell*/ { 1, 2, 2, 1, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 3, 2, 1, 1, 0 }, // Bob-omb
+		 /*Triple Banana*/ { 0, 2, 1, 1, 0 }, // Triple Banana
+			 /*Fake Item*/ { 0, 0, 2, 5, 8 }, // Fake Item
+				/*Banana*/ { 0, 0, 3, 4, 5 }, // Banana
+		   /*Green Shell*/ { 0, 0, 3, 4, 5 }, // Green Shell
+			 /*Red Shell*/ { 0, 3, 1, 1, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 0, 3, 1, 1, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 3, 2, 1, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 3, 2, 1, 1, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 2, 1, 0, 0, 0 }, // Triple Red Shell
+		   /*Fire Flower*/ { 3, 2, 1, 0, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 4, 1, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0 }, // Lightning
 
-			   /*Feather*/ { 0, 1, 1, 1, 2 }  // Feather
+			   /*Feather*/ { 0, 1, 2, 2, 2 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -965,11 +965,11 @@ static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
 
 //}
 
-static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum, boolean battle)
+static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
 {
 	INT32 newodds;
 
-	if (battle)
+	if (gametype == GT_MATCH)
 		newodds = K_KartItemOddsDistance_Battle[itemnum-1][pos];
 	else
 		newodds = K_KartItemOddsDistance_Retro[itemnum-1][pos];
@@ -995,10 +995,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 chance = 0, numchoices = 0;
 	INT32 distvar = (64*14);
 	INT32 avgballoon = 0;
-	boolean battle = false;
-
-	if (gametype == GT_MATCH)
-		battle = true;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -1030,10 +1026,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator)
-		{
 			pingame++;
-			continue;
-		}
 		if (players[i].exiting)
 			pexiting++;
 		if (players[i].kartstuff[k_balloon] > 0)
@@ -1055,12 +1048,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
-	if (cv_kartfrantic.value) // Stupid items
-	{
-		pdis = (13*pdis/12); // multiply...
-		pdis += distvar; // set everyone back another place...
-	}
-
 	if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF) // Battle Mode
 	{
 		useodds = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average, 4 is two balloons above average
@@ -1071,6 +1058,12 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	}
 	else
 	{
+		if (cv_kartfrantic.value) // Frantic items
+		{
+			pdis = (13*pdis/12); // make the distances between everyone artifically higher...
+			pdis += distvar; // and set everyone back another place!
+		}
+
 		if (pingame == 1)				useodds = 0; // Record Attack, or just alone
 		else if (pdis <= distvar *  0)	useodds = 1; // (64*14) *  0 =     0
 		else if (pdis <= distvar *  1)	useodds = 2; // (64*14) *  1 =   896
@@ -1083,7 +1076,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	}
 
 #define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, battle); chance++) \
+	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum); chance++) \
 		spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
@@ -1239,18 +1232,25 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 
 	\return	boolean
 */
-static boolean K_CheckOffroadCollide(mobj_t *mo)
+static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
 {
+	UINT8 i;
+	sector_t *sec2;
+
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	if (P_IsObjectOnGround(mo)
-	&& (GETSECSPECIAL(mo->subsector->sector->special, 1) == 2
-	|| GETSECSPECIAL(mo->subsector->sector->special, 1) == 3
-	|| GETSECSPECIAL(mo->subsector->sector->special, 1) == 4))
-		return true;
+	sec2 = P_ThingOnSpecial3DFloor(mo);
 
-	return false;
+	for (i = 2; i < 5; i++)
+	{
+		if ((sec2 && GETSECSPECIAL(sec2->special, 1) == i)
+			|| (P_IsObjectOnRealGround(mo, sec)
+			&& GETSECSPECIAL(sec->special, 1) == i))
+			return i;
+	}
+
+	return 0;
 }
 
 /**	\brief	Updates the Player's offroad value once per frame
@@ -1267,12 +1267,12 @@ static void K_UpdateOffroad(player_t *player)
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
 
 	fixed_t offroadstrength = 0;
-	
-	if (GETSECSPECIAL(nextsector->special, 1) == 2)		// Weak Offroad
+
+	if (K_CheckOffroadCollide(player->mo, nextsector) == 2)	// Weak Offroad
 		offroadstrength = 1;
-	else if (GETSECSPECIAL(nextsector->special, 1) == 3)	// Mid Offroad
+	else if (K_CheckOffroadCollide(player->mo, nextsector) == 3)	// Mid Offroad
 		offroadstrength = 2;
-	else if (GETSECSPECIAL(nextsector->special, 1) == 4)	// Strong Offroad
+	else if (K_CheckOffroadCollide(player->mo, nextsector) == 4)	// Strong Offroad
 		offroadstrength = 3;
 
 	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
@@ -1280,8 +1280,9 @@ static void K_UpdateOffroad(player_t *player)
 	//	&& nextsector->special != 1024 && nextsector->special != 4864)
 	if (offroadstrength)
 	{
-		if (K_CheckOffroadCollide(player->mo) && player->kartstuff[k_offroad] == 0)
+		if (K_CheckOffroadCollide(player->mo, player->mo->subsector->sector) && player->kartstuff[k_offroad] == 0)
 			player->kartstuff[k_offroad] = 16;
+
 		if (player->kartstuff[k_offroad] > 0)
 		{
 			if (kartweight < 1) { kartweight = 1; } if (kartweight > 9) { kartweight = 9; } // Safety Net
@@ -2611,16 +2612,20 @@ void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
 				thrust = 48<<FRACBITS;
 			if (thrust > 72<<FRACBITS)
 				thrust = 72<<FRACBITS;
+			if (mo->player->kartstuff[k_mushroomtimer])
+				thrust = FixedMul(thrust, 5*FRACUNIT/4);
+			else if (mo->player->kartstuff[k_startimer])
+				thrust = FixedMul(thrust, 9*FRACUNIT/8);
 			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
 		}
 		else
 		{
 			thrust = P_AproxDistance(mo->momx,mo->momy);
-			if (thrust < 8<<FRACBITS)
+			if (thrust < 4<<FRACBITS)
+				thrust = 4<<FRACBITS;
+			if (thrust > 8<<FRACBITS)
 				thrust = 8<<FRACBITS;
-			if (thrust > 32<<FRACBITS)
-				thrust = 32<<FRACBITS;
-			mo->momz = FixedMul(FINESINE(ANGLE_11hh>>ANGLETOFINESHIFT), thrust);
+			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
 		}
 	}
 	else
@@ -3586,18 +3591,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	K_KartDrift(player, onground);
-
-	if (player->kartstuff[k_feather] & 2)
-	{
-		fixed_t strafe = 0;
-		fixed_t strength = FRACUNIT/4;
-		if (cmd->buttons & BT_DRIFTLEFT)
-			strafe -= 1;
-		if (cmd->buttons & BT_DRIFTRIGHT)
-			strafe += 1;
-		strength += FixedDiv(player->speed, K_GetKartSpeed(player, true));
-		P_Thrust(player->mo, player->mo->angle-ANGLE_90, strafe*strength);
-	}
 
 	// Quick Turning
 	// You can't turn your kart when you're not moving.

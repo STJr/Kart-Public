@@ -135,6 +135,7 @@ boolean P_IsLocalPlayer(player_t *player);
 boolean P_IsObjectInGoop(mobj_t *mo);
 boolean P_IsObjectOnGround(mobj_t *mo);
 boolean P_IsObjectOnGroundIn(mobj_t *mo, sector_t *sec);
+boolean P_IsObjectOnRealGround(mobj_t *mo, sector_t *sec); // SRB2Kart
 boolean P_InSpaceSector(mobj_t *mo);
 boolean P_InQuicksand(mobj_t *mo);
 
