@@ -9,6 +9,7 @@
 #include "doomdef.h"
 #include "d_player.h" // Need for player_t
 
+UINT8 colortranslations[MAXSKINCOLORS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
 void K_GenerateKartColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color);
 UINT8 K_GetKartColorByName(const char *name);

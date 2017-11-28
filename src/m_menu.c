@@ -6462,9 +6462,6 @@ static void M_HandleConnectIP(INT32 choice)
 // ========================
 // Tails 03-02-2002
 
-#define PLBOXW    8
-#define PLBOXH    9
-
 static INT32      multi_tics;
 static state_t   *multi_state;
 
@@ -6498,26 +6495,26 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	M_DrawGenericMenu();
 
 	// draw name string
-	M_DrawTextBox(mx + 40, my - 8, MAXPLAYERNAME, 1);
-	V_DrawString(mx + 56, my, V_ALLOWLOWERCASE, setupm_name);
+	M_DrawTextBox(mx + 32, my - 8, MAXPLAYERNAME, 1);
+	V_DrawString(mx + 40, my, V_ALLOWLOWERCASE, setupm_name);
 
 	// draw skin string
-	V_DrawString(mx + 88, my + 16,
+	V_DrawString(mx + 80, my + 16,
 	             ((MP_PlayerSetupMenu[2].status & IT_TYPE) == IT_SPACE ? V_TRANSLUCENT : 0)|V_YELLOWMAP|V_ALLOWLOWERCASE,
 	             skins[setupm_fakeskin].realname);
 
 	// draw the name of the color you have chosen
 	// Just so people don't go thinking that "Default" is Green.
-	V_DrawString(mx + 56, my + 152, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);	// SRB2kart
+	V_DrawString(mx + 48, my + 152, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);	// SRB2kart
 
 	// draw text cursor for name
 	if (!itemOn && skullAnimCounter < 4) // blink cursor
-		V_DrawCharacter(mx + 56 + V_StringWidth(setupm_name, 0), my, '_',false);
+		V_DrawCharacter(mx + 48 + V_StringWidth(setupm_name, 0), my, '_',false);
 
 	// SRB2Kart: draw the stat backer
-	V_DrawFixedPatch((mx+142)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, NULL);
+	V_DrawFixedPatch((mx+141)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, NULL);
 
-	for (i = 0; i < numskins; i++)
+	for (i = 0; i < numskins; i++) // draw the stat dots
 	{
 		if (i != setupm_fakeskin && R_SkinAvailable(skins[i].name) != -1)
 		{
@@ -6526,6 +6523,73 @@ static void M_DrawSetupMultiPlayerMenu(void)
 			V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, NULL);
 		}
 	}
+
+	// 2.2 color bar backported with permission
+#define charw 74
+#define indexwidth 8
+	{
+		const INT32 colwidth = (282-charw)/(2*indexwidth);
+		INT32 i = -colwidth;
+		INT16 col = setupm_fakecolor - colwidth;
+		INT32 x = mx-13;
+		INT32 w = indexwidth;
+		UINT8 h;
+
+		while (col < 1)
+			col += MAXSKINCOLORS-1;
+		while (i <= colwidth)
+		{
+			if (!(i++))
+				w = charw;
+			else
+				w = indexwidth;
+			for (h = 0; h < 16; h++)
+				V_DrawFill(x, my+164+h, w, 1, colortranslations[col][h]);
+			if (++col >= MAXSKINCOLORS)
+				col -= MAXSKINCOLORS-1;
+			x += w;
+		}
+	}
+#undef indexwidth
+
+	// character bar, ripped off the color bar :V
+#define iconwidth 32
+	{
+		const INT32 icons = 4;
+		INT32 i = -icons;
+		INT16 col = setupm_fakeskin - icons;
+		INT32 x = BASEVIDWIDTH/2 - ((icons+1)*24) - 4;
+		fixed_t scale = FRACUNIT/2;
+		INT32 offx = 8, offy = 8;
+		patch_t *cursor = W_CachePatchName("K_CHRCUR", PU_CACHE);
+		patch_t *face;
+
+		if (col < 0)
+			col += numskins;
+		while (i <= icons)
+		{
+			if (!(i++))
+			{
+				scale = FRACUNIT;
+				offx = 12;
+				offy = 0;
+			}
+			else
+			{
+				scale = FRACUNIT/2;
+				offx = 8;
+				offy = 8;
+			}
+			face = W_CachePatchName(skins[col].face, PU_CACHE);
+			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, scale, 0, face, R_GetTranslationColormap(col, setupm_fakecolor, 0));
+			if (scale == FRACUNIT) // bit of a hack
+				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, scale, 0, cursor, R_GetTranslationColormap(col, setupm_fakecolor, 0));
+			if (++col >= numskins)
+				col -= numskins;
+			x += FixedMul(iconwidth<<FRACBITS, 3*scale/2)/FRACUNIT;
+		}
+	}
+#undef iconwidth
 
 	// anim the player in the box
 	if (--multi_tics <= 0)
@@ -6557,7 +6621,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		flags |= V_FLIP; // This sprite is left/right flipped!
 
 	// draw box around guy
-	M_DrawTextBox(mx + 42, my + 66, PLBOXW, PLBOXH);
+	V_DrawFill((mx+42)-(charw/2), my+66, charw, 84, 239);
 
 	if (skullAnimCounter < 4) // SRB2Kart: we draw this dot later so that it's not covered if there's multiple skins with the same stats
 		statdot = W_CachePatchName("K_SDOT2", PU_CACHE);
@@ -6572,13 +6636,13 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	{
 		if (skins[setupm_fakeskin].flags & SF_HIRES)
 		{
-			V_DrawSciencePatch((mx+50+(PLBOXW*8/2))<<FRACBITS,
-						(my+74+(PLBOXH*8)-12)<<FRACBITS,
+			V_DrawSciencePatch((mx+42)<<FRACBITS,
+						(my+132)<<FRACBITS,
 						flags, patch,
 						skins[setupm_fakeskin].highresscale);
 		}
 		else
-			V_DrawScaledPatch(mx + 50 + (PLBOXW*8/2), my + 74 + (PLBOXH*8) - 12, flags, patch);
+			V_DrawScaledPatch(mx+42, my+132, flags, patch);
 		V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, NULL);
 	}
 	else
@@ -6587,17 +6651,18 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 		if (skins[setupm_fakeskin].flags & SF_HIRES)
 		{
-			V_DrawFixedPatch((mx+50+(PLBOXW*8/2))<<FRACBITS,
-						(my+74+(PLBOXH*8)-12)<<FRACBITS,
+			V_DrawFixedPatch((mx+42)<<FRACBITS,
+						(my+132)<<FRACBITS,
 						skins[setupm_fakeskin].highresscale,
 						flags, patch, colormap);
 		}
 		else
-			V_DrawMappedPatch(mx + 50 + (PLBOXW*8/2), my + 74 + (PLBOXH*8) - 12, flags, patch, colormap);
+			V_DrawMappedPatch(mx+42, my+132, flags, patch, colormap);
 
 		V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, colormap);
 		Z_Free(colormap);
 	}
+#undef charw
 }
 
 // Handle 1P/2P MP Setup
