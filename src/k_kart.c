@@ -721,26 +721,26 @@ static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][5] =
 {
 				//P-Odds	 0  1  2  3  4
 				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 1, 3, 3, 1, 0 }, // Boo
-			  /*Mushroom*/ { 2, 3, 3, 1, 0 }, // Mushroom
+				   /*Boo*/ { 0, 1, 5, 2, 0 }, // Boo
+			  /*Mushroom*/ { 1, 2, 5, 1, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 3, 1, 0, 0, 0 }, // Mega Mushroom
+		 /*Mega Mushroom*/ { 1, 1, 0, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
-				  /*Star*/ { 3, 1, 0, 0, 0 }, // Star
+				  /*Star*/ { 1, 1, 0, 0, 0 }, // Star
 
-		 /*Triple Banana*/ { 0, 3, 1, 1, 0 }, // Triple Banana
-			 /*Fake Item*/ { 0, 0, 2, 3, 1 }, // Fake Item
-				/*Banana*/ { 0, 0, 2, 3, 1 }, // Banana
-		   /*Green Shell*/ { 0, 0, 3, 3, 1 }, // Green Shell
-			 /*Red Shell*/ { 0, 3, 1, 1, 0 }, // Red Shell
-	/*Triple Green Shell*/ { 0, 3, 1, 1, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 1, 3, 1, 0, 0 }, // Bob-omb
+		 /*Triple Banana*/ { 0, 3, 3, 1, 0 }, // Triple Banana
+			 /*Fake Item*/ { 0, 0, 2, 2, 1 }, // Fake Item
+				/*Banana*/ { 0, 0, 3, 1, 1 }, // Banana
+		   /*Green Shell*/ { 0, 0, 5, 3, 1 }, // Green Shell
+			 /*Red Shell*/ { 0, 3, 3, 1, 0 }, // Red Shell
+	/*Triple Green Shell*/ { 0, 3, 3, 1, 0 }, // Triple Green Shell
+			   /*Bob-omb*/ { 0, 3, 3, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 1, 3, 1, 0, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 3, 1, 0, 0, 0 }, // Triple Red Shell
+		   /*Fire Flower*/ { 0, 3, 3, 0, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 1, 1, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0 }, // Lightning
 
-			   /*Feather*/ { 0, 0, 3, 3, 1 }  // Feather
+			   /*Feather*/ { 0, 0, 5, 3, 1 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -970,7 +970,7 @@ static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
 	INT32 newodds;
 
 	if (gametype == GT_MATCH)
-		newodds = K_KartItemOddsDistance_Battle[itemnum-1][pos];
+		newodds = K_KartItemOddsBalloons[itemnum-1][pos];
 	else
 		newodds = K_KartItemOddsDistance_Retro[itemnum-1][pos];
 
