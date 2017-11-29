@@ -4749,7 +4749,7 @@ static void K_drawKartPlayerCheck(void)
 
 static void K_drawBattleFullscreen(void)
 {
-	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
+	INT32 y = STRINGY(-64+(stplyr->kartstuff[k_cardanimation])); // card animation goes from 0 to 164, 164 is the middle of the screen
 
 	if (!splitscreen)
 		V_DrawFadeScreen();
