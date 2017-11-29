@@ -717,30 +717,30 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 			   /*Feather*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }  // Feather
 };
 
-static INT32 K_KartItemOddsDistance_Battle[NUMKARTITEMS][5] =
+static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][5] =
 {
 				//P-Odds	 0  1  2  3  4
 				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 1, 2, 3, 1, 0 }, // Boo
-			  /*Mushroom*/ { 3, 2, 3, 1, 0 }, // Mushroom
+				   /*Boo*/ { 1, 3, 3, 1, 0 }, // Boo
+			  /*Mushroom*/ { 2, 3, 3, 1, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 3, 1, 0, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
 				  /*Star*/ { 3, 1, 0, 0, 0 }, // Star
 
-		 /*Triple Banana*/ { 0, 2, 1, 1, 0 }, // Triple Banana
-			 /*Fake Item*/ { 0, 0, 2, 5, 8 }, // Fake Item
-				/*Banana*/ { 0, 0, 3, 4, 5 }, // Banana
-		   /*Green Shell*/ { 0, 0, 3, 4, 5 }, // Green Shell
+		 /*Triple Banana*/ { 0, 3, 1, 1, 0 }, // Triple Banana
+			 /*Fake Item*/ { 0, 0, 2, 3, 1 }, // Fake Item
+				/*Banana*/ { 0, 0, 2, 3, 1 }, // Banana
+		   /*Green Shell*/ { 0, 0, 3, 3, 1 }, // Green Shell
 			 /*Red Shell*/ { 0, 3, 1, 1, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 0, 3, 1, 1, 0 }, // Triple Green Shell
-			   /*Bob-omb*/ { 3, 2, 1, 0, 0 }, // Bob-omb
+			   /*Bob-omb*/ { 1, 3, 1, 0, 0 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 3, 2, 1, 0, 0 }, // Fire Flower
-	  /*Triple Red Shell*/ { 4, 1, 0, 0, 0 }, // Triple Red Shell
+		   /*Fire Flower*/ { 1, 3, 1, 0, 0 }, // Fire Flower
+	  /*Triple Red Shell*/ { 3, 1, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0 }, // Lightning
 
-			   /*Feather*/ { 0, 1, 2, 2, 2 }  // Feather
+			   /*Feather*/ { 0, 0, 3, 3, 1 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
