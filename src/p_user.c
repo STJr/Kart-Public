@@ -1681,7 +1681,7 @@ void P_DoPlayerExit(player_t *player)
 			player->exiting = (14*TICRATE)/5 + 1;
 	}
 	else if (gametype != GT_RACE)
-		player->exiting = 10*TICRATE + 2; // Accidental death safeguard???
+		player->exiting = 10*TICRATE + 1; // Battle Mode exiting
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
 
@@ -1696,6 +1696,7 @@ void P_DoPlayerExit(player_t *player)
 	*/
 	player->powers[pw_underwater] = 0;
 	player->powers[pw_spacetime] = 0;
+	player->kartstuff[k_cardanimation] = 0; // srb2kart: reset battle animation
 	P_RestoreMusic(player);
 
 	/*if (playeringame[player-players] && netgame && !circuitmap)

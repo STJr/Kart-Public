@@ -246,6 +246,7 @@ typedef enum
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_camspin,			// Used to 180 the camera while a button is held
 	k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
+	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_sounds,			// Used this to stop and then force music restores as it hits zero
 
 	k_boosting,			// Determines if you're currently shroom-boosting
