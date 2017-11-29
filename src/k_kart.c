@@ -4911,7 +4911,7 @@ void K_drawKartHUD(void)
 	K_initKartHUD();
 
 	// Draw full screen stuff that turns off the rest of the HUD
-	if ((gametype != GT_RACE) && (stplyr->exiting || (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)))
+	if ((gametype != GT_RACE) && (stplyr->exiting || (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value && stplyr->playerstate == PST_LIVE)))
 	{
 		K_drawBattleFullscreen();
 		return;
