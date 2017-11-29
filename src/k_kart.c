@@ -1510,16 +1510,12 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
 
-	if (gametype != GT_RACE)
+	if (gametype != GT_RACE && (player->exiting || (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
 	{
-		INT32 timer = player->kartstuff[k_comebacktimer];
-
-		if (player->exiting > 0)
-			timer = player->exiting;
-
-		if (timer > 7*TICRATE && timer < 9*TICRATE)
+		if ((player->exiting < 6*TICRATE)
+			|| (player->kartstuff[k_comebacktimer] > 7*TICRATE && player->kartstuff[k_comebacktimer] < 9*TICRATE))
 			player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
-		else if (timer < 5*TICRATE)
+		else if (player->kartstuff[k_comebacktimer] < 5*TICRATE && !player->exiting)
 			player->kartstuff[k_cardanimation] -= ((164-player->kartstuff[k_cardanimation])/8)+1;
 
 		if (player->kartstuff[k_cardanimation] > 164)
@@ -1527,6 +1523,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_cardanimation] < 0)
 			player->kartstuff[k_cardanimation] = 0;
 	}
+	else
+		player->kartstuff[k_cardanimation] = 0;
 
 	if (player->kartstuff[k_sounds])
 		player->kartstuff[k_sounds]--;
@@ -4749,15 +4747,24 @@ static void K_drawKartPlayerCheck(void)
 
 static void K_drawBattleFullscreen(void)
 {
-	INT32 y = STRINGY(-64+(stplyr->kartstuff[k_cardanimation])); // card animation goes from 0 to 164, 164 is the middle of the screen
+	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
 
-	if (!splitscreen)
+	if (splitscreen)
+	{
+		if (stplyr != &players[displayplayer])
+			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
+		else
+			y = -32+(stplyr->kartstuff[k_cardanimation]/2);
+	}
+	else
 		V_DrawFadeScreen();
 
 	if (stplyr->exiting)
 	{
 		if (splitscreen)
 		{
+			if (stplyr == &players[displayplayer])
+				V_DrawFadeScreen();
 			if (stplyr->kartstuff[k_balloon])
 				V_DrawScaledPatch(96, y, 0, kp_battlewin);
 			else
@@ -4782,18 +4789,13 @@ static void K_drawBattleFullscreen(void)
 			t /= 10;
 		}
 
-		if (!stplyr->kartstuff[k_comebackshowninfo])
-		{
+		if (!stplyr->kartstuff[k_comebackshowninfo] && !splitscreen)
 			V_DrawScaledPatch(BASEVIDWIDTH/2, y, 0, kp_battleinfo);
-			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 66), 0, kp_timeoutsticker);
-			V_DrawKartString(x, STRINGY((BASEVIDHEIGHT/2) + 66), 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
-		}
 		else
-		{
 			V_DrawScaledPatch(BASEVIDWIDTH/2, y, 0, kp_battlewait);
-			V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 30), 0, kp_timeoutsticker);
-			V_DrawKartString(x, STRINGY((BASEVIDHEIGHT/2) + 30), 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
-		}
+
+		V_DrawScaledPatch(BASEVIDWIDTH/2, STRINGY((BASEVIDHEIGHT/2) + 66), 0, kp_timeoutsticker);
+		V_DrawKartString(x, STRINGY((BASEVIDHEIGHT/2) + 66), 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 	}
 }
 

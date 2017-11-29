@@ -1681,7 +1681,7 @@ void P_DoPlayerExit(player_t *player)
 			player->exiting = (14*TICRATE)/5 + 1;
 	}
 	else if (gametype != GT_RACE)
-		player->exiting = 10*TICRATE + 1; // Battle Mode exiting
+		player->exiting = 8*TICRATE + 1; // Battle Mode exiting
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
 
