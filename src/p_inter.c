@@ -2097,14 +2097,14 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	{
 		if (metalrecording) // Ack! Metal Sonic shouldn't die! Cut the tape, end recording!
 			G_StopMetalRecording();
-		if (gametype == GT_MATCH && cv_match_scoring.value == 0 // note, no team match suicide penalty
+		/*if (gametype == GT_MATCH && cv_match_scoring.value == 0 // note, no team match suicide penalty
 			&& ((target == source) || (source == NULL && inflictor == NULL) || (source && !source->player)))
 		{ // Suicide penalty - Not in Kart
-			//if (target->player->score >= 50)
-			//	target->player->score -= 50;
-			//else
-			//	target->player->score = 0;
-		}
+			if (target->player->score >= 50)
+				target->player->score -= 50;
+			else
+				target->player->score = 0;
+		}*/
 
 		target->flags2 &= ~MF2_DONTDRAW;
 	}
@@ -2123,7 +2123,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		}
 
 		// Award Score Tails
-		{
+		/*{ // Enemies shouldn't award points in Kart
 			INT32 score = 0;
 
 			if (maptol & TOL_NIGHTS) // Enemies always worth 200, bosses don't do anything.
@@ -2199,7 +2199,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			}
 
 			P_AddPlayerScore(source->player, score);
-		}
+		}*/
 	}
 
 	// if a player avatar dies...

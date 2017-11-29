@@ -7760,6 +7760,15 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 
+			if (gametype != GT_RACE)
+			{
+				mobj->friction -= 1228;
+				if (mobj->friction > FRACUNIT)
+					mobj->friction = FRACUNIT;
+				if (mobj->friction < 0)
+					mobj->friction = 0;
+			}
+
 			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
 
 			sec2 = P_ThingOnSpecial3DFloor(mobj);

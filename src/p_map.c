@@ -1642,31 +1642,25 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (gametype != GT_RACE)
 			{
-				if ((thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
-					&& (thing->player->kartstuff[k_comebackmode] == 0 && tmthing->player->kartstuff[k_comebackmode] == 0))
+				if ((thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebackmode] == 0)
+					|| (tmthing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_comebackmode] == 0))
 				{
 					if (tmthing->player->kartstuff[k_balloon] > 0)
 					{
-						thing->player->kartstuff[k_comebackpoints] += 2;
-						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
+						K_ExplodePlayer(tmthing->player, thing);
 
 						if (thing->player->kartstuff[k_comebackpoints] >= 3)
 							K_StealBalloon(thing->player, tmthing->player, true);
-
-						K_ExplodePlayer(tmthing->player, thing);
 
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (thing->player->kartstuff[k_balloon] > 0)
 					{
-						tmthing->player->kartstuff[k_comebackpoints] += 2;
-						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
+						K_ExplodePlayer(thing->player, tmthing);
 
 						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
 							K_StealBalloon(tmthing->player, thing->player, true);
-
-						K_ExplodePlayer(thing->player, tmthing);
 
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;

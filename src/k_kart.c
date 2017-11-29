@@ -1919,7 +1919,14 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		}
 
 		if (source && source->player && player != source->player)
+		{
+			if (source->player->kartstuff[k_balloon] <= 0)
+			{
+				source->player->kartstuff[k_comebackpoints] += 2;
+				CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
+			}
 			P_AddPlayerScore(source->player, 1);
+		}
 
 		K_CheckBalloons();
 	}
