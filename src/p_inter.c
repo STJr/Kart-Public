@@ -3201,6 +3201,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_TRIPLEREDSHIELD1 || inflictor->type == MT_TRIPLEREDSHIELD2 || inflictor->type == MT_TRIPLEREDSHIELD3
 				|| inflictor->player))
 			{
+				//K_WipeoutPlayer(player, source);
 				player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);
 				damage = player->mo->health - 1;

@@ -1455,6 +1455,17 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing(player))
 		player->powers[pw_flashing]--;
 
+	/*if (player->kartstuff[k_wipeouttimer])
+	{
+		if (player->kartstuff[k_wipeouttimer] == 1)
+		{
+			player->kartstuff[k_spinouttype] = 1;
+			K_SpinPlayer(player, NULL);
+			player->mo->momx = player->mo->momy = 0;
+		}
+		player->kartstuff[k_wipeouttimer]--;
+	}*/
+
 	if (player->kartstuff[k_magnettimer])
 		player->kartstuff[k_magnettimer]--;
 
@@ -1806,15 +1817,15 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	if (gametype != GT_RACE)
 	{
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
+
 		if (player->kartstuff[k_balloon] > 0)
 		{
 			if (player->kartstuff[k_balloon] == 1)
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
-
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
 
 		K_CheckBalloons();
 	}
@@ -1849,6 +1860,42 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	return;
 }
 
+/*void K_WipeoutPlayer(player_t *player, mobj_t *source)
+{
+	if (player->health <= 0)
+		return;
+
+	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
+		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+		return;
+
+	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
+	{
+		S_StartSound(source, sfx_hitem);
+		source->player->kartstuff[k_sounds] = 50;
+	}
+
+	if (gametype != GT_RACE)
+	{
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
+	}
+
+	P_RingDamage(player, NULL, source, player->mo->health-1);
+	P_PlayerRingBurst(player, 5);
+
+	if (P_IsLocalPlayer(player))
+	{
+		quake.intensity = 32*FRACUNIT;
+		quake.time = 5;
+	}
+
+	player->kartstuff[k_wipeouttimer] = 21;
+
+	return;
+}*/
+
 void K_SquishPlayer(player_t *player, mobj_t *source)
 {
 	if (player->health <= 0)
@@ -1864,15 +1911,15 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	if (gametype != GT_RACE)
 	{
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
+
 		if (player->kartstuff[k_balloon] > 0)
 		{
 			if (player->kartstuff[k_balloon] == 1)
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
 			player->kartstuff[k_balloon]--;
 		}
-
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
 
 		K_CheckBalloons();
 	}
@@ -1911,23 +1958,23 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	if (gametype != GT_RACE)
 	{
-		if (player->kartstuff[k_balloon] > 0)
-		{
-			if (player->kartstuff[k_balloon] == 1)
-				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
-			player->kartstuff[k_balloon]--;
-		}
-
 		if (source && source->player && player != source->player)
 		{
 			if (source->player->kartstuff[k_balloon] <= 0)
 			{
 				source->player->kartstuff[k_comebackpoints] += 2;
 				CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
-				if (thing->player->kartstuff[k_comebackpoints] >= 3)
-					K_StealBalloon(thing->player, tmthing->player, true);
+				if (source->player->kartstuff[k_comebackpoints] >= 3)
+					K_StealBalloon(source->player, player, true);
 			}
 			P_AddPlayerScore(source->player, 1);
+		}
+
+		if (player->kartstuff[k_balloon] > 0)
+		{
+			if (player->kartstuff[k_balloon] == 1)
+				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+			player->kartstuff[k_balloon]--;
 		}
 
 		K_CheckBalloons();
