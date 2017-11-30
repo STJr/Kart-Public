@@ -2948,6 +2948,8 @@ static void K_KartUpdatePosition(player_t *player)
 		}
 		else if (gametype == GT_MATCH)
 		{
+			if (player->exiting)
+				return;
 			if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
 				position++;
 			else if (players[i].score > player->score)
@@ -3796,6 +3798,8 @@ static patch_t *kp_checkstar;
 static patch_t *kp_checkstarw;
 static patch_t *kp_checkmega;
 static patch_t *kp_checkmegaw;
+static patch_t *kp_rankballoon;
+static patch_t *kp_ranknoballoons;
 /*
 static patch_t *kp_neonoitem;
 static patch_t *kp_electroshield;
@@ -3957,6 +3961,10 @@ void K_LoadKartHUDGraphics(void)
 	kp_checkstarw = 			W_CachePatchName("K_CHECK4", PU_HUDGFX);
 	kp_checkmega = 				W_CachePatchName("K_CHECK5", PU_HUDGFX);
 	kp_checkmegaw = 			W_CachePatchName("K_CHECK6", PU_HUDGFX);
+
+	// Extra ranking icons
+	kp_rankballoon =			W_CachePatchName("K_BLNICO", PU_HUDGFX);
+	kp_ranknoballoons =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
 
 	/*
 	// Neo-Kart item windows
@@ -4539,6 +4547,7 @@ static void K_drawKartPositionFaces(void)
 	INT32 rankplayer[MAXPLAYERS];
 	INT32 rankcolor[MAXPLAYERS];
 	INT32 myplayer;
+	INT32 balloonx;
 	UINT8 *colormap;
 	patch_t *localpatch = kp_facenull;
 
@@ -4577,22 +4586,65 @@ static void K_drawKartPositionFaces(void)
 	{
 		if (players[rankplayer[i]].spectator) continue; // Spectators are ignored
 
+		balloonx = FACE_X+18;
+
 		if (rankcolor[i] == 0)
 		{
 			colormap = colormaps;
 			if (rankplayer[i] != myplayer)
+			{
 				V_DrawSmallTranslucentPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
+				if (gametype == GT_MATCH && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				{
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					{
+						V_DrawSmallTranslucentPatch(balloonx, STRINGY(Y+10), V_SNAPTOLEFT, kp_rankballoon);
+						balloonx += 3;
+					}
+				}
+			}
 			else
+			{
 				V_DrawSmallScaledPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
+				if (gametype == GT_MATCH && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				{
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					{
+						V_DrawSmallScaledPatch(balloonx, STRINGY(Y+10), V_SNAPTOLEFT, kp_rankballoon);
+						balloonx += 3;
+					}
+				}
+			}
 		}
 		else
 		{
 			colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
 			if (rankplayer[i] != myplayer)
+			{
 				V_DrawSmallTranslucentMappedPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
+				if (gametype == GT_MATCH && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				{
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					{
+						V_DrawSmallTranslucentMappedPatch(balloonx, STRINGY(Y+10), V_SNAPTOLEFT, kp_rankballoon, colormap);
+						balloonx += 3;
+					}
+				}
+			}
 			else
+			{
 				V_DrawSmallMappedPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
+				if (gametype == GT_MATCH && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				{
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					{
+						V_DrawSmallMappedPatch(balloonx, STRINGY(Y+10), V_SNAPTOLEFT, kp_rankballoon, colormap);
+						balloonx += 3;
+					}
+				}
+			}
 		}
+
 		// Draws the little number over the face
 		switch (players[rankplayer[i]].kartstuff[k_position])
 		{
@@ -4602,10 +4654,22 @@ static void K_drawKartPositionFaces(void)
 			case 4: localpatch = kp_facefourth; break;
 			default: break;
 		}
+
 		if (rankplayer[i] != myplayer)
-			V_DrawSmallTranslucentPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, localpatch);
+		{
+			if (gametype == GT_MATCH && players[rankplayer[i]].kartstuff[k_balloon] <= 0)
+				V_DrawSmallTranslucentPatch(FACE_X-2, STRINGY(Y), V_SNAPTOLEFT, kp_ranknoballoons);
+			else
+				V_DrawSmallTranslucentPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, localpatch);
+		}
 		else
-			V_DrawSmallScaledPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, localpatch);
+		{
+			if (gametype == GT_MATCH && players[rankplayer[i]].kartstuff[k_balloon] <= 0)
+				V_DrawSmallScaledPatch(FACE_X-2, STRINGY(Y), V_SNAPTOLEFT, kp_ranknoballoons);
+			else
+				V_DrawSmallScaledPatch(FACE_X, STRINGY(Y), V_SNAPTOLEFT, localpatch);
+		}
+
 		Y += 18;
 	}
 }
