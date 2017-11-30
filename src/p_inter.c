@@ -414,8 +414,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				if (player->kartstuff[k_comebackmode] == 0 && !player->kartstuff[k_comebacktimer])
 				{
-					if (special->tracer && special->tracer->player)
-						special->tracer->player->kartstuff[k_comebackmode] = 0;
+					if (special->tracer)
+						return;
 					P_SetTarget(&special->tracer, toucher);
 					player->kartstuff[k_comebackmode] = 1;
 				}

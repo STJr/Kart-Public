@@ -721,7 +721,7 @@ static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][5] =
 {
 				//P-Odds	 0  1  2  3  4
 				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
-				   /*Boo*/ { 0, 1, 5, 2, 0 }, // Boo
+				   /*Boo*/ { 0, 1, 3, 2, 0 }, // Boo
 			  /*Mushroom*/ { 1, 2, 5, 1, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 1, 1, 0, 0, 0 }, // Mega Mushroom
@@ -740,7 +740,7 @@ static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][5] =
 	  /*Triple Red Shell*/ { 1, 1, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0 }, // Lightning
 
-			   /*Feather*/ { 0, 0, 5, 3, 1 }  // Feather
+			   /*Feather*/ { 0, 0, 3, 2, 1 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -1924,6 +1924,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 			{
 				source->player->kartstuff[k_comebackpoints] += 2;
 				CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
+				if (thing->player->kartstuff[k_comebackpoints] >= 3)
+					K_StealBalloon(thing->player, tmthing->player, true);
 			}
 			P_AddPlayerScore(source->player, 1);
 		}
@@ -2014,8 +2016,12 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 
 	player->kartstuff[k_balloon]++;
 	player->kartstuff[k_comebackpoints] = 0;
+
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 	player->kartstuff[k_comebacktimer] = comebacktime;
+
+	victim->powers[pw_flashing] = K_GetKartFlashing(victim);
+	victim->kartstuff[k_comebacktimer] = comebacktime;
 
 	return;
 }
@@ -2950,12 +2956,13 @@ static void K_KartUpdatePosition(player_t *player)
 		{
 			if (player->exiting)
 				return;
-			if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+			if (players[i].kartstuff[k_balloon] == player->kartstuff[k_balloon] && players[i].score > player->score)
 				position++;
-			else if (players[i].score > player->score)
+			else if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
 				position++;
 		}
 	}
+
 	player->kartstuff[k_position] = position;
 }
 //

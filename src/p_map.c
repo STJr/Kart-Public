@@ -1648,20 +1648,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 					if (tmthing->player->kartstuff[k_balloon] > 0)
 					{
 						K_ExplodePlayer(tmthing->player, thing);
-
-						if (thing->player->kartstuff[k_comebackpoints] >= 3)
-							K_StealBalloon(thing->player, tmthing->player, true);
-
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (thing->player->kartstuff[k_balloon] > 0)
 					{
 						K_ExplodePlayer(thing->player, tmthing);
-
-						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
-							K_StealBalloon(tmthing->player, thing->player, true);
-
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
