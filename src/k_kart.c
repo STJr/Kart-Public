@@ -1452,7 +1452,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			player->kartstuff[k_comebackshowninfo] = 1;
 	}
 
-	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing(player))
+	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
 		player->powers[pw_flashing]--;
 
 	/*if (player->kartstuff[k_wipeouttimer])
@@ -1751,7 +1751,7 @@ fixed_t K_GetKartAccel(player_t *player)
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
 
-UINT16 K_GetKartFlashing(player_t *player)
+UINT16 K_GetKartFlashing(void)
 {
 	UINT16 tics = flashingtics;
 	if (gametype != GT_RACE)
@@ -1848,7 +1848,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	else
 		player->kartstuff[k_spinouttimer] = 1*TICRATE; // ? Whipeout
 
-	player->powers[pw_flashing] = K_GetKartFlashing(player);
+	player->powers[pw_flashing] = K_GetKartFlashing();
 
 	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
@@ -1928,7 +1928,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_squishedtimer] = 1*TICRATE;
 
-	player->powers[pw_flashing] = K_GetKartFlashing(player);
+	player->powers[pw_flashing] = K_GetKartFlashing();
 
 	player->mo->flags |= MF_NOCLIP;
 
@@ -1986,7 +1986,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
 	player->kartstuff[k_spinout] = player->kartstuff[k_spinouttimer];
 
-	player->powers[pw_flashing] = K_GetKartFlashing(player);
+	player->powers[pw_flashing] = K_GetKartFlashing();
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -2063,11 +2063,10 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 
 	player->kartstuff[k_balloon]++;
 	player->kartstuff[k_comebackpoints] = 0;
-
-	player->powers[pw_flashing] = K_GetKartFlashing(player);
+	player->powers[pw_flashing] = K_GetKartFlashing();
 	player->kartstuff[k_comebacktimer] = comebacktime;
 
-	victim->powers[pw_flashing] = K_GetKartFlashing(victim);
+	victim->powers[pw_flashing] = K_GetKartFlashing();
 	victim->kartstuff[k_comebacktimer] = comebacktime;
 
 	return;
@@ -2163,6 +2162,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	mobj_t *th;
 	angle_t an;
 	fixed_t x, y, z;
+	mobj_t *throwmo;
 	//INT32 dir;
 
 	// angle at which you fire, is player angle
@@ -2221,7 +2221,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
 	x = y + P_ReturnThrustY(source, an, source->radius + th->radius);
-	mobj_t *throwmo = P_SpawnMobj(x, y, z, MT_FIREDITEM);
+	throwmo = P_SpawnMobj(x, y, z, MT_FIREDITEM);
 	throwmo->movecount = 1;
 	throwmo->movedir = source->angle - an;
 	P_SetTarget(&throwmo->target, source);
@@ -2301,6 +2301,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	angle_t newangle;
 	fixed_t newx;
 	fixed_t newy;
+	mobj_t *throwmo;
 
 	if (!player)
 		return NULL;
@@ -2403,7 +2404,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 					mo->eflags |= MFE_VERTICALFLIP;
 			}
 
-			mobj_t *throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FIREDITEM);
+			throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FIREDITEM);
 			P_SetTarget(&throwmo->target, player->mo);
 			throwmo->movecount = 0; // above player
 		}
@@ -4929,10 +4930,10 @@ static void K_drawStartLakitu(void)
 	patch_t *localpatch = kp_nodraw;
 
 	fixed_t adjustY;
-	fixed_t numFrames = 32; 	// Number of frames for the animation
+	tic_t numFrames = 32; 	// Number of frames for the animation
 	fixed_t finalOffset = 206; 	// Number of pixels to offset the patch (This is actually 200, the 6 is a buffer for the parabola)
 
-	if (leveltime >=   0 && leveltime <  52) localpatch = kp_lakitustart[0];
+	if (leveltime <  52) localpatch = kp_lakitustart[0];
 	if (leveltime >=  52 && leveltime <  56) localpatch = kp_lakitustart[1];
 	if (leveltime >=  56 && leveltime <  60) localpatch = kp_lakitustart[2];
 	if (leveltime >=  60 && leveltime <  64) localpatch = kp_lakitustart[3];

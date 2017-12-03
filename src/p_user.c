@@ -863,7 +863,7 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 
 	P_ResetPlayer(player);
 	P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
-	player->powers[pw_flashing] = K_GetKartFlashing(player);
+	player->powers[pw_flashing] = K_GetKartFlashing();
 
 	if (player->timeshit != UINT8_MAX)
 		++player->timeshit;
@@ -5877,7 +5877,7 @@ static void P_NiGHTSMovement(player_t *player)
 	}
 
 	// Currently reeling from being hit.
-	if (player->powers[pw_flashing] > (2*K_GetKartFlashing(player))/3)
+	if (player->powers[pw_flashing] > (2*K_GetKartFlashing())/3)
 	{
 		{
 			const angle_t fa = (FixedAngle(player->flyangle*FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK;
@@ -9410,7 +9410,7 @@ void P_PlayerThink(player_t *player)
 	if (player->powers[pw_invulnerability] && player->powers[pw_invulnerability] < UINT16_MAX)
 		player->powers[pw_invulnerability]--;
 
-	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && ((player->pflags & PF_NIGHTSMODE) || player->powers[pw_flashing] < K_GetKartFlashing(player)))
+	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && ((player->pflags & PF_NIGHTSMODE) || player->powers[pw_flashing] < K_GetKartFlashing()))
 		player->powers[pw_flashing]--;
 
 	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX && player->charability != CA_SWIM && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
@@ -9502,7 +9502,7 @@ void P_PlayerThink(player_t *player)
 			&& player->kartstuff[k_bootimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
 			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
 		{
-			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing(player) && (leveltime & 1))
+			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing() && (leveltime & 1))
 				player->mo->flags2 |= MF2_DONTDRAW;
 			else
 				player->mo->flags2 &= ~MF2_DONTDRAW;

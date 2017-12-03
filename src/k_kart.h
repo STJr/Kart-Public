@@ -11,6 +11,7 @@
 
 UINT8 colortranslations[MAXSKINCOLORS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
+void K_StarmanColormap(UINT8 *dest_colormap, UINT8 skincolor);
 void K_GenerateKartColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color);
 UINT8 K_GetKartColorByName(const char *name);
 
@@ -18,6 +19,7 @@ void K_RegisterKartStuff(void);
 
 UINT8 K_GetKartCC(void);
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce);
+void K_LakituChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_SpinPlayer(player_t *player, mobj_t *source);
@@ -34,12 +36,13 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
 void K_MomentumToFacing(player_t *player);
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower);
 fixed_t K_GetKartAccel(player_t *player);
-UINT16 K_GetKartFlashing(player_t *player);
+UINT16 K_GetKartFlashing(void);
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove);
 void K_MoveKartPlayer(player_t *player, boolean onground);
 void K_CheckBalloons(void);
 
 void K_LoadKartHUDGraphics(void);
+fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my);
 void K_drawKartHUD(void);
 
 // =========================================================================

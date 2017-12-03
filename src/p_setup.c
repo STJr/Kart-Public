@@ -2456,11 +2456,11 @@ static void P_LoadRecordGhosts(void)
 	if (cv_ghost_staff.value)
 	{
 		lumpnum_t l;
-		UINT8 i = 1;
-		while (i <= 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
+		UINT8 j = 1;
+		while (j <= 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(gamemap),j))) != LUMPERROR)
 		{
-			G_AddGhost(va("%sS%02u",G_BuildMapName(gamemap),i));
-			i++;
+			G_AddGhost(va("%sS%02u",G_BuildMapName(gamemap),j));
+			j++;
 		}
 	}
 

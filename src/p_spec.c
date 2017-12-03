@@ -7553,7 +7553,7 @@ void T_Pusher(pusher_t *p)
 		if (thing->player && thing->player->pflags & PF_ROPEHANG)
 			continue;
 
-		if (thing->player && (thing->state == &states[thing->info->painstate]) && (thing->player->powers[pw_flashing] > (K_GetKartFlashing(thing->player)/4)*3 && thing->player->powers[pw_flashing] <= K_GetKartFlashing(thing->player)))
+		if (thing->player && (thing->state == &states[thing->info->painstate]) && (thing->player->powers[pw_flashing] > (K_GetKartFlashing()/4)*3 && thing->player->powers[pw_flashing] <= K_GetKartFlashing()))
 			continue;
 
 		inFOF = touching = moved = false;
