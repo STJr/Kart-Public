@@ -271,8 +271,8 @@ static void M_SetupMultiPlayer2(INT32 choice);
 // Options
 // Split into multiple parts due to size
 // Controls
-menu_t OP_ControlsDef, OP_ControlListDef, OP_MoveControlsDef;
-menu_t /*OP_MPControlsDef,*/ OP_CameraControlsDef, OP_MiscControlsDef;
+menu_t OP_ControlsDef, /*OP_ControlListDef,*/ OP_MoveControlsDef;
+menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef;
 menu_t OP_P1ControlsDef, OP_P2ControlsDef, OP_MouseOptionsDef;
 menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def;
 static void M_VideoModeMenu(INT32 choice);
@@ -1030,26 +1030,45 @@ static menuitem_t OP_P2ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  80},
 };
 
-static menuitem_t OP_ControlListMenu[] =
+/*static menuitem_t OP_ControlListMenu[] =
 {
 	{IT_SUBMENU | IT_STRING, NULL, "Kart Controls...",          &OP_MoveControlsDef,   10},
 //	{IT_SUBMENU | IT_STRING, NULL, "Multiplayer Controls...",   &OP_MPControlsDef,     20},
-	{IT_SUBMENU | IT_STRING, NULL, "Camera Controls...",        &OP_CameraControlsDef, 20},
-	{IT_SUBMENU | IT_STRING, NULL, "Miscellaneous Controls...", &OP_MiscControlsDef,   30},
-};
+//	{IT_SUBMENU | IT_STRING, NULL, "Camera Controls...",        &OP_CameraControlsDef, 20},
+//	{IT_SUBMENU | IT_STRING, NULL, "Miscellaneous Controls...", &OP_MiscControlsDef,   20},
+};*/
 
 static menuitem_t OP_MoveControlsMenu[] =
 {
-	{IT_CALL | IT_STRING2, NULL, "Forward",        M_ChangeControl, gc_forward    },
-	{IT_CALL | IT_STRING2, NULL, "Reverse",        M_ChangeControl, gc_backward   },
-	{IT_CALL | IT_STRING2, NULL, "Turn Left",      M_ChangeControl, gc_turnleft   },
-	{IT_CALL | IT_STRING2, NULL, "Turn Right",     M_ChangeControl, gc_turnright  },
-	{IT_CALL | IT_STRING2, NULL, "Accelerate",     M_ChangeControl, gc_accelerate },
-	{IT_CALL | IT_STRING2, NULL, "Drift",          M_ChangeControl, gc_jump       },
-	{IT_CALL | IT_STRING2, NULL, "Brake",          M_ChangeControl, gc_brake      },
-	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item", M_ChangeControl, gc_fire       },
+	{IT_CALL | IT_STRING2, NULL, "Aim Forward",      M_ChangeControl, gc_aimforward },
+	{IT_CALL | IT_STRING2, NULL, "Aim Backward",     M_ChangeControl, gc_aimbackward},
+	{IT_CALL | IT_STRING2, NULL, "Turn Left",        M_ChangeControl, gc_turnleft   },
+	{IT_CALL | IT_STRING2, NULL, "Turn Right",       M_ChangeControl, gc_turnright  },
+	{IT_CALL | IT_STRING2, NULL, "Accelerate",       M_ChangeControl, gc_accelerate },
+	{IT_CALL | IT_STRING2, NULL, "Drift",            M_ChangeControl, gc_jump       },
+	{IT_CALL | IT_STRING2, NULL, "Brake",            M_ChangeControl, gc_brake      },
+	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item",   M_ChangeControl, gc_fire       },
+	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback   },
+	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle  },
+
+	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause      },
+	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console    },
+	
+	{IT_CALL | IT_STRING2, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
+	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
+	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
+	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate   },
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Actions...",&OP_CustomControlsDef,    128},
 //	{IT_CALL | IT_STRING2, NULL, "Strafe Left",    M_ChangeControl, gc_strafeleft },
 //	{IT_CALL | IT_STRING2, NULL, "Strafe Right",   M_ChangeControl, gc_straferight},
+};
+
+static menuitem_t OP_CustomControlsMenu[] = 
+{
+	{IT_CALL | IT_STRING2, NULL, "Custom Action 1", M_ChangeControl, gc_custom1},
+	{IT_CALL | IT_STRING2, NULL, "Custom Action 2", M_ChangeControl, gc_custom2},
+	{IT_CALL | IT_STRING2, NULL, "Custom Action 3", M_ChangeControl, gc_custom3},
+
 };
 
 // Obsolete thanks to Kart
@@ -1064,18 +1083,14 @@ static menuitem_t OP_MoveControlsMenu[] =
 //	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 5",    M_ChangeControl, gc_wepslot5     },
 //	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 6",    M_ChangeControl, gc_wepslot6     },
 //	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 7",    M_ChangeControl, gc_wepslot7     },
-};*/
+};
 
 static menuitem_t OP_CameraControlsMenu[] =
 {
 //	{IT_CALL | IT_STRING2, NULL, "Look Up",          M_ChangeControl, gc_lookup       },
 //	{IT_CALL | IT_STRING2, NULL, "Look Down",        M_ChangeControl, gc_lookdown     },
-	{IT_CALL | IT_STRING2, NULL, "Aim Forward",      M_ChangeControl, gc_aimforward   },
-	{IT_CALL | IT_STRING2, NULL, "Aim Backward",     M_ChangeControl, gc_aimbackward  },
 //	{IT_CALL | IT_STRING2, NULL, "Center View",      M_ChangeControl, gc_centerview   },
 //	{IT_CALL | IT_STRING2, NULL, "Mouselook",        M_ChangeControl, gc_mouseaiming  },
-	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback     },
-	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle    },
 };
 
 static menuitem_t OP_MiscControlsMenu[] =
@@ -1091,7 +1106,7 @@ static menuitem_t OP_MiscControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey      },
 	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores       },
 	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate     },
-};
+};*/
 
 static menuitem_t OP_Joystick1Menu[] =
 {
@@ -1670,11 +1685,12 @@ menu_t MP_PlayerSetupDef =
 // Options
 menu_t OP_MainDef = DEFAULTMENUSTYLE("M_OPTTTL", OP_MainMenu, &MainDef, 60, 30);
 menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDef, 60, 30);
-menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
-menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlListDef);
+//menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
+menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDef);
 //menu_t OP_MPControlsDef = CONTROLMENUSTYLE(OP_MPControlsMenu, &OP_ControlListDef);
-menu_t OP_CameraControlsDef = CONTROLMENUSTYLE(OP_CameraControlsMenu, &OP_ControlListDef);
-menu_t OP_MiscControlsDef = CONTROLMENUSTYLE(OP_MiscControlsMenu, &OP_ControlListDef);
+//menu_t OP_CameraControlsDef = CONTROLMENUSTYLE(OP_CameraControlsMenu, &OP_ControlListDef);
+//menu_t OP_MiscControlsDef = CONTROLMENUSTYLE(OP_MiscControlsMenu, &OP_ControlListDef);
+menu_t OP_CustomControlsDef = CONTROLMENUSTYLE(OP_CustomControlsMenu, &OP_MoveControlsDef);
 menu_t OP_P1ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P1ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_P2ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P2ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_MouseOptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_MouseOptionsMenu, &OP_P1ControlsDef, 60, 30);
@@ -6529,7 +6545,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 #define indexwidth 8
 	{
 		const INT32 colwidth = (282-charw)/(2*indexwidth);
-		INT32 i = -colwidth;
+		INT32 j = -colwidth;
 		INT16 col = setupm_fakecolor - colwidth;
 		INT32 x = mx-13;
 		INT32 w = indexwidth;
@@ -6537,9 +6553,9 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 		while (col < 1)
 			col += MAXSKINCOLORS-1;
-		while (i <= colwidth)
+		while (j <= colwidth)
 		{
-			if (!(i++))
+			if (!(j++))
 				w = charw;
 			else
 				w = indexwidth;
@@ -6556,7 +6572,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 #define iconwidth 32
 	{
 		const INT32 icons = 4;
-		INT32 i = -icons;
+		INT32 k = -icons;
 		INT16 col = setupm_fakeskin - icons;
 		INT32 x = BASEVIDWIDTH/2 - ((icons+1)*24) - 4;
 		fixed_t scale = FRACUNIT/2;
@@ -6566,9 +6582,9 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 		if (col < 0)
 			col += numskins;
-		while (i <= icons)
+		while (k <= icons)
 		{
-			if (!(i++))
+			if (!(k++))
 			{
 				scale = FRACUNIT;
 				offx = 12;
@@ -6966,15 +6982,15 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Unhide the three non-P2 controls
-	//OP_MPControlsMenu[0].status = IT_CALL|IT_STRING2;
-	//OP_MPControlsMenu[1].status = IT_CALL|IT_STRING2;
-	//OP_MPControlsMenu[2].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[12].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[13].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[14].status = IT_CALL|IT_STRING2;
 	// Unide the pause/console controls too
-	OP_MiscControlsMenu[3].status = IT_CALL|IT_STRING2;
-	OP_MiscControlsMenu[4].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[10].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[11].status = IT_CALL|IT_STRING2;
 
-	OP_ControlListDef.prevMenu = &OP_P1ControlsDef;
-	M_SetupNextMenu(&OP_ControlListDef);
+	OP_MoveControlsDef.prevMenu = &OP_P1ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
 }
 
 static void M_Setup2PControlsMenu(INT32 choice)
@@ -6985,15 +7001,15 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Hide the three non-P2 controls
-	//OP_MPControlsMenu[0].status = IT_GRAYEDOUT2;
-	//OP_MPControlsMenu[1].status = IT_GRAYEDOUT2;
-	//OP_MPControlsMenu[2].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
 	// Hide the pause/console controls too
-	OP_MiscControlsMenu[3].status = IT_GRAYEDOUT2;
-	OP_MiscControlsMenu[4].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
 
-	OP_ControlListDef.prevMenu = &OP_P2ControlsDef;
-	M_SetupNextMenu(&OP_ControlListDef);
+	OP_MoveControlsDef.prevMenu = &OP_P2ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
 }
 
 // Draws the Customise Controls menu
