@@ -45,6 +45,8 @@ UINT8 gamekeydown[NUMINPUTS];
 // two key codes (or virtual key) per game control
 INT32 gamecontrol[num_gamecontrols][2];
 INT32 gamecontrolbis[num_gamecontrols][2]; // secondary splitscreen player
+INT32 gamecontrol3[num_gamecontrols][2]; // tertiary splitscreen player
+INT32 gamecontrol4[num_gamecontrols][2]; // quarternary splitscreen player
 
 typedef struct
 {
@@ -1293,6 +1295,28 @@ void G_SaveKeySetting(FILE *f)
 		else
 			fprintf(f, "\n");
 	}
+
+	for (i = 1; i < num_gamecontrols; i++)
+	{
+		fprintf(f, "setcontrol3 \"%s\" \"%s\"", gamecontrolname[i],
+			G_KeynumToString(gamecontrolbis[i][0]));
+
+		if (gamecontrolbis[i][1])
+			fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrolbis[i][1]));
+		else
+			fprintf(f, "\n");
+	}
+
+	for (i = 1; i < num_gamecontrols; i++)
+	{
+		fprintf(f, "setcontrol4 \"%s\" \"%s\"", gamecontrolname[i],
+			G_KeynumToString(gamecontrolbis[i][0]));
+
+		if (gamecontrolbis[i][1])
+			fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrolbis[i][1]));
+		else
+			fprintf(f, "\n");
+	}
 }
 
 void G_CheckDoubleUsage(INT32 keynum)
@@ -1363,6 +1387,36 @@ void Command_Setcontrol2_f(void)
 	if (na != 3 && na != 4)
 	{
 		CONS_Printf(M_GetText("setcontrol2 <controlname> <keyname> [<2nd keyname>]: set controls for player 2\n"));
+		return;
+	}
+
+	setcontrol(gamecontrolbis, na);
+}
+
+void Command_Setcontrol3_f(void)
+{
+	INT32 na;
+
+	na = (INT32)COM_Argc();
+
+	if (na != 3 && na != 4)
+	{
+		CONS_Printf(M_GetText("setcontrol23 <controlname> <keyname> [<2nd keyname>]: set controls for player 3\n"));
+		return;
+	}
+
+	setcontrol(gamecontrolbis, na);
+}
+
+void Command_Setcontrol4_f(void)
+{
+	INT32 na;
+
+	na = (INT32)COM_Argc();
+
+	if (na != 3 && na != 4)
+	{
+		CONS_Printf(M_GetText("setcontrol4 <controlname> <keyname> [<2nd keyname>]: set controls for player 4\n"));
 		return;
 	}
 

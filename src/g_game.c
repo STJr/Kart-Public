@@ -110,6 +110,8 @@ player_t players[MAXPLAYERS];
 INT32 consoleplayer; // player taking events and displaying
 INT32 displayplayer; // view being displayed
 INT32 secondarydisplayplayer; // for splitscreen
+INT32 thirddisplayplayer;
+INT32 fourthdisplayplayer;
 
 tic_t gametic;
 tic_t levelstarttic; // gametic at level start
@@ -294,10 +296,16 @@ static UINT8 *savebuffer;
 // Analog Control
 static void UserAnalog_OnChange(void);
 static void UserAnalog2_OnChange(void);
+static void UserAnalog3_OnChange(void);
+static void UserAnalog4_OnChange(void);
 static void Analog_OnChange(void);
 static void Analog2_OnChange(void);
+static void Analog3_OnChange(void);
+static void Analog4_OnChange(void);
 void SendWeaponPref(void);
 void SendWeaponPref2(void);
+void SendWeaponPref3(void);
+void SendWeaponPref4(void);
 
 static CV_PossibleValue_t crosshair_cons_t[] = {{0, "Off"}, {1, "Cross"}, {2, "Angle"}, {3, "Point"}, {0, NULL}};
 static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
@@ -370,12 +378,16 @@ consvar_t cv_mousemove = {"mousemove", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, N
 consvar_t cv_mousemove2 = {"mousemove2", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog = {"analog", "Off", CV_CALL, CV_OnOff, Analog_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog2 = {"analog2", "Off", CV_CALL, CV_OnOff, Analog2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_analog3 = {"analog3", "Off", CV_CALL, CV_OnOff, Analog3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_analog4 = {"analog4", "Off", CV_CALL, CV_OnOff, Analog4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #ifdef DC
 consvar_t cv_useranalog = {"useranalog", "On", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_useranalog2 = {"useranalog2", "On", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog2_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #else
 consvar_t cv_useranalog = {"useranalog", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_useranalog2 = {"useranalog2", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_useranalog3 = {"useranalog3", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_useranalog4 = {"useranalog4", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
 typedef enum
@@ -434,7 +446,11 @@ consvar_t cv_fireaxis2 = {"joyaxis2_fire", "LAnalog", CV_SAVE, joyaxis_cons_t, N
 consvar_t cv_firenaxis2 = {"joyaxis2_firenormal", "RAnalog", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #else
 consvar_t cv_turnaxis2 = {"joyaxis2_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_turnaxis3 = {"joyaxis3_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_turnaxis4 = {"joyaxis4_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis2 = {"joyaxis2_move", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_moveaxis3 = {"joyaxis3_move", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_moveaxis4 = {"joyaxis4_move", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #ifdef _arch_dreamcast
 consvar_t cv_sideaxis2 = {"joyaxis2_side", "Triggers", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #elif defined (_XBOX)
@@ -444,12 +460,20 @@ consvar_t cv_lookaxis2 = {"joyaxis2_look", "Alt Y-Axis", CV_SAVE, joyaxis_cons_t
 consvar_t cv_sideaxis2 = {"joyaxis2_side", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #else
 consvar_t cv_sideaxis2 = {"joyaxis2_side", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_sideaxis3 = {"joyaxis3_side", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_sideaxis4 = {"joyaxis4_side", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
 #ifndef _XBOX
 consvar_t cv_lookaxis2 = {"joyaxis2_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_lookaxis3 = {"joyaxis3_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_lookaxis4 = {"joyaxis4_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
 consvar_t cv_fireaxis2 = {"joyaxis2_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_fireaxis3 = {"joyaxis3_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_fireaxis4 = {"joyaxis4_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_firenaxis2 = {"joyaxis2_firenormal", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_firenaxis3 = {"joyaxis3_firenormal", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_firenaxis4 = {"joyaxis4_firenormal", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
 
@@ -942,8 +966,8 @@ static INT32 Joy2Axis(axis_input_e axissel)
 //
 // set secondaryplayer true to build player 2's ticcmd in splitscreen mode
 //
-INT32 localaiming, localaiming2;
-angle_t localangle, localangle2;
+INT32 localaiming, localaiming2, localaiming3, localaiming4;
+angle_t localangle, localangle2, localangle3, localangle4;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!

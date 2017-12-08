@@ -78,6 +78,8 @@ extern boolean multiplayer;
 
 extern INT16 gametype;
 extern boolean splitscreen;
+extern boolean splitscreen3;
+extern boolean splitscreen4;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
 
@@ -118,6 +120,8 @@ extern boolean gamedataloaded;
 extern INT32 consoleplayer;
 extern INT32 displayplayer;
 extern INT32 secondarydisplayplayer; // for splitscreen
+extern INT32 thirddisplayplayer;
+extern INT32 fourthdisplayplayer;
 
 // Maps of special importance
 extern INT16 spstage_start;

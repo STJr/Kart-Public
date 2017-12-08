@@ -26,12 +26,16 @@ extern consvar_t cv_seenames, cv_allowseenames;
 extern consvar_t cv_usemouse;
 extern consvar_t cv_usejoystick;
 extern consvar_t cv_usejoystick2;
+extern consvar_t cv_usejoystick3;
+extern consvar_t cv_usejoystick4;
 #ifdef LJOYSTICK
 extern consvar_t cv_joyport;
 extern consvar_t cv_joyport2;
 #endif
 extern consvar_t cv_joyscale;
 extern consvar_t cv_joyscale2;
+extern consvar_t cv_joyscale3;
+extern consvar_t cv_joyscale4;
 extern consvar_t cv_controlperkey;
 
 // splitscreen with second mouse
@@ -59,6 +63,12 @@ extern consvar_t cv_skin;
 extern consvar_t cv_playername2;
 extern consvar_t cv_playercolor2;
 extern consvar_t cv_skin2;
+extern consvar_t cv_playername3;
+extern consvar_t cv_playercolor3;
+extern consvar_t cv_skin3;
+extern consvar_t cv_playername4;
+extern consvar_t cv_playercolor4;
+extern consvar_t cv_skin4;
 
 extern consvar_t cv_touchtag;
 extern consvar_t cv_hidetime;

@@ -91,10 +91,16 @@ static void ForceSkin_OnChange(void);
 
 static void Name_OnChange(void);
 static void Name2_OnChange(void);
+static void Name3_OnChange(void);
+static void Name4_OnChange(void);
 static void Skin_OnChange(void);
 static void Skin2_OnChange(void);
+static void Skin3_OnChange(void);
+static void Skin4_OnChange(void);
 static void Color_OnChange(void);
 static void Color2_OnChange(void);
+static void Color3_OnChange(void);
+static void Color4_OnChange(void);
 static void DummyConsvar_OnChange(void);
 static void SoundTest_OnChange(void);
 
@@ -136,6 +142,9 @@ static void Command_Mapmd5_f(void);
 
 static void Command_Teamchange_f(void);
 static void Command_Teamchange2_f(void);
+static void Command_Teamchange3_f(void);
+static void Command_Teamchange4_f(void);
+
 static void Command_ServerTeamChange_f(void);
 
 static void Command_Clearscores_f(void);
@@ -169,6 +178,8 @@ static void Command_Archivetest_f(void);
 
 void SendWeaponPref(void);
 void SendWeaponPref2(void);
+//void SendWeaponPref3(void);
+//void SendWeaponPref4(void);
 
 static CV_PossibleValue_t usemouse_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Force"}, {0, NULL}};
 #if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
@@ -229,12 +240,18 @@ consvar_t cv_allowseenames = {"allowseenames", "Yes", CV_NETVAR, CV_YesNo, NULL,
 // these are just meant to be saved to the config
 consvar_t cv_playername = {"name", "Sonic", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_playername2 = {"name2", "Tails", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_playername3 = {"name3", "Knuckles", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_playername4 = { "name4", "Metal Sonic", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 // player colors
 consvar_t cv_playercolor = {"color", "Blue", CV_CALL|CV_NOINIT, Color_cons_t, Color_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_playercolor2 = {"color2", "Orange", CV_CALL|CV_NOINIT, Color_cons_t, Color2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_playercolor3 = {"color3", "Red", CV_CALL|CV_NOINIT, Color_cons_t, Color3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_playercolor4 = {"color4", "Blue", CV_CALL|CV_NOINIT, Color_cons_t, Color4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 // player's skin, saved for commodity, when using a favorite skins wad..
 consvar_t cv_skin = {"skin", DEFAULTSKIN, CV_CALL|CV_NOINIT, NULL, Skin_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_skin2 = {"skin2", DEFAULTSKIN2, CV_CALL|CV_NOINIT, NULL, Skin2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_skin3 = {"skin3", DEFAULTSKIN3, CV_CALL|CV_NOINIT, NULL, Skin3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_skin4 = {"skin4", DEFAULTSKIN4, CV_CALL|CV_NOINIT, NULL, Skin4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_skipmapcheck = {"skipmapcheck", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -258,6 +275,10 @@ consvar_t cv_usejoystick = {"use_joystick", "0", CV_SAVE|CV_CALL, usejoystick_co
 	I_InitJoystick, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usejoystick2 = {"use_joystick2", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick2, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_usejoystick3 = {"use_joystick3", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
+I_InitJoystick3, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_usejoystick4 = {"use_joystick4", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
+I_InitJoystick4, 0, NULL, NULL, 0, 0, NULL};
 #endif
 #if (defined (LJOYSTICK) || defined (HAVE_SDL))
 #ifdef LJOYSTICK
@@ -266,6 +287,8 @@ consvar_t cv_joyport2 = {"joyport2", "/dev/js0", CV_SAVE, joyport_cons_t, NULL, 
 #endif
 consvar_t cv_joyscale = {"joyscale", "1", CV_SAVE|CV_CALL, NULL, I_JoyScale, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_joyscale2 = {"joyscale2", "1", CV_SAVE|CV_CALL, NULL, I_JoyScale2, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_joyscale3 = {"joyscale3", "1", CV_SAVE|CV_CALL, NULL, I_JoyScale3, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_joyscale4 = {"joyscale4", "1", CV_SAVE|CV_CALL, NULL, I_JoyScale4, 0, NULL, NULL, 0, 0, NULL};
 #else
 consvar_t cv_joyscale = {"joyscale", "1", CV_SAVE|CV_HIDEN, NULL, NULL, 0, NULL, NULL, 0, 0, NULL}; //Alam: Dummy for save
 consvar_t cv_joyscale2 = {"joyscale2", "1", CV_SAVE|CV_HIDEN, NULL, NULL, 0, NULL, NULL, 0, 0, NULL}; //Alam: Dummy for save
@@ -410,6 +433,8 @@ consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL
 
 INT16 gametype = GT_RACE; // SRB2kart
 boolean splitscreen = false;
+boolean splitscreen3 = false;
+boolean splitscreen4 = false;
 boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
 
@@ -436,6 +461,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"DELFILE",
 	"SETMOTD",
 	"SUICIDE",
+	"DEMOTED",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
@@ -648,6 +674,8 @@ void D_RegisterClientCommands(void)
 
 	COM_AddCommand("changeteam", Command_Teamchange_f);
 	COM_AddCommand("changeteam2", Command_Teamchange2_f);
+	COM_AddCommand("changeteam3", Command_Teamchange3_f);
+	COM_AddCommand("changeteam4", Command_Teamchange4_f);
 
 	COM_AddCommand("playdemo", Command_Playdemo_f);
 	COM_AddCommand("timedemo", Command_Timedemo_f);
@@ -658,6 +686,8 @@ void D_RegisterClientCommands(void)
 
 	COM_AddCommand("setcontrol", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol2", Command_Setcontrol2_f);
+	COM_AddCommand("setcontrol3", Command_Setcontrol3_f);
+	COM_AddCommand("setcontrol4", Command_Setcontrol4_f);
 
 	COM_AddCommand("screenshot", M_ScreenShot);
 	COM_AddCommand("startmovie", Command_StartMovie_f);
@@ -695,6 +725,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_playername2);
 	CV_RegisterVar(&cv_playercolor2);
 	CV_RegisterVar(&cv_skin2);
+	// third player
+	CV_RegisterVar(&cv_playername3);
+	CV_RegisterVar(&cv_playercolor3);
+	CV_RegisterVar(&cv_skin3);
+	// fourth player
+	CV_RegisterVar(&cv_playername4);
+	CV_RegisterVar(&cv_playercolor4);
+	CV_RegisterVar(&cv_skin4);
 
 #ifdef SEENAMES
 	CV_RegisterVar(&cv_seenames);
@@ -766,12 +804,16 @@ void D_RegisterClientCommands(void)
 
 	CV_RegisterVar(&cv_usejoystick);
 	CV_RegisterVar(&cv_usejoystick2);
+	CV_RegisterVar(&cv_usejoystick3);
+	CV_RegisterVar(&cv_usejoystick4);
 #ifdef LJOYSTICK
 	CV_RegisterVar(&cv_joyport);
 	CV_RegisterVar(&cv_joyport2);
 #endif
 	CV_RegisterVar(&cv_joyscale);
 	CV_RegisterVar(&cv_joyscale2);
+	CV_RegisterVar(&cv_joyscale3);
+	CV_RegisterVar(&cv_joyscale4);
 
 	// Analog Control
 	CV_RegisterVar(&cv_analog);
@@ -1242,7 +1284,7 @@ static void SendNameAndColor2(void)
 {
 	INT32 secondplaya;
 
-	if (!splitscreen && !botingame)
+	if ((!splitscreen || !splitscreen3 || !splitscreen4) && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
 	if (secondarydisplayplayer != consoleplayer)
@@ -1328,6 +1370,200 @@ static void SendNameAndColor2(void)
 			CV_StealthSet(&cv_skin2, skins[players[secondplaya].skin].name);
 			// will always be same as current
 			SetPlayerSkin(secondplaya, cv_skin2.string);
+		}
+		return;
+	}
+
+	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+}
+
+static void SendNameAndColor3(void)
+{
+	INT32 thirdplaya;
+
+	if ((!splitscreen3 || !splitscreen4) && !botingame)
+		return; // can happen if skin2/color2/name2 changed
+
+	if (thirddisplayplayer != consoleplayer)
+		thirdplaya = thirddisplayplayer;
+	else // HACK
+		thirdplaya = 2;
+
+	// normal player colors
+	if (G_GametypeHasTeams())
+	{
+		if (players[thirdplaya].ctfteam == 1 && cv_playercolor3.value != skincolor_redteam)
+			CV_StealthSetValue(&cv_playercolor3, skincolor_redteam);
+		else if (players[thirdplaya].ctfteam == 2 && cv_playercolor3.value != skincolor_blueteam)
+			CV_StealthSetValue(&cv_playercolor3, skincolor_blueteam);
+	}
+
+	// never allow the color "none"
+	if (!cv_playercolor3.value)
+	{
+		if (players[thirdplaya].skincolor)
+			CV_StealthSetValue(&cv_playercolor3, players[thirdplaya].skincolor);
+		else if (skins[players[thirdplaya].skin].prefcolor)
+			CV_StealthSetValue(&cv_playercolor3, skins[players[thirdplaya].skin].prefcolor);
+		else
+			CV_StealthSet(&cv_playercolor3, cv_playercolor3.defaultvalue);
+	}
+
+	// We'll handle it later if we're not playing.
+	if (!Playing())
+		return;
+
+	// If you're not in a netgame, merely update the skin, color, and name.
+	if (botingame)
+	{
+		players[thirdplaya].skincolor = botcolor;
+		if (players[thirdplaya].mo)
+			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
+		SetPlayerSkinByNum(thirdplaya, botskin-1);
+		return;
+	}
+	else if (!netgame && !modeattacking)
+	{
+		INT32 foundskin;
+
+		CleanupPlayerName(thirdplaya, cv_playername3.zstring);
+		strcpy(player_names[thirdplaya], cv_playername3.zstring);
+
+		// don't use thirddisplayplayer: the third player must be 2
+		players[thirdplaya].skincolor = cv_playercolor3.value;
+		if (players[thirdplaya].mo)
+			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
+
+		if (cv_forceskin.value >= 0 && (netgame || multiplayer)) // Server wants everyone to use the same player
+		{
+			const INT32 forcedskin = cv_forceskin.value;
+
+			SetPlayerSkinByNum(thirdplaya, forcedskin);
+			CV_StealthSet(&cv_skin3, skins[forcedskin].name);
+		}
+		else if ((foundskin = R_SkinAvailable(cv_skin3.string)) != -1)
+		{
+			boolean notsame;
+
+			cv_skin2.value = foundskin;
+
+			notsame = (cv_skin3.value != players[thirdplaya].skin);
+
+			SetPlayerSkin(thirdplaya, cv_skin3.string);
+
+			if (notsame)
+			{
+				CV_StealthSetValue(&cv_playercolor3, skins[players[thirdplaya].skin].prefcolor);
+
+				players[thirdplaya].skincolor = (cv_playercolor3.value&0x3F) % MAXSKINCOLORS;
+
+				if (players[thirdplaya].mo)
+					players[thirdplaya].mo->color = players[thirdplaya].skincolor;
+			}
+		}
+		else
+		{
+			cv_skin3.value = players[thirdplaya].skin;
+			CV_StealthSet(&cv_skin3, skins[players[thirdplaya].skin].name);
+			// will always be same as current
+			SetPlayerSkin(thirdplaya, cv_skin3.string);
+		}
+		return;
+	}
+
+	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+}
+
+static void SendNameAndColor4(void)
+{
+	INT32 fourthplaya;
+
+	if (!splitscreen4 && !botingame)
+		return; // can happen if skin4/color4/name4 changed
+
+	if (fourthdisplayplayer != consoleplayer)
+		fourthplaya = fourthdisplayplayer;
+	else // HACK
+		fourthplaya = 3;
+
+	// normal player colors
+	if (G_GametypeHasTeams())
+	{
+		if (players[fourthplaya].ctfteam == 1 && cv_playercolor4.value != skincolor_redteam)
+			CV_StealthSetValue(&cv_playercolor4, skincolor_redteam);
+		else if (players[fourthplaya].ctfteam == 2 && cv_playercolor4.value != skincolor_blueteam)
+			CV_StealthSetValue(&cv_playercolor4, skincolor_blueteam);
+	}
+
+	// never allow the color "none"
+	if (!cv_playercolor4.value)
+	{
+		if (players[fourthplaya].skincolor)
+			CV_StealthSetValue(&cv_playercolor4, players[fourthplaya].skincolor);
+		else if (skins[players[fourthplaya].skin].prefcolor)
+			CV_StealthSetValue(&cv_playercolor4, skins[players[fourthplaya].skin].prefcolor);
+		else
+			CV_StealthSet(&cv_playercolor4, cv_playercolor4.defaultvalue);
+	}
+
+	// We'll handle it later if we're not playing.
+	if (!Playing())
+		return;
+
+	// If you're not in a netgame, merely update the skin, color, and name.
+	if (botingame)
+	{
+		players[fourthplaya].skincolor = botcolor;
+		if (players[fourthplaya].mo)
+			players[fourthplaya].mo->color = players[fourthplaya].skincolor;
+		SetPlayerSkinByNum(fourthplaya, botskin-1);
+		return;
+	}
+	else if (!netgame && !modeattacking)
+	{
+		INT32 foundskin;
+
+		CleanupPlayerName(fourthplaya, cv_playername4.zstring);
+		strcpy(player_names[fourthplaya], cv_playername4.zstring);
+
+		// don't use fourthdisplayplayer: the second player must be 4
+		players[fourthplaya].skincolor = cv_playercolor4.value;
+		if (players[fourthplaya].mo)
+			players[fourthplaya].mo->color = players[fourthplaya].skincolor;
+
+		if (cv_forceskin.value >= 0 && (netgame || multiplayer)) // Server wants everyone to use the same player
+		{
+			const INT32 forcedskin = cv_forceskin.value;
+
+			SetPlayerSkinByNum(fourthplaya, forcedskin);
+			CV_StealthSet(&cv_skin4, skins[forcedskin].name);
+		}
+		else if ((foundskin = R_SkinAvailable(cv_skin4.string)) != -1)
+		{
+			boolean notsame;
+
+			cv_skin4.value = foundskin;
+
+			notsame = (cv_skin4.value != players[fourthplaya].skin);
+
+			SetPlayerSkin(fourthplaya, cv_skin4.string);
+
+			if (notsame)
+			{
+				CV_StealthSetValue(&cv_playercolor4, skins[players[fourthplaya].skin].prefcolor);
+
+				players[fourthplaya].skincolor = (cv_playercolor4.value&0x3F) % MAXSKINCOLORS;
+
+				if (players[fourthplaya].mo)
+					players[fourthplaya].mo->color = players[fourthplaya].skincolor;
+			}
+		}
+		else
+		{
+			cv_skin4.value = players[fourthplaya].skin;
+			CV_StealthSet(&cv_skin4, skins[players[fourthplaya].skin].name);
+			// will always be same as current
+			SetPlayerSkin(fourthplaya, cv_skin4.string);
 		}
 		return;
 	}

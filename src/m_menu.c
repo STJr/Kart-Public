@@ -174,7 +174,9 @@ static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
 
 static  boolean setupcontrols_secondaryplayer;
-static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
+static  boolean setupcontrols_thirdplayer;
+static  boolean setupcontrols_fourthplayer;
+static  INT32   (*setupcontrols)[4];  // pointer to the gamecontrols of the player being edited
 
 // shhh... what am I doing... nooooo!
 static INT32 vidm_testingmode = 0;
@@ -267,6 +269,8 @@ static void M_ChooseRoom(INT32 choice);
 #endif
 static void M_SetupMultiPlayer(INT32 choice);
 static void M_SetupMultiPlayer2(INT32 choice);
+static void M_SetupMultiPlayer3(INT32 choice);
+static void M_SetupMultiPlayer4(INT32 choice);
 
 // Options
 // Split into multiple parts due to size
@@ -278,8 +282,12 @@ menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def;
 static void M_VideoModeMenu(INT32 choice);
 static void M_Setup1PControlsMenu(INT32 choice);
 static void M_Setup2PControlsMenu(INT32 choice);
+static void M_Setup3PControlsMenu(INT32 choice);
+static void M_Setup4PControlsMenu(INT32 choice);
 static void M_Setup1PJoystickMenu(INT32 choice);
 static void M_Setup2PJoystickMenu(INT32 choice);
+static void M_Setup3PJoystickMenu(INT32 choice);
+static void M_Setup4PJoystickMenu(INT32 choice);
 static void M_AssignJoystick(INT32 choice);
 static void M_ChangeControl(INT32 choice);
 
@@ -883,6 +891,8 @@ static menuitem_t MP_MainMenu[] =
 
 	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",         M_SetupMultiPlayer,     80},
 	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",         M_SetupMultiPlayer2,    90},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 3",         M_SetupMultiPlayer3,   100},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 4",         M_SetupMultiPlayer4,   110},
 };
 
 static menuitem_t MP_ServerMenu[] =
@@ -1002,8 +1012,10 @@ static menuitem_t OP_ControlsMenu[] =
 {
 	{IT_SUBMENU | IT_STRING, NULL, "Player 1 Controls...", &OP_P1ControlsDef,  10},
 	{IT_SUBMENU | IT_STRING, NULL, "Player 2 Controls...", &OP_P2ControlsDef,  20},
+	{IT_SUBMENU | IT_STRING, NULL, "Player 3 Controls...", &OP_P3ControlsDef,  30},
+	{IT_SUBMENU | IT_STRING, NULL, "Player 4 Controls...", &OP_P4ControlsDef,  40},
 
-	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 40},
+	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
 };
 
 static menuitem_t OP_P1ControlsMenu[] =
@@ -1027,7 +1039,29 @@ static menuitem_t OP_P2ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam2 , 50},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 60},
 
-	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  80},
+	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  70},
+};
+
+static menuitem_t OP_P3ControlsMenu[] = 
+{
+	{IT_CALL    | IT_STRING, NULL, "Control Configuration...", M_Setup3PControlsMenu,   10},
+	{IT_SUBMENU | IT_STRING, NULL, "Third Joystick Options...", &OP_Joystick3Def  ,  20},
+
+	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam3 , 40},
+	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair3, 50},
+
+	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog3,  60},
+};
+
+static menuitem_t OP_P4ControlsMenu[] =
+{
+	{IT_CALL    | IT_STRING, NULL, "Control Configuration...", M_Setup4PControlsMenu,   10},
+	{IT_SUBMENU | IT_STRING, NULL, "Fourth Joystick Options...", &OP_Joystick4Def  ,  20},
+
+	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam4 , 40},
+	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair4, 50},
+
+	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog4,  60},
 };
 
 /*static menuitem_t OP_ControlListMenu[] =
@@ -1128,6 +1162,28 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis2        , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis2        , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis2       , 80},
+};
+
+static menuitem_t OP_Joystick3Menu[] =
+{
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup3PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis3        , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis3        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis3        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis3        , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis3        , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis3       , 80},
+};
+
+static menuitem_t OP_Joystick4Menu[] =
+{
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup4PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis4        , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis4        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis4        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis4        , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis4        , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis4       , 80},
 };
 
 static menuitem_t OP_JoystickSetMenu[] =
@@ -1693,10 +1749,14 @@ menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDe
 menu_t OP_CustomControlsDef = CONTROLMENUSTYLE(OP_CustomControlsMenu, &OP_MoveControlsDef);
 menu_t OP_P1ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P1ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_P2ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P2ControlsMenu, &OP_ControlsDef, 60, 30);
+menu_t OP_P3ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P3ControlsMenu, &OP_ControlsDef, 60, 30);
+menu_t OP_P4ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P4ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_MouseOptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_MouseOptionsMenu, &OP_P1ControlsDef, 60, 30);
 menu_t OP_Mouse2OptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_Mouse2OptionsMenu, &OP_P2ControlsDef, 60, 30);
 menu_t OP_Joystick1Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick1Menu, &OP_P1ControlsDef, 60, 30);
 menu_t OP_Joystick2Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick2Menu, &OP_P2ControlsDef, 60, 30);
+menu_t OP_Joystick3Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick3Menu, &OP_P3ControlsDef, 60, 30);
+menu_t OP_Joystick4Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick4Menu, &OP_P4ControlsDef, 60, 30);
 menu_t OP_JoystickSetDef =
 {
 	"M_CONTRO",
@@ -6833,6 +6893,68 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	M_SetupNextMenu(&MP_PlayerSetupDef);
 }
 
+// start the multiplayer setup menu, for third player (splitscreen mode)
+static void M_SetupMultiPlayer3(INT32 choice)
+{
+	(void)choice;
+
+	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
+	multi_tics = multi_state->tics;
+	strcpy(setupm_name, cv_playername3.string);
+
+	// set for splitscreen third player
+	setupm_player = &players[thirddisplayplayer];
+	setupm_cvskin = &cv_skin3;
+	setupm_cvcolor = &cv_playercolor3;
+	setupm_cvname = &cv_playername3;
+
+	// For whatever reason this doesn't work right if you just use ->value
+	setupm_fakeskin = R_SkinAvailable(setupm_cvskin->string);
+	if (setupm_fakeskin == -1)
+		setupm_fakeskin = 0;
+	setupm_fakecolor = setupm_cvcolor->value;
+
+	// disable skin changes if we can't actually change skins
+	if (splitscreen && !CanChangeSkin(thirddisplayplayer))
+		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
+	else
+		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
+
+	MP_PlayerSetupDef.prevMenu = currentMenu;
+	M_SetupNextMenu(&MP_PlayerSetupDef);
+}
+
+// start the multiplayer setup menu, for third player (splitscreen mode)
+static void M_SetupMultiPlayer4(INT32 choice)
+{
+	(void)choice;
+
+	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
+	multi_tics = multi_state->tics;
+	strcpy(setupm_name, cv_playername4.string);
+
+	// set for splitscreen fourth player
+	setupm_player = &players[fourthdisplayplayer];
+	setupm_cvskin = &cv_skin4;
+	setupm_cvcolor = &cv_playercolor4;
+	setupm_cvname = &cv_playername4;
+
+	// For whatever reason this doesn't work right if you just use ->value
+	setupm_fakeskin = R_SkinAvailable(setupm_cvskin->string);
+	if (setupm_fakeskin == -1)
+		setupm_fakeskin = 0;
+	setupm_fakecolor = setupm_cvcolor->value;
+
+	// disable skin changes if we can't actually change skins
+	if (splitscreen && !CanChangeSkin(fourthdisplayplayer))
+		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
+	else
+		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
+
+	MP_PlayerSetupDef.prevMenu = currentMenu;
+	M_SetupNextMenu(&MP_PlayerSetupDef);
+}
+
 static boolean M_QuitMultiPlayerMenu(void)
 {
 	size_t l;
@@ -6962,6 +7084,20 @@ static void M_Setup2PJoystickMenu(INT32 choice)
 	M_SetupJoystickMenu(choice);
 }
 
+static void M_Setup3PJoystickMenu(INT32 choice)
+{
+	setupcontrols_thirdplayer = true;
+	OP_JoystickSetDef.prevMenu = &OP_Joystick3Def;
+	M_SetupJoystickMenu(choice);
+}
+
+static void M_Setup4PJoystickMenu(INT32 choice)
+{
+	setupcontrols_fourthplayer = true;
+	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
+	M_SetupJoystickMenu(choice);
+}
+
 static void M_AssignJoystick(INT32 choice)
 {
 	if (setupcontrols_secondaryplayer)
@@ -7009,6 +7145,44 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
 
 	OP_MoveControlsDef.prevMenu = &OP_P2ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
+}
+
+static void M_Setup3PControlsMenu(INT32 choice)
+{
+	(void)choice;
+	setupcontrols_thirdplayer = true;
+	setupcontrols = gamecontrolbis;
+	currentMenu->lastOn = itemOn;
+
+	// Hide the three non-P3 controls
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
+	// Hide the pause/console controls too
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+
+	OP_MoveControlsDef.prevMenu = &OP_P3ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
+}
+
+static void M_Setup4PControlsMenu(INT32 choice)
+{
+	(void)choice;
+	setupcontrols_fourthplayer = true;
+	setupcontrols = gamecontrolbis;
+	currentMenu->lastOn = itemOn;
+
+	// Hide the three non-P4 controls
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
+	// Hide the pause/console controls too
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+
+	OP_MoveControlsDef.prevMenu = &OP_P4ControlsDef;
 	M_SetupNextMenu(&OP_MoveControlsDef);
 }
 
