@@ -436,6 +436,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"DELFILE",
 	"SETMOTD",
 	"SUICIDE",
+	"DEMOTED",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
