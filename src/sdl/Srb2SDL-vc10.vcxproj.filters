@@ -444,6 +444,9 @@
     <ClInclude Include="sdlmain.h">
       <Filter>SDLApp</Filter>
     </ClInclude>
+    <ClInclude Include="..\k_kart.h">
+      <Filter>D_Doom</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\tmap.nas">
@@ -875,6 +878,9 @@
     </ClCompile>
     <ClCompile Include="SDL_main\SDL_windows_main.c">
       <Filter>SDLApp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\k_kart.c">
+      <Filter>D_Doom</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

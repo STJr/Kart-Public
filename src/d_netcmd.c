@@ -145,7 +145,9 @@ static void Command_Changepassword_f(void);
 static void Command_Login_f(void);
 static void Got_Login(UINT8 **cp, INT32 playernum);
 static void Got_Verification(UINT8 **cp, INT32 playernum);
+static void Got_Removal(UINT8 **cp, INT32 playernum);
 static void Command_Verify_f(void);
+static void Command_RemoveAdmin_f(void);
 static void Command_MotD_f(void);
 static void Got_MotD_f(UINT8 **cp, INT32 playernum);
 
@@ -409,7 +411,7 @@ consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL
 INT16 gametype = GT_RACE; // SRB2kart
 boolean splitscreen = false;
 boolean circuitmap = true; // SRB2kart
-INT32 adminplayers[] = { -1, -1, -1, -1 }; // Hardcoded to four admins for now.
+INT32 adminplayers[MAXPLAYERS];
 
 /// \warning Keep this up-to-date if you add/remove/rename net text commands
 const char *netxcmdnames[MAXNETXCMD - 1] =
@@ -471,8 +473,10 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
 	COM_AddCommand("login", Command_Login_f); // useful in dedicated to kick off remote admin
-	COM_AddCommand("verify", Command_Verify_f);
+	COM_AddCommand("giveadmin", Command_Verify_f);
 	RegisterNetXCmd(XD_VERIFIED, Got_Verification);
+	COM_AddCommand("removeadmin", Command_RemoveAdmin_f);
+	RegisterNetXCmd(XD_DEMOTED, Got_Removal);
 
 	COM_AddCommand("motd", Command_MotD_f);
 	RegisterNetXCmd(XD_SETMOTD, Got_MotD_f); // For remote admin
@@ -2784,7 +2788,7 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	if (!memcmp(sentmd5, finalmd5, 16))
 	{
 		CONS_Printf(M_GetText("%s passed authentication.\n"), player_names[playernum]);
-		COM_BufInsertText(va("verify %d\n", playernum)); // do this immediately
+		COM_BufInsertText(va("giveadmin %d\n", playernum)); // do this immediately
 	}
 	else
 		CONS_Printf(M_GetText("Password from %s failed.\n"), player_names[playernum]);
@@ -2794,7 +2798,7 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 boolean IsPlayerAdmin(INT32 playernum)
 {
 	INT32 i;
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < MAXPLAYERS; i++)
 		if (playernum == adminplayers[i])
 			return true;
 
@@ -2804,7 +2808,7 @@ boolean IsPlayerAdmin(INT32 playernum)
 void SetAdminPlayer(INT32 playernum)
 {
 	INT32 i;
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playernum == adminplayers[i])
 			return; // Player is already admin
@@ -2815,25 +2819,25 @@ void SetAdminPlayer(INT32 playernum)
 			break; // End the loop now. If it keeps going, the same player might get assigned to two slots.
 		}
 
-		if (i == 3 && adminplayers[i] != -1) // End of the loop and all slots are full
+		/*if (i == 3 && adminplayers[i] != -1) // End of the loop and all slots are full
 		{
 			adminplayers[0] = playernum; // Overwrite the first slot
 			break;
-		}
+		}*/
 	}
 }
 
 void ClearAdminPlayers(void)
 {
 	INT32 i;
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < MAXPLAYERS; i++)
 		adminplayers[i] = -1;
 }
 
 void RemoveAdminPlayer(INT32 playernum)
 {
 	INT32 i;
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < MAXPLAYERS; i++)
 		if (playernum == adminplayers[i])
 			adminplayers[i] = -1;
 }
@@ -2852,7 +2856,7 @@ static void Command_Verify_f(void)
 
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf(M_GetText("verify <node>: give admin privileges to a node\n"));
+		CONS_Printf(M_GetText("giveadmin <node>: give admin privileges to a node\n"));
 		return;
 	}
 
@@ -2892,6 +2896,62 @@ static void Got_Verification(UINT8 **cp, INT32 playernum)
 		return;
 
 	CONS_Printf(M_GetText("You are now a server administrator.\n"));
+}
+
+static void Command_RemoveAdmin_f(void)
+{
+	XBOXSTATIC char buf[8]; // Should be plenty
+	char *temp;
+	INT32 playernum;
+
+	if (client)
+	{
+		CONS_Printf(M_GetText("Only the server can use this.\n"));
+		return;
+	}
+
+	if (COM_Argc() != 2)
+	{
+		CONS_Printf(M_GetText("removeadmin <node>: remove admin privileges from a node\n"));
+		return;
+	}
+
+	strlcpy(buf, COM_Argv(1), sizeof(buf));
+
+	playernum = atoi(buf);
+
+	temp = buf;
+
+	WRITEUINT8(temp, playernum);
+
+	if (playeringame[playernum])
+		SendNetXCmd(XD_DEMOTED, buf, 1);
+}
+
+static void Got_Removal(UINT8 **cp, INT32 playernum)
+{
+	INT16 num = READUINT8(*cp);
+
+	if (playernum != serverplayer) // it's not from the server (hacker or bug)
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal demotion received from %s (serverplayer is %s)\n"), player_names[playernum], player_names[serverplayer]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	RemoveAdminPlayer(num);
+
+	if (num != consoleplayer)
+		return;
+
+	CONS_Printf(M_GetText("You are no longer a server administrator.\n"));
 }
 
 static void Command_MotD_f(void)
@@ -3236,7 +3296,7 @@ static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 
 		CONS_Printf("%s",message);
 
-		for (j = 0; j < 4; j++)
+		for (j = 0; j < MAXPLAYERS; j++)
 			if (adminplayers[j])
 				COM_BufAddText(va("sayto %d %s", adminplayers[j], message));
 
