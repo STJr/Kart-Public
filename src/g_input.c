@@ -37,7 +37,8 @@ INT32 mlooky; // like mousey but with a custom sensitivity for mlook
 INT32 mouse2x, mouse2y, mlook2y;
 
 // joystick values are repeated
-INT32 joyxmove[JOYAXISSET], joyymove[JOYAXISSET], joy2xmove[JOYAXISSET], joy2ymove[JOYAXISSET];
+INT32 joyxmove[JOYAXISSET], joyymove[JOYAXISSET], joy2xmove[JOYAXISSET], joy2ymove[JOYAXISSET], 
+joy3xmove[JOYAXISSET], joy3ymove[JOYAXISSET], joy4xmove[JOYAXISSET], joy4ymove[JOYAXISSET];
 
 // current state of the keys: true if pushed
 UINT8 gamekeydown[NUMINPUTS];
@@ -58,6 +59,8 @@ static dclick_t mousedclicks[MOUSEBUTTONS];
 static dclick_t joydclicks[JOYBUTTONS + JOYHATS*4];
 static dclick_t mouse2dclicks[MOUSEBUTTONS];
 static dclick_t joy2dclicks[JOYBUTTONS + JOYHATS*4];
+static dclick_t joy3dclicks[JOYBUTTONS + JOYHATS*4];
+static dclick_t joy4dclicks[JOYBUTTONS + JOYHATS*4];
 
 // protos
 static UINT8 G_CheckDoubleClick(UINT8 state, dclick_t *dt);
@@ -119,6 +122,22 @@ void G_MapEventsToControls(event_t *ev)
 				break;
 			if (ev->data2 != INT32_MAX) joy2xmove[i] = ev->data2;
 			if (ev->data3 != INT32_MAX) joy2ymove[i] = ev->data3;
+			break;
+
+		case ev_joystick3:
+			i = ev->data1;
+			if (i >= JOYAXISSET)
+				break;
+			if (ev->data2 != INT32_MAX) joy3xmove[i] = ev->data2;
+			if (ev->data3 != INT32_MAX) joy3ymove[i] = ev->data3;
+			break;
+
+		case ev_joystick4:
+			i = ev->data1;
+			if (i >= JOYAXISSET)
+				break;
+			if (ev->data2 != INT32_MAX) joy4xmove[i] = ev->data2;
+			if (ev->data3 != INT32_MAX) joy4ymove[i] = ev->data3;
 			break;
 
 		case ev_mouse2: // buttons are virtual keys
@@ -1299,10 +1318,10 @@ void G_SaveKeySetting(FILE *f)
 	for (i = 1; i < num_gamecontrols; i++)
 	{
 		fprintf(f, "setcontrol3 \"%s\" \"%s\"", gamecontrolname[i],
-			G_KeynumToString(gamecontrolbis[i][0]));
+			G_KeynumToString(gamecontrol3[i][0]));
 
-		if (gamecontrolbis[i][1])
-			fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrolbis[i][1]));
+		if (gamecontrol3[i][1])
+			fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrol3[i][1]));
 		else
 			fprintf(f, "\n");
 	}
@@ -1310,10 +1329,10 @@ void G_SaveKeySetting(FILE *f)
 	for (i = 1; i < num_gamecontrols; i++)
 	{
 		fprintf(f, "setcontrol4 \"%s\" \"%s\"", gamecontrolname[i],
-			G_KeynumToString(gamecontrolbis[i][0]));
+			G_KeynumToString(gamecontrol4[i][0]));
 
-		if (gamecontrolbis[i][1])
-			fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrolbis[i][1]));
+		if (gamecontrol4[i][1])
+			fprintf(f, " \"%s\"\n", G_KeynumToString(gamecontrol4[i][1]));
 		else
 			fprintf(f, "\n");
 	}
@@ -1334,6 +1353,14 @@ void G_CheckDoubleUsage(INT32 keynum)
 				gamecontrolbis[i][0] = KEY_NULL;
 			if (gamecontrolbis[i][1] == keynum)
 				gamecontrolbis[i][1] = KEY_NULL;
+			if (gamecontrol3[i][0] == keynum)
+				gamecontrol3[i][0] = KEY_NULL;
+			if (gamecontrol3[i][1] == keynum)
+				gamecontrol3[i][1] = KEY_NULL;
+			if (gamecontrol4[i][0] == keynum)
+				gamecontrol4[i][0] = KEY_NULL;
+			if (gamecontrol4[i][1] == keynum)
+				gamecontrol4[i][1] = KEY_NULL;
 		}
 	}
 }
@@ -1405,7 +1432,7 @@ void Command_Setcontrol3_f(void)
 		return;
 	}
 
-	setcontrol(gamecontrolbis, na);
+	setcontrol(gamecontrol3, na);
 }
 
 void Command_Setcontrol4_f(void)
@@ -1420,5 +1447,5 @@ void Command_Setcontrol4_f(void)
 		return;
 	}
 
-	setcontrol(gamecontrolbis, na);
+	setcontrol(gamecontrol4, na);
 }

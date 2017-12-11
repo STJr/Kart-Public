@@ -4057,7 +4057,7 @@ void K_LoadKartHUDGraphics(void)
 static INT32 STRINGY(INT32 y)
 {
 	// Copied from st_stuff.c
-	if (splitscreen)
+	if (splitscreen || splitscreen3)
 	{
 		y >>= 1;
 		if (stplyr != &players[displayplayer])

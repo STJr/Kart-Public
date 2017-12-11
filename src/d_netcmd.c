@@ -1674,6 +1674,30 @@ void SendWeaponPref2(void)
 	SendNetXCmd2(XD_WEAPONPREF, buf, 1);
 }
 
+void SendWeaponPref3(void)
+{
+	XBOXSTATIC UINT8 buf[1];
+
+	buf[0] = 0;
+	if (players[thirddisplayplayer].pflags & PF_FLIPCAM)
+		buf[0] |= 1;
+	if (players[thirddisplayplayer].pflags & PF_ANALOGMODE)
+		buf[0] |= 2;
+	//SendNetXCmd3(XD_WEAPONPREF, buf, 1);
+}
+
+void SendWeaponPref4(void)
+{
+	XBOXSTATIC UINT8 buf[1];
+
+	buf[0] = 0;
+	if (players[fourthdisplayplayer].pflags & PF_FLIPCAM)
+		buf[0] |= 1;
+	if (players[fourthdisplayplayer].pflags & PF_ANALOGMODE)
+		buf[0] |= 2;
+	//SendNetXCmd4(XD_WEAPONPREF, buf, 1);
+}
+
 static void Got_WeaponPref(UINT8 **cp,INT32 playernum)
 {
 	UINT8 prefs = READUINT8(*cp);
@@ -1688,11 +1712,19 @@ static void Got_WeaponPref(UINT8 **cp,INT32 playernum)
 void D_SendPlayerConfig(void)
 {
 	SendNameAndColor();
-	if (splitscreen || botingame)
+	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
 		SendNameAndColor2();
+	if (splitscreen3 || splitscreen4)
+		SendNameAndColor3();
+	if (splitscreen4)
+		SendNameAndColor4();
 	SendWeaponPref();
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 		SendWeaponPref2();
+	if (splitscreen3 || splitscreen4)
+		SendWeaponPref3();
+	if (splitscreen4)
+		SendWeaponPref4();
 }
 
 // Only works for displayplayer, sorry!
@@ -2518,6 +2550,16 @@ static void Command_Teamchange2_f(void)
 
 	usvalue = SHORT(NetPacket.value.l|NetPacket.value.b);
 	SendNetXCmd2(XD_TEAMCHANGE, &usvalue, sizeof(usvalue));
+}
+
+static void Command_Teamchange3_f(void)
+{
+	;
+}
+
+static void Command_Teamchange4_f(void)
+{
+	;
 }
 
 static void Command_ServerTeamChange_f(void)
@@ -4315,6 +4357,8 @@ void Command_ExitGame_f(void)
 		CL_ClearPlayer(i);
 
 	splitscreen = false;
+	splitscreen3 = false;
+	splitscreen4 = false;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;
@@ -4509,6 +4553,28 @@ static void Name2_OnChange(void)
 		SendNameAndColor2();
 }
 
+static void Name3_OnChange(void)
+{
+	if (cv_mute.value) //Third player can't be admin.
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("You may not change your name when chat is muted.\n"));
+		CV_StealthSet(&cv_playername3, player_names[thirddisplayplayer]);
+	}
+	else
+		SendNameAndColor3();
+}
+
+static void Name4_OnChange(void)
+{
+	if (cv_mute.value) //Secondary player can't be admin.
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("You may not change your name when chat is muted.\n"));
+		CV_StealthSet(&cv_playername4, player_names[fourthdisplayplayer]);
+	}
+	else
+		SendNameAndColor4();
+}
+
 /** Sends a skin change for the console player, unless that player is moving.
   * \sa cv_skin, Skin2_OnChange, Color_OnChange
   * \author Graue <graue@oceanbase.org>
@@ -4541,7 +4607,7 @@ static void Skin_OnChange(void)
   */
 static void Skin2_OnChange(void)
 {
-	if (!Playing() || !splitscreen)
+	if (!Playing() || (!splitscreen || !splitscreen3 || !splitscreen4))
 		return; // do whatever you want
 
 	if (CanChangeSkin(secondarydisplayplayer) && !P_PlayerMoving(secondarydisplayplayer))
@@ -4550,6 +4616,34 @@ static void Skin2_OnChange(void)
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You can't change your skin at the moment.\n"));
 		CV_StealthSet(&cv_skin2, skins[players[secondarydisplayplayer].skin].name);
+	}
+}
+
+static void Skin3_OnChange(void)
+{
+	if (!Playing() || (!splitscreen3 || !splitscreen4))
+		return; // do whatever you want
+
+	if (CanChangeSkin(thirddisplayplayer) && !P_PlayerMoving(thirddisplayplayer))
+		SendNameAndColor3();
+	else
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("You can't change your skin at the moment.\n"));
+		CV_StealthSet(&cv_skin3, skins[players[thirddisplayplayer].skin].name);
+	}
+}
+
+static void Skin4_OnChange(void)
+{
+	if (!Playing() || !splitscreen4)
+		return; // do whatever you want
+
+	if (CanChangeSkin(fourthdisplayplayer) && !P_PlayerMoving(fourthdisplayplayer))
+		SendNameAndColor4();
+	else
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("You can't change your skin at the moment.\n"));
+		CV_StealthSet(&cv_skin4, skins[players[fourthdisplayplayer].skin].name);
 	}
 }
 
@@ -4587,7 +4681,7 @@ static void Color_OnChange(void)
   */
 static void Color2_OnChange(void)
 {
-	if (!Playing() || !splitscreen)
+	if (!Playing() || (!splitscreen || !splitscreen3 || !splitscreen4))
 		return; // do whatever you want
 
 	if (!P_PlayerMoving(secondarydisplayplayer))
@@ -4599,6 +4693,40 @@ static void Color2_OnChange(void)
 	{
 		CV_StealthSetValue(&cv_playercolor2,
 			players[secondarydisplayplayer].skincolor);
+	}
+}
+
+static void Color3_OnChange(void)
+{
+	if (!Playing() || (!splitscreen3 || !splitscreen4))
+		return; // do whatever you want
+
+	if (!P_PlayerMoving(thirddisplayplayer))
+	{
+		// Color change menu scrolling fix is no longer necessary
+		SendNameAndColor3();
+	}
+	else
+	{
+		CV_StealthSetValue(&cv_playercolor3,
+			players[thirddisplayplayer].skincolor);
+	}
+}
+
+static void Color4_OnChange(void)
+{
+	if (!Playing() || !splitscreen4)
+		return; // do whatever you want
+
+	if (!P_PlayerMoving(fourthdisplayplayer))
+	{
+		// Color change menu scrolling fix is no longer necessary
+		SendNameAndColor4();
+	}
+	else
+	{
+		CV_StealthSetValue(&cv_playercolor4,
+			players[fourthdisplayplayer].skincolor);
 	}
 }
 

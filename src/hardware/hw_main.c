@@ -4055,8 +4055,18 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 		angle_t shadowdir;
 
 		// Set direction
-		if (splitscreen && stplyr != &players[displayplayer])
+		if ((splitscreen || splitscreen3 || splitscreen4) && stplyr != &players[displayplayer])
+		{
 			shadowdir = localangle2 + FixedAngle(cv_cam2_rotate.value);
+
+			if ((splitscreen3 || splitscreen4) && stplyr != &players[displayplayer])
+			{
+				shadowdir = localangle3 + FixedAngle(cv_cam3_rotate.value);
+
+				if (splitscreen4 && stplyr != &players[displayplayer])
+					shadowdir = localangle4 + FixedAngle(cv_cam4_rotate.value);
+			}
+		}
 		else
 			shadowdir = localangle + FixedAngle(cv_cam_rotate.value);
 
@@ -5534,8 +5544,12 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	FTransform stransform;
 	postimg_t *type;
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		type = &postimgtype3;
+	else if (splitscreen4 && player == &players[fourthdisplayplayer])
+		type = &postimgtype4;
 	else
 		type = &postimgtype;
 
@@ -5563,7 +5577,13 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if (splitscreen && viewnumber == 1)
+	if ((splitscreen || splitscreen3) && (viewnumber == 1 || viewnumber == 2))
+	{
+		gr_viewwindowy += (vid.height/2);
+		gr_windowcentery += (vid.height/2);
+	}
+
+	if (splitscreen4 && (viewnumber == 2 || viewnumber == 3))
 	{
 		gr_viewwindowy += (vid.height/2);
 		gr_windowcentery += (vid.height/2);
@@ -5641,7 +5661,7 @@ if (0)
 #endif
 
 	//Hurdler: it doesn't work in splitscreen mode
-	drawsky = splitscreen;
+	drawsky = splitscreen || splitscreen3 || splitscreen4;
 
 	HWR_ClearSprites();
 
@@ -5661,8 +5681,12 @@ if (0)
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
 		viewangle = localaiming;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		viewangle = localaiming2;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		viewangle = localaiming3;
+	else if (splitscreen4 && player == &players[fourthdisplayplayer])
+		viewangle = localaiming4;
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_grfov.value+player->fovadd > 90*FRACUNIT))
@@ -5753,8 +5777,12 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 
 	FRGBAFloat ClearColor;
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		type = &postimgtype3;
+	else if (splitscreen4 && player == &players[fourthdisplayplayer])
+		type = &postimgtype4;
 	else
 		type = &postimgtype;
 
@@ -5793,7 +5821,13 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if (splitscreen && viewnumber == 1)
+	if ((splitscreen || splitscreen3) && (viewnumber == 1 ||  viewnumber == 2))
+	{
+		gr_viewwindowy += (vid.height/2);
+		gr_windowcentery += (vid.height/2);
+	}
+
+	if (splitscreen4 && (viewnumber == 2 || viewnumber == 3))
 	{
 		gr_viewwindowy += (vid.height/2);
 		gr_windowcentery += (vid.height/2);

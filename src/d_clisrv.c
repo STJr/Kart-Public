@@ -95,6 +95,8 @@ UINT32 playerpingtable[MAXPLAYERS]; //table of player latency values.
 #endif
 SINT8 nodetoplayer[MAXNETNODES];
 SINT8 nodetoplayer2[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
+SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
+SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
 UINT8 playerpernode[MAXNETNODES]; // used specialy for scplitscreen
 boolean nodeingame[MAXNETNODES]; // set false as nodes leave game
 static tic_t nettics[MAXNETNODES]; // what tic the client have received
@@ -125,6 +127,8 @@ static UINT8 mynode; // my address pointofview server
 
 static UINT8 localtextcmd[MAXTEXTCMD];
 static UINT8 localtextcmd2[MAXTEXTCMD]; // splitscreen
+static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen
+static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen
 static tic_t neededtic;
 SINT8 servernode = 0; // the number of the server node
 /// \brief do we accept new players?
@@ -2313,6 +2317,8 @@ static void Command_connect(void)
 	}
 
 	splitscreen = false;
+	splitscreen3 = false;
+	splitscreen4 = false;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;
@@ -3083,7 +3089,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	// Clear player before joining, lest some things get set incorrectly
 	// HACK: don't do this for splitscreen, it relies on preset values
-	if (!splitscreen && !botingame)
+	if ((!splitscreen || !splitscreen3 || !splitscreen4) && !botingame)
 		CL_ClearPlayer(newplayernum);
 	playeringame[newplayernum] = true;
 	G_AddPlayer(newplayernum);
@@ -3287,7 +3293,7 @@ void SV_StartSinglePlayerServer(void)
 	// no more tic the game with this settings!
 	SV_StopServer();
 
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 		multiplayer = true;
 }
 
@@ -4410,8 +4416,18 @@ static void Local_Maketic(INT32 realtics)
 	if (!dedicated) rendergametic = gametic;
 	// translate inputs (keyboard/mouse/joystick) into game controls
 	G_BuildTiccmd(&localcmds, realtics);
-	if (splitscreen || botingame)
+	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
+	{
 		G_BuildTiccmd2(&localcmds2, realtics);
+
+		if (splitscreen3 || splitscreen4)
+		{
+			G_BuildTiccmd3(&localcmds3, realtics);
+
+			if (splitscreen4)
+				G_BuildTiccmd4(&localcmds4, realtics);
+		}
+	}
 
 	localcmds.angleturn |= TICCMD_RECEIVED;
 }

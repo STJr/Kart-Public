@@ -138,6 +138,24 @@ void I_Tactile(FFType Type, const JoyFF_t *Effect);
 */
 void I_Tactile2(FFType Type, const JoyFF_t *Effect);
 
+/**	\brief	Forcefeedback for the third joystick
+
+\param	Type   what kind of Effect
+\param	Effect Effect Info
+
+\return	void
+*/
+void I_Tactile3(FFType Type, const JoyFF_t *Effect);
+
+/**	\brief	Forcefeedback for the fourth joystick
+
+\param	Type   what kind of Effect
+\param	Effect Effect Info
+
+\return	void
+*/
+void I_Tactile4(FFType Type, const JoyFF_t *Effect);
+
 /**	\brief to set up the first joystick scale
 */
 void I_JoyScale(void);
@@ -145,6 +163,14 @@ void I_JoyScale(void);
 /**	\brief to set up the second joystick scale
 */
 void I_JoyScale2(void);
+
+/**	\brief to set up the third joystick scale
+*/
+void I_JoyScale3(void);
+
+/**	\brief to set up the fourth joystick scale
+*/
+void I_JoyScale4(void);
 
 // Called by D_SRB2Main.
 
@@ -155,6 +181,14 @@ void I_InitJoystick(void);
 /**	\brief to startup the second joystick
 */
 void I_InitJoystick2(void);
+
+/**	\brief to startup the third joystick
+*/
+void I_InitJoystick3(void);
+
+/**	\brief to startup the fourth joystick
+*/
+void I_InitJoystick4(void);
 
 /**	\brief return the number of joystick on the system
 */

@@ -134,16 +134,26 @@ static CV_PossibleValue_t homremoval_cons_t[] = {{0, "No"}, {1, "Yes"}, {2, "Fla
 
 static void ChaseCam_OnChange(void);
 static void ChaseCam2_OnChange(void);
+static void ChaseCam3_OnChange(void);
+static void ChaseCam4_OnChange(void);
 static void FlipCam_OnChange(void);
 static void FlipCam2_OnChange(void);
+static void FlipCam3_OnChange(void);
+static void FlipCam4_OnChange(void);
 void SendWeaponPref(void);
 void SendWeaponPref2(void);
+void SendWeaponPref3(void);
+void SendWeaponPref4(void);
 
 consvar_t cv_tailspickup = {"tailspickup", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_chasecam = {"chasecam", "On", CV_CALL, CV_OnOff, ChaseCam_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_chasecam2 = {"chasecam2", "On", CV_CALL, CV_OnOff, ChaseCam2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_chasecam3 = {"chasecam3", "On", CV_CALL, CV_OnOff, ChaseCam3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_chasecam4 = {"chasecam4", "On", CV_CALL, CV_OnOff, ChaseCam4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_flipcam = {"flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_flipcam2 = {"flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_flipcam3 = {"flipcam3", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_flipcam4 = {"flipcam4", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_shadow = {"shadow", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_shadowoffs = {"offsetshadows", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -220,6 +230,26 @@ static void ChaseCam2_OnChange(void)
 		CV_SetValue(&cv_analog2, 1);
 }
 
+static void ChaseCam3_OnChange(void)
+{
+	if (botingame)
+		return;
+	if (!cv_chasecam3.value || !cv_useranalog3.value)
+		CV_SetValue(&cv_analog3, 0);
+	else
+		CV_SetValue(&cv_analog3, 1);
+}
+
+static void ChaseCam4_OnChange(void)
+{
+	if (botingame)
+		return;
+	if (!cv_chasecam4.value || !cv_useranalog4.value)
+		CV_SetValue(&cv_analog4, 0);
+	else
+		CV_SetValue(&cv_analog4, 1);
+}
+
 static void FlipCam_OnChange(void)
 {
 	if (cv_flipcam.value)
@@ -238,6 +268,26 @@ static void FlipCam2_OnChange(void)
 		players[secondarydisplayplayer].pflags &= ~PF_FLIPCAM;
 
 	SendWeaponPref2();
+}
+
+static void FlipCam3_OnChange(void)
+{
+	if (cv_flipcam3.value)
+		players[thirddisplayplayer].pflags |= PF_FLIPCAM;
+	else
+		players[thirddisplayplayer].pflags &= ~PF_FLIPCAM;
+
+	SendWeaponPref3();
+}
+
+static void FlipCam4_OnChange(void)
+{
+	if (cv_flipcam4.value)
+		players[fourthdisplayplayer].pflags |= PF_FLIPCAM;
+	else
+		players[fourthdisplayplayer].pflags &= ~PF_FLIPCAM;
+
+	SendWeaponPref4();
 }
 
 //
@@ -1379,6 +1429,8 @@ void R_RegisterEngineStuff(void)
 
 	CV_RegisterVar(&cv_chasecam);
 	CV_RegisterVar(&cv_chasecam2);
+	CV_RegisterVar(&cv_chasecam3);
+	CV_RegisterVar(&cv_chasecam4);
 	CV_RegisterVar(&cv_shadow);
 	CV_RegisterVar(&cv_shadowoffs);
 	CV_RegisterVar(&cv_skybox);
@@ -1396,6 +1448,20 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_cam2_speed);
 	CV_RegisterVar(&cv_cam2_rotate);
 	CV_RegisterVar(&cv_cam2_rotspeed);
+
+	CV_RegisterVar(&cv_cam3_dist);
+	CV_RegisterVar(&cv_cam3_still);
+	CV_RegisterVar(&cv_cam3_height);
+	CV_RegisterVar(&cv_cam3_speed);
+	CV_RegisterVar(&cv_cam3_rotate);
+	CV_RegisterVar(&cv_cam3_rotspeed);
+
+	CV_RegisterVar(&cv_cam4_dist);
+	CV_RegisterVar(&cv_cam4_still);
+	CV_RegisterVar(&cv_cam4_height);
+	CV_RegisterVar(&cv_cam4_speed);
+	CV_RegisterVar(&cv_cam4_rotate);
+	CV_RegisterVar(&cv_cam4_rotspeed);
 
 	CV_RegisterVar(&cv_showhud);
 	CV_RegisterVar(&cv_translucenthud);

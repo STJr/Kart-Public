@@ -277,8 +277,8 @@ static void M_SetupMultiPlayer4(INT32 choice);
 // Controls
 menu_t OP_ControlsDef, /*OP_ControlListDef,*/ OP_MoveControlsDef;
 menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef;
-menu_t OP_P1ControlsDef, OP_P2ControlsDef, OP_MouseOptionsDef;
-menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def;
+menu_t OP_P1ControlsDef, OP_P2ControlsDef, OP_P3ControlsDef, OP_P4ControlsDef, OP_MouseOptionsDef;
+menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def, OP_Joystick3Def, OP_Joystick4Def;
 static void M_VideoModeMenu(INT32 choice);
 static void M_Setup1PControlsMenu(INT32 choice);
 static void M_Setup2PControlsMenu(INT32 choice);
@@ -888,11 +888,13 @@ static menuitem_t MP_MainMenu[] =
 	{IT_CALL | IT_STRING, NULL, "JOIN GAME (Specify IP)", M_ConnectIPMenu,        40},
 #endif
 	{IT_CALL | IT_STRING, NULL, "TWO PLAYER GAME",        M_StartSplitServerMenu, 60},
+	{IT_CALL | IT_STRING, NULL, "THREE PLAYER GAME",      M_StartSplitServerMenu, 70},
+	{IT_CALL | IT_STRING, NULL, "FOUR PLAYER GAME",		  M_StartSplitServerMenu, 80},
 
-	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",         M_SetupMultiPlayer,     80},
-	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",         M_SetupMultiPlayer2,    90},
-	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 3",         M_SetupMultiPlayer3,   100},
-	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 4",         M_SetupMultiPlayer4,   110},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",         M_SetupMultiPlayer,     100},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",         M_SetupMultiPlayer2,    110},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 3",         M_SetupMultiPlayer3,   120},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 4",         M_SetupMultiPlayer4,   130},
 };
 
 static menuitem_t MP_ServerMenu[] =
@@ -7114,6 +7116,8 @@ static void M_Setup1PControlsMenu(INT32 choice)
 {
 	(void)choice;
 	setupcontrols_secondaryplayer = false;
+	setupcontrols_thirdplayer = false;
+	setupcontrols_fourthplayer = false;
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
@@ -7133,6 +7137,8 @@ static void M_Setup2PControlsMenu(INT32 choice)
 {
 	(void)choice;
 	setupcontrols_secondaryplayer = true;
+	setupcontrols_thirdplayer = false;
+	setupcontrols_fourthplayer = false;
 	setupcontrols = gamecontrolbis;
 	currentMenu->lastOn = itemOn;
 
@@ -7152,7 +7158,9 @@ static void M_Setup3PControlsMenu(INT32 choice)
 {
 	(void)choice;
 	setupcontrols_thirdplayer = true;
-	setupcontrols = gamecontrolbis;
+	setupcontrols_secondaryplayer = false;
+	setupcontrols_fourthplayer = false;
+	setupcontrols = gamecontrol3;
 	currentMenu->lastOn = itemOn;
 
 	// Hide the three non-P3 controls
@@ -7171,7 +7179,9 @@ static void M_Setup4PControlsMenu(INT32 choice)
 {
 	(void)choice;
 	setupcontrols_fourthplayer = true;
-	setupcontrols = gamecontrolbis;
+	setupcontrols_secondaryplayer = false;
+	setupcontrols_thirdplayer = false;
+	setupcontrols = gamecontrol4;
 	currentMenu->lastOn = itemOn;
 
 	// Hide the three non-P4 controls

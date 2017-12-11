@@ -120,7 +120,10 @@ postimg_t postimgtype = postimg_none;
 INT32 postimgparam;
 postimg_t postimgtype2 = postimg_none;
 INT32 postimgparam2;
-
+postimg_t postimgtype3 = postimg_none;
+INT32 postimgparam3;
+postimg_t postimgtype4 = postimg_none;
+INT32 postimgparam4;
 #ifdef _XBOX
 boolean nomidimusic = true, nosound = true;
 boolean nodigimusic = true;
@@ -628,8 +631,12 @@ void D_SRB2Loop(void)
 			// Lagless camera! Yay!
 			if (gamestate == GS_LEVEL && netgame)
 			{
-				if (splitscreen && camera2.chase)
+				if ((splitscreen || splitscreen3 || splitscreen4) && camera2.chase)
 					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
+				if ((splitscreen3 || splitscreen4) && camera3.chase)
+					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
+				if (splitscreen4 && camera4.chase)
+					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera3, false);
 				if (camera.chase)
 					P_MoveChaseCamera(&players[displayplayer], &camera, false);
 			}
@@ -706,6 +713,8 @@ void D_StartTitle(void)
 		CL_ClearPlayer(i);
 
 	splitscreen = false;
+	splitscreen3 = false;
+	splitscreen4 = false;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;

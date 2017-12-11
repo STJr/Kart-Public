@@ -110,6 +110,10 @@ extern postimg_t postimgtype;
 extern INT32 postimgparam;
 extern postimg_t postimgtype2;
 extern INT32 postimgparam2;
+extern postimg_t postimgtype3;
+extern INT32 postimgparam3;
+extern postimg_t postimgtype4;
+extern INT32 postimgparam4;
 
 extern INT32 viewwindowx, viewwindowy;
 extern INT32 viewwidth, scaledviewwidth;

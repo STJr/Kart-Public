@@ -57,6 +57,8 @@ UINT8 botcolor;
 
 JoyType_t Joystick;
 JoyType_t Joystick2;
+JoyType_t Joystick3;
+JoyType_t Joystick4;
 
 // 1024 bytes is plenty for a savegame
 #define SAVEGAMESIZE (1024)
@@ -370,6 +372,8 @@ static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 
 consvar_t cv_crosshair = {"crosshair", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_crosshair2 = {"crosshair2", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_crosshair3 = {"crosshair3", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_crosshair4 = {"crosshair4", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse = {"invertmouse", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_alwaysfreelook = {"alwaysmlook", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse2 = {"invertmouse2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -955,6 +959,162 @@ static INT32 Joy2Axis(axis_input_e axissel)
 	}
 	if (flp) retaxis = -retaxis; //flip it around
 	return retaxis;
+}
+
+static INT32 Joy3Axis(axis_input_e axissel)
+{
+	INT32 retaxis;
+	INT32 axisval;
+	boolean flp = false;
+
+	//find what axis to get
+	switch (axissel)
+	{
+	case AXISTURN:
+		axisval = cv_turnaxis3.value;
+		break;
+	case AXISMOVE:
+		axisval = cv_moveaxis3.value;
+		break;
+	case AXISLOOK:
+		axisval = cv_lookaxis3.value;
+		break;
+	case AXISSTRAFE:
+		axisval = cv_sideaxis3.value;
+		break;
+	case AXISFIRE:
+		axisval = cv_fireaxis3.value;
+		break;
+	case AXISFIRENORMAL:
+		axisval = cv_firenaxis3.value;
+		break;
+	default:
+		return 0;
+	}
+
+
+	if (axisval < 0) //odd -axises
+	{
+		axisval = -axisval;
+		flp = true;
+	}
+#ifdef _arch_dreamcast
+	if (axisval == 7) // special case
+	{
+		retaxis = joy3xmove[1] - joy3ymove[1];
+		goto skipDC;
+	}
+	else
+#endif
+		if (axisval > JOYAXISSET*2 || axisval == 0) //not there in array or None
+			return 0;
+
+	if (axisval%2)
+	{
+		axisval /= 2;
+		retaxis = joy3xmove[axisval];
+	}
+	else
+	{
+		axisval--;
+		axisval /= 2;
+		retaxis = joy3ymove[axisval];
+	}
+
+#ifdef _arch_dreamcast
+	skipDC:
+#endif
+
+		  if (retaxis < (-JOYAXISRANGE))
+			  retaxis = -JOYAXISRANGE;
+		  if (retaxis > (+JOYAXISRANGE))
+			  retaxis = +JOYAXISRANGE;
+		  if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
+		  {
+			  const INT32 jdeadzone = JOYAXISRANGE/4;
+			  if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				  return 0;
+		  }
+		  if (flp) retaxis = -retaxis; //flip it around
+		  return retaxis;
+}
+
+static INT32 Joy3Axis(axis_input_e axissel)
+{
+	INT32 retaxis;
+	INT32 axisval;
+	boolean flp = false;
+
+	//find what axis to get
+	switch (axissel)
+	{
+	case AXISTURN:
+		axisval = cv_turnaxis4.value;
+		break;
+	case AXISMOVE:
+		axisval = cv_moveaxis4.value;
+		break;
+	case AXISLOOK:
+		axisval = cv_lookaxis4.value;
+		break;
+	case AXISSTRAFE:
+		axisval = cv_sideaxis4.value;
+		break;
+	case AXISFIRE:
+		axisval = cv_fireaxis4.value;
+		break;
+	case AXISFIRENORMAL:
+		axisval = cv_firenaxis4.value;
+		break;
+	default:
+		return 0;
+	}
+
+
+	if (axisval < 0) //odd -axises
+	{
+		axisval = -axisval;
+		flp = true;
+	}
+#ifdef _arch_dreamcast
+	if (axisval == 7) // special case
+	{
+		retaxis = joy4xmove[1] - joy4ymove[1];
+		goto skipDC;
+	}
+	else
+#endif
+		if (axisval > JOYAXISSET*2 || axisval == 0) //not there in array or None
+			return 0;
+
+	if (axisval%2)
+	{
+		axisval /= 2;
+		retaxis = joy4xmove[axisval];
+	}
+	else
+	{
+		axisval--;
+		axisval /= 2;
+		retaxis = joy4ymove[axisval];
+	}
+
+#ifdef _arch_dreamcast
+	skipDC:
+#endif
+
+		  if (retaxis < (-JOYAXISRANGE))
+			  retaxis = -JOYAXISRANGE;
+		  if (retaxis > (+JOYAXISRANGE))
+			  retaxis = +JOYAXISRANGE;
+		  if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
+		  {
+			  const INT32 jdeadzone = JOYAXISRANGE/4;
+			  if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				  return 0;
+		  }
+		  if (flp) retaxis = -retaxis; //flip it around
+		  return retaxis;
 }
 
 
@@ -1680,6 +1840,26 @@ static void UserAnalog2_OnChange(void)
 		CV_SetValue(&cv_analog2, 0);
 }
 
+static void UserAnalog3_OnChange(void)
+{
+	if (botingame)
+		return;
+	if (cv_useranalog3.value)
+		CV_SetValue(&cv_analog3, 1);
+	else
+		CV_SetValue(&cv_analog3, 0);
+}
+
+static void UserAnalog4_OnChange(void)
+{
+	if (botingame)
+		return;
+	if (cv_useranalog4.value)
+		CV_SetValue(&cv_analog4, 1);
+	else
+		CV_SetValue(&cv_analog4, 0);
+}
+
 static void Analog_OnChange(void)
 {
 	if (!cv_cam_dist.string)
@@ -1702,7 +1882,7 @@ static void Analog_OnChange(void)
 
 static void Analog2_OnChange(void)
 {
-	if (!(splitscreen || botingame) || !cv_cam2_dist.string)
+	if (!((splitscreen || splitscreen3 || splitscreen4) || botingame) || !cv_cam2_dist.string)
 		return;
 
 	// cameras are not initialized at this point
@@ -1718,6 +1898,46 @@ static void Analog2_OnChange(void)
 		players[secondarydisplayplayer].pflags &= ~PF_ANALOGMODE;
 
 	SendWeaponPref2();
+}
+
+static void Analog3_OnChange(void)
+{
+	if (!((splitscreen3 || splitscreen4) || botingame) || !cv_cam3_dist.string)
+		return;
+
+	// cameras are not initialized at this point
+
+	if (!cv_chasecam3.value && cv_analog3.value) {
+		CV_SetValue(&cv_analog3, 0);
+		return;
+	}
+
+	if (cv_analog3.value)
+		players[thirddisplayplayer].pflags |= PF_ANALOGMODE;
+	else
+		players[thirddisplayplayer].pflags &= ~PF_ANALOGMODE;
+
+	SendWeaponPref3();
+}
+
+static void Analog4_OnChange(void)
+{
+	if (!(splitscreen4 || botingame) || !cv_cam4_dist.string)
+		return;
+
+	// cameras are not initialized at this point
+
+	if (!cv_chasecam4.value && cv_analog4.value) {
+		CV_SetValue(&cv_analog4, 0);
+		return;
+	}
+
+	if (cv_analog4.value)
+		players[fourthdisplayplayer].pflags |= PF_ANALOGMODE;
+	else
+		players[fourthdisplayplayer].pflags &= ~PF_ANALOGMODE;
+
+	SendWeaponPref4();
 }
 
 //
@@ -1768,8 +1988,12 @@ void G_DoLoadLevel(boolean resetplayer)
 
 	if (camera.chase)
 		P_ResetCamera(&players[displayplayer], &camera);
-	if (camera2.chase && splitscreen)
+	if (camera2.chase && (splitscreen || splitscreen3 || splitscreen4))
 		P_ResetCamera(&players[secondarydisplayplayer], &camera2);
+	if (camera3.chase && (splitscreen3 || splitscreen4))
+		P_ResetCamera(&players[thirddisplayplayer], &camera3);
+	if (camera4.chase && splitscreen4)
+		P_ResetCamera(&players[fourthdisplayplayer], &camera4);
 
 	// clear cmd building stuff
 	memset(gamekeydown, 0, sizeof (gamekeydown));
@@ -1777,6 +2001,8 @@ void G_DoLoadLevel(boolean resetplayer)
 	{
 		joyxmove[i] = joyymove[i] = 0;
 		joy2xmove[i] = joy2ymove[i] = 0;
+		joy3xmove[i] = joy3ymove[i] = 0;
+		joy4xmove[i] = joy4ymove[i] = 0;
 	}
 	mousex = mousey = 0;
 	mouse2x = mouse2y = 0;
@@ -1786,7 +2012,7 @@ void G_DoLoadLevel(boolean resetplayer)
 }
 
 static INT32 pausedelay = 0;
-static INT32 camtoggledelay, camtoggledelay2 = 0;
+static INT32 camtoggledelay, camtoggledelay2, camtoggledelay3, camtoggledelay4 = 0;
 
 //
 // G_Responder
@@ -1797,7 +2023,7 @@ boolean G_Responder(event_t *ev)
 	// allow spy mode changes even during the demo
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12)
 	{
-		if (splitscreen || !netgame)
+		if ((splitscreen || splitscreen3 || splitscreen4) || !netgame)
 			displayplayer = consoleplayer;
 		else
 		{
@@ -1972,6 +2198,24 @@ boolean G_Responder(event_t *ev)
 				{
 					camtoggledelay2 = NEWTICRATE / 7;
 					CV_SetValue(&cv_chasecam2, cv_chasecam2.value ? 0 : 1);
+				}
+			}
+			if (ev->data1 == gamecontrol3[gc_camtoggle][0]
+				|| ev->data1 == gamecontrol3[gc_camtoggle][1])
+			{
+				if (!camtoggledelay3)
+				{
+					camtoggledelay3 = NEWTICRATE / 7;
+					CV_SetValue(&cv_chasecam3, cv_chasecam3.value ? 0 : 1);
+				}
+			}
+			if (ev->data1 == gamecontrol4[gc_camtoggle][0]
+				|| ev->data1 == gamecontrol4[gc_camtoggle][1])
+			{
+				if (!camtoggledelay4)
+				{
+					camtoggledelay4 = NEWTICRATE / 7;
+					CV_SetValue(&cv_chasecam4, cv_chasecam4.value ? 0 : 1);
 				}
 			}
 			return true;
@@ -2508,13 +2752,13 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 	{
 		if (nummapthings)
 		{
-			if (playernum == consoleplayer || (splitscreen && playernum == secondarydisplayplayer))
+			if (playernum == consoleplayer || ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer) || ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer) || (splitscreen4 && playernum == fourthdisplayplayer))
 				CONS_Alert(CONS_ERROR, M_GetText("No player spawns found, spawning at the first mapthing!\n"));
 			spawnpoint = &mapthings[0];
 		}
 		else
 		{
-			if (playernum == consoleplayer || (splitscreen && playernum == secondarydisplayplayer))
+			if (playernum == consoleplayer || ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer) || ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer) || (splitscreen4 && playernum == fourthdisplayplayer))
 				CONS_Alert(CONS_ERROR, M_GetText("No player spawns found, spawning at the origin!\n"));
 			//P_MovePlayerToSpawn handles this fine if the spawnpoint is NULL.
 		}
@@ -2713,8 +2957,12 @@ void G_DoReborn(INT32 playernum)
 
 			if (camera.chase)
 				P_ResetCamera(&players[displayplayer], &camera);
-			if (camera2.chase && splitscreen)
+			if (camera2.chase && (splitscreen || splitscreen3 || splitscreen4))
 				P_ResetCamera(&players[secondarydisplayplayer], &camera2);
+			if (camera3.chase && (splitscreen3 || splitscreen4))
+				P_ResetCamera(&players[thirddisplayplayer], &camera3);
+			if (camera4.chase && splitscreen4)
+				P_ResetCamera(&players[fourthdisplayplayer], &camera4);
 
 			// clear cmd building stuff
 			memset(gamekeydown, 0, sizeof (gamekeydown));
@@ -2722,6 +2970,8 @@ void G_DoReborn(INT32 playernum)
 			{
 				joyxmove[i] = joyymove[i] = 0;
 				joy2xmove[i] = joy2ymove[i] = 0;
+				joy3xmove[i] = joy3ymove[i] = 0;
+				joy4xmove[i] = joy4ymove[i] = 0;
 			}
 			mousex = mousey = 0;
 			mouse2x = mouse2y = 0;
@@ -3523,7 +3773,7 @@ static void M_ForceLoadGameResponse(INT32 ch)
 	cursaveslot = -1;
 
 	displayplayer = consoleplayer;
-	multiplayer = splitscreen = false;
+	multiplayer = splitscreen = splitscreen3 = splitscreen4 = false;
 
 	if (setsizeneeded)
 		R_ExecuteSetViewSize();
@@ -3611,7 +3861,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 //	gameaction = ga_nothing;
 //	G_SetGamestate(GS_LEVEL);
 	displayplayer = consoleplayer;
-	multiplayer = splitscreen = false;
+	multiplayer = splitscreen = splitscreen3 = splitscreen4 = false;
 
 //	G_DeferedInitNew(sk_medium, G_BuildMapName(1), 0, 0, 1);
 	if (setsizeneeded)
