@@ -206,6 +206,7 @@ INT32 boostealtime = TICRATE/2;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
 INT32 comebacktime = 10*TICRATE;
+INT32 wipeouttime = 20;
 
 INT32 gameovertics = 15*TICRATE;
 
@@ -2203,6 +2204,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 offroad;
 	INT32 balloon;
 	INT32 comebackpoints;
+	INT32 comebackshowninfo;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2260,6 +2262,7 @@ void G_PlayerReborn(INT32 player)
 	offroad = players[player].kartstuff[k_offroad];
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
+	comebackshowninfo = players[player].kartstuff[k_comebackshowninfo];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2316,8 +2319,10 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
+
 	p->kartstuff[k_balloon] = balloon;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
+	p->kartstuff[k_comebackshowninfo] = comebackshowninfo;
 	p->kartstuff[k_comebacktimer] = comebacktime;
 
 	// Don't do anything immediately

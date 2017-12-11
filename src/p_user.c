@@ -3665,7 +3665,7 @@ void P_DoJump(player_t *player, boolean soundandstate)
 	if (!player->jumpfactor)
 		return;
 
-	if (player->kartstuff[k_spinouttimer]) // SRB2kart
+	if (player->kartstuff[k_spinouttimer] || player->kartstuff[k_wipeouttimer]) // SRB2kart
 		return;
 
 	/* // SRB2kart - climbing in a kart?
@@ -4636,7 +4636,8 @@ static void P_3dMovement(player_t *player)
 
 	cmd = &player->cmd;
 
-	if (player->exiting || player->pflags & PF_STASIS || player->kartstuff[k_spinouttimer]) // pw_introcam?
+	if (player->exiting || player->pflags & PF_STASIS
+		|| player->kartstuff[k_spinouttimer] || player->kartstuff[k_wipeouttimer]) // pw_introcam?
 	{
 		cmd->forwardmove = cmd->sidemove = 0;
 		if (player->pflags & PF_GLIDING)
@@ -4868,7 +4869,7 @@ static void P_3dMovement(player_t *player)
 		P_Thrust(player->mo, movepushangle, movepushforward);
 #endif
 	}
-	else if (!player->kartstuff[k_spinouttimer])
+	else if (!(player->kartstuff[k_spinouttimer] || player->kartstuff[k_wipeouttimer]))
 	{
 		K_MomentumToFacing(player);
 	}

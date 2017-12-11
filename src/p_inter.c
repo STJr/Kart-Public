@@ -2911,7 +2911,7 @@ static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, 
 }
 */
 
-static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
+/*static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
 {
 	if (!(inflictor && ((inflictor->flags & MF_MISSILE) || inflictor->player) && player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
 	{
@@ -2923,7 +2923,7 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 			S_StartSound(player->mo, sfx_spkdth);
 	}
 
-	/*if (source && source->player && !player->powers[pw_super]) //don't score points against super players
+	if (source && source->player && !player->powers[pw_super]) //don't score points against super players
 	{
 		// Award no points when players shoot each other when cv_friendlyfire is on.
 		if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
@@ -2939,11 +2939,11 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 			if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
 				P_AddPlayerScore(source->player, 1);
 		}
-	}*/
+	}
 
 	// Ring loss sound plays despite hitting spikes
 	P_PlayRinglossSound(player->mo); // Ringledingle!
-}
+}*/
 
 /** Damages an object, which may or may not be a player.
   * For melee attacks, source and inflictor are the same.
@@ -3202,8 +3202,17 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_TRIPLEREDSHIELD1 || inflictor->type == MT_TRIPLEREDSHIELD2 || inflictor->type == MT_TRIPLEREDSHIELD3
 				|| inflictor->player))
 			{
-				//K_WipeoutPlayer(player, source);
-				player->kartstuff[k_spinouttype] = 1;
+				fixed_t tmomx = inflictor->momx;
+				fixed_t tmomy = inflictor->momy;
+				fixed_t tmomz = inflictor->momz;
+
+				K_KartBouncing(target, inflictor, false);
+				K_WipeoutPlayer(player, source);
+
+				inflictor->momx = tmomx;
+				inflictor->momy = tmomy;
+				inflictor->momz = tmomz;
+				/*player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
@@ -3213,7 +3222,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				{
 					quake.intensity = 32*FRACUNIT;
 					quake.time = 5;
-				}
+				}*/
 			}
 			else
 			{

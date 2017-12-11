@@ -2867,7 +2867,7 @@ static void P_PlayerZMovement(mobj_t *mo)
 					// Cut momentum in half when you hit the ground and
 					// aren't pressing any controls.
 					if (!(mo->player->cmd.forwardmove || mo->player->cmd.sidemove) && !mo->player->cmomx && !mo->player->cmomy
-						&& !(mo->player->pflags & PF_SPINNING) && !(mo->player->kartstuff[k_spinouttimer]))
+						&& !(mo->player->pflags & PF_SPINNING) && !(mo->player->kartstuff[k_spinouttimer] || mo->player->kartstuff[k_wipeouttimer]))
 					{
 						mo->momx = mo->momx/2;
 						mo->momy = mo->momy/2;
@@ -5921,6 +5921,13 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 
 	if (!dest || dest->health <= 0 || !dest->player || !source->tracer)
 		return;
+
+	if (dest->player && dest->player->kartstuff[k_comebackmode] == 1)
+	{
+		P_TeleportMove(source, dest->x+dest->momx, dest->y+dest->momy, dest->z+dest->momz);
+		source->angle = dest->angle;
+		return;
+	}
 
 	// change angle
 	source->angle = R_PointToAngle2(source->x, source->y, tx, ty);
@@ -9491,6 +9498,9 @@ void P_SpawnPlayer(INT32 playernum)
 	P_SetTarget(&overheadarrow->target, mobj);
 	overheadarrow->flags2 |= MF2_DONTDRAW;
 	P_SetScale(overheadarrow, mobj->destscale);
+
+	if (leveltime < 1)
+		p->kartstuff[k_comebackshowninfo] = 0;
 
 	if (gametype != GT_RACE)
 	{

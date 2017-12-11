@@ -981,6 +981,7 @@ static const struct {
 	{"RACE",TOL_RACE},
 
 	{"MATCH",TOL_MATCH},
+	{"BATTLE",TOL_MATCH}, // SRB2kart
 	{"TAG",TOL_TAG},
 	{"CTF",TOL_CTF},
 
@@ -6426,6 +6427,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW_ROULETTE",
 
 	"S_PLAYERBOMB", // Player bomb overlay
+	"S_PLAYERBOMB_WHEEL",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7326,6 +7328,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"THROWDIR",
 	"CAMSPIN",
 	"LAPANIMATION",
+	"CARDANIMATION",
 	"SOUNDS",
 
 	"BOOSTING",
@@ -7354,6 +7357,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"GOLDSHROOMTIMER",
 	"STARTIMER",
 	"SPINOUTTIMER",
+	"WIPEOUTTIMER",
 	"LASERWISPTIMER",
 	"JUSTBUMPED",
 	"POWERITEMTIMER",

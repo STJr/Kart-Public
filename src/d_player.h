@@ -276,7 +276,7 @@ typedef enum
 	k_goldshroomtimer,	// Gold Mushroom duration timer
 	k_startimer,		// Invincibility timer
 	k_spinouttimer,		// Spin-out from a banana peel or oil slick (was "pw_bananacam")
-	//k_wipeouttimer,		// Wipe-out from a shell, waits a short amount of time before making you stop and spinning out in place
+	k_wipeouttimer,		// Wipe-out from a shell, waits a short amount of time before making you stop and spinning out in place
 	k_laserwisptimer,	// The duration and relative angle of the laser
 	k_justbumped,		// Prevent players from endlessly bumping into each other
 	k_poweritemtimer,	// Battle mode, how long before you're allowed another power item (Star, Megashroom)
