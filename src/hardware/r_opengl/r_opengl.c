@@ -2013,7 +2013,9 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
-		if (stransform->flip)
+		if (stransform->mirror)
+			pglScalef(-stransform->scalex, stransform->scaley, -stransform->scalez);
+		else if (stransform->flip)
 			pglScalef(stransform->scalex, -stransform->scaley, -stransform->scalez);
 		else
 			pglScalef(stransform->scalex, stransform->scaley, -stransform->scalez);
