@@ -8992,6 +8992,9 @@ static void P_CalcPostImg(player_t *player)
 			*param = 5;
 	}
 #endif
+	
+	if (cv_kartmirror.value) // srb2kart
+		*type = postimg_mirror;
 }
 
 /*void P_DoPityCheck(player_t *player)

@@ -981,6 +981,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
 
 	axis = JoyAxis(AXISTURN);
+
+	if (cv_kartmirror.value)
+	{
+		turnright = PLAYER1INPUTDOWN(gc_turnleft);
+		turnleft = PLAYER1INPUTDOWN(gc_turnright);
+		axis = -axis;
+	}
+
 	if (gamepadjoystickmove && axis != 0)
 	{
 		turnright = turnright || (axis > 0);
@@ -1253,8 +1261,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	if (cv_kartmirror.value)
+		cmd->sidemove = -cmd->sidemove;
+
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN);
+	if (cv_kartmirror.value)
+		axis = -axis;
 
 	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
@@ -1329,6 +1342,14 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
 
 	axis = Joy2Axis(AXISTURN);
+	
+	if (cv_kartmirror.value)
+	{
+		turnright = PLAYER2INPUTDOWN(gc_turnleft);
+		turnleft = PLAYER2INPUTDOWN(gc_turnright);
+		axis = -axis;
+	}
+
 	if (gamepadjoystickmove && axis != 0)
 	{
 		turnright = turnright || (axis > 0);
@@ -1585,8 +1606,13 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	if (cv_kartmirror.value)
+		cmd->sidemove = -cmd->sidemove;
+
 	//{ SRB2kart - Drift support
 	axis = Joy2Axis(AXISTURN);
+	if (cv_kartmirror.value)
+		axis = -axis;
 
 	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;

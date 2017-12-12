@@ -2124,6 +2124,21 @@ Unoptimized version
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
 				vid.width*vid.bpp, height, vid.width*vid.bpp, vid.width);
 	}
+	else if (type == postimg_mirror) // Flip the screen on the x axis
+	{
+		UINT8 *tmpscr = screens[4];
+		UINT8 *srcscr = screens[0];
+		INT32 y, x, x2;
+
+		for (y = yoffset; y < yoffset+height; y++)
+		{
+			for (x = 0, x2 = (vid.width*vid.bpp)-1; x < (vid.width*vid.bpp); x++, x2--)
+				tmpscr[y*vid.width + x2] = srcscr[y*vid.width + x];
+		}
+
+		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
+				vid.width*vid.bpp, height, vid.width*vid.bpp, vid.width);
+	}
 #endif
 }
 

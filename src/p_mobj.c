@@ -3581,7 +3581,9 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
-	if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
+	if (cv_kartmirror.value)
+		postimg = postimg_mirror;
+	else if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
 		postimg = postimg_flip;
 	else if (player->awayviewtics)
 	{

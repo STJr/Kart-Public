@@ -112,6 +112,7 @@ extern consvar_t cv_kartcc;
 extern consvar_t cv_kartballoons;
 extern consvar_t cv_kartfrantic;
 extern consvar_t cv_kartcomeback;
+extern consvar_t cv_kartmirror;
 extern consvar_t cv_speedometer;
 
 extern consvar_t cv_collideminimum;
