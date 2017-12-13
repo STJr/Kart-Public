@@ -3202,17 +3202,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_TRIPLEREDSHIELD1 || inflictor->type == MT_TRIPLEREDSHIELD2 || inflictor->type == MT_TRIPLEREDSHIELD3
 				|| inflictor->player))
 			{
-				fixed_t tmomx = inflictor->momx;
-				fixed_t tmomy = inflictor->momy;
-				fixed_t tmomz = inflictor->momz;
-
-				K_KartBouncing(target, inflictor, false);
-				K_WipeoutPlayer(player, source);
-
-				inflictor->momx = tmomx;
-				inflictor->momy = tmomy;
-				inflictor->momz = tmomz;
-				/*player->kartstuff[k_spinouttype] = 1;
+				player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
@@ -3222,7 +3212,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				{
 					quake.intensity = 32*FRACUNIT;
 					quake.time = 5;
-				}*/
+				}
 			}
 			else
 			{

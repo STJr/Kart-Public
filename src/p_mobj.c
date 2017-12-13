@@ -2867,7 +2867,7 @@ static void P_PlayerZMovement(mobj_t *mo)
 					// Cut momentum in half when you hit the ground and
 					// aren't pressing any controls.
 					if (!(mo->player->cmd.forwardmove || mo->player->cmd.sidemove) && !mo->player->cmomx && !mo->player->cmomy
-						&& !(mo->player->pflags & PF_SPINNING) && !(mo->player->kartstuff[k_spinouttimer] || mo->player->kartstuff[k_wipeouttimer]))
+						&& !(mo->player->pflags & PF_SPINNING) && !(mo->player->kartstuff[k_spinouttimer]))
 					{
 						mo->momx = mo->momx/2;
 						mo->momy = mo->momy/2;

@@ -1627,12 +1627,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true; // underneath
 
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
-				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer] || thing->player->kartstuff[k_wipeouttimer]
+				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
 				|| (gametype != GT_RACE && (thing->player->kartstuff[k_balloon] <= 0
 				&& (thing->player->kartstuff[k_comebacktimer] || thing->player->kartstuff[k_comebackmode] == 1)))
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
-				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer] || tmthing->player->kartstuff[k_wipeouttimer]
+				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer]
 				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped]
 				|| (gametype != GT_RACE && (tmthing->player->kartstuff[k_balloon] <= 0
 				&& (tmthing->player->kartstuff[k_comebacktimer] || tmthing->player->kartstuff[k_comebackmode] == 1))))

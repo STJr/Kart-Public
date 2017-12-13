@@ -1456,23 +1456,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
 		player->powers[pw_flashing]--;
 
-	if (player->kartstuff[k_wipeouttimer])
-	{
-		if (player->kartstuff[k_wipeouttimer] == 1)
-		{
-			if (P_IsObjectOnGround(player->mo))
-			{
-				player->kartstuff[k_wipeouttimer] = 0;
-				P_PlayRinglossSound(player->mo);
-				player->kartstuff[k_spinouttype] = 1;
-				K_SpinPlayer(player, NULL);
-				player->mo->momx = player->mo->momy = 0;
-			}
-		}
-		else
-			player->kartstuff[k_wipeouttimer]--;
-	}
-
 	if (player->kartstuff[k_magnettimer])
 		player->kartstuff[k_magnettimer]--;
 
@@ -1816,7 +1799,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-		|| player->kartstuff[k_wipeouttimer] > 0 || player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
 		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
@@ -1874,48 +1857,13 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 	return;
 }
 
-void K_WipeoutPlayer(player_t *player, mobj_t *source)
-{
-	if (player->health <= 0)
-		return;
-
-	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-		|| player->kartstuff[k_wipeouttimer] > 0 || player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
-		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
-		return;
-
-	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
-	{
-		S_StartSound(source, sfx_hitem);
-		source->player->kartstuff[k_sounds] = 50;
-	}
-
-	if (gametype != GT_RACE)
-	{
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
-	}
-
-	P_PlayerRingBurst(player, 5);
-
-	if (P_IsLocalPlayer(player))
-	{
-		quake.intensity = 32*FRACUNIT;
-		quake.time = 5;
-	}
-
-	player->kartstuff[k_wipeouttimer] = wipeouttime+1;
-
-	return;
-}
-
 void K_SquishPlayer(player_t *player, mobj_t *source)
 {
 	if (player->health <= 0)
 		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_startimer] > 0
-		|| player->kartstuff[k_wipeouttimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+		|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
 		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
@@ -1959,7 +1907,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		return;
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-		|| player->kartstuff[k_wipeouttimer] > 0 || player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
 		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
@@ -2038,10 +1986,10 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 			return;
 
 		if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-			|| player->kartstuff[k_wipeouttimer] > 0 || player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
+			|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
 			|| (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
 			|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || (victim->kartstuff[k_spinouttimer] > 0 && victim->kartstuff[k_spinout] > 0)
-			|| victim->kartstuff[k_wipeouttimer] > 0 || victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootimer] > 0))
+			|| victim->kartstuff[k_startimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_bootimer] > 0))
 			return;
 	}
 
@@ -2915,7 +2863,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	}
 
 	// Stop drifting
-	if (player->kartstuff[k_spinouttimer] > 0 || player->kartstuff[k_wipeouttimer] > 0 // banana peel
+	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
 		|| player->speed < (10<<16)) // you're too slow!
 	{
 		player->kartstuff[k_drift] = 0;
@@ -3148,7 +3096,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	else if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
 
-	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_wipeouttimer] == 0)
+	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
 
 // Magnet
