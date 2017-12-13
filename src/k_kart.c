@@ -4776,9 +4776,12 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	if (diff < ANGLE_90 || diff > ANGLE_270)
 		return -320;
 	else
-		x = (FixedMul(FINETANGENT(((diff+ANGLE_90)>>ANGLETOFINESHIFT) & 4095), 160<<FRACBITS) + (160<<FRACBITS));
+		x = (FixedMul(FINETANGENT(((diff+ANGLE_90)>>ANGLETOFINESHIFT) & 4095), 160<<FRACBITS) + (160<<FRACBITS))>>FRACBITS;
 
-	return (x>>FRACBITS);
+	if (cv_kartmirror.value)
+		x = 320-x;
+
+	return x;
 }
 
 static void K_drawKartPlayerCheck(void)
@@ -4920,7 +4923,10 @@ static void K_drawStartLakitu(void)
 	else
 		adjustY = 200;
 
-	V_DrawSmallScaledPatch(LAKI_X, STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
+	if (cv_kartmirror.value)
+		V_DrawSmallScaledPatch(320-LAKI_X, STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP|V_FLIP, localpatch);
+	else
+		V_DrawSmallScaledPatch(LAKI_X, STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
 }
 
 static void K_drawLapLakitu(void)
@@ -4990,7 +4996,10 @@ static void K_drawLapLakitu(void)
 			adjustY = 200;
 	}
 
-	V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
+	if (cv_kartmirror.value)
+		V_DrawSmallScaledPatch(320-(LAKI_X+14+(swoopTimer/4)), STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP|V_FLIP, localpatch);
+	else
+		V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), STRINGY(LAKI_Y + adjustY), V_SNAPTOTOP, localpatch);
 }
 
 void K_drawKartHUD(void)
@@ -5016,11 +5025,11 @@ void K_drawKartHUD(void)
 			
 		if (stplyr->kartstuff[k_lapanimation])
 			K_drawLapLakitu();
-
-		// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
-		if (cv_kartcheck.value)
-			K_drawKartPlayerCheck();
 	}
+
+	// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
+	if (cv_kartcheck.value)
+		K_drawKartPlayerCheck();
 
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])

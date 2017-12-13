@@ -2911,7 +2911,7 @@ static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, 
 }
 */
 
-/*static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
+static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
 {
 	if (!(inflictor && ((inflictor->flags & MF_MISSILE) || inflictor->player) && player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
 	{
@@ -2943,7 +2943,7 @@ static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, 
 
 	// Ring loss sound plays despite hitting spikes
 	P_PlayRinglossSound(player->mo); // Ringledingle!
-}*/
+}
 
 /** Damages an object, which may or may not be a player.
   * For melee attacks, source and inflictor are the same.
