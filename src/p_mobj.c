@@ -6507,7 +6507,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 
 					// Actor's distance from its Target, or Radius.
-					radius = FixedDiv(7, mobj->target->scale)*FRACUNIT;
+					radius = 7*mobj->target->scale;
 
 					// Switch blue flames to red flames
 					if (mobj->target->player && mobj->type == MT_DRIFT
@@ -6532,8 +6532,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 
 					// Shrink if the player shrunk too.
-					if (mobj->target->player)
-						mobj->scale = mobj->target->scale;
+					mobj->scale = mobj->target->scale;
 
 					P_UnsetThingPosition(mobj);
 					{
@@ -8466,9 +8465,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	mobj->destscale = mobj->scale;
 	mobj->scalespeed = FRACUNIT/12;
 
-	// TODO: Make this a special map header
-	if ((maptol & TOL_ERZ3) && !(mobj->type == MT_BLACKEGGMAN))
-		mobj->destscale = FRACUNIT/2;
+	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
+		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
 
 	// set subsector and/or block links
 	P_SetThingPosition(mobj);
@@ -8737,9 +8735,8 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 	mobj->destscale = mobj->scale;
 	mobj->scalespeed = FRACUNIT/12;
 
-	// TODO: Make this a special map header
-	if ((maptol & TOL_ERZ3) && !(mobj->type == MT_BLACKEGGMAN))
-		mobj->destscale = FRACUNIT/2;
+	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
+		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
 
 	// set subsector and/or block links
 	P_SetThingPosition(mobj);

@@ -1479,7 +1479,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
 	{
-		player->mo->destscale = FRACUNIT;
+		player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
 		P_RestoreMusic(player);
 	}
 
@@ -3524,21 +3524,21 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25))
 		{
 			if (leveltime & 2)
-				player->mo->destscale = FRACUNIT*3/2;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
 			else
-				player->mo->destscale = FRACUNIT;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale);
 		}
 		else if (player->kartstuff[k_growshrinktimer] > 26
 			&& player->kartstuff[k_growshrinktimer] <= ((itemtime + TICRATE*2) - 25))
-			player->mo->destscale = FRACUNIT*3/2;
+			player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
 		// Megashroom - Back to normal...
 		else if (player->kartstuff[k_growshrinktimer] > 1
 			&& player->kartstuff[k_growshrinktimer] <= 26)
 		{
 			if (leveltime & 2)
-				player->mo->destscale = FRACUNIT;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale);
 			else
-				player->mo->destscale = FRACUNIT*3/2;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
 		}
 		if (player->kartstuff[k_growshrinktimer] == 26)
 			S_StartSound(player->mo, sfx_mario8);
@@ -3671,7 +3671,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		player->kartstuff[k_boostcharge] = 0;
 	// Increase your size while charging your engine.
 	if (leveltime < 150)
-		player->mo->destscale = FRACUNIT + (player->kartstuff[k_boostcharge]*655);
+		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*655);
 
 	// Determine the outcome of your charge.
 	if (leveltime > 140 && player->kartstuff[k_boostcharge])

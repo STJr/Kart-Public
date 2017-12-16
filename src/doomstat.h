@@ -246,13 +246,14 @@ typedef struct
 	UINT8 numGradedMares;   ///< Internal. For grade support.
 	nightsgrades_t *grades; ///< NiGHTS grades. Allocated dynamically for space reasons. Be careful.
 
+	// SRB2kart
+	//boolean automap;    ///< Displays a level's white map outline in modified games
+	fixed_t mobj_scale; ///< Replacement for TOL_ERZ3 
+
 	// Lua stuff.
 	// (This is not ifdeffed so the map header structure can stay identical, just in case.)
 	UINT8 numCustomOptions;     ///< Internal. For Lua custom value support.
 	customoption_t *customopts; ///< Custom options. Allocated dynamically for space reasons. Be careful.
-
-	// SRB2kart
-	boolean automap;      ///< Displays a level's white map outline in modified games
 } mapheader_t;
 
 // level flags
@@ -290,9 +291,9 @@ enum TypeOfLevel
 	TOL_2D     = 0x0100, ///< 2D
 	TOL_MARIO  = 0x0200, ///< Mario
 	TOL_NIGHTS = 0x0400, ///< NiGHTS
-	TOL_ERZ3   = 0x0800, ///< ERZ3
-	TOL_XMAS   = 0x1000, ///< Christmas NiGHTS
-	TOL_KART   = 0x4000  ///< Kart 32768
+	//TOL_ERZ3   = 0x0800, ///< ERZ3
+	TOL_XMAS   = 0x1000 ///< Christmas NiGHTS
+	//TOL_KART   = 0x4000  ///< Kart 32768
 };
 
 // Gametypes
