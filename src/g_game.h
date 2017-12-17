@@ -69,8 +69,7 @@ extern consvar_t cv_ghost_bestscore, cv_ghost_besttime, cv_ghost_last, cv_ghost_
 
 // build an internal map name MAPxx from map number
 const char *G_BuildMapName(INT32 map);
-void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics);
-void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics);
+void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer);
 
 // copy ticcmd_t to and fro the normal way
 ticcmd_t *G_CopyTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n);
@@ -82,7 +81,7 @@ INT16 G_ClipAimingPitch(INT32 *aiming);
 INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 
 extern angle_t localangle, localangle2, localangle3, localangle4;
-extern INT32 localaiming, localaiming2; // should be an angle_t but signed
+extern INT32 localaiming, localaiming2, localaiming3, localaiming4; // should be an angle_t but signed
 
 //
 // GAME
@@ -103,7 +102,7 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost);
 // Can be called by the startup code or M_Responder.
 // A normal game starts at map 1, but a warp test can start elsewhere
 void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar,
-	boolean SSSG, boolean FLS);
+	UINT8 ssplayers, boolean FLS);
 void G_DoLoadLevel(boolean resetplayer);
 
 void G_DeferedPlayDemo(const char *demo);

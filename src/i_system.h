@@ -76,9 +76,17 @@ void I_OsPolling(void);
 */
 ticcmd_t *I_BaseTiccmd(void);
 
-/**	\brief Input for the sencond player
+/**	\brief Input for the second player
 */
 ticcmd_t *I_BaseTiccmd2(void);
+
+/**	\brief Input for the third player
+*/
+ticcmd_t *I_BaseTiccmd3(void);
+
+/**	\brief Input for the fourth player
+*/
+ticcmd_t *I_BaseTiccmd4(void);
 
 /**	\brief Called by M_Responder when quit is selected, return exit code 0
 */

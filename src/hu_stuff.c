@@ -39,7 +39,7 @@
 #include "am_map.h"
 #include "d_main.h"
 
-#include "p_local.h" // camera, camera2
+#include "p_local.h" // camera, camera2, camera3, camera4
 #include "p_tick.h"
 
 #ifdef HWRENDER

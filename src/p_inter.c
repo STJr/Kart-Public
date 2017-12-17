@@ -951,6 +951,10 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						localangle = toucher->angle;
 					else if (player == &players[secondarydisplayplayer])
 						localangle2 = toucher->angle;
+					else if (player == &players[thirddisplayplayer])
+						localangle3 = toucher->angle;
+					else if (player == &players[fourthdisplayplayer])
+						localangle4 = toucher->angle;
 
 					P_ResetPlayer(player);
 

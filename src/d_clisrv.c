@@ -95,8 +95,8 @@ UINT32 playerpingtable[MAXPLAYERS]; //table of player latency values.
 #endif
 SINT8 nodetoplayer[MAXNETNODES];
 SINT8 nodetoplayer2[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
-SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
-SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
+SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen3)
+SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen4)
 UINT8 playerpernode[MAXNETNODES]; // used specialy for scplitscreen
 boolean nodeingame[MAXNETNODES]; // set false as nodes leave game
 static tic_t nettics[MAXNETNODES]; // what tic the client have received
@@ -121,14 +121,16 @@ UINT8 hu_resynching = 0;
 // Client specific
 static ticcmd_t localcmds;
 static ticcmd_t localcmds2;
+static ticcmd_t localcmds3;
+static ticcmd_t localcmds4;
 static boolean cl_packetmissed;
 // here it is for the secondary local player (splitscreen)
 static UINT8 mynode; // my address pointofview server
 
 static UINT8 localtextcmd[MAXTEXTCMD];
 static UINT8 localtextcmd2[MAXTEXTCMD]; // splitscreen
-static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen
-static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen
+static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen3
+static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen4
 static tic_t neededtic;
 SINT8 servernode = 0; // the number of the server node
 /// \brief do we accept new players?
@@ -438,6 +440,8 @@ void D_ResetTiccmds(void)
 
 	memset(&localcmds, 0, sizeof(ticcmd_t));
 	memset(&localcmds2, 0, sizeof(ticcmd_t));
+	memset(&localcmds3, 0, sizeof(ticcmd_t));
+	memset(&localcmds4, 0, sizeof(ticcmd_t));
 
 	// Reset the net command list
 	for (i = 0; i < TEXTCMD_HASH_SIZE; i++)
@@ -1218,7 +1222,11 @@ static boolean CL_SendJoin(void)
 		CONS_Printf(M_GetText("Sending join request...\n"));
 	netbuffer->packettype = PT_CLIENTJOIN;
 
-	if (splitscreen || botingame)
+	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
+		localplayers++;
+	if (splitscreen3 || splitscreen4)
+		localplayers++;
+	if (splitscreen4)
 		localplayers++;
 	netbuffer->u.clientcfg.localplayers = localplayers;
 	netbuffer->u.clientcfg.version = VERSION;
@@ -2701,7 +2709,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	// Is playernum authorized to make this kick?
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
 		&& !(playerpernode[playernode[playernum]] == 2
-		&& nodetoplayer2[playernode[playernum]] == pnum))
+		&& nodetoplayer2[playernode[playernum]] == pnum
+		&& nodetoplayer3[playernode[playernum]] == pnum
+		&& nodetoplayer4[playernode[playernum]] == pnum))
 	{
 		// We received a kick command from someone who isn't the
 		// server or admin, and who isn't in splitscreen removing
@@ -2927,6 +2937,8 @@ static void ResetNode(INT32 node)
 	nodeingame[node] = false;
 	nodetoplayer[node] = -1;
 	nodetoplayer2[node] = -1;
+	nodetoplayer3[node] = -1;
+	nodetoplayer4[node] = -1;
 	nettics[node] = gametic;
 	supposedtics[node] = gametic;
 	nodewaiting[node] = 0;
@@ -2962,6 +2974,7 @@ void SV_ResetServer(void)
 		playeringame[i] = false;
 		playernode[i] = UINT8_MAX;
 		sprintf(player_names[i], "Player %d", i + 1);
+		adminplayers[i] = -1; // Populate the entire adminplayers array with -1.
 	}
 
 	mynode = 0;
@@ -3089,7 +3102,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	// Clear player before joining, lest some things get set incorrectly
 	// HACK: don't do this for splitscreen, it relies on preset values
-	if ((!splitscreen || !splitscreen3 || !splitscreen4) && !botingame)
+	if (!(splitscreen || splitscreen3 || splitscreen4) && !botingame)
 		CL_ClearPlayer(newplayernum);
 	playeringame[newplayernum] = true;
 	G_AddPlayer(newplayernum);
@@ -3185,7 +3198,7 @@ static boolean SV_AddWaitingPlayers(void)
 			buf[1] = newplayernum;
 			if (playerpernode[node] < 1)
 				nodetoplayer[node] = newplayernum;
-			else
+			else if (playerpernode[node] < 2)
 			{
 				nodetoplayer2[node] = newplayernum;
 				buf[1] |= 0x80;
@@ -3209,14 +3222,14 @@ void CL_AddSplitscreenPlayer(void)
 		CL_SendJoin();
 }
 
-void CL_RemoveSplitscreenPlayer(void)
+void CL_RemoveSplitscreenPlayer(UINT8 p)
 {
 	XBOXSTATIC UINT8 buf[2];
 
 	if (cl_mode != CL_CONNECTED)
 		return;
 
-	buf[0] = (UINT8)secondarydisplayplayer;
+	buf[0] = p;
 	buf[1] = KICK_MSG_PLAYER_QUIT;
 	SendNetXCmd(XD_KICK, &buf, 2);
 }
@@ -3229,10 +3242,6 @@ boolean Playing(void)
 
 boolean SV_SpawnServer(void)
 {
-	INT32 i;
-	for (i = 0; i < MAXPLAYERS; i++)
-		adminplayers[i] = -1; // Populate the entire adminplayers array with -1.
-
 	if (demoplayback)
 		G_StopDemo(); // reset engine parameter
 	if (metalplayback)
@@ -3271,6 +3280,8 @@ void SV_StopServer(void)
 
 	localtextcmd[0] = 0;
 	localtextcmd2[0] = 0;
+	localtextcmd3[0] = 0;
+	localtextcmd4[0] = 0;
 
 	for (i = 0; i < BACKUPTICS; i++)
 		D_Clearticcmd(i);
@@ -4256,7 +4267,6 @@ static void CL_SendClientCmd(void)
 		{
 			netbuffer->packettype += 2;
 			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
-			packetsize = sizeof (client2cmd_pak);
 		}
 		else
 			packetsize = sizeof (clientcmd_pak);
@@ -4415,17 +4425,15 @@ static void Local_Maketic(INT32 realtics)
 	                   // and G_MapEventsToControls
 	if (!dedicated) rendergametic = gametic;
 	// translate inputs (keyboard/mouse/joystick) into game controls
-	G_BuildTiccmd(&localcmds, realtics);
+	G_BuildTiccmd(&localcmds, realtics, 1);
 	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
 	{
-		G_BuildTiccmd2(&localcmds2, realtics);
-
+		G_BuildTiccmd(&localcmds2, realtics, 2);
 		if (splitscreen3 || splitscreen4)
 		{
-			G_BuildTiccmd3(&localcmds3, realtics);
-
+			G_BuildTiccmd(&localcmds3, realtics, 3);
 			if (splitscreen4)
-				G_BuildTiccmd4(&localcmds4, realtics);
+				G_BuildTiccmd(&localcmds4, realtics, 4);
 		}
 	}
 

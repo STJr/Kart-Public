@@ -1893,7 +1893,9 @@ static void ST_overlayDrawer(void)
 
 		// This is where we draw all the fun cheese if you have the chasecam off!
 		if ((stplyr == &players[displayplayer] && !camera.chase)
-			|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase))
+			|| (((splitscreen || splitscreen3 || splitscreen4) && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
+			|| (((splitscreen3 || splitscreen4) && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
+			|| ((splitscreen4 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		{
 			ST_drawFirstPersonHUD();
 		}

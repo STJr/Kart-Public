@@ -1249,6 +1249,26 @@ static void P_PlayerFlip(mobj_t *mo)
 					camera2.z += FixedMul(20*FRACUNIT, mo->scale);
 			}
 		}
+		else if (mo->player-players == thirddisplayplayer)
+		{
+			localaiming3 = mo->player->aiming;
+			if (camera3.chase) {
+				camera3.aiming = InvAngle(camera3.aiming);
+				camera3.z = mo->z - camera3.z + mo->z;
+				if (mo->eflags & MFE_VERTICALFLIP)
+					camera3.z += FixedMul(20*FRACUNIT, mo->scale);
+			}
+		}
+		else if (mo->player-players == fourthdisplayplayer)
+		{
+			localaiming4 = mo->player->aiming;
+			if (camera4.chase) {
+				camera4.aiming = InvAngle(camera4.aiming);
+				camera4.z = mo->z - camera4.z + mo->z;
+				if (mo->eflags & MFE_VERTICALFLIP)
+					camera4.z += FixedMul(20*FRACUNIT, mo->scale);
+			}
+		}
 	}
 }
 
@@ -3578,7 +3598,9 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 	postimg_t postimg = postimg_none;
 	if (twodlevel
 		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD)))
+		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera3 && players[thirddisplayplayer].mo && (players[thirddisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
 	if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
@@ -9552,6 +9574,10 @@ void P_AfterPlayerSpawn(INT32 playernum)
 		localangle = mobj->angle;
 	else if (playernum == secondarydisplayplayer)
 		localangle2 = mobj->angle;
+	else if (playernum == thirddisplayplayer)
+		localangle3 = mobj->angle;
+	else if (playernum == fourthdisplayplayer)
+		localangle4 = mobj->angle;
 
 	p->viewheight = cv_viewheight.value<<FRACBITS;
 
@@ -9578,10 +9604,20 @@ void P_AfterPlayerSpawn(INT32 playernum)
 		if (displayplayer == playernum)
 			P_ResetCamera(p, &camera);
 	}
-	if (camera2.chase && splitscreen)
+	if (camera2.chase && (splitscreen || splitscreen3 || splitscreen4))
 	{
 		if (secondarydisplayplayer == playernum)
 			P_ResetCamera(p, &camera2);
+	}
+	if (camera3.chase && (splitscreen3 || splitscreen4))
+	{
+		if (thirddisplayplayer == playernum)
+			P_ResetCamera(p, &camera3);
+	}
+	if (camera4.chase && splitscreen4)
+	{
+		if (fourthdisplayplayer == playernum)
+			P_ResetCamera(p, &camera4);
 	}
 
 	if (CheckForReverseGravity)

@@ -107,6 +107,26 @@ typedef struct
 	ticcmd_t cmd, cmd2;
 } ATTRPACK client2cmd_pak;
 
+// Splitscreen3 packet
+// WARNING: must have the same format of clientcmd_pak, for more easy use
+typedef struct
+{
+	UINT8 client_tic;
+	UINT8 resendfrom;
+	INT16 consistancy;
+	ticcmd_t cmd, cmd2, cmd3;
+} ATTRPACK client3cmd_pak;
+
+// Splitscreen4 packet
+// WARNING: must have the same format of clientcmd_pak, for more easy use
+typedef struct
+{
+	UINT8 client_tic;
+	UINT8 resendfrom;
+	INT16 consistancy;
+	ticcmd_t cmd, cmd2, cmd3, cmd4;
+} ATTRPACK client4cmd_pak;
+
 #ifdef _MSC_VER
 #pragma warning(disable :  4200)
 #endif
@@ -397,6 +417,8 @@ typedef struct
 	{
 		clientcmd_pak clientpak;            //         144 bytes
 		client2cmd_pak client2pak;          //         200 bytes
+		client3cmd_pak client3pak;          //         256 bytes(?)
+		client4cmd_pak client4pak;          //         312 bytes(?)
 		servertics_pak serverpak;           //      132495 bytes (more around 360, no?)
 		serverconfig_pak servercfg;         //         773 bytes
 		resynchend_pak resynchend;          //
@@ -488,7 +510,7 @@ void SV_SpawnPlayer(INT32 playernum, INT32 x, INT32 y, angle_t angle);
 void SV_StopServer(void);
 void SV_ResetServer(void);
 void CL_AddSplitscreenPlayer(void);
-void CL_RemoveSplitscreenPlayer(void);
+void CL_RemoveSplitscreenPlayer(UINT8 p);
 void CL_Reset(void);
 void CL_ClearPlayer(INT32 playernum);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);

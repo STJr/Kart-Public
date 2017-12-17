@@ -636,7 +636,7 @@ void D_SRB2Loop(void)
 				if ((splitscreen3 || splitscreen4) && camera3.chase)
 					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
 				if (splitscreen4 && camera4.chase)
-					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera3, false);
+					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
 				if (camera.chase)
 					P_MoveChaseCamera(&players[displayplayer], &camera, false);
 			}

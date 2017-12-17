@@ -67,7 +67,7 @@ fixed_t viewx, viewy, viewz;
 angle_t viewangle, aimingangle;
 fixed_t viewcos, viewsin;
 boolean viewsky, skyVisible;
-boolean skyVisible1, skyVisible2; // saved values of skyVisible for P1 and P2, for splitscreen
+boolean skyVisible1, skyVisible2, skyVisible3, skyVisible4; // saved values of skyVisible for P1/P2/P3/P4, for splitscreen
 sector_t *viewsector;
 player_t *viewplayer;
 
@@ -178,10 +178,10 @@ void SplitScreen_OnChange(void)
 {
 	if (!cv_debug && netgame)
 	{
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 		{
 			CONS_Alert(CONS_NOTICE, M_GetText("Splitscreen not supported in netplay, sorry!\n"));
-			splitscreen = false;
+			splitscreen = splitscreen3 = splitscreen4 = false;
 		}
 		return;
 	}
@@ -191,23 +191,50 @@ void SplitScreen_OnChange(void)
 
 	if (!demoplayback && !botingame)
 	{
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 			CL_AddSplitscreenPlayer();
 		else
-			CL_RemoveSplitscreenPlayer();
+			CL_RemoveSplitscreenPlayer(secondarydisplayplayer);
+
+		if (splitscreen3 || splitscreen4)
+			CL_AddSplitscreenPlayer();
+		else
+			CL_RemoveSplitscreenPlayer(thirddisplayplayer);
+
+		if (splitscreen4)
+			CL_AddSplitscreenPlayer();
+		else
+			CL_RemoveSplitscreenPlayer(fourthdisplayplayer);
 
 		if (server && !netgame)
-			multiplayer = splitscreen;
+			multiplayer = (splitscreen || splitscreen3 || splitscreen4);
 	}
 	else
 	{
 		INT32 i;
 		secondarydisplayplayer = consoleplayer;
+		thirddisplayplayer = consoleplayer;
+		fourthdisplayplayer = consoleplayer;
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && i != consoleplayer)
 			{
-				secondarydisplayplayer = i;
-				break;
+				if (secondarydisplayplayer == consoleplayer)
+				{
+					secondarydisplayplayer = i;
+					continue;
+				}
+				else if (thirddisplayplayer == consoleplayer)
+				{
+					thirddisplayplayer = i;
+					continue;
+				}
+				else if (fourthdisplayplayer == consoleplayer)
+				{
+					fourthdisplayplayer = i;
+					break;
+				}
+				else
+					break;
 			}
 	}
 }
@@ -232,8 +259,6 @@ static void ChaseCam2_OnChange(void)
 
 static void ChaseCam3_OnChange(void)
 {
-	if (botingame)
-		return;
 	if (!cv_chasecam3.value || !cv_useranalog3.value)
 		CV_SetValue(&cv_analog3, 0);
 	else
@@ -242,8 +267,6 @@ static void ChaseCam3_OnChange(void)
 
 static void ChaseCam4_OnChange(void)
 {
-	if (botingame)
-		return;
 	if (!cv_chasecam4.value || !cv_useranalog4.value)
 		CV_SetValue(&cv_analog4, 0);
 	else
@@ -634,8 +657,11 @@ void R_ExecuteSetViewSize(void)
 	scaledviewwidth = vid.width;
 	viewheight = vid.height;
 
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 		viewheight >>= 1;
+
+	if (splitscreen3 || splitscreen4)
+		viewwidth >>= 1;
 
 	viewwidth = scaledviewwidth;
 
@@ -803,8 +829,11 @@ void R_SkyboxFrame(player_t *player)
 	INT32 dy = 0;
 	camera_t *thiscam;
 
-	if (splitscreen && player == &players[secondarydisplayplayer]
-	&& player != &players[consoleplayer])
+	if (splitscreen4 && player == &players[fourthdisplayplayer])
+		thiscam = &camera4;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		thiscam = &camera3;
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		thiscam = &camera2;
 	else
 		thiscam = &camera;
@@ -844,6 +873,16 @@ void R_SkyboxFrame(player_t *player)
 			{
 				viewangle = localangle2;
 				aimingangle = localaiming2;
+			}
+			else if (player == &players[thirddisplayplayer])
+			{
+				viewangle = localangle3;
+				aimingangle = localaiming3;
+			}
+			else if (player == &players[fourthdisplayplayer])
+			{
+				viewangle = localangle4;
+				aimingangle = localaiming4;
 			}
 		}
 	}
@@ -1039,8 +1078,17 @@ void R_SetupFrame(player_t *player, boolean skybox)
 	camera_t *thiscam;
 	boolean chasecam = false;
 
-	if (splitscreen && player == &players[secondarydisplayplayer]
-		&& player != &players[consoleplayer])
+	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	{
+		thiscam = &camera4;
+		chasecam = (cv_chasecam4.value != 0);
+	}
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	{
+		thiscam = &camera3;
+		chasecam = (cv_chasecam3.value != 0);
+	}
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 	{
 		thiscam = &camera2;
 		chasecam = (cv_chasecam2.value != 0);
@@ -1104,6 +1152,16 @@ void R_SetupFrame(player_t *player, boolean skybox)
 			{
 				viewangle = localangle2;
 				aimingangle = localaiming2;
+			}
+			else if (player == &players[thirddisplayplayer])
+			{
+				viewangle = localangle3;
+				aimingangle = localaiming3;
+			}
+			else if (player == &players[fourthdisplayplayer])
+			{
+				viewangle = localangle4;
+				aimingangle = localaiming4;
 			}
 		}
 	}

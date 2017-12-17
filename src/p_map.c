@@ -216,6 +216,10 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 					localangle = spring->angle;
 				else if (object->player == &players[secondarydisplayplayer])
 					localangle2 = spring->angle;
+				else if (object->player == &players[thirddisplayplayer])
+					localangle3 = spring->angle;
+				else if (object->player == &players[fourthdisplayplayer])
+					localangle4 = spring->angle;
 			}
 		}
 
@@ -2511,7 +2515,9 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 
 	if (twodlevel
 		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD)))
+		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera3 && players[thirddisplayplayer].mo && (players[thirddisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
 	if (!itsatwodlevel && players[displayplayer].mo)
@@ -2520,7 +2526,9 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 		fixed_t tryy = thiscam->y;
 
 		if ((thiscam == &camera && (players[displayplayer].pflags & PF_NOCLIP))
-		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP)))
+		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP))
+		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
+		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP)))
 		{ // Noclipping player camera noclips too!!
 			floatok = true;
 			thiscam->floorz = thiscam->z;
@@ -3481,6 +3489,10 @@ isblocking:
 						localangle = slidemo->angle;
 					else if (slidemo->player == &players[secondarydisplayplayer])
 						localangle2 = slidemo->angle;
+					else if (slidemo->player == &players[thirddisplayplayer])
+						localangle3 = slidemo->angle;
+					else if (slidemo->player == &players[fourthdisplayplayer])
+						localangle4 = slidemo->angle;
 				}
 
 				if (!slidemo->player->climbing)
