@@ -2365,13 +2365,33 @@ static void P_ForceCharacter(const char *forcecharskin)
 	}
 	else
 	{
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 		{
 			SetPlayerSkin(secondarydisplayplayer, forcecharskin);
 			if ((unsigned)cv_playercolor2.value != skins[players[secondarydisplayplayer].skin].prefcolor && !modeattacking)
 			{
 				CV_StealthSetValue(&cv_playercolor2, skins[players[secondarydisplayplayer].skin].prefcolor);
 				players[secondarydisplayplayer].skincolor = skins[players[secondarydisplayplayer].skin].prefcolor;
+			}
+		}
+
+		if (splitscreen3 || splitscreen4)
+		{
+			SetPlayerSkin(thirddisplayplayer, forcecharskin);
+			if ((unsigned)cv_playercolor3.value != skins[players[thirddisplayplayer].skin].prefcolor && !modeattacking)
+			{
+				CV_StealthSetValue(&cv_playercolor3, skins[players[thirddisplayplayer].skin].prefcolor);
+				players[thirddisplayplayer].skincolor = skins[players[thirddisplayplayer].skin].prefcolor;
+			}
+		}
+
+		if (splitscreen4)
+		{
+			SetPlayerSkin(fourthdisplayplayer, forcecharskin);
+			if ((unsigned)cv_playercolor4.value != skins[players[fourthdisplayplayer].skin].prefcolor && !modeattacking)
+			{
+				CV_StealthSetValue(&cv_playercolor4, skins[players[fourthdisplayplayer].skin].prefcolor);
+				players[fourthdisplayplayer].skincolor = skins[players[fourthdisplayplayer].skin].prefcolor;
 			}
 		}
 

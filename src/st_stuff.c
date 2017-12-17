@@ -1993,9 +1993,21 @@ void ST_Drawer(void)
 		stplyr = &players[displayplayer];
 		ST_overlayDrawer();
 
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 		{
 			stplyr = &players[secondarydisplayplayer];
+			ST_overlayDrawer();
+		}
+
+		if (splitscreen3 || splitscreen4)
+		{
+			stplyr = &players[thirddisplayplayer];
+			ST_overlayDrawer();
+		}
+
+		if (splitscreen4)
+		{
+			stplyr = &players[fourthdisplayplayer];
 			ST_overlayDrawer();
 		}
 	}

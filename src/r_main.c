@@ -1349,7 +1349,11 @@ void R_RenderPlayerView(player_t *player)
 	}
 
 	// load previous saved value of skyVisible for the player
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen4 && player == &players[fourthdisplayplayer])
+		skyVisible = skyVisible4;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		skyVisible = skyVisible3;
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		skyVisible = skyVisible2;
 	else
 		skyVisible = skyVisible1;
@@ -1455,7 +1459,11 @@ void R_RenderPlayerView(player_t *player)
 
 	// save value to skyVisible1 or skyVisible2
 	// this is so that P1 can't affect whether P2 can see a skybox or not, or vice versa
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen4 && player == &players[fourthdisplayplayer])
+		skyVisible4 = skyVisible;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		skyVisible3 = skyVisible;
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		skyVisible2 = skyVisible;
 	else
 		skyVisible1 = skyVisible;

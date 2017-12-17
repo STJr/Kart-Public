@@ -1351,6 +1351,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 					localangle = thing->angle;
 				else if (thing->player == &players[secondarydisplayplayer])
 					localangle2 = thing->angle;
+				else if (thing->player == &players[thirddisplayplayer])
+					localangle3 = thing->angle;
+				else if (thing->player == &players[fourthdisplayplayer])
+					localangle4 = thing->angle;
 			}
 
 			return true;

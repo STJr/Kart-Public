@@ -3630,8 +3630,12 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 	if (postimg != postimg_none)
 	{
-		if (splitscreen && player == &players[secondarydisplayplayer])
+		if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 			postimgtype2 = postimg;
+		else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+			postimgtype3 = postimg;
+		else if (splitscreen4 && player == &players[fourthdisplayplayer])
+			postimgtype4 = postimg;
 		else
 			postimgtype = postimg;
 	}
@@ -3678,6 +3682,10 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 				if (player == &players[secondarydisplayplayer])
 					cam_height = cv_cam2_height.value;
+				if (player == &players[thirddisplayplayer])
+					cam_height = cv_cam3_height.value;
+				if (player == &players[fourthdisplayplayer])
+					cam_height = cv_cam4_height.value;
 				if (thiscam->z > player->mo->z + player->mo->height + FixedMul(cam_height*FRACUNIT + 16*FRACUNIT, player->mo->scale))
 				{
 					if (!resetcalled)
@@ -6502,8 +6510,14 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (mobj->target->player->kartstuff[k_bootimer] > 0)
 					{
-						if ((mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
-							|| (!(mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
+						if ((mobj->target->player == &players[displayplayer]
+							|| ((splitscreen || splitscreen3 || splitscreen4) && mobj->target->player == &players[secondarydisplayplayer])
+							|| ((splitscreen3 || splitscreen4) && mobj->target->player == &players[thirddisplayplayer])
+							|| (splitscreen4 && mobj->target->player == &players[fourthdisplayplayer]))
+							|| (!(mobj->target->player == &players[displayplayer]
+							|| ((splitscreen || splitscreen3 || splitscreen4) && mobj->target->player == &players[secondarydisplayplayer])
+							|| ((splitscreen3 || splitscreen4) && mobj->target->player == &players[thirddisplayplayer])
+							|| (splitscreen4 && mobj->target->player == &players[fourthdisplayplayer]))
 							&& (mobj->target->player->kartstuff[k_bootimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
 						{
 							if (leveltime & 1)

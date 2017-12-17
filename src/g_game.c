@@ -1709,7 +1709,7 @@ static void Analog2_OnChange(void)
 
 static void Analog3_OnChange(void)
 {
-	if (!((splitscreen3 || splitscreen4) || botingame) || !cv_cam3_dist.string)
+	if (!(splitscreen3 || splitscreen4) || !cv_cam3_dist.string)
 		return;
 
 	// cameras are not initialized at this point
@@ -1729,7 +1729,7 @@ static void Analog3_OnChange(void)
 
 static void Analog4_OnChange(void)
 {
-	if (!(splitscreen4 || botingame) || !cv_cam4_dist.string)
+	if (!(splitscreen4) || !cv_cam4_dist.string)
 		return;
 
 	// cameras are not initialized at this point
@@ -2459,6 +2459,10 @@ void G_PlayerReborn(INT32 player)
 				CV_SetValue(&cv_playercolor, skincolor_redteam);
 			else if (p == &players[secondarydisplayplayer])
 				CV_SetValue(&cv_playercolor2, skincolor_redteam);
+			else if (p == &players[thirddisplayplayer])
+				CV_SetValue(&cv_playercolor3, skincolor_redteam);
+			else if (p == &players[fourthdisplayplayer])
+				CV_SetValue(&cv_playercolor4, skincolor_redteam);
 		}
 		else if (p->ctfteam == 2 && p->skincolor != skincolor_blueteam)
 		{
@@ -2466,6 +2470,10 @@ void G_PlayerReborn(INT32 player)
 				CV_SetValue(&cv_playercolor, skincolor_blueteam);
 			else if (p == &players[secondarydisplayplayer])
 				CV_SetValue(&cv_playercolor2, skincolor_blueteam);
+			else if (p == &players[thirddisplayplayer])
+				CV_SetValue(&cv_playercolor3, skincolor_blueteam);
+			else if (p == &players[fourthdisplayplayer])
+				CV_SetValue(&cv_playercolor4, skincolor_blueteam);
 		}
 	}
 }

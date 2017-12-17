@@ -601,6 +601,10 @@ static void P_DeNightserizePlayer(player_t *player)
 		localaiming = 0;
 	else if (player == &players[secondarydisplayplayer])
 		localaiming2 = 0;
+	else if (player == &players[thirddisplayplayer])
+		localaiming3 = 0;
+	else if (player == &players[fourthdisplayplayer])
+		localaiming4 = 0;
 
 	// If you screwed up, kiss your score goodbye.
 	player->marescore = 0;
@@ -1392,7 +1396,10 @@ fixed_t P_GetPlayerSpinHeight(player_t *player)
 //
 boolean P_IsLocalPlayer(player_t *player)
 {
-	return ((splitscreen && player == &players[secondarydisplayplayer]) || player == &players[consoleplayer]);
+	return ((splitscreen4 && player == &players[fourthdisplayplayer])
+		|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+		|| player == &players[consoleplayer]);
 }
 
 //
@@ -2365,7 +2372,8 @@ static void P_DoPlayerHeadSigns(player_t *player)
 		// If you're "IT", show a big "IT" over your head for others to see.
 		if (player->pflags & PF_TAGIT)
 		{
-			if (!(player == &players[consoleplayer] || player == &players[secondarydisplayplayer] || player == &players[displayplayer])) // Don't display it on your own view.
+			if (!(player == &players[consoleplayer] || player == &players[displayplayer] || player == &players[secondarydisplayplayer]
+				|| player == &players[thirddisplayplayer] || player == &players[fourthdisplayplayer])) // Don't display it on your own view.
 			{
 				if (!(player->mo->eflags & MFE_VERTICALFLIP))
 					P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height, MT_TAG);
@@ -6300,6 +6308,10 @@ static void P_NiGHTSMovement(player_t *player)
 		localaiming = movingangle;
 	else if (player == &players[secondarydisplayplayer])
 		localaiming2 = movingangle;
+	else if (player == &players[thirddisplayplayer])
+		localaiming3 = movingangle;
+	else if (player == &players[fourthdisplayplayer])
+		localaiming4 = movingangle;
 
 	player->mo->tracer->angle = player->mo->angle;
 
@@ -6791,7 +6803,10 @@ static void P_MovePlayer(player_t *player)
 				S_StartSound(player->mo, sfx_mkdrft);
 			// Ok, we'll stop now.
 			else if ((player->kartstuff[k_drift] == 0)
-			&& (player == &players[consoleplayer] || (splitscreen && player == &players[secondarydisplayplayer])))
+			&& (player == &players[consoleplayer]
+			|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+			|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+			|| (splitscreen4 && player == &players[fourthdisplayplayer])))
 				S_StopSoundByID(player->mo, sfx_mkdrft);
 		}
 	}
@@ -8491,20 +8506,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		dist = camdist;
 
-		if (splitscreen) // x1.5 dist for splitscreen
+		if (splitscreen || splitscreen3 || splitscreen4) // x1.5 dist for splitscreen
 		{
 			dist = FixedMul(dist, 3*FRACUNIT/2);
 			height = FixedMul(height, 3*FRACUNIT/2);
-		}
-		else if (splitscreen3) // x1.75 dist for 3p
-		{
-			dist = FixedMul(dist, 7*FRACUNIT/4);
-			height = FixedMul(height, 7*FRACUNIT/4);
-		}
-		else if (splitscreen4) // x2 dist for 4p
-		{
-			dist = FixedMul(dist, 2*FRACUNIT);
-			height = FixedMul(height, 2*FRACUNIT);
 		}
 
 		// x1.2 dist for analog
@@ -9010,7 +9015,17 @@ static void P_CalcPostImg(player_t *player)
 		pviewheight = player->awayviewmobj->z + 20*FRACUNIT;
 	}
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	{
+		type = &postimgtype4;
+		param = &postimgparam4;
+	}
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	{
+		type = &postimgtype3;
+		param = &postimgparam3;
+	}
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 	{
 		type = &postimgtype2;
 		param = &postimgparam2;

@@ -2727,6 +2727,20 @@ void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
 	(void)FFEffect;
 }
 
+void I_Tactile3(FFType pFFType, const JoyFF_t *FFEffect)
+{
+	// UNUSED.
+	(void)pFFType;
+	(void)FFEffect;
+}
+
+void I_Tactile4(FFType pFFType, const JoyFF_t *FFEffect)
+{
+	// UNUSED.
+	(void)pFFType;
+	(void)FFEffect;
+}
+
 /**	\brief empty ticcmd for player 1
 */
 static ticcmd_t emptycmd;
@@ -2743,6 +2757,24 @@ static ticcmd_t emptycmd2;
 ticcmd_t *I_BaseTiccmd2(void)
 {
 	return &emptycmd2;
+}
+
+/**	\brief empty ticcmd for player 3
+*/
+static ticcmd_t emptycmd3;
+
+ticcmd_t *I_BaseTiccmd3(void)
+{
+	return &emptycmd3;
+}
+
+/**	\brief empty ticcmd for player 4
+*/
+static ticcmd_t emptycmd4;
+
+ticcmd_t *I_BaseTiccmd4(void)
+{
+	return &emptycmd4;
 }
 
 #if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)

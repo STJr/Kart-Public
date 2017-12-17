@@ -2639,6 +2639,10 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);
 			else if (playernum == secondarydisplayplayer)
 				CV_StealthSetValue(&cv_playercolor2, skin->prefcolor);
+			else if (playernum == thirddisplayplayer)
+				CV_StealthSetValue(&cv_playercolor3, skin->prefcolor);
+			else if (playernum == fourthdisplayplayer)
+				CV_StealthSetValue(&cv_playercolor4, skin->prefcolor);
 			player->skincolor = skin->prefcolor;
 			if (player->mo)
 				player->mo->color = player->skincolor;

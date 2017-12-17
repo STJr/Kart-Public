@@ -2566,6 +2566,20 @@ FUNCMATH void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
 	(void)FFEffect;
 }
 
+FUNCMATH void I_Tactile3(FFType pFFType, const JoyFF_t *FFEffect)
+{
+	// UNUSED.
+	(void)pFFType;
+	(void)FFEffect;
+}
+
+FUNCMATH void I_Tactile4(FFType pFFType, const JoyFF_t *FFEffect)
+{
+	// UNUSED.
+	(void)pFFType;
+	(void)FFEffect;
+}
+
 /**	\brief empty ticcmd for player 1
 */
 static ticcmd_t emptycmd;
