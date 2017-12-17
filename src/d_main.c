@@ -424,11 +424,63 @@ static void D_Display(void)
 				}
 			}
 
+			// render the third screen
+			if ((splitscreen3 || splitscreen4) && players[thirddisplayplayer].mo)
+			{
+#ifdef HWRENDER
+				if (rendermode != render_soft)
+					HWR_RenderPlayerView(2, &players[thirddisplayplayer]);
+				//else
+#endif
+				/*if (rendermode != render_none)
+				{
+					if (splitscreen3 || splitscreen4)
+						viewwindowx = vid.width / 2;
+					viewwindowy = vid.height / 2;
+					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
+
+					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+
+					R_RenderPlayerView(&players[secondarydisplayplayer]);
+
+					viewwindowy = 0;
+					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+				}*/
+			}
+
+			// render the fourth screen
+			if (splitscreen4 && players[fourthdisplayplayer].mo)
+			{
+#ifdef HWRENDER
+				if (rendermode != render_soft)
+					HWR_RenderPlayerView(3, &players[fourthdisplayplayer]);
+				//else
+#endif
+				/*if (rendermode != render_none)
+				{
+					if (splitscreen3 || splitscreen4)
+						viewwindowx = vid.width / 2;
+					viewwindowy = vid.height / 2;
+					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
+
+					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+
+					R_RenderPlayerView(&players[secondarydisplayplayer]);
+
+					viewwindowy = 0;
+					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+				}*/
+			}
+
 			// Image postprocessing effect
 			if (postimgtype)
 				V_DoPostProcessor(0, postimgtype, postimgparam);
 			if (postimgtype2)
 				V_DoPostProcessor(1, postimgtype2, postimgparam2);
+			if (postimgtype3)
+				V_DoPostProcessor(2, postimgtype3, postimgparam3);
+			if (postimgtype4)
+				V_DoPostProcessor(3, postimgtype4, postimgparam4);
 		}
 
 		if (lastdraw)
