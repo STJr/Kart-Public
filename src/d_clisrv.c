@@ -3731,8 +3731,12 @@ FILESTAMP
 			break;
 		case PT_CLIENTCMD:
 		case PT_CLIENT2CMD:
+		case PT_CLIENT3CMD:
+		case PT_CLIENT4CMD:
 		case PT_CLIENTMIS:
 		case PT_CLIENT2MIS:
+		case PT_CLIENT3MIS:
+		case PT_CLIENT4MIS:
 		case PT_NODEKEEPALIVE:
 		case PT_NODEKEEPALIVEMIS:
 			if (client)
@@ -3793,10 +3797,23 @@ FILESTAMP
 			}
 
 			// Splitscreen cmd
-			if ((netbuffer->packettype == PT_CLIENT2CMD || netbuffer->packettype == PT_CLIENT2MIS)
+			if (((netbuffer->packettype == PT_CLIENT2CMD || netbuffer->packettype == PT_CLIENT2MIS)
+				|| (netbuffer->packettype == PT_CLIENT3CMD || netbuffer->packettype == PT_CLIENT3MIS)
+				|| (netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS))
 				&& nodetoplayer2[node] >= 0)
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]],
 					&netbuffer->u.client2pak.cmd2, 1);
+	
+			if (((netbuffer->packettype == PT_CLIENT3CMD || netbuffer->packettype == PT_CLIENT3MIS)
+				|| (netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS))
+				&& nodetoplayer3[node] >= 0)
+				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]],
+					&netbuffer->u.client3pak.cmd3, 1);
+
+			if ((netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS)
+				&& nodetoplayer4[node] >= 0)
+				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]],
+					&netbuffer->u.client4pak.cmd4, 1);
 
 			// A delay before we check resynching
 			// Used on join or just after a synch fail
@@ -4318,8 +4335,20 @@ static void CL_SendClientCmd(void)
 		G_MoveTiccmd(&netbuffer->u.clientpak.cmd, &localcmds, 1);
 		netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
 
-		// Send a special packet with 2 cmd for splitscreen
-		if (splitscreen || botingame)
+		if (splitscreen4)
+		{
+			netbuffer->packettype += 6;
+			G_MoveTiccmd(&netbuffer->u.client4pak.cmd2, &localcmds2, 1);
+			G_MoveTiccmd(&netbuffer->u.client4pak.cmd3, &localcmds3, 1);
+			G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
+		}
+		else if (splitscreen3)
+		{
+			netbuffer->packettype += 4;
+			G_MoveTiccmd(&netbuffer->u.client3pak.cmd2, &localcmds2, 1);
+			G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
+		}
+		else if (splitscreen || botingame) // Send a special packet with 2 cmd for splitscreen
 		{
 			netbuffer->packettype += 2;
 			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);

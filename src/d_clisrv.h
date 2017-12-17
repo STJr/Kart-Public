@@ -40,6 +40,10 @@ typedef enum
 	PT_CLIENTMIS,     // Same as above with but saying resend from.
 	PT_CLIENT2CMD,    // 2 cmds in the packet for splitscreen.
 	PT_CLIENT2MIS,    // Same as above with but saying resend from
+	PT_CLIENT3CMD,    // 3P
+	PT_CLIENT3MIS,
+	PT_CLIENT4CMD,    // 4P
+	PT_CLIENT4MIS, 
 	PT_NODEKEEPALIVE, // Same but without ticcmd and consistancy
 	PT_NODEKEEPALIVEMIS,
 	PT_SERVERTICS,    // All cmds for the tic.
@@ -109,7 +113,6 @@ typedef struct
 	ticcmd_t cmd, cmd2;
 } ATTRPACK client2cmd_pak;
 
-/*
 // Splitscreen3 packet
 // WARNING: must have the same format of clientcmd_pak, for more easy use
 typedef struct
@@ -129,7 +132,6 @@ typedef struct
 	INT16 consistancy;
 	ticcmd_t cmd, cmd2, cmd3, cmd4;
 } ATTRPACK client4cmd_pak;
-*/
 
 #ifdef _MSC_VER
 #pragma warning(disable :  4200)
@@ -421,8 +423,8 @@ typedef struct
 	{
 		clientcmd_pak clientpak;            //         144 bytes
 		client2cmd_pak client2pak;          //         200 bytes
-		//client3cmd_pak client3pak;          //         256 bytes(?)
-		//client4cmd_pak client4pak;          //         312 bytes(?)
+		client3cmd_pak client3pak;          //         256 bytes(?)
+		client4cmd_pak client4pak;          //         312 bytes(?)
 		servertics_pak serverpak;           //      132495 bytes (more around 360, no?)
 		serverconfig_pak servercfg;         //         773 bytes
 		resynchend_pak resynchend;          //

@@ -882,8 +882,12 @@ static void DebugPrintpacket(const char *header)
 		}
 		case PT_CLIENTCMD:
 		case PT_CLIENT2CMD:
+		case PT_CLIENT3CMD:
+		case PT_CLIENT4CMD:
 		case PT_CLIENTMIS:
 		case PT_CLIENT2MIS:
+		case PT_CLIENT3MIS:
+		case PT_CLIENT4MIS:
 		case PT_NODEKEEPALIVE:
 		case PT_NODEKEEPALIVEMIS:
 			fprintf(debugfile, "    tic %4u resendfrom %u\n",
