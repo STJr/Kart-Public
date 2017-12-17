@@ -2026,9 +2026,7 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 		pglLoadIdentity();
 		if (stransform->splitscreen == 1 && stransform->fovxangle == 90.0f);
 			special_splitscreen = stransform->splitscreen;
-		if (special_splitscreen > 1)
-			GLPerspective(53.13l, ASPECT_RATIO);
-		else if (special_splitscreen == 1)
+		if (special_splitscreen == 1)
 			GLPerspective(53.13l, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
 		else
 			GLPerspective(stransform->fovxangle, ASPECT_RATIO);
@@ -2043,7 +2041,7 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 
 		pglMatrixMode(GL_PROJECTION);
 		pglLoadIdentity();
-		if (special_splitscreen)
+		if (special_splitscreen == 1)
 			GLPerspective(53.13l, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
 		else
 			//Hurdler: is "fov" correct?
