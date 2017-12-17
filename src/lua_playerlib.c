@@ -381,6 +381,10 @@ static int player_set(lua_State *L)
 			localaiming = plr->aiming;
 		else if (plr == &players[secondarydisplayplayer])
 			localaiming2 = plr->aiming;
+		else if (plr == &players[thirddisplayplayer])
+			localaiming3 = plr->aiming;
+		else if (plr == &players[fourthdisplayplayer])
+			localaiming4 = plr->aiming;
 	}
 	else if (fastcmp(field,"health"))
 		plr->health = (INT32)luaL_checkinteger(L, 3);

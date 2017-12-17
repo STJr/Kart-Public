@@ -892,6 +892,8 @@ static void DebugPrintpacket(const char *header)
 			break;
 		case PT_TEXTCMD:
 		case PT_TEXTCMD2:
+		case PT_TEXTCMD3:
+		case PT_TEXTCMD4:
 			fprintf(debugfile, "    length %d\n    ", netbuffer->u.textcmd[0]);
 			fprintf(debugfile, "[%s]", netxcmdnames[netbuffer->u.textcmd[1] - 1]);
 			fprintfstringnewline((char *)netbuffer->u.textcmd + 2, netbuffer->u.textcmd[0] - 1);

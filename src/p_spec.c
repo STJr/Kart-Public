@@ -2511,7 +2511,8 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				if (line->flags & ML_NOCLIMB)
 				{
 					// play the sound from nowhere, but only if display player triggered it
-					if (mo && mo->player && (mo->player == &players[displayplayer] || mo->player == &players[secondarydisplayplayer]))
+					if (mo && mo->player && (mo->player == &players[displayplayer] || mo->player == &players[secondarydisplayplayer]
+						|| mo->player == &players[thirddisplayplayer] || mo->player == &players[fourthdisplayplayer]))
 						S_StartSound(NULL, sfxnum);
 				}
 				else if (line->flags & ML_EFFECT4)

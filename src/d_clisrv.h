@@ -66,6 +66,8 @@ typedef enum
 
 	PT_TEXTCMD,       // Extra text commands from the client.
 	PT_TEXTCMD2,      // Splitscreen text commands.
+	PT_TEXTCMD3,
+	PT_TEXTCMD4,
 	PT_CLIENTJOIN,    // Client wants to join; used in start game.
 	PT_NODETIMEOUT,   // Packet sent to self if the connection times out.
 	PT_RESYNCHING,    // Packet sent to resync players.
@@ -107,6 +109,7 @@ typedef struct
 	ticcmd_t cmd, cmd2;
 } ATTRPACK client2cmd_pak;
 
+/*
 // Splitscreen3 packet
 // WARNING: must have the same format of clientcmd_pak, for more easy use
 typedef struct
@@ -126,6 +129,7 @@ typedef struct
 	INT16 consistancy;
 	ticcmd_t cmd, cmd2, cmd3, cmd4;
 } ATTRPACK client4cmd_pak;
+*/
 
 #ifdef _MSC_VER
 #pragma warning(disable :  4200)
@@ -417,8 +421,8 @@ typedef struct
 	{
 		clientcmd_pak clientpak;            //         144 bytes
 		client2cmd_pak client2pak;          //         200 bytes
-		client3cmd_pak client3pak;          //         256 bytes(?)
-		client4cmd_pak client4pak;          //         312 bytes(?)
+		//client3cmd_pak client3pak;          //         256 bytes(?)
+		//client4cmd_pak client4pak;          //         312 bytes(?)
 		servertics_pak serverpak;           //      132495 bytes (more around 360, no?)
 		serverconfig_pak servercfg;         //         773 bytes
 		resynchend_pak resynchend;          //

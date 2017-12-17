@@ -1045,11 +1045,12 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
 	// spaces may have been removed
 	if (playernum == consoleplayer)
 		CV_StealthSet(&cv_playername, tmpname);
-	else if (playernum == secondarydisplayplayer
-		|| (!netgame && playernum == 1))
-	{
+	else if (playernum == secondarydisplayplayer || (!netgame && playernum == 1))
 		CV_StealthSet(&cv_playername2, tmpname);
-	}
+	else if (playernum == thirddisplayplayer || (!netgame && playernum == 2))
+		CV_StealthSet(&cv_playername3, tmpname);
+	else if (playernum == fourthdisplayplayer || (!netgame && playernum == 3))
+		CV_StealthSet(&cv_playername4, tmpname);
 	else I_Assert(((void)"CleanupPlayerName used on non-local player", 0));
 
 	Z_Free(buf);
@@ -1157,11 +1158,15 @@ static void ForceAllSkins(INT32 forcedskin)
 				CV_StealthSet(&cv_skin, skins[forcedskin].name);
 			else if (i == secondarydisplayplayer)
 				CV_StealthSet(&cv_skin2, skins[forcedskin].name);
+			else if (i == thirddisplayplayer)
+				CV_StealthSet(&cv_skin3, skins[forcedskin].name);
+			else if (i == fourthdisplayplayer)
+				CV_StealthSet(&cv_skin4, skins[forcedskin].name);
 		}
 	}
 }
 
-static INT32 snacpending = 0, snac2pending = 0, chmappending = 0;
+static INT32 snacpending = 0, snac2pending = 0, snac3pending = 0, snac4pending = 0, chmappending = 0;
 
 // name, color, or skin has changed
 //
@@ -1284,7 +1289,7 @@ static void SendNameAndColor2(void)
 {
 	INT32 secondplaya;
 
-	if ((!splitscreen || !splitscreen3 || !splitscreen4) && !botingame)
+	if (!(splitscreen || splitscreen3 || splitscreen4) && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
 	if (secondarydisplayplayer != consoleplayer)
@@ -1381,8 +1386,8 @@ static void SendNameAndColor3(void)
 {
 	INT32 thirdplaya;
 
-	if ((!splitscreen3 || !splitscreen4) && !botingame)
-		return; // can happen if skin2/color2/name2 changed
+	if (!(splitscreen3 || splitscreen4))
+		return; // can happen if skin3/color3/name3 changed
 
 	if (thirddisplayplayer != consoleplayer)
 		thirdplaya = thirddisplayplayer;
@@ -1414,15 +1419,7 @@ static void SendNameAndColor3(void)
 		return;
 
 	// If you're not in a netgame, merely update the skin, color, and name.
-	if (botingame)
-	{
-		players[thirdplaya].skincolor = botcolor;
-		if (players[thirdplaya].mo)
-			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
-		SetPlayerSkinByNum(thirdplaya, botskin-1);
-		return;
-	}
-	else if (!netgame && !modeattacking)
+	if (!netgame && !modeattacking)
 	{
 		INT32 foundskin;
 
@@ -1445,7 +1442,7 @@ static void SendNameAndColor3(void)
 		{
 			boolean notsame;
 
-			cv_skin2.value = foundskin;
+			cv_skin3.value = foundskin;
 
 			notsame = (cv_skin3.value != players[thirdplaya].skin);
 
@@ -1478,7 +1475,7 @@ static void SendNameAndColor4(void)
 {
 	INT32 fourthplaya;
 
-	if (!splitscreen4 && !botingame)
+	if (!splitscreen4)
 		return; // can happen if skin4/color4/name4 changed
 
 	if (fourthdisplayplayer != consoleplayer)
@@ -1586,9 +1583,13 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 		snacpending--;
 	else if (playernum == secondarydisplayplayer)
 		snac2pending--;
+	else if (playernum == thirddisplayplayer)
+		snac3pending--;
+	else if (playernum == fourthdisplayplayer)
+		snac4pending--;
 
 #ifdef PARANOIA
-	if (snacpending < 0 || snac2pending < 0)
+	if (snacpending < 0 || snac2pending < 0 || snac3pending < 0 || snac4pending < 0)
 		I_Error("snacpending negative!");
 #endif
 
@@ -1606,7 +1607,8 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 		p->mo->color = (UINT8)p->skincolor;
 
 	// normal player colors
-	if (server && (p != &players[consoleplayer] && p != &players[secondarydisplayplayer]))
+	if (server && (p != &players[consoleplayer] && p != &players[secondarydisplayplayer]
+		&& p != &players[thirddisplayplayer] && p != &players[fourthdisplayplayer]))
 	{
 		boolean kick = false;
 
@@ -1645,6 +1647,10 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 			CV_StealthSet(&cv_skin, skins[forcedskin].name);
 		else if (playernum == secondarydisplayplayer)
 			CV_StealthSet(&cv_skin2, skins[forcedskin].name);
+		else if (playernum == thirddisplayplayer)
+			CV_StealthSet(&cv_skin3, skins[forcedskin].name);
+		else if (playernum == fourthdisplayplayer)
+			CV_StealthSet(&cv_skin4, skins[forcedskin].name);
 	}
 	else
 		SetPlayerSkinByNum(playernum, skin);
@@ -2934,6 +2940,10 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 				CV_SetValue(&cv_playercolor, NetPacket.packet.newteam + 5);
 			else if (playernum == secondarydisplayplayer)
 				CV_SetValue(&cv_playercolor2, NetPacket.packet.newteam + 5);
+			else if (playernum == thirddisplayplayer)
+				CV_SetValue(&cv_playercolor3, NetPacket.packet.newteam + 5);
+			else if (playernum == fourthdisplayplayer)
+				CV_SetValue(&cv_playercolor4, NetPacket.packet.newteam + 5);
 		}
 	}
 
@@ -4607,7 +4617,7 @@ static void Skin_OnChange(void)
   */
 static void Skin2_OnChange(void)
 {
-	if (!Playing() || (!splitscreen || !splitscreen3 || !splitscreen4))
+	if (!Playing() || !(splitscreen || splitscreen3 || splitscreen4))
 		return; // do whatever you want
 
 	if (CanChangeSkin(secondarydisplayplayer) && !P_PlayerMoving(secondarydisplayplayer))
@@ -4621,7 +4631,7 @@ static void Skin2_OnChange(void)
 
 static void Skin3_OnChange(void)
 {
-	if (!Playing() || (!splitscreen3 || !splitscreen4))
+	if (!Playing() || !(splitscreen3 || splitscreen4))
 		return; // do whatever you want
 
 	if (CanChangeSkin(thirddisplayplayer) && !P_PlayerMoving(thirddisplayplayer))
@@ -4681,7 +4691,7 @@ static void Color_OnChange(void)
   */
 static void Color2_OnChange(void)
 {
-	if (!Playing() || (!splitscreen || !splitscreen3 || !splitscreen4))
+	if (!Playing() || !(splitscreen || splitscreen3 || splitscreen4))
 		return; // do whatever you want
 
 	if (!P_PlayerMoving(secondarydisplayplayer))
@@ -4698,7 +4708,7 @@ static void Color2_OnChange(void)
 
 static void Color3_OnChange(void)
 {
-	if (!Playing() || (!splitscreen3 || !splitscreen4))
+	if (!Playing() || !(splitscreen3 || splitscreen4))
 		return; // do whatever you want
 
 	if (!P_PlayerMoving(thirddisplayplayer))
