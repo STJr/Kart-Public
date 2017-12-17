@@ -229,7 +229,7 @@ void ST_doPaletteStuff(void)
 		if (rendermode != render_none)
 		{
 			V_SetPaletteLump(GetPalette()); // Reset the palette
-			if (!splitscreen)
+			if (!(splitscreen || splitscreen3 || splitscreen4))
 				V_SetPalette(palette);
 		}
 	}
@@ -445,7 +445,7 @@ static INT32 SCY(INT32 y)
 	// do not scale to resolution for hardware accelerated
 	// because these modes always scale by default
 	y = SCZ(y); // scale to resolution
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 	{
 		y >>= 1;
 		if (stplyr != &players[displayplayer])
@@ -459,7 +459,7 @@ static INT32 STRINGY(INT32 y)
 	//31/10/99: fixed by Hurdler so it _works_ also in hardware mode
 	// do not scale to resolution for hardware accelerated
 	// because these modes always scale by default
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 	{
 		y >>= 1;
 		if (stplyr != &players[displayplayer])
@@ -472,7 +472,7 @@ static INT32 STRINGY(INT32 y)
 static INT32 SPLITFLAGS(INT32 f)
 {
 	// Pass this V_SNAPTO(TOP|BOTTOM) and it'll trim them to account for splitscreen! -Red
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 	{
 		if (stplyr != &players[displayplayer])
 			f &= ~V_SNAPTOTOP;
@@ -496,7 +496,7 @@ static INT32 SCR(INT32 r)
 	// do not scale to resolution for hardware accelerated
 	// because these modes always scale by default
 	y = FixedMul(r*FRACUNIT, vid.fdupy); // scale to resolution
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 	{
 		y >>= 1;
 		if (stplyr != &players[displayplayer])
@@ -668,7 +668,7 @@ static void ST_drawTime(void)
 		ST_DrawPatchFromHudWS(HUD_TIMECOLON, sbocolon); // Colon
 		ST_DrawPadNumFromHudWS(HUD_SECONDS, seconds, 2); // Seconds
 
-		if (!splitscreen && (cv_timetic.value == 2 || modeattacking)) // there's not enough room for tics in splitscreen, don't even bother trying!
+		if (!(splitscreen || splitscreen3 || splitscreen4) && (cv_timetic.value == 2 || modeattacking)) // there's not enough room for tics in splitscreen, don't even bother trying!
 		{
 			ST_DrawPatchFromHud(HUD_TIMETICCOLON, sboperiod); // Period
 			ST_DrawPadNumFromHud(HUD_TICS, tictrn, 2); // Tics
@@ -700,7 +700,7 @@ static inline void ST_drawRings(void)
 /*
 static void ST_drawLives(void) // SRB2kart - unused.
 {
-	const INT32 v_splitflag = (splitscreen && stplyr == &players[displayplayer] ? V_SPLITSCREEN : 0);
+	const INT32 v_splitflag = ((splitscreen || splitscreen3 || splitscreen4) && stplyr == &players[displayplayer] ? V_SPLITSCREEN : 0);
 
 	if (!stplyr->skincolor)
 		return; // Just joined a server, skin isn't loaded yet!
@@ -838,7 +838,7 @@ static void ST_drawFirstPersonHUD(void)
 
 	if (p)
 	{
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 			V_DrawSmallScaledPatch(312, STRINGY(24), V_SNAPTORIGHT|V_SNAPTOTOP|V_HUDTRANS, p);
 		else
 			V_DrawScaledPatch(304, 24, V_SNAPTORIGHT|V_SNAPTOTOP|V_HUDTRANS, p);
@@ -848,7 +848,7 @@ static void ST_drawFirstPersonHUD(void)
 	invulntime = player->powers[pw_flashing] ? 1 : player->powers[pw_invulnerability];
 	if (invulntime > 3*TICRATE || (invulntime && leveltime & 1))
 	{
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 			V_DrawSmallScaledPatch(312, STRINGY(24) + 14, V_SNAPTORIGHT|V_SNAPTOTOP|V_HUDTRANS, invincibility);
 		else
 			V_DrawScaledPatch(304, 24 + 28, V_SNAPTORIGHT|V_SNAPTOTOP|V_HUDTRANS, invincibility);
@@ -856,7 +856,7 @@ static void ST_drawFirstPersonHUD(void)
 
 	if (player->powers[pw_sneakers] > 3*TICRATE || (player->powers[pw_sneakers] && leveltime & 1))
 	{
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 			V_DrawSmallScaledPatch(312, STRINGY(24) + 28, V_SNAPTORIGHT|V_SNAPTOTOP|V_HUDTRANS, sneakers);
 		else
 			V_DrawScaledPatch(304, 24 + 56, V_SNAPTORIGHT|V_SNAPTOTOP|V_HUDTRANS, sneakers);
@@ -1620,11 +1620,11 @@ static void ST_drawCTFHUD(void) // SRB2kart - unused.
 static inline void ST_drawTeamName(void)
 {
 	if (stplyr->ctfteam == 1)
-		V_DrawString(256, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "RED TEAM");
+		V_DrawString(256, (splitscreen || splitscreen3 || splitscreen4) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "RED TEAM");
 	else if (stplyr->ctfteam == 2)
-		V_DrawString(248, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "BLUE TEAM");
+		V_DrawString(248, (splitscreen || splitscreen3 || splitscreen4) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "BLUE TEAM");
 	else
-		V_DrawString(244, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "SPECTATOR");
+		V_DrawString(244, (splitscreen || splitscreen3 || splitscreen4) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "SPECTATOR");
 }
 
 /*
@@ -1914,7 +1914,7 @@ static void ST_overlayDrawer(void)
 	)
 		ST_drawLevelTitle();
 
-	if (!hu_showscores && !splitscreen && netgame && displayplayer == consoleplayer)
+	if (!hu_showscores && !(splitscreen || splitscreen3 || splitscreen4) && netgame && displayplayer == consoleplayer)
 	{
 		if (G_GametypeUsesLives() && stplyr->lives <= 0 && countdown != 1)
 			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), 0, M_GetText("Press F12 to watch another player."));

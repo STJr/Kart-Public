@@ -1663,7 +1663,7 @@ void P_DoPlayerExit(player_t *player)
 
 		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
 		{
-			if (!splitscreen)
+			if (!(splitscreen || splitscreen3 || splitscreen4))
 			{
 				if (player->kartstuff[k_position] == 1)
 					S_ChangeMusicInternal("karwin", true);
@@ -2388,7 +2388,7 @@ static void P_DoPlayerHeadSigns(player_t *player)
 		{
 			// Spawn a got-flag message over the head of the player that
 			// has it (but not on your own screen if you have the flag).
-			if (splitscreen || player != &players[consoleplayer])
+			if ((splitscreen || splitscreen3 || splitscreen4) || player != &players[consoleplayer])
 			{
 				if (player->gotflag & GF_REDFLAG)
 				{
@@ -8840,7 +8840,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 	// Make player translucent if camera is too close (only in single player).
-	/*if (!(multiplayer || netgame) && !splitscreen)
+	/*if (!(multiplayer || netgame) && !(splitscreen || splitscreen3 || splitscreen4))
 	{
 		fixed_t vx = 0, vy = 0;
 		if (player->awayviewtics) {
@@ -9377,7 +9377,7 @@ void P_PlayerThink(player_t *player)
 			player->realtime = 0;
 	}
 
-	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
+	if ((netgame || (splitscreen || splitscreen3 || splitscreen4)) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		if (P_SpectatorJoinGame(player))
 			return; // player->mo was removed.
@@ -9619,7 +9619,10 @@ void P_PlayerThink(player_t *player)
 	if (!(player->pflags & PF_NIGHTSMODE))
 	{
 		// SRB2kart - fixes boo not flashing when it should. Mega doesn't flash either. Flashing is local.
-		if ((player == &players[displayplayer] || (splitscreen && player == &players[secondarydisplayplayer]))
+		if ((player == &players[displayplayer]
+			|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+			|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+			|| (splitscreen4 && player == &players[fourthdisplayplayer]))
 			&& player->kartstuff[k_bootimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
 			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
 		{

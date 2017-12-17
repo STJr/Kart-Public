@@ -401,7 +401,7 @@ static void D_Display(void)
 			}
 
 			// render the second screen
-			if (splitscreen && players[secondarydisplayplayer].mo)
+			if ((splitscreen || splitscreen3 || splitscreen4) && players[secondarydisplayplayer].mo)
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)
@@ -410,6 +410,8 @@ static void D_Display(void)
 #endif
 				if (rendermode != render_none)
 				{
+					if (splitscreen3 || splitscreen4)
+						viewwindowx = vid.width / 2;
 					viewwindowy = vid.height / 2;
 					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
 

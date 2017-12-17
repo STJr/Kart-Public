@@ -6136,7 +6136,7 @@ void P_RunOverlays(void)
 
 		if (!mo->target)
 			continue;
-		if (!splitscreen /*&& rendermode != render_soft*/)
+		if (!(splitscreen || splitscreen3 || splitscreen4) /*&& rendermode != render_soft*/)
 		{
 			angle_t viewingangle;
 
@@ -6779,8 +6779,7 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					if ((splitscreen || !netgame)
-						|| gametype == GT_RACE
+					if (!netgame || gametype == GT_RACE
 						|| mobj->target->player == &players[displayplayer]
 						|| mobj->target->player->kartstuff[k_balloon] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
@@ -8096,7 +8095,7 @@ void P_MobjThinker(mobj_t *mobj)
 								CONS_Printf(M_GetText("The %c%s%c has returned to base.\n"), 0x85, M_GetText("Red flag"), 0x80);
 
 							// Assumedly in splitscreen players will be on opposing teams
-							if (players[consoleplayer].ctfteam == 1 || splitscreen)
+							if (players[consoleplayer].ctfteam == 1 || (splitscreen || splitscreen3 || splitscreen4))
 								S_StartSound(NULL, sfx_hoop1);
 
 							redflag = flagmo;
@@ -8107,7 +8106,7 @@ void P_MobjThinker(mobj_t *mobj)
 								CONS_Printf(M_GetText("The %c%s%c has returned to base.\n"), 0x84, M_GetText("Blue flag"), 0x80);
 
 							// Assumedly in splitscreen players will be on opposing teams
-							if (players[consoleplayer].ctfteam == 2 || splitscreen)
+							if (players[consoleplayer].ctfteam == 2 || (splitscreen || splitscreen3 || splitscreen4))
 								S_StartSound(NULL, sfx_hoop1);
 
 							blueflag = flagmo;

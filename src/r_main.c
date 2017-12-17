@@ -195,12 +195,12 @@ void SplitScreen_OnChange(void)
 			CL_AddSplitscreenPlayer();
 		else
 			CL_RemoveSplitscreenPlayer(secondarydisplayplayer);
-
+		
 		if (splitscreen3 || splitscreen4)
 			CL_AddSplitscreenPlayer();
 		else
 			CL_RemoveSplitscreenPlayer(thirddisplayplayer);
-
+		
 		if (splitscreen4)
 			CL_AddSplitscreenPlayer();
 		else

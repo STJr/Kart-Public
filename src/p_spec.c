@@ -3898,7 +3898,7 @@ DoneSection2:
 					HU_SetCEchoDuration(5);
 					HU_DoCEcho(va(M_GetText("%s\\captured the blue flag.\\\\\\\\"), player_names[player-players]));
 
-					if (splitscreen || players[consoleplayer].ctfteam == 1)
+					if ((splitscreen || splitscreen3 || splitscreen4) || players[consoleplayer].ctfteam == 1)
 						S_StartSound(NULL, sfx_flgcap);
 					else if (players[consoleplayer].ctfteam == 2)
 						S_StartSound(NULL, sfx_lose);
@@ -3931,7 +3931,7 @@ DoneSection2:
 					HU_SetCEchoDuration(5);
 					HU_DoCEcho(va(M_GetText("%s\\captured the red flag.\\\\\\\\"), player_names[player-players]));
 
-					if (splitscreen || players[consoleplayer].ctfteam == 2)
+					if ((splitscreen || splitscreen3 || splitscreen4) || players[consoleplayer].ctfteam == 2)
 						S_StartSound(NULL, sfx_flgcap);
 					else if (players[consoleplayer].ctfteam == 1)
 						S_StartSound(NULL, sfx_lose);
@@ -4189,7 +4189,7 @@ DoneSection2:
 					if (P_IsLocalPlayer(player))
 					{
 						// SRB2kart 200117
-						if (!splitscreen)
+						if (!(splitscreen || splitscreen3 || splitscreen4))
 						{
 							if (player->kartstuff[k_position] == 1)
 								S_ChangeMusicInternal("karwin", true);

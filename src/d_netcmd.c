@@ -178,8 +178,8 @@ static void Command_Archivetest_f(void);
 
 void SendWeaponPref(void);
 void SendWeaponPref2(void);
-//void SendWeaponPref3(void);
-//void SendWeaponPref4(void);
+void SendWeaponPref3(void);
+void SendWeaponPref4(void);
 
 static CV_PossibleValue_t usemouse_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Force"}, {0, NULL}};
 #if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
@@ -772,16 +772,28 @@ void D_RegisterClientCommands(void)
 	// g_input.c
 	CV_RegisterVar(&cv_sideaxis);
 	CV_RegisterVar(&cv_sideaxis2);
+	CV_RegisterVar(&cv_sideaxis3);
+	CV_RegisterVar(&cv_sideaxis4);
 	CV_RegisterVar(&cv_turnaxis);
 	CV_RegisterVar(&cv_turnaxis2);
+	CV_RegisterVar(&cv_turnaxis3);
+	CV_RegisterVar(&cv_turnaxis4);
 	CV_RegisterVar(&cv_moveaxis);
 	CV_RegisterVar(&cv_moveaxis2);
+	CV_RegisterVar(&cv_moveaxis3);
+	CV_RegisterVar(&cv_moveaxis4);
 	CV_RegisterVar(&cv_lookaxis);
 	CV_RegisterVar(&cv_lookaxis2);
+	CV_RegisterVar(&cv_lookaxis3);
+	CV_RegisterVar(&cv_lookaxis4);
 	CV_RegisterVar(&cv_fireaxis);
 	CV_RegisterVar(&cv_fireaxis2);
+	CV_RegisterVar(&cv_fireaxis3);
+	CV_RegisterVar(&cv_fireaxis4);
 	CV_RegisterVar(&cv_firenaxis);
 	CV_RegisterVar(&cv_firenaxis2);
+	CV_RegisterVar(&cv_firenaxis3);
+	CV_RegisterVar(&cv_firenaxis4);
 
 	// WARNING: the order is important when initialising mouse2
 	// we need the mouse2port
@@ -1689,7 +1701,7 @@ void SendWeaponPref3(void)
 		buf[0] |= 1;
 	if (players[thirddisplayplayer].pflags & PF_ANALOGMODE)
 		buf[0] |= 2;
-	//SendNetXCmd3(XD_WEAPONPREF, buf, 1);
+	SendNetXCmd3(XD_WEAPONPREF, buf, 1);
 }
 
 void SendWeaponPref4(void)
@@ -1701,7 +1713,7 @@ void SendWeaponPref4(void)
 		buf[0] |= 1;
 	if (players[fourthdisplayplayer].pflags & PF_ANALOGMODE)
 		buf[0] |= 2;
-	//SendNetXCmd4(XD_WEAPONPREF, buf, 1);
+	SendNetXCmd4(XD_WEAPONPREF, buf, 1);
 }
 
 static void Got_WeaponPref(UINT8 **cp,INT32 playernum)

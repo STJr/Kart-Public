@@ -1977,7 +1977,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 		return;
 #endif
 
-	if (view < 0 || view >= 2 || (view == 1 && !splitscreen))
+	if (view < 0 || view >= 2 || (view == 1 && !(splitscreen || splitscreen3 || splitscreen4)))
 		return;
 
 	if (splitscreen)

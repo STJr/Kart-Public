@@ -21,7 +21,7 @@
 // Max computers in a game
 #define MAXNETNODES 16
 #define BROADCASTADDR MAXNETNODES
-#define MAXSPLITSCREENPLAYERS 2 // Max number of players on a single computer
+#define MAXSPLITSCREENPLAYERS 4 // Max number of players on a single computer
 
 #define STATLENGTH (TICRATE*2)
 
