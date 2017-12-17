@@ -660,10 +660,10 @@ void R_ExecuteSetViewSize(void)
 	if (splitscreen || splitscreen3 || splitscreen4)
 		viewheight >>= 1;
 
+	viewwidth = scaledviewwidth;
+
 	if (splitscreen3 || splitscreen4)
 		viewwidth >>= 1;
-
-	viewwidth = scaledviewwidth;
 
 	centerx = viewwidth/2;
 	centery = viewheight/2;
