@@ -766,6 +766,8 @@ void D_RegisterClientCommands(void)
 	// m_menu.c
 	CV_RegisterVar(&cv_crosshair);
 	CV_RegisterVar(&cv_crosshair2);
+	CV_RegisterVar(&cv_crosshair3);
+	CV_RegisterVar(&cv_crosshair4);
 	CV_RegisterVar(&cv_alwaysfreelook);
 	CV_RegisterVar(&cv_alwaysfreelook2);
 

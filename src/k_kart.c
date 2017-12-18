@@ -4211,7 +4211,7 @@ static void K_drawKartItemClose(void)
 
 void K_drawMinimap(void)
 {
-	// SRB2kart 010217 - Automap Hud (temporarily commented out)
+	// SRB2kart 12/18/17 - Automap HUD 
 	/*
 	INT32 amnumxpos;
 	INT32 amnumypos;
@@ -4229,7 +4229,7 @@ void K_drawMinimap(void)
 
 		lumpnum = W_CheckNumForName(va("%sR", G_BuildAutoMapName(gamemap)));
 
-		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
+		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1]->automap)))
 			AutomapPic = W_CachePatchName(va("%sR", G_BuildAutoMapName(gamemap)), PU_CACHE);
 		else
 			AutomapPic = W_CachePatchName(va("NOMAPR"), PU_CACHE);
@@ -4248,7 +4248,7 @@ void K_drawMinimap(void)
 		V_DrawSmallScaledPatch(x, y, 0, AutomapPic);
 
 		// Player's tiny icons on the Automap.
-		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
+		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1]->automap)))
 		{
 			for (i = 0; i < MAXPLAYERS; i++)
 			{

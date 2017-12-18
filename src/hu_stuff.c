@@ -947,7 +947,69 @@ static inline void HU_DrawCrosshair2(void)
 #endif
 		y = viewwindowy + (viewheight>>1);
 
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
+	{
+#ifdef HWRENDER
+		if (rendermode != render_soft)
+			y += (INT32)gr_viewheight;
+		else
+#endif
+			y += viewheight;
+
+		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+	}
+}
+
+static inline void HU_DrawCrosshair3(void)
+{
+	INT32 i, y;
+
+	i = cv_crosshair3.value & 3;
+	if (!i)
+		return;
+
+	if ((netgame || multiplayer) && players[thirddisplayplayer].spectator)
+		return;
+
+#ifdef HWRENDER
+	if (rendermode != render_soft)
+		y = (INT32)gr_basewindowcentery;
+	else
+#endif
+		y = viewwindowy + (viewheight>>1);
+
+	if (splitscreen3 || splitscreen4)
+	{
+#ifdef HWRENDER
+		if (rendermode != render_soft)
+			y += (INT32)gr_viewheight;
+		else
+#endif
+			y += viewheight;
+
+		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+	}
+}
+
+static inline void HU_DrawCrosshair4(void)
+{
+	INT32 i, y;
+
+	i = cv_crosshair4.value & 3;
+	if (!i)
+		return;
+
+	if ((netgame || multiplayer) && players[fourthdisplayplayer].spectator)
+		return;
+
+#ifdef HWRENDER
+	if (rendermode != render_soft)
+		y = (INT32)gr_basewindowcentery;
+	else
+#endif
+		y = viewwindowy + (viewheight>>1);
+
+	if (splitscreen4)
 	{
 #ifdef HWRENDER
 		if (rendermode != render_soft)
@@ -1187,6 +1249,12 @@ void HU_Drawer(void)
 
 	if (!automapactive && cv_crosshair2.value && !demoplayback && !camera2.chase && !players[secondarydisplayplayer].spectator)
 		HU_DrawCrosshair2();
+	
+	if (!automapactive && cv_crosshair3.value && !demoplayback && !camera3.chase && !players[thirddisplayplayer].spectator)
+		HU_DrawCrosshair3();
+
+	if (!automapactive && cv_crosshair4.value && !demoplayback && !camera4.chase && !players[fourthdisplayplayer].spectator)
+		HU_DrawCrosshair4();
 
 	// draw desynch text
 	if (hu_resynching)
