@@ -1345,7 +1345,7 @@ void R_RenderPlayerView(player_t *player)
 
 	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
 	{
-		if (cv_homremoval.value == 1)
+		if (cv_homremoval.value == 1 || splitscreen3) // BAD HACK, V_DrawFill isn't letting me cover up only the 4th screen, so let's just sliently force this
 			V_DrawFill(0, 0, vid.width, vid.height, 31); // No HOM effect!
 		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
 			V_DrawFill(0, 0, vid.width, vid.height, 128+(timeinmap&15));

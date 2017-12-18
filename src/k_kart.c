@@ -309,6 +309,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartballoons);
 	CV_RegisterVar(&cv_kartfrantic);
 	CV_RegisterVar(&cv_kartcomeback);
+	CV_RegisterVar(&cv_kartmirror);
 	CV_RegisterVar(&cv_speedometer);
 	CV_RegisterVar(&cv_collideminimum);
 	CV_RegisterVar(&cv_collidesoundnum);
@@ -728,7 +729,7 @@ static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][5] =
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
 				  /*Star*/ { 1, 1, 0, 0, 0 }, // Star
 
-		 /*Triple Banana*/ { 0, 3, 3, 1, 0 }, // Triple Banana
+		 /*Triple Banana*/ { 0, 3, 1, 1, 0 }, // Triple Banana
 			 /*Fake Item*/ { 0, 0, 2, 2, 1 }, // Fake Item
 				/*Banana*/ { 0, 0, 3, 1, 1 }, // Banana
 		   /*Green Shell*/ { 0, 0, 5, 3, 1 }, // Green Shell
@@ -1455,17 +1456,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
 		player->powers[pw_flashing]--;
 
-	/*if (player->kartstuff[k_wipeouttimer])
-	{
-		if (player->kartstuff[k_wipeouttimer] == 1)
-		{
-			player->kartstuff[k_spinouttype] = 1;
-			K_SpinPlayer(player, NULL);
-			player->mo->momx = player->mo->momy = 0;
-		}
-		player->kartstuff[k_wipeouttimer]--;
-	}*/
-
 	if (player->kartstuff[k_magnettimer])
 		player->kartstuff[k_magnettimer]--;
 
@@ -1489,7 +1479,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
 	{
-		player->mo->destscale = FRACUNIT;
+		player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
 		P_RestoreMusic(player);
 	}
 
@@ -1521,13 +1511,20 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
 
-	if (gametype != GT_RACE && (player->exiting || (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
+	if (gametype != GT_RACE && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
-		if ((player->exiting < 6*TICRATE)
-			|| (player->kartstuff[k_comebacktimer] > 7*TICRATE && player->kartstuff[k_comebacktimer] < 9*TICRATE))
-			player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
-		else if (player->kartstuff[k_comebacktimer] < 5*TICRATE && !player->exiting)
-			player->kartstuff[k_cardanimation] -= ((164-player->kartstuff[k_cardanimation])/8)+1;
+		if (player->exiting)
+		{
+			if (player->exiting < 6*TICRATE)
+				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+		}
+		else
+		{
+			if (player->kartstuff[k_comebacktimer] < 6*TICRATE)
+				player->kartstuff[k_cardanimation] -= ((164-player->kartstuff[k_cardanimation])/8)+1;
+			else if (player->kartstuff[k_comebacktimer] < 9*TICRATE)
+				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+		}
 
 		if (player->kartstuff[k_cardanimation] > 164)
 			player->kartstuff[k_cardanimation] = 164;
@@ -1859,42 +1856,6 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	return;
 }
-
-/*void K_WipeoutPlayer(player_t *player, mobj_t *source)
-{
-	if (player->health <= 0)
-		return;
-
-	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] > 0)
-		|| player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_bootimer] > 0
-		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
-		return;
-
-	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
-	{
-		S_StartSound(source, sfx_hitem);
-		source->player->kartstuff[k_sounds] = 50;
-	}
-
-	if (gametype != GT_RACE)
-	{
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
-	}
-
-	P_RingDamage(player, NULL, source, player->mo->health-1);
-	P_PlayerRingBurst(player, 5);
-
-	if (P_IsLocalPlayer(player))
-	{
-		quake.intensity = 32*FRACUNIT;
-		quake.time = 5;
-	}
-
-	player->kartstuff[k_wipeouttimer] = 21;
-
-	return;
-}*/
 
 void K_SquishPlayer(player_t *player, mobj_t *source)
 {
@@ -3170,9 +3131,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_goldshroomtimer] > 1 && onground && NO_BOO)
 		{
 			K_DoMushroom(player, true, false);
-			//player->kartstuff[k_goldshroomtimer] -= 10;
-			//if (player->kartstuff[k_goldshroomtimer] < 1)
-			//	player->kartstuff[k_goldshroomtimer] = 1;
+			player->kartstuff[k_goldshroomtimer] -= 10;
+			if (player->kartstuff[k_goldshroomtimer] < 1)
+				player->kartstuff[k_goldshroomtimer] = 1;
 		}
 		// TripleMushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 4 && onground && NO_BOO)
@@ -3563,21 +3524,21 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25))
 		{
 			if (leveltime & 2)
-				player->mo->destscale = FRACUNIT*3/2;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
 			else
-				player->mo->destscale = FRACUNIT;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale);
 		}
 		else if (player->kartstuff[k_growshrinktimer] > 26
 			&& player->kartstuff[k_growshrinktimer] <= ((itemtime + TICRATE*2) - 25))
-			player->mo->destscale = FRACUNIT*3/2;
+			player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
 		// Megashroom - Back to normal...
 		else if (player->kartstuff[k_growshrinktimer] > 1
 			&& player->kartstuff[k_growshrinktimer] <= 26)
 		{
 			if (leveltime & 2)
-				player->mo->destscale = FRACUNIT;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale);
 			else
-				player->mo->destscale = FRACUNIT*3/2;
+				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
 		}
 		if (player->kartstuff[k_growshrinktimer] == 26)
 			S_StartSound(player->mo, sfx_mario8);
@@ -3620,10 +3581,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->mo->flags2 |= MF2_SHADOW;
 
 			if (!(player->mo->tracer))
+			{
 				player->mo->tracer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
+				P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
+			}
 
 			P_SetTarget(&player->mo->tracer->target, player->mo);
-			P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
 			player->mo->tracer->color = player->mo->color;
 
 			if (player->kartstuff[k_comebacktimer] > 0)
@@ -3714,7 +3677,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		player->kartstuff[k_boostcharge] = 0;
 	// Increase your size while charging your engine.
 	if (leveltime < 150)
-		player->mo->destscale = FRACUNIT + (player->kartstuff[k_boostcharge]*655);
+		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*655);
 
 	// Determine the outcome of your charge.
 	if (leveltime > 140 && player->kartstuff[k_boostcharge])
@@ -4174,14 +4137,17 @@ static void K_drawKartItemClose(void)
 	patch_t *localpatch = kp_nodraw;
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	/*if ()
@@ -4294,16 +4260,18 @@ static void K_drawKartItemRoulette(void)
 	patch_t *localpatch = kp_nodraw;
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
-
 	/*if ()
 				switch(stplyr->kartstuff[k_itemroulette] % 53)
 		{
@@ -4368,14 +4336,17 @@ static void K_drawKartRetroItem(void)
 	patch_t *localpatch = kp_nodraw;
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	// I'm doing this a little weird and drawing mostly in reverse order
@@ -4521,14 +4492,17 @@ static void K_drawKartTimestamp(void)
 	INT32 TIME_XB;
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	V_DrawScaledPatch(TIME_X, TIME_Y, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, kp_timestickerwide);
@@ -4590,14 +4564,17 @@ static void K_DrawKartPositionNum(INT32 num)
 	patch_t *localpatch = kp_positionnum[0][0];
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	// Special case for 0
@@ -4822,14 +4799,17 @@ static void K_drawKartPositionFaces(void)
 static void K_drawKartLaps(void)
 {
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	V_DrawScaledPatch(LAPS_X, LAPS_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, kp_lapsticker);
@@ -4845,14 +4825,17 @@ static void K_drawKartSpeedometer(void)
 	fixed_t convSpeed;
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	if (cv_speedometer.value == 1)
@@ -4877,14 +4860,17 @@ static void K_drawKartBalloonsOrKarma(void)
 	UINT8 *colormap = R_GetTranslationColormap(-1, stplyr->skincolor, 0);
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	if (stplyr->kartstuff[k_balloon] <= 0)
@@ -4927,9 +4913,15 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	if (diff < ANGLE_90 || diff > ANGLE_270)
 		return -320;
 	else
-		x = (FixedMul(FINETANGENT(((diff+ANGLE_90)>>ANGLETOFINESHIFT) & 4095), 160<<FRACBITS) + (160<<FRACBITS));
+		x = (FixedMul(FINETANGENT(((diff+ANGLE_90)>>ANGLETOFINESHIFT) & 4095), 160<<FRACBITS) + (160<<FRACBITS))>>FRACBITS;
 
-	return (x>>FRACBITS);
+	if (cv_kartmirror.value)
+		x = 320-x;
+
+	if (splitscreen3 || splitscreen4)
+		x /= 2;
+
+	return x;
 }
 
 static void K_drawKartPlayerCheck(void)
@@ -4940,14 +4932,17 @@ static void K_drawKartPlayerCheck(void)
 	patch_t *localpatch;
 
 	INT32 splitflags = 0;
-	if (splitscreen && stplyr == &players[secondarydisplayplayer])
-		splitflags |= V_SPLITSCREEN;
-	else if (splitscreen3 || splitscreen4)
+	if (stplyr != &players[displayplayer])
 	{
-		if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			splitflags |= V_SPLITSCREEN;
-		if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-			splitflags |= V_HORZSCREEN;
+		else if (splitscreen3 || splitscreen4)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
 	}
 
 	if (!(stplyr->mo))
@@ -5083,7 +5078,10 @@ static void K_drawStartLakitu(void)
 	else
 		adjustY = 200;
 
-	V_DrawSmallScaledPatch(LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
+	if (cv_kartmirror.value)
+		V_DrawSmallScaledPatch(320-LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP|V_FLIP, localpatch);
+	else
+		V_DrawSmallScaledPatch(LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
 }
 
 static void K_drawLapLakitu(void)
@@ -5153,7 +5151,10 @@ static void K_drawLapLakitu(void)
 			adjustY = 200;
 	}
 
-	V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
+	if (cv_kartmirror.value)
+		V_DrawSmallScaledPatch(320-(LAKI_X+14+(swoopTimer/4)), LAKI_Y + adjustY, V_SNAPTOTOP|V_FLIP, localpatch);
+	else
+		V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
 }
 
 void K_drawKartHUD(void)

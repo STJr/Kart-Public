@@ -458,8 +458,9 @@ static void D_Display(void)
 				}
 			}
 
-			// render the fourth screen
-			if (splitscreen4 && players[fourthdisplayplayer].mo)
+			//if (splitscreen3) // Fill up the fourth screen in 3P mode so you aren't gazing into the abyss :V
+				//V_DrawFill(viewwidth, viewheight, viewwidth, viewheight, 31);
+			if (splitscreen4 && players[fourthdisplayplayer].mo) // render the fourth screen
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)

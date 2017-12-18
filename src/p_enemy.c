@@ -8094,6 +8094,10 @@ void A_ToggleFlameJet(mobj_t* actor)
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_ItemPop", actor))
+		return;
+#endif
 
 	if (!(actor->target && actor->target->player))
 	{
@@ -8151,6 +8155,10 @@ void A_RedShellChase(mobj_t *actor)
 	INT32 c = 0;
 	INT32 stop;
 	player_t *player;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RedShellChase", actor))
+		return;
+#endif
 
 	if (actor->tracer)
 	{
@@ -8252,6 +8260,10 @@ void A_BobombExplode(mobj_t *actor)
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_BobombExplode", actor))
+		return;
+#endif
 
 	type = (mobjtype_t)locvar1;
 
