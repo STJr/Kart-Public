@@ -44,6 +44,7 @@ void K_CheckBalloons(void);
 void K_LoadKartHUDGraphics(void);
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my);
 void K_drawKartHUD(void);
+void K_drawMinimap(void);
 
 // =========================================================================
 #endif  // __K_KART__

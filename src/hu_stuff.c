@@ -51,6 +51,8 @@
 #include "lua_hook.h"
 #endif
 
+#include "k_kart.h"
+
 // coords are scaled
 #define HU_INPUTX 0
 #define HU_INPUTY 0
@@ -1067,6 +1069,7 @@ static void HU_DrawDemoInfo(void)
 //
 void HU_Drawer(void)
 {
+	K_drawMinimap();
 	// SRB2kart 010217 - Automap Hud (temporarily commented out)
 	/*
 	INT32 amnumxpos;
