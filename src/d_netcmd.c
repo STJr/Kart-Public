@@ -830,8 +830,12 @@ void D_RegisterClientCommands(void)
 	// Analog Control
 	CV_RegisterVar(&cv_analog);
 	CV_RegisterVar(&cv_analog2);
+	CV_RegisterVar(&cv_analog3);
+	CV_RegisterVar(&cv_analog4);
 	CV_RegisterVar(&cv_useranalog);
 	CV_RegisterVar(&cv_useranalog2);
+	CV_RegisterVar(&cv_useranalog3);
+	CV_RegisterVar(&cv_useranalog4);
 
 	// s_sound.c
 	CV_RegisterVar(&cv_soundvolume);

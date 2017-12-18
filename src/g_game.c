@@ -1200,8 +1200,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	{
 		player = &players[fourthdisplayplayer];
 		thiscam = &camera4;
-		lang = localangle3;
-		laim = localaiming3;
+		lang = localangle4;
+		laim = localaiming4;
 		th = turnheld4;
 		kbl = keyboard_look4;
 		G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
