@@ -1482,6 +1482,8 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_homremoval);
 	CV_RegisterVar(&cv_flipcam);
 	CV_RegisterVar(&cv_flipcam2);
+	CV_RegisterVar(&cv_flipcam3);
+	CV_RegisterVar(&cv_flipcam4);
 
 	// Enough for dedicated server
 	if (dedicated)

@@ -8354,13 +8354,29 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camdist = FixedMul(cv_cam_dist.value, mo->scale);
 		camheight = FixedMul(cv_cam_height.value, mo->scale);
 	}
-	else // Camera 2
+	else if (thiscam == &camera2) // Camera 2
 	{
 		camspeed = cv_cam2_speed.value;
 		camstill = cv_cam2_still.value;
 		camrotate = cv_cam2_rotate.value;
 		camdist = FixedMul(cv_cam2_dist.value, mo->scale);
 		camheight = FixedMul(cv_cam2_height.value, mo->scale);
+	}
+	else if (thiscam == &camera3) // Camera 3
+	{
+		camspeed = cv_cam3_speed.value;
+		camstill = cv_cam3_still.value;
+		camrotate = cv_cam3_rotate.value;
+		camdist = FixedMul(cv_cam3_dist.value, mo->scale);
+		camheight = FixedMul(cv_cam3_height.value, mo->scale);
+	}
+	else // Camera 4
+	{
+		camspeed = cv_cam4_speed.value;
+		camstill = cv_cam4_still.value;
+		camrotate = cv_cam4_rotate.value;
+		camdist = FixedMul(cv_cam4_dist.value, mo->scale);
+		camheight = FixedMul(cv_cam4_height.value, mo->scale);
 	}
 
 #ifdef REDSANALOG
@@ -8430,9 +8446,17 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			{
 				CV_SetValue(&cv_cam_rotate, camrotate + 180);
 			}
-			else
+			else if (thiscam == &camera2)
 			{
 				CV_SetValue(&cv_cam2_rotate, camrotate + 180);
+			}
+			else if (thiscam == &camera3)
+			{
+				CV_SetValue(&cv_cam3_rotate, camrotate + 180);
+			}
+			else
+			{
+				CV_SetValue(&cv_cam3_rotate, camrotate + 180);
 			}
 			player->kartstuff[k_camspin] = 2;
 		}

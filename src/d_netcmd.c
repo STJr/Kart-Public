@@ -772,16 +772,28 @@ void D_RegisterClientCommands(void)
 	// g_input.c
 	CV_RegisterVar(&cv_sideaxis);
 	CV_RegisterVar(&cv_sideaxis2);
+	CV_RegisterVar(&cv_sideaxis3);
+	CV_RegisterVar(&cv_sideaxis4);
 	CV_RegisterVar(&cv_turnaxis);
 	CV_RegisterVar(&cv_turnaxis2);
+	CV_RegisterVar(&cv_turnaxis3);
+	CV_RegisterVar(&cv_turnaxis4);
 	CV_RegisterVar(&cv_moveaxis);
 	CV_RegisterVar(&cv_moveaxis2);
+	CV_RegisterVar(&cv_moveaxis3);
+	CV_RegisterVar(&cv_moveaxis4);
 	CV_RegisterVar(&cv_lookaxis);
 	CV_RegisterVar(&cv_lookaxis2);
+	CV_RegisterVar(&cv_lookaxis3);
+	CV_RegisterVar(&cv_lookaxis4);
 	CV_RegisterVar(&cv_fireaxis);
 	CV_RegisterVar(&cv_fireaxis2);
+	CV_RegisterVar(&cv_fireaxis3);
+	CV_RegisterVar(&cv_fireaxis4);
 	CV_RegisterVar(&cv_firenaxis);
 	CV_RegisterVar(&cv_firenaxis2);
+	CV_RegisterVar(&cv_firenaxis3);
+	CV_RegisterVar(&cv_firenaxis4);
 
 	// WARNING: the order is important when initialising mouse2
 	// we need the mouse2port
@@ -818,8 +830,12 @@ void D_RegisterClientCommands(void)
 	// Analog Control
 	CV_RegisterVar(&cv_analog);
 	CV_RegisterVar(&cv_analog2);
+	CV_RegisterVar(&cv_analog3);
+	CV_RegisterVar(&cv_analog4);
 	CV_RegisterVar(&cv_useranalog);
 	CV_RegisterVar(&cv_useranalog2);
+	CV_RegisterVar(&cv_useranalog3);
+	CV_RegisterVar(&cv_useranalog4);
 
 	// s_sound.c
 	CV_RegisterVar(&cv_soundvolume);
