@@ -8506,13 +8506,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		dist = camdist;
 
-		// in splitscreen, mess with the camera distances to make it feel proportional to how it feels normally
-		if (splitscreen) // widescreen splits should get farther distance
+		// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
+		if (splitscreen) // widescreen splits should get x1.5 distance
 		{
 			dist = FixedMul(dist, 3*FRACUNIT/2);
 			height = FixedMul(height, 3*FRACUNIT/2);
 		}
-		else if (splitscreen3 || splitscreen4) // small screen splits should get a shorter distance (yes, oddly enough that feels better)
+		else if (splitscreen3 || splitscreen4) // smallscreen splits should get 7/8 distance (shorter feels better, oddly enough)
 		{
 			dist = FixedMul(dist, 7*FRACUNIT/8);
 			height = FixedMul(height, 7*FRACUNIT/8);

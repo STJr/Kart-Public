@@ -180,7 +180,10 @@ void HWR_DrawFixedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 		sdupx = sdupy = 2.0f;
 
 	if (option & V_SPLITSCREEN)
-		sdupy /= 2.0f;
+		cy += FIXED_TO_FLOAT((BASEVIDHEIGHT/2)<<FRACBITS);
+
+	if (option & V_HORZSCREEN)
+		cx += FIXED_TO_FLOAT((BASEVIDWIDTH/2)<<FRACBITS);
 
 	if (option & V_FLIP) // Need to flip both this and sow
 	{

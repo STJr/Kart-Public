@@ -92,24 +92,24 @@ extern RGBA_t *pLocalPalette;
 #define V_90TRANS            0x00090000
 #define V_HUDTRANSHALF       0x000D0000
 #define V_HUDTRANS           0x000E0000 // draw the hud translucent
-#define V_HUDTRANSDOUBLE     0x000F0000
 
-#define V_AUTOFADEOUT        0x00100000 // used by CECHOs, automatic fade out when almost over
-#define V_RETURN8            0x00200000 // 8 pixel return instead of 12
-#define V_OFFSET             0x00400000 // account for offsets in patches
-#define V_ALLOWLOWERCASE     0x00800000 // (strings only) allow fonts that have lowercase letters to use them
-#define V_FLIP               0x00800000 // (patches only) Horizontal flip
+#define V_AUTOFADEOUT        0x000F0000 // used by CECHOs, automatic fade out when almost over
+#define V_RETURN8            0x00100000 // 8 pixel return instead of 12
+#define V_OFFSET             0x00200000 // account for offsets in patches
+#define V_ALLOWLOWERCASE     0x00400000 // (strings only) allow fonts that have lowercase letters to use them
+#define V_FLIP               0x00400000 // (patches only) Horizontal flip
 
-#define V_SNAPTOTOP          0x01000000 // for centering
-#define V_SNAPTOBOTTOM       0x02000000 // for centering
-#define V_SNAPTOLEFT         0x04000000 // for centering
-#define V_SNAPTORIGHT        0x08000000 // for centering
+#define V_SNAPTOTOP          0x00800000 // for centering
+#define V_SNAPTOBOTTOM       0x01000000 // for centering
+#define V_SNAPTOLEFT         0x02000000 // for centering
+#define V_SNAPTORIGHT        0x04000000 // for centering
 
-#define V_WRAPX              0x10000000 // Don't clamp texture on X (for HW mode)
-#define V_WRAPY              0x20000000 // Don't clamp texture on Y (for HW mode)
+#define V_WRAPX              0x08000000 // Don't clamp texture on X (for HW mode)
+#define V_WRAPY              0x10000000 // Don't clamp texture on Y (for HW mode)
 
-#define V_NOSCALESTART       0x40000000  // don't scale x, y, start coords
-#define V_SPLITSCREEN        0x80000000
+#define V_NOSCALESTART       0x20000000  // don't scale x, y, start coords
+#define V_SPLITSCREEN        0x40000000
+#define V_HORZSCREEN         0x80000000
 
 // defines for old functions
 #define V_DrawPatch(x,y,s,p) V_DrawFixedPatch((x)<<FRACBITS, (y)<<FRACBITS, FRACUNIT, s|V_NOSCALESTART|V_NOSCALEPATCH, p, NULL)
