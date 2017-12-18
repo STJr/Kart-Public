@@ -178,8 +178,8 @@ static void Command_Archivetest_f(void);
 
 void SendWeaponPref(void);
 void SendWeaponPref2(void);
-//void SendWeaponPref3(void);
-//void SendWeaponPref4(void);
+void SendWeaponPref3(void);
+void SendWeaponPref4(void);
 
 static CV_PossibleValue_t usemouse_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Force"}, {0, NULL}};
 #if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
@@ -1705,7 +1705,7 @@ void SendWeaponPref3(void)
 		buf[0] |= 1;
 	if (players[thirddisplayplayer].pflags & PF_ANALOGMODE)
 		buf[0] |= 2;
-	//SendNetXCmd3(XD_WEAPONPREF, buf, 1);
+	SendNetXCmd3(XD_WEAPONPREF, buf, 1);
 }
 
 void SendWeaponPref4(void)
@@ -1717,7 +1717,7 @@ void SendWeaponPref4(void)
 		buf[0] |= 1;
 	if (players[fourthdisplayplayer].pflags & PF_ANALOGMODE)
 		buf[0] |= 2;
-	//SendNetXCmd4(XD_WEAPONPREF, buf, 1);
+	SendNetXCmd4(XD_WEAPONPREF, buf, 1);
 }
 
 static void Got_WeaponPref(UINT8 **cp,INT32 playernum)

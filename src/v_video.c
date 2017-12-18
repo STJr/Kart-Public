@@ -425,7 +425,10 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 	}
 
 	if (scrn & V_SPLITSCREEN)
-		y>>=1;
+		y += (BASEVIDHEIGHT/2)<<FRACBITS;
+
+	if (scrn & V_HORZSCREEN)
+		x += (BASEVIDWIDTH/2)<<FRACBITS;
 
 	desttop = screens[scrn&V_PARAMMASK];
 
@@ -455,7 +458,9 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 			{
 				// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
 				// so center this imaginary screen
-				if (scrn & V_SNAPTORIGHT)
+				if ((scrn & (V_HORZSCREEN|V_SNAPTORIGHT)) == (V_HORZSCREEN|V_SNAPTORIGHT))
+					desttop += (vid.width/2 - (BASEVIDWIDTH/2 * dupx));
+				else if (scrn & V_SNAPTORIGHT)
 					desttop += (vid.width - (BASEVIDWIDTH * dupx));
 				else if (!(scrn & V_SNAPTOLEFT))
 					desttop += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
@@ -463,7 +468,7 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 			if (vid.height != BASEVIDHEIGHT * dupy)
 			{
 				// same thing here
-				if ((scrn & (V_SPLITSCREEN|V_SNAPTOBOTTOM)) == (V_SPLITSCREEN|V_SNAPTOBOTTOM))
+				if ((scrn & (V_SPLITSCREEN|V_SNAPTOTOP)) == (V_SPLITSCREEN|V_SNAPTOTOP))
 					desttop += (vid.height/2 - (BASEVIDHEIGHT/2 * dupy)) * vid.width;
 				else if (scrn & V_SNAPTOBOTTOM)
 					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width;
@@ -1977,7 +1982,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 		return;
 #endif
 
-	if (view < 0 || view >= 2 || (view == 1 && !splitscreen))
+	if (view < 0 || view >= 2 || (view == 1 && !(splitscreen || splitscreen3 || splitscreen4)))
 		return;
 
 	if (splitscreen)

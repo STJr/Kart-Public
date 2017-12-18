@@ -412,7 +412,6 @@ static void D_Display(void)
 				{
 					if (splitscreen3 || splitscreen4)
 						viewwindowx = vid.width / 2;
-
 					viewwindowy = vid.height / 2;
 					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
 
@@ -425,48 +424,50 @@ static void D_Display(void)
 				}
 			}
 
+			// render the third screen
 			if ((splitscreen3 || splitscreen4) && players[thirddisplayplayer].mo)
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)
 					HWR_RenderPlayerView(2, &players[thirddisplayplayer]);
-				else
+				//else
 #endif
-					if (rendermode != render_none)
-					{
-						viewwindowx = vid.width / 2;
-						viewwindowy = vid.height / 2;
-						M_Memcpy(ylookup2, ylookup3, viewheight*sizeof (ylookup[0]));
+				/*if (rendermode != render_none)
+				{
+					viewwindowx = vid.width / 2;
+					viewwindowy = vid.height / 2;
+					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
 
-						topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 
-						R_RenderPlayerView(&players[thirddisplayplayer]);
+					R_RenderPlayerView(&players[thirddisplayplayer]);
 
-						viewwindowy = 0;
-						M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
-					}
+					viewwindowy = 0;
+					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+				}*/
 			}
 
+			// render the fourth screen
 			if (splitscreen4 && players[fourthdisplayplayer].mo)
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)
 					HWR_RenderPlayerView(3, &players[fourthdisplayplayer]);
-				else
+				//else
 #endif
-					if (rendermode != render_none)
-					{
-						viewwindowx = vid.width / 2;
-						viewwindowy = vid.height / 2;
-						M_Memcpy(ylookup3, ylookup4, viewheight*sizeof (ylookup[0]));
+				/*if (rendermode != render_none)
+				{
+					viewwindowx = vid.width / 2;
+					viewwindowy = vid.height / 2;
+					M_Memcpy(ylookup3, ylookup4, viewheight*sizeof (ylookup[0]));
 
-						topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 
-						R_RenderPlayerView(&players[fourthdisplayplayer]);
+					R_RenderPlayerView(&players[fourthdisplayplayer]);
 
-						viewwindowy = 0;
-						M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
-					}
+					viewwindowy = 0;
+					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+				}*/
 			}
 
 			// Image postprocessing effect

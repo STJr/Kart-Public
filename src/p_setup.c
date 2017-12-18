@@ -2354,10 +2354,20 @@ static void P_ForceCharacter(const char *forcecharskin)
 	if (netgame)
 	{
 		char skincmd[33];
-		if (splitscreen)
+		if (splitscreen || splitscreen3 || splitscreen4)
 		{
 			sprintf(skincmd, "skin2 %s\n", forcecharskin);
 			CV_Set(&cv_skin2, forcecharskin);
+			if (splitscreen3 || splitscreen4)
+			{
+				sprintf(skincmd, "skin3 %s\n", forcecharskin);
+				CV_Set(&cv_skin3, forcecharskin);
+				if (splitscreen4)
+				{
+					sprintf(skincmd, "skin4 %s\n", forcecharskin);
+					CV_Set(&cv_skin4, forcecharskin);
+				}
+			}
 		}
 
 		sprintf(skincmd, "skin %s\n", forcecharskin);
@@ -2583,7 +2593,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	P_LevelInitStuff();
 
-	postimgtype = postimgtype2 = postimg_none;
+	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
 
 	if (mapheaderinfo[gamemap-1]->forcecharacter[0] != '\0'
 	&& atoi(mapheaderinfo[gamemap-1]->forcecharacter) != 255)
@@ -2920,10 +2930,20 @@ boolean P_SetupLevel(boolean skipprecip)
 		if (!cv_cam2_rotate.changed)
 			CV_Set(&cv_cam2_rotate, cv_cam2_rotate.defaultvalue);
 
+		if (!cv_cam3_rotate.changed)
+			CV_Set(&cv_cam3_rotate, cv_cam3_rotate.defaultvalue);
+
+		if (!cv_cam4_rotate.changed)
+			CV_Set(&cv_cam4_rotate, cv_cam4_rotate.defaultvalue);
+
 		if (!cv_analog.changed)
 			CV_SetValue(&cv_analog, 0);
 		if (!cv_analog2.changed)
 			CV_SetValue(&cv_analog2, 0);
+		if (!cv_analog3.changed)
+			CV_SetValue(&cv_analog3, 0);
+		if (!cv_analog4.changed)
+			CV_SetValue(&cv_analog4, 0);
 
 #ifdef HWRENDER
 		if (rendermode != render_soft && rendermode != render_none)
@@ -2936,13 +2956,21 @@ boolean P_SetupLevel(boolean skipprecip)
 	if (cv_useranalog.value)
 		CV_SetValue(&cv_analog, true);
 
-	if (splitscreen && cv_useranalog2.value)
+	if ((splitscreen || splitscreen3 || splitscreen4) && cv_useranalog2.value)
 		CV_SetValue(&cv_analog2, true);
 	else if (botingame)
 		CV_SetValue(&cv_analog2, true);
 
+	if ((splitscreen3 || splitscreen4) && cv_useranalog3.value)
+		CV_SetValue(&cv_analog3, true);
+
+	if (splitscreen4 && cv_useranalog4.value)
+		CV_SetValue(&cv_analog4, true);
+
 	if (twodlevel)
 	{
+		CV_SetValue(&cv_analog4, false);
+		CV_SetValue(&cv_analog3, false);
 		CV_SetValue(&cv_analog2, false);
 		CV_SetValue(&cv_analog, false);
 	}
@@ -2998,7 +3026,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		savedata.lives = 0;
 	}
 
-	skyVisible = skyVisible1 = skyVisible2 = true; // assume the skybox is visible on level load.
+	skyVisible = skyVisible1 = skyVisible2 = skyVisible3 = skyVisible4 = true; // assume the skybox is visible on level load.
 	if (loadprecip) // uglier hack
 	{ // to make a newly loaded level start on the second frame.
 		INT32 buf = gametic % BACKUPTICS;

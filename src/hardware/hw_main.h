@@ -96,9 +96,9 @@ extern consvar_t cv_voodoocompatibility;
 extern consvar_t cv_grfovchange;
 extern consvar_t cv_grsolvetjoin;
 
-extern float gr_viewwidth, gr_viewheight, gr_baseviewwindowy;
+extern float gr_viewwidth, gr_viewheight, gr_baseviewwindowx, gr_baseviewwindowy;
 
-extern float gr_viewwindowx, gr_basewindowcentery;
+extern float gr_basewindowcenterx, gr_basewindowcentery;
 
 // BP: big hack for a test in lighting ref : 1249753487AB
 extern fixed_t *hwbbox;

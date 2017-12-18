@@ -2109,8 +2109,6 @@ void G_Ticker(boolean run)
 
 		if (playeringame[i])
 		{
-			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
-
 			// SRB2kart
 			// Save the dir the player is holding
 			//  to allow items to be thrown forward or backward.
@@ -2120,6 +2118,8 @@ void G_Ticker(boolean run)
 					players[i].kartstuff[k_throwdir] = -1;
 			else
 					players[i].kartstuff[k_throwdir] = 0;
+
+			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
 		}
 	}
 

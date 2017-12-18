@@ -97,7 +97,7 @@ SINT8 nodetoplayer[MAXNETNODES];
 SINT8 nodetoplayer2[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
 SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen3)
 SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen4)
-UINT8 playerpernode[MAXNETNODES]; // used specialy for scplitscreen
+UINT8 playerpernode[MAXNETNODES]; // used specialy for splitscreen
 boolean nodeingame[MAXNETNODES]; // set false as nodes leave game
 static tic_t nettics[MAXNETNODES]; // what tic the client have received
 static tic_t supposedtics[MAXNETNODES]; // nettics prevision for smaller packet
@@ -266,6 +266,38 @@ void SendNetXCmd2(netxcmd_t id, const void *param, size_t nparam)
 	{
 		M_Memcpy(&localtextcmd2[localtextcmd2[0]+1], param, nparam);
 		localtextcmd2[0] = (UINT8)(localtextcmd2[0] + (UINT8)nparam);
+	}
+}
+
+void SendNetXCmd3(netxcmd_t id, const void *param, size_t nparam)
+{
+	if (localtextcmd3[0]+2+nparam > MAXTEXTCMD)
+	{
+		I_Error("No more place in the buffer for netcmd %d\n",id);
+		return;
+	}
+	localtextcmd3[0]++;
+	localtextcmd3[localtextcmd3[0]] = (UINT8)id;
+	if (param && nparam)
+	{
+		M_Memcpy(&localtextcmd3[localtextcmd3[0]+1], param, nparam);
+		localtextcmd3[0] = (UINT8)(localtextcmd3[0] + (UINT8)nparam);
+	}
+}
+
+void SendNetXCmd4(netxcmd_t id, const void *param, size_t nparam)
+{
+	if (localtextcmd4[0]+2+nparam > MAXTEXTCMD)
+	{
+		I_Error("No more place in the buffer for netcmd %d\n",id);
+		return;
+	}
+	localtextcmd4[0]++;
+	localtextcmd4[localtextcmd4[0]] = (UINT8)id;
+	if (param && nparam)
+	{
+		M_Memcpy(&localtextcmd4[localtextcmd4[0]+1], param, nparam);
+		localtextcmd4[0] = (UINT8)(localtextcmd4[0] + (UINT8)nparam);
 	}
 }
 
@@ -2708,9 +2740,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	// Is playernum authorized to make this kick?
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
 		&& !(playerpernode[playernode[playernum]] >= 2
-		&& nodetoplayer2[playernode[playernum]] == pnum
-		&& nodetoplayer3[playernode[playernum]] == pnum
-		&& nodetoplayer4[playernode[playernum]] == pnum))
+		&& (nodetoplayer2[playernode[playernum]] == pnum
+		|| nodetoplayer3[playernode[playernum]] == pnum
+		|| nodetoplayer4[playernode[playernum]] == pnum)))
 	{
 		// We received a kick command from someone who isn't the
 		// server or admin, and who isn't in splitscreen removing
@@ -3115,24 +3147,22 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	if (node == mynode)
 	{
 		playernode[newplayernum] = 0; // for information only
-		if (splitscreenplayer == 0)
+		if (splitscreenplayer)
 		{
-			consoleplayer = newplayernum;
-			displayplayer = newplayernum;
-			secondarydisplayplayer = newplayernum;
-			thirddisplayplayer = newplayernum;
-			fourthdisplayplayer = newplayernum;
-			DEBFILE("spawning me\n");
-			// Apply player flags as soon as possible!
-			players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-			if (cv_flipcam.value)
-				players[newplayernum].pflags |= PF_FLIPCAM;
-			if (cv_analog.value)
-				players[newplayernum].pflags |= PF_ANALOGMODE;
-		}
-		else
-		{
-			if (splitscreenplayer == 2)
+			if (splitscreenplayer == 1)
+			{
+				secondarydisplayplayer = newplayernum;
+				DEBFILE("spawning my brother\n");
+				if (botingame)
+					players[newplayernum].bot = 1;
+				// Same goes for player 2 when relevant
+				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
+				if (cv_flipcam2.value)
+					players[newplayernum].pflags |= PF_FLIPCAM;
+				if (cv_analog2.value)
+					players[newplayernum].pflags |= PF_ANALOGMODE;
+			}
+			else if (splitscreenplayer == 2)
 			{
 				thirddisplayplayer = newplayernum;
 				DEBFILE("spawning my sister\n");
@@ -3152,19 +3182,21 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 				if (cv_analog4.value)
 					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
-			else
-			{
-				secondarydisplayplayer = newplayernum;
-				DEBFILE("spawning my brother\n");
-				if (botingame)
-					players[newplayernum].bot = 1;
-				// Same goes for player 2 when relevant
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam2.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog2.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
-			}
+		}
+		else
+		{
+			consoleplayer = newplayernum;
+			displayplayer = newplayernum;
+			secondarydisplayplayer = newplayernum;
+			thirddisplayplayer = newplayernum;
+			fourthdisplayplayer = newplayernum;
+			DEBFILE("spawning me\n");
+			// Apply player flags as soon as possible!
+			players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
+			if (cv_flipcam.value)
+				players[newplayernum].pflags |= PF_FLIPCAM;
+			if (cv_analog.value)
+				players[newplayernum].pflags |= PF_ANALOGMODE;
 		}
 		D_SendPlayerConfig();
 		addedtogame = true;
@@ -3233,7 +3265,7 @@ static boolean SV_AddWaitingPlayers(void)
 				nodetoplayer3[node] = newplayernum;
 				buf[1] += MAXPLAYERS*2;
 			}
-			else if (playerpernode[node] < 4)
+			else
 			{
 				nodetoplayer4[node] = newplayernum;
 				buf[1] += MAXPLAYERS*3;
@@ -3752,6 +3784,7 @@ FILESTAMP
 			realend = ExpandTics(netbuffer->u.clientpak.resendfrom);
 
 			if (netbuffer->packettype == PT_CLIENTMIS || netbuffer->packettype == PT_CLIENT2MIS
+				|| netbuffer->packettype == PT_CLIENT3MIS || netbuffer->packettype == PT_CLIENT4MIS
 				|| netbuffer->packettype == PT_NODEKEEPALIVEMIS
 				|| supposedtics[node] < realend)
 			{
@@ -3800,20 +3833,26 @@ FILESTAMP
 			if (((netbuffer->packettype == PT_CLIENT2CMD || netbuffer->packettype == PT_CLIENT2MIS)
 				|| (netbuffer->packettype == PT_CLIENT3CMD || netbuffer->packettype == PT_CLIENT3MIS)
 				|| (netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS))
-				&& nodetoplayer2[node] >= 0)
+				&& (nodetoplayer2[node] >= 0))
+			{
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]],
 					&netbuffer->u.client2pak.cmd2, 1);
-	
+			}
+
 			if (((netbuffer->packettype == PT_CLIENT3CMD || netbuffer->packettype == PT_CLIENT3MIS)
 				|| (netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS))
-				&& nodetoplayer3[node] >= 0)
+				&& (nodetoplayer3[node] >= 0))
+			{
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]],
 					&netbuffer->u.client3pak.cmd3, 1);
+			}
 
 			if ((netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS)
-				&& nodetoplayer4[node] >= 0)
+				&& (nodetoplayer4[node] >= 0))
+			{
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]],
 					&netbuffer->u.client4pak.cmd4, 1);
+			}
 
 			// A delay before we check resynching
 			// Used on join or just after a synch fail
@@ -3948,6 +3987,7 @@ FILESTAMP
 					buf[1] = KICK_MSG_PLAYER_QUIT;
 				SendNetXCmd(XD_KICK, &buf, 2);
 				nodetoplayer[node] = -1;
+
 				if (nodetoplayer2[node] != -1 && nodetoplayer2[node] >= 0
 					&& playeringame[(UINT8)nodetoplayer2[node]])
 				{
@@ -3955,6 +3995,7 @@ FILESTAMP
 					SendNetXCmd(XD_KICK, &buf, 2);
 					nodetoplayer2[node] = -1;
 				}
+
 				if (nodetoplayer3[node] != -1 && nodetoplayer3[node] >= 0
 					&& playeringame[(UINT8)nodetoplayer3[node]])
 				{
@@ -3962,6 +4003,7 @@ FILESTAMP
 					SendNetXCmd(XD_KICK, &buf, 2);
 					nodetoplayer3[node] = -1;
 				}
+
 				if (nodetoplayer4[node] != -1 && nodetoplayer4[node] >= 0
 					&& playeringame[(UINT8)nodetoplayer4[node]])
 				{
@@ -4326,7 +4368,7 @@ static void CL_SendClientCmd(void)
 	if (gamestate == GS_WAITINGPLAYERS)
 	{
 		// Send PT_NODEKEEPALIVE packet
-		netbuffer->packettype += 4;
+		netbuffer->packettype += 8;
 		packetsize = sizeof (clientcmd_pak) - sizeof (ticcmd_t) - sizeof (INT16);
 		HSendPacket(servernode, false, 0, packetsize);
 	}
@@ -4335,23 +4377,26 @@ static void CL_SendClientCmd(void)
 		G_MoveTiccmd(&netbuffer->u.clientpak.cmd, &localcmds, 1);
 		netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
 
-		if (splitscreen4)
+		if (splitscreen || botingame) // Send a special packet with 2 cmd for splitscreen
 		{
-			netbuffer->packettype += 6;
-			G_MoveTiccmd(&netbuffer->u.client4pak.cmd2, &localcmds2, 1);
-			G_MoveTiccmd(&netbuffer->u.client4pak.cmd3, &localcmds3, 1);
-			G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
+			netbuffer->packettype += 2;
+			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
+			packetsize = sizeof (client2cmd_pak);
 		}
 		else if (splitscreen3)
 		{
 			netbuffer->packettype += 4;
-			G_MoveTiccmd(&netbuffer->u.client3pak.cmd2, &localcmds2, 1);
-			G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
-		}
-		else if (splitscreen || botingame) // Send a special packet with 2 cmd for splitscreen
-		{
-			netbuffer->packettype += 2;
 			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
+			G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
+			packetsize = sizeof (client3cmd_pak);
+		}
+		else if (splitscreen4)
+		{
+			netbuffer->packettype += 6;
+			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
+			G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
+			G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
+			packetsize = sizeof (client4cmd_pak);
 		}
 		else
 			packetsize = sizeof (clientcmd_pak);
@@ -4379,6 +4424,26 @@ static void CL_SendClientCmd(void)
 			// All extra data have been sent
 			if (HSendPacket(servernode, true, 0, localtextcmd2[0]+1)) // Send can fail...
 				localtextcmd2[0] = 0;
+		}
+
+		// Send extra data if needed for player 3 (splitscreen3)
+		if (localtextcmd3[0])
+		{
+			netbuffer->packettype = PT_TEXTCMD3;
+			M_Memcpy(netbuffer->u.textcmd, localtextcmd3, localtextcmd3[0]+1);
+			// All extra data have been sent
+			if (HSendPacket(servernode, true, 0, localtextcmd3[0]+1)) // Send can fail...
+				localtextcmd3[0] = 0;
+		}
+
+		// Send extra data if needed for player 4 (splitscreen4)
+		if (localtextcmd4[0])
+		{
+			netbuffer->packettype = PT_TEXTCMD4;
+			M_Memcpy(netbuffer->u.textcmd, localtextcmd4, localtextcmd4[0]+1);
+			// All extra data have been sent
+			if (HSendPacket(servernode, true, 0, localtextcmd4[0]+1)) // Send can fail...
+				localtextcmd4[0] = 0;
 		}
 	}
 }
@@ -4558,8 +4623,12 @@ static void SV_Maketic(void)
 				CONS_Debug(DBG_NETPLAY, "Client Misstic %d\n", maketic);
 #endif
 				// copy the old tic
-				for (i = 0; i < playerpernode[j]; i++, player = nodetoplayer2[j])
+				for (i = 0; i < playerpernode[j]; i++)
 				{
+					if (i == 0) player = nodetoplayer[j];
+					else if (i == 1) player = nodetoplayer2[j];
+					else if (i == 2) player = nodetoplayer3[j];
+					else if (i == 3) player = nodetoplayer4[j];
 					netcmds[maketic%BACKUPTICS][player] = netcmds[(maketic-1)%BACKUPTICS][player];
 					netcmds[maketic%BACKUPTICS][player].angleturn &= ~TICCMD_RECEIVED;
 				}

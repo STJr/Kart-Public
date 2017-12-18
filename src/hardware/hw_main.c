@@ -328,14 +328,18 @@ static angle_t gr_xtoviewangle[MAXVIDWIDTH+1];
 
 // base values set at SetViewSize
 static float gr_basecentery;
+static float gr_basecenterx;
 
 float gr_baseviewwindowy, gr_basewindowcentery;
+float gr_baseviewwindowx, gr_basewindowcenterx;
 float gr_viewwidth, gr_viewheight; // viewport clipping boundaries (screen coords)
-float gr_viewwindowx;
 
-static float gr_centerx, gr_centery;
-static float gr_viewwindowy; // top left corner of view window
+static float gr_centerx;
+static float gr_viewwindowx;
 static float gr_windowcenterx; // center of view window, for projection
+
+static float gr_centery;
+static float gr_viewwindowy; // top left corner of view window
 static float gr_windowcentery;
 
 static float gr_pspritexscale, gr_pspriteyscale;
@@ -4055,15 +4059,15 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 		angle_t shadowdir;
 
 		// Set direction
-		if ((splitscreen || splitscreen3 || splitscreen4) && stplyr != &players[displayplayer])
+		if ((splitscreen || splitscreen3 || splitscreen4) && stplyr == &players[secondarydisplayplayer])
 		{
 			shadowdir = localangle2 + FixedAngle(cv_cam2_rotate.value);
 
-			if ((splitscreen3 || splitscreen4) && stplyr != &players[displayplayer])
+			if ((splitscreen3 || splitscreen4) && stplyr == &players[thirddisplayplayer])
 			{
 				shadowdir = localangle3 + FixedAngle(cv_cam3_rotate.value);
 
-				if (splitscreen4 && stplyr != &players[displayplayer])
+				if (splitscreen4 && stplyr == &players[fourthdisplayplayer])
 					shadowdir = localangle4 + FixedAngle(cv_cam4_rotate.value);
 			}
 		}
@@ -5512,26 +5516,22 @@ void HWR_SetViewSize(void)
 	gr_viewwidth = (float)vid.width;
 	gr_viewheight = (float)vid.height;
 
-	if (splitscreen)
+	if (splitscreen || splitscreen3 || splitscreen4)
 		gr_viewheight /= 2;
 
-	gr_centerx = gr_viewwidth / 2;
-	gr_basecentery = gr_viewheight / 2; //note: this is (gr_centerx * gr_viewheight / gr_viewwidth)
+	if (splitscreen3 || splitscreen4)
+		gr_viewwidth /= 2;
 
-	gr_viewwindowx = (vid.width - gr_viewwidth) / 2;
-	gr_windowcenterx = (float)(vid.width / 2);
-	if (gr_viewwidth == vid.width)
-	{
-		gr_baseviewwindowy = 0;
-		gr_basewindowcentery = gr_viewheight / 2;               // window top left corner at 0,0
-	}
-	else
-	{
-		gr_baseviewwindowy = (vid.height-gr_viewheight) / 2;
-		gr_basewindowcentery = (float)(vid.height / 2);
-	}
+	gr_basecenterx = gr_viewwidth / 2;
+	gr_basecentery = gr_viewheight / 2;
 
-	gr_pspritexscale = gr_viewwidth / BASEVIDWIDTH;
+	gr_baseviewwindowy = 0;
+	gr_basewindowcentery = (float)(gr_viewheight / 2);
+
+	gr_baseviewwindowx = 0;
+	gr_basewindowcenterx = (float)(gr_viewwidth / 2);
+
+	gr_pspritexscale = ((vid.width*gr_pspriteyscale*BASEVIDHEIGHT)/BASEVIDWIDTH)/vid.height;
 	gr_pspriteyscale = ((vid.height*gr_pspritexscale*BASEVIDWIDTH)/BASEVIDHEIGHT)/vid.width;
 }
 
@@ -5574,19 +5574,23 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	dup_viewangle = viewangle;
 
 	// set window position
+	gr_centerx = gr_basecenterx;
+	gr_viewwindowx = gr_baseviewwindowx;
+	gr_windowcenterx = gr_basewindowcenterx;
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if ((splitscreen || splitscreen3) && (viewnumber == 1 || viewnumber == 2))
+
+	if ((splitscreen && viewnumber == 1) || ((splitscreen3 || splitscreen4) && viewnumber >= 2))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowy += gr_viewheight;
+		gr_windowcentery += gr_viewheight;
 	}
 
-	if (splitscreen4 && (viewnumber == 2 || viewnumber == 3))
+	if ((splitscreen3 || splitscreen4) && (viewnumber == 1 || viewnumber == 3))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowx += gr_viewwidth;
+		gr_windowcenterx += gr_viewwidth;
 	}
 
 	// check for new console commands.
@@ -5619,7 +5623,15 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	atransform.scalez = 1;
 	atransform.fovxangle = fpov; // Tails
 	atransform.fovyangle = fpov; // Tails
-	atransform.splitscreen = splitscreen;
+
+	if (splitscreen4)
+		atransform.splitscreen = 3;
+	else if (splitscreen3)
+		atransform.splitscreen = 2;
+	else if (splitscreen)
+		atransform.splitscreen = 1;
+	else
+		atransform.splitscreen = 0;
 
 	// Transform for sprites
 	stransform.anglex = 0.0f;
@@ -5638,7 +5650,15 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	stransform.scalez = 1;
 	stransform.fovxangle = 90.0f;
 	stransform.fovyangle = 90.0f;
-	stransform.splitscreen = splitscreen;
+
+	if (splitscreen4)
+		stransform.splitscreen = 3;
+	else if (splitscreen3)
+		stransform.splitscreen = 2;
+	else if (splitscreen)
+		stransform.splitscreen = 1;
+	else
+		stransform.splitscreen = 0;
 
 	gr_fovlud = (float)(1.0l/tan((double)(fpov*M_PIl/360l)));
 
@@ -5661,7 +5681,7 @@ if (0)
 #endif
 
 	//Hurdler: it doesn't work in splitscreen mode
-	drawsky = splitscreen || splitscreen3 || splitscreen4;
+	drawsky = (splitscreen || splitscreen3 || splitscreen4);
 
 	HWR_ClearSprites();
 
@@ -5818,19 +5838,23 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	dup_viewangle = viewangle;
 
 	// set window position
+	gr_centerx = gr_basecenterx;
+	gr_viewwindowx = gr_baseviewwindowx;
+	gr_windowcenterx = gr_basewindowcenterx;
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if ((splitscreen || splitscreen3) && (viewnumber == 1 ||  viewnumber == 2))
+
+	if ((splitscreen && viewnumber == 1) || ((splitscreen3 || splitscreen4) && viewnumber >= 2))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowy += gr_viewheight;
+		gr_windowcentery += gr_viewheight;
 	}
 
-	if (splitscreen4 && (viewnumber == 2 || viewnumber == 3))
+	if ((splitscreen3 || splitscreen4) && (viewnumber == 1 || viewnumber == 3))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowx += gr_viewwidth;
+		gr_windowcenterx += gr_viewwidth;
 	}
 
 	// check for new console commands.
@@ -5863,7 +5887,15 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	atransform.scalez = 1;
 	atransform.fovxangle = fpov; // Tails
 	atransform.fovyangle = fpov; // Tails
-	atransform.splitscreen = splitscreen;
+
+	if (splitscreen4)
+		atransform.splitscreen = 3;
+	else if (splitscreen3)
+		atransform.splitscreen = 2;
+	else if (splitscreen)
+		atransform.splitscreen = 1;
+	else
+		atransform.splitscreen = 0;
 
 	// Transform for sprites
 	stransform.anglex = 0.0f;
@@ -5882,7 +5914,15 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	stransform.scalez = 1;
 	stransform.fovxangle = 90.0f;
 	stransform.fovyangle = 90.0f;
-	stransform.splitscreen = splitscreen;
+
+	if (splitscreen4)
+		stransform.splitscreen = 3;
+	else if (splitscreen3)
+		stransform.splitscreen = 2;
+	else if (splitscreen)
+		stransform.splitscreen = 1;
+	else
+		stransform.splitscreen = 0;
 
 	gr_fovlud = (float)(1.0l/tan((double)(fpov*M_PIl/360l)));
 
@@ -5905,7 +5945,7 @@ if (0)
 #endif
 
 	//Hurdler: it doesn't work in splitscreen mode
-	drawsky = splitscreen;
+	drawsky = (splitscreen || splitscreen3 || splitscreen4);
 
 	HWR_ClearSprites();
 
@@ -5925,8 +5965,12 @@ if (0)
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
 		viewangle = localaiming;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		viewangle = localaiming2;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		viewangle = localaiming3;
+	else if (splitscreen4 && player == &players[fourthdisplayplayer])
+		viewangle = localaiming4;
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_grfov.value+player->fovadd > 90*FRACUNIT))
@@ -6413,7 +6457,11 @@ void HWR_DoPostProcessor(player_t *player)
 {
 	postimg_t *type;
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen4 && player == &players[fourthdisplayplayer])
+		type = &postimgtype4;
+	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		type = &postimgtype3;
+	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
 	else
 		type = &postimgtype;
@@ -6447,7 +6495,7 @@ void HWR_DoPostProcessor(player_t *player)
 	if(gamestate != GS_INTERMISSION)
 		HWD.pfnMakeScreenTexture();
 
-	if (splitscreen) // Not supported in splitscreen - someone want to add support?
+	if (splitscreen || splitscreen3 || splitscreen4) // Not supported in splitscreen - someone want to add support?
 		return;
 
 #ifdef SHUFFLE
