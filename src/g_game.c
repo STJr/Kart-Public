@@ -1267,6 +1267,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	turnleft = InputDown(gc_turnleft, ssplayer);
 
 	axis = JoyAxis(AXISTURN, ssplayer);
+
+	if (cv_kartmirror.value)
+	{
+		turnright ^= turnleft; // swap these using three XORs
+		turnleft ^= turnright;
+		turnright ^= turnleft;
+		axis = -axis;
+	}
+
 	if (gamepadjoystickmove && axis != 0)
 	{
 		turnright = turnright || (axis > 0);
@@ -1541,8 +1550,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	if (cv_kartmirror.value)
+		cmd->sidemove = -cmd->sidemove;
+
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN, ssplayer);
+	if (cv_kartmirror.value)
+		axis = -axis;
 
 	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
@@ -2287,6 +2301,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 offroad;
 	INT32 balloon;
 	INT32 comebackpoints;
+	INT32 comebackshowninfo;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2344,6 +2359,7 @@ void G_PlayerReborn(INT32 player)
 	offroad = players[player].kartstuff[k_offroad];
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
+	comebackshowninfo = players[player].kartstuff[k_comebackshowninfo];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2400,8 +2416,10 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
+
 	p->kartstuff[k_balloon] = balloon;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
+	p->kartstuff[k_comebackshowninfo] = comebackshowninfo;
 	p->kartstuff[k_comebacktimer] = comebacktime;
 
 	// Don't do anything immediately

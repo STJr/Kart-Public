@@ -2939,7 +2939,7 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 			S_StartSound(player->mo, sfx_spkdth);
 	}
 
-	/*if (source && source->player && !player->powers[pw_super]) //don't score points against super players
+	if (source && source->player && !player->powers[pw_super]) //don't score points against super players
 	{
 		// Award no points when players shoot each other when cv_friendlyfire is on.
 		if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
@@ -2955,7 +2955,7 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 			if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
 				P_AddPlayerScore(source->player, 1);
 		}
-	}*/
+	}
 
 	// Ring loss sound plays despite hitting spikes
 	P_PlayRinglossSound(player->mo); // Ringledingle!
@@ -3218,7 +3218,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_TRIPLEREDSHIELD1 || inflictor->type == MT_TRIPLEREDSHIELD2 || inflictor->type == MT_TRIPLEREDSHIELD3
 				|| inflictor->player))
 			{
-				//K_WipeoutPlayer(player, source);
 				player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);
 				damage = player->mo->health - 1;

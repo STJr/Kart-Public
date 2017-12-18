@@ -259,7 +259,8 @@ typedef enum
 	postimg_water,
 	postimg_motion,
 	postimg_flip,
-	postimg_heat
+	postimg_heat,
+	postimg_mirror
 } postimg_t;
 
 typedef UINT32 lumpnum_t; // 16 : 16 unsigned long (wad num: lump num)

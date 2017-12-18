@@ -1974,7 +1974,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 	(void)type;
 	(void)param;
 #else
-	INT32 yoffset;
+	INT32 yoffset, xoffset;
 
 #ifdef HWRENDER
 	// draw a hardware converted patch
@@ -1993,10 +1993,10 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 	else
 		yoffset = 0;
 
-	/*if (view & 1 && !splitscreen)
+	if (view & 1 && !splitscreen)
 		xoffset = viewwidth;
 	else
-		xoffset = 0;*/
+		xoffset = 0;
 
 	if (type == postimg_water)
 	{
@@ -2083,10 +2083,10 @@ Unoptimized version
 		INT32 y, y2;
 
 		for (y = yoffset, y2 = yoffset+viewheight - 1; y < yoffset+viewheight; y++, y2--)
-			M_Memcpy(&tmpscr[y2*vid.width], &srcscr[y*vid.width], vid.width);
+			M_Memcpy(&tmpscr[y2*vid.width+xoffset], &srcscr[y*vid.width+xoffset], viewwidth);
 
-		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
+		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,
+				viewwidth*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_heat) // Heat wave
 	{
@@ -2131,6 +2131,21 @@ Unoptimized version
 
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
 				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
+	}
+	else if (type == postimg_mirror) // Flip the screen on the x axis
+	{
+		UINT8 *tmpscr = screens[4];
+		UINT8 *srcscr = screens[0];
+		INT32 y, x, x2;
+
+		for (y = yoffset; y < yoffset+viewheight; y++)
+		{
+			for (x = 0, x2 = (viewwidth*vid.bpp)-1; x < (viewwidth*vid.bpp); x++, x2--)
+				tmpscr[y*vid.width+xoffset + x2] = srcscr[y*vid.width+xoffset + x];
+		}
+
+		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,
+				viewwidth*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 #endif
 }

@@ -5615,6 +5615,11 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	else
 		atransform.flip = false;
 
+	if (*type == postimg_mirror)
+		atransform.mirror = true;
+	else
+		atransform.mirror = false;
+
 	atransform.x      = gr_viewx;  // FIXED_TO_FLOAT(viewx)
 	atransform.y      = gr_viewy;  // FIXED_TO_FLOAT(viewy)
 	atransform.z      = gr_viewz;  // FIXED_TO_FLOAT(viewz)
@@ -5641,6 +5646,11 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 		stransform.flip = true;
 	else
 		stransform.flip = false;
+
+	if (*type == postimg_mirror)
+		stransform.mirror = true;
+	else
+		stransform.mirror = false;
 
 	stransform.x      = 0.0f;
 	stransform.y      = 0.0f;
@@ -5879,6 +5889,11 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	else
 		atransform.flip = false;
 
+	if (*type == postimg_mirror)
+		atransform.mirror = true;
+	else
+		atransform.mirror = false;
+
 	atransform.x      = gr_viewx;  // FIXED_TO_FLOAT(viewx)
 	atransform.y      = gr_viewy;  // FIXED_TO_FLOAT(viewy)
 	atransform.z      = gr_viewz;  // FIXED_TO_FLOAT(viewz)
@@ -5905,6 +5920,11 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 		stransform.flip = true;
 	else
 		stransform.flip = false;
+
+	if (*type == postimg_mirror)
+		stransform.mirror = true;
+	else
+		stransform.mirror = false;
 
 	stransform.x      = 0.0f;
 	stransform.y      = 0.0f;

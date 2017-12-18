@@ -109,6 +109,7 @@ typedef struct
 	FLOAT       fovxangle, fovyangle;
 	INT32       splitscreen;
 	boolean     flip;            // screenflip
+	boolean     mirror;          // SRB2Kart: Mirror Mode
 } FTransform;
 
 // Transformed vector, as passed to HWR API
