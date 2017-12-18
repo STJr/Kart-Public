@@ -1974,7 +1974,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 	(void)type;
 	(void)param;
 #else
-	INT32 height, yoffset;
+	INT32 yoffset;
 
 #ifdef HWRENDER
 	// draw a hardware converted patch
@@ -1982,18 +1982,21 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 		return;
 #endif
 
-	if (view < 0 || view >= 2 || (view == 1 && !(splitscreen || splitscreen3 || splitscreen4)))
+	if (view < 0 || view >= 3
+		|| (view == 1 && !(splitscreen || splitscreen3 || splitscreen4))
+		|| (view == 2 && !(splitscreen3 || splitscreen4))
+		|| (view == 3 && !splitscreen4))
 		return;
 
-	if (splitscreen)
-		height = vid.height/2;
-	else
-		height = vid.height;
-
-	if (view == 1)
-		yoffset = vid.height/2;
+	if ((view == 1 && splitscreen) || view >= 2)
+		yoffset = viewheight;
 	else
 		yoffset = 0;
+
+	/*if (view & 1 && !splitscreen)
+		xoffset = viewwidth;
+	else
+		xoffset = 0;*/
 
 	if (type == postimg_water)
 	{
@@ -2005,7 +2008,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 		INT32 sine;
 		//UINT8 *transme = transtables + ((tr_trans50-1)<<FF_TRANSSHIFT);
 
-		for (y = yoffset; y < yoffset+height; y++)
+		for (y = yoffset; y < yoffset+viewheight; y++)
 		{
 			sine = (FINESINE(disStart)*5)>>FRACBITS;
 			newpix = abs(sine);
@@ -2051,7 +2054,7 @@ Unoptimized version
 		}
 
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, height, vid.width*vid.bpp, vid.width);
+				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_motion) // Motion Blur!
 	{
@@ -2062,7 +2065,7 @@ Unoptimized version
 		// TODO: Add a postimg_param so that we can pick the translucency level...
 		UINT8 *transme = transtables + ((param-1)<<FF_TRANSSHIFT);
 
-		for (y = yoffset; y < yoffset+height; y++)
+		for (y = yoffset; y < yoffset+viewheight; y++)
 		{
 			for (x = 0; x < vid.width; x++)
 			{
@@ -2071,7 +2074,7 @@ Unoptimized version
 			}
 		}
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, height, vid.width*vid.bpp, vid.width);
+				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_flip) // Flip the screen upside-down
 	{
@@ -2079,11 +2082,11 @@ Unoptimized version
 		UINT8 *srcscr = screens[0];
 		INT32 y, y2;
 
-		for (y = yoffset, y2 = yoffset+height - 1; y < yoffset+height; y++, y2--)
+		for (y = yoffset, y2 = yoffset+viewheight - 1; y < yoffset+viewheight; y++, y2--)
 			M_Memcpy(&tmpscr[y2*vid.width], &srcscr[y*vid.width], vid.width);
 
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, height, vid.width*vid.bpp, vid.width);
+				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_heat) // Heat wave
 	{
@@ -2092,24 +2095,24 @@ Unoptimized version
 		INT32 y;
 
 		// Make sure table is built
-		if (heatshifter == NULL || lastheight != height)
+		if (heatshifter == NULL || lastheight != viewheight)
 		{
 			if (heatshifter)
 				Z_Free(heatshifter);
 
-			heatshifter = Z_Calloc(height * sizeof(boolean), PU_STATIC, NULL);
+			heatshifter = Z_Calloc(viewheight * sizeof(boolean), PU_STATIC, NULL);
 
-			for (y = 0; y < height; y++)
+			for (y = 0; y < viewheight; y++)
 			{
 				if (M_RandomChance(FRACUNIT/8)) // 12.5%
 					heatshifter[y] = true;
 			}
 
 			heatindex[0] = heatindex[1] = 0;
-			lastheight = height;
+			lastheight = viewheight;
 		}
 
-		for (y = yoffset; y < yoffset+height; y++)
+		for (y = yoffset; y < yoffset+viewheight; y++)
 		{
 			if (heatshifter[heatindex[view]++])
 			{
@@ -2120,14 +2123,14 @@ Unoptimized version
 			else
 				M_Memcpy(&tmpscr[y*vid.width], &srcscr[y*vid.width], vid.width);
 
-			heatindex[view] %= height;
+			heatindex[view] %= viewheight;
 		}
 
 		heatindex[view]++;
 		heatindex[view] %= vid.height;
 
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, height, vid.width*vid.bpp, vid.width);
+				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 #endif
 }
