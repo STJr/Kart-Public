@@ -2381,21 +2381,21 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					{
 						if (bot) // This might put poor Tails in a wall if he's too far behind! D: But okay, whatever! >:3
 							P_TeleportMove(bot, bot->x + x, bot->y + y, bot->z + z);
-						if (splitscreen4 && mo->player == &players[fourthdisplayplayer] && camera4.chase)
+						if (splitscreen > 2 && mo->player == &players[fourthdisplayplayer] && camera4.chase)
 						{
 							camera4.x += x;
 							camera4.y += y;
 							camera4.z += z;
 							camera4.subsector = R_PointInSubsector(camera4.x, camera4.y);
 						}
-						else if ((splitscreen3 || splitscreen4) && mo->player == &players[thirddisplayplayer] && camera3.chase)
+						else if (splitscreen > 1 && mo->player == &players[thirddisplayplayer] && camera3.chase)
 						{
 							camera3.x += x;
 							camera3.y += y;
 							camera3.z += z;
 							camera3.subsector = R_PointInSubsector(camera3.x, camera3.y);
 						}
-						else if ((splitscreen || splitscreen3 || splitscreen4) && mo->player == &players[secondarydisplayplayer] && camera2.chase)
+						else if (splitscreen && mo->player == &players[secondarydisplayplayer] && camera2.chase)
 						{
 							camera2.x += x;
 							camera2.y += y;
@@ -3898,7 +3898,7 @@ DoneSection2:
 					HU_SetCEchoDuration(5);
 					HU_DoCEcho(va(M_GetText("%s\\captured the blue flag.\\\\\\\\"), player_names[player-players]));
 
-					if ((splitscreen || splitscreen3 || splitscreen4) || players[consoleplayer].ctfteam == 1)
+					if (splitscreen || players[consoleplayer].ctfteam == 1)
 						S_StartSound(NULL, sfx_flgcap);
 					else if (players[consoleplayer].ctfteam == 2)
 						S_StartSound(NULL, sfx_lose);
@@ -3931,7 +3931,7 @@ DoneSection2:
 					HU_SetCEchoDuration(5);
 					HU_DoCEcho(va(M_GetText("%s\\captured the red flag.\\\\\\\\"), player_names[player-players]));
 
-					if ((splitscreen || splitscreen3 || splitscreen4) || players[consoleplayer].ctfteam == 2)
+					if (splitscreen || players[consoleplayer].ctfteam == 2)
 						S_StartSound(NULL, sfx_flgcap);
 					else if (players[consoleplayer].ctfteam == 1)
 						S_StartSound(NULL, sfx_lose);
@@ -4189,7 +4189,7 @@ DoneSection2:
 					if (P_IsLocalPlayer(player))
 					{
 						// SRB2kart 200117
-						if (!(splitscreen || splitscreen3 || splitscreen4))
+						if (!splitscreen)
 						{
 							if (player->kartstuff[k_position] == 1)
 								S_ChangeMusicInternal("karwin", true);

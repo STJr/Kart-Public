@@ -62,11 +62,11 @@ void P_ForceConstant(const BasicFF_t *FFInfo)
 	ConstantQuake.Magnitude = FFInfo->Magnitude;
 	if (FFInfo->player == &players[consoleplayer])
 		I_Tactile(ConstantForce, &ConstantQuake);
-	else if ((splitscreen || splitscreen3 || splitscreen4) && FFInfo->player == &players[secondarydisplayplayer])
+	else if (splitscreen && FFInfo->player == &players[secondarydisplayplayer])
 		I_Tactile2(ConstantForce, &ConstantQuake);
-	else if ((splitscreen3 || splitscreen4) && FFInfo->player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && FFInfo->player == &players[thirddisplayplayer])
 		I_Tactile3(ConstantForce, &ConstantQuake);
-	else if (splitscreen4 && FFInfo->player == &players[fourthdisplayplayer])
+	else if (splitscreen > 2 && FFInfo->player == &players[fourthdisplayplayer])
 		I_Tactile4(ConstantForce, &ConstantQuake);
 }
 void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
@@ -83,11 +83,11 @@ void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
 	RampQuake.End       = End;
 	if (FFInfo->player == &players[consoleplayer])
 		I_Tactile(ConstantForce, &RampQuake);
-	else if ((splitscreen || splitscreen3 || splitscreen4) && FFInfo->player == &players[secondarydisplayplayer])
+	else if (splitscreen && FFInfo->player == &players[secondarydisplayplayer])
 		I_Tactile2(ConstantForce, &RampQuake);
-	else if ((splitscreen3 || splitscreen4) && FFInfo->player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && FFInfo->player == &players[thirddisplayplayer])
 		I_Tactile3(ConstantForce, &RampQuake);
-	else if (splitscreen4 && FFInfo->player == &players[fourthdisplayplayer])
+	else if (splitscreen > 2 && FFInfo->player == &players[fourthdisplayplayer])
 		I_Tactile4(ConstantForce, &RampQuake);
 }
 

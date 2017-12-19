@@ -1396,9 +1396,9 @@ fixed_t P_GetPlayerSpinHeight(player_t *player)
 //
 boolean P_IsLocalPlayer(player_t *player)
 {
-	return ((splitscreen4 && player == &players[fourthdisplayplayer])
-		|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
-		|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	return ((splitscreen > 2 && player == &players[fourthdisplayplayer])
+		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+		|| (splitscreen && player == &players[secondarydisplayplayer])
 		|| player == &players[consoleplayer]);
 }
 
@@ -1663,7 +1663,7 @@ void P_DoPlayerExit(player_t *player)
 
 		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
 		{
-			if (!(splitscreen || splitscreen3 || splitscreen4))
+			if (!splitscreen)
 			{
 				if (player->kartstuff[k_position] == 1)
 					S_ChangeMusicInternal("karwin", true);
@@ -2388,7 +2388,7 @@ static void P_DoPlayerHeadSigns(player_t *player)
 		{
 			// Spawn a got-flag message over the head of the player that
 			// has it (but not on your own screen if you have the flag).
-			if ((splitscreen || splitscreen3 || splitscreen4) || player != &players[consoleplayer])
+			if (splitscreen || player != &players[consoleplayer])
 			{
 				if (player->gotflag & GF_REDFLAG)
 				{
@@ -4388,11 +4388,11 @@ INT32 P_GetPlayerControlDirection(player_t *player)
 	fixed_t tempx = 0, tempy = 0;
 	angle_t tempangle, origtempangle;
 
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 		thiscam = &camera4;
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 		thiscam = &camera3;
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		thiscam = &camera2;
 	else
 		thiscam = &camera;
@@ -6804,9 +6804,9 @@ static void P_MovePlayer(player_t *player)
 			// Ok, we'll stop now.
 			else if ((player->kartstuff[k_drift] == 0)
 			&& (player == &players[consoleplayer]
-			|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
-			|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
-			|| (splitscreen4 && player == &players[fourthdisplayplayer])))
+			|| (splitscreen && player == &players[secondarydisplayplayer])
+			|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+			|| (splitscreen > 2 && player == &players[fourthdisplayplayer])))
 				S_StopSoundByID(player->mo, sfx_mkdrft);
 		}
 	}
@@ -8531,12 +8531,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		dist = camdist;
 
 		// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
-		if (splitscreen) // widescreen splits should get x1.5 distance
+		if (splitscreen == 1) // widescreen splits should get x1.5 distance
 		{
 			dist = FixedMul(dist, 3*FRACUNIT/2);
 			height = FixedMul(height, 3*FRACUNIT/2);
 		}
-		else if (splitscreen3 || splitscreen4) // smallscreen splits should get 7/8 distance (shorter feels better, oddly enough)
+		else if (splitscreen > 1) // smallscreen splits should get 7/8 distance (shorter feels better, oddly enough)
 		{
 			dist = FixedMul(dist, 7*FRACUNIT/8);
 			height = FixedMul(height, 7*FRACUNIT/8);
@@ -8870,7 +8870,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 	// Make player translucent if camera is too close (only in single player).
-	/*if (!(multiplayer || netgame) && !(splitscreen || splitscreen3 || splitscreen4))
+	/*if (!(multiplayer || netgame) && !splitscreen)
 	{
 		fixed_t vx = 0, vy = 0;
 		if (player->awayviewtics) {
@@ -9045,17 +9045,17 @@ static void P_CalcPostImg(player_t *player)
 		pviewheight = player->awayviewmobj->z + 20*FRACUNIT;
 	}
 
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 	{
 		type = &postimgtype4;
 		param = &postimgparam4;
 	}
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 	{
 		type = &postimgtype3;
 		param = &postimgparam3;
 	}
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 	{
 		type = &postimgtype2;
 		param = &postimgparam2;
@@ -9410,7 +9410,7 @@ void P_PlayerThink(player_t *player)
 			player->realtime = 0;
 	}
 
-	if ((netgame || (splitscreen || splitscreen3 || splitscreen4)) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
+	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		if (P_SpectatorJoinGame(player))
 			return; // player->mo was removed.
@@ -9525,9 +9525,9 @@ void P_PlayerThink(player_t *player)
 		// Why not just not spawn the mobj?  Well, I'd rather only flirt with
 		// consistency so much...
 		if ((player == &players[displayplayer] && !camera.chase)
-		|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer] && !camera2.chase)
-		|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer] && !camera3.chase)
-		|| (splitscreen4 && player == &players[fourthdisplayplayer] && !camera4.chase))
+		|| (splitscreen && player == &players[secondarydisplayplayer] && !camera2.chase)
+		|| (splitscreen > 1 && player == &players[thirddisplayplayer] && !camera3.chase)
+		|| (splitscreen > 2 && player == &players[fourthdisplayplayer] && !camera4.chase))
 			gmobj->flags2 |= MF2_DONTDRAW;
 	}
 #endif
@@ -9653,9 +9653,9 @@ void P_PlayerThink(player_t *player)
 	{
 		// SRB2kart - fixes boo not flashing when it should. Mega doesn't flash either. Flashing is local.
 		if ((player == &players[displayplayer]
-			|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
-			|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
-			|| (splitscreen4 && player == &players[fourthdisplayplayer]))
+			|| (splitscreen && player == &players[secondarydisplayplayer])
+			|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+			|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
 			&& player->kartstuff[k_bootimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
 			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
 		{
@@ -9746,11 +9746,11 @@ void P_PlayerAfterThink(player_t *player)
 		P_PlayerInSpecialSector(player);
 #endif
 
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 		thiscam = &camera4;
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 		thiscam = &camera3;
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		thiscam = &camera2;
 	else if (player == &players[displayplayer])
 		thiscam = &camera;

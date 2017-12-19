@@ -113,7 +113,7 @@ typedef struct
 	ticcmd_t cmd, cmd2;
 } ATTRPACK client2cmd_pak;
 
-// Splitscreen3 packet
+// 3P Splitscreen packet
 // WARNING: must have the same format of clientcmd_pak, for more easy use
 typedef struct
 {
@@ -123,7 +123,7 @@ typedef struct
 	ticcmd_t cmd, cmd2, cmd3;
 } ATTRPACK client3cmd_pak;
 
-// Splitscreen4 packet
+// 4P Splitscreen packet
 // WARNING: must have the same format of clientcmd_pak, for more easy use
 typedef struct
 {

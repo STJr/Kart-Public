@@ -1703,7 +1703,7 @@ static void Analog_OnChange(void)
 
 static void Analog2_OnChange(void)
 {
-	if (!((splitscreen || splitscreen3 || splitscreen4) || botingame) || !cv_cam2_dist.string)
+	if (!(splitscreen || botingame) || !cv_cam2_dist.string)
 		return;
 
 	// cameras are not initialized at this point
@@ -1723,7 +1723,7 @@ static void Analog2_OnChange(void)
 
 static void Analog3_OnChange(void)
 {
-	if (!(splitscreen3 || splitscreen4) || !cv_cam3_dist.string)
+	if (splitscreen < 2 || !cv_cam3_dist.string)
 		return;
 
 	// cameras are not initialized at this point
@@ -1743,7 +1743,7 @@ static void Analog3_OnChange(void)
 
 static void Analog4_OnChange(void)
 {
-	if (!(splitscreen4) || !cv_cam4_dist.string)
+	if (splitscreen < 3 || !cv_cam4_dist.string)
 		return;
 
 	// cameras are not initialized at this point
@@ -1799,11 +1799,11 @@ void G_DoLoadLevel(boolean resetplayer)
 		P_FindEmerald();
 
 	displayplayer = consoleplayer; // view the guy you are playing
-	if (!(splitscreen || splitscreen3 || splitscreen4) && !botingame)
+	if (!splitscreen && !botingame)
 		secondarydisplayplayer = consoleplayer;
-	if (!(splitscreen3 || splitscreen4))
+	if (splitscreen < 2)
 		thirddisplayplayer = consoleplayer;
-	if (!splitscreen4)
+	if (splitscreen < 3)
 		fourthdisplayplayer = consoleplayer;
 
 	gameaction = ga_nothing;
@@ -1813,11 +1813,11 @@ void G_DoLoadLevel(boolean resetplayer)
 
 	if (camera.chase)
 		P_ResetCamera(&players[displayplayer], &camera);
-	if (camera2.chase && (splitscreen || splitscreen3 || splitscreen4))
+	if (camera2.chase && splitscreen)
 		P_ResetCamera(&players[secondarydisplayplayer], &camera2);
-	if (camera3.chase && (splitscreen3 || splitscreen4))
+	if (camera3.chase && splitscreen > 1)
 		P_ResetCamera(&players[thirddisplayplayer], &camera3);
-	if (camera4.chase && splitscreen4)
+	if (camera4.chase && splitscreen > 2)
 		P_ResetCamera(&players[fourthdisplayplayer], &camera4);
 
 	// clear cmd building stuff
@@ -1848,7 +1848,7 @@ boolean G_Responder(event_t *ev)
 	// allow spy mode changes even during the demo
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12)
 	{
-		if ((splitscreen || splitscreen3 || splitscreen4) || !netgame)
+		if (splitscreen || !netgame)
 			displayplayer = consoleplayer;
 		else
 		{
@@ -2595,18 +2595,18 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 		if (nummapthings)
 		{
 			if (playernum == consoleplayer
-				|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-				|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-				|| (splitscreen4 && playernum == fourthdisplayplayer))
+				|| (splitscreen && playernum == secondarydisplayplayer)
+				|| (splitscreen > 1 && playernum == thirddisplayplayer)
+				|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 				CONS_Alert(CONS_ERROR, M_GetText("No player spawns found, spawning at the first mapthing!\n"));
 			spawnpoint = &mapthings[0];
 		}
 		else
 		{
 			if (playernum == consoleplayer
-			|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-			|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-			|| (splitscreen4 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 				CONS_Alert(CONS_ERROR, M_GetText("No player spawns found, spawning at the origin!\n"));
 			//P_MovePlayerToSpawn handles this fine if the spawnpoint is NULL.
 		}
@@ -2626,9 +2626,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 	if (!numredctfstarts && !numbluectfstarts) //why even bother, eh?
 	{
 		if (playernum == consoleplayer
-			|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-			|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-			|| (splitscreen4 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 			CONS_Alert(CONS_WARNING, M_GetText("No CTF starts in this map!\n"));
 		return NULL;
 	}
@@ -2638,9 +2638,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		if (!numredctfstarts)
 		{
 			if (playernum == consoleplayer
-				|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-				|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-				|| (splitscreen4 && playernum == fourthdisplayplayer))
+				|| (splitscreen && playernum == secondarydisplayplayer)
+				|| (splitscreen > 1 && playernum == thirddisplayplayer)
+				|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 				CONS_Alert(CONS_WARNING, M_GetText("No Red Team starts in this map!\n"));
 			return NULL;
 		}
@@ -2653,9 +2653,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		}
 
 		if (playernum == consoleplayer
-			|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-			|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-			|| (splitscreen4 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Red Team starts!\n"));
 		return NULL;
 	}
@@ -2664,9 +2664,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		if (!numbluectfstarts)
 		{
 			if (playernum == consoleplayer
-				|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-				|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-				|| (splitscreen4 && playernum == fourthdisplayplayer))
+				|| (splitscreen && playernum == secondarydisplayplayer)
+				|| (splitscreen > 1 && playernum == thirddisplayplayer)
+				|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 				CONS_Alert(CONS_WARNING, M_GetText("No Blue Team starts in this map!\n"));
 			return NULL;
 		}
@@ -2678,9 +2678,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 				return bluectfstarts[i];
 		}
 		if (playernum == consoleplayer
-			|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-			|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-			|| (splitscreen4 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Blue Team starts!\n"));
 		return NULL;
 	}
@@ -2701,17 +2701,17 @@ mapthing_t *G_FindMatchStart(INT32 playernum)
 				return deathmatchstarts[i];
 		}
 		if (playernum == consoleplayer
-			|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-			|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-			|| (splitscreen4 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Deathmatch starts!\n"));
 		return NULL;
 	}
 
 	if (playernum == consoleplayer
-		|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-		|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-		|| (splitscreen4 && playernum == fourthdisplayplayer))
+		|| (splitscreen && playernum == secondarydisplayplayer)
+		|| (splitscreen > 1 && playernum == thirddisplayplayer)
+		|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 		CONS_Alert(CONS_WARNING, M_GetText("No Deathmatch starts in this map!\n"));
 	return NULL;
 }
@@ -2730,9 +2730,9 @@ mapthing_t *G_FindCoopStart(INT32 playernum)
 	}
 
 	if (playernum == consoleplayer
-		|| ((splitscreen || splitscreen3 || splitscreen4) && playernum == secondarydisplayplayer)
-		|| ((splitscreen3 || splitscreen4) && playernum == thirddisplayplayer)
-		|| (splitscreen4 && playernum == fourthdisplayplayer))
+		|| (splitscreen && playernum == secondarydisplayplayer)
+		|| (splitscreen > 1 && playernum == thirddisplayplayer)
+		|| (splitscreen > 2 && playernum == fourthdisplayplayer))
 		CONS_Alert(CONS_WARNING, M_GetText("No Co-op starts in this map!\n"));
 	return NULL;
 }
@@ -2829,11 +2829,11 @@ void G_DoReborn(INT32 playernum)
 
 			if (camera.chase)
 				P_ResetCamera(&players[displayplayer], &camera);
-			if (camera2.chase && (splitscreen || splitscreen3 || splitscreen4))
+			if (camera2.chase && splitscreen > 0)
 				P_ResetCamera(&players[secondarydisplayplayer], &camera2);
-			if (camera3.chase && (splitscreen3 || splitscreen4))
+			if (camera3.chase && splitscreen > 1)
 				P_ResetCamera(&players[thirddisplayplayer], &camera3);
-			if (camera4.chase && splitscreen4)
+			if (camera4.chase && splitscreen > 2)
 				P_ResetCamera(&players[fourthdisplayplayer], &camera4);
 
 			// clear cmd building stuff
@@ -3645,7 +3645,8 @@ static void M_ForceLoadGameResponse(INT32 ch)
 	cursaveslot = -1;
 
 	displayplayer = consoleplayer;
-	multiplayer = splitscreen = splitscreen3 = splitscreen4 = false;
+	multiplayer = false;
+	splitscreen = 0;
 
 	if (setsizeneeded)
 		R_ExecuteSetViewSize();
@@ -3733,7 +3734,8 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 //	gameaction = ga_nothing;
 //	G_SetGamestate(GS_LEVEL);
 	displayplayer = consoleplayer;
-	multiplayer = splitscreen = splitscreen3 = splitscreen4 = false;
+	multiplayer = false;
+	splitscreen = 0;
 
 //	G_DeferedInitNew(sk_medium, G_BuildMapName(1), 0, 0, 1);
 	if (setsizeneeded)
@@ -3816,27 +3818,9 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, U
 		botcolor = savedata.botcolor;
 		botingame = (botskin != 0);
 	}
-	else if (!splitscreen4 && ssplayers == 4)
+	else if (splitscreen != ssplayers)
 	{
-		splitscreen4 = true;
-		splitscreen = splitscreen3 = false;
-		SplitScreen_OnChange();
-	}
-	else if (!splitscreen3 && ssplayers == 3)
-	{
-		splitscreen3 = true;
-		splitscreen = splitscreen4 = false;
-		SplitScreen_OnChange();
-	}
-	else if (!splitscreen && ssplayers == 2)
-	{
-		splitscreen = true;
-		splitscreen3 = splitscreen4 = false;
-		SplitScreen_OnChange();
-	}
-	else if ((splitscreen || splitscreen3 || splitscreen4) && ssplayers == 1)
-	{
-		splitscreen = splitscreen3 = splitscreen4 = false;
+		splitscreen = ssplayers;
 		SplitScreen_OnChange();
 	}
 

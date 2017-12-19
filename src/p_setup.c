@@ -2359,15 +2359,15 @@ static void P_ForceCharacter(const char *forcecharskin)
 	if (netgame)
 	{
 		char skincmd[33];
-		if (splitscreen || splitscreen3 || splitscreen4)
+		if (splitscreen)
 		{
 			sprintf(skincmd, "skin2 %s\n", forcecharskin);
 			CV_Set(&cv_skin2, forcecharskin);
-			if (splitscreen3 || splitscreen4)
+			if (splitscreen > 1)
 			{
 				sprintf(skincmd, "skin3 %s\n", forcecharskin);
 				CV_Set(&cv_skin3, forcecharskin);
-				if (splitscreen4)
+				if (splitscreen > 2)
 				{
 					sprintf(skincmd, "skin4 %s\n", forcecharskin);
 					CV_Set(&cv_skin4, forcecharskin);
@@ -2380,7 +2380,7 @@ static void P_ForceCharacter(const char *forcecharskin)
 	}
 	else
 	{
-		if (splitscreen || splitscreen3 || splitscreen4)
+		if (splitscreen)
 		{
 			SetPlayerSkin(secondarydisplayplayer, forcecharskin);
 			if ((unsigned)cv_playercolor2.value != skins[players[secondarydisplayplayer].skin].prefcolor && !modeattacking)
@@ -2388,25 +2388,25 @@ static void P_ForceCharacter(const char *forcecharskin)
 				CV_StealthSetValue(&cv_playercolor2, skins[players[secondarydisplayplayer].skin].prefcolor);
 				players[secondarydisplayplayer].skincolor = skins[players[secondarydisplayplayer].skin].prefcolor;
 			}
-		}
 
-		if (splitscreen3 || splitscreen4)
-		{
-			SetPlayerSkin(thirddisplayplayer, forcecharskin);
-			if ((unsigned)cv_playercolor3.value != skins[players[thirddisplayplayer].skin].prefcolor && !modeattacking)
+			if (splitscreen > 1)
 			{
-				CV_StealthSetValue(&cv_playercolor3, skins[players[thirddisplayplayer].skin].prefcolor);
-				players[thirddisplayplayer].skincolor = skins[players[thirddisplayplayer].skin].prefcolor;
-			}
-		}
+				SetPlayerSkin(thirddisplayplayer, forcecharskin);
+				if ((unsigned)cv_playercolor3.value != skins[players[thirddisplayplayer].skin].prefcolor && !modeattacking)
+				{
+					CV_StealthSetValue(&cv_playercolor3, skins[players[thirddisplayplayer].skin].prefcolor);
+					players[thirddisplayplayer].skincolor = skins[players[thirddisplayplayer].skin].prefcolor;
+				}
 
-		if (splitscreen4)
-		{
-			SetPlayerSkin(fourthdisplayplayer, forcecharskin);
-			if ((unsigned)cv_playercolor4.value != skins[players[fourthdisplayplayer].skin].prefcolor && !modeattacking)
-			{
-				CV_StealthSetValue(&cv_playercolor4, skins[players[fourthdisplayplayer].skin].prefcolor);
-				players[fourthdisplayplayer].skincolor = skins[players[fourthdisplayplayer].skin].prefcolor;
+				if (splitscreen > 2)
+				{
+					SetPlayerSkin(fourthdisplayplayer, forcecharskin);
+					if ((unsigned)cv_playercolor4.value != skins[players[fourthdisplayplayer].skin].prefcolor && !modeattacking)
+					{
+						CV_StealthSetValue(&cv_playercolor4, skins[players[fourthdisplayplayer].skin].prefcolor);
+						players[fourthdisplayplayer].skincolor = skins[players[fourthdisplayplayer].skin].prefcolor;
+					}
+				}
 			}
 		}
 
@@ -2961,15 +2961,13 @@ boolean P_SetupLevel(boolean skipprecip)
 	if (cv_useranalog.value)
 		CV_SetValue(&cv_analog, true);
 
-	if ((splitscreen || splitscreen3 || splitscreen4) && cv_useranalog2.value)
-		CV_SetValue(&cv_analog2, true);
-	else if (botingame)
+	if ((splitscreen && cv_useranalog2.value) || botingame)
 		CV_SetValue(&cv_analog2, true);
 
-	if ((splitscreen3 || splitscreen4) && cv_useranalog3.value)
+	if (splitscreen > 1 && cv_useranalog3.value)
 		CV_SetValue(&cv_analog3, true);
 
-	if (splitscreen4 && cv_useranalog4.value)
+	if (splitscreen > 2 && cv_useranalog4.value)
 		CV_SetValue(&cv_analog4, true);
 
 	if (twodlevel)

@@ -95,8 +95,8 @@ UINT32 playerpingtable[MAXPLAYERS]; //table of player latency values.
 #endif
 SINT8 nodetoplayer[MAXNETNODES];
 SINT8 nodetoplayer2[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
-SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen3)
-SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen4)
+SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen == 2)
+SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen == 3)
 UINT8 playerpernode[MAXNETNODES]; // used specialy for splitscreen
 boolean nodeingame[MAXNETNODES]; // set false as nodes leave game
 static tic_t nettics[MAXNETNODES]; // what tic the client have received
@@ -129,8 +129,8 @@ static UINT8 mynode; // my address pointofview server
 
 static UINT8 localtextcmd[MAXTEXTCMD];
 static UINT8 localtextcmd2[MAXTEXTCMD]; // splitscreen
-static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen3
-static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen4
+static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen == 2
+static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen == 3
 static tic_t neededtic;
 SINT8 servernode = 0; // the number of the server node
 /// \brief do we accept new players?
@@ -1254,11 +1254,9 @@ static boolean CL_SendJoin(void)
 		CONS_Printf(M_GetText("Sending join request...\n"));
 	netbuffer->packettype = PT_CLIENTJOIN;
 
-	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
-		localplayers++;
-	if (splitscreen3 || splitscreen4)
-		localplayers++;
-	if (splitscreen4)
+	if (splitscreen)
+		localplayers += splitscreen;
+	else if (botingame)
 		localplayers++;
 
 	netbuffer->u.clientcfg.localplayers = localplayers;
@@ -2357,7 +2355,7 @@ static void Command_connect(void)
 			CONS_Alert(CONS_ERROR, M_GetText("There is no network driver\n"));
 	}
 
-	splitscreen = splitscreen3 = splitscreen4 = false;
+	splitscreen = 0;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;
@@ -3133,7 +3131,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	// Clear player before joining, lest some things get set incorrectly
 	// HACK: don't do this for splitscreen, it relies on preset values
-	if (!(splitscreen || splitscreen3 || splitscreen4) && !botingame)
+	if (!splitscreen && !botingame)
 		CL_ClearPlayer(newplayernum);
 	playeringame[newplayernum] = true;
 	G_AddPlayer(newplayernum);
@@ -3228,7 +3226,7 @@ static boolean SV_AddWaitingPlayers(void)
 
 	for (node = 0; node < MAXNETNODES; node++)
 	{
-		// splitscreen can allow 2 player in one node
+		// splitscreen can allow 2+ players in one node
 		for (; nodewaiting[node] > 0; nodewaiting[node]--)
 		{
 			newplayer = true;
@@ -3371,7 +3369,7 @@ void SV_StartSinglePlayerServer(void)
 	// no more tic the game with this settings!
 	SV_StopServer();
 
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 		multiplayer = true;
 }
 
@@ -4381,22 +4379,21 @@ static void CL_SendClientCmd(void)
 		{
 			netbuffer->packettype += 2;
 			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
-			packetsize = sizeof (client2cmd_pak);
-		}
-		else if (splitscreen3)
-		{
-			netbuffer->packettype += 4;
-			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
-			G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
-			packetsize = sizeof (client3cmd_pak);
-		}
-		else if (splitscreen4)
-		{
-			netbuffer->packettype += 6;
-			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
-			G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
-			G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
-			packetsize = sizeof (client4cmd_pak);
+			if (splitscreen > 1)
+			{
+				netbuffer->packettype += 2;
+				G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
+				if (splitscreen > 2)
+				{
+					netbuffer->packettype += 2;
+					G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
+					packetsize = sizeof (client4cmd_pak);
+				}
+				else
+					packetsize = sizeof (client3cmd_pak);
+			}
+			else
+				packetsize = sizeof (client2cmd_pak);
 		}
 		else
 			packetsize = sizeof (clientcmd_pak);
@@ -4416,7 +4413,7 @@ static void CL_SendClientCmd(void)
 				localtextcmd[0] = 0;
 		}
 
-		// Send extra data if needed for player 2 (splitscreen)
+		// Send extra data if needed for player 2 (splitscreen == 1)
 		if (localtextcmd2[0])
 		{
 			netbuffer->packettype = PT_TEXTCMD2;
@@ -4426,7 +4423,7 @@ static void CL_SendClientCmd(void)
 				localtextcmd2[0] = 0;
 		}
 
-		// Send extra data if needed for player 3 (splitscreen3)
+		// Send extra data if needed for player 3 (splitscreen == 2)
 		if (localtextcmd3[0])
 		{
 			netbuffer->packettype = PT_TEXTCMD3;
@@ -4436,7 +4433,7 @@ static void CL_SendClientCmd(void)
 				localtextcmd3[0] = 0;
 		}
 
-		// Send extra data if needed for player 4 (splitscreen4)
+		// Send extra data if needed for player 4 (splitscreen == 3)
 		if (localtextcmd4[0])
 		{
 			netbuffer->packettype = PT_TEXTCMD4;
@@ -4576,13 +4573,13 @@ static void Local_Maketic(INT32 realtics)
 	if (!dedicated) rendergametic = gametic;
 	// translate inputs (keyboard/mouse/joystick) into game controls
 	G_BuildTiccmd(&localcmds, realtics, 1);
-	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
+	if (splitscreen || botingame)
 	{
 		G_BuildTiccmd(&localcmds2, realtics, 2);
-		if (splitscreen3 || splitscreen4)
+		if (splitscreen > 1)
 		{
 			G_BuildTiccmd(&localcmds3, realtics, 3);
-			if (splitscreen4)
+			if (splitscreen > 2)
 				G_BuildTiccmd(&localcmds4, realtics, 4);
 		}
 	}

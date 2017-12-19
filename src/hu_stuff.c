@@ -1805,7 +1805,7 @@ static void HU_DrawRankings(void)
 		HU_DrawDualTabRankings(32, 32, tab, scorelines, whiteplayer);
 
 	// draw spectators in a ticker across the bottom
-	if (!(splitscreen || splitscreen3 || splitscreen4) && G_GametypeHasSpectators())
+	if (!splitscreen && G_GametypeHasSpectators())
 		HU_DrawSpectatorTicker();
 }
 

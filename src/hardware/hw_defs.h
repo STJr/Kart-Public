@@ -107,7 +107,7 @@ typedef struct
 	FLOAT       anglex,angley;   // aimingangle / viewangle
 	FLOAT       scalex,scaley,scalez;
 	FLOAT       fovxangle, fovyangle;
-	INT32       splitscreen;
+	UINT8       splitscreen;
 	boolean     flip;            // screenflip
 	boolean     mirror;          // SRB2Kart: Mirror Mode
 } FTransform;

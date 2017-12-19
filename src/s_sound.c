@@ -414,25 +414,25 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	if (players[displayplayer].awayviewtics)
 		listenmobj = players[displayplayer].awayviewmobj;
 
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 	{
 		listenmobj2 = players[secondarydisplayplayer].mo;
 		if (players[secondarydisplayplayer].awayviewtics)
 			listenmobj2 = players[secondarydisplayplayer].awayviewmobj;
-	}
 
-	if (splitscreen3 || splitscreen4)
-	{
-		listenmobj3 = players[thirddisplayplayer].mo;
-		if (players[thirddisplayplayer].awayviewtics)
-			listenmobj3 = players[thirddisplayplayer].awayviewmobj;
-	}
+		if (splitscreen > 1)
+		{
+			listenmobj3 = players[thirddisplayplayer].mo;
+			if (players[thirddisplayplayer].awayviewtics)
+				listenmobj3 = players[thirddisplayplayer].awayviewmobj;
 
-	if (splitscreen4)
-	{
-		listenmobj4 = players[fourthdisplayplayer].mo;
-		if (players[fourthdisplayplayer].awayviewtics)
-			listenmobj4 = players[fourthdisplayplayer].awayviewmobj;
+			if (splitscreen > 2)
+			{
+				listenmobj4 = players[fourthdisplayplayer].mo;
+				if (players[fourthdisplayplayer].awayviewtics)
+					listenmobj4 = players[fourthdisplayplayer].awayviewmobj;
+			}
+		}
 	}
 
 #ifdef HW3SOUND
@@ -531,7 +531,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	pitch = NORM_PITCH;
 	priority = NORM_PRIORITY;
 
-	if ((splitscreen || splitscreen3 || splitscreen4) && listenmobj2) // Copy the sound for the split player
+	if (splitscreen && listenmobj2) // Copy the sound for the split player
 	{
 		// Check to see if it is audible, and if not, modify the params
 		if (origin && origin != listenmobj2)
@@ -586,7 +586,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
 	}
 
-	if ((splitscreen3 || splitscreen4) && listenmobj3) // Copy the sound for the third player
+	if (splitscreen > 1 && listenmobj3) // Copy the sound for the third player
 	{
 		// Check to see if it is audible, and if not, modify the params
 		if (origin && origin != listenmobj3)
@@ -641,7 +641,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
 	}
 
-	if (splitscreen4 && listenmobj4) // Copy the sound for the split player
+	if (splitscreen > 2 && listenmobj4) // Copy the sound for the split player
 	{
 		// Check to see if it is audible, and if not, modify the params
 		if (origin && origin != listenmobj4)
@@ -895,25 +895,25 @@ void S_UpdateSounds(void)
 	if (players[displayplayer].awayviewtics)
 		listenmobj = players[displayplayer].awayviewmobj;
 
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 	{
 		listenmobj2 = players[secondarydisplayplayer].mo;
 		if (players[secondarydisplayplayer].awayviewtics)
 			listenmobj2 = players[secondarydisplayplayer].awayviewmobj;
-	}
 
-	if (splitscreen3 || splitscreen4)
-	{
-		listenmobj3 = players[thirddisplayplayer].mo;
-		if (players[thirddisplayplayer].awayviewtics)
-			listenmobj3 = players[thirddisplayplayer].awayviewmobj;
-	}
+		if (splitscreen > 1)
+		{
+			listenmobj3 = players[thirddisplayplayer].mo;
+			if (players[thirddisplayplayer].awayviewtics)
+				listenmobj3 = players[thirddisplayplayer].awayviewmobj;
 
-	if (splitscreen4)
-	{
-		listenmobj4 = players[fourthdisplayplayer].mo;
-		if (players[fourthdisplayplayer].awayviewtics)
-			listenmobj4 = players[fourthdisplayplayer].awayviewmobj;
+			if (splitscreen > 2)
+			{
+				listenmobj4 = players[fourthdisplayplayer].mo;
+				if (players[fourthdisplayplayer].awayviewtics)
+					listenmobj4 = players[fourthdisplayplayer].awayviewmobj;
+			}
+		}
 	}
 
 	if (camera.chase && !players[displayplayer].awayviewtics)
@@ -1014,12 +1014,12 @@ void S_UpdateSounds(void)
 				// check non-local sounds for distance clipping
 				//  or modify their params
 				if (c->origin && ((c->origin != players[consoleplayer].mo)
-					|| ((splitscreen || splitscreen3 || splitscreen4) && c->origin != players[secondarydisplayplayer].mo)
-					|| ((splitscreen3 || splitscreen4) && c->origin != players[thirddisplayplayer].mo)
-					|| (splitscreen4 && c->origin != players[fourthdisplayplayer].mo)))
+					|| (splitscreen && c->origin != players[secondarydisplayplayer].mo)
+					|| (splitscreen > 1 && c->origin != players[thirddisplayplayer].mo)
+					|| (splitscreen > 2 && c->origin != players[fourthdisplayplayer].mo)))
 				{
 					// Whomever is closer gets the sound, but only in splitscreen.
-					if (listenmobj && listenmobj2 && (splitscreen || splitscreen3 || splitscreen4))
+					if (listenmobj && listenmobj2 && splitscreen)
 					{
 						const mobj_t *soundmobj = c->origin;
 
@@ -1045,7 +1045,7 @@ void S_UpdateSounds(void)
 						else
 							S_StopChannel(cnum);
 					}
-					else if (listenmobj && listenmobj3 && (splitscreen3 || splitscreen4)) // TODO: make 3/4P compare their distances with all players, not just the first player and themselves V:
+					else if (listenmobj && listenmobj3 && splitscreen > 1) // TODO: make 3/4P compare their distances with all players, not just the first player and themselves V:
 					{
 						const mobj_t *soundmobj = c->origin;
 
@@ -1071,7 +1071,7 @@ void S_UpdateSounds(void)
 						else
 							S_StopChannel(cnum);
 					}
-					else if (listenmobj && listenmobj4 && splitscreen4)
+					else if (listenmobj && listenmobj4 && splitscreen > 2)
 					{
 						const mobj_t *soundmobj = c->origin;
 
@@ -1097,7 +1097,7 @@ void S_UpdateSounds(void)
 						else
 							S_StopChannel(cnum);
 					}
-					else if (listenmobj && !(splitscreen || splitscreen3 || splitscreen4))
+					else if (listenmobj && !splitscreen)
 					{
 						// In the case of a single player, he or she always should get updated sound.
 						audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
@@ -1223,21 +1223,21 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 		listensource.z = camera.z;
 		listensource.angle = camera.angle;
 	}
-	else if ((splitscreen || splitscreen3 || splitscreen4) && listener == players[secondarydisplayplayer].mo && camera2.chase)
+	else if (splitscreen && listener == players[secondarydisplayplayer].mo && camera2.chase)
 	{
 		listensource.x = camera2.x;
 		listensource.y = camera2.y;
 		listensource.z = camera2.z;
 		listensource.angle = camera2.angle;
 	}
-	else if ((splitscreen3 || splitscreen4) && listener == players[thirddisplayplayer].mo && camera3.chase)
+	else if (splitscreen > 1 && listener == players[thirddisplayplayer].mo && camera3.chase)
 	{
 		listensource.x = camera3.x;
 		listensource.y = camera3.y;
 		listensource.z = camera3.z;
 		listensource.angle = camera3.angle;
 	}
-	else if (splitscreen4 && listener == players[fourthdisplayplayer].mo && camera4.chase)
+	else if (splitscreen > 2 && listener == players[fourthdisplayplayer].mo && camera4.chase)
 	{
 		listensource.x = camera4.x;
 		listensource.y = camera4.y;

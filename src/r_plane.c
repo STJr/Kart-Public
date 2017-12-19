@@ -858,12 +858,12 @@ void R_DrawSinglePlane(visplane_t *pl)
 				if (bottom > vid.height)
 					bottom = vid.height;
 
-				if (splitscreen4 && viewplayer == &players[fourthdisplayplayer]) // Only copy the part of the screen we need
+				if (splitscreen > 2 && viewplayer == &players[fourthdisplayplayer]) // Only copy the part of the screen we need
 					scr = (screens[0] + (top+(viewheight))*vid.width + viewwidth);
-				else if ((splitscreen && viewplayer == &players[secondarydisplayplayer])
-					|| ((splitscreen3 || splitscreen4) && viewplayer == &players[thirddisplayplayer]))
+				else if ((splitscreen == 1 && viewplayer == &players[secondarydisplayplayer])
+					|| (splitscreen > 1 && viewplayer == &players[thirddisplayplayer]))
 					scr = (screens[0] + (top+(viewheight))*vid.width);
-				else if ((splitscreen3 || splitscreen4) && viewplayer == &players[secondarydisplayplayer])
+				else if (splitscreen > 1 && viewplayer == &players[secondarydisplayplayer])
 					scr = (screens[0] + ((top)*vid.width) + viewwidth);
 				else
 					scr = (screens[0] + ((top)*vid.width));

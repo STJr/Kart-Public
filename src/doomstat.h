@@ -77,9 +77,7 @@ extern boolean addedtogame; // true after the server has added you
 extern boolean multiplayer;
 
 extern INT16 gametype;
-extern boolean splitscreen;
-extern boolean splitscreen3;
-extern boolean splitscreen4;
+extern UINT8 splitscreen;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
 

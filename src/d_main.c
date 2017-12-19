@@ -404,7 +404,7 @@ static void D_Display(void)
 			}
 
 			// render the second screen
-			if ((splitscreen || splitscreen3 || splitscreen4) && players[secondarydisplayplayer].mo)
+			if (splitscreen && players[secondarydisplayplayer].mo)
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)
@@ -413,7 +413,7 @@ static void D_Display(void)
 #endif
 				if (rendermode != render_none)
 				{
-					if (splitscreen3 || splitscreen4)
+					if (splitscreen > 1)
 					{
 						viewwindowx = viewwidth;
 						viewwindowy = 0;
@@ -436,7 +436,7 @@ static void D_Display(void)
 			}
 
 			// render the third screen
-			if ((splitscreen3 || splitscreen4) && players[thirddisplayplayer].mo)
+			if (splitscreen > 1 && players[thirddisplayplayer].mo)
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)
@@ -458,9 +458,7 @@ static void D_Display(void)
 				}
 			}
 
-			//if (splitscreen3) // Fill up the fourth screen in 3P mode so you aren't gazing into the abyss :V
-				//V_DrawFill(viewwidth, viewheight, viewwidth, viewheight, 31);
-			if (splitscreen4 && players[fourthdisplayplayer].mo) // render the fourth screen
+			if (splitscreen > 2 && players[fourthdisplayplayer].mo) // render the fourth screen
 			{
 #ifdef HWRENDER
 				if (rendermode != render_soft)
@@ -695,14 +693,14 @@ void D_SRB2Loop(void)
 			// Lagless camera! Yay!
 			if (gamestate == GS_LEVEL && netgame)
 			{
-				if ((splitscreen || splitscreen3 || splitscreen4) && camera2.chase)
-					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
-				if ((splitscreen3 || splitscreen4) && camera3.chase)
-					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
-				if (splitscreen4 && camera4.chase)
-					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
 				if (camera.chase)
 					P_MoveChaseCamera(&players[displayplayer], &camera, false);
+				if (splitscreen && camera2.chase)
+					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
+				if (splitscreen > 1 && camera3.chase)
+					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
+				if (splitscreen > 2 && camera4.chase)
+					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
 			}
 			D_Display();
 
@@ -776,9 +774,7 @@ void D_StartTitle(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		CL_ClearPlayer(i);
 
-	splitscreen = false;
-	splitscreen3 = false;
-	splitscreen4 = false;
+	splitscreen = 0;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;
