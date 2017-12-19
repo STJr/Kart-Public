@@ -3067,8 +3067,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	K_KartUpdatePosition(player);
 
-	// Position Taunt
-	// If you were behind someone but just passed them, taunt at them!
+	// Previously was position taunt, now is used for growing the number while passing people!
 	if (!player->kartstuff[k_positiondelay] && !player->exiting)
 	{
 		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
@@ -3077,7 +3076,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			//S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // Restore the old position,
-			player->kartstuff[k_positiondelay] = 5*TICRATE; // and set up a timer.
+			player->kartstuff[k_positiondelay] = 15; // and set up a timer.
 		}
 	}
 	if (player->kartstuff[k_positiondelay])
@@ -4028,6 +4027,7 @@ INT32 FACE_X, FACE_Y;	// Top-four Faces
 INT32 METE_X, METE_Y;	// Speed Meter
 INT32 LAKI_X, LAKI_Y;	// Lakitu
 INT32 CHEK_Y;			// CHECK graphic
+INT32 MINI_X, MINI_Y;	// Minimap
 
 static void K_initKartHUD(void)
 {
@@ -4083,7 +4083,7 @@ static void K_initKartHUD(void)
 	SPDM_Y = BASEVIDHEIGHT- 45;	// 155
 	// Position Number
 	POSI_X = BASEVIDWIDTH - 52;	// 268
-	POSI_Y = BASEVIDHEIGHT- 62;	// 138
+	POSI_Y = BASEVIDHEIGHT- 4;	// 138
 	// Top-Four Faces
 	FACE_X = 9;					//   9
 	FACE_Y = 92;				//  92
@@ -4092,6 +4092,9 @@ static void K_initKartHUD(void)
 	LAKI_Y = 58 - 200;			//  58
 	// CHECK graphic
 	CHEK_Y = BASEVIDHEIGHT;		// 200
+	// Minimap
+	MINI_X = 158;				// 158
+	MINI_Y = 50;				//  50
 
 	if (splitscreen)	// Splitscreen
 	{
@@ -4102,7 +4105,9 @@ static void K_initKartHUD(void)
 
 		LAPS_Y = (BASEVIDHEIGHT/2)-24;
 
-		POSI_Y = (BASEVIDHEIGHT/2)-56;
+		POSI_Y = (BASEVIDHEIGHT/2)- 2;
+
+		MINI_Y = (BASEVIDHEIGHT/2);
 
 		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
@@ -4112,8 +4117,16 @@ static void K_initKartHUD(void)
 			LAPS_X = 2;
 			LAPS_Y = (BASEVIDHEIGHT/2)-22;
 
-			POSI_X = (BASEVIDWIDTH/2) -46;
-			POSI_Y = (BASEVIDHEIGHT/2)-56;
+			POSI_X = (BASEVIDWIDTH/2) - 45;
+
+			MINI_X = (3*BASEVIDWIDTH/4);
+			MINI_Y = (3*BASEVIDHEIGHT/4);
+
+			if (splitscreen > 2)
+			{
+				MINI_X = (BASEVIDWIDTH/2);
+				MINI_Y = (BASEVIDHEIGHT/2);
+			}
 		}
 	}
 
@@ -4191,130 +4204,6 @@ static void K_drawKartItemClose(void)
 
 	if (localpatch != kp_nodraw)
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
-}
-
-void K_LoadIconGraphics(char *facestr, INT32 skinnum)
-{
-	char namelump[9];
-
-	// hack: make sure base face name is no more than 8 chars
-	if (strlen(facestr) > 8)
-		facestr[8] = '\0';
-	strcpy(namelump, facestr); // copy base name
-
-	iconprefix[skinnum] = W_CachePatchName(namelump, PU_HUDGFX);
-	iconfreed[skinnum] = false;
-}
-
-#if 0 //unused
-static void K_UnLoadIconGraphics(INT32 skinnum)
-{
-	Z_Free(iconprefix[skinnum]);
-	iconfreed[skinnum] = true;
-}
-#endif
-
-void K_drawMinimap(void)
-{
-	// SRB2kart 12/18/17 - Automap HUD 
-	
-	INT32 amnumxpos;
-	INT32 amnumypos;
-	INT32 amxpos;
-	INT32 amypos;
-	INT32 lumpnum;
-	patch_t *AutomapPic;
-	INT32 i = 0;
-
-	// Draw the HUD only when playing in a level.
-	// hu_stuff needs this, unlike st_stuff.
-	if (Playing() && gamestate == GS_LEVEL)
-	{
-		INT32 x, y;
-
-		lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
-
-		if (lumpnum != -1)
-			AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_CACHE);
-		else
-			AutomapPic = W_CachePatchName(va("NOMAPR"), PU_CACHE);
-
-		if (splitscreen)
-		{
-			x = 160 - (AutomapPic->width/4);
-			y = 100 - (AutomapPic->height/4);
-		}
-		else
-		{
-			x = 310 - (AutomapPic->width/2);
-			y = 50;
-		}
-
-		V_DrawSmallScaledPatch(x, y, V_TRANSLUCENT|V_SNAPTORIGHT, AutomapPic);
-
-		// Player's tiny icons on the Automap.
-		if (lumpnum != -1)
-		{
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (players[i].mo && !players[i].spectator)
-				{
-					// amnum xpos & ypos are the icon's speed around the HUD.
-					// The number being divided by is for how fast it moves.
-					// The higher the number, the slower it moves.
-
-					// am xpos & ypos are the icon's starting position. Withouht
-					// it, they wouldn't 'spawn' on the top-right side of the HUD.
-
-					node_t *bsp = &nodes[numnodes-1];
-					fixed_t maxx, minx, maxy, miny;
-					maxx = maxy = INT32_MAX;
-					minx = miny = INT32_MIN;
-					minx = bsp->bbox[0][BOXLEFT];
-					maxx = bsp->bbox[0][BOXRIGHT];
-					miny = bsp->bbox[0][BOXBOTTOM];
-					maxy = bsp->bbox[0][BOXTOP];
-
-					if (bsp->bbox[1][BOXLEFT] < minx)
-						minx = bsp->bbox[1][BOXLEFT];
-					if (bsp->bbox[1][BOXRIGHT] > maxx)
-						maxx = bsp->bbox[1][BOXRIGHT];
-					if (bsp->bbox[1][BOXBOTTOM] < miny)
-						miny = bsp->bbox[1][BOXBOTTOM];
-					if (bsp->bbox[1][BOXTOP] > maxy)
-						miny = bsp->bbox[1][BOXTOP];
-
-					fixed_t mapwidth = maxx - minx;
-					fixed_t mapheight = maxy - miny;
-
-					fixed_t xoffset = minx + mapwidth/2;
-					fixed_t yoffset = miny + mapheight/2;
-
-					fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
-					fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
-					fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
-
-					amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
-					amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
-
-					amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
-					amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
-
-					if (!players[i].skincolor) // 'default' color
-					{
-						V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT, iconprefix[players[i].skin], FRACUNIT/2);
-					}
-					else
-					{
-						UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-						V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT, iconprefix[players[i].skin], colormap);
-					}
-				}
-			}
-		}
-		/*if (!splitscreen && maptol & TOL_RACE && !hu_showscores)
-			HU_DrawRaceRankings();*/
-	}
 }
 
 static void K_drawKartItemRoulette(void)
@@ -4596,14 +4485,17 @@ static void K_DrawKartPositionNum(INT32 num)
 
 	INT32 X = POSI_X+43; // +43 to offset where it's being drawn if there are more than one
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
+	fixed_t scale = FRACUNIT;
 	patch_t *localpatch = kp_positionnum[0][0];
-
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
+
+	if (splitscreen > 1)
+		scale = FRACUNIT/2;
 
 	// Special case for 0
 	if (!num)
 	{
-		V_DrawTranslucentPatch(X-W, POSI_Y, V_TRANSLUCENT|splitflags, kp_positionnum[0][0]);
+		V_DrawFixedPatch(X<<FRACBITS, POSI_Y<<FRACBITS, scale, V_TRANSLUCENT|splitflags, kp_positionnum[0][0], NULL);
 		return;
 	}
 
@@ -4612,8 +4504,6 @@ static void K_DrawKartPositionNum(INT32 num)
 	// Draw the number
 	while (num)
 	{
-		X -= W;
-
 		if (stplyr->exiting && num == 1) // 1st place winner? You get rainbows!!
 		{
 			// Alternate frame every three frames
@@ -4676,7 +4566,12 @@ static void K_DrawKartPositionNum(INT32 num)
 		else
 			localpatch = kp_positionnum[num % 10][0];
 
-		V_DrawTranslucentPatch(X, POSI_Y, V_TRANSLUCENT|splitflags, localpatch);
+		if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
+			scale *= 2;
+
+		V_DrawFixedPatch(X<<FRACBITS, POSI_Y<<FRACBITS, scale, V_TRANSLUCENT|splitflags, localpatch, NULL);
+
+		X -= W;
 		num /= 10;
 	}
 }
@@ -4964,6 +4859,135 @@ static void K_drawKartPlayerCheck(void)
 	}
 }
 
+void K_LoadIconGraphics(char *facestr, INT32 skinnum)
+{
+	char namelump[9];
+
+	// hack: make sure base face name is no more than 8 chars
+	if (strlen(facestr) > 8)
+		facestr[8] = '\0';
+	strcpy(namelump, facestr); // copy base name
+
+	iconprefix[skinnum] = W_CachePatchName(namelump, PU_HUDGFX);
+	iconfreed[skinnum] = false;
+}
+
+#if 0 //unused
+static void K_UnLoadIconGraphics(INT32 skinnum)
+{
+	Z_Free(iconprefix[skinnum]);
+	iconfreed[skinnum] = true;
+}
+#endif
+
+void K_drawMinimap(void)
+{
+	INT32 amnumxpos;
+	INT32 amnumypos;
+	INT32 amxpos;
+	INT32 amypos;
+	INT32 lumpnum;
+	patch_t *AutomapPic;
+	INT32 i = 0;
+
+	// Draw the HUD only when playing in a level.
+	// hu_stuff needs this, unlike st_stuff.
+	if (Playing() && gamestate == GS_LEVEL)
+	{
+		INT32 x, y;
+
+		lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
+
+		if (lumpnum != -1)
+			AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_CACHE);
+		else
+			return; // no pic, just get outta here
+
+		x = MINI_X - (AutomapPic->width/4);
+		y = MINI_Y - (AutomapPic->height/4);
+
+		if (cv_kartmirror.value)
+			V_DrawSmallScaledPatch(x+(AutomapPic->width/2), y, V_TRANSLUCENT|V_SNAPTORIGHT|V_FLIP, AutomapPic);
+		else
+			V_DrawSmallScaledPatch(x, y, V_TRANSLUCENT|V_SNAPTORIGHT, AutomapPic);
+
+		// Player's tiny icons on the Automap.
+		if (lumpnum != -1)
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (players[i].mo && !players[i].spectator)
+				{
+					// amnum xpos & ypos are the icon's speed around the HUD.
+					// The number being divided by is for how fast it moves.
+					// The higher the number, the slower it moves.
+
+					// am xpos & ypos are the icon's starting position. Withouht
+					// it, they wouldn't 'spawn' on the top-right side of the HUD.
+
+					node_t *bsp = &nodes[numnodes-1];
+					fixed_t maxx, minx, maxy, miny;
+					maxx = maxy = INT32_MAX;
+					minx = miny = INT32_MIN;
+					minx = bsp->bbox[0][BOXLEFT];
+					maxx = bsp->bbox[0][BOXRIGHT];
+					miny = bsp->bbox[0][BOXBOTTOM];
+					maxy = bsp->bbox[0][BOXTOP];
+
+					if (bsp->bbox[1][BOXLEFT] < minx)
+						minx = bsp->bbox[1][BOXLEFT];
+					if (bsp->bbox[1][BOXRIGHT] > maxx)
+						maxx = bsp->bbox[1][BOXRIGHT];
+					if (bsp->bbox[1][BOXBOTTOM] < miny)
+						miny = bsp->bbox[1][BOXBOTTOM];
+					if (bsp->bbox[1][BOXTOP] > maxy)
+						miny = bsp->bbox[1][BOXTOP];
+
+					fixed_t mapwidth = maxx - minx;
+					fixed_t mapheight = maxy - miny;
+
+					fixed_t xoffset = minx + mapwidth/2;
+					fixed_t yoffset = miny + mapheight/2;
+
+					fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
+					fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
+					fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
+
+					amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
+					amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
+
+					amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+					amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
+
+					if (cv_kartmirror.value)
+					{
+						amxpos = -amnumxpos + ((x + AutomapPic->width/4 + (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+						if (!players[i].skincolor) // 'default' color
+							V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT|V_FLIP, iconprefix[players[i].skin], FRACUNIT/2);
+						else
+						{
+							UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+							V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT|V_FLIP, iconprefix[players[i].skin], colormap);
+						}
+					}
+					else
+					{
+						if (!players[i].skincolor) // 'default' color
+							V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT, iconprefix[players[i].skin], FRACUNIT/2);
+						else
+						{
+							UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+							V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT, iconprefix[players[i].skin], colormap);
+						}
+					}
+				}
+			}
+		}
+		/*if (!splitscreen && maptol & TOL_RACE && !hu_showscores)
+			HU_DrawRaceRankings();*/
+	}
+}
+
 static void K_drawBattleFullscreen(void)
 {
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
@@ -5199,11 +5223,11 @@ void K_drawKartHUD(void)
 
 	if (gametype == GT_RACE) // Race-only elements
 	{
-		// Draw the numerical position
-		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
-
 		// Draw the lap counter
 		K_drawKartLaps();
+
+		// Draw the numerical position
+		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 	}
 	else if (gametype == GT_MATCH) // Battle-only
 	{

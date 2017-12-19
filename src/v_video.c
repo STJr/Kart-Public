@@ -1982,7 +1982,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 		return;
 #endif
 
-	if (view < 0 || view >= 3 || (view > splitscreen))
+	if (view < 0 || view > 3 || view > splitscreen)
 		return;
 
 	if ((view == 1 && splitscreen == 1) || view >= 2)
@@ -1990,7 +1990,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 	else
 		yoffset = 0;
 
-	if (view & 1 && splitscreen > 1)
+	if ((view == 1 || view == 3) && splitscreen > 1)
 		xoffset = viewwidth;
 	else
 		xoffset = 0;
@@ -2012,23 +2012,23 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 
 			if (sine < 0)
 			{
-				M_Memcpy(&tmpscr[y*vid.width+newpix], &srcscr[y*vid.width], vid.width-newpix);
+				M_Memcpy(&tmpscr[(y*vid.width)+xoffset+newpix], &srcscr[(y*vid.width)+xoffset], viewwidth-newpix);
 
 				// Cleanup edge
 				while (newpix)
 				{
-					tmpscr[y*vid.width+newpix] = srcscr[y*vid.width];
+					tmpscr[(y*vid.width)+xoffset+newpix] = srcscr[(y*vid.width)+xoffset];
 					newpix--;
 				}
 			}
 			else
 			{
-				M_Memcpy(&tmpscr[y*vid.width+0], &srcscr[y*vid.width+sine], vid.width-newpix);
+				M_Memcpy(&tmpscr[(y*vid.width)+xoffset+0], &srcscr[(y*vid.width)+xoffset+sine], viewwidth-newpix);
 
 				// Cleanup edge
 				while (newpix)
 				{
-					tmpscr[y*vid.width+vid.width-newpix] = srcscr[y*vid.width+(vid.width-1)];
+					tmpscr[(y*vid.width)+xoffset+viewwidth-newpix] = srcscr[(y*vid.width)+xoffset+(viewwidth-1)];
 					newpix--;
 				}
 			}
@@ -2050,8 +2050,8 @@ Unoptimized version
 			disStart &= FINEMASK; //clip it to FINEMASK
 		}
 
-		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
+		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,
+				viewwidth*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_motion) // Motion Blur!
 	{
@@ -2064,14 +2064,14 @@ Unoptimized version
 
 		for (y = yoffset; y < yoffset+viewheight; y++)
 		{
-			for (x = 0; x < vid.width; x++)
+			for (x = xoffset; x < xoffset+viewwidth; x++)
 			{
 				tmpscr[y*vid.width + x]
-					=     colormaps[*(transme     + (srcscr   [y*vid.width+x ] <<8) + (tmpscr[y*vid.width+x]))];
+					=     colormaps[*(transme     + (srcscr   [(y*vid.width)+x ] <<8) + (tmpscr[(y*vid.width)+x]))];
 			}
 		}
-		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
+		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,
+				viewwidth*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_flip) // Flip the screen upside-down
 	{
@@ -2080,7 +2080,7 @@ Unoptimized version
 		INT32 y, y2;
 
 		for (y = yoffset, y2 = yoffset+viewheight - 1; y < yoffset+viewheight; y++, y2--)
-			M_Memcpy(&tmpscr[y2*vid.width+xoffset], &srcscr[y*vid.width+xoffset], viewwidth);
+			M_Memcpy(&tmpscr[(y2*vid.width)+xoffset], &srcscr[(y*vid.width)+xoffset], viewwidth);
 
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,
 				viewwidth*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
@@ -2090,6 +2090,9 @@ Unoptimized version
 		UINT8 *tmpscr = screens[4];
 		UINT8 *srcscr = screens[0];
 		INT32 y;
+
+		if (splitscreen > 1) // 3P/4P has trouble supporting this, anyone want to fix it? :p
+			return;
 
 		// Make sure table is built
 		if (heatshifter == NULL || lastheight != viewheight)
@@ -2114,11 +2117,11 @@ Unoptimized version
 			if (heatshifter[heatindex[view]++])
 			{
 				// Shift this row of pixels to the right by 2
-				tmpscr[y*vid.width] = srcscr[y*vid.width];
-				M_Memcpy(&tmpscr[y*vid.width+vid.dupx], &srcscr[y*vid.width], vid.width-vid.dupx);
+				tmpscr[(y*vid.width)+xoffset] = srcscr[(y*vid.width)+xoffset];
+				M_Memcpy(&tmpscr[(y*vid.width)+xoffset], &srcscr[(y*vid.width)+xoffset+vid.dupx], viewwidth-vid.dupx);
 			}
 			else
-				M_Memcpy(&tmpscr[y*vid.width], &srcscr[y*vid.width], vid.width);
+				M_Memcpy(&tmpscr[(y*vid.width)+xoffset], &srcscr[(y*vid.width)+xoffset], viewwidth);
 
 			heatindex[view] %= viewheight;
 		}
@@ -2126,8 +2129,8 @@ Unoptimized version
 		heatindex[view]++;
 		heatindex[view] %= vid.height;
 
-		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset, screens[0]+vid.width*vid.bpp*yoffset,
-				vid.width*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
+		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,
+				viewwidth*vid.bpp, viewheight, vid.width*vid.bpp, vid.width);
 	}
 	else if (type == postimg_mirror) // Flip the screen on the x axis
 	{
@@ -2137,8 +2140,8 @@ Unoptimized version
 
 		for (y = yoffset; y < yoffset+viewheight; y++)
 		{
-			for (x = 0, x2 = (viewwidth*vid.bpp)-1; x < (viewwidth*vid.bpp); x++, x2--)
-				tmpscr[y*vid.width+xoffset + x2] = srcscr[y*vid.width+xoffset + x];
+			for (x = xoffset, x2 = xoffset+((viewwidth*vid.bpp)-1); x < xoffset+(viewwidth*vid.bpp); x++, x2--)
+				tmpscr[y*vid.width + x2] = srcscr[y*vid.width + x];
 		}
 
 		VID_BlitLinearScreen(tmpscr+vid.width*vid.bpp*yoffset+xoffset, screens[0]+vid.width*vid.bpp*yoffset+xoffset,

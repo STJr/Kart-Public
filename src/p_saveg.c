@@ -3374,7 +3374,7 @@ boolean P_LoadGame(INT16 mapoverride)
 		return false;
 
 	// Only do this after confirming savegame is ok
-	G_DeferedInitNew(false, G_BuildMapName(gamemap), savedata.skin, 1, true);
+	G_DeferedInitNew(false, G_BuildMapName(gamemap), savedata.skin, 0, true);
 	COM_BufAddText("dummyconsvar 1\n"); // G_DeferedInitNew doesn't do this
 
 	return true;
