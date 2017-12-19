@@ -1338,11 +1338,13 @@ void R_RenderPlayerView(player_t *player)
 
 	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
 	{
-		if (cv_homremoval.value == 1 || splitscreen == 2) // BAD HACK, V_DrawFill isn't letting me cover up only the 4th screen, so let's just sliently force this
+		if (cv_homremoval.value == 1)
 			V_DrawFill(0, 0, vid.width, vid.height, 31); // No HOM effect!
 		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
 			V_DrawFill(0, 0, vid.width, vid.height, 128+(timeinmap&15));
 	}
+	else if (splitscreen == 2 && player == &players[thirddisplayplayer])
+		V_DrawFill(viewwidth, viewheight, viewwidth, viewheight, 31|V_NOSCALESTART); // Draw over the fourth screen so you don't have to stare at a HOM :V
 
 	// load previous saved value of skyVisible for the player
 	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
