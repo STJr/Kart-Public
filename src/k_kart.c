@@ -4228,11 +4228,11 @@ void K_drawMinimap(void)
 		}
 		else
 		{
-			x = 312 - (AutomapPic->width/2);
-			y = 60;
+			x = 310 - (AutomapPic->width/2);
+			y = 50;
 		}
 
-		V_DrawSmallScaledPatch(x, y, 0, AutomapPic);
+		V_DrawSmallScaledPatch(x, y, V_TRANSLUCENT|V_SNAPTORIGHT, AutomapPic);
 
 		// Player's tiny icons on the Automap.
 		if (lumpnum != -1)
@@ -4247,20 +4247,49 @@ void K_drawMinimap(void)
 
 					// am xpos & ypos are the icon's starting position. Withouht
 					// it, they wouldn't 'spawn' on the top-right side of the HUD.
-					amnumxpos = (players[i].mo->x / 320) >> FRACBITS;
-					amnumypos = (-players[i].mo->y / 340) >> FRACBITS;
 
-					amxpos = (x + amnumxpos) - (iconprefix[players[i].skin]->width/4);
-					amypos = (y + amnumypos) - (iconprefix[players[i].skin]->height/4);
+					node_t *bsp = &nodes[numnodes-1];
+					fixed_t maxx, minx, maxy, miny;
+					maxx = maxy = INT32_MAX;
+					minx = miny = INT32_MIN;
+					minx = bsp->bbox[0][BOXLEFT];
+					maxx = bsp->bbox[0][BOXRIGHT];
+					miny = bsp->bbox[0][BOXBOTTOM];
+					maxy = bsp->bbox[0][BOXTOP];
+
+					if (bsp->bbox[1][BOXLEFT] < minx)
+						minx = bsp->bbox[1][BOXLEFT];
+					if (bsp->bbox[1][BOXRIGHT] > maxx)
+						maxx = bsp->bbox[1][BOXRIGHT];
+					if (bsp->bbox[1][BOXBOTTOM] < miny)
+						miny = bsp->bbox[1][BOXBOTTOM];
+					if (bsp->bbox[1][BOXTOP] > maxy)
+						miny = bsp->bbox[1][BOXTOP];
+
+					fixed_t mapwidth = maxx - minx;
+					fixed_t mapheight = maxy - miny;
+
+					fixed_t xoffset = minx + mapwidth/2;
+					fixed_t yoffset = miny + mapheight/2;
+
+					fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
+					fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
+					fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
+
+					amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
+					amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
+
+					amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+					amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
 
 					if (!players[i].skincolor) // 'default' color
 					{
-						V_DrawSmallScaledPatch(amxpos, amypos, 0, iconprefix[players[i].skin]);
+						V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT, iconprefix[players[i].skin], FRACUNIT/2);
 					}
 					else
 					{
 						UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-						V_DrawSmallMappedPatch(amxpos, amypos, 0,iconprefix[players[i].skin], colormap);
+						V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT, iconprefix[players[i].skin], colormap);
 					}
 				}
 			}
