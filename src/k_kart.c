@@ -4175,10 +4175,31 @@ static void K_drawKartItemClose(void)
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_SNAPTORIGHT|V_SNAPTOTOP|splitflags, localpatch);
 }
 
+void K_LoadIconGraphics(char *facestr, INT32 skinnum)
+{
+	char namelump[9];
+
+	// hack: make sure base face name is no more than 8 chars
+	if (strlen(facestr) > 8)
+		facestr[8] = '\0';
+	strcpy(namelump, facestr); // copy base name
+
+	iconprefix[skinnum] = W_CachePatchName(namelump, PU_HUDGFX);
+	iconfreed[skinnum] = false;
+}
+
+#if 0 //unused
+static void K_UnLoadIconGraphics(INT32 skinnum)
+{
+	Z_Free(iconprefix[skinnum]);
+	iconfreed[skinnum] = true;
+}
+#endif
+
 void K_drawMinimap(void)
 {
 	// SRB2kart 12/18/17 - Automap HUD 
-	/*
+	
 	INT32 amnumxpos;
 	INT32 amnumypos;
 	INT32 amxpos;
@@ -4193,10 +4214,10 @@ void K_drawMinimap(void)
 	{
 		INT32 x, y;
 
-		lumpnum = W_CheckNumForName(va("%sR", G_BuildAutoMapName(gamemap)));
+		lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
 
-		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1]->automap)))
-			AutomapPic = W_CachePatchName(va("%sR", G_BuildAutoMapName(gamemap)), PU_CACHE);
+		if (lumpnum != -1)
+			AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_CACHE);
 		else
 			AutomapPic = W_CachePatchName(va("NOMAPR"), PU_CACHE);
 
@@ -4214,7 +4235,7 @@ void K_drawMinimap(void)
 		V_DrawSmallScaledPatch(x, y, 0, AutomapPic);
 
 		// Player's tiny icons on the Automap.
-		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1]->automap)))
+		if (lumpnum != -1)
 		{
 			for (i = 0; i < MAXPLAYERS; i++)
 			{
@@ -4238,16 +4259,16 @@ void K_drawMinimap(void)
 					}
 					else
 					{
-						UINT8 *colormap = transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+						UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
 						V_DrawSmallMappedPatch(amxpos, amypos, 0,iconprefix[players[i].skin], colormap);
 					}
 				}
 			}
 		}
-		if (!(splitscreen || splitscreen3 || splitscreen4) && maptol & TOL_KART && !hu_showscores)
-			HU_DrawRaceRankings();
-	}*/
-	;
+		/*if (!(splitscreen || splitscreen3 || splitscreen4) && maptol & TOL_RACE && !hu_showscores)
+			HU_DrawRaceRankings();*/
+	}
+	//;
 }
 
 static void K_drawKartItemRoulette(void)
