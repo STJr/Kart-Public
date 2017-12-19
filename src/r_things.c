@@ -2493,6 +2493,7 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	for (i = 0; i < sfx_skinsoundslot0; i++)
 		if (S_sfx[i].skinsound != -1)
 			skin->soundsid[S_sfx[i].skinsound] = i;
+	strncpy(skin->iconprefix, "SONICICN", 8);
 }
 
 //
@@ -2542,6 +2543,8 @@ void R_InitSkins(void)
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
 	ST_LoadFaceGraphics(skin->face, skin->superface, 0);
+	strncpy(skin->iconprefix, "SONICICN", 8);
+	K_LoadIconGraphics(skin->iconprefix, 0);
 
 	//MD2 for sonic doesn't want to load in Linux.
 #ifdef HWRENDER
@@ -2870,6 +2873,11 @@ void R_AddSkins(UINT16 wadnum)
 				skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
 			else if (!stricmp(stoken, "highresscale"))
 				skin->highresscale = FLOAT_TO_FIXED(atof(value));
+			else if (!stricmp(stoken, "faceicon"))
+			{
+				strupr(value);
+				strncpy(skin->iconprefix, value, sizeof skin->iconprefix);
+			}
 			else
 			{
 				INT32 found = false;
@@ -2971,6 +2979,9 @@ next_token:
 
 		// add face graphics
 		ST_LoadFaceGraphics(skin->face, skin->superface, numskins);
+		
+		// load minimap icons
+		K_LoadIconGraphics(skin->iconprefix, numskins);
 
 #ifdef HWRENDER
 		if (rendermode == render_opengl)

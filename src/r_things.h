@@ -113,6 +113,9 @@ typedef struct
 
 	// specific sounds per skin
 	sfxenum_t soundsid[NUMSKINSOUNDS]; // sound # in S_sfx table
+
+	// minimap icons
+	char iconprefix[9];
 } skin_t;
 
 // -----------

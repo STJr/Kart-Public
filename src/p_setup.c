@@ -2620,6 +2620,12 @@ boolean P_SetupLevel(boolean skipprecip)
 		// same for second player
 		if (!cv_chasecam2.changed)
 			CV_SetValue(&cv_chasecam2, chase);
+
+		if (!cv_chasecam3.changed)
+			CV_SetValue(&cv_chasecam3, chase);
+
+		if (!cv_chasecam4.changed)
+			CV_SetValue(&cv_chasecam4, chase);
 	}
 
 	// Initial height of PointOfView

@@ -507,6 +507,8 @@ static menuitem_t MPauseMenu[] =
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,40},
 	{IT_CALL | IT_STRING,    NULL, "Player 1 Setup",       M_SetupMultiPlayer,    48}, // splitscreen
 	{IT_CALL | IT_STRING,    NULL, "Player 2 Setup",       M_SetupMultiPlayer2,   56}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "Player 3 Setup",       M_SetupMultiPlayer3,   64}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "Player 4 Setup",       M_SetupMultiPlayer4,   72}, // splitscreen
 
 	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48},
 	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48},
@@ -526,6 +528,8 @@ typedef enum
 	mpause_continue,
 	mpause_psetupsplit,
 	mpause_psetupsplit2,
+	mpause_psetupsplit3,
+	mpause_psetupsplit4,
 	mpause_spectate,
 	mpause_entergame,
 	mpause_switchteam,
@@ -891,7 +895,7 @@ static menuitem_t MP_MainMenu[] =
 #endif
 	{IT_CALL | IT_STRING, NULL, "TWO PLAYER GAME",			M_StartSplitServerMenu,	60},
 	{IT_CALL | IT_STRING, NULL, "THREE PLAYER GAME",		M_Start3PServerMenu,	70},
-	{IT_CALL | IT_STRING, NULL, "FOUR PLAYER GAME",		M_Start4PServerMenu,	80},
+	{IT_CALL | IT_STRING, NULL, "FOUR PLAYER GAME",		    M_Start4PServerMenu,	80},
 
 	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",			M_SetupMultiPlayer,     100},
 	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",			M_SetupMultiPlayer2,    110},
@@ -2697,10 +2701,16 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_scramble].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit2].status = IT_DISABLED;
+		MPauseMenu[mpause_psetupsplit3].status = IT_DISABLED;
+		MPauseMenu[mpause_psetupsplit4].status = IT_DISABLED;
 		MPauseMenu[mpause_spectate].status = IT_DISABLED;
 		MPauseMenu[mpause_entergame].status = IT_DISABLED;
 		MPauseMenu[mpause_switchteam].status = IT_DISABLED;
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
+		// Reset these in case splitscreen messes things up
+		MPauseMenu[mpause_options].alphaKey = 64;
+		MPauseMenu[mpause_title].alphaKey = 80;
+		MPauseMenu[mpause_quit].alphaKey = 88;
 
 		if ((server || IsPlayerAdmin(consoleplayer)))
 		{
@@ -2710,7 +2720,30 @@ void M_StartControlPanel(void)
 		}
 
 		if (splitscreen)
+		{
 			MPauseMenu[mpause_psetupsplit].status = MPauseMenu[mpause_psetupsplit2].status = IT_STRING | IT_CALL;
+
+			if (splitscreen > 1)
+			{
+				MPauseMenu[mpause_psetupsplit3].status = IT_STRING | IT_CALL;
+
+				if (splitscreen == 2)
+				{
+					MPauseMenu[mpause_options].alphaKey = 72;
+					MPauseMenu[mpause_title].alphaKey = 88;
+					MPauseMenu[mpause_quit].alphaKey = 96;
+				}
+
+				if (splitscreen == 3)
+				{
+					MPauseMenu[mpause_psetupsplit4].status = IT_STRING | IT_CALL;
+					MPauseMenu[mpause_options].alphaKey = 80;
+					MPauseMenu[mpause_title].alphaKey = 96;
+					MPauseMenu[mpause_quit].alphaKey = 104;
+				}
+			}
+
+		}
 		else
 		{
 			MPauseMenu[mpause_psetup].status = IT_STRING | IT_CALL;
@@ -7241,13 +7274,21 @@ static void M_DrawControl(void)
 	char     tmp[50];
 	INT32    i;
 	INT32    keys[2];
+	const char *ctrl;
 
 	// draw title, strings and submenu
 	M_DrawGenericMenu();
 
-	M_CentreText(30,
-		 (setupcontrols_secondaryplayer ? "SET CONTROLS FOR SECONDARY PLAYER" :
-		                                  "PRESS ENTER TO CHANGE, BACKSPACE TO CLEAR"));
+	if (setupcontrols_secondaryplayer)
+		ctrl = "SET CONTROLS FOR SECONDARY PLAYER";
+	else if (setupcontrols_thirdplayer)
+		ctrl = "SET CONTROLS FOR THIRD PLAYER";
+	else if (setupcontrols_fourthplayer)
+		ctrl = "SET CONTROLS FOR FOURTH PLAYER";
+	else
+		ctrl = "PRESS ENTER TO CHANGE, BACKSPACE TO CLEAR";
+
+	M_CentreText(30, ctrl);
 
 	for (i = 0;i < currentMenu->numitems;i++)
 	{

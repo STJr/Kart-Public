@@ -129,6 +129,7 @@ static patch_t *gotbflag;
 //
 
 static boolean facefreed[MAXPLAYERS];
+boolean iconfreed[MAXPLAYERS];
 
 hudinfo_t hudinfo[NUMHUDITEMS] =
 {
@@ -412,7 +413,10 @@ void ST_Init(void)
 	INT32 i;
 
 	for (i = 0; i < MAXPLAYERS; i++)
+	{
 		facefreed[i] = true;
+		iconfreed[i] = true;
+	}
 
 	if (dedicated)
 		return;

@@ -70,6 +70,7 @@ extern patch_t *faceprefix[MAXSKINS]; // face status patches
 extern patch_t *superprefix[MAXSKINS]; // super face status patches
 extern patch_t *livesback;
 extern patch_t *ngradeletters[7];
+extern boolean iconfreed[MAXPLAYERS];
 
 /** HUD location information (don't move this comment)
   */
