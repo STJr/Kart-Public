@@ -8756,13 +8756,7 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushboolean(L, modeattacking);
 		return 1;
 	} else if (fastcmp(word,"splitscreen")) {
-		lua_pushboolean(L, splitscreen);
-		return 1;
-	} else if (fastcmp(word,"splitscreen3")) {
-		lua_pushboolean(L, splitscreen3);
-		return 1;
-	} else if (fastcmp(word,"splitscreen4")) {
-		lua_pushboolean(L, splitscreen4);
+		lua_pushinteger(L, splitscreen);
 		return 1;
 	} else if (fastcmp(word,"gamecomplete")) {
 		lua_pushboolean(L, gamecomplete);

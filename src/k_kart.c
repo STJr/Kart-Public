@@ -3551,13 +3551,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_bootimer] > 0)
 		{
 			if ((player == &players[displayplayer]
-				|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
-				|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
-				|| (splitscreen4 && player == &players[fourthdisplayplayer]))
+				|| (splitscreen && player == &players[secondarydisplayplayer])
+				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
 				|| (!(player == &players[displayplayer]
-				|| ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
-				|| ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
-				|| (splitscreen4 && player == &players[fourthdisplayplayer]))
+				|| (splitscreen && player == &players[secondarydisplayplayer])
+				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
 				&& (player->kartstuff[k_bootimer] < 1*TICRATE/2 || player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
 			{
 				if (leveltime & 1)
@@ -3704,12 +3704,7 @@ void K_CheckBalloons(void)
 	UINT8 numingame = 0;
 	INT8 winnernum = -1;
 
-// Set to 1 if you need to test comeback in splitscreen
-#if 0
-	return;
-#endif
-
-	if (!(multiplayer || netgame))
+	if (!multiplayer)
 		return;
 
 	if (gametype == GT_RACE)
@@ -4098,7 +4093,7 @@ static void K_initKartHUD(void)
 	// CHECK graphic
 	CHEK_Y = BASEVIDHEIGHT;		// 200
 
-	if (splitscreen || splitscreen3 || splitscreen4)	// Splitscreen
+	if (splitscreen)	// Splitscreen
 	{
 		ITEM_X = 9;
 		ITEM_Y = 24;
@@ -4109,7 +4104,7 @@ static void K_initKartHUD(void)
 
 		POSI_Y = (BASEVIDHEIGHT/2)-56;
 
-		if (splitscreen3 || splitscreen4)	// 3P/4P Small Splitscreen
+		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
 			ITEM_X = 4;
 			ITEM_Y = 4;
@@ -4127,6 +4122,39 @@ static void K_initKartHUD(void)
 	POSI_Y = SCX(POSI_Y);*/
 }
 
+static INT32 K_calcSplitFlags(INT32 snapflags)
+{
+	INT32 splitflags = 0;
+
+	if (!splitscreen)
+		return snapflags;
+
+	if (stplyr != &players[displayplayer])
+	{
+		if (splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
+			splitflags |= V_SPLITSCREEN;
+		else if (splitscreen > 1)
+		{
+			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_SPLITSCREEN;
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				splitflags |= V_HORZSCREEN;
+		}
+	}
+
+	if (splitflags & V_SPLITSCREEN)
+		snapflags &= ~V_SNAPTOTOP;
+	else
+		snapflags &= ~V_SNAPTOBOTTOM;
+
+	if (splitflags & V_HORZSCREEN)
+		snapflags &= ~V_SNAPTOLEFT;
+	else
+		snapflags &= ~V_SNAPTORIGHT;
+
+	return (splitflags|snapflags);
+}
+
 static void K_drawKartItemClose(void)
 {
 	// ITEM_X = BASEVIDWIDTH-50;	// 270
@@ -4136,19 +4164,9 @@ static void K_drawKartItemClose(void)
 	// Set to 'no draw' just in case.
 	patch_t *localpatch = kp_nodraw;
 
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	if (!splitscreen)
+		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
 
 	/*if ()
 		switch (stplyr->kartstuff[k_itemclose])
@@ -4172,7 +4190,7 @@ static void K_drawKartItemClose(void)
 		}
 
 	if (localpatch != kp_nodraw)
-		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_SNAPTORIGHT|V_SNAPTOTOP|splitflags, localpatch);
+		V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
 }
 
 void K_LoadIconGraphics(char *facestr, INT32 skinnum)
@@ -4294,10 +4312,9 @@ void K_drawMinimap(void)
 				}
 			}
 		}
-		/*if (!(splitscreen || splitscreen3 || splitscreen4) && maptol & TOL_RACE && !hu_showscores)
+		/*if (!splitscreen && maptol & TOL_RACE && !hu_showscores)
 			HU_DrawRaceRankings();*/
 	}
-	//;
 }
 
 static void K_drawKartItemRoulette(void)
@@ -4309,19 +4326,10 @@ static void K_drawKartItemRoulette(void)
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
 
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	if (!splitscreen)
+		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
+
 	/*if ()
 				switch(stplyr->kartstuff[k_itemroulette] % 53)
 		{
@@ -4373,7 +4381,7 @@ static void K_drawKartItemRoulette(void)
 			default: break;
 		}
 
-	V_DrawScaledPatch(ITEM_X, ITEM_Y, V_SNAPTORIGHT|V_SNAPTOTOP|splitflags, localpatch);
+	V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
 }
 
 static void K_drawKartRetroItem(void)
@@ -4385,19 +4393,9 @@ static void K_drawKartRetroItem(void)
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
 
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	if (!splitscreen)
+		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
 
 	// I'm doing this a little weird and drawing mostly in reverse order
 	// The only actual reason is to make triple/double/single mushrooms line up this way in the code below
@@ -4432,7 +4430,7 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
 	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
 
-	V_DrawScaledPatch(ITEM_X, ITEM_Y, V_SNAPTORIGHT|V_SNAPTOTOP|splitflags, localpatch);
+	V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
 }
 
 /*
@@ -4540,22 +4538,9 @@ static void K_drawKartTimestamp(void)
 	// TIME_Y = 6;					//   6
 
 	INT32 TIME_XB;
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
-
-	V_DrawScaledPatch(TIME_X, TIME_Y, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, kp_timestickerwide);
+	V_DrawScaledPatch(TIME_X, TIME_Y, splitflags, kp_timestickerwide);
 
 	TIME_XB = TIME_X+33;
 
@@ -4564,44 +4549,44 @@ static void K_drawKartTimestamp(void)
 		// zero minute
 		if (stplyr->realtime/(60*TICRATE) < 10)
 		{
-			V_DrawKartString(TIME_XB, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("0"));
+			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("0"));
 			// minutes time       0 __ __
-			V_DrawKartString(TIME_XB+12, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
 		}
 		// minutes time       0 __ __
 		else
-			V_DrawKartString(TIME_XB, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
 
 		// apostrophe location     _'__ __
-		V_DrawKartString(TIME_XB+24, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("'"));
+		V_DrawKartString(TIME_XB+24, TIME_Y+3, splitflags, va("'"));
 
 		// zero second        _ 0_ __
 		if ((stplyr->realtime/TICRATE % 60) < 10)
 		{
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("0"));
+			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("0"));
 		// seconds time       _ _0 __
-			V_DrawKartString(TIME_XB+48, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
 		}
 		// zero second        _ 00 __
 		else
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
 
 		// quotation mark location    _ __"__
-		V_DrawKartString(TIME_XB+60, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("\""));
+		V_DrawKartString(TIME_XB+60, TIME_Y+3, splitflags, va("\""));
 
 		// zero tick          _ __ 0_
 		if (G_TicsToCentiseconds(stplyr->realtime) < 10)
 		{
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("0"));
+			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("0"));
 		// tics               _ __ _0
-			V_DrawKartString(TIME_XB+84, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
 		}
 		// zero tick          _ __ 00
 		if (G_TicsToCentiseconds(stplyr->realtime) >= 10)
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, V_SNAPTOTOP|V_SNAPTORIGHT|splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
 	}
 	else
-		V_DrawKartString(TIME_XB, TIME_Y+3, V_SNAPTORIGHT|V_SNAPTOTOP|splitflags, va("99'59\"99"));
+		V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("99'59\"99"));
 }
 
 static void K_DrawKartPositionNum(INT32 num)
@@ -4613,24 +4598,12 @@ static void K_DrawKartPositionNum(INT32 num)
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
 	patch_t *localpatch = kp_positionnum[0][0];
 
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 
 	// Special case for 0
 	if (!num)
 	{
-		V_DrawTranslucentPatch(X-W, POSI_Y, V_TRANSLUCENT|V_SNAPTORIGHT|V_SNAPTOBOTTOM|splitflags, kp_positionnum[0][0]);
+		V_DrawTranslucentPatch(X-W, POSI_Y, V_TRANSLUCENT|splitflags, kp_positionnum[0][0]);
 		return;
 	}
 
@@ -4678,19 +4651,19 @@ static void K_DrawKartPositionNum(INT32 num)
 			switch (leveltime % 9)
 			{
 				case 1: case 2: case 3:
-					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= 2))
+					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= splitscreen+1))
 						localpatch = kp_positionnum[num % 10][4];
 					else
 						localpatch = kp_positionnum[num % 10][1];
 					break;
 				case 4: case 5: case 6:
-					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= 2))
+					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= splitscreen+1))
 						localpatch = kp_positionnum[num % 10][5];
 					else
 						localpatch = kp_positionnum[num % 10][2];
 					break;
 				case 7: case 8: case 9:
-					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= 2))
+					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= splitscreen+1))
 						localpatch = kp_positionnum[num % 10][6];
 					else
 						localpatch = kp_positionnum[num % 10][3];
@@ -4703,7 +4676,7 @@ static void K_DrawKartPositionNum(INT32 num)
 		else
 			localpatch = kp_positionnum[num % 10][0];
 
-		V_DrawTranslucentPatch(X, POSI_Y, V_TRANSLUCENT|V_SNAPTORIGHT|V_SNAPTOBOTTOM|splitflags, localpatch);
+		V_DrawTranslucentPatch(X, POSI_Y, V_TRANSLUCENT|splitflags, localpatch);
 		num /= 10;
 	}
 }
@@ -4848,100 +4821,62 @@ static void K_drawKartPositionFaces(void)
 
 static void K_drawKartLaps(void)
 {
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
-	V_DrawScaledPatch(LAPS_X, LAPS_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, kp_lapsticker);
+	V_DrawScaledPatch(LAPS_X, LAPS_Y, splitflags, kp_lapsticker);
 
 	if (stplyr->exiting)
-		V_DrawKartString(LAPS_X+33, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, "FIN");
+		V_DrawKartString(LAPS_X+33, LAPS_Y+3, splitflags, "FIN");
 	else
-		V_DrawKartString(LAPS_X+33, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+		V_DrawKartString(LAPS_X+33, LAPS_Y+3, splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 }
 
 static void K_drawKartSpeedometer(void)
 {
 	fixed_t convSpeed;
-
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
 	if (cv_speedometer.value == 1)
 	{
 		convSpeed = FixedMul(stplyr->speed, 142371)/FRACUNIT; // 2.172409058
-		V_DrawKartString(SPDM_X, SPDM_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%3d km/h", convSpeed));
+		V_DrawKartString(SPDM_X, SPDM_Y, splitflags, va("%3d km/h", convSpeed));
 	}
 	else if (cv_speedometer.value == 2)
 	{
 		convSpeed = FixedMul(stplyr->speed, 88465)/FRACUNIT; // 1.349868774
-		V_DrawKartString(SPDM_X, SPDM_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%3d mph", convSpeed));
+		V_DrawKartString(SPDM_X, SPDM_Y, splitflags, va("%3d mph", convSpeed));
 	}
 	else if (cv_speedometer.value == 3)
 	{
 		convSpeed = stplyr->speed/FRACUNIT;
-		V_DrawKartString(SPDM_X, SPDM_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%3d fu/s", convSpeed));
+		V_DrawKartString(SPDM_X, SPDM_Y, splitflags, va("%3d fu/s", convSpeed));
 	}
 }
 
 static void K_drawKartBalloonsOrKarma(void)
 {
 	UINT8 *colormap = R_GetTranslationColormap(-1, stplyr->skincolor, 0);
-
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
 	if (stplyr->kartstuff[k_balloon] <= 0)
 	{
-		V_DrawMappedPatch(LAPS_X, LAPS_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, kp_karmasticker, colormap);
-		V_DrawKartString(LAPS_X+58, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%d", stplyr->kartstuff[k_comebackpoints]));
-		V_DrawKartString(LAPS_X+85, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("3"));
+		V_DrawMappedPatch(LAPS_X, LAPS_Y, splitflags, kp_karmasticker, colormap);
+		V_DrawKartString(LAPS_X+58, LAPS_Y+3, splitflags, va("%d", stplyr->kartstuff[k_comebackpoints]));
+		V_DrawKartString(LAPS_X+85, LAPS_Y+3, splitflags, va("3"));
 	}
 	else
 	{
 		if (cv_kartballoons.value > 9)
 		{
-			V_DrawMappedPatch(LAPS_X, LAPS_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, kp_balloonstickerwide, colormap);
-			V_DrawKartString(LAPS_X+46, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%2d", stplyr->kartstuff[k_balloon]));
-			V_DrawKartString(LAPS_X+83, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%2d", cv_kartballoons.value));
+			V_DrawMappedPatch(LAPS_X, LAPS_Y, splitflags, kp_balloonstickerwide, colormap);
+			V_DrawKartString(LAPS_X+46, LAPS_Y+3, splitflags, va("%2d", stplyr->kartstuff[k_balloon]));
+			V_DrawKartString(LAPS_X+83, LAPS_Y+3, splitflags, va("%2d", cv_kartballoons.value));
 		}
 		else
 		{
-			V_DrawMappedPatch(LAPS_X, LAPS_Y, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, kp_balloonsticker, colormap);
-			V_DrawKartString(LAPS_X+46, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%d", stplyr->kartstuff[k_balloon]));
-			V_DrawKartString(LAPS_X+73, LAPS_Y+3, V_SNAPTOLEFT|V_SNAPTOBOTTOM|splitflags, va("%d", cv_kartballoons.value));
+			V_DrawMappedPatch(LAPS_X, LAPS_Y, splitflags, kp_balloonsticker, colormap);
+			V_DrawKartString(LAPS_X+46, LAPS_Y+3, splitflags, va("%d", stplyr->kartstuff[k_balloon]));
+			V_DrawKartString(LAPS_X+73, LAPS_Y+3, splitflags, va("%d", cv_kartballoons.value));
 		}
 	}
 }
@@ -4968,7 +4903,7 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	if (cv_kartmirror.value)
 		x = 320-x;
 
-	if (splitscreen3 || splitscreen4)
+	if (splitscreen > 1)
 		x /= 2;
 
 	return x;
@@ -4981,19 +4916,7 @@ static void K_drawKartPlayerCheck(void)
 	INT32 x;
 	patch_t *localpatch;
 
-	INT32 splitflags = 0;
-	if (stplyr != &players[displayplayer])
-	{
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			splitflags |= V_SPLITSCREEN;
-		else if (splitscreen3 || splitscreen4)
-		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
-				splitflags |= V_HORZSCREEN;
-		}
-	}
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
 
 	if (!(stplyr->mo))
 		return;
@@ -5036,7 +4959,7 @@ static void K_drawKartPlayerCheck(void)
 				x = 306;
 
 			colormap = R_GetTranslationColormap(-1, players[i].mo->color, 0);
-			V_DrawMappedPatch(x, CHEK_Y, V_SNAPTOBOTTOM|splitflags, localpatch, colormap);
+			V_DrawMappedPatch(x, CHEK_Y, splitflags, localpatch, colormap);
 		}
 	}
 }
@@ -5045,10 +4968,10 @@ static void K_drawBattleFullscreen(void)
 {
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
 
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 	{
-		if ((splitscreen && stplyr == &players[secondarydisplayplayer])
-			|| ((splitscreen3 || splitscreen4) && (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])))
+		if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
+			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])))
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
 		else
 			y = -32+(stplyr->kartstuff[k_cardanimation]/2);
@@ -5058,7 +4981,7 @@ static void K_drawBattleFullscreen(void)
 
 	if (stplyr->exiting)
 	{
-		if (splitscreen)
+		if (splitscreen == 1)
 		{
 			if (stplyr == &players[displayplayer])
 				V_DrawFadeScreen();
@@ -5228,7 +5151,7 @@ void K_drawKartHUD(void)
 	// Draw Lakitu
 	// This is done first so that regardless of HUD layers,
 	// he'll appear to be in the 'real world'
-	if (!(splitscreen || splitscreen3 || splitscreen4))
+	if (!splitscreen)
 	{
 		if (leveltime < 178)
 			K_drawStartLakitu();
@@ -5257,13 +5180,13 @@ void K_drawKartHUD(void)
 	//K_DrawKartTripleItem();
 
 	// If not splitscreen, draw...
-	if (!(splitscreen3 || splitscreen4)) // Tiny screen, don't clutter it too much
+	if (splitscreen < 2) // Tiny screen, don't clutter it too much
 	{
 		// Draw the timestamp
 		K_drawKartTimestamp();
 	}
 
-	if (!(splitscreen || splitscreen3 || splitscreen4) && !modeattacking) // Unnecessary stuff
+	if (!splitscreen && !modeattacking) // Unnecessary stuff
 	{
 		// The little triple-item icons at the bottom
 		// The top-four faces on the left

@@ -176,12 +176,14 @@ consvar_t cv_maxportals = {"maxportals", "2", CV_SAVE, maxportals_cons_t, NULL, 
 
 void SplitScreen_OnChange(void)
 {
+	UINT8 i;
+
 	if (!cv_debug && netgame)
 	{
-		if (splitscreen || splitscreen3 || splitscreen4)
+		if (splitscreen)
 		{
 			CONS_Alert(CONS_NOTICE, M_GetText("Splitscreen not supported in netplay, sorry!\n"));
-			splitscreen = splitscreen3 = splitscreen4 = false;
+			splitscreen = 0;
 		}
 		return;
 	}
@@ -191,23 +193,23 @@ void SplitScreen_OnChange(void)
 
 	if (!demoplayback && !botingame)
 	{
-		if (splitscreen || splitscreen3 || splitscreen4)
-			CL_AddSplitscreenPlayer();
-		else
-			CL_RemoveSplitscreenPlayer(secondarydisplayplayer);
-		
-		if (splitscreen3 || splitscreen4)
-			CL_AddSplitscreenPlayer();
-		else
-			CL_RemoveSplitscreenPlayer(thirddisplayplayer);
-		
-		if (splitscreen4)
-			CL_AddSplitscreenPlayer();
-		else
-			CL_RemoveSplitscreenPlayer(fourthdisplayplayer);
+		for (i = 1; i < 3; i++)
+		{
+			if (i > splitscreen)
+			{
+				if (i == 1)
+					CL_RemoveSplitscreenPlayer(secondarydisplayplayer);
+				else if (i == 2)
+					CL_RemoveSplitscreenPlayer(thirddisplayplayer);
+				else if (i == 3)
+					CL_RemoveSplitscreenPlayer(fourthdisplayplayer);
+			}
+			else
+				CL_AddSplitscreenPlayer();
+		}
 
 		if (server && !netgame)
-			multiplayer = (splitscreen || splitscreen3 || splitscreen4);
+			multiplayer = splitscreen;
 	}
 	else
 	{
@@ -219,20 +221,11 @@ void SplitScreen_OnChange(void)
 			if (playeringame[i] && i != consoleplayer)
 			{
 				if (secondarydisplayplayer == consoleplayer)
-				{
 					secondarydisplayplayer = i;
-					continue;
-				}
 				else if (thirddisplayplayer == consoleplayer)
-				{
 					thirddisplayplayer = i;
-					continue;
-				}
 				else if (fourthdisplayplayer == consoleplayer)
-				{
 					fourthdisplayplayer = i;
-					break;
-				}
 				else
 					break;
 			}
@@ -657,12 +650,12 @@ void R_ExecuteSetViewSize(void)
 	scaledviewwidth = vid.width;
 	viewheight = vid.height;
 
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 		viewheight >>= 1;
 
 	viewwidth = scaledviewwidth;
 
-	if (splitscreen3 || splitscreen4)
+	if (splitscreen > 1)
 	{
 		viewwidth >>= 1;
 		scaledviewwidth >>= 1;
@@ -832,11 +825,11 @@ void R_SkyboxFrame(player_t *player)
 	INT32 dy = 0;
 	camera_t *thiscam;
 
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 		thiscam = &camera4;
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 		thiscam = &camera3;
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		thiscam = &camera2;
 	else
 		thiscam = &camera;
@@ -1081,17 +1074,17 @@ void R_SetupFrame(player_t *player, boolean skybox)
 	camera_t *thiscam;
 	boolean chasecam = false;
 
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 	{
 		thiscam = &camera4;
 		chasecam = (cv_chasecam4.value != 0);
 	}
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 	{
 		thiscam = &camera3;
 		chasecam = (cv_chasecam3.value != 0);
 	}
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 	{
 		thiscam = &camera2;
 		chasecam = (cv_chasecam2.value != 0);
@@ -1345,18 +1338,18 @@ void R_RenderPlayerView(player_t *player)
 
 	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
 	{
-		if (cv_homremoval.value == 1 || splitscreen3) // BAD HACK, V_DrawFill isn't letting me cover up only the 4th screen, so let's just sliently force this
+		if (cv_homremoval.value == 1 || splitscreen == 2) // BAD HACK, V_DrawFill isn't letting me cover up only the 4th screen, so let's just sliently force this
 			V_DrawFill(0, 0, vid.width, vid.height, 31); // No HOM effect!
 		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
 			V_DrawFill(0, 0, vid.width, vid.height, 128+(timeinmap&15));
 	}
 
 	// load previous saved value of skyVisible for the player
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 		skyVisible = skyVisible4;
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 		skyVisible = skyVisible3;
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		skyVisible = skyVisible2;
 	else
 		skyVisible = skyVisible1;
@@ -1462,11 +1455,11 @@ void R_RenderPlayerView(player_t *player)
 
 	// save value to skyVisible1 or skyVisible2
 	// this is so that P1 can't affect whether P2 can see a skybox or not, or vice versa
-	if (splitscreen4 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 		skyVisible4 = skyVisible;
-	else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 		skyVisible3 = skyVisible;
-	else if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		skyVisible2 = skyVisible;
 	else
 		skyVisible1 = skyVisible;

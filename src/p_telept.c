@@ -73,11 +73,11 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 			localangle4 = angle;
 
 		// move chasecam at new player location
-		if (splitscreen4 && camera4.chase && thing->player == &players[fourthdisplayplayer])
+		if (splitscreen > 2 && camera4.chase && thing->player == &players[fourthdisplayplayer])
 			P_ResetCamera(thing->player, &camera4);
-		else if ((splitscreen3 || splitscreen4) && camera3.chase && thing->player == &players[thirddisplayplayer])
+		else if (splitscreen > 1 && camera3.chase && thing->player == &players[thirddisplayplayer])
 			P_ResetCamera(thing->player, &camera3);
-		else if ((splitscreen || splitscreen3 || splitscreen4) && camera2.chase && thing->player == &players[secondarydisplayplayer])
+		else if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
 			P_ResetCamera(thing->player, &camera2);
 		else if (camera.chase && thing->player == &players[displayplayer])
 			P_ResetCamera(thing->player, &camera);
@@ -158,11 +158,11 @@ boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle
 			localangle4 = angle;
 
 		// move chasecam at new player location
-		if (splitscreen4 && camera4.chase && thing->player == &players[fourthdisplayplayer])
+		if (splitscreen > 2 && camera4.chase && thing->player == &players[fourthdisplayplayer])
 			P_ResetCamera(thing->player, &camera4);
-		else if ((splitscreen3 || splitscreen4) && camera3.chase && thing->player == &players[thirddisplayplayer])
+		else if (splitscreen > 1 && camera3.chase && thing->player == &players[thirddisplayplayer])
 			P_ResetCamera(thing->player, &camera3);
-		else if ((splitscreen || splitscreen3 || splitscreen4) && camera2.chase && thing->player == &players[secondarydisplayplayer])
+		else if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
 			P_ResetCamera(thing->player, &camera2);
 		else if (camera.chase && thing->player == &players[displayplayer])
 			P_ResetCamera(thing->player, &camera);

@@ -948,7 +948,7 @@ static inline void HU_DrawCrosshair2(void)
 #endif
 		y = viewwindowy + (viewheight>>1);
 
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 	{
 #ifdef HWRENDER
 		if (rendermode != render_soft)
@@ -979,7 +979,7 @@ static inline void HU_DrawCrosshair3(void)
 #endif
 		y = viewwindowy + (viewheight>>1);
 
-	if (splitscreen3 || splitscreen4)
+	if (splitscreen > 1)
 	{
 #ifdef HWRENDER
 		if (rendermode != render_soft)
@@ -1010,7 +1010,7 @@ static inline void HU_DrawCrosshair4(void)
 #endif
 		y = viewwindowy + (viewheight>>1);
 
-	if (splitscreen4)
+	if (splitscreen > 2)
 	{
 #ifdef HWRENDER
 		if (rendermode != render_soft)
@@ -1802,7 +1802,7 @@ static void HU_DrawRankings(void)
 		HU_DrawDualTabRankings(32, 32, tab, scorelines, whiteplayer);
 
 	// draw spectators in a ticker across the bottom
-	if (!(splitscreen || splitscreen3 || splitscreen4) && G_GametypeHasSpectators())
+	if (!splitscreen && G_GametypeHasSpectators())
 		HU_DrawSpectatorTicker();
 }
 

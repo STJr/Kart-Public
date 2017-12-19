@@ -433,9 +433,7 @@ consvar_t cv_mute = {"mute", "Off", CV_NETVAR|CV_CALL, CV_OnOff, Mute_OnChange, 
 consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
 
 INT16 gametype = GT_RACE; // SRB2kart
-boolean splitscreen = false;
-boolean splitscreen3 = false;
-boolean splitscreen4 = false;
+UINT8 splitscreen = 0;
 boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
 
@@ -1308,7 +1306,7 @@ static void SendNameAndColor2(void)
 {
 	INT32 secondplaya;
 
-	if (!(splitscreen || splitscreen3 || splitscreen4) && !botingame)
+	if (!splitscreen && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
 	if (secondarydisplayplayer != consoleplayer)
@@ -1405,7 +1403,7 @@ static void SendNameAndColor3(void)
 {
 	INT32 thirdplaya;
 
-	if (!(splitscreen3 || splitscreen4))
+	if (splitscreen < 2)
 		return; // can happen if skin3/color3/name3 changed
 
 	if (thirddisplayplayer != consoleplayer)
@@ -1494,7 +1492,7 @@ static void SendNameAndColor4(void)
 {
 	INT32 fourthplaya;
 
-	if (!splitscreen4)
+	if (splitscreen < 3)
 		return; // can happen if skin4/color4/name4 changed
 
 	if (fourthdisplayplayer != consoleplayer)
@@ -1737,18 +1735,18 @@ static void Got_WeaponPref(UINT8 **cp,INT32 playernum)
 void D_SendPlayerConfig(void)
 {
 	SendNameAndColor();
-	if ((splitscreen || splitscreen3 || splitscreen4) || botingame)
+	if (splitscreen || botingame)
 		SendNameAndColor2();
-	if (splitscreen3 || splitscreen4)
+	if (splitscreen > 1)
 		SendNameAndColor3();
-	if (splitscreen4)
+	if (splitscreen > 2)
 		SendNameAndColor4();
 	SendWeaponPref();
-	if (splitscreen || splitscreen3 || splitscreen4)
+	if (splitscreen)
 		SendWeaponPref2();
-	if (splitscreen3 || splitscreen4)
+	if (splitscreen > 1)
 		SendWeaponPref3();
-	if (splitscreen4)
+	if (splitscreen > 2)
 		SendWeaponPref4();
 }
 
@@ -4385,9 +4383,7 @@ void Command_ExitGame_f(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		CL_ClearPlayer(i);
 
-	splitscreen = false;
-	splitscreen3 = false;
-	splitscreen4 = false;
+	splitscreen = 0;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;
@@ -4636,7 +4632,7 @@ static void Skin_OnChange(void)
   */
 static void Skin2_OnChange(void)
 {
-	if (!Playing() || !(splitscreen || splitscreen3 || splitscreen4))
+	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
 	if (CanChangeSkin(secondarydisplayplayer) && !P_PlayerMoving(secondarydisplayplayer))
@@ -4650,7 +4646,7 @@ static void Skin2_OnChange(void)
 
 static void Skin3_OnChange(void)
 {
-	if (!Playing() || !(splitscreen3 || splitscreen4))
+	if (!Playing() || splitscreen < 2)
 		return; // do whatever you want
 
 	if (CanChangeSkin(thirddisplayplayer) && !P_PlayerMoving(thirddisplayplayer))
@@ -4664,7 +4660,7 @@ static void Skin3_OnChange(void)
 
 static void Skin4_OnChange(void)
 {
-	if (!Playing() || !splitscreen4)
+	if (!Playing() || splitscreen < 3)
 		return; // do whatever you want
 
 	if (CanChangeSkin(fourthdisplayplayer) && !P_PlayerMoving(fourthdisplayplayer))
@@ -4710,7 +4706,7 @@ static void Color_OnChange(void)
   */
 static void Color2_OnChange(void)
 {
-	if (!Playing() || !(splitscreen || splitscreen3 || splitscreen4))
+	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
 	if (!P_PlayerMoving(secondarydisplayplayer))
@@ -4727,7 +4723,7 @@ static void Color2_OnChange(void)
 
 static void Color3_OnChange(void)
 {
-	if (!Playing() || !(splitscreen3 || splitscreen4))
+	if (!Playing() || splitscreen < 2)
 		return; // do whatever you want
 
 	if (!P_PlayerMoving(thirddisplayplayer))
@@ -4744,7 +4740,7 @@ static void Color3_OnChange(void)
 
 static void Color4_OnChange(void)
 {
-	if (!Playing() || !splitscreen4)
+	if (!Playing() || splitscreen < 3)
 		return; // do whatever you want
 
 	if (!P_PlayerMoving(fourthdisplayplayer))

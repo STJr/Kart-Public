@@ -36,8 +36,8 @@ extern INT64 sendbytes; // Realtime updated
 
 extern SINT8 nodetoplayer[MAXNETNODES];
 extern SINT8 nodetoplayer2[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen)
-extern SINT8 nodetoplayer3[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen3)
-extern SINT8 nodetoplayer4[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen4)
+extern SINT8 nodetoplayer3[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen == 2)
+extern SINT8 nodetoplayer4[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen == 3)
 extern UINT8 playerpernode[MAXNETNODES]; // Used specially for splitscreen
 extern boolean nodeingame[MAXNETNODES]; // Set false as nodes leave game
 

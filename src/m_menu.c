@@ -2719,22 +2719,22 @@ void M_StartControlPanel(void)
 				MPauseMenu[mpause_scramble].status = IT_STRING | IT_SUBMENU;
 		}
 
-		if (splitscreen || splitscreen3 || splitscreen4)
+		if (splitscreen)
 		{
 			MPauseMenu[mpause_psetupsplit].status = MPauseMenu[mpause_psetupsplit2].status = IT_STRING | IT_CALL;
 
-			if (splitscreen3 || splitscreen4)
+			if (splitscreen > 1)
 			{
 				MPauseMenu[mpause_psetupsplit3].status = IT_STRING | IT_CALL;
 
-				if (splitscreen3)
+				if (splitscreen == 2)
 				{
 					MPauseMenu[mpause_options].alphaKey = 72;
 					MPauseMenu[mpause_title].alphaKey = 88;
 					MPauseMenu[mpause_quit].alphaKey = 96;
 				}
 
-				if (splitscreen4)
+				if (splitscreen == 3)
 				{
 					MPauseMenu[mpause_psetupsplit4].status = IT_STRING | IT_CALL;
 					MPauseMenu[mpause_options].alphaKey = 80;
@@ -6362,14 +6362,14 @@ static INT32 M_FindFirstMap(INT32 gtype)
 
 static void M_StartServer(INT32 choice)
 {
-	UINT8 ssplayers = 1;
+	UINT8 ssplayers = 0;
 
 	if (currentMenu == &MP_SplitServerDef)
-		ssplayers = 2;
+		ssplayers = 1;
 	else if (currentMenu == &MP_3PServerDef)
-		ssplayers = 3;
+		ssplayers = 2;
 	else if (currentMenu == &MP_4PServerDef)
-		ssplayers = 4;
+		ssplayers = 3;
 
 	(void)choice;
 	if (ssplayers < 2)
@@ -6385,7 +6385,7 @@ static void M_StartServer(INT32 choice)
 	if (metalrecording)
 		G_StopMetalDemo();
 
-	if (ssplayers < 2)
+	if (ssplayers < 1)
 	{
 		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
 		COM_BufAddText("dummyconsvar 1\n");
@@ -6395,22 +6395,9 @@ static void M_StartServer(INT32 choice)
 		paused = false;
 		SV_StartSinglePlayerServer();
 
-		if (!splitscreen4 && ssplayers == 4)
+		if (splitscreen != ssplayers)
 		{
-			splitscreen4 = true;
-			splitscreen = splitscreen3 = false;
-			SplitScreen_OnChange();
-		}
-		else if (!splitscreen3 && ssplayers == 3)
-		{
-			splitscreen3 = true;
-			splitscreen = splitscreen4 = false;
-			SplitScreen_OnChange();
-		}
-		else if (!splitscreen && ssplayers == 2)
-		{
-			splitscreen = true;
-			splitscreen3 = splitscreen4 = false;
+			splitscreen = ssplayers;
 			SplitScreen_OnChange();
 		}
 
@@ -6992,7 +6979,7 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen && !CanChangeSkin(thirddisplayplayer))
+	if (splitscreen > 1 && !CanChangeSkin(thirddisplayplayer))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
@@ -7023,7 +7010,7 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen && !CanChangeSkin(fourthdisplayplayer))
+	if (splitscreen > 2 && !CanChangeSkin(fourthdisplayplayer))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);

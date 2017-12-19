@@ -3632,11 +3632,11 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 	if (postimg != postimg_none)
 	{
-		if ((splitscreen || splitscreen3 || splitscreen4) && player == &players[secondarydisplayplayer])
+		if (splitscreen && player == &players[secondarydisplayplayer])
 			postimgtype2 = postimg;
-		else if ((splitscreen3 || splitscreen4) && player == &players[thirddisplayplayer])
+		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
 			postimgtype3 = postimg;
-		else if (splitscreen4 && player == &players[fourthdisplayplayer])
+		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
 			postimgtype4 = postimg;
 		else
 			postimgtype = postimg;
@@ -6145,7 +6145,7 @@ void P_RunOverlays(void)
 
 		if (!mo->target)
 			continue;
-		if (!(splitscreen || splitscreen3 || splitscreen4) /*&& rendermode != render_soft*/)
+		if (!splitscreen /*&& rendermode != render_soft*/)
 		{
 			angle_t viewingangle;
 
@@ -6520,13 +6520,13 @@ void P_MobjThinker(mobj_t *mobj)
 					if (mobj->target->player->kartstuff[k_bootimer] > 0)
 					{
 						if ((mobj->target->player == &players[displayplayer]
-							|| ((splitscreen || splitscreen3 || splitscreen4) && mobj->target->player == &players[secondarydisplayplayer])
-							|| ((splitscreen3 || splitscreen4) && mobj->target->player == &players[thirddisplayplayer])
-							|| (splitscreen4 && mobj->target->player == &players[fourthdisplayplayer]))
+							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
+							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
+							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
 							|| (!(mobj->target->player == &players[displayplayer]
-							|| ((splitscreen || splitscreen3 || splitscreen4) && mobj->target->player == &players[secondarydisplayplayer])
-							|| ((splitscreen3 || splitscreen4) && mobj->target->player == &players[thirddisplayplayer])
-							|| (splitscreen4 && mobj->target->player == &players[fourthdisplayplayer]))
+							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
+							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
+							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
 							&& (mobj->target->player->kartstuff[k_bootimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
 						{
 							if (leveltime & 1)
@@ -8103,7 +8103,7 @@ void P_MobjThinker(mobj_t *mobj)
 								CONS_Printf(M_GetText("The %c%s%c has returned to base.\n"), 0x85, M_GetText("Red flag"), 0x80);
 
 							// Assumedly in splitscreen players will be on opposing teams
-							if (players[consoleplayer].ctfteam == 1 || (splitscreen || splitscreen3 || splitscreen4))
+							if (players[consoleplayer].ctfteam == 1 || splitscreen)
 								S_StartSound(NULL, sfx_hoop1);
 
 							redflag = flagmo;
@@ -8114,7 +8114,7 @@ void P_MobjThinker(mobj_t *mobj)
 								CONS_Printf(M_GetText("The %c%s%c has returned to base.\n"), 0x84, M_GetText("Blue flag"), 0x80);
 
 							// Assumedly in splitscreen players will be on opposing teams
-							if (players[consoleplayer].ctfteam == 2 || (splitscreen || splitscreen3 || splitscreen4))
+							if (players[consoleplayer].ctfteam == 2 || splitscreen)
 								S_StartSound(NULL, sfx_hoop1);
 
 							blueflag = flagmo;
@@ -9626,17 +9626,17 @@ void P_AfterPlayerSpawn(INT32 playernum)
 		if (displayplayer == playernum)
 			P_ResetCamera(p, &camera);
 	}
-	if (camera2.chase && (splitscreen || splitscreen3 || splitscreen4))
+	if (camera2.chase && splitscreen)
 	{
 		if (secondarydisplayplayer == playernum)
 			P_ResetCamera(p, &camera2);
 	}
-	if (camera3.chase && (splitscreen3 || splitscreen4))
+	if (camera3.chase && splitscreen > 1)
 	{
 		if (thirddisplayplayer == playernum)
 			P_ResetCamera(p, &camera3);
 	}
-	if (camera4.chase && splitscreen4)
+	if (camera4.chase && splitscreen > 2)
 	{
 		if (fourthdisplayplayer == playernum)
 			P_ResetCamera(p, &camera4);

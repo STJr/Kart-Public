@@ -2526,7 +2526,7 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if ((splitscreen || splitscreen3 || splitscreen4) && players[secondarydisplayplayer].mo)
+	if (splitscreen && players[secondarydisplayplayer].mo)
 	{
 		if (players[secondarydisplayplayer].mo->subsector->sector == elevator->actionsector)
 		{
@@ -2554,7 +2554,7 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if ((splitscreen3 || splitscreen4) && players[thirddisplayplayer].mo)
+	if (splitscreen > 1 && players[thirddisplayplayer].mo)
 	{
 		if (players[thirddisplayplayer].mo->subsector->sector == elevator->actionsector)
 		{
@@ -2582,7 +2582,7 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen4 && players[fourthdisplayplayer].mo)
+	if (splitscreen > 2 && players[fourthdisplayplayer].mo)
 	{
 		if (players[fourthdisplayplayer].mo->subsector->sector == elevator->actionsector)
 		{
