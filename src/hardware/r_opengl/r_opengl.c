@@ -2026,8 +2026,7 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 
 		pglMatrixMode(GL_PROJECTION);
 		pglLoadIdentity();
-		if (stransform->splitscreen == 1 && stransform->fovxangle == 90.0f);
-			special_splitscreen = true;
+		special_splitscreen = (stransform->splitscreen == 1 && stransform->fovxangle == 90.0f);
 		if (special_splitscreen)
 			GLPerspective(53.13l, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
 		else

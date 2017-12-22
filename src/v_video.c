@@ -428,7 +428,7 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 		y += (BASEVIDHEIGHT/2)<<FRACBITS;
 
 	if (scrn & V_HORZSCREEN)
-		x += (BASEVIDWIDTH/2)<<FRACBITS;
+		x = ((BASEVIDWIDTH<<FRACBITS) - x) - (FixedMul((SHORT(patch->width) - SHORT(patch->leftoffset))<<FRACBITS, pscale));
 
 	desttop = screens[scrn&V_PARAMMASK];
 
@@ -458,7 +458,7 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 			{
 				// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
 				// so center this imaginary screen
-				if ((scrn & (V_HORZSCREEN|V_SNAPTORIGHT)) == (V_HORZSCREEN|V_SNAPTORIGHT))
+				if ((scrn & (V_HORZSCREEN|V_SNAPTOLEFT)) == (V_HORZSCREEN|V_SNAPTOLEFT))
 					desttop += (vid.width/2 - (BASEVIDWIDTH/2 * dupx));
 				else if (scrn & V_SNAPTORIGHT)
 					desttop += (vid.width - (BASEVIDWIDTH * dupx));

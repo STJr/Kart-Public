@@ -2876,6 +2876,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 static void K_KartUpdatePosition(player_t *player)
 {
 	fixed_t position = 1;
+	fixed_t oldposition = player->kartstuff[k_position];
 	fixed_t i, ppcd, pncd, ipcd, incd;
 	fixed_t pmo, imo;
 	thinker_t *th;
@@ -2972,6 +2973,12 @@ static void K_KartUpdatePosition(player_t *player)
 		}
 	}
 
+	if (leveltime < 4*TICRATE || oldposition == 0)
+		oldposition = position;
+
+	if (oldposition != position) // Changed places?
+		player->kartstuff[k_positiondelay] = 10; // and set up the timer.
+
 	player->kartstuff[k_position] = position;
 }
 //
@@ -3067,8 +3074,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	K_KartUpdatePosition(player);
 
-	// Previously was position taunt, now is used for growing the number while passing people!
-	if (!player->kartstuff[k_positiondelay] && !player->exiting)
+	/*if (!player->kartstuff[k_positiondelay] && !player->exiting)
 	{
 		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // then the other player taunts.
@@ -3076,9 +3082,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			//S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // Restore the old position,
-			player->kartstuff[k_positiondelay] = 15; // and set up a timer.
+			player->kartstuff[k_positiondelay] = 5*TICRATE; // and set up a timer.
 		}
-	}
+	}*/
+
 	if (player->kartstuff[k_positiondelay])
 		player->kartstuff[k_positiondelay]--;
 
@@ -4021,10 +4028,9 @@ INT32 ITEM_X, ITEM_Y;	// Item Window
 INT32 TRIP_X, TRIP_Y;	// Triple Item Icon
 INT32 TIME_X, TIME_Y;	// Time Sticker
 INT32 LAPS_X, LAPS_Y;	// Lap Sticker
-INT32 SPDM_X, SPDM_Y;	// Lap Sticker
+INT32 SPDM_X, SPDM_Y;	// Speedometer
 INT32 POSI_X, POSI_Y;	// Position Number
 INT32 FACE_X, FACE_Y;	// Top-four Faces
-INT32 METE_X, METE_Y;	// Speed Meter
 INT32 LAKI_X, LAKI_Y;	// Lakitu
 INT32 CHEK_Y;			// CHECK graphic
 INT32 MINI_X, MINI_Y;	// Minimap
@@ -4068,12 +4074,12 @@ static void K_initKartHUD(void)
 	// Single Screen (defaults)
 	// Item Window
 	ITEM_X = BASEVIDWIDTH - 52;	// 268
-	ITEM_Y = 34;				//  34
+	ITEM_Y = 9;					//   9
 	// Triple Item Object
 	TRIP_X = 143;				// 143
 	TRIP_Y = BASEVIDHEIGHT- 34;	// 166
 	// Level Timer
-	TIME_X = BASEVIDWIDTH -148;	// 172
+	TIME_X = 9;					// 172
 	TIME_Y = 9;					//   9
 	// Level Laps
 	LAPS_X = 9;					//   9
@@ -4093,13 +4099,12 @@ static void K_initKartHUD(void)
 	// CHECK graphic
 	CHEK_Y = BASEVIDHEIGHT;		// 200
 	// Minimap
-	MINI_X = 158;				// 158
-	MINI_Y = 50;				//  50
+	MINI_X = BASEVIDWIDTH - 58;	// 262
+	MINI_Y = BASEVIDHEIGHT/2;	// 100
 
 	if (splitscreen)	// Splitscreen
 	{
-		ITEM_X = 9;
-		ITEM_Y = 24;
+		ITEM_Y = 4;
 
 		TIME_Y = 4;
 
@@ -4117,7 +4122,8 @@ static void K_initKartHUD(void)
 			LAPS_X = 2;
 			LAPS_Y = (BASEVIDHEIGHT/2)-22;
 
-			POSI_X = (BASEVIDWIDTH/2) - 45;
+			POSI_X = 12;
+			POSI_Y = (BASEVIDHEIGHT/2)-24;
 
 			MINI_X = (3*BASEVIDWIDTH/4);
 			MINI_Y = (3*BASEVIDHEIGHT/4);
@@ -4129,10 +4135,6 @@ static void K_initKartHUD(void)
 			}
 		}
 	}
-
-	// To correct the weird render location
-	/*POSI_X = SCX(POSI_X);
-	POSI_Y = SCX(POSI_Y);*/
 }
 
 static INT32 K_calcSplitFlags(INT32 snapflags)
@@ -4176,10 +4178,8 @@ static void K_drawKartItemClose(void)
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no draw' just in case.
 	patch_t *localpatch = kp_nodraw;
-
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
-	if (!splitscreen)
-		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
+	INT32 X = ITEM_X;
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 
 	/*if ()
 		switch (stplyr->kartstuff[k_itemclose])
@@ -4203,7 +4203,7 @@ static void K_drawKartItemClose(void)
 		}
 
 	if (localpatch != kp_nodraw)
-		V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
+		V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
 }
 
 static void K_drawKartItemRoulette(void)
@@ -4214,7 +4214,7 @@ static void K_drawKartItemRoulette(void)
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
-
+	INT32 X = ITEM_X;
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	if (!splitscreen)
 		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
@@ -4270,7 +4270,7 @@ static void K_drawKartItemRoulette(void)
 			default: break;
 		}
 
-	V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
+	V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
 }
 
 static void K_drawKartRetroItem(void)
@@ -4281,7 +4281,7 @@ static void K_drawKartRetroItem(void)
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
-
+	INT32 X = ITEM_X;
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	if (!splitscreen)
 		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
@@ -4319,7 +4319,7 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
 	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
 
-	V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
+	V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
 }
 
 /*
@@ -4483,14 +4483,24 @@ static void K_DrawKartPositionNum(INT32 num)
 	// POSI_X = BASEVIDWIDTH - 51;	// 269
 	// POSI_Y = BASEVIDHEIGHT- 64;	// 136
 
-	INT32 X = POSI_X+43; // +43 to offset where it's being drawn if there are more than one
+	INT32 X = POSI_X;
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
 	fixed_t scale = FRACUNIT;
 	patch_t *localpatch = kp_positionnum[0][0];
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 
-	if (splitscreen > 1)
-		scale = FRACUNIT/2;
+	if ((stplyr->kartstuff[k_positiondelay] || stplyr->exiting) && !splitscreen)
+		scale *= 2;
+	else if (!(stplyr->kartstuff[k_positiondelay] || stplyr->exiting) && splitscreen)
+		scale /= 2;
+
+	W = FixedMul(W<<FRACBITS, scale)>>FRACBITS;
+
+	if ((splitscreen < 2) && !(splitflags & V_HORZSCREEN))
+	{
+		X -= W;
+		splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+	}
 
 	// Special case for 0
 	if (!num)
@@ -4565,9 +4575,6 @@ static void K_DrawKartPositionNum(INT32 num)
 		}
 		else
 			localpatch = kp_positionnum[num % 10][0];
-
-		if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
-			scale *= 2;
 
 		V_DrawFixedPatch(X<<FRACBITS, POSI_Y<<FRACBITS, scale, V_TRANSLUCENT|splitflags, localpatch, NULL);
 
@@ -4717,13 +4724,14 @@ static void K_drawKartPositionFaces(void)
 static void K_drawKartLaps(void)
 {
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+	INT32 X = LAPS_X;
 
-	V_DrawScaledPatch(LAPS_X, LAPS_Y, splitflags, kp_lapsticker);
+	V_DrawScaledPatch(X, LAPS_Y, splitflags, kp_lapsticker);
 
 	if (stplyr->exiting)
-		V_DrawKartString(LAPS_X+33, LAPS_Y+3, splitflags, "FIN");
+		V_DrawKartString(X+33, LAPS_Y+3, splitflags, "FIN");
 	else
-		V_DrawKartString(LAPS_X+33, LAPS_Y+3, splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+		V_DrawKartString(X+33, LAPS_Y+3, splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 }
 
 static void K_drawKartSpeedometer(void)
@@ -5182,11 +5190,11 @@ void K_drawKartHUD(void)
 			
 		if (stplyr->kartstuff[k_lapanimation])
 			K_drawLapLakitu();
-	}
 
-	// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
-	if (cv_kartcheck.value)
-		K_drawKartPlayerCheck();
+		// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
+		if (cv_kartcheck.value)
+			K_drawKartPlayerCheck();
+	}
 
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])
@@ -5204,21 +5212,24 @@ void K_drawKartHUD(void)
 	//K_DrawKartTripleItem();
 
 	// If not splitscreen, draw...
-	if (splitscreen < 2) // Tiny screen, don't clutter it too much
+	if (!splitscreen && !modeattacking)
 	{
-		// Draw the timestamp
-		K_drawKartTimestamp();
-	}
-
-	if (!splitscreen && !modeattacking) // Unnecessary stuff
-	{
-		// The little triple-item icons at the bottom
-		// The top-four faces on the left
-		K_drawKartPositionFaces();
-
 		// Draw the speedometer
 		// TODO: Make a better speedometer.
 		K_drawKartSpeedometer();
+
+		if (!modeattacking)
+		{
+			// The little triple-item icons at the bottom
+			// The top-four faces on the left
+			K_drawKartPositionFaces();
+		}
+	}
+
+	if (splitscreen < 2) // 3P/4P have tiny screens, don't clutter them too much
+	{
+		// Draw the timestamp
+		K_drawKartTimestamp();
 	}
 
 	if (gametype == GT_RACE) // Race-only elements
