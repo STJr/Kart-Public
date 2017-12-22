@@ -428,7 +428,7 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 		y += (BASEVIDHEIGHT/2)<<FRACBITS;
 
 	if (scrn & V_HORZSCREEN)
-		x = ((BASEVIDWIDTH<<FRACBITS) - x) - (FixedMul((SHORT(patch->width) - SHORT(patch->leftoffset))<<FRACBITS, pscale));
+		x += (BASEVIDWIDTH/2)<<FRACBITS;
 
 	desttop = screens[scrn&V_PARAMMASK];
 

@@ -1132,8 +1132,6 @@ static void HU_DrawDemoInfo(void)
 //
 void HU_Drawer(void)
 {
-	K_drawMinimap();
-
 	// draw chat string plus cursor
 	if (chat_on)
 		HU_DrawChat();

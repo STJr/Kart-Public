@@ -4888,111 +4888,108 @@ static void K_UnLoadIconGraphics(INT32 skinnum)
 }
 #endif
 
-void K_drawMinimap(void)
+void K_drawKartMinimap(void)
 {
-	INT32 amnumxpos;
-	INT32 amnumypos;
+	fixed_t amnumxpos;
+	fixed_t amnumypos;
 	INT32 amxpos;
 	INT32 amypos;
 	INT32 lumpnum;
 	patch_t *AutomapPic;
 	INT32 i = 0;
+	INT32 x, y;
 
 	// Draw the HUD only when playing in a level.
 	// hu_stuff needs this, unlike st_stuff.
-	if (Playing() && gamestate == GS_LEVEL)
+	if (!(Playing() && gamestate == GS_LEVEL))
+		return;
+
+	lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
+
+	if (lumpnum != -1)
+		AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_CACHE);
+	else
+		return; // no pic, just get outta here
+
+	x = MINI_X - (AutomapPic->width/4);
+	y = MINI_Y - (AutomapPic->height/4);
+
+	if (cv_kartmirror.value)
+		V_DrawSmallScaledPatch(x+(AutomapPic->width/2), y, V_TRANSLUCENT|V_SNAPTORIGHT|V_FLIP, AutomapPic);
+	else
+		V_DrawSmallScaledPatch(x, y, V_TRANSLUCENT|V_SNAPTORIGHT, AutomapPic);
+
+	// Player's tiny icons on the Automap.
+	if (lumpnum != -1)
 	{
-		INT32 x, y;
-
-		lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
-
-		if (lumpnum != -1)
-			AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_CACHE);
-		else
-			return; // no pic, just get outta here
-
-		x = MINI_X - (AutomapPic->width/4);
-		y = MINI_Y - (AutomapPic->height/4);
-
-		if (cv_kartmirror.value)
-			V_DrawSmallScaledPatch(x+(AutomapPic->width/2), y, V_TRANSLUCENT|V_SNAPTORIGHT|V_FLIP, AutomapPic);
-		else
-			V_DrawSmallScaledPatch(x, y, V_TRANSLUCENT|V_SNAPTORIGHT, AutomapPic);
-
-		// Player's tiny icons on the Automap.
-		if (lumpnum != -1)
+		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			for (i = 0; i < MAXPLAYERS; i++)
+			if (players[i].mo && !players[i].spectator)
 			{
-				if (players[i].mo && !players[i].spectator)
+				// amnum xpos & ypos are the icon's speed around the HUD.
+				// The number being divided by is for how fast it moves.
+				// The higher the number, the slower it moves.
+
+				// am xpos & ypos are the icon's starting position. Withouht
+				// it, they wouldn't 'spawn' on the top-right side of the HUD.
+
+				node_t *bsp = &nodes[numnodes-1];
+				fixed_t maxx, minx, maxy, miny;
+				maxx = maxy = INT32_MAX;
+				minx = miny = INT32_MIN;
+				minx = bsp->bbox[0][BOXLEFT];
+				maxx = bsp->bbox[0][BOXRIGHT];
+				miny = bsp->bbox[0][BOXBOTTOM];
+				maxy = bsp->bbox[0][BOXTOP];
+
+				if (bsp->bbox[1][BOXLEFT] < minx)
+					minx = bsp->bbox[1][BOXLEFT];
+				if (bsp->bbox[1][BOXRIGHT] > maxx)
+					maxx = bsp->bbox[1][BOXRIGHT];
+				if (bsp->bbox[1][BOXBOTTOM] < miny)
+					miny = bsp->bbox[1][BOXBOTTOM];
+				if (bsp->bbox[1][BOXTOP] > maxy)
+					miny = bsp->bbox[1][BOXTOP];
+
+				fixed_t mapwidth = maxx - minx;
+				fixed_t mapheight = maxy - miny;
+
+				fixed_t xoffset = minx + mapwidth/2;
+				fixed_t yoffset = miny + mapheight/2;
+
+				fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
+				fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
+				fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
+
+				amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
+				amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
+
+				amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+				amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
+
+				if (cv_kartmirror.value)
 				{
-					// amnum xpos & ypos are the icon's speed around the HUD.
-					// The number being divided by is for how fast it moves.
-					// The higher the number, the slower it moves.
-
-					// am xpos & ypos are the icon's starting position. Withouht
-					// it, they wouldn't 'spawn' on the top-right side of the HUD.
-
-					node_t *bsp = &nodes[numnodes-1];
-					fixed_t maxx, minx, maxy, miny;
-					maxx = maxy = INT32_MAX;
-					minx = miny = INT32_MIN;
-					minx = bsp->bbox[0][BOXLEFT];
-					maxx = bsp->bbox[0][BOXRIGHT];
-					miny = bsp->bbox[0][BOXBOTTOM];
-					maxy = bsp->bbox[0][BOXTOP];
-
-					if (bsp->bbox[1][BOXLEFT] < minx)
-						minx = bsp->bbox[1][BOXLEFT];
-					if (bsp->bbox[1][BOXRIGHT] > maxx)
-						maxx = bsp->bbox[1][BOXRIGHT];
-					if (bsp->bbox[1][BOXBOTTOM] < miny)
-						miny = bsp->bbox[1][BOXBOTTOM];
-					if (bsp->bbox[1][BOXTOP] > maxy)
-						miny = bsp->bbox[1][BOXTOP];
-
-					fixed_t mapwidth = maxx - minx;
-					fixed_t mapheight = maxy - miny;
-
-					fixed_t xoffset = minx + mapwidth/2;
-					fixed_t yoffset = miny + mapheight/2;
-
-					fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
-					fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
-					fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
-
-					amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
-					amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
-
-					amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
-					amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
-
-					if (cv_kartmirror.value)
-					{
-						amxpos = -amnumxpos + ((x + AutomapPic->width/4 + (iconprefix[players[i].skin]->width/4))<<FRACBITS);
-						if (!players[i].skincolor) // 'default' color
-							V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT|V_FLIP, iconprefix[players[i].skin], FRACUNIT/2);
-						else
-						{
-							UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-							V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT|V_FLIP, iconprefix[players[i].skin], colormap);
-						}
-					}
+					amxpos = -amnumxpos + ((x + AutomapPic->width/4 + (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+					if (!players[i].skincolor) // 'default' color
+						V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT|V_FLIP, iconprefix[players[i].skin], FRACUNIT/2);
 					else
 					{
-						if (!players[i].skincolor) // 'default' color
-							V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT, iconprefix[players[i].skin], FRACUNIT/2);
-						else
-						{
-							UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-							V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT, iconprefix[players[i].skin], colormap);
-						}
+						UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+						V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT|V_FLIP, iconprefix[players[i].skin], colormap);
+					}
+				}
+				else
+				{
+					if (!players[i].skincolor) // 'default' color
+						V_DrawSciencePatch(amxpos, amypos, V_SNAPTORIGHT, iconprefix[players[i].skin], FRACUNIT/2);
+					else
+					{
+						UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+						V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, V_SNAPTORIGHT, iconprefix[players[i].skin], colormap);
 					}
 				}
 			}
 		}
-		/*if (!splitscreen && maptol & TOL_RACE && !hu_showscores)
-			HU_DrawRaceRankings();*/
 	}
 }
 
@@ -5194,6 +5191,8 @@ void K_drawKartHUD(void)
 		// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
 		if (cv_kartcheck.value)
 			K_drawKartPlayerCheck();
+
+		K_drawKartMinimap();
 	}
 
 	// If the item window is closing, draw it closing!
