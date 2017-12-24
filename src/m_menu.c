@@ -7138,9 +7138,7 @@ static void M_SetupJoystickMenu(INT32 choice)
 
 static void M_Setup1PJoystickMenu(INT32 choice)
 {
-	setupcontrols_secondaryplayer = false;
-	setupcontrols_thirdplayer = false;
-	setupcontrols_fourthplayer = false;
+	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick1Def;
 	M_SetupJoystickMenu(choice);
 }
@@ -7148,8 +7146,7 @@ static void M_Setup1PJoystickMenu(INT32 choice)
 static void M_Setup2PJoystickMenu(INT32 choice)
 {
 	setupcontrols_secondaryplayer = true;
-	setupcontrols_thirdplayer = false;
-	setupcontrols_fourthplayer = false;
+	setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick2Def;
 	M_SetupJoystickMenu(choice);
 }
@@ -7157,8 +7154,7 @@ static void M_Setup2PJoystickMenu(INT32 choice)
 static void M_Setup3PJoystickMenu(INT32 choice)
 {
 	setupcontrols_thirdplayer = true;
-	setupcontrols_secondaryplayer = false;
-	setupcontrols_fourthplayer = false;
+	setupcontrols_secondaryplayer = setupcontrols_fourthplayer = false;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick3Def;
 	M_SetupJoystickMenu(choice);
 }
@@ -7166,15 +7162,18 @@ static void M_Setup3PJoystickMenu(INT32 choice)
 static void M_Setup4PJoystickMenu(INT32 choice)
 {
 	setupcontrols_fourthplayer = true;
-	setupcontrols_secondaryplayer = false;
-	setupcontrols_thirdplayer = false;
+	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = false;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_AssignJoystick(INT32 choice)
 {
-	if (setupcontrols_secondaryplayer)
+	if (setupcontrols_fourthplayer)
+		CV_SetValue(&cv_usejoystick4, choice);
+	else if (setupcontrols_thirdplayer)
+		CV_SetValue(&cv_usejoystick3, choice);
+	else if (setupcontrols_secondaryplayer)
 		CV_SetValue(&cv_usejoystick2, choice);
 	else
 		CV_SetValue(&cv_usejoystick, choice);
@@ -7187,9 +7186,7 @@ static void M_AssignJoystick(INT32 choice)
 static void M_Setup1PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_secondaryplayer = false;
-	setupcontrols_thirdplayer = false;
-	setupcontrols_fourthplayer = false;
+	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
@@ -7339,6 +7336,8 @@ static void M_ChangecontrolResponse(event_t *ev)
 			case ev_mouse2:
 			case ev_joystick:
 			case ev_joystick2:
+			case ev_joystick3:
+			case ev_joystick4:
 				ch = KEY_NULL;      // no key
 			break;
 

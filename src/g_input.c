@@ -2036,7 +2036,7 @@ void Command_Setcontrol3_f(void)
 
 	if (na != 3 && na != 4)
 	{
-		CONS_Printf(M_GetText("setcontrol23 <controlname> <keyname> [<2nd keyname>]: set controls for player 3\n"));
+		CONS_Printf(M_GetText("setcontrol3 <controlname> <keyname> [<2nd keyname>]: set controls for player 3\n"));
 		return;
 	}
 

@@ -1006,8 +1006,8 @@ static INT32 Joy3Axis(axis_input_e axissel)
 	}
 	else
 #endif
-		if (axisval > JOYAXISSET*2 || axisval == 0) //not there in array or None
-			return 0;
+	if (axisval > JOYAXISSET*2 || axisval == 0) //not there in array or None
+		return 0;
 
 	if (axisval%2)
 	{
@@ -1025,18 +1025,18 @@ static INT32 Joy3Axis(axis_input_e axissel)
 	skipDC:
 #endif
 
-		  if (retaxis < (-JOYAXISRANGE))
-			  retaxis = -JOYAXISRANGE;
-		  if (retaxis > (+JOYAXISRANGE))
-			  retaxis = +JOYAXISRANGE;
-		  if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
-		  {
-			  const INT32 jdeadzone = JOYAXISRANGE/4;
-			  if (-jdeadzone < retaxis && retaxis < jdeadzone)
-				  return 0;
-		  }
-		  if (flp) retaxis = -retaxis; //flip it around
-		  return retaxis;
+	if (retaxis < (-JOYAXISRANGE))
+		retaxis = -JOYAXISRANGE;
+	if (retaxis > (+JOYAXISRANGE))
+		retaxis = +JOYAXISRANGE;
+	if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
+	{
+		const INT32 jdeadzone = JOYAXISRANGE/4;
+		if (-jdeadzone < retaxis && retaxis < jdeadzone)
+			return 0;
+	}
+	if (flp) retaxis = -retaxis; //flip it around
+	return retaxis;
 }
 
 static INT32 Joy4Axis(axis_input_e axissel)
@@ -1079,13 +1079,13 @@ static INT32 Joy4Axis(axis_input_e axissel)
 #ifdef _arch_dreamcast
 	if (axisval == 7) // special case
 	{
-		retaxis = joy4xmove[1] - joy4ymove[1];
+		retaxis = joy2xmove[1] - joy2ymove[1];
 		goto skipDC;
 	}
 	else
 #endif
-		if (axisval > JOYAXISSET*2 || axisval == 0) //not there in array or None
-			return 0;
+	if (axisval > JOYAXISSET*2 || axisval == 0) //not there in array or None
+		return 0;
 
 	if (axisval%2)
 	{
@@ -1103,18 +1103,18 @@ static INT32 Joy4Axis(axis_input_e axissel)
 	skipDC:
 #endif
 
-		  if (retaxis < (-JOYAXISRANGE))
-			  retaxis = -JOYAXISRANGE;
-		  if (retaxis > (+JOYAXISRANGE))
-			  retaxis = +JOYAXISRANGE;
-		  if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
-		  {
-			  const INT32 jdeadzone = JOYAXISRANGE/4;
-			  if (-jdeadzone < retaxis && retaxis < jdeadzone)
-				  return 0;
-		  }
-		  if (flp) retaxis = -retaxis; //flip it around
-		  return retaxis;
+	if (retaxis < (-JOYAXISRANGE))
+		retaxis = -JOYAXISRANGE;
+	if (retaxis > (+JOYAXISRANGE))
+		retaxis = +JOYAXISRANGE;
+	if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
+	{
+		const INT32 jdeadzone = JOYAXISRANGE/4;
+		if (-jdeadzone < retaxis && retaxis < jdeadzone)
+			return 0;
+	}
+	if (flp) retaxis = -retaxis; //flip it around
+	return retaxis;
 }
 
 static boolean InputDown(INT32 gc, UINT8 p)

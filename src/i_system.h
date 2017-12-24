@@ -330,6 +330,14 @@ void I_GetJoystickEvents(void);
 */
 void I_GetJoystick2Events(void);
 
+/**	\brief Third Joystick's events
+*/
+void I_GetJoystick3Events(void);
+
+/**	\brief Fourth Joystick's events
+*/
+void I_GetJoystick4Events(void);
+
 /**	\brief Mouses events
 */
 void I_GetMouseEvents(void);

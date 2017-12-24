@@ -2036,7 +2036,7 @@ void I_InitJoystick4(void)
 {
 	I_ShutdownJoystick4();
 	SDL_SetHintWithPriority("SDL_XINPUT_ENABLED", "0", SDL_HINT_OVERRIDE);
-	if (!strcmp(cv_usejoystick3.string, "0") || M_CheckParm("-nojoy"))
+	if (!strcmp(cv_usejoystick4.string, "0") || M_CheckParm("-nojoy"))
 		return;
 	if (joy_open4(cv_usejoystick4.string) != -1)
 		JoyInfo4.oldjoy = atoi(cv_usejoystick4.string);

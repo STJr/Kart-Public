@@ -67,6 +67,14 @@ extern SDLJoyInfo_t JoyInfo;
 */
 extern SDLJoyInfo_t JoyInfo2;
 
+/**	\brief SDL inof about joystick 3
+*/
+extern SDLJoyInfo_t JoyInfo3;
+
+/**	\brief SDL inof about joystick 4
+*/
+extern SDLJoyInfo_t JoyInfo4;
+
 void I_GetConsoleEvents(void);
 
 void SDLforceUngrabMouse(void);
