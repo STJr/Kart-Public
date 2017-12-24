@@ -1752,7 +1752,7 @@ static void I_ShutdownJoystick4(void)
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 		if (cv_usejoystick4.value == 0)
 		{
-			DEBFILE("I_Joystick3: SDL's Joystick system has been shutdown\n");
+			DEBFILE("I_Joystick4: SDL's Joystick system has been shutdown\n");
 		}
 	}
 }
@@ -1949,13 +1949,13 @@ static int joy_open4(const char *fname)
 	if (!JoyInfo4.dev)
 	{
 		CONS_Printf(M_GetText("Couldn't open joystick4: %s\n"), SDL_GetError());
-		I_ShutdownJoystick3();
+		I_ShutdownJoystick4();
 		return -1;
 	}
 	else
 	{
 		CONS_Printf(M_GetText("Joystick4: %s\n"), SDL_JoystickName(JoyInfo4.dev));
-		JoyInfo3.axises = SDL_JoystickNumAxes(JoyInfo4.dev);
+		JoyInfo4.axises = SDL_JoystickNumAxes(JoyInfo4.dev);
 		if (JoyInfo4.axises > JOYAXISSET*2)
 			JoyInfo4.axises = JOYAXISSET*2;
 /*		if (joyaxes < 2)
@@ -1975,7 +1975,7 @@ static int joy_open4(const char *fname)
 
 		JoyInfo4.balls = SDL_JoystickNumBalls(JoyInfo4.dev);
 
-		//Joystick.bGamepadStyle = !stricmp(SDL_JoystickName(JoyInfo4.dev), "pad");
+		//Joystick4.bGamepadStyle = !stricmp(SDL_JoystickName(JoyInfo4.dev), "pad");
 
 		return JoyInfo4.axises;
 	}

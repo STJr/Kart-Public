@@ -4811,19 +4811,19 @@ static void K_drawKartBalloonsOrKarma(void)
 		if (stplyr->kartstuff[k_balloon] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y, splitflags, kp_karmasticker, colormap);
-			V_DrawKartString(LAPS_X+58, LAPS_Y+3, splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
+			V_DrawKartString(LAPS_X+57, LAPS_Y+3, splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
 			if (stplyr->kartstuff[k_balloon] > 9 || cv_kartballoons.value > 9)
 			{
 				V_DrawMappedPatch(LAPS_X, LAPS_Y, splitflags, kp_balloonstickerwide, colormap);
-				V_DrawKartString(LAPS_X+46, LAPS_Y+3, splitflags, va("%d/%2d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
+				V_DrawKartString(LAPS_X+45, LAPS_Y+3, splitflags, va("%d/%2d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
 			}
 			else
 			{
 				V_DrawMappedPatch(LAPS_X, LAPS_Y, splitflags, kp_balloonsticker, colormap);
-				V_DrawKartString(LAPS_X+46, LAPS_Y+3, splitflags, va("%d/%d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
+				V_DrawKartString(LAPS_X+45, LAPS_Y+3, splitflags, va("%d/%d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
 			}
 		}
 	}

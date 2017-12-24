@@ -144,7 +144,7 @@ extern INT32 mlooky; //mousey with mlookSensitivity
 extern INT32 mouse2x, mouse2y, mlook2y;
 
 extern INT32 joyxmove[JOYAXISSET], joyymove[JOYAXISSET], joy2xmove[JOYAXISSET], joy2ymove[JOYAXISSET],
-joy3xmove[JOYAXISSET], joy3ymove[JOYAXISSET], joy4xmove[JOYAXISSET], joy4ymove[JOYAXISSET];
+	joy3xmove[JOYAXISSET], joy3ymove[JOYAXISSET], joy4xmove[JOYAXISSET], joy4ymove[JOYAXISSET];
 
 // current state of the keys: true if pushed
 extern UINT8 gamekeydown[NUMINPUTS];
