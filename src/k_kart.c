@@ -4144,13 +4144,15 @@ static INT32 K_calcSplitFlags(INT32 snapflags)
 {
 	INT32 splitflags = 0;
 
-	if (!splitscreen)
+	if (splitscreen == 0)
 		return snapflags;
 
 	if (stplyr != &players[displayplayer])
 	{
 		if (splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
+		{
 			splitflags |= V_SPLITSCREEN;
+		}
 		else if (splitscreen > 1)
 		{
 			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
@@ -4165,10 +4167,13 @@ static INT32 K_calcSplitFlags(INT32 snapflags)
 	else
 		snapflags &= ~V_SNAPTOBOTTOM;
 
-	if (splitflags & V_HORZSCREEN)
-		snapflags &= ~V_SNAPTOLEFT;
-	else
-		snapflags &= ~V_SNAPTORIGHT;
+	if (splitscreen > 1)
+	{
+		if (splitflags & V_HORZSCREEN)
+			snapflags &= ~V_SNAPTOLEFT;
+		else
+			snapflags &= ~V_SNAPTORIGHT;
+	}
 
 	return (splitflags|snapflags);
 }
@@ -4181,8 +4186,10 @@ static void K_drawKartItemClose(void)
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no draw' just in case.
 	patch_t *localpatch = kp_nodraw;
-	INT32 X = ITEM_X;
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+
+	if (splitscreen > 1)
+		splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 
 	/*if ()
 		switch (stplyr->kartstuff[k_itemclose])
@@ -4206,7 +4213,7 @@ static void K_drawKartItemClose(void)
 		}
 
 	if (localpatch != kp_nodraw)
-		V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
+		V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
 }
 
 static void K_drawKartItemRoulette(void)
@@ -4218,12 +4225,13 @@ static void K_drawKartItemRoulette(void)
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
 	patch_t *localbg = kp_itembg;
-	INT32 X = ITEM_X;
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+
 	if (splitscreen > 1)
+	{
 		localbg = kp_itemused1;
-	else
-		splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+		splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	}
 
 	/*if ()
 				switch(stplyr->kartstuff[k_itemroulette] % 53)
@@ -4279,8 +4287,8 @@ static void K_drawKartItemRoulette(void)
 	if (localpatch == kp_nodraw)
 		return;
 
-	V_DrawScaledPatch(X, ITEM_Y, splitflags, localbg);
-	V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
+	V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localbg);
+	V_DrawScaledPatch(ITEM_X, ITEM_Y, splitflags, localpatch);
 }
 
 static void K_drawKartRetroItem(void)
@@ -4293,12 +4301,13 @@ static void K_drawKartRetroItem(void)
 	patch_t *localpatch = kp_nodraw;
 	patch_t *localbg = kp_itembg;
 	INT32 X = ITEM_X;
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 
 	if (splitscreen > 1)
+	{
 		localbg = kp_itemused1;
-	else
-		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
+		splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	}
 
 	// I'm doing this a little weird and drawing mostly in reverse order
 	// The only actual reason is to make triple/double/single mushrooms line up this way in the code below
