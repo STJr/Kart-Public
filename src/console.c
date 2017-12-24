@@ -303,20 +303,14 @@ static void CON_SetupColormaps(void)
 		orangemap[i] = (UINT8)i;
 	}
 
-	yellowmap[3] = (UINT8)103;
-	yellowmap[9] = (UINT8)115;
-	purplemap[3] = (UINT8)195;
-	purplemap[9] = (UINT8)198;
-	lgreenmap[3] = (UINT8)162;
-	lgreenmap[9] = (UINT8)170;
-	bluemap[3]   = (UINT8)228;
-	bluemap[9]   = (UINT8)238;
-	graymap[3]   = (UINT8)10;
-	graymap[9]   = (UINT8)15;
-	redmap[3]    = (UINT8)124;
-	redmap[9]    = (UINT8)127;
-	orangemap[3] = (UINT8)85;
-	orangemap[9] = (UINT8)90;
+	// SRB2Kart: Different console font, new colors
+	yellowmap[120] = (UINT8)103;
+	purplemap[120] = (UINT8)194;
+	lgreenmap[120] = (UINT8)162;
+	bluemap[120]   = (UINT8)228;
+	graymap[120]   = (UINT8)10;
+	redmap[120]    = (UINT8)126;
+	orangemap[120] = (UINT8)85;
 
 	// Init back colormap
 	CON_SetupBackColormap();
