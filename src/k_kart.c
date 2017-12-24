@@ -4108,8 +4108,7 @@ static void K_initKartHUD(void)
 
 	if (splitscreen)	// Splitscreen
 	{
-		ITEM_X = -4;
-		ITEM_Y = 0;
+		ITEM_Y = 4;
 
 		TIME_Y = 4;
 
@@ -4121,7 +4120,7 @@ static void K_initKartHUD(void)
 
 		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
-			ITEM_X = 4;
+			ITEM_X = 0;
 			ITEM_Y = 0;
 
 			LAPS_X = 3;
