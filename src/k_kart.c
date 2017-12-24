@@ -3759,11 +3759,12 @@ void K_CheckBalloons(void)
 
 //{ 	Patch Definitions
 static patch_t *kp_nodraw;
-static patch_t *kp_noitem;
+static patch_t *kp_itembg;
 static patch_t *kp_timesticker;
 static patch_t *kp_timestickerwide;
 static patch_t *kp_lapsticker;
 static patch_t *kp_lapstickernarrow;
+static patch_t *kp_splitlapflag;
 static patch_t *kp_balloonsticker;
 static patch_t *kp_balloonstickerwide;
 static patch_t *kp_karmasticker;
@@ -3861,7 +3862,7 @@ void K_LoadKartHUDGraphics(void)
 
 	// Null Stuff
 	kp_nodraw = 				W_CachePatchName("K_TRNULL", PU_HUDGFX);
-	kp_noitem = 				W_CachePatchName("K_ITNULL", PU_HUDGFX);
+	kp_itembg = 				W_CachePatchName("K_ITNULL", PU_HUDGFX);
 	//kp_neonoitem = 				W_CachePatchName("KNITNULL", PU_HUDGFX);
 
 	// Stickers
@@ -3869,6 +3870,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_timestickerwide = 		W_CachePatchName("K_STTIMW", PU_HUDGFX);
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
+	kp_splitlapflag = 			W_CachePatchName("K_SPTLAP", PU_HUDGFX);
 	kp_balloonsticker = 		W_CachePatchName("K_STBALN", PU_HUDGFX);
 	kp_balloonstickerwide = 	W_CachePatchName("K_STBALW", PU_HUDGFX);
 	kp_karmasticker = 			W_CachePatchName("K_STKARM", PU_HUDGFX);
@@ -4088,7 +4090,7 @@ static void K_initKartHUD(void)
 	SPDM_X = 9;					//   9
 	SPDM_Y = BASEVIDHEIGHT- 45;	// 155
 	// Position Number
-	POSI_X = BASEVIDWIDTH - 52;	// 268
+	POSI_X = BASEVIDWIDTH - 6;	// 268
 	POSI_Y = BASEVIDHEIGHT- 4;	// 138
 	// Top-Four Faces
 	FACE_X = 9;					//   9
@@ -4104,7 +4106,8 @@ static void K_initKartHUD(void)
 
 	if (splitscreen)	// Splitscreen
 	{
-		ITEM_Y = 4;
+		ITEM_X = -2;
+		ITEM_Y = 0;
 
 		TIME_Y = 4;
 
@@ -4117,13 +4120,12 @@ static void K_initKartHUD(void)
 		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
 			ITEM_X = 4;
-			ITEM_Y = 4;
+			ITEM_Y = 0;
 
-			LAPS_X = 2;
-			LAPS_Y = (BASEVIDHEIGHT/2)-22;
+			LAPS_X = 3;
+			LAPS_Y = (BASEVIDHEIGHT/2)-13;
 
-			POSI_X = 12;
-			POSI_Y = (BASEVIDHEIGHT/2)-24;
+			POSI_X = (BASEVIDWIDTH/2)-3;
 
 			MINI_X = (3*BASEVIDWIDTH/4);
 			MINI_Y = (3*BASEVIDHEIGHT/4);
@@ -4214,9 +4216,12 @@ static void K_drawKartItemRoulette(void)
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
+	patch_t *localbg = kp_itembg;
 	INT32 X = ITEM_X;
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
-	if (!splitscreen)
+	if (splitscreen > 1)
+		localbg = kp_itemused1;
+	else
 		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
 
 	/*if ()
@@ -4270,6 +4275,10 @@ static void K_drawKartItemRoulette(void)
 			default: break;
 		}
 
+	if (localpatch == kp_nodraw)
+		return;
+
+	V_DrawScaledPatch(X, ITEM_Y, splitflags, localbg);
 	V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
 }
 
@@ -4281,9 +4290,13 @@ static void K_drawKartRetroItem(void)
 	// Why write V_DrawScaledPatch calls over and over when they're all the same?
 	// Set to 'no item' just in case.
 	patch_t *localpatch = kp_nodraw;
+	patch_t *localbg = kp_itembg;
 	INT32 X = ITEM_X;
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
-	if (!splitscreen)
+
+	if (splitscreen > 1)
+		localbg = kp_itemused1;
+	else
 		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
 
 	// I'm doing this a little weird and drawing mostly in reverse order
@@ -4292,7 +4305,7 @@ static void K_drawKartRetroItem(void)
 	// Boo is first, because we're drawing it on top of the player's current item
 	if ((stplyr->kartstuff[k_bootaketimer] > 0 || stplyr->kartstuff[k_boostolentimer] > 0)
 		&& (leveltime & 2))													localpatch = kp_boosteal;
-	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))		localpatch = kp_noitem;
+	else if (stplyr->kartstuff[k_boostolentimer] > 0 && !(leveltime & 2))		localpatch = kp_nodraw;
 	else if (stplyr->kartstuff[k_kitchensink] == 1)							localpatch = kp_kitchensink;
 	else if (stplyr->kartstuff[k_feather] & 1)									localpatch = kp_feather;
 	else if (stplyr->kartstuff[k_lightning] == 1)								localpatch = kp_lightning;
@@ -4309,16 +4322,20 @@ static void K_drawKartRetroItem(void)
 	else if (stplyr->kartstuff[k_star] == 1)									localpatch = kp_star;
 	else if (stplyr->kartstuff[k_goldshroom] == 1
 		|| (stplyr->kartstuff[k_goldshroomtimer] > 1 && (leveltime & 1)))		localpatch = kp_goldshroom;
-	else if (stplyr->kartstuff[k_goldshroomtimer] > 1 && !(leveltime & 1))	localpatch = kp_noitem;
+	else if (stplyr->kartstuff[k_goldshroomtimer] > 1 && !(leveltime & 1))	localpatch = kp_nodraw;
 	else if (stplyr->kartstuff[k_megashroom] == 1
 		|| (stplyr->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1)))		localpatch = kp_megashroom;
-	else if (stplyr->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))	localpatch = kp_noitem;
+	else if (stplyr->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))	localpatch = kp_nodraw;
 	else if (stplyr->kartstuff[k_mushroom] & 4)								localpatch = kp_triplemushroom;
 	else if (stplyr->kartstuff[k_mushroom] & 2)								localpatch = kp_doublemushroom;
 	else if (stplyr->kartstuff[k_mushroom] == 1)								localpatch = kp_mushroom;
 	else if (stplyr->kartstuff[k_boo] == 1)									localpatch = kp_boo;
 	else if (stplyr->kartstuff[k_magnet] == 1)								localpatch = kp_magnet;
 
+	if (localpatch == kp_nodraw)
+		return;
+
+	V_DrawScaledPatch(X, ITEM_Y, splitflags, localbg);
 	V_DrawScaledPatch(X, ITEM_Y, splitflags, localpatch);
 }
 
@@ -4427,7 +4444,7 @@ static void K_drawKartTimestamp(void)
 	// TIME_Y = 6;					//   6
 
 	INT32 TIME_XB;
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 
 	V_DrawScaledPatch(TIME_X, TIME_Y, splitflags, kp_timestickerwide);
 
@@ -4489,18 +4506,12 @@ static void K_DrawKartPositionNum(INT32 num)
 	patch_t *localpatch = kp_positionnum[0][0];
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 
-	if ((stplyr->kartstuff[k_positiondelay] || stplyr->exiting) && !splitscreen)
-		scale *= 2;
-	else if (!(stplyr->kartstuff[k_positiondelay] || stplyr->exiting) && splitscreen)
+	if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
+		scale = FixedMul(scale, 3*FRACUNIT/2);
+	if (splitscreen > 1)
 		scale /= 2;
 
 	W = FixedMul(W<<FRACBITS, scale)>>FRACBITS;
-
-	if ((splitscreen < 2) && !(splitflags & V_HORZSCREEN))
-	{
-		X -= W;
-		splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
-	}
 
 	// Special case for 0
 	if (!num)
@@ -4726,12 +4737,24 @@ static void K_drawKartLaps(void)
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 	INT32 X = LAPS_X;
 
-	V_DrawScaledPatch(X, LAPS_Y, splitflags, kp_lapsticker);
+	if (splitscreen > 1)
+	{
+		V_DrawScaledPatch(X, LAPS_Y, splitflags, kp_splitlapflag);
 
-	if (stplyr->exiting)
-		V_DrawKartString(X+33, LAPS_Y+3, splitflags, "FIN");
+		if (stplyr->exiting)
+			V_DrawString(X+13, LAPS_Y+1, splitflags, "FIN");
+		else
+			V_DrawString(X+13, LAPS_Y+1, splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+	}
 	else
-		V_DrawKartString(X+33, LAPS_Y+3, splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+	{
+		V_DrawScaledPatch(X, LAPS_Y, splitflags, kp_lapsticker);
+
+		if (stplyr->exiting)
+			V_DrawKartString(X+33, LAPS_Y+3, splitflags, "FIN");
+		else
+			V_DrawKartString(X+33, LAPS_Y+3, splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+	}
 }
 
 static void K_drawKartSpeedometer(void)
@@ -4888,7 +4911,15 @@ static void K_UnLoadIconGraphics(INT32 skinnum)
 }
 #endif
 
-void K_drawKartMinimap(void)
+void K_ReloadSkinIconGraphics(void)
+{
+	INT32 i;
+
+	for (i = 0; i < numskins; i++)
+		K_LoadIconGraphics(skins[i].iconprefix, i);
+}
+
+static void K_drawKartMinimap(void)
 {
 	fixed_t amnumxpos;
 	fixed_t amnumypos;
@@ -4904,10 +4935,13 @@ void K_drawKartMinimap(void)
 	if (!(Playing() && gamestate == GS_LEVEL))
 		return;
 
+	if (stplyr != &players[displayplayer])
+		return;
+
 	lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
 
 	if (lumpnum != -1)
-		AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_CACHE);
+		AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_HUDGFX);
 	else
 		return; // no pic, just get outta here
 
@@ -4995,6 +5029,7 @@ void K_drawKartMinimap(void)
 
 static void K_drawBattleFullscreen(void)
 {
+	INT32 x = BASEVIDWIDTH/2;
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
 
 	if (splitscreen)
@@ -5004,33 +5039,37 @@ static void K_drawBattleFullscreen(void)
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
 		else
 			y = -32+(stplyr->kartstuff[k_cardanimation]/2);
+
+		if (splitscreen > 1)
+		{
+			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				x = 3*BASEVIDWIDTH/4;
+			else
+				x = BASEVIDWIDTH/4;
+		}
+		else
+		{
+			if (stplyr == &players[secondarydisplayplayer])
+				x = BASEVIDWIDTH-96;
+			else
+				x = 96;
+		}
 	}
-	else
+
+	if (stplyr == &players[displayplayer])
 		V_DrawFadeScreen();
 
 	if (stplyr->exiting)
 	{
-		if (splitscreen == 1)
-		{
-			if (stplyr == &players[displayplayer])
-				V_DrawFadeScreen();
-			if (stplyr->kartstuff[k_balloon])
-				V_DrawScaledPatch(96, y, 0, kp_battlewin);
-			else
-				V_DrawScaledPatch(BASEVIDWIDTH-96, y, 0, kp_battlelose);
-		}
+		if (stplyr->kartstuff[k_balloon])
+			V_DrawScaledPatch(x, y, 0, kp_battlewin);
 		else
-		{
-			if (stplyr->kartstuff[k_balloon])
-				V_DrawScaledPatch(BASEVIDWIDTH/2, y, 0, kp_battlewin);
-			else
-				V_DrawScaledPatch(BASEVIDWIDTH/2, y, 0, kp_battlelose);
-		}
+			V_DrawScaledPatch(x, y, 0, kp_battlelose);
 	}
 	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)
 	{
 		INT32 t = stplyr->kartstuff[k_comebacktimer]/TICRATE;
-		INT32 x = BASEVIDWIDTH/2;
+		INT32 tx = BASEVIDWIDTH/2;
 
 		while (t)
 		{
@@ -5039,12 +5078,12 @@ static void K_drawBattleFullscreen(void)
 		}
 
 		if (!stplyr->kartstuff[k_comebackshowninfo] && !splitscreen)
-			V_DrawScaledPatch(BASEVIDWIDTH/2, y, 0, kp_battleinfo);
+			V_DrawScaledPatch(x, y, 0, kp_battleinfo);
 		else
-			V_DrawScaledPatch(BASEVIDWIDTH/2, y, 0, kp_battlewait);
+			V_DrawScaledPatch(x, y, 0, kp_battlewait);
 
-		V_DrawScaledPatch(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) + 66, 0, kp_timeoutsticker);
-		V_DrawKartString(x, (BASEVIDHEIGHT/2) + 66, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+		V_DrawScaledPatch(x, (BASEVIDHEIGHT/2) + 66, 0, kp_timeoutsticker);
+		V_DrawKartString(tx, (BASEVIDHEIGHT/2) + 66, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 	}
 }
 
@@ -5236,8 +5275,11 @@ void K_drawKartHUD(void)
 		// Draw the lap counter
 		K_drawKartLaps();
 
-		// Draw the numerical position
-		K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+		if (!modeattacking)
+		{
+			// Draw the numerical position
+			K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+		}
 	}
 	else if (gametype == GT_MATCH) // Battle-only
 	{

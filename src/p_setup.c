@@ -3166,6 +3166,7 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 	HU_LoadGraphics();
 	ST_LoadGraphics();
 	ST_ReloadSkinFaceGraphics();
+	K_ReloadSkinIconGraphics();
 
 	//
 	// look for skins
