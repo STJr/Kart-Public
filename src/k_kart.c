@@ -4223,7 +4223,7 @@ static void K_drawKartItemRoulette(void)
 	if (splitscreen > 1)
 		localbg = kp_itemused1;
 	else
-		splitflags = V_SNAPTOTOP|V_SNAPTORIGHT;
+		splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 
 	/*if ()
 				switch(stplyr->kartstuff[k_itemroulette] % 53)
