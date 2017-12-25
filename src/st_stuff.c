@@ -1834,7 +1834,17 @@ static void ST_overlayDrawer(void)
 	{
 		// Countdown timer for Race Mode
 		if (countdown)
-			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(176), 0, va("%d", countdown/TICRATE));
+		{
+			INT32 x = BASEVIDWIDTH/2;
+			INT32 y = BASEVIDHEIGHT-24;
+			if (splitscreen)
+			{
+				y = (BASEVIDHEIGHT/2)-12;
+				if (splitscreen > 1)
+					x = BASEVIDWIDTH/4;		
+			}
+			V_DrawCenteredString(x, y, K_calcSplitFlags(0), va("%d", countdown/TICRATE));
+		}
 
 		K_drawKartHUD();
 

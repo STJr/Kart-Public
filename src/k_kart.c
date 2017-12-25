@@ -4140,7 +4140,7 @@ static void K_initKartHUD(void)
 	}
 }
 
-static INT32 K_calcSplitFlags(INT32 snapflags)
+INT32 K_calcSplitFlags(INT32 snapflags)
 {
 	INT32 splitflags = 0;
 
@@ -5053,9 +5053,12 @@ static void K_drawBattleFullscreen(void)
 {
 	INT32 x = BASEVIDWIDTH/2;
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
+	fixed_t scale = FRACUNIT;
 
 	if (splitscreen)
 	{
+		scale /= 2;
+
 		if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
 			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])))
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
@@ -5078,45 +5081,53 @@ static void K_drawBattleFullscreen(void)
 		}
 	}
 
-	if (stplyr == &players[displayplayer])
-		V_DrawFadeScreen();
-
 	if (stplyr->exiting)
 	{
+		if (stplyr == &players[displayplayer])
+			V_DrawFadeScreen();
 		if (stplyr->kartstuff[k_balloon])
-			V_DrawScaledPatch(x, y, 0, kp_battlewin);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewin, NULL);
 		else if (splitscreen < 2)
-			V_DrawScaledPatch(x, y, 0, kp_battlelose);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlelose, NULL);
 	}
 	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)
 	{
 		INT32 t = stplyr->kartstuff[k_comebacktimer]/TICRATE;
-		INT32 tx = x;
-		INT32 ty = (BASEVIDHEIGHT/2) + 66;
+		INT32 txoff = 0;
+		INT32 ty = (BASEVIDHEIGHT/2)+66;
 
 		if (t == 0)
-			tx -= 8;
+			txoff = 8;
 		else
 		{
 			while (t)
 			{
-				tx -= 8;
+				txoff += 8;
 				t /= 10;
 			}
 		}
 
-		if (!stplyr->kartstuff[k_comebackshowninfo] && !splitscreen)
-			V_DrawScaledPatch(x, y, 0, kp_battleinfo);
+		if (splitscreen)
+		{
+			if (splitscreen > 2)
+				ty = (BASEVIDHEIGHT/4)+33;
+			if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
+				|| stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				ty += (BASEVIDHEIGHT/2);
+		}
+
+		if (!stplyr->kartstuff[k_comebackshowninfo])
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battleinfo, NULL);
 		else
-			V_DrawScaledPatch(x, y, 0, kp_battlewait);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewait, NULL);
 
 		if (splitscreen > 1)
-			ty = (BASEVIDHEIGHT/4)+33;
-
-		if (splitscreen < 2)
-			V_DrawScaledPatch(x, ty, 0, kp_timeoutsticker);
-
-		V_DrawKartString(tx, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawString(x-(txoff/2), ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+		else
+		{
+			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, K_calcSplitFlags(0), kp_timeoutsticker, NULL);
+			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+		}
 	}
 }
 

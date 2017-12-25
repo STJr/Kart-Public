@@ -2009,8 +2009,7 @@ boolean P_CheckRacers(void)
 
 	if (i == MAXPLAYERS) // finished
 	{
-		countdown = 0;
-		countdown2 = 0;
+		countdown = countdown2 = 0;
 		return true;
 	}
 
