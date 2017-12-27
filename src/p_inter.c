@@ -177,7 +177,7 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 		|| player->kartstuff[k_mushroom]				|| player->kartstuff[k_fireflower]
 		|| player->kartstuff[k_star]					|| player->kartstuff[k_goldshroom]
 		|| player->kartstuff[k_lightning]				|| player->kartstuff[k_megashroom]
-		|| player->kartstuff[k_boo]					|| player->kartstuff[k_feather] & 1) // Item slot already taken up
+		|| player->kartstuff[k_boo]						|| player->kartstuff[k_feather] & 1) // Item slot already taken up
 		return false;
 
 	return true;
