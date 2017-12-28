@@ -1204,7 +1204,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		return true;
 	}
 
-
 	if (thing->type == MT_POKEY)
 	{
 		// see if it went over / under
@@ -1225,6 +1224,16 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	//}
+
+	if (thing->type == MT_FALLINGROCK || tmthing->type == MT_FALLINGROCK)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+		K_KartBouncing(thing, tmthing, false);
+	}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
 	 && (tmthing->player || (tmthing->flags & MF_PUSHABLE)) && tmthing->health > 0)
@@ -1703,8 +1712,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				}
 			}
 
-			thing->player->kartstuff[k_justbumped] = 6;
-			tmthing->player->kartstuff[k_justbumped] = 6;
 			return true;
 		}
 		// Are you touching the side of the object you're interacting with?

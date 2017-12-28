@@ -412,6 +412,7 @@ extern INT32 boostealtime;
 extern INT32 mushroomtime;
 extern INT32 itemtime;
 extern INT32 comebacktime;
+extern INT32 bumptime;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;

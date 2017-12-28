@@ -8671,6 +8671,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	{
 		case MT_PLAYER:
 		case MT_BIGMACE:				case MT_SMALLMACE:
+		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
 		case MT_BANANAITEM:				case MT_BANANASHIELD:
 		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:

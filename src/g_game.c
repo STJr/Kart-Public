@@ -210,6 +210,7 @@ INT32 boostealtime = TICRATE/2;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
 INT32 comebacktime = 10*TICRATE;
+INT32 bumptime = 6;
 
 INT32 gameovertics = 15*TICRATE;
 

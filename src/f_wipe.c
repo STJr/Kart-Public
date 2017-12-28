@@ -53,8 +53,8 @@ UINT8 wipedefs[NUMWIPEDEFS] = {
 	99, // wipe_credits_toblack
 	0,  // wipe_evaluation_toblack
 	0,  // wipe_gameend_toblack
-	99, // wipe_intro_toblack (hardcoded)
-	99, // wipe_cutscene_toblack (hardcoded)
+	UINT8_MAX, // wipe_intro_toblack (hardcoded)
+	UINT8_MAX, // wipe_cutscene_toblack (hardcoded)
 
 	0,  // wipe_specinter_toblack
 	0,  // wipe_multinter_toblack

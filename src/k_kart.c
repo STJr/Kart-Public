@@ -1147,6 +1147,17 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 		|| (mobj2->player && mobj2->player->playerstate != PST_LIVE))
 		return;
 
+	// Don't bump if you've recently bumped
+	if ((mobj1->player && mobj1->player->kartstuff[k_justbumped])
+		|| (mobj2->player && mobj1->player->kartstuff[k_justbumped]))
+	{
+		if (mobj1->player)
+			mobj1->player->kartstuff[k_justbumped] = bumptime;
+		if (mobj2->player)
+			mobj2->player->kartstuff[k_justbumped] = bumptime;
+		return;
+	}
+
 	if (cv_collidesounds.value == 1)
 	{
 		S_StartSound(mobj1, cv_collidesoundnum.value);
@@ -1214,16 +1225,19 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 
 	// Because this is done during collision now, rmomx and rmomy need to be recalculated
 	// so that friction doesn't immediately decide to stop the player if they're at a standstill
+	// Also set justbumped here
 	if (mobj1->player)
 	{
 		mobj1->player->rmomx = mobj1->momx - mobj1->player->cmomx;
 		mobj1->player->rmomy = mobj1->momy - mobj1->player->cmomy;
+		mobj1->player->kartstuff[k_justbumped] = bumptime;
 	}
 
 	if (mobj2->player)
 	{
 		mobj2->player->rmomx = mobj2->momx - mobj2->player->cmomx;
 		mobj2->player->rmomy = mobj2->momy - mobj2->player->cmomy;
+		mobj2->player->kartstuff[k_justbumped] = bumptime;
 	}
 }
 
@@ -1924,7 +1938,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 			if (source->player->kartstuff[k_balloon] <= 0)
 			{
 				source->player->kartstuff[k_comebackpoints] += 2;
-				CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
+				if (netgame)
+					CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
 				if (source->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBalloon(source->player, player, true);
 			}
@@ -1993,10 +2008,13 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 			return;
 	}
 
-	if (player->kartstuff[k_balloon] <= 0)
-		CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
-	else
-		CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
+	if (netgame)
+	{
+		if (player->kartstuff[k_balloon] <= 0)
+			CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
+		else
+			CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
+	}
 
 	newballoon = player->kartstuff[k_balloon];
 	if (newballoon <= 1)
@@ -3710,10 +3728,14 @@ void K_CheckBalloons(void)
 	UINT8 numingame = 0;
 	INT8 winnernum = -1;
 
+#if 0
+	return; // set to 1 to test comeback mechanics while alone
+#endif
+
 	if (!multiplayer)
 		return;
 
-	if (gametype == GT_RACE)
+	if (gametype != GT_MATCH)
 		return;
 
 	if (gameaction == ga_completed)
@@ -4812,20 +4834,15 @@ static void K_drawKartBalloonsOrKarma(void)
 		if (stplyr->kartstuff[k_balloon] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_karmasticker, colormap);
-			V_DrawKartString(LAPS_X+57, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
+			V_DrawKartString(LAPS_X+59, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
-			if (stplyr->kartstuff[k_balloon] > 9 || cv_kartballoons.value > 9)
-			{
+			if (stplyr->kartstuff[k_balloon] > 9 && cv_kartballoons.value > 9)
 				V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_balloonstickerwide, colormap);
-				V_DrawKartString(LAPS_X+45, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/%2d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
-			}
 			else
-			{
 				V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_balloonsticker, colormap);
-				V_DrawKartString(LAPS_X+45, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
-			}
+			V_DrawKartString(LAPS_X+47, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
 		}
 	}
 }
@@ -5064,8 +5081,6 @@ static void K_drawBattleFullscreen(void)
 
 	if (splitscreen)
 	{
-		scale /= 2;
-
 		if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
 			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])))
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
@@ -5074,6 +5089,8 @@ static void K_drawBattleFullscreen(void)
 
 		if (splitscreen > 1)
 		{
+			scale /= 2;
+
 			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
 				x = 3*BASEVIDWIDTH/4;
 			else
@@ -5307,10 +5324,6 @@ void K_drawKartHUD(void)
 		// Draw the timestamp
 		K_drawKartTimestamp();
 
-		// Draw the speedometer
-		// TODO: Make a better speedometer.
-		K_drawKartSpeedometer();
-
 		if (!modeattacking)
 		{
 			// The little triple-item icons at the bottom
@@ -5323,6 +5336,13 @@ void K_drawKartHUD(void)
 	{
 		// Draw the lap counter
 		K_drawKartLaps();
+
+		if (!splitscreen)
+		{
+			// Draw the speedometer
+			// TODO: Make a better speedometer.
+			K_drawKartSpeedometer();
+		}
 
 		if (!modeattacking)
 		{
