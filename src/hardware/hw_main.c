@@ -5433,8 +5433,13 @@ static void HWR_DrawSkyBackground(player_t *player)
 	// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
 
 	angle = (dup_viewangle + gr_xtoviewangle[0]);
-
 	dimensionmultiply = ((float)textures[skytexture]->width/256.0f);
+
+	if (atransform.mirror)
+	{
+		angle = InvAngle(angle);
+		dimensionmultiply *= -1;
+	}
 
 	v[0].sow = v[3].sow = ((float) angle / ((ANGLE_90-1)*dimensionmultiply));
 	v[2].sow = v[1].sow = (-1.0f/dimensionmultiply)+((float) angle / ((ANGLE_90-1)*dimensionmultiply));
