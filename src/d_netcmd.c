@@ -1215,8 +1215,8 @@ static void SendNameAndColor(void)
 	}
 
 	if (!strcmp(cv_playername.string, player_names[consoleplayer])
-	&& cv_playercolor.value == players[consoleplayer].skincolor
-	&& !strcmp(cv_skin.string, skins[players[consoleplayer].skin].name))
+		&& cv_playercolor.value == players[consoleplayer].skincolor
+		&& !strcmp(cv_skin.string, skins[players[consoleplayer].skin].name))
 		return;
 
 	// We'll handle it later if we're not playing.
@@ -1224,7 +1224,7 @@ static void SendNameAndColor(void)
 		return;
 
 	// If you're not in a netgame, merely update the skin, color, and name.
-	if (!netgame && !modeattacking)
+	if (!netgame)
 	{
 		INT32 foundskin;
 
@@ -1243,16 +1243,17 @@ static void SendNameAndColor(void)
 		}
 		else if ((foundskin = R_SkinAvailable(cv_skin.string)) != -1)
 		{
-			boolean notsame;
+			//boolean notsame;
 
 			cv_skin.value = foundskin;
 
-			notsame = (cv_skin.value != players[consoleplayer].skin);
+			//notsame = (cv_skin.value != players[consoleplayer].skin);
 
 			SetPlayerSkin(consoleplayer, cv_skin.string);
 			CV_StealthSet(&cv_skin, skins[cv_skin.value].name);
 
-			if (notsame)
+			// SRB2Kart
+			/*if (notsame)
 			{
 				CV_StealthSetValue(&cv_playercolor, skins[cv_skin.value].prefcolor);
 
@@ -1260,7 +1261,7 @@ static void SendNameAndColor(void)
 
 				if (players[consoleplayer].mo)
 					players[consoleplayer].mo->color = (UINT8)players[consoleplayer].skincolor;
-			}
+			}*/
 		}
 		else
 		{
@@ -1306,7 +1307,7 @@ static void SendNameAndColor2(void)
 {
 	INT32 secondplaya;
 
-	if (!splitscreen && !botingame)
+	if (splitscreen < 1 && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
 	if (secondarydisplayplayer != consoleplayer)
@@ -1347,7 +1348,7 @@ static void SendNameAndColor2(void)
 		SetPlayerSkinByNum(secondplaya, botskin-1);
 		return;
 	}
-	else if (!netgame && !modeattacking)
+	else if (!netgame)
 	{
 		INT32 foundskin;
 
@@ -1359,24 +1360,18 @@ static void SendNameAndColor2(void)
 		if (players[secondplaya].mo)
 			players[secondplaya].mo->color = players[secondplaya].skincolor;
 
-		if (cv_forceskin.value >= 0 && (netgame || multiplayer)) // Server wants everyone to use the same player
+		if ((foundskin = R_SkinAvailable(cv_skin2.string)) != -1)
 		{
-			const INT32 forcedskin = cv_forceskin.value;
-
-			SetPlayerSkinByNum(secondplaya, forcedskin);
-			CV_StealthSet(&cv_skin2, skins[forcedskin].name);
-		}
-		else if ((foundskin = R_SkinAvailable(cv_skin2.string)) != -1)
-		{
-			boolean notsame;
+			//boolean notsame;
 
 			cv_skin2.value = foundskin;
 
-			notsame = (cv_skin2.value != players[secondplaya].skin);
+			//notsame = (cv_skin2.value != players[secondplaya].skin);
 
 			SetPlayerSkin(secondplaya, cv_skin2.string);
 
-			if (notsame)
+			// SRB2Kart
+			/*if (notsame)
 			{
 				CV_StealthSetValue(&cv_playercolor2, skins[players[secondplaya].skin].prefcolor);
 
@@ -1384,7 +1379,7 @@ static void SendNameAndColor2(void)
 
 				if (players[secondplaya].mo)
 					players[secondplaya].mo->color = players[secondplaya].skincolor;
-			}
+			}*/
 		}
 		else
 		{
@@ -1436,7 +1431,7 @@ static void SendNameAndColor3(void)
 		return;
 
 	// If you're not in a netgame, merely update the skin, color, and name.
-	if (!netgame && !modeattacking)
+	if (!netgame)
 	{
 		INT32 foundskin;
 
@@ -1448,24 +1443,18 @@ static void SendNameAndColor3(void)
 		if (players[thirdplaya].mo)
 			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
 
-		if (cv_forceskin.value >= 0 && (netgame || multiplayer)) // Server wants everyone to use the same player
+		if ((foundskin = R_SkinAvailable(cv_skin3.string)) != -1)
 		{
-			const INT32 forcedskin = cv_forceskin.value;
-
-			SetPlayerSkinByNum(thirdplaya, forcedskin);
-			CV_StealthSet(&cv_skin3, skins[forcedskin].name);
-		}
-		else if ((foundskin = R_SkinAvailable(cv_skin3.string)) != -1)
-		{
-			boolean notsame;
+			//boolean notsame;
 
 			cv_skin3.value = foundskin;
 
-			notsame = (cv_skin3.value != players[thirdplaya].skin);
+			//notsame = (cv_skin3.value != players[thirdplaya].skin);
 
 			SetPlayerSkin(thirdplaya, cv_skin3.string);
 
-			if (notsame)
+			// SRB2Kart
+			/*if (notsame)
 			{
 				CV_StealthSetValue(&cv_playercolor3, skins[players[thirdplaya].skin].prefcolor);
 
@@ -1473,7 +1462,7 @@ static void SendNameAndColor3(void)
 
 				if (players[thirdplaya].mo)
 					players[thirdplaya].mo->color = players[thirdplaya].skincolor;
-			}
+			}*/
 		}
 		else
 		{
@@ -1533,7 +1522,7 @@ static void SendNameAndColor4(void)
 		SetPlayerSkinByNum(fourthplaya, botskin-1);
 		return;
 	}
-	else if (!netgame && !modeattacking)
+	else if (!netgame)
 	{
 		INT32 foundskin;
 
@@ -1545,24 +1534,18 @@ static void SendNameAndColor4(void)
 		if (players[fourthplaya].mo)
 			players[fourthplaya].mo->color = players[fourthplaya].skincolor;
 
-		if (cv_forceskin.value >= 0 && (netgame || multiplayer)) // Server wants everyone to use the same player
+		if ((foundskin = R_SkinAvailable(cv_skin4.string)) != -1)
 		{
-			const INT32 forcedskin = cv_forceskin.value;
-
-			SetPlayerSkinByNum(fourthplaya, forcedskin);
-			CV_StealthSet(&cv_skin4, skins[forcedskin].name);
-		}
-		else if ((foundskin = R_SkinAvailable(cv_skin4.string)) != -1)
-		{
-			boolean notsame;
+			//boolean notsame;
 
 			cv_skin4.value = foundskin;
 
-			notsame = (cv_skin4.value != players[fourthplaya].skin);
+			//notsame = (cv_skin4.value != players[fourthplaya].skin);
 
 			SetPlayerSkin(fourthplaya, cv_skin4.string);
 
-			if (notsame)
+			// SRB2Kart
+			/*if (notsame)
 			{
 				CV_StealthSetValue(&cv_playercolor4, skins[players[fourthplaya].skin].prefcolor);
 
@@ -1570,7 +1553,7 @@ static void SendNameAndColor4(void)
 
 				if (players[fourthplaya].mo)
 					players[fourthplaya].mo->color = players[fourthplaya].skincolor;
-			}
+			}*/
 		}
 		else
 		{
