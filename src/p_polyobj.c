@@ -1339,6 +1339,10 @@ static void Polyobj_rotateThings(polyobj_t *po, vertex_t origin, angle_t delta, 
 							localangle = mo->angle;
 						else if (mo->player == &players[secondarydisplayplayer])
 							localangle2 = mo->angle;
+						else if (mo->player == &players[thirddisplayplayer])
+							localangle3 = mo->angle;
+						else if (mo->player == &players[fourthdisplayplayer])
+							localangle4 = mo->angle;
 					}
 				}
 			}

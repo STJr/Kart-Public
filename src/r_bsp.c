@@ -257,7 +257,11 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec, INT32 *floorlightlevel,
 		INT32 heightsec;
 		boolean underwater;
 
-		if (splitscreen && viewplayer == &players[secondarydisplayplayer] && camera2.chase)
+		if (splitscreen > 2 && viewplayer == &players[fourthdisplayplayer] && camera4.chase)
+			heightsec = R_PointInSubsector(camera4.x, camera4.y)->sector->heightsec;
+		else if (splitscreen > 1 && viewplayer == &players[thirddisplayplayer] && camera3.chase)
+			heightsec = R_PointInSubsector(camera3.x, camera3.y)->sector->heightsec;
+		else if (splitscreen && viewplayer == &players[secondarydisplayplayer] && camera2.chase)
 			heightsec = R_PointInSubsector(camera2.x, camera2.y)->sector->heightsec;
 		else if (camera.chase && viewplayer == &players[displayplayer])
 			heightsec = R_PointInSubsector(camera.x, camera.y)->sector->heightsec;

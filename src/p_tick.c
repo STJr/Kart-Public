@@ -591,7 +591,7 @@ void P_Ticker(boolean run)
 	if (paused || P_AutoPause())
 		return;
 
-	postimgtype = postimgtype2 = postimg_none;
+	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
 
 	P_MapStart();
 
@@ -711,7 +711,7 @@ void P_PreTicker(INT32 frames)
 	INT32 i,framecnt;
 	ticcmd_t temptic;
 
-	postimgtype = postimgtype2 = postimg_none;
+	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
 
 	for (framecnt = 0; framecnt < frames; ++framecnt)
 	{

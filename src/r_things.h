@@ -68,6 +68,8 @@ void R_DrawMasked(void);
 // should be all lowercase!! S_SKIN processing does a strlwr
 #define DEFAULTSKIN "sonic"
 #define DEFAULTSKIN2 "tails" // secondary player
+#define DEFAULTSKIN3 "knuckles" // third player
+#define DEFAULTSKIN4 "metalsonic" // fourth player
 
 typedef struct
 {
@@ -111,6 +113,9 @@ typedef struct
 
 	// specific sounds per skin
 	sfxenum_t soundsid[NUMSKINSOUNDS]; // sound # in S_sfx table
+
+	// minimap icons
+	char iconprefix[9];
 } skin_t;
 
 // -----------

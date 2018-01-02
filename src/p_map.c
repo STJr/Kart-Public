@@ -216,6 +216,10 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 					localangle = spring->angle;
 				else if (object->player == &players[secondarydisplayplayer])
 					localangle2 = spring->angle;
+				else if (object->player == &players[thirddisplayplayer])
+					localangle3 = spring->angle;
+				else if (object->player == &players[fourthdisplayplayer])
+					localangle4 = spring->angle;
 			}
 		}
 
@@ -1200,7 +1204,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		return true;
 	}
 
-
 	if (thing->type == MT_POKEY)
 	{
 		// see if it went over / under
@@ -1221,6 +1224,16 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	//}
+
+	if (thing->type == MT_FALLINGROCK || tmthing->type == MT_FALLINGROCK)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+		K_KartBouncing(thing, tmthing, false);
+	}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
 	 && (tmthing->player || (tmthing->flags & MF_PUSHABLE)) && tmthing->health > 0)
@@ -1347,6 +1360,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 					localangle = thing->angle;
 				else if (thing->player == &players[secondarydisplayplayer])
 					localangle2 = thing->angle;
+				else if (thing->player == &players[thirddisplayplayer])
+					localangle3 = thing->angle;
+				else if (thing->player == &players[fourthdisplayplayer])
+					localangle4 = thing->angle;
 			}
 
 			return true;
@@ -1695,8 +1712,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				}
 			}
 
-			thing->player->kartstuff[k_justbumped] = 6;
-			tmthing->player->kartstuff[k_justbumped] = 6;
 			return true;
 		}
 		// Are you touching the side of the object you're interacting with?
@@ -2511,7 +2526,9 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 
 	if (twodlevel
 		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD)))
+		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera3 && players[thirddisplayplayer].mo && (players[thirddisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
 	if (!itsatwodlevel && players[displayplayer].mo)
@@ -2520,7 +2537,9 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 		fixed_t tryy = thiscam->y;
 
 		if ((thiscam == &camera && (players[displayplayer].pflags & PF_NOCLIP))
-		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP)))
+		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP))
+		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
+		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP)))
 		{ // Noclipping player camera noclips too!!
 			floatok = true;
 			thiscam->floorz = thiscam->z;
@@ -3481,6 +3500,10 @@ isblocking:
 						localangle = slidemo->angle;
 					else if (slidemo->player == &players[secondarydisplayplayer])
 						localangle2 = slidemo->angle;
+					else if (slidemo->player == &players[thirddisplayplayer])
+						localangle3 = slidemo->angle;
+					else if (slidemo->player == &players[fourthdisplayplayer])
+						localangle4 = slidemo->angle;
 				}
 
 				if (!slidemo->player->climbing)

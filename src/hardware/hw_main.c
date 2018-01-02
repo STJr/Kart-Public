@@ -328,14 +328,18 @@ static angle_t gr_xtoviewangle[MAXVIDWIDTH+1];
 
 // base values set at SetViewSize
 static float gr_basecentery;
+static float gr_basecenterx;
 
 float gr_baseviewwindowy, gr_basewindowcentery;
+float gr_baseviewwindowx, gr_basewindowcenterx;
 float gr_viewwidth, gr_viewheight; // viewport clipping boundaries (screen coords)
-float gr_viewwindowx;
 
-static float gr_centerx, gr_centery;
-static float gr_viewwindowy; // top left corner of view window
+static float gr_centerx;
+static float gr_viewwindowx;
 static float gr_windowcenterx; // center of view window, for projection
+
+static float gr_centery;
+static float gr_viewwindowy; // top left corner of view window
 static float gr_windowcentery;
 
 static float gr_pspritexscale, gr_pspriteyscale;
@@ -4055,8 +4059,12 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 		angle_t shadowdir;
 
 		// Set direction
-		if (splitscreen && stplyr != &players[displayplayer])
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			shadowdir = localangle2 + FixedAngle(cv_cam2_rotate.value);
+		else if (splitscreen > 1 && stplyr == &players[thirddisplayplayer])
+			shadowdir = localangle3 + FixedAngle(cv_cam3_rotate.value);
+		else if (splitscreen > 2 && stplyr == &players[fourthdisplayplayer])
+			shadowdir = localangle4 + FixedAngle(cv_cam4_rotate.value);
 		else
 			shadowdir = localangle + FixedAngle(cv_cam_rotate.value);
 
@@ -5425,8 +5433,13 @@ static void HWR_DrawSkyBackground(player_t *player)
 	// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
 
 	angle = (dup_viewangle + gr_xtoviewangle[0]);
-
 	dimensionmultiply = ((float)textures[skytexture]->width/256.0f);
+
+	if (atransform.mirror)
+	{
+		angle = InvAngle(angle);
+		dimensionmultiply *= -1;
+	}
 
 	v[0].sow = v[3].sow = ((float) angle / ((ANGLE_90-1)*dimensionmultiply));
 	v[2].sow = v[1].sow = (-1.0f/dimensionmultiply)+((float) angle / ((ANGLE_90-1)*dimensionmultiply));
@@ -5505,23 +5518,19 @@ void HWR_SetViewSize(void)
 	if (splitscreen)
 		gr_viewheight /= 2;
 
-	gr_centerx = gr_viewwidth / 2;
-	gr_basecentery = gr_viewheight / 2; //note: this is (gr_centerx * gr_viewheight / gr_viewwidth)
+	if (splitscreen > 1)
+		gr_viewwidth /= 2;
 
-	gr_viewwindowx = (vid.width - gr_viewwidth) / 2;
-	gr_windowcenterx = (float)(vid.width / 2);
-	if (gr_viewwidth == vid.width)
-	{
-		gr_baseviewwindowy = 0;
-		gr_basewindowcentery = gr_viewheight / 2;               // window top left corner at 0,0
-	}
-	else
-	{
-		gr_baseviewwindowy = (vid.height-gr_viewheight) / 2;
-		gr_basewindowcentery = (float)(vid.height / 2);
-	}
+	gr_basecenterx = gr_viewwidth / 2;
+	gr_basecentery = gr_viewheight / 2;
 
-	gr_pspritexscale = gr_viewwidth / BASEVIDWIDTH;
+	gr_baseviewwindowy = 0;
+	gr_basewindowcentery = (float)(gr_viewheight / 2);
+
+	gr_baseviewwindowx = 0;
+	gr_basewindowcenterx = (float)(gr_viewwidth / 2);
+
+	gr_pspritexscale = ((vid.width*gr_pspriteyscale*BASEVIDHEIGHT)/BASEVIDWIDTH)/vid.height;
 	gr_pspriteyscale = ((vid.height*gr_pspritexscale*BASEVIDWIDTH)/BASEVIDHEIGHT)/vid.width;
 }
 
@@ -5536,6 +5545,10 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 
 	if (splitscreen && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		type = &postimgtype3;
+	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		type = &postimgtype4;
 	else
 		type = &postimgtype;
 
@@ -5560,13 +5573,23 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	dup_viewangle = viewangle;
 
 	// set window position
+	gr_centerx = gr_basecenterx;
+	gr_viewwindowx = gr_baseviewwindowx;
+	gr_windowcenterx = gr_basewindowcenterx;
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if (splitscreen && viewnumber == 1)
+
+	if ((splitscreen == 1 && viewnumber == 1) || (splitscreen > 1 && viewnumber > 1))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowy += gr_viewheight;
+		gr_windowcentery += gr_viewheight;
+	}
+
+	if (splitscreen > 1 && viewnumber & 1)
+	{
+		gr_viewwindowx += gr_viewwidth;
+		gr_windowcenterx += gr_viewwidth;
 	}
 
 	// check for new console commands.
@@ -5673,6 +5696,10 @@ if (0)
 		viewangle = localaiming;
 	else if (splitscreen && player == &players[secondarydisplayplayer])
 		viewangle = localaiming2;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		viewangle = localaiming3;
+	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		viewangle = localaiming4;
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_grfov.value+player->fovadd > 90*FRACUNIT))
@@ -5765,6 +5792,10 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 
 	if (splitscreen && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		type = &postimgtype3;
+	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		type = &postimgtype4;
 	else
 		type = &postimgtype;
 
@@ -5800,13 +5831,23 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	dup_viewangle = viewangle;
 
 	// set window position
+	gr_centerx = gr_basecenterx;
+	gr_viewwindowx = gr_baseviewwindowx;
+	gr_windowcenterx = gr_basewindowcenterx;
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if (splitscreen && viewnumber == 1)
+
+	if ((splitscreen == 1 && viewnumber == 1) || (splitscreen > 1 && viewnumber > 1))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowy += gr_viewheight;
+		gr_windowcentery += gr_viewheight;
+	}
+
+	if (splitscreen > 1 && viewnumber & 1)
+	{
+		gr_viewwindowx += gr_viewwidth;
+		gr_windowcenterx += gr_viewwidth;
 	}
 
 	// check for new console commands.
@@ -5913,6 +5954,10 @@ if (0)
 		viewangle = localaiming;
 	else if (splitscreen && player == &players[secondarydisplayplayer])
 		viewangle = localaiming2;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		viewangle = localaiming3;
+	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		viewangle = localaiming4;
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_grfov.value+player->fovadd > 90*FRACUNIT))
@@ -6399,7 +6444,11 @@ void HWR_DoPostProcessor(player_t *player)
 {
 	postimg_t *type;
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		type = &postimgtype4;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		type = &postimgtype3;
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
 	else
 		type = &postimgtype;

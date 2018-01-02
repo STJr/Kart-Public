@@ -51,6 +51,14 @@ UINT8 *ylookup1[MAXVIDHEIGHT*4];
 */
 UINT8 *ylookup2[MAXVIDHEIGHT*4];
 
+/**	\brief pointer to the start of each line of the screen, for view3 (splitscreen)
+*/
+UINT8 *ylookup3[MAXVIDHEIGHT*4];
+
+/**	\brief pointer to the start of each line of the screen, for view4 (splitscreen)
+*/
+UINT8 *ylookup4[MAXVIDHEIGHT*4];
+
 /**	\brief  x byte offset for columns inside the viewwindow,
 	so the first column starts at (SCRWIDTH - VIEWWIDTH)/2
 */
@@ -614,24 +622,23 @@ void R_InitViewBuffer(INT32 width, INT32 height)
 	if (bytesperpixel < 1 || bytesperpixel > 4)
 		I_Error("R_InitViewBuffer: wrong bytesperpixel value %d\n", bytesperpixel);
 
-	// Handle resize, e.g. smaller view windows with border and/or status bar.
-	viewwindowx = (vid.width - width) >> 1;
+	viewwindowx = 0;
+	viewwindowy = 0;
 
 	// Column offset for those columns of the view window, but relative to the entire screen
 	for (i = 0; i < width; i++)
 		columnofs[i] = (viewwindowx + i) * bytesperpixel;
 
-	// Same with base row offset.
-	if (width == vid.width)
-		viewwindowy = 0;
-	else
-		viewwindowy = (vid.height - height) >> 1;
-
 	// Precalculate all row offsets.
 	for (i = 0; i < height; i++)
 	{
-		ylookup[i] = ylookup1[i] = screens[0] + (i+viewwindowy)*vid.width*bytesperpixel;
-		ylookup2[i] = screens[0] + (i+(vid.height>>1))*vid.width*bytesperpixel; // for splitscreen
+		ylookup[i] = ylookup1[i] = screens[0] + i*vid.width*bytesperpixel;
+		if (splitscreen == 1)
+			ylookup2[i] = screens[0] + (i+viewheight)*vid.width*bytesperpixel;
+		else
+			ylookup2[i] = screens[0] + i*vid.width*bytesperpixel + (viewwidth*bytesperpixel);
+		ylookup3[i] = screens[0] + (i+viewheight)*vid.width*bytesperpixel;
+		ylookup4[i] = screens[0] + (i+viewheight)*vid.width*bytesperpixel + (viewwidth*bytesperpixel);
 	}
 }
 

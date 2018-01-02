@@ -45,7 +45,7 @@
 #define LIGHTMAPFLAGS (PF_Modulated|PF_Additive|PF_Clip)
 
 #ifdef ALAM_LIGHTING
-static dynlights_t view_dynlights[2]; // 2 players in splitscreen mode
+static dynlights_t view_dynlights[4]; // 4 players for splitscreen modes
 static dynlights_t *dynlights = &view_dynlights[0];
 #endif
 

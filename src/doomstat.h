@@ -77,7 +77,7 @@ extern boolean addedtogame; // true after the server has added you
 extern boolean multiplayer;
 
 extern INT16 gametype;
-extern boolean splitscreen;
+extern UINT8 splitscreen;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
 
@@ -108,6 +108,10 @@ extern postimg_t postimgtype;
 extern INT32 postimgparam;
 extern postimg_t postimgtype2;
 extern INT32 postimgparam2;
+extern postimg_t postimgtype3;
+extern INT32 postimgparam3;
+extern postimg_t postimgtype4;
+extern INT32 postimgparam4;
 
 extern INT32 viewwindowx, viewwindowy;
 extern INT32 viewwidth, scaledviewwidth;
@@ -118,6 +122,8 @@ extern boolean gamedataloaded;
 extern INT32 consoleplayer;
 extern INT32 displayplayer;
 extern INT32 secondarydisplayplayer; // for splitscreen
+extern INT32 thirddisplayplayer;
+extern INT32 fourthdisplayplayer;
 
 // Maps of special importance
 extern INT16 spstage_start;
@@ -406,6 +412,7 @@ extern INT32 boostealtime;
 extern INT32 mushroomtime;
 extern INT32 itemtime;
 extern INT32 comebacktime;
+extern INT32 bumptime;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;
@@ -416,8 +423,7 @@ extern UINT8 maxXtraLife; // Max extra lives from rings
 extern mobj_t *hunt1, *hunt2, *hunt3; // Emerald hunt locations
 
 // For racing
-extern UINT32 countdown;
-extern UINT32 countdown2;
+extern UINT32 countdown, countdown2;
 
 extern fixed_t gravity;
 

@@ -254,7 +254,7 @@ const char *introtext[NUMINTROSCENES];
 
 static tic_t introscenetime[NUMINTROSCENES] =
 {
-	 8*TICRATE,	// KART KR(eW
+	 4*TICRATE,	// KART KR(eW
 };
 
 // custom intros

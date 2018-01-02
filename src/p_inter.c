@@ -64,6 +64,10 @@ void P_ForceConstant(const BasicFF_t *FFInfo)
 		I_Tactile(ConstantForce, &ConstantQuake);
 	else if (splitscreen && FFInfo->player == &players[secondarydisplayplayer])
 		I_Tactile2(ConstantForce, &ConstantQuake);
+	else if (splitscreen > 1 && FFInfo->player == &players[thirddisplayplayer])
+		I_Tactile3(ConstantForce, &ConstantQuake);
+	else if (splitscreen > 2 && FFInfo->player == &players[fourthdisplayplayer])
+		I_Tactile4(ConstantForce, &ConstantQuake);
 }
 void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
 {
@@ -81,6 +85,10 @@ void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
 		I_Tactile(ConstantForce, &RampQuake);
 	else if (splitscreen && FFInfo->player == &players[secondarydisplayplayer])
 		I_Tactile2(ConstantForce, &RampQuake);
+	else if (splitscreen > 1 && FFInfo->player == &players[thirddisplayplayer])
+		I_Tactile3(ConstantForce, &RampQuake);
+	else if (splitscreen > 2 && FFInfo->player == &players[fourthdisplayplayer])
+		I_Tactile4(ConstantForce, &RampQuake);
 }
 
 
@@ -169,7 +177,7 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 		|| player->kartstuff[k_mushroom]				|| player->kartstuff[k_fireflower]
 		|| player->kartstuff[k_star]					|| player->kartstuff[k_goldshroom]
 		|| player->kartstuff[k_lightning]				|| player->kartstuff[k_megashroom]
-		|| player->kartstuff[k_boo]					|| player->kartstuff[k_feather] & 1) // Item slot already taken up
+		|| player->kartstuff[k_boo]						|| player->kartstuff[k_feather] & 1) // Item slot already taken up
 		return false;
 
 	return true;
@@ -430,7 +438,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->tracer->player->kartstuff[k_comebackmode] = 0;
 
 				special->tracer->player->kartstuff[k_comebackpoints]++;
-				CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->tracer->player-players], player_names[player-players]);
+
+				if (netgame)
+					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->tracer->player-players], player_names[player-players]);
 
 				if (special->tracer->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBalloon(special->tracer->player, player, true);
@@ -951,6 +961,10 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						localangle = toucher->angle;
 					else if (player == &players[secondarydisplayplayer])
 						localangle2 = toucher->angle;
+					else if (player == &players[thirddisplayplayer])
+						localangle3 = toucher->angle;
+					else if (player == &players[fourthdisplayplayer])
+						localangle4 = toucher->angle;
 
 					P_ResetPlayer(player);
 
@@ -1997,8 +2011,7 @@ boolean P_CheckRacers(void)
 
 	if (i == MAXPLAYERS) // finished
 	{
-		countdown = 0;
-		countdown2 = 0;
+		countdown = countdown2 = 0;
 		return true;
 	}
 
@@ -2241,6 +2254,10 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			// added : 22-02-98: recenter view for next life...
 			localaiming2 = 0;
 		}
+		if (target->player == &players[thirddisplayplayer])
+			localaiming3 = 0;
+		if (target->player == &players[fourthdisplayplayer])
+			localaiming4 = 0;
 
 		//tag deaths handled differently in suicide cases. Don't count spectators!
 		if (G_TagGametype()

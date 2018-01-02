@@ -67,7 +67,7 @@ fixed_t viewx, viewy, viewz;
 angle_t viewangle, aimingangle;
 fixed_t viewcos, viewsin;
 boolean viewsky, skyVisible;
-boolean skyVisible1, skyVisible2; // saved values of skyVisible for P1 and P2, for splitscreen
+boolean skyVisible1, skyVisible2, skyVisible3, skyVisible4; // saved values of skyVisible for P1/P2/P3/P4, for splitscreen
 sector_t *viewsector;
 player_t *viewplayer;
 
@@ -134,16 +134,26 @@ static CV_PossibleValue_t homremoval_cons_t[] = {{0, "No"}, {1, "Yes"}, {2, "Fla
 
 static void ChaseCam_OnChange(void);
 static void ChaseCam2_OnChange(void);
+static void ChaseCam3_OnChange(void);
+static void ChaseCam4_OnChange(void);
 static void FlipCam_OnChange(void);
 static void FlipCam2_OnChange(void);
+static void FlipCam3_OnChange(void);
+static void FlipCam4_OnChange(void);
 void SendWeaponPref(void);
 void SendWeaponPref2(void);
+void SendWeaponPref3(void);
+void SendWeaponPref4(void);
 
 consvar_t cv_tailspickup = {"tailspickup", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_chasecam = {"chasecam", "On", CV_CALL, CV_OnOff, ChaseCam_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_chasecam2 = {"chasecam2", "On", CV_CALL, CV_OnOff, ChaseCam2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_chasecam3 = {"chasecam3", "On", CV_CALL, CV_OnOff, ChaseCam3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_chasecam4 = {"chasecam4", "On", CV_CALL, CV_OnOff, ChaseCam4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_flipcam = {"flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_flipcam2 = {"flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_flipcam3 = {"flipcam3", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_flipcam4 = {"flipcam4", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_shadow = {"shadow", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_shadowoffs = {"offsetshadows", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -166,12 +176,14 @@ consvar_t cv_maxportals = {"maxportals", "2", CV_SAVE, maxportals_cons_t, NULL, 
 
 void SplitScreen_OnChange(void)
 {
+	UINT8 i;
+
 	if (!cv_debug && netgame)
 	{
 		if (splitscreen)
 		{
 			CONS_Alert(CONS_NOTICE, M_GetText("Splitscreen not supported in netplay, sorry!\n"));
-			splitscreen = false;
+			splitscreen = 0;
 		}
 		return;
 	}
@@ -181,10 +193,20 @@ void SplitScreen_OnChange(void)
 
 	if (!demoplayback && !botingame)
 	{
-		if (splitscreen)
-			CL_AddSplitscreenPlayer();
-		else
-			CL_RemoveSplitscreenPlayer();
+		for (i = 1; i < 3; i++)
+		{
+			if (i > splitscreen)
+			{
+				if (i == 1)
+					CL_RemoveSplitscreenPlayer(secondarydisplayplayer);
+				else if (i == 2)
+					CL_RemoveSplitscreenPlayer(thirddisplayplayer);
+				else if (i == 3)
+					CL_RemoveSplitscreenPlayer(fourthdisplayplayer);
+			}
+			else
+				CL_AddSplitscreenPlayer();
+		}
 
 		if (server && !netgame)
 			multiplayer = splitscreen;
@@ -193,11 +215,19 @@ void SplitScreen_OnChange(void)
 	{
 		INT32 i;
 		secondarydisplayplayer = consoleplayer;
+		thirddisplayplayer = consoleplayer;
+		fourthdisplayplayer = consoleplayer;
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && i != consoleplayer)
 			{
-				secondarydisplayplayer = i;
-				break;
+				if (secondarydisplayplayer == consoleplayer)
+					secondarydisplayplayer = i;
+				else if (thirddisplayplayer == consoleplayer)
+					thirddisplayplayer = i;
+				else if (fourthdisplayplayer == consoleplayer)
+					fourthdisplayplayer = i;
+				else
+					break;
 			}
 	}
 }
@@ -220,6 +250,22 @@ static void ChaseCam2_OnChange(void)
 		CV_SetValue(&cv_analog2, 1);
 }
 
+static void ChaseCam3_OnChange(void)
+{
+	if (!cv_chasecam3.value || !cv_useranalog3.value)
+		CV_SetValue(&cv_analog3, 0);
+	else
+		CV_SetValue(&cv_analog3, 1);
+}
+
+static void ChaseCam4_OnChange(void)
+{
+	if (!cv_chasecam4.value || !cv_useranalog4.value)
+		CV_SetValue(&cv_analog4, 0);
+	else
+		CV_SetValue(&cv_analog4, 1);
+}
+
 static void FlipCam_OnChange(void)
 {
 	if (cv_flipcam.value)
@@ -238,6 +284,26 @@ static void FlipCam2_OnChange(void)
 		players[secondarydisplayplayer].pflags &= ~PF_FLIPCAM;
 
 	SendWeaponPref2();
+}
+
+static void FlipCam3_OnChange(void)
+{
+	if (cv_flipcam3.value)
+		players[thirddisplayplayer].pflags |= PF_FLIPCAM;
+	else
+		players[thirddisplayplayer].pflags &= ~PF_FLIPCAM;
+
+	SendWeaponPref3();
+}
+
+static void FlipCam4_OnChange(void)
+{
+	if (cv_flipcam4.value)
+		players[fourthdisplayplayer].pflags |= PF_FLIPCAM;
+	else
+		players[fourthdisplayplayer].pflags &= ~PF_FLIPCAM;
+
+	SendWeaponPref4();
 }
 
 //
@@ -589,6 +655,12 @@ void R_ExecuteSetViewSize(void)
 
 	viewwidth = scaledviewwidth;
 
+	if (splitscreen > 1)
+	{
+		viewwidth >>= 1;
+		scaledviewwidth >>= 1;
+	}
+
 	centerx = viewwidth/2;
 	centery = viewheight/2;
 	centerxfrac = centerx<<FRACBITS;
@@ -753,8 +825,11 @@ void R_SkyboxFrame(player_t *player)
 	INT32 dy = 0;
 	camera_t *thiscam;
 
-	if (splitscreen && player == &players[secondarydisplayplayer]
-	&& player != &players[consoleplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		thiscam = &camera4;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		thiscam = &camera3;
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		thiscam = &camera2;
 	else
 		thiscam = &camera;
@@ -794,6 +869,16 @@ void R_SkyboxFrame(player_t *player)
 			{
 				viewangle = localangle2;
 				aimingangle = localaiming2;
+			}
+			else if (player == &players[thirddisplayplayer])
+			{
+				viewangle = localangle3;
+				aimingangle = localaiming3;
+			}
+			else if (player == &players[fourthdisplayplayer])
+			{
+				viewangle = localangle4;
+				aimingangle = localaiming4;
 			}
 		}
 	}
@@ -989,8 +1074,17 @@ void R_SetupFrame(player_t *player, boolean skybox)
 	camera_t *thiscam;
 	boolean chasecam = false;
 
-	if (splitscreen && player == &players[secondarydisplayplayer]
-		&& player != &players[consoleplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+	{
+		thiscam = &camera4;
+		chasecam = (cv_chasecam4.value != 0);
+	}
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+	{
+		thiscam = &camera3;
+		chasecam = (cv_chasecam3.value != 0);
+	}
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 	{
 		thiscam = &camera2;
 		chasecam = (cv_chasecam2.value != 0);
@@ -1054,6 +1148,16 @@ void R_SetupFrame(player_t *player, boolean skybox)
 			{
 				viewangle = localangle2;
 				aimingangle = localaiming2;
+			}
+			else if (player == &players[thirddisplayplayer])
+			{
+				viewangle = localangle3;
+				aimingangle = localaiming3;
+			}
+			else if (player == &players[fourthdisplayplayer])
+			{
+				viewangle = localangle4;
+				aimingangle = localaiming4;
 			}
 		}
 	}
@@ -1239,9 +1343,15 @@ void R_RenderPlayerView(player_t *player)
 		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
 			V_DrawFill(0, 0, vid.width, vid.height, 128+(timeinmap&15));
 	}
+	else if (splitscreen == 2 && player == &players[thirddisplayplayer])
+		V_DrawFill(viewwidth, viewheight, viewwidth, viewheight, 31|V_NOSCALESTART); // Draw over the fourth screen so you don't have to stare at a HOM :V
 
 	// load previous saved value of skyVisible for the player
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		skyVisible = skyVisible4;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		skyVisible = skyVisible3;
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		skyVisible = skyVisible2;
 	else
 		skyVisible = skyVisible1;
@@ -1347,7 +1457,11 @@ void R_RenderPlayerView(player_t *player)
 
 	// save value to skyVisible1 or skyVisible2
 	// this is so that P1 can't affect whether P2 can see a skybox or not, or vice versa
-	if (splitscreen && player == &players[secondarydisplayplayer])
+	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		skyVisible4 = skyVisible;
+	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		skyVisible3 = skyVisible;
+	else if (splitscreen && player == &players[secondarydisplayplayer])
 		skyVisible2 = skyVisible;
 	else
 		skyVisible1 = skyVisible;
@@ -1366,6 +1480,8 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_homremoval);
 	CV_RegisterVar(&cv_flipcam);
 	CV_RegisterVar(&cv_flipcam2);
+	CV_RegisterVar(&cv_flipcam3);
+	CV_RegisterVar(&cv_flipcam4);
 
 	// Enough for dedicated server
 	if (dedicated)
@@ -1379,6 +1495,8 @@ void R_RegisterEngineStuff(void)
 
 	CV_RegisterVar(&cv_chasecam);
 	CV_RegisterVar(&cv_chasecam2);
+	CV_RegisterVar(&cv_chasecam3);
+	CV_RegisterVar(&cv_chasecam4);
 	CV_RegisterVar(&cv_shadow);
 	CV_RegisterVar(&cv_shadowoffs);
 	CV_RegisterVar(&cv_skybox);
@@ -1396,6 +1514,20 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_cam2_speed);
 	CV_RegisterVar(&cv_cam2_rotate);
 	CV_RegisterVar(&cv_cam2_rotspeed);
+
+	CV_RegisterVar(&cv_cam3_dist);
+	CV_RegisterVar(&cv_cam3_still);
+	CV_RegisterVar(&cv_cam3_height);
+	CV_RegisterVar(&cv_cam3_speed);
+	CV_RegisterVar(&cv_cam3_rotate);
+	CV_RegisterVar(&cv_cam3_rotspeed);
+
+	CV_RegisterVar(&cv_cam4_dist);
+	CV_RegisterVar(&cv_cam4_still);
+	CV_RegisterVar(&cv_cam4_height);
+	CV_RegisterVar(&cv_cam4_speed);
+	CV_RegisterVar(&cv_cam4_rotate);
+	CV_RegisterVar(&cv_cam4_rotspeed);
 
 	CV_RegisterVar(&cv_showhud);
 	CV_RegisterVar(&cv_translucenthud);

@@ -174,6 +174,8 @@ static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
 
 static  boolean setupcontrols_secondaryplayer;
+static  boolean setupcontrols_thirdplayer;
+static  boolean setupcontrols_fourthplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
 
 // shhh... what am I doing... nooooo!
@@ -259,6 +261,10 @@ static void M_ConnectMenu(INT32 choice);
 static void M_ConnectIPMenu(INT32 choice);
 #endif
 static void M_StartSplitServerMenu(INT32 choice);
+#ifndef NOFOURPLAYER
+static void M_Start3PServerMenu(INT32 choice);
+static void M_Start4PServerMenu(INT32 choice);
+#endif
 static void M_StartServer(INT32 choice);
 #ifndef NONET
 static void M_Refresh(INT32 choice);
@@ -267,19 +273,36 @@ static void M_ChooseRoom(INT32 choice);
 #endif
 static void M_SetupMultiPlayer(INT32 choice);
 static void M_SetupMultiPlayer2(INT32 choice);
+#ifndef NOFOURPLAYER
+static void M_SetupMultiPlayer3(INT32 choice);
+static void M_SetupMultiPlayer4(INT32 choice);
+#endif
 
 // Options
 // Split into multiple parts due to size
 // Controls
 menu_t OP_ControlsDef, /*OP_ControlListDef,*/ OP_MoveControlsDef;
 menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef;
-menu_t OP_P1ControlsDef, OP_P2ControlsDef, OP_MouseOptionsDef;
-menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def;
+menu_t OP_P1ControlsDef, OP_P2ControlsDef;
+menu_t OP_MouseOptionsDef, OP_Mouse2OptionsDef;
+menu_t OP_Joystick1Def, OP_Joystick2Def;
+#ifndef NOFOURPLAYER
+menu_t OP_P3ControlsDef, OP_P4ControlsDef;
+menu_t OP_Joystick3Def, OP_Joystick4Def;
+#endif
 static void M_VideoModeMenu(INT32 choice);
 static void M_Setup1PControlsMenu(INT32 choice);
 static void M_Setup2PControlsMenu(INT32 choice);
+#ifndef NOFOURPLAYER
+static void M_Setup3PControlsMenu(INT32 choice);
+static void M_Setup4PControlsMenu(INT32 choice);
+#endif
 static void M_Setup1PJoystickMenu(INT32 choice);
 static void M_Setup2PJoystickMenu(INT32 choice);
+#ifndef NOFOURPLAYER
+static void M_Setup3PJoystickMenu(INT32 choice);
+static void M_Setup4PJoystickMenu(INT32 choice);
+#endif
 static void M_AssignJoystick(INT32 choice);
 static void M_ChangeControl(INT32 choice);
 
@@ -497,6 +520,10 @@ static menuitem_t MPauseMenu[] =
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,40},
 	{IT_CALL | IT_STRING,    NULL, "Player 1 Setup",       M_SetupMultiPlayer,    48}, // splitscreen
 	{IT_CALL | IT_STRING,    NULL, "Player 2 Setup",       M_SetupMultiPlayer2,   56}, // splitscreen
+#ifndef NOFOURPLAYER
+	{IT_CALL | IT_STRING,    NULL, "Player 3 Setup",       M_SetupMultiPlayer3,   64}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "Player 4 Setup",       M_SetupMultiPlayer4,   72}, // splitscreen
+#endif
 
 	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48},
 	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48},
@@ -516,6 +543,10 @@ typedef enum
 	mpause_continue,
 	mpause_psetupsplit,
 	mpause_psetupsplit2,
+#ifndef NOFOURPLAYER
+	mpause_psetupsplit3,
+	mpause_psetupsplit4,
+#endif
 	mpause_spectate,
 	mpause_entergame,
 	mpause_switchteam,
@@ -875,14 +906,25 @@ menuitem_t PlayerMenu[32] =
 static menuitem_t MP_MainMenu[] =
 {
 #ifndef NONET
-	{IT_CALL | IT_STRING, NULL, "HOST GAME",              M_StartServerMenu,      10},
-	{IT_CALL | IT_STRING, NULL, "JOIN GAME (Search)",	  M_ConnectMenu,		  30},
-	{IT_CALL | IT_STRING, NULL, "JOIN GAME (Specify IP)", M_ConnectIPMenu,        40},
+	{IT_CALL | IT_STRING, NULL, "HOST GAME",				M_StartServerMenu,		10},
+	{IT_CALL | IT_STRING, NULL, "JOIN GAME (Search)",		M_ConnectMenu,			30},
+	{IT_CALL | IT_STRING, NULL, "JOIN GAME (Specify IP)",	M_ConnectIPMenu,		40},
 #endif
-	{IT_CALL | IT_STRING, NULL, "TWO PLAYER GAME",        M_StartSplitServerMenu, 60},
 
-	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",         M_SetupMultiPlayer,     80},
-	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",         M_SetupMultiPlayer2,    90},
+	{IT_CALL | IT_STRING, NULL, "TWO PLAYER GAME",			M_StartSplitServerMenu,	60},
+
+#ifdef NOFOURPLAYER
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",			M_SetupMultiPlayer,     80},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",			M_SetupMultiPlayer2,    90},
+#else
+	{IT_CALL | IT_STRING, NULL, "THREE PLAYER GAME",		M_Start3PServerMenu,	70},
+	{IT_CALL | IT_STRING, NULL, "FOUR PLAYER GAME",		M_Start4PServerMenu,	80},
+
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 1",			M_SetupMultiPlayer,     100},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 2",			M_SetupMultiPlayer2,    110},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 3",			M_SetupMultiPlayer3,	120},
+	{IT_CALL | IT_STRING, NULL, "SETUP PLAYER 4",			M_SetupMultiPlayer4,	130},
+#endif
 };
 
 static menuitem_t MP_ServerMenu[] =
@@ -1003,7 +1045,14 @@ static menuitem_t OP_ControlsMenu[] =
 	{IT_SUBMENU | IT_STRING, NULL, "Player 1 Controls...", &OP_P1ControlsDef,  10},
 	{IT_SUBMENU | IT_STRING, NULL, "Player 2 Controls...", &OP_P2ControlsDef,  20},
 
+#ifdef NOFOURPLAYER
 	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 40},
+#else
+	{IT_SUBMENU | IT_STRING, NULL, "Player 3 Controls...", &OP_P3ControlsDef,  30},
+	{IT_SUBMENU | IT_STRING, NULL, "Player 4 Controls...", &OP_P4ControlsDef,  40},
+
+	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
+#endif
 };
 
 static menuitem_t OP_P1ControlsMenu[] =
@@ -1027,8 +1076,32 @@ static menuitem_t OP_P2ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam2 , 50},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 60},
 
-	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  80},
+	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  70},
 };
+
+#ifndef NOFOURPLAYER
+static menuitem_t OP_P3ControlsMenu[] = 
+{
+	{IT_CALL    | IT_STRING, NULL, "Control Configuration...", M_Setup3PControlsMenu,   10},
+	{IT_SUBMENU | IT_STRING, NULL, "Third Joystick Options...", &OP_Joystick3Def  ,  20},
+
+	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam3 , 40},
+	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair3, 50},
+
+	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog3,  60},
+};
+
+static menuitem_t OP_P4ControlsMenu[] =
+{
+	{IT_CALL    | IT_STRING, NULL, "Control Configuration...", M_Setup4PControlsMenu,   10},
+	{IT_SUBMENU | IT_STRING, NULL, "Fourth Joystick Options...", &OP_Joystick4Def  ,  20},
+
+	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam4 , 40},
+	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair4, 50},
+
+	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog4,  60},
+};
+#endif
 
 /*static menuitem_t OP_ControlListMenu[] =
 {
@@ -1129,6 +1202,30 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis2        , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis2       , 80},
 };
+
+#ifndef NOFOURPLAYER
+static menuitem_t OP_Joystick3Menu[] =
+{
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup3PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis3        , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis3        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis3        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis3        , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis3        , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis3       , 80},
+};
+
+static menuitem_t OP_Joystick4Menu[] =
+{
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup4PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis4        , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis4        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis4        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis4        , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis4        , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis4       , 80},
+};
+#endif
 
 static menuitem_t OP_JoystickSetMenu[] =
 {
@@ -1670,6 +1767,8 @@ menu_t MP_RoomDef =
 };
 #endif
 menu_t MP_SplitServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
+menu_t MP_3PServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
+menu_t MP_4PServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
 menu_t MP_PlayerSetupDef =
 {
 	NULL, //"M_SPLAYR"
@@ -1693,10 +1792,18 @@ menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDe
 menu_t OP_CustomControlsDef = CONTROLMENUSTYLE(OP_CustomControlsMenu, &OP_MoveControlsDef);
 menu_t OP_P1ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P1ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_P2ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P2ControlsMenu, &OP_ControlsDef, 60, 30);
+#ifndef NOFOURPLAYER
+menu_t OP_P3ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P3ControlsMenu, &OP_ControlsDef, 60, 30);
+menu_t OP_P4ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P4ControlsMenu, &OP_ControlsDef, 60, 30);
+#endif
 menu_t OP_MouseOptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_MouseOptionsMenu, &OP_P1ControlsDef, 60, 30);
 menu_t OP_Mouse2OptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_Mouse2OptionsMenu, &OP_P2ControlsDef, 60, 30);
 menu_t OP_Joystick1Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick1Menu, &OP_P1ControlsDef, 60, 30);
 menu_t OP_Joystick2Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick2Menu, &OP_P2ControlsDef, 60, 30);
+#ifndef NOFOURPLAYER
+menu_t OP_Joystick3Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick3Menu, &OP_P3ControlsDef, 60, 30);
+menu_t OP_Joystick4Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick4Menu, &OP_P4ControlsDef, 60, 30);
+#endif
 menu_t OP_JoystickSetDef =
 {
 	"M_CONTRO",
@@ -2344,7 +2451,7 @@ boolean M_Responder(event_t *ev)
 		{
 			// dirty hack: for customising controls, I want only buttons/keys, not moves
 			if (ev->type == ev_mouse || ev->type == ev_mouse2 || ev->type == ev_joystick
-				|| ev->type == ev_joystick2)
+				|| ev->type == ev_joystick2 || ev->type == ev_joystick3 || ev->type == ev_joystick4)
 				return true;
 			if (routine)
 			{
@@ -2631,10 +2738,18 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_scramble].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit2].status = IT_DISABLED;
+#ifndef NOFOURPLAYER
+		MPauseMenu[mpause_psetupsplit3].status = IT_DISABLED;
+		MPauseMenu[mpause_psetupsplit4].status = IT_DISABLED;
+#endif
 		MPauseMenu[mpause_spectate].status = IT_DISABLED;
 		MPauseMenu[mpause_entergame].status = IT_DISABLED;
 		MPauseMenu[mpause_switchteam].status = IT_DISABLED;
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
+		// Reset these in case splitscreen messes things up
+		MPauseMenu[mpause_options].alphaKey = 64;
+		MPauseMenu[mpause_title].alphaKey = 80;
+		MPauseMenu[mpause_quit].alphaKey = 88;
 
 		if ((server || IsPlayerAdmin(consoleplayer)))
 		{
@@ -2644,7 +2759,31 @@ void M_StartControlPanel(void)
 		}
 
 		if (splitscreen)
+		{
 			MPauseMenu[mpause_psetupsplit].status = MPauseMenu[mpause_psetupsplit2].status = IT_STRING | IT_CALL;
+
+#ifndef NOFOURPLAYER
+			if (splitscreen > 1)
+			{
+				MPauseMenu[mpause_psetupsplit3].status = IT_STRING | IT_CALL;
+
+				if (splitscreen == 2)
+				{
+					MPauseMenu[mpause_options].alphaKey = 72;
+					MPauseMenu[mpause_title].alphaKey = 88;
+					MPauseMenu[mpause_quit].alphaKey = 96;
+				}
+
+				if (splitscreen == 3)
+				{
+					MPauseMenu[mpause_psetupsplit4].status = IT_STRING | IT_CALL;
+					MPauseMenu[mpause_options].alphaKey = 80;
+					MPauseMenu[mpause_title].alphaKey = 96;
+					MPauseMenu[mpause_quit].alphaKey = 104;
+				}
+			}
+#endif
+		}
 		else
 		{
 			MPauseMenu[mpause_psetup].status = IT_STRING | IT_CALL;
@@ -5023,7 +5162,7 @@ static void M_ChoosePlayer(INT32 choice)
 	lastmapsaved = 0;
 	gamecomplete = false;
 
-	G_DeferedInitNew(ultmode, G_BuildMapName(startmap), (UINT8)skinnum, false, fromlevelselect);
+	G_DeferedInitNew(ultmode, G_BuildMapName(startmap), (UINT8)skinnum, 0, fromlevelselect);
 	COM_BufAddText("dummyconsvar 1\n"); // G_DeferedInitNew doesn't do this
 }
 
@@ -5613,7 +5752,7 @@ static void M_ChooseNightsAttack(INT32 choice)
 	else
 		G_RecordDemo(nameofdemo);
 
-	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), 0, false, false);
+	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), 0, 0, false);
 }
 
 // Player has selected the "START" from the time attack screen
@@ -5641,7 +5780,7 @@ static void M_ChooseTimeAttack(INT32 choice)
 	else
 		G_RecordDemo(nameofdemo);
 
-	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), (UINT8)(cv_chooseskin.value-1), false, false);
+	G_DeferedInitNew(false, G_BuildMapName(cv_nextmap.value), (UINT8)(cv_chooseskin.value-1), 0, false);
 }
 
 static void M_HandleStaffReplay(INT32 choice)
@@ -6263,10 +6402,17 @@ static INT32 M_FindFirstMap(INT32 gtype)
 
 static void M_StartServer(INT32 choice)
 {
-	boolean StartSplitScreenGame = (currentMenu == &MP_SplitServerDef);
+	UINT8 ssplayers = 0;
+
+	if (currentMenu == &MP_SplitServerDef)
+		ssplayers = 1;
+	else if (currentMenu == &MP_3PServerDef)
+		ssplayers = 2;
+	else if (currentMenu == &MP_4PServerDef)
+		ssplayers = 3;
 
 	(void)choice;
-	if (!StartSplitScreenGame)
+	if (ssplayers < 2)
 		netgame = true;
 
 	multiplayer = true;
@@ -6279,7 +6425,7 @@ static void M_StartServer(INT32 choice)
 	if (metalrecording)
 		G_StopMetalDemo();
 
-	if (!StartSplitScreenGame)
+	if (ssplayers < 1)
 	{
 		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
 		COM_BufAddText("dummyconsvar 1\n");
@@ -6288,11 +6434,13 @@ static void M_StartServer(INT32 choice)
 	{
 		paused = false;
 		SV_StartSinglePlayerServer();
-		if (!splitscreen)
+
+		if (splitscreen != ssplayers)
 		{
-			splitscreen = true;
+			splitscreen = ssplayers;
 			SplitScreen_OnChange();
 		}
+
 		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
 	}
 
@@ -6359,6 +6507,24 @@ static void M_StartSplitServerMenu(INT32 choice)
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&MP_SplitServerDef);
 }
+
+#ifndef NOFOURPLAYER
+static void M_Start3PServerMenu(INT32 choice)
+{
+	(void)choice;
+	levellistmode = LLM_CREATESERVER;
+	M_PrepareLevelSelect();
+	M_SetupNextMenu(&MP_3PServerDef);
+}
+
+static void M_Start4PServerMenu(INT32 choice)
+{
+	(void)choice;
+	levellistmode = LLM_CREATESERVER;
+	M_PrepareLevelSelect();
+	M_SetupNextMenu(&MP_4PServerDef);
+}
+#endif
 
 #ifndef NONET
 static void M_StartServerMenu(INT32 choice)
@@ -6833,6 +6999,70 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	M_SetupNextMenu(&MP_PlayerSetupDef);
 }
 
+#ifndef NOFOURPLAYER
+// start the multiplayer setup menu, for third player (splitscreen mode)
+static void M_SetupMultiPlayer3(INT32 choice)
+{
+	(void)choice;
+
+	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
+	multi_tics = multi_state->tics;
+	strcpy(setupm_name, cv_playername3.string);
+
+	// set for splitscreen third player
+	setupm_player = &players[thirddisplayplayer];
+	setupm_cvskin = &cv_skin3;
+	setupm_cvcolor = &cv_playercolor3;
+	setupm_cvname = &cv_playername3;
+
+	// For whatever reason this doesn't work right if you just use ->value
+	setupm_fakeskin = R_SkinAvailable(setupm_cvskin->string);
+	if (setupm_fakeskin == -1)
+		setupm_fakeskin = 0;
+	setupm_fakecolor = setupm_cvcolor->value;
+
+	// disable skin changes if we can't actually change skins
+	if (splitscreen > 1 && !CanChangeSkin(thirddisplayplayer))
+		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
+	else
+		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
+
+	MP_PlayerSetupDef.prevMenu = currentMenu;
+	M_SetupNextMenu(&MP_PlayerSetupDef);
+}
+
+// start the multiplayer setup menu, for third player (splitscreen mode)
+static void M_SetupMultiPlayer4(INT32 choice)
+{
+	(void)choice;
+
+	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
+	multi_tics = multi_state->tics;
+	strcpy(setupm_name, cv_playername4.string);
+
+	// set for splitscreen fourth player
+	setupm_player = &players[fourthdisplayplayer];
+	setupm_cvskin = &cv_skin4;
+	setupm_cvcolor = &cv_playercolor4;
+	setupm_cvname = &cv_playername4;
+
+	// For whatever reason this doesn't work right if you just use ->value
+	setupm_fakeskin = R_SkinAvailable(setupm_cvskin->string);
+	if (setupm_fakeskin == -1)
+		setupm_fakeskin = 0;
+	setupm_fakecolor = setupm_cvcolor->value;
+
+	// disable skin changes if we can't actually change skins
+	if (splitscreen > 2 && !CanChangeSkin(fourthdisplayplayer))
+		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
+	else
+		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
+
+	MP_PlayerSetupDef.prevMenu = currentMenu;
+	M_SetupNextMenu(&MP_PlayerSetupDef);
+}
+#endif
+
 static boolean M_QuitMultiPlayerMenu(void)
 {
 	size_t l;
@@ -6916,8 +7146,10 @@ static void M_DrawJoystick(void)
 	{
 		M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
-		if ((setupcontrols_secondaryplayer && (i == cv_usejoystick2.value))
-			|| (!setupcontrols_secondaryplayer && (i == cv_usejoystick.value)))
+		if ((setupcontrols_fourthplayer && (i == cv_usejoystick4.value))
+			|| (setupcontrols_thirdplayer && (i == cv_usejoystick3.value))
+			|| (setupcontrols_secondaryplayer && (i == cv_usejoystick2.value))
+			|| (!(setupcontrols_secondaryplayer || setupcontrols_thirdplayer || setupcontrols_fourthplayer) && (i == cv_usejoystick.value)))
 			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,V_GREENMAP,joystickInfo[i]);
 		else
 			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,0,joystickInfo[i]);
@@ -6950,7 +7182,7 @@ static void M_SetupJoystickMenu(INT32 choice)
 
 static void M_Setup1PJoystickMenu(INT32 choice)
 {
-	setupcontrols_secondaryplayer = false;
+	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick1Def;
 	M_SetupJoystickMenu(choice);
 }
@@ -6958,13 +7190,36 @@ static void M_Setup1PJoystickMenu(INT32 choice)
 static void M_Setup2PJoystickMenu(INT32 choice)
 {
 	setupcontrols_secondaryplayer = true;
+	setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick2Def;
 	M_SetupJoystickMenu(choice);
 }
 
+#ifndef NOFOURPLAYER
+static void M_Setup3PJoystickMenu(INT32 choice)
+{
+	setupcontrols_thirdplayer = true;
+	setupcontrols_secondaryplayer = setupcontrols_fourthplayer = false;
+	OP_JoystickSetDef.prevMenu = &OP_Joystick3Def;
+	M_SetupJoystickMenu(choice);
+}
+
+static void M_Setup4PJoystickMenu(INT32 choice)
+{
+	setupcontrols_fourthplayer = true;
+	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = false;
+	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
+	M_SetupJoystickMenu(choice);
+}
+#endif
+
 static void M_AssignJoystick(INT32 choice)
 {
-	if (setupcontrols_secondaryplayer)
+	if (setupcontrols_fourthplayer)
+		CV_SetValue(&cv_usejoystick4, choice);
+	else if (setupcontrols_thirdplayer)
+		CV_SetValue(&cv_usejoystick3, choice);
+	else if (setupcontrols_secondaryplayer)
 		CV_SetValue(&cv_usejoystick2, choice);
 	else
 		CV_SetValue(&cv_usejoystick, choice);
@@ -6977,7 +7232,7 @@ static void M_AssignJoystick(INT32 choice)
 static void M_Setup1PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_secondaryplayer = false;
+	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
@@ -6997,6 +7252,8 @@ static void M_Setup2PControlsMenu(INT32 choice)
 {
 	(void)choice;
 	setupcontrols_secondaryplayer = true;
+	setupcontrols_thirdplayer = false;
+	setupcontrols_fourthplayer = false;
 	setupcontrols = gamecontrolbis;
 	currentMenu->lastOn = itemOn;
 
@@ -7012,19 +7269,71 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	M_SetupNextMenu(&OP_MoveControlsDef);
 }
 
+#ifndef NOFOURPLAYER
+static void M_Setup3PControlsMenu(INT32 choice)
+{
+	(void)choice;
+	setupcontrols_thirdplayer = true;
+	setupcontrols_secondaryplayer = false;
+	setupcontrols_fourthplayer = false;
+	setupcontrols = gamecontrol3;
+	currentMenu->lastOn = itemOn;
+
+	// Hide the three non-P3 controls
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
+	// Hide the pause/console controls too
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+
+	OP_MoveControlsDef.prevMenu = &OP_P3ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
+}
+
+static void M_Setup4PControlsMenu(INT32 choice)
+{
+	(void)choice;
+	setupcontrols_fourthplayer = true;
+	setupcontrols_secondaryplayer = false;
+	setupcontrols_thirdplayer = false;
+	setupcontrols = gamecontrol4;
+	currentMenu->lastOn = itemOn;
+
+	// Hide the three non-P4 controls
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
+	// Hide the pause/console controls too
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+
+	OP_MoveControlsDef.prevMenu = &OP_P4ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
+}
+#endif
+
 // Draws the Customise Controls menu
 static void M_DrawControl(void)
 {
 	char     tmp[50];
 	INT32    i;
 	INT32    keys[2];
+	const char *ctrl;
 
 	// draw title, strings and submenu
 	M_DrawGenericMenu();
 
-	M_CentreText(30,
-		 (setupcontrols_secondaryplayer ? "SET CONTROLS FOR SECONDARY PLAYER" :
-		                                  "PRESS ENTER TO CHANGE, BACKSPACE TO CLEAR"));
+	if (setupcontrols_secondaryplayer)
+		ctrl = "SET CONTROLS FOR SECONDARY PLAYER";
+	else if (setupcontrols_thirdplayer)
+		ctrl = "SET CONTROLS FOR THIRD PLAYER";
+	else if (setupcontrols_fourthplayer)
+		ctrl = "SET CONTROLS FOR FOURTH PLAYER";
+	else
+		ctrl = "PRESS ENTER TO CHANGE, BACKSPACE TO CLEAR";
+
+	M_CentreText(30, ctrl);
 
 	for (i = 0;i < currentMenu->numitems;i++)
 	{
@@ -7075,6 +7384,8 @@ static void M_ChangecontrolResponse(event_t *ev)
 			case ev_mouse2:
 			case ev_joystick:
 			case ev_joystick2:
+			case ev_joystick3:
+			case ev_joystick4:
 				ch = KEY_NULL;      // no key
 			break;
 
@@ -7107,6 +7418,10 @@ static void M_ChangecontrolResponse(event_t *ev)
 				setupcontrols[control][found] = ch-KEY_2MOUSE1+KEY_DBL2MOUSE1;
 			else if (ch >= KEY_2JOY1 && ch <= KEY_2JOY1+JOYBUTTONS)
 				setupcontrols[control][found] = ch-KEY_2JOY1+KEY_DBL2JOY1;
+			else if (ch >= KEY_3JOY1 && ch <= KEY_3JOY1+JOYBUTTONS)
+				setupcontrols[control][found] = ch-KEY_3JOY1+KEY_DBL3JOY1;
+			else if (ch >= KEY_4JOY1 && ch <= KEY_4JOY1+JOYBUTTONS)
+				setupcontrols[control][found] = ch-KEY_4JOY1+KEY_DBL4JOY1;
 		}
 		else
 		{

@@ -120,7 +120,10 @@ postimg_t postimgtype = postimg_none;
 INT32 postimgparam;
 postimg_t postimgtype2 = postimg_none;
 INT32 postimgparam2;
-
+postimg_t postimgtype3 = postimg_none;
+INT32 postimgparam3;
+postimg_t postimgtype4 = postimg_none;
+INT32 postimgparam4;
 #ifdef _XBOX
 boolean nomidimusic = true, nosound = true;
 boolean nodigimusic = true;
@@ -386,6 +389,9 @@ static void D_Display(void)
 		{
 			if (players[displayplayer].mo || players[displayplayer].playerstate == PST_DEAD)
 			{
+				viewwindowy = 0;
+				viewwindowx = 0;
+
 				topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 				objectsdrawn = 0;
 #ifdef HWRENDER
@@ -407,7 +413,17 @@ static void D_Display(void)
 #endif
 				if (rendermode != render_none)
 				{
-					viewwindowy = vid.height / 2;
+					if (splitscreen > 1)
+					{
+						viewwindowx = viewwidth;
+						viewwindowy = 0;
+					}
+					else
+					{
+						viewwindowx = 0;
+						viewwindowy = viewheight;
+					}
+
 					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
 
 					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
@@ -419,11 +435,60 @@ static void D_Display(void)
 				}
 			}
 
+			// render the third screen
+			if (splitscreen > 1 && players[thirddisplayplayer].mo)
+			{
+#ifdef HWRENDER
+				if (rendermode != render_soft)
+					HWR_RenderPlayerView(2, &players[thirddisplayplayer]);
+				else
+#endif
+				if (rendermode != render_none)
+				{
+					viewwindowx = 0;
+					viewwindowy = viewheight;
+					M_Memcpy(ylookup, ylookup3, viewheight*sizeof (ylookup[0]));
+
+					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+
+					R_RenderPlayerView(&players[thirddisplayplayer]);
+
+					viewwindowy = 0;
+					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+				}
+			}
+
+			if (splitscreen > 2 && players[fourthdisplayplayer].mo) // render the fourth screen
+			{
+#ifdef HWRENDER
+				if (rendermode != render_soft)
+					HWR_RenderPlayerView(3, &players[fourthdisplayplayer]);
+				else
+#endif
+				if (rendermode != render_none)
+				{
+					viewwindowx = viewwidth;
+					viewwindowy = viewheight;
+					M_Memcpy(ylookup, ylookup4, viewheight*sizeof (ylookup[0]));
+
+					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+
+					R_RenderPlayerView(&players[fourthdisplayplayer]);
+
+					viewwindowy = 0;
+					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+				}
+			}
+
 			// Image postprocessing effect
 			if (postimgtype)
 				V_DoPostProcessor(0, postimgtype, postimgparam);
 			if (postimgtype2)
 				V_DoPostProcessor(1, postimgtype2, postimgparam2);
+			if (postimgtype3)
+				V_DoPostProcessor(2, postimgtype3, postimgparam3);
+			if (postimgtype4)
+				V_DoPostProcessor(3, postimgtype4, postimgparam4);
 		}
 
 		if (lastdraw)
@@ -458,7 +523,7 @@ static void D_Display(void)
 		else
 			py = viewwindowy + 4;
 		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
-		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - SHORT(patch->width))/2, py, 0, patch);
+		V_DrawScaledPatch(viewwindowx + (viewwidth - SHORT(patch->width))/2, py, 0, patch);
 	}
 
 	// vid size change is now finished if it was on...
@@ -628,10 +693,14 @@ void D_SRB2Loop(void)
 			// Lagless camera! Yay!
 			if (gamestate == GS_LEVEL && netgame)
 			{
-				if (splitscreen && camera2.chase)
-					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
 				if (camera.chase)
 					P_MoveChaseCamera(&players[displayplayer], &camera, false);
+				if (splitscreen && camera2.chase)
+					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
+				if (splitscreen > 1 && camera3.chase)
+					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
+				if (splitscreen > 2 && camera4.chase)
+					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
 			}
 			D_Display();
 
@@ -705,7 +774,7 @@ void D_StartTitle(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		CL_ClearPlayer(i);
 
-	splitscreen = false;
+	splitscreen = 0;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;

@@ -818,6 +818,10 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"CLIENTMIS",
 	"CLIENT2CMD",
 	"CLIENT2MIS",
+	"CLIENT3CMD",
+	"CLIENT3MIS",
+	"CLIENT4CMD",
+	"CLIENT4MIS",
 	"NODEKEEPALIVE",
 	"NODEKEEPALIVEMIS",
 	"SERVERTICS",
@@ -837,6 +841,8 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"FILEFRAGMENT",
 	"TEXTCMD",
 	"TEXTCMD2",
+	"TEXTCMD3",
+	"TEXTCMD4",
 	"CLIENTJOIN",
 	"NODETIMEOUT",
 	"RESYNCHING",
@@ -882,8 +888,12 @@ static void DebugPrintpacket(const char *header)
 		}
 		case PT_CLIENTCMD:
 		case PT_CLIENT2CMD:
+		case PT_CLIENT3CMD:
+		case PT_CLIENT4CMD:
 		case PT_CLIENTMIS:
 		case PT_CLIENT2MIS:
+		case PT_CLIENT3MIS:
+		case PT_CLIENT4MIS:
 		case PT_NODEKEEPALIVE:
 		case PT_NODEKEEPALIVEMIS:
 			fprintf(debugfile, "    tic %4u resendfrom %u\n",
@@ -892,6 +902,8 @@ static void DebugPrintpacket(const char *header)
 			break;
 		case PT_TEXTCMD:
 		case PT_TEXTCMD2:
+		case PT_TEXTCMD3:
+		case PT_TEXTCMD4:
 			fprintf(debugfile, "    length %d\n    ", netbuffer->u.textcmd[0]);
 			fprintf(debugfile, "[%s]", netxcmdnames[netbuffer->u.textcmd[1] - 1]);
 			fprintfstringnewline((char *)netbuffer->u.textcmd + 2, netbuffer->u.textcmd[0] - 1);

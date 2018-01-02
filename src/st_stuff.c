@@ -129,6 +129,7 @@ static patch_t *gotbflag;
 //
 
 static boolean facefreed[MAXPLAYERS];
+boolean iconfreed[MAXPLAYERS];
 
 hudinfo_t hudinfo[NUMHUDITEMS] =
 {
@@ -412,7 +413,10 @@ void ST_Init(void)
 	INT32 i;
 
 	for (i = 0; i < MAXPLAYERS; i++)
+	{
 		facefreed[i] = true;
+		iconfreed[i] = true;
+	}
 
 	if (dedicated)
 		return;
@@ -994,7 +998,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 	INT32 origamount;
 	INT32 minlink = 1;
 	INT32 total_ringcount;
-	boolean nosshack = false;
+	UINT8 nosshack = 0;
 
 	// When debugging, show "0 Link".
 	if (cv_debug & DBG_NIGHTSBASIC)
@@ -1010,7 +1014,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 		if (stplyr != &players[displayplayer])
 			return;
 		nosshack = splitscreen;
-		splitscreen = false;
+		splitscreen = 0;
 	}
 
 	// Link drawing
@@ -1108,7 +1112,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 		}
 		else if (nosshack)
 		{ // Even dirtier hack-of-a-hack to draw seperate drill meters in splitscreen special stages but nothing else.
-			splitscreen = true;
+			splitscreen = nosshack;
 			V_DrawScaledPatch(locx, STRINGY(locy)-3, V_HUDTRANS, drillbar);
 			for (dfill = 0; dfill < stplyr->drillmeter/20 && dfill < 96; ++dfill)
 				V_DrawScaledPatch(locx + 2 + dfill, STRINGY(locy + 3), V_HUDTRANS, drillfill[fillpatch]);
@@ -1121,7 +1125,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 			for (dfill = 0; dfill < stplyr->drillmeter/20 && dfill < 96; ++dfill)
 				V_DrawScaledPatch(locx + 2 + dfill, STRINGY(locy + 3), V_SNAPTOBOTTOM|V_HUDTRANS, drillfill[fillpatch]);
 			stplyr = &players[displayplayer];
-			splitscreen = false;
+			splitscreen = 0;
 		}
 		else
 		{ // Draw normally. <:3
@@ -1365,8 +1369,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 #endif
 	ST_drawNightsRecords();
 
-	if (nosshack)
-		splitscreen = true;
+	splitscreen = nosshack;
 }
 */
 
@@ -1620,11 +1623,11 @@ static void ST_drawCTFHUD(void) // SRB2kart - unused.
 static inline void ST_drawTeamName(void)
 {
 	if (stplyr->ctfteam == 1)
-		V_DrawString(256, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "RED TEAM");
+		V_DrawString(256, splitscreen ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "RED TEAM");
 	else if (stplyr->ctfteam == 2)
-		V_DrawString(248, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "BLUE TEAM");
+		V_DrawString(248, splitscreen ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "BLUE TEAM");
 	else
-		V_DrawString(244, (splitscreen) ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "SPECTATOR");
+		V_DrawString(244, splitscreen ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "SPECTATOR");
 }
 
 /*
@@ -1831,7 +1834,17 @@ static void ST_overlayDrawer(void)
 	{
 		// Countdown timer for Race Mode
 		if (countdown)
-			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(176), 0, va("%d", countdown/TICRATE));
+		{
+			INT32 x = BASEVIDWIDTH/2;
+			INT32 y = BASEVIDHEIGHT-24;
+			if (splitscreen)
+			{
+				y = (BASEVIDHEIGHT/2)-12;
+				if (splitscreen > 1)
+					x = BASEVIDWIDTH/4;		
+			}
+			V_DrawCenteredString(x, y, K_calcSplitFlags(0), va("%d", countdown/TICRATE));
+		}
 
 		K_drawKartHUD();
 
@@ -1893,7 +1906,9 @@ static void ST_overlayDrawer(void)
 
 		// This is where we draw all the fun cheese if you have the chasecam off!
 		if ((stplyr == &players[displayplayer] && !camera.chase)
-			|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase))
+			|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
+			|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
+			|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		{
 			ST_drawFirstPersonHUD();
 		}
@@ -1995,6 +2010,18 @@ void ST_Drawer(void)
 		{
 			stplyr = &players[secondarydisplayplayer];
 			ST_overlayDrawer();
+
+			if (splitscreen > 1)
+			{
+				stplyr = &players[thirddisplayplayer];
+				ST_overlayDrawer();
+
+				if (splitscreen > 2)
+				{
+					stplyr = &players[fourthdisplayplayer];
+					ST_overlayDrawer();
+				}
+			}
 		}
 	}
 }

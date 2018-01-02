@@ -1249,6 +1249,26 @@ static void P_PlayerFlip(mobj_t *mo)
 					camera2.z += FixedMul(20*FRACUNIT, mo->scale);
 			}
 		}
+		else if (mo->player-players == thirddisplayplayer)
+		{
+			localaiming3 = mo->player->aiming;
+			if (camera3.chase) {
+				camera3.aiming = InvAngle(camera3.aiming);
+				camera3.z = mo->z - camera3.z + mo->z;
+				if (mo->eflags & MFE_VERTICALFLIP)
+					camera3.z += FixedMul(20*FRACUNIT, mo->scale);
+			}
+		}
+		else if (mo->player-players == fourthdisplayplayer)
+		{
+			localaiming4 = mo->player->aiming;
+			if (camera4.chase) {
+				camera4.aiming = InvAngle(camera4.aiming);
+				camera4.z = mo->z - camera4.z + mo->z;
+				if (mo->eflags & MFE_VERTICALFLIP)
+					camera4.z += FixedMul(20*FRACUNIT, mo->scale);
+			}
+		}
 	}
 }
 
@@ -3578,7 +3598,9 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 	postimg_t postimg = postimg_none;
 	if (twodlevel
 		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD)))
+		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera3 && players[thirddisplayplayer].mo && (players[thirddisplayplayer].mo->flags2 & MF2_TWOD))
+		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
 	if (cv_kartmirror.value)
@@ -3612,6 +3634,10 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 	{
 		if (splitscreen && player == &players[secondarydisplayplayer])
 			postimgtype2 = postimg;
+		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+			postimgtype3 = postimg;
+		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+			postimgtype4 = postimg;
 		else
 			postimgtype = postimg;
 	}
@@ -3658,6 +3684,10 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 				if (player == &players[secondarydisplayplayer])
 					cam_height = cv_cam2_height.value;
+				if (player == &players[thirddisplayplayer])
+					cam_height = cv_cam3_height.value;
+				if (player == &players[fourthdisplayplayer])
+					cam_height = cv_cam4_height.value;
 				if (thiscam->z > player->mo->z + player->mo->height + FixedMul(cam_height*FRACUNIT + 16*FRACUNIT, player->mo->scale))
 				{
 					if (!resetcalled)
@@ -6489,8 +6519,14 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (mobj->target->player->kartstuff[k_bootimer] > 0)
 					{
-						if ((mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
-							|| (!(mobj->target->player == &players[displayplayer] || (splitscreen && mobj->target->player == &players[secondarydisplayplayer]))
+						if ((mobj->target->player == &players[displayplayer]
+							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
+							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
+							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
+							|| (!(mobj->target->player == &players[displayplayer]
+							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
+							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
+							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
 							&& (mobj->target->player->kartstuff[k_bootimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
 						{
 							if (leveltime & 1)
@@ -6751,8 +6787,7 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					if ((splitscreen || !netgame)
-						|| gametype == GT_RACE
+					if (!netgame || gametype == GT_RACE
 						|| mobj->target->player == &players[displayplayer]
 						|| mobj->target->player->kartstuff[k_balloon] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
@@ -8636,6 +8671,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	{
 		case MT_PLAYER:
 		case MT_BIGMACE:				case MT_SMALLMACE:
+		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
 		case MT_BANANAITEM:				case MT_BANANASHIELD:
 		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:
@@ -9561,6 +9597,10 @@ void P_AfterPlayerSpawn(INT32 playernum)
 		localangle = mobj->angle;
 	else if (playernum == secondarydisplayplayer)
 		localangle2 = mobj->angle;
+	else if (playernum == thirddisplayplayer)
+		localangle3 = mobj->angle;
+	else if (playernum == fourthdisplayplayer)
+		localangle4 = mobj->angle;
 
 	p->viewheight = cv_viewheight.value<<FRACBITS;
 
@@ -9591,6 +9631,16 @@ void P_AfterPlayerSpawn(INT32 playernum)
 	{
 		if (secondarydisplayplayer == playernum)
 			P_ResetCamera(p, &camera2);
+	}
+	if (camera3.chase && splitscreen > 1)
+	{
+		if (thirddisplayplayer == playernum)
+			P_ResetCamera(p, &camera3);
+	}
+	if (camera4.chase && splitscreen > 2)
+	{
+		if (fourthdisplayplayer == playernum)
+			P_ResetCamera(p, &camera4);
 	}
 
 	if (CheckForReverseGravity)

@@ -404,6 +404,10 @@ static int mobj_set(lua_State *L)
 			localangle = mo->angle;
 		else if (mo->player == &players[secondarydisplayplayer])
 			localangle2 = mo->angle;
+		else if (mo->player == &players[thirddisplayplayer])
+			localangle3 = mo->angle;
+		else if (mo->player == &players[fourthdisplayplayer])
+			localangle4 = mo->angle;
 		break;
 	case mobj_sprite:
 		mo->sprite = luaL_checkinteger(L, 3);

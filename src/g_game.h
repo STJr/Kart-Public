@@ -54,10 +54,12 @@ extern tic_t timeinmap; // Ticker for time spent in level (used for levelcard di
 extern INT16 rw_maximums[NUM_WEAPONS];
 
 // used in game menu
-extern consvar_t cv_crosshair, cv_crosshair2;
+extern consvar_t cv_crosshair, cv_crosshair2, cv_crosshair3, cv_crosshair4;
 extern consvar_t cv_invertmouse, cv_alwaysfreelook, cv_mousemove;
 extern consvar_t cv_sideaxis,cv_turnaxis,cv_moveaxis,cv_lookaxis,cv_fireaxis,cv_firenaxis;
 extern consvar_t cv_sideaxis2,cv_turnaxis2,cv_moveaxis2,cv_lookaxis2,cv_fireaxis2,cv_firenaxis2;
+extern consvar_t cv_sideaxis3,cv_turnaxis3,cv_moveaxis3,cv_lookaxis3,cv_fireaxis3,cv_firenaxis3;
+extern consvar_t cv_sideaxis4,cv_turnaxis4,cv_moveaxis4,cv_lookaxis4,cv_fireaxis4,cv_firenaxis4;
 extern consvar_t cv_ghost_bestscore, cv_ghost_besttime, cv_ghost_last, cv_ghost_guest, cv_ghost_staff; //cv_ghost_bestlap
 
 // mouseaiming (looking up/down with the mouse or keyboard)
@@ -67,8 +69,7 @@ extern consvar_t cv_ghost_bestscore, cv_ghost_besttime, cv_ghost_last, cv_ghost_
 
 // build an internal map name MAPxx from map number
 const char *G_BuildMapName(INT32 map);
-void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics);
-void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics);
+void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer);
 
 // copy ticcmd_t to and fro the normal way
 ticcmd_t *G_CopyTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n);
@@ -79,8 +80,8 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n);
 INT16 G_ClipAimingPitch(INT32 *aiming);
 INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 
-extern angle_t localangle, localangle2;
-extern INT32 localaiming, localaiming2; // should be an angle_t but signed
+extern angle_t localangle, localangle2, localangle3, localangle4;
+extern INT32 localaiming, localaiming2, localaiming3, localaiming4; // should be an angle_t but signed
 
 //
 // GAME
@@ -101,7 +102,7 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost);
 // Can be called by the startup code or M_Responder.
 // A normal game starts at map 1, but a warp test can start elsewhere
 void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar,
-	boolean SSSG, boolean FLS);
+	UINT8 ssplayers, boolean FLS);
 void G_DoLoadLevel(boolean resetplayer);
 
 void G_DeferedPlayDemo(const char *demo);

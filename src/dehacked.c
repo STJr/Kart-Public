@@ -7869,7 +7869,6 @@ struct {
 	{"V_90TRANS",V_90TRANS},
 	{"V_HUDTRANSHALF",V_HUDTRANSHALF},
 	{"V_HUDTRANS",V_HUDTRANS},
-	{"V_HUDTRANSDOUBLE",V_HUDTRANSDOUBLE},
 	{"V_AUTOFADEOUT",V_AUTOFADEOUT},
 	{"V_RETURN8",V_RETURN8},
 	{"V_OFFSET",V_OFFSET},
@@ -7883,6 +7882,7 @@ struct {
 	{"V_WRAPY",V_WRAPY},
 	{"V_NOSCALESTART",V_NOSCALESTART},
 	{"V_SPLITSCREEN",V_SPLITSCREEN},
+	{"V_HORZSCREEN",V_HORZSCREEN},
 
 	{"V_PARAMMASK",V_PARAMMASK},
 	{"V_SCALEPATCHMASK",V_SCALEPATCHMASK},
@@ -8756,7 +8756,7 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushboolean(L, modeattacking);
 		return 1;
 	} else if (fastcmp(word,"splitscreen")) {
-		lua_pushboolean(L, splitscreen);
+		lua_pushinteger(L, splitscreen);
 		return 1;
 	} else if (fastcmp(word,"gamecomplete")) {
 		lua_pushboolean(L, gamecomplete);

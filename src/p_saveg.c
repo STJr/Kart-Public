@@ -2064,6 +2064,10 @@ static void LoadMobjThinker(actionf_p1 thinker)
 			localangle = mobj->angle;
 		if (secondarydisplayplayer == i)
 			localangle2 = mobj->angle;
+		if (thirddisplayplayer == i)
+			localangle3 = mobj->angle;
+		if (fourthdisplayplayer == i)
+			localangle4 = mobj->angle;
 	}
 	if (diff & MD_MOVEDIR)
 		mobj->movedir = READANGLE(save_p);
@@ -3370,7 +3374,7 @@ boolean P_LoadGame(INT16 mapoverride)
 		return false;
 
 	// Only do this after confirming savegame is ok
-	G_DeferedInitNew(false, G_BuildMapName(gamemap), savedata.skin, false, true);
+	G_DeferedInitNew(false, G_BuildMapName(gamemap), savedata.skin, 0, true);
 	COM_BufAddText("dummyconsvar 1\n"); // G_DeferedInitNew doesn't do this
 
 	return true;

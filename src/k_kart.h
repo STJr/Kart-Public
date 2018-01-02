@@ -40,9 +40,12 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 void K_MoveKartPlayer(player_t *player, boolean onground);
 void K_CheckBalloons(void);
 
+INT32 K_calcSplitFlags(INT32 snapflags);
 void K_LoadKartHUDGraphics(void);
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my);
 void K_drawKartHUD(void);
+void K_LoadIconGraphics(char *facestr, INT32 skinnum);
+void K_ReloadSkinIconGraphics(void);
 
 // =========================================================================
 #endif  // __K_KART__

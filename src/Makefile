@@ -380,6 +380,11 @@ ifdef NOPOSTPROCESSING
 	OPTS+=-DNOPOSTPROCESSING
 endif
 
+# srb2kart, remove before release
+ifdef NOFOURPLAYER
+	OPTS+=-DNOFOURPLAYER
+endif
+
 	OPTS:=-fno-exceptions $(OPTS)
 
 ifdef MOBJCONSISTANCY

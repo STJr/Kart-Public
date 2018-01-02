@@ -649,7 +649,7 @@ static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png
 	char keytxt[SRB2PNGTXT][12] = {
 	"Title", "Author", "Description", "Playername", "Mapnum", "Mapname",
 	"Location", "Interface", "Revision", "Build Date", "Build Time"};
-	char titletxt[] = "Sonic Robo Blast 2 " VERSIONSTRING;
+	char titletxt[] = "SRB2Kart " VERSIONSTRING;
 	png_charp authortxt = I_GetUserName();
 	png_charp playertxt =  cv_playername.zstring;
 	char desctxt[] = "SRB2Kart Screenshot";

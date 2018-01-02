@@ -76,9 +76,17 @@ void I_OsPolling(void);
 */
 ticcmd_t *I_BaseTiccmd(void);
 
-/**	\brief Input for the sencond player
+/**	\brief Input for the second player
 */
 ticcmd_t *I_BaseTiccmd2(void);
+
+/**	\brief Input for the third player
+*/
+ticcmd_t *I_BaseTiccmd3(void);
+
+/**	\brief Input for the fourth player
+*/
+ticcmd_t *I_BaseTiccmd4(void);
 
 /**	\brief Called by M_Responder when quit is selected, return exit code 0
 */
@@ -138,6 +146,24 @@ void I_Tactile(FFType Type, const JoyFF_t *Effect);
 */
 void I_Tactile2(FFType Type, const JoyFF_t *Effect);
 
+/**	\brief	Forcefeedback for the third joystick
+
+\param	Type   what kind of Effect
+\param	Effect Effect Info
+
+\return	void
+*/
+void I_Tactile3(FFType Type, const JoyFF_t *Effect);
+
+/**	\brief	Forcefeedback for the fourth joystick
+
+\param	Type   what kind of Effect
+\param	Effect Effect Info
+
+\return	void
+*/
+void I_Tactile4(FFType Type, const JoyFF_t *Effect);
+
 /**	\brief to set up the first joystick scale
 */
 void I_JoyScale(void);
@@ -145,6 +171,14 @@ void I_JoyScale(void);
 /**	\brief to set up the second joystick scale
 */
 void I_JoyScale2(void);
+
+/**	\brief to set up the third joystick scale
+*/
+void I_JoyScale3(void);
+
+/**	\brief to set up the fourth joystick scale
+*/
+void I_JoyScale4(void);
 
 // Called by D_SRB2Main.
 
@@ -155,6 +189,14 @@ void I_InitJoystick(void);
 /**	\brief to startup the second joystick
 */
 void I_InitJoystick2(void);
+
+/**	\brief to startup the third joystick
+*/
+void I_InitJoystick3(void);
+
+/**	\brief to startup the fourth joystick
+*/
+void I_InitJoystick4(void);
 
 /**	\brief return the number of joystick on the system
 */
@@ -287,6 +329,14 @@ void I_GetJoystickEvents(void);
 /**	\brief Second Joystick's events
 */
 void I_GetJoystick2Events(void);
+
+/**	\brief Third Joystick's events
+*/
+void I_GetJoystick3Events(void);
+
+/**	\brief Fourth Joystick's events
+*/
+void I_GetJoystick4Events(void);
 
 /**	\brief Mouses events
 */

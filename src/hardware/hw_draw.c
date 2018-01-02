@@ -180,7 +180,10 @@ void HWR_DrawFixedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 		sdupx = sdupy = 2.0f;
 
 	if (option & V_SPLITSCREEN)
-		sdupy /= 2.0f;
+		cy += FIXED_TO_FLOAT((BASEVIDHEIGHT/2)<<FRACBITS);
+
+	if (option & V_HORZSCREEN)
+		cx += FIXED_TO_FLOAT((BASEVIDWIDTH/2)<<FRACBITS);
 
 	if (option & V_FLIP) // Need to flip both this and sow
 	{
@@ -512,7 +515,7 @@ void HWR_DrawViewBorder(INT32 clearlines)
 	baseviewwidth =  FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_viewwidth), vid.fdupx)); //(cv_viewsize.value * BASEVIDWIDTH/10)&~7;
 	baseviewheight = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_viewheight), vid.fdupy));
 	top = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_baseviewwindowy), vid.fdupy));
-	side = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_viewwindowx), vid.fdupx));
+	side = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_baseviewwindowx), vid.fdupx));
 
 	// top
 	HWR_DrawFlatFill(0, 0,

@@ -2490,11 +2490,11 @@ void T_CameraScanner(elevator_t *elevator)
 {
 	// leveltime is compared to make multiple scanners in one map function correctly.
 	static tic_t lastleveltime = 32000; // any number other than 0 should do here
-	static boolean camerascanned, camerascanned2;
+	static boolean camerascanned, camerascanned2, camerascanned3, camerascanned4;
 
 	if (leveltime != lastleveltime) // Back on the first camera scanner
 	{
-		camerascanned = camerascanned2 = false;
+		camerascanned = camerascanned2 = camerascanned3 = camerascanned4 = false;
 		lastleveltime = leveltime;
 	}
 
@@ -2551,6 +2551,62 @@ void T_CameraScanner(elevator_t *elevator)
 				CV_Set(&cv_cam2_rotate, va("%f", (double)t_cam2_rotate));
 
 			t_cam2_dist = t_cam2_height = t_cam2_rotate = -42;
+		}
+	}
+
+	if (splitscreen > 1 && players[thirddisplayplayer].mo)
+	{
+		if (players[thirddisplayplayer].mo->subsector->sector == elevator->actionsector)
+		{
+			if (t_cam3_rotate == -42)
+				t_cam3_dist = cv_cam3_dist.value;
+			if (t_cam3_rotate == -42)
+				t_cam3_height = cv_cam3_height.value;
+			if (t_cam3_rotate == -42)
+				t_cam3_rotate = cv_cam3_rotate.value;
+			CV_SetValue(&cv_cam3_height, FixedInt(elevator->sector->floorheight));
+			CV_SetValue(&cv_cam3_dist, FixedInt(elevator->sector->ceilingheight));
+			CV_SetValue(&cv_cam3_rotate, elevator->distance);
+			camerascanned3 = true;
+		}
+		else if (!camerascanned3)
+		{
+			if (t_cam3_height != -42 && cv_cam3_height.value != t_cam3_height)
+				CV_Set(&cv_cam3_height, va("%f", (double)FIXED_TO_FLOAT(t_cam3_height)));
+			if (t_cam3_dist != -42 && cv_cam3_dist.value != t_cam3_dist)
+				CV_Set(&cv_cam3_dist, va("%f", (double)FIXED_TO_FLOAT(t_cam3_dist)));
+			if (t_cam3_rotate != -42 && cv_cam3_rotate.value != t_cam3_rotate)
+				CV_Set(&cv_cam3_rotate, va("%f", (double)t_cam3_rotate));
+
+			t_cam3_dist = t_cam3_height = t_cam3_rotate = -42;
+		}
+	}
+
+	if (splitscreen > 2 && players[fourthdisplayplayer].mo)
+	{
+		if (players[fourthdisplayplayer].mo->subsector->sector == elevator->actionsector)
+		{
+			if (t_cam4_rotate == -42)
+				t_cam4_dist = cv_cam4_dist.value;
+			if (t_cam4_rotate == -42)
+				t_cam4_height = cv_cam4_height.value;
+			if (t_cam4_rotate == -42)
+				t_cam4_rotate = cv_cam4_rotate.value;
+			CV_SetValue(&cv_cam4_height, FixedInt(elevator->sector->floorheight));
+			CV_SetValue(&cv_cam4_dist, FixedInt(elevator->sector->ceilingheight));
+			CV_SetValue(&cv_cam4_rotate, elevator->distance);
+			camerascanned4 = true;
+		}
+		else if (!camerascanned4)
+		{
+			if (t_cam4_height != -42 && cv_cam4_height.value != t_cam4_height)
+				CV_Set(&cv_cam4_height, va("%f", (double)FIXED_TO_FLOAT(t_cam4_height)));
+			if (t_cam4_dist != -42 && cv_cam4_dist.value != t_cam4_dist)
+				CV_Set(&cv_cam4_dist, va("%f", (double)FIXED_TO_FLOAT(t_cam4_dist)));
+			if (t_cam4_rotate != -42 && cv_cam4_rotate.value != t_cam4_rotate)
+				CV_Set(&cv_cam4_rotate, va("%f", (double)t_cam4_rotate));
+
+			t_cam4_dist = t_cam4_height = t_cam4_rotate = -42;
 		}
 	}
 }

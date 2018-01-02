@@ -716,7 +716,11 @@ void LUAh_GameHUD(player_t *stplayr)
 	lua_remove(gL, -3); // pop HUD
 	LUA_PushUserdata(gL, stplayr, META_PLAYER);
 
-	if (splitscreen && stplayr == &players[secondarydisplayplayer])
+	if (splitscreen > 2 && stplayr == &players[fourthdisplayplayer])
+		LUA_PushUserdata(gL, &camera4, META_CAMERA);
+	else if (splitscreen > 1 && stplayr == &players[thirddisplayplayer])
+		LUA_PushUserdata(gL, &camera3, META_CAMERA);
+	else if (splitscreen && stplayr == &players[secondarydisplayplayer])
 		LUA_PushUserdata(gL, &camera2, META_CAMERA);
 	else
 		LUA_PushUserdata(gL, &camera, META_CAMERA);

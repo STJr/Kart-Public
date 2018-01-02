@@ -67,13 +67,18 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 			localangle = angle;
 		if (thing == players[secondarydisplayplayer].mo)
 			localangle2 = angle;
+		if (thing == players[thirddisplayplayer].mo)
+			localangle3 = angle;
+		if (thing == players[fourthdisplayplayer].mo)
+			localangle4 = angle;
 
 		// move chasecam at new player location
-		if (splitscreen && camera2.chase
-			&& thing->player == &players[secondarydisplayplayer])
-		{
+		if (splitscreen > 2 && camera4.chase && thing->player == &players[fourthdisplayplayer])
+			P_ResetCamera(thing->player, &camera4);
+		else if (splitscreen > 1 && camera3.chase && thing->player == &players[thirddisplayplayer])
+			P_ResetCamera(thing->player, &camera3);
+		else if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
 			P_ResetCamera(thing->player, &camera2);
-		}
 		else if (camera.chase && thing->player == &players[displayplayer])
 			P_ResetCamera(thing->player, &camera);
 
@@ -147,9 +152,17 @@ boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle
 			localangle = angle;
 		if (thing->player == &players[secondarydisplayplayer])
 			localangle2 = angle;
+		if (thing->player == &players[thirddisplayplayer])
+			localangle3 = angle;
+		if (thing->player == &players[fourthdisplayplayer])
+			localangle4 = angle;
 
 		// move chasecam at new player location
-		if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
+		if (splitscreen > 2 && camera4.chase && thing->player == &players[fourthdisplayplayer])
+			P_ResetCamera(thing->player, &camera4);
+		else if (splitscreen > 1 && camera3.chase && thing->player == &players[thirddisplayplayer])
+			P_ResetCamera(thing->player, &camera3);
+		else if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
 			P_ResetCamera(thing->player, &camera2);
 		else if (camera.chase && thing->player == &players[displayplayer])
 			P_ResetCamera(thing->player, &camera);

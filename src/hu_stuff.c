@@ -39,7 +39,7 @@
 #include "am_map.h"
 #include "d_main.h"
 
-#include "p_local.h" // camera, camera2
+#include "p_local.h" // camera, camera2, camera3, camera4
 #include "p_tick.h"
 
 #ifdef HWRENDER
@@ -50,6 +50,8 @@
 #include "lua_hud.h"
 #include "lua_hook.h"
 #endif
+
+#include "k_kart.h"
 
 // coords are scaled
 #define HU_INPUTX 0
@@ -84,6 +86,7 @@ patch_t *rmatcico;
 patch_t *bmatcico;
 patch_t *tagico;
 patch_t *tallminus;
+patch_t *iconprefix[MAXSKINS]; // minimap icons
 
 //-------------------------------------------
 //              coop hud
@@ -958,6 +961,68 @@ static inline void HU_DrawCrosshair2(void)
 	}
 }
 
+static inline void HU_DrawCrosshair3(void)
+{
+	INT32 i, y;
+
+	i = cv_crosshair3.value & 3;
+	if (!i)
+		return;
+
+	if ((netgame || multiplayer) && players[thirddisplayplayer].spectator)
+		return;
+
+#ifdef HWRENDER
+	if (rendermode != render_soft)
+		y = (INT32)gr_basewindowcentery;
+	else
+#endif
+		y = viewwindowy + (viewheight>>1);
+
+	if (splitscreen > 1)
+	{
+#ifdef HWRENDER
+		if (rendermode != render_soft)
+			y += (INT32)gr_viewheight;
+		else
+#endif
+			y += viewheight;
+
+		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+	}
+}
+
+static inline void HU_DrawCrosshair4(void)
+{
+	INT32 i, y;
+
+	i = cv_crosshair4.value & 3;
+	if (!i)
+		return;
+
+	if ((netgame || multiplayer) && players[fourthdisplayplayer].spectator)
+		return;
+
+#ifdef HWRENDER
+	if (rendermode != render_soft)
+		y = (INT32)gr_basewindowcentery;
+	else
+#endif
+		y = viewwindowy + (viewheight>>1);
+
+	if (splitscreen > 2)
+	{
+#ifdef HWRENDER
+		if (rendermode != render_soft)
+			y += (INT32)gr_viewheight;
+		else
+#endif
+			y += viewheight;
+
+		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+	}
+}
+
 static void HU_DrawCEcho(void)
 {
 	INT32 i = 0;
@@ -1067,79 +1132,6 @@ static void HU_DrawDemoInfo(void)
 //
 void HU_Drawer(void)
 {
-	// SRB2kart 010217 - Automap Hud (temporarily commented out)
-	/*
-	INT32 amnumxpos;
-	INT32 amnumypos;
-	INT32 amxpos;
-	INT32 amypos;
-	INT32 lumpnum;
-	patch_t *AutomapPic;
-	INT32 i = 0;
-
-	// Draw the HUD only when playing in a level.
-	// hu_stuff needs this, unlike st_stuff.
-	if (Playing() && gamestate == GS_LEVEL)
-	{
-		INT32 x, y;
-
-		lumpnum = W_CheckNumForName(va("%sR", G_BuildAutoMapName(gamemap)));
-
-		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
-			AutomapPic = W_CachePatchName(va("%sR", G_BuildAutoMapName(gamemap)), PU_CACHE);
-		else
-			AutomapPic = W_CachePatchName(va("NOMAPR"), PU_CACHE);
-
-		if (splitscreen)
-		{
-			x = 160 - (AutomapPic->width/4);
-			y = 100 - (AutomapPic->height/4);
-		}
-		else
-		{
-			x = 312 - (AutomapPic->width/2);
-			y = 60;
-		}
-
-		V_DrawSmallScaledPatch(x, y, 0, AutomapPic);
-
-		// Player's tiny icons on the Automap.
-		if (lumpnum != -1 && (!modifiedgame || (modifiedgame && mapheaderinfo[gamemap-1].automap)))
-		{
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (players[i].mo && !players[i].spectator)
-				{
-					// amnum xpos & ypos are the icon's speed around the HUD.
-					// The number being divided by is for how fast it moves.
-					// The higher the number, the slower it moves.
-
-					// am xpos & ypos are the icon's starting position. Withouht
-					// it, they wouldn't 'spawn' on the top-right side of the HUD.
-					amnumxpos = (players[i].mo->x / 320) >> FRACBITS;
-					amnumypos = (-players[i].mo->y / 340) >> FRACBITS;
-
-					amxpos = (x + amnumxpos) - (iconprefix[players[i].skin]->width/4);
-					amypos = (y + amnumypos) - (iconprefix[players[i].skin]->height/4);
-
-					if (!players[i].skincolor) // 'default' color
-					{
-						V_DrawSmallScaledPatch(amxpos, amypos, 0, iconprefix[players[i].skin]);
-					}
-					else
-					{
-						UINT8 *colormap = translationtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-						V_DrawSmallMappedPatch(amxpos, amypos, 0,iconprefix[players[i].skin], colormap);
-					}
-				}
-			}
-		}
-		if (!splitscreen && maptol & TOL_KART && !hu_showscores)
-			HU_DrawRaceRankings();
-	}
-	*/
-	//
-
 	// draw chat string plus cursor
 	if (chat_on)
 		HU_DrawChat();
@@ -1184,6 +1176,12 @@ void HU_Drawer(void)
 
 	if (!automapactive && cv_crosshair2.value && !demoplayback && !camera2.chase && !players[secondarydisplayplayer].spectator)
 		HU_DrawCrosshair2();
+	
+	if (!automapactive && cv_crosshair3.value && !demoplayback && !camera3.chase && !players[thirddisplayplayer].spectator)
+		HU_DrawCrosshair3();
+
+	if (!automapactive && cv_crosshair4.value && !demoplayback && !camera4.chase && !players[fourthdisplayplayer].spectator)
+		HU_DrawCrosshair4();
 
 	// draw desynch text
 	if (hu_resynching)

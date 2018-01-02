@@ -109,15 +109,23 @@ typedef struct camera_s
 	fixed_t momx, momy, momz;
 } camera_t;
 
-extern camera_t camera, camera2;
+extern camera_t camera, camera2, camera3, camera4;
 extern consvar_t cv_cam_dist, cv_cam_still, cv_cam_height;
 extern consvar_t cv_cam_speed, cv_cam_rotate, cv_cam_rotspeed;
 
 extern consvar_t cv_cam2_dist, cv_cam2_still, cv_cam2_height;
 extern consvar_t cv_cam2_speed, cv_cam2_rotate, cv_cam2_rotspeed;
 
+extern consvar_t cv_cam3_dist, cv_cam3_still, cv_cam3_height;
+extern consvar_t cv_cam3_speed, cv_cam3_rotate, cv_cam3_rotspeed;
+
+extern consvar_t cv_cam4_dist, cv_cam4_still, cv_cam4_height;
+extern consvar_t cv_cam4_speed, cv_cam4_rotate, cv_cam4_rotspeed;
+
 extern fixed_t t_cam_dist, t_cam_height, t_cam_rotate;
 extern fixed_t t_cam2_dist, t_cam2_height, t_cam2_rotate;
+extern fixed_t t_cam3_dist, t_cam3_height, t_cam3_rotate;
+extern fixed_t t_cam4_dist, t_cam4_height, t_cam4_rotate;
 
 fixed_t P_GetPlayerHeight(player_t *player);
 fixed_t P_GetPlayerSpinHeight(player_t *player);
