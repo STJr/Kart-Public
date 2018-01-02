@@ -850,7 +850,7 @@ void A_Look(mobj_t *actor)
 	if (!P_LookForPlayers(actor, locvar1 & 65535, false , FixedMul((locvar1 >> 16)*FRACUNIT, actor->scale)))
 		return;
 
-	if (leveltime < 4*TICRATE && gametype == GT_RACE) // SRB2kart - no looking before race starts
+	if (leveltime < 4*TICRATE) // SRB2kart - no looking before race starts
 		return;
 
 	// go into chase state
@@ -3627,12 +3627,16 @@ void A_AttractChase(mobj_t *actor)
 
 	P_LookForShield(actor); // Go find 'em, boy!
 
-	if (!actor->tracer
+	if (actor->tracer && actor->tracer->player && actor->tracer->player->kartstuff[k_comebackmode] == 1)
+		;
+	else if (!actor->tracer
 		|| !actor->tracer->player
 		|| !actor->tracer->health
 		|| !P_CheckSight(actor, actor->tracer)) // You have to be able to SEE it...sorta
 	{
 		// Lost attracted rings don't through walls anymore.
+		if (actor->tracer && actor->tracer->player)
+			actor->tracer->player->kartstuff[k_comebackmode] = 0;
 		actor->flags &= ~MF_NOCLIP;
 		P_SetTarget(&actor->tracer, NULL);
 		return;
@@ -3921,10 +3925,11 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (thing == grenade->target && !(grenade->threshold == 0)) // Don't blow up at your owner.
 		return true;
 
-	if (thing->player && thing->player->kartstuff[k_bootaketimer])
+	if (thing->player && (thing->player->kartstuff[k_bootimer]
+	|| (thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
 		return true;
 
-	if ((gametype == GT_CTF || gametype == GT_MATCH)
+	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
 		&& !cv_friendlyfire.value && grenade->target->player && thing->player
 		&& grenade->target->player->ctfteam == thing->player->ctfteam) // Don't blow up at your teammates, unless friendlyfire is on
 		return true;
@@ -8089,6 +8094,17 @@ void A_ToggleFlameJet(mobj_t* actor)
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_ItemPop", actor))
+		return;
+#endif
+
+	if (!(actor->target && actor->target->player))
+	{
+		if (cv_debug && !(actor->target && actor->target->player))
+			CONS_Printf("ERROR: Powerup has no target!\n");
+		return;
+	}
 
 	// de-solidify
 	//P_UnsetThingPosition(actor);
@@ -8123,25 +8139,12 @@ void A_ItemPop(mobj_t *actor)
 		return;
 	}
 
-	if (actor->target && actor->target->player // These used to be &2's and &8's for box only, but are now universal.
-		&& !(actor->target->player->kartstuff[k_greenshell]     || actor->target->player->kartstuff[k_triplegreenshell]
-		||   actor->target->player->kartstuff[k_redshell]       || actor->target->player->kartstuff[k_tripleredshell]
-		||   actor->target->player->kartstuff[k_banana]         || actor->target->player->kartstuff[k_triplebanana]
-		||   actor->target->player->kartstuff[k_fakeitem] & 2   || actor->target->player->kartstuff[k_magnet]
-		||   actor->target->player->kartstuff[k_bobomb]         || actor->target->player->kartstuff[k_blueshell]
-		||   actor->target->player->kartstuff[k_mushroom]       || actor->target->player->kartstuff[k_fireflower]
-		||   actor->target->player->kartstuff[k_star]           || actor->target->player->kartstuff[k_goldshroom]
-		||   actor->target->player->kartstuff[k_lightning]      || actor->target->player->kartstuff[k_megashroom]
-		||   actor->target->player->kartstuff[k_itemroulette]
-		||   actor->target->player->kartstuff[k_boo]            || actor->target->player->kartstuff[k_bootaketimer]
-		||   actor->target->player->kartstuff[k_boostolentimer]
-		||   actor->target->player->kartstuff[k_growshrinktimer] > 1
-		||   actor->target->player->kartstuff[k_goldshroomtimer]))
-		actor->target->player->kartstuff[k_itemroulette] = 1;
-	else if (cv_debug && !(actor->target && actor->target->player))
-		CONS_Printf("ERROR: Powerup has no target!\n");
+	actor->target->player->kartstuff[k_itemroulette] = 1;
 
 	remains->flags2 &= ~MF2_AMBUSH;
+
+	if (gametype != GT_RACE)
+		numgotboxes++;
 
 	P_RemoveMobj(actor);
 }
@@ -8152,6 +8155,10 @@ void A_RedShellChase(mobj_t *actor)
 	INT32 c = 0;
 	INT32 stop;
 	player_t *player;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RedShellChase", actor))
+		return;
+#endif
 
 	if (actor->tracer)
 	{
@@ -8213,8 +8220,11 @@ void A_RedShellChase(mobj_t *actor)
 						continue;
 				}
 
-				if (!(gametype == GT_RACE))
+				if (gametype != GT_RACE)
 				{
+					if (player->kartstuff[k_balloon] <= 0)
+						continue;
+
 					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
 						player->mo->y-actor->y), player->mo->z-actor->z) > RING_DIST)
 						continue;
@@ -8223,7 +8233,8 @@ void A_RedShellChase(mobj_t *actor)
 
 			if ((gametype == GT_RACE) || (gametype != GT_RACE // If in match etc. only home in when you get close enough, in race etc. home in all the time
 				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
-				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST))
+				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
+				&& player->kartstuff[k_balloon] > 0))
 				P_SetTarget(&actor->tracer, player->mo);
 			return;
 
@@ -8249,11 +8260,15 @@ void A_BobombExplode(mobj_t *actor)
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_BobombExplode", actor))
+		return;
+#endif
 
 	type = (mobjtype_t)locvar1;
 
 	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false); // 32 <-> 64
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false, actor->target); // 32 <-> 64
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
 
@@ -8267,6 +8282,9 @@ void A_BobombExplode(mobj_t *actor)
 		mo2 = (mobj_t *)th;
 
 		if (mo2 == actor || mo2->type == MT_BOMBEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
+			continue;
+
+		if (actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)

@@ -135,6 +135,7 @@ boolean P_IsLocalPlayer(player_t *player);
 boolean P_IsObjectInGoop(mobj_t *mo);
 boolean P_IsObjectOnGround(mobj_t *mo);
 boolean P_IsObjectOnGroundIn(mobj_t *mo, sector_t *sec);
+boolean P_IsObjectOnRealGround(mobj_t *mo, sector_t *sec); // SRB2Kart
 boolean P_InSpaceSector(mobj_t *mo);
 boolean P_InQuicksand(mobj_t *mo);
 
@@ -153,7 +154,7 @@ void P_DoJumpShield(player_t *player);
 void P_BlackOw(player_t *player);
 void P_ElementalFireTrail(player_t *player);
 
-void P_DoPityCheck(player_t *player);
+//void P_DoPityCheck(player_t *player);
 void P_PlayerThink(player_t *player);
 void P_PlayerAfterThink(player_t *player);
 void P_DoPlayerExit(player_t *player);
@@ -201,6 +202,7 @@ extern size_t iquehead, iquetail;
 extern consvar_t cv_gravity, cv_viewheight;
 
 void P_RespawnSpecials(void);
+void P_RespawnBattleSpecials(void);
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 
@@ -326,7 +328,7 @@ boolean P_CheckCameraPosition(fixed_t x, fixed_t y, camera_t *thiscam);
 boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff);
 boolean P_Move(mobj_t *actor, fixed_t speed);
 boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z);
-void P_SlideMove(mobj_t *mo);
+void P_SlideMove(mobj_t *mo, boolean forceslide);
 void P_BounceMove(mobj_t *mo);
 boolean P_CheckSight(mobj_t *t1, mobj_t *t2);
 void P_CheckHoopPosition(mobj_t *hoopthing, fixed_t x, fixed_t y, fixed_t z, fixed_t radius);

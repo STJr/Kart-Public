@@ -981,6 +981,7 @@ static const struct {
 	{"RACE",TOL_RACE},
 
 	{"MATCH",TOL_MATCH},
+	{"BATTLE",TOL_MATCH}, // SRB2kart
 	{"TAG",TOL_TAG},
 	{"CTF",TOL_CTF},
 
@@ -989,13 +990,13 @@ static const struct {
 	{"2D",TOL_2D},
 	{"MARIO",TOL_MARIO},
 	{"NIGHTS",TOL_NIGHTS},
-	{"OLDBRAK",TOL_ERZ3},
+	//{"OLDBRAK",TOL_ERZ3},
 
 	{"XMAS",TOL_XMAS},
 	{"CHRISTMAS",TOL_XMAS},
 	{"WINTER",TOL_XMAS},
 
-	{"KART",TOL_KART}, // SRB2kart
+	//{"KART",TOL_KART}, // SRB2kart
 
 	{NULL, 0}
 };
@@ -1252,9 +1253,20 @@ static void readlevelheader(MYFILE *f, INT32 num)
 			}
 
 			else if (fastcmp(word, "LEVELFLAGS"))
-				mapheaderinfo[num-1]->levelflags = (UINT8)i;
+				mapheaderinfo[num-1]->levelflags = get_number(word2);
 			else if (fastcmp(word, "MENUFLAGS"))
-				mapheaderinfo[num-1]->menuflags = (UINT8)i;
+				mapheaderinfo[num-1]->menuflags = get_number(word2);
+
+			// SRB2Kart
+			/*else if (fastcmp(word, "AUTOMAP"))
+			{
+				if (i || word2[0] == 'T' || word2[0] == 'Y')
+					mapheaderinfo[num-1]->automap = true;
+				else
+					mapheaderinfo[num-1]->automap = false;
+			}*/
+			else if (fastcmp(word, "MOBJSCALE"))
+				mapheaderinfo[num-1]->mobj_scale = get_number(word2);
 
 			// Individual triggers for level flags, for ease of use (and 2.0 compatibility)
 			else if (fastcmp(word, "SCRIPTISFILE"))
@@ -6367,6 +6379,11 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SINKTRAIL2",
 	"S_SINKTRAIL3",
 
+	// Battle Mode balloon
+	"S_BATTLEBALLOON1",
+	"S_BATTLEBALLOON2",
+	"S_BATTLEBALLOON3",
+
 	// Pokey
 	"S_POKEY1",
 	"S_POKEY2",
@@ -6400,6 +6417,28 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FIREDITEM2",
 	"S_FIREDITEM3",
 	"S_FIREDITEM4",
+
+	"S_PLAYERARROW", // Above player arrow
+	"S_PLAYERARROW_MUSHROOM",
+	"S_PLAYERARROW_GREENSHELL",
+	"S_PLAYERARROW_BANANA",
+	"S_PLAYERARROW_FAKEITEM",
+	"S_PLAYERARROW_BOO",
+	"S_PLAYERARROW_FEATHER",
+	"S_PLAYERARROW_REDSHELL",
+	"S_PLAYERARROW_BOBOMB",
+	"S_PLAYERARROW_FIREFLOWER",
+	"S_PLAYERARROW_TRIPLEGREENSHELL",
+	"S_PLAYERARROW_TRIPLEBANANA",
+	"S_PLAYERARROW_TRIPLEREDSHELL",
+	"S_PLAYERARROW_STAR",
+	"S_PLAYERARROW_MEGASHROOM",
+	"S_PLAYERARROW_KITCHENSINK",
+	"S_PLAYERARROW_EMPTY",
+	"S_PLAYERARROW_ROULETTE",
+
+	"S_PLAYERBOMB", // Player bomb overlay
+	"S_PLAYERBOMB_WHEEL",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -6958,6 +6997,10 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SINK", // Kitchen Sink Stuff
 	"MT_SINKTRAIL",
 
+	"MT_BATTLEBALLOON", // Battle Mode balloon
+
+	"MT_LAKITU",
+
 	"MT_POKEY", // Huh, thought this was a default asset for some reason, guess not.
 	"MT_ENEMYFLIP",
 	"MT_WAYPOINT",
@@ -6968,6 +7011,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_ITEMCLASH",
 	
 	"MT_FIREDITEM",
+
+	"MT_PLAYERARROW",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",
@@ -7281,6 +7326,81 @@ static const char *const POWERS_LIST[] = {
 	"INGOOP" // In goop
 };
 
+static const char *const KARTSTUFF_LIST[] = {
+	"POSITION",
+	"OLDPOSITION",
+	"POSITIONDELAY",
+	"PREVCHECK",
+	"NEXTCHECK",
+	"WAYPOINT",
+	"STARPOSTWP",
+	"LAKITU",
+
+	"THROWDIR",
+	"CAMSPIN",
+	"LAPANIMATION",
+	"CARDANIMATION",
+	"SOUNDS",
+
+	"BOOSTING",
+	"FLOORBOOST",
+	"SPINOUT",
+	"SPINOUTTYPE",
+
+	"DRIFT",
+	"DRIFTEND",
+	"DRIFTCHARGE",
+	"DRIFTBOOST",
+	"BOOSTCHARGE",
+	"JMP",
+	"OFFROAD",
+
+	"ITEMROULETTE",
+	"ITEMCLOSE",
+
+	"MAGNETTIMER",
+	"BOOTIMER",
+	"BOOTAKETIMER",
+	"BOOSTOLENTIMER",
+	"MUSHROOMTIMER",
+	"GROWSHRINKTIMER",
+	"SQUISHEDTIMER",
+	"GOLDSHROOMTIMER",
+	"STARTIMER",
+	"SPINOUTTIMER",
+	"LASERWISPTIMER",
+	"JUSTBUMPED",
+	"POWERITEMTIMER",
+	"COMEBACKTIMER",
+
+	"MAGNET",
+	"BOO",
+	"MUSHROOM",
+	"MEGASHROOM",
+	"GOLDSHROOM",
+	"STAR",
+	"TRIPLEBANANA",
+	"FAKEITEM",
+	"BANANA",
+	"GREENSHELL",
+	"REDSHELL",
+	"LASERWISP",
+	"TRIPLEGREENSHELL",
+	"BOBOMB",
+	"BLUESHELL",
+	"JAWS",
+	"FIREFLOWER",
+	"TRIPLEREDSHELL",
+	"LIGHTNING",
+	"FEATHER",
+	"KITCHENSINK",
+
+	"BALLOON",
+	"COMEBACKPOINTS",
+	"COMEBACKMODE",
+	"COMEBACKSHOWNINFO"
+};
+
 static const char *const HUDITEMS_LIST[] = {
 	"LIVESNAME",
 	"LIVESPIC",
@@ -7420,8 +7540,9 @@ struct {
 	{"TOL_2D",TOL_2D},
 	{"TOL_MARIO",TOL_MARIO},
 	{"TOL_NIGHTS",TOL_NIGHTS},
-	{"TOL_ERZ3",TOL_ERZ3},
+	//{"TOL_ERZ3",TOL_ERZ3},
 	{"TOL_XMAS",TOL_XMAS},
+	//{"TOL_KART",TOL_KART},
 
 	// Level flags
 	{"LF_SCRIPTISFILE",LF_SCRIPTISFILE},
@@ -7915,6 +8036,20 @@ static powertype_t get_power(const char *word)
 	return pw_invulnerability;
 }
 
+static kartstufftype_t get_kartstuff(const char *word)
+{ // Returns the vlaue of k_ enumerations
+	kartstufftype_t i;
+	if (*word >= '0' && *word <= '9')
+		return atoi(word);
+	if (fastncmp("K_",word,2))
+		word += 2; // take off the k_
+	for (i = 0; i < NUMKARTSTUFF; i++)
+		if (fastcmp(word, KARTSTUFF_LIST[i]))
+			return i;
+	deh_warning("Couldn't find power named 'k_%s'",word);
+	return k_position;
+}
+
 /// \todo Make ANY of this completely over-the-top math craziness obey the order of operations.
 static fixed_t op_mul(fixed_t a, fixed_t b) { return a*b; }
 static fixed_t op_div(fixed_t a, fixed_t b) { return a/b; }
@@ -8151,6 +8286,7 @@ void FUNCMATH DEH_Check(void)
 	const size_t dehstates = sizeof(STATE_LIST)/sizeof(const char*);
 	const size_t dehmobjs  = sizeof(MOBJTYPE_LIST)/sizeof(const char*);
 	const size_t dehpowers = sizeof(POWERS_LIST)/sizeof(const char*);
+	const size_t dehkartstuff = sizeof(KARTSTUFF_LIST)/sizeof(const char*);
 	const size_t dehcolors = sizeof(COLOR_ENUMS)/sizeof(const char*);
 
 	if (dehstates != S_FIRSTFREESLOT)
@@ -8161,6 +8297,9 @@ void FUNCMATH DEH_Check(void)
 
 	if (dehpowers != NUMPOWERS)
 		I_Error("You forgot to update the Dehacked powers list, you dolt!\n(%d powers defined, versus %s in the Dehacked list)\n", NUMPOWERS, sizeu1(dehpowers));
+
+	if (dehkartstuff != NUMKARTSTUFF)
+		I_Error("You forgot to update the Dehacked powers list, you dolt!\n(%d kartstuff defined, versus %s in the Dehacked list)\n", NUMKARTSTUFF, sizeu1(dehkartstuff));
 
 	if (dehcolors != MAXTRANSLATIONS)
 		I_Error("You forgot to update the Dehacked colors list, you dolt!\n(%d colors defined, versus %s in the Dehacked list)\n", MAXTRANSLATIONS, sizeu1(dehcolors));
@@ -8501,6 +8640,24 @@ static inline int lib_getenum(lua_State *L)
 			}
 		return luaL_error(L, "power '%s' could not be found.\n", word);
 	}
+	else if (!mathlib && fastncmp("k_",word,2)) {
+		p = word+2;
+		for (i = 0; i < NUMKARTSTUFF; i++)
+			if (fasticmp(p, KARTSTUFF_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return 0;
+	}
+	else if (mathlib && fastncmp("K_",word,2)) { // SOCs are ALL CAPS!
+		p = word+2;
+		for (i = 0; i < NUMKARTSTUFF; i++)
+			if (fastcmp(p, KARTSTUFF_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "kartstuff '%s' could not be found.\n", word);
+	}
 	else if (fastncmp("HUD_",word,4)) {
 		p = word+4;
 		for (i = 0; i < NUMHUDITEMS; i++)
@@ -8646,9 +8803,9 @@ static inline int lib_getenum(lua_State *L)
 		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
 		return 1;
 	} else if (fastcmp(word,"admin")) {
-		if (!playeringame[adminplayer] || adminplayer == serverplayer)
-			return 0;
-		LUA_PushUserdata(L, &players[adminplayer], META_PLAYER);
+		//if (!playeringame[adminplayer] || IsPlayerAdmin(serverplayer))
+			//return 0;
+		//LUA_PushUserdata(L, &players[adminplayer], META_PLAYER);
 		return 1;
 	} else if (fastcmp(word,"emeralds")) {
 		lua_pushinteger(L, emeralds);

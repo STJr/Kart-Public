@@ -179,6 +179,10 @@ UINT32 bluescore, redscore; // CTF and Team Match team scores
 // ring count... for PERFECT!
 INT32 nummaprings = 0;
 
+// box respawning in battle mode
+INT32 nummapboxes = 0;
+INT32 numgotboxes = 0;
+
 // Elminates unnecessary searching.
 boolean CheckForBustableBlocks;
 boolean CheckForBouncySector;
@@ -198,8 +202,10 @@ UINT16 extralifetics = 4*TICRATE;
 
 // SRB2kart
 INT32 bootime = 7*TICRATE;
+INT32 boostealtime = TICRATE/2;
 INT32 mushroomtime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
+INT32 comebacktime = 10*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 
@@ -974,6 +980,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
 
 	axis = JoyAxis(AXISTURN);
+
+	if (cv_kartmirror.value)
+	{
+		turnright = PLAYER1INPUTDOWN(gc_turnleft);
+		turnleft = PLAYER1INPUTDOWN(gc_turnright);
+		axis = -axis;
+	}
+
 	if (gamepadjoystickmove && axis != 0)
 	{
 		turnright = turnright || (axis > 0);
@@ -1246,8 +1260,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	if (cv_kartmirror.value)
+		cmd->sidemove = -cmd->sidemove;
+
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN);
+	if (cv_kartmirror.value)
+		axis = -axis;
 
 	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
@@ -1322,6 +1341,14 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
 
 	axis = Joy2Axis(AXISTURN);
+	
+	if (cv_kartmirror.value)
+	{
+		turnright = PLAYER2INPUTDOWN(gc_turnleft);
+		turnleft = PLAYER2INPUTDOWN(gc_turnright);
+		axis = -axis;
+	}
+
 	if (gamepadjoystickmove && axis != 0)
 	{
 		turnright = turnright || (axis > 0);
@@ -1578,8 +1605,13 @@ void G_BuildTiccmd2(ticcmd_t *cmd, INT32 realtics)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
+	if (cv_kartmirror.value)
+		cmd->sidemove = -cmd->sidemove;
+
 	//{ SRB2kart - Drift support
 	axis = Joy2Axis(AXISTURN);
+	if (cv_kartmirror.value)
+		axis = -axis;
 
 	if (cmd->angleturn > 0) // Drifting to the left
 		cmd->buttons |= BT_DRIFTLEFT;
@@ -1784,7 +1816,7 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].spectator)
 					continue;
 
-				if (G_GametypeHasTeams())
+				/*if (G_GametypeHasTeams())
 				{
 					if (players[consoleplayer].ctfteam
 					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
@@ -1805,6 +1837,12 @@ boolean G_Responder(event_t *ev)
 				else if (G_GametypeHasSpectators() && G_RingSlingerGametype())
 				{
 					if (!players[consoleplayer].spectator)
+						continue;
+				}*/
+
+				if (gametype != GT_RACE) // srb2kart
+				{
+					if (players[consoleplayer].kartstuff[k_balloon] > 0)
 						continue;
 				}
 
@@ -2120,7 +2158,6 @@ static inline void G_PlayerFinishLevel(INT32 player)
 
 	memset(p->powers, 0, sizeof (p->powers));
 	memset(p->kartstuff, 0, sizeof (p->kartstuff)); // SRB2kart
-	memset(p->collide, 0, sizeof (p->collide)); // SRB2kart
 	p->ringweapons = 0;
 
 	p->mo->flags2 &= ~MF2_SHADOW; // cancel invisibility
@@ -2131,6 +2168,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p->starposty = 0;
 	p->starpostz = 0;
 	p->starpostnum = 0;
+	p->starpostcount = 0;
 
 	if (rendermode == render_soft)
 		V_SetPaletteLump(GetPalette()); // Reset the palette
@@ -2171,6 +2209,7 @@ void G_PlayerReborn(INT32 player)
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
+	INT32 starpostcount;
 	INT32 starpostangle;
 	fixed_t jumpfactor;
 	INT32 exiting;
@@ -2188,6 +2227,9 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	INT32 starpostwp;
 	INT32 offroad;
+	INT32 balloon;
+	INT32 comebackpoints;
+	INT32 comebackshowninfo;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2226,6 +2268,7 @@ void G_PlayerReborn(INT32 player)
 	starposty = players[player].starposty;
 	starpostz = players[player].starpostz;
 	starpostnum = players[player].starpostnum;
+	starpostcount = players[player].starpostcount;
 	starpostangle = players[player].starpostangle;
 	jumpfactor = players[player].jumpfactor;
 	thokitem = players[player].thokitem;
@@ -2242,6 +2285,9 @@ void G_PlayerReborn(INT32 player)
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	offroad = players[player].kartstuff[k_offroad];
+	balloon = players[player].kartstuff[k_balloon];
+	comebackpoints = players[player].kartstuff[k_comebackpoints];
+	comebackshowninfo = players[player].kartstuff[k_comebackshowninfo];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2281,6 +2327,7 @@ void G_PlayerReborn(INT32 player)
 	p->starposty = starposty;
 	p->starpostz = starpostz;
 	p->starpostnum = starpostnum;
+	p->starpostcount = starpostcount;
 	p->starpostangle = starpostangle;
 	p->jumpfactor = jumpfactor;
 	p->exiting = exiting;
@@ -2298,6 +2345,11 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
 	p->kartstuff[k_offroad] = offroad;
 
+	p->kartstuff[k_balloon] = balloon;
+	p->kartstuff[k_comebackpoints] = comebackpoints;
+	p->kartstuff[k_comebackshowninfo] = comebackshowninfo;
+	p->kartstuff[k_comebacktimer] = comebacktime;
+
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
 	p->pflags |= PF_ATTACKDOWN;
@@ -2308,7 +2360,7 @@ void G_PlayerReborn(INT32 player)
 	p->panim = PA_IDLE; // standing animation
 
 	if ((netgame || multiplayer) && !p->spectator)
-		p->powers[pw_flashing] = flashingtics-1; // Babysitting deterrent
+		p->powers[pw_flashing] = K_GetKartFlashing()-1; // Babysitting deterrent
 
 	if (p-players == consoleplayer)
 	{
@@ -2397,6 +2449,9 @@ static boolean G_CheckSpot(INT32 playernum, mapthing_t *mthing)
 	y = mthing->y << FRACBITS;
 
 	if (!P_CheckPosition(players[playernum].mo, x, y))
+		return false;
+
+	if (!K_CheckPlayersRespawnColliding(playernum, x, y))
 		return false;
 
 	return true;
@@ -2644,6 +2699,7 @@ void G_DoReborn(INT32 playernum)
 			player->starposty = 0;
 			player->starpostz = 0;
 			player->starpostnum = 0;
+			player->starpostcount = 0;
 		}
 		if (!countdowntimeup && (mapheaderinfo[gamemap-1]->levelflags & LF_NORELOAD))
 		{
@@ -2801,7 +2857,8 @@ boolean G_GametypeHasTeams(void)
 //
 boolean G_GametypeHasSpectators(void)
 {
-	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
+	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE
+			&& gametype != GT_MATCH); // srb2kart: temporary?
 }
 
 //
@@ -3066,7 +3123,7 @@ static void G_DoWorldDone(void)
 			// don't reset player between maps
 			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 		else
-			// resetplayer in match/chaos/tag/CTF/race for more equality
+			// resetplayer in match/tag/CTF for more equality
 			D_MapChange(nextmap+1, gametype, ultimatemode, true, 0, false, false);
 	}
 
@@ -3692,6 +3749,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			players[i].playerstate = PST_REBORN;
 			players[i].starpostangle = players[i].starpostnum = players[i].starposttime = 0;
 			players[i].starpostx = players[i].starposty = players[i].starpostz = 0;
+			players[i].starpostcount = 0; // srb2kart
 
 			if (netgame || multiplayer)
 			{

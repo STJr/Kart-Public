@@ -160,7 +160,7 @@ FUNCNORETURN static ATTRNORETURN void CorruptMapError(const char *msg)
 	I_Error("Invalid or corrupt map.\nLook in log file or text console for technical details.");
 }
 
-#define NUMLAPS_DEFAULT 4
+#define NUMLAPS_DEFAULT 3
 
 /** Clears the data from a single map header.
   *
@@ -224,9 +224,14 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	DEH_WriteUndoline("LEVELFLAGS", va("%d", mapheaderinfo[num]->levelflags), UNDO_NONE);
 	mapheaderinfo[num]->levelflags = 0;
 	DEH_WriteUndoline("MENUFLAGS", va("%d", mapheaderinfo[num]->menuflags), UNDO_NONE);
-	mapheaderinfo[num]->menuflags = LF2_RECORDATTACK|LF2_NOVISITNEEDED; // 0
+	mapheaderinfo[num]->menuflags = 0;
 	// TODO grades support for delfile (pfft yeah right)
 	P_DeleteGrades(num);
+	// SRB2Kart
+	//DEH_WriteUndoline("AUTOMAP", va("%d", mapheaderinfo[num]->automap), UNDO_NONE);
+	//mapheaderinfo[num]->automap = false;
+	DEH_WriteUndoline("MOBJSCALE", va("%d", mapheaderinfo[num]->mobj_scale), UNDO_NONE);
+	mapheaderinfo[num]->mobj_scale = FRACUNIT;
 	// an even further impossibility, delfile custom opts support
 	mapheaderinfo[num]->customopts = NULL;
 	mapheaderinfo[num]->numCustomOptions = 0;
@@ -982,6 +987,9 @@ static void P_LoadThings(void)
 			|| mt->type == 1701 // MT_AXISTRANSFER
 			|| mt->type == 1702) // MT_AXISTRANSFERLINE
 			continue; // These were already spawned
+
+		if (mt->type == 2000) // MT_RANDOMITEM
+			nummapboxes++;
 
 		mt->mobj = NULL;
 		P_SpawnMapThing(mt);
@@ -2154,6 +2162,8 @@ static void P_LevelInitStuff(void)
 	tokenbits = 0;
 	runemeraldmanager = false;
 	nummaprings = 0;
+	nummapboxes = 0;
+	numgotboxes = 0;
 
 	// emerald hunt
 	hunt1 = hunt2 = hunt3 = NULL;
@@ -2451,11 +2461,11 @@ static void P_LoadRecordGhosts(void)
 	if (cv_ghost_staff.value)
 	{
 		lumpnum_t l;
-		UINT8 i = 1;
-		while (i <= 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(gamemap),i))) != LUMPERROR)
+		UINT8 j = 1;
+		while (j <= 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(gamemap),j))) != LUMPERROR)
 		{
-			G_AddGhost(va("%sS%02u",G_BuildMapName(gamemap),i));
-			i++;
+			G_AddGhost(va("%sS%02u",G_BuildMapName(gamemap),j));
+			j++;
 		}
 	}
 
@@ -2566,8 +2576,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// chasecam on in chaos, race, coop
 	// chasecam off in match, tag, capture the flag
-	chase = (gametype == GT_RACE || gametype == GT_COMPETITION || gametype == GT_COOP)
-		|| (maptol & TOL_2D);
+	chase = true; // srb2kart: always on
 
 	if (!dedicated)
 	{

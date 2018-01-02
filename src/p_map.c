@@ -320,6 +320,7 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 	}
 }
 
+#if 0
 static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 {
 	INT32 p;
@@ -400,6 +401,7 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 		sonic->pflags &= ~PF_CARRIED;
 	}
 }
+#endif
 
 //
 // PIT_CheckThing
@@ -673,6 +675,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing]
+			&& !(tmthing->type == MT_GREENITEM || tmthing->type == MT_REDITEM || tmthing->type == MT_REDITEMDUD))
+			return true;
+
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
@@ -808,6 +814,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_PLAYER)
 		{
 			S_StartSound(NULL, sfx_cgot); //let all players hear it.
@@ -830,6 +839,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // underneath
 
 		if (!(thing->type == MT_PLAYER))
+			return true;
+
+		if (thing->player && thing->player->powers[pw_flashing])
 			return true;
 
 		if (thing->type == MT_PLAYER)
@@ -862,6 +874,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (tmthing->type == MT_FIREBALL && thing->type == MT_FIREBALL)
 			return true; // Fireballs don't collide with eachother
+
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
 
 		if (thing->type == MT_PLAYER)
 		{
@@ -960,6 +975,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->health <= 0 || thing->health <= 0)
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
 			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_BOMBITEM
@@ -1043,6 +1061,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->health <= 0 || thing->health <= 0)
 			return true;
 
+		if (thing->player && thing->player->powers[pw_flashing])
+			return true;
+
 		if (thing->type == MT_PLAYER)
 		{
 			P_KillMobj(tmthing, thing, thing);
@@ -1086,6 +1107,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // overhead
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
+
+		if (tmthing->player && tmthing->player->powers[pw_flashing]
+			&& !(thing->type == MT_GREENITEM || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD))
+			return true;
 
 		if (thing->type == MT_GREENSHIELD || thing->type == MT_TRIPLEGREENSHIELD1 || thing->type == MT_TRIPLEGREENSHIELD2 || thing->type == MT_TRIPLEGREENSHIELD3
 			|| thing->type == MT_REDSHIELD || thing->type == MT_TRIPLEREDSHIELD1 || thing->type == MT_TRIPLEREDSHIELD2 || thing->type == MT_TRIPLEREDSHIELD3
@@ -1534,7 +1559,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	// Force solid players in hide and seek to avoid corner stacking.
-	if (cv_tailspickup.value && gametype != GT_HIDEANDSEEK)
+	// Kart: No Tailspickup ever, players are always solid
+	/*if (cv_tailspickup.value && gametype != GT_HIDEANDSEEK)
 	{
 		if (tmthing->player && thing->player)
 		{
@@ -1546,7 +1572,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->player-players == consoleplayer && botingame)
 			CV_SetValue(&cv_analog2, true);
 		thing->player->pflags &= ~PF_CARRIED;
-	}
+	}*/
 
 	if (thing->player)
 	{
@@ -1591,6 +1617,87 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if ( thing->z <= tmthing->z + tmthing->height
 			&& tmthing->z <= thing->z + thing->height)
 				iwassprung = P_DoSpring(thing, tmthing);
+		}
+		else if (thing->player) // bounce when players collide
+		{
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
+			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
+				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer]
+				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
+				|| (gametype != GT_RACE && (thing->player->kartstuff[k_balloon] <= 0
+				&& (thing->player->kartstuff[k_comebacktimer] || thing->player->kartstuff[k_comebackmode] == 1)))
+				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
+				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer]
+				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped]
+				|| (gametype != GT_RACE && (tmthing->player->kartstuff[k_balloon] <= 0
+				&& (tmthing->player->kartstuff[k_comebacktimer] || tmthing->player->kartstuff[k_comebackmode] == 1))))
+			{
+				return true;
+			}
+
+			if (gametype != GT_RACE)
+			{
+				if ((thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebackmode] == 0)
+					|| (tmthing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_comebackmode] == 0))
+				{
+					if (tmthing->player->kartstuff[k_balloon] > 0)
+					{
+						K_ExplodePlayer(tmthing->player, thing);
+						thing->player->kartstuff[k_comebacktimer] = comebacktime;
+						return true;
+					}
+					else if (thing->player->kartstuff[k_balloon] > 0)
+					{
+						K_ExplodePlayer(thing->player, tmthing);
+						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
+						return true;
+					}
+				}
+			}
+
+			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
+			{
+				K_KartBouncing(tmthing, thing, true);
+				if (gametype != GT_RACE && tmthing->player->kartstuff[k_feather] & 2)
+				{
+					K_StealBalloon(tmthing->player, thing->player, false);
+					K_SpinPlayer(thing->player, tmthing);
+				}
+			}
+			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
+			{
+				K_KartBouncing(thing, tmthing, true);
+				if (gametype != GT_RACE && thing->player->kartstuff[k_feather] & 2)
+				{
+					K_StealBalloon(thing->player, tmthing->player, false);
+					K_SpinPlayer(tmthing->player, thing);
+				}
+			}
+			else
+				K_KartBouncing(tmthing, thing, false);
+
+			if (gametype != GT_RACE)
+			{
+				if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
+				{
+					K_StealBalloon(thing->player, tmthing->player, false);
+					K_SpinPlayer(tmthing->player, thing);
+				}
+				else if (tmthing->player->kartstuff[k_mushroomtimer] && !(thing->player->kartstuff[k_mushroomtimer]))
+				{
+					K_StealBalloon(tmthing->player, thing->player, false);
+					K_SpinPlayer(thing->player, tmthing);
+				}
+			}
+
+			thing->player->kartstuff[k_justbumped] = 6;
+			tmthing->player->kartstuff[k_justbumped] = 6;
+			return true;
 		}
 		// Are you touching the side of the object you're interacting with?
 		else if (thing->z - FixedMul(FRACUNIT, thing->scale) <= tmthing->z + tmthing->height
@@ -2613,7 +2720,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		if (!(thing->flags & MF_NOCLIP))
 		{
 			//All things are affected by their scale.
-			fixed_t maxstep = FixedMul(MAXSTEPMOVE, thing->scale);
+			fixed_t maxstep = MAXSTEPMOVE; //FixedMul(MAXSTEPMOVE, thing->scale);
 
 			if (thing->player)
 			{
@@ -3522,7 +3629,7 @@ stairstep:
 //
 // This is a kludgy mess.
 //
-void P_SlideMove(mobj_t *mo)
+void P_SlideMove(mobj_t *mo, boolean forceslide)
 {
 	fixed_t leadx, leady, trailx, traily, newx, newy;
 	INT16 hitcount = 0;
@@ -3600,7 +3707,7 @@ retry:
 		PT_ADDLINES, PTR_SlideTraverse);
 
 	// Some walls are bouncy even if you're not
-	if (bestslideline && !(bestslideline->flags & ML_BOUNCY)) // SRB2kart - All walls are bouncy unless specified otherwise
+	if (!forceslide && bestslideline && !(bestslideline->flags & ML_BOUNCY)) // SRB2kart - All walls are bouncy unless specified otherwise
 	{
 		P_BounceMove(mo);
 		return;

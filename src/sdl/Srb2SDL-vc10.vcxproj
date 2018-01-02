@@ -23,8 +23,8 @@
     <ProjectGuid>{61BA7D3C-F77D-4D31-B718-1177FE482CF2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Srb2SDL</RootNamespace>
+    <ProjectName>srb2kart</ProjectName>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>Srb2Win</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup>
@@ -160,6 +160,7 @@
     <ClInclude Include="..\i_tcp.h" />
     <ClInclude Include="..\i_video.h" />
     <ClInclude Include="..\keys.h" />
+    <ClInclude Include="..\k_kart.h" />
     <ClInclude Include="..\lua_hook.h" />
     <ClInclude Include="..\lua_hud.h" />
     <ClInclude Include="..\lua_libs.h" />
@@ -294,6 +295,7 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\i_tcp.c" />
+    <ClCompile Include="..\k_kart.c" />
     <ClCompile Include="..\lua_baselib.c" />
     <ClCompile Include="..\lua_consolelib.c" />
     <ClCompile Include="..\lua_hooklib.c" />

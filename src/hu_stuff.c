@@ -361,14 +361,14 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 	numwords = COM_Argc() - usedargs;
 	I_Assert(numwords > 0);
 
-	if (cv_mute.value && !(server || adminplayer == consoleplayer))
+	if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("The chat is muted. You can't say anything at the moment.\n"));
 		return;
 	}
 
 	// Only servers/admins can CSAY.
-	if(!server && adminplayer != consoleplayer)
+	if(!server && IsPlayerAdmin(consoleplayer))
 		flags &= ~HU_CSAY;
 
 	// We handle HU_SERVER_SAY, not the caller.
@@ -462,7 +462,7 @@ static void Command_CSay_f(void)
 		return;
 	}
 
-	if(!server && adminplayer != consoleplayer)
+	if(!server && !IsPlayerAdmin(consoleplayer))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("Only servers and admins can use csay.\n"));
 		return;
@@ -491,7 +491,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	msg = (char *)*p;
 	SKIPSTRING(*p);
 
-	if ((cv_mute.value || flags & (HU_CSAY|HU_SERVER_SAY)) && playernum != serverplayer && playernum != adminplayer)
+	if ((cv_mute.value || flags & (HU_CSAY|HU_SERVER_SAY)) && playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
 		CONS_Alert(CONS_WARNING, cv_mute.value ?
 			M_GetText("Illegal say command received from %s while muted\n") : M_GetText("Illegal csay command received from non-admin %s\n"),
@@ -589,7 +589,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		// Give admins and remote admins their symbols.
 		if (playernum == serverplayer)
 			tempchar = (char *)Z_Calloc(strlen(cstart) + strlen(adminchar) + 1, PU_STATIC, NULL);
-		else if (playernum == adminplayer)
+		else if (IsPlayerAdmin(playernum))
 			tempchar = (char *)Z_Calloc(strlen(cstart) + strlen(remotechar) + 1, PU_STATIC, NULL);
 		if (tempchar)
 		{
@@ -724,7 +724,7 @@ static void HU_queueChatChar(char c)
 		} while (c);
 
 		// last minute mute check
-		if (cv_mute.value && !(server || adminplayer == consoleplayer))
+		if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
 		{
 			CONS_Alert(CONS_NOTICE, M_GetText("The chat is muted. You can't say anything at the moment.\n"));
 			return;
@@ -782,9 +782,9 @@ boolean HU_Responder(event_t *ev)
 	{
 		// enter chat mode
 		if ((ev->data1 == gamecontrol[gc_talkkey][0] || ev->data1 == gamecontrol[gc_talkkey][1])
-			&& netgame && (!cv_mute.value || server || (adminplayer == consoleplayer)))
+			&& netgame && (!cv_mute.value || server || IsPlayerAdmin(consoleplayer)))
 		{
-			if (cv_mute.value && !(server || adminplayer == consoleplayer))
+			if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
 				return false;
 			chat_on = true;
 			w_chat[0] = 0;
@@ -792,9 +792,9 @@ boolean HU_Responder(event_t *ev)
 			return true;
 		}
 		if ((ev->data1 == gamecontrol[gc_teamkey][0] || ev->data1 == gamecontrol[gc_teamkey][1])
-			&& netgame && (!cv_mute.value || server || (adminplayer == consoleplayer)))
+			&& netgame && (!cv_mute.value || server || (IsPlayerAdmin(consoleplayer))))
 		{
-			if (cv_mute.value && !(server || adminplayer == consoleplayer))
+			if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
 				return false;
 			chat_on = true;
 			w_chat[0] = 0;

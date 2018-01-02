@@ -574,6 +574,8 @@ typedef enum
 	sfx_tossed,
 	sfx_shelit,
 	sfx_vroom,
+	sfx_boing,
+	sfx_smkinv,
 
 	sfx_kwin,
 	sfx_klose,

@@ -625,9 +625,6 @@ void P_Ticker(boolean run)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				P_PlayerAfterThink(&players[i]);
 
-		// SRB2kart - runs bounce collision for players
-		K_KartBouncer();
-
 #ifdef HAVE_BLUA
 		LUAh_ThinkFrame();
 #endif
@@ -742,9 +739,6 @@ void P_PreTicker(INT32 frames)
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				P_PlayerAfterThink(&players[i]);
-
-		// SRB2kart - runs bounce collision for players
-		K_KartBouncer();
 
 #ifdef HAVE_BLUA
 		LUAh_ThinkFrame();

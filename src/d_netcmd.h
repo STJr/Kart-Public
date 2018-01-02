@@ -103,9 +103,16 @@ extern consvar_t cv_magnet, cv_boo, cv_mushroom, cv_triplemushroom, cv_megashroo
 extern consvar_t cv_goldshroom, cv_star, cv_triplebanana, cv_fakeitem, cv_banana;
 extern consvar_t cv_greenshell, cv_redshell, cv_laserwisp, cv_triplegreenshell, cv_bobomb;
 extern consvar_t cv_blueshell, cv_jaws, cv_fireflower, cv_tripleredshell, cv_lightning;
+extern consvar_t cv_feather;
 
 extern consvar_t cv_karthud;
+extern consvar_t cv_kartcheck;
+extern consvar_t cv_kartstarsfx;
 extern consvar_t cv_kartcc;
+extern consvar_t cv_kartballoons;
+extern consvar_t cv_kartfrantic;
+extern consvar_t cv_kartcomeback;
+extern consvar_t cv_kartmirror;
 extern consvar_t cv_speedometer;
 
 extern consvar_t cv_collideminimum;
@@ -170,9 +177,10 @@ typedef enum
 	XD_DELFILE,     // 18
 	XD_SETMOTD,     // 19
 	XD_SUICIDE,     // 20
+	XD_DEMOTED,     // 21
 #ifdef HAVE_BLUA
-	XD_LUACMD,      // 21
-	XD_LUAVAR,      // 22
+	XD_LUACMD,      // 22
+	XD_LUAVAR,      // 23
 #endif
 	MAXNETXCMD
 } netxcmd_t;
@@ -228,6 +236,10 @@ void Command_Retry_f(void);
 void D_GameTypeChanged(INT32 lastgametype); // not a real _OnChange function anymore
 void D_MapChange(INT32 pmapnum, INT32 pgametype, boolean pultmode, boolean presetplayers, INT32 pdelay, boolean pskipprecutscene, boolean pfromlevelselect);
 void ObjectPlace_OnChange(void);
+boolean IsPlayerAdmin(INT32 playernum);
+void SetAdminPlayer(INT32 playernum);
+void ClearAdminPlayers(void);
+void RemoveAdminPlayer(INT32 playernum);
 void ItemFinder_OnChange(void);
 void D_SetPassword(const char *pw);
 

@@ -271,8 +271,8 @@ static void M_SetupMultiPlayer2(INT32 choice);
 // Options
 // Split into multiple parts due to size
 // Controls
-menu_t OP_ControlsDef, OP_ControlListDef, OP_MoveControlsDef;
-menu_t /*OP_MPControlsDef,*/ OP_CameraControlsDef, OP_MiscControlsDef;
+menu_t OP_ControlsDef, /*OP_ControlListDef,*/ OP_MoveControlsDef;
+menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef;
 menu_t OP_P1ControlsDef, OP_P2ControlsDef, OP_MouseOptionsDef;
 menu_t OP_Mouse2OptionsDef, OP_Joystick1Def, OP_Joystick2Def;
 static void M_VideoModeMenu(INT32 choice);
@@ -375,7 +375,7 @@ consvar_t cv_chooseskin = {"chooseskin", DEFAULTSKIN, CV_HIDEN|CV_CALL, skins_co
 // When you add gametypes here, don't forget to update them in CV_AddValue!
 CV_PossibleValue_t gametype_cons_t[] =
 {
-	{GT_RACE, "Race"}, {GT_MATCH, "Match"},
+	{GT_RACE, "Race"}, {GT_MATCH, "Battle"},
 
 	/*						// SRB2kart
 	{GT_COOP, "Co-op"},
@@ -977,9 +977,9 @@ static menuitem_t MP_SplitServerMenu[] =
 
 static menuitem_t MP_PlayerSetupMenu[] =
 {
-	{IT_KEYHANDLER | IT_STRING,   NULL, "Your name",   M_HandleSetupMultiPlayer,   0},
-	{IT_KEYHANDLER | IT_STRING,   NULL, "Your color",  M_HandleSetupMultiPlayer,  16},
-	{IT_KEYHANDLER | IT_STRING,   NULL, "Your player", M_HandleSetupMultiPlayer,  96}, // Tails 01-18-2001
+	{IT_KEYHANDLER | IT_STRING,   NULL, "Name",      M_HandleSetupMultiPlayer,   0},
+	{IT_KEYHANDLER | IT_STRING,   NULL, "Character", M_HandleSetupMultiPlayer,  16}, // Tails 01-18-2001
+	{IT_KEYHANDLER | IT_STRING,   NULL, "Color",     M_HandleSetupMultiPlayer, 152},
 };
 
 // ------------------------------------
@@ -1030,26 +1030,45 @@ static menuitem_t OP_P2ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  80},
 };
 
-static menuitem_t OP_ControlListMenu[] =
+/*static menuitem_t OP_ControlListMenu[] =
 {
 	{IT_SUBMENU | IT_STRING, NULL, "Kart Controls...",          &OP_MoveControlsDef,   10},
 //	{IT_SUBMENU | IT_STRING, NULL, "Multiplayer Controls...",   &OP_MPControlsDef,     20},
-	{IT_SUBMENU | IT_STRING, NULL, "Camera Controls...",        &OP_CameraControlsDef, 20},
-	{IT_SUBMENU | IT_STRING, NULL, "Miscellaneous Controls...", &OP_MiscControlsDef,   30},
-};
+//	{IT_SUBMENU | IT_STRING, NULL, "Camera Controls...",        &OP_CameraControlsDef, 20},
+//	{IT_SUBMENU | IT_STRING, NULL, "Miscellaneous Controls...", &OP_MiscControlsDef,   20},
+};*/
 
 static menuitem_t OP_MoveControlsMenu[] =
 {
-	{IT_CALL | IT_STRING2, NULL, "Forward",        M_ChangeControl, gc_forward    },
-	{IT_CALL | IT_STRING2, NULL, "Reverse",        M_ChangeControl, gc_backward   },
-	{IT_CALL | IT_STRING2, NULL, "Turn Left",      M_ChangeControl, gc_turnleft   },
-	{IT_CALL | IT_STRING2, NULL, "Turn Right",     M_ChangeControl, gc_turnright  },
-	{IT_CALL | IT_STRING2, NULL, "Accelerate",     M_ChangeControl, gc_accelerate },
-	{IT_CALL | IT_STRING2, NULL, "Drift",          M_ChangeControl, gc_jump       },
-	{IT_CALL | IT_STRING2, NULL, "Brake",          M_ChangeControl, gc_brake      },
-	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item", M_ChangeControl, gc_fire       },
+	{IT_CALL | IT_STRING2, NULL, "Aim Forward",      M_ChangeControl, gc_aimforward },
+	{IT_CALL | IT_STRING2, NULL, "Aim Backward",     M_ChangeControl, gc_aimbackward},
+	{IT_CALL | IT_STRING2, NULL, "Turn Left",        M_ChangeControl, gc_turnleft   },
+	{IT_CALL | IT_STRING2, NULL, "Turn Right",       M_ChangeControl, gc_turnright  },
+	{IT_CALL | IT_STRING2, NULL, "Accelerate",       M_ChangeControl, gc_accelerate },
+	{IT_CALL | IT_STRING2, NULL, "Drift",            M_ChangeControl, gc_jump       },
+	{IT_CALL | IT_STRING2, NULL, "Brake",            M_ChangeControl, gc_brake      },
+	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item",   M_ChangeControl, gc_fire       },
+	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback   },
+	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle  },
+
+	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause      },
+	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console    },
+	
+	{IT_CALL | IT_STRING2, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
+	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
+	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
+	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate   },
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Actions...",&OP_CustomControlsDef,    128},
 //	{IT_CALL | IT_STRING2, NULL, "Strafe Left",    M_ChangeControl, gc_strafeleft },
 //	{IT_CALL | IT_STRING2, NULL, "Strafe Right",   M_ChangeControl, gc_straferight},
+};
+
+static menuitem_t OP_CustomControlsMenu[] = 
+{
+	{IT_CALL | IT_STRING2, NULL, "Custom Action 1", M_ChangeControl, gc_custom1},
+	{IT_CALL | IT_STRING2, NULL, "Custom Action 2", M_ChangeControl, gc_custom2},
+	{IT_CALL | IT_STRING2, NULL, "Custom Action 3", M_ChangeControl, gc_custom3},
+
 };
 
 // Obsolete thanks to Kart
@@ -1064,18 +1083,14 @@ static menuitem_t OP_MoveControlsMenu[] =
 //	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 5",    M_ChangeControl, gc_wepslot5     },
 //	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 6",    M_ChangeControl, gc_wepslot6     },
 //	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 7",    M_ChangeControl, gc_wepslot7     },
-};*/
+};
 
 static menuitem_t OP_CameraControlsMenu[] =
 {
 //	{IT_CALL | IT_STRING2, NULL, "Look Up",          M_ChangeControl, gc_lookup       },
 //	{IT_CALL | IT_STRING2, NULL, "Look Down",        M_ChangeControl, gc_lookdown     },
-	{IT_CALL | IT_STRING2, NULL, "Aim Forward",      M_ChangeControl, gc_aimforward   },
-	{IT_CALL | IT_STRING2, NULL, "Aim Backward",     M_ChangeControl, gc_aimbackward  },
 //	{IT_CALL | IT_STRING2, NULL, "Center View",      M_ChangeControl, gc_centerview   },
 //	{IT_CALL | IT_STRING2, NULL, "Mouselook",        M_ChangeControl, gc_mouseaiming  },
-	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback     },
-	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle    },
 };
 
 static menuitem_t OP_MiscControlsMenu[] =
@@ -1091,7 +1106,7 @@ static menuitem_t OP_MiscControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey      },
 	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores       },
 	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate     },
-};
+};*/
 
 static menuitem_t OP_Joystick1Menu[] =
 {
@@ -1657,12 +1672,12 @@ menu_t MP_RoomDef =
 menu_t MP_SplitServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
 menu_t MP_PlayerSetupDef =
 {
-	"M_SPLAYR",
+	NULL, //"M_SPLAYR"
 	sizeof (MP_PlayerSetupMenu)/sizeof (menuitem_t),
 	&MP_MainDef,
 	MP_PlayerSetupMenu,
 	M_DrawSetupMultiPlayerMenu,
-	27, 40,
+	32, 16,
 	0,
 	M_QuitMultiPlayerMenu
 };
@@ -1670,11 +1685,12 @@ menu_t MP_PlayerSetupDef =
 // Options
 menu_t OP_MainDef = DEFAULTMENUSTYLE("M_OPTTTL", OP_MainMenu, &MainDef, 60, 30);
 menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDef, 60, 30);
-menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
-menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlListDef);
+//menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
+menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDef);
 //menu_t OP_MPControlsDef = CONTROLMENUSTYLE(OP_MPControlsMenu, &OP_ControlListDef);
-menu_t OP_CameraControlsDef = CONTROLMENUSTYLE(OP_CameraControlsMenu, &OP_ControlListDef);
-menu_t OP_MiscControlsDef = CONTROLMENUSTYLE(OP_MiscControlsMenu, &OP_ControlListDef);
+//menu_t OP_CameraControlsDef = CONTROLMENUSTYLE(OP_CameraControlsMenu, &OP_ControlListDef);
+//menu_t OP_MiscControlsDef = CONTROLMENUSTYLE(OP_MiscControlsMenu, &OP_ControlListDef);
+menu_t OP_CustomControlsDef = CONTROLMENUSTYLE(OP_CustomControlsMenu, &OP_MoveControlsDef);
 menu_t OP_P1ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P1ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_P2ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P2ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_MouseOptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_MouseOptionsMenu, &OP_P1ControlsDef, 60, 30);
@@ -2620,7 +2636,7 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_switchteam].status = IT_DISABLED;
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
 
-		if ((server || adminplayer == consoleplayer))
+		if ((server || IsPlayerAdmin(consoleplayer)))
 		{
 			MPauseMenu[mpause_switchmap].status = IT_STRING | IT_CALL;
 			if (G_GametypeHasTeams())
@@ -3962,7 +3978,7 @@ static void M_Options(INT32 choice)
 	(void)choice;
 
 	// if the player is not admin or server, disable server options
-	OP_MainMenu[5].status = (Playing() && !(server || adminplayer == consoleplayer)) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[5].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	// if the player is playing _at all_, disable the erase data options
 	OP_DataOptionsMenu[1].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
@@ -5637,11 +5653,11 @@ static void M_HandleStaffReplay(INT32 choice)
 	{
 		case KEY_DOWNARROW:
 			M_NextOpt();
-			S_StartSound(NULL, sfx_bewar1);
+			S_StartSound(NULL, sfx_menu1);
 			break;
 		case KEY_UPARROW:
 			M_PrevOpt();
-			S_StartSound(NULL, sfx_bewar1);
+			S_StartSound(NULL, sfx_menu1);
 			break;
 		case KEY_BACKSPACE:
 		case KEY_ESCAPE:
@@ -6462,9 +6478,6 @@ static void M_HandleConnectIP(INT32 choice)
 // ========================
 // Tails 03-02-2002
 
-#define PLBOXW    8
-#define PLBOXH    9
-
 static INT32      multi_tics;
 static state_t   *multi_state;
 
@@ -6483,8 +6496,13 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	INT32 mx, my, st, flags = 0;
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
+	patch_t *statbg = W_CachePatchName("K_STATBG", PU_CACHE);
+	patch_t *statdot = W_CachePatchName("K_SDOT0", PU_CACHE);
 	patch_t *patch;
 	UINT8 frame;
+	UINT8 speed;
+	UINT8 weight;
+	UINT8 i;
 
 	mx = MP_PlayerSetupDef.x;
 	my = MP_PlayerSetupDef.y;
@@ -6493,21 +6511,101 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	M_DrawGenericMenu();
 
 	// draw name string
-	M_DrawTextBox(mx + 90, my - 8, MAXPLAYERNAME, 1);
-	V_DrawString(mx + 98, my, V_ALLOWLOWERCASE, setupm_name);
+	M_DrawTextBox(mx + 32, my - 8, MAXPLAYERNAME, 1);
+	V_DrawString(mx + 40, my, V_ALLOWLOWERCASE, setupm_name);
 
 	// draw skin string
-	V_DrawString(mx + 90, my + 96,
+	V_DrawString(mx + 80, my + 16,
 	             ((MP_PlayerSetupMenu[2].status & IT_TYPE) == IT_SPACE ? V_TRANSLUCENT : 0)|V_YELLOWMAP|V_ALLOWLOWERCASE,
 	             skins[setupm_fakeskin].realname);
 
 	// draw the name of the color you have chosen
 	// Just so people don't go thinking that "Default" is Green.
-	V_DrawString(208, 72, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);				// SRB2kart
+	V_DrawString(mx + 48, my + 152, V_YELLOWMAP|V_ALLOWLOWERCASE, KartColor_Names[setupm_fakecolor]);	// SRB2kart
 
 	// draw text cursor for name
 	if (!itemOn && skullAnimCounter < 4) // blink cursor
-		V_DrawCharacter(mx + 98 + V_StringWidth(setupm_name, 0), my, '_',false);
+		V_DrawCharacter(mx + 48 + V_StringWidth(setupm_name, 0), my, '_',false);
+
+	// SRB2Kart: draw the stat backer
+	V_DrawFixedPatch((mx+141)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, NULL);
+
+	for (i = 0; i < numskins; i++) // draw the stat dots
+	{
+		if (i != setupm_fakeskin && R_SkinAvailable(skins[i].name) != -1)
+		{
+			speed = skins[i].kartspeed;
+			weight = skins[i].kartweight;
+			V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, NULL);
+		}
+	}
+
+	// 2.2 color bar backported with permission
+#define charw 74
+#define indexwidth 8
+	{
+		const INT32 colwidth = (282-charw)/(2*indexwidth);
+		INT32 j = -colwidth;
+		INT16 col = setupm_fakecolor - colwidth;
+		INT32 x = mx-13;
+		INT32 w = indexwidth;
+		UINT8 h;
+
+		while (col < 1)
+			col += MAXSKINCOLORS-1;
+		while (j <= colwidth)
+		{
+			if (!(j++))
+				w = charw;
+			else
+				w = indexwidth;
+			for (h = 0; h < 16; h++)
+				V_DrawFill(x, my+164+h, w, 1, colortranslations[col][h]);
+			if (++col >= MAXSKINCOLORS)
+				col -= MAXSKINCOLORS-1;
+			x += w;
+		}
+	}
+#undef indexwidth
+
+	// character bar, ripped off the color bar :V
+#define iconwidth 32
+	{
+		const INT32 icons = 4;
+		INT32 k = -icons;
+		INT16 col = setupm_fakeskin - icons;
+		INT32 x = BASEVIDWIDTH/2 - ((icons+1)*24) - 4;
+		fixed_t scale = FRACUNIT/2;
+		INT32 offx = 8, offy = 8;
+		patch_t *cursor = W_CachePatchName("K_CHRCUR", PU_CACHE);
+		patch_t *face;
+
+		if (col < 0)
+			col += numskins;
+		while (k <= icons)
+		{
+			if (!(k++))
+			{
+				scale = FRACUNIT;
+				offx = 12;
+				offy = 0;
+			}
+			else
+			{
+				scale = FRACUNIT/2;
+				offx = 8;
+				offy = 8;
+			}
+			face = W_CachePatchName(skins[col].face, PU_CACHE);
+			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, scale, 0, face, R_GetTranslationColormap(col, setupm_fakecolor, 0));
+			if (scale == FRACUNIT) // bit of a hack
+				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, scale, 0, cursor, R_GetTranslationColormap(col, setupm_fakecolor, 0));
+			if (++col >= numskins)
+				col -= numskins;
+			x += FixedMul(iconwidth<<FRACBITS, 3*scale/2)/FRACUNIT;
+		}
+	}
+#undef iconwidth
 
 	// anim the player in the box
 	if (--multi_tics <= 0)
@@ -6534,25 +6632,34 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		frame = 0; // Try to use standing frame
 
 	sprframe = &sprdef->spriteframes[frame];
-	patch = W_CachePatchNum(sprframe->lumppat[0], PU_CACHE);
+	patch = W_CachePatchNum(sprframe->lumppat[1], PU_CACHE);
 	if (sprframe->flip & 1) // Only for first sprite
 		flags |= V_FLIP; // This sprite is left/right flipped!
 
 	// draw box around guy
-	M_DrawTextBox(mx + 90, my + 8, PLBOXW, PLBOXH);
+	V_DrawFill((mx+42)-(charw/2), my+66, charw, 84, 239);
+
+	if (skullAnimCounter < 4) // SRB2Kart: we draw this dot later so that it's not covered if there's multiple skins with the same stats
+		statdot = W_CachePatchName("K_SDOT2", PU_CACHE);
+	else
+		statdot = W_CachePatchName("K_SDOT1", PU_CACHE);
+
+	speed = skins[setupm_fakeskin].kartspeed;
+	weight = skins[setupm_fakeskin].kartweight;
 
 	// draw player sprite
 	if (!setupm_fakecolor) // should never happen but hey, who knows
 	{
 		if (skins[setupm_fakeskin].flags & SF_HIRES)
 		{
-			V_DrawSciencePatch((mx+98+(PLBOXW*8/2))<<FRACBITS,
-						(my+16+(PLBOXH*8)-12)<<FRACBITS,
+			V_DrawSciencePatch((mx+42)<<FRACBITS,
+						(my+132)<<FRACBITS,
 						flags, patch,
 						skins[setupm_fakeskin].highresscale);
 		}
 		else
-			V_DrawScaledPatch(mx + 98 + (PLBOXW*8/2), my + 16 + (PLBOXH*8) - 12, flags, patch);
+			V_DrawScaledPatch(mx+42, my+132, flags, patch);
+		V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, NULL);
 	}
 	else
 	{
@@ -6560,16 +6667,18 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 		if (skins[setupm_fakeskin].flags & SF_HIRES)
 		{
-			V_DrawFixedPatch((mx+98+(PLBOXW*8/2))<<FRACBITS,
-						(my+16+(PLBOXH*8)-12)<<FRACBITS,
+			V_DrawFixedPatch((mx+42)<<FRACBITS,
+						(my+132)<<FRACBITS,
 						skins[setupm_fakeskin].highresscale,
 						flags, patch, colormap);
 		}
 		else
-			V_DrawMappedPatch(mx + 98 + (PLBOXW*8/2), my + 16 + (PLBOXH*8) - 12, flags, patch, colormap);
+			V_DrawMappedPatch(mx+42, my+132, flags, patch, colormap);
 
+		V_DrawFixedPatch(((mx+178) + ((speed-1)*8))<<FRACBITS, ((my+76) + ((weight-1)*8))<<FRACBITS, FRACUNIT, 0, statdot, colormap);
 		Z_Free(colormap);
 	}
+#undef charw
 }
 
 // Handle 1P/2P MP Setup
@@ -6591,12 +6700,12 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		case KEY_LEFTARROW:
-			if (itemOn == 2)       //player skin
+			if (itemOn == 1)       //player skin
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakeskin--;
 			}
-			else if (itemOn == 1) // player color
+			else if (itemOn == 2) // player color
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakecolor--;
@@ -6604,12 +6713,12 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		case KEY_RIGHTARROW:
-			if (itemOn == 2)       //player skin
+			if (itemOn == 1)       //player skin
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakeskin++;
 			}
-			else if (itemOn == 1) // player color
+			else if (itemOn == 2) // player color
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_fakecolor++;
@@ -6873,15 +6982,15 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Unhide the three non-P2 controls
-	//OP_MPControlsMenu[0].status = IT_CALL|IT_STRING2;
-	//OP_MPControlsMenu[1].status = IT_CALL|IT_STRING2;
-	//OP_MPControlsMenu[2].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[12].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[13].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[14].status = IT_CALL|IT_STRING2;
 	// Unide the pause/console controls too
-	OP_MiscControlsMenu[3].status = IT_CALL|IT_STRING2;
-	OP_MiscControlsMenu[4].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[10].status = IT_CALL|IT_STRING2;
+	OP_MoveControlsMenu[11].status = IT_CALL|IT_STRING2;
 
-	OP_ControlListDef.prevMenu = &OP_P1ControlsDef;
-	M_SetupNextMenu(&OP_ControlListDef);
+	OP_MoveControlsDef.prevMenu = &OP_P1ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
 }
 
 static void M_Setup2PControlsMenu(INT32 choice)
@@ -6892,15 +7001,15 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Hide the three non-P2 controls
-	//OP_MPControlsMenu[0].status = IT_GRAYEDOUT2;
-	//OP_MPControlsMenu[1].status = IT_GRAYEDOUT2;
-	//OP_MPControlsMenu[2].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
 	// Hide the pause/console controls too
-	OP_MiscControlsMenu[3].status = IT_GRAYEDOUT2;
-	OP_MiscControlsMenu[4].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
 
-	OP_ControlListDef.prevMenu = &OP_P2ControlsDef;
-	M_SetupNextMenu(&OP_ControlListDef);
+	OP_MoveControlsDef.prevMenu = &OP_P2ControlsDef;
+	M_SetupNextMenu(&OP_MoveControlsDef);
 }
 
 // Draws the Customise Controls menu

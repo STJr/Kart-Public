@@ -43,6 +43,7 @@
 #include "lzf.h"
 #include "lua_script.h"
 #include "lua_hook.h"
+#include "k_kart.h"
 
 #ifdef CLIENT_LOADINGSCREEN
 // cl loading screen
@@ -519,8 +520,6 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 		rsp->powers[j] = (UINT16)SHORT(players[i].powers[j]);
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		rsp->kartstuff[j] = LONG(players[i].kartstuff[j]); // SRB2kart
-	for (j = 0; j < MAXPLAYERS; ++j)
-		rsp->collide[j] = (UINT8)players[i].collide[j]; // SRB2kart
 
 	// Score is resynched in the rspfirm resync packet
 	rsp->health = 0; // resynched with mo health
@@ -535,8 +534,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	// Just in case Lua does something like
 	// modify these at runtime
 	// SRB2kart
-	rsp->kartspeed = (fixed_t)LONG(players[i].kartspeed);
-	rsp->kartweight = (fixed_t)LONG(players[i].kartweight);
+	rsp->kartspeed = (UINT8)LONG(players[i].kartspeed);
+	rsp->kartweight = (UINT8)LONG(players[i].kartweight);
 	//
 	rsp->normalspeed = (fixed_t)LONG(players[i].normalspeed);
 	rsp->runspeed = (fixed_t)LONG(players[i].runspeed);
@@ -576,6 +575,7 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->starposty = SHORT(players[i].starposty);
 	rsp->starpostz = SHORT(players[i].starpostz);
 	rsp->starpostnum = LONG(players[i].starpostnum);
+	rsp->starpostcount = LONG(players[i].starpostcount);
 	rsp->starposttime = (tic_t)LONG(players[i].starposttime);
 	rsp->starpostangle = (angle_t)LONG(players[i].starpostangle);
 
@@ -653,8 +653,6 @@ static void resynch_read_player(resynch_pak *rsp)
 		players[i].powers[j] = (UINT16)SHORT(rsp->powers[j]);
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		players[i].kartstuff[j] = LONG(rsp->kartstuff[j]); // SRB2kart
-	for (j = 0; j < MAXPLAYERS; ++j)
-		players[i].collide[j] = (UINT8)rsp->collide[j]; // SRB2kart
 
 	// Score is resynched in the rspfirm resync packet
 	players[i].health = rsp->health;
@@ -668,8 +666,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].skin = LONG(rsp->skin);
 	// Just in case Lua does something like
 	// modify these at runtime
-	players[i].kartspeed = (fixed_t)LONG(rsp->kartspeed);
-	players[i].kartweight = (fixed_t)LONG(rsp->kartweight);
+	players[i].kartspeed = (UINT8)LONG(rsp->kartspeed);
+	players[i].kartweight = (UINT8)LONG(rsp->kartweight);
 
 	players[i].normalspeed = (fixed_t)LONG(rsp->normalspeed);
 	players[i].runspeed = (fixed_t)LONG(rsp->runspeed);
@@ -709,6 +707,7 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].starposty = SHORT(rsp->starposty);
 	players[i].starpostz = SHORT(rsp->starpostz);
 	players[i].starpostnum = LONG(rsp->starpostnum);
+	players[i].starpostcount = LONG(rsp->starpostcount);
 	players[i].starposttime = (tic_t)LONG(rsp->starposttime);
 	players[i].starpostangle = (angle_t)LONG(rsp->starpostangle);
 
@@ -1366,15 +1365,18 @@ static boolean SV_SendServerConfig(INT32 node)
 	netbuffer->u.servercfg.gamestate = (UINT8)gamestate;
 	netbuffer->u.servercfg.gametype = (UINT8)gametype;
 	netbuffer->u.servercfg.modifiedgame = (UINT8)modifiedgame;
-	netbuffer->u.servercfg.adminplayer = (SINT8)adminplayer;
 
 	// we fill these structs with FFs so that any players not in game get sent as 0xFFFF
 	// which is nice and easy for us to detect
 	memset(netbuffer->u.servercfg.playerskins, 0xFF, sizeof(netbuffer->u.servercfg.playerskins));
 	memset(netbuffer->u.servercfg.playercolor, 0xFF, sizeof(netbuffer->u.servercfg.playercolor));
 
+	memset(netbuffer->u.servercfg.adminplayers, -1, sizeof(netbuffer->u.servercfg.adminplayers));
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		netbuffer->u.servercfg.adminplayers[i] = (SINT8)adminplayers[i];
+
 		if (!playeringame[i])
 			continue;
 		netbuffer->u.servercfg.playerskins[i] = (UINT8)players[i].skin;
@@ -2030,7 +2032,7 @@ static void CL_ConnectToServer(boolean viams)
 	G_SetGamestate(GS_WAITINGPLAYERS);
 	wipegamestate = GS_WAITINGPLAYERS;
 
-	adminplayer = -1;
+	ClearAdminPlayers();
 	pnumnodes = 1;
 	oldtic = I_GetTime() - 1;
 #ifndef NONET
@@ -2409,8 +2411,10 @@ static void CL_RemovePlayer(INT32 playernum)
 	// Reset the name
 	sprintf(player_names[playernum], "Player %d", playernum+1);
 
-	if (playernum == adminplayer)
-		adminplayer = -1; // don't stay admin after you're gone
+	if (IsPlayerAdmin(playernum))
+	{
+		RemoveAdminPlayer(playernum); // don't stay admin after you're gone
+	}
 
 	if (playernum == displayplayer)
 		displayplayer = consoleplayer; // don't look through someone's view who isn't there
@@ -2421,6 +2425,8 @@ static void CL_RemovePlayer(INT32 playernum)
 
 	if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
 		P_CheckSurvivors();
+	else if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF)
+		K_CheckBalloons(); // SRB2Kart
 	else if (gametype == GT_RACE || gametype == GT_COMPETITION)
 		P_CheckRacers();
 }
@@ -2528,7 +2534,7 @@ static void Command_Nodes(void)
 			if (I_GetNodeAddress && (address = I_GetNodeAddress(playernode[i])) != NULL)
 				CONS_Printf(" - %s", address);
 
-			if (i == adminplayer)
+			if (IsPlayerAdmin(i))
 				CONS_Printf(M_GetText(" (verified admin)"));
 
 			if (players[i].spectator)
@@ -2553,7 +2559,7 @@ static void Command_Ban(void)
 		return;
 	}
 
-	if (server || adminplayer == consoleplayer)
+	if (server || IsPlayerAdmin(consoleplayer))
 	{
 		XBOXSTATIC UINT8 buf[3 + MAX_REASONLENGTH];
 		UINT8 *p = buf;
@@ -2619,7 +2625,7 @@ static void Command_Kick(void)
 		return;
 	}
 
-	if (server || adminplayer == consoleplayer)
+	if (server || IsPlayerAdmin(consoleplayer))
 	{
 		XBOXSTATIC UINT8 buf[3 + MAX_REASONLENGTH];
 		UINT8 *p = buf;
@@ -2676,7 +2682,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	pnum = READUINT8(*p);
 	msg = READUINT8(*p);
 
-	if (pnum == serverplayer && playernum == adminplayer)
+	if (pnum == serverplayer && IsPlayerAdmin(playernum))
 	{
 		CONS_Printf(M_GetText("Server is being shut down remotely. Goodbye!\n"));
 
@@ -2687,7 +2693,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 
 	// Is playernum authorized to make this kick?
-	if (playernum != serverplayer && playernum != adminplayer
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
 		&& !(playerpernode[playernode[playernum]] == 2
 		&& nodetoplayer2[playernode[playernum]] == pnum))
 	{
@@ -2950,6 +2956,7 @@ void SV_ResetServer(void)
 		playeringame[i] = false;
 		playernode[i] = UINT8_MAX;
 		sprintf(player_names[i], "Player %d", i + 1);
+		adminplayers[i] = -1; // Populate the entire adminplayers array with -1.
 	}
 
 	mynode = 0;
@@ -3024,7 +3031,7 @@ void D_QuitNetGame(void)
 	}
 
 	D_CloseConnection();
-	adminplayer = -1;
+	ClearAdminPlayers();
 
 	DEBFILE("===========================================================================\n"
 	        "                         Log finish\n"
@@ -3055,7 +3062,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	INT16 node, newplayernum;
 	boolean splitscreenplayer;
 
-	if (playernum != serverplayer && playernum != adminplayer)
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
 		// protect against hacked/buggy client
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal add player command received from %s\n"), player_names[playernum]);
@@ -3540,7 +3547,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				maketic = gametic = neededtic = (tic_t)LONG(netbuffer->u.servercfg.gametic);
 				gametype = netbuffer->u.servercfg.gametype;
 				modifiedgame = netbuffer->u.servercfg.modifiedgame;
-				adminplayer = netbuffer->u.servercfg.adminplayer;
+				for (j = 0; j < MAXPLAYERS; j++)
+					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];
 				memcpy(server_context, netbuffer->u.servercfg.server_context, 8);
 			}
 
