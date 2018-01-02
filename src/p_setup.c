@@ -76,6 +76,9 @@
 #include "p_slopes.h"
 #endif
 
+// SRB2Kart
+#include "k_kart.h"
+
 //
 // Map MD5, calculated on level load.
 // Sent to clients in PT_SERVERINFO.
