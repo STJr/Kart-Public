@@ -3948,6 +3948,28 @@ bounceback:
 		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
 	}
 
+	if (mo->player)
+	{
+		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+		if (mo->eflags & MFE_VERTICALFLIP)
+			fx->eflags |= MFE_VERTICALFLIP;
+		else
+			fx->eflags &= ~MFE_VERTICALFLIP;
+		fx->scale = mo->scale;
+
+		if (cv_collidesounds.value == 1)
+			S_StartSound(mo, cv_collidesoundnum.value);
+
+		if (P_AproxDistance(tmxmove, tmymove) < 25*FRACUNIT)
+		{
+			fixed_t momdiflength = P_AproxDistance(tmxmove, tmymove);
+			fixed_t normalisedx = FixedDiv(tmxmove, momdiflength);
+			fixed_t normalisedy = FixedDiv(tmymove, momdiflength);
+			tmxmove = FixedMul(25*FRACUNIT, normalisedx);
+			tmymove = FixedMul(25*FRACUNIT, normalisedy);
+		}
+	}
+
 	P_HitBounceLine(bestslideline); // clip the moves
 
 	mo->momx = tmxmove;
