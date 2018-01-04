@@ -3163,38 +3163,21 @@ static void P_HitSlideLine(line_t *ld)
 //
 static void P_HitBounceLine(line_t *ld)
 {
-	angle_t lineangle, moveangle, deltaangle;
+	INT32 side;
+	angle_t lineangle;
 	fixed_t movelen;
 
-	if (ld->slopetype == ST_HORIZONTAL)
-	{
-		tmymove = -tmymove;
-		return;
-	}
-
-	if (ld->slopetype == ST_VERTICAL)
-	{
-		tmxmove = -tmxmove;
-		return;
-	}
-
-	lineangle = R_PointToAngle2(0, 0, ld->dx, ld->dy);
-
-	if (lineangle >= ANGLE_180)
-		lineangle -= ANGLE_180;
-
-	moveangle = R_PointToAngle2(0, 0, tmxmove, tmymove);
-	deltaangle = moveangle + 2*(lineangle - moveangle);
+	side = P_PointOnLineSide(slidemo->x, slidemo->y, ld);
+	lineangle = R_PointToAngle2(0, 0, ld->dx, ld->dy)-ANGLE_90;
+	if (side == 1)
+		lineangle += ANGLE_180;
 
 	lineangle >>= ANGLETOFINESHIFT;
-	deltaangle >>= ANGLETOFINESHIFT;
 
 	movelen = P_AproxDistance(tmxmove, tmymove);
 
-	tmxmove = FixedMul(movelen, FINECOSINE(deltaangle));
-	tmymove = FixedMul(movelen, FINESINE(deltaangle));
-
-	deltaangle = R_PointToAngle2(0, 0, tmxmove, tmymove);
+	tmxmove += FixedMul(movelen, FINECOSINE(lineangle));
+	tmymove += FixedMul(movelen, FINESINE(lineangle));
 }
 
 //
@@ -3824,15 +3807,15 @@ void P_BounceMove(mobj_t *mo)
 	fixed_t leadx, leady;
 	fixed_t trailx, traily;
 	//fixed_t newx, newy;
-	INT32 hitcount;
+	//INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
 	slidemo = mo;
-	hitcount = 0;
+	//hitcount = 0;
 
-retry:
-	if (++hitcount == 3) // don't loop forever
-		return; //goto bounceback;
+/*retry:
+	if (++hitcount == 3)
+		goto bounceback; // don't loop forever*/
 
 	if (mo->player)
 	{
@@ -3906,8 +3889,8 @@ bounceback:
 	}*/
 
 	// fudge a bit to make sure it doesn't hit
-	bestslidefrac -= 0x800;
-	/*if (bestslidefrac > 0)
+	/*bestslidefrac -= 0x800;
+	if (bestslidefrac > 0)
 	{
 		newx = FixedMul(mmomx, bestslidefrac);
 		newy = FixedMul(mmomy, bestslidefrac);
@@ -3983,8 +3966,9 @@ bounceback:
 		mo->player->cmomy = tmymove;
 	}
 
-	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true))
-		goto retry;
+	/*if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true))
+		goto retry;*/
+	P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true);
 }
 
 //
