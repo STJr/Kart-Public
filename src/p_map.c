@@ -3823,7 +3823,7 @@ void P_BounceMove(mobj_t *mo)
 {
 	fixed_t leadx, leady;
 	fixed_t trailx, traily;
-	fixed_t newx, newy;
+	//fixed_t newx, newy;
 	INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
@@ -3831,8 +3831,8 @@ void P_BounceMove(mobj_t *mo)
 	hitcount = 0;
 
 retry:
-	if (++hitcount == 3)
-		goto bounceback; // don't loop forever
+	if (++hitcount == 3) // don't loop forever
+		return; //goto bounceback;
 
 	if (mo->player)
 	{
@@ -3881,7 +3881,7 @@ retry:
 	P_PathTraverse(leadx, traily, leadx + mmomx, traily + mmomy, PT_ADDLINES, PTR_SlideTraverse);
 
 	// move up to the wall
-	if (bestslidefrac == FRACUNIT + 1)
+	/*if (bestslidefrac == FRACUNIT + 1)
 	{
 		// the move must have hit the middle, so bounce straight back
 bounceback:
@@ -3903,18 +3903,18 @@ bounceback:
 			}
 		}
 		return;
-	}
+	}*/
 
 	// fudge a bit to make sure it doesn't hit
 	bestslidefrac -= 0x800;
-	if (bestslidefrac > 0)
+	/*if (bestslidefrac > 0)
 	{
 		newx = FixedMul(mmomx, bestslidefrac);
 		newy = FixedMul(mmomy, bestslidefrac);
 
 		if (!P_TryMove(mo, mo->x + newx, mo->y + newy, true))
 			goto bounceback;
-	}
+	}*/
 
 	// Now continue along the wall.
 	// First calculate remainder.
@@ -3926,7 +3926,31 @@ bounceback:
 	if (bestslidefrac <= 0)
 		return;
 
-	if (mo->type == MT_SHELL)
+	if (mo->player)
+	{
+		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+		if (mo->eflags & MFE_VERTICALFLIP)
+			fx->eflags |= MFE_VERTICALFLIP;
+		else
+			fx->eflags &= ~MFE_VERTICALFLIP;
+		fx->scale = mo->scale;
+
+		if (cv_collidesounds.value == 1)
+			S_StartSound(mo, cv_collidesoundnum.value);
+
+		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+
+		if (P_AproxDistance(tmxmove, tmymove) < 25*FRACUNIT)
+		{
+			fixed_t momdiflength = P_AproxDistance(tmxmove, tmymove);
+			fixed_t normalisedx = FixedDiv(tmxmove, momdiflength);
+			fixed_t normalisedy = FixedDiv(tmymove, momdiflength);
+			tmxmove = FixedMul(25*FRACUNIT, normalisedx);
+			tmymove = FixedMul(25*FRACUNIT, normalisedy);
+		}
+	}
+	else if (mo->type == MT_SHELL)
 	{
 		tmxmove = mmomx;
 		tmymove = mmomy;
@@ -3946,28 +3970,6 @@ bounceback:
 	{
 		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
 		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
-	}
-
-	if (mo->player)
-	{
-		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
-		if (mo->eflags & MFE_VERTICALFLIP)
-			fx->eflags |= MFE_VERTICALFLIP;
-		else
-			fx->eflags &= ~MFE_VERTICALFLIP;
-		fx->scale = mo->scale;
-
-		if (cv_collidesounds.value == 1)
-			S_StartSound(mo, cv_collidesoundnum.value);
-
-		if (P_AproxDistance(tmxmove, tmymove) < 25*FRACUNIT)
-		{
-			fixed_t momdiflength = P_AproxDistance(tmxmove, tmymove);
-			fixed_t normalisedx = FixedDiv(tmxmove, momdiflength);
-			fixed_t normalisedy = FixedDiv(tmymove, momdiflength);
-			tmxmove = FixedMul(25*FRACUNIT, normalisedx);
-			tmymove = FixedMul(25*FRACUNIT, normalisedy);
-		}
 	}
 
 	P_HitBounceLine(bestslideline); // clip the moves
