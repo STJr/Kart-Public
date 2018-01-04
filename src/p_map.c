@@ -3169,12 +3169,16 @@ static void P_HitBounceLine(line_t *ld)
 
 	side = P_PointOnLineSide(slidemo->x, slidemo->y, ld);
 	lineangle = R_PointToAngle2(0, 0, ld->dx, ld->dy)-ANGLE_90;
+
 	if (side == 1)
 		lineangle += ANGLE_180;
 
 	lineangle >>= ANGLETOFINESHIFT;
 
 	movelen = P_AproxDistance(tmxmove, tmymove);
+
+	if (slidemo->player && movelen < 25*FRACUNIT)
+		movelen = 25*FRACUNIT;
 
 	tmxmove += FixedMul(movelen, FINECOSINE(lineangle));
 	tmymove += FixedMul(movelen, FINESINE(lineangle));
@@ -3909,31 +3913,7 @@ bounceback:
 	if (bestslidefrac <= 0)
 		return;
 
-	if (mo->player)
-	{
-		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
-		if (mo->eflags & MFE_VERTICALFLIP)
-			fx->eflags |= MFE_VERTICALFLIP;
-		else
-			fx->eflags &= ~MFE_VERTICALFLIP;
-		fx->scale = mo->scale;
-
-		if (cv_collidesounds.value == 1)
-			S_StartSound(mo, cv_collidesoundnum.value);
-
-		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
-		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
-
-		if (P_AproxDistance(tmxmove, tmymove) < 25*FRACUNIT)
-		{
-			fixed_t momdiflength = P_AproxDistance(tmxmove, tmymove);
-			fixed_t normalisedx = FixedDiv(tmxmove, momdiflength);
-			fixed_t normalisedy = FixedDiv(tmymove, momdiflength);
-			tmxmove = FixedMul(25*FRACUNIT, normalisedx);
-			tmymove = FixedMul(25*FRACUNIT, normalisedy);
-		}
-	}
-	else if (mo->type == MT_SHELL)
+	if (mo->type == MT_SHELL)
 	{
 		tmxmove = mmomx;
 		tmymove = mmomy;
@@ -3953,6 +3933,18 @@ bounceback:
 	{
 		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
 		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+		if (mo->player)
+		{
+			mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+			if (mo->eflags & MFE_VERTICALFLIP)
+				fx->eflags |= MFE_VERTICALFLIP;
+			else
+				fx->eflags &= ~MFE_VERTICALFLIP;
+			fx->scale = mo->scale;
+
+			if (cv_collidesounds.value == 1)
+				S_StartSound(mo, cv_collidesoundnum.value);
+		}
 	}
 
 	P_HitBounceLine(bestslideline); // clip the moves
