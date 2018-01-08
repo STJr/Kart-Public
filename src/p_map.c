@@ -1232,7 +1232,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // overhead
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
-		K_KartBouncing(thing, tmthing, false);
+		K_KartBouncing(thing, tmthing, false, false);
 	}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
@@ -1679,7 +1679,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
 			{
-				K_KartBouncing(tmthing, thing, true);
+				K_KartBouncing(tmthing, thing, true, false);
 				if (gametype != GT_RACE && tmthing->player->kartstuff[k_feather] & 2)
 				{
 					K_StealBalloon(tmthing->player, thing->player, false);
@@ -1688,7 +1688,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
 			{
-				K_KartBouncing(thing, tmthing, true);
+				K_KartBouncing(thing, tmthing, true, false);
 				if (gametype != GT_RACE && thing->player->kartstuff[k_feather] & 2)
 				{
 					K_StealBalloon(thing->player, tmthing->player, false);
@@ -1696,7 +1696,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				}
 			}
 			else
-				K_KartBouncing(tmthing, thing, false);
+				K_KartBouncing(tmthing, thing, false, false);
 
 			if (gametype != GT_RACE)
 			{
@@ -1711,6 +1711,21 @@ static boolean PIT_CheckThing(mobj_t *thing)
 					K_SpinPlayer(thing->player, tmthing);
 				}
 			}
+
+			return true;
+		}
+		else if (thing->flags & MF_SOLID)
+		{
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
+			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
+				K_KartBouncing(tmthing, thing, true, true);
+			else
+				K_KartBouncing(tmthing, thing, false, true);
 
 			return true;
 		}
@@ -3177,8 +3192,8 @@ static void P_HitBounceLine(line_t *ld)
 
 	movelen = P_AproxDistance(tmxmove, tmymove);
 
-	if (slidemo->player && movelen < 25*FRACUNIT)
-		movelen = 25*FRACUNIT;
+	if (slidemo->player && movelen < 15*FRACUNIT)
+		movelen = 15*FRACUNIT;
 
 	tmxmove += FixedMul(movelen, FINECOSINE(lineangle));
 	tmymove += FixedMul(movelen, FINESINE(lineangle));

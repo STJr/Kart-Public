@@ -1131,7 +1131,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
-void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
+void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 {
 	mobj_t *fx;
 	fixed_t momdifx, momdify;
@@ -1176,14 +1176,19 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	{
 		fixed_t newz = mobj1->momz;
 		mobj1->momz = mobj2->momz;
-		mobj2->momz = newz;
+		if (solid == false)
+			mobj2->momz = newz;
 	}
 
 	mass1 = mass2 = 5*FRACUNIT;
+
 	if (mobj1->player)
 		mass1 = (mobj1->player->kartweight)*FRACUNIT;
+
 	if (mobj2->player)
 		mass2 = (mobj2->player->kartweight)*FRACUNIT;
+	else if (solid == true)
+		mass2 = mass1;
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
@@ -1220,8 +1225,11 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 	mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), distx);
 	mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
 
-	mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
-	mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
+	if (solid == false)
+	{
+		mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
+		mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
+	}
 
 	// Because this is done during collision now, rmomx and rmomy need to be recalculated
 	// so that friction doesn't immediately decide to stop the player if they're at a standstill
@@ -2448,36 +2456,46 @@ static void K_DoBooSteal(player_t *player)
 {
 	INT32 i, numplayers = 0;
 	INT32 playerswappable[MAXPLAYERS];
-	INT32 stealplayer = 0; // The player that's getting stolen from
+	INT32 stealplayer = -1; // The player that's getting stolen from
 	INT32 prandom = 0;
-
-	if (gametype == GT_MATCH && player->kartstuff[k_balloon] <= 0)
-		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && players[i].mo && players[i].mo->health > 0 && players[i].playerstate == PST_LIVE
-			&& player != &players[i] && !players[i].exiting && !(players[i].spectator)
+			&& player != &players[i] && !players[i].exiting && !players[i].spectator // Player in-game
+
+			// Can steal from this player
 			&& ((gametype == GT_RACE && players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			|| (gametype != GT_RACE && players[i].kartstuff[k_balloon] > 0))
 
-			&& (players[i].kartstuff[k_star] || players[i].kartstuff[k_mushroom] || players[i].kartstuff[k_goldshroom]
-			|| players[i].kartstuff[k_megashroom] || players[i].kartstuff[k_lightning] || players[i].kartstuff[k_blueshell]
-			|| players[i].kartstuff[k_greenshell] & 2 || players[i].kartstuff[k_triplegreenshell] & 8
-			|| players[i].kartstuff[k_redshell] & 2 || players[i].kartstuff[k_tripleredshell] & 8
-			|| players[i].kartstuff[k_banana] & 2 || players[i].kartstuff[k_triplebanana] & 8
-			|| players[i].kartstuff[k_fakeitem] & 2 || players[i].kartstuff[k_bobomb] & 2
+			// Has an item
+			&& (players[i].kartstuff[k_magnet]
+			|| players[i].kartstuff[k_mushroom]
+			|| players[i].kartstuff[k_megashroom]
+			|| players[i].kartstuff[k_goldshroom]
+			|| players[i].kartstuff[k_star]
+			|| players[i].kartstuff[k_banana] & 2
+			|| players[i].kartstuff[k_triplebanana] & 8
+			|| players[i].kartstuff[k_fakeitem] & 2
+			|| players[i].kartstuff[k_greenshell] & 2
+			|| players[i].kartstuff[k_triplegreenshell] & 8
+			|| players[i].kartstuff[k_redshell] & 2
+			|| players[i].kartstuff[k_tripleredshell] & 8
+			|| players[i].kartstuff[k_bobomb] & 2
+			|| players[i].kartstuff[k_lightning]
+			|| players[i].kartstuff[k_blueshell]
+			|| players[i].kartstuff[k_fireflower]
 			|| players[i].kartstuff[k_feather] & 1
 			|| players[i].kartstuff[k_boo])) // Stealing boos with boos? sounds like fun
 		{
-			playerswappable[numplayers] = i+1;
+			playerswappable[numplayers] = i;
 			numplayers++;
 		}
 	}
 
 	prandom = P_RandomFixed();
 
-	if (player->kartstuff[k_position] == 1 || numplayers < 1 || !multiplayer) // No-one can be stolen from? Get longer invisibility for nothing
+	if ((gametype == GT_RACE && player->kartstuff[k_position] == 1) || numplayers == 0) // No-one can be stolen from? Get longer invisibility for nothing
 	{
 		player->kartstuff[k_bootimer] = bootime;
 		player->kartstuff[k_bootaketimer] = boostealtime;
@@ -2486,17 +2504,15 @@ static void K_DoBooSteal(player_t *player)
 	}
 	else if (numplayers == 1) // With just 2 players, we just need to set the other player to be the one to steal from
 	{
-		stealplayer = playerswappable[numplayers - 1];
+		stealplayer = playerswappable[numplayers-1];
 	}
 	else if (numplayers > 1) // We need to choose between the available candidates for the 2nd player
 	{
 		stealplayer = playerswappable[prandom%(numplayers-1)];
 	}
 
-	if (stealplayer) // Now here's where we do the stealing, has to be done here because we still know the player we're stealing from
+	if (stealplayer > -1) // Now here's where we do the stealing, has to be done here because we still know the player we're stealing from
 	{
-		stealplayer -= 1; // stealplayer is +1 so we know if it found there actually WAS a player
-
 		player->kartstuff[k_bootimer] = bootime;
 		player->kartstuff[k_bootaketimer] = boostealtime;
 		player->kartstuff[k_boo] = 0;
@@ -2572,12 +2588,22 @@ static void K_DoBooSteal(player_t *player)
 			player->kartstuff[k_bobomb] |= 2;
 			players[stealplayer].kartstuff[k_bobomb] &= ~2;
 		}
+		else if (players[stealplayer].kartstuff[k_magnet])
+		{
+			player->kartstuff[k_magnet] = players[stealplayer].kartstuff[k_magnet];
+			players[stealplayer].kartstuff[k_magnet] = 0;
+		}
+		else if (players[stealplayer].kartstuff[k_fireflower])
+		{
+			player->kartstuff[k_fireflower] = players[stealplayer].kartstuff[k_fireflower];
+			players[stealplayer].kartstuff[k_fireflower] = 0;
+		}
 		else if (players[stealplayer].kartstuff[k_feather] & 1)
 		{
 			player->kartstuff[k_feather] |= 1;
 			players[stealplayer].kartstuff[k_feather] &= ~1;
 		}
-		if (players[stealplayer].kartstuff[k_boo])
+		else if (players[stealplayer].kartstuff[k_boo])
 		{
 			player->kartstuff[k_boo] = players[stealplayer].kartstuff[k_boo];
 			players[stealplayer].kartstuff[k_boo] = 0;
@@ -2672,16 +2698,16 @@ void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
 				thrust = FixedMul(thrust, 5*FRACUNIT/4);
 			else if (mo->player->kartstuff[k_startimer])
 				thrust = FixedMul(thrust, 9*FRACUNIT/8);
-			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
+			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, mo->scale));
 		}
 		else
 		{
 			thrust = P_AproxDistance(mo->momx,mo->momy);
-			if (thrust < 4<<FRACBITS)
-				thrust = 4<<FRACBITS;
-			if (thrust > 8<<FRACBITS)
+			if (thrust < 8<<FRACBITS)
 				thrust = 8<<FRACBITS;
-			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), thrust);
+			if (thrust > 16<<FRACBITS)
+				thrust = 16<<FRACBITS;
+			mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, mo->scale));
 		}
 	}
 	else

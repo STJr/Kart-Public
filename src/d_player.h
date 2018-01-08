@@ -282,6 +282,7 @@ typedef enum
 	k_comebacktimer,	// Battle mode, how long before you become a bomb after death
 
 	// Each item needs its own power slot, for the HUD and held use
+	// *** ADDING A NEW ITEM? ADD IT TO K_DoBooSteal PLEASE!! -Salt ***
 	k_magnet,			// 0x1 = Magnet in inventory
 	k_boo,				// 0x1 = Boo in inventory
 	k_mushroom,			// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
