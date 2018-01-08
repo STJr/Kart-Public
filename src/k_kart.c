@@ -700,8 +700,8 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 			  /*Mushroom*/ { 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3,10, 6, 4, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Mega Mushroom
-		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Gold Mushroom
-				  /*Star*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Star
+		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Gold Mushroom
+				  /*Star*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Star
 
 		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
 			 /*Fake Item*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
