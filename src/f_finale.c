@@ -52,7 +52,7 @@ static UINT8  curDemo = 0;
 static UINT32 demoDelayLeft;
 static UINT32 demoIdleLeft;
 
-static patch_t *ttbanner; // white banner with "robo blast" and "2"
+/*static patch_t *ttbanner; // white banner with "robo blast" and "2"
 static patch_t *ttwing; // wing background
 static patch_t *ttsonic; // "SONIC"
 static patch_t *ttswave1; // Title Sonics
@@ -66,7 +66,9 @@ static patch_t *ttspop3;
 static patch_t *ttspop4;
 static patch_t *ttspop5;
 static patch_t *ttspop6;
-static patch_t *ttspop7;
+static patch_t *ttspop7;*/
+
+static patch_t *kartttl; // SONIC ROBO BLAST 2 KART
 
 static void F_SkyScroll(INT32 scrollspeed);
 
@@ -932,21 +934,7 @@ void F_StartTitleScreen(void)
 	demoDelayLeft = demoDelayTime;
 	demoIdleLeft = demoIdleTime;
 
-	ttbanner = W_CachePatchName("TTBANNER", PU_LEVEL);
-	ttwing = W_CachePatchName("TTWING", PU_LEVEL);
-	ttsonic = W_CachePatchName("TTSONIC", PU_LEVEL);
-	ttswave1 = W_CachePatchName("TTSWAVE1", PU_LEVEL);
-	ttswave2 = W_CachePatchName("TTSWAVE2", PU_LEVEL);
-	ttswip1 = W_CachePatchName("TTSWIP1", PU_LEVEL);
-	ttsprep1 = W_CachePatchName("TTSPREP1", PU_LEVEL);
-	ttsprep2 = W_CachePatchName("TTSPREP2", PU_LEVEL);
-	ttspop1 = W_CachePatchName("TTSPOP1", PU_LEVEL);
-	ttspop2 = W_CachePatchName("TTSPOP2", PU_LEVEL);
-	ttspop3 = W_CachePatchName("TTSPOP3", PU_LEVEL);
-	ttspop4 = W_CachePatchName("TTSPOP4", PU_LEVEL);
-	ttspop5 = W_CachePatchName("TTSPOP5", PU_LEVEL);
-	ttspop6 = W_CachePatchName("TTSPOP6", PU_LEVEL);
-	ttspop7 = W_CachePatchName("TTSPOP7", PU_LEVEL);
+	kartttl = W_CachePatchName("KARTTTL", PU_LEVEL);
 }
 
 // (no longer) De-Demo'd Title Screen
@@ -959,45 +947,10 @@ void F_TitleScreenDrawer(void)
 	F_SkyScroll(titlescrollspeed);
 
 	// Don't draw outside of the title screewn, or if the patch isn't there.
-	if (!ttwing || (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS))
+	if (!kartttl || (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS))
 		return;
 
-	V_DrawScaledPatch(30, 14, 0, ttwing);
-
-	if (finalecount < 57)
-	{
-		if (finalecount == 35)
-			V_DrawScaledPatch(115, 15, 0, ttspop1);
-		else if (finalecount == 36)
-			V_DrawScaledPatch(114, 15, 0,ttspop2);
-		else if (finalecount == 37)
-			V_DrawScaledPatch(113, 15, 0,ttspop3);
-		else if (finalecount == 38)
-			V_DrawScaledPatch(112, 15, 0,ttspop4);
-		else if (finalecount == 39)
-			V_DrawScaledPatch(111, 15, 0,ttspop5);
-		else if (finalecount == 40)
-			V_DrawScaledPatch(110, 15, 0, ttspop6);
-		else if (finalecount >= 41 && finalecount <= 44)
-			V_DrawScaledPatch(109, 15, 0, ttspop7);
-		else if (finalecount >= 45 && finalecount <= 48)
-			V_DrawScaledPatch(108, 12, 0, ttsprep1);
-		else if (finalecount >= 49 && finalecount <= 52)
-			V_DrawScaledPatch(107, 9, 0, ttsprep2);
-		else if (finalecount >= 53 && finalecount <= 56)
-			V_DrawScaledPatch(106, 6, 0, ttswip1);
-		V_DrawScaledPatch(93, 106, 0, ttsonic);
-	}
-	else
-	{
-		V_DrawScaledPatch(93, 106, 0,ttsonic);
-		if (finalecount/5 & 1)
-			V_DrawScaledPatch(100, 3, 0,ttswave1);
-		else
-			V_DrawScaledPatch(100,3, 0,ttswave2);
-	}
-
-	V_DrawScaledPatch(48, 142, 0,ttbanner);
+	V_DrawScaledPatch(84, 36, 0, kartttl);
 }
 
 // (no longer) De-Demo'd Title Screen

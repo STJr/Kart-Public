@@ -1062,7 +1062,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_kartfrantic.value) // Frantic items
 		{
 			pdis = (13*pdis/12); // make the distances between everyone artifically higher...
-			pdis += distvar; // and set everyone back another place!
+			//pdis += distvar; // and set everyone back another place!
 		}
 
 		if (pingame == 1)				useodds = 0; // Record Attack, or just alone
