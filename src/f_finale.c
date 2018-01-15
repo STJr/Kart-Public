@@ -962,8 +962,8 @@ void F_TitleScreenDrawer(void)
 		V_DrawSmallScaledPatch(84, 87, 0, ttkart);
 
 		// Checkers, only need to be drawn after the whiteout, but we can do it here because it won't be seen before anyway
-		V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOLEFT, ttcheckers, FRACUNIT);
-		V_DrawSciencePatch(280<<FRACBITS, -(40<<FRACBITS) + FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOLEFT, ttcheckers, FRACUNIT);
+		V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTOLEFT, ttcheckers, FRACUNIT);
+		V_DrawSciencePatch(280<<FRACBITS, -(40<<FRACBITS) + FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTORIGHT, ttcheckers, FRACUNIT);
 	}
 
 	if (finalecount >= 50 && finalecount < 55)
