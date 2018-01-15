@@ -48,7 +48,7 @@ UINT8 wipedefs[NUMWIPEDEFS] = {
 	0,  // wipe_level_toblack
 	UINT8_MAX,  // wipe_intermission_toblack
 	UINT8_MAX,  // wipe_continuing_toblack
-	0,  // wipe_titlescreen_toblack
+	3,  // wipe_titlescreen_toblack
 	0,  // wipe_timeattack_toblack
 	99, // wipe_credits_toblack
 	0,  // wipe_evaluation_toblack
@@ -63,7 +63,7 @@ UINT8 wipedefs[NUMWIPEDEFS] = {
 	0,  // wipe_level_final
 	0,  // wipe_intermission_final
 	0,  // wipe_continuing_final
-	0,  // wipe_titlescreen_final
+	3,  // wipe_titlescreen_final
 	0,  // wipe_timeattack_final
 	99, // wipe_credits_final
 	0,  // wipe_evaluation_final

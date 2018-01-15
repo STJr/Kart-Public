@@ -341,7 +341,10 @@ static void D_Display(void)
 		case GS_INTRO:
 			F_IntroDrawer();
 			if (wipegamestate == (gamestate_t)-1)
+			{
 				wipe = true;
+				wipedefindex = gamestate; // wipe_xxx_toblack
+			}
 			break;
 
 		case GS_CUTSCENE:
