@@ -2754,7 +2754,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		if (!(thing->flags & MF_NOCLIP))
 		{
 			//All things are affected by their scale.
-			fixed_t maxstep = MAXSTEPMOVE; //FixedMul(MAXSTEPMOVE, thing->scale);
+			fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
 
 			if (thing->player)
 			{
@@ -3192,8 +3192,8 @@ static void P_HitBounceLine(line_t *ld)
 
 	movelen = P_AproxDistance(tmxmove, tmymove);
 
-	if (slidemo->player && movelen < 15*FRACUNIT)
-		movelen = 15*FRACUNIT;
+	if (slidemo->player && movelen < (15*mapheaderinfo[gamemap-1]->mobj_scale))
+		movelen = (15*mapheaderinfo[gamemap-1]->mobj_scale);
 
 	tmxmove += FixedMul(movelen, FINECOSINE(lineangle));
 	tmymove += FixedMul(movelen, FINESINE(lineangle));

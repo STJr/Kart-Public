@@ -1194,13 +1194,13 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	momdify = mobj1->momy - mobj2->momy;
 
 	// if the speed difference is less than this let's assume they're going proportionately faster from each other
-	if (P_AproxDistance(momdifx, momdify) < 25*FRACUNIT)
+	if (P_AproxDistance(momdifx, momdify) < (25*mapheaderinfo[gamemap-1]->mobj_scale))
 	{
 		fixed_t momdiflength = P_AproxDistance(momdifx, momdify);
 		fixed_t normalisedx = FixedDiv(momdifx, momdiflength);
 		fixed_t normalisedy = FixedDiv(momdify, momdiflength);
-		momdifx = FixedMul(25*FRACUNIT, normalisedx);
-		momdify = FixedMul(25*FRACUNIT, normalisedy);
+		momdifx = FixedMul((25*mapheaderinfo[gamemap-1]->mobj_scale), normalisedx);
+		momdify = FixedMul((25*mapheaderinfo[gamemap-1]->mobj_scale), normalisedy);
 	}
 
 	distx = mobj1->x - mobj2->x;
@@ -2836,7 +2836,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	}
 
 	// Drifting: left or right?
-	if ((player->cmd.buttons & BT_DRIFTLEFT) && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
+	if ((player->cmd.buttons & BT_DRIFTLEFT) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != 1)
 	{
 		// Starting left drift
@@ -2844,7 +2844,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		player->kartstuff[k_driftend] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
-	else if ((player->cmd.buttons & BT_DRIFTRIGHT) && player->speed > (10<<16) && player->kartstuff[k_jmp] == 1
+	else if ((player->cmd.buttons & BT_DRIFTRIGHT) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
 	{
 		// Starting right drift
@@ -2908,7 +2908,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 
 	// Stop drifting
 	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
-		|| player->speed < (10<<16)) // you're too slow!
+		|| player->speed < FixedMul(10<<16, player->mo->scale)) // you're too slow!
 	{
 		player->kartstuff[k_drift] = 0;
 		player->kartstuff[k_driftcharge] = 0;
@@ -4822,17 +4822,17 @@ static void K_drawKartSpeedometer(void)
 
 	if (cv_speedometer.value == 1)
 	{
-		convSpeed = FixedMul(stplyr->speed, 142371)/FRACUNIT; // 2.172409058
+		convSpeed = FixedDiv(FixedMul(stplyr->speed, 142371), mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT; // 2.172409058
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d km/h", convSpeed));
 	}
 	else if (cv_speedometer.value == 2)
 	{
-		convSpeed = FixedMul(stplyr->speed, 88465)/FRACUNIT; // 1.349868774
+		convSpeed = FixedDiv(FixedMul(stplyr->speed, 88465), mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT; // 1.349868774
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d mph", convSpeed));
 	}
 	else if (cv_speedometer.value == 3)
 	{
-		convSpeed = stplyr->speed/FRACUNIT;
+		convSpeed = FixedDiv(stplyr->speed, mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT;
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d fu/s", convSpeed));
 	}
 }
