@@ -1232,7 +1232,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // overhead
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
-		K_KartBouncing(thing, tmthing, false);
+		K_KartBouncing(thing, tmthing, false, false);
 	}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
@@ -1679,7 +1679,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
 			{
-				K_KartBouncing(tmthing, thing, true);
+				K_KartBouncing(tmthing, thing, true, false);
 				if (gametype != GT_RACE && tmthing->player->kartstuff[k_feather] & 2)
 				{
 					K_StealBalloon(tmthing->player, thing->player, false);
@@ -1688,7 +1688,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
 			{
-				K_KartBouncing(thing, tmthing, true);
+				K_KartBouncing(thing, tmthing, true, false);
 				if (gametype != GT_RACE && thing->player->kartstuff[k_feather] & 2)
 				{
 					K_StealBalloon(thing->player, tmthing->player, false);
@@ -1696,7 +1696,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				}
 			}
 			else
-				K_KartBouncing(tmthing, thing, false);
+				K_KartBouncing(tmthing, thing, false, false);
 
 			if (gametype != GT_RACE)
 			{
@@ -1711,6 +1711,21 @@ static boolean PIT_CheckThing(mobj_t *thing)
 					K_SpinPlayer(thing->player, tmthing);
 				}
 			}
+
+			return true;
+		}
+		else if (thing->flags & MF_SOLID)
+		{
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
+			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
+				K_KartBouncing(tmthing, thing, true, true);
+			else
+				K_KartBouncing(tmthing, thing, false, true);
 
 			return true;
 		}
@@ -2739,7 +2754,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		if (!(thing->flags & MF_NOCLIP))
 		{
 			//All things are affected by their scale.
-			fixed_t maxstep = MAXSTEPMOVE; //FixedMul(MAXSTEPMOVE, thing->scale);
+			fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
 
 			if (thing->player)
 			{
@@ -3163,38 +3178,25 @@ static void P_HitSlideLine(line_t *ld)
 //
 static void P_HitBounceLine(line_t *ld)
 {
-	angle_t lineangle, moveangle, deltaangle;
+	INT32 side;
+	angle_t lineangle;
 	fixed_t movelen;
 
-	if (ld->slopetype == ST_HORIZONTAL)
-	{
-		tmymove = -tmymove;
-		return;
-	}
+	side = P_PointOnLineSide(slidemo->x, slidemo->y, ld);
+	lineangle = R_PointToAngle2(0, 0, ld->dx, ld->dy)-ANGLE_90;
 
-	if (ld->slopetype == ST_VERTICAL)
-	{
-		tmxmove = -tmxmove;
-		return;
-	}
-
-	lineangle = R_PointToAngle2(0, 0, ld->dx, ld->dy);
-
-	if (lineangle >= ANGLE_180)
-		lineangle -= ANGLE_180;
-
-	moveangle = R_PointToAngle2(0, 0, tmxmove, tmymove);
-	deltaangle = moveangle + 2*(lineangle - moveangle);
+	if (side == 1)
+		lineangle += ANGLE_180;
 
 	lineangle >>= ANGLETOFINESHIFT;
-	deltaangle >>= ANGLETOFINESHIFT;
 
 	movelen = P_AproxDistance(tmxmove, tmymove);
 
-	tmxmove = FixedMul(movelen, FINECOSINE(deltaangle));
-	tmymove = FixedMul(movelen, FINESINE(deltaangle));
+	if (slidemo->player && movelen < (15*mapheaderinfo[gamemap-1]->mobj_scale))
+		movelen = (15*mapheaderinfo[gamemap-1]->mobj_scale);
 
-	deltaangle = R_PointToAngle2(0, 0, tmxmove, tmymove);
+	tmxmove += FixedMul(movelen, FINECOSINE(lineangle));
+	tmymove += FixedMul(movelen, FINESINE(lineangle));
 }
 
 //
@@ -3823,16 +3825,16 @@ void P_BounceMove(mobj_t *mo)
 {
 	fixed_t leadx, leady;
 	fixed_t trailx, traily;
-	fixed_t newx, newy;
-	INT32 hitcount;
+	//fixed_t newx, newy;
+	//INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
 	slidemo = mo;
-	hitcount = 0;
+	//hitcount = 0;
 
-retry:
+/*retry:
 	if (++hitcount == 3)
-		goto bounceback; // don't loop forever
+		goto bounceback; // don't loop forever*/
 
 	if (mo->player)
 	{
@@ -3881,7 +3883,7 @@ retry:
 	P_PathTraverse(leadx, traily, leadx + mmomx, traily + mmomy, PT_ADDLINES, PTR_SlideTraverse);
 
 	// move up to the wall
-	if (bestslidefrac == FRACUNIT + 1)
+	/*if (bestslidefrac == FRACUNIT + 1)
 	{
 		// the move must have hit the middle, so bounce straight back
 bounceback:
@@ -3903,10 +3905,10 @@ bounceback:
 			}
 		}
 		return;
-	}
+	}*/
 
 	// fudge a bit to make sure it doesn't hit
-	bestslidefrac -= 0x800;
+	/*bestslidefrac -= 0x800;
 	if (bestslidefrac > 0)
 	{
 		newx = FixedMul(mmomx, bestslidefrac);
@@ -3914,7 +3916,7 @@ bounceback:
 
 		if (!P_TryMove(mo, mo->x + newx, mo->y + newy, true))
 			goto bounceback;
-	}
+	}*/
 
 	// Now continue along the wall.
 	// First calculate remainder.
@@ -3946,6 +3948,18 @@ bounceback:
 	{
 		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
 		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+		if (mo->player)
+		{
+			mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+			if (mo->eflags & MFE_VERTICALFLIP)
+				fx->eflags |= MFE_VERTICALFLIP;
+			else
+				fx->eflags &= ~MFE_VERTICALFLIP;
+			fx->scale = mo->scale;
+
+			if (cv_collidesounds.value == 1)
+				S_StartSound(mo, cv_collidesoundnum.value);
+		}
 	}
 
 	P_HitBounceLine(bestslideline); // clip the moves
@@ -3959,8 +3973,9 @@ bounceback:
 		mo->player->cmomy = tmymove;
 	}
 
-	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true))
-		goto retry;
+	/*if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true))
+		goto retry;*/
+	P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true);
 }
 
 //

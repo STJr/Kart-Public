@@ -57,7 +57,6 @@ static patch_t *ttkart; // *vroom* KART
 static patch_t *ttcheckers; // *vroom* KART
 static patch_t *ttkflash; // flash screen
 
-
 static void F_SkyScroll(INT32 scrollspeed);
 
 //

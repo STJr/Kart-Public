@@ -8351,32 +8351,32 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam_speed.value;
 		camstill = cv_cam_still.value;
 		camrotate = cv_cam_rotate.value;
-		camdist = FixedMul(cv_cam_dist.value, mo->scale);
-		camheight = FixedMul(cv_cam_height.value, mo->scale);
+		camdist = FixedMul(cv_cam_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camheight = FixedMul(cv_cam_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
 	}
 	else if (thiscam == &camera2) // Camera 2
 	{
 		camspeed = cv_cam2_speed.value;
 		camstill = cv_cam2_still.value;
 		camrotate = cv_cam2_rotate.value;
-		camdist = FixedMul(cv_cam2_dist.value, mo->scale);
-		camheight = FixedMul(cv_cam2_height.value, mo->scale);
+		camdist = FixedMul(cv_cam2_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camheight = FixedMul(cv_cam2_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
 	}
 	else if (thiscam == &camera3) // Camera 3
 	{
 		camspeed = cv_cam3_speed.value;
 		camstill = cv_cam3_still.value;
 		camrotate = cv_cam3_rotate.value;
-		camdist = FixedMul(cv_cam3_dist.value, mo->scale);
-		camheight = FixedMul(cv_cam3_height.value, mo->scale);
+		camdist = FixedMul(cv_cam3_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camheight = FixedMul(cv_cam3_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
 	}
 	else // Camera 4
 	{
 		camspeed = cv_cam4_speed.value;
 		camstill = cv_cam4_still.value;
 		camrotate = cv_cam4_rotate.value;
-		camdist = FixedMul(cv_cam4_dist.value, mo->scale);
-		camheight = FixedMul(cv_cam4_height.value, mo->scale);
+		camdist = FixedMul(cv_cam4_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camheight = FixedMul(cv_cam4_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
 	}
 
 #ifdef REDSANALOG
@@ -8536,18 +8536,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			dist = FixedMul(dist, 3*FRACUNIT/2);
 			height = FixedMul(height, 3*FRACUNIT/2);
 		}
-		else if (splitscreen > 1) // smallscreen splits should get 7/8 distance (shorter feels better, oddly enough)
-		{
-			dist = FixedMul(dist, 7*FRACUNIT/8);
-			height = FixedMul(height, 7*FRACUNIT/8);
-		}
-
-		// x1.2 dist for analog
-		/*if (P_AnalogMove(player))
-		{
-			dist = FixedMul(dist, 6*FRACUNIT/5);
-			height = FixedMul(height, 6*FRACUNIT/5);
-		}*/
 
 		if (player->climbing || player->exiting || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
 			dist <<= 1;
