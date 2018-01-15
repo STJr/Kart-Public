@@ -35,7 +35,7 @@
 // Stage of animation:
 // 0 = text, 1 = art screen
 static INT32 finalecount;
-INT32 titlescrollspeed = 80;
+INT32 titlescrollspeed = 5;
 
 static INT32 timetonext; // Delay between screen changes
 static INT32 continuetime; // Short delay when continuing
@@ -52,23 +52,10 @@ static UINT8  curDemo = 0;
 static UINT32 demoDelayLeft;
 static UINT32 demoIdleLeft;
 
-/*static patch_t *ttbanner; // white banner with "robo blast" and "2"
-static patch_t *ttwing; // wing background
-static patch_t *ttsonic; // "SONIC"
-static patch_t *ttswave1; // Title Sonics
-static patch_t *ttswave2;
-static patch_t *ttswip1;
-static patch_t *ttsprep1;
-static patch_t *ttsprep2;
-static patch_t *ttspop1;
-static patch_t *ttspop2;
-static patch_t *ttspop3;
-static patch_t *ttspop4;
-static patch_t *ttspop5;
-static patch_t *ttspop6;
-static patch_t *ttspop7;*/
-
-static patch_t *kartttl; // SONIC ROBO BLAST 2 KART
+static patch_t *ttbanner; // SONIC ROBO BLAST 2
+static patch_t *ttkart; // *vroom* KART
+static patch_t *ttcheckers; // *vroom* KART
+static patch_t *ttkflash; // flash screen
 
 static void F_SkyScroll(INT32 scrollspeed);
 
@@ -366,6 +353,11 @@ void F_IntroDrawer(void)
 			}
 
 			D_StartTitle();
+			// Yes, this is a weird hack, we need to force a wipe for this because the game state has changed in the middle of where it would normally wipe
+			// Need to set the wipe start and then draw the first frame of the title screen to get it working
+			F_WipeStartScreen();
+			F_TitleScreenDrawer();
+			wipegamestate = -1; // force a wipe
 			return;
 		}
 
@@ -927,14 +919,18 @@ void F_StartTitleScreen(void)
 
 	// IWAD dependent stuff.
 
-	S_ChangeMusicInternal("titles", looptitle);
+	// music is started in the ticker
+	S_StopMusic();
 
 	animtimer = 0;
 
 	demoDelayLeft = demoDelayTime;
 	demoIdleLeft = demoIdleTime;
 
-	kartttl = W_CachePatchName("KARTTTL", PU_LEVEL);
+	ttbanner = W_CachePatchName("TTKBANNR", PU_LEVEL);
+	ttkart = W_CachePatchName("TTKART", PU_LEVEL);
+	ttcheckers = W_CachePatchName("TTCHECK", PU_LEVEL);
+	ttkflash = W_CachePatchName("TTKFLASH", PU_LEVEL);
 }
 
 // (no longer) De-Demo'd Title Screen
@@ -943,21 +939,57 @@ void F_TitleScreenDrawer(void)
 	if (modeattacking)
 		return; // We likely came here from retrying. Don't do a damn thing.
 
-	// Draw that sky!
-	F_SkyScroll(titlescrollspeed);
+	if (finalecount < 50)
+		V_DrawFill(0, 0, 320, 200, 31);
+	else
+		// Draw that sky!
+		F_SkyScroll(titlescrollspeed);
 
 	// Don't draw outside of the title screewn, or if the patch isn't there.
-	if (!kartttl || (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS))
+	if (!ttbanner || (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS))
 		return;
 
-	V_DrawScaledPatch(84, 36, 0, kartttl);
+	V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
+
+	if (finalecount < 20)
+	{
+		if (finalecount >= 10)
+			V_DrawSciencePatch((84<<FRACBITS) - FixedDiv(180<<FRACBITS, 10<<FRACBITS)*(20-finalecount), (87<<FRACBITS), 0, ttkart, FRACUNIT/2);
+	}
+	else
+	{
+		V_DrawSmallScaledPatch(84, 87, 0, ttkart);
+
+		// Checkers, only need to be drawn after the whiteout, but we can do it here because it won't be seen before anyway
+		V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTOLEFT, ttcheckers, FRACUNIT);
+		V_DrawSciencePatch(280<<FRACBITS, -(40<<FRACBITS) + FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTORIGHT, ttcheckers, FRACUNIT);
+	}
+
+	if (finalecount >= 50 && finalecount < 55)
+	{
+		V_DrawFill(0, 0, 320, 200, 120);
+		V_DrawSmallScaledPatch(84, 36, 0, ttkflash);
+	}
 }
 
 // (no longer) De-Demo'd Title Screen
 void F_TitleScreenTicker(boolean run)
 {
 	if (run)
+	{
 		finalecount++;
+
+		if (finalecount == 10)
+		{
+			S_StartSound(NULL, sfx_spin);
+		}
+		else if (finalecount == 50)
+		{
+			// Now start the music
+			S_ChangeMusicInternal("titles", looptitle);
+			S_StartSound(NULL, sfx_zoom);
+		}
+	}
 
 	// don't trigger if doing anything besides idling on title
 	if (gameaction != ga_nothing || gamestate != GS_TITLESCREEN)

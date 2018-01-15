@@ -341,7 +341,10 @@ static void D_Display(void)
 		case GS_INTRO:
 			F_IntroDrawer();
 			if (wipegamestate == (gamestate_t)-1)
+			{
 				wipe = true;
+				wipedefindex = gamestate; // wipe_xxx_toblack
+			}
 			break;
 
 		case GS_CUTSCENE:
@@ -523,7 +526,7 @@ static void D_Display(void)
 		else
 			py = viewwindowy + 4;
 		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
-		V_DrawScaledPatch(viewwindowx + (viewwidth - SHORT(patch->width))/2, py, 0, patch);
+		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - SHORT(patch->width))/2, py, 0, patch);
 	}
 
 	// vid size change is now finished if it was on...
