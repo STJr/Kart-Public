@@ -125,7 +125,7 @@ INT16 spstage_start;
 INT16 sstage_start;
 INT16 sstage_end;
 
-boolean looptitle = false;
+boolean looptitle = true;
 boolean useNightsSS = false;
 
 UINT8 skincolor_redteam = SKINCOLOR_RED;
