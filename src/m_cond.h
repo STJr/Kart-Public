@@ -21,6 +21,7 @@
 typedef enum
 {
 	UC_PLAYTIME,        // PLAYTIME [tics]
+	UC_MATCHESPLAYED,   // MATCHESPLAYED [x played]
 	UC_GAMECLEAR,       // GAMECLEAR <x times>
 	UC_ALLEMERALDS,     // ALLEMERALDS <x times>
 	UC_ULTIMATECLEAR,   // ULTIMATECLEAR <x times>

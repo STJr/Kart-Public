@@ -2477,15 +2477,16 @@ static void readcondition(UINT8 set, UINT32 id, char *word2)
 		return;
 	}
 
-	if (fastcmp(params[0], "PLAYTIME"))
+	if				(fastcmp(params[0], "PLAYTIME")
+	|| (++offset && fastcmp(params[0], "MATCHESPLAYED")))
 	{
 		PARAMCHECK(1);
-		ty = UC_PLAYTIME;
+		ty = UC_PLAYTIME + offset;
 		re = atoi(params[1]);
 	}
-	else if        (fastcmp(params[0], "GAMECLEAR")
-	|| (++offset && fastcmp(params[0], "ALLEMERALDS"))
-	|| (++offset && fastcmp(params[0], "ULTIMATECLEAR")))
+	else if ((offset=0) || fastcmp(params[0], "GAMECLEAR")
+	||        (++offset && fastcmp(params[0], "ALLEMERALDS"))
+	||        (++offset && fastcmp(params[0], "ULTIMATECLEAR")))
 	{
 		ty = UC_GAMECLEAR + offset;
 		re = (params[1]) ? atoi(params[1]) : 1;

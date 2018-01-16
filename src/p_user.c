@@ -43,6 +43,7 @@
 // Objectplace
 #include "m_cheat.h"
 // SRB2kart
+#include "m_cond.h" // M_UpdateUnlockablesAndExtraEmblems
 #include "k_kart.h"
 
 #ifdef HW3SOUND
@@ -1643,6 +1644,19 @@ void P_DoPlayerExit(player_t *player)
 {
 	if (player->exiting)
 		return;
+
+	// SRB2kart: Increment the "matches played" counter.
+	// Why here of all places instead of the intermission screen?!?
+	// To prevent someone from using "exitlevel" to unlock everything!
+	if (player == &players[consoleplayer] && ((!modifiedgame || savemoddata) && !demoplayback)) // SRB2kart: Unlock stuff in MP
+	{
+		matchesplayed++;
+		if (M_UpdateUnlockablesAndExtraEmblems())
+		{
+			S_StartSound(NULL, sfx_ncitem);
+			G_SaveGameData(); // only save if unlocked something
+		}
+	}
 
 	if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
@@ -8020,7 +8034,7 @@ static void P_DeathThink(player_t *player)
 		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
 
 		// SRB2kart - spawn automatically after 1 second
-		if (player->deadtimer > TICRATE)
+		if (player->deadtimer > cv_respawntime.value*TICRATE)
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn
@@ -9129,7 +9143,7 @@ static void P_CalcPostImg(player_t *player)
 	}
 #endif
 	
-	if (cv_kartmirror.value) // srb2kart
+	if (mirrormode) // srb2kart
 		*type = postimg_mirror;
 }
 

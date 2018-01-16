@@ -322,6 +322,7 @@ enum GameType
 // If you alter this list, update gametype_cons_t in m_menu.c
 
 extern tic_t totalplaytime;
+extern UINT32 matchesplayed;
 
 extern UINT8 stagefailed;
 
@@ -436,6 +437,12 @@ extern INT16 scrambletotal; //for CTF team scramble
 extern INT16 scramblecount; //for CTF team scramble
 
 extern INT32 cheats;
+
+// SRB2kart
+extern UINT8 gamespeed;
+extern boolean franticitems;
+extern boolean mirrormode;
+extern boolean comeback;
 
 extern tic_t hidetime;
 

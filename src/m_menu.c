@@ -238,9 +238,9 @@ menu_t SP_MainDef, MP_MainDef, OP_MainDef;
 menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef;
 
 // Single Player
-static void M_LoadGame(INT32 choice);
+//static void M_LoadGame(INT32 choice);
 static void M_TimeAttack(INT32 choice);
-static void M_NightsAttack(INT32 choice);
+//static void M_NightsAttack(INT32 choice);
 static void M_Statistics(INT32 choice);
 static void M_HandleStaffReplay(INT32 choice);
 static void M_ReplayTimeAttack(INT32 choice);
@@ -342,7 +342,7 @@ static void M_DrawNightsAttackMenu(void);
 static void M_DrawSetupChoosePlayerMenu(void);
 static void M_DrawControl(void);
 static void M_DrawVideoMode(void);
-static void M_DrawMonitorToggles(void);
+//static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
 static void M_OGL_DrawFogMenu(void);
 static void M_OGL_DrawColorMenu(void);
@@ -477,7 +477,7 @@ static consvar_t cv_dummystaff = {"dummystaff", "0", CV_HIDEN|CV_CALL, dummystaf
 static menuitem_t MainMenu[] =
 {
 	{IT_CALL   |IT_STRING, NULL, "Secrets",     M_SecretsMenu,      84},
-	{IT_CALL   |IT_STRING, NULL, "1 Player",   M_SinglePlayerMenu, 92},
+	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu, 92},
 	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,       100},
 	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,         108},
 	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,        116},
@@ -706,17 +706,17 @@ static menuitem_t SR_EmblemHintMenu[] =
 // Single Player Main
 static menuitem_t SP_MainMenu[] =
 {
-	{IT_CALL | IT_STRING,                       NULL, "Start Game",    M_LoadGame,        92},
+	//{IT_CALL | IT_STRING,                       NULL, "Start Game",    M_LoadGame,        92},
 	{IT_SECRET,                                 NULL, "Record Attack", M_TimeAttack,     100},
-	{IT_SECRET,                                 NULL, "NiGHTS Mode",   M_NightsAttack,   108},
-	{IT_CALL | IT_STRING | IT_CALL_NOTMODIFIED, NULL, "Statistics",    M_Statistics,     116},
+	//{IT_SECRET,                                 NULL, "NiGHTS Mode",   M_NightsAttack,   108},
+	{IT_CALL | IT_STRING | IT_CALL_NOTMODIFIED, NULL, "Statistics",    M_Statistics,     108},
 };
 
 enum
 {
-	sploadgame,
+	//sploadgame,
 	sprecordattack,
-	spnightsmode,
+	//spnightsmode,
 	spstatistics
 };
 
@@ -1413,24 +1413,29 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Show HUD",               &cv_showhud,     40},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "HUD Visibility",         &cv_translucenthud, 50},
-	{IT_STRING | IT_CVAR, NULL, "Timer Display",          &cv_timetic,     60},
+
+	{IT_STRING | IT_CVAR, NULL, "Star SFX",                &cv_kartstarsfx,    62},
+	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",     &cv_speedometer,    72},
+	{IT_STRING | IT_CVAR, NULL, "Show Minimap",            &cv_kartminimap,    82},
+	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",          &cv_kartcheck,      92},
+
 #ifdef SEENAMES
-	{IT_STRING | IT_CVAR, NULL, "HUD Player Names",       &cv_seenames,    80},
+	{IT_STRING | IT_CVAR, NULL, "HUD Player Names",       &cv_seenames,    104},
 #endif
-	{IT_STRING | IT_CVAR, NULL, "Log Hazard Damage",      &cv_hazardlog,   90},
+	{IT_STRING | IT_CVAR, NULL, "Log Hazard Damage",      &cv_hazardlog,   114},
 
-	{IT_STRING | IT_CVAR, NULL, "Console Back Color",     &cons_backcolor, 100},
-	{IT_STRING | IT_CVAR, NULL, "Console Text Size",      &cv_constextsize,110},
-	{IT_STRING | IT_CVAR, NULL, "Uppercase Console",      &cv_allcaps,     120},
+	{IT_STRING | IT_CVAR, NULL, "Console Back Color",     &cons_backcolor, 126},
+	{IT_STRING | IT_CVAR, NULL, "Console Text Size",      &cv_constextsize,136},
+	{IT_STRING | IT_CVAR, NULL, "Uppercase Console",      &cv_allcaps,     146},
 
-	{IT_STRING | IT_CVAR, NULL, "Title Screen Demos",     &cv_rollingdemos, 140},
+	{IT_STRING | IT_CVAR, NULL, "Title Screen Demos",     &cv_rollingdemos, 158},
 };
 
 static menuitem_t OP_ServerOptionsMenu[] =
 {
 	{IT_STRING | IT_SUBMENU, NULL, "General netgame options...",  &OP_NetgameOptionsDef,  10},
 	{IT_STRING | IT_SUBMENU, NULL, "Gametype options...",         &OP_GametypeOptionsDef, 20},
-	{IT_STRING | IT_SUBMENU, NULL, "Random Monitor Toggles...",   &OP_MonitorToggleDef,   30},
+	{IT_STRING | IT_SUBMENU, NULL, "Random item toggles...",      &OP_MonitorToggleDef,   30},
 
 #ifndef NONET
 	{IT_STRING | IT_CVAR | IT_CV_STRING,
@@ -1452,65 +1457,57 @@ static menuitem_t OP_NetgameOptionsMenu[] =
 {
 	{IT_STRING | IT_CVAR, NULL, "Time Limit",            &cv_timelimit,        10},
 	{IT_STRING | IT_CVAR, NULL, "Point Limit",           &cv_pointlimit,       18},
-	{IT_STRING | IT_CVAR, NULL, "Overtime Tie-Breaker",  &cv_overtime,         26},
 
-	{IT_STRING | IT_CVAR, NULL, "Special Ring Weapons",  &cv_specialrings,     42},
-	{IT_STRING | IT_CVAR, NULL, "Emeralds",              &cv_powerstones,      50},
-	{IT_STRING | IT_CVAR, NULL, "Item Boxes",            &cv_matchboxes,       58},
-	{IT_STRING | IT_CVAR, NULL, "Item Respawn",          &cv_itemrespawn,      66},
-	{IT_STRING | IT_CVAR, NULL, "Item Respawn time",     &cv_itemrespawntime,  74},
+	{IT_STRING | IT_CVAR, NULL, "Frantic Items",         &cv_kartfrantic,      34},
 
-	{IT_STRING | IT_CVAR, NULL, "Sudden Death",          &cv_suddendeath,      90},
-	{IT_STRING | IT_CVAR, NULL, "Player respawn delay",  &cv_respawntime,      98},
+	{IT_STRING | IT_CVAR, NULL, "Item Respawn",          &cv_itemrespawn,      50},
+	{IT_STRING | IT_CVAR, NULL, "Item Respawn time",     &cv_itemrespawntime,  58},
 
-	{IT_STRING | IT_CVAR, NULL, "Force Skin #",          &cv_forceskin,          114},
-	{IT_STRING | IT_CVAR, NULL, "Restrict skin changes", &cv_restrictskinchange, 122},
+	{IT_STRING | IT_CVAR, NULL, "Player respawn delay",  &cv_respawntime,      74},
 
-	{IT_STRING | IT_CVAR, NULL, "Autobalance Teams",            &cv_autobalance,      138},
-	{IT_STRING | IT_CVAR, NULL, "Scramble Teams on Map Change", &cv_scrambleonchange, 146},
+	{IT_STRING | IT_CVAR, NULL, "Force Skin #",          &cv_forceskin,          90},
+	{IT_STRING | IT_CVAR, NULL, "Restrict skin changes", &cv_restrictskinchange, 98},
+
+	//{IT_STRING | IT_CVAR, NULL, "Autobalance Teams",            &cv_autobalance,      114},
+	//{IT_STRING | IT_CVAR, NULL, "Scramble Teams on Map Change", &cv_scrambleonchange, 122},
 };
 
 static menuitem_t OP_GametypeOptionsMenu[] =
 {
-	// This is Kart, we don't need half this shit!
-/*	{IT_HEADER,           NULL, "CO-OP",                 NULL,                  2},
-	{IT_STRING | IT_CVAR, NULL, "Players for exit",      &cv_playersforexit,   10},
-	{IT_STRING | IT_CVAR, NULL, "Starting Lives",        &cv_startinglives,    18},
+	{IT_HEADER,           NULL, "RACE",                  NULL,                 2},
+	{IT_STRING | IT_CVAR, NULL, "Game Speed",    		  &cv_kartspeed,    	10},
+	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",    		  &cv_kartmirror,    	18},
+	{IT_STRING | IT_CVAR, NULL, "Number of Laps",        &cv_numlaps,          26},
+	{IT_STRING | IT_CVAR, NULL, "Use Map Lap Counts",    &cv_usemapnumlaps,    34},
 
-	{IT_HEADER,           NULL, "COMPETITION",           NULL,                 34},
-	{IT_STRING | IT_CVAR, NULL, "Item Boxes",            &cv_competitionboxes, 42},
-	{IT_STRING | IT_CVAR, NULL, "Countdown Time",        &cv_countdowntime,    50},*/
-
-	{IT_HEADER,           NULL, "RACE",                  NULL,                  2},
-	{IT_STRING | IT_CVAR, NULL, "Number of Laps",        &cv_numlaps,          10},
-	{IT_STRING | IT_CVAR, NULL, "Use Map Lap Counts",    &cv_usemapnumlaps,    18},
-	{IT_STRING | IT_CVAR, NULL, "CC",    				 &cv_kartcc,    	   26},
-
-	{IT_HEADER,           NULL, "BATTLE",                 NULL,                50},
-/*	{IT_STRING | IT_CVAR, NULL, "Scoring Type",          &cv_match_scoring,   106},
-
-	{IT_HEADER,           NULL, "TAG",                   NULL,                122},
-	{IT_STRING | IT_CVAR, NULL, "Hide Time",             &cv_hidetime,        130},
-
-	{IT_HEADER,           NULL, "CTF",                   NULL,                146},
-	{IT_STRING | IT_CVAR, NULL, "Flag Respawn Time",     &cv_flagtime,        154},*/
+	{IT_HEADER,           NULL, "BATTLE",                NULL,                 50},
+	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",     &cv_kartballoons,     58},
+	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",        &cv_kartcomeback,     66},
 };
 
 static menuitem_t OP_MonitorToggleMenu[] =
 {
 	// Printing handled by drawing function
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Recycler",          &cv_recycler,      20},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Teleporters",       &cv_teleporters,   30},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Super Ring",        &cv_superring,     40},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Super Sneakers",    &cv_supersneakers, 50},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Invincibility",     &cv_invincibility, 60},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Jump Shield",       &cv_jumpshield,    70},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Elemental Shield",  &cv_watershield,   80},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Attraction Shield", &cv_ringshield,    90},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Force Shield",      &cv_forceshield,  100},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Armageddon Shield", &cv_bombshield,   110},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "1 Up",              &cv_1up,          120},
-	{IT_STRING|IT_CVAR|IT_CV_INVISSLIDER, NULL, "Eggman Box",        &cv_eggmanbox,    130},
+	// Instead of using this for dumb monitors, lets use the new item bools we have :V
+	{IT_STRING | IT_CVAR, NULL, "Mushrooms",			&cv_mushroom,          10},
+	{IT_STRING | IT_CVAR, NULL, "Triple Mushrooms",	&cv_triplemushroom,    18},
+	{IT_STRING | IT_CVAR, NULL, "Mega Mushrooms",		&cv_megashroom,        26},
+	{IT_STRING | IT_CVAR, NULL, "Golden Mushrooms",	&cv_goldshroom,        34},
+	{IT_STRING | IT_CVAR, NULL, "Stars",				&cv_star,              42},
+	{IT_STRING | IT_CVAR, NULL, "Bananas",				&cv_banana,            50},
+	{IT_STRING | IT_CVAR, NULL, "Triple Bananas",		&cv_triplebanana,      58},
+	{IT_STRING | IT_CVAR, NULL, "Fake Items",			&cv_fakeitem,          66},
+	{IT_STRING | IT_CVAR, NULL, "Green Shells",		&cv_greenshell,        74},
+	{IT_STRING | IT_CVAR, NULL, "Red Shells",			&cv_redshell,          82},
+	{IT_STRING | IT_CVAR, NULL, "Triple Green Shells",	&cv_triplegreenshell,  90},
+	{IT_STRING | IT_CVAR, NULL, "Triple Red Shells",	&cv_tripleredshell,    98},
+	{IT_STRING | IT_CVAR, NULL, "Bob-ombs",			&cv_bobomb,           106},
+	{IT_STRING | IT_CVAR, NULL, "Fire Flowers",		&cv_fireflower,       114},
+	{IT_STRING | IT_CVAR, NULL, "Magnets",				&cv_magnet,           122},
+	{IT_STRING | IT_CVAR, NULL, "Boos",				&cv_boo,              130},
+	{IT_STRING | IT_CVAR, NULL, "Lightning",			&cv_lightning,        138},
+	{IT_STRING | IT_CVAR, NULL, "Blue Lightning",		&cv_blueshell,        146},
+	{IT_STRING | IT_CVAR, NULL, "Feathers",			&cv_feather,          154},
 };
 
 // ==========================================================================
@@ -1834,7 +1831,8 @@ menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, 
 
 menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
 menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
-menu_t OP_MonitorToggleDef =
+menu_t OP_MonitorToggleDef = DEFAULTMENUSTYLE("M_SERVER", OP_MonitorToggleMenu, &OP_ServerOptionsDef, 30, 30);
+/*menu_t OP_MonitorToggleDef =
 {
 	"M_SERVER",
 	sizeof (OP_MonitorToggleMenu)/sizeof (menuitem_t),
@@ -1844,7 +1842,7 @@ menu_t OP_MonitorToggleDef =
 	30, 30,
 	0,
 	NULL
-};
+};*/
 
 #ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLOptionsMenu, &OP_VideoOptionsDef, 30, 30);
@@ -4515,8 +4513,8 @@ static void M_SinglePlayerMenu(INT32 choice)
 	(void)choice;
 	SP_MainMenu[sprecordattack].status =
 		(M_SecretUnlocked(SECRET_RECORDATTACK)) ? IT_CALL|IT_STRING : IT_SECRET;
-	SP_MainMenu[spnightsmode].status =
-		(M_SecretUnlocked(SECRET_NIGHTSMODE)) ? IT_CALL|IT_STRING : IT_SECRET;
+	/*SP_MainMenu[spnightsmode].status =
+		(M_SecretUnlocked(SECRET_NIGHTSMODE)) ? IT_CALL|IT_STRING : IT_SECRET;*/
 
 	M_SetupNextMenu(&SP_MainDef);
 }
@@ -4941,13 +4939,13 @@ static void M_HandleLoadSave(INT32 choice)
 //
 // Selected from SRB2 menu
 //
-static void M_LoadGame(INT32 choice)
+/*static void M_LoadGame(INT32 choice)
 {
 	(void)choice;
 
 	M_ReadSaveStrings();
 	M_SetupNextMenu(&SP_LoadDef);
-}
+}*/
 
 //
 // Used by cheats to force the save menu to a specific spot.
@@ -5346,6 +5344,9 @@ static void M_DrawGameStats(void)
 	                         G_TicsToMinutes(totalplaytime, false),
 	                         G_TicsToSeconds(totalplaytime)));
 
+	V_DrawString(32, 90, V_YELLOWMAP, "Total Matches Played:");
+	V_DrawRightAlignedString(BASEVIDWIDTH-32, 100, 0, va("%i", matchesplayed));
+
 	for (i = 0; i < NUMMAPS; i++)
 	{
 		if (!mapheaderinfo[i] || !(mapheaderinfo[i]->menuflags & LF2_RECORDATTACK))
@@ -5376,7 +5377,7 @@ static void M_DrawGameStats(void)
 
 	}
 
-	V_DrawCenteredString(BASEVIDWIDTH/2, 90, 0, "* COMBINED RECORDS *");
+	V_DrawCenteredString(BASEVIDWIDTH/2, 120, 0, "* COMBINED RECORDS *");
 
 	/*sprintf(beststr, "%u", bestscore);
 	V_DrawString(32, 100, V_YELLOWMAP, "SCORE:");
@@ -5385,10 +5386,10 @@ static void M_DrawGameStats(void)
 		V_DrawRightAlignedString(BASEVIDWIDTH-32, 108, V_REDMAP, va("(%d unfinished)", mapsunfinished[0]));*/
 
 	sprintf(beststr, "%i:%02i:%02i.%02i", G_TicsToHours(besttime), G_TicsToMinutes(besttime, false), G_TicsToSeconds(besttime), G_TicsToCentiseconds(besttime));
-	V_DrawString(32, 100, V_YELLOWMAP, "TIME:");
-	V_DrawRightAlignedString(BASEVIDWIDTH-32, 100, 0, beststr);
+	V_DrawString(32, 140, V_YELLOWMAP, "TIME:");
+	V_DrawRightAlignedString(BASEVIDWIDTH-32, 140, 0, beststr);
 	if (mapsunfinished[1])
-		V_DrawRightAlignedString(BASEVIDWIDTH-32, 108, V_REDMAP, va("(%d unfinished)", mapsunfinished[1]));
+		V_DrawRightAlignedString(BASEVIDWIDTH-32, 148, V_REDMAP, va("(%d unfinished)", mapsunfinished[1]));
 
 	/*sprintf(beststr, "%u", bestrings);
 	V_DrawString(32, 140, V_YELLOWMAP, "RINGS:");
@@ -5706,7 +5707,7 @@ void M_DrawNightsAttackMenu(void)
 }
 
 // Going to Nights Attack menu...
-static void M_NightsAttack(INT32 choice)
+/*static void M_NightsAttack(INT32 choice)
 {
 	(void)choice;
 
@@ -5731,7 +5732,7 @@ static void M_NightsAttack(INT32 choice)
 
 	G_SetGamestate(GS_TIMEATTACK);
 	S_ChangeMusicInternal("racent", true);
-}
+}*/
 
 // Player has selected the "START" from the nights attack screen
 static void M_ChooseNightsAttack(INT32 choice)
@@ -7099,6 +7100,7 @@ static void M_EraseDataResponse(INT32 ch)
 	if (erasecontext == 2)
 	{
 		totalplaytime = 0;
+		matchesplayed = 0;
 		F_StartIntro();
 	}
 	M_ClearMenus(true);
@@ -7780,7 +7782,7 @@ static void M_HandleVideoMode(INT32 ch)
 // ===============
 // Monitor Toggles
 // ===============
-static void M_DrawMonitorToggles(void)
+/*static void M_DrawMonitorToggles(void)
 {
 	INT32 i, y;
 	INT32 sum = 0;
@@ -7814,7 +7816,7 @@ static void M_DrawMonitorToggles(void)
 
 	if (cheating)
 		V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, V_REDMAP, "* MODIFIED, CHEATS ENABLED *");
-}
+}*/
 
 // =========
 // Quit Game

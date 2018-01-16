@@ -167,6 +167,7 @@ INT32 tokenbits; // Used for setting token bits
 INT32 sstimer; // Time allotted in the special stage
 
 tic_t totalplaytime;
+UINT32 matchesplayed; // SRB2Kart
 boolean gamedataloaded = false;
 
 // Time attack data for levels
@@ -237,6 +238,12 @@ INT16 scrambletotal; //for CTF team scramble
 INT16 scramblecount; //for CTF team scramble
 
 INT32 cheats; //for multiplayer cheat commands
+
+// SRB2Kart
+UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for relaxed, standard, & turbo
+boolean mirrormode; // Mirror Mode currently enabled?
+boolean franticitems; // Frantic items currently enabled?
+boolean comeback; // Battle Mode's karma comeback is on/off
 
 tic_t hidetime;
 
@@ -1271,7 +1278,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	axis = JoyAxis(AXISTURN, ssplayer);
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 	{
 		turnright ^= turnleft; // swap these using three XORs
 		turnleft ^= turnright;
@@ -1553,12 +1560,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		cmd->sidemove = -cmd->sidemove;
 
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN, ssplayer);
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		axis = -axis;
 
 	if (cmd->angleturn > 0) // Drifting to the left
@@ -3343,6 +3350,7 @@ void G_LoadGameData(void)
 	G_ClearRecords(); // main and nights records
 	M_ClearSecrets(); // emblems, unlocks, maps visited, etc
 	totalplaytime = 0; // total play time (separate from all)
+	matchesplayed = 0; // SRB2Kart: matches played & finished
 
 	if (M_CheckParm("-nodata"))
 		return; // Don't load.
@@ -3372,6 +3380,7 @@ void G_LoadGameData(void)
 	}
 
 	totalplaytime = READUINT32(save_p);
+	matchesplayed = READUINT32(save_p);
 
 	modded = READUINT8(save_p);
 
@@ -3514,6 +3523,7 @@ void G_SaveGameData(void)
 	WRITEUINT32(save_p, 0xFCAFE211);
 
 	WRITEUINT32(save_p, totalplaytime);
+	WRITEUINT32(save_p, matchesplayed);
 
 	btemp = (UINT8)(savemoddata || modifiedgame);
 	WRITEUINT8(save_p, btemp);

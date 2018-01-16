@@ -20,6 +20,13 @@
 #include "k_kart.h"
 #include "f_finale.h"
 
+// SOME IMPORTANT VARIABLES DEFINED IN DOOMDEF.H:
+// gamespeed is cc (0 for easy, 1 for normal, 2 for hard)
+// franticitems is Frantic Mode items, bool
+// mirrormode is Mirror Mode (duh), bool
+// comeback is Battle Mode's karma comeback, also bool
+
+
 //{ SRB2kart Color Code
 
 #define SKIN_RAMP_LENGTH 16
@@ -303,9 +310,10 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_lightning);
 	CV_RegisterVar(&cv_feather);
 
+	CV_RegisterVar(&cv_kartminimap);
 	CV_RegisterVar(&cv_kartcheck);
 	CV_RegisterVar(&cv_kartstarsfx);
-	CV_RegisterVar(&cv_kartcc);
+	CV_RegisterVar(&cv_kartspeed);
 	CV_RegisterVar(&cv_kartballoons);
 	CV_RegisterVar(&cv_kartfrantic);
 	CV_RegisterVar(&cv_kartcomeback);
@@ -317,16 +325,6 @@ void K_RegisterKartStuff(void)
 }
 
 //}
-
-UINT8 K_GetKartCC(void)
-{
-	if (gametype == GT_MATCH)
-		return 50;
-	else if (modeattacking)
-		return 150;
-	else
-		return cv_kartcc.value;
-}
 
 //{ SRB2kart Roulette Code - Position Based
 
@@ -975,7 +973,7 @@ static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
 	else
 		newodds = K_KartItemOddsDistance_Retro[itemnum-1][pos];
 
-	if ((cv_kartfrantic.value) && (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
+	if (franticitems && (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
 		|| itemnum == 7 || itemnum == 8 || itemnum == 12 || itemnum == 13 || itemnum == 14 || itemnum == 15
 		|| itemnum == 16 || itemnum == 17 || itemnum == 18))
 		newodds *= 2;
@@ -1059,7 +1057,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	}
 	else
 	{
-		if (cv_kartfrantic.value) // Frantic items
+		if (franticitems) // Frantic items
 		{
 			pdis = (13*pdis/12); // make the distances between everyone artifically higher...
 			//pdis += distvar; // and set everyone back another place!
@@ -1466,7 +1464,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_spinouttimer])
 		player->kartstuff[k_spinouttimer]--;
-	else if (!cv_kartcomeback.value)
+	else if (!comeback)
 		player->kartstuff[k_comebacktimer] = comebacktime;
 	else if (player->kartstuff[k_comebacktimer])
 	{
@@ -1701,12 +1699,12 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	{												// Mushroom
 		if (speed)
 		{
-			switch (K_GetKartCC())
+			switch (gamespeed)
 			{
-				case 50:
+				case 0:
 					boostvalue = max(boostvalue, 53740+768);
 					break;
-				case 150:
+				case 2:
 					boostvalue = max(boostvalue, 17294+768);
 					break;
 				default:
@@ -1731,12 +1729,12 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	UINT8 kartspeed = player->kartspeed;
 	fixed_t finalspeed;
 
-	switch (K_GetKartCC())
+	switch (gamespeed)
 	{
-		case 50:
+		case 0:
 			g_cc = 53248 + xspd; //  50cc =  81.25 + 4.69 =  85.94%
 			break;
-		case 150:
+		case 2:
 			g_cc = 77824 + xspd; // 150cc = 118.75 + 4.69 = 123.44%
 			break;
 		default:
@@ -1946,7 +1944,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 			if (source->player->kartstuff[k_balloon] <= 0)
 			{
 				source->player->kartstuff[k_comebackpoints] += 2;
-				if (netgame)
+				if (netgame && cv_hazardlog.value)
 					CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
 				if (source->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBalloon(source->player, player, true);
@@ -2020,7 +2018,7 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 	{
 		if (player->kartstuff[k_balloon] <= 0)
 			CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
-		else
+		else if (cv_hazardlog.value)
 			CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
 	}
 
@@ -2294,12 +2292,12 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		return NULL;
 
 	// Figure out projectile speed by CC
-	switch (K_GetKartCC())
+	switch (gamespeed)
 	{
-		case 50:
+		case 0:
 			PROJSPEED = 68*FRACUNIT; // Avg Speed is 34
 			break;
-		case 150:
+		case 2:
 			PROJSPEED = 96*FRACUNIT; // Avg Speed is 48
 			break;
 		default:
@@ -4879,7 +4877,7 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	fixed_t range = RING_DIST/3;
 	angle_t diff;
 
-	range *= (K_GetKartCC()/50);
+	range *= gamespeed+1;
 
 	dist = abs(R_PointToDist2(px, py, mx, my));
 	if (dist > range)
@@ -4892,7 +4890,7 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	else
 		x = (FixedMul(FINETANGENT(((diff+ANGLE_90)>>ANGLETOFINESHIFT) & 4095), 160<<FRACBITS) + (160<<FRACBITS))>>FRACBITS;
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		x = 320-x;
 
 	if (splitscreen > 1)
@@ -5018,7 +5016,7 @@ static void K_drawKartMinimap(void)
 	if (splitscreen == 2)
 		splitflags = 0;
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		V_DrawSmallScaledPatch(x+(AutomapPic->width/2), y, splitflags|V_FLIP, AutomapPic);
 	else
 		V_DrawSmallScaledPatch(x, y, splitflags, AutomapPic);
@@ -5074,7 +5072,7 @@ static void K_drawKartMinimap(void)
 			amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
 			amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
 
-			if (cv_kartmirror.value)
+			if (mirrormode)
 			{
 				amxpos = -amnumxpos + ((x + AutomapPic->width/4 + (iconprefix[players[i].skin]->width/4))<<FRACBITS);
 				if (!players[i].skincolor) // 'default' color
@@ -5140,7 +5138,7 @@ static void K_drawBattleFullscreen(void)
 		else if (splitscreen < 2)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlelose, NULL);
 	}
-	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && cv_kartcomeback.value)
+	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
 		INT32 t = stplyr->kartstuff[k_comebacktimer]/TICRATE;
 		INT32 txoff = 0;
@@ -5213,7 +5211,7 @@ static void K_drawStartLakitu(void)
 	else
 		adjustY = 200;
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		V_DrawSmallScaledPatch(320-LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP|V_FLIP, localpatch);
 	else
 		V_DrawSmallScaledPatch(LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
@@ -5286,7 +5284,7 @@ static void K_drawLapLakitu(void)
 			adjustY = 200;
 	}
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		V_DrawSmallScaledPatch(320-(LAKI_X+14+(swoopTimer/4)), LAKI_Y + adjustY, V_SNAPTOTOP|V_FLIP, localpatch);
 	else
 		V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
@@ -5303,7 +5301,7 @@ void K_drawKartHUD(void)
 		&& (stplyr->exiting
 		|| (stplyr->kartstuff[k_balloon] <= 0
 		&& stplyr->kartstuff[k_comebacktimer]
-		&& cv_kartcomeback.value
+		&& comeback
 		&& stplyr->playerstate == PST_LIVE)))
 	{
 		K_drawBattleFullscreen();
@@ -5326,7 +5324,7 @@ void K_drawKartHUD(void)
 			K_drawKartPlayerCheck();
 	}
 
-	if (splitscreen == 0 || splitscreen == 2)
+	if ((splitscreen == 0 || splitscreen == 2) && cv_kartminimap.value)
 		K_drawKartMinimap();
 
 	// If the item window is closing, draw it closing!

@@ -2987,6 +2987,17 @@ boolean P_SetupLevel(boolean skipprecip)
 		CV_SetValue(&cv_analog, false);
 	}
 
+	// SRB2Kart: map load variables
+	if (modeattacking)
+		gamespeed = 2;
+	else if (gametype == GT_MATCH)
+		gamespeed = 0;
+	else
+		gamespeed = cv_kartspeed.value;
+	franticitems = cv_kartfrantic.value;
+	mirrormode = cv_kartmirror.value;
+	comeback = cv_kartcomeback.value;
+
 	// clear special respawning que
 	iquehead = iquetail = 0;
 
