@@ -32,125 +32,114 @@ conditionset_t conditionSets[MAXCONDITIONSETS];
 // Default Emblem locations
 emblem_t emblemlocations[MAXEMBLEMS] =
 {
-	// GREEN HILLS
-	// 1:30.00
-	{ET_TIME,  0,0,0,  1, 'T', SKINCOLOR_GREY,   90*TICRATE, "", 0},
+	// -- GREEN HILLS --
+	// Time: 1:30.00
+	{ET_TIME, 0,0,0,  1, 'T', SKINCOLOR_GREY,  90*TICRATE, "", 0},
+	// -- NORTHERN DISTRICT --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0,  2, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- SUNBEAM PARADISE --
+	// Time: 2:00.00
+	{ET_TIME, 0,0,0,  3, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0},
+	// -- PIPE SPEEDWAY --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0,  4, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- DARKVILE GARDEN --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0,  5, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- MEGABLOCK CASTLE --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0,  6, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- MIDNIGHT MEADOW --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0,  7, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- HILL TOP --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 11, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- SAPPHIRE COAST --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 13, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- BLUE MOUNTAIN --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 15, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- CASINO RESORT --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 19, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- SILVERCLOUD ISLAND --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 21, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- CANYON RUSH --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 25, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- CLOUD CRADLE K --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 26, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- TOXIC PALACE --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 27, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- ANCIENT TOMB --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 30, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- SUB-ZERO PEAK --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 31, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- VIRTUAL HIGHWAY --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 32, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- EGGMAN'S NIGHTCLUB --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 37, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- GBA RAINBOW ROAD --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 61, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- SONIC SPEEDWAY --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 70, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- AURORA ATOLL --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0, 72, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- BARREN BADLANDS --
+	// Time: 2:30.00
+	{ET_TIME, 0,0,0, 79, 'T', SKINCOLOR_GREY, 150*TICRATE, "", 0},
 };
 
 // Default Extra Emblems
 extraemblem_t extraemblems[MAXEXTRAEMBLEMS] =
 {
-	{"Game Complete",  "Complete 1P Mode",                    10, 'X', SKINCOLOR_BLUE, 0},
-	{"All Emeralds",   "Complete 1P Mode with all Emeralds",  11, 'V', SKINCOLOR_GREY, 0},
-	{"Perfect Bonus",  "Perfect Bonus on a non-secret stage", 30, 'P', SKINCOLOR_GOLD, 0},
-	{"SRB1 Remake",    "Complete SRB1 Remake",                21, 'O', SKINCOLOR_ROSEWOOD, 0},
-	{"NiGHTS Mastery", "Show your mastery of NiGHTS!",        22, 'W', SKINCOLOR_TEAL, 0},
+	{"Experienced Driver", "Play 100 Matches", 10, 'X', SKINCOLOR_BLUE, 0},
 };
 
 // Default Unlockables
 unlockable_t unlockables[MAXUNLOCKABLES] =
 {
 	// Name, Objective, Menu Height, ConditionSet, Unlock Type, Variable, NoCecho, NoChecklist
-	/* 01 */ {"Record Attack",     "", 0, -1, SECRET_RECORDATTACK,  0,  true,  true, 0},
-	/* 02 */ {"NiGHTS Mode",       "", 0, -1, SECRET_NIGHTSMODE,    0,  true,  true, 0},
+	/* 01 */ {"Record Attack", "",  0, -1, SECRET_RECORDATTACK,  0,  true,  true, 0},
+	/* 02 */ {"Play Credits",  "", 10, -1, SECRET_CREDITS,       0,  true,  true, 0},
+	/* 03 */ {"Sound Test",    "", 20, -1, SECRET_SOUNDTEST,     0,  true,  true, 0},
 
-	/* 03 */ {"Play Credits",      "Complete 1P Mode", 30, 10, SECRET_CREDITS,   0,  true,  true, 0},
-	/* 04 */ {"Sound Test",        "Complete 1P Mode", 40, 10, SECRET_SOUNDTEST, 0, false, false, 0},
-
-	/* 05 */ {"EXTRA LEVELS", "", 60, 0, SECRET_HEADER, 0, true, true, 0},
-
-	/* 06 */ {"Aerial Garden Zone", "Complete 1P Mode w/ all emeralds", 70, 11, SECRET_WARP, 40, false, false, 0},
-	/* 07 */ {"Azure Temple Zone",  "Complete Aerial Garden Zone",      80, 20, SECRET_WARP, 41, false, false, 0},
-
-	/* 08 */ {"BONUS LEVELS", "", 100, 0, SECRET_HEADER, 0, true, true, 0},
-
-	/* 09 */ {"SRB1 Remake",       "Collect 20 Emblems",   130, 40, SECRET_WARP,        101, false, false, 0},
-	/* 10 */ {"Mario Koopa Blast", "Collect 60 Emblems",   110, 42, SECRET_WARP,         30, false, false, 0},
-	/* 11 */ {"SRB1 Level Select", "Complete SRB1 Remake", 140, 21, SECRET_LEVELSELECT,   2, false,  true, 0},
-
-	/* 12 */ {"Spring Hill Zone", "Collect 100 Emblems",          0, 44, SECRET_NONE, 0, false, false, 0},
-	/* 13 */ {"Black Hole",       "A Rank in all Special Stages", 0, 50, SECRET_NONE, 0, false, true, 0},
-
-	/* 14 */ {"Emblem Hints", "Collect 40 Emblems", 0, 41, SECRET_EMBLEMHINTS, 0, false,  true, 0},
-	/* 15 */ {"Emblem Radar", "Collect 80 Emblems", 0, 43, SECRET_ITEMFINDER,  0, false,  true, 0},
-
-	/* 16 */ {"Pandora's Box", "Collect All Emblems",  0, 45, SECRET_PANDORA,     0, false, false, 0},
-	/* 17 */ {"Level Select",  "Collect All Emblems", 20, 45, SECRET_LEVELSELECT, 1, false,  true, 0},
+	/* 04 */ {"SNES Cup",         "Collect 5 Emblems",  0, 1, SECRET_NONE, 0, false, false, 0},
+	/* 05 */ {"Chaotic Kart Cup", "Collect 15 Emblems", 0, 2, SECRET_NONE, 0, false, false, 0},
 };
 
 // Default number of emblems and extra emblems
-INT32 numemblems = 1;
-INT32 numextraemblems = 5;
+INT32 numemblems = 23;
+INT32 numextraemblems = 1;
 
-// DEFAULT CONDITION SETS FOR SRB2 2.1:
+// DEFAULT CONDITION SETS FOR SRB2KART:
 void M_SetupDefaultConditionSets(void)
 {
 	memset(conditionSets, 0, sizeof(conditionSets));
 
-	// --   1: Complete GFZ1
-	M_AddRawCondition(1, 1, UC_MAPBEATEN, 1, 0, 0);
+	// -- 1: Collect 5 emblems OR play 25 matches
+	M_AddRawCondition(1, 1, UC_TOTALEMBLEMS, 5, 0, 0);
+	M_AddRawCondition(1, 2, UC_MATCHESPLAYED, 25, 0, 0);
 
-	// --   2: Complete SS1
-	M_AddRawCondition(2, 1, UC_MAPBEATEN, 50, 0, 0);
+	// -- 2: Collect 15 emblems OR play 50 matches
+	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 15, 0, 0);
+	M_AddRawCondition(2, 2, UC_MATCHESPLAYED, 50, 0, 0);
 
-	// --  10: Complete the game
-	M_AddRawCondition(10, 1, UC_GAMECLEAR, 1, 0, 0);
-
-	// --  11: Complete the game with all emeralds
-	M_AddRawCondition(11, 1, UC_ALLEMERALDS, 1, 0, 0);
-
-	// --  20: Beat AGZ
-	M_AddRawCondition(20, 1, UC_MAPBEATEN, 40, 0, 0);
-
-	// --  21: Beat SRB1 Remake
-	M_AddRawCondition(21, 1, UC_MAPBEATEN, 132, 0, 0);
-
-	// --  22: Beat Black Hole
-	M_AddRawCondition(22, 1, UC_MAPBEATEN, 57, 0, 0);
-
-	// --  30: Perfect Bonus
-	M_AddRawCondition(30, 1,  UC_MAPPERFECT,  1, 0, 0);
-	M_AddRawCondition(30, 2,  UC_MAPPERFECT,  2, 0, 0);
-	M_AddRawCondition(30, 3,  UC_MAPPERFECT,  4, 0, 0);
-	M_AddRawCondition(30, 4,  UC_MAPPERFECT,  5, 0, 0);
-	M_AddRawCondition(30, 5,  UC_MAPPERFECT,  7, 0, 0);
-	M_AddRawCondition(30, 6,  UC_MAPPERFECT,  8, 0, 0);
-	M_AddRawCondition(30, 7,  UC_MAPPERFECT, 10, 0, 0);
-	M_AddRawCondition(30, 8,  UC_MAPPERFECT, 11, 0, 0);
-	M_AddRawCondition(30, 9,  UC_MAPPERFECT, 13, 0, 0);
-	M_AddRawCondition(30, 10, UC_MAPPERFECT, 16, 0, 0);
-	M_AddRawCondition(30, 11, UC_MAPPERFECT, 22, 0, 0);
-	M_AddRawCondition(30, 12, UC_MAPPERFECT, 23, 0, 0);
-	M_AddRawCondition(30, 13, UC_MAPPERFECT, 24, 0, 0);
-	M_AddRawCondition(30, 14, UC_MAPPERFECT, 40, 0, 0);
-	M_AddRawCondition(30, 15, UC_MAPPERFECT, 41, 0, 0);
-
-	// --  40: Find 20 emblems
-	M_AddRawCondition(40, 1, UC_TOTALEMBLEMS, 20, 0, 0);
-
-	// --  41: Find 40 emblems
-	M_AddRawCondition(41, 1, UC_TOTALEMBLEMS, 40, 0, 0);
-
-	// --  42: Find 60 emblems
-	M_AddRawCondition(42, 1, UC_TOTALEMBLEMS, 60, 0, 0);
-
-	// --  43: Find 80 emblems
-	M_AddRawCondition(43, 1, UC_TOTALEMBLEMS, 80, 0, 0);
-
-	// --  44: Find 100 emblems
-	M_AddRawCondition(44, 1, UC_TOTALEMBLEMS, 100, 0, 0);
-
-	// --  45: Find 160 (all) emblems
-	M_AddRawCondition(45, 1, UC_TOTALEMBLEMS, 160, 0, 0);
-
-	// --  50: A rank all NiGHTS special stages
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 50, 0);
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 51, 0);
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 52, 0);
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 53, 0);
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 54, 0);
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 55, 0);
-	M_AddRawCondition(50, 1, UC_NIGHTSGRADE, GRADE_A, 56, 0);
+	// -- 10: Play 100 matches
+	M_AddRawCondition(10, 1, UC_TOTALEMBLEMS, 20, 0, 0);
 }
 
 void M_AddRawCondition(UINT8 set, UINT8 id, conditiontype_t c, INT32 r, INT16 x1, INT16 x2)

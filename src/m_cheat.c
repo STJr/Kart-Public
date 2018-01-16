@@ -84,9 +84,9 @@ static UINT8 cheatf_warp(void)
 
 	// Temporarily unlock stuff.
 	G_SetGameModified(false);
-	unlockables[2].unlocked = true; // credits
-	unlockables[3].unlocked = true; // sound test
-	unlockables[16].unlocked = true; // level select
+	unlockables[1].unlocked = true; // credits
+	unlockables[2].unlocked = true; // sound test
+	//unlockables[16].unlocked = true; // level select
 
 	// Refresh secrets menu existing.
 	M_ClearMenus(true);
