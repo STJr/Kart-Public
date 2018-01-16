@@ -4831,7 +4831,7 @@ static void K_drawKartSpeedometer(void)
 	else if (cv_speedometer.value == 3)
 	{
 		convSpeed = FixedDiv(stplyr->speed, mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT;
-		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d fu/s", convSpeed));
+		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d fu/t", convSpeed));
 	}
 }
 
