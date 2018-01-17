@@ -1064,7 +1064,7 @@ static menuitem_t OP_P1ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam  ,  50},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair , 60},
 
-	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog,  80},
+	//{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog,  80},
 };
 
 static menuitem_t OP_P2ControlsMenu[] =
@@ -1076,7 +1076,7 @@ static menuitem_t OP_P2ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam2 , 50},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 60},
 
-	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  70},
+	//{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  70},
 };
 
 #ifndef NOFOURPLAYER
@@ -1088,7 +1088,7 @@ static menuitem_t OP_P3ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam3 , 40},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair3, 50},
 
-	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog3,  60},
+	//{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog3,  60},
 };
 
 static menuitem_t OP_P4ControlsMenu[] =
@@ -1099,7 +1099,7 @@ static menuitem_t OP_P4ControlsMenu[] =
 	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam4 , 40},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair4, 50},
 
-	{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog4,  60},
+	//{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog4,  60},
 };
 #endif
 
@@ -6692,7 +6692,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 	// draw text cursor for name
 	if (!itemOn && skullAnimCounter < 4) // blink cursor
-		V_DrawCharacter(mx + 48 + V_StringWidth(setupm_name, 0), my, '_',false);
+		V_DrawCharacter(mx + 40 + V_StringWidth(setupm_name, 0), my, '_',false);
 
 	// SRB2Kart: draw the stat backer
 	V_DrawFixedPatch((mx+141)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, NULL);
