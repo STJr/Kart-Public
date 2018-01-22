@@ -1368,7 +1368,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (InputDown(gc_brake, ssplayer))
 	{
 		cmd->buttons |= BT_BRAKE;
-		forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+		if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
+			forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
 	}
 	// But forward/backward IS used for aiming.
 	axis = JoyAxis(AXISMOVE, ssplayer);
@@ -1544,8 +1545,16 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		side = temp;
 	}
 
-	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
-	cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	if (cmd->buttons & BT_BRAKE && !forward) // Sal: If you're not accelerating, but going forward, then you should just lose your momentum. Request from Sev
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove / 2);
+		cmd->sidemove = (SINT8)(cmd->sidemove / 2);
+	}
+	else
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
+		cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	}
 
 	if (cv_kartmirror.value)
 		cmd->sidemove = -cmd->sidemove;
