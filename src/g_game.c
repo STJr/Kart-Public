@@ -1160,6 +1160,7 @@ static INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 //
 INT32 localaiming, localaiming2, localaiming3, localaiming4;
 angle_t localangle, localangle2, localangle3, localangle4;
+boolean camspin, camspin2, camspin3, camspin4;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
@@ -1179,45 +1180,45 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static INT32 turnheld, turnheld2, turnheld3, turnheld4; // for accelerative turning
 	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		player = &players[secondarydisplayplayer];
-		thiscam = (player->bot == 2 ? &camera : &camera2);
-		lang = localangle2;
-		laim = localaiming2;
-		th = turnheld2;
-		kbl = keyboard_look2;
-		G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
-	}
-	else if (ssplayer == 3)
-	{
-		player = &players[thirddisplayplayer];
-		thiscam = &camera3;
-		lang = localangle3;
-		laim = localaiming3;
-		th = turnheld3;
-		kbl = keyboard_look3;
-		G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
-	}
-	else if (ssplayer == 4)
-	{
-		player = &players[fourthdisplayplayer];
-		thiscam = &camera4;
-		lang = localangle4;
-		laim = localaiming4;
-		th = turnheld4;
-		kbl = keyboard_look4;
-		G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
-	}
-	else
-	{
-		player = &players[consoleplayer];
-		thiscam = &camera;
-		lang = localangle;
-		laim = localaiming;
-		th = turnheld;
-		kbl = keyboard_look;
-		G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+		case 2:
+			player = &players[secondarydisplayplayer];
+			thiscam = (player->bot == 2 ? &camera : &camera2);
+			lang = localangle2;
+			laim = localaiming2;
+			th = turnheld2;
+			kbl = keyboard_look2;
+			G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
+			break;
+		case 3:
+			player = &players[thirddisplayplayer];
+			thiscam = &camera3;
+			lang = localangle3;
+			laim = localaiming3;
+			th = turnheld3;
+			kbl = keyboard_look3;
+			G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
+			break;
+		case 4:
+			player = &players[fourthdisplayplayer];
+			thiscam = &camera4;
+			lang = localangle4;
+			laim = localaiming4;
+			th = turnheld4;
+			kbl = keyboard_look4;
+			G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
+			break;
+		case 1:
+		default:
+			player = &players[consoleplayer];
+			thiscam = &camera;
+			lang = localangle;
+			laim = localaiming;
+			th = turnheld;
+			kbl = keyboard_look;
+			G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+			break;
 	}
 
 	// why build a ticcmd if we're paused?
@@ -1229,41 +1230,41 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		return;
 	}
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		mouseaiming = (PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
-		invertmouse = cv_invertmouse2.value;
-		lookaxis = cv_lookaxis2.value;
-		analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
-		analog = cv_analog2.value;
-	}
-	else if (ssplayer == 3)
-	{
-		mouseaiming = false;
-		invertmouse = false;
-		lookaxis = cv_lookaxis3.value;
-		analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
-		analog = cv_analog3.value;
-	}
-	else if (ssplayer == 4)
-	{
-		mouseaiming = false;
-		invertmouse = false;
-		lookaxis = cv_lookaxis4.value;
-		analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
-		analog = cv_analog4.value;
-	}
-	else
-	{
-		mouseaiming = (PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
-		invertmouse = cv_invertmouse.value;
-		lookaxis = cv_lookaxis.value;
-		analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
-		analog = cv_analog.value;
+		case 2:
+			mouseaiming = (PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
+			invertmouse = cv_invertmouse2.value;
+			lookaxis = cv_lookaxis2.value;
+			analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
+			analog = cv_analog2.value;
+			break;
+		case 3:
+			mouseaiming = false;
+			invertmouse = false;
+			lookaxis = cv_lookaxis3.value;
+			analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
+			analog = cv_analog3.value;
+			break;
+		case 4:
+			mouseaiming = false;
+			invertmouse = false;
+			lookaxis = cv_lookaxis4.value;
+			analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
+			analog = cv_analog4.value;
+			break;
+		case 1:
+		default:
+			mouseaiming = (PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
+			invertmouse = cv_invertmouse.value;
+			lookaxis = cv_lookaxis.value;
+			analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
+			analog = cv_analog.value;
+			break;
 	}
 
 	turnright = InputDown(gc_turnright, ssplayer);
@@ -1429,6 +1430,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (InputDown(gc_spectate, ssplayer))
 		cmd->buttons |= BT_SPECTATE;
 
+	// SRB2Kart: look backward
+	if (InputDown(gc_lookback, ssplayer))
+	
 	// Lua scriptable buttons
 	if (InputDown(gc_custom1, ssplayer))
 		cmd->buttons |= BT_CUSTOM1;
@@ -1452,16 +1456,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		if (InputDown(gc_aimbackward, ssplayer))
 			cmd->buttons |= BT_BACKWARD;
 	}
-	*/
-
-	/*
-	if (InputDown(gc_lookback, ssplayer))
-	{
-		if (thiscam->chase && !player->kartstuff[k_camspin])
-			player->kartstuff[k_camspin] = 1;
-	}
-	else if (player->kartstuff[k_camspin] > 0)
-		player->kartstuff[k_camspin] = -1;
 	*/
 
 	// jump button
@@ -1608,33 +1602,37 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->angleturn = (INT16)(lang >> 16);
 	}
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		localangle2 = lang;
-		localaiming2 = laim;
-		keyboard_look2 = kbl;
-		turnheld2 = th;
-	}
-	else if (ssplayer == 3)
-	{
-		localangle3 = lang;
-		localaiming3 = laim;
-		keyboard_look3 = kbl;
-		turnheld3 = th;
-	}
-	else if (ssplayer == 4)
-	{
-		localangle4 = lang;
-		localaiming4 = laim;
-		keyboard_look4 = kbl;
-		turnheld4 = th;
-	}
-	else
-	{
-		localangle = lang;
-		localaiming = laim;
-		keyboard_look = kbl;
-		turnheld = th;
+		case 2:
+			localangle2 = lang;
+			localaiming2 = laim;
+			keyboard_look2 = kbl;
+			turnheld2 = th;
+			camspin2 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 3:
+			localangle3 = lang;
+			localaiming3 = laim;
+			keyboard_look3 = kbl;
+			turnheld3 = th;
+			camspin3 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 4:
+			localangle4 = lang;
+			localaiming4 = laim;
+			keyboard_look4 = kbl;
+			turnheld4 = th;
+			camspin4 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 1:
+		default:
+			localangle = lang;
+			localaiming = laim;
+			keyboard_look = kbl;
+			turnheld = th;
+			camspin = InputDown(gc_lookback, ssplayer);
+			break;
 	}
 
 	//Reset away view if a command is given.

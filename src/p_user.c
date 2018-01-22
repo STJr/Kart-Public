@@ -63,7 +63,7 @@ static void P_NukeAllPlayers(player_t *player);
 //
 
 // 16 pixels of bob
-#define MAXBOB (0x10 << FRACBITS)
+//#define MAXBOB (0x10 << FRACBITS)
 
 static boolean onground;
 
@@ -179,9 +179,9 @@ boolean P_AutoPause(void)
 //
 void P_CalcHeight(player_t *player)
 {
-	INT32 angle;
-	fixed_t bob;
-	fixed_t pviewheight;
+	//INT32 angle;
+	//fixed_t bob;
+	//fixed_t pviewheight;
 	mobj_t *mo = player->mo;
 
 	// Regular movement bobbing.
@@ -190,11 +190,11 @@ void P_CalcHeight(player_t *player)
 	// Note: a LUT allows for effects
 	//  like a ramp with low health.
 
-	player->bob = (FixedMul(player->rmomx,player->rmomx)
+	/*player->bob = (FixedMul(player->rmomx,player->rmomx)
 		+ FixedMul(player->rmomy,player->rmomy))>>2;
 
 	if (player->bob > FixedMul(MAXBOB, mo->scale))
-		player->bob = FixedMul(MAXBOB, mo->scale);
+		player->bob = FixedMul(MAXBOB, mo->scale);*/
 
 	if (!P_IsObjectOnGround(mo))
 	{
@@ -213,13 +213,13 @@ void P_CalcHeight(player_t *player)
 		return;
 	}
 
-	angle = (FINEANGLES/20*localgametic)&FINEMASK;
-	bob = FixedMul(player->bob/2, FINESINE(angle));
+	//angle = (FINEANGLES/20*localgametic)&FINEMASK;
+	//bob = FixedMul(player->bob/2, FINESINE(angle));
 
 	// move viewheight
-	pviewheight = FixedMul(cv_viewheight.value << FRACBITS, mo->scale); // default eye view height
+	player->viewheight = FixedMul(cv_viewheight.value << FRACBITS, mo->scale); // default eye view height
 
-	if (player->playerstate == PST_LIVE)
+	/*if (player->playerstate == PST_LIVE)
 	{
 		player->viewheight += player->deltaviewheight;
 
@@ -242,12 +242,12 @@ void P_CalcHeight(player_t *player)
 			if (!player->deltaviewheight)
 				player->deltaviewheight = 1;
 		}
-	}
+	}*/
 
 	if (player->mo->eflags & MFE_VERTICALFLIP)
-		player->viewz = mo->z + mo->height - player->viewheight - bob;
+		player->viewz = mo->z + mo->height - player->viewheight; //- bob
 	else
-		player->viewz = mo->z + player->viewheight + bob;
+		player->viewz = mo->z + player->viewheight; //+ bob
 
 	if (player->viewz > mo->ceilingz-FixedMul(4*FRACUNIT, mo->scale))
 		player->viewz = mo->ceilingz-FixedMul(4*FRACUNIT, mo->scale);
@@ -7992,7 +7992,7 @@ void P_FindEmerald(void)
 static void P_DeathThink(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
-	player->deltaviewheight = 0;
+	//player->deltaviewheight = 0;
 
 	if (player->deadtimer < INT32_MAX)
 		player->deadtimer++;
@@ -8160,25 +8160,25 @@ static CV_PossibleValue_t CV_CamRotate[] = {{-720, "MIN"}, {720, "MAX"}, {0, NUL
 consvar_t cv_cam_dist = {"cam_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_height = {"cam_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_still = {"cam_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam_speed = {"cam_speed", "0.3", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam_speed = {"cam_speed", "0.45", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_rotate = {"cam_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_rotspeed = {"cam_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_dist = {"cam2_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_height = {"cam2_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_still = {"cam2_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam2_speed = {"cam2_speed", "0.3", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam2_speed = {"cam2_speed", "0.45", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_rotate = {"cam2_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate2_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_rotspeed = {"cam2_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_dist = {"cam3_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_height = {"cam3_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_still = {"cam3_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam3_speed = {"cam3_speed", "0.3", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam3_speed = {"cam3_speed", "0.45", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_rotate = {"cam3_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate3_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_rotspeed = {"cam3_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_dist = {"cam4_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_height = {"cam4_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_still = {"cam4_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_cam4_speed = {"cam4_speed", "0.3", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_cam4_speed = {"cam4_speed", "0.45", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_rotate = {"cam4_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_rotspeed = {"cam4_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -8244,7 +8244,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	angle_t angle = 0, focusangle = 0, focusaiming = 0;
 	fixed_t x, y, z, dist, height, checkdist, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
 	INT32 camrotate;
-	boolean camstill, cameranoclip;
+	boolean camstill, cameranoclip, lookback;
 	mobj_t *mo;
 	subsector_t *newsubsec;
 	fixed_t f1, f2;
@@ -8353,6 +8353,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam_rotate.value;
 		camdist = FixedMul(cv_cam_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
 		camheight = FixedMul(cv_cam_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		lookback = camspin;
 	}
 	else if (thiscam == &camera2) // Camera 2
 	{
@@ -8361,6 +8362,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam2_rotate.value;
 		camdist = FixedMul(cv_cam2_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
 		camheight = FixedMul(cv_cam2_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		lookback = camspin2;
 	}
 	else if (thiscam == &camera3) // Camera 3
 	{
@@ -8369,6 +8371,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam3_rotate.value;
 		camdist = FixedMul(cv_cam3_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
 		camheight = FixedMul(cv_cam3_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		lookback = camspin3;
 	}
 	else // Camera 4
 	{
@@ -8377,12 +8380,16 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam4_rotate.value;
 		camdist = FixedMul(cv_cam4_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
 		camheight = FixedMul(cv_cam4_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		lookback = camspin4;
 	}
+
+	// SRB2kart - Camera flipper
+	if (lookback)
+		camrotate += 180;
 
 #ifdef REDSANALOG
 	if (P_AnalogMove(player) && (player->cmd.buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)) {
 		camstill = true;
-
 		if (camspeed < 4*FRACUNIT/5)
 			camspeed = 4*FRACUNIT/5;
 	}
@@ -8435,43 +8442,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		angle = FixedAngle(camrotate*FRACUNIT);
 		thiscam->angle = angle;
-	}
-
-	// SRB2kart - Camera flipper
-	if (!objectplacing && displayplayer == consoleplayer)
-	{
-		if (player->kartstuff[k_camspin] == 1)
-		{
-			if (thiscam == &camera)
-			{
-				CV_SetValue(&cv_cam_rotate, camrotate + 180);
-			}
-			else if (thiscam == &camera2)
-			{
-				CV_SetValue(&cv_cam2_rotate, camrotate + 180);
-			}
-			else if (thiscam == &camera3)
-			{
-				CV_SetValue(&cv_cam3_rotate, camrotate + 180);
-			}
-			else
-			{
-				CV_SetValue(&cv_cam4_rotate, camrotate + 180);
-			}
-			player->kartstuff[k_camspin] = 2;
-		}
-		if (player->kartstuff[k_camspin] == -1)
-		{
-			if (thiscam == &camera)
-			{
-				CV_SetValue(&cv_cam_rotate, camrotate - 180);
-			}
-			else
-			{
-				CV_SetValue(&cv_cam2_rotate, camrotate - 180);
-			}
-			player->kartstuff[k_camspin] = 0;
-		}
 	}
 
 	/* // SRB2kart - camera controls are disabled... for now.
@@ -8791,7 +8761,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
-	dist = FixedMul(64 << FRACBITS, mo->scale);
+	dist = FixedMul(64 << FRACBITS, mapheaderinfo[gamemap-1]->mobj_scale);
 	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
@@ -10032,7 +10002,7 @@ void P_PlayerAfterThink(player_t *player)
 		else
 		{
 			// defaults to make sure 1st person cam doesn't do anything weird on startup
-			player->deltaviewheight = 0;
+			//player->deltaviewheight = 0;
 			player->viewheight = FixedMul(cv_viewheight.value << FRACBITS, player->mo->scale);
 			if (player->mo->eflags & MFE_VERTICALFLIP)
 				player->viewz = player->mo->z + player->mo->height - player->viewheight;
