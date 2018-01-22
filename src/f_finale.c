@@ -816,8 +816,8 @@ void F_GameEvaluationDrawer(void)
 			if (ALL7EMERALDS(emeralds))
 				++timesBeatenWithEmeralds;
 
-			if (ultimatemode)
-				++timesBeatenUltimate;
+			/*if (ultimatemode)
+				++timesBeatenUltimate;*/
 
 			if (M_UpdateUnlockablesAndExtraEmblems())
 				S_StartSound(NULL, sfx_ncitem);

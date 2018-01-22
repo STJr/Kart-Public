@@ -58,7 +58,7 @@ typedef struct
 // ==========================================================================
 
 // Cheat responders
-static UINT8 cheatf_ultimate(void)
+/*static UINT8 cheatf_ultimate(void)
 {
 	if (menuactive && (currentMenu != &MainDef && currentMenu != &SP_LoadDef))
 		return 0; // Only on the main menu, or the save select!
@@ -70,7 +70,7 @@ static UINT8 cheatf_ultimate(void)
 	if (currentMenu == &SP_LoadDef)
 		M_ForceSaveSlotSelected(NOSAVESLOT);
 	return 1;
-}
+}*/
 
 static UINT8 cheatf_warp(void)
 {
@@ -121,17 +121,17 @@ static UINT8 cheatf_devmode(void)
 }
 #endif
 
-static cheatseq_t cheat_ultimate = {
+/*static cheatseq_t cheat_ultimate = {
 	0, cheatf_ultimate,
 	{ SCRAMBLE('u'), SCRAMBLE('l'), SCRAMBLE('t'), SCRAMBLE('i'), SCRAMBLE('m'), SCRAMBLE('a'), SCRAMBLE('t'), SCRAMBLE('e'), 0xff }
-};
+};*/
 
-static cheatseq_t cheat_ultimate_joy = {
+/*static cheatseq_t cheat_ultimate_joy = {
 	0, cheatf_ultimate,
 	{ SCRAMBLE(KEY_UPARROW), SCRAMBLE(KEY_UPARROW), SCRAMBLE(KEY_DOWNARROW), SCRAMBLE(KEY_DOWNARROW),
 	  SCRAMBLE(KEY_LEFTARROW), SCRAMBLE(KEY_RIGHTARROW), SCRAMBLE(KEY_LEFTARROW), SCRAMBLE(KEY_RIGHTARROW),
 	  SCRAMBLE(KEY_ENTER), 0xff }
-};
+};*/
 
 static cheatseq_t cheat_warp = {
 	0, cheatf_warp,

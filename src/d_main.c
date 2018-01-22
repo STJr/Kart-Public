@@ -1409,11 +1409,11 @@ void D_SRB2Main(void)
 		return;
 	}
 
-	if (M_CheckParm("-ultimatemode"))
+	/*if (M_CheckParm("-ultimatemode"))
 	{
 		autostart = true;
 		ultimatemode = true;
-	}
+	}*/
 
 	if (autostart || netgame || M_CheckParm("+connect") || M_CheckParm("-connect"))
 	{

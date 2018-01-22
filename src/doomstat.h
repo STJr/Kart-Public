@@ -62,7 +62,7 @@ extern boolean metalrecording;
 
 #define ATTACKING_NONE   0
 #define ATTACKING_RECORD 1
-#define ATTACKING_NIGHTS 2
+//#define ATTACKING_NIGHTS 2
 extern UINT8 modeattacking;
 
 // menu demo things
@@ -343,9 +343,10 @@ extern INT32 nummaprings, nummapboxes, numgotboxes; //keep track of spawned ring
   */
 typedef struct
 {
-	tic_t time;   ///< Time in which the level was finished.
-	UINT32 score; ///< Score when the level was finished.
-	UINT16 rings; ///< Rings when the level was finished.
+	tic_t time; ///< Time in which the level was finished.
+	tic_t lap;  ///< Best lap time for this level.
+	//UINT32 score; ///< Score when the level was finished.
+	//UINT16 rings; ///< Rings when the level was finished.
 } recorddata_t;
 
 /** Setup for one NiGHTS map.
@@ -359,29 +360,29 @@ typedef struct
 #define GRADE_A 5
 #define GRADE_S 6
 
-typedef struct
+/*typedef struct
 {
 	// 8 mares, 1 overall (0)
 	UINT8	nummares;
 	UINT32	score[9];
 	UINT8	grade[9];
 	tic_t	time[9];
-} nightsdata_t;
+} nightsdata_t;*/
 
-extern nightsdata_t *nightsrecords[NUMMAPS];
+//extern nightsdata_t *nightsrecords[NUMMAPS];
 extern recorddata_t *mainrecords[NUMMAPS];
 
 // mapvisited is now a set of flags that says what we've done in the map.
-#define MV_VISITED      1
-#define MV_BEATEN       2
-#define MV_ALLEMERALDS  4
-#define MV_ULTIMATE     8
-#define MV_PERFECT     16
-#define MV_MAX         31 // used in gamedata check
+#define MV_VISITED     1
+#define MV_BEATEN      2
+#define MV_ALLEMERALDS 4
+//#define MV_ULTIMATE     8
+//#define MV_PERFECT     16
+#define MV_MAX         7 // used in gamedata check
 extern UINT8 mapvisited[NUMMAPS];
 
 // Temporary holding place for nights data for the current map
-nightsdata_t ntemprecords;
+//nightsdata_t ntemprecords;
 
 extern UINT32 token; ///< Number of tokens collected in a level
 extern UINT32 tokenlist; ///< List of tokens collected
@@ -443,12 +444,13 @@ extern UINT8 gamespeed;
 extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
+extern tic_t bestlap;
 
 extern tic_t hidetime;
 
 extern UINT32 timesBeaten; // # of times the game has been beaten.
 extern UINT32 timesBeatenWithEmeralds;
-extern UINT32 timesBeatenUltimate;
+//extern UINT32 timesBeatenUltimate;
 
 // ===========================
 // Internal parameters, fixed.

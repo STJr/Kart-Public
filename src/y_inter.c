@@ -907,10 +907,13 @@ static void Y_UpdateRecordReplays(void)
 	if ((mainrecords[gamemap-1]->time == 0) || (players[consoleplayer].realtime < mainrecords[gamemap-1]->time))
 		mainrecords[gamemap-1]->time = players[consoleplayer].realtime;
 
+	if ((mainrecords[gamemap-1]->lap == 0) || (bestlap < mainrecords[gamemap-1]->lap))
+		mainrecords[gamemap-1]->lap = bestlap;
+
 	// Save demo!
 	bestdemo[255] = '\0';
 	lastdemo[255] = '\0';
-	G_SetDemoTime(players[consoleplayer].realtime, 0);
+	G_SetDemoTime(players[consoleplayer].realtime, bestlap);
 	G_CheckDemoStatus();
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
@@ -934,6 +937,15 @@ static void Y_UpdateRecordReplays(void)
 				remove(bestdemo);
 			FIL_WriteFile(bestdemo, buf, len);
 			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW RECORD TIME!"), M_GetText("Saved replay as"), bestdemo);
+		}
+
+		snprintf(bestdemo, 255, "%s-%s-lap-best.lmp", gpath, cv_chooseskin.string);
+		if (!FIL_FileExists(bestdemo) || G_CmpDemoTime(bestdemo, lastdemo) & (1<<1))
+		{ // Better lap time, save this demo.
+			if (FIL_FileExists(bestdemo))
+				remove(bestdemo);
+			FIL_WriteFile(bestdemo, buf, len);
+			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW RECORD LAP!"), M_GetText("Saved replay as"), bestdemo);
 		}
 
 		//CONS_Printf("%s '%s'\n", M_GetText("Saved replay as"), lastdemo);
@@ -1033,7 +1045,7 @@ void Y_StartIntermission(void)
 	{
 		case int_nights:
 			// Can't fail
-			G_SetNightsRecords();
+			//G_SetNightsRecords();
 
 			// Check records
 			{
@@ -1059,10 +1071,10 @@ void Y_StartIntermission(void)
 				mapvisited[gamemap-1] |= MV_BEATEN;
 				if (ALL7EMERALDS(emeralds))
 					mapvisited[gamemap-1] |= MV_ALLEMERALDS;
-				if (ultimatemode)
+				/*if (ultimatemode)
 					mapvisited[gamemap-1] |= MV_ULTIMATE;
 				if (data.coop.gotperfbonus)
-					mapvisited[gamemap-1] |= MV_PERFECT;
+					mapvisited[gamemap-1] |= MV_PERFECT;*/
 
 				if (modeattacking == ATTACKING_RECORD)
 					Y_UpdateRecordReplays();
@@ -1313,10 +1325,10 @@ void Y_StartIntermission(void)
 				mapvisited[gamemap-1] |= MV_BEATEN;
 				if (ALL7EMERALDS(emeralds))
 					mapvisited[gamemap-1] |= MV_ALLEMERALDS;
-				if (ultimatemode)
+				/*if (ultimatemode)
 					mapvisited[gamemap-1] |= MV_ULTIMATE;
 				if (data.coop.gotperfbonus)
-					mapvisited[gamemap-1] |= MV_PERFECT;
+					mapvisited[gamemap-1] |= MV_PERFECT;*/
 
 				if (modeattacking == ATTACKING_RECORD)
 					Y_UpdateRecordReplays();

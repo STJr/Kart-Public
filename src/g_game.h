@@ -60,7 +60,7 @@ extern consvar_t cv_sideaxis,cv_turnaxis,cv_moveaxis,cv_lookaxis,cv_fireaxis,cv_
 extern consvar_t cv_sideaxis2,cv_turnaxis2,cv_moveaxis2,cv_lookaxis2,cv_fireaxis2,cv_firenaxis2;
 extern consvar_t cv_sideaxis3,cv_turnaxis3,cv_moveaxis3,cv_lookaxis3,cv_fireaxis3,cv_firenaxis3;
 extern consvar_t cv_sideaxis4,cv_turnaxis4,cv_moveaxis4,cv_lookaxis4,cv_fireaxis4,cv_firenaxis4;
-extern consvar_t cv_ghost_bestscore, cv_ghost_besttime, cv_ghost_last, cv_ghost_guest, cv_ghost_staff; //cv_ghost_bestlap
+extern consvar_t cv_ghost_besttime, cv_ghost_bestlap, cv_ghost_last, cv_ghost_guest, cv_ghost_staff;
 
 // mouseaiming (looking up/down with the mouse or keyboard)
 #define KB_LOOKSPEED (1<<25)
@@ -121,7 +121,7 @@ void G_BeginRecording(void);
 void G_BeginMetal(void);
 
 // Only called by shutdown code.
-void G_SetDemoTime(UINT32 ptime, UINT32 pscore);
+void G_SetDemoTime(UINT32 ptime, UINT32 plap);
 UINT8 G_CmpDemoTime(char *oldname, char *newname);
 
 typedef enum
@@ -196,18 +196,19 @@ void G_SetGamestate(gamestate_t newstate);
 
 // Gamedata record shit
 void G_AllocMainRecordData(INT16 i);
-void G_AllocNightsRecordData(INT16 i);
+//void G_AllocNightsRecordData(INT16 i);
 void G_ClearRecords(void);
 
-UINT32 G_GetBestScore(INT16 map);
+//UINT32 G_GetBestScore(INT16 map);
 tic_t G_GetBestTime(INT16 map);
-UINT16 G_GetBestRings(INT16 map);
-UINT32 G_GetBestNightsScore(INT16 map, UINT8 mare);
-tic_t G_GetBestNightsTime(INT16 map, UINT8 mare);
-UINT8 G_GetBestNightsGrade(INT16 map, UINT8 mare);
+//tic_t G_GetBestLap(INT16 map);
+//UINT16 G_GetBestRings(INT16 map);
+//UINT32 G_GetBestNightsScore(INT16 map, UINT8 mare);
+//tic_t G_GetBestNightsTime(INT16 map, UINT8 mare);
+//UINT8 G_GetBestNightsGrade(INT16 map, UINT8 mare);
 
-void G_AddTempNightsRecords(UINT32 pscore, tic_t ptime, UINT8 mare);
-void G_SetNightsRecords(void);
+//void G_AddTempNightsRecords(UINT32 pscore, tic_t ptime, UINT8 mare);
+//void G_SetNightsRecords(void);
 
 FUNCMATH INT32 G_TicsToHours(tic_t tics);
 FUNCMATH INT32 G_TicsToMinutes(tic_t tics, boolean full);

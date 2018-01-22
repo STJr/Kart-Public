@@ -173,11 +173,11 @@ boolean gamedataloaded = false;
 // Time attack data for levels
 // These are dynamically allocated for space reasons now
 recorddata_t *mainrecords[NUMMAPS]   = {NULL};
-nightsdata_t *nightsrecords[NUMMAPS] = {NULL};
+//nightsdata_t *nightsrecords[NUMMAPS] = {NULL};
 UINT8 mapvisited[NUMMAPS];
 
 // Temporary holding place for nights data for the current map
-nightsdata_t ntemprecords;
+//nightsdata_t ntemprecords;
 
 UINT32 bluescore, redscore; // CTF and Team Match team scores
 
@@ -244,13 +244,14 @@ UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for
 boolean mirrormode; // Mirror Mode currently enabled?
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
+tic_t bestlap; // Best lap time, should be local
 
 tic_t hidetime;
 
 // Grading
 UINT32 timesBeaten;
 UINT32 timesBeatenWithEmeralds;
-UINT32 timesBeatenUltimate;
+//UINT32 timesBeatenUltimate;
 
 static char demoname[64];
 boolean demorecording;
@@ -538,12 +539,12 @@ void G_AllocMainRecordData(INT16 i)
 	memset(mainrecords[i], 0, sizeof(recorddata_t));
 }
 
-void G_AllocNightsRecordData(INT16 i)
+/*void G_AllocNightsRecordData(INT16 i)
 {
 	if (!nightsrecords[i])
 		nightsrecords[i] = Z_Malloc(sizeof(nightsdata_t), PU_STATIC, NULL);
 	memset(nightsrecords[i], 0, sizeof(nightsdata_t));
-}
+}*/
 
 // MAKE SURE YOU SAVE DATA BEFORE CALLING THIS
 void G_ClearRecords(void)
@@ -556,22 +557,22 @@ void G_ClearRecords(void)
 			Z_Free(mainrecords[i]);
 			mainrecords[i] = NULL;
 		}
-		if (nightsrecords[i])
+		/*if (nightsrecords[i])
 		{
 			Z_Free(nightsrecords[i]);
 			nightsrecords[i] = NULL;
-		}
+		}*/
 	}
 }
 
 // For easy retrieval of records
-UINT32 G_GetBestScore(INT16 map)
+/*UINT32 G_GetBestScore(INT16 map)
 {
 	if (!mainrecords[map-1])
 		return 0;
 
 	return mainrecords[map-1]->score;
-}
+}*/
 
 tic_t G_GetBestTime(INT16 map)
 {
@@ -581,15 +582,25 @@ tic_t G_GetBestTime(INT16 map)
 	return mainrecords[map-1]->time;
 }
 
-UINT16 G_GetBestRings(INT16 map)
+// Not needed
+/*tic_t G_GetBestLap(INT16 map)
+{
+	if (!mainrecords[map-1] || mainrecords[map-1]->lap <= 0)
+		return (tic_t)UINT32_MAX;
+
+	return mainrecords[map-1]->lap;
+}*/
+
+/*UINT16 G_GetBestRings(INT16 map)
 {
 	if (!mainrecords[map-1])
 		return 0;
 
 	return mainrecords[map-1]->rings;
-}
+}*/
 
-UINT32 G_GetBestNightsScore(INT16 map, UINT8 mare)
+// No NiGHTS records for SRB2Kart
+/*UINT32 G_GetBestNightsScore(INT16 map, UINT8 mare)
 {
 	if (!nightsrecords[map-1])
 		return 0;
@@ -733,7 +744,7 @@ void G_SetNightsRecords(void)
 	// If the mare count changed, this will update the score display
 	CV_AddValue(&cv_nextmap, 1);
 	CV_AddValue(&cv_nextmap, -1);
-}
+}*/
 
 // for consistency among messages: this modifies the game and removes savemoddata.
 void G_SetGameModified(boolean silent)
@@ -2254,6 +2265,17 @@ static inline void G_PlayerFinishLevel(INT32 player)
 
 	if (rendermode == render_soft)
 		V_SetPaletteLump(GetPalette()); // Reset the palette
+
+	// SRB2kart: Increment the "matches played" counter.
+	if (player == consoleplayer && ((!modifiedgame || savemoddata) && !demoplayback)) // SRB2kart: Yes, let stuff unlock stuff in MP
+	{
+		matchesplayed++;
+		if (M_UpdateUnlockablesAndExtraEmblems())
+		{
+			S_StartSound(NULL, sfx_ncitem);
+			G_SaveGameData(); // only save if unlocked something
+		}
+	}
 }
 
 //
@@ -2312,6 +2334,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 balloon;
 	INT32 comebackpoints;
 	INT32 comebackshowninfo;
+	tic_t laptime;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2370,6 +2393,7 @@ void G_PlayerReborn(INT32 player)
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
 	comebackshowninfo = players[player].kartstuff[k_comebackshowninfo];
+	laptime = players[player].laptime;
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2431,6 +2455,8 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebackshowninfo] = comebackshowninfo;
 	p->kartstuff[k_comebacktimer] = comebacktime;
+
+	p->laptime = laptime;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -3338,12 +3364,13 @@ void G_LoadGameData(void)
 	UINT8 rtemp;
 
 	//For records
-	UINT32 recscore;
-	tic_t  rectime;
-	UINT16 recrings;
+	tic_t rectime;
+	tic_t reclap;
+	//UINT32 recscore;
+	//UINT16 recrings;
 
-	UINT8 recmares;
-	INT32 curmare;
+	//UINT8 recmares;
+	//INT32 curmare;
 
 	// Clear things so previously read gamedata doesn't transfer
 	// to new gamedata
@@ -3427,29 +3454,31 @@ void G_LoadGameData(void)
 
 	timesBeaten = READUINT32(save_p);
 	timesBeatenWithEmeralds = READUINT32(save_p);
-	timesBeatenUltimate = READUINT32(save_p);
+	//timesBeatenUltimate = READUINT32(save_p);
 
 	// Main records
 	for (i = 0; i < NUMMAPS; ++i)
 	{
-		recscore = READUINT32(save_p);
-		rectime  = (tic_t)READUINT32(save_p);
-		recrings = READUINT16(save_p);
+		rectime = (tic_t)READUINT32(save_p);
+		reclap  = (tic_t)READUINT32(save_p);
+		//recscore = READUINT32(save_p);
+		//recrings = READUINT16(save_p);
 
-		if (recrings > 10000 || recscore > MAXSCORE)
-			goto datacorrupt;
+		/*if (recrings > 10000 || recscore > MAXSCORE)
+			goto datacorrupt;*/
 
-		if (recscore || rectime || recrings)
+		if (rectime || reclap)
 		{
 			G_AllocMainRecordData((INT16)i);
-			mainrecords[i]->score = recscore;
 			mainrecords[i]->time = rectime;
-			mainrecords[i]->rings = recrings;
+			mainrecords[i]->lap = reclap;
+			//mainrecords[i]->score = recscore;
+			//mainrecords[i]->rings = recrings;
 		}
 	}
 
 	// Nights records
-	for (i = 0; i < NUMMAPS; ++i)
+	/*for (i = 0; i < NUMMAPS; ++i)
 	{
 		if ((recmares = READUINT8(save_p)) == 0)
 			continue;
@@ -3467,7 +3496,7 @@ void G_LoadGameData(void)
 		}
 
 		nightsrecords[i]->nummares = recmares;
-	}
+	}*/
 
 	// done
 	Z_Free(savebuffer);
@@ -3500,7 +3529,7 @@ void G_SaveGameData(void)
 	INT32 i, j;
 	UINT8 btemp;
 
-	INT32 curmare;
+	//INT32 curmare;
 
 	if (!gamedataloaded)
 		return; // If never loaded (-nodata), don't save
@@ -3568,27 +3597,27 @@ void G_SaveGameData(void)
 
 	WRITEUINT32(save_p, timesBeaten);
 	WRITEUINT32(save_p, timesBeatenWithEmeralds);
-	WRITEUINT32(save_p, timesBeatenUltimate);
+	//WRITEUINT32(save_p, timesBeatenUltimate);
 
 	// Main records
 	for (i = 0; i < NUMMAPS; i++)
 	{
 		if (mainrecords[i])
 		{
-			WRITEUINT32(save_p, mainrecords[i]->score);
 			WRITEUINT32(save_p, mainrecords[i]->time);
-			WRITEUINT16(save_p, mainrecords[i]->rings);
+			WRITEUINT32(save_p, mainrecords[i]->lap);
+			//WRITEUINT32(save_p, mainrecords[i]->score);
+			//WRITEUINT16(save_p, mainrecords[i]->rings);
 		}
 		else
 		{
 			WRITEUINT32(save_p, 0);
 			WRITEUINT32(save_p, 0);
-			WRITEUINT16(save_p, 0);
 		}
 	}
 
 	// NiGHTS records
-	for (i = 0; i < NUMMAPS; i++)
+	/*for (i = 0; i < NUMMAPS; i++)
 	{
 		if (!nightsrecords[i] || !nightsrecords[i]->nummares)
 		{
@@ -3604,7 +3633,7 @@ void G_SaveGameData(void)
 			WRITEUINT8(save_p, nightsrecords[i]->grade[curmare]);
 			WRITEUINT32(save_p, nightsrecords[i]->time[curmare]);
 		}
-	}
+	}*/
 
 	length = save_p - savebuffer;
 
@@ -4970,12 +4999,13 @@ void G_BeginRecording(void)
 	case ATTACKING_RECORD: // 1
 		demotime_p = demo_p;
 		WRITEUINT32(demo_p,UINT32_MAX); // time
+		WRITEUINT32(demo_p,UINT32_MAX); // lap
 		break;
-	case ATTACKING_NIGHTS: // 2
+	/*case ATTACKING_NIGHTS: // 2
 		demotime_p = demo_p;
 		WRITEUINT32(demo_p,UINT32_MAX); // time
 		WRITEUINT32(demo_p,0); // score
-		break;
+		break;*/
 	default: // 3
 		break;
 	}
@@ -5076,21 +5106,22 @@ void G_BeginMetal(void)
 	oldmetal.angle = mo->angle;
 }
 
-void G_SetDemoTime(UINT32 ptime, UINT32 pscore)
+void G_SetDemoTime(UINT32 ptime, UINT32 plap)
 {
 	if (!demorecording || !demotime_p)
 		return;
 	if (demoflags & DF_RECORDATTACK)
 	{
 		WRITEUINT32(demotime_p, ptime);
+		WRITEUINT32(demotime_p, plap);
 		demotime_p = NULL;
 	}
-	else if (demoflags & DF_NIGHTSATTACK)
+	/*else if (demoflags & DF_NIGHTSATTACK)
 	{
 		WRITEUINT32(demotime_p, ptime);
 		WRITEUINT32(demotime_p, pscore);
 		demotime_p = NULL;
-	}
+	}*/
 }
 
 // Returns bitfield:
@@ -5101,7 +5132,7 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 {
 	UINT8 *buffer,*p;
 	UINT8 flags;
-	UINT32 oldtime, newtime, oldscore, newscore;
+	UINT32 oldtime, newtime, oldlap, newlap;
 	UINT16 oldversion;
 	size_t bufsize ATTRUNUSED;
 	UINT8 c;
@@ -5135,13 +5166,13 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	if (flags & DF_RECORDATTACK)
 	{
 		newtime = READUINT32(p);
-		newscore = 0;
+		newlap = READUINT32(p);
 	}
-	else if (flags & DF_NIGHTSATTACK)
+	/*else if (flags & DF_NIGHTSATTACK)
 	{
 		newtime = READUINT32(p);
 		newscore = READUINT32(p);
-	}
+	}*/
 	else // appease compiler
 		return 0;
 
@@ -5195,13 +5226,13 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	if (flags & DF_RECORDATTACK)
 	{
 		oldtime = READUINT32(p);
-		oldscore = 0;
+		oldlap = READUINT32(p);
 	}
-	else if (flags & DF_NIGHTSATTACK)
+	/*else if (flags & DF_NIGHTSATTACK)
 	{
 		oldtime = READUINT32(p);
 		oldscore = READUINT32(p);
-	}
+	}*/
 	else // appease compiler
 		return UINT8_MAX;
 
@@ -5209,11 +5240,11 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 
 	c = 0;
 	if (newtime < oldtime
-	|| (newtime == oldtime && (newscore > oldscore)))
+	|| (newtime == oldtime && (newlap < oldlap)))
 		c |= 1; // Better time
-	if (newscore > oldscore
-	|| (newscore == oldscore && newtime < oldtime))
-		c |= 1<<1; // Better score
+	if (newlap < oldlap
+	|| (newlap == oldlap && newtime < oldtime))
+		c |= 1<<1; // Better lap time
 	return c;
 }
 
@@ -5331,8 +5362,8 @@ void G_DoPlayDemo(char *defdemoname)
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
 	CON_ToggleOff();
 
-	hu_demoscore = 0;
 	hu_demotime = UINT32_MAX;
+	hu_demolap = UINT32_MAX;
 
 	switch (modeattacking)
 	{
@@ -5340,11 +5371,12 @@ void G_DoPlayDemo(char *defdemoname)
 		break;
 	case ATTACKING_RECORD: // 1
 		hu_demotime  = READUINT32(demo_p);
+		hu_demolap  = READUINT32(demo_p);
 		break;
-	case ATTACKING_NIGHTS: // 2
+	/*case ATTACKING_NIGHTS: // 2
 		hu_demotime  = READUINT32(demo_p);
 		hu_demoscore = READUINT32(demo_p);
-		break;
+		break;*/
 	default: // 3
 		modeattacking = ATTACKING_NONE;
 		break;
@@ -5560,11 +5592,11 @@ void G_AddGhost(char *defdemoname)
 	case ATTACKING_NONE: // 0
 		break;
 	case ATTACKING_RECORD: // 1
-		p += 4; // demo time
+		p += 8; // demo time, lap
 		break;
-	case ATTACKING_NIGHTS: // 2
+	/*case ATTACKING_NIGHTS: // 2
 		p += 8; // demo time left, score
-		break;
+		break;*/
 	default: // 3
 		break;
 	}

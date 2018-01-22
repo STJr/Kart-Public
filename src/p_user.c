@@ -732,8 +732,8 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 			}
 
 			// Add score to leaderboards now
-			if (!(netgame||multiplayer) && P_IsLocalPlayer(&players[i]))
-				G_AddTempNightsRecords(players[i].marescore, leveltime - player->marebegunat, players[i].mare + 1);
+			/*if (!(netgame||multiplayer) && P_IsLocalPlayer(&players[i]))
+				G_AddTempNightsRecords(players[i].marescore, leveltime - player->marebegunat, players[i].mare + 1);*/
 
 			// transfer scores anyway
 			players[i].lastmarescore = players[i].marescore;
@@ -755,8 +755,8 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 		player->finishedrings = (INT16)(player->health - 1);
 
 		// Add score to temp leaderboards
-		if (!(netgame||multiplayer) && P_IsLocalPlayer(player))
-			G_AddTempNightsRecords(player->marescore, leveltime - player->marebegunat, (UINT8)(oldmare + 1));
+		/*if (!(netgame||multiplayer) && P_IsLocalPlayer(player))
+			G_AddTempNightsRecords(player->marescore, leveltime - player->marebegunat, (UINT8)(oldmare + 1));*/
 
 		// Starting a new mare, transfer scores
 		player->lastmarescore = player->marescore;
@@ -1644,19 +1644,6 @@ void P_DoPlayerExit(player_t *player)
 {
 	if (player->exiting)
 		return;
-
-	// SRB2kart: Increment the "matches played" counter.
-	// Why here of all places instead of the intermission screen?!?
-	// To prevent someone from using "exitlevel" to unlock everything!
-	if (player == &players[consoleplayer] && ((!modifiedgame || savemoddata) && !demoplayback)) // SRB2kart: Unlock stuff in MP
-	{
-		matchesplayed++;
-		if (M_UpdateUnlockablesAndExtraEmblems())
-		{
-			S_StartSound(NULL, sfx_ncitem);
-			G_SaveGameData(); // only save if unlocked something
-		}
-	}
 
 	if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
@@ -8097,9 +8084,18 @@ static void P_DeathThink(player_t *player)
 	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
 	{
 		if (leveltime >= 4*TICRATE)
+		{
 			player->realtime = leveltime - 4*TICRATE;
+			if (player->spectator || !circuitmap)
+				player->laptime = 0;
+			else
+				player->laptime++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+		}
 		else
+		{
 			player->realtime = 0;
+			player->laptime = 0;
+		}
 	}
 	
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
@@ -9407,9 +9403,18 @@ void P_PlayerThink(player_t *player)
 	if (!player->exiting)
 	{
 		if (leveltime >= 4*TICRATE)
+		{
 			player->realtime = leveltime - 4*TICRATE;
+			if (player->spectator || !circuitmap)
+				player->laptime = 0;
+			else
+				player->laptime++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+		}
 		else
+		{
 			player->realtime = 0;
+			player->laptime = 0;
+		}
 	}
 
 	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])

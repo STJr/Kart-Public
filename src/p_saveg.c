@@ -182,6 +182,7 @@ static void P_NetArchivePlayers(void)
 		WRITEINT16(save_p, players[i].numboxes);
 		WRITEINT16(save_p, players[i].totalring);
 		WRITEUINT32(save_p, players[i].realtime);
+		WRITEUINT32(save_p, players[i].laptime); // SRB2kart
 		WRITEUINT8(save_p, players[i].laps);
 
 		////////////////////
@@ -198,6 +199,7 @@ static void P_NetArchivePlayers(void)
 		WRITEINT16(save_p, players[i].starposty);
 		WRITEINT16(save_p, players[i].starpostz);
 		WRITEINT32(save_p, players[i].starpostnum);
+		WRITEINT32(save_p, players[i].starpostcount);
 		WRITEANGLE(save_p, players[i].starpostangle);
 
 		WRITEANGLE(save_p, players[i].angle_pos);
@@ -365,6 +367,7 @@ static void P_NetUnArchivePlayers(void)
 		players[i].numboxes = READINT16(save_p); // Number of item boxes obtained for Race Mode
 		players[i].totalring = READINT16(save_p); // Total number of rings obtained for Race Mode
 		players[i].realtime = READUINT32(save_p); // integer replacement for leveltime
+		players[i].laptime = READUINT32(save_p); // SRB2kart: used to track best lap time
 		players[i].laps = READUINT8(save_p); // Number of laps (optional)
 
 		////////////////////
@@ -381,6 +384,7 @@ static void P_NetUnArchivePlayers(void)
 		players[i].starposty = READINT16(save_p);
 		players[i].starpostz = READINT16(save_p);
 		players[i].starpostnum = READINT32(save_p);
+		players[i].starpostcount = READINT32(save_p);
 		players[i].starpostangle = READANGLE(save_p);
 
 		players[i].angle_pos = READANGLE(save_p);
@@ -3230,6 +3234,12 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, hidetime);
 
+	// SRB2kart
+	WRITEUINT8(save_p, gamespeed);
+	WRITEUINT8(save_p, mirrormode);
+	WRITEUINT8(save_p, franticitems);
+	WRITEUINT8(save_p, comeback);
+
 	// Is it paused?
 	if (paused)
 		WRITEUINT8(save_p, 0x2f);
@@ -3306,6 +3316,12 @@ static inline boolean P_NetUnArchiveMisc(void)
 	countdowntimeup = (boolean)READUINT8(save_p);
 
 	hidetime = READUINT32(save_p);
+
+	// SRB2kart
+	gamespeed = READUINT8(save_p);
+	mirrormode = (boolean)READUINT8(save_p);
+	franticitems = (boolean)READUINT8(save_p);
+	comeback = (boolean)READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

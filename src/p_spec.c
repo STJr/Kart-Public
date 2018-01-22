@@ -4156,6 +4156,10 @@ DoneSection2:
 							CONS_Printf(M_GetText("%s started lap %u\n"), player_names[player-players], (UINT32)player->laps+1);
 					}
 
+					// SRB2Kart: save best lap for record attack
+					bestlap = player->laptime;
+					player->laptime = 0;
+
 					// Reset starposts (checkpoints) info
 					// SRB2kart 200117
 					player->starpostangle = player->starpostnum = 0;

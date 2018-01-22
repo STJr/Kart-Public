@@ -106,7 +106,7 @@ emblem_t emblemlocations[MAXEMBLEMS] =
 // Default Extra Emblems
 extraemblem_t extraemblems[MAXEXTRAEMBLEMS] =
 {
-	{"Experienced Driver", "Play 100 Matches", 10, 'X', SKINCOLOR_BLUE, 0},
+	{"Experienced Driver", "Play 50 Matches", 10, 'X', SKINCOLOR_BLUE, 0},
 };
 
 // Default Unlockables
@@ -130,16 +130,16 @@ void M_SetupDefaultConditionSets(void)
 {
 	memset(conditionSets, 0, sizeof(conditionSets));
 
-	// -- 1: Collect 5 emblems OR play 25 matches
+	// -- 1: Collect 5 emblems OR play 10 matches
 	M_AddRawCondition(1, 1, UC_TOTALEMBLEMS, 5, 0, 0);
-	M_AddRawCondition(1, 2, UC_MATCHESPLAYED, 25, 0, 0);
+	M_AddRawCondition(1, 2, UC_MATCHESPLAYED, 10, 0, 0);
 
-	// -- 2: Collect 15 emblems OR play 50 matches
+	// -- 2: Collect 15 emblems OR play 30 matches
 	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 15, 0, 0);
-	M_AddRawCondition(2, 2, UC_MATCHESPLAYED, 50, 0, 0);
+	M_AddRawCondition(2, 2, UC_MATCHESPLAYED, 30, 0, 0);
 
-	// -- 10: Play 100 matches
-	M_AddRawCondition(10, 1, UC_TOTALEMBLEMS, 20, 0, 0);
+	// -- 10: Play 50 matches
+	M_AddRawCondition(10, 1, UC_TOTALEMBLEMS, 50, 0, 0);
 }
 
 void M_AddRawCondition(UINT8 set, UINT8 id, conditiontype_t c, INT32 r, INT16 x1, INT16 x2)
@@ -190,7 +190,7 @@ void M_ClearSecrets(void)
 	for (i = 0; i < MAXCONDITIONSETS; ++i)
 		conditionSets[i].achieved = false;
 
-	timesBeaten = timesBeatenWithEmeralds = timesBeatenUltimate = 0;
+	timesBeaten = timesBeatenWithEmeralds = 0;
 
 	// Re-unlock any always unlocked things
 	M_SilentUpdateUnlockablesAndEmblems();
@@ -211,28 +211,28 @@ static UINT8 M_CheckCondition(condition_t *cn)
 			return (timesBeaten >= (unsigned)cn->requirement);
 		case UC_ALLEMERALDS: // Requires game beaten with all 7 emeralds >= x times
 			return (timesBeatenWithEmeralds >= (unsigned)cn->requirement);
-		case UC_ULTIMATECLEAR: // Requires game beaten on ultimate >= x times (in other words, never)
-			return (timesBeatenUltimate >= (unsigned)cn->requirement);
-		case UC_OVERALLSCORE: // Requires overall score >= x
-			return (M_GotHighEnoughScore(cn->requirement));
+		/*case UC_ULTIMATECLEAR: // Requires game beaten on ultimate >= x times (in other words, never)
+			return (timesBeatenUltimate >= (unsigned)cn->requirement);*/
 		case UC_OVERALLTIME: // Requires overall time <= x
 			return (M_GotLowEnoughTime(cn->requirement));
+		/*case UC_OVERALLSCORE: // Requires overall score >= x
+			return (M_GotHighEnoughScore(cn->requirement));
 		case UC_OVERALLRINGS: // Requires overall rings >= x
-			return (M_GotHighEnoughRings(cn->requirement));
+			return (M_GotHighEnoughRings(cn->requirement));*/
 		case UC_MAPVISITED: // Requires map x to be visited
 			return ((mapvisited[cn->requirement - 1] & MV_VISITED) == MV_VISITED);
 		case UC_MAPBEATEN: // Requires map x to be beaten
 			return ((mapvisited[cn->requirement - 1] & MV_BEATEN) == MV_BEATEN);
 		case UC_MAPALLEMERALDS: // Requires map x to be beaten with all emeralds in possession
 			return ((mapvisited[cn->requirement - 1] & MV_ALLEMERALDS) == MV_ALLEMERALDS);
-		case UC_MAPULTIMATE: // Requires map x to be beaten on ultimate
+		/*case UC_MAPULTIMATE: // Requires map x to be beaten on ultimate
 			return ((mapvisited[cn->requirement - 1] & MV_ULTIMATE) == MV_ULTIMATE);
 		case UC_MAPPERFECT: // Requires map x to be beaten with a perfect bonus
-			return ((mapvisited[cn->requirement - 1] & MV_PERFECT) == MV_PERFECT);
-		case UC_MAPSCORE: // Requires score on map >= x
-			return (G_GetBestScore(cn->extrainfo1) >= (unsigned)cn->requirement);
+			return ((mapvisited[cn->requirement - 1] & MV_PERFECT) == MV_PERFECT);*/
 		case UC_MAPTIME: // Requires time on map <= x
 			return (G_GetBestTime(cn->extrainfo1) <= (unsigned)cn->requirement);
+		/*case UC_MAPSCORE: // Requires score on map >= x
+			return (G_GetBestScore(cn->extrainfo1) >= (unsigned)cn->requirement);
 		case UC_MAPRINGS: // Requires rings on map >= x
 			return (G_GetBestRings(cn->extrainfo1) >= cn->requirement);
 		case UC_NIGHTSSCORE:
@@ -240,7 +240,7 @@ static UINT8 M_CheckCondition(condition_t *cn)
 		case UC_NIGHTSTIME:
 			return (G_GetBestNightsTime(cn->extrainfo1, (UINT8)cn->extrainfo2) <= (unsigned)cn->requirement);
 		case UC_NIGHTSGRADE:
-			return (G_GetBestNightsGrade(cn->extrainfo1, (UINT8)cn->extrainfo2) >= cn->requirement);
+			return (G_GetBestNightsGrade(cn->extrainfo1, (UINT8)cn->extrainfo2) >= cn->requirement);*/
 		case UC_TRIGGER: // requires map trigger set
 			return !!(unlocktriggers & (1 << cn->requirement));
 		case UC_TOTALEMBLEMS: // Requires number of emblems >= x
@@ -409,13 +409,13 @@ UINT8 M_CheckLevelEmblems(void)
 
 		switch (emblemlocations[i].type)
 		{
-			case ET_SCORE: // Requires score on map >= x
+			/*case ET_SCORE: // Requires score on map >= x
 				res = (G_GetBestScore(levelnum) >= (unsigned)valToReach);
-				break;
+				break;*/
 			case ET_TIME: // Requires time on map <= x
 				res = (G_GetBestTime(levelnum) <= (unsigned)valToReach);
 				break;
-			case ET_RINGS: // Requires rings on map >= x
+			/*case ET_RINGS: // Requires rings on map >= x
 				res = (G_GetBestRings(levelnum) >= valToReach);
 				break;
 			case ET_NGRADE: // Requires NiGHTS grade on map >= x
@@ -423,7 +423,7 @@ UINT8 M_CheckLevelEmblems(void)
 				break;
 			case ET_NTIME: // Requires NiGHTS time on map <= x
 				res = (G_GetBestNightsTime(levelnum, 0) <= (unsigned)valToReach);
-				break;
+				break;*/
 			default: // unreachable but shuts the compiler up.
 				continue;
 		}
@@ -507,7 +507,7 @@ UINT8 M_GotEnoughEmblems(INT32 number)
 	return false;
 }
 
-UINT8 M_GotHighEnoughScore(INT32 tscore)
+/*UINT8 M_GotHighEnoughScore(INT32 tscore)
 {
 	INT32 mscore = 0;
 	INT32 i;
@@ -523,7 +523,7 @@ UINT8 M_GotHighEnoughScore(INT32 tscore)
 			return true;
 	}
 	return false;
-}
+}*/
 
 UINT8 M_GotLowEnoughTime(INT32 tictime)
 {
@@ -543,7 +543,7 @@ UINT8 M_GotLowEnoughTime(INT32 tictime)
 	return true;
 }
 
-UINT8 M_GotHighEnoughRings(INT32 trings)
+/*UINT8 M_GotHighEnoughRings(INT32 trings)
 {
 	INT32 mrings = 0;
 	INT32 i;
@@ -559,7 +559,7 @@ UINT8 M_GotHighEnoughRings(INT32 trings)
 			return true;
 	}
 	return false;
-}
+}*/
 
 // ----------------
 // Misc Emblem shit

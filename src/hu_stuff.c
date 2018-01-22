@@ -1101,30 +1101,31 @@ static void HU_drawGametype(void)
 //
 // demo info stuff
 //
-UINT32 hu_demoscore;
 UINT32 hu_demotime;
+UINT32 hu_demolap;
 
 static void HU_DrawDemoInfo(void)
 {
-	UINT8 timeoffset = 8;
 	V_DrawString(4, 188-16, V_YELLOWMAP, va(M_GetText("%s's replay"), player_names[0]));
 	if (modeattacking)
 	{
-		if (modeattacking == ATTACKING_NIGHTS)
-		{
-			V_DrawString(4, 188-8, V_YELLOWMAP|V_MONOSPACE, "SCORE:");
-			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, va("%d", hu_demoscore));
-			timeoffset = 0;
-		}
-
-		V_DrawString(4, 188- timeoffset, V_YELLOWMAP|V_MONOSPACE, "TIME:");
+		V_DrawString(4, 188-8, V_YELLOWMAP|V_MONOSPACE, "BEST TIME:");
 		if (hu_demotime != UINT32_MAX)
-			V_DrawRightAlignedString(120, 188- timeoffset, V_MONOSPACE, va("%i:%02i.%02i",
+			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, va("%i:%02i.%02i",
 				G_TicsToMinutes(hu_demotime,true),
 				G_TicsToSeconds(hu_demotime),
 				G_TicsToCentiseconds(hu_demotime)));
 		else
-			V_DrawRightAlignedString(120, 188- timeoffset, V_MONOSPACE, "--:--.--");
+			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, "--:--.--");
+
+		V_DrawString(4, 188, V_YELLOWMAP|V_MONOSPACE, "BEST LAP:");
+		if (hu_demolap != UINT32_MAX)
+			V_DrawRightAlignedString(120, 188, V_MONOSPACE, va("%i:%02i.%02i",
+				G_TicsToMinutes(hu_demolap,true),
+				G_TicsToSeconds(hu_demolap),
+				G_TicsToCentiseconds(hu_demolap)));
+		else
+			V_DrawRightAlignedString(120, 188, V_MONOSPACE, "--:--.--");
 	}
 }
 

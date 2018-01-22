@@ -169,6 +169,7 @@ typedef struct
 	INT16 numboxes[MAXPLAYERS];
 	INT16 totalring[MAXPLAYERS];
 	tic_t realtime[MAXPLAYERS];
+	tic_t laptime[MAXPLAYERS];
 	UINT8 laps[MAXPLAYERS];
 } ATTRPACK resynchend_pak;
 
