@@ -8086,15 +8086,19 @@ static void P_DeathThink(player_t *player)
 		if (leveltime >= 4*TICRATE)
 		{
 			player->realtime = leveltime - 4*TICRATE;
-			if (player->spectator || !circuitmap)
-				player->laptime = 0;
-			else
-				player->laptime++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+			if (player == &players[consoleplayer])
+			{
+				if (player->spectator || !circuitmap)
+					curlap = 0;
+				else
+					curlap++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+			}
 		}
 		else
 		{
 			player->realtime = 0;
-			player->laptime = 0;
+			if (player == &players[consoleplayer])
+				curlap = 0;
 		}
 	}
 	
@@ -9405,15 +9409,19 @@ void P_PlayerThink(player_t *player)
 		if (leveltime >= 4*TICRATE)
 		{
 			player->realtime = leveltime - 4*TICRATE;
-			if (player->spectator || !circuitmap)
-				player->laptime = 0;
-			else
-				player->laptime++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+			if (player == &players[consoleplayer])
+			{
+				if (player->spectator || !circuitmap)
+					curlap = 0;
+				else
+					curlap++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+			}
 		}
 		else
 		{
 			player->realtime = 0;
-			player->laptime = 0;
+			if (player == &players[consoleplayer])
+				curlap = 0;
 		}
 	}
 

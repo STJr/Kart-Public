@@ -2204,7 +2204,7 @@ static void P_LevelInitStuff(void)
 		}
 
 		players[i].realtime = countdown = countdown2 = 0;
-		players[i].laptime = 0; // SRB2Kart
+		curlap = bestlap = 0; // SRB2Kart
 
 		players[i].gotcontinue = false;
 

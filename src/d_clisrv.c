@@ -940,7 +940,6 @@ static inline void resynch_write_others(resynchend_pak *rst)
 			rst->numboxes[i] = 0;
 			rst->totalring[i] = 0;
 			rst->realtime[i] = 0;
-			rst->laptime[i] = 0;
 			rst->laps[i] = 0;
 			continue;
 		}
@@ -952,7 +951,6 @@ static inline void resynch_write_others(resynchend_pak *rst)
 		rst->numboxes[i] = SHORT(players[i].numboxes);
 		rst->totalring[i] = SHORT(players[i].totalring);
 		rst->realtime[i] = (tic_t)LONG(players[i].realtime);
-		rst->laptime[i] = (tic_t)LONG(players[i].laptime);
 		rst->laps[i] = players[i].laps;
 	}
 
@@ -974,7 +972,6 @@ static inline void resynch_read_others(resynchend_pak *p)
 		players[i].numboxes = SHORT(p->numboxes[i]);
 		players[i].totalring = SHORT(p->totalring[i]);
 		players[i].realtime = (tic_t)LONG(p->realtime[i]);
-		players[i].laptime = (tic_t)LONG(p->laptime[i]);
 		players[i].laps = p->laps[i];
 	}
 }

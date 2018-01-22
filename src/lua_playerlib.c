@@ -228,8 +228,6 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->totalring);
 	else if (fastcmp(field,"realtime"))
 		lua_pushinteger(L, plr->realtime);
-	else if (fastcmp(field,"laptime"))
-		lua_pushinteger(L, plr->laptime);
 	else if (fastcmp(field,"laps"))
 		lua_pushinteger(L, plr->laps);
 	else if (fastcmp(field,"ctfteam"))
@@ -503,8 +501,6 @@ static int player_set(lua_State *L)
 		plr->totalring = (INT16)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"realtime"))
 		plr->realtime = (tic_t)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"laptime"))
-		plr->laptime = (tic_t)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"laps"))
 		plr->laps = (UINT8)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"ctfteam"))

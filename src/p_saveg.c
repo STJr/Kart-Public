@@ -182,7 +182,6 @@ static void P_NetArchivePlayers(void)
 		WRITEINT16(save_p, players[i].numboxes);
 		WRITEINT16(save_p, players[i].totalring);
 		WRITEUINT32(save_p, players[i].realtime);
-		WRITEUINT32(save_p, players[i].laptime); // SRB2kart
 		WRITEUINT8(save_p, players[i].laps);
 
 		////////////////////
@@ -367,7 +366,6 @@ static void P_NetUnArchivePlayers(void)
 		players[i].numboxes = READINT16(save_p); // Number of item boxes obtained for Race Mode
 		players[i].totalring = READINT16(save_p); // Total number of rings obtained for Race Mode
 		players[i].realtime = READUINT32(save_p); // integer replacement for leveltime
-		players[i].laptime = READUINT32(save_p); // SRB2kart: used to track best lap time
 		players[i].laps = READUINT8(save_p); // Number of laps (optional)
 
 		////////////////////

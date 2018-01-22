@@ -4157,8 +4157,12 @@ DoneSection2:
 					}
 
 					// SRB2Kart: save best lap for record attack
-					bestlap = player->laptime;
-					player->laptime = 0;
+					if (player == &players[consoleplayer])
+					{
+						if (curlap < bestlap || bestlap == 0)
+							bestlap = curlap;
+						curlap = 0;
+					}
 
 					// Reset starposts (checkpoints) info
 					// SRB2kart 200117

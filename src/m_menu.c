@@ -736,9 +736,9 @@ static menuitem_t SP_LevelSelectMenu[] =
 // Single Player Time Attack
 static menuitem_t SP_TimeAttackMenu[] =
 {
-	{IT_STRING|IT_CVAR,        NULL, "Level",      &cv_nextmap,          52},
-	{IT_STRING|IT_CVAR,        NULL, "Player",     &cv_chooseskin,       62},
-	{IT_STRING|IT_CVAR,        NULL, "Color",      &cv_playercolor,      72},
+	{IT_STRING|IT_CVAR,        NULL, "Level",      &cv_nextmap,          48},
+	{IT_STRING|IT_CVAR,        NULL, "Player",     &cv_chooseskin,       58},
+	{IT_STRING|IT_CVAR,        NULL, "Color",      &cv_playercolor,      68},
 
 	{IT_DISABLED,              NULL, "Guest Option...", &SP_GuestReplayDef, 100},
 	{IT_DISABLED,              NULL, "Replay...",     &SP_ReplayDef,        110},
@@ -5507,7 +5507,7 @@ void M_DrawTimeAttackMenu(void)
 	{
 		UINT8 *colormap = R_GetTranslationColormap(cv_chooseskin.value-1, cv_playercolor.value, 0);
 		PictureOfUrFace = W_CachePatchName(skins[cv_chooseskin.value-1].face, PU_CACHE);
-		V_DrawMappedPatch(256,90,0,PictureOfUrFace, colormap);
+		V_DrawMappedPatch(256,88,0,PictureOfUrFace, colormap);
 	}
 
 	// Level record list

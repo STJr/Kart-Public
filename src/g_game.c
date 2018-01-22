@@ -244,7 +244,8 @@ UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for
 boolean mirrormode; // Mirror Mode currently enabled?
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
-tic_t bestlap; // Best lap time, should be local
+tic_t curlap; // Current lap time, calculated locally
+tic_t bestlap; // Best lap time, locally
 
 tic_t hidetime;
 
@@ -2334,7 +2335,6 @@ void G_PlayerReborn(INT32 player)
 	INT32 balloon;
 	INT32 comebackpoints;
 	INT32 comebackshowninfo;
-	tic_t laptime;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2393,7 +2393,6 @@ void G_PlayerReborn(INT32 player)
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
 	comebackshowninfo = players[player].kartstuff[k_comebackshowninfo];
-	laptime = players[player].laptime;
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2455,8 +2454,6 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebackshowninfo] = comebackshowninfo;
 	p->kartstuff[k_comebacktimer] = comebacktime;
-
-	p->laptime = laptime;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

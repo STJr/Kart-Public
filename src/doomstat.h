@@ -444,7 +444,7 @@ extern UINT8 gamespeed;
 extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
-extern tic_t bestlap;
+extern tic_t curlap, bestlap;
 
 extern tic_t hidetime;
 

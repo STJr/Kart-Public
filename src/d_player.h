@@ -463,7 +463,6 @@ typedef struct player_s
 	INT16 numboxes; // Number of item boxes obtained for Race Mode
 	INT16 totalring; // Total number of rings obtained for Race Mode
 	tic_t realtime; // integer replacement for leveltime
-	tic_t laptime; // SRB2kart: Time spent on current lap, used for Record Attack
 	UINT8 laps; // Number of laps (optional)
 
 	////////////////////

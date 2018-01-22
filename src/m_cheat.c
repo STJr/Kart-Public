@@ -235,8 +235,8 @@ boolean cht_Responder(event_t *ev)
 	else
 		ch = (UINT8)ev->data1;
 
-	ret += cht_CheckCheat(&cheat_ultimate, (char)ch);
-	ret += cht_CheckCheat(&cheat_ultimate_joy, (char)ch);
+	//ret += cht_CheckCheat(&cheat_ultimate, (char)ch);
+	//ret += cht_CheckCheat(&cheat_ultimate_joy, (char)ch);
 	ret += cht_CheckCheat(&cheat_warp, (char)ch);
 	ret += cht_CheckCheat(&cheat_warp_joy, (char)ch);
 #ifdef DEVELOP
