@@ -8872,6 +8872,17 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			thiscam->aiming = ANGLE_22h;
 	}
 
+#if 0
+	// SRB2Kart: keep camera the same distance away from the player, while maintaining its angle
+	{
+		fixed_t xlen = (thiscam->x+thiscam->momx) - (mo->x+mo->momx);
+		fixed_t ylen = (thiscam->y+thiscam->momy) - (mo->y+mo->momy);
+		fixed_t xydist = P_AproxDistance(xlen, ylen);
+		thiscam->momx = FixedMul(dist, FixedDiv(xlen, xydist));
+		thiscam->momy = FixedMul(dist, FixedDiv(ylen, xydist));
+	}
+#endif
+
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
 
