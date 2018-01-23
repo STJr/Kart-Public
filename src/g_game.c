@@ -1343,62 +1343,43 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 	}
 
-	/*
-	axis = JoyAxis(AXISSTRAFE, ssplayer);
-	if (gamepadjoystickmove && axis != 0)
+	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
 	{
-		if (axis < 0)
-			side += sidemove[speed];
-		else if (axis > 0)
-			side -= sidemove[speed];
+		if (InputDown(gc_accelerate, ssplayer))
+			cmd->buttons |= BT_ACCELERATE;
+		if (InputDown(gc_brake, ssplayer))
+			cmd->buttons |= BT_BRAKE;
+		axis = JoyAxis(AXISMOVE, ssplayer);
+		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+			forward += forwardmove[1];
+		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+			forward -= forwardmove[1];
 	}
-	else if (analogjoystickmove && axis != 0)
+	else
 	{
-		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-		side += ((axis * sidemove[1]) >> 10);
+		// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
+		if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
+		{
+			cmd->buttons |= BT_ACCELERATE;
+			forward = forwardmove[1];	// 50
+		}
+
+		if (InputDown(gc_brake, ssplayer))
+		{
+			cmd->buttons |= BT_BRAKE;
+			if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
+				forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+		}
+
+		// But forward/backward IS used for aiming.
+		axis = JoyAxis(AXISMOVE, ssplayer);
+		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+			cmd->buttons |= BT_FORWARD;
+		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+			cmd->buttons |= BT_BACKWARD;
 	}
-	*/
 
-	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
-	if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
-	{
-		cmd->buttons |= BT_ACCELERATE;
-		forward = forwardmove[1];	// 50
-	}
-	if (InputDown(gc_brake, ssplayer))
-	{
-		cmd->buttons |= BT_BRAKE;
-		if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
-			forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
-	}
-	// But forward/backward IS used for aiming.
-	axis = JoyAxis(AXISMOVE, ssplayer);
-	if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
-		cmd->buttons |= BT_FORWARD;
-	if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
-		cmd->buttons |= BT_BACKWARD;
-	/*
-	if (InputDown(gc_forward, ssplayer) || (gamepadjoystickmove && axis < 0))
-		forward = forwardmove[speed];
-	if (InputDown(gc_backward, ssplayer) || (gamepadjoystickmove && axis > 0))
-		forward -= forwardmove[speed];
-	*/
-
-	/*
-	if (analogjoystickmove && axis != 0)
-		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
-	*/
-
-	// some people strafe left & right with mouse buttons
-	// those people are weird
-
-	/* // SRB2kart - these aren't used in kart
-	if (InputDown(gc_straferight, ssplayer))
-		side += sidemove[speed];
-	if (InputDown(gc_strafeleft, ssplayer))
-		side -= sidemove[speed];
-
-	if (InputDown(gc_driftleft, ssplayer))
+	/*if (InputDown(gc_driftleft, ssplayer))
 		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
 	if (InputDown(gc_driftright, ssplayer))
 		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
@@ -1428,26 +1409,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->buttons |= BT_ACCELERATE;
 	*/
 
-	if (InputDown(gc_spectate, ssplayer))
-		cmd->buttons |= BT_SPECTATE;
-
-	// SRB2Kart: look backward
-	if (InputDown(gc_lookback, ssplayer))
-	
-	// Lua scriptable buttons
-	if (InputDown(gc_custom1, ssplayer))
-		cmd->buttons |= BT_CUSTOM1;
-	if (InputDown(gc_custom2, ssplayer))
-		cmd->buttons |= BT_CUSTOM2;
-	if (InputDown(gc_custom3, ssplayer))
-		cmd->buttons |= BT_CUSTOM3;
-
-	// use with any button/key
-	/*
-	if (InputDown(gc_brake, ssplayer))
-		cmd->buttons |= BT_BRAKE;
-	*/
-
 	// Camera Controls
 	/*
 	if (cv_debug || cv_analog.value || demoplayback || objectplacing || player->pflags & PF_NIGHTSMODE)
@@ -1462,6 +1423,17 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// jump button
 	if (InputDown(gc_jump, ssplayer))
 		cmd->buttons |= BT_JUMP;
+
+	if (InputDown(gc_spectate, ssplayer))
+		cmd->buttons |= BT_SPECTATE;
+	
+	// Lua scriptable buttons
+	if (InputDown(gc_custom1, ssplayer))
+		cmd->buttons |= BT_CUSTOM1;
+	if (InputDown(gc_custom2, ssplayer))
+		cmd->buttons |= BT_CUSTOM2;
+	if (InputDown(gc_custom3, ssplayer))
+		cmd->buttons |= BT_CUSTOM3;
 
 	// player aiming shit, ahhhh...
 	{
@@ -1559,6 +1531,19 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (cv_kartmirror.value)
 		cmd->sidemove = -cmd->sidemove;
 
+	if (ssplayer == 2 && player->bot == 1) {
+		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
+		{
+			player->bot = 2; // A player-controlled bot. Returns to AI when it respawns.
+			CV_SetValue(&cv_analog2, true);
+		}
+		else
+		{
+			G_CopyTiccmd(cmd,  I_BaseTiccmd2(), 1); // empty, or external driver
+			B_BuildTiccmd(player, cmd);
+		}
+	}
+
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN, ssplayer);
 	if (cv_kartmirror.value)
@@ -1574,19 +1559,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	else
 		cmd->buttons &= ~BT_DRIFTRIGHT;
 	//}
-
-	if (ssplayer == 2 && player->bot == 1) {
-		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
-		{
-			player->bot = 2; // A player-controlled bot. Returns to AI when it respawns.
-			CV_SetValue(&cv_analog2, true);
-		}
-		else
-		{
-			G_CopyTiccmd(cmd,  I_BaseTiccmd2(), 1); // empty, or external driver
-			B_BuildTiccmd(player, cmd);
-		}
-	}
 
 	if (analog) {
 		cmd->angleturn = (INT16)(thiscam->angle >> 16);
@@ -1605,7 +1577,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
 
 		// SRB2kart - no additional angle if not moving
-		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
+		if ((player->mo && player->speed > 0) || (leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE) || (player->spectator || objectplacing))
 			lang += (cmd->angleturn<<16);
 
 		cmd->angleturn = (INT16)(lang >> 16);
@@ -1899,11 +1871,12 @@ boolean G_Responder(event_t *ev)
 						continue;
 				}*/
 
-				if (gametype != GT_RACE) // srb2kart
+				// SRB2Kart: Ehhh, who cares, Mario Kart's designed around screen-cheating anyway
+				/*if (gametype != GT_RACE)
 				{
 					if (players[consoleplayer].kartstuff[k_balloon] > 0)
 						continue;
-				}
+				}*/
 
 				break;
 			} while (displayplayer != consoleplayer);
@@ -2983,8 +2956,12 @@ boolean G_GametypeHasTeams(void)
 //
 boolean G_GametypeHasSpectators(void)
 {
-	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE
-			&& gametype != GT_MATCH); // srb2kart: temporary?
+	// SRB2Kart: We don't have any exceptions to not being able to spectate yet. Maybe when SP & bots roll around.
+#if 0
+	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
+#else
+	return true;
+#endif
 }
 
 //

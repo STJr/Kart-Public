@@ -1101,7 +1101,7 @@ void OP_ObjectplaceMovement(player_t *player)
 	if (!(cmd->angleturn & TICCMD_RECEIVED))
 		ticmiss++;
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_ACCELERATE)
 		player->mo->z += FRACUNIT*cv_speed.value;
 	else if (cmd->buttons & BT_BRAKE)
 		player->mo->z -= FRACUNIT*cv_speed.value;
@@ -1167,19 +1167,19 @@ void OP_ObjectplaceMovement(player_t *player)
 	if (player->pflags & PF_ATTACKDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
-		if (!(cmd->buttons & (BT_ATTACK|BT_SPECTATE|BT_BACKWARD|BT_FORWARD)))
+		if (!(cmd->buttons & (BT_ATTACK|BT_JUMP)))
 			player->pflags &= ~PF_ATTACKDOWN;
 
 		// Do nothing.
 		return;
 	}
 
-	if (cmd->buttons & BT_FORWARD)
+	/*if (cmd->buttons & BT_FORWARD)
 	{
 		OP_CycleThings(-1);
 		player->pflags |= PF_ATTACKDOWN;
 	}
-	else if (cmd->buttons & BT_BACKWARD)
+	else*/ if (cmd->buttons & BT_JUMP)
 	{
 		OP_CycleThings(1);
 		player->pflags |= PF_ATTACKDOWN;
@@ -1266,10 +1266,10 @@ void Command_ObjectPlace_f(void)
 			HU_DoCEcho(va(M_GetText(
 				"\\\\\\\\\\\\\\\\\\\\\\\\\x82"
 				"   Objectplace Controls:   \x80\\\\"
-				"Camera L/R: Cycle mapthings\\"
-				"      Jump: Float up       \\"
-				"      Spin: Float down     \\"
-				" Fire Ring: Place object   \\")));
+				"     Drift: Cycle mapthings\\"
+				"Accelerate: Float up       \\"
+				"     Brake: Float down     \\"
+				"      Item: Place object   \\")));
 		}
 
 		// Save all the player's data.

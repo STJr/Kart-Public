@@ -9468,7 +9468,10 @@ void P_SpawnPlayer(INT32 playernum)
 			p->spectator = false;
 	}
 	else if (netgame && p->jointime < 1)
-		/*p->spectator = true*/;
+	{
+		//p->spectator = true;
+		p->kartstuff[k_comebackshowninfo] = 0;
+	}
 	else if (multiplayer && !netgame)
 	{
 		// If you're in a team game and you don't have a team assigned yet...
@@ -9544,9 +9547,6 @@ void P_SpawnPlayer(INT32 playernum)
 	P_SetTarget(&overheadarrow->target, mobj);
 	overheadarrow->flags2 |= MF2_DONTDRAW;
 	P_SetScale(overheadarrow, mobj->destscale);
-
-	if (leveltime < 1)
-		p->kartstuff[k_comebackshowninfo] = 0;
 
 	if (gametype != GT_RACE)
 	{

@@ -5067,7 +5067,7 @@ static void P_SpectatorMovement(player_t *player)
 	if (player->mo->z < player->mo->floorz)
 		player->mo->z = player->mo->floorz;
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_ACCELERATE)
 		player->mo->z += FRACUNIT*16;
 	else if (cmd->buttons & BT_BRAKE)
 		player->mo->z -= FRACUNIT*16;
@@ -8011,12 +8011,13 @@ static void P_DeathThink(player_t *player)
 		player->playerstate = PST_REBORN;
 	else if (player->lives > 0 && !G_IsSpecialStage(gamemap) && leveltime >= 140) // Don't allow "click to respawn" in special stages!
 	{
-		// SRB2kart
-		if (player->spectator)
+		// SRB2kart-- But wait, why'd we add this? :eggthinking:
+		/*if (player->spectator)
 		{
 			CONS_Printf("%s entered the game.\n", player_names[player-players]);
 			player->spectator = false;
-		}
+		}*/
+
 		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
 
 		// SRB2kart - spawn automatically after 1 second
@@ -8385,7 +8386,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	// SRB2kart - Camera flipper
 	if (lookback)
+	{
 		camrotate += 180;
+		camspeed *= 2;
+		if (camspeed > FRACUNIT)
+			camspeed = FRACUNIT;
+	}
 
 #ifdef REDSANALOG
 	if (P_AnalogMove(player) && (player->cmd.buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)) {
@@ -9379,10 +9385,26 @@ void P_PlayerThink(player_t *player)
 			player->realtime = 0;
 	}
 
-	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
+	
+	if ((netgame || splitscreen) && !player->powers[pw_flashing])
 	{
-		if (P_SpectatorJoinGame(player))
-			return; // player->mo was removed.
+		if (player->spectator && cmd->buttons & BT_ATTACK)
+		{
+			if (P_SpectatorJoinGame(player))
+				return; // player->mo was removed.
+		}
+		else if (!player->spectator && cmd->buttons & BT_SPECTATE)
+		{
+			if (player == &players[consoleplayer])
+				COM_ImmedExecute("changeteam spectator");
+			else if (splitscreen && player == &players[secondarydisplayplayer])
+				COM_ImmedExecute("changeteam2 spectator");
+			else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+				COM_ImmedExecute("changeteam3 spectator");
+			else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+				COM_ImmedExecute("changeteam4 spectator");
+			//return;
+		}
 	}
 
 	// Even if not NiGHTS, pull in nearby objects when walking around as John Q. Elliot.

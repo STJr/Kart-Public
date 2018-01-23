@@ -2767,6 +2767,9 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
 	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
 
+	if (player->spectator)
+		return turnvalue;
+
 	if (player->kartstuff[k_feather] & 2 && !P_IsObjectOnGround(player->mo))
 		adjustangle /= 2;
 
@@ -4682,9 +4685,12 @@ static void K_drawKartPositionFaces(void)
 		if (!playeringame[j])
 			continue;
 
+		if (players[j].spectator)
+			continue;
+
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i] && completed[i] == false
+			if (playeringame[i] && completed[i] == false && players[i].mo && !players[i].spectator
 				&& (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position]))
 			{
 				rankplayer[ranklines] = i;
@@ -4839,7 +4845,7 @@ static void K_drawKartSpeedometer(void)
 
 static void K_drawKartBalloonsOrKarma(void)
 {
-	UINT8 *colormap = R_GetTranslationColormap(-1, stplyr->skincolor, 0);
+	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
 	if (splitscreen > 1)
@@ -4916,6 +4922,9 @@ static void K_drawKartPlayerCheck(void)
 	if (stplyr->awayviewtics)
 		return;
 
+	if (camspin)
+		return;
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (&players[i] == stplyr)
@@ -4950,7 +4959,7 @@ static void K_drawKartPlayerCheck(void)
 			else if (x > 306)
 				x = 306;
 
-			colormap = R_GetTranslationColormap(-1, players[i].mo->color, 0);
+			colormap = R_GetTranslationColormap(TC_DEFAULT, players[i].mo->color, 0);
 			V_DrawMappedPatch(x, CHEK_Y, V_HUDTRANS|splitflags, localpatch, colormap);
 		}
 	}
@@ -5358,28 +5367,31 @@ void K_drawKartHUD(void)
 		}
 	}
 
-	if (gametype == GT_RACE) // Race-only elements
+	if (!stplyr->spectator) // Bottom of the screen elements, don't need in spectate mode
 	{
-		// Draw the lap counter
-		K_drawKartLaps();
-
-		if (!splitscreen)
+		if (gametype == GT_RACE) // Race-only elements
 		{
-			// Draw the speedometer
-			// TODO: Make a better speedometer.
-			K_drawKartSpeedometer();
-		}
+			// Draw the lap counter
+			K_drawKartLaps();
 
-		if (!modeattacking)
-		{
-			// Draw the numerical position
-			K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+			if (!splitscreen)
+			{
+				// Draw the speedometer
+				// TODO: Make a better speedometer.
+				K_drawKartSpeedometer();
+			}
+
+			if (!modeattacking)
+			{
+				// Draw the numerical position
+				K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+			}
 		}
-	}
-	else if (gametype == GT_MATCH) // Battle-only
-	{
-		// Draw the hits left!
-		K_drawKartBalloonsOrKarma();
+		else if (gametype == GT_MATCH) // Battle-only
+		{
+			// Draw the hits left!
+			K_drawKartBalloonsOrKarma();
+		}
 	}
 }
 
