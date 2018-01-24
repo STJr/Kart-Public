@@ -1424,7 +1424,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			 ? -1 : 1; // set to -1 or 1 to multiply
 
 		// mouse look stuff (mouse look is not the same as mouse aim)
-		if (mouseaiming)
+		if (mouseaiming && player->spectator)
 		{
 			kbl = false;
 
@@ -1433,24 +1433,28 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 
 		axis = JoyAxis(AXISLOOK, ssplayer);
-		if (analogjoystickmove && axis != 0 && lookaxis)
+		if (analogjoystickmove && axis != 0 && lookaxis && player->spectator)
 			laim += (axis<<16) * screen_invert;
 
 		// spring back if not using keyboard neither mouselookin'
 		if (!kbl && !lookaxis && !mouseaiming)
 			laim = 0;
 
-		if (InputDown(gc_lookup, ssplayer) || (gamepadjoystickmove && axis < 0))
+		if (player->spectator)
 		{
-			laim += KB_LOOKSPEED * screen_invert;
-			kbl = true;
+			if (InputDown(gc_lookup, ssplayer) || (gamepadjoystickmove && axis < 0))
+			{
+				laim += KB_LOOKSPEED * screen_invert;
+				kbl = true;
+			}
+			else if (InputDown(gc_lookdown, ssplayer) || (gamepadjoystickmove && axis > 0))
+			{
+				laim -= KB_LOOKSPEED * screen_invert;
+				kbl = true;
+			}
 		}
-		else if (InputDown(gc_lookdown, ssplayer) || (gamepadjoystickmove && axis > 0))
-		{
-			laim -= KB_LOOKSPEED * screen_invert;
-			kbl = true;
-		}
-		else if (InputDown(gc_centerview, ssplayer))
+
+		if (InputDown(gc_centerview, ssplayer)) // No need to put a spectator limit on this one though :V
 			laim = 0;
 
 		// accept no mlook for network games

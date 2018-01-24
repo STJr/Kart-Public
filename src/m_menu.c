@@ -282,7 +282,7 @@ static void M_SetupMultiPlayer4(INT32 choice);
 // Split into multiple parts due to size
 // Controls
 menu_t OP_ControlsDef, /*OP_ControlListDef,*/ OP_MoveControlsDef;
-menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef;
+menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef, OP_SpectateControlsDef;
 menu_t OP_P1ControlsDef, OP_P2ControlsDef;
 menu_t OP_MouseOptionsDef, OP_Mouse2OptionsDef;
 menu_t OP_Joystick1Def, OP_Joystick2Def;
@@ -1060,11 +1060,11 @@ static menuitem_t OP_ControlsMenu[] =
 static menuitem_t OP_P1ControlsMenu[] =
 {
 	{IT_CALL    | IT_STRING, NULL, "Control Configuration...", M_Setup1PControlsMenu,   10},
-	{IT_SUBMENU | IT_STRING, NULL, "Mouse Options...", &OP_MouseOptionsDef, 20},
-	{IT_SUBMENU | IT_STRING, NULL, "Joystick Options...", &OP_Joystick1Def  ,  30},
+	//{IT_SUBMENU | IT_STRING, NULL, "Mouse Options...", &OP_MouseOptionsDef, 20},
+	{IT_SUBMENU | IT_STRING, NULL, "Joystick Options...", &OP_Joystick1Def  ,  20},
 
-	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam  ,  50},
-	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair , 60},
+	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam  ,  40},
+	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair , 50},
 
 	//{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog,  80},
 };
@@ -1072,11 +1072,11 @@ static menuitem_t OP_P1ControlsMenu[] =
 static menuitem_t OP_P2ControlsMenu[] =
 {
 	{IT_CALL    | IT_STRING, NULL, "Control Configuration...", M_Setup2PControlsMenu,   10},
-	{IT_SUBMENU | IT_STRING, NULL, "Second Mouse Options...", &OP_Mouse2OptionsDef, 20},
-	{IT_SUBMENU | IT_STRING, NULL, "Second Joystick Options...", &OP_Joystick2Def  ,  30},
+	//{IT_SUBMENU | IT_STRING, NULL, "Second Mouse Options...", &OP_Mouse2OptionsDef, 20},
+	{IT_SUBMENU | IT_STRING, NULL, "Second Joystick Options...", &OP_Joystick2Def  ,  20},
 
-	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam2 , 50},
-	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 60},
+	{IT_STRING  | IT_CVAR, NULL, "Camera"  , &cv_chasecam2 , 40},
+	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 50},
 
 	//{IT_STRING  | IT_CVAR, NULL, "Analog Control", &cv_useranalog2,  70},
 };
@@ -1124,18 +1124,25 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Brake",            M_ChangeControl, gc_brake      },
 	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item",   M_ChangeControl, gc_fire       },
 	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback   },
-	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle  },
 
-	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause      },
-	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console    },
-	
+	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle  },
 	{IT_CALL | IT_STRING2, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
 	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
 	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
-	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate   },
-	{IT_SUBMENU | IT_STRING, NULL, "Custom Actions...",&OP_CustomControlsDef,    128},
-//	{IT_CALL | IT_STRING2, NULL, "Strafe Left",    M_ChangeControl, gc_strafeleft },
-//	{IT_CALL | IT_STRING2, NULL, "Strafe Right",   M_ChangeControl, gc_straferight},
+
+	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause      },
+	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console    },
+
+	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...",&OP_SpectateControlsDef,120},
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Actions...",    &OP_CustomControlsDef,  128},
+};
+
+static menuitem_t OP_SpectateControlsMenu[] =
+{
+	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate  },
+	{IT_CALL | IT_STRING2, NULL, "Look Up",          M_ChangeControl, gc_lookup    },
+	{IT_CALL | IT_STRING2, NULL, "Look Down",        M_ChangeControl, gc_lookdown  },
+	{IT_CALL | IT_STRING2, NULL, "Center View",      M_ChangeControl, gc_centerview},
 };
 
 static menuitem_t OP_CustomControlsMenu[] = 
@@ -1143,7 +1150,6 @@ static menuitem_t OP_CustomControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Custom Action 1", M_ChangeControl, gc_custom1},
 	{IT_CALL | IT_STRING2, NULL, "Custom Action 2", M_ChangeControl, gc_custom2},
 	{IT_CALL | IT_STRING2, NULL, "Custom Action 3", M_ChangeControl, gc_custom3},
-
 };
 
 // Obsolete thanks to Kart
@@ -1789,6 +1795,7 @@ menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDe
 //menu_t OP_CameraControlsDef = CONTROLMENUSTYLE(OP_CameraControlsMenu, &OP_ControlListDef);
 //menu_t OP_MiscControlsDef = CONTROLMENUSTYLE(OP_MiscControlsMenu, &OP_ControlListDef);
 menu_t OP_CustomControlsDef = CONTROLMENUSTYLE(OP_CustomControlsMenu, &OP_MoveControlsDef);
+menu_t OP_SpectateControlsDef = CONTROLMENUSTYLE(OP_SpectateControlsMenu, &OP_MoveControlsDef);
 menu_t OP_P1ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P1ControlsMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_P2ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P2ControlsMenu, &OP_ControlsDef, 60, 30);
 #ifndef NOFOURPLAYER

@@ -911,7 +911,7 @@ static void HU_DrawChat(void)
 
 static inline void HU_DrawCrosshair(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair.value & 3;
 	if (!i)
@@ -922,17 +922,23 @@ static inline void HU_DrawCrosshair(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
-	V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+	V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 }
 
 static inline void HU_DrawCrosshair2(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair2.value & 3;
 	if (!i)
@@ -943,27 +949,43 @@ static inline void HU_DrawCrosshair2(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
 	if (splitscreen)
 	{
+		if (splitscreen > 1)
 #ifdef HWRENDER
-		if (rendermode != render_soft)
-			y += (INT32)gr_viewheight;
-		else
+			if (rendermode != render_soft)
+				x += (INT32)gr_viewwidth;
+			else
 #endif
-			y += viewheight;
+				x += viewwidth;
+		else
+		{
+#ifdef HWRENDER
+			if (rendermode != render_soft)
+				y += (INT32)gr_viewheight;
+			else
+#endif
+				y += viewheight;
+		}
 
-		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
 }
 
 static inline void HU_DrawCrosshair3(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair3.value & 3;
 	if (!i)
@@ -974,10 +996,16 @@ static inline void HU_DrawCrosshair3(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
 	if (splitscreen > 1)
 	{
@@ -988,13 +1016,13 @@ static inline void HU_DrawCrosshair3(void)
 #endif
 			y += viewheight;
 
-		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
 }
 
 static inline void HU_DrawCrosshair4(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair4.value & 3;
 	if (!i)
@@ -1005,21 +1033,33 @@ static inline void HU_DrawCrosshair4(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
 	if (splitscreen > 2)
 	{
 #ifdef HWRENDER
 		if (rendermode != render_soft)
+		{
+			x += (INT32)gr_viewwidth;
 			y += (INT32)gr_viewheight;
+		}
 		else
 #endif
+		{
+			x += viewwidth;
 			y += viewheight;
+		}
 
-		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
 }
 
