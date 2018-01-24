@@ -2738,8 +2738,8 @@ static void P_PlayerZMovement(mobj_t *mo)
 		else
 			mo->player->viewheight -= mo->floorz - mo->z;
 
-		mo->player->deltaviewheight =
-			(FixedMul(cv_viewheight.value<<FRACBITS, mo->scale) - mo->player->viewheight)>>3;
+		/*mo->player->deltaviewheight =
+			(FixedMul(cv_viewheight.value<<FRACBITS, mo->scale) - mo->player->viewheight)>>3;*/
 	}
 
 	// adjust height
@@ -2812,8 +2812,9 @@ static void P_PlayerZMovement(mobj_t *mo)
 			mo->pmomz = 0; // We're on a new floor, don't keep doing platform movement.
 
 			// Squat down. Decrease viewheight for a moment after hitting the ground (hard),
-			if (P_MobjFlip(mo)*mo->momz < -FixedMul(8*FRACUNIT, mo->scale))
+			/*if (P_MobjFlip(mo)*mo->momz < -FixedMul(8*FRACUNIT, mo->scale))
 				mo->player->deltaviewheight = (P_MobjFlip(mo)*mo->momz)>>3; // make sure momz is negative
+			*/
 
 			if (!tmfloorthing || tmfloorthing->flags & (MF_PUSHABLE|MF_MONITOR)
 				|| tmfloorthing->flags2 & MF2_STANDONME || tmfloorthing->type == MT_PLAYER) // Spin Attack
@@ -9463,7 +9464,10 @@ void P_SpawnPlayer(INT32 playernum)
 			p->spectator = false;
 	}
 	else if (netgame && p->jointime < 1)
-		/*p->spectator = true*/;
+	{
+		//p->spectator = true;
+		p->kartstuff[k_comebackshowninfo] = 0;
+	}
 	else if (multiplayer && !netgame)
 	{
 		// If you're in a team game and you don't have a team assigned yet...
@@ -9539,9 +9543,6 @@ void P_SpawnPlayer(INT32 playernum)
 	P_SetTarget(&overheadarrow->target, mobj);
 	overheadarrow->flags2 |= MF2_DONTDRAW;
 	P_SetScale(overheadarrow, mobj->destscale);
-
-	if (leveltime < 1)
-		p->kartstuff[k_comebackshowninfo] = 0;
 
 	if (gametype != GT_RACE)
 	{

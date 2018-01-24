@@ -1951,15 +1951,17 @@ static void ST_overlayDrawer(void)
 #endif
 		)
 		{
-			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(60), V_HUDTRANSHALF, M_GetText("You are a spectator."));
-			if (G_GametypeHasTeams())
-				V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), V_HUDTRANSHALF, M_GetText("Press Fire to be assigned to a team."));
+			// SRB2kart: changed positions & text
+			V_DrawString(2, BASEVIDHEIGHT-50, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
+			/*if (G_GametypeHasTeams())
+				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF, M_GetText("Item - Join Team"));
 			else if (G_IsSpecialStage(gamemap) && useNightsSS)
-				V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), V_HUDTRANSHALF, M_GetText("You cannot join the game until the stage has ended."));
-			else
-				V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), V_HUDTRANSHALF, M_GetText("Press Fire to enter the game."));
-			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(148), V_HUDTRANSHALF, M_GetText("Press F12 to watch another player."));
-			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(164), V_HUDTRANSHALF, M_GetText("Press Jump to float and Spin to sink."));
+				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF|V_REDMAP, M_GetText("- CANNOT JOIN -"));
+			else*/
+			V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF, M_GetText("Item - Enter Game"));
+			V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("F12 - Change View"));
+			V_DrawString(2, BASEVIDHEIGHT-20, V_HUDTRANSHALF, M_GetText("Accelerate - Float"));
+			V_DrawString(2, BASEVIDHEIGHT-10, V_HUDTRANSHALF, M_GetText("Brake - Sink"));
 		}
 	}
 

@@ -244,7 +244,6 @@ typedef enum
 	k_lakitu,			// Timer for Lakitu to carry and drop the player
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
-	k_camspin,			// Used to 180 the camera while a button is held
 	k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_sounds,			// Used this to stop and then force music restores as it hits zero
@@ -356,9 +355,9 @@ typedef struct player_s
 	// Base height above floor for viewz.
 	fixed_t viewheight;
 	// Bob/squat speed.
-	fixed_t deltaviewheight;
+	//fixed_t deltaviewheight;
 	// bounded/scaled total momentum.
-	fixed_t bob;
+	//fixed_t bob;
 
 	// Mouse aiming, where the guy is looking at!
 	// It is updated with cmd->aiming.

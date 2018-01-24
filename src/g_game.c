@@ -1179,9 +1179,10 @@ static INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 //
 INT32 localaiming, localaiming2, localaiming3, localaiming4;
 angle_t localangle, localangle2, localangle3, localangle4;
+boolean camspin, camspin2, camspin3, camspin4;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
-//static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
+static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
 static fixed_t angleturn[3] = {400, 800, 200}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
@@ -1190,7 +1191,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
-	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analogjoystickmove, gamepadjoystickmove, kbl; //analog
+	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analog, analogjoystickmove, gamepadjoystickmove, kbl;
 	player_t *player;
 	camera_t *thiscam;
 	angle_t lang;
@@ -1198,45 +1199,45 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static INT32 turnheld, turnheld2, turnheld3, turnheld4; // for accelerative turning
 	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		player = &players[secondarydisplayplayer];
-		thiscam = (player->bot == 2 ? &camera : &camera2);
-		lang = localangle2;
-		laim = localaiming2;
-		th = turnheld2;
-		kbl = keyboard_look2;
-		G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
-	}
-	else if (ssplayer == 3)
-	{
-		player = &players[thirddisplayplayer];
-		thiscam = &camera3;
-		lang = localangle3;
-		laim = localaiming3;
-		th = turnheld3;
-		kbl = keyboard_look3;
-		G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
-	}
-	else if (ssplayer == 4)
-	{
-		player = &players[fourthdisplayplayer];
-		thiscam = &camera4;
-		lang = localangle4;
-		laim = localaiming4;
-		th = turnheld4;
-		kbl = keyboard_look4;
-		G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
-	}
-	else
-	{
-		player = &players[consoleplayer];
-		thiscam = &camera;
-		lang = localangle;
-		laim = localaiming;
-		th = turnheld;
-		kbl = keyboard_look;
-		G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+		case 2:
+			player = &players[secondarydisplayplayer];
+			thiscam = (player->bot == 2 ? &camera : &camera2);
+			lang = localangle2;
+			laim = localaiming2;
+			th = turnheld2;
+			kbl = keyboard_look2;
+			G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
+			break;
+		case 3:
+			player = &players[thirddisplayplayer];
+			thiscam = &camera3;
+			lang = localangle3;
+			laim = localaiming3;
+			th = turnheld3;
+			kbl = keyboard_look3;
+			G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
+			break;
+		case 4:
+			player = &players[fourthdisplayplayer];
+			thiscam = &camera4;
+			lang = localangle4;
+			laim = localaiming4;
+			th = turnheld4;
+			kbl = keyboard_look4;
+			G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
+			break;
+		case 1:
+		default:
+			player = &players[consoleplayer];
+			thiscam = &camera;
+			lang = localangle;
+			laim = localaiming;
+			th = turnheld;
+			kbl = keyboard_look;
+			G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+			break;
 	}
 
 	// why build a ticcmd if we're paused?
@@ -1248,41 +1249,41 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		return;
 	}
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		mouseaiming = player->spectator; //mouseaiming = (PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
-		invertmouse = cv_invertmouse2.value;
-		lookaxis = cv_lookaxis2.value;
-		analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
-		//analog = cv_analog2.value;
-	}
-	else if (ssplayer == 3)
-	{
-		mouseaiming = false;
-		invertmouse = false;
-		lookaxis = cv_lookaxis3.value;
-		analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
-		//analog = cv_analog3.value;
-	}
-	else if (ssplayer == 4)
-	{
-		mouseaiming = false;
-		invertmouse = false;
-		lookaxis = cv_lookaxis4.value;
-		analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
-		//analog = cv_analog4.value;
-	}
-	else
-	{
-		mouseaiming = player->spectator; //mouseaiming = (PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
-		invertmouse = cv_invertmouse.value;
-		lookaxis = cv_lookaxis.value;
-		analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
-		//analog = cv_analog.value;
+		case 2:
+			mouseaiming = player->spectator; //(PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
+			invertmouse = cv_invertmouse2.value;
+			lookaxis = cv_lookaxis2.value;
+			analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
+			analog = cv_analog2.value;
+			break;
+		case 3:
+			mouseaiming = false;
+			invertmouse = false;
+			lookaxis = cv_lookaxis3.value;
+			analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
+			analog = cv_analog3.value;
+			break;
+		case 4:
+			mouseaiming = false;
+			invertmouse = false;
+			lookaxis = cv_lookaxis4.value;
+			analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
+			analog = cv_analog4.value;
+			break;
+		case 1:
+		default:
+			mouseaiming = player->spectator; //(PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
+			invertmouse = cv_invertmouse.value;
+			lookaxis = cv_lookaxis.value;
+			analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
+			analog = cv_analog.value;
+			break;
 	}
 
 	turnright = InputDown(gc_turnright, ssplayer);
@@ -1290,7 +1291,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	axis = JoyAxis(AXISTURN, ssplayer);
 
-	if (mirrormode)
+	if (cv_kartmirror.value)
 	{
 		turnright ^= turnleft; // swap these using three XORs
 		turnleft ^= turnright;
@@ -1318,49 +1319,94 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		tspeed = speed;
 
 	// let movement keys cancel each other out
-	if (turnright && !(turnleft))
-		cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
-	else if (turnleft && !(turnright))
-		cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
-
-	if (analogjoystickmove && axis != 0)
+	if (analog) // Analog
 	{
-		// JOYAXISRANGE should be 1023 (divide by 1024)
-		cmd->angleturn = (INT16)(cmd->angleturn - ((axis * angleturn[1]) >> 10)); // ANALOG!
+		if (turnright)
+			cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
+		if (turnleft)
+			cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
 	}
 
-	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
-	if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
+	if (analog || twodlevel
+		|| (player->mo && (player->mo->flags2 & MF2_TWOD))
+		|| (!demoplayback && (player->climbing
+		|| (player->pflags & PF_NIGHTSMODE)
+		|| (player->pflags & PF_SLIDING)
+		|| (player->pflags & PF_FORCESTRAFE)))) // Analog
+			forcestrafe = true;
+
+	if (forcestrafe) // Analog
 	{
-		cmd->buttons |= BT_ACCELERATE;
-		forward = forwardmove[1];	// 50
+		if (turnright)
+			side += sidemove[speed];
+		if (turnleft)
+			side -= sidemove[speed];
+
+		if (analogjoystickmove && axis != 0)
+		{
+			// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
+			side += ((axis * sidemove[1]) >> 10);
+		}
+	}
+	else
+	{
+		if (turnright && !(turnleft))
+			cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
+		else if (turnleft && !(turnright))
+			cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
+
+		if (analogjoystickmove && axis != 0)
+		{
+			// JOYAXISRANGE should be 1023 (divide by 1024)
+			cmd->angleturn = (INT16)(cmd->angleturn - ((axis * angleturn[1]) >> 10)); // ANALOG!
+		}
 	}
 
-	if (InputDown(gc_brake, ssplayer))
+	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
 	{
-		cmd->buttons |= BT_BRAKE;
-		forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+		if (InputDown(gc_accelerate, ssplayer))
+			cmd->buttons |= BT_ACCELERATE;
+		if (InputDown(gc_brake, ssplayer))
+			cmd->buttons |= BT_BRAKE;
+		axis = JoyAxis(AXISMOVE, ssplayer);
+		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+			forward += forwardmove[1];
+		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+			forward -= forwardmove[1];
 	}
+	else
+	{
+		// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
+		if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
+		{
+			cmd->buttons |= BT_ACCELERATE;
+			forward = forwardmove[1];	// 50
+		}
 
-	// drift button
-	if (InputDown(gc_drift, ssplayer))
-		cmd->buttons |= BT_DRIFT;
+		if (InputDown(gc_brake, ssplayer))
+		{
+			cmd->buttons |= BT_BRAKE;
+			if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
+				forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+		}
 
-	// forward/backward is used for aiming
-	axis = JoyAxis(AXISMOVE, ssplayer);
-	if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
-		cmd->buttons |= BT_FORWARD;
-	if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
-		cmd->buttons |= BT_BACKWARD;
+		// But forward/backward IS used for aiming.
+		axis = JoyAxis(AXISMOVE, ssplayer);
+		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+			cmd->buttons |= BT_FORWARD;
+		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+			cmd->buttons |= BT_BACKWARD;
+	}
 
 	// fire with any button/key
 	axis = JoyAxis(AXISFIRE, ssplayer);
 	if (InputDown(gc_fire, ssplayer) || (cv_usejoystick.value && axis > 0))
 		cmd->buttons |= BT_ATTACK;
 
-	if (InputDown(gc_spectate, ssplayer))
-		cmd->buttons |= BT_SPECTATE;
-
+	// drift button
+	if (InputDown(gc_drift, ssplayer))
+		cmd->buttons |= BT_DRIFT;
+	
 	// Lua scriptable buttons
 	if (InputDown(gc_custom1, ssplayer))
 		cmd->buttons |= BT_CUSTOM1;
@@ -1414,40 +1460,17 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->aiming = G_ClipAimingPitch(&laim);
 	}
 
-	cmd->angleturn = (INT16)(cmd->angleturn - (mousex*8));
+	if (!mouseaiming && cv_mousemove.value)
+		forward += mousey;
+
+	if (analog ||
+		(!demoplayback && (player->climbing
+		|| (player->pflags & PF_SLIDING)))) // Analog for mouse
+		side += mousex*2;
+	else
+		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*8));
+
 	mousex = mousey = mlooky = 0;
-
-	//{ SRB2kart - Drift support
-	axis = JoyAxis(AXISTURN, ssplayer);
-	if (mirrormode)
-		axis = -axis;
-
-	// TODO: we really need to figure out a better way of doing this, two extra buttons used for this is stupid
-	if (cmd->angleturn > 0) // Drifting to the left
-		cmd->buttons |= BT_DRIFTLEFT;
-	else
-		cmd->buttons &= ~BT_DRIFTLEFT;
-
-	if (cmd->angleturn < 0) // Drifting to the right
-		cmd->buttons |= BT_DRIFTRIGHT;
-	else
-		cmd->buttons &= ~BT_DRIFTRIGHT;
-	//}
-
-	// limit turning to angleturn[1] to stop mouselook letting you look too fast
-	if (cmd->angleturn > angleturn[1])
-		cmd->angleturn = angleturn[1];
-	else if (cmd->angleturn < -angleturn[1])
-		cmd->angleturn = -angleturn[1];
-
-	if (player->mo)
-		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
-
-	// SRB2kart - no additional angle if not moving
-	if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
-		lang += (cmd->angleturn<<16);
-
-	cmd->angleturn = (INT16)(lang >> 16);
 
 	if (forward > MAXPLMOVE)
 		forward = MAXPLMOVE;
@@ -1474,12 +1497,21 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		side = temp;
 	}
 
-	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
-	cmd->sidemove = (SINT8)(cmd->sidemove + side);
-	if (mirrormode)
+	if (cmd->buttons & BT_BRAKE && !forward) // Sal: If you're not accelerating, but going forward, then you should just lose your momentum. Request from Sev
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove / 2);
+		cmd->sidemove = (SINT8)(cmd->sidemove / 2);
+	}
+	else
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
+		cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	}
+
+	if (cv_kartmirror.value)
 		cmd->sidemove = -cmd->sidemove;
 
-	/*if (ssplayer == 2 && player->bot == 1) {
+	if (ssplayer == 2 && player->bot == 1) {
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
 		{
 			player->bot = 2; // A player-controlled bot. Returns to AI when it respawns.
@@ -1490,35 +1522,79 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			G_CopyTiccmd(cmd,  I_BaseTiccmd2(), 1); // empty, or external driver
 			B_BuildTiccmd(player, cmd);
 		}
-	}*/
+	}
 
-	if (ssplayer == 2)
-	{
-		localangle2 = lang;
-		localaiming2 = laim;
-		keyboard_look2 = kbl;
-		turnheld2 = th;
-	}
-	else if (ssplayer == 3)
-	{
-		localangle3 = lang;
-		localaiming3 = laim;
-		keyboard_look3 = kbl;
-		turnheld3 = th;
-	}
-	else if (ssplayer == 4)
-	{
-		localangle4 = lang;
-		localaiming4 = laim;
-		keyboard_look4 = kbl;
-		turnheld4 = th;
+	//{ SRB2kart - Drift support
+	axis = JoyAxis(AXISTURN, ssplayer);
+	if (cv_kartmirror.value)
+		axis = -axis;
+
+	// TODO: Remove this hack please :(
+	if (cmd->angleturn > 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+
+	if (cmd->angleturn < 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	//}
+
+	if (analog) {
+		cmd->angleturn = (INT16)(thiscam->angle >> 16);
+		if (player->awayviewtics)
+			cmd->angleturn = (INT16)(player->awayviewmobj->angle >> 16);
 	}
 	else
 	{
-		localangle = lang;
-		localaiming = laim;
-		keyboard_look = kbl;
-		turnheld = th;
+		// limit turning to angleturn[1] to stop mouselook letting you look too fast
+		if (cmd->angleturn > angleturn[1])
+			cmd->angleturn = angleturn[1];
+		else if (cmd->angleturn < -angleturn[1])
+			cmd->angleturn = -angleturn[1];
+
+		if (player->mo)
+			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+
+		// SRB2kart - no additional angle if not moving
+		if ((player->mo && player->speed > 0) || (leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE) || (player->spectator || objectplacing))
+			lang += (cmd->angleturn<<16);
+
+		cmd->angleturn = (INT16)(lang >> 16);
+	}
+
+	switch (ssplayer)
+	{
+		case 2:
+			localangle2 = lang;
+			localaiming2 = laim;
+			keyboard_look2 = kbl;
+			turnheld2 = th;
+			camspin2 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 3:
+			localangle3 = lang;
+			localaiming3 = laim;
+			keyboard_look3 = kbl;
+			turnheld3 = th;
+			camspin3 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 4:
+			localangle4 = lang;
+			localaiming4 = laim;
+			keyboard_look4 = kbl;
+			turnheld4 = th;
+			camspin4 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 1:
+		default:
+			localangle = lang;
+			localaiming = laim;
+			keyboard_look = kbl;
+			turnheld = th;
+			camspin = InputDown(gc_lookback, ssplayer);
+			break;
 	}
 
 	//Reset away view if a command is given.
@@ -1725,6 +1801,7 @@ void G_DoLoadLevel(boolean resetplayer)
 
 static INT32 pausedelay = 0;
 static INT32 camtoggledelay, camtoggledelay2, camtoggledelay3, camtoggledelay4 = 0;
+static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 
 //
 // G_Responder
@@ -1776,11 +1853,12 @@ boolean G_Responder(event_t *ev)
 						continue;
 				}*/
 
-				if (gametype != GT_RACE) // srb2kart
+				// SRB2Kart: Ehhh, who cares, Mario Kart's designed around screen-cheating anyway
+				/*if (gametype != GT_RACE)
 				{
 					if (players[consoleplayer].kartstuff[k_balloon] > 0)
 						continue;
-				}
+				}*/
 
 				break;
 			} while (displayplayer != consoleplayer);
@@ -1930,6 +2008,55 @@ boolean G_Responder(event_t *ev)
 					CV_SetValue(&cv_chasecam4, cv_chasecam4.value ? 0 : 1);
 				}
 			}
+			if (ev->data1 == gamecontrol[gc_spectate][0]
+				|| ev->data1 == gamecontrol[gc_spectate][1])
+			{
+				if ((netgame || splitscreen) && !players[consoleplayer].powers[pw_flashing] && !spectatedelay)
+				{
+					if (players[consoleplayer].spectator && cv_allowteamchange.value)
+						P_SpectatorJoinGame(&players[consoleplayer]);
+					else
+						COM_ImmedExecute("changeteam spectator");
+				}
+				spectatedelay = NEWTICRATE / 7;
+			}
+			if (ev->data1 == gamecontrolbis[gc_spectate][0]
+				|| ev->data1 == gamecontrolbis[gc_spectate][1])
+			{
+				if (splitscreen && !players[secondarydisplayplayer].powers[pw_flashing] && !spectatedelay2)
+				{
+					if (players[secondarydisplayplayer].spectator && cv_allowteamchange.value)
+						P_SpectatorJoinGame(&players[secondarydisplayplayer]);
+					else
+						COM_ImmedExecute("changeteam2 spectator");
+				}
+				spectatedelay2 = NEWTICRATE / 7;
+			}
+			if (ev->data1 == gamecontrol3[gc_spectate][0]
+				|| ev->data1 == gamecontrol3[gc_spectate][1])
+			{
+				if (splitscreen > 1 && !players[thirddisplayplayer].powers[pw_flashing] && !spectatedelay3)
+				{
+					if (players[thirddisplayplayer].spectator && cv_allowteamchange.value)
+						P_SpectatorJoinGame(&players[thirddisplayplayer]);
+					else
+						COM_ImmedExecute("changeteam3 spectator");
+				}
+				spectatedelay3 = NEWTICRATE / 7;
+			}
+			if (ev->data1 == gamecontrol4[gc_spectate][0]
+				|| ev->data1 == gamecontrol4[gc_spectate][1])
+			{
+				if (splitscreen > 2 && !players[fourthdisplayplayer].powers[pw_flashing] && !spectatedelay4)
+				{
+					if (players[fourthdisplayplayer].spectator && cv_allowteamchange.value)
+						P_SpectatorJoinGame(&players[fourthdisplayplayer]);
+					else
+						COM_ImmedExecute("changeteam4 spectator");
+				}
+				spectatedelay4 = NEWTICRATE / 7;
+			}
+
 			return true;
 
 		case ev_keyup:
@@ -2871,8 +2998,12 @@ boolean G_GametypeHasTeams(void)
 //
 boolean G_GametypeHasSpectators(void)
 {
-	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE
-			&& gametype != GT_MATCH); // srb2kart: temporary?
+	// SRB2Kart: We don't have any exceptions to not being able to spectate yet. Maybe when SP & bots roll around.
+#if 0
+	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
+#else
+	return true;
+#endif
 }
 
 //

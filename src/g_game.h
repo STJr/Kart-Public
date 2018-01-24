@@ -82,6 +82,7 @@ INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 
 extern angle_t localangle, localangle2, localangle3, localangle4;
 extern INT32 localaiming, localaiming2, localaiming3, localaiming4; // should be an angle_t but signed
+extern boolean camspin, camspin2, camspin3, camspin4; // SRB2Kart
 
 //
 // GAME

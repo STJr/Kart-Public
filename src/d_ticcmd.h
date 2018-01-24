@@ -30,13 +30,13 @@ typedef enum
 	BT_ATTACK		= 1<<4,		// Use Item
 	BT_FORWARD		= 1<<5,		// Aim Item Forward
 	BT_BACKWARD		= 1<<6,		// Aim Item Backward
-	BT_SPECTATE		= 1<<7,		// Toggle Spectate
+	//BT_SPECTATE		= 1<<7,		// Toggle Spectate
 
 	// Want more button space? Help get rid of this hack :V
-	BT_DRIFTLEFT	= 1<<8,		// Drift left hack
-	BT_DRIFTRIGHT	= 1<<9,		// Drift right hack
+	BT_DRIFTLEFT	= 1<<7,		// Drift left hack
+	BT_DRIFTRIGHT	= 1<<8,		// Drift right hack
 
-	// free: 1<<10 to 1<<12
+	// free: 1<<9 to 1<<12
 
 	// Lua garbage
 	BT_CUSTOM1		= 1<<13,
