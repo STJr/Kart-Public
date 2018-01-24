@@ -385,11 +385,11 @@ consvar_t cv_crosshair2 = {"crosshair2", "Cross", CV_SAVE, crosshair_cons_t, NUL
 consvar_t cv_crosshair3 = {"crosshair3", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_crosshair4 = {"crosshair4", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse = {"invertmouse", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_alwaysfreelook = {"alwaysmlook", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_alwaysfreelook = {"alwaysmlook", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse2 = {"invertmouse2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_alwaysfreelook2 = {"alwaysmlook2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mousemove = {"mousemove", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mousemove2 = {"mousemove2", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mousemove = {"mousemove", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mousemove2 = {"mousemove2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog = {"analog", "Off", CV_CALL, CV_OnOff, Analog_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog2 = {"analog2", "Off", CV_CALL, CV_OnOff, Analog2_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog3 = {"analog3", "Off", CV_CALL, CV_OnOff, Analog3_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -1181,16 +1181,16 @@ INT32 localaiming, localaiming2, localaiming3, localaiming4;
 angle_t localangle, localangle2, localangle3, localangle4;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
-static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
+//static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
 static fixed_t angleturn[3] = {400, 800, 200}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
 	boolean forcestrafe = false;
-	INT32 laim, th, tspeed, forward, side, axis, i;
+	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
-	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analog, analogjoystickmove, gamepadjoystickmove, kbl;
+	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analogjoystickmove, gamepadjoystickmove, kbl; //analog
 	player_t *player;
 	camera_t *thiscam;
 	angle_t lang;
@@ -1250,12 +1250,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	if (ssplayer == 2)
 	{
-		mouseaiming = (PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
+		mouseaiming = player->spectator; //mouseaiming = (PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
 		invertmouse = cv_invertmouse2.value;
 		lookaxis = cv_lookaxis2.value;
 		analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
 		gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
-		analog = cv_analog2.value;
+		//analog = cv_analog2.value;
 	}
 	else if (ssplayer == 3)
 	{
@@ -1264,7 +1264,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		lookaxis = cv_lookaxis3.value;
 		analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
 		gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
-		analog = cv_analog3.value;
+		//analog = cv_analog3.value;
 	}
 	else if (ssplayer == 4)
 	{
@@ -1273,16 +1273,16 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		lookaxis = cv_lookaxis4.value;
 		analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
 		gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
-		analog = cv_analog4.value;
+		//analog = cv_analog4.value;
 	}
 	else
 	{
-		mouseaiming = (PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
+		mouseaiming = player->spectator; //mouseaiming = (PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
 		invertmouse = cv_invertmouse.value;
 		lookaxis = cv_lookaxis.value;
 		analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
 		gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
-		analog = cv_analog.value;
+		//analog = cv_analog.value;
 	}
 
 	turnright = InputDown(gc_turnright, ssplayer);
@@ -1318,64 +1318,16 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		tspeed = speed;
 
 	// let movement keys cancel each other out
-	if (analog) // Analog
-	{
-		if (turnright)
-			cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
-		if (turnleft)
-			cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
-	}
+	if (turnright && !(turnleft))
+		cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
+	else if (turnleft && !(turnright))
+		cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
 
-	if (analog || twodlevel
-		|| (player->mo && (player->mo->flags2 & MF2_TWOD))
-		|| (!demoplayback && (player->climbing
-		|| (player->pflags & PF_NIGHTSMODE)
-		|| (player->pflags & PF_SLIDING)
-		|| (player->pflags & PF_FORCESTRAFE)))) // Analog
-			forcestrafe = true;
-
-	if (forcestrafe) // Analog
+	if (analogjoystickmove && axis != 0)
 	{
-		if (turnright)
-			side += sidemove[speed];
-		if (turnleft)
-			side -= sidemove[speed];
-
-		if (analogjoystickmove && axis != 0)
-		{
-			// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-			side += ((axis * sidemove[1]) >> 10);
-		}
+		// JOYAXISRANGE should be 1023 (divide by 1024)
+		cmd->angleturn = (INT16)(cmd->angleturn - ((axis * angleturn[1]) >> 10)); // ANALOG!
 	}
-	else
-	{
-		if (turnright && !(turnleft))
-			cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
-		else if (turnleft && !(turnright))
-			cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
-
-		if (analogjoystickmove && axis != 0)
-		{
-			// JOYAXISRANGE should be 1023 (divide by 1024)
-			cmd->angleturn = (INT16)(cmd->angleturn - ((axis * angleturn[1]) >> 10)); // ANALOG!
-		}
-	}
-
-	/*
-	axis = JoyAxis(AXISSTRAFE, ssplayer);
-	if (gamepadjoystickmove && axis != 0)
-	{
-		if (axis < 0)
-			side += sidemove[speed];
-		else if (axis > 0)
-			side -= sidemove[speed];
-	}
-	else if (analogjoystickmove && axis != 0)
-	{
-		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-		side += ((axis * sidemove[1]) >> 10);
-	}
-	*/
 
 	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
 	if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
@@ -1383,67 +1335,28 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->buttons |= BT_ACCELERATE;
 		forward = forwardmove[1];	// 50
 	}
+
 	if (InputDown(gc_brake, ssplayer))
 	{
 		cmd->buttons |= BT_BRAKE;
 		forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
 	}
-	// But forward/backward IS used for aiming.
+
+	// drift button
+	if (InputDown(gc_drift, ssplayer))
+		cmd->buttons |= BT_DRIFT;
+
+	// forward/backward is used for aiming
 	axis = JoyAxis(AXISMOVE, ssplayer);
 	if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
 		cmd->buttons |= BT_FORWARD;
 	if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
 		cmd->buttons |= BT_BACKWARD;
-	/*
-	if (InputDown(gc_forward, ssplayer) || (gamepadjoystickmove && axis < 0))
-		forward = forwardmove[speed];
-	if (InputDown(gc_backward, ssplayer) || (gamepadjoystickmove && axis > 0))
-		forward -= forwardmove[speed];
-	*/
-
-	/*
-	if (analogjoystickmove && axis != 0)
-		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
-	*/
-
-	// some people strafe left & right with mouse buttons
-	// those people are weird
-
-	/* // SRB2kart - these aren't used in kart
-	if (InputDown(gc_straferight, ssplayer))
-		side += sidemove[speed];
-	if (InputDown(gc_strafeleft, ssplayer))
-		side -= sidemove[speed];
-
-	if (InputDown(gc_driftleft, ssplayer))
-		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
-	if (InputDown(gc_driftright, ssplayer))
-		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
-	*/
-
-#if NUM_WEAPONS > 10
-"Add extra inputs to g_input.h/gamecontrols_e"
-#endif
-	//use the four avaliable bits to determine the weapon.
-	cmd->buttons &= ~BT_WEAPONMASK;
-	for (i = 0; i < NUM_WEAPONS; ++i)
-		if (InputDown(gc_wepslot1 + i, ssplayer))
-		{
-			cmd->buttons |= (UINT16)(i + 1);
-			break;
-		}
 
 	// fire with any button/key
 	axis = JoyAxis(AXISFIRE, ssplayer);
 	if (InputDown(gc_fire, ssplayer) || (cv_usejoystick.value && axis > 0))
 		cmd->buttons |= BT_ATTACK;
-
-	// fire normal with any button/key
-	/*
-	axis = JoyAxis(ssplayer, AXISFIRENORMAL);
-	if (InputDown(gc_accelerate, ssplayer) || (cv_usejoystick.value && axis > 0))
-		cmd->buttons |= BT_ACCELERATE;
-	*/
 
 	if (InputDown(gc_spectate, ssplayer))
 		cmd->buttons |= BT_SPECTATE;
@@ -1455,37 +1368,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->buttons |= BT_CUSTOM2;
 	if (InputDown(gc_custom3, ssplayer))
 		cmd->buttons |= BT_CUSTOM3;
-
-	// use with any button/key
-	/*
-	if (InputDown(gc_brake, ssplayer))
-		cmd->buttons |= BT_BRAKE;
-	*/
-
-	// Camera Controls
-	/*
-	if (cv_debug || cv_analog.value || demoplayback || objectplacing || player->pflags & PF_NIGHTSMODE)
-	{
-		if (InputDown(gc_aimforward, ssplayer))
-			cmd->buttons |= BT_FORWARD;
-		if (InputDown(gc_aimbackward, ssplayer))
-			cmd->buttons |= BT_BACKWARD;
-	}
-	*/
-
-	/*
-	if (InputDown(gc_lookback, ssplayer))
-	{
-		if (thiscam->chase && !player->kartstuff[k_camspin])
-			player->kartstuff[k_camspin] = 1;
-	}
-	else if (player->kartstuff[k_camspin] > 0)
-		player->kartstuff[k_camspin] = -1;
-	*/
-
-	// jump button
-	if (InputDown(gc_jump, ssplayer))
-		cmd->buttons |= BT_JUMP;
 
 	// player aiming shit, ahhhh...
 	{
@@ -1532,17 +1414,40 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->aiming = G_ClipAimingPitch(&laim);
 	}
 
-	if (!mouseaiming && cv_mousemove.value)
-		forward += mousey;
-
-	if (analog ||
-		(!demoplayback && (player->climbing
-		|| (player->pflags & PF_SLIDING)))) // Analog for mouse
-		side += mousex*2;
-	else
-		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*8));
-
+	cmd->angleturn = (INT16)(cmd->angleturn - (mousex*8));
 	mousex = mousey = mlooky = 0;
+
+	//{ SRB2kart - Drift support
+	axis = JoyAxis(AXISTURN, ssplayer);
+	if (mirrormode)
+		axis = -axis;
+
+	// TODO: we really need to figure out a better way of doing this, two extra buttons used for this is stupid
+	if (cmd->angleturn > 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+
+	if (cmd->angleturn < 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	//}
+
+	// limit turning to angleturn[1] to stop mouselook letting you look too fast
+	if (cmd->angleturn > angleturn[1])
+		cmd->angleturn = angleturn[1];
+	else if (cmd->angleturn < -angleturn[1])
+		cmd->angleturn = -angleturn[1];
+
+	if (player->mo)
+		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+
+	// SRB2kart - no additional angle if not moving
+	if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
+		lang += (cmd->angleturn<<16);
+
+	cmd->angleturn = (INT16)(lang >> 16);
 
 	if (forward > MAXPLMOVE)
 		forward = MAXPLMOVE;
@@ -1571,27 +1476,10 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
-
 	if (mirrormode)
 		cmd->sidemove = -cmd->sidemove;
 
-	//{ SRB2kart - Drift support
-	axis = JoyAxis(AXISTURN, ssplayer);
-	if (mirrormode)
-		axis = -axis;
-
-	if (cmd->angleturn > 0) // Drifting to the left
-		cmd->buttons |= BT_DRIFTLEFT;
-	else
-		cmd->buttons &= ~BT_DRIFTLEFT;
-
-	if (cmd->angleturn < 0) // Drifting to the right
-		cmd->buttons |= BT_DRIFTRIGHT;
-	else
-		cmd->buttons &= ~BT_DRIFTRIGHT;
-	//}
-
-	if (ssplayer == 2 && player->bot == 1) {
+	/*if (ssplayer == 2 && player->bot == 1) {
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
 		{
 			player->bot = 2; // A player-controlled bot. Returns to AI when it respawns.
@@ -1602,30 +1490,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			G_CopyTiccmd(cmd,  I_BaseTiccmd2(), 1); // empty, or external driver
 			B_BuildTiccmd(player, cmd);
 		}
-	}
-
-	if (analog) {
-		cmd->angleturn = (INT16)(thiscam->angle >> 16);
-		if (player->awayviewtics)
-			cmd->angleturn = (INT16)(player->awayviewmobj->angle >> 16);
-	}
-	else
-	{
-		// limit turning to angleturn[1] to stop mouselook letting you look too fast
-		if (cmd->angleturn > angleturn[1])
-			cmd->angleturn = angleturn[1];
-		else if (cmd->angleturn < -angleturn[1])
-			cmd->angleturn = -angleturn[1];
-
-		if (player->mo)
-			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
-
-		// SRB2kart - no additional angle if not moving
-		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
-			lang += (cmd->angleturn<<16);
-
-		cmd->angleturn = (INT16)(lang >> 16);
-	}
+	}*/
 
 	if (ssplayer == 2)
 	{

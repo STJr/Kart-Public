@@ -7815,16 +7815,15 @@ struct {
 	{"NUMDIRS",NUMDIRS},
 
 	// Buttons (ticcmd_t)	// SRB2kart
-	{"BT_WEAPONMASK",BT_WEAPONMASK}, //our first four bits.
+	{"BT_ACCELERATE",BT_ACCELERATE},
+	{"BT_DRIFT",BT_DRIFT},
+	{"BT_BRAKE",BT_BRAKE},
+	{"BT_ATTACK",BT_ATTACK},
+	{"BT_FORWARD",BT_FORWARD},
+	{"BT_BACKWARD",BT_BACKWARD},
+	{"BT_SPECTATE",BT_SPECTATE},
 	{"BT_DRIFTLEFT",BT_DRIFTLEFT},
 	{"BT_DRIFTRIGHT",BT_DRIFTRIGHT},
-	{"BT_ATTACK",BT_ATTACK}, // shoot rings
-	{"BT_BRAKE",BT_BRAKE}, // brake
-	{"BT_FORWARD",BT_FORWARD}, // turn camera left
-	{"BT_BACKWARD",BT_BACKWARD}, // turn camera right
-	{"BT_SPECTATE",BT_SPECTATE},
-	{"BT_JUMP",BT_JUMP},
-	{"BT_ACCELERATE",BT_ACCELERATE}, // Fire a normal ring no matter what
 	{"BT_CUSTOM1",BT_CUSTOM1}, // Lua customizable
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable

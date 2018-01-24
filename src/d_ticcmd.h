@@ -24,23 +24,24 @@
 // Button/action code definitions.
 typedef enum
 {
-	// First 4 bits are weapon change info, DO NOT USE!
-	BT_WEAPONMASK = 0x0F, //our first four bits.
+	BT_ACCELERATE	= 1,		// Accelerate
+	BT_DRIFT		= 1<<2,		// Drift (direction is cmd->angleturn)
+	BT_BRAKE		= 1<<3,		// Brake
+	BT_ATTACK		= 1<<4,		// Use Item
+	BT_FORWARD		= 1<<5,		// Aim Item Forward
+	BT_BACKWARD		= 1<<6,		// Aim Item Backward
+	BT_SPECTATE		= 1<<7,		// Toggle Spectate
 
-	BT_DRIFTLEFT  = 1<<4,  // Drift Left		// BT_WEAPONNEXT
-	BT_DRIFTRIGHT = 1<<5,  // Drift Right		// BT_WEAPONPREV
+	// Want more button space? Help get rid of this hack :V
+	BT_DRIFTLEFT	= 1<<8,		// Drift left hack
+	BT_DRIFTRIGHT	= 1<<9,		// Drift right hack
 
-	BT_ATTACK     = 1<<6,  // use kart item		// SRB2kart
-	BT_BRAKE      = 1<<7,  // brake				// BT_USE
-	BT_FORWARD    = 1<<8,  // toss item forward	// BT_CAMLEFT
-	BT_BACKWARD   = 1<<9,  // drop item behind	// BT_CAMRIGHT
-	BT_SPECTATE   = 1<<10, // toggle spectate	// BT_TOSSFLAG
-	BT_JUMP       = 1<<11,
-	BT_ACCELERATE = 1<<12, // Accelerate		// BT_FIRENORMAL
+	// free: 1<<10 to 1<<12
 
-	BT_CUSTOM1    = 1<<13,
-	BT_CUSTOM2    = 1<<14,
-	BT_CUSTOM3    = 1<<15,
+	// Lua garbage
+	BT_CUSTOM1		= 1<<13,
+	BT_CUSTOM2		= 1<<14,
+	BT_CUSTOM3		= 1<<15,
 } buttoncode_t;
 
 // The data sampled per tick (single player)

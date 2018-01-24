@@ -1575,7 +1575,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		&& player->kartstuff[k_feather] & 2)
 		player->kartstuff[k_feather] &= ~2;
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_DRIFT)
 		player->kartstuff[k_jmp] = 1;
 	else
 		player->kartstuff[k_jmp] = 0;

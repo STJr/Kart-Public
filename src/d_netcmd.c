@@ -259,7 +259,7 @@ consvar_t cv_skipmapcheck = {"skipmapcheck", "Off", CV_SAVE, CV_OnOff, NULL, 0, 
 
 INT32 cv_debug;
 
-consvar_t cv_usemouse = {"use_mouse", "On", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_usemouse = {"use_mouse", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usemouse2 = {"use_mouse2", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse2, 0, NULL, NULL, 0, 0, NULL};
 
 #if defined (DC) || defined (_XBOX) || defined (WMINPUT) || defined (_WII) //joystick 1 and 2
@@ -770,8 +770,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_crosshair2);
 	CV_RegisterVar(&cv_crosshair3);
 	CV_RegisterVar(&cv_crosshair4);
-	CV_RegisterVar(&cv_alwaysfreelook);
-	CV_RegisterVar(&cv_alwaysfreelook2);
+	//CV_RegisterVar(&cv_alwaysfreelook);
+	//CV_RegisterVar(&cv_alwaysfreelook2);
 
 	// g_input.c
 	CV_RegisterVar(&cv_sideaxis);
@@ -815,8 +815,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_mousesens2);
 	CV_RegisterVar(&cv_mouseysens);
 	CV_RegisterVar(&cv_mouseysens2);
-	CV_RegisterVar(&cv_mousemove);
-	CV_RegisterVar(&cv_mousemove2);
+	//CV_RegisterVar(&cv_mousemove);
+	//CV_RegisterVar(&cv_mousemove2);
 
 	CV_RegisterVar(&cv_usejoystick);
 	CV_RegisterVar(&cv_usejoystick2);

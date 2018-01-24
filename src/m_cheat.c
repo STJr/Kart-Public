@@ -1101,7 +1101,7 @@ void OP_ObjectplaceMovement(player_t *player)
 	if (!(cmd->angleturn & TICCMD_RECEIVED))
 		ticmiss++;
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_DRIFT)
 		player->mo->z += FRACUNIT*cv_speed.value;
 	else if (cmd->buttons & BT_BRAKE)
 		player->mo->z -= FRACUNIT*cv_speed.value;

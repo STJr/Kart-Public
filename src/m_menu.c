@@ -1120,7 +1120,7 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Turn Left",        M_ChangeControl, gc_turnleft   },
 	{IT_CALL | IT_STRING2, NULL, "Turn Right",       M_ChangeControl, gc_turnright  },
 	{IT_CALL | IT_STRING2, NULL, "Accelerate",       M_ChangeControl, gc_accelerate },
-	{IT_CALL | IT_STRING2, NULL, "Drift",            M_ChangeControl, gc_jump       },
+	{IT_CALL | IT_STRING2, NULL, "Drift",            M_ChangeControl, gc_drift      },
 	{IT_CALL | IT_STRING2, NULL, "Brake",            M_ChangeControl, gc_brake      },
 	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item",   M_ChangeControl, gc_fire       },
 	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback   },

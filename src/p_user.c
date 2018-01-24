@@ -4108,7 +4108,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		}
 	}
 
-	if (cmd->buttons & BT_JUMP && !player->exiting && !P_PlayerInPain(player))
+	if (cmd->buttons & BT_DRIFT && !player->exiting && !P_PlayerInPain(player))
 	{
 #ifdef HAVE_BLUA
 		if (LUAh_JumpSpecial(player))
@@ -4321,7 +4321,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		*/
 	}
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_DRIFT)
 	{
 		player->pflags |= PF_JUMPDOWN;
 
@@ -5068,7 +5068,7 @@ static void P_SpectatorMovement(player_t *player)
 	if (player->mo->z < player->mo->floorz)
 		player->mo->z = player->mo->floorz;
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_DRIFT)
 		player->mo->z += FRACUNIT*16;
 	else if (cmd->buttons & BT_BRAKE)
 		player->mo->z -= FRACUNIT*16;
@@ -5759,7 +5759,7 @@ static void P_NiGHTSMovement(player_t *player)
 	if (player->drilldelay)
 		player->drilldelay--;
 
-	if (!(cmd->buttons & BT_JUMP))
+	if (!(cmd->buttons & BT_DRIFT))
 	{
 		// Always have just a TINY bit of drill power.
 		if (player->drillmeter <= 0)
@@ -5996,7 +5996,7 @@ static void P_NiGHTSMovement(player_t *player)
 		player->pflags |= PF_DRILLING;
 		newangle = (INT16)player->flyangle;
 	}
-	else if (cmd->buttons & BT_JUMP && player->drillmeter && player->drilldelay == 0)
+	else if (cmd->buttons & BT_DRIFT && player->drillmeter && player->drilldelay == 0)
 	{
 		if (!player->jumping)
 			firstdrill = true;
@@ -7003,7 +7003,7 @@ static void P_MovePlayer(player_t *player)
 			if (player->charability2 == CA2_MULTIABILITY)
 			{
 				// Adventure-style flying by just holding the button down
-				if (cmd->buttons & BT_JUMP && !(player->pflags & PF_STASIS) && !player->exiting)
+				if (cmd->buttons & BT_DRIFT && !(player->pflags & PF_STASIS) && !player->exiting)
 					P_SetObjectMomZ(player->mo, actionspd/4, true);
 			}
 			else
@@ -8001,7 +8001,7 @@ static void P_DeathThink(player_t *player)
 	// continue logic
 	if (!(netgame || multiplayer) && player->lives <= 0)
 	{
-		if (player->deadtimer > TICRATE && (cmd->buttons & BT_BRAKE || cmd->buttons & BT_ACCELERATE || cmd->buttons & BT_JUMP) && player->continues > 0)
+		if (player->deadtimer > TICRATE && (cmd->buttons & BT_BRAKE || cmd->buttons & BT_ACCELERATE || cmd->buttons & BT_DRIFT) && player->continues > 0)
 			G_UseContinue();
 		else if (player->deadtimer >= gameovertics)
 			G_UseContinue(); // Even if we don't have one this handles ending the game
