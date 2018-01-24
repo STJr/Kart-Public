@@ -2477,9 +2477,9 @@ static void Command_Teamchange2_f(void)
 	if (COM_Argc() <= 1)
 	{
 		if (G_GametypeHasTeams())
-			CONS_Printf(M_GetText("changeteam <team>: switch to a new team (%s)\n"), "red, blue or spectator");
+			CONS_Printf(M_GetText("changeteam2 <team>: switch to a new team (%s)\n"), "red, blue or spectator");
 		else if (G_GametypeHasSpectators())
-			CONS_Printf(M_GetText("changeteam <team>: switch to a new team (%s)\n"), "spectator or playing");
+			CONS_Printf(M_GetText("changeteam2 <team>: switch to a new team (%s)\n"), "spectator or playing");
 		else
 			CONS_Alert(CONS_NOTICE, M_GetText("This command cannot be used in this gametype.\n"));
 		return;
@@ -2563,12 +2563,196 @@ static void Command_Teamchange2_f(void)
 
 static void Command_Teamchange3_f(void)
 {
-	;
+	changeteam_union NetPacket;
+	boolean error = false;
+	UINT16 usvalue;
+	NetPacket.value.l = NetPacket.value.b = 0;
+
+	//      0         1
+	// changeteam3 <color>
+
+	if (COM_Argc() <= 1)
+	{
+		if (G_GametypeHasTeams())
+			CONS_Printf(M_GetText("changeteam3 <team>: switch to a new team (%s)\n"), "red, blue or spectator");
+		else if (G_GametypeHasSpectators())
+			CONS_Printf(M_GetText("changeteam3 <team>: switch to a new team (%s)\n"), "spectator or playing");
+		else
+			CONS_Alert(CONS_NOTICE, M_GetText("This command cannot be used in this gametype.\n"));
+		return;
+	}
+
+	if (G_GametypeHasTeams())
+	{
+		if (!strcasecmp(COM_Argv(1), "red") || !strcasecmp(COM_Argv(1), "1"))
+			NetPacket.packet.newteam = 1;
+		else if (!strcasecmp(COM_Argv(1), "blue") || !strcasecmp(COM_Argv(1), "2"))
+			NetPacket.packet.newteam = 2;
+		else if (!strcasecmp(COM_Argv(1), "spectator") || !strcasecmp(COM_Argv(1), "0"))
+			NetPacket.packet.newteam = 0;
+		else
+			error = true;
+	}
+	else if (G_GametypeHasSpectators())
+	{
+		if (!strcasecmp(COM_Argv(1), "spectator") || !strcasecmp(COM_Argv(1), "0"))
+			NetPacket.packet.newteam = 0;
+		else if (!strcasecmp(COM_Argv(1), "playing") || !strcasecmp(COM_Argv(1), "1"))
+			NetPacket.packet.newteam = 3;
+		else
+			error = true;
+	}
+
+	else
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("This command cannot be used in this gametype.\n"));
+		return;
+	}
+
+	if (error)
+	{
+		if (G_GametypeHasTeams())
+			CONS_Printf(M_GetText("changeteam3 <team>: switch to a new team (%s)\n"), "red, blue or spectator");
+		else if (G_GametypeHasSpectators())
+			CONS_Printf(M_GetText("changeteam3 <team>: switch to a new team (%s)\n"), "spectator or playing");
+		return;
+	}
+
+	if (G_GametypeHasTeams())
+	{
+		if (NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam ||
+			(players[thirddisplayplayer].spectator && !NetPacket.packet.newteam))
+			error = true;
+	}
+	else if (G_GametypeHasSpectators())
+	{
+		if ((players[thirddisplayplayer].spectator && !NetPacket.packet.newteam) ||
+			(!players[thirddisplayplayer].spectator && NetPacket.packet.newteam == 3))
+			error = true;
+	}
+#ifdef PARANOIA
+	else
+		I_Error("Invalid gametype after initial checks!");
+#endif
+
+	if (error)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("You're already on that team!\n"));
+		return;
+	}
+
+	if (!cv_allowteamchange.value && NetPacket.packet.newteam) // allow swapping to spectator even in locked teams.
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("The server is not allowing team changes at the moment.\n"));
+		return;
+	}
+
+	//additional check for hide and seek. Don't allow change of status after hidetime ends.
+	if (gametype == GT_HIDEANDSEEK && leveltime >= (hidetime * TICRATE))
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Hiding time expired; no Hide and Seek status changes allowed!\n"));
+		return;
+	}
+
+	usvalue = SHORT(NetPacket.value.l|NetPacket.value.b);
+	SendNetXCmd3(XD_TEAMCHANGE, &usvalue, sizeof(usvalue));
 }
 
 static void Command_Teamchange4_f(void)
 {
-	;
+	changeteam_union NetPacket;
+	boolean error = false;
+	UINT16 usvalue;
+	NetPacket.value.l = NetPacket.value.b = 0;
+
+	//      0         1
+	// changeteam4 <color>
+
+	if (COM_Argc() <= 1)
+	{
+		if (G_GametypeHasTeams())
+			CONS_Printf(M_GetText("changeteam4 <team>: switch to a new team (%s)\n"), "red, blue or spectator");
+		else if (G_GametypeHasSpectators())
+			CONS_Printf(M_GetText("changeteam4 <team>: switch to a new team (%s)\n"), "spectator or playing");
+		else
+			CONS_Alert(CONS_NOTICE, M_GetText("This command cannot be used in this gametype.\n"));
+		return;
+	}
+
+	if (G_GametypeHasTeams())
+	{
+		if (!strcasecmp(COM_Argv(1), "red") || !strcasecmp(COM_Argv(1), "1"))
+			NetPacket.packet.newteam = 1;
+		else if (!strcasecmp(COM_Argv(1), "blue") || !strcasecmp(COM_Argv(1), "2"))
+			NetPacket.packet.newteam = 2;
+		else if (!strcasecmp(COM_Argv(1), "spectator") || !strcasecmp(COM_Argv(1), "0"))
+			NetPacket.packet.newteam = 0;
+		else
+			error = true;
+	}
+	else if (G_GametypeHasSpectators())
+	{
+		if (!strcasecmp(COM_Argv(1), "spectator") || !strcasecmp(COM_Argv(1), "0"))
+			NetPacket.packet.newteam = 0;
+		else if (!strcasecmp(COM_Argv(1), "playing") || !strcasecmp(COM_Argv(1), "1"))
+			NetPacket.packet.newteam = 3;
+		else
+			error = true;
+	}
+
+	else
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("This command cannot be used in this gametype.\n"));
+		return;
+	}
+
+	if (error)
+	{
+		if (G_GametypeHasTeams())
+			CONS_Printf(M_GetText("changeteam4 <team>: switch to a new team (%s)\n"), "red, blue or spectator");
+		else if (G_GametypeHasSpectators())
+			CONS_Printf(M_GetText("changeteam4 <team>: switch to a new team (%s)\n"), "spectator or playing");
+		return;
+	}
+
+	if (G_GametypeHasTeams())
+	{
+		if (NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam ||
+			(players[fourthdisplayplayer].spectator && !NetPacket.packet.newteam))
+			error = true;
+	}
+	else if (G_GametypeHasSpectators())
+	{
+		if ((players[fourthdisplayplayer].spectator && !NetPacket.packet.newteam) ||
+			(!players[fourthdisplayplayer].spectator && NetPacket.packet.newteam == 3))
+			error = true;
+	}
+#ifdef PARANOIA
+	else
+		I_Error("Invalid gametype after initial checks!");
+#endif
+
+	if (error)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("You're already on that team!\n"));
+		return;
+	}
+
+	if (!cv_allowteamchange.value && NetPacket.packet.newteam) // allow swapping to spectator even in locked teams.
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("The server is not allowing team changes at the moment.\n"));
+		return;
+	}
+
+	//additional check for hide and seek. Don't allow change of status after hidetime ends.
+	if (gametype == GT_HIDEANDSEEK && leveltime >= (hidetime * TICRATE))
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Hiding time expired; no Hide and Seek status changes allowed!\n"));
+		return;
+	}
+
+	usvalue = SHORT(NetPacket.value.l|NetPacket.value.b);
+	SendNetXCmd4(XD_TEAMCHANGE, &usvalue, sizeof(usvalue));
 }
 
 static void Command_ServerTeamChange_f(void)

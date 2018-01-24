@@ -1171,7 +1171,8 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	if (!automapactive && cv_crosshair.value && !demoplayback && !camera.chase && !players[displayplayer].spectator)
+	// SRB2kart: not for kart though :V
+	/*if (!automapactive && cv_crosshair.value && !demoplayback && !camera.chase && !players[displayplayer].spectator)
 		HU_DrawCrosshair();
 
 	if (!automapactive && cv_crosshair2.value && !demoplayback && !camera2.chase && !players[secondarydisplayplayer].spectator)
@@ -1181,7 +1182,7 @@ void HU_Drawer(void)
 		HU_DrawCrosshair3();
 
 	if (!automapactive && cv_crosshair4.value && !demoplayback && !camera4.chase && !players[fourthdisplayplayer].spectator)
-		HU_DrawCrosshair4();
+		HU_DrawCrosshair4();*/
 
 	// draw desynch text
 	if (hu_resynching)
