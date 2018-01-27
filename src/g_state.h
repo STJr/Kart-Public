@@ -23,6 +23,7 @@ typedef enum
 	// Fadable gamestates
 	GS_LEVEL,           // Playing, in a level.
 	GS_INTERMISSION,    // Gazing at the intermission screen.
+	GS_VOTING,          // SRB2Kart: MP voting screen
 	GS_CONTINUING,      // continue screen
 
 	GS_TITLESCREEN,     // title screen

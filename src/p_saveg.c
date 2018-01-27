@@ -3364,6 +3364,8 @@ boolean P_LoadGame(INT16 mapoverride)
 {
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission();
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 	G_SetGamestate(GS_NULL); // should be changed in P_UnArchiveMisc
 
 	P_UnArchiveSPGame(mapoverride);

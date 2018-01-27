@@ -335,6 +335,12 @@ static void D_Display(void)
 			HU_Drawer();
 			break;
 
+		case GS_VOTING:
+			Y_VoteDrawer();
+			HU_Erase();
+			HU_Drawer();
+			break;
+
 		case GS_TIMEATTACK:
 			break;
 

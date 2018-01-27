@@ -1761,6 +1761,9 @@ void G_DoLoadLevel(boolean resetplayer)
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission();
 
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
+
 	G_SetGamestate(GS_LEVEL);
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2135,6 +2138,12 @@ void G_Ticker(boolean run)
 		case GS_INTERMISSION:
 			if (run)
 				Y_Ticker();
+			HU_Ticker();
+			break;
+
+		case GS_VOTING:
+			if (run)
+				Y_VoteTicker();
 			HU_Ticker();
 			break;
 
@@ -3025,7 +3034,7 @@ INT16 G_TOLFlag(INT32 pgametype)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-static INT16 RandMap(INT16 tolflags, INT16 pprevmap)
+INT16 RandMap(INT16 tolflags, INT16 pprevmap)
 {
 	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
@@ -3184,7 +3193,7 @@ static void G_DoCompleted(void)
 		P_AllocMapHeader(nextmap);
 
 	if (skipstats && !modeattacking) // Don't skip stats if we're in record attack
-		G_AfterIntermission();
+		G_AfterIntermission(false);
 	else
 	{
 		G_SetGamestate(GS_INTERMISSION);
@@ -3192,15 +3201,21 @@ static void G_DoCompleted(void)
 	}
 }
 
-void G_AfterIntermission(void)
+void G_AfterIntermission(boolean vote)
 {
 	HU_ClearCEcho();
+	G_NextLevel();
 
 	if (mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
 	else
 	{
-		if (nextmap < 1100-1)
+		if (cv_advancemap.value == 3 && !vote)
+		{
+			G_SetGamestate(GS_VOTING);
+			Y_StartVote();
+		}
+		else if (nextmap < 1100-1)
 			G_NextLevel();
 		else
 			Y_EndGame();
@@ -5810,6 +5825,8 @@ void G_StopDemo(void)
 
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission(); // cleanup
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 
 	G_SetGamestate(GS_NULL);
 	wipegamestate = GS_NULL;

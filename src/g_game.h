@@ -173,7 +173,7 @@ void G_ExitLevel(void);
 void G_NextLevel(void);
 void G_Continue(void);
 void G_UseContinue(void);
-void G_AfterIntermission(void);
+void G_AfterIntermission(boolean vote);
 
 void G_Ticker(boolean run);
 boolean G_Responder(event_t *ev);
@@ -218,5 +218,6 @@ FUNCMATH INT32 G_TicsToMilliseconds(tic_t tics);
 
 // Don't split up TOL handling
 INT16 G_TOLFlag(INT32 pgametype);
+INT16 RandMap(INT16 tolflags, INT16 pprevmap);
 
 #endif
