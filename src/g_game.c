@@ -72,6 +72,7 @@ static void G_DoCompleted(void);
 static void G_DoStartContinue(void);
 static void G_DoContinued(void);
 static void G_DoWorldDone(void);
+static void G_DoStartVote(void);
 
 char   mapmusname[7]; // Music name
 UINT16 mapmusflags; // Track and reset bit
@@ -2096,6 +2097,7 @@ void G_Ticker(boolean run)
 			case ga_startcont: G_DoStartContinue(); break;
 			case ga_continued: G_DoContinued(); break;
 			case ga_worlddone: G_DoWorldDone(); break;
+			case ga_startvote: G_DoStartVote(); break;
 			case ga_nothing: break;
 			default: I_Error("gameaction = %d\n", gameaction);
 		}
@@ -3193,7 +3195,7 @@ static void G_DoCompleted(void)
 		P_AllocMapHeader(nextmap);
 
 	if (skipstats && !modeattacking) // Don't skip stats if we're in record attack
-		G_AfterIntermission(false);
+		G_AfterIntermission();
 	else
 	{
 		G_SetGamestate(GS_INTERMISSION);
@@ -3201,7 +3203,7 @@ static void G_DoCompleted(void)
 	}
 }
 
-void G_AfterIntermission(boolean vote)
+void G_AfterIntermission(void)
 {
 	HU_ClearCEcho();
 	G_NextLevel();
@@ -3210,12 +3212,7 @@ void G_AfterIntermission(boolean vote)
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
 	else
 	{
-		if (cv_advancemap.value == 3 && !vote)
-		{
-			G_SetGamestate(GS_VOTING);
-			Y_StartVote();
-		}
-		else if (nextmap < 1100-1)
+		if (nextmap < 1100-1)
 			G_NextLevel();
 		else
 			Y_EndGame();
@@ -3230,7 +3227,11 @@ void G_AfterIntermission(boolean vote)
 //
 void G_NextLevel(void)
 {
-	gameaction = ga_worlddone;
+	if (cv_advancemap.value == 3 && gamestate != GS_VOTING
+		&& !modeattacking && !skipstats && (multiplayer || netgame))
+		gameaction = ga_startvote;
+	else
+		gameaction = ga_worlddone;
 }
 
 static void G_DoWorldDone(void)
@@ -3300,6 +3301,19 @@ static void G_DoContinued(void)
 	pl->lives = (ultimatemode) ? 1 : 3;
 
 	D_MapChange(gamemap, gametype, ultimatemode, false, 0, false, false);
+
+	gameaction = ga_nothing;
+}
+
+//
+// G_DoStartVote
+//
+static void G_DoStartVote(void)
+{
+	I_Assert(netgame || multiplayer);
+
+	G_SetGamestate(GS_VOTING);
+	Y_StartVote();
 
 	gameaction = ga_nothing;
 }

@@ -173,7 +173,7 @@ void G_ExitLevel(void);
 void G_NextLevel(void);
 void G_Continue(void);
 void G_UseContinue(void);
-void G_AfterIntermission(boolean vote);
+void G_AfterIntermission(void);
 
 void G_Ticker(boolean run);
 boolean G_Responder(event_t *ev);

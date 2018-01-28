@@ -194,7 +194,7 @@ typedef struct
 {
 	y_votelvlinfo_t levels[4];
 	y_voteplayers_t playerinfo[MAXPLAYERS];
-	y_vote_t votes[MAXPLAYERS];
+	y_vote_t votes[MAXPLAYERS]; // votes have their own struct instead of being attached to the player so they can be listed in order
 	UINT8 numvotes;
 	INT32 timeleft;
 } y_votedata;
@@ -205,7 +205,6 @@ static INT32 voteendtic = -1;
 static patch_t *cursor = NULL;
 
 static void Y_UnloadVoteData(void);
-static void Y_FollowVote(void);
 
 // Stuff copy+pasted from st_stuff.c
 static INT32 SCX(INT32 x)
@@ -2051,7 +2050,7 @@ static void Y_FollowIntermission(void)
 	if (nextmap < 1100-1)
 	{
 		// normal level
-		G_AfterIntermission(false);
+		G_AfterIntermission();
 		return;
 	}
 
@@ -2123,109 +2122,84 @@ static void Y_UnloadData(void)
 // SRB2Kart: Voting!
 
 //
-// Y_StartVote
+// Y_VoteDrawer
 //
-// MK online style voting screen, appears after intermission
+// Draws the voting screen!
 //
-void Y_StartVote(void)
+void Y_VoteDrawer(void)
 {
-	INT32 i = 0;
+	INT32 i, x, y = 0;
 
-	votetic = -1;
+	if (rendermode == render_none)
+		return;
 
-#ifdef PARANOIA
-	if (voteendtic != -1)
-		I_Error("voteendtic is dirty");
-#endif
+	if (votetic >= voteendtic && voteendtic != -1)
+		return;
 
-	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
-	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
-	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
-	//votedata.timeleft = 30*TICRATE;
-	votedata.numvotes = 0;
+	/*if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx == 400)
+		V_DrawScaledPatch(0, 0, V_SNAPTOLEFT, widebgpatch);
+	else*/
+		V_DrawScaledPatch(0, 0, 0, bgpatch);
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		votedata.playerinfo[i].color = &players[i].skincolor;
-		votedata.playerinfo[i].character = &players[i].skin;
-		votedata.playerinfo[i].delay = 0;
-		votedata.playerinfo[i].selection = 0;
-		votedata.playerinfo[i].voted = false;
-
-		votedata.votes[i].level = 0;
-		votedata.votes[i].playernum = 0;
-	}
-
+	y = 30;
 	for (i = 0; i < 4; i++)
 	{
-		INT32 j;
-		lumpnum_t lumpnum;
-
-		votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
-
-		for (j = 0; j < 4; j++)
+		if (i == votedata.playerinfo[consoleplayer].selection)
 		{
-			INT32 loopcount = 0;
-			if (i == j)
-				continue;
-			while (votedata.levels[i].num == votedata.levels[j].num && loopcount < 5)
-			{
-				votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
-				loopcount++;
-			}
-		}
+			
+			V_DrawScaledPatch(BASEVIDWIDTH-124, y+21, 0, cursor);
 
-		if (!mapheaderinfo[votedata.levels[i].num])
-			P_AllocMapHeader(votedata.levels[i].num);
+			if (votetic % 4 > 1)
+				V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 120);
+			else
+				V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 103);
 
-		if (i == 3) // Random is actually pre-calculated for ease of coding, shhhhh :V
-		{
-			//snprintf(votedata.levels[i].str, sizeof votedata.levels[i].str, "%.32s", "RANDOM");
-			//votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
-			votedata.levels[i].pic = W_CachePatchName("RANDOMLV", PU_STATIC);
+			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, 0, votedata.levels[i].pic);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 42+y, V_YELLOWMAP, votedata.levels[i].str);
+			y += 55;
 		}
 		else
 		{
-			// set up the str
-			/*if (mapheaderinfo[votedata.levels[i].num]->zonttl)
-			{
-				if (mapheaderinfo[votedata.levels[i].num]->actnum)
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s %.32s %d",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num-1]->zonttl, mapheaderinfo[votedata.levels[i].num-1]->actnum);
-				else
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s %.32s",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num-1]->zonttl);
-			}
-			else
-			{
-				if (mapheaderinfo[votedata.levels[i].num]->actnum)
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s %d",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num-1]->actnum);
-				else
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl);
-			}
-
-			votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';*/
-
-			//  A 160x100 image of the level as entry MAPxxP
-			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votedata.levels[i].num)));
-
-			if (lumpnum != LUMPERROR)
-				votedata.levels[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)), PU_STATIC);
-			else
-				votedata.levels[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
+			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, 0, votedata.levels[i].pic);
+			y += 30;
 		}
 	}
+
+	x = 20;
+	y = 15;
+
+	if (votedata.numvotes > 0)
+	{
+		for (i = 0; i < votedata.numvotes; i++)
+		{
+			V_DrawTinyScaledPatch(x, y, 0, votedata.levels[votedata.votes[i].level].pic);
+
+			if (votedata.playerinfo[votedata.votes[i].playernum].color == 0)
+				V_DrawSmallScaledPatch(x+24, y+9, 0, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character]);
+			else
+			{
+				UINT8 *colormap = R_GetTranslationColormap(*votedata.playerinfo[votedata.votes[i].playernum].character, *votedata.playerinfo[votedata.votes[i].playernum].color, GTC_CACHE);
+				V_DrawSmallMappedPatch(x+24, y+9, 0, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character], colormap);
+			}
+
+			y += 30;
+
+			if (y > BASEVIDHEIGHT-38)
+			{
+				x += 20;
+				y = 15;
+			}
+		}
+	}
+
+	if (votedata.timeleft)
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP,
+			va("Vote ends in %d seconds", votedata.timeleft/TICRATE));
+
+	V_DrawString(80, 0, V_YELLOWMAP, va("votetic: %d", votetic));
+	V_DrawString(80, 8, V_YELLOWMAP, va("voteendtic: %d", voteendtic));
 }
 
 //
@@ -2245,18 +2219,21 @@ void Y_VoteTicker(void)
 
 	votetic++;
 
-	if (votetic >= voteendtic)
+	if (votetic >= voteendtic && voteendtic != -1)
 	{
 		Y_EndVote();
-		Y_FollowVote();
+		Y_FollowIntermission();
 		return;
 	}
 
-	if (votetic < TICRATE)
+	if (!votetic)
+		S_ChangeMusicInternal("racent", true);
+
+	if (votetic < TICRATE) // give it some time before letting you control it :V
 		return;
 
-	/*if (votedata.timeleft > 0)
-		votedata.timeleft--;*/
+	if (votedata.timeleft > 0)
+		votedata.timeleft--;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2269,6 +2246,15 @@ void Y_VoteTicker(void)
 
 		if (votedata.playerinfo[i].voted)
 			continue;
+
+		if (votedata.timeleft <= 0 && !votedata.playerinfo[i].voted)
+		{
+			votedata.votes[votedata.numvotes].level = 3; // too slow? you pick random
+			votedata.votes[votedata.numvotes].playernum = i;
+			votedata.playerinfo[i].voted = true;
+			votedata.numvotes++;
+			continue;
+		}
 
 		if (votedata.playerinfo[i].delay > 0)
 		{
@@ -2308,92 +2294,121 @@ void Y_VoteTicker(void)
 				S_StartSound(NULL, sfx_menu1);
 			votedata.playerinfo[i].delay = NEWTICRATE/7;
 		}
-
-		/*if (votedata.timeleft <= 0 && !votedata.playerinfo[i].voted)
-		{
-			votedata.votes[votedata.numvotes].level = 3; // too slow? you pick random
-			votedata.votes[votedata.numvotes].playernum = i;
-			votedata.playerinfo[i].voted = true;
-			votedata.numvotes++;
-		}*/
 	}
-
-	/*if (votedata.numvotes >= numplayers)
-		votedata.timeleft = 0;
 
 	if (votedata.timeleft == 0 && voteendtic == -1)
 	{
-		nextmap = (votedata.votes[P_RandomKey(votedata.numvotes)].level);
-		voteendtic = votetic+(10*TICRATE);
-	}*/
+		nextmap = (votedata.levels[votedata.votes[P_RandomKey(votedata.numvotes)].level].num); // oh my god
+		voteendtic = votetic+(3*TICRATE);
+	}
 
-	if (!votetic)
-		S_ChangeMusicInternal("racent", true);
+	if (votedata.numvotes >= numplayers)
+		votedata.timeleft = 0;
 }
 
 //
-// Y_VoteDrawer
+// Y_StartVote
 //
-// Draws the voting screen!
+// MK online style voting screen, appears after intermission
 //
-void Y_VoteDrawer(void)
+void Y_StartVote(void)
 {
-	INT32 i, x, y = 0;
+	INT32 i = 0;
 
-	if (rendermode == render_none)
-		return;
+	votetic = -1;
 
-	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+#ifdef PARANOIA
+	if (voteendtic != -1)
+		I_Error("voteendtic is dirty");
+#endif
 
-	if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx == 400)
-		V_DrawScaledPatch(0, 0, V_SNAPTOLEFT, widebgpatch);
-	else
-		V_DrawScaledPatch(0, 0, 0, bgpatch);
+	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
+	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
+	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
+
+	votedata.timeleft = 30*TICRATE;
+	votedata.numvotes = 0;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		votedata.playerinfo[i].color = &players[i].skincolor;
+		votedata.playerinfo[i].character = &players[i].skin;
+		votedata.playerinfo[i].delay = 0;
+		votedata.playerinfo[i].selection = 0;
+		votedata.playerinfo[i].voted = false;
+
+		votedata.votes[i].level = 0;
+		votedata.votes[i].playernum = 0;
+	}
 
 	for (i = 0; i < 4; i++)
 	{
-		if (i == votedata.playerinfo[consoleplayer].selection)
+		INT32 j;
+
+		votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
+
+		for (j = 0; j < 4; j++)
 		{
-			y += 50;
-			V_DrawScaledPatch(BASEVIDWIDTH-142, y+21, 0, cursor);
-			//V_DrawFill(BASEVIDWIDTH-102, y-2, 84, 54, 103);
-			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, 0, votedata.levels[i].pic);
-			//V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 42+y, V_YELLOWMAP, votedata.levels[i].str);
+			INT32 loopcount = 0;
+			if (i == j)
+				continue;
+			while (votedata.levels[i].num == votedata.levels[j].num && loopcount < 5)
+			{
+				votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
+				loopcount++;
+			}
+		}
+
+		if (!mapheaderinfo[votedata.levels[i].num])
+			P_AllocMapHeader(votedata.levels[i].num);
+
+		if (i == 3) // Fun fact, "random" isn't actually random; it's pre-calculated like the other  :V
+		{
+			snprintf(votedata.levels[i].str, sizeof votedata.levels[i].str, "%.32s", "RANDOM");
+			votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
+			votedata.levels[i].pic = W_CachePatchName("RANDOMLV", PU_STATIC);
 		}
 		else
 		{
-			V_DrawTinyScaledPatch(BASEVIDWIDTH-80, y, 0, votedata.levels[i].pic);
-			y += 62;
+			lumpnum_t lumpnum;
+
+			// set up the str
+			if (mapheaderinfo[votedata.levels[i].num]->zonttl)
+			{
+				if (mapheaderinfo[votedata.levels[i].num]->actnum)
+					snprintf(votedata.levels[i].str,
+						sizeof votedata.levels[i].str,
+						"%.32s %.32s %d",
+						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl, mapheaderinfo[votedata.levels[i].num]->actnum);
+				else
+					snprintf(votedata.levels[i].str,
+						sizeof votedata.levels[i].str,
+						"%.32s %.32s",
+						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl);
+			}
+			else
+			{
+				if (mapheaderinfo[votedata.levels[i].num]->actnum)
+					snprintf(votedata.levels[i].str,
+						sizeof votedata.levels[i].str,
+						"%.32s %d",
+						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->actnum);
+				else
+					snprintf(votedata.levels[i].str,
+						sizeof votedata.levels[i].str,
+						"%.32s",
+						mapheaderinfo[votedata.levels[i].num]->lvlttl);
+			}
+
+			votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
+
+			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)));
+			if (lumpnum != LUMPERROR)
+				votedata.levels[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)), PU_STATIC);
+			else
+				votedata.levels[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
 		}
 	}
-
-	x = 20;
-	y = 0;
-
-	for (i = 0; i < votedata.numvotes; i++)
-	{
-		V_DrawTinyScaledPatch(x, y, 0, votedata.levels[votedata.votes[i].level].pic);
-
-		if (votedata.playerinfo[votedata.votes[i].playernum].color == 0)
-			V_DrawSmallScaledPatch(x+48, y+18, 0, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character]);
-		else
-		{
-			UINT8 *colormap = R_GetTranslationColormap(*votedata.playerinfo[votedata.votes[i].playernum].character, *votedata.playerinfo[votedata.votes[i].playernum].color, GTC_CACHE);
-			V_DrawSmallMappedPatch(x+48, y+18, 0, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character], colormap);
-		}
-
-		y += 25;
-
-		if (y > BASEVIDHEIGHT-25)
-		{
-			x += 20;
-			y = 0;
-		}
-	}
-
-	/*if (votedata.timeleft)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP,
-			va("Vote ends in %d seconds", votedata.timeleft/TICRATE));*/
 }
 
 //
@@ -2413,38 +2428,12 @@ static void Y_UnloadVoteData(void)
 	if (rendermode != render_soft)
 		return;
 
-	UNLOAD(bgpatch);
 	UNLOAD(widebgpatch);
+	UNLOAD(bgpatch);
 	UNLOAD(cursor);
 
 	UNLOAD(votedata.levels[3].pic);
 	UNLOAD(votedata.levels[2].pic);
 	UNLOAD(votedata.levels[1].pic);
 	UNLOAD(votedata.levels[0].pic);
-}
-
-//
-// Y_FollowVote
-//
-static void Y_FollowVote(void)
-{
-	if (modeattacking)
-	{
-		M_EndModeAttackRun();
-		return;
-	}
-
-	if (nextmap < 1100-1)
-	{
-		G_AfterIntermission(true);
-		return;
-	}
-
-	if (mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking)
-	{
-		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
-		return;
-	}
-
-	Y_EndGame();
 }
