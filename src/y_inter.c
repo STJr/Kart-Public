@@ -2330,6 +2330,9 @@ void Y_VoteTicker(void)
 		}
 	}
 
+	if (votedata.numvotes >= numplayers)
+		votedata.timeleft = 0;
+
 	if (votedata.timeleft == 0 && voteendtic == -1)
 	{
 		votedata.pickedvote = P_RandomKey(votedata.numvotes);
@@ -2337,9 +2340,6 @@ void Y_VoteTicker(void)
 		S_StartSound(NULL, sfx_ncitem);
 		voteendtic = votetic+(3*TICRATE);
 	}
-
-	if (votedata.numvotes >= numplayers)
-		votedata.timeleft = 0;
 }
 
 //
