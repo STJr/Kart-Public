@@ -355,6 +355,9 @@ consvar_t cv_kartmirror = {"kartmirror", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NU
 static CV_PossibleValue_t speedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_speedometer = {"speedometer", "Kilometers", CV_SAVE, speedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 
+static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
+consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 static CV_PossibleValue_t cv_collideminimum_cons_t[] = {{1, "MIN"}, {16384, "MAX"}, {0, NULL}};
 consvar_t cv_collideminimum = {"collide_minspeed", "25", CV_NETVAR, cv_collideminimum_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t cv_collidesoundnum_cons_t[] = {{1, "MIN"}, {1208, "MAX"}, {0, NULL}};
@@ -2182,7 +2185,7 @@ static void Command_Pause(void)
 
 	if (cv_pause.value || server || (IsPlayerAdmin(consoleplayer)))
 	{
-		if (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+		if (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 		{
 			CONS_Printf(M_GetText("You can't pause here.\n"));
 			return;
@@ -2251,7 +2254,7 @@ static void Command_Suicide(void)
 
 	WRITEINT32(cp, consoleplayer);
 
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 	{
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 		return;
@@ -4276,7 +4279,7 @@ static void TeamScramble_OnChange(void)
 	boolean success = false;
 
 	// Don't trigger outside level or intermission!
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 		return;
 
 	if (!cv_teamscramble.value)
@@ -4619,7 +4622,7 @@ void Command_ExitGame_f(void)
 
 void Command_Retry_f(void)
 {
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else if (netgame || multiplayer)
 		CONS_Printf(M_GetText("This only works in single player.\n"));

@@ -125,6 +125,8 @@ extern consvar_t cv_kartcomeback;
 extern consvar_t cv_kartmirror;
 extern consvar_t cv_speedometer;
 
+extern consvar_t cv_votetime;
+
 extern consvar_t cv_collideminimum;
 extern consvar_t cv_collidesoundnum;
 extern consvar_t cv_collidesounds;

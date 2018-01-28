@@ -311,6 +311,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartmirror);
 	CV_RegisterVar(&cv_speedometer);
+	CV_RegisterVar(&cv_votetime);
 	CV_RegisterVar(&cv_collideminimum);
 	CV_RegisterVar(&cv_collidesoundnum);
 	CV_RegisterVar(&cv_collidesounds);

@@ -197,12 +197,14 @@ typedef struct
 	y_vote_t votes[MAXPLAYERS]; // votes have their own struct instead of being attached to the player so they can be listed in order
 	UINT8 numvotes;
 	INT32 timeleft;
+	INT8 pickedvote;
 } y_votedata;
 
 static y_votedata votedata;
 static INT32 votetic;
 static INT32 voteendtic = -1;
 static patch_t *cursor = NULL;
+static patch_t *randomlvl = NULL;
 
 static void Y_UnloadVoteData(void);
 
@@ -2138,31 +2140,50 @@ void Y_VoteDrawer(void)
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
-	/*if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx == 400)
-		V_DrawScaledPatch(0, 0, V_SNAPTOLEFT, widebgpatch);
-	else*/
-		V_DrawScaledPatch(0, 0, 0, bgpatch);
+	if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx > 320)
+		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(widebgpatch->width)/2),
+							(vid.height / vid.dupy) - SHORT(widebgpatch->height),
+							V_SNAPTOTOP|V_SNAPTOLEFT, widebgpatch);
+	else
+		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(bgpatch->width)/2), // Keep the width/height adjustments, for screens that are less wide than 320(?)
+							(vid.height / vid.dupy) - SHORT(bgpatch->height),
+							V_SNAPTOTOP|V_SNAPTOLEFT, bgpatch);
 
 	y = 30;
 	for (i = 0; i < 4; i++)
 	{
+		char str[40];
+		patch_t *pic;
+
+		if (i == 3)
+		{
+			snprintf(str, sizeof str, "%.32s", "RANDOM");
+			str[sizeof str - 1] = '\0';
+			pic = randomlvl;
+		}
+		else
+		{
+			strcpy(str, votedata.levels[i].str);
+			pic = votedata.levels[i].pic;
+		}
+
 		if (i == votedata.playerinfo[consoleplayer].selection)
 		{
-			
-			V_DrawScaledPatch(BASEVIDWIDTH-124, y+21, 0, cursor);
-
-			if (votetic % 4 > 1)
-				V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 120);
-			else
-				V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 103);
-
-			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, 0, votedata.levels[i].pic);
-			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 42+y, V_YELLOWMAP, votedata.levels[i].str);
+			if (!votedata.playerinfo[consoleplayer].voted)
+			{
+				V_DrawScaledPatch(BASEVIDWIDTH-124, y+21, V_SNAPTORIGHT, cursor);
+				if (votetic % 4 > 1)
+					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 120|V_SNAPTORIGHT);
+				else
+					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 103|V_SNAPTORIGHT);
+			}
+			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 42+y, V_SNAPTORIGHT, str);
 			y += 55;
 		}
 		else
 		{
-			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, 0, votedata.levels[i].pic);
+			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
 			y += 30;
 		}
 	}
@@ -2174,14 +2195,30 @@ void Y_VoteDrawer(void)
 	{
 		for (i = 0; i < votedata.numvotes; i++)
 		{
-			V_DrawTinyScaledPatch(x, y, 0, votedata.levels[votedata.votes[i].level].pic);
+			patch_t *pic;
+
+			if (votedata.votes[i].level == 3 && i != votedata.pickedvote)
+				pic = randomlvl;
+			else
+				pic = votedata.levels[votedata.votes[i].level].pic;
+
+			if (i == votedata.pickedvote)
+			{
+				V_DrawScaledPatch(x-18, y+9, V_SNAPTOLEFT, cursor);
+				if (votetic % 4 > 1)
+					V_DrawFill(x-1, y-1, 42, 27, 120|V_SNAPTOLEFT);
+				else
+					V_DrawFill(x-1, y-1, 42, 27, 103|V_SNAPTOLEFT);
+			}
+
+			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
 
 			if (votedata.playerinfo[votedata.votes[i].playernum].color == 0)
-				V_DrawSmallScaledPatch(x+24, y+9, 0, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character]);
+				V_DrawSmallScaledPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character]);
 			else
 			{
 				UINT8 *colormap = R_GetTranslationColormap(*votedata.playerinfo[votedata.votes[i].playernum].character, *votedata.playerinfo[votedata.votes[i].playernum].color, GTC_CACHE);
-				V_DrawSmallMappedPatch(x+24, y+9, 0, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character], colormap);
+				V_DrawSmallMappedPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[*votedata.playerinfo[votedata.votes[i].playernum].character], colormap);
 			}
 
 			y += 30;
@@ -2195,11 +2232,8 @@ void Y_VoteDrawer(void)
 	}
 
 	if (votedata.timeleft)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP,
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
 			va("Vote ends in %d seconds", votedata.timeleft/TICRATE));
-
-	V_DrawString(80, 0, V_YELLOWMAP, va("votetic: %d", votetic));
-	V_DrawString(80, 8, V_YELLOWMAP, va("voteendtic: %d", voteendtic));
 }
 
 //
@@ -2219,9 +2253,9 @@ void Y_VoteTicker(void)
 
 	votetic++;
 
-	if (votetic >= voteendtic && voteendtic != -1)
+	if (votetic == voteendtic)
 	{
-		Y_EndVote();
+		Y_UnloadVoteData(); // Y_EndVote resets voteendtic too early apparently, causing the game to try to render patches that we just unloaded...
 		Y_FollowIntermission();
 		return;
 	}
@@ -2292,13 +2326,15 @@ void Y_VoteTicker(void)
 		{
 			if (i == consoleplayer)
 				S_StartSound(NULL, sfx_menu1);
-			votedata.playerinfo[i].delay = NEWTICRATE/7;
+			votedata.playerinfo[i].delay = 3;
 		}
 	}
 
 	if (votedata.timeleft == 0 && voteendtic == -1)
 	{
-		nextmap = (votedata.levels[votedata.votes[P_RandomKey(votedata.numvotes)].level].num); // oh my god
+		votedata.pickedvote = P_RandomKey(votedata.numvotes);
+		nextmap = (votedata.levels[votedata.votes[votedata.pickedvote].level].num); // oh my god
+		S_StartSound(NULL, sfx_ncitem);
 		voteendtic = votetic+(3*TICRATE);
 	}
 
@@ -2325,9 +2361,11 @@ void Y_StartVote(void)
 	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
 	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
 	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
+	randomlvl = W_CachePatchName("RANDOMLV", PU_STATIC);
 
-	votedata.timeleft = 30*TICRATE;
+	votedata.timeleft = cv_votetime.value*TICRATE;
 	votedata.numvotes = 0;
+	votedata.pickedvote = -1;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2344,6 +2382,7 @@ void Y_StartVote(void)
 	for (i = 0; i < 4; i++)
 	{
 		INT32 j;
+		lumpnum_t lumpnum;
 
 		votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
 
@@ -2362,52 +2401,41 @@ void Y_StartVote(void)
 		if (!mapheaderinfo[votedata.levels[i].num])
 			P_AllocMapHeader(votedata.levels[i].num);
 
-		if (i == 3) // Fun fact, "random" isn't actually random; it's pre-calculated like the other  :V
+		// set up the str
+		if (mapheaderinfo[votedata.levels[i].num]->zonttl)
 		{
-			snprintf(votedata.levels[i].str, sizeof votedata.levels[i].str, "%.32s", "RANDOM");
-			votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
-			votedata.levels[i].pic = W_CachePatchName("RANDOMLV", PU_STATIC);
+			if (mapheaderinfo[votedata.levels[i].num]->actnum)
+				snprintf(votedata.levels[i].str,
+					sizeof votedata.levels[i].str,
+					"%.32s %.32s %d",
+					mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl, mapheaderinfo[votedata.levels[i].num]->actnum);
+			else
+				snprintf(votedata.levels[i].str,
+					sizeof votedata.levels[i].str,
+					"%.32s %.32s",
+					mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl);
 		}
 		else
 		{
-			lumpnum_t lumpnum;
-
-			// set up the str
-			if (mapheaderinfo[votedata.levels[i].num]->zonttl)
-			{
-				if (mapheaderinfo[votedata.levels[i].num]->actnum)
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s %.32s %d",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl, mapheaderinfo[votedata.levels[i].num]->actnum);
-				else
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s %.32s",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl);
-			}
+			if (mapheaderinfo[votedata.levels[i].num]->actnum)
+				snprintf(votedata.levels[i].str,
+					sizeof votedata.levels[i].str,
+					"%.32s %d",
+					mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->actnum);
 			else
-			{
-				if (mapheaderinfo[votedata.levels[i].num]->actnum)
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s %d",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->actnum);
-				else
-					snprintf(votedata.levels[i].str,
-						sizeof votedata.levels[i].str,
-						"%.32s",
-						mapheaderinfo[votedata.levels[i].num]->lvlttl);
-			}
-
-			votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
-
-			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)));
-			if (lumpnum != LUMPERROR)
-				votedata.levels[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)), PU_STATIC);
-			else
-				votedata.levels[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
+				snprintf(votedata.levels[i].str,
+					sizeof votedata.levels[i].str,
+					"%.32s",
+					mapheaderinfo[votedata.levels[i].num]->lvlttl);
 		}
+
+		votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
+
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)));
+		if (lumpnum != LUMPERROR)
+			votedata.levels[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)), PU_STATIC);
+		else
+			votedata.levels[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
 	}
 }
 
@@ -2431,6 +2459,7 @@ static void Y_UnloadVoteData(void)
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
 	UNLOAD(cursor);
+	UNLOAD(randomlvl);
 
 	UNLOAD(votedata.levels[3].pic);
 	UNLOAD(votedata.levels[2].pic);

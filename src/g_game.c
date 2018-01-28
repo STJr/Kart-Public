@@ -1761,7 +1761,6 @@ void G_DoLoadLevel(boolean resetplayer)
 
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission();
-
 	if (gamestate == GS_VOTING)
 		Y_EndVote();
 
@@ -1969,7 +1968,7 @@ boolean G_Responder(event_t *ev)
 	else if (gamestate == GS_GAMEEND || gamestate == GS_EVALUATION || gamestate == GS_CREDITS)
 		return true;
 
-	else if (gamestate == GS_INTERMISSION)
+	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
 
