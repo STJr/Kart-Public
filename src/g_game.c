@@ -244,6 +244,8 @@ UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for
 boolean mirrormode; // Mirror Mode currently enabled?
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
+
+boolean legitimateexit; // Did this client actually finish the match? Calculated locally
 tic_t curlap; // Current lap time, calculated locally
 tic_t bestlap; // Best lap time, locally
 
@@ -2264,14 +2266,19 @@ static inline void G_PlayerFinishLevel(INT32 player)
 		V_SetPaletteLump(GetPalette()); // Reset the palette
 
 	// SRB2kart: Increment the "matches played" counter.
-	if (player == consoleplayer && ((!modifiedgame || savemoddata) && !demoplayback)) // SRB2kart: Yes, let stuff unlock stuff in MP
+	if (player == consoleplayer)
 	{
-		matchesplayed++;
-		if (M_UpdateUnlockablesAndExtraEmblems())
+		if (legitimateexit && ((!modifiedgame || savemoddata) && !demoplayback))
 		{
-			S_StartSound(NULL, sfx_ncitem);
-			G_SaveGameData(); // only save if unlocked something
+			matchesplayed++;
+			if (M_UpdateUnlockablesAndExtraEmblems())
+			{
+				S_StartSound(NULL, sfx_ncitem);
+				G_SaveGameData(); // only save if unlocked something
+			}
 		}
+
+		legitimateexit = false;
 	}
 }
 
@@ -3891,6 +3898,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 
 	if (netgame || multiplayer) // Nice try, haxor.
 		ultimatemode = false;
+
+	legitimateexit = false; // SRB2Kart
 
 	if (!demoplayback && !netgame) // Netgame sets random seed elsewhere, demo playback sets seed just before us!
 		P_SetRandSeed(M_RandomizedSeed()); // Use a more "Random" random seed

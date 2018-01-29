@@ -1645,6 +1645,13 @@ void P_DoPlayerExit(player_t *player)
 	if (player->exiting)
 		return;
 
+	if ((player == &players[consoleplayer]
+		|| (splitscreen && player == &players[secondarydisplayplayer])
+		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
+		&& (!player->spectator && ((!modifiedgame || savemoddata) && !demoplayback)))
+		legitimateexit = true;
+
 	if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
 		// SRB2kart 120217

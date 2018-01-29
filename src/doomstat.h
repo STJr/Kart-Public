@@ -445,6 +445,7 @@ extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
 extern tic_t curlap, bestlap;
+extern boolean legitimateexit;
 
 extern tic_t hidetime;
 
