@@ -32,73 +32,73 @@ conditionset_t conditionSets[MAXCONDITIONSETS];
 // Default Emblem locations
 emblem_t emblemlocations[MAXEMBLEMS] =
 {
-	// -- GREEN HILLS --
+	// -- MAP01: GREEN HILLS --
 	// Time: 1:30.00
 	{ET_TIME, 0,0,0,  1, 'T', SKINCOLOR_GREY,  90*TICRATE, "", 0},
-	// -- NORTHERN DISTRICT --
+	// -- MAP02: NORTHERN DISTRICT --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0,  2, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- SUNBEAM PARADISE --
-	// Time: 2:00.00
-	{ET_TIME, 0,0,0,  3, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0},
-	// -- PIPE SPEEDWAY --
+	// -- MAP03: SUNBEAM PARADISE --
+	// Time: x:xx.xx
+	{ET_TIME, 0,0,0,  3, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
+	// -- MAP04: PIPE SPEEDWAY --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0,  4, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- DARKVILE GARDEN --
+	// -- MAP05: DARKVILE GARDEN --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0,  5, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- MEGABLOCK CASTLE --
+	// -- MAP06: MEGABLOCK CASTLE --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0,  6, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- MIDNIGHT MEADOW --
+	// -- MAP07: MIDNIGHT MEADOW --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0,  7, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- HILL TOP --
+	// -- MAP11: HILL TOP --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 11, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- SAPPHIRE COAST --
+	// -- MAP13: SAPPHIRE COAST --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 13, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- BLUE MOUNTAIN --
+	// -- MAP15: BLUE MOUNTAIN --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 15, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- CASINO RESORT --
+	// -- MAP19: CASINO RESORT --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 19, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- SILVERCLOUD ISLAND --
+	// -- MAP21: SILVERCLOUD ISLAND --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 21, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- CANYON RUSH --
+	// -- MAP25: CANYON RUSH --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 25, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- CLOUD CRADLE K --
+	// -- MAP26: CLOUD CRADLE K --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 26, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- TOXIC PALACE --
+	// -- MAP27: TOXIC PALACE --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 27, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- ANCIENT TOMB --
+	// -- MAP30: ANCIENT TOMB --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 30, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- SUB-ZERO PEAK --
+	// -- MAP31: SUB-ZERO PEAK --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 31, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- VIRTUAL HIGHWAY --
+	// -- MAP32: VIRTUAL HIGHWAY --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 32, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- EGGMAN'S NIGHTCLUB --
+	// -- MAP33: EGGMAN'S NIGHTCLUB --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 37, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- GBA RAINBOW ROAD --
+	// -- MAP61: GBA RAINBOW ROAD --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 61, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- SONIC SPEEDWAY --
+	// -- MAP70: SONIC SPEEDWAY --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 70, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- AURORA ATOLL --
+	// -- MAP72: AURORA ATOLL --
 	// Time: x:xx.xx
 	{ET_TIME, 0,0,0, 72, 'T', SKINCOLOR_GREY, 300*TICRATE, "", 0},
-	// -- BARREN BADLANDS --
+	// -- MAP79: BARREN BADLANDS --
 	// Time: 2:30.00
 	{ET_TIME, 0,0,0, 79, 'T', SKINCOLOR_GREY, 150*TICRATE, "", 0},
 };
@@ -113,12 +113,12 @@ extraemblem_t extraemblems[MAXEXTRAEMBLEMS] =
 unlockable_t unlockables[MAXUNLOCKABLES] =
 {
 	// Name, Objective, Menu Height, ConditionSet, Unlock Type, Variable, NoCecho, NoChecklist
-	/* 01 */ {"Record Attack", "",  0, -1, SECRET_RECORDATTACK,  0,  true,  true, 0},
-	/* 02 */ {"Play Credits",  "", 10, -1, SECRET_CREDITS,       0,  true,  true, 0},
-	/* 03 */ {"Sound Test",    "", 20, -1, SECRET_SOUNDTEST,     0,  true,  true, 0},
+	/* 01 */ {"SNES Cup",         "Collect 5 Emblems",  0, 1, SECRET_NONE, 0, false, false, 0},
+	/* 02 */ {"Chaotic Kart Cup", "Collect 15 Emblems", 0, 2, SECRET_NONE, 0, false, false, 0},
 
-	/* 04 */ {"SNES Cup",         "Collect 5 Emblems",  0, 1, SECRET_NONE, 0, false, false, 0},
-	/* 05 */ {"Chaotic Kart Cup", "Collect 15 Emblems", 0, 2, SECRET_NONE, 0, false, false, 0},
+	/* 03 */ {"Record Attack", "",  0, -1, SECRET_RECORDATTACK,  0,  true,  true, 0},
+	/* 04 */ {"Play Credits",  "", 10, -1, SECRET_CREDITS,       0,  true,  true, 0},
+	/* 05 */ {"Sound Test",    "", 20, -1, SECRET_SOUNDTEST,     0,  true,  true, 0},
 };
 
 // Default number of emblems and extra emblems
