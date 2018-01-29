@@ -577,15 +577,15 @@ void Y_IntermissionDrawer(void)
 		V_DrawRightAlignedString(x+160, 32, V_YELLOWMAP, "TIME");
 
 		// Rings
-		V_DrawThinString(x+168, 32, V_YELLOWMAP, "RING");
+		V_DrawThinString(x+168, 31, V_YELLOWMAP, "RING");
 
 		// Total rings
-		V_DrawThinString(x+191, 24, V_YELLOWMAP, "TOTAL");
-		V_DrawThinString(x+196, 32, V_YELLOWMAP, "RING");
+		V_DrawThinString(x+191, 22, V_YELLOWMAP, "TOTAL");
+		V_DrawThinString(x+196, 31, V_YELLOWMAP, "RING");
 
 		// Monitors
-		V_DrawThinString(x+223, 24, V_YELLOWMAP, "ITEM");
-		V_DrawThinString(x+229, 32, V_YELLOWMAP, "BOX");
+		V_DrawThinString(x+223, 22, V_YELLOWMAP, "ITEM");
+		V_DrawThinString(x+229, 31, V_YELLOWMAP, "BOX");
 
 		// Score
 		V_DrawRightAlignedString(x+288, 32, V_YELLOWMAP, "SCORE");
@@ -629,15 +629,15 @@ void Y_IntermissionDrawer(void)
 
 				sstrtime[sizeof sstrtime - 1] = '\0';
 				// Time
-				V_DrawRightAlignedThinString(x+160, y, ((data.competition.times[i] & 0x80000000) ? V_YELLOWMAP : 0), sstrtime);
+				V_DrawRightAlignedThinString(x+160, y-1, ((data.competition.times[i] & 0x80000000) ? V_YELLOWMAP : 0), sstrtime);
 				// Rings
-				V_DrawRightAlignedThinString(x+188, y, V_MONOSPACE|((data.competition.rings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pring));
+				V_DrawRightAlignedThinString(x+188, y-1, V_MONOSPACE|((data.competition.rings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pring));
 				// Total rings
-				V_DrawRightAlignedThinString(x+216, y, V_MONOSPACE|((data.competition.maxrings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmaxring));
+				V_DrawRightAlignedThinString(x+216, y-1, V_MONOSPACE|((data.competition.maxrings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmaxring));
 				// Monitors
-				V_DrawRightAlignedThinString(x+244, y, V_MONOSPACE|((data.competition.monitors[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmonitor));
+				V_DrawRightAlignedThinString(x+244, y-1, V_MONOSPACE|((data.competition.monitors[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmonitor));
 				// Score
-				V_DrawRightAlignedThinString(x+288, y, V_MONOSPACE|((data.competition.scores[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pscore));
+				V_DrawRightAlignedThinString(x+288, y-1, V_MONOSPACE|((data.competition.scores[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pscore));
 				// Final Points
 				V_DrawRightAlignedString(x+312, y, V_YELLOWMAP, va("%d", data.competition.points[i]));
 			}
