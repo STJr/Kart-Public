@@ -6782,8 +6782,9 @@ void P_MobjThinker(mobj_t *mobj)
 				break;
 			case MT_PLAYERARROW:
 				if (mobj->target && mobj->target->health
-					&& mobj->target->player && mobj->target->player->mo
-					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD)
+					&& mobj->target->player && !mobj->target->player->spectator
+					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
+					&& players[displayplayer].mo && !players[displayplayer].spectator)
 				{
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;

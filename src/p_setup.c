@@ -2982,8 +2982,13 @@ boolean P_SetupLevel(boolean skipprecip)
 		gamespeed = 0;
 	else
 		gamespeed = cv_kartspeed.value;
+
+	if (gametype == GT_MATCH)
+		mirrormode = false;
+	else
+		mirrormode = cv_kartmirror.value;
+
 	franticitems = cv_kartfrantic.value;
-	mirrormode = cv_kartmirror.value;
 	comeback = cv_kartcomeback.value;
 
 	// clear special respawning que

@@ -1037,7 +1037,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].spectator && players[i].kartstuff[k_position] < player->kartstuff[k_position])
+		if (playeringame[i] && !players[i].spectator && players[i].mo
+			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
 													players[i].mo->z - player->mo->z) / FRACUNIT 
@@ -1057,12 +1058,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	}
 	else
 	{
-		if (franticitems) // Frantic items
-		{
-			pdis = (13*pdis/12); // make the distances between everyone artifically higher...
-			//pdis += distvar; // and set everyone back another place!
-		}
-
+		if (franticitems) // Frantic items make the distances between everyone artifically higher :P
+			pdis = (15*pdis/14);
 		if (pingame == 1)				useodds = 0; // Record Attack, or just alone
 		else if (pdis <= distvar *  0)	useodds = 1; // (64*14) *  0 =     0
 		else if (pdis <= distvar *  1)	useodds = 2; // (64*14) *  1 =   896
@@ -1083,8 +1080,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	//{
 		if (cv_magnet.value) 												SETITEMRESULT(useodds,  1);	// Magnet
 		if (cv_boo.value)													SETITEMRESULT(useodds,  2);	// Boo
-		if (cv_mushroom.value)												SETITEMRESULT(useodds,  3);	// Mushroom
-		if (cv_mushroom.value)												SETITEMRESULT(useodds,  4);	// Triple Mushroom
+		if (cv_mushroom.value && !modeattacking)							SETITEMRESULT(useodds,  3);	// Mushroom
+		if (cv_triplemushroom.value)										SETITEMRESULT(useodds,  4);	// Triple Mushroom
 		if (cv_megashroom.value && !player->kartstuff[k_poweritemtimer])	SETITEMRESULT(useodds,  5);	// Mega Mushroom
 		if (cv_goldshroom.value)											SETITEMRESULT(useodds,  6);	// Gold Mushroom
 		if (cv_star.value && !player->kartstuff[k_poweritemtimer])			SETITEMRESULT(useodds,  7);	// Star
@@ -1097,7 +1094,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_bobomb.value)												SETITEMRESULT(useodds, 14);	// Bob-omb
 		if (cv_blueshell.value && pexiting == 0)							SETITEMRESULT(useodds, 15);	// Blue Shell
 		if (cv_fireflower.value)											SETITEMRESULT(useodds, 16);	// Fire Flower
-		if (cv_tripleredshell.value && pingame > 2)							SETITEMRESULT(useodds, 17);	// Triple Red Shell
+		if (cv_tripleredshell.value && pingame > 2)						SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting)						SETITEMRESULT(useodds, 18);	// Lightning
 		if (cv_feather.value)												SETITEMRESULT(useodds, 19);	// Feather
 
@@ -2927,17 +2924,21 @@ static void K_KartUpdatePosition(player_t *player)
 	thinker_t *th;
 	mobj_t *mo;
 
+	if (player->spectator || !player->mo)
+		return;
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		if (!playeringame[i] || players[i].spectator || !players[i].mo)
+			continue;
+
 		if (gametype == GT_RACE)
 		{
-			if (playeringame[i] && !players[i].spectator &&
-				(((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) >
+			if ((((players[i].starpostnum) + (numstarposts + 1) * players[i].laps) >
 				((player->starpostnum) + (numstarposts + 1) * player->laps)))
 				position++;
-			else if (playeringame[i] && !players[i].spectator
-				&& (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) ==
-				((player->starpostnum) + (numstarposts+1)*player->laps)))
+			else if (((players[i].starpostnum) + (numstarposts+1)*players[i].laps) ==
+				((player->starpostnum) + (numstarposts+1)*player->laps))
 			{
 				ppcd = pncd = ipcd = incd = 0;
 
@@ -3147,7 +3148,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	else if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
 
-	if (player && player->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
+	if (player && player->mo && player->mo->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
 
 // Magnet
@@ -4680,10 +4681,7 @@ static void K_drawKartPositionFaces(void)
 
 	for (j = 0; j < MAXPLAYERS; j++)
 	{
-		if (!playeringame[j])
-			continue;
-
-		if (players[j].spectator)
+		if (!playeringame[j] || players[j].spectator || !players[j].mo)
 			continue;
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -4706,6 +4704,7 @@ static void K_drawKartPositionFaces(void)
 	for (i = 0; i < ranklines; i++)
 	{
 		if (players[rankplayer[i]].spectator) continue; // Spectators are ignored
+		if (!players[rankplayer[i]].mo) continue;
 
 		balloonx = FACE_X+18;
 

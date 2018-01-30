@@ -1293,7 +1293,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	axis = JoyAxis(AXISTURN, ssplayer);
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 	{
 		turnright ^= turnleft; // swap these using three XORs
 		turnleft ^= turnright;
@@ -1514,7 +1514,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->sidemove = (SINT8)(cmd->sidemove + side);
 	}
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		cmd->sidemove = -cmd->sidemove;
 
 	if (ssplayer == 2 && player->bot == 1) {
@@ -1532,7 +1532,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	//{ SRB2kart - Drift support
 	axis = JoyAxis(AXISTURN, ssplayer);
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		axis = -axis;
 
 	// TODO: Remove this hack please :(
@@ -2017,50 +2017,38 @@ boolean G_Responder(event_t *ev)
 			if (ev->data1 == gamecontrol[gc_spectate][0]
 				|| ev->data1 == gamecontrol[gc_spectate][1])
 			{
-				if ((netgame || splitscreen) && !players[consoleplayer].powers[pw_flashing] && !spectatedelay)
+				if (!spectatedelay)
 				{
-					if (players[consoleplayer].spectator && cv_allowteamchange.value)
-						P_SpectatorJoinGame(&players[consoleplayer]);
-					else
-						COM_ImmedExecute("changeteam spectator");
+					spectatedelay = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam spectator");
 				}
-				spectatedelay = NEWTICRATE / 7;
 			}
 			if (ev->data1 == gamecontrolbis[gc_spectate][0]
 				|| ev->data1 == gamecontrolbis[gc_spectate][1])
 			{
-				if (splitscreen && !players[secondarydisplayplayer].powers[pw_flashing] && !spectatedelay2)
+				if (!spectatedelay2)
 				{
-					if (players[secondarydisplayplayer].spectator && cv_allowteamchange.value)
-						P_SpectatorJoinGame(&players[secondarydisplayplayer]);
-					else
-						COM_ImmedExecute("changeteam2 spectator");
+					spectatedelay2 = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam2 spectator");
 				}
-				spectatedelay2 = NEWTICRATE / 7;
 			}
 			if (ev->data1 == gamecontrol3[gc_spectate][0]
 				|| ev->data1 == gamecontrol3[gc_spectate][1])
 			{
-				if (splitscreen > 1 && !players[thirddisplayplayer].powers[pw_flashing] && !spectatedelay3)
+				if (!spectatedelay3)
 				{
-					if (players[thirddisplayplayer].spectator && cv_allowteamchange.value)
-						P_SpectatorJoinGame(&players[thirddisplayplayer]);
-					else
-						COM_ImmedExecute("changeteam3 spectator");
+					spectatedelay3 = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam3 spectator");
 				}
-				spectatedelay3 = NEWTICRATE / 7;
 			}
 			if (ev->data1 == gamecontrol4[gc_spectate][0]
 				|| ev->data1 == gamecontrol4[gc_spectate][1])
 			{
-				if (splitscreen > 2 && !players[fourthdisplayplayer].powers[pw_flashing] && !spectatedelay4)
+				if (!spectatedelay4)
 				{
-					if (players[fourthdisplayplayer].spectator && cv_allowteamchange.value)
-						P_SpectatorJoinGame(&players[fourthdisplayplayer]);
-					else
-						COM_ImmedExecute("changeteam4 spectator");
+					spectatedelay4 = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam4 spectator");
 				}
-				spectatedelay4 = NEWTICRATE / 7;
 			}
 
 			return true;
@@ -2227,9 +2215,21 @@ void G_Ticker(boolean run)
 
 		if (camtoggledelay)
 			camtoggledelay--;
-
 		if (camtoggledelay2)
 			camtoggledelay2--;
+		if (camtoggledelay3)
+			camtoggledelay3--;
+		if (camtoggledelay4)
+			camtoggledelay4--;
+
+		if (spectatedelay)
+			spectatedelay--;
+		if (spectatedelay2)
+			spectatedelay2--;
+		if (spectatedelay3)
+			spectatedelay3--;
+		if (spectatedelay4)
+			spectatedelay4--;
 	}
 }
 

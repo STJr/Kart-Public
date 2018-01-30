@@ -105,6 +105,11 @@ static void Color4_OnChange(void);
 static void DummyConsvar_OnChange(void);
 static void SoundTest_OnChange(void);
 
+static void KartFrantic_OnChange(void);
+static void KartSpeed_OnChange(void);
+static void KartMirror_OnChange(void);
+static void KartComeback_OnChange(void);
+
 #ifdef NETGAME_DEVMODE
 static void Fishcake_OnChange(void);
 #endif
@@ -347,12 +352,12 @@ consvar_t cv_kartminimap = {"kartminimap", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NU
 consvar_t cv_kartcheck = {"kartcheck", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartstarsfx_cons_t[] = {{0, "Music"}, {1, "SMK"}, {0, NULL}};
 consvar_t cv_kartstarsfx = {"kartstarsfx", "SMK", CV_SAVE, kartstarsfx_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartspeed = {"kartspeed", "Standard", CV_NETVAR, kartspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartspeed = {"kartspeed", "Standard", CV_NETVAR|CV_CALL|CV_NOINIT, kartspeed_cons_t, KartSpeed_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartballoons_cons_t[] = {{1, "MIN"}, {12, "MAX"}, {0, NULL}};
-consvar_t cv_kartballoons = {"kartballoons", "3", CV_NETVAR, kartballoons_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartmirror = {"kartmirror", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartballoons = {"kartballoons", "3", CV_NETVAR|CV_CHEAT, kartballoons_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartFrantic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartComeback_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartmirror = {"kartmirror", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartMirror_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t speedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_speedometer = {"speedometer", "Kilometers", CV_SAVE, speedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 
@@ -5048,4 +5053,29 @@ static void Command_ShowTime_f(void)
 	}
 
 	CONS_Printf(M_GetText("The current time is %f.\nThe timelimit is %f\n"), (double)leveltime/TICRATE, (double)timelimitintics/TICRATE);
+}
+
+// SRB2Kart: On change messages
+static void KartFrantic_OnChange(void)
+{
+	if (cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Frantic Items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
+}
+
+static void KartSpeed_OnChange(void)
+{
+	if (cv_kartspeed.value != gamespeed && gametype == GT_RACE && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
+}
+
+static void KartMirror_OnChange(void)
+{
+	if (cv_kartmirror.value != mirrormode && gametype == GT_RACE && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Mirror Mode will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
+}
+
+static void KartComeback_OnChange(void)
+{
+	if (cv_kartcomeback.value != comeback && gametype == GT_MATCH && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
 }
