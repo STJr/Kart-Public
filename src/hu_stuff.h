@@ -118,7 +118,6 @@ void HU_SetCEchoFlags(INT32 flags);
 void HU_DoCEcho(const char *msg);
 
 // Demo playback info
-extern UINT32 hu_demoscore;
 extern UINT32 hu_demotime;
-extern UINT16 hu_demorings;
+extern UINT32 hu_demolap;
 #endif

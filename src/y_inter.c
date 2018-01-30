@@ -621,15 +621,15 @@ void Y_IntermissionDrawer(void)
 		V_DrawRightAlignedString(x+160, 32, V_YELLOWMAP, "TIME");
 
 		// Rings
-		V_DrawThinString(x+168, 32, V_YELLOWMAP, "RING");
+		V_DrawThinString(x+168, 31, V_YELLOWMAP, "RING");
 
 		// Total rings
-		V_DrawThinString(x+191, 24, V_YELLOWMAP, "TOTAL");
-		V_DrawThinString(x+196, 32, V_YELLOWMAP, "RING");
+		V_DrawThinString(x+191, 22, V_YELLOWMAP, "TOTAL");
+		V_DrawThinString(x+196, 31, V_YELLOWMAP, "RING");
 
 		// Monitors
-		V_DrawThinString(x+223, 24, V_YELLOWMAP, "ITEM");
-		V_DrawThinString(x+229, 32, V_YELLOWMAP, "BOX");
+		V_DrawThinString(x+223, 22, V_YELLOWMAP, "ITEM");
+		V_DrawThinString(x+229, 31, V_YELLOWMAP, "BOX");
 
 		// Score
 		V_DrawRightAlignedString(x+288, 32, V_YELLOWMAP, "SCORE");
@@ -673,15 +673,15 @@ void Y_IntermissionDrawer(void)
 
 				sstrtime[sizeof sstrtime - 1] = '\0';
 				// Time
-				V_DrawRightAlignedThinString(x+160, y, ((data.competition.times[i] & 0x80000000) ? V_YELLOWMAP : 0), sstrtime);
+				V_DrawRightAlignedThinString(x+160, y-1, ((data.competition.times[i] & 0x80000000) ? V_YELLOWMAP : 0), sstrtime);
 				// Rings
-				V_DrawRightAlignedThinString(x+188, y, V_MONOSPACE|((data.competition.rings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pring));
+				V_DrawRightAlignedThinString(x+188, y-1, V_MONOSPACE|((data.competition.rings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pring));
 				// Total rings
-				V_DrawRightAlignedThinString(x+216, y, V_MONOSPACE|((data.competition.maxrings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmaxring));
+				V_DrawRightAlignedThinString(x+216, y-1, V_MONOSPACE|((data.competition.maxrings[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmaxring));
 				// Monitors
-				V_DrawRightAlignedThinString(x+244, y, V_MONOSPACE|((data.competition.monitors[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmonitor));
+				V_DrawRightAlignedThinString(x+244, y-1, V_MONOSPACE|((data.competition.monitors[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pmonitor));
 				// Score
-				V_DrawRightAlignedThinString(x+288, y, V_MONOSPACE|((data.competition.scores[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pscore));
+				V_DrawRightAlignedThinString(x+288, y-1, V_MONOSPACE|((data.competition.scores[i] & 0x80000000) ? V_YELLOWMAP : 0), va("%u", pscore));
 				// Final Points
 				V_DrawRightAlignedString(x+312, y, V_YELLOWMAP, va("%d", data.competition.points[i]));
 			}
@@ -951,10 +951,13 @@ static void Y_UpdateRecordReplays(void)
 	if ((mainrecords[gamemap-1]->time == 0) || (players[consoleplayer].realtime < mainrecords[gamemap-1]->time))
 		mainrecords[gamemap-1]->time = players[consoleplayer].realtime;
 
+	if ((mainrecords[gamemap-1]->lap == 0) || (bestlap < mainrecords[gamemap-1]->lap))
+		mainrecords[gamemap-1]->lap = bestlap;
+
 	// Save demo!
 	bestdemo[255] = '\0';
 	lastdemo[255] = '\0';
-	G_SetDemoTime(players[consoleplayer].realtime, 0);
+	G_SetDemoTime(players[consoleplayer].realtime, bestlap);
 	G_CheckDemoStatus();
 
 	I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
@@ -978,6 +981,15 @@ static void Y_UpdateRecordReplays(void)
 				remove(bestdemo);
 			FIL_WriteFile(bestdemo, buf, len);
 			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW RECORD TIME!"), M_GetText("Saved replay as"), bestdemo);
+		}
+
+		snprintf(bestdemo, 255, "%s-%s-lap-best.lmp", gpath, cv_chooseskin.string);
+		if (!FIL_FileExists(bestdemo) || G_CmpDemoTime(bestdemo, lastdemo) & (1<<1))
+		{ // Better lap time, save this demo.
+			if (FIL_FileExists(bestdemo))
+				remove(bestdemo);
+			FIL_WriteFile(bestdemo, buf, len);
+			CONS_Printf("\x83%s\x80 %s '%s'\n", M_GetText("NEW RECORD LAP!"), M_GetText("Saved replay as"), bestdemo);
 		}
 
 		//CONS_Printf("%s '%s'\n", M_GetText("Saved replay as"), lastdemo);
@@ -1077,7 +1089,7 @@ void Y_StartIntermission(void)
 	{
 		case int_nights:
 			// Can't fail
-			G_SetNightsRecords();
+			//G_SetNightsRecords();
 
 			// Check records
 			{
@@ -1103,10 +1115,10 @@ void Y_StartIntermission(void)
 				mapvisited[gamemap-1] |= MV_BEATEN;
 				if (ALL7EMERALDS(emeralds))
 					mapvisited[gamemap-1] |= MV_ALLEMERALDS;
-				if (ultimatemode)
+				/*if (ultimatemode)
 					mapvisited[gamemap-1] |= MV_ULTIMATE;
 				if (data.coop.gotperfbonus)
-					mapvisited[gamemap-1] |= MV_PERFECT;
+					mapvisited[gamemap-1] |= MV_PERFECT;*/
 
 				if (modeattacking == ATTACKING_RECORD)
 					Y_UpdateRecordReplays();
@@ -1357,10 +1369,10 @@ void Y_StartIntermission(void)
 				mapvisited[gamemap-1] |= MV_BEATEN;
 				if (ALL7EMERALDS(emeralds))
 					mapvisited[gamemap-1] |= MV_ALLEMERALDS;
-				if (ultimatemode)
+				/*if (ultimatemode)
 					mapvisited[gamemap-1] |= MV_ULTIMATE;
 				if (data.coop.gotperfbonus)
-					mapvisited[gamemap-1] |= MV_PERFECT;
+					mapvisited[gamemap-1] |= MV_PERFECT;*/
 
 				if (modeattacking == ATTACKING_RECORD)
 					Y_UpdateRecordReplays();

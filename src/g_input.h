@@ -94,40 +94,23 @@ typedef enum
 typedef enum
 {
 	gc_null = 0, // a key/button mapped to gc_null has no effect
-	gc_forward,
-	gc_backward,
-	gc_strafeleft,
-	gc_straferight,
+	gc_aimforward,
+	gc_aimbackward,
 	gc_turnleft,
 	gc_turnright,
-	gc_driftleft, // gc_weaponnext
-	gc_driftright, // gc_weaponprev
-	gc_wepslot1,
-	gc_wepslot2,
-	gc_wepslot3,
-	gc_wepslot4,
-	gc_wepslot5,
-	gc_wepslot6,
-	gc_wepslot7,
-	gc_wepslot8,
-	gc_wepslot9,
-	gc_wepslot10,
+	gc_accelerate,
+	gc_drift,
+	gc_brake,
 	gc_fire,
-	gc_accelerate,  // gc_firenormal
-	gc_spectate,    // gc_tossflag
-	gc_brake,       // gc_use
+	gc_lookback,
 	gc_camtoggle,
-	gc_aimforward,  // gc_camleft
-	gc_aimbackward, // gc_camright
-	gc_lookback,    // gc_camreset
+	gc_spectate,
 	gc_lookup,
 	gc_lookdown,
 	gc_centerview,
-	gc_mouseaiming, // mouse aiming is momentary (toggleable in the menu)
 	gc_talkkey,
 	gc_teamkey,
 	gc_scores,
-	gc_jump,
 	gc_console,
 	gc_pause,
 	gc_custom1, // Lua scriptable

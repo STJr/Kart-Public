@@ -43,6 +43,7 @@
 // Objectplace
 #include "m_cheat.h"
 // SRB2kart
+#include "m_cond.h" // M_UpdateUnlockablesAndExtraEmblems
 #include "k_kart.h"
 
 #ifdef HW3SOUND
@@ -731,8 +732,8 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 			}
 
 			// Add score to leaderboards now
-			if (!(netgame||multiplayer) && P_IsLocalPlayer(&players[i]))
-				G_AddTempNightsRecords(players[i].marescore, leveltime - player->marebegunat, players[i].mare + 1);
+			/*if (!(netgame||multiplayer) && P_IsLocalPlayer(&players[i]))
+				G_AddTempNightsRecords(players[i].marescore, leveltime - player->marebegunat, players[i].mare + 1);*/
 
 			// transfer scores anyway
 			players[i].lastmarescore = players[i].marescore;
@@ -754,8 +755,8 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 		player->finishedrings = (INT16)(player->health - 1);
 
 		// Add score to temp leaderboards
-		if (!(netgame||multiplayer) && P_IsLocalPlayer(player))
-			G_AddTempNightsRecords(player->marescore, leveltime - player->marebegunat, (UINT8)(oldmare + 1));
+		/*if (!(netgame||multiplayer) && P_IsLocalPlayer(player))
+			G_AddTempNightsRecords(player->marescore, leveltime - player->marebegunat, (UINT8)(oldmare + 1));*/
 
 		// Starting a new mare, transfer scores
 		player->lastmarescore = player->marescore;
@@ -1643,6 +1644,13 @@ void P_DoPlayerExit(player_t *player)
 {
 	if (player->exiting)
 		return;
+
+	if ((player == &players[consoleplayer]
+		|| (splitscreen && player == &players[secondarydisplayplayer])
+		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
+		&& (!player->spectator && ((!modifiedgame || savemoddata) && !demoplayback)))
+		legitimateexit = true;
 
 	if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
 	{
@@ -4107,7 +4115,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		}
 	}
 
-	if (cmd->buttons & BT_JUMP && !player->exiting && !P_PlayerInPain(player))
+	if (cmd->buttons & BT_DRIFT && !player->exiting && !P_PlayerInPain(player))
 	{
 #ifdef HAVE_BLUA
 		if (LUAh_JumpSpecial(player))
@@ -4320,7 +4328,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		*/
 	}
 
-	if (cmd->buttons & BT_JUMP)
+	if (cmd->buttons & BT_DRIFT)
 	{
 		player->pflags |= PF_JUMPDOWN;
 
@@ -5758,7 +5766,7 @@ static void P_NiGHTSMovement(player_t *player)
 	if (player->drilldelay)
 		player->drilldelay--;
 
-	if (!(cmd->buttons & BT_JUMP))
+	if (!(cmd->buttons & BT_DRIFT))
 	{
 		// Always have just a TINY bit of drill power.
 		if (player->drillmeter <= 0)
@@ -5995,7 +6003,7 @@ static void P_NiGHTSMovement(player_t *player)
 		player->pflags |= PF_DRILLING;
 		newangle = (INT16)player->flyangle;
 	}
-	else if (cmd->buttons & BT_JUMP && player->drillmeter && player->drilldelay == 0)
+	else if (cmd->buttons & BT_DRIFT && player->drillmeter && player->drilldelay == 0)
 	{
 		if (!player->jumping)
 			firstdrill = true;
@@ -7002,7 +7010,7 @@ static void P_MovePlayer(player_t *player)
 			if (player->charability2 == CA2_MULTIABILITY)
 			{
 				// Adventure-style flying by just holding the button down
-				if (cmd->buttons & BT_JUMP && !(player->pflags & PF_STASIS) && !player->exiting)
+				if (cmd->buttons & BT_DRIFT && !(player->pflags & PF_STASIS) && !player->exiting)
 					P_SetObjectMomZ(player->mo, actionspd/4, true);
 			}
 			else
@@ -8000,7 +8008,7 @@ static void P_DeathThink(player_t *player)
 	// continue logic
 	if (!(netgame || multiplayer) && player->lives <= 0)
 	{
-		if (player->deadtimer > TICRATE && (cmd->buttons & BT_BRAKE || cmd->buttons & BT_ACCELERATE || cmd->buttons & BT_JUMP) && player->continues > 0)
+		if (player->deadtimer > TICRATE && (cmd->buttons & BT_BRAKE || cmd->buttons & BT_ACCELERATE || cmd->buttons & BT_DRIFT) && player->continues > 0)
 			G_UseContinue();
 		else if (player->deadtimer >= gameovertics)
 			G_UseContinue(); // Even if we don't have one this handles ending the game
@@ -8021,7 +8029,7 @@ static void P_DeathThink(player_t *player)
 		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
 
 		// SRB2kart - spawn automatically after 1 second
-		if (player->deadtimer > TICRATE)
+		if (player->deadtimer > cv_respawntime.value*TICRATE)
 			player->playerstate = PST_REBORN;
 
 		// Single player auto respawn
@@ -8084,9 +8092,22 @@ static void P_DeathThink(player_t *player)
 	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
 	{
 		if (leveltime >= 4*TICRATE)
+		{
 			player->realtime = leveltime - 4*TICRATE;
+			if (player == &players[consoleplayer])
+			{
+				if (player->spectator || !circuitmap)
+					curlap = 0;
+				else
+					curlap++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+			}
+		}
 		else
+		{
 			player->realtime = 0;
+			if (player == &players[consoleplayer])
+				curlap = 0;
+		}
 	}
 	
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
@@ -8892,7 +8913,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
 
-static boolean P_SpectatorJoinGame(player_t *player)
+boolean P_SpectatorJoinGame(player_t *player)
 {
 	if (!G_GametypeHasSpectators() && G_IsSpecialStage(gamemap) && useNightsSS) // Special Stage spectators should NEVER be allowed to rejoin the game
 	{
@@ -9116,7 +9137,7 @@ static void P_CalcPostImg(player_t *player)
 	}
 #endif
 	
-	if (cv_kartmirror.value) // srb2kart
+	if (mirrormode) // srb2kart
 		*type = postimg_mirror;
 }
 
@@ -9380,31 +9401,28 @@ void P_PlayerThink(player_t *player)
 	if (!player->exiting)
 	{
 		if (leveltime >= 4*TICRATE)
+		{
 			player->realtime = leveltime - 4*TICRATE;
+			if (player == &players[consoleplayer])
+			{
+				if (player->spectator || !circuitmap)
+					curlap = 0;
+				else
+					curlap++; // This is too complicated to sync to realtime, just sorta hope for the best :V
+			}
+		}
 		else
+		{
 			player->realtime = 0;
+			if (player == &players[consoleplayer])
+				curlap = 0;
+		}
 	}
 
-	
-	if ((netgame || splitscreen) && !player->powers[pw_flashing])
+	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
-		if (player->spectator && cmd->buttons & BT_ATTACK)
-		{
-			if (P_SpectatorJoinGame(player))
-				return; // player->mo was removed.
-		}
-		else if (!player->spectator && cmd->buttons & BT_SPECTATE)
-		{
-			if (player == &players[consoleplayer])
-				COM_ImmedExecute("changeteam spectator");
-			else if (splitscreen && player == &players[secondarydisplayplayer])
-				COM_ImmedExecute("changeteam2 spectator");
-			else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-				COM_ImmedExecute("changeteam3 spectator");
-			else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-				COM_ImmedExecute("changeteam4 spectator");
-			//return;
-		}
+		if (P_SpectatorJoinGame(player))
+			return; // player->mo was removed.
 	}
 
 	// Even if not NiGHTS, pull in nearby objects when walking around as John Q. Elliot.

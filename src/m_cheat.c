@@ -58,7 +58,7 @@ typedef struct
 // ==========================================================================
 
 // Cheat responders
-static UINT8 cheatf_ultimate(void)
+/*static UINT8 cheatf_ultimate(void)
 {
 	if (menuactive && (currentMenu != &MainDef && currentMenu != &SP_LoadDef))
 		return 0; // Only on the main menu, or the save select!
@@ -70,7 +70,7 @@ static UINT8 cheatf_ultimate(void)
 	if (currentMenu == &SP_LoadDef)
 		M_ForceSaveSlotSelected(NOSAVESLOT);
 	return 1;
-}
+}*/
 
 static UINT8 cheatf_warp(void)
 {
@@ -84,9 +84,9 @@ static UINT8 cheatf_warp(void)
 
 	// Temporarily unlock stuff.
 	G_SetGameModified(false);
-	unlockables[2].unlocked = true; // credits
-	unlockables[3].unlocked = true; // sound test
-	unlockables[16].unlocked = true; // level select
+	unlockables[1].unlocked = true; // credits
+	unlockables[2].unlocked = true; // sound test
+	//unlockables[16].unlocked = true; // level select
 
 	// Refresh secrets menu existing.
 	M_ClearMenus(true);
@@ -121,17 +121,17 @@ static UINT8 cheatf_devmode(void)
 }
 #endif
 
-static cheatseq_t cheat_ultimate = {
+/*static cheatseq_t cheat_ultimate = {
 	0, cheatf_ultimate,
 	{ SCRAMBLE('u'), SCRAMBLE('l'), SCRAMBLE('t'), SCRAMBLE('i'), SCRAMBLE('m'), SCRAMBLE('a'), SCRAMBLE('t'), SCRAMBLE('e'), 0xff }
-};
+};*/
 
-static cheatseq_t cheat_ultimate_joy = {
+/*static cheatseq_t cheat_ultimate_joy = {
 	0, cheatf_ultimate,
 	{ SCRAMBLE(KEY_UPARROW), SCRAMBLE(KEY_UPARROW), SCRAMBLE(KEY_DOWNARROW), SCRAMBLE(KEY_DOWNARROW),
 	  SCRAMBLE(KEY_LEFTARROW), SCRAMBLE(KEY_RIGHTARROW), SCRAMBLE(KEY_LEFTARROW), SCRAMBLE(KEY_RIGHTARROW),
 	  SCRAMBLE(KEY_ENTER), 0xff }
-};
+};*/
 
 static cheatseq_t cheat_warp = {
 	0, cheatf_warp,
@@ -235,8 +235,8 @@ boolean cht_Responder(event_t *ev)
 	else
 		ch = (UINT8)ev->data1;
 
-	ret += cht_CheckCheat(&cheat_ultimate, (char)ch);
-	ret += cht_CheckCheat(&cheat_ultimate_joy, (char)ch);
+	//ret += cht_CheckCheat(&cheat_ultimate, (char)ch);
+	//ret += cht_CheckCheat(&cheat_ultimate_joy, (char)ch);
 	ret += cht_CheckCheat(&cheat_warp, (char)ch);
 	ret += cht_CheckCheat(&cheat_warp_joy, (char)ch);
 #ifdef DEVELOP
@@ -1010,7 +1010,7 @@ void OP_NightsObjectplace(player_t *player)
 	}
 
 	// This places a bumper!
-	if (cmd->buttons & BT_SPECTATE)
+	/*if (cmd->buttons & BT_SPECTATE)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		if (!OP_HeightOkay(player, false))
@@ -1018,7 +1018,7 @@ void OP_NightsObjectplace(player_t *player)
 
 		mt = OP_CreateNewMapThing(player, (UINT16)mobjinfo[MT_NIGHTSBUMPER].doomednum, false);
 		P_SpawnMapThing(mt);
-	}
+	}*/
 
 	// This places a ring!
 	if (cmd->buttons & BT_BACKWARD)
@@ -1167,7 +1167,7 @@ void OP_ObjectplaceMovement(player_t *player)
 	if (player->pflags & PF_ATTACKDOWN)
 	{
 		// Are ANY objectplace buttons pressed?  If no, remove flag.
-		if (!(cmd->buttons & (BT_ATTACK|BT_JUMP)))
+		if (!(cmd->buttons & (BT_ATTACK|BT_DRIFT)))
 			player->pflags &= ~PF_ATTACKDOWN;
 
 		// Do nothing.
@@ -1179,7 +1179,7 @@ void OP_ObjectplaceMovement(player_t *player)
 		OP_CycleThings(-1);
 		player->pflags |= PF_ATTACKDOWN;
 	}
-	else*/ if (cmd->buttons & BT_JUMP)
+	else*/ if (cmd->buttons & BT_DRIFT)
 	{
 		OP_CycleThings(1);
 		player->pflags |= PF_ATTACKDOWN;

@@ -1230,7 +1230,7 @@ void CONS_Printf(const char *fmt, ...)
 		patch_t *con_backpic;
 
 		if (con_backpic_lumpnum == UINT32_MAX)
-			con_backpic_lumpnum = W_GetNumForName("CONSBACK");
+			con_backpic_lumpnum = W_GetNumForName("KARTKREW");
 
 		// We load the raw lump, even in hardware mode
 		con_backpic = (patch_t*)W_CacheLumpNum(con_backpic_lumpnum, PU_CACHE);
@@ -1475,7 +1475,7 @@ static void CON_DrawBackpic(patch_t *pic, INT32 startx, INT32 destwidth)
 {
 	(void)startx;
 	(void)destwidth;
-	V_DrawScaledPatch(0, 0, 0, pic);
+	V_DrawFixedPatch(0, 0, FRACUNIT/2, 0, pic, NULL);
 }
 
 #if 0
@@ -1551,12 +1551,12 @@ static void CON_DrawConsole(void)
 		patch_t *con_backpic;
 
 		if (con_backpic_lumpnum == UINT32_MAX)
-			con_backpic_lumpnum = W_GetNumForName("CONSBACK");
+			con_backpic_lumpnum = W_GetNumForName("KARTKREW");
 
 		con_backpic = (patch_t*)W_CachePatchNum(con_backpic_lumpnum, PU_CACHE);
 
 		if (rendermode != render_soft)
-			V_DrawScaledPatch(0, 0, 0, con_backpic);
+			V_DrawFixedPatch(0, 0, FRACUNIT/2, 0, con_backpic, NULL);
 		else if (rendermode != render_none)
 			CON_DrawBackpic(con_backpic, 0, vid.width); // picture as background
 
