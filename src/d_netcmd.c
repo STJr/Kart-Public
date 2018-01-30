@@ -46,6 +46,7 @@
 #include "m_cond.h"
 #include "m_anigif.h"
 #include "k_kart.h" // SRB2kart
+#include "y_inter.h"
 
 #ifdef NETGAME_DEVMODE
 #define CV_RESTRICT CV_NETVAR
@@ -61,6 +62,7 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum);
 static void Got_WeaponPref(UINT8 **cp, INT32 playernum);
 static void Got_Mapcmd(UINT8 **cp, INT32 playernum);
 static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum);
+static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum);
 static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum);
 #ifdef DELFILE
 static void Got_Delfilecmd(UINT8 **cp, INT32 playernum);
@@ -472,6 +474,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"SETMOTD",
 	"SUICIDE",
 	"DEMOTED",
+	"SETUPVOTE",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
@@ -501,6 +504,7 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PAUSE, Got_Pause);
 	RegisterNetXCmd(XD_SUICIDE, Got_Suicide);
 	RegisterNetXCmd(XD_RUNSOC, Got_RunSOCcmd);
+	RegisterNetXCmd(XD_SETUPVOTE, Got_SetupVotecmd);
 #ifdef HAVE_BLUA
 	RegisterNetXCmd(XD_LUACMD, Got_Luacmd);
 #endif
@@ -1940,6 +1944,38 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 			WRITEUINT32(buf_p, M_RandomizedSeed()); // random seed
 		SendNetXCmd(XD_MAP, buf, buf_p - buf);
 	}
+}
+
+void D_SetupVote(void)
+{
+	XBOXSTATIC char buf[8];
+	char *p;
+	UINT16 maps[4];
+	INT32 i;
+
+	p = buf;
+
+	for (i = 0; i < 4; i++)
+	{
+		INT32 j;
+		maps[i] = RandMap(G_TOLFlag(gametype), prevmap);
+
+		for (j = 0; j < 4; j++) // Compare with others to make sure you don't roll duplicates
+		{
+			INT32 loops = 0;
+			if (j >= i)
+				continue;
+			while (maps[i] == maps[j] && loops < 4) // If this needs more than 4 loops, I think it's safe to assume it's not finding any suitable matches :V
+			{
+				maps[i] = RandMap(G_TOLFlag(gametype), prevmap);
+				loops++;
+			}
+		}
+
+		WRITEUINT16(p, maps[i]);
+	}
+
+	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
 }
 
 // Warp to map code.
@@ -4500,6 +4536,31 @@ static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum)
 	}
 
 	G_ExitLevel();
+}
+
+static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
+{
+	INT32 i;
+
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal vote setup received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	for (i = 0; i < 4; i++)
+		votelevels[i] = (INT16)READUINT16(*cp);
+
+	G_SetGamestate(GS_VOTING);
+	Y_StartVote();
 }
 
 /** Prints the number of the displayplayer.

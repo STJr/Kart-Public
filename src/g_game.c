@@ -3089,7 +3089,7 @@ INT16 G_TOLFlag(INT32 pgametype)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-static INT16 RandMap(INT16 tolflags, INT16 pprevmap)
+INT16 RandMap(INT16 tolflags, INT16 pprevmap)
 {
 	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
@@ -3239,28 +3239,6 @@ static void G_DoCompleted(void)
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
 			nextmap = RandMap(G_TOLFlag(gametype), prevmap);
-		else if (cv_advancemap.value == 3)
-		{
-			INT32 j;
-			for (j = 0; j < 4; j++)
-			{
-				INT32 k;
-				votelevels[j] = RandMap(G_TOLFlag(gametype), prevmap);
-				for (k = 0; k < 4; k++) // Compare with others to make sure you don't roll multiple :V
-				{
-					INT32 loopcount = 0;
-					if (j == k)
-						continue;
-					while (votelevels[j] == votelevels[k] && loopcount < 4) // If this needs more than 4 loops, I think it's safe to assume it's not finding anything :VVV
-					{
-						votelevels[j] = RandMap(G_TOLFlag(gametype), prevmap);
-						loopcount++;
-					}
-				}
-				if (votelevels[j] < NUMMAPS && !mapheaderinfo[votelevels[j]])
-					P_AllocMapHeader(votelevels[j]);
-			}
-		}
 	}
 
 	// We are committed to this map now.
@@ -3385,11 +3363,8 @@ static void G_DoContinued(void)
 //
 static void G_DoStartVote(void)
 {
-	I_Assert(netgame || multiplayer);
-
-	G_SetGamestate(GS_VOTING);
-	Y_StartVote();
-
+	if (server)
+		D_SetupVote();
 	gameaction = ga_nothing;
 }
 
