@@ -2190,7 +2190,7 @@ void Y_VoteDrawer(void)
 					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 103|V_SNAPTORIGHT);
 			}
 			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
-			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 42+y, V_SNAPTORIGHT, str);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
 			y += 55;
 		}
 		else
