@@ -1081,7 +1081,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	//{
 		if (cv_magnet.value) 												SETITEMRESULT(useodds,  1);	// Magnet
 		if (cv_boo.value)													SETITEMRESULT(useodds,  2);	// Boo
-		if (cv_mushroom.value && !modeattacking)							SETITEMRESULT(useodds,  3);	// Mushroom
+		if (cv_mushroom.value || modeattacking)							SETITEMRESULT(useodds,  3);	// Mushroom
 		if (cv_triplemushroom.value)										SETITEMRESULT(useodds,  4);	// Triple Mushroom
 		if (cv_megashroom.value && !player->kartstuff[k_poweritemtimer])	SETITEMRESULT(useodds,  5);	// Mega Mushroom
 		if (cv_goldshroom.value)											SETITEMRESULT(useodds,  6);	// Gold Mushroom
