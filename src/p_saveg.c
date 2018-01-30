@@ -3202,6 +3202,9 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, totalrings);
 	WRITEINT16(save_p, lastmap);
 
+	for (i = 0; i < 4; i++)
+		WRITEINT16(save_p, votelevels[i]);
+
 	WRITEUINT16(save_p, emeralds);
 	WRITEUINT8(save_p, stagefailed);
 
@@ -3284,6 +3287,9 @@ static inline boolean P_NetUnArchiveMisc(void)
 	leveltime = READUINT32(save_p);
 	totalrings = READUINT32(save_p);
 	lastmap = READINT16(save_p);
+
+	for (i = 0; i < 4; i++)
+		votelevels[i] = READINT16(save_p);
 
 	emeralds = READUINT16(save_p);
 	stagefailed = READUINT8(save_p);

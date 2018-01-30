@@ -172,7 +172,6 @@ typedef struct
 {
 	char str[40];
 	patch_t *pic;
-	UINT16 num;
 } y_votelvlinfo_t;
 
 typedef struct
@@ -2293,14 +2292,14 @@ void Y_VoteTicker(void)
 		if (votedata.playerinfo[i].voted)
 			continue;
 
-		if (votedata.timeleft <= 0 && !votedata.playerinfo[i].voted)
+		/*if (votedata.timeleft <= 0 && !votedata.playerinfo[i].voted)
 		{
 			votedata.votes[votedata.numvotes].level = 3; // too slow? you pick random
 			votedata.votes[votedata.numvotes].playernum = i;
 			votedata.playerinfo[i].voted = true;
 			votedata.numvotes++;
 			continue;
-		}
+		}*/
 
 		if (votedata.playerinfo[i].delay > 0)
 		{
@@ -2348,7 +2347,7 @@ void Y_VoteTicker(void)
 	if (votedata.timeleft == 0 && voteendtic == -1)
 	{
 		votedata.pickedvote = P_RandomKey(votedata.numvotes);
-		nextmap = (votedata.levels[votedata.votes[votedata.pickedvote].level].num); // oh my god
+		nextmap = (votelevels[votedata.votes[votedata.pickedvote].level]); // oh my god
 		S_StartSound(NULL, sfx_ncitem);
 		voteendtic = votetic+(3*TICRATE);
 	}
@@ -2393,59 +2392,41 @@ void Y_StartVote(void)
 
 	for (i = 0; i < 4; i++)
 	{
-		INT32 j;
 		lumpnum_t lumpnum;
 
-		votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
-
-		for (j = 0; j < 4; j++)
-		{
-			INT32 loopcount = 0;
-			if (i == j)
-				continue;
-			while (votedata.levels[i].num == votedata.levels[j].num && loopcount < 5)
-			{
-				votedata.levels[i].num = RandMap(G_TOLFlag(gametype), prevmap);
-				loopcount++;
-			}
-		}
-
-		if (!mapheaderinfo[votedata.levels[i].num])
-			P_AllocMapHeader(votedata.levels[i].num);
-
 		// set up the str
-		if (mapheaderinfo[votedata.levels[i].num]->zonttl)
+		if (mapheaderinfo[votelevels[i]]->zonttl)
 		{
-			if (mapheaderinfo[votedata.levels[i].num]->actnum)
+			if (mapheaderinfo[votelevels[i]]->actnum)
 				snprintf(votedata.levels[i].str,
 					sizeof votedata.levels[i].str,
 					"%.32s %.32s %d",
-					mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl, mapheaderinfo[votedata.levels[i].num]->actnum);
+					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl, mapheaderinfo[votelevels[i]]->actnum);
 			else
 				snprintf(votedata.levels[i].str,
 					sizeof votedata.levels[i].str,
 					"%.32s %.32s",
-					mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->zonttl);
+					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl);
 		}
 		else
 		{
-			if (mapheaderinfo[votedata.levels[i].num]->actnum)
+			if (mapheaderinfo[votelevels[i]]->actnum)
 				snprintf(votedata.levels[i].str,
 					sizeof votedata.levels[i].str,
 					"%.32s %d",
-					mapheaderinfo[votedata.levels[i].num]->lvlttl, mapheaderinfo[votedata.levels[i].num]->actnum);
+					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->actnum);
 			else
 				snprintf(votedata.levels[i].str,
 					sizeof votedata.levels[i].str,
 					"%.32s",
-					mapheaderinfo[votedata.levels[i].num]->lvlttl);
+					mapheaderinfo[votelevels[i]]->lvlttl);
 		}
 
 		votedata.levels[i].str[sizeof votedata.levels[i].str - 1] = '\0';
 
-		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)));
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votelevels[i]+1)));
 		if (lumpnum != LUMPERROR)
-			votedata.levels[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votedata.levels[i].num+1)), PU_STATIC);
+			votedata.levels[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votelevels[i]+1)), PU_STATIC);
 		else
 			votedata.levels[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
 	}

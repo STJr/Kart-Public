@@ -120,6 +120,7 @@ tic_t gametic;
 tic_t levelstarttic; // gametic at level start
 UINT32 totalrings; // for intermission
 INT16 lastmap; // last level you were at (returning from special stages)
+INT16 votelevels[4]; // srb2kart
 tic_t timeinmap; // Ticker for time spent in level (used for levelcard display)
 
 INT16 spstage_start;
@@ -3088,7 +3089,7 @@ INT16 G_TOLFlag(INT32 pgametype)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-INT16 RandMap(INT16 tolflags, INT16 pprevmap)
+static INT16 RandMap(INT16 tolflags, INT16 pprevmap)
 {
 	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
@@ -3105,7 +3106,7 @@ INT16 RandMap(INT16 tolflags, INT16 pprevmap)
 	if (numokmaps == 0)
 		ix = 0; // Sorry, none match. You get MAP01.
 	else
-		ix = okmaps[M_RandomKey(numokmaps)];
+		ix = okmaps[P_RandomKey(numokmaps)];
 
 	Z_Free(okmaps);
 
@@ -3238,6 +3239,28 @@ static void G_DoCompleted(void)
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
 			nextmap = RandMap(G_TOLFlag(gametype), prevmap);
+		else if (cv_advancemap.value == 3)
+		{
+			INT32 j;
+			for (j = 0; j < 4; j++)
+			{
+				INT32 k;
+				votelevels[j] = RandMap(G_TOLFlag(gametype), prevmap);
+				for (k = 0; k < 4; k++) // Compare with others to make sure you don't roll multiple :V
+				{
+					INT32 loopcount = 0;
+					if (j == k)
+						continue;
+					while (votelevels[j] == votelevels[k] && loopcount < 4) // If this needs more than 4 loops, I think it's safe to assume it's not finding anything :VVV
+					{
+						votelevels[j] = RandMap(G_TOLFlag(gametype), prevmap);
+						loopcount++;
+					}
+				}
+				if (votelevels[j] < NUMMAPS && !mapheaderinfo[votelevels[j]])
+					P_AllocMapHeader(votelevels[j]);
+			}
+		}
 	}
 
 	// We are committed to this map now.
@@ -3937,6 +3960,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 		// Clear a bunch of variables
 		tokenlist = token = sstimer = redscore = bluescore = lastmap = 0;
 		countdown = countdown2 = 0;
+		votelevels[0] = votelevels[1] = votelevels[2] = votelevels[3] = 0;
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{

@@ -176,6 +176,7 @@ extern UINT32 totalrings; //  Total # of rings in a level
 
 // Fun extra stuff
 extern INT16 lastmap; // Last level you were at (returning from special stages).
+extern INT16 votelevels[4]; // srb2kart
 extern mobj_t *redflag, *blueflag; // Pointers to physical flags
 extern mapthing_t *rflagpoint, *bflagpoint; // Pointers to the flag spawn locations
 #define GF_REDFLAG 1
