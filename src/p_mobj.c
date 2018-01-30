@@ -3604,7 +3604,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		postimg = postimg_mirror;
 	else if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
 		postimg = postimg_flip;
@@ -6782,8 +6782,9 @@ void P_MobjThinker(mobj_t *mobj)
 				break;
 			case MT_PLAYERARROW:
 				if (mobj->target && mobj->target->health
-					&& mobj->target->player && mobj->target->player->mo
-					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD)
+					&& mobj->target->player && !mobj->target->player->spectator
+					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
+					&& players[displayplayer].mo && !players[displayplayer].spectator)
 				{
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
@@ -7729,14 +7730,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 			P_SpawnGhostMobj(mobj);
 
-			if (K_GetKartCC() == 50)
-			{
+			if (gamespeed == 0)
 				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
-			}
-			else if (K_GetKartCC() == 150)
-			{
+			else if (gamespeed == 2)
 				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
-			}
 
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			if (mobj->health <= 5)
@@ -7780,12 +7777,12 @@ void P_MobjThinker(mobj_t *mobj)
 			if (leveltime % 7 == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
-			if (K_GetKartCC() == 50)
+			if (gamespeed == 0)
 			{
 				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
 			}
-			else if (K_GetKartCC() == 150)
+			else if (gamespeed == 2)
 			{
 				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);

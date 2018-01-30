@@ -105,6 +105,11 @@ static void Color4_OnChange(void);
 static void DummyConsvar_OnChange(void);
 static void SoundTest_OnChange(void);
 
+static void KartFrantic_OnChange(void);
+static void KartSpeed_OnChange(void);
+static void KartMirror_OnChange(void);
+static void KartComeback_OnChange(void);
+
 #ifdef NETGAME_DEVMODE
 static void Fishcake_OnChange(void);
 #endif
@@ -229,7 +234,7 @@ consvar_t cv_allowteamchange = {"allowteamchange", "Yes", CV_NETVAR, CV_YesNo, N
 consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t respawntime_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
-consvar_t cv_respawntime = {"respawndelay", "3", CV_NETVAR|CV_CHEAT, respawntime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_respawntime = {"respawndelay", "1", CV_NETVAR|CV_CHEAT, respawntime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_competitionboxes = {"competitionboxes", "Random", CV_NETVAR|CV_CHEAT, competitionboxes_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -259,7 +264,7 @@ consvar_t cv_skipmapcheck = {"skipmapcheck", "Off", CV_SAVE, CV_OnOff, NULL, 0, 
 
 INT32 cv_debug;
 
-consvar_t cv_usemouse = {"use_mouse", "On", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_usemouse = {"use_mouse", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usemouse2 = {"use_mouse2", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse2, 0, NULL, NULL, 0, 0, NULL};
 
 #if defined (DC) || defined (_XBOX) || defined (WMINPUT) || defined (_WII) //joystick 1 and 2
@@ -343,15 +348,16 @@ consvar_t cv_lightning = 		{"lightning", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, 
 consvar_t cv_feather = 			{"feathers", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_karthud = {"karthud", "Default", CV_SAVE|CV_CALL, karthud_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartcheck = {"kartcheck", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartminimap = {"kartminimap", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartcheck = {"kartcheck", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartstarsfx_cons_t[] = {{0, "Music"}, {1, "SMK"}, {0, NULL}};
 consvar_t cv_kartstarsfx = {"kartstarsfx", "SMK", CV_SAVE, kartstarsfx_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartcc = {"kartcc", "100cc", CV_NETVAR, kartcc_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartspeed = {"kartspeed", "Standard", CV_NETVAR|CV_CALL|CV_NOINIT, kartspeed_cons_t, KartSpeed_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartballoons_cons_t[] = {{1, "MIN"}, {12, "MAX"}, {0, NULL}};
-consvar_t cv_kartballoons = {"kartballoons", "3", CV_NETVAR, kartballoons_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartmirror = {"kartmirror", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartballoons = {"kartballoons", "3", CV_NETVAR|CV_CHEAT, kartballoons_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartFrantic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartComeback_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartmirror = {"kartmirror", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartMirror_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t speedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_speedometer = {"speedometer", "Kilometers", CV_SAVE, speedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 
@@ -399,7 +405,7 @@ consvar_t cv_timelimit = {"timelimit", "0", CV_NETVAR|CV_CALL|CV_NOINIT, timelim
 static CV_PossibleValue_t numlaps_cons_t[] = {{0, "MIN"}, {50, "MAX"}, {0, NULL}};
 consvar_t cv_numlaps = {"numlaps", "3", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_cons_t,
 	NumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_usemapnumlaps = {"usemaplaps", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_usemapnumlaps = {"usemaplaps", "Yes", CV_NETVAR|CV_CHEAT, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // log elemental hazards -- not a netvar, is local to current player
 consvar_t cv_hazardlog = {"hazardlog", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -750,9 +756,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_itemfinder);
 
 	// time attack ghost options are also saved to config
-	CV_RegisterVar(&cv_ghost_bestscore);
 	CV_RegisterVar(&cv_ghost_besttime);
-	//CV_RegisterVar(&cv_ghost_bestlap);
+	CV_RegisterVar(&cv_ghost_bestlap);
 	CV_RegisterVar(&cv_ghost_last);
 	CV_RegisterVar(&cv_ghost_guest);
 	CV_RegisterVar(&cv_ghost_staff);
@@ -770,8 +775,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_crosshair2);
 	CV_RegisterVar(&cv_crosshair3);
 	CV_RegisterVar(&cv_crosshair4);
-	CV_RegisterVar(&cv_alwaysfreelook);
-	CV_RegisterVar(&cv_alwaysfreelook2);
+	//CV_RegisterVar(&cv_alwaysfreelook);
+	//CV_RegisterVar(&cv_alwaysfreelook2);
 
 	// g_input.c
 	CV_RegisterVar(&cv_sideaxis);
@@ -815,8 +820,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_mousesens2);
 	CV_RegisterVar(&cv_mouseysens);
 	CV_RegisterVar(&cv_mouseysens2);
-	CV_RegisterVar(&cv_mousemove);
-	CV_RegisterVar(&cv_mousemove2);
+	//CV_RegisterVar(&cv_mousemove);
+	//CV_RegisterVar(&cv_mousemove2);
 
 	CV_RegisterVar(&cv_usejoystick);
 	CV_RegisterVar(&cv_usejoystick2);
@@ -832,14 +837,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_joyscale4);
 
 	// Analog Control
-	CV_RegisterVar(&cv_analog);
+	/*CV_RegisterVar(&cv_analog);
 	CV_RegisterVar(&cv_analog2);
 	CV_RegisterVar(&cv_analog3);
 	CV_RegisterVar(&cv_analog4);
 	CV_RegisterVar(&cv_useranalog);
 	CV_RegisterVar(&cv_useranalog2);
 	CV_RegisterVar(&cv_useranalog3);
-	CV_RegisterVar(&cv_useranalog4);
+	CV_RegisterVar(&cv_useranalog4);*/
 
 	// s_sound.c
 	CV_RegisterVar(&cv_soundvolume);
@@ -5048,4 +5053,29 @@ static void Command_ShowTime_f(void)
 	}
 
 	CONS_Printf(M_GetText("The current time is %f.\nThe timelimit is %f\n"), (double)leveltime/TICRATE, (double)timelimitintics/TICRATE);
+}
+
+// SRB2Kart: On change messages
+static void KartFrantic_OnChange(void)
+{
+	if (cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Frantic Items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
+}
+
+static void KartSpeed_OnChange(void)
+{
+	if (cv_kartspeed.value != gamespeed && gametype == GT_RACE && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
+}
+
+static void KartMirror_OnChange(void)
+{
+	if (cv_kartmirror.value != mirrormode && gametype == GT_RACE && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Mirror Mode will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
+}
+
+static void KartComeback_OnChange(void)
+{
+	if (cv_kartcomeback.value != comeback && gametype == GT_MATCH && gamestate == GS_LEVEL)
+		CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
 }

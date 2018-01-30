@@ -1993,13 +1993,6 @@ static int lib_kGetKartColorByName(lua_State *L)
 	return 1;
 }
 
-static int lib_kGetKartCC(lua_State *L)
-{
-	//HUDSAFE
-	lua_pushinteger(L, K_GetKartCC());
-	return 1;
-}
-
 static int lib_kKartBouncing(lua_State *L)
 {
 	mobj_t *mobj1 = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
@@ -2336,7 +2329,6 @@ static luaL_Reg lib[] = {
 
 	// k_kart
 	{"K_GetKartColorByName",lib_kGetKartColorByName},
-	{"K_GetKartCC",lib_kGetKartCC},
 	{"K_KartBouncing",lib_kKartBouncing},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},

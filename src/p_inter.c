@@ -439,7 +439,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 				special->tracer->player->kartstuff[k_comebackpoints]++;
 
-				if (netgame)
+				if (netgame && cv_hazardlog.value)
 					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->tracer->player-players], player_names[player-players]);
 
 				if (special->tracer->player->kartstuff[k_comebackpoints] >= 3)

@@ -2190,7 +2190,7 @@ static void P_LevelInitStuff(void)
 	// special stage
 	stagefailed = false;
 	// Reset temporary record data
-	memset(&ntemprecords, 0, sizeof(nightsdata_t));
+	//memset(&ntemprecords, 0, sizeof(nightsdata_t));
 
 	// earthquake camera
 	memset(&quake,0,sizeof(struct quake));
@@ -2204,6 +2204,7 @@ static void P_LevelInitStuff(void)
 		}
 
 		players[i].realtime = countdown = countdown2 = 0;
+		curlap = bestlap = 0; // SRB2Kart
 
 		players[i].gotcontinue = false;
 
@@ -2434,19 +2435,6 @@ static void P_LoadRecordGhosts(void)
 
 	sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timeattackfolder, G_BuildMapName(gamemap));
 
-	// Best Score ghost
-	/*if (cv_ghost_bestscore.value)
-	{
-		for (i = 0; i < numskins; ++i)
-		{
-			if (cv_ghost_bestscore.value == 1 && players[consoleplayer].skin != i)
-				continue;
-
-			if (FIL_FileExists(va("%s-%s-score-best.lmp", gpath, skins[i].name)))
-				G_AddGhost(va("%s-%s-score-best.lmp", gpath, skins[i].name));
-		}
-	}*/
-
 	// Best Time ghost
 	if (cv_ghost_besttime.value)
 	{
@@ -2460,8 +2448,8 @@ static void P_LoadRecordGhosts(void)
 		}
 	}
 
-	// Best lap ghost
-	/*if (cv_ghost_bestlap.value)
+	// Best Lap ghost
+	if (cv_ghost_bestlap.value)
 	{
 		for (i = 0; i < numskins; ++i)
 		{
@@ -2471,7 +2459,7 @@ static void P_LoadRecordGhosts(void)
 			if (FIL_FileExists(va("%s-%s-lap-best.lmp", gpath, skins[i].name)))
 				G_AddGhost(va("%s-%s-lap-best.lmp", gpath, skins[i].name));
 		}
-	}*/
+	}
 
 	// Last ghost
 	if (cv_ghost_last.value)
@@ -2505,7 +2493,7 @@ static void P_LoadRecordGhosts(void)
 	free(gpath);
 }
 
-static void P_LoadNightsGhosts(void)
+/*static void P_LoadNightsGhosts(void)
 {
 	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char *gpath = malloc(glen);
@@ -2544,7 +2532,7 @@ static void P_LoadNightsGhosts(void)
 	}
 
 	free(gpath);
-}
+}*/
 
 /** Loads a level from a lump or external wad.
   *
@@ -2843,8 +2831,8 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	if (modeattacking == ATTACKING_RECORD && !demoplayback)
 		P_LoadRecordGhosts();
-	else if (modeattacking == ATTACKING_NIGHTS && !demoplayback)
-		P_LoadNightsGhosts();
+	/*else if (modeattacking == ATTACKING_NIGHTS && !demoplayback)
+		P_LoadNightsGhosts();*/
 
 	if (G_TagGametype())
 	{
@@ -2986,6 +2974,22 @@ boolean P_SetupLevel(boolean skipprecip)
 		CV_SetValue(&cv_analog2, false);
 		CV_SetValue(&cv_analog, false);
 	}
+
+	// SRB2Kart: map load variables
+	if (modeattacking)
+		gamespeed = 2;
+	else if (gametype == GT_MATCH)
+		gamespeed = 0;
+	else
+		gamespeed = cv_kartspeed.value;
+
+	if (gametype == GT_MATCH)
+		mirrormode = false;
+	else
+		mirrormode = cv_kartmirror.value;
+
+	franticitems = cv_kartfrantic.value;
+	comeback = cv_kartcomeback.value;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;

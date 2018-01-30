@@ -911,7 +911,7 @@ static void HU_DrawChat(void)
 
 static inline void HU_DrawCrosshair(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair.value & 3;
 	if (!i)
@@ -922,17 +922,23 @@ static inline void HU_DrawCrosshair(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
-	V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+	V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 }
 
 static inline void HU_DrawCrosshair2(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair2.value & 3;
 	if (!i)
@@ -943,27 +949,43 @@ static inline void HU_DrawCrosshair2(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
 	if (splitscreen)
 	{
+		if (splitscreen > 1)
 #ifdef HWRENDER
-		if (rendermode != render_soft)
-			y += (INT32)gr_viewheight;
-		else
+			if (rendermode != render_soft)
+				x += (INT32)gr_viewwidth;
+			else
 #endif
-			y += viewheight;
+				x += viewwidth;
+		else
+		{
+#ifdef HWRENDER
+			if (rendermode != render_soft)
+				y += (INT32)gr_viewheight;
+			else
+#endif
+				y += viewheight;
+		}
 
-		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
 }
 
 static inline void HU_DrawCrosshair3(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair3.value & 3;
 	if (!i)
@@ -974,10 +996,16 @@ static inline void HU_DrawCrosshair3(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
 	if (splitscreen > 1)
 	{
@@ -988,13 +1016,13 @@ static inline void HU_DrawCrosshair3(void)
 #endif
 			y += viewheight;
 
-		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
 }
 
 static inline void HU_DrawCrosshair4(void)
 {
-	INT32 i, y;
+	INT32 i, x, y;
 
 	i = cv_crosshair4.value & 3;
 	if (!i)
@@ -1005,21 +1033,33 @@ static inline void HU_DrawCrosshair4(void)
 
 #ifdef HWRENDER
 	if (rendermode != render_soft)
+	{
+		x = (INT32)gr_basewindowcenterx;
 		y = (INT32)gr_basewindowcentery;
+	}
 	else
 #endif
+	{
+		x = viewwindowx + (viewwidth>>1);
 		y = viewwindowy + (viewheight>>1);
+	}
 
 	if (splitscreen > 2)
 	{
 #ifdef HWRENDER
 		if (rendermode != render_soft)
+		{
+			x += (INT32)gr_viewwidth;
 			y += (INT32)gr_viewheight;
+		}
 		else
 #endif
+		{
+			x += viewwidth;
 			y += viewheight;
+		}
 
-		V_DrawScaledPatch(vid.width>>1, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
+		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
 }
 
@@ -1101,30 +1141,31 @@ static void HU_drawGametype(void)
 //
 // demo info stuff
 //
-UINT32 hu_demoscore;
 UINT32 hu_demotime;
+UINT32 hu_demolap;
 
 static void HU_DrawDemoInfo(void)
 {
-	UINT8 timeoffset = 8;
 	V_DrawString(4, 188-16, V_YELLOWMAP, va(M_GetText("%s's replay"), player_names[0]));
 	if (modeattacking)
 	{
-		if (modeattacking == ATTACKING_NIGHTS)
-		{
-			V_DrawString(4, 188-8, V_YELLOWMAP|V_MONOSPACE, "SCORE:");
-			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, va("%d", hu_demoscore));
-			timeoffset = 0;
-		}
-
-		V_DrawString(4, 188- timeoffset, V_YELLOWMAP|V_MONOSPACE, "TIME:");
+		V_DrawString(4, 188-8, V_YELLOWMAP|V_MONOSPACE, "BEST TIME:");
 		if (hu_demotime != UINT32_MAX)
-			V_DrawRightAlignedString(120, 188- timeoffset, V_MONOSPACE, va("%i:%02i.%02i",
+			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, va("%i:%02i.%02i",
 				G_TicsToMinutes(hu_demotime,true),
 				G_TicsToSeconds(hu_demotime),
 				G_TicsToCentiseconds(hu_demotime)));
 		else
-			V_DrawRightAlignedString(120, 188- timeoffset, V_MONOSPACE, "--:--.--");
+			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, "--:--.--");
+
+		V_DrawString(4, 188, V_YELLOWMAP|V_MONOSPACE, "BEST LAP:");
+		if (hu_demolap != UINT32_MAX)
+			V_DrawRightAlignedString(120, 188, V_MONOSPACE, va("%i:%02i.%02i",
+				G_TicsToMinutes(hu_demolap,true),
+				G_TicsToSeconds(hu_demolap),
+				G_TicsToCentiseconds(hu_demolap)));
+		else
+			V_DrawRightAlignedString(120, 188, V_MONOSPACE, "--:--.--");
 	}
 }
 
@@ -1171,18 +1212,20 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	// SRB2kart: not for kart though :V
-	/*if (!automapactive && cv_crosshair.value && !demoplayback && !camera.chase && !players[displayplayer].spectator)
-		HU_DrawCrosshair();
+	if (!automapactive && !demoplayback)
+	{
+		if (cv_crosshair.value && !camera.chase && !players[displayplayer].spectator)
+			HU_DrawCrosshair();
 
-	if (!automapactive && cv_crosshair2.value && !demoplayback && !camera2.chase && !players[secondarydisplayplayer].spectator)
-		HU_DrawCrosshair2();
+		if (cv_crosshair2.value && !camera2.chase && !players[secondarydisplayplayer].spectator)
+			HU_DrawCrosshair2();
 	
-	if (!automapactive && cv_crosshair3.value && !demoplayback && !camera3.chase && !players[thirddisplayplayer].spectator)
-		HU_DrawCrosshair3();
+		if (cv_crosshair3.value && !camera3.chase && !players[thirddisplayplayer].spectator)
+			HU_DrawCrosshair3();
 
-	if (!automapactive && cv_crosshair4.value && !demoplayback && !camera4.chase && !players[fourthdisplayplayer].spectator)
-		HU_DrawCrosshair4();*/
+		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
+			HU_DrawCrosshair4();
+	}
 
 	// draw desynch text
 	if (hu_resynching)
@@ -1448,7 +1491,7 @@ void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer)
 			else
 				V_DrawSmallMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
 		}
-		V_DrawRightAlignedThinString(x+120, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
+		V_DrawRightAlignedThinString(x+120, y-1, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
 	}
 }
 
@@ -1525,15 +1568,15 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 			if (circuitmap)
 			{
 				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedThinString(x+156, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
+					V_DrawRightAlignedThinString(x+156, y-1, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
 				else
-					V_DrawRightAlignedThinString(x+156, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
+					V_DrawRightAlignedThinString(x+156, y-1, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
 			}
 			else
-				V_DrawRightAlignedThinString(x+156, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
+				V_DrawRightAlignedThinString(x+156, y-1, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
 		}
 		else
-			V_DrawRightAlignedThinString(x+120, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
+			V_DrawRightAlignedThinString(x+120, y-1, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
 
 		y += 16;
 		if (y > 160)

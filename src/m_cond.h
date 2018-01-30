@@ -21,23 +21,24 @@
 typedef enum
 {
 	UC_PLAYTIME,        // PLAYTIME [tics]
+	UC_MATCHESPLAYED,   // SRB2Kart: MATCHESPLAYED [x played]
 	UC_GAMECLEAR,       // GAMECLEAR <x times>
 	UC_ALLEMERALDS,     // ALLEMERALDS <x times>
-	UC_ULTIMATECLEAR,   // ULTIMATECLEAR <x times>
-	UC_OVERALLSCORE,    // OVERALLSCORE [score to beat]
+	//UC_ULTIMATECLEAR,   // ULTIMATECLEAR <x times>
+	//UC_OVERALLSCORE,    // OVERALLSCORE [score to beat]
 	UC_OVERALLTIME,     // OVERALLTIME [time to beat, tics]
-	UC_OVERALLRINGS,    // OVERALLRINGS [rings to beat]
+	//UC_OVERALLRINGS,    // OVERALLRINGS [rings to beat]
 	UC_MAPVISITED,      // MAPVISITED [map number]
 	UC_MAPBEATEN,       // MAPBEATEN [map number]
 	UC_MAPALLEMERALDS,  // MAPALLEMERALDS [map number]
-	UC_MAPULTIMATE,     // MAPULTIMATE [map number]
-	UC_MAPPERFECT,      // MAPPERFECT [map number]
-	UC_MAPSCORE,        // MAPSCORE [map number] [score to beat]
+	//UC_MAPULTIMATE,     // MAPULTIMATE [map number]
+	//UC_MAPPERFECT,      // MAPPERFECT [map number]
+	//UC_MAPSCORE,        // MAPSCORE [map number] [score to beat]
 	UC_MAPTIME,         // MAPTIME [map number] [time to beat, tics]
-	UC_MAPRINGS,        // MAPRINGS [map number] [rings to beat]
-	UC_NIGHTSSCORE,     // NIGHTSSCORE [map number] <mare, omit or "0" for overall> [score to beat]
-	UC_NIGHTSTIME,      // NIGHTSTIME [map number] <mare, omit "0" overall> [time to beat, tics]
-	UC_NIGHTSGRADE,     // NIGHTSGRADE [map number] <mare, omit "0" overall> [grade]
+	//UC_MAPRINGS,        // MAPRINGS [map number] [rings to beat]
+	//UC_NIGHTSSCORE,     // NIGHTSSCORE [map number] <mare, omit or "0" for overall> [score to beat]
+	//UC_NIGHTSTIME,      // NIGHTSTIME [map number] <mare, omit "0" overall> [time to beat, tics]
+	//UC_NIGHTSGRADE,     // NIGHTSGRADE [map number] <mare, omit "0" overall> [grade]
 	UC_TRIGGER,         // TRIGGER [trigger number]
 	UC_TOTALEMBLEMS,    // TOTALEMBLEMS [number of emblems]
 	UC_EMBLEM,          // EMBLEM [emblem number]
@@ -68,11 +69,11 @@ typedef struct
 // Emblem information
 #define ET_GLOBAL 0 // Global map emblem, var == color
 #define ET_SKIN   1 // Skin specific emblem, var == skin
-#define ET_SCORE  2
-#define ET_TIME   3
-#define ET_RINGS  4
-#define ET_NGRADE 5
-#define ET_NTIME  6
+//#define ET_SCORE  2
+#define ET_TIME   2
+//#define ET_RINGS  4
+//#define ET_NGRADE 5
+//#define ET_NTIME  6
 
 typedef struct
 {
@@ -171,8 +172,8 @@ const char *M_GetExtraEmblemPatch(extraemblem_t *em);
 // They stop checking upon reaching the target number so they
 // should be (theoretically?) slightly faster.
 UINT8 M_GotEnoughEmblems(INT32 number);
-UINT8 M_GotHighEnoughScore(INT32 tscore);
+//UINT8 M_GotHighEnoughScore(INT32 tscore);
 UINT8 M_GotLowEnoughTime(INT32 tictime);
-UINT8 M_GotHighEnoughRings(INT32 trings);
+//UINT8 M_GotHighEnoughRings(INT32 trings);
 
 #define M_Achieved(a) ((a) >= MAXCONDITIONSETS || conditionSets[a].achieved)
