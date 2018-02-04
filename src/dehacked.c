@@ -7338,7 +7338,6 @@ static const char *const KARTSTUFF_LIST[] = {
 	"LAKITU",
 
 	"THROWDIR",
-	"CAMSPIN",
 	"LAPANIMATION",
 	"CARDANIMATION",
 	"SOUNDS",

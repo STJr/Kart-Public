@@ -3205,6 +3205,11 @@ static void P_NetArchiveMisc(void)
 	for (i = 0; i < 4; i++)
 		WRITEINT16(save_p, votelevels[i]);
 
+	for (i = 0; i < MAXPLAYERS; i++)
+		WRITESINT8(save_p, votes[i]);
+
+	WRITESINT8(save_p, pickedvote);
+
 	WRITEUINT16(save_p, emeralds);
 	WRITEUINT8(save_p, stagefailed);
 
@@ -3290,6 +3295,11 @@ static inline boolean P_NetUnArchiveMisc(void)
 
 	for (i = 0; i < 4; i++)
 		votelevels[i] = READINT16(save_p);
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		votes[i] = READSINT8(save_p);
+
+	pickedvote = READSINT8(save_p);
 
 	emeralds = READUINT16(save_p);
 	stagefailed = READUINT8(save_p);

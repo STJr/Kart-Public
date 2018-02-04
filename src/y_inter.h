@@ -21,6 +21,7 @@ void Y_VoteDrawer(void);
 void Y_VoteTicker(void);
 void Y_StartVote(void);
 void Y_EndVote(void);
+void Y_SetupVoteFinish(INT8 pick, INT8 level);
 
 typedef enum
 {

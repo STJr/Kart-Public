@@ -120,7 +120,6 @@ tic_t gametic;
 tic_t levelstarttic; // gametic at level start
 UINT32 totalrings; // for intermission
 INT16 lastmap; // last level you were at (returning from special stages)
-INT16 votelevels[4]; // srb2kart
 tic_t timeinmap; // Ticker for time spent in level (used for levelcard display)
 
 INT16 spstage_start;
@@ -250,6 +249,13 @@ boolean comeback; // Battle Mode's karma comeback is on/off
 boolean legitimateexit; // Did this client actually finish the match? Calculated locally
 tic_t curlap; // Current lap time, calculated locally
 tic_t bestlap; // Best lap time, locally
+
+INT16 randmapbuffer[3*NUMMAPS/4]; // Buffer for maps RandMap is allowed to roll
+
+// Voting system
+INT16 votelevels[4]; // Levels that were rolled by the host
+INT8 votes[MAXPLAYERS]; // Each player's vote
+INT8 pickedvote; // What vote the host rolls
 
 tic_t hidetime;
 
@@ -3081,6 +3087,24 @@ INT16 G_TOLFlag(INT32 pgametype)
 	return INT16_MAX;
 }
 
+static INT32 TOLMaps(INT16 tolflags)
+{
+	INT32 num = 0;
+	INT16 i;
+
+	// Find all the maps that are ok and and put them in an array.
+	for (i = 0; i < NUMMAPS; i++)
+	{
+		if (!mapheaderinfo[i])
+			continue;
+
+		if ((mapheaderinfo[i]->typeoflevel & tolflags) == tolflags)
+			num++;
+	}
+
+	return num;
+}
+
 /** Select a random map with the given typeoflevel flags.
   * If no map has those flags, this arbitrarily gives you map 1.
   * \param tolflags The typeoflevel flags to insist on. Other bits may
@@ -3089,24 +3113,59 @@ INT16 G_TOLFlag(INT32 pgametype)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-INT16 RandMap(INT16 tolflags, INT16 pprevmap)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer)
 {
 	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
-	INT16 ix;
+	INT16 ix, bufx;
 
 	// Find all the maps that are ok and and put them in an array.
 	for (ix = 0; ix < NUMMAPS; ix++)
-		if (mapheaderinfo[ix] && (mapheaderinfo[ix]->typeoflevel & tolflags) == tolflags
-		 && ix != pprevmap // Don't pick the same map.
-		 && (dedicated || !M_MapLocked(ix+1)) // Don't pick locked maps.
-		)
+	{
+		boolean isokmap = true;
+
+		if (!mapheaderinfo[ix])
+			continue;
+
+		if ((mapheaderinfo[ix]->typeoflevel & tolflags) != tolflags
+			|| ix == pprevmap
+			|| (M_MapLocked(ix+1) && !dedicated))
+			isokmap = false;
+
+		if (!ignorebuffer)
+		{
+			for (bufx = 0; bufx < 3*NUMMAPS/4; bufx++)
+			{
+				if (randmapbuffer[bufx] == 0) // Rest of buffer SHOULD be empty
+					break;
+				if (ix == randmapbuffer[bufx])
+				{
+					isokmap = false;
+					break;
+				}
+			}
+		}
+		
+		if (isokmap)
 			okmaps[numokmaps++] = ix;
+	}
 
 	if (numokmaps == 0)
+	{
+		if (!ignorebuffer)
+			return G_RandMap(tolflags, pprevmap, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
+
 		ix = 0; // Sorry, none match. You get MAP01.
+		for (bufx = 0; bufx < 3*NUMMAPS/4; bufx++)
+			randmapbuffer[bufx] = -1; // if we're having trouble finding a map we should probably clear it
+	}
 	else
+	{
 		ix = okmaps[P_RandomKey(numokmaps)];
+		for (bufx = 3*NUMMAPS/4; bufx > 0; bufx--)
+			randmapbuffer[bufx] = randmapbuffer[bufx-1];
+		randmapbuffer[0] = ix;
+	}
 
 	Z_Free(okmaps);
 
@@ -3233,12 +3292,18 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
+	if (randmapbuffer[(3*TOLMaps(G_TOLFlag(gametype))/4)]) // filled up, so lets clear it
+	{
+		for (i = 0; i < 3*NUMMAPS/4; i++)
+			randmapbuffer[i] = -1;
+	}
+
 	if (gametype != GT_COOP)
 	{
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = RandMap(G_TOLFlag(gametype), prevmap);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false);
 	}
 
 	// We are committed to this map now.
@@ -3935,7 +4000,6 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 		// Clear a bunch of variables
 		tokenlist = token = sstimer = redscore = bluescore = lastmap = 0;
 		countdown = countdown2 = 0;
-		votelevels[0] = votelevels[1] = votelevels[2] = votelevels[3] = 0;
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{

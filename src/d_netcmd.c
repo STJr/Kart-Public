@@ -63,6 +63,8 @@ static void Got_WeaponPref(UINT8 **cp, INT32 playernum);
 static void Got_Mapcmd(UINT8 **cp, INT32 playernum);
 static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum);
 static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum);
+static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum);
+static void Got_PickVotecmd(UINT8 **cp, INT32 playernum);
 static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum);
 #ifdef DELFILE
 static void Got_Delfilecmd(UINT8 **cp, INT32 playernum);
@@ -475,6 +477,8 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"SUICIDE",
 	"DEMOTED",
 	"SETUPVOTE",
+	"MODIFYVOTE",
+	"PICKVOTE",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
@@ -504,10 +508,13 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PAUSE, Got_Pause);
 	RegisterNetXCmd(XD_SUICIDE, Got_Suicide);
 	RegisterNetXCmd(XD_RUNSOC, Got_RunSOCcmd);
-	RegisterNetXCmd(XD_SETUPVOTE, Got_SetupVotecmd);
 #ifdef HAVE_BLUA
 	RegisterNetXCmd(XD_LUACMD, Got_Luacmd);
 #endif
+
+	RegisterNetXCmd(XD_SETUPVOTE, Got_SetupVotecmd);
+	RegisterNetXCmd(XD_MODIFYVOTE, Got_ModifyVotecmd);
+	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
 	COM_AddCommand("password", Command_Changepassword_f);
@@ -1950,32 +1957,49 @@ void D_SetupVote(void)
 {
 	XBOXSTATIC char buf[8];
 	char *p;
-	UINT16 maps[4];
 	INT32 i;
 
 	p = buf;
 
 	for (i = 0; i < 4; i++)
-	{
-		INT32 j;
-		maps[i] = RandMap(G_TOLFlag(gametype), prevmap);
-
-		for (j = 0; j < 4; j++) // Compare with others to make sure you don't roll duplicates
-		{
-			INT32 loops = 0;
-			if (j >= i)
-				continue;
-			while (maps[i] == maps[j] && loops < 4) // If this needs more than 4 loops, I think it's safe to assume it's not finding any suitable matches :V
-			{
-				maps[i] = RandMap(G_TOLFlag(gametype), prevmap);
-				loops++;
-			}
-		}
-
-		WRITEUINT16(p, maps[i]);
-	}
+		WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false));
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
+}
+
+void D_ModifyClientVote(INT8 voted)
+{
+	XBOXSTATIC UINT8 buf[1];
+	buf[0] = (UINT8)(voted+1);
+	SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
+}
+
+void D_PickVote(void)
+{
+	XBOXSTATIC UINT8 buf[2];
+	UINT8 temppicks[MAXPLAYERS];
+	UINT8 templevels[MAXPLAYERS];
+	UINT8 numvotes = 0, key = 0;
+	INT32 i;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		if (votes[i] != -1)
+		{
+			temppicks[numvotes] = (UINT8)i;
+			templevels[numvotes] = (UINT8)votes[i];
+			numvotes++;
+		}
+	}
+
+	key = P_RandomKey(numvotes);
+
+	buf[0] = temppicks[key];
+	buf[1] = templevels[key];
+
+	SendNetXCmd(XD_PICKVOTE, &buf, 2);
 }
 
 // Warp to map code.
@@ -4557,10 +4581,42 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 	}
 
 	for (i = 0; i < 4; i++)
+	{
 		votelevels[i] = (INT16)READUINT16(*cp);
+		if (!mapheaderinfo[votelevels[i]])
+			P_AllocMapHeader(votelevels[i]);
+	}
 
 	G_SetGamestate(GS_VOTING);
 	Y_StartVote();
+}
+
+static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum)
+{
+	INT8 voted = READUINT8(*cp);
+	votes[playernum] = (INT8)(voted-1);
+}
+
+static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
+{
+	INT8 pick = READUINT8(*cp);
+	INT8 level = READUINT8(*cp);
+
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal vote setup received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	Y_SetupVoteFinish((INT8)pick, (INT8)level);
 }
 
 /** Prints the number of the displayplayer.
