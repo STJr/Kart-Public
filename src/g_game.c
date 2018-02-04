@@ -167,16 +167,17 @@ INT32 tokenbits; // Used for setting token bits
 INT32 sstimer; // Time allotted in the special stage
 
 tic_t totalplaytime;
+UINT32 matchesplayed; // SRB2Kart
 boolean gamedataloaded = false;
 
 // Time attack data for levels
 // These are dynamically allocated for space reasons now
 recorddata_t *mainrecords[NUMMAPS]   = {NULL};
-nightsdata_t *nightsrecords[NUMMAPS] = {NULL};
+//nightsdata_t *nightsrecords[NUMMAPS] = {NULL};
 UINT8 mapvisited[NUMMAPS];
 
 // Temporary holding place for nights data for the current map
-nightsdata_t ntemprecords;
+//nightsdata_t ntemprecords;
 
 UINT32 bluescore, redscore; // CTF and Team Match team scores
 
@@ -238,12 +239,22 @@ INT16 scramblecount; //for CTF team scramble
 
 INT32 cheats; //for multiplayer cheat commands
 
+// SRB2Kart
+UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for relaxed, standard, & turbo
+boolean mirrormode; // Mirror Mode currently enabled?
+boolean franticitems; // Frantic items currently enabled?
+boolean comeback; // Battle Mode's karma comeback is on/off
+
+boolean legitimateexit; // Did this client actually finish the match? Calculated locally
+tic_t curlap; // Current lap time, calculated locally
+tic_t bestlap; // Best lap time, locally
+
 tic_t hidetime;
 
 // Grading
 UINT32 timesBeaten;
 UINT32 timesBeatenWithEmeralds;
-UINT32 timesBeatenUltimate;
+//UINT32 timesBeatenUltimate;
 
 static char demoname[64];
 boolean demorecording;
@@ -376,11 +387,11 @@ consvar_t cv_crosshair2 = {"crosshair2", "Cross", CV_SAVE, crosshair_cons_t, NUL
 consvar_t cv_crosshair3 = {"crosshair3", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_crosshair4 = {"crosshair4", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse = {"invertmouse", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_alwaysfreelook = {"alwaysmlook", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_alwaysfreelook = {"alwaysmlook", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse2 = {"invertmouse2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_alwaysfreelook2 = {"alwaysmlook2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mousemove = {"mousemove", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mousemove2 = {"mousemove2", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mousemove = {"mousemove", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mousemove2 = {"mousemove2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog = {"analog", "Off", CV_CALL, CV_OnOff, Analog_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog2 = {"analog2", "Off", CV_CALL, CV_OnOff, Analog2_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_analog3 = {"analog3", "Off", CV_CALL, CV_OnOff, Analog3_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -531,12 +542,12 @@ void G_AllocMainRecordData(INT16 i)
 	memset(mainrecords[i], 0, sizeof(recorddata_t));
 }
 
-void G_AllocNightsRecordData(INT16 i)
+/*void G_AllocNightsRecordData(INT16 i)
 {
 	if (!nightsrecords[i])
 		nightsrecords[i] = Z_Malloc(sizeof(nightsdata_t), PU_STATIC, NULL);
 	memset(nightsrecords[i], 0, sizeof(nightsdata_t));
-}
+}*/
 
 // MAKE SURE YOU SAVE DATA BEFORE CALLING THIS
 void G_ClearRecords(void)
@@ -549,22 +560,22 @@ void G_ClearRecords(void)
 			Z_Free(mainrecords[i]);
 			mainrecords[i] = NULL;
 		}
-		if (nightsrecords[i])
+		/*if (nightsrecords[i])
 		{
 			Z_Free(nightsrecords[i]);
 			nightsrecords[i] = NULL;
-		}
+		}*/
 	}
 }
 
 // For easy retrieval of records
-UINT32 G_GetBestScore(INT16 map)
+/*UINT32 G_GetBestScore(INT16 map)
 {
 	if (!mainrecords[map-1])
 		return 0;
 
 	return mainrecords[map-1]->score;
-}
+}*/
 
 tic_t G_GetBestTime(INT16 map)
 {
@@ -574,15 +585,25 @@ tic_t G_GetBestTime(INT16 map)
 	return mainrecords[map-1]->time;
 }
 
-UINT16 G_GetBestRings(INT16 map)
+// Not needed
+/*tic_t G_GetBestLap(INT16 map)
+{
+	if (!mainrecords[map-1] || mainrecords[map-1]->lap <= 0)
+		return (tic_t)UINT32_MAX;
+
+	return mainrecords[map-1]->lap;
+}*/
+
+/*UINT16 G_GetBestRings(INT16 map)
 {
 	if (!mainrecords[map-1])
 		return 0;
 
 	return mainrecords[map-1]->rings;
-}
+}*/
 
-UINT32 G_GetBestNightsScore(INT16 map, UINT8 mare)
+// No NiGHTS records for SRB2Kart
+/*UINT32 G_GetBestNightsScore(INT16 map, UINT8 mare)
 {
 	if (!nightsrecords[map-1])
 		return 0;
@@ -726,7 +747,7 @@ void G_SetNightsRecords(void)
 	// If the mare count changed, this will update the score display
 	CV_AddValue(&cv_nextmap, 1);
 	CV_AddValue(&cv_nextmap, -1);
-}
+}*/
 
 // for consistency among messages: this modifies the game and removes savemoddata.
 void G_SetGameModified(boolean silent)
@@ -1160,6 +1181,7 @@ static INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 //
 INT32 localaiming, localaiming2, localaiming3, localaiming4;
 angle_t localangle, localangle2, localangle3, localangle4;
+boolean camspin, camspin2, camspin3, camspin4;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16}; // faster!
@@ -1168,7 +1190,7 @@ static fixed_t angleturn[3] = {400, 800, 200}; // + slow turn
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
 	boolean forcestrafe = false;
-	INT32 laim, th, tspeed, forward, side, axis, i;
+	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
 	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analog, analogjoystickmove, gamepadjoystickmove, kbl;
@@ -1179,45 +1201,45 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static INT32 turnheld, turnheld2, turnheld3, turnheld4; // for accelerative turning
 	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		player = &players[secondarydisplayplayer];
-		thiscam = (player->bot == 2 ? &camera : &camera2);
-		lang = localangle2;
-		laim = localaiming2;
-		th = turnheld2;
-		kbl = keyboard_look2;
-		G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
-	}
-	else if (ssplayer == 3)
-	{
-		player = &players[thirddisplayplayer];
-		thiscam = &camera3;
-		lang = localangle3;
-		laim = localaiming3;
-		th = turnheld3;
-		kbl = keyboard_look3;
-		G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
-	}
-	else if (ssplayer == 4)
-	{
-		player = &players[fourthdisplayplayer];
-		thiscam = &camera4;
-		lang = localangle4;
-		laim = localaiming4;
-		th = turnheld4;
-		kbl = keyboard_look4;
-		G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
-	}
-	else
-	{
-		player = &players[consoleplayer];
-		thiscam = &camera;
-		lang = localangle;
-		laim = localaiming;
-		th = turnheld;
-		kbl = keyboard_look;
-		G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+		case 2:
+			player = &players[secondarydisplayplayer];
+			thiscam = (player->bot == 2 ? &camera : &camera2);
+			lang = localangle2;
+			laim = localaiming2;
+			th = turnheld2;
+			kbl = keyboard_look2;
+			G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
+			break;
+		case 3:
+			player = &players[thirddisplayplayer];
+			thiscam = &camera3;
+			lang = localangle3;
+			laim = localaiming3;
+			th = turnheld3;
+			kbl = keyboard_look3;
+			G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
+			break;
+		case 4:
+			player = &players[fourthdisplayplayer];
+			thiscam = &camera4;
+			lang = localangle4;
+			laim = localaiming4;
+			th = turnheld4;
+			kbl = keyboard_look4;
+			G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
+			break;
+		case 1:
+		default:
+			player = &players[consoleplayer];
+			thiscam = &camera;
+			lang = localangle;
+			laim = localaiming;
+			th = turnheld;
+			kbl = keyboard_look;
+			G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+			break;
 	}
 
 	// why build a ticcmd if we're paused?
@@ -1230,41 +1252,41 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		return;
 	}
 
-	if (ssplayer == 2)
+	switch (ssplayer)
 	{
-		mouseaiming = (PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
-		invertmouse = cv_invertmouse2.value;
-		lookaxis = cv_lookaxis2.value;
-		analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
-		analog = cv_analog2.value;
-	}
-	else if (ssplayer == 3)
-	{
-		mouseaiming = false;
-		invertmouse = false;
-		lookaxis = cv_lookaxis3.value;
-		analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
-		analog = cv_analog3.value;
-	}
-	else if (ssplayer == 4)
-	{
-		mouseaiming = false;
-		invertmouse = false;
-		lookaxis = cv_lookaxis4.value;
-		analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
-		analog = cv_analog4.value;
-	}
-	else
-	{
-		mouseaiming = (PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
-		invertmouse = cv_invertmouse.value;
-		lookaxis = cv_lookaxis.value;
-		analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
-		gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
-		analog = cv_analog.value;
+		case 2:
+			mouseaiming = player->spectator; //(PLAYER2INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook2.value;
+			invertmouse = cv_invertmouse2.value;
+			lookaxis = cv_lookaxis2.value;
+			analogjoystickmove = cv_usejoystick2.value && !Joystick2.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick2.value && Joystick2.bGamepadStyle;
+			analog = cv_analog2.value;
+			break;
+		case 3:
+			mouseaiming = false;
+			invertmouse = false;
+			lookaxis = cv_lookaxis3.value;
+			analogjoystickmove = cv_usejoystick3.value && !Joystick3.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick3.value && Joystick3.bGamepadStyle;
+			analog = cv_analog3.value;
+			break;
+		case 4:
+			mouseaiming = false;
+			invertmouse = false;
+			lookaxis = cv_lookaxis4.value;
+			analogjoystickmove = cv_usejoystick4.value && !Joystick4.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick4.value && Joystick4.bGamepadStyle;
+			analog = cv_analog4.value;
+			break;
+		case 1:
+		default:
+			mouseaiming = player->spectator; //(PLAYER1INPUTDOWN(gc_mouseaiming)) ^ cv_alwaysfreelook.value;
+			invertmouse = cv_invertmouse.value;
+			lookaxis = cv_lookaxis.value;
+			analogjoystickmove = cv_usejoystick.value && !Joystick.bGamepadStyle;
+			gamepadjoystickmove = cv_usejoystick.value && Joystick.bGamepadStyle;
+			analog = cv_analog.value;
+			break;
 	}
 
 	turnright = InputDown(gc_turnright, ssplayer);
@@ -1272,7 +1294,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	axis = JoyAxis(AXISTURN, ssplayer);
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 	{
 		turnright ^= turnleft; // swap these using three XORs
 		turnleft ^= turnright;
@@ -1343,93 +1365,51 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 	}
 
-	/*
-	axis = JoyAxis(AXISSTRAFE, ssplayer);
-	if (gamepadjoystickmove && axis != 0)
+	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
 	{
-		if (axis < 0)
-			side += sidemove[speed];
-		else if (axis > 0)
-			side -= sidemove[speed];
+		if (InputDown(gc_accelerate, ssplayer))
+			cmd->buttons |= BT_ACCELERATE;
+		if (InputDown(gc_brake, ssplayer))
+			cmd->buttons |= BT_BRAKE;
+		axis = JoyAxis(AXISMOVE, ssplayer);
+		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+			forward += forwardmove[1];
+		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+			forward -= forwardmove[1];
 	}
-	else if (analogjoystickmove && axis != 0)
+	else
 	{
-		// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-		side += ((axis * sidemove[1]) >> 10);
-	}
-	*/
-
-	// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
-	if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
-	{
-		cmd->buttons |= BT_ACCELERATE;
-		forward = forwardmove[1];	// 50
-	}
-	if (InputDown(gc_brake, ssplayer))
-	{
-		cmd->buttons |= BT_BRAKE;
-		forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
-	}
-	// But forward/backward IS used for aiming.
-	axis = JoyAxis(AXISMOVE, ssplayer);
-	if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
-		cmd->buttons |= BT_FORWARD;
-	if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
-		cmd->buttons |= BT_BACKWARD;
-	/*
-	if (InputDown(gc_forward, ssplayer) || (gamepadjoystickmove && axis < 0))
-		forward = forwardmove[speed];
-	if (InputDown(gc_backward, ssplayer) || (gamepadjoystickmove && axis > 0))
-		forward -= forwardmove[speed];
-	*/
-
-	/*
-	if (analogjoystickmove && axis != 0)
-		forward -= ((axis * forwardmove[1]) >> 10); // ANALOG!
-	*/
-
-	// some people strafe left & right with mouse buttons
-	// those people are weird
-
-	/* // SRB2kart - these aren't used in kart
-	if (InputDown(gc_straferight, ssplayer))
-		side += sidemove[speed];
-	if (InputDown(gc_strafeleft, ssplayer))
-		side -= sidemove[speed];
-
-	if (InputDown(gc_driftleft, ssplayer))
-		cmd->buttons |= BT_WEAPONNEXT; // Next Weapon
-	if (InputDown(gc_driftright, ssplayer))
-		cmd->buttons |= BT_WEAPONPREV; // Previous Weapon
-	*/
-
-#if NUM_WEAPONS > 10
-"Add extra inputs to g_input.h/gamecontrols_e"
-#endif
-	//use the four avaliable bits to determine the weapon.
-	cmd->buttons &= ~BT_WEAPONMASK;
-	for (i = 0; i < NUM_WEAPONS; ++i)
-		if (InputDown(gc_wepslot1 + i, ssplayer))
+		// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
+		if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
 		{
-			cmd->buttons |= (UINT16)(i + 1);
-			break;
+			cmd->buttons |= BT_ACCELERATE;
+			forward = forwardmove[1];	// 50
 		}
+
+		if (InputDown(gc_brake, ssplayer))
+		{
+			cmd->buttons |= BT_BRAKE;
+			if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
+				forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+		}
+
+		// But forward/backward IS used for aiming.
+		axis = JoyAxis(AXISMOVE, ssplayer);
+		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+			cmd->buttons |= BT_FORWARD;
+		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+			cmd->buttons |= BT_BACKWARD;
+	}
 
 	// fire with any button/key
 	axis = JoyAxis(AXISFIRE, ssplayer);
 	if (InputDown(gc_fire, ssplayer) || (cv_usejoystick.value && axis > 0))
 		cmd->buttons |= BT_ATTACK;
 
-	// fire normal with any button/key
-	/*
-	axis = JoyAxis(ssplayer, AXISFIRENORMAL);
-	if (InputDown(gc_accelerate, ssplayer) || (cv_usejoystick.value && axis > 0))
-		cmd->buttons |= BT_ACCELERATE;
-	*/
-
-	if (InputDown(gc_spectate, ssplayer))
-		cmd->buttons |= BT_SPECTATE;
-
+	// drift button
+	if (InputDown(gc_drift, ssplayer))
+		cmd->buttons |= BT_DRIFT;
+	
 	// Lua scriptable buttons
 	if (InputDown(gc_custom1, ssplayer))
 		cmd->buttons |= BT_CUSTOM1;
@@ -1437,37 +1417,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->buttons |= BT_CUSTOM2;
 	if (InputDown(gc_custom3, ssplayer))
 		cmd->buttons |= BT_CUSTOM3;
-
-	// use with any button/key
-	/*
-	if (InputDown(gc_brake, ssplayer))
-		cmd->buttons |= BT_BRAKE;
-	*/
-
-	// Camera Controls
-	/*
-	if (cv_debug || cv_analog.value || demoplayback || objectplacing || player->pflags & PF_NIGHTSMODE)
-	{
-		if (InputDown(gc_aimforward, ssplayer))
-			cmd->buttons |= BT_FORWARD;
-		if (InputDown(gc_aimbackward, ssplayer))
-			cmd->buttons |= BT_BACKWARD;
-	}
-	*/
-
-	/*
-	if (InputDown(gc_lookback, ssplayer))
-	{
-		if (thiscam->chase && !player->kartstuff[k_camspin])
-			player->kartstuff[k_camspin] = 1;
-	}
-	else if (player->kartstuff[k_camspin] > 0)
-		player->kartstuff[k_camspin] = -1;
-	*/
-
-	// jump button
-	if (InputDown(gc_jump, ssplayer))
-		cmd->buttons |= BT_JUMP;
 
 	// player aiming shit, ahhhh...
 	{
@@ -1478,7 +1427,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			 ? -1 : 1; // set to -1 or 1 to multiply
 
 		// mouse look stuff (mouse look is not the same as mouse aim)
-		if (mouseaiming)
+		if (mouseaiming && player->spectator)
 		{
 			kbl = false;
 
@@ -1487,24 +1436,28 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 
 		axis = JoyAxis(AXISLOOK, ssplayer);
-		if (analogjoystickmove && axis != 0 && lookaxis)
+		if (analogjoystickmove && axis != 0 && lookaxis && player->spectator)
 			laim += (axis<<16) * screen_invert;
 
 		// spring back if not using keyboard neither mouselookin'
 		if (!kbl && !lookaxis && !mouseaiming)
 			laim = 0;
 
-		if (InputDown(gc_lookup, ssplayer) || (gamepadjoystickmove && axis < 0))
+		if (player->spectator)
 		{
-			laim += KB_LOOKSPEED * screen_invert;
-			kbl = true;
+			if (InputDown(gc_lookup, ssplayer) || (gamepadjoystickmove && axis < 0))
+			{
+				laim += KB_LOOKSPEED * screen_invert;
+				kbl = true;
+			}
+			else if (InputDown(gc_lookdown, ssplayer) || (gamepadjoystickmove && axis > 0))
+			{
+				laim -= KB_LOOKSPEED * screen_invert;
+				kbl = true;
+			}
 		}
-		else if (InputDown(gc_lookdown, ssplayer) || (gamepadjoystickmove && axis > 0))
-		{
-			laim -= KB_LOOKSPEED * screen_invert;
-			kbl = true;
-		}
-		else if (InputDown(gc_centerview, ssplayer))
+
+		if (InputDown(gc_centerview, ssplayer)) // No need to put a spectator limit on this one though :V
 			laim = 0;
 
 		// accept no mlook for network games
@@ -1551,27 +1504,19 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		side = temp;
 	}
 
-	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
-	cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	if (cmd->buttons & BT_BRAKE && !forward) // Sal: If you're not accelerating, but going forward, then you should just lose your momentum. Request from Sev
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove / 2);
+		cmd->sidemove = (SINT8)(cmd->sidemove / 2);
+	}
+	else
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
+		cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	}
 
-	if (cv_kartmirror.value)
+	if (mirrormode)
 		cmd->sidemove = -cmd->sidemove;
-
-	//{ SRB2kart - Drift support
-	axis = JoyAxis(AXISTURN, ssplayer);
-	if (cv_kartmirror.value)
-		axis = -axis;
-
-	if (cmd->angleturn > 0) // Drifting to the left
-		cmd->buttons |= BT_DRIFTLEFT;
-	else
-		cmd->buttons &= ~BT_DRIFTLEFT;
-
-	if (cmd->angleturn < 0) // Drifting to the right
-		cmd->buttons |= BT_DRIFTRIGHT;
-	else
-		cmd->buttons &= ~BT_DRIFTRIGHT;
-	//}
 
 	if (ssplayer == 2 && player->bot == 1) {
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
@@ -1585,6 +1530,23 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			B_BuildTiccmd(player, cmd);
 		}
 	}
+
+	//{ SRB2kart - Drift support
+	axis = JoyAxis(AXISTURN, ssplayer);
+	if (mirrormode)
+		axis = -axis;
+
+	// TODO: Remove this hack please :(
+	if (cmd->angleturn > 0) // Drifting to the left
+		cmd->buttons |= BT_DRIFTLEFT;
+	else
+		cmd->buttons &= ~BT_DRIFTLEFT;
+
+	if (cmd->angleturn < 0) // Drifting to the right
+		cmd->buttons |= BT_DRIFTRIGHT;
+	else
+		cmd->buttons &= ~BT_DRIFTRIGHT;
+	//}
 
 	if (analog) {
 		cmd->angleturn = (INT16)(thiscam->angle >> 16);
@@ -1603,7 +1565,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
 
 		// SRB2kart - no additional angle if not moving
-		if ((player->mo && player->speed > 0) || (leveltime > 140 && (cmd->buttons & BT_ACCELERATE) && (cmd->buttons & BT_BRAKE)))
+		if ((player->mo && player->speed > 0) || (leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE) || (player->spectator || objectplacing))
 			lang += (cmd->angleturn<<16);
 
 		cmd->angleturn = (INT16)(lang >> 16);
@@ -1611,33 +1573,37 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	if (!hu_stopped)
 	{
-		if (ssplayer == 2)
+		switch (ssplayer)
 		{
+		case 2:
 			localangle2 = lang;
 			localaiming2 = laim;
 			keyboard_look2 = kbl;
 			turnheld2 = th;
-		}
-		else if (ssplayer == 3)
-		{
+			camspin2 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 3:
 			localangle3 = lang;
 			localaiming3 = laim;
 			keyboard_look3 = kbl;
 			turnheld3 = th;
-		}
-		else if (ssplayer == 4)
-		{
+			camspin3 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 4:
 			localangle4 = lang;
 			localaiming4 = laim;
 			keyboard_look4 = kbl;
 			turnheld4 = th;
-		}
-		else
-		{
+			camspin4 = InputDown(gc_lookback, ssplayer);
+			break;
+		case 1:
+		default:
 			localangle = lang;
 			localaiming = laim;
 			keyboard_look = kbl;
 			turnheld = th;
+			camspin = InputDown(gc_lookback, ssplayer);
+			break;
 		}
 	}
 
@@ -1845,6 +1811,7 @@ void G_DoLoadLevel(boolean resetplayer)
 
 static INT32 pausedelay = 0;
 static INT32 camtoggledelay, camtoggledelay2, camtoggledelay3, camtoggledelay4 = 0;
+static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 
 //
 // G_Responder
@@ -1896,11 +1863,12 @@ boolean G_Responder(event_t *ev)
 						continue;
 				}*/
 
-				if (gametype != GT_RACE) // srb2kart
+				// SRB2Kart: Ehhh, who cares, Mario Kart's designed around screen-cheating anyway
+				/*if (gametype != GT_RACE)
 				{
 					if (players[consoleplayer].kartstuff[k_balloon] > 0)
 						continue;
-				}
+				}*/
 
 				break;
 			} while (displayplayer != consoleplayer);
@@ -2050,6 +2018,43 @@ boolean G_Responder(event_t *ev)
 					CV_SetValue(&cv_chasecam4, cv_chasecam4.value ? 0 : 1);
 				}
 			}
+			if (ev->data1 == gamecontrol[gc_spectate][0]
+				|| ev->data1 == gamecontrol[gc_spectate][1])
+			{
+				if (!spectatedelay)
+				{
+					spectatedelay = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam spectator");
+				}
+			}
+			if (ev->data1 == gamecontrolbis[gc_spectate][0]
+				|| ev->data1 == gamecontrolbis[gc_spectate][1])
+			{
+				if (!spectatedelay2)
+				{
+					spectatedelay2 = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam2 spectator");
+				}
+			}
+			if (ev->data1 == gamecontrol3[gc_spectate][0]
+				|| ev->data1 == gamecontrol3[gc_spectate][1])
+			{
+				if (!spectatedelay3)
+				{
+					spectatedelay3 = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam3 spectator");
+				}
+			}
+			if (ev->data1 == gamecontrol4[gc_spectate][0]
+				|| ev->data1 == gamecontrol4[gc_spectate][1])
+			{
+				if (!spectatedelay4)
+				{
+					spectatedelay4 = NEWTICRATE / 7;
+					COM_ImmedExecute("changeteam4 spectator");
+				}
+			}
+
 			return true;
 
 		case ev_keyup:
@@ -2214,9 +2219,21 @@ void G_Ticker(boolean run)
 
 		if (camtoggledelay)
 			camtoggledelay--;
-
 		if (camtoggledelay2)
 			camtoggledelay2--;
+		if (camtoggledelay3)
+			camtoggledelay3--;
+		if (camtoggledelay4)
+			camtoggledelay4--;
+
+		if (spectatedelay)
+			spectatedelay--;
+		if (spectatedelay2)
+			spectatedelay2--;
+		if (spectatedelay3)
+			spectatedelay3--;
+		if (spectatedelay4)
+			spectatedelay4--;
 	}
 }
 
@@ -2251,6 +2268,22 @@ static inline void G_PlayerFinishLevel(INT32 player)
 
 	if (rendermode == render_soft)
 		V_SetPaletteLump(GetPalette()); // Reset the palette
+
+	// SRB2kart: Increment the "matches played" counter.
+	if (player == consoleplayer)
+	{
+		if (legitimateexit && ((!modifiedgame || savemoddata) && !demoplayback))
+		{
+			matchesplayed++;
+			if (M_UpdateUnlockablesAndExtraEmblems())
+			{
+				S_StartSound(NULL, sfx_ncitem);
+				G_SaveGameData(); // only save if unlocked something
+			}
+		}
+
+		legitimateexit = false;
+	}
 }
 
 //
@@ -2980,8 +3013,12 @@ boolean G_GametypeHasTeams(void)
 //
 boolean G_GametypeHasSpectators(void)
 {
-	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE
-			&& gametype != GT_MATCH); // srb2kart: temporary?
+	// SRB2Kart: We don't have any exceptions to not being able to spectate yet. Maybe when SP & bots roll around.
+#if 0
+	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
+#else
+	return true;
+#endif
 }
 
 //
@@ -3335,18 +3372,20 @@ void G_LoadGameData(void)
 	UINT8 rtemp;
 
 	//For records
-	UINT32 recscore;
-	tic_t  rectime;
-	UINT16 recrings;
+	tic_t rectime;
+	tic_t reclap;
+	//UINT32 recscore;
+	//UINT16 recrings;
 
-	UINT8 recmares;
-	INT32 curmare;
+	//UINT8 recmares;
+	//INT32 curmare;
 
 	// Clear things so previously read gamedata doesn't transfer
 	// to new gamedata
 	G_ClearRecords(); // main and nights records
 	M_ClearSecrets(); // emblems, unlocks, maps visited, etc
 	totalplaytime = 0; // total play time (separate from all)
+	matchesplayed = 0; // SRB2Kart: matches played & finished
 
 	if (M_CheckParm("-nodata"))
 		return; // Don't load.
@@ -3376,6 +3415,7 @@ void G_LoadGameData(void)
 	}
 
 	totalplaytime = READUINT32(save_p);
+	matchesplayed = READUINT32(save_p);
 
 	modded = READUINT8(save_p);
 
@@ -3422,29 +3462,31 @@ void G_LoadGameData(void)
 
 	timesBeaten = READUINT32(save_p);
 	timesBeatenWithEmeralds = READUINT32(save_p);
-	timesBeatenUltimate = READUINT32(save_p);
+	//timesBeatenUltimate = READUINT32(save_p);
 
 	// Main records
 	for (i = 0; i < NUMMAPS; ++i)
 	{
-		recscore = READUINT32(save_p);
-		rectime  = (tic_t)READUINT32(save_p);
-		recrings = READUINT16(save_p);
+		rectime = (tic_t)READUINT32(save_p);
+		reclap  = (tic_t)READUINT32(save_p);
+		//recscore = READUINT32(save_p);
+		//recrings = READUINT16(save_p);
 
-		if (recrings > 10000 || recscore > MAXSCORE)
-			goto datacorrupt;
+		/*if (recrings > 10000 || recscore > MAXSCORE)
+			goto datacorrupt;*/
 
-		if (recscore || rectime || recrings)
+		if (rectime || reclap)
 		{
 			G_AllocMainRecordData((INT16)i);
-			mainrecords[i]->score = recscore;
 			mainrecords[i]->time = rectime;
-			mainrecords[i]->rings = recrings;
+			mainrecords[i]->lap = reclap;
+			//mainrecords[i]->score = recscore;
+			//mainrecords[i]->rings = recrings;
 		}
 	}
 
 	// Nights records
-	for (i = 0; i < NUMMAPS; ++i)
+	/*for (i = 0; i < NUMMAPS; ++i)
 	{
 		if ((recmares = READUINT8(save_p)) == 0)
 			continue;
@@ -3462,7 +3504,7 @@ void G_LoadGameData(void)
 		}
 
 		nightsrecords[i]->nummares = recmares;
-	}
+	}*/
 
 	// done
 	Z_Free(savebuffer);
@@ -3495,7 +3537,7 @@ void G_SaveGameData(void)
 	INT32 i, j;
 	UINT8 btemp;
 
-	INT32 curmare;
+	//INT32 curmare;
 
 	if (!gamedataloaded)
 		return; // If never loaded (-nodata), don't save
@@ -3518,6 +3560,7 @@ void G_SaveGameData(void)
 	WRITEUINT32(save_p, 0xFCAFE211);
 
 	WRITEUINT32(save_p, totalplaytime);
+	WRITEUINT32(save_p, matchesplayed);
 
 	btemp = (UINT8)(savemoddata || modifiedgame);
 	WRITEUINT8(save_p, btemp);
@@ -3562,27 +3605,27 @@ void G_SaveGameData(void)
 
 	WRITEUINT32(save_p, timesBeaten);
 	WRITEUINT32(save_p, timesBeatenWithEmeralds);
-	WRITEUINT32(save_p, timesBeatenUltimate);
+	//WRITEUINT32(save_p, timesBeatenUltimate);
 
 	// Main records
 	for (i = 0; i < NUMMAPS; i++)
 	{
 		if (mainrecords[i])
 		{
-			WRITEUINT32(save_p, mainrecords[i]->score);
 			WRITEUINT32(save_p, mainrecords[i]->time);
-			WRITEUINT16(save_p, mainrecords[i]->rings);
+			WRITEUINT32(save_p, mainrecords[i]->lap);
+			//WRITEUINT32(save_p, mainrecords[i]->score);
+			//WRITEUINT16(save_p, mainrecords[i]->rings);
 		}
 		else
 		{
 			WRITEUINT32(save_p, 0);
 			WRITEUINT32(save_p, 0);
-			WRITEUINT16(save_p, 0);
 		}
 	}
 
 	// NiGHTS records
-	for (i = 0; i < NUMMAPS; i++)
+	/*for (i = 0; i < NUMMAPS; i++)
 	{
 		if (!nightsrecords[i] || !nightsrecords[i]->nummares)
 		{
@@ -3598,7 +3641,7 @@ void G_SaveGameData(void)
 			WRITEUINT8(save_p, nightsrecords[i]->grade[curmare]);
 			WRITEUINT32(save_p, nightsrecords[i]->time[curmare]);
 		}
-	}
+	}*/
 
 	length = save_p - savebuffer;
 
@@ -3859,6 +3902,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 
 	if (netgame || multiplayer) // Nice try, haxor.
 		ultimatemode = false;
+
+	legitimateexit = false; // SRB2Kart
 
 	if (!demoplayback && !netgame) // Netgame sets random seed elsewhere, demo playback sets seed just before us!
 		P_SetRandSeed(M_RandomizedSeed()); // Use a more "Random" random seed
@@ -4964,12 +5009,13 @@ void G_BeginRecording(void)
 	case ATTACKING_RECORD: // 1
 		demotime_p = demo_p;
 		WRITEUINT32(demo_p,UINT32_MAX); // time
+		WRITEUINT32(demo_p,UINT32_MAX); // lap
 		break;
-	case ATTACKING_NIGHTS: // 2
+	/*case ATTACKING_NIGHTS: // 2
 		demotime_p = demo_p;
 		WRITEUINT32(demo_p,UINT32_MAX); // time
 		WRITEUINT32(demo_p,0); // score
-		break;
+		break;*/
 	default: // 3
 		break;
 	}
@@ -5070,21 +5116,22 @@ void G_BeginMetal(void)
 	oldmetal.angle = mo->angle;
 }
 
-void G_SetDemoTime(UINT32 ptime, UINT32 pscore)
+void G_SetDemoTime(UINT32 ptime, UINT32 plap)
 {
 	if (!demorecording || !demotime_p)
 		return;
 	if (demoflags & DF_RECORDATTACK)
 	{
 		WRITEUINT32(demotime_p, ptime);
+		WRITEUINT32(demotime_p, plap);
 		demotime_p = NULL;
 	}
-	else if (demoflags & DF_NIGHTSATTACK)
+	/*else if (demoflags & DF_NIGHTSATTACK)
 	{
 		WRITEUINT32(demotime_p, ptime);
 		WRITEUINT32(demotime_p, pscore);
 		demotime_p = NULL;
-	}
+	}*/
 }
 
 // Returns bitfield:
@@ -5095,7 +5142,7 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 {
 	UINT8 *buffer,*p;
 	UINT8 flags;
-	UINT32 oldtime, newtime, oldscore, newscore;
+	UINT32 oldtime, newtime, oldlap, newlap;
 	UINT16 oldversion;
 	size_t bufsize ATTRUNUSED;
 	UINT8 c;
@@ -5129,13 +5176,13 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	if (flags & DF_RECORDATTACK)
 	{
 		newtime = READUINT32(p);
-		newscore = 0;
+		newlap = READUINT32(p);
 	}
-	else if (flags & DF_NIGHTSATTACK)
+	/*else if (flags & DF_NIGHTSATTACK)
 	{
 		newtime = READUINT32(p);
 		newscore = READUINT32(p);
-	}
+	}*/
 	else // appease compiler
 		return 0;
 
@@ -5189,13 +5236,13 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	if (flags & DF_RECORDATTACK)
 	{
 		oldtime = READUINT32(p);
-		oldscore = 0;
+		oldlap = READUINT32(p);
 	}
-	else if (flags & DF_NIGHTSATTACK)
+	/*else if (flags & DF_NIGHTSATTACK)
 	{
 		oldtime = READUINT32(p);
 		oldscore = READUINT32(p);
-	}
+	}*/
 	else // appease compiler
 		return UINT8_MAX;
 
@@ -5203,11 +5250,11 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 
 	c = 0;
 	if (newtime < oldtime
-	|| (newtime == oldtime && (newscore > oldscore)))
+	|| (newtime == oldtime && (newlap < oldlap)))
 		c |= 1; // Better time
-	if (newscore > oldscore
-	|| (newscore == oldscore && newtime < oldtime))
-		c |= 1<<1; // Better score
+	if (newlap < oldlap
+	|| (newlap == oldlap && newtime < oldtime))
+		c |= 1<<1; // Better lap time
 	return c;
 }
 
@@ -5325,8 +5372,8 @@ void G_DoPlayDemo(char *defdemoname)
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
 	CON_ToggleOff();
 
-	hu_demoscore = 0;
 	hu_demotime = UINT32_MAX;
+	hu_demolap = UINT32_MAX;
 
 	switch (modeattacking)
 	{
@@ -5334,11 +5381,12 @@ void G_DoPlayDemo(char *defdemoname)
 		break;
 	case ATTACKING_RECORD: // 1
 		hu_demotime  = READUINT32(demo_p);
+		hu_demolap  = READUINT32(demo_p);
 		break;
-	case ATTACKING_NIGHTS: // 2
+	/*case ATTACKING_NIGHTS: // 2
 		hu_demotime  = READUINT32(demo_p);
 		hu_demoscore = READUINT32(demo_p);
-		break;
+		break;*/
 	default: // 3
 		modeattacking = ATTACKING_NONE;
 		break;
@@ -5554,11 +5602,11 @@ void G_AddGhost(char *defdemoname)
 	case ATTACKING_NONE: // 0
 		break;
 	case ATTACKING_RECORD: // 1
-		p += 4; // demo time
+		p += 8; // demo time, lap
 		break;
-	case ATTACKING_NIGHTS: // 2
+	/*case ATTACKING_NIGHTS: // 2
 		p += 8; // demo time left, score
-		break;
+		break;*/
 	default: // 3
 		break;
 	}

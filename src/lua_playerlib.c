@@ -112,10 +112,10 @@ static int player_get(lua_State *L)
 		lua_pushfixed(L, plr->viewz);
 	else if (fastcmp(field,"viewheight"))
 		lua_pushfixed(L, plr->viewheight);
-	else if (fastcmp(field,"deltaviewheight"))
+	/*else if (fastcmp(field,"deltaviewheight"))
 		lua_pushfixed(L, plr->deltaviewheight);
 	else if (fastcmp(field,"bob"))
-		lua_pushfixed(L, plr->bob);
+		lua_pushfixed(L, plr->bob);*/
 	else if (fastcmp(field,"aiming"))
 		lua_pushangle(L, plr->aiming);
 	else if (fastcmp(field,"health"))
@@ -371,10 +371,10 @@ static int player_set(lua_State *L)
 		plr->viewz = luaL_checkfixed(L, 3);
 	else if (fastcmp(field,"viewheight"))
 		plr->viewheight = luaL_checkfixed(L, 3);
-	else if (fastcmp(field,"deltaviewheight"))
+	/*else if (fastcmp(field,"deltaviewheight"))
 		plr->deltaviewheight = luaL_checkfixed(L, 3);
 	else if (fastcmp(field,"bob"))
-		plr->bob = luaL_checkfixed(L, 3);
+		plr->bob = luaL_checkfixed(L, 3);*/
 	else if (fastcmp(field,"aiming")) {
 		plr->aiming = luaL_checkangle(L, 3);
 		if (plr == &players[consoleplayer])

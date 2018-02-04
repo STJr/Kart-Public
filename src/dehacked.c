@@ -2175,16 +2175,16 @@ static void reademblemdata(MYFILE *f, INT32 num)
 					emblemlocations[num-1].type = ET_GLOBAL;
 				else if (fastcmp(word2, "SKIN"))
 					emblemlocations[num-1].type = ET_SKIN;
-				else if (fastcmp(word2, "SCORE"))
-					emblemlocations[num-1].type = ET_SCORE;
+				/*else if (fastcmp(word2, "SCORE"))
+					emblemlocations[num-1].type = ET_SCORE;*/
 				else if (fastcmp(word2, "TIME"))
 					emblemlocations[num-1].type = ET_TIME;
-				else if (fastcmp(word2, "RINGS"))
+				/*else if (fastcmp(word2, "RINGS"))
 					emblemlocations[num-1].type = ET_RINGS;
 				else if (fastcmp(word2, "NGRADE"))
 					emblemlocations[num-1].type = ET_NGRADE;
 				else if (fastcmp(word2, "NTIME"))
-					emblemlocations[num-1].type = ET_NTIME;
+					emblemlocations[num-1].type = ET_NTIME;*/
 				else
 					emblemlocations[num-1].type = (UINT8)value;
 			}
@@ -2229,24 +2229,24 @@ static void reademblemdata(MYFILE *f, INT32 num)
 	// Default sprite and color definitions for lazy people like me
 	if (!emblemlocations[num-1].sprite) switch (emblemlocations[num-1].type)
 	{
-		case ET_RINGS:
+		/*case ET_RINGS:
 			emblemlocations[num-1].sprite = 'R'; break;
 		case ET_SCORE: case ET_NGRADE:
-			emblemlocations[num-1].sprite = 'S'; break;
-		case ET_TIME: case ET_NTIME:
+			emblemlocations[num-1].sprite = 'S'; break;*/
+		case ET_TIME: //case ET_NTIME:
 			emblemlocations[num-1].sprite = 'T'; break;
 		default:
 			emblemlocations[num-1].sprite = 'A'; break;
 	}
 	if (!emblemlocations[num-1].color) switch (emblemlocations[num-1].type)
 	{
-		case ET_RINGS:
+		/*case ET_RINGS:
 			emblemlocations[num-1].color = SKINCOLOR_GOLD; break;
 		case ET_SCORE:
 			emblemlocations[num-1].color = SKINCOLOR_BROWN; break;
 		case ET_NGRADE:
-			emblemlocations[num-1].color = SKINCOLOR_TEAL; break;
-		case ET_TIME: case ET_NTIME:
+			emblemlocations[num-1].color = SKINCOLOR_TEAL; break;*/
+		case ET_TIME: //case ET_NTIME:
 			emblemlocations[num-1].color = SKINCOLOR_GREY; break;
 		default:
 			emblemlocations[num-1].color = SKINCOLOR_BLUE; break;
@@ -2477,32 +2477,33 @@ static void readcondition(UINT8 set, UINT32 id, char *word2)
 		return;
 	}
 
-	if (fastcmp(params[0], "PLAYTIME"))
+	if				(fastcmp(params[0], "PLAYTIME")
+	|| (++offset && fastcmp(params[0], "MATCHESPLAYED")))
 	{
 		PARAMCHECK(1);
-		ty = UC_PLAYTIME;
+		ty = UC_PLAYTIME + offset;
 		re = atoi(params[1]);
 	}
-	else if        (fastcmp(params[0], "GAMECLEAR")
-	|| (++offset && fastcmp(params[0], "ALLEMERALDS"))
-	|| (++offset && fastcmp(params[0], "ULTIMATECLEAR")))
+	else if ((offset=0) || fastcmp(params[0], "GAMECLEAR")
+	||        (++offset && fastcmp(params[0], "ALLEMERALDS")))
+	//||        (++offset && fastcmp(params[0], "ULTIMATECLEAR")))
 	{
 		ty = UC_GAMECLEAR + offset;
 		re = (params[1]) ? atoi(params[1]) : 1;
 	}
-	else if ((offset=0) || fastcmp(params[0], "OVERALLSCORE")
-	||        (++offset && fastcmp(params[0], "OVERALLTIME"))
-	||        (++offset && fastcmp(params[0], "OVERALLRINGS")))
+	else if ((offset=0) || fastcmp(params[0], "OVERALLTIME"))
+	//||        (++offset && fastcmp(params[0], "OVERALLSCORE"))
+	//||        (++offset && fastcmp(params[0], "OVERALLRINGS")))
 	{
 		PARAMCHECK(1);
-		ty = UC_OVERALLSCORE + offset;
+		ty = UC_OVERALLTIME + offset;
 		re = atoi(params[1]);
 	}
 	else if ((offset=0) || fastcmp(params[0], "MAPVISITED")
 	||        (++offset && fastcmp(params[0], "MAPBEATEN"))
-	||        (++offset && fastcmp(params[0], "MAPALLEMERALDS"))
-	||        (++offset && fastcmp(params[0], "MAPULTIMATE"))
-	||        (++offset && fastcmp(params[0], "MAPPERFECT")))
+	||        (++offset && fastcmp(params[0], "MAPALLEMERALDS")))
+	//||        (++offset && fastcmp(params[0], "MAPULTIMATE"))
+	//||        (++offset && fastcmp(params[0], "MAPPERFECT")))
 	{
 		PARAMCHECK(1);
 		ty = UC_MAPVISITED + offset;
@@ -2519,12 +2520,12 @@ static void readcondition(UINT8 set, UINT32 id, char *word2)
 			return;
 		}
 	}
-	else if ((offset=0) || fastcmp(params[0], "MAPSCORE")
-	||        (++offset && fastcmp(params[0], "MAPTIME"))
-	||        (++offset && fastcmp(params[0], "MAPRINGS")))
+	else if ((offset=0) || fastcmp(params[0], "MAPTIME"))
+	//||        (++offset && fastcmp(params[0], "MAPSCORE"))
+	//||        (++offset && fastcmp(params[0], "MAPRINGS")))
 	{
 		PARAMCHECK(2);
-		ty = UC_MAPSCORE + offset;
+		ty = UC_MAPTIME + offset;
 		re = atoi(params[2]);
 
 		// Convert to map number if it appears to be one
@@ -2539,7 +2540,7 @@ static void readcondition(UINT8 set, UINT32 id, char *word2)
 			return;
 		}
 	}
-	else if ((offset=0) || fastcmp(params[0], "NIGHTSSCORE")
+	/*else if ((offset=0) || fastcmp(params[0], "NIGHTSSCORE")
 	||        (++offset && fastcmp(params[0], "NIGHTSTIME"))
 	||        (++offset && fastcmp(params[0], "NIGHTSGRADE")))
 	{
@@ -2566,7 +2567,7 @@ static void readcondition(UINT8 set, UINT32 id, char *word2)
 		else
 			x2 = 0;
 
-	}
+	}*/
 	else if (fastcmp(params[0], "TRIGGER"))
 	{
 		PARAMCHECK(1);
@@ -7814,16 +7815,15 @@ struct {
 	{"NUMDIRS",NUMDIRS},
 
 	// Buttons (ticcmd_t)	// SRB2kart
-	{"BT_WEAPONMASK",BT_WEAPONMASK}, //our first four bits.
+	{"BT_ACCELERATE",BT_ACCELERATE},
+	{"BT_DRIFT",BT_DRIFT},
+	{"BT_BRAKE",BT_BRAKE},
+	{"BT_ATTACK",BT_ATTACK},
+	{"BT_FORWARD",BT_FORWARD},
+	{"BT_BACKWARD",BT_BACKWARD},
+	//{"BT_SPECTATE",BT_SPECTATE},
 	{"BT_DRIFTLEFT",BT_DRIFTLEFT},
 	{"BT_DRIFTRIGHT",BT_DRIFTRIGHT},
-	{"BT_ATTACK",BT_ATTACK}, // shoot rings
-	{"BT_BRAKE",BT_BRAKE}, // brake
-	{"BT_FORWARD",BT_FORWARD}, // turn camera left
-	{"BT_BACKWARD",BT_BACKWARD}, // turn camera right
-	{"BT_SPECTATE",BT_SPECTATE},
-	{"BT_JUMP",BT_JUMP},
-	{"BT_ACCELERATE",BT_ACCELERATE}, // Fire a normal ring no matter what
 	{"BT_CUSTOM1",BT_CUSTOM1}, // Lua customizable
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable

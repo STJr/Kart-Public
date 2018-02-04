@@ -128,7 +128,7 @@ extern CV_PossibleValue_t CV_Natural[];
 
 // SRB2kart
 extern CV_PossibleValue_t karthud_cons_t[];
-extern CV_PossibleValue_t kartcc_cons_t[];
+extern CV_PossibleValue_t kartspeed_cons_t[];
 
 // register a variable for use at the console
 void CV_RegisterVar(consvar_t *variable);

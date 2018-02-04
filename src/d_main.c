@@ -638,7 +638,7 @@ void D_SRB2Loop(void)
 	COM_ImmedExecute("cls;version");
 
 	if (rendermode == render_soft)
-		V_DrawScaledPatch(0, 0, 0, (patch_t *)W_CacheLumpNum(W_GetNumForName("CONSBACK"), PU_CACHE));
+		V_DrawFixedPatch(0, 0, FRACUNIT/2, 0, (patch_t *)W_CacheLumpNum(W_GetNumForName("KARTKREW"), PU_CACHE), NULL);
 	I_FinishUpdate(); // page flip or blit buffer
 
 	for (;;)
@@ -1411,11 +1411,11 @@ void D_SRB2Main(void)
 		return;
 	}
 
-	if (M_CheckParm("-ultimatemode"))
+	/*if (M_CheckParm("-ultimatemode"))
 	{
 		autostart = true;
 		ultimatemode = true;
-	}
+	}*/
 
 	if (autostart || netgame || M_CheckParm("+connect") || M_CheckParm("-connect"))
 	{
