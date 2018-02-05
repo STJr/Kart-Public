@@ -11,7 +11,7 @@
 
 UINT8 colortranslations[MAXSKINCOLORS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
-void K_StarmanColormap(UINT8 *dest_colormap, UINT8 skincolor);
+void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor);
 void K_GenerateKartColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color);
 UINT8 K_GetKartColorByName(const char *name);
 
@@ -27,7 +27,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source);
 void K_StealBalloon(player_t *player, player_t *victim, boolean force);
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source);
 void K_SpawnDriftTrail(player_t *player);
-void K_DoMushroom(player_t *player, boolean doPFlag, boolean startboost);
+void K_DoSneaker(player_t *player, boolean doPFlag, boolean startboost);
 void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed);
 boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);

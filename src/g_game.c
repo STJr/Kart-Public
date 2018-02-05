@@ -206,9 +206,9 @@ UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
 UINT16 extralifetics = 4*TICRATE;
 
 // SRB2kart
-INT32 bootime = 7*TICRATE;
-INT32 boostealtime = TICRATE/2;
-INT32 mushroomtime = TICRATE + (TICRATE/3);
+INT32 hyudorotime = 7*TICRATE;
+INT32 stealtime = TICRATE/2;
+INT32 sneakertime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
 INT32 comebacktime = 10*TICRATE;
 INT32 bumptime = 6;
@@ -1379,7 +1379,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	else
 	{
 		// forward with key or button // SRB2kart - we use an accel/brake instead of forward/backward.
-		if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_mushroomtimer])
+		if (InputDown(gc_accelerate, ssplayer) || player->kartstuff[k_sneakertimer])
 		{
 			cmd->buttons |= BT_ACCELERATE;
 			forward = forwardmove[1];	// 50

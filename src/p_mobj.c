@@ -1351,7 +1351,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 		}
 		if (wasflip == !(mo->eflags & MFE_VERTICALFLIP)) // note!! == ! is not equivalent to != here - turns numeric into bool this way
 			P_PlayerFlip(mo);
-		if (mo->player->kartstuff[k_feather] & 2)
+		if (mo->player->kartstuff[k_pogospring])
 			gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
 	}
 	else
@@ -1741,7 +1741,7 @@ void P_XYMovement(mobj_t *mo)
 			if (player->bot)
 				B_MoveBlocked(player);
 		}
-		//{ SRB2kart - Red Shell
+		//{ SRB2kart - Jawz
 		if (mo->type == MT_REDITEM || mo->type == MT_REDITEMDUD)
 		{
 			if (mo->health == 1)
@@ -6518,7 +6518,7 @@ void P_MobjThinker(mobj_t *mobj)
 						return;
 					}
 
-					if (mobj->target->player->kartstuff[k_bootimer] > 0)
+					if (mobj->target->player->kartstuff[k_hyudorotimer] > 0)
 					{
 						if ((mobj->target->player == &players[displayplayer]
 							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
@@ -6528,7 +6528,7 @@ void P_MobjThinker(mobj_t *mobj)
 							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
 							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
 							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
-							&& (mobj->target->player->kartstuff[k_bootimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
+							&& (mobj->target->player->kartstuff[k_hyudorotimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
 						{
 							if (leveltime & 1)
 								mobj->flags2 |= MF2_DONTDRAW;
@@ -6538,7 +6538,7 @@ void P_MobjThinker(mobj_t *mobj)
 						else
 							mobj->flags2 |= MF2_DONTDRAW;
 					}
-					else if (mobj->target->player->kartstuff[k_bootimer] == 0)
+					else if (mobj->target->player->kartstuff[k_hyudorotimer] == 0)
 					{
 						mobj->flags2 &= ~MF2_DONTDRAW;
 					}
@@ -6592,15 +6592,6 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_BANANASHIELD:
 			case MT_FAKESHIELD:
 			case MT_BOMBSHIELD:
-			case MT_TRIPLEGREENSHIELD1:
-			case MT_TRIPLEGREENSHIELD2:
-			case MT_TRIPLEGREENSHIELD3:
-			case MT_TRIPLEREDSHIELD1:
-			case MT_TRIPLEREDSHIELD2:
-			case MT_TRIPLEREDSHIELD3:
-			case MT_TRIPLEBANANASHIELD1:
-			case MT_TRIPLEBANANASHIELD2:
-			case MT_TRIPLEBANANASHIELD3:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -6608,12 +6599,11 @@ void P_MobjThinker(mobj_t *mobj)
 					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
-					if (mobj->type == MT_TRIPLEGREENSHIELD1 || mobj->type == MT_TRIPLEGREENSHIELD2 || mobj->type == MT_TRIPLEGREENSHIELD3
-					|| mobj->type == MT_TRIPLEREDSHIELD1 || mobj->type == MT_TRIPLEREDSHIELD2 || mobj->type == MT_TRIPLEREDSHIELD3)
+					if ((mobj->type == MT_GREENSHIELD || mobj->type == MT_REDSHIELD) && mobj->lastlook > 0)
 						mobj->angle += FixedAngle(mobj->info->speed);
-					else if (mobj->type == MT_TRIPLEBANANASHIELD2)
+					else if (mobj->type == MT_BANANASHIELD && mobj->lastlook == 2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
-					else if (mobj->type == MT_TRIPLEBANANASHIELD3)
+					else if (mobj->type == MT_BANANASHIELD && mobj->lastlook == 3)
 						mobj->angle = (mobj->target->angle + ANGLE_225);
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
@@ -6669,20 +6659,13 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->momx = mobj->momy = 0;
 
 					// Was this so hard?
-					if ((mobj->type == MT_GREENSHIELD && !(mobj->target->player->kartstuff[k_greenshell] & 1))
-						|| (mobj->type == MT_REDSHIELD && !(mobj->target->player->kartstuff[k_redshell] & 1))
-						|| (mobj->type == MT_BANANASHIELD && !(mobj->target->player->kartstuff[k_banana] & 1))
-						|| (mobj->type == MT_TRIPLEGREENSHIELD1 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 1))
-						|| (mobj->type == MT_TRIPLEGREENSHIELD2 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 2))
-						|| (mobj->type == MT_TRIPLEGREENSHIELD3 && !(mobj->target->player->kartstuff[k_triplegreenshell] & 4))
-						|| (mobj->type == MT_TRIPLEREDSHIELD1 && !(mobj->target->player->kartstuff[k_tripleredshell] & 1))
-						|| (mobj->type == MT_TRIPLEREDSHIELD2 && !(mobj->target->player->kartstuff[k_tripleredshell] & 2))
-						|| (mobj->type == MT_TRIPLEREDSHIELD3 && !(mobj->target->player->kartstuff[k_tripleredshell] & 4))
-						|| (mobj->type == MT_TRIPLEBANANASHIELD1 && !(mobj->target->player->kartstuff[k_triplebanana] & 1))
-						|| (mobj->type == MT_TRIPLEBANANASHIELD2 && !(mobj->target->player->kartstuff[k_triplebanana] & 2))
-						|| (mobj->type == MT_TRIPLEBANANASHIELD3 && !(mobj->target->player->kartstuff[k_triplebanana] & 4))
-						|| (mobj->type == MT_BOMBSHIELD && !(mobj->target->player->kartstuff[k_bobomb] & 1))
-						|| (mobj->type == MT_FAKESHIELD && !(mobj->target->player->kartstuff[k_fakeitem] & 1)))
+					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
+						|| (mobj->type == MT_REDSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
+						|| (mobj->type == MT_BANANASHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
+						|| (mobj->type == MT_BOMBSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
+						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_fakeitem])
+						|| (mobj->type != MT_FAKESHIELD && !mobj->target->player->kartstuff[k_itemheld])
+						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))
 					{
 						P_RemoveMobj(mobj);
 						return;
@@ -6819,26 +6802,30 @@ void P_MobjThinker(mobj_t *mobj)
 						if (mobj->state != &states[S_PLAYERARROW_ROULETTE]) // don't reset FF_ANIMATE
 							P_SetMobjState(mobj, S_PLAYERARROW_ROULETTE);
 					}
-					else if (mobj->target->player->kartstuff[k_kitchensink])				P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK);
-					else if (mobj->target->player->kartstuff[k_megashroom] == 1
-						|| (mobj->target->player->kartstuff[k_growshrinktimer] > 1
-						&& (leveltime & 1)))												P_SetMobjState(mobj, S_PLAYERARROW_MEGASHROOM);
-					else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1
-						&& !(leveltime & 1))												P_SetMobjState(mobj, S_PLAYERARROW_EMPTY); // S_INVISIBLE
-					else if (mobj->target->player->kartstuff[k_star] == 1)				P_SetMobjState(mobj, S_PLAYERARROW_STAR);
-					else if (mobj->target->player->kartstuff[k_tripleredshell])			P_SetMobjState(mobj, S_PLAYERARROW_TRIPLEREDSHELL);
-					else if (mobj->target->player->kartstuff[k_triplebanana])				P_SetMobjState(mobj, S_PLAYERARROW_TRIPLEBANANA);
-					else if (mobj->target->player->kartstuff[k_triplegreenshell])			P_SetMobjState(mobj, S_PLAYERARROW_TRIPLEGREENSHELL);
-					else if (mobj->target->player->kartstuff[k_fireflower])				P_SetMobjState(mobj, S_PLAYERARROW_FIREFLOWER);
-					else if (mobj->target->player->kartstuff[k_bobomb])					P_SetMobjState(mobj, S_PLAYERARROW_BOBOMB);
-					else if (mobj->target->player->kartstuff[k_redshell])					P_SetMobjState(mobj, S_PLAYERARROW_REDSHELL);
-					else if (mobj->target->player->kartstuff[k_feather] & 1)				P_SetMobjState(mobj, S_PLAYERARROW_FEATHER);
-					else if (mobj->target->player->kartstuff[k_boo] == 1)					P_SetMobjState(mobj, S_PLAYERARROW_BOO);
-					else if (mobj->target->player->kartstuff[k_fakeitem] & 2)				P_SetMobjState(mobj, S_PLAYERARROW_FAKEITEM);
-					else if (mobj->target->player->kartstuff[k_banana])					P_SetMobjState(mobj, S_PLAYERARROW_BANANA);
-					else if (mobj->target->player->kartstuff[k_greenshell])				P_SetMobjState(mobj, S_PLAYERARROW_GREENSHELL);
-					else if (mobj->target->player->kartstuff[k_mushroom])					P_SetMobjState(mobj, S_PLAYERARROW_MUSHROOM);
-					else																	P_SetMobjState(mobj, S_PLAYERARROW); // S_INVISIBLE
+					else
+					{
+						switch(mobj->target->player->kartstuff[k_itemtype])
+						{
+							case KITEM_KITCHENSINK:		P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK); break;
+							case KITEM_SIZEUP:			P_SetMobjState(mobj, S_PLAYERARROW_SIZEUP); break;
+							case KITEM_INVINCIBILITY:	P_SetMobjState(mobj, S_PLAYERARROW_INVINCIBILITY); break;
+							case KITEM_ORBINAUT:		P_SetMobjState(mobj, S_PLAYERARROW_ORBINAUT); break;
+							case KITEM_BALLHOG:			P_SetMobjState(mobj, S_PLAYERARROW_BALLHOG); break;
+							case KITEM_MINE:			P_SetMobjState(mobj, S_PLAYERARROW_MINE); break;
+							case KITEM_JAWZ:			P_SetMobjState(mobj, S_PLAYERARROW_JAWZ); break;
+							case KITEM_POGOSPRING:		P_SetMobjState(mobj, S_PLAYERARROW_POGOSPRING); break;
+							case KITEM_HYUDORO:			P_SetMobjState(mobj, S_PLAYERARROW_HYUDORO); break;
+							case KITEM_FAKE:			P_SetMobjState(mobj, S_PLAYERARROW_FAKEITEM); break;
+							case KITEM_BANANA:			P_SetMobjState(mobj, S_PLAYERARROW_BANANA); break;
+							case KITEM_SNEAKER: 		P_SetMobjState(mobj, S_PLAYERARROW_SNEAKER); break;
+							default:					P_SetMobjState(mobj, S_PLAYERARROW); break; // S_INVISIBLE
+						}
+					}
+
+					if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1))
+						P_SetMobjState(mobj, S_PLAYERARROW_SIZEUP);
+					else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))
+						P_SetMobjState(mobj, S_PLAYERARROW_EMPTY); // S_INVISIBLE
 
 					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 						players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
@@ -7871,14 +7858,18 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_BOMBITEM:
+			if (mobj->target && mobj->target->player)
+				mobj->color = mobj->target->player->skincolor;
+			else
+				mobj->color = SKINCOLOR_RED;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz)
 			{
 				if (mobj->health > mobj->info->spawnhealth-1)
 				{
-					if (mobj->state == &states[S_BOMBAIR])
-						P_SetMobjState(mobj, S_BOMBITEM);
+					if (mobj->state == &states[S_BOMBAIR1] || mobj->state == &states[S_BOMBAIR2])
+						P_SetMobjState(mobj, S_BOMBDEPLOY1);
 
 					mobj->momx = mobj->momy = 0;
 					S_StartSound(mobj, mobj->info->activesound);
@@ -7979,7 +7970,7 @@ void P_MobjThinker(mobj_t *mobj)
 #endif
 			break;
 		case MT_SPINFIRE:
-		case MT_MUSHROOMTRAIL:
+		case MT_SNEAKERTRAIL:
 			if (mobj->eflags & MFE_VERTICALFLIP)
 				mobj->z = mobj->ceilingz - mobj->height;
 			else
@@ -8672,11 +8663,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
 		case MT_BANANAITEM:				case MT_BANANASHIELD:
-		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:
 		case MT_GREENITEM:				case MT_GREENSHIELD:
-		case MT_TRIPLEGREENSHIELD1: 	case MT_TRIPLEGREENSHIELD2: 	case MT_TRIPLEGREENSHIELD3: 
 		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD: 
-		case MT_TRIPLEREDSHIELD1: 		case MT_TRIPLEREDSHIELD2: 		case MT_TRIPLEREDSHIELD3:
 		case MT_BATTLEBALLOON:			case MT_FIREBALL:
 		case MT_FAKEITEM: 				case MT_FAKESHIELD: 
 		case MT_BOMBITEM: 				case MT_BOMBSHIELD: 

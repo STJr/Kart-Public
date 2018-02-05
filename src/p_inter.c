@@ -161,23 +161,16 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // No balloons in Match
 		return false;
 
-	if (player->kartstuff[k_magnettimer]) // You should probably collect stuff when you're attracting it :V
+	if (player->kartstuff[k_attractiontimer]) // You should probably collect stuff when you're attracting it :V
 		return true;
 
-	if (player->kartstuff[k_bootaketimer]				|| player->kartstuff[k_boostolentimer]
-		|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_goldshroomtimer]) // Item-specific timer going off
+	if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
+		|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_rocketsneakertimer]) // Item-specific timer going off
 		return false;
 
 	if (player->kartstuff[k_itemroulette]
-		|| player->kartstuff[k_greenshell]				|| player->kartstuff[k_triplegreenshell]
-		|| player->kartstuff[k_redshell]				|| player->kartstuff[k_tripleredshell]
-		|| player->kartstuff[k_banana]					|| player->kartstuff[k_triplebanana]
-		|| player->kartstuff[k_fakeitem] & 2			|| player->kartstuff[k_magnet]
-		|| player->kartstuff[k_bobomb]					|| player->kartstuff[k_blueshell]
-		|| player->kartstuff[k_mushroom]				|| player->kartstuff[k_fireflower]
-		|| player->kartstuff[k_star]					|| player->kartstuff[k_goldshroom]
-		|| player->kartstuff[k_lightning]				|| player->kartstuff[k_megashroom]
-		|| player->kartstuff[k_boo]						|| player->kartstuff[k_feather] & 1) // Item slot already taken up
+		|| player->kartstuff[k_itemamount]
+		|| player->kartstuff[k_itemheld]) // Item slot already taken up
 		return false;
 
 	return true;
@@ -1635,7 +1628,7 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
 						str = M_GetText("%s%s's tagging hand %s %s.\n");
 					break;
 				case MT_SPINFIRE:
-				case MT_MUSHROOMTRAIL:
+				case MT_SNEAKERTRAIL:
 					str = M_GetText("%s%s's elemental fire trail %s %s.\n");
 					break;
 				case MT_THROWNBOUNCE:
@@ -2038,36 +2031,22 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	// I wish I knew a better way to do this
 	if (target->target && target->target->player && target->target->player->mo)
 	{
-		if (target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_greenshell] & 1)
-			target->target->player->kartstuff[k_greenshell] &= ~1;
-		else if (target->type == MT_REDSHIELD && target->target->player->kartstuff[k_redshell] & 1)
-			target->target->player->kartstuff[k_redshell] &= ~1;
-		else if (target->type == MT_BANANASHIELD && target->target->player->kartstuff[k_banana] & 1)
-			target->target->player->kartstuff[k_banana] &= ~1;
-		else if (target->type == MT_FAKESHIELD && target->target->player->kartstuff[k_fakeitem] & 1)
-			target->target->player->kartstuff[k_fakeitem] &= ~1;
-		else if (target->type == MT_BOMBSHIELD && target->target->player->kartstuff[k_bobomb] & 1)
-			target->target->player->kartstuff[k_bobomb] &= ~1;
-		else if (target->type == MT_TRIPLEGREENSHIELD1 && target->target->player->kartstuff[k_triplegreenshell] & 1)
-			target->target->player->kartstuff[k_triplegreenshell] &= ~1;
-		else if (target->type == MT_TRIPLEGREENSHIELD2 && target->target->player->kartstuff[k_triplegreenshell] & 2)
-			target->target->player->kartstuff[k_triplegreenshell] &= ~2;
-		else if (target->type == MT_TRIPLEGREENSHIELD3 && target->target->player->kartstuff[k_triplegreenshell] & 4)
-			target->target->player->kartstuff[k_triplegreenshell] &= ~4;
-		else if (target->type == MT_TRIPLEREDSHIELD1 && target->target->player->kartstuff[k_tripleredshell] & 1)
-			target->target->player->kartstuff[k_tripleredshell] &= ~1;
-		else if (target->type == MT_TRIPLEREDSHIELD2 && target->target->player->kartstuff[k_tripleredshell] & 2)
-			target->target->player->kartstuff[k_tripleredshell] &= ~2;
-		else if (target->type == MT_TRIPLEREDSHIELD3 && target->target->player->kartstuff[k_tripleredshell] & 4)
-			target->target->player->kartstuff[k_tripleredshell] &= ~4;
-		else if (target->type == MT_TRIPLEBANANASHIELD1 && target->target->player->kartstuff[k_triplebanana] & 1)
-			target->target->player->kartstuff[k_triplebanana] &= ~1;
-		else if (target->type == MT_TRIPLEBANANASHIELD2 && target->target->player->kartstuff[k_triplebanana] & 2)
-			target->target->player->kartstuff[k_triplebanana] &= ~2;
-		else if (target->type == MT_TRIPLEBANANASHIELD3 && target->target->player->kartstuff[k_triplebanana] & 4)
-			target->target->player->kartstuff[k_triplebanana] &= ~4;
-		/*else if (target->type == MT_BATTLEBALLOON && target->target->player->kartstuff[k_balloon] > target->threshold-1)
-			target->target->player->kartstuff[k_balloon] = target->threshold-1;*/
+		if (target->target->player->kartstuff[k_fakeitem] && target->type == MT_FAKESHIELD)
+			target->target->player->kartstuff[k_fakeitem] = 0;
+
+		if ((target->target->player->kartstuff[k_itemheld])
+			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)
+			|| (target->type == MT_REDSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
+			|| (target->type == MT_BANANASHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
+			|| (target->type == MT_BOMBSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
+		{
+			if (target->lastlook > 0)
+				target->target->player->kartstuff[k_itemamount] = target->lastlook-1;
+			else
+				target->target->player->kartstuff[k_itemamount]--;
+			if (!target->target->player->kartstuff[k_itemamount])
+				target->target->player->kartstuff[k_itemheld] = 0;
+		}
 	}
 	//
 
@@ -2080,11 +2059,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	// SRB2kart
 	if (target->type != MT_PLAYER && !(target->flags & MF_MONITOR)
 		 && !(target->type == MT_GREENITEM || target->type == MT_GREENSHIELD
-		 || target->type == MT_TRIPLEGREENSHIELD1 || target->type == MT_TRIPLEGREENSHIELD2 || target->type == MT_TRIPLEGREENSHIELD3
 		 || target->type == MT_REDITEM || target->type == MT_REDITEMDUD || target->type == MT_REDSHIELD
-		 || target->type == MT_TRIPLEREDSHIELD1 || target->type == MT_TRIPLEREDSHIELD2 || target->type == MT_TRIPLEREDSHIELD3
 		 || target->type == MT_BANANAITEM || target->type == MT_BANANASHIELD
-		 || target->type == MT_TRIPLEBANANASHIELD1 || target->type == MT_TRIPLEBANANASHIELD2 || target->type == MT_TRIPLEBANANASHIELD3
 		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD
 		 || target->type == MT_FIREBALL)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
@@ -3147,13 +3123,13 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 
 		//{ SRB2kart - special damage sources
 
-		player->kartstuff[k_mushroomtimer] = 0;
+		player->kartstuff[k_sneakertimer] = 0;
 
 		// Thunder
 		if (damage == 64 && player != source->player)
 		{
 			// Don't flip out while super!
-			if (!player->kartstuff[k_startimer] && player->kartstuff[k_growshrinktimer] <= 0)
+			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
 				// Start slipping!
 				K_SpinPlayer(player, source);
@@ -3162,7 +3138,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->mo->destscale = 6*FRACUNIT/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
-			// Mega Mushroom? Let's take that away.
+			// Size Up? Let's take that away.
 			if (player->kartstuff[k_growshrinktimer] > 0)
 			{
 				player->kartstuff[k_growshrinktimer] = 2;
@@ -3208,15 +3184,13 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		// Instant-Death
 		if (damage == 10000)
 			P_KillPlayer(player, source, damage);
-		else if (player->kartstuff[k_startimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
+		else if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
 			return false;
 		else
 		{
 			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_GREENSHIELD
 				|| inflictor->type == MT_REDITEM || inflictor->type == MT_REDSHIELD || inflictor->type == MT_REDITEMDUD
 				|| inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD
-				|| inflictor->type == MT_TRIPLEGREENSHIELD1 || inflictor->type == MT_TRIPLEGREENSHIELD2 || inflictor->type == MT_TRIPLEGREENSHIELD3
-				|| inflictor->type == MT_TRIPLEREDSHIELD1 || inflictor->type == MT_TRIPLEREDSHIELD2 || inflictor->type == MT_TRIPLEREDSHIELD3
 				|| inflictor->player))
 			{
 				player->kartstuff[k_spinouttype] = 1;

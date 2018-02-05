@@ -230,6 +230,38 @@ typedef enum
 	NUMPOWERS
 } powertype_t;
 
+typedef enum
+{
+	KITEM_SAD = -1,
+	KITEM_NONE = 0,
+	KITEM_SNEAKER,
+	KITEM_ROCKETSNEAKER,
+	KITEM_INVINCIBILITY,
+	KITEM_BANANA,
+	KITEM_FAKE,
+	KITEM_ORBINAUT,
+	KITEM_JAWZ,
+	KITEM_MINE,
+	KITEM_BALLHOG,
+	KITEM_SPB,
+	KITEM_SIZEUP,
+	KITEM_SIZEDOWN,
+	KITEM_LIGHTNINGSHIELD,
+	KITEM_HYUDORO,
+	KITEM_POGOSPRING,
+	KITEM_KITCHENSINK,
+
+	NUMKARTITEMS,
+
+	// Additional roulette numbers, only used for K_KartGetItemResult
+	KRITEM_TRIPLESNEAKER = NUMKARTITEMS,
+	KRITEM_TRIPLEBANANA,
+	KRITEM_TRIPLEORBINAUT,
+	KRITEM_DUALJAWZ,
+
+	NUMKARTRESULTS
+} kartitems_t;
+
 //{ SRB2kart - kartstuff
 typedef enum
 {
@@ -249,7 +281,7 @@ typedef enum
 	k_sounds,			// Used this to stop and then force music restores as it hits zero
 
 	k_boosting,			// Determines if you're currently shroom-boosting
-	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
+	k_floorboost,		// Prevents Sneaker sounds for a breif duration when triggered by a floor panel
 	k_spinout,			// Separate confirmation to prevent endless wipeout loops
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
 
@@ -260,54 +292,32 @@ typedef enum
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
+	k_pogospring,		// Pogo spring effect
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
-	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
 
 	// Some items use timers for their duration or effects
-	k_magnettimer,		// Duration of Magnet's item-break and item box pull
-	k_bootimer,			// Duration of the boo offroad effect itself
-	k_bootaketimer,		// You are stealing an item, this is your timer
-	k_boostolentimer,	// You are being stolen from, this is your timer
-	k_mushroomtimer,	// Duration of the Mushroom Boost itself
-	k_growshrinktimer,	// > 0 = Big, < 0 = small
-	k_squishedtimer,	// Squished frame timer
-	k_goldshroomtimer,	// Gold Mushroom duration timer
-	k_startimer,		// Invincibility timer
-	k_spinouttimer,		// Spin-out from a banana peel or oil slick (was "pw_bananacam")
-	k_laserwisptimer,	// The duration and relative angle of the laser
-	k_justbumped,		// Prevent players from endlessly bumping into each other
-	k_poweritemtimer,	// Battle mode, how long before you're allowed another power item (Star, Megashroom)
-	k_comebacktimer,	// Battle mode, how long before you become a bomb after death
+	k_attractiontimer,		// Duration of Lightning Shield's item-break and item box pull
+	k_hyudorotimer,			// Duration of the Hyudoro offroad effect itself
+	k_stealingtimer,		// You are stealing an item, this is your timer
+	k_stolentimer,			// You are being stolen from, this is your timer
+	k_sneakertimer,			// Duration of the Sneaker Boost itself
+	k_growshrinktimer,		// > 0 = Big, < 0 = small
+	k_squishedtimer,		// Squished frame timer
+	k_rocketsneakertimer,	// Rocket Sneaker duration timer
+	k_invincibilitytimer,	// Invincibility timer
+	k_fakeitem,				// Fake item held, separate from itemtype so it doesn't stop you from getting items
+	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
+	k_justbumped,			// Prevent players from endlessly bumping into each other
+	k_poweritemtimer,		// Battle mode, how long before you're allowed another power item (Invincibility, Size Up)
+	k_comebacktimer,		// Battle mode, how long before you become a bomb after death
+	k_sadtimer,				// How long you've been sad
 
 	// Each item needs its own power slot, for the HUD and held use
-	// *** ADDING A NEW ITEM? ADD IT TO K_DoBooSteal PLEASE!! -Salt ***
-	k_magnet,			// 0x1 = Magnet in inventory
-	k_boo,				// 0x1 = Boo in inventory
-	k_mushroom,			// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
-						// 0x4 = 3 Mushrooms in inventory
-	k_megashroom,		// 0x1 = Mega Mushroom in inventory
-	k_goldshroom,		// 0x1 = Gold Mushroom in inventory
-	k_star,				// 0x1 = Star in inventory
-	k_triplebanana,		// 0x1 = 1 Banana following, 0x2 = 2 Bananas following
-						// 0x4 = 3 Bananas following, 0x8 = Triple Banana in inventory
-	k_fakeitem,			// 0x1 = Fake Item being held, 0x2 = Fake Item in inventory
-	k_banana,			// 0x1 = Banana being held, 0x2 = Banana in inventory
-	k_greenshell,		// 0x1 = Green Shell being held, 0x2 = Green Shell in inventory
-	k_redshell,			// 0x1 = Red Shell being held, 0x2 = Red Shell in inventory
-	k_laserwisp,		// 0x1 = Laser Wisp in inventory
-	k_triplegreenshell,	// 0x1 = 1 Green Shell orbiting, 0x2 = 2 Green Shells orbiting
-						// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
-	k_bobomb,			// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
-	k_blueshell,		// 0x1 = Blue Shell in inventory
-	k_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting,
-						// 0x4 = 2x Jaws in inventory
-	k_fireflower,		// 0x1 = Fire Flower in inventory
-	k_tripleredshell,	// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
-						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
-	k_lightning,		// 0x1 = Lightning in inventory
-	k_feather,			// 0x1 = Feather in inventory, 0x2 = Player is feather jumping
-	k_kitchensink,		// 0x1 = Sink in inventory
+	// *** ADDING A NEW ITEM? ADD IT TO K_DoHyudoroSteal PLEASE!! -Salt ***
+	k_itemtype,		// KITEM_ constant for item number
+	k_itemamount,	// Amount of said item
+	k_itemheld,		// Are you holding an item? 1 = normal hold, 2 = rotation hold
 
 	// Battle Mode vars
 	k_balloon,			// Number of balloons left

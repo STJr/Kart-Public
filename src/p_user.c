@@ -1134,12 +1134,12 @@ void P_RestoreMusic(player_t *player)
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
 	if (!player->exiting)
 	{
-		// Item - Mega Mushroom
+		// Item - Size Up
 		if (player->kartstuff[k_growshrinktimer] > 1)
 			S_ChangeMusicInternal("mega", true);
 
 		// Item - Star
-		else if (player->kartstuff[k_startimer] > 1)
+		else if (player->kartstuff[k_invincibilitytimer] > 1)
 			S_ChangeMusicInternal("minvnc", false);
 
 		// Event - Final Lap
@@ -2262,7 +2262,7 @@ static void P_CheckUnderwaterAndSpaceTimer(player_t *player)
 //
 static void P_CheckInvincibilityTimer(player_t *player)
 {
-	if (!player->powers[pw_invulnerability] && !player->kartstuff[k_startimer])
+	if (!player->powers[pw_invulnerability] && !player->kartstuff[k_invincibilitytimer])
 		return;
 
 	//if (mariomode && !player->powers[pw_super]) // SRB2kart
@@ -2275,7 +2275,7 @@ static void P_CheckInvincibilityTimer(player_t *player)
 	}
 
 	// Resume normal music stuff.
-	if (player->powers[pw_invulnerability] == 1 || player->kartstuff[k_startimer] == 1)
+	if (player->powers[pw_invulnerability] == 1 || player->kartstuff[k_invincibilitytimer] == 1)
 	{
 		if (!player->powers[pw_super])
 		{
@@ -4769,8 +4769,8 @@ static void P_3dMovement(player_t *player)
 	// Do not let the player control movement if not onground.
 	onground = P_IsObjectOnGround(player->mo);
 
-	// SRB2Kart: shhhhhhh don't question me, feather and speed bumps are supposed to control like you're on the ground :p
-	if (player->kartstuff[k_feather] & 2)
+	// SRB2Kart: shhhhhhh don't question me, pogo springs and speed bumps are supposed to control like you're on the ground :p
+	if (player->kartstuff[k_pogospring])
 		onground = true;
 
 	player->aiming = cmd->aiming<<FRACBITS;
@@ -4799,9 +4799,9 @@ static void P_3dMovement(player_t *player)
 		else
 			topspeed = normalspd;
 	}
-	else if (player->powers[pw_super] || player->powers[pw_sneakers] || player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer])
+	else if (player->powers[pw_super] || player->powers[pw_sneakers] || player->kartstuff[k_invincibilitytimer] || player->kartstuff[k_sneakertimer])
 	{
-		if (player->powers[pw_sneakers] && (player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_mushroomtimer] > 0 || player->kartstuff[k_startimer] > 0))
+		if (player->powers[pw_sneakers] && (player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_sneakertimer] > 0 || player->kartstuff[k_invincibilitytimer] > 0))
 			thrustfactor = player->thrustfactor*3;
 		else
 			thrustfactor = player->thrustfactor*2;
@@ -6775,7 +6775,7 @@ static void P_MovePlayer(player_t *player)
 	{
 		K_KartMoveAnimation(player);
 
-		if (player->kartstuff[k_feather] & 2)
+		if (player->kartstuff[k_pogospring])
 			player->frameangle += ANGLE_22h;
 		else
 			player->frameangle = player->mo->angle;
@@ -7071,7 +7071,7 @@ static void P_MovePlayer(player_t *player)
 	////////////////////////////
 
 	// SRB2kart - Drifting smoke and fire
-	if ((player->kartstuff[k_drift] != 0 || player->kartstuff[k_mushroomtimer] > 0) && onground && (leveltime & 1))
+	if ((player->kartstuff[k_drift] != 0 || player->kartstuff[k_sneakertimer] > 0) && onground && (leveltime & 1))
 		K_SpawnDriftTrail(player);
 
 	/* // SRB2kart - nadah
@@ -7806,10 +7806,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		//{ SRB2kart
 		if (mo->type == MT_GREENITEM || mo->type == MT_REDITEM || mo->type == MT_REDITEMDUD
 			|| mo->type == MT_GREENSHIELD || mo->type == MT_REDSHIELD
-			|| mo->type == MT_TRIPLEGREENSHIELD1 || mo->type == MT_TRIPLEGREENSHIELD2 || mo->type == MT_TRIPLEGREENSHIELD3
-			|| mo->type == MT_TRIPLEREDSHIELD1 || mo->type == MT_TRIPLEREDSHIELD2 || mo->type == MT_TRIPLEREDSHIELD3
 			|| mo->type == MT_BANANAITEM || mo->type == MT_BANANASHIELD
-			|| mo->type == MT_TRIPLEBANANASHIELD1 || mo->type == MT_TRIPLEBANANASHIELD2 || mo->type == MT_TRIPLEBANANASHIELD3
 			|| mo->type == MT_FAKEITEM || mo->type == MT_FAKESHIELD
 			|| mo->type == MT_FIREBALL)
 		{
@@ -9518,7 +9515,7 @@ void P_PlayerThink(player_t *player)
 #if 1
 	// "Blur" a bit when you have speed shoes and are going fast enough
 	if ((player->powers[pw_super] || player->powers[pw_sneakers]
-		|| player->kartstuff[k_driftboost] || player->kartstuff[k_mushroomtimer]) // SRB2kart
+		|| player->kartstuff[k_driftboost] || player->kartstuff[k_sneakertimer]) // SRB2kart
 		&& (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
 	{
 		mobj_t *gmobj = P_SpawnGhostMobj(player->mo);
@@ -9665,7 +9662,7 @@ void P_PlayerThink(player_t *player)
 			|| (splitscreen && player == &players[secondarydisplayplayer])
 			|| (splitscreen > 1 && player == &players[thirddisplayplayer])
 			|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-			&& player->kartstuff[k_bootimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
+			&& player->kartstuff[k_hyudorotimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
 			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
 		{
 			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing() && (leveltime & 1))

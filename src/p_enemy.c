@@ -187,9 +187,9 @@ void A_RandomStateRange(mobj_t *actor);
 void A_DualAction(mobj_t *actor);
 void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
-void A_ItemPop(mobj_t *actor);       // SRB2kart
-void A_RedShellChase(mobj_t *actor); // SRB2kart
-void A_BobombExplode(mobj_t *actor); // SRB2kart
+void A_ItemPop(mobj_t *actor);     // SRB2kart
+void A_JawzChase(mobj_t *actor);   // SRB2kart
+void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -741,7 +741,7 @@ static boolean P_LookForShield(mobj_t *actor)
 			continue;
 
 		// SRB2kart - magnet item
-		if (player->kartstuff[k_magnettimer] //(player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
+		if (player->kartstuff[k_attractiontimer] //(player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
 			&& (P_AproxDistance(P_AproxDistance(actor->x-player->mo->x, actor->y-player->mo->y), actor->z-player->mo->z) < FixedMul(RING_DIST/4, player->mo->scale)))
 		{
 			P_SetTarget(&actor->tracer, player->mo);
@@ -2605,8 +2605,9 @@ void A_MonitorPop(mobj_t *actor)
 		case MT_QUESTIONBOX: // Random!
 		{
 			mobjtype_t spawnchance[256];
-			INT32 numchoices = 0, i = 0;
+			INT32 numchoices = 0/*, i = 0*/;
 
+			/*
 #define QUESTIONBOXCHANCES(type, cvar) \
 for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 
@@ -2624,6 +2625,7 @@ for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 			QUESTIONBOXCHANCES(MT_RECYCLETV,	cv_recycler);
 
 #undef QUESTIONBOXCHANCES
+			*/
 
 			if (numchoices == 0)
 			{
@@ -3613,7 +3615,7 @@ void A_AttractChase(mobj_t *actor)
 
 	// Turn flingrings back into regular rings if attracted.
 	if (actor->tracer && actor->tracer->player
-		&& actor->tracer->player->kartstuff[k_magnettimer] //&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT
+		&& actor->tracer->player->kartstuff[k_attractiontimer] //&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT
 		&& actor->info->reactiontime && actor->type != (mobjtype_t)actor->info->reactiontime)
 	{
 		mobj_t *newring;
@@ -3830,7 +3832,7 @@ void A_ThrownRing(mobj_t *actor)
 			P_SetTarget(&actor->tracer, NULL);
 		}
 
-		if (actor->tracer && (actor->tracer->health)) // SRB2kart - red shells always follow
+		if (actor->tracer && (actor->tracer->health)) // SRB2kart - jawz always follow
 			//&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT)// Already found someone to follow.
 		{
 			const INT32 temp = actor->threshold;
@@ -3882,7 +3884,7 @@ void A_ThrownRing(mobj_t *actor)
 				&& actor->target->player->ctfteam == player->ctfteam)
 				continue;
 
-			if (actor->target->player->kartstuff[k_position] < player->kartstuff[k_position]) // SRB2kart - Red Shells only go after people ahead of you
+			if (actor->target->player->kartstuff[k_position] < player->kartstuff[k_position]) // SRB2kart - Jawz only go after people ahead of you
 				continue;
 
 		}
@@ -3925,8 +3927,11 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (thing == grenade->target && !(grenade->threshold == 0)) // Don't blow up at your owner.
 		return true;
 
-	if (thing->player && (thing->player->kartstuff[k_bootimer]
-	|| (thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
+	if (thing->player && thing->player->kartstuff[k_hyudorotimer])
+		return true;
+
+	if ((gametype != GT_RACE) && thing->player
+		&& thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])
 		return true;
 
 	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
@@ -8090,7 +8095,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_RedShellChase and A_BobombExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase and A_MineExplode
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8149,14 +8154,14 @@ void A_ItemPop(mobj_t *actor)
 	P_RemoveMobj(actor);
 }
 
-void A_RedShellChase(mobj_t *actor)
+void A_JawzChase(mobj_t *actor)
 {
 
 	INT32 c = 0;
 	INT32 stop;
 	player_t *player;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_RedShellChase", actor))
+	if (LUA_CallAction("A_JawzChase", actor))
 		return;
 #endif
 
@@ -8216,7 +8221,7 @@ void A_RedShellChase(mobj_t *actor)
 				if (gametype == GT_RACE) // Only in races, in match and CTF you should go after any nearby players
 				{
 					//                 USER               TARGET
-					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Red Shells only go after the person directly ahead of you -Sryder
+					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
 						continue;
 				}
 
@@ -8253,7 +8258,7 @@ void A_RedShellChase(mobj_t *actor)
 
 }
 
-void A_BobombExplode(mobj_t *actor)
+void A_MineExplode(mobj_t *actor)
 {
 	mobj_t *mo2;
 	thinker_t *th;
@@ -8261,7 +8266,7 @@ void A_BobombExplode(mobj_t *actor)
 	INT32 locvar1 = var1;
 	mobjtype_t type;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_BobombExplode", actor))
+	if (LUA_CallAction("A_MineExplode", actor))
 		return;
 #endif
 

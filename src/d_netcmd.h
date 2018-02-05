@@ -103,17 +103,18 @@ extern consvar_t cv_pause;
 
 extern consvar_t cv_restrictskinchange, cv_allowteamchange, cv_respawntime;
 
-extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
+/*extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
 extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
 extern consvar_t cv_1up, cv_eggmanbox;
-extern consvar_t cv_recycler;
+extern consvar_t cv_recycler;*/
 
 // SRB2kart items
-extern consvar_t cv_magnet, cv_boo, cv_mushroom, cv_triplemushroom, cv_megashroom;
-extern consvar_t cv_goldshroom, cv_star, cv_triplebanana, cv_fakeitem, cv_banana;
-extern consvar_t cv_greenshell, cv_redshell, cv_laserwisp, cv_triplegreenshell, cv_bobomb;
-extern consvar_t cv_blueshell, cv_jaws, cv_fireflower, cv_tripleredshell, cv_lightning;
-extern consvar_t cv_feather;
+extern consvar_t cv_sneaker, cv_rocketsneaker, cv_invincibility, cv_banana;
+extern consvar_t cv_fakeitem, cv_orbinaut, cv_jawz, cv_mine;
+extern consvar_t cv_ballhog, cv_selfpropelledbomb, cv_sizeup, cv_sizedown;
+extern consvar_t cv_lightningshield, cv_hyudoro, cv_pogospring;
+
+extern consvar_t cv_triplesneaker, cv_triplebanana, cv_tripleorbinaut, cv_dualjawz;
 
 extern consvar_t cv_karthud;
 extern consvar_t cv_kartminimap;
@@ -129,6 +130,8 @@ extern consvar_t cv_speedometer;
 extern consvar_t cv_collideminimum;
 extern consvar_t cv_collidesoundnum;
 extern consvar_t cv_collidesounds;
+
+extern consvar_t cv_kartdebugitem, cv_kartdebugamount;
 //
 
 extern consvar_t cv_itemfinder;

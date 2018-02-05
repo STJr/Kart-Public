@@ -409,9 +409,9 @@ extern UINT16 spacetimetics;
 extern UINT16 extralifetics;
 
 // SRB2kart
-extern INT32 bootime;
-extern INT32 boostealtime;
-extern INT32 mushroomtime;
+extern INT32 hyudorotime;
+extern INT32 stealtime;
+extern INT32 sneakertime;
 extern INT32 itemtime;
 extern INT32 comebacktime;
 extern INT32 bumptime;

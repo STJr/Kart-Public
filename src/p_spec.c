@@ -3752,7 +3752,7 @@ DoneSection2:
 				if (player->speed < K_GetKartSpeed(player, true)/4) // Push forward to prevent getting stuck
 					P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
 
-				player->kartstuff[k_feather] |= 2;
+				player->kartstuff[k_pogospring] = 1;
 				K_DoBouncePad(player->mo, 0);
 			}
 			break;
@@ -3959,14 +3959,14 @@ DoneSection2:
 			//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 			break;
 
-		case 6: // SRB2kart 190117 - Mushroom Boost Panel
+		case 6: // SRB2kart 190117 - Sneaker Boost Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
 				if (!player->kartstuff[k_floorboost])
 					player->kartstuff[k_floorboost] = 3;
 				else
 					player->kartstuff[k_floorboost] = 2;
-				K_DoMushroom(player, false, false);
+				K_DoSneaker(player, false, false);
 			}
 			break;
 
@@ -7184,8 +7184,8 @@ void T_Friction(friction_t *f)
 		// friction works for all mobj's
 		// (or at least MF_PUSHABLEs, which is all I care about anyway)
 		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player
-			&& (thing->player->kartstuff[k_startimer] == 0 && thing->player->kartstuff[k_bootimer] == 0
-			&& thing->player->kartstuff[k_mushroomtimer] == 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)))
+			&& (thing->player->kartstuff[k_invincibilitytimer] == 0 && thing->player->kartstuff[k_hyudorotimer] == 0
+			&& thing->player->kartstuff[k_sneakertimer] == 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)))
 		{
 			if (f->roverfriction)
 			{

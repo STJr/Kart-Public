@@ -237,7 +237,7 @@ result_e T_MovePlane(sector_t *sector, fixed_t speed, fixed_t dest, boolean crus
 				{
 					case MT_GOOP: // Egg Slimer's goop objects
 					case MT_SPINFIRE: // Elemental Shield flame balls
-					case MT_MUSHROOMTRAIL:
+					case MT_SNEAKERTRAIL:
 					case MT_SPIKE: // Floor Spike
 						// Is the object hang from the ceiling?
 						// In that case, swap the planes used.

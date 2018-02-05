@@ -2090,7 +2090,7 @@ static int lib_kSpawnDriftTrail(lua_State *L)
 	return 0;
 }
 
-static int lib_kDoMushroom(lua_State *L)
+static int lib_kDoSneaker(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	boolean doPFlag = luaL_checkboolean(L, 2);
@@ -2098,7 +2098,7 @@ static int lib_kDoMushroom(lua_State *L)
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
-	K_DoMushroom(player, doPFlag, startboost);
+	K_DoSneaker(player, doPFlag, startboost);
 	return 0;
 }
 
@@ -2336,7 +2336,7 @@ static luaL_Reg lib[] = {
 	{"K_StealBalloon",lib_kStealBalloon},
 	{"K_SpawnKartExplosion",lib_kSpawnKartExplosion},
 	{"K_SpawnDriftTrail",lib_kSpawnDriftTrail},
-	{"K_DoMushroom",lib_kDoMushroom},
+	{"K_DoSneaker",lib_kDoSneaker},
 	{"K_DoBouncePad",lib_kDoBouncePad},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
