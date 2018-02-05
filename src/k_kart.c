@@ -1453,6 +1453,20 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
 
+	// setting players to use the star colormap and spawning afterimages
+	if (player->kartstuff[k_startimer])
+	{
+		mobj_t *ghost;
+		player->mo->colorized = true;
+		ghost = P_SpawnGhostMobj(player->mo);
+		ghost->fuse = 4;
+		ghost->frame |= FF_FULLBRIGHT;
+	}
+	else
+	{
+		player->mo->colorized = false;
+	}
+
 	if (player->kartstuff[k_itemclose])
 		player->kartstuff[k_itemclose]--;
 
@@ -1613,6 +1627,19 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	// Plays the music after the starting countdown.
 	if (P_IsLocalPlayer(player) && leveltime == 158)
 		S_ChangeMusicInternal(mapmusname, true);
+}
+
+void K_KartPlayerAfterThink(player_t *player)
+{
+	if (player->kartstuff[k_startimer])
+	{
+		player->mo->frame |= FF_FULLBRIGHT;
+	}
+	else
+	{
+		if (!(player->mo->state->frame & FF_FULLBRIGHT))
+			player->mo->frame &= ~FF_FULLBRIGHT;
+	}
 }
 
 static void K_PlayTauntSound(mobj_t *source)
@@ -4739,6 +4766,15 @@ static void K_drawKartPositionFaces(void)
 		else
 		{
 			colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
+			if (players[rankplayer[i]].mo->colorized)
+			{
+				colormap = R_GetTranslationColormap(TC_STARMAN, players[rankplayer[i]].mo->color, GTC_CACHE);
+			}
+			else
+			{
+				colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
+			}
+
 			if (rankplayer[i] != myplayer)
 			{
 				V_DrawSmallTranslucentMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
@@ -5087,7 +5123,15 @@ static void K_drawKartMinimap(void)
 					V_DrawSciencePatch(amxpos, amypos, splitflags|V_FLIP, iconprefix[players[i].skin], FRACUNIT/2);
 				else
 				{
-					UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+					UINT8 *colormap;
+					if (players[i].mo->colorized)
+					{
+						colormap = R_GetTranslationColormap(TC_STARMAN, players[i].mo->color, 0);
+					}
+					else
+					{
+						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
+					}
 					V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, splitflags|V_FLIP, iconprefix[players[i].skin], colormap);
 				}
 			}
@@ -5097,7 +5141,15 @@ static void K_drawKartMinimap(void)
 					V_DrawSciencePatch(amxpos, amypos, splitflags, iconprefix[players[i].skin], FRACUNIT/2);
 				else
 				{
-					UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
+					UINT8 *colormap;
+					if (players[i].mo->colorized)
+					{
+						colormap = R_GetTranslationColormap(TC_STARMAN, players[i].mo->color, 0);
+					}
+					else
+					{
+						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
+					}
 					V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, splitflags, iconprefix[players[i].skin], colormap);
 				}
 			}

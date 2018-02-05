@@ -5276,7 +5276,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		// New colormap stuff for skins Tails 06-07-2002
 		if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
 		{
-			if (thing->player && thing->player->kartstuff[k_startimer])
+			if (thing->colorized)
 				vis->colormap = R_GetTranslationColormap(TC_STARMAN, thing->color, GTC_CACHE);
 			else
 			{
@@ -5285,7 +5285,12 @@ static void HWR_ProjectSprite(mobj_t *thing)
 			}
 		}
 		else
-			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
+		{
+			if (vis->mobj && vis->mobj->colorized)
+				vis->colormap = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
+			else
+				vis->colormap = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
+		}
 	}
 	else
 		vis->colormap = colormaps;

@@ -21,6 +21,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 void K_LakituChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
+void K_KartPlayerAfterThink(player_t *player);
 void K_SpinPlayer(player_t *player, mobj_t *source);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source);
