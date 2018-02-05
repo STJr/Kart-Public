@@ -2087,6 +2087,7 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 }
 
 // source is the mobj that originally threw the bomb that exploded etc.
+// Spawns the sphere around the explosion that handles spinout
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source)
 {
 	mobj_t *mobj;
@@ -2166,6 +2167,67 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 		mobj->flags &= ~MF_SPECIAL;
 
 		P_SetTarget(&mobj->target, source);
+	}
+}
+
+// Spawns the purely visual explosion
+void K_SpawnBobombExplosion(mobj_t *source)
+{
+	INT32 i, radius, height;
+	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
+	mobj_t *dust;
+	mobj_t *truc;
+	smoldering->tics = TICRATE*3;
+	INT32 speed, speed2;
+
+	radius = source->radius>>FRACBITS;
+	height = source->height>>FRACBITS;
+
+	for (i = 0; i < 32; i++)
+	{
+		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
+		dust->angle = ANGLE_90 + ANG1*(11*(i-1));
+		dust->scale = source->scale;
+		dust->destscale = source->scale*10;
+		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
+
+		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOSSEXPLODE);
+		truc->scale = source->scale*2;
+		truc->destscale = source->scale*6;
+		P_SetMobjState(truc, S_SLOWBOOM1);
+		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
+		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		dust = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
+		dust->scale = source->scale;
+		dust->destscale = source->scale*10;
+		dust->tics = 30;
+		dust->momz = P_RandomRange(FixedMul(3*FRACUNIT, source->scale)>>FRACBITS, FixedMul(7*FRACUNIT, source->scale)>>FRACBITS)*FRACUNIT;
+
+		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
+		truc->scale = source->scale;
+		truc->destscale = source->scale*5;
+		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
+		speed = FixedMul(15*FRACUNIT, source->scale)>>FRACBITS;
+		speed2 = FixedMul(45*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
+		if (P_RandomChance(FRACUNIT/2))
+			truc->momz = -truc->momz;
+		truc->tics = TICRATE*2;
 	}
 }
 

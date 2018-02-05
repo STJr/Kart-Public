@@ -56,9 +56,10 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
-	"DBAN","GSHE","DGSH","RSHE","DRSH","BOMB","BLIG","LIGH","SINK","SITR",
-	"KBLN","LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB",
-	"CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","PBOM"
+	"DBAN","GSHE","DGSH","RSHE","DRSH","BOMB","KRBM","BLIG","LIGH","SINK",
+	"SITR","KBLN","LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS",
+	"BUZB","CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO",
+	"PBOM"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2687,8 +2688,30 @@ state_t states[NUMSTATES] =
 	{SPR_BOMB, 0,  1, {A_GrenadeRing}, 0, 0, S_BOMBITEM},          // S_BOMBITEM
 	{SPR_BOMB, 0,  1, {NULL}, 0, 0, S_BOMBAIR},                    // S_BOMBAIR
 	{SPR_BOMB, 0,  1, {A_BobombExplode}, MT_BOMBEXPLOSION, 0, S_NULL}, // S_BOMBEXPLODE
-	{SPR_BOM2, FF_FULLBRIGHT,   6, {NULL}, 0, 0, S_BOMBEXPLOSION2}, // S_BOMBEXPLOSION1
-	{SPR_BOM2, FF_FULLBRIGHT|1, 22, {A_ForceStop}, 0, 0, S_NULL},  // S_BOMBEXPLOSION2
+	{SPR_NULL, 0,  6, {NULL}, 0, 0, S_BOMBEXPLOSION2}, // S_BOMBEXPLOSION1
+	{SPR_NULL, 1, 22, {A_ForceStop}, 0, 0, S_NULL},  // S_BOMBEXPLOSION2
+
+	{SPR_KRBM, 0, 1, {NULL}, 0, 0, S_QUICKBOOM2},  // S_QUICKBOOM1
+	{SPR_KRBM, 1, 1, {NULL}, 0, 0, S_QUICKBOOM3},  // S_QUICKBOOM2
+	{SPR_KRBM, 2, 1, {NULL}, 0, 0, S_QUICKBOOM4},  // S_QUICKBOOM3
+	{SPR_KRBM, 3, 1, {NULL}, 0, 0, S_QUICKBOOM5},  // S_QUICKBOOM4
+	{SPR_KRBM, 4, 1, {NULL}, 0, 0, S_QUICKBOOM6},  // S_QUICKBOOM5
+	{SPR_KRBM, 5, 1, {NULL}, 0, 0, S_QUICKBOOM7},  // S_QUICKBOOM6
+	{SPR_KRBM, 6, 1, {NULL}, 0, 0, S_QUICKBOOM8},  // S_QUICKBOOM7
+	{SPR_KRBM, 7, 2, {NULL}, 0, 0, S_QUICKBOOM9},  // S_QUICKBOOM8
+	{SPR_KRBM, 8, 2, {NULL}, 0, 0, S_QUICKBOOM10},  // S_QUICKBOOM9
+	{SPR_KRBM, 9, 2, {NULL}, 0, 0, S_NULL},  // S_QUICKBOOM10
+
+	{SPR_KRBM, 0, 3, {NULL}, 0, 0, S_SLOWBOOM2},  // S_SLOWBOOM1
+	{SPR_KRBM, 1, 3, {NULL}, 0, 0, S_SLOWBOOM3},  // S_SLOWBOOM2
+	{SPR_KRBM, 2, 3, {NULL}, 0, 0, S_SLOWBOOM4},  // S_SLOWKBOOM3
+	{SPR_KRBM, 3, 3, {NULL}, 0, 0, S_SLOWBOOM5},  // S_SLOWBOOM4
+	{SPR_KRBM, 4, 3, {NULL}, 0, 0, S_SLOWBOOM6},  // S_SLOWBOOM5
+	{SPR_KRBM, 5, 3, {NULL}, 0, 0, S_SLOWBOOM7},  // S_SLOWBOOM6
+	{SPR_KRBM, 6, 3, {NULL}, 0, 0, S_SLOWBOOM8},  // S_SLOWBOOM7
+	{SPR_KRBM, 7, 5, {NULL}, 0, 0, S_SLOWBOOM9},  // S_SLOWBOOM8
+	{SPR_KRBM, 8, 5, {NULL}, 0, 0, S_SLOWBOOM10},  // S_SLOWBOOM9
+	{SPR_KRBM, 9, 5, {NULL}, 0, 0, S_NULL},  // S_SLOWBOOM10
 
 	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
@@ -15003,6 +15026,60 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SMOLDERING
+		-1,             // doomednum
+		S_INVISIBLE,    // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		0,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		35*FRACUNIT,    // radius
+		70*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_BOOMPARTICLE
+		-1,             // doomednum
+		S_INVISIBLE,    // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		0,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		32*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_BOUNCE|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
