@@ -4185,7 +4185,7 @@ static void K_initKartHUD(void)
 	// CHECK graphic
 	CHEK_Y = BASEVIDHEIGHT;		// 200
 	// Minimap
-	MINI_X = BASEVIDWIDTH - 58;	// 262
+	MINI_X = BASEVIDWIDTH - 50;	// 270
 	MINI_Y = BASEVIDHEIGHT/2;	// 100
 
 	if (splitscreen)	// Splitscreen
@@ -5059,16 +5059,16 @@ static void K_drawKartMinimap(void)
 	else
 		return; // no pic, just get outta here
 
-	x = MINI_X - (AutomapPic->width/4);
-	y = MINI_Y - (AutomapPic->height/4);
+	x = MINI_X - (AutomapPic->width/2);
+	y = MINI_Y - (AutomapPic->height/2);
 
 	if (splitscreen == 2)
 		splitflags = 0;
 
 	if (mirrormode)
-		V_DrawSmallScaledPatch(x+(AutomapPic->width/2), y, splitflags|V_FLIP, AutomapPic);
+		V_DrawScaledPatch(x+(AutomapPic->width), y, splitflags|V_FLIP, AutomapPic);
 	else
-		V_DrawSmallScaledPatch(x, y, splitflags, AutomapPic);
+		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
 
 	splitflags &= ~V_HUDTRANSHALF; // Head icons won't be transparent
 
@@ -5121,21 +5121,21 @@ static void K_drawKartMinimap(void)
 			fixed_t xoffset = (minx + mapwidth/2)<<FRACBITS;
 			fixed_t yoffset = (miny + mapheight/2)<<FRACBITS;
 
-			fixed_t xscale = FixedDiv(AutomapPic->width/2, mapwidth);
-			fixed_t yscale = FixedDiv(AutomapPic->height/2, mapheight);
+			fixed_t xscale = FixedDiv(AutomapPic->width, mapwidth);
+			fixed_t yscale = FixedDiv(AutomapPic->height, mapheight);
 			fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
 
 			amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
 			amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
 
-			amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
-			amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
+			amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[players[i].skin]->width/2))<<FRACBITS);
+			amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[players[i].skin]->height/2))<<FRACBITS);
 
 			if (mirrormode)
 			{
-				amxpos = -amnumxpos + ((x + AutomapPic->width/4 + (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+				amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[players[i].skin]->width/2))<<FRACBITS);
 				if (!players[i].skincolor) // 'default' color
-					V_DrawSciencePatch(amxpos, amypos, splitflags|V_FLIP, iconprefix[players[i].skin], FRACUNIT/2);
+					V_DrawSciencePatch(amxpos, amypos, splitflags|V_FLIP, iconprefix[players[i].skin], FRACUNIT);
 				else
 				{
 					UINT8 *colormap;
@@ -5147,13 +5147,13 @@ static void K_drawKartMinimap(void)
 					{
 						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
 					}
-					V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, splitflags|V_FLIP, iconprefix[players[i].skin], colormap);
+					V_DrawFixedPatch(amxpos, amypos, FRACUNIT, splitflags|V_FLIP, iconprefix[players[i].skin], colormap);
 				}
 			}
 			else
 			{
 				if (!players[i].skincolor) // 'default' color
-					V_DrawSciencePatch(amxpos, amypos, splitflags, iconprefix[players[i].skin], FRACUNIT/2);
+					V_DrawSciencePatch(amxpos, amypos, splitflags, iconprefix[players[i].skin], FRACUNIT);
 				else
 				{
 					UINT8 *colormap;
@@ -5165,7 +5165,7 @@ static void K_drawKartMinimap(void)
 					{
 						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
 					}
-					V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, splitflags, iconprefix[players[i].skin], colormap);
+					V_DrawFixedPatch(amxpos, amypos, FRACUNIT, splitflags, iconprefix[players[i].skin], colormap);
 				}
 			}
 		}
