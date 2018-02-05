@@ -197,6 +197,11 @@ void K_StarmanColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
+		if (i == 0 || i == 31 || i == 120) // pure black and pure white don't change
+		{
+			dest_colormap[i] = (UINT8)i;
+			continue;
+		}
 		color = V_GetColor(i);
 		brightness = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
 		brightdif = 256;
