@@ -2687,6 +2687,8 @@ state_t states[NUMSTATES] =
 	{SPR_BOMB, 0,  1, {A_GrenadeRing}, 0, 0, S_BOMBITEM},          // S_BOMBITEM
 	{SPR_BOMB, 0,  1, {NULL}, 0, 0, S_BOMBAIR},                    // S_BOMBAIR
 	{SPR_BOMB, 0,  1, {A_BobombExplode}, MT_BOMBEXPLOSION, 0, S_NULL}, // S_BOMBEXPLODE
+	{SPR_BOM2, FF_FULLBRIGHT,   6, {NULL}, 0, 0, S_BOMBEXPLOSION2}, // S_BOMBEXPLOSION1
+	{SPR_BOM2, FF_FULLBRIGHT|1, 22, {A_ForceStop}, 0, 0, S_NULL},  // S_BOMBEXPLOSION2
 
 	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
@@ -14932,7 +14934,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		256*FRACUNIT,   // painchance
+		288*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
@@ -14946,13 +14948,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_bomb,       // activesound
-		MF_BOUNCE|MF_FLOAT|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE, // flags
+		MF_BOUNCE|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE, // flags
 		S_NULL          // raisestate
 	},
 
 	{           // MT_BOMBEXPLOSION
 		-1,             // doomednum
-		S_BPLD1,        // spawnstate
+		S_BOMBEXPLOSION1,  // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound

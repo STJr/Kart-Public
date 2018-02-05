@@ -3197,6 +3197,8 @@ typedef enum state
 	S_BOMBITEM,
 	S_BOMBAIR,
 	S_BOMBEXPLODE,
+	S_BOMBEXPLOSION1,
+	S_BOMBEXPLOSION2,
 
 	// Blue Shell - Blue Lightning for now...
 	S_BLUELIGHTNING1,
