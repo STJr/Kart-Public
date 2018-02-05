@@ -5105,14 +5105,24 @@ static void K_drawKartMinimap(void)
 			if (bsp->bbox[1][BOXTOP] > maxy)
 				maxy = bsp->bbox[1][BOXTOP];
 
+			// You might be wondering why these are being bitshift here
+			// it's because mapwidth and height would otherwise overflow for maps larger than half the size possible...
+			// map boundaries and sizes will ALWAYS be whole numbers thankfully
+			// later calculations take into consideration that these are actually not in terms of FRACUNIT though
+			minx >>= FRACBITS;
+			maxx >>= FRACBITS;
+			miny >>= FRACBITS;
+			maxy >>= FRACBITS;
+
 			fixed_t mapwidth = maxx - minx;
 			fixed_t mapheight = maxy - miny;
 
-			fixed_t xoffset = minx + mapwidth/2;
-			fixed_t yoffset = miny + mapheight/2;
+			// These should always be small enough to be bitshift back right now
+			fixed_t xoffset = (minx + mapwidth/2)<<FRACBITS;
+			fixed_t yoffset = (miny + mapheight/2)<<FRACBITS;
 
-			fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
-			fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
+			fixed_t xscale = FixedDiv(AutomapPic->width/2, mapwidth);
+			fixed_t yscale = FixedDiv(AutomapPic->height/2, mapheight);
 			fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
 
 			amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
