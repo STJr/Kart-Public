@@ -2186,7 +2186,7 @@ void K_SpawnBobombExplosion(mobj_t *source)
 	for (i = 0; i < 32; i++)
 	{
 		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
-		dust->angle = ANGLE_90 + ANG1*(11*(i-1));
+		dust->angle = (ANGLE_180/16) * i;
 		dust->scale = source->scale;
 		dust->destscale = source->scale*10;
 		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
