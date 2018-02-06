@@ -1230,7 +1230,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 void K_KartPlayerAfterThink(player_t *player)
 {
-	if (player->kartstuff[k_startimer])
+	if (player->kartstuff[k_invincibilitytimer])
 	{
 		player->mo->frame |= FF_FULLBRIGHT;
 	}
@@ -1765,7 +1765,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 }
 
 // Spawns the purely visual explosion
-void K_SpawnBobombExplosion(mobj_t *source)
+void K_SpawnMineExplosion(mobj_t *source)
 {
 	INT32 i, radius, height;
 	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);

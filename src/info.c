@@ -2688,7 +2688,7 @@ state_t states[NUMSTATES] =
 	{SPR_SSMN,  3,  3, {A_GrenadeRing}, 0, 0, S_BOMBITEM3},			// S_BOMBITEM2
 	{SPR_SSMN,  2,  3, {A_GrenadeRing}, 0, 0, S_BOMBITEM4},			// S_BOMBITEM3
 	{SPR_SSMN,  1,  3, {A_GrenadeRing}, 0, 0, S_BOMBITEM1},			// S_BOMBITEM4
-	{SPR_BOMB,  0,  1, {A_MineExplode}, MT_BOMBEXPLOSION, 0, S_NULL},	// S_BOMBEXPLODE
+	{SPR_MINE,  3,  1, {A_MineExplode}, MT_BOMBEXPLOSION, 0, S_NULL},	// S_BOMBEXPLODE
 	{SPR_NULL,  0,  6, {NULL}, 0, 0, S_BOMBEXPLOSION2},				// S_BOMBEXPLOSION1
 	{SPR_NULL,  1, 22, {A_ForceStop}, 0, 0, S_NULL},					// S_BOMBEXPLOSION2
 

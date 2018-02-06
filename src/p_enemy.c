@@ -8272,7 +8272,7 @@ void A_MineExplode(mobj_t *actor)
 	for (d = 0; d < 16; d++)
 		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
 
-	K_SpawnBobombExplosion(actor);
+	K_SpawnMineExplosion(actor);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
 

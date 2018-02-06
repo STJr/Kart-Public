@@ -1208,7 +1208,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 	}
 
 	// starman support, could theoretically support boss ones too
-	if (skinnum == TC_STARMAN)
+	if (skinnum == TC_RAINBOW)
 	{
 		while (size--)
 		{
@@ -1490,7 +1490,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 					if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 					{
 						if (spr->mobj->colorized)
-							skinnum = TC_STARMAN;
+							skinnum = TC_RAINBOW;
 						else
 						{
 							skinnum = (INT32)((skin_t*)spr->mobj->skin-skins);

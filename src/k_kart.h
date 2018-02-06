@@ -27,7 +27,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source);
 void K_StealBalloon(player_t *player, player_t *victim, boolean force);
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source);
-void K_SpawnBobombExplosion(mobj_t *source);
+void K_SpawnMineExplosion(mobj_t *source);
 void K_SpawnDriftTrail(player_t *player);
 void K_DoSneaker(player_t *player, boolean doPFlag, boolean startboost);
 void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed);
