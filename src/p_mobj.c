@@ -6710,6 +6710,7 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetMobjState(smoke, S_QUICKBOOM1);
 						smoke->scale = mobj->scale/2;
 						smoke->destscale = mobj->scale;
+						smoke->color = mobj->color;
 					}
 					else
 					{
@@ -7909,11 +7910,10 @@ void P_MobjThinker(mobj_t *mobj)
 				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz)
 			{
+				if (mobj->state == &states[S_BOMBAIR1] || mobj->state == &states[S_BOMBAIR2])
+					P_SetMobjState(mobj, S_BOMBDEPLOY1);
 				if (mobj->health > mobj->info->spawnhealth-1)
 				{
-					if (mobj->state == &states[S_BOMBAIR1] || mobj->state == &states[S_BOMBAIR2])
-						P_SetMobjState(mobj, S_BOMBDEPLOY1);
-
 					mobj->momx = mobj->momy = 0;
 					S_StartSound(mobj, mobj->info->activesound);
 				}
