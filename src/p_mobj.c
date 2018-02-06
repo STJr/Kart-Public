@@ -6727,6 +6727,7 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetMobjState(smoke, S_QUICKBOOM1);
 						smoke->scale = mobj->scale/2;
 						smoke->destscale = mobj->scale;
+						smoke->color = mobj->color;
 					}
 					else
 					{
