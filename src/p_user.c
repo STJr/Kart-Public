@@ -1513,6 +1513,7 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 	}
 
 	ghost->color = mobj->color;
+	ghost->colorized = mobj->colorized; // Kart: they should also be colorized if their origin is
 
 	ghost->angle = mobj->angle;
 	ghost->sprite = mobj->sprite;
@@ -9515,7 +9516,7 @@ void P_PlayerThink(player_t *player)
 #if 1
 	// "Blur" a bit when you have speed shoes and are going fast enough
 	if ((player->powers[pw_super] || player->powers[pw_sneakers]
-		|| player->kartstuff[k_driftboost] || player->kartstuff[k_sneakertimer]) // SRB2kart
+		|| player->kartstuff[k_driftboost] || player->kartstuff[k_sneakertimer]) && !player->kartstuff[k_invincibilitytimer] // SRB2kart
 		&& (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
 	{
 		mobj_t *gmobj = P_SpawnGhostMobj(player->mo);
@@ -10070,4 +10071,6 @@ void P_PlayerAfterThink(player_t *player)
 
 	if (P_IsObjectOnGround(player->mo))
 		player->mo->pmomz = 0;
+
+	K_KartPlayerAfterThink(player);
 }

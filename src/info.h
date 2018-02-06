@@ -589,6 +589,7 @@ typedef enum sprite
 	SPR_GSHE, // Orbinaut
 	SPR_RSHE, // Jawz
 	SPR_SSMN, // SS Mine
+	SPR_KRBM, // SS Mine BOOM
 	SPR_BLIG, // Self-Propelled Bomb
 	SPR_LIGH, // Size Up/Down beams (Metallic Maddness)
 	SPR_SINK, // Kitchen Sink
@@ -3194,6 +3195,31 @@ typedef enum state
 	S_BOMBITEM3,
 	S_BOMBITEM4,
 	S_BOMBEXPLODE,
+	S_BOMBEXPLOSION1,
+	S_BOMBEXPLOSION2,
+
+	// New explosion
+	S_QUICKBOOM1,
+	S_QUICKBOOM2,
+	S_QUICKBOOM3,
+	S_QUICKBOOM4,
+	S_QUICKBOOM5,
+	S_QUICKBOOM6,
+	S_QUICKBOOM7,
+	S_QUICKBOOM8,
+	S_QUICKBOOM9,
+	S_QUICKBOOM10,
+
+	S_SLOWBOOM1,
+	S_SLOWBOOM2,
+	S_SLOWBOOM3,
+	S_SLOWBOOM4,
+	S_SLOWBOOM5,
+	S_SLOWBOOM6,
+	S_SLOWBOOM7,
+	S_SLOWBOOM8,
+	S_SLOWBOOM9,
+	S_SLOWBOOM10,
 
 	// Self-Propelled Bomb - just an explosion for now...
 	S_BLUELIGHTNING1,
@@ -3956,6 +3982,9 @@ typedef enum mobj_type
 	MT_BOMBITEM,
 	MT_BOMBEXPLOSION,
 	MT_BOMBEXPLOSIONSOUND,
+
+	MT_SMOLDERING, // New explosion
+	MT_BOOMPARTICLE,
 
 	MT_BLUELIGHTNING, // Size Down stuff
 	MT_BLUEEXPLOSION,

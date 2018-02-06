@@ -197,6 +197,11 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 	{
+		if (i == 0 || i == 31 || i == 120) // pure black and pure white don't change
+		{
+			dest_colormap[i] = (UINT8)i;
+			continue;
+		}
 		color = V_GetColor(i);
 		brightness = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
 		brightdif = 256;
@@ -1051,6 +1056,20 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
 
+	// setting players to use the star colormap and spawning afterimages
+	if (player->kartstuff[k_invincibilitytimer])
+	{
+		mobj_t *ghost;
+		player->mo->colorized = true;
+		ghost = P_SpawnGhostMobj(player->mo);
+		ghost->fuse = 4;
+		ghost->frame |= FF_FULLBRIGHT;
+	}
+	else
+	{
+		player->mo->colorized = false;
+	}
+
 	if (player->kartstuff[k_spinout])
 		player->kartstuff[k_spinout]--;
 
@@ -1207,6 +1226,19 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	// Plays the music after the starting countdown.
 	if (P_IsLocalPlayer(player) && leveltime == 158)
 		S_ChangeMusicInternal(mapmusname, true);
+}
+
+void K_KartPlayerAfterThink(player_t *player)
+{
+	if (player->kartstuff[k_startimer])
+	{
+		player->mo->frame |= FF_FULLBRIGHT;
+	}
+	else
+	{
+		if (!(player->mo->state->frame & FF_FULLBRIGHT))
+			player->mo->frame &= ~FF_FULLBRIGHT;
+	}
 }
 
 static void K_PlayTauntSound(mobj_t *source)
@@ -1649,6 +1681,7 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 }
 
 // source is the mobj that originally threw the bomb that exploded etc.
+// Spawns the sphere around the explosion that handles spinout
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source)
 {
 	mobj_t *mobj;
@@ -1668,8 +1701,6 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 	//hoopcenter.z = z - mobjinfo[type].height/2;
 
 	degrees = FINEANGLES/number;
-
-	radius = FixedDiv(radius,5*(FRACUNIT/4));
 
 	closestangle = 0;
 
@@ -1715,10 +1746,6 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 			mobj = ghost;
 		}
 
-		mobj->momx = FixedMul(FixedDiv(mobjx - x, dist), 2*FRACUNIT);
-		mobj->momy = FixedMul(FixedDiv(mobjy - y, dist), 2*FRACUNIT);
-		mobj->momz = FixedMul(FixedDiv(mobjz - z, dist), 2*FRACUNIT);
-
 		if (spawncenter)
 		{
 			mobj->x = x;
@@ -1726,10 +1753,75 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 			mobj->z = z;
 		}
 
+		mobj->momx = FixedMul(FixedDiv(mobjx - x, dist), FixedDiv(dist, 6*FRACUNIT));
+		mobj->momy = FixedMul(FixedDiv(mobjy - y, dist), FixedDiv(dist, 6*FRACUNIT));
+		mobj->momz = FixedMul(FixedDiv(mobjz - z, dist), FixedDiv(dist, 6*FRACUNIT));
+
 		mobj->flags |= MF_NOCLIPTHING;
 		mobj->flags &= ~MF_SPECIAL;
 
 		P_SetTarget(&mobj->target, source);
+	}
+}
+
+// Spawns the purely visual explosion
+void K_SpawnBobombExplosion(mobj_t *source)
+{
+	INT32 i, radius, height;
+	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
+	mobj_t *dust;
+	mobj_t *truc;
+	smoldering->tics = TICRATE*3;
+	INT32 speed, speed2;
+
+	radius = source->radius>>FRACBITS;
+	height = source->height>>FRACBITS;
+
+	for (i = 0; i < 32; i++)
+	{
+		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
+		dust->angle = ANGLE_90 + ANG1*(11*(i-1));
+		dust->scale = source->scale;
+		dust->destscale = source->scale*10;
+		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
+
+		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOSSEXPLODE);
+		truc->scale = source->scale*2;
+		truc->destscale = source->scale*6;
+		P_SetMobjState(truc, S_SLOWBOOM1);
+		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
+		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		dust = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
+		dust->scale = source->scale;
+		dust->destscale = source->scale*10;
+		dust->tics = 30;
+		dust->momz = P_RandomRange(FixedMul(3*FRACUNIT, source->scale)>>FRACBITS, FixedMul(7*FRACUNIT, source->scale)>>FRACBITS)*FRACUNIT;
+
+		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
+		truc->scale = source->scale;
+		truc->destscale = source->scale*5;
+		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
+		speed = FixedMul(15*FRACUNIT, source->scale)>>FRACBITS;
+		speed2 = FixedMul(45*FRACUNIT, source->scale)>>FRACBITS;
+		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
+		if (P_RandomChance(FRACUNIT/2))
+			truc->momz = -truc->momz;
+		truc->tics = TICRATE*2;
 	}
 }
 
@@ -3479,8 +3571,9 @@ static void K_initKartHUD(void)
 	// CHECK graphic
 	CHEK_Y = BASEVIDHEIGHT;			// 200
 	// Minimap
-	MINI_X = BASEVIDWIDTH - 58;		// 262
+	MINI_X = BASEVIDWIDTH - 50;		// 270
 	MINI_Y = BASEVIDHEIGHT/2;		// 100
+
 
 	if (splitscreen)	// Splitscreen
 	{
@@ -3906,6 +3999,15 @@ static void K_drawKartPositionFaces(void)
 		else
 		{
 			colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
+			if (players[rankplayer[i]].mo->colorized)
+			{
+				colormap = R_GetTranslationColormap(TC_RAINBOW, players[rankplayer[i]].mo->color, GTC_CACHE);
+			}
+			else
+			{
+				colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
+			}
+
 			if (rankplayer[i] != myplayer)
 			{
 				V_DrawSmallTranslucentMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
@@ -4185,16 +4287,16 @@ static void K_drawKartMinimap(void)
 	else
 		return; // no pic, just get outta here
 
-	x = MINI_X - (AutomapPic->width/4);
-	y = MINI_Y - (AutomapPic->height/4);
+	x = MINI_X - (AutomapPic->width/2);
+	y = MINI_Y - (AutomapPic->height/2);
 
 	if (splitscreen == 2)
 		splitflags = 0;
 
 	if (mirrormode)
-		V_DrawSmallScaledPatch(x+(AutomapPic->width/2), y, splitflags|V_FLIP, AutomapPic);
+		V_DrawScaledPatch(x+(AutomapPic->width), y, splitflags|V_FLIP, AutomapPic);
 	else
-		V_DrawSmallScaledPatch(x, y, splitflags, AutomapPic);
+		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
 
 	splitflags &= ~V_HUDTRANSHALF; // Head icons won't be transparent
 
@@ -4231,41 +4333,67 @@ static void K_drawKartMinimap(void)
 			if (bsp->bbox[1][BOXTOP] > maxy)
 				maxy = bsp->bbox[1][BOXTOP];
 
+			// You might be wondering why these are being bitshift here
+			// it's because mapwidth and height would otherwise overflow for maps larger than half the size possible...
+			// map boundaries and sizes will ALWAYS be whole numbers thankfully
+			// later calculations take into consideration that these are actually not in terms of FRACUNIT though
+			minx >>= FRACBITS;
+			maxx >>= FRACBITS;
+			miny >>= FRACBITS;
+			maxy >>= FRACBITS;
+
 			fixed_t mapwidth = maxx - minx;
 			fixed_t mapheight = maxy - miny;
 
-			fixed_t xoffset = minx + mapwidth/2;
-			fixed_t yoffset = miny + mapheight/2;
+			// These should always be small enough to be bitshift back right now
+			fixed_t xoffset = (minx + mapwidth/2)<<FRACBITS;
+			fixed_t yoffset = (miny + mapheight/2)<<FRACBITS;
 
-			fixed_t xscale = FixedDiv((AutomapPic->width<<FRACBITS)/2, mapwidth);
-			fixed_t yscale = FixedDiv((AutomapPic->height<<FRACBITS)/2, mapheight);
+			fixed_t xscale = FixedDiv(AutomapPic->width, mapwidth);
+			fixed_t yscale = FixedDiv(AutomapPic->height, mapheight);
 			fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
 
 			amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
 			amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
 
-			amxpos = amnumxpos + ((x + AutomapPic->width/4 - (iconprefix[players[i].skin]->width/4))<<FRACBITS);
-			amypos = amnumypos + ((y + AutomapPic->height/4 - (iconprefix[players[i].skin]->height/4))<<FRACBITS);
+			amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[players[i].skin]->width/2))<<FRACBITS);
+			amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[players[i].skin]->height/2))<<FRACBITS);
 
 			if (mirrormode)
 			{
-				amxpos = -amnumxpos + ((x + AutomapPic->width/4 + (iconprefix[players[i].skin]->width/4))<<FRACBITS);
+				amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[players[i].skin]->width/2))<<FRACBITS);
 				if (!players[i].skincolor) // 'default' color
-					V_DrawSciencePatch(amxpos, amypos, splitflags|V_FLIP, iconprefix[players[i].skin], FRACUNIT/2);
+					V_DrawSciencePatch(amxpos, amypos, splitflags|V_FLIP, iconprefix[players[i].skin], FRACUNIT);
 				else
 				{
-					UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-					V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, splitflags|V_FLIP, iconprefix[players[i].skin], colormap);
+					UINT8 *colormap;
+					if (players[i].mo->colorized)
+					{
+						colormap = R_GetTranslationColormap(TC_RAINBOW, players[i].mo->color, 0);
+					}
+					else
+					{
+						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
+					}
+					V_DrawFixedPatch(amxpos, amypos, FRACUNIT, splitflags|V_FLIP, iconprefix[players[i].skin], colormap);
 				}
 			}
 			else
 			{
 				if (!players[i].skincolor) // 'default' color
-					V_DrawSciencePatch(amxpos, amypos, splitflags, iconprefix[players[i].skin], FRACUNIT/2);
+					V_DrawSciencePatch(amxpos, amypos, splitflags, iconprefix[players[i].skin], FRACUNIT);
 				else
 				{
-					UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, 0); //transtables[players[i].skin] - 256 + (players[i].skincolor<<8);
-					V_DrawFixedPatch(amxpos, amypos, FRACUNIT/2, splitflags, iconprefix[players[i].skin], colormap);
+					UINT8 *colormap;
+					if (players[i].mo->colorized)
+					{
+						colormap = R_GetTranslationColormap(TC_RAINBOW, players[i].mo->color, 0);
+					}
+					else
+					{
+						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
+					}
+					V_DrawFixedPatch(amxpos, amypos, FRACUNIT, splitflags, iconprefix[players[i].skin], colormap);
 				}
 			}
 		}

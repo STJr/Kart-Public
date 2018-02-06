@@ -694,6 +694,7 @@ void D_SRB2Loop(void)
 		else if (rendertimeout < entertic) // in case the server hang or netsplit
 		{
 			// Lagless camera! Yay!
+			/*
 			if (gamestate == GS_LEVEL && netgame)
 			{
 				if (camera.chase)
@@ -705,6 +706,7 @@ void D_SRB2Loop(void)
 				if (splitscreen > 2 && camera4.chase)
 					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
 			}
+			*/
 			D_Display();
 
 			if (moviemode)

@@ -118,6 +118,9 @@ static UINT8 resynch_local_inprogress = false; // WE are desynched and getting p
 static UINT8 player_joining = false;
 UINT8 hu_resynching = 0;
 
+// kart, true when a player is connecting or disconnecting so that the gameplay has stopped in its tracks
+UINT8 hu_stopped = 0;
+
 // Client specific
 static ticcmd_t localcmds;
 static ticcmd_t localcmds2;
@@ -4733,8 +4736,16 @@ void TryRunTics(tic_t realtics)
 	}
 #endif
 
+	if (neededtic > gametic)
+	{
+		hu_stopped = false;
+	}
+
 	if (player_joining)
+	{
+		hu_stopped = true;
 		return;
+	}
 
 	if (neededtic > gametic)
 	{
@@ -4751,6 +4762,10 @@ void TryRunTics(tic_t realtics)
 				gametic++;
 				consistancy[gametic%BACKUPTICS] = Consistancy();
 			}
+	}
+	else
+	{
+		hu_stopped = true;
 	}
 }
 

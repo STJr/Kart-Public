@@ -2296,7 +2296,6 @@ static boolean P_ZMovement(mobj_t *mo)
 					mo->fuse += ((5 - mo->threshold) * TICRATE);
 			}
 			break;
-
 		case MT_SKIM:
 			// skims don't bounce
 			if (mo->z > mo->watertop && mo->z - mo->momz <= mo->watertop)
@@ -3039,6 +3038,14 @@ static boolean P_SceneryZMovement(mobj_t *mo)
 
 	switch (mo->type)
 	{
+		case MT_BOOMPARTICLE:
+			if ((mo->flags & MF_BOUNCE) && (mo->z <= mo->floorz || mo->z+mo->height >= mo->ceilingz))
+			{
+				mo->momz = -mo->momz;
+				mo->z += mo->momz;
+				S_StartSound(mo, mo->info->activesound);
+			}
+			break;
 		case MT_SMALLBUBBLE:
 			if (mo->z <= mo->floorz || mo->z+mo->height >= mo->ceilingz) // Hit the floor, so POP!
 			{
@@ -6680,6 +6687,42 @@ void P_MobjThinker(mobj_t *mobj)
 					return;
 				}
 				break;
+			case MT_SMOLDERING:
+				if (leveltime % 2 == 0)
+				{
+					fixed_t x = P_RandomRange(-35, 35)*mobj->scale;
+					fixed_t y = P_RandomRange(-35, 35)*mobj->scale;
+					fixed_t z = P_RandomRange(0, 70)*mobj->scale;
+					mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+					smoke->scale = mobj->scale * 2;
+					smoke->destscale = mobj->scale * 6;
+					smoke->momz = P_RandomRange(4, 9)*FRACUNIT;
+				}
+				break;
+			case MT_BOOMPARTICLE:
+				{
+					fixed_t x = P_RandomRange(-16, 16)*mobj->scale;
+					fixed_t y = P_RandomRange(-16, 16)*mobj->scale;
+					fixed_t z = P_RandomRange(0, 32)*mobj->scale;
+					if (leveltime % 2 == 0)
+					{
+						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_BOSSEXPLODE);
+						P_SetMobjState(smoke, S_QUICKBOOM1);
+						smoke->scale = mobj->scale/2;
+						smoke->destscale = mobj->scale;
+					}
+					else
+					{
+						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+						smoke->scale = mobj->scale;
+						smoke->destscale = mobj->scale*2;
+					}
+					if (mobj->tics <= TICRATE)
+					{
+						mobj->destscale = FixedDiv(mobj->scale, 100*FRACUNIT);
+					}
+				}
+				break;
 			case MT_BATTLEBALLOON:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
@@ -8537,6 +8580,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	}
 	else
 		mobj->z = z;
+
+	mobj->colorized = false;
 
 #ifdef HAVE_BLUA
 	// DANGER! This can cause P_SpawnMobj to return NULL!

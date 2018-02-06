@@ -3924,14 +3924,11 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (thing->type != MT_PLAYER) // Don't explode for anything but an actual player.
 		return true;
 
-	if (thing == grenade->target && !(grenade->threshold == 0)) // Don't blow up at your owner.
+	if (thing == grenade->target && grenade->threshold != 0) // Don't blow up at your owner.
 		return true;
 
-	if (thing->player && thing->player->kartstuff[k_hyudorotimer])
-		return true;
-
-	if ((gametype != GT_RACE) && thing->player
-		&& thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])
+	if (thing->player && (thing->player->kartstuff[k_hyudorotimer]
+		|| (gametype == GT_MATCH && thing->player && thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
 		return true;
 
 	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
@@ -8273,7 +8270,9 @@ void A_MineExplode(mobj_t *actor)
 	type = (mobjtype_t)locvar1;
 
 	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), false, false, actor->target); // 32 <-> 64
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+
+	K_SpawnBobombExplosion(actor);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
 
@@ -8289,7 +8288,7 @@ void A_MineExplode(mobj_t *actor)
 		if (mo2 == actor || mo2->type == MT_BOMBEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
-		if (actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
+		if (gametype == GT_MATCH && actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)

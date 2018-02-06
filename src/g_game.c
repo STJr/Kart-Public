@@ -1244,7 +1244,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	// why build a ticcmd if we're paused?
 	// Or, for that matter, if we're being reborn.
-	if (paused || P_AutoPause() || (gamestate == GS_LEVEL && player->playerstate == PST_REBORN))
+	// Kart, don't build a ticcmd if someone is resynching or the server is stopped too so we don't fly off course in bad conditions
+	if (paused || P_AutoPause() || (gamestate == GS_LEVEL && player->playerstate == PST_REBORN) || hu_resynching)
 	{
 		cmd->angleturn = (INT16)(lang >> 16);
 		cmd->aiming = G_ClipAimingPitch(&laim);
@@ -1570,8 +1571,10 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->angleturn = (INT16)(lang >> 16);
 	}
 
-	switch (ssplayer)
+	if (!hu_stopped)
 	{
+		switch (ssplayer)
+		{
 		case 2:
 			localangle2 = lang;
 			localaiming2 = laim;
@@ -1601,6 +1604,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			turnheld = th;
 			camspin = InputDown(gc_lookback, ssplayer);
 			break;
+		}
 	}
 
 	//Reset away view if a command is given.
