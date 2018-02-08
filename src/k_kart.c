@@ -2196,10 +2196,9 @@ void K_SpawnBobombExplosion(mobj_t *source, UINT8 color)
 
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
-			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOSSEXPLODE);
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
 		truc->scale = source->scale*2;
 		truc->destscale = source->scale*6;
-		P_SetMobjState(truc, S_SLOWBOOM1);
 		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;

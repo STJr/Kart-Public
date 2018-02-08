@@ -3038,11 +3038,22 @@ static boolean P_SceneryZMovement(mobj_t *mo)
 
 	switch (mo->type)
 	{
+		case MT_BOOMEXPLODE:
 		case MT_BOOMPARTICLE:
 			if ((mo->flags & MF_BOUNCE) && (mo->z <= mo->floorz || mo->z+mo->height >= mo->ceilingz))
 			{
+				// set standingslope
+				P_TryMove(mo, mo->x, mo->y, true);
 				mo->momz = -mo->momz;
-				mo->z += mo->momz;
+#ifdef ESLOPE
+				if (mo->standingslope)
+				{
+					if (mo->flags & MF_NOCLIPHEIGHT)
+						mo->standingslope = NULL;
+					else if (!P_IsObjectOnGround(mo))
+						P_SlopeLaunch(mo);
+				}
+#endif
 				S_StartSound(mo, mo->info->activesound);
 			}
 			break;
