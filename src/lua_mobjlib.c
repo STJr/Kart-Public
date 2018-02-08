@@ -80,7 +80,8 @@ enum mobj_e {
 	mobj_extravalue1,
 	mobj_extravalue2,
 	mobj_cusval,
-	mobj_cvmem
+	mobj_cvmem,
+	mobj_colorized
 };
 
 static const char *const mobj_opt[] = {
@@ -140,6 +141,7 @@ static const char *const mobj_opt[] = {
 	"extravalue2",
 	"cusval",
 	"cvmem",
+	"colorized",
 	NULL};
 
 #define UNIMPLEMENTED luaL_error(L, LUA_QL("mobj_t") " field " LUA_QS " is not implemented for Lua and cannot be accessed.", mobj_opt[field])
@@ -342,6 +344,9 @@ static int mobj_get(lua_State *L)
 		break;
 	case mobj_cvmem:
 		lua_pushinteger(L, mo->cvmem);
+		break;
+	case mobj_colorized:
+		lua_pushboolean(L, mo->colorized);
 		break;
 	default: // extra custom variables in Lua memory
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
@@ -637,6 +642,9 @@ static int mobj_set(lua_State *L)
 		break;
 	case mobj_cvmem:
 		mo->cvmem = luaL_checkinteger(L, 3);
+		break;
+	case mobj_colorized:
+		mo->colorized = luaL_checkboolean(L, 3);
 		break;
 	default:
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);

@@ -39,6 +39,8 @@
 #include "../w_wad.h"
 #include "../z_zone.h"
 #include "../r_things.h"
+#include "../r_draw.h"
+#include "../p_tick.h"
 
 #include "hw_main.h"
 #include "../v_video.h"
@@ -934,7 +936,7 @@ spritemd2found:
 	fclose(f);
 }
 
-static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, GLMipmap_t *grmip, skincolors_t color)
+static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, GLMipmap_t *grmip, INT32 skinnum, skincolors_t color)
 {
 	UINT16 w = gpatch->width, h = gpatch->height;
 	UINT32 size = w*h;
@@ -1205,45 +1207,83 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 			break;
 	}
 
-	while (size--)
+	// starman support, could theoretically support boss ones too
+	if (skinnum == TC_STARMAN)
 	{
-		if (blendimage->s.alpha == 0)
+		while (size--)
 		{
-			// Don't bother with blending the pixel if the alpha of the blend pixel is 0
-			cur->rgba = image->rgba;
+			if (image->s.alpha == 0 && blendimage->s.alpha == 0)
+			{
+				// Don't bother with blending the pixel if the alpha of the blend pixel is 0
+				cur->rgba = image->rgba;
+			}
+			else
+			{
+				UINT32 tempcolor;
+				UINT16 imagebright, blendbright, finalbright, colorbright;
+				imagebright = (image->s.red+image->s.green+image->s.blue)/3;
+				blendbright = (blendimage->s.red+blendimage->s.green+blendimage->s.blue)/3;
+				// slightly dumb average between the blend image color and base image colour, usually one or the other will be fully opaque anyway
+				finalbright = (imagebright*(255-blendimage->s.alpha))/255 + (blendbright*blendimage->s.alpha)/255;
+				colorbright = (blendcolor.s.red+blendcolor.s.green+blendcolor.s.blue)/3;
+
+				tempcolor = (finalbright*blendcolor.s.red)/colorbright;
+				tempcolor = min(255, max(0, tempcolor));
+				cur->s.red = (UINT8)tempcolor;
+				tempcolor = (finalbright*blendcolor.s.green)/colorbright;
+				tempcolor = min(255, max(0, tempcolor));
+				cur->s.green = (UINT8)tempcolor;
+				tempcolor = (finalbright*blendcolor.s.blue)/colorbright;
+				tempcolor = min(255, max(0, tempcolor));
+				cur->s.blue = (UINT8)tempcolor;
+				cur->s.alpha = image->s.alpha;
+			}
+
+			cur++; image++; blendimage++;
 		}
-		else
+	}
+	else
+	{
+		while (size--)
 		{
-			INT32 tempcolor;
-			INT16 tempmult, tempalpha;
-			tempalpha = -(abs(blendimage->s.red-127)-127)*2;
-			if (tempalpha > 255)
-				tempalpha = 255;
-			else if (tempalpha < 0)
-				tempalpha = 0;
+			if (blendimage->s.alpha == 0)
+			{
+				// Don't bother with blending the pixel if the alpha of the blend pixel is 0
+				cur->rgba = image->rgba;
+			}
+			else
+			{
+				INT32 tempcolor;
+				INT16 tempmult, tempalpha;
+				tempalpha = -(abs(blendimage->s.red-127)-127)*2;
+				if (tempalpha > 255)
+					tempalpha = 255;
+				else if (tempalpha < 0)
+					tempalpha = 0;
 
-			tempmult = (blendimage->s.red-127)*2;
-			if (tempmult > 255)
-				tempmult = 255;
-			else if (tempmult < 0)
-				tempmult = 0;
+				tempmult = (blendimage->s.red-127)*2;
+				if (tempmult > 255)
+					tempmult = 255;
+				else if (tempmult < 0)
+					tempmult = 0;
 
-			tempcolor = (image->s.red*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.red)/255)) * blendimage->s.alpha)/255;
-			cur->s.red = (UINT8)tempcolor;
-			tempcolor = (image->s.green*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.green)/255)) * blendimage->s.alpha)/255;
-			cur->s.green = (UINT8)tempcolor;
-			tempcolor = (image->s.blue*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.blue)/255)) * blendimage->s.alpha)/255;
-			cur->s.blue = (UINT8)tempcolor;
-			cur->s.alpha = image->s.alpha;
+				tempcolor = (image->s.red*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.red)/255)) * blendimage->s.alpha)/255;
+				cur->s.red = (UINT8)tempcolor;
+				tempcolor = (image->s.green*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.green)/255)) * blendimage->s.alpha)/255;
+				cur->s.green = (UINT8)tempcolor;
+				tempcolor = (image->s.blue*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.blue)/255)) * blendimage->s.alpha)/255;
+				cur->s.blue = (UINT8)tempcolor;
+				cur->s.alpha = image->s.alpha;
+			}
+
+			cur++; image++; blendimage++;
 		}
-
-		cur++; image++; blendimage++;
 	}
 
 	return;
 }
 
-static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, const UINT8 *colormap, skincolors_t color)
+static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT32 skinnum, const UINT8 *colormap, skincolors_t color)
 {
 	// mostly copied from HWR_GetMappedPatch, hence the similarities and comment
 	GLMipmap_t *grmip, *newmip;
@@ -1284,7 +1324,7 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, con
 	grmip->nextcolormap = newmip;
 	newmip->colormap = colormap;
 
-	HWR_CreateBlendedTexture(gpatch, blendgpatch, newmip, color);
+	HWR_CreateBlendedTexture(gpatch, blendgpatch, newmip, skinnum, color);
 
 	HWD.pfnSetTexture(newmip);
 	Z_ChangeTag(newmip->grInfo.data, PU_HWRCACHE_UNLOCKED);
@@ -1435,7 +1475,30 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 				md2->blendgrpatch && ((GLPatch_t *)md2->blendgrpatch)->mipmap.grInfo.format
 				&& gpatch->width == ((GLPatch_t *)md2->blendgrpatch)->width && gpatch->height == ((GLPatch_t *)md2->blendgrpatch)->height)
 			{
-				HWR_GetBlendedTexture(gpatch, (GLPatch_t *)md2->blendgrpatch, spr->colormap, (skincolors_t)spr->mobj->color);
+				INT32 skinnum;
+				if ((spr->mobj->flags & MF_BOSS) && (spr->mobj->flags2 & MF2_FRET) && (leveltime & 1)) // Bosses "flash"
+				{
+					if (spr->mobj->type == MT_CYBRAKDEMON)
+						skinnum = TC_ALLWHITE;
+					else if (spr->mobj->type == MT_METALSONIC_BATTLE)
+						skinnum = TC_METALSONIC;
+					else
+						skinnum = TC_BOSS;
+				}
+				else if (spr->mobj->color)
+				{
+					if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
+					{
+						if (spr->mobj->colorized)
+							skinnum = TC_STARMAN;
+						else
+						{
+							skinnum = (INT32)((skin_t*)spr->mobj->skin-skins);
+						}
+					}
+					else skinnum = TC_DEFAULT;
+				}
+				HWR_GetBlendedTexture(gpatch, (GLPatch_t *)md2->blendgrpatch, skinnum, spr->colormap, (skincolors_t)spr->mobj->color);
 			}
 			else
 			{

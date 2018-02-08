@@ -848,9 +848,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->player && thing->player->powers[pw_flashing])
 			return true;
 
-		if (thing->type == MT_PLAYER)
+		if (thing->type == MT_PLAYER && thing->player)
 		{
-			K_SpinPlayer(thing->player, tmthing->target);
+			if (tmthing->state == &states[S_BOMBEXPLOSION1])
+				K_ExplodePlayer(thing->player, tmthing->target);
+			else
+				K_SpinPlayer(thing->player, tmthing->target);
 		}
 
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
@@ -1180,10 +1183,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_KillMobj(thing, tmthing, tmthing);
 		}
-		else if (thing->type == MT_BOMBEXPLOSION)
+		else if (thing->type == MT_BOMBEXPLOSION && tmthing->player)
 		{
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target);
+			if (thing->state == &states[S_BOMBEXPLOSION1])
+				K_ExplodePlayer(tmthing->player, thing->target);
+			else
+				K_SpinPlayer(tmthing->player, thing->target);
 
 			return true;
 		}

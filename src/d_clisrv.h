@@ -553,4 +553,5 @@ tic_t GetLag(INT32 node);
 UINT8 GetFreeXCmdSize(void);
 
 extern UINT8 hu_resynching;
+extern UINT8 hu_stopped; // kart, true when the game is stopped for players due to a disconnecting or connecting player
 #endif

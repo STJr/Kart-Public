@@ -827,7 +827,7 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		dc_transmap = vis->transmap;
 		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
 		{
-			if (vis->mobj->player && vis->mobj->player->kartstuff[k_startimer])
+			if (vis->mobj->colorized)
 				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
 			else
 			{
@@ -851,7 +851,7 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		// New colormap stuff for skins Tails 06-07-2002
 		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
 		{
-			if (vis->mobj->player && vis->mobj->player->kartstuff[k_startimer])
+			if (vis->mobj->colorized)
 				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
 			else
 			{
