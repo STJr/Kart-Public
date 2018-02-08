@@ -761,7 +761,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 		}
-		else if (thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM)
+		else if (thing->type == MT_MINESHIELD || thing->type == MT_MINEITEM)
 		{
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -825,7 +825,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		return true;
 	}
-	else if (tmthing->type == MT_BOMBEXPLOSION)
+	else if (tmthing->type == MT_MINEEXPLOSION)
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -974,7 +974,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
 			|| thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
-			|| thing->type == MT_BOMBITEM
+			|| thing->type == MT_MINEITEM
 			|| thing->type == MT_BANANAITEM || thing->type == MT_FIREBALL)
 		{
 			// This Item Damage
@@ -991,7 +991,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		else if (thing->type == MT_GREENSHIELD // When these items collide with the fake item, both of them are destroyed
 			|| thing->type == MT_REDSHIELD
-			|| thing->type == MT_BOMBSHIELD
+			|| thing->type == MT_MINESHIELD
 			|| thing->type == MT_BANANASHIELD
 			|| thing->type == MT_FAKEITEM || thing->type == MT_FAKESHIELD)
 		{
@@ -1041,7 +1041,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		return true;
 	}
-	else if (tmthing->type == MT_BOMBSHIELD || tmthing->type == MT_BOMBITEM)
+	else if (tmthing->type == MT_MINESHIELD || tmthing->type == MT_MINEITEM)
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -1087,8 +1087,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			|| thing->type == MT_REDSHIELD || thing->type == MT_REDITEM || thing->type == MT_REDITEMDUD
 			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM
 			|| thing->type == MT_BANANASHIELD || thing->type == MT_BANANAITEM
-			|| thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM
-			|| thing->type == MT_BOMBEXPLOSION
+			|| thing->type == MT_MINESHIELD || thing->type == MT_MINEITEM
+			|| thing->type == MT_MINEEXPLOSION
 			|| thing->type == MT_SINK || thing->type == MT_FIREBALL
 			))
 	{
@@ -1154,7 +1154,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
 		}
-		else if (thing->type == MT_BOMBSHIELD || thing->type == MT_BOMBITEM)
+		else if (thing->type == MT_MINESHIELD || thing->type == MT_MINEITEM)
 		{
 			if ((thing->target == tmthing) && (thing->threshold > 0))
 				return true;
@@ -1164,7 +1164,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_KillMobj(thing, tmthing, tmthing);
 		}
-		else if (thing->type == MT_BOMBEXPLOSION && tmthing->player)
+		else if (thing->type == MT_MINEEXPLOSION && tmthing->player)
 		{
 			// Player Damage
 			if (thing->state == &states[S_BOMBEXPLOSION1])

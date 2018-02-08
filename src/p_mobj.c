@@ -1402,7 +1402,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					gravityadd >>= 1;
 				case MT_BANANAITEM:
 				case MT_FAKEITEM:
-				case MT_BOMBITEM:
+				case MT_MINEITEM:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
 				default:
 					break;
@@ -6598,7 +6598,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_REDSHIELD:
 			case MT_BANANASHIELD:
 			case MT_FAKESHIELD:
-			case MT_BOMBSHIELD:
+			case MT_MINESHIELD:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -6669,7 +6669,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_REDSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
 						|| (mobj->type == MT_BANANASHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
-						|| (mobj->type == MT_BOMBSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
+						|| (mobj->type == MT_MINESHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
 						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_fakeitem])
 						|| (mobj->type != MT_FAKESHIELD && !mobj->target->player->kartstuff[k_itemheld])
 						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))
@@ -7254,7 +7254,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->z <= mobj->floorz)
 				P_RemoveMobj(mobj);
 			break;
-		case MT_BOMBITEM:
+		case MT_MINEITEM:
 		case MT_BLUEEXPLOSION:
 			if (mobj->health > -100)
 			{
@@ -7264,7 +7264,7 @@ void P_MobjThinker(mobj_t *mobj)
 			else
 				P_RemoveMobj(mobj);
 			break;
-		case MT_BOMBEXPLOSIONSOUND:
+		case MT_MINEEXPLOSIONSOUND:
 			P_RemoveMobj(mobj);
 			break;
 		//}
@@ -7901,7 +7901,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
-		case MT_BOMBITEM:
+		case MT_MINEITEM:
 			if (mobj->target && mobj->target->player)
 				mobj->color = mobj->target->player->skincolor;
 			else
@@ -7919,13 +7919,16 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				mobj->health--;
 			}
+			if (mobj->state == &states[S_BOMBITEM1] || mobj->state == &states[S_BOMBITEM2]
+				|| mobj->state == &states[S_BOMBITEM3] || mobj->state == &states[S_BOMBITEM4])
+				A_GrenadeRing(mobj);
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
 		case MT_BLUEEXPLOSION:
 			mobj->health--;
 			break;
-		case MT_BOMBEXPLOSION:
+		case MT_MINEEXPLOSION:
 			if ((mobj->z < mobj->floorz - mobj->height) || (mobj->z > mobj->ceilingz + mobj->height))
 			{
 				P_KillMobj(mobj, NULL, NULL);
@@ -7948,7 +7951,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->z += mobj->momz;
 			P_SetThingPosition(mobj);
 			return;
-		case MT_BOMBEXPLOSIONSOUND:
+		case MT_MINEEXPLOSIONSOUND:
 			if (mobj->health == 100)
 				S_StartSound(mobj, sfx_prloop);
 			mobj->health--;
@@ -8712,7 +8715,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD: 
 		case MT_BATTLEBALLOON:			case MT_FIREBALL:
 		case MT_FAKEITEM: 				case MT_FAKESHIELD: 
-		case MT_BOMBITEM: 				case MT_BOMBSHIELD: 
+		case MT_MINEITEM: 				case MT_MINESHIELD: 
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

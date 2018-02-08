@@ -8277,7 +8277,7 @@ void A_MineExplode(mobj_t *actor)
 	else
 		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
 
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
+	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 
 	//S_StartSound(actor, sfx_prloop);
 
@@ -8288,7 +8288,7 @@ void A_MineExplode(mobj_t *actor)
 
 		mo2 = (mobj_t *)th;
 
-		if (mo2 == actor || mo2->type == MT_BOMBEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
+		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
 		if (gametype == GT_MATCH && actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)

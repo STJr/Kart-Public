@@ -2038,7 +2038,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)
 			|| (target->type == MT_REDSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
 			|| (target->type == MT_BANANASHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
-			|| (target->type == MT_BOMBSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
+			|| (target->type == MT_MINESHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
 		{
 			if (target->lastlook > 0)
 				target->target->player->kartstuff[k_itemamount] = target->lastlook-1;

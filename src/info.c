@@ -2684,35 +2684,35 @@ state_t states[NUMSTATES] =
 	{SPR_SSMN, 12,  3, {NULL}, 0, 0, S_BOMBDEPLOY12},					// S_BOMBDEPLOY11
 	{SPR_SSMN, 13,  3, {NULL}, 0, 0, S_BOMBDEPLOY13},					// S_BOMBDEPLOY12
 	{SPR_SSMN, 14,  3, {NULL}, 0, 0, S_BOMBITEM1},					// S_BOMBDEPLOY13
-	{SPR_SSMN,  0, 30, {A_GrenadeRing}, 0, 0, S_BOMBITEM2},			// S_BOMBITEM1
-	{SPR_SSMN,  3,  3, {A_GrenadeRing}, 0, 0, S_BOMBITEM3},			// S_BOMBITEM2
-	{SPR_SSMN,  2,  3, {A_GrenadeRing}, 0, 0, S_BOMBITEM4},			// S_BOMBITEM3
-	{SPR_SSMN,  1,  3, {A_GrenadeRing}, 0, 0, S_BOMBITEM1},			// S_BOMBITEM4
-	{SPR_SSMN,  3,  1, {A_MineExplode}, MT_BOMBEXPLOSION, 0, S_NULL},	// S_BOMBEXPLODE
+	{SPR_SSMN,  0, 30, {NULL}, 0, 0, S_BOMBITEM2},					// S_BOMBITEM1
+	{SPR_SSMN,  3,  3, {NULL}, 0, 0, S_BOMBITEM3},					// S_BOMBITEM2
+	{SPR_SSMN,  2,  3, {NULL}, 0, 0, S_BOMBITEM4},					// S_BOMBITEM3
+	{SPR_SSMN,  1,  3, {NULL}, 0, 0, S_BOMBITEM1},					// S_BOMBITEM4
+	{SPR_SSMN,  3,  1, {A_MineExplode}, MT_MINEEXPLOSION, 0, S_NULL},	// S_BOMBEXPLODE
 	{SPR_NULL,  0,  6, {NULL}, 0, 0, S_BOMBEXPLOSION2},				// S_BOMBEXPLOSION1
 	{SPR_NULL,  1, 22, {A_ForceStop}, 0, 0, S_NULL},					// S_BOMBEXPLOSION2
 
-	{SPR_KRBM, 0, 1, {NULL}, 0, 0, S_QUICKBOOM2},		// S_QUICKBOOM1
-	{SPR_KRBM, 1, 1, {NULL}, 0, 0, S_QUICKBOOM3},		// S_QUICKBOOM2
-	{SPR_KRBM, 2, 1, {NULL}, 0, 0, S_QUICKBOOM4},		// S_QUICKBOOM3
-	{SPR_KRBM, 3, 1, {NULL}, 0, 0, S_QUICKBOOM5},		// S_QUICKBOOM4
-	{SPR_KRBM, 4, 1, {NULL}, 0, 0, S_QUICKBOOM6},		// S_QUICKBOOM5
-	{SPR_KRBM, 5, 1, {NULL}, 0, 0, S_QUICKBOOM7},		// S_QUICKBOOM6
-	{SPR_KRBM, 6, 1, {NULL}, 0, 0, S_QUICKBOOM8},		// S_QUICKBOOM7
-	{SPR_KRBM, 7, 2, {NULL}, 0, 0, S_QUICKBOOM9},		// S_QUICKBOOM8
-	{SPR_KRBM, 8, 2, {NULL}, 0, 0, S_QUICKBOOM10},	// S_QUICKBOOM9
-	{SPR_KRBM, 9, 2, {NULL}, 0, 0, S_NULL},			// S_QUICKBOOM10
+	{SPR_KRBM, FF_FULLBRIGHT,   1, {NULL}, 0, 0, S_QUICKBOOM2},		// S_QUICKBOOM1
+	{SPR_KRBM, FF_FULLBRIGHT|1, 1, {NULL}, 0, 0, S_QUICKBOOM3},		// S_QUICKBOOM2
+	{SPR_KRBM, FF_FULLBRIGHT|2, 1, {NULL}, 0, 0, S_QUICKBOOM4},		// S_QUICKBOOM3
+	{SPR_KRBM, FF_FULLBRIGHT|3, 1, {NULL}, 0, 0, S_QUICKBOOM5},		// S_QUICKBOOM4
+	{SPR_KRBM, FF_FULLBRIGHT|4, 1, {NULL}, 0, 0, S_QUICKBOOM6},		// S_QUICKBOOM5
+	{SPR_KRBM, FF_FULLBRIGHT|5, 1, {NULL}, 0, 0, S_QUICKBOOM7},		// S_QUICKBOOM6
+	{SPR_KRBM, FF_FULLBRIGHT|6, 1, {NULL}, 0, 0, S_QUICKBOOM8},		// S_QUICKBOOM7
+	{SPR_KRBM, FF_FULLBRIGHT|7, 2, {NULL}, 0, 0, S_QUICKBOOM9},		// S_QUICKBOOM8
+	{SPR_KRBM, FF_FULLBRIGHT|8, 2, {NULL}, 0, 0, S_QUICKBOOM10},		// S_QUICKBOOM9
+	{SPR_KRBM, FF_FULLBRIGHT|9, 2, {NULL}, 0, 0, S_NULL},				// S_QUICKBOOM10
 
-	{SPR_KRBM, 0, 3, {NULL}, 0, 0, S_SLOWBOOM2},		// S_SLOWBOOM1
-	{SPR_KRBM, 1, 3, {NULL}, 0, 0, S_SLOWBOOM3},		// S_SLOWBOOM2
-	{SPR_KRBM, 2, 3, {NULL}, 0, 0, S_SLOWBOOM4},		// S_SLOWKBOOM3
-	{SPR_KRBM, 3, 3, {NULL}, 0, 0, S_SLOWBOOM5},		// S_SLOWBOOM4
-	{SPR_KRBM, 4, 3, {NULL}, 0, 0, S_SLOWBOOM6},		// S_SLOWBOOM5
-	{SPR_KRBM, 5, 3, {NULL}, 0, 0, S_SLOWBOOM7},		// S_SLOWBOOM6
-	{SPR_KRBM, 6, 3, {NULL}, 0, 0, S_SLOWBOOM8},		// S_SLOWBOOM7
-	{SPR_KRBM, 7, 5, {NULL}, 0, 0, S_SLOWBOOM9},		// S_SLOWBOOM8
-	{SPR_KRBM, 8, 5, {NULL}, 0, 0, S_SLOWBOOM10},		// S_SLOWBOOM9
-	{SPR_KRBM, 9, 5, {NULL}, 0, 0, S_NULL},			// S_SLOWBOOM10
+	{SPR_KRBM, FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_SLOWBOOM2},		// S_SLOWBOOM1
+	{SPR_KRBM, FF_FULLBRIGHT|1, 3, {NULL}, 0, 0, S_SLOWBOOM3},		// S_SLOWBOOM2
+	{SPR_KRBM, FF_FULLBRIGHT|2, 3, {NULL}, 0, 0, S_SLOWBOOM4},		// S_SLOWKBOOM3
+	{SPR_KRBM, FF_FULLBRIGHT|3, 3, {NULL}, 0, 0, S_SLOWBOOM5},		// S_SLOWBOOM4
+	{SPR_KRBM, FF_FULLBRIGHT|4, 3, {NULL}, 0, 0, S_SLOWBOOM6},		// S_SLOWBOOM5
+	{SPR_KRBM, FF_FULLBRIGHT|5, 3, {NULL}, 0, 0, S_SLOWBOOM7},		// S_SLOWBOOM6
+	{SPR_KRBM, FF_FULLBRIGHT|6, 3, {NULL}, 0, 0, S_SLOWBOOM8},		// S_SLOWBOOM7
+	{SPR_KRBM, FF_FULLBRIGHT|7, 5, {NULL}, 0, 0, S_SLOWBOOM9},		// S_SLOWBOOM8
+	{SPR_KRBM, FF_FULLBRIGHT|8, 5, {NULL}, 0, 0, S_SLOWBOOM10},		// S_SLOWBOOM9
+	{SPR_KRBM, FF_FULLBRIGHT|9, 5, {NULL}, 0, 0, S_NULL},				// S_SLOWBOOM10
 
 	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
@@ -14676,7 +14676,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BOMBSHIELD
+	{           // MT_MINESHIELD
 		-1,             // doomednum
 		S_BOMBSHIELD1,  // spawnstate
 		1000,           // spawnhealth
@@ -14685,7 +14685,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		256*FRACUNIT,   // painchance
+		320*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
@@ -14703,7 +14703,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BOMBITEM
+	{           // MT_MINEITEM
 		-1,             // doomednum
 		S_BOMBAIR1,     // spawnstate
 		105,            // spawnhealth
@@ -14712,7 +14712,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		288*FRACUNIT,   // painchance
+		320*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
@@ -14730,7 +14730,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BOMBEXPLOSION
+	{           // MT_MINEEXPLOSION
 		-1,             // doomednum
 		S_BOMBEXPLOSION1,  // spawnstate
 		1000,           // spawnhealth
@@ -14757,7 +14757,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BOMBEXPLOSIONSOUND
+	{           // MT_MINEEXPLOSIONSOUND
 		-1,             // doomednum
 		S_INVISIBLE,    // spawnstate
 		100,            // spawnhealth
