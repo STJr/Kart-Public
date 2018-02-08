@@ -3311,7 +3311,7 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 			P_SpawnPlayerMissile(player->mo, MT_FIREBALL, 0);
 			S_StartSound(player->mo, sfx_mario7);
 		}
-		else if (G_RingSlingerGametype() && (!G_TagGametype() || player->pflags & PF_TAGIT)
+		else if (G_BattleGametype() && (!G_TagGametype() || player->pflags & PF_TAGIT)
 		  && !player->weapondelay && !player->climbing
 		  && !(player->pflags & PF_ATTACKDOWN))
 		{
@@ -7786,7 +7786,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		if (mo->flags & MF_MONITOR)
 			continue; // Monitors cannot be 'nuked'.
 
-		//if (!G_RingSlingerGametype() && mo->type == MT_PLAYER)
+		//if (!G_BattleGametype() && mo->type == MT_PLAYER)
 		//	continue; // Don't hurt players in Co-Op!
 
 		if (abs(inflictor->x - mo->x) > radius || abs(inflictor->y - mo->y) > radius || abs(inflictor->z - mo->z) > radius)
@@ -8016,7 +8016,7 @@ static void P_DeathThink(player_t *player)
 	}
 
 	// Force respawn if idle for more than 30 seconds in shooter modes.
-	if (player->deadtimer > 30*TICRATE && !G_PlatformGametype())
+	if (player->deadtimer > 30*TICRATE && !G_RaceGametype())
 		player->playerstate = PST_REBORN;
 	else if (player->lives > 0 && !G_IsSpecialStage(gamemap) && leveltime >= 140) // Don't allow "click to respawn" in special stages!
 	{

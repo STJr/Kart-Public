@@ -760,7 +760,7 @@ static int P_RecycleCompare(const void *p1, const void *p2)
 	player_t *player2 = &players[*(const UINT8 *)p2];
 
 	// Non-shooting gametypes
-	if (!G_PlatformGametype())
+	if (!G_RaceGametype())
 	{
 		// Invincibility.
 		if (player1->powers[pw_invulnerability] > player2->powers[pw_invulnerability]) return -1;

@@ -2325,7 +2325,7 @@ static void Command_Suicide(void)
 		return;
 	}
 
-	/*if (!G_PlatformGametype()) // srb2kart: not necessary, suiciding makes you lose a balloon in battle, so it's not desirable to use as a way to escape a hit
+	/*if (!G_RaceGametype()) // srb2kart: not necessary, suiciding makes you lose a balloon in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
 		return;
@@ -2346,7 +2346,7 @@ static void Got_Suicide(UINT8 **cp, INT32 playernum)
 	INT32 suicideplayer = READINT32(*cp);
 
 	// You can't suicide someone else.  Nice try, there.
-	if (suicideplayer != playernum) // srb2kart: "|| (!G_PlatformGametype())"
+	if (suicideplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal suicide command received from %s\n"), player_names[playernum]);
 		if (server)
@@ -4078,7 +4078,7 @@ void ItemFinder_OnChange(void)
 static void PointLimit_OnChange(void)
 {
 	// Don't allow pointlimit in Single Player/Co-Op/Race!
-	if (server && Playing() && G_PlatformGametype())
+	if (server && Playing() && G_RaceGametype())
 	{
 		if (cv_pointlimit.value)
 			CV_StealthSetValue(&cv_pointlimit, 0);
@@ -4126,7 +4126,7 @@ UINT32 timelimitintics = 0;
 static void TimeLimit_OnChange(void)
 {
 	// Don't allow timelimit in Single Player/Co-Op/Race!
-	if (server && Playing() && cv_timelimit.value != 0 && G_PlatformGametype())
+	if (server && Playing() && cv_timelimit.value != 0 && G_RaceGametype())
 	{
 		CV_SetValue(&cv_timelimit, 0);
 		return;
@@ -4229,7 +4229,7 @@ void D_GameTypeChanged(INT32 lastgametype)
 	// reset timelimit and pointlimit in race/coop, prevent stupid cheats
 	if (server)
 	{
-		if (G_PlatformGametype())
+		if (G_RaceGametype())
 		{
 			if (cv_timelimit.value)
 				CV_SetValue(&cv_timelimit, 0);

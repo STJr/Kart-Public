@@ -4328,7 +4328,7 @@ static INT16 Consistancy(void)
 	}
 	// I give up
 	// Coop desynching enemies is painful
-	if (!G_PlatformGametype())
+	if (!G_RaceGametype())
 		ret += P_GetRandSeed();
 
 #ifdef MOBJCONSISTANCY
