@@ -250,7 +250,7 @@ boolean legitimateexit; // Did this client actually finish the match? Calculated
 tic_t curlap; // Current lap time, calculated locally
 tic_t bestlap; // Best lap time, locally
 
-INT16 randmapbuffer[3*NUMMAPS/4]; // Buffer for maps RandMap is allowed to roll
+INT16 randmapbuffer[NUMMAPS-4]; // Buffer for maps RandMap is allowed to roll
 
 // Voting system
 INT16 votelevels[4]; // Levels that were rolled by the host
@@ -3138,9 +3138,9 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer)
 
 		if (!ignorebuffer)
 		{
-			for (bufx = 0; bufx < 3*NUMMAPS/4; bufx++)
+			for (bufx = 0; bufx < NUMMAPS-4; bufx++)
 			{
-				if (randmapbuffer[bufx] == 0) // Rest of buffer SHOULD be empty
+				if (randmapbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
 					break;
 				if (ix == randmapbuffer[bufx])
 				{
@@ -3160,15 +3160,15 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer)
 			return G_RandMap(tolflags, pprevmap, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
 
 		ix = 0; // Sorry, none match. You get MAP01.
-		for (bufx = 0; bufx < 3*NUMMAPS/4; bufx++)
+		for (bufx = 0; bufx < NUMMAPS-4; bufx++)
 			randmapbuffer[bufx] = -1; // if we're having trouble finding a map we should probably clear it
 	}
 	else
 	{
 		ix = okmaps[P_RandomKey(numokmaps)];
-		for (bufx = 3*NUMMAPS/4; bufx > 0; bufx--)
+		/*for (bufx = NUMMAPS-4; bufx > 0; bufx--)
 			randmapbuffer[bufx] = randmapbuffer[bufx-1];
-		randmapbuffer[0] = ix;
+		randmapbuffer[0] = ix;*/
 	}
 
 	Z_Free(okmaps);
@@ -3296,9 +3296,9 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
-	if (randmapbuffer[(3*TOLMaps(G_TOLFlag(gametype))/4)]) // filled up, so lets clear it
+	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-4)] != -1) // filled up, so lets clear it
 	{
-		for (i = 0; i < 3*NUMMAPS/4; i++)
+		for (i = 0; i < NUMMAPS-4; i++)
 			randmapbuffer[i] = -1;
 	}
 

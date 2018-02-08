@@ -2232,18 +2232,8 @@ void Y_VoteDrawer(void)
 	//V_DrawScaledPatch(x, y, V_SNAPTOBOTTOM, pic);
 
 	if (timer)
-	{
-		if (votes[consoleplayer] == -1)
-		{
-			V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
-				va("Vote ends in %d seconds", timer/TICRATE));
-		}
-		else
-		{
-			V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
-				va("Waiting for everyone to vote..."));
-		}
-	}
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
+			va("Vote ends in %d seconds", timer/TICRATE));
 }
 
 //
@@ -2272,7 +2262,7 @@ void Y_VoteTicker(void)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			votes[i] = -1;
-		else if (pickedvote != -1 && votes[i] == -1)
+		else if (pickedvote != -1 && votes[i] == -1 && !splitscreen)
 			votes[i] = 3; // Slow people get random
 	}
 
@@ -2312,7 +2302,7 @@ void Y_VoteTicker(void)
 			}
 
 			randomanim = tempvotes[((pickedvote + ((voteendtic-votetic) / (TICRATE/7))) % numvotes)];
-			S_StartSound(NULL, sfx_menu1);
+			S_StartSound(NULL, sfx_s3k5b);
 		}
 		else
 		{
