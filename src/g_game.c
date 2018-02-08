@@ -3170,7 +3170,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer)
 	}
 	else
 	{
-		ix = okmaps[P_RandomKey(numokmaps)];
+		ix = okmaps[M_RandomKey(numokmaps)];
 		for (bufx = NUMMAPS-4; bufx > 0; bufx--)
 			randmapbuffer[bufx] = randmapbuffer[bufx-1];
 		randmapbuffer[0] = ix;
@@ -3354,7 +3354,7 @@ void G_AfterIntermission(void)
 //
 void G_NextLevel(void)
 {
-	if (cv_advancemap.value == 3 && gamestate != GS_VOTING
+	if ((cv_advancemap.value == 3 && gamestate != GS_VOTING)
 		&& !modeattacking && !skipstats && (multiplayer || netgame))
 		gameaction = ga_startvote;
 	else

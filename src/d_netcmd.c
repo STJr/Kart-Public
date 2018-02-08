@@ -1994,7 +1994,7 @@ void D_PickVote(void)
 		}
 	}
 
-	key = P_RandomKey(numvotes);
+	key = M_RandomKey(numvotes);
 
 	buf[0] = temppicks[key];
 	buf[1] = templevels[key];
