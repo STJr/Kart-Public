@@ -2192,7 +2192,7 @@ void Y_VoteDrawer(void)
 		{
 			patch_t *pic;
 
-			if ((votes[i] == 3 && i != pickedvote) || voteendtic-votetic > 3*TICRATE)
+			if (votes[i] == 3 && (i != pickedvote || voteendtic-votetic > 3*TICRATE))
 				pic = randomlvl;
 			else
 				pic = levelinfo[votes[i]].pic;
@@ -2311,14 +2311,14 @@ void Y_VoteTicker(void)
 				numvotes++;
 			}
 
-			randomanim = tempvotes[((pickedvote - ((voteendtic-votetic) / (TICRATE/7))) % numvotes)];
+			randomanim = tempvotes[((pickedvote + ((voteendtic-votetic) / (TICRATE/7))) % numvotes)];
 			S_StartSound(NULL, sfx_menu1);
 		}
 		else
 		{
 			randomanim = pickedvote;
 			if (voteendtic-votetic == 3*TICRATE-1)
-				S_StartSound(NULL, sfx_ncitem);
+				S_StartSound(NULL, sfx_s3k63);
 		}
 	}
 	else
@@ -2353,7 +2353,7 @@ void Y_VoteTicker(void)
 
 		if (pressed)
 		{
-			S_StartSound(NULL, sfx_menu1);
+			S_StartSound(NULL, sfx_s3k5b);
 			voteclient.delay = NEWTICRATE/7;
 		}
 
