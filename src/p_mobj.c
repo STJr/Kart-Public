@@ -1400,6 +1400,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					break;
 				case MT_WATERDROP:
 					gravityadd >>= 1;
+					break;
 				case MT_BANANAITEM:
 				case MT_FAKEITEM:
 				case MT_BOMBITEM:
