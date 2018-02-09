@@ -1262,6 +1262,7 @@ void V_DrawKartString(INT32 x, INT32 y, INT32 option, const char *string)
 	{
 		case V_MONOSPACE:
 			spacewidth = 12;
+			/* FALLTHRU */
 		case V_OLDSPACING:
 			charwidth = 12;
 			break;
