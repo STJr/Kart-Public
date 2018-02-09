@@ -1139,7 +1139,7 @@ static INT32 Joy4Axis(axis_input_e axissel)
 	return retaxis;
 }
 
-static boolean InputDown(INT32 gc, UINT8 p)
+boolean InputDown(INT32 gc, UINT8 p)
 {
 	switch (p)
 	{

@@ -92,6 +92,7 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n);
 INT16 G_ClipAimingPitch(INT32 *aiming);
 INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 
+boolean InputDown(INT32 gc, UINT8 p);
 INT32 JoyAxis(axis_input_e axissel, UINT8 p);
 
 extern angle_t localangle, localangle2, localangle3, localangle4;

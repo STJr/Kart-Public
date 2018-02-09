@@ -2290,7 +2290,7 @@ void Y_VoteTicker(void)
 			UINT8 tempvotes[MAXPLAYERS];
 			UINT8 numvotes = 0;
 
-			if (votetic % (TICRATE/7) != 0)
+			if (votetic % (TICRATE/3) != 0)
 				return;
 
 			for (i = 0; i < MAXPLAYERS; i++)
@@ -2301,7 +2301,7 @@ void Y_VoteTicker(void)
 				numvotes++;
 			}
 
-			randomanim = tempvotes[((pickedvote + ((voteendtic-votetic) / (TICRATE/7))) % numvotes)];
+			randomanim = tempvotes[((pickedvote + ((voteendtic-votetic) / (TICRATE/3))) % numvotes)];
 			S_StartSound(NULL, sfx_s3k5b);
 		}
 		else
@@ -2320,12 +2320,12 @@ void Y_VoteTicker(void)
 			D_ModifyClientVote(-1);
 		else if (pickedvote == -1 && votes[consoleplayer] == -1 && !voteclient.delay)
 		{
-			if (PLAYER1INPUTDOWN(gc_aimforward) || JoyAxis(AXISMOVE, 1) < 0)
+			if (InputDown(gc_aimforward, 1) || JoyAxis(AXISMOVE, 1) < 0)
 			{
 				voteclient.selection--;
 				pressed = true;
 			}
-			if ((PLAYER1INPUTDOWN(gc_aimbackward) || JoyAxis(AXISMOVE, 1) > 0) && !pressed)
+			if ((InputDown(gc_aimbackward, 1) || JoyAxis(AXISMOVE, 1) > 0) && !pressed)
 			{
 				voteclient.selection++;
 				pressed = true;
@@ -2334,7 +2334,7 @@ void Y_VoteTicker(void)
 				voteclient.selection = 3;
 			if (voteclient.selection > 3)
 				voteclient.selection = 0;
-			if (PLAYER1INPUTDOWN(gc_accelerate) && !pressed)
+			if (InputDown(gc_accelerate, 1) && !pressed)
 			{
 				D_ModifyClientVote(voteclient.selection);
 				pressed = true;
