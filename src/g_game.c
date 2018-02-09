@@ -416,18 +416,6 @@ consvar_t cv_useranalog3 = {"useranalog3", "Off", CV_SAVE|CV_CALL, CV_OnOff, Use
 consvar_t cv_useranalog4 = {"useranalog4", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
-typedef enum
-{
-	AXISNONE = 0,
-	AXISTURN,
-	AXISMOVE,
-	AXISLOOK,
-	AXISSTRAFE,
-	AXISDEAD, //Axises that don't want deadzones
-	AXISFIRE,
-	AXISFIRENORMAL,
-} axis_input_e;
-
 #if defined (_WII) || defined  (WMINPUT)
 consvar_t cv_turnaxis = {"joyaxis_turn", "LStick.X", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis = {"joyaxis_move", "LStick.Y", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1166,7 +1154,7 @@ static boolean InputDown(INT32 gc, UINT8 p)
 	}
 }
 
-static INT32 JoyAxis(axis_input_e axissel, UINT8 p)
+INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 {
 	switch (p)
 	{

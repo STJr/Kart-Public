@@ -2320,12 +2320,12 @@ void Y_VoteTicker(void)
 			D_ModifyClientVote(-1);
 		else if (pickedvote == -1 && votes[consoleplayer] == -1 && !voteclient.delay)
 		{
-			if (PLAYER1INPUTDOWN(gc_aimforward))
+			if (PLAYER1INPUTDOWN(gc_aimforward) || JoyAxis(AXISMOVE, 1) < 0)
 			{
 				voteclient.selection--;
 				pressed = true;
 			}
-			if (PLAYER1INPUTDOWN(gc_aimbackward) && !pressed)
+			if ((PLAYER1INPUTDOWN(gc_aimbackward) || JoyAxis(AXISMOVE, 1) > 0) && !pressed)
 			{
 				voteclient.selection++;
 				pressed = true;
