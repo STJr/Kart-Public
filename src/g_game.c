@@ -3110,7 +3110,7 @@ static INT32 TOLMaps(INT16 tolflags)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer)
 {
 	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
@@ -3150,7 +3150,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer)
 	if (numokmaps == 0)
 	{
 		if (!ignorebuffer)
-			return G_RandMap(tolflags, pprevmap, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
+			return G_RandMap(tolflags, pprevmap, dontadd, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
 
 		ix = 0; // Sorry, none match. You get MAP01.
 		for (bufx = 0; bufx < NUMMAPS; bufx++)
@@ -3289,7 +3289,7 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
-	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-5] != -1) // we're getting pretty full, so lets clear it
+	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-4] != -1) // we're getting pretty full, so lets clear it
 	{
 		for (i = 0; i < NUMMAPS; i++)
 			randmapbuffer[i] = -1;
@@ -3300,7 +3300,7 @@ static void G_DoCompleted(void)
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false);
 	}
 
 	// We are committed to this map now.

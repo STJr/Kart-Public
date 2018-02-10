@@ -1962,7 +1962,12 @@ void D_SetupVote(void)
 	p = buf;
 
 	for (i = 0; i < 4; i++)
-		WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false));
+	{
+		if (i == 3)
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false));
+		else
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false));
+	}
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
 }
