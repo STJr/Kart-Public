@@ -946,9 +946,9 @@ void K_LakituChecker(player_t *player)
 		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 0);
 		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 0);
 		if (player->mo->eflags & MFE_VERTICALFLIP)
-			newz = player->mo->z - 128*FRACUNIT;
+			newz = player->mo->z - 128*(mapheaderinfo[gamemap-1]->mobj_scale);
 		else
-			newz = player->mo->z + 64*FRACUNIT;
+			newz = player->mo->z + 64*(mapheaderinfo[gamemap-1]->mobj_scale);
 		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
 		if (mo)
 		{
