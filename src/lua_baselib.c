@@ -2112,14 +2112,14 @@ static int lib_kDoSneaker(lua_State *L)
 	return 0;
 }
 
-static int lib_kDoBouncePad(lua_State *L)
+static int lib_kDoPogoSpring(lua_State *L)
 {
 	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	fixed_t vertispeed = luaL_checkfixed(L, 2);
 	NOHUD
 	if (!mo)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_DoBouncePad(mo, vertispeed);
+	K_DoPogoSpring(mo, vertispeed);
 	return 0;
 }
 
@@ -2348,7 +2348,7 @@ static luaL_Reg lib[] = {
 	{"K_SpawnDriftTrail",lib_kSpawnDriftTrail},
 	{"K_SpawnSparkleTrail",lib_kSpawnSparkleTrail},
 	{"K_DoSneaker",lib_kDoSneaker},
-	{"K_DoBouncePad",lib_kDoBouncePad},
+	{"K_DoPogoSpring",lib_kDoPogoSpring},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
 	{"K_GetKartAccel",lib_kGetKartAccel},

@@ -1464,12 +1464,6 @@ const char *compat_special_music_slots[21] =
 	"credit", // 1048  credits
 	"racent", // 1049  Race Results
 	"stjr",   // 1050  Sonic Team Jr. Presents
-	// SRB2kart 040217
-	"finlap", // 1051  Sonic Team Jr. Presents
-	"karwin", // 1052  Sonic Team Jr. Presents
-	"karok",  // 1053  Sonic Team Jr. Presents
-	"karlos", // 1054  Sonic Team Jr. Presents
-	"mega",   // 1055  Sonic Team Jr. Presents
 	""
 };
 #endif

@@ -1200,17 +1200,17 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	// Stopping of the horrible invincibility SFX
 	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_invincibilitytimer] <= 0
-		|| player->mo->player->kartstuff[k_growshrinktimer] > 0) 	// If you don't have invincibility (or mega is active too)
+		|| player->mo->player->kartstuff[k_growshrinktimer] > 0) 	// If you don't have invincibility (or grow is active too)
 	{
-		if (S_SoundPlaying(player->mo, sfx_star)) 					// But the sound is playing
-			S_StopSoundByID(player->mo, sfx_star); 					// Stop it
+		if (S_SoundPlaying(player->mo, sfx_kinvnc)) 					// But the sound is playing
+			S_StopSoundByID(player->mo, sfx_kinvnc); 					// Stop it
 	}
 
 	// And the same for the grow SFX
 	if (!(player->mo->health > 0 && player->mo->player->kartstuff[k_growshrinktimer] > 0)) // If you aren't big
 	{
-		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
-			S_StopSoundByID(player->mo, sfx_mega); // Stop it
+		if (S_SoundPlaying(player->mo, sfx_kgrow)) // But the sound is playing
+			S_StopSoundByID(player->mo, sfx_kgrow); // Stop it
 	}
 
 	// AAAAAAND handle the SMK star alarm
@@ -1287,17 +1287,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 		&& player->kartstuff[k_offroad] >= 0 && speed)
 			boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_growshrinktimer] > 1
-		&& (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25)
-		|| player->kartstuff[k_growshrinktimer] <= 26))
-	{												// Grow - Mid-size
-		if (speed)
-		{
-			boostvalue = max(boostvalue, FRACUNIT/8); // + 12.5%
-		}
-	}
-	if (player->kartstuff[k_growshrinktimer] < ((itemtime + TICRATE*2) - 25)
-		&& player->kartstuff[k_growshrinktimer] > 26)
+	if (player->kartstuff[k_growshrinktimer] > 0)
 	{												// Grow
 		if (speed)
 		{
@@ -1990,12 +1980,11 @@ void K_SpawnSparkleTrail(player_t *player)
 			P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
 
 		P_SetTarget(&sparkle->target, player->mo);
-		//sparkle->fuse = 10;
-		sparkle->destscale = player->mo->scale;
+		sparkle->destscale = player->mo->destscale;
 		P_SetScale(sparkle, player->mo->scale);
 		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
 		sparkle->color = player->mo->color;
-		sparkle->colorized = player->mo->colorized;
+		//sparkle->colorized = player->mo->colorized;
 	}
 }
 
@@ -2011,17 +2000,17 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	if (!player)
 		return NULL;
 
-	// Figure out projectile speed by CC
+	// Figure out projectile speed by game speed
 	switch (gamespeed)
 	{
 		case 0:
-			PROJSPEED = 68*FRACUNIT; // Avg Speed is 34
+			PROJSPEED = 68*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 34
 			break;
 		case 2:
-			PROJSPEED = 96*FRACUNIT; // Avg Speed is 48
+			PROJSPEED = 96*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 48
 			break;
 		default:
-			PROJSPEED = 82*FRACUNIT; // Avg Speed is 41
+			PROJSPEED = 82*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 41
 			break;
 	}
 
@@ -2254,15 +2243,16 @@ static void K_DoShrink(player_t *player, boolean spb)
 {
 	mobj_t *mo;
 	thinker_t *think;
-	INT32 i;
-	S_StartSound(player->mo, sfx_bkpoof); // Sound the BANG!
+	//INT32 i;
+
+	//S_StartSound(player->mo, sfx_bkpoof); // Sound the BANG!
 	player->pflags |= PF_ATTACKDOWN;
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	/*for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i])
 			P_FlashPal(&players[i], PAL_NUKE, 10);
-	}
+	}*/
 
 	for (think = thinkercap.next; think != &thinkercap; think = think->next)
 	{
@@ -2272,7 +2262,7 @@ static void K_DoShrink(player_t *player, boolean spb)
 		mo = (mobj_t *)think;
 
 		if (mo->player && !mo->player->spectator
-			&& mo->player->kartstuff[k_position] > player->kartstuff[k_position])
+			&& mo->player->kartstuff[k_position] < player->kartstuff[k_position])
 			P_DamageMobj(mo, player->mo, player->mo, spb ? 65 : 64);
 		else
 			continue;
@@ -2285,7 +2275,7 @@ static void K_DoShrink(player_t *player, boolean spb)
 	player->kartstuff[k_sounds] = 50;
 }
 
-void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
+void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed)
 {
 	if (mo->player && mo->player->spectator)
 		return;
@@ -2332,7 +2322,7 @@ void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
 	else
 		mo->momz = FixedMul(vertispeed, mo->scale);
 
-	S_StartSound(mo, sfx_boing);
+	S_StartSound(mo, sfx_kc2f);
 }
 
 // Returns false if this player being placed here causes them to collide with any other player
@@ -2753,14 +2743,16 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO) // Doesn't hold your item slot hostage normally, so you're free to waste it if you have multiple
 					{
 						if (P_IsLocalPlayer(player) && !player->exiting)
-							S_ChangeMusicInternal("minvnc", true);
+							S_ChangeMusicInternal("kinvnc", true);
 						if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_star);
+							S_StartSound(player->mo, sfx_kinvnc);
 						if (!player->kartstuff[k_invincibilitytimer])
 						{
 							mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
 							P_SetTarget(&overlay->target, player->mo);
 							P_SetMobjState(overlay, S_INVULNFLASH1);
+							overlay->destscale = player->mo->scale;
+							P_SetScale(overlay, player->mo->scale);
 						}
 						player->kartstuff[k_invincibilitytimer] = itemtime; // Activate it
 						K_PlayTauntSound(player->mo);
@@ -3044,12 +3036,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
 						if (P_IsLocalPlayer(player) && !player->exiting)
-							S_ChangeMusicInternal("mega", true);
+							S_ChangeMusicInternal("kgrow", true);
 						if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_mega);
+							S_StartSound(player->mo, sfx_kgrow);
 						K_PlayTauntSound(player->mo);
-						player->kartstuff[k_growshrinktimer] = itemtime + TICRATE*2;
-						S_StartSound(player->mo, sfx_mario3);
+						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
+						player->kartstuff[k_growshrinktimer] = itemtime;
+						S_StartSound(player->mo, sfx_kc5a);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
 						if (gametype != GT_RACE)
@@ -3084,7 +3077,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& !player->kartstuff[k_pogospring])
 					{
 						K_PlayTauntSound(player->mo);
-						K_DoBouncePad(player->mo, 32<<FRACBITS);
+						K_DoPogoSpring(player->mo, 32<<FRACBITS);
 
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_pogospring] = 1;
@@ -3118,28 +3111,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->kartstuff[k_boosting] = 0;
 
 		// Grow - Make the player grow!
-		if (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25))
-		{
-			if (leveltime & 2)
-				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
-			else
-				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale);
-		}
-		else if (player->kartstuff[k_growshrinktimer] > 26
-			&& player->kartstuff[k_growshrinktimer] <= ((itemtime + TICRATE*2) - 25))
-			player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
-		// Grow - Back to normal...
-		else if (player->kartstuff[k_growshrinktimer] > 1
-			&& player->kartstuff[k_growshrinktimer] <= 26)
-		{
-			if (leveltime & 2)
-				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale);
-			else
-				player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
-		}
-		if (player->kartstuff[k_growshrinktimer] == 26)
-			S_StartSound(player->mo, sfx_mario8);
-
+		/*if (player->kartstuff[k_growshrinktimer] > 1)
+			player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;*/
+	
 		if ((gametype != GT_RACE)
 			&& (player->kartstuff[k_itemtype] == KITEM_INVINCIBILITY
 			|| player->kartstuff[k_itemtype] == KITEM_GROW

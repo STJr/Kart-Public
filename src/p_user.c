@@ -1136,11 +1136,11 @@ void P_RestoreMusic(player_t *player)
 	{
 		// Item - Grow
 		if (player->kartstuff[k_growshrinktimer] > 1)
-			S_ChangeMusicInternal("mega", true);
+			S_ChangeMusicInternal("kgrow", true);
 
 		// Item - Star
 		else if (player->kartstuff[k_invincibilitytimer] > 1)
-			S_ChangeMusicInternal("minvnc", false);
+			S_ChangeMusicInternal("kinvnc", false);
 
 		// Event - Final Lap
 		else if (player->laps == (UINT8)(cv_numlaps.value - 1))
@@ -9660,7 +9660,7 @@ void P_PlayerThink(player_t *player)
 	// Flash player after being hit.
 	if (!(player->pflags & PF_NIGHTSMODE))
 	{
-		// SRB2kart - fixes boo not flashing when it should. Mega doesn't flash either. Flashing is local.
+		// SRB2kart - fixes boo not flashing when it should. Grow doesn't flash either. Flashing is local.
 		if ((player == &players[displayplayer]
 			|| (splitscreen && player == &players[secondarydisplayplayer])
 			|| (splitscreen > 1 && player == &players[thirddisplayplayer])

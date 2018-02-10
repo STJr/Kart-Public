@@ -3135,7 +3135,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				K_SpinPlayer(player, source);
 
 				// Start shrinking!
-				player->mo->destscale = 6*FRACUNIT/8;
+				S_StartSound(player->mo, sfx_kc59);
+				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
 			// Grow? Let's take that away.

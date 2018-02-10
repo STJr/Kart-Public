@@ -3753,7 +3753,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
 
 				player->kartstuff[k_pogospring] = 1;
-				K_DoBouncePad(player->mo, 0);
+				K_DoPogoSpring(player->mo, 0);
 			}
 			break;
 
