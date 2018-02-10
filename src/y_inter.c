@@ -2290,7 +2290,7 @@ void Y_VoteTicker(void)
 			UINT8 tempvotes[MAXPLAYERS];
 			UINT8 numvotes = 0;
 
-			if (votetic % (TICRATE/3) != 0)
+			if (votetic % 5)
 				return;
 
 			for (i = 0; i < MAXPLAYERS; i++)
@@ -2301,7 +2301,7 @@ void Y_VoteTicker(void)
 				numvotes++;
 			}
 
-			randomanim = tempvotes[((pickedvote + ((voteendtic-votetic) / (TICRATE/3))) % numvotes)];
+			randomanim = tempvotes[((pickedvote + ((voteendtic-votetic) / 5)) % numvotes)];
 			S_StartSound(NULL, sfx_s3k5b);
 		}
 		else
