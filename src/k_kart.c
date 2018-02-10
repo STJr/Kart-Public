@@ -3262,7 +3262,7 @@ void K_CheckBalloons(void)
 {
 	UINT8 i;
 	UINT8 numingame = 0;
-	INT8 winnernum = -1;
+	SINT8 winnernum = -1;
 
 #if 0
 	return; // set to 1 to test comeback mechanics while alone
