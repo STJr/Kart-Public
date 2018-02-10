@@ -6117,7 +6117,7 @@ static boolean P_AddShield(mobj_t *thing)
 	}
 
 	if (shield != SH_FORCE)
-	{ // Regular shields check for themselves only
+	{ // Regular shields check for themselves only 
 		if ((shieldtype_t)(thing->target->player->powers[pw_shield] & SH_NOSTACK) != shield)
 		{
 			P_RemoveMobj(thing);
@@ -6154,6 +6154,7 @@ void P_RunOverlays(void)
 
 		if (!mo->target)
 			continue;
+
 		if (!splitscreen /*&& rendermode != render_soft*/)
 		{
 			angle_t viewingangle;
@@ -6487,7 +6488,10 @@ void P_MobjThinker(mobj_t *mobj)
 				// Don't touch my fuse!
 				return;
 			case MT_OVERLAY:
-				if (!mobj->target)
+				if ((!mobj->target)
+					|| ((mobj->state == &states[S_INVULNFLASH1] || mobj->state == &states[S_INVULNFLASH2] // SRB2kart: BAD HACK X_X
+					|| mobj->state == &states[S_INVULNFLASH3] || mobj->state == &states[S_INVULNFLASH4])
+					&& mobj->target->player && mobj->target->player->kartstuff[k_invincibilitytimer] == 0))
 				{
 					P_RemoveMobj(mobj);
 					return;
@@ -6852,7 +6856,7 @@ void P_MobjThinker(mobj_t *mobj)
 						switch(mobj->target->player->kartstuff[k_itemtype])
 						{
 							case KITEM_KITCHENSINK:		P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK); break;
-							case KITEM_SIZEUP:			P_SetMobjState(mobj, S_PLAYERARROW_SIZEUP); break;
+							case KITEM_GROW:			P_SetMobjState(mobj, S_PLAYERARROW_GROW); break;
 							case KITEM_INVINCIBILITY:	P_SetMobjState(mobj, S_PLAYERARROW_INVINCIBILITY); break;
 							case KITEM_ORBINAUT:		P_SetMobjState(mobj, S_PLAYERARROW_ORBINAUT); break;
 							case KITEM_BALLHOG:			P_SetMobjState(mobj, S_PLAYERARROW_BALLHOG); break;
@@ -6868,7 +6872,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 
 					if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1))
-						P_SetMobjState(mobj, S_PLAYERARROW_SIZEUP);
+						P_SetMobjState(mobj, S_PLAYERARROW_GROW);
 					else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))
 						P_SetMobjState(mobj, S_PLAYERARROW_EMPTY); // S_INVISIBLE
 
@@ -8016,6 +8020,15 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->tracer->y, mobj->tracer->floorz, SPLATDRAWMODE_SHADE);
 #endif
 			break;
+		/*case MT_SPARKLETRAIL:
+			if (!mobj->target)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			mobj->color = mobj->target->color;
+			mobj->colorized = mobj->target->colorized;
+			break;*/
 		case MT_SPINFIRE:
 		case MT_SNEAKERTRAIL:
 			if (mobj->eflags & MFE_VERTICALFLIP)

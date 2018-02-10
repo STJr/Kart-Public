@@ -3138,7 +3138,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->mo->destscale = 6*FRACUNIT/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
-			// Size Up? Let's take that away.
+			// Grow? Let's take that away.
 			if (player->kartstuff[k_growshrinktimer] > 0)
 			{
 				player->kartstuff[k_growshrinktimer] = 2;

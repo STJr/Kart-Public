@@ -580,6 +580,8 @@ typedef enum sprite
 
 	SPR_RNDM, // Random Item Box
 	SPR_KFRE, // Sneaker fire trail
+	SPR_KINV, // Invincibility sparkle trail
+	SPR_KINF, // Invincibility flash
 	SPR_DRIF, // Drift Sparks
 	SPR_DSMO, // Drift Smoke
 
@@ -591,7 +593,7 @@ typedef enum sprite
 	SPR_SSMN, // SS Mine
 	SPR_KRBM, // SS Mine BOOM
 	SPR_BLIG, // Self-Propelled Bomb
-	SPR_LIGH, // Size Up/Down beams (Metallic Maddness)
+	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
 	SPR_KBLN, // Battle Mode Balloon
@@ -3091,6 +3093,25 @@ typedef enum state
 	S_KARTFIRE7,
 	S_KARTFIRE8,
 
+	// Invincibility Sparks
+	S_KARTINVULN_SMALL1,
+	S_KARTINVULN_SMALL2,
+	S_KARTINVULN_SMALL3,
+	S_KARTINVULN_SMALL4,
+	S_KARTINVULN_SMALL5,
+
+	S_KARTINVULN_LARGE1,
+	S_KARTINVULN_LARGE2,
+	S_KARTINVULN_LARGE3,
+	S_KARTINVULN_LARGE4,
+	S_KARTINVULN_LARGE5,
+
+	// Invincibility flash
+	S_INVULNFLASH1,
+	S_INVULNFLASH2,
+	S_INVULNFLASH3,
+	S_INVULNFLASH4,
+
 	//{ Fake Item
 	S_FAKEITEM1,
 	S_FAKEITEM2,
@@ -3417,7 +3438,7 @@ typedef enum state
 	S_PLAYERARROW_BALLHOG,
 	S_PLAYERARROW_ORBINAUT,
 	S_PLAYERARROW_INVINCIBILITY,
-	S_PLAYERARROW_SIZEUP,
+	S_PLAYERARROW_GROW,
 	S_PLAYERARROW_KITCHENSINK,
 	S_PLAYERARROW_EMPTY,
 	S_PLAYERARROW_ROULETTE,
@@ -3961,6 +3982,7 @@ typedef enum mobj_type
 	MT_RANDOMITEMPOP,
 
 	MT_SNEAKERTRAIL,
+	MT_SPARKLETRAIL,
 	MT_DRIFT,
 	MT_DRIFTSMOKE,
 
@@ -3986,7 +4008,7 @@ typedef enum mobj_type
 	MT_SMOLDERING, // New explosion
 	MT_BOOMPARTICLE,
 
-	MT_BLUELIGHTNING, // Size Down stuff
+	MT_BLUELIGHTNING, // Grow/shrink stuff
 	MT_BLUEEXPLOSION,
 	MT_LIGHTNING,
 

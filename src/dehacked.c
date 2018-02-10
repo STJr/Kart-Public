@@ -6258,6 +6258,25 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARTFIRE7",
 	"S_KARTFIRE8",
 
+	// Invincibility Sparks
+	"S_KARTINVULN_SMALL1",
+	"S_KARTINVULN_SMALL2",
+	"S_KARTINVULN_SMALL3",
+	"S_KARTINVULN_SMALL4",
+	"S_KARTINVULN_SMALL5",
+
+	"S_KARTINVULN_LARGE1",
+	"S_KARTINVULN_LARGE2",
+	"S_KARTINVULN_LARGE3",
+	"S_KARTINVULN_LARGE4",
+	"S_KARTINVULN_LARGE5",
+
+	// Invincibility flash overlay
+	"S_INVULNFLASH1",
+	"S_INVULNFLASH2",
+	"S_INVULNFLASH3",
+	"S_INVULNFLASH4",
+
 	//{ Fake Item
 	"S_FAKEITEM1",
 	"S_FAKEITEM2",
@@ -6395,7 +6414,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BLUELIGHTNING4",
 	"S_BLUEEXPLODE",
 
-	// Size Down
+	// Grow/shrink beams
 	"S_LIGHTNING1",
 	"S_LIGHTNING2",
 	"S_LIGHTNING3",
@@ -6457,7 +6476,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW_BALLHOG",
 	"S_PLAYERARROW_ORBINAUT",
 	"S_PLAYERARROW_INVINCIBILITY",
-	"S_PLAYERARROW_SIZEUP",
+	"S_PLAYERARROW_GROW",
 	"S_PLAYERARROW_KITCHENSINK",
 	"S_PLAYERARROW_EMPTY",
 	"S_PLAYERARROW_ROULETTE",
@@ -6984,6 +7003,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_RANDOMITEMPOP",
 
 	"MT_SNEAKERTRAIL",
+	"MT_SPARKLETRAIL",
 	"MT_DRIFT",
 	"MT_DRIFTSMOKE",
 
@@ -7010,7 +7030,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SMOLDERING", // New explosion
 	"MT_BOOMPARTICLE",
 
-	"MT_BLUELIGHTNING", // Size Down stuff
+	"MT_BLUELIGHTNING", // Grow/shrink stuff
 	"MT_BLUEEXPLOSION",
 	"MT_LIGHTNING",
 

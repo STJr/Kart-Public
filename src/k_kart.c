@@ -303,8 +303,8 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_mine);
 	CV_RegisterVar(&cv_ballhog);
 	CV_RegisterVar(&cv_selfpropelledbomb);
-	CV_RegisterVar(&cv_sizeup);
-	CV_RegisterVar(&cv_sizedown);
+	CV_RegisterVar(&cv_grow);
+	CV_RegisterVar(&cv_shrink);
 	CV_RegisterVar(&cv_lightningshield);
 	CV_RegisterVar(&cv_hyudoro);
 	CV_RegisterVar(&cv_pogospring);
@@ -352,8 +352,8 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTRESULTS][9] =
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Self-Propelled Bomb
-			   /*Size Up*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Size Up
-			 /*Size Down*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Size Down
+				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Grow
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
 			   /*Hyudoro*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
@@ -378,8 +378,8 @@ static INT32 K_KartItemOddsBalloons[NUMKARTRESULTS][5] =
 				  /*Mine*/ { 0, 3, 3, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 3, 3, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
-			   /*Size Up*/ { 1, 1, 0, 0, 0 }, // Size Up
-			 /*Size Down*/ { 0, 0, 0, 0, 0 }, // Size Down
+			      /*Grow*/ { 1, 1, 0, 0, 0 }, // Grow
+				/*Shrink*/ { 0, 0, 0, 0, 0 }, // Shrink
 	  /*Lightning Shield*/ { 0, 0, 0, 0, 0 }, // Lightning Shield
 			   /*Hyudoro*/ { 0, 1, 1, 1, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 3, 2, 1 }, // Pogo Spring
@@ -490,13 +490,13 @@ static INT32 K_KartGetItemOdds(UINT8 pos, INT8 item, player_t *player)
 			if (franticitems) newodds *= 2;
 			if (!cv_selfpropelledbomb.value || pexiting <= 0) newodds = 0;
 			break;
-		case KITEM_SIZEUP:
+		case KITEM_GROW:
 			if (franticitems) newodds *= 2;
-			if (!cv_sizeup.value || player->kartstuff[k_poweritemtimer]) newodds = 0;
+			if (!cv_grow.value || player->kartstuff[k_poweritemtimer]) newodds = 0;
 			break;
-		case KITEM_SIZEDOWN:
+		case KITEM_SHRINK:
 			if (franticitems) newodds *= 2;
-			if (!cv_sizedown.value || pingame-1 <= pexiting) newodds = 0;
+			if (!cv_shrink.value || pingame-1 <= pexiting) newodds = 0;
 			break;
 		case KITEM_LIGHTNINGSHIELD:
 			if (franticitems) newodds *= 2;
@@ -696,8 +696,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	SETITEMRESULT(useodds, KITEM_MINE);				// Mine
 	SETITEMRESULT(useodds, KITEM_BALLHOG);			// Ballhog
 	SETITEMRESULT(useodds, KITEM_SPB);				// Self-Propelled Bomb
-	SETITEMRESULT(useodds, KITEM_SIZEUP);			// Size Up
-	SETITEMRESULT(useodds, KITEM_SIZEDOWN);			// Size Down
+	SETITEMRESULT(useodds, KITEM_GROW);				// Grow
+	SETITEMRESULT(useodds, KITEM_SHRINK);			// Shrink
 	SETITEMRESULT(useodds, KITEM_LIGHTNINGSHIELD);	// Lightning Shield
 	SETITEMRESULT(useodds, KITEM_HYUDORO);			// Hyudoro
 	SETITEMRESULT(useodds, KITEM_POGOSPRING);		// Pogo Spring
@@ -912,7 +912,7 @@ static void K_UpdateOffroad(player_t *player)
 			// A higher kart weight means you can stay offroad for longer without losing speed
 			offroad = (1872 + 5*156 - kartweight*156)*offroadstrength;
 
-			//if (player->kartstuff[k_growshrinktimer] > 1) // sizeup slows down half as fast
+			//if (player->kartstuff[k_growshrinktimer] > 1) // grow slows down half as fast
 			//	offroad /= 2;
 
 			player->kartstuff[k_offroad] += offroad;
@@ -1206,7 +1206,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			S_StopSoundByID(player->mo, sfx_star); 					// Stop it
 	}
 
-	// And the same for the size up SFX
+	// And the same for the grow SFX
 	if (!(player->mo->health > 0 && player->mo->player->kartstuff[k_growshrinktimer] > 0)) // If you aren't big
 	{
 		if (S_SoundPlaying(player->mo, sfx_mega)) // But the sound is playing
@@ -1290,7 +1290,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	if (player->kartstuff[k_growshrinktimer] > 1
 		&& (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25)
 		|| player->kartstuff[k_growshrinktimer] <= 26))
-	{												// Size Up - Mid-size
+	{												// Grow - Mid-size
 		if (speed)
 		{
 			boostvalue = max(boostvalue, FRACUNIT/8); // + 12.5%
@@ -1298,7 +1298,7 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	}
 	if (player->kartstuff[k_growshrinktimer] < ((itemtime + TICRATE*2) - 25)
 		&& player->kartstuff[k_growshrinktimer] > 26)
-	{												// Size Up
+	{												// Grow
 		if (speed)
 		{
 			boostvalue = max(boostvalue, FRACUNIT/5); // + 20%
@@ -1967,6 +1967,38 @@ void K_SpawnDriftTrail(player_t *player)
 	}
 }
 
+void K_SpawnSparkleTrail(player_t *player)
+{
+	const INT32 rad = (player->mo->radius*2)>>FRACBITS;
+	fixed_t newx, newy, newz;
+	mobj_t *sparkle;
+	INT32 i;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	for (i = 0; i < 3; i++)
+	{
+		newx = player->mo->x + player->mo->momx + (P_RandomRange(-rad, rad)<<FRACBITS);
+		newy = player->mo->y + player->mo->momy + (P_RandomRange(-rad, rad)<<FRACBITS);
+		newz = player->mo->z + player->mo->momz + (P_RandomRange(0, player->mo->height>>FRACBITS)<<FRACBITS);
+
+		sparkle = P_SpawnMobj(newx, newy, newz, MT_SPARKLETRAIL);
+
+		if (i == 0)
+			P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
+
+		P_SetTarget(&sparkle->target, player->mo);
+		//sparkle->fuse = 10;
+		sparkle->destscale = player->mo->scale;
+		P_SetScale(sparkle, player->mo->scale);
+		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+		sparkle->color = player->mo->color;
+		sparkle->colorized = player->mo->colorized;
+	}
+}
+
 static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean minethrow)
 {
 	mobj_t *mo;
@@ -2218,7 +2250,7 @@ void K_DoSneaker(player_t *player, boolean doPFlag, boolean startboost)
 	player->kartstuff[k_sounds] = 50;
 }
 
-static void K_DoSizeDown(player_t *player, boolean spb)
+static void K_DoShrink(player_t *player, boolean spb)
 {
 	mobj_t *mo;
 	thinker_t *think;
@@ -2239,7 +2271,8 @@ static void K_DoSizeDown(player_t *player, boolean spb)
 
 		mo = (mobj_t *)think;
 
-		if (mo->type == MT_PLAYER)
+		if (mo->player && !mo->player->spectator
+			&& mo->player->kartstuff[k_position] > player->kartstuff[k_position])
 			P_DamageMobj(mo, player->mo, player->mo, spb ? 65 : 64);
 		else
 			continue;
@@ -2723,6 +2756,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							S_ChangeMusicInternal("minvnc", true);
 						if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_star);
+						if (!player->kartstuff[k_invincibilitytimer])
+						{
+							mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
+							P_SetTarget(&overlay->target, player->mo);
+							P_SetMobjState(overlay, S_INVULNFLASH1);
+						}
 						player->kartstuff[k_invincibilitytimer] = itemtime; // Activate it
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
@@ -2996,13 +3035,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_SPB:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						K_DoSizeDown(player, true);
+						K_DoShrink(player, true);
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
-				case KITEM_SIZEUP:
+				case KITEM_GROW:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO
-						&& player->kartstuff[k_growshrinktimer] <= 0) // Size Up holds the item box hostage
+						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
 						if (P_IsLocalPlayer(player) && !player->exiting)
 							S_ChangeMusicInternal("mega", true);
@@ -3017,10 +3056,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							player->kartstuff[k_poweritemtimer] = 10*TICRATE;
 					}
 					break;
-				case KITEM_SIZEDOWN:
+				case KITEM_SHRINK:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						K_DoSizeDown(player, false);
+						K_DoShrink(player, false);
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -3078,7 +3117,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (player->kartstuff[k_sneakertimer] == 0 && player->kartstuff[k_boosting] == 1)
 			player->kartstuff[k_boosting] = 0;
 
-		// Size Up - Make the player grow!
+		// Grow - Make the player grow!
 		if (player->kartstuff[k_growshrinktimer] > ((itemtime + TICRATE*2) - 25))
 		{
 			if (leveltime & 2)
@@ -3089,7 +3128,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (player->kartstuff[k_growshrinktimer] > 26
 			&& player->kartstuff[k_growshrinktimer] <= ((itemtime + TICRATE*2) - 25))
 			player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;
-		// Size Up - Back to normal...
+		// Grow - Back to normal...
 		else if (player->kartstuff[k_growshrinktimer] > 1
 			&& player->kartstuff[k_growshrinktimer] <= 26)
 		{
@@ -3103,7 +3142,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if ((gametype != GT_RACE)
 			&& (player->kartstuff[k_itemtype] == KITEM_INVINCIBILITY
-			|| player->kartstuff[k_itemtype] == KITEM_SIZEUP
+			|| player->kartstuff[k_itemtype] == KITEM_GROW
 			|| player->kartstuff[k_invincibilitytimer]
 			|| player->kartstuff[k_growshrinktimer] > 0))
 			player->kartstuff[k_poweritemtimer] = 10*TICRATE;
@@ -3212,7 +3251,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	// Squishing
-	// If a Size Up player or a Thwomp crushes you, get flattened instead of being killed.
+	// If a Grow player or a Thwomp crushes you, get flattened instead of being killed.
 
 	if (player->kartstuff[k_squishedtimer] <= 0)
 	{
@@ -3364,20 +3403,15 @@ static patch_t *kp_jawz;
 static patch_t *kp_mine;
 static patch_t *kp_ballhog;
 static patch_t *kp_selfpropelledbomb;
-static patch_t *kp_sizeup;
-static patch_t *kp_sizedown;
+static patch_t *kp_grow;
+static patch_t *kp_shrink;
 static patch_t *kp_lightningshield;
 static patch_t *kp_hyudoro;
 static patch_t *kp_pogospring;
 static patch_t *kp_kitchensink;
 static patch_t *kp_sadface;
 
-static patch_t *kp_check;
-static patch_t *kp_checkw;
-static patch_t *kp_checkinvuln;
-static patch_t *kp_checkinvulnw;
-static patch_t *kp_checksizeup;
-static patch_t *kp_checksizeupw;
+static patch_t *kp_check[6];
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -3486,8 +3520,8 @@ void K_LoadKartHUDGraphics(void)
 	kp_mine =					W_CachePatchName("K_ITMINE", PU_HUDGFX);
 	kp_ballhog =				W_CachePatchName("K_ITBHOG", PU_HUDGFX);
 	kp_selfpropelledbomb =		W_CachePatchName("K_ITSPB", PU_HUDGFX);
-	kp_sizeup =					W_CachePatchName("K_ITSUP", PU_HUDGFX);
-	kp_sizedown =				W_CachePatchName("K_ITSDWN", PU_HUDGFX);
+	kp_grow =					W_CachePatchName("K_ITGROW", PU_HUDGFX);
+	kp_shrink =					W_CachePatchName("K_ITSHRK", PU_HUDGFX);
 	kp_lightningshield =		W_CachePatchName("K_ITLITS", PU_HUDGFX);
 	kp_hyudoro = 				W_CachePatchName("K_ITHYUD", PU_HUDGFX);
 	kp_pogospring = 			W_CachePatchName("K_ITPOGO", PU_HUDGFX);
@@ -3495,12 +3529,11 @@ void K_LoadKartHUDGraphics(void)
 	kp_sadface = 				W_CachePatchName("K_ITSAD", PU_HUDGFX);
 
 	// CHECK indicators
-	kp_check = 					W_CachePatchName("K_CHECK1", PU_HUDGFX);
-	kp_checkw = 				W_CachePatchName("K_CHECK2", PU_HUDGFX);
-	kp_checkinvuln = 			W_CachePatchName("K_CHECK3", PU_HUDGFX);
-	kp_checkinvulnw = 			W_CachePatchName("K_CHECK4", PU_HUDGFX);
-	kp_checksizeup = 			W_CachePatchName("K_CHECK5", PU_HUDGFX);
-	kp_checksizeupw = 			W_CachePatchName("K_CHECK6", PU_HUDGFX);
+	for (i = 0; i < 6; i++)
+	{
+		sprintf(buffer, "K_CHECK%d", i+1);
+		kp_check[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 }
 
 //}
@@ -3672,12 +3705,12 @@ static void K_drawKartItem(void)
 			case  1: localpatch = kp_banana; break;			// Banana
 			case  2: localpatch = kp_orbinaut; break;			// Orbinaut
 			case  3: localpatch = kp_mine; break;				// Mine
-			case  4: localpatch = kp_sizeup; break;			// Size Up
+			case  4: localpatch = kp_grow; break;				// Grow
 			case  5: localpatch = kp_hyudoro; break;			// Hyudoro
 			case  6: localpatch = kp_rocketsneaker; break;		// Rocket Sneaker
 			case  7: localpatch = kp_jawz; break;				// Jawz
 			case  8: localpatch = kp_selfpropelledbomb; break;	// Self-Propelled Bomb
-			case  9: localpatch = kp_sizedown; break;			// Size Down
+			case  9: localpatch = kp_shrink; break;			// Shrink
 			case 10: localpatch = localinv; break;				// Invincibility
 			case 11: localpatch = kp_fakeitem; break;			// Fake Item
 			case 12: localpatch = kp_ballhog; break;			// Ballhog
@@ -3710,7 +3743,7 @@ static void K_drawKartItem(void)
 		else if (stplyr->kartstuff[k_growshrinktimer] > 1)
 		{
 			if (leveltime & 1)
-				localpatch = kp_sizeup;
+				localpatch = kp_grow;
 			else if (!(leveltime & 1))
 				localpatch = kp_nodraw;
 		}
@@ -3738,8 +3771,8 @@ static void K_drawKartItem(void)
 				case KITEM_MINE:				localpatch = kp_mine; break;
 				case KITEM_BALLHOG:				localpatch = kp_ballhog; break;
 				case KITEM_SPB:					localpatch = kp_selfpropelledbomb; break;
-				case KITEM_SIZEUP:				localpatch = kp_sizeup; break;
-				case KITEM_SIZEDOWN:			localpatch = kp_sizedown; break;
+				case KITEM_GROW:				localpatch = kp_grow; break;
+				case KITEM_SHRINK:				localpatch = kp_shrink; break;
 				case KITEM_LIGHTNINGSHIELD:		localpatch = kp_lightningshield; break;
 				case KITEM_HYUDORO:				localpatch = kp_hyudoro; break;
 				case KITEM_POGOSPRING:			localpatch = kp_pogospring; break;
@@ -4183,11 +4216,11 @@ static void K_drawKartPlayerCheck(void)
 	INT32 i;
 	UINT8 *colormap;
 	INT32 x;
-	patch_t *localpatch;
+	UINT8 pnum = 0;
 
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
 
-	if (!(stplyr->mo))
+	if (!stplyr->mo || stplyr->spectator)
 		return;
 
 	if (stplyr->awayviewtics)
@@ -4200,27 +4233,18 @@ static void K_drawKartPlayerCheck(void)
 	{
 		if (&players[i] == stplyr)
 			continue;
-		if (!(players[i].mo))
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		if (!players[i].mo)
 			continue;
 
 		if ((players[i].kartstuff[k_invincibilitytimer] <= 0) && (leveltime & 2))
-		{
-			if (players[i].kartstuff[k_itemtype] == KITEM_SIZEUP || players[i].kartstuff[k_growshrinktimer] > 0)
-				localpatch = kp_checksizeupw;
-			else if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY || players[i].kartstuff[k_invincibilitytimer])
-				localpatch = kp_checkinvulnw;
-			else
-				localpatch = kp_checkw;
-		}
-		else
-		{
-			if (players[i].kartstuff[k_itemtype] == KITEM_SIZEUP || players[i].kartstuff[k_growshrinktimer] > 0)
-				localpatch = kp_checksizeup;
-			else if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY || players[i].kartstuff[k_invincibilitytimer])
-				localpatch = kp_checkinvuln;
-			else
-				localpatch = kp_check;
-		}
+			pnum++; // white frames
+
+		if (players[i].kartstuff[k_itemtype] == KITEM_GROW || players[i].kartstuff[k_growshrinktimer] > 0)
+			pnum += 4;
+		else if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY || players[i].kartstuff[k_invincibilitytimer])
+			pnum += 2;
 
 		x = K_FindCheckX(stplyr->mo->x, stplyr->mo->y, stplyr->mo->angle, players[i].mo->x, players[i].mo->y);
 		if (x <= 320 && x >= 0)
@@ -4231,7 +4255,7 @@ static void K_drawKartPlayerCheck(void)
 				x = 306;
 
 			colormap = R_GetTranslationColormap(TC_DEFAULT, players[i].mo->color, 0);
-			V_DrawMappedPatch(x, CHEK_Y, V_HUDTRANS|splitflags, localpatch, colormap);
+			V_DrawMappedPatch(x, CHEK_Y, V_HUDTRANS|splitflags, kp_check[pnum], colormap);
 		}
 	}
 }

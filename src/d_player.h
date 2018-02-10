@@ -244,8 +244,8 @@ typedef enum
 	KITEM_MINE,
 	KITEM_BALLHOG,
 	KITEM_SPB,
-	KITEM_SIZEUP,
-	KITEM_SIZEDOWN,
+	KITEM_GROW,
+	KITEM_SHRINK,
 	KITEM_LIGHTNINGSHIELD,
 	KITEM_HYUDORO,
 	KITEM_POGOSPRING,
@@ -309,7 +309,7 @@ typedef enum
 	k_fakeitem,				// Fake item held, separate from itemtype so it doesn't stop you from getting items
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_justbumped,			// Prevent players from endlessly bumping into each other
-	k_poweritemtimer,		// Battle mode, how long before you're allowed another power item (Invincibility, Size Up)
+	k_poweritemtimer,		// Battle mode, how long before you're allowed another power item (Invincibility, Grow)
 	k_comebacktimer,		// Battle mode, how long before you become a bomb after death
 	k_sadtimer,				// How long you've been sad
 
