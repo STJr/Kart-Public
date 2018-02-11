@@ -323,6 +323,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartmirror);
 	CV_RegisterVar(&cv_speedometer);
+	CV_RegisterVar(&cv_votetime);
 
 	CV_RegisterVar(&cv_collideminimum);
 	CV_RegisterVar(&cv_collidesoundnum);
@@ -1080,8 +1081,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else if (player->kartstuff[k_comebacktimer])
 	{
 		player->kartstuff[k_comebacktimer]--;
-		if (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
-			player->kartstuff[k_comebackshowninfo] = 1;
+		if (player == &players[consoleplayer] && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
+			comebackshowninfo = true; // client has already seen the message
 	}
 
 	if (player->kartstuff[k_spinout] == 0 && player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
@@ -4469,7 +4470,7 @@ static void K_drawBattleFullscreen(void)
 				ty += (BASEVIDHEIGHT/2);
 		}
 
-		if (!stplyr->kartstuff[k_comebackshowninfo])
+		if (!comebackshowninfo)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battleinfo, NULL);
 		else
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewait, NULL);

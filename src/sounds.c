@@ -521,7 +521,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc36",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc37",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc38",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc39",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc39",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Voting beep
   {"kc3a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc3b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc3c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -536,7 +536,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc45",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc46",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc47",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc48",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc48",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Voting pick
   {"kc49",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc4a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc4b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -574,7 +574,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc6c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc6d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc6e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
- 
+
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
   {"klose",  false,  64,  0, -1, NULL, 0,   SKSLOSE,  -1, LUMPERROR},

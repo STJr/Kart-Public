@@ -177,7 +177,7 @@ hudinfo_t hudinfo[NUMHUDITEMS] =
 boolean ST_SameTeam(player_t *a, player_t *b)
 {
 	// Just pipe team messages to everyone in co-op or race.
-	if (!G_RingSlingerGametype())
+	if (!G_BattleGametype())
 		return true;
 
 	// Spectator chat.
@@ -1412,7 +1412,7 @@ static void ST_drawMatchHUD(void) // SRB2kart - unused.
 {
 	INT32 offset = (BASEVIDWIDTH / 2) - (NUM_WEAPONS * 10);
 
-	if (!G_RingSlingerGametype())
+	if (!G_BattleGametype())
 		return;
 
 	if (G_TagGametype() && !(stplyr->pflags & PF_TAGIT))
@@ -1850,7 +1850,7 @@ static void ST_overlayDrawer(void)
 
 		/* SRB2kart doesn't need this stuff, I think
 		// If you are in overtime, put a big honkin' flashin' message on the screen.
-		if (G_RingSlingerGametype() && cv_overtime.value
+		if (G_BattleGametype() && cv_overtime.value
 			&& (leveltime > (timelimitintics + TICRATE/2)) && cv_timelimit.value && (leveltime/TICRATE % 2 == 0))
 		{
 			if (splitscreen)
@@ -1937,7 +1937,7 @@ static void ST_overlayDrawer(void)
 			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(116), 0, M_GetText("You cannot move while hiding."));
 			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), 0, M_GetText("Press F12 to watch another player."));
 		}
-		/*else if (!G_PlatformGametype() && stplyr->playerstate == PST_DEAD && stplyr->lives) //Death overrides spectator text.
+		/*else if (!G_RaceGametype() && stplyr->playerstate == PST_DEAD && stplyr->lives) //Death overrides spectator text.
 		{
 			INT32 respawntime = cv_respawntime.value - stplyr->deadtimer/TICRATE;
 			if (respawntime > 0 && !stplyr->spectator)
@@ -1980,7 +1980,7 @@ void ST_Drawer(void)
 			va("%s%s", G_GametypeHasTeams() ? ((seenplayer->ctfteam == 1) ? "\x85" : "\x84") : "", player_names[seenplayer-players]));
 		else //if (cv_seenames.value == 3)
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2 + 15, V_HUDTRANSHALF,
-			va("%s%s", !G_RingSlingerGametype() || (G_GametypeHasTeams() && players[consoleplayer].ctfteam == seenplayer->ctfteam)
+			va("%s%s", !G_BattleGametype() || (G_GametypeHasTeams() && players[consoleplayer].ctfteam == seenplayer->ctfteam)
 			 ? "\x83" : "\x85", player_names[seenplayer-players]));
 	}
 #endif

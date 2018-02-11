@@ -36,6 +36,9 @@
 
 #include "m_cond.h" // condition sets
 
+#include "m_random.h" // P_RandomKey
+#include "g_input.h" // PLAYER1INPUTDOWN
+
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
 #endif
@@ -163,6 +166,34 @@ static void Y_CalculateCompetitionWinners(void);
 static void Y_CalculateMatchWinners(void);
 static void Y_FollowIntermission(void);
 static void Y_UnloadData(void);
+
+// SRB2Kart: voting stuff
+
+typedef struct
+{
+	char str[40];
+	patch_t *pic;
+} y_votelvlinfo;
+
+typedef struct
+{
+	INT8 selection;
+	UINT8 delay;
+	UINT8 ranim;
+	UINT8 rtics;
+	UINT8 roffset;
+	UINT8 rsynctime;
+	UINT8 rendoff;
+} y_voteclient;
+
+static y_votelvlinfo levelinfo[4];
+static y_voteclient voteclient;
+static INT32 votetic;
+static INT32 voteendtic = -1;
+static patch_t *cursor = NULL;
+static patch_t *randomlvl = NULL;
+
+static void Y_UnloadVoteData(void);
 
 // Stuff copy+pasted from st_stuff.c
 static INT32 SCX(INT32 x)
@@ -2087,4 +2118,400 @@ static void Y_UnloadData(void)
 			//are not handled
 			break;
 	}
+}
+
+// SRB2Kart: Voting!
+
+//
+// Y_VoteDrawer
+//
+// Draws the voting screen!
+//
+void Y_VoteDrawer(void)
+{
+	INT32 i, x, y = 0;
+
+	if (rendermode == render_none)
+		return;
+
+	if (votetic >= voteendtic && voteendtic != -1)
+		return;
+
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+
+	if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx > 320)
+		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(widebgpatch->width)/2),
+							(vid.height / vid.dupy) - SHORT(widebgpatch->height),
+							V_SNAPTOTOP|V_SNAPTOLEFT, widebgpatch);
+	else
+		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(bgpatch->width)/2), // Keep the width/height adjustments, for screens that are less wide than 320(?)
+							(vid.height / vid.dupy) - SHORT(bgpatch->height),
+							V_SNAPTOTOP|V_SNAPTOLEFT, bgpatch);
+
+	y = 30;
+	for (i = 0; i < 4; i++)
+	{
+		char str[40];
+		patch_t *pic;
+
+		if (i == 3)
+		{
+			snprintf(str, sizeof str, "%.32s", "RANDOM");
+			str[sizeof str - 1] = '\0';
+			pic = randomlvl;
+		}
+		else
+		{
+			strcpy(str, levelinfo[i].str);
+			pic = levelinfo[i].pic;
+		}
+
+		if (i == voteclient.selection)
+		{
+			if (votes[consoleplayer] == -1)
+			{
+				V_DrawScaledPatch(BASEVIDWIDTH-124, y+21, V_SNAPTORIGHT, cursor);
+				if (votetic % 4 > 1)
+					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 120|V_SNAPTORIGHT);
+				else
+					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 103|V_SNAPTORIGHT);
+			}
+			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
+			y += 55;
+		}
+		else
+		{
+			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
+			y += 30;
+		}
+	}
+
+	x = 20;
+	y = 15;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (votes[i] != -1)
+		{
+			patch_t *pic;
+
+			if (votes[i] == 3 && (i != pickedvote || voteendtic == -1))
+				pic = randomlvl;
+			else
+				pic = levelinfo[votes[i]].pic;
+
+			if (!timer && i == voteclient.ranim)
+			{
+				V_DrawScaledPatch(x-18, y+9, V_SNAPTOLEFT, cursor);
+				if (votetic % 4 > 1)
+					V_DrawFill(x-1, y-1, 42, 27, 120|V_SNAPTOLEFT);
+				else
+					V_DrawFill(x-1, y-1, 42, 27, 103|V_SNAPTOLEFT);
+			}
+
+			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
+
+			if (players[i].skincolor == 0)
+				V_DrawSmallScaledPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin]);
+			else
+			{
+				UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, GTC_CACHE);
+				V_DrawSmallMappedPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin], colormap);
+			}
+		}
+
+		if (splitscreen) // only 1p has a vote in splitscreen
+			break;
+
+		y += 30;
+
+		if (y > BASEVIDHEIGHT-38)
+		{
+			x += 100;
+			y = 15;
+		}
+	}
+
+	//V_DrawScaledPatch(x, y, V_SNAPTOBOTTOM, pic);
+
+	if (timer)
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
+			va("Vote ends in %d seconds", timer/TICRATE));
+}
+
+//
+// Y_VoteTicker
+//
+// Vote screen thinking :eggthinking:
+//
+void Y_VoteTicker(void)
+{
+	boolean pressed = false;
+	INT32 i;
+
+	if (paused || P_AutoPause())
+		return;
+
+	votetic++;
+
+	if (votetic == voteendtic)
+	{
+		Y_UnloadVoteData(); // Y_EndVote resets voteendtic too early apparently, causing the game to try to render patches that we just unloaded...
+		Y_FollowIntermission();
+		return;
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++) // Correct votes as early as possible, before they're processed by the game at all
+	{
+		if (!playeringame[i] || players[i].spectator)
+			votes[i] = -1;
+		else if (pickedvote != -1 && votes[i] == -1 && !splitscreen)
+			votes[i] = 3; // Slow people get random
+	}
+
+	if (server && votes[pickedvote] == -1) // Uh oh! The person who got picked left! Recalculate, quick!
+		D_PickVote();
+
+	if (!votetic)
+		S_ChangeMusicInternal("vote", true);
+
+	if (timer)
+		timer--;
+
+	if (voteclient.delay)
+		voteclient.delay--;
+
+	if (pickedvote != -1)
+	{
+		timer = 0;
+		voteclient.rsynctime++;
+
+		if (voteendtic == -1)
+		{
+			UINT8 tempvotes[MAXPLAYERS];
+			UINT8 numvotes = 0;
+
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (votes[i] == -1)
+					continue;
+				tempvotes[numvotes] = i;
+				numvotes++;
+			}
+
+			voteclient.rtics--;
+
+			if (voteclient.rtics <= 0)
+			{
+				voteclient.roffset++;
+				voteclient.rtics = min(TICRATE/2, (voteclient.roffset/2)+5);
+				S_StartSound(NULL, sfx_kc39);
+			}
+
+			if (voteclient.rendoff == 0 || voteclient.roffset < voteclient.rendoff)
+				voteclient.ranim = tempvotes[((pickedvote + voteclient.roffset) % numvotes)];
+
+			if (voteclient.roffset >= 24)
+			{
+				if (voteclient.rendoff == 0)
+				{
+					if (tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote
+						&& voteclient.rsynctime % (29*TICRATE/20) == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
+					{
+						voteclient.rendoff = voteclient.roffset+4;
+						S_ChangeMusicInternal("voteeb", false);
+					}
+				}
+				else if (voteclient.roffset >= voteclient.rendoff)
+				{
+					voteendtic = votetic + (3*TICRATE);
+					S_StartSound(NULL, sfx_kc48);
+				}
+			}
+		}
+		else
+			voteclient.ranim = pickedvote;
+	}
+	else
+	{
+		if (votetic < 3*(NEWTICRATE/7)) // give it some time before letting you control it :V
+			return;
+
+		if ((!playeringame[consoleplayer] || players[consoleplayer].spectator) && votes[consoleplayer] != -1)
+			D_ModifyClientVote(-1);
+		else if (pickedvote == -1 && votes[consoleplayer] == -1 && !voteclient.delay)
+		{
+			if (InputDown(gc_aimforward, 1) || JoyAxis(AXISMOVE, 1) < 0)
+			{
+				voteclient.selection--;
+				pressed = true;
+			}
+			if ((InputDown(gc_aimbackward, 1) || JoyAxis(AXISMOVE, 1) > 0) && !pressed)
+			{
+				voteclient.selection++;
+				pressed = true;
+			}
+			if (voteclient.selection < 0)
+				voteclient.selection = 3;
+			if (voteclient.selection > 3)
+				voteclient.selection = 0;
+			if (InputDown(gc_accelerate, 1) && !pressed)
+			{
+				D_ModifyClientVote(voteclient.selection);
+				pressed = true;
+			}
+		}
+
+		if (pressed)
+		{
+			S_StartSound(NULL, sfx_s3k5b);
+			voteclient.delay = NEWTICRATE/7;
+		}
+
+		if (server)
+		{
+			UINT8 numplayers = 0, numvotes = 0;
+
+			if (splitscreen)
+			{
+				numplayers = 1;
+				if (votes[0] != -1)
+					numvotes = 1;
+			}
+			else
+			{
+				for (i = 0; i < MAXPLAYERS; i++)
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+					numplayers++;
+					if (votes[i] != -1)
+						numvotes++;
+				}
+			}
+
+			if (numvotes >= numplayers)
+				timer = 0;
+
+			if (timer == 0 && voteendtic == -1)
+				D_PickVote();
+		}
+	}
+}
+
+//
+// Y_StartVote
+//
+// MK online style voting screen, appears after intermission
+//
+void Y_StartVote(void)
+{
+	INT32 i = 0;
+
+	votetic = -1;
+
+#ifdef PARANOIA
+	if (voteendtic != -1)
+		I_Error("voteendtic is dirty");
+#endif
+
+	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
+	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
+	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
+	randomlvl = W_CachePatchName("RANDOMLV", PU_STATIC);
+
+	timer = cv_votetime.value*TICRATE;
+	pickedvote = -1;
+
+	voteclient.selection = 0;
+	voteclient.delay = 0;
+	voteclient.ranim = 0;
+	voteclient.rtics = 1;
+	voteclient.roffset = 0;
+	voteclient.rsynctime = 0;
+	voteclient.rendoff = 0;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		votes[i] = -1;
+
+	for (i = 0; i < 4; i++)
+	{
+		lumpnum_t lumpnum;
+
+		// set up the str
+		if (mapheaderinfo[votelevels[i]]->zonttl)
+		{
+			if (mapheaderinfo[votelevels[i]]->actnum)
+				snprintf(levelinfo[i].str,
+					sizeof levelinfo[i].str,
+					"%.32s %.32s %d",
+					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl, mapheaderinfo[votelevels[i]]->actnum);
+			else
+				snprintf(levelinfo[i].str,
+					sizeof levelinfo[i].str,
+					"%.32s %.32s",
+					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl);
+		}
+		else
+		{
+			if (mapheaderinfo[votelevels[i]]->actnum)
+				snprintf(levelinfo[i].str,
+					sizeof levelinfo[i].str,
+					"%.32s %d",
+					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->actnum);
+			else
+				snprintf(levelinfo[i].str,
+					sizeof levelinfo[i].str,
+					"%.32s",
+					mapheaderinfo[votelevels[i]]->lvlttl);
+		}
+
+		levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
+
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votelevels[i]+1)));
+		if (lumpnum != LUMPERROR)
+			levelinfo[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votelevels[i]+1)), PU_STATIC);
+		else
+			levelinfo[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
+	}
+}
+
+//
+// Y_EndVote
+//
+void Y_EndVote(void)
+{
+	Y_UnloadVoteData();
+	voteendtic = -1;
+}
+
+//
+// Y_UnloadVoteData
+//
+static void Y_UnloadVoteData(void)
+{
+	if (rendermode != render_soft)
+		return;
+
+	UNLOAD(widebgpatch);
+	UNLOAD(bgpatch);
+	UNLOAD(cursor);
+	UNLOAD(randomlvl);
+
+	UNLOAD(levelinfo[3].pic);
+	UNLOAD(levelinfo[2].pic);
+	UNLOAD(levelinfo[1].pic);
+	UNLOAD(levelinfo[0].pic);
+}
+
+//
+// Y_SetupVoteFinish
+//
+void Y_SetupVoteFinish(INT8 pick, INT8 level)
+{
+	pickedvote = pick;
+	nextmap = votelevels[level];
+	timer = 0;
+	S_ChangeMusicInternal("voteea", true);
 }

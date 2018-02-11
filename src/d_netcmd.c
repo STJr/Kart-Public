@@ -46,6 +46,7 @@
 #include "m_cond.h"
 #include "m_anigif.h"
 #include "k_kart.h" // SRB2kart
+#include "y_inter.h"
 
 #ifdef NETGAME_DEVMODE
 #define CV_RESTRICT CV_NETVAR
@@ -61,6 +62,9 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum);
 static void Got_WeaponPref(UINT8 **cp, INT32 playernum);
 static void Got_Mapcmd(UINT8 **cp, INT32 playernum);
 static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum);
+static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum);
+static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum);
+static void Got_PickVotecmd(UINT8 **cp, INT32 playernum);
 static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum);
 #ifdef DELFILE
 static void Got_Delfilecmd(UINT8 **cp, INT32 playernum);
@@ -367,6 +371,9 @@ consvar_t cv_kartdebugitem = {"kartdebugitem", "0", CV_NETVAR|CV_CHEAT, kartdebu
 static CV_PossibleValue_t kartdebugamount_cons_t[] = {{1, "MIN"}, {255, "MAX"}, {0, NULL}};
 consvar_t cv_kartdebugamount = {"kartdebugamount", "1", CV_NETVAR|CV_CHEAT, kartdebugamount_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
+consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 static CV_PossibleValue_t cv_collideminimum_cons_t[] = {{1, "MIN"}, {16384, "MAX"}, {0, NULL}};
 consvar_t cv_collideminimum = {"collide_minspeed", "25", CV_NETVAR, cv_collideminimum_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t cv_collidesoundnum_cons_t[] = {{1, "MIN"}, {1208, "MAX"}, {0, NULL}};
@@ -434,8 +441,8 @@ consvar_t cv_maxping = {"maxping", "0", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NUL
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_inttime = {"inttime", "20", CV_NETVAR, inttime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-static CV_PossibleValue_t advancemap_cons_t[] = {{0, "Off"}, {1, "Next"}, {2, "Random"}, {0, NULL}};
-consvar_t cv_advancemap = {"advancemap", "Next", CV_NETVAR, advancemap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+static CV_PossibleValue_t advancemap_cons_t[] = {{0, "Off"}, {1, "Next"}, {2, "Random"}, {3, "Vote"}, {0, NULL}};
+consvar_t cv_advancemap = {"advancemap", "Vote", CV_NETVAR, advancemap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t playersforexit_cons_t[] = {{0, "One"}, {1, "All"}, {0, NULL}};
 consvar_t cv_playersforexit = {"playersforexit", "One", CV_NETVAR, playersforexit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -475,6 +482,9 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"SETMOTD",
 	"SUICIDE",
 	"DEMOTED",
+	"SETUPVOTE",
+	"MODIFYVOTE",
+	"PICKVOTE",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
@@ -507,6 +517,10 @@ void D_RegisterServerCommands(void)
 #ifdef HAVE_BLUA
 	RegisterNetXCmd(XD_LUACMD, Got_Luacmd);
 #endif
+
+	RegisterNetXCmd(XD_SETUPVOTE, Got_SetupVotecmd);
+	RegisterNetXCmd(XD_MODIFYVOTE, Got_ModifyVotecmd);
+	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
 	COM_AddCommand("password", Command_Changepassword_f);
@@ -1945,6 +1959,60 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 	}
 }
 
+void D_SetupVote(void)
+{
+	XBOXSTATIC char buf[8];
+	char *p;
+	INT32 i;
+
+	p = buf;
+
+	for (i = 0; i < 4; i++)
+	{
+		if (i == 3)
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false));
+		else
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false));
+	}
+
+	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
+}
+
+void D_ModifyClientVote(INT8 voted)
+{
+	XBOXSTATIC UINT8 buf[1];
+	buf[0] = (UINT8)(voted+1);
+	SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
+}
+
+void D_PickVote(void)
+{
+	XBOXSTATIC UINT8 buf[2];
+	UINT8 temppicks[MAXPLAYERS];
+	UINT8 templevels[MAXPLAYERS];
+	UINT8 numvotes = 0, key = 0;
+	INT32 i;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		if (votes[i] != -1)
+		{
+			temppicks[numvotes] = (UINT8)i;
+			templevels[numvotes] = (UINT8)votes[i];
+			numvotes++;
+		}
+	}
+
+	key = M_RandomKey(numvotes);
+
+	buf[0] = temppicks[key];
+	buf[1] = templevels[key];
+
+	SendNetXCmd(XD_PICKVOTE, &buf, 2);
+}
+
 // Warp to map code.
 // Called either from map <mapname> console command, or idclev cheat.
 //
@@ -2193,7 +2261,7 @@ static void Command_Pause(void)
 
 	if (cv_pause.value || server || (IsPlayerAdmin(consoleplayer)))
 	{
-		if (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+		if (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 		{
 			CONS_Printf(M_GetText("You can't pause here.\n"));
 			return;
@@ -2262,13 +2330,13 @@ static void Command_Suicide(void)
 
 	WRITEINT32(cp, consoleplayer);
 
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 	{
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 		return;
 	}
 
-	/*if (!G_PlatformGametype()) // srb2kart: not necessary, suiciding makes you lose a balloon in battle, so it's not desirable to use as a way to escape a hit
+	/*if (!G_RaceGametype()) // srb2kart: not necessary, suiciding makes you lose a balloon in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
 		return;
@@ -2289,7 +2357,7 @@ static void Got_Suicide(UINT8 **cp, INT32 playernum)
 	INT32 suicideplayer = READINT32(*cp);
 
 	// You can't suicide someone else.  Nice try, there.
-	if (suicideplayer != playernum) // srb2kart: "|| (!G_PlatformGametype())"
+	if (suicideplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal suicide command received from %s\n"), player_names[playernum]);
 		if (server)
@@ -4021,7 +4089,7 @@ void ItemFinder_OnChange(void)
 static void PointLimit_OnChange(void)
 {
 	// Don't allow pointlimit in Single Player/Co-Op/Race!
-	if (server && Playing() && G_PlatformGametype())
+	if (server && Playing() && G_RaceGametype())
 	{
 		if (cv_pointlimit.value)
 			CV_StealthSetValue(&cv_pointlimit, 0);
@@ -4069,7 +4137,7 @@ UINT32 timelimitintics = 0;
 static void TimeLimit_OnChange(void)
 {
 	// Don't allow timelimit in Single Player/Co-Op/Race!
-	if (server && Playing() && cv_timelimit.value != 0 && G_PlatformGametype())
+	if (server && Playing() && cv_timelimit.value != 0 && G_RaceGametype())
 	{
 		CV_SetValue(&cv_timelimit, 0);
 		return;
@@ -4172,7 +4240,7 @@ void D_GameTypeChanged(INT32 lastgametype)
 	// reset timelimit and pointlimit in race/coop, prevent stupid cheats
 	if (server)
 	{
-		if (G_PlatformGametype())
+		if (G_RaceGametype())
 		{
 			if (cv_timelimit.value)
 				CV_SetValue(&cv_timelimit, 0);
@@ -4287,7 +4355,7 @@ static void TeamScramble_OnChange(void)
 	boolean success = false;
 
 	// Don't trigger outside level or intermission!
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 		return;
 
 	if (!cv_teamscramble.value)
@@ -4505,6 +4573,63 @@ static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum)
 	G_ExitLevel();
 }
 
+static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
+{
+	INT32 i;
+
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal vote setup received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	for (i = 0; i < 4; i++)
+	{
+		votelevels[i] = (INT16)READUINT16(*cp);
+		if (!mapheaderinfo[votelevels[i]])
+			P_AllocMapHeader(votelevels[i]);
+	}
+
+	G_SetGamestate(GS_VOTING);
+	Y_StartVote();
+}
+
+static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum)
+{
+	INT8 voted = READUINT8(*cp);
+	votes[playernum] = (INT8)(voted-1);
+}
+
+static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
+{
+	INT8 pick = READUINT8(*cp);
+	INT8 level = READUINT8(*cp);
+
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal vote setup received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	Y_SetupVoteFinish((INT8)pick, (INT8)level);
+}
+
 /** Prints the number of the displayplayer.
   *
   * \todo Possibly remove this; it was useful for debugging at one point.
@@ -4630,7 +4755,7 @@ void Command_ExitGame_f(void)
 
 void Command_Retry_f(void)
 {
-	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION))
+	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else if (netgame || multiplayer)
 		CONS_Printf(M_GetText("This only works in single player.\n"));

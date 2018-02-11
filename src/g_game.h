@@ -62,6 +62,18 @@ extern consvar_t cv_sideaxis3,cv_turnaxis3,cv_moveaxis3,cv_lookaxis3,cv_fireaxis
 extern consvar_t cv_sideaxis4,cv_turnaxis4,cv_moveaxis4,cv_lookaxis4,cv_fireaxis4,cv_firenaxis4;
 extern consvar_t cv_ghost_besttime, cv_ghost_bestlap, cv_ghost_last, cv_ghost_guest, cv_ghost_staff;
 
+typedef enum
+{
+	AXISNONE = 0,
+	AXISTURN,
+	AXISMOVE,
+	AXISLOOK,
+	AXISSTRAFE,
+	AXISDEAD, //Axises that don't want deadzones
+	AXISFIRE,
+	AXISFIRENORMAL,
+} axis_input_e;
+
 // mouseaiming (looking up/down with the mouse or keyboard)
 #define KB_LOOKSPEED (1<<25)
 #define MAXPLMOVE (50)
@@ -79,6 +91,9 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n);
 // clip the console player aiming to the view
 INT16 G_ClipAimingPitch(INT32 *aiming);
 INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
+
+boolean InputDown(INT32 gc, UINT8 p);
+INT32 JoyAxis(axis_input_e axissel, UINT8 p);
 
 extern angle_t localangle, localangle2, localangle3, localangle4;
 extern INT32 localaiming, localaiming2, localaiming3, localaiming4; // should be an angle_t but signed
@@ -166,8 +181,8 @@ boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);
 boolean G_GametypeHasTeams(void);
 boolean G_GametypeHasSpectators(void);
-boolean G_RingSlingerGametype(void);
-boolean G_PlatformGametype(void);
+boolean G_BattleGametype(void);
+boolean G_RaceGametype(void);
 boolean G_TagGametype(void);
 void G_ExitLevel(void);
 void G_NextLevel(void);
@@ -219,5 +234,7 @@ FUNCMATH INT32 G_TicsToMilliseconds(tic_t tics);
 
 // Don't split up TOL handling
 INT16 G_TOLFlag(INT32 pgametype);
+
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer);
 
 #endif

@@ -2073,6 +2073,8 @@ static void CL_ConnectToServer(boolean viams)
 
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission(); // clean up intermission graphics etc
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 
 	DEBFILE(va("waiting %d nodes\n", doomcom->numnodes));
 	G_SetGamestate(GS_WAITINGPLAYERS);
@@ -3396,6 +3398,8 @@ void SV_StopServer(void)
 
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission();
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 	gamestate = wipegamestate = GS_NULL;
 
 	localtextcmd[0] = 0;
@@ -3514,7 +3518,7 @@ static void HandleConnect(SINT8 node)
 #ifdef JOININGAME
 		if (nodewaiting[node])
 		{
-			if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) && newnode)
+			if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING) && newnode)
 			{
 				SV_SendSaveGame(node); // send a complete game state
 				DEBFILE("send savegame\n");
@@ -3726,8 +3730,9 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// \note Wait. What if a Lua script uses some global custom variables synched with the NetVars hook?
 			///       Shouldn't them be downloaded even at intermission time?
 			///       Also, according to HandleConnect, the server will send the savegame even during intermission...
-			if (netbuffer->u.servercfg.gamestate == GS_LEVEL/* ||
-				netbuffer->u.servercfg.gamestate == GS_INTERMISSION*/)
+			if (netbuffer->u.servercfg.gamestate == GS_LEVEL
+				/*|| netbuffer->u.servercfg.gamestate == GS_INTERMISSION
+				|| netbuffer->u.servercfg.gamestate == GS_VOTING*/)
 				cl_mode = CL_DOWNLOADSAVEGAME;
 			else
 #endif
@@ -4324,7 +4329,7 @@ static INT16 Consistancy(void)
 	}
 	// I give up
 	// Coop desynching enemies is painful
-	if (!G_PlatformGametype())
+	if (!G_RaceGametype())
 		ret += P_GetRandSeed();
 
 #ifdef MOBJCONSISTANCY

@@ -3209,6 +3209,14 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, totalrings);
 	WRITEINT16(save_p, lastmap);
 
+	for (i = 0; i < 4; i++)
+		WRITEINT16(save_p, votelevels[i]);
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		WRITESINT8(save_p, votes[i]);
+
+	WRITESINT8(save_p, pickedvote);
+
 	WRITEUINT16(save_p, emeralds);
 	WRITEUINT8(save_p, stagefailed);
 
@@ -3291,6 +3299,14 @@ static inline boolean P_NetUnArchiveMisc(void)
 	leveltime = READUINT32(save_p);
 	totalrings = READUINT32(save_p);
 	lastmap = READINT16(save_p);
+
+	for (i = 0; i < 4; i++)
+		votelevels[i] = READINT16(save_p);
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		votes[i] = READSINT8(save_p);
+
+	pickedvote = READSINT8(save_p);
 
 	emeralds = READUINT16(save_p);
 	stagefailed = READUINT8(save_p);
@@ -3385,6 +3401,8 @@ boolean P_LoadGame(INT16 mapoverride)
 {
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission();
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 	G_SetGamestate(GS_NULL); // should be changed in P_UnArchiveMisc
 
 	P_UnArchiveSPGame(mapoverride);

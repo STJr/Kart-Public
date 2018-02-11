@@ -1920,17 +1920,17 @@ static int lib_gGametypeHasSpectators(lua_State *L)
 	return 1;
 }
 
-static int lib_gRingSlingerGametype(lua_State *L)
+static int lib_gBattleGametype(lua_State *L)
 {
 	//HUDSAFE
-	lua_pushboolean(L, G_RingSlingerGametype());
+	lua_pushboolean(L, G_BattleGametype());
 	return 1;
 }
 
-static int lib_gPlatformGametype(lua_State *L)
+static int lib_gRaceGametype(lua_State *L)
 {
 	//HUDSAFE
-	lua_pushboolean(L, G_PlatformGametype());
+	lua_pushboolean(L, G_RaceGametype());
 	return 1;
 }
 
@@ -2328,8 +2328,8 @@ static luaL_Reg lib[] = {
 	{"G_GametypeUsesLives",lib_gGametypeUsesLives},
 	{"G_GametypeHasTeams",lib_gGametypeHasTeams},
 	{"G_GametypeHasSpectators",lib_gGametypeHasSpectators},
-	{"G_RingSlingerGametype",lib_gRingSlingerGametype},
-	{"G_PlatformGametype",lib_gPlatformGametype},
+	{"G_BattleGametype",lib_gBattleGametype},
+	{"G_RaceGametype",lib_gRaceGametype},
 	{"G_TagGametype",lib_gTagGametype},
 	{"G_TicsToHours",lib_gTicsToHours},
 	{"G_TicsToMinutes",lib_gTicsToMinutes},
