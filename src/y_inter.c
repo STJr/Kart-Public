@@ -2495,26 +2495,4 @@ void Y_SetupVoteFinish(INT8 pick, INT8 level)
 	pickedvote = pick;
 	nextmap = votelevels[level];
 	timer = 0;
-
-	if (voteendtic == -1)
-	{
-		/*UINT8 numplayers = 0;
-
-		if (splitscreen)
-			numplayers = 1;
-		else
-		{
-			UINT8 i;
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (playeringame[i] && !players[i].spectator)
-					numplayers++;
-			}
-		}
-	
-		if (numplayers > 1)
-			voteendtic = votetic+(6*TICRATE);
-		else
-			voteendtic = votetic+(3*TICRATE);*/
-	}
 }
