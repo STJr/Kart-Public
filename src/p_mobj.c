@@ -9511,10 +9511,7 @@ void P_SpawnPlayer(INT32 playernum)
 			p->spectator = false;
 	}
 	else if (netgame && p->jointime < 1)
-	{
-		//p->spectator = true;
-		p->kartstuff[k_comebackshowninfo] = 0;
-	}
+		/*p->spectator = true*/;
 	else if (multiplayer && !netgame)
 	{
 		// If you're in a team game and you don't have a team assigned yet...
@@ -9969,7 +9966,7 @@ void P_SpawnMapThing(mapthing_t *mthing)
 			return;
 	}
 
-	if (!G_RingSlingerGametype() || !cv_specialrings.value)
+	if (!G_BattleGametype() || !cv_specialrings.value)
 		if (P_WeaponOrPanel(i))
 			return; // Don't place weapons/panels in non-ringslinger modes
 
@@ -10002,7 +9999,7 @@ void P_SpawnMapThing(mapthing_t *mthing)
 		runemeraldmanager = true;
 	}
 
-	if (!G_PlatformGametype()) // No enemies in match or CTF modes
+	if (!G_RaceGametype()) // No enemies in match or CTF modes
 		if ((mobjinfo[i].flags & MF_ENEMY) || (mobjinfo[i].flags & MF_BOSS))
 			return;
 
@@ -10057,7 +10054,7 @@ void P_SpawnMapThing(mapthing_t *mthing)
 		}
 	}
 
-	if (!G_PlatformGametype() && (i == MT_SIGN || i == MT_STARPOST))
+	if (!G_RaceGametype() && (i == MT_SIGN || i == MT_STARPOST))
 		return; // Don't spawn exit signs or starposts in wrong game modes
 
 	if (modeattacking) // Record Attack special stuff

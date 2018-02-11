@@ -1574,7 +1574,7 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
 	char targetname[MAXPLAYERNAME+4];
 	char sourcename[MAXPLAYERNAME+4];
 
-	if (G_PlatformGametype())
+	if (G_RaceGametype())
 		return; // Not in coop, etc.
 
 	if (!player)
@@ -1769,7 +1769,7 @@ void P_CheckTimeLimit(void)
 	if (!(multiplayer || netgame))
 		return;
 
-	if (G_PlatformGametype())
+	if (G_RaceGametype())
 		return;
 
 	if (leveltime < timelimitintics)
@@ -1882,7 +1882,7 @@ void P_CheckPointLimit(void)
 	if (!(multiplayer || netgame))
 		return;
 
-	if (G_PlatformGametype())
+	if (G_RaceGametype())
 		return;
 
 	// pointlimit is nonzero, check if it's been reached by this player
@@ -2716,7 +2716,7 @@ static inline boolean P_PlayerHitsPlayer(mobj_t *target, mobj_t *inflictor, mobj
 
 	// In COOP/RACE/CHAOS, you can't hurt other players unless cv_friendlyfire is on
 	// ...But in SRB2kart, you can!
-	//if (!cv_friendlyfire.value && (G_PlatformGametype()))
+	//if (!cv_friendlyfire.value && (G_RaceGametype()))
 	//	return false;
 
 	// Tag handling
@@ -3141,7 +3141,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL)
 				return false; // Invincible to fire objects
 
-			if (G_PlatformGametype() && source && source->player)
+			if (G_RaceGametype() && source && source->player)
 				return false; // Don't get hurt by fire generated from friends.
 		}
 

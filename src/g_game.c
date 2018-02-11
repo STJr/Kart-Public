@@ -72,6 +72,7 @@ static void G_DoCompleted(void);
 static void G_DoStartContinue(void);
 static void G_DoContinued(void);
 static void G_DoWorldDone(void);
+static void G_DoStartVote(void);
 
 char   mapmusname[7]; // Music name
 UINT16 mapmusflags; // Track and reset bit
@@ -240,14 +241,23 @@ INT16 scramblecount; //for CTF team scramble
 INT32 cheats; //for multiplayer cheat commands
 
 // SRB2Kart
+// Cvars that we don't want changed mid-game
 UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for relaxed, standard, & turbo
 boolean mirrormode; // Mirror Mode currently enabled?
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
-boolean legitimateexit; // Did this client actually finish the match? Calculated locally
-tic_t curlap; // Current lap time, calculated locally
-tic_t bestlap; // Best lap time, locally
+// Voting system
+INT16 votelevels[4]; // Levels that were rolled by the host
+INT8 votes[MAXPLAYERS]; // Each player's vote
+INT8 pickedvote; // What vote the host rolls
+
+// Client-sided variables (NEVER use in anything that needs to be synced with other players)
+boolean legitimateexit; // Did this client actually finish the match?
+boolean comebackshowninfo; // Have you already seen the "ATTACK OR PROTECT" message?
+tic_t curlap; // Current lap time
+tic_t bestlap; // Best lap time
+static INT16 randmapbuffer[NUMMAPS]; // Buffer for maps RandMap is allowed to roll
 
 tic_t hidetime;
 
@@ -405,18 +415,6 @@ consvar_t cv_useranalog2 = {"useranalog2", "Off", CV_SAVE|CV_CALL, CV_OnOff, Use
 consvar_t cv_useranalog3 = {"useranalog3", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog3_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_useranalog4 = {"useranalog4", "Off", CV_SAVE|CV_CALL, CV_OnOff, UserAnalog4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
-
-typedef enum
-{
-	AXISNONE = 0,
-	AXISTURN,
-	AXISMOVE,
-	AXISLOOK,
-	AXISSTRAFE,
-	AXISDEAD, //Axises that don't want deadzones
-	AXISFIRE,
-	AXISFIRENORMAL,
-} axis_input_e;
 
 #if defined (_WII) || defined  (WMINPUT)
 consvar_t cv_turnaxis = {"joyaxis_turn", "LStick.X", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1141,7 +1139,7 @@ static INT32 Joy4Axis(axis_input_e axissel)
 	return retaxis;
 }
 
-static boolean InputDown(INT32 gc, UINT8 p)
+boolean InputDown(INT32 gc, UINT8 p)
 {
 	switch (p)
 	{
@@ -1156,7 +1154,7 @@ static boolean InputDown(INT32 gc, UINT8 p)
 	}
 }
 
-static INT32 JoyAxis(axis_input_e axissel, UINT8 p)
+INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 {
 	switch (p)
 	{
@@ -1751,6 +1749,8 @@ void G_DoLoadLevel(boolean resetplayer)
 
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission();
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 
 	G_SetGamestate(GS_LEVEL);
 
@@ -1857,7 +1857,7 @@ boolean G_Responder(event_t *ev)
 					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
 						continue;
 				}
-				else if (G_GametypeHasSpectators() && G_RingSlingerGametype())
+				else if (G_GametypeHasSpectators() && G_BattleGametype())
 				{
 					if (!players[consoleplayer].spectator)
 						continue;
@@ -1957,7 +1957,7 @@ boolean G_Responder(event_t *ev)
 	else if (gamestate == GS_GAMEEND || gamestate == GS_EVALUATION || gamestate == GS_CREDITS)
 		return true;
 
-	else if (gamestate == GS_INTERMISSION)
+	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
 
@@ -2122,6 +2122,7 @@ void G_Ticker(boolean run)
 			case ga_startcont: G_DoStartContinue(); break;
 			case ga_continued: G_DoContinued(); break;
 			case ga_worlddone: G_DoWorldDone(); break;
+			case ga_startvote: G_DoStartVote(); break;
 			case ga_nothing: break;
 			default: I_Error("gameaction = %d\n", gameaction);
 		}
@@ -2164,6 +2165,12 @@ void G_Ticker(boolean run)
 		case GS_INTERMISSION:
 			if (run)
 				Y_Ticker();
+			HU_Ticker();
+			break;
+
+		case GS_VOTING:
+			if (run)
+				Y_VoteTicker();
 			HU_Ticker();
 			break;
 
@@ -2341,7 +2348,6 @@ void G_PlayerReborn(INT32 player)
 	INT32 offroad;
 	INT32 balloon;
 	INT32 comebackpoints;
-	INT32 comebackshowninfo;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2399,7 +2405,6 @@ void G_PlayerReborn(INT32 player)
 	offroad = players[player].kartstuff[k_offroad];
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
-	comebackshowninfo = players[player].kartstuff[k_comebackshowninfo];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2459,7 +2464,6 @@ void G_PlayerReborn(INT32 player)
 
 	p->kartstuff[k_balloon] = balloon;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
-	p->kartstuff[k_comebackshowninfo] = comebackshowninfo;
 	p->kartstuff[k_comebacktimer] = comebacktime;
 
 	// Don't do anything immediately
@@ -2971,9 +2975,10 @@ void G_ExitLevel(void)
 //
 boolean G_IsSpecialStage(INT32 mapnum)
 {
+#if 0
 	if (gametype == GT_COOP && modeattacking != ATTACKING_RECORD && mapnum >= sstage_start && mapnum <= sstage_end)
 		return true;
-
+#endif
 	return false;
 }
 
@@ -2985,13 +2990,18 @@ boolean G_IsSpecialStage(INT32 mapnum)
 //
 boolean G_GametypeUsesLives(void)
 {
-	 // Coop, Competitive
+	// SRB2kart NEEDS no lives
+#if 0
+	// Coop, Competitive
 	if ((gametype == GT_COOP || gametype == GT_COMPETITION)
 	 && !modeattacking // No lives in Time Attack
 	 //&& !G_IsSpecialStage(gamemap)
 	 && !(maptol & TOL_NIGHTS)) // No lives in NiGHTS
 		return true;
 	return false;
+#else
+	return false;
+#endif
 }
 
 //
@@ -3022,30 +3032,30 @@ boolean G_GametypeHasSpectators(void)
 }
 
 //
-// G_RingSlingerGametype
+// G_BattleGametype
 //
-// Returns true if the current gametype supports firing rings.
-// ANY gametype can be a ringslinger gametype, just flick a switch.
+// Returns true in Battle gamemodes, previously was G_RingSlingerGametype.
 //
-boolean G_RingSlingerGametype(void)
+boolean G_BattleGametype(void)
 {
-	return ((gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE) || (cv_ringslinger.value));
+	return (gametype == GT_MATCH);
 }
 
 //
-// G_PlatformGametype
+// G_RaceGametype
 //
-// Returns true if a gametype is a more traditional platforming-type.
+// Returns true in racing gamemodes, previously was G_PlatformGametype.
 //
-boolean G_PlatformGametype(void)
+boolean G_RaceGametype(void)
 {
-	return (gametype == GT_COOP || gametype == GT_RACE || gametype == GT_COMPETITION);
+	return (gametype == GT_RACE); //(gametype == GT_COOP || gametype == GT_RACE || gametype == GT_COMPETITION);
 }
 
 //
 // G_TagGametype
 //
-// For Jazz's Tag/HnS modes that have a lot of special cases..
+// For Jazz's Tag/HnS modes that have a lot of special cases...
+// SRB2Kart: do we actually want to add Kart tag later? :V
 //
 boolean G_TagGametype(void)
 {
@@ -3074,6 +3084,24 @@ INT16 G_TOLFlag(INT32 pgametype)
 	return INT16_MAX;
 }
 
+static INT32 TOLMaps(INT16 tolflags)
+{
+	INT32 num = 0;
+	INT16 i;
+
+	// Find all the maps that are ok and and put them in an array.
+	for (i = 0; i < NUMMAPS; i++)
+	{
+		if (!mapheaderinfo[i])
+			continue;
+
+		if ((mapheaderinfo[i]->typeoflevel & tolflags) == tolflags)
+			num++;
+	}
+
+	return num;
+}
+
 /** Select a random map with the given typeoflevel flags.
   * If no map has those flags, this arbitrarily gives you map 1.
   * \param tolflags The typeoflevel flags to insist on. Other bits may
@@ -3082,24 +3110,59 @@ INT16 G_TOLFlag(INT32 pgametype)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-static INT16 RandMap(INT16 tolflags, INT16 pprevmap)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer)
 {
 	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
-	INT16 ix;
+	INT16 ix, bufx;
 
 	// Find all the maps that are ok and and put them in an array.
 	for (ix = 0; ix < NUMMAPS; ix++)
-		if (mapheaderinfo[ix] && (mapheaderinfo[ix]->typeoflevel & tolflags) == tolflags
-		 && ix != pprevmap // Don't pick the same map.
-		 && (dedicated || !M_MapLocked(ix+1)) // Don't pick locked maps.
-		)
+	{
+		boolean isokmap = true;
+
+		if (!mapheaderinfo[ix])
+			continue;
+
+		if ((mapheaderinfo[ix]->typeoflevel & tolflags) != tolflags
+			|| ix == pprevmap
+			|| (M_MapLocked(ix+1) && !dedicated))
+			isokmap = false;
+
+		if (!ignorebuffer)
+		{
+			for (bufx = 0; bufx < NUMMAPS; bufx++)
+			{
+				if (randmapbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
+					break;
+				if (ix == randmapbuffer[bufx])
+				{
+					isokmap = false;
+					break;
+				}
+			}
+		}
+		
+		if (isokmap)
 			okmaps[numokmaps++] = ix;
+	}
 
 	if (numokmaps == 0)
+	{
+		if (!ignorebuffer)
+			return G_RandMap(tolflags, pprevmap, dontadd, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
+
 		ix = 0; // Sorry, none match. You get MAP01.
+		for (bufx = 0; bufx < NUMMAPS; bufx++)
+			randmapbuffer[bufx] = -1; // if we're having trouble finding a map we should probably clear it
+	}
 	else
+	{
 		ix = okmaps[M_RandomKey(numokmaps)];
+		for (bufx = NUMMAPS; bufx > 0; bufx--)
+			randmapbuffer[bufx] = randmapbuffer[bufx-1];
+		randmapbuffer[0] = ix;
+	}
 
 	Z_Free(okmaps);
 
@@ -3226,12 +3289,18 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
+	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-4] != -1) // we're getting pretty full, so lets clear it
+	{
+		for (i = 0; i < NUMMAPS; i++)
+			randmapbuffer[i] = -1;
+	}
+
 	if (gametype != GT_COOP)
 	{
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = RandMap(G_TOLFlag(gametype), prevmap);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false);
 	}
 
 	// We are committed to this map now.
@@ -3252,6 +3321,7 @@ static void G_DoCompleted(void)
 void G_AfterIntermission(void)
 {
 	HU_ClearCEcho();
+	//G_NextLevel();
 
 	if (mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
@@ -3272,7 +3342,11 @@ void G_AfterIntermission(void)
 //
 void G_NextLevel(void)
 {
-	gameaction = ga_worlddone;
+	if ((cv_advancemap.value == 3 && gamestate != GS_VOTING)
+		&& !modeattacking && !skipstats && (multiplayer || netgame))
+		gameaction = ga_startvote;
+	else
+		gameaction = ga_worlddone;
 }
 
 static void G_DoWorldDone(void)
@@ -3287,6 +3361,16 @@ static void G_DoWorldDone(void)
 			D_MapChange(nextmap+1, gametype, ultimatemode, true, 0, false, false);
 	}
 
+	gameaction = ga_nothing;
+}
+
+//
+// G_DoStartVote
+//
+static void G_DoStartVote(void)
+{
+	if (server)
+		D_SetupVote();
 	gameaction = ga_nothing;
 }
 
@@ -3904,6 +3988,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 		ultimatemode = false;
 
 	legitimateexit = false; // SRB2Kart
+	comebackshowninfo = false;
 
 	if (!demoplayback && !netgame) // Netgame sets random seed elsewhere, demo playback sets seed just before us!
 		P_SetRandSeed(M_RandomizedSeed()); // Use a more "Random" random seed
@@ -5878,6 +5963,8 @@ void G_StopDemo(void)
 
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission(); // cleanup
+	if (gamestate == GS_VOTING)
+		Y_EndVote();
 
 	G_SetGamestate(GS_NULL);
 	wipegamestate = GS_NULL;

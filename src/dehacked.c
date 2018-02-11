@@ -7366,7 +7366,6 @@ static const char *const KARTSTUFF_LIST[] = {
 	"LAKITU",
 
 	"THROWDIR",
-	"CAMSPIN",
 	"LAPANIMATION",
 	"CARDANIMATION",
 	"SOUNDS",
@@ -7426,8 +7425,7 @@ static const char *const KARTSTUFF_LIST[] = {
 
 	"BALLOON",
 	"COMEBACKPOINTS",
-	"COMEBACKMODE",
-	"COMEBACKSHOWNINFO"
+	"COMEBACKMODE"
 };
 
 static const char *const HUDITEMS_LIST[] = {

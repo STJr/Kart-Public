@@ -444,8 +444,14 @@ extern UINT8 gamespeed;
 extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
-extern tic_t curlap, bestlap;
+
 extern boolean legitimateexit;
+extern boolean comebackshowninfo;
+extern tic_t curlap, bestlap;
+
+extern INT16 votelevels[4];
+extern INT8 votes[MAXPLAYERS];
+extern INT8 pickedvote;
 
 extern tic_t hidetime;
 

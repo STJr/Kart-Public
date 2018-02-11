@@ -2810,7 +2810,7 @@ boolean P_SetupLevel(boolean skipprecip)
 			// Start players with pity shields if possible
 			players[i].pity = -1;
 
-			if (!G_PlatformGametype())
+			if (!G_RaceGametype())
 			{
 				players[i].mo = NULL;
 				G_DoReborn(i);

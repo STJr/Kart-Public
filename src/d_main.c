@@ -301,6 +301,8 @@ static void D_Display(void)
 			else //if (intertype != int_coop) // Multiplayer
 				wipedefindex = wipe_multinter_toblack;
 		}
+		else if (gamestate == GS_VOTING)
+			wipedefindex = wipe_multinter_toblack;
 
 		if (rendermode != render_none)
 		{
@@ -331,6 +333,12 @@ static void D_Display(void)
 
 		case GS_INTERMISSION:
 			Y_IntermissionDrawer();
+			HU_Erase();
+			HU_Drawer();
+			break;
+
+		case GS_VOTING:
+			Y_VoteDrawer();
 			HU_Erase();
 			HU_Drawer();
 			break;

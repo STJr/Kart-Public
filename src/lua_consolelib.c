@@ -159,7 +159,7 @@ void COM_Lua_f(void)
 		return;
 	}
 
-	// Do the command locally, NetXCmds don't go through outside of GS_LEVEL || GS_INTERMISSION
+	// Do the command locally, NetXCmds don't go through outside of GS_LEVEL || GS_INTERMISSION || GS_VOTING
 	lua_rawgeti(gL, -1, 1); // push function from command info table
 	I_Assert(lua_isfunction(gL, -1));
 	lua_remove(gL, -2); // pop command info table
