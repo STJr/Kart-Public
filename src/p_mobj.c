@@ -6845,44 +6845,85 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 					P_SetThingPosition(mobj);
 
-					// Set it to use the correct states for its condition
-					if (mobj->target->player->kartstuff[k_itemroulette])
-					{
-						if (mobj->state != &states[S_PLAYERARROW_ROULETTE]) // don't reset FF_ANIMATE
-							P_SetMobjState(mobj, S_PLAYERARROW_ROULETTE);
-					}
-					else
-					{
-						switch(mobj->target->player->kartstuff[k_itemtype])
-						{
-							case KITEM_KITCHENSINK:		P_SetMobjState(mobj, S_PLAYERARROW_KITCHENSINK); break;
-							case KITEM_GROW:			P_SetMobjState(mobj, S_PLAYERARROW_GROW); break;
-							case KITEM_INVINCIBILITY:	P_SetMobjState(mobj, S_PLAYERARROW_INVINCIBILITY); break;
-							case KITEM_ORBINAUT:		P_SetMobjState(mobj, S_PLAYERARROW_ORBINAUT); break;
-							case KITEM_BALLHOG:			P_SetMobjState(mobj, S_PLAYERARROW_BALLHOG); break;
-							case KITEM_MINE:			P_SetMobjState(mobj, S_PLAYERARROW_MINE); break;
-							case KITEM_JAWZ:			P_SetMobjState(mobj, S_PLAYERARROW_JAWZ); break;
-							case KITEM_POGOSPRING:		P_SetMobjState(mobj, S_PLAYERARROW_POGOSPRING); break;
-							case KITEM_HYUDORO:			P_SetMobjState(mobj, S_PLAYERARROW_HYUDORO); break;
-							case KITEM_FAKE:			P_SetMobjState(mobj, S_PLAYERARROW_FAKEITEM); break;
-							case KITEM_BANANA:			P_SetMobjState(mobj, S_PLAYERARROW_BANANA); break;
-							case KITEM_SNEAKER: 		P_SetMobjState(mobj, S_PLAYERARROW_SNEAKER); break;
-							default:					P_SetMobjState(mobj, S_PLAYERARROW); break; // S_INVISIBLE
-						}
-					}
-
-					if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1))
-						P_SetMobjState(mobj, S_PLAYERARROW_GROW);
-					else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))
-						P_SetMobjState(mobj, S_PLAYERARROW_EMPTY); // S_INVISIBLE
-
 					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 						players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
 					if (scale > 16*FRACUNIT)
-					{
 						scale = 16*FRACUNIT;
-					}
 					mobj->destscale = scale;
+
+					if (!(mobj->flags2 & MF2_DONTDRAW))
+					{
+						if (!mobj->tracer)
+						{
+							mobj->tracer = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+							P_SetTarget(&mobj->tracer->target, mobj);
+							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
+							P_SetScale(mobj->tracer, mobj->scale);
+						}
+
+						// Set it to use the correct states for its condition
+						if (mobj->target->player->kartstuff[k_itemroulette])
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+
+							if (mobj->tracer->state != &states[S_PLAYERARROW_ROULETTE]) // don't reset FF_ANIMATE
+								P_SetMobjState(mobj->tracer, S_PLAYERARROW_ROULETTE);
+						}
+						else if (mobj->target->player->kartstuff[k_itemtype])
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+
+							if (mobj->tracer->state != &states[S_PLAYERARROW_ITEM]
+								|| mobj->tracer->state != &states[S_PLAYERARROW_INVINCIBILITY])
+								P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
+
+							switch (mobj->target->player->kartstuff[k_itemtype])
+							{
+								case KITEM_INVINCIBILITY:
+									if (mobj->tracer->state != &states[S_PLAYERARROW_INVINCIBILITY])
+										P_SetMobjState(mobj->tracer, S_PLAYERARROW_INVINCIBILITY);
+									break;
+								case KITEM_SAD:
+									mobj->tracer->frame = FF_FULLBRIGHT;
+									break;
+								default:
+									mobj->tracer->frame = FF_FULLBRIGHT|(mobj->tracer->target->player->kartstuff[k_itemtype]);
+									break;
+							}
+
+							if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1))
+								mobj->tracer->frame = FF_FULLBRIGHT|KITEM_GROW;
+							else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))
+								P_SetMobjState(mobj, S_INVISIBLE);
+						}
+						else
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW);
+							P_SetMobjState(mobj->tracer, S_INVISIBLE);
+						}
+
+						mobj->tracer->destscale = scale;
+
+						if (mobj->target->player->kartstuff[k_itemamount] > 1
+							&& mobj->target->player->kartstuff[k_itemamount] < 10) // Meh, too difficult to support greater than this :V
+						{
+							mobj_t *number = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+							mobj_t *numx = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+
+							P_SetTarget(&number->target, mobj);
+							P_SetMobjState(number, S_PLAYERARROW_NUMBER);
+							P_SetScale(number, mobj->scale);
+							number->fuse = 1;
+							number->destscale = scale;
+							number->frame = FF_FULLBRIGHT|(mobj->target->player->kartstuff[k_itemamount]);
+
+							P_SetTarget(&numx->target, mobj);
+							P_SetMobjState(numx, S_PLAYERARROW_X);
+							P_SetScale(numx, mobj->scale);
+							numx->fuse = 1;
+							numx->destscale = scale;
+						}
+					}
 				}
 				else if (mobj->health > 0)
 				{
