@@ -182,6 +182,8 @@ typedef struct
 	UINT8 ranim;
 	UINT8 rtics;
 	UINT8 roffset;
+	UINT8 rsynctime;
+	UINT8 rendoff;
 } y_voteclient;
 
 static y_votelvlinfo levelinfo[4];
@@ -2272,7 +2274,7 @@ void Y_VoteTicker(void)
 		D_PickVote();
 
 	if (!votetic)
-		S_ChangeMusicInternal("racent", true);
+		S_ChangeMusicInternal("vote", true);
 
 	if (timer)
 		timer--;
@@ -2283,6 +2285,7 @@ void Y_VoteTicker(void)
 	if (pickedvote != -1)
 	{
 		timer = 0;
+		voteclient.rsynctime++;
 
 		if (voteendtic == -1)
 		{
@@ -2302,16 +2305,29 @@ void Y_VoteTicker(void)
 			if (voteclient.rtics <= 0)
 			{
 				voteclient.roffset++;
-				voteclient.rtics = min(TICRATE/2, (voteclient.roffset/3)+1);
-				S_StartSound(NULL, sfx_s3k5b);
+				voteclient.rtics = min(TICRATE/2, (voteclient.roffset/2)+5);
+				S_StartSound(NULL, sfx_kc39);
 			}
 
-			voteclient.ranim = tempvotes[((pickedvote + voteclient.roffset) % numvotes)];
+			if (voteclient.rendoff == 0 || voteclient.roffset < voteclient.rendoff)
+				voteclient.ranim = tempvotes[((pickedvote + voteclient.roffset) % numvotes)];
 
-			if (voteclient.ranim == pickedvote && voteclient.roffset >= 30)
+			if (voteclient.roffset >= 24)
 			{
-				voteendtic = votetic + (4*TICRATE);
-				S_StartSound(NULL, sfx_s3k63);
+				if (voteclient.rendoff == 0)
+				{
+					if (tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote
+						&& voteclient.rsynctime % (29*TICRATE/20) == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
+					{
+						voteclient.rendoff = voteclient.roffset+4;
+						S_ChangeMusicInternal("voteeb", false);
+					}
+				}
+				else if (voteclient.roffset >= voteclient.rendoff)
+				{
+					voteendtic = votetic + (3*TICRATE);
+					S_StartSound(NULL, sfx_kc48);
+				}
 			}
 		}
 		else
@@ -2349,7 +2365,7 @@ void Y_VoteTicker(void)
 
 		if (pressed)
 		{
-			S_StartSound(NULL, sfx_s3k5b);
+			S_StartSound(NULL, sfx_kc4a);
 			voteclient.delay = NEWTICRATE/7;
 		}
 
@@ -2413,6 +2429,8 @@ void Y_StartVote(void)
 	voteclient.ranim = 0;
 	voteclient.rtics = 1;
 	voteclient.roffset = 0;
+	voteclient.rsynctime = 0;
+	voteclient.rendoff = 0;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		votes[i] = -1;
@@ -2495,4 +2513,6 @@ void Y_SetupVoteFinish(INT8 pick, INT8 level)
 	pickedvote = pick;
 	nextmap = votelevels[level];
 	timer = 0;
+	S_ChangeMusicInternal("voteea", true);
+	// TODO: Just end the vote here if there's only 1 player
 }

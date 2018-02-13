@@ -546,7 +546,7 @@ void M_SaveConfig(const char *filename)
 #if NUMSCREENS > 2
 static const char *Newsnapshotfile(const char *pathname, const char *ext)
 {
-	static char freename[13] = "srb2XXXX.ext";
+	static char freename[13] = "kartXXXX.ext";
 	int i = 5000; // start in the middle: num screenshots divided by 2
 	int add = i; // how much to add or subtract if wrong; gets divided by 2 each time
 	int result; // -1 = guess too high, 0 = correct, 1 = guess too low
@@ -1390,7 +1390,7 @@ void M_ScreenShot(void)
 }
 
 /** Takes a screenshot.
-  * The screenshot is saved as "srb2xxxx.pcx" (or "srb2xxxx.tga" in hardware
+  * The screenshot is saved as "kartxxxx.pcx" (or "kartxxxx.tga" in hardware
   * rendermode) where xxxx is the lowest four-digit number for which a file
   * does not already exist.
   *

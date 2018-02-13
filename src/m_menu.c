@@ -1452,13 +1452,14 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #endif
 
 	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",          &cv_inttime,            80},
-	{IT_STRING | IT_CVAR,    NULL, "Advance to next map",         &cv_advancemap,         90},
+	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",                &cv_votetime,           90},
+	{IT_STRING | IT_CVAR,    NULL, "Advance to next map",         &cv_advancemap,        100},
 
 #ifndef NONET
-	{IT_STRING | IT_CVAR,    NULL, "Max Players",                 &cv_maxplayers,        110},
-	{IT_STRING | IT_CVAR,    NULL, "Allow players to join",       &cv_allownewplayer,    120},
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",       &cv_downloading,       130},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",         &cv_resynchattempts,   140},
+	{IT_STRING | IT_CVAR,    NULL, "Max Players",                 &cv_maxplayers,        120},
+	{IT_STRING | IT_CVAR,    NULL, "Allow players to join",       &cv_allownewplayer,    130},
+	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",       &cv_downloading,       140},
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",         &cv_resynchattempts,   150},
 #endif
 };
 

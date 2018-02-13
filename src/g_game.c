@@ -2279,7 +2279,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	// SRB2kart: Increment the "matches played" counter.
 	if (player == consoleplayer)
 	{
-		if (legitimateexit && ((!modifiedgame || savemoddata) && !demoplayback))
+		if (legitimateexit && !demoplayback) // (yes you're allowed to unlock stuff this way when the game is modified)
 		{
 			matchesplayed++;
 			if (M_UpdateUnlockablesAndExtraEmblems())
