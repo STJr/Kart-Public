@@ -2005,7 +2005,7 @@ boolean P_CheckRacers(void)
 	// Check if all the players in the race have finished. If so, end the level.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].exiting && players[i].lives > 0)
+		if (playeringame[i] && !players[i].spectator && !players[i].exiting && players[i].lives > 0)
 			break;
 	}
 
@@ -3159,7 +3159,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				K_SpinPlayer(player, source);
 
 				// Start shrinking!
-				player->mo->destscale = 6*FRACUNIT/8;
+				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
 			// Mega Mushroom? Let's take that away.

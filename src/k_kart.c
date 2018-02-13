@@ -1349,9 +1349,9 @@ void K_LakituChecker(player_t *player)
 		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 0);
 		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 0);
 		if (player->mo->eflags & MFE_VERTICALFLIP)
-			newz = player->mo->z - 128*FRACUNIT;
+			newz = player->mo->z - 128*(mapheaderinfo[gamemap-1]->mobj_scale);
 		else
-			newz = player->mo->z + 64*FRACUNIT;
+			newz = player->mo->z + 64*(mapheaderinfo[gamemap-1]->mobj_scale);
 		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
 		if (mo)
 		{
@@ -2381,17 +2381,17 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	if (!player)
 		return NULL;
 
-	// Figure out projectile speed by CC
+	// Figure out projectile speed by game speed
 	switch (gamespeed)
 	{
 		case 0:
-			PROJSPEED = 68*FRACUNIT; // Avg Speed is 34
+			PROJSPEED = 68*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 34
 			break;
 		case 2:
-			PROJSPEED = 96*FRACUNIT; // Avg Speed is 48
+			PROJSPEED = 96*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 48
 			break;
 		default:
-			PROJSPEED = 82*FRACUNIT; // Avg Speed is 41
+			PROJSPEED = 82*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 41
 			break;
 	}
 
@@ -2741,7 +2741,8 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 
 		mo = (mobj_t *)think;
 
-		if (mo->type == MT_PLAYER)
+		if (mo->player && !mo->player->spectator
+			&& mo->player->kartstuff[k_position] < player->kartstuff[k_position])
 			P_DamageMobj(mo, player->mo, player->mo, bluelightning ? 65 : 64);
 		else
 			continue;
@@ -4235,8 +4236,8 @@ static void K_initKartHUD(void)
 	SPDM_X = 9;					//   9
 	SPDM_Y = BASEVIDHEIGHT- 45;	// 155
 	// Position Number
-	POSI_X = BASEVIDWIDTH - 6;	// 268
-	POSI_Y = BASEVIDHEIGHT- 4;	// 138
+	POSI_X = BASEVIDWIDTH - 9;	// 268
+	POSI_Y = BASEVIDHEIGHT- 9;	// 138
 	// Top-Four Faces
 	FACE_X = 9;					//   9
 	FACE_Y = 92;				//  92
@@ -5093,17 +5094,95 @@ void K_ReloadSkinIconGraphics(void)
 		K_LoadIconGraphics(skins[i].iconprefix, i);
 }
 
-static void K_drawKartMinimap(void)
+static void K_drawKartMinimapHead(player_t *player, INT32 x, INT32 y, INT32 flags, patch_t *AutomapPic)
 {
+	// amnum xpos & ypos are the icon's speed around the HUD.
+	// The number being divided by is for how fast it moves.
+	// The higher the number, the slower it moves.
+
+	// am xpos & ypos are the icon's starting position. Withouht
+	// it, they wouldn't 'spawn' on the top-right side of the HUD.
+
 	fixed_t amnumxpos;
 	fixed_t amnumypos;
 	INT32 amxpos;
 	INT32 amypos;
+
+	node_t *bsp = &nodes[numnodes-1];
+	fixed_t maxx, minx, maxy, miny;
+	maxx = maxy = INT32_MAX;
+	minx = miny = INT32_MIN;
+	minx = bsp->bbox[0][BOXLEFT];
+	maxx = bsp->bbox[0][BOXRIGHT];
+	miny = bsp->bbox[0][BOXBOTTOM];
+	maxy = bsp->bbox[0][BOXTOP];
+
+	if (bsp->bbox[1][BOXLEFT] < minx)
+		minx = bsp->bbox[1][BOXLEFT];
+	if (bsp->bbox[1][BOXRIGHT] > maxx)
+		maxx = bsp->bbox[1][BOXRIGHT];
+	if (bsp->bbox[1][BOXBOTTOM] < miny)
+		miny = bsp->bbox[1][BOXBOTTOM];
+	if (bsp->bbox[1][BOXTOP] > maxy)
+		maxy = bsp->bbox[1][BOXTOP];
+
+	// You might be wondering why these are being bitshift here
+	// it's because mapwidth and height would otherwise overflow for maps larger than half the size possible...
+	// map boundaries and sizes will ALWAYS be whole numbers thankfully
+	// later calculations take into consideration that these are actually not in terms of FRACUNIT though
+	minx >>= FRACBITS;
+	maxx >>= FRACBITS;
+	miny >>= FRACBITS;
+	maxy >>= FRACBITS;
+
+	fixed_t mapwidth = maxx - minx;
+	fixed_t mapheight = maxy - miny;
+
+	// These should always be small enough to be bitshift back right now
+	fixed_t xoffset = (minx + mapwidth/2)<<FRACBITS;
+	fixed_t yoffset = (miny + mapheight/2)<<FRACBITS;
+
+	fixed_t xscale = FixedDiv(AutomapPic->width, mapwidth);
+	fixed_t yscale = FixedDiv(AutomapPic->height, mapheight);
+	fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
+
+	amnumxpos = (FixedMul(player->mo->x, zoom) - FixedMul(xoffset, zoom));
+	amnumypos = -(FixedMul(player->mo->y, zoom) - FixedMul(yoffset, zoom));
+
+	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[player->skin]->width/2))<<FRACBITS);
+	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[player->skin]->height/2))<<FRACBITS);
+
+	if (mirrormode)
+	{
+		flags |= V_FLIP;
+		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[player->skin]->width/2))<<FRACBITS);
+	}
+
+	if (!player->skincolor) // 'default' color
+		V_DrawSciencePatch(amxpos, amypos, flags, iconprefix[player->skin], FRACUNIT);
+	else
+	{
+		UINT8 *colormap;
+		if (player->mo->colorized)
+		{
+			colormap = R_GetTranslationColormap(TC_STARMAN, player->mo->color, 0);
+		}
+		else
+		{
+			colormap = R_GetTranslationColormap(player->skin, player->mo->color, 0);
+		}
+		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, iconprefix[player->skin], colormap);
+	}
+}
+
+static void K_drawKartMinimap(void)
+{
 	INT32 lumpnum;
 	patch_t *AutomapPic;
 	INT32 i = 0;
 	INT32 x, y;
-	INT32 splitflags = V_SNAPTORIGHT|V_HUDTRANSHALF;
+	const INT32 minimaptrans = ((10-cv_kartminimap.value)<<FF_TRANSSHIFT);
+	INT32 splitflags = V_SNAPTORIGHT|minimaptrans;
 
 	// Draw the HUD only when playing in a level.
 	// hu_stuff needs this, unlike st_stuff.
@@ -5131,106 +5210,27 @@ static void K_drawKartMinimap(void)
 	else
 		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
 
-	splitflags &= ~V_HUDTRANSHALF; // Head icons won't be transparent
-
 	if (splitscreen != 2)
-		splitflags |= V_HUDTRANS;
+	{
+		splitflags &= ~minimaptrans;
+		splitflags |= V_HUDTRANSHALF;
+	}
 
 	// Player's tiny icons on the Automap.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		if (i == displayplayer && splitscreen != 2)
+			continue; // Do displayplayer later
 		if (players[i].mo && !players[i].spectator)
-		{
-			// amnum xpos & ypos are the icon's speed around the HUD.
-			// The number being divided by is for how fast it moves.
-			// The higher the number, the slower it moves.
-
-			// am xpos & ypos are the icon's starting position. Withouht
-			// it, they wouldn't 'spawn' on the top-right side of the HUD.
-
-			node_t *bsp = &nodes[numnodes-1];
-			fixed_t maxx, minx, maxy, miny;
-			maxx = maxy = INT32_MAX;
-			minx = miny = INT32_MIN;
-			minx = bsp->bbox[0][BOXLEFT];
-			maxx = bsp->bbox[0][BOXRIGHT];
-			miny = bsp->bbox[0][BOXBOTTOM];
-			maxy = bsp->bbox[0][BOXTOP];
-
-			if (bsp->bbox[1][BOXLEFT] < minx)
-				minx = bsp->bbox[1][BOXLEFT];
-			if (bsp->bbox[1][BOXRIGHT] > maxx)
-				maxx = bsp->bbox[1][BOXRIGHT];
-			if (bsp->bbox[1][BOXBOTTOM] < miny)
-				miny = bsp->bbox[1][BOXBOTTOM];
-			if (bsp->bbox[1][BOXTOP] > maxy)
-				maxy = bsp->bbox[1][BOXTOP];
-
-			// You might be wondering why these are being bitshift here
-			// it's because mapwidth and height would otherwise overflow for maps larger than half the size possible...
-			// map boundaries and sizes will ALWAYS be whole numbers thankfully
-			// later calculations take into consideration that these are actually not in terms of FRACUNIT though
-			minx >>= FRACBITS;
-			maxx >>= FRACBITS;
-			miny >>= FRACBITS;
-			maxy >>= FRACBITS;
-
-			fixed_t mapwidth = maxx - minx;
-			fixed_t mapheight = maxy - miny;
-
-			// These should always be small enough to be bitshift back right now
-			fixed_t xoffset = (minx + mapwidth/2)<<FRACBITS;
-			fixed_t yoffset = (miny + mapheight/2)<<FRACBITS;
-
-			fixed_t xscale = FixedDiv(AutomapPic->width, mapwidth);
-			fixed_t yscale = FixedDiv(AutomapPic->height, mapheight);
-			fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
-
-			amnumxpos = (FixedMul(players[i].mo->x, zoom) - FixedMul(xoffset, zoom));
-			amnumypos = -(FixedMul(players[i].mo->y, zoom) - FixedMul(yoffset, zoom));
-
-			amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[players[i].skin]->width/2))<<FRACBITS);
-			amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[players[i].skin]->height/2))<<FRACBITS);
-
-			if (mirrormode)
-			{
-				amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[players[i].skin]->width/2))<<FRACBITS);
-				if (!players[i].skincolor) // 'default' color
-					V_DrawSciencePatch(amxpos, amypos, splitflags|V_FLIP, iconprefix[players[i].skin], FRACUNIT);
-				else
-				{
-					UINT8 *colormap;
-					if (players[i].mo->colorized)
-					{
-						colormap = R_GetTranslationColormap(TC_STARMAN, players[i].mo->color, 0);
-					}
-					else
-					{
-						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
-					}
-					V_DrawFixedPatch(amxpos, amypos, FRACUNIT, splitflags|V_FLIP, iconprefix[players[i].skin], colormap);
-				}
-			}
-			else
-			{
-				if (!players[i].skincolor) // 'default' color
-					V_DrawSciencePatch(amxpos, amypos, splitflags, iconprefix[players[i].skin], FRACUNIT);
-				else
-				{
-					UINT8 *colormap;
-					if (players[i].mo->colorized)
-					{
-						colormap = R_GetTranslationColormap(TC_STARMAN, players[i].mo->color, 0);
-					}
-					else
-					{
-						colormap = R_GetTranslationColormap(players[i].skin, players[i].mo->color, 0);
-					}
-					V_DrawFixedPatch(amxpos, amypos, FRACUNIT, splitflags, iconprefix[players[i].skin], colormap);
-				}
-			}
-		}
+			K_drawKartMinimapHead(&players[i], x, y, splitflags, AutomapPic);
 	}
+
+	if (splitscreen == 2)
+		return; // Don't need this for splits
+
+	splitflags &= ~V_HUDTRANSHALF;
+	splitflags |= V_HUDTRANS;
+	K_drawKartMinimapHead(stplyr, x, y, splitflags, AutomapPic);
 }
 
 static void K_drawBattleFullscreen(void)
@@ -5460,7 +5460,7 @@ void K_drawKartHUD(void)
 			K_drawKartPlayerCheck();
 	}
 
-	if ((splitscreen == 0 || splitscreen == 2) && cv_kartminimap.value)
+	if ((splitscreen == 0 && cv_kartminimap.value) || splitscreen == 2)
 		K_drawKartMinimap();
 
 	// If the item window is closing, draw it closing!

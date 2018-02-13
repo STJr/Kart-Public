@@ -9258,7 +9258,7 @@ void P_PlayerThink(player_t *player)
 		// Check if all the players in the race have finished. If so, end the level.
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i])
+			if (playeringame[i] && !players[i].spectator)
 			{
 				if (!players[i].exiting && players[i].lives > 0)
 					break;
@@ -9280,7 +9280,7 @@ void P_PlayerThink(player_t *player)
 		// If you've hit the countdown and you haven't made
 		//  it to the exit, you're a goner!
 		else */
-		if (countdown == 1 && !player->exiting && player->lives > 0)
+		if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
 		{
 			if (netgame && player->health > 0)
 				CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);

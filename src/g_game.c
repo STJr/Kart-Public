@@ -2495,7 +2495,7 @@ void G_PlayerReborn(INT32 player)
 		}
 	}
 
-	if (leveltime > 157)
+	if (leveltime > 157 && !p->spectator)
 		p->kartstuff[k_lakitu] = 48; // Lakitu Spawner
 
 	if (gametype == GT_COOP)

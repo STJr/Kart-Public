@@ -303,7 +303,7 @@ void VID_BlitLinearScreen(const UINT8 *srcptr, UINT8 *destptr, INT32 width, INT3
 #endif
 }
 
-static UINT8 hudplusalpha[11]  = { 10,  8,  6,  4,  2,  0,  0,  0,  0,  0,  0};
+//static UINT8 hudplusalpha[11]  = { 10,  8,  6,  4,  2,  0,  0,  0,  0,  0,  0};
 static UINT8 hudminusalpha[11] = { 10,  9,  9,  8,  8,  7,  7,  6,  6,  5,  5};
 
 static const UINT8 *v_colormap = NULL;
@@ -362,8 +362,8 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 			alphalevel = hudminusalpha[cv_translucenthud.value];
 		else if (alphalevel == 14)
 			alphalevel = 10 - cv_translucenthud.value;
-		else if (alphalevel == 15)
-			alphalevel = hudplusalpha[cv_translucenthud.value];
+		/*else if (alphalevel == 15)
+			alphalevel = hudplusalpha[cv_translucenthud.value];*/
 
 		if (alphalevel >= 10)
 			return; // invis

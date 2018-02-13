@@ -1422,10 +1422,11 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "HUD Visibility",         &cv_translucenthud, 50},
 
-	{IT_STRING | IT_CVAR, NULL, "Star SFX",                &cv_kartstarsfx,    62},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+						  NULL, "Minimap Visibility",      &cv_kartminimap,    62},
 	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",     &cv_speedometer,    72},
-	{IT_STRING | IT_CVAR, NULL, "Show Minimap",            &cv_kartminimap,    82},
-	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",          &cv_kartcheck,      92},
+	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",          &cv_kartcheck,      82},
+	{IT_STRING | IT_CVAR, NULL, "Star SFX",                &cv_kartstarsfx,    92},
 
 #ifdef SEENAMES
 	{IT_STRING | IT_CVAR, NULL, "HUD Player Names",       &cv_seenames,    104},
