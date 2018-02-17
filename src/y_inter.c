@@ -2192,7 +2192,7 @@ void Y_VoteDrawer(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (votes[i] != -1)
+		if ((playeringame[i] && !players[i].spectator) && votes[i] != -1)
 		{
 			patch_t *pic;
 
@@ -2233,8 +2233,6 @@ void Y_VoteDrawer(void)
 		}
 	}
 
-	//V_DrawScaledPatch(x, y, V_SNAPTOBOTTOM, pic);
-
 	if (timer)
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
 			va("Vote ends in %d seconds", timer/TICRATE));
@@ -2265,12 +2263,12 @@ void Y_VoteTicker(void)
 	for (i = 0; i < MAXPLAYERS; i++) // Correct votes as early as possible, before they're processed by the game at all
 	{
 		if (!playeringame[i] || players[i].spectator)
-			votes[i] = -1;
+			votes[i] = -1; // Spectators are the lower class, and have effectively no voice in the government. Democracy sucks.
 		else if (pickedvote != -1 && votes[i] == -1 && !splitscreen)
 			votes[i] = 3; // Slow people get random
 	}
 
-	if (server && votes[pickedvote] == -1) // Uh oh! The person who got picked left! Recalculate, quick!
+	if (server && pickedvote != -1 && votes[pickedvote] == -1) // Uh oh! The person who got picked left! Recalculate, quick!
 		D_PickVote();
 
 	if (!votetic)
@@ -2305,19 +2303,19 @@ void Y_VoteTicker(void)
 			if (voteclient.rtics <= 0)
 			{
 				voteclient.roffset++;
-				voteclient.rtics = min(TICRATE/2, (voteclient.roffset/2)+5);
+				voteclient.rtics = min(20, (3*voteclient.roffset/4)+5);
 				S_StartSound(NULL, sfx_kc39);
 			}
 
 			if (voteclient.rendoff == 0 || voteclient.roffset < voteclient.rendoff)
 				voteclient.ranim = tempvotes[((pickedvote + voteclient.roffset) % numvotes)];
 
-			if (voteclient.roffset >= 24)
+			if (voteclient.roffset >= 20)
 			{
 				if (voteclient.rendoff == 0)
 				{
 					if (tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote
-						&& voteclient.rsynctime % (29*TICRATE/20) == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
+						&& voteclient.rsynctime % 50 == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
 					{
 						voteclient.rendoff = voteclient.roffset+4;
 						S_ChangeMusicInternal("voteeb", false);
@@ -2338,9 +2336,8 @@ void Y_VoteTicker(void)
 		if (votetic < 3*(NEWTICRATE/7)) // give it some time before letting you control it :V
 			return;
 
-		if ((!playeringame[consoleplayer] || players[consoleplayer].spectator) && votes[consoleplayer] != -1)
-			D_ModifyClientVote(-1);
-		else if (pickedvote == -1 && votes[consoleplayer] == -1 && !voteclient.delay)
+		if ((playeringame[consoleplayer] && !players[consoleplayer].spectator)
+			&& !voteclient.delay && pickedvote == -1 && votes[consoleplayer] == -1)
 		{
 			if (InputDown(gc_aimforward, 1) || JoyAxis(AXISMOVE, 1) < 0)
 			{
@@ -2371,30 +2368,22 @@ void Y_VoteTicker(void)
 
 		if (server)
 		{
-			UINT8 numplayers = 0, numvotes = 0;
-
 			if (splitscreen)
 			{
-				numplayers = 1;
-				if (votes[0] != -1)
-					numvotes = 1;
+				if (votes[0] == -1)
+					return;
 			}
 			else
 			{
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
-					if (!playeringame[i] || players[i].spectator)
-						continue;
-					numplayers++;
-					if (votes[i] != -1)
-						numvotes++;
+					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+						return;
 				}
 			}
 
-			if (numvotes >= numplayers)
-				timer = 0;
-
-			if (timer == 0 && voteendtic == -1)
+			timer = 0;
+			if (voteendtic == -1)
 				D_PickVote();
 		}
 	}
@@ -2510,9 +2499,39 @@ static void Y_UnloadVoteData(void)
 //
 void Y_SetupVoteFinish(INT8 pick, INT8 level)
 {
+	if (pickedvote == -1)
+	{
+		INT32 i;
+		SINT8 votecompare = -1;
+		boolean allsame = true;
+
+		voteclient.rsynctime = 0;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if ((playeringame[consoleplayer] && !players[consoleplayer].spectator) && votes[i] == -1)
+				votes[i] = 3;
+
+			if (votes[i] == -1)
+				continue;
+
+			if (votecompare == -1)
+				votecompare = votes[i];
+			else if (votes[i] != votecompare)
+				allsame = false;
+		}
+
+		if (allsame)
+		{
+			voteendtic = votetic + (5*TICRATE);
+			S_StartSound(NULL, sfx_kc48);
+			S_ChangeMusicInternal("voteeb", false);
+		}
+		else
+			S_ChangeMusicInternal("voteea", true);
+	}
+
 	pickedvote = pick;
 	nextmap = votelevels[level];
 	timer = 0;
-	S_ChangeMusicInternal("voteea", true);
-	// TODO: Just end the vote here if there's only 1 player
 }

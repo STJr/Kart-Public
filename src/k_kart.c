@@ -5230,7 +5230,8 @@ static void K_drawKartMinimap(void)
 
 	splitflags &= ~V_HUDTRANSHALF;
 	splitflags |= V_HUDTRANS;
-	K_drawKartMinimapHead(stplyr, x, y, splitflags, AutomapPic);
+	if (stplyr->mo && !stplyr->spectator)
+		K_drawKartMinimapHead(stplyr, x, y, splitflags, AutomapPic);
 }
 
 static void K_drawBattleFullscreen(void)
