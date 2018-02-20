@@ -2509,7 +2509,7 @@ void Y_SetupVoteFinish(INT8 pick, INT8 level)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if ((playeringame[consoleplayer] && !players[consoleplayer].spectator) && votes[i] == -1)
+			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
 				votes[i] = 3;
 
 			if (votes[i] == -1)
