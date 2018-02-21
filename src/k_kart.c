@@ -1192,16 +1192,16 @@ static void K_PlayTauntSound(mobj_t *source)
 {
 	switch (P_RandomFixed() % 4)
 	{
-		case 1:
+		case 0:
 			S_StartSound(source, sfx_taunt1);
 			return;
-		case 2:
+		case 1:
 			S_StartSound(source, sfx_taunt2);
 			return;
-		case 3:
+		case 2:
 			S_StartSound(source, sfx_taunt3);
 			return;
-		case 4:
+		case 3:
 			S_StartSound(source, sfx_taunt4);
 			return;
 	}
