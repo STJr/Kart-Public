@@ -4204,13 +4204,13 @@ DoneSection2:
 						{
 							if (player->kartstuff[k_position] == 1)
 								S_ChangeMusicInternal("karwin", true);
-							else if (player->kartstuff[k_position] == 2 || player->kartstuff[k_position] == 3)
-								S_ChangeMusicInternal("karok", true);
-							else if (player->kartstuff[k_position] >= 4)
+							else if (K_IsPlayerLosing(player))
 								S_ChangeMusicInternal("karlos", true);
+							else
+								S_ChangeMusicInternal("karok", true);
 						}
 						else
-							S_ChangeMusicInternal("karwin", true);
+							S_ChangeMusicInternal("karok", true);
 						//
 						//HU_SetCEchoFlags(0);
 						//HU_SetCEchoDuration(5);

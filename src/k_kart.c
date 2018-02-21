@@ -332,368 +332,34 @@ void K_RegisterKartStuff(void)
 
 //}
 
+boolean K_IsPlayerLosing(player_t *player)
+{
+	INT32 winningpos = 1;
+	UINT8 i, pcount = 0;
+
+	if (player->kartstuff[k_position] == 1)
+		return false;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && !players[i].spectator)
+			pcount++;
+	}
+
+	if (pcount <= 1)
+		return false;
+
+	winningpos = pcount/2;
+	if (pcount % 2) // any remainder?
+		winningpos++;
+
+	return (player->kartstuff[k_position] > winningpos);
+}
+
 //{ SRB2kart Roulette Code - Position Based
 
 #define NUMKARTITEMS 	19
 #define NUMKARTODDS 	40
-
-// Ugly ol' 3D arrays
-/*
-static INT32 K_KartItemOddsPosition_Retro[MAXPLAYERS][NUMKARTITEMS][MAXPLAYERS] =
-{
-	// 1 Active Player
-	{  //1st //
-		{  0 }, // Magnet
-		{  0 }, // Boo
-		{ 40 }, // Mushroom
-		{  0 }, // Triple Mushroom
-		{  0 }, // Mega Mushroom
-		{  0 }, // Gold Mushroom
-		{  0 }, // Star
-		{  0 }, // Triple Banana
-		{  0 }, // Fake Item
-		{  0 }, // Banana
-		{  0 }, // Green Shell
-		{  0 }, // Red Shell
-		{  0 }, // Triple Green Shell
-		{  0 }, // Bob-omb
-		{  0 }, // Blue Shell
-		{  0 }, // Fire Flower
-		{  0 }, // Triple Red Shell
-		{  0 }  // Lightning
-	}, //1st //
-
-	// 2 Active Players
-	{  //1st 2nd //
-		{  1,  0 }, // Magnet
-		{  0,  0 }, // Boo
-		{  6, 11 }, // Mushroom
-		{  0,  3 }, // Triple Mushroom
-		{  0,  1 }, // Mega Mushroom
-		{  0,  1 }, // Gold Mushroom
-		{  0,  0 }, // Star
-		{  4,  0 }, // Triple Banana
-		{  7,  0 }, // Fake Item
-		{ 12,  0 }, // Banana
-		{  8,  6 }, // Green Shell
-		{  2, 12 }, // Red Shell
-		{  0,  4 }, // Triple Green Shell
-		{  0,  0 }, // Bob-omb
-		{  0,  2 }, // Blue Shell
-		{  0,  0 }, // Fire Flower
-		{  0,  0 }, // Triple Red Shell
-		{  0,  0 }  // Lightning
-	}, //1st 2nd //
-
-	// 3 Active Players
-	{  //1st 2nd 3rd //
-		{  1,  0,  0 }, // Magnet
-		{  0,  1,  0 }, // Boo
-		{  4, 10,  0 }, // Mushroom
-		{  0,  4, 11 }, // Triple Mushroom
-		{  0,  0,  2 }, // Mega Mushroom
-		{  0,  0, 16 }, // Gold Mushroom
-		{  0,  0,  6 }, // Star
-		{  4,  0,  0 }, // Triple Banana
-		{  7,  2,  0 }, // Fake Item
-		{ 13,  4,  0 }, // Banana
-		{  9,  4,  0 }, // Green Shell
-		{  2,  8,  0 }, // Red Shell
-		{  0,  3,  0 }, // Triple Green Shell
-		{  0,  2,  0 }, // Bob-omb
-		{  0,  2,  0 }, // Blue Shell
-		{  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  5 }  // Lightning
-	}, //1st 2nd 3rd //
-
-	// 4 Active Players
-	{  //1st 2nd 3rd 4th //
-		{  1,  1,  0,  0 }, // Magnet
-		{  0,  3,  0,  0 }, // Boo
-		{  2, 10,  0,  0 }, // Mushroom
-		{  0,  3,  9, 10 }, // Triple Mushroom
-		{  0,  0,  3,  0 }, // Mega Mushroom
-		{  0,  0,  9, 16 }, // Gold Mushroom
-		{  0,  0,  0,  8 }, // Star
-		{  4,  0,  0,  0 }, // Triple Banana
-		{  7,  2,  0,  0 }, // Fake Item
-		{ 14,  4,  0,  0 }, // Banana
-		{  9,  5,  0,  0 }, // Green Shell
-		{  3,  8,  6,  0 }, // Red Shell
-		{  0,  2,  4,  0 }, // Triple Green Shell
-		{  0,  2,  0,  0 }, // Bob-omb
-		{  0,  0,  3,  0 }, // Blue Shell
-		{  0,  0,  3,  0 }, // Fire Flower
-		{  0,  0,  3,  0 }, // Triple Red Shell
-		{  0,  0,  0,  6 }  // Lightning
-	}, //1st 2nd 3rd 4th //
-
-	// 5 Active Players
-	{  //1st 2nd 3rd 4th 5th //
-		{  1,  2,  0,  0,  0 }, // Magnet
-		{  0,  3,  0,  0,  0 }, // Boo
-		{  0,  9,  7,  0,  0 }, // Mushroom
-		{  0,  0,  8, 12, 12 }, // Triple Mushroom
-		{  0,  0,  2,  2,  0 }, // Mega Mushroom
-		{  0,  0,  0,  9, 20 }, // Gold Mushroom
-		{  0,  0,  0,  3,  8 }, // Star
-		{  4,  2,  0,  0,  0 }, // Triple Banana
-		{  7,  3,  0,  0,  0 }, // Fake Item
-		{ 15,  4,  0,  0,  0 }, // Banana
-		{ 10,  6,  3,  0,  0 }, // Green Shell
-		{  3,  9,  6,  0,  0 }, // Red Shell
-		{  0,  2,  4,  0,  0 }, // Triple Green Shell
-		{  0,  0,  3,  0,  0 }, // Bob-omb
-		{  0,  0,  4,  0,  0 }, // Blue Shell
-		{  0,  0,  3,  4,  0 }, // Fire Flower
-		{  0,  0,  0,  3,  0 }, // Triple Red Shell
-		{  0,  0,  0,  7,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th //
-
-	// 6 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th //
-		{  1,  2,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  2,  0,  0,  0 }, // Boo
-		{  0,  9,  8,  0,  0,  0 }, // Mushroom
-		{  0,  0,  5, 11, 14, 12 }, // Triple Mushroom
-		{  0,  0,  0,  2,  2,  0 }, // Mega Mushroom
-		{  0,  0,  0,  6, 11, 20 }, // Gold Mushroom
-		{  0,  0,  0,  0,  3,  8 }, // Star
-		{  4,  2,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  3,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  5,  3,  0,  0,  0 }, // Banana
-		{ 10,  6,  4,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  6,  0,  0 }, // Red Shell
-		{  0,  2,  4,  5,  0,  0 }, // Triple Green Shell
-		{  0,  0,  3,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  3,  3,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  4,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  3,  3,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  7,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th //
-
-	// 7 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th //
-		{  1,  2,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  3,  0,  0,  0,  0 }, // Boo
-		{  0,  8,  8,  8,  0,  0,  0 }, // Mushroom
-		{  0,  0,  3,  8, 14, 15, 12 }, // Triple Mushroom
-		{  0,  0,  0,  2,  4,  2,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  7, 12, 20 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  3,  8 }, // Star
-		{  4,  2,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  2,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  5,  4,  0,  0,  0,  0 }, // Banana
-		{ 10,  6,  4,  0,  0,  0,  0 }, // Green Shell
-		{  3, 10,  8,  7,  0,  0,  0 }, // Red Shell
-		{  0,  1,  4,  6,  4,  0,  0 }, // Triple Green Shell
-		{  0,  0,  3,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  1,  3,  3,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  3,  5,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  3,  3,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  8,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th //
-
-	// 8 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th //
-		{  1,  2,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  3,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  8,  8,  8,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  3,  7, 12, 15, 11,  7 }, // Triple Mushroom
-		{  0,  0,  0,  2,  4,  4,  2,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  4,  8, 15, 24 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  2,  5,  9 }, // Star
-		{  4,  2,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  2,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  5,  4,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  7,  5,  2,  0,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  7,  5,  0,  0,  0 }, // Red Shell
-		{  0,  1,  4,  6,  4,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  2,  3,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  1,  3,  3,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  2,  5,  3,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  3,  3,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  5,  7,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th //
-
-	// 9 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th //
-		{  1,  3,  2,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  2,  3,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  7,  9, 10,  8,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  3,  7, 10, 17, 16, 12,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  2,  4,  6,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  4,  8, 15, 29 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  3,  6, 11 }, // Star
-		{  4,  2,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  2,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  6,  5,  2,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  7,  5,  2,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  7,  6,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  6,  4,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  2,  3,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  2,  3,  3,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  3,  5,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  2,  3,  2,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  5,  7,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th //
-
-	// 10 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t //
-		{  1,  3,  2,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  3,  3,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  7,  8, 10,  8,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  2,  5,  9, 14, 16, 14,  9,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  2,  4,  6,  5,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  4,  5, 10, 16, 28 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  2,  4,  7, 12 }, // Star
-		{  4,  2,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  2,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  6,  5,  2,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  7,  6,  4,  2,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  7,  6,  3,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  6,  4,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  2,  3,  1,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  2,  3,  3,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  3,  6,  4,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  2,  3,  1,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  4,  6,  8,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t //
-
-	// 11 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t //
-		{  1,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  3,  3,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  6,  8,  9,  8,  6,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  2,  5,  9, 10, 15, 17, 14, 10,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  2,  3,  6,  6,  4,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  4,  5, 11, 15, 18 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  3,  5,  7, 12 }, // Star
-		{  4,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  7,  5,  2,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  8,  6,  4,  2,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  7,  6,  4,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  6,  6,  5,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  2,  3,  1,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  2,  3,  3,  2,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  3,  6,  5,  3,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  2,  3,  2,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  4,  6,  8,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t //
-
-	// 12 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t //
-		{  1,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  3,  3,  2,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  6,  8,  9, 10,  8,  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  1,  4,  9, 11, 15, 17, 15, 11,  6,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  2,  4,  6,  7,  5,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  3,  5,  9, 13, 18, 28 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  3,  5,  8, 12 }, // Star
-		{  4,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  7,  6,  3,  2,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  7,  6,  4,  2,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  7,  6,  5,  2,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  5,  7,  5,  3,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  2,  3,  1,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  2,  3,  3,  3,  2,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  2,  5,  4,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  2,  3,  3,  2,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  4,  6,  8,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t //
-
-	// 13 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t //
-		{  1,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  4,  4,  2,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  5,  8,  9, 10,  8,  5,  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  2,  6,  9, 11, 15, 16, 14, 11, 10,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  2,  5,  6,  8,  6,  3,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  4,  5,  8, 11, 20, 27 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  5, 10, 13 }, // Star
-		{  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  7,  6,  4,  2,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  8,  6,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3,  9,  8,  7,  6,  5,  2,  0,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  5,  7,  6,  5,  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  2,  3,  1,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  2,  3,  3,  3,  2,  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  3,  6,  5,  3,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  0,  2,  3,  3,  2,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  3,  7, 10,  0,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t //
-
-	// 14 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t //
-		{  1,  2,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  4,  4,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  5,  7,  9, 11,  8,  5,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  2,  6,  9, 10, 12, 17, 15, 14, 12,  8,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  2,  5,  6,  8,  7,  3,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  3,  5,  8, 11, 13, 22, 27 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  5, 10, 13 }, // Star
-		{  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  7,  6,  4,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  8,  6,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3, 10,  8,  7,  6,  5,  3,  2,  0,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  5,  7,  6,  5,  2,  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  2,  3,  1,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0,  2,  3,  4,  3,  1,  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  3,  5,  6,  4,  2,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  0,  2,  3,  3,  3,  2,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  3,  7, 10,  0,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t //
-
-	// 15 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t //
-		{  1,  2,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  4,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  4,  6,  8, 10,  9,  8,  4,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  2,  4,  8, 11, 13, 17, 18, 15, 13,  9,  8,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  0,  2,  5,  6,  8,  7,  3,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  3,  5,  8, 11, 13, 22, 27 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  5,  7, 10, 13 }, // Star
-		{  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  8,  6,  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  8,  6,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3, 10,  9,  8,  7,  6,  4,  3,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  5,  7,  6,  5,  3,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  2,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0,  2,  3,  4,  3,  2,  0,  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  0,  3,  5,  6,  2,  0,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  0,  0,  2,  3,  3,  2,  0,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  5,  8, 11,  0,  0 }  // Lightning
-	}, //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t //
-
-	// 16 Active Players
-	{  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t 16t //
-		{  1,  2,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Magnet
-		{  0,  2,  4,  4,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Boo
-		{  0,  4,  6,  8, 10,  9,  7,  4,  0,  0,  0,  0,  0,  0,  0,  0 }, // Mushroom
-		{  0,  0,  0,  2,  4,  7, 10, 13, 16, 18, 15, 14, 12,  8,  7,  0 }, // Triple Mushroom
-		{  0,  0,  0,  0,  0,  0,  2,  5,  6,  8,  8,  5,  2,  0,  0,  0 }, // Mega Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  2,  4,  8, 11, 13, 14, 23, 27 }, // Gold Mushroom
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  5,  7, 10, 13 }, // Star
-		{  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Triple Banana
-		{  7,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Fake Item
-		{ 15,  8,  6,  4,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Banana
-		{ 10,  8,  6,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Green Shell
-		{  3, 10,  9,  8,  7,  6,  5,  3,  2,  0,  0,  0,  0,  0,  0,  0 }, // Red Shell
-		{  0,  0,  2,  4,  5,  8,  7,  5,  3,  2,  0,  0,  0,  0,  0,  0 }, // Triple Green Shell
-		{  0,  0,  0,  2,  3,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0 }, // Bob-omb
-		{  0,  0,  0,  0,  2,  3,  4,  3,  2,  1,  0,  0,  0,  0,  0,  0 }, // Blue Shell
-		{  0,  0,  0,  0,  0,  0,  3,  5,  6,  4,  2,  0,  0,  0,  0,  0 }, // Fire Flower
-		{  0,  0,  0,  0,  0,  0,  0,  2,  3,  3,  3,  2,  0,  0,  0,  0 }, // Triple Red Shell
-		{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  5,  8, 11,  0,  0 }  // Lightning
-	}  //1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10t 11t 12t 13t 14t 15t 16t //
-};
-*/
 
 // Less ugly 2D arrays
 static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
@@ -842,133 +508,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	\param	player	player object passed from P_KartPlayerThink
 
 	\return	void
-/
-static void K_KartItemRouletteByPosition(player_t *player, ticcmd_t *cmd)
-{
-	INT32 i;
-	INT32 pingame = 0, pexiting = 0;
-	INT32 roulettestop;
-	INT32 prandom;
-	INT32 ppos = player->kartstuff[k_position] - 1;
-	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
-	INT32 chance = 0, numchoices = 0;
-
-
-	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
-	if (player->kartstuff[k_itemroulette])
-		player->kartstuff[k_itemroulette]++;
-	else
-		return;
-
-	// This makes the roulette produce the random noises.
-	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
-
-	// Initializes existing spawnchance values
-	for (i = 0; i < (NUMKARTITEMS * NUMKARTODDS); i++)
-		spawnchance[i] = 0;
-
-	// Gotta check how many players are active at this moment.
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i] && !players[i].spectator)
-			pingame++;
-		if (players[i].exiting)
-			pexiting++;
-	}
-
-	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
-
-	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
-	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
-	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)
-		|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
-		return;
-
-	if (cmd->buttons & BT_ATTACK)
-		player->pflags |= PF_ATTACKDOWN;
-
-	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
-
-	// Tiny catcher in case player position is unset.
-	if (ppos < 0) ppos = 0;
-
-#define SETITEMRESULT(pos, numplayers, itemnum) \
-	for (chance = 0; chance < K_KartItemOddsPosition_Retro[numplayers-1][itemnum-1][pos]; chance++) spawnchance[numchoices++] = itemnum
-
-	// Check the game type to differentiate odds.
-	//if (gametype == GT_RETRO)
-	//{
-		if (cv_magnet.value) 							SETITEMRESULT(ppos, pingame, 1);	// Magnet
-		if (cv_boo.value)								SETITEMRESULT(ppos, pingame, 2);	// Boo
-		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 3);	// Mushroom
-		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 4);	// Triple Mushroom
-		if (cv_megashroom.value)						SETITEMRESULT(ppos, pingame, 5);	// Mega Mushroom
-		if (cv_goldshroom.value)						SETITEMRESULT(ppos, pingame, 6);	// Gold Mushroom
-		if (cv_star.value)								SETITEMRESULT(ppos, pingame, 7);	// Star
-		if (cv_triplebanana.value)						SETITEMRESULT(ppos, pingame, 8);	// Triple Banana
-		if (cv_fakeitem.value)							SETITEMRESULT(ppos, pingame, 9);	// Fake Item
-		if (cv_banana.value)							SETITEMRESULT(ppos, pingame, 10);	// Banana
-		if (cv_greenshell.value)						SETITEMRESULT(ppos, pingame, 11);	// Green Shell
-		if (cv_redshell.value)							SETITEMRESULT(ppos, pingame, 12);	// Red Shell
-		if (cv_triplegreenshell.value)					SETITEMRESULT(ppos, pingame, 13);	// Triple Green Shell
-		if (cv_bobomb.value)							SETITEMRESULT(ppos, pingame, 14);	// Bob-omb
-		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(ppos, pingame, 15);	// Blue Shell
-		//if (cv_fireflower.value)						SETITEMRESULT(ppos, pingame, 16);	// Fire Flower
-		if (cv_tripleredshell.value)					SETITEMRESULT(ppos, pingame, 17);	// Triple Red Shell
-		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(ppos, pingame, 18);	// Lightning
-
-		prandom = P_RandomKey(numchoices);
-
-		// Award the player whatever power is rolled
-		if (numchoices > 0)
-			K_KartGetItemResult(player, spawnchance[prandom], true);
-		else
-			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
-	//}
-	//else if (gametype == GT_NEO)
-	{
-		if (cv_magnet.value) 							SETITEMRESULT(ppos, pingame, 1)	// Electro-Shield
-		if (cv_boo.value)								SETITEMRESULT(ppos, pingame, 2)	// S3K Ghost
-		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 3)	// Speed Shoe
-		if (cv_mushroom.value)							SETITEMRESULT(ppos, pingame, 4)	// Triple Speed Shoe
-		if (cv_megashroom.value)						SETITEMRESULT(ppos, pingame, 5)	// Size-Up Monitor
-		if (cv_goldshroom.value)						SETITEMRESULT(ppos, pingame, 6)	// Rocket Shoe
-		if (cv_star.value)								SETITEMRESULT(ppos, pingame, 7)	// Invincibility
-		if (cv_triplebanana.value)						SETITEMRESULT(ppos, pingame, 8)	// Triple Banana
-		if (cv_fakeitem.value)							SETITEMRESULT(ppos, pingame, 9)	// Eggman Monitor
-		if (cv_banana.value)							SETITEMRESULT(ppos, pingame, 10)	// Banana
-		if (cv_greenshell.value)						SETITEMRESULT(ppos, pingame, 11)	// 1x Orbinaut
-		if (cv_redshell.value)							SETITEMRESULT(ppos, pingame, 12)	// 1x Jaws
-		if (cv_laserwisp.value)							SETITEMRESULT(ppos, pingame, 13)	// Laser Wisp
-		if (cv_triplegreenshell.value)					SETITEMRESULT(ppos, pingame, 14)	// 3x Orbinaut
-		if (cv_bobomb.value)							SETITEMRESULT(ppos, pingame, 15)	// Specialstage Mines
-		if (cv_blueshell.value && pexiting == 0)		SETITEMRESULT(ppos, pingame, 16)	// Deton
-		if (cv_jaws.value)								SETITEMRESULT(ppos, pingame, 17)	// 2x Jaws
-		if (cv_lightning.value && pingame > pexiting)	SETITEMRESULT(ppos, pingame, 18)	// Size-Down Monitor
-
-		prandom = P_RandomKey(numchoices);
-
-		// Award the player whatever power is rolled
-		if (numchoices > 0)
-			K_KartGetItemResult(player, spawnchance[prandom], false)
-		else
-			CONS_Printf("ERROR: P_KartItemRoulette - There were no choices given by the roulette (ppos = %d).\n", ppos);
-	}
-	else
-		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
-	//
-
-#undef SETITEMRESULT
-
-	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
-
-	if (P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitmF);
-}*/
-
-//}
+*/
 
 static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
 {
@@ -4061,7 +3601,7 @@ void K_LoadKartHUDGraphics(void)
 	{
 		for (j = 0; j < NUMPOSFRAMES; j++)
 		{
-			if (i > 4 && j < 4 && j != 0) continue;	// We don't need blue numbers for ranks past 4th
+			//if (i > 4 && j < 4 && j != 0) continue;	// We don't need blue numbers for ranks past 4th
 			sprintf(buffer, "K_POSN%d%d", i, j);
 			kp_positionnum[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 		}
@@ -4717,19 +4257,19 @@ static void K_DrawKartPositionNum(INT32 num)
 			switch (leveltime % 9)
 			{
 				case 1: case 2: case 3:
-					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= splitscreen+1))
+					if (K_IsPlayerLosing(stplyr))
 						localpatch = kp_positionnum[num % 10][4];
 					else
 						localpatch = kp_positionnum[num % 10][1];
 					break;
 				case 4: case 5: case 6:
-					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= splitscreen+1))
+					if (K_IsPlayerLosing(stplyr))
 						localpatch = kp_positionnum[num % 10][5];
 					else
 						localpatch = kp_positionnum[num % 10][2];
 					break;
 				case 7: case 8: case 9:
-					if (stplyr->kartstuff[k_position] >= 4 || (splitscreen && stplyr->kartstuff[k_position] >= splitscreen+1))
+					if (K_IsPlayerLosing(stplyr))
 						localpatch = kp_positionnum[num % 10][6];
 					else
 						localpatch = kp_positionnum[num % 10][3];

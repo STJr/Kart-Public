@@ -17,6 +17,7 @@ UINT8 K_GetKartColorByName(const char *name);
 
 void K_RegisterKartStuff(void);
 
+boolean K_IsPlayerLosing(player_t *player);
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid);
 void K_LakituChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
