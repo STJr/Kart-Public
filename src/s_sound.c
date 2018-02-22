@@ -391,7 +391,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 {
 	INT32 sep, pitch, priority, cnum;
 	sfxinfo_t *sfx;
-
+	const boolean reverse = (stereoreverse.value ^ mirrormode);
 	const mobj_t *origin = (const mobj_t *)origin_p;
 
 	listener_t listener  = {0,0,0,0};
@@ -572,14 +572,13 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		if (sfx->usefulness++ < 0)
 			sfx->usefulness = -1;
 
-#ifdef SURROUND
 		// Avoid channel reverse if surround
-		if (stereoreverse.value && sep != SURROUND_SEP)
-			sep = (~sep) & 255;
-#else
-		if (stereoreverse.value)
-			sep = (~sep) & 255;
+		if (reverse
+#ifdef SURROUND
+			&& sep != SURROUND_SEP
 #endif
+		)
+			sep = (~sep) & 255;
 
 		// Assigns the handle to one of the channels in the
 		// mix/output buffer.
@@ -627,14 +626,13 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		if (sfx->usefulness++ < 0)
 			sfx->usefulness = -1;
 
-#ifdef SURROUND
 		// Avoid channel reverse if surround
-		if (stereoreverse.value && sep != SURROUND_SEP)
-			sep = (~sep) & 255;
-#else
-		if (stereoreverse.value)
-			sep = (~sep) & 255;
+		if (reverse
+#ifdef SURROUND
+			&& sep != SURROUND_SEP
 #endif
+		)
+			sep = (~sep) & 255;
 
 		// Assigns the handle to one of the channels in the
 		// mix/output buffer.
@@ -682,14 +680,13 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		if (sfx->usefulness++ < 0)
 			sfx->usefulness = -1;
 
-#ifdef SURROUND
 		// Avoid channel reverse if surround
-		if (stereoreverse.value && sep != SURROUND_SEP)
-			sep = (~sep) & 255;
-#else
-		if (stereoreverse.value)
-			sep = (~sep) & 255;
+		if (reverse
+#ifdef SURROUND
+			&& sep != SURROUND_SEP
 #endif
+		)
+			sep = (~sep) & 255;
 
 		// Assigns the handle to one of the channels in the
 		// mix/output buffer.
@@ -732,14 +729,13 @@ dontplay:
 	if (sfx->usefulness++ < 0)
 		sfx->usefulness = -1;
 
-#ifdef SURROUND
 	// Avoid channel reverse if surround
-	if (stereoreverse.value && sep != SURROUND_SEP)
-		sep = (~sep) & 255;
-#else
-	if (stereoreverse.value)
-		sep = (~sep) & 255;
+	if (reverse
+#ifdef SURROUND
+		&& sep != SURROUND_SEP
 #endif
+	)
+		sep = (~sep) & 255;
 
 	// Assigns the handle to one of the channels in the
 	// mix/output buffer.
@@ -1212,6 +1208,8 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 
 	listener_t listensource;
 
+	const boolean reverse = (stereoreverse.value ^ mirrormode);
+
 	(void)pitch;
 	if (!listener)
 		return false;
@@ -1308,6 +1306,9 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 		angle = angle - listensource.angle;
 	else
 		angle = angle + InvAngle(listensource.angle);
+
+	if (reverse)
+		angle = InvAngle(angle);
 
 #ifdef SURROUND
 	// Produce a surround sound for angle from 105 till 255
