@@ -1956,11 +1956,9 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 
 void D_SetupVote(void)
 {
-	XBOXSTATIC char buf[8];
-	char *p;
+	char buf[8];
+	char *p = buf;
 	INT32 i;
-
-	p = buf;
 
 	for (i = 0; i < 4; i++)
 	{
@@ -1975,16 +1973,19 @@ void D_SetupVote(void)
 
 void D_ModifyClientVote(SINT8 voted)
 {
-	XBOXSTATIC UINT8 buf[1];
-	buf[0] = (UINT8)(voted+1);
+	char buf[1];
+	char *p = buf;
+
+	WRITESINT8(p, voted);
 	SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
 }
 
 void D_PickVote(void)
 {
-	XBOXSTATIC UINT8 buf[2];
-	UINT8 temppicks[MAXPLAYERS];
-	UINT8 templevels[MAXPLAYERS];
+	char buf[2];
+	char* p = buf;
+	SINT8 temppicks[MAXPLAYERS];
+	SINT8 templevels[MAXPLAYERS];
 	UINT8 numvotes = 0, key = 0;
 	INT32 i;
 
@@ -1994,16 +1995,16 @@ void D_PickVote(void)
 			continue;
 		if (votes[i] != -1)
 		{
-			temppicks[numvotes] = (UINT8)i;
-			templevels[numvotes] = (UINT8)votes[i];
+			temppicks[numvotes] = i;
+			templevels[numvotes] = votes[i];
 			numvotes++;
 		}
 	}
 
 	key = M_RandomKey(numvotes);
 
-	buf[0] = temppicks[key];
-	buf[1] = templevels[key];
+	WRITESINT8(p, temppicks[key]);
+	WRITESINT8(p, templevels[key]);
 
 	SendNetXCmd(XD_PICKVOTE, &buf, 2);
 }
@@ -4600,7 +4601,7 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum)
 {
 	SINT8 voted = READSINT8(*cp);
-	votes[playernum] = (SINT8)(voted-1);
+	votes[playernum] = voted;
 }
 
 static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
@@ -4622,7 +4623,7 @@ static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	Y_SetupVoteFinish((SINT8)pick, (SINT8)level);
+	Y_SetupVoteFinish(pick, level);
 }
 
 /** Prints the number of the displayplayer.
