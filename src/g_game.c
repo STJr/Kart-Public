@@ -249,8 +249,8 @@ boolean comeback; // Battle Mode's karma comeback is on/off
 
 // Voting system
 INT16 votelevels[4]; // Levels that were rolled by the host
-INT8 votes[MAXPLAYERS]; // Each player's vote
-INT8 pickedvote; // What vote the host rolls
+SINT8 votes[MAXPLAYERS]; // Each player's vote
+SINT8 pickedvote; // What vote the host rolls
 
 // Client-sided variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
@@ -1407,7 +1407,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// drift button
 	if (InputDown(gc_drift, ssplayer))
 		cmd->buttons |= BT_DRIFT;
-	
+
 	// Lua scriptable buttons
 	if (InputDown(gc_custom1, ssplayer))
 		cmd->buttons |= BT_CUSTOM1;
@@ -3142,7 +3142,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 				}
 			}
 		}
-		
+
 		if (isokmap)
 			okmaps[numokmaps++] = ix;
 	}

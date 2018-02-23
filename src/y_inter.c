@@ -177,7 +177,7 @@ typedef struct
 
 typedef struct
 {
-	INT8 selection;
+	SINT8 selection;
 	UINT8 delay;
 	UINT8 ranim;
 	UINT8 rtics;
@@ -1351,7 +1351,7 @@ void Y_StartIntermission(void)
 			{
 				// setup time data
 				data.coop.tics = players[consoleplayer].realtime;
-				
+
 				// Update visitation flags
 				mapvisited[gamemap-1] |= MV_BEATEN;
 				if (ALL7EMERALDS(emeralds))
@@ -1364,7 +1364,7 @@ void Y_StartIntermission(void)
 				if (modeattacking == ATTACKING_RECORD)
 					Y_UpdateRecordReplays();
 			}
-			
+
 			// Calculate who won
 			Y_CalculateTournamentPoints();
 
@@ -2497,7 +2497,7 @@ static void Y_UnloadVoteData(void)
 //
 // Y_SetupVoteFinish
 //
-void Y_SetupVoteFinish(INT8 pick, INT8 level)
+void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 {
 	if (pickedvote == -1)
 	{
