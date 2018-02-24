@@ -8270,7 +8270,10 @@ void A_BobombExplode(mobj_t *actor)
 	for (d = 0; d < 16; d++)
 		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
 
-	K_SpawnBobombExplosion(actor);
+	if (actor->target->player)
+		K_SpawnBobombExplosion(actor, actor->target->player->skincolor);
+	else
+		K_SpawnBobombExplosion(actor, SKINCOLOR_RED);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
 
