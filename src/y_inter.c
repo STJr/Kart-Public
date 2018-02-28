@@ -2188,7 +2188,7 @@ void Y_VoteDrawer(void)
 	}
 
 	x = 20;
-	y = 15;
+	y = 10;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2226,10 +2226,10 @@ void Y_VoteDrawer(void)
 
 		y += 30;
 
-		if (y > BASEVIDHEIGHT-38)
+		if (y > BASEVIDHEIGHT-40)
 		{
-			x += 100;
-			y = 15;
+			x += 60;
+			y = 10;
 		}
 	}
 
