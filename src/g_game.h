@@ -112,7 +112,7 @@ char *G_BuildMapTitle(INT32 mapnum);
 // XMOD spawning
 mapthing_t *G_FindCTFStart(INT32 playernum);
 mapthing_t *G_FindMatchStart(INT32 playernum);
-mapthing_t *G_FindCoopStart(INT32 playernum);
+mapthing_t *G_FindRaceStart(INT32 playernum);
 void G_SpawnPlayer(INT32 playernum, boolean starpost);
 
 // Can be called by the startup code or M_Responder.

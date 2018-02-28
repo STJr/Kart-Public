@@ -2188,7 +2188,7 @@ void Y_VoteDrawer(void)
 	}
 
 	x = 20;
-	y = 15;
+	y = 10;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2226,10 +2226,10 @@ void Y_VoteDrawer(void)
 
 		y += 30;
 
-		if (y > BASEVIDHEIGHT-38)
+		if (y > BASEVIDHEIGHT-40)
 		{
-			x += 100;
-			y = 15;
+			x += 60;
+			y = 10;
 		}
 	}
 
@@ -2368,17 +2368,28 @@ void Y_VoteTicker(void)
 
 		if (server)
 		{
-			if (splitscreen)
-			{
-				if (votes[0] == -1)
-					return;
-			}
-			else
+			if (timer == 0)
 			{
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
-					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
+						votes[i] = 3;
+				}
+			}
+			else
+			{
+				if (splitscreen)
+				{
+					if (votes[0] == -1)
 						return;
+				}
+				else
+				{
+					for (i = 0; i < MAXPLAYERS; i++)
+					{
+						if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+							return;
+					}
 				}
 			}
 
@@ -2509,7 +2520,7 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
 				votes[i] = 3;
 
 			if (votes[i] == -1)

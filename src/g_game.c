@@ -2611,7 +2611,7 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 	{
 		if (!(spawnpoint = G_FindCTFStart(playernum)) // find a CTF start
 		&& !(spawnpoint = G_FindMatchStart(playernum))) // find a DM start
-			spawnpoint = G_FindCoopStart(playernum); // fallback
+			spawnpoint = G_FindRaceStart(playernum); // fallback
 	}
 
 	// -- DM/Tag/CTF-spectator/etc --
@@ -2621,14 +2621,14 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 	{
 		if (!(spawnpoint = G_FindMatchStart(playernum)) // find a DM start
 		&& !(spawnpoint = G_FindCTFStart(playernum))) // find a CTF start
-			spawnpoint = G_FindCoopStart(playernum); // fallback
+			spawnpoint = G_FindRaceStart(playernum); // fallback
 	}
 
 	// -- Other game modes --
 	// Order: Coop->DM->CTF
 	else
 	{
-		if (!(spawnpoint = G_FindCoopStart(playernum)) // find a Co-op start
+		if (!(spawnpoint = G_FindRaceStart(playernum)) // find a Race start
 		&& !(spawnpoint = G_FindMatchStart(playernum))) // find a DM start
 			spawnpoint = G_FindCTFStart(playernum); // fallback
 	}
@@ -2760,24 +2760,65 @@ mapthing_t *G_FindMatchStart(INT32 playernum)
 	return NULL;
 }
 
-mapthing_t *G_FindCoopStart(INT32 playernum)
+mapthing_t *G_FindRaceStart(INT32 playernum)
 {
 	if (numcoopstarts)
 	{
-		//if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
+		INT32 i, pos = 0;
+
+		// SRB2Kart: figure out player spawn pos from points
+		if (!playeringame[playernum] || players[playernum].spectator)
+			return playerstarts[0]; // go to first spot if you're a spectator
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (i == playernum)
+				continue;
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			if (players[i].score > players[playernum].score)
+				pos++;
+			if (i != 0)
+			{
+				INT32 j;
+				for (j = 0; j < i; j++) // I don't like loops in loops, but is needed to resolve ties :<
+				{
+					if (i == j)
+						continue;
+					if (!playeringame[j] || players[j].spectator)
+						continue;
+					if (players[i].score == players[j].score)
+						pos++;
+				}
+			}
+		}
+
+		if (G_CheckSpot(playernum, playerstarts[pos % numcoopstarts]))
+			return playerstarts[pos % numcoopstarts];
+
+		// Your spot isn't available? Go for the old behavior
+		// if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
 		if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
 			return playerstarts[playernum % numcoopstarts];
 
-		//Don't bother checking to see if the player 1 start is open.
-		//Just spawn there.
-		return playerstarts[0];
+		// SRB2Kart: We have solid players, so this behavior is less ideal.
+		// Don't bother checking to see if the player 1 start is open.
+		// Just spawn there.
+		//return playerstarts[0];
+
+		if (playernum == consoleplayer
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Race starts!\n"));
+		return NULL;
 	}
 
 	if (playernum == consoleplayer
 		|| (splitscreen && playernum == secondarydisplayplayer)
 		|| (splitscreen > 1 && playernum == thirddisplayplayer)
 		|| (splitscreen > 2 && playernum == fourthdisplayplayer))
-		CONS_Alert(CONS_WARNING, M_GetText("No Co-op starts in this map!\n"));
+		CONS_Alert(CONS_WARNING, M_GetText("No Race starts in this map!\n"));
 	return NULL;
 }
 

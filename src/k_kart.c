@@ -1190,21 +1190,7 @@ void K_KartPlayerAfterThink(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
-	switch (P_RandomFixed() % 4)
-	{
-		case 0:
-			S_StartSound(source, sfx_taunt1);
-			return;
-		case 1:
-			S_StartSound(source, sfx_taunt2);
-			return;
-		case 2:
-			S_StartSound(source, sfx_taunt3);
-			return;
-		case 3:
-			S_StartSound(source, sfx_taunt4);
-			return;
-	}
+	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
 }
 
 void K_MomentumToFacing(player_t *player)
