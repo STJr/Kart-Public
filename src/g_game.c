@@ -2766,27 +2766,46 @@ mapthing_t *G_FindRaceStart(INT32 playernum)
 	{
 		INT32 i, pos = 0;
 
-		//if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
-		/*if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
-			return playerstarts[playernum % numcoopstarts];*/
-
 		// SRB2Kart: figure out player spawn pos from points
+		if (!playeringame[playernum] || players[playernum].spectator)
+			return playerstarts[0]; // go to first spot if you're a spectator
+
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (i == playernum)
 				continue;
-			if (players[i].score > players[playernum]->score)
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			if (players[i].score > players[playernum].score)
 				pos++;
+			if (i != 0)
+			{
+				INT32 j;
+				for (j = 0; j < i; j++) // I don't like loops in loops, but is needed to resolve ties :<
+				{
+					if (i == j)
+						continue;
+					if (!playeringame[j] || players[j].spectator)
+						continue;
+					if (players[i].score == players[j].score)
+						pos++;
+				}
+			}
 		}
 
 		if (G_CheckSpot(playernum, playerstarts[pos % numcoopstarts]))
 			return playerstarts[pos % numcoopstarts];
 
-		//Don't bother checking to see if the player 1 start is open.
-		//Just spawn there.
+		// Your spot isn't available? Go for the old behavior
+		// if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
+		if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
+			return playerstarts[playernum % numcoopstarts];
+
+		// SRB2Kart: We have solid players, so this behavior is less ideal.
+		// Don't bother checking to see if the player 1 start is open.
+		// Just spawn there.
 		//return playerstarts[0];
 
-		// SRB2Kart: We have solid players, so that is less ideal.
 		if (playernum == consoleplayer
 			|| (splitscreen && playernum == secondarydisplayplayer)
 			|| (splitscreen > 1 && playernum == thirddisplayplayer)
