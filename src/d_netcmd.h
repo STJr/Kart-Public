@@ -252,7 +252,7 @@ void Command_Retry_f(void);
 void D_GameTypeChanged(INT32 lastgametype); // not a real _OnChange function anymore
 void D_MapChange(INT32 pmapnum, INT32 pgametype, boolean pultmode, boolean presetplayers, INT32 pdelay, boolean pskipprecutscene, boolean pfromlevelselect);
 void D_SetupVote(void);
-void D_ModifyClientVote(INT8 voted);
+void D_ModifyClientVote(SINT8 voted);
 void D_PickVote(void);
 void ObjectPlace_OnChange(void);
 boolean IsPlayerAdmin(INT32 playernum);

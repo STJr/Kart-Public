@@ -1712,7 +1712,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 }
 
 // Spawns the purely visual explosion
-void K_SpawnBobombExplosion(mobj_t *source)
+void K_SpawnBobombExplosion(mobj_t *source, UINT8 color)
 {
 	INT32 i, radius, height;
 	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
@@ -1724,6 +1724,9 @@ void K_SpawnBobombExplosion(mobj_t *source)
 	radius = source->radius>>FRACBITS;
 	height = source->height>>FRACBITS;
 
+	if (!color)
+		color = SKINCOLOR_RED;
+
 	for (i = 0; i < 32; i++)
 	{
 		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
@@ -1734,15 +1737,15 @@ void K_SpawnBobombExplosion(mobj_t *source)
 
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
-			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOSSEXPLODE);
+			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
 		truc->scale = source->scale*2;
 		truc->destscale = source->scale*6;
-		P_SetMobjState(truc, S_SLOWBOOM1);
 		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->color = color;
 	}
 
 	for (i = 0; i < 16; i++)
@@ -1769,6 +1772,7 @@ void K_SpawnBobombExplosion(mobj_t *source)
 		if (P_RandomChance(FRACUNIT/2))
 			truc->momz = -truc->momz;
 		truc->tics = TICRATE*2;
+		truc->color = color;
 	}
 }
 

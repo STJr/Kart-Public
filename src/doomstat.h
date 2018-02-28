@@ -254,7 +254,7 @@ typedef struct
 
 	// SRB2kart
 	//boolean automap;    ///< Displays a level's white map outline in modified games
-	fixed_t mobj_scale; ///< Replacement for TOL_ERZ3 
+	fixed_t mobj_scale; ///< Replacement for TOL_ERZ3
 
 	// Lua stuff.
 	// (This is not ifdeffed so the map header structure can stay identical, just in case.)
@@ -450,8 +450,8 @@ extern boolean comebackshowninfo;
 extern tic_t curlap, bestlap;
 
 extern INT16 votelevels[4];
-extern INT8 votes[MAXPLAYERS];
-extern INT8 pickedvote;
+extern SINT8 votes[MAXPLAYERS];
+extern SINT8 pickedvote;
 
 extern tic_t hidetime;
 
