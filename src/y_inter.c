@@ -2372,7 +2372,7 @@ void Y_VoteTicker(void)
 			{
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
-					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
 						votes[i] = 3;
 				}
 			}
@@ -2520,7 +2520,7 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
 				votes[i] = 3;
 
 			if (votes[i] == -1)
