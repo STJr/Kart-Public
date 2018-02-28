@@ -2368,17 +2368,28 @@ void Y_VoteTicker(void)
 
 		if (server)
 		{
-			if (splitscreen)
-			{
-				if (votes[0] == -1)
-					return;
-			}
-			else
+			if (timer == 0)
 			{
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
 					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+						votes[i] = 3;
+				}
+			}
+			else
+			{
+				if (splitscreen)
+				{
+					if (votes[0] == -1)
 						return;
+				}
+				else
+				{
+					for (i = 0; i < MAXPLAYERS; i++)
+					{
+						if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
+							return;
+					}
 				}
 			}
 
