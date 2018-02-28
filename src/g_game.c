@@ -2611,7 +2611,7 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 	{
 		if (!(spawnpoint = G_FindCTFStart(playernum)) // find a CTF start
 		&& !(spawnpoint = G_FindMatchStart(playernum))) // find a DM start
-			spawnpoint = G_FindCoopStart(playernum); // fallback
+			spawnpoint = G_FindRaceStart(playernum); // fallback
 	}
 
 	// -- DM/Tag/CTF-spectator/etc --
@@ -2621,14 +2621,14 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 	{
 		if (!(spawnpoint = G_FindMatchStart(playernum)) // find a DM start
 		&& !(spawnpoint = G_FindCTFStart(playernum))) // find a CTF start
-			spawnpoint = G_FindCoopStart(playernum); // fallback
+			spawnpoint = G_FindRaceStart(playernum); // fallback
 	}
 
 	// -- Other game modes --
 	// Order: Coop->DM->CTF
 	else
 	{
-		if (!(spawnpoint = G_FindCoopStart(playernum)) // find a Co-op start
+		if (!(spawnpoint = G_FindRaceStart(playernum)) // find a Race start
 		&& !(spawnpoint = G_FindMatchStart(playernum))) // find a DM start
 			spawnpoint = G_FindCTFStart(playernum); // fallback
 	}
@@ -2760,24 +2760,46 @@ mapthing_t *G_FindMatchStart(INT32 playernum)
 	return NULL;
 }
 
-mapthing_t *G_FindCoopStart(INT32 playernum)
+mapthing_t *G_FindRaceStart(INT32 playernum)
 {
 	if (numcoopstarts)
 	{
+		INT32 i, pos = 0;
+
 		//if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
-		if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
-			return playerstarts[playernum % numcoopstarts];
+		/*if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
+			return playerstarts[playernum % numcoopstarts];*/
+
+		// SRB2Kart: figure out player spawn pos from points
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (i == playernum)
+				continue;
+			if (players[i].score > players[playernum]->score)
+				pos++;
+		}
+
+		if (G_CheckSpot(playernum, playerstarts[pos % numcoopstarts]))
+			return playerstarts[pos % numcoopstarts];
 
 		//Don't bother checking to see if the player 1 start is open.
 		//Just spawn there.
-		return playerstarts[0];
+		//return playerstarts[0];
+
+		// SRB2Kart: We have solid players, so that is less ideal.
+		if (playernum == consoleplayer
+			|| (splitscreen && playernum == secondarydisplayplayer)
+			|| (splitscreen > 1 && playernum == thirddisplayplayer)
+			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Race starts!\n"));
+		return NULL;
 	}
 
 	if (playernum == consoleplayer
 		|| (splitscreen && playernum == secondarydisplayplayer)
 		|| (splitscreen > 1 && playernum == thirddisplayplayer)
 		|| (splitscreen > 2 && playernum == fourthdisplayplayer))
-		CONS_Alert(CONS_WARNING, M_GetText("No Co-op starts in this map!\n"));
+		CONS_Alert(CONS_WARNING, M_GetText("No Race starts in this map!\n"));
 	return NULL;
 }
 
