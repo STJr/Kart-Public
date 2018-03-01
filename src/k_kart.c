@@ -587,7 +587,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / FRACUNIT 
+													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale 
 													* (pingame - players[i].kartstuff[k_position])
 													/ ((pingame - 1) * (pingame + 1) / 3);
 	}
@@ -1997,9 +1997,9 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				INT32 HEIGHT;
 
 				if (dir == 2)
-					HEIGHT = 40*FRACUNIT + player->mo->momz;
+					HEIGHT = 40*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
 				else
-					HEIGHT = 30*FRACUNIT + player->mo->momz;
+					HEIGHT = 30*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
 
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
