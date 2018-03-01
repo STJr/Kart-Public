@@ -4830,6 +4830,8 @@ static void K_drawBattleFullscreen(void)
 				|| stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
 				ty += (BASEVIDHEIGHT/2);
 		}
+		else
+			V_DrawFadeScreen();
 
 		if (!comebackshowninfo)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battleinfo, NULL);
