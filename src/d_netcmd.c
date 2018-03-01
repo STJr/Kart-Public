@@ -2003,8 +2003,16 @@ void D_PickVote(void)
 
 	key = M_RandomKey(numvotes);
 
-	WRITESINT8(p, temppicks[key]);
-	WRITESINT8(p, templevels[key]);
+	if (numvotes > 0)
+	{
+		WRITESINT8(p, temppicks[key]);
+		WRITESINT8(p, templevels[key]);
+	}
+	else
+	{
+		WRITESINT8(p, -1);
+		WRITESINT8(p, 0);
+	}
 
 	SendNetXCmd(XD_PICKVOTE, &buf, 2);
 }
