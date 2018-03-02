@@ -2764,7 +2764,8 @@ mapthing_t *G_FindRaceStart(INT32 playernum)
 {
 	if (numcoopstarts)
 	{
-		INT32 i, pos = 0;
+		UINT8 i;
+		UINT8 pos = 0;
 
 		// SRB2Kart: figure out player spawn pos from points
 		if (!playeringame[playernum] || players[playernum].spectator)
@@ -2772,34 +2773,47 @@ mapthing_t *G_FindRaceStart(INT32 playernum)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (i == playernum)
-				continue;
 			if (!playeringame[i] || players[i].spectator)
 				continue;
-			if (players[i].score > players[playernum].score)
-				pos++;
-			if (i != 0)
+			if (i == playernum)
+				continue;
+
+			if (players[i].score < players[playernum].score)
 			{
-				INT32 j;
-				for (j = 0; j < i; j++) // I don't like loops in loops, but is needed to resolve ties :<
+				UINT8 j;
+				UINT8 num = 0;
+
+				for (j = 0; j < MAXPLAYERS; j++) // I hate similar loops inside loops... :<
 				{
-					if (i == j)
-						continue;
 					if (!playeringame[j] || players[j].spectator)
 						continue;
-					if (players[i].score == players[j].score)
-						pos++;
+					if (j == playernum)
+						continue;
+					if (j == i)
+						continue;
+					if (players[j].score == players[i].score)
+						num++;
 				}
+
+				if (num > 1) // found dupes
+					pos++;
+			}
+			else
+			{
+				if (players[i].score > players[playernum].score || i < playernum)
+					pos++;
 			}
 		}
 
 		if (G_CheckSpot(playernum, playerstarts[pos % numcoopstarts]))
 			return playerstarts[pos % numcoopstarts];
 
-		// Your spot isn't available? Go for the old behavior
-		// if there's 6 players in a map with 3 player starts, this spawns them 1/2/3/1/2/3.
-		if (G_CheckSpot(playernum, playerstarts[playernum % numcoopstarts]))
-			return playerstarts[playernum % numcoopstarts];
+		// Your spot isn't available? Find whatever you can get first.
+		for (i = 0; i < numcoopstarts; i++)
+		{
+			if (G_CheckSpot(playernum, playerstarts[i]))
+				return playerstarts[i];
+		}
 
 		// SRB2Kart: We have solid players, so this behavior is less ideal.
 		// Don't bother checking to see if the player 1 start is open.
