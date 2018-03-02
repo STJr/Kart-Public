@@ -1041,8 +1041,8 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU | IT_STRING, NULL, "Game Options...",       &OP_GameOptionsDef,   70},
 	{IT_SUBMENU | IT_STRING, NULL, "Server Options...",     &OP_ServerOptionsDef, 80},
 
-	{IT_CALL       | IT_STRING, NULL, "Play Credits", M_Credits,          90},
-	{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 100},
+	{IT_CALL       | IT_STRING, NULL, "Play Credits", M_Credits,         100},
+	//{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 110},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1578,7 +1578,7 @@ menu_t SR_UnlockChecklistDef =
 {
 	NULL,
 	1,
-	&SR_MainDef,
+	&MainDef, //&SR_MainDef
 	SR_UnlockChecklistMenu,
 	M_DrawChecklist,
 	280, 185,
