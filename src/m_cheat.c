@@ -75,6 +75,7 @@ typedef struct
 static UINT8 cheatf_warp(void)
 {
 	UINT8 i;
+	boolean success = false;
 
 	/*if (modifiedgame)
 		return 0;*/
@@ -82,12 +83,23 @@ static UINT8 cheatf_warp(void)
 	if (menuactive && currentMenu != &MainDef)
 		return 0; // Only on the main menu!
 
-	S_StartSound(0, sfx_kc42);
-
 	// Temporarily unlock EVERYTHING.
-	G_SetGameModified(false);
 	for (i = 0; i < MAXUNLOCKABLES; i++)
-		unlockables[i].unlocked = true;
+	{
+		if (!unlockables[i].conditionset)
+			continue;
+		if (!unlockables[i].unlocked)
+		{
+			unlockables[i].unlocked = true;
+			success = true;
+		}
+	}
+
+	if (success)
+	{
+		G_SetGameModified(false);
+		S_StartSound(0, sfx_kc42);
+	}
 
 	// Refresh secrets menu existing.
 	M_ClearMenus(true);

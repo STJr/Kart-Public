@@ -1042,7 +1042,7 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU | IT_STRING, NULL, "Server Options...",     &OP_ServerOptionsDef, 80},
 
 	{IT_CALL       | IT_STRING, NULL, "Play Credits", M_Credits,         100},
-	//{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 110},
+	{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 110},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1792,7 +1792,18 @@ menu_t MP_PlayerSetupDef =
 };
 
 // Options
-menu_t OP_MainDef = DEFAULTMENUSTYLE("M_OPTTTL", OP_MainMenu, &MainDef, 60, 30);
+menu_t OP_MainDef =
+{
+	"M_OPTTTL",
+	sizeof (OP_MainMenu)/sizeof (menuitem_t),
+	&MainDef,
+	OP_MainMenu,
+	M_DrawSkyRoom,
+	60, 30,
+	0,
+	NULL
+};
+
 menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDef, 60, 30);
 //menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDef);

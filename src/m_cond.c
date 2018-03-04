@@ -117,8 +117,6 @@ unlockable_t unlockables[MAXUNLOCKABLES] =
 	/* 02 */ {"Chaotic Kart Cup", "Collect 15 Emblems", 0, 2, SECRET_NONE, 0, false, false, 0},
 
 	/* 03 */ {"Record Attack", "",  0, -1, SECRET_RECORDATTACK,  0,  true,  true, 0},
-	/* 04 */ {"Play Credits",  "", 10, -1, SECRET_CREDITS,       0,  true,  true, 0},
-	/* 05 */ {"Sound Test",    "", 20, -1, SECRET_SOUNDTEST,     0,  true,  true, 0},
 };
 
 // Default number of emblems and extra emblems
