@@ -7082,7 +7082,7 @@ void P_MobjThinker(mobj_t *mobj)
 				{
 					x = mobj->target->x;
 					y = mobj->target->y;
-					z = mobj->target->z + 80*FRACUNIT;
+					z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
 				}
 				P_TeleportMove(mobj, x, y, z);
 				break;
