@@ -7787,9 +7787,9 @@ void P_MobjThinker(mobj_t *mobj)
 			P_SpawnGhostMobj(mobj);
 
 			if (gamespeed == 0)
-				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+				finalspeed = FixedMul(finalspeed, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
 			else if (gamespeed == 2)
-				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
+				finalspeed = FixedMul(finalspeed, (mapheaderinfo[gamemap-1]->mobj_scale)+(mapheaderinfo[gamemap-1]->mobj_scale/4));
 
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			if (mobj->health <= 5)
@@ -7797,7 +7797,7 @@ void P_MobjThinker(mobj_t *mobj)
 				INT32 i;
 				for (i = 5; i >= mobj->health; i--)
 				{
-					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+					finalspeed = FixedMul(finalspeed, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
 				}
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 			}
@@ -7822,8 +7822,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_REDITEM:
 		{
 			sector_t *sec2;
-			fixed_t topspeed = 64*FRACUNIT;
-			fixed_t distbarrier = 512*FRACUNIT;
+			fixed_t topspeed = 64*(mapheaderinfo[gamemap-1]->mobj_scale);
+			fixed_t distbarrier = 512*(mapheaderinfo[gamemap-1]->mobj_scale);
 			fixed_t distaway;
 
 			P_SpawnGhostMobj(mobj);
@@ -7835,13 +7835,13 @@ void P_MobjThinker(mobj_t *mobj)
 
 			if (gamespeed == 0)
 			{
-				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
-				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
+				topspeed = FixedMul(topspeed, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
+				distbarrier = FixedMul(distbarrier, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
 			}
 			else if (gamespeed == 2)
 			{
-				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
-				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
+				topspeed = FixedMul(topspeed, (mapheaderinfo[gamemap-1]->mobj_scale)+(mapheaderinfo[gamemap-1]->mobj_scale/4));
+				distbarrier = FixedMul(distbarrier, (mapheaderinfo[gamemap-1]->mobj_scale)+(mapheaderinfo[gamemap-1]->mobj_scale/4);
 			}
 
 			if (gametype == GT_RACE && mobj->tracer)

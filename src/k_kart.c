@@ -1487,7 +1487,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		|| (gametype != GT_RACE && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
-	player->mo->momz = 18*FRACUNIT;
+	player->mo->momz = 18*(mapheaderinfo[gamemap-1]->mobj_scale);
 	player->mo->momx = player->mo->momy = 0;
 
 	player->kartstuff[k_mushroomtimer] = 0;
@@ -1847,6 +1847,11 @@ void K_SpawnDriftTrail(player_t *player)
 	I_Assert(player->mo != NULL);
 	I_Assert(!P_MobjWasRemoved(player->mo));
 
+	if (!P_IsObjectOnGround(player->mo)
+		|| player->kartstuff[k_bootimer] != 0
+		|| (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])))
+		return;
+
 	if (player->mo->eflags & MFE_VERTICALFLIP)
 		ground = player->mo->ceilingz - FixedMul(mobjinfo[MT_MUSHROOMTRAIL].height, player->mo->scale);
 	else
@@ -1859,9 +1864,6 @@ void K_SpawnDriftTrail(player_t *player)
 
 	for (i = 0; i < 2; i++)
 	{
-		if (player->kartstuff[k_bootimer] != 0 || (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
-			continue;
-
 		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
 		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
 #ifdef ESLOPE
