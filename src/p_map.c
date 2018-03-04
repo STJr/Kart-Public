@@ -383,7 +383,7 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 			|| (gametype == GT_MATCH)
 			|| (G_GametypeHasTeams() && tails->ctfteam != sonic->ctfteam))
 			sonic->pflags &= ~PF_CARRIED; */
-		if (tails->spectator || sonic->spectator || gametype == GT_RACE) // SRB2kart
+		if (tails->spectator || sonic->spectator || G_RaceGametype()) // SRB2kart
 			sonic->pflags &= ~PF_CARRIED;
 		else
 		{
@@ -1652,18 +1652,18 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
 				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
-				|| (gametype != GT_RACE && (thing->player->kartstuff[k_balloon] <= 0
+				|| (G_BattleGametype() && (thing->player->kartstuff[k_balloon] <= 0
 				&& (thing->player->kartstuff[k_comebacktimer] || thing->player->kartstuff[k_comebackmode] == 1)))
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
 				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer]
 				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped]
-				|| (gametype != GT_RACE && (tmthing->player->kartstuff[k_balloon] <= 0
+				|| (G_BattleGametype() && (tmthing->player->kartstuff[k_balloon] <= 0
 				&& (tmthing->player->kartstuff[k_comebacktimer] || tmthing->player->kartstuff[k_comebackmode] == 1))))
 			{
 				return true;
 			}
 
-			if (gametype != GT_RACE)
+			if (G_BattleGametype())
 			{
 				if ((thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebackmode] == 0)
 					|| (tmthing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_comebackmode] == 0))
@@ -1686,7 +1686,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
 			{
 				K_KartBouncing(tmthing, thing, true, false);
-				if (gametype != GT_RACE && tmthing->player->kartstuff[k_feather] & 2)
+				if (G_BattleGametype() && tmthing->player->kartstuff[k_feather] & 2)
 				{
 					K_StealBalloon(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing);
@@ -1695,7 +1695,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
 			{
 				K_KartBouncing(thing, tmthing, true, false);
-				if (gametype != GT_RACE && thing->player->kartstuff[k_feather] & 2)
+				if (G_BattleGametype() && thing->player->kartstuff[k_feather] & 2)
 				{
 					K_StealBalloon(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing);
@@ -1704,7 +1704,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			else
 				K_KartBouncing(tmthing, thing, false, false);
 
-			if (gametype != GT_RACE)
+			if (G_BattleGametype())
 			{
 				if (thing->player->kartstuff[k_mushroomtimer] && !(tmthing->player->kartstuff[k_mushroomtimer]))
 				{

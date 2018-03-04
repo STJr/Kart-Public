@@ -207,8 +207,8 @@ menu_t MessageDef;
 menu_t SPauseDef;
 
 // Sky Room
-static void M_CustomLevelSelect(INT32 choice);
-static void M_CustomWarp(INT32 choice);
+//static void M_CustomLevelSelect(INT32 choice);
+//static void M_CustomWarp(INT32 choice);
 FUNCNORETURN static ATTRNORETURN void M_UltimateCheat(INT32 choice);
 static void M_LoadGameLevelSelect(INT32 choice);
 static void M_GetAllEmeralds(INT32 choice);
@@ -231,7 +231,7 @@ static void M_ConfirmSpectate(INT32 choice);
 static void M_ConfirmEnterGame(INT32 choice);
 static void M_ConfirmTeamScramble(INT32 choice);
 static void M_ConfirmTeamChange(INT32 choice);
-static void M_SecretsMenu(INT32 choice);
+//static void M_SecretsMenu(INT32 choice);
 static void M_SetupChoosePlayer(INT32 choice);
 static void M_QuitSRB2(INT32 choice);
 menu_t SP_MainDef, MP_MainDef, OP_MainDef;
@@ -475,11 +475,11 @@ static consvar_t cv_dummystaff = {"dummystaff", "0", CV_HIDEN|CV_CALL, dummystaf
 // ---------
 static menuitem_t MainMenu[] =
 {
-	{IT_CALL   |IT_STRING, NULL, "Secrets",     M_SecretsMenu,      84},
-	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu, 92},
-	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,       100},
-	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,         108},
-	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,        116},
+	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_UnlockChecklistDef, 84},
+	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu,     92},
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,           100},
+	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,             108},
+	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,            116},
 };
 
 typedef enum
@@ -688,7 +688,7 @@ static menuitem_t SR_LevelSelectMenu[] =
 
 static menuitem_t SR_UnlockChecklistMenu[] =
 {
-	{IT_SUBMENU | IT_STRING,         NULL, "NEXT", &SR_MainDef, 192},
+	{IT_SUBMENU | IT_STRING,         NULL, "NEXT", &MainDef, 192},
 };
 
 static menuitem_t SR_EmblemHintMenu[] =
@@ -1040,6 +1040,9 @@ static menuitem_t OP_MainMenu[] =
 
 	{IT_SUBMENU | IT_STRING, NULL, "Game Options...",       &OP_GameOptionsDef,   70},
 	{IT_SUBMENU | IT_STRING, NULL, "Server Options...",     &OP_ServerOptionsDef, 80},
+
+	{IT_CALL       | IT_STRING, NULL, "Play Credits", M_Credits,         100},
+	{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 110},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1575,7 +1578,7 @@ menu_t SR_UnlockChecklistDef =
 {
 	NULL,
 	1,
-	&SR_MainDef,
+	&MainDef, //&SR_MainDef
 	SR_UnlockChecklistMenu,
 	M_DrawChecklist,
 	280, 185,
@@ -1789,7 +1792,18 @@ menu_t MP_PlayerSetupDef =
 };
 
 // Options
-menu_t OP_MainDef = DEFAULTMENUSTYLE("M_OPTTTL", OP_MainMenu, &MainDef, 60, 30);
+menu_t OP_MainDef =
+{
+	"M_OPTTTL",
+	sizeof (OP_MainMenu)/sizeof (menuitem_t),
+	&MainDef,
+	OP_MainMenu,
+	M_DrawSkyRoom,
+	60, 30,
+	0,
+	NULL
+};
+
 menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDef, 60, 30);
 //menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDef);
@@ -2692,7 +2706,7 @@ void M_StartControlPanel(void)
 	if (!Playing())
 	{
 		// Secret menu!
-		MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
+		//MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
 
 		currentMenu = &MainDef;
 		itemOn = singleplr;
@@ -4403,7 +4417,7 @@ static void M_HandleSoundTest(INT32 choice)
 }
 
 // Entering secrets menu
-static void M_SecretsMenu(INT32 choice)
+/*static void M_SecretsMenu(INT32 choice)
 {
 	INT32 i, j, ul;
 	UINT8 done[MAXUNLOCKABLES];
@@ -4478,7 +4492,7 @@ static void M_SecretsMenu(INT32 choice)
 	}
 
 	M_SetupNextMenu(&SR_MainDef);
-}
+}*/
 
 // ==================
 // NEW GAME FUNCTIONS
@@ -4496,14 +4510,14 @@ static void M_NewGame(void)
 	M_SetupChoosePlayer(0);
 }
 
-static void M_CustomWarp(INT32 choice)
+/*static void M_CustomWarp(INT32 choice)
 {
 	INT32 ul = skyRoomMenuTranslations[choice-1];
 
 	startmap = (INT16)(unlockables[ul].variable);
 
 	M_SetupChoosePlayer(0);
-}
+}*/
 
 static void M_Credits(INT32 choice)
 {
@@ -4513,7 +4527,7 @@ static void M_Credits(INT32 choice)
 	F_StartCredits();
 }
 
-static void M_CustomLevelSelect(INT32 choice)
+/*static void M_CustomLevelSelect(INT32 choice)
 {
 	INT32 ul = skyRoomMenuTranslations[choice-1];
 
@@ -4528,7 +4542,7 @@ static void M_CustomLevelSelect(INT32 choice)
 
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&SR_LevelSelectDef);
-}
+}*/
 
 // ==================
 // SINGLE PLAYER MENU

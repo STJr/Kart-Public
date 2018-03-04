@@ -583,7 +583,7 @@ typedef enum
 	sfx_kc2c,
 	sfx_kc2d,
 	sfx_kc2e,
-	sfx_kc2f,
+	sfx_kc2f, // Pogo Spring
 	sfx_kc30,
 	sfx_kc31,
 	sfx_kc32,
@@ -593,7 +593,7 @@ typedef enum
 	sfx_kc36,
 	sfx_kc37,
 	sfx_kc38,
-	sfx_kc39,
+	sfx_kc39, // Voting roulette
 	sfx_kc3a,
 	sfx_kc3b,
 	sfx_kc3c,
@@ -602,15 +602,15 @@ typedef enum
 	sfx_kc3f,
 	sfx_kc40,
 	sfx_kc41,
-	sfx_kc42,
+	sfx_kc42, // Unlock everything cheat
 	sfx_kc43,
 	sfx_kc44,
 	sfx_kc45,
 	sfx_kc46,
 	sfx_kc47,
-	sfx_kc48,
+	sfx_kc48, // Vote picked
 	sfx_kc49,
-	sfx_kc4a,
+	sfx_kc4a, // Voting beep
 	sfx_kc4b,
 	sfx_kc4c,
 	sfx_kc4d,
@@ -625,8 +625,8 @@ typedef enum
 	sfx_kc56,
 	sfx_kc57,
 	sfx_kc58,
-	sfx_kc59,
-	sfx_kc5a,
+	sfx_kc59, // Shrink
+	sfx_kc5a, // Grow
 	sfx_kc5b,
 	sfx_kc5c,
 	sfx_kc5d,

@@ -2510,11 +2510,19 @@ static void Y_UnloadVoteData(void)
 //
 void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 {
+	if (pick == -1) // No other votes? We gotta get out of here, then!
+	{
+		timer = 0;
+		Y_UnloadVoteData();
+		Y_FollowIntermission();
+		return;
+	}
+
 	if (pickedvote == -1)
 	{
 		INT32 i;
 		SINT8 votecompare = -1;
-		boolean allsame = true;
+		INT32 endtype = 0;
 
 		voteclient.rsynctime = 0;
 
@@ -2523,16 +2531,26 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
 				votes[i] = 3;
 
-			if (votes[i] == -1)
+			if (votes[i] == -1 || endtype > 1) // Don't need to go on
 				continue;
 
 			if (votecompare == -1)
+			{
 				votecompare = votes[i];
+				endtype = 1;
+			}
 			else if (votes[i] != votecompare)
-				allsame = false;
+				endtype = 2;
 		}
 
-		if (allsame)
+		if (endtype == 0) // Might as well put this here, too.
+		{
+			timer = 0;
+			Y_UnloadVoteData();
+			Y_FollowIntermission();
+			return;
+		}
+		else if (endtype == 1) // Only one unique vote, so just end it immediately.
 		{
 			voteendtic = votetic + (5*TICRATE);
 			S_StartSound(NULL, sfx_kc48);
