@@ -688,7 +688,7 @@ static menuitem_t SR_LevelSelectMenu[] =
 
 static menuitem_t SR_UnlockChecklistMenu[] =
 {
-	{IT_SUBMENU | IT_STRING,         NULL, "NEXT", &SR_MainDef, 192},
+	{IT_SUBMENU | IT_STRING,         NULL, "NEXT", &MainDef, 192},
 };
 
 static menuitem_t SR_EmblemHintMenu[] =
