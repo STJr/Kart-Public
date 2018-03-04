@@ -3099,11 +3099,11 @@ boolean G_BattleGametype(void)
 //
 // G_RaceGametype
 //
-// Returns true in racing gamemodes, previously was G_PlatformGametype.
+// Returns true in Race gamemodes, previously was G_PlatformGametype.
 //
 boolean G_RaceGametype(void)
 {
-	return (gametype == GT_RACE); //(gametype == GT_COOP || gametype == GT_RACE || gametype == GT_COMPETITION);
+	return (gametype == GT_RACE);
 }
 
 //
@@ -3313,7 +3313,7 @@ static void G_DoCompleted(void)
 		I_Error("Followed map %d to invalid map %d\n", prevmap + 1, nextmap + 1);
 
 	// wrap around in race
-	if (nextmap >= 1100-1 && nextmap <= 1102-1 && (gametype == GT_RACE || gametype == GT_COMPETITION))
+	if (nextmap >= 1100-1 && nextmap <= 1102-1 && G_RaceGametype())
 		nextmap = (INT16)(spstage_start-1);
 
 	if (gametype == GT_COOP && token)
@@ -3408,8 +3408,8 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		if (gametype == GT_RACE) // SRB2kart
-			// don't reset player between maps
+		if (G_RaceGametype())
+			// SRB2kart: don't reset player between maps
 			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 		else
 			// resetplayer in match/tag/CTF for more equality

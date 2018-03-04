@@ -3229,7 +3229,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	// In tag, check to see if you still have a game.
 	if (G_TagGametype())
 		P_CheckSurvivors();
-	else if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF)
+	else if (G_BattleGametype())
 		K_CheckBalloons(); // SRB2Kart
 }
 
@@ -4114,7 +4114,7 @@ static void PointLimit_OnChange(void)
 static void NumLaps_OnChange(void)
 {
 	// Just don't be verbose
-	if (gametype == GT_RACE)
+	if (G_RaceGametype())
 		CONS_Printf(M_GetText("Number of laps set to %d\n"), cv_numlaps.value);
 }
 
@@ -5194,23 +5194,23 @@ static void Command_ShowTime_f(void)
 static void KartFrantic_OnChange(void)
 {
 	if (cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
-		CONS_Printf(M_GetText("Frantic Items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
+		CONS_Printf(M_GetText("Frantic items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
 }
 
 static void KartSpeed_OnChange(void)
 {
-	if (cv_kartspeed.value != gamespeed && gametype == GT_RACE && gamestate == GS_LEVEL)
+	if (cv_kartspeed.value != gamespeed && G_RaceGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
 }
 
 static void KartMirror_OnChange(void)
 {
-	if (cv_kartmirror.value != mirrormode && gametype == GT_RACE && gamestate == GS_LEVEL)
+	if (cv_kartmirror.value != mirrormode && G_RaceGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Mirror Mode will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
 }
 
 static void KartComeback_OnChange(void)
 {
-	if (cv_kartcomeback.value != comeback && gametype == GT_MATCH && gamestate == GS_LEVEL)
+	if (cv_kartcomeback.value != comeback && G_BattleGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
 }

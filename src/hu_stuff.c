@@ -1394,7 +1394,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 				V_DrawSmallScaledPatch(x-32, y-4, 0, tagico);
 		}
 
-		if (gametype == GT_RACE)
+		if (G_RaceGametype())
 		{
 			if (circuitmap)
 			{
@@ -1564,7 +1564,7 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 		}
 
 		// All data drawn with thin string for space.
-		if (gametype == GT_RACE)
+		if (G_RaceGametype())
 		{
 			if (circuitmap)
 			{
@@ -1708,7 +1708,7 @@ static void HU_DrawRankings(void)
 		V_DrawCenteredString(192, 16, 0, va("%u", redscore));
 	}
 
-	if (gametype != GT_RACE && gametype != GT_COMPETITION && gametype != GT_COOP)
+	if (!G_RaceGametype())
 	{
 		if (cv_timelimit.value && timelimitintics > 0)
 		{
@@ -1768,7 +1768,7 @@ static void HU_DrawRankings(void)
 		tab[i].num = -1;
 		tab[i].name = 0;
 
-		if (gametype == GT_RACE && !circuitmap)
+		if (G_RaceGametype() && !circuitmap)
 			tab[i].count = INT32_MAX;
 	}
 
@@ -1781,7 +1781,7 @@ static void HU_DrawRankings(void)
 		{
 			if (playeringame[i] && !players[i].spectator)
 			{
-				if (gametype == GT_RACE)
+				if (G_RaceGametype())
 				{
 					if (circuitmap)
 					{

@@ -6525,7 +6525,7 @@ void P_MobjThinker(mobj_t *mobj)
 					INT32 HEIGHT;
 					fixed_t radius;
 
-					if (gametype != GT_RACE && mobj->target->player->kartstuff[k_balloon] <= 0)
+					if (G_BattleGametype() && mobj->target->player->kartstuff[k_balloon] <= 0)
 						kartspeed = 1;
 
 					dsone = 26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight);
@@ -6845,7 +6845,7 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					if (!netgame || gametype == GT_RACE
+					if (!netgame || G_RaceGametype()
 						|| mobj->target->player == &players[displayplayer]
 						|| mobj->target->player->kartstuff[k_balloon] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
@@ -7787,9 +7787,9 @@ void P_MobjThinker(mobj_t *mobj)
 			P_SpawnGhostMobj(mobj);
 
 			if (gamespeed == 0)
-				finalspeed = FixedMul(finalspeed, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
+				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
 			else if (gamespeed == 2)
-				finalspeed = FixedMul(finalspeed, (mapheaderinfo[gamemap-1]->mobj_scale)+(mapheaderinfo[gamemap-1]->mobj_scale/4));
+				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
 
 			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
 			if (mobj->health <= 5)
@@ -7797,12 +7797,14 @@ void P_MobjThinker(mobj_t *mobj)
 				INT32 i;
 				for (i = 5; i >= mobj->health; i--)
 				{
-					finalspeed = FixedMul(finalspeed, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
+					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
 				}
+				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 			}
 			else
 			{
+				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 			}
 
@@ -7822,8 +7824,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_REDITEM:
 		{
 			sector_t *sec2;
-			fixed_t topspeed = 64*(mapheaderinfo[gamemap-1]->mobj_scale);
-			fixed_t distbarrier = 512*(mapheaderinfo[gamemap-1]->mobj_scale);
+			fixed_t topspeed = 64*FRACUNIT;
+			fixed_t distbarrier = 512*FRACUNIT;
 			fixed_t distaway;
 
 			P_SpawnGhostMobj(mobj);
@@ -7835,16 +7837,19 @@ void P_MobjThinker(mobj_t *mobj)
 
 			if (gamespeed == 0)
 			{
-				topspeed = FixedMul(topspeed, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
-				distbarrier = FixedMul(distbarrier, (mapheaderinfo[gamemap-1]->mobj_scale)-(mapheaderinfo[gamemap-1]->mobj_scale/4));
+				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
+				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
 			}
 			else if (gamespeed == 2)
 			{
-				topspeed = FixedMul(topspeed, (mapheaderinfo[gamemap-1]->mobj_scale)+(mapheaderinfo[gamemap-1]->mobj_scale/4));
-				distbarrier = FixedMul(distbarrier, (mapheaderinfo[gamemap-1]->mobj_scale)+(mapheaderinfo[gamemap-1]->mobj_scale/4);
+				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
+				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
 			}
 
-			if (gametype == GT_RACE && mobj->tracer)
+			distbarrier = FixedMul(distbarrier, mapheaderinfo[gamemap-1]->mobj_scale);
+			topspeed = FixedMul(topspeed, mapheaderinfo[gamemap-1]->mobj_scale);
+
+			if (G_RaceGametype() && mobj->tracer)
 			{
 				distaway = P_AproxDistance(mobj->tracer->x - mobj->x, mobj->tracer->y - mobj->y);
 				if (distaway < distbarrier)
@@ -7857,7 +7862,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 
-			if (gametype != GT_RACE)
+			if (G_BattleGametype())
 			{
 				mobj->friction -= 1228;
 				if (mobj->friction > FRACUNIT)
@@ -9310,7 +9315,7 @@ void P_RespawnSpecials(void)
 	mobj_t *mo = NULL;
 	mapthing_t *mthing = NULL;
 
-	if (gametype != GT_RACE) // Battle Mode vers
+	if (G_BattleGametype()) // Battle Mode vers
 	{
 		P_RespawnBattleSpecials();
 		return;
@@ -9600,7 +9605,7 @@ void P_SpawnPlayer(INT32 playernum)
 	overheadarrow->flags2 |= MF2_DONTDRAW;
 	P_SetScale(overheadarrow, mobj->destscale);
 
-	if (gametype != GT_RACE)
+	if (G_BattleGametype())
 	{
 		/*INT32 i;
 		INT32 pcount = 0;
@@ -10005,7 +10010,7 @@ void P_SpawnMapThing(mapthing_t *mthing)
 		if (!cv_powerstones.value)
 			return;
 
-		if (!(gametype == GT_MATCH || gametype == GT_CTF))
+		if (!G_BattleGametype())
 			return;
 
 		runemeraldmanager = true;
