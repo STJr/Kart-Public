@@ -111,7 +111,7 @@ const char *quitmsg[NUM_QUITMESSAGES];
 // Stuff for customizing the player select screen Tails 09-22-2003
 description_t description[32] =
 {
-	{"\x82Sonic\x80\n\x82Speed:\x80 6\n\x82Weight:\x80 4", "", "sonic"},
+	{"\x82Sonic\x80\n\x82Speed:\x80 7\n\x82Weight:\x80 3", "", "sonic"},
 	{"???", "", ""},
 	{"???", "", ""},
 	{"???", "", ""},
