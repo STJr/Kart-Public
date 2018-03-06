@@ -2192,6 +2192,9 @@ void Y_VoteDrawer(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		if (dedicated && i == 0) // While leaving blank spots for non-existent players is largely intentional, the first spot *always* being blank looks a tad silly :V
+			continue;
+
 		if ((playeringame[i] && !players[i].spectator) && votes[i] != -1)
 		{
 			patch_t *pic;
@@ -2296,6 +2299,13 @@ void Y_VoteTicker(void)
 					continue;
 				tempvotes[numvotes] = i;
 				numvotes++;
+			}
+
+			if (numvotes < 1) // Whoops! Get outta here.
+			{
+				Y_UnloadVoteData();
+				Y_FollowIntermission();
+				return;
 			}
 
 			voteclient.rtics--;
