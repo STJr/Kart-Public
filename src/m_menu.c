@@ -1194,47 +1194,51 @@ static menuitem_t OP_MiscControlsMenu[] =
 
 static menuitem_t OP_Joystick1Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup1PJoystickMenu,  10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis         ,  30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis         ,  40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis         ,  50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis         ,  60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis         ,  70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis        ,  80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup1PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis          , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis         , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis         , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis        , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis        , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis         , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis         , 90},
 };
 
 static menuitem_t OP_Joystick2Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup2PJoystickMenu, 10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis2        , 30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis2        , 40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis2        , 50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis2        , 60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis2        , 70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis2       , 80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup2PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis2         , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis2        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis2        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis2       , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis2       , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis2        , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
 };
 
 #ifndef NOFOURPLAYER
 static menuitem_t OP_Joystick3Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup3PJoystickMenu, 10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis3        , 30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis3        , 40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis3        , 50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis3        , 60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis3        , 70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis3       , 80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup3PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis3         , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis3        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis3        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis3       , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis3       , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis3        , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis3        , 90},
 };
 
 static menuitem_t OP_Joystick4Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup4PJoystickMenu, 10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis4        , 30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis4        , 40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis4        , 50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis4        , 60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis4        , 70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis4       , 80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup4PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis4         , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis4        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis4        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis4       , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis4       , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
 };
 #endif
 

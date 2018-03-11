@@ -794,10 +794,6 @@ void D_RegisterClientCommands(void)
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 
 	// g_input.c
-	CV_RegisterVar(&cv_sideaxis);
-	CV_RegisterVar(&cv_sideaxis2);
-	CV_RegisterVar(&cv_sideaxis3);
-	CV_RegisterVar(&cv_sideaxis4);
 	CV_RegisterVar(&cv_turnaxis);
 	CV_RegisterVar(&cv_turnaxis2);
 	CV_RegisterVar(&cv_turnaxis3);
@@ -806,6 +802,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_moveaxis2);
 	CV_RegisterVar(&cv_moveaxis3);
 	CV_RegisterVar(&cv_moveaxis4);
+	CV_RegisterVar(&cv_brakeaxis);
+	CV_RegisterVar(&cv_brakeaxis2);
+	CV_RegisterVar(&cv_brakeaxis3);
+	CV_RegisterVar(&cv_brakeaxis4);
+	CV_RegisterVar(&cv_aimaxis);
+	CV_RegisterVar(&cv_aimaxis2);
+	CV_RegisterVar(&cv_aimaxis3);
+	CV_RegisterVar(&cv_aimaxis4);
 	CV_RegisterVar(&cv_lookaxis);
 	CV_RegisterVar(&cv_lookaxis2);
 	CV_RegisterVar(&cv_lookaxis3);
@@ -814,10 +818,10 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_fireaxis2);
 	CV_RegisterVar(&cv_fireaxis3);
 	CV_RegisterVar(&cv_fireaxis4);
-	CV_RegisterVar(&cv_firenaxis);
-	CV_RegisterVar(&cv_firenaxis2);
-	CV_RegisterVar(&cv_firenaxis3);
-	CV_RegisterVar(&cv_firenaxis4);
+	CV_RegisterVar(&cv_driftaxis);
+	CV_RegisterVar(&cv_driftaxis2);
+	CV_RegisterVar(&cv_driftaxis3);
+	CV_RegisterVar(&cv_driftaxis4);
 
 	// WARNING: the order is important when initialising mouse2
 	// we need the mouse2port
