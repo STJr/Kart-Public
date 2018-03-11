@@ -1465,12 +1465,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->aiming = G_ClipAimingPitch(&laim);
 	}
 
-	if (analog ||
-		(!demoplayback && (player->climbing
-		|| (player->pflags & PF_SLIDING)))) // Analog for mouse
-		side += mousex*2;
-	else
-		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*8));
+	if (player->spectator)
+		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*(mirrormode ? -1 : 1)*8));
 
 	mousex = mousey = mlooky = 0;
 
