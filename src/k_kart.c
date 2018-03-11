@@ -1342,7 +1342,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	fixed_t p_speed = K_GetKartSpeed(player, true);
 	fixed_t p_accel = K_GetKartAccel(player);
 
-	if (!onground && !(player->kartstuff[k_feather] & 2)) return 0; // If the player isn't on the ground, there is no change in speed
+	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
 
 	// ACCELCODE!!!1!11!
 	oldspeed = R_PointToDist2(0, 0, player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
@@ -2391,9 +2391,6 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 	if (player->spectator)
 		return turnvalue;
 
-	if (player->kartstuff[k_feather] & 2 && !P_IsObjectOnGround(player->mo))
-		adjustangle /= 2;
-
 	if (player->kartstuff[k_drift] != 0 && P_IsObjectOnGround(player->mo))
 	{
 		// If we're drifting we have a completely different turning value
@@ -3318,6 +3315,19 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	K_KartDrift(player, onground);
+
+	// Feather strafing
+	if (player->kartstuff[k_feather] & 2)
+	{
+		fixed_t strafe = 0;
+		fixed_t strength = FRACUNIT/32;
+		if (cmd->buttons & BT_DRIFTLEFT)
+			strafe--;
+		if (cmd->buttons & BT_DRIFTRIGHT)
+			strafe++;
+		strength += FixedDiv(player->speed, K_GetKartSpeed(player, true));
+		P_Thrust(player->mo, player->mo->angle-ANGLE_90, strafe*strength);
+	}
 
 	// Quick Turning
 	// You can't turn your kart when you're not moving.
