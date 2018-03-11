@@ -4159,6 +4159,8 @@ static void M_Options(INT32 choice)
 
 	// if the player is playing _at all_, disable the erase data options
 	OP_DataOptionsMenu[1].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	// SRB2Kart: Same with the "Play Credits" option
+	OP_MainMenu[6].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
 
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
