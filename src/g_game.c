@@ -1465,9 +1465,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->aiming = G_ClipAimingPitch(&laim);
 	}
 
-	if (!mouseaiming && cv_mousemove.value)
-		forward += mousey;
-
 	if (analog ||
 		(!demoplayback && (player->climbing
 		|| (player->pflags & PF_SLIDING)))) // Analog for mouse
