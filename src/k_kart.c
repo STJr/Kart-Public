@@ -3223,7 +3223,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	K_KartDrift(player, onground);
 
 	// Feather strafing
-	if (player->kartstuff[k_feather] & 2)
+	if (player->kartstuff[k_pogospring])
 	{
 		fixed_t strafe = 0;
 		fixed_t strength = FRACUNIT/32;
