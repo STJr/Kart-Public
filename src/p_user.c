@@ -350,7 +350,7 @@ UINT8 P_FindLowestMare(void)
 	mobj_t *mo2;
 	UINT8 mare = UINT8_MAX;
 
-	if (gametype == GT_RACE || gametype == GT_COMPETITION)
+	if (G_RaceGametype())
 		return 0;
 
 	// scan the thinkers
@@ -685,7 +685,7 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 	P_RestoreMusic(player);
 	P_SetMobjState(player->mo->tracer, S_SUPERTRANS1);
 
-	if (gametype == GT_RACE || gametype == GT_COMPETITION)
+	if (G_RaceGametype())
 	{
 		if (player->drillmeter < 48*20)
 			player->drillmeter = 48*20;
@@ -1653,7 +1653,7 @@ void P_DoPlayerExit(player_t *player)
 		&& (!player->spectator && ((!modifiedgame || savemoddata) && !demoplayback)))
 		legitimateexit = true;
 
-	if (gametype == GT_RACE || gametype == GT_COMPETITION) // If in Race Mode, allow
+	if (G_RaceGametype()) // If in Race Mode, allow
 	{
 		// SRB2kart 120217
 		if (!countdown && !(netgame || multiplayer))
@@ -1676,13 +1676,13 @@ void P_DoPlayerExit(player_t *player)
 			{
 				if (player->kartstuff[k_position] == 1)
 					S_ChangeMusicInternal("karwin", true);
-				else if (player->kartstuff[k_position] == 2 || player->kartstuff[k_position] == 3)
-					S_ChangeMusicInternal("karok", true);
-				else if (player->kartstuff[k_position] >= 4)
+				else if (K_IsPlayerLosing(player))
 					S_ChangeMusicInternal("karlos", true);
+				else
+					S_ChangeMusicInternal("karok", true);
 			}
 			else
-				S_ChangeMusicInternal("karwin", true);
+				S_ChangeMusicInternal("karok", true);
 		}
 
 		player->exiting = 3*TICRATE;
@@ -1696,7 +1696,7 @@ void P_DoPlayerExit(player_t *player)
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
 	}
-	else if (gametype != GT_RACE)
+	else if (G_BattleGametype())
 		player->exiting = 8*TICRATE + 1; // Battle Mode exiting
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
@@ -5794,7 +5794,7 @@ static void P_NiGHTSMovement(player_t *player)
 		&& !player->exiting)
 			player->nightstime--;
 	}
-	else if (gametype != GT_RACE && gametype != GT_COMPETITION
+	else if (!G_RaceGametype()
 	&& !(player->mo->tracer->state >= &states[S_SUPERTRANS1] && player->mo->tracer->state <= &states[S_SUPERTRANS9])
 	&& !(player->capsule && player->capsule->reactiontime)
 	&& !player->exiting)
@@ -5947,7 +5947,7 @@ static void P_NiGHTSMovement(player_t *player)
 	{
 		player->mo->momx = player->mo->momy = 0;
 
-		if (gametype != GT_RACE && gametype != GT_COMPETITION)
+		if (!G_RaceGametype())
 			P_SetObjectMomZ(player->mo, 30*FRACUNIT, false);
 
 		player->mo->tracer->angle += ANGLE_11hh;
@@ -8110,7 +8110,7 @@ static void P_DeathThink(player_t *player)
 		}
 	}
 	
-	if ((gametype == GT_RACE || gametype == GT_COMPETITION || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
+	if ((G_RaceGametype() || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
 	{
 		// Return to level music
 		if (netgame)
@@ -9250,7 +9250,7 @@ void P_PlayerThink(player_t *player)
 		I_Error("player %s is in PST_REBORN\n", sizeu1(playeri));
 #endif
 
-	if (gametype == GT_RACE || gametype == GT_COMPETITION)
+	if (G_RaceGametype())
 	{
 		INT32 i;
 
@@ -9303,7 +9303,7 @@ void P_PlayerThink(player_t *player)
 
 	// If it is set, start subtracting
 	// Don't allow it to go back to 0
-	if (player->exiting > 1 && (player->exiting < 3*TICRATE || gametype != GT_RACE)) // SRB2kart - "&& player->exiting > 1"
+	if (player->exiting > 1 && (player->exiting < 3*TICRATE || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
 		player->exiting--;
 
 	if (player->exiting && countdown2)
@@ -9666,7 +9666,7 @@ void P_PlayerThink(player_t *player)
 			|| (splitscreen > 1 && player == &players[thirddisplayplayer])
 			|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
 			&& player->kartstuff[k_hyudorotimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
-			&& (player->kartstuff[k_comebacktimer] == 0 || (gametype == GT_RACE || player->kartstuff[k_balloon] > 0)))
+			&& (player->kartstuff[k_comebacktimer] == 0 || (G_RaceGametype() || player->kartstuff[k_balloon] > 0)))
 		{
 			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing() && (leveltime & 1))
 				player->mo->flags2 |= MF2_DONTDRAW;

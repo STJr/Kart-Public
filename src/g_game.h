@@ -56,10 +56,10 @@ extern INT16 rw_maximums[NUM_WEAPONS];
 // used in game menu
 extern consvar_t cv_crosshair, cv_crosshair2, cv_crosshair3, cv_crosshair4;
 extern consvar_t cv_invertmouse, cv_alwaysfreelook, cv_mousemove;
-extern consvar_t cv_sideaxis,cv_turnaxis,cv_moveaxis,cv_lookaxis,cv_fireaxis,cv_firenaxis;
-extern consvar_t cv_sideaxis2,cv_turnaxis2,cv_moveaxis2,cv_lookaxis2,cv_fireaxis2,cv_firenaxis2;
-extern consvar_t cv_sideaxis3,cv_turnaxis3,cv_moveaxis3,cv_lookaxis3,cv_fireaxis3,cv_firenaxis3;
-extern consvar_t cv_sideaxis4,cv_turnaxis4,cv_moveaxis4,cv_lookaxis4,cv_fireaxis4,cv_firenaxis4;
+extern consvar_t cv_turnaxis,cv_moveaxis,cv_brakeaxis,cv_aimaxis,cv_lookaxis,cv_fireaxis,cv_driftaxis;
+extern consvar_t cv_turnaxis2,cv_moveaxis2,cv_brakeaxis2,cv_aimaxis2,cv_lookaxis2,cv_fireaxis2,cv_driftaxis2;
+extern consvar_t cv_turnaxis3,cv_moveaxis3,cv_brakeaxis3,cv_aimaxis3,cv_lookaxis3,cv_fireaxis3,cv_driftaxis3;
+extern consvar_t cv_turnaxis4,cv_moveaxis4,cv_brakeaxis4,cv_aimaxis4,cv_lookaxis4,cv_fireaxis4,cv_driftaxis4;
 extern consvar_t cv_ghost_besttime, cv_ghost_bestlap, cv_ghost_last, cv_ghost_guest, cv_ghost_staff;
 
 typedef enum
@@ -67,11 +67,12 @@ typedef enum
 	AXISNONE = 0,
 	AXISTURN,
 	AXISMOVE,
+	AXISBRAKE,
+	AXISAIM,
 	AXISLOOK,
-	AXISSTRAFE,
 	AXISDEAD, //Axises that don't want deadzones
 	AXISFIRE,
-	AXISFIRENORMAL,
+	AXISDRIFT,
 } axis_input_e;
 
 // mouseaiming (looking up/down with the mouse or keyboard)
@@ -112,7 +113,7 @@ char *G_BuildMapTitle(INT32 mapnum);
 // XMOD spawning
 mapthing_t *G_FindCTFStart(INT32 playernum);
 mapthing_t *G_FindMatchStart(INT32 playernum);
-mapthing_t *G_FindCoopStart(INT32 playernum);
+mapthing_t *G_FindRaceStart(INT32 playernum);
 void G_SpawnPlayer(INT32 playernum, boolean starpost);
 
 // Can be called by the startup code or M_Responder.

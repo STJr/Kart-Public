@@ -2871,7 +2871,7 @@ boolean P_SetupLevel(boolean skipprecip)
 			CONS_Printf(M_GetText("No player currently available to become IT. Awaiting available players.\n"));
 
 	}
-	else if (gametype == GT_RACE && server && cv_usemapnumlaps.value)
+	else if (G_RaceGametype() && server && cv_usemapnumlaps.value)
 		CV_StealthSetValue(&cv_numlaps, mapheaderinfo[gamemap - 1]->numlaps);
 
 	// ===========
@@ -2978,12 +2978,12 @@ boolean P_SetupLevel(boolean skipprecip)
 	// SRB2Kart: map load variables
 	if (modeattacking)
 		gamespeed = 2;
-	else if (gametype == GT_MATCH)
+	else if (G_BattleGametype())
 		gamespeed = 0;
 	else
 		gamespeed = cv_kartspeed.value;
 
-	if (gametype == GT_MATCH)
+	if (G_BattleGametype())
 		mirrormode = false;
 	else
 		mirrormode = cv_kartmirror.value;

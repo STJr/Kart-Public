@@ -4133,10 +4133,10 @@ DoneSection2:
 
 		case 10: // Finish Line
 			// SRB2kart - 150117
-			if (gametype == GT_RACE && (player->starpostcount >= numstarposts/2 || player->exiting))
+			if (G_RaceGametype() && (player->starpostcount >= numstarposts/2 || player->exiting))
 				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
 			//
-			if (gametype == GT_RACE && !player->exiting)
+			if (G_RaceGametype() && !player->exiting)
 			{
 				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
@@ -4204,13 +4204,13 @@ DoneSection2:
 						{
 							if (player->kartstuff[k_position] == 1)
 								S_ChangeMusicInternal("karwin", true);
-							else if (player->kartstuff[k_position] == 2 || player->kartstuff[k_position] == 3)
-								S_ChangeMusicInternal("karok", true);
-							else if (player->kartstuff[k_position] >= 4)
+							else if (K_IsPlayerLosing(player))
 								S_ChangeMusicInternal("karlos", true);
+							else
+								S_ChangeMusicInternal("karok", true);
 						}
 						else
-							S_ChangeMusicInternal("karwin", true);
+							S_ChangeMusicInternal("karok", true);
 						//
 						//HU_SetCEchoFlags(0);
 						//HU_SetCEchoDuration(5);
@@ -5617,7 +5617,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 		switch(GETSECSPECIAL(sector->special, 4))
 		{
 			case 10: // Circuit finish line
-				if (gametype == GT_RACE)
+				if (G_RaceGametype())
 					circuitmap = true;
 				break;
 		}
@@ -6378,7 +6378,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 				break;
 
 			case 308: // Race-only linedef executor. Triggers once.
-				if (gametype != GT_RACE && gametype != GT_COMPETITION)
+				if (!G_RaceGametype())
 					lines[i].special = 0;
 				break;
 

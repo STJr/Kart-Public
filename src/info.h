@@ -4001,6 +4001,7 @@ typedef enum mobj_type
 	MT_MINEEXPLOSIONSOUND,
 
 	MT_SMOLDERING, // New explosion
+	MT_BOOMEXPLODE,
 	MT_BOOMPARTICLE,
 
 	MT_BLUELIGHTNING, // Grow/shrink stuff

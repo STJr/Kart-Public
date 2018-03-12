@@ -111,7 +111,7 @@ const char *quitmsg[NUM_QUITMESSAGES];
 // Stuff for customizing the player select screen Tails 09-22-2003
 description_t description[32] =
 {
-	{"\x82Sonic\x80\n\x82Speed:\x80 6\n\x82Weight:\x80 4", "", "sonic"},
+	{"\x82Sonic\x80\n\x82Speed:\x80 7\n\x82Weight:\x80 3", "", "sonic"},
 	{"???", "", ""},
 	{"???", "", ""},
 	{"???", "", ""},
@@ -207,8 +207,8 @@ menu_t MessageDef;
 menu_t SPauseDef;
 
 // Sky Room
-static void M_CustomLevelSelect(INT32 choice);
-static void M_CustomWarp(INT32 choice);
+//static void M_CustomLevelSelect(INT32 choice);
+//static void M_CustomWarp(INT32 choice);
 FUNCNORETURN static ATTRNORETURN void M_UltimateCheat(INT32 choice);
 static void M_LoadGameLevelSelect(INT32 choice);
 static void M_GetAllEmeralds(INT32 choice);
@@ -231,7 +231,7 @@ static void M_ConfirmSpectate(INT32 choice);
 static void M_ConfirmEnterGame(INT32 choice);
 static void M_ConfirmTeamScramble(INT32 choice);
 static void M_ConfirmTeamChange(INT32 choice);
-static void M_SecretsMenu(INT32 choice);
+//static void M_SecretsMenu(INT32 choice);
 static void M_SetupChoosePlayer(INT32 choice);
 static void M_QuitSRB2(INT32 choice);
 menu_t SP_MainDef, MP_MainDef, OP_MainDef;
@@ -475,11 +475,11 @@ static consvar_t cv_dummystaff = {"dummystaff", "0", CV_HIDEN|CV_CALL, dummystaf
 // ---------
 static menuitem_t MainMenu[] =
 {
-	{IT_CALL   |IT_STRING, NULL, "Secrets",     M_SecretsMenu,      84},
-	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu, 92},
-	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,       100},
-	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,         108},
-	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,        116},
+	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_UnlockChecklistDef, 84},
+	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu,     92},
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,           100},
+	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,             108},
+	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,            116},
 };
 
 typedef enum
@@ -688,7 +688,7 @@ static menuitem_t SR_LevelSelectMenu[] =
 
 static menuitem_t SR_UnlockChecklistMenu[] =
 {
-	{IT_SUBMENU | IT_STRING,         NULL, "NEXT", &SR_MainDef, 192},
+	{IT_SUBMENU | IT_STRING,         NULL, "NEXT", &MainDef, 192},
 };
 
 static menuitem_t SR_EmblemHintMenu[] =
@@ -1040,6 +1040,9 @@ static menuitem_t OP_MainMenu[] =
 
 	{IT_SUBMENU | IT_STRING, NULL, "Game Options...",       &OP_GameOptionsDef,   70},
 	{IT_SUBMENU | IT_STRING, NULL, "Server Options...",     &OP_ServerOptionsDef, 80},
+
+	{IT_CALL       | IT_STRING, NULL, "Play Credits", M_Credits,         100},
+	{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 110},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1191,47 +1194,51 @@ static menuitem_t OP_MiscControlsMenu[] =
 
 static menuitem_t OP_Joystick1Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup1PJoystickMenu,  10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis         ,  30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis         ,  40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis         ,  50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis         ,  60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis         ,  70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis        ,  80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup1PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis          , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis         , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis         , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis        , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis        , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis         , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis         , 90},
 };
 
 static menuitem_t OP_Joystick2Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup2PJoystickMenu, 10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis2        , 30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis2        , 40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis2        , 50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis2        , 60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis2        , 70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis2       , 80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup2PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis2         , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis2        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis2        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis2       , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis2       , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis2        , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
 };
 
 #ifndef NOFOURPLAYER
 static menuitem_t OP_Joystick3Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup3PJoystickMenu, 10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis3        , 30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis3        , 40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis3        , 50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis3        , 60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis3        , 70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis3       , 80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup3PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis3         , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis3        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis3        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis3       , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis3       , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis3        , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis3        , 90},
 };
 
 static menuitem_t OP_Joystick4Menu[] =
 {
-	{IT_STRING | IT_CALL,  NULL, "Select Joystick...", M_Setup4PJoystickMenu, 10},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Turning"  , &cv_turnaxis4        , 30},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Moving"   , &cv_moveaxis4        , 40},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Strafe"   , &cv_sideaxis4        , 50},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Looking"  , &cv_lookaxis4        , 60},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For Firing"   , &cv_fireaxis4        , 70},
-	{IT_STRING | IT_CVAR,  NULL, "Axis For NFiring"  , &cv_firenaxis4       , 80},
+	{IT_STRING | IT_CALL,  NULL, "Select Joystick..." , M_Setup4PJoystickMenu, 10},
+	{IT_STRING | IT_CVAR,  NULL, "Aim Forward/Back"   , &cv_aimaxis4         , 30},
+	{IT_STRING | IT_CVAR,  NULL, "Turn Left/Right"    , &cv_turnaxis4        , 40},
+	{IT_STRING | IT_CVAR,  NULL, "Accelerate"         , &cv_moveaxis4        , 50},
+	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis4       , 60},
+	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis4       , 70},
+	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
+	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
 };
 #endif
 
@@ -1452,13 +1459,14 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #endif
 
 	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",          &cv_inttime,            80},
-	{IT_STRING | IT_CVAR,    NULL, "Advance to next map",         &cv_advancemap,         90},
+	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",                &cv_votetime,           90},
+	{IT_STRING | IT_CVAR,    NULL, "Advance to next map",         &cv_advancemap,        100},
 
 #ifndef NONET
-	{IT_STRING | IT_CVAR,    NULL, "Max Players",                 &cv_maxplayers,        110},
-	{IT_STRING | IT_CVAR,    NULL, "Allow players to join",       &cv_allownewplayer,    120},
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",       &cv_downloading,       130},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",         &cv_resynchattempts,   140},
+	{IT_STRING | IT_CVAR,    NULL, "Max Players",                 &cv_maxplayers,        120},
+	{IT_STRING | IT_CVAR,    NULL, "Allow players to join",       &cv_allownewplayer,    130},
+	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",       &cv_downloading,       140},
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",         &cv_resynchattempts,   150},
 #endif
 };
 
@@ -1574,7 +1582,7 @@ menu_t SR_UnlockChecklistDef =
 {
 	NULL,
 	1,
-	&SR_MainDef,
+	&MainDef, //&SR_MainDef
 	SR_UnlockChecklistMenu,
 	M_DrawChecklist,
 	280, 185,
@@ -1788,7 +1796,18 @@ menu_t MP_PlayerSetupDef =
 };
 
 // Options
-menu_t OP_MainDef = DEFAULTMENUSTYLE("M_OPTTTL", OP_MainMenu, &MainDef, 60, 30);
+menu_t OP_MainDef =
+{
+	"M_OPTTTL",
+	sizeof (OP_MainMenu)/sizeof (menuitem_t),
+	&MainDef,
+	OP_MainMenu,
+	M_DrawSkyRoom,
+	60, 30,
+	0,
+	NULL
+};
+
 menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDef, 60, 30);
 //menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
 menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDef);
@@ -2691,7 +2710,7 @@ void M_StartControlPanel(void)
 	if (!Playing())
 	{
 		// Secret menu!
-		MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
+		//MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
 
 		currentMenu = &MainDef;
 		itemOn = singleplr;
@@ -4144,6 +4163,8 @@ static void M_Options(INT32 choice)
 
 	// if the player is playing _at all_, disable the erase data options
 	OP_DataOptionsMenu[1].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	// SRB2Kart: Same with the "Play Credits" option
+	OP_MainMenu[6].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
 
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
@@ -4402,7 +4423,7 @@ static void M_HandleSoundTest(INT32 choice)
 }
 
 // Entering secrets menu
-static void M_SecretsMenu(INT32 choice)
+/*static void M_SecretsMenu(INT32 choice)
 {
 	INT32 i, j, ul;
 	UINT8 done[MAXUNLOCKABLES];
@@ -4477,7 +4498,7 @@ static void M_SecretsMenu(INT32 choice)
 	}
 
 	M_SetupNextMenu(&SR_MainDef);
-}
+}*/
 
 // ==================
 // NEW GAME FUNCTIONS
@@ -4495,14 +4516,14 @@ static void M_NewGame(void)
 	M_SetupChoosePlayer(0);
 }
 
-static void M_CustomWarp(INT32 choice)
+/*static void M_CustomWarp(INT32 choice)
 {
 	INT32 ul = skyRoomMenuTranslations[choice-1];
 
 	startmap = (INT16)(unlockables[ul].variable);
 
 	M_SetupChoosePlayer(0);
-}
+}*/
 
 static void M_Credits(INT32 choice)
 {
@@ -4512,7 +4533,7 @@ static void M_Credits(INT32 choice)
 	F_StartCredits();
 }
 
-static void M_CustomLevelSelect(INT32 choice)
+/*static void M_CustomLevelSelect(INT32 choice)
 {
 	INT32 ul = skyRoomMenuTranslations[choice-1];
 
@@ -4527,7 +4548,7 @@ static void M_CustomLevelSelect(INT32 choice)
 
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&SR_LevelSelectDef);
-}
+}*/
 
 // ==================
 // SINGLE PLAYER MENU

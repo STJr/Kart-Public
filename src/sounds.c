@@ -470,9 +470,9 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"lkt1",    true, 192,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"lkt2",    true, 192,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"lkt3",    true,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kart1",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kart2",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kart3",  false,  48, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kart1",  false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kart2",  false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kart3",  false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mlap",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"sboost",  true,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mush",   false,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -574,7 +574,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc6c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc6d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc6e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
- 
+
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
   {"klose",  false,  64,  0, -1, NULL, 0,   SKSLOSE,  -1, LUMPERROR},

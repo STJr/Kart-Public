@@ -158,7 +158,7 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
 	//	return false;
 
-	if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0) // No balloons in Match
+	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // No balloons in Match
 		return false;
 
 	if (player->kartstuff[k_attractiontimer]) // You should probably collect stuff when you're attracting it :V
@@ -411,7 +411,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	{
 		case MT_RANDOMITEM:			// SRB2kart
 		case MT_FLINGRANDOMITEM:
-			if (gametype != GT_RACE && player->kartstuff[k_balloon] <= 0)
+			if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
 			{
 				if (player->kartstuff[k_comebackmode] == 0 && !player->kartstuff[k_comebacktimer])
 				{
@@ -426,7 +426,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (!P_CanPickupItem(player, false) && special->tracer != toucher)
 				return;
 
-			if (gametype != GT_RACE && special->tracer && special->tracer->player)
+			if (G_BattleGametype() && special->tracer && special->tracer->player)
 			{
 				special->tracer->player->kartstuff[k_comebackmode] = 0;
 
@@ -1998,7 +1998,7 @@ boolean P_CheckRacers(void)
 	// Check if all the players in the race have finished. If so, end the level.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].exiting && players[i].lives > 0)
+		if (playeringame[i] && !players[i].spectator && !players[i].exiting && players[i].lives > 0)
 			break;
 	}
 
@@ -2270,7 +2270,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				}
 			}
 		}
-		else if (gametype == GT_MATCH)
+		else if (G_BattleGametype())
 		{
 			K_CheckBalloons();
 		}
@@ -2552,7 +2552,7 @@ static inline void P_NiGHTSDamage(mobj_t *target, mobj_t *source)
 		player->flyangle += 180; // Shuffle's BETTERNIGHTSMOVEMENT?
 		player->flyangle %= 360;
 
-		if (gametype == GT_RACE || gametype == GT_COMPETITION)
+		if (G_RaceGametype())
 			player->drillmeter -= 5*20;
 		else
 		{
@@ -2726,7 +2726,7 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	player->pflags &= ~(PF_CARRIED|PF_SLIDING|PF_ITEMHANG|PF_MACESPIN|PF_ROPEHANG|PF_NIGHTSMODE);
 
 	// Burst weapons and emeralds in Match/CTF only
-	if (source && (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF))
+	if (source && (G_BattleGametype()))
 	{
 		P_PlayerRingBurst(player, player->health - 1);
 		P_PlayerEmeraldBurst(player, false);
@@ -2770,7 +2770,7 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		HU_DoCEcho(va("%s\\is no longer super.\\\\\\\\", player_names[player-players]));
 	}*/
 
-	if (gametype != GT_RACE)
+	if (G_BattleGametype())
 	{
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -3167,7 +3167,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		// Sudden-Death mode
 		if (source && source->type == MT_PLAYER)
 		{
-			if ((gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF) && cv_suddendeath.value
+			if ((G_BattleGametype()) && cv_suddendeath.value
 				&& !player->powers[pw_flashing] && !player->powers[pw_invulnerability])
 				damage = 10000;
 		}

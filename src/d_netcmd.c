@@ -799,10 +799,6 @@ void D_RegisterClientCommands(void)
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 
 	// g_input.c
-	CV_RegisterVar(&cv_sideaxis);
-	CV_RegisterVar(&cv_sideaxis2);
-	CV_RegisterVar(&cv_sideaxis3);
-	CV_RegisterVar(&cv_sideaxis4);
 	CV_RegisterVar(&cv_turnaxis);
 	CV_RegisterVar(&cv_turnaxis2);
 	CV_RegisterVar(&cv_turnaxis3);
@@ -811,6 +807,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_moveaxis2);
 	CV_RegisterVar(&cv_moveaxis3);
 	CV_RegisterVar(&cv_moveaxis4);
+	CV_RegisterVar(&cv_brakeaxis);
+	CV_RegisterVar(&cv_brakeaxis2);
+	CV_RegisterVar(&cv_brakeaxis3);
+	CV_RegisterVar(&cv_brakeaxis4);
+	CV_RegisterVar(&cv_aimaxis);
+	CV_RegisterVar(&cv_aimaxis2);
+	CV_RegisterVar(&cv_aimaxis3);
+	CV_RegisterVar(&cv_aimaxis4);
 	CV_RegisterVar(&cv_lookaxis);
 	CV_RegisterVar(&cv_lookaxis2);
 	CV_RegisterVar(&cv_lookaxis3);
@@ -819,10 +823,10 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_fireaxis2);
 	CV_RegisterVar(&cv_fireaxis3);
 	CV_RegisterVar(&cv_fireaxis4);
-	CV_RegisterVar(&cv_firenaxis);
-	CV_RegisterVar(&cv_firenaxis2);
-	CV_RegisterVar(&cv_firenaxis3);
-	CV_RegisterVar(&cv_firenaxis4);
+	CV_RegisterVar(&cv_driftaxis);
+	CV_RegisterVar(&cv_driftaxis2);
+	CV_RegisterVar(&cv_driftaxis3);
+	CV_RegisterVar(&cv_driftaxis4);
 
 	// WARNING: the order is important when initialising mouse2
 	// we need the mouse2port
@@ -1961,11 +1965,9 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 
 void D_SetupVote(void)
 {
-	XBOXSTATIC char buf[8];
-	char *p;
+	char buf[8];
+	char *p = buf;
 	INT32 i;
-
-	p = buf;
 
 	for (i = 0; i < 4; i++)
 	{
@@ -1978,18 +1980,21 @@ void D_SetupVote(void)
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
 }
 
-void D_ModifyClientVote(INT8 voted)
+void D_ModifyClientVote(SINT8 voted)
 {
-	XBOXSTATIC UINT8 buf[1];
-	buf[0] = (UINT8)(voted+1);
+	char buf[1];
+	char *p = buf;
+
+	WRITESINT8(p, voted);
 	SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
 }
 
 void D_PickVote(void)
 {
-	XBOXSTATIC UINT8 buf[2];
-	UINT8 temppicks[MAXPLAYERS];
-	UINT8 templevels[MAXPLAYERS];
+	char buf[2];
+	char* p = buf;
+	SINT8 temppicks[MAXPLAYERS];
+	SINT8 templevels[MAXPLAYERS];
 	UINT8 numvotes = 0, key = 0;
 	INT32 i;
 
@@ -1999,16 +2004,24 @@ void D_PickVote(void)
 			continue;
 		if (votes[i] != -1)
 		{
-			temppicks[numvotes] = (UINT8)i;
-			templevels[numvotes] = (UINT8)votes[i];
+			temppicks[numvotes] = i;
+			templevels[numvotes] = votes[i];
 			numvotes++;
 		}
 	}
 
 	key = M_RandomKey(numvotes);
 
-	buf[0] = temppicks[key];
-	buf[1] = templevels[key];
+	if (numvotes > 0)
+	{
+		WRITESINT8(p, temppicks[key]);
+		WRITESINT8(p, templevels[key]);
+	}
+	else
+	{
+		WRITESINT8(p, -1);
+		WRITESINT8(p, 0);
+	}
 
 	SendNetXCmd(XD_PICKVOTE, &buf, 2);
 }
@@ -3225,7 +3238,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	// In tag, check to see if you still have a game.
 	if (G_TagGametype())
 		P_CheckSurvivors();
-	else if (gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF)
+	else if (G_BattleGametype())
 		K_CheckBalloons(); // SRB2Kart
 }
 
@@ -4110,7 +4123,7 @@ static void PointLimit_OnChange(void)
 static void NumLaps_OnChange(void)
 {
 	// Just don't be verbose
-	if (gametype == GT_RACE)
+	if (G_RaceGametype())
 		CONS_Printf(M_GetText("Number of laps set to %d\n"), cv_numlaps.value);
 }
 
@@ -4604,14 +4617,14 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 
 static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum)
 {
-	INT8 voted = READUINT8(*cp);
-	votes[playernum] = (INT8)(voted-1);
+	SINT8 voted = READSINT8(*cp);
+	votes[playernum] = voted;
 }
 
 static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
 {
-	INT8 pick = READUINT8(*cp);
-	INT8 level = READUINT8(*cp);
+	SINT8 pick = READSINT8(*cp);
+	SINT8 level = READSINT8(*cp);
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -4627,7 +4640,7 @@ static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	Y_SetupVoteFinish((INT8)pick, (INT8)level);
+	Y_SetupVoteFinish(pick, level);
 }
 
 /** Prints the number of the displayplayer.
@@ -4717,7 +4730,7 @@ static void Command_RestartAudio_f(void)
 	I_ShutdownSound();
 	I_StartupSound();
 	I_InitMusic();
-	
+
 // These must be called or no sound and music until manually set.
 
 	I_SetSfxVolume(cv_soundvolume.value);
@@ -4725,7 +4738,7 @@ static void Command_RestartAudio_f(void)
 	I_SetMIDIMusicVolume(cv_midimusicvolume.value);
 	if (Playing()) // Gotta make sure the player is in a level
 		P_RestoreMusic(&players[consoleplayer]);
-	
+
 }
 
 /** Quits a game and returns to the title screen.
@@ -5190,23 +5203,23 @@ static void Command_ShowTime_f(void)
 static void KartFrantic_OnChange(void)
 {
 	if (cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
-		CONS_Printf(M_GetText("Frantic Items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
+		CONS_Printf(M_GetText("Frantic items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
 }
 
 static void KartSpeed_OnChange(void)
 {
-	if (cv_kartspeed.value != gamespeed && gametype == GT_RACE && gamestate == GS_LEVEL)
+	if (cv_kartspeed.value != gamespeed && G_RaceGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
 }
 
 static void KartMirror_OnChange(void)
 {
-	if (cv_kartmirror.value != mirrormode && gametype == GT_RACE && gamestate == GS_LEVEL)
+	if (cv_kartmirror.value != mirrormode && G_RaceGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Mirror Mode will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
 }
 
 static void KartComeback_OnChange(void)
 {
-	if (cv_kartcomeback.value != comeback && gametype == GT_MATCH && gamestate == GS_LEVEL)
+	if (cv_kartcomeback.value != comeback && G_BattleGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
 }

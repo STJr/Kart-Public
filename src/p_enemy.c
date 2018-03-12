@@ -3928,7 +3928,7 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 		return true;
 
 	if (thing->player && (thing->player->kartstuff[k_hyudorotimer]
-		|| (gametype == GT_MATCH && thing->player && thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
+		|| (G_BattleGametype() && thing->player && thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
 		return true;
 
 	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
@@ -8145,7 +8145,7 @@ void A_ItemPop(mobj_t *actor)
 
 	remains->flags2 &= ~MF2_AMBUSH;
 
-	if (gametype != GT_RACE)
+	if (G_BattleGametype())
 		numgotboxes++;
 
 	P_RemoveMobj(actor);
@@ -8215,14 +8215,14 @@ void A_JawzChase(mobj_t *actor)
 					&& actor->target->player->ctfteam == player->ctfteam)
 					continue;
 
-				if (gametype == GT_RACE) // Only in races, in match and CTF you should go after any nearby players
+				if (G_RaceGametype()) // Only in races, in match and CTF you should go after any nearby players
 				{
 					//                 USER               TARGET
 					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
 						continue;
 				}
 
-				if (gametype != GT_RACE)
+				if (G_BattleGametype())
 				{
 					if (player->kartstuff[k_balloon] <= 0)
 						continue;
@@ -8233,7 +8233,7 @@ void A_JawzChase(mobj_t *actor)
 				}
 			}
 
-			if ((gametype == GT_RACE) || (gametype != GT_RACE // If in match etc. only home in when you get close enough, in race etc. home in all the time
+			if ((G_RaceGametype()) || (G_BattleGametype() // If in match etc. only home in when you get close enough, in race etc. home in all the time
 				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
 				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
 				&& player->kartstuff[k_balloon] > 0))
@@ -8244,7 +8244,7 @@ void A_JawzChase(mobj_t *actor)
 			// done looking
 			if (actor->lastlook == stop)
 			{
-				if (gametype == GT_RACE)
+				if (G_RaceGametype())
 					actor->lastlook = -2;
 				return;
 			}
@@ -8291,7 +8291,7 @@ void A_MineExplode(mobj_t *actor)
 		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
-		if (gametype == GT_MATCH && actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
+		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)
