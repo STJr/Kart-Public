@@ -1282,6 +1282,16 @@ void G_Controldefault(void)
 	gamecontrol[gc_fire       ][0] = KEY_SPACE;
 	gamecontrol[gc_lookback   ][0] = KEY_LSHIFT;
 
+	gamecontrol[gc_aimforward ][1] = KEY_HAT1+0;
+	gamecontrol[gc_aimbackward][1] = KEY_HAT1+1;
+	gamecontrol[gc_turnleft   ][1] = KEY_HAT1+2;
+	gamecontrol[gc_turnright  ][1] = KEY_HAT1+3;
+	gamecontrol[gc_accelerate ][1] = KEY_JOY1+0; // A
+	gamecontrol[gc_drift      ][1] = KEY_JOY1+1; // X
+	gamecontrol[gc_brake      ][1] = KEY_JOY1+2; // B
+	gamecontrol[gc_fire       ][1] = KEY_JOY1+4; // LB 
+	gamecontrol[gc_lookback   ][1] = KEY_JOY1+5; // RB
+	
 	// Extra controls
 	gamecontrol[gc_camtoggle  ][0] = KEY_BACKSPACE;
 	gamecontrol[gc_pause      ][0] = KEY_PAUSE;
@@ -1290,6 +1300,9 @@ void G_Controldefault(void)
 	gamecontrol[gc_teamkey    ][0] = 'y';
 	gamecontrol[gc_scores     ][0] = KEY_TAB;
 	gamecontrol[gc_spectate   ][0] = '\'';
+
+	gamecontrol[gc_scores     ][1] = KEY_JOY1+6; // Back
+	gamecontrol[gc_spectate   ][1] = KEY_JOY1+7; // Start (This is sort of like MP's pause...?)
 
 	// Spectator controls
 	gamecontrol[gc_lookup     ][0] = KEY_PGUP;
