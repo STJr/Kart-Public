@@ -1520,7 +1520,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		if (!player->powers[pw_tailsfly] && (cmd->forwardmove || cmd->sidemove || cmd->buttons))
 		{
 			player->bot = 2; // A player-controlled bot. Returns to AI when it respawns.
-			CV_SetValue(&cv_analog2, true);
+			//CV_SetValue(&cv_analog2, true);
 		}
 		else
 		{
@@ -1616,40 +1616,40 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 // fudging with it.
 static void UserAnalog_OnChange(void)
 {
-	if (cv_useranalog.value)
+	/*if (cv_useranalog.value)
 		CV_SetValue(&cv_analog, 1);
 	else
-		CV_SetValue(&cv_analog, 0);
+		CV_SetValue(&cv_analog, 0);*/
 }
 
 static void UserAnalog2_OnChange(void)
 {
 	if (botingame)
 		return;
-	if (cv_useranalog2.value)
+	/*if (cv_useranalog2.value)
 		CV_SetValue(&cv_analog2, 1);
 	else
-		CV_SetValue(&cv_analog2, 0);
+		CV_SetValue(&cv_analog2, 0);*/
 }
 
 static void UserAnalog3_OnChange(void)
 {
 	if (botingame)
 		return;
-	if (cv_useranalog3.value)
+	/*if (cv_useranalog3.value)
 		CV_SetValue(&cv_analog3, 1);
 	else
-		CV_SetValue(&cv_analog3, 0);
+		CV_SetValue(&cv_analog3, 0);*/
 }
 
 static void UserAnalog4_OnChange(void)
 {
 	if (botingame)
 		return;
-	if (cv_useranalog4.value)
+	/*if (cv_useranalog4.value)
 		CV_SetValue(&cv_analog4, 1);
 	else
-		CV_SetValue(&cv_analog4, 0);
+		CV_SetValue(&cv_analog4, 0);*/
 }
 
 static void Analog_OnChange(void)
@@ -1659,10 +1659,10 @@ static void Analog_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	if (!cv_chasecam.value && cv_analog.value) {
+	/*if (!cv_chasecam.value && cv_analog.value) {
 		CV_SetValue(&cv_analog, 0);
 		return;
-	}
+	}*/
 
 	if (cv_analog.value)
 		players[consoleplayer].pflags |= PF_ANALOGMODE;
@@ -1679,10 +1679,10 @@ static void Analog2_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	if (!cv_chasecam2.value && cv_analog2.value) {
+	/*if (!cv_chasecam2.value && cv_analog2.value) {
 		CV_SetValue(&cv_analog2, 0);
 		return;
-	}
+	}*/
 
 	if (cv_analog2.value)
 		players[secondarydisplayplayer].pflags |= PF_ANALOGMODE;
@@ -1699,10 +1699,10 @@ static void Analog3_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	if (!cv_chasecam3.value && cv_analog3.value) {
+	/*if (!cv_chasecam3.value && cv_analog3.value) {
 		CV_SetValue(&cv_analog3, 0);
 		return;
-	}
+	}*/
 
 	if (cv_analog3.value)
 		players[thirddisplayplayer].pflags |= PF_ANALOGMODE;
@@ -1719,10 +1719,10 @@ static void Analog4_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	if (!cv_chasecam4.value && cv_analog4.value) {
+	/*if (!cv_chasecam4.value && cv_analog4.value) {
 		CV_SetValue(&cv_analog4, 0);
 		return;
-	}
+	}*/
 
 	if (cv_analog4.value)
 		players[fourthdisplayplayer].pflags |= PF_ANALOGMODE;

@@ -2477,7 +2477,7 @@ static void P_LoadRecordGhosts(void)
 	// Guest ghost
 	if (cv_ghost_guest.value && FIL_FileExists(va("%s-guest.lmp", gpath)))
 		G_AddGhost(va("%s-guest.lmp", gpath));
-	
+
 	// Staff Attack ghosts
 	if (cv_ghost_staff.value)
 	{
@@ -2918,7 +2918,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 		if (!cv_cam2_height.changed)
 			CV_Set(&cv_cam2_height, cv_cam2_height.defaultvalue);
-		
+
 		if (!cv_cam_dist.changed)
 			CV_Set(&cv_cam_dist, cv_cam_dist.defaultvalue);
 
@@ -2938,14 +2938,14 @@ boolean P_SetupLevel(boolean skipprecip)
 		if (!cv_cam4_rotate.changed)
 			CV_Set(&cv_cam4_rotate, cv_cam4_rotate.defaultvalue);
 
-		if (!cv_analog.changed)
+		/*if (!cv_analog.changed)
 			CV_SetValue(&cv_analog, 0);
 		if (!cv_analog2.changed)
 			CV_SetValue(&cv_analog2, 0);
 		if (!cv_analog3.changed)
 			CV_SetValue(&cv_analog3, 0);
 		if (!cv_analog4.changed)
-			CV_SetValue(&cv_analog4, 0);
+			CV_SetValue(&cv_analog4, 0);*/
 
 #ifdef HWRENDER
 		if (rendermode != render_soft && rendermode != render_none)
@@ -2955,7 +2955,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		displayplayer = consoleplayer; // Start with your OWN view, please!
 	}
 
-	if (cv_useranalog.value)
+	/*if (cv_useranalog.value)
 		CV_SetValue(&cv_analog, true);
 
 	if ((splitscreen && cv_useranalog2.value) || botingame)
@@ -2973,7 +2973,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		CV_SetValue(&cv_analog3, false);
 		CV_SetValue(&cv_analog2, false);
 		CV_SetValue(&cv_analog, false);
-	}
+	}*/
 
 	// SRB2Kart: map load variables
 	if (modeattacking)
