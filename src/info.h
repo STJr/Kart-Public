@@ -3386,6 +3386,7 @@ typedef enum state
 	S_FLYINGGARG8,
 	S_LAMPPOST,
 	S_MOSSYTREE,
+
 	S_SHADOW,
 	S_WHITESHADOW,
 
@@ -4071,6 +4072,7 @@ typedef enum mobj_type
 	MT_FLYINGGARG,
 	MT_LAMPPOST,
 	MT_MOSSYTREE,
+
 	MT_SHADOW,
 
 	MT_BUMP,
