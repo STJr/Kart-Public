@@ -2576,15 +2576,15 @@ static void K_KartUpdatePosition(player_t *player)
 
 					mo = (mobj_t *)th;
 
+					if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
+						continue;
+
 					pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x,
 															mo->y - player->mo->y),
 															mo->z - player->mo->z) / FRACUNIT;
 					imo = P_AproxDistance(P_AproxDistance(	mo->x - players[i].mo->x,
 															mo->y - players[i].mo->y),
 															mo->z - players[i].mo->z) / FRACUNIT;
-
-					if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
-						continue;
 
 					if (mo->health == player->starpostnum)
 					{
