@@ -47,6 +47,7 @@ consvar_t cv_splats = {"splats", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0
 actioncache_t actioncachehead;
 
 static mobj_t *overlaycap = NULL;
+static mobj_t *shadowcap = NULL;
 
 void P_InitCachedActions(void)
 {
@@ -6246,62 +6247,96 @@ static void P_RemoveOverlay(mobj_t *thing)
 
 void P_RunShadows(void)
 {
-	thinker_t * th;
-	mobj_t * mobj;
+	mobj_t *mobj;
+	mobj_t *next;
 
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	for (mobj = shadowcap; mobj; mobj = next)
 	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
+		next = mobj->hnext;
+		P_SetTarget(&mobj->hnext, NULL);
 
-		mobj = (mobj_t *)th;
+		if (!mobj->target)
+			continue; // shouldn't you already be dead?
 
-		if (mobj->type != MT_SHADOW)
-			continue;
+		if ((mobj->target->flags2 & MF2_DONTDRAW)
+			|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
+			|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < mobj->target->floorz)))
+			mobj->flags2 |= MF2_DONTDRAW;
+		else
+			mobj->flags2 &= ~MF2_DONTDRAW;
 
-		if (mobj->target)
+		// First scale to the same radius
+		P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
+
+		P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+
+		if (mobj->floorz < mobj->z)
 		{
-			if ((mobj->target->flags2 & MF2_DONTDRAW)
-				|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
-				|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < mobj->target->floorz)))
-				mobj->flags2 |= MF2_DONTDRAW;
-			else
-				mobj->flags2 &= ~MF2_DONTDRAW;
+			INT32 i;
+			fixed_t prevz;
 
-			// First scale to the same radius
-			P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
+			mobj->z = mobj->floorz;
 
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
-
-			if (mobj->floorz < mobj->z)
+			for (i = 0; i < MAXFFLOORS; i++)
 			{
-				INT32 i;
-				fixed_t prevz;
+				prevz = mobj->z;
+
+				// Now scale again based on height difference
+				P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
+
+				// Check new position to see if you should still be on that ledge
+				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
 
 				mobj->z = mobj->floorz;
 
-				for (i = 0; i < MAXFFLOORS; i++)
-				{
-					prevz = mobj->z;
-
-					// Now scale again based on height difference
-					P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
-
-					// Check new position to see if you should still be on that ledge
-					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
-
-					mobj->z = mobj->floorz;
-
-					if (mobj->z == prevz)
-						break;
-				}
+				if (mobj->z == prevz)
+					break;
 			}
 		}
-		else
-		{
-			P_KillMobj(mobj, NULL, NULL);
-		}
 	}
+	P_SetTarget(&shadowcap, NULL);
+}
+
+// called whenever shadows think
+// It must be done this way so that level changes don't break when the shadowcap can't be reset
+static void P_AddShadow(mobj_t *thing)
+{
+	I_Assert(thing != NULL);
+
+	if (shadowcap == NULL)
+		P_SetTarget(&shadowcap, thing);
+	else {
+		mobj_t *mo;
+		for (mo = shadowcap; mo && mo->hnext; mo = mo->hnext)
+			;
+
+		I_Assert(mo != NULL);
+		I_Assert(mo->hnext == NULL);
+
+		P_SetTarget(&mo->hnext, thing);
+	}
+	P_SetTarget(&thing->hnext, NULL);
+}
+
+// Called only when MT_SHADOW (or anything else in the shadowcap list) is removed.
+// Keeps the hnext list from corrupting.
+static void P_RemoveShadow(mobj_t *thing)
+{
+	mobj_t *mo;
+	if (shadowcap == thing)
+	{
+		P_SetTarget(&shadowcap, thing->hnext);
+		P_SetTarget(&thing->hnext, NULL);
+		return;
+	}
+
+	for (mo = shadowcap; mo; mo = mo->hnext)
+		if (mo->hnext == thing)
+		{
+			P_SetTarget(&mo->hnext, thing->hnext);
+			P_SetTarget(&thing->hnext, NULL);
+			return;
+		}
 }
 
 void A_BossDeath(mobj_t *mo);
@@ -6499,6 +6534,15 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else
 					P_AddOverlay(mobj);
+				break;
+			case MT_SHADOW:
+				if (!mobj->target)
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				else
+					P_AddShadow(mobj);
 				break;
 			case MT_BLACKORB:
 			case MT_WHITEORB:
@@ -9006,6 +9050,9 @@ void P_RemoveMobj(mobj_t *mobj)
 
 	if (mobj->type == MT_OVERLAY)
 		P_RemoveOverlay(mobj);
+
+	if (mobj->type == MT_SHADOW)
+		P_RemoveShadow(mobj);
 
 	mobj->health = 0; // Just because
 
