@@ -7970,17 +7970,23 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BOMBITEM:
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
-				if (mobj->health > mobj->info->spawnhealth-1)
+				if (mobj->reactiontime >= mobj->info->reactiontime)
 				{
 					if (mobj->state == &states[S_BOMBAIR])
 						P_SetMobjState(mobj, S_BOMBITEM);
 
 					mobj->momx = mobj->momy = 0;
 					S_StartSound(mobj, mobj->info->activesound);
+					mobj->reactiontime--;
 				}
-				mobj->health--;
+			}
+			if (mobj->reactiontime && mobj->reactiontime < mobj->info->reactiontime)
+			{
+				mobj->reactiontime--;
+				if (!mobj->reactiontime)
+					P_KillMobj(mobj, NULL, NULL);
 			}
 			if (mobj->threshold > 0)
 				mobj->threshold--;

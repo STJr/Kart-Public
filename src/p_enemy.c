@@ -8273,20 +8273,11 @@ void A_BobombExplode(mobj_t *actor)
 
 	type = (mobjtype_t)locvar1;
 
-	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
-
-	if (actor->target->player)
-		K_SpawnBobombExplosion(actor, actor->target->player->skincolor);
-	else
-		K_SpawnBobombExplosion(actor, SKINCOLOR_RED);
-
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
-
-	//S_StartSound(actor, sfx_prloop);
-
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
+		if (P_MobjWasRemoved(actor))
+			return; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
+
 		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
 			continue;
 
@@ -8313,6 +8304,17 @@ void A_BobombExplode(mobj_t *actor)
 			continue;
 		}
 	}
+
+	for (d = 0; d < 16; d++)
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+
+	if (actor->target && actor->target->player)
+		K_SpawnBobombExplosion(actor, actor->target->player->skincolor);
+	else
+		K_SpawnBobombExplosion(actor, SKINCOLOR_RED);
+
+	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
+
 	return;
 }
 //}

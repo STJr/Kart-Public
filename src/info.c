@@ -14924,10 +14924,10 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_BOMBITEM
 		-1,             // doomednum
 		S_BOMBAIR,      // spawnstate
-		105,            // spawnhealth
+		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_tossed,     // seesound
-		8,              // reactiontime
+		105,            // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
 		288*FRACUNIT,   // painchance
@@ -14944,7 +14944,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_bomb,       // activesound
-		MF_BOUNCE|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE, // flags
+		MF_BOUNCE|MF_SHOOTABLE, // flags
 		S_NULL          // raisestate
 	},
 
