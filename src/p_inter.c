@@ -1553,8 +1553,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		}
 	}
 
-	S_StartSound(toucher, special->info->deathsound); // was NULL, but changed to player so you could hear others pick up rings
-	P_KillMobj(special, NULL, toucher);
+	if (!P_MobjWasRemoved(special))
+	{
+		S_StartSound(toucher, special->info->deathsound); // was NULL, but changed to player so you could hear others pick up rings
+		P_KillMobj(special, NULL, toucher);
+	}
 }
 
 //
