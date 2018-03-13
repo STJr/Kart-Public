@@ -2564,7 +2564,7 @@ state_t states[NUMSTATES] =
 	{SPR_RNDM, 21, 3, {NULL}, 0, 0, S_RANDOMITEM23}, // S_RANDOMITEM22
 	{SPR_RNDM, 22, 3, {NULL}, 0, 0, S_RANDOMITEM24}, // S_RANDOMITEM23
 	{SPR_RNDM, 23, 3, {NULL}, 0, 0, S_RANDOMITEM1},  // S_RANDOMITEM24
-	{SPR_RNDM,  0, 1, {A_ItemPop},      0, 0, S_NULL},         // S_DEADRANDOMITEM
+	{SPR_RNDM,  0, 1, {A_ItemPop}, 0, 0, S_NULL},    // S_DEADRANDOMITEM
 
 	{SPR_RPOP, FF_FULLBRIGHT,   5, {NULL}, 0, 0, S_RANDOMITEMPOP2}, // S_RANDOMITEMPOP1
 	{SPR_RPOP, FF_FULLBRIGHT|1, 5, {NULL}, 0, 0, S_RANDOMITEMPOP3}, // S_RANDOMITEMPOP2
@@ -14252,7 +14252,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
-		MT_FLINGRANDOMITEM, // reactiontime
+		0, // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
 		0,              // painchance
@@ -14267,48 +14267,21 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		36*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
-		0,              // damage
+		MT_RANDOMITEMPOP, // damage
 		sfx_None,       // activesound
 		MF_SLIDEME|MF_SPECIAL|MF_NOGRAVITY|MF_NOCLIPHEIGHT, // flags
 		S_NULL          // raisestate
 	},
 
-	{           // MT_FLINGRANDOMITEM
-		-1,             // doomednum
-		S_RANDOMITEM1,  // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		MT_FLINGRANDOMITEM, // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		MT_RANDOMITEM,  // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_DEADRANDOMITEM, // deathstate
-		S_NULL,         // xdeathstate
-		sfx_pop,        // deathsound
-		60*FRACUNIT,    // speed
-		31*FRACUNIT,    // radius
-		16*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_SLIDEME|MF_SPECIAL, // flags
-		S_NULL          // raisestate
-	},
-
 	{           // MT_RANDOMITEMPOP
 		-1,             // doomednum
-		S_SPRK1,        // spawnstate
+		S_INVISIBLE,    // spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
 		0,              // reactiontime
 		sfx_None,       // attacksound
-		S_SPRK1,        // painstate
+		S_NULL,         // painstate
 		0,              // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
@@ -14320,7 +14293,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset
-		100,            // mass
+		MT_SPARK,       // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOCLIP,      // flags

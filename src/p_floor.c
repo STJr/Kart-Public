@@ -1787,7 +1787,7 @@ static mobj_t *SearchMarioNode(msecnode_t *node)
 			break;
 		}
 		// Ignore popped monitors, too.
-		if (node->m_thing->flags & MF_MONITOR
+		if (node->m_thing->flags & MF_MONITOR || node->m_thing->type == MT_RANDOMITEM
 		&& node->m_thing->threshold == 68)
 			continue;
 		// Okay, we found something valid.

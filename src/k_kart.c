@@ -587,7 +587,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale 
+													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
 													* (pingame - players[i].kartstuff[k_position])
 													/ ((pingame - 1) * (pingame + 1) / 3);
 	}
@@ -654,7 +654,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	//}
 	/*else if (gametype == GT_NEO)
 	{
-		
+
 	}
 	else
 		CONS_Printf("ERROR: P_KartItemRoulette - There's no applicable game type!\n");
@@ -840,7 +840,7 @@ static void K_UpdateOffroad(player_t *player)
 		offroadstrength = 3;
 
 	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
-	//if ((nextsector->special & 256) && nextsector->special != 768 
+	//if ((nextsector->special & 256) && nextsector->special != 768
 	//	&& nextsector->special != 1024 && nextsector->special != 4864)
 	if (offroadstrength)
 	{
@@ -4227,7 +4227,7 @@ static void K_DrawKartPositionNum(INT32 num)
 			// Alternate frame every three frames
 			switch (leveltime % 21)
 			{
-				case 1: case 2: case 3: 
+				case 1: case 2: case 3:
 					localpatch = kp_winnernum[0];
 					break;
 				case 4: case 5: case 6:
@@ -4998,7 +4998,7 @@ void K_drawKartHUD(void)
 	{
 		if (leveltime < 178)
 			K_drawStartLakitu();
-			
+
 		if (stplyr->kartstuff[k_lapanimation])
 			K_drawLapLakitu();
 
