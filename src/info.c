@@ -14688,7 +14688,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_MINESHIELD
 		-1,             // doomednum
-		S_BOMBSHIELD1,  // spawnstate
+		S_MINESHIELD1,  // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14699,7 +14699,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_BOMBEXPLODE,  // deathstate
+		S_MINEEXPLODE,  // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		10*FRACUNIT,    // speed
@@ -14715,7 +14715,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_MINEITEM
 		-1,             // doomednum
-		S_BOMBAIR1,     // spawnstate
+		S_MINEAIR1,     // spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_tossed,     // seesound
@@ -14726,7 +14726,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_BOMBEXPLODE,  // deathstate
+		S_MINEEXPLODE,  // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		0,              // speed
@@ -14742,7 +14742,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_MINEEXPLOSION
 		-1,             // doomednum
-		S_BOMBEXPLOSION1,  // spawnstate
+		S_MINEEXPLOSION1,  // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14915,7 +14915,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_BOMBEXPLODE,  // deathstate
+		S_MINEEXPLODE,  // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		0,              // speed

@@ -841,7 +841,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (thing->type == MT_PLAYER && thing->player)
 		{
-			if (tmthing->state == &states[S_BOMBEXPLOSION1])
+			if (tmthing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(thing->player, tmthing->target);
 			else
 				K_SpinPlayer(thing->player, tmthing->target);
@@ -1167,7 +1167,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		else if (thing->type == MT_MINEEXPLOSION && tmthing->player)
 		{
 			// Player Damage
-			if (thing->state == &states[S_BOMBEXPLOSION1])
+			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target);
 			else
 				K_SpinPlayer(tmthing->player, thing->target);
