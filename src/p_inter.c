@@ -161,9 +161,6 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // No balloons in Match
 		return false;
 
-	if (player->kartstuff[k_magnettimer]) // You should probably collect stuff when you're attracting it :V
-		return true;
-
 	if (player->kartstuff[k_bootaketimer]				|| player->kartstuff[k_boostolentimer]
 		|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_goldshroomtimer]) // Item-specific timer going off
 		return false;
@@ -417,7 +414,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	switch (special->type)
 	{
 		case MT_RANDOMITEM:			// SRB2kart
-		case MT_FLINGRANDOMITEM:
 			if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
 			{
 				if (player->kartstuff[k_comebackmode] == 0 && !player->kartstuff[k_comebacktimer])
@@ -450,7 +446,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			special->momx = special->momy = special->momz = 0;
 			P_SetTarget(&special->target, toucher);
-			P_SetMobjState(special, special->info->deathstate);
+			P_KillMobj(special, toucher, toucher);
 			break;
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //
@@ -1553,8 +1549,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		}
 	}
 
-	S_StartSound(toucher, special->info->deathsound); // was NULL, but changed to player so you could hear others pick up rings
-	P_KillMobj(special, NULL, toucher);
+	if (!P_MobjWasRemoved(special))
+	{
+		S_StartSound(toucher, special->info->deathsound); // was NULL, but changed to player so you could hear others pick up rings
+		P_KillMobj(special, NULL, toucher);
+	}
 }
 
 //
@@ -2125,7 +2124,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	// if killed by a player
 	if (source && source->player)
 	{
-		if (target->flags & MF_MONITOR)
+		if (target->flags & MF_MONITOR || target->type == MT_RANDOMITEM)
 		{
 			P_SetTarget(&target->target, source);
 			source->player->numboxes++;

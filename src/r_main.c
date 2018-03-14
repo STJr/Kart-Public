@@ -234,36 +234,36 @@ void SplitScreen_OnChange(void)
 
 static void ChaseCam_OnChange(void)
 {
-	if (!cv_chasecam.value || !cv_useranalog.value)
+	/*if (!cv_chasecam.value || !cv_useranalog.value)
 		CV_SetValue(&cv_analog, 0);
 	else
-		CV_SetValue(&cv_analog, 1);
+		CV_SetValue(&cv_analog, 1);*/
 }
 
 static void ChaseCam2_OnChange(void)
 {
 	if (botingame)
 		return;
-	if (!cv_chasecam2.value || !cv_useranalog2.value)
+	/*if (!cv_chasecam2.value || !cv_useranalog2.value)
 		CV_SetValue(&cv_analog2, 0);
 	else
-		CV_SetValue(&cv_analog2, 1);
+		CV_SetValue(&cv_analog2, 1);*/
 }
 
 static void ChaseCam3_OnChange(void)
 {
-	if (!cv_chasecam3.value || !cv_useranalog3.value)
+	/*if (!cv_chasecam3.value || !cv_useranalog3.value)
 		CV_SetValue(&cv_analog3, 0);
 	else
-		CV_SetValue(&cv_analog3, 1);
+		CV_SetValue(&cv_analog3, 1);*/
 }
 
 static void ChaseCam4_OnChange(void)
 {
-	if (!cv_chasecam4.value || !cv_useranalog4.value)
+	/*if (!cv_chasecam4.value || !cv_useranalog4.value)
 		CV_SetValue(&cv_analog4, 0);
 	else
-		CV_SetValue(&cv_analog4, 1);
+		CV_SetValue(&cv_analog4, 1);*/
 }
 
 static void FlipCam_OnChange(void)
