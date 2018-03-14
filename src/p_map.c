@@ -388,7 +388,7 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 		else
 		{
 			if (sonic-players == consoleplayer && botingame)
-				CV_SetValue(&cv_analog2, false);
+				//CV_SetValue(&cv_analog2, false);
 			P_ResetPlayer(sonic);
 			P_SetTarget(&sonic->mo->tracer, tails->mo);
 			sonic->pflags |= PF_CARRIED;
@@ -401,7 +401,7 @@ static void P_DoTailsCarry(player_t *sonic, player_t *tails)
 	}
 	else {
 		if (sonic-players == consoleplayer && botingame)
-			CV_SetValue(&cv_analog2, true);
+			//CV_SetValue(&cv_analog2, true);
 		sonic->pflags &= ~PF_CARRIED;
 	}
 }
@@ -1574,7 +1574,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 	else if (thing->player) {
 		if (thing->player-players == consoleplayer && botingame)
-			CV_SetValue(&cv_analog2, true);
+			//CV_SetValue(&cv_analog2, true);
 		thing->player->pflags &= ~PF_CARRIED;
 	}*/
 

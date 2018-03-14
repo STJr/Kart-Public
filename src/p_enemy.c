@@ -740,8 +740,7 @@ static boolean P_LookForShield(mobj_t *actor)
 			(actor->type == MT_BLUETEAMRING && player->ctfteam != 2))
 			continue;
 
-		// SRB2kart - magnet item
-		if (player->kartstuff[k_attractiontimer] //(player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
+		if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT
 			&& (P_AproxDistance(P_AproxDistance(actor->x-player->mo->x, actor->y-player->mo->y), actor->z-player->mo->z) < FixedMul(RING_DIST/4, player->mo->scale)))
 		{
 			P_SetTarget(&actor->tracer, player->mo);
@@ -3615,7 +3614,7 @@ void A_AttractChase(mobj_t *actor)
 
 	// Turn flingrings back into regular rings if attracted.
 	if (actor->tracer && actor->tracer->player
-		&& actor->tracer->player->kartstuff[k_attractiontimer] //&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT
+		&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) != SH_ATTRACT
 		&& actor->info->reactiontime && actor->type != (mobjtype_t)actor->info->reactiontime)
 	{
 		mobj_t *newring;
@@ -3629,9 +3628,7 @@ void A_AttractChase(mobj_t *actor)
 
 	P_LookForShield(actor); // Go find 'em, boy!
 
-	if (actor->tracer && actor->tracer->player && actor->tracer->player->kartstuff[k_comebackmode] == 1)
-		;
-	else if (!actor->tracer
+	if (!actor->tracer
 		|| !actor->tracer->player
 		|| !actor->tracer->health
 		|| !P_CheckSight(actor, actor->tracer)) // You have to be able to SEE it...sorta
@@ -8096,6 +8093,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
+	mobjtype_t explode;
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_ItemPop", actor))
 		return;
@@ -8109,12 +8107,24 @@ void A_ItemPop(mobj_t *actor)
 	}
 
 	// de-solidify
-	//P_UnsetThingPosition(actor);
-	//actor->flags &= ~MF_SOLID;
-	//actor->flags |= MF_NOCLIP;
-	//P_SetThingPosition(actor);
+	P_UnsetThingPosition(actor);
+	actor->flags &= ~MF_SOLID;
+	actor->flags |= MF_NOCLIP;
+	P_SetThingPosition(actor);
 
-	remains = P_SpawnMobj(actor->x, actor->y, actor->z, MT_RANDOMITEMPOP);
+	// item explosion
+	explode = mobjinfo[actor->info->damage].mass;
+	remains = P_SpawnMobj(actor->x, actor->y,
+		((actor->eflags & MFE_VERTICALFLIP) ? (actor->z + 3*(actor->height/4) - FixedMul(mobjinfo[explode].height, actor->scale)) : (actor->z + actor->height/4)), explode);
+	if (actor->eflags & MFE_VERTICALFLIP)
+	{
+		remains->eflags |= MFE_VERTICALFLIP;
+		remains->flags2 |= MF2_OBJECTFLIP;
+	}
+	remains->destscale = actor->destscale;
+	P_SetScale(remains, actor->scale);
+
+	remains = P_SpawnMobj(actor->x, actor->y, actor->z, actor->info->damage);
 	remains->type = actor->type; // Transfer type information
 	P_UnsetThingPosition(remains);
 	if (sector_list)
@@ -8122,24 +8132,20 @@ void A_ItemPop(mobj_t *actor)
 		P_DelSeclist(sector_list);
 		sector_list = NULL;
 	}
-	remains->flags = actor->flags; // Transfer flags
 	P_SetThingPosition(remains);
+	remains->destscale = actor->destscale;
+	P_SetScale(remains, actor->scale);
+	remains->flags = actor->flags; // Transfer flags
 	remains->flags2 = actor->flags2; // Transfer flags2
 	remains->fuse = actor->fuse; // Transfer respawn timer
 	remains->threshold = 68;
 	remains->skin = NULL;
+	remains->spawnpoint = actor->spawnpoint;
 
-	actor->flags2 |= MF2_BOSSNOTRAP; // Dummy flag to mark this as an exploded TV until it respawns
-	tmthing = remains;
+	P_SetTarget(&tmthing, remains);
 
 	if (actor->info->deathsound)
 		S_StartSound(remains, actor->info->deathsound);
-
-	if (actor->type != MT_RANDOMITEM)
-	{
-		P_RemoveMobj(actor);
-		return;
-	}
 
 	actor->target->player->kartstuff[k_itemroulette] = 1;
 
@@ -8269,20 +8275,11 @@ void A_MineExplode(mobj_t *actor)
 
 	type = (mobjtype_t)locvar1;
 
-	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
-
-	if (actor->target->player)
-		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
-	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
-
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
-
-	//S_StartSound(actor, sfx_prloop);
-
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
+		if (P_MobjWasRemoved(actor))
+			return; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
+
 		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
 			continue;
 
@@ -8309,6 +8306,17 @@ void A_MineExplode(mobj_t *actor)
 			continue;
 		}
 	}
+
+	for (d = 0; d < 16; d++)
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+
+	if (actor->target && actor->target->player)
+		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
+	else
+		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+
+	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
+
 	return;
 }
 //}
