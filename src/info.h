@@ -586,7 +586,7 @@ typedef enum sprite
 	SPR_DSMO, // Drift Smoke
 
 	// Kart Items
-	SPR_FITM, // Fake Item
+	SPR_FITM, // Eggman Monitor
  	SPR_BANA, // Banana Peel
 	SPR_GSHE, // Orbinaut
 	SPR_RSHE, // Jawz
@@ -3115,7 +3115,7 @@ typedef enum state
 	S_INVULNFLASH3,
 	S_INVULNFLASH4,
 
-	//{ Fake Item
+	//{ Eggman Monitor
 	S_FAKEITEM1,
 	S_FAKEITEM2,
 	S_FAKEITEM3,

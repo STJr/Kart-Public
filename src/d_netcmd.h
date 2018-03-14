@@ -110,7 +110,7 @@ extern consvar_t cv_recycler;*/
 
 // SRB2kart items
 extern consvar_t cv_sneaker, cv_rocketsneaker, cv_invincibility, cv_banana;
-extern consvar_t cv_fakeitem, cv_orbinaut, cv_jawz, cv_mine;
+extern consvar_t cv_eggmanmonitor, cv_orbinaut, cv_jawz, cv_mine;
 extern consvar_t cv_ballhog, cv_selfpropelledbomb, cv_grow, cv_shrink;
 extern consvar_t cv_lightningshield, cv_hyudoro, cv_pogospring;
 

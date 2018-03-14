@@ -1512,7 +1512,7 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Invinciblity",		&cv_invincibility,     34},
 	{IT_STRING | IT_CVAR, NULL, "Bananas",				&cv_banana,            42},
 	{IT_STRING | IT_CVAR, NULL, "Triple Bananas",		&cv_triplebanana,      50},
-	{IT_STRING | IT_CVAR, NULL, "Fake Items",			&cv_fakeitem,          58},
+	{IT_STRING | IT_CVAR, NULL, "Eggman Monitors",		&cv_eggmanmonitor,     58},
 	{IT_STRING | IT_CVAR, NULL, "Orbinauts",			&cv_orbinaut,          66},
 	{IT_STRING | IT_CVAR, NULL, "Triple Orbinauts",	&cv_tripleorbinaut,    74},
 	{IT_STRING | IT_CVAR, NULL, "Jawz",				&cv_jawz,              82},

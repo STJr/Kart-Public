@@ -297,7 +297,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_rocketsneaker);
 	CV_RegisterVar(&cv_invincibility);
 	CV_RegisterVar(&cv_banana);
-	CV_RegisterVar(&cv_fakeitem);
+	CV_RegisterVar(&cv_eggmanmonitor);
 	CV_RegisterVar(&cv_orbinaut);
 	CV_RegisterVar(&cv_jawz);
 	CV_RegisterVar(&cv_mine);
@@ -371,7 +371,7 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTRESULTS][9] =
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0, 4, 6, 8 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 8,12 }, // Invincibility
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-			 /*Fake Item*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
+		/*Eggman Monitor*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Eggman Monitor
 			  /*Orbinaut*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
@@ -397,7 +397,7 @@ static INT32 K_KartItemOddsBalloons[NUMKARTRESULTS][5] =
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 1, 1, 0, 0, 0 }, // Invincibility
 				/*Banana*/ { 0, 0, 3, 1, 1 }, // Banana
-			 /*Fake Item*/ { 0, 0, 2, 2, 1 }, // Fake Item
+		/*Eggman Monitor*/ { 0, 0, 2, 2, 1 }, // Eggman Monitor
 			  /*Orbinaut*/ { 0, 0, 5, 3, 1 }, // Orbinaut
 				  /*Jawz*/ { 0, 3, 3, 1, 0 }, // Jawz
 				  /*Mine*/ { 0, 3, 3, 0, 0 }, // Mine
@@ -493,8 +493,8 @@ static INT32 K_KartGetItemOdds(UINT8 pos, INT8 item, player_t *player)
 		case KITEM_BANANA:
 			if (!cv_banana.value) newodds = 0;
 			break;
-		case KITEM_FAKE:
-			if (!cv_fakeitem.value) newodds = 0;
+		case KITEM_EGGMAN:
+			if (!cv_eggmanmonitor.value) newodds = 0;
 			break;
 		case KITEM_ORBINAUT:
 			if (!cv_orbinaut.value) newodds = 0;
@@ -604,7 +604,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
 	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)
-		|| ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_fakeitem] || player->kartstuff[k_itemheld])
+		|| ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld])
 		&& player->kartstuff[k_itemroulette] >= roulettestop)))
 		return;
 
@@ -715,7 +715,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	SETITEMRESULT(useodds, KITEM_ROCKETSNEAKER);	// Rocket Sneaker
 	SETITEMRESULT(useodds, KITEM_INVINCIBILITY);	// Invincibility
 	SETITEMRESULT(useodds, KITEM_BANANA);			// Banana
-	SETITEMRESULT(useodds, KITEM_FAKE);				// Fake Item
+	SETITEMRESULT(useodds, KITEM_EGGMAN);			// Eggman Monitor
 	SETITEMRESULT(useodds, KITEM_ORBINAUT);			// Orbinaut
 	SETITEMRESULT(useodds, KITEM_JAWZ);				// Jawz
 	SETITEMRESULT(useodds, KITEM_MINE);				// Mine
@@ -2667,7 +2667,7 @@ static void K_StripItems(player_t *player)
 	player->kartstuff[k_growshrinktimer] = 0;
 	player->kartstuff[k_attractiontimer] = 0;
 	player->kartstuff[k_invincibilitytimer] = 0;
-	player->kartstuff[k_fakeitem] = 0;
+	player->kartstuff[k_eggmanheld] = 0;
 	player->kartstuff[k_sadtimer] = 0;
 }
 //
@@ -2677,7 +2677,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 {
 	ticcmd_t *cmd = &player->cmd;
 	boolean ATTACK_IS_DOWN = ((cmd->buttons & BT_ATTACK) && !(player->pflags & PF_ATTACKDOWN));
-	boolean HOLDING_ITEM = (player->kartstuff[k_itemheld] || player->kartstuff[k_fakeitem]);
+	boolean HOLDING_ITEM = (player->kartstuff[k_itemheld] || player->kartstuff[k_eggmanheld]);
 	boolean NO_HYUDORO = (player->kartstuff[k_stolentimer] == 0 && player->kartstuff[k_stealingtimer] == 0);
 
 	K_KartUpdatePosition(player);
@@ -2712,12 +2712,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	if (player && player->mo && player->mo->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
-		// Fake Item dropping
-		if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_fakeitem])
+		// Eggman Monitor dropping
+		if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_eggmanheld])
 		{
 			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
 			K_PlayTauntSound(player->mo);
-			player->kartstuff[k_fakeitem] = 0;
+			player->kartstuff[k_eggmanheld] = 0;
 		}
 		// Rocket Sneaker power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
@@ -2837,7 +2837,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							player->kartstuff[k_itemheld] = 0;
 					}
 					break;
-				case KITEM_FAKE:
+				case KITEM_EGGMAN:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						angle_t newangle;
@@ -2845,7 +2845,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						fixed_t newy;
 						mobj_t *mo;
 						player->kartstuff[k_itemamount]--;
-						player->kartstuff[k_fakeitem] = 1;
+						player->kartstuff[k_eggmanheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
 						newangle = player->mo->angle;
 						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
@@ -3392,7 +3392,7 @@ static patch_t *kp_sneaker;
 static patch_t *kp_rocketsneaker;
 static patch_t *kp_invincibility[7];
 static patch_t *kp_banana;
-static patch_t *kp_fakeitem;
+static patch_t *kp_eggman;
 static patch_t *kp_orbinaut;
 static patch_t *kp_jawz;
 static patch_t *kp_mine;
@@ -3509,7 +3509,7 @@ void K_LoadKartHUDGraphics(void)
 		kp_invincibility[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 	kp_banana =					W_CachePatchName("K_ITBANA", PU_HUDGFX);
-	kp_fakeitem =				W_CachePatchName("K_ITFAKE", PU_HUDGFX);
+	kp_eggman =					W_CachePatchName("K_ITEGGM", PU_HUDGFX);
 	kp_orbinaut =				W_CachePatchName("K_ITORBN", PU_HUDGFX);
 	kp_jawz =					W_CachePatchName("K_ITJAWZ", PU_HUDGFX);
 	kp_mine =					W_CachePatchName("K_ITMINE", PU_HUDGFX);
@@ -3707,7 +3707,7 @@ static void K_drawKartItem(void)
 			case  8: localpatch = kp_selfpropelledbomb; break;	// Self-Propelled Bomb
 			case  9: localpatch = kp_shrink; break;			// Shrink
 			case 10: localpatch = localinv; break;				// Invincibility
-			case 11: localpatch = kp_fakeitem; break;			// Fake Item
+			case 11: localpatch = kp_eggman; break;			// Eggman Monitor
 			case 12: localpatch = kp_ballhog; break;			// Ballhog
 			case 13: localpatch = kp_lightningshield; break;	// Lightning Shield
 			//case 14: localpatch = kp_pogospring; break;		// Pogo Spring
@@ -3760,7 +3760,7 @@ static void K_drawKartItem(void)
 				case KITEM_ROCKETSNEAKER:		localpatch = kp_rocketsneaker; break;
 				case KITEM_INVINCIBILITY:		localpatch = localinv; localbg = kp_itembgdark; break;
 				case KITEM_BANANA:				localpatch = kp_banana; break;
-				case KITEM_FAKE:				localpatch = kp_fakeitem; break;
+				case KITEM_EGGMAN:				localpatch = kp_eggman; break;
 				case KITEM_ORBINAUT:			localpatch = kp_orbinaut; break;
 				case KITEM_JAWZ:				localpatch = kp_jawz; break;
 				case KITEM_MINE:				localpatch = kp_mine; break;

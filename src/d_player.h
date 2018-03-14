@@ -238,7 +238,7 @@ typedef enum
 	KITEM_ROCKETSNEAKER,
 	KITEM_INVINCIBILITY,
 	KITEM_BANANA,
-	KITEM_FAKE,
+	KITEM_EGGMAN,
 	KITEM_ORBINAUT,
 	KITEM_JAWZ,
 	KITEM_MINE,
@@ -306,7 +306,7 @@ typedef enum
 	k_squishedtimer,		// Squished frame timer
 	k_rocketsneakertimer,	// Rocket Sneaker duration timer
 	k_invincibilitytimer,	// Invincibility timer
-	k_fakeitem,				// Fake item held, separate from itemtype so it doesn't stop you from getting items
+	k_eggmanheld,			// Eggman monitor held, separate from itemtype so it doesn't stop you from getting items
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_justbumped,			// Prevent players from endlessly bumping into each other
 	k_poweritemtimer,		// Battle mode, how long before you're allowed another power item (Invincibility, Grow)

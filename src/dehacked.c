@@ -6277,7 +6277,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_INVULNFLASH3",
 	"S_INVULNFLASH4",
 
-	//{ Fake Item
+	//{ Eggman Monitor
 	"S_FAKEITEM1",
 	"S_FAKEITEM2",
 	"S_FAKEITEM3",

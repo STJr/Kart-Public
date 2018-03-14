@@ -2031,8 +2031,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	// I wish I knew a better way to do this
 	if (target->target && target->target->player && target->target->player->mo)
 	{
-		if (target->target->player->kartstuff[k_fakeitem] && target->type == MT_FAKESHIELD)
-			target->target->player->kartstuff[k_fakeitem] = 0;
+		if (target->target->player->kartstuff[k_eggmanheld] && target->type == MT_FAKESHIELD)
+			target->target->player->kartstuff[k_eggmanheld] = 0;
 
 		if ((target->target->player->kartstuff[k_itemheld])
 			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)

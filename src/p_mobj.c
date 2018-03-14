@@ -6686,7 +6686,7 @@ void P_MobjThinker(mobj_t *mobj)
 						|| (mobj->type == MT_REDSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
 						|| (mobj->type == MT_BANANASHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
 						|| (mobj->type == MT_MINESHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
-						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_fakeitem])
+						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_eggmanheld])
 						|| (mobj->type != MT_FAKESHIELD && !mobj->target->player->kartstuff[k_itemheld])
 						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))
 					{
