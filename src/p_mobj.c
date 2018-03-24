@@ -47,6 +47,7 @@ consvar_t cv_splats = {"splats", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0
 actioncache_t actioncachehead;
 
 static mobj_t *overlaycap = NULL;
+static mobj_t *shadowcap = NULL;
 
 void P_InitCachedActions(void)
 {
@@ -1371,7 +1372,6 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 			{
 				case MT_FLINGRING:
 				case MT_FLINGCOIN:
-				case MT_FLINGRANDOMITEM: // SRB2kart
 				case MT_FLINGEMERALD:
 				case MT_BOUNCERING:
 				case MT_RAILRING:
@@ -2357,7 +2357,6 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_BLUETEAMRING:
 		case MT_FLINGRING:
 		case MT_FLINGCOIN:
-		case MT_FLINGRANDOMITEM:
 		case MT_FLINGEMERALD:
 			// Remove flinged stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
@@ -2550,7 +2549,6 @@ static boolean P_ZMovement(mobj_t *mo)
 			// Flingrings bounce
 			if (mo->type == MT_FLINGRING
 				|| mo->type == MT_FLINGCOIN
-				|| mo->type == MT_FLINGRANDOMITEM
 				|| P_WeaponOrPanel(mo->type)
 				|| mo->type == MT_FLINGEMERALD
 				|| mo->type == MT_BIGTUMBLEWEED
@@ -5968,9 +5966,6 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 	fixed_t ty = dest->y;
 	fixed_t tz = dest->z + (dest->height/2); // Aim for center
 
-	if (source->type == MT_RANDOMITEM || source->type == MT_FLINGRANDOMITEM) // SRB2kart - item boxes are sorta tall
-		tz = dest->z;
-
 	if (!dest || dest->health <= 0 || !dest->player || !source->tracer)
 		return;
 
@@ -6252,62 +6247,96 @@ static void P_RemoveOverlay(mobj_t *thing)
 
 void P_RunShadows(void)
 {
-	thinker_t * th;
-	mobj_t * mobj;
+	mobj_t *mobj;
+	mobj_t *next;
 
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	for (mobj = shadowcap; mobj; mobj = next)
 	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
+		next = mobj->hnext;
+		P_SetTarget(&mobj->hnext, NULL);
 
-		mobj = (mobj_t *)th;
+		if (!mobj->target)
+			continue; // shouldn't you already be dead?
 
-		if (mobj->type != MT_SHADOW)
-			continue;
+		if ((mobj->target->flags2 & MF2_DONTDRAW)
+			|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
+			|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < mobj->target->floorz)))
+			mobj->flags2 |= MF2_DONTDRAW;
+		else
+			mobj->flags2 &= ~MF2_DONTDRAW;
 
-		if (mobj->target)
+		// First scale to the same radius
+		P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
+
+		P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+
+		if (mobj->floorz < mobj->z)
 		{
-			if ((mobj->target->flags2 & MF2_DONTDRAW)
-				|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
-				|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < mobj->target->floorz)))
-				mobj->flags2 |= MF2_DONTDRAW;
-			else
-				mobj->flags2 &= ~MF2_DONTDRAW;
+			INT32 i;
+			fixed_t prevz;
 
-			// First scale to the same radius
-			P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
+			mobj->z = mobj->floorz;
 
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
-
-			if (mobj->floorz < mobj->z)
+			for (i = 0; i < MAXFFLOORS; i++)
 			{
-				INT32 i;
-				fixed_t prevz;
+				prevz = mobj->z;
+
+				// Now scale again based on height difference
+				P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
+
+				// Check new position to see if you should still be on that ledge
+				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
 
 				mobj->z = mobj->floorz;
 
-				for (i = 0; i < MAXFFLOORS; i++)
-				{
-					prevz = mobj->z;
-
-					// Now scale again based on height difference
-					P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
-
-					// Check new position to see if you should still be on that ledge
-					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
-
-					mobj->z = mobj->floorz;
-
-					if (mobj->z == prevz)
-						break;
-				}
+				if (mobj->z == prevz)
+					break;
 			}
 		}
-		else
-		{
-			P_KillMobj(mobj, NULL, NULL);
-		}
 	}
+	P_SetTarget(&shadowcap, NULL);
+}
+
+// called whenever shadows think
+// It must be done this way so that level changes don't break when the shadowcap can't be reset
+static void P_AddShadow(mobj_t *thing)
+{
+	I_Assert(thing != NULL);
+
+	if (shadowcap == NULL)
+		P_SetTarget(&shadowcap, thing);
+	else {
+		mobj_t *mo;
+		for (mo = shadowcap; mo && mo->hnext; mo = mo->hnext)
+			;
+
+		I_Assert(mo != NULL);
+		I_Assert(mo->hnext == NULL);
+
+		P_SetTarget(&mo->hnext, thing);
+	}
+	P_SetTarget(&thing->hnext, NULL);
+}
+
+// Called only when MT_SHADOW (or anything else in the shadowcap list) is removed.
+// Keeps the hnext list from corrupting.
+static void P_RemoveShadow(mobj_t *thing)
+{
+	mobj_t *mo;
+	if (shadowcap == thing)
+	{
+		P_SetTarget(&shadowcap, thing->hnext);
+		P_SetTarget(&thing->hnext, NULL);
+		return;
+	}
+
+	for (mo = shadowcap; mo; mo = mo->hnext)
+		if (mo->hnext == thing)
+		{
+			P_SetTarget(&mo->hnext, thing->hnext);
+			P_SetTarget(&thing->hnext, NULL);
+			return;
+		}
 }
 
 void A_BossDeath(mobj_t *mo);
@@ -6505,6 +6534,15 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else
 					P_AddOverlay(mobj);
+				break;
+			case MT_SHADOW:
+				if (!mobj->target)
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				else
+					P_AddShadow(mobj);
 				break;
 			case MT_BLACKORB:
 			case MT_WHITEORB:
@@ -7696,7 +7734,6 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BLUEBALL:
 		case MT_REDTEAMRING:
 		case MT_BLUETEAMRING:
-		case MT_RANDOMITEM:
 			// No need to check water. Who cares?
 			P_RingThinker(mobj);
 			if (mobj->flags2 & MF2_NIGHTSPULL)
@@ -7707,7 +7744,6 @@ void P_MobjThinker(mobj_t *mobj)
 		// Flung items
 		case MT_FLINGRING:
 		case MT_FLINGCOIN:
-		case MT_FLINGRANDOMITEM:
 			if (mobj->flags2 & MF2_NIGHTSPULL)
 				P_NightsItemChase(mobj);
 			else
@@ -7934,17 +7970,23 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BOMBITEM:
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
-				if (mobj->health > mobj->info->spawnhealth-1)
+				if (mobj->reactiontime >= mobj->info->reactiontime)
 				{
 					if (mobj->state == &states[S_BOMBAIR])
 						P_SetMobjState(mobj, S_BOMBITEM);
 
 					mobj->momx = mobj->momy = 0;
 					S_StartSound(mobj, mobj->info->activesound);
+					mobj->reactiontime--;
 				}
-				mobj->health--;
+			}
+			if (mobj->reactiontime && mobj->reactiontime < mobj->info->reactiontime)
+			{
+				mobj->reactiontime--;
+				if (!mobj->reactiontime)
+					P_KillMobj(mobj, NULL, NULL);
 			}
 			if (mobj->threshold > 0)
 				mobj->threshold--;
@@ -8239,6 +8281,20 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 					}
 					P_RemoveMobj(mobj); // make sure they disappear
 					return;
+				case MT_RANDOMITEM:
+					// Respawn from mapthing if you have one!
+					if (mobj->spawnpoint)
+					{
+						P_SpawnMapThing(mobj->spawnpoint);
+						newmobj = mobj->spawnpoint->mobj; // this is set to the new mobj in P_SpawnMapThing
+					}
+					else
+						newmobj = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->type);
+
+					// Transfer flags2 (strongbox, objectflip)
+					newmobj->flags2 = mobj->flags2;
+					P_RemoveMobj(mobj); // make sure they disappear
+					return;
 				case MT_METALSONIC_BATTLE:
 					break; // don't remove
 				case MT_SPIKE:
@@ -8293,7 +8349,6 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 #ifdef ESLOPE // Sliding physics for slidey mobjs!
 	if (mobj->type == MT_FLINGRING
 		|| mobj->type == MT_FLINGCOIN
-		|| mobj->type == MT_FLINGRANDOMITEM
 		|| P_WeaponOrPanel(mobj->type)
 		|| mobj->type == MT_FLINGEMERALD
 		|| mobj->type == MT_BIGTUMBLEWEED
@@ -8737,12 +8792,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_BANANAITEM:				case MT_BANANASHIELD:
 		case MT_TRIPLEBANANASHIELD1: 	case MT_TRIPLEBANANASHIELD2: 	case MT_TRIPLEBANANASHIELD3:
 		case MT_GREENITEM:				case MT_GREENSHIELD:
-		case MT_TRIPLEGREENSHIELD1: 	case MT_TRIPLEGREENSHIELD2: 	case MT_TRIPLEGREENSHIELD3: 
-		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD: 
+		case MT_TRIPLEGREENSHIELD1: 	case MT_TRIPLEGREENSHIELD2: 	case MT_TRIPLEGREENSHIELD3:
+		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD:
 		case MT_TRIPLEREDSHIELD1: 		case MT_TRIPLEREDSHIELD2: 		case MT_TRIPLEREDSHIELD3:
 		case MT_BATTLEBALLOON:			case MT_FIREBALL:
-		case MT_FAKEITEM: 				case MT_FAKESHIELD: 
-		case MT_BOMBITEM: 				case MT_BOMBSHIELD: 
+		case MT_FAKEITEM: 				case MT_FAKESHIELD:
+		case MT_BOMBITEM: 				case MT_BOMBSHIELD:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;
@@ -8985,7 +9040,6 @@ void P_RemoveMobj(mobj_t *mobj)
 	if (mobj->spawnpoint &&
 		(mobj->type == MT_RING
 		|| mobj->type == MT_COIN
-		|| mobj->type == MT_RANDOMITEM
 		|| mobj->type == MT_BLUEBALL
 		|| mobj->type == MT_REDTEAMRING
 		|| mobj->type == MT_BLUETEAMRING
@@ -9002,6 +9056,9 @@ void P_RemoveMobj(mobj_t *mobj)
 
 	if (mobj->type == MT_OVERLAY)
 		P_RemoveOverlay(mobj);
+
+	if (mobj->type == MT_SHADOW)
+		P_RemoveShadow(mobj);
 
 	mobj->health = 0; // Just because
 
@@ -9499,7 +9556,7 @@ void P_RespawnBattleSpecials(void)
 		// pull it from the que
 		iquetail = (iquetail+1)&(ITEMQUESIZE-1);
 	}
-	
+
 	numgotboxes = 0;
 }
 
@@ -10963,7 +11020,7 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 		mthing->mobj = mobj;
 	}
 	// All manners of rings and coins
-	else if (mthing->type == mobjinfo[MT_RING].doomednum || mthing->type == mobjinfo[MT_COIN].doomednum || mthing->type == mobjinfo[MT_RANDOMITEM].doomednum ||
+	else if (mthing->type == mobjinfo[MT_RING].doomednum || mthing->type == mobjinfo[MT_COIN].doomednum ||
 	         mthing->type == mobjinfo[MT_REDTEAMRING].doomednum || mthing->type == mobjinfo[MT_BLUETEAMRING].doomednum)
 	{
 		mobjtype_t ringthing = MT_RING;
@@ -10983,9 +11040,6 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 				break;
 			case 309: // No team rings in non-CTF
 				ringthing = (gametype == GT_CTF) ? MT_BLUETEAMRING : MT_RING;
-				break;
-			case 2000: // SRB2kart
-				ringthing = MT_RANDOMITEM;
 				break;
 			default:
 				// Spawn rings as blue spheres in special stages, ala S3+K.

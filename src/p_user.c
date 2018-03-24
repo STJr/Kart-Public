@@ -889,8 +889,8 @@ void P_ResetPlayer(player_t *player)
 	player->powers[pw_tailsfly] = 0;
 	player->onconveyor = 0;
 	player->skidtime = 0;
-	if (player-players == consoleplayer && botingame)
-		CV_SetValue(&cv_analog2, true);
+	/*if (player-players == consoleplayer && botingame)
+		CV_SetValue(&cv_analog2, true);*/
 }
 
 //
@@ -3738,8 +3738,8 @@ void P_DoJump(player_t *player, boolean soundandstate)
 		{
 			player->mo->momz = 9*FRACUNIT;
 			player->pflags &= ~PF_CARRIED;
-			if (player-players == consoleplayer && botingame)
-				CV_SetValue(&cv_analog2, true);
+			/*if (player-players == consoleplayer && botingame)
+				CV_SetValue(&cv_analog2, true);*/
 		}
 		else if (player->pflags & PF_ITEMHANG)
 		{
@@ -8110,7 +8110,7 @@ static void P_DeathThink(player_t *player)
 				curlap = 0;
 		}
 	}
-	
+
 	if ((G_RaceGametype() || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
 	{
 		// Return to level music
@@ -9137,7 +9137,7 @@ static void P_CalcPostImg(player_t *player)
 			*param = 5;
 	}
 #endif
-	
+
 	if (mirrormode) // srb2kart
 		*type = postimg_mirror;
 }
@@ -9444,7 +9444,7 @@ void P_PlayerThink(player_t *player)
 			mo2 = (mobj_t *)th;
 
 			if (!(mo2->type == MT_NIGHTSWING || mo2->type == MT_RING || mo2->type == MT_COIN
-			   || mo2->type == MT_BLUEBALL || mo2->type == MT_RANDOMITEM))
+			   || mo2->type == MT_BLUEBALL))
 				continue;
 
 			if (P_AproxDistance(P_AproxDistance(mo2->x - x, mo2->y - y), mo2->z - z) > FixedMul(128*FRACUNIT, player->mo->scale))
@@ -9971,8 +9971,8 @@ void P_PlayerAfterThink(player_t *player)
 
 		P_SetPlayerMobjState(player->mo, S_PLAY_CARRY);
 
-		if (player-players == consoleplayer && botingame)
-			CV_SetValue(&cv_analog2, !(player->pflags & PF_CARRIED));
+		//if (player-players == consoleplayer && botingame)
+			//CV_SetValue(&cv_analog2, !(player->pflags & PF_CARRIED));
 	}
 	else if (player->pflags & PF_ITEMHANG && player->mo->tracer)
 	{

@@ -5815,9 +5815,15 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FIREBALL2",
 	"S_FIREBALL3",
 	"S_FIREBALL4",
+	"S_FIREBALL5",
+	"S_FIREBALL6",
+	"S_FIREBALL7",
 	"S_FIREBALLEXP1",
 	"S_FIREBALLEXP2",
 	"S_FIREBALLEXP3",
+	"S_FIREBALLEXP4",
+	"S_FIREBALLEXP5",
+	"S_FIREBALLEXP6",
 	"S_SHELL",
 	"S_SHELL1",
 	"S_SHELL2",
@@ -6410,6 +6416,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BATTLEBALLOON2",
 	"S_BATTLEBALLOON3",
 
+	// Lakitu
+	"S_LAKITU1",
+	"S_LAKITU2",
+
 	// Pokey
 	"S_POKEY1",
 	"S_POKEY2",
@@ -6420,6 +6430,130 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_POKEY7",
 	"S_POKEY8",
 	"S_POKEYIDLE",
+
+	// Audience Members
+	"S_RANDOMAUDIENCE",
+	"S_AUDIENCE_TOAD1",
+	"S_AUDIENCE_TOAD2",
+	"S_AUDIENCE_BOO1",
+	"S_AUDIENCE_BOO2",
+	"S_AUDIENCE_GMBA1",
+	"S_AUDIENCE_GMBA2",
+	"S_AUDIENCE_SHYG1",
+	"S_AUDIENCE_SHYG2",
+	"S_AUDIENCE_SNIF1",
+	"S_AUDIENCE_SNIF2",
+
+	"S_FANCHAR_KOTE",
+	"S_FANCHAR_RYAN",
+	"S_FANCHAR_WENDY",
+	"S_FANCHAR_FREEZOR",
+	"S_FANCHAR_METALKO",
+	"S_FANCHAR_BLACKOUT",
+	"S_FANCHAR_BLADE",
+	"S_FANCHAR_HINOTE",
+
+	// 1.0 Kart Decoratives
+	"S_FLAYM1",
+	"S_FLAYM2",
+	"S_FLAYM3",
+	"S_FLAYM4",
+	"S_DEVIL",
+	"S_ANGEL",
+	"S_PALMTREE",
+	"S_FLAG",
+	"S_HEDGEHOG", // (Rimshot)
+	"S_BUSH1",
+	"S_TWEE",
+	"S_HYDRANT",
+
+	// New Misc Decorations
+	"S_BIGPUMA1",
+	"S_BIGPUMA2",
+	"S_BIGPUMA3",
+	"S_BIGPUMA4",
+	"S_BIGPUMA5",
+	"S_BIGPUMA6",
+	"S_APPLE1",
+	"S_APPLE2",
+	"S_APPLE3",
+	"S_APPLE4",
+	"S_APPLE5",
+	"S_APPLE6",
+	"S_APPLE7",
+	"S_APPLE8",
+
+	// D00Dkart - Fall Flowers
+	"S_DOOD_FLOWER1",
+	"S_DOOD_FLOWER2",
+	"S_DOOD_FLOWER3",
+	"S_DOOD_FLOWER4",
+	"S_DOOD_FLOWER5",
+	"S_DOOD_FLOWER6",
+
+	// D00Dkart - Super Circuit Box
+	"S_DOOD_BOX1",
+	"S_DOOD_BOX2",
+	"S_DOOD_BOX3",
+	"S_DOOD_BOX4",
+	"S_DOOD_BOX5",
+
+	// D00Dkart - Diddy Kong Racing Balloon
+	"S_DOOD_BALLOON",
+
+	// D00Dkart - Big Ring
+	"S_DOOD_RING1",
+	"S_DOOD_RING2",
+	"S_DOOD_RING3",
+	"S_DOOD_RING4",
+	"S_DOOD_RING5",
+
+	// SNES Objects
+	"S_SNES_DONUTBUSH1",
+	"S_SNES_DONUTBUSH2",
+	"S_SNES_DONUTBUSH3",
+
+	// GBA Objects
+	"S_GBA_BOO1",
+	"S_GBA_BOO2",
+	"S_GBA_BOO3",
+	"S_GBA_BOO4",
+
+	// Sapphire Coast Mobs
+	"S_BUZZBOMBER_LOOK1",
+	"S_BUZZBOMBER_LOOK2",
+	"S_BUZZBOMBER_FLY1",
+	"S_BUZZBOMBER_FLY2",
+	"S_BUZZBOMBER_FLY3",
+	"S_BUZZBOMBER_FLY4",
+
+	"S_CHOMPER_SPAWN",
+	"S_CHOMPER_HOP1",
+	"S_CHOMPER_HOP2",
+	"S_CHOMPER_TURNAROUND",
+
+	"S_PALMTREE2",
+	"S_PURPLEFLOWER1",
+	"S_PURPLEFLOWER2",
+	"S_YELLOWFLOWER1",
+	"S_YELLOWFLOWER2",
+	"S_PLANT2",
+	"S_PLANT3",
+	"S_PLANT4",
+
+	// Crystal Abyss Mobs
+	"S_SKULL",
+	"S_PHANTREE",
+	"S_FLYINGGARG1",
+	"S_FLYINGGARG2",
+	"S_FLYINGGARG3",
+	"S_FLYINGGARG4",
+	"S_FLYINGGARG5",
+	"S_FLYINGGARG6",
+	"S_FLYINGGARG7",
+	"S_FLYINGGARG8",
+	"S_LAMPPOST",
+	"S_MOSSYTREE",
 
 	"S_SHADOW",
 	"S_WHITESHADOW",
@@ -6981,7 +7115,6 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_INVISSPRING",
 	"MT_BLUEDIAG",
 	"MT_RANDOMITEM",
-	"MT_FLINGRANDOMITEM",
 	"MT_RANDOMITEMPOP",
 
 	"MT_MUSHROOMTRAIL",
@@ -7032,14 +7165,72 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_LAKITU",
 
 	"MT_POKEY", // Huh, thought this was a default asset for some reason, guess not.
+
 	"MT_ENEMYFLIP",
 	"MT_WAYPOINT",
+
+	"MT_RANDOMAUDIENCE",
+	"MT_FANCHAR_KOTE",
+	"MT_FANCHAR_RYAN",
+	"MT_FANCHAR_WENDY",
+	"MT_FANCHAR_FREEZOR",
+	"MT_FANCHAR_METALKO",
+	"MT_FANCHAR_BLACKOUT",
+	"MT_FANCHAR_BLADE",
+	"MT_FANCHAR_HINOTE",
+
+	"MT_FLAYM",
+	"MT_DEVIL",
+	"MT_ANGEL",
+	"MT_PALMTREE",
+	"MT_FLAG",
+	"MT_HEDGEHOG",
+	"MT_BUSH1",
+	"MT_TWEE",
+	"MT_HYDRANT",
+
+	"MT_BIGPUMA",
+	"MT_APPLE",
+
+	"MT_DOOD_FLOWER1",
+	"MT_DOOD_FLOWER2",
+	"MT_DOOD_FLOWER3",
+	"MT_DOOD_FLOWER4",
+	"MT_DOOD_BOX",
+	"MT_DOOD_BALLOON",
+	"MT_DOOD_RING",
+
+	"MT_SNES_DONUTBUSH1",
+	"MT_SNES_DONUTBUSH2",
+	"MT_SNES_DONUTBUSH3",
+
+	"MT_GBA_BOO",
+
+	"MT_BUZZBOMBER",
+	"MT_CHOMPER",
+	"MT_PALMTREE2",
+	"MT_PURPLEFLOWER1",
+	"MT_PURPLEFLOWER2",
+	"MT_YELLOWFLOWER1",
+	"MT_YELLOWFLOWER2",
+	"MT_PLANT2",
+	"MT_PLANT3",
+	"MT_PLANT4",
+
+	"MT_SKULL",
+	"MT_PHANTREE",
+	"MT_FLYINGGARG",
+	"MT_LAMPPOST",
+	"MT_MOSSYTREE",
+
 	"MT_SHADOW",
 
 	"MT_BUMP",
 
+	"MT_FLINGENERGY",
+
 	"MT_ITEMCLASH",
-	
+
 	"MT_FIREDITEM",
 
 	"MT_PLAYERARROW",
