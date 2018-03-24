@@ -585,6 +585,8 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
 	}
 
+dontplay:
+
 	if (splitscreen > 1 && listenmobj3) // Copy the sound for the third player
 	{
 		// Check to see if it is audible, and if not, modify the params
@@ -594,7 +596,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 			rc = S_AdjustSoundParams(listenmobj3, origin, &volume, &sep, &pitch, sfx);
 
 			if (!rc)
-				goto dontplay; // Maybe the other player can hear it...
+				goto dontplay3; // Maybe the other player can hear it...
 
 			if (origin->x == listener3.x && origin->y == listener3.y)
 				sep = NORM_SEP;
@@ -603,7 +605,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 			// Do not play origin-less sounds for the second player.
 			// The first player will be able to hear it just fine,
 			// we really don't want it playing twice.
-			goto dontplay;
+			goto dontplay3;
 		else
 			sep = NORM_SEP;
 
@@ -638,6 +640,8 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		// mix/output buffer.
 		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
 	}
+
+dontplay3:
 
 	if (splitscreen > 2 && listenmobj4) // Copy the sound for the split player
 	{
@@ -648,7 +652,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 			rc = S_AdjustSoundParams(listenmobj4, origin, &volume, &sep, &pitch, sfx);
 
 			if (!rc)
-				goto dontplay; // Maybe the other player can hear it...
+				goto dontplay4; // Maybe the other player can hear it...
 
 			if (origin->x == listener4.x && origin->y == listener4.y)
 				sep = NORM_SEP;
@@ -657,7 +661,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 			// Do not play origin-less sounds for the second player.
 			// The first player will be able to hear it just fine,
 			// we really don't want it playing twice.
-			goto dontplay;
+			goto dontplay4;
 		else
 			sep = NORM_SEP;
 
@@ -693,7 +697,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
 	}
 
-dontplay:
+dontplay4:
 
 	// Check to see if it is audible, and if not, modify the params
 	if (origin && origin != listenmobj)
@@ -1015,83 +1019,69 @@ void S_UpdateSounds(void)
 					|| (splitscreen > 2 && c->origin != players[fourthdisplayplayer].mo)))
 				{
 					// Whomever is closer gets the sound, but only in splitscreen.
-					if (listenmobj && listenmobj2 && splitscreen)
+					if (splitscreen)
 					{
 						const mobj_t *soundmobj = c->origin;
+						fixed_t recdist;
+						INT32 i, p = -1;
 
-						fixed_t dist1, dist2;
-						dist1 = P_AproxDistance(listener.x-soundmobj->x, listener.y-soundmobj->y);
-						dist2 = P_AproxDistance(listener2.x-soundmobj->x, listener2.y-soundmobj->y);
-
-						if (dist1 <= dist2)
+						for (i = 0; i < 4; i++)
 						{
-							// Player 1 gets the sound
-							audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
-								c->sfxinfo);
-						}
-						else
-						{
-							// Player 2 gets the sound
-							audible = S_AdjustSoundParams(listenmobj2, c->origin, &volume, &sep, &pitch,
-								c->sfxinfo);
-						}
+							fixed_t thisdist;
 
-						if (audible)
-							I_UpdateSoundParams(c->handle, volume, sep, pitch);
-						else
-							S_StopChannel(cnum);
-					}
-					else if (listenmobj && listenmobj3 && splitscreen > 1) // TODO: make 3/4P compare their distances with all players, not just the first player and themselves V:
-					{
-						const mobj_t *soundmobj = c->origin;
+							if (i > splitscreen)
+								break;
 
-						fixed_t dist1, dist2;
-						dist1 = P_AproxDistance(listener.x-soundmobj->x, listener.y-soundmobj->y);
-						dist2 = P_AproxDistance(listener3.x-soundmobj->x, listener3.y-soundmobj->y);
+							if (i == 0 && listenmobj)
+								thisdist = P_AproxDistance(listener.x-soundmobj->x, listener.y-soundmobj->y);
+							else if (i == 1 && listenmobj2)
+								thisdist = P_AproxDistance(listener2.x-soundmobj->x, listener2.y-soundmobj->y);
+							else if (i == 2 && listenmobj3)
+								thisdist = P_AproxDistance(listener3.x-soundmobj->x, listener3.y-soundmobj->y);
+							else if (i == 3 && listenmobj4)
+								thisdist = P_AproxDistance(listener4.x-soundmobj->x, listener4.y-soundmobj->y);
+							else
+								continue;
 
-						if (dist1 <= dist2)
-						{
-							// Player 1 gets the sound
-							audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
-								c->sfxinfo);
-						}
-						else
-						{
-							// Player 3 gets the sound
-							audible = S_AdjustSoundParams(listenmobj3, c->origin, &volume, &sep, &pitch,
-								c->sfxinfo);
+							if (recdist == NULL || (thisdist != NULL && thisdist < recdist))
+							{
+								recdist = thisdist;
+								p = i;
+							}
 						}
 
-						if (audible)
-							I_UpdateSoundParams(c->handle, volume, sep, pitch);
-						else
-							S_StopChannel(cnum);
-					}
-					else if (listenmobj && listenmobj4 && splitscreen > 2)
-					{
-						const mobj_t *soundmobj = c->origin;
-
-						fixed_t dist1, dist2;
-						dist1 = P_AproxDistance(listener.x-soundmobj->x, listener.y-soundmobj->y);
-						dist2 = P_AproxDistance(listener4.x-soundmobj->x, listener4.y-soundmobj->y);
-
-						if (dist1 <= dist2)
+						if (p != -1)
 						{
-							// Player 1 gets the sound
-							audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
+							if (p == 0)
+							{
+								// Player 1 gets the sound
+								audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
+									c->sfxinfo);
+							}
+							else if (p == 1)
+							{
+								// Player 2 gets the sound
+								audible = S_AdjustSoundParams(listenmobj2, c->origin, &volume, &sep, &pitch,
+									c->sfxinfo);
+							}
+							else if (p == 2)
+							{
+								// Player 3 gets the sound
+								audible = S_AdjustSoundParams(listenmobj3, c->origin, &volume, &sep, &pitch,
 								c->sfxinfo);
-						}
-						else
-						{
-							// Player 4 gets the sound
-							audible = S_AdjustSoundParams(listenmobj4, c->origin, &volume, &sep, &pitch,
-								c->sfxinfo);
-						}
+							}
+							else if (p == 3)
+							{
+								// Player 4 gets the sound
+								audible = S_AdjustSoundParams(listenmobj4, c->origin, &volume, &sep, &pitch,
+									c->sfxinfo);
+							}
 
-						if (audible)
-							I_UpdateSoundParams(c->handle, volume, sep, pitch);
-						else
-							S_StopChannel(cnum);
+							if (audible)
+								I_UpdateSoundParams(c->handle, volume, sep, pitch);
+							else
+								S_StopChannel(cnum);
+						}
 					}
 					else if (listenmobj && !splitscreen)
 					{
