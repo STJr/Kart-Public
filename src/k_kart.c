@@ -3225,14 +3225,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->kartstuff[k_bootimer] > 0)
 		{
-			if ((player == &players[displayplayer]
-				|| (splitscreen && player == &players[secondarydisplayplayer])
-				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-				|| (!(player == &players[displayplayer]
-				|| (splitscreen && player == &players[secondarydisplayplayer])
-				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
+			if ((player == &players[displayplayer] && !splitscreen)
+				|| (!(player == &players[displayplayer] && !splitscreen)
 				&& (player->kartstuff[k_bootimer] < 1*TICRATE/2 || player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
 			{
 				if (leveltime & 1)
