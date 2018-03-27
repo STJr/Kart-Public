@@ -4757,7 +4757,7 @@ static void K_drawKartMinimap(void)
 	x = MINI_X - (AutomapPic->width/2);
 	y = MINI_Y - (AutomapPic->height/2);
 
-	if (splitscreen == 2)
+	if (splitscreen)
 		splitflags = 0;
 
 	if (mirrormode)
@@ -4765,7 +4765,7 @@ static void K_drawKartMinimap(void)
 	else
 		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
 
-	if (splitscreen != 2)
+	if (!splitscreen)
 	{
 		splitflags &= ~minimaptrans;
 		splitflags |= V_HUDTRANSHALF;
@@ -4774,13 +4774,28 @@ static void K_drawKartMinimap(void)
 	// Player's tiny icons on the Automap.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (i == displayplayer && splitscreen != 2)
+		if (i == displayplayer && !splitscreen)
 			continue; // Do displayplayer later
 		if (players[i].mo && !players[i].spectator)
+		{
+			if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
+				continue;
+
+			if (players[i].kartstuff[k_bootimer] > 0)
+			{
+				if ((players[i].kartstuff[k_bootimer] < 1*TICRATE/2
+					|| players[i].kartstuff[k_bootimer] > bootime-(1*TICRATE/2))
+					&& !(leveltime & 1))
+					;
+				else
+					continue;
+			}
+
 			K_drawKartMinimapHead(&players[i], x, y, splitflags, AutomapPic);
+		}
 	}
 
-	if (splitscreen == 2)
+	if (splitscreen)
 		return; // Don't need this for splits
 
 	splitflags &= ~V_HUDTRANSHALF;
@@ -4793,13 +4808,18 @@ static void K_drawBattleFullscreen(void)
 {
 	INT32 x = BASEVIDWIDTH/2;
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
+	INT32 splitflags = V_SNAPTOTOP; // I don't feel like properly supporting non-green resolutions, so you can have a misuse of SNAPTO instead
 	fixed_t scale = FRACUNIT;
 
 	if (splitscreen)
 	{
 		if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
-			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])))
+			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer]
+			|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))))
+		{
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
+			splitflags = V_SNAPTOBOTTOM;
+		}
 		else
 			y = -32+(stplyr->kartstuff[k_cardanimation]/2);
 
@@ -4807,7 +4827,8 @@ static void K_drawBattleFullscreen(void)
 		{
 			scale /= 2;
 
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+			if (stplyr == &players[secondarydisplayplayer]
+				|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))
 				x = 3*BASEVIDWIDTH/4;
 			else
 				x = BASEVIDWIDTH/4;
@@ -4826,9 +4847,9 @@ static void K_drawBattleFullscreen(void)
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen();
 		if (stplyr->kartstuff[k_balloon])
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewin, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
 		else if (splitscreen < 2)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlelose, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlelose, NULL);
 	}
 	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
@@ -4852,23 +4873,24 @@ static void K_drawBattleFullscreen(void)
 			if (splitscreen > 2)
 				ty = (BASEVIDHEIGHT/4)+33;
 			if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
-				|| stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				|| (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
+				|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))
 				ty += (BASEVIDHEIGHT/2);
 		}
 		else
 			V_DrawFadeScreen();
 
 		if (!comebackshowninfo)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battleinfo, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battleinfo, NULL);
 		else
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewait, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewait, NULL);
 
 		if (splitscreen > 1)
-			V_DrawString(x-(txoff/2), ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawString(x-(txoff/2), ty, splitflags, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		else
 		{
-			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, K_calcSplitFlags(0), kp_timeoutsticker, NULL);
-			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, K_calcSplitFlags(splitflags), kp_timeoutsticker, NULL);
+			V_DrawKartString(x-txoff, ty, splitflags, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		}
 	}
 }
@@ -4998,9 +5020,13 @@ void K_drawKartHUD(void)
 		&& comeback
 		&& stplyr->playerstate == PST_LIVE)))
 	{
+		if (splitscreen == 2)
+			K_drawKartMinimap();
 		K_drawBattleFullscreen();
 		return;
 	}
+	else if (splitscreen == 2)
+		K_drawKartMinimap();
 
 	// Draw Lakitu
 	// This is done first so that regardless of HUD layers,
@@ -5018,8 +5044,8 @@ void K_drawKartHUD(void)
 			K_drawKartPlayerCheck();
 	}
 
-	if ((splitscreen == 0 && cv_kartminimap.value) || splitscreen == 2)
-		K_drawKartMinimap();
+	if (splitscreen == 0 && cv_kartminimap.value)
+		K_drawKartMinimap(); // 3P splitscreen is handled above
 
 	// If the item window is closing, draw it closing!
 	if (stplyr->kartstuff[k_itemclose])
