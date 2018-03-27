@@ -991,7 +991,7 @@ static void P_LoadThings(void)
 			|| mt->type == 1702) // MT_AXISTRANSFERLINE
 			continue; // These were already spawned
 
-		if (mt->type == MT_RANDOMITEM) // MT_RANDOMITEM
+		if (mt->type == mobjinfo[MT_RANDOMITEM].doomednum)
 			nummapboxes++;
 
 		mt->mobj = NULL;

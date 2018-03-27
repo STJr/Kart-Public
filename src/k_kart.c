@@ -3266,6 +3266,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 			if (player->kartstuff[k_comebacktimer] > 0)
 			{
+				if (player->mo->tracer->state != &states[S_PLAYERBOMB])
+					P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
+
 				if (player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
 					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
 				else
@@ -3273,15 +3276,23 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 				player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 			}
-			else if (player->kartstuff[k_comebackmode] != 0)
-				player->mo->tracer->flags2 |= MF2_DONTDRAW;
 			else
+			{
+				if (player->kartstuff[k_comebackmode] == 0
+					&& player->mo->tracer->state != &states[S_PLAYERBOMB])
+					P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
+				else if (player->kartstuff[k_comebackmode] == 1
+					&& player->mo->tracer->state != &states[S_PLAYERITEM])
+					P_SetMobjState(player->mo->tracer, S_PLAYERITEM);
 				player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
+			}
 		}
 		else if (G_RaceGametype() || player->kartstuff[k_balloon] > 0)
 		{
 			player->mo->flags2 &= ~MF2_SHADOW;
-			if (player->mo->tracer && player->mo->tracer->state == &states[S_PLAYERBOMB])
+			if (player->mo->tracer
+				&& (player->mo->tracer->state == &states[S_PLAYERBOMB]
+				|| player->mo->tracer->state == &states[S_PLAYERITEM]))
 				P_RemoveMobj(player->mo->tracer);
 		}
 	}

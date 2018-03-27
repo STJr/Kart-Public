@@ -158,8 +158,8 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	//if (player->powers[pw_flashing] > (flashingtics/4)*3 && player->powers[pw_flashing] <= flashingtics)
 	//	return false;
 
-	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // No balloons in Match
-		return false;
+	/*if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // No balloons in Match
+		return false;*/
 
 	if (player->kartstuff[k_bootaketimer]				|| player->kartstuff[k_boostolentimer]
 		|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_goldshroomtimer]) // Item-specific timer going off
@@ -414,34 +414,15 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	switch (special->type)
 	{
 		case MT_RANDOMITEM:			// SRB2kart
+			if (!P_CanPickupItem(player, false))
+				return;
+
 			if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
 			{
-				if (player->kartstuff[k_comebackmode] == 0 && !player->kartstuff[k_comebacktimer])
-				{
-					if (special->tracer)
-						return;
-					P_SetTarget(&special->tracer, toucher);
+				if (player->kartstuff[k_comebackmode] == 1 || player->kartstuff[k_comebacktimer])
+					return;
+				if (player->kartstuff[k_comebackmode] == 0)
 					player->kartstuff[k_comebackmode] = 1;
-				}
-				return;
-			}
-
-			if (!P_CanPickupItem(player, false) && special->tracer != toucher)
-				return;
-
-			if (G_BattleGametype() && special->tracer && special->tracer->player)
-			{
-				special->tracer->player->kartstuff[k_comebackmode] = 0;
-
-				special->tracer->player->kartstuff[k_comebackpoints]++;
-
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->tracer->player-players], player_names[player-players]);
-
-				if (special->tracer->player->kartstuff[k_comebackpoints] >= 3)
-					K_StealBalloon(special->tracer->player, player, true);
-
-				special->tracer->player->kartstuff[k_comebacktimer] = comebacktime;
 			}
 
 			special->momx = special->momy = special->momz = 0;
@@ -2128,7 +2109,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		{
 			P_SetTarget(&target->target, source);
 			source->player->numboxes++;
-			if ((cv_itemrespawn.value && gametype != GT_COOP && (modifiedgame || netgame || multiplayer)))
+			if (cv_itemrespawn.value && (netgame || multiplayer))
 			{
 				target->fuse = cv_itemrespawntime.value*TICRATE + 2; // Random box generation
 			}

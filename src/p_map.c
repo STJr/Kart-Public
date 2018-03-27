@@ -1653,30 +1653,57 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				|| thing->player->kartstuff[k_bootimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_startimer] || thing->player->kartstuff[k_justbumped]
 				|| (G_BattleGametype() && (thing->player->kartstuff[k_balloon] <= 0
-				&& (thing->player->kartstuff[k_comebacktimer] || thing->player->kartstuff[k_comebackmode] == 1)))
+				&& (thing->player->kartstuff[k_comebacktimer])))
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
 				|| tmthing->player->kartstuff[k_bootimer] || tmthing->player->kartstuff[k_spinouttimer]
 				|| tmthing->player->kartstuff[k_startimer] || tmthing->player->kartstuff[k_justbumped]
 				|| (G_BattleGametype() && (tmthing->player->kartstuff[k_balloon] <= 0
-				&& (tmthing->player->kartstuff[k_comebacktimer] || tmthing->player->kartstuff[k_comebackmode] == 1))))
+				&& (tmthing->player->kartstuff[k_comebacktimer]))))
 			{
 				return true;
 			}
 
 			if (G_BattleGametype())
 			{
-				if ((thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebackmode] == 0)
-					|| (tmthing->player->kartstuff[k_balloon] <= 0 && tmthing->player->kartstuff[k_comebackmode] == 0))
+				if (thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
 				{
-					if (tmthing->player->kartstuff[k_balloon] > 0)
+					if (thing->player->kartstuff[k_comebackmode] == 0
+						&& tmthing->player->kartstuff[k_balloon] > 0)
 					{
 						K_ExplodePlayer(tmthing->player, thing);
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
-					else if (thing->player->kartstuff[k_balloon] > 0)
+					else if (tmthing->player->kartstuff[k_comebackmode] == 0
+						&& thing->player->kartstuff[k_balloon] > 0)
 					{
 						K_ExplodePlayer(thing->player, tmthing);
+						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
+						return true;
+					}
+					else if (thing->player->kartstuff[k_comebackmode] == 1
+						&& tmthing->player->kartstuff[k_balloon] > 0)
+					{
+						thing->player->kartstuff[k_comebackmode] = 0;
+						thing->player->kartstuff[k_comebackpoints]++;
+						if (netgame && cv_hazardlog.value)
+							CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
+						tmthing->player->kartstuff[k_itemroulette] = 1;
+						if (thing->player->kartstuff[k_comebackpoints] >= 3)
+							K_StealBalloon(thing->player, tmthing->player, true);
+						thing->player->kartstuff[k_comebacktimer] = comebacktime;
+						return true;
+					}
+					else if (tmthing->player->kartstuff[k_comebackmode] == 1
+						&& thing->player->kartstuff[k_balloon] > 0)
+					{
+						tmthing->player->kartstuff[k_comebackmode] = 0;
+						tmthing->player->kartstuff[k_comebackpoints]++;
+						if (netgame && cv_hazardlog.value)
+							CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
+						thing->player->kartstuff[k_itemroulette] = 1;
+						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
+							K_StealBalloon(tmthing->player, thing->player, true);
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}

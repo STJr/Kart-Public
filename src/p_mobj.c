@@ -5969,13 +5969,6 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 	if (!dest || dest->health <= 0 || !dest->player || !source->tracer)
 		return;
 
-	if (dest->player && dest->player->kartstuff[k_comebackmode] == 1)
-	{
-		P_TeleportMove(source, dest->x+dest->momx, dest->y+dest->momy, dest->z+dest->momz);
-		source->angle = dest->angle;
-		return;
-	}
-
 	// change angle
 	source->angle = R_PointToAngle2(source->x, source->y, tx, ty);
 
@@ -8282,6 +8275,12 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 					P_RemoveMobj(mobj); // make sure they disappear
 					return;
 				case MT_RANDOMITEM:
+					if (G_BattleGametype() && numgotboxes < (4*nummapboxes/5))
+					{
+						mobj->fuse = 2;
+						break;
+					}
+					numgotboxes = 0;
 					// Respawn from mapthing if you have one!
 					if (mobj->spawnpoint)
 					{
