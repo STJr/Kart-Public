@@ -451,55 +451,72 @@ boolean F_IntroResponder(event_t *event)
 //  CREDITS
 // =========
 static const char *credits[] = {
-	"\1Sonic Robo Blast II Kart",
+	"\1SRBTwo Kart",
 	"\1Credits",
 	"",
 	"\1Game Design",
-	"\"Iceman404\"",
+	"\"Iceman404\" aka \"VelocitOni\"",
 	"\"ZarroTsu\"",
 	"\"Chaos Zero 64\"",
 	"",
 	"\1Programming",
+	"\"Sryder\"",
+	"\"wolfs\"",
 	"\"ZarroTsu\"",
-	"\"Sryder13\"",
-	"\"Monster Iestyn\"",
-	"\"JTE\"", // Did they do anything for Kart, or was it just TD?
-	"\"Wolfy\"",
-	"\"toaster\"",
-	"\"Chaos Zero 64\"",
 	"Sally \"TehRealSalt\" Cochenour",
 	"\"Lat\'\"",
+	"\"Chaos Zero 64\"",
+	"\"Monster Iestyn\"",
+	"Vivian \"toaster\" Grannell",
 	"",
 	"\1Artists",
 	"\"Iceman404\"",
 	"\"Blade\"",
 	"\"CoatRack\"",
+	"James \"SeventhSentinel\" Hall",
 	"Sally \"TehRealSalt\" Cochenour", // Eggman
+	"\"Chaos Zero 64\"",
+	"\"ZarroTsu\"",
+	"\"Spherallic\"",
 	"",
 	"\1Music and Sound",
-	"\1Production",
 	"\"Charyb\"",
 	"James \"SeventhSentinel\" Hall",
+	"Karl Brueggemann",
+	"\"MaxieDaMan\"",
 	"",
 	"\1Level Design",
-	"\"Boinciel\"",
-	"\"Blade\"",
-	"\"CoatRack\"",
 	"\"Blitz-T\"",
 	"\"Chromatian\"",
-	"\"Tyrannosaur Chao\"",
+	"\"Sryder\"",
+	"\"Blade\"",
+	"\"CoatRack\"",
+	"\"Boinciel\"",
 	"\"Ryuspark\"",
+	"\"ZarroTsu\"",
+	"\"Tyrannosaur Chao\" aka \"Chaotic Chao\"",
 	"James \"SeventhSentinel\" Hall",
 	"Sally \"TehRealSalt\" Cochenour",
+	"\"Chaos Zero 64\"",
+	"\"D00D64-X\"",
+	"\"Simsmagic\"",
 	"",
-	//"\1Testing", // Should we have this? If so, please gimmie who would be on here
-	//"",
+	"\1Testing",
+	"\"Jeck Jims\"",
+	"\"Fooruman\"",
+	"\"CyberIF\"",
+	"\"Dani\"",
+	"\"VirtAnderson\"",
+	"",
 	"\1Special Thanks",
 	"Sonic Team Jr. & SRB2",
 	"Bandit \"Bippy\" Cochenour", // i <3 my dog
 	"",
 	"\1Produced By",
 	"Kart Krew",
+	"",
+	"\1In Memory of",
+	"\"Tyler52\"",
 	"",
 	"\1Thank you",
 	"\1for playing!",
@@ -510,7 +527,7 @@ static struct {
 	UINT32 x, y;
 	const char *patch;
 } credits_pics[] = {
-	{  8, 80+200* 1, "CREDIT01"},
+	/*{  8, 80+200* 1, "CREDIT01"},
 	{  4, 80+200* 2, "CREDIT13"},
 	{250, 80+200* 3, "CREDIT12"},
 	{  8, 80+200* 4, "CREDIT03"},
@@ -518,10 +535,8 @@ static struct {
 	{  8, 80+200* 6, "CREDIT04"},
 	{112, 80+200* 7, "CREDIT10"},
 	{240, 80+200* 8, "CREDIT05"},
-	{120, 80+200* 9, "CREDIT06"},
-	{  8, 80+200*10, "CREDIT07"},
-	{  8, 80+200*11, "CREDIT08"},
-	{112, 80+200*12, "CREDIT09"},
+	{120, 80+200* 9, "CREDIT06"},*/
+	{112, 80+200*10, "TYLER52"},
 	{0, 0, NULL}
 };
 
@@ -563,7 +578,13 @@ void F_CreditDrawer(void)
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
-	// Draw background pictures first
+	// Draw background
+	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(animtimer%280, 280)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
+
+	V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(animtimer%70, 70)), V_SNAPTOTOP, ttcheckers, FRACUNIT);
+	V_DrawSciencePatch(280<<FRACBITS, 0 - FixedMul(40<<FRACBITS, FixedDiv(animtimer%70, 70)), V_SNAPTOTOP, ttcheckers, FRACUNIT);
+
+	// Draw pictures
 	for (i = 0; credits_pics[i].patch; i++)
 		V_DrawSciencePatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), FRACUNIT>>1);
 
