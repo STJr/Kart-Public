@@ -5006,6 +5006,9 @@ void K_drawKartHUD(void)
 	// This is handled by console/menu values
 	K_initKartHUD();
 
+	if (splitscreen == 2) // Player 4 in 3P is basically the minimap :p
+		K_drawKartMinimap();
+
 	// Draw full screen stuff that turns off the rest of the HUD
 	if ((G_BattleGametype())
 		&& (stplyr->exiting
@@ -5014,13 +5017,9 @@ void K_drawKartHUD(void)
 		&& comeback
 		&& stplyr->playerstate == PST_LIVE)))
 	{
-		if (splitscreen == 2)
-			K_drawKartMinimap();
 		K_drawBattleFullscreen();
 		return;
 	}
-	else if (splitscreen == 2)
-		K_drawKartMinimap();
 
 	// Draw Lakitu
 	// This is done first so that regardless of HUD layers,
