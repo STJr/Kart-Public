@@ -4880,11 +4880,11 @@ static void K_drawBattleFullscreen(void)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewait, NULL);
 
 		if (splitscreen > 1)
-			V_DrawString(x-(txoff/2), ty, splitflags, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawString(x-(txoff/2), ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		else
 		{
-			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, K_calcSplitFlags(splitflags), kp_timeoutsticker, NULL);
-			V_DrawKartString(x-txoff, ty, splitflags, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, 0, kp_timeoutsticker, NULL);
+			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		}
 	}
 }
