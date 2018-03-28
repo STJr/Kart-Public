@@ -1022,12 +1022,12 @@ void S_UpdateSounds(void)
 					if (splitscreen)
 					{
 						const mobj_t *soundmobj = c->origin;
-						fixed_t recdist;
+						fixed_t recdist = -1;
 						INT32 i, p = -1;
 
 						for (i = 0; i < 4; i++)
 						{
-							fixed_t thisdist;
+							fixed_t thisdist = -1;
 
 							if (i > splitscreen)
 								break;
@@ -1043,7 +1043,7 @@ void S_UpdateSounds(void)
 							else
 								continue;
 
-							if (recdist == NULL || (thisdist != NULL && thisdist < recdist))
+							if (recdist == -1 || (thisdist != -1 && thisdist < recdist))
 							{
 								recdist = thisdist;
 								p = i;
@@ -1052,13 +1052,7 @@ void S_UpdateSounds(void)
 
 						if (p != -1)
 						{
-							if (p == 0)
-							{
-								// Player 1 gets the sound
-								audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
-									c->sfxinfo);
-							}
-							else if (p == 1)
+							if (p == 1)
 							{
 								// Player 2 gets the sound
 								audible = S_AdjustSoundParams(listenmobj2, c->origin, &volume, &sep, &pitch,
@@ -1074,6 +1068,12 @@ void S_UpdateSounds(void)
 							{
 								// Player 4 gets the sound
 								audible = S_AdjustSoundParams(listenmobj4, c->origin, &volume, &sep, &pitch,
+									c->sfxinfo);
+							}
+							else
+							{
+								// Player 1 gets the sound
+								audible = S_AdjustSoundParams(listenmobj, c->origin, &volume, &sep, &pitch,
 									c->sfxinfo);
 							}
 
