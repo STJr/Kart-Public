@@ -4263,26 +4263,103 @@ static void M_LevelSelectWarp(INT32 choice)
 
 UINT8 skyRoomMenuTranslations[MAXUNLOCKABLES];
 
-#define NUMCHECKLIST 8
+{
+	char *tempstr = "";
+
+	switch(cond.type)
+	{
+		case UC_PLAYTIME:
+			tempstr = va("Play for %i:%02i:%02i",
+				G_TicsToHours(cond.requirement),
+				G_TicsToMinutes(cond.requirement, false),
+				G_TicsToSeconds(cond.requirement));
+			break;
+		case UC_MATCHESPLAYED:
+			tempstr = va("Play %d matches", cond.requirement);
+			break;
+		case UC_GAMECLEAR:
+			if (cond.requirement > 1)
+				tempstr = va("Beat game %d times", cond.requirement);
+			else
+				tempstr = va("Beat the game");
+			break;
+		case UC_ALLEMERALDS:
+			if (cond.requirement > 1)
+				tempstr = va("Beat game w/ all emeralds %d times", cond.requirement);
+			else
+				tempstr = va("Beat game w/ all emeralds");
+			break;
+		case UC_OVERALLTIME:
+			tempstr = va("Get overall time of %i:%02i:%02i",
+				G_TicsToHours(cond.requirement),
+				G_TicsToMinutes(cond.requirement, false),
+				G_TicsToSeconds(cond.requirement));
+			break;
+		case UC_MAPVISITED:
+			tempstr = va("Visit %s", G_BuildMapTitle(cond.requirement-1));
+			break;
+		case UC_MAPBEATEN:
+			tempstr = va("Beat %s", G_BuildMapTitle(cond.requirement-1));
+			break;
+		case UC_MAPALLEMERALDS:
+			tempstr = va("Beat %s w/ all emeralds", G_BuildMapTitle(cond.requirement-1));
+			break;
+		case UC_MAPTIME:
+			tempstr = va("Beat %s in %i:%02i.%02i", G_BuildMapTitle(cond.extrainfo1-1),
+				G_TicsToMinutes(cond.requirement, true),
+				G_TicsToSeconds(cond.requirement),
+				G_TicsToCentiseconds(cond.requirement));
+			break;
+		case UC_TOTALEMBLEMS:
+			tempstr = va("Get %d emblems", cond.requirement);
+			break;
+		case UC_EXTRAEMBLEM:
+			tempstr = va("Get \"%s\" emblem", extraemblems[cond.requirement-1].name);
+			break;
+		default:
+			break;
+	}
+
+	return tempstr;
+}
+
+#define NUMCHECKLIST 32
 static void M_DrawChecklist(void)
 {
-	INT32 i, j = 0;
+	INT32 i, line = 0;
 
 	for (i = 0; i < MAXUNLOCKABLES; i++)
 	{
+		INT32 c, lastid = -1;
+
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
 		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS)
 			continue;
 
-		V_DrawString(8, 8+(24*j), V_RETURN8, unlockables[i].name);
-		V_DrawString(160, 8+(24*j), V_RETURN8, V_WordWrap(160, 292, 0, unlockables[i].objective));
+		V_DrawString(8, 8+(line*8), V_RETURN8|(unlockables[i].unlocked ? V_GREENMAP : V_REDMAP), unlockables[i].name);
+		++line;
 
-		if (unlockables[i].unlocked)
-			V_DrawString(308, 8+(24*j), V_YELLOWMAP, "Y");
-		else
-			V_DrawString(308, 8+(24*j), V_YELLOWMAP, "N");
+		for (c = 0; c < conditionSets[unlockables[i].conditionset].numconditions; c++)
+		{
+			condition_t cond = conditionSets[unlockables[i].conditionset].condition[c];
+			UINT8 achieved = M_CheckCondition(&cond);
+			char *str = M_GetConditionString(cond);
 
-		if (++j >= NUMCHECKLIST)
+			if (!str)
+				continue;
+
+			++line;
+
+			if (cond.id != lastid)
+				V_DrawString(16, 8+(line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? V_YELLOWMAP : 0), va("* %s", str));
+			else
+				V_DrawString(16, 8+(line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? V_YELLOWMAP : 0), va("  AND %s", str));
+
+			lastid = cond.id;
+		}
+		line += 2;
+
+		if (line >= NUMCHECKLIST)
 			break;
 	}
 }
