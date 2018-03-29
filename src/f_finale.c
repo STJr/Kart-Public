@@ -666,8 +666,8 @@ boolean F_CreditResponder(event_t *event)
 			break;
 	}
 
-	if (/*!(timesBeaten) && */!(netgame || multiplayer))
-		return false;
+	/*if (!(timesBeaten) && !(netgame || multiplayer))
+		return false;*/
 
 	if (event->type != ev_keydown)
 		return false;
