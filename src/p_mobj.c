@@ -5969,13 +5969,6 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 	if (!dest || dest->health <= 0 || !dest->player || !source->tracer)
 		return;
 
-	if (dest->player && dest->player->kartstuff[k_comebackmode] == 1)
-	{
-		P_TeleportMove(source, dest->x+dest->momx, dest->y+dest->momy, dest->z+dest->momz);
-		source->angle = dest->angle;
-		return;
-	}
-
 	// change angle
 	source->angle = R_PointToAngle2(source->x, source->y, tx, ty);
 
@@ -8282,6 +8275,9 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 					P_RemoveMobj(mobj); // make sure they disappear
 					return;
 				case MT_RANDOMITEM:
+					if (G_BattleGametype())
+						break;
+
 					// Respawn from mapthing if you have one!
 					if (mobj->spawnpoint)
 					{
@@ -9372,10 +9368,39 @@ void P_RespawnSpecials(void)
 	mobj_t *mo = NULL;
 	mapthing_t *mthing = NULL;
 
-	if (G_BattleGametype()) // Battle Mode vers
+	if (G_BattleGametype() && numgotboxes >= (4*nummapboxes/5)) // Battle Mode respawns all boxes in a different way
 	{
-		P_RespawnBattleSpecials();
-		return;
+		thinker_t *th;
+
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+		{
+			mobj_t *box;
+			mobj_t *newmobj;
+
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// not a mobj
+				continue;
+
+			box = (mobj_t *)th;
+
+			if (box->type != MT_RANDOMITEM || box->threshold != 68 || box->fuse) // only popped items
+				continue;
+
+			// Respawn from mapthing if you have one!
+			if (box->spawnpoint)
+			{
+				P_SpawnMapThing(box->spawnpoint);
+				newmobj = box->spawnpoint->mobj; // this is set to the new mobj in P_SpawnMapThing
+			}
+			else
+				newmobj = P_SpawnMobj(box->x, box->y, box->z, box->type);
+
+			// Transfer flags2 (strongbox, objectflip)
+			newmobj->flags2 = box->flags2;
+			P_RemoveMobj(box); // make sure they disappear
+			continue;
+		}
+
+		numgotboxes = 0;
 	}
 
 	// only respawn items when cv_itemrespawn is on
@@ -9467,97 +9492,6 @@ void P_RespawnSpecials(void)
 	}
 	// pull it from the que
 	iquetail = (iquetail+1)&(ITEMQUESIZE-1);
-}
-
-//
-// P_RespawnBattleSpecials
-//
-void P_RespawnBattleSpecials(void)
-{
-	fixed_t x, y, z;
-	subsector_t *ss;
-	mobj_t *mo = NULL;
-	mapthing_t *mthing = NULL;
-
-	// only respawn items when cv_itemrespawn is on
-	if (!cv_itemrespawn.value)
-		return;
-
-	// Didn't collect enough boxes
-	if (numgotboxes < (4*nummapboxes/5))
-		return;
-
-	// wait a teeeensy bit after collecting everything
-	if (leveltime - itemrespawntime[iquehead-1] < (tic_t)cv_itemrespawntime.value*(5*TICRATE))
-		return;
-
-	while (iquehead != iquetail) // respawn EVERYTHING in que!
-	{
-		mthing = itemrespawnque[iquetail];
-
-#ifdef PARANOIA
-		if (!mthing)
-			I_Error("itemrespawnque[iquetail] is NULL!");
-#endif
-
-		if (mthing)
-		{
-			mobjtype_t i;
-			x = mthing->x << FRACBITS;
-			y = mthing->y << FRACBITS;
-			ss = R_PointInSubsector(x, y);
-
-			// find which type to spawn
-			for (i = 0; i < NUMMOBJTYPES; i++)
-				if (mthing->type == mobjinfo[i].doomednum)
-					break;
-
-			//CTF rings should continue to respawn as normal rings outside of CTF.
-			if (gametype != GT_CTF)
-			{
-				if (i == MT_REDTEAMRING || i == MT_BLUETEAMRING)
-					i = MT_RING;
-			}
-
-			if (mthing->options & MTF_OBJECTFLIP)
-			{
-				z = (
-#ifdef ESLOPE
-				ss->sector->c_slope ? P_GetZAt(ss->sector->c_slope, x, y) :
-#endif
-				ss->sector->ceilingheight) - (mthing->options >> ZSHIFT) * FRACUNIT;
-				if (mthing->options & MTF_AMBUSH
-				&& (i == MT_RING || i == MT_REDTEAMRING || i == MT_BLUETEAMRING || i == MT_COIN || P_WeaponOrPanel(i)))
-					z -= 24*FRACUNIT;
-				z -= mobjinfo[i].height; // Don't forget the height!
-			}
-			else
-			{
-				z = (
-#ifdef ESLOPE
-				ss->sector->f_slope ? P_GetZAt(ss->sector->f_slope, x, y) :
-#endif
-				ss->sector->floorheight) + (mthing->options >> ZSHIFT) * FRACUNIT;
-				if (mthing->options & MTF_AMBUSH
-				&& (i == MT_RING || i == MT_REDTEAMRING || i == MT_BLUETEAMRING || i == MT_COIN || P_WeaponOrPanel(i)))
-					z += 24*FRACUNIT;
-			}
-
-			mo = P_SpawnMobj(x, y, z, i);
-			mo->spawnpoint = mthing;
-			mo->angle = ANGLE_45 * (mthing->angle/45);
-
-			if (mthing->options & MTF_OBJECTFLIP)
-			{
-				mo->eflags |= MFE_VERTICALFLIP;
-				mo->flags2 |= MF2_OBJECTFLIP;
-			}
-		}
-		// pull it from the que
-		iquetail = (iquetail+1)&(ITEMQUESIZE-1);
-	}
-
-	numgotboxes = 0;
 }
 
 //
