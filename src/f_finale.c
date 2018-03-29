@@ -451,7 +451,7 @@ boolean F_IntroResponder(event_t *event)
 //  CREDITS
 // =========
 static const char *credits[] = {
-	"\1SRBTwo Kart",
+	"\1SRB2 Kart",
 	"\1Credits",
 	"",
 	"\1Game Design",
@@ -460,8 +460,8 @@ static const char *credits[] = {
 	"\"Chaos Zero 64\"",
 	"",
 	"\1Programming",
-	"\"Sryder\"",
-	"\"wolfs\"",
+	"Sean \"Sryder\" Ryder",
+	"Ehab \"wolfs\" Saeed",
 	"\"ZarroTsu\"",
 	"Sally \"TehRealSalt\" Cochenour",
 	"\"Lat\'\"",
@@ -488,7 +488,7 @@ static const char *credits[] = {
 	"\1Level Design",
 	"\"Blitz-T\"",
 	"\"Chromatian\"",
-	"\"Sryder\"",
+	"Sean \"Sryder\" Ryder",
 	"\"Blade\"",
 	"\"CoatRack\"",
 	"\"Boinciel\"",
