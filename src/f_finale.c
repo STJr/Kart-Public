@@ -505,7 +505,7 @@ static const char *credits[] = {
 	"",
 	"\1Testing",
 	"Jesse \"Jeck Jims\" Emerick",
-	"Karol \"Fooruman\" Dabrowski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
+	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"\"VirtAnderson\"",
