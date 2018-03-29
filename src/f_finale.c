@@ -489,7 +489,7 @@ static const char *credits[] = {
 	"",
 	"\1Level Design",
 	"\"Blitz-T\"",
-	"\"Chromatian\"",
+	"Jeffery \"Chromatian\" Scott",
 	"Sean \"Sryder\" Ryder",
 	"\"Blade\"",
 	"Sherman \"CoatRack\" DesJardin",
