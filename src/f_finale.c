@@ -41,6 +41,7 @@ static INT32 timetonext; // Delay between screen changes
 static INT32 continuetime; // Short delay when continuing
 
 static tic_t animtimer; // Used for some animation timings
+static tic_t credbgtimer; // Credits background
 static INT32 roidtics; // Asteroid spinning
 
 static tic_t stoptimer;
@@ -584,10 +585,10 @@ void F_CreditDrawer(void)
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	// Draw background
-	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(animtimer%280, 280)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
+	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
 
-	V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(animtimer%70, 70)), V_SNAPTOTOP, ttcheckers, FRACUNIT);
-	V_DrawSciencePatch(280<<FRACBITS, 0 - FixedMul(40<<FRACBITS, FixedDiv(animtimer%70, 70)), V_SNAPTOTOP, ttcheckers, FRACUNIT);
+	V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(credbgtimer%(TICRATE/2), (TICRATE/2))), V_SNAPTOTOP, W_CachePatchName("CREDZIGZ", PU_CACHE), FRACUNIT);
+	V_DrawSciencePatch(320<<FRACBITS, 0 - FixedMul(40<<FRACBITS, FixedDiv(credbgtimer%(TICRATE/2), (TICRATE/2))), V_SNAPTOTOP|V_FLIP, W_CachePatchName("CREDZIGZ", PU_CACHE), FRACUNIT);
 
 	// Draw pictures
 	for (i = 0; credits_pics[i].patch; i++)
@@ -629,6 +630,8 @@ void F_CreditTicker(void)
 		timetonext--;
 	else
 		animtimer++;
+
+	credbgtimer++;
 
 	if (finalecount && --finalecount == 0)
 		F_StartGameEvaluation();
