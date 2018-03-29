@@ -217,6 +217,7 @@ static void M_LevelSelectWarp(INT32 choice);
 static void M_Credits(INT32 choice);
 static void M_PandorasBox(INT32 choice);
 static void M_EmblemHints(INT32 choice);
+static char *M_GetConditionString(condition_t cond);
 menu_t SR_MainDef, SR_UnlockChecklistDef;
 
 // Misc. Main Menu
@@ -4263,6 +4264,7 @@ static void M_LevelSelectWarp(INT32 choice)
 
 UINT8 skyRoomMenuTranslations[MAXUNLOCKABLES];
 
+static char *M_GetConditionString(condition_t cond)
 {
 	char *tempstr = "";
 
