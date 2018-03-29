@@ -472,7 +472,7 @@ static const char *credits[] = {
 	"\1Artists",
 	"\"Iceman404\"",
 	"\"Blade\"",
-	"\"CoatRack\"",
+	"Sherman \"CoatRack\" DesJardin",
 	"Wesley \"Charyb\" Gillebaard",
 	"James \"SeventhSentinel\" Hall",
 	"Sally \"TehRealSalt\" Cochenour",
@@ -492,7 +492,7 @@ static const char *credits[] = {
 	"\"Chromatian\"",
 	"Sean \"Sryder\" Ryder",
 	"\"Blade\"",
-	"\"CoatRack\"",
+	"Sherman \"CoatRack\" DesJardin",
 	"\"Ryuspark\"",
 	"\"ZarroTsu\"",
 	"Paul \"Boinciel\" Clempson",
@@ -504,8 +504,8 @@ static const char *credits[] = {
 	"\"Simsmagic\"",
 	"",
 	"\1Testing",
-	"\"Jeck Jims\"",
-	"\"Fooruman\"",
+	"Jesse \"Jeck Jims\" Emerick",
+	"Karol \"Fooruman\" Dabrowski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"\"VirtAnderson\"",
@@ -515,7 +515,7 @@ static const char *credits[] = {
 	"\"Nev3r\"",
 	"\"Ritz\"",
 	"\"Spherallic\"",
-	"Bandit \"Boppy\" Cochenour", // i <3 my dog
+	"Bandit \"Bobby\" Cochenour", // i <3 my dog
 	"",
 	"\1Produced By",
 	"Kart Krew",
