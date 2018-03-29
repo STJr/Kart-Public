@@ -4310,7 +4310,7 @@ static char *M_GetConditionString(condition_t cond)
 	}
 }
 
-#define NUMCHECKLIST 64
+#define NUMCHECKLIST 23
 static void M_DrawChecklist(void)
 {
 	INT32 i, line = 0, c, lastid;
@@ -4335,8 +4335,6 @@ static void M_DrawChecklist(void)
 				UINT8 achieved = M_CheckCondition(&cond);
 				char *str = M_GetConditionString(cond);
 
-				CONS_Printf("%d-%d\n", i, c);
-
 				if (!str)
 					continue;
 
@@ -4360,10 +4358,7 @@ static void M_DrawChecklist(void)
 		++line;
 
 		if (line >= NUMCHECKLIST)
-		{
-			CONS_Printf("out of space\n");
 			break;
-		}
 	}
 }
 #undef NUMCHECKLIST
