@@ -9286,7 +9286,13 @@ void P_PlayerThink(player_t *player)
 				CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);
 
 			player->pflags |= PF_TIMEOVER;
-			legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
+
+			if ((player == &players[consoleplayer]
+				|| (splitscreen && player == &players[secondarydisplayplayer])
+				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
+				&& !demoplayback)
+				legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
 
 			if (player->pflags & PF_NIGHTSMODE)
 			{
