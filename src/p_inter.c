@@ -607,9 +607,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					return;
 				emblemlocations[special->health-1].collected = true;
 
-				M_UpdateUnlockablesAndExtraEmblems();
+				M_UpdateUnlockablesAndExtraEmblems(false);
 
-				G_SaveGameData();
+				G_SaveGameData(false);
 				break;
 			}
 

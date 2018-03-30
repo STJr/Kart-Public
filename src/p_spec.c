@@ -3015,10 +3015,10 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					unlocktriggers |= 1 << trigid;
 
 					// Unlocked something?
-					if (M_UpdateUnlockablesAndExtraEmblems())
+					if (M_UpdateUnlockablesAndExtraEmblems(false))
 					{
 						S_StartSound(NULL, sfx_ncitem);
-						G_SaveGameData(); // only save if unlocked something
+						G_SaveGameData(false); // only save if unlocked something
 					}
 				}
 			}

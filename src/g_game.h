@@ -127,7 +127,7 @@ void G_DeferedPlayDemo(const char *demo);
 // Can be called by the startup code or M_Responder, calls P_SetupLevel.
 void G_LoadGame(UINT32 slot, INT16 mapoverride);
 
-void G_SaveGameData(void);
+void G_SaveGameData(boolean force);
 
 void G_SaveGame(UINT32 slot);
 
