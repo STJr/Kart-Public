@@ -3385,12 +3385,8 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		if (G_RaceGametype())
-			// SRB2kart: don't reset player between maps
-			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
-		else
-			// resetplayer in match/tag/CTF for more equality
-			D_MapChange(nextmap+1, gametype, ultimatemode, true, 0, false, false);
+		// SRB2kart: don't reset player between maps
+		D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 	}
 
 	gameaction = ga_nothing;
