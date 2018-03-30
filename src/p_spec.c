@@ -3966,7 +3966,7 @@ DoneSection2:
 					player->kartstuff[k_floorboost] = 3;
 				else
 					player->kartstuff[k_floorboost] = 2;
-				K_DoMushroom(player, false, false);
+				K_DoMushroom(player, false);
 			}
 			break;
 
