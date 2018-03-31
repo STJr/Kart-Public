@@ -3971,6 +3971,9 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, U
 		COM_BufAddText("stopdemo\n");
 	ghosts = NULL;
 
+	for (i = 0; i < NUMMAPS; i++)
+		randmapbuffer[i] = -1; // Reset this
+
 	// this leave the actual game if needed
 	SV_StartSinglePlayerServer();
 
