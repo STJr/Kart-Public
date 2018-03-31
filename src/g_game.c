@@ -3964,12 +3964,16 @@ void G_SaveGame(UINT32 savegameslot)
 //
 void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
 {
+	INT32 i;
 	UINT8 color = 0;
 	paused = false;
 
 	if (demoplayback)
 		COM_BufAddText("stopdemo\n");
 	ghosts = NULL;
+
+	for (i = 0; i < NUMMAPS; i++)
+		randmapbuffer[i] = -1;
 
 	// this leave the actual game if needed
 	SV_StartSinglePlayerServer();
