@@ -930,7 +930,7 @@ void K_LakituChecker(player_t *player)
 			player->kartstuff[k_lakitu]--;
 			// Quick! You only have three tics to boost!
 			if (cmd->buttons & BT_ACCELERATE)
-				K_DoMushroom(player, true, false);
+				K_DoMushroom(player, true);
 		}
 	}
 }
@@ -1390,8 +1390,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	if (G_BattleGametype())
 	{
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		/*if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);*/
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1448,8 +1448,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	if (G_BattleGametype())
 	{
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		/*if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);*/
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1505,7 +1505,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				if (source->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBalloon(source->player, player, true);
 			}
-			P_AddPlayerScore(source->player, 1);
+			//P_AddPlayerScore(source->player, 1);
 		}
 
 		if (player->kartstuff[k_balloon] > 0)
@@ -2231,14 +2231,10 @@ static void K_DoBooSteal(player_t *player)
 	}
 }
 
-void K_DoMushroom(player_t *player, boolean doPFlag, boolean startboost)
+void K_DoMushroom(player_t *player, boolean doPFlag)
 {
-	sfxenum_t boostsound = sfx_mush;
-	if (startboost)
-		boostsound = sfx_sboost;
-
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-		S_StartSound(player->mo, boostsound);
+		S_StartSound(player->mo, sfx_mush);
 
 	player->kartstuff[k_mushroomtimer] = mushroomtime;
 
@@ -2798,14 +2794,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && player->kartstuff[k_goldshroom] == 1
 			&& player->kartstuff[k_goldshroomtimer] == 0 && NO_BOO)
 		{
-			K_DoMushroom(player, true, false);
+			K_DoMushroom(player, true);
 			player->kartstuff[k_goldshroomtimer] = itemtime;
 			player->kartstuff[k_goldshroom] = 0;
 		}
 		// GoldenMushroom power
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_goldshroomtimer] > 1 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true, false);
+			K_DoMushroom(player, true);
 			player->kartstuff[k_goldshroomtimer] -= 10;
 			if (player->kartstuff[k_goldshroomtimer] < 1)
 				player->kartstuff[k_goldshroomtimer] = 1;
@@ -2813,19 +2809,19 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// TripleMushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 4 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true, false);
+			K_DoMushroom(player, true);
 			player->kartstuff[k_mushroom] = 2;
 		}
 		// DoubleMushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 2 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true, false);
+			K_DoMushroom(player, true);
 			player->kartstuff[k_mushroom] = 1;
 		}
 		// Mushroom power
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && player->kartstuff[k_mushroom] == 1 && onground && NO_BOO)
 		{
-			K_DoMushroom(player, true, false);
+			K_DoMushroom(player, true);
 			player->kartstuff[k_mushroom] = 0;
 		}
 		// Star power
@@ -3364,24 +3360,33 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime == (TICRATE)*4)
 		S_StartSound(NULL, sfx_lkt2);
 	// Start charging once you're given the opportunity.
-	if (leveltime >= 70 && leveltime <= 140 && cmd->buttons & BT_ACCELERATE && leveltime % 5 == 0)
+	if (leveltime >= 70 && leveltime <= 140 && cmd->buttons & BT_ACCELERATE)
 		player->kartstuff[k_boostcharge]++;
 	if (leveltime >= 70 && leveltime <= 140 && !(cmd->buttons & BT_ACCELERATE))
 		player->kartstuff[k_boostcharge] = 0;
 	// Increase your size while charging your engine.
 	if (leveltime < 150)
-		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*655);
+		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
 
 	// Determine the outcome of your charge.
 	if (leveltime > 140 && player->kartstuff[k_boostcharge])
 	{
 		// Get an instant boost!
-		if (player->kartstuff[k_boostcharge] >= 7 && player->kartstuff[k_boostcharge] <= 10)
+		if (player->kartstuff[k_boostcharge] >= 35 && player->kartstuff[k_boostcharge] <= 50)
 		{
-			K_DoMushroom(player, false, true);
+			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+				S_StartSound(player->mo, sfx_sboost);
+
+			player->kartstuff[k_mushroomtimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
+
+			if (!player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
+			{
+				K_PlayTauntSound(player->mo);
+				player->kartstuff[k_sounds] = 50;
+			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
-		if (player->kartstuff[k_boostcharge] > 10)
+		else if (player->kartstuff[k_boostcharge] > 50)
 		{
 			player->powers[pw_nocontrol] = 40;
 			S_StartSound(player->mo, sfx_slip);
@@ -3432,8 +3437,8 @@ void K_CheckBalloons(void)
 
 	if (playeringame[winnernum])
 	{
-		P_AddPlayerScore(&players[winnernum], numingame);
-		CONS_Printf(M_GetText("%s recieved %d points for winning!\n"), player_names[winnernum], numingame*2);
+		P_AddPlayerScore(&players[winnernum], 1);
+		CONS_Printf(M_GetText("%s recieved a point for winning!\n"));
 	}
 
 	for (i = 0; i < MAXPLAYERS; i++)

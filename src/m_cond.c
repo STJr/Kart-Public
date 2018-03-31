@@ -197,7 +197,7 @@ void M_ClearSecrets(void)
 // ----------------------
 // Condition set checking
 // ----------------------
-static UINT8 M_CheckCondition(condition_t *cn)
+UINT8 M_CheckCondition(condition_t *cn)
 {
 	switch (cn->type)
 	{
@@ -295,13 +295,14 @@ void M_CheckUnlockConditions(void)
 	}
 }
 
-UINT8 M_UpdateUnlockablesAndExtraEmblems(void)
+UINT8 M_UpdateUnlockablesAndExtraEmblems(boolean force)
 {
 	INT32 i;
 	char cechoText[992] = "";
 	UINT8 cechoLines = 0;
 
-	if (modifiedgame && !savemoddata)
+	if (modifiedgame && !savemoddata
+		&& !force) // SRB2Kart: for enabling unlocks online in modified servers
 		return false;
 
 	M_CheckUnlockConditions();

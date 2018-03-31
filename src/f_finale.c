@@ -41,6 +41,7 @@ static INT32 timetonext; // Delay between screen changes
 static INT32 continuetime; // Short delay when continuing
 
 static tic_t animtimer; // Used for some animation timings
+static tic_t credbgtimer; // Credits background
 static INT32 roidtics; // Asteroid spinning
 
 static tic_t stoptimer;
@@ -455,62 +456,67 @@ static const char *credits[] = {
 	"\1Credits",
 	"",
 	"\1Game Design",
+	"\"Chaos Zero 64\"",
 	"\"Iceman404\" aka \"VelocitOni\"",
 	"\"ZarroTsu\"",
-	"\"Chaos Zero 64\"",
 	"",
 	"\1Programming",
+	"\"Chaos Zero 64\"",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Vivian \"toaster\" Grannell",
+	"\"Lat\'\"",
+	"\"Monster Iestyn\"",
 	"Sean \"Sryder\" Ryder",
 	"Ehab \"wolfs\" Saeed",
 	"\"ZarroTsu\"",
-	"Sally \"TehRealSalt\" Cochenour",
-	"\"Lat\'\"",
-	"\"Chaos Zero 64\"",
-	"\"Monster Iestyn\"",
-	"Vivian \"toaster\" Grannell",
 	"",
 	"\1Artists",
-	"\"Iceman404\"",
-	"\"Blade\"",
-	"\"CoatRack\"",
-	"James \"SeventhSentinel\" Hall",
-	"Sally \"TehRealSalt\" Cochenour", // Eggman
 	"\"Chaos Zero 64\"",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Desmond \"Blade\" DesJardins",
+	"Sherman \"CoatRack\" DesJardin",
+	"Wesley \"Charyb\" Gillebaard",
+	"James \"SeventhSentinel\" Hall",
+	"\"Iceman404\"",
+	"\"MotorRoach\"",
+	"\"VAdaPEGA\"",
 	"\"ZarroTsu\"",
-	"\"Spherallic\"",
 	"",
 	"\1Music and Sound",
-	"\"Charyb\"",
-	"James \"SeventhSentinel\" Hall",
 	"Karl Brueggemann",
+	"Wesley \"Charyb\" Gillebaard",
+	"James \"SeventhSentinel\" Hall",
 	"\"MaxieDaMan\"",
 	"",
 	"\1Level Design",
 	"\"Blitz-T\"",
-	"\"Chromatian\"",
-	"Sean \"Sryder\" Ryder",
-	"\"Blade\"",
-	"\"CoatRack\"",
-	"\"Boinciel\"",
-	"\"Ryuspark\"",
-	"\"ZarroTsu\"",
-	"\"Tyrannosaur Chao\" aka \"Chaotic Chao\"",
-	"James \"SeventhSentinel\" Hall",
-	"Sally \"TehRealSalt\" Cochenour",
-	"\"Chaos Zero 64\"",
 	"\"D00D64-X\"",
+	"\"Chaos Zero 64\"",
+	"Paul \"Boinciel\" Clempson",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Desmond \"Blade\" DesJardins",
+	"Sherman \"CoatRack\" DesJardin",
+	"James \"SeventhSentinel\" Hall",
+	"Sean \"Sryder\" Ryder",
+	"\"Ryuspark\"",
+	"Jeffery \"Chromatian\" Scott",
 	"\"Simsmagic\"",
+	"\"Tyrannosaur Chao\" aka \"Chaotic Chao\"",
+	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
-	"\"Jeck Jims\"",
-	"\"Fooruman\"",
 	"\"CyberIF\"",
 	"\"Dani\"",
+	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
+	"Jesse \"Jeck Jims\" Emerick",
 	"\"VirtAnderson\"",
 	"",
 	"\1Special Thanks",
 	"Sonic Team Jr. & SRB2",
-	"Bandit \"Bippy\" Cochenour", // i <3 my dog
+	"Bandit \"Bobby\" Cochenour", // i <3 my dog
+	"\"Nev3r\"",
+	"\"Ritz\"",
+	"\"Spherallic\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
@@ -579,10 +585,10 @@ void F_CreditDrawer(void)
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	// Draw background
-	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(animtimer%280, 280)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
+	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
 
-	V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(animtimer%70, 70)), V_SNAPTOTOP, ttcheckers, FRACUNIT);
-	V_DrawSciencePatch(280<<FRACBITS, 0 - FixedMul(40<<FRACBITS, FixedDiv(animtimer%70, 70)), V_SNAPTOTOP, ttcheckers, FRACUNIT);
+	V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(credbgtimer%(TICRATE/2), (TICRATE/2))), V_SNAPTOTOP, W_CachePatchName("CREDZIGZ", PU_CACHE), FRACUNIT);
+	V_DrawSciencePatch(320<<FRACBITS, 0 - FixedMul(40<<FRACBITS, FixedDiv(credbgtimer%(TICRATE/2), (TICRATE/2))), V_SNAPTOTOP|V_FLIP, W_CachePatchName("CREDZIGZ", PU_CACHE), FRACUNIT);
 
 	// Draw pictures
 	for (i = 0; credits_pics[i].patch; i++)
@@ -625,6 +631,8 @@ void F_CreditTicker(void)
 	else
 		animtimer++;
 
+	credbgtimer++;
+
 	if (finalecount && --finalecount == 0)
 		F_StartGameEvaluation();
 }
@@ -666,8 +674,8 @@ boolean F_CreditResponder(event_t *event)
 			break;
 	}
 
-	if (/*!(timesBeaten) && */!(netgame || multiplayer))
-		return false;
+	/*if (!(timesBeaten) && !(netgame || multiplayer))
+		return false;*/
 
 	if (event->type != ev_keydown)
 		return false;
@@ -767,10 +775,10 @@ void F_GameEvaluationDrawer(void)
 			/*if (ultimatemode)
 				++timesBeatenUltimate;*/
 
-			if (M_UpdateUnlockablesAndExtraEmblems())
+			if (M_UpdateUnlockablesAndExtraEmblems(false))
 				S_StartSound(NULL, sfx_ncitem);
 
-			G_SaveGameData();
+			G_SaveGameData(false);
 		}
 	}
 

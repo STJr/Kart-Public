@@ -30,7 +30,7 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force);
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source);
 void K_SpawnBobombExplosion(mobj_t *source, UINT8 color);
 void K_SpawnDriftTrail(player_t *player);
-void K_DoMushroom(player_t *player, boolean doPFlag, boolean startboost);
+void K_DoMushroom(player_t *player, boolean doPFlag);
 void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed);
 boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);

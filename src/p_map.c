@@ -1682,7 +1682,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 						return true;
 					}
 					else if (thing->player->kartstuff[k_comebackmode] == 1
-						&& tmthing->player->kartstuff[k_balloon] > 0)
+						&& (tmthing->player->kartstuff[k_balloon] > 0 && P_CanPickupItem(tmthing->player, true)))
 					{
 						thing->player->kartstuff[k_comebackmode] = 0;
 						thing->player->kartstuff[k_comebackpoints]++;
@@ -1695,7 +1695,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 						return true;
 					}
 					else if (tmthing->player->kartstuff[k_comebackmode] == 1
-						&& thing->player->kartstuff[k_balloon] > 0)
+						&& (thing->player->kartstuff[k_balloon] > 0 && P_CanPickupItem(thing->player, true)))
 					{
 						tmthing->player->kartstuff[k_comebackmode] = 0;
 						tmthing->player->kartstuff[k_comebackpoints]++;

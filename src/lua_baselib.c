@@ -2094,11 +2094,10 @@ static int lib_kDoMushroom(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	boolean doPFlag = luaL_checkboolean(L, 2);
-	boolean startboost = luaL_checkboolean(L, 3);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
-	K_DoMushroom(player, doPFlag, startboost);
+	K_DoMushroom(player, doPFlag);
 	return 0;
 }
 
