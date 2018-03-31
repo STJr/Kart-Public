@@ -1701,28 +1701,38 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 			if (!(ALL7EMERALDS(emeralds)))
 				return false;
 		}
-		else if (GETSECSPECIAL(caller->special, 2) == 7)
+		else if (GETSECSPECIAL(caller->special, 2) == 7) // SRB2Kart: reusing for Race Lap executor
 		{
-			UINT8 mare;
+			UINT8 lap;
 
-			if (!(maptol & TOL_NIGHTS))
-				return false;
-
-			mare = P_FindLowestMare();
-
-			if (triggerline->flags & ML_NOCLIMB)
+			if (actor && actor->player && triggerline->flags & ML_EFFECT4)
 			{
-				if (!(mare <= dist))
-					return false;
-			}
-			else if (triggerline->flags & ML_BLOCKMONSTERS)
-			{
-				if (!(mare >= dist))
-					return false;
+				if (maptol & TOL_NIGHTS)
+					lap = actor->player->mare;
+				else 
+					lap = actor->player->laps;
 			}
 			else
 			{
-				if (!(mare == dist))
+				if (maptol & TOL_NIGHTS)
+					lap = P_FindLowestMare();
+				else 
+					lap = P_FindLowestLap();
+			}
+
+			if (triggerline->flags & ML_NOCLIMB) // Need higher than or equal to
+			{
+				if (lap < (sides[triggerline->sidenum[0]].textureoffset >> FRACBITS))
+					return false;
+			}
+			else if (triggerline->flags & ML_BLOCKMONSTERS) // Need lower than or equal to
+			{
+				if (lap > (sides[triggerline->sidenum[0]].textureoffset >> FRACBITS))
+					return false;
+			}
+			else // Need equal to
+			{
+				if (lap != (sides[triggerline->sidenum[0]].textureoffset >> FRACBITS))
 					return false;
 			}
 		}
