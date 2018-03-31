@@ -3634,8 +3634,6 @@ void A_AttractChase(mobj_t *actor)
 		|| !P_CheckSight(actor, actor->tracer)) // You have to be able to SEE it...sorta
 	{
 		// Lost attracted rings don't through walls anymore.
-		if (actor->tracer && actor->tracer->player)
-			actor->tracer->player->kartstuff[k_comebackmode] = 0;
 		actor->flags &= ~MF_NOCLIP;
 		P_SetTarget(&actor->tracer, NULL);
 		return;
@@ -8147,7 +8145,8 @@ void A_ItemPop(mobj_t *actor)
 	if (actor->info->deathsound)
 		S_StartSound(remains, actor->info->deathsound);
 
-	actor->target->player->kartstuff[k_itemroulette] = 1;
+	if (!(G_BattleGametype() && actor->target->player->kartstuff[k_balloon] <= 0))
+		actor->target->player->kartstuff[k_itemroulette] = 1;
 
 	remains->flags2 &= ~MF2_AMBUSH;
 

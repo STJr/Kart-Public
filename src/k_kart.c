@@ -1012,7 +1012,7 @@ void K_LakituChecker(player_t *player)
 			player->kartstuff[k_lakitu]--;
 			// Quick! You only have three tics to boost!
 			if (cmd->buttons & BT_ACCELERATE)
-				K_DoSneaker(player, true, false);
+				K_DoSneaker(player, true);
 		}
 	}
 }
@@ -1458,8 +1458,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	if (G_BattleGametype())
 	{
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		/*if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);*/
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1516,8 +1516,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	if (G_BattleGametype())
 	{
-		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		/*if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);*/
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1573,7 +1573,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				if (source->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBalloon(source->player, player, true);
 			}
-			P_AddPlayerScore(source->player, 1);
+			//P_AddPlayerScore(source->player, 1);
 		}
 
 		if (player->kartstuff[k_balloon] > 0)
@@ -2230,14 +2230,10 @@ static void K_DoHyudoroSteal(player_t *player)
 	}
 }
 
-void K_DoSneaker(player_t *player, boolean doPFlag, boolean startboost)
+void K_DoSneaker(player_t *player, boolean doPFlag)
 {
-	sfxenum_t boostsound = sfx_mush;
-	if (startboost)
-		boostsound = sfx_sboost;
-
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-		S_StartSound(player->mo, boostsound);
+		S_StartSound(player->mo, sfx_mush);
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
 
@@ -2723,7 +2719,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
 			&& player->kartstuff[k_rocketsneakertimer] > 1)
 		{
-			K_DoSneaker(player, true, false);
+			K_DoSneaker(player, true);
 			player->kartstuff[k_rocketsneakertimer] -= 5;
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
 				player->kartstuff[k_rocketsneakertimer] = 1;
@@ -2735,7 +2731,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_SNEAKER:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO)
 					{
-						K_DoSneaker(player, true, false);
+						K_DoSneaker(player, true);
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -2743,7 +2739,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
 						&& player->kartstuff[k_rocketsneakertimer] == 0)
 					{
-						K_DoSneaker(player, true, false);
+						K_DoSneaker(player, true);
 						player->kartstuff[k_rocketsneakertimer] = itemtime;
 						player->kartstuff[k_itemamount]--;
 					}
@@ -3131,14 +3127,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->kartstuff[k_hyudorotimer] > 0)
 		{
-			if ((player == &players[displayplayer]
-				|| (splitscreen && player == &players[secondarydisplayplayer])
-				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-				|| (!(player == &players[displayplayer]
-				|| (splitscreen && player == &players[secondarydisplayplayer])
-				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
+			if ((player == &players[displayplayer] && !splitscreen)
+				|| (!(player == &players[displayplayer] && !splitscreen)
 				&& (player->kartstuff[k_hyudorotimer] < 1*TICRATE/2 || player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
 			{
 				if (leveltime & 1)
@@ -3172,6 +3162,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 			if (player->kartstuff[k_comebacktimer] > 0)
 			{
+				if (player->mo->tracer->state != &states[S_PLAYERBOMB])
+					P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
+
 				if (player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
 					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
 				else
@@ -3179,15 +3172,23 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 				player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 			}
-			else if (player->kartstuff[k_comebackmode] != 0)
-				player->mo->tracer->flags2 |= MF2_DONTDRAW;
 			else
+			{
+				if (player->kartstuff[k_comebackmode] == 0
+					&& player->mo->tracer->state != &states[S_PLAYERBOMB])
+					P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
+				else if (player->kartstuff[k_comebackmode] == 1
+					&& player->mo->tracer->state != &states[S_PLAYERITEM])
+					P_SetMobjState(player->mo->tracer, S_PLAYERITEM);
 				player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
+			}
 		}
 		else if (G_RaceGametype() || player->kartstuff[k_balloon] > 0)
 		{
 			player->mo->flags2 &= ~MF2_SHADOW;
-			if (player->mo->tracer && player->mo->tracer->state == &states[S_PLAYERBOMB])
+			if (player->mo->tracer
+				&& (player->mo->tracer->state == &states[S_PLAYERBOMB]
+				|| player->mo->tracer->state == &states[S_PLAYERITEM]))
 				P_RemoveMobj(player->mo->tracer);
 		}
 	}
@@ -3265,24 +3266,33 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime == (TICRATE)*4)
 		S_StartSound(NULL, sfx_lkt2);
 	// Start charging once you're given the opportunity.
-	if (leveltime >= 70 && leveltime <= 140 && cmd->buttons & BT_ACCELERATE && leveltime % 5 == 0)
+	if (leveltime >= 70 && leveltime <= 140 && cmd->buttons & BT_ACCELERATE)
 		player->kartstuff[k_boostcharge]++;
 	if (leveltime >= 70 && leveltime <= 140 && !(cmd->buttons & BT_ACCELERATE))
 		player->kartstuff[k_boostcharge] = 0;
 	// Increase your size while charging your engine.
 	if (leveltime < 150)
-		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*655);
+		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
 
 	// Determine the outcome of your charge.
 	if (leveltime > 140 && player->kartstuff[k_boostcharge])
 	{
 		// Get an instant boost!
-		if (player->kartstuff[k_boostcharge] >= 7 && player->kartstuff[k_boostcharge] <= 10)
+		if (player->kartstuff[k_boostcharge] >= 35 && player->kartstuff[k_boostcharge] <= 50)
 		{
-			K_DoSneaker(player, false, true);
+			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+				S_StartSound(player->mo, sfx_sboost);
+
+			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
+
+			if (!player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
+			{
+				K_PlayTauntSound(player->mo);
+				player->kartstuff[k_sounds] = 50;
+			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
-		if (player->kartstuff[k_boostcharge] > 10)
+		else if (player->kartstuff[k_boostcharge] > 50)
 		{
 			player->powers[pw_nocontrol] = 40;
 			S_StartSound(player->mo, sfx_slip);
@@ -3333,8 +3343,8 @@ void K_CheckBalloons(void)
 
 	if (playeringame[winnernum])
 	{
-		P_AddPlayerScore(&players[winnernum], numingame);
-		CONS_Printf(M_GetText("%s recieved %d points for winning!\n"), player_names[winnernum], numingame*2);
+		P_AddPlayerScore(&players[winnernum], 1);
+		CONS_Printf(M_GetText("%s recieved a point for winning!\n"));
 	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -4392,7 +4402,7 @@ static void K_drawKartMinimap(void)
 	x = MINI_X - (AutomapPic->width/2);
 	y = MINI_Y - (AutomapPic->height/2);
 
-	if (splitscreen == 2)
+	if (splitscreen)
 		splitflags = 0;
 
 	if (mirrormode)
@@ -4400,7 +4410,7 @@ static void K_drawKartMinimap(void)
 	else
 		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
 
-	if (splitscreen != 2)
+	if (!splitscreen)
 	{
 		splitflags &= ~minimaptrans;
 		splitflags |= V_HUDTRANSHALF;
@@ -4409,13 +4419,28 @@ static void K_drawKartMinimap(void)
 	// Player's tiny icons on the Automap.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (i == displayplayer && splitscreen != 2)
+		if (i == displayplayer && !splitscreen)
 			continue; // Do displayplayer later
 		if (players[i].mo && !players[i].spectator)
+		{
+			if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
+				continue;
+
+			if (players[i].kartstuff[k_hyudorotimer] > 0)
+			{
+				if ((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
+					|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
+					&& !(leveltime & 1))
+					;
+				else
+					continue;
+			}
+
 			K_drawKartMinimapHead(&players[i], x, y, splitflags, AutomapPic);
+		}
 	}
 
-	if (splitscreen == 2)
+	if (splitscreen)
 		return; // Don't need this for splits
 
 	splitflags &= ~V_HUDTRANSHALF;
@@ -4428,13 +4453,18 @@ static void K_drawBattleFullscreen(void)
 {
 	INT32 x = BASEVIDWIDTH/2;
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
+	INT32 splitflags = V_SNAPTOTOP; // I don't feel like properly supporting non-green resolutions, so you can have a misuse of SNAPTO instead
 	fixed_t scale = FRACUNIT;
 
 	if (splitscreen)
 	{
 		if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
-			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])))
+			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer]
+			|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))))
+		{
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
+			splitflags = V_SNAPTOBOTTOM;
+		}
 		else
 			y = -32+(stplyr->kartstuff[k_cardanimation]/2);
 
@@ -4442,7 +4472,8 @@ static void K_drawBattleFullscreen(void)
 		{
 			scale /= 2;
 
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+			if (stplyr == &players[secondarydisplayplayer]
+				|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))
 				x = 3*BASEVIDWIDTH/4;
 			else
 				x = BASEVIDWIDTH/4;
@@ -4461,9 +4492,9 @@ static void K_drawBattleFullscreen(void)
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen();
 		if (stplyr->kartstuff[k_balloon])
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewin, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
 		else if (splitscreen < 2)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlelose, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlelose, NULL);
 	}
 	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
@@ -4487,22 +4518,23 @@ static void K_drawBattleFullscreen(void)
 			if (splitscreen > 2)
 				ty = (BASEVIDHEIGHT/4)+33;
 			if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
-				|| stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+				|| (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
+				|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))
 				ty += (BASEVIDHEIGHT/2);
 		}
 		else
 			V_DrawFadeScreen();
 
 		if (!comebackshowninfo)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battleinfo, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battleinfo, NULL);
 		else
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, 0, kp_battlewait, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewait, NULL);
 
 		if (splitscreen > 1)
 			V_DrawString(x-(txoff/2), ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		else
 		{
-			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, K_calcSplitFlags(0), kp_timeoutsticker, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, 0, kp_timeoutsticker, NULL);
 			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		}
 	}
@@ -4625,6 +4657,9 @@ void K_drawKartHUD(void)
 	// This is handled by console/menu values
 	K_initKartHUD();
 
+	if (splitscreen == 2) // Player 4 in 3P is basically the minimap :p
+		K_drawKartMinimap();
+
 	// Draw full screen stuff that turns off the rest of the HUD
 	if ((G_BattleGametype())
 		&& (stplyr->exiting
@@ -4653,8 +4688,8 @@ void K_drawKartHUD(void)
 			K_drawKartPlayerCheck();
 	}
 
-	if ((splitscreen == 0 && cv_kartminimap.value) || splitscreen == 2)
-		K_drawKartMinimap();
+	if (splitscreen == 0 && cv_kartminimap.value)
+		K_drawKartMinimap(); // 3P splitscreen is handled above
 
 	// Draw the item window
 	K_drawKartItem();

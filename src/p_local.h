@@ -211,7 +211,6 @@ extern size_t iquehead, iquetail;
 extern consvar_t cv_gravity, cv_viewheight;
 
 void P_RespawnSpecials(void);
-void P_RespawnBattleSpecials(void);
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 

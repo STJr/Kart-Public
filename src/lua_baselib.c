@@ -2104,11 +2104,10 @@ static int lib_kDoSneaker(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	boolean doPFlag = luaL_checkboolean(L, 2);
-	boolean startboost = luaL_checkboolean(L, 3);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
-	K_DoSneaker(player, doPFlag, startboost);
+	K_DoSneaker(player, doPFlag);
 	return 0;
 }
 

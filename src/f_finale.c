@@ -41,6 +41,7 @@ static INT32 timetonext; // Delay between screen changes
 static INT32 continuetime; // Short delay when continuing
 
 static tic_t animtimer; // Used for some animation timings
+static tic_t credbgtimer; // Credits background
 static INT32 roidtics; // Asteroid spinning
 
 static tic_t stoptimer;
@@ -451,128 +452,77 @@ boolean F_IntroResponder(event_t *event)
 //  CREDITS
 // =========
 static const char *credits[] = {
-	"\1Sonic Robo Blast II",
+	"\1SRB2 Kart",
 	"\1Credits",
 	"",
 	"\1Game Design",
-	"Ben \"Mystic\" Geyer",
-	"\"SSNTails\"",
-	"Johnny \"Sonikku\" Wallbank",
+	"\"Chaos Zero 64\"",
+	"\"Iceman404\" aka \"VelocitOni\"",
+	"\"ZarroTsu\"",
 	"",
 	"\1Programming",
-	"Alam \"GBC\" Arias",
-	"Logan \"GBA\" Arias",
-	"Tim \"RedEnchilada\" Bordelon",
-	"Callum Dickinson",
-	"Scott \"Graue\" Feeney",
-	"Nathan \"Jazz\" Giroux",
-	"Thomas \"Shadow Hog\" Igoe",
-	"Iestyn \"Monster Iestyn\" Jealous",
-	"Ronald \"Furyhunter\" Kinard", // The SDL2 port
-	"John \"JTE\" Muniz",
-	"Ehab \"Wolfy\" Saeed",
-	"\"SSNTails\"",
-	"Matthew \"Inuyasha\" Walsh",
-	"",
-	"\1Programming",
-	"\1Assistance",
-	"\"chi.miru\"", // Red's secret weapon, the REAL reason slopes exist (also helped port drawing code from ZDoom)
-	"Andrew \"orospakr\" Clunis",
-	"Gregor \"Oogaland\" Dick",
-	"Louis-Antoine \"LJSonic\" de Moulins", // for fixing 2.1's netcode (de Rochefort doesn't quite fit on the screen sorry lol)
+	"\"Chaos Zero 64\"",
+	"Sally \"TehRealSalt\" Cochenour",
 	"Vivian \"toaster\" Grannell",
-	"Julio \"Chaos Zero 64\" Guir",
-	"\"Kalaron\"", // Coded some of Sryder13's collection of OpenGL fixes, especially fog
-	"Matthew \"Shuffle\" Marsalko",
-	"Steven \"StroggOnMeth\" McGranahan",
-	"\"Morph\"", // For SRB2Morphed stuff
-	"Colin \"Sonict\" Pfaff",
-	"Sean \"Sryder13\" Ryder",
-	"Ben \"Cue\" Woodford",
+	"\"Lat\'\"",
+	"\"Monster Iestyn\"",
+	"Sean \"Sryder\" Ryder",
+	"Ehab \"wolfs\" Saeed",
+	"\"ZarroTsu\"",
 	"",
-	"\1Sprite Artists",
-	"Odi \"Iceman404\" Atunzu",
-	"Victor \"VAdaPEGA\" Ara\x1Fjo", // Araújo -- sorry for our limited font! D:
-	"Jim \"MotorRoach\" DeMello",
+	"\1Artists",
+	"\"Chaos Zero 64\"",
+	"Sally \"TehRealSalt\" Cochenour",
 	"Desmond \"Blade\" DesJardins",
-	"Sherman \"CoatRack\" DesJardins",
-	"Andrew \"Senku Niola\" Moran",
-	"David \"Instant Sonic\" Spencer Jr.",
-	"\"SSNTails\"",
-	"",
-	"\1Texture Artists",
-	"Ryan \"Blaze Hedgehog\" Bloom",
-	"Buddy \"KinkaJoy\" Fischer",
-	"Vivian \"toaster\" Grannell",
-	"Kepa \"Nev3r\" Iceta",
-	"Jarrett \"JEV3\" Voight",
+	"Sherman \"CoatRack\" DesJardin",
+	"Wesley \"Charyb\" Gillebaard",
+	"James \"SeventhSentinel\" Hall",
+	"\"Iceman404\"",
+	"\"MotorRoach\"",
+	"\"VAdaPEGA\"",
+	"\"ZarroTsu\"",
 	"",
 	"\1Music and Sound",
-	"\1Production",
-	"Malcolm \"RedXVI\" Brown",
-	"David \"Bulmybag\" Bulmer",
-	"Paul \"Boinciel\" Clempson",
-	"Cyan Helkaraxe",
-	"Kepa \"Nev3r\" Iceta",
-	"Iestyn \"Monster Iestyn\" Jealous",
-	"Jarel \"Arrow\" Jones",
-	"Stefan \"Stuf\" Rimalia",
-	"Shane Mychal Sexton",
-	"\"Spazzo\"",
-	"David \"Big Wave Dave\" Spencer Sr.",
-	"David \"Instant Sonic\" Spencer Jr.",
-	"\"SSNTails\"",
+	"Karl Brueggemann",
+	"Wesley \"Charyb\" Gillebaard",
+	"James \"SeventhSentinel\" Hall",
+	"\"MaxieDaMan\"",
 	"",
 	"\1Level Design",
-	"Matthew \"Fawfulfan\" Chapman",
+	"\"Blitz-T\"",
+	"\"D00D64-X\"",
+	"\"Chaos Zero 64\"",
 	"Paul \"Boinciel\" Clempson",
+	"Sally \"TehRealSalt\" Cochenour",
 	"Desmond \"Blade\" DesJardins",
-	"Sherman \"CoatRack\" DesJardins",
-	"Ben \"Mystic\" Geyer",
-	"Nathan \"Jazz\" Giroux",
-	"Dan \"Blitzzo\" Hagerstrand",
-	"Kepa \"Nev3r\" Iceta",
-	"Thomas \"Shadow Hog\" Igoe",
-	"Erik \"Torgo\" Nielsen",
-	"Wessel \"Spherallic\" Smit",
-	"\"Spazzo\"",
-	"\"SSNTails\"",
-	"Rob Tisdell",
-	"Jarrett \"JEV3\" Voight",
-	"Johnny \"Sonikku\" Wallbank",
-	"Matthew \"Inuyasha\" Walsh",
-	"Marco \"Digiku\" Zafra",
-	"",
-	"\1Boss Design",
-	"Ben \"Mystic\" Geyer",
-	"Thomas \"Shadow Hog\" Igoe",
-	"John \"JTE\" Muniz",
-	"Samuel \"Prime 2.0\" Peters",
-	"\"SSNTails\"",
-	"Johnny \"Sonikku\" Wallbank",
+	"Sherman \"CoatRack\" DesJardin",
+	"James \"SeventhSentinel\" Hall",
+	"Sean \"Sryder\" Ryder",
+	"\"Ryuspark\"",
+	"Jeffery \"Chromatian\" Scott",
+	"\"Simsmagic\"",
+	"\"Tyrannosaur Chao\" aka \"Chaotic Chao\"",
+	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
-	"Hank \"FuriousFox\" Brannock",
-	"Cody \"SRB2 Playah\" Koester",
-	"Skye \"OmegaVelocity\" Meredith",
-	"Stephen \"HEDGESMFG\" Moellering",
-	"Nick \"ST218\" Molina",
-	"Samuel \"Prime 2.0\" Peters",
-	"Colin \"Sonict\" Pfaff",
-	"Bill \"Tets\" Reed",
+	"\"CyberIF\"",
+	"\"Dani\"",
+	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
+	"Jesse \"Jeck Jims\" Emerick",
+	"\"VirtAnderson\"",
 	"",
 	"\1Special Thanks",
-	"Doom Legacy Project",
-	"iD Software",
-	"Alex \"MistaED\" Fuller",
-	"FreeDoom Project", // Used some of the mancubus and rocket launcher sprites for Brak
-	"Randi Heit (<!>)", // For their MSPaint <!> sprite that we nicked
+	"Sonic Team Jr. & SRB2",
+	"Bandit \"Bobby\" Cochenour", // i <3 my dog
+	"\"Nev3r\"",
+	"\"Ritz\"",
+	"\"Spherallic\"",
 	"",
 	"\1Produced By",
-	"Sonic Team Junior",
+	"Kart Krew",
 	"",
-	"\1Published By",
-	"A 28K dialup modem",
+	"\1In Memory of",
+	"\"Tyler52\"",
 	"",
 	"\1Thank you",
 	"\1for playing!",
@@ -583,7 +533,7 @@ static struct {
 	UINT32 x, y;
 	const char *patch;
 } credits_pics[] = {
-	{  8, 80+200* 1, "CREDIT01"},
+	/*{  8, 80+200* 1, "CREDIT01"},
 	{  4, 80+200* 2, "CREDIT13"},
 	{250, 80+200* 3, "CREDIT12"},
 	{  8, 80+200* 4, "CREDIT03"},
@@ -591,10 +541,8 @@ static struct {
 	{  8, 80+200* 6, "CREDIT04"},
 	{112, 80+200* 7, "CREDIT10"},
 	{240, 80+200* 8, "CREDIT05"},
-	{120, 80+200* 9, "CREDIT06"},
-	{  8, 80+200*10, "CREDIT07"},
-	{  8, 80+200*11, "CREDIT08"},
-	{112, 80+200*12, "CREDIT09"},
+	{120, 80+200* 9, "CREDIT06"},*/
+	{112, 80+200*10, "TYLER52"},
 	{0, 0, NULL}
 };
 
@@ -636,7 +584,13 @@ void F_CreditDrawer(void)
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
-	// Draw background pictures first
+	// Draw background
+	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
+
+	V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(credbgtimer%(TICRATE/2), (TICRATE/2))), V_SNAPTOTOP, W_CachePatchName("CREDZIGZ", PU_CACHE), FRACUNIT);
+	V_DrawSciencePatch(320<<FRACBITS, 0 - FixedMul(40<<FRACBITS, FixedDiv(credbgtimer%(TICRATE/2), (TICRATE/2))), V_SNAPTOTOP|V_FLIP, W_CachePatchName("CREDZIGZ", PU_CACHE), FRACUNIT);
+
+	// Draw pictures
 	for (i = 0; credits_pics[i].patch; i++)
 		V_DrawSciencePatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), FRACUNIT>>1);
 
@@ -676,6 +630,8 @@ void F_CreditTicker(void)
 		timetonext--;
 	else
 		animtimer++;
+
+	credbgtimer++;
 
 	if (finalecount && --finalecount == 0)
 		F_StartGameEvaluation();
@@ -718,8 +674,8 @@ boolean F_CreditResponder(event_t *event)
 			break;
 	}
 
-	if (!(timesBeaten) && !(netgame || multiplayer))
-		return false;
+	/*if (!(timesBeaten) && !(netgame || multiplayer))
+		return false;*/
 
 	if (event->type != ev_keydown)
 		return false;
@@ -819,10 +775,10 @@ void F_GameEvaluationDrawer(void)
 			/*if (ultimatemode)
 				++timesBeatenUltimate;*/
 
-			if (M_UpdateUnlockablesAndExtraEmblems())
+			if (M_UpdateUnlockablesAndExtraEmblems(false))
 				S_StartSound(NULL, sfx_ncitem);
 
-			G_SaveGameData();
+			G_SaveGameData(false);
 		}
 	}
 

@@ -3082,7 +3082,7 @@ static void readmaincfg(MYFILE *f)
 				if (!GoodDataFileName(word2))
 					I_Error("Maincfg: bad data file name '%s'\n", word2);
 
-				G_SaveGameData();
+				G_SaveGameData(false);
 				DEH_WriteUndoline(word, gamedatafilename, UNDO_NONE);
 				strlcpy(gamedatafilename, word2, sizeof (gamedatafilename));
 				strlwr(gamedatafilename);
@@ -6608,6 +6608,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW_X",
 
 	"S_PLAYERBOMB", // Player bomb overlay
+	"S_PLAYERITEM", // Player item overlay
 	"S_PLAYERBOMB_WHEEL",
 
 #ifdef SEENAMES

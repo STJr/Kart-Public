@@ -781,10 +781,10 @@ void Y_Ticker(void)
 			// Update when done with tally
 			if ((!modifiedgame || savemoddata) && !(netgame || multiplayer) && !demoplayback)
 			{
-				if (M_UpdateUnlockablesAndExtraEmblems())
+				if (M_UpdateUnlockablesAndExtraEmblems(false))
 					S_StartSound(NULL, sfx_ncitem);
 
-				G_SaveGameData();
+				G_SaveGameData(false);
 			}
 		}
 		else if (!(intertic & 1))
@@ -848,10 +848,10 @@ void Y_Ticker(void)
 			// Update when done with tally
 			if ((!modifiedgame || savemoddata) && !(netgame || multiplayer) && !demoplayback)
 			{
-				if (M_UpdateUnlockablesAndExtraEmblems())
+				if (M_UpdateUnlockablesAndExtraEmblems(false))
 					S_StartSound(NULL, sfx_ncitem);
 
-				G_SaveGameData();
+				G_SaveGameData(false);
 			}
 		}
 		else if (!(intertic & 1))

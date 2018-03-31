@@ -2259,10 +2259,10 @@ static inline void G_PlayerFinishLevel(INT32 player)
 		if (legitimateexit && !demoplayback) // (yes you're allowed to unlock stuff this way when the game is modified)
 		{
 			matchesplayed++;
-			if (M_UpdateUnlockablesAndExtraEmblems())
+			if (M_UpdateUnlockablesAndExtraEmblems(true))
 			{
 				S_StartSound(NULL, sfx_ncitem);
-				G_SaveGameData(); // only save if unlocked something
+				G_SaveGameData(true); // only save if unlocked something
 			}
 		}
 
@@ -3385,12 +3385,8 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		if (G_RaceGametype())
-			// SRB2kart: don't reset player between maps
-			D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
-		else
-			// resetplayer in match/tag/CTF for more equality
-			D_MapChange(nextmap+1, gametype, ultimatemode, true, 0, false, false);
+		// SRB2kart: don't reset player between maps
+		D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
 	}
 
 	gameaction = ga_nothing;
@@ -3647,7 +3643,7 @@ void G_LoadGameData(void)
 
 // G_SaveGameData
 // Saves the main data file, which stores information such as emblems found, etc.
-void G_SaveGameData(void)
+void G_SaveGameData(boolean force)
 {
 	size_t length;
 	INT32 i, j;
@@ -3665,7 +3661,8 @@ void G_SaveGameData(void)
 		return;
 	}
 
-	if (modifiedgame && !savemoddata)
+	if (modifiedgame && !savemoddata
+		&& !force) // SRB2Kart: for enabling unlocks online in modified servers
 	{
 		free(savebuffer);
 		save_p = savebuffer = NULL;
@@ -3967,12 +3964,16 @@ void G_SaveGame(UINT32 savegameslot)
 //
 void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
 {
+	INT32 i;
 	UINT8 color = 0;
 	paused = false;
 
 	if (demoplayback)
 		COM_BufAddText("stopdemo\n");
 	ghosts = NULL;
+
+	for (i = 0; i < NUMMAPS; i++)
+		randmapbuffer[i] = -1;
 
 	// this leave the actual game if needed
 	SV_StartSinglePlayerServer();
