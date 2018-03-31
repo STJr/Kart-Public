@@ -3438,7 +3438,7 @@ void K_CheckBalloons(void)
 	if (playeringame[winnernum])
 	{
 		P_AddPlayerScore(&players[winnernum], 1);
-		CONS_Printf(M_GetText("%s recieved a point for winning!\n"));
+		CONS_Printf(M_GetText("%s recieved a point for winning!\n"), player_names[winnernum]);
 	}
 
 	for (i = 0; i < MAXPLAYERS; i++)

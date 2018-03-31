@@ -378,6 +378,35 @@ UINT8 P_FindLowestMare(void)
 }
 
 //
+// P_FindLowestLap
+//
+// SRB2Kart, a similar function as above for finding the lowest lap
+//
+UINT8 P_FindLowestLap(void)
+{
+	INT32 i;
+	UINT8 lowest = UINT8_MAX;
+
+	if (!G_RaceGametype())
+		return 0;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+
+		if (lowest == 255)
+			lowest = players[i].laps;
+		else if (players[i].laps < lowest)
+			lowest = players[i].laps;
+	}
+
+	CONS_Debug(DBG_GAMELOGIC, "Lowest laps found: %d\n", lowest);
+
+	return lowest;
+}
+
+//
 // P_TransferToNextMare
 //
 // Transfers the player to the next Mare.
@@ -8826,12 +8855,14 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->momx = FixedMul(x - thiscam->x, camspeed);
 		thiscam->momy = FixedMul(y - thiscam->y, camspeed);
 
-		if (GETSECSPECIAL(thiscam->subsector->sector->special, 1) == 6
+		if ((GETSECSPECIAL(thiscam->subsector->sector->special, 1) == 6
 			&& thiscam->z < thiscam->subsector->sector->floorheight + 256*FRACUNIT
 			&& FixedMul(z - thiscam->z, camspeed) < 0)
-		{
+#if 0
+			|| player->kartstuff[k_feather] & 2 // SRB2Kart: don't follow while bouncing, experimental
+#endif
+			)
 			thiscam->momz = 0; // Don't go down a death pit
-		}
 		else
 			thiscam->momz = FixedMul(z - thiscam->z, camspeed);
 	}
