@@ -292,7 +292,7 @@ typedef enum
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
-	k_pogospring,		// Pogo spring effect
+	k_pogospring,		// Pogo spring bounce effect
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 

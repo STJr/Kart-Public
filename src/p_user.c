@@ -8858,7 +8858,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			&& thiscam->z < thiscam->subsector->sector->floorheight + 256*FRACUNIT
 			&& FixedMul(z - thiscam->z, camspeed) < 0)
 #if 0
-			|| player->kartstuff[k_feather] & 2 // SRB2Kart: don't follow while bouncing, experimental
+			|| player->kartstuff[k_pogospring] // SRB2Kart: don't follow while bouncing, experimental
 #endif
 			)
 			thiscam->momz = 0; // Don't go down a death pit
