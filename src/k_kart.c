@@ -1172,7 +1172,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	// Plays the music after the starting countdown.
 	if (P_IsLocalPlayer(player) && leveltime == 158)
-		S_ChangeMusicInternal(mapmusname, true);
+		S_ChangeMusic(mapmusname, mapmusflags, true);
 }
 
 void K_KartPlayerAfterThink(player_t *player)

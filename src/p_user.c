@@ -1164,41 +1164,21 @@ void P_RestoreMusic(player_t *player)
 	if (!player->exiting)
 	{
 		// Item - Mega Mushroom
-		if (player->kartstuff[k_growshrinktimer] > 1)
+		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
 			S_ChangeMusicInternal("mega", true);
-
 		// Item - Star
-		else if (player->kartstuff[k_startimer] > 1)
+		else if (player->kartstuff[k_startimer] > 1 && player->playerstate == PST_LIVE)
 			S_ChangeMusicInternal("minvnc", false);
-
-		// Event - Final Lap
-		else if (player->laps == (UINT8)(cv_numlaps.value - 1))
+		else if (leveltime > 157)
 		{
-			S_SpeedMusic(1.2f);
+			// Event - Final Lap
+			if (player->laps == (UINT8)(cv_numlaps.value - 1))
+				S_SpeedMusic(1.2f);
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 		}
 		else
-			S_ChangeMusic(mapmusname, mapmusflags, true);
+			S_StopMusic();
 	}
-
-	/* SRB2kart - old stuff
-	if (player->powers[pw_super] && !(mapheaderinfo[gamemap-1]->levelflags & LF_NOSSMUSIC))
-		S_ChangeMusicInternal("supers", true);
-	else if (player->powers[pw_invulnerability] > 1)
-		S_ChangeMusicInternal((mariomode) ? "minvnc" : "invinc", false);
-	else if (player->powers[pw_sneakers] > 1 && !player->powers[pw_super])
-	{
-		if (mapheaderinfo[gamemap-1]->levelflags & LF_SPEEDMUSIC)
-		{
-			S_SpeedMusic(1.4f);
-			S_ChangeMusic(mapmusname, mapmusflags, true);
-		}
-		else
-			S_ChangeMusicInternal("shoes", true);
-	}
-	else
-		S_ChangeMusic(mapmusname, mapmusflags, true);
-	*/
 }
 
 //
@@ -8152,12 +8132,31 @@ static void P_DeathThink(player_t *player)
 		{
 			if (player->deadtimer != gameovertics)
 				;
-			// Restore the other player's music once we're dead for long enough
+			// Restore the first available player's music once we're dead for long enough
 			// -- that is, as long as they aren't dead too
-			else if (player == &players[displayplayer] && players[secondarydisplayplayer].lives > 0)
-				P_RestoreMusic(&players[secondarydisplayplayer]);
-			else if (player == &players[secondarydisplayplayer] && players[displayplayer].lives > 0)
-				P_RestoreMusic(&players[displayplayer]);
+			else
+			{
+				INT32 i;
+
+				for (i = 0; i < 4; i++)
+				{
+					if (i > splitscreen)
+						break;
+
+					if (i == 0 && player != &players[displayplayer] && players[displayplayer].lives > 0)
+						P_RestoreMusic(&players[displayplayer]);
+					else if (i == 1 && player != &players[secondarydisplayplayer] && players[secondarydisplayplayer].lives > 0)
+						P_RestoreMusic(&players[secondarydisplayplayer]);
+					else if (i == 2 && player != &players[thirddisplayplayer] && players[thirddisplayplayer].lives > 0)
+						P_RestoreMusic(&players[thirddisplayplayer]);
+					else if (i == 3 && player != &players[fourthdisplayplayer] && players[fourthdisplayplayer].lives > 0)
+						P_RestoreMusic(&players[fourthdisplayplayer]);
+					else
+						continue;
+
+					break;
+				}
+			}
 		}
 	}
 

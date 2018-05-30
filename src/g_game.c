@@ -2481,14 +2481,9 @@ void G_PlayerReborn(INT32 player)
 			mapmusname[6] = 0;
 			mapmusflags = mapheaderinfo[gamemap-1]->mustrack & MUSIC_TRACKMASK;
 		}
-		//SRB2kart - leveltime stuff
-		if (leveltime > 157)
-		{
-			S_ChangeMusic(mapmusname, mapmusflags, true);
-			if (p->laps == (unsigned)(cv_numlaps.value - 1))
-				S_SpeedMusic(1.2f);
-		}
 	}
+
+	P_RestoreMusic(p);
 
 	if (leveltime > 157 && !p->spectator)
 		p->kartstuff[k_lakitu] = 48; // Lakitu Spawner
