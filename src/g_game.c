@@ -242,7 +242,7 @@ INT32 cheats; //for multiplayer cheat commands
 
 // SRB2Kart
 // Cvars that we don't want changed mid-game
-UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0-2 for relaxed, standard, & turbo
+UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0 for easy, 1 for normal, 2 for hard
 boolean mirrormode; // Mirror Mode currently enabled?
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
