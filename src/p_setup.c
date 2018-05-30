@@ -2985,20 +2985,28 @@ boolean P_SetupLevel(boolean skipprecip)
 	}*/
 
 	// SRB2Kart: map load variables
-	if (modeattacking)
+	if (modeattacking) // Just play it safe and set everything
+	{
 		gamespeed = 2;
-	else if (G_BattleGametype())
-		gamespeed = 0;
-	else
-		gamespeed = cv_kartspeed.value;
-
-	if (G_BattleGametype())
 		mirrormode = false;
+		franticitems = false;
+		comeback = true;
+	}
 	else
-		mirrormode = cv_kartmirror.value;
+	{
+		if (G_BattleGametype())
+			gamespeed = 0;
+		else
+			gamespeed = cv_kartspeed.value;
 
-	franticitems = cv_kartfrantic.value;
-	comeback = cv_kartcomeback.value;
+		if (G_BattleGametype())
+			mirrormode = false;
+		else
+			mirrormode = cv_kartmirror.value;
+
+		franticitems = cv_kartfrantic.value;
+		comeback = cv_kartcomeback.value;
+	}
 
 	// clear special respawning que
 	iquehead = iquetail = 0;
