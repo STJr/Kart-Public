@@ -677,7 +677,6 @@ void D_RegisterServerCommands(void)
   */
 void D_RegisterClientCommands(void)
 {
-	const char *username;
 	INT32 i;
 
 	for (i = 0; i < MAXSKINCOLORS; i++)
@@ -738,8 +737,6 @@ void D_RegisterClientCommands(void)
 #endif
 
 	// register these so it is saved to config
-	if ((username = I_GetUserName()))
-		cv_playername.defaultvalue = username;
 	CV_RegisterVar(&cv_playername);
 	CV_RegisterVar(&cv_playercolor);
 	CV_RegisterVar(&cv_skin); // r_things.c (skin NAME)
@@ -1800,7 +1797,12 @@ static void Command_Playdemo_f(void)
 
 	CONS_Printf(M_GetText("Playing back demo '%s'.\n"), name);
 
-	G_DoPlayDemo(name);
+	// Internal if no extension, external if one exists
+	// If external, convert the file name to a path in SRB2's home directory
+	if (FIL_CheckExtension(name))
+		G_DoPlayDemo(va("%s"PATHSEP"%s", srb2home, name));
+	else
+		G_DoPlayDemo(name);
 }
 
 static void Command_Timedemo_f(void)
