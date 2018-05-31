@@ -1977,13 +1977,18 @@ void D_SetupVote(void)
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
 }
 
-void D_ModifyClientVote(SINT8 voted)
+void D_ModifyClientVote(SINT8 voted, UINT8 splitplayer)
 {
 	char buf[1];
 	char *p = buf;
 
-	WRITESINT8(p, voted);
-	SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
+	if (splitplayer > 0) // Don't actually send anything for splitscreen
+		votes[splitplayer] = voted;
+	else
+	{
+		WRITESINT8(p, voted);
+		SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
+	}
 }
 
 void D_PickVote(void)

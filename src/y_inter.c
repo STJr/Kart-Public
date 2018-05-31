@@ -168,17 +168,23 @@ static void Y_FollowIntermission(void);
 static void Y_UnloadData(void);
 
 // SRB2Kart: voting stuff
-
+// Level images
 typedef struct
 {
 	char str[40];
 	patch_t *pic;
 } y_votelvlinfo;
 
+// Clientside & splitscreen player info.
 typedef struct
 {
 	SINT8 selection;
 	UINT8 delay;
+} y_voteplayer;
+
+typedef struct
+{
+	y_voteplayer playerinfo[4];
 	UINT8 ranim;
 	UINT8 rtics;
 	UINT8 roffset;
@@ -2129,7 +2135,8 @@ static void Y_UnloadData(void)
 //
 void Y_VoteDrawer(void)
 {
-	INT32 i, x, y = 0;
+	INT32 i, x, y = 0, height = 0;
+	UINT8 selected[4];
 
 	if (rendermode == render_none)
 		return;
@@ -2148,11 +2155,34 @@ void Y_VoteDrawer(void)
 							(vid.height / vid.dupy) - SHORT(bgpatch->height),
 							V_SNAPTOTOP|V_SNAPTOLEFT, bgpatch);
 
-	y = 30;
+	for (i = 0; i < 4; i++) // First, we need to figure out the height of this thing...
+	{
+		UINT8 j;
+		selected[i] = 0; // Initialize
+
+		for (j = 0; j <= splitscreen; j++)
+		{
+			if (voteclient.playerinfo[j].selection == i)
+				selected[i]++;
+		}
+
+		if (selected[i])
+			height += 50;
+		else
+			height += 25;
+
+		if (i < 3)
+			height += 5-splitscreen;
+	}
+
+	y = (200-height)/2;
 	for (i = 0; i < 4; i++)
 	{
 		char str[40];
 		patch_t *pic;
+		UINT8 sizeadd = selected[i];
+		UINT8 j;
+		UINT8 color;
 
 		if (i == 3)
 		{
@@ -2166,25 +2196,52 @@ void Y_VoteDrawer(void)
 			pic = levelinfo[i].pic;
 		}
 
-		if (i == voteclient.selection)
+		if (selected[i])
 		{
-			if (votes[consoleplayer] == -1)
+			for (j = 0; j <= splitscreen; j++) // another loop for drawing the selection backgrounds in the right order, grumble grumble..
 			{
-				V_DrawScaledPatch(BASEVIDWIDTH-124, y+21, V_SNAPTORIGHT, cursor);
-				if (votetic % 4 > 1)
-					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 120|V_SNAPTORIGHT);
+				INT32 handy = y;
+
+				if (voteclient.playerinfo[j].selection != i)
+					continue;
+
+				switch (j)
+				{
+					case 1:
+						color = 215;
+						break;
+					case 2:
+						color = 127;
+						break;
+					case 3:
+						color = 161;
+						break;
+					default:
+						color = 103;
+						break;
+				}
+
+				handy += 6*(3-splitscreen) + (13*j);
+				V_DrawScaledPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, cursor);
+
+				if (votetic % 5 == 0)
+					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), 120|V_SNAPTORIGHT);
 				else
-					V_DrawFill(BASEVIDWIDTH-101, y-1, 82, 52, 103|V_SNAPTORIGHT);
+					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), color|V_SNAPTORIGHT);
+				sizeadd--;
 			}
+
 			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
 			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
-			y += 55;
+			y += 50;
 		}
 		else
 		{
 			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
-			y += 30;
+			y += 25;
 		}
+
+		y += 5-splitscreen;
 	}
 
 	x = 20;
@@ -2224,9 +2281,6 @@ void Y_VoteDrawer(void)
 			}
 		}
 
-		if (splitscreen) // only 1p has a vote in splitscreen
-			break;
-
 		y += 30;
 
 		if (y > BASEVIDHEIGHT-40)
@@ -2248,7 +2302,6 @@ void Y_VoteDrawer(void)
 //
 void Y_VoteTicker(void)
 {
-	boolean pressed = false;
 	INT32 i;
 
 	if (paused || P_AutoPause())
@@ -2267,7 +2320,7 @@ void Y_VoteTicker(void)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			votes[i] = -1; // Spectators are the lower class, and have effectively no voice in the government. Democracy sucks.
-		else if (pickedvote != -1 && votes[i] == -1 && !splitscreen)
+		else if (pickedvote != -1 && votes[i] == -1)
 			votes[i] = 3; // Slow people get random
 	}
 
@@ -2279,9 +2332,6 @@ void Y_VoteTicker(void)
 
 	if (timer)
 		timer--;
-
-	if (voteclient.delay)
-		voteclient.delay--;
 
 	if (pickedvote != -1)
 	{
@@ -2325,7 +2375,7 @@ void Y_VoteTicker(void)
 				if (voteclient.rendoff == 0)
 				{
 					if (tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote
-						&& voteclient.rsynctime % 50 == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
+						&& voteclient.rsynctime % 51 == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
 					{
 						voteclient.rendoff = voteclient.roffset+4;
 						S_ChangeMusicInternal("voteeb", false);
@@ -2346,34 +2396,63 @@ void Y_VoteTicker(void)
 		if (votetic < 3*(NEWTICRATE/7)) // give it some time before letting you control it :V
 			return;
 
-		if ((playeringame[consoleplayer] && !players[consoleplayer].spectator)
-			&& !voteclient.delay && pickedvote == -1 && votes[consoleplayer] == -1)
+		for (i = 0; i <= splitscreen; i++)
 		{
-			if (InputDown(gc_aimforward, 1) || JoyAxis(AXISMOVE, 1) < 0)
-			{
-				voteclient.selection--;
-				pressed = true;
-			}
-			if ((InputDown(gc_aimbackward, 1) || JoyAxis(AXISMOVE, 1) > 0) && !pressed)
-			{
-				voteclient.selection++;
-				pressed = true;
-			}
-			if (voteclient.selection < 0)
-				voteclient.selection = 3;
-			if (voteclient.selection > 3)
-				voteclient.selection = 0;
-			if (InputDown(gc_accelerate, 1) && !pressed)
-			{
-				D_ModifyClientVote(voteclient.selection);
-				pressed = true;
-			}
-		}
+			UINT8 p;
+			boolean pressed = false;
 
-		if (pressed)
-		{
-			S_StartSound(NULL, sfx_kc4a);
-			voteclient.delay = NEWTICRATE/7;
+			switch (i)
+			{
+				case 1:
+					p = secondarydisplayplayer;
+					break;
+				case 2:
+					p = thirddisplayplayer;
+					break;
+				case 3:
+					p = fourthdisplayplayer;
+					break;
+				default:
+					p = consoleplayer;
+					break;
+			}
+
+			if (voteclient.playerinfo[i].delay)
+				voteclient.playerinfo[i].delay--;
+
+			if ((playeringame[p] && !players[p].spectator)
+				&& !voteclient.playerinfo[i].delay
+				&& pickedvote == -1 && votes[p] == -1)
+			{
+				if (InputDown(gc_aimforward, i+1) || JoyAxis(AXISAIM, i+1) < 0)
+				{
+					voteclient.playerinfo[i].selection--;
+					pressed = true;
+				}
+
+				if ((InputDown(gc_aimbackward, i+1) || JoyAxis(AXISAIM, i+1) > 0) && !pressed)
+				{
+					voteclient.playerinfo[i].selection++;
+					pressed = true;
+				}
+
+				if (voteclient.playerinfo[i].selection < 0)
+					voteclient.playerinfo[i].selection = 3;
+				if (voteclient.playerinfo[i].selection > 3)
+					voteclient.playerinfo[i].selection = 0;
+
+				if ((InputDown(gc_accelerate, i+1) || JoyAxis(AXISMOVE, i+1) > 0) && !pressed)
+				{
+					D_ModifyClientVote(voteclient.playerinfo[i].selection, i);
+					pressed = true;
+				}
+			}
+
+			if (pressed)
+			{
+				S_StartSound(NULL, sfx_kc4a);
+				voteclient.playerinfo[i].delay = NEWTICRATE/7;
+			}
 		}
 
 		if (server)
@@ -2382,24 +2461,16 @@ void Y_VoteTicker(void)
 			{
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
-					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
+					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
 						votes[i] = 3;
 				}
 			}
 			else
 			{
-				if (splitscreen)
+				for (i = 0; i < MAXPLAYERS; i++)
 				{
-					if (votes[0] == -1)
+					if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
 						return;
-				}
-				else
-				{
-					for (i = 0; i < MAXPLAYERS; i++)
-					{
-						if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
-							return;
-					}
 				}
 			}
 
@@ -2434,8 +2505,12 @@ void Y_StartVote(void)
 	timer = cv_votetime.value*TICRATE;
 	pickedvote = -1;
 
-	voteclient.selection = 0;
-	voteclient.delay = 0;
+	for (i = 0; i < 3; i++)
+	{
+		voteclient.playerinfo[i].selection = 0;
+		voteclient.playerinfo[i].delay = 0;
+	}
+
 	voteclient.ranim = 0;
 	voteclient.rtics = 1;
 	voteclient.roffset = 0;
@@ -2538,7 +2613,7 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1 && !splitscreen)
+			if ((playeringame[i] && !players[i].spectator) && votes[i] == -1)
 				votes[i] = 3;
 
 			if (votes[i] == -1 || endtype > 1) // Don't need to go on
