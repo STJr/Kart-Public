@@ -2862,11 +2862,11 @@ void G_DoReborn(INT32 playernum)
 	player_t *player = &players[playernum];
 	boolean starpost = false;
 
-	if (modeattacking)
+	/*if (modeattacking) // Not needed for SRB2Kart.
 	{
 		M_EndModeAttackRun();
 		return;
-	}
+	}*/
 
 	// Make sure objectplace is OFF when you first start the level!
 	OP_ResetObjectplace();

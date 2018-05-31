@@ -5308,10 +5308,11 @@ static void M_Statistics(INT32 choice)
 		if (!mapheaderinfo[i] || mapheaderinfo[i]->lvlttl[0] == '\0')
 			continue;
 
-		if (!(mapheaderinfo[i]->typeoflevel & TOL_SP) || (mapheaderinfo[i]->menuflags & LF2_HIDEINSTATS))
+		if (!(mapheaderinfo[i]->typeoflevel & TOL_RACE) // TOL_SP
+			|| (mapheaderinfo[i]->menuflags & LF2_HIDEINSTATS))
 			continue;
 
-		if (!mapvisited[i])
+		if (M_MapLocked(i+1)) // !mapvisited[i]
 			continue;
 
 		statsMapList[j++] = i;
@@ -5346,10 +5347,20 @@ static void M_DrawStatsMaps(int location)
 		mnum = statsMapList[i];
 		M_DrawMapEmblems(mnum+1, 292, y);
 
-		if (mapheaderinfo[mnum]->actnum != 0)
-			V_DrawString(20, y, V_YELLOWMAP, va("%s %d", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->actnum));
+		if (mapheaderinfo[mnum]->zonttl)
+		{
+			if (mapheaderinfo[mnum]->actnum != 0)
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s %d", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl, mapheaderinfo[mnum]->actnum));
+			else
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl));
+		}
 		else
-			V_DrawString(20, y, V_YELLOWMAP, mapheaderinfo[mnum]->lvlttl);
+		{
+			if (mapheaderinfo[mnum]->actnum != 0)
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %d", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->actnum));
+			else
+				V_DrawString(20, y, V_YELLOWMAP, mapheaderinfo[mnum]->lvlttl);
+		}
 
 		y += 8;
 

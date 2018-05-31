@@ -608,7 +608,8 @@ void P_Ticker(boolean run)
 	}
 
 	// Keep track of how long they've been playing!
-	totalplaytime++;
+	if (!demoplayback)
+		totalplaytime++;
 
 	if (!useNightsSS && G_IsSpecialStage(gamemap))
 		P_DoSpecialStageStuff();
