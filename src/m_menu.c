@@ -1129,7 +1129,6 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Use/Throw Item",   M_ChangeControl, gc_fire       },
 	{IT_CALL | IT_STRING2, NULL, "Look Backward",    M_ChangeControl, gc_lookback   },
 
-	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle  },
 	{IT_CALL | IT_STRING2, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
 	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
 	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
@@ -1137,8 +1136,8 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause      },
 	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console    },
 
-	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...",&OP_SpectateControlsDef,120},
-	{IT_SUBMENU | IT_STRING, NULL, "Custom Actions...",    &OP_CustomControlsDef,  128},
+	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 112},
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   120},
 };
 
 static menuitem_t OP_SpectateControlsMenu[] =
@@ -1147,6 +1146,8 @@ static menuitem_t OP_SpectateControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Look Up",          M_ChangeControl, gc_lookup    },
 	{IT_CALL | IT_STRING2, NULL, "Look Down",        M_ChangeControl, gc_lookdown  },
 	{IT_CALL | IT_STRING2, NULL, "Center View",      M_ChangeControl, gc_centerview},
+	{IT_CALL | IT_STRING2, NULL, "Reset Camera",     M_ChangeControl, gc_camreset  },
+	{IT_CALL | IT_STRING2, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle },
 };
 
 static menuitem_t OP_CustomControlsMenu[] = 
@@ -6710,6 +6711,13 @@ static void M_DrawConnectIPMenu(void)
 static void M_ConnectIP(INT32 choice)
 {
 	(void)choice;
+
+	if (*setupm_ip == 0)
+	{
+		M_StartMessage("You must specify an IP address.\n", NULL, MM_NOTHING);
+		return;
+	}
+
 	COM_BufAddText(va("connect \"%s\"\n", setupm_ip));
 
 	// A little "please wait" message.
@@ -7374,13 +7382,12 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
-	// Unhide the three non-P2 controls
-	OP_MoveControlsMenu[12].status = IT_CALL|IT_STRING2;
-	OP_MoveControlsMenu[13].status = IT_CALL|IT_STRING2;
-	OP_MoveControlsMenu[14].status = IT_CALL|IT_STRING2;
-	// Unide the pause/console controls too
-	OP_MoveControlsMenu[10].status = IT_CALL|IT_STRING2;
-	OP_MoveControlsMenu[11].status = IT_CALL|IT_STRING2;
+	// Unhide P1-only controls
+	OP_MoveControlsMenu[9].status = IT_CALL|IT_STRING2; // Talk
+	OP_MoveControlsMenu[10].status = IT_CALL|IT_STRING2; // Team talk
+	OP_MoveControlsMenu[11].status = IT_CALL|IT_STRING2; // Rankings
+	OP_MoveControlsMenu[12].status = IT_CALL|IT_STRING2; // Pause
+	OP_MoveControlsMenu[13].status = IT_CALL|IT_STRING2; // Console
 
 	OP_MoveControlsDef.prevMenu = &OP_P1ControlsDef;
 	M_SetupNextMenu(&OP_MoveControlsDef);
@@ -7395,13 +7402,12 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrolbis;
 	currentMenu->lastOn = itemOn;
 
-	// Hide the three non-P2 controls
-	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
-	// Hide the pause/console controls too
-	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+	// Hide P1-only controls
+	OP_MoveControlsMenu[9].status = IT_GRAYEDOUT2; // Talk
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2; // Team talk
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Rankings
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2; // Pause
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2; // Console
 
 	OP_MoveControlsDef.prevMenu = &OP_P2ControlsDef;
 	M_SetupNextMenu(&OP_MoveControlsDef);
@@ -7417,13 +7423,12 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrol3;
 	currentMenu->lastOn = itemOn;
 
-	// Hide the three non-P3 controls
-	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
-	// Hide the pause/console controls too
-	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+	// Hide P1-only controls
+	OP_MoveControlsMenu[9].status = IT_GRAYEDOUT2; // Talk
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2; // Team talk
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Rankings
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2; // Pause
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2; // Console
 
 	OP_MoveControlsDef.prevMenu = &OP_P3ControlsDef;
 	M_SetupNextMenu(&OP_MoveControlsDef);
@@ -7438,13 +7443,12 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrol4;
 	currentMenu->lastOn = itemOn;
 
-	// Hide the three non-P4 controls
-	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[14].status = IT_GRAYEDOUT2;
-	// Hide the pause/console controls too
-	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2;
-	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2;
+	// Hide P1-only controls
+	OP_MoveControlsMenu[9].status = IT_GRAYEDOUT2; // Talk
+	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2; // Team talk
+	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Rankings
+	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2; // Pause
+	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2; // Console
 
 	OP_MoveControlsDef.prevMenu = &OP_P4ControlsDef;
 	M_SetupNextMenu(&OP_MoveControlsDef);

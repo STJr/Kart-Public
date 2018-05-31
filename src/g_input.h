@@ -103,6 +103,7 @@ typedef enum
 	gc_brake,
 	gc_fire,
 	gc_lookback,
+	gc_camreset,
 	gc_camtoggle,
 	gc_spectate,
 	gc_lookup,
