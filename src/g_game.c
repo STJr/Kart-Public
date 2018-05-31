@@ -3658,6 +3658,7 @@ void G_LoadGameData(void)
 // Saves the main data file, which stores information such as emblems found, etc.
 void G_SaveGameData(boolean force)
 {
+	const boolean wasmodified = modifiedgame;
 	size_t length;
 	INT32 i, j;
 	UINT8 btemp;
@@ -3674,8 +3675,9 @@ void G_SaveGameData(boolean force)
 		return;
 	}
 
-	if (modifiedgame && !savemoddata
-		&& !force) // SRB2Kart: for enabling unlocks online in modified servers
+	if (force) // SRB2Kart: for enabling unlocks online, even if the game is modified
+		modifiedgame = savemoddata; // L-let's just sort of... hack around the cheat protection, because I'm too worried about just removing it @@;
+	else if (modifiedgame && !savemoddata) 
 	{
 		free(savebuffer);
 		save_p = savebuffer = NULL;
@@ -3774,6 +3776,9 @@ void G_SaveGameData(boolean force)
 	FIL_WriteFile(va(pandf, srb2home, gamedatafilename), savebuffer, length);
 	free(savebuffer);
 	save_p = savebuffer = NULL;
+
+	if (force) // Eeeek, I'm sorry for my sins!
+		modifiedgame = wasmodified;
 }
 
 #define VERSIONSIZE 16
