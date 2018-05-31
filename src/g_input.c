@@ -1197,6 +1197,7 @@ static const char *gamecontrolname[num_gamecontrols] =
 	"brake",
 	"fire",
 	"lookback",
+	"camreset",
 	"camtoggle",
 	"spectate",
 	"lookup",
