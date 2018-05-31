@@ -3204,9 +3204,12 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 	else
 	{
 		ix = okmaps[M_RandomKey(numokmaps)];
-		for (bufx = NUMMAPS; bufx > 0; bufx--)
-			randmapbuffer[bufx] = randmapbuffer[bufx-1];
-		randmapbuffer[0] = ix;
+		if (!dontadd)
+		{
+			for (bufx = NUMMAPS; bufx > 0; bufx--)
+				randmapbuffer[bufx] = randmapbuffer[bufx-1];
+			randmapbuffer[0] = ix;
+		}
 	}
 
 	Z_Free(okmaps);
