@@ -6301,8 +6301,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	//}
 
 	// Banana
-	"S_BANANAITEM",
-	"S_DEADBANANA",
+	"S_BANANA",
+	"S_BANANA_DEAD",
 
 	//{ Orbinaut
 	"S_GREENSHIELD1",
@@ -6324,23 +6324,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DEADGREEN",
 	//}
 	//{ Jawz
-	"S_REDSHIELD1",
-	"S_REDSHIELD2",
-	"S_REDSHIELD3",
-	"S_REDSHIELD4",
-	"S_REDSHIELD5",
-	"S_REDSHIELD6",
-	"S_REDSHIELD7",
-	"S_REDSHIELD8",
-	"S_REDITEM1",
-	"S_REDITEM2",
-	"S_REDITEM3",
-	"S_REDITEM4",
-	"S_REDITEM5",
-	"S_REDITEM6",
-	"S_REDITEM7",
-	"S_REDITEM8",
-	"S_DEADRED",
+	"S_JAWZ",
+	"S_JAWZ_SHIELD",
+	"S_JAWZ_DEAD",
 	//}
 
 	"S_FIRETRAIL1",
@@ -6354,28 +6340,28 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FIRETRAIL9",
 
 	// Special Stage Mine
-	"S_MINESHIELD1",
-	"S_MINESHIELD2",
-	"S_MINEAIR1",
-	"S_MINEAIR2",
-	"S_MINEDEPLOY1",
-	"S_MINEDEPLOY2",
-	"S_MINEDEPLOY3",
-	"S_MINEDEPLOY4",
-	"S_MINEDEPLOY5",
-	"S_MINEDEPLOY6",
-	"S_MINEDEPLOY7",
-	"S_MINEDEPLOY8",
-	"S_MINEDEPLOY9",
-	"S_MINEDEPLOY10",
-	"S_MINEDEPLOY11",
-	"S_MINEDEPLOY12",
-	"S_MINEDEPLOY13",
-	"S_MINEITEM1",
-	"S_MINEITEM2",
-	"S_MINEITEM3",
-	"S_MINEITEM4",
-	"S_MINEEXPLODE",
+	"S_SSMINE1",
+	"S_SSMINE2",
+	"S_SSMINE3",
+	"S_SSMINE4",
+	"S_SSMINE_SHIELD1",
+	"S_SSMINE_SHIELD2",
+	"S_SSMINE_AIR1",
+	"S_SSMINE_AIR2",
+	"S_SSMINE_DEPLOY1",
+	"S_SSMINE_DEPLOY2",
+	"S_SSMINE_DEPLOY3",
+	"S_SSMINE_DEPLOY4",
+	"S_SSMINE_DEPLOY5",
+	"S_SSMINE_DEPLOY6",
+	"S_SSMINE_DEPLOY7",
+	"S_SSMINE_DEPLOY8",
+	"S_SSMINE_DEPLOY9",
+	"S_SSMINE_DEPLOY10",
+	"S_SSMINE_DEPLOY11",
+	"S_SSMINE_DEPLOY12",
+	"S_SSMINE_DEPLOY13",
+	"S_SSMINE_EXPLODE",
 	"S_MINEEXPLOSION1",
 	"S_MINEEXPLOSION2",
 
@@ -7125,20 +7111,19 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_FAKESHIELD",
 	"MT_FAKEITEM",
 
-	
-	"MT_BANANASHIELD", // Banana Stuff
-	"MT_BANANAITEM",
+	"MT_BANANA",
+	"MT_BANANA_SHIELD", // Banana Stuff
 
 	"MT_GREENSHIELD", // Orbinaut stuff
 	"MT_GREENITEM",
 	"MT_FIRETRAIL",
 
-	"MT_REDSHIELD", // Jawz stuff
-	"MT_REDITEM",
-	"MT_REDITEMDUD",
+	"MT_JAWZ", // Jawz stuff
+	"MT_JAWZ_DUD",
+	"MT_JAWZ_SHIELD", 
 
-	"MT_MINESHIELD", // Special Stage Mine stuff
-	"MT_MINEITEM",
+	"MT_SSMINE_SHIELD", // Special Stage Mine stuff
+	"MT_SSMINE",
 	"MT_MINEEXPLOSION",
 	"MT_MINEEXPLOSIONSOUND",
 

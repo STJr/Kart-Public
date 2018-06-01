@@ -1401,9 +1401,9 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_WATERDROP:
 					gravityadd >>= 1;
 					break;
-				case MT_BANANAITEM:
+				case MT_BANANA:
 				case MT_FAKEITEM:
-				case MT_MINEITEM:
+				case MT_SSMINE:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
 				default:
 					break;
@@ -1743,7 +1743,7 @@ void P_XYMovement(mobj_t *mo)
 				B_MoveBlocked(player);
 		}
 		//{ SRB2kart - Jawz
-		if (mo->type == MT_REDITEM || mo->type == MT_REDITEMDUD)
+		if (mo->type == MT_JAWZ || mo->type == MT_JAWZ_DUD)
 		{
 			if (mo->health == 1)
 			{
@@ -1997,7 +1997,7 @@ void P_XYMovement(mobj_t *mo)
 #endif
 
 	//{ SRB2kart stuff
-	if (mo->type == MT_GREENITEM || mo->type == MT_REDITEMDUD || mo->type == MT_REDITEM || mo->type == MT_FIREBALL) //(mo->type == MT_REDITEM && !mo->tracer))
+	if (mo->type == MT_GREENITEM || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_FIREBALL) //(mo->type == MT_JAWZ && !mo->tracer))
 		return;
 
 	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/2)
@@ -2328,10 +2328,10 @@ static boolean P_ZMovement(mobj_t *mo)
 		// SRB2kart stuff that should die in pits
 		// Shouldn't stop moving along the Z if there's no speed though!
 		case MT_FAKEITEM:
-		case MT_BANANAITEM:
+		case MT_BANANA:
 		case MT_GREENITEM:
-		case MT_REDITEM:
-		case MT_REDITEMDUD:
+		case MT_JAWZ:
+		case MT_JAWZ_DUD:
 		case MT_FIREBALL:
 			// Remove stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
@@ -6642,10 +6642,10 @@ void P_MobjThinker(mobj_t *mobj)
 				break;
 			}
 			case MT_GREENSHIELD:
-			case MT_REDSHIELD:
-			case MT_BANANASHIELD:
+			case MT_JAWZ_SHIELD:
+			case MT_BANANA_SHIELD:
 			case MT_FAKESHIELD:
-			case MT_MINESHIELD:
+			case MT_SSMINE_SHIELD:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -6653,11 +6653,11 @@ void P_MobjThinker(mobj_t *mobj)
 					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
-					if ((mobj->type == MT_GREENSHIELD || mobj->type == MT_REDSHIELD) && mobj->lastlook > 0)
+					if ((mobj->type == MT_GREENSHIELD || mobj->type == MT_JAWZ_SHIELD) && mobj->lastlook > 0)
 						mobj->angle += FixedAngle(mobj->info->speed);
-					else if (mobj->type == MT_BANANASHIELD && mobj->lastlook == 2)
+					else if (mobj->type == MT_BANANA_SHIELD && mobj->lastlook == 2)
 						mobj->angle = (mobj->target->angle + ANGLE_135);
-					else if (mobj->type == MT_BANANASHIELD && mobj->lastlook == 3)
+					else if (mobj->type == MT_BANANA_SHIELD && mobj->lastlook == 3)
 						mobj->angle = (mobj->target->angle + ANGLE_225);
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
@@ -6714,9 +6714,9 @@ void P_MobjThinker(mobj_t *mobj)
 
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
-						|| (mobj->type == MT_REDSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
-						|| (mobj->type == MT_BANANASHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
-						|| (mobj->type == MT_MINESHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
+						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
+						|| (mobj->type == MT_BANANA_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
+						|| (mobj->type == MT_SSMINE_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
 						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_eggmanheld])
 						|| (mobj->type != MT_FAKESHIELD && !mobj->target->player->kartstuff[k_itemheld])
 						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))
@@ -7335,14 +7335,14 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		//{ SRB2kart Items - Death States
 		case MT_GREENITEM:
-		case MT_REDITEM:
-		case MT_REDITEMDUD:
-		case MT_BANANAITEM:
+		case MT_JAWZ:
+		case MT_JAWZ_DUD:
+		case MT_BANANA:
 		case MT_FAKEITEM:
 			if (mobj->z <= mobj->floorz)
 				P_RemoveMobj(mobj);
 			break;
-		case MT_MINEITEM:
+		case MT_SSMINE:
 		case MT_BLUEEXPLOSION:
 			if (mobj->health > -100)
 			{
@@ -7852,7 +7852,7 @@ void P_MobjThinker(mobj_t *mobj)
 			else if (gamespeed == 2)
 				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
 
-			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
+			mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
 			if (mobj->health <= 5)
 			{
 				INT32 i;
@@ -7882,7 +7882,7 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, mobj->info->activesound);
 			break;
 		}
-		case MT_REDITEM:
+		case MT_JAWZ:
 		{
 			sector_t *sec2;
 			fixed_t topspeed = 64*FRACUNIT;
@@ -7932,7 +7932,8 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->friction = 0;
 			}
 
-			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
+			mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
+			P_InstaThrust(mobj, mobj->angle, topspeed);
 
 			sec2 = P_ThingOnSpecial3DFloor(mobj);
 			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
@@ -7942,12 +7943,12 @@ void P_MobjThinker(mobj_t *mobj)
 
 			break;
 		}
-		case MT_REDITEMDUD:
+		case MT_JAWZ_DUD:
 		{
 			sector_t *sec2;
 
 			P_SpawnGhostMobj(mobj);
-			mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->x+mobj->momx, mobj->y+mobj->momy);
+			mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
 			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
 
 			sec2 = P_ThingOnSpecial3DFloor(mobj);
@@ -7964,7 +7965,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 			break;
 		}
-		case MT_BANANAITEM:
+		case MT_BANANA:
 		case MT_FAKEITEM:
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
@@ -7992,7 +7993,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
-		case MT_MINEITEM:
+		case MT_SSMINE:
 			if (mobj->target && mobj->target->player)
 				mobj->color = mobj->target->player->skincolor;
 			else
@@ -8001,8 +8002,8 @@ void P_MobjThinker(mobj_t *mobj)
 				P_SpawnGhostMobj(mobj);
 			if (P_IsObjectOnGround(mobj))
 			{
-				if (mobj->state == &states[S_MINEAIR1] || mobj->state == &states[S_MINEAIR2])
-					P_SetMobjState(mobj, S_MINEDEPLOY1);
+				if (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2])
+					P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
 				if (mobj->reactiontime >= mobj->info->reactiontime)
 				{
 					mobj->momx = mobj->momy = 0;
@@ -8016,8 +8017,8 @@ void P_MobjThinker(mobj_t *mobj)
 				if (!mobj->reactiontime)
 					P_KillMobj(mobj, NULL, NULL);
 			}
-			if (mobj->state == &states[S_MINEITEM1] || mobj->state == &states[S_MINEITEM2]
-				|| mobj->state == &states[S_MINEITEM3] || mobj->state == &states[S_MINEITEM4])
+			if (mobj->state == &states[S_SSMINE1] || mobj->state == &states[S_SSMINE2]
+				|| mobj->state == &states[S_SSMINE3] || mobj->state == &states[S_SSMINE4])
 				A_GrenadeRing(mobj);
 			if (mobj->threshold > 0)
 				mobj->threshold--;
@@ -8829,15 +8830,15 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	switch (mobj->type)
 	{
 		case MT_PLAYER:
-		case MT_BIGMACE:				case MT_SMALLMACE:
+		case MT_BIGMACE:		case MT_SMALLMACE:
 		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
-		case MT_BANANAITEM:				case MT_BANANASHIELD:
-		case MT_GREENITEM:				case MT_GREENSHIELD:
-		case MT_REDITEM: 				case MT_REDSHIELD: 				case MT_REDITEMDUD:
-		case MT_BATTLEBALLOON:			case MT_FIREBALL:
-		case MT_FAKEITEM: 				case MT_FAKESHIELD:
-		case MT_MINEITEM: 				case MT_MINESHIELD:
+		case MT_BANANA:			case MT_BANANA_SHIELD:
+		case MT_GREENITEM:		case MT_GREENSHIELD:
+		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
+		case MT_BATTLEBALLOON:	case MT_FIREBALL:
+		case MT_FAKEITEM: 		case MT_FAKESHIELD:
+		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

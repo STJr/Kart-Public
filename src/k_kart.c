@@ -2781,7 +2781,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newangle = player->mo->angle;
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANASHIELD);
+							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
 							mo->threshold = 10;
 							if (mo)
 								P_SetTarget(&mo->target, player->mo);
@@ -2804,7 +2804,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 								newangle = player->mo->angle;
 								newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 								newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANASHIELD);
+								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
 
 								if (mo)
 								{
@@ -2818,14 +2818,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemheld] == 1)
 					{
-						K_ThrowKartItem(player, false, MT_BANANAITEM, -1, false);
+						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld] == 2) // Banana x3 thrown
 					{
-						K_ThrowKartItem(player, false, MT_BANANAITEM, -1,false );
+						K_ThrowKartItem(player, false, MT_BANANA, -1,false );
 						K_PlayTauntSound(player->mo);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
@@ -2937,7 +2937,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newangle = player->mo->angle;
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_REDSHIELD);
+							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
 							mo->threshold = 10;
 							if (mo)
 								P_SetTarget(&mo->target, player->mo);
@@ -2960,7 +2960,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 								newangle = player->mo->angle;
 								newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 								newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_REDSHIELD);
+								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
 								if (mo)
 								{
 									mo->threshold = 10;
@@ -2976,17 +2976,17 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
 						if (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0)
-							K_ThrowKartItem(player, true, MT_REDITEM, 1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ, 1, false);
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
-							K_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
 						K_PlayTauntSound(player->mo);
 					}
 					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld] == 2) // Jawz x2 thrown
 					{
 						if (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0)
-							K_ThrowKartItem(player, true, MT_REDITEM, 1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ, 1, false);
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
-							K_ThrowKartItem(player, true, MT_REDITEMDUD, -1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
 						K_PlayTauntSound(player->mo);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
@@ -3006,14 +3006,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						newangle = player->mo->angle;
 						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_MINESHIELD);
+						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_SSMINE_SHIELD);
 						mo->threshold = 10;
 						if (mo)
 							P_SetTarget(&mo->target, player->mo);
 					}
 					else if (!(cmd->buttons & BT_ATTACK) && HOLDING_ITEM)
 					{
-						K_ThrowKartItem(player, false, MT_MINEITEM, 1, true);
+						K_ThrowKartItem(player, false, MT_SSMINE, 1, true);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;

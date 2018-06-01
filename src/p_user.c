@@ -7836,9 +7836,9 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			P_DamageMobj(mo, inflictor, source, 1);
 
 		//{ SRB2kart
-		if (mo->type == MT_GREENITEM || mo->type == MT_REDITEM || mo->type == MT_REDITEMDUD
-			|| mo->type == MT_GREENSHIELD || mo->type == MT_REDSHIELD
-			|| mo->type == MT_BANANAITEM || mo->type == MT_BANANASHIELD
+		if (mo->type == MT_GREENITEM || mo->type == MT_JAWZ || mo->type == MT_JAWZ_DUD
+			|| mo->type == MT_GREENSHIELD || mo->type == MT_JAWZ_SHIELD
+			|| mo->type == MT_BANANA || mo->type == MT_BANANA_SHIELD
 			|| mo->type == MT_FAKEITEM || mo->type == MT_FAKESHIELD
 			|| mo->type == MT_FIREBALL)
 		{

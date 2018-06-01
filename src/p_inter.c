@@ -2013,9 +2013,9 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 
 		if ((target->target->player->kartstuff[k_itemheld])
 			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)
-			|| (target->type == MT_REDSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
-			|| (target->type == MT_BANANASHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
-			|| (target->type == MT_MINESHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
+			|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
+			|| (target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
+			|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
 		{
 			if (target->lastlook > 0)
 				target->target->player->kartstuff[k_itemamount] = target->lastlook-1;
@@ -2036,8 +2036,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	// SRB2kart
 	if (target->type != MT_PLAYER && !(target->flags & MF_MONITOR)
 		 && !(target->type == MT_GREENITEM || target->type == MT_GREENSHIELD
-		 || target->type == MT_REDITEM || target->type == MT_REDITEMDUD || target->type == MT_REDSHIELD
-		 || target->type == MT_BANANAITEM || target->type == MT_BANANASHIELD
+		 || target->type == MT_JAWZ || target->type == MT_JAWZ_DUD || target->type == MT_JAWZ_SHIELD
+		 || target->type == MT_BANANA || target->type == MT_BANANA_SHIELD
 		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD
 		 || target->type == MT_FIREBALL)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
@@ -3167,7 +3167,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		else
 		{
 			if (inflictor && (inflictor->type == MT_GREENITEM || inflictor->type == MT_GREENSHIELD
-				|| inflictor->type == MT_REDITEM || inflictor->type == MT_REDSHIELD || inflictor->type == MT_REDITEMDUD
+				|| inflictor->type == MT_JAWZ || inflictor->type == MT_JAWZ_SHIELD || inflictor->type == MT_JAWZ_DUD
 				|| inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD
 				|| inflictor->player))
 			{
