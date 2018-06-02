@@ -52,9 +52,9 @@ emblem_t emblemlocations[MAXEMBLEMS] =
 	{ET_TIME, 0,0,0, 17, 'T', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Petroleum Refinery Zone - 2:15
 	{ET_TIME, 0,0,0, 18, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Canyon Rush Zone - 2:10
 	{ET_TIME, 0,0,0, 19, 'T', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Blue Mountain Zone - 2:40
-	{ET_TIME, 0,0,0, 20, 'T', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Casino Resort Zone - 2:45
+	{ET_TIME, 0,0,0, 20, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Casino Resort Zone - 1:50
 	{ET_TIME, 0,0,0, 21, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Desert Palace Zone - 1:45
-	{ET_TIME, 0,0,0, 22, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Red Barrage Area - 1:50
+	{ET_TIME, 0,0,0, 22, 'T', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Red Barrage Area - 2:45
 	{ET_TIME, 0,0,0, 23, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Vanilla Hotel Zone - 1:45
 	{ET_TIME, 0,0,0, 24, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Twinkle Cart - 1:50
 	{ET_TIME, 0,0,0, 25, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Pleasure Castle - 1:50

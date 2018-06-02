@@ -393,7 +393,7 @@ static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][5] =
 				//P-Odds	 0  1  2  3  4
 				/*Magnet*/ { 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 1, 1, 0 }, // Boo
-			  /*Mushroom*/ { 0, 1, 3, 1, 0 }, // Mushroom
+			  /*Mushroom*/ { 0, 1, 2, 1, 0 }, // Mushroom
 	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0 }, // Triple Mushroom
 		 /*Mega Mushroom*/ { 1, 2, 0, 0, 0 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0 }, // Gold Mushroom
