@@ -1041,6 +1041,10 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
 	UINT32 oldscore;
 
+#if 1
+	return; // Nope, still don't need this for Battle even
+#endif
+
 	if (player->bot)
 		player = &players[consoleplayer];
 

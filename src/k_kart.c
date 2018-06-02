@@ -1390,8 +1390,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	if (G_BattleGametype())
 	{
-		/*if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);*/
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1448,8 +1448,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	if (G_BattleGametype())
 	{
-		/*if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);*/
+		if (source && source->player && player != source->player)
+			P_AddPlayerScore(source->player, 1);
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1505,7 +1505,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				if (source->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBalloon(source->player, player, true);
 			}
-			//P_AddPlayerScore(source->player, 1);
+			P_AddPlayerScore(source->player, 1);
 		}
 
 		if (player->kartstuff[k_balloon] > 0)
@@ -3437,7 +3437,7 @@ void K_CheckBalloons(void)
 
 	if (playeringame[winnernum])
 	{
-		P_AddPlayerScore(&players[winnernum], 1);
+		players[winnernum].score += 1;
 		CONS_Printf(M_GetText("%s recieved a point for winning!\n"), player_names[winnernum]);
 	}
 
