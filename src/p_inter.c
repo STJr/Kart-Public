@@ -1207,7 +1207,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
-					S_StartSound(toucher, sfx_lose);
+					S_StartSound(toucher, sfx_s26d);
 				player->tossdelay = 3;
 				return;
 			}

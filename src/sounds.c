@@ -316,7 +316,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 
   // Sonic 2 sounds
   {"s220",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s221",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s221",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Normal finish
   {"s222",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s223",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s224",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -392,7 +392,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s26a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s26b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s26c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s26d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s26d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Missed checkpoint
   {"s26e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s26f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s270",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

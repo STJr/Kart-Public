@@ -4201,7 +4201,7 @@ DoneSection2:
 				{
 					// blatant reuse of a variable that's normally unused in circuit
 					if (!player->tossdelay)
-						S_StartSound(player->mo, sfx_lose);
+						S_StartSound(player->mo, sfx_s26d);
 					player->tossdelay = 3;
 				}
 
@@ -4221,11 +4221,12 @@ DoneSection2:
 						}
 						else
 							S_ChangeMusicInternal("karok", true);
-						//
-						//HU_SetCEchoFlags(0);
-						//HU_SetCEchoDuration(5);
-						//HU_DoCEcho("FINISHED!");
 					}
+
+					if (player->kartstuff[k_position] == 1)
+						S_StartSound(NULL, sfx_s253);
+					else
+						S_StartSound(NULL, sfx_s221);
 
 					P_DoPlayerExit(player);
 				}

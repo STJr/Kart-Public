@@ -751,7 +751,7 @@ void S_StartSound(const void *origin, sfxenum_t sfx_id)
 	if (sound_disabled)
 		return;
 
-	if (true) // Sounds change in Mario mode! // SRB2kart - every sound is mario.
+	if (mariomode) // Sounds change in Mario mode!
 	{
 		switch (sfx_id)
 		{
@@ -764,9 +764,9 @@ void S_StartSound(const void *origin, sfxenum_t sfx_id)
 			case sfx_thok:
 				sfx_id = sfx_mario7;
 				break;
-			case sfx_pop:
-				sfx_id = sfx_mkitem; // SRB2kart
-				break;
+//			case sfx_pop:
+//				sfx_id = sfx_mkitem; // SRB2kart
+//				break;
 			case sfx_jump:
 				sfx_id = sfx_mario6;
 				break;
