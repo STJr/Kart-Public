@@ -2802,7 +2802,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_goldshroomtimer] > 1 && onground && NO_BOO)
 		{
 			K_DoMushroom(player, true);
-			player->kartstuff[k_goldshroomtimer] -= 10;
+			player->kartstuff[k_goldshroomtimer] -= 5;
 			if (player->kartstuff[k_goldshroomtimer] < 1)
 				player->kartstuff[k_goldshroomtimer] = 1;
 		}
