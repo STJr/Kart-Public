@@ -369,13 +369,6 @@ consvar_t cv_speedometer = {"speedometer", "Off", CV_SAVE, speedometer_cons_t, N
 static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-static CV_PossibleValue_t cv_collideminimum_cons_t[] = {{1, "MIN"}, {16384, "MAX"}, {0, NULL}};
-consvar_t cv_collideminimum = {"collide_minspeed", "25", CV_NETVAR, cv_collideminimum_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-static CV_PossibleValue_t cv_collidesoundnum_cons_t[] = {{1, "MIN"}, {1208, "MAX"}, {0, NULL}};
-consvar_t cv_collidesoundnum = {"collide_soundnum", "231", CV_NETVAR, cv_collidesoundnum_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_collidesounds = {"collide_sounds", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
-//
-
 consvar_t cv_ringslinger = {"ringslinger", "No", CV_NETVAR|CV_NOSHOWHELP|CV_CALL|CV_CHEAT, CV_YesNo,
 	Ringslinger_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_gravity = {"gravity", "0.8", CV_RESTRICT|CV_FLOAT|CV_CALL, NULL, Gravity_OnChange, 0, NULL, NULL, 0, 0, NULL};

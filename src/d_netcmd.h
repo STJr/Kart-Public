@@ -128,11 +128,6 @@ extern consvar_t cv_speedometer;
 
 extern consvar_t cv_votetime;
 
-extern consvar_t cv_collideminimum;
-extern consvar_t cv_collidesoundnum;
-extern consvar_t cv_collidesounds;
-//
-
 extern consvar_t cv_itemfinder;
 
 extern consvar_t cv_inttime, cv_advancemap, cv_playersforexit;

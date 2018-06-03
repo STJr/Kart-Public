@@ -325,9 +325,6 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartmirror);
 	CV_RegisterVar(&cv_speedometer);
 	CV_RegisterVar(&cv_votetime);
-	CV_RegisterVar(&cv_collideminimum);
-	CV_RegisterVar(&cv_collidesoundnum);
-	CV_RegisterVar(&cv_collidesounds);
 }
 
 //}
@@ -699,10 +696,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		return;
 	}
 
-	if (cv_collidesounds.value == 1)
-	{
-		S_StartSound(mobj1, cv_collidesoundnum.value);
-	}
+	S_StartSound(mobj1, sfx_s3k49);
 
 	fx = P_SpawnMobj(mobj1->x/2 + mobj2->x/2, mobj1->y/2 + mobj2->y/2, mobj1->z/2 + mobj2->z/2, MT_BUMP);
 	if (mobj1->eflags & MFE_VERTICALFLIP)

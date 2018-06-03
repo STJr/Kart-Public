@@ -420,7 +420,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k46",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k47",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k48",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k49",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k49",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart bump sound
   {"s3k4a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k4b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k4c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

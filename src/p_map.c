@@ -3990,8 +3990,7 @@ bounceback:
 				fx->eflags &= ~MFE_VERTICALFLIP;
 			fx->scale = mo->scale;
 
-			if (cv_collidesounds.value == 1)
-				S_StartSound(mo, cv_collidesoundnum.value);
+			S_StartSound(mo, sfx_s3k49);
 		}
 	}
 
