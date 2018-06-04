@@ -262,6 +262,7 @@ typedef enum
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
+	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
 	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
 
 	// Some items use timers for their duration or effects

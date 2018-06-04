@@ -3235,6 +3235,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		P_CheckSurvivors();
 	else if (G_BattleGametype())
 		K_CheckBalloons(); // SRB2Kart
+	else if (G_RaceGametype())
+		K_CheckRacers(); // also SRB2Kart
 }
 
 //

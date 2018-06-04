@@ -702,7 +702,7 @@ void D_SRB2Loop(void)
 		else if (rendertimeout < entertic) // in case the server hang or netsplit
 		{
 			// Lagless camera! Yay!
-			/*
+			/* Not yay, it ruins Kart's drift :y
 			if (gamestate == GS_LEVEL && netgame)
 			{
 				if (camera.chase)
