@@ -316,7 +316,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 
   // Sonic 2 sounds
   {"s220",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s221",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Normal finish
+  {"s221",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s222",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s223",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s224",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -362,7 +362,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s24c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s24d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s24e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s24f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s24f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Normal finish
   {"s250",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s251",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s252",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
