@@ -4774,6 +4774,13 @@ static void K_drawKartMinimap(void)
 		splitflags |= V_HUDTRANSHALF;
 	}
 
+	// let offsets transfer to the heads, too!
+	if (mirrormode)
+		x += SHORT(AutomapPic->leftoffset);
+	else
+		x -= SHORT(AutomapPic->leftoffset);
+	y -= SHORT(AutomapPic->topoffset);
+
 	// Player's tiny icons on the Automap.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
