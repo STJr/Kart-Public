@@ -665,6 +665,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 #undef SETITEMRESULT
 
 	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
+	player->kartstuff[k_roulettetype] = 0; // This too
 
 	if (P_IsLocalPlayer(player))
 		S_StartSound(NULL, sfx_mkitmF);
