@@ -1668,21 +1668,42 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
 				{
 					if (thing->player->kartstuff[k_comebackmode] == 0
-						&& tmthing->player->kartstuff[k_balloon] > 0)
+						&& (tmthing->player->kartstuff[k_balloon] > 0
+						&& !tmthing->player->powers[pw_flashing]))
 					{
+						mobj_t *boom = P_SpawnMobj(thing->x, thing->y, thing->z, MT_BOOMPARTICLE);
+						boom->scale = thing->scale;
+						boom->destscale = thing->scale;
+						boom->momz = 5*FRACUNIT;
+						if (thing->player->skincolor)
+							boom->color = thing->player->skincolor;
+						else
+							boom->color = SKINCOLOR_RED;
+						S_StartSound(boom, sfx_s3k4e);
 						K_ExplodePlayer(tmthing->player, thing);
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (tmthing->player->kartstuff[k_comebackmode] == 0
-						&& thing->player->kartstuff[k_balloon] > 0)
+						&& (thing->player->kartstuff[k_balloon] > 0
+						&& !thing->player->powers[pw_flashing]))
 					{
+						mobj_t *boom = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_BOOMPARTICLE);
+						boom->scale = tmthing->scale;
+						boom->destscale = tmthing->scale;
+						boom->momz = 5*FRACUNIT;
+						if (tmthing->player->skincolor)
+							boom->color = tmthing->player->skincolor;
+						else
+							boom->color = SKINCOLOR_RED;
+						S_StartSound(boom, sfx_s3k4e);
 						K_ExplodePlayer(thing->player, tmthing);
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (thing->player->kartstuff[k_comebackmode] == 1
-						&& (tmthing->player->kartstuff[k_balloon] > 0 && P_CanPickupItem(tmthing->player, true)))
+						&& (tmthing->player->kartstuff[k_balloon] > 0
+						&& P_CanPickupItem(tmthing->player, true)))
 					{
 						thing->player->kartstuff[k_comebackmode] = 0;
 						thing->player->kartstuff[k_comebackpoints]++;
@@ -1695,7 +1716,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 						return true;
 					}
 					else if (tmthing->player->kartstuff[k_comebackmode] == 1
-						&& (thing->player->kartstuff[k_balloon] > 0 && P_CanPickupItem(thing->player, true)))
+						&& (thing->player->kartstuff[k_balloon] > 0
+						&& P_CanPickupItem(thing->player, true)))
 					{
 						tmthing->player->kartstuff[k_comebackmode] = 0;
 						tmthing->player->kartstuff[k_comebackpoints]++;

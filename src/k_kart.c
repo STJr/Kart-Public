@@ -3268,7 +3268,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				else if (player->kartstuff[k_comebackmode] == 1
 					&& player->mo->tracer->state != &states[S_PLAYERITEM])
 					P_SetMobjState(player->mo->tracer, S_PLAYERITEM);
-				player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
+
+				if (player->powers[pw_flashing] && (leveltime & 1))
+					player->mo->tracer->flags2 |= MF2_DONTDRAW;
+				else
+					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
 			}
 		}
 		else if (G_RaceGametype() || player->kartstuff[k_balloon] > 0)

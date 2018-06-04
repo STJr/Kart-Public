@@ -3252,6 +3252,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT8(save_p, mirrormode);
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
+	WRITEINT32(save_p, numgotboxes); // Probably shouldn't need nummapboxes
 
 	// Is it paused?
 	if (paused)
@@ -3343,6 +3344,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	mirrormode = (boolean)READUINT8(save_p);
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
+	numgotboxes = READINT32(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

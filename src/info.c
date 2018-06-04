@@ -14686,7 +14686,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // seestate
 		sfx_tossed,     // seesound
 		8,              // reactiontime
-		sfx_tink,       // attacksound
+		sfx_mario1,     // attacksound
 		S_NULL,         // painstate
 		0,              // painchance
 		sfx_None,       // painsound
