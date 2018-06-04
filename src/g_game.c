@@ -1159,14 +1159,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
-	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analog, analogjoystickmove, gamepadjoystickmove, kbl, rd;
+	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analog, analogjoystickmove, gamepadjoystickmove, kbl;
 	player_t *player;
 	camera_t *thiscam;
 	angle_t lang;
 
 	static INT32 turnheld, turnheld2, turnheld3, turnheld4; // for accelerative turning
 	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
-	static boolean resetdown, resetdown2, resetdown3, resetdown4; // don't cam reset every frame
 
 	switch (ssplayer)
 	{
@@ -1177,7 +1176,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			laim = localaiming2;
 			th = turnheld2;
 			kbl = keyboard_look2;
-			rd = resetdown2;
 			G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
 			break;
 		case 3:
@@ -1187,7 +1185,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			laim = localaiming3;
 			th = turnheld3;
 			kbl = keyboard_look3;
-			rd = resetdown3;
 			G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
 			break;
 		case 4:
@@ -1197,7 +1194,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			laim = localaiming4;
 			th = turnheld4;
 			kbl = keyboard_look4;
-			rd = resetdown4;
 			G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
 			break;
 		case 1:
@@ -1208,7 +1204,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			laim = localaiming;
 			th = turnheld;
 			kbl = keyboard_look;
-			rd = resetdown;
 			G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
 			break;
 	}
@@ -1405,15 +1400,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (InputDown(gc_custom3, ssplayer))
 		cmd->buttons |= BT_CUSTOM3;
 
-	if (InputDown(gc_camreset, ssplayer))
-	{
-		if (thiscam->chase && !rd)
-			P_ResetCamera(player, thiscam);
-		rd = true;
-	}
-	else
-		rd = false;
-
 	// player aiming shit, ahhhh...
 	{
 		INT32 player_invert = invertmouse ? -1 : 1;
@@ -1569,7 +1555,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			localaiming2 = laim;
 			keyboard_look2 = kbl;
 			turnheld2 = th;
-			resetdown2 = rd;
 			camspin2 = InputDown(gc_lookback, ssplayer);
 			break;
 		case 3:
@@ -1577,7 +1562,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			localaiming3 = laim;
 			keyboard_look3 = kbl;
 			turnheld3 = th;
-			resetdown3 = rd;
 			camspin3 = InputDown(gc_lookback, ssplayer);
 			break;
 		case 4:
@@ -1585,7 +1569,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			localaiming4 = laim;
 			keyboard_look4 = kbl;
 			turnheld4 = th;
-			resetdown4 = rd;
 			camspin4 = InputDown(gc_lookback, ssplayer);
 			break;
 		case 1:
@@ -1594,7 +1577,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			localaiming = laim;
 			keyboard_look = kbl;
 			turnheld = th;
-			resetdown = rd;
 			camspin = InputDown(gc_lookback, ssplayer);
 			break;
 		}
@@ -4086,8 +4068,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 		unlocktriggers = 0;
 
 		// clear itemfinder, just in case
-		if (!dedicated) // except in dedicated servers, where it is not registered and can actually I_Error debug builds
-			CV_StealthSetValue(&cv_itemfinder, 0);
+		CV_StealthSetValue(&cv_itemfinder, 0);
 	}
 
 	// internal game map

@@ -69,7 +69,7 @@ void R_DrawMasked(void);
 #define DEFAULTSKIN "sonic"
 #define DEFAULTSKIN2 "tails" // secondary player
 #define DEFAULTSKIN3 "knuckles" // third player
-#define DEFAULTSKIN4 "eggman" // fourth player
+#define DEFAULTSKIN4 "metalsonic" // fourth player
 
 typedef struct
 {

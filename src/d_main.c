@@ -1168,7 +1168,7 @@ void D_SRB2Main(void)
 
 	// add any files specified on the command line with -file wadfile
 	// to the wad list
-	if (!(M_CheckParm("-connect") && !M_CheckParm("-server")))
+	if (!(M_CheckParm("-connect")))
 	{
 		if (M_CheckParm("-file"))
 		{
@@ -1325,16 +1325,8 @@ void D_SRB2Main(void)
 	CONS_Printf("R_Init(): Init SRB2 refresh daemon.\n");
 	R_Init();
 
-	// setting up sound	
-	if (dedicated)
-	{
-		nosound = true;
-		nomidimusic = nodigimusic = true;
-	}
-	else
-	{
-		CONS_Printf("S_Init(): Setting up sound.\n");
-	}
+	// setting up sound
+	CONS_Printf("S_Init(): Setting up sound.\n");
 	if (M_CheckParm("-nosound"))
 		nosound = true;
 	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
@@ -1433,7 +1425,7 @@ void D_SRB2Main(void)
 		ultimatemode = true;
 	}*/
 
-	if (autostart || netgame)
+	if (autostart || netgame || M_CheckParm("+connect") || M_CheckParm("-connect"))
 	{
 		gameaction = ga_nothing;
 
@@ -1471,7 +1463,8 @@ void D_SRB2Main(void)
 			}
 		}
 
-		if (server && !M_CheckParm("+map"))
+		if (server && !M_CheckParm("+map") && !M_CheckParm("+connect")
+			&& !M_CheckParm("-connect"))
 		{
 			// Prevent warping to nonexistent levels
 			if (W_CheckNumForName(G_BuildMapName(pstartmap)) == LUMPERROR)
