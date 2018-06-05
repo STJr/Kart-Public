@@ -38,6 +38,7 @@
 
 #include "m_random.h" // P_RandomKey
 #include "g_input.h" // PLAYER1INPUTDOWN
+#include "k_kart.h" // colortranslations
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -197,6 +198,10 @@ static y_voteclient voteclient;
 static INT32 votetic;
 static INT32 voteendtic = -1;
 static patch_t *cursor = NULL;
+static patch_t *cursor1 = NULL;
+static patch_t *cursor2 = NULL;
+static patch_t *cursor3 = NULL;
+static patch_t *cursor4 = NULL;
 static patch_t *randomlvl = NULL;
 
 static void Y_UnloadVoteData(void);
@@ -2201,33 +2206,53 @@ void Y_VoteDrawer(void)
 			for (j = 0; j <= splitscreen; j++) // another loop for drawing the selection backgrounds in the right order, grumble grumble..
 			{
 				INT32 handy = y;
+				UINT8 *colormap;
+				patch_t *thiscurs;
 
 				if (voteclient.playerinfo[j].selection != i)
 					continue;
 
-				switch (j)
+				if (splitscreen == 0)
 				{
-					case 1:
-						color = 215;
-						break;
-					case 2:
-						color = 127;
-						break;
-					case 3:
-						color = 161;
-						break;
-					default:
-						color = 103;
-						break;
+					thiscurs = cursor;
+					color = colortranslations[players[consoleplayer].skincolor][7];
+					colormap = NULL;
+				}
+				else
+				{
+					switch (j)
+					{
+						case 1:
+							thiscurs = cursor2;
+							color = colortranslations[players[secondarydisplayplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[secondarydisplayplayer].skincolor, GTC_CACHE);
+							break;
+						case 2:
+							thiscurs = cursor3;
+							color = colortranslations[players[thirddisplayplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[thirddisplayplayer].skincolor, GTC_CACHE);
+							break;
+						case 3:
+							thiscurs = cursor4;
+							color = colortranslations[players[fourthdisplayplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[fourthdisplayplayer].skincolor, GTC_CACHE);
+							break;
+						default:
+							thiscurs = cursor1;
+							color = colortranslations[players[consoleplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[consoleplayer].skincolor, GTC_CACHE);
+							break;
+					}
 				}
 
 				handy += 6*(3-splitscreen) + (13*j);
-				V_DrawScaledPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, cursor);
+				V_DrawMappedPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, thiscurs, colormap);
 
 				if (votetic % 5 == 0)
 					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), 120|V_SNAPTORIGHT);
 				else
 					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), color|V_SNAPTORIGHT);
+
 				sizeadd--;
 			}
 
@@ -2500,6 +2525,10 @@ void Y_StartVote(void)
 	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
 	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
 	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
+	cursor1 = W_CachePatchName("P1CURSOR", PU_STATIC);
+	cursor2 = W_CachePatchName("P2CURSOR", PU_STATIC);
+	cursor3 = W_CachePatchName("P3CURSOR", PU_STATIC);
+	cursor4 = W_CachePatchName("P4CURSOR", PU_STATIC);
 	randomlvl = W_CachePatchName("RANDOMLV", PU_STATIC);
 
 	timer = cv_votetime.value*TICRATE;
@@ -2582,6 +2611,10 @@ static void Y_UnloadVoteData(void)
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
 	UNLOAD(cursor);
+	UNLOAD(cursor1);
+	UNLOAD(cursor2);
+	UNLOAD(cursor3);
+	UNLOAD(cursor4);
 	UNLOAD(randomlvl);
 
 	UNLOAD(levelinfo[3].pic);
