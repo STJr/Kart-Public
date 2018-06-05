@@ -9169,7 +9169,8 @@ void P_SpawnPrecipitation(void)
 	subsector_t *precipsector = NULL;
 	precipmobj_t *rainmo = NULL;
 
-	if (dedicated || !cv_precipdensity.value || curWeather == PRECIP_NONE)
+	if (dedicated || !cv_precipdensity.value || curWeather == PRECIP_NONE
+		|| netgame) // SRB2Kart
 		return;
 
 	// Use the blockmap to narrow down our placing patterns
