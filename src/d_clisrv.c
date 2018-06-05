@@ -1637,14 +1637,14 @@ static void CL_LoadReceivedSavegame(void)
 	if (P_LoadNetGame())
 	{
 		CONS_Printf(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap));
-		if (strcmp(mapheaderinfo[gamemap-1]->lvlttl, ""))
+		if (strlen(mapheaderinfo[gamemap-1]->lvlttl) > 0)
 		{
 			CONS_Printf(": %s", mapheaderinfo[gamemap-1]->lvlttl);
-			if (strcmp(mapheaderinfo[gamemap-1]->zonttl, ""))
+			if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
 				CONS_Printf(" %s", mapheaderinfo[gamemap-1]->zonttl);
 			else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
 				CONS_Printf(M_GetText(" ZONE"));
-			if (strcmp(mapheaderinfo[gamemap-1]->actnum, ""))
+			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
 				CONS_Printf(" %s", mapheaderinfo[gamemap-1]->actnum);
 		}
 		CONS_Printf("\"\n");
