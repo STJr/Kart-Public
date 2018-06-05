@@ -233,7 +233,8 @@ typedef enum
 	MFE_VERTICALFLIP      = 1<<5,
 	// Goo water
 	MFE_GOOWATER          = 1<<6,
-	// free: to and including 1<<7
+	// SRB2Kart: The mobj just hit & bounced off a wall, this is cleared on next frame
+	MFE_JUSTBOUNCEDWALL   = 1<<7,
 	// Mobj was already sprung this tic
 	MFE_SPRUNG            = 1<<8,
 	// Platform movement

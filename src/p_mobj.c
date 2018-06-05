@@ -6407,7 +6407,7 @@ void P_MobjThinker(mobj_t *mobj)
 		P_SetTarget(&mobj->tracer, NULL);
 
 	mobj->flags2 &= ~MF2_PUSHED;
-	mobj->eflags &= ~MFE_SPRUNG;
+	mobj->eflags &= ~(MFE_SPRUNG|MFE_JUSTBOUNCEDWALL);
 
 	tmfloorthing = tmhitthing = NULL;
 
