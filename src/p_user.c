@@ -1165,7 +1165,21 @@ void P_RestoreMusic(player_t *player)
 	S_SpeedMusic(1.0f);
 
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
-	if (!player->exiting)
+	if (splitscreen != 0 && (players[consoleplayer].exiting
+		|| players[secondarydisplayplayer].exiting
+		|| players[thirddisplayplayer].exiting
+		|| players[fourthdisplayplayer].exiting))
+		S_ChangeMusicInternal("karwin", true);
+	else if (splitscreen == 0 && player->exiting)
+	{
+		if (player->kartstuff[k_position] == 1)
+			S_ChangeMusicInternal("karwin", true);
+		else if (K_IsPlayerLosing(player))
+			S_ChangeMusicInternal("karlos", true);
+		else
+			S_ChangeMusicInternal("karok", true);
+	}
+	else
 	{
 		// Item - Mega Mushroom
 		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
@@ -1176,7 +1190,7 @@ void P_RestoreMusic(player_t *player)
 		else if (leveltime > 157)
 		{
 			// Event - Final Lap
-			if (player->laps == (UINT8)(cv_numlaps.value - 1))
+			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 		}
@@ -10129,3 +10143,4 @@ void P_PlayerAfterThink(player_t *player)
 
 	K_KartPlayerAfterThink(player);
 }
+

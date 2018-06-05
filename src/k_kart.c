@@ -4271,7 +4271,7 @@ static void K_DrawKartPositionNum(INT32 num)
 					break;
 			}
 		}
-		else if (stplyr->laps+1 == cv_numlaps.value || stplyr->exiting) // Check for the final lap, or won
+		else if (stplyr->laps+1 >= cv_numlaps.value || stplyr->exiting) // Check for the final lap, or won
 		{
 			// Alternate frame every three frames
 			switch (leveltime % 9)
