@@ -3373,15 +3373,15 @@ static void M_DrawPauseMenu(void)
 
 		if (mapheaderinfo[gamemap-1]->zonttl)
 		{
-			if (mapheaderinfo[gamemap-1]->actnum != 0)
-				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s %d", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum));
+			if (mapheaderinfo[gamemap-1]->actnum)
+				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s %s", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum));
 			else
 				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl));
 		}
 		else
 		{
-			if (mapheaderinfo[gamemap-1]->actnum != 0)
-				V_DrawString(40, 28, V_YELLOWMAP, va("%s %d", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum));
+			if (mapheaderinfo[gamemap-1]->actnum)
+				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum));
 			else
 				V_DrawString(40, 28, V_YELLOWMAP, mapheaderinfo[gamemap-1]->lvlttl);
 		}
@@ -4896,7 +4896,7 @@ static void M_ReadSavegameInfo(UINT32 slot)
 	else
 	{
 		strcpy(savegameinfo[slot].levelname, mapheaderinfo[(fake-1) & 8191]->lvlttl);
-		savegameinfo[slot].actnum = mapheaderinfo[(fake-1) & 8191]->actnum;
+		savegameinfo[slot].actnum = 0; //mapheaderinfo[(fake-1) & 8191]->actnum
 	}
 
 #ifdef SAVEGAMES_OTHERVERSIONS
@@ -5349,15 +5349,15 @@ static void M_DrawStatsMaps(int location)
 
 		if (mapheaderinfo[mnum]->zonttl)
 		{
-			if (mapheaderinfo[mnum]->actnum != 0)
-				V_DrawString(20, y, V_YELLOWMAP, va("%s %s %d", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl, mapheaderinfo[mnum]->actnum));
+			if (mapheaderinfo[mnum]->actnum)
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl, mapheaderinfo[mnum]->actnum));
 			else
 				V_DrawString(20, y, V_YELLOWMAP, va("%s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl));
 		}
 		else
 		{
-			if (mapheaderinfo[mnum]->actnum != 0)
-				V_DrawString(20, y, V_YELLOWMAP, va("%s %d", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->actnum));
+			if (mapheaderinfo[mnum]->actnum)
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->actnum));
 			else
 				V_DrawString(20, y, V_YELLOWMAP, mapheaderinfo[mnum]->lvlttl);
 		}

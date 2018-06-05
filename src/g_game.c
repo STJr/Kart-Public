@@ -4149,7 +4149,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 	{
 		size_t len = 1;
 		const char *zonetext = NULL;
-		const INT32 actnum = mapheaderinfo[mapnum-1]->actnum;
+		const char *actnum = NULL;
 
 		len += strlen(mapheaderinfo[mapnum-1]->lvlttl);
 		if (strcmp(mapheaderinfo[mapnum-1]->zonttl, ""))
@@ -4162,14 +4162,17 @@ char *G_BuildMapTitle(INT32 mapnum)
 			zonetext = M_GetText("ZONE");
 			len += strlen(zonetext) + 1;	// ' ' + zonetext
 		}
-		if (actnum > 0)
-			len += 1 + 11;			// ' ' + INT32
+		if (strcmp(mapheaderinfo[mapnum-1]->actnum, ""))
+		{
+			actnum = M_GetText(mapheaderinfo[mapnum-1]->actnum);
+			len += strlen(actnum) + 1;	// ' ' + actnum
+		}
 
 		title = Z_Malloc(len, PU_STATIC, NULL);
 
 		sprintf(title, "%s", mapheaderinfo[mapnum-1]->lvlttl);
 		if (zonetext) sprintf(title + strlen(title), " %s", zonetext);
-		if (actnum > 0) sprintf(title + strlen(title), " %d", actnum);
+		if (actnum) sprintf(title + strlen(title), " %s", actnum);
 	}
 
 	return title;

@@ -4523,10 +4523,20 @@ static void Command_Showmap_f(void)
 {
 	if (gamestate == GS_LEVEL)
 	{
-		if (mapheaderinfo[gamemap-1]->actnum)
-			CONS_Printf("%s (%d): %s %d\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
+		if (mapheaderinfo[gamemap-1]->zonttl)
+		{
+			if (mapheaderinfo[gamemap-1]->actnum)
+				CONS_Printf("%s (%d): %s %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum);
+			else
+				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl);
+		}
 		else
-			CONS_Printf("%s (%d): %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl);
+		{
+			if (mapheaderinfo[gamemap-1]->actnum)
+				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
+			else
+				CONS_Printf("%s (%d): %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl);
+		}
 	}
 	else
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));

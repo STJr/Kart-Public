@@ -1122,10 +1122,10 @@ void Y_StartIntermission(void)
 			data.coop.ptotal = W_CachePatchName("YB_TOTAL", PU_STATIC);
 
 			// get act number
-			if (mapheaderinfo[prevmap]->actnum)
+			/*if (mapheaderinfo[prevmap]->actnum)
 				data.coop.ttlnum = W_CachePatchName(va("TTL%.2d", mapheaderinfo[prevmap]->actnum),
 					PU_STATIC);
-			else
+			else*/
 				data.coop.ttlnum = W_CachePatchName("TTL01", PU_STATIC);
 
 			// get background patches
@@ -1317,7 +1317,7 @@ void Y_StartIntermission(void)
 				if (mapheaderinfo[prevmap]->actnum)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s %.32s * %d *",
+						"%.32s %.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1330,7 +1330,7 @@ void Y_StartIntermission(void)
 				if (mapheaderinfo[prevmap]->actnum)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s * %d *",
+						"%.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1380,7 +1380,7 @@ void Y_StartIntermission(void)
 				if (mapheaderinfo[prevmap]->actnum)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s %.32s * %d *",
+						"%.32s %.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1393,7 +1393,7 @@ void Y_StartIntermission(void)
 				if (mapheaderinfo[prevmap]->actnum)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s * %d *",
+						"%.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1423,7 +1423,7 @@ void Y_StartIntermission(void)
 			if (mapheaderinfo[prevmap]->actnum)
 				snprintf(data.match.levelstring,
 					sizeof data.match.levelstring,
-					"%.32s * %d *",
+					"%.32s * %s *",
 					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 			else
 				snprintf(data.match.levelstring,
@@ -1459,7 +1459,7 @@ void Y_StartIntermission(void)
 			if (mapheaderinfo[prevmap]->actnum)
 				snprintf(data.competition.levelstring,
 					sizeof data.competition.levelstring,
-					"%.32s * %d *",
+					"%.32s * %s *",
 					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 			else
 				snprintf(data.competition.levelstring,
@@ -2530,7 +2530,7 @@ void Y_StartVote(void)
 			if (mapheaderinfo[votelevels[i]]->actnum)
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
-					"%.32s %.32s %d",
+					"%.32s %.32s %s",
 					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl, mapheaderinfo[votelevels[i]]->actnum);
 			else
 				snprintf(levelinfo[i].str,
@@ -2543,7 +2543,7 @@ void Y_StartVote(void)
 			if (mapheaderinfo[votelevels[i]]->actnum)
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
-					"%.32s %d",
+					"%.32s %s",
 					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->actnum);
 			else
 				snprintf(levelinfo[i].str,
