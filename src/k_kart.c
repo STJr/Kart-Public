@@ -1767,6 +1767,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	mobj_t *th;
 	angle_t an;
 	fixed_t x, y, z;
+	fixed_t finalspeed = speed;
 	mobj_t *throwmo;
 	//INT32 dir;
 
@@ -1778,8 +1779,11 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	//else
 	//	dir = 1;
 
-	x = source->x + source->momx;
-	y = source->y + source->momy;
+	if (source->player && source->player->speed > K_GetKartSpeed(source->player, false))
+		finalspeed = FixedMul(speed, FixedDiv(source->player->speed, K_GetKartSpeed(source->player, false)));
+
+	x = source->x + source->momx + FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
+	y = source->y + source->momy + FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));
 	z = source->z; // spawn on the ground please
 
 	if (P_MobjFlip(source) < 0)
@@ -1821,11 +1825,11 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	}
 
 	th->angle = an;
-	th->momx = FixedMul(speed, FINECOSINE(an>>ANGLETOFINESHIFT));
-	th->momy = FixedMul(speed, FINESINE(an>>ANGLETOFINESHIFT));
+	th->momx = FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
+	th->momy = FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));
 
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
-	x = y + P_ReturnThrustY(source, an, source->radius + th->radius);
+	y = y + P_ReturnThrustY(source, an, source->radius + th->radius);
 	throwmo = P_SpawnMobj(x, y, z, MT_FIREDITEM);
 	throwmo->movecount = 1;
 	throwmo->movedir = source->angle - an;
@@ -1977,7 +1981,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			else
 			{
 				// Shoot forward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED + player->speed);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle, 0, PROJSPEED);
 			}
 		}
 	}
