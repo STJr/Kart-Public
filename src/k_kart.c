@@ -947,11 +947,11 @@ void K_KartMoveAnimation(player_t *player)
 	// Standing frames - S_KART_STND1   S_KART_STND1_L   S_KART_STND1_R
 	if (player->speed == 0)
 	{
-		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_STND1_R] && player->mo->state <= &states[S_KART_STND2_R]))
+		if (cmd->driftturn < 0 && !(player->mo->state >= &states[S_KART_STND1_R] && player->mo->state <= &states[S_KART_STND2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_STND1_R);
-		else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state >= &states[S_KART_STND1_L] && player->mo->state <= &states[S_KART_STND2_L]))
+		else if (cmd->driftturn > 0 && !(player->mo->state >= &states[S_KART_STND1_L] && player->mo->state <= &states[S_KART_STND2_L]))
 			P_SetPlayerMobjState(player->mo, S_KART_STND1_L);
-		else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state >= &states[S_KART_STND1] && player->mo->state <= &states[S_KART_STND2]))
+		else if (cmd->driftturn == 0 && !(player->mo->state >= &states[S_KART_STND1] && player->mo->state <= &states[S_KART_STND2]))
 			P_SetPlayerMobjState(player->mo, S_KART_STND1);
 	}
 	// Drifting Left - S_KART_DRIFT1_L
@@ -969,21 +969,21 @@ void K_KartMoveAnimation(player_t *player)
 	// Run frames - S_KART_RUN1   S_KART_RUN1_L   S_KART_RUN1_R
 	else if (player->speed > FixedMul(player->runspeed, player->mo->scale))
 	{
-		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_RUN1_R] && player->mo->state <= &states[S_KART_RUN2_R]))
+		if (cmd->driftturn < 0 && !(player->mo->state >= &states[S_KART_RUN1_R] && player->mo->state <= &states[S_KART_RUN2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_RUN1_R);
-		else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state >= &states[S_KART_RUN1_L] && player->mo->state <= &states[S_KART_RUN2_L]))
+		else if (cmd->driftturn > 0 && !(player->mo->state >= &states[S_KART_RUN1_L] && player->mo->state <= &states[S_KART_RUN2_L]))
 			P_SetPlayerMobjState(player->mo, S_KART_RUN1_L);
-		else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
+		else if (cmd->driftturn == 0 && !(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
 			P_SetPlayerMobjState(player->mo, S_KART_RUN1);
 	}
 	// Walk frames - S_KART_WALK1   S_KART_WALK1_L   S_KART_WALK1_R
 	else if (player->speed <= FixedMul(player->runspeed, player->mo->scale))
 	{
-		if (cmd->buttons & BT_DRIFTRIGHT && !(player->mo->state >= &states[S_KART_WALK1_R] && player->mo->state <= &states[S_KART_WALK2_R]))
+		if (cmd->driftturn < 0 && !(player->mo->state >= &states[S_KART_WALK1_R] && player->mo->state <= &states[S_KART_WALK2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_WALK1_R);
-		else if (cmd->buttons & BT_DRIFTLEFT && !(player->mo->state >= &states[S_KART_WALK1_L] && player->mo->state <= &states[S_KART_WALK2_L]))
+		else if (cmd->driftturn > 0 && !(player->mo->state >= &states[S_KART_WALK1_L] && player->mo->state <= &states[S_KART_WALK2_L]))
 			P_SetPlayerMobjState(player->mo, S_KART_WALK1_L);
-		else if (!(cmd->buttons & BT_DRIFTRIGHT || cmd->buttons & BT_DRIFTLEFT) && !(player->mo->state >= &states[S_KART_WALK1] && player->mo->state <= &states[S_KART_WALK2]))
+		else if (cmd->driftturn == 0 && !(player->mo->state >= &states[S_KART_WALK1] && player->mo->state <= &states[S_KART_WALK2]))
 			P_SetPlayerMobjState(player->mo, S_KART_WALK1);
 	}
 }
@@ -1343,6 +1343,15 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	fixed_t p_accel = K_GetKartAccel(player);
 
 	if (!onground) return 0; // If the player isn't on the ground, there is no change in speed
+
+	if (forwardmove <= 0 && player->kartstuff[k_brakestop] < 6) // Don't start reversing with brakes until you've made a stop first
+	{
+		if (player->speed < 8*FRACUNIT)
+			player->kartstuff[k_brakestop]++;
+		return 0;
+	}
+	else if (forwardmove > 0)
+		player->kartstuff[k_brakestop] = 0;
 
 	// ACCELCODE!!!1!11!
 	oldspeed = R_PointToDist2(0, 0, player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
@@ -2423,7 +2432,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		kartspeed = 1;
 
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	dsone = 26*4 + kartspeed*2 + (9 - player->kartweight);
+	dsone = (26*4 + kartspeed*2 + (9 - player->kartweight))*8;
 	dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
@@ -2457,7 +2466,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	}
 
 	// Drifting: left or right?
-	if ((player->cmd.buttons & BT_DRIFTLEFT) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
+	if ((player->cmd.driftturn > 0) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != 1)
 	{
 		// Starting left drift
@@ -2465,7 +2474,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		player->kartstuff[k_driftend] = 0;
 		player->kartstuff[k_driftcharge] = 0;
 	}
-	else if ((player->cmd.buttons & BT_DRIFTRIGHT) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
+	else if ((player->cmd.driftturn < 0) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
 	{
 		// Starting right drift
@@ -2494,7 +2503,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground
 		&& player->kartstuff[k_drift] != 0)
 	{
-		fixed_t driftadditive = 3;
+		fixed_t driftadditive = 24;
 
 		if (player->kartstuff[k_drift] >= 1) // Drifting to the left
 		{
@@ -2502,10 +2511,10 @@ static void K_KartDrift(player_t *player, boolean onground)
 			if (player->kartstuff[k_drift] > 5)
 				player->kartstuff[k_drift] = 5;
 
-			if (player->cmd.buttons & BT_DRIFTLEFT) // Inward
-				driftadditive++;
-			if (player->cmd.buttons & BT_DRIFTRIGHT) // Outward
-				driftadditive--;
+			if (player->cmd.driftturn > 0) // Inward
+				driftadditive += (player->cmd.driftturn/800)/8;
+			if (player->cmd.driftturn < 0) // Outward
+				driftadditive -= (player->cmd.driftturn/800)/8;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
@@ -2513,10 +2522,10 @@ static void K_KartDrift(player_t *player, boolean onground)
 			if (player->kartstuff[k_drift] < -5)
 				player->kartstuff[k_drift] = -5;
 
-			if (player->cmd.buttons & BT_DRIFTRIGHT) // Inward
-				driftadditive++;
-			if (player->cmd.buttons & BT_DRIFTLEFT) // Outward
-				driftadditive--;
+			if (player->cmd.driftturn < 0) // Inward
+				driftadditive += (player->cmd.driftturn/800)/4;
+			if (player->cmd.driftturn > 0) // Outward
+				driftadditive -= (player->cmd.driftturn/800)/4;
 		}
 
 		// This spawns the drift sparks
@@ -3325,24 +3334,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	K_KartDrift(player, onground);
 
-	// Feather strafing
-	if (player->kartstuff[k_feather] & 2)
-	{
-		fixed_t strafe = 0;
-		fixed_t strength = FRACUNIT/32;
-		if (cmd->buttons & BT_DRIFTLEFT)
-			strafe--;
-		if (cmd->buttons & BT_DRIFTRIGHT)
-			strafe++;
-		strength += FixedDiv(player->speed, K_GetKartSpeed(player, true));
-		P_Thrust(player->mo, player->mo->angle-ANGLE_90, strafe*strength);
-	}
-
 	// Quick Turning
 	// You can't turn your kart when you're not moving.
 	// So now it's time to burn some rubber!
-	if (player->speed < 2 && leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE
-	&& ((cmd->buttons & BT_DRIFTLEFT) || (cmd->buttons & BT_DRIFTRIGHT)))
+	if (player->speed < 2 && leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE && cmd->driftturn != 0)
 	{
 		if (leveltime % 20 == 0)
 			S_StartSound(player->mo, sfx_mkslid);

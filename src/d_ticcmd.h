@@ -25,18 +25,13 @@
 typedef enum
 {
 	BT_ACCELERATE	= 1,		// Accelerate
-	BT_DRIFT		= 1<<2,		// Drift (direction is cmd->angleturn)
+	BT_DRIFT		= 1<<2,		// Drift (direction is cmd->driftturn)
 	BT_BRAKE		= 1<<3,		// Brake
 	BT_ATTACK		= 1<<4,		// Use Item
 	BT_FORWARD		= 1<<5,		// Aim Item Forward
 	BT_BACKWARD		= 1<<6,		// Aim Item Backward
-	//BT_SPECTATE		= 1<<7,		// Toggle Spectate
 
-	// Want more button space? Help get rid of this hack :V
-	BT_DRIFTLEFT	= 1<<7,		// Drift left hack
-	BT_DRIFTRIGHT	= 1<<8,		// Drift right hack
-
-	// free: 1<<9 to 1<<12
+	// free: 1<<7 to 1<<12
 
 	// Lua garbage
 	BT_CUSTOM1		= 1<<13,
@@ -64,6 +59,7 @@ typedef struct
 	INT16 angleturn; // <<16 for angle delta - saved as 1 byte into demos
 	INT16 aiming; // vertical aiming, see G_BuildTicCmd
 	UINT16 buttons;
+	INT16 driftturn; // SRB2Kart: Used for getting drift turn speed
 } ATTRPACK ticcmd_t;
 
 #if defined(_MSC_VER)

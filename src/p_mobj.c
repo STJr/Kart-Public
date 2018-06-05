@@ -2891,6 +2891,12 @@ static void P_PlayerZMovement(mobj_t *mo)
 						mo->momx = mo->momx/2;
 						mo->momy = mo->momy/2;
 					}
+
+					if (mo->player->cmd.buttons & BT_BRAKE && !(mo->player->cmd.forwardmove)) // FURTHER slowdown if you're braking.
+					{
+						mo->momx = mo->momx/2;
+						mo->momy = mo->momy/2;
+					}
 				}
 
 				if (mo->health)
@@ -6559,7 +6565,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if (G_BattleGametype() && mobj->target->player->kartstuff[k_balloon] <= 0)
 						kartspeed = 1;
 
-					dsone = 26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight);
+					dsone = (26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight))*8;
 					dstwo = dsone*2;
 
 					if (mobj->target->player->kartstuff[k_driftcharge] < dsone)

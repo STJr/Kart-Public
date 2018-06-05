@@ -4684,7 +4684,6 @@ static void P_3dMovement(player_t *player)
 	angle_t movepushangle, movepushsideangle; // Analog
 	//INT32 topspeed, acceleration, thrustfactor;
 	fixed_t movepushforward = 0, movepushside = 0;
-	INT32 mforward = 0, mbackward = 0;
 	angle_t dangle; // replaces old quadrants bits
 	//boolean dangleflip = false; // SRB2kart - toaster
 	//fixed_t normalspd = FixedMul(player->normalspeed, player->mo->scale);
@@ -4772,12 +4771,6 @@ static void P_3dMovement(player_t *player)
 		//dangleflip = true;
 	}
 
-	// now use it to determine direction!
-	if (dangle <= ANGLE_45) // angles 0-45 or 315-360
-		mforward = 1; // going forwards
-	else if (dangle >= ANGLE_135) // angles 135-225
-		mbackward = 1; // going backwards
-
 	// anything else will leave both at 0, so no need to do anything else
 
 	//{ SRB2kart 220217 - Toaster Code for misplaced thrust
@@ -4803,104 +4796,13 @@ static void P_3dMovement(player_t *player)
 		cmd->forwardmove = 0;
 
 	// Do not let the player control movement if not onground.
-	onground = P_IsObjectOnGround(player->mo);
-
-	// SRB2Kart: shhhhhhh don't question me, feather and speed bumps are supposed to control like you're on the ground :p
-	if (player->kartstuff[k_feather] & 2)
-		onground = true;
+	// SRB2Kart: feather and speed bumps are supposed to control like you're on the ground
+	onground = (P_IsObjectOnGround(player->mo) || (player->kartstuff[k_feather] & 2));
 
 	player->aiming = cmd->aiming<<FRACBITS;
 
-	// Set the player speeds.
-	/*if (player->pflags & PF_SLIDING)
-	{
-		normalspd = FixedMul(36<<FRACBITS, player->mo->scale);
-		thrustfactor = 5;
-		acceleration = 96 + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * 40;
-		topspeed = normalspd;
-	}
-	else if (player->bot)
-	{ // Bot steals player 1's stats
-		normalspd = FixedMul(players[consoleplayer].normalspeed, player->mo->scale);
-		thrustfactor = players[consoleplayer].thrustfactor;
-		acceleration = players[consoleplayer].accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * players[consoleplayer].acceleration;
-
-		if (player->powers[pw_tailsfly])
-			topspeed = normalspd/2;
-		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
-		{
-			topspeed = normalspd/2;
-			acceleration = 2*acceleration/3;
-		}
-		else
-			topspeed = normalspd;
-	}
-	else if (player->powers[pw_super] || player->powers[pw_sneakers] || player->kartstuff[k_startimer] || player->kartstuff[k_mushroomtimer])
-	{
-		if (player->powers[pw_sneakers] && (player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_mushroomtimer] > 0 || player->kartstuff[k_startimer] > 0))
-			thrustfactor = player->thrustfactor*3;
-		else
-			thrustfactor = player->thrustfactor*2;
-		acceleration = player->accelstart/2 + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration/2;
-
-
-		if (player->powers[pw_tailsfly])
-			topspeed = normalspd;
-		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
-		{
-			topspeed = normalspd;
-			acceleration = 2*acceleration/3;
-		}
-
-		if (cmd->forwardmove < 0)
-			topspeed = 5<<16;
-		else
-			topspeed = (normalspd * 3)/2; //> 60<<16 ? 60<<16 : normalspd * 2;
-	}
-	else
-	{
-		thrustfactor = player->thrustfactor;
-		acceleration = player->accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration;
-
-
-		if (player->powers[pw_tailsfly])
-			topspeed = normalspd/2;
-		else if (player->mo->eflags & (MFE_UNDERWATER|MFE_GOOWATER))
-		{
-			topspeed = normalspd/2;
-			acceleration = 2*acceleration/3;
-		}
-		if (cmd->forwardmove < 0)
-			topspeed = 5<<16;
-		else
-			topspeed = normalspd;
-	}
-
-	// Better maneuverability while flying
-	//if(player->powers[pw_tailsfly])
-	//{
-	//	thrustfactor = player->thrustfactor*2;
-	//	acceleration = player->accelstart + (FixedDiv(player->speed, player->mo->scale)>>FRACBITS) * player->acceleration;
-	//}
-
-	if (player->mo->movefactor != FRACUNIT) // Friction-scaled acceleration...
-		acceleration = FixedMul(acceleration<<FRACBITS, player->mo->movefactor)>>FRACBITS;
-	*/
-
 	// Forward movement
-	if (player->climbing)
-	{
-		if (cmd->forwardmove)
-		{
-			P_SetObjectMomZ(player->mo, FixedDiv(cmd->forwardmove*FRACUNIT, 10*FRACUNIT), false);
-			if (player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))
-				player->mo->momz *= 2;
-		}
-	}
-	else if (!analogmove
-		//&& cmd->forwardmove != 0
-		&& !(player->pflags & PF_GLIDING || player->exiting
-		|| (P_PlayerInPain(player) && !onground)))
+	if (!(player->exiting || (P_PlayerInPain(player) && !onground)))
 	{
 		//movepushforward = cmd->forwardmove * (thrustfactor * acceleration);
 		movepushforward = K_3dKartMovement(player, onground, cmd->forwardmove);
@@ -4909,25 +4811,14 @@ static void P_3dMovement(player_t *player)
 		if (!onground)
 			movepushforward >>= 2; // proper air movement
 
-		// Allow a bit of movement while spinning
-		if (player->pflags & PF_SPINNING)
-		{
-			if ((mforward && cmd->forwardmove > 0) || (mbackward && cmd->forwardmove < 0))
-				movepushforward = 0;
-			else if (!(player->pflags & PF_STARTDASH))
-				movepushforward = FixedDiv(movepushforward, 16*FRACUNIT);
-			else
-				movepushforward = 0;
-		}
-
 		// don't need to account for scale here with kart accel code
 		//movepushforward = FixedMul(movepushforward, player->mo->scale);
 
 		if (player->mo->movefactor != FRACUNIT) // Friction-scaled acceleration...
 			movepushforward = FixedMul(movepushforward, player->mo->movefactor);
 
-		//if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
-		//	movepushforward /= 32;
+		if (cmd->buttons & BT_BRAKE && !cmd->forwardmove) // SRB2kart - braking isn't instant
+			movepushforward /= 64;
 
 #ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushangle, movepushforward);
@@ -4940,91 +4831,14 @@ static void P_3dMovement(player_t *player)
 	{
 		K_MomentumToFacing(player);
 	}
+
 	// Sideways movement
-	if (player->climbing)
+	if (cmd->sidemove != 0 && !(player->exiting || (P_PlayerInPain(player))))
 	{
-		if (player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))
-			P_InstaThrust(player->mo, player->mo->angle-ANGLE_90, FixedMul(FixedDiv(cmd->sidemove*FRACUNIT, 5*FRACUNIT), player->mo->scale));
-		else
-			P_InstaThrust(player->mo, player->mo->angle-ANGLE_90, FixedMul(FixedDiv(cmd->sidemove*FRACUNIT, 10*FRACUNIT), player->mo->scale));
-	}
-	// Analog movement control
-	else if (analogmove)
-	{
-		if (!(player->pflags & PF_GLIDING || player->exiting || P_PlayerInPain(player)))
-		{
-			angle_t controldirection;
-
-			// Calculate the angle at which the controls are pointing
-			// to figure out the proper mforward and mbackward.
-			// (Why was it so complicated before? ~Red)
-			controldirection = R_PointToAngle2(0, 0, cmd->forwardmove*FRACUNIT, -cmd->sidemove*FRACUNIT)+movepushangle;
-
-			//movepushforward = max(abs(cmd->sidemove), abs(cmd->forwardmove)) * (thrustfactor * acceleration);
-			movepushforward = K_3dKartMovement(player, onground, max(abs(cmd->sidemove), abs(cmd->forwardmove)));
-
-			// allow very small movement while in air for gameplay
-			if (!onground)
-				movepushforward >>= 2; // proper air movement
-
-			// Allow a bit of movement while spinning
-			if (player->pflags & PF_SPINNING)
-			{
-				// Stupid little movement prohibitor hack
-				// that REALLY shouldn't belong in analog code.
-				if ((mforward && cmd->forwardmove > 0) || (mbackward && cmd->forwardmove < 0))
-					movepushforward = 0;
-				else if (!(player->pflags & PF_STARTDASH))
-					movepushforward = FixedDiv(movepushforward, 16*FRACUNIT);
-				else
-					movepushforward = 0;
-			}
-
-			movepushsideangle = controldirection;
-
-			// don't need to account for scale here with kart accel code
-			//movepushforward = FixedMul(movepushforward, player->mo->scale);
-
-			//if (mforward && cmd->forwardmove < 0) // SRB2kart - braking isn't instant
-			//	movepushforward /= 32;
-
-#ifdef ESLOPE
-			totalthrust.x += P_ReturnThrustX(player->mo, controldirection, movepushforward);
-			totalthrust.y += P_ReturnThrustY(player->mo, controldirection, movepushforward);
-#else
-			P_Thrust(player->mo, controldirection, movepushforward);
-#endif
-		}
-	}
-	else if (cmd->sidemove && !(player->pflags & PF_GLIDING) && !player->exiting && !P_PlayerInPain(player))
-	{
-		//movepushside = cmd->sidemove * (thrustfactor * acceleration);
 		if (cmd->sidemove > 0)
-			movepushside = K_3dKartMovement(player, onground, 50);
+			movepushside = (cmd->sidemove * FRACUNIT/128) + FixedDiv(player->speed, K_GetKartSpeed(player, true));
 		else
-			movepushside = -(K_3dKartMovement(player, onground, 50));
-
-		if (!onground)
-		{
-			movepushside >>= 2;
-
-			// Reduce movepushslide even more if over "max" flight speed
-			if (player->powers[pw_tailsfly] && player->speed > K_GetKartSpeed(player, true)) //topspeed)
-				movepushside >>= 2;
-		}
-
-		// Allow a bit of movement while spinning
-		if (player->pflags & PF_SPINNING)
-		{
-			if (!(player->pflags & PF_STARTDASH))
-				movepushside = FixedDiv(movepushside,16*FRACUNIT);
-			else
-				movepushside = 0;
-		}
-
-		// Finally move the player now that his speed/direction has been decided.
-		// don't need to account for scale here with kart accel code
-		//movepushside = FixedMul(movepushside, player->mo->scale);
+			movepushside = (cmd->sidemove * FRACUNIT/128) - FixedDiv(player->speed, K_GetKartSpeed(player, true));
 
 #ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushsideangle, movepushside);
@@ -6496,13 +6310,13 @@ void P_ElementalFireTrail(player_t *player)
 	}
 }
 
-static void P_SkidStuff(player_t *player)
+/*static void P_SkidStuff(player_t *player)
 {
 	fixed_t pmx = player->rmomx + player->cmomx;
 	fixed_t pmy = player->rmomy + player->cmomy;
 
 	// Knuckles glides into the dirt.
-	/* // SRB2kart - don't need
+	// SRB2kart - don't need
 	if (player->pflags & PF_GLIDING && player->skidtime)
 	{
 		// Fell off a ledge...
@@ -6540,7 +6354,7 @@ static void P_SkidStuff(player_t *player)
 		}
 	}
 	// Skidding!
-	else*/if (onground && !(player->mo->eflags & MFE_GOOWATER) && !(player->pflags & (PF_JUMPED|PF_SPINNING|PF_SLIDING)) && !(player->charflags & SF_NOSKID))
+	elseif (onground && !(player->mo->eflags & MFE_GOOWATER) && !(player->pflags & (PF_JUMPED|PF_SPINNING|PF_SLIDING)) && !(player->charflags & SF_NOSKID))
 	{
 		if (player->skidtime)
 		{
@@ -6587,7 +6401,7 @@ static void P_SkidStuff(player_t *player)
 			S_StopSound(player->mo);
 		}
 	}
-}
+}*/
 
 //
 // P_MovePlayer
@@ -6762,7 +6576,7 @@ static void P_MovePlayer(player_t *player)
 	if (maptol & TOL_2D)
 		runspd = FixedMul(runspd, 2*FRACUNIT/3);
 
-	P_SkidStuff(player);
+	//P_SkidStuff(player);
 
 	/////////////////////////
 	// MOVEMENT ANIMATIONS //
