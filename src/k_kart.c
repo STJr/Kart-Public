@@ -476,7 +476,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 				player->kartstuff[k_blueshell] = 1;
 			else
 				player->kartstuff[k_bobomb] |= 2;
-			lightningcooldown = 30*TICRATE;
+			lightningcooldown = 20*TICRATE;
 			break;
 		case 16:	// Fire Flower			- or -	Deton (Blue Shell)
 			if (retrokart)
@@ -492,7 +492,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 			break;
 		case 18:	// Lightning
 			player->kartstuff[k_lightning] = 1;
-			lightningcooldown = 30*TICRATE;
+			lightningcooldown = 20*TICRATE;
 			break;
 		case 19:	// Feather
 			player->kartstuff[k_feather] |= 1;
@@ -535,7 +535,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 {
 	INT32 i;
 	INT32 pingame = 0, pexiting = 0;
-	INT32 roulettestop;
+	//INT32 roulettestop;
 	INT32 prandom;
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
@@ -554,13 +554,12 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
-	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+	//roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)
-		|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
+	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3))) //|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
 		return;
 
 	if (cmd->buttons & BT_ATTACK)
