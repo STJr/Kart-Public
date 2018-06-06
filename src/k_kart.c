@@ -380,7 +380,7 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 			 /*Red Shell*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Red Shell
 	/*Triple Green Shell*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Triple Green Shell
 			   /*Bob-omb*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Bob-omb
-			/*Blue Shell*/ { 0, 0, 0, 0, 0, 1, 2, 0, 0 }, // Blue Shell
+			/*Blue Shell*/ { 0, 0, 1, 2, 4, 3, 1, 0, 0 }, // Blue Shell
 		   /*Fire Flower*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Fire Flower
 	  /*Triple Red Shell*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Lightning
@@ -512,7 +512,7 @@ static void K_KartGetItemResult(player_t *player, fixed_t getitem, boolean retro
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
+static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum, boolean mashed)
 {
 	INT32 newodds;
 
@@ -521,10 +521,15 @@ static INT32 K_KartGetItemOdds(INT32 pos, INT32 itemnum)
 	else
 		newodds = K_KartItemOddsDistance_Retro[itemnum-1][pos];
 
-	if (franticitems && (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
+	if (itemnum == 1 || itemnum == 4 || itemnum == 5 || itemnum == 6
 		|| itemnum == 7 || itemnum == 8 || itemnum == 12 || itemnum == 13 || itemnum == 14 || itemnum == 15
-		|| itemnum == 16 || itemnum == 17 || itemnum == 18))
-		newodds *= 2;
+		|| itemnum == 16 || itemnum == 17 || itemnum == 18) // Powerful items!
+	{
+		if (franticitems)
+			newodds *= 2;
+		if (mashed)
+			newodds /= 2;
+	}
 
 	return newodds;
 }
@@ -535,7 +540,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 {
 	INT32 i;
 	INT32 pingame = 0, pexiting = 0;
-	//INT32 roulettestop;
+	INT32 roulettestop;
 	INT32 prandom;
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTITEMS * NUMKARTODDS];
@@ -543,6 +548,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 distvar = (64*14);
 	INT32 avgballoon = 0;
 	INT32 secondist = 0;
+	boolean mashed = false;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -554,12 +560,14 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
-	//roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3))) //|| ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)))
+	if ((cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemroulette] >= roulettestop)
+		mashed = true; // Mashing halves your chances for the good items
+	else if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)))
 		return;
 
 	if (cmd->buttons & BT_ATTACK)
@@ -629,7 +637,10 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	else
 	{
 		if (franticitems) // Frantic items make the distances between everyone artifically higher :P
+		{
 			pdis = (15*pdis/14);
+			secondist = (15*pdis/14);
+		}
 		if (pingame == 1)				useodds = 0; // Record Attack, or just alone
 		else if (pdis <= distvar *  0)	useodds = 1; // (64*14) *  0 =     0
 		else if (pdis <= distvar *  1)	useodds = 2; // (64*14) *  1 =   896
@@ -642,7 +653,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	}
 
 #define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum); chance++) \
+	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, mashed); chance++) \
 		spawnchance[numchoices++] = itemnum
 
 	// Check the game type to differentiate odds.
@@ -663,7 +674,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_triplegreenshell.value)											SETITEMRESULT(useodds, 13);	// Triple Green Shell
 		if (cv_bobomb.value)													SETITEMRESULT(useodds, 14);	// Bob-omb
 		if (cv_blueshell.value && pexiting == 0
-			&& !lightningcooldown && secondist > distvar*6)					SETITEMRESULT(useodds, 15);	// Blue Shell
+			&& !lightningcooldown && secondist > distvar*2)					SETITEMRESULT(useodds, 15);	// Blue Shell
 		if (cv_fireflower.value)												SETITEMRESULT(useodds, 16);	// Fire Flower
 		if (cv_tripleredshell.value && pingame > 2)							SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting && !lightningcooldown)	SETITEMRESULT(useodds, 18);	// Lightning
