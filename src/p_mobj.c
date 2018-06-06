@@ -6264,6 +6264,26 @@ void P_RunShadows(void)
 		else
 			mobj->flags2 &= ~MF2_DONTDRAW;
 
+		if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
+			mobj->eflags |= MFE_DRAWONLYFORP1;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP1;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP2)
+			mobj->eflags |= MFE_DRAWONLYFORP2;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP2;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP3)
+			mobj->eflags |= MFE_DRAWONLYFORP3;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP3;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP4)
+			mobj->eflags |= MFE_DRAWONLYFORP4;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP4;
+
 		// First scale to the same radius
 		P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
 
@@ -6576,27 +6596,46 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (mobj->target->player->kartstuff[k_bootimer] > 0)
 					{
-						if ((mobj->target->player == &players[displayplayer]
-							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
-							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
-							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
-							|| (!(mobj->target->player == &players[displayplayer]
-							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
-							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
-							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
-							&& (mobj->target->player->kartstuff[k_bootimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
+						if (splitscreen)
 						{
 							if (leveltime & 1)
 								mobj->flags2 |= MF2_DONTDRAW;
 							else
 								mobj->flags2 &= ~MF2_DONTDRAW;
+
+							if (mobj->target->player->kartstuff[k_bootimer] >= (1*TICRATE/2) && mobj->target->player->kartstuff[k_bootimer] <= bootime-(1*TICRATE/2))
+							{
+								if (mobj->target->player == &players[secondarydisplayplayer])
+									mobj->eflags |= MFE_DRAWONLYFORP2;
+								else if (mobj->target->player == &players[thirddisplayplayer] && splitscreen > 1)
+									mobj->eflags |= MFE_DRAWONLYFORP3;
+								else if (mobj->target->player == &players[fourthdisplayplayer] && splitscreen > 2)
+									mobj->eflags |= MFE_DRAWONLYFORP4;
+								else
+									mobj->eflags |= MFE_DRAWONLYFORP1;
+							}
+							else
+								mobj->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 						}
 						else
-							mobj->flags2 |= MF2_DONTDRAW;
+						{
+							if (mobj->target->player == &players[displayplayer]
+								|| (mobj->target->player != &players[displayplayer]
+								&& (mobj->target->player->kartstuff[k_bootimer] < (1*TICRATE/2) || mobj->target->player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
+							{
+								if (leveltime & 1)
+									mobj->flags2 |= MF2_DONTDRAW;
+								else
+									mobj->flags2 &= ~MF2_DONTDRAW;
+							}
+							else
+								mobj->flags2 |= MF2_DONTDRAW;
+						}
 					}
 					else if (mobj->target->player->kartstuff[k_bootimer] == 0)
 					{
 						mobj->flags2 &= ~MF2_DONTDRAW;
+						mobj->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 					}
 
 					// Actor's distance from its Target, or Radius.
@@ -6791,7 +6830,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			case MT_BATTLEBALLOON:
-				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
+				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					fixed_t rad = 32*mobj->target->scale;
@@ -6821,6 +6860,26 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->eflags &= ~MFE_VERTICALFLIP;
 						offz = mobj->target->height / 5;
 					}
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
+						mobj->eflags |= MFE_DRAWONLYFORP1;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP1;
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP2)
+						mobj->eflags |= MFE_DRAWONLYFORP2;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP2;
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP3)
+						mobj->eflags |= MFE_DRAWONLYFORP3;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP3;
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP4)
+						mobj->eflags |= MFE_DRAWONLYFORP4;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP4;
 
 					if (mobj->target->flags2 & MF2_DONTDRAW)
 						mobj->flags2 |= MF2_DONTDRAW;
@@ -6931,6 +6990,9 @@ void P_MobjThinker(mobj_t *mobj)
 					else if (mobj->target->player->kartstuff[k_banana])					P_SetMobjState(mobj, S_PLAYERARROW_BANANA);
 					else if (mobj->target->player->kartstuff[k_greenshell])				P_SetMobjState(mobj, S_PLAYERARROW_GREENSHELL);
 					else if (mobj->target->player->kartstuff[k_mushroom])					P_SetMobjState(mobj, S_PLAYERARROW_MUSHROOM);
+					else if (mobj->target->player->kartstuff[k_mushroom]
+						&& mobj->target->player->kartstuff[k_mushroomtimer] > 1
+						&& !(leveltime & 1))												P_SetMobjState(mobj, S_PLAYERARROW_EMPTY); // S_INVISIBLE
 					else																	P_SetMobjState(mobj, S_PLAYERARROW); // S_INVISIBLE
 
 					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,

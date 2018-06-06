@@ -7311,6 +7311,10 @@ static const char *const MOBJEFLAG_LIST[] = {
 	"JUSTBOUNCEDWALL", // SRB2Kart: Mobj already bounced off a wall this tic
 	"SPRUNG", // Mobj was already sprung this tic
 	"APPLYPMOMZ", // Platform movement
+	"DRAWONLYFORP1", // SRB2Kart: Splitscreen sprite draw flags
+	"DRAWONLYFORP2",
+	"DRAWONLYFORP3",
+	"DRAWONLYFORP4",
 	NULL
 };
 

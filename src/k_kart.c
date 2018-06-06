@@ -367,11 +367,11 @@ static INT32 K_KartItemOddsDistance_Retro[NUMKARTITEMS][9] =
 				//P-Odds	 0  1  2  3  4  5  6  7  8
 				/*Magnet*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Boo
-			  /*Mushroom*/ { 1, 0, 0, 3, 7, 5, 0, 0, 0 }, // Mushroom
-	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3, 8, 6, 4, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 0, 0, 0, 0, 0, 1, 1, 1, 2 }, // Mega Mushroom
-		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 2, 4, 3, 0 }, // Gold Mushroom
-				  /*Star*/ { 0, 0, 0, 0, 0, 1, 6, 8,18 }, // Star
+			  /*Mushroom*/ {20, 0, 0, 3, 7, 6, 0, 0, 0 }, // Mushroom
+	   /*Triple Mushroom*/ { 0, 0, 0, 0, 3, 8, 7, 4, 0 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Mega Mushroom
+		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 3, 5, 4, 0 }, // Gold Mushroom
+				  /*Star*/ { 0, 0, 0, 0, 0, 1, 6, 9,18 }, // Star
 
 		 /*Triple Banana*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Triple Banana
 			 /*Fake Item*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Fake Item
@@ -393,25 +393,25 @@ static INT32 K_KartItemOddsBalloons[NUMKARTITEMS][6] =
 				//P-Odds	 0  1  2  3  4  5
 				/*Magnet*/ { 0, 0, 0, 0, 0, 0 }, // Magnet
 				   /*Boo*/ { 0, 0, 1, 1, 0, 0 }, // Boo
-			  /*Mushroom*/ { 0, 1, 2, 1, 0, 1 }, // Mushroom
-	   /*Triple Mushroom*/ { 0, 0, 0, 0, 0, 0 }, // Triple Mushroom
-		 /*Mega Mushroom*/ { 1, 2, 0, 0, 0, 1 }, // Mega Mushroom
+			  /*Mushroom*/ { 3, 1, 2, 2, 0, 2 }, // Mushroom
+	   /*Triple Mushroom*/ { 3, 0, 0, 0, 0, 2 }, // Triple Mushroom
+		 /*Mega Mushroom*/ { 4, 2, 0, 0, 0, 2 }, // Mega Mushroom
 		 /*Gold Mushroom*/ { 0, 0, 0, 0, 0, 0 }, // Gold Mushroom
-				  /*Star*/ { 1, 2, 0, 0, 0, 1 }, // Star
+				  /*Star*/ { 4, 2, 1, 0, 0, 2 }, // Star
 
-		 /*Triple Banana*/ { 0, 1, 1, 0, 0, 1 }, // Triple Banana
-			 /*Fake Item*/ { 0, 0, 2, 1, 1, 0 }, // Fake Item
-				/*Banana*/ { 0, 0, 3, 1, 1, 0 }, // Banana
-		   /*Green Shell*/ { 0, 0, 5, 3, 2, 0 }, // Green Shell
-			 /*Red Shell*/ { 0, 3, 3, 0, 0, 1 }, // Red Shell
-	/*Triple Green Shell*/ { 0, 1, 1, 0, 0, 1 }, // Triple Green Shell
-			   /*Bob-omb*/ { 0, 3, 3, 0, 0, 1 }, // Bob-omb
+		 /*Triple Banana*/ { 0, 2, 2, 1, 1, 2 }, // Triple Banana
+			 /*Fake Item*/ { 0, 0, 2, 2, 3, 0 }, // Fake Item
+				/*Banana*/ { 0, 0, 2, 3, 6, 0 }, // Banana
+		   /*Green Shell*/ { 0, 0, 3, 5,10, 0 }, // Green Shell
+			 /*Red Shell*/ { 3, 3, 2, 1, 0, 2 }, // Red Shell
+	/*Triple Green Shell*/ { 0, 3, 1, 1, 0, 2 }, // Triple Green Shell
+			   /*Bob-omb*/ { 0, 3, 2, 1, 0, 2 }, // Bob-omb
 			/*Blue Shell*/ { 0, 0, 0, 0, 0, 0 }, // Blue Shell
-		   /*Fire Flower*/ { 0, 3, 3, 0, 0, 1 }, // Fire Flower
-	  /*Triple Red Shell*/ { 1, 2, 0, 0, 0, 1 }, // Triple Red Shell
+		   /*Fire Flower*/ { 0, 2, 1, 1, 0, 2 }, // Fire Flower
+	  /*Triple Red Shell*/ { 3, 2, 0, 0, 0, 2 }, // Triple Red Shell
 			 /*Lightning*/ { 0, 0, 0, 0, 0, 0 }, // Lightning
 
-			   /*Feather*/ { 0, 0, 1, 1, 0, 0 }  // Feather
+			   /*Feather*/ { 0, 0, 1, 2, 0, 0 }  // Feather
 };
 
 /**	\brief	Item Roulette for Kart
@@ -548,6 +548,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	INT32 distvar = (64*14);
 	INT32 avgballoon = 0;
 	INT32 secondist = 0;
+	SINT8 first = -1;
+	SINT8 second = -1;
 	boolean mashed = false;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
@@ -594,9 +596,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		SINT8 first = -1;
-		SINT8 second = -1;
-
 		if (playeringame[i] && !players[i].spectator && players[i].mo)
 		{
 			if (players[i].kartstuff[k_position] < player->kartstuff[k_position])
@@ -610,14 +609,14 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 			if (players[i].kartstuff[k_position] == 2 && second == -1)
 				second = i;
 		}
-
-		if (first != -1 && second != -1 && !secondist) // calculate 2nd's distance from 1st, for blue shell
-			secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
-														players[first].mo->y - players[second].mo->y),
-														players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
-														* (pingame - 1)
-														/ ((pingame - 1) * (pingame + 1) / 3);
 	}
+
+	if (first != -1 && second != -1 && !secondist) // calculate 2nd's distance from 1st, for blue shell
+		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
+													players[first].mo->y - players[second].mo->y),
+													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
+													* (pingame - 1)
+													/ ((pingame - 1) * (pingame + 1) / 3);
 
 	player->kartstuff[k_itemclose] = 0;	// Reset the item window closer.
 
@@ -652,6 +651,8 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		else 							useodds = 8;
 	}
 
+	//CONS_Printf("%d %d\n", secondist, distvar*2);
+
 #define SETITEMRESULT(pos, itemnum) \
 	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, mashed); chance++) \
 		spawnchance[numchoices++] = itemnum
@@ -674,7 +675,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_triplegreenshell.value)											SETITEMRESULT(useodds, 13);	// Triple Green Shell
 		if (cv_bobomb.value)													SETITEMRESULT(useodds, 14);	// Bob-omb
 		if (cv_blueshell.value && pexiting == 0
-			&& !lightningcooldown && secondist > distvar*2)					SETITEMRESULT(useodds, 15);	// Blue Shell
+			&& (secondist > distvar*4) && !lightningcooldown)					SETITEMRESULT(useodds, 15);	// Blue Shell
 		if (cv_fireflower.value)												SETITEMRESULT(useodds, 16);	// Fire Flower
 		if (cv_tripleredshell.value && pingame > 2)							SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting && !lightningcooldown)	SETITEMRESULT(useodds, 18);	// Lightning
@@ -3323,23 +3324,47 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->kartstuff[k_bootimer] > 0)
 		{
-			if ((player == &players[displayplayer] && !splitscreen)
-				|| (!(player == &players[displayplayer] && !splitscreen)
-				&& (player->kartstuff[k_bootimer] < 1*TICRATE/2 || player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
+			if (splitscreen)
 			{
 				if (leveltime & 1)
 					player->mo->flags2 |= MF2_DONTDRAW;
 				else
 					player->mo->flags2 &= ~MF2_DONTDRAW;
+
+				if (player->kartstuff[k_bootimer] >= (1*TICRATE/2) && player->kartstuff[k_bootimer] <= bootime-(1*TICRATE/2))
+				{
+					if (player == &players[secondarydisplayplayer])
+						player->mo->eflags |= MFE_DRAWONLYFORP2;
+					else if (player == &players[thirddisplayplayer] && splitscreen > 1)
+						player->mo->eflags |= MFE_DRAWONLYFORP3;
+					else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
+						player->mo->eflags |= MFE_DRAWONLYFORP4;
+					else
+						player->mo->eflags |= MFE_DRAWONLYFORP1;
+				}
+				else
+					player->mo->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 			}
 			else
-				player->mo->flags2 |= MF2_DONTDRAW;
+			{
+				if (player == &players[displayplayer]
+					|| (player != &players[displayplayer] && (player->kartstuff[k_bootimer] < (1*TICRATE/2) || player->kartstuff[k_bootimer] > bootime-(1*TICRATE/2))))
+				{
+					if (leveltime & 1)
+						player->mo->flags2 |= MF2_DONTDRAW;
+					else
+						player->mo->flags2 &= ~MF2_DONTDRAW;
+				}
+				else
+					player->mo->flags2 |= MF2_DONTDRAW;
+			}
 
 			player->powers[pw_flashing] = player->kartstuff[k_bootimer]; // We'll do this for now, let's people know about the invisible people through subtle hints
 		}
 		else if (player->kartstuff[k_bootimer] == 0)
 		{
 			player->mo->flags2 &= ~MF2_DONTDRAW;
+			player->mo->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 		}
 
 		if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb

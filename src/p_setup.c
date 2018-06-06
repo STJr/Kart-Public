@@ -3003,6 +3003,10 @@ boolean P_SetupLevel(boolean skipprecip)
 		comeback = cv_kartcomeback.value;
 	}
 
+	lightningcooldown = 0;
+	blueshellincoming = 0;
+	blueshellplayer = 0;
+
 	// clear special respawning que
 	iquehead = iquetail = 0;
 

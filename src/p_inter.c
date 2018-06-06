@@ -3127,8 +3127,10 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		player->kartstuff[k_mushroomtimer] = 0;
 
 		// Thunder
-		if (damage == 64 && player != source->player)
+		if (damage == 64)
 		{
+			if (player == source->player)
+				return false;
 			// Don't flip out while super!
 			if (!player->kartstuff[k_startimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
@@ -3148,20 +3150,18 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			return true;
 		}
-		else if (damage == 64 && player == source->player)
-			return false;
 
 		// Blue Thunder
-		if (damage == 65 && player->kartstuff[k_position] == 1)
+		if (damage == 65)
 		{
+			if (player == source->player)
+				return false;
 			// Just need to do this now! Being thrown upwards is done by the explosion.
 			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
 			blueexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
 			P_SetTarget(&blueexplode->target, source);
 			return true;
 		}
-		else if (damage == 65 && player->kartstuff[k_position] > 1)
-			return false;
 		//}
 
 		// Sudden-Death mode
