@@ -279,6 +279,7 @@ typedef enum
 	k_spinouttimer,		// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_laserwisptimer,	// The duration and relative angle of the laser
 	k_justbumped,		// Prevent players from endlessly bumping into each other
+	k_deathsentence,	// 30 seconds to live... (Blue Shell murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
 	k_poweritemtimer,	// Battle mode, how long before you're allowed another power item (Star, Megashroom)
 	k_comebacktimer,	// Battle mode, how long before you become a bomb after death
 

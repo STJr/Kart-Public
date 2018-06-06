@@ -252,6 +252,11 @@ INT16 votelevels[4]; // Levels that were rolled by the host
 SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
+// Server-sided variables
+tic_t lightningcooldown; // Cooldown before any more lightning/blue shell is awarded
+tic_t blueshellincoming; // Timer before blue shell hits, can switch targets at this point
+UINT8 blueshellplayer; // Player num that used the last blue shell
+
 // Client-sided variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
 boolean comebackshowninfo; // Have you already seen the "ATTACK OR PROTECT" message?

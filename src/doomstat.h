@@ -445,6 +445,10 @@ extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
 
+extern tic_t lightningcooldown;
+extern tic_t blueshellincoming;
+extern UINT8 blueshellplayer;
+
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;
 extern tic_t curlap, bestlap;
