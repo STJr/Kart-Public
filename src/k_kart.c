@@ -1205,7 +1205,7 @@ static void K_PlayTauntSound(mobj_t *source)
 	}
 }
 
-static void K_PlayVoiceSound(mobj_t *source)
+static void K_PlayOvertakeSound(mobj_t *source)
 {
 	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
 		return;
