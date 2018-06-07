@@ -1165,12 +1165,13 @@ void P_RestoreMusic(player_t *player)
 	S_SpeedMusic(1.0f);
 
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
-	if (splitscreen != 0 && (players[consoleplayer].exiting
+	if (splitscreen != 0 && G_RaceGametype()
+		&& (players[consoleplayer].exiting
 		|| players[secondarydisplayplayer].exiting
 		|| players[thirddisplayplayer].exiting
 		|| players[fourthdisplayplayer].exiting))
 		S_ChangeMusicInternal("karwin", true);
-	else if (splitscreen == 0 && player->exiting)
+	else if (splitscreen == 0 && G_RaceGametype() && player->exiting)
 	{
 		if (player->kartstuff[k_position] == 1)
 			S_ChangeMusicInternal("karwin", true);
