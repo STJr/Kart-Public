@@ -677,7 +677,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (cv_blueshell.value && pexiting == 0
 			&& (secondist > distvar*4) && !lightningcooldown)					SETITEMRESULT(useodds, 15);	// Blue Shell
 		if (cv_fireflower.value)												SETITEMRESULT(useodds, 16);	// Fire Flower
-		if (cv_tripleredshell.value && pingame > 2)							SETITEMRESULT(useodds, 17);	// Triple Red Shell
+		if (cv_tripleredshell.value)											SETITEMRESULT(useodds, 17);	// Triple Red Shell
 		if (cv_lightning.value && pingame > pexiting && !lightningcooldown)	SETITEMRESULT(useodds, 18);	// Lightning
 		if (cv_feather.value)													SETITEMRESULT(useodds, 19);	// Feather
 
