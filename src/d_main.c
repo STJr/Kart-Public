@@ -702,7 +702,7 @@ void D_SRB2Loop(void)
 		else if (rendertimeout < entertic) // in case the server hang or netsplit
 		{
 			// Lagless camera! Yay!
-			/*
+			/* Not yay, it ruins Kart's drift :y
 			if (gamestate == GS_LEVEL && netgame)
 			{
 				if (camera.chase)
@@ -812,11 +812,6 @@ void D_StartTitle(void)
 	CON_ToggleOff();
 
 	// Reset the palette
-#ifdef HWRENDER
-	if (rendermode == render_opengl)
-		HWR_SetPaletteColor(0);
-	else
-#endif
 	if (rendermode != render_none)
 		V_SetPaletteLump("PLAYPAL");
 }
@@ -1325,7 +1320,7 @@ void D_SRB2Main(void)
 	CONS_Printf("R_Init(): Init SRB2 refresh daemon.\n");
 	R_Init();
 
-	// setting up sound	
+	// setting up sound
 	if (dedicated)
 	{
 		nosound = true;

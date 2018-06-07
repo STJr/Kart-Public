@@ -2891,6 +2891,12 @@ static void P_PlayerZMovement(mobj_t *mo)
 						mo->momx = mo->momx/2;
 						mo->momy = mo->momy/2;
 					}
+
+					if (mo->player->cmd.buttons & BT_BRAKE && !(mo->player->cmd.forwardmove)) // FURTHER slowdown if you're braking.
+					{
+						mo->momx = mo->momx/2;
+						mo->momy = mo->momy/2;
+					}
 				}
 
 				if (mo->health)
@@ -6116,7 +6122,7 @@ static boolean P_AddShield(mobj_t *thing)
 	}
 
 	if (shield != SH_FORCE)
-	{ // Regular shields check for themselves only 
+	{ // Regular shields check for themselves only
 		if ((shieldtype_t)(thing->target->player->powers[pw_shield] & SH_NOSTACK) != shield)
 		{
 			P_RemoveMobj(thing);
@@ -6153,7 +6159,6 @@ void P_RunOverlays(void)
 
 		if (!mo->target)
 			continue;
-
 		if (!splitscreen /*&& rendermode != render_soft*/)
 		{
 			angle_t viewingangle;
@@ -6258,6 +6263,26 @@ void P_RunShadows(void)
 			mobj->flags2 |= MF2_DONTDRAW;
 		else
 			mobj->flags2 &= ~MF2_DONTDRAW;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
+			mobj->eflags |= MFE_DRAWONLYFORP1;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP1;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP2)
+			mobj->eflags |= MFE_DRAWONLYFORP2;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP2;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP3)
+			mobj->eflags |= MFE_DRAWONLYFORP3;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP3;
+
+		if (mobj->target->eflags & MFE_DRAWONLYFORP4)
+			mobj->eflags |= MFE_DRAWONLYFORP4;
+		else
+			mobj->eflags &= ~MFE_DRAWONLYFORP4;
 
 		// First scale to the same radius
 		P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
@@ -6408,7 +6433,7 @@ void P_MobjThinker(mobj_t *mobj)
 		P_SetTarget(&mobj->tracer, NULL);
 
 	mobj->flags2 &= ~MF2_PUSHED;
-	mobj->eflags &= ~MFE_SPRUNG;
+	mobj->eflags &= ~(MFE_SPRUNG|MFE_JUSTBOUNCEDWALL);
 
 	tmfloorthing = tmhitthing = NULL;
 
@@ -6521,10 +6546,7 @@ void P_MobjThinker(mobj_t *mobj)
 				// Don't touch my fuse!
 				return;
 			case MT_OVERLAY:
-				if ((!mobj->target)
-					|| ((mobj->state == &states[S_INVULNFLASH1] || mobj->state == &states[S_INVULNFLASH2] // SRB2kart: BAD HACK X_X
-					|| mobj->state == &states[S_INVULNFLASH3] || mobj->state == &states[S_INVULNFLASH4])
-					&& mobj->target->player && mobj->target->player->kartstuff[k_invincibilitytimer] == 0))
+				if (!mobj->target)
 				{
 					P_RemoveMobj(mobj);
 					return;
@@ -6563,7 +6585,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if (G_BattleGametype() && mobj->target->player->kartstuff[k_balloon] <= 0)
 						kartspeed = 1;
 
-					dsone = 26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight);
+					dsone = (26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight))*8;
 					dstwo = dsone*2;
 
 					if (mobj->target->player->kartstuff[k_driftcharge] < dsone)
@@ -6574,27 +6596,46 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (mobj->target->player->kartstuff[k_hyudorotimer] > 0)
 					{
-						if ((mobj->target->player == &players[displayplayer]
-							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
-							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
-							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
-							|| (!(mobj->target->player == &players[displayplayer]
-							|| (splitscreen && mobj->target->player == &players[secondarydisplayplayer])
-							|| (splitscreen > 1 && mobj->target->player == &players[thirddisplayplayer])
-							|| (splitscreen > 2 && mobj->target->player == &players[fourthdisplayplayer]))
-							&& (mobj->target->player->kartstuff[k_hyudorotimer] < 1*TICRATE/2 || mobj->target->player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
+						if (splitscreen)
 						{
 							if (leveltime & 1)
 								mobj->flags2 |= MF2_DONTDRAW;
 							else
 								mobj->flags2 &= ~MF2_DONTDRAW;
+
+							if (mobj->target->player->kartstuff[k_hyudorotimer] >= (1*TICRATE/2) && mobj->target->player->kartstuff[k_hyudorotimer] <= hyudorotime-(1*TICRATE/2))
+							{
+								if (mobj->target->player == &players[secondarydisplayplayer])
+									mobj->eflags |= MFE_DRAWONLYFORP2;
+								else if (mobj->target->player == &players[thirddisplayplayer] && splitscreen > 1)
+									mobj->eflags |= MFE_DRAWONLYFORP3;
+								else if (mobj->target->player == &players[fourthdisplayplayer] && splitscreen > 2)
+									mobj->eflags |= MFE_DRAWONLYFORP4;
+								else
+									mobj->eflags |= MFE_DRAWONLYFORP1;
+							}
+							else
+								mobj->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 						}
 						else
-							mobj->flags2 |= MF2_DONTDRAW;
+						{
+							if (mobj->target->player == &players[displayplayer]
+								|| (mobj->target->player != &players[displayplayer]
+								&& (mobj->target->player->kartstuff[k_hyudorotimer] < (1*TICRATE/2) || mobj->target->player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
+							{
+								if (leveltime & 1)
+									mobj->flags2 |= MF2_DONTDRAW;
+								else
+									mobj->flags2 &= ~MF2_DONTDRAW;
+							}
+							else
+								mobj->flags2 |= MF2_DONTDRAW;
+						}
 					}
 					else if (mobj->target->player->kartstuff[k_hyudorotimer] == 0)
 					{
 						mobj->flags2 &= ~MF2_DONTDRAW;
+						mobj->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 					}
 
 					// Actor's distance from its Target, or Radius.
@@ -6772,7 +6813,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			case MT_BATTLEBALLOON:
-				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
+				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					fixed_t rad = 32*mobj->target->scale;
@@ -6802,6 +6843,26 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->eflags &= ~MFE_VERTICALFLIP;
 						offz = mobj->target->height / 5;
 					}
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
+						mobj->eflags |= MFE_DRAWONLYFORP1;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP1;
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP2)
+						mobj->eflags |= MFE_DRAWONLYFORP2;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP2;
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP3)
+						mobj->eflags |= MFE_DRAWONLYFORP3;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP3;
+
+					if (mobj->target->eflags & MFE_DRAWONLYFORP4)
+						mobj->eflags |= MFE_DRAWONLYFORP4;
+					else
+						mobj->eflags &= ~MFE_DRAWONLYFORP4;
 
 					if (mobj->target->flags2 & MF2_DONTDRAW)
 						mobj->flags2 |= MF2_DONTDRAW;
@@ -8113,7 +8174,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->tracer->y, mobj->tracer->floorz, SPLATDRAWMODE_SHADE);
 #endif
 			break;
-		/*case MT_SPARKLETRAIL:
+		case MT_SPARKLETRAIL:
 			if (!mobj->target)
 			{
 				P_RemoveMobj(mobj);
@@ -8121,7 +8182,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			mobj->color = mobj->target->color;
 			mobj->colorized = mobj->target->colorized;
-			break;*/
+			break;
 		case MT_SPINFIRE:
 		case MT_SNEAKERTRAIL:
 			if (mobj->eflags & MFE_VERTICALFLIP)
@@ -9214,7 +9275,8 @@ void P_SpawnPrecipitation(void)
 	subsector_t *precipsector = NULL;
 	precipmobj_t *rainmo = NULL;
 
-	if (dedicated || !cv_precipdensity.value || curWeather == PRECIP_NONE)
+	if (dedicated || !cv_precipdensity.value || curWeather == PRECIP_NONE
+		|| netgame) // SRB2Kart
 		return;
 
 	// Use the blockmap to narrow down our placing patterns

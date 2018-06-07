@@ -1200,7 +1200,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
-					S_StartSound(toucher, sfx_lose);
+					S_StartSound(toucher, sfx_s26d);
 				player->tossdelay = 3;
 				return;
 			}
@@ -3102,9 +3102,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 
 		player->kartstuff[k_sneakertimer] = 0;
 
-		// Thunder
-		if (damage == 64 && player != source->player)
+		// Size Down
+		if (damage == 64)
 		{
+			if (player == source->player)
+				return false;
 			// Don't flip out while super!
 			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
@@ -3112,7 +3114,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				K_SpinPlayer(player, source);
 
 				// Start shrinking!
-				S_StartSound(player->mo, sfx_kc59);
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
@@ -3125,20 +3126,18 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			return true;
 		}
-		else if (damage == 64 && player == source->player)
-			return false;
 
-		// Blue Thunder
-		if (damage == 65 && player->kartstuff[k_position] == 1)
+		// Self-Propelled Bomb
+		if (damage == 65)
 		{
+			if (player == source->player)
+				return false;
 			// Just need to do this now! Being thrown upwards is done by the explosion.
 			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
 			blueexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
 			P_SetTarget(&blueexplode->target, source);
 			return true;
 		}
-		else if (damage == 65 && player->kartstuff[k_position] > 1)
-			return false;
 		//}
 
 		// Sudden-Death mode

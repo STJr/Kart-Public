@@ -55,11 +55,11 @@ char sprnames[NUMSPRITES + 1][5] =
 	"GWLR","SRBA","SRBB","SRBC","SRBD","SRBE","SRBF","SRBG","SRBH","SRBI",
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
-	"SPRG","BSPR","RNDM","KFRE","KINV","KINF","DRIF","DSMO","FITM","BANA",
-	"GSHE","JAWZ","SSMN","KRBM","BLIG","LIGH","SINK","SITR","KBLN","LAKI",
-	"POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO",
-	"CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","ITEM","ITMI","ITMN",
-	"PBOM"
+	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","DRIF","DSMO","FITM",
+	"BANA","GSHE","JAWZ","SSMN","KRBM","BLIG","LIGH","SINK","SITR","KBLN",
+	"LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
+	"SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","ITEM","ITMI",
+	"ITMN","PBOM"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2566,10 +2566,10 @@ state_t states[NUMSTATES] =
 	{SPR_RNDM, 23, 3, {NULL}, 0, 0, S_RANDOMITEM1},  // S_RANDOMITEM24
 	{SPR_RNDM,  0, 1, {A_ItemPop}, 0, 0, S_NULL},    // S_DEADRANDOMITEM
 
-	{SPR_RNDM, FF_FULLBRIGHT|24, 5, {NULL}, 0, 0, S_RANDOMITEMPOP2}, // S_RANDOMITEMPOP1
-	{SPR_RNDM, FF_FULLBRIGHT|25, 5, {NULL}, 0, 0, S_RANDOMITEMPOP3}, // S_RANDOMITEMPOP2
-	{SPR_RNDM, FF_FULLBRIGHT|26, 5, {NULL}, 0, 0, S_RANDOMITEMPOP4}, // S_RANDOMITEMPOP3
-	{SPR_RNDM, FF_FULLBRIGHT|27, 5, {NULL}, 0, 0, S_NULL},           // S_RANDOMITEMPOP4
+	{SPR_RPOP, FF_FULLBRIGHT,   5, {NULL}, 0, 0, S_RANDOMITEMPOP2}, // S_RANDOMITEMPOP1
+	{SPR_RPOP, FF_FULLBRIGHT|1, 5, {NULL}, 0, 0, S_RANDOMITEMPOP3}, // S_RANDOMITEMPOP2
+	{SPR_RPOP, FF_FULLBRIGHT|2, 5, {NULL}, 0, 0, S_RANDOMITEMPOP4}, // S_RANDOMITEMPOP3
+	{SPR_RPOP, FF_FULLBRIGHT|3, 5, {NULL}, 0, 0, S_NULL},           // S_RANDOMITEMPOP4
 
 	{SPR_DRIF, 0,  2, {NULL}, 0, 0, S_DRIFTSPARK2}, // S_DRIFTSPARK1
 	{SPR_DRIF, 1,  2, {NULL}, 0, 0, S_DRIFTSPARK3}, // S_DRIFTSPARK2
@@ -2722,7 +2722,7 @@ state_t states[NUMSTATES] =
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
 	{SPR_BLIG, 2,  2, {NULL}, 0, 0, S_BLUELIGHTNING4},             // S_BLUELIGHTNING3
 	{SPR_BLIG, 3,  2, {NULL}, 0, 0, S_NULL},                       // S_BLUELIGHTNING4
-	{SPR_SSMN, 3,  1, {A_MineExplode}, MT_BLUEEXPLOSION, 0, S_NULL}, // S_BLUEEXPLODE
+	{SPR_BOMB, 0,  1, {A_MineExplode}, MT_BLUEEXPLOSION, 0, S_NULL}, // S_BLUEEXPLODE
 
 	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_LIGHTNING2}, // S_LIGHTNING1
 	{SPR_LIGH, 1,  2, {NULL}, 0, 0, S_LIGHTNING3}, // S_LIGHTNING2
@@ -14242,30 +14242,30 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_RANDOMITEM
-		2000,           // doomednum
-		S_RANDOMITEM1,  // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0, // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
+		2000,             // doomednum
+		S_RANDOMITEM1,    // spawnstate
+		1000,             // spawnhealth
+		S_NULL,           // seestate
+		sfx_None,         // seesound
+		0,                // reactiontime
+		sfx_None,         // attacksound
+		S_NULL,           // painstate
+		0,                // painchance
+		sfx_None,         // painsound
+		S_NULL,           // meleestate
+		S_NULL,           // missilestate
 		S_DEADRANDOMITEM, // deathstate
-		S_NULL,         // xdeathstate
-		sfx_pop,        // deathsound
-		60*FRACUNIT,    // speed
-		36*FRACUNIT,    // radius
-		36*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
+		S_NULL,           // xdeathstate
+		sfx_kc2e,         // deathsound
+		60*FRACUNIT,      // speed
+		36*FRACUNIT,      // radius
+		36*FRACUNIT,      // height
+		0,                // display offset
+		100,              // mass
 		MT_RANDOMITEMPOP, // damage
-		sfx_None,       // activesound
+		sfx_None,         // activesound
 		MF_SLIDEME|MF_SPECIAL|MF_NOGRAVITY|MF_NOCLIPHEIGHT, // flags
-		S_NULL          // raisestate
+		S_NULL            // raisestate
 	},
 
 	{           // MT_RANDOMITEMPOP
@@ -14545,7 +14545,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // seestate
 		sfx_tossed,     // seesound
 		8,              // reactiontime
-		sfx_tink,       // attacksound
+		sfx_mario1,     // attacksound
 		S_NULL,         // painstate
 		0,              // painchance
 		sfx_None,       // painsound
@@ -14682,7 +14682,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		105,            // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		320*FRACUNIT,   // painchance
+		288*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
@@ -15020,7 +15020,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,             // mass
 		1,               // damage
 		sfx_None,        // activesound
-		MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		MF_NOBLOCKMAP|MF_NOCLIPHEIGHT|MF_NOCLIPTHING|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL           // raisestate
 	},
 

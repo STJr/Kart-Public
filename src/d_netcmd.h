@@ -103,10 +103,10 @@ extern consvar_t cv_pause;
 
 extern consvar_t cv_restrictskinchange, cv_allowteamchange, cv_respawntime;
 
-/*extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
+extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
 extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
 extern consvar_t cv_1up, cv_eggmanbox;
-extern consvar_t cv_recycler;*/
+extern consvar_t cv_recycler;
 
 // SRB2kart items
 extern consvar_t cv_sneaker, cv_rocketsneaker, cv_invincibility, cv_banana;
@@ -129,12 +129,7 @@ extern consvar_t cv_speedometer;
 
 extern consvar_t cv_votetime;
 
-extern consvar_t cv_collideminimum;
-extern consvar_t cv_collidesoundnum;
-extern consvar_t cv_collidesounds;
-
 extern consvar_t cv_kartdebugitem, cv_kartdebugamount;
-//
 
 extern consvar_t cv_itemfinder;
 
@@ -255,7 +250,7 @@ void Command_Retry_f(void);
 void D_GameTypeChanged(INT32 lastgametype); // not a real _OnChange function anymore
 void D_MapChange(INT32 pmapnum, INT32 pgametype, boolean pultmode, boolean presetplayers, INT32 pdelay, boolean pskipprecutscene, boolean pfromlevelselect);
 void D_SetupVote(void);
-void D_ModifyClientVote(SINT8 voted);
+void D_ModifyClientVote(SINT8 voted, UINT8 splitplayer);
 void D_PickVote(void);
 void ObjectPlace_OnChange(void);
 boolean IsPlayerAdmin(INT32 playernum);

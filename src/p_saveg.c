@@ -3248,10 +3248,16 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, hidetime);
 
 	// SRB2kart
+	WRITEINT32(save_p, numgotboxes);
+
 	WRITEUINT8(save_p, gamespeed);
 	WRITEUINT8(save_p, mirrormode);
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
+
+	WRITEUINT32(save_p, instaitemcooldown);
+	WRITEUINT32(save_p, spbincoming);
+	WRITEUINT8(save_p, spbplayer);
 
 	// Is it paused?
 	if (paused)
@@ -3339,10 +3345,16 @@ static inline boolean P_NetUnArchiveMisc(void)
 	hidetime = READUINT32(save_p);
 
 	// SRB2kart
+	numgotboxes = READINT32(save_p);
+
 	gamespeed = READUINT8(save_p);
 	mirrormode = (boolean)READUINT8(save_p);
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
+
+	instaitemcooldown = READUINT32(save_p);
+	spbincoming = READUINT32(save_p);
+	spbplayer = READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

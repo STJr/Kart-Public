@@ -293,8 +293,15 @@ typedef enum
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
 	k_pogospring,		// Pogo spring bounce effect
+	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
+	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
+
+	// Item held stuff
+	k_itemtype,		// KITEM_ constant for item number
+	k_itemamount,	// Amount of said item
+	k_itemheld,		// Are you holding an item? 1 = normal hold, 2 = rotation hold
 
 	// Some items use timers for their duration or effects
 	k_attractiontimer,		// Duration of Lightning Shield's item-break and item box pull
@@ -306,18 +313,13 @@ typedef enum
 	k_squishedtimer,		// Squished frame timer
 	k_rocketsneakertimer,	// Rocket Sneaker duration timer
 	k_invincibilitytimer,	// Invincibility timer
-	k_eggmanheld,			// Eggman monitor held, separate from itemtype so it doesn't stop you from getting items
+	k_deathsentence,		// 30 seconds to live... (SPB murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
+	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_justbumped,			// Prevent players from endlessly bumping into each other
 	k_poweritemtimer,		// Battle mode, how long before you're allowed another power item (Invincibility, Grow)
 	k_comebacktimer,		// Battle mode, how long before you become a bomb after death
 	k_sadtimer,				// How long you've been sad
-
-	// Each item needs its own power slot, for the HUD and held use
-	// *** ADDING A NEW ITEM? ADD IT TO K_DoHyudoroSteal PLEASE!! -Salt ***
-	k_itemtype,		// KITEM_ constant for item number
-	k_itemamount,	// Amount of said item
-	k_itemheld,		// Are you holding an item? 1 = normal hold, 2 = rotation hold
 
 	// Battle Mode vars
 	k_balloon,			// Number of balloons left

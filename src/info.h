@@ -163,8 +163,8 @@ void A_RandomStateRange();
 void A_DualAction();
 void A_RemoteAction();
 void A_ToggleFlameJet();
-void A_ItemPop();     // SRB2kart
-void A_JawzChase();   // SRB2kart
+void A_ItemPop(); // SRB2kart
+void A_JawzChase(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_OrbitNights();
 void A_GhostMe();
@@ -579,6 +579,7 @@ typedef enum sprite
 	SPR_BSPR, // Blue Diagonal Spring
 
 	SPR_RNDM, // Random Item Box
+	SPR_RPOP, // Random Item Box Pop
 	SPR_KFRE, // Sneaker fire trail
 	SPR_KINV, // Invincibility sparkle trail
 	SPR_KINF, // Invincibility flash

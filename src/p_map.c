@@ -1649,40 +1649,64 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_balloon] <= 0 || tmthing->player->kartstuff[k_balloon] <= 0)
 				{
 					if (thing->player->kartstuff[k_comebackmode] == 0
-						&& tmthing->player->kartstuff[k_balloon] > 0)
+						&& (tmthing->player->kartstuff[k_balloon] > 0
+						&& !tmthing->player->powers[pw_flashing]))
 					{
+						mobj_t *boom = P_SpawnMobj(thing->x, thing->y, thing->z, MT_BOOMPARTICLE);
+						boom->scale = thing->scale;
+						boom->destscale = thing->scale;
+						boom->momz = 5*FRACUNIT;
+						if (thing->player->skincolor)
+							boom->color = thing->player->skincolor;
+						else
+							boom->color = SKINCOLOR_RED;
+						S_StartSound(boom, sfx_s3k4e);
 						K_ExplodePlayer(tmthing->player, thing);
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (tmthing->player->kartstuff[k_comebackmode] == 0
-						&& thing->player->kartstuff[k_balloon] > 0)
+						&& (thing->player->kartstuff[k_balloon] > 0
+						&& !thing->player->powers[pw_flashing]))
 					{
+						mobj_t *boom = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_BOOMPARTICLE);
+						boom->scale = tmthing->scale;
+						boom->destscale = tmthing->scale;
+						boom->momz = 5*FRACUNIT;
+						if (tmthing->player->skincolor)
+							boom->color = tmthing->player->skincolor;
+						else
+							boom->color = SKINCOLOR_RED;
+						S_StartSound(boom, sfx_s3k4e);
 						K_ExplodePlayer(thing->player, tmthing);
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (thing->player->kartstuff[k_comebackmode] == 1
-						&& (tmthing->player->kartstuff[k_balloon] > 0 && P_CanPickupItem(tmthing->player, true)))
+						&& (tmthing->player->kartstuff[k_balloon] > 0
+						&& P_CanPickupItem(tmthing->player, true)))
 					{
 						thing->player->kartstuff[k_comebackmode] = 0;
 						thing->player->kartstuff[k_comebackpoints]++;
 						if (netgame && cv_hazardlog.value)
 							CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 						tmthing->player->kartstuff[k_itemroulette] = 1;
+						tmthing->player->kartstuff[k_roulettetype] = 1;
 						if (thing->player->kartstuff[k_comebackpoints] >= 3)
 							K_StealBalloon(thing->player, tmthing->player, true);
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
 						return true;
 					}
 					else if (tmthing->player->kartstuff[k_comebackmode] == 1
-						&& (thing->player->kartstuff[k_balloon] > 0 && P_CanPickupItem(thing->player, true)))
+						&& (thing->player->kartstuff[k_balloon] > 0
+						&& P_CanPickupItem(thing->player, true)))
 					{
 						tmthing->player->kartstuff[k_comebackmode] = 0;
 						tmthing->player->kartstuff[k_comebackpoints]++;
 						if (netgame && cv_hazardlog.value)
 							CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 						thing->player->kartstuff[k_itemroulette] = 1;
+						thing->player->kartstuff[k_roulettetype] = 1;
 						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
 							K_StealBalloon(tmthing->player, thing->player, true);
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -3843,6 +3867,12 @@ void P_BounceMove(mobj_t *mo)
 	//INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	{
+		P_SlideMove(mo, true);
+		return;
+	}
+
 	slidemo = mo;
 	//hitcount = 0;
 
@@ -3971,12 +4001,12 @@ bounceback:
 				fx->eflags &= ~MFE_VERTICALFLIP;
 			fx->scale = mo->scale;
 
-			if (cv_collidesounds.value == 1)
-				S_StartSound(mo, cv_collidesoundnum.value);
+			S_StartSound(mo, sfx_s3k49);
 		}
 	}
 
-	P_HitBounceLine(bestslideline); // clip the moves
+	P_HitBounceLine(bestslideline);
+	mo->eflags |= MFE_JUSTBOUNCEDWALL;
 
 	mo->momx = tmxmove;
 	mo->momy = tmymove;

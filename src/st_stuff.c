@@ -77,7 +77,7 @@ static patch_t *race1;
 static patch_t *race2;
 static patch_t *race3;
 static patch_t *racego;
-static patch_t *ttlnum;
+//static patch_t *ttlnum;
 static patch_t *nightslink;
 static patch_t *count5;
 static patch_t *count4;
@@ -216,17 +216,17 @@ void ST_doPaletteStuff(void)
 	else
 		palette = 0;
 
+#ifdef HWRENDER
+	if (rendermode == render_opengl)
+		palette = 0; // No flashpals here in OpenGL
+#endif
+
 	palette = min(max(palette, 0), 13);
 
 	if (palette != st_palette)
 	{
 		st_palette = palette;
 
-#ifdef HWRENDER
-		if (rendermode == render_opengl)
-			HWR_SetPaletteColor(0);
-		else
-#endif
 		if (rendermode != render_none)
 		{
 			V_SetPaletteLump(GetPalette()); // Reset the palette
@@ -753,7 +753,7 @@ static void ST_drawLevelTitle(void)
 	char *lvlttl = mapheaderinfo[gamemap-1]->lvlttl;
 	char *subttl = mapheaderinfo[gamemap-1]->subttl;
 	char *zonttl = mapheaderinfo[gamemap-1]->zonttl; // SRB2kart
-	INT32 actnum = mapheaderinfo[gamemap-1]->actnum;
+	char *actnum = mapheaderinfo[gamemap-1]->actnum;
 	INT32 lvlttlxpos;
 	INT32 subttlxpos = BASEVIDWIDTH/2;
 	INT32 ttlnumxpos;
@@ -765,11 +765,8 @@ static void ST_drawLevelTitle(void)
 	if (!(timeinmap > 2 && timeinmap-3 < 110))
 		return;
 
-	if (actnum > 0)
-	{
-		ttlnum = W_CachePatchName(va("TTL%.2d", actnum), PU_CACHE);
-		lvlttlxpos = ((BASEVIDWIDTH/2) - (V_LevelNameWidth(lvlttl)/2)) - SHORT(ttlnum->width);
-	}
+	if (strlen(actnum) > 0)
+		lvlttlxpos = ((BASEVIDWIDTH/2) - (V_LevelNameWidth(lvlttl)/2)) - V_LevelNameWidth(actnum);
 	else
 		lvlttlxpos = ((BASEVIDWIDTH/2) - (V_LevelNameWidth(lvlttl)/2));
 
@@ -801,8 +798,8 @@ static void ST_drawLevelTitle(void)
 		default:  zoney = 104; lvlttly =  80; break;
 	}
 
-	if (actnum)
-		V_DrawScaledPatch(ttlnumxpos, zoney, 0, ttlnum);
+	if (strlen(actnum) > 0)
+		V_DrawLevelTitle(ttlnumxpos+12, zoney, 0, actnum);
 
 	V_DrawLevelTitle(lvlttlxpos, lvlttly, 0, lvlttl);
 

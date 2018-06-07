@@ -3371,17 +3371,17 @@ static void M_DrawPauseMenu(void)
 		// Draw any and all emblems at the top.
 		M_DrawMapEmblems(gamemap, 272, 28);
 
-		if (mapheaderinfo[gamemap-1]->zonttl)
+		if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
 		{
-			if (mapheaderinfo[gamemap-1]->actnum != 0)
-				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s %d", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum));
+			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s %s", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum));
 			else
 				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl));
 		}
 		else
 		{
-			if (mapheaderinfo[gamemap-1]->actnum != 0)
-				V_DrawString(40, 28, V_YELLOWMAP, va("%s %d", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum));
+			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+				V_DrawString(40, 28, V_YELLOWMAP, va("%s %s", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum));
 			else
 				V_DrawString(40, 28, V_YELLOWMAP, mapheaderinfo[gamemap-1]->lvlttl);
 		}
@@ -4896,7 +4896,7 @@ static void M_ReadSavegameInfo(UINT32 slot)
 	else
 	{
 		strcpy(savegameinfo[slot].levelname, mapheaderinfo[(fake-1) & 8191]->lvlttl);
-		savegameinfo[slot].actnum = mapheaderinfo[(fake-1) & 8191]->actnum;
+		savegameinfo[slot].actnum = 0; //mapheaderinfo[(fake-1) & 8191]->actnum
 	}
 
 #ifdef SAVEGAMES_OTHERVERSIONS
@@ -5308,10 +5308,11 @@ static void M_Statistics(INT32 choice)
 		if (!mapheaderinfo[i] || mapheaderinfo[i]->lvlttl[0] == '\0')
 			continue;
 
-		if (!(mapheaderinfo[i]->typeoflevel & TOL_SP) || (mapheaderinfo[i]->menuflags & LF2_HIDEINSTATS))
+		if (!(mapheaderinfo[i]->typeoflevel & TOL_RACE) // TOL_SP
+			|| (mapheaderinfo[i]->menuflags & LF2_HIDEINSTATS))
 			continue;
 
-		if (!mapvisited[i])
+		if (M_MapLocked(i+1)) // !mapvisited[i]
 			continue;
 
 		statsMapList[j++] = i;
@@ -5346,10 +5347,20 @@ static void M_DrawStatsMaps(int location)
 		mnum = statsMapList[i];
 		M_DrawMapEmblems(mnum+1, 292, y);
 
-		if (mapheaderinfo[mnum]->actnum != 0)
-			V_DrawString(20, y, V_YELLOWMAP, va("%s %d", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->actnum));
+		if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
+		{
+			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl, mapheaderinfo[mnum]->actnum));
+			else
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->zonttl));
+		}
 		else
-			V_DrawString(20, y, V_YELLOWMAP, mapheaderinfo[mnum]->lvlttl);
+		{
+			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+				V_DrawString(20, y, V_YELLOWMAP, va("%s %s", mapheaderinfo[mnum]->lvlttl, mapheaderinfo[mnum]->actnum));
+			else
+				V_DrawString(20, y, V_YELLOWMAP, mapheaderinfo[mnum]->lvlttl);
+		}
 
 		y += 8;
 

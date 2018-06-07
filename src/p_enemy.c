@@ -187,8 +187,8 @@ void A_RandomStateRange(mobj_t *actor);
 void A_DualAction(mobj_t *actor);
 void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
-void A_ItemPop(mobj_t *actor);     // SRB2kart
-void A_JawzChase(mobj_t *actor);   // SRB2kart
+void A_ItemPop(mobj_t *actor); // SRB2kart
+void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
@@ -2604,9 +2604,8 @@ void A_MonitorPop(mobj_t *actor)
 		case MT_QUESTIONBOX: // Random!
 		{
 			mobjtype_t spawnchance[256];
-			INT32 numchoices = 0/*, i = 0*/;
+			INT32 numchoices = 0, i = 0;
 
-			/*
 #define QUESTIONBOXCHANCES(type, cvar) \
 for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 
@@ -2624,7 +2623,6 @@ for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 			QUESTIONBOXCHANCES(MT_RECYCLETV,	cv_recycler);
 
 #undef QUESTIONBOXCHANCES
-			*/
 
 			if (numchoices == 0)
 			{

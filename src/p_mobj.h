@@ -233,11 +233,17 @@ typedef enum
 	MFE_VERTICALFLIP      = 1<<5,
 	// Goo water
 	MFE_GOOWATER          = 1<<6,
-	// free: to and including 1<<7
+	// SRB2Kart: The mobj just hit & bounced off a wall, this is cleared on next frame
+	MFE_JUSTBOUNCEDWALL   = 1<<7,
 	// Mobj was already sprung this tic
 	MFE_SPRUNG            = 1<<8,
 	// Platform movement
 	MFE_APPLYPMOMZ        = 1<<9,
+	// SRB2Kart: Splitscreen sprite display; very wasteful but I couldn't think of another way to do it...
+	MFE_DRAWONLYFORP1     = 1<<10,
+	MFE_DRAWONLYFORP2     = 1<<11,
+	MFE_DRAWONLYFORP3     = 1<<12,
+	MFE_DRAWONLYFORP4     = 1<<13,
 	// free: to and including 1<<15
 } mobjeflag_t;
 
@@ -360,7 +366,7 @@ typedef struct mobj_s
 	struct pslope_s *standingslope; // The slope that the object is standing on (shouldn't need synced in savegames, right?)
 #endif
 
-	boolean colorized; // Whether the mobj uses the starman colormap
+	boolean colorized; // Whether the mobj uses the rainbow colormap
 
 	// WARNING: New fields must be added separately to savegame and Lua.
 } mobj_t;
