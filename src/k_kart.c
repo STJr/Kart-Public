@@ -1111,8 +1111,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else
 		player->kartstuff[k_cardanimation] = 0;
 
-	if (player->kartstuff[k_sounds])
-		player->kartstuff[k_sounds]--;
+	if (player->kartstuff[k_voices])
+		player->kartstuff[k_voices]--;
+
+	if (player->kartstuff[k_tauntvoices])
+		player->kartstuff[k_tauntvoices]--;
 
 	// ???
 	/*
@@ -1190,7 +1193,48 @@ void K_KartPlayerAfterThink(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
+	if (source->player && source->player->kartstuff[k_tauntvoices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
 	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
+
+	if (source->player)
+	{
+		source->player->kartstuff[k_tauntvoices] = 175;
+		source->player->kartstuff[k_voices] = 70;
+	}
+}
+
+static void K_PlayVoiceSound(mobj_t *source)
+{
+	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	S_StartSound(source, sfx_slow);
+
+	if (source->player)
+	{
+		source->player->kartstuff[k_voices] = 70;
+
+		if (source->player->kartstuff[k_tauntvoices] < 70)
+			source->player->kartstuff[k_tauntvoices] = 70;
+	}
+}
+
+static void K_PlayHitEmSound(mobj_t *source)
+{
+	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	S_StartSound(source, sfx_hitem);
+
+	if (source->player)
+	{
+		source->player->kartstuff[k_voices] = 70;
+
+		if (source->player->kartstuff[k_tauntvoices] < 70)
+			source->player->kartstuff[k_tauntvoices] = 70;
+	}
 }
 
 void K_MomentumToFacing(player_t *player)
@@ -1379,11 +1423,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		|| (G_BattleGametype() && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
-	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
-	{
-		S_StartSound(source, sfx_hitem);
-		source->player->kartstuff[k_sounds] = 50;
-	}
+	K_PlayHitEmSound(source);
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
@@ -2241,11 +2281,7 @@ void K_DoMushroom(player_t *player, boolean doPFlag)
 	if (doPFlag)
 		player->pflags |= PF_ATTACKDOWN;
 
-	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
-
 	K_PlayTauntSound(player->mo);
-	player->kartstuff[k_sounds] = 50;
 }
 
 static void K_DoLightning(player_t *player, boolean bluelightning)
@@ -2276,11 +2312,7 @@ static void K_DoLightning(player_t *player, boolean bluelightning)
 			continue;
 	}
 
-	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
-
 	K_PlayTauntSound(player->mo);
-	player->kartstuff[k_sounds] = 50;
 }
 
 void K_DoBouncePad(mobj_t *mo, fixed_t vertispeed)
@@ -2739,15 +2771,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	K_KartUpdatePosition(player);
 
-	if (!player->kartstuff[k_positiondelay] && !player->exiting)
+	if (!player->exiting)
 	{
 		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // then the other player taunts.
 		else if (player->kartstuff[k_oldposition] > player->kartstuff[k_position]) // Otherwise,
 		{
-			S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
+			K_PlayOvertakeSound(player->mo); // Say "YOU'RE TOO SLOW!"
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // Restore the old position,
-			player->kartstuff[k_positiondelay] = 5*TICRATE; // and set up a timer.
 		}
 	}
 
@@ -3382,12 +3413,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				S_StartSound(player->mo, sfx_sboost);
 
 			player->kartstuff[k_mushroomtimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
-
-			if (!player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
-			{
-				K_PlayTauntSound(player->mo);
-				player->kartstuff[k_sounds] = 50;
-			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		else if (player->kartstuff[k_boostcharge] > 50)

@@ -246,7 +246,8 @@ typedef enum
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
-	k_sounds,			// Used this to stop and then force music restores as it hits zero
+	k_voices,			// Used to stop the player saying more voices than it should
+	k_tauntvoices,		// Used to specifically stop taunt voice spam
 
 	k_boosting,			// Determines if you're currently shroom-boosting
 	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
