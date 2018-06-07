@@ -1674,14 +1674,14 @@ void P_DoPlayerExit(player_t *player)
 		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
-/*
+
 		if (circuitmap)
 		{
 			if (player->kartstuff[k_position] <= 3)
 				S_StartSound(player->mo, sfx_kwin);
 			else
 				S_StartSound(player->mo, sfx_klose);
-		}*/
+		}
 
 		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
 		{

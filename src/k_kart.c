@@ -2739,17 +2739,17 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	K_KartUpdatePosition(player);
 
-	/*if (!player->kartstuff[k_positiondelay] && !player->exiting)
+	if (!player->kartstuff[k_positiondelay] && !player->exiting)
 	{
 		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // then the other player taunts.
 		else if (player->kartstuff[k_oldposition] > player->kartstuff[k_position]) // Otherwise,
 		{
-			//S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
+			S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // Restore the old position,
 			player->kartstuff[k_positiondelay] = 5*TICRATE; // and set up a timer.
 		}
-	}*/
+	}
 
 	if (player->kartstuff[k_positiondelay])
 		player->kartstuff[k_positiondelay]--;
