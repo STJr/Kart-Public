@@ -726,6 +726,10 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		|| (mobj2->player && mobj2->player->playerstate != PST_LIVE))
 		return;
 
+	if ((mobj1->player && mobj1->player->kartstuff[k_lakitu])
+		|| (mobj2->player && mobj2->player->kartstuff[k_lakitu]))
+		return;
+
 	// Don't bump if you've recently bumped
 	if ((mobj1->player && mobj1->player->kartstuff[k_justbumped])
 		|| (mobj2->player && mobj1->player->kartstuff[k_justbumped]))
