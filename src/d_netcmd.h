@@ -103,10 +103,10 @@ extern consvar_t cv_pause;
 
 extern consvar_t cv_restrictskinchange, cv_allowteamchange, cv_respawntime;
 
-extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
+/*extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
 extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
 extern consvar_t cv_1up, cv_eggmanbox;
-extern consvar_t cv_recycler;
+extern consvar_t cv_recycler;*/
 
 // SRB2kart items
 extern consvar_t cv_sneaker, cv_rocketsneaker, cv_invincibility, cv_banana;

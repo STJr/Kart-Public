@@ -2601,7 +2601,7 @@ void A_MonitorPop(mobj_t *actor)
 
 	switch (actor->type)
 	{
-		case MT_QUESTIONBOX: // Random!
+		/*case MT_QUESTIONBOX: // Random!
 		{
 			mobjtype_t spawnchance[256];
 			INT32 numchoices = 0, i = 0;
@@ -2635,7 +2635,7 @@ for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 
 			remains->flags2 &= ~MF2_AMBUSH;
 			break;
-		}
+		}*/
 		default:
 			item = actor->info->damage;
 			break;
