@@ -1200,8 +1200,8 @@ static void K_PlayTauntSound(mobj_t *source)
 
 	if (source->player)
 	{
-		source->player->kartstuff[k_tauntvoices] = 175;
-		source->player->kartstuff[k_voices] = 70;
+		source->player->kartstuff[k_tauntvoices] = 6*TICRATE;
+		source->player->kartstuff[k_voices] = 3*TICRATE;
 	}
 }
 
@@ -1210,14 +1210,18 @@ static void K_PlayOvertakeSound(mobj_t *source)
 	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
 		return;
 
+	// 4 seconds from before race begins, 10 seconds afterwards
+	if (leveltime < 14*TICRATE)
+		return;
+
 	S_StartSound(source, sfx_slow);
 
 	if (source->player)
 	{
-		source->player->kartstuff[k_voices] = 70;
+		source->player->kartstuff[k_voices] = 3*TICRATE;
 
-		if (source->player->kartstuff[k_tauntvoices] < 70)
-			source->player->kartstuff[k_tauntvoices] = 70;
+		if (source->player->kartstuff[k_tauntvoices] < 3*TICRATE)
+			source->player->kartstuff[k_tauntvoices] = 3*TICRATE;
 	}
 }
 
@@ -1230,10 +1234,10 @@ static void K_PlayHitEmSound(mobj_t *source)
 
 	if (source->player)
 	{
-		source->player->kartstuff[k_voices] = 70;
+		source->player->kartstuff[k_voices] = 3*TICRATE;
 
-		if (source->player->kartstuff[k_tauntvoices] < 70)
-			source->player->kartstuff[k_tauntvoices] = 70;
+		if (source->player->kartstuff[k_tauntvoices] < 3*TICRATE)
+			source->player->kartstuff[k_tauntvoices] = 3*TICRATE;
 	}
 }
 

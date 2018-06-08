@@ -1677,10 +1677,10 @@ void P_DoPlayerExit(player_t *player)
 
 		if (circuitmap)
 		{
-			if (player->kartstuff[k_position] <= 3)
-				S_StartSound(player->mo, sfx_kwin);
-			else
+			if (K_IsPlayerLosing(player))
 				S_StartSound(player->mo, sfx_klose);
+			else
+				S_StartSound(player->mo, sfx_kwin);
 		}
 
 		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
