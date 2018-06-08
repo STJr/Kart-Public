@@ -152,6 +152,9 @@ void P_ResetStarposts(void)
 //
 boolean P_CanPickupItem(player_t *player, boolean weapon)
 {
+	if (player->exiting)
+		return false;
+
 	/*if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // No balloons in Match
 		return false;*/
 

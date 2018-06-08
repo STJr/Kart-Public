@@ -8138,9 +8138,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	subsector_t *newsubsec;
 	fixed_t f1, f2;
 
-	if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
-		return true;
-
 	cameranoclip = (player->pflags & (PF_NOCLIP|PF_NIGHTSMODE)) || (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)); // Noclipping player camera noclips too!!
 
 	if (!(player->climbing || (player->pflags & PF_NIGHTSMODE) || player->playerstate == PST_DEAD))
@@ -8275,8 +8272,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		lookback = camspin4;
 	}
 
-	// SRB2kart - Camera flipper
-	if (lookback)
+	if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
+		camstill = true;
+	else if (lookback) // SRB2kart - Camera flipper
 	{
 		camrotate += 180;
 		camspeed *= 2;
@@ -8684,27 +8682,36 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		}
 	}*/
 
-	if (twodlevel || (mo->flags2 & MF2_TWOD))
+	if (player->exiting)
 	{
-		thiscam->momx = x-thiscam->x;
-		thiscam->momy = y-thiscam->y;
-		thiscam->momz = z-thiscam->z;
+		thiscam->momx = 0;
+		thiscam->momy = 0;
+		thiscam->momz = 0;
 	}
 	else
 	{
-		thiscam->momx = FixedMul(x - thiscam->x, camspeed);
-		thiscam->momy = FixedMul(y - thiscam->y, camspeed);
-
-		if ((GETSECSPECIAL(thiscam->subsector->sector->special, 1) == 6
-			&& thiscam->z < thiscam->subsector->sector->floorheight + 256*FRACUNIT
-			&& FixedMul(z - thiscam->z, camspeed) < 0)
-#if 0
-			|| player->kartstuff[k_pogospring] // SRB2Kart: don't follow while bouncing, experimental
-#endif
-			)
-			thiscam->momz = 0; // Don't go down a death pit
+		if (twodlevel || (mo->flags2 & MF2_TWOD))
+		{
+			thiscam->momx = x-thiscam->x;
+			thiscam->momy = y-thiscam->y;
+			thiscam->momz = z-thiscam->z;
+		}
 		else
-			thiscam->momz = FixedMul(z - thiscam->z, camspeed);
+		{
+			thiscam->momx = FixedMul(x - thiscam->x, camspeed);
+			thiscam->momy = FixedMul(y - thiscam->y, camspeed);
+
+			if ((GETSECSPECIAL(thiscam->subsector->sector->special, 1) == 6
+				&& thiscam->z < thiscam->subsector->sector->floorheight + 256*FRACUNIT
+				&& FixedMul(z - thiscam->z, camspeed) < 0)
+#if 0
+				|| player->kartstuff[k_pogospring] // SRB2Kart: don't follow while bouncing, experimental
+#endif
+				)
+				thiscam->momz = 0; // Don't go down a death pit
+			else
+				thiscam->momz = FixedMul(z - thiscam->z, camspeed);
+		}
 	}
 
 	// compute aming to look the viewed point
