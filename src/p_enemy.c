@@ -2549,7 +2549,7 @@ void A_MonitorPop(mobj_t *actor)
 	mobj_t *remains;
 	mobjtype_t explode;
 	mobjtype_t item = 0;
-	mobjtype_t newbox;
+	//mobjtype_t newbox;
 
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MonitorPop", actor))

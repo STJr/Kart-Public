@@ -425,17 +425,6 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	switch (getitem)
 	{
 		// Special roulettes first, then the generic ones are handled by default
-		case KITEM_TRIPLESNEAKER:
-			if (getitem <= 0 || getitem >= NUMKARTRESULTS) // Sad (Fallback)
-			{
-				if (getitem != 0)
-					CONS_Printf("ERROR: P_KartGetItemResult - Item roulette gave bad item (%d) :(\n", getitem);
-				player->kartstuff[k_itemtype] = KITEM_SAD;
-			}
-			else
-			player->kartstuff[k_itemtype] = getitem;
-			player->kartstuff[k_itemamount] = 1;
-			break;
 		case KRITEM_TRIPLESNEAKER: // Sneaker x3
 			player->kartstuff[k_itemtype] = KITEM_SNEAKER;
 			player->kartstuff[k_itemamount] = 3;
@@ -478,6 +467,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 	INT32 newodds;
 	INT32 i;
 	UINT8 pingame = 0, pexiting = 0;
+	SINT8 first = -1;
+	SINT8 second = -1;
+	INT32 secondist = 0;
 
 	if (G_BattleGametype())
 		newodds = K_KartItemOddsBattle[item-1][pos];
@@ -487,9 +479,29 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator)
+		{
 			pingame++;
+			if (players[i].mo)
+			{
+				if (players[i].kartstuff[k_position] == 1 && first == -1)
+					first = i;
+				if (players[i].kartstuff[k_position] == 2 && second == -1)
+					second = i;
+			}
+		}
 		if (players[i].exiting)
 			pexiting++;
+	}
+
+	if (first != -1 && second != -1) // calculate 2nd's distance from 1st, for SPB
+	{
+		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
+													players[first].mo->y - players[second].mo->y),
+													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
+													* (pingame - 1)
+													/ ((pingame - 1) * (pingame + 1) / 3);
+		if (franticitems)
+			secondist = (15*secondist/14);
 	}
 
 	switch (item)
@@ -592,7 +604,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 
 //{ SRB2kart Roulette Code - Distance Based, no waypoints
 
-static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
+static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 {
 	const INT32 distvar = (64*14);
 	INT32 i;
@@ -605,9 +617,6 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 	UINT8 oddsvalid[9];
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
-	INT32 secondist = 0;
-	SINT8 first = -1;
-	SINT8 second = -1;
 	boolean mashed = false;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
@@ -683,47 +692,32 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].spectator && players[i].mo)
-		{
-			if (players[i].kartstuff[k_position] < player->kartstuff[k_position])
-				pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
-														players[i].mo->y - player->mo->y),
-														players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
-														* (pingame - players[i].kartstuff[k_position])
-														/ ((pingame - 1) * (pingame + 1) / 3);
-			if (players[i].kartstuff[k_position] == 1 && first == -1)
-				first = i;
-			if (players[i].kartstuff[k_position] == 2 && second == -1)
-				second = i;
-		}
-	}
-
-	if (first != -1 && second != -1 && !secondist) // calculate 2nd's distance from 1st, for blue shell
-		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
-													players[first].mo->y - players[second].mo->y),
-													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
-													* (pingame - 1)
+		if (playeringame[i] && !players[i].spectator && players[i].mo
+			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
+													players[i].mo->y - player->mo->y),
+													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
+													* (pingame - players[i].kartstuff[k_position])
 													/ ((pingame - 1) * (pingame + 1) / 3);
+	}
 
 #define SETUPDISTTABLE(odds, num) \
 	for (i = num; i; --i) disttable[distlen++] = odds
 
 	if (G_BattleGametype()) // Battle Mode
 	{
-		UINT8 wantedpos;
-
 		if (oddsvalid[0]) SETUPDISTTABLE(0,1);
 		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
 		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
 		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
 		if (oddsvalid[4]) SETUPDISTTABLE(4,1);
-		// Nothing we can do about setting disttable[5], because of how that is set.
+		// Nothing we can do about getting new odds for disttable[5], because of how that is set.
 
 		if (player->kartstuff[k_roulettetype] == 1)
 			useodds = 5;
 		else
 		{
-			wantedpos = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average, 4 is two balloons above average
+			UINT8 wantedpos = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average, 4 is two balloons above average
 			if (wantedpos > 4)
 				wantedpos = 4;
 			if (wantedpos < 0)
@@ -743,10 +737,7 @@ static void K_KartItemRouletteByDistance(player_t *player, ticcmd_t *cmd)
 		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
 
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
-		{
 			pdis = (15*pdis/14);
-			secondist = (15*pdis/14);
-		}
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
@@ -2162,7 +2153,7 @@ static void K_DoShrink(player_t *player)
 
 static void K_DoSPB(player_t *victim, player_t *source)
 {
-	INT32 i;
+	//INT32 i;
 	S_StartSound(victim->mo, sfx_bkpoof); // Sound the BANG!
 
 	/*for (i = 0; i < MAXPLAYERS; i++)
@@ -2319,7 +2310,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_deathsentence])
 	{
 		if (player->kartstuff[k_deathsentence] == 1)
-			K_DoBlueShell(player, &players[spbplayer]);
+			K_DoSPB(player, &players[spbplayer]);
 		player->kartstuff[k_deathsentence]--;
 	}
 
@@ -2382,8 +2373,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		K_LakituChecker(player);
 
 	// Roulette Code
-	//K_KartItemRouletteByPosition(player, cmd); // Old, position-based
-	K_KartItemRouletteByDistance(player, cmd); // New, distance-based
+	K_KartItemRoulette(player, cmd);
 
 	// Stopping of the horrible invincibility SFX
 	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_invincibilitytimer] <= 0
@@ -3129,8 +3119,41 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_SPB:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						K_DoShrink(player, true);
+						UINT8 ploop;
+						UINT8 bestrank = 0;
+						fixed_t dist = 0;
+
+						for (ploop = 0; ploop < MAXPLAYERS; ploop++)
+						{
+							fixed_t thisdist;
+							if (!playeringame[ploop] || players[ploop].spectator)
+								continue;
+							if (&players[ploop] == player)
+								continue;
+							if (!players[ploop].mo)
+								continue;
+							if (players[ploop].exiting)
+								continue;
+							thisdist = R_PointToDist2(player->mo->x, player->mo->y, players[ploop].mo->x, players[ploop].mo->y);
+							if (bestrank == 0 || players[ploop].kartstuff[k_position] < bestrank)
+							{
+								bestrank = players[ploop].kartstuff[k_position];
+								dist = thisdist;
+							}
+						}
+
+						if (dist == 0)
+							spbincoming = 6*TICRATE; // If you couldn't find anyone, just set an abritary timer
+						else
+							spbincoming = (tic_t)max(1, FixedDiv(dist, 64*FRACUNIT)/FRACUNIT);
+
+						spbplayer = player-players;
+
+						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
+
+						K_PlayTauntSound(player->mo);
+						player->kartstuff[k_sounds] = 50;
 					}
 					break;
 				case KITEM_GROW:
@@ -3154,7 +3177,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_SHRINK:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						K_DoShrink(player, false);
+						K_DoShrink(player);
 						player->kartstuff[k_itemamount]--;
 					}
 					break;

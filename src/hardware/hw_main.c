@@ -5392,7 +5392,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
 		{
 			if (thing->colorized)
-				vis->colormap = R_GetTranslationColormap(TC_STARMAN, thing->color, GTC_CACHE);
+				vis->colormap = R_GetTranslationColormap(TC_RAINBOW, thing->color, GTC_CACHE);
 			else
 			{
 				size_t skinnum = (skin_t*)thing->skin-skins;
@@ -5402,7 +5402,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		else
 		{
 			if (vis->mobj && vis->mobj->colorized)
-				vis->colormap = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
+				vis->colormap = R_GetTranslationColormap(TC_RAINBOW, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
 			else
 				vis->colormap = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
 		}
