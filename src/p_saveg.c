@@ -3248,11 +3248,16 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, hidetime);
 
 	// SRB2kart
+	WRITEINT32(save_p, numgotboxes);
+
 	WRITEUINT8(save_p, gamespeed);
 	WRITEUINT8(save_p, mirrormode);
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
-	WRITEINT32(save_p, numgotboxes); // Probably shouldn't need nummapboxes
+
+	WRITEUINT32(save_p, lightningcooldown);
+	WRITEUINT32(save_p, blueshellincoming);
+	WRITEUINT8(save_p, blueshellplayer);
 
 	// Is it paused?
 	if (paused)
@@ -3340,11 +3345,16 @@ static inline boolean P_NetUnArchiveMisc(void)
 	hidetime = READUINT32(save_p);
 
 	// SRB2kart
+	numgotboxes = READINT32(save_p);
+
 	gamespeed = READUINT8(save_p);
 	mirrormode = (boolean)READUINT8(save_p);
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
-	numgotboxes = READINT32(save_p);
+
+	lightningcooldown = READUINT32(save_p);
+	blueshellincoming = READUINT32(save_p);
+	blueshellplayer = READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

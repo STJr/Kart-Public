@@ -179,8 +179,8 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	mapheaderinfo[num]->subttl[0] = '\0';
 	DEH_WriteUndoline("ZONETITLE", mapheaderinfo[num]->zonttl, UNDO_NONE); // SRB2kart
 	mapheaderinfo[num]->zonttl[0] = '\0';
-	DEH_WriteUndoline("ACT", va("%d", mapheaderinfo[num]->actnum), UNDO_NONE);
-	mapheaderinfo[num]->actnum = 0;
+	DEH_WriteUndoline("ACT", mapheaderinfo[num]->actnum, UNDO_NONE); // SRB2kart
+	mapheaderinfo[num]->actnum[0] = '\0';
 	DEH_WriteUndoline("TYPEOFLEVEL", va("%d", mapheaderinfo[num]->typeoflevel), UNDO_NONE);
 	mapheaderinfo[num]->typeoflevel = 0;
 	DEH_WriteUndoline("NEXTLEVEL", va("%d", mapheaderinfo[num]->nextlevel), UNDO_NONE);
@@ -2674,19 +2674,19 @@ boolean P_SetupLevel(boolean skipprecip)
 	}
 
 	// Print "SPEEDING OFF TO [ZONE] [ACT 1]..."
-	if (rendermode != render_none)
+	/*if (rendermode != render_none)
 	{
 		// Don't include these in the fade!
 		char tx[64];
 		V_DrawSmallString(1, 191, V_ALLOWLOWERCASE, M_GetText("Speeding off to..."));
 		snprintf(tx, 63, "%s%s%s",
 			mapheaderinfo[gamemap-1]->lvlttl,
-			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? mapheaderinfo[gamemap-1]->zonttl : // SRB2kart
+			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->zonttl) : // SRB2kart
 			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE"),
-			(mapheaderinfo[gamemap-1]->actnum > 0) ? va(", Act %d",mapheaderinfo[gamemap-1]->actnum) : "");
+			(strlen(mapheaderinfo[gamemap-1]->actnum) > 0) ? va(", Act %s",mapheaderinfo[gamemap-1]->actnum) : "");
 		V_DrawSmallString(1, 195, V_ALLOWLOWERCASE, tx);
 		I_UpdateNoVsync();
-	}
+	}*/
 
 #ifdef HAVE_BLUA
 	LUA_InvalidateLevel();
@@ -3003,6 +3003,10 @@ boolean P_SetupLevel(boolean skipprecip)
 		comeback = cv_kartcomeback.value;
 	}
 
+	lightningcooldown = 0;
+	blueshellincoming = 0;
+	blueshellplayer = 0;
+
 	// clear special respawning que
 	iquehead = iquetail = 0;
 
@@ -3039,7 +3043,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	if (!(netgame || multiplayer || demoplayback || demorecording || metalrecording || modeattacking || players[consoleplayer].lives <= 0)
 		&& (!modifiedgame || savemoddata) && cursaveslot >= 0 && !ultimatemode
 		&& !(mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
-		&& (!G_IsSpecialStage(gamemap)) && gamemap != lastmapsaved && (mapheaderinfo[gamemap-1]->actnum < 2 || gamecomplete))
+		&& (!G_IsSpecialStage(gamemap)) && gamemap != lastmapsaved && (/*mapheaderinfo[gamemap-1]->actnum < 2 ||*/ gamecomplete))
 		G_SaveGame((UINT32)cursaveslot);
 
 	if (savedata.lives > 0)

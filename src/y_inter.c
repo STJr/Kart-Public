@@ -38,6 +38,7 @@
 
 #include "m_random.h" // P_RandomKey
 #include "g_input.h" // PLAYER1INPUTDOWN
+#include "k_kart.h" // colortranslations
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -197,6 +198,10 @@ static y_voteclient voteclient;
 static INT32 votetic;
 static INT32 voteendtic = -1;
 static patch_t *cursor = NULL;
+static patch_t *cursor1 = NULL;
+static patch_t *cursor2 = NULL;
+static patch_t *cursor3 = NULL;
+static patch_t *cursor4 = NULL;
 static patch_t *randomlvl = NULL;
 
 static void Y_UnloadVoteData(void);
@@ -290,7 +295,7 @@ void Y_IntermissionDrawer(void)
 		V_DrawLevelTitle(data.coop.passedx1, 49, 0, data.coop.passed1);
 		V_DrawLevelTitle(data.coop.passedx2, 49+V_LevelNameHeight(data.coop.passed2)+2, 0, data.coop.passed2);
 
-		if (mapheaderinfo[gamemap-1]->actnum)
+		if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 			V_DrawScaledPatch(244, 57, 0, data.coop.ttlnum);
 
 		//if (gottimebonus && endtic != -1)
@@ -1122,10 +1127,10 @@ void Y_StartIntermission(void)
 			data.coop.ptotal = W_CachePatchName("YB_TOTAL", PU_STATIC);
 
 			// get act number
-			if (mapheaderinfo[prevmap]->actnum)
+			/*if (mapheaderinfo[prevmap]->actnum)
 				data.coop.ttlnum = W_CachePatchName(va("TTL%.2d", mapheaderinfo[prevmap]->actnum),
 					PU_STATIC);
-			else
+			else*/
 				data.coop.ttlnum = W_CachePatchName("TTL01", PU_STATIC);
 
 			// get background patches
@@ -1154,24 +1159,24 @@ void Y_StartIntermission(void)
 			if (strlen(skins[players[consoleplayer].skin].realname) > 13)
 			{
 				strcpy(data.coop.passed1, "YOU GOT");
-				strcpy(data.coop.passed2, (mapheaderinfo[gamemap-1]->actnum) ? "THROUGH ACT" : "THROUGH THE ACT");
+				strcpy(data.coop.passed2, (strlen(mapheaderinfo[prevmap]->actnum) > 0) ? "THROUGH ACT" : "THROUGH THE ACT");
 			}
 			// long enough that "X GOT" won't fit so use "X PASSED THE ACT"
 			else if (strlen(skins[players[consoleplayer].skin].realname) > 8)
 			{
 				strcpy(data.coop.passed1, skins[players[consoleplayer].skin].realname);
-				strcpy(data.coop.passed2, (mapheaderinfo[gamemap-1]->actnum) ? "PASSED ACT" : "PASSED THE ACT");
+				strcpy(data.coop.passed2, (strlen(mapheaderinfo[prevmap]->actnum) > 0) ? "PASSED ACT" : "PASSED THE ACT");
 			}
 			// length is okay for normal use
 			else
 			{
 				snprintf(data.coop.passed1, sizeof data.coop.passed1, "%s GOT",
 					skins[players[consoleplayer].skin].realname);
-				strcpy(data.coop.passed2, (mapheaderinfo[gamemap-1]->actnum) ? "THROUGH ACT" : "THROUGH THE ACT");
+				strcpy(data.coop.passed2, (strlen(mapheaderinfo[prevmap]->actnum) > 0) ? "THROUGH ACT" : "THROUGH THE ACT");
 			}
 
 			// set X positions
-			if (mapheaderinfo[gamemap-1]->actnum)
+			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 			{
 				data.coop.passedx1 = 62 + (176 - V_LevelNameWidth(data.coop.passed1))/2;
 				data.coop.passedx2 = 62 + (176 - V_LevelNameWidth(data.coop.passed2))/2;
@@ -1312,12 +1317,12 @@ void Y_StartIntermission(void)
 			Y_CalculateMatchWinners();
 
 			// set up the levelstring
-			if (mapheaderinfo[prevmap]->zonttl)
+			if (strlen(mapheaderinfo[prevmap]->zonttl) > 0)
 			{
-				if (mapheaderinfo[prevmap]->actnum)
+				if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s %.32s * %d *",
+						"%.32s %.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1327,10 +1332,10 @@ void Y_StartIntermission(void)
 			}
 			else
 			{
-				if (mapheaderinfo[prevmap]->actnum)
+				if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s * %d *",
+						"%.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1375,12 +1380,12 @@ void Y_StartIntermission(void)
 			Y_CalculateTournamentPoints();
 
 			// set up the levelstring
-			if (mapheaderinfo[prevmap]->zonttl)
+			if (strlen(mapheaderinfo[prevmap]->zonttl) > 0)
 			{
-				if (mapheaderinfo[prevmap]->actnum)
+				if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s %.32s * %d *",
+						"%.32s %.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1390,10 +1395,10 @@ void Y_StartIntermission(void)
 			}
 			else
 			{
-				if (mapheaderinfo[prevmap]->actnum)
+				if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 					snprintf(data.match.levelstring,
 						sizeof data.match.levelstring,
-						"%.32s * %d *",
+						"%.32s * %s *",
 						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 				else
 					snprintf(data.match.levelstring,
@@ -1420,10 +1425,10 @@ void Y_StartIntermission(void)
 			Y_CalculateMatchWinners();
 
 			// set up the levelstring
-			if (mapheaderinfo[prevmap]->actnum)
+			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 				snprintf(data.match.levelstring,
 					sizeof data.match.levelstring,
-					"%.32s * %d *",
+					"%.32s * %s *",
 					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 			else
 				snprintf(data.match.levelstring,
@@ -1456,10 +1461,10 @@ void Y_StartIntermission(void)
 			Y_CalculateCompetitionWinners();
 
 			// set up the levelstring
-			if (mapheaderinfo[prevmap]->actnum)
+			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
 				snprintf(data.competition.levelstring,
 					sizeof data.competition.levelstring,
-					"%.32s * %d *",
+					"%.32s * %s *",
 					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
 			else
 				snprintf(data.competition.levelstring,
@@ -2201,33 +2206,53 @@ void Y_VoteDrawer(void)
 			for (j = 0; j <= splitscreen; j++) // another loop for drawing the selection backgrounds in the right order, grumble grumble..
 			{
 				INT32 handy = y;
+				UINT8 *colormap;
+				patch_t *thiscurs;
 
 				if (voteclient.playerinfo[j].selection != i)
 					continue;
 
-				switch (j)
+				if (splitscreen == 0)
 				{
-					case 1:
-						color = 215;
-						break;
-					case 2:
-						color = 127;
-						break;
-					case 3:
-						color = 161;
-						break;
-					default:
-						color = 103;
-						break;
+					thiscurs = cursor;
+					color = colortranslations[players[consoleplayer].skincolor][7];
+					colormap = NULL;
+				}
+				else
+				{
+					switch (j)
+					{
+						case 1:
+							thiscurs = cursor2;
+							color = colortranslations[players[secondarydisplayplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[secondarydisplayplayer].skincolor, GTC_CACHE);
+							break;
+						case 2:
+							thiscurs = cursor3;
+							color = colortranslations[players[thirddisplayplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[thirddisplayplayer].skincolor, GTC_CACHE);
+							break;
+						case 3:
+							thiscurs = cursor4;
+							color = colortranslations[players[fourthdisplayplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[fourthdisplayplayer].skincolor, GTC_CACHE);
+							break;
+						default:
+							thiscurs = cursor1;
+							color = colortranslations[players[consoleplayer].skincolor][7];
+							colormap = R_GetTranslationColormap(-1, players[consoleplayer].skincolor, GTC_CACHE);
+							break;
+					}
 				}
 
 				handy += 6*(3-splitscreen) + (13*j);
-				V_DrawScaledPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, cursor);
+				V_DrawMappedPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, thiscurs, colormap);
 
 				if (votetic % 5 == 0)
 					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), 120|V_SNAPTORIGHT);
 				else
 					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), color|V_SNAPTORIGHT);
+
 				sizeadd--;
 			}
 
@@ -2500,6 +2525,10 @@ void Y_StartVote(void)
 	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
 	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
 	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
+	cursor1 = W_CachePatchName("P1CURSOR", PU_STATIC);
+	cursor2 = W_CachePatchName("P2CURSOR", PU_STATIC);
+	cursor3 = W_CachePatchName("P3CURSOR", PU_STATIC);
+	cursor4 = W_CachePatchName("P4CURSOR", PU_STATIC);
 	randomlvl = W_CachePatchName("RANDOMLV", PU_STATIC);
 
 	timer = cv_votetime.value*TICRATE;
@@ -2525,12 +2554,12 @@ void Y_StartVote(void)
 		lumpnum_t lumpnum;
 
 		// set up the str
-		if (mapheaderinfo[votelevels[i]]->zonttl)
+		if (strlen(mapheaderinfo[votelevels[i]]->zonttl) > 0)
 		{
-			if (mapheaderinfo[votelevels[i]]->actnum)
+			if (strlen(mapheaderinfo[votelevels[i]]->actnum) > 0)
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
-					"%.32s %.32s %d",
+					"%.32s %.32s %s",
 					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl, mapheaderinfo[votelevels[i]]->actnum);
 			else
 				snprintf(levelinfo[i].str,
@@ -2540,10 +2569,10 @@ void Y_StartVote(void)
 		}
 		else
 		{
-			if (mapheaderinfo[votelevels[i]]->actnum)
+			if (strlen(mapheaderinfo[votelevels[i]]->actnum) > 0)
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
-					"%.32s %d",
+					"%.32s %s",
 					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->actnum);
 			else
 				snprintf(levelinfo[i].str,
@@ -2582,6 +2611,10 @@ static void Y_UnloadVoteData(void)
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
 	UNLOAD(cursor);
+	UNLOAD(cursor1);
+	UNLOAD(cursor2);
+	UNLOAD(cursor3);
+	UNLOAD(cursor4);
 	UNLOAD(randomlvl);
 
 	UNLOAD(levelinfo[3].pic);

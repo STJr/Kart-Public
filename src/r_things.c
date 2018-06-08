@@ -29,6 +29,7 @@
 #include "d_netfil.h" // blargh. for nameonly().
 #include "m_cheat.h" // objectplace
 #include "k_kart.h" // SRB2kart
+#include "p_local.h" // stplyr
 #ifdef HWRENDER
 #include "hardware/hw_md2.h"
 #endif
@@ -1675,7 +1676,7 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
-void R_AddSprites(sector_t *sec, INT32 lightlevel)
+void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing; // Tails 08-25-2002
@@ -1718,6 +1719,25 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
+			if (splitscreen)
+			{
+				if (thing->eflags & MFE_DRAWONLYFORP1)
+					if (ssplayer != 1)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP2)
+					if (ssplayer != 2)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
+					if (ssplayer != 3)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
+					if (ssplayer != 4)
+						continue;
+			}
+
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
 			if (approx_dist <= limit_dist)
@@ -1728,8 +1748,31 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 	{
 		// Draw everything in sector, no checks
 		for (thing = sec->thinglist; thing; thing = thing->snext)
-			if (!(thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW))
-				R_ProjectSprite(thing);
+		{
+			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
+				continue;
+
+			if (splitscreen)
+			{
+				if (thing->eflags & MFE_DRAWONLYFORP1)
+					if (ssplayer != 1)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP2)
+					if (ssplayer != 2)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
+					if (ssplayer != 3)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
+					if (ssplayer != 4)
+						continue;
+			}
+
+			R_ProjectSprite(thing);
+		}
 	}
 
 	// Someone seriously wants infinite draw distance for precipitation?

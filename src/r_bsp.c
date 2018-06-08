@@ -855,7 +855,7 @@ static void R_AddPolyObjects(subsector_t *sub)
 
 drawseg_t *firstseg;
 
-static void R_Subsector(size_t num)
+static void R_Subsector(size_t num, UINT8 ssplayer)
 {
 	INT32 count, floorlightlevel, ceilinglightlevel, light;
 	seg_t *line;
@@ -1213,7 +1213,7 @@ static void R_Subsector(size_t num)
    // Either you must pass the fake sector and handle validcount here, on the
    // real sector, or you must account for the lighting in some other way,
    // like passing it as an argument.
-	R_AddSprites(sub->sector, (floorlightlevel+ceilinglightlevel)/2);
+	R_AddSprites(sub->sector, (floorlightlevel+ceilinglightlevel)/2, ssplayer);
 
 	firstseg = NULL;
 
@@ -1419,7 +1419,7 @@ INT32 R_GetPlaneLight(sector_t *sector, fixed_t planeheight, boolean underside)
 //
 // killough 5/2/98: reformatted, removed tail recursion
 
-void R_RenderBSPNode(INT32 bspnum)
+void R_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
 {
 	node_t *bsp;
 	INT32 side;
@@ -1430,7 +1430,7 @@ void R_RenderBSPNode(INT32 bspnum)
 		// Decide which side the view point is on.
 		side = R_PointOnSide(viewx, viewy, bsp);
 		// Recursively divide front space.
-		R_RenderBSPNode(bsp->children[side]);
+		R_RenderBSPNode(bsp->children[side], ssplayer);
 
 		// Possibly divide back space.
 
@@ -1448,5 +1448,5 @@ void R_RenderBSPNode(INT32 bspnum)
 		portalcullsector = NULL;
 	}
 
-	R_Subsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR);
+	R_Subsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR, ssplayer);
 }

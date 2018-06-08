@@ -3886,6 +3886,12 @@ void P_BounceMove(mobj_t *mo)
 	//INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	{
+		P_SlideMove(mo, true);
+		return;
+	}
+
 	slidemo = mo;
 	//hitcount = 0;
 
@@ -4018,7 +4024,8 @@ bounceback:
 		}
 	}
 
-	P_HitBounceLine(bestslideline); // clip the moves
+	P_HitBounceLine(bestslideline);
+	mo->eflags |= MFE_JUSTBOUNCEDWALL;
 
 	mo->momx = tmxmove;
 	mo->momy = tmymove;

@@ -4210,7 +4210,9 @@ DoneSection2:
 					if (P_IsLocalPlayer(player))
 					{
 						// SRB2kart 200117
-						if (!splitscreen)
+						if (splitscreen)
+							S_ChangeMusicInternal("karwin", true);
+						else
 						{
 							if (player->kartstuff[k_position] == 1)
 								S_ChangeMusicInternal("karwin", true);
@@ -4219,8 +4221,6 @@ DoneSection2:
 							else
 								S_ChangeMusicInternal("karok", true);
 						}
-						else
-							S_ChangeMusicInternal("karok", true);
 					}
 
 					if (player->kartstuff[k_position] == 1)
