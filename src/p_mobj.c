@@ -7902,6 +7902,13 @@ void P_MobjThinker(mobj_t *mobj)
 
 			P_InstaThrust(mobj, R_PointToAngle2(0, 0, mobj->momx, mobj->momy), topspeed);
 
+			if (mobj->tracer)
+				mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->tracer->x, mobj->tracer->y);
+			else
+				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
+
+			K_DriftDustHandling(mobj);
+
 			sec2 = P_ThingOnSpecial3DFloor(mobj);
 			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)

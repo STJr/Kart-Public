@@ -55,7 +55,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"GWLR","SRBA","SRBB","SRBC","SRBD","SRBE","SRBF","SRBG","SRBH","SRBI",
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
-	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DSMO","FITM","DFAK","BANA",
+	"SPRG","BSPR","RNDM","RPOP","KFRE","DRIF","DUST","FITM","DFAK","BANA",
 	"DBAN","GSHE","DGSH","RSHE","DRSH","BOMB","KRBM","BLIG","LIGH","SINK",
 	"SITR","KBLN","LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS",
 	"BUZB","CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO",
@@ -2578,11 +2578,10 @@ state_t states[NUMSTATES] =
 	{SPR_DRIF, 4,  2, {NULL}, 0, 0, S_DRIFTSPARK6}, // S_DRIFTSPARK5
 	{SPR_DRIF, 5,  2, {NULL}, 0, 0, S_DRIFTSPARK4}, // S_DRIFTSPARK6
 
-	{SPR_DSMO, FF_TRANS50|0,  2, {NULL}, 0, 0, S_DRIFTSMOKE2}, // S_DRIFTSMOKE1
-	{SPR_DSMO, FF_TRANS50|1,  2, {NULL}, 0, 0, S_DRIFTSMOKE3}, // S_DRIFTSMOKE2
-	{SPR_DSMO, FF_TRANS50|2,  2, {NULL}, 0, 0, S_DRIFTSMOKE4}, // S_DRIFTSMOKE3
-	{SPR_DSMO, FF_TRANS50|3,  2, {NULL}, 0, 0, S_DRIFTSMOKE5}, // S_DRIFTSMOKE4
-	{SPR_DSMO, FF_TRANS50|4,  2, {NULL}, 0, 0, S_NULL},        // S_DRIFTSMOKE5
+	{SPR_DUST, 0,  3, {NULL}, 0, 0, S_DRIFTDUST2}, // S_DRIFTDUST1
+	{SPR_DUST, 1,  3, {NULL}, 0, 0, S_DRIFTDUST3}, // S_DRIFTDUST2
+	{SPR_DUST, FF_TRANS20|2,  3, {NULL}, 0, 0, S_DRIFTDUST4}, // S_DRIFTDUST3
+	{SPR_DUST, FF_TRANS20|3,  3, {NULL}, 0, 0, S_NULL}, // S_DRIFTDUST4
 
 	{SPR_NULL, 0,               10, {NULL}, 0, 0, S_KARTFIRE2}, // S_KARTFIRE1
 	{SPR_KFRE, FF_FULLBRIGHT,    2, {NULL}, 0, 0, S_KARTFIRE3}, // S_KARTFIRE2
@@ -14355,9 +14354,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_DRIFTSMOKE
+	{           // MT_DRIFTDUST
 		-1,             // doomednum
-		S_DRIFTSMOKE1,  // spawnstate
+		S_DRIFTDUST1,   // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14372,13 +14371,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		8,              // speed
-		20*FRACUNIT,    // radius
-		16*FRACUNIT,    // height
+		8*FRACUNIT,     // radius
+		15*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		MF_NOBLOCKMAP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_FLOAT|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 

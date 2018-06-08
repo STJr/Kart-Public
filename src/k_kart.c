@@ -1834,7 +1834,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	return NULL;
 }
 
-void K_SpawnDriftTrail(player_t *player)
+void K_SpawnBoostTrail(player_t *player)
 {
 	fixed_t newx;
 	fixed_t newy;
@@ -1874,10 +1874,7 @@ void K_SpawnDriftTrail(player_t *player)
 				ground -= FixedMul(mobjinfo[MT_MUSHROOMTRAIL].height, player->mo->scale);
 		}
 #endif
-		if (player->kartstuff[k_drift] != 0 && player->kartstuff[k_mushroomtimer] == 0)
-			flame = P_SpawnMobj(newx, newy, ground, MT_DRIFTSMOKE);
-		else
-			flame = P_SpawnMobj(newx, newy, ground, MT_MUSHROOMTRAIL);
+		flame = P_SpawnMobj(newx, newy, ground, MT_MUSHROOMTRAIL);
 
 		P_SetTarget(&flame->target, player->mo);
 		flame->angle = travelangle;
@@ -1898,6 +1895,67 @@ void K_SpawnDriftTrail(player_t *player)
 		}
 		else if (flame->z > flame->floorz)
 			P_RemoveMobj(flame);
+	}
+}
+
+//	K_DriftDustHandling
+//	Parameters:
+//		spawner: The map object that is spawning the drift dust
+//	Description: Spawns the drift dust for objects, players use rmomx/y, other objects use regular momx/y.
+//		Also plays the drift sound.
+//		Other objects should be angled towards where they're trying to go so they don't randomly spawn dust
+//		Do note that most of the function won't run in odd intervals of frames
+void K_DriftDustHandling(mobj_t *spawner)
+{
+	angle_t anglediff;
+	const INT16 spawnrange = spawner->radius>>FRACBITS;
+
+	if (!P_IsObjectOnGround(spawner) || leveltime % 2 != 0)
+		return;
+
+	if (spawner->player)
+	{
+		angle_t playerangle;
+
+		if (spawner->player->speed < 5<<FRACBITS)
+			return;
+
+		if (spawner->player->cmd.forwardmove < 0)
+		{
+			playerangle = spawner->angle+ANGLE_180;
+		}
+		else
+		{
+			playerangle = spawner->angle;
+		}
+		anglediff = abs(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy));
+	}
+	else
+	{
+		if (P_AproxDistance(spawner->momx, spawner->momy) < 5<<FRACBITS)
+			return;
+
+		anglediff = abs(spawner->angle - R_PointToAngle2(0, 0, spawner->momx, spawner->momy));
+	}
+
+	if (anglediff > ANGLE_180)
+		anglediff = InvAngle(anglediff);
+
+	if (anglediff > ANG10*4) // Trying to turn further than 40 degrees
+	{
+		fixed_t spawnx = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
+		fixed_t spawny = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
+		INT32 speedrange = 2;
+		mobj_t *dust = P_SpawnMobj(spawner->x + spawnx, spawner->y + spawny, spawner->z, MT_DRIFTDUST);
+		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
+		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
+		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
+		dust->scale = spawner->scale/2;
+		dust->destscale = spawner->scale * 3;
+		if (leveltime % 6 == 0)
+		{
+			S_StartSound(spawner, sfx_screec);
+		}
 	}
 }
 

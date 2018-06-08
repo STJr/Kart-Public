@@ -877,6 +877,7 @@ typedef enum
 	sfx_vroom,
 	sfx_boing,
 	sfx_smkinv,
+	sfx_screec,
 
 	sfx_kwin,
 	sfx_klose,
