@@ -1269,7 +1269,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		|| (G_BattleGametype() && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
-	K_PlayHitEmSound(source);
+	if (source && source != player->mo && source->player)
+		K_PlayHitEmSound(source);
 
 	player->kartstuff[k_mushroomtimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
