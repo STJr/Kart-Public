@@ -5329,10 +5329,6 @@ static void HWR_ProjectSprite(mobj_t *thing)
 
 	z1 = tr_y + x1 * rightsin;
 	z2 = tr_y - x2 * rightsin;
-
-	if (papersprite && max(z1, z2) < ZCLIP_PLANE)
-		return;
-
 	x1 = tr_x + x1 * rightcos;
 	x2 = tr_x - x2 * rightcos;
 
