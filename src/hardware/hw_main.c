@@ -5256,13 +5256,10 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		I_Error("sprframes NULL for sprite %d\n", thing->sprite);
 #endif
 
-	if (sprframe->rotate != SRF_SINGLE)
-	{
-		if (thing->player)
-			ang = R_PointToAngle (thing->x, thing->y) - thing->player->frameangle;
-		else
-			ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
-	}
+	if (thing->player)
+		ang = R_PointToAngle (thing->x, thing->y) - thing->player->frameangle;
+	else
+		ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
 
 	if (sprframe->rotate == SRF_SINGLE)
 	{
@@ -5271,7 +5268,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		lumpoff = sprframe->lumpid[0];     //Fab: see note above
 		flip = sprframe->flip; // Will only be 0x00 or 0xFF
 
-		if (papersprite && (R_PointToAngle (thing->x, thing->y) - thing->angle < ANGLE_180))
+		if (papersprite && ang < ANGLE_180)
 		{
 			if (flip)
 				flip = 0;
@@ -5292,6 +5289,14 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		//Fab: lumpid is the index for spritewidth,spriteoffset... tables
 		lumpoff = sprframe->lumpid[rot];
 		flip = sprframe->flip & (1<<rot);
+
+		if (papersprite && ang < ANGLE_180)
+		{
+			if (flip)
+				flip = 0;
+			else
+				flip = 1<<rot;
+		}
 	}
 
 	if (thing->skin && ((skin_t *)thing->skin)->flags & SF_HIRES)
@@ -5299,16 +5304,8 @@ static void HWR_ProjectSprite(mobj_t *thing)
 
 	if (papersprite)
 	{
-		if (flip && sprframe->rotate != SRF_SINGLE)
-		{
-			rightsin = FIXED_TO_FLOAT(FINESINE((thing->angle+ANGLE_180)>>ANGLETOFINESHIFT));
-			rightcos = FIXED_TO_FLOAT(FINECOSINE((thing->angle+ANGLE_180)>>ANGLETOFINESHIFT));
-		}
-		else
-		{
-			rightsin = FIXED_TO_FLOAT(FINESINE((thing->angle)>>ANGLETOFINESHIFT));
-			rightcos = FIXED_TO_FLOAT(FINECOSINE((thing->angle)>>ANGLETOFINESHIFT));
-		}
+		rightsin = FIXED_TO_FLOAT(FINESINE((thing->angle)>>ANGLETOFINESHIFT));
+		rightcos = FIXED_TO_FLOAT(FINECOSINE((thing->angle)>>ANGLETOFINESHIFT));
 	}
 	else
 	{
