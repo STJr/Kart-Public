@@ -246,7 +246,8 @@ typedef enum
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
-	k_sounds,			// Used this to stop and then force music restores as it hits zero
+	k_voices,			// Used to stop the player saying more voices than it should
+	k_tauntvoices,		// Used to specifically stop taunt voice spam
 
 	k_boosting,			// Determines if you're currently shroom-boosting
 	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
@@ -260,6 +261,7 @@ typedef enum
 	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
+	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
@@ -278,6 +280,7 @@ typedef enum
 	k_spinouttimer,		// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_laserwisptimer,	// The duration and relative angle of the laser
 	k_justbumped,		// Prevent players from endlessly bumping into each other
+	k_deathsentence,	// 30 seconds to live... (Blue Shell murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
 	k_poweritemtimer,	// Battle mode, how long before you're allowed another power item (Star, Megashroom)
 	k_comebacktimer,	// Battle mode, how long before you become a bomb after death
 

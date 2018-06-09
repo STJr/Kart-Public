@@ -1136,10 +1136,12 @@ static void readlevelheader(MYFILE *f, INT32 num)
 			}
 			else if (fastcmp(word, "ACT"))
 			{
-				if (i >= 0 && i < 20) // 0 for no act number, TTL1 through TTL19
+				/*if (i >= 0 && i < 20) // 0 for no act number, TTL1 through TTL19
 					mapheaderinfo[num-1]->actnum = (UINT8)i;
 				else
-					deh_warning("Level header %d: invalid act number %d", num, i);
+					deh_warning("Level header %d: invalid act number %d", num, i);*/
+				deh_strlcpy(mapheaderinfo[num-1]->actnum, word2,
+					sizeof(mapheaderinfo[num-1]->actnum), va("Level header %d: actnum", num));
 			}
 			else if (fastcmp(word, "NEXTLEVEL"))
 			{
@@ -7305,9 +7307,13 @@ static const char *const MOBJEFLAG_LIST[] = {
 	"JUSTSTEPPEDDOWN", // used for ramp sectors
 	"VERTICALFLIP", // Vertically flip sprite/allow upside-down physics
 	"GOOWATER", // Goo water
-	"\x01", // free: 1<<7 (name un-matchable)
+	"JUSTBOUNCEDWALL", // SRB2Kart: Mobj already bounced off a wall this tic
 	"SPRUNG", // Mobj was already sprung this tic
 	"APPLYPMOMZ", // Platform movement
+	"DRAWONLYFORP1", // SRB2Kart: Splitscreen sprite draw flags
+	"DRAWONLYFORP2",
+	"DRAWONLYFORP3",
+	"DRAWONLYFORP4",
 	NULL
 };
 
@@ -7549,7 +7555,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"THROWDIR",
 	"LAPANIMATION",
 	"CARDANIMATION",
-	"SOUNDS",
+	"VOICES",
+	"TAUNTVOICES",
 
 	"BOOSTING",
 	"FLOORBOOST",
@@ -7563,8 +7570,10 @@ static const char *const KARTSTUFF_LIST[] = {
 	"BOOSTCHARGE",
 	"JMP",
 	"OFFROAD",
+	"BRAKESTOP",
 
 	"ITEMROULETTE",
+	"ROULETTETYPE",
 	"ITEMCLOSE",
 
 	"MAGNETTIMER",
@@ -7579,6 +7588,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"SPINOUTTIMER",
 	"LASERWISPTIMER",
 	"JUSTBUMPED",
+	"DEATHSENTENCE",
 	"POWERITEMTIMER",
 	"COMEBACKTIMER",
 
@@ -8028,9 +8038,6 @@ struct {
 	{"BT_ATTACK",BT_ATTACK},
 	{"BT_FORWARD",BT_FORWARD},
 	{"BT_BACKWARD",BT_BACKWARD},
-	//{"BT_SPECTATE",BT_SPECTATE},
-	{"BT_DRIFTLEFT",BT_DRIFTLEFT},
-	{"BT_DRIFTRIGHT",BT_DRIFTRIGHT},
 	{"BT_CUSTOM1",BT_CUSTOM1}, // Lua customizable
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable

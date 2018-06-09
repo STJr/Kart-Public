@@ -679,9 +679,9 @@ static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png
 	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->lvlttl[0] != '\0')
 		snprintf(lvlttltext, 48, "%s%s%s",
 			mapheaderinfo[gamemap-1]->lvlttl,
-			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? mapheaderinfo[gamemap-1]->zonttl : // SRB2kart
+			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->zonttl) : // SRB2kart
 			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE"),
-			(mapheaderinfo[gamemap-1]->actnum > 0) ? va(" %d",mapheaderinfo[gamemap-1]->actnum) : "");
+			(strlen(mapheaderinfo[gamemap-1]->actnum) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->actnum) : "");
 	else
 		snprintf(lvlttltext, 48, "Unknown");
 
