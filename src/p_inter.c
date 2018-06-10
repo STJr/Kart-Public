@@ -3105,7 +3105,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 
 		player->kartstuff[k_sneakertimer] = 0;
 
-		// Size Down
+		// Shrink
 		if (damage == 64)
 		{
 			if (player == source->player)
@@ -3126,7 +3126,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->kartstuff[k_growshrinktimer] = 2;
 			}
 			// Invincible or not, we still need this.
-			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
+			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			return true;
 		}
 

@@ -2304,12 +2304,12 @@ static void P_CheckInvincibilityTimer(player_t *player)
 
 	//if (mariomode && !player->powers[pw_super]) // SRB2kart
 		player->mo->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
-	if (leveltime % (TICRATE/7) == 0)
+	/*if (leveltime % (TICRATE/7) == 0)
 	{
 		mobj_t *sparkle = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_IVSP);
 		sparkle->destscale = player->mo->scale;
 		P_SetScale(sparkle, player->mo->scale);
-	}
+	}*/
 
 	// Resume normal music stuff.
 	if (player->powers[pw_invulnerability] == 1 || player->kartstuff[k_invincibilitytimer] == 1)
@@ -6924,6 +6924,9 @@ static void P_MovePlayer(player_t *player)
 	// SRB2kart - Drifting smoke and fire
 	if (player->kartstuff[k_sneakertimer] > 0 && onground && (leveltime & 1))
 		K_SpawnBoostTrail(player);
+
+	if (player->kartstuff[k_invincibilitytimer] > 0)
+		K_SpawnSparkleTrail(player->mo);
 
 	K_DriftDustHandling(player->mo);
 

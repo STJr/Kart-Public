@@ -1011,7 +1011,7 @@ void K_LakituChecker(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 
-	if (player->kartstuff[k_lakitu] == 44)
+	/*if (player->kartstuff[k_lakitu] == 44)
 	{
 		mobj_t *mo;
 		angle_t newangle;
@@ -1033,7 +1033,7 @@ void K_LakituChecker(player_t *player)
 			mo->angle = newangle+ANGLE_180;
 			P_SetTarget(&mo->target, player->mo);
 		}
-	}
+	}*/
 
 	if (player->kartstuff[k_lakitu] > 3)
 	{
@@ -1873,34 +1873,32 @@ void K_SpawnBoostTrail(player_t *player)
 	}
 }
 
-void K_SpawnSparkleTrail(player_t *player)
+void K_SpawnSparkleTrail(mobj_t *mo)
 {
-	const INT32 rad = (player->mo->radius*2)>>FRACBITS;
-	fixed_t newx, newy, newz;
+	const INT32 rad = (mo->radius*2)>>FRACBITS;
 	mobj_t *sparkle;
 	INT32 i;
 
-	I_Assert(player != NULL);
-	I_Assert(player->mo != NULL);
-	I_Assert(!P_MobjWasRemoved(player->mo));
+	I_Assert(mo != NULL);
+	I_Assert(!P_MobjWasRemoved(mo));
 
 	for (i = 0; i < 3; i++)
 	{
-		newx = player->mo->x + player->mo->momx + (P_RandomRange(-rad, rad)<<FRACBITS);
-		newy = player->mo->y + player->mo->momy + (P_RandomRange(-rad, rad)<<FRACBITS);
-		newz = player->mo->z + player->mo->momz + (P_RandomRange(0, player->mo->height>>FRACBITS)<<FRACBITS);
+		fixed_t newx = mo->x + mo->momx + (P_RandomRange(-rad, rad)<<FRACBITS);
+		fixed_t newy = mo->y + mo->momy + (P_RandomRange(-rad, rad)<<FRACBITS);
+		fixed_t newz = mo->z + mo->momz + (P_RandomRange(0, mo->height>>FRACBITS)<<FRACBITS);
 
 		sparkle = P_SpawnMobj(newx, newy, newz, MT_SPARKLETRAIL);
 
 		if (i == 0)
 			P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
 
-		P_SetTarget(&sparkle->target, player->mo);
-		sparkle->destscale = player->mo->destscale;
-		P_SetScale(sparkle, player->mo->scale);
-		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
-		sparkle->color = player->mo->color;
-		//sparkle->colorized = player->mo->colorized;
+		P_SetTarget(&sparkle->target, mo);
+		sparkle->destscale = mo->destscale;
+		P_SetScale(sparkle, mo->scale);
+		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
+		sparkle->color = mo->color;
+		//sparkle->colorized = mo->colorized;
 	}
 }
 
@@ -2932,9 +2930,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							S_StartSound(player->mo, sfx_kinvnc);
 						if (!player->kartstuff[k_invincibilitytimer])
 						{
-							mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
+							mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INVULNFLASH);
 							P_SetTarget(&overlay->target, player->mo);
-							P_SetMobjState(overlay, S_INVULNFLASH1);
 							overlay->destscale = player->mo->scale;
 							P_SetScale(overlay, player->mo->scale);
 						}
@@ -3244,7 +3241,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 
 						K_PlayTauntSound(player->mo);
-						player->kartstuff[k_sounds] = 50;
 					}
 					break;
 				case KITEM_GROW:

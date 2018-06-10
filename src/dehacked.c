@@ -7106,6 +7106,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_SNEAKERTRAIL",
 	"MT_SPARKLETRAIL",
+	"MT_INVULNFLASH",
 	"MT_DRIFT",
 	"MT_DRIFTDUST",
 

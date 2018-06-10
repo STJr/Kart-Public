@@ -14324,7 +14324,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_SPARKLETRAIL
 		-1,						// doomednum
 		S_KARTINVULN_SMALL1,	// spawnstate
-		1,						// spawnhealth
+		1000,					// spawnhealth
 		S_NULL,					// seestate
 		sfx_None,				// seesound
 		8,						// reactiontime
@@ -14345,6 +14345,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,						// damage
 		sfx_None,				// activesound
 		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL					// raisestate
+	},
+
+	{           // MT_INVULNFLASH
+		-1,						// doomednum
+		S_INVULNFLASH1,	        // spawnstate
+		1000,					// spawnhealth
+		S_NULL,					// seestate
+		sfx_None,				// seesound
+		8,						// reactiontime
+		sfx_None,				// attacksound
+		S_NULL,					// painstate
+		0,						// painchance
+		sfx_None,				// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_NULL,					// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,				// deathsound
+		8,						// speed
+		8*FRACUNIT,				// radius
+		8*FRACUNIT,				// height
+		0,						// display offset
+		100,					// mass
+		0,						// damage
+		sfx_None,				// activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
 		S_NULL					// raisestate
 	},
 

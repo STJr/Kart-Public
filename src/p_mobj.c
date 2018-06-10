@@ -8122,6 +8122,23 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, sfx_prloop);
 			mobj->health--;
 			break;
+		case MT_SPARKLETRAIL:
+			if (!mobj->target)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			mobj->color = mobj->target->color;
+			mobj->colorized = mobj->target->colorized;
+			break;
+		case MT_INVULNFLASH:
+			if (!mobj->target || (mobj->target->player && !mobj->target->player->kartstuff[k_invincibilitytimer]))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			A_CapeChase(mobj);
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);
@@ -8180,15 +8197,6 @@ void P_MobjThinker(mobj_t *mobj)
 			R_AddFloorSplat(mobj->tracer->subsector, mobj->tracer, "TARGET", mobj->tracer->x,
 				mobj->tracer->y, mobj->tracer->floorz, SPLATDRAWMODE_SHADE);
 #endif
-			break;
-		case MT_SPARKLETRAIL:
-			if (!mobj->target)
-			{
-				P_RemoveMobj(mobj);
-				return;
-			}
-			mobj->color = mobj->target->color;
-			mobj->colorized = mobj->target->colorized;
 			break;
 		case MT_SPINFIRE:
 		case MT_SNEAKERTRAIL:
