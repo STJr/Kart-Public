@@ -584,7 +584,7 @@ typedef enum sprite
 	SPR_KINV, // Invincibility sparkle trail
 	SPR_KINF, // Invincibility flash
 	SPR_DRIF, // Drift Sparks
-	SPR_DSMO, // Drift Smoke
+	SPR_DUST, // Drift Dust
 
 	// Kart Items
 	SPR_FITM, // Eggman Monitor
@@ -3079,11 +3079,10 @@ typedef enum state
 	S_DRIFTSPARK6,
 
 	// Drift Smoke
-	S_DRIFTSMOKE1,
-	S_DRIFTSMOKE2,
-	S_DRIFTSMOKE3,
-	S_DRIFTSMOKE4,
-	S_DRIFTSMOKE5,
+	S_DRIFTDUST1,
+	S_DRIFTDUST2,
+	S_DRIFTDUST3,
+	S_DRIFTDUST4,
 
 	// Magnet Burst
 
@@ -3967,7 +3966,7 @@ typedef enum mobj_type
 	MT_SNEAKERTRAIL,
 	MT_SPARKLETRAIL,
 	MT_DRIFT,
-	MT_DRIFTSMOKE,
+	MT_DRIFTDUST,
 
 	MT_FAKESHIELD,
 	MT_FAKEITEM,

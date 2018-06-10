@@ -1123,7 +1123,49 @@ void K_KartMoveAnimation(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
+	if (source->player && source->player->kartstuff[k_tauntvoices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
 	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
+
+	if (source->player)
+	{
+		source->player->kartstuff[k_tauntvoices] = 6*TICRATE;
+		source->player->kartstuff[k_voices] = 3*TICRATE;
+	}
+}
+
+static void K_PlayOvertakeSound(mobj_t *source)
+{
+	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	// 4 seconds from before race begins, 10 seconds afterwards
+	if (leveltime < 14*TICRATE)
+		return;
+
+	S_StartSound(source, sfx_slow);
+
+	if (source->player)
+	{
+		source->player->kartstuff[k_voices] = 3*TICRATE;
+
+		if (source->player->kartstuff[k_tauntvoices] < 3*TICRATE)
+			source->player->kartstuff[k_tauntvoices] = 3*TICRATE;
+	}
+}
+
+static void K_PlayHitEmSound(mobj_t *source)
+{
+	S_StartSound(source, sfx_hitem);
+
+	if (source->player)
+	{
+		source->player->kartstuff[k_voices] = 3*TICRATE;
+
+		if (source->player->kartstuff[k_tauntvoices] < 3*TICRATE)
+			source->player->kartstuff[k_tauntvoices] = 3*TICRATE;
+	}
 }
 
 void K_MomentumToFacing(player_t *player)
@@ -1311,11 +1353,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		|| (G_BattleGametype() && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
-	if (source && source != player->mo && source->player && !source->player->kartstuff[k_sounds])
-	{
-		S_StartSound(source, sfx_hitem);
-		source->player->kartstuff[k_sounds] = 50;
-	}
+	if (source && source != player->mo && source->player)
+		K_PlayHitEmSound(source);
 
 	player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
@@ -1770,7 +1809,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	return NULL;
 }
 
-void K_SpawnDriftTrail(player_t *player)
+void K_SpawnBoostTrail(player_t *player)
 {
 	fixed_t newx;
 	fixed_t newy;
@@ -1810,10 +1849,7 @@ void K_SpawnDriftTrail(player_t *player)
 				ground -= FixedMul(mobjinfo[MT_SNEAKERTRAIL].height, player->mo->scale);
 		}
 #endif
-		if (player->kartstuff[k_drift] != 0 && player->kartstuff[k_sneakertimer] == 0)
-			flame = P_SpawnMobj(newx, newy, ground, MT_DRIFTSMOKE);
-		else
-			flame = P_SpawnMobj(newx, newy, ground, MT_SNEAKERTRAIL);
+		flame = P_SpawnMobj(newx, newy, ground, MT_SNEAKERTRAIL);
 
 		P_SetTarget(&flame->target, player->mo);
 		flame->angle = travelangle;
@@ -1865,6 +1901,67 @@ void K_SpawnSparkleTrail(player_t *player)
 		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
 		sparkle->color = player->mo->color;
 		//sparkle->colorized = player->mo->colorized;
+	}
+}
+
+//	K_DriftDustHandling
+//	Parameters:
+//		spawner: The map object that is spawning the drift dust
+//	Description: Spawns the drift dust for objects, players use rmomx/y, other objects use regular momx/y.
+//		Also plays the drift sound.
+//		Other objects should be angled towards where they're trying to go so they don't randomly spawn dust
+//		Do note that most of the function won't run in odd intervals of frames
+void K_DriftDustHandling(mobj_t *spawner)
+{
+	angle_t anglediff;
+	const INT16 spawnrange = spawner->radius>>FRACBITS;
+
+	if (!P_IsObjectOnGround(spawner) || leveltime % 2 != 0)
+		return;
+
+	if (spawner->player)
+	{
+		angle_t playerangle;
+
+		if (spawner->player->speed < 5<<FRACBITS)
+			return;
+
+		if (spawner->player->cmd.forwardmove < 0)
+		{
+			playerangle = spawner->angle+ANGLE_180;
+		}
+		else
+		{
+			playerangle = spawner->angle;
+		}
+		anglediff = abs(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy));
+	}
+	else
+	{
+		if (P_AproxDistance(spawner->momx, spawner->momy) < 5<<FRACBITS)
+			return;
+
+		anglediff = abs(spawner->angle - R_PointToAngle2(0, 0, spawner->momx, spawner->momy));
+	}
+
+	if (anglediff > ANGLE_180)
+		anglediff = InvAngle(anglediff);
+
+	if (anglediff > ANG10*4) // Trying to turn further than 40 degrees
+	{
+		fixed_t spawnx = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
+		fixed_t spawny = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
+		INT32 speedrange = 2;
+		mobj_t *dust = P_SpawnMobj(spawner->x + spawnx, spawner->y + spawny, spawner->z, MT_DRIFTDUST);
+		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
+		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
+		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
+		dust->scale = spawner->scale/2;
+		dust->destscale = spawner->scale * 3;
+		if (leveltime % 6 == 0)
+		{
+			S_StartSound(spawner, sfx_screec);
+		}
 	}
 }
 
@@ -2108,11 +2205,7 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	if (doPFlag)
 		player->pflags |= PF_ATTACKDOWN;
 
-	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
-
 	K_PlayTauntSound(player->mo);
-	player->kartstuff[k_sounds] = 50;
 }
 
 static void K_DoShrink(player_t *player)
@@ -2144,11 +2237,7 @@ static void K_DoShrink(player_t *player)
 			continue;
 	}
 
-	if (player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
-
 	K_PlayTauntSound(player->mo);
-	player->kartstuff[k_sounds] = 50;
 }
 
 static void K_DoSPB(player_t *victim, player_t *source)
@@ -2343,8 +2432,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else
 		player->kartstuff[k_cardanimation] = 0;
 
-	if (player->kartstuff[k_sounds])
-		player->kartstuff[k_sounds]--;
+	if (player->kartstuff[k_voices])
+		player->kartstuff[k_voices]--;
+
+	if (player->kartstuff[k_tauntvoices])
+		player->kartstuff[k_tauntvoices]--;
 
 	// ???
 	/*
@@ -2766,17 +2858,16 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	K_KartUpdatePosition(player);
 
-	/*if (!player->kartstuff[k_positiondelay] && !player->exiting)
+	if (!player->exiting)
 	{
 		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // then the other player taunts.
 		else if (player->kartstuff[k_oldposition] > player->kartstuff[k_position]) // Otherwise,
 		{
-			//S_StartSound(player->mo, sfx_slow); // Say "YOU'RE TOO SLOW!"
+			K_PlayOvertakeSound(player->mo); // Say "YOU'RE TOO SLOW!"
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // Restore the old position,
-			player->kartstuff[k_positiondelay] = 5*TICRATE; // and set up a timer.
 		}
-	}*/
+	}
 
 	if (player->kartstuff[k_positiondelay])
 		player->kartstuff[k_positiondelay]--;
@@ -3418,12 +3509,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				S_StartSound(player->mo, sfx_sboost);
 
 			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
-
-			if (!player->kartstuff[k_sounds]) // Prevents taunt sounds from playing every time the button is pressed
-			{
-				K_PlayTauntSound(player->mo);
-				player->kartstuff[k_sounds] = 50;
-			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		else if (player->kartstuff[k_boostcharge] > 50)

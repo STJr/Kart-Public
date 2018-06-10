@@ -5190,7 +5190,6 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	float tr_x, tr_y;
 	float tz;
 	float x1, x2;
-	float z1, z2;
 	float rightsin, rightcos;
 	float this_scale;
 	float gz, gzt;
@@ -5202,7 +5201,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	angle_t ang;
 	INT32 heightsec, phs;
 	const boolean papersprite = (thing->frame & FF_PAPERSPRITE);
-	float ang_scale = 1.0f, ang_scalez = 0.0f;
+	float z1, z2;
 
 	if (!thing)
 		return;
@@ -5257,31 +5256,10 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		I_Error("sprframes NULL for sprite %d\n", thing->sprite);
 #endif
 
-	if (papersprite)
-	{
-		// Use the actual view angle, rather than the angle formed
-		// between the view point and the thing
-		// this makes sure paper sprites always appear at the right angle!
-		// Note: DO NOT do this in software mode version, it actually
-		// makes papersprites look WORSE there (I know, I've tried)
-		// Monster Iestyn - 13/05/17
-		ang = dup_viewangle - thing->angle;
-		ang_scale = FIXED_TO_FLOAT(FINESINE(ang>>ANGLETOFINESHIFT));
-		ang_scalez = FIXED_TO_FLOAT(FINECOSINE(ang>>ANGLETOFINESHIFT));
-
-		if (ang_scale < 0)
-		{
-			ang_scale = -ang_scale;
-			ang_scalez = -ang_scalez;
-		}
-	}
-	else if (sprframe->rotate != SRF_SINGLE)
-	{
-		if (thing->player)
-			ang = R_PointToAngle (thing->x, thing->y) - thing->player->frameangle;
-		else
-			ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
-	}
+	if (thing->player)
+		ang = R_PointToAngle (thing->x, thing->y) - thing->player->frameangle;
+	else
+		ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
 
 	if (sprframe->rotate == SRF_SINGLE)
 	{
@@ -5289,6 +5267,14 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		rot = 0;                        //Fab: for vis->patch below
 		lumpoff = sprframe->lumpid[0];     //Fab: see note above
 		flip = sprframe->flip; // Will only be 0x00 or 0xFF
+
+		if (papersprite && ang < ANGLE_180)
+		{
+			if (flip)
+				flip = 0;
+			else
+				flip = 255;
+		}
 	}
 	else
 	{
@@ -5303,13 +5289,30 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		//Fab: lumpid is the index for spritewidth,spriteoffset... tables
 		lumpoff = sprframe->lumpid[rot];
 		flip = sprframe->flip & (1<<rot);
+
+		if (papersprite && ang < ANGLE_180)
+		{
+			if (flip)
+				flip = 0;
+			else
+				flip = 1<<rot;
+		}
 	}
 
 	if (thing->skin && ((skin_t *)thing->skin)->flags & SF_HIRES)
 		this_scale = this_scale * FIXED_TO_FLOAT(((skin_t *)thing->skin)->highresscale);
 
-	rightsin = FIXED_TO_FLOAT(FINESINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
-	rightcos = FIXED_TO_FLOAT(FINECOSINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
+	if (papersprite)
+	{
+		rightsin = FIXED_TO_FLOAT(FINESINE((thing->angle)>>ANGLETOFINESHIFT));
+		rightcos = FIXED_TO_FLOAT(FINECOSINE((thing->angle)>>ANGLETOFINESHIFT));
+	}
+	else
+	{
+		rightsin = FIXED_TO_FLOAT(FINESINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
+		rightcos = FIXED_TO_FLOAT(FINECOSINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
+	}
+
 	if (flip)
 	{
 		x1 = (FIXED_TO_FLOAT(spritecachedinfo[lumpoff].width - spritecachedinfo[lumpoff].offset) * this_scale);
@@ -5323,10 +5326,6 @@ static void HWR_ProjectSprite(mobj_t *thing)
 
 	z1 = tr_y + x1 * rightsin;
 	z2 = tr_y - x2 * rightsin;
-
-	if (papersprite && max(z1, z2) < ZCLIP_PLANE)
-		return;
-
 	x1 = tr_x + x1 * rightcos;
 	x2 = tr_x - x2 * rightcos;
 

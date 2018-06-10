@@ -6237,11 +6237,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DRIFTSPARK6",
 
 	// Drift Smoke
-	"S_DRIFTSMOKE1",
-	"S_DRIFTSMOKE2",
-	"S_DRIFTSMOKE3",
-	"S_DRIFTSMOKE4",
-	"S_DRIFTSMOKE5",
+	"S_DRIFTDUST1",
+	"S_DRIFTDUST2",
+	"S_DRIFTDUST3",
+	"S_DRIFTDUST4",
 
 	// Lightning Shield Burst
 
@@ -7108,7 +7107,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SNEAKERTRAIL",
 	"MT_SPARKLETRAIL",
 	"MT_DRIFT",
-	"MT_DRIFTSMOKE",
+	"MT_DRIFTDUST",
 
 	"MT_FAKESHIELD",
 	"MT_FAKEITEM",
@@ -7544,7 +7543,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"THROWDIR",
 	"LAPANIMATION",
 	"CARDANIMATION",
-	"SOUNDS",
+	"VOICES",
+	"TAUNTVOICES",
 
 	"BOOSTING",
 	"FLOORBOOST",

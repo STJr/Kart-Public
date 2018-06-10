@@ -805,6 +805,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"vroom",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"boing",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"smkinv", false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"screec", false,  52,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},

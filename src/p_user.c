@@ -1689,14 +1689,14 @@ void P_DoPlayerExit(player_t *player)
 		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
-/*
+
 		if (circuitmap)
 		{
-			if (player->kartstuff[k_position] <= 3)
-				S_StartSound(player->mo, sfx_kwin);
-			else
+			if (K_IsPlayerLosing(player))
 				S_StartSound(player->mo, sfx_klose);
-		}*/
+			else
+				S_StartSound(player->mo, sfx_kwin);
+		}
 
 		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
 		{
@@ -6922,8 +6922,10 @@ static void P_MovePlayer(player_t *player)
 	////////////////////////////
 
 	// SRB2kart - Drifting smoke and fire
-	if ((player->kartstuff[k_drift] != 0 || player->kartstuff[k_sneakertimer] > 0) && onground && (leveltime & 1))
-		K_SpawnDriftTrail(player);
+	if (player->kartstuff[k_sneakertimer] > 0 && onground && (leveltime & 1))
+		K_SpawnBoostTrail(player);
+
+	K_DriftDustHandling(player->mo);
 
 	/* // SRB2kart - nadah
 	// If the player isn't on the ground, make sure they aren't in a "starting dash" position.
