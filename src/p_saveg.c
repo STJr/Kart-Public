@@ -3255,7 +3255,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
 
-	WRITEUINT32(save_p, instaitemcooldown);
+	WRITEUINT32(save_p, indirectitemcooldown);
 	WRITEUINT32(save_p, spbincoming);
 	WRITEUINT8(save_p, spbplayer);
 
@@ -3352,7 +3352,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
 
-	instaitemcooldown = READUINT32(save_p);
+	indirectitemcooldown = READUINT32(save_p);
 	spbincoming = READUINT32(save_p);
 	spbplayer = READUINT8(save_p);
 

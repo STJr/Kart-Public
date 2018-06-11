@@ -445,7 +445,7 @@ extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
 
-extern tic_t instaitemcooldown;
+extern tic_t indirectitemcooldown;
 extern tic_t spbincoming;
 extern UINT8 spbplayer;
 

@@ -3117,6 +3117,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				K_SpinPlayer(player, source);
 
 				// Start shrinking!
+				player->mo->scalespeed = FRACUNIT/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
 			}
@@ -3127,6 +3128,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			}
 			// Invincible or not, we still need this.
 			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
+			S_StartSound(player->mo, sfx_kc59);
 			return true;
 		}
 
@@ -3136,7 +3138,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (player == source->player)
 				return false;
 			// Just need to do this now! Being thrown upwards is done by the explosion.
-			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
+			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
 			blueexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
 			P_SetTarget(&blueexplode->target, source);
 			return true;

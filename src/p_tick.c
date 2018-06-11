@@ -706,8 +706,8 @@ void P_Ticker(boolean run)
 				players[hurtthisguy].kartstuff[k_deathsentence] = TICRATE+1;
 		}
 
-		if (instaitemcooldown)
-			instaitemcooldown--;
+		if (indirectitemcooldown)
+			indirectitemcooldown--;
 
 		if (quake.time)
 		{

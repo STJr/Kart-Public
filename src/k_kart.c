@@ -25,9 +25,9 @@
 // franticitems is Frantic Mode items, bool
 // mirrormode is Mirror Mode (duh), bool
 // comeback is Battle Mode's karma comeback, also bool
-// instaitemcooldown is timer before anyone's allowed another lightning/blue shell
+// indirectitemcooldown is timer before anyone's allowed another Shrink/SPB
 // spbincoming is the timer before k_deathsentence is cast on the player in 1st
-// spbplayer is the last player who fired one
+// spbplayer is the last player who fired a SPB
 
 
 //{ SRB2kart Color Code
@@ -464,6 +464,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 
 static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean mashed)
 {
+	const INT32 distvar = (64*14);
 	INT32 newodds;
 	INT32 i;
 	UINT8 pingame = 0, pexiting = 0;
@@ -507,7 +508,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 	switch (item)
 	{
 		case KITEM_SNEAKER:
-			if (!cv_sneaker.value && !modeattacking) newodds = 0;
+			if ((!cv_sneaker.value) && (!modeattacking)) newodds = 0;
 			break;
 		case KITEM_ROCKETSNEAKER:
 			if (franticitems) newodds *= 2;
@@ -517,7 +518,8 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 		case KITEM_INVINCIBILITY:
 			if (franticitems) newodds *= 2;
 			if (mashed) newodds /= 2;
-			if (!cv_invincibility.value || player->kartstuff[k_poweritemtimer]) newodds = 0;
+			if ((!cv_invincibility.value)
+				|| (player->kartstuff[k_poweritemtimer])) newodds = 0;
 			break;
 		case KITEM_BANANA:
 			if (!cv_banana.value) newodds = 0;
@@ -546,18 +548,23 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 		case KITEM_SPB:
 			if (franticitems) newodds *= 2;
 			if (mashed) newodds /= 2;
-			if (!cv_selfpropelledbomb.value || pexiting <= 0
-				|| (secondist <= (64*14)*4) || instaitemcooldown) newodds = 0;
+			if ((!cv_selfpropelledbomb.value)
+				|| (indirectitemcooldown > 0)
+				|| (pexiting > 0)
+				|| (secondist <= distvar*4)) newodds = 0;
 			break;
 		case KITEM_GROW:
 			if (franticitems) newodds *= 2;
 			if (mashed) newodds /= 2;
-			if (!cv_grow.value || player->kartstuff[k_poweritemtimer]) newodds = 0;
+			if ((!cv_grow.value)
+				|| (player->kartstuff[k_poweritemtimer])) newodds = 0;
 			break;
 		case KITEM_SHRINK:
 			if (franticitems) newodds *= 2;
 			if (mashed) newodds /= 2;
-			if (!cv_shrink.value || pingame-1 <= pexiting || instaitemcooldown) newodds = 0;
+			if ((!cv_shrink.value)
+				|| (indirectitemcooldown > 0)
+				|| (pingame-1 <= pexiting)) newodds = 0;
 			break;
 		case KITEM_LIGHTNINGSHIELD:
 			if (franticitems) newodds *= 2;
@@ -2213,31 +2220,19 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 
 static void K_DoShrink(player_t *player)
 {
-	mobj_t *mo;
-	thinker_t *think;
-	//INT32 i;
+	INT32 i;
 
 	//S_StartSound(player->mo, sfx_bkpoof); // Sound the BANG!
 	player->pflags |= PF_ATTACKDOWN;
 
-	/*for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i])
-			P_FlashPal(&players[i], PAL_NUKE, 10);
-	}*/
+		/*if (playeringame[i])
+			P_FlashPal(&players[i], PAL_NUKE, 10);*/
 
-	for (think = thinkercap.next; think != &thinkercap; think = think->next)
-	{
-		if (think->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue; // not a mobj thinker
-
-		mo = (mobj_t *)think;
-
-		if (mo->player && !mo->player->spectator
-			&& mo->player->kartstuff[k_position] < player->kartstuff[k_position])
-			P_DamageMobj(mo, player->mo, player->mo, 64);
-		else
-			continue;
+		if (playeringame[i] && players[i].mo && !player->spectator
+			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			P_DamageMobj(players[i].mo, player->mo, player->mo, 64);
 	}
 
 	K_PlayTauntSound(player->mo);
@@ -3257,6 +3252,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kgrow);
 						K_PlayTauntSound(player->mo);
+						player->mo->scalespeed = FRACUNIT/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
 						player->kartstuff[k_growshrinktimer] = itemtime;
 						S_StartSound(player->mo, sfx_kc5a);

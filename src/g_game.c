@@ -253,9 +253,9 @@ SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
 // Server-sided variables
-tic_t instaitemcooldown; // Cooldown before any more lightning/blue shell is awarded
-tic_t spbincoming; // Timer before blue shell hits, can switch targets at this point
-UINT8 spbplayer; // Player num that used the last blue shell
+tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
+tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
+UINT8 spbplayer; // Player num that used the last SPB
 
 // Client-sided variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?

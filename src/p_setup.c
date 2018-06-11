@@ -3003,7 +3003,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		comeback = cv_kartcomeback.value;
 	}
 
-	instaitemcooldown = 0;
+	indirectitemcooldown = 0;
 	spbincoming = 0;
 	spbplayer = 0;
 
