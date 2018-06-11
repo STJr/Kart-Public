@@ -6924,12 +6924,12 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					/*if (!netgame || G_RaceGametype()
+					if (!netgame || G_RaceGametype()
 						|| mobj->target->player == &players[displayplayer]
 						|| mobj->target->player->kartstuff[k_balloon] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
 						mobj->flags2 |= MF2_DONTDRAW;
-					else*/
+					else
 						mobj->flags2 &= ~MF2_DONTDRAW;
 
 					P_UnsetThingPosition(mobj);
