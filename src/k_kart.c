@@ -1968,10 +1968,35 @@ void K_DriftDustHandling(mobj_t *spawner)
 		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
 		dust->scale = spawner->scale/2;
 		dust->destscale = spawner->scale * 3;
+
 		if (leveltime % 6 == 0)
-		{
 			S_StartSound(spawner, sfx_screec);
-		}
+
+		// Now time for a bunch of flag shit, groooooaann...
+		if (spawner->flags2 & MF2_DONTDRAW)
+			dust->flags2 |= MF2_DONTDRAW;
+		else
+			dust->flags2 &= ~MF2_DONTDRAW;
+
+		if (spawner->eflags & MFE_DRAWONLYFORP1)
+			dust->eflags |= MFE_DRAWONLYFORP1;
+		else
+			dust->eflags &= ~MFE_DRAWONLYFORP1;
+
+		if (spawner->eflags & MFE_DRAWONLYFORP2)
+			dust->eflags |= MFE_DRAWONLYFORP2;
+		else
+			dust->eflags &= ~MFE_DRAWONLYFORP2;
+
+		if (spawner->eflags & MFE_DRAWONLYFORP3)
+			dust->eflags |= MFE_DRAWONLYFORP3;
+		else
+			dust->eflags &= ~MFE_DRAWONLYFORP3;
+
+		if (spawner->eflags & MFE_DRAWONLYFORP4)
+			dust->eflags |= MFE_DRAWONLYFORP4;
+		else
+			dust->eflags &= ~MFE_DRAWONLYFORP4;
 	}
 }
 
