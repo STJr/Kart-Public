@@ -6578,8 +6578,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW", // Above player arrow
 	"S_PLAYERARROW_BOX",
 	"S_PLAYERARROW_ITEM",
-	"S_PLAYERARROW_INVINCIBILITY",
-	"S_PLAYERARROW_ROULETTE",
 	"S_PLAYERARROW_NUMBER",
 	"S_PLAYERARROW_X",
 

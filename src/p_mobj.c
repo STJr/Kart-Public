@@ -6924,12 +6924,12 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					if (!netgame || G_RaceGametype()
+					/*if (!netgame || G_RaceGametype()
 						|| mobj->target->player == &players[displayplayer]
 						|| mobj->target->player->kartstuff[k_balloon] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
 						mobj->flags2 |= MF2_DONTDRAW;
-					else
+					else*/
 						mobj->flags2 &= ~MF2_DONTDRAW;
 
 					P_UnsetThingPosition(mobj);
@@ -6968,36 +6968,38 @@ void P_MobjThinker(mobj_t *mobj)
 						if (mobj->target->player->kartstuff[k_itemroulette])
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
-
-							if (mobj->tracer->state != &states[S_PLAYERARROW_ROULETTE]) // don't reset FF_ANIMATE
-								P_SetMobjState(mobj->tracer, S_PLAYERARROW_ROULETTE);
+							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
+							mobj->tracer->frame = FF_FULLBRIGHT|((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3);
 						}
 						else if (mobj->target->player->kartstuff[k_itemtype])
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
-
-							if (mobj->tracer->state != &states[S_PLAYERARROW_ITEM]
-								|| mobj->tracer->state != &states[S_PLAYERARROW_INVINCIBILITY])
-								P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
+							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
 
 							switch (mobj->target->player->kartstuff[k_itemtype])
 							{
 								case KITEM_INVINCIBILITY:
-									if (mobj->tracer->state != &states[S_PLAYERARROW_INVINCIBILITY])
-										P_SetMobjState(mobj->tracer, S_PLAYERARROW_INVINCIBILITY);
+									mobj->tracer->sprite = SPR_ITMI;
+									mobj->tracer->frame = FF_FULLBRIGHT|((leveltime % (7*3)) / 3);
 									break;
 								case KITEM_SAD:
+									mobj->tracer->sprite = SPR_ITEM;
 									mobj->tracer->frame = FF_FULLBRIGHT;
 									break;
 								default:
-									mobj->tracer->frame = FF_FULLBRIGHT|(mobj->tracer->target->player->kartstuff[k_itemtype]);
+									mobj->tracer->sprite = SPR_ITEM;
+									mobj->tracer->frame = FF_FULLBRIGHT|(mobj->target->player->kartstuff[k_itemtype]);
 									break;
 							}
 
-							if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && (leveltime & 1))
+							if (mobj->target->player->kartstuff[k_growshrinktimer])
+							{
 								mobj->tracer->frame = FF_FULLBRIGHT|KITEM_GROW;
-							else if (mobj->target->player->kartstuff[k_growshrinktimer] > 1 && !(leveltime & 1))
-								P_SetMobjState(mobj, S_INVISIBLE);
+								if (leveltime & 1)
+									mobj->tracer->flags2 |= MF2_DONTDRAW;
+								else
+									mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							}
 						}
 						else
 						{
@@ -7008,7 +7010,7 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->tracer->destscale = scale;
 
 						if (mobj->target->player->kartstuff[k_itemamount] > 1
-							&& mobj->target->player->kartstuff[k_itemamount] < 10) // Meh, too difficult to support greater than this :V
+							&& mobj->target->player->kartstuff[k_itemamount] < 10) // Meh, too difficult to support greater than this; convert this to a decent HUD object and then maybe :V
 						{
 							mobj_t *number = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
 							mobj_t *numx = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
@@ -7016,14 +7018,12 @@ void P_MobjThinker(mobj_t *mobj)
 							P_SetTarget(&number->target, mobj);
 							P_SetMobjState(number, S_PLAYERARROW_NUMBER);
 							P_SetScale(number, mobj->scale);
-							number->fuse = 1;
 							number->destscale = scale;
 							number->frame = FF_FULLBRIGHT|(mobj->target->player->kartstuff[k_itemamount]);
 
 							P_SetTarget(&numx->target, mobj);
 							P_SetMobjState(numx, S_PLAYERARROW_X);
 							P_SetScale(numx, mobj->scale);
-							numx->fuse = 1;
 							numx->destscale = scale;
 						}
 					}
@@ -9625,7 +9625,6 @@ void P_SpawnPlayer(INT32 playernum)
 {
 	player_t *p = &players[playernum];
 	mobj_t *mobj;
-	mobj_t *overheadarrow;
 
 	if (p->playerstate == PST_REBORN)
 		G_PlayerReborn(playernum);
@@ -9713,13 +9712,14 @@ void P_SpawnPlayer(INT32 playernum)
 	// Spawn with a pity shield if necessary.
 	//P_DoPityCheck(p);
 
-	overheadarrow = P_SpawnMobj(mobj->x, mobj->y, mobj->z + P_GetPlayerHeight(p)+16*FRACUNIT, MT_PLAYERARROW);
-	P_SetTarget(&overheadarrow->target, mobj);
-	overheadarrow->flags2 |= MF2_DONTDRAW;
-	P_SetScale(overheadarrow, mobj->destscale);
-
-	if (G_BattleGametype())
+	if (G_BattleGametype()) // SRB2kart
 	{
+		mobj_t *overheadarrow = P_SpawnMobj(mobj->x, mobj->y, mobj->z + P_GetPlayerHeight(p)+16*FRACUNIT, MT_PLAYERARROW);
+
+		P_SetTarget(&overheadarrow->target, mobj);
+		overheadarrow->flags2 |= MF2_DONTDRAW;
+		P_SetScale(overheadarrow, mobj->destscale);
+
 		/*INT32 i;
 		INT32 pcount = 0;
 
@@ -9727,12 +9727,12 @@ void P_SpawnPlayer(INT32 playernum)
 		{
 			if (!playeringame[i] || players[i].spectator || &players[i] == p)
 				continue;
-			if (players[i].jointime > 0)
+			if (players[i].jointime > 1)
 				continue;
 			pcount++;
 		}*/
 
-		if (p->kartstuff[k_balloon] > 0 || leveltime < 1/* || pcount <= 1*/) // srb2kart
+		if (p->kartstuff[k_balloon] > 0 || leveltime < 1/* || pcount <= 1*/) 
 		{
 			INT32 i;
 			angle_t newangle;
