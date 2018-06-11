@@ -711,9 +711,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
 		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
 		if (oddsvalid[4]) SETUPDISTTABLE(4,1);
-		// Nothing we can do about getting new odds for disttable[5], because of how that is set.
 
-		if (player->kartstuff[k_roulettetype] == 1)
+		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[5]) // Player-controlled "Karma" items
 			useodds = 5;
 		else
 		{
@@ -748,13 +747,19 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		else
 		{
 			for (i = 1; i < 12; i++)
-				if (pdis <= distvar * ((i * distlen) / 14)) useodds = disttable[((i * distlen) / 14)];
+			{
+				if (pdis <= distvar * ((i * distlen) / 14))
+				{
+					useodds = disttable[((i * distlen) / 14)];
+					break;
+				}
+			}
 		}
 	}
 
 #undef SETUPDISTTABLE
 
-	//CONS_Printf("%d %d\n", secondist, distvar*2);
+	//CONS_Printf("Got useodds %d. (position: %d, distance: %d)\n", useodds, player->kartstuff[k_position], pdis);
 
 #define SETITEMRESULT(pos, itemnum) \
 	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, player, mashed); chance++) \
