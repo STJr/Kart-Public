@@ -161,7 +161,7 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (weapon)
 	{
 		if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-			|| player->kartstuff[k_growshrinktimer] > 1	|| player->kartstuff[k_rocketsneakertimer]) // Item-specific timer going off
+			|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]) // Item-specific timer going off
 			return false;
 
 		if (player->kartstuff[k_itemroulette]
@@ -3119,7 +3119,22 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				// Start shrinking!
 				player->mo->scalespeed = FRACUNIT/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
-				player->kartstuff[k_growshrinktimer] -= (100+20*(16-(player->kartstuff[k_position])));
+
+				// Wipeout
+				player->kartstuff[k_spinouttype] = 1;
+				K_SpinPlayer(player, source);
+				damage = player->mo->health - 1;
+				P_RingDamage(player, inflictor, source, damage);
+				P_PlayerRingBurst(player, 5);
+				player->mo->momx = player->mo->momy = 0;
+				if (P_IsLocalPlayer(player))
+				{
+					quake.intensity = 32*FRACUNIT;
+					quake.time = 5;
+				}
+
+				K_StripItems(player);
+				player->kartstuff[k_growshrinktimer] -= (200+(40*(16-player->kartstuff[k_position])));
 			}
 			// Grow? Let's take that away.
 			if (player->kartstuff[k_growshrinktimer] > 0)

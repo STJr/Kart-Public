@@ -36,6 +36,7 @@ void K_DoSneaker(player_t *player, boolean doPFlag);
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed);
 boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
+void K_StripItems(player_t *player);
 void K_MomentumToFacing(player_t *player);
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower);
 fixed_t K_GetKartAccel(player_t *player);

@@ -368,7 +368,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				//P-Odds	 0  1  2  3  4  5  6  7  8
 			   /*Sneaker*/ {20, 0, 0, 3, 7, 6, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 5, 4, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,18 }, // Invincibility
+		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,16 }, // Invincibility
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Eggman Monitor
 			  /*Orbinaut*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Orbinaut
@@ -377,7 +377,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 2, 4, 3, 1, 0, 0 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Shrink
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 2 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
 			   /*Hyudoro*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
@@ -2850,7 +2850,7 @@ static void K_KartUpdatePosition(player_t *player)
 //
 // K_StripItems
 //
-static void K_StripItems(player_t *player)
+void K_StripItems(player_t *player)
 {
 	player->kartstuff[k_itemtype] = 0;
 	player->kartstuff[k_itemamount] = 0;
@@ -2858,14 +2858,19 @@ static void K_StripItems(player_t *player)
 
 	player->kartstuff[k_itemroulette] = 0;
 	player->kartstuff[k_roulettetype] = 0;
+
+	player->kartstuff[k_rocketsneakertimer] = 0;
+	player->kartstuff[k_invincibilitytimer] = 0;
+	player->kartstuff[k_growshrinktimer] = 0;
+
+	player->kartstuff[k_eggmanheld] = 0;
+
 	player->kartstuff[k_hyudorotimer] = 0;
 	player->kartstuff[k_stealingtimer] = 0;
 	player->kartstuff[k_stolentimer] = 0;
-	player->kartstuff[k_rocketsneakertimer] = 0;
-	player->kartstuff[k_growshrinktimer] = 0;
+
 	player->kartstuff[k_attractiontimer] = 0;
-	player->kartstuff[k_invincibilitytimer] = 0;
-	player->kartstuff[k_eggmanheld] = 0;
+
 	player->kartstuff[k_sadtimer] = 0;
 }
 
