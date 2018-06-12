@@ -551,7 +551,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 			if ((!cv_selfpropelledbomb.value)
 				|| (indirectitemcooldown > 0)
 				|| (pexiting > 0)
-				|| (secondist <= distvar*4)) newodds = 0;
+				|| (secondist <= distvar*3)) newodds = 0;
 			break;
 		case KITEM_GROW:
 			if (franticitems) newodds *= 2;
@@ -4497,7 +4497,6 @@ static void K_drawKartPlayerCheck(void)
 	INT32 i;
 	UINT8 *colormap;
 	INT32 x;
-	UINT8 pnum = 0;
 
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
 
@@ -4512,6 +4511,8 @@ static void K_drawKartPlayerCheck(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		UINT8 pnum = 0;
+
 		if (!playeringame[i] || players[i].spectator)
 			continue;
 		if (!players[i].mo)
