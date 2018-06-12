@@ -2206,6 +2206,7 @@ void Y_VoteDrawer(void)
 			for (j = 0; j <= splitscreen; j++) // another loop for drawing the selection backgrounds in the right order, grumble grumble..
 			{
 				INT32 handy = y;
+				UINT8 p;
 				UINT8 *colormap;
 				patch_t *thiscurs;
 
@@ -2215,7 +2216,8 @@ void Y_VoteDrawer(void)
 				if (splitscreen == 0)
 				{
 					thiscurs = cursor;
-					color = colortranslations[players[consoleplayer].skincolor][7];
+					p = consoleplayer;
+					color = 104;
 					colormap = NULL;
 				}
 				else
@@ -2224,26 +2226,28 @@ void Y_VoteDrawer(void)
 					{
 						case 1:
 							thiscurs = cursor2;
-							color = colortranslations[players[secondarydisplayplayer].skincolor][7];
-							colormap = R_GetTranslationColormap(-1, players[secondarydisplayplayer].skincolor, GTC_CACHE);
+							p = secondarydisplayplayer;
 							break;
 						case 2:
 							thiscurs = cursor3;
-							color = colortranslations[players[thirddisplayplayer].skincolor][7];
-							colormap = R_GetTranslationColormap(-1, players[thirddisplayplayer].skincolor, GTC_CACHE);
+							p = thirddisplayplayer;
 							break;
 						case 3:
 							thiscurs = cursor4;
-							color = colortranslations[players[fourthdisplayplayer].skincolor][7];
-							colormap = R_GetTranslationColormap(-1, players[fourthdisplayplayer].skincolor, GTC_CACHE);
+							p = fourthdisplayplayer;
 							break;
 						default:
 							thiscurs = cursor1;
-							color = colortranslations[players[consoleplayer].skincolor][7];
-							colormap = R_GetTranslationColormap(-1, players[consoleplayer].skincolor, GTC_CACHE);
+							p = displayplayer;
 							break;
 					}
+
+					color = colortranslations[players[p].skincolor][7];
+					colormap = R_GetTranslationColormap(TC_DEFAULT, players[p].skincolor, GTC_CACHE);
 				}
+
+				if (votes[p] != -1 || players[p].spectator)
+					continue;
 
 				handy += 6*(3-splitscreen) + (13*j);
 				V_DrawMappedPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, thiscurs, colormap);
