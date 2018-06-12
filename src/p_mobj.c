@@ -6968,13 +6968,11 @@ void P_MobjThinker(mobj_t *mobj)
 						if (mobj->target->player->kartstuff[k_itemroulette])
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
-							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
 							mobj->tracer->frame = FF_FULLBRIGHT|((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3);
 						}
 						else if (mobj->target->player->kartstuff[k_itemtype])
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
-							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
 
 							switch (mobj->target->player->kartstuff[k_itemtype])
 							{
@@ -7000,6 +6998,8 @@ void P_MobjThinker(mobj_t *mobj)
 								else
 									mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 							}
+							else
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 						}
 						else
 						{
@@ -7027,6 +7027,8 @@ void P_MobjThinker(mobj_t *mobj)
 							numx->destscale = scale;
 						}
 					}
+					else
+						mobj->tracer->flags2 |= MF2_DONTDRAW;
 				}
 				else if (mobj->health > 0)
 				{
