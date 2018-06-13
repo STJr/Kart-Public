@@ -2403,7 +2403,9 @@ void Y_VoteTicker(void)
 			{
 				if (voteclient.rendoff == 0)
 				{
-					if (tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote
+					if ((tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote // Pick normally
+						|| tempvotes[((pickedvote + voteclient.roffset + 3) % numvotes)] == pickedvote // Fake out: land early
+						|| tempvotes[((pickedvote + voteclient.roffset + 2) % numvotes)] == pickedvote) // Fake out: cheat and move
 						&& voteclient.rsynctime % 51 == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
 					{
 						voteclient.rendoff = voteclient.roffset+4;
