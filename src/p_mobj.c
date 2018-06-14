@@ -8134,12 +8134,12 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->colorized = mobj->target->colorized;
 			break;
 		case MT_INVULNFLASH:
-			if (!mobj->target || (mobj->target->player && !mobj->target->player->kartstuff[k_invincibilitytimer]))
+			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_invincibilitytimer]))
 			{
 				P_RemoveMobj(mobj);
 				return;
 			}
-			A_CapeChase(mobj);
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		//}
 		case MT_TURRET:
