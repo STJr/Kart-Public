@@ -6954,16 +6954,16 @@ void P_MobjThinker(mobj_t *mobj)
 						scale = 16*FRACUNIT;
 					mobj->destscale = scale;
 
+					if (!mobj->tracer)
+					{
+						mobj->tracer = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+						P_SetTarget(&mobj->tracer->target, mobj);
+						P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
+						P_SetScale(mobj->tracer, mobj->scale);
+					}
+
 					if (!(mobj->flags2 & MF2_DONTDRAW))
 					{
-						if (!mobj->tracer)
-						{
-							mobj->tracer = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
-							P_SetTarget(&mobj->tracer->target, mobj);
-							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
-							P_SetScale(mobj->tracer, mobj->scale);
-						}
-
 						// Set it to use the correct states for its condition
 						if (mobj->target->player->kartstuff[k_itemroulette])
 						{
