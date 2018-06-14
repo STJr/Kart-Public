@@ -679,7 +679,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		INT32 j;
 		UINT8 available = 0;
 
-		if ((gametype == GT_MATCH || gametype == GT_TEAMMATCH || gametype == GT_CTF) && i >= 5)
+		if (G_BattleGametype() && i > 5)
 		{
 			oddsvalid[i] = 0;
 			break;
