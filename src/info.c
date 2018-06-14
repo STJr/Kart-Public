@@ -14285,7 +14285,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset
-		MT_SPARK,       // mass
+		MT_EXPLODE,     // mass
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOCLIP,      // flags
