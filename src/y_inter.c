@@ -2403,13 +2403,17 @@ void Y_VoteTicker(void)
 			{
 				if (voteclient.rendoff == 0)
 				{
-					if ((tempvotes[((pickedvote + voteclient.roffset + 4) % numvotes)] == pickedvote // Pick normally
-						|| tempvotes[((pickedvote + voteclient.roffset + 3) % numvotes)] == pickedvote // Fake out: land early
-						|| tempvotes[((pickedvote + voteclient.roffset + 2) % numvotes)] == pickedvote) // Fake out: cheat and move
-						&& voteclient.rsynctime % 51 == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
+					if (voteclient.rsynctime % 51 == 0) // Song is 1.45 seconds long (sorry @ whoever wants to replace it in a music wad :V)
 					{
-						voteclient.rendoff = voteclient.roffset+4;
-						S_ChangeMusicInternal("voteeb", false);
+						for (i = 5; i >= 3; i--) // Find a suitable place to stop
+						{
+							if (tempvotes[((pickedvote + voteclient.roffset + i) % numvotes)] == pickedvote)
+							{
+								voteclient.rendoff = voteclient.roffset+i;
+								S_ChangeMusicInternal("voteeb", false);
+								break;
+							}
+						}
 					}
 				}
 				else if (voteclient.roffset >= voteclient.rendoff)
