@@ -80,6 +80,11 @@ extern patch_t *tagico;
 extern patch_t *tallminus;
 extern patch_t *iconprefix[MAXSKINS];
 
+#define CHAT_BUFSIZE 64		// that's enough messages, right? We'll delete the older ones when that gets out of hand.
+
+// some functions
+void HU_AddChatText(const char *text);
+
 // set true when entering a chat message
 extern boolean chat_on;
 
@@ -105,6 +110,7 @@ char HU_dequeueChatChar(void);
 void HU_Erase(void);
 void HU_clearChatChars(void);
 void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
+void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext);	// Lat': Ping drawer for scoreboard.
 void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
 void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds);
