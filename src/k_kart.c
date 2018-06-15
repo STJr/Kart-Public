@@ -2229,7 +2229,7 @@ static void K_DoHyudoroSteal(player_t *player)
 		players[stealplayer].kartstuff[k_itemamount] = 0;
 		players[stealplayer].kartstuff[k_itemheld] = 0;
 
-		if (P_IsLocalPlayer(players[stealplayer]) && !splitscreen)
+		if (P_IsLocalPlayer(&players[stealplayer]) && !splitscreen)
 			S_StartSound(NULL, sfx_s3k92);
 	}
 }
@@ -3428,6 +3428,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 			P_SetTarget(&player->mo->tracer->target, player->mo);
 			player->mo->tracer->color = player->mo->color;
+			player->mo->tracer->colorized = (player->kartstuff[k_comebackmode] == 1);
 
 			if (player->kartstuff[k_comebacktimer] > 0)
 			{

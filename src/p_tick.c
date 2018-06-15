@@ -704,7 +704,7 @@ void P_Ticker(boolean run)
 
 			if (hurtthisguy != -1)
 			{
-				players[hurtthisguy].kartstuff[k_deathsentence] = TICRATE+1;
+				players[hurtthisguy].kartstuff[k_deathsentence] = (2*TICRATE)+1;
 				S_StartSound(players[hurtthisguy].mo, sfx_kc57);
 			}
 		}
