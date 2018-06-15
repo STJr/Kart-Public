@@ -8087,8 +8087,8 @@ void P_MobjThinker(mobj_t *mobj)
 				if (!mobj->reactiontime)
 					P_KillMobj(mobj, NULL, NULL);
 			}
-			if (mobj->state == &states[S_SSMINE1] || mobj->state == &states[S_SSMINE2]
-				|| mobj->state == &states[S_SSMINE3] || mobj->state == &states[S_SSMINE4])
+			if ((mobj->state >= &states[S_SSMINE1] && mobj->state <= &states[S_SSMINE4])
+				|| (mobj->state >= &states[S_SSMINE_DEPLOY8] && mobj->state <= &states[S_SSMINE_DEPLOY13]))
 				A_GrenadeRing(mobj);
 			if (mobj->threshold > 0)
 				mobj->threshold--;
