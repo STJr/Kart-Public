@@ -316,11 +316,13 @@ menu_t OP_SoundOptionsDef;
 static void M_ToggleSFX(void);
 static void M_ToggleDigital(void);
 static void M_ToggleMIDI(void);
+static void M_RestartAudio(void);
 
 //Misc
-menu_t OP_DataOptionsDef, OP_ScreenshotOptionsDef, OP_EraseDataDef;
+menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
+menu_t OP_HUDOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
-menu_t OP_NetgameOptionsDef, OP_GametypeOptionsDef;
+//menu_t OP_NetgameOptionsDef, OP_GametypeOptionsDef;
 menu_t OP_MonitorToggleDef;
 static void M_ScreenshotOptions(INT32 choice);
 static void M_EraseData(INT32 choice);
@@ -1033,17 +1035,19 @@ static menuitem_t MP_PlayerSetupMenu[] =
 // Prefix: OP_
 static menuitem_t OP_MainMenu[] =
 {
-	{IT_SUBMENU | IT_STRING, NULL, "Setup Controls...",     &OP_ControlsDef,      10},
+	{IT_SUBMENU|IT_STRING,		NULL, "Control Setup...",		&OP_ControlsDef,			 10},
 
-	{IT_SUBMENU | IT_STRING, NULL, "Video Options...",      &OP_VideoOptionsDef,  30},
-	{IT_SUBMENU | IT_STRING, NULL, "Sound Options...",      &OP_SoundOptionsDef,  40},
-	{IT_SUBMENU | IT_STRING, NULL, "Data Options...",       &OP_DataOptionsDef,   50},
+	{IT_SUBMENU|IT_STRING,		NULL, "Video Options...",		&OP_VideoOptionsDef,		 30},
+	{IT_SUBMENU|IT_STRING,		NULL, "Sound Options...",		&OP_SoundOptionsDef,		 40},
 
-	{IT_SUBMENU | IT_STRING, NULL, "Game Options...",       &OP_GameOptionsDef,   70},
-	{IT_SUBMENU | IT_STRING, NULL, "Server Options...",     &OP_ServerOptionsDef, 80},
+	{IT_SUBMENU|IT_STRING,		NULL, "HUD Options...",		&OP_HUDOptionsDef,			 60},
+	{IT_STRING|IT_CALL,			NULL, "Screenshot Options...",	M_ScreenshotOptions,		 70},
 
-	{IT_CALL       | IT_STRING, NULL, "Play Credits", M_Credits,         100},
-	{IT_KEYHANDLER | IT_STRING, NULL, "Sound Test",   M_HandleSoundTest, 110},
+	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 90},
+	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		100},
+
+	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					120},
+	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			130},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1285,26 +1289,24 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 
 static menuitem_t OP_VideoOptionsMenu[] =
 {
-	{IT_STRING | IT_CALL,  NULL,   "Video Modes...",      M_VideoModeMenu,     10},
-
+	{IT_STRING | IT_CALL,	NULL,	"Resolution Modes...",	M_VideoModeMenu,		 10},
 #ifdef HWRENDER
-	{IT_SUBMENU|IT_STRING, NULL,   "3D Card Options...",  &OP_OpenGLOptionsDef,    20},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	 20},
 #endif
-
 #if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
-	{IT_STRING|IT_CVAR,      NULL, "Fullscreen",          &cv_fullscreen,    30},
+	{IT_STRING|IT_CVAR,		NULL,	"Fullscreen",			&cv_fullscreen,			 30},
 #endif
-
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                         NULL, "Brightness",          &cv_usegamma,      50},
-	{IT_STRING | IT_CVAR,    NULL, "Draw Distance",       &cv_drawdist, 60},
-	{IT_STRING | IT_CVAR,    NULL, "NiGHTS Draw Dist",    &cv_drawdist_nights, 70},
-	{IT_STRING | IT_CVAR,    NULL, "Precip Draw Dist",    &cv_drawdist_precip, 80},
-	{IT_STRING | IT_CVAR,    NULL, "Precip Density",      &cv_precipdensity, 90},
+							NULL,	"Gamma",				&cv_usegamma,			 50},
 
-	{IT_STRING | IT_CVAR,    NULL, "Show FPS",            &cv_ticrate,    110},
-	{IT_STRING | IT_CVAR,    NULL, "Clear Before Redraw", &cv_homremoval, 120},
-	{IT_STRING | IT_CVAR,    NULL, "Vertical Sync",       &cv_vidwait,    130},
+	{IT_STRING | IT_CVAR,	NULL,	"Draw Distance",		&cv_drawdist,			 70},
+	{IT_STRING | IT_CVAR,	NULL,	"NiGHTS Draw Dist",		&cv_drawdist_nights,	 80},
+	{IT_STRING | IT_CVAR,	NULL,	"Precip Draw Dist",		&cv_drawdist_precip,	 90},
+	{IT_STRING | IT_CVAR,	NULL,	"Precip Density",		&cv_precipdensity,		100},
+	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				110},
+
+	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			130},
+	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			140},
 };
 
 static menuitem_t OP_VideoModeMenu[] =
@@ -1315,7 +1317,7 @@ static menuitem_t OP_VideoModeMenu[] =
 #ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
-	{IT_STRING|IT_CVAR,         NULL, "Field of view",   &cv_grfov,            10},
+	{IT_STRING|IT_CVAR,         NULL, "Field of View",   &cv_grfov,            10},
 	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,        20},
 	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,     30},
 	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode,40},
@@ -1342,43 +1344,48 @@ static menuitem_t OP_OpenGLLightingMenu[] =
 static menuitem_t OP_OpenGLFogMenu[] =
 {
 	{IT_STRING|IT_CVAR,       NULL, "Fog",         &cv_grfog,        10},
-	{IT_STRING|IT_KEYHANDLER, NULL, "Fog color",   M_HandleFogColor, 20},
-	{IT_STRING|IT_CVAR,       NULL, "Fog density", &cv_grfogdensity, 30},
+	{IT_STRING|IT_KEYHANDLER, NULL, "Fog Color",   M_HandleFogColor, 20},
+	{IT_STRING|IT_CVAR,       NULL, "Fog Density", &cv_grfogdensity, 30},
 	{IT_STRING|IT_CVAR,       NULL, "Software Fog",&cv_grsoftwarefog,40},
 };
 
 static menuitem_t OP_OpenGLColorMenu[] =
 {
-	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "red",   &cv_grgammared,   10},
-	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "green", &cv_grgammagreen, 20},
-	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "blue",  &cv_grgammablue,  30},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Red",   &cv_grgammared,   10},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Green", &cv_grgammagreen, 20},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Blue",  &cv_grgammablue,  30},
 };
 #endif
 
 static menuitem_t OP_SoundOptionsMenu[] =
 {
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-                              NULL, "Sound Volume" , &cv_soundvolume,     10},
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-                              NULL, "Music Volume" , &cv_digmusicvolume,  20},
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-                              NULL, "MIDI Volume"  , &cv_midimusicvolume, 30},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
+								NULL, "SFX Volume",			&cv_soundvolume,		 10},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
+								NULL, "Music Volume",			&cv_digmusicvolume,		 20},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
+								NULL, "MIDI Volume",			&cv_midimusicvolume,	 30},
 #ifdef PC_DOS
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-                              NULL, "CD Volume"    , &cd_volume,          40},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
+								NULL, "CD Volume",				&cd_volume,				 40},
 #endif
+	{IT_STRING|IT_CALL,			NULL, "Toggle SFX",			M_ToggleSFX,			 50},
+	{IT_STRING|IT_CALL,			NULL, "Toggle Music",			M_ToggleDigital,		 60},
+	{IT_STRING|IT_CALL,			NULL, "Toggle MIDI",			M_ToggleMIDI,			 70},
+	{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 80},
 
-	{IT_STRING    | IT_CALL,  NULL,  "Toggle SFX"   , M_ToggleSFX,        50},
-	{IT_STRING    | IT_CALL,  NULL,  "Toggle Digital Music", M_ToggleDigital,     60},
-	{IT_STRING    | IT_CALL,  NULL,  "Toggle MIDI Music", M_ToggleMIDI,        70},
+	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			100},
+	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",		&surround,				110},
+
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",			M_HandleSoundTest,		130},
 };
 
-static menuitem_t OP_DataOptionsMenu[] =
+/*static menuitem_t OP_DataOptionsMenu[] =
 {
 	{IT_STRING | IT_CALL, NULL, "Screenshot Options...", M_ScreenshotOptions, 10},
 
 	{IT_STRING | IT_SUBMENU, NULL, "Erase Data...", &OP_EraseDataDef, 30},
-};
+};*/
 
 static menuitem_t OP_ScreenshotOptionsMenu[] =
 {
@@ -1416,63 +1423,69 @@ enum
 static menuitem_t OP_EraseDataMenu[] =
 {
 	{IT_STRING | IT_CALL, NULL, "Erase Record Data", M_EraseData, 10},
-	{IT_STRING | IT_CALL, NULL, "Erase Secrets Data", M_EraseData, 20},
+	{IT_STRING | IT_CALL, NULL, "Erase Unlockable Data", M_EraseData, 20},
 
 	{IT_STRING | IT_CALL, NULL, "\x85" "Erase ALL Data", M_EraseData, 40},
 };
 
+static menuitem_t OP_HUDOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR, NULL, "Show HUD",				&cv_showhud,			 10},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+	                      NULL, "HUD Visibility",			&cv_translucenthud,		 20},
+
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+						  NULL, "Minimap Visibility",		&cv_kartminimap,		 40},
+	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",		&cv_kartspeedometer,	 50},
+	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",			&cv_kartcheck,			 60},
+	{IT_STRING | IT_CVAR, NULL, "Invinciblity SFX",		&cv_kartinvinsfx,		 70},
+
+	{IT_STRING | IT_CVAR, NULL, "Console Color",			&cons_backcolor,		 90},
+	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		100},
+};
+
 static menuitem_t OP_GameOptionsMenu[] =
 {
-#ifndef NONET
-	{IT_STRING | IT_CVAR | IT_CV_STRING,
-	                      NULL, "Master server",          &cv_masterserver,     10},
-#endif
-	{IT_STRING | IT_CVAR, NULL, "Show HUD",               &cv_showhud,     40},
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "HUD Visibility",         &cv_translucenthud, 50},
+	{IT_STRING | IT_SUBMENU, NULL, "Random Item Toggles...",	&OP_MonitorToggleDef,	 10},
 
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-						  NULL, "Minimap Visibility",      &cv_kartminimap,    62},
-	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",     &cv_speedometer,    72},
-	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",          &cv_kartcheck,      82},
-	{IT_STRING | IT_CVAR, NULL, "Star SFX",                &cv_kartstarsfx,    92},
+	{IT_STRING | IT_CVAR, NULL, "Game Speed",					&cv_kartspeed,			 30},
+	{IT_STRING | IT_CVAR, NULL, "Frantic Items",				&cv_kartfrantic,		 40},
+	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",					&cv_kartmirror,			 50},
 
-#ifdef SEENAMES
-	{IT_STRING | IT_CVAR, NULL, "HUD Player Names",       &cv_seenames,    104},
-#endif
-	{IT_STRING | IT_CVAR, NULL, "Log Hazard Damage",      &cv_hazardlog,   114},
+	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_numlaps,			 70},
+	{IT_STRING | IT_CVAR, NULL, "Use Default Lap Counts",		&cv_usemapnumlaps,		 80},
+	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",		&cv_countdowntime,		 90},
 
-	{IT_STRING | IT_CVAR, NULL, "Console Back Color",     &cons_backcolor, 126},
-	{IT_STRING | IT_CVAR, NULL, "Console Text Size",      &cv_constextsize,136},
-	{IT_STRING | IT_CVAR, NULL, "Uppercase Console",      &cv_allcaps,     146},
+	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			110},
+	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",			&cv_kartballoons,		110},
+	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		120},
 
-	{IT_STRING | IT_CVAR, NULL, "Title Screen Demos",     &cv_rollingdemos, 158},
+	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          140},
+	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 150},
 };
 
 static menuitem_t OP_ServerOptionsMenu[] =
 {
-	{IT_STRING | IT_SUBMENU, NULL, "General netgame options...",  &OP_NetgameOptionsDef,  10},
-	{IT_STRING | IT_SUBMENU, NULL, "Gametype options...",         &OP_GametypeOptionsDef, 20},
-	{IT_STRING | IT_SUBMENU, NULL, "Random item toggles...",      &OP_MonitorToggleDef,   30},
-
 #ifndef NONET
 	{IT_STRING | IT_CVAR | IT_CV_STRING,
-	                         NULL, "Server name",                 &cv_servername,         50},
+	                         NULL, "Server Name",					&cv_servername,			 10},
 #endif
 
-	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",          &cv_inttime,            80},
-	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",                &cv_votetime,           90},
-	{IT_STRING | IT_CVAR,    NULL, "Advance to next map",         &cv_advancemap,        100},
+	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",			&cv_inttime,			 40},
+	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",					&cv_votetime,			 50},
+	{IT_STRING | IT_CVAR,    NULL, "Advance to Next Level",		&cv_advancemap,			 60},
 
 #ifndef NONET
-	{IT_STRING | IT_CVAR,    NULL, "Max Players",                 &cv_maxplayers,        120},
-	{IT_STRING | IT_CVAR,    NULL, "Allow players to join",       &cv_allownewplayer,    130},
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",       &cv_downloading,       140},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",         &cv_resynchattempts,   150},
+	{IT_STRING | IT_CVAR,    NULL, "Max Player Count",				&cv_maxplayers,			 80},
+	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",		&cv_allownewplayer,		 90},
+	{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		100},
+
+	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",		&cv_downloading,		120},
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",			&cv_resynchattempts,	130},
 #endif
 };
 
-static menuitem_t OP_NetgameOptionsMenu[] =
+/*static menuitem_t OP_NetgameOptionsMenu[] =
 {
 	{IT_STRING | IT_CVAR, NULL, "Time Limit",            &cv_timelimit,        10},
 	{IT_STRING | IT_CVAR, NULL, "Point Limit",           &cv_pointlimit,       18},
@@ -1489,9 +1502,9 @@ static menuitem_t OP_NetgameOptionsMenu[] =
 
 	//{IT_STRING | IT_CVAR, NULL, "Autobalance Teams",            &cv_autobalance,      114},
 	//{IT_STRING | IT_CVAR, NULL, "Scramble Teams on Map Change", &cv_scrambleonchange, 122},
-};
+};*/
 
-static menuitem_t OP_GametypeOptionsMenu[] =
+/*static menuitem_t OP_GametypeOptionsMenu[] =
 {
 	{IT_HEADER,           NULL, "RACE",                  NULL,                 2},
 	{IT_STRING | IT_CVAR, NULL, "Game Speed",    		  &cv_kartspeed,    	10},
@@ -1502,7 +1515,7 @@ static menuitem_t OP_GametypeOptionsMenu[] =
 	{IT_HEADER,           NULL, "BATTLE",                NULL,                 50},
 	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",     &cv_kartballoons,     58},
 	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",        &cv_kartcomeback,     66},
-};
+};*/
 
 static menuitem_t OP_MonitorToggleMenu[] =
 {
@@ -1804,7 +1817,7 @@ menu_t OP_MainDef =
 	sizeof (OP_MainMenu)/sizeof (menuitem_t),
 	&MainDef,
 	OP_MainMenu,
-	M_DrawSkyRoom,
+	M_DrawGenericMenu,
 	60, 30,
 	0,
 	NULL
@@ -1856,13 +1869,26 @@ menu_t OP_VideoModeDef =
 	0,
 	NULL
 };
-menu_t OP_SoundOptionsDef = DEFAULTMENUSTYLE("M_SOUND", OP_SoundOptionsMenu, &OP_MainDef, 60, 30);
+
+menu_t OP_SoundOptionsDef =
+{
+	"M_SOUND",
+	sizeof (OP_SoundOptionsMenu)/sizeof (menuitem_t),
+	&OP_MainDef,
+	OP_SoundOptionsMenu,
+	M_DrawSkyRoom,
+	60, 30,
+	0,
+	NULL
+};
+
+menu_t OP_HUDOptionsDef = DEFAULTMENUSTYLE("M_HUD", OP_HUDOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_GameOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_GameOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, &OP_MainDef, 30, 30);
 
-menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
-menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
-menu_t OP_MonitorToggleDef = DEFAULTMENUSTYLE("M_SERVER", OP_MonitorToggleMenu, &OP_ServerOptionsDef, 30, 30);
+//menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
+//menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
+menu_t OP_MonitorToggleDef = DEFAULTMENUSTYLE("M_GAME", OP_MonitorToggleMenu, &OP_GameOptionsDef, 30, 30);
 /*menu_t OP_MonitorToggleDef =
 {
 	"M_SERVER",
@@ -1903,9 +1929,9 @@ menu_t OP_OpenGLColorDef =
 	NULL
 };
 #endif
-menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
-menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_ScreenshotOptionsMenu, &OP_DataOptionsDef, 30, 30);
-menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_DataOptionsDef, 60, 30);
+//menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
+menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_ScreenshotOptionsMenu, &OP_MainDef, 30, 30);
+menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_MainDef, 60, 30);
 
 // ==========================================================================
 // CVAR ONCHANGE EVENTS GO HERE
@@ -4160,13 +4186,12 @@ static void M_Options(INT32 choice)
 {
 	(void)choice;
 
-	// if the player is not admin or server, disable server options
-	OP_MainMenu[5].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	// if the player is not admin or server, disable gameplay & server options
+	OP_MainMenu[5].status = OP_MainMenu[6].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
-	// if the player is playing _at all_, disable the erase data options
-	OP_DataOptionsMenu[1].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
-	// SRB2Kart: Same with the "Play Credits" option
-	OP_MainMenu[6].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
+	// if the player is playing _at all_, disable the erase data & credits options
+	OP_MainMenu[7].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
+	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
@@ -7693,6 +7718,21 @@ static void M_ToggleMIDI(void)
 			M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
 		}
 	}
+}
+
+static void M_RestartAudio(void)
+{
+	S_StopMusic();
+	I_ShutdownMusic();
+	I_ShutdownSound();
+	I_StartupSound();
+	I_InitMusic();
+
+	I_SetSfxVolume(cv_soundvolume.value);
+	I_SetDigMusicVolume(cv_digmusicvolume.value);
+	I_SetMIDIMusicVolume(cv_midimusicvolume.value);
+	if (Playing()) // Gotta make sure the player is in a level
+		P_RestoreMusic(&players[consoleplayer]);
 }
 
 // ===============

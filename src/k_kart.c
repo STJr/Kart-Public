@@ -319,13 +319,13 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartminimap);
 	CV_RegisterVar(&cv_kartcheck);
-	CV_RegisterVar(&cv_kartstarsfx);
+	CV_RegisterVar(&cv_kartinvinsfx);
 	CV_RegisterVar(&cv_kartspeed);
 	CV_RegisterVar(&cv_kartballoons);
 	CV_RegisterVar(&cv_kartfrantic);
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartmirror);
-	CV_RegisterVar(&cv_speedometer);
+	CV_RegisterVar(&cv_kartspeedometer);
 	CV_RegisterVar(&cv_votetime);
 
 	CV_RegisterVar(&cv_kartdebugitem);
@@ -2509,7 +2509,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->mo->health > 0 && (player->mo->player->kartstuff[k_invincibilitytimer] > 0
 		|| player->mo->player->kartstuff[k_growshrinktimer] > 0))
 	{
-		if (leveltime % 13 == 0 && cv_kartstarsfx.value && !P_IsLocalPlayer(player))
+		if (leveltime % 13 == 0 && cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 			S_StartSound(player->mo, sfx_smkinv);
 	}
 	else if (S_SoundPlaying(player->mo, sfx_smkinv))
@@ -2956,7 +2956,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						if (P_IsLocalPlayer(player) && !player->exiting)
 							S_ChangeMusicInternal("kinvnc", true);
-						if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
+						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kinvnc);
 						if (!player->kartstuff[k_invincibilitytimer])
 						{
@@ -3279,7 +3279,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						if (P_IsLocalPlayer(player) && !player->exiting)
 							S_ChangeMusicInternal("kgrow", true);
-						if (!cv_kartstarsfx.value && !P_IsLocalPlayer(player))
+						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kgrow);
 						K_PlayTauntSound(player->mo);
 						player->mo->scalespeed = FRACUNIT/TICRATE;
@@ -4394,17 +4394,17 @@ static void K_drawKartSpeedometer(void)
 	fixed_t convSpeed;
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
-	if (cv_speedometer.value == 1)
+	if (cv_kartspeedometer.value == 1) // Kilometers
 	{
 		convSpeed = FixedDiv(FixedMul(stplyr->speed, 142371), mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT; // 2.172409058
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d km/h", convSpeed));
 	}
-	else if (cv_speedometer.value == 2)
+	else if (cv_kartspeedometer.value == 2) // Miles
 	{
 		convSpeed = FixedDiv(FixedMul(stplyr->speed, 88465), mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT; // 1.349868774
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d mph", convSpeed));
 	}
-	else if (cv_speedometer.value == 3)
+	else if (cv_kartspeedometer.value == 3) // Fracunits
 	{
 		convSpeed = FixedDiv(stplyr->speed, mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT;
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d fu/t", convSpeed));

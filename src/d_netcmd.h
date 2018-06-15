@@ -119,13 +119,13 @@ extern consvar_t cv_triplesneaker, cv_triplebanana, cv_tripleorbinaut, cv_dualja
 extern consvar_t cv_karthud;
 extern consvar_t cv_kartminimap;
 extern consvar_t cv_kartcheck;
-extern consvar_t cv_kartstarsfx;
+extern consvar_t cv_kartinvinsfx;
 extern consvar_t cv_kartspeed;
 extern consvar_t cv_kartballoons;
 extern consvar_t cv_kartfrantic;
 extern consvar_t cv_kartcomeback;
 extern consvar_t cv_kartmirror;
-extern consvar_t cv_speedometer;
+extern consvar_t cv_kartspeedometer;
 
 extern consvar_t cv_votetime;
 
