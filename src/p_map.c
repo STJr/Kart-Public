@@ -1692,6 +1692,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 							CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[thing->player-players], player_names[tmthing->player-players]);
 						tmthing->player->kartstuff[k_itemroulette] = 1;
 						tmthing->player->kartstuff[k_roulettetype] = 1;
+						P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
 						if (thing->player->kartstuff[k_comebackpoints] >= 3)
 							K_StealBalloon(thing->player, tmthing->player, true);
 						thing->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -1707,6 +1708,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 							CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[tmthing->player-players], player_names[thing->player-players]);
 						thing->player->kartstuff[k_itemroulette] = 1;
 						thing->player->kartstuff[k_roulettetype] = 1;
+						P_SpawnMobj(thing->x, thing->y, thing->z, MT_EXPLODE);
 						if (tmthing->player->kartstuff[k_comebackpoints] >= 3)
 							K_StealBalloon(tmthing->player, thing->player, true);
 						tmthing->player->kartstuff[k_comebacktimer] = comebacktime;
