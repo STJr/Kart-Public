@@ -1930,7 +1930,7 @@ menu_t OP_OpenGLColorDef =
 };
 #endif
 //menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
-menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_ScreenshotOptionsMenu, &OP_MainDef, 30, 30);
+menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_MainDef, 60, 30);
 
 // ==========================================================================

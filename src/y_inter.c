@@ -427,7 +427,7 @@ void Y_IntermissionDrawer(void)
 		char strtime[10];
 
 		// draw the header
-		V_DrawScaledPatch(112, 2, 0, data.match.result);
+		V_DrawScaledPatch((BASEVIDWIDTH/2) - (SHORT(data.match.result->width) / 2), 2, 0, data.match.result);
 
 		// draw the level name
 		V_DrawCenteredString(BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
