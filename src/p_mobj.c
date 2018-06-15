@@ -6968,7 +6968,7 @@ void P_MobjThinker(mobj_t *mobj)
 						if (mobj->target->player->kartstuff[k_itemroulette])
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
-							mobj->tracer->frame = FF_FULLBRIGHT|((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3);
+							mobj->tracer->frame = FF_FULLBRIGHT|((mobj->target->player->kartstuff[k_itemroulette] % (13*3)) / 3);
 						}
 						else if (mobj->target->player->kartstuff[k_itemtype])
 						{

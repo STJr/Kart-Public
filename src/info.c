@@ -2685,7 +2685,7 @@ state_t states[NUMSTATES] =
 	{SPR_SSMN, 10,  1, {NULL}, 0, 0, S_SSMINE_DEPLOY6},					// S_SSMINE_DEPLOY5
 	{SPR_SSMN,  9,  1, {NULL}, 0, 0, S_SSMINE_DEPLOY7},					// S_SSMINE_DEPLOY6
 	{SPR_SSMN, 10,  3, {NULL}, 0, 0, S_SSMINE_DEPLOY8},					// S_SSMINE_DEPLOY7
-	{SPR_SSMN, 11,  1, {A_PlaySound}, sfx_cdfm39, 0, S_SSMINE_DEPLOY9},	// S_SSMINE_DEPLOY8
+	{SPR_SSMN, 11,  1, {A_PlaySound}, sfx_cdfm39, 1, S_SSMINE_DEPLOY9},	// S_SSMINE_DEPLOY8
 	{SPR_SSMN, 10,  1, {NULL}, 0, 0, S_SSMINE_DEPLOY10},					// S_SSMINE_DEPLOY9
 	{SPR_SSMN, 11,  3, {NULL}, 0, 0, S_SSMINE_DEPLOY11},					// S_SSMINE_DEPLOY10
 	{SPR_SSMN, 12,  3, {NULL}, 0, 0, S_SSMINE_DEPLOY12},					// S_SSMINE_DEPLOY11
@@ -14477,7 +14477,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_fake,       // activesound
-		MF_SHOOTABLE,   // flags
+		MF_BOUNCE|MF_SHOOTABLE,   // flags
 		S_NULL          // raisestate
 	},
 
@@ -14504,7 +14504,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_peel,       // activesound
-		MF_SHOOTABLE, // flags
+		MF_BOUNCE|MF_SHOOTABLE, // flags
 		S_NULL          // raisestate
 	},
 
@@ -14698,30 +14698,30 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_SSMINE
-		-1,             // doomednum
-		S_SSMINE_AIR1,     // spawnstate
-		1,              // spawnhealth
-		S_NULL,         // seestate
-		sfx_tossed,     // seesound
-		105,            // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		288*FRACUNIT,   // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_SSMINE_EXPLODE,  // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		16*FRACUNIT,    // radius
-		24*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
-		1,              // damage
-		sfx_bomb,       // activesound
-		MF_BOUNCE|MF_SHOOTABLE, // flags
-		S_NULL          // raisestate
+		-1,						// doomednum
+		S_SSMINE_AIR1,			// spawnstate
+		1,						// spawnhealth
+		S_NULL,					// seestate
+		sfx_tossed,				// seesound
+		6*TICRATE,				// reactiontime
+		sfx_None,				// attacksound
+		S_NULL,					// painstate
+		288*FRACUNIT,			// painchance
+		sfx_None,				// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_SSMINE_EXPLODE,		// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,				// deathsound
+		0,						// speed
+		16*FRACUNIT,			// radius
+		24*FRACUNIT,			// height
+		0,						// display offset
+		100,					// mass
+		1,						// damage
+		sfx_bomb,				// activesound
+		MF_BOUNCE|MF_SHOOTABLE,	// flags
+		S_NULL					// raisestate
 	},
 
 	{           // MT_SSMINE_SHIELD

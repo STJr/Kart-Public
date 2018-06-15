@@ -369,13 +369,13 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 			   /*Sneaker*/ {20, 0, 0, 3, 7, 6, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 5, 4, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,16 }, // Invincibility
-				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+				/*Banana*/ { 0, 8, 4, 2, 1, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Eggman Monitor
 			  /*Orbinaut*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
-				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
+				  /*Mine*/ { 0, 1, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 0, 1, 2, 2, 1, 0, 0 }, // Self-Propelled Bomb
+   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 2, 3, 2, 1, 0 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 2 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
@@ -1446,7 +1446,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_comebacktimer] = comebacktime;
 
-	player->kartstuff[k_squishedtimer] = 1*TICRATE;
+	player->kartstuff[k_squishedtimer] = TICRATE;
 
 	player->powers[pw_flashing] = K_GetKartFlashing();
 
@@ -2184,7 +2184,7 @@ static void K_DoHyudoroSteal(player_t *player)
 			&& player != &players[i] && !players[i].exiting && !players[i].spectator // Player in-game
 
 			// Can steal from this player
-			&& ((G_RaceGametype() && players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			&& (G_RaceGametype() //&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			|| (G_BattleGametype() && players[i].kartstuff[k_balloon] > 0))
 
 			// Has an item
@@ -2198,6 +2198,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	}
 
 	prandom = P_RandomFixed();
+	S_StartSound(player->mo, sfx_s3k92);
 
 	if ((G_RaceGametype() && player->kartstuff[k_position] == 1) || numplayers == 0) // No-one can be stolen from? Get longer invisibility for nothing
 	{
@@ -2227,6 +2228,9 @@ static void K_DoHyudoroSteal(player_t *player)
 		players[stealplayer].kartstuff[k_itemtype] = KITEM_NONE;
 		players[stealplayer].kartstuff[k_itemamount] = 0;
 		players[stealplayer].kartstuff[k_itemheld] = 0;
+
+		if (P_IsLocalPlayer(players[stealplayer]) && !splitscreen)
+			S_StartSound(NULL, sfx_s3k92);
 	}
 }
 
@@ -2247,7 +2251,7 @@ static void K_DoShrink(player_t *player)
 {
 	INT32 i;
 
-	//S_StartSound(player->mo, sfx_bkpoof); // Sound the BANG!
+	S_StartSound(player->mo, sfx_kc46); // Sound the BANG!
 	player->pflags |= PF_ATTACKDOWN;
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2505,7 +2509,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			S_StopSoundByID(player->mo, sfx_kgrow); // Stop it
 	}
 
-	// AAAAAAND handle the SMK star alarm
+	// AAAAAAND handle the invincibility alarm
 	if (player->mo->health > 0 && (player->mo->player->kartstuff[k_invincibilitytimer] > 0
 		|| player->mo->player->kartstuff[k_growshrinktimer] > 0))
 	{
@@ -2965,11 +2969,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							overlay->destscale = player->mo->scale;
 							P_SetScale(overlay, player->mo->scale);
 						}
-						player->kartstuff[k_invincibilitytimer] = itemtime; // Activate it
+						player->kartstuff[k_invincibilitytimer] = itemtime+(2*TICRATE); // 10 seconds
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
-						if (gametype != GT_RACE)
-							player->kartstuff[k_poweritemtimer] = 10*TICRATE;
 						player->pflags |= PF_ATTACKDOWN;
 					}
 					break;
@@ -3087,7 +3089,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 							player->kartstuff[k_itemheld] = 2;
 							player->pflags |= PF_ATTACKDOWN;
-							K_PlayTauntSound(player->mo);
+							//K_PlayTauntSound(player->mo);
+							S_StartSound(player->mo, sfx_s3k3a);
 
 							for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 							{
@@ -3154,7 +3157,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 							player->kartstuff[k_itemheld] = 2;
 							player->pflags |= PF_ATTACKDOWN;
-							K_PlayTauntSound(player->mo);
+							//K_PlayTauntSound(player->mo);
+							S_StartSound(player->mo, sfx_s3k3a);
 
 							for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 							{
@@ -3284,12 +3288,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_PlayTauntSound(player->mo);
 						player->mo->scalespeed = FRACUNIT/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
-						player->kartstuff[k_growshrinktimer] = itemtime;
+						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
 						S_StartSound(player->mo, sfx_kc5a);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
-						if (gametype != GT_RACE)
-							player->kartstuff[k_poweritemtimer] = 10*TICRATE;
 					}
 					break;
 				case KITEM_SHRINK:
@@ -3362,6 +3364,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			|| player->kartstuff[k_invincibilitytimer]
 			|| player->kartstuff[k_growshrinktimer] > 0))
 			player->kartstuff[k_poweritemtimer] = 10*TICRATE;
+
+		if (player->kartstuff[k_itemtype] == KITEM_SPB
+			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
+			|| spbincoming)
+			indirectitemcooldown = 20*TICRATE;
 
 		if (player->kartstuff[k_hyudorotimer] > 0)
 		{

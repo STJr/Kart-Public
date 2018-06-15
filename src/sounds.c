@@ -405,7 +405,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k37",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k38",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k39",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k3a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k3a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart item shield
   {"s3k3b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k3c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k3d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -416,7 +416,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k42",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k43",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k44",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k45",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k45",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Lightning Shield use
   {"s3k46",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k47",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k48",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -493,7 +493,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k8f",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k90",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k91",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k92",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k92",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Hyudoro use
   {"s3k93",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k94",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k95",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -645,7 +645,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm36", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm37", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm38", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm39", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm39", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SS Mine deployed
   {"cdfm40", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm41", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm42", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -703,7 +703,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc2c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc2f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring
+  {"kc2f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring use
   {"kc30",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc31",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc32",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -726,7 +726,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc43",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc44",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc45",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc46",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc46",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink use
   {"kc47",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc48",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Vote picked
   {"kc49",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -743,7 +743,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc54",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc55",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc56",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc57",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc57",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SPB locked in
   {"kc58",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc59",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink
   {"kc5a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow
@@ -777,8 +777,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"mlap",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"sboost",  true,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mush",   false,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kinvnc", false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kgrow",  false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kinvnc", false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kgrow",  false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"bomb",   false, 110,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"bomb2",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"peel",   false, 100,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -804,7 +804,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"shelit", false,  64, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"vroom",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"boing",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"smkinv", false, 140, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"smkinv", false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"screec", false,  52,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
