@@ -81,8 +81,7 @@ enum mobj_e {
 	mobj_extravalue2,
 	mobj_cusval,
 	mobj_cvmem,
-	mobj_colorized,
-	mobj_mobjtable
+	mobj_colorized
 };
 
 static const char *const mobj_opt[] = {
@@ -143,7 +142,6 @@ static const char *const mobj_opt[] = {
 	"cusval",
 	"cvmem",
 	"colorized",
-	"mobjtable",
 	NULL};
 
 #define UNIMPLEMENTED luaL_error(L, LUA_QL("mobj_t") " field " LUA_QS " is not implemented for Lua and cannot be accessed.", mobj_opt[field])
@@ -350,9 +348,6 @@ static int mobj_get(lua_State *L)
 	case mobj_colorized:
 		lua_pushboolean(L, mo->colorized);
 		break;
-	case mobj_mobjtable:
-		// No idea how to do a table like this :V
-		return UNIMPLEMENTED;
 	default: // extra custom variables in Lua memory
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
 		I_Assert(lua_istable(L, -1));
@@ -535,10 +530,22 @@ static int mobj_set(lua_State *L)
 	case mobj_bprev:
 		return UNIMPLEMENTED;
 	case mobj_hnext:
-		mo->hnext = luaL_checkudata(L, 3, META_MOBJ);
+		if (lua_isnil(L, 3))
+			P_SetTarget(&mo->hnext, NULL);
+		else
+		{
+			mobj_t *hnext = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
+			P_SetTarget(&mo->hnext, hnext);
+		}
 		break;
 	case mobj_hprev:
-		mo->hprev = luaL_checkudata(L, 3, META_MOBJ);
+		if (lua_isnil(L, 3))
+			P_SetTarget(&mo->hprev, NULL);
+		else
+		{
+			mobj_t *hprev = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
+			P_SetTarget(&mo->hprev, hprev);
+		}
 		break;
 	case mobj_type: // yeah sure, we'll let you change the mobj's type.
 	{
@@ -651,8 +658,6 @@ static int mobj_set(lua_State *L)
 	case mobj_colorized:
 		mo->colorized = luaL_checkboolean(L, 3);
 		break;
-	case mobj_mobjtable:
-		return UNIMPLEMENTED;
 	default:
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
 		I_Assert(lua_istable(L, -1));

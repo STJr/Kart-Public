@@ -2008,32 +2008,16 @@ void K_DriftDustHandling(mobj_t *spawner)
 	}
 }
 
-static mobj_t *K_FindLastTrailMobj(player_t *player)
+static mobj_t *K_FindLastTrailMobj(player_t *player) // YUCK, i hate this!
 {
-	thinker_t *th;
-	mobj_t *mo;
-	mobj_t *trail = NULL;
+	mobj_t *trail = player->mo->hnext;
 
-	if (!player)
+	if (!player || !trail)
 		return NULL;
 	
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	while (trail->hnext && !P_MobjWasRemoved(trail->hnext))
 	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo = (mobj_t *)th;
-
-		if (mo->type != MT_BANANA_SHIELD
-			&& mo->type != MT_FAKESHIELD
-			&& mo->type != MT_SSMINE_SHIELD)
-			continue;
-
-		if (!mo->target || !mo->target->player || mo->target->player != player)
-			continue;
-
-		if (trail == NULL || (mo->lastlook > trail->lastlook))
-			trail = mo;
+		trail = trail->hnext;
 	}
 
 	return trail;
@@ -2379,6 +2363,27 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed)
 		mo->momz = FixedMul(vertispeed, mo->scale);
 
 	S_StartSound(mo, sfx_kc2f);
+}
+
+void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
+{
+    if (banana->hnext)
+        K_KillBananaChain(banana->hnext, inflictor, source);
+
+	if (banana->health)
+	{
+		if (banana->eflags & MFE_VERTICALFLIP)
+			banana->z -= banana->height;
+		else
+			banana->z += banana->height;
+
+		S_StartSound(banana, banana->info->deathsound);
+		P_KillMobj(banana, inflictor, source);
+
+		P_SetObjectMomZ(banana, 8*FRACUNIT, false);
+		if (inflictor)
+			P_InstaThrust(banana, R_PointToAngle2(inflictor->x, inflictor->y, banana->x, banana->y)+ANGLE_90, 16*FRACUNIT);
+	}
 }
 
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
@@ -3030,48 +3035,38 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						angle_t newangle;
 						fixed_t newx;
 						fixed_t newy;
-						mobj_t *master;
+						INT32 moloop;
+						mobj_t *mo;
+						mobj_t *prev = NULL;
 
-						player->kartstuff[k_itemheld] = 1;
-						player->pflags |= PF_ATTACKDOWN;
-						newangle = player->mo->angle;
-						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
-						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
-						master = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
-						master->threshold = 10;
-						master->movecount = player->kartstuff[k_itemamount]-1;
-						master->lastlook = 1;
-
-						if (master)
+						if (player->kartstuff[k_itemamount] > 1)
 						{
-							P_SetTarget(&master->target, player->mo);
+							K_PlayTauntSound(player->mo);
+							player->kartstuff[k_itemheld] = 2;
+						}
+						else
+							player->kartstuff[k_itemheld] = 1;
+						player->pflags |= PF_ATTACKDOWN;
 
-							if (master->movecount > 0) // Banana x3/x10 held
+						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
+						{
+							newangle = player->mo->angle;
+							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
+							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
+							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
+							mo->threshold = 10;
+							mo->movecount = player->kartstuff[k_itemamount];
+							mo->lastlook = moloop+1;
+							P_SetTarget(&mo->target, player->mo);
+							if (moloop > 0)
 							{
-								INT32 moloop;
-								K_PlayTauntSound(player->mo);
-								player->kartstuff[k_itemheld] = 2;
-
-								for (moloop = 0; moloop < master->movecount; moloop++)
-								{
-									if (moloop >= 10) // maxed out mobjtable
-										break;
-
-									newangle = player->mo->angle;
-									newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
-									newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
-									master->mobjtable[moloop] = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
-
-									if (master->mobjtable[moloop])
-									{
-										master->mobjtable[moloop]->threshold = 10;
-										master->mobjtable[moloop]->lastlook = moloop+2;
-										P_SetTarget(&master->mobjtable[moloop]->target, player->mo);
-										P_SetTarget(&master->mobjtable[moloop]->tracer, master);
-										master->mobjtable[moloop]->angle = newangle;
-									}
-								}
+								P_SetTarget(&mo->hprev, prev);
+								if (prev != NULL)
+									P_SetTarget(&prev->hnext, mo);
 							}
+							else
+								P_SetTarget(&player->mo->hnext, mo);
+							prev = mo;
 						}
 					}
 					else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemheld] == 1)
@@ -3111,6 +3106,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->scale = FRACUNIT/2;
 							mo->threshold = 10;
 							P_SetTarget(&mo->target, player->mo);
+							P_SetTarget(&player->mo->hnext, mo);
 						}
 					}
 					break;
@@ -3269,7 +3265,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_SSMINE_SHIELD);
 						mo->threshold = 10;
 						if (mo)
+						{
 							P_SetTarget(&mo->target, player->mo);
+							P_SetTarget(&player->mo->hnext, mo);
+						}
 					}
 					else if (!(cmd->buttons & BT_ATTACK) && HOLDING_ITEM)
 					{

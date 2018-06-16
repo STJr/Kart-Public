@@ -2132,6 +2132,22 @@ static int lib_kDoPogoSpring(lua_State *L)
 	return 0;
 }
 
+static int lib_kKillBananaChain(lua_State *L)
+{
+	mobj_t *banana = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *inflictor = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	NOHUD
+	if (!banana)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!inflictor)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!source)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_KillBananaChain(banana, inflictor, source);
+	return 0;
+}
+
 static int lib_kMomentumToFacing(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2359,6 +2375,7 @@ static luaL_Reg lib[] = {
 	{"K_DriftDustHandling",lib_kDriftDustHandling},
 	{"K_DoSneaker",lib_kDoSneaker},
 	{"K_DoPogoSpring",lib_kDoPogoSpring},
+	{"K_KillBananaChain",lib_kKillBananaChain},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
 	{"K_GetKartAccel",lib_kGetKartAccel},

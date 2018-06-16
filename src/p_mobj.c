@@ -6431,6 +6431,11 @@ void P_MobjThinker(mobj_t *mobj)
 		P_SetTarget(&mobj->target, NULL);
 	if (mobj->tracer && P_MobjWasRemoved(mobj->tracer))
 		P_SetTarget(&mobj->tracer, NULL);
+	// hnext/hprev changes suggested by toaster
+	if (mobj->hnext && P_MobjWasRemoved(mobj->hnext))
+		P_SetTarget(&mobj->hnext, NULL);
+	if (mobj->hprev && P_MobjWasRemoved(mobj->hprev))
+		P_SetTarget(&mobj->hprev, NULL);
 
 	mobj->flags2 &= ~MF2_PUSHED;
 	mobj->eflags &= ~(MFE_SPRUNG|MFE_JUSTBOUNCEDWALL);
@@ -6774,55 +6779,42 @@ void P_MobjThinker(mobj_t *mobj)
 					if (mobj->lastlook == 1)
 					{
 						const fixed_t spacing = FixedMul(mobj->info->radius, mobj->target->scale);
-						angle_t ang = mobj->target->angle;
-						fixed_t targx = mobj->target->x + P_ReturnThrustX(mobj, ang + ANGLE_180, spacing);
-						fixed_t targy = mobj->target->y + P_ReturnThrustY(mobj, ang + ANGLE_180, spacing);
-						fixed_t targz = mobj->target->z;
-						fixed_t speed = FixedMul(R_PointToDist2(mobj->x, mobj->y, targx, targy), FRACUNIT/2);
-						INT32 i;
-						INT32 previ = -1;
+						mobj_t *cur = mobj;
+						mobj_t *targ = mobj->target;
 
-						if (P_IsObjectOnGround(mobj->target))
-							targz = mobj->floorz;
-						mobj->angle = R_PointToAngle2(mobj->x, mobj->y, targx, targy);
-
-						if (speed > spacing/2)
-							P_InstaThrust(mobj, mobj->angle, speed-spacing/2);
-						P_SetObjectMomZ(mobj, FixedMul(targz - mobj->z, FRACUNIT/2), false);
-						if (R_PointToDist2(mobj->x, mobj->y, targx, targy) > 768*FRACUNIT)
-							P_TeleportMove(mobj, targx, targy, mobj->z);
-
-						if (mobj->movecount > 0) // Now, for chaser bananas.
+						while (cur && !P_MobjWasRemoved(cur))
 						{
-							for (i = 0; i < mobj->movecount; i++) 
-							{
-								mobj_t *targ;
+							angle_t ang;
+							fixed_t targx;
+							fixed_t targy;
+							fixed_t targz;
+							fixed_t speed;
 
-								if (!mobj->mobjtable[i])
-									continue;
+							if (cur != mobj)
+								targ = cur->hprev;
 
-								targ = mobj;
-								if (previ >= 0 && mobj->mobjtable[previ])
-									targ = mobj->mobjtable[previ];
+							if (!targ || P_MobjWasRemoved(targ))
+								continue;
 
-								ang = targ->angle;
-								targx = targ->x + P_ReturnThrustX(mobj->mobjtable[i], ang + ANGLE_180, spacing);
-								targy = targ->y + P_ReturnThrustY(mobj->mobjtable[i], ang + ANGLE_180, spacing);
-								targz = targ->z;
-								speed = FixedMul(R_PointToDist2(mobj->mobjtable[i]->x, mobj->mobjtable[i]->y, targx, targy), FRACUNIT/2);
-								if (P_IsObjectOnGround(targ))
-									targz = mobj->mobjtable[i]->floorz;
+							ang = targ->angle;
+							targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, spacing);
+							targy = targ->y + P_ReturnThrustY(cur, ang + ANGLE_180, spacing);
+							targz = targ->z;
+							speed = FixedMul(R_PointToDist2(cur->x, cur->y, targx, targy), FRACUNIT/2);
+							if (P_IsObjectOnGround(targ))
+								targz = cur->floorz;
 
-								mobj->mobjtable[i]->angle = R_PointToAngle2(mobj->mobjtable[i]->x, mobj->mobjtable[i]->y, targx, targy);
+							cur->angle = R_PointToAngle2(cur->x, cur->y, targx, targy);
 
-								if (speed > spacing/2)
-									P_InstaThrust(mobj->mobjtable[i], mobj->mobjtable[i]->angle, speed-(spacing/2));
-								P_SetObjectMomZ(mobj->mobjtable[i], FixedMul(targz - mobj->mobjtable[i]->z, FRACUNIT/2), false);
-								if (R_PointToDist2(mobj->mobjtable[i]->x, mobj->mobjtable[i]->y, targx, targy) > 768*FRACUNIT)
-									P_TeleportMove(mobj->mobjtable[i], targx, targy, mobj->mobjtable[i]->z);
+							if (speed > spacing/2)
+								P_InstaThrust(cur, cur->angle, speed-(spacing/2));
 
-								previ = i;
-							}
+							P_SetObjectMomZ(cur, FixedMul(targz - cur->z, FRACUNIT/2), false);
+
+							if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
+								P_TeleportMove(cur, targx, targy, cur->z);
+
+							cur = cur->hnext;
 						}
 					}
 
@@ -9308,6 +9300,7 @@ void P_RemoveMobj(mobj_t *mobj)
 	//
 	// Remove any references to other mobjs.
 	P_SetTarget(&mobj->target, P_SetTarget(&mobj->tracer, NULL));
+	P_SetTarget(&mobj->hprev, P_SetTarget(&mobj->hnext, NULL));
 
 	// free block
 	// DBG: set everything in mobj_t to 0xFF instead of leaving it. debug memory error.

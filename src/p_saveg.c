@@ -947,11 +947,9 @@ typedef enum
 	MD2_HPREV       = 1<<8,
 #ifdef ESLOPE
 	MD2_SLOPE       = 1<<9,
-	MD2_COLORIZED	= 1<<10,
-	MD2_MOBJTABLE	= 1<<11
+	MD2_COLORIZED	= 1<<10
 #else
-	MD2_COLORIZED	= 1<<9,
-	MD2_MOBJTABLE	= 1<<10
+	MD2_COLORIZED	= 1<<9
 #endif
 } mobj_diff2_t;
 
@@ -1031,7 +1029,6 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 	const mobj_t *mobj = (const mobj_t *)th;
 	UINT32 diff;
 	UINT16 diff2;
-	UINT16 difft;
 	UINT8 i;
 
 	// Ignore stationary hoops - these will be respawned from mapthings.
@@ -1062,7 +1059,7 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 	else
 		diff = MD_POS | MD_TYPE; // not a map spawned thing so make it from scratch
 
-	diff2 = difft = 0;
+	diff2 = 0;
 
 	// not the default but the most probable
 	if (mobj->momx != 0 || mobj->momy != 0 || mobj->momz != 0)
@@ -1150,14 +1147,6 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 #endif
 	if (mobj->colorized)
 		diff2 |= MD2_COLORIZED;
-	for (i = 0; i < 10; i++)
-	{
-		if (mobj->mobjtable[i])
-		{
-			diff2 |= MD2_MOBJTABLE;
-			difft |= ((i > 0) ? (1<<i) : 1);
-		}
-	}
 	if (diff2 != 0)
 		diff |= MD_MORE;
 
@@ -1169,8 +1158,6 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 	WRITEUINT32(save_p, diff);
 	if (diff & MD_MORE)
 		WRITEUINT16(save_p, diff2);
-	if (diff2 & MD2_MOBJTABLE)
-		WRITEUINT16(save_p, difft);
 
 	// save pointer, at load time we will search this pointer to reinitilize pointers
 	WRITEUINT32(save_p, (size_t)mobj);
@@ -1281,14 +1268,6 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 #endif
 	if (diff2 & MD2_COLORIZED)
 		WRITEUINT8(save_p, mobj->colorized);
-	if (diff2 & MD2_MOBJTABLE)
-	{
-		for (i = 0; i < 10; i++)
-		{
-			if (difft & ((i > 0) ? (1<<i) : 1))
-				WRITEUINT32(save_p, mobj->mobjtable[i]->mobjnum);
-		}
-	}
 
 	WRITEUINT32(save_p, mobj->mobjnum);
 }
@@ -1959,7 +1938,6 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	mobj_t *mobj;
 	UINT32 diff;
 	UINT16 diff2;
-	UINT16 difft;
 	INT32 i;
 	fixed_t z, floorz, ceilingz;
 
@@ -1968,10 +1946,6 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		diff2 = READUINT16(save_p);
 	else
 		diff2 = 0;
-	if (diff2 & MD2_MOBJTABLE)
-		difft = READUINT16(save_p);
-	else
-		difft = 0;
 
 	next = (void *)(size_t)READUINT32(save_p);
 
@@ -2165,14 +2139,6 @@ static void LoadMobjThinker(actionf_p1 thinker)
 #endif
 	if (diff2 & MD2_COLORIZED)
 		mobj->colorized = READUINT8(save_p);
-	if (diff2 & MD2_MOBJTABLE)
-	{
-		for (i = 0; i < 10; i++)
-		{
-			if (difft & ((i > 0) ? (1<<i) : 1))
-				mobj->mobjtable[i] = (mobj_t *)(size_t)READUINT32(save_p);
-		}
-	}
 
 	if (diff & MD_REDFLAG)
 	{

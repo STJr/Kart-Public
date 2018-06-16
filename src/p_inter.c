@@ -2109,26 +2109,11 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
 				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE))
 			{
-				if (target->lastlook == 1)
+				if (target->lastlook != 0 && target->lastlook < target->target->player->kartstuff[k_itemamount])
 				{
-					INT32 i;
-					for (i = 0; i < 10; i++)
-					{
-						if (target->mobjtable[i] && target->mobjtable[i]->health)
-							P_KillMobj(target->mobjtable[i], inflictor, source);
-					}
+					if (target->target->hnext)
+						K_KillBananaChain(target->target->hnext, inflictor, source);
 					target->target->player->kartstuff[k_itemamount] = 0;
-				}
-				else if (target->lastlook > 1)
-				{
-					if (target->lastlook < target->target->player->kartstuff[k_itemamount])
-					{
-						if (target->tracer && target->tracer->health)
-							P_KillMobj(target->tracer, inflictor, source);
-						target->target->player->kartstuff[k_itemamount] = 0;
-					}
-					else
-						target->target->player->kartstuff[k_itemamount]--;
 				}
 				else
 					target->target->player->kartstuff[k_itemamount]--;
