@@ -4071,6 +4071,7 @@ typedef enum mobj_type
 	MT_FIREDITEM,
 
 	MT_PLAYERARROW,
+	MT_KARMAHITBOX,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

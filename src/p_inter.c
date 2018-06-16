@@ -422,6 +422,61 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			P_SetTarget(&special->target, toucher);
 			P_KillMobj(special, toucher, toucher);
 			break;
+		case MT_KARMAHITBOX:
+			if (!special->target->player)
+				return;
+			if (player == special->target->player)
+				return;
+			if (player->kartstuff[k_growshrinktimer] || player->kartstuff[k_squishedtimer]
+				|| player->kartstuff[k_hyudorotimer] || player->kartstuff[k_spinouttimer]
+				|| player->kartstuff[k_invincibilitytimer] || player->powers[pw_flashing]
+				|| player->kartstuff[k_balloon] <= 0)
+				return;
+
+			if (special->target->player->kartstuff[k_comebacktimer]
+				|| special->target->player->kartstuff[k_spinouttimer]
+				|| special->target->player->kartstuff[k_squishedtimer])
+				return;
+
+			if (special->target->player->kartstuff[k_comebackmode] == 0)
+			{
+				mobj_t *boom = P_SpawnMobj(special->target->x, special->target->y, special->target->z, MT_BOOMPARTICLE);
+				boom->scale = special->target->scale;
+				boom->destscale = special->target->scale;
+				boom->momz = 5*FRACUNIT;
+				if (special->target->color)
+					boom->color = special->target->color;
+				else
+					boom->color = SKINCOLOR_RED;
+				S_StartSound(boom, special->info->attacksound);
+
+				K_ExplodePlayer(player, special->target);
+
+				special->target->player->kartstuff[k_comebackpoints] += 2;
+				if (netgame && cv_hazardlog.value)
+					CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
+				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+					K_StealBalloon(special->target->player, player, true);
+
+				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
+			}
+			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, true))
+			{
+				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
+				S_StartSound(poof, special->info->seesound);
+
+				player->kartstuff[k_itemroulette] = 1;
+				player->kartstuff[k_roulettetype] = 1;
+
+				special->target->player->kartstuff[k_comebackmode] = 0;
+				special->target->player->kartstuff[k_comebackpoints]++;
+				if (netgame && cv_hazardlog.value)
+					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
+				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+					K_StealBalloon(special->target->player, player, true);
+				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
+			}
+			return;
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //
 // ***************************************** //
@@ -2755,7 +2810,13 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		if (player->kartstuff[k_balloon] > 0)
 		{
 			if (player->kartstuff[k_balloon] == 1)
+			{
+				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
+				P_SetTarget(&karmahitbox->target, player->mo);
+				karmahitbox->destscale = player->mo->scale;
+				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+			}
 			player->kartstuff[k_balloon]--;
 		}
 

@@ -8141,6 +8141,43 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
+		case MT_KARMAHITBOX:
+			if (!mobj->target || !mobj->target->health || !mobj->target->player
+				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_balloon]))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			mobj->color = mobj->target->color;
+			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode] == 1);
+
+			if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
+			{
+				if (mobj->state != &states[mobj->info->spawnstate])
+					P_SetMobjState(mobj, mobj->info->spawnstate);
+
+				if (mobj->target->player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
+					mobj->flags2 &= ~MF2_DONTDRAW;
+				else
+					mobj->flags2 |= MF2_DONTDRAW;
+			}
+			else
+			{
+				if (mobj->target->player->kartstuff[k_comebackmode] == 0
+					&& mobj->state != &states[mobj->info->spawnstate])
+					P_SetMobjState(mobj, mobj->info->spawnstate);
+				else if (mobj->target->player->kartstuff[k_comebackmode] == 1
+					&& mobj->state != &states[mobj->info->seestate])
+					P_SetMobjState(mobj, mobj->info->seestate);
+
+				if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
+					mobj->flags2 |= MF2_DONTDRAW;
+				else
+					mobj->flags2 &= ~MF2_DONTDRAW;
+			}
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);
@@ -9721,7 +9758,6 @@ void P_SpawnPlayer(INT32 playernum)
 	if (G_BattleGametype()) // SRB2kart
 	{
 		mobj_t *overheadarrow = P_SpawnMobj(mobj->x, mobj->y, mobj->z + P_GetPlayerHeight(p)+16*FRACUNIT, MT_PLAYERARROW);
-
 		P_SetTarget(&overheadarrow->target, mobj);
 		overheadarrow->flags2 |= MF2_DONTDRAW;
 		P_SetScale(overheadarrow, mobj->destscale);
@@ -9771,6 +9807,13 @@ void P_SpawnPlayer(INT32 playernum)
 				else
 					mo->flags2 &= ~MF2_DONTDRAW;
 			}
+		}
+		else if (p->kartstuff[k_balloon] <= 0)
+		{
+			mobj_t *karmahitbox = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_KARMAHITBOX); // Player hitbox is too small!!
+			P_SetTarget(&karmahitbox->target, mobj);
+			karmahitbox->destscale = mobj->scale;
+			P_SetScale(karmahitbox, mobj->scale);
 		}
 	}
 }

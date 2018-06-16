@@ -16560,6 +16560,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
+	{           // MT_KARMAHITBOX
+		-1,             // doomednum
+		S_PLAYERBOMB,   // spawnstate
+		1000,           // spawnhealth
+		S_PLAYERITEM,   // seestate
+		sfx_kc2e,       // seesound
+		8,              // reactiontime
+		sfx_s3k4e,      // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		26*FRACUNIT,    // radius
+		52*FRACUNIT,    // height
+		-1,             // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SPECIAL|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
+		S_NULL          // raisestate
+	},
+
 	// ============================================================================================================================//
 
 #ifdef SEENAMES

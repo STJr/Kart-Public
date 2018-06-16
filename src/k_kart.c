@@ -1379,7 +1379,13 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 		if (player->kartstuff[k_balloon] > 0)
 		{
 			if (player->kartstuff[k_balloon] == 1)
+			{
+				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
+				P_SetTarget(&karmahitbox->target, player->mo);
+				karmahitbox->destscale = player->mo->scale;
+				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+			}
 			player->kartstuff[k_balloon]--;
 		}
 
@@ -1437,7 +1443,13 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		if (player->kartstuff[k_balloon] > 0)
 		{
 			if (player->kartstuff[k_balloon] == 1)
+			{
+				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
+				P_SetTarget(&karmahitbox->target, player->mo);
+				karmahitbox->destscale = player->mo->scale;
+				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+			}
 			player->kartstuff[k_balloon]--;
 		}
 
@@ -1479,22 +1491,18 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	if (G_BattleGametype())
 	{
 		if (source && source->player && player != source->player)
-		{
-			if (source->player->kartstuff[k_balloon] <= 0)
-			{
-				source->player->kartstuff[k_comebackpoints] += 2;
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[source->player-players], player_names[player-players]);
-				if (source->player->kartstuff[k_comebackpoints] >= 3)
-					K_StealBalloon(source->player, player, true);
-			}
 			P_AddPlayerScore(source->player, 1);
-		}
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
 			if (player->kartstuff[k_balloon] == 1)
+			{
+				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
+				P_SetTarget(&karmahitbox->target, player->mo);
+				karmahitbox->destscale = player->mo->scale;
+				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+			}
 			player->kartstuff[k_balloon]--;
 		}
 
@@ -3419,51 +3427,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			K_StripItems(player);
 			player->mo->flags2 |= MF2_SHADOW;
-
-			if (!(player->mo->tracer))
-			{
-				player->mo->tracer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_OVERLAY);
-				P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
-			}
-
-			P_SetTarget(&player->mo->tracer->target, player->mo);
-			player->mo->tracer->color = player->mo->color;
-			player->mo->tracer->colorized = (player->kartstuff[k_comebackmode] == 1);
-
-			if (player->kartstuff[k_comebacktimer] > 0)
-			{
-				if (player->mo->tracer->state != &states[S_PLAYERBOMB])
-					P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
-
-				if (player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
-					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
-				else
-					player->mo->tracer->flags2 |= MF2_DONTDRAW;
-
-				player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
-			}
-			else
-			{
-				if (player->kartstuff[k_comebackmode] == 0
-					&& player->mo->tracer->state != &states[S_PLAYERBOMB])
-					P_SetMobjState(player->mo->tracer, S_PLAYERBOMB);
-				else if (player->kartstuff[k_comebackmode] == 1
-					&& player->mo->tracer->state != &states[S_PLAYERITEM])
-					P_SetMobjState(player->mo->tracer, S_PLAYERITEM);
-
-				if ((player->powers[pw_flashing] || player->kartstuff[k_spinouttimer]) && (leveltime & 1))
-					player->mo->tracer->flags2 |= MF2_DONTDRAW;
-				else
-					player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
-			}
+			player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 		}
 		else if (G_RaceGametype() || player->kartstuff[k_balloon] > 0)
 		{
 			player->mo->flags2 &= ~MF2_SHADOW;
-			if (player->mo->tracer
-				&& (player->mo->tracer->state == &states[S_PLAYERBOMB]
-				|| player->mo->tracer->state == &states[S_PLAYERITEM]))
-				P_RemoveMobj(player->mo->tracer);
 		}
 	}
 
