@@ -2062,29 +2062,6 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	//if (inflictor && (inflictor->type == MT_SHELL || inflictor->type == MT_FIREBALL))
 	//	P_SetTarget(&target->tracer, inflictor);
 
-	// SRB2kart
-	// I wish I knew a better way to do this
-	if (target->target && target->target->player && target->target->player->mo)
-	{
-		if (target->target->player->kartstuff[k_eggmanheld] && target->type == MT_FAKESHIELD)
-			target->target->player->kartstuff[k_eggmanheld] = 0;
-
-		if ((target->target->player->kartstuff[k_itemheld])
-			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)
-			|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
-			|| (target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
-			|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
-		{
-			if (target->lastlook > 0)
-				target->target->player->kartstuff[k_itemamount] = target->lastlook-1;
-			else
-				target->target->player->kartstuff[k_itemamount]--;
-			if (!target->target->player->kartstuff[k_itemamount])
-				target->target->player->kartstuff[k_itemheld] = 0;
-		}
-	}
-	//
-
 	if (!useNightsSS && G_IsSpecialStage(gamemap) && target->player && sstimer > 6)
 		sstimer = 6; // Just let P_Ticker take care of the rest.
 
@@ -2115,6 +2092,60 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	if (LUAh_MobjDeath(target, inflictor, source) || P_MobjWasRemoved(target))
 		return;
 #endif
+
+	// SRB2kart
+	// I wish I knew a better way to do this
+	if (target->target && target->target->player && target->target->player->mo)
+	{
+		if (target->target->player->kartstuff[k_eggmanheld] && target->type == MT_FAKESHIELD)
+			target->target->player->kartstuff[k_eggmanheld] = 0;
+
+		if ((target->target->player->kartstuff[k_itemheld])
+			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)
+			|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
+			|| (target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
+			|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
+		{
+			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
+				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE))
+			{
+				if (target->lastlook == 1)
+				{
+					INT32 i;
+					for (i = 0; i < 10; i++)
+					{
+						if (target->mobjtable[i] && target->mobjtable[i]->health)
+							P_KillMobj(target->mobjtable[i], inflictor, source);
+					}
+					target->target->player->kartstuff[k_itemamount] = 0;
+				}
+				else if (target->lastlook > 1)
+				{
+					if (target->lastlook < target->target->player->kartstuff[k_itemamount])
+					{
+						if (target->tracer && target->tracer->health)
+							P_KillMobj(target->tracer, inflictor, source);
+						target->target->player->kartstuff[k_itemamount] = 0;
+					}
+					else
+						target->target->player->kartstuff[k_itemamount]--;
+				}
+				else
+					target->target->player->kartstuff[k_itemamount]--;
+			}
+			else
+			{
+				if (target->lastlook > 0)
+					target->target->player->kartstuff[k_itemamount] = target->lastlook-1;
+				else
+					target->target->player->kartstuff[k_itemamount]--;
+			}
+
+			if (!target->target->player->kartstuff[k_itemamount])
+				target->target->player->kartstuff[k_itemheld] = 0;
+		}
+	}
+	//
 
 	// Let EVERYONE know what happened to a player! 01-29-2002 Tails
 	if (target->player && !target->player->spectator)

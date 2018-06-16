@@ -6682,11 +6682,8 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			}
-			case MT_GREENSHIELD:
+			case MT_GREENSHIELD: // Kart orbit items
 			case MT_JAWZ_SHIELD:
-			case MT_BANANA_SHIELD:
-			case MT_FAKESHIELD:
-			case MT_SSMINE_SHIELD:
 				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -6694,12 +6691,8 @@ void P_MobjThinker(mobj_t *mobj)
 					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
 
 					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
-					if ((mobj->type == MT_GREENSHIELD || mobj->type == MT_JAWZ_SHIELD) && mobj->lastlook > 0)
+					if (mobj->lastlook > 0)
 						mobj->angle += FixedAngle(mobj->info->speed);
-					else if (mobj->type == MT_BANANA_SHIELD && mobj->lastlook == 2)
-						mobj->angle = (mobj->target->angle + ANGLE_135);
-					else if (mobj->type == MT_BANANA_SHIELD && mobj->lastlook == 3)
-						mobj->angle = (mobj->target->angle + ANGLE_225);
 					else
 						mobj->angle = (mobj->target->angle + ANGLE_180);
 
@@ -6756,7 +6749,85 @@ void P_MobjThinker(mobj_t *mobj)
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
-						|| (mobj->type == MT_BANANA_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
+						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook)
+						|| (!mobj->target->player->kartstuff[k_itemheld]))
+					{
+						P_RemoveMobj(mobj);
+						return;
+					}
+				}
+				else if ((mobj->health > 0
+					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
+					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| P_CheckDeathPitCollide(mobj)) // When in death state
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				break;
+			case MT_BANANA_SHIELD: // Kart trailing items
+			case MT_SSMINE_SHIELD:
+			case MT_FAKESHIELD:
+				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
+					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
+				{
+					if (mobj->lastlook == 1)
+					{
+						const fixed_t spacing = FixedMul(mobj->info->radius, mobj->target->scale);
+						angle_t ang = mobj->target->angle;
+						fixed_t targx = mobj->target->x + P_ReturnThrustX(mobj, ang + ANGLE_180, spacing);
+						fixed_t targy = mobj->target->y + P_ReturnThrustY(mobj, ang + ANGLE_180, spacing);
+						fixed_t targz = mobj->target->z;
+						fixed_t speed = FixedMul(R_PointToDist2(mobj->x, mobj->y, targx, targy), FRACUNIT/2);
+						INT32 i;
+						INT32 previ = -1;
+
+						if (P_IsObjectOnGround(mobj->target))
+							targz = mobj->floorz;
+						mobj->angle = R_PointToAngle2(mobj->x, mobj->y, targx, targy);
+
+						if (speed > spacing/2)
+							P_InstaThrust(mobj, mobj->angle, speed-spacing/2);
+						P_SetObjectMomZ(mobj, FixedMul(targz - mobj->z, FRACUNIT/2), false);
+						if (R_PointToDist2(mobj->x, mobj->y, targx, targy) > 768*FRACUNIT)
+							P_TeleportMove(mobj, targx, targy, mobj->z);
+
+						if (mobj->movecount > 0) // Now, for chaser bananas.
+						{
+							for (i = 0; i < mobj->movecount; i++) 
+							{
+								mobj_t *targ;
+
+								if (!mobj->mobjtable[i])
+									continue;
+
+								targ = mobj;
+								if (previ >= 0 && mobj->mobjtable[previ])
+									targ = mobj->mobjtable[previ];
+
+								ang = targ->angle;
+								targx = targ->x + P_ReturnThrustX(mobj->mobjtable[i], ang + ANGLE_180, spacing);
+								targy = targ->y + P_ReturnThrustY(mobj->mobjtable[i], ang + ANGLE_180, spacing);
+								targz = targ->z;
+								speed = FixedMul(R_PointToDist2(mobj->mobjtable[i]->x, mobj->mobjtable[i]->y, targx, targy), FRACUNIT/2);
+								if (P_IsObjectOnGround(targ))
+									targz = mobj->mobjtable[i]->floorz;
+
+								mobj->mobjtable[i]->angle = R_PointToAngle2(mobj->mobjtable[i]->x, mobj->mobjtable[i]->y, targx, targy);
+
+								if (speed > spacing/2)
+									P_InstaThrust(mobj->mobjtable[i], mobj->mobjtable[i]->angle, speed-(spacing/2));
+								P_SetObjectMomZ(mobj->mobjtable[i], FixedMul(targz - mobj->mobjtable[i]->z, FRACUNIT/2), false);
+								if (R_PointToDist2(mobj->mobjtable[i]->x, mobj->mobjtable[i]->y, targx, targy) > 768*FRACUNIT)
+									P_TeleportMove(mobj->mobjtable[i], targx, targy, mobj->mobjtable[i]->z);
+
+								previ = i;
+							}
+						}
+					}
+
+					// Was this so hard?
+					if ((mobj->type == MT_BANANA_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
 						|| (mobj->type == MT_SSMINE_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
 						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_eggmanheld])
 						|| (mobj->type != MT_FAKESHIELD && !mobj->target->player->kartstuff[k_itemheld])

@@ -14510,7 +14510,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_BANANA_SHIELD
 		-1,             // doomednum
-		S_BANANA,   // spawnstate
+		S_BANANA,       // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14521,12 +14521,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_BANANA_DEAD,   // deathstate
+		S_BANANA_DEAD,  // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		0,				// speed
-		16*FRACUNIT,    // radius
-		32*FRACUNIT,    // height
+		12*FRACUNIT,    // radius
+		20*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
 		1,              // damage

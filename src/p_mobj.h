@@ -367,6 +367,7 @@ typedef struct mobj_s
 #endif
 
 	boolean colorized; // Whether the mobj uses the rainbow colormap
+	struct mobj_s *mobjtable[10]; // Table of 10 mobj pointers
 
 	// WARNING: New fields must be added separately to savegame and Lua.
 } mobj_t;

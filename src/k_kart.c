@@ -2008,6 +2008,37 @@ void K_DriftDustHandling(mobj_t *spawner)
 	}
 }
 
+static mobj_t *K_FindLastTrailMobj(player_t *player)
+{
+	thinker_t *th;
+	mobj_t *mo;
+	mobj_t *trail = NULL;
+
+	if (!player)
+		return NULL;
+	
+	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	{
+		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+			continue;
+
+		mo = (mobj_t *)th;
+
+		if (mo->type != MT_BANANA_SHIELD
+			&& mo->type != MT_FAKESHIELD
+			&& mo->type != MT_SSMINE_SHIELD)
+			continue;
+
+		if (!mo->target || !mo->target->player || mo->target->player != player)
+			continue;
+
+		if (trail == NULL || (mo->lastlook > trail->lastlook))
+			trail = mo;
+	}
+
+	return trail;
+}
+
 static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean minethrow)
 {
 	mobj_t *mo;
@@ -2124,13 +2155,23 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		}
 		else
 		{
-			fixed_t dropradius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(mobjinfo[mapthing].radius, mobjinfo[mapthing].radius);
+			mobj_t *lasttrail = K_FindLastTrailMobj(player);
 
-			// Drop it directly behind you.
-			newangle = player->mo->angle;
+			if (lasttrail)
+			{
+				newx = lasttrail->x;
+				newy = lasttrail->y;
+			}
+			else
+			{
+				// Drop it directly behind you.
+				fixed_t dropradius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(mobjinfo[mapthing].radius, mobjinfo[mapthing].radius);
 
-			newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, dropradius);
-			newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, dropradius);
+				newangle = player->mo->angle;
+
+				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, dropradius);
+				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, dropradius);
+			}
 
 			mo = P_SpawnMobj(newx, newy, player->mo->z, mapthing);
 
@@ -2986,48 +3027,49 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_BANANA:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						if (player->kartstuff[k_itemamount] == 1) // Banana x1 held
-						{
-							angle_t newangle;
-							fixed_t newx;
-							fixed_t newy;
-							mobj_t *mo;
-							player->kartstuff[k_itemheld] = 1;
-							player->pflags |= PF_ATTACKDOWN;
-							newangle = player->mo->angle;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
-							mo->threshold = 10;
-							if (mo)
-								P_SetTarget(&mo->target, player->mo);
-						}
-						else if (player->kartstuff[k_itemamount] > 1) // Banana x3 held
-						{
-							INT32 moloop;
+						angle_t newangle;
+						fixed_t newx;
+						fixed_t newy;
+						mobj_t *master;
 
-							K_PlayTauntSound(player->mo);
-							player->kartstuff[k_itemheld] = 2;
-							player->pflags |= PF_ATTACKDOWN;
+						player->kartstuff[k_itemheld] = 1;
+						player->pflags |= PF_ATTACKDOWN;
+						newangle = player->mo->angle;
+						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
+						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
+						master = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
+						master->threshold = 10;
+						master->movecount = player->kartstuff[k_itemamount]-1;
+						master->lastlook = 1;
 
-							for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
+						if (master)
+						{
+							P_SetTarget(&master->target, player->mo);
+
+							if (master->movecount > 0) // Banana x3/x10 held
 							{
-								angle_t newangle;
-								fixed_t newx;
-								fixed_t newy;
-								mobj_t *mo;
-			
-								newangle = player->mo->angle;
-								newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
+								INT32 moloop;
+								K_PlayTauntSound(player->mo);
+								player->kartstuff[k_itemheld] = 2;
 
-								if (mo)
+								for (moloop = 0; moloop < master->movecount; moloop++)
 								{
-									mo->threshold = 10;
-									mo->lastlook = moloop+1;
-									P_SetTarget(&mo->target, player->mo);
-									mo->angle = FixedAngle(((90/player->kartstuff[k_itemamount])*moloop)*FRACUNIT);
+									if (moloop >= 10) // maxed out mobjtable
+										break;
+
+									newangle = player->mo->angle;
+									newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
+									newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
+									master->mobjtable[moloop] = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
+
+									if (master->mobjtable[moloop])
+									{
+										master->mobjtable[moloop]->threshold = 10;
+										master->mobjtable[moloop]->lastlook = moloop+2;
+										P_SetTarget(&master->mobjtable[moloop]->target, player->mo);
+										P_SetTarget(&master->mobjtable[moloop]->tracer, master);
+										master->mobjtable[moloop]->angle = newangle;
+									}
 								}
 							}
 						}
@@ -3041,7 +3083,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld] == 2) // Banana x3 thrown
 					{
-						K_ThrowKartItem(player, false, MT_BANANA, -1,false );
+						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
 						K_PlayTauntSound(player->mo);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
