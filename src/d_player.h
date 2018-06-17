@@ -256,6 +256,7 @@ typedef enum
 	// Additional roulette numbers, only used for K_KartGetItemResult
 	KRITEM_TRIPLESNEAKER = NUMKARTITEMS,
 	KRITEM_TRIPLEBANANA,
+	KRITEM_TENFOLDBANANA,
 	KRITEM_TRIPLEORBINAUT,
 	KRITEM_DUALJAWZ,
 

@@ -366,7 +366,7 @@ boolean K_IsPlayerLosing(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
-			   /*Sneaker*/ {20, 0, 0, 3, 7, 6, 0, 0, 0 }, // Sneaker
+			   /*Sneaker*/ {20, 0, 0, 3, 6, 6, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 5, 4, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,16 }, // Invincibility
 				/*Banana*/ { 0, 8, 4, 2, 1, 0, 0, 0, 0 }, // Banana
@@ -375,7 +375,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 1, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 2, 3, 2, 1, 0 }, // Self-Propelled Bomb
+   /*Self-Propelled Bomb*/ { 0, 0, 0, 1, 2, 3, 3, 2, 1 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 2 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
@@ -384,6 +384,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
 			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 8, 7, 4, 0 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
+			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
 		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Orbinaut x3
 			   /*Jawz x2*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }  // Jawz x2
 };
@@ -409,6 +410,7 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
 			/*Sneaker x3*/ { 3, 0, 0, 0, 0, 2 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 2, 2, 1, 1, 2 }, // Banana x3
+			/*Banana x10*/ { 0, 0, 0, 0, 0, 0 }, // Banana x10
 		   /*Orbinaut x3*/ { 0, 3, 1, 1, 0, 2 }, // Orbinaut x3
 			   /*Jawz x2*/ { 3, 2, 0, 0, 0, 2 }  // Jawz x2
 };
@@ -432,6 +434,10 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 		case KRITEM_TRIPLEBANANA: // Banana x3
 			player->kartstuff[k_itemtype] = KITEM_BANANA;
 			player->kartstuff[k_itemamount] = 3;
+			break;
+		case KRITEM_TENFOLDBANANA: // Banana x10
+			player->kartstuff[k_itemtype] = KITEM_BANANA;
+			player->kartstuff[k_itemamount] = 10;
 			break;
 		case KRITEM_TRIPLEORBINAUT: // Orbinaut x3
 			player->kartstuff[k_itemtype] = KITEM_ORBINAUT;
@@ -588,6 +594,11 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 			if (!cv_triplesneaker.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEBANANA:
+			if (franticitems) newodds *= 2;
+			if (mashed) newodds /= 2;
+			if (!cv_triplebanana.value) newodds = 0;
+			break;
+		case KRITEM_TENFOLDBANANA:
 			if (franticitems) newodds *= 2;
 			if (mashed) newodds /= 2;
 			if (!cv_triplebanana.value) newodds = 0;
@@ -791,6 +802,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 	SETITEMRESULT(useodds, KRITEM_TRIPLESNEAKER);	// Sneaker x3
 	SETITEMRESULT(useodds, KRITEM_TRIPLEBANANA);	// Banana x3
+	SETITEMRESULT(useodds, KRITEM_TENFOLDBANANA);	// Banana x10
 	SETITEMRESULT(useodds, KRITEM_TRIPLEORBINAUT);	// Orbinaut x3
 	SETITEMRESULT(useodds, KRITEM_DUALJAWZ);		// Jawz x2
 
