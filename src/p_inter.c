@@ -2100,13 +2100,10 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		if (target->target->player->kartstuff[k_eggmanheld] && target->type == MT_FAKESHIELD)
 			target->target->player->kartstuff[k_eggmanheld] = 0;
 
-		if ((target->target->player->kartstuff[k_itemheld])
-			&& ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT)
-			|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ)
-			|| (target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
-			|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)))
+		if (target->target->player->kartstuff[k_itemheld])
 		{
-			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA)
+			
+			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA) // trail items
 				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE))
 			{
 				if (target->lastlook != 0 && target->lastlook < target->target->player->kartstuff[k_itemamount])
@@ -2117,17 +2114,21 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				}
 				else
 					target->target->player->kartstuff[k_itemamount]--;
+
+				if (!target->target->player->kartstuff[k_itemamount])
+					target->target->player->kartstuff[k_itemheld] = 0;
 			}
-			else
+			else if ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) // orbit items
+				|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ))
 			{
 				if (target->lastlook > 0)
 					target->target->player->kartstuff[k_itemamount] = target->lastlook-1;
 				else
 					target->target->player->kartstuff[k_itemamount]--;
-			}
 
-			if (!target->target->player->kartstuff[k_itemamount])
-				target->target->player->kartstuff[k_itemheld] = 0;
+				if (!target->target->player->kartstuff[k_itemamount])
+					target->target->player->kartstuff[k_itemheld] = 0;
+			}
 		}
 	}
 	//

@@ -3109,14 +3109,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_eggmanheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
 						newangle = player->mo->angle;
-						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_FAKESHIELD].radius);
+						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_FAKESHIELD].radius);
 						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_FAKESHIELD);
 						mo->threshold = 10;
+						mo->movecount = 1;
+						mo->lastlook = 1;
 						if (mo)
 						{
-							mo->scale = FRACUNIT/2;
-							mo->threshold = 10;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&player->mo->hnext, mo);
 						}
@@ -3272,10 +3272,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
 						newangle = player->mo->angle;
-						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_SSMINE_SHIELD].radius);
+						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_SSMINE_SHIELD].radius);
 						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_SSMINE_SHIELD);
 						mo->threshold = 10;
+						mo->movecount = 1;
+						mo->lastlook = 1;
 						if (mo)
 						{
 							P_SetTarget(&mo->target, player->mo);

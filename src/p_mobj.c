@@ -6689,7 +6689,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			case MT_GREENSHIELD: // Kart orbit items
 			case MT_JAWZ_SHIELD:
-				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
+				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					fixed_t z;
@@ -6762,7 +6762,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 				}
 				else if ((mobj->health > 0
-					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
+					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
 					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
@@ -6773,7 +6773,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_BANANA_SHIELD: // Kart trailing items
 			case MT_SSMINE_SHIELD:
 			case MT_FAKESHIELD:
-				if (mobj->health > 0 && mobj->target && mobj->target->player && mobj->target->player->mo
+				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					if (mobj->lastlook == 1)
@@ -6822,15 +6822,15 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((mobj->type == MT_BANANA_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
 						|| (mobj->type == MT_SSMINE_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
 						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_eggmanheld])
-						|| (mobj->type != MT_FAKESHIELD && !mobj->target->player->kartstuff[k_itemheld])
-						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))
+						|| (mobj->type != MT_FAKESHIELD && (!mobj->target->player->kartstuff[k_itemheld]
+						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))))
 					{
 						P_RemoveMobj(mobj);
 						return;
 					}
 				}
 				else if ((mobj->health > 0
-					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
+					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
 					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
