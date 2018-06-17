@@ -330,6 +330,7 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartdebugitem);
 	CV_RegisterVar(&cv_kartdebugamount);
+	CV_RegisterVar(&cv_kartdebugcheckpoint);
 }
 
 //}
@@ -2423,10 +2424,10 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->mo->colorized = false;
 	}
 
-	if (player->kartstuff[k_spinout])
+	if (player->kartstuff[k_spinout] && P_IsObjectOnGround(player->mo))
 		player->kartstuff[k_spinout]--;
 
-	if (player->kartstuff[k_spinouttimer])
+	if (player->kartstuff[k_spinouttimer] && P_IsObjectOnGround(player->mo))
 		player->kartstuff[k_spinouttimer]--;
 	else if (!comeback)
 		player->kartstuff[k_comebacktimer] = comebacktime;
@@ -2443,7 +2444,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_attractiontimer])
 		player->kartstuff[k_attractiontimer]--;
 
-	if (player->kartstuff[k_sneakertimer])
+	if (player->kartstuff[k_sneakertimer] && P_IsObjectOnGround(player->mo))
 		player->kartstuff[k_sneakertimer]--;
 
 	if (player->kartstuff[k_floorboost])
@@ -4966,6 +4967,15 @@ static void K_drawLapLakitu(void)
 		V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
 }
 
+static void K_drawCheckpointDebugger(void)
+{
+	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
+		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
+	else
+		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Skip: %d)", stplyr->starpostnum, numstarposts, (numstarposts/2 + stplyr->starpostnum)));
+	V_DrawString(8, 192, 0, va("Waypoint dist: Prev %d, Next %d", stplyr->kartstuff[k_prevcheck], stplyr->kartstuff[k_nextcheck]));
+}
+
 void K_drawKartHUD(void)
 {
 	// Define the X and Y for each drawn object
@@ -5052,6 +5062,9 @@ void K_drawKartHUD(void)
 			K_drawKartBalloonsOrKarma();
 		}
 	}
+
+	if (cv_kartdebugcheckpoint.value)
+		K_drawCheckpointDebugger();
 }
 
 //}
