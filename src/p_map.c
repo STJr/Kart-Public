@@ -1633,13 +1633,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
 				|| thing->player->kartstuff[k_hyudorotimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_invincibilitytimer] || thing->player->kartstuff[k_justbumped]
-				|| (G_BattleGametype() && (thing->player->kartstuff[k_balloon] <= 0
-				&& (thing->player->kartstuff[k_comebacktimer])))
+				|| (G_BattleGametype() && thing->player->kartstuff[k_balloon] <= 0)
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
 				|| tmthing->player->kartstuff[k_hyudorotimer] || tmthing->player->kartstuff[k_spinouttimer]
 				|| tmthing->player->kartstuff[k_invincibilitytimer] || tmthing->player->kartstuff[k_justbumped]
-				|| (G_BattleGametype() && (tmthing->player->kartstuff[k_balloon] <= 0
-				&& (tmthing->player->kartstuff[k_comebacktimer]))))
+				|| (G_BattleGametype() && tmthing->player->kartstuff[k_balloon] <= 0))
 			{
 				return true;
 			}

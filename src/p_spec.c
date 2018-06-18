@@ -4182,13 +4182,9 @@ DoneSection2:
 					//except the time!
 					player->starposttime = player->realtime;
 
-					if (P_IsLocalPlayer(player))
-					{
-						if (player->laps < (UINT8)(cv_numlaps.value - 1))
-							S_StartSound(NULL, sfx_mlap);
-						else if (player->laps == (UINT8)(cv_numlaps.value - 1))
-							S_StartSound(NULL, sfx_mlap);
-					}
+					if (P_IsLocalPlayer(player) && (player->laps <= (UINT8)(cv_numlaps.value - 1)))
+						S_StartSound(NULL, sfx_s221);
+
 					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;
 					//player->starpostx = player->starposty = player->starpostz = 0;

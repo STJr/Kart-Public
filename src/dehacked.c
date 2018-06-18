@@ -6325,8 +6325,24 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DEADGREEN",
 	//}
 	//{ Jawz
-	"S_JAWZ",
-	"S_JAWZ_SHIELD",
+	"S_JAWZ1",
+	"S_JAWZ2",
+	"S_JAWZ3",
+	"S_JAWZ4",
+	"S_JAWZ5",
+	"S_JAWZ6",
+	"S_JAWZ_DUD1",
+	"S_JAWZ_DUD2",
+	"S_JAWZ_DUD3",
+	"S_JAWZ_DUD4",
+	"S_JAWZ_DUD5",
+	"S_JAWZ_DUD6",
+	"S_JAWZ_SHIELD1",
+	"S_JAWZ_SHIELD2",
+	"S_JAWZ_SHIELD3",
+	"S_JAWZ_SHIELD4",
+	"S_JAWZ_SHIELD5",
+	"S_JAWZ_SHIELD6",
 	"S_JAWZ_DEAD",
 	//}
 
@@ -6583,7 +6599,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_PLAYERBOMB", // Player bomb overlay
 	"S_PLAYERITEM", // Player item overlay
-	"S_PLAYERBOMB_WHEEL",
+
+	"S_KARMAWHEEL", // Karma player wheels
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7212,7 +7229,9 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_FIREDITEM",
 
 	"MT_PLAYERARROW",
+
 	"MT_KARMAHITBOX",
+	"MT_KARMAWHEEL",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

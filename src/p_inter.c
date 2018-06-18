@@ -427,10 +427,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			if (player == special->target->player)
 				return;
-			if (player->kartstuff[k_growshrinktimer] || player->kartstuff[k_squishedtimer]
-				|| player->kartstuff[k_hyudorotimer] || player->kartstuff[k_spinouttimer]
-				|| player->kartstuff[k_invincibilitytimer] || player->powers[pw_flashing]
-				|| player->kartstuff[k_balloon] <= 0)
+			if (player->kartstuff[k_balloon] <= 0)
 				return;
 
 			if (special->target->player->kartstuff[k_comebacktimer]
@@ -440,25 +437,32 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			if (special->target->player->kartstuff[k_comebackmode] == 0)
 			{
-				mobj_t *boom = P_SpawnMobj(special->target->x, special->target->y, special->target->z, MT_BOOMPARTICLE);
-				boom->scale = special->target->scale;
-				boom->destscale = special->target->scale;
-				boom->momz = 5*FRACUNIT;
-				if (special->target->color)
-					boom->color = special->target->color;
+				if (player->kartstuff[k_growshrinktimer] || player->kartstuff[k_squishedtimer]
+					|| player->kartstuff[k_hyudorotimer] || player->kartstuff[k_spinouttimer]
+					|| player->kartstuff[k_invincibilitytimer] || player->powers[pw_flashing])
+					return;
 				else
-					boom->color = SKINCOLOR_RED;
-				S_StartSound(boom, special->info->attacksound);
+				{
+					mobj_t *boom = P_SpawnMobj(special->target->x, special->target->y, special->target->z, MT_BOOMPARTICLE);
+					boom->scale = special->target->scale;
+					boom->destscale = special->target->scale;
+					boom->momz = 5*FRACUNIT;
+					if (special->target->color)
+						boom->color = special->target->color;
+					else
+						boom->color = SKINCOLOR_RED;
+					S_StartSound(boom, special->info->attacksound);
 
-				K_ExplodePlayer(player, special->target);
+					K_ExplodePlayer(player, special->target);
 
-				special->target->player->kartstuff[k_comebackpoints] += 2;
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
-				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
-					K_StealBalloon(special->target->player, player, true);
+					special->target->player->kartstuff[k_comebackpoints] += 2;
+					if (netgame && cv_hazardlog.value)
+						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
+					if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+						K_StealBalloon(special->target->player, player, true);
 
-				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
+					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
+				}
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, true))
 			{

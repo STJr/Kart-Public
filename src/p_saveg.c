@@ -1029,7 +1029,6 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 	const mobj_t *mobj = (const mobj_t *)th;
 	UINT32 diff;
 	UINT16 diff2;
-	UINT8 i;
 
 	// Ignore stationary hoops - these will be respawned from mapthings.
 	if (mobj->type == MT_HOOP)

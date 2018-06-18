@@ -303,7 +303,7 @@ typedef enum
 	// Item held stuff
 	k_itemtype,		// KITEM_ constant for item number
 	k_itemamount,	// Amount of said item
-	k_itemheld,		// Are you holding an item? 1 = normal hold, 2 = rotation hold
+	k_itemheld,		// Are you holding an item?
 
 	// Some items use timers for their duration or effects
 	k_attractiontimer,		// Duration of Lightning Shield's item-break and item box pull

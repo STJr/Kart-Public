@@ -2079,7 +2079,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			dir = defaultDir;
 	}
 
-	if (missile)
+	if (missile) // Shootables
 	{
 		if (mapthing == MT_FIREBALL) // Messy
 		{
@@ -2102,7 +2102,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + 0x06000000, 0, PROJSPEED);
 			}
 		}
-		else // Shells
+		else
 		{
 			if (dir == -1)
 			{
@@ -2986,14 +2986,15 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	if (player && player->mo && player->mo->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
 	{
-		// Eggman Monitor dropping
-		if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_eggmanheld])
+		// First, the really specific, finicky items that function without the item being directly in your item slot.
+		// Eggman Monitor throwing
+		if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
 			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
 		}
-		// Rocket Sneaker power
+		// Rocket Sneaker
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
 			&& player->kartstuff[k_rocketsneakertimer] > 1)
 		{
@@ -3052,13 +3053,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mobj_t *mo;
 						mobj_t *prev = NULL;
 
-						if (player->kartstuff[k_itemamount] > 1)
-						{
-							K_PlayTauntSound(player->mo);
-							player->kartstuff[k_itemheld] = 2;
-						}
-						else
-							player->kartstuff[k_itemheld] = 1;
+						//K_PlayTauntSound(player->mo);
+						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
@@ -3082,14 +3078,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							prev = mo;
 						}
 					}
-					else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemheld] == 1)
-					{
-						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
-						K_PlayTauntSound(player->mo);
-						player->kartstuff[k_itemamount]--;
-						player->kartstuff[k_itemheld] = 0;
-					}
-					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld] == 2) // Banana x3 thrown
+					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Banana x3 thrown
 					{
 						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
 						K_PlayTauntSound(player->mo);
@@ -3126,61 +3115,34 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_ORBINAUT:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						/*if (player->kartstuff[k_itemamount] == 1) // Orbinaut x1 held
+						INT32 moloop;
+
+						player->kartstuff[k_itemheld] = 1;
+						player->pflags |= PF_ATTACKDOWN;
+						//K_PlayTauntSound(player->mo);
+						S_StartSound(player->mo, sfx_s3k3a);
+
+						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							angle_t newangle;
 							fixed_t newx;
 							fixed_t newy;
 							mobj_t *mo;
-							player->kartstuff[k_itemheld] = 1;
-							player->pflags |= PF_ATTACKDOWN;
+
 							newangle = player->mo->angle;
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_GREENSHIELD);
-							mo->threshold = 10;
 							if (mo)
-								P_SetTarget(&mo->target, player->mo);
-						}
-						else if (player->kartstuff[k_itemamount] > 1) // Orbinaut x3 held
-						{*/
-							INT32 moloop;
-
-							player->kartstuff[k_itemheld] = 2;
-							player->pflags |= PF_ATTACKDOWN;
-							//K_PlayTauntSound(player->mo);
-							S_StartSound(player->mo, sfx_s3k3a);
-
-							for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 							{
-								angle_t newangle;
-								fixed_t newx;
-								fixed_t newy;
-								mobj_t *mo;
-
-								newangle = player->mo->angle;
-								newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_GREENSHIELD);
-								if (mo)
-								{
-									mo->threshold = 10;
-									mo->lastlook = moloop+1;
-									P_SetTarget(&mo->target, player->mo);
-									mo->angle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT);
-								}
+								mo->threshold = 10;
+								mo->lastlook = moloop+1;
+								P_SetTarget(&mo->target, player->mo);
+								mo->angle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
 							}
-						//}
+						}
 					}
-					else if (!(cmd->buttons & BT_ATTACK) && player->kartstuff[k_itemheld] == 1)
-					{
-						player->kartstuff[k_itemamount]--;
-						player->kartstuff[k_itemheld] = 0;
-
-						K_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
-						K_PlayTauntSound(player->mo);
-					}
-					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld] == 2) // Orbinaut x3 thrown
+					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Orbinaut x3 thrown
 					{
 						K_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
 						K_PlayTauntSound(player->mo);
@@ -3194,63 +3156,34 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_JAWZ:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						/*if (player->kartstuff[k_itemamount] == 1) // Jawz x1 held
+						INT32 moloop;
+
+						player->kartstuff[k_itemheld] = 1;
+						player->pflags |= PF_ATTACKDOWN;
+						//K_PlayTauntSound(player->mo);
+						S_StartSound(player->mo, sfx_s3k3a);
+
+						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							angle_t newangle;
 							fixed_t newx;
 							fixed_t newy;
 							mobj_t *mo;
-							player->kartstuff[k_itemheld] = 1;
-							player->pflags |= PF_ATTACKDOWN;
+
 							newangle = player->mo->angle;
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
-							mo->threshold = 10;
 							if (mo)
-								P_SetTarget(&mo->target, player->mo);
-						}
-						else if (player->kartstuff[k_itemamount] > 1) // Jawz x2 held
-						{*/
-							INT32 moloop;
-
-							player->kartstuff[k_itemheld] = 2;
-							player->pflags |= PF_ATTACKDOWN;
-							//K_PlayTauntSound(player->mo);
-							S_StartSound(player->mo, sfx_s3k3a);
-
-							for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 							{
-								angle_t newangle;
-								fixed_t newx;
-								fixed_t newy;
-								mobj_t *mo;
-
-								newangle = player->mo->angle;
-								newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-								mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
-								if (mo)
-								{
-									mo->threshold = 10;
-									mo->lastlook = moloop+1;
-									P_SetTarget(&mo->target, player->mo);
-									mo->angle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT);
-								}
+								mo->threshold = 10;
+								mo->lastlook = moloop+1;
+								P_SetTarget(&mo->target, player->mo);
+								mo->angle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
 							}
-						//}
+						}
 					}
-					else if (!(cmd->buttons & BT_ATTACK) && HOLDING_ITEM && player->kartstuff[k_itemheld] == 1) // Jawz x1 thrown
-					{
-						player->kartstuff[k_itemamount]--;
-						player->kartstuff[k_itemheld] = 0;
-						if (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0)
-							K_ThrowKartItem(player, true, MT_JAWZ, 1, false);
-						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
-							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
-						K_PlayTauntSound(player->mo);
-					}
-					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld] == 2) // Jawz x2 thrown
+					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Jawz thrown
 					{
 						if (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0)
 							K_ThrowKartItem(player, true, MT_JAWZ, 1, false);
@@ -3258,6 +3191,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
 						K_PlayTauntSound(player->mo);
 						player->pflags |= PF_ATTACKDOWN;
+
 						player->kartstuff[k_itemamount]--;
 						if (!player->kartstuff[k_itemamount])
 							player->kartstuff[k_itemheld] = 0;
@@ -3285,7 +3219,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							P_SetTarget(&player->mo->hnext, mo);
 						}
 					}
-					else if (!(cmd->buttons & BT_ATTACK) && HOLDING_ITEM)
+					else if (!(cmd->buttons & BT_ATTACK) && HOLDING_ITEM && player->kartstuff[k_itemheld])
 					{
 						K_ThrowKartItem(player, false, MT_SSMINE, 1, true);
 						K_PlayTauntSound(player->mo);

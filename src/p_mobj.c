@@ -6695,11 +6695,8 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t z;
 					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
 
-					//mobj->angle += FixedAngle(12*FRACUNIT); // mobj's actual speed.
-					if (mobj->lastlook > 0)
-						mobj->angle += FixedAngle(mobj->info->speed);
-					else
-						mobj->angle = (mobj->target->angle + ANGLE_180);
+					mobj->angle -= ANGLE_90;
+					mobj->angle += FixedAngle(mobj->info->speed);
 
 					// If the player is on the ceiling, then flip your items as well.
 					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
@@ -6750,6 +6747,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 					mobj->z = z;
 					mobj->momx = mobj->momy = 0;
+					mobj->angle += ANGLE_90;
 
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
@@ -6778,7 +6776,7 @@ void P_MobjThinker(mobj_t *mobj)
 				{
 					if (mobj->lastlook == 1)
 					{
-						const fixed_t spacing = FixedMul(mobj->info->radius, mobj->target->scale);
+						const fixed_t spacing = FixedMul(3*mobj->info->radius/2, mobj->target->scale);
 						mobj_t *cur = mobj;
 						mobj_t *targ = mobj->target;
 
@@ -6789,27 +6787,31 @@ void P_MobjThinker(mobj_t *mobj)
 							fixed_t targy;
 							fixed_t targz;
 							fixed_t speed;
+							fixed_t dist = spacing;
 
 							if (cur != mobj)
+							{
 								targ = cur->hprev;
+								dist = spacing/2;
+							}
 
 							if (!targ || P_MobjWasRemoved(targ))
 								continue;
 
 							ang = targ->angle;
-							targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, spacing);
-							targy = targ->y + P_ReturnThrustY(cur, ang + ANGLE_180, spacing);
+							targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, dist);
+							targy = targ->y + P_ReturnThrustY(cur, ang + ANGLE_180, dist);
 							targz = targ->z;
-							speed = FixedMul(R_PointToDist2(cur->x, cur->y, targx, targy), FRACUNIT/2);
+							speed = FixedMul(R_PointToDist2(cur->x, cur->y, targx, targy), 3*FRACUNIT/4);
 							if (P_IsObjectOnGround(targ))
 								targz = cur->floorz;
 
 							cur->angle = R_PointToAngle2(cur->x, cur->y, targx, targy);
 
-							if (speed > spacing/2)
-								P_InstaThrust(cur, cur->angle, speed-(spacing/2));
+							if (speed > dist)
+								P_InstaThrust(cur, cur->angle, speed-dist);
 
-							P_SetObjectMomZ(cur, FixedMul(targz - cur->z, FRACUNIT/2), false);
+							P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 3*FRACUNIT/4) - gravity, false);
 
 							if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
 								P_TeleportMove(cur, targx, targy, cur->z);
@@ -8240,6 +8242,32 @@ void P_MobjThinker(mobj_t *mobj)
 				else
 					mobj->flags2 &= ~MF2_DONTDRAW;
 			}
+
+			// Now for the wheels
+			{
+				const fixed_t rad = mobjinfo[MT_PLAYER].radius;
+				mobj_t *cur = mobj->hnext;
+
+				while (cur && !P_MobjWasRemoved(cur))
+				{
+					fixed_t offx = rad;
+					fixed_t offy = rad;
+
+					if (cur->lastlook == 1 || cur->lastlook == 3)
+						offx *= -1;
+					if (cur->lastlook == 2 || cur->lastlook == 3)
+						offy *= -1;
+
+					P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
+
+					if (mobj->flags2 & MF2_DONTDRAW)
+						cur->flags2 |= MF2_DONTDRAW;
+					else
+						cur->flags2 &= ~MF2_DONTDRAW;
+
+					cur = cur->hnext;
+				}
+			}
 			break;
 		//}
 		case MT_TURRET:
@@ -9000,6 +9028,35 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_COIN:
 		case MT_BLUEBALL:
 			nummaprings++;
+			break;
+		case MT_KARMAHITBOX: // SRB2Kart
+			{
+				const fixed_t rad = mobjinfo[MT_PLAYER].radius;
+				mobj_t *cur, *prev = mobj;
+				INT32 i;
+
+				for (i = 0; i < 4; i++)
+				{
+					fixed_t offx = rad;
+					fixed_t offy = rad;
+
+					if (i == 1 || i == 3)
+						offx *= -1;
+					if (i == 2 || i == 3)
+						offy *= -1;
+
+					cur = P_SpawnMobj(mobj->x + offx, mobj->y + offy, mobj->z, MT_KARMAWHEEL);
+					cur->destscale = mobj->scale;
+					P_SetScale(cur, mobj->scale);
+
+					cur->lastlook = i;
+
+					P_SetTarget(&cur->hprev, prev);
+					P_SetTarget(&prev->hnext, cur);
+
+					prev = cur;
+				}
+			}
 			break;
 		default:
 			break;

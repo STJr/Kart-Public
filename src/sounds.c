@@ -316,7 +316,7 @@ sfxinfo_t S_sfx[NUMSFX] =
 
   // Sonic 2 sounds
   {"s220",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s221",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s221",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Lap sound
   {"s222",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s223",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s224",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
