@@ -2427,7 +2427,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_spinout] && P_IsObjectOnGround(player->mo))
 		player->kartstuff[k_spinout]--;
 
-	if (player->kartstuff[k_spinouttimer] && P_IsObjectOnGround(player->mo))
+	if (player->kartstuff[k_spinouttimer] && (P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype]))
 		player->kartstuff[k_spinouttimer]--;
 	else if (!comeback)
 		player->kartstuff[k_comebacktimer] = comebacktime;
@@ -2444,7 +2444,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_attractiontimer])
 		player->kartstuff[k_attractiontimer]--;
 
-	if (player->kartstuff[k_sneakertimer] && P_IsObjectOnGround(player->mo))
+	if (player->kartstuff[k_sneakertimer] && (P_IsObjectOnGround(player->mo) && !player->kartstuff[k_spinouttimer]))
 		player->kartstuff[k_sneakertimer]--;
 
 	if (player->kartstuff[k_floorboost])
