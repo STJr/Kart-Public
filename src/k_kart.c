@@ -368,7 +368,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
 			   /*Sneaker*/ {20, 0, 0, 3, 6, 5, 0, 0, 0 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 4, 5, 0 }, // Rocket Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 5, 5, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,16 }, // Invincibility
 				/*Banana*/ { 0, 8, 4, 2, 1, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Eggman Monitor
@@ -383,7 +383,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 7, 7, 4, 0 }, // Sneaker x3
+			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 7, 6, 4, 0 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
 		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Orbinaut x3
