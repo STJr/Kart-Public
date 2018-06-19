@@ -2283,7 +2283,7 @@ static void K_DoHyudoroSteal(player_t *player)
 void K_DoSneaker(player_t *player, boolean doPFlag)
 {
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-		S_StartSound(player->mo, sfx_mush);
+		S_StartSound(player->mo, sfx_s23c);
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
 
@@ -2710,7 +2710,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 20;
-		S_StartSound(player->mo, sfx_mush);
+		S_StartSound(player->mo, sfx_s23c);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
@@ -2719,7 +2719,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 50;
-		S_StartSound(player->mo, sfx_mush);
+		S_StartSound(player->mo, sfx_s23c);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 
@@ -3499,7 +3499,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_boostcharge] >= 35 && player->kartstuff[k_boostcharge] <= 50)
 		{
 			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-				S_StartSound(player->mo, sfx_sboost);
+				S_StartSound(player->mo, sfx_s23c);
 
 			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
 		}
