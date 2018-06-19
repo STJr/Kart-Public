@@ -367,23 +367,23 @@ boolean K_IsPlayerLosing(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
-			   /*Sneaker*/ {20, 0, 0, 3, 6, 6, 0, 0, 0 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 5, 4, 0 }, // Rocket Sneaker
+			   /*Sneaker*/ {20, 0, 0, 3, 6, 5, 0, 0, 0 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 4, 5, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,16 }, // Invincibility
 				/*Banana*/ { 0, 8, 4, 2, 1, 0, 0, 0, 0 }, // Banana
-		/*Eggman Monitor*/ { 0, 4, 2, 1, 0, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 6, 4, 3, 2, 0, 0, 0, 0 }, // Orbinaut
+		/*Eggman Monitor*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 0, 6, 5, 4, 2, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 1, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 0, 1, 2, 3, 3, 2, 1 }, // Self-Propelled Bomb
+   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 2, 3, 4, 3, 2 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 2 }, // Shrink
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
-			   /*Hyudoro*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Hyudoro
+			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 8, 7, 4, 0 }, // Sneaker x3
+			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 7, 7, 4, 0 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
 		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Orbinaut x3
@@ -409,9 +409,9 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 			   /*Hyudoro*/ { 0, 0, 1, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 1, 2, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 3, 0, 0, 0, 0, 2 }, // Sneaker x3
+			/*Sneaker x3*/ { 2, 0, 0, 0, 0, 2 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 2, 2, 1, 1, 2 }, // Banana x3
-			/*Banana x10*/ { 0, 0, 0, 0, 0, 0 }, // Banana x10
+			/*Banana x10*/ { 1, 0, 0, 0, 0, 0 }, // Banana x10
 		   /*Orbinaut x3*/ { 0, 3, 1, 1, 0, 2 }, // Orbinaut x3
 			   /*Jawz x2*/ { 3, 2, 0, 0, 0, 2 }  // Jawz x2
 };

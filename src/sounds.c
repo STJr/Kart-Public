@@ -493,7 +493,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k8f",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k90",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k91",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k92",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Hyudoro use
+  {"s3k92",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Hyudoro use
   {"s3k93",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k94",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k95",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -543,7 +543,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kbel", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kbfs", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kbfl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3kc0s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3kc0s", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Jawz
   {"s3kc0l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kc1s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kc1l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -645,7 +645,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm36", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm37", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm38", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm39", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SS Mine deployed
+  {"cdfm39", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SS Mine deployed
   {"cdfm40", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm41", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm42", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -703,7 +703,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc2c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc2f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring use
+  {"kc2f",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring use
   {"kc30",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc31",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc32",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -726,7 +726,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc43",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc44",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc45",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc46",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink use
+  {"kc46",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink use
   {"kc47",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc48",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Vote picked
   {"kc49",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -743,10 +743,10 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc54",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc55",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc56",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc57",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SPB locked in
+  {"kc57",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SPB locked in
   {"kc58",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc59",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink
-  {"kc5a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow
+  {"kc59",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink
+  {"kc5a",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow
   {"kc5b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc5c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc5d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

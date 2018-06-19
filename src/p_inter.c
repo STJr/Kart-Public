@@ -443,7 +443,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					return;
 				else
 				{
-					mobj_t *boom = P_SpawnMobj(special->target->x, special->target->y, special->target->z, MT_BOOMPARTICLE);
+					mobj_t *boom = P_SpawnMobj(special->target->x, special->target->y, special->target->z, MT_BOOMEXPLODE);
 					boom->scale = special->target->scale;
 					boom->destscale = special->target->scale;
 					boom->momz = 5*FRACUNIT;
@@ -2106,7 +2106,6 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 
 		if (target->target->player->kartstuff[k_itemheld])
 		{
-			
 			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA) // trail items
 				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE))
 			{
@@ -2118,21 +2117,21 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				}
 				else
 					target->target->player->kartstuff[k_itemamount]--;
-
-				if (!target->target->player->kartstuff[k_itemamount])
-					target->target->player->kartstuff[k_itemheld] = 0;
 			}
 			else if ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) // orbit items
 				|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ))
 			{
-				if (target->lastlook > 0)
+				if (target->lastlook != 0)
 					target->target->player->kartstuff[k_itemamount] = target->lastlook-1;
 				else
 					target->target->player->kartstuff[k_itemamount]--;
-
-				if (!target->target->player->kartstuff[k_itemamount])
-					target->target->player->kartstuff[k_itemheld] = 0;
 			}
+
+			if (target->target->player->kartstuff[k_itemamount] < 0)
+				target->target->player->kartstuff[k_itemamount] = 0;
+
+			if (!target->target->player->kartstuff[k_itemamount])
+				target->target->player->kartstuff[k_itemheld] = 0;
 		}
 	}
 	//

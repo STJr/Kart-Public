@@ -7463,12 +7463,15 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		//{ SRB2kart Items - Death States
 		case MT_GREENITEM:
-		case MT_JAWZ:
-		case MT_JAWZ_DUD:
 		case MT_BANANA:
 		case MT_FAKEITEM:
 			if (mobj->z <= mobj->floorz)
 				P_RemoveMobj(mobj);
+			break;
+		case MT_JAWZ:
+		case MT_JAWZ_DUD:
+			if (mobj->z <= mobj->floorz)
+				P_SetMobjState(mobj, mobj->info->xdeathstate);
 			break;
 		case MT_SSMINE:
 		case MT_BLUEEXPLOSION:

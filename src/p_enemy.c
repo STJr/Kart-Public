@@ -189,6 +189,7 @@ void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
 void A_ItemPop(mobj_t *actor); // SRB2kart
 void A_JawzChase(mobj_t *actor); // SRB2kart
+void A_JawzExplode(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
@@ -8085,7 +8086,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_JawzChase and A_MineExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, and A_MineExplode
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8256,6 +8257,44 @@ void A_JawzChase(mobj_t *actor)
 
 	return;
 
+}
+
+void A_JawzExplode(mobj_t *actor)
+{
+	INT32 shrapnel = 2;
+	mobj_t *truc;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_JawzExplode", actor))
+		return;
+#endif
+
+	truc = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOOMEXPLODE);
+	truc->scale = actor->scale;
+	truc->color = SKINCOLOR_RED;
+
+	while (shrapnel)
+	{
+		INT32 speed, speed2;
+
+		truc = P_SpawnMobj(actor->x + P_RandomRange(-8, 8)*FRACUNIT, actor->y + P_RandomRange(-8, 8)*FRACUNIT,
+			actor->z + P_RandomRange(0, 8)*FRACUNIT, MT_BOOMPARTICLE);
+		truc->scale = actor->scale;
+
+		speed = FixedMul(7*FRACUNIT, actor->scale)>>FRACBITS;
+		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
+
+		speed = FixedMul(5*FRACUNIT, actor->scale)>>FRACBITS;
+		speed2 = FixedMul(15*FRACUNIT, actor->scale)>>FRACBITS;
+		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
+		truc->tics = TICRATE*2;
+		truc->color = SKINCOLOR_RED;
+
+		shrapnel--;
+	}
+
+	return;
 }
 
 void A_MineExplode(mobj_t *actor)

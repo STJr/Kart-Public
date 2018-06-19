@@ -2657,24 +2657,34 @@ state_t states[NUMSTATES] =
 	{SPR_GSHE, 8, 175, {NULL}, 0, 0, S_NULL},			// S_DEADGREEN
 
 	{SPR_JAWZ, 0, 1, {A_JawzChase}, 0, 0, S_JAWZ2},	// S_JAWZ1
-	{SPR_JAWZ, 3, 1, {A_JawzChase}, 0, 0, S_JAWZ3},	// S_JAWZ2
+	{SPR_JAWZ, 4, 1, {A_JawzChase}, 0, 0, S_JAWZ3},	// S_JAWZ2
 	{SPR_JAWZ, 1, 1, {A_JawzChase}, 0, 0, S_JAWZ4},	// S_JAWZ3
-	{SPR_JAWZ, 3, 1, {A_JawzChase}, 0, 0, S_JAWZ5},	// S_JAWZ4
+	{SPR_JAWZ, 4, 1, {A_JawzChase}, 0, 0, S_JAWZ5},	// S_JAWZ4
 	{SPR_JAWZ, 2, 1, {A_JawzChase}, 0, 0, S_JAWZ6},	// S_JAWZ5
-	{SPR_JAWZ, 3, 1, {A_JawzChase}, 0, 0, S_JAWZ1},	// S_JAWZ6
-	{SPR_JAWZ, 0, 1, {NULL}, 0, 0, S_JAWZ_DUD2},		// S_JAWZ_DUD1
-	{SPR_JAWZ, 3, 1, {NULL}, 0, 0, S_JAWZ_DUD3},		// S_JAWZ_DUD2
-	{SPR_JAWZ, 1, 1, {NULL}, 0, 0, S_JAWZ_DUD4},		// S_JAWZ_DUD3
-	{SPR_JAWZ, 3, 1, {NULL}, 0, 0, S_JAWZ_DUD5},		// S_JAWZ_DUD4
-	{SPR_JAWZ, 2, 1, {NULL}, 0, 0, S_JAWZ_DUD6},		// S_JAWZ_DUD5
-	{SPR_JAWZ, 3, 1, {NULL}, 0, 0, S_JAWZ_DUD1},		// S_JAWZ_DUD6
-	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_SHIELD2},	// S_JAWZ_SHIELD1
-	{SPR_JAWZ, 7, 1, {NULL}, 0, 0, S_JAWZ_SHIELD3},	// S_JAWZ_SHIELD2
-	{SPR_JAWZ, 5, 1, {NULL}, 0, 0, S_JAWZ_SHIELD4},	// S_JAWZ_SHIELD3
-	{SPR_JAWZ, 7, 1, {NULL}, 0, 0, S_JAWZ_SHIELD5},	// S_JAWZ_SHIELD4
-	{SPR_JAWZ, 6, 1, {NULL}, 0, 0, S_JAWZ_SHIELD6},	// S_JAWZ_SHIELD5
-	{SPR_JAWZ, 7, 1, {NULL}, 0, 0, S_JAWZ_SHIELD1},	// S_JAWZ_SHIELD6
-	{SPR_JAWZ, 8, 175, {NULL}, 0, 0, S_NULL},			// S_JAWZ_DEAD
+	{SPR_JAWZ, 4, 1, {A_JawzChase}, 0, 0, S_JAWZ7},	// S_JAWZ6
+	{SPR_JAWZ, 3, 1, {A_JawzChase}, 0, 0, S_JAWZ8},	// S_JAWZ7
+	{SPR_JAWZ, 4, 1, {A_JawzChase}, 0, 0, S_JAWZ1},	// S_JAWZ8
+
+	{SPR_JAWZ, 0, 1, {NULL}, 0, 0, S_JAWZ_DUD2},	// S_JAWZ_DUD1
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_DUD3},	// S_JAWZ_DUD2
+	{SPR_JAWZ, 1, 1, {NULL}, 0, 0, S_JAWZ_DUD4},	// S_JAWZ_DUD3
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_DUD5},	// S_JAWZ_DUD4
+	{SPR_JAWZ, 2, 1, {NULL}, 0, 0, S_JAWZ_DUD6},	// S_JAWZ_DUD5
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_DUD7},	// S_JAWZ_DUD6
+	{SPR_JAWZ, 3, 1, {NULL}, 0, 0, S_JAWZ_DUD8},	// S_JAWZ_DUD7
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_DUD1},	// S_JAWZ_DUD8
+
+	{SPR_JAWZ, 0, 1, {NULL}, 0, 0, S_JAWZ_SHIELD2},	// S_JAWZ_SHIELD1
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_SHIELD3},	// S_JAWZ_SHIELD2
+	{SPR_JAWZ, 1, 1, {NULL}, 0, 0, S_JAWZ_SHIELD4},	// S_JAWZ_SHIELD3
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_SHIELD5},	// S_JAWZ_SHIELD4
+	{SPR_JAWZ, 2, 1, {NULL}, 0, 0, S_JAWZ_SHIELD6},	// S_JAWZ_SHIELD5
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_SHIELD7},	// S_JAWZ_SHIELD6
+	{SPR_JAWZ, 3, 1, {NULL}, 0, 0, S_JAWZ_SHIELD8},	// S_JAWZ_SHIELD7
+	{SPR_JAWZ, 4, 1, {NULL}, 0, 0, S_JAWZ_SHIELD1},	// S_JAWZ_SHIELD8
+
+	{SPR_JAWZ, 5, 175, {NULL}, 0, 0, S_JAWZ_DEAD2},	// S_JAWZ_DEAD1
+	{SPR_NULL, 0, 1, {A_JawzExplode}, 0, 0, S_NULL},	// S_JAWZ_DEAD2
 
 	{SPR_FBLL, 13, 3, {NULL}, 0, 0, S_FIRETRAIL2},                      // S_FIRETRAIL1
 	{SPR_FBLL, 14, 3, {NULL}, 0, 0, S_FIRETRAIL3},                      // S_FIRETRAIL2
@@ -14646,8 +14656,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_JAWZ_DEAD,    // deathstate
-		S_NULL,         // xdeathstate
+		S_JAWZ_DEAD1,   // deathstate
+		S_JAWZ_DEAD2,   // xdeathstate
 		sfx_shbrk,      // deathsound
 		7*FRACUNIT,     // speed
 		16*FRACUNIT,    // radius
@@ -14655,7 +14665,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		1,              // damage
-		sfx_redshl,     // activesound
+		sfx_s3kc0s,     // activesound
 		MF_SHOOTABLE,   // flags
 		S_NULL          // raisestate
 	},
@@ -14673,8 +14683,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_JAWZ_DEAD,    // deathstate
-		S_NULL,         // xdeathstate
+		S_JAWZ_DEAD1,   // deathstate
+		S_JAWZ_DEAD2,   // xdeathstate
 		sfx_shbrk,      // deathsound
 		56*FRACUNIT,    // speed
 		16*FRACUNIT,    // radius
@@ -14682,7 +14692,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		1,              // damage
-		sfx_redshl,     // activesound
+		sfx_s3kc0s,     // activesound
 		MF_SHOOTABLE,   // flags
 		S_NULL          // raisestate
 	},
@@ -14700,8 +14710,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_JAWZ_DEAD,    // deathstate
-		S_NULL,         // xdeathstate
+		S_JAWZ_DEAD1,   // deathstate
+		S_JAWZ_DEAD2,   // xdeathstate
 		sfx_None,       // deathsound
 		10*FRACUNIT,    // speed
 		16*FRACUNIT,    // radius

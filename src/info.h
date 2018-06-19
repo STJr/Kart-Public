@@ -165,6 +165,7 @@ void A_RemoteAction();
 void A_ToggleFlameJet();
 void A_ItemPop(); // SRB2kart
 void A_JawzChase(); // SRB2kart
+void A_JawzExplode(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_OrbitNights();
 void A_GhostMe();
@@ -3173,19 +3174,26 @@ typedef enum state
 	S_JAWZ4,
 	S_JAWZ5,
 	S_JAWZ6,
+	S_JAWZ7,
+	S_JAWZ8,
 	S_JAWZ_DUD1,
 	S_JAWZ_DUD2,
 	S_JAWZ_DUD3,
 	S_JAWZ_DUD4,
 	S_JAWZ_DUD5,
 	S_JAWZ_DUD6,
+	S_JAWZ_DUD7,
+	S_JAWZ_DUD8,
 	S_JAWZ_SHIELD1,
 	S_JAWZ_SHIELD2,
 	S_JAWZ_SHIELD3,
 	S_JAWZ_SHIELD4,
 	S_JAWZ_SHIELD5,
 	S_JAWZ_SHIELD6,
-	S_JAWZ_DEAD,
+	S_JAWZ_SHIELD7,
+	S_JAWZ_SHIELD8,
+	S_JAWZ_DEAD1,
+	S_JAWZ_DEAD2,
 	//}
 
 	S_FIRETRAIL1,
