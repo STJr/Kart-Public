@@ -1320,7 +1320,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->driftturn = (INT16)(cmd->driftturn - (mousex*(mirrormode ? -1 : 1)*8));
 	}
 
-	// Bounce pad strafing
+	// Speed bump strafing
 	if (!demoplayback && ((player->pflags & PF_FORCESTRAFE) || (player->kartstuff[k_pogospring])))
 	{
 		if (turnright)
@@ -1333,25 +1333,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			side += ((axis * sidemove[0]) >> 10);
 		}
 	}
-
-	//{ SRB2kart - Drift support
-	// limit turning to angleturn[1] to stop mouselook letting you look too fast
-	if (cmd->angleturn > angleturn[1])
-		cmd->angleturn = angleturn[1];
-	else if (cmd->angleturn < -angleturn[1])
-		cmd->angleturn = -angleturn[1];
-
-	if (cmd->driftturn > angleturn[1])
-		cmd->driftturn = angleturn[1];
-	else if (cmd->driftturn < -angleturn[1])
-		cmd->driftturn = -angleturn[1];
-
-	if (player->mo)
-		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
-
-	// SRB2kart - no additional angle if not moving
-	if ((player->mo && player->speed > 0) || (leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE) || (player->spectator || objectplacing))
-		lang += (cmd->angleturn<<16);
 
 	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
 	{
@@ -1507,6 +1488,29 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 		cmd->sidemove = (SINT8)(cmd->sidemove + side);
 	}
+
+	//{ SRB2kart - Drift support
+	// Not grouped with the rest of turn stuff because it needs to know what buttons you're pressing for rubber-burn turn
+	// limit turning to angleturn[1] to stop mouselook letting you look too fast
+	if (cmd->angleturn > angleturn[1])
+		cmd->angleturn = angleturn[1];
+	else if (cmd->angleturn < -angleturn[1])
+		cmd->angleturn = -angleturn[1];
+
+	if (cmd->driftturn > angleturn[1])
+		cmd->driftturn = angleturn[1];
+	else if (cmd->driftturn < -angleturn[1])
+		cmd->driftturn = -angleturn[1];
+
+	if (player->mo)
+		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+
+	// SRB2kart - no additional angle if not moving
+	if (((player->mo && player->speed > 0) // Moving
+		|| (leveltime > 140 && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+		|| (player->spectator || objectplacing)) // Not a physical player
+		&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
+		lang += (cmd->angleturn<<16);
 
 	cmd->angleturn = (INT16)(lang >> 16);
 
@@ -2290,7 +2294,6 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	INT32 starpostwp;
-	INT32 offroad;
 	INT32 balloon;
 	INT32 comebackpoints;
 
@@ -2347,7 +2350,6 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
-	offroad = players[player].kartstuff[k_offroad];
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
 
@@ -2405,8 +2407,6 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
-	p->kartstuff[k_offroad] = offroad;
-
 	p->kartstuff[k_balloon] = balloon;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;

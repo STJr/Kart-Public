@@ -2907,7 +2907,7 @@ static void P_PlayerZMovement(mobj_t *mo)
 						mo->tics = -1;
 					}
 					else if ((mo->player->pflags & PF_JUMPED || (mo->player->pflags & (PF_SPINNING|PF_USEDOWN)) != (PF_SPINNING|PF_USEDOWN)
-					|| mo->player->powers[pw_tailsfly]) && (mo->player->kartstuff[k_spinouttimer] == 0)) // SRB2kart
+						|| mo->player->powers[pw_tailsfly]) && (mo->player->kartstuff[k_spinouttimer] == 0)) // SRB2kart
 					{
 						K_KartMoveAnimation(mo->player);
 					}
@@ -9907,7 +9907,7 @@ void P_SpawnPlayer(INT32 playernum)
 			fixed_t newy;
 			mobj_t *mo;
 
-			if (leveltime < 1 /*|| pcount <= 1*/) // Start of the map?
+			if (leveltime < 1 && !p->spectator /*|| pcount <= 1*/) // Start of the map?
 				p->kartstuff[k_balloon] = cv_kartballoons.value; // Reset those balloons!
 
 			if (p->kartstuff[k_balloon] <= 1)

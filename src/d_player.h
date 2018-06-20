@@ -282,9 +282,7 @@ typedef enum
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam
 
-	k_boosting,			// Determines if you're currently shroom-boosting
 	k_floorboost,		// Prevents Sneaker sounds for a breif duration when triggered by a floor panel
-	k_spinout,			// Separate confirmation to prevent endless wipeout loops
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
 
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
@@ -319,7 +317,6 @@ typedef enum
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_justbumped,			// Prevent players from endlessly bumping into each other
-	k_poweritemtimer,		// Battle mode, how long before you're allowed another power item (Invincibility, Grow)
 	k_comebacktimer,		// Battle mode, how long before you become a bomb after death
 	k_sadtimer,				// How long you've been sad
 

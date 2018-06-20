@@ -429,6 +429,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			if (player->kartstuff[k_balloon] <= 0)
 				return;
+			if (special->target->player->exiting || player->exiting)
+				return;
 
 			if (special->target->player->kartstuff[k_comebacktimer]
 				|| special->target->player->kartstuff[k_spinouttimer]
@@ -3184,8 +3186,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 
 		//{ SRB2kart - special damage sources
 
-		player->kartstuff[k_sneakertimer] = 0;
-
 		// Shrink
 		if (damage == 64)
 		{
@@ -3222,6 +3222,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			{
 				player->kartstuff[k_growshrinktimer] = 2;
 			}
+			player->kartstuff[k_sneakertimer] = 0;
 			// Invincible or not, we still need this.
 			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			S_StartSound(player->mo, sfx_kc59);
@@ -3271,6 +3272,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD
 				|| inflictor->player))
 			{
+				player->kartstuff[k_sneakertimer] = 0;
 				player->kartstuff[k_spinouttype] = 1;
 				K_SpinPlayer(player, source);
 				damage = player->mo->health - 1;

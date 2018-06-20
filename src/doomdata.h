@@ -207,8 +207,8 @@ typedef struct
 
 #define ZSHIFT 4
 
-extern const char *Color_Names[MAXSKINCOLORS];
-extern const UINT8 Color_Opposite[MAXSKINCOLORS*2];
+//extern const char *Color_Names[MAXSKINCOLORS];
+//extern const UINT8 Color_Opposite[MAXSKINCOLORS*2];
 
 #define NUMMAPS 1035
 

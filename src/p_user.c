@@ -4015,7 +4015,6 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 //
 void P_DoJumpShield(player_t *player)
 {
-	return; // SRB2kart - Would be useful for feathers, but those are impossible to balance, so nuts to it.
 	if (player->pflags & PF_THOKKED)
 		return;
 
@@ -4707,6 +4706,8 @@ static void P_3dMovement(player_t *player)
 	if (player->exiting || player->pflags & PF_STASIS || player->kartstuff[k_spinouttimer]) // pw_introcam?
 	{
 		cmd->forwardmove = cmd->sidemove = 0;
+		if (player->kartstuff[k_sneakertimer])
+			cmd->forwardmove = 50;
 		if (player->pflags & PF_GLIDING)
 		{
 			if (!player->skidtime)
@@ -4797,7 +4798,7 @@ static void P_3dMovement(player_t *player)
 		cmd->forwardmove = 0;
 
 	// Do not let the player control movement if not onground.
-	// SRB2Kart: feather and speed bumps are supposed to control like you're on the ground
+	// SRB2Kart: pogo spring and speed bumps are supposed to control like you're on the ground
 	onground = (P_IsObjectOnGround(player->mo) || (player->kartstuff[k_pogospring]));
 
 	player->aiming = cmd->aiming<<FRACBITS;
@@ -4821,6 +4822,15 @@ static void P_3dMovement(player_t *player)
 		if (cmd->buttons & BT_BRAKE && !cmd->forwardmove) // SRB2kart - braking isn't instant
 			movepushforward /= 64;
 
+		if (cmd->forwardmove > 0)
+			player->kartstuff[k_brakestop] = 0;
+		else if (player->kartstuff[k_brakestop] < 6) // Don't start reversing with brakes until you've made a stop first
+		{
+			if (player->speed < 8*FRACUNIT)
+				player->kartstuff[k_brakestop]++;
+			movepushforward = 0;
+		}
+
 #ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushangle, movepushforward);
 		totalthrust.y += P_ReturnThrustY(player->mo, movepushangle, movepushforward);
@@ -4834,7 +4844,7 @@ static void P_3dMovement(player_t *player)
 	}
 
 	// Sideways movement
-	if (cmd->sidemove != 0 && !(player->exiting || (P_PlayerInPain(player))))
+	if (cmd->sidemove != 0 && !(player->exiting || player->kartstuff[k_spinouttimer]))
 	{
 		if (cmd->sidemove > 0)
 			movepushside = (cmd->sidemove * FRACUNIT/128) + FixedDiv(player->speed, K_GetKartSpeed(player, true));
@@ -6542,23 +6552,6 @@ static void P_MovePlayer(player_t *player)
 	//////////////////////
 	// MOVEMENT CODE	//
 	//////////////////////
-
-	//{ SRB2kart slip net
-
-	if (player->kartstuff[k_spinouttimer] > 0 && player->kartstuff[k_spinout] == 0)
-	{
-		K_SpinPlayer(player, NULL); // Here just for in-level oil spills now
-	}
-	// If you have one but not the other, we should get rid of the one we have
-	else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_spinout] > 0)
-		player->kartstuff[k_spinout] = 0;
-
-	// If somehow the power has gotten larger than the timer, it should be lowered back to it
-	if (player->kartstuff[k_spinouttimer] > player->kartstuff[k_spinout])
-		player->kartstuff[k_spinouttimer] = player->kartstuff[k_spinout];
-
-	//}
-
 
 	if (twodlevel || player->mo->flags2 & MF2_TWOD) // 2d-level, so special control applies.
 		P_2dMovement(player);

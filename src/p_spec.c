@@ -3753,7 +3753,7 @@ DoneSection2:
 	// Process Section 3
 	switch (special)
 	{
-		case 1: // SRB2kart: bounce pad
+		case 1: // SRB2kart: Speed Bumps
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
 				if (player->mo->eflags & MFE_SPRUNG)

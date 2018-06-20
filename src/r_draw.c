@@ -175,7 +175,6 @@ const char *Color_Names[MAXSKINCOLORS] =
 	"Yellow",    // SKINCOLOR_YELLOW
 	"Gold"       // SKINCOLOR_GOLD
 };
-*/
 
 const UINT8 Color_Opposite[MAXSKINCOLORS*2] =
 {
@@ -206,6 +205,7 @@ const UINT8 Color_Opposite[MAXSKINCOLORS*2] =
 	SKINCOLOR_NONE,8,   // SKINCOLOR_YELLOW
 	SKINCOLOR_NONE,8    // SKINCOLOR_GOLD
 };
+*/
 
 CV_PossibleValue_t Color_cons_t[MAXSKINCOLORS+1];
 
