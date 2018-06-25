@@ -9343,6 +9343,18 @@ void P_RemoveMobj(mobj_t *mobj)
 	if (mobj->type == MT_SHADOW)
 		P_RemoveShadow(mobj);
 
+	if (mobj->type == MT_KARMAHITBOX)
+	{
+		mobj_t *cur = mobj->hnext;
+
+		while (cur && !P_MobjWasRemoved(cur))
+		{
+			mobj_t *prev = cur; // Kind of a dumb var, but we need to set cur before we remove the mobj
+			cur = cur->hnext;
+			P_RemoveMobj(prev);
+		}
+	}
+
 	mobj->health = 0; // Just because
 
 	// unlink from sector and block lists
