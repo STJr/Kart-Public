@@ -3983,8 +3983,7 @@ DoneSection2:
 		case 7: // SRB2kart 190117 - Oil Slick
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				player->kartstuff[k_spinouttype] = -1;
-				K_SpinPlayer(player, NULL);
+				K_SpinPlayer(player, NULL, 0);
 			}
 			break;
 

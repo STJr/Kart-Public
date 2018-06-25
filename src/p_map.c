@@ -844,7 +844,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(thing->player, tmthing->target);
 			else
-				K_SpinPlayer(thing->player, tmthing->target);
+				K_SpinPlayer(thing->player, tmthing->target, 0);
 		}
 
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
@@ -877,7 +877,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
-			K_SpinPlayer(thing->player, tmthing->target);
+			K_SpinPlayer(thing->player, tmthing->target, 0);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1140,7 +1140,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true;
 
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target);
+			K_SpinPlayer(tmthing->player, thing->target, 0);
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -1170,7 +1170,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target);
 			else
-				K_SpinPlayer(tmthing->player, thing->target);
+				K_SpinPlayer(tmthing->player, thing->target, 0);
 
 			return true;
 		}
@@ -1648,7 +1648,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
 					K_StealBalloon(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing);
+					K_SpinPlayer(thing->player, tmthing, 0);
 				}
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
@@ -1657,7 +1657,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
 					K_StealBalloon(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing);
+					K_SpinPlayer(tmthing->player, thing, 0);
 				}
 			}
 			else
@@ -1668,12 +1668,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBalloon(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing);
+					K_SpinPlayer(tmthing->player, thing, 0);
 				}
 				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBalloon(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing);
+					K_SpinPlayer(thing->player, tmthing, 0);
 				}
 			}
 

@@ -2012,12 +2012,13 @@ static int lib_kSpinPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	INT32 type = (INT32)luaL_checkinteger(L, 3);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!source)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_SpinPlayer(player, source);
+	K_SpinPlayer(player, source, type);
 	return 0;
 }
 

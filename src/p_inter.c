@@ -3189,16 +3189,12 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			// Don't flip out while super!
 			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
-				// Start slipping!
-				K_SpinPlayer(player, source);
-
 				// Start shrinking!
 				player->mo->scalespeed = FRACUNIT/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 
 				// Wipeout
-				player->kartstuff[k_spinouttype] = 1;
-				K_SpinPlayer(player, source);
+				K_SpinPlayer(player, source, 1);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3268,8 +3264,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
-				player->kartstuff[k_spinouttype] = 1;
-				K_SpinPlayer(player, source);
+				K_SpinPlayer(player, source, 1);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3282,8 +3277,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			}
 			else
 			{
-				player->kartstuff[k_spinouttype] = -1;
-				K_SpinPlayer(player, source);
+				K_SpinPlayer(player, source, 0);
 			}
 			return true;
 		}

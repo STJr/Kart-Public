@@ -1425,7 +1425,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	return finalspeed;
 }
 
-void K_SpinPlayer(player_t *player, mobj_t *source)
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type)
 {
 	if (player->health <= 0)
 		return;
@@ -1464,6 +1464,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_comebacktimer] = comebacktime;
 
+	player->kartstuff[k_spinouttype] = type;
+
 	if (player->kartstuff[k_spinouttype] <= 0)
 	{
 		player->kartstuff[k_spinouttimer] = 3*TICRATE/2; // Banana Spinout
@@ -1481,8 +1483,6 @@ void K_SpinPlayer(player_t *player, mobj_t *source)
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
-
-	player->kartstuff[k_spinouttype] = 0;
 
 	return;
 }
@@ -1523,7 +1523,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_comebacktimer] = comebacktime;
 
-	player->kartstuff[k_squishedtimer] = TICRATE;
+	player->kartstuff[k_squishedtimer] = 2*TICRATE;
 
 	player->powers[pw_flashing] = K_GetKartFlashing();
 
@@ -1583,8 +1583,6 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
-
-	player->kartstuff[k_spinouttype] = 0;
 
 	P_PlayRinglossSound(player->mo);
 
@@ -2483,9 +2481,13 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->mo->colorized = false;
 	}
 
-	if (player->kartstuff[k_spinouttimer]
-		&& (P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1))
-		player->kartstuff[k_spinouttimer]--;
+	if (player->kartstuff[k_spinouttimer])
+	{
+		if (P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
+			player->kartstuff[k_spinouttimer]--;
+		if (player->kartstuff[k_spinouttimer] == 0)
+			player->kartstuff[k_spinouttype] = 0; // Reset type
+	}
 	else if (!comeback)
 		player->kartstuff[k_comebacktimer] = comebacktime;
 	else if (player->kartstuff[k_comebacktimer])

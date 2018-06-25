@@ -24,7 +24,7 @@ void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);
-void K_SpinPlayer(player_t *player, mobj_t *source);
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source);
 void K_StealBalloon(player_t *player, player_t *victim, boolean force);
