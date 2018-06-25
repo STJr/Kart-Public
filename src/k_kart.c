@@ -439,13 +439,13 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 			   /*Sneaker*/ {20, 0, 0, 3, 6, 5, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 3, 5, 5, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 6, 9,16 }, // Invincibility
-				/*Banana*/ { 0, 8, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Eggman Monitor
 			  /*Orbinaut*/ { 0, 6, 5, 4, 2, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
-				  /*Mine*/ { 0, 1, 1, 2, 1, 0, 0, 0, 0 }, // Mine
+				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 1, 2, 2, 2 }, // Self-Propelled Bomb
+   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
@@ -462,26 +462,26 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
 				//P-Odds	 0  1  2  3  4  5
-			   /*Sneaker*/ { 3, 1, 2, 2, 0, 2 }, // Sneaker
+			   /*Sneaker*/ { 3, 2, 2, 1, 0, 2 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 4, 2, 1, 0, 0, 2 }, // Invincibility
-				/*Banana*/ { 0, 0, 2, 3, 6, 0 }, // Banana
-		/*Eggman Monitor*/ { 0, 0, 2, 2, 3, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 0, 3, 5,10, 0 }, // Orbinaut
-				  /*Jawz*/ { 3, 3, 2, 1, 0, 2 }, // Jawz
-				  /*Mine*/ { 0, 3, 2, 1, 0, 2 }, // Mine
-			   /*Ballhog*/ { 0, 2, 1, 1, 0, 2 }, // Ballhog
+				/*Banana*/ { 0, 0, 2, 3, 3, 0 }, // Banana
+		/*Eggman Monitor*/ { 0, 0, 2, 3, 5, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 0, 0, 3, 4, 5, 0 }, // Orbinaut
+				  /*Jawz*/ { 1, 3, 2, 2, 2, 2 }, // Jawz
+				  /*Mine*/ { 1, 3, 2, 2, 2, 2 }, // Mine
+			   /*Ballhog*/ { 1, 2, 1, 1, 1, 2 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
 				  /*Grow*/ { 4, 2, 0, 0, 0, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0 }, // Shrink
 	  /*Lightning Shield*/ { 0, 0, 0, 0, 0, 0 }, // Lightning Shield
 			   /*Hyudoro*/ { 0, 0, 1, 1, 0, 0 }, // Hyudoro
-		   /*Pogo Spring*/ { 0, 0, 1, 2, 0, 0 }, // Pogo Spring
+		   /*Pogo Spring*/ { 0, 0, 1, 1, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
 			/*Sneaker x3*/ { 2, 0, 0, 0, 0, 2 }, // Sneaker x3
-			 /*Banana x3*/ { 0, 2, 2, 1, 1, 2 }, // Banana x3
-			/*Banana x10*/ { 1, 0, 0, 0, 0, 0 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 3, 1, 1, 0, 2 }, // Orbinaut x3
+			 /*Banana x3*/ { 0, 1, 2, 2, 2, 1 }, // Banana x3
+			/*Banana x10*/ { 1, 0, 0, 0, 0, 1 }, // Banana x10
+		   /*Orbinaut x3*/ { 0, 3, 1, 0, 0, 2 }, // Orbinaut x3
 			   /*Jawz x2*/ { 3, 2, 0, 0, 0, 2 }  // Jawz x2
 };
 
@@ -705,7 +705,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
 	INT32 avgballoon = 0;
-	UINT8 oddsvalid[9];
+	boolean oddsvalid[9];
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
 	boolean mashed = false;
@@ -761,11 +761,11 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	for (i = 0; i < 9; i++)
 	{
 		INT32 j;
-		UINT8 available = 0;
+		boolean available = false;
 
 		if (G_BattleGametype() && i > 5)
 		{
-			oddsvalid[i] = 0;
+			oddsvalid[i] = false;
 			break;
 		}
 
@@ -773,7 +773,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		{
 			if (K_KartGetItemOdds(i, j, mashed) > 0)
 			{
-				available = 1;
+				available = true;
 				break;
 			}
 		}
