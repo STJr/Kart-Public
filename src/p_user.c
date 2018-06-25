@@ -8136,12 +8136,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	subsector_t *newsubsec;
 	fixed_t f1, f2;
 
-#if 1
+#ifdef NOCLIPCAM
 	cameranoclip = true; // We like camera noclip!
 #else
 	cameranoclip = ((player->pflags & (PF_NOCLIP|PF_NIGHTSMODE))
-		|| (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT))
-		|| (leveltime < 3*TICRATE)); // Noclipping player camera noclips too!!
+		|| (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)) // Noclipping player camera noclips too!!
+		|| (leveltime < introtime)); // Kart intro cam
 #endif
 
 	if (!(player->climbing || (player->pflags & PF_NIGHTSMODE) || player->playerstate == PST_DEAD))
@@ -8276,12 +8276,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		lookback = camspin4;
 	}
 
-	if (leveltime < 3*TICRATE) // Whoooshy camera!
+	if (leveltime < introtime) // Whoooshy camera!
 	{
-		const INT32 introcam = (3*TICRATE - leveltime) * 3;
-		camrotate += 3*introcam/2;
-		camdist += (introcam * mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight += (introcam * mapheaderinfo[gamemap-1]->mobj_scale);
+		const INT32 introcam = (introtime - leveltime);
+		camrotate += introcam*5;
+		camdist += (introcam * mapheaderinfo[gamemap-1]->mobj_scale)*3;
+		camheight += (introcam * mapheaderinfo[gamemap-1]->mobj_scale)*2;
 	}
 	else if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
 		camstill = true;

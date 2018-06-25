@@ -409,6 +409,7 @@ extern UINT16 spacetimetics;
 extern UINT16 extralifetics;
 
 // SRB2kart
+extern tic_t introtime;
 extern tic_t starttime;
 extern INT32 hyudorotime;
 extern INT32 stealtime;

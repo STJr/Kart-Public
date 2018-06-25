@@ -540,4 +540,8 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// \note   Required for proper collision with moving sloped surfaces that have sector specials on them.
 #define SECTORSPECIALSAFTERTHINK
 
+/// SRB2Kart: Camera always has noclip.
+/// \note   Kind of problematic. If we decide to keep this on, we'll need serious map changes.
+//#define NOCLIPCAM
+
 #endif // __DOOMDEF__

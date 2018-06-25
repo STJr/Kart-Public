@@ -538,7 +538,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean mashed)
+static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 {
 	const INT32 distvar = (64*14);
 	INT32 newodds;
@@ -771,7 +771,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 		for (j = 0; j < NUMKARTRESULTS; j++)
 		{
-			if (K_KartGetItemOdds(i, j, player, mashed) > 0)
+			if (K_KartGetItemOdds(i, j, mashed) > 0)
 			{
 				available = 1;
 				break;
@@ -810,8 +810,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			UINT8 wantedpos = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average, 4 is two balloons above average
 			if (wantedpos > 4)
 				wantedpos = 4;
-			if (wantedpos < 0)
-				wantedpos = 0;
+			/*if (wantedpos < 0)
+				wantedpos = 0;*/
 			useodds = disttable[(wantedpos * distlen) / 5];
 		}
 	}
@@ -853,7 +853,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	//CONS_Printf("Got useodds %d. (position: %d, distance: %d)\n", useodds, player->kartstuff[k_position], pdis);
 
 #define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, player, mashed); chance++) \
+	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, mashed); chance++) \
 		spawnchance[numchoices++] = itemnum
 
 	SETITEMRESULT(useodds, KITEM_SNEAKER);			// Sneaker
@@ -2438,7 +2438,9 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed)
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
 {
     if (banana->hnext)
+	{
         K_KillBananaChain(banana->hnext, inflictor, source);
+	}
 
 	if (banana->health)
 	{
@@ -3715,7 +3717,6 @@ void K_LoadKartHUDGraphics(void)
 	{
 		for (j = 0; j < NUMPOSFRAMES; j++)
 		{
-			//if (i > 4 && j < 4 && j != 0) continue;	// We don't need blue numbers for ranks past 4th
 			sprintf(buffer, "K_POSN%d%d", i, j);
 			kp_positionnum[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 		}

@@ -3678,7 +3678,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 			dummy.y = thiscam->y;
 			dummy.z = thiscam->z;
 			dummy.height = thiscam->height;
-			if (!resetcalled && !(player->pflags & PF_NOCLIP) && !P_CheckSight(&dummy, player->mo)) // TODO: "P_CheckCameraSight" instead.
+			if (!resetcalled && !(player->pflags & PF_NOCLIP || leveltime < introtime) && !P_CheckSight(&dummy, player->mo)) // TODO: "P_CheckCameraSight" instead.
 				P_ResetCamera(player, thiscam);
 			else
 				P_SlideCameraMove(thiscam);
@@ -3699,7 +3699,8 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 		// adjust height
 		thiscam->z += thiscam->momz + player->mo->pmomz;
 
-		if (!itsatwodlevel && !(player->pflags & PF_NOCLIP))
+#ifndef NOCLIPCAM
+		if (!itsatwodlevel && !(player->pflags & PF_NOCLIP || leveltime < introtime))
 		{
 			// clip movement
 			if (thiscam->z <= thiscam->floorz) // hit the floor
@@ -3739,6 +3740,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 				}
 			}
 		}
+#endif
 	}
 
 	if (itsatwodlevel
@@ -9337,13 +9339,7 @@ void P_RemoveMobj(mobj_t *mobj)
 			iquetail = (iquetail+1)&(ITEMQUESIZE-1);
 	}
 
-	if (mobj->type == MT_OVERLAY)
-		P_RemoveOverlay(mobj);
-
-	if (mobj->type == MT_SHADOW)
-		P_RemoveShadow(mobj);
-
-	if (mobj->type == MT_KARMAHITBOX)
+	if (mobj->type == MT_KARMAHITBOX) // Remove linked list objects for certain types
 	{
 		mobj_t *cur = mobj->hnext;
 
@@ -9354,6 +9350,12 @@ void P_RemoveMobj(mobj_t *mobj)
 			P_RemoveMobj(prev);
 		}
 	}
+
+	if (mobj->type == MT_OVERLAY)
+		P_RemoveOverlay(mobj);
+
+	if (mobj->type == MT_SHADOW)
+		P_RemoveShadow(mobj);
 
 	mobj->health = 0; // Just because
 

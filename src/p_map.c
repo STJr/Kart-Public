@@ -2516,10 +2516,13 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 		fixed_t tryx = thiscam->x;
 		fixed_t tryy = thiscam->y;
 
+#ifndef NOCLIPCAM
 		if ((thiscam == &camera && (players[displayplayer].pflags & PF_NOCLIP))
 		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP))
 		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
-		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP)))
+		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP))
+		|| (leveltime < introtime))
+#endif
 		{ // Noclipping player camera noclips too!!
 			floatok = true;
 			thiscam->floorz = thiscam->z;
@@ -3823,12 +3826,12 @@ stairstep:
 }
 
 //
-// P_PlayerBounceMove
+// P_BouncePlayerMove
 //
 // Bounce move, for players.
 //
 
-void P_PlayerBounceMove(mobj_t *mo)
+void P_BouncePlayerMove(mobj_t *mo)
 {
 	fixed_t leadx, leady;
 	fixed_t trailx, traily;
@@ -3944,7 +3947,7 @@ void P_BounceMove(mobj_t *mo)
 
 	if (mo->player)
 	{
-		P_PlayerBounceMove(mo);
+		P_BouncePlayerMove(mo);
 		return;
 	}
 

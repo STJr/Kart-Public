@@ -207,6 +207,7 @@ UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
 UINT16 extralifetics = 4*TICRATE;
 
 // SRB2kart
+tic_t introtime = 108;
 tic_t starttime = 6*TICRATE + (3*TICRATE/4);
 INT32 hyudorotime = 7*TICRATE;
 INT32 stealtime = TICRATE/2;
@@ -2974,6 +2975,8 @@ boolean G_IsSpecialStage(INT32 mapnum)
 #if 0
 	if (gametype == GT_COOP && modeattacking != ATTACKING_RECORD && mapnum >= sstage_start && mapnum <= sstage_end)
 		return true;
+#else
+	(void)mapnum;
 #endif
 	return false;
 }
