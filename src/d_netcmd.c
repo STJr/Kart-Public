@@ -1157,7 +1157,7 @@ UINT8 CanChangeSkin(INT32 playernum)
 			return true;
 
 		// Can change skin during initial countdown.
-		if (leveltime < 4*TICRATE)
+		if (leveltime < starttime)
 			return true;
 
 		if (G_TagGametype())

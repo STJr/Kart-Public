@@ -1188,7 +1188,7 @@ void P_RestoreMusic(player_t *player)
 		// Item - Invincibility
 		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
 			S_ChangeMusicInternal("kinvnc", false);
-		else if (leveltime > 157)
+		else if (leveltime > (starttime + (TICRATE/2)))
 		{
 			// Event - Final Lap
 			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
@@ -7863,7 +7863,7 @@ static void P_DeathThink(player_t *player)
 	// Force respawn if idle for more than 30 seconds in shooter modes.
 	if (player->deadtimer > 30*TICRATE && !G_RaceGametype())
 		player->playerstate = PST_REBORN;
-	else if (player->lives > 0 && !G_IsSpecialStage(gamemap) && leveltime >= 140) // Don't allow "click to respawn" in special stages!
+	else if (player->lives > 0 && !G_IsSpecialStage(gamemap) && leveltime >= starttime) // Don't allow "click to respawn" in special stages!
 	{
 		// SRB2kart-- But wait, why'd we add this? :eggthinking:
 		/*if (player->spectator)
@@ -7872,7 +7872,7 @@ static void P_DeathThink(player_t *player)
 			player->spectator = false;
 		}*/
 
-		//player->kartstuff[k_lakitu] = 48; // See G_PlayerReborn in g_game.c
+		//player->kartstuff[k_respawn] = 48; // See G_PlayerReborn in g_game.c
 
 		// SRB2kart - spawn automatically after 1 second
 		if (player->deadtimer > cv_respawntime.value*TICRATE)
@@ -7937,9 +7937,9 @@ static void P_DeathThink(player_t *player)
 	// Keep time rolling
 	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
 	{
-		if (leveltime >= 4*TICRATE)
+		if (leveltime >= starttime)
 		{
-			player->realtime = leveltime - 4*TICRATE;
+			player->realtime = leveltime - starttime;
 			if (player == &players[consoleplayer])
 			{
 				if (player->spectator || !circuitmap)
@@ -8136,7 +8136,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	subsector_t *newsubsec;
 	fixed_t f1, f2;
 
-	cameranoclip = (player->pflags & (PF_NOCLIP|PF_NIGHTSMODE)) || (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)); // Noclipping player camera noclips too!!
+	cameranoclip = (player->pflags & (PF_NOCLIP|PF_NIGHTSMODE)) || (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT) || (leveltime < 3*TICRATE)); // Noclipping player camera noclips too!!
 
 	if (!(player->climbing || (player->pflags & PF_NIGHTSMODE) || player->playerstate == PST_DEAD))
 	{
@@ -8270,7 +8270,14 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		lookback = camspin4;
 	}
 
-	if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
+	if (leveltime < 3*TICRATE) // Whoooshy camera!
+	{
+		const INT32 introcam = (3*TICRATE - leveltime) * 3;
+		camrotate += 3*introcam/2;
+		camdist += (introcam * mapheaderinfo[gamemap-1]->mobj_scale);
+		camheight += (introcam * mapheaderinfo[gamemap-1]->mobj_scale);
+	}
+	else if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
 		camstill = true;
 	else if (lookback) // SRB2kart - Camera flipper
 	{
@@ -9270,7 +9277,7 @@ void P_PlayerThink(player_t *player)
 		playerdeadview = false;
 
 	// SRB2kart 010217
-	if (leveltime < 4*TICRATE)
+	if (leveltime < starttime)
 		player->powers[pw_nocontrol] = 2;
 	/*
 	if ((gametype == GT_RACE || gametype == GT_COMPETITION) && leveltime < 4*TICRATE)
@@ -9284,9 +9291,9 @@ void P_PlayerThink(player_t *player)
 	// Synchronizes the "real" amount of time spent in the level.
 	if (!player->exiting)
 	{
-		if (leveltime >= 4*TICRATE)
+		if (leveltime >= starttime)
 		{
-			player->realtime = leveltime - 4*TICRATE;
+			player->realtime = leveltime - starttime;
 			if (player == &players[consoleplayer])
 			{
 				if (player->spectator || !circuitmap)

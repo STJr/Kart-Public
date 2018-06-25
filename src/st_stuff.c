@@ -1488,13 +1488,13 @@ static void ST_drawMatchHUD(void) // SRB2kart - unused.
 
 static inline void ST_drawRaceHUD(void)
 {
-	if (leveltime > TICRATE && leveltime <= 2*TICRATE)
+	if (leveltime > starttime-(3*TICRATE) && leveltime <= starttime-(2*TICRATE))
 		V_DrawScaledPatch(SCX((BASEVIDWIDTH - SHORT(race3->width))/2), (INT32)(SCY(BASEVIDHEIGHT/2)), V_NOSCALESTART, race3);
-	else if (leveltime > 2*TICRATE && leveltime <= 3*TICRATE)
+	else if (leveltime > starttime-(2*TICRATE) && leveltime <= starttime-TICRATE)
 		V_DrawScaledPatch(SCX((BASEVIDWIDTH - SHORT(race2->width))/2), (INT32)(SCY(BASEVIDHEIGHT/2)), V_NOSCALESTART, race2);
-	else if (leveltime > 3*TICRATE && leveltime <= 4*TICRATE)
+	else if (leveltime > starttime-TICRATE && leveltime <= starttime)
 		V_DrawScaledPatch(SCX((BASEVIDWIDTH - SHORT(race1->width))/2), (INT32)(SCY(BASEVIDHEIGHT/2)), V_NOSCALESTART, race1);
-	else if (leveltime > 4*TICRATE && leveltime <= 5*TICRATE)
+	else if (leveltime > starttime && leveltime <= starttime+TICRATE)
 		V_DrawScaledPatch(SCX((BASEVIDWIDTH - SHORT(racego->width))/2), (INT32)(SCY(BASEVIDHEIGHT/2)), V_NOSCALESTART, racego);
 
 	if (circuitmap)

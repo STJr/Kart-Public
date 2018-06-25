@@ -20,7 +20,7 @@ void K_RegisterKartStuff(void);
 
 boolean K_IsPlayerLosing(player_t *player);
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid);
-void K_LakituChecker(player_t *player);
+void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);

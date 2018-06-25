@@ -6437,9 +6437,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BATTLEBALLOON2",
 	"S_BATTLEBALLOON3",
 
-	// Lakitu
-	"S_LAKITU1",
-	"S_LAKITU2",
+	// DEZ respawn laser
+	"S_DEZLASER",
 
 	// Pokey
 	"S_POKEY1",
@@ -7165,7 +7164,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_BATTLEBALLOON", // Battle Mode balloon
 
-	"MT_LAKITU",
+	"MT_DEZLASER",
 
 	"MT_POKEY", // Huh, thought this was a default asset for some reason, guess not.
 
@@ -7565,10 +7564,10 @@ static const char *const KARTSTUFF_LIST[] = {
 	"NEXTCHECK",
 	"WAYPOINT",
 	"STARPOSTWP",
-	"LAKITU",
+	"RESPAWN",
 
 	"THROWDIR",
-	"LAPANIMATION",
+	//"LAPANIMATION",
 	"CARDANIMATION",
 	"VOICES",
 	"TAUNTVOICES",

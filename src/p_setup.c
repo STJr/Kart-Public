@@ -2659,7 +2659,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	S_Start();
 	// SRB2 Kart - Yes this is weird, but we don't want the music to start until after the countdown is finished
 	// but we do still need the mapmusname to be changed
-	if (leveltime < 158)
+	if (leveltime < (starttime + (TICRATE/2)))
 		S_StopMusic();
 
 	// Let's fade to black here

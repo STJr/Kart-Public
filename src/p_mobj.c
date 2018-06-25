@@ -10046,7 +10046,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			z = ceiling - mobjinfo[MT_PLAYER].height;
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
-			if (p->kartstuff[k_lakitu])
+			if (p->kartstuff[k_respawn])
 				z -= 128*FRACUNIT;
 		}
 		else
@@ -10054,7 +10054,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			z = floor;
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
-			if (p->kartstuff[k_lakitu])
+			if (p->kartstuff[k_respawn])
 				z += 128*FRACUNIT;
 		}
 
@@ -10116,7 +10116,7 @@ void P_MovePlayerToStarpost(INT32 playernum)
 #endif
 	sector->ceilingheight;
 
-	z = (p->starpostz + 128) << FRACBITS; // Lakitu spawns you off the ground
+	z = (p->starpostz + 128) << FRACBITS; // Respawn off the ground
 	if (z < floor)
 		z = floor;
 	else if (z > ceiling - mobjinfo[MT_PLAYER].height)

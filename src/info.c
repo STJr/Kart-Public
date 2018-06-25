@@ -57,7 +57,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","DRIF","DUST","FITM",
 	"BANA","GSHE","JAWZ","SSMN","KRBM","BLIG","LIGH","SINK","SITR","KBLN",
-	"LAKI","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
+	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
 	"SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","ITEM","ITMI",
 	"ITMN","PBOM"
 };
@@ -2763,8 +2763,7 @@ state_t states[NUMSTATES] =
 	{SPR_KBLN, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_BATTLEBALLOON2}, // S_BATTLEBALLOON2
 	{SPR_KBLN, FF_FULLBRIGHT|2, -1, {NULL}, 0, 0, S_BATTLEBALLOON3}, // S_BATTLEBALLOON3
 
-	{SPR_LAKI, 0, 64, {NULL}, 1, 0, S_LAKITU2},  // S_LAKITU1
-	{SPR_LAKI, 1, 35, {NULL}, 0, 0, S_NULL},     // S_LAKITU2
+	{SPR_DEZL, 0|FF_FULLBRIGHT, 8, {NULL}, 0, 0, S_NULL},  // S_DEZLASER
 
 	{SPR_POKE, 0,  2, {A_MoveAbsolute},   0, 2, S_POKEY2}, // S_POKEY1
 	{SPR_POKE, 1,  2, {A_MoveAbsolute},   0, 2, S_POKEY3}, // S_POKEY2
@@ -15075,9 +15074,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL           // raisestate
 	},
 
-	{           // MT_LAKITU
+	{           // MT_DEZLASER
 		-1,             // doomednum
-		S_LAKITU1,      // spawnstate
+		S_DEZLASER,     // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -15092,13 +15091,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		8,              // speed
-		64*FRACUNIT,    // radius
-		57*FRACUNIT,    // height
-		0,              // display offset
+		42*FRACUNIT,    // radius
+		8*FRACUNIT,     // height
+		1,              // display offset
 		16,             // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOGRAVITY,   // flags
+		MF_NOBLOCKMAP|MF_NOCLIPHEIGHT|MF_NOCLIPTHING|MF_NOGRAVITY|MF_SCENERY,   // flags
 		S_NULL          // raisestate
 	},
 

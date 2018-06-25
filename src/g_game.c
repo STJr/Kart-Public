@@ -207,6 +207,7 @@ UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
 UINT16 extralifetics = 4*TICRATE;
 
 // SRB2kart
+tic_t starttime = 6*TICRATE + (3*TICRATE/4);
 INT32 hyudorotime = 7*TICRATE;
 INT32 stealtime = TICRATE/2;
 INT32 sneakertime = TICRATE + (TICRATE/3);
@@ -1507,7 +1508,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	// SRB2kart - no additional angle if not moving
 	if (((player->mo && player->speed > 0) // Moving
-		|| (leveltime > 140 && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
 		|| (player->spectator || objectplacing)) // Not a physical player
 		&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
 		lang += (cmd->angleturn<<16);
@@ -2435,8 +2436,8 @@ void G_PlayerReborn(INT32 player)
 
 	P_RestoreMusic(p);
 
-	if (leveltime > 157 && !p->spectator)
-		p->kartstuff[k_lakitu] = 48; // Lakitu Spawner
+	if (leveltime > (starttime + (TICRATE/2)) && !p->spectator)
+		p->kartstuff[k_respawn] = 48; // Respawn effect
 
 	if (gametype == GT_COOP)
 		P_FindEmerald(); // scan for emeralds to hunt for

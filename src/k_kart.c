@@ -919,8 +919,8 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		|| (mobj2->player && mobj2->player->playerstate != PST_LIVE))
 		return;
 
-	if ((mobj1->player && mobj1->player->kartstuff[k_lakitu])
-		|| (mobj2->player && mobj2->player->kartstuff[k_lakitu]))
+	if ((mobj1->player && mobj1->player->kartstuff[k_respawn])
+		|| (mobj2->player && mobj2->player->kartstuff[k_respawn]))
 		return;
 
 	// Don't bump if you've recently bumped
@@ -1100,51 +1100,45 @@ static void K_UpdateOffroad(player_t *player)
 		player->kartstuff[k_offroad] = 0;
 }
 
-/**	\brief	Calculates the lakitu timer and drop-boosting
+/**	\brief	Calculates the respawn timer and drop-boosting
 
 	\param	player	player object passed from K_KartPlayerThink
 
 	\return	void
 */
-void K_LakituChecker(player_t *player)
+void K_RespawnChecker(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 
-	/*if (player->kartstuff[k_lakitu] == 44)
+	if (player->kartstuff[k_respawn] > 3)
 	{
-		mobj_t *mo;
-		angle_t newangle;
-		fixed_t newx;
-		fixed_t newy;
-		fixed_t newz;
-		newangle = player->mo->angle;
-		newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 0);
-		newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 0);
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			newz = player->mo->z - 128*(mapheaderinfo[gamemap-1]->mobj_scale);
-		else
-			newz = player->mo->z + 64*(mapheaderinfo[gamemap-1]->mobj_scale);
-		mo = P_SpawnMobj(newx, newy, newz, MT_LAKITU);
-		if (mo)
-		{
-			if (player->mo->eflags & MFE_VERTICALFLIP)
-				mo->eflags |= MFE_VERTICALFLIP;
-			mo->angle = newangle+ANGLE_180;
-			P_SetTarget(&mo->target, player->mo);
-		}
-	}*/
-
-	if (player->kartstuff[k_lakitu] > 3)
-	{
-		player->kartstuff[k_lakitu]--;
+		player->kartstuff[k_respawn]--;
 		player->mo->momz = 0;
 		player->powers[pw_flashing] = 2;
 		player->powers[pw_nocontrol] = 2;
-		if (leveltime % 15 == 0)
-			S_StartSound(player->mo, sfx_lkt3);
+		if (leveltime % 8 == 0)
+		{
+			mobj_t *mo;
+			fixed_t newz;
+
+			S_StartSound(player->mo, sfx_s3kcas);
+
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				newz = player->mo->z + player->mo->height;
+			else
+				newz = player->mo->z;
+			mo = P_SpawnMobj(player->mo->x, player->mo->y, newz, MT_DEZLASER);
+			if (mo)
+			{
+				if (player->mo->eflags & MFE_VERTICALFLIP)
+					mo->eflags |= MFE_VERTICALFLIP;
+				P_SetTarget(&mo->target, player->mo);
+				mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+			}
+		}
 	}
-	// That's enough pointless fishing for now.
-	if (player->kartstuff[k_lakitu] > 0 && player->kartstuff[k_lakitu] <= 3)
+
+	if (player->kartstuff[k_respawn] > 0 && player->kartstuff[k_respawn] <= 3)
 	{
 		if (!P_IsObjectOnGround(player->mo))
 		{
@@ -1154,12 +1148,12 @@ void K_LakituChecker(player_t *player)
 			if (cmd->buttons & BT_ACCELERATE)
 			{
 				player->powers[pw_flashing] = 0;
-				player->kartstuff[k_lakitu] = 0;
+				player->kartstuff[k_respawn] = 0;
 			}
 		}
 		else
 		{
-			player->kartstuff[k_lakitu]--;
+			player->kartstuff[k_respawn]--;
 			// Quick! You only have three tics to boost!
 			if (cmd->buttons & BT_ACCELERATE)
 				K_DoSneaker(player, true);
@@ -1240,7 +1234,7 @@ static void K_PlayOvertakeSound(mobj_t *source)
 		return;
 
 	// 4 seconds from before race begins, 10 seconds afterwards
-	if (leveltime < 14*TICRATE)
+	if (leveltime < starttime+(10*TICRATE))
 		return;
 
 	S_StartSound(source, sfx_slow);
@@ -2552,8 +2546,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_deathsentence]--;
 	}
 
-	if (player->kartstuff[k_lapanimation])
-		player->kartstuff[k_lapanimation]--;
+	/*if (player->kartstuff[k_lapanimation])
+		player->kartstuff[k_lapanimation]--;*/
 
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
@@ -2606,9 +2600,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else
 		player->kartstuff[k_jmp] = 0;
 
-	// Lakitu Checker
-	if (player->kartstuff[k_lakitu])
-		K_LakituChecker(player);
+	// Respawn Checker
+	if (player->kartstuff[k_respawn])
+		K_RespawnChecker(player);
 
 	// Roulette Code
 	K_KartItemRoulette(player, cmd);
@@ -2639,7 +2633,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		S_StopSoundByID(player->mo, sfx_smkinv);
 
 	// Plays the music after the starting countdown.
-	if (P_IsLocalPlayer(player) && leveltime == 158)
+	if (P_IsLocalPlayer(player) && leveltime == (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal(mapmusname, true);
 }
 
@@ -2960,7 +2954,7 @@ static void K_KartUpdatePosition(player_t *player)
 		}
 	}
 
-	if (leveltime < 4*TICRATE || oldposition == 0)
+	if (leveltime < starttime || oldposition == 0)
 		oldposition = position;
 
 	if (oldposition != position) // Changed places?
@@ -3493,7 +3487,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	// Quick Turning
 	// You can't turn your kart when you're not moving.
 	// So now it's time to burn some rubber!
-	if (player->speed < 2 && leveltime > 140 && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE && cmd->driftturn != 0)
+	if (player->speed < 2 && leveltime > starttime && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE && cmd->driftturn != 0)
 	{
 		if (leveltime % 20 == 0)
 			S_StartSound(player->mo, sfx_mkslid);
@@ -3513,22 +3507,24 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		player->mo->momy = 0;
 	}
 
-	// Play the stop light's sounds
-	if ((leveltime == (TICRATE-4)*2) || (leveltime == (TICRATE-2)*3))
-		S_StartSound(NULL, sfx_lkt1);
-	if (leveltime == (TICRATE)*4)
-		S_StartSound(NULL, sfx_lkt2);
+	// Play the starting countdown sounds
+	if ((leveltime == starttime-(3*TICRATE)) || (leveltime == starttime-(2*TICRATE)) || (leveltime == starttime-TICRATE))
+		S_StartSound(NULL, sfx_s3ka7);
+	if (leveltime == starttime)
+		S_StartSound(NULL, sfx_s3kad);
+
 	// Start charging once you're given the opportunity.
-	if (leveltime >= 70 && leveltime <= 140 && cmd->buttons & BT_ACCELERATE)
+	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime && cmd->buttons & BT_ACCELERATE)
 		player->kartstuff[k_boostcharge]++;
-	if (leveltime >= 70 && leveltime <= 140 && !(cmd->buttons & BT_ACCELERATE))
+	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime && !(cmd->buttons & BT_ACCELERATE))
 		player->kartstuff[k_boostcharge] = 0;
+
 	// Increase your size while charging your engine.
-	if (leveltime < 150)
+	if (leveltime < starttime+10)
 		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
 
 	// Determine the outcome of your charge.
-	if (leveltime > 140 && player->kartstuff[k_boostcharge])
+	if (leveltime > starttime && player->kartstuff[k_boostcharge])
 	{
 		// Get an instant boost!
 		if (player->kartstuff[k_boostcharge] >= 35 && player->kartstuff[k_boostcharge] <= 50)
@@ -3602,7 +3598,6 @@ void K_CheckBalloons(void)
 
 //{ SRB2kart HUD Code
 
-#define NUMLAKIFRAMES 13
 #define NUMPOSNUMS 10
 #define NUMPOSFRAMES 7 // White, three blues, three reds
 
@@ -3620,8 +3615,7 @@ static patch_t *kp_karmasticker;
 static patch_t *kp_splitkarmabomb;
 static patch_t *kp_timeoutsticker;
 
-static patch_t *kp_lakitustart[NUMLAKIFRAMES];
-static patch_t *kp_lakitulaps[17];
+static patch_t *kp_startcountdown[8];
 
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_winnernum[NUMPOSFRAMES];
@@ -3687,39 +3681,15 @@ void K_LoadKartHUDGraphics(void)
 	kp_splitkarmabomb = 		W_CachePatchName("K_SPTKRM", PU_HUDGFX);
 	kp_timeoutsticker = 		W_CachePatchName("K_STTOUT", PU_HUDGFX);
 
-	// Lakitu Start-up Frames
-	kp_lakitustart[0] = 		W_CachePatchName("K_LAKISA", PU_HUDGFX);
-	kp_lakitustart[1] = 		W_CachePatchName("K_LAKISB", PU_HUDGFX);
-	kp_lakitustart[2] = 		W_CachePatchName("K_LAKISC", PU_HUDGFX);
-	kp_lakitustart[3] = 		W_CachePatchName("K_LAKISD", PU_HUDGFX);
-	kp_lakitustart[4] = 		W_CachePatchName("K_LAKISE", PU_HUDGFX);
-	kp_lakitustart[5] = 		W_CachePatchName("K_LAKISF", PU_HUDGFX);
-	kp_lakitustart[6] = 		W_CachePatchName("K_LAKISG", PU_HUDGFX);
-	kp_lakitustart[7] = 		W_CachePatchName("K_LAKISH", PU_HUDGFX);
-	kp_lakitustart[8] = 		W_CachePatchName("K_LAKISI", PU_HUDGFX);
-	kp_lakitustart[9] = 		W_CachePatchName("K_LAKISJ", PU_HUDGFX);
-	kp_lakitustart[10] = 		W_CachePatchName("K_LAKISK", PU_HUDGFX);
-	kp_lakitustart[11] = 		W_CachePatchName("K_LAKISL", PU_HUDGFX);
-	kp_lakitustart[12] = 		W_CachePatchName("K_LAKISM", PU_HUDGFX);
-
-	// Lakitu Lap Frames
-	kp_lakitulaps[0] = 		W_CachePatchName("K_LAKIL2", PU_HUDGFX);
-	kp_lakitulaps[1] = 		W_CachePatchName("K_LAKIL3", PU_HUDGFX);
-	kp_lakitulaps[2] = 		W_CachePatchName("K_LAKIL4", PU_HUDGFX);
-	kp_lakitulaps[3] = 		W_CachePatchName("K_LAKIL5", PU_HUDGFX);
-	kp_lakitulaps[4] = 		W_CachePatchName("K_LAKIL6", PU_HUDGFX);
-	kp_lakitulaps[5] = 		W_CachePatchName("K_LAKIL7", PU_HUDGFX);
-	kp_lakitulaps[6] = 		W_CachePatchName("K_LAKIL8", PU_HUDGFX);
-	kp_lakitulaps[7] = 		W_CachePatchName("K_LAKIL9", PU_HUDGFX);
-	kp_lakitulaps[8] = 		W_CachePatchName("K_LAKILF", PU_HUDGFX);
-	kp_lakitulaps[9] = 		W_CachePatchName("K_LAKIF1", PU_HUDGFX);
-	kp_lakitulaps[10] = 	W_CachePatchName("K_LAKIF2", PU_HUDGFX);
-	kp_lakitulaps[11] = 	W_CachePatchName("K_LAKIF3", PU_HUDGFX);
-	kp_lakitulaps[12] = 	W_CachePatchName("K_LAKIF4", PU_HUDGFX);
-	kp_lakitulaps[13] = 	W_CachePatchName("K_LAKIF5", PU_HUDGFX);
-	kp_lakitulaps[14] = 	W_CachePatchName("K_LAKIF6", PU_HUDGFX);
-	kp_lakitulaps[15] = 	W_CachePatchName("K_LAKIF7", PU_HUDGFX);
-	kp_lakitulaps[16] = 	W_CachePatchName("K_LAKIF8", PU_HUDGFX);
+	// Starting countdown
+	kp_startcountdown[0] = 		W_CachePatchName("K_CNT3A", PU_HUDGFX);
+	kp_startcountdown[1] = 		W_CachePatchName("K_CNT2A", PU_HUDGFX);
+	kp_startcountdown[2] = 		W_CachePatchName("K_CNT1A", PU_HUDGFX);
+	kp_startcountdown[3] = 		W_CachePatchName("K_CNTGOA", PU_HUDGFX);
+	kp_startcountdown[4] = 		W_CachePatchName("K_CNT3B", PU_HUDGFX);
+	kp_startcountdown[5] = 		W_CachePatchName("K_CNT2B", PU_HUDGFX);
+	kp_startcountdown[6] = 		W_CachePatchName("K_CNT1B", PU_HUDGFX);
+	kp_startcountdown[7] = 		W_CachePatchName("K_CNTGOB", PU_HUDGFX);
 
 	// Position numbers
 	for (i = 0; i < NUMPOSNUMS; i++)
@@ -3802,7 +3772,7 @@ INT32 LAPS_X, LAPS_Y;	// Lap Sticker
 INT32 SPDM_X, SPDM_Y;	// Speedometer
 INT32 POSI_X, POSI_Y;	// Position Number
 INT32 FACE_X, FACE_Y;	// Top-four Faces
-INT32 LAKI_X, LAKI_Y;	// Lakitu
+INT32 STCD_X, STCD_Y;	// Starting countdown
 INT32 CHEK_Y;			// CHECK graphic
 INT32 MINI_X, MINI_Y;	// Minimap
 INT32 SPBW_X, SPBW_Y;	// SPB warning
@@ -3862,9 +3832,9 @@ static void K_initKartHUD(void)
 	// Top-Four Faces
 	FACE_X = 9;						//   9
 	FACE_Y = 92;					//  92
-	// Lakitu
-	LAKI_X = 136;					// 138
-	LAKI_Y = 58 - 200;				//  58
+	// Starting countdown
+	STCD_X = BASEVIDWIDTH/2;		//   9
+	STCD_Y = BASEVIDHEIGHT/2;		//  92
 	// CHECK graphic
 	CHEK_Y = BASEVIDHEIGHT;			// 200
 	// Minimap
@@ -3883,6 +3853,8 @@ static void K_initKartHUD(void)
 
 		POSI_Y = (BASEVIDHEIGHT/2)- 2;
 
+		STCD_Y = BASEVIDHEIGHT/4;
+
 		MINI_Y = (BASEVIDHEIGHT/2);
 
 		SPBW_Y = (BASEVIDHEIGHT/2)-8;
@@ -3896,6 +3868,8 @@ static void K_initKartHUD(void)
 			LAPS_Y = (BASEVIDHEIGHT/2)-13;
 
 			POSI_X = (BASEVIDWIDTH/2)-3;
+
+			STCD_X = BASEVIDWIDTH/4;
 
 			MINI_X = (3*BASEVIDWIDTH/4);
 			MINI_Y = (3*BASEVIDHEIGHT/4);
@@ -4072,7 +4046,7 @@ static void K_drawKartTimestamp(void)
 	// TIME_Y = 6;					//   6
 
 	INT32 TIME_XB;
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 
 	V_DrawScaledPatch(TIME_X, TIME_Y, V_HUDTRANS|splitflags, kp_timestickerwide);
 
@@ -4829,115 +4803,20 @@ static void K_drawBattleFullscreen(void)
 	}
 }
 
-static void K_drawStartLakitu(void)
+static void K_drawStartCountdown(void)
 {
-	patch_t *localpatch = kp_nodraw;
+	INT32 pnum = 0; // 3
 
-	fixed_t adjustY;
-	tic_t numFrames = 32; 	// Number of frames for the animation
-	fixed_t finalOffset = 206; 	// Number of pixels to offset the patch (This is actually 200, the 6 is a buffer for the parabola)
+	if (leveltime >= starttime-(2*TICRATE)) // 2
+		pnum++;
+	if (leveltime >= starttime-TICRATE) // 1
+		pnum++;
+	if (leveltime >= starttime) // GO!
+		pnum++;
+	if ((leveltime % (2*5)) / 5) // blink
+		pnum += 4;
 
-	if (leveltime <  52) localpatch = kp_lakitustart[0];
-	if (leveltime >=  52 && leveltime <  56) localpatch = kp_lakitustart[1];
-	if (leveltime >=  56 && leveltime <  60) localpatch = kp_lakitustart[2];
-	if (leveltime >=  60 && leveltime <  64) localpatch = kp_lakitustart[3];
-	if (leveltime >=  64 && leveltime <  91) localpatch = kp_lakitustart[4];
-	if (leveltime >=  91 && leveltime <  95) localpatch = kp_lakitustart[5];
-	if (leveltime >=  95 && leveltime <  99) localpatch = kp_lakitustart[6];
-	if (leveltime >=  99 && leveltime < 103) localpatch = kp_lakitustart[7];
-	if (leveltime >= 103 && leveltime < 130) localpatch = kp_lakitustart[8];
-	if (leveltime >= 130 && leveltime < 134) localpatch = kp_lakitustart[9];
-	if (leveltime >= 134 && leveltime < 138) localpatch = kp_lakitustart[10];
-	if (leveltime >= 138 && leveltime < 142) localpatch = kp_lakitustart[11];
-	if (leveltime >= 142 && leveltime < 178) localpatch = kp_lakitustart[12];
-
-	if (leveltime <= numFrames)
-		adjustY = (finalOffset - 1) - FixedMul((finalOffset), FRACUNIT / (leveltime + 3));
-	else if (leveltime >= 146)
-	{
-		fixed_t templeveltime = leveltime - 145;
-		adjustY = (finalOffset - 1) - FixedMul((finalOffset), FRACUNIT / (numFrames + 3 - templeveltime));
-	}
-	else
-		adjustY = 200;
-
-	if (mirrormode)
-		V_DrawSmallScaledPatch(320-LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP|V_FLIP, localpatch);
-	else
-		V_DrawSmallScaledPatch(LAKI_X, LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
-}
-
-static void K_drawLapLakitu(void)
-{
-	patch_t *localpatch = kp_nodraw;
-
-	fixed_t swoopTimer = 80 - stplyr->kartstuff[k_lapanimation]; // Starts at 80, goes down by 1 per frame
-	fixed_t adjustY;
-	fixed_t numFrames = 32; 	// Number of frames for the animation
-	fixed_t finalOffset = 206; 	// Number of pixels to offset the patch (This is actually 200, the 6 is a buffer for the parabola)
-	boolean finishLine = false;
-
-	if (stplyr->laps < (UINT8)(cv_numlaps.value - 1))
-	{
-		switch (stplyr->laps)
-		{
-			case 1:	localpatch = kp_lakitulaps[0]; break;
-			case 2:	localpatch = kp_lakitulaps[1]; break;
-			case 3:	localpatch = kp_lakitulaps[2]; break;
-			case 4:	localpatch = kp_lakitulaps[3]; break;
-			case 5:	localpatch = kp_lakitulaps[4]; break;
-			case 6:	localpatch = kp_lakitulaps[5]; break;
-			case 7:	localpatch = kp_lakitulaps[6]; break;
-			case 8:	localpatch = kp_lakitulaps[7]; break;
-		}
-	}
-	else if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
-		localpatch = kp_lakitulaps[8];
-	else
-	{
-		// Change flag frame every 4 frames
-		switch (leveltime % 32)
-		{
-			case  0: case  1: case  2: case  3:
-				localpatch = kp_lakitulaps[9];  break;
-			case  4: case  5: case  6: case  7:
-				localpatch = kp_lakitulaps[10]; break;
-			case  8: case  9: case 10: case 11:
-				localpatch = kp_lakitulaps[11]; break;
-			case 12: case 13: case 14: case 15:
-				localpatch = kp_lakitulaps[12]; break;
-			case 16: case 17: case 18: case 19:
-				localpatch = kp_lakitulaps[13]; break;
-			case 20: case 21: case 22: case 23:
-				localpatch = kp_lakitulaps[14]; break;
-			case 24: case 25: case 26: case 27:
-				localpatch = kp_lakitulaps[15]; break;
-			case 28: case 29: case 30: case 31:
-				localpatch = kp_lakitulaps[16]; break;
-		}
-		finishLine = true;
-		finalOffset = 226;
-	}
-
-	if (swoopTimer <= numFrames)
-		adjustY = (finalOffset - 1) - FixedMul((finalOffset), FRACUNIT / (swoopTimer + 3));
-	else if (swoopTimer >= 48)
-	{
-		fixed_t templeveltime = swoopTimer - 47;
-		adjustY = (finalOffset - 1) - FixedMul((finalOffset), FRACUNIT / (numFrames + 3 - templeveltime));
-	}
-	else
-	{
-		if (finishLine)
-			adjustY = 220;
-		else
-			adjustY = 200;
-	}
-
-	if (mirrormode)
-		V_DrawSmallScaledPatch(320-(LAKI_X+14+(swoopTimer/4)), LAKI_Y + adjustY, V_SNAPTOTOP|V_FLIP, localpatch);
-	else
-		V_DrawSmallScaledPatch(LAKI_X+14+(swoopTimer/4), LAKI_Y + adjustY, V_SNAPTOTOP, localpatch);
+	V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), 0, kp_startcountdown[pnum]);
 }
 
 static void K_drawCheckpointDebugger(void)
@@ -4970,21 +4849,9 @@ void K_drawKartHUD(void)
 		return;
 	}
 
-	// Draw Lakitu
-	// This is done first so that regardless of HUD layers,
-	// he'll appear to be in the 'real world'
-	if (!splitscreen)
-	{
-		if (leveltime < 178)
-			K_drawStartLakitu();
-
-		if (stplyr->kartstuff[k_lapanimation])
-			K_drawLapLakitu();
-
-		// Draw the CHECK indicator before the other items too, so it's overlapped by everything else
-		if (cv_kartcheck.value)
-			K_drawKartPlayerCheck();
-	}
+	// Draw the CHECK indicator before the other items, so it's overlapped by everything else
+	if (cv_kartcheck.value && !splitscreen)
+		K_drawKartPlayerCheck();
 
 	if (splitscreen == 0 && cv_kartminimap.value)
 		K_drawKartMinimap(); // 3P splitscreen is handled above
@@ -5035,6 +4902,11 @@ void K_drawKartHUD(void)
 			K_drawKartBalloonsOrKarma();
 		}
 	}
+
+	// Draw the starting countdown after everything else.
+	if (leveltime >= starttime-(3*TICRATE)
+		&& leveltime < starttime+TICRATE)
+		K_drawStartCountdown();
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();

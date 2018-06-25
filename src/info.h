@@ -600,7 +600,7 @@ typedef enum sprite
 	SPR_SITR, // Kitchen Sink Trail
 	SPR_KBLN, // Battle Mode Balloon
 
-	SPR_LAKI, // Lakitu
+	SPR_DEZL, // DEZ Laser respawn
 
 	// Additional Kart Objects
 	SPR_POKE, // Pokey
@@ -3279,9 +3279,8 @@ typedef enum state
 	S_BATTLEBALLOON2,
 	S_BATTLEBALLOON3,
 
-	// Lakitu
-	S_LAKITU1,
-	S_LAKITU2,
+	// DEZ Laser respawn
+	S_DEZLASER,
 
 	// Pokey
 	S_POKEY1,
@@ -4024,7 +4023,7 @@ typedef enum mobj_type
 
 	MT_BATTLEBALLOON, // Battle Mode balloons
 
-	MT_LAKITU,
+	MT_DEZLASER,
 
 	MT_POKEY, // Huh, thought this was a default asset for some reason, guess not.
 
