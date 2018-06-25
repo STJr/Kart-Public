@@ -658,11 +658,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, player_t *player, boolean 
 		case KITEM_POGOSPRING:
 			if (!cv_pogospring.value) newodds = 0;
 			break;
-		/*case KITEM_KITCHENSINK:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
-			if (!cv_kitchensink.value) newodds = 0;
-			break;*/
+		case KITEM_KITCHENSINK:
+			newodds = 0; // Not obtained via normal means.
+			break;
 		case KRITEM_TRIPLESNEAKER:
 			if (franticitems) newodds *= 2;
 			if (mashed) newodds /= 2;
@@ -2297,7 +2295,17 @@ static void K_DoHyudoroSteal(player_t *player)
 	prandom = P_RandomFixed();
 	S_StartSound(player->mo, sfx_s3k92);
 
-	if ((G_RaceGametype() && player->kartstuff[k_position] == 1) || numplayers == 0) // No-one can be stolen from? Get longer invisibility for nothing
+	if (P_RandomChance(FRACUNIT/256)) // BEHOLD THE KITCHEN SINK
+	{
+		player->kartstuff[k_hyudorotimer] = hyudorotime;
+		player->kartstuff[k_stealingtimer] = stealtime;
+
+		player->kartstuff[k_itemtype] = KITEM_KITCHENSINK;
+		player->kartstuff[k_itemamount] = 1;
+		player->kartstuff[k_itemheld] = 0;
+		return;
+	}
+	else if ((G_RaceGametype() && player->kartstuff[k_position] == 1) || numplayers == 0) // No-one can be stolen from? Oh well...
 	{
 		player->kartstuff[k_hyudorotimer] = hyudorotime;
 		player->kartstuff[k_stealingtimer] = stealtime;
@@ -3369,6 +3377,15 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_pogospring] = 1;
 						player->kartstuff[k_itemamount]--;
+					}
+					break;
+				case KITEM_KITCHENSINK:
+					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
+					{
+						K_ThrowKartItem(player, false, MT_SINK, 1, true);
+						K_PlayTauntSound(player->mo);
+						player->kartstuff[k_itemamount]--;
+						player->kartstuff[k_itemheld] = 0;
 					}
 					break;
 				case KITEM_SAD:
