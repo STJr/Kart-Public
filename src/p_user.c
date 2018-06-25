@@ -8136,7 +8136,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	subsector_t *newsubsec;
 	fixed_t f1, f2;
 
-	cameranoclip = (player->pflags & (PF_NOCLIP|PF_NIGHTSMODE)) || (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT) || (leveltime < 3*TICRATE)); // Noclipping player camera noclips too!!
+#if 1
+	cameranoclip = true; // We like camera noclip!
+#else
+	cameranoclip = ((player->pflags & (PF_NOCLIP|PF_NIGHTSMODE))
+		|| (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT))
+		|| (leveltime < 3*TICRATE)); // Noclipping player camera noclips too!!
+#endif
 
 	if (!(player->climbing || (player->pflags & PF_NIGHTSMODE) || player->playerstate == PST_DEAD))
 	{
