@@ -14998,7 +14998,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_SINK,         // spawnstate
 		105,            // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		256*FRACUNIT,   // painstate
@@ -15016,7 +15016,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_bomb,       // activesound
-		MF_BOUNCE|MF_FLOAT|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE, // flags
+		MF_BOUNCE|MF_SHOOTABLE, // flags
 		S_NULL          // raisestate
 	},
 

@@ -1404,6 +1404,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_BANANA:
 				case MT_FAKEITEM:
 				case MT_SSMINE:
+				case MT_SINK:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
 				default:
 					break;
@@ -8123,6 +8124,8 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_SINK:
+			if (mobj->momx || mobj->momy)
+				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz)
 			{
 				S_StartSound(mobj, mobj->info->deathsound);
@@ -9071,12 +9074,13 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_BIGMACE:		case MT_SMALLMACE:
 		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
+		case MT_BATTLEBALLOON:
 		case MT_BANANA:			case MT_BANANA_SHIELD:
+		case MT_FAKEITEM: 		case MT_FAKESHIELD:
 		case MT_GREENITEM:		case MT_GREENSHIELD:
 		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
-		case MT_BATTLEBALLOON:	case MT_FIREBALL:
-		case MT_FAKEITEM: 		case MT_FAKESHIELD:
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
+		case MT_FIREBALL: 		case MT_SINK:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

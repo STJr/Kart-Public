@@ -2113,7 +2113,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	{
 		if (player->kartstuff[k_throwdir] == 1)
 			dir = 2;
-		else if (player->kartstuff[k_throwdir] == -1)
+		else if (player->kartstuff[k_throwdir] == -1 && mapthing != MT_SINK)
 			dir = -1;
 		else
 			dir = 1;
