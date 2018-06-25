@@ -1724,7 +1724,7 @@ void P_XYMovement(mobj_t *mo)
 		P_PushableCheckBustables(mo);
 
 	//{ SRB2kart - Fireball
-	if (mo->type == MT_FIREBALL)
+	if (mo->type == MT_BALLHOG)
 	{
 		mo->health--;
 		if (mo->health == 0)
@@ -1862,7 +1862,7 @@ void P_XYMovement(mobj_t *mo)
 			// draw damage on wall
 			//SPLAT TEST ----------------------------------------------------------
 #ifdef WALLSPLATS
-			if (blockingline && mo->type != MT_REDRING //&& mo->type != MT_FIREBALL
+			if (blockingline && mo->type != MT_REDRING && mo->type != MT_FIREBALL
 			&& !(mo->flags2 & (MF2_AUTOMATIC|MF2_RAILRING|MF2_BOUNCERING|MF2_EXPLOSION|MF2_SCATTER)))
 				// set by last P_TryMove() that failed
 			{
@@ -1998,7 +1998,7 @@ void P_XYMovement(mobj_t *mo)
 #endif
 
 	//{ SRB2kart stuff
-	if (mo->type == MT_GREENITEM || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_FIREBALL) //(mo->type == MT_JAWZ && !mo->tracer))
+	if (mo->type == MT_GREENITEM || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_BALLHOG) //(mo->type == MT_JAWZ && !mo->tracer))
 		return;
 
 	if (mo->player && mo->player->kartstuff[k_spinouttimer] && mo->player->speed <= mo->player->normalspeed/2)
@@ -2333,7 +2333,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_GREENITEM:
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
-		case MT_FIREBALL:
+		case MT_BALLHOG:
 			// Remove stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
@@ -7324,7 +7324,7 @@ void P_MobjThinker(mobj_t *mobj)
 		P_PushableThinker(mobj);
 
 		// Extinguish fire objects in water. (Yes, it's extraordinarily rare to have a pushable flame object, but Brak uses such a case.)
-		if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA //&& mobj->type != MT_FIREBALL
+		if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA && mobj->type != MT_FIREBALL
 			&& (mobj->eflags & (MFE_UNDERWATER|MFE_TOUCHWATER)))
 		{
 			P_KillMobj(mobj, NULL, NULL);
@@ -8119,9 +8119,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
-		case MT_FIREBALL:
-			var1 = MT_FIRETRAIL;
-			A_SmokeTrailer(mobj);
+		case MT_BALLHOG:
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
@@ -8348,7 +8346,7 @@ void P_MobjThinker(mobj_t *mobj)
 			P_MobjCheckWater(mobj);
 
 			// Extinguish fire objects in water
-			if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA //&& mobj->type != MT_FIREBALL
+			if (mobj->flags & MF_FIRE && mobj->type != MT_PUMA && mobj->type != MT_FIREBALL
 				&& (mobj->eflags & (MFE_UNDERWATER|MFE_TOUCHWATER)))
 			{
 				P_KillMobj(mobj, NULL, NULL);
@@ -9082,7 +9080,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_GREENITEM:		case MT_GREENSHIELD:
 		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
-		case MT_FIREBALL: 		case MT_SINK:
+		case MT_BALLHOG: 		case MT_SINK:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

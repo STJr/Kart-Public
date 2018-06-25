@@ -5807,15 +5807,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FIREBALL2",
 	"S_FIREBALL3",
 	"S_FIREBALL4",
-	"S_FIREBALL5",
-	"S_FIREBALL6",
-	"S_FIREBALL7",
 	"S_FIREBALLEXP1",
 	"S_FIREBALLEXP2",
 	"S_FIREBALLEXP3",
-	"S_FIREBALLEXP4",
-	"S_FIREBALLEXP5",
-	"S_FIREBALLEXP6",
 	"S_SHELL",
 	"S_SHELL1",
 	"S_SHELL2",
@@ -7154,6 +7148,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SMOLDERING", // New explosion
 	"MT_BOOMEXPLODE",
 	"MT_BOOMPARTICLE",
+
+	"MT_BALLHOG", // Ballhog
 
 	"MT_BLUELIGHTNING", // Grow/shrink stuff
 	"MT_BLUEEXPLOSION",

@@ -2128,7 +2128,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 	if (missile) // Shootables
 	{
-		if (mapthing == MT_FIREBALL) // Messy
+		if (mapthing == MT_BALLHOG) // Messy
 		{
 			if (dir == -1)
 			{
@@ -3288,7 +3288,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						player->kartstuff[k_itemamount]--;
-						K_ThrowKartItem(player, true, MT_FIREBALL, 1, false);
+						K_ThrowKartItem(player, true, MT_BALLHOG, 1, false);
 						S_StartSound(player->mo, sfx_mario7);
 						K_PlayTauntSound(player->mo);
 					}

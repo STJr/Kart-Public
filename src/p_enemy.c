@@ -8270,7 +8270,7 @@ void A_JawzExplode(mobj_t *actor)
 #endif
 
 	truc = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOOMEXPLODE);
-	truc->scale = actor->scale;
+	truc->scale = actor->scale*2;
 	truc->color = SKINCOLOR_RED;
 
 	while (shrapnel)
@@ -8279,7 +8279,7 @@ void A_JawzExplode(mobj_t *actor)
 
 		truc = P_SpawnMobj(actor->x + P_RandomRange(-8, 8)*FRACUNIT, actor->y + P_RandomRange(-8, 8)*FRACUNIT,
 			actor->z + P_RandomRange(0, 8)*FRACUNIT, MT_BOOMPARTICLE);
-		truc->scale = actor->scale;
+		truc->scale = actor->scale*2;
 
 		speed = FixedMul(7*FRACUNIT, actor->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
