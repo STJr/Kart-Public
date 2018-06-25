@@ -1116,22 +1116,32 @@ void K_RespawnChecker(player_t *player)
 		player->powers[pw_nocontrol] = 2;
 		if (leveltime % 8 == 0)
 		{
-			mobj_t *mo;
-			fixed_t newz;
-
+			INT32 i;
 			S_StartSound(player->mo, sfx_s3kcas);
 
-			if (player->mo->eflags & MFE_VERTICALFLIP)
-				newz = player->mo->z + player->mo->height;
-			else
-				newz = player->mo->z;
-			mo = P_SpawnMobj(player->mo->x, player->mo->y, newz, MT_DEZLASER);
-			if (mo)
+			for (i = 0; i < 8; i++)
 			{
+				mobj_t *mo;
+				angle_t newangle;
+				fixed_t newx, newy, newz;
+
+				newangle = FixedAngle(((360/8)*i)*FRACUNIT);
+				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 31*FRACUNIT);
+				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 31*FRACUNIT);
 				if (player->mo->eflags & MFE_VERTICALFLIP)
-					mo->eflags |= MFE_VERTICALFLIP;
-				P_SetTarget(&mo->target, player->mo);
-				mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+					newz = player->mo->z + player->mo->height;
+				else
+					newz = player->mo->z;
+
+				mo = P_SpawnMobj(newx, newy, newz, MT_DEZLASER);
+				if (mo)
+				{
+					if (player->mo->eflags & MFE_VERTICALFLIP)
+						mo->eflags |= MFE_VERTICALFLIP;
+					P_SetTarget(&mo->target, player->mo);
+					mo->angle = newangle+ANGLE_90;
+					mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+				}
 			}
 		}
 	}
@@ -1229,6 +1239,9 @@ static void K_PlayTauntSound(mobj_t *source)
 static void K_PlayOvertakeSound(mobj_t *source)
 {
 	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	if (!G_RaceGametype()) // Only in race
 		return;
 
 	// 4 seconds from before race begins, 10 seconds afterwards

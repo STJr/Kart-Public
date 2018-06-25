@@ -56,10 +56,10 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","DRIF","DUST","FITM",
-	"BANA","GSHE","JAWZ","SSMN","KRBM","BLIG","LIGH","SINK","SITR","KBLN",
-	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
-	"SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","ITEM","ITMI",
-	"ITMN","PBOM"
+	"BANA","GSHE","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK","SITR",
+	"KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB",
+	"CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","ITEM",
+	"ITMI","ITMN","PBOM"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2680,16 +2680,6 @@ state_t states[NUMSTATES] =
 	{SPR_JAWZ, 5, 175, {NULL}, 0, 0, S_JAWZ_DEAD2},	// S_JAWZ_DEAD1
 	{SPR_NULL, 0, 1, {A_JawzExplode}, 0, 0, S_NULL},	// S_JAWZ_DEAD2
 
-	{SPR_FBLL, 13, 3, {NULL}, 0, 0, S_FIRETRAIL2},                      // S_FIRETRAIL1
-	{SPR_FBLL, 14, 3, {NULL}, 0, 0, S_FIRETRAIL3},                      // S_FIRETRAIL2
-	{SPR_FBLL, 15, 3, {NULL}, 0, 0, S_FIRETRAIL4},                      // S_FIRETRAIL3
-	{SPR_FBLL, 16, 3, {NULL}, 0, 0, S_FIRETRAIL5},                      // S_FIRETRAIL4
-	{SPR_FBLL, 17, 3, {NULL}, 0, 0, S_FIRETRAIL6},                      // S_FIRETRAIL5
-	{SPR_FBLL, 18, 3, {NULL}, 0, 0, S_FIRETRAIL7},                      // S_FIRETRAIL6
-	{SPR_FBLL, 19, 3, {NULL}, 0, 0, S_FIRETRAIL8},                      // S_FIRETRAIL7
-	{SPR_FBLL, 20, 3, {NULL}, 0, 0, S_FIRETRAIL9},                      // S_FIRETRAIL8
-	{SPR_FBLL, 21, 3, {NULL}, 0, 0, S_NULL},                            // S_FIRETRAIL9
-
 	{SPR_SSMN,  0, 30, {NULL}, 0, 0, S_SSMINE2},							// S_SSMINE1
 	{SPR_SSMN,  3,  3, {NULL}, 0, 0, S_SSMINE3},							// S_SSMINE2
 	{SPR_SSMN,  2,  3, {NULL}, 0, 0, S_SSMINE4},							// S_SSMINE3
@@ -2737,6 +2727,15 @@ state_t states[NUMSTATES] =
 	{SPR_KRBM, FF_FULLBRIGHT|8, 5, {NULL}, 0, 0, S_SLOWBOOM10},		// S_SLOWBOOM9
 	{SPR_KRBM, FF_FULLBRIGHT|9, 5, {NULL}, 0, 0, S_NULL},				// S_SLOWBOOM10
 
+	{SPR_BHOG, 0, 3, {NULL}, 0, 0, S_BALLHOG2}, // S_BALLHOG1
+	{SPR_BHOG, 1, 1, {NULL}, 0, 0, S_BALLHOG3}, // S_BALLHOG2
+	{SPR_BHOG, 2, 2, {NULL}, 0, 0, S_BALLHOG4}, // S_BALLHOG3
+	{SPR_BHOG, 3, 3, {NULL}, 0, 0, S_BALLHOG5}, // S_BALLHOG4
+	{SPR_BHOG, 4, 3, {NULL}, 0, 0, S_BALLHOG6}, // S_BALLHOG5
+	{SPR_BHOG, 5, 2, {NULL}, 0, 0, S_BALLHOG7}, // S_BALLHOG6
+	{SPR_BHOG, 6, 1, {NULL}, 0, 0, S_BALLHOG8}, // S_BALLHOG7
+	{SPR_BHOG, 7, 1, {NULL}, 0, 0, S_BALLHOG1}, // S_BALLHOG8
+
 	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
 	{SPR_BLIG, 2,  2, {NULL}, 0, 0, S_BLUELIGHTNING4},             // S_BLUELIGHTNING3
@@ -2757,7 +2756,7 @@ state_t states[NUMSTATES] =
 	{SPR_KBLN, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_BATTLEBALLOON2}, // S_BATTLEBALLOON2
 	{SPR_KBLN, FF_FULLBRIGHT|2, -1, {NULL}, 0, 0, S_BATTLEBALLOON3}, // S_BATTLEBALLOON3
 
-	{SPR_DEZL, 0|FF_FULLBRIGHT, 8, {NULL}, 0, 0, S_NULL},  // S_DEZLASER
+	{SPR_DEZL, FF_FULLBRIGHT|FF_PAPERSPRITE, 8, {NULL}, 0, 0, S_NULL},  // S_DEZLASER
 
 	{SPR_POKE, 0,  2, {A_MoveAbsolute},   0, 2, S_POKEY2}, // S_POKEY1
 	{SPR_POKE, 1,  2, {A_MoveAbsolute},   0, 2, S_POKEY3}, // S_POKEY2
@@ -14881,7 +14880,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_BALLHOG
 		-1,             // doomednum
-		S_FIREBALL1,    // spawnstate
+		S_BALLHOG1,     // spawnstate
 		140,            // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14892,7 +14891,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_FIREBALLEXP1, // deathstate
+		S_NULL,         // deathstate
 		S_NULL,         // xdeathstate
 		sfx_mario1,     // deathsound
 		0,              // speed

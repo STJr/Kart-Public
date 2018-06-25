@@ -594,6 +594,7 @@ typedef enum sprite
 	SPR_JAWZ, // Jawz
 	SPR_SSMN, // SS Mine
 	SPR_KRBM, // SS Mine BOOM
+	SPR_BHOG, // Ballhog
 	SPR_BLIG, // Self-Propelled Bomb
 	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
 	SPR_SINK, // Kitchen Sink
@@ -3190,16 +3191,6 @@ typedef enum state
 	S_JAWZ_DEAD2,
 	//}
 
-	S_FIRETRAIL1,
-	S_FIRETRAIL2,
-	S_FIRETRAIL3,
-	S_FIRETRAIL4,
-	S_FIRETRAIL5,
-	S_FIRETRAIL6,
-	S_FIRETRAIL7,
-	S_FIRETRAIL8,
-	S_FIRETRAIL9,
-
 	// Special Stage Mine
 	S_SSMINE1,
 	S_SSMINE2,
@@ -3248,6 +3239,16 @@ typedef enum state
 	S_SLOWBOOM8,
 	S_SLOWBOOM9,
 	S_SLOWBOOM10,
+
+	// Ballhog
+	S_BALLHOG1,
+	S_BALLHOG2,
+	S_BALLHOG3,
+	S_BALLHOG4,
+	S_BALLHOG5,
+	S_BALLHOG6,
+	S_BALLHOG7,
+	S_BALLHOG8,
 
 	// Self-Propelled Bomb - just an explosion for now...
 	S_BLUELIGHTNING1,

@@ -6348,16 +6348,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_JAWZ_DEAD2",
 	//}
 
-	"S_FIRETRAIL1",
-	"S_FIRETRAIL2",
-	"S_FIRETRAIL3",
-	"S_FIRETRAIL4",
-	"S_FIRETRAIL5",
-	"S_FIRETRAIL6",
-	"S_FIRETRAIL7",
-	"S_FIRETRAIL8",
-	"S_FIRETRAIL9",
-
 	// Special Stage Mine
 	"S_SSMINE1",
 	"S_SSMINE2",
