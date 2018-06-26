@@ -4867,7 +4867,8 @@ void K_drawKartHUD(void)
 	// This is handled by console/menu values
 	K_initKartHUD();
 
-	if (leveltime < 15 && stplyr == &players[displayplayer]) // Draw a white fade on level opening
+	// Draw a white fade on level opening
+	if (leveltime < 15 && stplyr == &players[displayplayer])
 	{
 		if (leveltime < 5) 
 			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first three frames, to hide SRB2's awful level load artifacts
@@ -4875,7 +4876,7 @@ void K_drawKartHUD(void)
 			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there
 	}
 
-	if (splitscreen == 2) // Player 4 in 3P is basically the minimap :p
+	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
 		K_drawKartMinimap();
 
 	// Draw full screen stuff that turns off the rest of the HUD

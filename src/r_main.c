@@ -1548,7 +1548,7 @@ void R_RegisterEngineStuff(void)
 
 	// Default viewheight is changeable,
 	// initialized to standard viewheight
-	CV_RegisterVar(&cv_viewheight);
+	//CV_RegisterVar(&cv_viewheight);
 
 #ifdef HWRENDER
 	// GL-specific Commands

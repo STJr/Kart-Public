@@ -1897,18 +1897,18 @@ static void ST_overlayDrawer(void)
 			strlcpy(name, player_names[stplyr-players], 13);
 
 			// Show name of player being displayed
-			V_DrawCenteredString((BASEVIDWIDTH/6), BASEVIDHEIGHT-80, 0, M_GetText("Viewpoint:"));
-			V_DrawCenteredString((BASEVIDWIDTH/6), BASEVIDHEIGHT-64, V_ALLOWLOWERCASE, name);
+			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Viewpoint:"));
+			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, name);
 		}
 
 		// This is where we draw all the fun cheese if you have the chasecam off!
-		if ((stplyr == &players[displayplayer] && !camera.chase)
+		/*if ((stplyr == &players[displayplayer] && !camera.chase)
 			|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
 			|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
 			|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		{
 			ST_drawFirstPersonHUD();
-		}
+		}*/
 	}
 
 #ifdef HAVE_BLUA

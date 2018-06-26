@@ -38,8 +38,8 @@
 #include "k_kart.h"
 
 // protos.
-static CV_PossibleValue_t viewheight_cons_t[] = {{16, "MIN"}, {56, "MAX"}, {0, NULL}};
-consvar_t cv_viewheight = {"viewheight", VIEWHEIGHTS, 0, viewheight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+//static CV_PossibleValue_t viewheight_cons_t[] = {{16, "MIN"}, {56, "MAX"}, {0, NULL}};
+//consvar_t cv_viewheight = {"viewheight", VIEWHEIGHTS, 0, viewheight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #ifdef WALLSPLATS
 consvar_t cv_splats = {"splats", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
@@ -9972,7 +9972,7 @@ void P_AfterPlayerSpawn(INT32 playernum)
 	else if (playernum == fourthdisplayplayer)
 		localangle4 = mobj->angle;
 
-	p->viewheight = cv_viewheight.value<<FRACBITS;
+	p->viewheight = 32<<FRACBITS;
 
 	if (p->mo->eflags & MFE_VERTICALFLIP)
 		p->viewz = p->mo->z + p->mo->height - p->viewheight;

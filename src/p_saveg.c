@@ -436,7 +436,7 @@ static void P_NetUnArchivePlayers(void)
 		if (flags & AWAYVIEW)
 			players[i].awayviewmobj = (mobj_t *)(size_t)READUINT32(save_p);
 
-		players[i].viewheight = cv_viewheight.value<<FRACBITS;
+		players[i].viewheight = 32<<FRACBITS;
 
 		//SetPlayerSkinByNum(i, players[i].skin);
 		players[i].charability = READUINT8(save_p);

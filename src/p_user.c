@@ -218,7 +218,7 @@ void P_CalcHeight(player_t *player)
 	//bob = FixedMul(player->bob/2, FINESINE(angle));
 
 	// move viewheight
-	player->viewheight = FixedMul(cv_viewheight.value << FRACBITS, mo->scale); // default eye view height
+	player->viewheight = FixedMul(32 << FRACBITS, mo->scale); // default eye view height
 
 	/*if (player->playerstate == PST_LIVE)
 	{
@@ -8099,9 +8099,9 @@ void P_ResetCamera(player_t *player, camera_t *thiscam)
 	x = player->mo->x - P_ReturnThrustX(player->mo, thiscam->angle, player->mo->radius);
 	y = player->mo->y - P_ReturnThrustY(player->mo, thiscam->angle, player->mo->radius);
 	if (player->mo->eflags & MFE_VERTICALFLIP)
-		z = player->mo->z + player->mo->height - (cv_viewheight.value<<FRACBITS) - 16*FRACUNIT;
+		z = player->mo->z + player->mo->height - (32<<FRACBITS) - 16*FRACUNIT;
 	else
-		z = player->mo->z + (cv_viewheight.value<<FRACBITS);
+		z = player->mo->z + (32<<FRACBITS);
 
 	// set bits for the camera
 	thiscam->x = x;
@@ -8462,7 +8462,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 #endif // bad 2D camera code
 
-	pviewheight = FixedMul(cv_viewheight.value<<FRACBITS, mo->scale);
+	pviewheight = FixedMul(32<<FRACBITS, mo->scale);
 
 	if (mo->eflags & MFE_VERTICALFLIP)
 		z = mo->z + mo->height - pviewheight - camheight;
@@ -9952,7 +9952,7 @@ void P_PlayerAfterThink(player_t *player)
 		{
 			// defaults to make sure 1st person cam doesn't do anything weird on startup
 			//player->deltaviewheight = 0;
-			player->viewheight = FixedMul(cv_viewheight.value << FRACBITS, player->mo->scale);
+			player->viewheight = FixedMul(32 << FRACBITS, player->mo->scale);
 			if (player->mo->eflags & MFE_VERTICALFLIP)
 				player->viewz = player->mo->z + player->mo->height - player->viewheight;
 			else
