@@ -445,7 +445,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
+   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 2, 3, 4, 5, 4 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
