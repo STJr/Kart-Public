@@ -930,16 +930,18 @@ static void IdentifyVersion(void)
 	// Add the weapons
 	//D_AddFile(va(pandf,srb2waddir,"rings.dta"));
 
-#ifdef USE_PATCH_DTA
-	// Add our crappy patches to fix our bugs
-	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
-#endif
-
 	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
 	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 	D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
+
+#ifdef USE_PATCH_DTA
+	// Add our crappy patches to fix our bugs
+	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
+#endif
+
+	D_AddFile(va(pandf,srb2waddir,"sonicitems.wad")); // Temporary. Remove before merging into master.
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{
@@ -1253,7 +1255,7 @@ void D_SRB2Main(void)
 	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
 #endif //ifndef DEVELOP
 
-	mainwads = 4; // there are 4 wads not to unload
+	mainwads = 5; // there are 4 wads not to unload (5 with temp sonicitems.wad)
 #ifdef USE_PATCH_DTA
 	++mainwads; // patch.dta adds one more
 #endif
