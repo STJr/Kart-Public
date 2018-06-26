@@ -207,7 +207,7 @@ UINT16 spacetimetics = 11*TICRATE + (TICRATE/2);
 UINT16 extralifetics = 4*TICRATE;
 
 // SRB2kart
-tic_t introtime = 108;
+tic_t introtime = 108+5; // plus 5 for white fade
 tic_t starttime = 6*TICRATE + (3*TICRATE/4);
 INT32 hyudorotime = 7*TICRATE;
 INT32 stealtime = TICRATE/2;

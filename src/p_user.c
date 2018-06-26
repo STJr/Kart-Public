@@ -8184,6 +8184,11 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			camrotate = cv_cam4_rotate.value;
 		else
 			camrotate = 0;
+		if (leveltime < introtime) // Whoooshy camera!
+		{
+			const INT32 introcam = (introtime - leveltime);
+			camrotate += introcam*5;
+		}
 		thiscam->angle = focusangle + FixedAngle(camrotate*FRACUNIT);
 		P_ResetCamera(player, thiscam);
 		return true;
@@ -9555,21 +9560,17 @@ void P_PlayerThink(player_t *player)
 		player->losstime--;
 
 	// Flash player after being hit.
-	if (!(player->pflags & PF_NIGHTSMODE))
+	if (!(player->pflags & PF_NIGHTSMODE
+		|| player->kartstuff[k_hyudorotimer] // SRB2kart - fixes Hyudoro not flashing when it should.
+		|| player->kartstuff[k_growshrinktimer] > 0 // Grow doesn't flash either.
+		|| (G_BattleGametype() && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])
+		|| leveltime < starttime)) // Level intro
 	{
-		// SRB2kart - fixes Hyudoro not flashing when it should. Grow doesn't flash either. Flashing is local.
-		if ((player == &players[displayplayer]
-			|| (splitscreen && player == &players[secondarydisplayplayer])
-			|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-			|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-			&& player->kartstuff[k_hyudorotimer] == 0 && player->kartstuff[k_growshrinktimer] <= 0
-			&& (player->kartstuff[k_comebacktimer] == 0 || (G_RaceGametype() || player->kartstuff[k_balloon] > 0)))
-		{
-			if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing() && (leveltime & 1))
-				player->mo->flags2 |= MF2_DONTDRAW;
-			else
-				player->mo->flags2 &= ~MF2_DONTDRAW;
-		}
+		if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing()
+			&& (leveltime & 1))
+			player->mo->flags2 |= MF2_DONTDRAW;
+		else
+			player->mo->flags2 &= ~MF2_DONTDRAW;
 	}
 	else if (player->mo->tracer)
 	{

@@ -4786,7 +4786,7 @@ static void K_drawBattleFullscreen(void)
 	if (stplyr->exiting)
 	{
 		if (stplyr == &players[displayplayer])
-			V_DrawFadeScreen();
+			V_DrawFadeScreen(0xFF00, 16);
 		if (stplyr->kartstuff[k_balloon])
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
 		else if (splitscreen < 2)
@@ -4819,7 +4819,7 @@ static void K_drawBattleFullscreen(void)
 				ty += (BASEVIDHEIGHT/2);
 		}
 		else
-			V_DrawFadeScreen();
+			V_DrawFadeScreen(0xFF00, 16);
 
 		if (!comebackshowninfo)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battleinfo, NULL);
@@ -4866,6 +4866,14 @@ void K_drawKartHUD(void)
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
+
+	if (leveltime < 15 && stplyr == &players[displayplayer]) // Draw a white fade on level opening
+	{
+		if (leveltime < 5) 
+			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first three frames, to hide SRB2's awful level load artifacts
+		else
+			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there
+	}
 
 	if (splitscreen == 2) // Player 4 in 3P is basically the minimap :p
 		K_drawKartMinimap();
