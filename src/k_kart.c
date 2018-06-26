@@ -3703,6 +3703,8 @@ static patch_t *kp_check[6];
 
 static patch_t *kp_spbwarning[2];
 
+static patch_t *kp_fpview[3];
+
 void K_LoadKartHUDGraphics(void)
 {
 	INT32 i, j;
@@ -3803,6 +3805,11 @@ void K_LoadKartHUDGraphics(void)
 	// SPB warning
 	kp_spbwarning[0] = 			W_CachePatchName("K_SPBW1", PU_HUDGFX);
 	kp_spbwarning[1] = 			W_CachePatchName("K_SPBW2", PU_HUDGFX);
+
+	// First person mode
+	kp_fpview[0] = 				W_CachePatchName("VIEWA0", PU_HUDGFX);
+	kp_fpview[1] =				W_CachePatchName("VIEWB0D0", PU_HUDGFX);
+	kp_fpview[2] = 				W_CachePatchName("VIEWC0E0", PU_HUDGFX);
 }
 
 //}
@@ -4860,6 +4867,71 @@ static void K_drawStartCountdown(void)
 	V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), 0, kp_startcountdown[pnum]);
 }
 
+static void K_drawKartFirstPerson(void)
+{
+	static INT32 pnum1 = 0, pnum2 = 0, pnum3 = 0, pnum4 = 0;
+	INT32 pn = 0, target = 0, splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
+	INT32 x = BASEVIDWIDTH/2, y = BASEVIDHEIGHT;
+	ticcmd_t *cmd = &stplyr->cmd;
+
+	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
+		pn = pnum2;
+	else if (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
+		pn = pnum3;
+	else if (stplyr == &players[fourthdisplayplayer] && splitscreen > 2)
+		pn = pnum4;
+	else
+		pn = pnum1;
+
+	if (splitscreen)
+	{
+		y /= 2;
+		if (splitscreen > 1)
+			x /= 2;
+	}
+
+	if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1))
+		y++;
+
+	if (cmd->driftturn > 400) // strong left turn
+		target = 2;
+	else if (cmd->driftturn < -400) // strong right turn
+		target = -2;
+	else if (cmd->driftturn > 0) // weak left turn
+		target = 1;
+	else if (cmd->driftturn < 0) // weak right turn
+		target = -1;
+	else // forward
+		target = 0;
+
+	if (pn < target)
+		pn++;
+	else if (pn > target)
+		pn--;
+
+	if (pn > 2)
+		pn = 2;
+	if (pn < -2)
+		pn = -2;
+
+	if (pn < 0)
+		splitflags |= V_FLIP; // right turn
+
+	if (splitscreen)
+		V_DrawSmallScaledPatch(x, y, splitflags, kp_fpview[abs(pn)]);
+	else
+		V_DrawScaledPatch(x, y, splitflags, kp_fpview[abs(pn)]);
+
+	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
+		pnum2 = pn;
+	else if (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
+		pnum3 = pn;
+	else if (stplyr == &players[fourthdisplayplayer] && splitscreen > 2)
+		pnum4 = pn;
+	else
+		pnum1 = pn;
+}
+
 static void K_drawCheckpointDebugger(void)
 {
 	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
@@ -4874,6 +4946,13 @@ void K_drawKartHUD(void)
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
+
+	// Draw that fun first person HUD!
+	if ((stplyr == &players[displayplayer] && !camera.chase)
+		|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
+		|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
+		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
+		K_drawKartFirstPerson();
 
 	// Draw a white fade on level opening
 	if (leveltime < 15 && stplyr == &players[displayplayer])
