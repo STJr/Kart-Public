@@ -451,7 +451,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k65",  false, 255,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Blue Spheres
   {"s3k66",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k67",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k68",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k68",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart final lap
   {"s3k69",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k6a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k6b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
