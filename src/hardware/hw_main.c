@@ -5430,15 +5430,12 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	else if (thing->color)
 	{
 		// New colormap stuff for skins Tails 06-07-2002
-		if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
+		if (thing->colorized)
+			vis->colormap = R_GetTranslationColormap(TC_RAINBOW, thing->color, GTC_CACHE);
+		else if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
 		{
-			if (thing->colorized)
-				vis->colormap = R_GetTranslationColormap(TC_RAINBOW, thing->color, GTC_CACHE);
-			else
-			{
-				size_t skinnum = (skin_t*)thing->skin-skins;
-				vis->colormap = R_GetTranslationColormap((INT32)skinnum, thing->color, GTC_CACHE);
-			}
+			size_t skinnum = (skin_t*)thing->skin-skins;
+			vis->colormap = R_GetTranslationColormap((INT32)skinnum, thing->color, GTC_CACHE);
 		}
 		else
 		{
