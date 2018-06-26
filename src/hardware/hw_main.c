@@ -5438,12 +5438,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 			vis->colormap = R_GetTranslationColormap((INT32)skinnum, thing->color, GTC_CACHE);
 		}
 		else
-		{
-			if (vis->mobj && vis->mobj->colorized)
-				vis->colormap = R_GetTranslationColormap(TC_RAINBOW, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
-			else
-				vis->colormap = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
-		}
+			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, thing->color, GTC_CACHE);
 	}
 	else
 		vis->colormap = colormaps;
