@@ -812,6 +812,7 @@ static void ST_drawLevelTitle(void)
 		V_DrawCenteredString(subttlxpos, lvlttly+48, V_ALLOWLOWERCASE, subttl);
 }
 
+/*
 static void ST_drawFirstPersonHUD(void)
 {
 	player_t *player = stplyr;
@@ -913,6 +914,7 @@ static void ST_drawFirstPersonHUD(void)
 		V_DrawScaledPatch(SCX((BASEVIDWIDTH/2) - (SHORT(p->width)/2) + SHORT(p->leftoffset)), SCY(60 - SHORT(p->topoffset)),
 			V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, p);
 }
+*/
 
 /*
 // [21:42] <+Rob> Beige - Lavender - Steel Blue - Peach - Orange - Purple - Silver - Yellow - Pink - Red - Blue - Green - Cyan - Gold

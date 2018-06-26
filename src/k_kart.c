@@ -731,7 +731,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-		S_StartSound(NULL,sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
 	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
 
@@ -1666,6 +1666,8 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 	else
 		P_SetMobjState(newmo, S_BATTLEBALLOON1);
 
+	S_StartSound(player->mo, sfx_3db06);
+
 	player->kartstuff[k_balloon]++;
 	player->kartstuff[k_comebackpoints] = 0;
 	player->powers[pw_flashing] = K_GetKartFlashing();
@@ -2353,7 +2355,7 @@ static void K_DoHyudoroSteal(player_t *player)
 void K_DoSneaker(player_t *player, boolean doPFlag)
 {
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-		S_StartSound(player->mo, sfx_s23c);
+		S_StartSound(player->mo, sfx_cdfm01);
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
 
@@ -3563,10 +3565,16 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Get an instant boost!
 		if (player->kartstuff[k_boostcharge] >= 35 && player->kartstuff[k_boostcharge] <= 50)
 		{
-			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
-				S_StartSound(player->mo, sfx_s23c);
-
 			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
+			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+			{
+				if (player->kartstuff[k_sneakertimer] >= 70)
+					S_StartSound(player->mo, sfx_s25f); // Special sound for the perfect start boost!
+				else if (player->kartstuff[k_sneakertimer] >= sneakertime)
+					S_StartSound(player->mo, sfx_cdfm01); // Sneaker boost sound for big boost 
+				else
+					S_StartSound(player->mo, sfx_s23c); // Drift boost sound for small boost
+			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		else if (player->kartstuff[k_boostcharge] > 50)

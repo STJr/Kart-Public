@@ -343,7 +343,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s239",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s23a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s23b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s23c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s23c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Drift boost
   {"s23d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s23e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s23f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -378,7 +378,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s25c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s25d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s25e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s25f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s25f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Perfect start boost
   {"s260",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s261",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s262",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -497,7 +497,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k93",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k94",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k95",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k96",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k96",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Orbinaut
   {"s3k97",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k98",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k99",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -514,13 +514,13 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3ka4",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka5",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka6",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3ka7",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3ka7",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart 3,2,1
   {"s3ka8",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka9",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kaa",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kab",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kac",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3kad",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3kad",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart GO!
   {"s3kae",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kaf",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kb0",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -563,7 +563,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kc8l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kc9s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kc9l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3kcas", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3kcas", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart respawn
   {"s3kcal", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kcbs", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kcbl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -601,14 +601,14 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kdbl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // 3D Blast sounds (the "missing" ones are direct copies of S3K's, no minor differences what-so-ever)
-  {"3db06",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"3db06",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Bumper stolen
   {"3db09",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"3db14",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"3db16",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // Sonic CD sounds
   {"cdfm00", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm01", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm01", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Sneaker boost
   {"cdfm02", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm03", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm04", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
