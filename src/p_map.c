@@ -3840,7 +3840,7 @@ void P_BouncePlayerMove(mobj_t *mo)
 	if (!mo->player)
 		return;
 
-	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	if ((mo->eflags & MFE_JUSTBOUNCEDWALL) || (mo->player->spectator))
 	{
 		P_SlideMove(mo, true);
 		return;

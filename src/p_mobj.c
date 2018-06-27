@@ -1761,9 +1761,11 @@ void P_XYMovement(mobj_t *mo)
 		{
 			P_BounceMove(mo);
 			xmove = ymove = 0;
-			//S_StartSound(mo, mo->info->activesound);
-			//{ SRB2kart - Green Shell, Fireball
-			if (mo->type == MT_GREENITEM)
+			S_StartSound(mo, mo->info->activesound);
+
+			//{ SRB2kart - Orbinaut, Ballhog
+			// Bump sparks
+			if (mo->type == MT_GREENITEM || mo->type == MT_BALLHOG)
 			{
 				mobj_t *fx;
 				fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
@@ -1772,6 +1774,10 @@ void P_XYMovement(mobj_t *mo)
 				else
 					fx->eflags &= ~MFE_VERTICALFLIP;
 				fx->scale = mo->scale;
+			}
+
+			if (mo->type == MT_GREENITEM) // Orbinaut speed decreasing
+			{
 				if (mo->health > 1)
 				{
 					S_StartSound(mo, mo->info->attacksound);
@@ -1788,10 +1794,6 @@ void P_XYMovement(mobj_t *mo)
 					P_InstaThrust(mo, R_PointToAngle2(mo->x, mo->y, mo->x + xmove, mo->y + ymove)+ANGLE_90, 16*FRACUNIT);
 				}
 			}
-			if (mo->type == MT_FIREBALL)
-				S_StartSound(mo, mo->info->attacksound);
-			else
-				S_StartSound(mo, mo->info->activesound);
 			//}
 
 			// Bounce ring algorithm
@@ -8120,6 +8122,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_BALLHOG:
+			P_SpawnGhostMobj(mobj)->fuse = 2;
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;

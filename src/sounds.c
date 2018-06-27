@@ -294,7 +294,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s1ba",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1bb",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1bc",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1bd",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1bd",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Ballhog bounce
   {"s1be",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1bf",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1c0",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

@@ -930,18 +930,20 @@ static void IdentifyVersion(void)
 	// Add the weapons
 	//D_AddFile(va(pandf,srb2waddir,"rings.dta"));
 
+#ifdef USE_PATCH_DTA
+	// Add our crappy patches to fix our bugs
+	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
+#endif
+
 	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
 	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 	D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
 
-#ifdef USE_PATCH_DTA
-	// Add our crappy patches to fix our bugs
-	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
+#ifdef USE_PATCH_KART
+	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
 #endif
-
-	D_AddFile(va(pandf,srb2waddir,"sonicitems.wad")); // Temporary. Remove before merging into master.
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{
@@ -1241,24 +1243,22 @@ void D_SRB2Main(void)
 #ifndef DEVELOP // md5s last updated 12/14/14
 
 	// Check MD5s of autoloaded files
-	W_VerifyFileMD5(0, ASSET_HASH_SRB2_SRB);  // srb2.srb/srb2.wad
-	W_VerifyFileMD5(1, ASSET_HASH_GFX_DTA);   // gfx.kart
-	W_VerifyFileMD5(2, ASSET_HASH_CHARS_DTA); // chars.kart
-	W_VerifyFileMD5(3, ASSET_HASH_MAPS_DTA);  // maps.kart
-											  // sounds.kart - since music is large, we'll ignore it for now.
-
+	mainwads = 0;
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB); mainwads++;		// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	W_VerifyFileMD5(4, ASSET_HASH_PATCH_DTA); // patch.dta
+	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA); mainwads++;	// patch.dta
+#endif
+	W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); mainwads++;		// gfx.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); mainwads++;	// chars.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); mainwads++;		// maps.kart
+	//W_VerifyFileMD5(mainwads, ASSET_HASH_SOUNDS_KART); mainwads++;	// sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
+#ifdef USE_PATCH_KART
+	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART); mainwads++;	// patch.kart
 #endif
 
 	// don't check music.dta because people like to modify it, and it doesn't matter if they do
 	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
 #endif //ifndef DEVELOP
-
-	mainwads = 5; // there are 4 wads not to unload (5 with temp sonicitems.wad)
-#ifdef USE_PATCH_DTA
-	++mainwads; // patch.dta adds one more
-#endif
 
 	cht_Init();
 
