@@ -1670,7 +1670,7 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
+void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing; // Tails 08-25-2002
@@ -1716,19 +1716,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewnumber != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewnumber != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewnumber != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewnumber != 3)
 						continue;
 			}
 
@@ -1749,19 +1749,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewnumber != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewnumber != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewnumber != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewnumber != 3)
 						continue;
 			}
 

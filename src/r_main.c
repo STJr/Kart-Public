@@ -1335,18 +1335,16 @@ void R_RenderPlayerView(player_t *player)
 {
 	portal_pair *portal;
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value);
-	UINT8 ssplayer;
+	UINT8 viewnumber;
 
 	if (player == &players[secondarydisplayplayer] && splitscreen)
-		ssplayer = 2;
+		viewnumber = 1;
 	else if (player == &players[thirddisplayplayer] && splitscreen > 1)
-		ssplayer = 3;
+		viewnumber = 2;
 	else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
-		ssplayer = 4;
-	else if (splitscreen)
-		ssplayer = 1;
+		viewnumber = 3;
 	else
-		ssplayer = 0;
+		viewnumber = 0;
 
 	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
 	{
@@ -1383,7 +1381,7 @@ void R_RenderPlayerView(player_t *player)
 		R_ClearVisibleFloorSplats();
 #endif
 
-		R_RenderBSPNode((INT32)numnodes - 1, ssplayer);
+		R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
 		R_ClipSprites();
 		R_DrawPlanes();
 #ifdef FLOORSPLATS
@@ -1416,7 +1414,7 @@ void R_RenderPlayerView(player_t *player)
 	mytotal = 0;
 	ProfZeroTimer();
 #endif
-	R_RenderBSPNode((INT32)numnodes - 1, ssplayer);
+	R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
 	R_ClipSprites();
 #ifdef TIMING
 	RDMSR(0x10, &mycount);
@@ -1441,7 +1439,7 @@ void R_RenderPlayerView(player_t *player)
 
 		validcount++;
 
-		R_RenderBSPNode((INT32)numnodes - 1, ssplayer);
+		R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
 		R_ClipSprites();
 		//R_DrawPlanes();
 		//R_DrawMasked();
