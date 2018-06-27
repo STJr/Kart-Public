@@ -4853,7 +4853,7 @@ static void K_drawBattleFullscreen(void)
 
 static void K_drawStartCountdown(void)
 {
-	INT32 pnum = 0; // 3
+	INT32 pnum = 0, splitflags = K_calcSplitFlags(0); // 3
 
 	if (leveltime >= starttime-(2*TICRATE)) // 2
 		pnum++;
@@ -4864,7 +4864,10 @@ static void K_drawStartCountdown(void)
 	if ((leveltime % (2*5)) / 5) // blink
 		pnum += 4;
 
-	V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), 0, kp_startcountdown[pnum]);
+	if (splitscreen)
+		V_DrawSmallScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/4), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/4), splitflags, kp_startcountdown[pnum]);
+	else
+		V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), splitflags, kp_startcountdown[pnum]);
 }
 
 static void K_drawKartFirstPerson(void)
