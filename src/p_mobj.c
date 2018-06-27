@@ -8122,7 +8122,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_BALLHOG:
-			P_SpawnGhostMobj(mobj)->fuse = 2;
+			P_SpawnGhostMobj(mobj)->fuse = 3;
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
