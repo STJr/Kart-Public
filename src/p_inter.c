@@ -2122,7 +2122,13 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			}
 			else if ((target->type == MT_GREENSHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) // orbit items
 				|| (target->type == MT_JAWZ_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_JAWZ))
+			{
 				target->target->player->kartstuff[k_itemamount]--;
+				if (target->lastlook != 0)
+				{
+					K_RepairOrbitChain(target);	
+				}
+			}
 
 			if (target->target->player->kartstuff[k_itemamount] < 0)
 				target->target->player->kartstuff[k_itemamount] = 0;

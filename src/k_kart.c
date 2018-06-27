@@ -2083,7 +2083,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 	}
 }
 
-static mobj_t *K_FindLastTrailMobj(player_t *player) // YUCK, i hate this!
+static mobj_t *K_FindLastTrailMobj(player_t *player)
 {
 	mobj_t *trail = player->mo->hnext;
 
@@ -2473,6 +2473,165 @@ void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
 	}
 }
 
+void K_RepairOrbitChain(mobj_t *orbit)
+{
+	mobj_t *cachenext = orbit->hnext;
+
+	// First, repair the chain
+	if (orbit->hnext && !P_MobjWasRemoved(orbit->hnext))
+	{
+		P_SetTarget(&orbit->hnext->hprev, orbit->hprev);
+		P_SetTarget(&orbit->hnext, NULL);
+	}
+
+	if (orbit->hprev && !P_MobjWasRemoved(orbit->hprev))
+	{
+		P_SetTarget(&orbit->hprev->hnext, cachenext);
+		P_SetTarget(&orbit->hprev, NULL);
+	}
+
+	// Then recount to make sure item amount is correct
+	if (orbit->target && orbit->target->player)
+	{
+		mobj_t *cur = NULL;
+		mobj_t *prev = NULL;
+		INT32 num = 0;
+
+		if (orbit->target->hnext)
+			cur = orbit->target->hnext;
+
+		while (cur && !P_MobjWasRemoved(cur) && cur != orbit->target->player->mo)
+		{
+			num++;
+			prev = cur;
+			cur = cur->hnext;
+			if (num > orbit->target->player->kartstuff[k_itemamount])
+				P_RemoveMobj(prev);
+		}
+
+		if (orbit->target->player->kartstuff[k_itemamount] != num)
+			orbit->target->player->kartstuff[k_itemamount] = num;
+	}
+}
+
+static void K_MoveHeldObjects(player_t *player)
+{
+	if (!player->mo)
+		return;
+
+	if (!player->mo->hnext)
+		return;
+
+	switch (player->mo->hnext->type)
+	{
+		case MT_GREENSHIELD: // Kart orbit items
+		case MT_JAWZ_SHIELD:
+			{
+				mobj_t *cur = player->mo->hnext;
+
+				while (cur && !P_MobjWasRemoved(cur) && cur != player->mo)
+				{
+					const fixed_t radius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(cur->radius, cur->radius); // mobj's distance from its Target, or Radius.
+					fixed_t z;
+
+					cur->angle -= ANGLE_90;
+					cur->angle += FixedAngle(cur->info->speed);
+
+					// If the player is on the ceiling, then flip your items as well.
+					if (player && player->mo->eflags & MFE_VERTICALFLIP)
+						cur->eflags |= MFE_VERTICALFLIP;
+					else
+						cur->eflags &= ~MFE_VERTICALFLIP;
+
+					// Shrink your items if the player shrunk too.
+					cur->scale = player->mo->scale;
+
+					if (P_MobjFlip(cur) > 0)
+						z = player->mo->z;
+					else
+						z = player->mo->z + player->mo->height - cur->height;
+
+					cur->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
+					P_TeleportMove(cur, player->mo->x, player->mo->y, z);
+					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), radius);
+					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), radius);
+					cur->flags &= ~MF_NOCLIPTHING;
+					if (!P_TryMove(cur, player->mo->x + cur->momx, player->mo->y + cur->momy, true))
+						P_SlideMove(cur, true);
+					if (P_IsObjectOnGround(player->mo))
+					{
+						if (P_MobjFlip(cur) > 0)
+						{
+							if (cur->floorz > player->mo->z - cur->height)
+								z = cur->floorz;
+						}
+						else
+						{
+							if (cur->ceilingz < player->mo->z + player->mo->height + cur->height)
+								z = cur->ceilingz - cur->height;
+						}
+					}
+					cur->z = z;
+					cur->momx = cur->momy = 0;
+					cur->angle += ANGLE_90;
+
+					cur = cur->hnext;
+				}
+			}
+			break;
+		case MT_BANANA_SHIELD: // Kart trailing items
+		case MT_SSMINE_SHIELD:
+		case MT_FAKESHIELD:
+			{
+				mobj_t *cur = player->mo->hnext;
+				mobj_t *targ = player->mo;
+
+				while (cur && !P_MobjWasRemoved(cur) && cur != player->mo)
+				{
+					const fixed_t spacing = FixedMul(3*cur->info->radius/2, player->mo->scale);
+					angle_t ang;
+					fixed_t targx;
+					fixed_t targy;
+					fixed_t targz;
+					fixed_t speed;
+					fixed_t dist = spacing;
+
+					if (cur != player->mo->hnext)
+					{
+						targ = cur->hprev;
+						dist = spacing/2;
+					}
+
+					if (!targ || P_MobjWasRemoved(targ))
+						continue;
+
+					ang = targ->angle;
+					targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, dist);
+					targy = targ->y + P_ReturnThrustY(cur, ang + ANGLE_180, dist);
+					targz = targ->z;
+					speed = FixedMul(R_PointToDist2(cur->x, cur->y, targx, targy), 3*FRACUNIT/4);
+					if (P_IsObjectOnGround(targ))
+						targz = cur->floorz;
+
+					cur->angle = R_PointToAngle2(cur->x, cur->y, targx, targy);
+
+					if (speed > dist)
+						P_InstaThrust(cur, cur->angle, speed-dist);
+
+					P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 3*FRACUNIT/4) - gravity, false);
+
+					if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
+						P_TeleportMove(cur, targx, targy, cur->z);
+
+					cur = cur->hnext;
+				}
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -2675,6 +2834,9 @@ void K_KartPlayerAfterThink(player_t *player)
 		if (!(player->mo->state->frame & FF_FULLBRIGHT))
 			player->mo->frame &= ~FF_FULLBRIGHT;
 	}
+
+	// Move held objects (Bananas, Orbinaut, etc)
+	K_MoveHeldObjects(player);
 }
 
 // Returns false if this player being placed here causes them to collide with any other player
@@ -3187,31 +3349,40 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_ORBINAUT:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
+						angle_t newangle;
+						fixed_t newx;
+						fixed_t newy;
 						INT32 moloop;
+						mobj_t *mo;
+						mobj_t *prev = NULL;
 
+						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
-						//K_PlayTauntSound(player->mo);
 						S_StartSound(player->mo, sfx_s3k3a);
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
-							angle_t newangle;
-							fixed_t newx;
-							fixed_t newy;
-							mobj_t *mo;
-
-							newangle = player->mo->angle;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
+							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
+							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_GREENSHIELD);
-							if (mo)
+							mo->angle = newangle;
+							mo->threshold = 10;
+							mo->movecount = player->kartstuff[k_itemamount];
+							mo->lastlook = moloop+1;
+							P_SetTarget(&mo->target, player->mo);
+							if (moloop > 0)
 							{
-								mo->threshold = 10;
-								mo->lastlook = moloop+1;
-								P_SetTarget(&mo->target, player->mo);
-								mo->angle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
+								P_SetTarget(&mo->hprev, prev);
+								if (prev != NULL)
+									P_SetTarget(&prev->hnext, mo);
 							}
+							else
+								P_SetTarget(&player->mo->hnext, mo);
+							if (moloop == player->kartstuff[k_itemamount]-1) // Complete loop for orbit items
+								P_SetTarget(&mo->hnext, player->mo);
+							prev = mo;
 						}
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Orbinaut x3 thrown
@@ -3228,31 +3399,40 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_JAWZ:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
+						angle_t newangle;
+						fixed_t newx;
+						fixed_t newy;
 						INT32 moloop;
+						mobj_t *mo;
+						mobj_t *prev = NULL;
 
+						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
-						//K_PlayTauntSound(player->mo);
 						S_StartSound(player->mo, sfx_s3k3a);
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
-							angle_t newangle;
-							fixed_t newx;
-							fixed_t newy;
-							mobj_t *mo;
-
-							newangle = player->mo->angle;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
+							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
+							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
+							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
-							if (mo)
+							mo->angle = newangle;
+							mo->threshold = 10;
+							mo->movecount = player->kartstuff[k_itemamount];
+							mo->lastlook = moloop+1;
+							P_SetTarget(&mo->target, player->mo);
+							if (moloop > 0)
 							{
-								mo->threshold = 10;
-								mo->lastlook = moloop+1;
-								P_SetTarget(&mo->target, player->mo);
-								mo->angle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
+								P_SetTarget(&mo->hprev, prev);
+								if (prev != NULL)
+									P_SetTarget(&prev->hnext, mo);
 							}
+							else
+								P_SetTarget(&player->mo->hnext, mo);
+							if (moloop == player->kartstuff[k_itemamount]-1) // Complete loop for orbit items
+								P_SetTarget(&mo->hnext, player->mo);
+							prev = mo;
 						}
 					}
 					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Jawz thrown

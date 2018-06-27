@@ -6697,63 +6697,6 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					fixed_t z;
-					const fixed_t radius = FixedHypot(mobj->target->radius, mobj->target->radius) + FixedHypot(mobj->radius, mobj->radius); // mobj's distance from its Target, or Radius.
-
-					mobj->angle -= ANGLE_90;
-					mobj->angle += FixedAngle(mobj->info->speed);
-
-					// If the player is on the ceiling, then flip your items as well.
-					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
-					{
-						mobj->eflags |= MFE_VERTICALFLIP;
-					}
-					else
-					{
-						mobj->eflags &= ~MFE_VERTICALFLIP;
-					}
-
-					// Shrink your items if the player shrunk too.
-					if (mobj->target->player)
-						mobj->scale = mobj->target->scale;
-
-					if (P_MobjFlip(mobj) > 0)
-					{
-						z = mobj->target->z;
-					}
-					else
-					{
-						z = mobj->target->z + mobj->target->height - mobj->height;
-					}
-
-					mobj->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
-					P_TeleportMove(mobj, mobj->target->x, mobj->target->y, z);
-					mobj->momx = FixedMul(FINECOSINE(mobj->angle>>ANGLETOFINESHIFT),radius);
-					mobj->momy = FixedMul(FINESINE(mobj->angle>>ANGLETOFINESHIFT), radius);
-					mobj->flags &= ~MF_NOCLIPTHING;
-					if (!P_TryMove(mobj, mobj->target->x + mobj->momx, mobj->target->y + mobj->momy, true))
-						P_SlideMove(mobj, true);
-					if (P_IsObjectOnGround(mobj->target))
-					{
-						if (P_MobjFlip(mobj) > 0)
-						{
-							if (mobj->floorz > mobj->target->z - mobj->height)
-							{
-								z = mobj->floorz;
-							}
-						}
-						else
-						{
-							if (mobj->ceilingz < mobj->target->z + mobj->target->height + mobj->height)
-							{
-								z = mobj->ceilingz - mobj->height;
-							}
-						}
-					}
-					mobj->z = z;
-					mobj->momx = mobj->momy = 0;
-					mobj->angle += ANGLE_90;
-
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
@@ -6779,52 +6722,6 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					if (mobj->lastlook == 1)
-					{
-						const fixed_t spacing = FixedMul(3*mobj->info->radius/2, mobj->target->scale);
-						mobj_t *cur = mobj;
-						mobj_t *targ = mobj->target;
-
-						while (cur && !P_MobjWasRemoved(cur))
-						{
-							angle_t ang;
-							fixed_t targx;
-							fixed_t targy;
-							fixed_t targz;
-							fixed_t speed;
-							fixed_t dist = spacing;
-
-							if (cur != mobj)
-							{
-								targ = cur->hprev;
-								dist = spacing/2;
-							}
-
-							if (!targ || P_MobjWasRemoved(targ))
-								continue;
-
-							ang = targ->angle;
-							targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, dist);
-							targy = targ->y + P_ReturnThrustY(cur, ang + ANGLE_180, dist);
-							targz = targ->z;
-							speed = FixedMul(R_PointToDist2(cur->x, cur->y, targx, targy), 3*FRACUNIT/4);
-							if (P_IsObjectOnGround(targ))
-								targz = cur->floorz;
-
-							cur->angle = R_PointToAngle2(cur->x, cur->y, targx, targy);
-
-							if (speed > dist)
-								P_InstaThrust(cur, cur->angle, speed-dist);
-
-							P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 3*FRACUNIT/4) - gravity, false);
-
-							if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
-								P_TeleportMove(cur, targx, targy, cur->z);
-
-							cur = cur->hnext;
-						}
-					}
-
 					// Was this so hard?
 					if ((mobj->type == MT_BANANA_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
 						|| (mobj->type == MT_SSMINE_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
