@@ -1543,7 +1543,11 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 	ghost->color = mobj->color;
 	ghost->colorized = mobj->colorized; // Kart: they should also be colorized if their origin is
 
-	ghost->angle = mobj->angle;
+	if (mobj->player)
+		ghost->angle = mobj->player->frameangle;
+	else
+		ghost->angle = mobj->angle;
+
 	ghost->sprite = mobj->sprite;
 	ghost->frame = mobj->frame;
 	ghost->tics = -1;
