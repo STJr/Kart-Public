@@ -2085,9 +2085,9 @@ void K_DriftDustHandling(mobj_t *spawner)
 
 static mobj_t *K_FindLastTrailMobj(player_t *player)
 {
-	mobj_t *trail = player->mo->hnext;
+	mobj_t *trail;
 
-	if (!player || !trail)
+	if (!player || !(trail = player->mo) || !player->mo->hnext)
 		return NULL;
 	
 	while (trail->hnext && !P_MobjWasRemoved(trail->hnext))
@@ -2493,20 +2493,19 @@ void K_RepairOrbitChain(mobj_t *orbit)
 	// Then recount to make sure item amount is correct
 	if (orbit->target && orbit->target->player)
 	{
-		mobj_t *cur = NULL;
-		mobj_t *prev = NULL;
 		INT32 num = 0;
 
-		if (orbit->target->hnext)
-			cur = orbit->target->hnext;
+		mobj_t *cur = orbit->target->hnext;
+		mobj_t *prev = NULL;
 
-		while (cur && !P_MobjWasRemoved(cur) && cur != orbit->target->player->mo)
+		while (cur && !P_MobjWasRemoved(cur))
 		{
-			num++;
 			prev = cur;
 			cur = cur->hnext;
-			if (num > orbit->target->player->kartstuff[k_itemamount])
+			if (++num > orbit->target->player->kartstuff[k_itemamount])
 				P_RemoveMobj(prev);
+			else
+				prev->movedir = num;
 		}
 
 		if (orbit->target->player->kartstuff[k_itemamount] != num)
@@ -2529,7 +2528,7 @@ static void K_MoveHeldObjects(player_t *player)
 			{
 				mobj_t *cur = player->mo->hnext;
 
-				while (cur && !P_MobjWasRemoved(cur) && cur != player->mo)
+				while (cur && !P_MobjWasRemoved(cur))
 				{
 					const fixed_t radius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(cur->radius, cur->radius); // mobj's distance from its Target, or Radius.
 					fixed_t z;
@@ -2544,7 +2543,7 @@ static void K_MoveHeldObjects(player_t *player)
 						cur->eflags &= ~MFE_VERTICALFLIP;
 
 					// Shrink your items if the player shrunk too.
-					cur->scale = player->mo->scale;
+					P_SetScale(cur, (cur->destscale = player->mo->scale));
 
 					if (P_MobjFlip(cur) > 0)
 						z = player->mo->z;
@@ -2586,7 +2585,7 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
 
-				while (cur && !P_MobjWasRemoved(cur) && cur != player->mo)
+				while (cur && !P_MobjWasRemoved(cur))
 				{
 					const fixed_t spacing = FixedMul(3*cur->info->radius/2, player->mo->scale);
 					angle_t ang;
@@ -3285,7 +3284,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						fixed_t newy;
 						INT32 moloop;
 						mobj_t *mo;
-						mobj_t *prev = NULL;
+						mobj_t *prev = player->mo;
 
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
@@ -3301,14 +3300,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->movecount = player->kartstuff[k_itemamount];
 							mo->lastlook = moloop+1;
 							P_SetTarget(&mo->target, player->mo);
-							if (moloop > 0)
-							{
-								P_SetTarget(&mo->hprev, prev);
-								if (prev != NULL)
-									P_SetTarget(&prev->hnext, mo);
-							}
-							else
-								P_SetTarget(&player->mo->hnext, mo);
+							P_SetTarget(&mo->hprev, prev);
+							P_SetTarget(&prev->hnext, mo);
 							prev = mo;
 						}
 					}
@@ -3353,8 +3346,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						fixed_t newx;
 						fixed_t newy;
 						INT32 moloop;
-						mobj_t *mo;
-						mobj_t *prev = NULL;
+						mobj_t *mo = NULL;
+						mobj_t *prev = player->mo;
 
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
@@ -3370,18 +3363,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->angle = newangle;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
-							mo->lastlook = moloop+1;
+							mo->movedir = mo->lastlook = moloop+1;
 							P_SetTarget(&mo->target, player->mo);
-							if (moloop > 0)
-							{
-								P_SetTarget(&mo->hprev, prev);
-								if (prev != NULL)
-									P_SetTarget(&prev->hnext, mo);
-							}
-							else
-								P_SetTarget(&player->mo->hnext, mo);
-							if (moloop == player->kartstuff[k_itemamount]-1) // Complete loop for orbit items
-								P_SetTarget(&mo->hnext, player->mo);
+							P_SetTarget(&mo->hprev, prev);
+							P_SetTarget(&prev->hnext, mo);
 							prev = mo;
 						}
 					}
@@ -3403,8 +3388,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						fixed_t newx;
 						fixed_t newy;
 						INT32 moloop;
-						mobj_t *mo;
-						mobj_t *prev = NULL;
+						mobj_t *mo = NULL;
+						mobj_t *prev = player->mo;
 
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
@@ -3420,18 +3405,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->angle = newangle;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
-							mo->lastlook = moloop+1;
+							mo->movedir = mo->lastlook = moloop+1;
 							P_SetTarget(&mo->target, player->mo);
-							if (moloop > 0)
-							{
-								P_SetTarget(&mo->hprev, prev);
-								if (prev != NULL)
-									P_SetTarget(&prev->hnext, mo);
-							}
-							else
-								P_SetTarget(&player->mo->hnext, mo);
-							if (moloop == player->kartstuff[k_itemamount]-1) // Complete loop for orbit items
-								P_SetTarget(&mo->hnext, player->mo);
+							P_SetTarget(&mo->hprev, prev);
+							P_SetTarget(&prev->hnext, mo);
 							prev = mo;
 						}
 					}

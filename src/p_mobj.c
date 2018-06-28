@@ -6700,7 +6700,7 @@ void P_MobjThinker(mobj_t *mobj)
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
-						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook)
+						|| (mobj->movedir > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->movedir)
 						|| (!mobj->target->player->kartstuff[k_itemheld]))
 					{
 						P_RemoveMobj(mobj);
@@ -9276,7 +9276,23 @@ void P_RemoveMobj(mobj_t *mobj)
 	//
 	// Remove any references to other mobjs.
 	P_SetTarget(&mobj->target, P_SetTarget(&mobj->tracer, NULL));
-	P_SetTarget(&mobj->hprev, P_SetTarget(&mobj->hnext, NULL));
+
+	// repair hnext chain
+	{
+		mobj_t *cachenext = mobj->hnext;
+
+		if (mobj->hnext && !P_MobjWasRemoved(mobj->hnext))
+		{
+			P_SetTarget(&mobj->hnext->hprev, mobj->hprev);
+			P_SetTarget(&mobj->hnext, NULL);
+		}
+
+		if (mobj->hprev && !P_MobjWasRemoved(mobj->hprev))
+		{
+			P_SetTarget(&mobj->hprev->hnext, cachenext);
+			P_SetTarget(&mobj->hprev, NULL);
+		}
+	}
 
 	// free block
 	// DBG: set everything in mobj_t to 0xFF instead of leaving it. debug memory error.
