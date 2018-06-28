@@ -183,6 +183,8 @@ boolean G_GametypeUsesLives(void);
 boolean G_GametypeHasTeams(void);
 boolean G_GametypeHasSpectators(void);
 boolean G_BattleGametype(void);
+INT16 G_SometimesGetDifferentGametype(void);
+UINT8 G_GetGametypeColor(INT16 gt);
 boolean G_RaceGametype(void);
 boolean G_TagGametype(void);
 void G_ExitLevel(void);

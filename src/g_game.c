@@ -250,7 +250,7 @@ boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
 // Voting system
-INT16 votelevels[4]; // Levels that were rolled by the host
+INT16 votelevels[4][2]; // Levels that were rolled by the host
 SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
@@ -264,7 +264,7 @@ boolean legitimateexit; // Did this client actually finish the match?
 boolean comebackshowninfo; // Have you already seen the "ATTACK OR PROTECT" message?
 tic_t curlap; // Current lap time
 tic_t bestlap; // Best lap time
-static INT16 randmapbuffer[NUMMAPS]; // Buffer for maps RandMap is allowed to roll
+static INT16 randmapbuffer[NUMMAPS+1]; // Buffer for maps RandMap is allowed to roll
 
 tic_t hidetime;
 
@@ -3026,7 +3026,7 @@ boolean G_GametypeHasSpectators(void)
 #if 0
 	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
 #else
-	return true;
+	return (!splitscreen);//true;
 #endif
 }
 
@@ -3038,6 +3038,37 @@ boolean G_GametypeHasSpectators(void)
 boolean G_BattleGametype(void)
 {
 	return (gametype == GT_MATCH);
+}
+
+//
+// G_SometimesGetDifferentGametype
+//
+// I pity the fool who adds more gametypes later, because it'll require some element of randomisation which needs to be synched...
+//
+INT16 G_SometimesGetDifferentGametype(void)
+{
+	if (randmapbuffer[NUMMAPS] != -1)
+		return gametype;
+
+	randmapbuffer[NUMMAPS] = gametype;
+
+	if (gametype == GT_MATCH)
+		return GT_RACE;
+	return GT_MATCH;
+}
+
+//
+// G_GetGametypeColor
+//
+// Pretty and consistent ^u^
+//
+UINT8 G_GetGametypeColor(INT16 gt)
+{
+	if (gt == GT_MATCH)
+		return 128; // red
+	if (gt == GT_RACE)
+		return 215; // sky blue
+	return 247; // FALLBACK
 }
 
 //
@@ -3152,7 +3183,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 			return G_RandMap(tolflags, pprevmap, dontadd, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
 
 		ix = 0; // Sorry, none match. You get MAP01.
-		for (bufx = 0; bufx < NUMMAPS; bufx++)
+		for (bufx = 0; bufx < NUMMAPS+1; bufx++)
 			randmapbuffer[bufx] = -1; // if we're having trouble finding a map we should probably clear it
 	}
 	else
@@ -3160,7 +3191,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 		ix = okmaps[M_RandomKey(numokmaps)];
 		if (!dontadd)
 		{
-			for (bufx = NUMMAPS; bufx > 0; bufx--)
+			for (bufx = NUMMAPS-1; bufx > 0; bufx--)
 				randmapbuffer[bufx] = randmapbuffer[bufx-1];
 			randmapbuffer[0] = ix;
 		}
@@ -3293,7 +3324,7 @@ static void G_DoCompleted(void)
 
 	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-4] != -1) // we're getting pretty full, so lets clear it
 	{
-		for (i = 0; i < NUMMAPS; i++)
+		for (i = 0; i < NUMMAPS+1; i++)
 			randmapbuffer[i] = -1;
 	}
 
@@ -3947,7 +3978,7 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, U
 		COM_BufAddText("stopdemo\n");
 	ghosts = NULL;
 
-	for (i = 0; i < NUMMAPS; i++)
+	for (i = 0; i < NUMMAPS+1; i++)
 		randmapbuffer[i] = -1;
 
 	// this leave the actual game if needed

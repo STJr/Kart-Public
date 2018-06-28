@@ -5120,7 +5120,7 @@ void K_drawKartHUD(void)
 	// Draw a white fade on level opening
 	if (leveltime < 15 && stplyr == &players[displayplayer])
 	{
-		if (leveltime < 5) 
+		if (leveltime <= 5)
 			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first three frames, to hide SRB2's awful level load artifacts
 		else
 			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there

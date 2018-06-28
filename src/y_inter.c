@@ -173,6 +173,8 @@ static void Y_UnloadData(void);
 typedef struct
 {
 	char str[40];
+	UINT8 gtc;
+	const char *gts;
 	patch_t *pic;
 } y_votelvlinfo;
 
@@ -2185,9 +2187,7 @@ void Y_VoteDrawer(void)
 	{
 		char str[40];
 		patch_t *pic;
-		UINT8 sizeadd = selected[i];
-		UINT8 j;
-		UINT8 color;
+		UINT8 sizeadd = selected[i], j, color, gtc = levelinfo[i].gtc;
 
 		if (i == 3)
 		{
@@ -2262,11 +2262,26 @@ void Y_VoteDrawer(void)
 
 			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
 			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
+			{
+				INT32 w = 0;
+				if (levelinfo[i].gts)
+				{
+					w = V_StringWidth(levelinfo[i].gts, V_SNAPTORIGHT)+2;
+					V_DrawFill(BASEVIDWIDTH-100, y+9, w+1, 2, V_SNAPTORIGHT|31);
+					V_DrawFill(BASEVIDWIDTH-100, y, w, 10, V_SNAPTORIGHT|gtc);
+					V_DrawString(BASEVIDWIDTH-99, y+1, V_SNAPTORIGHT, levelinfo[i].gts);
+				}
+				V_DrawDiag(BASEVIDWIDTH-100+w+1, y, 11, V_SNAPTORIGHT|31);
+				V_DrawDiag(BASEVIDWIDTH-100+w, y, 10, V_SNAPTORIGHT|gtc);
+			}
+
 			y += 50;
 		}
 		else
 		{
 			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
+			V_DrawDiag(BASEVIDWIDTH-60, y, 8, V_SNAPTORIGHT|31);
+			V_DrawDiag(BASEVIDWIDTH-60, y, 6, V_SNAPTORIGHT|gtc);
 			y += 25;
 		}
 
@@ -2284,6 +2299,7 @@ void Y_VoteDrawer(void)
 		if ((playeringame[i] && !players[i].spectator) && votes[i] != -1)
 		{
 			patch_t *pic;
+			UINT8 gtc = levelinfo[votes[i]].gtc;
 
 			if (votes[i] == 3 && (i != pickedvote || voteendtic == -1))
 				pic = randomlvl;
@@ -2300,6 +2316,8 @@ void Y_VoteDrawer(void)
 			}
 
 			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
+			V_DrawDiag(x, y, 8, V_SNAPTOLEFT|31);
+			V_DrawDiag(x, y, 6, V_SNAPTOLEFT|gtc);
 
 			if (players[i].skincolor == 0)
 				V_DrawSmallScaledPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin]);
@@ -2564,40 +2582,51 @@ void Y_StartVote(void)
 	for (i = 0; i < 4; i++)
 	{
 		lumpnum_t lumpnum;
+		INT16 j;
 
 		// set up the str
-		if (strlen(mapheaderinfo[votelevels[i]]->zonttl) > 0)
+		if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)
 		{
-			if (strlen(mapheaderinfo[votelevels[i]]->actnum) > 0)
+			if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
 					"%.32s %.32s %s",
-					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl, mapheaderinfo[votelevels[i]]->actnum);
+					mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl, mapheaderinfo[votelevels[i][0]]->actnum);
 			else
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
 					"%.32s %.32s",
-					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->zonttl);
+					mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl);
 		}
 		else
 		{
-			if (strlen(mapheaderinfo[votelevels[i]]->actnum) > 0)
+			if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
 					"%.32s %s",
-					mapheaderinfo[votelevels[i]]->lvlttl, mapheaderinfo[votelevels[i]]->actnum);
+					mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
 			else
 				snprintf(levelinfo[i].str,
 					sizeof levelinfo[i].str,
 					"%.32s",
-					mapheaderinfo[votelevels[i]]->lvlttl);
+					mapheaderinfo[votelevels[i][0]]->lvlttl);
 		}
 
 		levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
 
-		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votelevels[i]+1)));
+		// set up the gtc and gts
+		levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
+		levelinfo[i].gts = NULL;
+		for (j = 0; gametype_cons_t[j].strvalue; j++)
+		{
+			if (gametype_cons_t[j].value == votelevels[i][1])
+				levelinfo[i].gts = gametype_cons_t[j].strvalue;
+		}
+
+		// set up the pic
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votelevels[i][0]+1)));
 		if (lumpnum != LUMPERROR)
-			levelinfo[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votelevels[i]+1)), PU_STATIC);
+			levelinfo[i].pic = W_CachePatchName(va("%sP", G_BuildMapName(votelevels[i][0]+1)), PU_STATIC);
 		else
 			levelinfo[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
 	}
@@ -2691,6 +2720,11 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 	}
 
 	pickedvote = pick;
-	nextmap = votelevels[level];
+	nextmap = votelevels[level][0];
+	if (gametype != votelevels[level][1])
+	{
+		//CONS_Printf("yer dun\n"); -- if we want to do anything else special for a gametype switch, it'd be here
+		gametype = votelevels[level][1];
+	}
 	timer = 0;
 }

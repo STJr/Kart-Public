@@ -904,6 +904,98 @@ void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color)
 		PF_Modulated|PF_NoTexture|PF_NoDepthTest);
 }
 
+// -----------------+
+// HWR_DrawDiag     : draw flat coloured rectangle, with no texture
+// -----------------+
+void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color)
+{
+	FOutVector v[4];
+	FSurfaceInfo Surf;
+	float fx, fy, fw, fh;
+
+	if (wh < 0)
+		return; // consistency w/ software
+
+//  3--2
+//  | /|
+//  |/ |
+//  0--1
+
+	fx = (float)x;
+	fy = (float)y;
+	fw = fh = (float)wh;
+
+	if (!(color & V_NOSCALESTART))
+	{
+		float dupx = (float)vid.dupx, dupy = (float)vid.dupy;
+
+		fx *= dupx;
+		fy *= dupy;
+		fw *= dupx;
+		fh *= dupy;
+
+		if (vid.width != BASEVIDWIDTH * vid.dupx)
+		{
+			if (color & V_SNAPTORIGHT)
+				fx += ((float)vid.width - ((float)BASEVIDWIDTH * dupx));
+			else if (!(color & V_SNAPTOLEFT))
+				fx += ((float)vid.width - ((float)BASEVIDWIDTH * dupx)) / 2;
+		}
+		if (vid.height != BASEVIDHEIGHT * dupy)
+		{
+			// same thing here
+			if (color & V_SNAPTOBOTTOM)
+				fy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy));
+			else if (!(color & V_SNAPTOTOP))
+				fy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy)) / 2;
+		}
+	}
+
+	if (fx >= vid.width || fy >= vid.height)
+		return;
+	if (fx < 0)
+	{
+		fw += fx;
+		fx = 0;
+	}
+	if (fy < 0)
+	{
+		fh += fy;
+		fy = 0;
+	}
+
+	if (fw <= 0 || fh <= 0)
+		return;
+	/*if (fx + fw > vid.width) -- oh gee oh boy oh shit
+		fw = (float)vid.width - fx;*/
+	if (fy + fh > vid.height)
+		fh = (float)vid.height - fy;
+
+	fx = -1 + fx / (vid.width / 2);
+	fy = 1 - fy / (vid.height / 2);
+	fw = fw / (vid.width / 2);
+	fh = fh / (vid.height / 2);
+
+	v[0].x = v[2].x = v[3].x = fx;
+	v[1].x = fx + fw;
+	v[0].y = v[1].y = fy;
+	v[2].y = v[3].y = fy - fh;
+
+	//Hurdler: do we still use this argb color? if not, we should remove it
+	v[0].argb = v[1].argb = v[2].argb = v[3].argb = 0xff00ff00; //;
+	v[0].z = v[1].z = v[2].z = v[3].z = 1.0f;
+
+	v[0].sow = v[3].sow = 0.0f;
+	v[2].sow = v[1].sow = 1.0f;
+	v[0].tow = v[1].tow = 0.0f;
+	v[2].tow = v[3].tow = 1.0f;
+
+	Surf.FlatColor = V_GetColor(color);
+
+	HWD.pfnDrawPolygon(&Surf, v, 4,
+		PF_Modulated|PF_NoTexture|PF_NoDepthTest);
+}
+
 #ifdef HAVE_PNG
 
 #ifndef _MSC_VER

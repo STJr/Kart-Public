@@ -1963,13 +1963,23 @@ void D_SetupVote(void)
 	char buf[8];
 	char *p = buf;
 	INT32 i;
+	INT16 gt = gametype;
 
 	for (i = 0; i < 4; i++)
 	{
-		if (i == 3)
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false));
+		if (i == 2) // sometimes a different gametype
+		{
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt = G_SometimesGetDifferentGametype()), prevmap, false, false));
+			WRITEUINT16(p, gt);
+		}
 		else
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false));
+		{
+			if (i == 3) // unknown-random
+				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false));
+			else
+				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false));
+			WRITEUINT16(p, gametype);
+		}
 	}
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
@@ -4618,9 +4628,10 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 
 	for (i = 0; i < 4; i++)
 	{
-		votelevels[i] = (INT16)READUINT16(*cp);
-		if (!mapheaderinfo[votelevels[i]])
-			P_AllocMapHeader(votelevels[i]);
+		votelevels[i][0] = (INT16)READUINT16(*cp);
+		votelevels[i][1] = (INT16)READUINT16(*cp);
+		if (!mapheaderinfo[votelevels[i][0]])
+			P_AllocMapHeader(votelevels[i][0]);
 	}
 
 	G_SetGamestate(GS_VOTING);

@@ -52,6 +52,7 @@ void HWR_CreatePlanePolygons(INT32 bspnum);
 void HWR_CreateStaticLightmaps(INT32 bspnum);
 void HWR_PrepLevelCache(size_t pnumtextures);
 void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color);
+void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color);
 void HWR_DrawPic(INT32 x,INT32 y,lumpnum_t lumpnum);
 
 void HWR_AddCommands(void);
