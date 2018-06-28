@@ -43,6 +43,8 @@ const char *GetPalette(void);
 
 extern RGBA_t *pLocalPalette;
 
+extern UINT8 hudtrans;
+
 // Retrieve the ARGB value from a palette color index
 #define V_GetColor(color) (pLocalPalette[color&0xFF])
 

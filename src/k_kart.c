@@ -4091,6 +4091,13 @@ static void K_initKartHUD(void)
 			}
 		}
 	}
+
+	if (timeinmap > 113)
+		hudtrans = cv_translucenthud.value;
+	else if (timeinmap > 105)
+		hudtrans = ((((INT32)timeinmap) - 105)*cv_translucenthud.value)/(113-105);
+	else
+		hudtrans = 0;
 }
 
 INT32 K_calcSplitFlags(INT32 snapflags)
@@ -4845,8 +4852,7 @@ static void K_drawKartMinimap(void)
 	patch_t *AutomapPic;
 	INT32 i = 0;
 	INT32 x, y;
-	const INT32 minimaptrans = ((10-cv_kartminimap.value)<<FF_TRANSSHIFT);
-	INT32 splitflags = V_SNAPTORIGHT|minimaptrans;
+	INT32 minimaptrans, splitflags = (splitscreen ? 0 : V_SNAPTORIGHT);
 
 	// Draw the HUD only when playing in a level.
 	// hu_stuff needs this, unlike st_stuff.
@@ -4866,8 +4872,19 @@ static void K_drawKartMinimap(void)
 	x = MINI_X - (AutomapPic->width/2);
 	y = MINI_Y - (AutomapPic->height/2);
 
-	if (splitscreen)
-		splitflags = 0;
+	if (timeinmap > 105)
+	{
+		minimaptrans = (splitscreen ? 10 : cv_kartminimap.value);
+		if (timeinmap <= 113)
+			minimaptrans = ((((INT32)timeinmap) - 105)*minimaptrans)/(113-105);
+		if (!minimaptrans)
+			return;
+	}
+	else
+		return;
+
+	minimaptrans = ((10-minimaptrans)<<FF_TRANSSHIFT);
+	splitflags |= minimaptrans;
 
 	if (mirrormode)
 		V_DrawScaledPatch(x+(AutomapPic->width), y, splitflags|V_FLIP, AutomapPic);

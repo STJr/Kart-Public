@@ -2187,7 +2187,7 @@ void Y_VoteDrawer(void)
 	{
 		char str[40];
 		patch_t *pic;
-		UINT8 sizeadd = selected[i], j, color, gtc = levelinfo[i].gtc;
+		UINT8 sizeadd = selected[i], j, color;
 
 		if (i == 3)
 		{
@@ -2262,17 +2262,14 @@ void Y_VoteDrawer(void)
 
 			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
 			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
+			if (levelinfo[i].gts)
 			{
-				INT32 w = 0;
-				if (levelinfo[i].gts)
-				{
-					w = V_StringWidth(levelinfo[i].gts, V_SNAPTORIGHT)+2;
-					V_DrawFill(BASEVIDWIDTH-100, y+9, w+1, 2, V_SNAPTORIGHT|31);
-					V_DrawFill(BASEVIDWIDTH-100, y, w, 10, V_SNAPTORIGHT|gtc);
-					V_DrawString(BASEVIDWIDTH-99, y+1, V_SNAPTORIGHT, levelinfo[i].gts);
-				}
-				V_DrawDiag(BASEVIDWIDTH-100+w+1, y, 11, V_SNAPTORIGHT|31);
-				V_DrawDiag(BASEVIDWIDTH-100+w, y, 10, V_SNAPTORIGHT|gtc);
+				INT32 w = V_ThinStringWidth(levelinfo[i].gts, V_SNAPTORIGHT)+1;
+				V_DrawFill(BASEVIDWIDTH-100, y+10, w+1, 2, V_SNAPTORIGHT|31);
+				V_DrawFill(BASEVIDWIDTH-100, y, w, 11, V_SNAPTORIGHT|levelinfo[i].gtc);
+				V_DrawDiag(BASEVIDWIDTH-100+w+1, y, 12, V_SNAPTORIGHT|31);
+				V_DrawDiag(BASEVIDWIDTH-100+w, y, 11, V_SNAPTORIGHT|levelinfo[i].gtc);
+				V_DrawThinString(BASEVIDWIDTH-99, y+1, V_SNAPTORIGHT, levelinfo[i].gts);
 			}
 
 			y += 50;
@@ -2280,8 +2277,11 @@ void Y_VoteDrawer(void)
 		else
 		{
 			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
-			V_DrawDiag(BASEVIDWIDTH-60, y, 8, V_SNAPTORIGHT|31);
-			V_DrawDiag(BASEVIDWIDTH-60, y, 6, V_SNAPTORIGHT|gtc);
+			if (levelinfo[i].gts)
+			{
+				V_DrawDiag(BASEVIDWIDTH-60, y, 8, V_SNAPTORIGHT|31);
+				V_DrawDiag(BASEVIDWIDTH-60, y, 6, V_SNAPTORIGHT|levelinfo[i].gtc);
+			}
 			y += 25;
 		}
 
@@ -2299,7 +2299,6 @@ void Y_VoteDrawer(void)
 		if ((playeringame[i] && !players[i].spectator) && votes[i] != -1)
 		{
 			patch_t *pic;
-			UINT8 gtc = levelinfo[votes[i]].gtc;
 
 			if (votes[i] == 3 && (i != pickedvote || voteendtic == -1))
 				pic = randomlvl;
@@ -2316,8 +2315,11 @@ void Y_VoteDrawer(void)
 			}
 
 			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
-			V_DrawDiag(x, y, 8, V_SNAPTOLEFT|31);
-			V_DrawDiag(x, y, 6, V_SNAPTOLEFT|gtc);
+			if (levelinfo[votes[i]].gts)
+			{
+				V_DrawDiag(x, y, 8, V_SNAPTOLEFT|31);
+				V_DrawDiag(x, y, 6, V_SNAPTOLEFT|levelinfo[votes[i]].gtc);
+			}
 
 			if (players[i].skincolor == 0)
 				V_DrawSmallScaledPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin]);
@@ -2552,8 +2554,8 @@ void Y_StartVote(void)
 		I_Error("voteendtic is dirty");
 #endif
 
-	widebgpatch = W_CachePatchName("INTERSCW", PU_STATIC);
-	bgpatch = W_CachePatchName("INTERSCR", PU_STATIC);
+	widebgpatch = W_CachePatchName(((gametype == GT_MATCH) ? "BATTLSCW" : "INTERSCW"), PU_STATIC);
+	bgpatch = W_CachePatchName(((gametype == GT_MATCH) ? "BATTLSCR" : "INTERSCR"), PU_STATIC);
 	cursor = W_CachePatchName("M_CURSOR", PU_STATIC);
 	cursor1 = W_CachePatchName("P1CURSOR", PU_STATIC);
 	cursor2 = W_CachePatchName("P2CURSOR", PU_STATIC);
@@ -2615,12 +2617,15 @@ void Y_StartVote(void)
 		levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
 
 		// set up the gtc and gts
-		levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
 		levelinfo[i].gts = NULL;
-		for (j = 0; gametype_cons_t[j].strvalue; j++)
+		if (i == 2 && votelevels[i][1] != votelevels[0][1])
 		{
-			if (gametype_cons_t[j].value == votelevels[i][1])
-				levelinfo[i].gts = gametype_cons_t[j].strvalue;
+			levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
+			for (j = 0; gametype_cons_t[j].strvalue; j++)
+			{
+				if (gametype_cons_t[j].value == votelevels[i][1])
+					levelinfo[i].gts = gametype_cons_t[j].strvalue;
+			}
 		}
 
 		// set up the pic

@@ -292,9 +292,9 @@ void HWR_DrawFixedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 	{
 		FSurfaceInfo Surf;
 		Surf.FlatColor.s.red = Surf.FlatColor.s.green = Surf.FlatColor.s.blue = 0xff;
-		if (alphalevel == 13) Surf.FlatColor.s.alpha = softwaretranstogl_lo[cv_translucenthud.value];
-		else if (alphalevel == 14) Surf.FlatColor.s.alpha = softwaretranstogl[cv_translucenthud.value];
-		else if (alphalevel == 15) Surf.FlatColor.s.alpha = softwaretranstogl_hi[cv_translucenthud.value];
+		if (alphalevel == 13) Surf.FlatColor.s.alpha = softwaretranstogl_lo[hudtrans];
+		else if (alphalevel == 14) Surf.FlatColor.s.alpha = softwaretranstogl[hudtrans];
+		else if (alphalevel == 15) Surf.FlatColor.s.alpha = softwaretranstogl_hi[hudtrans];
 		else Surf.FlatColor.s.alpha = softwaretranstogl[10-alphalevel];
 		flags |= PF_Modulated;
 		HWD.pfnDrawPolygon(&Surf, v, 4, flags);
@@ -446,9 +446,9 @@ void HWR_DrawCroppedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscal
 	{
 		FSurfaceInfo Surf;
 		Surf.FlatColor.s.red = Surf.FlatColor.s.green = Surf.FlatColor.s.blue = 0xff;
-		if (alphalevel == 13) Surf.FlatColor.s.alpha = softwaretranstogl_lo[cv_translucenthud.value];
-		else if (alphalevel == 14) Surf.FlatColor.s.alpha = softwaretranstogl[cv_translucenthud.value];
-		else if (alphalevel == 15) Surf.FlatColor.s.alpha = softwaretranstogl_hi[cv_translucenthud.value];
+		if (alphalevel == 13) Surf.FlatColor.s.alpha = softwaretranstogl_lo[hudtrans];
+		else if (alphalevel == 14) Surf.FlatColor.s.alpha = softwaretranstogl[hudtrans];
+		else if (alphalevel == 15) Surf.FlatColor.s.alpha = softwaretranstogl_hi[hudtrans];
 		else Surf.FlatColor.s.alpha = softwaretranstogl[10-alphalevel];
 		flags |= PF_Modulated;
 		HWD.pfnDrawPolygon(&Surf, v, 4, flags);
@@ -911,7 +911,7 @@ void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color)
 {
 	FOutVector v[4];
 	FSurfaceInfo Surf;
-	float fx, fy, fw, fh;
+	float fx, fy, fw, fh, fwait = 0;
 
 	if (wh < 0)
 		return; // consistency w/ software
@@ -966,8 +966,11 @@ void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color)
 
 	if (fw <= 0 || fh <= 0)
 		return;
-	/*if (fx + fw > vid.width) -- oh gee oh boy oh shit
-		fw = (float)vid.width - fx;*/
+	if (fx + fw > vid.width)
+	{
+		fwait = fw - ((float)vid.width - fx);
+		fw = (float)vid.width - fx;
+	}
 	if (fy + fh > vid.height)
 		fh = (float)vid.height - fy;
 
@@ -976,10 +979,11 @@ void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color)
 	fw = fw / (vid.width / 2);
 	fh = fh / (vid.height / 2);
 
-	v[0].x = v[2].x = v[3].x = fx;
-	v[1].x = fx + fw;
+	v[0].x = v[3].x = fx;
+	v[2].x = v[1].x = fx + fw;
 	v[0].y = v[1].y = fy;
-	v[2].y = v[3].y = fy - fh;
+	v[3].y = fy - fh;
+	v[2].y = fy - fwait;
 
 	//Hurdler: do we still use this argb color? if not, we should remove it
 	v[0].argb = v[1].argb = v[2].argb = v[3].argb = 0xff00ff00; //;

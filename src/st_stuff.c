@@ -755,23 +755,27 @@ static void ST_drawLevelTitle(void)
 	char *zonttl = mapheaderinfo[gamemap-1]->zonttl; // SRB2kart
 	char *actnum = mapheaderinfo[gamemap-1]->actnum;
 	INT32 lvlttlxpos;
-	INT32 subttlxpos = BASEVIDWIDTH/2;
 	INT32 ttlnumxpos;
 	INT32 zonexpos;
+	INT32 dupcalc = (vid.width/vid.dupx);
+	UINT8 gtc = G_GetGametypeColor(gametype);
+	INT32 sub = 0;
+	INT32 lvlttly = 145;
+	INT32 zoney = 169;
+	INT32 lvlw;
 
-	INT32 lvlttly;
-	INT32 zoney;
-
-	if (!(timeinmap > 2 && timeinmap-3 < 110))
+	if (timeinmap > 113)
 		return;
 
-	if (strlen(actnum) > 0)
-		lvlttlxpos = ((BASEVIDWIDTH/2) - (V_LevelNameWidth(lvlttl)/2)) - V_LevelNameWidth(actnum);
-	else
-		lvlttlxpos = ((BASEVIDWIDTH/2) - (V_LevelNameWidth(lvlttl)/2));
+	lvlw = V_LevelNameWidth(lvlttl);
 
-	ttlnumxpos = lvlttlxpos + V_LevelNameWidth(lvlttl);
-	if (strlen(zonttl) > 0)
+	if (strlen(actnum) > 0)
+		lvlttlxpos = ((BASEVIDWIDTH/2) - (lvlw/2)) - V_LevelNameWidth(actnum);
+	else
+		lvlttlxpos = ((BASEVIDWIDTH/2) - (lvlw/2));
+
+	ttlnumxpos = lvlttlxpos + lvlw;
+	if (zonttl[0])
 		zonexpos = ttlnumxpos - V_LevelNameWidth(zonttl); // SRB2kart
 	else
 		zonexpos = ttlnumxpos - V_LevelNameWidth(M_GetText("ZONE"));
@@ -779,24 +783,28 @@ static void ST_drawLevelTitle(void)
 	if (lvlttlxpos < 0)
 		lvlttlxpos = 0;
 
-	// There's no consistent algorithm that can accurately define the old positions
-	// so I just ended up resorting to a single switct statement to define them
-	switch (timeinmap-3)
+	if (timeinmap > 105)
 	{
-		case 0:   zoney = 200; lvlttly =   0; break;
-		case 1:   zoney = 188; lvlttly =  12; break;
-		case 2:   zoney = 176; lvlttly =  24; break;
-		case 3:   zoney = 164; lvlttly =  36; break;
-		case 4:   zoney = 152; lvlttly =  48; break;
-		case 5:   zoney = 140; lvlttly =  60; break;
-		case 6:   zoney = 128; lvlttly =  72; break;
-		case 105: zoney =  80; lvlttly = 104; break;
-		case 106: zoney =  56; lvlttly = 128; break;
-		case 107: zoney =  32; lvlttly = 152; break;
-		case 108: zoney =   8; lvlttly = 176; break;
-		case 109: zoney =   0; lvlttly = 200; break;
-		default:  zoney = 104; lvlttly =  80; break;
+		INT32 count = (113 - (INT32)(timeinmap));
+		sub = dupcalc;
+		while (count-- > 0)
+			sub >>= 1;
+		sub = -sub;
 	}
+
+	{
+		dupcalc = (dupcalc - BASEVIDWIDTH)>>1;
+		INT32 h = lvlttly + V_LevelNameHeight(lvlttl) + 2;
+		V_DrawFill(sub - dupcalc, h+9, lvlttlxpos + lvlw + 1 - dupcalc, 2, 31);
+		V_DrawDiag(sub + lvlttlxpos + lvlw + 1, h, 11, 31);
+		V_DrawFill(sub - dupcalc, h, lvlttlxpos + lvlw - dupcalc, 10, gtc);
+		V_DrawDiag(sub + lvlttlxpos + lvlw, h, 10, gtc);
+		V_DrawString(sub + lvlttlxpos, h+1, V_ALLOWLOWERCASE, subttl);
+	}
+
+	ttlnumxpos += sub;
+	lvlttlxpos += sub;
+	zonexpos += sub;
 
 	if (strlen(actnum) > 0)
 		V_DrawLevelTitle(ttlnumxpos+12, zoney, 0, actnum);
@@ -807,9 +815,6 @@ static void ST_drawLevelTitle(void)
 		V_DrawLevelTitle(zonexpos, zoney, 0, zonttl);
 	else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
 		V_DrawLevelTitle(zonexpos, zoney, 0, M_GetText("ZONE"));
-
-	if (lvlttly+48 < 200)
-		V_DrawCenteredString(subttlxpos, lvlttly+48, V_ALLOWLOWERCASE, subttl);
 }
 
 /*
