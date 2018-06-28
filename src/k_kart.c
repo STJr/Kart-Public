@@ -5070,7 +5070,9 @@ static void K_drawKartFirstPerson(void)
 			x /= 2;
 	}
 
-	if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1))
+	if (stplyr->spectator || !stplyr->mo)
+		splitflags |= FF_TRANS50;
+	else if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1))
 		y++;
 
 	if (cmd->driftturn > 400) // strong left turn
