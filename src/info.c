@@ -58,8 +58,8 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","DRIF","DUST","FITM",
 	"BANA","GSHE","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK","SITR",
 	"KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB",
-	"CHOM","SACO","CRAB","SHAD","BUMP","FLEN","CLAS","PSHW","ARRO","ITEM",
-	"ITMI","ITMN","PBOM","VIEW"
+	"CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ARRO",
+	"ITEM","ITMI","ITMN","PBOM","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2835,12 +2835,20 @@ state_t states[NUMSTATES] =
 
 	{SPR_DOOD, 11, -1, {NULL}, 0, 0, S_NULL}, // S_DOOD_BALLOON
 
-	{SPR_DOOD, 12, 4, {NULL}, 0, 0, S_DOOD_RING2}, // S_DOOD_RING1
-	{SPR_DOOD, 13, 4, {NULL}, 0, 0, S_DOOD_RING3}, // S_DOOD_RING2
-	{SPR_DOOD, 14, 4, {NULL}, 0, 0, S_DOOD_RING4}, // S_DOOD_RING3
-	{SPR_DOOD, 15, 4, {NULL}, 0, 0, S_DOOD_RING5}, // S_DOOD_RING4
-	{SPR_DOOD, 16, 4, {NULL}, 0, 0, S_DOOD_RING1}, // S_DOOD_RING5
+	{SPR_BRNG, 0, 2, {NULL}, 0, 0, S_BIGRING02}, // S_BIGRING01
+	{SPR_BRNG, 1, 2, {NULL}, 0, 0, S_BIGRING03}, // S_BIGRING02
+	{SPR_BRNG, 2, 2, {NULL}, 0, 0, S_BIGRING04}, // S_BIGRING03
+	{SPR_BRNG, 3, 2, {NULL}, 0, 0, S_BIGRING05}, // S_BIGRING04
+	{SPR_BRNG, 4, 2, {NULL}, 0, 0, S_BIGRING06}, // S_BIGRING05
+	{SPR_BRNG, 5, 2, {NULL}, 0, 0, S_BIGRING07}, // S_BIGRING06
+	{SPR_BRNG, 6, 2, {NULL}, 0, 0, S_BIGRING08}, // S_BIGRING05
+	{SPR_BRNG, 7, 2, {NULL}, 0, 0, S_BIGRING09}, // S_BIGRING05
+	{SPR_BRNG, 8, 2, {NULL}, 0, 0, S_BIGRING10}, // S_BIGRING05
+	{SPR_BRNG, 9, 2, {NULL}, 0, 0, S_BIGRING11}, // S_BIGRING10
+	{SPR_BRNG, 10, 2, {NULL}, 0, 0, S_BIGRING12}, // S_BIGRING11
+	{SPR_BRNG, 11, 2, {NULL}, 0, 0, S_BIGRING01}, // S_BIGRING12
 
+	
 	{SPR_SNES, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH1
 	{SPR_SNES, 1, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH2
 	{SPR_SNES, 2, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH3
@@ -15877,9 +15885,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_DOOD_RING
+	{           // MT_BIGRING
 		2808,           // doomednum
-		S_DOOD_RING1,   // spawnstate
+		S_BIGRING01,   // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -15894,13 +15902,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		0,              // speed
-		1048576,        // radius
-		2097152,        // height
+		26*FRACUNIT,    // radius
+		62*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		33554944,       // flags
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY|MF_RUNSPAWNFUNC,       // flags
 		S_NULL          // raisestate
 	},
 

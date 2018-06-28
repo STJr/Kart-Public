@@ -8964,6 +8964,10 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 				}
 			}
 			break;
+		case MT_BIGRING:
+			mobj->destscale = 3*FRACUNIT;
+			P_SetScale(mobj, 3*FRACUNIT);
+			break;
 		default:
 			break;
 	}

@@ -6505,12 +6505,19 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	// D00Dkart - Diddy Kong Racing Balloon
 	"S_DOOD_BALLOON",
 
-	// D00Dkart - Big Ring
-	"S_DOOD_RING1",
-	"S_DOOD_RING2",
-	"S_DOOD_RING3",
-	"S_DOOD_RING4",
-	"S_DOOD_RING5",
+	// Chaotix Big Ring
+	"S_BIGRING01",
+	"S_BIGRING02",
+	"S_BIGRING03",
+	"S_BIGRING04",
+	"S_BIGRING05",
+	"S_BIGRING06",
+	"S_BIGRING07",
+	"S_BIGRING08",
+	"S_BIGRING09",
+	"S_BIGRING10",
+	"S_BIGRING11",
+	"S_BIGRING12",
 
 	// SNES Objects
 	"S_SNES_DONUTBUSH1",
@@ -7186,7 +7193,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_DOOD_FLOWER4",
 	"MT_DOOD_BOX",
 	"MT_DOOD_BALLOON",
-	"MT_DOOD_RING",
+	"MT_BIGRING",
 
 	"MT_SNES_DONUTBUSH1",
 	"MT_SNES_DONUTBUSH2",
