@@ -6397,6 +6397,16 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SLOWBOOM9",
 	"S_SLOWBOOM10",
 
+	// Ballhog
+	"S_BALLHOG1",
+	"S_BALLHOG2",
+	"S_BALLHOG3",
+	"S_BALLHOG4",
+	"S_BALLHOG5",
+	"S_BALLHOG6",
+	"S_BALLHOG7",
+	"S_BALLHOG8",
+
 	// Self-Propelled Bomb - just an explosion for now...
 	"S_BLUELIGHTNING1",
 	"S_BLUELIGHTNING2",
@@ -7131,7 +7141,6 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_GREENSHIELD", // Orbinaut stuff
 	"MT_GREENITEM",
-	"MT_FIRETRAIL",
 
 	"MT_JAWZ", // Jawz stuff
 	"MT_JAWZ_DUD",
@@ -7565,9 +7574,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"VOICES",
 	"TAUNTVOICES",
 
-	"BOOSTING",
 	"FLOORBOOST",
-	"SPINOUT",
 	"SPINOUTTYPE",
 
 	"DRIFT",
@@ -7583,10 +7590,12 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ITEMROULETTE",
 	"ROULETTETYPE",
 
+	// Item held stuff
 	"ITEMTYPE",
 	"ITEMAMOUNT",
 	"ITEMHELD",
 
+	// Some items use timers for their duration or effects
 	"ATTRACTIONTIMER",
 	"HYUDOROTIMER",
 	"STEALINGTIMER",
@@ -7600,10 +7609,10 @@ static const char *const KARTSTUFF_LIST[] = {
 	"EGGMANHELD",
 	"SPINOUTTIMER",
 	"JUSTBUMPED",
-	"POWERITEMTIMER",
 	"COMEBACKTIMER",
 	"SADTIMER",
 
+	// Battle Mode vars
 	"BALLOON",
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
