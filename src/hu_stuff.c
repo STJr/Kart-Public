@@ -1123,19 +1123,7 @@ static void HU_DrawCEcho(void)
 
 static void HU_drawGametype(void)
 {
-	INT32 i = 0;
-
-	for (i = 0; gametype_cons_t[i].strvalue; i++)
-	{
-		if (gametype_cons_t[i].value == gametype)
-		{
-			if (splitscreen)
-				V_DrawString(4, 184, 0, gametype_cons_t[i].strvalue);
-			else
-				V_DrawString(4, 192, 0, gametype_cons_t[i].strvalue);
-			return;
-		}
-	}
+	V_DrawString(4, (splitscreen ? 184 : 192), 0, gametype_cons_t[gametype].strvalue);
 }
 
 //

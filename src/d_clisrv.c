@@ -3705,7 +3705,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			if (client)
 			{
 				maketic = gametic = neededtic = (tic_t)LONG(netbuffer->u.servercfg.gametic);
-				gametype = netbuffer->u.servercfg.gametype;
+				if ((gametype = netbuffer->u.servercfg.gametype) >= NUMGAMETYPES)
+					I_Error("Bad gametype in cliserv!");
 				modifiedgame = netbuffer->u.servercfg.modifiedgame;
 				for (j = 0; j < MAXPLAYERS; j++)
 					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];

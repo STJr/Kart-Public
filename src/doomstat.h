@@ -76,7 +76,7 @@ extern boolean addedtogame; // true after the server has added you
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
 extern boolean multiplayer;
 
-extern INT16 gametype;
+extern INT16 gametype, deferredgametype;
 extern UINT8 splitscreen;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
@@ -303,21 +303,19 @@ enum TypeOfLevel
 };
 
 // Gametypes
-enum GameType
+enum GameType // SRB2Kart
 {
-	GT_COOP = 0, // also used in single player
-	GT_COMPETITION, // Classic "Race"
-	GT_RACE,
+	GT_RACE = 0, // also used in record attack
+	GT_MATCH, // battle, but renaming would be silly
+	NUMGAMETYPES,
 
-	GT_MATCH,
+	// the following have been left in on account of just not wanting to deal with removing all the checks for them
+	GT_COOP,
+	GT_COMPETITION,
 	GT_TEAMMATCH,
-
 	GT_TAG,
 	GT_HIDEANDSEEK,
-
-	GT_CTF, // capture the flag
-
-	NUMGAMETYPES
+	GT_CTF
 };
 // If you alter this list, update gametype_cons_t in m_menu.c
 

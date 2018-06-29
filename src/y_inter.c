@@ -2617,16 +2617,13 @@ void Y_StartVote(void)
 		levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
 
 		// set up the gtc and gts
-		levelinfo[i].gts = NULL;
 		if (i == 2 && votelevels[i][1] != votelevels[0][1])
 		{
 			levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
-			for (j = 0; gametype_cons_t[j].strvalue; j++)
-			{
-				if (gametype_cons_t[j].value == votelevels[i][1])
-					levelinfo[i].gts = gametype_cons_t[j].strvalue;
-			}
+			levelinfo[i].gts = gametype_cons_t[votelevels[i][1]].strvalue;
 		}
+		else
+			levelinfo[i].gts = NULL; // gtc is never accessed in this case
 
 		// set up the pic
 		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votelevels[i][0]+1)));
@@ -2726,10 +2723,6 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 
 	pickedvote = pick;
 	nextmap = votelevels[level][0];
-	if (gametype != votelevels[level][1])
-	{
-		//CONS_Printf("yer dun\n"); -- if we want to do anything else special for a gametype switch, it'd be here
-		gametype = votelevels[level][1];
-	}
+	deferredgametype = votelevels[level][1];
 	timer = 0;
 }

@@ -774,11 +774,14 @@ static void ST_drawLevelTitle(void)
 	else
 		lvlttlxpos = ((BASEVIDWIDTH/2) - (lvlw/2));
 
-	ttlnumxpos = lvlttlxpos + lvlw;
-	if (zonttl[0])
-		zonexpos = ttlnumxpos - V_LevelNameWidth(zonttl); // SRB2kart
-	else
-		zonexpos = ttlnumxpos - V_LevelNameWidth(M_GetText("ZONE"));
+	zonexpos = ttlnumxpos = lvlttlxpos + lvlw;
+	if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
+	{
+		if (zonttl[0])
+			zonexpos -= V_LevelNameWidth(zonttl); // SRB2kart
+		else
+			zonexpos -= V_LevelNameWidth(M_GetText("ZONE"));
+	}
 
 	if (lvlttlxpos < 0)
 		lvlttlxpos = 0;
@@ -795,11 +798,14 @@ static void ST_drawLevelTitle(void)
 	{
 		dupcalc = (dupcalc - BASEVIDWIDTH)>>1;
 		INT32 h = lvlttly + V_LevelNameHeight(lvlttl) + 2;
-		V_DrawFill(sub - dupcalc, h+9, lvlttlxpos + lvlw + 1 - dupcalc, 2, 31);
-		V_DrawDiag(sub + lvlttlxpos + lvlw + 1, h, 11, 31);
-		V_DrawFill(sub - dupcalc, h, lvlttlxpos + lvlw - dupcalc, 10, gtc);
-		V_DrawDiag(sub + lvlttlxpos + lvlw, h, 10, gtc);
-		V_DrawString(sub + lvlttlxpos, h+1, V_ALLOWLOWERCASE, subttl);
+		V_DrawFill(sub - dupcalc, h+9, ttlnumxpos+dupcalc + 1, 2, 31);
+		V_DrawDiag(sub + ttlnumxpos + 1, h, 11, 31);
+		V_DrawFill(sub - dupcalc, h, ttlnumxpos+dupcalc, 10, gtc);
+		V_DrawDiag(sub + ttlnumxpos, h, 10, gtc);
+		if (subttl[0])
+			V_DrawRightAlignedString(sub + zonexpos - 8, h+1, V_ALLOWLOWERCASE, va("%s - %s", gametype_cons_t[gametype].strvalue, subttl));
+		else
+			V_DrawRightAlignedString(sub + zonexpos - 8, h+1, V_ALLOWLOWERCASE, gametype_cons_t[gametype].strvalue);
 	}
 
 	ttlnumxpos += sub;

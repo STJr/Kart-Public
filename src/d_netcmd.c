@@ -447,6 +447,7 @@ consvar_t cv_mute = {"mute", "Off", CV_NETVAR|CV_CALL, CV_OnOff, Mute_OnChange, 
 consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
 
 INT16 gametype = GT_RACE; // SRB2kart
+INT16 deferredgametype = GT_RACE; // SRB2kart
 UINT8 splitscreen = 0;
 boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
@@ -2117,7 +2118,6 @@ static void Command_Map_f(void)
 				// Don't do any variable setting here. Wait until you get your
 				// map packet first to avoid sending the same info twice!
 				newgametype = gametype_cons_t[j].value;
-
 				break;
 			}
 
@@ -2135,26 +2135,23 @@ static void Command_Map_f(void)
 		}
 	}
 
+	if (!(i = COM_CheckParm("-force")) && newgametype == gametype) // SRB2Kart
+		newresetplayers = false; // if not forcing and gametypes is the same
+
 	// don't use a gametype the map doesn't support
-	if (cv_debug || COM_CheckParm("-force") || cv_skipmapcheck.value)
+	if (cv_debug || i || cv_skipmapcheck.value)
 		; // The player wants us to trek on anyway.  Do so.
 	// G_TOLFlag handles both multiplayer gametype and ignores it for !multiplayer
 	// Alternatively, bail if the map header is completely missing anyway.
-	else if (!mapheaderinfo[newmapnum-1]
-	 || !(mapheaderinfo[newmapnum-1]->typeoflevel & G_TOLFlag(newgametype)))
+	else
 	{
-		char gametypestring[32] = "Single Player";
-
-		if (multiplayer)
-			for (i = 0; gametype_cons_t[i].strvalue != NULL; i++)
-				if (gametype_cons_t[i].value == newgametype)
-				{
-					strcpy(gametypestring, gametype_cons_t[i].strvalue);
-					break;
-				}
-
-		CONS_Alert(CONS_WARNING, M_GetText("%s doesn't support %s mode!\n(Use -force to override)\n"), mapname, gametypestring);
-		return;
+		if (!mapheaderinfo[newmapnum-1]
+		 || !(mapheaderinfo[newmapnum-1]->typeoflevel & G_TOLFlag(newgametype)))
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("%s doesn't support %s mode!\n(Use -force to override)\n"), mapname,
+				(multiplayer ? gametype_cons_t[newgametype].strvalue : "Single Player"));
+			return;
+		}
 	}
 
 	// Prevent warping to locked levels
@@ -4044,24 +4041,12 @@ static void Command_ShowGametype_f(void)
 	INT32 j;
 	const char *gametypestr = NULL;
 
-	if (!(netgame || multiplayer)) // print "Single player" instead of "Co-op"
+	if (!(netgame || multiplayer)) // print "Single player" instead of "Race"
 	{
-		CONS_Printf(M_GetText("Current gametype is %s\n"), M_GetText("Single player"));
+		CONS_Printf(M_GetText("Current gametype is %s\n"), "Single Player");
 		return;
 	}
-	// find name string for current gametype
-	for (j = 0; gametype_cons_t[j].strvalue; j++)
-	{
-		if (gametype_cons_t[j].value == gametype)
-		{
-			gametypestr = gametype_cons_t[j].strvalue;
-			break;
-		}
-	}
-	if (gametypestr)
-		CONS_Printf(M_GetText("Current gametype is %s\n"), gametypestr);
-	else // string for current gametype was not found above (should never happen)
-		CONS_Printf(M_GetText("Unknown gametype set (%d)\n"), gametype);
+	CONS_Printf(M_GetText("Current gametype is %s\n"), gametype_cons_t[gametype].strvalue);
 }
 
 /** Plays the intro.
@@ -4195,19 +4180,8 @@ static void TimeLimit_OnChange(void)
 void D_GameTypeChanged(INT32 lastgametype)
 {
 	if (netgame)
-	{
-		INT32 j;
-		const char *oldgt = NULL, *newgt = NULL;
-		for (j = 0; gametype_cons_t[j].strvalue; j++)
-		{
-			if (gametype_cons_t[j].value == lastgametype)
-				oldgt = gametype_cons_t[j].strvalue;
-			if (gametype_cons_t[j].value == gametype)
-				newgt = gametype_cons_t[j].strvalue;
-		}
-		if (oldgt && newgt)
-			CONS_Printf(M_GetText("Gametype was changed from %s to %s\n"), oldgt, newgt);
-	}
+		CONS_Printf(M_GetText("Gametype was changed from %s to %s\n"), gametype_cons_t[lastgametype].strvalue, gametype_cons_t[gametype].strvalue);
+
 	// Only do the following as the server, not as remote admin.
 	// There will always be a server, and this only needs to be done once.
 	if (server && (multiplayer || netgame))

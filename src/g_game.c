@@ -3379,7 +3379,11 @@ void G_NextLevel(void)
 		&& !modeattacking && !skipstats && (multiplayer || netgame))
 		gameaction = ga_startvote;
 	else
+	{
+		if (gamestate != GS_VOTING)
+			deferredgametype = gametype;
 		gameaction = ga_worlddone;
+	}
 }
 
 static void G_DoWorldDone(void)
@@ -3387,7 +3391,7 @@ static void G_DoWorldDone(void)
 	if (server)
 	{
 		// SRB2kart: don't reset player between maps
-		D_MapChange(nextmap+1, gametype, ultimatemode, false, 0, false, false);
+		D_MapChange(nextmap+1, deferredgametype, ultimatemode, (deferredgametype != gametype), 0, false, false);
 	}
 
 	gameaction = ga_nothing;
@@ -4032,7 +4036,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	if (!demoplayback && !netgame) // Netgame sets random seed elsewhere, demo playback sets seed just before us!
 		P_SetRandSeed(M_RandomizedSeed()); // Use a more "Random" random seed
 
-	if (resetplayer)
+	//SRB2Kart - Score is literally the only thing you SHOULDN'T reset at all times
+	//if (resetplayer)
 	{
 		// Clear a bunch of variables
 		tokenlist = token = sstimer = redscore = bluescore = lastmap = 0;
@@ -4045,7 +4050,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			players[i].starpostx = players[i].starposty = players[i].starpostz = 0;
 			players[i].starpostcount = 0; // srb2kart
 
-			if (netgame || multiplayer)
+			/*if (netgame || multiplayer)
 			{
 				players[i].lives = cv_startinglives.value;
 				players[i].continues = 0;
@@ -4061,13 +4066,18 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 				players[i].continues = 1;
 			}
 
+			players[i].xtralife = 0;*/
+
 			// The latter two should clear by themselves, but just in case
 			players[i].pflags &= ~(PF_TAGIT|PF_TAGGED|PF_FULLSTASIS);
 
 			// Clear cheatcodes too, just in case.
 			players[i].pflags &= ~(PF_GODMODE|PF_NOCLIP|PF_INVIS);
 
-			players[i].score = players[i].xtralife = 0;
+			if (resetplayer) // SRB2Kart
+			{
+				players[i].score = 0;
+			}
 		}
 
 		// Reset unlockable triggers
@@ -5601,8 +5611,7 @@ void G_DoPlayDemo(char *defdemoname)
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = true;
 	P_SetRandSeed(randseed);
-	//G_InitNew(false, G_BuildMapName(gamemap), false, true); // resetplayer needs to be false to retain score
-	G_InitNew(false, G_BuildMapName(gamemap), true, true); // ...but uh, for demos? doing that makes them start in different positions depending on the last demo you watched
+	G_InitNew(false, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
 
 	// Set skin
 	SetPlayerSkin(0, skin);
