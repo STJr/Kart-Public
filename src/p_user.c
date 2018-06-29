@@ -1165,38 +1165,40 @@ void P_RestoreMusic(player_t *player)
 	S_SpeedMusic(1.0f);
 
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
-	if (splitscreen != 0 && G_RaceGametype()
-		&& (players[consoleplayer].exiting
-		|| players[secondarydisplayplayer].exiting
-		|| players[thirddisplayplayer].exiting
-		|| players[fourthdisplayplayer].exiting))
-		S_ChangeMusicInternal("karwin", true);
-	else if (splitscreen == 0 && G_RaceGametype() && player->exiting)
-	{
-		if (player->kartstuff[k_position] == 1)
-			S_ChangeMusicInternal("karwin", true);
-		else if (K_IsPlayerLosing(player))
-			S_ChangeMusicInternal("karlos", true);
-		else
-			S_ChangeMusicInternal("karok", true);
-	}
+	// Event - Race Start
+	if (leveltime < (starttime + (TICRATE/2)))
+		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
+	// Item - Grow
+	else if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
+		S_ChangeMusicInternal("kgrow", true);
+	// Item - Invincibility
+	else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
+		S_ChangeMusicInternal("kinvnc", false);
 	else
 	{
-		// Item - Grow
-		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
-			S_ChangeMusicInternal("kgrow", true);
-		// Item - Invincibility
-		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
-			S_ChangeMusicInternal("kinvnc", false);
-		else if (leveltime > (starttime + (TICRATE/2)))
+		// Event - Race Finish
+		if (splitscreen != 0 && G_RaceGametype()
+			&& (players[consoleplayer].exiting
+			|| players[secondarydisplayplayer].exiting
+			|| players[thirddisplayplayer].exiting
+			|| players[fourthdisplayplayer].exiting))
+			S_ChangeMusicInternal("karwin", true);
+		else if (splitscreen == 0 && G_RaceGametype() && player->exiting)
+		{
+			if (player->kartstuff[k_position] == 1)
+				S_ChangeMusicInternal("karwin", true);
+			else if (K_IsPlayerLosing(player))
+				S_ChangeMusicInternal("karlos", true);
+			else
+				S_ChangeMusicInternal("karok", true);
+		}
+		else
 		{
 			// Event - Final Lap
 			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 		}
-		else
-			S_StopMusic();
 	}
 }
 
