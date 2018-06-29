@@ -1452,16 +1452,15 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Frantic Items",				&cv_kartfrantic,		 40},
 	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",					&cv_kartmirror,			 50},
 
-	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_numlaps,			 70},
-	{IT_STRING | IT_CVAR, NULL, "Use Default Lap Counts",		&cv_usemapnumlaps,		 80},
-	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",		&cv_countdowntime,		 90},
+	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_basenumlaps,		 70},
+	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
 
-	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			110},
-	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",			&cv_kartballoons,		110},
-	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		120},
+	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
+	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",			&cv_kartballoons,		100},
+	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		110},
 
-	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          140},
-	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 150},
+	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          130},
+	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 140},
 };
 
 static menuitem_t OP_ServerOptionsMenu[] =
