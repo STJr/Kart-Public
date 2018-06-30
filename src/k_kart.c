@@ -4885,6 +4885,7 @@ static void K_drawKartMinimap(void)
 	INT32 i = 0;
 	INT32 x, y;
 	INT32 minimaptrans, splitflags = (splitscreen ? 0 : V_SNAPTORIGHT);
+	boolean dop1later = false;
 
 	// Draw the HUD only when playing in a level.
 	// hu_stuff needs this, unlike st_stuff.
@@ -4936,37 +4937,39 @@ static void K_drawKartMinimap(void)
 		x -= SHORT(AutomapPic->leftoffset);
 	y -= SHORT(AutomapPic->topoffset);
 
-	// Player's tiny icons on the Automap.
-	for (i = 0; i < MAXPLAYERS; i++)
+	// Player's tiny icons on the Automap. (drawn opposite direction so player 1 is drawn last in splitscreen)
+	for (i = MAXPLAYERS-1; i >= 0; i--)
 	{
-		if (i == displayplayer && !splitscreen)
-			continue; // Do displayplayer later
-		if (players[i].mo && !players[i].spectator)
+		if (!playeringame[i])
+			continue;
+		if (!players[i].mo || players[i].spectator)
+			continue;
+
+		if (!splitscreen && i == displayplayer)
 		{
-			if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
-				continue;
-
-			if (players[i].kartstuff[k_hyudorotimer] > 0)
-			{
-				if ((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
-					|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
-					&& !(leveltime & 1))
-					;
-				else
-					continue;
-			}
-
-			K_drawKartMinimapHead(&players[i], x, y, splitflags, AutomapPic);
+			dop1later = true; // Do displayplayer later
+			continue;
 		}
+
+		if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
+			continue;
+		if (players[i].kartstuff[k_hyudorotimer] > 0)
+		{
+			if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
+				|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
+				&& !(leveltime & 1)))
+				continue;
+		}
+
+		K_drawKartMinimapHead(&players[i], x, y, splitflags, AutomapPic);
 	}
 
-	if (splitscreen)
-		return; // Don't need this for splits
+	if (!dop1later)
+		return; // Don't need this
 
 	splitflags &= ~V_HUDTRANSHALF;
 	splitflags |= V_HUDTRANS;
-	if (stplyr->mo && !stplyr->spectator)
-		K_drawKartMinimapHead(stplyr, x, y, splitflags, AutomapPic);
+	K_drawKartMinimapHead(stplyr, x, y, splitflags, AutomapPic);
 }
 
 static void K_drawBattleFullscreen(void)
