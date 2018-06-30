@@ -3146,7 +3146,7 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 			}
 			else if (name[1] == '_')
 			{
-				CONS_Debug(DBG_SETUP, "Music %.8s replaced\n", name);
+				CONS_Debug(DBG_SETUP, "Music %.8s ignored\n", name);
 				mreplaces++;
 			}
 		}
@@ -3167,7 +3167,7 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 	if (!devparm && sreplaces)
 		CONS_Printf(M_GetText("%s sounds replaced\n"), sizeu1(sreplaces));
 	if (!devparm && mreplaces)
-		CONS_Printf(M_GetText("%s midi musics replaced\n"), sizeu1(mreplaces));
+		CONS_Printf(M_GetText("%s midi musics ignored\n"), sizeu1(mreplaces));
 	if (!devparm && digmreplaces)
 		CONS_Printf(M_GetText("%s digital musics replaced\n"), sizeu1(digmreplaces));
 

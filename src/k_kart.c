@@ -2014,20 +2014,24 @@ void K_DriftDustHandling(mobj_t *spawner)
 
 	if (spawner->player)
 	{
-		angle_t playerangle;
-
-		if (spawner->player->speed < 5<<FRACBITS)
-			return;
-
-		if (spawner->player->cmd.forwardmove < 0)
+		if (spawner->player->pflags & PF_SKIDDOWN)
 		{
-			playerangle = spawner->angle+ANGLE_180;
+			anglediff = abs(spawner->angle - spawner->player->frameangle);
+			if (leveltime % 6 == 0)
+				S_StartSound(spawner, sfx_screec); // repeated here because it doesn't always happen to be within the range when this is the case
 		}
 		else
 		{
-			playerangle = spawner->angle;
+			angle_t playerangle = spawner->angle;
+
+			if (spawner->player->speed < 5<<FRACBITS)
+				return;
+
+			if (spawner->player->cmd.forwardmove < 0)
+				playerangle += ANGLE_180;
+
+			anglediff = abs(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy));
 		}
-		anglediff = abs(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy));
 	}
 	else
 	{
@@ -3746,7 +3750,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (player->kartstuff[k_boostcharge] > 50)
 		{
 			player->powers[pw_nocontrol] = 40;
-			S_StartSound(player->mo, sfx_slip);
+			//S_StartSound(player->mo, sfx_kc34);
+			S_StartSound(player->mo, sfx_s3k83);
+			player->pflags |= PF_SKIDDOWN; // cheeky pflag reuse
 		}
 
 		player->kartstuff[k_boostcharge] = 0;

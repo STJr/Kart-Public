@@ -125,10 +125,12 @@ INT32 postimgparam3;
 postimg_t postimgtype4 = postimg_none;
 INT32 postimgparam4;
 #ifdef _XBOX
-boolean nomidimusic = true, nosound = true;
+boolean nomidimusic = false;
+boolean nosound = true;
 boolean nodigimusic = true;
 #else
-boolean nomidimusic = false, nosound = false;
+boolean nomidimusic = false;
+boolean nosound = false;
 boolean nodigimusic = false; // No fmod-based music
 #endif
 
@@ -1326,7 +1328,7 @@ void D_SRB2Main(void)
 	if (dedicated)
 	{
 		nosound = true;
-		nomidimusic = nodigimusic = true;
+		/*nomidimusic = */nodigimusic = true;
 	}
 	else
 	{
@@ -1335,17 +1337,17 @@ void D_SRB2Main(void)
 	if (M_CheckParm("-nosound"))
 		nosound = true;
 	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
-		nomidimusic = nodigimusic = true;
+		/*nomidimusic = */nodigimusic = true;
 	else
 	{
-		if (M_CheckParm("-nomidimusic"))
-			nomidimusic = true; ; // WARNING: DOS version initmusic in I_StartupSound
+		/*if (M_CheckParm("-nomidimusic"))
+			nomidimusic = true; ; // WARNING: DOS version initmusic in I_StartupSound*/
 		if (M_CheckParm("-nodigmusic"))
 			nodigimusic = true; // WARNING: DOS version initmusic in I_StartupSound
 	}
 	I_StartupSound();
 	I_InitMusic();
-	S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
+	S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
 
 	CONS_Printf("ST_Init(): Init status bar.\n");
 	ST_Init();

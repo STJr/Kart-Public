@@ -219,7 +219,7 @@ typedef enum
 	sfx_drown,
 	sfx_fizzle,
 	sfx_gbeep,
-	sfx_gclose,
+	sfx_yeeeah,
 	sfx_ghit,
 	sfx_gloop,
 	sfx_gspray,

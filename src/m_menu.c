@@ -306,9 +306,9 @@ menu_t OP_VideoOptionsDef, OP_VideoModeDef;
 menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
 #endif
 menu_t OP_SoundOptionsDef;
-static void M_ToggleSFX(void);
-static void M_ToggleDigital(void);
-static void M_ToggleMIDI(void);
+static void M_ToggleSFX(INT32 choice);
+static void M_ToggleDigital(INT32 choice);
+//static void M_ToggleMIDI(INT32 choice);
 static void M_RestartAudio(void);
 
 //Misc
@@ -337,6 +337,7 @@ static void M_DrawTimeAttackMenu(void);
 //static void M_DrawNightsAttackMenu(void);
 static void M_DrawSetupChoosePlayerMenu(void);
 static void M_DrawControl(void);
+static void M_DrawVideoMenu(void);
 static void M_DrawVideoMode(void);
 //static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
@@ -440,10 +441,12 @@ consvar_t cv_ghost_staff     = {"ghost_staff",     "Show", CV_SAVE, ghost2_cons_
 //Console variables used solely in the menu system.
 //todo: add a way to use non-console variables in the menu
 //      or make these consvars legitimate like color or skin.
-static CV_PossibleValue_t dummysplitplayers_cons_t[] = {{2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
 #ifndef NOFOURPLAYER
-static consvar_t cv_dummysplitplayers = {"dummysplitplayers", "Two", CV_HIDEN, dummysplitplayers_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+static void Dummysplitplayers_OnChange(void);
+static CV_PossibleValue_t dummysplitplayers_cons_t[] = {{2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
+static consvar_t cv_dummysplitplayers = {"dummysplitplayers", "Two", CV_HIDEN|CV_CALL, dummysplitplayers_cons_t, Dummysplitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
+
 static CV_PossibleValue_t dummyteam_cons_t[] = {{0, "Spectator"}, {1, "Red"}, {2, "Blue"}, {0, NULL}};
 static CV_PossibleValue_t dummyscramble_cons_t[] = {{0, "Random"}, {1, "Points"}, {0, NULL}};
 static CV_PossibleValue_t ringlimit_cons_t[] = {{0, "MIN"}, {9999, "MAX"}, {0, NULL}};
@@ -607,7 +610,7 @@ static menuitem_t MISC_ChangeLevelMenu[] =
 {
 	{IT_STRING|IT_CVAR,              NULL, "Game Type",             &cv_newgametype,    68},
 	{IT_STRING|IT_CVAR,              NULL, "Level",                 &cv_nextmap,        78},
-	{IT_WHITESTRING|IT_CALL,         NULL, "Change Level",          M_ChangeLevel,     120},
+	{IT_WHITESTRING|IT_CALL,         NULL, "Change Level",          M_ChangeLevel,     130},
 };
 
 static menuitem_t MISC_HelpMenu[] =
@@ -925,11 +928,6 @@ static menuitem_t MP_MainMenu[] =
 	{IT_NETHANDLER,           NULL, "Specify IPv4 address:", M_HandleConnectIP,      50},
 	{IT_HEADER, NULL, "Player setup", NULL, 80},
 	{IT_STRING|IT_CALL,       NULL, "Player 1...",           M_SetupMultiPlayer,     90},
-	{IT_STRING|IT_CALL,       NULL, "Player 2... ",          M_SetupMultiPlayer2,    98},
-#ifndef NOFOURPLAYER
-	{IT_STRING|IT_CALL,       NULL, "Player 3...",           M_SetupMultiPlayer3,   106},
-	{IT_STRING|IT_CALL,       NULL, "Player 4... ",          M_SetupMultiPlayer4,   114},
-#endif
 };
 
 #undef IT_NETCALL
@@ -961,8 +959,32 @@ static menuitem_t MP_SplitServerMenu[] =
 	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_dummysplitplayers, 20},
 #endif
 	{IT_STRING|IT_CVAR,      NULL, "Level",                 &cv_nextmap,           78},
+#ifdef NOFOURPLAYER
+	{IT_STRING|IT_CALL,      NULL, "Player 1 Setup...",     M_SetupMultiPlayer,    110},
+	{IT_STRING|IT_CALL,      NULL, "Player 2 Setup... ",    M_SetupMultiPlayer2,   120},
+#else
+	{IT_STRING|IT_CALL,      NULL, "Player 1 Setup...",     M_SetupMultiPlayer,     90},
+	{IT_STRING|IT_CALL,      NULL, "Player 2 Setup... ",    M_SetupMultiPlayer2,   100},
+	{IT_GRAYEDOUT,           NULL, "Player 3 Setup...",     M_SetupMultiPlayer3,   110},
+	{IT_GRAYEDOUT,           NULL, "Player 4 Setup... ",    M_SetupMultiPlayer4,   120},
+#endif
 	{IT_WHITESTRING|IT_CALL, NULL, "Start",                 M_StartServer,        130},
 };
+
+#ifndef NOFOURPLAYER
+static void Dummysplitplayers_OnChange(void)
+{
+	UINT8 i = 2; // player 2 is the last unchanging setup
+
+	while (i++ < 4)
+	{
+		if (i <= cv_dummysplitplayers.value)
+			MP_SplitServerMenu[3+i-1].status = IT_STRING|IT_CALL;
+		else
+			MP_SplitServerMenu[3+i-1].status = IT_GRAYEDOUT;
+	}
+}
+#endif
 
 static menuitem_t MP_PlayerSetupMenu[] =
 {
@@ -1232,7 +1254,7 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 
 static menuitem_t OP_VideoOptionsMenu[] =
 {
-	{IT_STRING | IT_CALL,	NULL,	"Resolution Modes...",	M_VideoModeMenu,		 10},
+	{IT_STRING | IT_CALL,	NULL,	"Set Resolution...",	M_VideoModeMenu,		 10},
 #ifdef HWRENDER
 	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	 20},
 #endif
@@ -1302,25 +1324,31 @@ static menuitem_t OP_OpenGLColorMenu[] =
 
 static menuitem_t OP_SoundOptionsMenu[] =
 {
+	{IT_KEYHANDLER|IT_STRING,	NULL, "SFX",					M_ToggleSFX,			 10},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "SFX Volume",			&cv_soundvolume,		 10},
+								NULL, "SFX Volume",				&cv_soundvolume,		 18},
+
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Music",					M_ToggleDigital,		 30},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "Music Volume",			&cv_digmusicvolume,		 20},
+								NULL, "Music Volume",			&cv_digmusicvolume,		 38},
+
+/* -- :nonnathisshit:
+	{IT_KEYHANDLER|IT_STRING,	NULL, "MIDI",					M_ToggleMIDI,			 50},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "MIDI Volume",			&cv_midimusicvolume,	 30},
+								NULL, "MIDI Volume",			&cv_midimusicvolume,	 58},
 #ifdef PC_DOS
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
 								NULL, "CD Volume",				&cd_volume,				 40},
-#endif
-	{IT_STRING|IT_CALL,			NULL, "Toggle SFX",			M_ToggleSFX,			 50},
-	{IT_STRING|IT_CALL,			NULL, "Toggle Music",			M_ToggleDigital,		 60},
-	{IT_STRING|IT_CALL,			NULL, "Toggle MIDI",			M_ToggleMIDI,			 70},
-	{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 80},
+#endif*/
 
-	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			100},
-	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",		&surround,				110},
+	{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",			M_HandleSoundTest,		130},
+	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 70},
+	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 80},
+
+	{IT_STRING|IT_CVAR,			NULL, "Powerup warning",		&cv_kartinvinsfx,		100},
+
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		120},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -1373,7 +1401,7 @@ static menuitem_t OP_EraseDataMenu[] =
 
 static menuitem_t OP_HUDOptionsMenu[] =
 {
-	{IT_STRING | IT_CVAR, NULL, "Show HUD",				&cv_showhud,			 10},
+	{IT_STRING | IT_CVAR, NULL, "Show HUD",					&cv_showhud,			 10},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "HUD Visibility",			&cv_translucenthud,		 20},
 
@@ -1381,10 +1409,9 @@ static menuitem_t OP_HUDOptionsMenu[] =
 						  NULL, "Minimap Visibility",		&cv_kartminimap,		 40},
 	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",		&cv_kartspeedometer,	 50},
 	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",			&cv_kartcheck,			 60},
-	{IT_STRING | IT_CVAR, NULL, "Invinciblity SFX",		&cv_kartinvinsfx,		 70},
 
-	{IT_STRING | IT_CVAR, NULL, "Console Color",			&cons_backcolor,		 90},
-	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		100},
+	{IT_STRING | IT_CVAR, NULL, "Console Color",			&cons_backcolor,		 80},
+	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		 90},
 };
 
 static menuitem_t OP_GameOptionsMenu[] =
@@ -1801,7 +1828,18 @@ menu_t OP_JoystickSetDef =
 	NULL
 };
 
-menu_t OP_VideoOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_VideoOptionsMenu, &OP_MainDef, 60, 30);
+menu_t OP_VideoOptionsDef =
+{
+	"M_VIDEO",
+	sizeof(OP_VideoOptionsMenu)/sizeof(menuitem_t),
+	&OP_MainDef,
+	OP_VideoOptionsMenu,
+	M_DrawVideoMenu,
+	60, 30,
+	0,
+	NULL
+};
+
 menu_t OP_VideoModeDef =
 {
 	"M_VIDEO",
@@ -2100,8 +2138,8 @@ static void Newgametype_OnChange(void)
 			}
 
 			CV_SetValue(&cv_nextmap, M_FindFirstMap(value));
-			CV_AddValue(&cv_nextmap, -1);
-			CV_AddValue(&cv_nextmap, 1);
+			//CV_AddValue(&cv_nextmap, -1);
+			//CV_AddValue(&cv_nextmap, 1);
 		}
 	}
 }
@@ -2169,8 +2207,11 @@ static void M_ChangeCvar(INT32 choice)
 static boolean M_ChangeStringCvar(INT32 choice)
 {
 	consvar_t *cv = (consvar_t *)currentMenu->menuitems[itemOn].itemaction;
-	char buf[255];
+	char buf[MAXSTRINGLENGTH];
 	size_t len;
+
+	if (shiftdown && choice >= 32 && choice <= 127)
+		choice = shiftxform[choice];
 
 	switch (choice)
 	{
@@ -2178,9 +2219,17 @@ static boolean M_ChangeStringCvar(INT32 choice)
 			len = strlen(cv->string);
 			if (len > 0)
 			{
+				S_StartSound(NULL,sfx_menu1); // Tails
 				M_Memcpy(buf, cv->string, len);
 				buf[len-1] = 0;
 				CV_Set(cv, buf);
+			}
+			return true;
+		case KEY_DEL:
+			if (cv->string[0])
+			{
+				S_StartSound(NULL,sfx_menu1); // Tails
+				CV_Set(cv, "");
 			}
 			return true;
 		default:
@@ -2189,6 +2238,7 @@ static boolean M_ChangeStringCvar(INT32 choice)
 				len = strlen(cv->string);
 				if (len < MAXSTRINGLENGTH - 1)
 				{
+					S_StartSound(NULL,sfx_menu1); // Tails
 					M_Memcpy(buf, cv->string, len);
 					buf[len++] = (char)choice;
 					buf[len] = 0;
@@ -2919,7 +2969,7 @@ void M_Init(void)
 	quitmsg[QUITMSG1] = M_GetText("What would Tails say if\nhe saw you quitting the game?\n\n(Press 'Y' to quit)");
 	quitmsg[QUITMSG2] = M_GetText("Hey!\nWhere do ya think you're goin'?\n\n(Press 'Y' to quit)");
 	quitmsg[QUITMSG3] = M_GetText("Forget your studies!\nPlay some more!\n\n(Press 'Y' to quit)");
-	quitmsg[QUITMSG4] = M_GetText("You're trying to say you\nlike Team Sonic Racing better than\nthis, aren't you?\n\n(Press 'Y' to quit)");
+	quitmsg[QUITMSG4] = M_GetText("You're trying to say you\nlike Sonic R better than\nthis, aren't you?\n\n(Press 'Y' to quit)");
 	quitmsg[QUITMSG5] = M_GetText("Don't leave yet -- there's a\nsuper emerald around that corner!\n\n(Press 'Y' to quit)");
 	quitmsg[QUITMSG6] = M_GetText("You'd rather work than play?\n\n(Press 'Y' to quit)");
 	quitmsg[QUITMSG7] = M_GetText("Go ahead and leave. See if I care...\n*sniffle*\n\n(Press 'Y' to quit)");
@@ -3010,7 +3060,7 @@ static void M_DrawThermo(INT32 x, INT32 y, consvar_t *cv)
 }
 
 //  A smaller 'Thermo', with range given as percents (0-100)
-static void M_DrawSlider(INT32 x, INT32 y, const consvar_t *cv)
+static void M_DrawSlider(INT32 x, INT32 y, const consvar_t *cv, boolean ontop)
 {
 	INT32 i;
 	INT32 range;
@@ -3018,15 +3068,30 @@ static void M_DrawSlider(INT32 x, INT32 y, const consvar_t *cv)
 
 	for (i = 0; cv->PossibleValue[i+1].strvalue; i++);
 
-	range = ((cv->value - cv->PossibleValue[0].value) * 100 /
-	 (cv->PossibleValue[i].value - cv->PossibleValue[0].value));
-
-	if (range < 0)
-		range = 0;
-	if (range > 100)
-		range = 100;
-
 	x = BASEVIDWIDTH - x - SLIDER_WIDTH;
+
+	if (ontop)
+	{
+		V_DrawCharacter(x - 15 - (skullAnimCounter/5), y,
+			'\x1C' | V_YELLOWMAP, false); // left arrow
+		V_DrawCharacter(x+(SLIDER_RANGE*8) + 8 + (skullAnimCounter/5), y,
+			'\x1D' | V_YELLOWMAP, false); // right arrow
+	}
+
+	if ((range = atoi(cv->defaultvalue)) != cv->value)
+	{
+		range = ((range - cv->PossibleValue[0].value) * 100 /
+		(cv->PossibleValue[1].value - cv->PossibleValue[0].value));
+
+		if (range < 0)
+			range = 0;
+		if (range > 100)
+			range = 100;
+
+		// draw the default
+		p = W_CachePatchName("M_SLIDEC", PU_CACHE);
+		V_DrawScaledPatch(x - 4 + (((SLIDER_RANGE)*8 + 4)*range)/100, y, 0, p);
+	}
 
 	V_DrawScaledPatch(x - 8, y, 0, W_CachePatchName("M_SLIDEL", PU_CACHE));
 
@@ -3037,9 +3102,17 @@ static void M_DrawSlider(INT32 x, INT32 y, const consvar_t *cv)
 	p = W_CachePatchName("M_SLIDER", PU_CACHE);
 	V_DrawScaledPatch(x+SLIDER_RANGE*8, y, 0, p);
 
+	range = ((cv->value - cv->PossibleValue[0].value) * 100 /
+	 (cv->PossibleValue[1].value - cv->PossibleValue[0].value));
+
+	if (range < 0)
+		range = 0;
+	if (range > 100)
+		range = 100;
+
 	// draw the slider cursor
 	p = W_CachePatchName("M_SLIDEC", PU_CACHE);
-	V_DrawMappedPatch(x - 4 + (((SLIDER_RANGE)*8 + 4)*range)/100, y, 0, p, yellowmap);
+	V_DrawScaledPatch(x - 4 + (((SLIDER_RANGE)*8 + 4)*range)/100, y, 0, p);
 }
 
 //
@@ -3258,7 +3331,7 @@ static void M_DrawGenericMenu(void)
 						switch (currentMenu->menuitems[i].status & IT_CVARTYPE)
 						{
 							case IT_CV_SLIDER:
-								M_DrawSlider(x, y, cv);
+								M_DrawSlider(x, y, cv, (i == itemOn));
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
@@ -3273,6 +3346,13 @@ static void M_DrawGenericMenu(void)
 							default:
 								V_DrawString(BASEVIDWIDTH - x - V_StringWidth(cv->string, 0), y,
 									((cv->flags & CV_CHEAT) && !CV_IsSetToDefault(cv) ? V_REDMAP : V_YELLOWMAP), cv->string);
+								if (i == itemOn)
+								{
+									V_DrawCharacter(BASEVIDWIDTH - x - 10 - V_StringWidth(cv->string, 0) - (skullAnimCounter/5), y,
+											'\x1C' | V_YELLOWMAP, false); // left arrow
+									V_DrawCharacter(BASEVIDWIDTH - x + 2 + (skullAnimCounter/5), y,
+											'\x1D' | V_YELLOWMAP, false); // right arrow
+								}
 								break;
 						}
 						break;
@@ -3546,7 +3626,7 @@ static void M_DrawCenteredMenu(void)
 						switch(currentMenu->menuitems[i].status & IT_CVARTYPE)
 						{
 							case IT_CV_SLIDER:
-								M_DrawSlider(x, y, cv);
+								M_DrawSlider(x, y, cv, (i == itemOn));
 							case IT_CV_NOPRINT: // color use this
 								break;
 							case IT_CV_STRING:
@@ -4390,23 +4470,62 @@ static void M_DrawEmblemHints(void)
 static void M_DrawSkyRoom(void)
 {
 	INT32 i, y = 0;
+	INT32 lengthstring = 0;
 
 	M_DrawGenericMenu();
 
+	if (currentMenu == &OP_SoundOptionsDef)
+	{
+		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
+			currentMenu->y+currentMenu->menuitems[0].alphaKey,
+			(nosound ? V_REDMAP : V_YELLOWMAP),
+			((nosound || sound_disabled) ? "OFF" : "ON"));
+
+		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
+			currentMenu->y+currentMenu->menuitems[2].alphaKey,
+			(nodigimusic ? V_REDMAP : V_YELLOWMAP),
+			((nodigimusic || digital_disabled) ? "OFF" : "ON"));
+
+		/*V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
+			currentMenu->y+currentMenu->menuitems[5].alphaKey,
+			(nomidimusic ? V_REDMAP : V_YELLOWMAP),
+			((nomidimusic || music_disabled) ? "OFF" : "ON"));*/
+
+		if (itemOn == 0)
+			lengthstring = 8*((nosound || sound_disabled) ? 3 : 2);
+		else if (itemOn == 2)
+			lengthstring = 8*((nodigimusic || digital_disabled) ? 3 : 2);
+		/*else if (itemOn == 5)
+			lengthstring = 8*((nomidimusic || music_disabled) ? 3 : 2);*/
+	}
+
 	for (i = 0; i < currentMenu->numitems; ++i)
 	{
-		if (currentMenu->menuitems[i].status == (IT_STRING|IT_KEYHANDLER))
+		if (currentMenu->menuitems[i].itemaction == M_HandleSoundTest)
 		{
 			y = currentMenu->menuitems[i].alphaKey;
 			break;
 		}
 	}
-	if (!y)
-		return;
+	if (y)
+	{
+		y += currentMenu->y;
 
-	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + y, V_YELLOWMAP, cv_soundtest.string);
-	if (cv_soundtest.value)
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + y + 8, V_YELLOWMAP, S_sfx[cv_soundtest.value].name);
+		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y, V_YELLOWMAP, cv_soundtest.string);
+		if (cv_soundtest.value)
+			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y + 8, V_YELLOWMAP, S_sfx[cv_soundtest.value].name);
+
+		if (i == itemOn)
+			lengthstring = V_StringWidth(cv_soundtest.string, 0);
+	}
+
+	if (lengthstring)
+	{
+		V_DrawCharacter(BASEVIDWIDTH - currentMenu->x - 10 - lengthstring - (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
+			'\x1C' | V_YELLOWMAP, false);
+		V_DrawCharacter(BASEVIDWIDTH - currentMenu->x + 2 + (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
+			'\x1D' | V_YELLOWMAP, false);
+	}
 }
 
 static void M_HandleSoundTest(INT32 choice)
@@ -6485,12 +6604,15 @@ static void M_ChooseRoom(INT32 choice)
 //
 // FindFirstMap
 //
-// Finds the first map of a particular gametype
+// Finds the first map of a particular gametype (or returns the current map)
 // Defaults to 1 if nothing found.
 //
 static INT32 M_FindFirstMap(INT32 gtype)
 {
 	INT32 i;
+
+	if (mapheaderinfo[gamemap] && (mapheaderinfo[gamemap]->typeoflevel & gtype))
+		return gamemap;
 
 	for (i = 0; i < NUMMAPS; i++)
 	{
@@ -6553,6 +6675,7 @@ static void M_DrawServerMenu(void)
 {
 	lumpnum_t lumpnum;
 	patch_t *PictureOfLevel;
+	INT32 x, y;
 
 	M_DrawGenericMenu();
 
@@ -6571,7 +6694,6 @@ static void M_DrawServerMenu(void)
 	}
 #endif
 
-	// SRB2kart
 
 	//  A 160x100 image of the level as entry MAPxxP
 	lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));
@@ -6581,7 +6703,13 @@ static void M_DrawServerMenu(void)
 	else
 		PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
 
-	V_DrawSmallScaledPatch(BASEVIDWIDTH - currentMenu->x - (SHORT(PictureOfLevel->width)/2), currentMenu->y + 130 + 8 - (SHORT(PictureOfLevel->height)/2), 0, PictureOfLevel);
+	x = BASEVIDWIDTH - currentMenu->x - (SHORT(PictureOfLevel->width)/2);
+	y = currentMenu->y + 130 + 8 - (SHORT(PictureOfLevel->height)/2);
+
+	V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+	// SRB2kart
+	V_DrawDiag(x, y, 12, V_SNAPTORIGHT|31);
+	V_DrawDiag(x, y, 10, V_SNAPTORIGHT|G_GetGametypeColor(cv_newgametype.value));
 }
 
 static void M_DrawSplitServerMenu(void)
@@ -6593,8 +6721,8 @@ static void M_DrawSplitServerMenu(void)
 #define spacingwidth 32
 #define incrwidth (iconwidth + spacingwidth)
 	{
-		// player arrangement width, but there's also a chance i'm a furry, shhhhhh
 		UINT8 i = 0, pskin, pcol;
+		// player arrangement width, but there's also a chance i'm a furry, shhhhhh
 		const INT32 paw = iconwidth +
 #ifndef NOFOURPLAYER
 			3*
@@ -6700,30 +6828,21 @@ static void M_DrawMPMainMenu(void)
 
 #ifndef NONET
 #if MAXPLAYERS == 16
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[ 1].alphaKey,
-		((itemOn ==  1) ? V_YELLOWMAP : 0), "(2-16 players)");
+	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[1].alphaKey,
+		((itemOn == 1) ? V_YELLOWMAP : 0), "(2-16 players)");
 #else
 Update the maxplayers label...
 #endif
 #endif
 
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[ 2].alphaKey,
-		((itemOn ==  2) ? V_YELLOWMAP : 0),
+	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[2].alphaKey,
+		((itemOn == 2) ? V_YELLOWMAP : 0),
 #ifdef NOFOURPLAYER
 		"(2 players)"
 #else
 		"(2-4 players)"
 #endif
 		);
-
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[ 8].alphaKey,
-		((itemOn ==  8) ? V_YELLOWMAP : 0), "(splitscreen)");
-#ifndef NOFOURPLAYER
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[ 9].alphaKey,
-		((itemOn ==  9) ? V_YELLOWMAP : 0), "(splitscreen)");
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[10].alphaKey,
-		((itemOn == 10) ? V_YELLOWMAP : 0), "(splitscreen)");
-#endif
 
 #ifndef NONET
 	y += MP_MainMenu[5].alphaKey;
@@ -7101,6 +7220,14 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_name[l-1] =0;
+			}
+			break;
+
+		case KEY_DEL:
+			if (itemOn == 0 && (l = strlen(setupm_name))!=0)
+			{
+				S_StartSound(NULL,sfx_menu1); // Tails
+				setupm_name[0] = 0;
 			}
 			break;
 
@@ -7680,86 +7807,170 @@ static void M_ChangeControl(INT32 choice)
 // =====
 
 // Toggles sound systems in-game.
-static void M_ToggleSFX(void)
+static void M_ToggleSFX(INT32 choice)
 {
+	switch (choice)
+	{
+		case KEY_DOWNARROW:
+			S_StartSound(NULL, sfx_menu1);
+			itemOn++;
+			return;
+
+		case KEY_UPARROW:
+			S_StartSound(NULL, sfx_menu1);
+			itemOn = currentMenu->numitems-1;
+			return;
+
+		case KEY_ESCAPE:
+			currentMenu->lastOn = itemOn;
+			if (currentMenu->prevMenu)
+				M_SetupNextMenu(currentMenu->prevMenu);
+			else
+				M_ClearMenus(true);
+			return;
+		default:
+			break;
+	}
+
 	if (nosound)
 	{
 		nosound = false;
 		I_StartupSound();
 		if (nosound) return;
-		S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
-		M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
+		S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
+		S_StartSound(NULL, sfx_strpst);
+		//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
 	{
 		if (sound_disabled)
 		{
 			sound_disabled = false;
-			M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
+			S_StartSound(NULL, sfx_strpst);
+			//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
 		}
 		else
 		{
 			sound_disabled = true;
 			S_StopSounds();
-			M_StartMessage(M_GetText("SFX Disabled\n"), NULL, MM_NOTHING);
+			//M_StartMessage(M_GetText("SFX Disabled\n"), NULL, MM_NOTHING);
 		}
 	}
 }
 
-static void M_ToggleDigital(void)
+static void M_ToggleDigital(INT32 choice)
 {
+	switch (choice)
+	{
+		case KEY_DOWNARROW:
+			S_StartSound(NULL, sfx_menu1);
+			itemOn++;
+			return;
+
+		case KEY_UPARROW:
+			S_StartSound(NULL, sfx_menu1);
+			itemOn--;
+			return;
+
+		case KEY_ESCAPE:
+			currentMenu->lastOn = itemOn;
+			if (currentMenu->prevMenu)
+				M_SetupNextMenu(currentMenu->prevMenu);
+			else
+				M_ClearMenus(true);
+			return;
+		default:
+			break;
+	}
+
 	if (nodigimusic)
 	{
 		nodigimusic = false;
 		I_InitDigMusic();
 		if (nodigimusic) return;
-		S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
+		S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
 		S_StopMusic();
-		S_ChangeMusicInternal("lclear", false);
-		M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("titles", looptitle);
+		//M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
 	{
 		if (digital_disabled)
 		{
 			digital_disabled = false;
-			M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
+			if (Playing())
+				P_RestoreMusic(&players[consoleplayer]);
+			else
+				S_ChangeMusicInternal("titles", looptitle);
+			//M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
 		}
 		else
 		{
 			digital_disabled = true;
 			S_StopMusic();
-			M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
+			//M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
 		}
 	}
 }
 
-static void M_ToggleMIDI(void)
+/*static void M_ToggleMIDI(INT32 choice)
 {
+	switch (choice)
+	{
+		case KEY_DOWNARROW:
+			S_StartSound(NULL, sfx_menu1);
+			itemOn++;
+			return;
+
+		case KEY_UPARROW:
+			S_StartSound(NULL, sfx_menu1);
+			itemOn--;
+			return;
+
+		case KEY_ESCAPE:
+			if (currentMenu->prevMenu)
+				M_SetupNextMenu(currentMenu->prevMenu);
+			else
+				M_ClearMenus(true);
+			return;
+		default:
+			break;
+	}
+
 	if (nomidimusic)
 	{
 		nomidimusic = false;
 		I_InitMIDIMusic();
 		if (nomidimusic) return;
 		S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
-		S_ChangeMusicInternal("lclear", false);
-		M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("_clear", false);
+		//M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
 	{
 		if (music_disabled)
 		{
 			music_disabled = false;
-			M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
+			if (Playing())
+				P_RestoreMusic(&players[consoleplayer]);
+			else
+				S_ChangeMusicInternal("_clear", false);
+			//M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
 		}
 		else
 		{
 			music_disabled = true;
 			S_StopMusic();
-			M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
+			//M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
 		}
 	}
-}
+}*/
 
 static void M_RestartAudio(void)
 {
@@ -7771,9 +7982,14 @@ static void M_RestartAudio(void)
 
 	I_SetSfxVolume(cv_soundvolume.value);
 	I_SetDigMusicVolume(cv_digmusicvolume.value);
-	I_SetMIDIMusicVolume(cv_midimusicvolume.value);
+	//I_SetMIDIMusicVolume(cv_midimusicvolume.value);
+
+	S_StartSound(NULL, sfx_strpst);
+
 	if (Playing()) // Gotta make sure the player is in a level
 		P_RestoreMusic(&players[consoleplayer]);
+	else
+		S_ChangeMusicInternal("titles", looptitle);
 }
 
 // ===============
@@ -7866,6 +8082,15 @@ static void M_VideoModeMenu(INT32 choice)
 	M_SetupNextMenu(&OP_VideoModeDef);
 }
 
+static void M_DrawVideoMenu(void)
+{
+
+	M_DrawGenericMenu();
+	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + OP_VideoOptionsMenu[0].alphaKey,
+		(SCR_IsAspectCorrect(vid.width, vid.height) ? V_GREENMAP : V_YELLOWMAP),
+			va("%dx%d", vid.width, vid.height));
+}
+
 // Draw the video modes list, a-la-Quake
 static void M_DrawVideoMode(void)
 {
@@ -7924,10 +8149,10 @@ static void M_DrawVideoMode(void)
 
 		V_DrawCenteredString(BASEVIDWIDTH/2, OP_VideoModeDef.y + 138,
 			V_GREENMAP, "Green modes are recommended.");
-		V_DrawCenteredString(BASEVIDWIDTH/2, OP_VideoModeDef.y + 150,
+		V_DrawCenteredString(BASEVIDWIDTH/2, OP_VideoModeDef.y + 146,
 			V_YELLOWMAP, "Other modes may have visual errors.");
 		V_DrawCenteredString(BASEVIDWIDTH/2, OP_VideoModeDef.y + 158,
-			V_YELLOWMAP, "Use at own risk.");
+			V_YELLOWMAP, "Larger modes may have performance issues.");
 	}
 
 	// Draw the cursor for the VidMode menu
@@ -8038,7 +8263,7 @@ static void M_HandleVideoMode(INT32 ch)
 		cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
 		y = currentMenu->y + currentMenu->menuitems[i].alphaKey;
 
-		M_DrawSlider(currentMenu->x + 20, y, cv);
+		M_DrawSlider(currentMenu->x + 20, y, cv, (i == itemOn));
 
 		if (!cv->value)
 			V_DrawRightAlignedString(312, y, V_OLDSPACING|((i == itemOn) ? V_YELLOWMAP : 0), "None");
