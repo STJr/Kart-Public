@@ -3706,14 +3706,20 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if ((leveltime == starttime-(3*TICRATE)) || (leveltime == starttime-(2*TICRATE)) || (leveltime == starttime-TICRATE))
 			S_StartSound(NULL, sfx_s3ka7);
 		if (leveltime == starttime)
+		{
 			S_StartSound(NULL, sfx_s3kad);
+			S_StopMusic(); // The GO! sound stops the level start ambience
+		}
 	}
 
 	// Start charging once you're given the opportunity.
-	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime && cmd->buttons & BT_ACCELERATE)
-		player->kartstuff[k_boostcharge]++;
-	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime && !(cmd->buttons & BT_ACCELERATE))
-		player->kartstuff[k_boostcharge] = 0;
+	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime)
+	{	
+		if (cmd->buttons & BT_ACCELERATE)
+			player->kartstuff[k_boostcharge]++;
+		else
+			player->kartstuff[k_boostcharge] = 0;
+	}
 
 	// Increase your size while charging your engine.
 	if (leveltime < starttime+10)
