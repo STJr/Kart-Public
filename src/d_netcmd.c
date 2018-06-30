@@ -4040,9 +4040,6 @@ static void Command_ModDetails_f(void)
 //
 static void Command_ShowGametype_f(void)
 {
-	INT32 j;
-	const char *gametypestr = NULL;
-
 	if (!(netgame || multiplayer)) // print "Single player" instead of "Race"
 	{
 		CONS_Printf(M_GetText("Current gametype is %s\n"), "Single Player");
