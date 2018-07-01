@@ -4962,11 +4962,11 @@ static void K_drawKartWanted(void)
 		}
 
 		if (players[battlewanted[i]].skincolor == 0)
-			V_DrawFixedPatch(x*scale, y*scale, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], NULL);
 		else
 		{
 			colormap = R_GetTranslationColormap(TC_RAINBOW, p->skincolor, GTC_CACHE);
-			V_DrawFixedPatch(x*scale, y*scale, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], colormap);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], colormap);
 		}
 	}
 }
