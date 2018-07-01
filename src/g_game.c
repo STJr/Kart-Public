@@ -3390,8 +3390,13 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		// SRB2kart: don't reset player between maps
-		D_MapChange(nextmap+1, deferredgametype, ultimatemode, (deferredgametype != gametype), 0, false, false);
+		// SRB2Kart
+		if (G_RaceGametype() && (deferredgametype == gametype))
+			// don't reset player between maps in Race
+			D_MapChange(nextmap+1, deferredgametype, ultimatemode, false, 0, false, false);
+		else
+			// resetplayer in Battle for more equality
+			D_MapChange(nextmap+1, deferredgametype, ultimatemode, true, 0, false, false);
 	}
 
 	gameaction = ga_nothing;
