@@ -5050,7 +5050,7 @@ void K_ReloadSkinIconGraphics(void)
 		K_LoadIconGraphics(skins[i].iconprefix, i);
 }
 
-static void K_drawKartMinimapHead(player_t *player, INT32 x, INT32 y, INT32 flags, patch_t *AutomapPic)
+static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, patch_t *AutomapPic)
 {
 	// amnum xpos & ypos are the icon's speed around the HUD.
 	// The number being divided by is for how fast it moves.
@@ -5058,6 +5058,11 @@ static void K_drawKartMinimapHead(player_t *player, INT32 x, INT32 y, INT32 flag
 
 	// am xpos & ypos are the icon's starting position. Withouht
 	// it, they wouldn't 'spawn' on the top-right side of the HUD.
+
+	UINT8 skin = 0;
+
+	if (mo->skin)
+		skin = ((skin_t*)mo->skin)-skins;
 
 	fixed_t amnumxpos;
 	fixed_t amnumypos;
@@ -5102,32 +5107,28 @@ static void K_drawKartMinimapHead(player_t *player, INT32 x, INT32 y, INT32 flag
 	fixed_t yscale = FixedDiv(AutomapPic->height, mapheight);
 	fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
 
-	amnumxpos = (FixedMul(player->mo->x, zoom) - FixedMul(xoffset, zoom));
-	amnumypos = -(FixedMul(player->mo->y, zoom) - FixedMul(yoffset, zoom));
+	amnumxpos = (FixedMul(mo->x, zoom) - FixedMul(xoffset, zoom));
+	amnumypos = -(FixedMul(mo->y, zoom) - FixedMul(yoffset, zoom));
 
-	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[player->skin]->width/2))<<FRACBITS);
-	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[player->skin]->height/2))<<FRACBITS);
+	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[skin]->width/2))<<FRACBITS);
+	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[skin]->height/2))<<FRACBITS);
 
 	if (mirrormode)
 	{
 		flags |= V_FLIP;
-		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[player->skin]->width/2))<<FRACBITS);
+		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[skin]->width/2))<<FRACBITS);
 	}
 
-	if (!player->skincolor) // 'default' color
-		V_DrawSciencePatch(amxpos, amypos, flags, iconprefix[player->skin], FRACUNIT);
+	if (!mo->color) // 'default' color
+		V_DrawSciencePatch(amxpos, amypos, flags, iconprefix[skin], FRACUNIT);
 	else
 	{
 		UINT8 *colormap;
-		if (player->mo->colorized)
-		{
-			colormap = R_GetTranslationColormap(TC_RAINBOW, player->mo->color, 0);
-		}
+		if (mo->colorized)
+			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, 0);
 		else
-		{
-			colormap = R_GetTranslationColormap(player->skin, player->mo->color, 0);
-		}
-		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, iconprefix[player->skin], colormap);
+			colormap = R_GetTranslationColormap(skin, mo->color, 0);
+		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, iconprefix[skin], colormap);
 	}
 }
 
@@ -5191,30 +5192,45 @@ static void K_drawKartMinimap(void)
 	y -= SHORT(AutomapPic->topoffset);
 
 	// Player's tiny icons on the Automap. (drawn opposite direction so player 1 is drawn last in splitscreen)
-	for (i = MAXPLAYERS-1; i >= 0; i--)
+	if (ghosts)
 	{
-		if (!playeringame[i])
-			continue;
-		if (!players[i].mo || players[i].spectator)
-			continue;
-
-		if (!splitscreen && i == displayplayer)
+		demoghost *g = ghosts;
+		while (g)
 		{
-			dop1later = true; // Do displayplayer later
-			continue;
+			K_drawKartMinimapHead(g->mo, x, y, splitflags, AutomapPic);
+			g = g->next;
 		}
-
-		if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
-			continue;
-		if (players[i].kartstuff[k_hyudorotimer] > 0)
+		if (!stplyr->mo || stplyr->spectator) // do we need the latter..?
+			return;
+		dop1later = true;
+	}
+	else
+	{
+		for (i = MAXPLAYERS-1; i >= 0; i--)
 		{
-			if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
-				|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
-				&& !(leveltime & 1)))
+			if (!playeringame[i])
 				continue;
-		}
+			if (!players[i].mo || players[i].spectator)
+				continue;
 
-		K_drawKartMinimapHead(&players[i], x, y, splitflags, AutomapPic);
+			if (!splitscreen && i == displayplayer)
+			{
+				dop1later = true; // Do displayplayer later
+				continue;
+			}
+
+			if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
+				continue;
+			if (players[i].kartstuff[k_hyudorotimer] > 0)
+			{
+				if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
+					|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
+					&& !(leveltime & 1)))
+					continue;
+			}
+
+			K_drawKartMinimapHead(players[i].mo, x, y, splitflags, AutomapPic);
+		}
 	}
 
 	if (!dop1later)
@@ -5222,7 +5238,7 @@ static void K_drawKartMinimap(void)
 
 	splitflags &= ~V_HUDTRANSHALF;
 	splitflags |= V_HUDTRANS;
-	K_drawKartMinimapHead(stplyr, x, y, splitflags, AutomapPic);
+	K_drawKartMinimapHead(stplyr->mo, x, y, splitflags, AutomapPic);
 }
 
 static void K_drawBattleFullscreen(void)

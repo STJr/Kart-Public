@@ -312,13 +312,6 @@ static struct {
 
 // Your naming conventions are stupid and useless.
 // There is no conflict here.
-typedef struct demoghost {
-	UINT8 checksum[16];
-	UINT8 *buffer, *p, color;
-	UINT16 version;
-	mobj_t oldmo, *mo;
-	struct demoghost *next;
-} demoghost;
 demoghost *ghosts = NULL;
 
 boolean precache = true; // if true, load all graphics at start
@@ -3050,6 +3043,7 @@ boolean G_BattleGametype(void)
 // G_SometimesGetDifferentGametype
 //
 // I pity the fool who adds more gametypes later, because it'll require some element of randomisation which needs to be synched...
+// Although given this only gets called for the host, you could probably get away with M_Random.
 //
 INT16 G_SometimesGetDifferentGametype(void)
 {
@@ -3067,13 +3061,16 @@ INT16 G_SometimesGetDifferentGametype(void)
 // G_GetGametypeColor
 //
 // Pretty and consistent ^u^
+// See also M_GetGametypeColor.
 //
 UINT8 G_GetGametypeColor(INT16 gt)
 {
+	if (modeattacking) // == ATTACKING_RECORD)
+		return orangemap[120];
 	if (gt == GT_MATCH)
-		return 128; // red
+		return redmap[120];
 	if (gt == GT_RACE)
-		return 215; // sky blue
+		return skymap[120];
 	return 247; // FALLBACK
 }
 
@@ -3991,6 +3988,13 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, U
 
 	if (demoplayback)
 		COM_BufAddText("stopdemo\n");
+
+	while (ghosts)
+	{
+		demoghost *next = ghosts->next;
+		Z_Free(ghosts);
+		ghosts = next;
+	}
 	ghosts = NULL;
 
 	for (i = 0; i < NUMMAPS+1; i++)
@@ -4890,6 +4894,7 @@ void G_GhostTicker(void)
 				p->next = g->next;
 			else
 				ghosts = g->next;
+			Z_Free(g);
 			continue;
 		}
 		p = g;
@@ -5832,29 +5837,27 @@ void G_AddGhost(char *defdemoname)
 	mthing = playerstarts[0];
 	I_Assert(mthing);
 	{ // A bit more complex than P_SpawnPlayer because ghosts aren't solid and won't just push themselves out of the ceiling.
-		fixed_t x,y,z;
-		sector_t *sector;
-		x = mthing->x << FRACBITS;
-		y = mthing->y << FRACBITS;
-		sector = R_PointInSubsector(x, y)->sector;
+		fixed_t z,f,c;
+		gh->mo = P_SpawnMobj(mthing->x << FRACBITS, mthing->y << FRACBITS, 0, MT_GHOST);
+		gh->mo->angle = FixedAngle(mthing->angle*FRACUNIT);
+		f = gh->mo->floorz;
+		c = gh->mo->ceilingz - mobjinfo[MT_PLAYER].height;
 		if (!!(mthing->options & MTF_AMBUSH) ^ !!(mthing->options & MTF_OBJECTFLIP))
 		{
-			z = sector->ceilingheight - mobjinfo[MT_PLAYER].height;
+			z = c;
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
-			if (z < sector->floorheight)
-				z = sector->floorheight;
+			if (z < f)
+				z = f;
 		}
 		else
 		{
-			z = sector->floorheight;
+			z = f;
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
-			if (z > sector->ceilingheight - mobjinfo[MT_PLAYER].height)
-				z = sector->ceilingheight - mobjinfo[MT_PLAYER].height;
+			if (z > c)
+				z = c;
 		}
-		gh->mo = P_SpawnMobj(x, y, z, MT_GHOST);
-		gh->mo->angle = FixedAngle(mthing->angle*FRACUNIT);
 	}
 	gh->mo->state = states+S_KART_STND1; // SRB2kart - was S_PLAY_STND
 	gh->mo->sprite = gh->mo->state->sprite;
@@ -6052,8 +6055,13 @@ boolean G_CheckDemoStatus(void)
 {
 	boolean saved;
 
-	if(ghosts) // ... ... ...
-		ghosts = NULL; // :)
+	while (ghosts)
+	{
+		demoghost *next = ghosts->next;
+		Z_Free(ghosts);
+		ghosts = next;
+	}
+	ghosts = NULL;
 
 	// DO NOT end metal sonic demos here
 

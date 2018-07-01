@@ -78,6 +78,7 @@ extern UINT8 hudtrans;
 #define V_REDMAP             0x00005000
 #define V_GRAYMAP            0x00006000
 #define V_ORANGEMAP          0x00007000
+#define V_SKYMAP             0x00008000
 
 // use bits 17-20 for alpha transparency
 #define V_ALPHASHIFT         16
@@ -153,6 +154,7 @@ void V_DrawFadeConsBack(INT32 plines);
 
 // draw a single character
 void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed);
+const UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
 
