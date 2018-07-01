@@ -819,7 +819,7 @@ static void ST_drawLevelTitle(void)
 	else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
 		V_DrawLevelTitle(zonexpos, bary+6, 0, M_GetText("ZONE"));
 
-	if (strlen(actnum) > 0)
+	if (actnum[0])
 		V_DrawLevelTitle(ttlnumxpos+12, bary+6, 0, actnum);
 }
 

@@ -450,21 +450,29 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 		y = FixedMul(y,dupy<<FRACBITS);
 		x >>= FRACBITS;
 		y >>= FRACBITS;
-		desttop += (y*vid.width) + x;
 
 		// Center it if necessary
 		if (!(scrn & V_SCALEPATCHMASK))
 		{
+			// if it's meant to cover the whole screen, black out the rest
+			if (x == 0 && FixedMul(SHORT(patch->width)<<FRACBITS, pscale)>>FRACBITS == BASEVIDWIDTH
+				&& y == 0 && FixedMul(SHORT(patch->height)<<FRACBITS, pscale)>>FRACBITS == BASEVIDHEIGHT)
+			{
+				column = (const column_t *)((const UINT8 *)(patch) + LONG(patch->columnofs[0]));
+				source = (const UINT8 *)(column) + 3;
+				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (column->topdelta == 0xff ? 31 : source[0]));
+			}
+
 			if (vid.width != BASEVIDWIDTH * dupx)
 			{
 				// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
 				// so center this imaginary screen
 				if ((scrn & (V_HORZSCREEN|V_SNAPTOLEFT)) == (V_HORZSCREEN|V_SNAPTOLEFT))
-					desttop += (vid.width/2 - (BASEVIDWIDTH/2 * dupx));
+					x += (vid.width/2 - (BASEVIDWIDTH/2 * dupx));
 				else if (scrn & V_SNAPTORIGHT)
-					desttop += (vid.width - (BASEVIDWIDTH * dupx));
+					x += (vid.width - (BASEVIDWIDTH * dupx));
 				else if (!(scrn & V_SNAPTOLEFT))
-					desttop += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
+					x += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
 			}
 			if (vid.height != BASEVIDHEIGHT * dupy)
 			{
@@ -476,15 +484,9 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 				else if (!(scrn & V_SNAPTOTOP))
 					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width / 2;
 			}
-			// if it's meant to cover the whole screen, black out the rest
-			if (x == 0 && FixedMul(SHORT(patch->width)<<FRACBITS, pscale)>>FRACBITS == BASEVIDWIDTH
-				&& y == 0 && FixedMul(SHORT(patch->height)<<FRACBITS, pscale)>>FRACBITS == BASEVIDHEIGHT)
-			{
-				column = (const column_t *)((const UINT8 *)(patch) + LONG(patch->columnofs[0]));
-				source = (const UINT8 *)(column) + 3;
-				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (column->topdelta == 0xff ? 31 : source[0]));
-			}
 		}
+
+		desttop += (y*vid.width) + x;
 	}
 
 	if (pscale != FRACUNIT) // scale width properly
@@ -1118,7 +1120,7 @@ void V_DrawFadeConsBack(INT32 plines)
 
 // Gets string colormap, used for 0x80 color codes
 //
-static const UINT8 *V_GetStringColormap(INT32 colorflags)
+const UINT8 *V_GetStringColormap(INT32 colorflags)
 {
 	switch ((colorflags & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT)
 	{
@@ -1136,6 +1138,8 @@ static const UINT8 *V_GetStringColormap(INT32 colorflags)
 		return graymap;
 	case 7: // 0x87, orange
 		return orangemap;
+	case 8: // 0x88, sky
+		return skymap;
 	default: // reset
 		return NULL;
 	}

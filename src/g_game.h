@@ -167,6 +167,17 @@ void G_WriteMetalTic(mobj_t *metal);
 void G_SaveMetal(UINT8 **buffer);
 void G_LoadMetal(UINT8 **buffer);
 
+// Your naming conventions are stupid and useless.
+// There is no conflict here.
+typedef struct demoghost {
+	UINT8 checksum[16];
+	UINT8 *buffer, *p, color;
+	UINT16 version;
+	mobj_t oldmo, *mo;
+	struct demoghost *next;
+} demoghost;
+extern demoghost *ghosts;
+
 void G_DoPlayDemo(char *defdemoname);
 void G_TimeDemo(const char *name);
 void G_AddGhost(char *defdemoname);
