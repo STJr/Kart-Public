@@ -1588,7 +1588,6 @@ inline static void M_GetGametypeColor(void)
 	if (gt == GT_RACE)
 	{
 		highlightflags = V_SKYMAP;
-		recommendedflags = V_SKYMAP;
 		return;
 	}
 
