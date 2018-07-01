@@ -3764,10 +3764,7 @@ void K_CheckBalloons(void)
 	UINT8 i;
 	UINT8 numingame = 0;
 	SINT8 winnernum = -1;
-
-#if 0
-	return; // set to 1 to test comeback mechanics while alone
-#endif
+	INT32 winnerscoreadd = 0;
 
 	if (!multiplayer)
 		return;
@@ -3787,21 +3784,24 @@ void K_CheckBalloons(void)
 			return;
 
 		numingame++;
+		winnerscoreadd += players[i].score;
 
 		if (players[i].kartstuff[k_balloon] <= 0) // if you don't have any balloons, you're probably not a winner
 			continue;
 		else if (winnernum > -1) // TWO winners? that's dumb :V
 			return;
+
 		winnernum = i;
+		winnerscoreadd -= players[i].score;
 	}
 
-	if (numingame <= 1)
-		return;
+	/*if (numingame <= 1)
+		return;*/
 
-	if (playeringame[winnernum])
+	if (winnernum > -1 && playeringame[winnernum])
 	{
-		players[winnernum].score += 1;
-		CONS_Printf(M_GetText("%s recieved a point for winning!\n"), player_names[winnernum]);
+		players[winnernum].score += winnerscoreadd;
+		CONS_Printf(M_GetText("%s recieved %d point%s for winning!\n"), player_names[winnernum], winnerscoreadd, (winnerscoreadd == 1 ? "" : "s"));
 	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -5176,7 +5176,7 @@ void K_drawKartHUD(void)
 	// This is handled by console/menu values
 	K_initKartHUD();
 
-	// Draw that fun first person HUD!
+	// Draw that fun first person HUD! Drawn ASAP so it looks more "real".
 	if ((stplyr == &players[displayplayer] && !camera.chase)
 		|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
 		|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
@@ -5187,7 +5187,7 @@ void K_drawKartHUD(void)
 	if (leveltime < 15 && stplyr == &players[displayplayer])
 	{
 		if (leveltime <= 5)
-			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first three frames, to hide SRB2's awful level load artifacts
+			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first few frames, to hide SRB2's awful level load artifacts
 		else
 			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there
 	}
