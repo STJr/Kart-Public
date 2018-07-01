@@ -25,6 +25,7 @@
 // franticitems is Frantic Mode items, bool
 // mirrormode is Mirror Mode (duh), bool
 // comeback is Battle Mode's karma comeback, also bool
+// battlewanted is an array of the WANTED player nums, -1 for no player in that slot
 // indirectitemcooldown is timer before anyone's allowed another Shrink/SPB
 // spbincoming is the timer before k_deathsentence is cast on the player in 1st
 // spbplayer is the last player who fired a SPB
@@ -426,6 +427,21 @@ boolean K_IsPlayerLosing(player_t *player)
 		winningpos++;
 
 	return (player->kartstuff[k_position] > winningpos);
+}
+
+boolean K_IsPlayerWanted(player_t *player)
+{
+	UINT8 i;
+	if (!(G_BattleGametype()))
+		return false;
+	for (i = 0; i < 4; i++)
+	{
+		if (battlewanted[i] == -1)
+			break;
+		if (player == &players[battlewanted[i]])
+			return true;
+	}
+	return false;
 }
 
 //{ SRB2kart Roulette Code - Position Based
@@ -1438,8 +1454,10 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	return finalspeed;
 }
 
-void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type)
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
 {
+	const UINT8 scoremultiply = ((K_IsPlayerWanted(player) && !trapitem) ? 2 : 1);
+
 	if (player->health <= 0)
 		return;
 
@@ -1457,7 +1475,14 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type)
 	if (G_BattleGametype())
 	{
 		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		{
+			P_AddPlayerScore(source->player, scoremultiply);
+			if (!trapitem)
+			{
+				source->player->kartstuff[k_wanted] -= wantedreduce;
+				player->kartstuff[k_wanted] -= (wantedreduce/2);
+			}
+		}
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1468,6 +1493,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type)
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				if (K_IsPlayerWanted(player))
+					K_CalculateBattleWanted();
 			}
 			player->kartstuff[k_balloon]--;
 		}
@@ -1502,6 +1529,8 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type)
 
 void K_SquishPlayer(player_t *player, mobj_t *source)
 {
+	const UINT8 scoremultiply = (K_IsPlayerWanted(player) ? 2 : 1);
+
 	if (player->health <= 0)
 		return;
 
@@ -1516,7 +1545,11 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	if (G_BattleGametype())
 	{
 		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		{
+			P_AddPlayerScore(source->player, scoremultiply);
+			source->player->kartstuff[k_wanted] -= wantedreduce;
+			player->kartstuff[k_wanted] -= (wantedreduce/2);
+		}
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1527,6 +1560,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				if (K_IsPlayerWanted(player))
+					K_CalculateBattleWanted();
 			}
 			player->kartstuff[k_balloon]--;
 		}
@@ -1552,6 +1587,8 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
+	const UINT8 scoremultiply = (K_IsPlayerWanted(player) ? 2 : 1);
+
 	if (player->health <= 0)
 		return;
 
@@ -1569,7 +1606,11 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	if (G_BattleGametype())
 	{
 		if (source && source->player && player != source->player)
-			P_AddPlayerScore(source->player, 1);
+		{
+			P_AddPlayerScore(source->player, scoremultiply);
+			source->player->kartstuff[k_wanted] -= wantedreduce;
+			player->kartstuff[k_wanted] -= (wantedreduce/2);
+		}
 
 		if (player->kartstuff[k_balloon] > 0)
 		{
@@ -1580,6 +1621,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				if (K_IsPlayerWanted(player))
+					K_CalculateBattleWanted();
 			}
 			player->kartstuff[k_balloon]--;
 		}
@@ -2091,10 +2134,10 @@ static mobj_t *K_FindLastTrailMobj(player_t *player)
 {
 	mobj_t *trail;
 
-	if (!player || !(trail = player->mo) || !player->mo->hnext)
+	if (!player || !(trail = player->mo) || !player->mo->hnext || !player->mo->hnext->health)
 		return NULL;
 	
-	while (trail->hnext && !P_MobjWasRemoved(trail->hnext))
+	while (trail->hnext && !P_MobjWasRemoved(trail->hnext) && trail->hnext->health)
 	{
 		trail = trail->hnext;
 	}
@@ -2482,13 +2525,13 @@ void K_RepairOrbitChain(mobj_t *orbit)
 	mobj_t *cachenext = orbit->hnext;
 
 	// First, repair the chain
-	if (orbit->hnext && !P_MobjWasRemoved(orbit->hnext))
+	if (orbit->hnext && orbit->hnext->health && !P_MobjWasRemoved(orbit->hnext))
 	{
 		P_SetTarget(&orbit->hnext->hprev, orbit->hprev);
 		P_SetTarget(&orbit->hnext, NULL);
 	}
 
-	if (orbit->hprev && !P_MobjWasRemoved(orbit->hprev))
+	if (orbit->hprev && orbit->hprev->health && !P_MobjWasRemoved(orbit->hprev))
 	{
 		P_SetTarget(&orbit->hprev->hnext, cachenext);
 		P_SetTarget(&orbit->hprev, NULL);
@@ -2536,6 +2579,12 @@ static void K_MoveHeldObjects(player_t *player)
 				{
 					const fixed_t radius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(cur->radius, cur->radius); // mobj's distance from its Target, or Radius.
 					fixed_t z;
+
+					if (!cur->health)
+					{
+						cur = cur->hnext;
+						continue;
+					}
 
 					cur->angle -= ANGLE_90;
 					cur->angle += FixedAngle(cur->info->speed);
@@ -2591,18 +2640,24 @@ static void K_MoveHeldObjects(player_t *player)
 
 				while (cur && !P_MobjWasRemoved(cur))
 				{
-					const fixed_t spacing = FixedMul(3*cur->info->radius/2, player->mo->scale);
+					const fixed_t radius = FixedHypot(targ->radius, targ->radius) + FixedHypot(cur->radius, cur->radius);
 					angle_t ang;
 					fixed_t targx;
 					fixed_t targy;
 					fixed_t targz;
 					fixed_t speed;
-					fixed_t dist = spacing;
+					fixed_t dist = radius/2;
+
+					if (!cur->health)
+					{
+						cur = cur->hnext;
+						continue;
+					}
 
 					if (cur != player->mo->hnext)
 					{
 						targ = cur->hprev;
-						dist = spacing/2;
+						dist = radius/4;
 					}
 
 					if (!targ || P_MobjWasRemoved(targ))
@@ -2766,6 +2821,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_tauntvoices])
 		player->kartstuff[k_tauntvoices]--;
+
+	if (G_BattleGametype() && player->kartstuff[k_balloon] > 0)
+		player->kartstuff[k_wanted]++;
 
 	// ???
 	/*
@@ -3591,6 +3649,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
+			|| player->kartstuff[k_growshrinktimer] < 0
 			|| spbincoming)
 			indirectitemcooldown = 20*TICRATE;
 
@@ -3759,6 +3818,119 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 }
 
+void K_CalculateBattleWanted(void)
+{
+	UINT8 numingame = 0, numwanted = 0;
+	SINT8 bestballoonplayer = -1, bestballoon = -1;
+	SINT8 camppos[MAXPLAYERS]; // who is the biggest camper
+	UINT8 ties = 0, nextcamppos = 0;
+	UINT8 i, j;
+
+	if (!G_BattleGametype())
+	{
+		for (i = 0; i < 4; i++)
+			battlewanted[i] = -1;
+		return;
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++)
+		camppos[i] = -1; // initialize
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		UINT8 position = 1;
+
+		if (!playeringame[i] || players[i].spectator) // Not playing
+			continue;
+
+		if (players[i].exiting) // We're done, don't calculate.
+			return;
+
+		numingame++;
+
+		if (players[i].kartstuff[k_balloon] <= 0) // Not alive, so don't do anything else
+			continue;
+
+		if (bestballoon == -1 || players[i].kartstuff[k_balloon] > bestballoon)
+		{
+			bestballoon = players[i].kartstuff[k_balloon];
+			bestballoonplayer = i;
+		}
+		else if (players[i].kartstuff[k_balloon] == bestballoon)
+			bestballoonplayer = -1; // Tie, no one has best balloon.
+
+		for (j = 0; j < MAXPLAYERS; j++)
+		{
+			if (!playeringame[j] || players[j].spectator)
+				continue;
+			if (players[j].kartstuff[k_balloon] <= 0)
+				continue;
+			if (j == i)
+				continue;
+			if (players[j].kartstuff[k_wanted] == players[i].kartstuff[k_wanted] && players[j].score > players[i].score)
+				position++;
+			else if (players[j].kartstuff[k_wanted] > players[i].kartstuff[k_wanted])
+				position++;
+		}
+
+		position--; // Make zero based
+
+		while (camppos[position] != -1) // Port priority!
+			position++;
+
+		camppos[position] = i;
+	}
+
+	if (numingame <= 2)
+		numwanted = 0;
+	else
+		numwanted = min(4, 1 + ((numingame-2) / 4));
+
+	for (i = 0; i < 4; i++)
+	{
+		if (i+1 > numwanted) // Not enough players for this slot to be wanted!
+			battlewanted[i] = -1;
+		else if (bestballoonplayer != -1) // If there's a player who has a single-handed lead over everyone else, they are the first to be wanted.
+		{
+			battlewanted[i] = bestballoonplayer;
+			bestballoonplayer = -1; // Don't set twice
+		}
+		else
+		{
+			// Do not add more than 2 wanted times that are tied with others.
+			// This could theoretically happen very easily if people don't hit each other for a while after the start of a match.
+			// (I will be sincerely impressed if more than 2 people tie 
+
+			if (camppos[nextcamppos] == -1 // Out of entries
+				|| ties >= 2) // Already counted ties
+			{
+				battlewanted[i] = -1;
+				continue;
+			}
+
+			if (ties < 2)
+			{
+				ties = 0; // Reset
+				for (j = 0; j < 2; j++)
+				{
+					if (camppos[nextcamppos+(j+1)] == -1) // Nothing beyond, cancel
+						break;
+					if (players[camppos[nextcamppos]].kartstuff[k_wanted] == players[camppos[nextcamppos+(j+1)]].kartstuff[k_wanted])
+						ties++;
+				}
+			}
+
+			if (ties < 2) // Is it still less than 2 after counting?
+			{
+				battlewanted[i] = camppos[nextcamppos];
+				nextcamppos++;
+			}
+			else
+				battlewanted[i] = -1;
+		}
+	}
+}
+
 void K_CheckBalloons(void)
 {
 	UINT8 i;
@@ -3847,6 +4019,7 @@ static patch_t *kp_battlewin;
 static patch_t *kp_battlelose;
 static patch_t *kp_battlewait;
 static patch_t *kp_battleinfo;
+static patch_t *kp_wanted;
 
 static patch_t *kp_itembg[4];
 static patch_t *kp_itemmulsticker[2];
@@ -3937,6 +4110,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_battlelose = 			W_CachePatchName("K_BLOSE", PU_HUDGFX);
 	kp_battlewait = 			W_CachePatchName("K_BWAIT", PU_HUDGFX);
 	kp_battleinfo = 			W_CachePatchName("K_BINFO", PU_HUDGFX);
+	kp_wanted = 				W_CachePatchName("K_WANTED", PU_HUDGFX);
 
 	// Kart Item Windows
 	kp_itembg[0] = 				W_CachePatchName("K_ITBG", PU_HUDGFX);
@@ -4022,6 +4196,7 @@ INT32 STCD_X, STCD_Y;	// Starting countdown
 INT32 CHEK_Y;			// CHECK graphic
 INT32 MINI_X, MINI_Y;	// Minimap
 INT32 SPBW_X, SPBW_Y;	// SPB warning
+INT32 WANT_X, WANT_Y;	// Battle WANTED poster
 
 static void K_initKartHUD(void)
 {
@@ -4087,8 +4262,11 @@ static void K_initKartHUD(void)
 	MINI_X = BASEVIDWIDTH - 50;		// 270
 	MINI_Y = (BASEVIDHEIGHT/2)-16; //  84
 	// Blue Shell warning
-	SPBW_X = BASEVIDWIDTH/2;	// 270
-	SPBW_Y = BASEVIDHEIGHT- 24;	// 176
+	SPBW_X = BASEVIDWIDTH/2;		// 270
+	SPBW_Y = BASEVIDHEIGHT- 24;		// 176
+	// Battle WANTED poster
+	WANT_X = BASEVIDWIDTH - 47;		// 270
+	WANT_Y = BASEVIDHEIGHT- 64;		// 176
 
 	if (splitscreen)	// Splitscreen
 	{
@@ -4104,6 +4282,9 @@ static void K_initKartHUD(void)
 		MINI_Y = (BASEVIDHEIGHT/2);
 
 		SPBW_Y = (BASEVIDHEIGHT/2)-8;
+
+		WANT_X = BASEVIDWIDTH-8;
+		WANT_Y = (BASEVIDHEIGHT/2)-12;
 
 		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
@@ -4121,6 +4302,8 @@ static void K_initKartHUD(void)
 			MINI_Y = (3*BASEVIDHEIGHT/4);
 
 			SPBW_X = BASEVIDWIDTH/4;
+
+			WANT_X = (BASEVIDWIDTH/2)-8;
 
 			if (splitscreen > 2) // 4P-only
 			{
@@ -4730,6 +4913,64 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	return x;
 }
 
+static void K_drawKartWanted(void)
+{
+	UINT8 i, numwanted = 0;
+
+	/*if (splitscreen) // Can't fit the poster on screen, sadly
+	{
+		if (K_IsPlayerWanted(stplyr) && leveltime % 10 > 4)
+			V_DrawRightAlignedString(WANT_X, WANT_Y, K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS|V_REDMAP), "WANTED");
+		return;
+	}*/
+
+	for (i = 0; i < 4; i++)
+	{
+		if (battlewanted[i] == -1)
+			break;
+		numwanted++;
+	}
+
+	if (numwanted <= 0)
+		return;
+
+	V_DrawScaledPatch(WANT_X, WANT_Y, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, kp_wanted);
+
+	for (i = 0; i < numwanted; i++)
+	{
+		INT32 x = WANT_X+2, y = WANT_Y+16;
+		fixed_t scale = FRACUNIT/2;
+		player_t *p = &players[battlewanted[i]];
+
+		if (battlewanted[i] == -1)
+			break;
+
+		if (numwanted == 1)
+		{
+			x++;
+			scale = FRACUNIT;
+		}
+		else if (numwanted < 3)
+			y += 8;
+
+		if (i > 1)
+			y += 8;
+
+		if (numwanted == 3 && i == 2)
+			x += 9;
+		else if (i & 1)
+			x += 18;
+
+		if (players[battlewanted[i]].skincolor == 0)
+			V_DrawFixedPatch(x*scale, y*scale, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], NULL);
+		else
+		{
+			UINT8 *colormap = R_GetTranslationColormap((p->mo->colorized ? TC_RAINBOW : p->skin), p->mo->color, GTC_CACHE);
+			V_DrawFixedPatch(x*scale, y*scale, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], colormap);
+		}
+	}
+}
+
 static void K_drawKartPlayerCheck(void)
 {
 	INT32 i;
@@ -5216,6 +5457,10 @@ void K_drawKartHUD(void)
 
 	// Draw the item window
 	K_drawKartItem();
+
+	// Draw WANTED status
+	if (G_BattleGametype())
+		K_drawKartWanted();
 
 	// If not splitscreen, draw...
 	if (!splitscreen)

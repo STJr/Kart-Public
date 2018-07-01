@@ -2430,6 +2430,9 @@ static void CL_RemovePlayer(INT32 playernum)
 		}
 	}
 
+	if (K_IsPlayerWanted(&players[playernum]))
+		K_CalculateBattleWanted();
+
 	if (gametype == GT_CTF)
 		P_PlayerFlagBurst(&players[playernum], false); // Don't take the flag with you!
 

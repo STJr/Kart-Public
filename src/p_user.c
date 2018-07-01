@@ -1041,6 +1041,9 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
 	//UINT32 oldscore;
 
+	if (!(G_BattleGametype()))
+		return;
+
 	if (player->bot)
 		player = &players[consoleplayer];
 
@@ -7634,7 +7637,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			continue;
 
 		if (mo->type == MT_PLAYER) // Players wipe out in Kart
-			K_SpinPlayer(mo->player, source, 0);
+			K_SpinPlayer(mo->player, source, 0, false);
 		//}
 		else
 			P_DamageMobj(mo, inflictor, source, 1000);

@@ -1993,6 +1993,26 @@ static int lib_kGetKartColorByName(lua_State *L)
 	return 1;
 }
 
+static int lib_kIsPlayerLosing(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_IsPlayerLosing(player);
+	return 0;
+}
+
+static int lib_kIsPlayerWanted(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_IsPlayerWanted(player);
+	return 0;
+}
+
 static int lib_kKartBouncing(lua_State *L)
 {
 	mobj_t *mobj1 = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
@@ -2013,12 +2033,13 @@ static int lib_kSpinPlayer(lua_State *L)
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
 	INT32 type = (INT32)luaL_checkinteger(L, 3);
+	boolean trapitem = luaL_checkboolean(L, 4);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!source)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_SpinPlayer(player, source, type);
+	K_SpinPlayer(player, source, type, trapitem);
 	return 0;
 }
 
@@ -2375,6 +2396,8 @@ static luaL_Reg lib[] = {
 
 	// k_kart
 	{"K_GetKartColorByName",lib_kGetKartColorByName},
+	{"K_IsPlayerLosing",lib_kIsPlayerLosing},
+	{"K_IsPlayerWanted",lib_kIsPlayerWanted},
 	{"K_KartBouncing",lib_kKartBouncing},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},

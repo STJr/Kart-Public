@@ -455,7 +455,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						boom->color = SKINCOLOR_RED;
 					S_StartSound(boom, special->info->attacksound);
 
-					special->target->player->kartstuff[k_comebackpoints] += 2;
+					special->target->player->kartstuff[k_comebackpoints] += 2 * (K_IsPlayerWanted(player) ? 2 : 1);
 					if (netgame && cv_hazardlog.value)
 						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
 					if (special->target->player->kartstuff[k_comebackpoints] >= 3)
@@ -2839,6 +2839,8 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				if (K_IsPlayerWanted(player))
+					K_CalculateBattleWanted();
 			}
 			player->kartstuff[k_balloon]--;
 		}
@@ -2970,6 +2972,8 @@ static void P_ShieldDamage(player_t *player, mobj_t *inflictor, mobj_t *source, 
 
 static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
 {
+	//const UINT8 scoremultiply = ((K_IsWantedPlayer(player) && !trapitem) : 2 ? 1);
+
 	if (!(inflictor && ((inflictor->flags & MF_MISSILE) || inflictor->player) && player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
 	{
 		P_DoPlayerPain(player, source, inflictor);
@@ -2980,11 +2984,11 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 			S_StartSound(player->mo, sfx_spkdth);
 	}
 
-	if (source && source->player && !player->powers[pw_super]) //don't score points against super players
+	/*if (source && source->player && !player->powers[pw_super]) //don't score points against super players
 	{
 		// Award no points when players shoot each other when cv_friendlyfire is on.
 		if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
-			P_AddPlayerScore(source->player, 1);
+			P_AddPlayerScore(source->player, scoremultiply);
 	}
 
 	if (gametype == GT_CTF && (player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
@@ -2994,9 +2998,9 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 		{
 			// Award no points when players shoot each other when cv_friendlyfire is on.
 			if (!G_GametypeHasTeams() || !(source->player->ctfteam == player->ctfteam && source != player->mo))
-				P_AddPlayerScore(source->player, 1);
+				P_AddPlayerScore(source->player, scoremultiply);
 		}
-	}
+	}*/
 
 	// Ring loss sound plays despite hitting spikes
 	P_PlayRinglossSound(player->mo); // Ringledingle!
@@ -3200,7 +3204,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 
 				// Wipeout
-				K_SpinPlayer(player, source, 1);
+				K_SpinPlayer(player, source, 1, false);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3270,7 +3274,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
-				K_SpinPlayer(player, source, 1);
+				K_SpinPlayer(player, source, 1, (inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD));
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3283,7 +3287,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			}
 			else
 			{
-				K_SpinPlayer(player, source, 0);
+				K_SpinPlayer(player, source, 0, false);
 			}
 			return true;
 		}

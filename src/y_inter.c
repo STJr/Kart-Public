@@ -2586,7 +2586,7 @@ void Y_StartVote(void)
 	for (i = 0; i < 4; i++)
 	{
 		lumpnum_t lumpnum;
-		INT16 j;
+		//INT16 j;
 
 		// set up the str
 		if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)

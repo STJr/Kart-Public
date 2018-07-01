@@ -3238,7 +3238,12 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	// Clear player score and rings if a spectator.
 	if (players[playernum].spectator)
 	{
-		//players[playernum].score = 0; // SRB2kart
+		if (G_BattleGametype()) // SRB2kart
+		{
+			players[playernum].score = 0;
+			if (K_IsPlayerWanted(&players[playernum]))
+				K_CalculateBattleWanted();
+		}
 		players[playernum].health = 1;
 		if (players[playernum].mo)
 			players[playernum].mo->health = 1;

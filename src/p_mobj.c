@@ -8154,7 +8154,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 			// Now for the wheels
 			{
-				const fixed_t rad = (mobjinfo[MT_PLAYER].radius * mobj->target->scale);
+				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
 				mobj_t *cur = mobj->hnext;
 
 				while (cur && !P_MobjWasRemoved(cur))
@@ -8943,7 +8943,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			break;
 		case MT_KARMAHITBOX: // SRB2Kart
 			{
-				const fixed_t rad = mobjinfo[MT_PLAYER].radius;
+				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->scale)
 				mobj_t *cur, *prev = mobj;
 				INT32 i;
 
