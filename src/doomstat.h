@@ -415,6 +415,8 @@ extern INT32 sneakertime;
 extern INT32 itemtime;
 extern INT32 comebacktime;
 extern INT32 bumptime;
+extern INT32 wantedreduce;
+extern INT32 wantedfrequency;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;
@@ -445,6 +447,7 @@ extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
 
+extern SINT8 battlewanted[4];
 extern tic_t indirectitemcooldown;
 extern tic_t spbincoming;
 extern UINT8 spbplayer;

@@ -3238,7 +3238,12 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	// Clear player score and rings if a spectator.
 	if (players[playernum].spectator)
 	{
-		//players[playernum].score = 0; // SRB2kart
+		if (G_BattleGametype()) // SRB2kart
+		{
+			players[playernum].score = 0;
+			if (K_IsPlayerWanted(&players[playernum]))
+				K_CalculateBattleWanted();
+		}
 		players[playernum].health = 1;
 		if (players[playernum].mo)
 			players[playernum].mo->health = 1;
@@ -4040,9 +4045,6 @@ static void Command_ModDetails_f(void)
 //
 static void Command_ShowGametype_f(void)
 {
-	INT32 j;
-	const char *gametypestr = NULL;
-
 	if (!(netgame || multiplayer)) // print "Single player" instead of "Race"
 	{
 		CONS_Printf(M_GetText("Current gametype is %s\n"), "Single Player");

@@ -215,6 +215,8 @@ INT32 sneakertime = TICRATE + (TICRATE/3);
 INT32 itemtime = 8*TICRATE;
 INT32 comebacktime = 10*TICRATE;
 INT32 bumptime = 6;
+INT32 wantedreduce = 5*TICRATE;
+INT32 wantedfrequency = 10*TICRATE;
 
 INT32 gameovertics = 15*TICRATE;
 
@@ -255,6 +257,7 @@ SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
 // Server-sided variables
+SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
 tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
 UINT8 spbplayer; // Player num that used the last SPB
@@ -2291,6 +2294,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 starpostwp;
 	INT32 balloon;
 	INT32 comebackpoints;
+	INT32 wanted;
 
 	score = players[player].score;
 	lives = players[player].lives;
@@ -2347,6 +2351,7 @@ void G_PlayerReborn(INT32 player)
 	starpostwp = players[player].kartstuff[k_starpostwp];
 	balloon = players[player].kartstuff[k_balloon];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
+	wanted = players[player].kartstuff[k_wanted];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2405,6 +2410,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_balloon] = balloon;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
+	p->kartstuff[k_wanted] = wanted;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -3387,8 +3393,13 @@ static void G_DoWorldDone(void)
 {
 	if (server)
 	{
-		// SRB2kart: don't reset player between maps
-		D_MapChange(nextmap+1, deferredgametype, ultimatemode, (deferredgametype != gametype), 0, false, false);
+		// SRB2Kart
+		if (G_RaceGametype() && (deferredgametype == gametype))
+			// don't reset player between maps in Race
+			D_MapChange(nextmap+1, deferredgametype, ultimatemode, false, 0, false, false);
+		else
+			// resetplayer in Battle for more equality
+			D_MapChange(nextmap+1, deferredgametype, ultimatemode, true, 0, false, false);
 	}
 
 	gameaction = ga_nothing;

@@ -1039,11 +1039,10 @@ void P_DoSuperTransformation(player_t *player, boolean giverings)
 // Adds to the player's score
 void P_AddPlayerScore(player_t *player, UINT32 amount)
 {
-	UINT32 oldscore;
+	//UINT32 oldscore;
 
-#if 1
-	return; // Nope, still don't need this for Battle even
-#endif
+	if (!(G_BattleGametype()))
+		return;
 
 	if (player->bot)
 		player = &players[consoleplayer];
@@ -1051,60 +1050,7 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 	if (player->exiting) // srb2kart
 		return;
 
-	// NiGHTS does it different!
-	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->typeoflevel & TOL_NIGHTS)
-	{
-		if ((netgame || multiplayer) && G_IsSpecialStage(gamemap))
-		{ // Pseudo-shared score for multiplayer special stages.
-			INT32 i;
-			for (i = 0; i < MAXPLAYERS; i++)
-				if (playeringame[i] && players[i].pflags & PF_NIGHTSMODE)
-				{
-					oldscore = players[i].marescore;
-
-					// Don't go above MAXSCORE.
-					if (players[i].marescore + amount < MAXSCORE)
-						players[i].marescore += amount;
-					else
-						players[i].marescore = MAXSCORE;
-
-					// Continues are worthless in netgames.
-					// If that stops being the case uncomment this.
-/*					if (!ultimatemode && players[i].marescore > 50000
-					&& oldscore < 50000)
-					{
-						players[i].continues += 1;
-						players[i].gotcontinue = true;
-						if (P_IsLocalPlayer(player))
-							S_StartSound(NULL, sfx_flgcap);
-					} */
-				}
-		}
-		else
-		{
-			oldscore = player->marescore;
-
-			// Don't go above MAXSCORE.
-			if (player->marescore + amount < MAXSCORE)
-				player->marescore += amount;
-			else
-				player->marescore = MAXSCORE;
-
-			if (!ultimatemode && !(netgame || multiplayer) && G_IsSpecialStage(gamemap)
-			&& player->marescore >= 50000 && oldscore < 50000)
-			{
-				player->continues += 1;
-				player->gotcontinue = true;
-				if (P_IsLocalPlayer(player))
-					S_StartSound(NULL, sfx_flgcap);
-			}
-		}
-
-		if (gametype == GT_COOP)
-			return;
-	}
-
-	oldscore = player->score;
+	//oldscore = player->score;
 
 	// Don't go above MAXSCORE.
 	if (player->score + amount < MAXSCORE)
@@ -1113,11 +1059,11 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 		player->score = MAXSCORE;
 
 	// check for extra lives every 50000 pts
-	if (!ultimatemode && !modeattacking && player->score > oldscore && player->score % 50000 < amount && (gametype == GT_COMPETITION || gametype == GT_COOP))
+	/*if (!ultimatemode && !modeattacking && player->score > oldscore && player->score % 50000 < amount && (gametype == GT_COMPETITION || gametype == GT_COOP))
 	{
 		P_GivePlayerLives(player, (player->score/50000) - (oldscore/50000));
 		P_PlayLivesJingle(player);
-	}
+	}*/
 
 	// In team match, all awarded points are incremented to the team's running score.
 	if (gametype == GT_TEAMMATCH)
@@ -7691,7 +7637,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			continue;
 
 		if (mo->type == MT_PLAYER) // Players wipe out in Kart
-			K_SpinPlayer(mo->player, source, 0);
+			K_SpinPlayer(mo->player, source, 0, false);
 		//}
 		else
 			P_DamageMobj(mo, inflictor, source, 1000);

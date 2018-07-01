@@ -2430,7 +2430,7 @@ void Y_VoteTicker(void)
 							if (tempvotes[((pickedvote + voteclient.roffset + i) % numvotes)] == pickedvote)
 							{
 								voteclient.rendoff = voteclient.roffset+i;
-								if (P_RandomChance(FRACUNIT/1024)) // Let it cheat occasionally~
+								if (M_RandomChance(FRACUNIT/1024)) // Let it cheat occasionally~
 									voteclient.rendoff++;
 								S_ChangeMusicInternal("voteeb", false);
 								break;
@@ -2586,7 +2586,7 @@ void Y_StartVote(void)
 	for (i = 0; i < 4; i++)
 	{
 		lumpnum_t lumpnum;
-		INT16 j;
+		//INT16 j;
 
 		// set up the str
 		if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)

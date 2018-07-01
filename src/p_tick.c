@@ -677,6 +677,9 @@ void P_Ticker(boolean run)
 		if (countdown2)
 			countdown2--;
 
+		if (G_BattleGametype() && leveltime % wantedfrequency == 0 && leveltime > wantedfrequency)
+			K_CalculateBattleWanted();
+
 		if (spbincoming && --spbincoming <= 0)
 		{
 			UINT8 best = 0;

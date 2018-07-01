@@ -3257,6 +3257,9 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
 
+	for (i = 0; i < 4; i++)
+		WRITESINT8(save_p, battlewanted[i]);
+
 	WRITEUINT32(save_p, indirectitemcooldown);
 	WRITEUINT32(save_p, spbincoming);
 	WRITEUINT8(save_p, spbplayer);
@@ -3356,6 +3359,9 @@ static inline boolean P_NetUnArchiveMisc(void)
 	mirrormode = (boolean)READUINT8(save_p);
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
+
+	for (i = 0; i < 4; i++)
+		battlewanted[i] = READSINT8(save_p);
 
 	indirectitemcooldown = READUINT32(save_p);
 	spbincoming = READUINT32(save_p);

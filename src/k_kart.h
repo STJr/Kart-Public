@@ -19,12 +19,13 @@ UINT8 K_GetKartColorByName(const char *name);
 void K_RegisterKartStuff(void);
 
 boolean K_IsPlayerLosing(player_t *player);
+boolean K_IsPlayerWanted(player_t *player);
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid);
 void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);
-void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type);
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source);
 void K_StealBalloon(player_t *player, player_t *victim, boolean force);
@@ -46,6 +47,7 @@ fixed_t K_GetKartAccel(player_t *player);
 UINT16 K_GetKartFlashing(void);
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove);
 void K_MoveKartPlayer(player_t *player, boolean onground);
+void K_CalculateBattleWanted(void);
 void K_CheckBalloons(void);
 
 INT32 K_calcSplitFlags(INT32 snapflags);

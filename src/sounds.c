@@ -601,7 +601,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kdbl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // 3D Blast sounds (the "missing" ones are direct copies of S3K's, no minor differences what-so-ever)
-  {"3db06",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Bumper stolen
+  {"3db06",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Bumper stolen
   {"3db09",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"3db14",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"3db16",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
