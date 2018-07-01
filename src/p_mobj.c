@@ -8121,6 +8121,9 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			mobj->scalespeed = mobj->target->scalespeed;
+			mobj->destscale = mobj->target->destscale;
+			P_SetScale(mobj, mobj->target->scale);
 			mobj->color = mobj->target->color;
 			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode] == 1);
 
@@ -8151,7 +8154,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 			// Now for the wheels
 			{
-				const fixed_t rad = mobjinfo[MT_PLAYER].radius;
+				const fixed_t rad = (mobjinfo[MT_PLAYER].radius * mobj->target->scale);
 				mobj_t *cur = mobj->hnext;
 
 				while (cur && !P_MobjWasRemoved(cur))
@@ -8165,6 +8168,9 @@ void P_MobjThinker(mobj_t *mobj)
 						offy *= -1;
 
 					P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
+					cur->scalespeed = mobj->target->scalespeed;
+					cur->destscale = mobj->target->destscale;
+					P_SetScale(cur, mobj->target->scale);
 
 					if (mobj->flags2 & MF2_DONTDRAW)
 						cur->flags2 |= MF2_DONTDRAW;
