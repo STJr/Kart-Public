@@ -6891,10 +6891,14 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
 
-					if (!netgame || G_RaceGametype()
+					if (G_RaceGametype()
 						|| mobj->target->player == &players[displayplayer]
 						|| mobj->target->player->kartstuff[k_balloon] <= 0
-						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW))
+						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW)
+#if 1 // Set to 0 to test without needing to host
+						|| !netgame
+#endif
+						)
 						mobj->flags2 |= MF2_DONTDRAW;
 					else
 						mobj->flags2 &= ~MF2_DONTDRAW;
@@ -6935,6 +6939,7 @@ void P_MobjThinker(mobj_t *mobj)
 						if (mobj->target->player->kartstuff[k_itemroulette])
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+							mobj->tracer->sprite = SPR_ITEM;
 							mobj->tracer->frame = FF_FULLBRIGHT|((mobj->target->player->kartstuff[k_itemroulette] % (13*3)) / 3);
 						}
 						else if (mobj->target->player->kartstuff[k_itemtype])
@@ -6993,9 +6998,69 @@ void P_MobjThinker(mobj_t *mobj)
 							P_SetScale(numx, mobj->scale);
 							numx->destscale = scale;
 						}
+
+						if (K_IsPlayerWanted(mobj->target->player) && mobj->movecount != 1)
+						{
+							mobj_t *wanted = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_PLAYERWANTED);
+							P_SetTarget(&wanted->target, mobj->target);
+							P_SetTarget(&wanted->tracer, mobj);
+							P_SetScale(wanted, mobj->scale);
+							wanted->destscale = scale;
+							mobj->movecount = 1;
+						}
+						else if (!K_IsPlayerWanted(mobj->target->player))
+							mobj->movecount = 0;
 					}
 					else
 						mobj->tracer->flags2 |= MF2_DONTDRAW;
+				}
+				else if (mobj->health > 0)
+				{
+					P_KillMobj(mobj, NULL, NULL);
+					return;
+				}
+				break;
+			case MT_PLAYERWANTED:
+				if (mobj->target && mobj->target->health && mobj->tracer
+					&& mobj->target->player && !mobj->target->player->spectator
+					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
+					&& players[displayplayer].mo && !players[displayplayer].spectator)
+				{
+					fixed_t scale = mobj->target->scale;
+
+					if (!K_IsPlayerWanted(mobj->target->player))
+					{
+						mobj->tracer->movecount = 0;
+						P_RemoveMobj(mobj);
+						return;
+					}
+
+					if (mobj->tracer->flags2 & MF2_DONTDRAW)
+						mobj->flags2 |= MF2_DONTDRAW;
+					else
+						mobj->flags2 &= ~MF2_DONTDRAW;
+
+					P_UnsetThingPosition(mobj);
+					mobj->x = mobj->target->x;
+					mobj->y = mobj->target->y;
+
+					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
+					{
+						mobj->z = mobj->target->z + (P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT+(64*mobj->scale));
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+					}
+					else
+					{
+						mobj->z = mobj->target->z - (P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT+(64*mobj->scale));
+						mobj->eflags |= MFE_VERTICALFLIP;
+					}
+					P_SetThingPosition(mobj);
+
+					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
+					if (scale > 16*FRACUNIT)
+						scale = 16*FRACUNIT;
+					mobj->destscale = scale;
 				}
 				else if (mobj->health > 0)
 				{
@@ -8943,7 +9008,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			break;
 		case MT_KARMAHITBOX: // SRB2Kart
 			{
-				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->scale)
+				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->scale);
 				mobj_t *cur, *prev = mobj;
 				INT32 i;
 

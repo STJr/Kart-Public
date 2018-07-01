@@ -6604,6 +6604,13 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW_ITEM",
 	"S_PLAYERARROW_NUMBER",
 	"S_PLAYERARROW_X",
+	"S_PLAYERARROW_WANTED1",
+	"S_PLAYERARROW_WANTED2",
+	"S_PLAYERARROW_WANTED3",
+	"S_PLAYERARROW_WANTED4",
+	"S_PLAYERARROW_WANTED5",
+	"S_PLAYERARROW_WANTED6",
+	"S_PLAYERARROW_WANTED7",
 
 	"S_PLAYERBOMB", // Player bomb overlay
 	"S_PLAYERITEM", // Player item overlay
@@ -7238,6 +7245,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_FIREDITEM",
 
 	"MT_PLAYERARROW",
+	"MT_PLAYERWANTED",
 
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",

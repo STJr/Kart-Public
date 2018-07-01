@@ -59,7 +59,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"BANA","GSHE","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK","SITR",
 	"KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB",
 	"CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ARRO",
-	"ITEM","ITMI","ITMN","PBOM","VIEW"
+	"ITEM","ITMI","ITMN","WANT","PBOM","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2922,6 +2922,14 @@ state_t states[NUMSTATES] =
 	{SPR_ITEM, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_ITEM
 	{SPR_ITMN, FF_FULLBRIGHT, 2, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_NUMBER
 	{SPR_ITMN, FF_FULLBRIGHT|10, 2, {NULL}, 0, 0, S_NULL}, // S_PLAYERARROW_X
+	{SPR_WANT, FF_FULLBRIGHT, 5, {NULL}, 0, 0, S_PLAYERARROW_WANTED2}, // S_PLAYERARROW_WANTED1
+	{SPR_WANT, FF_FULLBRIGHT|1, 1, {NULL}, 0, 0, S_PLAYERARROW_WANTED3}, // S_PLAYERARROW_WANTED2
+	{SPR_WANT, FF_FULLBRIGHT|2, 3, {NULL}, 0, 0, S_PLAYERARROW_WANTED4}, // S_PLAYERARROW_WANTED3
+	{SPR_WANT, FF_FULLBRIGHT|3, 1, {NULL}, 0, 0, S_PLAYERARROW_WANTED5}, // S_PLAYERARROW_WANTED4
+	{SPR_WANT, FF_FULLBRIGHT|4, 3, {NULL}, 0, 0, S_PLAYERARROW_WANTED6}, // S_PLAYERARROW_WANTED5
+	{SPR_WANT, FF_FULLBRIGHT|5, 1, {NULL}, 0, 0, S_PLAYERARROW_WANTED7}, // S_PLAYERARROW_WANTED6
+	{SPR_WANT, FF_FULLBRIGHT|6, 3, {NULL}, 0, 0, S_PLAYERARROW_WANTED1}, // S_PLAYERARROW_WANTED7
+	
 
 	{SPR_PBOM, FF_ANIMATE, -1, {NULL}, 3, 3, S_NULL}, // S_PLAYERBOMB
 	{SPR_RNDM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERITEM
@@ -16563,6 +16571,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_PLAYERARROW
 		-1,             // doomednum
 		S_PLAYERARROW,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		36*FRACUNIT,    // radius
+		37*FRACUNIT,    // height
+		0,              // display offset
+		16,             // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_PLAYERWANTED
+		-1,             // doomednum
+		S_PLAYERARROW_WANTED1,  // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound

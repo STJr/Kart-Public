@@ -4265,8 +4265,8 @@ static void K_initKartHUD(void)
 	SPBW_X = BASEVIDWIDTH/2;		// 270
 	SPBW_Y = BASEVIDHEIGHT- 24;		// 176
 	// Battle WANTED poster
-	WANT_X = BASEVIDWIDTH - 47;		// 270
-	WANT_Y = BASEVIDHEIGHT- 64;		// 176
+	WANT_X = BASEVIDWIDTH - 55;		// 270
+	WANT_Y = BASEVIDHEIGHT- 71;		// 176
 
 	if (splitscreen)	// Splitscreen
 	{
@@ -4916,13 +4916,14 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 static void K_drawKartWanted(void)
 {
 	UINT8 i, numwanted = 0;
+	UINT8 *colormap = NULL;
 
-	/*if (splitscreen) // Can't fit the poster on screen, sadly
+	if (splitscreen) // Can't fit the poster on screen, sadly
 	{
-		if (K_IsPlayerWanted(stplyr) && leveltime % 10 > 4)
+		if (K_IsPlayerWanted(stplyr) && leveltime % 10 > 3)
 			V_DrawRightAlignedString(WANT_X, WANT_Y, K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS|V_REDMAP), "WANTED");
 		return;
-	}*/
+	}
 
 	for (i = 0; i < 4; i++)
 	{
@@ -4934,11 +4935,13 @@ static void K_drawKartWanted(void)
 	if (numwanted <= 0)
 		return;
 
-	V_DrawScaledPatch(WANT_X, WANT_Y, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, kp_wanted);
+	if (battlewanted[0] != -1)
+		colormap = R_GetTranslationColormap(0, players[battlewanted[0]].skincolor, GTC_CACHE);
+	V_DrawFixedPatch(WANT_X<<FRACBITS, WANT_Y<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, kp_wanted, colormap);
 
 	for (i = 0; i < numwanted; i++)
 	{
-		INT32 x = WANT_X+2, y = WANT_Y+16;
+		INT32 x = WANT_X+7, y = WANT_Y+20;
 		fixed_t scale = FRACUNIT/2;
 		player_t *p = &players[battlewanted[i]];
 
@@ -4947,25 +4950,22 @@ static void K_drawKartWanted(void)
 
 		if (numwanted == 1)
 		{
-			x++;
+			x++; //y++;
 			scale = FRACUNIT;
 		}
-		else if (numwanted < 3)
-			y += 8;
-
-		if (i > 1)
-			y += 8;
-
-		if (numwanted == 3 && i == 2)
-			x += 9;
-		else if (i & 1)
-			x += 18;
+		else
+		{
+			if (i & 1)
+				x += 18;
+			if (i > 1)
+				y += 17;
+		}
 
 		if (players[battlewanted[i]].skincolor == 0)
 			V_DrawFixedPatch(x*scale, y*scale, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], NULL);
 		else
 		{
-			UINT8 *colormap = R_GetTranslationColormap((p->mo->colorized ? TC_RAINBOW : p->skin), p->mo->color, GTC_CACHE);
+			colormap = R_GetTranslationColormap(TC_RAINBOW, p->skincolor, GTC_CACHE);
 			V_DrawFixedPatch(x*scale, y*scale, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], colormap);
 		}
 	}
