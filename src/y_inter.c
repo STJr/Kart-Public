@@ -2430,7 +2430,7 @@ void Y_VoteTicker(void)
 							if (tempvotes[((pickedvote + voteclient.roffset + i) % numvotes)] == pickedvote)
 							{
 								voteclient.rendoff = voteclient.roffset+i;
-								if (P_RandomChance(FRACUNIT/1024)) // Let it cheat occasionally~
+								if (M_RandomChance(FRACUNIT/1024)) // Let it cheat occasionally~
 									voteclient.rendoff++;
 								S_ChangeMusicInternal("voteeb", false);
 								break;
