@@ -3846,10 +3846,10 @@ void K_CalculateBattleWanted(void)
 		if (players[i].exiting) // We're done, don't calculate.
 			return;
 
-		numingame++;
-
 		if (players[i].kartstuff[k_balloon] <= 0) // Not alive, so don't do anything else
 			continue;
+
+		numingame++;
 
 		if (bestballoon == -1 || players[i].kartstuff[k_balloon] > bestballoon)
 		{
@@ -3897,9 +3897,9 @@ void K_CalculateBattleWanted(void)
 		}
 		else
 		{
-			// Do not add more than 2 wanted times that are tied with others.
+			// Do not add *any* more people if there's more than 1 wanted times that are tied with others.
 			// This could theoretically happen very easily if people don't hit each other for a while after the start of a match.
-			// (I will be sincerely impressed if more than 2 people tie 
+			// (I will be sincerely impressed if more than 2 people tie after people start hitting each other though)
 
 			if (camppos[nextcamppos] == -1 // Out of entries
 				|| ties >= 2) // Already counted ties
