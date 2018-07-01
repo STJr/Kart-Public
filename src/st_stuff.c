@@ -760,8 +760,9 @@ static void ST_drawLevelTitle(void)
 	INT32 dupcalc = (vid.width/vid.dupx);
 	UINT8 gtc = G_GetGametypeColor(gametype);
 	INT32 sub = 0;
-	INT32 lvlttly = 145;
-	INT32 zoney = 169;
+	INT32 bary = (splitscreen)
+		? BASEVIDHEIGHT/2
+		: 163;
 	INT32 lvlw;
 
 	if (timeinmap > 113)
@@ -797,30 +798,29 @@ static void ST_drawLevelTitle(void)
 
 	{
 		dupcalc = (dupcalc - BASEVIDWIDTH)>>1;
-		INT32 h = lvlttly + V_LevelNameHeight(lvlttl) + 2;
-		V_DrawFill(sub - dupcalc, h+9, ttlnumxpos+dupcalc + 1, 2, 31);
-		V_DrawDiag(sub + ttlnumxpos + 1, h, 11, 31);
-		V_DrawFill(sub - dupcalc, h, ttlnumxpos+dupcalc, 10, gtc);
-		V_DrawDiag(sub + ttlnumxpos, h, 10, gtc);
+		V_DrawFill(sub - dupcalc, bary+9, ttlnumxpos+dupcalc + 1, 2, 31);
+		V_DrawDiag(sub + ttlnumxpos + 1, bary, 11, 31);
+		V_DrawFill(sub - dupcalc, bary, ttlnumxpos+dupcalc, 10, gtc);
+		V_DrawDiag(sub + ttlnumxpos, bary, 10, gtc);
 		if (subttl[0])
-			V_DrawRightAlignedString(sub + zonexpos - 8, h+1, V_ALLOWLOWERCASE, va("%s - %s", gametype_cons_t[gametype].strvalue, subttl));
+			V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, subttl);
 		else
-			V_DrawRightAlignedString(sub + zonexpos - 8, h+1, V_ALLOWLOWERCASE, gametype_cons_t[gametype].strvalue);
+			V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, va("%s Mode", gametype_cons_t[gametype].strvalue));
 	}
 
 	ttlnumxpos += sub;
 	lvlttlxpos += sub;
 	zonexpos += sub;
 
-	if (strlen(actnum) > 0)
-		V_DrawLevelTitle(ttlnumxpos+12, zoney, 0, actnum);
-
-	V_DrawLevelTitle(lvlttlxpos, lvlttly, 0, lvlttl);
+	V_DrawLevelTitle(lvlttlxpos, bary-18, 0, lvlttl);
 
 	if (strlen(zonttl) > 0)
-		V_DrawLevelTitle(zonexpos, zoney, 0, zonttl);
+		V_DrawLevelTitle(zonexpos, bary+6, 0, zonttl);
 	else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-		V_DrawLevelTitle(zonexpos, zoney, 0, M_GetText("ZONE"));
+		V_DrawLevelTitle(zonexpos, bary+6, 0, M_GetText("ZONE"));
+
+	if (strlen(actnum) > 0)
+		V_DrawLevelTitle(ttlnumxpos+12, bary+6, 0, actnum);
 }
 
 /*

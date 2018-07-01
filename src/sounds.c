@@ -147,7 +147,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"drown",  false, 192,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"fizzle", false, 127,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"gbeep",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grenade beep
-  {"gclose", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"yeeeah", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"ghit" ,  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"gloop",  false,  60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"gspray", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

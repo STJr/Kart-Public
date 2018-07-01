@@ -2442,6 +2442,8 @@ void Y_VoteTicker(void)
 				{
 					voteendtic = votetic + (3*TICRATE);
 					S_StartSound(NULL, sfx_kc48);
+					if (P_IsLocalPlayer(&players[pickedvote]))
+						S_StartSound(NULL, sfx_yeeeah);
 				}
 			}
 		}
@@ -2674,6 +2676,7 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 	if (pick == -1) // No other votes? We gotta get out of here, then!
 	{
 		timer = 0;
+		deferredgametype = gametype;
 		Y_UnloadVoteData();
 		Y_FollowIntermission();
 		return;
@@ -2714,8 +2717,10 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		else if (endtype == 1) // Only one unique vote, so just end it immediately.
 		{
 			voteendtic = votetic + (5*TICRATE);
-			S_StartSound(NULL, sfx_kc48);
 			S_ChangeMusicInternal("voteeb", false);
+			S_StartSound(NULL, sfx_kc48);
+			if (P_IsLocalPlayer(&players[pick]))
+				S_StartSound(NULL, sfx_yeeeah);
 		}
 		else
 			S_ChangeMusicInternal("voteea", true);

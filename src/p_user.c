@@ -6614,14 +6614,24 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->state != &states[S_KART_SQUISH])
 			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
 	}
-	else if (player->kartstuff[k_spinouttimer] > 0)
+	else if (player->kartstuff[k_spinouttimer] > 0 || player->pflags & PF_SLIDING)
 	{
 		if (player->mo->state != &states[S_KART_SPIN])
 			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 		player->frameangle -= ANGLE_22h;
 	}
-	else if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_squishedtimer] == 0)
+	else if (player->powers[pw_nocontrol] && player->pflags & PF_SKIDDOWN)
+	{
+		if (player->mo->state != &states[S_KART_SPIN])
+			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+
+		if (((player->powers[pw_nocontrol] + 5) % 20) < 10)
+			player->frameangle += ANGLE_11hh;
+		else
+			player->frameangle -= ANGLE_11hh;
+	}
+	else
 	{
 		K_KartMoveAnimation(player);
 
@@ -9518,7 +9528,10 @@ void P_PlayerThink(player_t *player)
 		player->powers[pw_nights_helper]--;
 
 	if (player->powers[pw_nocontrol] & ((1<<15)-1) && player->powers[pw_nocontrol] < UINT16_MAX)
-		player->powers[pw_nocontrol]--;
+	{
+		if (!(--player->powers[pw_nocontrol]))
+			player->pflags &= ~PF_SKIDDOWN;
+	}
 	else
 		player->powers[pw_nocontrol] = 0;
 
