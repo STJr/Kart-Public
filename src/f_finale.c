@@ -58,6 +58,9 @@ static patch_t *ttkart; // *vroom* KART
 static patch_t *ttcheckers; // *vroom* KART
 static patch_t *ttkflash; // flash screen
 
+static patch_t *driver[2]; // Driving character on the waiting screen
+static UINT8 *waitcolormap; // colormap for the spinning character
+
 static void F_SkyScroll(INT32 scrollspeed);
 
 //
@@ -1013,6 +1016,50 @@ void F_TitleScreenTicker(boolean run)
 void F_TitleDemoTicker(void)
 {
 	keypressed = false;
+}
+
+// ================
+//  WAITINGPLAYERS
+// ================
+
+void F_StartWaitingPlayers(void)
+{
+	INT32 i;
+	INT32 randskin;
+	spriteframe_t *sprframe;
+
+	wipegamestate = GS_TITLESCREEN; // technically wiping from title screen
+	finalecount = 0;
+
+	randskin = M_RandomKey(numskins);
+	waitcolormap = R_GetTranslationColormap(randskin, skins[randskin].prefcolor, 0);
+
+	for (i = 0; i < 2; i++)
+	{
+		sprframe = &skins[randskin].spritedef.spriteframes[(6+i) & FF_FRAMEMASK];
+		driver[i] = W_CachePatchNum(sprframe->lumppat[1], PU_LEVEL);
+	}
+}
+
+void F_WaitingPlayersTicker()
+{
+	finalecount++;
+
+	// dumb hack, only start the music on the 1st tick so if you instantly go into the map you aren't hearing a tic of music
+	if (finalecount == 2)
+		S_ChangeMusicInternal("WAIT2J", true);
+}
+
+void F_WaitingPlayersDrawer(void)
+{
+	UINT32 frame = (finalecount % 8) / 4; // The game only tics every other frame while waitingplayers
+	INT32 flags = V_FLIP;
+	const char *waittext1 = "You will join";
+	const char *waittext2 = "the next race...";
+	V_DrawFill(0, 0, 320, 200, 31);
+	V_DrawCreditString((160 - (V_CreditStringWidth(waittext1)>>1))<<FRACBITS, 48<<FRACBITS, 0, waittext1);
+	V_DrawCreditString((160 - (V_CreditStringWidth(waittext2)>>1))<<FRACBITS, 64<<FRACBITS, 0, waittext2);
+	V_DrawFixedPatch((160<<FRACBITS) - driver[frame]->width / 2, 150<<FRACBITS, 1<<FRACBITS, flags, driver[frame], waitcolormap);
 }
 
 // ==========

@@ -39,6 +39,10 @@ FUNCMATH void F_GameEndDrawer(void);
 void F_IntroDrawer(void);
 void F_TitleScreenDrawer(void);
 
+void F_StartWaitingPlayers(void);
+void F_WaitingPlayersTicker(void);
+void F_WaitingPlayersDrawer(void);
+
 void F_GameEvaluationDrawer(void);
 void F_StartGameEvaluation(void);
 void F_GameEvaluationTicker(void);

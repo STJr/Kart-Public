@@ -2155,8 +2155,10 @@ void G_Ticker(boolean run)
 			break;
 
 		case GS_TITLESCREEN:
-		case GS_WAITINGPLAYERS:
 			F_TitleScreenTicker(run);
+			break;
+		case GS_WAITINGPLAYERS:
+			F_WaitingPlayersTicker();
 			break;
 
 		case GS_DEDICATEDSERVER:
@@ -3630,7 +3632,7 @@ void G_SaveGameData(boolean force)
 
 	if (force) // SRB2Kart: for enabling unlocks online, even if the game is modified
 		modifiedgame = savemoddata; // L-let's just sort of... hack around the cheat protection, because I'm too worried about just removing it @@;
-	else if (modifiedgame && !savemoddata) 
+	else if (modifiedgame && !savemoddata)
 	{
 		free(savebuffer);
 		save_p = savebuffer = NULL;
