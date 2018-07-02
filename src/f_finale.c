@@ -903,36 +903,52 @@ void F_TitleScreenDrawer(void)
 	if (modeattacking)
 		return; // We likely came here from retrying. Don't do a damn thing.
 
-	if (finalecount < 50)
-		V_DrawFill(0, 0, 320, 200, 31);
-	else
-		// Draw that sky!
-		F_SkyScroll(titlescrollspeed);
-
-	// Don't draw outside of the title screewn, or if the patch isn't there.
+	// Don't draw outside of the title screen, or if the patch isn't there.
 	if (!ttbanner || (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS))
-		return;
-
-	V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
-
-	if (finalecount < 20)
 	{
-		if (finalecount >= 10)
+		F_SkyScroll(titlescrollspeed);
+		return;
+	}
+
+	if (finalecount < 50)
+	{
+		V_DrawFill(0, 0, 320, 200, 31);
+
+		V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
+
+		if (finalecount >= 20)
+			V_DrawSmallScaledPatch(84, 87, 0, ttkart);
+		else if (finalecount >= 10)
 			V_DrawSciencePatch((84<<FRACBITS) - FixedDiv(180<<FRACBITS, 10<<FRACBITS)*(20-finalecount), (87<<FRACBITS), 0, ttkart, FRACUNIT/2);
 	}
-	else
-	{
-		V_DrawSmallScaledPatch(84, 87, 0, ttkart);
-
-		// Checkers, only need to be drawn after the whiteout, but we can do it here because it won't be seen before anyway
-		V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTOLEFT, ttcheckers, FRACUNIT);
-		V_DrawSciencePatch(280<<FRACBITS, -(40<<FRACBITS) + FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTORIGHT, ttcheckers, FRACUNIT);
-	}
-
-	if (finalecount >= 50 && finalecount < 55)
+	else if (finalecount < 52)
 	{
 		V_DrawFill(0, 0, 320, 200, 120);
 		V_DrawSmallScaledPatch(84, 36, 0, ttkflash);
+	}
+	else
+	{
+		INT32 transval = 0;
+
+		if (finalecount <= (50+(9<<1)))
+			transval = (finalecount - 50)>>1;
+
+		F_SkyScroll(titlescrollspeed);
+
+		V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTOLEFT, ttcheckers, FRACUNIT);
+		V_DrawSciencePatch(280<<FRACBITS, -(40<<FRACBITS) + FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTORIGHT, ttcheckers, FRACUNIT);
+
+		if (transval)
+			V_DrawFadeScreen(120, 10 - transval);
+
+		V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
+
+		V_DrawSmallScaledPatch(84, 87, 0, ttkart);
+
+		if (!transval)
+			return;
+
+		V_DrawSmallScaledPatch(84, 36, transval<<V_ALPHASHIFT, ttkflash);
 	}
 }
 

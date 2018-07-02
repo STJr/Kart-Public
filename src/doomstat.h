@@ -76,10 +76,11 @@ extern boolean addedtogame; // true after the server has added you
 // Only true if >1 player. netgame => multiplayer but not (multiplayer=>netgame)
 extern boolean multiplayer;
 
-extern INT16 gametype, deferredgametype;
+extern INT16 gametype;
 extern UINT8 splitscreen;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
+extern boolean forceresetplayers;
 
 // ========================================
 // Internal parameters for sound rendering.
