@@ -7463,31 +7463,31 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"CRIMSON",        // 14 // SKINCOLOR_CRIMSON
 	"DAWN",           // 15 // SKINCOLOR_DAWN
 	"ORANGE",         // 16 // SKINCOLOR_ORANGE
-	"AMBER",          // 17 // SKINCOLOR_AMBER
-	"PUMPKIN",        // 18 // SKINCOLOR_PUMPKIN
-	"BRONZE",         // 19 // SKINCOLOR_BRONZE
-	"ROSEWOOD",       // 20 // SKINCOLOR_ROSEWOOD
-	"BURGUNDY",       // 21 // SKINCOLOR_BURGUNDY
-	"SEPIA",          // 22 // SKINCOLOR_SEPIA
-	"BEIGE",          // 23 // SKINCOLOR_BEIGE
-	"BROWN",          // 24 // SKINCOLOR_BROWN
-	"LEATHER",        // 25 // SKINCOLOR_LEATHER
-	"TANGERINE",      // 26 // SKINCOLOR_TANGERINE
-	"YELLOW",         // 27 // SKINCOLOR_YELLOW
+	"PUMPKIN",        // 17 // SKINCOLOR_PUMPKIN
+	"BRONZE",         // 18 // SKINCOLOR_BRONZE
+	"ROSEWOOD",       // 19 // SKINCOLOR_ROSEWOOD
+	"BURGUNDY",       // 20 // SKINCOLOR_BURGUNDY
+	"SEPIA",          // 21 // SKINCOLOR_SEPIA
+	"BEIGE",          // 22 // SKINCOLOR_BEIGE
+	"BROWN",          // 23 // SKINCOLOR_BROWN
+	"LEATHER",        // 24 // SKINCOLOR_LEATHER
+	"TANGERINE",      // 25 // SKINCOLOR_TANGERINE
+	"YELLOW",         // 26 // SKINCOLOR_YELLOW
+	"CANARY",         // 27 // SKINCOLOR_CANARY
 	"PEACH",          // 28 // SKINCOLOR_PEACH
 	"CREAMSICLE",     // 29 // SKINCOLOR_CREAMSICLE
 	"GOLD",           // 30 // SKINCOLOR_GOLD
 	"CARAMEL",        // 31 // SKINCOLOR_CARAMEL
 	"VOMIT",          // 32 // SKINCOLOR_VOMIT
-	"GARDEN",         // 33 // SKINCOLOR_GARDEN
-	"TEA",            // 34 // SKINCOLOR_TEA
-	"ARMY",           // 35 // SKINCOLOR_ARMY
-	"PISTACHIO",      // 36 // SKINCOLOR_PISTACHIO
-	"ROBOHOOD",       // 37 // SKINCOLOR_ROBOHOOD
-	"OLIVE",          // 38 // SKINCOLOR_OLIVE
-	"MOSS",           // 39 // SKINCOLOR_MOSS
-	"MINT",           // 40 // SKINCOLOR_MINT
-	"JADE",           // 41 // SKINCOLOR_JADE
+	"LIME",           // 33 // SKINCOLOR_LIME
+	"GARDEN",         // 34 // SKINCOLOR_GARDEN
+	"TEA",            // 35 // SKINCOLOR_TEA
+	"ARMY",           // 36 // SKINCOLOR_ARMY
+	"PISTACHIO",      // 37 // SKINCOLOR_PISTACHIO
+	"ROBOHOOD",       // 38 // SKINCOLOR_ROBOHOOD
+	"OLIVE",          // 39 // SKINCOLOR_OLIVE
+	"MOSS",           // 40 // SKINCOLOR_MOSS
+	"MINT",           // 41 // SKINCOLOR_MINT
 	"EMERALD",        // 42 // SKINCOLOR_EMERALD
 	"GREEN",          // 43 // SKINCOLOR_GREEN
 	"PINETREE",       // 44 // SKINCOLOR_PINETREE
