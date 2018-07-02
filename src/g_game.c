@@ -3065,7 +3065,8 @@ INT16 G_SometimesGetDifferentGametype(void)
 //
 UINT8 G_GetGametypeColor(INT16 gt)
 {
-	if (modeattacking) // == ATTACKING_RECORD)
+	if (modeattacking // == ATTACKING_RECORD
+	|| gamestate == GS_TIMEATTACK)
 		return orangemap[120];
 	if (gt == GT_MATCH)
 		return redmap[120];

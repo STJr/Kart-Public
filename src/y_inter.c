@@ -36,9 +36,10 @@
 
 #include "m_cond.h" // condition sets
 
-#include "m_random.h" // P_RandomKey
+#include "m_random.h" // M_RandomKey
 #include "g_input.h" // PLAYER1INPUTDOWN
 #include "k_kart.h" // colortranslations
+#include "console.h" // cons_menuhighlight
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -309,6 +310,7 @@ void Y_IntermissionDrawer(void)
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
+		INT32 hilicol = (cons_menuhighlight.value) ? cons_menuhighlight.value : V_SKYMAP;
 
 		boolean completed[MAXPLAYERS];
 		memset(completed, 0, sizeof (completed));
@@ -321,32 +323,26 @@ void Y_IntermissionDrawer(void)
 		{
 			V_DrawFill(160, 32, 1, 152, 0);
 
-			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, V_SKYMAP, "#");
-			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, V_SKYMAP, "NAME");
+			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, hilicol, "#");
+			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, hilicol, "NAME");
 
-			V_DrawRightAlignedString(x+110, 32, V_SKYMAP, "TIME");
+			V_DrawRightAlignedString(x+110, 32, hilicol, "TIME");
 
-			V_DrawRightAlignedString(x+152, 32, V_SKYMAP, "SCORE");
+			V_DrawRightAlignedString(x+152, 32, hilicol, "SCORE");
 		}
 
-		V_DrawCenteredString(x+6, 32, V_SKYMAP, "#");
-		V_DrawString(x+36, 32, V_SKYMAP, "NAME");
+		V_DrawCenteredString(x+6, 32, hilicol, "#");
+		V_DrawString(x+36, 32, hilicol, "NAME");
 
 		if (data.match.numplayers > 8)
-		{
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+110, 32, V_SKYMAP, "TIME");
-		}
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+110, 32, hilicol, "TIME");
 		else
-		{
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+62, 32, V_SKYMAP, "TIME");
-		}
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+62, 32, hilicol, "TIME");
 
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_SKYMAP, "SCORE");
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, hilicol, "SCORE");
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
-			char strtime[10];
-
 			if (data.match.spectator[i])
 				continue;
 
@@ -355,6 +351,8 @@ void Y_IntermissionDrawer(void)
 
 			if (playeringame[data.match.num[i]])
 			{
+				char strtime[10];
+
 				if (data.match.color[i] == 0)
 					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]]);
 				else
@@ -364,9 +362,7 @@ void Y_IntermissionDrawer(void)
 				}
 
 				if (data.match.numplayers > 8)
-				{
 					strlcpy(name, data.match.name[i], 6);
-				}
 				else
 					STRBUFCPY(name, data.match.name[i]);
 
@@ -375,13 +371,9 @@ void Y_IntermissionDrawer(void)
 				snprintf(strtime, sizeof strtime, "%d", data.match.scores[i]-data.match.increase[i]);
 
 				if (data.match.numplayers > 8)
-				{
-					V_DrawRightAlignedString(x+152, y, V_SKYMAP, strtime);
-				}
+					V_DrawRightAlignedString(x+152, y, hilicol, strtime);
 				else
-				{
-					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, V_SKYMAP, strtime);
-				}
+					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, hilicol, strtime);
 
 				if (data.match.increase[i] > 9)
 					snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[i]);
@@ -389,9 +381,7 @@ void Y_IntermissionDrawer(void)
 					snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[i]);
 
 				if (data.match.numplayers <= 8) // Only draw this with less than 8 players, otherwise we won't be able to fit the times in
-				{
 					V_DrawString(x+84+BASEVIDWIDTH/2, y, 0, strtime);
-				}
 
 				snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.time[i], true),
 				G_TicsToSeconds(data.match.time[i]), G_TicsToCentiseconds(data.match.time[i]));
@@ -399,13 +389,9 @@ void Y_IntermissionDrawer(void)
 				strtime[sizeof strtime - 1] = '\0';
 
 				if (data.match.numplayers > 8)
-				{
 					V_DrawRightAlignedString(x+134, y, 0, strtime);
-				}
 				else
-				{
 					V_DrawRightAlignedString(x+80+BASEVIDWIDTH/2, y, 0, strtime);
-				}
 
 
 				completed[i] = true;
@@ -426,7 +412,7 @@ void Y_IntermissionDrawer(void)
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
-		char strtime[10];
+		INT32 hilicol = (cons_menuhighlight.value) ? cons_menuhighlight.value : V_REDMAP;
 
 		// draw the header
 		V_DrawScaledPatch((BASEVIDWIDTH/2) - (SHORT(data.match.result->width) / 2), 2, 0, data.match.result);
@@ -439,16 +425,16 @@ void Y_IntermissionDrawer(void)
 		{
 			V_DrawFill(160, 32, 1, 152, 0);
 
-			V_DrawRightAlignedString(x+152, 32, V_REDMAP, "SCORE");
+			V_DrawRightAlignedString(x+152, 32, hilicol, "SCORE");
 
-			V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, V_REDMAP, "#");
-			V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, V_REDMAP, "NAME");
+			V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, hilicol, "#");
+			V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, hilicol, "NAME");
 		}
 
-		V_DrawCenteredString(x+6, 32, V_REDMAP, "#");
-		V_DrawString(x+36, 32, V_REDMAP, "NAME");
+		V_DrawCenteredString(x+6, 32, hilicol, "#");
+		V_DrawString(x+36, 32, hilicol, "NAME");
 
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_REDMAP, "SCORE");
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, hilicol, "SCORE");
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -472,35 +458,14 @@ void Y_IntermissionDrawer(void)
 				}
 
 				if (data.match.numplayers > 9)
-				{
-					if (intertype == int_race)
-						strlcpy(name, data.match.name[i], 8);
-					else
-						strlcpy(name, data.match.name[i], 9);
-				}
+					strlcpy(name, data.match.name[i], 9);
 				else
 					STRBUFCPY(name, data.match.name[i]);
 
 				V_DrawString(x+36, y, V_ALLOWLOWERCASE, name);
 
 				if (data.match.numplayers > 9)
-				{
-					if (intertype == int_match)
-						V_DrawRightAlignedString(x+152, y, 0, va("%i", data.match.scores[i]));
-					else if (intertype == int_race)
-					{
-						if (players[data.match.num[i]].pflags & PF_TIMEOVER)
-							snprintf(strtime, sizeof strtime, "DNF");
-						else
-							snprintf(strtime, sizeof strtime,
-								"%i:%02i.%02i",
-								G_TicsToMinutes(data.match.scores[i], true),
-								G_TicsToSeconds(data.match.scores[i]), G_TicsToCentiseconds(data.match.scores[i]));
-
-						strtime[sizeof strtime - 1] = '\0';
-						V_DrawRightAlignedString(x+152, y, 0, strtime);
-					}
-				}
+					V_DrawRightAlignedString(x+152, y, 0, va("%i", data.match.scores[i]));
 				else
 					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, va("%u", data.match.scores[i]));
 			}
@@ -2192,11 +2157,11 @@ void Y_VoteDrawer(void)
 				if (voteclient.playerinfo[j].selection != i)
 					continue;
 
-				if (splitscreen == 0)
+				if (!splitscreen)
 				{
 					thiscurs = cursor;
 					p = consoleplayer;
-					color = 104;
+					color = levelinfo[i].gtc;
 					colormap = NULL;
 				}
 				else
@@ -2231,7 +2196,7 @@ void Y_VoteDrawer(void)
 				handy += 6*(3-splitscreen) + (13*j);
 				V_DrawMappedPatch(BASEVIDWIDTH-124, handy, V_SNAPTORIGHT, thiscurs, colormap);
 
-				if (votetic % 5 == 0)
+				if (votetic % 10 < 4)
 					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), 120|V_SNAPTORIGHT);
 				else
 					V_DrawFill(BASEVIDWIDTH-100-sizeadd, y-sizeadd, 80+(sizeadd*2), 50+(sizeadd*2), color|V_SNAPTORIGHT);
@@ -2287,10 +2252,10 @@ void Y_VoteDrawer(void)
 			if (!timer && i == voteclient.ranim)
 			{
 				V_DrawScaledPatch(x-18, y+9, V_SNAPTOLEFT, cursor);
-				if (votetic % 4 > 1)
+				if (!(votetic % 4))
 					V_DrawFill(x-1, y-1, 42, 27, 120|V_SNAPTOLEFT);
 				else
-					V_DrawFill(x-1, y-1, 42, 27, 103|V_SNAPTOLEFT);
+					V_DrawFill(x-1, y-1, 42, 27, levelinfo[votes[i]].gtc|V_SNAPTOLEFT);
 			}
 
 			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
@@ -2599,13 +2564,11 @@ void Y_StartVote(void)
 		levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
 
 		// set up the gtc and gts
+		levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
 		if (i == 2 && votelevels[i][1] != votelevels[0][1])
-		{
-			levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
 			levelinfo[i].gts = gametype_cons_t[votelevels[i][1]].strvalue;
-		}
 		else
-			levelinfo[i].gts = NULL; // gtc is never accessed in this case
+			levelinfo[i].gts = NULL;
 
 		// set up the pic
 		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(votelevels[i][0]+1)));

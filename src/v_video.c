@@ -1129,7 +1129,7 @@ const UINT8 *V_GetStringColormap(INT32 colorflags)
 	case 2: // 0x82, yellow
 		return yellowmap;
 	case 3: // 0x83, lgreen
-		return lgreenmap;
+		return greenmap;
 	case 4: // 0x84, blue
 		return bluemap;
 	case 5: // 0x85, red

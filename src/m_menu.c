@@ -960,13 +960,13 @@ static menuitem_t MP_SplitServerMenu[] =
 #endif
 	{IT_STRING|IT_CVAR,      NULL, "Level",                 &cv_nextmap,           78},
 #ifdef NOFOURPLAYER
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,    110},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,   120},
+	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,         108},
+	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        118},
 #else
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,     90},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,   100},
-	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,   110},
-	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,   120},
+	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          88},
+	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,         98},
+	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,        108},
+	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,        118},
 #endif
 	{IT_WHITESTRING|IT_CALL, NULL, "Start",                 M_StartServer,        130},
 };
@@ -976,12 +976,13 @@ static void Dummysplitplayers_OnChange(void)
 {
 	UINT8 i = 2; // player 2 is the last unchanging setup
 
-	while (i++ < 4)
+	while (i < 4)
 	{
-		if (i <= cv_dummysplitplayers.value)
-			MP_SplitServerMenu[3+i-1].status = IT_STRING|IT_CALL;
+		if (i < cv_dummysplitplayers.value)
+			MP_SplitServerMenu[3+i].status = IT_STRING|IT_CALL;
 		else
-			MP_SplitServerMenu[3+i-1].status = IT_GRAYEDOUT;
+			MP_SplitServerMenu[3+i].status = IT_GRAYEDOUT;
+		i++;
 	}
 }
 #endif
@@ -6704,7 +6705,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 {
 	lumpnum_t lumpnum;
 	patch_t *PictureOfLevel;
-	INT32 x, y, w, i, oldval, trans = 0, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
+	INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
 
 	//  A 160x100 image of the level as entry MAPxxP
 	lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));
@@ -6714,15 +6715,23 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 	else
 		PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
 
-	w = (SHORT(PictureOfLevel->width)/4);
-	x = BASEVIDWIDTH/2 - w;
-	y = currentMenu->y + 130 + 8 - (SHORT(PictureOfLevel->height)/2);
+	w = SHORT(PictureOfLevel->width)/2;
+	i = SHORT(PictureOfLevel->height)/2;
+	x = BASEVIDWIDTH/2 - w/2;
+	y = currentMenu->y + 130 + 8 - i;
+
+	if (currentMenu->menuitems[itemOn].itemaction == &cv_nextmap && skullAnimCounter < 4)
+		trans = 120;
+	else
+		trans = G_GetGametypeColor(cv_newgametype.value);
+
+	V_DrawFill(x-1, y-1, w+2, i+2, trans); // variable reuse...
 
 	V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
 	/*V_DrawDiag(x, y, 12, 31);
 	V_DrawDiag(x, y, 10, G_GetGametypeColor(cv_newgametype.value));*/
 
-	y += SHORT(PictureOfLevel->height)/8;
+	y += i/4;
 	i = cv_nextmap.value - 1;
 	trans = (leftfade ? V_TRANSLUCENT : 0);
 
@@ -6756,7 +6765,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
 	} while (x > horizspac-dupadjust);
 
-	x = BASEVIDWIDTH/2 + w + horizspac;
+	x = (BASEVIDWIDTH + w)/2 + horizspac;
 	i = cv_nextmap.value - 1;
 	trans = (rightfade ? V_TRANSLUCENT : 0);
 

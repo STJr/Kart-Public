@@ -141,7 +141,7 @@ consvar_t cons_backcolor = {"con_backcolor", "Green", CV_CALL|CV_SAVE, backcolor
 
 static CV_PossibleValue_t menuhighlight_cons_t[] =
 {
-	{0, "Default"},
+	{0, "Game type"},
 	{V_YELLOWMAP, "Always yellow"},
 	{V_PURPLEMAP, "Always purple"},
 	{V_GREENMAP, "Always green"},
@@ -152,7 +152,7 @@ static CV_PossibleValue_t menuhighlight_cons_t[] =
 	{V_SKYMAP, "Always sky-blue"},
 	{0, NULL}
 };
-consvar_t cons_menuhighlight = {"menuhighlight", "Default", CV_SAVE, menuhighlight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cons_menuhighlight = {"menuhighlight", "Game type", CV_SAVE, menuhighlight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void CON_Print(char *msg);
 
@@ -242,7 +242,7 @@ static void CONS_Bind_f(void)
 // Font colormap colors
 // TODO: This could probably be improved somehow...
 // These colormaps are 99% identical, with just a few changed bytes
-UINT8 *yellowmap, *purplemap, *lgreenmap, *bluemap, *graymap, *redmap, *orangemap, *skymap;
+UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *orangemap, *skymap;
 
 // Console BG color
 UINT8 *consolebgmap = NULL;
@@ -291,8 +291,8 @@ static void CON_SetupColormaps(void)
 
 	purplemap  = memorysrc;
 	yellowmap  = (purplemap+256);
-	lgreenmap  = (yellowmap+256);
-	bluemap    = (lgreenmap+256);
+	greenmap  = (yellowmap+256);
+	bluemap    = (greenmap+256);
 	redmap     = (bluemap+256);
 	graymap    = (redmap+256);
 	orangemap  = (graymap+256);
@@ -309,12 +309,12 @@ static void CON_SetupColormaps(void)
 	// SRB2Kart: Different console font, new colors
 	purplemap[120] = (UINT8)194;
 	yellowmap[120] = (UINT8)103;
-	lgreenmap[120] = (UINT8)162;
+	greenmap[120]  = (UINT8)162;
 	bluemap[120]   = (UINT8)228;
 	graymap[120]   = (UINT8)10;
 	redmap[120]    = (UINT8)126; // battle
 	orangemap[120] = (UINT8)85; // record attack
-	skymap[120]    = (UINT8)215; // race
+	skymap[120]    = (UINT8)214; // race
 
 	// Init back colormap
 	CON_SetupBackColormap();

@@ -1112,7 +1112,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		case SKINCOLOR_CERULEAN:
 			blendcolor = V_GetColor(217);
 			break;
-		case SKINCOLOR_TURQUOISE:
+		case SKINCOLOR_AQUA:
 			blendcolor = V_GetColor(215);
 			break;
 		case SKINCOLOR_TEAL:
