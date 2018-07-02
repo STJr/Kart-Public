@@ -7452,7 +7452,7 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"SILVER",         // 03 // SKINCOLOR_SILVER
 	"CLOUDY",         // 04 // SKINCOLOR_CLOUDY
 	"GREY",           // 05 // SKINCOLOR_GREY
-	"NICKLE",         // 06 // SKINCOLOR_NICKLE
+	"NICKEL",         // 06 // SKINCOLOR_NICKEL
 	"BLACK",          // 07 // SKINCOLOR_BLACK
 	"SALMON",         // 08 // SKINCOLOR_SALMON
 	"PINK",           // 09 // SKINCOLOR_PINK

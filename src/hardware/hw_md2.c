@@ -980,7 +980,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		case SKINCOLOR_GREY:
 			blendcolor = V_GetColor(15);
 			break;
-		case SKINCOLOR_NICKLE:
+		case SKINCOLOR_NICKEL:
 			blendcolor = V_GetColor(23);
 			break;
 		case SKINCOLOR_BLACK:
