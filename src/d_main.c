@@ -388,6 +388,8 @@ static void D_Display(void)
 
 		case GS_WAITINGPLAYERS:
 			// The clientconnect drawer is independent...
+			// I don't think HOM from nothing drawing is independent...
+			F_WaitingPlayersDrawer();
 		case GS_DEDICATEDSERVER:
 		case GS_NULL:
 			break;
