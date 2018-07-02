@@ -466,9 +466,9 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 2, 3, 4, 5, 4 }, // Self-Propelled Bomb
+   /*Self-Propelled Bomb*/ { 0, 0, 1, 2, 3, 4, 5, 6, 5 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 1, 2 }, // Shrink
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
@@ -482,28 +482,28 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
-				//P-Odds	 0  1  2  3  4  5
-			   /*Sneaker*/ { 3, 2, 2, 1, 0, 2 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 4, 2, 1, 0, 0, 2 }, // Invincibility
-				/*Banana*/ { 0, 0, 2, 3, 3, 0 }, // Banana
-		/*Eggman Monitor*/ { 0, 0, 2, 3, 5, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 0, 3, 4, 5, 0 }, // Orbinaut
-				  /*Jawz*/ { 1, 3, 2, 2, 2, 2 }, // Jawz
-				  /*Mine*/ { 1, 3, 2, 2, 2, 2 }, // Mine
-			   /*Ballhog*/ { 1, 2, 1, 1, 1, 2 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
-				  /*Grow*/ { 4, 2, 0, 0, 0, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0 }, // Shrink
-	  /*Lightning Shield*/ { 0, 0, 0, 0, 0, 0 }, // Lightning Shield
-			   /*Hyudoro*/ { 0, 0, 1, 1, 0, 0 }, // Hyudoro
-		   /*Pogo Spring*/ { 0, 0, 1, 1, 0, 0 }, // Pogo Spring
-		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 2, 0, 0, 0, 0, 2 }, // Sneaker x3
-			 /*Banana x3*/ { 0, 1, 2, 2, 2, 1 }, // Banana x3
-			/*Banana x10*/ { 1, 0, 0, 0, 0, 1 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 3, 1, 0, 0, 2 }, // Orbinaut x3
-			   /*Jawz x2*/ { 3, 2, 0, 0, 0, 2 }  // Jawz x2
+				//P-Odds	 0  1  2  3
+			   /*Sneaker*/ { 3, 2, 2, 2 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0 }, // Rocket Sneaker
+		 /*Invincibility*/ { 4, 2, 1, 2 }, // Invincibility
+				/*Banana*/ { 0, 0, 2, 0 }, // Banana
+		/*Eggman Monitor*/ { 0, 0, 1, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 0, 1, 3, 0 }, // Orbinaut
+				  /*Jawz*/ { 1, 3, 2, 2 }, // Jawz
+				  /*Mine*/ { 1, 3, 2, 2 }, // Mine
+			   /*Ballhog*/ { 1, 2, 2, 2 }, // Ballhog
+   /*Self-Propelled Bomb*/ { 0, 0, 0, 0 }, // Self-Propelled Bomb
+				  /*Grow*/ { 4, 2, 1, 2 }, // Grow
+				/*Shrink*/ { 0, 0, 0, 0 }, // Shrink
+	  /*Lightning Shield*/ { 0, 0, 0, 0 }, // Lightning Shield
+			   /*Hyudoro*/ { 0, 0, 1, 0 }, // Hyudoro
+		   /*Pogo Spring*/ { 0, 0, 1, 0 }, // Pogo Spring
+		  /*Kitchen Sink*/ { 0, 0, 0, 0 }, // Kitchen Sink
+			/*Sneaker x3*/ { 2, 0, 0, 2 }, // Sneaker x3
+			 /*Banana x3*/ { 0, 1, 1, 1 }, // Banana x3
+			/*Banana x10*/ { 1, 0, 0, 1 }, // Banana x10
+		   /*Orbinaut x3*/ { 0, 2, 1, 2 }, // Orbinaut x3
+			   /*Jawz x2*/ { 3, 2, 0, 2 }  // Jawz x2
 };
 
 /**	\brief	Item Roulette for Kart
@@ -821,19 +821,17 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (oddsvalid[0]) SETUPDISTTABLE(0,1);
 		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
 		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
-		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
-		if (oddsvalid[4]) SETUPDISTTABLE(4,1);
 
-		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[5]) // Player-controlled "Karma" items
-			useodds = 5;
+		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[3]) // Player-controlled "Karma" items
+			useodds = 3;
 		else
 		{
-			UINT8 wantedpos = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average, 4 is two balloons above average
-			if (wantedpos > 4)
-				wantedpos = 4;
-			/*if (wantedpos < 0)
-				wantedpos = 0;*/
-			useodds = disttable[(wantedpos * distlen) / 5];
+			SINT8 wantedpos = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average
+			if (wantedpos > 2)
+				wantedpos = 2;
+			if (wantedpos < 0)
+				wantedpos = 0;
+			useodds = disttable[(wantedpos * distlen) / 3];
 		}
 	}
 	else
