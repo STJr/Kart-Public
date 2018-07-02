@@ -227,7 +227,7 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{224, 224, 225, 225, 226, 226, 227, 227, 228, 228, 229, 229, 230, 230, 231, 231}, // SKINCOLOR_LIGHTBLUE
 	{208, 208, 209, 210, 210, 211, 212, 213, 213, 214, 215, 216, 216, 217, 218, 219}, // SKINCOLOR_CYAN
 	{216, 216, 216, 216, 217, 217, 217, 217, 218, 218, 218, 218, 219, 219, 219, 219}, // SKINCOLOR_CERULEAN
-	{208, 208, 209, 210, 210, 211, 212, 213, 213, 214, 215, 220, 220, 221, 222, 223}, // SKINCOLOR_TURQOISE
+	{208, 208, 209, 210, 210, 211, 212, 213, 213, 214, 215, 220, 220, 221, 222, 223}, // SKINCOLOR_TURQUOISE
 	{220, 220, 220, 220, 221, 221, 221, 221, 222, 222, 222, 222, 223, 223, 223, 223}, // SKINCOLOR_TEAL
 	{200, 200, 201, 201, 202, 202, 203, 203, 204, 204, 205, 205, 206, 206, 207, 207}, // SKINCOLOR_STEELBLUE
 	{224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239}, // SKINCOLOR_BLUE
@@ -5465,7 +5465,7 @@ void K_drawKartHUD(void)
 	}
 
 	// Draw the CHECK indicator before the other items, so it's overlapped by everything else
-	if (cv_kartcheck.value && !splitscreen)
+	if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
 		K_drawKartPlayerCheck();
 
 	if (splitscreen == 0 && cv_kartminimap.value)
