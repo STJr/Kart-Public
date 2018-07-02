@@ -132,7 +132,7 @@ boolean useNightsSS = false;
 UINT8 skincolor_redteam = SKINCOLOR_RED;
 UINT8 skincolor_blueteam = SKINCOLOR_BLUE;
 UINT8 skincolor_redring = SKINCOLOR_RED;
-UINT8 skincolor_bluering = SKINCOLOR_STEELBLUE;
+UINT8 skincolor_bluering = SKINCOLOR_STEEL;
 
 tic_t countdowntimer = 0;
 boolean countdowntimeup = false;
