@@ -3144,11 +3144,14 @@ static INT32 TOLMaps(INT16 tolflags)
   *         has those flags.
   * \author Graue <graue@oceanbase.org>
   */
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer)
+static INT16 *okmaps = NULL;
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, boolean maphell, boolean callagainsoon)
 {
-	INT16 *okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
+
+	if (!okmaps)
+		okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 
 	// Find all the maps that are ok and and put them in an array.
 	for (ix = 0; ix < NUMMAPS; ix++)
@@ -3160,7 +3163,8 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 
 		if ((mapheaderinfo[ix]->typeoflevel & tolflags) != tolflags
 			|| ix == pprevmap
-			|| (M_MapLocked(ix+1) && !dedicated))
+			|| (!dedicated && M_MapLocked(ix+1))
+			|| (!maphell && (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // the highest quality memes
 			isokmap = false;
 
 		if (!ignorebuffer)
@@ -3184,7 +3188,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 	if (numokmaps == 0)
 	{
 		if (!ignorebuffer)
-			return G_RandMap(tolflags, pprevmap, dontadd, true); // If there's no matches, (An incredibly silly function chain, buuut... :V)
+			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon); // If there's no matches, (An incredibly silly function chain, buuut... :V)
 
 		ix = 0; // Sorry, none match. You get MAP01.
 		for (bufx = 0; bufx < NUMMAPS+1; bufx++)
@@ -3201,7 +3205,11 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 		}
 	}
 
-	Z_Free(okmaps);
+	if (!callagainsoon)
+	{
+		Z_Free(okmaps);
+		okmaps = NULL;
+	}
 
 	return ix;
 }
@@ -3337,7 +3345,7 @@ static void G_DoCompleted(void)
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false, false, false);
 	}
 
 	// We are committed to this map now.
@@ -3385,7 +3393,7 @@ void G_NextLevel(void)
 	else
 	{
 		if (gamestate != GS_VOTING)
-			deferredgametype = gametype;
+			forceresetplayers = false;
 		gameaction = ga_worlddone;
 	}
 }
@@ -3395,12 +3403,13 @@ static void G_DoWorldDone(void)
 	if (server)
 	{
 		// SRB2Kart
-		if (G_RaceGametype() && (deferredgametype == gametype))
-			// don't reset player between maps in Race
-			D_MapChange(nextmap+1, deferredgametype, ultimatemode, false, 0, false, false);
-		else
-			// resetplayer in Battle for more equality
-			D_MapChange(nextmap+1, deferredgametype, ultimatemode, true, 0, false, false);
+		D_MapChange(nextmap+1,
+			gametype,
+			ultimatemode,
+			(forceresetplayers || G_BattleGametype()), // resetplayer in Battle for more equality
+			0,
+			false,
+			false);
 	}
 
 	gameaction = ga_nothing;

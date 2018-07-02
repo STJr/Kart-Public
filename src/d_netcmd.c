@@ -449,7 +449,7 @@ consvar_t cv_mute = {"mute", "Off", CV_NETVAR|CV_CALL, CV_OnOff, Mute_OnChange, 
 consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
 
 INT16 gametype = GT_RACE; // SRB2kart
-INT16 deferredgametype = GT_RACE; // SRB2kart
+boolean forceresetplayers = false;
 UINT8 splitscreen = 0;
 boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
@@ -1883,6 +1883,8 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 	static char buf[2+MAX_WADPATH+1+4];
 	static char *buf_p = buf;
 
+	forceresetplayers = false;
+
 	// The supplied data are assumed to be good.
 	I_Assert(delay >= 0 && delay <= 2);
 
@@ -1966,21 +1968,21 @@ void D_SetupVote(void)
 	char buf[8];
 	char *p = buf;
 	INT32 i;
-	INT16 gt = gametype;
+	INT16 gt;
 
 	for (i = 0; i < 4; i++)
 	{
 		if (i == 2) // sometimes a different gametype
 		{
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt = G_SometimesGetDifferentGametype()), prevmap, false, false));
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt = G_SometimesGetDifferentGametype()), prevmap, false, false, false, true));
 			WRITEUINT16(p, gt);
 		}
 		else
 		{
 			if (i == 3) // unknown-random
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false));
+				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, true, false));
 			else
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false));
+				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, false, true));
 			WRITEUINT16(p, gametype);
 		}
 	}
@@ -2137,8 +2139,8 @@ static void Command_Map_f(void)
 		}
 	}
 
-	if (!(i = COM_CheckParm("-force")) && newgametype == gametype) // SRB2Kart
-		newresetplayers = false; // if not forcing and gametypes is the same
+	if (!(i = COM_CheckParm("-force")) && newgametype == gametype && !G_BattleGametype()) // SRB2Kart
+		newresetplayers = false; // if not forcing and gametypes is the same and not battle
 
 	// don't use a gametype the map doesn't support
 	if (cv_debug || i || cv_skipmapcheck.value)
@@ -4183,7 +4185,7 @@ static void TimeLimit_OnChange(void)
   */
 void D_GameTypeChanged(INT32 lastgametype)
 {
-	if (netgame)
+	if (multiplayer)
 		CONS_Printf(M_GetText("Gametype was changed from %s to %s\n"), gametype_cons_t[lastgametype].strvalue, gametype_cons_t[gametype].strvalue);
 
 	// Only do the following as the server, not as remote admin.

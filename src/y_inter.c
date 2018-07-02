@@ -233,6 +233,7 @@ void Y_IntermissionDrawer(void)
 {
 	// Bonus loops
 	INT32 i;
+	INT32 hilicol = V_YELLOWMAP; // fallback
 
 	if (intertype == int_none || rendermode == render_none)
 		return;
@@ -310,7 +311,7 @@ void Y_IntermissionDrawer(void)
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
-		INT32 hilicol = (cons_menuhighlight.value) ? cons_menuhighlight.value : V_SKYMAP;
+		hilicol = (cons_menuhighlight.value) ? cons_menuhighlight.value : V_SKYMAP;
 
 		boolean completed[MAXPLAYERS];
 		memset(completed, 0, sizeof (completed));
@@ -412,7 +413,7 @@ void Y_IntermissionDrawer(void)
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
-		INT32 hilicol = (cons_menuhighlight.value) ? cons_menuhighlight.value : V_REDMAP;
+		hilicol = (cons_menuhighlight.value) ? cons_menuhighlight.value : V_REDMAP;
 
 		// draw the header
 		V_DrawScaledPatch((BASEVIDWIDTH/2) - (SHORT(data.match.result->width) / 2), 2, 0, data.match.result);
@@ -638,7 +639,7 @@ void Y_IntermissionDrawer(void)
 	}
 
 	if (timer)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP,
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
 			va("start in %d seconds", timer/TICRATE));
 
 	// Make it obvious that scrambling is happening next round.
@@ -2284,8 +2285,40 @@ void Y_VoteDrawer(void)
 	}
 
 	if (timer)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP|V_SNAPTOBOTTOM,
+	{
+		INT32 hilicol;
+		if (cons_menuhighlight.value)
+			hilicol = cons_menuhighlight.value;
+		else if (gametype == GT_RACE)
+			hilicol = V_SKYMAP;
+		else //if (gametype == GT_MATCH)
+			hilicol = V_REDMAP;
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
 			va("Vote ends in %d seconds", timer/TICRATE));
+	}
+}
+
+//
+// Y_VoteStop
+//
+// Vote screen's selection stops moving
+//
+SINT8 deferredlevel = 0;
+static void Y_VoteStops(SINT8 pick, SINT8 level)
+{
+	if (P_IsLocalPlayer(&players[pick]))
+		S_StartSound(NULL, sfx_yeeeah);
+	else
+		S_StartSound(NULL, sfx_kc48);
+
+	nextmap = votelevels[level][0];
+	if (gametype != votelevels[level][1])
+	{
+		INT16 lastgametype = gametype;
+		gametype = votelevels[level][1];
+		D_GameTypeChanged(lastgametype);
+		forceresetplayers = true;
+	}
 }
 
 //
@@ -2385,10 +2418,7 @@ void Y_VoteTicker(void)
 				else if (voteclient.roffset >= voteclient.rendoff)
 				{
 					voteendtic = votetic + (3*TICRATE);
-					if (P_IsLocalPlayer(&players[pickedvote]))
-						S_StartSound(NULL, sfx_yeeeah);
-					else
-						S_StartSound(NULL, sfx_kc48);
+					Y_VoteStops(pickedvote, deferredlevel);
 				}
 			}
 		}
@@ -2619,7 +2649,6 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 	if (pick == -1) // No other votes? We gotta get out of here, then!
 	{
 		timer = 0;
-		deferredgametype = gametype;
 		Y_UnloadVoteData();
 		Y_FollowIntermission();
 		return;
@@ -2661,17 +2690,13 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		{
 			voteendtic = votetic + (5*TICRATE);
 			S_ChangeMusicInternal("voteeb", false);
-			if (P_IsLocalPlayer(&players[pick]))
-				S_StartSound(NULL, sfx_yeeeah);
-			else
-				S_StartSound(NULL, sfx_kc48);
+			Y_VoteStops(pick, level);
 		}
 		else
 			S_ChangeMusicInternal("voteea", true);
 	}
 
+	deferredlevel = level;
 	pickedvote = pick;
-	nextmap = votelevels[level][0];
-	deferredgametype = votelevels[level][1];
 	timer = 0;
 }
