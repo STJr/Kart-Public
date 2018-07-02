@@ -1122,21 +1122,49 @@ void P_RestoreMusic(player_t *player)
 		S_ChangeMusicInternal("kinvnc", false);
 	else
 	{
+		// Event - Battle Finish
+		if (G_BattleGametype() && player->exiting)
+		{
+			if (!splitscreen)
+			{
+				INT32 pos = 1;
+				UINT8 i;
+
+				for (i = 0; i < MAXPLAYERS; i++) // Calculate position to ensure what music to play
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+					if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+						pos++;
+					else if (players[i].score > player->score)
+						pos++;
+				}
+
+				if (pos == 1)
+					S_ChangeMusicInternal("kbwin", false);
+				else if (pos <= 3)
+					S_ChangeMusicInternal("kbok", false);
+				else
+					S_ChangeMusicInternal("kblose", false);
+			}
+			else
+				S_ChangeMusicInternal("kbok", false);
+		}
 		// Event - Race Finish
-		if (splitscreen != 0 && G_RaceGametype()
+		else if (splitscreen && G_RaceGametype()
 			&& (players[consoleplayer].exiting
 			|| players[secondarydisplayplayer].exiting
 			|| players[thirddisplayplayer].exiting
 			|| players[fourthdisplayplayer].exiting))
-			S_ChangeMusicInternal("karwin", true);
-		else if (splitscreen == 0 && G_RaceGametype() && player->exiting)
+			S_ChangeMusicInternal("krok", true);
+		else if (!splitscreen && G_RaceGametype() && player->exiting)
 		{
 			if (player->kartstuff[k_position] == 1)
-				S_ChangeMusicInternal("karwin", true);
+				S_ChangeMusicInternal("krwin", true);
 			else if (K_IsPlayerLosing(player))
-				S_ChangeMusicInternal("karlos", true);
+				S_ChangeMusicInternal("krlose", true);
 			else
-				S_ChangeMusicInternal("karok", true);
+				S_ChangeMusicInternal("krok", true);
 		}
 		else
 		{
@@ -1642,27 +1670,24 @@ void P_DoPlayerExit(player_t *player)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
 
-		if (circuitmap)
-		{
-			if (K_IsPlayerLosing(player))
-				S_StartSound(player->mo, sfx_klose);
-			else
-				S_StartSound(player->mo, sfx_kwin);
-		}
+		if (K_IsPlayerLosing(player))
+			S_StartSound(player->mo, sfx_klose);
+		else
+			S_StartSound(player->mo, sfx_kwin);
 
 		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
 		{
 			if (!splitscreen)
 			{
 				if (player->kartstuff[k_position] == 1)
-					S_ChangeMusicInternal("karwin", true);
+					S_ChangeMusicInternal("krwin", true);
 				else if (K_IsPlayerLosing(player))
-					S_ChangeMusicInternal("karlos", true);
+					S_ChangeMusicInternal("krlose", true);
 				else
-					S_ChangeMusicInternal("karok", true);
+					S_ChangeMusicInternal("krok", true);
 			}
 			else
-				S_ChangeMusicInternal("karok", true);
+				S_ChangeMusicInternal("krok", true);
 		}
 
 		player->exiting = 3*TICRATE;
@@ -1676,8 +1701,40 @@ void P_DoPlayerExit(player_t *player)
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
 	}
-	else if (G_BattleGametype())
-		player->exiting = 8*TICRATE + 1; // Battle Mode exiting
+	else if (G_BattleGametype()) // Battle Mode exiting
+	{
+		//S_StopMusic();
+
+		if (P_IsLocalPlayer(player))
+		{
+			if (!splitscreen)
+			{
+				INT32 pos = 1;
+				UINT8 i;
+
+				for (i = 0; i < MAXPLAYERS; i++) // Calculate position to ensure what music to play
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+					if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+						pos++;
+					else if (players[i].score > player->score)
+						pos++;
+				}
+
+				if (pos == 1)
+					S_ChangeMusicInternal("kbwin", false);
+				else if (pos <= 3)
+					S_ChangeMusicInternal("kbok", false);
+				else
+					S_ChangeMusicInternal("kblose", false);
+			}
+			else
+				S_ChangeMusicInternal("kbok", false);
+		}
+
+		player->exiting = 8*TICRATE + 1;
+	}
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
 
