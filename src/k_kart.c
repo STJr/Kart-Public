@@ -46,7 +46,7 @@ const char *KartColor_Names[MAXSKINCOLORS] =
 	"Silver",         // 03 // SKINCOLOR_SILVER
 	"Cloudy",         // 04 // SKINCOLOR_CLOUDY
 	"Grey",           // 05 // SKINCOLOR_GREY
-	"Nickle",         // 06 // SKINCOLOR_NICKLE
+	"Nickel",         // 06 // SKINCOLOR_NICKEL
 	"Black",          // 07 // SKINCOLOR_BLACK
 	"Salmon",         // 08 // SKINCOLOR_SALMON
 	"Pink",           // 09 // SKINCOLOR_PINK
@@ -112,10 +112,10 @@ const UINT8 KartColor_Opposite[MAXSKINCOLORS*2] =
 	SKINCOLOR_NONE,8,        // 00 // SKINCOLOR_NONE
 	SKINCOLOR_BLACK,8,       // 01 // SKINCOLOR_IVORY
 	SKINCOLOR_BLACK,8,       // 02 // SKINCOLOR_WHITE
-	SKINCOLOR_NICKLE,8,      // 03 // SKINCOLOR_SILVER
+	SKINCOLOR_NICKEL,8,      // 03 // SKINCOLOR_SILVER
 	SKINCOLOR_CLOUDY,8,      // 04 // SKINCOLOR_CLOUDY
 	SKINCOLOR_GREY,8,        // 05 // SKINCOLOR_GREY
-	SKINCOLOR_SILVER,8,      // 06 // SKINCOLOR_NICKLE
+	SKINCOLOR_SILVER,8,      // 06 // SKINCOLOR_NICKEL
 	SKINCOLOR_WHITE,8,       // 07 // SKINCOLOR_BLACK
 	SKINCOLOR_SWAMP,8,       // 08 // SKINCOLOR_SALMON
 	SKINCOLOR_ARMY,8,        // 09 // SKINCOLOR_PINK
@@ -182,7 +182,7 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{  0,   1,   3,   4,   6,   7,   9,  10,  12,  13,  15,  16,  18,  19,  21,  23}, // SKINCOLOR_SILVER
 	{  1,   3,   5,   7,   9,  11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_CLOUDY
 	{  8,   9,  11,  12,  14,  15,  17,  18,  20,  21,  23,  24,  26,  27,  29,  30}, // SKINCOLOR_GREY
-	{ 16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31}, // SKINCOLOR_NICKLE
+	{ 16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31}, // SKINCOLOR_NICKEL
 	{ 16,  17,  19,  21,  22,  24,  26,  27,  27,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_BLACK
 	{120, 120, 120, 121, 121, 122, 122, 123, 124, 125, 126, 128, 129, 131, 133, 135}, // SKINCOLOR_SALMON
 	{121, 121, 121, 121, 121, 122, 144, 145, 146, 147, 148, 149, 150, 150, 150, 151}, // SKINCOLOR_PINK
