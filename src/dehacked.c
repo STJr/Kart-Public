@@ -7492,11 +7492,11 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"GREEN",          // 43 // SKINCOLOR_GREEN
 	"PINETREE",       // 44 // SKINCOLOR_PINETREE
 	"SWAMP",          // 45 // SKINCOLOR_SWAMP
-	"TURQUOISE",      // 46 // SKINCOLOR_TURQUOISE
-	"SLATE",          // 47 // SKINCOLOR_SLATE
-	"PERIWINKLE",     // 48 // SKINCOLOR_PERIWINKLE
-	"CYAN",           // 49 // SKINCOLOR_CYAN
-	"CERULEAN",       // 50 // SKINCOLOR_CERULEAN
+	"SLATE",          // 46 // SKINCOLOR_SLATE
+	"PERIWINKLE",     // 47 // SKINCOLOR_PERIWINKLE
+	"CYAN",           // 48 // SKINCOLOR_CYAN
+	"CERULEAN",       // 49 // SKINCOLOR_CERULEAN
+	"TURQUOISE",      // 50 // SKINCOLOR_TURQUOISE
 	"TEAL",           // 51 // SKINCOLOR_TEAL
 	"STEEL",          // 52 // SKINCOLOR_STEEL
 	"BLUE",           // 53 // SKINCOLOR_BLUE

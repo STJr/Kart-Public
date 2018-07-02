@@ -1014,7 +1014,6 @@ static inline boolean I_SkipFrame(void)
 			if (!paused)
 				return false;
 			/* FALLTHRU */
-		case GS_TIMEATTACK:
 		case GS_WAITINGPLAYERS:
 			return skip; // Skip odd frames
 		default:

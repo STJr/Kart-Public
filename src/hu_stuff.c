@@ -1123,7 +1123,12 @@ static void HU_DrawCEcho(void)
 
 static void HU_drawGametype(void)
 {
-	V_DrawString(4, (splitscreen ? 184 : 192), 0, gametype_cons_t[gametype].strvalue);
+	INT32 flags;
+	if (gametype == GT_MATCH)
+		flags = V_REDMAP;
+	else
+		flags = V_SKYMAP;
+	V_DrawString(4, (splitscreen ? 184 : 192), flags, gametype_cons_t[gametype].strvalue);
 }
 
 //

@@ -321,27 +321,27 @@ void Y_IntermissionDrawer(void)
 		{
 			V_DrawFill(160, 32, 1, 152, 0);
 
-			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, V_YELLOWMAP, "#");
-			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, V_YELLOWMAP, "NAME");
+			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, V_SKYMAP, "#");
+			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, V_SKYMAP, "NAME");
 
-			V_DrawRightAlignedString(x+110, 32, V_YELLOWMAP, "TIME");
+			V_DrawRightAlignedString(x+110, 32, V_SKYMAP, "TIME");
 
-			V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "SCORE");
+			V_DrawRightAlignedString(x+152, 32, V_SKYMAP, "SCORE");
 		}
 
-		V_DrawCenteredString(x+6, 32, V_YELLOWMAP, "#");
-		V_DrawString(x+36, 32, V_YELLOWMAP, "NAME");
+		V_DrawCenteredString(x+6, 32, V_SKYMAP, "#");
+		V_DrawString(x+36, 32, V_SKYMAP, "NAME");
 
 		if (data.match.numplayers > 8)
 		{
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+110, 32, V_YELLOWMAP, "TIME");
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+110, 32, V_SKYMAP, "TIME");
 		}
 		else
 		{
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+62, 32, V_YELLOWMAP, "TIME");
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+62, 32, V_SKYMAP, "TIME");
 		}
 
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "SCORE");
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_SKYMAP, "SCORE");
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -376,11 +376,11 @@ void Y_IntermissionDrawer(void)
 
 				if (data.match.numplayers > 8)
 				{
-					V_DrawRightAlignedString(x+152, y, V_YELLOWMAP, strtime);
+					V_DrawRightAlignedString(x+152, y, V_SKYMAP, strtime);
 				}
 				else
 				{
-					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, V_YELLOWMAP, strtime);
+					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, V_SKYMAP, strtime);
 				}
 
 				if (data.match.increase[i] > 9)
@@ -439,22 +439,16 @@ void Y_IntermissionDrawer(void)
 		{
 			V_DrawFill(160, 32, 1, 152, 0);
 
-			if (intertype == int_race)
-				V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "TIME");
-			else
-				V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "SCORE");
+			V_DrawRightAlignedString(x+152, 32, V_REDMAP, "SCORE");
 
-			V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, V_YELLOWMAP, "#");
-			V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, V_YELLOWMAP, "NAME");
+			V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, V_REDMAP, "#");
+			V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, V_REDMAP, "NAME");
 		}
 
-		V_DrawCenteredString(x+6, 32, V_YELLOWMAP, "#");
-		V_DrawString(x+36, 32, V_YELLOWMAP, "NAME");
+		V_DrawCenteredString(x+6, 32, V_REDMAP, "#");
+		V_DrawString(x+36, 32, V_REDMAP, "NAME");
 
-		if (intertype == int_race)
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "TIME");
-		else
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "SCORE");
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_REDMAP, "SCORE");
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -508,22 +502,7 @@ void Y_IntermissionDrawer(void)
 					}
 				}
 				else
-				{
-					if (intertype == int_match)
-						V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, va("%u", data.match.scores[i]));
-					else if (intertype == int_race)
-					{
-						if (players[data.match.num[i]].pflags & PF_TIMEOVER)
-							snprintf(strtime, sizeof strtime, "DNF");
-						else
-							snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.scores[i], true),
-									G_TicsToSeconds(data.match.scores[i]), G_TicsToCentiseconds(data.match.scores[i]));
-
-						strtime[sizeof strtime - 1] = '\0';
-
-						V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
-					}
-				}
+					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, va("%u", data.match.scores[i]));
 			}
 
 			y += 16;
@@ -2441,9 +2420,10 @@ void Y_VoteTicker(void)
 				else if (voteclient.roffset >= voteclient.rendoff)
 				{
 					voteendtic = votetic + (3*TICRATE);
-					S_StartSound(NULL, sfx_kc48);
 					if (P_IsLocalPlayer(&players[pickedvote]))
 						S_StartSound(NULL, sfx_yeeeah);
+					else
+						S_StartSound(NULL, sfx_kc48);
 				}
 			}
 		}
@@ -2718,9 +2698,10 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		{
 			voteendtic = votetic + (5*TICRATE);
 			S_ChangeMusicInternal("voteeb", false);
-			S_StartSound(NULL, sfx_kc48);
 			if (P_IsLocalPlayer(&players[pick]))
 				S_StartSound(NULL, sfx_yeeeah);
+			else
+				S_StartSound(NULL, sfx_kc48);
 		}
 		else
 			S_ChangeMusicInternal("voteea", true);

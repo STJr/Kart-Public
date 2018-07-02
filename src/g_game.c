@@ -5858,6 +5858,7 @@ void G_AddGhost(char *defdemoname)
 			if (z > c)
 				z = c;
 		}
+		gh->mo->z = z;
 	}
 	gh->mo->state = states+S_KART_STND1; // SRB2kart - was S_PLAY_STND
 	gh->mo->sprite = gh->mo->state->sprite;

@@ -323,7 +323,6 @@ static inline boolean I_SkipFrame(void)
 			if (!paused)
 				return false;
 			/* FALLTHRU */
-		case GS_TIMEATTACK:
 #ifndef CLIENT_LOADINGSCREEN
 		case GS_WAITINGPLAYERS:
 #endif
