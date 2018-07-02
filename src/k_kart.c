@@ -648,7 +648,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 			break;
 		case KITEM_SPB:
 			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			//if (mashed) newodds /= 2;
 			if ((!cv_selfpropelledbomb.value)
 				|| (indirectitemcooldown > 0)
 				|| (pexiting > 0)
