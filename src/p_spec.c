@@ -4211,15 +4211,15 @@ DoneSection2:
 					{
 						// SRB2kart 200117
 						if (splitscreen)
-							S_ChangeMusicInternal("karwin", true);
+							S_ChangeMusicInternal("krok", true);
 						else
 						{
 							if (player->kartstuff[k_position] == 1)
-								S_ChangeMusicInternal("karwin", true);
+								S_ChangeMusicInternal("krwin", true);
 							else if (K_IsPlayerLosing(player))
-								S_ChangeMusicInternal("karlos", true);
+								S_ChangeMusicInternal("krlose", true);
 							else
-								S_ChangeMusicInternal("karok", true);
+								S_ChangeMusicInternal("krok", true);
 						}
 					}
 

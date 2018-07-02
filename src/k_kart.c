@@ -3200,12 +3200,18 @@ static void K_KartUpdatePosition(player_t *player)
 		}
 		else if (G_BattleGametype())
 		{
-			if (player->exiting)
-				return;
-			if (players[i].kartstuff[k_balloon] == player->kartstuff[k_balloon] && players[i].score > player->score)
-				position++;
-			else if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
-				position++;
+			if (player->exiting) // End of match standings
+			{
+				if (players[i].score > player->score) // Only score matters
+					position++;
+			}
+			else
+			{
+				if (players[i].kartstuff[k_balloon] == player->kartstuff[k_balloon] && players[i].score > player->score)
+					position++;
+				else if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+					position++;
+			}
 		}
 	}
 
@@ -3829,6 +3835,7 @@ void K_CalculateBattleWanted(void)
 	SINT8 bestballoonplayer = -1, bestballoon = -1;
 	SINT8 camppos[MAXPLAYERS]; // who is the biggest camper
 	UINT8 ties = 0, nextcamppos = 0;
+	boolean setballoon = false;
 	UINT8 i, j;
 
 	if (!G_BattleGametype())
@@ -3895,25 +3902,30 @@ void K_CalculateBattleWanted(void)
 	{
 		if (i+1 > numwanted) // Not enough players for this slot to be wanted!
 			battlewanted[i] = -1;
-		else if (bestballoonplayer != -1) // If there's a player who has a single-handed lead over everyone else, they are the first to be wanted.
+		else if (bestballoonplayer != -1 && !setballoon) // If there's a player who has an untied balloon lead over everyone else, they are the first to be wanted.
 		{
 			battlewanted[i] = bestballoonplayer;
-			bestballoonplayer = -1; // Don't set twice
+			setballoon = true; // Don't set twice
 		}
 		else
 		{
-			// Do not add *any* more people if there's more than 1 wanted times that are tied with others.
+			// Don't accidentally set the same player, if the bestballoonplayer is also a huge camper.
+			while (bestballoonplayer != -1 && camppos[nextcamppos] != -1
+				&& bestballoonplayer == camppos[nextcamppos])
+				nextcamppos++;
+
+			// Do not add *any* more people if there's too many times that are tied with others.
 			// This could theoretically happen very easily if people don't hit each other for a while after the start of a match.
 			// (I will be sincerely impressed if more than 2 people tie after people start hitting each other though)
 
 			if (camppos[nextcamppos] == -1 // Out of entries
-				|| ties >= 2) // Already counted ties
+				|| ties >= (numwanted-i)) // Already counted ties
 			{
 				battlewanted[i] = -1;
 				continue;
 			}
 
-			if (ties < 2)
+			if (ties < (numwanted-i))
 			{
 				ties = 0; // Reset
 				for (j = 0; j < 2; j++)
@@ -3925,7 +3937,7 @@ void K_CalculateBattleWanted(void)
 				}
 			}
 
-			if (ties < 2) // Is it still less than 2 after counting?
+			if (ties < (numwanted-i)) // Is it still low enough after counting?
 			{
 				battlewanted[i] = camppos[nextcamppos];
 				nextcamppos++;

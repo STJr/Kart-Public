@@ -834,9 +834,9 @@ void Y_Ticker(void)
 
 		/* // SRB2kart - removed temporarily.
 		if (!intertic) {
-			if (!((music_playing == "karwin") // Mario Kart Win
-			|| (music_playing == "karok") // Mario Kart Ok
-			|| (music_playing == "karlos"))) // Mario Kart Lose
+			if (!((music_playing == "krwin") // Win
+			|| (music_playing == "krok") // Ok
+			|| (music_playing == "krlose"))) // Lose
 				S_ChangeMusicInternal("racent", true); // Backup Plan
 		}*/
 
