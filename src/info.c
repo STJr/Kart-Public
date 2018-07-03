@@ -2752,9 +2752,9 @@ state_t states[NUMSTATES] =
 	{SPR_SITR, 1,  5, {NULL}, 0, 0, S_SINKTRAIL3},                       // S_SINKTRAIL2
 	{SPR_SITR, 2,  3, {NULL}, 0, 0, S_NULL},                             // S_SINKTRAIL3
 
-	{SPR_KBLN, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_BATTLEBALLOON1}, // S_BATTLEBALLOON1
-	{SPR_KBLN, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_BATTLEBALLOON2}, // S_BATTLEBALLOON2
-	{SPR_KBLN, FF_FULLBRIGHT|2, -1, {NULL}, 0, 0, S_BATTLEBALLOON3}, // S_BATTLEBALLOON3
+	{SPR_KBLN, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_BATTLEBUMPER1}, // S_BATTLEBUMPER1
+	{SPR_KBLN, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_BATTLEBUMPER2}, // S_BATTLEBUMPER2
+	{SPR_KBLN, FF_FULLBRIGHT|2, -1, {NULL}, 0, 0, S_BATTLEBUMPER3}, // S_BATTLEBUMPER3
 
 	{SPR_DEZL, FF_FULLBRIGHT|FF_PAPERSPRITE, 8, {NULL}, 0, 0, S_NULL},  // S_DEZLASER
 
@@ -15056,9 +15056,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BATTLEBALLOON
+	{           // MT_BATTLEBUMPER
 		-1,              // doomednum
-		S_BATTLEBALLOON1,// spawnstate
+		S_BATTLEBUMPER1,// spawnstate
 		1000,            // spawnhealth
 		S_NULL,          // seestate
 		sfx_None,        // seesound

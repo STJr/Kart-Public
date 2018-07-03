@@ -3922,7 +3922,7 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 		return true;
 
 	if (thing->player && (thing->player->kartstuff[k_hyudorotimer]
-		|| (G_BattleGametype() && thing->player && thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
+		|| (G_BattleGametype() && thing->player && thing->player->kartstuff[k_bumper] <= 0 && thing->player->kartstuff[k_comebacktimer])))
 		return true;
 
 	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
@@ -8144,7 +8144,7 @@ void A_ItemPop(mobj_t *actor)
 	if (actor->info->deathsound)
 		S_StartSound(remains, actor->info->deathsound);
 
-	if (!(G_BattleGametype() && actor->target->player->kartstuff[k_balloon] <= 0))
+	if (!(G_BattleGametype() && actor->target->player->kartstuff[k_bumper] <= 0))
 		actor->target->player->kartstuff[k_itemroulette] = 1;
 
 	remains->flags2 &= ~MF2_AMBUSH;
@@ -8228,7 +8228,7 @@ void A_JawzChase(mobj_t *actor)
 
 				if (G_BattleGametype())
 				{
-					if (player->kartstuff[k_balloon] <= 0)
+					if (player->kartstuff[k_bumper] <= 0)
 						continue;
 
 					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
@@ -8240,7 +8240,7 @@ void A_JawzChase(mobj_t *actor)
 			if ((G_RaceGametype()) || (G_BattleGametype() // If in match etc. only home in when you get close enough, in race etc. home in all the time
 				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
 				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
-				&& player->kartstuff[k_balloon] > 0))
+				&& player->kartstuff[k_bumper] > 0))
 				P_SetTarget(&actor->tracer, player->mo);
 			return;
 
@@ -8324,7 +8324,7 @@ void A_MineExplode(mobj_t *actor)
 		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
-		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
+		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_bumper] <= 0 && mo2 == actor->target)
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)

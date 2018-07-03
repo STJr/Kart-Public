@@ -1814,7 +1814,7 @@ boolean G_Responder(event_t *ev)
 				// SRB2Kart: Ehhh, who cares, Mario Kart's designed around screen-cheating anyway
 				/*if (gametype != GT_RACE)
 				{
-					if (players[consoleplayer].kartstuff[k_balloon] > 0)
+					if (players[consoleplayer].kartstuff[k_bumper] > 0)
 						continue;
 				}*/
 
@@ -2158,8 +2158,10 @@ void G_Ticker(boolean run)
 			break;
 
 		case GS_TITLESCREEN:
-		case GS_WAITINGPLAYERS:
 			F_TitleScreenTicker(run);
+			break;
+		case GS_WAITINGPLAYERS:
+			F_WaitingPlayersTicker();
 			break;
 
 		case GS_DEDICATEDSERVER:
@@ -2293,7 +2295,7 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	INT32 starpostwp;
-	INT32 balloon;
+	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
 
@@ -2350,7 +2352,7 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
-	balloon = players[player].kartstuff[k_balloon];
+	bumper = players[player].kartstuff[k_bumper];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
 	wanted = players[player].kartstuff[k_wanted];
 
@@ -2408,7 +2410,7 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
-	p->kartstuff[k_balloon] = balloon;
+	p->kartstuff[k_bumper] = bumper;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
@@ -3688,7 +3690,7 @@ void G_SaveGameData(boolean force)
 
 	if (force) // SRB2Kart: for enabling unlocks online, even if the game is modified
 		modifiedgame = savemoddata; // L-let's just sort of... hack around the cheat protection, because I'm too worried about just removing it @@;
-	else if (modifiedgame && !savemoddata) 
+	else if (modifiedgame && !savemoddata)
 	{
 		free(savebuffer);
 		save_p = savebuffer = NULL;

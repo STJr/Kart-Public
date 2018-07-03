@@ -1134,7 +1134,7 @@ void P_RestoreMusic(player_t *player)
 				{
 					if (!playeringame[i] || players[i].spectator)
 						continue;
-					if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+					if (players[i].kartstuff[k_bumper] > player->kartstuff[k_bumper])
 						pos++;
 					else if (players[i].score > player->score)
 						pos++;
@@ -1716,7 +1716,7 @@ void P_DoPlayerExit(player_t *player)
 				{
 					if (!playeringame[i] || players[i].spectator)
 						continue;
-					if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+					if (players[i].kartstuff[k_bumper] > player->kartstuff[k_bumper])
 						pos++;
 					else if (players[i].score > player->score)
 						pos++;
@@ -9585,7 +9585,7 @@ void P_PlayerThink(player_t *player)
 	if (!(player->pflags & PF_NIGHTSMODE
 		|| player->kartstuff[k_hyudorotimer] // SRB2kart - fixes Hyudoro not flashing when it should.
 		|| player->kartstuff[k_growshrinktimer] > 0 // Grow doesn't flash either.
-		|| (G_BattleGametype() && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer])
+		|| (G_BattleGametype() && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer])
 		|| leveltime < starttime)) // Level intro
 	{
 		if (player->powers[pw_flashing] > 0 && player->powers[pw_flashing] < K_GetKartFlashing()

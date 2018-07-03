@@ -6426,10 +6426,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SINKTRAIL2",
 	"S_SINKTRAIL3",
 
-	// Battle Mode balloon
-	"S_BATTLEBALLOON1",
-	"S_BATTLEBALLOON2",
-	"S_BATTLEBALLOON3",
+	// Battle Mode bumper
+	"S_BATTLEBUMPER1",
+	"S_BATTLEBUMPER2",
+	"S_BATTLEBUMPER3",
 
 	// DEZ respawn laser
 	"S_DEZLASER",
@@ -6512,7 +6512,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DOOD_BOX4",
 	"S_DOOD_BOX5",
 
-	// D00Dkart - Diddy Kong Racing Balloon
+	// D00Dkart - Diddy Kong Racing Bumper
 	"S_DOOD_BALLOON",
 
 	// Chaotix Big Ring
@@ -7171,7 +7171,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SINK", // Kitchen Sink Stuff
 	"MT_SINKTRAIL",
 
-	"MT_BATTLEBALLOON", // Battle Mode balloon
+	"MT_BATTLEBUMPER", // Battle Mode bumper
 
 	"MT_DEZLASER",
 
@@ -7621,7 +7621,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"SADTIMER",
 
 	// Battle Mode vars
-	"BALLOON",
+	"BUMPER",
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
 };

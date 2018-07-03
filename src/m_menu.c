@@ -921,7 +921,7 @@ menuitem_t PlayerMenu[32] =
 static menuitem_t MP_MainMenu[] =
 {
 	{IT_HEADER, NULL, "Player setup", NULL, 10},
-	{IT_STRING|IT_CALL,       NULL, "It's you!",             M_SetupMultiPlayer,     20},
+	{IT_STRING|IT_CALL, NULL, "Select character & color...", M_SetupMultiPlayer,     20},
 	{IT_HEADER, NULL, "Host a game", NULL, 34},
 	{IT_NETCALL,              NULL, "Internet/LAN...",       M_StartServerMenu,      44},
 	{IT_STRING|IT_CALL,       NULL, "Splitscreen...",        M_StartSplitServerMenu, 52},
@@ -1402,7 +1402,7 @@ static menuitem_t OP_EraseDataMenu[] =
 
 static menuitem_t OP_HUDOptionsMenu[] =
 {
-	{IT_STRING | IT_CVAR, NULL, "Show HUD",					&cv_showhud,			 10},
+	{IT_STRING | IT_CVAR, NULL, "Show HUD (F3)",					&cv_showhud,			 10},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "HUD Visibility",			&cv_translucenthud,		 20},
 
@@ -1429,7 +1429,7 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
 
 	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
-	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",			&cv_kartballoons,		100},
+	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",			&cv_kartbumpers,		100},
 	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		110},
 
 	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          130},
@@ -1485,7 +1485,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Use Map Lap Counts",    &cv_usemapnumlaps,    34},
 
 	{IT_HEADER,           NULL, "BATTLE",                NULL,                 50},
-	{IT_STRING | IT_CVAR, NULL, "Starting Balloons",     &cv_kartballoons,     58},
+	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",     &cv_kartbumpers,     58},
 	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",        &cv_kartcomeback,     66},
 };*/
 
