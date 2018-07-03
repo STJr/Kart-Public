@@ -155,7 +155,7 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (player->exiting)
 		return false;
 
-	/*if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // No balloons in Match
+	/*if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // No bumpers in Match
 		return false;*/
 
 	if (weapon)
@@ -410,7 +410,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (!P_CanPickupItem(player, true))
 				return;
 
-			if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
+			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
 				if (player->kartstuff[k_comebackmode] == 1 || player->kartstuff[k_comebacktimer])
 					return;
@@ -427,7 +427,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			if (player == special->target->player)
 				return;
-			if (player->kartstuff[k_balloon] <= 0)
+			if (player->kartstuff[k_bumper] <= 0)
 				return;
 			if (special->target->player->exiting || player->exiting)
 				return;
@@ -459,7 +459,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					if (netgame && cv_hazardlog.value)
 						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
 					if (special->target->player->kartstuff[k_comebackpoints] >= 3)
-						K_StealBalloon(special->target->player, player, true);
+						K_StealBumper(special->target->player, player, true);
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
 					K_ExplodePlayer(player, special->target);
@@ -476,7 +476,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				if (netgame && cv_hazardlog.value)
 					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
 				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
-					K_StealBalloon(special->target->player, player, true);
+					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
 				player->kartstuff[k_itemroulette] = 1;
@@ -2330,7 +2330,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		}
 		else if (G_BattleGametype())
 		{
-			K_CheckBalloons();
+			K_CheckBumpers();
 		}
 	}
 
@@ -2830,22 +2830,22 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 
 	if (G_BattleGametype())
 	{
-		if (player->kartstuff[k_balloon] > 0)
+		if (player->kartstuff[k_bumper] > 0)
 		{
-			if (player->kartstuff[k_balloon] == 1)
+			if (player->kartstuff[k_bumper] == 1)
 			{
 				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
 				P_SetTarget(&karmahitbox->target, player->mo);
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
-				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
 				if (K_IsPlayerWanted(player))
 					K_CalculateBattleWanted();
 			}
-			player->kartstuff[k_balloon]--;
+			player->kartstuff[k_bumper]--;
 		}
 
-		K_CheckBalloons();
+		K_CheckBumpers();
 	}
 }
 

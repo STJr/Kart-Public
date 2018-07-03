@@ -321,8 +321,8 @@ typedef enum
 	k_sadtimer,				// How long you've been sad
 
 	// Battle Mode vars
-	k_balloon,			// Number of balloons left
-	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a balloon
+	k_bumper,			// Number of bumpers left
+	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a bumper
 	k_comebackmode, 	// 0 = bomb, 1 = item
 	k_wanted, 			// Timer for determining WANTED status, lowers when hitting people, prevents the game turning into Camp Lazlo
 

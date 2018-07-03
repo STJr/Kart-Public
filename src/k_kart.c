@@ -396,7 +396,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcheck);
 	CV_RegisterVar(&cv_kartinvinsfx);
 	CV_RegisterVar(&cv_kartspeed);
-	CV_RegisterVar(&cv_kartballoons);
+	CV_RegisterVar(&cv_kartbumpers);
 	CV_RegisterVar(&cv_kartfrantic);
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartmirror);
@@ -725,7 +725,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
-	INT32 avgballoon = 0;
+	INT32 avgbumper = 0;
 	boolean oddsvalid[9];
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
@@ -743,12 +743,12 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (!playeringame[i] || players[i].spectator)
 			continue;
 		pingame++;
-		if (players[i].kartstuff[k_balloon] > 0)
-			avgballoon += players[i].kartstuff[k_balloon];
+		if (players[i].kartstuff[k_bumper] > 0)
+			avgbumper += players[i].kartstuff[k_bumper];
 	}
 
 	if (pingame)
-		avgballoon /= pingame;
+		avgbumper /= pingame;
 
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
@@ -826,7 +826,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			useodds = 3;
 		else
 		{
-			SINT8 wantedpos = (player->kartstuff[k_balloon]-avgballoon)+2; // 0 is two balloons below average, 2 is average
+			SINT8 wantedpos = (player->kartstuff[k_bumper]-avgbumper)+2; // 0 is two bumpers below average, 2 is average
 			if (wantedpos > 2)
 				wantedpos = 2;
 			if (wantedpos < 0)
@@ -1386,7 +1386,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 			break;
 	}
 
-	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
+	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 		kartspeed = 1;
 
 	k_speed += kartspeed*3; // 153 - 177
@@ -1403,7 +1403,7 @@ fixed_t K_GetKartAccel(player_t *player)
 	fixed_t k_accel = 32; // 36;
 	UINT8 kartspeed = player->kartspeed;
 
-	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
+	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 		kartspeed = 1;
 
 	//k_accel += 3 * (9 - kartspeed); // 36 - 60
@@ -1466,7 +1466,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
 		|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
-		|| (G_BattleGametype() && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
 	if (source && source != player->mo && source->player)
@@ -1487,22 +1487,22 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 			}
 		}
 
-		if (player->kartstuff[k_balloon] > 0)
+		if (player->kartstuff[k_bumper] > 0)
 		{
-			if (player->kartstuff[k_balloon] == 1)
+			if (player->kartstuff[k_bumper] == 1)
 			{
 				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
 				P_SetTarget(&karmahitbox->target, player->mo);
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
-				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
 				if (K_IsPlayerWanted(player))
 					K_CalculateBattleWanted();
 			}
-			player->kartstuff[k_balloon]--;
+			player->kartstuff[k_bumper]--;
 		}
 
-		K_CheckBalloons();
+		K_CheckBumpers();
 	}
 
 	player->kartstuff[k_comebacktimer] = comebacktime;
@@ -1539,7 +1539,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_invincibilitytimer] > 0
 		|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
-		|| (G_BattleGametype() && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
 	player->kartstuff[k_sneakertimer] = 0;
@@ -1554,22 +1554,22 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
 
-		if (player->kartstuff[k_balloon] > 0)
+		if (player->kartstuff[k_bumper] > 0)
 		{
-			if (player->kartstuff[k_balloon] == 1)
+			if (player->kartstuff[k_bumper] == 1)
 			{
 				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
 				P_SetTarget(&karmahitbox->target, player->mo);
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
-				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
 				if (K_IsPlayerWanted(player))
 					K_CalculateBattleWanted();
 			}
-			player->kartstuff[k_balloon]--;
+			player->kartstuff[k_bumper]--;
 		}
 
-		K_CheckBalloons();
+		K_CheckBumpers();
 	}
 
 	player->kartstuff[k_comebacktimer] = comebacktime;
@@ -1597,7 +1597,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
 		|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
-		|| (G_BattleGametype() && ((player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 		return;
 
 	player->mo->momz = 18*(mapheaderinfo[gamemap-1]->mobj_scale);
@@ -1615,22 +1615,22 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
 
-		if (player->kartstuff[k_balloon] > 0)
+		if (player->kartstuff[k_bumper] > 0)
 		{
-			if (player->kartstuff[k_balloon] == 1)
+			if (player->kartstuff[k_bumper] == 1)
 			{
 				mobj_t *karmahitbox = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_KARMAHITBOX); // Player hitbox is too small!!
 				P_SetTarget(&karmahitbox->target, player->mo);
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
-				CONS_Printf(M_GetText("%s lost all of their balloons!\n"), player_names[player-players]);
+				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
 				if (K_IsPlayerWanted(player))
 					K_CalculateBattleWanted();
 			}
-			player->kartstuff[k_balloon]--;
+			player->kartstuff[k_bumper]--;
 		}
 
-		K_CheckBalloons();
+		K_CheckBumpers();
 	}
 
 	player->kartstuff[k_comebacktimer] = comebacktime;
@@ -1654,9 +1654,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	return;
 }
 
-void K_StealBalloon(player_t *player, player_t *victim, boolean force)
+void K_StealBumper(player_t *player, player_t *victim, boolean force)
 {
-	INT32 newballoon;
+	INT32 newbumper;
 	angle_t newangle, diff;
 	fixed_t newx, newy;
 	mobj_t *newmo;
@@ -1669,12 +1669,12 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 
 	if (!force)
 	{
-		if (victim->kartstuff[k_balloon] <= 0) // || player->kartstuff[k_balloon] >= cv_kartballoons.value+2
+		if (victim->kartstuff[k_bumper] <= 0) // || player->kartstuff[k_bumper] >= cv_kartbumpers.value+2
 			return;
 
 		if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
 			|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
-			|| (player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
+			|| (player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]))
 			|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || victim->kartstuff[k_spinouttimer] > 0
 			|| victim->kartstuff[k_invincibilitytimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_hyudorotimer] > 0))
 			return;
@@ -1682,39 +1682,39 @@ void K_StealBalloon(player_t *player, player_t *victim, boolean force)
 
 	if (netgame)
 	{
-		if (player->kartstuff[k_balloon] <= 0)
+		if (player->kartstuff[k_bumper] <= 0)
 			CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
 		else if (cv_hazardlog.value)
-			CONS_Printf(M_GetText("%s stole a balloon from %s!\n"), player_names[player-players], player_names[victim-players]);
+			CONS_Printf(M_GetText("%s stole a bumper from %s!\n"), player_names[player-players], player_names[victim-players]);
 	}
 
-	newballoon = player->kartstuff[k_balloon];
-	if (newballoon <= 1)
+	newbumper = player->kartstuff[k_bumper];
+	if (newbumper <= 1)
 		diff = 0;
 	else
-		diff = FixedAngle(360*FRACUNIT/newballoon);
+		diff = FixedAngle(360*FRACUNIT/newbumper);
 
 	newangle = player->mo->angle;
 	newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 	newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, 64*FRACUNIT);
 
-	newmo = P_SpawnMobj(newx, newy, player->mo->z, MT_BATTLEBALLOON);
-	newmo->threshold = newballoon;
+	newmo = P_SpawnMobj(newx, newy, player->mo->z, MT_BATTLEBUMPER);
+	newmo->threshold = newbumper;
 	P_SetTarget(&newmo->tracer, victim->mo);
 	P_SetTarget(&newmo->target, player->mo);
-	newmo->angle = (diff * (newballoon-1));
+	newmo->angle = (diff * (newbumper-1));
 	newmo->color = victim->skincolor;
 
-	if (newballoon+1 < 2)
-		P_SetMobjState(newmo, S_BATTLEBALLOON3);
-	else if (newballoon+1 < 3)
-		P_SetMobjState(newmo, S_BATTLEBALLOON2);
+	if (newbumper+1 < 2)
+		P_SetMobjState(newmo, S_BATTLEBUMPER3);
+	else if (newbumper+1 < 3)
+		P_SetMobjState(newmo, S_BATTLEBUMPER2);
 	else
-		P_SetMobjState(newmo, S_BATTLEBALLOON1);
+		P_SetMobjState(newmo, S_BATTLEBUMPER1);
 
 	S_StartSound(player->mo, sfx_3db06);
 
-	player->kartstuff[k_balloon]++;
+	player->kartstuff[k_bumper]++;
 	player->kartstuff[k_comebackpoints] = 0;
 	player->powers[pw_flashing] = K_GetKartFlashing();
 	player->kartstuff[k_comebacktimer] = comebacktime;
@@ -1965,7 +1965,7 @@ void K_SpawnBoostTrail(player_t *player)
 
 	if (!P_IsObjectOnGround(player->mo)
 		|| player->kartstuff[k_hyudorotimer] != 0
-		|| (G_BattleGametype() && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer]))
+		|| (G_BattleGametype() && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]))
 		return;
 
 	if (player->mo->eflags & MFE_VERTICALFLIP)
@@ -2343,7 +2343,7 @@ static void K_DoHyudoroSteal(player_t *player)
 
 			// Can steal from this player
 			&& (G_RaceGametype() //&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
-			|| (G_BattleGametype() && players[i].kartstuff[k_balloon] > 0))
+			|| (G_BattleGametype() && players[i].kartstuff[k_bumper] > 0))
 
 			// Has an item
 			&& (players[i].kartstuff[k_itemtype]
@@ -2730,7 +2730,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else if (player->kartstuff[k_comebacktimer])
 	{
 		player->kartstuff[k_comebacktimer]--;
-		if (P_IsLocalPlayer(player) && player->kartstuff[k_balloon] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
+		if (P_IsLocalPlayer(player) && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
 			comebackshowninfo = true; // client has already seen the message
 	}
 
@@ -2825,7 +2825,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_tauntvoices])
 		player->kartstuff[k_tauntvoices]--;
 
-	if (G_BattleGametype() && player->kartstuff[k_balloon] > 0)
+	if (G_BattleGametype() && player->kartstuff[k_bumper] > 0)
 		player->kartstuff[k_wanted]++;
 
 	// ???
@@ -2985,7 +2985,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	UINT8 kartspeed = player->kartspeed;
 	fixed_t dsone, dstwo;
 
-	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
+	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 		kartspeed = 1;
 
 	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
@@ -3205,9 +3205,9 @@ static void K_KartUpdatePosition(player_t *player)
 			}
 			else
 			{
-				if (players[i].kartstuff[k_balloon] == player->kartstuff[k_balloon] && players[i].score > player->score)
+				if (players[i].kartstuff[k_bumper] == player->kartstuff[k_bumper] && players[i].score > player->score)
 					position++;
-				else if (players[i].kartstuff[k_balloon] > player->kartstuff[k_balloon])
+				else if (players[i].kartstuff[k_bumper] > player->kartstuff[k_bumper])
 					position++;
 			}
 		}
@@ -3707,13 +3707,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->mo->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
 		}
 
-		if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0) // dead in match? you da bomb
+		if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // dead in match? you da bomb
 		{
 			K_StripItems(player);
 			player->mo->flags2 |= MF2_SHADOW;
 			player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 		}
-		else if (G_RaceGametype() || player->kartstuff[k_balloon] > 0)
+		else if (G_RaceGametype() || player->kartstuff[k_bumper] > 0)
 		{
 			player->mo->flags2 &= ~MF2_SHADOW;
 		}
@@ -3727,7 +3727,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		player->mo->friction += 4608;
 	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
 		player->mo->friction += 1608;
-	if (G_BattleGametype() && player->kartstuff[k_balloon] <= 0)
+	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 	{
 		player->mo->friction += 1228;
 
@@ -3830,10 +3830,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 void K_CalculateBattleWanted(void)
 {
 	UINT8 numingame = 0, numwanted = 0;
-	SINT8 bestballoonplayer = -1, bestballoon = -1;
+	SINT8 bestbumperplayer = -1, bestbumper = -1;
 	SINT8 camppos[MAXPLAYERS]; // who is the biggest camper
 	UINT8 ties = 0, nextcamppos = 0;
-	boolean setballoon = false;
+	boolean setbumper = false;
 	UINT8 i, j;
 
 	if (!G_BattleGametype())
@@ -3856,24 +3856,24 @@ void K_CalculateBattleWanted(void)
 		if (players[i].exiting) // We're done, don't calculate.
 			return;
 
-		if (players[i].kartstuff[k_balloon] <= 0) // Not alive, so don't do anything else
+		if (players[i].kartstuff[k_bumper] <= 0) // Not alive, so don't do anything else
 			continue;
 
 		numingame++;
 
-		if (bestballoon == -1 || players[i].kartstuff[k_balloon] > bestballoon)
+		if (bestbumper == -1 || players[i].kartstuff[k_bumper] > bestbumper)
 		{
-			bestballoon = players[i].kartstuff[k_balloon];
-			bestballoonplayer = i;
+			bestbumper = players[i].kartstuff[k_bumper];
+			bestbumperplayer = i;
 		}
-		else if (players[i].kartstuff[k_balloon] == bestballoon)
-			bestballoonplayer = -1; // Tie, no one has best balloon.
+		else if (players[i].kartstuff[k_bumper] == bestbumper)
+			bestbumperplayer = -1; // Tie, no one has best bumper.
 
 		for (j = 0; j < MAXPLAYERS; j++)
 		{
 			if (!playeringame[j] || players[j].spectator)
 				continue;
-			if (players[j].kartstuff[k_balloon] <= 0)
+			if (players[j].kartstuff[k_bumper] <= 0)
 				continue;
 			if (j == i)
 				continue;
@@ -3900,16 +3900,16 @@ void K_CalculateBattleWanted(void)
 	{
 		if (i+1 > numwanted) // Not enough players for this slot to be wanted!
 			battlewanted[i] = -1;
-		else if (bestballoonplayer != -1 && !setballoon) // If there's a player who has an untied balloon lead over everyone else, they are the first to be wanted.
+		else if (bestbumperplayer != -1 && !setbumper) // If there's a player who has an untied bumper lead over everyone else, they are the first to be wanted.
 		{
-			battlewanted[i] = bestballoonplayer;
-			setballoon = true; // Don't set twice
+			battlewanted[i] = bestbumperplayer;
+			setbumper = true; // Don't set twice
 		}
 		else
 		{
-			// Don't accidentally set the same player, if the bestballoonplayer is also a huge camper.
-			while (bestballoonplayer != -1 && camppos[nextcamppos] != -1
-				&& bestballoonplayer == camppos[nextcamppos])
+			// Don't accidentally set the same player, if the bestbumperplayer is also a huge camper.
+			while (bestbumperplayer != -1 && camppos[nextcamppos] != -1
+				&& bestbumperplayer == camppos[nextcamppos])
 				nextcamppos++;
 
 			// Do not add *any* more people if there's too many times that are tied with others.
@@ -3946,7 +3946,7 @@ void K_CalculateBattleWanted(void)
 	}
 }
 
-void K_CheckBalloons(void)
+void K_CheckBumpers(void)
 {
 	UINT8 i;
 	UINT8 numingame = 0;
@@ -3973,7 +3973,7 @@ void K_CheckBalloons(void)
 		numingame++;
 		winnerscoreadd += players[i].score;
 
-		if (players[i].kartstuff[k_balloon] <= 0) // if you don't have any balloons, you're probably not a winner
+		if (players[i].kartstuff[k_bumper] <= 0) // if you don't have any bumpers, you're probably not a winner
 			continue;
 		else if (winnernum > -1) // TWO winners? that's dumb :V
 			return;
@@ -4010,8 +4010,8 @@ static patch_t *kp_timestickerwide;
 static patch_t *kp_lapsticker;
 static patch_t *kp_lapstickernarrow;
 static patch_t *kp_splitlapflag;
-static patch_t *kp_balloonsticker;
-static patch_t *kp_balloonstickerwide;
+static patch_t *kp_bumpersticker;
+static patch_t *kp_bumperstickerwide;
 static patch_t *kp_karmasticker;
 static patch_t *kp_splitkarmabomb;
 static patch_t *kp_timeoutsticker;
@@ -4027,8 +4027,8 @@ static patch_t *kp_facesecond;
 static patch_t *kp_facethird;
 static patch_t *kp_facefourth;
 
-static patch_t *kp_rankballoon;
-static patch_t *kp_ranknoballoons;
+static patch_t *kp_rankbumper;
+static patch_t *kp_ranknobumpers;
 
 static patch_t *kp_battlewin;
 static patch_t *kp_battlelose;
@@ -4078,8 +4078,8 @@ void K_LoadKartHUDGraphics(void)
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
 	kp_splitlapflag = 			W_CachePatchName("K_SPTLAP", PU_HUDGFX);
-	kp_balloonsticker = 		W_CachePatchName("K_STBALN", PU_HUDGFX);
-	kp_balloonstickerwide = 	W_CachePatchName("K_STBALW", PU_HUDGFX);
+	kp_bumpersticker = 		W_CachePatchName("K_STBALN", PU_HUDGFX);
+	kp_bumperstickerwide = 	W_CachePatchName("K_STBALW", PU_HUDGFX);
 	kp_karmasticker = 			W_CachePatchName("K_STKARM", PU_HUDGFX);
 	kp_splitkarmabomb = 		W_CachePatchName("K_SPTKRM", PU_HUDGFX);
 	kp_timeoutsticker = 		W_CachePatchName("K_STTOUT", PU_HUDGFX);
@@ -4117,8 +4117,8 @@ void K_LoadKartHUDGraphics(void)
 	kp_facefourth = 			W_CachePatchName("K_PFACE4", PU_HUDGFX);
 
 	// Extra ranking icons
-	kp_rankballoon =			W_CachePatchName("K_BLNICO", PU_HUDGFX);
-	kp_ranknoballoons =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
+	kp_rankbumper =			W_CachePatchName("K_BLNICO", PU_HUDGFX);
+	kp_ranknobumpers =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
 
 	// Battle graphics
 	kp_battlewin = 				W_CachePatchName("K_BWIN", PU_HUDGFX);
@@ -4664,7 +4664,7 @@ static void K_drawKartPositionFaces(void)
 	INT32 rankplayer[MAXPLAYERS];
 	INT32 rankcolor[MAXPLAYERS];
 	INT32 myplayer;
-	INT32 balloonx;
+	INT32 bumperx;
 	UINT8 *colormap;
 	patch_t *localpatch = kp_facenull;
 
@@ -4704,7 +4704,7 @@ static void K_drawKartPositionFaces(void)
 		if (players[rankplayer[i]].spectator) continue; // Spectators are ignored
 		if (!players[rankplayer[i]].mo) continue;
 
-		balloonx = FACE_X+18;
+		bumperx = FACE_X+18;
 
 		if (rankcolor[i] == 0)
 		{
@@ -4712,24 +4712,24 @@ static void K_drawKartPositionFaces(void)
 			if (rankplayer[i] != myplayer)
 			{
 				V_DrawSmallTranslucentPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 					{
-						V_DrawSmallTranslucentPatch(balloonx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankballoon);
-						balloonx += 3;
+						V_DrawSmallTranslucentPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper);
+						bumperx += 3;
 					}
 				}
 			}
 			else
 			{
 				V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 					{
-						V_DrawSmallScaledPatch(balloonx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankballoon);
-						balloonx += 3;
+						V_DrawSmallScaledPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper);
+						bumperx += 3;
 					}
 				}
 			}
@@ -4749,24 +4749,24 @@ static void K_drawKartPositionFaces(void)
 			if (rankplayer[i] != myplayer)
 			{
 				V_DrawSmallTranslucentMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 					{
-						V_DrawSmallTranslucentMappedPatch(balloonx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankballoon, colormap);
-						balloonx += 3;
+						V_DrawSmallTranslucentMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
+						bumperx += 3;
 					}
 				}
 			}
 			else
 			{
 				V_DrawSmallMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_balloon] > 0)
+				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_balloon]; j++)
+					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 					{
-						V_DrawSmallMappedPatch(balloonx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankballoon, colormap);
-						balloonx += 3;
+						V_DrawSmallMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
+						bumperx += 3;
 					}
 				}
 			}
@@ -4784,15 +4784,15 @@ static void K_drawKartPositionFaces(void)
 
 		if (rankplayer[i] != myplayer)
 		{
-			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_balloon] <= 0)
-				V_DrawSmallTranslucentPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknoballoons);
+			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
+				V_DrawSmallTranslucentPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
 			else
 				V_DrawSmallTranslucentPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
 		}
 		else
 		{
-			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_balloon] <= 0)
-				V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknoballoons);
+			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
+				V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
 			else
 				V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
 		}
@@ -4847,38 +4847,38 @@ static void K_drawKartSpeedometer(void)
 	}
 }
 
-static void K_drawKartBalloonsOrKarma(void)
+static void K_drawKartBumpersOrKarma(void)
 {
 	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
 	if (splitscreen > 1)
 	{
-		if (stplyr->kartstuff[k_balloon] <= 0)
+		if (stplyr->kartstuff[k_bumper] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y-1, V_HUDTRANS|splitflags, kp_splitkarmabomb, colormap);
 			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
-			V_DrawMappedPatch(LAPS_X, LAPS_Y-1, V_HUDTRANS|splitflags, kp_rankballoon, colormap);
-			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
+			V_DrawMappedPatch(LAPS_X, LAPS_Y-1, V_HUDTRANS|splitflags, kp_rankbumper, colormap);
+			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
 		}
 	}
 	else
 	{
-		if (stplyr->kartstuff[k_balloon] <= 0)
+		if (stplyr->kartstuff[k_bumper] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_karmasticker, colormap);
 			V_DrawKartString(LAPS_X+59, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
-			if (stplyr->kartstuff[k_balloon] > 9 && cv_kartballoons.value > 9)
-				V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_balloonstickerwide, colormap);
+			if (stplyr->kartstuff[k_bumper] > 9 && cv_kartbumpers.value > 9)
+				V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_bumperstickerwide, colormap);
 			else
-				V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_balloonsticker, colormap);
-			V_DrawKartString(LAPS_X+47, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_balloon], cv_kartballoons.value));
+				V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_bumpersticker, colormap);
+			V_DrawKartString(LAPS_X+47, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
 		}
 	}
 }
@@ -5234,7 +5234,7 @@ static void K_drawKartMinimap(void)
 				continue;
 			}
 
-			if (G_BattleGametype() && players[i].kartstuff[k_balloon] <= 0)
+			if (G_BattleGametype() && players[i].kartstuff[k_bumper] <= 0)
 				continue;
 			if (players[i].kartstuff[k_hyudorotimer] > 0)
 			{
@@ -5298,12 +5298,12 @@ static void K_drawBattleFullscreen(void)
 	{
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen(0xFF00, 16);
-		if (stplyr->kartstuff[k_balloon])
+		if (stplyr->kartstuff[k_bumper])
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
 		else if (splitscreen < 2)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlelose, NULL);
 	}
-	else if (stplyr->kartstuff[k_balloon] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
+	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
 		INT32 t = stplyr->kartstuff[k_comebacktimer]/TICRATE;
 		INT32 txoff = 0;
@@ -5470,7 +5470,7 @@ void K_drawKartHUD(void)
 	// Draw full screen stuff that turns off the rest of the HUD
 	if ((G_BattleGametype())
 		&& (stplyr->exiting
-		|| (stplyr->kartstuff[k_balloon] <= 0
+		|| (stplyr->kartstuff[k_bumper] <= 0
 		&& stplyr->kartstuff[k_comebacktimer]
 		&& comeback
 		&& stplyr->playerstate == PST_LIVE)))
@@ -5533,7 +5533,7 @@ void K_drawKartHUD(void)
 		else if (G_BattleGametype()) // Battle-only
 		{
 			// Draw the hits left!
-			K_drawKartBalloonsOrKarma();
+			K_drawKartBumpersOrKarma();
 		}
 	}
 

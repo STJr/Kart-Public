@@ -599,7 +599,7 @@ typedef enum sprite
 	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
-	SPR_KBLN, // Battle Mode Balloon
+	SPR_KBLN, // Battle Mode Bumper
 
 	SPR_DEZL, // DEZ Laser respawn
 
@@ -3273,10 +3273,10 @@ typedef enum state
 	S_SINKTRAIL2,
 	S_SINKTRAIL3,
 
-	// Battle Mode balloons
-	S_BATTLEBALLOON1,
-	S_BATTLEBALLOON2,
-	S_BATTLEBALLOON3,
+	// Battle Mode bumpers
+	S_BATTLEBUMPER1,
+	S_BATTLEBUMPER2,
+	S_BATTLEBUMPER3,
 
 	// DEZ Laser respawn
 	S_DEZLASER,
@@ -3359,8 +3359,8 @@ typedef enum state
 	S_DOOD_BOX4,
 	S_DOOD_BOX5,
 
-	// D00Dkart - Diddy Kong Racing Balloon
-	S_DOOD_BALLOON,
+	// D00Dkart - Diddy Kong Racing Bumper
+	S_DOOD_BUMPER,
 
 	// Chaotix Big Ring
 	S_BIGRING01,
@@ -4035,7 +4035,7 @@ typedef enum mobj_type
 	MT_SINK, // Kitchen Sink Stuff
 	MT_SINKTRAIL,
 
-	MT_BATTLEBALLOON, // Battle Mode balloons
+	MT_BATTLEBUMPER, // Battle Mode bumpers
 
 	MT_DEZLASER,
 
@@ -4072,7 +4072,7 @@ typedef enum mobj_type
 	MT_DOOD_FLOWER3,
 	MT_DOOD_FLOWER4,
 	MT_DOOD_BOX,
-	MT_DOOD_BALLOON,
+	MT_DOOD_BUMPER,
 	MT_BIGRING,
 
 	MT_SNES_DONUTBUSH1,

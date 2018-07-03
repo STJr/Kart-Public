@@ -6592,7 +6592,7 @@ void P_MobjThinker(mobj_t *mobj)
 					INT32 HEIGHT;
 					fixed_t radius;
 
-					if (G_BattleGametype() && mobj->target->player->kartstuff[k_balloon] <= 0)
+					if (G_BattleGametype() && mobj->target->player->kartstuff[k_bumper] <= 0)
 						kartspeed = 1;
 
 					dsone = (26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight))*8;
@@ -6779,7 +6779,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 				}
 				break;
-			case MT_BATTLEBALLOON:
+			case MT_BATTLEBUMPER:
 				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -6792,10 +6792,10 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						ang = FixedAngle(mobj->info->speed);
 
-					if (mobj->target->player->kartstuff[k_balloon] <= 1)
+					if (mobj->target->player->kartstuff[k_bumper] <= 1)
 						diff = 0;
 					else
-						diff = FixedAngle(360*FRACUNIT/mobj->target->player->kartstuff[k_balloon]);
+						diff = FixedAngle(360*FRACUNIT/mobj->target->player->kartstuff[k_bumper]);
 
 					ang = (ang*leveltime) + (diff * (mobj->threshold-1));
 
@@ -6843,16 +6843,16 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (mobj->tracer && mobj->tracer->player && mobj->tracer->player->mo
 						&& mobj->tracer->player->health > 0 && !mobj->tracer->player->spectator) // STOLEN
-						mobj->color = mobj->tracer->player->skincolor; // don't do star flashing for stolen balloons
+						mobj->color = mobj->tracer->player->skincolor; // don't do star flashing for stolen bumpers
 					else
 						mobj->color = mobj->target->color; // but do so if it belongs to you :B
 
-					if (mobj->target->player->kartstuff[k_balloon] < 2)
-						P_SetMobjState(mobj, S_BATTLEBALLOON3);
-					else if (mobj->target->player->kartstuff[k_balloon] < 3)
-						P_SetMobjState(mobj, S_BATTLEBALLOON2);
+					if (mobj->target->player->kartstuff[k_bumper] < 2)
+						P_SetMobjState(mobj, S_BATTLEBUMPER3);
+					else if (mobj->target->player->kartstuff[k_bumper] < 3)
+						P_SetMobjState(mobj, S_BATTLEBUMPER2);
 					else
-						P_SetMobjState(mobj, S_BATTLEBALLOON1);
+						P_SetMobjState(mobj, S_BATTLEBUMPER1);
 
 					// Shrink your items if the player shrunk too.
 					mobj->scale = mobj->target->scale;
@@ -6867,7 +6867,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 
 					// Was this so hard?
-					if (mobj->target->player->kartstuff[k_balloon] <= mobj->threshold)
+					if (mobj->target->player->kartstuff[k_bumper] <= mobj->threshold)
 					{
 						P_RemoveMobj(mobj);
 						return;
@@ -6893,7 +6893,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (G_RaceGametype()
 						|| mobj->target->player == &players[displayplayer]
-						|| mobj->target->player->kartstuff[k_balloon] <= 0
+						|| mobj->target->player->kartstuff[k_bumper] <= 0
 						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW)
 #if 1 // Set to 0 to test without needing to host
 						|| !netgame
@@ -8179,7 +8179,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_KARMAHITBOX:
 			if (!mobj->target || !mobj->target->health || !mobj->target->player
-				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_balloon]))
+				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -9049,7 +9049,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_BIGMACE:		case MT_SMALLMACE:
 		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
-		case MT_BATTLEBALLOON:
+		case MT_BATTLEBUMPER:
 		case MT_BANANA:			case MT_BANANA_SHIELD:
 		case MT_FAKEITEM: 		case MT_FAKESHIELD:
 		case MT_GREENITEM:		case MT_GREENSHIELD:
@@ -9905,7 +9905,7 @@ void P_SpawnPlayer(INT32 playernum)
 			pcount++;
 		}*/
 
-		if (p->kartstuff[k_balloon] > 0 || leveltime < 1/* || pcount <= 1*/) 
+		if (p->kartstuff[k_bumper] > 0 || leveltime < 1/* || pcount <= 1*/) 
 		{
 			INT32 i;
 			angle_t newangle;
@@ -9915,20 +9915,20 @@ void P_SpawnPlayer(INT32 playernum)
 			mobj_t *mo;
 
 			if (leveltime < 1 && !p->spectator /*|| pcount <= 1*/) // Start of the map?
-				p->kartstuff[k_balloon] = cv_kartballoons.value; // Reset those balloons!
+				p->kartstuff[k_bumper] = cv_kartbumpers.value; // Reset those bumpers!
 
-			if (p->kartstuff[k_balloon] <= 1)
+			if (p->kartstuff[k_bumper] <= 1)
 				diff = 0;
 			else
-				diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_balloon]);
+				diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_bumper]);
 
 			newangle = mobj->angle;
 			newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
 			newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
 
-			for (i = 0; i < p->kartstuff[k_balloon]; i++)
+			for (i = 0; i < p->kartstuff[k_bumper]; i++)
 			{
-				mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBALLOON);
+				mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBUMPER);
 				mo->threshold = i;
 				P_SetTarget(&mo->target, mobj);
 				mo->angle = (diff * (i-1));
@@ -9939,7 +9939,7 @@ void P_SpawnPlayer(INT32 playernum)
 					mo->flags2 &= ~MF2_DONTDRAW;
 			}
 		}
-		else if (p->kartstuff[k_balloon] <= 0)
+		else if (p->kartstuff[k_bumper] <= 0)
 		{
 			mobj_t *karmahitbox = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_KARMAHITBOX); // Player hitbox is too small!!
 			P_SetTarget(&karmahitbox->target, mobj);

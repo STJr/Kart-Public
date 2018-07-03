@@ -121,7 +121,7 @@ extern consvar_t cv_kartminimap;
 extern consvar_t cv_kartcheck;
 extern consvar_t cv_kartinvinsfx;
 extern consvar_t cv_kartspeed;
-extern consvar_t cv_kartballoons;
+extern consvar_t cv_kartbumpers;
 extern consvar_t cv_kartfrantic;
 extern consvar_t cv_kartcomeback;
 extern consvar_t cv_kartmirror;

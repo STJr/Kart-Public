@@ -1633,11 +1633,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
 				|| thing->player->kartstuff[k_hyudorotimer] || thing->player->kartstuff[k_spinouttimer]
 				|| thing->player->kartstuff[k_invincibilitytimer] || thing->player->kartstuff[k_justbumped]
-				|| (G_BattleGametype() && thing->player->kartstuff[k_balloon] <= 0)
+				|| (G_BattleGametype() && thing->player->kartstuff[k_bumper] <= 0)
 				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
 				|| tmthing->player->kartstuff[k_hyudorotimer] || tmthing->player->kartstuff[k_spinouttimer]
 				|| tmthing->player->kartstuff[k_invincibilitytimer] || tmthing->player->kartstuff[k_justbumped]
-				|| (G_BattleGametype() && tmthing->player->kartstuff[k_balloon] <= 0))
+				|| (G_BattleGametype() && tmthing->player->kartstuff[k_bumper] <= 0))
 			{
 				return true;
 			}
@@ -1647,7 +1647,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				K_KartBouncing(tmthing, thing, true, false);
 				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
-					K_StealBalloon(tmthing->player, thing->player, false);
+					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, false);
 				}
 			}
@@ -1656,7 +1656,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				K_KartBouncing(thing, tmthing, true, false);
 				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
-					K_StealBalloon(thing->player, tmthing->player, false);
+					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, false);
 				}
 			}
@@ -1667,12 +1667,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			{
 				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
 				{
-					K_StealBalloon(thing->player, tmthing->player, false);
+					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, false);
 				}
 				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
 				{
-					K_StealBalloon(tmthing->player, thing->player, false);
+					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, false);
 				}
 			}
