@@ -4341,7 +4341,7 @@ static INT16 Consistancy(void)
 	{
 		if (!playeringame[i])
 			ret ^= 0xCCCC;
-		else if (!players[i].mo);
+		else if (!players[i].mo || gamestate != GS_LEVEL);
 		else
 		{
 			ret += players[i].mo->x;
@@ -4352,7 +4352,7 @@ static INT16 Consistancy(void)
 	}
 	// I give up
 	// Coop desynching enemies is painful
-	if (!G_RaceGametype())
+	if (!G_RaceGametype() && gamestate == GS_LEVEL)
 		ret += P_GetRandSeed();
 
 #ifdef MOBJCONSISTANCY
@@ -4361,70 +4361,73 @@ static INT16 Consistancy(void)
 		DEBFILE(va("Consistancy = %u\n", ret));
 		return ret;
 	}
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	if (gamestate == GS_LEVEL)
 	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo = (mobj_t *)th;
-
-		if (mo->flags & (MF_SPECIAL | MF_SOLID | MF_PUSHABLE | MF_BOSS | MF_MISSILE | MF_SPRING | MF_MONITOR | MF_FIRE | MF_ENEMY | MF_PAIN | MF_STICKY))
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
 		{
-			ret -= mo->type;
-			ret += mo->x;
-			ret -= mo->y;
-			ret += mo->z;
-			ret -= mo->momx;
-			ret += mo->momy;
-			ret -= mo->momz;
-			ret += mo->angle;
-			ret -= mo->flags;
-			ret += mo->flags2;
-			ret -= mo->eflags;
-			if (mo->target)
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+				continue;
+
+			mo = (mobj_t *)th;
+
+			if (mo->flags & (MF_SPECIAL | MF_SOLID | MF_PUSHABLE | MF_BOSS | MF_MISSILE | MF_SPRING | MF_MONITOR | MF_FIRE | MF_ENEMY | MF_PAIN | MF_STICKY))
 			{
-				ret += mo->target->type;
-				ret -= mo->target->x;
-				ret += mo->target->y;
-				ret -= mo->target->z;
-				ret += mo->target->momx;
-				ret -= mo->target->momy;
-				ret += mo->target->momz;
-				ret -= mo->target->angle;
-				ret += mo->target->flags;
-				ret -= mo->target->flags2;
-				ret += mo->target->eflags;
-				ret -= mo->target->state - states;
-				ret += mo->target->tics;
-				ret -= mo->target->sprite;
-				ret += mo->target->frame;
+				ret -= mo->type;
+				ret += mo->x;
+				ret -= mo->y;
+				ret += mo->z;
+				ret -= mo->momx;
+				ret += mo->momy;
+				ret -= mo->momz;
+				ret += mo->angle;
+				ret -= mo->flags;
+				ret += mo->flags2;
+				ret -= mo->eflags;
+				if (mo->target)
+				{
+					ret += mo->target->type;
+					ret -= mo->target->x;
+					ret += mo->target->y;
+					ret -= mo->target->z;
+					ret += mo->target->momx;
+					ret -= mo->target->momy;
+					ret += mo->target->momz;
+					ret -= mo->target->angle;
+					ret += mo->target->flags;
+					ret -= mo->target->flags2;
+					ret += mo->target->eflags;
+					ret -= mo->target->state - states;
+					ret += mo->target->tics;
+					ret -= mo->target->sprite;
+					ret += mo->target->frame;
+				}
+				else
+					ret ^= 0x3333;
+				if (mo->tracer && mo->tracer->type != MT_OVERLAY)
+				{
+					ret += mo->tracer->type;
+					ret -= mo->tracer->x;
+					ret += mo->tracer->y;
+					ret -= mo->tracer->z;
+					ret += mo->tracer->momx;
+					ret -= mo->tracer->momy;
+					ret += mo->tracer->momz;
+					ret -= mo->tracer->angle;
+					ret += mo->tracer->flags;
+					ret -= mo->tracer->flags2;
+					ret += mo->tracer->eflags;
+					ret -= mo->tracer->state - states;
+					ret += mo->tracer->tics;
+					ret -= mo->tracer->sprite;
+					ret += mo->tracer->frame;
+				}
+				else
+					ret ^= 0xAAAA;
+				ret -= mo->state - states;
+				ret += mo->tics;
+				ret -= mo->sprite;
+				ret += mo->frame;
 			}
-			else
-				ret ^= 0x3333;
-			if (mo->tracer && mo->tracer->type != MT_OVERLAY)
-			{
-				ret += mo->tracer->type;
-				ret -= mo->tracer->x;
-				ret += mo->tracer->y;
-				ret -= mo->tracer->z;
-				ret += mo->tracer->momx;
-				ret -= mo->tracer->momy;
-				ret += mo->tracer->momz;
-				ret -= mo->tracer->angle;
-				ret += mo->tracer->flags;
-				ret -= mo->tracer->flags2;
-				ret += mo->tracer->eflags;
-				ret -= mo->tracer->state - states;
-				ret += mo->tracer->tics;
-				ret -= mo->tracer->sprite;
-				ret += mo->tracer->frame;
-			}
-			else
-				ret ^= 0xAAAA;
-			ret -= mo->state - states;
-			ret += mo->tics;
-			ret -= mo->sprite;
-			ret += mo->frame;
 		}
 	}
 #endif
