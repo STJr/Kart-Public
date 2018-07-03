@@ -3360,7 +3360,7 @@ typedef enum state
 	S_DOOD_BOX5,
 
 	// D00Dkart - Diddy Kong Racing Bumper
-	S_DOOD_BUMPER,
+	S_DOOD_BALLOON,
 
 	// Chaotix Big Ring
 	S_BIGRING01,
@@ -4072,7 +4072,7 @@ typedef enum mobj_type
 	MT_DOOD_FLOWER3,
 	MT_DOOD_FLOWER4,
 	MT_DOOD_BOX,
-	MT_DOOD_BUMPER,
+	MT_DOOD_BALLOON,
 	MT_BIGRING,
 
 	MT_SNES_DONUTBUSH1,

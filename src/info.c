@@ -2833,7 +2833,7 @@ state_t states[NUMSTATES] =
 	{SPR_DOOD,  9, 2, {NULL}, 0, 0, S_DOOD_BOX5}, // S_DOOD_BOX4
 	{SPR_DOOD, 10, 2, {NULL}, 0, 0, S_DOOD_BOX1}, // S_DOOD_BOX5
 
-	{SPR_DOOD, 11, -1, {NULL}, 0, 0, S_NULL}, // S_DOOD_BUMPER
+	{SPR_DOOD, 11, -1, {NULL}, 0, 0, S_NULL}, // S_DOOD_BALLOON
 
 	{SPR_BRNG, 0, 2, {NULL}, 0, 0, S_BIGRING02}, // S_BIGRING01
 	{SPR_BRNG, 1, 2, {NULL}, 0, 0, S_BIGRING03}, // S_BIGRING02
@@ -15866,9 +15866,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_DOOD_BUMPER
+	{           // MT_DOOD_BALLOON
 		2807,           // doomednum
-		S_DOOD_BUMPER, // spawnstate
+		S_DOOD_BALLOON, // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
