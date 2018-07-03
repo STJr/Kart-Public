@@ -1347,7 +1347,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 70},
 	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 80},
 
-	{IT_STRING|IT_CVAR,			NULL, "Powerup warning",		&cv_kartinvinsfx,		100},
+	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		100},
 
 	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		120},
 };
@@ -1450,10 +1450,10 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max Player Count",				&cv_maxplayers,			 80},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",		&cv_allownewplayer,		 90},
-	{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		100},
+	//{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		100},
 
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",		&cv_downloading,		120},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",			&cv_resynchattempts,	130},
+	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",		&cv_downloading,		100},
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",			&cv_resynchattempts,	110},
 #endif
 };
 

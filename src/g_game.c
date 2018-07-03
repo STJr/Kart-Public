@@ -1161,7 +1161,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
-	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, analogjoystickmove, gamepadjoystickmove, kbl, rd;
+	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, usejoystick, analogjoystickmove, gamepadjoystickmove, kbl, rd;
 	player_t *player;
 	camera_t *thiscam;
 	angle_t lang;
@@ -1258,6 +1258,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			break;
 	}
 
+	usejoystick = (analogjoystickmove || gamepadjoystickmove);
 	turnright = InputDown(gc_turnright, ssplayer);
 	turnleft = InputDown(gc_turnleft, ssplayer);
 
@@ -1334,14 +1335,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
 	{
-		if (InputDown(gc_accelerate, ssplayer) || (cv_usejoystick.value && axis > 0))
+		if (InputDown(gc_accelerate, ssplayer) || (usejoystick && axis > 0))
 			cmd->buttons |= BT_ACCELERATE;
-		if (InputDown(gc_brake, ssplayer) || (cv_usejoystick.value && axis > 0))
+		if (InputDown(gc_brake, ssplayer) || (usejoystick && axis > 0))
 			cmd->buttons |= BT_BRAKE;
 		axis = JoyAxis(AXISAIM, ssplayer);
-		if (InputDown(gc_aimforward, ssplayer) || (gamepadjoystickmove && axis < 0) || (analogjoystickmove && axis < 0))
+		if (InputDown(gc_aimforward, ssplayer) || (usejoystick && axis < 0))
 			forward += forwardmove[1];
-		if (InputDown(gc_aimbackward, ssplayer) || (gamepadjoystickmove && axis > 0) || (analogjoystickmove && axis > 0))
+		if (InputDown(gc_aimbackward, ssplayer) || (usejoystick && axis > 0))
 			forward -= forwardmove[1];
 	}
 	else
@@ -1377,20 +1378,20 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 		// But forward/backward IS used for aiming.
 		axis = JoyAxis(AXISAIM, ssplayer);
-		if (InputDown(gc_aimforward, ssplayer) || (cv_usejoystick.value && axis < 0))
+		if (InputDown(gc_aimforward, ssplayer) || (usejoystick && axis < 0))
 			cmd->buttons |= BT_FORWARD;
-		if (InputDown(gc_aimbackward, ssplayer) || (cv_usejoystick.value && axis > 0))
+		if (InputDown(gc_aimbackward, ssplayer) || (usejoystick && axis > 0))
 			cmd->buttons |= BT_BACKWARD;
 	}
 
 	// fire with any button/key
 	axis = JoyAxis(AXISFIRE, ssplayer);
-	if (InputDown(gc_fire, ssplayer) || (cv_usejoystick.value && axis > 0))
+	if (InputDown(gc_fire, ssplayer) || (usejoystick && axis > 0))
 		cmd->buttons |= BT_ATTACK;
 
 	// drift with any button/key
 	axis = JoyAxis(AXISDRIFT, ssplayer);
-	if (InputDown(gc_drift, ssplayer) || (cv_usejoystick.value && axis > 0))
+	if (InputDown(gc_drift, ssplayer) || (usejoystick && axis > 0))
 		cmd->buttons |= BT_DRIFT;
 
 	// Lua scriptable buttons
