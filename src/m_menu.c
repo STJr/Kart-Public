@@ -1216,13 +1216,14 @@ static menuitem_t OP_Joystick4Menu[] =
 
 static menuitem_t OP_JoystickSetMenu[] =
 {
-	{IT_CALL | IT_NOTHING, "None", NULL, M_AssignJoystick, '0'},
-	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, '1'},
-	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, '2'},
-	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, '3'},
-	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, '4'},
-	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, '5'},
-	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, '6'},
+	{IT_CALL | IT_NOTHING, "None", NULL, M_AssignJoystick, LINEHEIGHT+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*2)+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*3)+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*4)+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*5)+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*6)+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*7)+5},
+	{IT_CALL | IT_NOTHING, "", NULL, M_AssignJoystick, (LINEHEIGHT*8)+5},
 };
 
 /*static menuitem_t OP_MouseOptionsMenu[] =
@@ -7586,7 +7587,7 @@ static void M_DrawJoystick(void)
 
 	M_DrawGenericMenu();
 
-	for (i = 0;i < 8; i++)
+	for (i = 0; i < 8; i++)
 	{
 		M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
