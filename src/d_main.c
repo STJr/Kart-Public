@@ -369,6 +369,7 @@ static void D_Display(void)
 
 		case GS_EVALUATION:
 			F_GameEvaluationDrawer();
+			HU_Erase();
 			HU_Drawer();
 			break;
 
@@ -390,6 +391,7 @@ static void D_Display(void)
 			// The clientconnect drawer is independent...
 			// I don't think HOM from nothing drawing is independent...
 			F_WaitingPlayersDrawer();
+			HU_Erase();
 			HU_Drawer();
 		case GS_DEDICATEDSERVER:
 		case GS_NULL:

@@ -6960,7 +6960,7 @@ Update the maxplayers label...
 	V_DrawString(x+8,y+12, V_MONOSPACE, setupm_ip);
 
 	// draw text cursor for name
-	if (itemOn == 5 //0
+	if (itemOn == 7
 	    && skullAnimCounter < 4)   //blink cursor
 		V_DrawCharacter(x+8+V_StringWidth(setupm_ip, V_MONOSPACE),y+12,'_',false);
 #endif
