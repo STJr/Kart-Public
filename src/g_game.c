@@ -1905,7 +1905,7 @@ boolean G_Responder(event_t *ev)
 	else if (gamestate == GS_GAMEEND || gamestate == GS_EVALUATION || gamestate == GS_CREDITS)
 		return true;
 
-	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
+	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
 
@@ -2162,6 +2162,7 @@ void G_Ticker(boolean run)
 			break;
 		case GS_WAITINGPLAYERS:
 			F_WaitingPlayersTicker();
+			HU_Ticker();
 			break;
 
 		case GS_DEDICATEDSERVER:
