@@ -246,7 +246,7 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 		{224, 225, 226, 228, 229, 231, 232, 234, 235, 237, 238, 240, 241, 243, 244, 246}, // SKINCOLOR_SAPPHIRE, removed for other colors
 		{160, 160, 160, 184, 184, 184, 185, 185, 185, 186, 187, 187, 188, 188, 189, 190}, // SKINCOLOR_JADE, removed for other colors
 		{224, 225, 226, 212, 213, 213, 214, 215, 220, 221, 172, 222, 173, 223, 174, 175}, // SKINCOLOR_FROST, merged into Aqua
-		{ 72,  73,  74,  75,  76,  77,  78,  79,  48,  49,  50,  51,  52,  53,  54,  55}, // SKINCOLOR_CARAMEL, new Caramel was previously Shiny Caramel 
+		{ 72,  73,  74,  75,  76,  77,  78,  79,  48,  49,  50,  51,  52,  53,  54,  55}, // SKINCOLOR_CARAMEL, new Caramel was previously Shiny Caramel
 		{  1, 145, 125,  73,  83, 114, 106, 180, 187, 168, 219, 205, 236, 206, 199, 255}, // SKINCOLOR_RAINBOW, is Vomit 2.0
 	*/
 };
@@ -851,7 +851,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
 		else if (pdis <= 0)								// (64*14) *  0 =     0
-			useodds = disttable[0];	
+			useodds = disttable[0];
 		else if (pdis > distvar * ((12 * distlen) / 14))	// (64*14) * 12 = 10752
 			useodds = disttable[distlen-1];
 		else
@@ -1241,6 +1241,26 @@ void K_KartMoveAnimation(player_t *player)
 	}
 }
 
+static void K_TauntVoiceTimers(player_t *player)
+{
+	if (!player)
+		return;
+
+	player->kartstuff[k_tauntvoices] = 6*TICRATE;
+	player->kartstuff[k_voices] = 4*TICRATE;
+}
+
+static void K_RegularVoiceTimers(player_t *player)
+{
+	if (!player)
+		return;
+
+	player->kartstuff[k_voices] = 4*TICRATE;
+
+	if (player->kartstuff[k_tauntvoices] < 4*TICRATE)
+		player->kartstuff[k_tauntvoices] = 4*TICRATE;
+}
+
 static void K_PlayTauntSound(mobj_t *source)
 {
 	if (source->player && source->player->kartstuff[k_tauntvoices]) // Prevents taunt sounds from playing every time the button is pressed
@@ -1248,11 +1268,7 @@ static void K_PlayTauntSound(mobj_t *source)
 
 	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
 
-	if (source->player)
-	{
-		source->player->kartstuff[k_tauntvoices] = 6*TICRATE;
-		source->player->kartstuff[k_voices] = 3*TICRATE;
-	}
+	K_TauntVoiceTimers(source->player);
 }
 
 static void K_PlayOvertakeSound(mobj_t *source)
@@ -1269,26 +1285,14 @@ static void K_PlayOvertakeSound(mobj_t *source)
 
 	S_StartSound(source, sfx_slow);
 
-	if (source->player)
-	{
-		source->player->kartstuff[k_voices] = 3*TICRATE;
-
-		if (source->player->kartstuff[k_tauntvoices] < 3*TICRATE)
-			source->player->kartstuff[k_tauntvoices] = 3*TICRATE;
-	}
+	K_RegularVoiceTimers(source->player);
 }
 
 static void K_PlayHitEmSound(mobj_t *source)
 {
 	S_StartSound(source, sfx_hitem);
 
-	if (source->player)
-	{
-		source->player->kartstuff[k_voices] = 3*TICRATE;
-
-		if (source->player->kartstuff[k_tauntvoices] < 3*TICRATE)
-			source->player->kartstuff[k_tauntvoices] = 3*TICRATE;
-	}
+	K_RegularVoiceTimers(source->player);
 }
 
 void K_MomentumToFacing(player_t *player)
@@ -1496,9 +1500,9 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
-				if (K_IsPlayerWanted(player))
-					K_CalculateBattleWanted();
 			}
+			if (K_IsPlayerWanted(player))
+				K_CalculateBattleWanted();
 			player->kartstuff[k_bumper]--;
 		}
 
@@ -1563,9 +1567,9 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
-				if (K_IsPlayerWanted(player))
-					K_CalculateBattleWanted();
 			}
+			if (K_IsPlayerWanted(player))
+				K_CalculateBattleWanted();
 			player->kartstuff[k_bumper]--;
 		}
 
@@ -1624,9 +1628,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
-				if (K_IsPlayerWanted(player))
-					K_CalculateBattleWanted();
 			}
+			if (K_IsPlayerWanted(player))
+				K_CalculateBattleWanted();
 			player->kartstuff[k_bumper]--;
 		}
 
@@ -2139,7 +2143,7 @@ static mobj_t *K_FindLastTrailMobj(player_t *player)
 
 	if (!player || !(trail = player->mo) || !player->mo->hnext || !player->mo->hnext->health)
 		return NULL;
-	
+
 	while (trail->hnext && !P_MobjWasRemoved(trail->hnext) && trail->hnext->health)
 	{
 		trail = trail->hnext;
@@ -3263,8 +3267,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	if (!player->exiting)
 	{
-		if (player->kartstuff[k_oldposition] <= player->kartstuff[k_position]) // But first, if you lost a place,
+		if (player->kartstuff[k_oldposition] < player->kartstuff[k_position]) // But first, if you lost a place,
+		{
 			player->kartstuff[k_oldposition] = player->kartstuff[k_position]; // then the other player taunts.
+			K_RegularVoiceTimers(player); // and you can't for a bit
+		}
 		else if (player->kartstuff[k_oldposition] > player->kartstuff[k_position]) // Otherwise,
 		{
 			K_PlayOvertakeSound(player->mo); // Say "YOU'RE TOO SLOW!"
@@ -3275,13 +3282,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (player->kartstuff[k_positiondelay])
 		player->kartstuff[k_positiondelay]--;
 
-	// Race Spectator
-	if (netgame && player->jointime < 1
-	&& G_RaceGametype() && countdown)
-	{
-		player->spectator = true;
-		player->powers[pw_nocontrol] = 5;
-	}
+	// Race force spectate
+	if (player->spectator && netgame && G_RaceGametype() && P_FindHighestLap() > 0)
+		player->powers[pw_flashing] = 5;
 
 	if ((player->pflags & PF_ATTACKDOWN) && !(cmd->buttons & BT_ATTACK))
 		player->pflags &= ~PF_ATTACKDOWN;
@@ -3786,7 +3789,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	// Start charging once you're given the opportunity.
 	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime)
-	{	
+	{
 		if (cmd->buttons & BT_ACCELERATE)
 			player->kartstuff[k_boostcharge]++;
 		else
@@ -3809,7 +3812,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				if (player->kartstuff[k_sneakertimer] >= 70)
 					S_StartSound(player->mo, sfx_s25f); // Special sound for the perfect start boost!
 				else if (player->kartstuff[k_sneakertimer] >= sneakertime)
-					S_StartSound(player->mo, sfx_cdfm01); // Sneaker boost sound for big boost 
+					S_StartSound(player->mo, sfx_cdfm01); // Sneaker boost sound for big boost
 				else
 					S_StartSound(player->mo, sfx_s23c); // Drift boost sound for small boost
 			}
@@ -3842,6 +3845,8 @@ void K_CalculateBattleWanted(void)
 			battlewanted[i] = -1;
 		return;
 	}
+
+	wantedcalcdelay = wantedfrequency;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		camppos[i] = -1; // initialize
@@ -4491,7 +4496,7 @@ static void K_drawKartItem(void)
 		{
 			V_DrawScaledPatch(ITEM_X+28, ITEM_Y+41, V_HUDTRANS|splitflags, kp_itemx);
 			V_DrawKartString(ITEM_X+38, ITEM_Y+36, V_HUDTRANS|splitflags, va("%d", stplyr->kartstuff[k_itemamount]));
-		}	
+		}
 	}
 	else
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);

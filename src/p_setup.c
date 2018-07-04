@@ -3009,6 +3009,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	for (i = 0; i < 4; i++)
 		battlewanted[i] = -1;
 
+	wantedcalcdelay = wantedfrequency*2;
 	indirectitemcooldown = 0;
 	spbincoming = 0;
 	spbplayer = 0;

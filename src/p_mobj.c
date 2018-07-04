@@ -6940,7 +6940,7 @@ void P_MobjThinker(mobj_t *mobj)
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
 							mobj->tracer->sprite = SPR_ITEM;
-							mobj->tracer->frame = FF_FULLBRIGHT|((mobj->target->player->kartstuff[k_itemroulette] % (13*3)) / 3);
+							mobj->tracer->frame = FF_FULLBRIGHT|(((mobj->target->player->kartstuff[k_itemroulette] % (13*3)) / 3) + 1);
 						}
 						else if (mobj->target->player->kartstuff[k_itemtype])
 						{
@@ -6962,9 +6962,11 @@ void P_MobjThinker(mobj_t *mobj)
 									break;
 							}
 
-							if (mobj->target->player->kartstuff[k_growshrinktimer])
+							if (mobj->target->player->kartstuff[k_growshrinktimer] > 0)
 							{
+								mobj->tracer->sprite = SPR_ITEM;
 								mobj->tracer->frame = FF_FULLBRIGHT|KITEM_GROW;
+
 								if (leveltime & 1)
 									mobj->tracer->flags2 |= MF2_DONTDRAW;
 								else
@@ -8178,7 +8180,7 @@ void P_MobjThinker(mobj_t *mobj)
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_KARMAHITBOX:
-			if (!mobj->target || !mobj->target->health || !mobj->target->player
+			if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
 				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
 			{
 				P_RemoveMobj(mobj);
@@ -9797,24 +9799,27 @@ void P_RespawnSpecials(void)
 //
 void P_SpawnPlayer(INT32 playernum)
 {
+	UINT8 i, pcount = 0;
 	player_t *p = &players[playernum];
 	mobj_t *mobj;
 
 	if (p->playerstate == PST_REBORN)
 		G_PlayerReborn(playernum);
 
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (i == playernum)
+			continue;
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		pcount++;
+	}
+
 	// spawn as spectator determination
 	if (!G_GametypeHasSpectators())
-	{
-		// Special case for (NiGHTS) special stages!
-		// if stage has already started, force players to become spectators until the next stage
-		/*if (multiplayer && netgame && G_IsSpecialStage(gamemap) && useNightsSS && leveltime > 0)
-			p->spectator = true;
-		else*/
-			p->spectator = false;
-	}
-	else if (netgame && p->jointime < 1)
-		/*p->spectator = true*/;
+		p->spectator = false;
+	else if (netgame && p->jointime <= 1 && pcount > 1)
+		p->spectator = true;
 	else if (multiplayer && !netgame)
 	{
 		// If you're in a team game and you don't have a team assigned yet...
@@ -9893,19 +9898,10 @@ void P_SpawnPlayer(INT32 playernum)
 		overheadarrow->flags2 |= MF2_DONTDRAW;
 		P_SetScale(overheadarrow, mobj->destscale);
 
-		/*INT32 i;
-		INT32 pcount = 0;
-
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || players[i].spectator || &players[i] == p)
-				continue;
-			if (players[i].jointime > 1)
-				continue;
-			pcount++;
-		}*/
-
-		if (p->kartstuff[k_bumper] > 0 || leveltime < 1/* || pcount <= 1*/) 
+		if (p->spectator) // HEY! No being cheap...
+			p->kartstuff[k_bumper] = 0;
+		else if (p->kartstuff[k_bumper] > 0 || leveltime < 1
+			|| (p->jointime <= 1 && pcount <= 1))
 		{
 			INT32 i;
 			angle_t newangle;
@@ -9913,8 +9909,8 @@ void P_SpawnPlayer(INT32 playernum)
 			fixed_t newx;
 			fixed_t newy;
 			mobj_t *mo;
-
-			if (leveltime < 1 && !p->spectator /*|| pcount <= 1*/) // Start of the map?
+			
+			if (leveltime < 1 || (p->jointime <= 1 && pcount <= 1)) // Start of the map?
 				p->kartstuff[k_bumper] = cv_kartbumpers.value; // Reset those bumpers!
 
 			if (p->kartstuff[k_bumper] <= 1)

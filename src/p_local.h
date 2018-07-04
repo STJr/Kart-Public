@@ -183,6 +183,7 @@ boolean P_AnalogMove(player_t *player);
 boolean P_TransferToNextMare(player_t *player);
 UINT8 P_FindLowestMare(void);
 UINT8 P_FindLowestLap(void);
+UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
 void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);

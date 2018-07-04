@@ -528,6 +528,7 @@ static const char *credits[] = {
 	"\"Nev3r\"",
 	"\"Ritz\"",
 	"\"Spherallic\"",
+	"\"DirkTheHusky\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",

@@ -677,9 +677,6 @@ void P_Ticker(boolean run)
 		if (countdown2)
 			countdown2--;
 
-		if (G_BattleGametype() && leveltime % wantedfrequency == 0 && leveltime > wantedfrequency)
-			K_CalculateBattleWanted();
-
 		if (spbincoming && --spbincoming <= 0)
 		{
 			UINT8 best = 0;
@@ -714,6 +711,12 @@ void P_Ticker(boolean run)
 
 		if (indirectitemcooldown)
 			indirectitemcooldown--;
+
+		if (G_BattleGametype())
+		{
+			if (wantedcalcdelay && --wantedcalcdelay <= 0)
+				K_CalculateBattleWanted();
+		}
 
 		if (quake.time)
 		{

@@ -407,6 +407,31 @@ UINT8 P_FindLowestLap(void)
 }
 
 //
+// P_FindHighestLap
+//
+UINT8 P_FindHighestLap(void)
+{
+	INT32 i;
+	UINT8 highest = 0;
+
+	if (!G_RaceGametype())
+		return 0;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+
+		if (players[i].laps > highest)
+			highest = players[i].laps;
+	}
+
+	CONS_Debug(DBG_GAMELOGIC, "Highest laps found: %d\n", highest);
+
+	return highest;
+}
+
+//
 // P_TransferToNextMare
 //
 // Transfers the player to the next Mare.

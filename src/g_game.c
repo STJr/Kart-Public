@@ -258,6 +258,7 @@ SINT8 pickedvote; // What vote the host rolls
 
 // Server-sided variables
 SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
+tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
 tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
 UINT8 spbplayer; // Player num that used the last SPB
