@@ -1255,7 +1255,7 @@ static void K_RegularVoiceTimers(player_t *player)
 	if (!player)
 		return;
 
-	player->kartstuff[k_voices] = 3*TICRATE;
+	player->kartstuff[k_voices] = 4*TICRATE;
 
 	if (player->kartstuff[k_tauntvoices] < 4*TICRATE)
 		player->kartstuff[k_tauntvoices] = 4*TICRATE;
