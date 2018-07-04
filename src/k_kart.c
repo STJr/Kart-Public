@@ -1496,9 +1496,9 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
-				if (K_IsPlayerWanted(player))
-					K_CalculateBattleWanted();
 			}
+			if (K_IsPlayerWanted(player))
+				K_CalculateBattleWanted();
 			player->kartstuff[k_bumper]--;
 		}
 
@@ -1563,9 +1563,9 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
-				if (K_IsPlayerWanted(player))
-					K_CalculateBattleWanted();
 			}
+			if (K_IsPlayerWanted(player))
+				K_CalculateBattleWanted();
 			player->kartstuff[k_bumper]--;
 		}
 
@@ -1624,9 +1624,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				karmahitbox->destscale = player->mo->scale;
 				P_SetScale(karmahitbox, player->mo->scale);
 				CONS_Printf(M_GetText("%s lost all of their bumpers!\n"), player_names[player-players]);
-				if (K_IsPlayerWanted(player))
-					K_CalculateBattleWanted();
 			}
+			if (K_IsPlayerWanted(player))
+				K_CalculateBattleWanted();
 			player->kartstuff[k_bumper]--;
 		}
 
@@ -3275,13 +3275,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (player->kartstuff[k_positiondelay])
 		player->kartstuff[k_positiondelay]--;
 
-	// Race Spectator
-	if (netgame && player->jointime < 1
-	&& G_RaceGametype() && countdown)
-	{
-		player->spectator = true;
-		player->powers[pw_nocontrol] = 5;
-	}
+	// Race force spectate
+	if (player->spectator && netgame && G_RaceGametype() && P_FindHighestLap() > 0)
+		player->powers[pw_flashing] = 5;
 
 	if ((player->pflags & PF_ATTACKDOWN) && !(cmd->buttons & BT_ATTACK))
 		player->pflags &= ~PF_ATTACKDOWN;
@@ -3842,6 +3838,8 @@ void K_CalculateBattleWanted(void)
 			battlewanted[i] = -1;
 		return;
 	}
+
+	wantedcalcdelay = wantedfrequency;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		camppos[i] = -1; // initialize
