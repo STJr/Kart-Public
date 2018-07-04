@@ -1318,6 +1318,9 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 		&& player->kartstuff[k_offroad] >= 0 && speed)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
+	if (player->kartstuff[k_bananadrag] > TICRATE) // Avoid making x10 banana a hassle to use
+		boostpower = 4*boostpower/5;
+
 	if (player->kartstuff[k_growshrinktimer] > 0)
 	{												// Grow
 		if (speed)
@@ -2569,7 +2572,10 @@ static void K_MoveHeldObjects(player_t *player)
 		return;
 
 	if (!player->mo->hnext)
+	{
+		player->kartstuff[k_bananadrag] = 0;
 		return;
+	}
 
 	switch (player->mo->hnext->type)
 	{
@@ -2577,6 +2583,8 @@ static void K_MoveHeldObjects(player_t *player)
 		case MT_JAWZ_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
+
+				player->kartstuff[k_bananadrag] = 0; // Just to make sure
 
 				while (cur && !P_MobjWasRemoved(cur))
 				{
@@ -2641,6 +2649,8 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
 
+				player->kartstuff[k_bananadrag]++;
+
 				while (cur && !P_MobjWasRemoved(cur))
 				{
 					const fixed_t radius = FixedHypot(targ->radius, targ->radius) + FixedHypot(cur->radius, cur->radius);
@@ -2679,7 +2689,7 @@ static void K_MoveHeldObjects(player_t *player)
 					if (speed > dist)
 						P_InstaThrust(cur, cur->angle, speed-dist);
 
-					P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 3*FRACUNIT/4) - gravity, false);
+					P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 7*FRACUNIT/8) - gravity, false);
 
 					if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
 						P_TeleportMove(cur, targx, targy, cur->z);
@@ -3217,7 +3227,7 @@ static void K_KartUpdatePosition(player_t *player)
 		oldposition = position;
 
 	if (oldposition != position) // Changed places?
-		player->kartstuff[k_positiondelay] = 10; // and set up the timer.
+		player->kartstuff[k_positiondelay] = 10; // Position number growth
 
 	player->kartstuff[k_position] = position;
 }

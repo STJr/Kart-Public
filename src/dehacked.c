@@ -7615,6 +7615,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"INVINCIBILITYTIMER",
 	"DEATHSENTENCE",
 	"EGGMANHELD",
+	"BANANADRAG",
 	"SPINOUTTIMER",
 	"JUSTBUMPED",
 	"COMEBACKTIMER",
@@ -7624,6 +7625,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"BUMPER",
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
+	"WANTED",
 };
 
 static const char *const HUDITEMS_LIST[] = {

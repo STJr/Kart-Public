@@ -269,7 +269,7 @@ typedef enum
 	// Basic gameplay things
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
 	k_oldposition,		// Used for taunting when you pass someone
-	k_positiondelay,	// Prevents player from taunting continuously if two people were neck-and-neck
+	k_positiondelay,	// Used for position number, so it can grow when passing/being passed
 	k_prevcheck,		// Previous checkpoint distance; for p_user.c (was "pw_pcd")
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
@@ -315,6 +315,7 @@ typedef enum
 	k_invincibilitytimer,	// Invincibility timer
 	k_deathsentence,		// 30 seconds to live... (SPB murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
+	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_justbumped,			// Prevent players from endlessly bumping into each other
 	k_comebacktimer,		// Battle mode, how long before you become a bomb after death

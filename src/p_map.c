@@ -178,12 +178,12 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 	}
 
 	if (vertispeed)
-		object->momz = FixedMul(vertispeed,FixedSqrt(FixedMul(object->scale, spring->scale)));
+		object->momz = FixedMul(vertispeed,FixedSqrt(FixedMul(mapheaderinfo[gamemap-1]->mobj_scale, spring->scale)));
 
 	if (horizspeed)
 	{
 		if (!object->player)
-			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(object->scale, spring->scale))));
+			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(mapheaderinfo[gamemap-1]->mobj_scale, spring->scale))));
 		else
 		{
 			fixed_t finalSpeed = horizspeed;
@@ -192,7 +192,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			if (pSpeed > finalSpeed)
 				finalSpeed = pSpeed;
 
-			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(finalSpeed,FixedSqrt(FixedMul(object->scale, spring->scale))));
+			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(finalSpeed,FixedSqrt(FixedMul(mapheaderinfo[gamemap-1]->mobj_scale, spring->scale))));
 		}
 	}
 
