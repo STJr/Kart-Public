@@ -296,15 +296,15 @@ static void D_Display(void)
 	{
 		// set for all later
 		wipedefindex = gamestate; // wipe_xxx_toblack
-		if (gamestate == GS_INTERMISSION)
+		if (gamestate == GS_TITLESCREEN && wipegamestate != GS_INTRO)
+			wipedefindex = wipe_multinter_toblack;
+		else if (gamestate == GS_INTERMISSION)
 		{
 			if (intertype == int_spec) // Special Stage
 				wipedefindex = wipe_specinter_toblack;
 			else //if (intertype != int_coop) // Multiplayer
 				wipedefindex = wipe_multinter_toblack;
 		}
-		else if (gamestate == GS_VOTING)
-			wipedefindex = wipe_multinter_toblack;
 
 		if (rendermode != render_none)
 		{
@@ -385,6 +385,8 @@ static void D_Display(void)
 
 		case GS_TITLESCREEN:
 			F_TitleScreenDrawer();
+			if (wipe)
+				wipedefindex = wipe_titlescreen_toblack;
 			break;
 
 		case GS_WAITINGPLAYERS:

@@ -2253,7 +2253,7 @@ void Y_VoteDrawer(void)
 			if (!timer && i == voteclient.ranim)
 			{
 				V_DrawScaledPatch(x-18, y+9, V_SNAPTOLEFT, cursor);
-				if (!(votetic % 4))
+				if (voteendtic != -1 && !(votetic % 4))
 					V_DrawFill(x-1, y-1, 42, 27, 120|V_SNAPTOLEFT);
 				else
 					V_DrawFill(x-1, y-1, 42, 27, levelinfo[votes[i]].gtc|V_SNAPTOLEFT);
