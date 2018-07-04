@@ -3182,6 +3182,14 @@ static void readwipes(MYFILE *f)
 				else if (fastcmp(pword, "FINAL"))
 					wipeoffset = wipe_specinter_final;
 			}
+			else if (fastncmp(word, "VOTING_", 10))
+			{
+				pword = word + 10;
+				if (fastcmp(pword, "TOBLACK"))
+					wipeoffset = wipe_specinter_toblack;
+				else if (fastcmp(pword, "FINAL"))
+					wipeoffset = wipe_specinter_final;
+			}
 			else if (fastncmp(word, "MULTINTER_", 10))
 			{
 				pword = word + 10;

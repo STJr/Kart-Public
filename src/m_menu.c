@@ -241,6 +241,7 @@ menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef;
 // Single Player
 //static void M_LoadGame(INT32 choice);
 static void M_TimeAttack(INT32 choice);
+static boolean M_QuitTimeAttackMenu(void);
 //static void M_NightsAttack(INT32 choice);
 static void M_Statistics(INT32 choice);
 static void M_HandleStaffReplay(INT32 choice);
@@ -1684,7 +1685,7 @@ static menu_t SP_TimeAttackDef =
 	M_DrawTimeAttackMenu,
 	34, 40,
 	0,
-	NULL
+	M_QuitTimeAttackMenu
 };
 static menu_t SP_ReplayDef =
 {
@@ -3784,20 +3785,21 @@ static void M_PatchSkinNameTable(void)
 		if (skins[j].name[0] != '\0')
 		{
 			skins_cons_t[j].strvalue = skins[j].name;
-			skins_cons_t[j].value = j+1;
+			skins_cons_t[j].value = j;
 		}
 		else
 		{
 			skins_cons_t[j].strvalue = NULL;
 			skins_cons_t[j].value = 0;
+			break;
 		}
 	}
 
-	CV_SetValue(&cv_chooseskin, cv_chooseskin.value); // This causes crash sometimes?!
+	j = R_SkinAvailable(cv_skin.string);
+	if (j == -1)
+		j = 0;
 
-	CV_SetValue(&cv_chooseskin, 1);
-	CV_AddValue(&cv_chooseskin, -1);
-	CV_AddValue(&cv_chooseskin, 1);
+	CV_SetValue(&cv_chooseskin, j+1); // This causes crash sometimes?!
 
 	return;
 }
@@ -3831,7 +3833,7 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 	{
 		case LLM_CREATESERVER:
 			// Should the map be hidden?
-			if (mapheaderinfo[mapnum]->menuflags & LF2_HIDEINMENU)
+			if (mapheaderinfo[mapnum]->menuflags & LF2_HIDEINMENU && mapnum+1 != gamemap)
 				return false;
 
 			if (M_MapLocked(mapnum+1))
@@ -5846,6 +5848,13 @@ static void M_TimeAttack(INT32 choice)
 
 	G_SetGamestate(GS_TIMEATTACK);
 	S_ChangeMusicInternal("racent", true);
+}
+
+static boolean M_QuitTimeAttackMenu(void)
+{
+	// you know what? always putting these in the buffer won't hurt anything.
+	COM_BufAddText(va("skin \"%s\"\n", cv_chooseskin.string));
+	return true;
 }
 
 // Drawing function for Nights Attack
