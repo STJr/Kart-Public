@@ -969,9 +969,10 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 	{
 		UINT16 r, g, b;
 
-		r = (UINT16)V_GetColor(colortranslations[color][0]).s.red;
-		g = (UINT16)V_GetColor(colortranslations[color][0]).s.green;
-		b = (UINT16)V_GetColor(colortranslations[color][0]).s.blue;
+		blendcolor = V_GetColor(colortranslations[color][0]);
+		r = (UINT16)blendcolor.s.red;
+		g = (UINT16)blendcolor.s.green;
+		b = (UINT16)blendcolor.s.blue;
 
 		for (i = 1; i < 16; i++)
 		{
@@ -979,11 +980,17 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 			r += (UINT16)nextcolor.s.red;
 			g += (UINT16)nextcolor.s.green;
 			b += (UINT16)nextcolor.s.blue;
+			if (i >= 4 && i <= 9) // Weight these shades more. Indices 4-9 weren't randomly picked, they are commonly used on sprites and are generally what the colors "look" like
+			{
+				r += (UINT16)nextcolor.s.red;
+				g += (UINT16)nextcolor.s.green;
+				b += (UINT16)nextcolor.s.blue;
+			}
 		}
 
-		blendcolor.s.red = (UINT8)(r/16);
-		blendcolor.s.green = (UINT8)(g/16);
-		blendcolor.s.blue = (UINT8)(b/16);
+		blendcolor.s.red = (UINT8)(r/22);
+		blendcolor.s.green = (UINT8)(g/22);
+		blendcolor.s.blue = (UINT8)(b/22);
 	}
 
 	// rainbow support, could theoretically support boss ones too
