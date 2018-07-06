@@ -13048,7 +13048,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // speed
 		16*FRACUNIT,    // radius
 		48*FRACUNIT,    // height
-		0,              // display offset
+		-1,             // display offset
 		1000,           // mass
 		8,              // damage
 		sfx_None,       // activesound

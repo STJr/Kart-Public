@@ -2193,6 +2193,27 @@ static void M_ChangeCvar(INT32 choice)
 {
 	consvar_t *cv = (consvar_t *)currentMenu->menuitems[itemOn].itemaction;
 
+	if (choice == -1)
+	{
+		if (cv == &cv_dummystaff
+			|| cv == &cv_nextmap
+			|| cv == &cv_newgametype)
+			return;
+		if (currentMenu == &SP_TimeAttackDef)
+		{
+			if (cv == &cv_playercolor)
+			{
+				SINT8 skinno = R_SkinAvailable(cv_chooseskin.string);
+				if (skinno == -1)
+					return;
+				CV_SetValue(cv,skins[skinno].prefcolor);
+			}
+			return;
+		}
+		CV_Set(cv,cv->defaultvalue);
+		return;
+	}
+
 	if (((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_SLIDER)
 	    ||((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_INVISSLIDER)
 	    ||((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_NOMOD))
@@ -2649,6 +2670,16 @@ boolean M_Responder(event_t *ev)
 				G_ClearControlKeys(setupcontrols, currentMenu->menuitems[itemOn].alphaKey);
 				return true;
 			}
+
+			if (routine && ((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS
+				|| (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
+			{
+				if (currentMenu != &OP_SoundOptionsDef)
+					S_StartSound(NULL, sfx_menu1);
+				routine(-1);
+				return true;
+			}
+
 			// Why _does_ backspace go back anyway?
 			//currentMenu->lastOn = itemOn;
 			//if (currentMenu->prevMenu)
