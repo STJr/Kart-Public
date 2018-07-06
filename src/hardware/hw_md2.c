@@ -968,6 +968,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 	// Average all of the translation's colors
 	{
 		UINT16 r, g, b;
+		UINT8 div = 0;
 
 		blendcolor = V_GetColor(colortranslations[color][0]);
 		r = (UINT16)blendcolor.s.red;
@@ -977,20 +978,29 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		for (i = 1; i < 16; i++)
 		{
 			RGBA_t nextcolor = V_GetColor(colortranslations[color][i]);
-			r += (UINT16)nextcolor.s.red;
-			g += (UINT16)nextcolor.s.green;
-			b += (UINT16)nextcolor.s.blue;
-			if (i >= 4 && i <= 9) // Weight these shades more. Indices 4-9 weren't randomly picked, they are commonly used on sprites and are generally what the colors "look" like
-			{
-				r += (UINT16)nextcolor.s.red;
-				g += (UINT16)nextcolor.s.green;
-				b += (UINT16)nextcolor.s.blue;
-			}
+			UINT8 mul = 1;
+			// Weight these shades more. Indices 1-9 weren't randomly picked, they are commonly used on sprites and are generally what the colors "look" like
+			if (i >= 1 && i <= 9)
+				mul++;
+			// The mid & dark tons on the minimap icons get weighted even harder
+			if (i == 4 || i == 6)
+				mul += 2;
+			// And the shade between them, why not
+			if (i == 5)
+				mul++;
+			r += (UINT16)(nextcolor.s.red)*mul;
+			g += (UINT16)(nextcolor.s.green)*mul;
+			b += (UINT16)(nextcolor.s.blue)*mul;
+			div += mul;
 		}
 
-		blendcolor.s.red = (UINT8)(r/22);
-		blendcolor.s.green = (UINT8)(g/22);
-		blendcolor.s.blue = (UINT8)(b/22);
+		// This shouldn't happen.
+		if (div < 1)
+			div = 1;
+
+		blendcolor.s.red = (UINT8)(r/div);
+		blendcolor.s.green = (UINT8)(g/div);
+		blendcolor.s.blue = (UINT8)(b/div);
 	}
 
 	// rainbow support, could theoretically support boss ones too
