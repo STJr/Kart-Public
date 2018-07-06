@@ -2059,6 +2059,8 @@ static void Nextmap_OnChange(void)
 
 		if (mapheaderinfo[cv_nextmap.value-1] && mapheaderinfo[cv_nextmap.value-1]->forcecharacter[0] != '\0')
 			CV_Set(&cv_chooseskin, mapheaderinfo[cv_nextmap.value-1]->forcecharacter);
+
+		free(gpath);
 	}
 }
 
