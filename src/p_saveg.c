@@ -3194,7 +3194,10 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, ARCHIVEBLOCK_MISC);
 
 	WRITEINT16(save_p, gamemap);
-	WRITEINT16(save_p, gamestate);
+	if (gamestate != GS_LEVEL)
+		WRITEINT16(save_p, GS_WAITINGPLAYERS); // nice hack to put people back into waitingplayers
+	else
+		WRITEINT16(save_p, gamestate);
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		pig |= (playeringame[i] != 0)<<i;

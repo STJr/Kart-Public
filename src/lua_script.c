@@ -962,13 +962,16 @@ void LUA_Archive(void)
 		ArchiveExtVars(&players[i], "player");
 	}
 
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
-		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
-		{
-			// archive function will determine when to skip mobjs,
-			// and write mobjnum in otherwise.
-			ArchiveExtVars(th, "mobj");
-		}
+	if (gamestate == GS_LEVEL)
+	{
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+			if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+			{
+				// archive function will determine when to skip mobjs,
+				// and write mobjnum in otherwise.
+				ArchiveExtVars(th, "mobj");
+			}
+	}
 	WRITEUINT32(save_p, UINT32_MAX); // end of mobjs marker, replaces mobjnum.
 
 	LUAh_NetArchiveHook(NetArchive); // call the NetArchive hook in archive mode
