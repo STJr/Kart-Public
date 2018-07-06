@@ -3535,7 +3535,7 @@ static void HandleConnect(SINT8 node)
 #ifdef JOININGAME
 		if (nodewaiting[node])
 		{
-			if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING) && newnode)
+			if (newnode)
 			{
 				SV_SendSaveGame(node); // send a complete game state
 				DEBFILE("send savegame\n");
@@ -3747,13 +3747,11 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// \note Wait. What if a Lua script uses some global custom variables synched with the NetVars hook?
 			///       Shouldn't them be downloaded even at intermission time?
 			///       Also, according to HandleConnect, the server will send the savegame even during intermission...
-			if (netbuffer->u.servercfg.gamestate == GS_LEVEL
-				/*|| netbuffer->u.servercfg.gamestate == GS_INTERMISSION
-				|| netbuffer->u.servercfg.gamestate == GS_VOTING*/)
-				cl_mode = CL_DOWNLOADSAVEGAME;
-			else
+			/// Sryder 2018-07-05: If we don't want to send the player config another way we need to send the gamestate
+			///                    At almost any gamestate there could be joiners... So just always send gamestate?
+			cl_mode = CL_DOWNLOADSAVEGAME;
 #endif
-				cl_mode = CL_CONNECTED;
+			cl_mode = CL_CONNECTED;
 			break;
 		}
 
