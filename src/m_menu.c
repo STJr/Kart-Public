@@ -2195,21 +2195,14 @@ static void M_ChangeCvar(INT32 choice)
 
 	if (choice == -1)
 	{
-		if (cv == &cv_dummystaff
-			|| cv == &cv_nextmap
-			|| cv == &cv_newgametype)
-			return;
-		if (currentMenu == &SP_TimeAttackDef)
+		if (cv == &cv_playercolor)
 		{
-			if (cv == &cv_playercolor)
-			{
-				SINT8 skinno = R_SkinAvailable(cv_chooseskin.string);
-				if (skinno == -1)
-					return;
-				CV_SetValue(cv,skins[skinno].prefcolor);
-			}
-			return;
+			SINT8 skinno = R_SkinAvailable(cv_chooseskin.string);
+			if (skinno == -1)
+				return;
+			CV_SetValue(cv,skins[skinno].prefcolor);
 		}
+		return;
 		CV_Set(cv,cv->defaultvalue);
 		return;
 	}
@@ -2674,6 +2667,14 @@ boolean M_Responder(event_t *ev)
 			if (routine && ((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS
 				|| (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
 			{
+				consvar_t *cv = (consvar_t *)currentMenu->menuitems[itemOn].itemaction;
+
+				if (cv == &cv_chooseskin
+					|| cv == &cv_dummystaff
+					|| cv == &cv_nextmap
+					|| cv == &cv_newgametype)
+					return true;
+
 				if (currentMenu != &OP_SoundOptionsDef)
 					S_StartSound(NULL, sfx_menu1);
 				routine(-1);
