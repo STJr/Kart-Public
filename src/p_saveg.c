@@ -3384,14 +3384,17 @@ void P_SaveNetGame(void)
 	P_NetArchiveMisc();
 
 	// Assign the mobjnumber for pointer tracking
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	if (gamestate == GS_LEVEL)
 	{
-		if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
 		{
-			mobj = (mobj_t *)th;
-			if (mobj->type == MT_HOOP || mobj->type == MT_HOOPCOLLIDE || mobj->type == MT_HOOPCENTER)
-				continue;
-			mobj->mobjnum = i++;
+			if (th->function.acp1 == (actionf_p1)P_MobjThinker)
+			{
+				mobj = (mobj_t *)th;
+				if (mobj->type == MT_HOOP || mobj->type == MT_HOOPCOLLIDE || mobj->type == MT_HOOPCENTER)
+					continue;
+				mobj->mobjnum = i++;
+			}
 		}
 	}
 
