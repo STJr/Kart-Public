@@ -1041,7 +1041,7 @@ void F_StartWaitingPlayers(void)
 	}
 }
 
-void F_WaitingPlayersTicker()
+void F_WaitingPlayersTicker(void)
 {
 	finalecount++;
 
