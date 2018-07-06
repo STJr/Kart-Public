@@ -3539,7 +3539,7 @@ static void HandleConnect(SINT8 node)
 #ifdef JOININGAME
 		if (nodewaiting[node])
 		{
-			if (newnode)
+			if (node && newnode)
 			{
 				SV_SendSaveGame(node); // send a complete game state
 				DEBFILE("send savegame\n");
