@@ -2426,6 +2426,7 @@ static void P_ForceCharacter(const char *forcecharskin)
 
 static void P_LoadRecordGhosts(void)
 {
+	// see also m_menu.c's Nextmap_OnChange
 	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char *gpath = malloc(glen);
 	INT32 i;
@@ -2877,7 +2878,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	}
 	else if (G_RaceGametype() && server)
 		CV_StealthSetValue(&cv_numlaps,
-			(cv_basenumlaps.value)
+			((netgame || multiplayer) && cv_basenumlaps.value)
 			? cv_basenumlaps.value
 			: mapheaderinfo[gamemap - 1]->numlaps);
 

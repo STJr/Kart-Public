@@ -429,7 +429,7 @@ consvar_t cv_serversort = {"serversort", "Ping", CV_HIDEN | CV_CALL, serversort_
 // autorecord demos for time attack
 static consvar_t cv_autorecord = {"autorecord", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-CV_PossibleValue_t ghost_cons_t[] = {{0, "Hide"}, {1, "Show"}, {2, "Show All"}, {0, NULL}};
+CV_PossibleValue_t ghost_cons_t[] = {{0, "Hide"}, {1, "Show Character"}, {2, "Show All"}, {0, NULL}};
 CV_PossibleValue_t ghost2_cons_t[] = {{0, "Hide"}, {1, "Show"}, {0, NULL}};
 
 consvar_t cv_ghost_besttime  = {"ghost_besttime",  "Show All", CV_SAVE, ghost_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -749,7 +749,7 @@ static menuitem_t SP_TimeAttackMenu[] =
 
 	{IT_DISABLED,                                NULL, "Guest...",      &SP_GuestReplayDef,    98},
 	{IT_DISABLED,                                NULL, "Replay...",     &SP_ReplayDef,        108},
-	{IT_DISABLED,                                NULL, "Ghosts...",     &SP_GhostDef,         118},
+	{IT_WHITESTRING|IT_SUBMENU,                  NULL, "Ghosts...",     &SP_GhostDef,         118},
 	{IT_WHITESTRING|IT_CALL|IT_CALL_NOTMODIFIED, NULL, "Start",         M_ChooseTimeAttack,   130},
 };
 
@@ -817,8 +817,8 @@ static menuitem_t SP_GhostMenu[] =
 	{IT_STRING|IT_CVAR,         NULL, "Best Time",   &cv_ghost_besttime, 88},
 	{IT_STRING|IT_CVAR,         NULL, "Best Lap",    &cv_ghost_bestlap,  96},
 	{IT_STRING|IT_CVAR,         NULL, "Last",        &cv_ghost_last,    104},
-	{IT_STRING|IT_CVAR,         NULL, "Guest",       &cv_ghost_guest,   112},
-	{IT_STRING|IT_CVAR,         NULL, "Staff Attack",&cv_ghost_staff,   120},
+	{IT_DISABLED,               NULL, "Guest",       &cv_ghost_guest,   112},
+	{IT_DISABLED,               NULL, "Staff Attack",&cv_ghost_staff,   120},
 
 	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",        &SP_TimeAttackDef, 130}
 };
@@ -908,35 +908,20 @@ menuitem_t PlayerMenu[32] =
 // -----------------------------------
 // Prefix: MP_
 
-#ifdef NONET
-#define IT_NETCALL IT_DISABLED
-#define IT_NETHANDLER IT_DISABLED
-#define M_StartServerMenu NULL
-#define M_ConnectMenu NULL
-#define M_HandleConnectIP NULL
-#else
-#define IT_NETCALL (IT_STRING|IT_CALL)
-#define IT_NETHANDLER (IT_STRING|IT_KEYHANDLER)
-#endif
+#ifndef NONET
 
 static menuitem_t MP_MainMenu[] =
 {
-	{IT_HEADER, NULL, "Player setup", NULL, 10},
-	{IT_STRING|IT_CALL, NULL, "Select character & color...", M_SetupMultiPlayer,     20},
-	{IT_HEADER, NULL, "Host a game", NULL, 34},
-	{IT_NETCALL,              NULL, "Internet/LAN...",       M_StartServerMenu,      44},
-	{IT_STRING|IT_CALL,       NULL, "Splitscreen...",        M_StartSplitServerMenu, 52},
-	{IT_HEADER, NULL, "Join a game", NULL, 66},
-	{IT_NETCALL,              NULL, "Server browser...",     M_ConnectMenu,          76},
-	{IT_NETHANDLER,           NULL, "Specify IPv4 address:", M_HandleConnectIP,      84},
+	{IT_HEADER, NULL, "Host a game", NULL, 0},
+	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,      10},
+	{IT_STRING|IT_CALL,       NULL, "Splitscreen...",            M_StartSplitServerMenu, 18},
+	{IT_HEADER, NULL, "Join a game", NULL, 32},
+	{IT_STRING|IT_CALL,       NULL, "Server browser...",         M_ConnectMenu,          42},
+	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,      50},
+	{IT_HEADER, NULL, "Player setup", NULL, 80},
+	{IT_STRING|IT_CALL,       NULL, "Name, character, color...", M_SetupMultiPlayer,     90},
 };
 
-#undef IT_NETCALL
-#undef IT_NETHANDLER
-#ifdef NONET
-#undef M_StartServerMenu
-#undef M_ConnectMenu
-#undef M_HandleConnectIP
 #endif
 
 static menuitem_t MP_ServerMenu[] =
@@ -1779,6 +1764,7 @@ menu_t SP_PlayerDef =
 	NULL
 };
 
+#ifndef NONET
 // Multiplayer
 menu_t MP_MainDef =
 {
@@ -1787,11 +1773,12 @@ menu_t MP_MainDef =
 	&MainDef,
 	MP_MainMenu,
 	M_DrawMPMainMenu,
-	42, 40,
+	42, 50,
 	0,
 	M_CancelConnect
 };
 menu_t MP_ServerDef = MAPICONMENUSTYLE("M_MULTI", MP_ServerMenu, &MP_MainDef);
+#endif
 menu_t MP_SplitServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
 #ifndef NONET
 menu_t MP_ConnectDef =
@@ -1989,8 +1976,6 @@ static INT32 M_GetFirstLevelInList(void);
 static void Nextmap_OnChange(void)
 {
 	char *leveltitle;
-	char tabase[256];
-	short i;
 	UINT8 active;
 	lumpnum_t l;
 
@@ -1999,115 +1984,74 @@ static void Nextmap_OnChange(void)
 	leveltitle = G_BuildMapTitle(cv_nextmap.value);
 	cv_nextmap.string = cv_nextmap.zstring = leveltitle ? leveltitle : Z_StrDup(G_BuildMapName(cv_nextmap.value));
 
-	/*if (currentMenu == &SP_NightsAttackDef)
+	if (currentMenu == &SP_TimeAttackDef)
 	{
-		CV_StealthSetValue(&cv_dummymares, 0);
-		// Hide the record changing CVAR if only one mare is available.
-		if (!nightsrecords[cv_nextmap.value-1] || nightsrecords[cv_nextmap.value-1]->nummares < 2)
-			SP_NightsAttackMenu[narecords].status = IT_DISABLED;
-		else
-			SP_NightsAttackMenu[narecords].status = IT_STRING|IT_CVAR;
+		// see also p_setup.c's P_LoadRecordGhosts
+		const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
+		char *gpath = malloc(glen);
+		INT32 i;
 
-		CV_StealthSetValue(&cv_dummystaff, 0);
+		if (!gpath)
+			return;
 
-		// Do the replay things.
-		active = false;
-		SP_NightsAttackMenu[naguest].status = IT_DISABLED;
-		SP_NightsAttackMenu[nareplay].status = IT_DISABLED;
-		SP_NightsAttackMenu[naghost].status = IT_DISABLED;
+		sprintf(gpath,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value));
 
-		// Check if file exists, if not, disable REPLAY option
-		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value));
-		for (i = 0; i < 5; i++) {
-			SP_NightsReplayMenu[i].status = IT_DISABLED;
-			SP_NightsGuestReplayMenu[i].status = IT_DISABLED;
-		}
-		if (FIL_FileExists(va("%s-score-best.lmp", tabase))) {
-			SP_NightsReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
-			SP_NightsGuestReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
-			active |= 3;
-		}
-		if (FIL_FileExists(va("%s-time-best.lmp", tabase))) {
-			SP_NightsReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
-			SP_NightsGuestReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
-			active |= 3;
-		}
-		if (FIL_FileExists(va("%s-last.lmp", tabase))) {
-			SP_NightsReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
-			SP_NightsGuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
-			active |= 3;
-		}
-		if (FIL_FileExists(va("%s-guest.lmp", tabase))) {
-			SP_NightsReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			SP_NightsGuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
-			active |= 3;
-		}
-		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR) {
-			SP_NightsReplayMenu[4].status = IT_WHITESTRING|IT_KEYHANDLER;
-			CV_StealthSetValue(&cv_dummystaff, 1);
-			active |= 1;
-		}
-		if (active) {
-			if (active & 1)
-				SP_NightsAttackMenu[nareplay].status = IT_WHITESTRING|IT_SUBMENU;
-			if (active & 2)
-				SP_NightsAttackMenu[naguest].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_NightsAttackMenu[naghost].status = IT_WHITESTRING|IT_SUBMENU;
-		}
-		else if(itemOn == nareplay) // Reset lastOn so replay isn't still selected when not available.
-		{
-			currentMenu->lastOn = itemOn;
-			itemOn = nastart;
-		}
-	}
-	else*/ if (currentMenu == &SP_TimeAttackDef)
-	{
 		CV_StealthSetValue(&cv_dummystaff, 0);
 
 		active = false;
 		SP_TimeAttackMenu[taguest].status = IT_DISABLED;
 		SP_TimeAttackMenu[tareplay].status = IT_DISABLED;
-		SP_TimeAttackMenu[taghost].status = IT_DISABLED;
+		//SP_TimeAttackMenu[taghost].status = IT_DISABLED;
 
 		// Check if file exists, if not, disable REPLAY option
-		sprintf(tabase,"%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-%s",srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value), cv_chooseskin.string);
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			SP_ReplayMenu[i].status = IT_DISABLED;
 			SP_GuestReplayMenu[i].status = IT_DISABLED;
 		}
-		if (FIL_FileExists(va("%s-time-best.lmp", tabase))) {
+		SP_ReplayMenu[4].status = IT_DISABLED;
+
+		SP_GhostMenu[3].status = IT_DISABLED;
+		SP_GhostMenu[4].status = IT_DISABLED;
+
+		if (FIL_FileExists(va("%s-%s-time-best.lmp", gpath, cv_chooseskin.string))) {
 			SP_ReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[0].status = IT_WHITESTRING|IT_CALL;
 			active |= 3;
 		}
-		if (FIL_FileExists(va("%s-lap-best.lmp", tabase))) {
+		if (FIL_FileExists(va("%s-%s-lap-best.lmp", gpath, cv_chooseskin.string))) {
 			SP_ReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[1].status = IT_WHITESTRING|IT_CALL;
 			active |= 3;
 		}
-		if (FIL_FileExists(va("%s-last.lmp", tabase))) {
+		if (FIL_FileExists(va("%s-%s-last.lmp", gpath, cv_chooseskin.string))) {
 			SP_ReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[2].status = IT_WHITESTRING|IT_CALL;
 			active |= 3;
 		}
-		if (FIL_FileExists(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)))) {
+
+		if (FIL_FileExists(va("%s-guest.lmp", gpath)))
+		{
 			SP_ReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
 			SP_GuestReplayMenu[3].status = IT_WHITESTRING|IT_CALL;
+			SP_GhostMenu[3].status = IT_STRING|IT_CVAR;
 			active |= 3;
 		}
-		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR) {
+		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR)
+		{
 			SP_ReplayMenu[4].status = IT_WHITESTRING|IT_KEYHANDLER;
+			SP_GhostMenu[4].status = IT_STRING|IT_CVAR;
 			CV_StealthSetValue(&cv_dummystaff, 1);
 			active |= 1;
 		}
+
 		if (active) {
 			if (active & 1)
 				SP_TimeAttackMenu[tareplay].status = IT_WHITESTRING|IT_SUBMENU;
 			if (active & 2)
 				SP_TimeAttackMenu[taguest].status = IT_WHITESTRING|IT_SUBMENU;
-			SP_TimeAttackMenu[taghost].status = IT_WHITESTRING|IT_SUBMENU;
 		}
-		else if(itemOn == tareplay) // Reset lastOn so replay isn't still selected when not available.
+		else if (itemOn == tareplay) // Reset lastOn so replay isn't still selected when not available.
 		{
 			currentMenu->lastOn = itemOn;
 			itemOn = tastart;
@@ -3785,7 +3729,7 @@ static void M_PatchSkinNameTable(void)
 		if (skins[j].name[0] != '\0')
 		{
 			skins_cons_t[j].strvalue = skins[j].name;
-			skins_cons_t[j].value = j;
+			skins_cons_t[j].value = j+1;
 		}
 		else
 		{
@@ -5451,7 +5395,7 @@ static void M_Statistics(INT32 choice)
 			continue;
 
 		if (!(mapheaderinfo[i]->typeoflevel & TOL_RACE) // TOL_SP
-			|| (mapheaderinfo[i]->menuflags & LF2_HIDEINSTATS))
+			|| (mapheaderinfo[i]->menuflags & (LF2_HIDEINSTATS|LF2_HIDEINMENU)))
 			continue;
 
 		if (M_MapLocked(i+1)) // !mapvisited[i]
@@ -5671,11 +5615,7 @@ void M_DrawTimeAttackMenu(void)
 
 	M_DrawMenuTitle();
 	if (currentMenu == &SP_TimeAttackDef)
-		M_DrawLevelSelectOnly(
-			(SP_TimeAttackMenu[taguest].status != IT_DISABLED
-			|| SP_TimeAttackMenu[tareplay].status != IT_DISABLED
-			|| SP_TimeAttackMenu[taghost].status != IT_DISABLED),
-			false);
+		M_DrawLevelSelectOnly(true, false);
 
 	// draw menu (everything else goes on top of it)
 	// Sadly we can't just use generic mode menus because we need some extra hacks
@@ -6930,7 +6870,6 @@ static void M_StartServerMenu(INT32 choice)
 // ==============
 
 static char setupm_ip[16];
-#endif
 
 // Draw the funky Connect IP menu. Tails 11-19-2002
 // So much work for such a little thing!
@@ -6942,17 +6881,15 @@ static void M_DrawMPMainMenu(void)
 	// use generic drawer for cursor, items and title
 	M_DrawGenericMenu();
 
-#ifndef NONET
 #if MAXPLAYERS == 16
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[3].alphaKey,
-		((itemOn == 3) ? highlightflags : 0), "(2-16 players)");
+	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[1].alphaKey,
+		((itemOn == 1) ? highlightflags : 0), "(2-16 players)");
 #else
 Update the maxplayers label...
 #endif
-#endif
 
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[4].alphaKey,
-		((itemOn == 4) ? highlightflags : 0),
+	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[2].alphaKey,
+		((itemOn == 2) ? highlightflags : 0),
 #ifdef NOFOURPLAYER
 		"(2 players)"
 #else
@@ -6960,8 +6897,7 @@ Update the maxplayers label...
 #endif
 		);
 
-#ifndef NONET
-	y += MP_MainMenu[7].alphaKey;
+	y += MP_MainMenu[5].alphaKey;
 
 	V_DrawFill(x+5, y+4+5, /*16*8 + 6,*/ BASEVIDWIDTH - 2*(x+5), 8+6, 239);
 
@@ -6969,13 +6905,11 @@ Update the maxplayers label...
 	V_DrawString(x+8,y+12, V_MONOSPACE, setupm_ip);
 
 	// draw text cursor for name
-	if (itemOn == 7
+	if (itemOn == 5
 	    && skullAnimCounter < 4)   //blink cursor
 		V_DrawCharacter(x+8+V_StringWidth(setupm_ip, V_MONOSPACE),y+12,'_',false);
-#endif
 }
 
-#ifndef NONET
 // Tails 11-19-2002
 static void M_ConnectIP(INT32 choice)
 {
@@ -7341,10 +7275,22 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 			break;
 
 		case KEY_BACKSPACE:
-			if ((l = strlen(setupm_name))!=0 && itemOn == 0)
+			if (itemOn == 0)
 			{
-				S_StartSound(NULL,sfx_menu1); // Tails
-				setupm_name[l-1] =0;
+				if ((l = strlen(setupm_name))!=0)
+				{
+					S_StartSound(NULL,sfx_menu1); // Tails
+					setupm_name[l-1] =0;
+				}
+			}
+			else if (itemOn == 2)
+			{
+				UINT8 col = skins[setupm_fakeskin].prefcolor;
+				if (setupm_fakecolor != col)
+				{
+					S_StartSound(NULL,sfx_menu1); // Tails
+					setupm_fakecolor = col;
+				}
 			}
 			break;
 
