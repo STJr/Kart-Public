@@ -1920,7 +1920,7 @@ static INT32 M_GetFirstLevelInList(void);
 static void Nextmap_OnChange(void)
 {
 	char *leveltitle;
-	char tabase[256];
+	char tabase[329];
 	short i;
 	UINT8 active;
 	lumpnum_t l;

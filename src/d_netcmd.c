@@ -3879,7 +3879,7 @@ static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 
 	if (ncs != FS_FOUND || toomany)
 	{
-		char message[256];
+		char message[275];
 
 		if (toomany)
 			sprintf(message, M_GetText("Too many files loaded to add %s\n"), filename);

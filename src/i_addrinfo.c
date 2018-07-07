@@ -86,10 +86,10 @@ static HMODULE WS_getfunctions(HMODULE tmp)
 {
 	if (tmp != NULL)
 	{
-		WS_getaddrinfo = (p_getaddrinfo)GetProcAddress(tmp, "getaddrinfo");
+		WS_getaddrinfo = (p_getaddrinfo)((void *)GetProcAddress(tmp, "getaddrinfo"));
 		if (WS_getaddrinfo == NULL)
 			return NULL;
-		WS_freeaddrinfo = (p_freeaddrinfo)GetProcAddress(tmp, "freeaddrinfo");
+		WS_freeaddrinfo = (p_freeaddrinfo)((void *)GetProcAddress(tmp, "freeaddrinfo"));
 		if (WS_freeaddrinfo == NULL)
 		{
 			WS_getaddrinfo = NULL;
