@@ -2973,10 +2973,11 @@ void G_ExitLevel(void)
 boolean G_IsSpecialStage(INT32 mapnum)
 {
 #if 0
-	if (gametype == GT_COOP && modeattacking != ATTACKING_RECORD && mapnum >= sstage_start && mapnum <= sstage_end)
-		return true;
-#endif
+	return (gametype == GT_COOP && modeattacking != ATTACKING_RECORD && mapnum >= sstage_start && mapnum <= sstage_end);
+#else
+	(void)mapnum;
 	return false;
+#endif
 }
 
 //
