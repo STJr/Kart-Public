@@ -3815,12 +3815,15 @@ void K_LoadKartHUDGraphics(void)
 	kp_lakitulaps[16] = 	W_CachePatchName("K_LAKIF8", PU_HUDGFX);
 
 	// Position numbers
+	sprintf(buffer, "K_POSNxx");
 	for (i = 0; i < NUMPOSNUMS; i++)
 	{
+		buffer[6] = '0'+i;
 		for (j = 0; j < NUMPOSFRAMES; j++)
 		{
-			//if (i > 4 && j < 4 && j != 0) continue;	// We don't need blue numbers for ranks past 4th
-			sprintf(buffer, "K_POSN%d%d", i, j);
+			//if (i > 4 && j < 4 && j != 0) continue;    // We don't need blue numbers for ranks past 4th
+			//sprintf(buffer, "K_POSN%d%d", i, j);
+			buffer[7] = '0'+j;
 			kp_positionnum[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 		}
 	}
