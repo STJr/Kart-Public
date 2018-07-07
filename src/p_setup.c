@@ -2992,15 +2992,15 @@ boolean P_SetupLevel(boolean skipprecip)
 		if (G_BattleGametype())
 			gamespeed = 0;
 		else
-			gamespeed = cv_kartspeed.value;
+			gamespeed = (UINT8)cv_kartspeed.value;
 
 		if (G_BattleGametype())
 			mirrormode = false;
 		else
-			mirrormode = cv_kartmirror.value;
+			mirrormode = (boolean)cv_kartmirror.value;
 
-		franticitems = cv_kartfrantic.value;
-		comeback = cv_kartcomeback.value;
+		franticitems = (boolean)cv_kartfrantic.value;
+		comeback = (boolean)cv_kartcomeback.value;
 	}
 
 	lightningcooldown = 0;
