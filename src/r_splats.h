@@ -64,7 +64,7 @@ fixed_t P_SegLength(seg_t *seg);
 
 // call at P_SetupLevel()
 #if !(defined (WALLSPLATS) || defined (FLOORSPLATS))
-FUNCMATH void R_ClearLevelSplats(void);
+void R_ClearLevelSplats(void);
 #else
 void R_ClearLevelSplats(void);
 #endif

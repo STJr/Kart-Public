@@ -1228,13 +1228,13 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 				colorbright = (blendcolor.s.red+blendcolor.s.green+blendcolor.s.blue)/3;
 
 				tempcolor = (finalbright*blendcolor.s.red)/colorbright;
-				tempcolor = min(255, max(0, tempcolor));
+				tempcolor = min(255, tempcolor);
 				cur->s.red = (UINT8)tempcolor;
 				tempcolor = (finalbright*blendcolor.s.green)/colorbright;
-				tempcolor = min(255, max(0, tempcolor));
+				tempcolor = min(255, tempcolor);
 				cur->s.green = (UINT8)tempcolor;
 				tempcolor = (finalbright*blendcolor.s.blue)/colorbright;
-				tempcolor = min(255, max(0, tempcolor));
+				tempcolor = min(255, tempcolor);
 				cur->s.blue = (UINT8)tempcolor;
 				cur->s.alpha = image->s.alpha;
 			}

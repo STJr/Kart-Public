@@ -2502,9 +2502,9 @@ static void Sk_SetDefaultValue(skin_t *skin)
 
 	strcpy(skin->realname, "Someone");
 	strcpy(skin->hudname, "???");
-	strncpy(skin->charsel, "CHRSONIC", 8);
-	strncpy(skin->face, "MISSING", 8);
-	strncpy(skin->superface, "MISSING", 8);
+	strncpy(skin->charsel, "CHRSONIC", 9);
+	strncpy(skin->face, "MISSING", 9);
+	strncpy(skin->superface, "MISSING", 9);
 
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
@@ -2536,7 +2536,7 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	for (i = 0; i < sfx_skinsoundslot0; i++)
 		if (S_sfx[i].skinsound != -1)
 			skin->soundsid[S_sfx[i].skinsound] = i;
-	strncpy(skin->iconprefix, "SONICICN", 8);
+	strncpy(skin->iconprefix, "SONICICN", 9);
 }
 
 //
@@ -2569,9 +2569,9 @@ void R_InitSkins(void)
 	strcpy(skin->realname,   "Sonic");
 	strcpy(skin->hudname,    "SONIC");
 
-	strncpy(skin->charsel,   "CHRSONIC", 8);
-	strncpy(skin->face,      "LIVSONIC", 8);
-	strncpy(skin->superface, "LIVSUPER", 8);
+	strncpy(skin->charsel,   "CHRSONIC", 9);
+	strncpy(skin->face,      "LIVSONIC", 9);
+	strncpy(skin->superface, "LIVSUPER", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
 	skin->ability =   CA_THOK;
@@ -2591,7 +2591,7 @@ void R_InitSkins(void)
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
 	ST_LoadFaceGraphics(skin->face, skin->superface, 0);
-	strncpy(skin->iconprefix, "SONICICN", 8);
+	strncpy(skin->iconprefix, "SONICICN", 9);
 	K_LoadIconGraphics(skin->iconprefix, 0);
 
 	//MD2 for sonic doesn't want to load in Linux.

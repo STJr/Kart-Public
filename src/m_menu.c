@@ -1920,7 +1920,7 @@ static INT32 M_GetFirstLevelInList(void);
 static void Nextmap_OnChange(void)
 {
 	char *leveltitle;
-	char tabase[256];
+	char tabase[329];
 	short i;
 	UINT8 active;
 	lumpnum_t l;
@@ -4307,14 +4307,15 @@ static char *M_GetConditionString(condition_t cond)
 		case UC_EXTRAEMBLEM:
 			return va("Get \"%s\" emblem", extraemblems[cond.requirement-1].name);
 		default:
-			return "";
+			return NULL;
 	}
 }
 
 #define NUMCHECKLIST 23
 static void M_DrawChecklist(void)
 {
-	INT32 i, line = 0, c, lastid;
+	UINT32 i, line = 0, c;
+	INT32 lastid;
 
 	for (i = 0; i < MAXUNLOCKABLES; i++)
 	{
@@ -4341,7 +4342,7 @@ static void M_DrawChecklist(void)
 
 				++line;
 
-				if (cond.id != lastid)
+				if (lastid == -1 || cond.id != (UINT32)lastid)
 				{
 					V_DrawString(16, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? V_YELLOWMAP : 0), "*");
 					V_DrawString(32, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? V_YELLOWMAP : 0), str);

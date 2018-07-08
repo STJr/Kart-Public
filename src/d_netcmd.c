@@ -3879,7 +3879,7 @@ static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 
 	if (ncs != FS_FOUND || toomany)
 	{
-		char message[256];
+		char message[275];
 
 		if (toomany)
 			sprintf(message, M_GetText("Too many files loaded to add %s\n"), filename);
@@ -5209,24 +5209,24 @@ static void Command_ShowTime_f(void)
 // SRB2Kart: On change messages
 static void KartFrantic_OnChange(void)
 {
-	if (cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
+	if ((boolean)cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Frantic items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
 }
 
 static void KartSpeed_OnChange(void)
 {
-	if (cv_kartspeed.value != gamespeed && G_RaceGametype() && gamestate == GS_LEVEL)
+	if ((UINT8)cv_kartspeed.value != gamespeed && G_RaceGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
 }
 
 static void KartMirror_OnChange(void)
 {
-	if (cv_kartmirror.value != mirrormode && G_RaceGametype() && gamestate == GS_LEVEL)
+	if ((boolean)cv_kartmirror.value != mirrormode && G_RaceGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Mirror Mode will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
 }
 
 static void KartComeback_OnChange(void)
 {
-	if (cv_kartcomeback.value != comeback && G_BattleGametype() && gamestate == GS_LEVEL)
+	if ((boolean)cv_kartcomeback.value != comeback && G_BattleGametype() && gamestate == GS_LEVEL)
 		CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
 }
