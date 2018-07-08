@@ -1559,7 +1559,7 @@ static void SV_SavedGame(void)
 {
 	size_t length;
 	UINT8 *savebuffer;
-	XBOXSTATIC char tmpsave[256];
+	XBOXSTATIC char tmpsave[264];
 
 	if (!cv_dumpconsistency.value)
 		return;
@@ -1601,7 +1601,7 @@ static void CL_LoadReceivedSavegame(void)
 {
 	UINT8 *savebuffer = NULL;
 	size_t length, decompressedlen;
-	XBOXSTATIC char tmpsave[256];
+	XBOXSTATIC char tmpsave[264];
 
 	sprintf(tmpsave, "%s" PATHSEP TMPSAVENAME, srb2home);
 
@@ -2062,7 +2062,7 @@ static void CL_ConnectToServer(boolean viams)
 	tic_t asksent;
 #endif
 #ifdef JOININGAME
-	XBOXSTATIC char tmpsave[256];
+	XBOXSTATIC char tmpsave[264];
 
 	sprintf(tmpsave, "%s" PATHSEP TMPSAVENAME, srb2home);
 #endif

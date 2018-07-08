@@ -213,7 +213,6 @@ void SplitScreen_OnChange(void)
 	}
 	else
 	{
-		INT32 i;
 		secondarydisplayplayer = consoleplayer;
 		thirddisplayplayer = consoleplayer;
 		fourthdisplayplayer = consoleplayer;

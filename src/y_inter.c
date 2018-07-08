@@ -118,7 +118,7 @@ typedef union
 		patch_t *blueflag;
 		patch_t *redflag; // int_ctf uses this struct too.
 		INT32 numplayers; // Number of players being displayed
-		char levelstring[40]; // holds levelnames up to 32 characters
+		char levelstring[62]; // holds levelnames up to 32 characters
 		// SRB2kart
 		int increase[MAXPLAYERS]; //how much did the score increase by?
 		int time[MAXPLAYERS]; //Tournament Time
@@ -173,7 +173,7 @@ static void Y_UnloadData(void);
 // Level images
 typedef struct
 {
-	char str[40];
+	char str[62];
 	UINT8 gtc;
 	const char *gts;
 	patch_t *pic;

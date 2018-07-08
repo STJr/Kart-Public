@@ -1821,9 +1821,9 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
 	mobj_t *dust;
 	mobj_t *truc;
-	smoldering->tics = TICRATE*3;
 	INT32 speed, speed2;
 
+	smoldering->tics = TICRATE*3;
 	radius = source->radius>>FRACBITS;
 	height = source->height>>FRACBITS;
 
@@ -4108,11 +4108,14 @@ void K_LoadKartHUDGraphics(void)
 	kp_startcountdown[7] = 		W_CachePatchName("K_CNTGOB", PU_HUDGFX);
 
 	// Position numbers
+	sprintf(buffer, "K_POSNxx");
 	for (i = 0; i < NUMPOSNUMS; i++)
 	{
+		buffer[6] = '0'+i;
 		for (j = 0; j < NUMPOSFRAMES; j++)
 		{
-			sprintf(buffer, "K_POSN%d%d", i, j);
+			//sprintf(buffer, "K_POSN%d%d", i, j);
+			buffer[7] = '0'+j;
 			kp_positionnum[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 		}
 	}
@@ -5089,16 +5092,19 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 
 	UINT8 skin = 0;
 
-	if (mo->skin)
-		skin = ((skin_t*)mo->skin)-skins;
-
-	fixed_t amnumxpos;
-	fixed_t amnumypos;
-	INT32 amxpos;
-	INT32 amypos;
+	fixed_t amnumxpos, amnumypos;
+	INT32 amxpos, amypos;
 
 	node_t *bsp = &nodes[numnodes-1];
 	fixed_t maxx, minx, maxy, miny;
+
+	fixed_t mapwidth, mapheight;
+	fixed_t xoffset, yoffset;
+	fixed_t xscale, yscale, zoom;
+
+	if (mo->skin)
+		skin = ((skin_t*)mo->skin)-skins;
+
 	maxx = maxy = INT32_MAX;
 	minx = miny = INT32_MIN;
 	minx = bsp->bbox[0][BOXLEFT];
@@ -5124,16 +5130,16 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	miny >>= FRACBITS;
 	maxy >>= FRACBITS;
 
-	fixed_t mapwidth = maxx - minx;
-	fixed_t mapheight = maxy - miny;
+	mapwidth = maxx - minx;
+	mapheight = maxy - miny;
 
 	// These should always be small enough to be bitshift back right now
-	fixed_t xoffset = (minx + mapwidth/2)<<FRACBITS;
-	fixed_t yoffset = (miny + mapheight/2)<<FRACBITS;
+	xoffset = (minx + mapwidth/2)<<FRACBITS;
+	yoffset = (miny + mapheight/2)<<FRACBITS;
 
-	fixed_t xscale = FixedDiv(AutomapPic->width, mapwidth);
-	fixed_t yscale = FixedDiv(AutomapPic->height, mapheight);
-	fixed_t zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
+	xscale = FixedDiv(AutomapPic->width, mapwidth);
+	yscale = FixedDiv(AutomapPic->height, mapheight);
+	zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
 
 	amnumxpos = (FixedMul(mo->x, zoom) - FixedMul(xoffset, zoom));
 	amnumypos = -(FixedMul(mo->y, zoom) - FixedMul(yoffset, zoom));

@@ -3082,10 +3082,11 @@ static void readmaincfg(MYFILE *f)
 
 				// Also save a time attack folder
 				filenamelen = strlen(gamedatafilename)-4;  // Strip off the extension
-				strncpy(timeattackfolder, gamedatafilename, min(filenamelen, sizeof (timeattackfolder)));
+				filenamelen = min(filenamelen, sizeof (timeattackfolder));
+				strncpy(timeattackfolder, gamedatafilename, filenamelen);
 				timeattackfolder[min(filenamelen, sizeof (timeattackfolder) - 1)] = '\0';
 
-				strncpy(savegamename, timeattackfolder, sizeof (timeattackfolder));
+				strncpy(savegamename, timeattackfolder, filenamelen);
 				strlcat(savegamename, "%u.ssg", sizeof(savegamename));
 				// can't use sprintf since there is %u in savegamename
 				strcatbf(savegamename, srb2home, PATHSEP);
@@ -8511,7 +8512,7 @@ fixed_t get_number(const char *word)
 #endif
 }
 
-void FUNCMATH DEH_Check(void)
+void DEH_Check(void)
 {
 #if defined(_DEBUG) || defined(PARANOIA)
 	const size_t dehstates = sizeof(STATE_LIST)/sizeof(const char*);
