@@ -6700,7 +6700,7 @@ void P_MobjThinker(mobj_t *mobj)
 					// Was this so hard?
 					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
-						|| (mobj->movedir > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->movedir)
+						|| (mobj->movedir > 0 && ((UINT16)mobj->target->player->kartstuff[k_itemamount] < mobj->movedir))
 						|| (!mobj->target->player->kartstuff[k_itemheld]))
 					{
 						P_RemoveMobj(mobj);
