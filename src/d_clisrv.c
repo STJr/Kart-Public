@@ -3755,8 +3755,9 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// Sryder 2018-07-05: If we don't want to send the player config another way we need to send the gamestate
 			///                    At almost any gamestate there could be joiners... So just always send gamestate?
 			cl_mode = CL_DOWNLOADSAVEGAME;
-#endif
+#else
 			cl_mode = CL_CONNECTED;
+#endif
 			break;
 		}
 
