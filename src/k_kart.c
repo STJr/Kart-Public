@@ -2725,6 +2725,19 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		ghost->fuse = 4;
 		ghost->frame |= FF_FULLBRIGHT;
 	}
+	else if (player->kartstuff[k_growshrinktimer] != 0)
+	{
+		if (player->kartstuff[k_growshrinktimer] % 5 == 0)
+		{
+			player->mo->colorized = true;
+			player->mo->color = (player->kartstuff[k_growshrinktimer] < 0 ? SKINCOLOR_ORANGE : SKINCOLOR_BLUE);
+		}
+		else
+		{
+			player->mo->colorized = false;
+			player->mo->color = player->skincolor;
+		}
+	}
 	else
 	{
 		player->mo->colorized = false;
@@ -2772,6 +2785,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
 	{
+		if (player->kartstuff[k_invincibilitytimer] == 0)
+			player->mo->color = player->skincolor;
 		player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
 		P_RestoreMusic(player);
 	}
@@ -2901,7 +2916,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 void K_KartPlayerAfterThink(player_t *player)
 {
-	if (player->kartstuff[k_invincibilitytimer])
+	if (player->kartstuff[k_invincibilitytimer]
+		|| (player->kartstuff[k_growshrinktimer] != 0 && player->kartstuff[k_growshrinktimer] % 5 == 0))
 	{
 		player->mo->frame |= FF_FULLBRIGHT;
 	}
