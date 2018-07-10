@@ -1043,6 +1043,9 @@ void F_StartWaitingPlayers(void)
 
 void F_WaitingPlayersTicker(void)
 {
+	if (paused)
+		return;
+
 	finalecount++;
 
 	// dumb hack, only start the music on the 1st tick so if you instantly go into the map you aren't hearing a tic of music
