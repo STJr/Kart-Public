@@ -362,7 +362,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s24c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s24d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s24e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s24f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Normal finish
+  {"s24f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s250",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s251",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s252",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -453,7 +453,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k67",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k68",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart final lap
   {"s3k69",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k6a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k6a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart finish
   {"s3k6b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k6c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k6d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -677,7 +677,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm67", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm68", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm69", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm70", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm70", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Trail item dragging
   {"cdfm71", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm72", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm73", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

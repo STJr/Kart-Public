@@ -2651,7 +2651,12 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
 
-				player->kartstuff[k_bananadrag]++;
+				if (P_IsObjectOnGround(player->mo) && player->speed > 0)
+				{
+					player->kartstuff[k_bananadrag]++;
+					if (player->kartstuff[k_bananadrag] > TICRATE && leveltime % 7 == 0)
+						S_StartSound(player->mo, sfx_cdfm70);
+				}
 
 				while (cur && !P_MobjWasRemoved(cur))
 				{
@@ -2745,7 +2750,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_spinouttimer])
 	{
-		if (P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
+		if ((P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
+			&& (player->kartstuff[k_sneakertimer] == 0))
 			player->kartstuff[k_spinouttimer]--;
 		if (player->kartstuff[k_spinouttimer] == 0)
 			player->kartstuff[k_spinouttype] = 0; // Reset type

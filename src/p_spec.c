@@ -4223,10 +4223,10 @@ DoneSection2:
 						}
 					}
 
-					if (player->kartstuff[k_position] == 1)
+					if (P_IsLocalPlayer(player))
+						S_StartSound(NULL, sfx_s3k6a);
+					else if (player->kartstuff[k_position] == 1)
 						S_StartSound(NULL, sfx_s253);
-					else if (P_IsLocalPlayer(player))
-						S_StartSound(NULL, sfx_s24f);
 
 					P_DoPlayerExit(player);
 				}
