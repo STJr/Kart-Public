@@ -565,8 +565,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 	INT32 newodds;
 	INT32 i;
 	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
-	SINT8 first = -1;
-	SINT8 second = -1;
+	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
 
 	if (G_BattleGametype())
@@ -650,9 +649,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 			if ((!cv_selfpropelledbomb.value)
 				|| (indirectitemcooldown > 0)
 				|| (pexiting > 0)
-				|| (secondist/distvar < 4))
+				|| (secondist/distvar < (4+cv_kartspeed.value)))
 				newodds = 0;
-			newodds *= min((secondist/distvar)-3, 3);
+			newodds *= min((secondist/distvar)-(3+cv_kartspeed.value), 3);
 			break;
 		case KITEM_GROW:
 			if (franticitems) newodds *= 2;
