@@ -2735,6 +2735,7 @@ state_t states[NUMSTATES] =
 	{SPR_BHOG,               5, 2, {NULL}, 0, 0, S_BALLHOG7}, // S_BALLHOG6
 	{SPR_BHOG,               6, 1, {NULL}, 0, 0, S_BALLHOG8}, // S_BALLHOG7
 	{SPR_BHOG,               7, 1, {NULL}, 0, 0, S_BALLHOG1}, // S_BALLHOG8
+	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL},	// S_BALLHOG_DEAD
 
 	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
@@ -14907,7 +14908,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_NULL,         // deathstate
+		S_BALLHOG_DEAD, // deathstate
 		S_NULL,         // xdeathstate
 		sfx_mario1,     // deathsound
 		0,              // speed

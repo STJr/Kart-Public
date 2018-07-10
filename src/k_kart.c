@@ -1300,7 +1300,8 @@ void K_MomentumToFacing(player_t *player)
 		dangle = InvAngle(dangle);
 
 	// If you aren't on the ground or are moving in too different of a direction don't do this
-	if (!P_IsObjectOnGround(player->mo) || dangle > ANGLE_90)
+	if ((!P_IsObjectOnGround(player->mo))
+		|| (dangle > ANGLE_90 && !(player->mo->eflags & MFE_JUSTHITFLOOR)))
 		return;
 
 	P_Thrust(player->mo, player->mo->angle, player->speed - FixedMul(player->speed, player->mo->friction));

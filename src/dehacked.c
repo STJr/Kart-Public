@@ -6415,6 +6415,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BALLHOG6",
 	"S_BALLHOG7",
 	"S_BALLHOG8",
+	"S_BALLHOG_DEAD",
 
 	// Self-Propelled Bomb - just an explosion for now...
 	"S_BLUELIGHTNING1",
