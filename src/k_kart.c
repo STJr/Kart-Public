@@ -2735,7 +2735,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_growshrinktimer] % 5 == 0)
 		{
 			player->mo->colorized = true;
-			player->mo->color = (player->kartstuff[k_growshrinktimer] < 0 ? SKINCOLOR_ORANGE : SKINCOLOR_BLUE);
+			player->mo->color = (player->kartstuff[k_growshrinktimer] < 0 ? SKINCOLOR_CREAMSICLE : SKINCOLOR_PERIWINKLE);
 		}
 		else
 		{
