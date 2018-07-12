@@ -3202,6 +3202,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				// Start shrinking!
 				player->mo->scalespeed = FRACUNIT/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
+				if (cv_kartdebugshrink.value && !player->bot)
+					player->mo->destscale = 6*player->mo->destscale/8;
 
 				// Wipeout
 				K_SpinPlayer(player, source, 1, false);

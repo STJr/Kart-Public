@@ -406,6 +406,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartdebugitem);
 	CV_RegisterVar(&cv_kartdebugamount);
 	CV_RegisterVar(&cv_kartdebugcheckpoint);
+	CV_RegisterVar(&cv_kartdebugshrink);
 }
 
 //}
@@ -2794,6 +2795,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_invincibilitytimer] == 0)
 			player->mo->color = player->skincolor;
 		player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+		if (cv_kartdebugshrink.value && !player->bot)
+			player->mo->destscale = 6*player->mo->destscale/8;
 		P_RestoreMusic(player);
 	}
 
@@ -2923,7 +2926,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 void K_KartPlayerAfterThink(player_t *player)
 {
 	if (player->kartstuff[k_invincibilitytimer]
-		|| (player->kartstuff[k_growshrinktimer] != 0 && player->kartstuff[k_growshrinktimer] % 5 == 0))
+		|| (player->kartstuff[k_growshrinktimer] != 0 && player->kartstuff[k_growshrinktimer] % 5 == 4)) // 4 instead of 0 because this is afterthink!
 	{
 		player->mo->frame |= FF_FULLBRIGHT;
 	}
@@ -3383,9 +3386,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_BANANA:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						INT32 moloop;
 						mobj_t *mo;
 						mobj_t *prev = player->mo;
@@ -3396,10 +3396,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
-							newangle = player->mo->angle;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_BANANA_SHIELD].radius);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_BANANA_SHIELD);
+							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BANANA_SHIELD);
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
 							mo->lastlook = moloop+1;
@@ -3422,17 +3419,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_EGGMAN:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						mobj_t *mo;
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_eggmanheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
-						newangle = player->mo->angle;
-						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_FAKESHIELD].radius);
-						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_FAKESHIELD].radius);
-						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_FAKESHIELD);
+						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
 						mo->threshold = 10;
 						mo->movecount = 1;
 						mo->lastlook = 1;
@@ -3533,16 +3524,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_MINE:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						mobj_t *mo;
 						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
-						newangle = player->mo->angle;
-						newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, mobjinfo[MT_SSMINE_SHIELD].radius);
-						newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, mobjinfo[MT_SSMINE_SHIELD].radius);
-						mo = P_SpawnMobj(newx, newy, player->mo->z, MT_SSMINE_SHIELD);
+						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SSMINE_SHIELD);
 						mo->threshold = 10;
 						mo->movecount = 1;
 						mo->lastlook = 1;
@@ -3619,6 +3604,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_PlayTauntSound(player->mo);
 						player->mo->scalespeed = FRACUNIT/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
+						if (cv_kartdebugshrink.value && !player->bot)
+							player->mo->destscale = 6*player->mo->destscale/8;
 						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
 						S_StartSound(player->mo, sfx_kc5a);
 						player->pflags |= PF_ATTACKDOWN;
@@ -3684,10 +3671,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// No more!
 		if (!player->kartstuff[k_itemamount] && !player->kartstuff[k_itemheld])
 			player->kartstuff[k_itemtype] = KITEM_NONE;
-
-		// Grow - Make the player grow!
-		/*if (player->kartstuff[k_growshrinktimer] > 1)
-			player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale)*3/2;*/
 
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
@@ -3828,7 +3811,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 	// Increase your size while charging your engine.
 	if (leveltime < starttime+10)
+	{
 		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
+		if (cv_kartdebugshrink.value && !player->bot)
+			player->mo->destscale = 6*player->mo->destscale/8;
+	}
 
 	// Determine the outcome of your charge.
 	if (leveltime > starttime && player->kartstuff[k_boostcharge])
@@ -4036,6 +4023,7 @@ void K_CheckBumpers(void)
 
 #define NUMPOSNUMS 10
 #define NUMPOSFRAMES 7 // White, three blues, three reds
+#define NUMWINFRAMES 6 // Red, yellow, green, cyan, blue, purple
 
 //{ 	Patch Definitions
 static patch_t *kp_nodraw;
@@ -4142,7 +4130,7 @@ void K_LoadKartHUDGraphics(void)
 		}
 	}
 
-	for (i = 0; i < NUMPOSFRAMES; i++)
+	for (i = 0; i < NUMWINFRAMES; i++)
 	{
 		sprintf(buffer, "K_POSNW%d", i);
 		kp_winnernum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
@@ -4623,36 +4611,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	while (num)
 	{
 		if (stplyr->exiting && num == 1) // 1st place winner? You get rainbows!!
-		{
-			// Alternate frame every three frames
-			switch (leveltime % 21)
-			{
-				case 1: case 2: case 3:
-					localpatch = kp_winnernum[0];
-					break;
-				case 4: case 5: case 6:
-					localpatch = kp_winnernum[1];
-					break;
-				case 7: case 8: case 9:
-					localpatch = kp_winnernum[2];
-					break;
-				case 10: case 11: case 12:
-					localpatch = kp_winnernum[3];
-					break;
-				case 13: case 14: case 15:
-					localpatch = kp_winnernum[4];
-					break;
-				case 16: case 17: case 18:
-					localpatch = kp_winnernum[5];
-					break;
-				case 19: case 20: case 21:
-					localpatch = kp_winnernum[6];
-					break;
-				default:
-					localpatch = kp_positionnum[1][0];
-					break;
-			}
-		}
+			localpatch = kp_winnernum[(leveltime % (NUMWINFRAMES*3)) / 3];
 		else if (stplyr->laps+1 >= cv_numlaps.value || stplyr->exiting) // Check for the final lap, or won
 		{
 			// Alternate frame every three frames
