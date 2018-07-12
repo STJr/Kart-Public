@@ -744,7 +744,7 @@ static menuitem_t SP_LevelSelectMenu[] =
 static menuitem_t SP_TimeAttackMenu[] =
 {
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Name",       &cv_playername,        0},
-	{IT_STRING|IT_CVAR,              NULL, "Player",     &cv_chooseskin,       16},
+	{IT_STRING|IT_CVAR,              NULL, "Character",  &cv_chooseskin,       13},
 	{IT_STRING|IT_CVAR,              NULL, "Color",      &cv_playercolor,      26},
 	{IT_STRING|IT_CVAR,              NULL, "Level",      &cv_nextmap,          78},
 
@@ -5557,8 +5557,8 @@ static void M_DrawLevelStats(void)
 	                         G_TicsToHours(totalplaytime),
 	                         G_TicsToMinutes(totalplaytime, false),
 	                         G_TicsToSeconds(totalplaytime)));
-	V_DrawString(20, 40, highlightflags, "Total Matches Played:");
-	V_DrawRightAlignedString(BASEVIDWIDTH-16, 40, 0, va("%i", matchesplayed));
+	V_DrawString(20, 42, highlightflags, "Total Matches:");
+	V_DrawRightAlignedString(BASEVIDWIDTH-16, 42, 0, va("%i played", matchesplayed));
 
 	for (i = 0; i < NUMMAPS; i++)
 	{
@@ -5574,18 +5574,18 @@ static void M_DrawLevelStats(void)
 		besttime += mainrecords[i]->time;
 	}
 
-	V_DrawString(20, 56, highlightflags, "Combined time records:");
-
-	if (mapsunfinished)
-		V_DrawRightAlignedString(BASEVIDWIDTH-16, 64, warningflags, va("(%d unfinished)", mapsunfinished));
-	else
-		V_DrawRightAlignedString(BASEVIDWIDTH-16, 64, recommendedflags, "(complete)");
-
-	V_DrawString(36, 64, 0, va("x %d/%d", M_CountEmblems(), numemblems+numextraemblems));
-	V_DrawSmallScaledPatch(20, 64, 0, W_CachePatchName("EMBLICON", PU_STATIC));
+	V_DrawString(20, 62, highlightflags, "Combined time records:");
 
 	sprintf(beststr, "%i:%02i:%02i.%02i", G_TicsToHours(besttime), G_TicsToMinutes(besttime, false), G_TicsToSeconds(besttime), G_TicsToCentiseconds(besttime));
-	V_DrawRightAlignedString(BASEVIDWIDTH-16, 56, (mapsunfinished ? warningflags : 0), beststr);
+	V_DrawRightAlignedString(BASEVIDWIDTH-16, 62, (mapsunfinished ? warningflags : 0), beststr);
+
+	if (mapsunfinished)
+		V_DrawRightAlignedString(BASEVIDWIDTH-16, 70, warningflags, va("(%d unfinished)", mapsunfinished));
+	else
+		V_DrawRightAlignedString(BASEVIDWIDTH-16, 70, recommendedflags, "(complete)");
+
+	V_DrawString(36, 70, 0, va("x %d/%d", M_CountEmblems(), numemblems+numextraemblems));
+	V_DrawSmallScaledPatch(20, 70, 0, W_CachePatchName("EMBLICON", PU_STATIC));
 
 	M_DrawStatsMaps(statsLocation);
 }
