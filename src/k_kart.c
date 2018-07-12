@@ -421,8 +421,10 @@ boolean K_IsPlayerLosing(player_t *player)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].spectator)
-			pcount++;
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		if (players[i].kartstuff[k_position] > pcount)
+			pcount = players[i].kartstuff[k_position];
 	}
 
 	if (pcount <= 1)
@@ -4013,7 +4015,10 @@ void K_CheckBumpers(void)
 		CONS_Printf(M_GetText("%s recieved %d point%s for winning!\n"), player_names[winnernum], winnerscoreadd, (winnerscoreadd == 1 ? "" : "s"));
 	}
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < MAXPLAYERS; i++) // This can't go in the earlier loop because winning adds points
+		K_KartUpdatePosition(&players[i]);
+
+	for (i = 0; i < MAXPLAYERS; i++) // and it can't be merged with this loop because it needs to be all updated before exiting... multi-loops suck...
 		P_DoPlayerExit(&players[i]);
 }
 
@@ -5298,7 +5303,7 @@ static void K_drawBattleFullscreen(void)
 	{
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen(0xFF00, 16);
-		if (stplyr->kartstuff[k_bumper])
+		if ((!splitscreen && !K_IsPlayerLosing(stplyr)) || stplyr->kartstuff[k_bumper])
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
 		else if (splitscreen < 2)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlelose, NULL);

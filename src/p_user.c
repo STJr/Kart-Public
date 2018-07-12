@@ -1136,61 +1136,50 @@ void P_RestoreMusic(player_t *player)
 	S_SpeedMusic(1.0f);
 
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
-	// Event - Race Start
+	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
-	// Item - Grow
-	else if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
-		S_ChangeMusicInternal("kgrow", true);
-	// Item - Invincibility
-	else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
-		S_ChangeMusicInternal("kinvnc", false);
 	else
 	{
-		// Event - Battle Finish
-		if (G_BattleGametype() && player->exiting)
-		{
-			if (!splitscreen)
-			{
-				INT32 pos = 1;
-				UINT8 i;
-
-				for (i = 0; i < MAXPLAYERS; i++) // Calculate position to ensure what music to play
-				{
-					if (!playeringame[i] || players[i].spectator)
-						continue;
-					if (players[i].kartstuff[k_bumper] > player->kartstuff[k_bumper])
-						pos++;
-					else if (players[i].score > player->score)
-						pos++;
-				}
-
-				if (pos == 1)
-					S_ChangeMusicInternal("kbwin", false);
-				else if (pos <= 3)
-					S_ChangeMusicInternal("kbok", false);
-				else
-					S_ChangeMusicInternal("kblose", false);
-			}
-			else
-				S_ChangeMusicInternal("kbok", false);
-		}
-		// Event - Race Finish
-		else if (splitscreen && G_RaceGametype()
-			&& (players[consoleplayer].exiting
+		// Event - Level Finish
+		if (splitscreen
+			&& (players[displayplayer].exiting
 			|| players[secondarydisplayplayer].exiting
 			|| players[thirddisplayplayer].exiting
 			|| players[fourthdisplayplayer].exiting))
-			S_ChangeMusicInternal("krok", true);
-		else if (!splitscreen && G_RaceGametype() && player->exiting)
 		{
-			if (player->kartstuff[k_position] == 1)
-				S_ChangeMusicInternal("krwin", true);
-			else if (K_IsPlayerLosing(player))
-				S_ChangeMusicInternal("krlose", true);
-			else
+			if (G_RaceGametype())
 				S_ChangeMusicInternal("krok", true);
+			else if (G_BattleGametype())
+				S_ChangeMusicInternal("kbok", false);
 		}
+		else if (!splitscreen && player->exiting)
+		{
+			if (G_RaceGametype())
+			{
+				if (player->kartstuff[k_position] == 1)
+					S_ChangeMusicInternal("krwin", true);
+				else if (K_IsPlayerLosing(player))
+					S_ChangeMusicInternal("krlose", true);
+				else
+					S_ChangeMusicInternal("krok", true);
+			}
+			else if (G_BattleGametype())
+			{
+				if (player->kartstuff[k_position] == 1)
+					S_ChangeMusicInternal("kbwin", false);
+				else if (K_IsPlayerLosing(player))
+					S_ChangeMusicInternal("kblose", false);
+				else
+					S_ChangeMusicInternal("kbok", false);
+			}
+		}
+		// Item - Grow
+		else if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
+			S_ChangeMusicInternal("kgrow", true);
+		// Item - Invincibility
+		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
+			S_ChangeMusicInternal("kinvnc", false);
 		else
 		{
 			// Event - Final Lap
@@ -1694,7 +1683,6 @@ void P_DoPlayerExit(player_t *player)
 		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
-
 		if (K_IsPlayerLosing(player))
 			S_StartSound(player->mo, sfx_klose);
 		else
@@ -1734,25 +1722,12 @@ void P_DoPlayerExit(player_t *player)
 		{
 			if (!splitscreen)
 			{
-				INT32 pos = 1;
-				UINT8 i;
-
-				for (i = 0; i < MAXPLAYERS; i++) // Calculate position to ensure what music to play
-				{
-					if (!playeringame[i] || players[i].spectator)
-						continue;
-					if (players[i].kartstuff[k_bumper] > player->kartstuff[k_bumper])
-						pos++;
-					else if (players[i].score > player->score)
-						pos++;
-				}
-
-				if (pos == 1)
+				if (player->kartstuff[k_position] == 1)
 					S_ChangeMusicInternal("kbwin", false);
-				else if (pos <= 3)
-					S_ChangeMusicInternal("kbok", false);
-				else
+				else if (K_IsPlayerLosing(player))
 					S_ChangeMusicInternal("kblose", false);
+				else
+					S_ChangeMusicInternal("kbok", false);
 			}
 			else
 				S_ChangeMusicInternal("kbok", false);
