@@ -3753,14 +3753,17 @@ DoneSection2:
 	// Process Section 3
 	switch (special)
 	{
-		case 1: // SRB2kart: Speed Bumps
+		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
+				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+				const fixed_t minspeed = 24*scale;
+
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
-				if (player->speed < K_GetKartSpeed(player, true)/4) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
+				if (player->speed < minspeed) // Push forward to prevent getting stuck
+					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
 				K_DoPogoSpring(player->mo, 0);
@@ -3768,7 +3771,28 @@ DoneSection2:
 			break;
 
 		case 2: // Wind/Current
-		case 3: // Unused   (was "Ice/Sludge and Wind/Current")
+			break;
+
+		case 3: // SRB2kart: Spring Panel (capped speed)
+			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
+			{
+				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+				const fixed_t minspeed = 24*scale;
+				const fixed_t maxspeed = 36*scale;
+
+				if (player->mo->eflags & MFE_SPRUNG)
+					break;
+
+				if (player->speed > maxspeed) // Prevent overshooting jumps
+					P_InstaThrust(player->mo, R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy), maxspeed);
+				else if (player->speed < minspeed) // Push forward to prevent getting stuck
+					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+
+				player->kartstuff[k_pogospring] = 2;
+				K_DoPogoSpring(player->mo, 0);
+			}
+			break;
+
 		case 4: // Conveyor Belt
 			break;
 
@@ -3969,7 +3993,7 @@ DoneSection2:
 			//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 			break;
 
-		case 6: // SRB2kart 190117 - Sneaker Boost Panel
+		case 6: // SRB2kart 190117 - Sneaker Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
 				if (!player->kartstuff[k_floorboost])

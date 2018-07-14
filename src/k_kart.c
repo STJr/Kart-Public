@@ -1303,8 +1303,9 @@ void K_MomentumToFacing(player_t *player)
 		dangle = InvAngle(dangle);
 
 	// If you aren't on the ground or are moving in too different of a direction don't do this
-	if ((!P_IsObjectOnGround(player->mo))
-		|| (dangle > ANGLE_90 && !(player->mo->eflags & MFE_JUSTHITFLOOR)))
+	if (player->mo->eflags & MFE_JUSTHITFLOOR)
+		; // Just hit floor ALWAYS redirects
+	else if (!P_IsObjectOnGround(player->mo) || dangle > ANGLE_90)
 		return;
 
 	P_Thrust(player->mo, player->mo->angle, player->speed - FixedMul(player->speed, player->mo->friction));
@@ -1443,6 +1444,19 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	// ACCELCODE!!!1!11!
 	oldspeed = R_PointToDist2(0, 0, player->rmomx, player->rmomy); // FixedMul(P_AproxDistance(player->rmomx, player->rmomy), player->mo->scale);
 	newspeed = FixedDiv(FixedDiv(FixedMul(oldspeed, accelmax - p_accel) + FixedMul(p_speed, p_accel), accelmax), ORIG_FRICTION);
+
+	if (player->kartstuff[k_pogospring]) // Pogo Spring minimum/maximum thrust
+	{
+		const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+		const fixed_t minspeed = 24*scale;
+		const fixed_t maxspeed = 36*scale;
+
+		if (newspeed > maxspeed && player->kartstuff[k_pogospring] == 2)
+			newspeed = maxspeed;
+		if (newspeed < minspeed)
+			newspeed = minspeed;
+	}
+
 	finalspeed = newspeed - oldspeed;
 
 	// forwardmove is:
@@ -2460,6 +2474,8 @@ static void K_DoSPB(player_t *victim, player_t *source)
 
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed)
 {
+	fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+
 	if (mo->player && mo->player->spectator)
 		return;
 
@@ -2486,10 +2502,13 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed)
 				thrust = 48<<FRACBITS;
 			if (thrust > 72<<FRACBITS)
 				thrust = 72<<FRACBITS;
-			if (mo->player->kartstuff[k_sneakertimer])
-				thrust = FixedMul(thrust, 5*FRACUNIT/4);
-			else if (mo->player->kartstuff[k_invincibilitytimer])
-				thrust = FixedMul(thrust, 9*FRACUNIT/8);
+			if (mo->player->kartstuff[k_pogospring] != 2)
+			{
+				if (mo->player->kartstuff[k_sneakertimer])
+					thrust = FixedMul(thrust, 5*FRACUNIT/4);
+				else if (mo->player->kartstuff[k_invincibilitytimer])
+					thrust = FixedMul(thrust, 9*FRACUNIT/8);
+			}
 		}
 		else
 		{
@@ -2500,10 +2519,10 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed)
 				thrust = 32<<FRACBITS;
 		}
 
-		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, mo->scale));
+		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, scale));
 	}
 	else
-		mo->momz = FixedMul(vertispeed, mo->scale);
+		mo->momz = FixedMul(vertispeed, scale);
 
 	S_StartSound(mo, sfx_kc2f);
 }

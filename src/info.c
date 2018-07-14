@@ -15944,7 +15944,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOGRAVITY|MF_SCENERY, // flags
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOTHINK, // flags
 		S_NULL          // raisestate
 	},
 
@@ -15971,7 +15971,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOGRAVITY|MF_SCENERY, // flags
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOTHINK, // flags
 		S_NULL          // raisestate
 	},
 
@@ -15998,7 +15998,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOGRAVITY|MF_SCENERY, // flags
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOTHINK, // flags
 		S_NULL          // raisestate
 	},
 
