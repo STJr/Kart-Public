@@ -419,7 +419,7 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 		if (scrn & V_FLIP)
 		{
 			flip = true;
-			x -= FixedMul((SHORT(patch->width) - SHORT(patch->leftoffset))<<FRACBITS, pscale);
+			x -= FixedMul((SHORT(patch->width) - SHORT(patch->leftoffset))<<FRACBITS, pscale) + 1;
 		}
 		else
 			x -= FixedMul(SHORT(patch->leftoffset)<<FRACBITS, pscale);

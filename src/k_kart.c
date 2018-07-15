@@ -17,6 +17,7 @@
 #include "v_video.h"
 #include "z_zone.h"
 #include "m_misc.h"
+#include "m_cond.h"
 #include "k_kart.h"
 #include "f_finale.h"
 
@@ -4110,6 +4111,7 @@ static patch_t *kp_check[6];
 static patch_t *kp_spbwarning[2];
 
 static patch_t *kp_fpview[3];
+static patch_t *kp_inputwheel[5];
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -4154,9 +4156,10 @@ void K_LoadKartHUDGraphics(void)
 		}
 	}
 
+	sprintf(buffer, "K_POSNWx");
 	for (i = 0; i < NUMWINFRAMES; i++)
 	{
-		sprintf(buffer, "K_POSNW%d", i);
+		buffer[7] = '0'+i;
 		kp_winnernum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
@@ -4185,9 +4188,11 @@ void K_LoadKartHUDGraphics(void)
 
 	kp_sneaker[0] =				W_CachePatchName("K_ITSHOE", PU_HUDGFX);
 	kp_rocketsneaker[0] =		W_CachePatchName("K_ITRSHE", PU_HUDGFX);
+
+	sprintf(buffer, "K_ITINVx");
 	for (i = 0; i < 7; i++)
 	{
-		sprintf(buffer, "K_ITINV%d", i+1);
+		buffer[7] = '1'+i;
 		kp_invincibility[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 	kp_banana[0] =				W_CachePatchName("K_ITBANA", PU_HUDGFX);
@@ -4212,9 +4217,10 @@ void K_LoadKartHUDGraphics(void)
 
 	kp_sneaker[1] =				W_CachePatchName("K_ISSHOE", PU_HUDGFX);
 	kp_rocketsneaker[1] =		W_CachePatchName("K_ISRSHE", PU_HUDGFX);
+	sprintf(buffer, "K_ISINVx");
 	for (i = 0; i < 6; i++)
 	{
-		sprintf(buffer, "K_ISINV%d", i+1);
+		buffer[7] = '1'+i;
 		kp_invincibility[i+7] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 	kp_banana[1] =				W_CachePatchName("K_ISBANA", PU_HUDGFX);
@@ -4233,9 +4239,10 @@ void K_LoadKartHUDGraphics(void)
 	kp_sadface[1] = 			W_CachePatchName("K_ISSAD", PU_HUDGFX);
 
 	// CHECK indicators
+	sprintf(buffer, "K_CHECKx");
 	for (i = 0; i < 6; i++)
 	{
-		sprintf(buffer, "K_CHECK%d", i+1);
+		buffer[7] = '1'+i;
 		kp_check[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
@@ -4247,6 +4254,14 @@ void K_LoadKartHUDGraphics(void)
 	kp_fpview[0] = 				W_CachePatchName("VIEWA0", PU_HUDGFX);
 	kp_fpview[1] =				W_CachePatchName("VIEWB0D0", PU_HUDGFX);
 	kp_fpview[2] = 				W_CachePatchName("VIEWC0E0", PU_HUDGFX);
+
+	// Input UI Wheel
+	sprintf(buffer, "K_WHEELx");
+	for (i = 0; i < 5; i++)
+	{
+		buffer[7] = '0'+i;
+		kp_inputwheel[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 }
 
 //}
@@ -4553,9 +4568,9 @@ static void K_drawKartTimestamp(void)
 	// TIME_Y = 6;					//   6
 
 	INT32 TIME_XB;
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+	INT32 splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 
-	V_DrawScaledPatch(TIME_X, TIME_Y, V_HUDTRANS|splitflags, kp_timestickerwide);
+	V_DrawScaledPatch(TIME_X, TIME_Y, splitflags, kp_timestickerwide);
 
 	TIME_XB = TIME_X+33;
 
@@ -4564,44 +4579,98 @@ static void K_drawKartTimestamp(void)
 		// zero minute
 		if (stplyr->realtime/(60*TICRATE) < 10)
 		{
-			V_DrawKartString(TIME_XB, TIME_Y+3, V_HUDTRANS|splitflags, va("0"));
+			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("0"));
 			// minutes time       0 __ __
-			V_DrawKartString(TIME_XB+12, TIME_Y+3, V_HUDTRANS|splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
 		}
 		// minutes time       0 __ __
 		else
-			V_DrawKartString(TIME_XB, TIME_Y+3, V_HUDTRANS|splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
 
 		// apostrophe location     _'__ __
-		V_DrawKartString(TIME_XB+24, TIME_Y+3, V_HUDTRANS|splitflags, va("'"));
+		V_DrawKartString(TIME_XB+24, TIME_Y+3, splitflags, va("'"));
 
 		// zero second        _ 0_ __
 		if ((stplyr->realtime/TICRATE % 60) < 10)
 		{
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, V_HUDTRANS|splitflags, va("0"));
+			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("0"));
 		// seconds time       _ _0 __
-			V_DrawKartString(TIME_XB+48, TIME_Y+3, V_HUDTRANS|splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
 		}
 		// zero second        _ 00 __
 		else
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, V_HUDTRANS|splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
 
 		// quotation mark location    _ __"__
-		V_DrawKartString(TIME_XB+60, TIME_Y+3, V_HUDTRANS|splitflags, va("\""));
+		V_DrawKartString(TIME_XB+60, TIME_Y+3, splitflags, va("\""));
 
 		// zero tick          _ __ 0_
 		if (G_TicsToCentiseconds(stplyr->realtime) < 10)
 		{
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, V_HUDTRANS|splitflags, va("0"));
+			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("0"));
 		// tics               _ __ _0
-			V_DrawKartString(TIME_XB+84, TIME_Y+3, V_HUDTRANS|splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
 		}
 		// zero tick          _ __ 00
 		if (G_TicsToCentiseconds(stplyr->realtime) >= 10)
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, V_HUDTRANS|splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
 	}
-	else
-		V_DrawKartString(TIME_XB, TIME_Y+3, V_HUDTRANS|splitflags, va("99'59\"99"));
+	else if ((stplyr->realtime/TICRATE) & 1)
+		V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("99'59\"99"));
+
+	if (modeattacking) // emblem time!
+	{
+		INT32 workx;
+		emblem_t *emblem = M_GetLevelEmblems(gamemap);
+		while (emblem)
+		{
+			char targettext[9];
+
+			switch (emblem->type)
+			{
+				case ET_TIME:
+					{
+						static boolean canplaysound = true;
+						tic_t timetoreach = emblem->var;
+						snprintf(targettext, 9, "%i:%02i.%02i",
+							G_TicsToMinutes(timetoreach, false),
+							G_TicsToSeconds(timetoreach),
+							G_TicsToCentiseconds(timetoreach));
+
+						if (stplyr->realtime > timetoreach)
+						{
+							splitflags = (splitflags &~ V_HUDTRANS)|V_HUDTRANSHALF;
+							if (canplaysound)
+							{
+								S_StartSound(NULL, sfx_s3k72); //sfx_s26d); -- you STOLE fizzy lifting drinks
+								canplaysound = false;
+							}
+						}
+						else if (!canplaysound)
+							canplaysound = true;
+
+						targettext[8] = 0;
+					}
+					break;
+				default:
+					goto bademblem;
+			}
+
+			workx = TIME_XB + 96 - V_StringWidth(targettext, 0);
+			V_DrawString(workx, TIME_Y+18, splitflags, targettext);
+			workx -= 16;
+			if (emblem->collected)
+				V_DrawSmallMappedPatch(workx, TIME_Y+18, splitflags, W_CachePatchName(M_GetEmblemPatch(emblem), PU_CACHE),
+									   R_GetTranslationColormap(TC_DEFAULT, M_GetEmblemColor(emblem), GTC_CACHE));
+			else
+				V_DrawSmallScaledPatch(workx, TIME_Y+18, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
+
+			break;
+
+			bademblem:
+			emblem = M_GetLevelEmblems(-1);
+		}
+	}
 }
 
 static void K_DrawKartPositionNum(INT32 num)
@@ -5434,18 +5503,17 @@ static void K_drawKartFirstPerson(void)
 	else if (pn > target)
 		pn--;
 
-	if (pn > 2)
-		pn = 2;
-	if (pn < -2)
-		pn = -2;
-
 	if (pn < 0)
 		splitflags |= V_FLIP; // right turn
 
+	target = abs(pn);
+	if (target > 2)
+		target = 2;
+
 	if (splitscreen)
-		V_DrawSmallScaledPatch(x, y, splitflags, kp_fpview[abs(pn)]);
+		V_DrawSmallScaledPatch(x, y, splitflags, kp_fpview[target]);
 	else
-		V_DrawScaledPatch(x, y, splitflags, kp_fpview[abs(pn)]);
+		V_DrawScaledPatch(x, y, splitflags, kp_fpview[target]);
 
 	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
 		pnum2 = pn;
@@ -5455,6 +5523,96 @@ static void K_drawKartFirstPerson(void)
 		pnum4 = pn;
 	else
 		pnum1 = pn;
+}
+
+// doesn't need to ever support 4p
+static void K_drawInput(void)
+{
+	static INT32 pn = 0;
+	INT32 target = 0, splitflags = (V_SNAPTOBOTTOM|V_SNAPTORIGHT);
+	INT32 x = BASEVIDWIDTH - 32, y = BASEVIDHEIGHT-24, offs, col;
+	const INT32 accent1 = splitflags|colortranslations[stplyr->skincolor][5];
+	const INT32 accent2 = splitflags|colortranslations[stplyr->skincolor][9];
+	ticcmd_t *cmd = &stplyr->cmd;
+
+	if (timeinmap <= 105)
+		return;
+
+	if (timeinmap < 113)
+	{
+		INT32 count = ((INT32)(timeinmap) - 105);
+		offs = 64;
+		while (count-- > 0)
+			offs >>= 1;
+		x += offs;
+	}
+
+#define BUTTW 8
+#define BUTTH 11
+
+#define drawbutt(xoffs, butt, symb)\
+	if (stplyr->cmd.buttons & butt)\
+	{\
+		offs = 2;\
+		col = accent1;\
+	}\
+	else\
+	{\
+		offs = 0;\
+		col = accent2;\
+		V_DrawFill(x+(xoffs), y+BUTTH, BUTTW-1, 2, splitflags|31);\
+	}\
+	V_DrawFill(x+(xoffs), y+offs, BUTTW-1, BUTTH, col);\
+	V_DrawFixedPatch((x+1+(xoffs))<<FRACBITS, (y+offs+1)<<FRACBITS, FRACUNIT, splitflags, tny_font[symb-HU_FONTSTART], NULL)
+
+	drawbutt(-2*BUTTW, BT_ACCELERATE, 'A');
+	drawbutt(  -BUTTW, BT_BRAKE,      'B');
+	drawbutt(       0, BT_DRIFT,      'D');
+	drawbutt(   BUTTW, BT_ATTACK,     'I');
+
+#undef drawbutt
+
+	y -= 1;
+
+	if (!cmd->driftturn) // no turn
+		target = 0;
+	else // turning of multiple strengths!
+	{
+		target = (abs(cmd->driftturn)+99)/100;
+		if (target > 4)
+			target = 4;
+		if (cmd->driftturn < 0)
+			target = -target;
+	}
+
+	if (pn != target)
+	{
+		if (abs(pn - target) == 1)
+			pn = target;
+		else if (pn < target)
+			pn += 2;
+		else //if (pn > target)
+			pn -= 2;
+	}
+
+	if (pn < 0)
+	{
+		splitflags |= V_FLIP; // right turn
+		x--;
+	}
+
+	target = abs(pn);
+	if (target > 4)
+		target = 4;
+
+	if (!stplyr->skincolor)
+		V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, splitflags, kp_inputwheel[target], NULL);
+	else
+	{
+		UINT8 *colormap;
+		colormap = R_GetTranslationColormap(0, stplyr->skincolor, 0);
+		V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, splitflags, kp_inputwheel[target], colormap);
+	}
 }
 
 static void K_drawCheckpointDebugger(void)
@@ -5559,6 +5717,9 @@ void K_drawKartHUD(void)
 			// Draw the hits left!
 			K_drawKartBumpersOrKarma();
 		}
+
+		if (modeattacking) //&& !(demoplayback && hu_showscores))
+			K_drawInput();
 	}
 
 	// Draw the starting countdown after everything else.

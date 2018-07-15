@@ -3458,6 +3458,7 @@ static void M_DrawGenericMenu(void)
 
 static void M_DrawPauseMenu(void)
 {
+#if 0
 	if (!netgame && !multiplayer && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 	{
 		emblem_t *emblem_detail[3] = {NULL, NULL, NULL};
@@ -3606,6 +3607,7 @@ static void M_DrawPauseMenu(void)
 			V_DrawRightAlignedString(284, 44 + (i*8), V_MONOSPACE, emblem_text[i]);
 		}
 	}
+#endif
 
 	M_DrawGenericMenu();
 }
