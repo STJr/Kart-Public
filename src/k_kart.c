@@ -1146,8 +1146,8 @@ void K_RespawnChecker(player_t *player)
 				fixed_t newx, newy, newz;
 
 				newangle = FixedAngle(((360/8)*i)*FRACUNIT);
-				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 31*FRACUNIT);
-				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 31*FRACUNIT);
+				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 31*player->mo->scale);
+				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 31*player->mo->scale);
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					newz = player->mo->z + player->mo->height;
 				else
@@ -3039,17 +3039,18 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 	return turnvalue;
 }
 
+fixed_t K_GetKartDriftSparkValue(player_t *player)
+{
+	UINT8 kartspeed = (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
+		? 1
+		: player->kartspeed;
+	return (26*4 + kartspeed*2 + (9 - player->kartweight))*8;
+}
+
 static void K_KartDrift(player_t *player, boolean onground)
 {
-	UINT8 kartspeed = player->kartspeed;
-	fixed_t dsone, dstwo;
-
-	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
-		kartspeed = 1;
-
-	// IF YOU CHANGE THESE: MAKE SURE YOU UPDATE THE SAME VALUES IN p_mobjc, "case MT_DRIFT:"
-	dsone = (26*4 + kartspeed*2 + (9 - player->kartweight))*8;
-	dstwo = dsone*2;
+	fixed_t dsone = K_GetKartDriftSparkValue(player);
+	fixed_t dstwo = dsone*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -4620,7 +4621,8 @@ static void K_drawKartTimestamp(void)
 
 	if (modeattacking) // emblem time!
 	{
-		INT32 workx;
+		INT32 workx = TIME_XB + 96, worky = TIME_Y+18;
+		UINT8 curemb = 0;
 		emblem_t *emblem = M_GetLevelEmblems(gamemap);
 		while (emblem)
 		{
@@ -4630,7 +4632,7 @@ static void K_drawKartTimestamp(void)
 			{
 				case ET_TIME:
 					{
-						static boolean canplaysound = true;
+						static boolean canplaysound[3] = {true, true, true};
 						tic_t timetoreach = emblem->var;
 						snprintf(targettext, 9, "%i:%02i.%02i",
 							G_TicsToMinutes(timetoreach, false),
@@ -4640,14 +4642,14 @@ static void K_drawKartTimestamp(void)
 						if (stplyr->realtime > timetoreach)
 						{
 							splitflags = (splitflags &~ V_HUDTRANS)|V_HUDTRANSHALF;
-							if (canplaysound)
+							if (canplaysound[curemb])
 							{
 								S_StartSound(NULL, sfx_s3k72); //sfx_s26d); -- you STOLE fizzy lifting drinks
-								canplaysound = false;
+								canplaysound[curemb] = false;
 							}
 						}
-						else if (!canplaysound)
-							canplaysound = true;
+						else if (!canplaysound[curemb])
+							canplaysound[curemb] = true;
 
 						targettext[8] = 0;
 					}
@@ -4656,16 +4658,18 @@ static void K_drawKartTimestamp(void)
 					goto bademblem;
 			}
 
-			workx = TIME_XB + 96 - V_StringWidth(targettext, 0);
-			V_DrawString(workx, TIME_Y+18, splitflags, targettext);
-			workx -= 16;
 			if (emblem->collected)
-				V_DrawSmallMappedPatch(workx, TIME_Y+18, splitflags, W_CachePatchName(M_GetEmblemPatch(emblem), PU_CACHE),
+				V_DrawSmallMappedPatch(workx - 65, worky, splitflags, W_CachePatchName(M_GetEmblemPatch(emblem), PU_CACHE),
 									   R_GetTranslationColormap(TC_DEFAULT, M_GetEmblemColor(emblem), GTC_CACHE));
 			else
-				V_DrawSmallScaledPatch(workx, TIME_Y+18, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
+				V_DrawSmallScaledPatch(workx, worky, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
 
-			break;
+			V_DrawRightAlignedString(workx, worky, splitflags, targettext);
+
+			if (!emblem->collected || ++curemb >= 3)
+				break;
+
+			worky += 10;
 
 			bademblem:
 			emblem = M_GetLevelEmblems(-1);
@@ -5464,7 +5468,12 @@ static void K_drawKartFirstPerson(void)
 	static INT32 pnum1 = 0, pnum2 = 0, pnum3 = 0, pnum4 = 0;
 	INT32 pn = 0, target = 0, splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
 	INT32 x = BASEVIDWIDTH/2, y = BASEVIDHEIGHT;
+	fixed_t scale;
+	UINT8 *colmap = NULL;
 	ticcmd_t *cmd = &stplyr->cmd;
+
+	if (stplyr->mo && stplyr->mo->flags2 & MF2_DONTDRAW)
+		return;
 
 	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
 		pn = pnum2;
@@ -5477,15 +5486,20 @@ static void K_drawKartFirstPerson(void)
 
 	if (splitscreen)
 	{
-		y /= 2;
+		y >>= 1;
 		if (splitscreen > 1)
-			x /= 2;
+			x >>= 1;
 	}
 
 	if (stplyr->spectator || !stplyr->mo)
-		splitflags |= FF_TRANS50;
-	else if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1))
-		y++;
+		splitflags |= FF_TRANS50; // this isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
+	else
+	{
+		if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1) && !splitscreen)
+			y++;
+		if (stplyr->mo->frame & FF_TRANSMASK)
+			splitflags |= (stplyr->mo->frame & FF_TRANSMASK); // ditto
+	}
 
 	if (cmd->driftturn > 400) // strong left turn
 		target = 2;
@@ -5510,10 +5524,68 @@ static void K_drawKartFirstPerson(void)
 	if (target > 2)
 		target = 2;
 
-	if (splitscreen)
-		V_DrawSmallScaledPatch(x, y, splitflags, kp_fpview[target]);
+	x <<= FRACBITS;
+	y <<= FRACBITS;
+
+	if (splitscreen == 1)
+	{
+		scale = (2*FRACUNIT)/3;
+		y += FRACUNIT/(vid.dupx < vid.dupy ? vid.dupx : vid.dupy); // correct a one-pixel gap on the screen view (not the basevid view)
+	}
+	else if (splitscreen)
+		scale = FRACUNIT/2;
 	else
-		V_DrawScaledPatch(x, y, splitflags, kp_fpview[target]);
+		scale = FRACUNIT;
+
+	if (stplyr->mo)
+	{
+		fixed_t dsone = K_GetKartDriftSparkValue(stplyr);
+		fixed_t dstwo = dsone*2;
+
+#ifndef DONTLIKETOASTERSFPTWEAKS
+		if (stplyr->rmomx || stplyr->rmomy || stplyr->frameangle != stplyr->mo->angle) // an approximation of drifting!
+		{
+			const angle_t ang = ((stplyr->frameangle != stplyr->mo->angle)
+				? stplyr->frameangle
+				: R_PointToAngle2(0, 0, stplyr->rmomx, stplyr->rmomy))
+				- stplyr->mo->angle;
+			// yes, the follwing is correct. no, you do not need to swap the x and y.
+			fixed_t xoffs = -P_ReturnThrustY(stplyr->mo, ang, BASEVIDWIDTH<<(FRACBITS-2));
+			fixed_t yoffs = (splitscreen ? 0 : -(P_ReturnThrustX(stplyr->mo, ang, 4*FRACUNIT) - 4*FRACUNIT));
+
+			if (splitscreen)
+				xoffs = FixedMul(xoffs, scale);
+
+			if (stplyr->frameangle == stplyr->mo->angle)
+			{
+				const fixed_t mag = FixedDiv(stplyr->speed, 10*stplyr->mo->scale);
+
+				if (mag < FRACUNIT)
+				{
+					xoffs = FixedMul(xoffs, mag);
+					if (!splitscreen)
+						yoffs = FixedMul(yoffs, mag);
+				}
+			}
+
+			x += xoffs;
+			if (!splitscreen)
+				y += yoffs;
+		}
+
+		// drift sparks!
+		if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dstwo))
+			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_TANGERINE, 0);
+		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsone))
+			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SAPPHIRE, 0);
+		else
+#endif
+		// invincibility/grow/shrink!
+		if (stplyr->mo->colorized && stplyr->mo->color)
+			colmap = R_GetTranslationColormap(TC_RAINBOW, stplyr->mo->color, 0);
+	}
+
+	V_DrawFixedPatch(x, y, scale, splitflags, kp_fpview[target], colmap);
 
 	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
 		pnum2 = pn;
@@ -5578,7 +5650,7 @@ static void K_drawInput(void)
 		target = 0;
 	else // turning of multiple strengths!
 	{
-		target = (abs(cmd->driftturn)+99)/100;
+		target = ((abs(cmd->driftturn) - 1)/125)+1;
 		if (target > 4)
 			target = 4;
 		if (cmd->driftturn < 0)
@@ -5722,10 +5794,22 @@ void K_drawKartHUD(void)
 			K_drawInput();
 	}
 
-	// Draw the starting countdown after everything else.
+	// Draw the countdowns after everything else.
 	if (leveltime >= starttime-(3*TICRATE)
 		&& leveltime < starttime+TICRATE)
 		K_drawStartCountdown();
+	else if (countdown && !stplyr->exiting)
+	{
+		char *countstr = va("%d", countdown/TICRATE);
+
+		if (splitscreen > 1)
+			V_DrawCenteredString(BASEVIDWIDTH/4, LAPS_Y+1, K_calcSplitFlags(0), countstr);
+		else
+		{
+			INT32 karlen = strlen(countstr)*6; // half of 12
+			V_DrawKartString((BASEVIDWIDTH/2)-karlen, LAPS_Y+3, K_calcSplitFlags(0), countstr);
+		}
+	}
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();

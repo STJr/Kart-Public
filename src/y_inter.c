@@ -480,7 +480,7 @@ void Y_IntermissionDrawer(void)
 			}
 		}
 	}
-	else if (intertype == int_ctf || intertype == int_teammatch)
+	/*else if (intertype == int_ctf || intertype == int_teammatch)
 	{
 		INT32 x = 4, y = 0;
 		INT32 redplayers = 0, blueplayers = 0;
@@ -636,7 +636,7 @@ void Y_IntermissionDrawer(void)
 			if (y > 176)
 				break;
 		}
-	}
+	}*/
 
 	if (timer)
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,

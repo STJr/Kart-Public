@@ -3239,8 +3239,10 @@ void A_WaterShield(mobj_t *actor)
 		P_SpawnShieldOrb(player);
 	}
 
+	/* // SRB2kart - Can't drown.
 	if (player->powers[pw_underwater] && player->powers[pw_underwater] <= 12*TICRATE + 1)
 		P_RestoreMusic(player);
+	*/
 
 	player->powers[pw_underwater] = 0;
 
