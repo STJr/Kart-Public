@@ -3279,6 +3279,9 @@ static void G_DoCompleted(void)
 			else
 				cm = (INT16)(mapheaderinfo[cm]->nextlevel-1);
 
+			if (cm == 1100-1) // !!! WHENEVER WE GET GRAND PRIX, GO TO AWARDS MAP INSTEAD !!!
+				cm = cm+1;
+
 			if (cm >= NUMMAPS || cm < 0) // out of range (either 1100-1102 or error)
 			{
 				cm = nextmap; //Start the loop again so that the error checking below is executed.
