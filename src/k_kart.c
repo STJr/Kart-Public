@@ -4622,7 +4622,10 @@ static void K_drawKartTimestamp(void)
 	if (modeattacking) // emblem time!
 	{
 		INT32 workx = TIME_XB + 96, worky = TIME_Y+18;
-		UINT8 curemb = 0;
+		SINT8 curemb = 0;
+		patch_t *emblempic[3] = {NULL, NULL, NULL};
+		UINT8 *emblemcol[3] = {NULL, NULL, NULL};
+
 		emblem_t *emblem = M_GetLevelEmblems(gamemap);
 		while (emblem)
 		{
@@ -4632,8 +4635,18 @@ static void K_drawKartTimestamp(void)
 			{
 				case ET_TIME:
 					{
-						static boolean canplaysound[3] = {true, true, true};
+						static boolean canplaysound = true;
 						tic_t timetoreach = emblem->var;
+
+						if (emblem->collected)
+						{
+							emblempic[curemb] = W_CachePatchName(M_GetEmblemPatch(emblem), PU_CACHE);
+							emblemcol[curemb] = R_GetTranslationColormap(TC_DEFAULT, M_GetEmblemColor(emblem), GTC_CACHE);
+							if (++curemb == 3)
+								break;
+							goto bademblem;
+						}
+
 						snprintf(targettext, 9, "%i:%02i.%02i",
 							G_TicsToMinutes(timetoreach, false),
 							G_TicsToSeconds(timetoreach),
@@ -4642,14 +4655,14 @@ static void K_drawKartTimestamp(void)
 						if (stplyr->realtime > timetoreach)
 						{
 							splitflags = (splitflags &~ V_HUDTRANS)|V_HUDTRANSHALF;
-							if (canplaysound[curemb])
+							if (canplaysound)
 							{
 								S_StartSound(NULL, sfx_s3k72); //sfx_s26d); -- you STOLE fizzy lifting drinks
-								canplaysound[curemb] = false;
+								canplaysound = false;
 							}
 						}
-						else if (!canplaysound[curemb])
-							canplaysound[curemb] = true;
+						else if (!canplaysound)
+							canplaysound = true;
 
 						targettext[8] = 0;
 					}
@@ -4658,21 +4671,20 @@ static void K_drawKartTimestamp(void)
 					goto bademblem;
 			}
 
-			if (emblem->collected)
-				V_DrawSmallMappedPatch(workx - 65, worky, splitflags, W_CachePatchName(M_GetEmblemPatch(emblem), PU_CACHE),
-									   R_GetTranslationColormap(TC_DEFAULT, M_GetEmblemColor(emblem), GTC_CACHE));
-			else
-				V_DrawSmallScaledPatch(workx, worky, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
-
 			V_DrawRightAlignedString(workx, worky, splitflags, targettext);
+			workx -= 69; // i SWEAR i wasn't aiming for this
+			V_DrawSmallScaledPatch(workx + 4, worky, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
 
-			if (!emblem->collected || ++curemb >= 3)
-				break;
-
-			worky += 10;
+			break;
 
 			bademblem:
 			emblem = M_GetLevelEmblems(-1);
+		}
+
+		while (curemb--)
+		{
+			workx -= 16;
+			V_DrawSmallMappedPatch(workx + 4, worky, splitflags, emblempic[curemb], emblemcol[curemb]);
 		}
 	}
 }
