@@ -4231,23 +4231,7 @@ DoneSection2:
 
 				if (player->laps >= (unsigned)cv_numlaps.value)
 				{
-					if (P_IsLocalPlayer(player))
-					{
-						// SRB2kart 200117
-						if (splitscreen)
-							S_ChangeMusicInternal("krok", true);
-						else
-						{
-							if (player->kartstuff[k_position] == 1)
-								S_ChangeMusicInternal("krwin", true);
-							else if (K_IsPlayerLosing(player))
-								S_ChangeMusicInternal("krlose", true);
-							else
-								S_ChangeMusicInternal("krok", true);
-						}
-					}
-
-					if (P_IsLocalPlayer(player))
+					if (!splitscreen && P_IsLocalPlayer(player))
 						S_StartSound(NULL, sfx_s3k6a);
 					else if (player->kartstuff[k_position] == 1)
 						S_StartSound(NULL, sfx_s253);

@@ -1122,6 +1122,59 @@ void P_PlayLivesJingle(player_t *player)
 }
 
 //
+// P_EndingMusic
+//
+// Consistently sets ending music!
+//
+void P_EndingMusic(player_t *player)
+{
+	// Event - Level Finish
+	if (splitscreen
+		&& (players[displayplayer].exiting || !players[displayplayer].lives)
+		&& (players[secondarydisplayplayer].exiting || !players[secondarydisplayplayer].lives)
+		&& ((splitscreen < 2) || players[thirddisplayplayer].exiting || !players[thirddisplayplayer].lives)
+		&& ((splitscreen < 3) || players[fourthdisplayplayer].exiting || !players[fourthdisplayplayer].lives))
+	{
+		if (G_RaceGametype())
+			S_ChangeMusicInternal("krok", true);
+		else if (G_BattleGametype())
+			S_ChangeMusicInternal("kbok", false);
+	}
+	else if (!splitscreen && !player->lives) // outta lives, outta time
+	{
+		if (G_RaceGametype())
+			S_ChangeMusicInternal("krlose", true);
+		else if (G_BattleGametype())
+			S_ChangeMusicInternal("kblose", false);
+	}
+	else if (player->exiting)
+	{
+		if (splitscreen)
+			return;
+		else if (G_RaceGametype())
+		{
+			if (player->kartstuff[k_position] == 1)
+				S_ChangeMusicInternal("krwin", true);
+			else if (K_IsPlayerLosing(player))
+				S_ChangeMusicInternal("krlose", true);
+			else
+				S_ChangeMusicInternal("krok", true);
+		}
+		else if (G_BattleGametype())
+		{
+			if (player->kartstuff[k_position] == 1)
+				S_ChangeMusicInternal("kbwin", false);
+			else if (K_IsPlayerLosing(player))
+				S_ChangeMusicInternal("kblose", false);
+			else
+				S_ChangeMusicInternal("kbok", false);
+		}
+	}
+
+	S_SpeedMusic(1.0f);
+}
+
+//
 // P_RestoreMusic
 //
 // Restores music after some special music change
@@ -1131,51 +1184,22 @@ void P_RestoreMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return;
 
-	if (player->powers[pw_extralife] > 1)
+	if (player->exiting)
 		return;
+
+	if (countdown && countdown <= 11*TICRATE - 1)
+		return;
+
 	S_SpeedMusic(1.0f);
 
 	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
-	else
+	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
-		// Event - Level Finish
-		if (splitscreen
-			&& (players[displayplayer].exiting
-			|| players[secondarydisplayplayer].exiting
-			|| players[thirddisplayplayer].exiting
-			|| players[fourthdisplayplayer].exiting))
-		{
-			if (G_RaceGametype())
-				S_ChangeMusicInternal("krok", true);
-			else if (G_BattleGametype())
-				S_ChangeMusicInternal("kbok", false);
-		}
-		else if (!splitscreen && player->exiting)
-		{
-			if (G_RaceGametype())
-			{
-				if (player->kartstuff[k_position] == 1)
-					S_ChangeMusicInternal("krwin", true);
-				else if (K_IsPlayerLosing(player))
-					S_ChangeMusicInternal("krlose", true);
-				else
-					S_ChangeMusicInternal("krok", true);
-			}
-			else if (G_BattleGametype())
-			{
-				if (player->kartstuff[k_position] == 1)
-					S_ChangeMusicInternal("kbwin", false);
-				else if (K_IsPlayerLosing(player))
-					S_ChangeMusicInternal("kblose", false);
-				else
-					S_ChangeMusicInternal("kbok", false);
-			}
-		}
 		// Item - Grow
-		else if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
+		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
 			S_ChangeMusicInternal("kgrow", true);
 		// Item - Invincibility
 		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
@@ -1688,26 +1712,14 @@ void P_DoPlayerExit(player_t *player)
 		else
 			S_StartSound(player->mo, sfx_kwin);
 
-		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
-		{
-			if (!splitscreen)
-			{
-				if (player->kartstuff[k_position] == 1)
-					S_ChangeMusicInternal("krwin", true);
-				else if (K_IsPlayerLosing(player))
-					S_ChangeMusicInternal("krlose", true);
-				else
-					S_ChangeMusicInternal("krok", true);
-			}
-			else
-				S_ChangeMusicInternal("krok", true);
-		}
-
 		player->exiting = 3*TICRATE;
+
+		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
+			P_EndingMusic(player);
 
 		// SRB2kart 120217
 		if (!countdown2 && !(netgame || multiplayer))
-			countdown2 = (66)*TICRATE + 1; // 6 seconds past the time over
+			countdown2 = (68)*TICRATE + 1; // 8 seconds past the time over... so close to nice
 		else if (!countdown2)
 			countdown2 = (8 + cv_countdowntime.value)*TICRATE + 1; // 8 sec more than countdowntime -- 11 is too much
 
@@ -1716,24 +1728,10 @@ void P_DoPlayerExit(player_t *player)
 	}
 	else if (G_BattleGametype()) // Battle Mode exiting
 	{
-		//S_StopMusic();
+		player->exiting = 8*TICRATE + 1;
 
 		if (P_IsLocalPlayer(player))
-		{
-			if (!splitscreen)
-			{
-				if (player->kartstuff[k_position] == 1)
-					S_ChangeMusicInternal("kbwin", false);
-				else if (K_IsPlayerLosing(player))
-					S_ChangeMusicInternal("kblose", false);
-				else
-					S_ChangeMusicInternal("kbok", false);
-			}
-			else
-				S_ChangeMusicInternal("kbok", false);
-		}
-
-		player->exiting = 8*TICRATE + 1;
+			P_EndingMusic(player);
 	}
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
@@ -1750,7 +1748,6 @@ void P_DoPlayerExit(player_t *player)
 	player->powers[pw_underwater] = 0;
 	player->powers[pw_spacetime] = 0;
 	player->kartstuff[k_cardanimation] = 0; // srb2kart: reset battle animation
-	P_RestoreMusic(player);
 
 	/*if (playeringame[player-players] && netgame && !circuitmap)
 		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
@@ -2173,6 +2170,7 @@ static void P_CheckQuicksand(player_t *player)
 //
 // Restores music from sneaker and life fanfares
 //
+/* // SRB2kart - Can't drown.
 static void P_CheckSneakerAndLivesTimer(player_t *player)
 {
 	if ((player->powers[pw_underwater] <= 11*TICRATE + 1)
@@ -2185,12 +2183,14 @@ static void P_CheckSneakerAndLivesTimer(player_t *player)
 	//if (player->powers[pw_sneakers] == 1) // SRB2kart
 	//	P_RestoreMusic(player);
 }
+*/
 
 //
 // P_CheckUnderwaterAndSpaceTimer
 //
 // Restores music from underwater and space warnings, and handles number generation
 //
+/* // SRB2kart - Can't drown.
 static void P_CheckUnderwaterAndSpaceTimer(player_t *player)
 {
 	fixed_t height;
@@ -2299,7 +2299,7 @@ static void P_CheckUnderwaterAndSpaceTimer(player_t *player)
 
 		player->powers[pw_spacetime] = 0;
 	}
-}
+}*/
 
 //
 // P_CheckInvincibilityTimer
@@ -2343,11 +2343,11 @@ static void P_CheckInvincibilityTimer(player_t *player)
 			P_SpawnShieldOrb(player);
 		}
 
-		if ((player->powers[pw_underwater] <= 11*TICRATE + 1)
+		/*if ((player->powers[pw_underwater] <= 11*TICRATE + 1)
 		&& (player->powers[pw_underwater] > 1))
 			return; // don't restore music if drowning music is playing
 
-		if (!player->powers[pw_super] || (mapheaderinfo[gamemap-1]->levelflags & LF_NOSSMUSIC))
+		if (!player->powers[pw_super] || (mapheaderinfo[gamemap-1]->levelflags & LF_NOSSMUSIC))*/
 			P_RestoreMusic(player);
 	}
 }
@@ -6490,8 +6490,8 @@ static void P_MovePlayer(player_t *player)
 		{
 			player->pflags |= PF_FULLSTASIS;
 			// If you're in stasis in tag, you don't drown.
-			if (player->powers[pw_underwater] <= 12*TICRATE + 1)
-				P_RestoreMusic(player);
+			/*if (player->powers[pw_underwater] <= 12*TICRATE + 1)
+				P_RestoreMusic(player);*/
 			player->powers[pw_underwater] = player->powers[pw_spacetime] = 0;
 		}
 	}
@@ -7864,44 +7864,34 @@ void P_FindEmerald(void)
 //
 static void P_DeathThink(player_t *player)
 {
-	ticcmd_t *cmd = &player->cmd;
+	//ticcmd_t *cmd = &player->cmd;
 	//player->deltaviewheight = 0;
 
 	if (player->deadtimer < INT32_MAX)
 		player->deadtimer++;
 
 	// continue logic
-	if (!(netgame || multiplayer) && player->lives <= 0)
+	/*if (!(netgame || multiplayer) && player->lives <= 0)
 	{
 		if (player->deadtimer > TICRATE && (cmd->buttons & BT_BRAKE || cmd->buttons & BT_ACCELERATE || cmd->buttons & BT_DRIFT) && player->continues > 0)
 			G_UseContinue();
 		else if (player->deadtimer >= gameovertics)
 			G_UseContinue(); // Even if we don't have one this handles ending the game
-	}
+	}*/
 
 	// Force respawn if idle for more than 30 seconds in shooter modes.
-	if (player->deadtimer > 30*TICRATE && !G_RaceGametype())
+	/*if (player->deadtimer > 30*TICRATE && !G_RaceGametype())
 		player->playerstate = PST_REBORN;
-	else if (player->lives > 0 && !G_IsSpecialStage(gamemap) && leveltime >= starttime) // Don't allow "click to respawn" in special stages!
+	else if (player->lives > 0 && !G_IsSpecialStage(gamemap)*/
+	if (player->lives > 0 && leveltime >= starttime) // *could* you respawn?
 	{
-		// SRB2kart-- But wait, why'd we add this? :eggthinking:
-		/*if (player->spectator)
-		{
-			CONS_Printf("%s entered the game.\n", player_names[player-players]);
-			player->spectator = false;
-		}*/
-
-		//player->kartstuff[k_respawn] = 48; // See G_PlayerReborn in g_game.c
-
 		// SRB2kart - spawn automatically after 1 second
-		if (player->deadtimer > cv_respawntime.value*TICRATE)
-			player->playerstate = PST_REBORN;
-
-		// Single player auto respawn
-		if (!(netgame || multiplayer) && player->deadtimer > 5*TICRATE)
-			player->playerstate = PST_REBORN;
+		if (player->deadtimer > ((netgame || multiplayer)
+			? cv_respawntime.value*TICRATE
+			: TICRATE)) // don't let them change it in record attack
+				player->playerstate = PST_REBORN;
 	}
-	else if ((netgame || multiplayer) && player->deadtimer == 8*TICRATE)
+	/*else if ((netgame || multiplayer) && player->deadtimer == 8*TICRATE)
 	{
 		// In a net/multiplayer game, and out of lives
 		if (gametype == GT_COMPETITION)
@@ -7937,13 +7927,11 @@ static void P_DeathThink(player_t *player)
 				countdown2 = 1*TICRATE;
 				skipstats = true;
 
-				/* // SRB2kart 010217 - Score doesn't need to be reset in Kart.
 				for (i = 0; i < MAXPLAYERS; i++)
 				{
 					if (playeringame[i])
 						players[i].score = 0;
 				}
-				*/
 
 				//emeralds = 0;
 				tokenbits = 0;
@@ -7951,7 +7939,7 @@ static void P_DeathThink(player_t *player)
 				token = 0;
 			}
 		}
-	}
+	}*/
 
 	// Keep time rolling
 	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
@@ -7975,9 +7963,12 @@ static void P_DeathThink(player_t *player)
 		}
 	}
 
-	if ((G_RaceGametype() || (gametype == GT_COOP && (multiplayer || netgame))) && (player->lives <= 0))
+	if (G_RaceGametype() && (player->lives <= 0))
 	{
-		// Return to level music
+		// to the lose music!
+		if (player->deadtimer == 4*TICRATE && P_IsLocalPlayer(player))
+			P_EndingMusic(player);
+		/*// Return to level music
 		if (netgame)
 		{
 			if (player->deadtimer == gameovertics && P_IsLocalPlayer(player))
@@ -8012,7 +8003,7 @@ static void P_DeathThink(player_t *player)
 					break;
 				}
 			}
-		}
+		}*/
 	}
 
 	if (!player->mo)
@@ -9183,7 +9174,7 @@ void P_PlayerThink(player_t *player)
 
 		// If 10 seconds are left on the timer,
 		// begin the drown music for countdown!
-		/*
+
 		if (countdown == 11*TICRATE - 1)
 		{
 			if (P_IsLocalPlayer(player))
@@ -9192,8 +9183,7 @@ void P_PlayerThink(player_t *player)
 
 		// If you've hit the countdown and you haven't made
 		//  it to the exit, you're a goner!
-		else */
-		if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
+		else if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
 		{
 			if (netgame && player->health > 0)
 				CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);
@@ -9213,7 +9203,12 @@ void P_PlayerThink(player_t *player)
 				S_StartScreamSound(player->mo, sfx_s3k66);
 			}
 
-			player->lives = 2; // Don't start the game over music!
+			//player->lives = 2; // Don't start the game over music! -- it's never going to play in srb2kart you numpnut
+			S_StopSound(player->mo);
+			if (player->playerstate == PST_LIVE
+				&& (player->kartstuff[k_growshrinktimer] > 1
+				|| player->kartstuff[k_invincibilitytimer] > 1))
+					S_StopMusic();
 			P_DamageMobj(player->mo, NULL, NULL, 10000);
 			player->lives = 0;
 
@@ -9296,12 +9291,16 @@ void P_PlayerThink(player_t *player)
 		player->health = 1;
 	}
 
+#if 0
 	if ((netgame || multiplayer) && player->lives <= 0)
 	{
 		// In Co-Op, replenish a user's lives if they are depleted.
 		// of course, this is just a cheap hack, meh...
 		player->lives = cv_startinglives.value;
 	}
+#else
+	player->lives = 1; // SRB2Kart
+#endif
 
 	if (player == &players[displayplayer])
 		playerdeadview = false;
@@ -9430,9 +9429,9 @@ void P_PlayerThink(player_t *player)
 #endif
 
 	//P_DoSuperStuff(player);
-	P_CheckSneakerAndLivesTimer(player);
+	//P_CheckSneakerAndLivesTimer(player);
 	P_DoBubbleBreath(player); // Spawn Sonic's bubbles
-	P_CheckUnderwaterAndSpaceTimer(player); // Display the countdown drown numbers!
+	//P_CheckUnderwaterAndSpaceTimer(player); // Display the countdown drown numbers!
 	P_CheckInvincibilityTimer(player); // Spawn Invincibility Sparkles
 	P_DoPlayerHeadSigns(player); // Spawn Tag/CTF signs over player's head
 
@@ -9500,6 +9499,7 @@ void P_PlayerThink(player_t *player)
 	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX && player->charability != CA_SWIM && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
 		player->powers[pw_tailsfly]--;
 
+	/* // SRB2kart - Can't drown.
 	if (player->powers[pw_underwater] && (player->pflags & PF_GODMODE || (player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL))
 	{
 		if (player->powers[pw_underwater] <= 12*TICRATE+1)
@@ -9514,6 +9514,7 @@ void P_PlayerThink(player_t *player)
 		player->powers[pw_spacetime] = 0;
 	else if (player->powers[pw_spacetime] && !(maptol & TOL_NIGHTS) && !((netgame || multiplayer) && player->spectator)) // underwater timer
 		player->powers[pw_spacetime]--;
+	*/
 
 	if (player->powers[pw_gravityboots] && player->powers[pw_gravityboots] < UINT16_MAX)
 		player->powers[pw_gravityboots]--;

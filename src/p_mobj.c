@@ -1343,7 +1343,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 		//	|| (mo->state >= &states[S_PLAY_SPC1] && mo->state <= &states[S_PLAY_SPC4]))))
 		//	gravityadd = gravityadd/3; // less gravity while flying/gliding
 		if (mo->player->climbing || (mo->player->pflags & PF_NIGHTSMODE))
-			gravityadd = 0;
+			return 0;
 
 		if (!(mo->flags2 & MF2_OBJECTFLIP) != !(mo->player->powers[pw_gravityboots])) // negated to turn numeric into bool - would be double negated, but not needed if both would be
 		{
@@ -6587,16 +6587,11 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				if (mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					UINT8 kartspeed = mobj->target->player->kartspeed;
-					fixed_t dsone, dstwo;
 					INT32 HEIGHT;
 					fixed_t radius;
 
-					if (G_BattleGametype() && mobj->target->player->kartstuff[k_bumper] <= 0)
-						kartspeed = 1;
-
-					dsone = (26*4 + kartspeed*2 + (9 - mobj->target->player->kartweight))*8;
-					dstwo = dsone*2;
+					fixed_t dsone = K_GetKartDriftSparkValue(mobj->target->player);
+					fixed_t dstwo = dsone*2;
 
 					if (mobj->target->player->kartstuff[k_driftcharge] < dsone)
 					{
@@ -7427,7 +7422,11 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 				}
 				else // Apply gravity to fall downwards.
+				{
 					P_SetObjectMomZ(mobj, -2*FRACUNIT/3, true);
+					if (mobj->player)
+						mobj->player->frameangle -= ANGLE_22h;
+				}
 			}
 			break;
 		//{ SRB2kart Items - Death States

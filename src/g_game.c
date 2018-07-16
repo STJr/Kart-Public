@@ -4083,7 +4083,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 			players[i].starpostx = players[i].starposty = players[i].starpostz = 0;
 			players[i].starpostcount = 0; // srb2kart
 
-			/*if (netgame || multiplayer)
+#if 0
+			if (netgame || multiplayer)
 			{
 				players[i].lives = cv_startinglives.value;
 				players[i].continues = 0;
@@ -4099,7 +4100,10 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 				players[i].continues = 1;
 			}
 
-			players[i].xtralife = 0;*/
+			players[i].xtralife = 0;
+#else
+			players[i].lives = 1; // SRB2Kart
+#endif
 
 			// The latter two should clear by themselves, but just in case
 			players[i].pflags &= ~(PF_TAGIT|PF_TAGGED|PF_FULLSTASIS);

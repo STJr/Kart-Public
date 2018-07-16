@@ -2197,11 +2197,15 @@ static void P_LevelInitStuff(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+#if 0
 		if ((netgame || multiplayer) && (gametype == GT_COMPETITION || players[i].lives <= 0))
 		{
 			// In Co-Op, replenish a user's lives if they are depleted.
 			players[i].lives = cv_startinglives.value;
 		}
+#else
+		players[i].lives = 1;
+#endif
 
 		players[i].realtime = countdown = countdown2 = 0;
 		curlap = bestlap = 0; // SRB2Kart

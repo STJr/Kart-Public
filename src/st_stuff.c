@@ -1843,18 +1843,7 @@ static void ST_overlayDrawer(void)
 	if (!hu_showscores) // hide the following if TAB is held
 	{
 		// Countdown timer for Race Mode
-		if (countdown)
-		{
-			INT32 x = BASEVIDWIDTH/2;
-			INT32 y = BASEVIDHEIGHT-24;
-			if (splitscreen)
-			{
-				y = (BASEVIDHEIGHT/2)-12;
-				if (splitscreen > 1)
-					x = BASEVIDWIDTH/4;		
-			}
-			V_DrawCenteredString(x, y, K_calcSplitFlags(0), va("%d", countdown/TICRATE));
-		}
+		// ...moved to k_kart.c so we can take advantage of the LAPS_Y value
 
 		K_drawKartHUD();
 
