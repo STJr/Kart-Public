@@ -309,7 +309,17 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 			if (spring->state != &states[S_STEAM1]) // Only when it bursts
 				break;
 
-			object->momz = flipval*FixedMul(speed, FixedSqrt(FixedMul(spring->scale, object->scale))); // scale the speed with both objects' scales, just like with springs!
+			if (spring->spawnpoint && spring->spawnpoint->options & MTF_OBJECTSPECIAL)
+			{
+				if (object->eflags & MFE_SPRUNG)
+					break;
+				if (object->player)
+					object->player->kartstuff[k_pogospring] = 1;
+				K_DoPogoSpring(object, 0, true);
+				return;
+			}
+			else
+				object->momz = flipval*FixedMul(speed, FixedSqrt(FixedMul(spring->scale, object->scale))); // scale the speed with both objects' scales, just like with springs!
 
 			/* // SRB2kart - don't need state change
 			if (p)

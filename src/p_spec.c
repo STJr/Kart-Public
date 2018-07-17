@@ -3766,7 +3766,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
-				K_DoPogoSpring(player->mo, 0);
+				K_DoPogoSpring(player->mo, 0, false);
 			}
 			break;
 
@@ -3789,7 +3789,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 2;
-				K_DoPogoSpring(player->mo, 0);
+				K_DoPogoSpring(player->mo, 0, false);
 			}
 			break;
 
