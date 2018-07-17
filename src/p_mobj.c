@@ -3375,17 +3375,30 @@ void P_MobjCheckWater(mobj_t *mobj)
 			}
 
 			// skipping stone!
-			if (p && (p->charability2 == CA2_SPINDASH) && p->speed/2 > abs(mobj->momz)
-				&& ((p->pflags & (PF_SPINNING|PF_JUMPED)) == PF_SPINNING)
+			if (p && p->kartstuff[k_waterskip] < 2
+				&& ((p->speed/2 > abs(mobj->momz)) // Going more forward than horizontal, so you can skip across the water.
+				|| (p->speed > K_GetKartSpeed(p,false)/4 && p->kartstuff[k_waterskip])) // Already skipped once, so you can skip once more!
 				&& ((!(mobj->eflags & MFE_VERTICALFLIP) && thingtop - mobj->momz > mobj->watertop)
 				|| ((mobj->eflags & MFE_VERTICALFLIP) && mobj->z - mobj->momz < mobj->waterbottom)))
 			{
+				const fixed_t min = 6<<FRACBITS;
+				//const fixed_t max = 8<<FRACBITS;
+
+				mobj->momx = mobj->momx/2;
+				mobj->momy = mobj->momy/2;
 				mobj->momz = -mobj->momz/2;
 
-				if (!(mobj->eflags & MFE_VERTICALFLIP) && mobj->momz > FixedMul(6*FRACUNIT, mobj->scale))
-					mobj->momz = FixedMul(6*FRACUNIT, mobj->scale);
-				else if (mobj->eflags & MFE_VERTICALFLIP && mobj->momz < FixedMul(-6*FRACUNIT, mobj->scale))
-					mobj->momz = FixedMul(-6*FRACUNIT, mobj->scale);
+				if (!(mobj->eflags & MFE_VERTICALFLIP) && mobj->momz < FixedMul(min, mobj->scale))
+					mobj->momz = FixedMul(min, mobj->scale);
+				else if (mobj->eflags & MFE_VERTICALFLIP && mobj->momz > FixedMul(-min, mobj->scale))
+					mobj->momz = FixedMul(-min, mobj->scale);
+
+				/*if (!(mobj->eflags & MFE_VERTICALFLIP) && mobj->momz > FixedMul(max, mobj->scale))
+					mobj->momz = FixedMul(max, mobj->scale);
+				else if (mobj->eflags & MFE_VERTICALFLIP && mobj->momz < FixedMul(-max, mobj->scale))
+					mobj->momz = FixedMul(-max, mobj->scale);*/
+
+				p->kartstuff[k_waterskip]++;
 			}
 
 		}

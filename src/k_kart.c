@@ -2887,6 +2887,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (G_BattleGametype() && player->kartstuff[k_bumper] > 0)
 		player->kartstuff[k_wanted]++;
 
+	if (P_IsObjectOnGround(player->mo))
+		player->kartstuff[k_waterskip] = 0;
+
 	// ???
 	/*
 	if (player->kartstuff[k_jmp] > 1 && onground)

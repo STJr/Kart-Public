@@ -294,6 +294,7 @@ typedef enum
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
 	k_pogospring,		// Pogo spring bounce effect
 	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
+	k_waterskip,		// Water skipping counter
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
