@@ -1126,52 +1126,49 @@ void P_PlayLivesJingle(player_t *player)
 //
 // Consistently sets ending music!
 //
-void P_EndingMusic(player_t *player)
+boolean P_EndingMusic(player_t *player)
 {
+	char buffer[9];
+	boolean looping = true;
+
 	// Event - Level Finish
 	if (splitscreen
-		&& (players[displayplayer].exiting || !players[displayplayer].lives)
-		&& (players[secondarydisplayplayer].exiting || !players[secondarydisplayplayer].lives)
-		&& ((splitscreen < 2) || players[thirddisplayplayer].exiting || !players[thirddisplayplayer].lives)
-		&& ((splitscreen < 3) || players[fourthdisplayplayer].exiting || !players[fourthdisplayplayer].lives))
+		&& (players[displayplayer].exiting
+		|| players[secondarydisplayplayer].exiting
+		|| ((splitscreen < 2) && players[thirddisplayplayer].exiting)
+		|| ((splitscreen < 3) && players[fourthdisplayplayer].exiting)))
 	{
-		if (G_RaceGametype())
-			S_ChangeMusicInternal("krok", true);
-		else if (G_BattleGametype())
-			S_ChangeMusicInternal("kbok", false);
+		sprintf(buffer, "k*ok");
 	}
-	else if (!splitscreen && !player->lives) // outta lives, outta time
+	else if (player->pflags & PF_TIMEOVER) // || !player->lives) -- outta lives, outta time
 	{
-		if (G_RaceGametype())
-			S_ChangeMusicInternal("krlose", true);
-		else if (G_BattleGametype())
-			S_ChangeMusicInternal("kblose", false);
+		sprintf(buffer, "k*lose");
 	}
 	else if (player->exiting)
 	{
-		if (splitscreen)
-			return;
-		else if (G_RaceGametype())
-		{
-			if (player->kartstuff[k_position] == 1)
-				S_ChangeMusicInternal("krwin", true);
-			else if (K_IsPlayerLosing(player))
-				S_ChangeMusicInternal("krlose", true);
-			else
-				S_ChangeMusicInternal("krok", true);
-		}
-		else if (G_BattleGametype())
-		{
-			if (player->kartstuff[k_position] == 1)
-				S_ChangeMusicInternal("kbwin", false);
-			else if (K_IsPlayerLosing(player))
-				S_ChangeMusicInternal("kblose", false);
-			else
-				S_ChangeMusicInternal("kbok", false);
-		}
+		if (player->kartstuff[k_position] == 1)
+			sprintf(buffer, "k*win");
+		else if (K_IsPlayerLosing(player))
+			sprintf(buffer, "k*lose");
+		else
+			sprintf(buffer, "k*ok");
 	}
+	else
+		return false;
 
 	S_SpeedMusic(1.0f);
+
+	if (G_RaceGametype())
+		buffer[1] = 'r';
+	else if (G_BattleGametype())
+	{
+		buffer[1] = 'b';
+		looping = false;
+	}
+
+	S_ChangeMusicInternal(buffer, looping);
+
+	return true;
 }
 
 //
@@ -1184,10 +1181,7 @@ void P_RestoreMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return;
 
-	if (player->exiting)
-		return;
-
-	if (countdown && countdown <= 11*TICRATE - 1)
+	if (P_EndingMusic(player))
 		return;
 
 	S_SpeedMusic(1.0f);
@@ -1718,10 +1712,8 @@ void P_DoPlayerExit(player_t *player)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
-		if (!countdown2 && !(netgame || multiplayer))
-			countdown2 = (68)*TICRATE + 1; // 8 seconds past the time over... so close to nice
-		else if (!countdown2)
-			countdown2 = (8 + cv_countdowntime.value)*TICRATE + 1; // 8 sec more than countdowntime -- 11 is too much
+		if (!countdown2)
+			countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
@@ -7963,12 +7955,13 @@ static void P_DeathThink(player_t *player)
 		}
 	}
 
-	if (G_RaceGametype() && (player->lives <= 0))
+	/*if (G_RaceGametype() && (player->lives <= 0))
 	{
 		// to the lose music!
 		if (player->deadtimer == 4*TICRATE && P_IsLocalPlayer(player))
 			P_EndingMusic(player);
-		/*// Return to level music
+		// stuff below isn't for kart
+		// Return to level music
 		if (netgame)
 		{
 			if (player->deadtimer == gameovertics && P_IsLocalPlayer(player))
@@ -8003,8 +7996,8 @@ static void P_DeathThink(player_t *player)
 					break;
 				}
 			}
-		}*/
-	}
+		}
+	}*/
 
 	if (!player->mo)
 		return;
@@ -9065,6 +9058,25 @@ static void P_CalcPostImg(player_t *player)
 	}
 }*/
 
+void P_DoTimeOver(player_t *player)
+{
+	if (netgame && player->health > 0)
+		CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);
+
+	player->pflags |= PF_TIMEOVER;
+
+	if ((player == &players[consoleplayer]
+		|| (splitscreen && player == &players[secondarydisplayplayer])
+		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
+		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
+		&& !demoplayback)
+		legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
+
+	S_StopSound(player->mo);
+	P_DamageMobj(player->mo, NULL, NULL, 10000);
+	player->lives = 0;
+}
+
 //
 // P_PlayerThink
 //
@@ -9175,42 +9187,18 @@ void P_PlayerThink(player_t *player)
 		// If 10 seconds are left on the timer,
 		// begin the drown music for countdown!
 
-		if (countdown == 11*TICRATE - 1)
+		// SRB2Kart: despite how perfect this is, it's disabled FOR A REASON
+		/*if (countdown == 11*TICRATE - 1)
 		{
 			if (P_IsLocalPlayer(player))
 				S_ChangeMusicInternal("drown", false);
-		}
+		}*/
 
 		// If you've hit the countdown and you haven't made
 		//  it to the exit, you're a goner!
 		else if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
 		{
-			if (netgame && player->health > 0)
-				CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);
-
-			player->pflags |= PF_TIMEOVER;
-
-			if ((player == &players[consoleplayer]
-				|| (splitscreen && player == &players[secondarydisplayplayer])
-				|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-				|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-				&& !demoplayback)
-				legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
-
-			if (player->pflags & PF_NIGHTSMODE)
-			{
-				P_DeNightserizePlayer(player);
-				S_StartScreamSound(player->mo, sfx_s3k66);
-			}
-
-			//player->lives = 2; // Don't start the game over music! -- it's never going to play in srb2kart you numpnut
-			S_StopSound(player->mo);
-			if (player->playerstate == PST_LIVE
-				&& (player->kartstuff[k_growshrinktimer] > 1
-				|| player->kartstuff[k_invincibilitytimer] > 1))
-					S_StopMusic();
-			P_DamageMobj(player->mo, NULL, NULL, 10000);
-			player->lives = 0;
+			P_DoTimeOver(player);
 
 			if (player->playerstate == PST_DEAD)
 				return;

@@ -2226,8 +2226,13 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p->starpostnum = 0;
 	p->starpostcount = 0;
 
-	if (rendermode == render_soft)
-		V_SetPaletteLump(GetPalette()); // Reset the palette
+	// SRB2Kart: exitlevel shouldn't get you the points
+	if (!p->exiting)
+	{
+		p->pflags |= PF_TIMEOVER;
+		if (G_RaceGametype())
+			S_ChangeMusicInternal("racent", true);
+	}
 
 	// SRB2kart: Increment the "matches played" counter.
 	if (player == consoleplayer)
@@ -2961,7 +2966,7 @@ void G_ExitLevel(void)
 				CV_SetValue(&cv_teamscramble, cv_scrambleonchange.value);
 		}
 
-		if (gametype != GT_COOP)
+		if (netgame || multiplayer)
 			CONS_Printf(M_GetText("The round has ended.\n"));
 
 		// Remove CEcho text on round end.

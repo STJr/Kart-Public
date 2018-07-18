@@ -3393,8 +3393,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_INVINCIBILITY:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO) // Doesn't hold your item slot hostage normally, so you're free to waste it if you have multiple
 					{
-						if (P_IsLocalPlayer(player) && !player->exiting)
-							S_ChangeMusicInternal("kinvnc", true);
+						P_RestoreMusic(player);
 						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kinvnc);
 						if (!player->kartstuff[k_invincibilitytimer])
@@ -3624,8 +3623,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
-						if (P_IsLocalPlayer(player) && !player->exiting)
-							S_ChangeMusicInternal("kgrow", true);
+						P_RestoreMusic(player);
 						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kgrow);
 						K_PlayTauntSound(player->mo);
@@ -5823,7 +5821,7 @@ void K_drawKartHUD(void)
 	if (leveltime >= starttime-(3*TICRATE)
 		&& leveltime < starttime+TICRATE)
 		K_drawStartCountdown();
-	else if (countdown && !stplyr->exiting)
+	else if (countdown && (!splitscreen || !stplyr->exiting))
 	{
 		char *countstr = va("%d", countdown/TICRATE);
 

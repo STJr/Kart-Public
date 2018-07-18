@@ -110,18 +110,16 @@ typedef union
 	{
 		UINT32 scores[MAXPLAYERS]; // Winner's score
 		UINT8 *color[MAXPLAYERS]; // Winner's color #
-		boolean spectator[MAXPLAYERS]; // Spectator list
 		INT32 *character[MAXPLAYERS]; // Winner's character #
 		INT32 num[MAXPLAYERS]; // Winner's player #
 		char *name[MAXPLAYERS]; // Winner's name
 		patch_t *result; // RESULT
-		patch_t *blueflag;
-		patch_t *redflag; // int_ctf uses this struct too.
 		INT32 numplayers; // Number of players being displayed
 		char levelstring[62]; // holds levelnames up to 32 characters
 		// SRB2kart
 		int increase[MAXPLAYERS]; //how much did the score increase by?
-		int time[MAXPLAYERS]; //Tournament Time
+		tic_t time[MAXPLAYERS]; //Tournament Time
+		UINT8 pos[MAXPLAYERS]; // player positions. used for ties
 	} match;
 
 	struct
@@ -163,7 +161,7 @@ intertype_t intertype = int_none;
 //static void Y_AwardSpecialStageBonus(void);
 static void Y_CalculateTournamentPoints(void); // SRB2kart
 
-static void Y_CalculateCompetitionWinners(void);
+//static void Y_CalculateCompetitionWinners(void);
 //static void Y_CalculateTimeRaceWinners(void);
 static void Y_CalculateMatchWinners(void);
 static void Y_FollowIntermission(void);
@@ -307,7 +305,6 @@ void Y_IntermissionDrawer(void)
 	}
 	else if (intertype == int_race)
 	{
-		INT32 j = 0;
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
@@ -344,11 +341,7 @@ void Y_IntermissionDrawer(void)
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
-			if (data.match.spectator[i])
-				continue;
-
-			V_DrawCenteredString(x+6, y, 0, va("%d", j+1));
-			j++; //We skip spectators, but not their number.
+			V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
 			if (playeringame[data.match.num[i]])
 			{
@@ -376,24 +369,34 @@ void Y_IntermissionDrawer(void)
 				else
 					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, hilicol, strtime);
 
-				if (data.match.increase[i] > 9)
-					snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[i]);
+				if (data.match.time[i] == (tic_t)(UINT32_MAX-1))
+				{
+					if (data.match.numplayers > 8)
+						V_DrawRightAlignedThinString(x+136, y-1, 0, "TIME OVER...");
+					else
+						V_DrawRightAlignedThinString(x+82+BASEVIDWIDTH/2, y-1, 0, "TIME OVER...");
+				}
 				else
-					snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[i]);
+				{
+					if (data.match.numplayers <= 8) // Only draw this with less than 8 players, otherwise we won't be able to fit the times in
+					{
+						if (data.match.increase[i] > 9)
+							snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[i]);
+						else
+							snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[i]);
 
-				if (data.match.numplayers <= 8) // Only draw this with less than 8 players, otherwise we won't be able to fit the times in
-					V_DrawString(x+84+BASEVIDWIDTH/2, y, 0, strtime);
+						V_DrawString(x+84+BASEVIDWIDTH/2, y, 0, strtime);
+					}
 
-				snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.time[i], true),
-				G_TicsToSeconds(data.match.time[i]), G_TicsToCentiseconds(data.match.time[i]));
+					snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.time[i], true),
+					G_TicsToSeconds(data.match.time[i]), G_TicsToCentiseconds(data.match.time[i]));
+					strtime[sizeof strtime - 1] = '\0';
 
-				strtime[sizeof strtime - 1] = '\0';
-
-				if (data.match.numplayers > 8)
-					V_DrawRightAlignedString(x+134, y, 0, strtime);
-				else
-					V_DrawRightAlignedString(x+80+BASEVIDWIDTH/2, y, 0, strtime);
-
+					if (data.match.numplayers > 8)
+						V_DrawRightAlignedString(x+134, y, 0, strtime);
+					else
+						V_DrawRightAlignedString(x+80+BASEVIDWIDTH/2, y, 0, strtime);
+					}
 
 				completed[i] = true;
 			}
@@ -409,7 +412,6 @@ void Y_IntermissionDrawer(void)
 	}
 	else if (intertype == int_match)
 	{
-		INT32 j = 0;
 		INT32 x = 4;
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
@@ -439,11 +441,7 @@ void Y_IntermissionDrawer(void)
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
-			if (data.match.spectator[i])
-				continue; //Ignore spectators.
-
-			V_DrawCenteredString(x+6, y, 0, va("%d", j+1));
-			j++; //We skip spectators, but not their number.
+			V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
 			if (playeringame[data.match.num[i]])
 			{
@@ -831,6 +829,7 @@ void Y_Ticker(void)
 	else if (intertype == int_race)
 	{
 		INT32 q=0,r=0;
+		boolean kaching = true;
 
 		/* // SRB2kart - removed temporarily.
 		if (!intertic) {
@@ -840,7 +839,7 @@ void Y_Ticker(void)
 				S_ChangeMusicInternal("racent", true); // Backup Plan
 		}*/
 
-		if (intertic < TICRATE || intertic % 8)
+		if (intertic < TICRATE || intertic & 1)
 			return;
 
 		for (q = 0; q < data.match.numplayers; q++)
@@ -848,17 +847,19 @@ void Y_Ticker(void)
 			if (data.match.increase[q]) {
 				data.match.increase[q]--;
 				r++;
+				if (data.match.increase[q])
+					kaching = false;
 			}
 		}
 		if (r)
-			S_StartSound(NULL, sfx_menu1);
+			S_StartSound(NULL, (kaching ? sfx_chchng : sfx_ptally));
 		else
 			if (modeattacking)
 				endtic = intertic + 10*TICRATE; // 10 second pause after end of tally
 			else
 				endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
 	}
-	else if (intertype == int_match || intertype == int_ctf || intertype == int_teammatch) // match
+	else if (intertype == int_match) //|| intertype == int_ctf || intertype == int_teammatch) // match
 	{
 		if (!intertic) // first time only
 			S_ChangeMusicInternal("racent", true); // loop it
@@ -867,13 +868,13 @@ void Y_Ticker(void)
 		if (data.match.numplayers != D_NumPlayers())
 			Y_CalculateMatchWinners();
 	}
-	else if (intertype == int_race || intertype == int_classicrace) // race
+	/*else if (intertype == int_race || intertype == int_classicrace) // race
 	{
 		if (!intertic) // first time only
 			S_ChangeMusicInternal("racent", true); // loop it
 
 		// Don't bother recalcing for race. It doesn't make as much sense.
-	}
+	}*/
 }
 
 //
@@ -1365,7 +1366,7 @@ void Y_StartIntermission(void)
 			break;
 		}
 
-		case int_teammatch:
+		/*case int_teammatch:
 		case int_ctf:
 		{
 			// Calculate who won
@@ -1426,7 +1427,7 @@ void Y_StartIntermission(void)
 			usetile = true;
 			useinterpic = false;
 			break;
-		}
+		}*/
 
 		case int_none:
 		default:
@@ -1441,37 +1442,53 @@ static void Y_CalculateMatchWinners(void)
 {
 	INT32 i, j;
 	boolean completed[MAXPLAYERS];
+	INT32 numplayersingame = 0;
 
 	// Initialize variables
-	memset(data.match.scores, 0, sizeof (data.match.scores));
+	for (j = 0; j < MAXPLAYERS; j++)
+		data.match.scores[j] = UINT32_MAX;
 	memset(data.match.color, 0, sizeof (data.match.color));
 	memset(data.match.character, 0, sizeof (data.match.character));
-	memset(data.match.spectator, 0, sizeof (data.match.spectator));
 	memset(completed, 0, sizeof (completed));
 	data.match.numplayers = 0;
 	i = j = 0;
 
-	for (j = 0; j < MAXPLAYERS; j++)
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[j])
+		if (!playeringame[i] || players[i].spectator)
 			continue;
 
+		numplayersingame++;
+	}
+
+	for (j = 0; j < numplayersingame; j++)
+	{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (!playeringame[i])
+			if (!playeringame[i] || players[i].spectator || completed[i])
 				continue;
 
-			if (players[i].score >= data.match.scores[data.match.numplayers] && completed[i] == false)
+			if (data.match.scores[data.match.numplayers] == UINT32_MAX || players[i].score > data.match.scores[data.match.numplayers])
 			{
-				data.match.scores[data.match.numplayers] = players[i].score;
-				data.match.color[data.match.numplayers] = &players[i].skincolor;
-				data.match.character[data.match.numplayers] = &players[i].skin;
-				data.match.name[data.match.numplayers] = player_names[i];
-				data.match.spectator[data.match.numplayers] = players[i].spectator;
+				data.match.scores[data.match.numplayers] = ((players[i].pflags & PF_TIMEOVER)
+					? 0 : players[i].score);
 				data.match.num[data.match.numplayers] = i;
 			}
 		}
-		completed[data.match.num[data.match.numplayers]] = true;
+
+		i = data.match.num[data.match.numplayers];
+
+		completed[i] = true;
+
+		data.match.color[data.match.numplayers] = &players[i].skincolor;
+		data.match.character[data.match.numplayers] = &players[i].skin;
+		data.match.name[data.match.numplayers] = player_names[i];
+
+		if (data.match.numplayers && (data.match.scores[data.match.numplayers] == data.match.scores[data.match.numplayers-1]))
+			data.match.pos[data.match.numplayers] = data.match.pos[data.match.numplayers-1];
+		else
+			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
+
 		data.match.numplayers++;
 	}
 }
@@ -1525,7 +1542,7 @@ static void Y_CalculateTimeRaceWinners(void)
 //
 // Y_CalculateCompetitionWinners
 //
-static void Y_CalculateCompetitionWinners(void)
+/*static void Y_CalculateCompetitionWinners(void)
 {
 	INT32 i, j;
 	boolean bestat[5];
@@ -1638,7 +1655,7 @@ static void Y_CalculateCompetitionWinners(void)
 		completed[winner] = true;
 		data.competition.numplayers++;
 	}
-}
+}*/
 
 // ============
 // COOP BONUSES
@@ -1889,62 +1906,60 @@ static void Y_CalculateTournamentPoints(void)
 	INT32 i, j;
 	boolean completed[MAXPLAYERS];
 	INT32 numplayersingame = 0;
-	INT32 increase[MAXPLAYERS];
-
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i])
-			numplayersingame++;
-	}
-
-	for (i = 0; i < numplayersingame; i++)
-	{
-		increase[i] = numplayersingame-i;
-
-		if (increase[i] < 0)
-			increase[i] = 0;
-	}
 
 	// Initialize variables
 	for (j = 0; j < MAXPLAYERS; j++)
-		data.match.scores[j] = INT32_MAX;
-
-	memset(data.match.time, 0, sizeof (data.match.time));
+		data.match.time[j] = (tic_t)UINT32_MAX;
 	memset(data.match.color, 0, sizeof (data.match.color));
 	memset(data.match.character, 0, sizeof (data.match.character));
-	memset(data.match.spectator, 0, sizeof (data.match.spectator));
 	memset(data.match.increase, 0, sizeof (data.match.increase));
 	memset(completed, 0, sizeof (completed));
 	data.match.numplayers = 0;
-	i = j = 0;
 
-	for (j = 0; j < MAXPLAYERS; j++)
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[j])
+		if (!playeringame[i] || players[i].spectator)
 			continue;
 
+		numplayersingame++;
+	}
+
+	for (j = 0; j < numplayersingame; j++)
+	{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (!playeringame[i])
+			tic_t timeval;
+
+			if (!playeringame[i] || players[i].spectator || completed[i])
 				continue;
 
-			if (players[i].realtime <= data.match.scores[data.match.numplayers] && completed[i] == false)
+			timeval = ((players[i].pflags & PF_TIMEOVER || players[i].realtime == (tic_t)UINT32_MAX)
+					? (tic_t)(UINT32_MAX-1) : players[i].realtime);
+
+			if (timeval < data.match.time[data.match.numplayers])
 			{
-				data.match.time[data.match.numplayers] = players[i].realtime;
-				data.match.scores[data.match.numplayers] = players[i].realtime;
-				data.match.color[data.match.numplayers] = &players[i].skincolor;
-				data.match.character[data.match.numplayers] = &players[i].skin;
-				data.match.name[data.match.numplayers] = player_names[i];
-				data.match.spectator[data.match.numplayers] = players[i].spectator;
+				data.match.time[data.match.numplayers] = timeval;
 				data.match.num[data.match.numplayers] = i;
 			}
 		}
-		completed[data.match.num[data.match.numplayers]] = true;
-		if (!(players[data.match.num[data.match.numplayers]].pflags & PF_TIMEOVER
-		|| players[data.match.num[data.match.numplayers]].spectator))
-			data.match.increase[data.match.numplayers] = increase[data.match.numplayers];
-		players[data.match.num[data.match.numplayers]].score += data.match.increase[data.match.numplayers];
-		data.match.scores[data.match.numplayers] = players[data.match.num[data.match.numplayers]].score;
+
+		i = data.match.num[data.match.numplayers];
+
+		completed[i] = true;
+
+		data.match.color[data.match.numplayers] = &players[i].skincolor;
+		data.match.character[data.match.numplayers] = &players[i].skin;
+		data.match.name[data.match.numplayers] = player_names[i];
+
+		if (data.match.numplayers && (data.match.time[data.match.numplayers] == data.match.time[data.match.numplayers-1]))
+			data.match.pos[data.match.numplayers] = data.match.pos[data.match.numplayers-1];
+		else
+			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
+
+		if (data.match.time[data.match.numplayers] != (tic_t)(UINT32_MAX-1))
+			data.match.increase[data.match.numplayers] = numplayersingame - data.match.pos[data.match.numplayers];
+		players[i].score += data.match.increase[data.match.numplayers];
+		data.match.scores[data.match.numplayers] = players[i].score;
 
 		data.match.numplayers++;
 	}
@@ -2065,10 +2080,6 @@ static void Y_UnloadData(void)
 		case int_match:
 		case int_race:
 			UNLOAD(data.match.result);
-			break;
-		case int_ctf:
-			UNLOAD(data.match.blueflag);
-			UNLOAD(data.match.redflag);
 			break;
 		default:
 			//without this default,

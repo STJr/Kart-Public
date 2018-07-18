@@ -229,7 +229,7 @@ void ST_doPaletteStuff(void)
 
 		if (rendermode != render_none)
 		{
-			V_SetPaletteLump(GetPalette()); // Reset the palette
+			//V_SetPaletteLump(GetPalette()); // Reset the palette -- is this needed?
 			if (!splitscreen)
 				V_SetPalette(palette);
 		}
