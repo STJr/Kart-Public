@@ -5481,8 +5481,9 @@ static void K_drawStartCountdown(void)
 
 static void K_drawKartFirstPerson(void)
 {
-	static INT32 pnum1 = 0, pnum2 = 0, pnum3 = 0, pnum4 = 0;
-	INT32 pn = 0, target = 0, splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
+	static INT32 pnum[4], turn[4], drift[4];
+	INT32 pn = 0, tn = 0, dr = 0;
+	INT32 target = 0, splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM);
 	INT32 x = BASEVIDWIDTH/2, y = BASEVIDHEIGHT;
 	fixed_t scale;
 	UINT8 *colmap = NULL;
@@ -5492,13 +5493,13 @@ static void K_drawKartFirstPerson(void)
 		return;
 
 	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
-		pn = pnum2;
+		{ pn = pnum[1]; tn = turn[1]; dr = drift[1]; }
 	else if (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
-		pn = pnum3;
+		{ pn = pnum[2]; tn = turn[2]; dr = drift[2]; }
 	else if (stplyr == &players[fourthdisplayplayer] && splitscreen > 2)
-		pn = pnum4;
+		{ pn = pnum[3]; tn = turn[3]; dr = drift[3]; }
 	else
-		pn = pnum1;
+		{ pn = pnum[0]; tn = turn[0]; dr = drift[0]; }
 
 	if (splitscreen)
 	{
@@ -5543,6 +5544,12 @@ static void K_drawKartFirstPerson(void)
 	x <<= FRACBITS;
 	y <<= FRACBITS;
 
+	if (tn != cmd->driftturn/50)
+		tn -= (tn - (cmd->driftturn/50))/8;
+
+	if (dr != stplyr->kartstuff[k_drift]*16)
+		dr -= (dr - (stplyr->kartstuff[k_drift]*16))/8;
+
 	if (splitscreen == 1)
 	{
 		scale = (2*FRACUNIT)/3;
@@ -5559,18 +5566,17 @@ static void K_drawKartFirstPerson(void)
 		fixed_t dstwo = dsone*2;
 
 #ifndef DONTLIKETOASTERSFPTWEAKS
-		if (stplyr->rmomx || stplyr->rmomy || stplyr->frameangle != stplyr->mo->angle) // an approximation of drifting!
 		{
-			const angle_t ang = ((stplyr->frameangle != stplyr->mo->angle)
-				? stplyr->frameangle
-				: R_PointToAngle2(0, 0, stplyr->rmomx, stplyr->rmomy))
-				- stplyr->mo->angle;
-			// yes, the follwing is correct. no, you do not need to swap the x and y.
-			fixed_t xoffs = -P_ReturnThrustY(stplyr->mo, ang, BASEVIDWIDTH<<(FRACBITS-2));
-			fixed_t yoffs = (splitscreen ? 0 : -(P_ReturnThrustX(stplyr->mo, ang, 4*FRACUNIT) - 4*FRACUNIT));
+			const angle_t ang = R_PointToAngle2(0, 0, stplyr->rmomx, stplyr->rmomy) - stplyr->frameangle;
+			// yes, the following is correct. no, you do not need to swap the x and y.
+			fixed_t xoffs = -P_ReturnThrustY(stplyr->mo, ang, (BASEVIDWIDTH<<(FRACBITS-2))/2);
+			fixed_t yoffs = -(P_ReturnThrustX(stplyr->mo, ang, 4*FRACUNIT) - 4*FRACUNIT);
 
 			if (splitscreen)
 				xoffs = FixedMul(xoffs, scale);
+
+			xoffs -= (tn)*scale;
+			xoffs -= (dr)*scale;
 
 			if (stplyr->frameangle == stplyr->mo->angle)
 			{
@@ -5583,6 +5589,9 @@ static void K_drawKartFirstPerson(void)
 						yoffs = FixedMul(yoffs, mag);
 				}
 			}
+
+			if (stplyr->mo->momz > 0) // TO-DO: Draw more of the kart so we can remove this if!
+				yoffs += stplyr->mo->momz/3;
 
 			x += xoffs;
 			if (!splitscreen)
@@ -5604,13 +5613,13 @@ static void K_drawKartFirstPerson(void)
 	V_DrawFixedPatch(x, y, scale, splitflags, kp_fpview[target], colmap);
 
 	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
-		pnum2 = pn;
+		{ pnum[1] = pn; turn[1] = tn; drift[1] = dr; }
 	else if (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
-		pnum3 = pn;
+		{ pnum[2] = pn; turn[2] = tn; drift[2] = dr; }
 	else if (stplyr == &players[fourthdisplayplayer] && splitscreen > 2)
-		pnum4 = pn;
+		{ pnum[3] = pn; turn[3] = tn; drift[3] = dr; }
 	else
-		pnum1 = pn;
+		{ pnum[0] = pn; turn[0] = tn; drift[0] = dr; }
 }
 
 // doesn't need to ever support 4p
