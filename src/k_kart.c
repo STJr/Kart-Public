@@ -4088,6 +4088,7 @@ static patch_t *kp_rankbumper;
 static patch_t *kp_ranknobumpers;
 
 static patch_t *kp_battlewin;
+static patch_t *kp_battlecool;
 static patch_t *kp_battlelose;
 static patch_t *kp_battlewait;
 static patch_t *kp_battleinfo;
@@ -4187,6 +4188,7 @@ void K_LoadKartHUDGraphics(void)
 
 	// Battle graphics
 	kp_battlewin = 				W_CachePatchName("K_BWIN", PU_HUDGFX);
+	kp_battlecool = 			W_CachePatchName("K_BCOOL", PU_HUDGFX);
 	kp_battlelose = 			W_CachePatchName("K_BLOSE", PU_HUDGFX);
 	kp_battlewait = 			W_CachePatchName("K_BWAIT", PU_HUDGFX);
 	kp_battleinfo = 			W_CachePatchName("K_BINFO", PU_HUDGFX);
@@ -5360,10 +5362,10 @@ static void K_drawBattleFullscreen(void)
 	{
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen(0xFF00, 16);
-		if ((!splitscreen && !K_IsPlayerLosing(stplyr)) || stplyr->kartstuff[k_bumper])
+		if (stplyr->kartstuff[k_position] == 1)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
 		else if (splitscreen < 2)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlelose, NULL);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, (K_IsPlayerLosing(stplyr) ? kp_battlelose : kp_battlecool), NULL);
 	}
 	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
