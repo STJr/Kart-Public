@@ -316,6 +316,8 @@ static void D_Display(void)
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 				F_WipeEndScreen();
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
+				if (wipegamestate == GS_LEVEL && rendermode != render_none)
+					V_SetPaletteLump("PLAYPAL"); // Reset the palette
 			}
 
 			F_WipeStartScreen();
@@ -537,7 +539,7 @@ static void D_Display(void)
 	wipegamestate = gamestate;
 
 	// draw pause pic
-	if (paused && cv_showhud.value && (!menuactive || netgame))
+	if (paused && cv_showhud.value)
 	{
 		INT32 py;
 		patch_t *patch;
@@ -823,9 +825,9 @@ void D_StartTitle(void)
 	F_StartTitleScreen();
 	CON_ToggleOff();
 
-	// Reset the palette
-	if (rendermode != render_none)
-		V_SetPaletteLump("PLAYPAL");
+	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
+	/*if (rendermode != render_none)
+		V_SetPaletteLump("PLAYPAL");*/
 }
 
 //

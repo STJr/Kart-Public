@@ -150,7 +150,7 @@ boolean P_InQuicksand(mobj_t *mo);
 
 void P_SetObjectMomZ(mobj_t *mo, fixed_t value, boolean relative);
 void P_RestoreMusic(player_t *player);
-void P_EndingMusic(player_t *player);
+boolean P_EndingMusic(player_t *player);
 void P_SpawnShieldOrb(player_t *player);
 mobj_t *P_SpawnGhostMobj(mobj_t *mobj);
 void P_GivePlayerRings(player_t *player, INT32 num_rings);
@@ -168,6 +168,7 @@ void P_ElementalFireTrail(player_t *player);
 void P_PlayerThink(player_t *player);
 void P_PlayerAfterThink(player_t *player);
 void P_DoPlayerExit(player_t *player);
+void P_DoTimeOver(player_t *player);
 void P_NightserizePlayer(player_t *player, INT32 ptime);
 
 void P_InstaThrust(mobj_t *mo, angle_t angle, fixed_t move);

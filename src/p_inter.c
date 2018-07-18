@@ -2036,19 +2036,47 @@ void P_CheckSurvivors(void)
 // Checks whether or not to end a race netgame.
 boolean P_CheckRacers(void)
 {
-	INT32 i;
+	INT32 i, j, numplayersingame = 0;
 
 	// Check if all the players in the race have finished. If so, end the level.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (playeringame[i] && !players[i].spectator && !players[i].exiting && players[i].lives > 0)
-			break;
+		if (!playeringame[i] || players[i].spectator || players[i].exiting || !players[i].lives)
+			continue;
+
+		break;
 	}
 
 	if (i == MAXPLAYERS) // finished
 	{
 		countdown = countdown2 = 0;
 		return true;
+	}
+
+	for (j = 0; j < MAXPLAYERS; j++)
+	{
+		if (!playeringame[j] || players[j].spectator)
+			continue;
+		numplayersingame++;
+	}
+
+	if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
+	{
+		// check if we just got unlucky and there was only one guy who was a problem
+		for (j = i+1; j < MAXPLAYERS; j++)
+		{
+			if (!playeringame[j] || players[j].spectator || players[j].exiting || !players[j].lives)
+				continue;
+
+			break;
+		}
+
+		if (j == MAXPLAYERS) // finish anyways, force a time over
+		{
+			P_DoTimeOver(&players[i]);
+			countdown = countdown2 = 0;
+			return true;
+		}
 	}
 
 	return false;
