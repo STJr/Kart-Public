@@ -3393,9 +3393,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_INVINCIBILITY:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO) // Doesn't hold your item slot hostage normally, so you're free to waste it if you have multiple
 					{
-						P_RestoreMusic(player);
-						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_kinvnc);
 						if (!player->kartstuff[k_invincibilitytimer])
 						{
 							mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INVULNFLASH);
@@ -3404,6 +3401,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							P_SetScale(overlay, player->mo->scale);
 						}
 						player->kartstuff[k_invincibilitytimer] = itemtime+(2*TICRATE); // 10 seconds
+						P_RestoreMusic(player);
+						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
+							S_StartSound(player->mo, sfx_kinvnc);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->pflags |= PF_ATTACKDOWN;
@@ -3623,15 +3623,15 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
-						P_RestoreMusic(player);
-						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_kgrow);
 						K_PlayTauntSound(player->mo);
 						player->mo->scalespeed = FRACUNIT/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
 						if (cv_kartdebugshrink.value && !player->bot)
 							player->mo->destscale = 6*player->mo->destscale/8;
 						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
+						P_RestoreMusic(player);
+						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
+							S_StartSound(player->mo, sfx_kgrow);
 						S_StartSound(player->mo, sfx_kc5a);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
@@ -5429,7 +5429,7 @@ static void K_drawKartFirstPerson(void)
 	UINT8 *colmap = NULL;
 	ticcmd_t *cmd = &stplyr->cmd;
 
-	if (stplyr->mo && stplyr->mo->flags2 & MF2_DONTDRAW)
+	if (stplyr->spectator || !stplyr->mo || (stplyr->mo->flags2 & MF2_DONTDRAW))
 		return;
 
 	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
@@ -5448,12 +5448,10 @@ static void K_drawKartFirstPerson(void)
 			x >>= 1;
 	}
 
-	if (stplyr->spectator || !stplyr->mo)
-		splitflags |= FF_TRANS50; // this isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
-	else
 	{
 		if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1) && !splitscreen)
 			y++;
+		// this isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
 		if (stplyr->mo->frame & FF_TRANSMASK)
 			splitflags |= (stplyr->mo->frame & FF_TRANSMASK); // ditto
 	}

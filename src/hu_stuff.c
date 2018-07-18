@@ -1121,16 +1121,6 @@ static void HU_DrawCEcho(void)
 	--cechotimer;
 }
 
-static void HU_drawGametype(void)
-{
-	INT32 flags;
-	if (gametype == GT_MATCH)
-		flags = V_REDMAP;
-	else
-		flags = V_SKYMAP;
-	V_DrawString(4, 188, flags, gametype_cons_t[gametype].strvalue);
-}
-
 //
 // demo info stuff
 //
@@ -1315,9 +1305,9 @@ void HU_Erase(void)
 //
 // HU_DrawTabRankings
 //
-void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer)
+void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol)
 {
-	INT32 i, j, hilicol, rightoffset = 240;
+	INT32 i, j, rightoffset = 240;
 	const UINT8 *colormap;
 
 	//this function is designed for 9 or less score lines only
@@ -1330,13 +1320,6 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		V_DrawFill(1, 180, 318, 1, 0); // And a horizontal line near the bottom.
 		rightoffset = 156;
 	}
-
-	if (cons_menuhighlight.value)
-		hilicol = cons_menuhighlight.value;
-	else if (modeattacking)
-		hilicol = V_ORANGEMAP;
-	else
-		hilicol = ((gametype == GT_RACE) ? V_SKYMAP : V_REDMAP);
 
 	for (i = 0; i < scorelines; i++)
 	{
@@ -1664,12 +1647,22 @@ static void HU_DrawRankings(void)
 {
 	patch_t *p;
 	playersort_t tab[MAXPLAYERS];
-	INT32 i, j, scorelines, numplayersingame = 0, lowestposition = 2;
+	INT32 i, j, scorelines, hilicol, numplayersingame = 0, lowestposition = 2;
 	boolean completed[MAXPLAYERS];
 	UINT32 whiteplayer = MAXPLAYERS;
 
+	if (cons_menuhighlight.value)
+		hilicol = cons_menuhighlight.value;
+	else if (modeattacking)
+		hilicol = V_ORANGEMAP;
+	else
+		hilicol = ((gametype == GT_RACE) ? V_SKYMAP : V_REDMAP);
+
 	// draw the current gametype in the lower right
-	HU_drawGametype();
+	if (modeattacking)
+		V_DrawString(4, 188, hilicol, "Record Attack");
+	else
+		V_DrawString(4, 188, hilicol, gametype_cons_t[gametype].strvalue);
 
 	if (G_GametypeHasTeams())
 	{
@@ -1694,29 +1687,32 @@ static void HU_DrawRankings(void)
 	{
 		if (cv_timelimit.value && timelimitintics > 0)
 		{
-			INT32 timeval = (timelimitintics+1-leveltime)/TICRATE;
+			UINT32 timeval = (timelimitintics + starttime + 1 - leveltime);
+			if (timeval > timelimitintics+1)
+				timeval = timelimitintics;
+			timeval /= TICRATE;
 
 			if (leveltime <= timelimitintics)
 			{
 				V_DrawCenteredString(64, 8, 0, "TIME LEFT");
-				V_DrawCenteredString(64, 16, 0, va("%u", timeval));
+				V_DrawCenteredString(64, 16, hilicol, va("%u", timeval));
 			}
 
 			// overtime
-			if ((leveltime > (timelimitintics + TICRATE/2)) && cv_overtime.value)
+			if (!players[consoleplayer].exiting && (leveltime > (timelimitintics + starttime + TICRATE/2)) && cv_overtime.value)
 			{
 				V_DrawCenteredString(64, 8, 0, "TIME LEFT");
-				V_DrawCenteredString(64, 16, 0, "OVERTIME");
+				V_DrawCenteredString(64, 16, hilicol, "OVERTIME");
 			}
 		}
 
 		if (cv_pointlimit.value > 0)
 		{
 			V_DrawCenteredString(256, 8, 0, "POINT LIMIT");
-			V_DrawCenteredString(256, 16, 0, va("%d", cv_pointlimit.value));
+			V_DrawCenteredString(256, 16, hilicol, va("%d", cv_pointlimit.value));
 		}
 	}
-	else if (gametype == GT_COOP)
+	/*else if (gametype == GT_COOP)
 	{
 		INT32 totalscore = 0;
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -1727,14 +1723,17 @@ static void HU_DrawRankings(void)
 
 		V_DrawCenteredString(256, 8, 0, "TOTAL SCORE");
 		V_DrawCenteredString(256, 16, 0, va("%u", totalscore));
-	}
+	}*/
 	else
 	{
 		if (circuitmap)
 		{
-			V_DrawCenteredString(64, 8, 0, "NUMBER OF LAPS");
-			V_DrawCenteredString(64, 16, 0, va("%d", cv_numlaps.value));
+			V_DrawCenteredString(64, 8, 0, "LAP COUNT");
+			V_DrawCenteredString(64, 16, hilicol, va("%d", cv_numlaps.value));
 		}
+
+		V_DrawCenteredString(256, 8, 0, "GAME SPEED");
+		V_DrawCenteredString(256, 16, hilicol, cv_kartspeed.string);
 	}
 
 	// When you play, you quickly see your score because your name is displayed in white.
@@ -1799,7 +1798,7 @@ static void HU_DrawRankings(void)
 	/*if (G_GametypeHasTeams())
 		HU_DrawTeamTabRankings(tab, whiteplayer); //separate function for Spazzo's silly request -- gotta fix this up later
 	else if (scorelines > 10)*/
-	HU_DrawTabRankings(((scorelines > 9) ? 32 : 40), 32, tab, scorelines, whiteplayer);
+	HU_DrawTabRankings(((scorelines > 9) ? 32 : 40), 32, tab, scorelines, whiteplayer, hilicol);
 	/*else
 		HU_DrawDualTabRankings(32, 32, tab, scorelines, whiteplayer);*/
 

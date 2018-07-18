@@ -1797,7 +1797,7 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
   */
 void P_CheckTimeLimit(void)
 {
-	INT32 i;
+	INT32 i, k;
 
 	if (!cv_timelimit.value)
 		return;
@@ -1808,7 +1808,7 @@ void P_CheckTimeLimit(void)
 	if (G_RaceGametype())
 		return;
 
-	if (leveltime < timelimitintics)
+	if (leveltime < (timelimitintics + starttime))
 		return;
 
 	if (gameaction == ga_completed)
@@ -1830,13 +1830,10 @@ void P_CheckTimeLimit(void)
 				P_AddPlayerScore(&players[i], players[i].score);
 			}
 		}
-
-		if (server)
-			SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 	}
 
 	//Optional tie-breaker for Match/CTF
-	/*else if (cv_overtime.value)
+	else if (cv_overtime.value)
 	{
 		INT32 playerarray[MAXPLAYERS];
 		INT32 tempplayer = 0;
@@ -1846,6 +1843,8 @@ void P_CheckTimeLimit(void)
 		//Figure out if we have enough participating players to care.
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
+			if (players[i].exiting)
+				return;
 			if (playeringame[i] && players[i].spectator)
 				spectators++;
 		}
@@ -1874,7 +1873,7 @@ void P_CheckTimeLimit(void)
 				{
 					for (k = i; k < playercount; k++)
 					{
-						if (players[playerarray[i-1]].score < players[playerarray[k]].score)
+						if (players[playerarray[i-1]].marescore < players[playerarray[k]].marescore)
 						{
 							tempplayer = playerarray[i-1];
 							playerarray[i-1] = playerarray[k];
@@ -1884,7 +1883,7 @@ void P_CheckTimeLimit(void)
 				}
 
 				//End the round if the top players aren't tied.
-				if (players[playerarray[0]].score == players[playerarray[1]].score)
+				if (players[playerarray[0]].marescore == players[playerarray[1]].marescore)
 					return;
 			}
 			else
@@ -1894,12 +1893,19 @@ void P_CheckTimeLimit(void)
 					return;
 			}
 		}
-		if (server)
-			SendNetXCmd(XD_EXITLEVEL, NULL, 0);
-	}*/
+	}
 
-	if (server)
-		SendNetXCmd(XD_EXITLEVEL, NULL, 0);
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		if (players[i].exiting)
+			return;
+		P_DoPlayerExit(&players[i]);
+	}
+
+	/*if (server)
+		SendNetXCmd(XD_EXITLEVEL, NULL, 0);*/
 }
 
 /** Checks if a player's score is over the pointlimit and the round should end.
@@ -1922,7 +1928,7 @@ void P_CheckPointLimit(void)
 		return;
 
 	// pointlimit is nonzero, check if it's been reached by this player
-	if (G_GametypeHasTeams())
+	/*if (G_GametypeHasTeams())
 	{
 		// Just check both teams
 		if ((UINT32)cv_pointlimit.value <= redscore || (UINT32)cv_pointlimit.value <= bluescore)
@@ -1931,18 +1937,27 @@ void P_CheckPointLimit(void)
 				SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 		}
 	}
-	else
+	else*/
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (!playeringame[i] || players[i].spectator)
 				continue;
 
-			if ((UINT32)cv_pointlimit.value <= players[i].score)
+			if ((UINT32)cv_pointlimit.value <= players[i].marescore)
 			{
-				if (server)
-					SendNetXCmd(XD_EXITLEVEL, NULL, 0);
-				return;
+				for (i = 0; i < MAXPLAYERS; i++) // AAAAA nested loop using the same iteration variable ;;
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+					if (players[i].exiting)
+						return;
+					P_DoPlayerExit(&players[i]);
+				}
+
+				/*if (server)
+					SendNetXCmd(XD_EXITLEVEL, NULL, 0);*/
+				return; // good thing we're leaving the function immediately instead of letting the loop get mangled!
 			}
 		}
 	}

@@ -1190,7 +1190,7 @@ void P_RestoreMusic(player_t *player)
 			S_ChangeMusicInternal("kgrow", true);
 		// Item - Invincibility
 		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
-			S_ChangeMusicInternal("kinvnc", false);
+			S_ChangeMusicInternal("kinvnc", true);
 		else
 		{
 			// Event - Final Lap
