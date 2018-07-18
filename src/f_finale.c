@@ -594,7 +594,7 @@ void F_CreditDrawer(void)
 	UINT16 i;
 	fixed_t y = (80<<FRACBITS) - 5*(animtimer<<FRACBITS)/8;
 
-	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	// Draw background
 	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
@@ -916,7 +916,7 @@ void F_TitleScreenDrawer(void)
 
 	if (finalecount < 50)
 	{
-		V_DrawFill(0, 0, 320, 200, 31);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 		V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
 
@@ -927,7 +927,7 @@ void F_TitleScreenDrawer(void)
 	}
 	else if (finalecount < 52)
 	{
-		V_DrawFill(0, 0, 320, 200, 120);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 		V_DrawSmallScaledPatch(84, 36, 0, ttkflash);
 	}
 	else
@@ -1076,7 +1076,7 @@ void F_WaitingPlayersDrawer(void)
 	INT32 flags = V_FLIP;
 	const char *waittext1 = "You will join";
 	const char *waittext2 = "the next race...";
-	V_DrawFill(0, 0, 320, 200, 31);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 	V_DrawCreditString((160 - (V_CreditStringWidth(waittext1)>>1))<<FRACBITS, 48<<FRACBITS, 0, waittext1);
 	V_DrawCreditString((160 - (V_CreditStringWidth(waittext2)>>1))<<FRACBITS, 64<<FRACBITS, 0, waittext2);
 	V_DrawFixedPatch((160<<FRACBITS) - driver[frame]->width / 2, 150<<FRACBITS, 1<<FRACBITS, flags, driver[frame], waitcolormap);
@@ -1315,7 +1315,7 @@ void F_CutsceneDrawer(void)
 		// Fade to any palette color you want.
 		if (cutscenes[cutnum]->scene[scenenum].fadecolor)
 		{
-			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,cutscenes[cutnum]->scene[scenenum].fadecolor);
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, cutscenes[cutnum]->scene[scenenum].fadecolor);
 
 			F_WipeEndScreen();
 			F_RunWipe(cutscenes[cutnum]->scene[scenenum].fadeinid, true);
@@ -1323,7 +1323,7 @@ void F_CutsceneDrawer(void)
 			F_WipeStartScreen();
 		}
 	}
-	V_DrawFill(0,0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	if (cutscenes[cutnum]->scene[scenenum].picname[picnum][0] != '\0')
 	{

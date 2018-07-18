@@ -2227,7 +2227,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p->starpostcount = 0;
 
 	// SRB2Kart: exitlevel shouldn't get you the points
-	if (!p->exiting)
+	if (!p->exiting && !(p->pflags & PF_TIMEOVER))
 	{
 		p->pflags |= PF_TIMEOVER;
 		if (G_RaceGametype())
@@ -2258,7 +2258,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 void G_PlayerReborn(INT32 player)
 {
 	player_t *p;
-	INT32 score;
+	INT32 score, marescore;
 	INT32 lives;
 	INT32 continues;
 	UINT8 charability;
@@ -2308,6 +2308,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 wanted;
 
 	score = players[player].score;
+	marescore = players[player].marescore;
 	lives = players[player].lives;
 	continues = players[player].continues;
 	ctfteam = players[player].ctfteam;
@@ -2368,6 +2369,7 @@ void G_PlayerReborn(INT32 player)
 	memset(p, 0, sizeof (*p));
 
 	p->score = score;
+	p->marescore = marescore;
 	p->lives = lives;
 	p->continues = continues;
 	p->pflags = pflags;
@@ -2454,7 +2456,7 @@ void G_PlayerReborn(INT32 player)
 		P_FindEmerald(); // scan for emeralds to hunt for
 
 	// Reset Nights score and max link to 0 on death
-	p->marescore = p->maxlink = 0;
+	p->maxlink = 0;
 
 	// If NiGHTS, find lowest mare to start with.
 	p->mare = P_FindLowestMare();
@@ -3419,7 +3421,7 @@ static void G_DoWorldDone(void)
 		D_MapChange(nextmap+1,
 			gametype,
 			ultimatemode,
-			(forceresetplayers || G_BattleGametype()), // resetplayer in Battle for more equality
+			forceresetplayers,
 			0,
 			false,
 			false);
@@ -4115,6 +4117,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 
 			// Clear cheatcodes too, just in case.
 			players[i].pflags &= ~(PF_GODMODE|PF_NOCLIP|PF_INVIS);
+
+			players[i].marescore = 0;
 
 			if (resetplayer) // SRB2Kart
 			{

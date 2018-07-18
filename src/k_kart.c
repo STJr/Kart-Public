@@ -3264,12 +3264,12 @@ static void K_KartUpdatePosition(player_t *player)
 		{
 			if (player->exiting) // End of match standings
 			{
-				if (players[i].score > player->score) // Only score matters
+				if (players[i].marescore > player->marescore) // Only score matters
 					position++;
 			}
 			else
 			{
-				if (players[i].kartstuff[k_bumper] == player->kartstuff[k_bumper] && players[i].score > player->score)
+				if (players[i].kartstuff[k_bumper] == player->kartstuff[k_bumper] && players[i].marescore > player->marescore)
 					position++;
 				else if (players[i].kartstuff[k_bumper] > player->kartstuff[k_bumper])
 					position++;
@@ -3924,7 +3924,7 @@ void K_CalculateBattleWanted(void)
 				continue;
 			if (j == i)
 				continue;
-			if (players[j].kartstuff[k_wanted] == players[i].kartstuff[k_wanted] && players[j].score > players[i].score)
+			if (players[j].kartstuff[k_wanted] == players[i].kartstuff[k_wanted] && players[j].marescore > players[i].marescore)
 				position++;
 			else if (players[j].kartstuff[k_wanted] > players[i].kartstuff[k_wanted])
 				position++;
@@ -4018,7 +4018,7 @@ void K_CheckBumpers(void)
 			return;
 
 		numingame++;
-		winnerscoreadd += players[i].score;
+		winnerscoreadd += players[i].marescore;
 
 		if (players[i].kartstuff[k_bumper] <= 0) // if you don't have any bumpers, you're probably not a winner
 			continue;
@@ -4026,7 +4026,7 @@ void K_CheckBumpers(void)
 			return;
 
 		winnernum = i;
-		winnerscoreadd -= players[i].score;
+		winnerscoreadd -= players[i].marescore;
 	}
 
 	/*if (numingame <= 1)
@@ -4034,7 +4034,7 @@ void K_CheckBumpers(void)
 
 	if (winnernum > -1 && playeringame[winnernum])
 	{
-		players[winnernum].score += winnerscoreadd;
+		players[winnernum].marescore += winnerscoreadd;
 		CONS_Printf(M_GetText("%s recieved %d point%s for winning!\n"), player_names[winnernum], winnerscoreadd, (winnerscoreadd == 1 ? "" : "s"));
 	}
 
@@ -4173,7 +4173,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_facefourth = 			W_CachePatchName("K_PFACE4", PU_HUDGFX);
 
 	// Extra ranking icons
-	kp_rankbumper =			W_CachePatchName("K_BLNICO", PU_HUDGFX);
+	kp_rankbumper =				W_CachePatchName("K_BLNICO", PU_HUDGFX);
 	kp_ranknobumpers =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
 
 	// Battle graphics
@@ -4770,8 +4770,6 @@ static void K_drawKartPositionFaces(void)
 	INT32 i, j, ranklines;
 	boolean completed[MAXPLAYERS];
 	INT32 rankplayer[MAXPLAYERS];
-	INT32 rankcolor[MAXPLAYERS];
-	INT32 myplayer;
 	INT32 bumperx;
 	UINT8 *colormap;
 	patch_t *localpatch = kp_facenull;
@@ -4779,8 +4777,6 @@ static void K_drawKartPositionFaces(void)
 	ranklines = 0;
 	memset(completed, 0, sizeof (completed));
 	memset(rankplayer, 0, sizeof (rankplayer));
-	memset(rankcolor, 0, sizeof (rankcolor));
-	myplayer = demoplayback ? displayplayer : consoleplayer;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		rankplayer[i] = -1;
@@ -4796,14 +4792,17 @@ static void K_drawKartPositionFaces(void)
 				&& (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position]))
 			{
 				rankplayer[ranklines] = i;
-				rankcolor[ranklines] = players[i].skincolor;
 			}
 		}
-		completed[rankplayer[ranklines]] = true;
+		i = rankplayer[ranklines];
+
+		completed[i] = true;
+
+		if (ranklines == 4)
+			break; // Only draw the top 4 players
+
 		ranklines++;
 	}
-
-	if (ranklines > 4) ranklines = 4; // Only draw the top 4 players
 
 	Y -= (9*ranklines);
 
@@ -4814,68 +4813,21 @@ static void K_drawKartPositionFaces(void)
 
 		bumperx = FACE_X+18;
 
-		if (rankcolor[i] == 0)
-		{
-			colormap = colormaps;
-			if (rankplayer[i] != myplayer)
-			{
-				V_DrawSmallTranslucentPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
-				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
-					{
-						V_DrawSmallTranslucentPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper);
-						bumperx += 3;
-					}
-				}
-			}
-			else
-			{
-				V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin]);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
-				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
-					{
-						V_DrawSmallScaledPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper);
-						bumperx += 3;
-					}
-				}
-			}
-		}
-		else
+		if (players[rankplayer[i]].mo->color)
 		{
 			colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
 			if (players[rankplayer[i]].mo->colorized)
-			{
 				colormap = R_GetTranslationColormap(TC_RAINBOW, players[rankplayer[i]].mo->color, GTC_CACHE);
-			}
 			else
-			{
 				colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
-			}
 
-			if (rankplayer[i] != myplayer)
+			V_DrawSmallMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
+			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 			{
-				V_DrawSmallTranslucentMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
+				for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
-					{
-						V_DrawSmallTranslucentMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
-						bumperx += 3;
-					}
-				}
-			}
-			else
-			{
-				V_DrawSmallMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
-				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
-				{
-					for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
-					{
-						V_DrawSmallMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
-						bumperx += 3;
-					}
+					V_DrawSmallMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
+					bumperx += 3;
 				}
 			}
 		}
@@ -4890,20 +4842,10 @@ static void K_drawKartPositionFaces(void)
 			default: break;
 		}
 
-		if (rankplayer[i] != myplayer)
-		{
-			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
-				V_DrawSmallTranslucentPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
-			else
-				V_DrawSmallTranslucentPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
-		}
+		if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
+			V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
 		else
-		{
-			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
-				V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
-			else
-				V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
-		}
+			V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
 
 		Y += 18;
 	}

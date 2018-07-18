@@ -661,9 +661,6 @@ static void P_DeNightserizePlayer(player_t *player)
 	else if (player == &players[fourthdisplayplayer])
 		localaiming4 = 0;
 
-	// If you screwed up, kiss your score goodbye.
-	player->marescore = 0;
-
 	if (player->mo->tracer)
 		P_RemoveMobj(player->mo->tracer);
 	//P_SetPlayerMobjState(player->mo, S_PLAY_FALL1); // SRB2kart
@@ -790,8 +787,6 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 				G_AddTempNightsRecords(players[i].marescore, leveltime - player->marebegunat, players[i].mare + 1);*/
 
 			// transfer scores anyway
-			players[i].lastmarescore = players[i].marescore;
-			players[i].marescore = 0;
 
 			players[i].mo->health = players[i].health = 1;
 			P_DoPlayerExit(&players[i]);
@@ -813,8 +808,6 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 			G_AddTempNightsRecords(player->marescore, leveltime - player->marebegunat, (UINT8)(oldmare + 1));*/
 
 		// Starting a new mare, transfer scores
-		player->lastmarescore = player->marescore;
-		player->marescore = 0;
 		player->marebegunat = leveltime;
 
 		player->mo->health = player->health = 1;
@@ -1078,10 +1071,10 @@ void P_AddPlayerScore(player_t *player, UINT32 amount)
 	//oldscore = player->score;
 
 	// Don't go above MAXSCORE.
-	if (player->score + amount < MAXSCORE)
-		player->score += amount;
+	if (player->marescore + amount < MAXSCORE)
+		player->marescore += amount;
 	else
-		player->score = MAXSCORE;
+		player->marescore = MAXSCORE;
 
 	// check for extra lives every 50000 pts
 	/*if (!ultimatemode && !modeattacking && player->score > oldscore && player->score % 50000 < amount && (gametype == GT_COMPETITION || gametype == GT_COOP))

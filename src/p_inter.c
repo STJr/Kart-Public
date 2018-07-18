@@ -1797,7 +1797,7 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
   */
 void P_CheckTimeLimit(void)
 {
-	INT32 i, k;
+	INT32 i;
 
 	if (!cv_timelimit.value)
 		return;
@@ -1836,7 +1836,7 @@ void P_CheckTimeLimit(void)
 	}
 
 	//Optional tie-breaker for Match/CTF
-	else if (cv_overtime.value)
+	/*else if (cv_overtime.value)
 	{
 		INT32 playerarray[MAXPLAYERS];
 		INT32 tempplayer = 0;
@@ -1896,7 +1896,7 @@ void P_CheckTimeLimit(void)
 		}
 		if (server)
 			SendNetXCmd(XD_EXITLEVEL, NULL, 0);
-	}
+	}*/
 
 	if (server)
 		SendNetXCmd(XD_EXITLEVEL, NULL, 0);

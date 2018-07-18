@@ -2140,8 +2140,8 @@ static void Command_Map_f(void)
 		}
 	}
 
-	if (!(i = COM_CheckParm("-force")) && newgametype == gametype && !G_BattleGametype()) // SRB2Kart
-		newresetplayers = false; // if not forcing and gametypes is the same and not battle
+	if (!(i = COM_CheckParm("-force")) && newgametype == gametype) // SRB2Kart
+		newresetplayers = false; // if not forcing and gametypes is the same
 
 	// don't use a gametype the map doesn't support
 	if (cv_debug || i || cv_skipmapcheck.value)
@@ -3237,7 +3237,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	{
 		if (G_BattleGametype()) // SRB2kart
 		{
-			players[playernum].score = 0;
+			players[playernum].marescore = 0;
 			if (K_IsPlayerWanted(&players[playernum]))
 				K_CalculateBattleWanted();
 		}

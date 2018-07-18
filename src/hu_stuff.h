@@ -55,8 +55,6 @@ typedef struct
 {
 	UINT32 count;
 	INT32 num;
-	INT32 color;
-	INT32 emeralds;
 	const char *name;
 } playersort_t;
 
@@ -105,8 +103,8 @@ char HU_dequeueChatChar(void);
 void HU_Erase(void);
 void HU_clearChatChars(void);
 void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
-void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
-void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
+//void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
+//void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds);
 
 INT32 HU_CreateTeamScoresTbl(playersort_t *tab, UINT32 dmtotals[]);
