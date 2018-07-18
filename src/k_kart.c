@@ -2875,6 +2875,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_cardanimation] < 0)
 			player->kartstuff[k_cardanimation] = 0;
 	}
+	else if (G_RaceGametype() && player->exiting)
+	{
+		if (player->kartstuff[k_cardanimation] < 80)
+			player->kartstuff[k_cardanimation]++;
+	}
 	else
 		player->kartstuff[k_cardanimation] = 0;
 
@@ -4068,6 +4073,7 @@ static patch_t *kp_splitkarmabomb;
 static patch_t *kp_timeoutsticker;
 
 static patch_t *kp_startcountdown[8];
+static patch_t *kp_racefinish[2];
 
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_winnernum[NUMPOSFRAMES];
@@ -4130,8 +4136,8 @@ void K_LoadKartHUDGraphics(void)
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
 	kp_splitlapflag = 			W_CachePatchName("K_SPTLAP", PU_HUDGFX);
-	kp_bumpersticker = 		W_CachePatchName("K_STBALN", PU_HUDGFX);
-	kp_bumperstickerwide = 	W_CachePatchName("K_STBALW", PU_HUDGFX);
+	kp_bumpersticker = 			W_CachePatchName("K_STBALN", PU_HUDGFX);
+	kp_bumperstickerwide = 		W_CachePatchName("K_STBALW", PU_HUDGFX);
 	kp_karmasticker = 			W_CachePatchName("K_STKARM", PU_HUDGFX);
 	kp_splitkarmabomb = 		W_CachePatchName("K_SPTKRM", PU_HUDGFX);
 	kp_timeoutsticker = 		W_CachePatchName("K_STTOUT", PU_HUDGFX);
@@ -4145,6 +4151,9 @@ void K_LoadKartHUDGraphics(void)
 	kp_startcountdown[5] = 		W_CachePatchName("K_CNT2B", PU_HUDGFX);
 	kp_startcountdown[6] = 		W_CachePatchName("K_CNT1B", PU_HUDGFX);
 	kp_startcountdown[7] = 		W_CachePatchName("K_CNTGOB", PU_HUDGFX);
+
+	kp_racefinish[0] = 			W_CachePatchName("K_FINA", PU_HUDGFX);
+	kp_racefinish[1] = 			W_CachePatchName("K_FINB", PU_HUDGFX);
 
 	// Position numbers
 	sprintf(buffer, "K_POSNxx");
@@ -5419,6 +5428,34 @@ static void K_drawStartCountdown(void)
 		V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), splitflags, kp_startcountdown[pnum]);
 }
 
+static void K_drawRaceFinish(void)
+{
+	INT32 pnum = 0, splitflags = K_calcSplitFlags(0);
+
+	if (stplyr->kartstuff[k_cardanimation] >= 80)
+		return;
+
+	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
+		pnum = 1;
+
+	if (splitscreen)
+	{
+		V_DrawTinyScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/8), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/8), splitflags, kp_racefinish[pnum]);
+		return;
+	}
+
+	{
+		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<(FRACBITS));
+		if (xval < x)
+			xval = x;
+		x = ((40 - stplyr->kartstuff[k_cardanimation])*xval)/40;
+
+		V_DrawFixedPatch(x + ((STCD_X - (SHORT(kp_racefinish[pnum]->width)/2))<<FRACBITS),
+			(STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2))<<FRACBITS,
+			FRACUNIT, splitflags, kp_racefinish[pnum], NULL);
+	}
+}
+
 static void K_drawKartFirstPerson(void)
 {
 	static INT32 pnum[4], turn[4], drift[4];
@@ -5773,6 +5810,9 @@ void K_drawKartHUD(void)
 			V_DrawKartString((BASEVIDWIDTH/2)-karlen, LAPS_Y+3, K_calcSplitFlags(0), countstr);
 		}
 	}
+
+	if (stplyr->exiting && G_RaceGametype())
+		K_drawRaceFinish();
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();
