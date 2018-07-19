@@ -1535,16 +1535,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
 		// SRB2kart - Squish!
-		if ((tmthing->player->kartstuff[k_growshrinktimer] > 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)
-			|| (tmthing->player->kartstuff[k_growshrinktimer] == 0 && thing->player->kartstuff[k_growshrinktimer] < 0))
-		{
+		if (tmthing->scale > thing->scale + (FRACUNIT/8))
 			K_SquishPlayer(thing->player, tmthing);
-		}
-		else if ((thing->player->kartstuff[k_growshrinktimer] > 0 && tmthing->player->kartstuff[k_growshrinktimer] <= 0)
-			|| (thing->player->kartstuff[k_growshrinktimer] == 0 && tmthing->player->kartstuff[k_growshrinktimer] < 0))
-		{
+		else if (thing->scale > tmthing->scale + (FRACUNIT/8))
 			K_SquishPlayer(tmthing->player, thing);
-		}
 
 		// SRB2kart - Starpower!
 		if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer])
@@ -1641,13 +1635,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->z + tmthing->height < thing->z)
 				return true; // underneath
 
-			if (thing->player->kartstuff[k_growshrinktimer] || thing->player->kartstuff[k_squishedtimer]
-				|| thing->player->kartstuff[k_hyudorotimer] || thing->player->kartstuff[k_spinouttimer]
-				|| thing->player->kartstuff[k_invincibilitytimer] || thing->player->kartstuff[k_justbumped]
+			if (thing->player->kartstuff[k_spinouttimer] || thing->player->kartstuff[k_squishedtimer]
+				|| thing->player->kartstuff[k_hyudorotimer] || thing->player->kartstuff[k_invincibilitytimer] 
+				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (FRACUNIT/8)
 				|| (G_BattleGametype() && thing->player->kartstuff[k_bumper] <= 0)
-				|| tmthing->player->kartstuff[k_growshrinktimer] || tmthing->player->kartstuff[k_squishedtimer]
-				|| tmthing->player->kartstuff[k_hyudorotimer] || tmthing->player->kartstuff[k_spinouttimer]
-				|| tmthing->player->kartstuff[k_invincibilitytimer] || tmthing->player->kartstuff[k_justbumped]
+				|| tmthing->player->kartstuff[k_spinouttimer] || tmthing->player->kartstuff[k_squishedtimer]
+				|| tmthing->player->kartstuff[k_hyudorotimer] || tmthing->player->kartstuff[k_invincibilitytimer]
+				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8)
 				|| (G_BattleGametype() && tmthing->player->kartstuff[k_bumper] <= 0))
 			{
 				return true;
