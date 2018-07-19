@@ -455,7 +455,7 @@ boolean K_IsPlayerWanted(player_t *player)
 
 //{ SRB2kart Roulette Code - Position Based
 
-#define NUMKARTODDS 	40
+#define NUMKARTODDS 	80
 
 // Less ugly 2D arrays
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
@@ -563,7 +563,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
+static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 {
 	const INT32 distvar = (64*14);
 	INT32 newodds;
@@ -608,19 +608,31 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 			secondist = (15*secondist/14);
 	}
 
+	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
+	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
+	// Then, it multiplies it further if there's less than 5 players in game.
+	// This is done to make low player count races more fair & interesting. (1v1s are basically the same as franticitems false in a normal race)
+	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
+	// The last two are very fractional and complicated, very sorry!
+#define POWERITEMODDS(odds) \
+	if (franticitems) \
+		odds *= 2; \
+	if (pingame < 5 && !G_BattleGametype()) \
+		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((5-pingame)*(FRACUNIT/34), FRACUNIT))/FRACUNIT; \
+	if (mashed > 0) \
+		odds = FixedDiv(odds*FRACUNIT, mashed+FRACUNIT)/FRACUNIT \
+
 	switch (item)
 	{
 		case KITEM_SNEAKER:
 			if ((!cv_sneaker.value) && (!modeattacking)) newodds = 0;
 			break;
 		case KITEM_ROCKETSNEAKER:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_rocketsneaker.value) newodds = 0;
 			break;
 		case KITEM_INVINCIBILITY:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if ((!cv_invincibility.value) || (pinvin > 2)) newodds = 0;
 			break;
 		case KITEM_BANANA:
@@ -633,45 +645,38 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 			if (!cv_orbinaut.value) newodds = 0;
 			break;
 		case KITEM_JAWZ:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_jawz.value) newodds = 0;
 			break;
 		case KITEM_MINE:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_mine.value) newodds = 0;
 			break;
 		case KITEM_BALLHOG:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_ballhog.value) newodds = 0;
 			break;
 		case KITEM_SPB:
-			if (franticitems) newodds *= 2;
-			//if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if ((!cv_selfpropelledbomb.value)
 				|| (indirectitemcooldown > 0)
 				|| (pexiting > 0)
-				|| (secondist/distvar < (4+cv_kartspeed.value)))
+				|| (secondist/distvar < (4+gamespeed)))
 				newodds = 0;
-			newodds *= min((secondist/distvar)-(3+cv_kartspeed.value), 3);
+			newodds *= min((secondist/distvar)-(3+gamespeed), 3);
 			break;
 		case KITEM_GROW:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if ((!cv_grow.value) || (pinvin > 2)) newodds = 0;
 			break;
 		case KITEM_SHRINK:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if ((!cv_shrink.value)
 				|| (indirectitemcooldown > 0)
 				|| (pingame-1 <= pexiting)) newodds = 0;
 			break;
 		case KITEM_LIGHTNINGSHIELD:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_lightningshield.value) newodds = 0;
 			break;
 		case KITEM_HYUDORO:
@@ -684,33 +689,29 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, boolean mashed)
 			newodds = 0; // Not obtained via normal means.
 			break;
 		case KRITEM_TRIPLESNEAKER:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_triplesneaker.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEBANANA:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_triplebanana.value) newodds = 0;
 			break;
 		case KRITEM_TENFOLDBANANA:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_triplebanana.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEORBINAUT:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_tripleorbinaut.value) newodds = 0;
 			break;
 		case KRITEM_DUALJAWZ:
-			if (franticitems) newodds *= 2;
-			if (mashed) newodds /= 2;
+			POWERITEMODDS(newodds);
 			if (!cv_dualjawz.value) newodds = 0;
 			break;
 		default:
 			break;
 	}
+#undef POWERITEMODDS
 
 	return newodds;
 }
@@ -730,7 +731,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	boolean oddsvalid[9];
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
-	boolean mashed = false;
+	fixed_t mashed = 0;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -761,7 +762,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
 	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop)
-		mashed = true; // Mashing halves your chances for the good items
+	{
+		// Mashing reduces your chances for the good items
+		mashed = FixedDiv((player->kartstuff[k_itemroulette])*FRACUNIT, ((TICRATE*3)+roulettestop)*FRACUNIT) - FRACUNIT;
+	}
 	else if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)))
 		return;
 
@@ -2381,7 +2385,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	prandom = P_RandomFixed();
 	S_StartSound(player->mo, sfx_s3k92);
 
-	if (P_RandomChance(FRACUNIT/256)) // BEHOLD THE KITCHEN SINK
+	if (P_RandomChance(FRACUNIT/64)) // BEHOLD THE KITCHEN SINK
 	{
 		player->kartstuff[k_hyudorotimer] = hyudorotime;
 		player->kartstuff[k_stealingtimer] = stealtime;
