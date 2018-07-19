@@ -1692,7 +1692,7 @@ static void HU_DrawRankings(void)
 				timeval = timelimitintics;
 			timeval /= TICRATE;
 
-			if (leveltime <= timelimitintics)
+			if (leveltime <= (timelimitintics + starttime))
 			{
 				V_DrawCenteredString(64, 8, 0, "TIME LEFT");
 				V_DrawCenteredString(64, 16, hilicol, va("%u", timeval));

@@ -4585,55 +4585,63 @@ static void K_drawKartTimestamp(void)
 	// TIME_X = BASEVIDWIDTH-124;	// 196
 	// TIME_Y = 6;					//   6
 
-	INT32 TIME_XB;
-	INT32 splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+	INT32 TIME_XB, splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+	tic_t drawtime = stplyr->realtime;
+
+	if (cv_timelimit.value && timelimitintics > 0)
+	{
+		if (drawtime > timelimitintics)
+			drawtime = 0;
+		else
+			drawtime = timelimitintics - drawtime;
+	}
 
 	V_DrawScaledPatch(TIME_X, TIME_Y, splitflags, kp_timestickerwide);
 
 	TIME_XB = TIME_X+33;
 
-	if (stplyr->realtime/(60*TICRATE) < 100) // 99:99:99 only
+	if (drawtime/(60*TICRATE) < 100) // 99:99:99 only
 	{
 		// zero minute
-		if (stplyr->realtime/(60*TICRATE) < 10)
+		if (drawtime/(60*TICRATE) < 10)
 		{
 			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("0"));
 			// minutes time       0 __ __
-			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", drawtime/(60*TICRATE)));
 		}
 		// minutes time       0 __ __
 		else
-			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", drawtime/(60*TICRATE)));
 
 		// apostrophe location     _'__ __
 		V_DrawKartString(TIME_XB+24, TIME_Y+3, splitflags, va("'"));
 
 		// zero second        _ 0_ __
-		if ((stplyr->realtime/TICRATE % 60) < 10)
+		if ((drawtime/TICRATE % 60) < 10)
 		{
 			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("0"));
 		// seconds time       _ _0 __
-			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", drawtime/TICRATE % 60));
 		}
 		// zero second        _ 00 __
 		else
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", drawtime/TICRATE % 60));
 
 		// quotation mark location    _ __"__
 		V_DrawKartString(TIME_XB+60, TIME_Y+3, splitflags, va("\""));
 
 		// zero tick          _ __ 0_
-		if (G_TicsToCentiseconds(stplyr->realtime) < 10)
+		if (G_TicsToCentiseconds(drawtime) < 10)
 		{
 			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("0"));
 		// tics               _ __ _0
-			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(drawtime)));
 		}
 		// zero tick          _ __ 00
-		if (G_TicsToCentiseconds(stplyr->realtime) >= 10)
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+		if (G_TicsToCentiseconds(drawtime) >= 10)
+			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(drawtime)));
 	}
-	else if ((stplyr->realtime/TICRATE) & 1)
+	else if ((drawtime/TICRATE) & 1)
 		V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("99'59\"99"));
 
 	if (modeattacking) // emblem time!
