@@ -89,7 +89,7 @@ typedef union
 		INT32 numplayers; // Number of players being displayed
 		char levelstring[62]; // holds levelnames up to 32 characters
 		// SRB2kart
-		int increase[MAXPLAYERS]; //how much did the score increase by?
+		UINT8 increase[MAXPLAYERS]; //how much did the score increase by?
 		UINT32 val[MAXPLAYERS]; //Gametype-specific value
 		UINT8 pos[MAXPLAYERS]; // player positions. used for ties
 		boolean rankingsmode; // rankings mode
@@ -203,22 +203,23 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 	// Initialize variables
 	if ((data.match.rankingsmode = rankingsmode))
 		sprintf(data.match.levelstring, "* Total Rankings *");
-	else
-		memset(data.match.increase, 0, sizeof (data.match.increase));
-	for (j = 0; j < MAXPLAYERS; j++)
-		data.match.val[j] = UINT32_MAX;
-	memset(data.match.color, 0, sizeof (data.match.color));
-	memset(data.match.character, 0, sizeof (data.match.character));
-	memset(completed, 0, sizeof (completed));
-	data.match.numplayers = 0;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		data.match.val[i] = UINT32_MAX;
+		if (!rankingsmode)
+			data.match.increase[i] = UINT8_MAX;
+
 		if (!playeringame[i] || players[i].spectator)
 			continue;
 
 		numplayersingame++;
 	}
+
+	memset(data.match.color, 0, sizeof (data.match.color));
+	memset(data.match.character, 0, sizeof (data.match.character));
+	memset(completed, 0, sizeof (completed));
+	data.match.numplayers = 0;
 
 	for (j = 0; j < numplayersingame; j++)
 	{
@@ -243,7 +244,7 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 		else
 			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
 
-		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER))
+		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] != numplayersingame))
 		{
 			data.match.increase[i] = numplayersingame - data.match.pos[data.match.numplayers];
 			players[i].score += data.match.increase[i];
@@ -413,17 +414,22 @@ void Y_IntermissionDrawer(void)
 
 				if (data.match.rankingsmode)
 				{
-					if (data.match.increase[data.match.num[i]] > 9)
-						snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[data.match.num[i]]);
-					else
-						snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[data.match.num[i]]);
+					if (data.match.increase[data.match.num[i]] != UINT8_MAX)
+					{
+						if (data.match.increase[data.match.num[i]] > 9)
+							snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[data.match.num[i]]);
+						else
+							snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[data.match.num[i]]);
 
-					if (data.match.numplayers > 8)
-						V_DrawRightAlignedString(x+120, y, 0, strtime);
-					else
-						V_DrawRightAlignedString(x+120+BASEVIDWIDTH/2, y, 0, strtime);
+						if (data.match.numplayers > 8)
+							V_DrawRightAlignedString(x+120, y, 0, strtime);
+						else
+							V_DrawRightAlignedString(x+120+BASEVIDWIDTH/2, y, 0, strtime);
 
-					snprintf(strtime, sizeof strtime, "%d", data.match.val[i]-data.match.increase[data.match.num[i]]);
+						snprintf(strtime, sizeof strtime, "%d", data.match.val[i]-data.match.increase[data.match.num[i]]);
+					}
+					else
+						snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
 
 					if (data.match.numplayers > 8)
 						V_DrawRightAlignedString(x+152, y, 0, strtime);
@@ -553,15 +559,15 @@ void Y_Ticker(void)
 
 					for (q = 0; q < data.match.numplayers; q++)
 					{
-						if (data.match.num[q] == MAXPLAYERS)
+						if (data.match.num[q] == MAXPLAYERS
+						|| !data.match.increase[data.match.num[q]]
+						|| data.match.increase[data.match.num[q]] == UINT8_MAX)
 							continue;
+
+						data.match.increase[data.match.num[q]]--;
+						r++;
 						if (data.match.increase[data.match.num[q]])
-						{
-							data.match.increase[data.match.num[q]]--;
-							r++;
-							if (data.match.increase[data.match.num[q]])
-								kaching = false;
-						}
+							kaching = false;
 					}
 
 					if (r)
