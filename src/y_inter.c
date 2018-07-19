@@ -337,9 +337,6 @@ void Y_IntermissionDrawer(void)
 		char name[MAXPLAYERNAME+1];
 		const char *timeheader = (intertype == int_race) ? "TIME" : "HITS";
 
-		boolean completed[MAXPLAYERS];
-		memset(completed, 0, sizeof (completed));
-
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
 		V_DrawFill(x, 42, 312, 1, 0);
@@ -369,11 +366,11 @@ void Y_IntermissionDrawer(void)
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
-			V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
-
-			if (data.match.num[i] != MAXPLAYERS && playeringame[data.match.num[i]])
+			if (data.match.num[i] != MAXPLAYERS && playeringame[data.match.num[i]] && !players[data.match.num[i]].spectator)
 			{
 				char strtime[10];
+
+				V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
 				if (data.match.color[i] == 0)
 					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]]);
@@ -442,8 +439,6 @@ void Y_IntermissionDrawer(void)
 						}
 					}
 				}
-
-				completed[i] = true;
 			}
 			else
 				data.match.num[i] = MAXPLAYERS;

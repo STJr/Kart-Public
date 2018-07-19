@@ -9065,9 +9065,14 @@ void P_DoTimeOver(player_t *player)
 		&& !demoplayback)
 		legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
 
-	S_StopSound(player->mo);
-	P_DamageMobj(player->mo, NULL, NULL, 10000);
+	if (player->mo)
+	{
+		S_StopSound(player->mo);
+		P_DamageMobj(player->mo, NULL, NULL, 10000);
+	}
 	player->lives = 0;
+
+	P_EndingMusic(player);
 }
 
 //
