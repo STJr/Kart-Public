@@ -1125,7 +1125,7 @@ boolean P_EndingMusic(player_t *player)
 	boolean looping = true;
 
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
-		return;
+		return false;
 
 	// Event - Level Finish
 	if (splitscreen

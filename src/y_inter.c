@@ -263,6 +263,9 @@ void Y_IntermissionDrawer(void)
 	else
 		V_DrawPatchFill(bgtile);
 
+	if (usebuffer) // Fade everything out
+		V_DrawFadeScreen(0xFF00, 16);
+
 	if (!splitscreen)
 		whiteplayer = demoplayback ? displayplayer : consoleplayer;
 
@@ -335,7 +338,7 @@ void Y_IntermissionDrawer(void)
 	{
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
-		const char *timeheader = (intertype == int_race) ? "TIME" : "HITS";
+		const char *timeheader = (data.match.rankingsmode ? "RANK" : (intertype == int_race ? "TIME" : "SCORE"));
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
@@ -348,21 +351,13 @@ void Y_IntermissionDrawer(void)
 			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, hilicol, "#");
 			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, hilicol, "NAME");
 
-			if (!data.match.rankingsmode)
-			{
-				V_DrawRightAlignedString(x+110, 32, hilicol, timeheader);
-				V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+110, 32, hilicol, timeheader);
-			}
-
-			V_DrawRightAlignedString(x+152, 32, hilicol, "SCORE");
+			V_DrawRightAlignedString(x+152, 32, hilicol, timeheader);
 		}
-		else if (!data.match.rankingsmode)
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+62, 32, hilicol, timeheader);
 
 		V_DrawCenteredString(x+6, 32, hilicol, "#");
 		V_DrawString(x+36, 32, hilicol, "NAME");
 
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, hilicol, "SCORE");
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, hilicol, timeheader);
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -391,34 +386,36 @@ void Y_IntermissionDrawer(void)
 						: V_ALLOWLOWERCASE),
 					name);
 
-				snprintf(strtime, sizeof strtime, "%d", data.match.scores[i]-data.match.increase[i]);
+				if (data.match.rankingsmode)
+				{
+					if (data.match.increase[i] > 9)
+						snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[i]);
+					else
+						snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[i]);
 
-				if (data.match.numplayers > 8)
-					V_DrawRightAlignedString(x+152, y, 0, strtime);
+					if (data.match.numplayers > 8)
+						V_DrawRightAlignedString(x+120, y, 0, strtime);
+					else
+						V_DrawRightAlignedString(x+120+BASEVIDWIDTH/2, y, 0, strtime);
+
+					snprintf(strtime, sizeof strtime, "%d", data.match.scores[i]-data.match.increase[i]);
+
+					if (data.match.numplayers > 8)
+						V_DrawRightAlignedString(x+152, y, 0, strtime);
+					else
+						V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
+				}
 				else
-					V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
-
-				if (!data.match.rankingsmode)
 				{
 					if (data.match.val[i] == (UINT32_MAX-1))
 					{
 						if (data.match.numplayers > 8)
-							V_DrawRightAlignedThinString(x+134, y-1, 0, "NO CONTEST");
+							V_DrawRightAlignedThinString(x+152, y-1, 0, "NO CONTEST");
 						else
-							V_DrawRightAlignedThinString(x+80+BASEVIDWIDTH/2, y-1, 0, "NO CONTEST");
+							V_DrawRightAlignedThinString(x+152+BASEVIDWIDTH/2, y-1, 0, "NO CONTEST");
 					}
 					else
 					{
-						if (data.match.numplayers <= 8) // Only draw this with less than 8 players, otherwise we won't be able to fit the times in
-						{
-							if (data.match.increase[i] > 9)
-								snprintf(strtime, sizeof strtime, "(+%02d)", data.match.increase[i]);
-							else
-								snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[i]);
-
-							V_DrawString(x+84+BASEVIDWIDTH/2, y, 0, strtime);
-						}
-
 						if (intertype == int_race)
 						{
 							snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.val[i], true),
@@ -426,16 +423,16 @@ void Y_IntermissionDrawer(void)
 							strtime[sizeof strtime - 1] = '\0';
 
 							if (data.match.numplayers > 8)
-								V_DrawRightAlignedString(x+134, y, 0, strtime);
+								V_DrawRightAlignedString(x+152, y, 0, strtime);
 							else
-								V_DrawRightAlignedString(x+80+BASEVIDWIDTH/2, y, 0, strtime);
+								V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
 						}
 						else
 						{
 							if (data.match.numplayers > 8)
-								V_DrawRightAlignedString(x+110, y, 0, va("%i", data.match.val[i]));
+								V_DrawRightAlignedString(x+152, y, 0, va("%i", data.match.val[i]));
 							else
-								V_DrawRightAlignedString(x+62+BASEVIDWIDTH/2, y, 0, va("%i", data.match.val[i]));
+								V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, va("%i", data.match.val[i]));
 						}
 					}
 				}
@@ -880,26 +877,30 @@ void Y_Ticker(void)
 		if (intertic < TICRATE || intertic & 1)
 			return;
 
-		for (q = 0; q < data.match.numplayers; q++)
+		if (data.match.rankingsmode && intertic > sorttic+(2*TICRATE))
 		{
-			if (data.match.increase[q]) {
-				data.match.increase[q]--;
-				r++;
-				if (data.match.increase[q])
-					kaching = false;
+			for (q = 0; q < data.match.numplayers; q++)
+			{
+				if (data.match.increase[q]) {
+					data.match.increase[q]--;
+					r++;
+					if (data.match.increase[q])
+						kaching = false;
+				}
 			}
-		}
-		if (r)
-			S_StartSound(NULL, (kaching ? sfx_chchng : sfx_ptally));
-		else
-		{
-			if (modeattacking)
-				endtic = intertic + 10*TICRATE; // 10 second pause after end of tally
+
+			if (r)
+				S_StartSound(NULL, (kaching ? sfx_chchng : sfx_ptally));
 			else
 				endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
+		}
 
-			if (netgame || multiplayer)
-				sorttic = intertic + 5*TICRATE; // 5 second pause after end of tally
+		if (modeattacking)
+			endtic = intertic + 8*TICRATE; // 8 second pause after end of tally
+		else if (netgame || multiplayer)
+		{
+			if (sorttic == -1)
+				sorttic = intertic + max((cv_inttime.value/2)-2, 2)*TICRATE; // 8 second pause after match results
 		}
 	}
 	/*else if (intertype == int_match) //|| intertype == int_ctf || intertype == int_teammatch) // match
@@ -1420,9 +1421,9 @@ void Y_StartIntermission(void)
 
 		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
 
-		bgtile = W_CachePatchName("SRB2BACK", PU_STATIC);
-		usetile = true;
-		useinterpic = false;
+		//bgtile = W_CachePatchName("SRB2BACK", PU_STATIC);
+		usetile = useinterpic = false;
+		usebuffer = true;
 	}
 }
 
