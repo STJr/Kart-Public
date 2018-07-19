@@ -5509,9 +5509,11 @@ static void K_drawKartFirstPerson(void)
 	{
 		if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1) && !splitscreen)
 			y++;
-		// this isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
-		if (stplyr->mo->frame & FF_TRANSMASK)
-			splitflags |= (stplyr->mo->frame & FF_TRANSMASK); // ditto
+		// the following isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
+		if (stplyr->mo->flags2 & MF2_SHADOW)
+			splitflags |= FF_TRANS80;
+		else if (stplyr->mo->frame & FF_TRANSMASK)
+			splitflags |= (stplyr->mo->frame & FF_TRANSMASK);
 	}
 
 	if (cmd->driftturn > 400) // strong left turn
