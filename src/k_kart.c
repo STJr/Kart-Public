@@ -4590,7 +4590,7 @@ static void K_drawKartTimestamp(void)
 
 	if (cv_timelimit.value && timelimitintics > 0)
 	{
-		if (drawtime > timelimitintics)
+		if (drawtime >= timelimitintics)
 			drawtime = 0;
 		else
 			drawtime = timelimitintics - drawtime;

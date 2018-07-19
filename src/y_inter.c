@@ -537,9 +537,7 @@ void Y_Ticker(void)
 
 	if (intertype == int_race || intertype == int_match)
 	{
-		if (modeattacking)
-			endtic = intertic + 8*TICRATE; // 8 second pause after end of tally
-		else if (netgame || multiplayer)
+		if (netgame || multiplayer)
 		{
 			if (sorttic == -1)
 				sorttic = intertic + max((cv_inttime.value/2)-2, 2)*TICRATE; // 8 second pause after match results
@@ -573,6 +571,8 @@ void Y_Ticker(void)
 				}
 			}
 		}
+		else
+			endtic = intertic + 8*TICRATE; // 8 second pause after end of tally
 	}
 }
 
