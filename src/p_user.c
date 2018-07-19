@@ -1124,6 +1124,9 @@ boolean P_EndingMusic(player_t *player)
 	char buffer[9];
 	boolean looping = true;
 
+	if (!P_IsLocalPlayer(player)) // Only applies to a local player
+		return;
+
 	// Event - Level Finish
 	if (splitscreen
 		&& (players[displayplayer].exiting
@@ -1701,7 +1704,7 @@ void P_DoPlayerExit(player_t *player)
 
 		player->exiting = 3*TICRATE;
 
-		if (P_IsLocalPlayer(player) && cv_inttime.value > 0)
+		if (cv_inttime.value > 0)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
@@ -1714,9 +1717,7 @@ void P_DoPlayerExit(player_t *player)
 	else if (G_BattleGametype()) // Battle Mode exiting
 	{
 		player->exiting = 8*TICRATE + 1;
-
-		if (P_IsLocalPlayer(player))
-			P_EndingMusic(player);
+		P_EndingMusic(player);
 	}
 	else
 		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
@@ -7951,7 +7952,7 @@ static void P_DeathThink(player_t *player)
 	/*if (G_RaceGametype() && (player->lives <= 0))
 	{
 		// to the lose music!
-		if (player->deadtimer == 4*TICRATE && P_IsLocalPlayer(player))
+		if (player->deadtimer == 4*TICRATE)
 			P_EndingMusic(player);
 		// stuff below isn't for kart
 		// Return to level music
