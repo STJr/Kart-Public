@@ -5365,19 +5365,24 @@ static void K_drawKartFinish(void)
 	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
 		pnum = 1;
 
-	if (splitscreen)
+	if (splitscreen > 1)
 	{
 		V_DrawTinyScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/8), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/8), splitflags, kp_racefinish[pnum]);
 		return;
 	}
 
 	{
-		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<(FRACBITS));
+		INT32 scaleshift = (FRACBITS - splitscreen); // FRACUNIT or FRACUNIT/2
+		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<scaleshift);
 		x = ((TICRATE - stplyr->kartstuff[k_cardanimation])*(xval > x ? xval : x))/TICRATE;
 
-		V_DrawFixedPatch(x + ((STCD_X - (SHORT(kp_racefinish[pnum]->width)/2))<<FRACBITS),
-			(STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2))<<FRACBITS,
-			FRACUNIT, splitflags, kp_racefinish[pnum], NULL);
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
+			x = -x;
+
+		V_DrawFixedPatch(x + (STCD_X<<FRACBITS) - (SHORT(kp_racefinish[pnum]->width)<<(scaleshift-1)),
+			(STCD_Y<<FRACBITS) - (SHORT(kp_racefinish[pnum]->height)<<(scaleshift-1)),
+			(1<<scaleshift),
+			splitflags, kp_racefinish[pnum], NULL);
 	}
 }
 
