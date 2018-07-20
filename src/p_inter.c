@@ -3325,7 +3325,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
-				K_KartBouncing(player->mo, inflictor, false, false);
+				if (inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD)
+					player->mo->momx = player->mo->momy = 0;
 				if (P_IsLocalPlayer(player))
 				{
 					quake.intensity = 32*FRACUNIT;

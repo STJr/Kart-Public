@@ -925,6 +925,42 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
+static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
+{
+	fixed_t weight = 5<<FRACBITS;
+
+	switch (mobj->type)
+	{
+		case MT_PLAYER:
+			if (!mobj->player)
+				break;
+			if (against->player && !against->player->kartstuff[k_spinouttimer] && mobj->player->kartstuff[k_spinouttimer])
+				weight = 0; // Do not bump
+			else
+				weight = (mobj->player->kartweight)<<FRACBITS;
+			break;
+		case MT_GREENITEM:
+		case MT_GREENSHIELD:
+			if (against->player)
+				weight = (against->player->kartweight)<<FRACBITS;
+			else
+				weight = 8<<FRACBITS;
+			break;
+		case MT_JAWZ:
+		case MT_JAWZ_DUD:
+		case MT_JAWZ_SHIELD:
+			if (against->player)
+				weight = (against->player->kartweight+3)<<FRACBITS;
+			else
+				weight = 11<<FRACBITS;
+			break;
+		default:
+			break;
+	}
+
+	return weight;
+}
+
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 {
 	mobj_t *fx;
@@ -959,25 +995,12 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		return;
 	}
 
-	mass1 = mass2 = 5*FRACUNIT;
+	mass1 = K_GetMobjWeight(mobj1, mobj2);
 
-	if (mobj1->player)
-	{
-		if (mobj2->player && !mobj2->player->kartstuff[k_spinouttimer] && mobj1->player->kartstuff[k_spinouttimer])
-			mass1 = 0; // Do not bump
-		else
-			mass1 = (mobj1->player->kartweight)*FRACUNIT;
-	}
-
-	if (mobj2->player)
-	{
-		if (mobj1->player && !mobj1->player->kartstuff[k_spinouttimer] && mobj2->player->kartstuff[k_spinouttimer])
-			mass2 = 0; // Do not bump
-		else
-			mass2 = (mobj2->player->kartweight)*FRACUNIT;
-	}
-	else if (solid == true && mobj1->player)
-		mass2 = (mobj1->player->kartweight)*FRACUNIT;
+	if (solid == true && mass1 > 0)
+		mass2 = mass1;
+	else
+		mass2 = K_GetMobjWeight(mobj2, mobj1);
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
@@ -1589,7 +1612,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		S_StartSound(player->mo, sfx_slip);
 	}
 	else
-		player->kartstuff[k_spinouttimer] = (1*TICRATE)+20; // Wipeout
+		player->kartstuff[k_spinouttimer] = TICRATE+20; // Wipeout
 
 	player->powers[pw_flashing] = K_GetKartFlashing();
 
@@ -3868,8 +3891,16 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->mo->movefactor < 32)
 			player->mo->movefactor = 32;
 	}
-	if (player->kartstuff[k_wipeoutslow] == 1)
-		player->mo->friction -= 4912;
+	if (player->kartstuff[k_spinouttimer])
+	{
+		player->mo->friction = FRACUNIT;
+		if (player->kartstuff[k_wipeoutslow])
+		{
+			player->mo->friction -= FixedMul(1228, player->kartstuff[k_offroad]);
+			if (player->kartstuff[k_wipeoutslow] == 1)
+				player->mo->friction -= 4912;
+		}
+	}
 
 	K_KartDrift(player, onground);
 

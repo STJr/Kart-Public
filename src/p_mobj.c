@@ -2003,7 +2003,7 @@ void P_XYMovement(mobj_t *mo)
 	if (mo->type == MT_GREENITEM || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_BALLHOG) //(mo->type == MT_JAWZ && !mo->tracer))
 		return;
 
-	if (mo->player && (mo->player->kartstuff[k_spinouttimer] && mo->player->kartstuff[k_wipeoutslow] != 1) && mo->player->speed <= mo->player->normalspeed/2)
+	if (mo->player && (mo->player->kartstuff[k_spinouttimer] && !mo->player->kartstuff[k_wipeoutslow]) && mo->player->speed <= mo->player->normalspeed/2)
 		return;
 	//}
 

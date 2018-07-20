@@ -694,6 +694,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		{
 			// Player Damage
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
+			K_KartBouncing(thing, tmthing, false, false);
 
 			if (tmthing->type == MT_GREENITEM || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
 				S_StartSound(thing, sfx_shelit);
@@ -1125,6 +1126,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
+
+			if (thing->type != MT_FAKESHIELD && thing->type != MT_FAKEITEM)
+				K_KartBouncing(tmthing, thing, false, false);
 
 			if (thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
 				S_StartSound(tmthing, sfx_shelit);
