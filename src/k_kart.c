@@ -943,8 +943,6 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 		case MT_GREENSHIELD:
 			if (against->player)
 				weight = (against->player->kartweight)<<FRACBITS;
-			else
-				weight = 8<<FRACBITS;
 			break;
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
@@ -952,7 +950,7 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			if (against->player)
 				weight = (against->player->kartweight+3)<<FRACBITS;
 			else
-				weight = 11<<FRACBITS;
+				weight = 8<<FRACBITS;
 			break;
 		default:
 			break;
