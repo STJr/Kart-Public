@@ -2226,14 +2226,6 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	p->starpostnum = 0;
 	p->starpostcount = 0;
 
-	// SRB2Kart: exitlevel shouldn't get you the points
-	if (!p->exiting && !(p->pflags & PF_TIMEOVER))
-	{
-		p->pflags |= PF_TIMEOVER;
-		if (G_RaceGametype())
-			S_ChangeMusicInternal("racent", true);
-	}
-
 	// SRB2kart: Increment the "matches played" counter.
 	if (player == consoleplayer)
 	{
@@ -3231,7 +3223,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 //
 static void G_DoCompleted(void)
 {
-	INT32 i;
+	INT32 i, j = 0;
 	boolean gottoken = false;
 
 	tokenlist = 0; // Reset the list
@@ -3245,7 +3237,20 @@ static void G_DoCompleted(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i])
+		{
+			// SRB2Kart: exitlevel shouldn't get you the points
+			if (!players[i].exiting && !(players[i].pflags & PF_TIMEOVER))
+			{
+				players[i].pflags |= PF_TIMEOVER;
+				if (P_IsLocalPlayer(&players[i]))
+					j++;
+			}
 			G_PlayerFinishLevel(i); // take away cards and stuff
+		}
+
+	// play some generic music if there's no win/cool/lose music going on (for exitlevel commands)
+	if (G_RaceGametype() && j == splitscreen+1)
+		S_ChangeMusicInternal("racent", true);
 
 	if (automapactive)
 		AM_Stop();
