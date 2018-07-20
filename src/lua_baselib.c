@@ -897,7 +897,7 @@ static int lib_pHomingAttack(lua_State *L)
 	return 0;
 }
 
-static int lib_pSuperReady(lua_State *L)
+/*static int lib_pSuperReady(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	//HUDSAFE
@@ -905,7 +905,7 @@ static int lib_pSuperReady(lua_State *L)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushboolean(L, P_SuperReady(player));
 	return 1;
-}
+}*/
 
 static int lib_pDoJump(lua_State *L)
 {
@@ -2313,7 +2313,7 @@ static luaL_Reg lib[] = {
 	{"P_LookForEnemies",lib_pLookForEnemies},
 	{"P_NukeEnemies",lib_pNukeEnemies},
 	{"P_HomingAttack",lib_pHomingAttack},
-	{"P_SuperReady",lib_pSuperReady},
+	//{"P_SuperReady",lib_pSuperReady},
 	{"P_DoJump",lib_pDoJump},
 	{"P_SpawnThokMobj",lib_pSpawnThokMobj},
 	{"P_SpawnSpinMobj",lib_pSpawnSpinMobj},

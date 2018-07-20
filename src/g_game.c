@@ -2174,6 +2174,9 @@ void G_Ticker(boolean run)
 
 	if (run)
 	{
+		if (G_GametypeHasSpectators() && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
+			K_CheckSpectateStatus();
+
 		if (pausedelay)
 			pausedelay--;
 
