@@ -108,8 +108,8 @@ typedef enum
 	// Did you get a time-over?
 	PF_TIMEOVER = 1<<10,
 
-	// Ready for Super?
-	PF_SUPERREADY = 1<<11,
+	// SRB2Kart: Spectator that wants to join
+	PF_WANTSTOJOIN = 1<<11,
 
 	// Character action status
 	PF_JUMPED    = 1<<12,

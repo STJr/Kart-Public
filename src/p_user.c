@@ -3561,10 +3561,10 @@ static void P_DoSuperStuff(player_t *player)
 		return; // NiGHTS Super doesn't mix with normal super
 
 	// Does player have all emeralds? If so, flag the "Ready For Super!"
-	if ((ALL7EMERALDS(emeralds) || ALL7EMERALDS(player->powers[pw_emeralds])) && player->health > 50)
+	/*if ((ALL7EMERALDS(emeralds) || ALL7EMERALDS(player->powers[pw_emeralds])) && player->health > 50)
 		player->pflags |= PF_SUPERREADY;
 	else
-		player->pflags &= ~PF_SUPERREADY;
+		player->pflags &= ~PF_SUPERREADY;*/
 
 	if (player->powers[pw_super])
 	{
@@ -3690,7 +3690,7 @@ static void P_DoSuperStuff(player_t *player)
 //
 // Returns true if player is ready to turn super, duh
 //
-boolean P_SuperReady(player_t *player)
+/*boolean P_SuperReady(player_t *player)
 {
 	if ((player->pflags & PF_SUPERREADY) && !player->powers[pw_super] && !player->powers[pw_tailsfly]
 	&& !(player->powers[pw_shield] & SH_NOSTACK)
@@ -3701,7 +3701,7 @@ boolean P_SuperReady(player_t *player)
 		return true;
 
 	return false;
-}
+}*/
 
 //
 // P_DoJump
@@ -8814,20 +8814,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 boolean P_SpectatorJoinGame(player_t *player)
 {
-	if (!G_GametypeHasSpectators() && G_IsSpecialStage(gamemap) && useNightsSS) // Special Stage spectators should NEVER be allowed to rejoin the game
-	{
-		if (P_IsLocalPlayer(player))
-			CONS_Printf(M_GetText("You cannot enter the game while a special stage is in progress.\n"));
-		player->powers[pw_flashing] += 2*TICRATE; //to prevent message spam.
-	}
-
-	else if (!cv_allowteamchange.value)
+	// Team changing isn't allowed.
+	if (!cv_allowteamchange.value)
 	{
 		if (P_IsLocalPlayer(player))
 			CONS_Printf(M_GetText("Server does not allow team change.\n"));
 		player->powers[pw_flashing] += 2*TICRATE; //to prevent message spam.
 	}
-
 	// Team changing in Team Match and CTF
 	// Pressing fire assigns you to a team that needs players if allowed.
 	// Partial code reproduction from p_tick.c autobalance code.
@@ -8864,6 +8857,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 			player->mo = NULL;
 		}
 		player->spectator = false;
+		player->pflags &= ~PF_WANTSTOJOIN;
 		player->ctfteam = changeto;
 		player->playerstate = PST_REBORN;
 
@@ -8881,43 +8875,21 @@ boolean P_SpectatorJoinGame(player_t *player)
 	// Joining in game from firing.
 	else
 	{
-		// Exception for hide and seek. Don't join a game when you simply
-		// respawn in place and sit there for the rest of the round.
-		if (!(gametype == GT_HIDEANDSEEK && leveltime > (hidetime * TICRATE)))
+		if (player->mo)
 		{
-			if (player->mo)
-			{
-				P_RemoveMobj(player->mo);
-				player->mo = NULL;
-			}
-			player->spectator = false;
-			player->playerstate = PST_REBORN;
-
-			if (gametype == GT_TAG)
-			{
-				//Make joining players "it" after hidetime.
-				if (leveltime > (hidetime * TICRATE))
-				{
-					CONS_Printf(M_GetText("%s is now IT!\n"), player_names[player-players]); // Tell everyone who is it!
-					player->pflags |= PF_TAGIT;
-				}
-
-				P_CheckSurvivors();
-			}
-
-			//Reset away view
-			if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
-				displayplayer = consoleplayer;
-
-			CONS_Printf(M_GetText("%s entered the game.\n"), player_names[player-players]);
-			return true; // no more player->mo, cannot continue.
+			P_RemoveMobj(player->mo);
+			player->mo = NULL;
 		}
-		else
-		{
-			if (P_IsLocalPlayer(player))
-				CONS_Printf(M_GetText("You must wait until next round to enter the game.\n"));
-			player->powers[pw_flashing] += 2*TICRATE; //to prevent message spam.
-		}
+		player->spectator = false;
+		player->pflags &= ~PF_WANTSTOJOIN;
+		player->playerstate = PST_REBORN;
+
+		//Reset away view
+		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
+			displayplayer = consoleplayer;
+
+		CONS_Printf(M_GetText("%s entered the game.\n"), player_names[player-players]);
+		return true; // no more player->mo, cannot continue.
 	}
 	return false;
 }
@@ -9335,8 +9307,10 @@ void P_PlayerThink(player_t *player)
 
 	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
-		if (P_SpectatorJoinGame(player))
-			return; // player->mo was removed.
+		player->pflags ^= PF_WANTSTOJOIN;
+		player->powers[pw_flashing] += 2*TICRATE;
+		/*if (P_SpectatorJoinGame(player))
+			return; // player->mo was removed.*/
 	}
 
 	// Even if not NiGHTS, pull in nearby objects when walking around as John Q. Elliot.

@@ -7391,8 +7391,8 @@ static const char *const PLAYERFLAG_LIST[] = {
 	// Did you get a time-over?
 	"TIMEOVER",
 
-	// Ready for Super?
-	"SUPERREADY",
+	// SRB2Kart: spectator that wants to join
+	"WANTSTOJOIN",
 
 	// Character action status
 	"JUMPED",

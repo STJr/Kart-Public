@@ -3444,10 +3444,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (player->kartstuff[k_positiondelay])
 		player->kartstuff[k_positiondelay]--;
 
-	// Race force spectate
-	if (player->spectator && netgame && G_RaceGametype() && P_FindHighestLap() > 0)
-		player->powers[pw_flashing] = 5;
-
 	if ((player->pflags & PF_ATTACKDOWN) && !(cmd->buttons & BT_ATTACK))
 		player->pflags &= ~PF_ATTACKDOWN;
 	else if (cmd->buttons & BT_ATTACK)
@@ -4155,6 +4151,49 @@ void K_CheckBumpers(void)
 
 	for (i = 0; i < MAXPLAYERS; i++) // and it can't be merged with this loop because it needs to be all updated before exiting... multi-loops suck...
 		P_DoPlayerExit(&players[i]);
+}
+
+void K_CheckSpectateStatus(void)
+{
+	UINT8 respawnlist[MAXPLAYERS];	
+	UINT8 i, no = 0;
+	UINT8 numingame = 0, numjoiners = 0;
+
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (!playeringame[i])
+            continue;
+
+        if (!players[i].spectator)
+        {
+			numingame++;
+			if (gamestate != GS_LEVEL)
+                continue;
+            if (G_RaceGametype() && players[i].laps > 0)
+                return;
+        }
+
+        if (cv_allowteamchange.value && !(players[i].pflags & PF_WANTSTOJOIN))
+            continue;
+
+        respawnlist[no++] = i;
+    }
+
+	numjoiners = no; // Move the map change stuff up here when it gets a delay, and remove this redundant numjoiners var
+
+	while (no)
+		P_SpectatorJoinGame(&players[respawnlist[--no]]);
+
+	if (!server)
+		return;
+
+	// Reset the match if you're in an empty server, TODO: put it on a short 5-10 second timer, so you have a chance to roam.
+	if (gamestate == GS_LEVEL && (numingame < 2 && numingame+numjoiners >= 2))
+	{
+		CONS_Printf("Here comes a new challenger! Resetting map...\n");
+		D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
+		return;
+	}
 }
 
 //}
@@ -5464,19 +5503,24 @@ static void K_drawKartFinish(void)
 	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
 		pnum = 1;
 
-	if (splitscreen)
+	if (splitscreen > 1)
 	{
 		V_DrawTinyScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/8), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/8), splitflags, kp_racefinish[pnum]);
 		return;
 	}
 
 	{
-		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<(FRACBITS));
+		INT32 scaleshift = (FRACBITS - splitscreen); // FRACUNIT or FRACUNIT/2
+		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<scaleshift);
 		x = ((TICRATE - stplyr->kartstuff[k_cardanimation])*(xval > x ? xval : x))/TICRATE;
 
-		V_DrawFixedPatch(x + ((STCD_X - (SHORT(kp_racefinish[pnum]->width)/2))<<FRACBITS),
-			(STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2))<<FRACBITS,
-			FRACUNIT, splitflags, kp_racefinish[pnum], NULL);
+		if (splitscreen && stplyr == &players[secondarydisplayplayer])
+			x = -x;
+
+		V_DrawFixedPatch(x + (STCD_X<<FRACBITS) - (SHORT(kp_racefinish[pnum]->width)<<(scaleshift-1)),
+			(STCD_Y<<FRACBITS) - (SHORT(kp_racefinish[pnum]->height)<<(scaleshift-1)),
+			(1<<scaleshift),
+			splitflags, kp_racefinish[pnum], NULL);
 	}
 }
 

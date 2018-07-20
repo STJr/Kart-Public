@@ -3117,12 +3117,12 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	{
 		if (!players[playernum].spectator)
 			P_DamageMobj(players[playernum].mo, NULL, NULL, 10000);
-		else
+		/*else
 		{
 			P_RemoveMobj(players[playernum].mo);
 			players[playernum].mo = NULL;
 			players[playernum].playerstate = PST_REBORN;
-		}
+		}*/
 	}
 	else
 		players[playernum].playerstate = PST_REBORN;
@@ -3139,7 +3139,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		}
 		else if (NetPacket.packet.newteam != 3) // .newteam == 1 or 2.
 		{
-			players[playernum].spectator = false;
+			players[playernum].pflags |= PF_WANTSTOJOIN; //players[playernum].spectator = false;
 			players[playernum].pflags &= ~PF_TAGGED;//Just in case.
 
 			if (NetPacket.packet.newteam == 1) //Make the player IT.
@@ -3149,7 +3149,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		}
 		else // Just join the game.
 		{
-			players[playernum].spectator = false;
+			players[playernum].pflags |= PF_WANTSTOJOIN; //players[playernum].spectator = false;
 
 			//If joining after hidetime in normal tag, default to being IT.
 			if (gametype == GT_TAG && (leveltime > (hidetime * TICRATE)))
@@ -3169,7 +3169,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 		{
 			players[playernum].ctfteam = NetPacket.packet.newteam;
-			players[playernum].spectator = false;
+			players[playernum].pflags |= PF_WANTSTOJOIN; //players[playernum].spectator = false;
 		}
 	}
 	else if (G_GametypeHasSpectators())
@@ -3177,7 +3177,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		if (!NetPacket.packet.newteam)
 			players[playernum].spectator = true;
 		else
-			players[playernum].spectator = false;
+			players[playernum].pflags |= PF_WANTSTOJOIN; //players[playernum].spectator = false;
 	}
 
 	if (NetPacket.packet.autobalance)
@@ -3209,7 +3209,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
 	else if (NetPacket.packet.newteam == 3)
-		CONS_Printf(M_GetText("%s entered the game.\n"), player_names[playernum]);
+		/*CONS_Printf(M_GetText("%s entered the game.\n"), player_names[playernum])*/;
 	else
 		CONS_Printf(M_GetText("%s became a spectator.\n"), player_names[playernum]);
 
