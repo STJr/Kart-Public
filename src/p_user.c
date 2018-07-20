@@ -6926,6 +6926,9 @@ static void P_MovePlayer(player_t *player)
 	if (player->kartstuff[k_invincibilitytimer] > 0)
 		K_SpawnSparkleTrail(player->mo);
 
+	if (player->kartstuff[k_wipeoutslow] > 1 && (leveltime & 1))
+		K_SpawnWipeoutTrail(player->mo);
+
 	K_DriftDustHandling(player->mo);
 
 	/* // SRB2kart - nadah

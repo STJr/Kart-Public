@@ -55,11 +55,11 @@ char sprnames[NUMSPRITES + 1][5] =
 	"GWLR","SRBA","SRBB","SRBC","SRBD","SRBE","SRBF","SRBG","SRBH","SRBI",
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
-	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","DRIF","DUST","FITM",
-	"BANA","GSHE","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK","SITR",
-	"KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB",
-	"CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ARRO",
-	"ITEM","ITMI","ITMN","WANT","PBOM","VIEW"
+	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","WIPD","DRIF","DUST",
+	"FITM","BANA","GSHE","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK",
+	"SITR","KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS",
+	"BUZB","CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW",
+	"ARRO","ITEM","ITMI","ITMN","WANT","PBOM","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2602,6 +2602,12 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, FF_FULLBRIGHT|FF_TRANS90, 1, {NULL}, 0, 0, S_INVULNFLASH3},	// S_INVULNFLASH2
 	{SPR_KINF, FF_FULLBRIGHT|FF_TRANS90|1, 1, {NULL}, 0, 0, S_INVULNFLASH4},	// S_INVULNFLASH3
 	{SPR_NULL, FF_FULLBRIGHT|FF_TRANS90, 1, {NULL}, 0, 0, S_INVULNFLASH1},	// S_INVULNFLASH4
+
+	{SPR_WIPD, 0, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL2}, // S_WIPEOUTTRAIL1
+	{SPR_WIPD, 1, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL3}, // S_WIPEOUTTRAIL2
+	{SPR_WIPD, 2, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL4}, // S_WIPEOUTTRAIL3
+	{SPR_WIPD, 3, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL5}, // S_WIPEOUTTRAIL4
+	{SPR_WIPD, 4, 3, {NULL}, 0, 0, S_NULL}, // S_WIPEOUTTRAIL5
 
 	{SPR_FITM,  0|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM2},  // S_FAKEITEM1
 	{SPR_FITM,  1|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM3},  // S_FAKEITEM2
@@ -14407,6 +14413,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,				// activesound
 		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
 		S_NULL					// raisestate
+	},
+
+	{           // MT_WIPEOUTTRAIL
+		-1,              // doomednum
+		S_WIPEOUTTRAIL1, // spawnstate
+		1,               // spawnhealth
+		S_NULL,          // seestate
+		sfx_None,        // seesound
+		8,               // reactiontime
+		sfx_None,        // attacksound
+		S_NULL,          // painstate
+		0,               // painchance
+		sfx_None,        // painsound
+		S_NULL,          // meleestate
+		S_NULL,          // missilestate
+		S_NULL,          // deathstate
+		S_NULL,          // xdeathstate
+		sfx_None,        // deathsound
+		8,               // speed
+		14*FRACUNIT,     // radius
+		14*FRACUNIT,     // height
+		0,               // display offset
+		100,             // mass
+		0,               // damage
+		sfx_None,        // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL           // raisestate
 	},
 
 	{           // MT_DRIFT

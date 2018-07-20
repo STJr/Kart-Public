@@ -2132,6 +2132,16 @@ static int lib_kSpawnSparkleTrail(lua_State *L)
 	return 0;
 }
 
+static int lib_kSpawnWipeoutTrail(lua_State *L)
+{
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	NOHUD
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_SpawnWipeoutTrail(mo);
+	return 0;
+}
+
 static int lib_kDriftDustHandling(lua_State *L)
 {
 	mobj_t *spawner = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
@@ -2418,6 +2428,7 @@ static luaL_Reg lib[] = {
 	{"K_SpawnKartExplosion",lib_kSpawnKartExplosion},
 	{"K_SpawnBoostTrail",lib_kSpawnBoostTrail},
 	{"K_SpawnSparkleTrail",lib_kSpawnSparkleTrail},
+	{"K_SpawnWipeoutTrail",lib_kSpawnWipeoutTrail},
 	{"K_DriftDustHandling",lib_kDriftDustHandling},
 	{"K_DoSneaker",lib_kDoSneaker},
 	{"K_DoPogoSpring",lib_kDoPogoSpring},
