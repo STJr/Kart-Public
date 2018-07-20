@@ -1647,7 +1647,7 @@ static void HU_DrawRankings(void)
 {
 	patch_t *p;
 	playersort_t tab[MAXPLAYERS];
-	INT32 i, j, scorelines, hilicol, numplayersingame = 0, lowestposition = 2;
+	INT32 i, j, scorelines, hilicol, numplayersingame = 0;
 	boolean completed[MAXPLAYERS];
 	UINT32 whiteplayer = MAXPLAYERS;
 
@@ -1692,7 +1692,7 @@ static void HU_DrawRankings(void)
 				timeval = timelimitintics;
 			timeval /= TICRATE;
 
-			if (leveltime <= timelimitintics)
+			if (leveltime <= (timelimitintics + starttime))
 			{
 				V_DrawCenteredString(64, 8, 0, "TIME LEFT");
 				V_DrawCenteredString(64, 16, hilicol, va("%u", timeval));
@@ -1759,6 +1759,7 @@ static void HU_DrawRankings(void)
 
 	for (j = 0; j < numplayersingame; j++)
 	{
+		UINT8 lowestposition = MAXPLAYERS;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (!playeringame[i] || players[i].spectator || completed[i])
@@ -1788,8 +1789,6 @@ static void HU_DrawRankings(void)
 			tab[scorelines].count = players[i].marescore;
 
 		scorelines++;
-
-		lowestposition += 2;
 	}
 
 	if (scorelines > 20)

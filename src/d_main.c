@@ -297,7 +297,7 @@ static void D_Display(void)
 		// set for all later
 		wipedefindex = gamestate; // wipe_xxx_toblack
 		if (gamestate == GS_TITLESCREEN && wipegamestate != GS_INTRO)
-			wipedefindex = wipe_multinter_toblack;
+			wipedefindex = wipe_timeattack_toblack;
 		else if (gamestate == GS_INTERMISSION)
 		{
 			if (intertype == int_spec) // Special Stage

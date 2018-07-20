@@ -2933,6 +2933,10 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		{
 			if (player->exiting < 6*TICRATE)
 				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+			else if (player->exiting == 6*TICRATE)
+				player->kartstuff[k_cardanimation] = 0;
+			else if (player->kartstuff[k_cardanimation] < 2*TICRATE)
+				player->kartstuff[k_cardanimation]++;
 		}
 		else
 		{
@@ -2949,7 +2953,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	}
 	else if (G_RaceGametype() && player->exiting)
 	{
-		if (player->kartstuff[k_cardanimation] < 80)
+		if (player->kartstuff[k_cardanimation] < 2*TICRATE)
 			player->kartstuff[k_cardanimation]++;
 	}
 	else
@@ -4655,55 +4659,63 @@ static void K_drawKartTimestamp(void)
 	// TIME_X = BASEVIDWIDTH-124;	// 196
 	// TIME_Y = 6;					//   6
 
-	INT32 TIME_XB;
-	INT32 splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+	INT32 TIME_XB, splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+	tic_t drawtime = stplyr->realtime;
+
+	if (cv_timelimit.value && timelimitintics > 0)
+	{
+		if (drawtime >= timelimitintics)
+			drawtime = 0;
+		else
+			drawtime = timelimitintics - drawtime;
+	}
 
 	V_DrawScaledPatch(TIME_X, TIME_Y, splitflags, kp_timestickerwide);
 
 	TIME_XB = TIME_X+33;
 
-	if (stplyr->realtime/(60*TICRATE) < 100) // 99:99:99 only
+	if (drawtime/(60*TICRATE) < 100) // 99:99:99 only
 	{
 		// zero minute
-		if (stplyr->realtime/(60*TICRATE) < 10)
+		if (drawtime/(60*TICRATE) < 10)
 		{
 			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("0"));
 			// minutes time       0 __ __
-			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", drawtime/(60*TICRATE)));
 		}
 		// minutes time       0 __ __
 		else
-			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", stplyr->realtime/(60*TICRATE)));
+			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", drawtime/(60*TICRATE)));
 
 		// apostrophe location     _'__ __
 		V_DrawKartString(TIME_XB+24, TIME_Y+3, splitflags, va("'"));
 
 		// zero second        _ 0_ __
-		if ((stplyr->realtime/TICRATE % 60) < 10)
+		if ((drawtime/TICRATE % 60) < 10)
 		{
 			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("0"));
 		// seconds time       _ _0 __
-			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", drawtime/TICRATE % 60));
 		}
 		// zero second        _ 00 __
 		else
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", stplyr->realtime/TICRATE % 60));
+			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", drawtime/TICRATE % 60));
 
 		// quotation mark location    _ __"__
 		V_DrawKartString(TIME_XB+60, TIME_Y+3, splitflags, va("\""));
 
 		// zero tick          _ __ 0_
-		if (G_TicsToCentiseconds(stplyr->realtime) < 10)
+		if (G_TicsToCentiseconds(drawtime) < 10)
 		{
 			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("0"));
 		// tics               _ __ _0
-			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(drawtime)));
 		}
 		// zero tick          _ __ 00
-		if (G_TicsToCentiseconds(stplyr->realtime) >= 10)
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(stplyr->realtime)));
+		if (G_TicsToCentiseconds(drawtime) >= 10)
+			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(drawtime)));
 	}
-	else if ((stplyr->realtime/TICRATE) & 1)
+	else if ((drawtime/TICRATE) & 1)
 		V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("99'59\"99"));
 
 	if (modeattacking) // emblem time!
@@ -5394,6 +5406,51 @@ static void K_drawKartMinimap(void)
 	K_drawKartMinimapHead(stplyr->mo, x, y, splitflags, AutomapPic);
 }
 
+static void K_drawKartStartCountdown(void)
+{
+	INT32 pnum = 0, splitflags = K_calcSplitFlags(0); // 3
+
+	if (leveltime >= starttime-(2*TICRATE)) // 2
+		pnum++;
+	if (leveltime >= starttime-TICRATE) // 1
+		pnum++;
+	if (leveltime >= starttime) // GO!
+		pnum++;
+	if ((leveltime % (2*5)) / 5) // blink
+		pnum += 4;
+
+	if (splitscreen)
+		V_DrawSmallScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/4), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/4), splitflags, kp_startcountdown[pnum]);
+	else
+		V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), splitflags, kp_startcountdown[pnum]);
+}
+
+static void K_drawKartFinish(void)
+{
+	INT32 pnum = 0, splitflags = K_calcSplitFlags(0);
+
+	if (!stplyr->kartstuff[k_cardanimation] || stplyr->kartstuff[k_cardanimation] >= 2*TICRATE)
+		return;
+
+	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
+		pnum = 1;
+
+	if (splitscreen)
+	{
+		V_DrawTinyScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/8), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/8), splitflags, kp_racefinish[pnum]);
+		return;
+	}
+
+	{
+		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<(FRACBITS));
+		x = ((TICRATE - stplyr->kartstuff[k_cardanimation])*(xval > x ? xval : x))/TICRATE;
+
+		V_DrawFixedPatch(x + ((STCD_X - (SHORT(kp_racefinish[pnum]->width)/2))<<FRACBITS),
+			(STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2))<<FRACBITS,
+			FRACUNIT, splitflags, kp_racefinish[pnum], NULL);
+	}
+}
+
 static void K_drawBattleFullscreen(void)
 {
 	INT32 x = BASEVIDWIDTH/2;
@@ -5436,10 +5493,15 @@ static void K_drawBattleFullscreen(void)
 	{
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen(0xFF00, 16);
-		if (stplyr->kartstuff[k_position] == 1)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
-		else if (splitscreen < 2)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, (K_IsPlayerLosing(stplyr) ? kp_battlelose : kp_battlecool), NULL);
+		if (stplyr->exiting < 6*TICRATE)
+		{
+			if (stplyr->kartstuff[k_position] == 1)
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
+			else if (splitscreen < 2)
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, (K_IsPlayerLosing(stplyr) ? kp_battlelose : kp_battlecool), NULL);
+		}
+		else
+			K_drawKartFinish();
 	}
 	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
@@ -5460,7 +5522,7 @@ static void K_drawBattleFullscreen(void)
 
 		if (splitscreen)
 		{
-			if (splitscreen > 2)
+			if (splitscreen > 1)
 				ty = (BASEVIDHEIGHT/4)+33;
 			if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
 				|| (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
@@ -5482,53 +5544,6 @@ static void K_drawBattleFullscreen(void)
 			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, 0, kp_timeoutsticker, NULL);
 			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		}
-	}
-}
-
-static void K_drawStartCountdown(void)
-{
-	INT32 pnum = 0, splitflags = K_calcSplitFlags(0); // 3
-
-	if (leveltime >= starttime-(2*TICRATE)) // 2
-		pnum++;
-	if (leveltime >= starttime-TICRATE) // 1
-		pnum++;
-	if (leveltime >= starttime) // GO!
-		pnum++;
-	if ((leveltime % (2*5)) / 5) // blink
-		pnum += 4;
-
-	if (splitscreen)
-		V_DrawSmallScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/4), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/4), splitflags, kp_startcountdown[pnum]);
-	else
-		V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), splitflags, kp_startcountdown[pnum]);
-}
-
-static void K_drawRaceFinish(void)
-{
-	INT32 pnum = 0, splitflags = K_calcSplitFlags(0);
-
-	if (stplyr->kartstuff[k_cardanimation] >= 80)
-		return;
-
-	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
-		pnum = 1;
-
-	if (splitscreen)
-	{
-		V_DrawTinyScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/8), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/8), splitflags, kp_racefinish[pnum]);
-		return;
-	}
-
-	{
-		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<(FRACBITS));
-		if (xval < x)
-			xval = x;
-		x = ((40 - stplyr->kartstuff[k_cardanimation])*xval)/40;
-
-		V_DrawFixedPatch(x + ((STCD_X - (SHORT(kp_racefinish[pnum]->width)/2))<<FRACBITS),
-			(STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2))<<FRACBITS,
-			FRACUNIT, splitflags, kp_racefinish[pnum], NULL);
 	}
 }
 
@@ -5564,9 +5579,11 @@ static void K_drawKartFirstPerson(void)
 	{
 		if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1) && !splitscreen)
 			y++;
-		// this isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
-		if (stplyr->mo->frame & FF_TRANSMASK)
-			splitflags |= (stplyr->mo->frame & FF_TRANSMASK); // ditto
+		// the following isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
+		if (stplyr->mo->flags2 & MF2_SHADOW)
+			splitflags |= FF_TRANS80;
+		else if (stplyr->mo->frame & FF_TRANSMASK)
+			splitflags |= (stplyr->mo->frame & FF_TRANSMASK);
 	}
 
 	if (cmd->driftturn > 400) // strong left turn
@@ -5873,7 +5890,7 @@ void K_drawKartHUD(void)
 	// Draw the countdowns after everything else.
 	if (leveltime >= starttime-(3*TICRATE)
 		&& leveltime < starttime+TICRATE)
-		K_drawStartCountdown();
+		K_drawKartStartCountdown();
 	else if (countdown && (!splitscreen || !stplyr->exiting))
 	{
 		char *countstr = va("%d", countdown/TICRATE);
@@ -5888,7 +5905,7 @@ void K_drawKartHUD(void)
 	}
 
 	if (stplyr->exiting && G_RaceGametype())
-		K_drawRaceFinish();
+		K_drawKartFinish();
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();
