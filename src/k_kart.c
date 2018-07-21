@@ -1133,6 +1133,9 @@ void K_RespawnChecker(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 
+	if (player->spectator)
+		return;
+
 	if (player->kartstuff[k_respawn] > 3)
 	{
 		player->kartstuff[k_respawn]--;
@@ -4058,40 +4061,65 @@ void K_CheckBumpers(void)
 void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];	
-	UINT8 i, no = 0;
-	UINT8 numingame = 0;
+	UINT8 i, numingame = 0, numjoiners = 0;
 
-    for (i = 0; i < MAXPLAYERS; i++)
-    {
-        if (!playeringame[i])
-            continue;
+	// Get the number of players in game, and the players to be de-spectated.
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
 
-        if (!players[i].spectator)
-        {
+		if (!players[i].spectator)
+		{
 			numingame++;
 			if (gamestate != GS_LEVEL)
                 continue;
 			if (numingame < 2)
                 continue;
-            if (G_RaceGametype() && players[i].laps > 0)
+            if (G_RaceGametype() && players[i].laps)
                 return;
-        }
+			continue;
+		}
+		else if (!(players[i].pflags & PF_WANTSTOJOIN))
+			continue;
 
-        if (cv_allowteamchange.value && !(players[i].pflags & PF_WANTSTOJOIN))
-            continue;
+		respawnlist[numjoiners++] = i;
+	}
 
-        respawnlist[no++] = i;
-    }
+	// literally zero point in going any further if nobody is joining
+	if (!numjoiners)
+		return;
+
+	// Check if there are any conditions that should prevent de-spectating.
+	// WHAT? NO, you just made it loop again, what's the point?!!
+	/*if ((gamestate == GS_LEVEL) && (numingame > 1))
+	{
+		// If anyone's on lap two or up in a race gametype, HALT.
+		if (G_RaceGametype())
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (!playeringame[i] || players[i].spectator)
+					continue;
+
+				if (!players[i].laps)
+					continue;
+
+				return;
+			}
+		}
+	}*/
 
 	// Reset the match if you're in an empty server
-	if (gamestate == GS_LEVEL && (numingame < 2 && numingame+no >= 2))
+	if (gamestate == GS_LEVEL && (numingame < 2 && numingame+numjoiners >= 2))
 	{
 		CONS_Printf("Here comes a new challenger! Resetting map in 10 seconds...\n");
 		mapreset = 10*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD in the future
 	}
 
-	while (no)
-		P_SpectatorJoinGame(&players[respawnlist[--no]]);
+	// Finally, we can de-spectate everyone!
+	for (i = 0; i < numjoiners; i++)
+		P_SpectatorJoinGame(&players[respawnlist[i]]);
 }
 
 //}

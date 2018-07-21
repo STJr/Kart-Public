@@ -8812,7 +8812,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 	{
 		if (P_IsLocalPlayer(player))
 			CONS_Printf(M_GetText("Server does not allow team change.\n"));
-		player->powers[pw_flashing] = 2*TICRATE; //to prevent message spam.
+		//player->powers[pw_flashing] = TICRATE + 1; //to prevent message spam.
 	}
 	// Team changing in Team Match and CTF
 	// Pressing fire assigns you to a team that needs players if allowed.
@@ -9301,7 +9301,7 @@ void P_PlayerThink(player_t *player)
 	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;
-		player->powers[pw_flashing] = 2*TICRATE;
+		//player->powers[pw_flashing] = TICRATE + 1;
 		/*if (P_SpectatorJoinGame(player))
 			return; // player->mo was removed.*/
 	}
