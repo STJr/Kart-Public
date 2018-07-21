@@ -3885,15 +3885,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->mo->movefactor < 32)
 			player->mo->movefactor = 32;
 	}
-	if (player->kartstuff[k_spinouttimer])
+	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
 	{
-		player->mo->friction = FRACUNIT;
-		if (player->kartstuff[k_wipeoutslow])
-		{
-			player->mo->friction -= FixedMul(1228, player->kartstuff[k_offroad]);
-			if (player->kartstuff[k_wipeoutslow] == 1)
-				player->mo->friction -= 4912;
-		}
+		player->mo->friction -= FixedMul(1228, player->kartstuff[k_offroad]);
+		if (player->kartstuff[k_wipeoutslow] == 1)
+			player->mo->friction -= 4912;
 	}
 
 	K_KartDrift(player, onground);
