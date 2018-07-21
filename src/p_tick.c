@@ -677,6 +677,25 @@ void P_Ticker(boolean run)
 		if (countdown2)
 			countdown2--;
 
+		if (mapreset && --mapreset <= 0)
+		{
+			mapreset = 0;
+			if (server)
+			{
+				UINT8 numingame = 0;
+				for (i = 0; i < MAXPLAYERS; i++) // Make sure there's still actually enough...
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+					if (++numingame >= 2)
+					{
+						D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
+						break;
+					}
+				}
+			}
+		}
+
 		if (spbincoming && --spbincoming <= 0)
 		{
 			UINT8 best = 0;

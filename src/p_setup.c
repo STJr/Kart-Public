@@ -3017,6 +3017,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	indirectitemcooldown = 0;
 	spbincoming = 0;
 	spbplayer = 0;
+	mapreset = 0;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;

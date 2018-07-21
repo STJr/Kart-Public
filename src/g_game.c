@@ -256,14 +256,15 @@ INT16 votelevels[4][2]; // Levels that were rolled by the host
 SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
-// Server-sided variables
+// Server-sided, synched variables
 SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
 tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
 tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
 UINT8 spbplayer; // Player num that used the last SPB
+tic_t mapreset; // Map reset delay when enough players have joined an empty game
 
-// Client-sided variables (NEVER use in anything that needs to be synced with other players)
+// Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
 boolean comebackshowninfo; // Have you already seen the "ATTACK OR PROTECT" message?
 tic_t curlap; // Current lap time

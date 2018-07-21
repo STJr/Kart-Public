@@ -30,6 +30,7 @@
 // indirectitemcooldown is timer before anyone's allowed another Shrink/SPB
 // spbincoming is the timer before k_deathsentence is cast on the player in 1st
 // spbplayer is the last player who fired a SPB
+// mapreset is set when enough players fill an empty server
 
 
 //{ SRB2kart Color Code
@@ -4058,7 +4059,7 @@ void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];	
 	UINT8 i, no = 0;
-	UINT8 numingame = 0, numjoiners = 0;
+	UINT8 numingame = 0;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
@@ -4070,6 +4071,8 @@ void K_CheckSpectateStatus(void)
 			numingame++;
 			if (gamestate != GS_LEVEL)
                 continue;
+			if (numingame < 2)
+                continue;
             if (G_RaceGametype() && players[i].laps > 0)
                 return;
         }
@@ -4080,21 +4083,15 @@ void K_CheckSpectateStatus(void)
         respawnlist[no++] = i;
     }
 
-	numjoiners = no; // Move the map change stuff up here when it gets a delay, and remove this redundant numjoiners var
+	// Reset the match if you're in an empty server
+	if (gamestate == GS_LEVEL && (numingame < 2 && numingame+no >= 2))
+	{
+		CONS_Printf("Here comes a new challenger! Resetting map in 10 seconds...\n");
+		mapreset = 10*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD in the future
+	}
 
 	while (no)
 		P_SpectatorJoinGame(&players[respawnlist[--no]]);
-
-	if (!server)
-		return;
-
-	// Reset the match if you're in an empty server, TODO: put it on a short 5-10 second timer, so you have a chance to roam.
-	if (gamestate == GS_LEVEL && (numingame < 2 && numingame+numjoiners >= 2))
-	{
-		CONS_Printf("Here comes a new challenger! Resetting map...\n");
-		D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
-		return;
-	}
 }
 
 //}
