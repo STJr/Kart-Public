@@ -2522,18 +2522,12 @@ static void Command_Teamchange_f(void)
 		return;
 	}
 
-	if (G_GametypeHasTeams())
-	{
-		if (NetPacket.packet.newteam == (unsigned)players[consoleplayer].ctfteam ||
-			(players[consoleplayer].spectator && !NetPacket.packet.newteam))
-			error = true;
-	}
-	else if (G_GametypeHasSpectators())
-	{
-		if ((players[consoleplayer].spectator && !NetPacket.packet.newteam) ||
-			(!players[consoleplayer].spectator && NetPacket.packet.newteam == 3))
-			error = true;
-	}
+	if (players[consoleplayer].spectator && !(players[consoleplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
+		error = true;
+	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[consoleplayer].ctfteam)
+		error = true;
+	else if (G_GametypeHasSpectators() && !players[consoleplayer].spectator && NetPacket.packet.newteam == 3)
+		error = true;
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -2619,18 +2613,12 @@ static void Command_Teamchange2_f(void)
 		return;
 	}
 
-	if (G_GametypeHasTeams())
-	{
-		if (NetPacket.packet.newteam == (unsigned)players[secondarydisplayplayer].ctfteam ||
-			(players[secondarydisplayplayer].spectator && !NetPacket.packet.newteam))
-			error = true;
-	}
-	else if (G_GametypeHasSpectators())
-	{
-		if ((players[secondarydisplayplayer].spectator && !NetPacket.packet.newteam) ||
-			(!players[secondarydisplayplayer].spectator && NetPacket.packet.newteam == 3))
-			error = true;
-	}
+	if (players[secondarydisplayplayer].spectator && !(players[secondarydisplayplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
+		error = true;
+	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[secondarydisplayplayer].ctfteam)
+		error = true;
+	else if (G_GametypeHasSpectators() && !players[secondarydisplayplayer].spectator && NetPacket.packet.newteam == 3)
+		error = true;
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -2716,18 +2704,12 @@ static void Command_Teamchange3_f(void)
 		return;
 	}
 
-	if (G_GametypeHasTeams())
-	{
-		if (NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam ||
-			(players[thirddisplayplayer].spectator && !NetPacket.packet.newteam))
-			error = true;
-	}
-	else if (G_GametypeHasSpectators())
-	{
-		if ((players[thirddisplayplayer].spectator && !NetPacket.packet.newteam) ||
-			(!players[thirddisplayplayer].spectator && NetPacket.packet.newteam == 3))
-			error = true;
-	}
+	if (players[thirddisplayplayer].spectator && !(players[thirddisplayplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
+		error = true;
+	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam)
+		error = true;
+	else if (G_GametypeHasSpectators() && !players[thirddisplayplayer].spectator && NetPacket.packet.newteam == 3)
+		error = true;
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -2813,18 +2795,12 @@ static void Command_Teamchange4_f(void)
 		return;
 	}
 
-	if (G_GametypeHasTeams())
-	{
-		if (NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam ||
-			(players[fourthdisplayplayer].spectator && !NetPacket.packet.newteam))
-			error = true;
-	}
-	else if (G_GametypeHasSpectators())
-	{
-		if ((players[fourthdisplayplayer].spectator && !NetPacket.packet.newteam) ||
-			(!players[fourthdisplayplayer].spectator && NetPacket.packet.newteam == 3))
-			error = true;
-	}
+	if (players[fourthdisplayplayer].spectator && !(players[fourthdisplayplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
+		error = true;
+	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam)
+		error = true;
+	else if (G_GametypeHasSpectators() && !players[fourthdisplayplayer].spectator && NetPacket.packet.newteam == 3)
+		error = true;
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -3024,24 +3000,23 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	}
 
 	// Prevent multiple changes in one go.
-	if (G_TagGametype())
+	if (players[playernum].spectator && !(players[playernum].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
+		return;
+	else if (G_TagGametype())
 	{
 		if (((players[playernum].pflags & PF_TAGIT) && NetPacket.packet.newteam == 1) ||
 			(!(players[playernum].pflags & PF_TAGIT) && NetPacket.packet.newteam == 2) ||
-			(players[playernum].spectator && NetPacket.packet.newteam == 0) ||
 			(!players[playernum].spectator && NetPacket.packet.newteam == 3))
 			return;
 	}
 	else if (G_GametypeHasTeams())
 	{
-		if ((NetPacket.packet.newteam && (NetPacket.packet.newteam == (unsigned)players[playernum].ctfteam)) ||
-			(players[playernum].spectator && !NetPacket.packet.newteam))
+		if (NetPacket.packet.newteam && (NetPacket.packet.newteam == (unsigned)players[playernum].ctfteam))
 			return;
 	}
 	else if (G_GametypeHasSpectators())
 	{
-		if ((players[playernum].spectator && !NetPacket.packet.newteam) ||
-			(!players[playernum].spectator && NetPacket.packet.newteam == 3))
+		if (!players[playernum].spectator && NetPacket.packet.newteam == 3)
 			return;
 	}
 	else
@@ -3113,19 +3088,26 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	}
 
 	//Safety first!
-	if (players[playernum].mo)
+	// (not respawning spectators here...)
+	if (!players[playernum].spectator)
 	{
-		if (!players[playernum].spectator)
-			P_DamageMobj(players[playernum].mo, NULL, NULL, 10000);
-		/*else
+		if (players[playernum].mo)
 		{
-			P_RemoveMobj(players[playernum].mo);
-			players[playernum].mo = NULL;
+			//if (!players[playernum].spectator)
+				P_DamageMobj(players[playernum].mo, NULL, NULL, 10000);
+			/*else
+			{
+				if (players[playernum].mo)
+				{
+					P_RemoveMobj(players[playernum].mo);
+					players[playernum].mo = NULL;
+				}
+				players[playernum].playerstate = PST_REBORN;
+			}*/
+		}
+		else
 			players[playernum].playerstate = PST_REBORN;
-		}*/
 	}
-	else
-		players[playernum].playerstate = PST_REBORN;
 
 	//Now that we've done our error checking and killed the player
 	//if necessary, put the player on the correct team/status.
@@ -3210,6 +3192,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	}
 	else if (NetPacket.packet.newteam == 3)
 		/*CONS_Printf(M_GetText("%s entered the game.\n"), player_names[playernum])*/;
+	else if (players[playernum].pflags & PF_WANTSTOJOIN)
+		players[playernum].pflags &= ~PF_WANTSTOJOIN;
 	else
 		CONS_Printf(M_GetText("%s became a spectator.\n"), player_names[playernum]);
 

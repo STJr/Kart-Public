@@ -9830,8 +9830,13 @@ void P_SpawnPlayer(INT32 playernum)
 	// spawn as spectator determination
 	if (!G_GametypeHasSpectators())
 		p->spectator = false;
-	else if (netgame && p->jointime <= 1 && pcount > 1)
+	else if (netgame && p->jointime <= 1 && pcount)
+	{
 		p->spectator = true;
+		if (pcount == 1)
+			p->pflags |= PF_WANTSTOJOIN;
+		p->jointime = 2; // HACK???????
+	}
 	else if (multiplayer && !netgame)
 	{
 		// If you're in a team game and you don't have a team assigned yet...
@@ -9912,41 +9917,35 @@ void P_SpawnPlayer(INT32 playernum)
 		overheadarrow->flags2 |= MF2_DONTDRAW;
 		P_SetScale(overheadarrow, mobj->destscale);
 
-		if (p->spectator) // HEY! No being cheap...
+		if (p->spectator && pcount > 1) // HEY! No being cheap...
 			p->kartstuff[k_bumper] = 0;
 		else if (p->kartstuff[k_bumper] > 0 || leveltime < 1
 			|| (p->jointime <= 1 && pcount <= 1))
 		{
-			INT32 i;
-			angle_t newangle;
-			angle_t diff;
-			fixed_t newx;
-			fixed_t newy;
-			mobj_t *mo;
-			
 			if (leveltime < 1 || (p->jointime <= 1 && pcount <= 1)) // Start of the map?
 				p->kartstuff[k_bumper] = cv_kartbumpers.value; // Reset those bumpers!
 
-			if (p->kartstuff[k_bumper] <= 1)
-				diff = 0;
-			else
-				diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_bumper]);
-
-			newangle = mobj->angle;
-			newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
-			newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
-
-			for (i = 0; i < p->kartstuff[k_bumper]; i++)
+			if (p->kartstuff[k_bumper])
 			{
-				mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBUMPER);
-				mo->threshold = i;
-				P_SetTarget(&mo->target, mobj);
-				mo->angle = (diff * (i-1));
-				mo->color = mobj->color;
-				if (mobj->flags2 & MF2_DONTDRAW)
-					mo->flags2 |= MF2_DONTDRAW;
-				else
-					mo->flags2 &= ~MF2_DONTDRAW;
+				INT32 i;
+				angle_t diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_bumper]);
+				angle_t newangle = mobj->angle;
+				fixed_t newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
+				fixed_t newy = mobj->y + P_ReturnThrustY(mobj, newangle + ANGLE_180, 64*FRACUNIT);
+				mobj_t *mo;
+
+				for (i = 0; i < p->kartstuff[k_bumper]; i++)
+				{
+					mo = P_SpawnMobj(newx, newy, mobj->z, MT_BATTLEBUMPER);
+					mo->threshold = i;
+					P_SetTarget(&mo->target, mobj);
+					mo->angle = (diff * (i-1));
+					mo->color = mobj->color;
+					if (mobj->flags2 & MF2_DONTDRAW)
+						mo->flags2 |= MF2_DONTDRAW;
+					else
+						mo->flags2 &= ~MF2_DONTDRAW;
+				}
 			}
 		}
 		else if (p->kartstuff[k_bumper] <= 0)

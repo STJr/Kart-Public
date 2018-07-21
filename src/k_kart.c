@@ -4057,33 +4057,54 @@ void K_CheckBumpers(void)
 void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];	
-	UINT8 i, no = 0;
-	UINT8 numingame = 0, numjoiners = 0;
+	UINT8 i, numingame = 0, numjoiners = 0;
 
-    for (i = 0; i < MAXPLAYERS; i++)
-    {
-        if (!playeringame[i])
-            continue;
+	if (!cv_allowteamchange.value)
+		return;
 
-        if (!players[i].spectator)
-        {
+	// Get the number of players in game, and the players to be de-spectated.
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
+
+		if (!players[i].spectator)
+		{
 			numingame++;
-			if (gamestate != GS_LEVEL)
-                continue;
-            if (G_RaceGametype() && players[i].laps > 0)
-                return;
-        }
+			continue;
+		}
+		else if (!(players[i].pflags & PF_WANTSTOJOIN))
+			continue;
 
-        if (cv_allowteamchange.value && !(players[i].pflags & PF_WANTSTOJOIN))
-            continue;
+		respawnlist[numjoiners++] = i;
+	}
 
-        respawnlist[no++] = i;
-    }
+	// literally zero point in going any further if nobody is joining
+	if (!numjoiners)
+		return;
 
-	numjoiners = no; // Move the map change stuff up here when it gets a delay, and remove this redundant numjoiners var
+	// Check if there are any conditions that should prevent de-spectating.
+	if ((gamestate == GS_LEVEL) && (numingame > 1))
+	{
+		// If anyone's on lap two or up in a race gametype, HALT.
+		if (G_RaceGametype())
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (!playeringame[i] || players[i].spectator)
+					continue;
 
-	while (no)
-		P_SpectatorJoinGame(&players[respawnlist[--no]]);
+				if (!players[i].laps)
+					continue;
+
+				return;
+			}
+		}
+	}
+
+	// Finally, we can de-spectate everyone!
+	for (i = 0; i < numjoiners; i++)
+		P_SpectatorJoinGame(&players[respawnlist[i]]);
 
 	if (!server)
 		return;

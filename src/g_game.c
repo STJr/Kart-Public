@@ -2174,7 +2174,9 @@ void G_Ticker(boolean run)
 
 	if (run)
 	{
-		if (G_GametypeHasSpectators() && (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
+		if (G_GametypeHasSpectators()
+		&& (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING // definitely good
+		|| gamestate == GS_WAITINGPLAYERS)) // definitely a problem if we don't do it at all in this gamestate, but might need more protection?
 			K_CheckSpectateStatus();
 
 		if (pausedelay)
