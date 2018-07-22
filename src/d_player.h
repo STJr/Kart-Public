@@ -318,6 +318,7 @@ typedef enum
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
+	k_wipeoutslow,			// Timer before you slowdown when getting wiped out
 	k_justbumped,			// Prevent players from endlessly bumping into each other
 	k_comebacktimer,		// Battle mode, how long before you become a bomb after death
 	k_sadtimer,				// How long you've been sad

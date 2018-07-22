@@ -6277,6 +6277,13 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_INVULNFLASH3",
 	"S_INVULNFLASH4",
 
+	// Wipeout dust trail
+	"S_WIPEOUTTRAIL1",
+	"S_WIPEOUTTRAIL2",
+	"S_WIPEOUTTRAIL3",
+	"S_WIPEOUTTRAIL4",
+	"S_WIPEOUTTRAIL5",
+
 	//{ Eggman Monitor
 	"S_FAKEITEM1",
 	"S_FAKEITEM2",
@@ -7147,6 +7154,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SNEAKERTRAIL",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
+	"MT_WIPEOUTTRAIL",
 	"MT_DRIFT",
 	"MT_DRIFTDUST",
 
@@ -7628,6 +7636,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"EGGMANHELD",
 	"BANANADRAG",
 	"SPINOUTTIMER",
+	"WIPEOUTSLOW",
 	"JUSTBUMPED",
 	"COMEBACKTIMER",
 	"SADTIMER",

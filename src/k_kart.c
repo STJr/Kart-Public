@@ -930,11 +930,46 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 //{ SRB2kart p_user.c Stuff
 
+static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
+{
+	fixed_t weight = 5<<FRACBITS;
+
+	switch (mobj->type)
+	{
+		case MT_PLAYER:
+			if (!mobj->player)
+				break;
+			if (against->player && !against->player->kartstuff[k_spinouttimer] && mobj->player->kartstuff[k_spinouttimer])
+				weight = 0; // Do not bump
+			else
+				weight = (mobj->player->kartweight)<<FRACBITS;
+			break;
+		case MT_GREENITEM:
+		case MT_GREENSHIELD:
+			if (against->player)
+				weight = (against->player->kartweight)<<FRACBITS;
+			break;
+		case MT_JAWZ:
+		case MT_JAWZ_DUD:
+		case MT_JAWZ_SHIELD:
+			if (against->player)
+				weight = (against->player->kartweight+3)<<FRACBITS;
+			else
+				weight = 8<<FRACBITS;
+			break;
+		default:
+			break;
+	}
+
+	return weight;
+}
+
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 {
 	mobj_t *fx;
 	fixed_t momdifx, momdify;
 	fixed_t distx, disty;
+	//fixed_t nobumpx = 0, nobumpy = 0;
 	fixed_t dot, p;
 	fixed_t mass1, mass2;
 
@@ -951,44 +986,24 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		return;
 
 	// Don't bump if you've recently bumped
-	if ((mobj1->player && mobj1->player->kartstuff[k_justbumped])
-		|| (mobj2->player && mobj1->player->kartstuff[k_justbumped]))
+	if (mobj1->player && mobj1->player->kartstuff[k_justbumped])
 	{
-		if (mobj1->player)
-			mobj1->player->kartstuff[k_justbumped] = bumptime;
-		if (mobj2->player)
-			mobj2->player->kartstuff[k_justbumped] = bumptime;
+		mobj1->player->kartstuff[k_justbumped] = bumptime;
 		return;
 	}
 
-	S_StartSound(mobj1, sfx_s3k49);
-
-	fx = P_SpawnMobj(mobj1->x/2 + mobj2->x/2, mobj1->y/2 + mobj2->y/2, mobj1->z/2 + mobj2->z/2, MT_BUMP);
-	if (mobj1->eflags & MFE_VERTICALFLIP)
-		fx->eflags |= MFE_VERTICALFLIP;
-	else
-		fx->eflags &= ~MFE_VERTICALFLIP;
-	fx->scale = mobj1->scale;
-
-	if (bounce == true) // Perform a Goomba Bounce.
-		mobj1->momz = -mobj1->momz;
-	else
+	if (mobj2->player && mobj2->player->kartstuff[k_justbumped])
 	{
-		fixed_t newz = mobj1->momz;
-		mobj1->momz = mobj2->momz;
-		if (solid == false)
-			mobj2->momz = newz;
+		mobj2->player->kartstuff[k_justbumped] = bumptime;
+		return;
 	}
 
-	mass1 = mass2 = 5*FRACUNIT;
+	mass1 = K_GetMobjWeight(mobj1, mobj2);
 
-	if (mobj1->player)
-		mass1 = (mobj1->player->kartweight)*FRACUNIT;
-
-	if (mobj2->player)
-		mass2 = (mobj2->player->kartweight)*FRACUNIT;
-	else if (solid == true)
+	if (solid == true && mass1 > 0)
 		mass2 = mass1;
+	else
+		mass2 = K_GetMobjWeight(mobj2, mobj1);
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
@@ -1003,8 +1018,19 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		momdify = FixedMul((25*mapheaderinfo[gamemap-1]->mobj_scale), normalisedy);
 	}
 
-	distx = mobj1->x - mobj2->x;
-	disty = mobj1->y - mobj2->y;
+	/*if (mass1 == 0 && mass2 > 0)
+	{
+		nobumpx = mobj2->momx;
+		nobumpy = mobj2->momy;
+	}
+	else if (mass2 == 0 && mass1 > 0)
+	{
+		nobumpx = mobj1->momx;
+		nobumpy = mobj1->momy;
+	}*/
+	
+	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
+	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
 
 	if (distx == 0 && disty == 0)
 	{
@@ -1022,14 +1048,38 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 
 	p = FixedDiv(dot, FixedMul(distx, distx)+FixedMul(disty, disty));
 
-	mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), distx);
-	mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
+	if (bounce == true && mass2 > 0) // Perform a Goomba Bounce.
+		mobj1->momz = -mobj1->momz;
+	else
+	{
+		fixed_t newz = mobj1->momz;
+		if (mass2 > 0)
+			mobj1->momz = mobj2->momz;
+		if (mass1 > 0 && solid == false)
+			mobj2->momz = newz;
+	}
 
-	if (solid == false)
+	if (mass2 > 0)
+	{
+		mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), distx);
+		mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
+	}
+
+	if (mass1 > 0 && solid == false)
 	{
 		mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
 		mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
 	}
+
+	// Do the bump fx when we've CONFIRMED we can bump.
+	S_StartSound(mobj1, sfx_s3k49);
+
+	fx = P_SpawnMobj(mobj1->x/2 + mobj2->x/2, mobj1->y/2 + mobj2->y/2, mobj1->z/2 + mobj2->z/2, MT_BUMP);
+	if (mobj1->eflags & MFE_VERTICALFLIP)
+		fx->eflags |= MFE_VERTICALFLIP;
+	else
+		fx->eflags &= ~MFE_VERTICALFLIP;
+	fx->scale = mobj1->scale;
 
 	// Because this is done during collision now, rmomx and rmomy need to be recalculated
 	// so that friction doesn't immediately decide to stop the player if they're at a standstill
@@ -1039,6 +1089,11 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj1->player->rmomx = mobj1->momx - mobj1->player->cmomx;
 		mobj1->player->rmomy = mobj1->momy - mobj1->player->cmomy;
 		mobj1->player->kartstuff[k_justbumped] = bumptime;
+		if (mobj1->player->kartstuff[k_spinouttimer])
+		{
+			mobj1->player->kartstuff[k_wipeoutslow] += wipeoutslowtime+1;
+			mobj1->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
+		}
 	}
 
 	if (mobj2->player)
@@ -1046,6 +1101,11 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj2->player->rmomx = mobj2->momx - mobj2->player->cmomx;
 		mobj2->player->rmomy = mobj2->momy - mobj2->player->cmomy;
 		mobj2->player->kartstuff[k_justbumped] = bumptime;
+		if (mobj2->player->kartstuff[k_spinouttimer])
+		{
+			mobj2->player->kartstuff[k_wipeoutslow] += wipeoutslowtime+1;
+			mobj2->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
+		}
 	}
 }
 
@@ -1333,12 +1393,15 @@ static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
 	fixed_t boostpower = FRACUNIT;
 	fixed_t boostvalue = 0;
 
+	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] == 1) // Slow down after you've been bumped
+		return 0;
+
 	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
 	if (!(player->kartstuff[k_invincibilitytimer] || player->kartstuff[k_hyudorotimer] || player->kartstuff[k_sneakertimer])
 		&& player->kartstuff[k_offroad] >= 0 && speed)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_bananadrag] > TICRATE) // Avoid making x10 banana a hassle to use
+	if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
 	if (player->kartstuff[k_growshrinktimer] > 0)
@@ -1556,7 +1619,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		S_StartSound(player->mo, sfx_slip);
 	}
 	else
-		player->kartstuff[k_spinouttimer] = 1*TICRATE; // Wipeout
+		player->kartstuff[k_spinouttimer] = TICRATE+20; // Wipeout
 
 	player->powers[pw_flashing] = K_GetKartFlashing();
 
@@ -2077,6 +2140,22 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		sparkle->color = mo->color;
 		//sparkle->colorized = mo->colorized;
 	}
+}
+
+void K_SpawnWipeoutTrail(mobj_t *mo)
+{
+	mobj_t *dust;
+
+	I_Assert(mo != NULL);
+	I_Assert(!P_MobjWasRemoved(mo));
+
+	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25)<<FRACBITS), mo->y + (P_RandomRange(-25,25)<<FRACBITS), mo->z, MT_WIPEOUTTRAIL);
+
+	P_SetTarget(&dust->target, mo);
+	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
+	dust->destscale = mo->scale;
+	P_SetScale(dust, mo->scale);
+	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
 }
 
 //	K_DriftDustHandling
@@ -2789,17 +2868,27 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	{
 		if ((P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
 			&& (player->kartstuff[k_sneakertimer] == 0))
+		{
 			player->kartstuff[k_spinouttimer]--;
-		if (player->kartstuff[k_spinouttimer] == 0)
-			player->kartstuff[k_spinouttype] = 0; // Reset type
+			if (player->kartstuff[k_wipeoutslow] > 1)
+				player->kartstuff[k_wipeoutslow]--;
+			if (player->kartstuff[k_spinouttimer] == 0)
+				player->kartstuff[k_spinouttype] = 0; // Reset type
+		}
 	}
-	else if (!comeback)
-		player->kartstuff[k_comebacktimer] = comebacktime;
-	else if (player->kartstuff[k_comebacktimer])
+	else
 	{
-		player->kartstuff[k_comebacktimer]--;
-		if (P_IsLocalPlayer(player) && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
-			comebackshowninfo = true; // client has already seen the message
+		if (player->kartstuff[k_wipeoutslow] == 1)
+			player->mo->friction = ORIG_FRICTION;
+		player->kartstuff[k_wipeoutslow] = 0;
+		if (!comeback)
+			player->kartstuff[k_comebacktimer] = comebacktime;
+		else if (player->kartstuff[k_comebacktimer])
+		{
+			player->kartstuff[k_comebacktimer]--;
+			if (P_IsLocalPlayer(player) && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer] <= 0)
+				comebackshowninfo = true; // client has already seen the message
+		}
 	}
 
 	if (player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
@@ -3804,6 +3893,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->mo->movefactor < 32)
 			player->mo->movefactor = 32;
+	}
+	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+	{
+		player->mo->friction -= FixedMul(1228, player->kartstuff[k_offroad]);
+		if (player->kartstuff[k_wipeoutslow] == 1)
+			player->mo->friction -= 4912;
 	}
 
 	K_KartDrift(player, onground);

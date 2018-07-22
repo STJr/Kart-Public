@@ -852,15 +852,19 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 	angle_t ang;
 	fixed_t fallbackspeed;
 
-	if (player->mo->eflags & MFE_VERTICALFLIP)
-		player->mo->z--;
-	else
-		player->mo->z++;
+	if (inflictor && (inflictor->type != MT_PLAYER && inflictor->type != MT_GREENITEM && inflictor->type != MT_GREENSHIELD
+		&& inflictor->type != MT_JAWZ && inflictor->type != MT_JAWZ_DUD && inflictor->type != MT_JAWZ_SHIELD))
+	{
+		if (player->mo->eflags & MFE_VERTICALFLIP)
+			player->mo->z--;
+		else
+			player->mo->z++;
 
-	if (player->mo->eflags & MFE_UNDERWATER)
-		P_SetObjectMomZ(player->mo, FixedDiv(10511*FRACUNIT,2600*FRACUNIT), false);
-	else
-		P_SetObjectMomZ(player->mo, FixedDiv(69*FRACUNIT,10*FRACUNIT), false);
+		if (player->mo->eflags & MFE_UNDERWATER)
+			P_SetObjectMomZ(player->mo, FixedDiv(10511*FRACUNIT,2600*FRACUNIT), false);
+		else
+			P_SetObjectMomZ(player->mo, FixedDiv(69*FRACUNIT,10*FRACUNIT), false);
+	}
 
 	if (inflictor)
 	{
@@ -6932,6 +6936,9 @@ static void P_MovePlayer(player_t *player)
 
 	if (player->kartstuff[k_invincibilitytimer] > 0)
 		K_SpawnSparkleTrail(player->mo);
+
+	if (player->kartstuff[k_wipeoutslow] > 1 && (leveltime & 1))
+		K_SpawnWipeoutTrail(player->mo);
 
 	K_DriftDustHandling(player->mo);
 

@@ -584,6 +584,7 @@ typedef enum sprite
 	SPR_KFRE, // Sneaker fire trail
 	SPR_KINV, // Invincibility sparkle trail
 	SPR_KINF, // Invincibility flash
+	SPR_WIPD, // Wipeout dust trail
 	SPR_DRIF, // Drift Sparks
 	SPR_DUST, // Drift Dust
 
@@ -3115,6 +3116,13 @@ typedef enum state
 	S_INVULNFLASH3,
 	S_INVULNFLASH4,
 
+	// Wipeout dust trail
+	S_WIPEOUTTRAIL1,
+	S_WIPEOUTTRAIL2,
+	S_WIPEOUTTRAIL3,
+	S_WIPEOUTTRAIL4,
+	S_WIPEOUTTRAIL5,
+
 	//{ Eggman Monitor
 	S_FAKEITEM1,
 	S_FAKEITEM2,
@@ -4002,6 +4010,7 @@ typedef enum mobj_type
 	MT_SNEAKERTRAIL,
 	MT_SPARKLETRAIL,
 	MT_INVULNFLASH,
+	MT_WIPEOUTTRAIL,
 	MT_DRIFT,
 	MT_DRIFTDUST,
 

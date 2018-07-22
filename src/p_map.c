@@ -694,6 +694,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		{
 			// Player Damage
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
+			K_KartBouncing(thing, tmthing, false, false);
 
 			if (tmthing->type == MT_GREENITEM || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
 				S_StartSound(thing, sfx_shelit);
@@ -1125,6 +1126,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
+
+			if (thing->type != MT_FAKESHIELD && thing->type != MT_FAKEITEM)
+				K_KartBouncing(tmthing, thing, false, false);
 
 			if (thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
 				S_StartSound(tmthing, sfx_shelit);
@@ -1629,18 +1633,23 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		else if (thing->player) // bounce when players collide
 		{
+			const boolean tvulnerable = (!(thing->player->powers[pw_flashing]
+				|| thing->player->kartstuff[k_invincibilitytimer]
+				|| thing->player->kartstuff[k_spinouttimer]));
+			const boolean tmtvulnerable = (!(tmthing->player->powers[pw_flashing]
+				|| tmthing->player->kartstuff[k_invincibilitytimer]
+				|| tmthing->player->kartstuff[k_spinouttimer]));
+
 			// see if it went over / under
 			if (tmthing->z > thing->z + thing->height)
 				return true; // overhead
 			if (tmthing->z + tmthing->height < thing->z)
 				return true; // underneath
 
-			if (thing->player->kartstuff[k_spinouttimer] || thing->player->kartstuff[k_squishedtimer]
-				|| thing->player->kartstuff[k_hyudorotimer] || thing->player->kartstuff[k_invincibilitytimer] 
+			if (thing->player->kartstuff[k_squishedtimer] || thing->player->kartstuff[k_hyudorotimer]
 				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (FRACUNIT/8)
 				|| (G_BattleGametype() && thing->player->kartstuff[k_bumper] <= 0)
-				|| tmthing->player->kartstuff[k_spinouttimer] || tmthing->player->kartstuff[k_squishedtimer]
-				|| tmthing->player->kartstuff[k_hyudorotimer] || tmthing->player->kartstuff[k_invincibilitytimer]
+				|| tmthing->player->kartstuff[k_squishedtimer] || tmthing->player->kartstuff[k_hyudorotimer]
 				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8)
 				|| (G_BattleGametype() && tmthing->player->kartstuff[k_bumper] <= 0))
 			{
@@ -1650,7 +1659,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
 			{
 				K_KartBouncing(tmthing, thing, true, false);
-				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
+				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring] && tvulnerable)
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, false);
@@ -1659,7 +1668,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
 			{
 				K_KartBouncing(thing, tmthing, true, false);
-				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
+				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring] && tmtvulnerable)
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, false);
@@ -1670,12 +1679,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (G_BattleGametype())
 			{
-				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
+				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]) && tmtvulnerable)
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, false);
 				}
-				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
+				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]) && tvulnerable)
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, false);
