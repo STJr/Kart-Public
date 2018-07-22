@@ -95,7 +95,7 @@ boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 
 // menu demo things
-UINT8  numDemos      = 3;
+UINT8  numDemos      = 0; //3; -- i'm FED UP of losing my skincolour to a broken demo. change this back when we make new ones
 UINT32 demoDelayTime = 15*TICRATE;
 UINT32 demoIdleTime  = 3*TICRATE;
 
@@ -2235,13 +2235,30 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	// SRB2kart: Increment the "matches played" counter.
 	if (player == consoleplayer)
 	{
-		if (legitimateexit && !demoplayback) // (yes you're allowed to unlock stuff this way when the game is modified)
+		if (legitimateexit && !demoplayback && !mapreset) // (yes you're allowed to unlock stuff this way when the game is modified)
 		{
-			matchesplayed++;
-			if (M_UpdateUnlockablesAndExtraEmblems(true))
+			UINT8 i = 0;
+
+			if (netgame)
 			{
-				S_StartSound(NULL, sfx_ncitem);
-				G_SaveGameData(true); // only save if unlocked something
+				// check to see if there's anyone else at all
+				for (; i < MAXPLAYERS; i++)
+				{
+					if (i == consoleplayer)
+						continue;
+					if (playeringame[i] && !stplyr->spectator)
+						break;
+				}
+			}
+
+			if (i != MAXPLAYERS) // Not FREE PLAY
+			{
+				matchesplayed++;
+				if (M_UpdateUnlockablesAndExtraEmblems(true))
+				{
+					S_StartSound(NULL, sfx_ncitem);
+					G_SaveGameData(true); // only save if unlocked something
+				}
 			}
 		}
 
@@ -3467,6 +3484,7 @@ static void G_DoStartContinue(void)
 {
 	I_Assert(!netgame && !multiplayer);
 
+	legitimateexit = false;
 	G_PlayerFinishLevel(consoleplayer); // take away cards and stuff
 
 	F_StartContinue();
@@ -4092,7 +4110,7 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	{
 		// Clear a bunch of variables
 		tokenlist = token = sstimer = redscore = bluescore = lastmap = 0;
-		countdown = countdown2 = 0;
+		countdown = countdown2 = mapreset = 0;
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{

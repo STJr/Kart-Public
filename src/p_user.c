@@ -9145,81 +9145,84 @@ void P_PlayerThink(player_t *player)
 		I_Error("player %s is in PST_REBORN\n", sizeu1(playeri));
 #endif
 
-	if (G_RaceGametype())
+	if (!mapreset)
 	{
-		INT32 i;
-
-		// Check if all the players in the race have finished. If so, end the level.
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (playeringame[i] && !players[i].spectator)
-			{
-				if (!players[i].exiting && players[i].lives > 0)
-					break;
-			}
-		}
-
-		if (i == MAXPLAYERS && player->exiting == 3*TICRATE) // finished
-			player->exiting = (14*TICRATE)/5 + 1;
-
-		// If 10 seconds are left on the timer,
-		// begin the drown music for countdown!
-
-		// SRB2Kart: despite how perfect this is, it's disabled FOR A REASON
-		/*if (countdown == 11*TICRATE - 1)
-		{
-			if (P_IsLocalPlayer(player))
-				S_ChangeMusicInternal("drown", false);
-		}*/
-
-		// If you've hit the countdown and you haven't made
-		//  it to the exit, you're a goner!
-		else if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
-		{
-			P_DoTimeOver(player);
-
-			if (player->playerstate == PST_DEAD)
-				return;
-		}
-	}
-
-	// If it is set, start subtracting
-	// Don't allow it to go back to 0
-	if (player->exiting > 1 && (player->exiting < 3*TICRATE || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
-		player->exiting--;
-
-	if (player->exiting && countdown2)
-		player->exiting = 99; // SRB2kart
-
-	if (player->exiting == 2 || countdown2 == 2)
-	{
-		if (cv_playersforexit.value) // Count to be sure everyone's exited
+		if (G_RaceGametype())
 		{
 			INT32 i;
 
+			// Check if all the players in the race have finished. If so, end the level.
 			for (i = 0; i < MAXPLAYERS; i++)
 			{
-				if (!playeringame[i] || players[i].spectator || players[i].bot)
-					continue;
-				if (players[i].lives <= 0)
-					continue;
-
-				if (!players[i].exiting || players[i].exiting > 3)
-					break;
+				if (playeringame[i] && !players[i].spectator)
+				{
+					if (!players[i].exiting && players[i].lives > 0)
+						break;
+				}
 			}
 
-			if (i == MAXPLAYERS)
+			if (i == MAXPLAYERS && player->exiting == 3*TICRATE) // finished
+				player->exiting = (14*TICRATE)/5 + 1;
+
+			// If 10 seconds are left on the timer,
+			// begin the drown music for countdown!
+
+			// SRB2Kart: despite how perfect this is, it's disabled FOR A REASON
+			/*if (countdown == 11*TICRATE - 1)
+			{
+				if (P_IsLocalPlayer(player))
+					S_ChangeMusicInternal("drown", false);
+			}*/
+
+			// If you've hit the countdown and you haven't made
+			//  it to the exit, you're a goner!
+			else if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
+			{
+				P_DoTimeOver(player);
+
+				if (player->playerstate == PST_DEAD)
+					return;
+			}
+		}
+
+		// If it is set, start subtracting
+		// Don't allow it to go back to 0
+		if (player->exiting > 1 && (player->exiting < 3*TICRATE || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
+			player->exiting--;
+
+		if (player->exiting && countdown2)
+			player->exiting = 99; // SRB2kart
+
+		if (player->exiting == 2 || countdown2 == 2)
+		{
+			if (cv_playersforexit.value) // Count to be sure everyone's exited
+			{
+				INT32 i;
+
+				for (i = 0; i < MAXPLAYERS; i++)
+				{
+					if (!playeringame[i] || players[i].spectator || players[i].bot)
+						continue;
+					if (players[i].lives <= 0)
+						continue;
+
+					if (!players[i].exiting || players[i].exiting > 3)
+						break;
+				}
+
+				if (i == MAXPLAYERS)
+				{
+					if (server)
+						SendNetXCmd(XD_EXITLEVEL, NULL, 0);
+				}
+				else
+					player->exiting = 3;
+			}
+			else
 			{
 				if (server)
 					SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 			}
-			else
-				player->exiting = 3;
-		}
-		else
-		{
-			if (server)
-				SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 		}
 	}
 

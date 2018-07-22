@@ -741,12 +741,10 @@ void P_Ticker(boolean run)
 		if (modeattacking)
 			G_GhostTicker();
 
-		if (mapreset && --mapreset <= 0)
-		{
-			mapreset = 0;
-			if (server)
+		if (mapreset > 1
+			&& --mapreset <= 1
+			&& server) // Remember: server uses it for mapchange, but EVERYONE ticks down for the animation
 				D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
-		}
 	}
 
 	P_MapEnd();

@@ -262,7 +262,6 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 //
 void Y_IntermissionDrawer(void)
 {
-	// Bonus loops
 	INT32 i, whiteplayer = MAXPLAYERS, x = 4, hilicol = V_YELLOWMAP; // fallback
 
 	if (intertype == int_none || rendermode == render_none)
@@ -482,16 +481,32 @@ void Y_IntermissionDrawer(void)
 	}
 
 dotimer:
+
+	if (netgame) //  FREE PLAY?
+	{
+		// check to see if there's anyone else at all
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (i == consoleplayer)
+				continue;
+			if (playeringame[i] && !stplyr->spectator)
+				break;
+		}
+
+		if (i == MAXPLAYERS)
+			K_drawKartFreePlay(intertic);
+	}
+
 	if (timer)
 	{
 		INT32 tickdown = (timer+1)/TICRATE;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
 			va("start in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
 	}
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_YELLOWMAP, M_GetText("Teams will be scrambled next round!"));
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol|V_SNAPTOBOTTOM, M_GetText("Teams will be scrambled next round!"));
 }
 
 //

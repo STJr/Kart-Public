@@ -4846,7 +4846,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	}
 }
 
-static void K_drawKartPositionFaces(void)
+static boolean K_drawKartPositionFaces(void)
 {
 	// FACE_X = 15;				//  15
 	// FACE_Y = 72;				//  72
@@ -4855,7 +4855,7 @@ static void K_drawKartPositionFaces(void)
 	INT32 i, j, ranklines;
 	boolean completed[MAXPLAYERS];
 	INT32 rankplayer[MAXPLAYERS];
-	INT32 bumperx;
+	INT32 bumperx, numplayersingame = 0;
 	UINT8 *colormap;
 	patch_t *localpatch = kp_facenull;
 
@@ -4864,13 +4864,20 @@ static void K_drawKartPositionFaces(void)
 	memset(rankplayer, 0, sizeof (rankplayer));
 
 	for (i = 0; i < MAXPLAYERS; i++)
+	{
 		rankplayer[i] = -1;
 
-	for (j = 0; j < MAXPLAYERS; j++)
-	{
-		if (!playeringame[j] || players[j].spectator || !players[j].mo)
+		if (!playeringame[i] || players[i].spectator || !players[i].mo)
 			continue;
 
+		numplayersingame++;
+	}
+
+	if (numplayersingame <= 1)
+		return true;
+
+	for (j = 0; j < numplayersingame; j++)
+	{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (playeringame[i] && completed[i] == false && players[i].mo && !players[i].spectator
@@ -4934,6 +4941,8 @@ static void K_drawKartPositionFaces(void)
 
 		Y += 18;
 	}
+
+	return false;
 }
 
 static void K_drawKartLaps(void)
@@ -5142,11 +5151,11 @@ static void K_drawKartPlayerCheck(void)
 	{
 		UINT8 pnum = 0;
 
+		if (&players[i] == stplyr)
+			continue;
 		if (!playeringame[i] || players[i].spectator)
 			continue;
 		if (!players[i].mo)
-			continue;
-		if (&players[i] == stplyr)
 			continue;
 
 		if ((players[i].kartstuff[k_invincibilitytimer] <= 0) && (leveltime & 2))
@@ -5263,14 +5272,18 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	amnumxpos = (FixedMul(mo->x, zoom) - FixedMul(xoffset, zoom));
 	amnumypos = -(FixedMul(mo->y, zoom) - FixedMul(yoffset, zoom));
 
+	if (mirrormode)
+		amnumxpos = -amnumxpos;
+
 	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[skin]->width/2))<<FRACBITS);
 	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[skin]->height/2))<<FRACBITS);
 
-	if (mirrormode)
+	// do we want this? it feels unnecessary. easier to just modify the amnumxpos?
+	/*if (mirrormode)
 	{
 		flags |= V_FLIP;
 		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[skin]->width/2))<<FRACBITS);
-	}
+	}*/
 
 	if (!mo->color) // 'default' color
 		V_DrawSciencePatch(amxpos, amypos, flags, iconprefix[skin], FRACUNIT);
@@ -5538,6 +5551,22 @@ static void K_drawBattleFullscreen(void)
 			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		}
 	}
+
+	if (netgame && !stplyr->spectator && timeinmap > 113) // FREE PLAY?
+	{
+		UINT8 i;
+
+		// check to see if there's anyone else at all
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (i == displayplayer)
+				continue;
+			if (playeringame[i] && !stplyr->spectator)
+				return;
+		}
+
+		K_drawKartFreePlay(leveltime);
+	}
 }
 
 static void K_drawKartFirstPerson(void)
@@ -5589,6 +5618,9 @@ static void K_drawKartFirstPerson(void)
 		target = -1;
 	else // forward
 		target = 0;
+
+	if (mirrormode)
+		target = -target;
 
 	if (pn < target)
 		pn++;
@@ -5654,7 +5686,10 @@ static void K_drawKartFirstPerson(void)
 			if (stplyr->mo->momz > 0) // TO-DO: Draw more of the kart so we can remove this if!
 				yoffs += stplyr->mo->momz/3;
 
-			x += xoffs;
+			if (mirrormode)
+				x -= xoffs;
+			else
+				x += xoffs;
 			if (!splitscreen)
 				y += yoffs;
 		}
@@ -5798,8 +5833,19 @@ static void K_drawCheckpointDebugger(void)
 	V_DrawString(8, 192, 0, va("Waypoint dist: Prev %d, Next %d", stplyr->kartstuff[k_prevcheck], stplyr->kartstuff[k_nextcheck]));
 }
 
+void K_drawKartFreePlay(UINT32 flashtime)
+{
+	if ((flashtime % TICRATE) < TICRATE/2)
+		return;
+
+	V_DrawKartString(BASEVIDWIDTH/2 - (6*9), // horizontally centered, nice
+		LAPS_Y+3, V_SNAPTOBOTTOM, "FREE PLAY");
+}
+
 void K_drawKartHUD(void)
 {
+	boolean isfreeplay = false;
+
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
@@ -5863,9 +5909,8 @@ void K_drawKartHUD(void)
 
 		if (!modeattacking)
 		{
-			// The little triple-item icons at the bottom
 			// The top-four faces on the left
-			K_drawKartPositionFaces();
+			isfreeplay = K_drawKartPositionFaces();
 		}
 	}
 
@@ -5883,10 +5928,17 @@ void K_drawKartHUD(void)
 				K_drawKartSpeedometer();
 			}
 
-			if (!modeattacking)
+			if (isfreeplay)
+				;
+			else if (!modeattacking)
 			{
 				// Draw the numerical position
 				K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+			}
+			else //if (!(demoplayback && hu_showscores))
+			{
+				// Draw the input UI
+				K_drawInput();
 			}
 
 			// You're about to DIEEEEE
@@ -5897,9 +5949,6 @@ void K_drawKartHUD(void)
 			// Draw the hits left!
 			K_drawKartBumpersOrKarma();
 		}
-
-		if (modeattacking) //&& !(demoplayback && hu_showscores))
-			K_drawInput();
 	}
 
 	// Draw the countdowns after everything else.
@@ -5924,6 +5973,10 @@ void K_drawKartHUD(void)
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();
+
+	// Draw FREE PLAY.
+	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
+		K_drawKartFreePlay(leveltime);
 }
 
 //}

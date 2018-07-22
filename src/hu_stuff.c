@@ -1757,6 +1757,9 @@ static void HU_DrawRankings(void)
 		numplayersingame++;
 	}
 
+	if (netgame && numplayersingame <= 1)
+		K_drawKartFreePlay(leveltime);
+
 	for (j = 0; j < numplayersingame; j++)
 	{
 		UINT8 lowestposition = MAXPLAYERS;
