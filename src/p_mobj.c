@@ -9833,8 +9833,10 @@ void P_SpawnPlayer(INT32 playernum)
 	else if (netgame && p->jointime <= 1 && pcount)
 	{
 		p->spectator = true;
-		if (pcount == 1)
+		// Oni doesn't want this
+		/*if (pcount == 1 || leveltime < starttime)
 			p->pflags |= PF_WANTSTOJOIN;
+		p->jointime = 2;*/
 	}
 	else if (multiplayer && !netgame)
 	{

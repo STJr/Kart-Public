@@ -1177,12 +1177,19 @@ void P_RestoreMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return;
 
+	// Event - HERE COMES A NEW CHALLENGER
+	if (mapreset)
+	{
+		S_ChangeMusicInternal("chalng", false); //S_StopMusic();
+		return;
+	}
+
+	// Event - Level Ending
 	if (P_EndingMusic(player))
 		return;
 
 	S_SpeedMusic(1.0f);
 
-	// SRB2kart - We have some different powers than vanilla, some of which tweak the music.
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
@@ -1679,7 +1686,7 @@ void P_SpawnSpinMobj(player_t *player, mobjtype_t type)
 // Player exits the map via sector trigger
 void P_DoPlayerExit(player_t *player)
 {
-	if (player->exiting)
+	if (player->exiting || mapreset)
 		return;
 
 	if ((player == &players[consoleplayer]
@@ -4698,7 +4705,7 @@ static void P_3dMovement(player_t *player)
 
 	cmd = &player->cmd;
 
-	if (player->exiting || player->pflags & PF_STASIS || player->kartstuff[k_spinouttimer]) // pw_introcam?
+	if ((player->exiting || mapreset) || player->pflags & PF_STASIS || player->kartstuff[k_spinouttimer]) // pw_introcam?
 	{
 		cmd->forwardmove = cmd->sidemove = 0;
 		if (player->kartstuff[k_sneakertimer])
@@ -4707,14 +4714,14 @@ static void P_3dMovement(player_t *player)
 		{
 			if (!player->skidtime)
 				player->pflags &= ~PF_GLIDING;
-			else if (player->exiting)
+			else if (player->exiting || mapreset)
 			{
 				player->pflags &= ~PF_GLIDING;
 				P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
 				player->skidtime = 0;
 			}
 		}
-		if (player->pflags & PF_SPINNING && !player->exiting)
+		if (player->pflags & PF_SPINNING && !(player->exiting || mapreset))
 		{
 			player->pflags &= ~PF_SPINNING;
 			P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
@@ -4799,7 +4806,7 @@ static void P_3dMovement(player_t *player)
 	player->aiming = cmd->aiming<<FRACBITS;
 
 	// Forward movement
-	if (!(player->exiting || (P_PlayerInPain(player) && !onground)))
+	if (!((player->exiting || mapreset) || (P_PlayerInPain(player) && !onground)))
 	{
 		//movepushforward = cmd->forwardmove * (thrustfactor * acceleration);
 		movepushforward = K_3dKartMovement(player, onground, cmd->forwardmove);
@@ -4839,7 +4846,7 @@ static void P_3dMovement(player_t *player)
 	}
 
 	// Sideways movement
-	if (cmd->sidemove != 0 && !(player->exiting || player->kartstuff[k_spinouttimer]))
+	if (cmd->sidemove != 0 && !((player->exiting || mapreset) || player->kartstuff[k_spinouttimer]))
 	{
 		if (cmd->sidemove > 0)
 			movepushside = (cmd->sidemove * FRACUNIT/128) + FixedDiv(player->speed, K_GetKartSpeed(player, true));
@@ -7928,7 +7935,7 @@ static void P_DeathThink(player_t *player)
 	}*/
 
 	// Keep time rolling
-	if (!(countdown2 && !countdown) && !player->exiting && !(player->pflags & PF_TIMEOVER))
+	if (!(countdown2 && !countdown) && !(player->exiting || mapreset) && !(player->pflags & PF_TIMEOVER))
 	{
 		if (leveltime >= starttime)
 		{
