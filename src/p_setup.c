@@ -2997,15 +2997,15 @@ boolean P_SetupLevel(boolean skipprecip)
 	else
 	{
 		if (G_BattleGametype())
+		{
 			gamespeed = 0;
-		else
-			gamespeed = (UINT8)cv_kartspeed.value;
-
-		if (G_BattleGametype())
 			mirrormode = false;
+		}
 		else
+		{
+			gamespeed = (UINT8)cv_kartspeed.value;
 			mirrormode = (boolean)cv_kartmirror.value;
-
+		}
 		franticitems = (boolean)cv_kartfrantic.value;
 		comeback = (boolean)cv_kartcomeback.value;
 	}

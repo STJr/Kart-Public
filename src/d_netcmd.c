@@ -5208,24 +5208,53 @@ static void BaseNumLaps_OnChange(void)
 
 static void KartFrantic_OnChange(void)
 {
-	if ((boolean)cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL)
+	if ((boolean)cv_kartfrantic.value != franticitems && gamestate == GS_LEVEL && leveltime > starttime)
 		CONS_Printf(M_GetText("Frantic items will be turned %s next round.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
+	else
+	{
+		CONS_Printf(M_GetText("Frantic items has been turned %s.\n"), cv_kartfrantic.value ? M_GetText("on") : M_GetText("off"));
+		franticitems = (boolean)cv_kartfrantic.value;
+	}
 }
 
 static void KartSpeed_OnChange(void)
 {
-	if ((UINT8)cv_kartspeed.value != gamespeed && G_RaceGametype() && gamestate == GS_LEVEL)
-		CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
+	if (G_RaceGametype())
+	{
+		if ((UINT8)cv_kartspeed.value != gamespeed && gamestate == GS_LEVEL && leveltime > starttime)
+			CONS_Printf(M_GetText("Game speed will be changed to \"%s\" next round.\n"), cv_kartspeed.string);
+		else
+		{
+			CONS_Printf(M_GetText("Game speed has been changed to \"%s\".\n"), cv_kartspeed.string);
+			gamespeed = (UINT8)cv_kartspeed.value;
+		}
+	}
 }
 
 static void KartMirror_OnChange(void)
 {
-	if ((boolean)cv_kartmirror.value != mirrormode && G_RaceGametype() && gamestate == GS_LEVEL)
-		CONS_Printf(M_GetText("Mirror Mode will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
+	if (G_RaceGametype())
+	{
+		if ((boolean)cv_kartmirror.value != mirrormode && gamestate == GS_LEVEL /*&& leveltime > starttime*/)
+			CONS_Printf(M_GetText("Mirrored tracks will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
+		else
+		{
+			CONS_Printf(M_GetText("Mirrored tracks has been turned %s.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
+			mirrormode = (boolean)cv_kartmirror.value;
+		}
+	}
 }
 
 static void KartComeback_OnChange(void)
 {
-	if ((boolean)cv_kartcomeback.value != comeback && G_BattleGametype() && gamestate == GS_LEVEL)
-		CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
+	if (G_BattleGametype())
+	{
+		if ((boolean)cv_kartcomeback.value != comeback && gamestate == GS_LEVEL && leveltime > starttime)
+			CONS_Printf(M_GetText("Karma Comeback will be turned %s next round.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
+		else
+		{
+			CONS_Printf(M_GetText("Karma Comeback has been turned %s.\n"), cv_kartcomeback.value ? M_GetText("on") : M_GetText("off"));
+			comeback = (boolean)cv_kartcomeback.value;
+		}
+	}
 }

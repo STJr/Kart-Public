@@ -607,6 +607,8 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale;
 		if (franticitems)
 			secondist = (15*secondist/14);
+		if (pingame < 6 && !G_BattleGametype())
+			secondist = ((28+(6-pingame))*secondist/28);
 	}
 
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
@@ -618,8 +620,8 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
 		odds *= 2; \
-	if (pingame < 5 && !G_BattleGametype()) \
-		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((5-pingame)*(FRACUNIT/34), FRACUNIT))/FRACUNIT; \
+	if (pingame < 6 && !G_BattleGametype()) \
+		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((6-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
 	if (mashed > 0) \
 		odds = FixedDiv(odds*FRACUNIT, mashed+FRACUNIT)/FRACUNIT \
 
@@ -853,6 +855,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
 			pdis = (15*pdis/14);
+		if (pingame < 6 && !G_BattleGametype())
+			pdis = ((28+(6-pingame))*pdis/28);
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
@@ -4043,8 +4047,8 @@ void K_CheckBumpers(void)
 		winnerscoreadd -= players[i].marescore;
 	}
 
-	/*if (numingame <= 1)
-		return;*/
+	if (numingame <= 1)
+		return;
 
 	if (winnernum > -1 && playeringame[winnernum])
 	{
