@@ -144,7 +144,7 @@ typedef struct
 	UINT8 rendoff;
 } y_voteclient;
 
-static y_votelvlinfo levelinfo[4];
+static y_votelvlinfo levelinfo[5];
 static y_voteclient voteclient;
 static INT32 votetic;
 static INT32 voteendtic = -1;
@@ -988,7 +988,7 @@ void Y_VoteDrawer(void)
 	{
 		char str[40];
 		patch_t *pic;
-		UINT8 sizeadd = selected[i], j, color;
+		UINT8 j, color;
 
 		if (i == 3)
 		{
@@ -1004,6 +1004,8 @@ void Y_VoteDrawer(void)
 
 		if (selected[i])
 		{
+			UINT8 sizeadd = selected[i];
+
 			for (j = 0; j <= splitscreen; j++) // another loop for drawing the selection backgrounds in the right order, grumble grumble..
 			{
 				INT32 handy = y;
@@ -1101,7 +1103,7 @@ void Y_VoteDrawer(void)
 		{
 			patch_t *pic;
 
-			if (votes[i] == 3 && (i != pickedvote || voteendtic == -1))
+			if (votes[i] >= 3 && (i != pickedvote || voteendtic == -1))
 				pic = randomlvl;
 			else
 				pic = levelinfo[votes[i]].pic;
@@ -1162,12 +1164,17 @@ void Y_VoteDrawer(void)
 SINT8 deferredlevel = 0;
 static void Y_VoteStops(SINT8 pick, SINT8 level)
 {
-	if (!splitscreen && pick == consoleplayer)
-		S_StartSound(NULL, sfx_yeeeah);
-	else
-		S_StartSound(NULL, sfx_kc48);
-
 	nextmap = votelevels[level][0];
+
+	if (level == 4)
+		S_StartSound(NULL, sfx_noooo2); // gasp
+	else if (mapheaderinfo[nextmap] && (mapheaderinfo[nextmap]->menuflags & LF2_HIDEINMENU))
+		S_StartSound(NULL, sfx_noooo1); // this is bad
+	else if (!splitscreen && pick == consoleplayer)
+		S_StartSound(NULL, sfx_yeeeah); // yeeeah!
+	else
+		S_StartSound(NULL, sfx_kc48); // just a cool sound
+
 	if (gametype != votelevels[level][1])
 	{
 		INT16 lastgametype = gametype;
@@ -1414,40 +1421,44 @@ void Y_StartVote(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 		votes[i] = -1;
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 5; i++)
 	{
 		lumpnum_t lumpnum;
-		//INT16 j;
 
 		// set up the str
-		if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)
-		{
-			if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
-				snprintf(levelinfo[i].str,
-					sizeof levelinfo[i].str,
-					"%.32s %.32s %s",
-					mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl, mapheaderinfo[votelevels[i][0]]->actnum);
-			else
-				snprintf(levelinfo[i].str,
-					sizeof levelinfo[i].str,
-					"%.32s %.32s",
-					mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl);
-		}
+		if (i == 4)
+			levelinfo[i].str[0] = '\0';
 		else
 		{
-			if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
-				snprintf(levelinfo[i].str,
-					sizeof levelinfo[i].str,
-					"%.32s %s",
-					mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
+			if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)
+			{
+				if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%.32s %.32s %s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl, mapheaderinfo[votelevels[i][0]]->actnum);
+				else
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%.32s %.32s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl);
+			}
 			else
-				snprintf(levelinfo[i].str,
-					sizeof levelinfo[i].str,
-					"%.32s",
-					mapheaderinfo[votelevels[i][0]]->lvlttl);
-		}
+			{
+				if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%.32s %s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
+				else
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%.32s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl);
+			}
 
-		levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
+			levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
+		}
 
 		// set up the gtc and gts
 		levelinfo[i].gtc = G_GetGametypeColor(votelevels[i][1]);
@@ -1491,6 +1502,7 @@ static void Y_UnloadVoteData(void)
 	UNLOAD(cursor4);
 	UNLOAD(randomlvl);
 
+	UNLOAD(levelinfo[4].pic);
 	UNLOAD(levelinfo[3].pic);
 	UNLOAD(levelinfo[2].pic);
 	UNLOAD(levelinfo[1].pic);
@@ -1526,6 +1538,15 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 			if (votes[i] == -1 || endtype > 1) // Don't need to go on
 				continue;
 
+			if (level == 4)
+			{
+				votes[i] = 4;
+				continue;
+			}
+
+			if (endtype == 2)
+				continue;
+
 			if (votecompare == -1)
 			{
 				votecompare = votes[i];
@@ -1535,18 +1556,18 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 				endtype = 2;
 		}
 
-		if (endtype == 0) // Might as well put this here, too.
+		if (level == 4 || endtype == 1) // Only one unique vote, so just end it immediately.
+		{
+			voteendtic = votetic + (5*TICRATE);
+			S_ChangeMusicInternal("voteeb", false);
+			Y_VoteStops(pick, level);
+		}
+		else if (endtype == 0) // Might as well put this here, too.
 		{
 			timer = 0;
 			Y_UnloadVoteData();
 			Y_FollowIntermission();
 			return;
-		}
-		else if (endtype == 1) // Only one unique vote, so just end it immediately.
-		{
-			voteendtic = votetic + (5*TICRATE);
-			S_ChangeMusicInternal("voteeb", false);
-			Y_VoteStops(pick, level);
 		}
 		else
 			S_ChangeMusicInternal("voteea", true);

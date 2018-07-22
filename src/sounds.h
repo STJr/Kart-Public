@@ -220,6 +220,8 @@ typedef enum
 	sfx_fizzle,
 	sfx_gbeep,
 	sfx_yeeeah,
+	sfx_noooo1,
+	sfx_noooo2,
 	sfx_ghit,
 	sfx_gloop,
 	sfx_gspray,

@@ -252,7 +252,7 @@ boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
 // Voting system
-INT16 votelevels[4][2]; // Levels that were rolled by the host
+INT16 votelevels[5][2]; // Levels that were rolled by the host
 SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
@@ -3172,7 +3172,7 @@ static INT32 TOLMaps(INT16 tolflags)
   * \author Graue <graue@oceanbase.org>
   */
 static INT16 *okmaps = NULL;
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, boolean maphell, boolean callagainsoon)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon)
 {
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
@@ -3191,7 +3191,8 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 		if ((mapheaderinfo[ix]->typeoflevel & tolflags) != tolflags
 			|| ix == pprevmap
 			|| (!dedicated && M_MapLocked(ix+1))
-			|| (!maphell && (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // the highest quality memes
+			|| (!maphell && (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU)) // this is bad
+			|| ((maphell == 2) && !(mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // gasp
 			isokmap = false;
 
 		if (!ignorebuffer)
@@ -3216,6 +3217,8 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 	{
 		if (!ignorebuffer)
 			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon); // If there's no matches, (An incredibly silly function chain, buuut... :V)
+		if (maphell)
+			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
 
 		ix = 0; // Sorry, none match. You get MAP01.
 		for (bufx = 0; bufx < NUMMAPS+1; bufx++)
@@ -3388,7 +3391,7 @@ static void G_DoCompleted(void)
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false, false, false);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, false);
 	}
 
 	// We are committed to this map now.

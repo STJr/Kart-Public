@@ -1969,21 +1969,21 @@ void D_SetupVote(void)
 	char buf[8];
 	char *p = buf;
 	INT32 i;
-	INT16 gt;
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 5; i++)
 	{
 		if (i == 2) // sometimes a different gametype
 		{
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt = G_SometimesGetDifferentGametype()), prevmap, false, false, false, true));
+			INT16 gt = G_SometimesGetDifferentGametype();
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt), prevmap, false, false, 0, true));
 			WRITEUINT16(p, gt);
 		}
 		else
 		{
-			if (i == 3) // unknown-random
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, true, false));
+			if (i >= 3) // unknown-random and force-unknown MAP HELL
+				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
 			else
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, false, true));
+				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
 			WRITEUINT16(p, gametype);
 		}
 	}
@@ -2011,7 +2011,9 @@ void D_PickVote(void)
 	char* p = buf;
 	SINT8 temppicks[MAXPLAYERS];
 	SINT8 templevels[MAXPLAYERS];
+	SINT8 votecompare = -1;
 	UINT8 numvotes = 0, key = 0;
+	boolean force = true;
 	INT32 i;
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2023,6 +2025,10 @@ void D_PickVote(void)
 			temppicks[numvotes] = i;
 			templevels[numvotes] = votes[i];
 			numvotes++;
+			if (votecompare == -1)
+				votecompare = votes[i];
+			else if (votes[i] != votecompare)
+				force = false;
 		}
 	}
 
@@ -2031,7 +2037,10 @@ void D_PickVote(void)
 	if (numvotes > 0)
 	{
 		WRITESINT8(p, temppicks[key]);
-		WRITESINT8(p, templevels[key]);
+		if (force && templevels[key] == 3 && numvotes > 1)
+			WRITESINT8(p, 4);
+		else
+			WRITESINT8(p, templevels[key]);
 	}
 	else
 	{
@@ -4588,7 +4597,7 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 5; i++)
 	{
 		votelevels[i][0] = (INT16)READUINT16(*cp);
 		votelevels[i][1] = (INT16)READUINT16(*cp);
