@@ -2620,7 +2620,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Special stage fade to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && G_IsSpecialStage(gamemap))
+	/*if (rendermode != render_none && G_IsSpecialStage(gamemap))
 	{
 		tic_t starttime = I_GetTime();
 		tic_t endtime = starttime + (3*TICRATE)/2;
@@ -2647,7 +2647,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		}
 
 		ranspecialwipe = 1;
-	}
+	}*/
 
 	// Make sure all sounds are stopped before Z_FreeTags.
 	S_StopSounds();
@@ -2667,7 +2667,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	if (rendermode != render_none && !ranspecialwipe)
 	{
 		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
 		F_WipeEndScreen();
 		F_RunWipe(wipedefs[wipe_level_toblack], false);
@@ -3037,7 +3037,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Remove the loading shit from the screen
 	if (rendermode != render_none)
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (ranspecialwipe) ? 0 : 31);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
 	if (precache || dedicated)
 		R_PrecacheLevel();

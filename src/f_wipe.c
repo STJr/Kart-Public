@@ -61,7 +61,7 @@ UINT8 wipedefs[NUMWIPEDEFS] = {
 	UINT8_MAX, // wipe_multinter_toblack
 	99, // wipe_speclevel_towhite
 
-	0,  // wipe_level_final
+	3,  // wipe_level_final
 	0,  // wipe_intermission_final
 	0,  // wipe_voting_final
 	0,  // wipe_continuing_final
