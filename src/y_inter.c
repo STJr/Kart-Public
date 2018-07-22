@@ -262,6 +262,7 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 //
 void Y_IntermissionDrawer(void)
 {
+	boolean forcefreeplay = false;
 	INT32 i, whiteplayer = MAXPLAYERS, x = 4, hilicol = V_YELLOWMAP; // fallback
 
 	if (intertype == int_none || rendermode == render_none)
@@ -363,7 +364,16 @@ void Y_IntermissionDrawer(void)
 	{
 		INT32 y = 48;
 		char name[MAXPLAYERNAME+1];
-		const char *timeheader = (data.match.rankingsmode ? "RANK" : (intertype == int_race ? "TIME" : "SCORE"));
+		const char *timeheader;
+
+		if (data.match.rankingsmode)
+			timeheader = "RANK";
+		else
+		{
+			timeheader = (intertype == int_race ? "TIME" : "SCORE");
+			if (data.match.numplayers <= 1)
+				forcefreeplay = true;
+		}
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
@@ -484,13 +494,18 @@ dotimer:
 
 	if (netgame) //  FREE PLAY?
 	{
-		// check to see if there's anyone else at all
-		for (i = 0; i < MAXPLAYERS; i++)
+		i = MAXPLAYERS;
+
+		if (!forcefreeplay)
 		{
-			if (i == consoleplayer)
-				continue;
-			if (playeringame[i] && !stplyr->spectator)
-				break;
+			// check to see if there's anyone else at all
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				if (i == consoleplayer)
+					continue;
+				if (playeringame[i] && !stplyr->spectator)
+					break;
+			}
 		}
 
 		if (i == MAXPLAYERS)
