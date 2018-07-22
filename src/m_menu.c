@@ -535,6 +535,7 @@ static menuitem_t MPauseMenu[] =
 
 	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48},
 	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48},
+	{IT_STRING | IT_CALL,    NULL, "Cancel Join",          M_ConfirmSpectate,     48},
 	{IT_STRING | IT_SUBMENU, NULL, "Switch Team...",       &MISC_ChangeTeamDef,   48},
 	{IT_CALL | IT_STRING,    NULL, "Player Setup...",      M_SetupMultiPlayer,    56}, // alone
 	{IT_CALL | IT_STRING,    NULL, "Options",              M_Options,             64},
@@ -557,6 +558,7 @@ typedef enum
 #endif
 	mpause_spectate,
 	mpause_entergame,
+	mpause_canceljoin,
 	mpause_switchteam,
 	mpause_psetup,
 	mpause_options,
@@ -2842,6 +2844,7 @@ void M_StartControlPanel(void)
 #endif
 		MPauseMenu[mpause_spectate].status = IT_DISABLED;
 		MPauseMenu[mpause_entergame].status = IT_DISABLED;
+		MPauseMenu[mpause_canceljoin].status = IT_DISABLED;
 		MPauseMenu[mpause_switchteam].status = IT_DISABLED;
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
 		// Reset these in case splitscreen messes things up
@@ -2889,7 +2892,14 @@ void M_StartControlPanel(void)
 			if (G_GametypeHasTeams())
 				MPauseMenu[mpause_switchteam].status = IT_STRING | IT_SUBMENU;
 			else if (G_GametypeHasSpectators())
-				MPauseMenu[((&players[consoleplayer] && players[consoleplayer].spectator) ? mpause_entergame : mpause_spectate)].status = IT_STRING | IT_CALL;
+			{
+				if (!players[consoleplayer].spectator)
+					MPauseMenu[mpause_spectate].status = IT_STRING | IT_CALL;
+				else if (players[consoleplayer].pflags & PF_WANTSTOJOIN)
+					MPauseMenu[mpause_canceljoin].status = IT_STRING | IT_CALL;
+				else
+					MPauseMenu[mpause_entergame].status = IT_STRING | IT_CALL;
+			}
 			else // in this odd case, we still want something to be on the menu even if it's useless
 				MPauseMenu[mpause_spectate].status = IT_GRAYEDOUT;
 		}
@@ -4207,11 +4217,11 @@ static void M_ConfirmSpectate(INT32 choice)
 static void M_ConfirmEnterGame(INT32 choice)
 {
 	(void)choice;
-	if (!cv_allowteamchange.value)
+	/*if (!cv_allowteamchange.value)
 	{
 		M_StartMessage(M_GetText("The server is not allowing\nteam changes at this time.\nPress a key.\n"), NULL, MM_NOTHING);
 		return;
-	}
+	}*/
 	M_ClearMenus(true);
 	COM_ImmedExecute("changeteam playing");
 }

@@ -454,6 +454,7 @@ extern tic_t wantedcalcdelay;
 extern tic_t indirectitemcooldown;
 extern tic_t spbincoming;
 extern UINT8 spbplayer;
+extern tic_t mapreset;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;

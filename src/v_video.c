@@ -455,13 +455,15 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 		if (!(scrn & V_SCALEPATCHMASK))
 		{
 			// if it's meant to cover the whole screen, black out the rest
-			if (x == 0 && FixedMul(SHORT(patch->width)<<FRACBITS, pscale)>>FRACBITS == BASEVIDWIDTH
+			// BAD, BAD, BAD, FUCK OFF, STOP, EW, AAAAAAA
+			// This does NOT account for transparent pixels
+			/*if (x == 0 && FixedMul(SHORT(patch->width)<<FRACBITS, pscale)>>FRACBITS == BASEVIDWIDTH
 				&& y == 0 && FixedMul(SHORT(patch->height)<<FRACBITS, pscale)>>FRACBITS == BASEVIDHEIGHT)
 			{
 				column = (const column_t *)((const UINT8 *)(patch) + LONG(patch->columnofs[0]));
 				source = (const UINT8 *)(column) + 3;
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (column->topdelta == 0xff ? 31 : source[0]));
-			}
+			}*/
 
 			if (vid.width != BASEVIDWIDTH * dupx)
 			{
@@ -615,12 +617,14 @@ void V_DrawCroppedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_
 					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width / 2;
 			}
 			// if it's meant to cover the whole screen, black out the rest
-			if (x == 0 && SHORT(patch->width) == BASEVIDWIDTH && y == 0 && SHORT(patch->height) == BASEVIDHEIGHT)
+			// BAD, BAD, BAD, FUCK OFF, STOP, EW, AAAAAAA
+			// This does NOT account for transparent pixels
+			/*if (x == 0 && SHORT(patch->width) == BASEVIDWIDTH && y == 0 && SHORT(patch->height) == BASEVIDHEIGHT)
 			{
 				column = (const column_t *)((const UINT8 *)(patch) + LONG(patch->columnofs[0]));
 				source = (const UINT8 *)(column) + 3;
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (column->topdelta == 0xff ? 31 : source[0]));
-			}
+			}*/
 		}
 	}
 

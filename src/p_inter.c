@@ -152,7 +152,7 @@ void P_ResetStarposts(void)
 //
 boolean P_CanPickupItem(player_t *player, boolean weapon)
 {
-	if (player->exiting)
+	if (player->exiting || mapreset)
 		return false;
 
 	/*if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // No bumpers in Match

@@ -740,6 +740,13 @@ void P_Ticker(boolean run)
 			G_ConsGhostTic();
 		if (modeattacking)
 			G_GhostTicker();
+
+		if (mapreset && --mapreset <= 0)
+		{
+			mapreset = 0;
+			if (server)
+				D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
+		}
 	}
 
 	P_MapEnd();

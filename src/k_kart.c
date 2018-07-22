@@ -30,6 +30,7 @@
 // indirectitemcooldown is timer before anyone's allowed another Shrink/SPB
 // spbincoming is the timer before k_deathsentence is cast on the player in 1st
 // spbplayer is the last player who fired a SPB
+// mapreset is set when enough players fill an empty server
 
 
 //{ SRB2kart Color Code
@@ -1192,6 +1193,9 @@ void K_RespawnChecker(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 
+	if (player->spectator)
+		return;
+
 	if (player->kartstuff[k_respawn] > 3)
 	{
 		player->kartstuff[k_respawn]--;
@@ -1201,7 +1205,8 @@ void K_RespawnChecker(player_t *player)
 		if (leveltime % 8 == 0)
 		{
 			INT32 i;
-			S_StartSound(player->mo, sfx_s3kcas);
+			if (!mapreset)
+				S_StartSound(player->mo, sfx_s3kcas);
 
 			for (i = 0; i < 8; i++)
 			{
@@ -3449,7 +3454,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	else if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
 
-	if (player && player->mo && player->mo->health > 0 && !player->spectator && !player->exiting && player->kartstuff[k_spinouttimer] == 0)
+	if (player && player->mo && player->mo->health > 0 && !player->spectator && !(player->exiting || mapreset) && player->kartstuff[k_spinouttimer] == 0)
 	{
 		// First, the really specific, finicky items that function without the item being directly in your item slot.
 		// Eggman Monitor throwing
@@ -4152,44 +4157,47 @@ void K_CheckBumpers(void)
 void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];	
-	UINT8 i, no = 0;
-	UINT8 numingame = 0, numjoiners = 0;
+	UINT8 i, numingame = 0, numjoiners = 0;
 
-    for (i = 0; i < MAXPLAYERS; i++)
-    {
-        if (!playeringame[i])
-            continue;
-
-        if (!players[i].spectator)
-        {
-			numingame++;
-			if (gamestate != GS_LEVEL)
-                continue;
-            if (G_RaceGametype() && players[i].laps > 0)
-                return;
-        }
-
-        if (cv_allowteamchange.value && !(players[i].pflags & PF_WANTSTOJOIN))
-            continue;
-
-        respawnlist[no++] = i;
-    }
-
-	numjoiners = no; // Move the map change stuff up here when it gets a delay, and remove this redundant numjoiners var
-
-	while (no)
-		P_SpectatorJoinGame(&players[respawnlist[--no]]);
-
-	if (!server)
-		return;
-
-	// Reset the match if you're in an empty server, TODO: put it on a short 5-10 second timer, so you have a chance to roam.
-	if (gamestate == GS_LEVEL && (numingame < 2 && numingame+numjoiners >= 2))
+	// Get the number of players in game, and the players to be de-spectated.
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		CONS_Printf("Here comes a new challenger! Resetting map...\n");
-		D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
-		return;
+		if (!playeringame[i])
+			continue;
+
+		if (!players[i].spectator)
+		{
+			numingame++;
+			if (gamestate != GS_LEVEL) // Allow if you're not in a level
+                continue;
+			if (players[i].exiting) // DON'T allow if anyone's exiting
+				return;
+			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
+                continue; 
+            if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
+                return;
+			continue;
+		}
+		else if (!(players[i].pflags & PF_WANTSTOJOIN))
+			continue;
+
+		respawnlist[numjoiners++] = i;
 	}
+
+	// literally zero point in going any further if nobody is joining
+	if (!numjoiners)
+		return;
+
+	// Reset the match if you're in an empty server
+	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (numingame < 2 && numingame+numjoiners >= 2))
+	{
+		S_ChangeMusicInternal("chalng", false); // COME ON
+		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD in the future
+	}
+
+	// Finally, we can de-spectate everyone!
+	for (i = 0; i < numjoiners; i++)
+		P_SpectatorJoinGame(&players[respawnlist[i]]);
 }
 
 //}
@@ -4264,6 +4272,8 @@ static patch_t *kp_spbwarning[2];
 
 static patch_t *kp_fpview[3];
 static patch_t *kp_inputwheel[5];
+
+static patch_t *kp_challenger[25];
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -4417,6 +4427,15 @@ void K_LoadKartHUDGraphics(void)
 	{
 		buffer[7] = '0'+i;
 		kp_inputwheel[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	// HERE COMES A NEW CHALLENGER
+	sprintf(buffer, "K_CHALxx");
+	for (i = 0; i < 25; i++)
+	{
+		buffer[6] = '0'+((i+1)/10);
+		buffer[7] = '0'+((i+1)%10);
+		kp_challenger[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 }
 
@@ -5849,6 +5868,22 @@ static void K_drawInput(void)
 	}
 }
 
+static void K_drawChallengerScreen(void)
+{
+	// This is an insanely complicated animation.
+	static UINT8 anim[52] = {
+		0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13, // frame 1-14, 2 tics: HERE COMES A NEW slides in
+		14,14,14,14,14,14, // frame 15, 6 tics: pause on the W
+		15,16,17,18, // frame 16-19, 1 tic: CHALLENGER approaches screen
+		19,20,19,20,19,20,19,20,19,20, // frame 20-21, 1 tic, 5 alternating: all text vibrates from impact
+		21,22,23,24 // frame 22-25, 1 tic: CHALLENGER turns gold
+	};
+	const UINT8 offset = min(52-1, (3*TICRATE)-mapreset);
+
+	V_DrawFadeScreen(0xFF00, 16); // Fade out
+	V_DrawScaledPatch(0, 0, 0, kp_challenger[anim[offset]]);
+}
+
 static void K_drawCheckpointDebugger(void)
 {
 	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
@@ -5884,6 +5919,12 @@ void K_drawKartHUD(void)
 		K_drawKartMinimap();
 
 	// Draw full screen stuff that turns off the rest of the HUD
+	if (mapreset)
+	{
+		K_drawChallengerScreen();
+		return;
+	}
+
 	if ((G_BattleGametype())
 		&& (stplyr->exiting
 		|| (stplyr->kartstuff[k_bumper] <= 0
