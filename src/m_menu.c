@@ -1413,7 +1413,7 @@ static menuitem_t OP_GameOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR, NULL, "Game Speed",					&cv_kartspeed,			 30},
 	{IT_STRING | IT_CVAR, NULL, "Frantic Items",				&cv_kartfrantic,		 40},
-	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",					&cv_kartmirror,			 50},
+	{IT_STRING | IT_CVAR, NULL, "Encore Mode",					&cv_kartencore,			 50},
 
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_basenumlaps,		 70},
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
@@ -1470,7 +1470,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 {
 	{IT_HEADER,           NULL, "RACE",                  NULL,                 2},
 	{IT_STRING | IT_CVAR, NULL, "Game Speed",    		  &cv_kartspeed,    	10},
-	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",    		  &cv_kartmirror,    	18},
+	{IT_STRING | IT_CVAR, NULL, "Encore Mode",    		  &cv_kartencore,    	18},
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",        &cv_numlaps,          26},
 	{IT_STRING | IT_CVAR, NULL, "Use Map Lap Counts",    &cv_usemapnumlaps,    34},
 

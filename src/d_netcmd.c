@@ -112,7 +112,7 @@ static void SoundTest_OnChange(void);
 static void BaseNumLaps_OnChange(void);
 static void KartFrantic_OnChange(void);
 static void KartSpeed_OnChange(void);
-static void KartMirror_OnChange(void);
+static void KartEncore_OnChange(void);
 static void KartComeback_OnChange(void);
 
 #ifdef NETGAME_DEVMODE
@@ -362,7 +362,7 @@ static CV_PossibleValue_t kartbumpers_cons_t[] = {{1, "MIN"}, {12, "MAX"}, {0, N
 consvar_t cv_kartbumpers = {"kartbumpers", "3", CV_NETVAR|CV_CHEAT, kartbumpers_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartFrantic_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartComeback_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartmirror = {"kartmirror", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartMirror_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartencore = {"kartencore", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartEncore_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartspeedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 
@@ -5231,16 +5231,16 @@ static void KartSpeed_OnChange(void)
 	}
 }
 
-static void KartMirror_OnChange(void)
+static void KartEncore_OnChange(void)
 {
 	if (G_RaceGametype())
 	{
-		if ((boolean)cv_kartmirror.value != mirrormode && gamestate == GS_LEVEL /*&& leveltime > starttime*/)
-			CONS_Printf(M_GetText("Mirrored tracks will be turned %s next round.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
+		if ((boolean)cv_kartencore.value != encoremode && gamestate == GS_LEVEL /*&& leveltime > starttime*/)
+			CONS_Printf(M_GetText("Encore tracks will be turned %s next round.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
 		else
 		{
-			CONS_Printf(M_GetText("Mirrored tracks has been turned %s.\n"), cv_kartmirror.value ? M_GetText("on") : M_GetText("off"));
-			mirrormode = (boolean)cv_kartmirror.value;
+			CONS_Printf(M_GetText("Encore tracks has been turned %s.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
+			encoremode = (boolean)cv_kartencore.value;
 		}
 	}
 }

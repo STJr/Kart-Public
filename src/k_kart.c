@@ -24,7 +24,7 @@
 // SOME IMPORTANT VARIABLES DEFINED IN DOOMDEF.H:
 // gamespeed is cc (0 for easy, 1 for normal, 2 for hard)
 // franticitems is Frantic Mode items, bool
-// mirrormode is Mirror Mode (duh), bool
+// encoremode is Encore Mode (duh), bool
 // comeback is Battle Mode's karma comeback, also bool
 // battlewanted is an array of the WANTED player nums, -1 for no player in that slot
 // indirectitemcooldown is timer before anyone's allowed another Shrink/SPB
@@ -401,7 +401,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartbumpers);
 	CV_RegisterVar(&cv_kartfrantic);
 	CV_RegisterVar(&cv_kartcomeback);
-	CV_RegisterVar(&cv_kartmirror);
+	CV_RegisterVar(&cv_kartencore);
 	CV_RegisterVar(&cv_kartspeedometer);
 	CV_RegisterVar(&cv_votetime);
 
@@ -5174,7 +5174,7 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 	else
 		x = (FixedMul(FINETANGENT(((diff+ANGLE_90)>>ANGLETOFINESHIFT) & 4095), 160<<FRACBITS) + (160<<FRACBITS))>>FRACBITS;
 
-	if (mirrormode)
+	if (encoremode)
 		x = 320-x;
 
 	if (splitscreen > 1)
@@ -5383,14 +5383,14 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	amnumxpos = (FixedMul(mo->x, zoom) - FixedMul(xoffset, zoom));
 	amnumypos = -(FixedMul(mo->y, zoom) - FixedMul(yoffset, zoom));
 
-	if (mirrormode)
+	if (encoremode)
 		amnumxpos = -amnumxpos;
 
 	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[skin]->width/2))<<FRACBITS);
 	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[skin]->height/2))<<FRACBITS);
 
 	// do we want this? it feels unnecessary. easier to just modify the amnumxpos?
-	/*if (mirrormode)
+	/*if (encoremode)
 	{
 		flags |= V_FLIP;
 		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[skin]->width/2))<<FRACBITS);
@@ -5450,7 +5450,7 @@ static void K_drawKartMinimap(void)
 	minimaptrans = ((10-minimaptrans)<<FF_TRANSSHIFT);
 	splitflags |= minimaptrans;
 
-	if (mirrormode)
+	if (encoremode)
 		V_DrawScaledPatch(x+(AutomapPic->width), y, splitflags|V_FLIP, AutomapPic);
 	else
 		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
@@ -5462,7 +5462,7 @@ static void K_drawKartMinimap(void)
 	}
 
 	// let offsets transfer to the heads, too!
-	if (mirrormode)
+	if (encoremode)
 		x += SHORT(AutomapPic->leftoffset);
 	else
 		x -= SHORT(AutomapPic->leftoffset);
@@ -5730,7 +5730,7 @@ static void K_drawKartFirstPerson(void)
 	else // forward
 		target = 0;
 
-	if (mirrormode)
+	if (encoremode)
 		target = -target;
 
 	if (pn < target)
@@ -5797,7 +5797,7 @@ static void K_drawKartFirstPerson(void)
 			if (stplyr->mo->momz > 0) // TO-DO: Draw more of the kart so we can remove this if!
 				yoffs += stplyr->mo->momz/3;
 
-			if (mirrormode)
+			if (encoremode)
 				x -= xoffs;
 			else
 				x += xoffs;

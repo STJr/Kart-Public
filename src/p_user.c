@@ -9015,7 +9015,7 @@ static void P_CalcPostImg(player_t *player)
 	}
 #endif
 
-	if (mirrormode) // srb2kart
+	if (encoremode) // srb2kart
 		*type = postimg_mirror;
 }
 

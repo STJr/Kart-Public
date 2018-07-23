@@ -248,7 +248,7 @@ INT32 cheats; //for multiplayer cheat commands
 // SRB2Kart
 // Cvars that we don't want changed mid-game
 UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0 for easy, 1 for normal, 2 for hard
-boolean mirrormode; // Mirror Mode currently enabled?
+boolean encoremode; // Encore Mode currently enabled?
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
@@ -1267,7 +1267,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	axis = JoyAxis(AXISTURN, ssplayer);
 
-	if (mirrormode)
+	if (encoremode)
 	{
 		turnright ^= turnleft; // swap these using three XORs
 		turnleft ^= turnright;
@@ -1318,8 +1318,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// Specator mouse turning
 	if (player->spectator)
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*(mirrormode ? -1 : 1)*8));
-		cmd->driftturn = (INT16)(cmd->driftturn - (mousex*(mirrormode ? -1 : 1)*8));
+		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*(encoremode ? -1 : 1)*8));
+		cmd->driftturn = (INT16)(cmd->driftturn - (mousex*(encoremode ? -1 : 1)*8));
 	}
 
 	// Speed bump strafing

@@ -112,6 +112,7 @@ INT32 *texturetranslation;
 sprcache_t *spritecachedinfo;
 
 lighttable_t *colormaps;
+lighttable_t *encoremap;
 
 // for debugging/info purposes
 static size_t flatmemory, spritememory, texturememory;
@@ -932,7 +933,7 @@ static inline lumpnum_t R_CheckNumForNameList(const char *name, lumplist_t *list
 	return LUMPERROR;
 }
 
-static lumplist_t *colormaplumps = NULL; ///\todo free leak
+/*static lumplist_t *colormaplumps = NULL; ///\todo free leak
 static size_t numcolormaplumps = 0;
 
 static void R_InitExtraColormaps(void)
@@ -966,7 +967,7 @@ static void R_InitExtraColormaps(void)
 		numcolormaplumps++;
 	}
 	CONS_Printf(M_GetText("Number of Extra Colormaps: %s\n"), sizeu1(numcolormaplumps));
-}
+}*/
 
 // 12/14/14 -- only take flats in F_START/F_END
 lumpnum_t R_GetFlatNumForName(const char *name)
@@ -1010,15 +1011,17 @@ static void R_InitColormaps(void)
 
 	// Load in the light tables
 	lump = W_GetNumForName("COLORMAP");
-	colormaps = Z_MallocAlign(W_LumpLength (lump), PU_STATIC, NULL, 8);
+	//Z_MallocAlign(W_LumpLength (lump), PU_STATIC, NULL, 8);
+	colormaps = Z_MallocAlign((256 * 64), PU_STATIC, NULL, 8);
 	W_ReadLump(lump, colormaps);
+	// no need to init encoremap at this stage
 
 	// Init Boom colormaps.
 	R_ClearColormaps();
-	R_InitExtraColormaps();
+	//R_InitExtraColormaps();
 }
 
-void R_ReInitColormaps(UINT16 num)
+void R_ReInitColormaps(UINT16 num, lumpnum_t newencoremap)
 {
 	char colormap[9] = "COLORMAP";
 	lumpnum_t lump;
@@ -1031,6 +1034,30 @@ void R_ReInitColormaps(UINT16 num)
 	if (lump == LUMPERROR)
 		lump = W_GetNumForName("COLORMAP");
 	W_ReadLump(lump, colormaps);
+
+	// Encore mode.
+	if (newencoremap != LUMPERROR)
+	{
+		lighttable_t *colormap_p, *colormap_p2;
+		size_t p, i;
+
+		encoremap = Z_MallocAlign(256 + 10, PU_LEVEL, NULL, 8);
+		W_ReadLump(newencoremap, encoremap);
+		colormap_p = colormap_p2 = colormaps;
+		colormap_p += (256 * 32);
+
+		for (p = 0; p < 32; p++)
+		{
+			for (i = 0; i < 256; i++)
+			{
+				*colormap_p = colormap_p2[encoremap[i]];
+				colormap_p++;
+			}
+			colormap_p2 += 256;
+		}
+	}
+	else
+		encoremap = NULL;
 
 	// Init Boom colormaps.
 	R_ClearColormaps();
@@ -1060,7 +1087,7 @@ void R_ClearColormaps(void)
 	memset(extra_colormaps, 0, sizeof (extra_colormaps));
 }
 
-INT32 R_ColormapNumForName(char *name)
+/*INT32 R_ColormapNumForName(char *name)
 {
 	lumpnum_t lump, i;
 
@@ -1092,7 +1119,7 @@ INT32 R_ColormapNumForName(char *name)
 
 	num_extra_colormaps++;
 	return (INT32)num_extra_colormaps - 1;
-}
+}*/
 
 //
 // R_CreateColormap
@@ -1121,10 +1148,20 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 	if (p1[0] == '#')
 	{
 		cr = ((HEX2INT(p1[1]) * 16) + HEX2INT(p1[2]));
-		cmaskr = cr;
 		cg = ((HEX2INT(p1[3]) * 16) + HEX2INT(p1[4]));
-		cmaskg = cg;
 		cb = ((HEX2INT(p1[5]) * 16) + HEX2INT(p1[6]));
+
+		// i don't know why this doesn't work...
+		/*if (encoremap)
+		{
+			i = NearestColor(cr, cg, cb);
+			cr = pLocalPalette[encoremap[i]].s.red;
+			cg = pLocalPalette[encoremap[i]].s.green;
+			cb = pLocalPalette[encoremap[i]].s.blue;
+		}*/
+
+		cmaskr = cr;
+		cmaskg = cg;
 		cmaskb = cb;
 		// Create a rough approximation of the color (a 16 bit color)
 		maskcolor = ((cb) >> 3) + (((cg) >> 2) << 5) + (((cr) >> 3) << 11);
@@ -1167,9 +1204,22 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 
 	if (p3[0] == '#')
 	{
-		cdestr = cr = ((HEX2INT(p3[1]) * 16) + HEX2INT(p3[2]));
-		cdestg = cg = ((HEX2INT(p3[3]) * 16) + HEX2INT(p3[4]));
-		cdestb = cb = ((HEX2INT(p3[5]) * 16) + HEX2INT(p3[6]));
+		cr = ((HEX2INT(p3[1]) * 16) + HEX2INT(p3[2]));
+		cg = ((HEX2INT(p3[3]) * 16) + HEX2INT(p3[4]));
+		cb = ((HEX2INT(p3[5]) * 16) + HEX2INT(p3[6]));
+
+		// i don't know why this doesn't work...
+		/*if (encoremap)
+		{
+			i = NearestColor(cr, cg, cb);
+			cr = pLocalPalette[encoremap[i]].s.red;
+			cg = pLocalPalette[encoremap[i]].s.green;
+			cb = pLocalPalette[encoremap[i]].s.blue;
+		}*/
+
+		cdestr = cr;
+		cdestg = cg;
+		cdestb = cb;
 		fadecolor = (((cb) >> 3) + (((cg) >> 2) << 5) + (((cr) >> 3) << 11));
 	}
 	else
@@ -1257,10 +1307,10 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 	double cmaskr, cmaskg, cmaskb, cdestr, cdestg, cdestb;
 	double r, g, b, cbrightness;
 	double maskamt = 0, othermask = 0;
-	int mask, p, fog = 0;
+	INT32 mask, p, fog = 0;
 	size_t mapnum = num_extra_colormaps;
 	size_t i;
-	char *colormap_p;
+	lighttable_t *colormap_p, *colormap_p2;
 	UINT32 cr, cg, cb, maskcolor, fadecolor;
 	UINT32 fadestart = 0, fadeend = 33, fadedist = 33;
 
@@ -1268,10 +1318,20 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 	if (p1[0] == '#')
 	{
 		cr = ((HEX2INT(p1[1]) * 16) + HEX2INT(p1[2]));
-		cmaskr = cr;
 		cg = ((HEX2INT(p1[3]) * 16) + HEX2INT(p1[4]));
-		cmaskg = cg;
 		cb = ((HEX2INT(p1[5]) * 16) + HEX2INT(p1[6]));
+
+		// i don't know why this doesn't work...
+		/*if (encoremap)
+		{
+			i = NearestColor(cr, cg, cb);
+			cr = pLocalPalette[encoremap[i]].s.red;
+			cg = pLocalPalette[encoremap[i]].s.green;
+			cb = pLocalPalette[encoremap[i]].s.blue;
+		}*/
+
+		cmaskr = cr;
+		cmaskg = cg;
 		cmaskb = cb;
 		// Create a rough approximation of the color (a 16 bit color)
 		maskcolor = ((cb) >> 3) + (((cg) >> 2) << 5) + (((cr) >> 3) << 11);
@@ -1314,9 +1374,22 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 
 	if (p3[0] == '#')
 	{
-		cdestr = cr = ((HEX2INT(p3[1]) * 16) + HEX2INT(p3[2]));
-		cdestg = cg = ((HEX2INT(p3[3]) * 16) + HEX2INT(p3[4]));
-		cdestb = cb = ((HEX2INT(p3[5]) * 16) + HEX2INT(p3[6]));
+		cr = ((HEX2INT(p3[1]) * 16) + HEX2INT(p3[2]));
+		cg = ((HEX2INT(p3[3]) * 16) + HEX2INT(p3[4]));
+		cb = ((HEX2INT(p3[5]) * 16) + HEX2INT(p3[6]));
+
+		// i don't know why this doesn't work...
+		/*if (encoremap)
+		{
+			i = NearestColor(cr, cg, cb);
+			cr = pLocalPalette[encoremap[i]].s.red;
+			cg = pLocalPalette[encoremap[i]].s.green;
+			cb = pLocalPalette[encoremap[i]].s.blue;
+		}*/
+
+		cdestr = cr;
+		cdestg = cg;
+		cdestb = cb;
 		fadecolor = (((cb) >> 3) + (((cg) >> 2) << 5) + (((cr) >> 3) << 11));
 	}
 	else
@@ -1383,10 +1456,10 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 #define ABS2(x) ((x) < 0 ? -(x) : (x))
 	if (rendermode == render_soft)
 	{
-		colormap_p = Z_MallocAlign((256 * 34) + 10, PU_LEVEL, NULL, 8);
+		colormap_p = Z_MallocAlign((256 * (encoremap ? 64 : 32)) + 10, PU_LEVEL, NULL, 8);
 		extra_colormaps[mapnum].colormap = (UINT8 *)colormap_p;
 
-		for (p = 0; p < 34; p++)
+		for (p = 0; p < 32; p++)
 		{
 			for (i = 0; i < 256; i++)
 			{
@@ -1413,6 +1486,21 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 				else
 					map[i][2] = cdestb;
 			}
+		}
+
+		if (!encoremap)
+			return;
+
+		colormap_p2 = extra_colormaps[mapnum].colormap;
+
+		for (p = 0; p < 32; p++)
+		{
+			for (i = 0; i < 256; i++)
+			{
+				*colormap_p = colormap_p2[encoremap[i]];
+				colormap_p++;
+			}
+			colormap_p2 += 256;
 		}
 	}
 #undef ABS2

@@ -89,7 +89,7 @@ void R_ClearTextureNumCache(boolean btell);
 INT32 R_TextureNumForName(const char *name);
 INT32 R_CheckTextureNumForName(const char *name);
 
-void R_ReInitColormaps(UINT16 num);
+void R_ReInitColormaps(UINT16 num, lumpnum_t newencoremap);
 void R_ClearColormaps(void);
 INT32 R_ColormapNumForName(char *name);
 INT32 R_CreateColormap(char *p1, char *p2, char *p3);

@@ -446,7 +446,7 @@ extern INT32 cheats;
 // SRB2kart
 extern UINT8 gamespeed;
 extern boolean franticitems;
-extern boolean mirrormode;
+extern boolean encoremode;
 extern boolean comeback;
 
 extern SINT8 battlewanted[4];

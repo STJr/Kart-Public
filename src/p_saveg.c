@@ -3256,7 +3256,7 @@ static void P_NetArchiveMisc(void)
 	WRITEINT32(save_p, numgotboxes);
 
 	WRITEUINT8(save_p, gamespeed);
-	WRITEUINT8(save_p, mirrormode);
+	WRITEUINT8(save_p, encoremode);
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
 
@@ -3361,7 +3361,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	numgotboxes = READINT32(save_p);
 
 	gamespeed = READUINT8(save_p);
-	mirrormode = (boolean)READUINT8(save_p);
+	encoremode = (boolean)READUINT8(save_p);
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
 

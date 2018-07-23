@@ -38,6 +38,7 @@ typedef struct
 extern sprcache_t *spritecachedinfo;
 
 extern lighttable_t *colormaps;
+extern lighttable_t *encoremap;
 
 // Boom colormaps.
 // Had to put a limit on colormaps :(

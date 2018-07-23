@@ -93,6 +93,7 @@ typedef union
 		UINT32 val[MAXPLAYERS]; //Gametype-specific value
 		UINT8 pos[MAXPLAYERS]; // player positions. used for ties
 		boolean rankingsmode; // rankings mode
+		boolean encore; // encore mode
 	} match;
 } y_data;
 
@@ -203,6 +204,8 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 	// Initialize variables
 	if ((data.match.rankingsmode = rankingsmode))
 		sprintf(data.match.levelstring, "* Total Rankings *");
+
+	data.match.encore = (!rankingsmode && encoremode);
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -378,6 +381,9 @@ void Y_IntermissionDrawer(void)
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
 		V_DrawFill(x, 42, 312, 1, 0);
+
+		if (data.match.encore)
+			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20-8, hilicol, "ENCORE MODE");
 
 		if (data.match.numplayers > 8)
 		{

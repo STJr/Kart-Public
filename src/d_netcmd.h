@@ -124,7 +124,7 @@ extern consvar_t cv_kartspeed;
 extern consvar_t cv_kartbumpers;
 extern consvar_t cv_kartfrantic;
 extern consvar_t cv_kartcomeback;
-extern consvar_t cv_kartmirror;
+extern consvar_t cv_kartencore;
 extern consvar_t cv_kartspeedometer;
 
 extern consvar_t cv_votetime;

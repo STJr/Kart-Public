@@ -2726,7 +2726,35 @@ boolean P_SetupLevel(boolean skipprecip)
 	// internal game map
 	lastloadedmaplumpnum = W_GetNumForName(maplumpname = G_BuildMapName(gamemap));
 
-	R_ReInitColormaps(mapheaderinfo[gamemap-1]->palette);
+	// SRB2Kart: map load variables
+	if (modeattacking) // Just play it safe and set everything
+	{
+		gamespeed = 2;
+		encoremode = false;
+		franticitems = false;
+		comeback = true;
+	}
+	else
+	{
+		if (G_BattleGametype())
+		{
+			gamespeed = 0;
+			encoremode = false;
+		}
+		else
+		{
+			gamespeed = (UINT8)cv_kartspeed.value;
+			encoremode = (boolean)cv_kartencore.value;
+		}
+		franticitems = (boolean)cv_kartfrantic.value;
+		comeback = (boolean)cv_kartcomeback.value;
+	}
+
+	for (i = 0; i < 4; i++)
+		battlewanted[i] = -1;
+
+	R_ReInitColormaps(mapheaderinfo[gamemap-1]->palette,
+		(encoremode ? W_CheckNumForName(va("%sE", maplumpname)) : LUMPERROR));
 	CON_SetupBackColormap();
 
 	// SRB2 determines the sky texture to be used depending on the map header.
@@ -2985,33 +3013,6 @@ boolean P_SetupLevel(boolean skipprecip)
 		CV_SetValue(&cv_analog2, false);
 		CV_SetValue(&cv_analog, false);
 	}*/
-
-	// SRB2Kart: map load variables
-	if (modeattacking) // Just play it safe and set everything
-	{
-		gamespeed = 2;
-		mirrormode = false;
-		franticitems = false;
-		comeback = true;
-	}
-	else
-	{
-		if (G_BattleGametype())
-		{
-			gamespeed = 0;
-			mirrormode = false;
-		}
-		else
-		{
-			gamespeed = (UINT8)cv_kartspeed.value;
-			mirrormode = (boolean)cv_kartmirror.value;
-		}
-		franticitems = (boolean)cv_kartfrantic.value;
-		comeback = (boolean)cv_kartcomeback.value;
-	}
-
-	for (i = 0; i < 4; i++)
-		battlewanted[i] = -1;
 
 	wantedcalcdelay = wantedfrequency*2;
 	indirectitemcooldown = 0;
