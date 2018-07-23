@@ -666,8 +666,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	if (tmthing->type == MT_RANDOMITEM)
 		return true;
-	if (tmthing->type == MT_GREENITEM || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD
-		|| tmthing->type == MT_GREENSHIELD || tmthing->type == MT_JAWZ_SHIELD)
+	if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD
+		|| tmthing->type == MT_ORBINAUT_SHIELD || tmthing->type == MT_JAWZ_SHIELD)
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -681,13 +681,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->health <= 0 || thing->health <= 0)
 			return true;
 
-		if ((tmthing->type == MT_GREENSHIELD || tmthing->type == MT_JAWZ_SHIELD) && tmthing->lastlook
-			&& (thing->type == MT_GREENSHIELD || thing->type == MT_JAWZ_SHIELD) && thing->lastlook
+		if ((tmthing->type == MT_ORBINAUT_SHIELD || tmthing->type == MT_JAWZ_SHIELD) && tmthing->lastlook
+			&& (thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD) && thing->lastlook
 			&& (tmthing->target == thing->target)) // Don't hit each other if you have the same target
 			return true;
 
 		if (thing->player && thing->player->powers[pw_flashing]
-			&& !(tmthing->type == MT_GREENITEM || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD))
+			&& !(tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD))
 			return true;
 
 		if (thing->type == MT_PLAYER)
@@ -696,7 +696,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
 			K_KartBouncing(thing, tmthing, false, false);
 
-			if (tmthing->type == MT_GREENITEM || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
+			if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
 				S_StartSound(thing, sfx_shelit);
 
 			// This Item Damage
@@ -711,8 +711,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
 		}
-		else if (thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
-			|| thing->type == MT_GREENSHIELD || thing->type == MT_JAWZ_SHIELD
+		else if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
+			|| thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD
 			|| thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD
 			|| thing->type == MT_BALLHOG)
 		{
@@ -744,7 +744,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		else if (thing->type == MT_FAKEITEM || thing->type == MT_FAKESHIELD)
 		{
-			if (tmthing->type == MT_GREENSHIELD || tmthing->type == MT_JAWZ_SHIELD)
+			if (tmthing->type == MT_ORBINAUT_SHIELD || tmthing->type == MT_JAWZ_SHIELD)
 			{
 				// This Item Damage
 				if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -790,12 +790,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			// Bomb death
 			P_KillMobj(thing, tmthing, tmthing);
 		}
-		else if (thing->flags & MF_SPRING && (tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD || tmthing->type == MT_GREENITEM))
+		else if (thing->flags & MF_SPRING && (tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD || tmthing->type == MT_ORBINAUT))
 			P_DoSpring(thing, tmthing);
 
 		return true;
 	}
-	else if (tmthing->flags & MF_SPRING && (thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD || thing->type == MT_GREENITEM))
+	else if (tmthing->flags & MF_SPRING && (thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD || thing->type == MT_ORBINAUT))
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -904,7 +904,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
 		}
 		else if (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD
-			|| thing->type == MT_GREENITEM || thing->type == MT_GREENSHIELD
+			|| thing->type == MT_ORBINAUT || thing->type == MT_ORBINAUT_SHIELD
 			|| thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD || thing->type == MT_JAWZ_SHIELD
 			|| thing->type == MT_BALLHOG)
 		{
@@ -984,7 +984,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->player && thing->player->powers[pw_flashing])
 			return true;
 
-		if (thing->type == MT_GREENITEM // When these items collide with the fake item, just the fake item is destroyed
+		if (thing->type == MT_ORBINAUT // When these items collide with the fake item, just the fake item is destroyed
 			|| thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
 			|| thing->type == MT_SSMINE
 			|| thing->type == MT_BANANA || thing->type == MT_BALLHOG)
@@ -1001,7 +1001,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
 			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
 		}
-		else if (thing->type == MT_GREENSHIELD // When these items collide with the fake item, both of them are destroyed
+		else if (thing->type == MT_ORBINAUT_SHIELD // When these items collide with the fake item, both of them are destroyed
 			|| thing->type == MT_JAWZ_SHIELD
 			|| thing->type == MT_SSMINE_SHIELD
 			|| thing->type == MT_BANANA_SHIELD
@@ -1074,8 +1074,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		{
 			P_KillMobj(tmthing, thing, thing);
 		}
-		else if (thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
-			|| thing->type == MT_GREENSHIELD || thing->type == MT_JAWZ_SHIELD)
+		else if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
+			|| thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD)
 		{
 			P_KillMobj(tmthing, thing, thing);
 
@@ -1095,7 +1095,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		return true;
 	}
 	else if (tmthing->type == MT_PLAYER &&
-			(thing->type == MT_GREENSHIELD || thing->type == MT_GREENITEM
+			(thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_ORBINAUT
 			|| thing->type == MT_JAWZ_SHIELD || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
 			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM
 			|| thing->type == MT_BANANA_SHIELD || thing->type == MT_BANANA
@@ -1111,11 +1111,11 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // underneath
 
 		if (tmthing->player && tmthing->player->powers[pw_flashing]
-			&& !(thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD))
+			&& !(thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD))
 			return true;
 
-		if (thing->type == MT_GREENSHIELD || thing->type == MT_JAWZ_SHIELD
-			|| thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
+		if (thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD
+			|| thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
 			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM)
 		{
 			if ((thing->target == tmthing) && (thing->threshold > 0))
@@ -1130,7 +1130,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->type != MT_FAKESHIELD && thing->type != MT_FAKEITEM)
 				K_KartBouncing(tmthing, thing, false, false);
 
-			if (thing->type == MT_GREENITEM || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
+			if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
 				S_StartSound(tmthing, sfx_shelit);
 
 			// Other Item Damage

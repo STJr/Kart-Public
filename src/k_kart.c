@@ -944,8 +944,8 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			else
 				weight = (mobj->player->kartweight)<<FRACBITS;
 			break;
-		case MT_GREENITEM:
-		case MT_GREENSHIELD:
+		case MT_ORBINAUT:
+		case MT_ORBINAUT_SHIELD:
 			if (against->player)
 				weight = (against->player->kartweight)<<FRACBITS;
 			break;
@@ -2039,6 +2039,14 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	th->momx = FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
 	th->momy = FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));
 
+	if (type == MT_ORBINAUT)
+	{
+		if (source && source->player)
+			th->color = source->player->skincolor;
+		else
+			th->color = SKINCOLOR_CLOUDY;
+	}
+
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
 	y = y + P_ReturnThrustY(source, an, source->radius + th->radius);
 	throwmo = P_SpawnMobj(x, y, z, MT_FIREDITEM);
@@ -2434,6 +2442,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			}
 		}
 	}
+
 	return mo;
 }
 
@@ -2697,7 +2706,7 @@ static void K_MoveHeldObjects(player_t *player)
 
 	switch (player->mo->hnext->type)
 	{
-		case MT_GREENSHIELD: // Kart orbit items
+		case MT_ORBINAUT_SHIELD: // Kart orbit items
 		case MT_JAWZ_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
@@ -2714,6 +2723,8 @@ static void K_MoveHeldObjects(player_t *player)
 						cur = cur->hnext;
 						continue;
 					}
+
+					cur->color = player->skincolor;
 
 					cur->angle -= ANGLE_90;
 					cur->angle += FixedAngle(cur->info->speed);
@@ -3587,11 +3598,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_GREENSHIELD);
+							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_ORBINAUT_SHIELD);
 							mo->angle = newangle;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
 							mo->movedir = mo->lastlook = moloop+1;
+							mo->color = player->skincolor;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&mo->hprev, prev);
 							P_SetTarget(&prev->hnext, mo);
@@ -3600,7 +3612,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Orbinaut x3 thrown
 					{
-						K_ThrowKartItem(player, true, MT_GREENITEM, 1, false);
+						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, false);
 						K_PlayTauntSound(player->mo);
 						player->pflags |= PF_ATTACKDOWN;
 

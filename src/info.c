@@ -56,7 +56,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","WIPD","DRIF","DUST",
-	"FITM","BANA","GSHE","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK",
+	"FITM","BANA","ORBN","JAWZ","SSMN","KRBM","BHOG","BLIG","LIGH","SINK",
 	"SITR","KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS",
 	"BUZB","CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW",
 	"ARRO","ITEM","ITMI","ITMN","WANT","PBOM","VIEW"
@@ -2638,23 +2638,15 @@ state_t states[NUMSTATES] =
 	{SPR_BANA, 0,  -1, {NULL}, 0, 0, S_NULL}, // S_BANANA
 	{SPR_BANA, 1, 175, {NULL}, 0, 0, S_NULL}, // S_BANANA_DEAD
 
-	{SPR_GSHE, 0, 1, {NULL}, 0, 0, S_GREENSHIELD2},	// S_GREENSHIELD1
-	{SPR_GSHE, 1, 1, {NULL}, 0, 0, S_GREENSHIELD3},	// S_GREENSHIELD2
-	{SPR_GSHE, 2, 1, {NULL}, 0, 0, S_GREENSHIELD4},	// S_GREENSHIELD3
-	{SPR_GSHE, 3, 1, {NULL}, 0, 0, S_GREENSHIELD5},	// S_GREENSHIELD4
-	{SPR_GSHE, 4, 1, {NULL}, 0, 0, S_GREENSHIELD6},	// S_GREENSHIELD5
-	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_GREENSHIELD7},	// S_GREENSHIELD6
-	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_GREENSHIELD8},	// S_GREENSHIELD7
-	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_GREENSHIELD1},	// S_GREENSHIELD8
-	{SPR_GSHE, 0, 1, {NULL}, 0, 0, S_GREENITEM2},		// S_GREENITEM1
-	{SPR_GSHE, 1, 1, {NULL}, 0, 0, S_GREENITEM3},		// S_GREENITEM2
-	{SPR_GSHE, 2, 1, {NULL}, 0, 0, S_GREENITEM4},		// S_GREENITEM3
-	{SPR_GSHE, 3, 1, {NULL}, 0, 0, S_GREENITEM5},		// S_GREENITEM4
-	{SPR_GSHE, 4, 1, {NULL}, 0, 0, S_GREENITEM6},		// S_GREENITEM5
-	{SPR_GSHE, 5, 1, {NULL}, 0, 0, S_GREENITEM7},		// S_GREENITEM6
-	{SPR_GSHE, 6, 1, {NULL}, 0, 0, S_GREENITEM8},		// S_GREENITEM7
-	{SPR_GSHE, 7, 1, {NULL}, 0, 0, S_GREENITEM1},		// S_GREENITEM8
-	{SPR_GSHE, 8, 175, {NULL}, 0, 0, S_NULL},			// S_DEADGREEN
+	{SPR_ORBN, 0, 1, {NULL}, 0, 0, S_ORBINAUT2},		// S_ORBINAUT1
+	{SPR_ORBN, 1, 1, {NULL}, 0, 0, S_ORBINAUT3},		// S_ORBINAUT2
+	{SPR_ORBN, 2, 1, {NULL}, 0, 0, S_ORBINAUT4},		// S_ORBINAUT3
+	{SPR_ORBN, 3, 1, {NULL}, 0, 0, S_ORBINAUT5},		// S_ORBINAUT4
+	{SPR_ORBN, 4, 1, {NULL}, 0, 0, S_ORBINAUT6},		// S_ORBINAUT5
+	{SPR_ORBN, 5, 1, {NULL}, 0, 0, S_ORBINAUT1},		// S_ORBINAUT6
+	{SPR_ORBN, 7, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD},	// S_ORBINAUT_SHIELD
+	{SPR_ORBN, 6, 175, {NULL}, 0, 0, S_NULL},			// S_ORBINAUT_DEAD
+	{SPR_ORBN, 8, 175, {NULL}, 0, 0, S_NULL},			// S_ORBINAUT_SHIELDDEAD
 
 	{SPR_JAWZ, 0, 1, {A_JawzChase}, 0, 0, S_JAWZ2},	// S_JAWZ1
 	{SPR_JAWZ, 4, 1, {A_JawzChase}, 0, 0, S_JAWZ3},	// S_JAWZ2
@@ -14595,7 +14587,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // deathsound
 		0,				// speed
 		10*FRACUNIT,    // radius
-		21*FRACUNIT,    // height
+		24*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
 		1,              // damage
@@ -14604,36 +14596,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_GREENSHIELD
+	{           // MT_ORBINAUT
 		-1,             // doomednum
-		S_GREENSHIELD1, // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_DEADGREEN,    // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		10*FRACUNIT,	// speed
-		16*FRACUNIT,    // radius
-		32*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
-		1,              // damage
-		sfx_None,       // activesound
-		MF_SHOOTABLE|MF_NOGRAVITY|MF_SCENERY, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_GREENITEM
-		-1,             // doomednum
-		S_GREENITEM1,   // spawnstate
+		S_ORBINAUT1,    // spawnstate
 		7,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_tossed,     // seesound
@@ -14644,7 +14609,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_DEADGREEN,    // deathstate
+		S_ORBINAUT_DEAD, // deathstate
 		S_NULL,         // xdeathstate
 		sfx_shbrk,      // deathsound
 		64*FRACUNIT,    // speed
@@ -14655,6 +14620,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,              // damage
 		sfx_s3k96,      // activesound
 		MF_SHOOTABLE|MF_BOUNCE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_ORBINAUT_SHIELD
+		-1,             // doomednum
+		S_ORBINAUT_SHIELD, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_ORBINAUT_SHIELDDEAD, // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		10*FRACUNIT,	// speed
+		16*FRACUNIT,    // radius
+		32*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_SHOOTABLE|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 

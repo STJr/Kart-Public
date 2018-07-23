@@ -6317,23 +6317,15 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BANANA_DEAD",
 
 	//{ Orbinaut
-	"S_GREENSHIELD1",
-	"S_GREENSHIELD2",
-	"S_GREENSHIELD3",
-	"S_GREENSHIELD4",
-	"S_GREENSHIELD5",
-	"S_GREENSHIELD6",
-	"S_GREENSHIELD7",
-	"S_GREENSHIELD8",
-	"S_GREENITEM1",
-	"S_GREENITEM2",
-	"S_GREENITEM3",
-	"S_GREENITEM4",
-	"S_GREENITEM5",
-	"S_GREENITEM6",
-	"S_GREENITEM7",
-	"S_GREENITEM8",
-	"S_DEADGREEN",
+	"S_ORBINAUT1",
+	"S_ORBINAUT2",
+	"S_ORBINAUT3",
+	"S_ORBINAUT4",
+	"S_ORBINAUT5",
+	"S_ORBINAUT6",
+	"S_ORBINAUT_SHIELD",
+	"S_ORBINAUT_DEAD",
+	"S_ORBINAUT_SHIELDDEAD",
 	//}
 	//{ Jawz
 	"S_JAWZ1",
@@ -7164,8 +7156,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BANANA",
 	"MT_BANANA_SHIELD", // Banana Stuff
 
-	"MT_GREENSHIELD", // Orbinaut stuff
-	"MT_GREENITEM",
+	"MT_ORBINAUT", // Orbinaut stuff
+	"MT_ORBINAUT_SHIELD",
 
 	"MT_JAWZ", // Jawz stuff
 	"MT_JAWZ_DUD",

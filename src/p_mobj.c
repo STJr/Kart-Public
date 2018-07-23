@@ -1765,7 +1765,7 @@ void P_XYMovement(mobj_t *mo)
 
 			//{ SRB2kart - Orbinaut, Ballhog
 			// Bump sparks
-			if (mo->type == MT_GREENITEM || mo->type == MT_BALLHOG)
+			if (mo->type == MT_ORBINAUT || mo->type == MT_BALLHOG)
 			{
 				mobj_t *fx;
 				fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
@@ -1776,7 +1776,7 @@ void P_XYMovement(mobj_t *mo)
 				fx->scale = mo->scale;
 			}
 
-			if (mo->type == MT_GREENITEM) // Orbinaut speed decreasing
+			if (mo->type == MT_ORBINAUT) // Orbinaut speed decreasing
 			{
 				if (mo->health > 1)
 				{
@@ -2000,7 +2000,7 @@ void P_XYMovement(mobj_t *mo)
 #endif
 
 	//{ SRB2kart stuff
-	if (mo->type == MT_GREENITEM || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_BALLHOG) //(mo->type == MT_JAWZ && !mo->tracer))
+	if (mo->type == MT_ORBINAUT || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_BALLHOG) //(mo->type == MT_JAWZ && !mo->tracer))
 		return;
 
 	if (mo->player && (mo->player->kartstuff[k_spinouttimer] && !mo->player->kartstuff[k_wipeoutslow]) && mo->player->speed <= mo->player->normalspeed/2)
@@ -2332,7 +2332,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		// Shouldn't stop moving along the Z if there's no speed though!
 		case MT_FAKEITEM:
 		case MT_BANANA:
-		case MT_GREENITEM:
+		case MT_ORBINAUT:
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
 		case MT_BALLHOG:
@@ -6700,13 +6700,13 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			}
-			case MT_GREENSHIELD: // Kart orbit items
+			case MT_ORBINAUT_SHIELD: // Kart orbit items
 			case MT_JAWZ_SHIELD:
 				if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
 					// Was this so hard?
-					if ((mobj->type == MT_GREENSHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
+					if ((mobj->type == MT_ORBINAUT_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
 						|| (mobj->movedir > 0 && ((UINT16)mobj->target->player->kartstuff[k_itemamount] < mobj->movedir))
 						|| (!mobj->target->player->kartstuff[k_itemheld]))
@@ -7443,7 +7443,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		//{ SRB2kart Items - Death States
-		case MT_GREENITEM:
+		case MT_ORBINAUT:
 		case MT_BANANA:
 		case MT_FAKEITEM:
 			if (mobj->z <= mobj->floorz)
@@ -7952,7 +7952,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold = 0;
 			}
 			break;
-		case MT_GREENITEM:
+		case MT_ORBINAUT:
 		{
 			sector_t *sec2;
 			fixed_t finalspeed = mobj->info->speed;
@@ -9065,8 +9065,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		//case MT_RANDOMITEM:
 		case MT_BATTLEBUMPER:
 		case MT_BANANA:			case MT_BANANA_SHIELD:
-		case MT_FAKEITEM: 		case MT_FAKESHIELD:
-		case MT_GREENITEM:		case MT_GREENSHIELD:
+		//case MT_FAKEITEM: 		case MT_FAKESHIELD:
+		case MT_ORBINAUT:		case MT_ORBINAUT_SHIELD:
 		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
 		case MT_BALLHOG: 		case MT_SINK:
