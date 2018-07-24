@@ -2532,7 +2532,7 @@ static void Command_Teamchange_f(void)
 	}
 
 	if (players[consoleplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[consoleplayer].pflags & PF_WANTSTOJOIN));
+		error = !(NetPacket.packet.newteam && (players[consoleplayer].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
 		error = (NetPacket.packet.newteam == (unsigned)players[consoleplayer].ctfteam);
 	else if (G_GametypeHasSpectators() && !players[consoleplayer].spectator)
@@ -2623,7 +2623,7 @@ static void Command_Teamchange2_f(void)
 	}
 
 	if (players[secondarydisplayplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[secondarydisplayplayer].pflags & PF_WANTSTOJOIN));
+		error = !(NetPacket.packet.newteam && (players[secondarydisplayplayer].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
 		error = (NetPacket.packet.newteam == (unsigned)players[secondarydisplayplayer].ctfteam);
 	else if (G_GametypeHasSpectators() && !players[secondarydisplayplayer].spectator)
@@ -2714,7 +2714,7 @@ static void Command_Teamchange3_f(void)
 	}
 
 	if (players[thirddisplayplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[thirddisplayplayer].pflags & PF_WANTSTOJOIN));
+		error = !(NetPacket.packet.newteam && (players[thirddisplayplayer].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
 		error = (NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam);
 	else if (G_GametypeHasSpectators() && !players[thirddisplayplayer].spectator)
@@ -2805,7 +2805,7 @@ static void Command_Teamchange4_f(void)
 	}
 
 	if (players[fourthdisplayplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[fourthdisplayplayer].pflags & PF_WANTSTOJOIN));
+		error = !(NetPacket.packet.newteam && (players[fourthdisplayplayer].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
 		error = (NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam);
 	else if (G_GametypeHasSpectators() && !players[fourthdisplayplayer].spectator)
