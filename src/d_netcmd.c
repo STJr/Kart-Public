@@ -2528,7 +2528,7 @@ static void Command_Teamchange_f(void)
 	}
 
 	if (players[consoleplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[consoleplayer].pflags & PF_WANTSTOJOIN));
+		error = !(NetPacket.packet.newteam || (players[consoleplayer].pflags & PF_WANTSTOJOIN)); // :lancer:
 	else if (G_GametypeHasTeams())
 		error = (NetPacket.packet.newteam == (unsigned)players[consoleplayer].ctfteam);
 	else if (G_GametypeHasSpectators() && !players[consoleplayer].spectator)
