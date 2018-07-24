@@ -1966,26 +1966,22 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 
 void D_SetupVote(void)
 {
-	char buf[8];
-	char *p = buf;
+	UINT8 buf[6*2]; // five UINT16 maps (at twice the width of a UINT8), and two gametypes
+	UINT8 *p = buf;
 	INT32 i;
+	UINT8 secondgt = G_SometimesGetDifferentGametype();
+
+	WRITEUINT8(p, gametype);
+	WRITEUINT8(p, secondgt);
 
 	for (i = 0; i < 5; i++)
 	{
 		if (i == 2) // sometimes a different gametype
-		{
-			INT16 gt = G_SometimesGetDifferentGametype();
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt), prevmap, false, false, 0, true));
-			WRITEUINT16(p, gt);
-		}
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(secondgt), prevmap, false, false, 0, true));
+		else if (i >= 3) // unknown-random and force-unknown MAP HELL
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
 		else
-		{
-			if (i >= 3) // unknown-random and force-unknown MAP HELL
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
-			else
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
-			WRITEUINT16(p, gametype);
-		}
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
 	}
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
@@ -4582,6 +4578,7 @@ static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum)
 static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 {
 	INT32 i;
+	UINT8 gt, secondgt;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -4597,13 +4594,18 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
+	gt = (UINT8)READUINT8(*cp);
+	secondgt = (UINT8)READUINT8(*cp);
+
 	for (i = 0; i < 5; i++)
 	{
-		votelevels[i][0] = (INT16)READUINT16(*cp);
-		votelevels[i][1] = (INT16)READUINT16(*cp);
+		votelevels[i][0] = (UINT16)READUINT16(*cp);
+		votelevels[i][1] = gt;
 		if (!mapheaderinfo[votelevels[i][0]])
 			P_AllocMapHeader(votelevels[i][0]);
 	}
+
+	votelevels[2][1] = secondgt;
 
 	G_SetGamestate(GS_VOTING);
 	Y_StartVote();
