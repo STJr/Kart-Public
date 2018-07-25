@@ -2068,29 +2068,32 @@ boolean P_CheckRacers(void)
 		return true;
 	}
 
-	for (j = 0; j < MAXPLAYERS; j++)
+	if (cv_karteliminatelast.value)
 	{
-		if (!playeringame[j] || players[j].spectator)
-			continue;
-		numplayersingame++;
-	}
-
-	if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
-	{
-		// check if we just got unlucky and there was only one guy who was a problem
-		for (j = i+1; j < MAXPLAYERS; j++)
+		for (j = 0; j < MAXPLAYERS; j++)
 		{
-			if (!playeringame[j] || players[j].spectator || players[j].exiting || !players[j].lives)
+			if (!playeringame[j] || players[j].spectator)
 				continue;
-
-			break;
+			numplayersingame++;
 		}
 
-		if (j == MAXPLAYERS) // finish anyways, force a time over
+		if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
 		{
-			P_DoTimeOver(&players[i]);
-			countdown = countdown2 = 0;
-			return true;
+			// check if we just got unlucky and there was only one guy who was a problem
+			for (j = i+1; j < MAXPLAYERS; j++)
+			{
+				if (!playeringame[j] || players[j].spectator || players[j].exiting || !players[j].lives)
+					continue;
+
+				break;
+			}
+
+			if (j == MAXPLAYERS) // finish anyways, force a time over
+			{
+				P_DoTimeOver(&players[i]);
+				countdown = countdown2 = 0;
+				return true;
+			}
 		}
 	}
 
