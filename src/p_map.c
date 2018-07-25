@@ -881,7 +881,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true;
 
 		if (tmthing->type == MT_BALLHOG && thing->type == MT_BALLHOG)
-			return true; // Fireballs don't collide with eachother
+			return true; // Ballhogs don't collide with eachother
 
 		if (thing->player && thing->player->powers[pw_flashing])
 			return true;

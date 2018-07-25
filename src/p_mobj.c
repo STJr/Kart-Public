@@ -1723,14 +1723,22 @@ void P_XYMovement(mobj_t *mo)
 	if (CheckForBustableBlocks && mo->flags & MF_PUSHABLE)
 		P_PushableCheckBustables(mo);
 
-	//{ SRB2kart - Fireball
+	//{ SRB2kart - Ballhogs
 	if (mo->type == MT_BALLHOG)
 	{
-		mo->health--;
-		if (mo->health == 0)
+		if (mo->health)
 		{
-			S_StartSound(mo, mo->info->deathsound);
-			P_SetMobjState(mo, mo->info->deathstate);
+			mo->health--;
+			if (mo->health == 0)
+				mo->destscale = 1;
+		}
+		else
+		{
+			if (mo->scale < mapheaderinfo[gamemap-1]->mobj_scale/16)
+			{
+				P_RemoveMobj(mo);
+				return;
+			}
 		}
 	}
 	//}
@@ -2336,6 +2344,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
 		case MT_BALLHOG:
+		case MT_SSMINE:
 			// Remove stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
@@ -8005,7 +8014,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 			if (mobj->threshold > 0)
 				mobj->threshold--;
-			if (leveltime % 7 == 0)
+			if (leveltime % TICRATE == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			if (gamespeed == 0)
@@ -8079,7 +8088,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 
-			if (leveltime % 7 == 0)
+			if (leveltime % TICRATE == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			break;

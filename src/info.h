@@ -167,6 +167,7 @@ void A_ItemPop(); // SRB2kart
 void A_JawzChase(); // SRB2kart
 void A_JawzExplode(); // SRB2kart
 void A_MineExplode(); // SRB2kart
+void A_BallhogExplode(); // SRB2kart
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -3254,6 +3255,22 @@ typedef enum state
 	S_BALLHOG7,
 	S_BALLHOG8,
 	S_BALLHOG_DEAD,
+	S_BALLHOGBOOM1,
+	S_BALLHOGBOOM2,
+	S_BALLHOGBOOM3,
+	S_BALLHOGBOOM4,
+	S_BALLHOGBOOM5,
+	S_BALLHOGBOOM6,
+	S_BALLHOGBOOM7,
+	S_BALLHOGBOOM8,
+	S_BALLHOGBOOM9,
+	S_BALLHOGBOOM10,
+	S_BALLHOGBOOM11,
+	S_BALLHOGBOOM12,
+	S_BALLHOGBOOM13,
+	S_BALLHOGBOOM14,
+	S_BALLHOGBOOM15,
+	S_BALLHOGBOOM16,
 
 	// Self-Propelled Bomb - just an explosion for now...
 	S_BLUELIGHTNING1,
@@ -4029,6 +4046,7 @@ typedef enum mobj_type
 	MT_BOOMPARTICLE,
 
 	MT_BALLHOG, // Ballhog
+	MT_BALLHOGBOOM,
 
 	MT_BLUELIGHTNING, // Grow/shrink stuff
 	MT_BLUEEXPLOSION,

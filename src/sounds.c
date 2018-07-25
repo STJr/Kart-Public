@@ -147,9 +147,6 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"drown",  false, 192,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"fizzle", false, 127,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"gbeep",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grenade beep
-  {"yeeeah", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"noooo1", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"ghit" ,  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"gloop",  false,  60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"gspray", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -809,6 +806,10 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"boing",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"smkinv", false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"screec", false,  52,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"yeeeah", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"noooo1", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"hogbom", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},

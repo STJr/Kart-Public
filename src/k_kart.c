@@ -2046,6 +2046,10 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 		else
 			th->color = SKINCOLOR_CLOUDY;
 	}
+	else if (type == MT_JAWZ || type == MT_JAWZ_DUD)
+	{
+		S_StartSound(th, th->info->activesound);
+	}
 
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
 	y = y + P_ReturnThrustY(source, an, source->radius + th->radius);

@@ -2725,15 +2725,31 @@ state_t states[NUMSTATES] =
 	{SPR_KRBM, FF_FULLBRIGHT|8, 5, {NULL}, 0, 0, S_SLOWBOOM10},		// S_SLOWBOOM9
 	{SPR_KRBM, FF_FULLBRIGHT|9, 5, {NULL}, 0, 0, S_NULL},				// S_SLOWBOOM10
 
-	{SPR_BHOG,               0, 3, {A_PlaySound}, sfx_s1bd, 1, S_BALLHOG2}, // S_BALLHOG1
-	{SPR_BHOG, FF_FULLBRIGHT|1, 1, {NULL}, 0, 0, S_BALLHOG3}, // S_BALLHOG2
-	{SPR_BHOG, FF_FULLBRIGHT|2, 2, {NULL}, 0, 0, S_BALLHOG4}, // S_BALLHOG3
-	{SPR_BHOG, FF_FULLBRIGHT|3, 3, {NULL}, 0, 0, S_BALLHOG5}, // S_BALLHOG4
-	{SPR_BHOG, FF_FULLBRIGHT|4, 3, {NULL}, 0, 0, S_BALLHOG6}, // S_BALLHOG5
-	{SPR_BHOG,               5, 2, {NULL}, 0, 0, S_BALLHOG7}, // S_BALLHOG6
-	{SPR_BHOG,               6, 1, {NULL}, 0, 0, S_BALLHOG8}, // S_BALLHOG7
-	{SPR_BHOG,               7, 1, {NULL}, 0, 0, S_BALLHOG1}, // S_BALLHOG8
-	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL},	// S_BALLHOG_DEAD
+	{SPR_BHOG,               0, 3, {A_PlaySound}, sfx_s1bd, 1, S_BALLHOG2},	// S_BALLHOG1
+	{SPR_BHOG, FF_FULLBRIGHT|1, 1, {NULL}, 0, 0, S_BALLHOG3},					// S_BALLHOG2
+	{SPR_BHOG, FF_FULLBRIGHT|2, 2, {NULL}, 0, 0, S_BALLHOG4},					// S_BALLHOG3
+	{SPR_BHOG, FF_FULLBRIGHT|3, 3, {NULL}, 0, 0, S_BALLHOG5}, 				// S_BALLHOG4
+	{SPR_BHOG, FF_FULLBRIGHT|4, 3, {NULL}, 0, 0, S_BALLHOG6}, 				// S_BALLHOG5
+	{SPR_BHOG,               5, 2, {NULL}, 0, 0, S_BALLHOG7}, 				// S_BALLHOG6
+	{SPR_BHOG,               6, 1, {NULL}, 0, 0, S_BALLHOG8}, 				// S_BALLHOG7
+	{SPR_BHOG,               7, 1, {NULL}, 0, 0, S_BALLHOG1}, 				// S_BALLHOG8
+	{SPR_NULL,               0, 1, {A_BallhogExplode}, 0, 0, S_NULL},			// S_BALLHOG_DEAD
+	{SPR_BHOG, FF_FULLBRIGHT|8, 1, {NULL}, 0, 0, S_BALLHOGBOOM2},			// S_BALLHOGBOOM1
+	{SPR_BHOG, FF_FULLBRIGHT|9, 1, {NULL}, 0, 0, S_BALLHOGBOOM3},			// S_BALLHOGBOOM2
+	{SPR_BHOG, FF_FULLBRIGHT|10, 1, {NULL}, 0, 0, S_BALLHOGBOOM4},			// S_BALLHOGBOOM3
+	{SPR_BHOG, FF_FULLBRIGHT|11, 1, {NULL}, 0, 0, S_BALLHOGBOOM5},			// S_BALLHOGBOOM4
+	{SPR_BHOG, FF_FULLBRIGHT|12, 1, {NULL}, 0, 0, S_BALLHOGBOOM6},			// S_BALLHOGBOOM5
+	{SPR_BHOG, FF_FULLBRIGHT|13, 1, {NULL}, 0, 0, S_BALLHOGBOOM7},			// S_BALLHOGBOOM6
+	{SPR_BHOG, FF_FULLBRIGHT|14, 1, {NULL}, 0, 0, S_BALLHOGBOOM8},			// S_BALLHOGBOOM7
+	{SPR_BHOG, FF_FULLBRIGHT|15, 1, {NULL}, 0, 0, S_BALLHOGBOOM9},			// S_BALLHOGBOOM8
+	{SPR_BHOG, FF_FULLBRIGHT|16, 1, {NULL}, 0, 0, S_BALLHOGBOOM10},			// S_BALLHOGBOOM9
+	{SPR_BHOG, FF_FULLBRIGHT|17, 1, {NULL}, 0, 0, S_BALLHOGBOOM11},			// S_BALLHOGBOOM10
+	{SPR_BHOG, FF_FULLBRIGHT|18, 1, {NULL}, 0, 0, S_BALLHOGBOOM12},			// S_BALLHOGBOOM11
+	{SPR_BHOG, FF_FULLBRIGHT|19, 1, {NULL}, 0, 0, S_BALLHOGBOOM13},			// S_BALLHOGBOOM12
+	{SPR_BHOG, FF_FULLBRIGHT|20, 1, {NULL}, 0, 0, S_BALLHOGBOOM14},			// S_BALLHOGBOOM13
+	{SPR_BHOG, FF_FULLBRIGHT|21, 1, {NULL}, 0, 0, S_BALLHOGBOOM15},			// S_BALLHOGBOOM14
+	{SPR_BHOG, FF_FULLBRIGHT|22, 1, {NULL}, 0, 0, S_BALLHOGBOOM16},			// S_BALLHOGBOOM15
+	{SPR_BHOG, FF_FULLBRIGHT|23, 1, {NULL}, 0, 0, S_NULL},					// S_BALLHOGBOOM16
 
 	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
 	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
@@ -14603,13 +14619,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // seestate
 		sfx_tossed,     // seesound
 		8,              // reactiontime
-		sfx_mario1,     // attacksound
+		sfx_s3k49,      // attacksound
 		S_NULL,         // painstate
 		0,              // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_ORBINAUT_DEAD, // deathstate
+		S_ORBINAUT_DEAD,// deathstate
 		S_NULL,         // xdeathstate
 		sfx_shbrk,      // deathsound
 		64*FRACUNIT,    // speed
@@ -14935,7 +14951,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_BALLHOG_DEAD, // deathstate
 		S_NULL,         // xdeathstate
-		sfx_mario1,     // deathsound
+		sfx_hogbom,     // deathsound
 		0,              // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
@@ -14944,6 +14960,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,              // damage
 		sfx_None,       // activesound
 		MF_SHOOTABLE|MF_BOUNCE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_BALLHOGBOOM
+		-1,             // doomednum
+		S_BALLHOGBOOM1, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		32*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOCLIPTHING, // flags
 		S_NULL          // raisestate
 	},
 

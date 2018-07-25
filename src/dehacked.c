@@ -1827,6 +1827,7 @@ static actionpointer_t actionpointers[] =
 	{{A_JawzChase},            "A_JAWZCHASE"}, // SRB2kart
 	{{A_JawzExplode},          "A_JAWZEXPLODE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
+	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -6415,6 +6416,22 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BALLHOG7",
 	"S_BALLHOG8",
 	"S_BALLHOG_DEAD",
+	"S_BALLHOGBOOM1",
+	"S_BALLHOGBOOM2",
+	"S_BALLHOGBOOM3",
+	"S_BALLHOGBOOM4",
+	"S_BALLHOGBOOM5",
+	"S_BALLHOGBOOM6",
+	"S_BALLHOGBOOM7",
+	"S_BALLHOGBOOM8",
+	"S_BALLHOGBOOM9",
+	"S_BALLHOGBOOM10",
+	"S_BALLHOGBOOM11",
+	"S_BALLHOGBOOM12",
+	"S_BALLHOGBOOM13",
+	"S_BALLHOGBOOM14",
+	"S_BALLHOGBOOM15",
+	"S_BALLHOGBOOM16",
 
 	// Self-Propelled Bomb - just an explosion for now...
 	"S_BLUELIGHTNING1",
@@ -7173,6 +7190,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BOOMPARTICLE",
 
 	"MT_BALLHOG", // Ballhog
+	"MT_BALLHOGBOOM",
 
 	"MT_BLUELIGHTNING", // Grow/shrink stuff
 	"MT_BLUEEXPLOSION",

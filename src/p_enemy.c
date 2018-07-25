@@ -191,6 +191,7 @@ void A_ItemPop(mobj_t *actor); // SRB2kart
 void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_JawzExplode(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
+void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -8092,7 +8093,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, and A_MineExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, and A_BallhogExplode
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8359,6 +8360,21 @@ void A_MineExplode(mobj_t *actor)
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 
+	return;
+}
+
+void A_BallhogExplode(mobj_t *actor)
+{
+	mobj_t *mo2;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_BallhogExplode", actor))
+		return;
+#endif
+
+	mo2 = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BALLHOGBOOM);
+	P_SetScale(mo2, actor->scale*2);
+	mo2->destscale = mo2->scale;
+	S_StartSound(mo2, actor->info->deathsound);
 	return;
 }
 //}
