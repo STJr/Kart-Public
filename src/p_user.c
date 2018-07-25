@@ -6938,7 +6938,7 @@ static void P_MovePlayer(player_t *player)
 		K_SpawnSparkleTrail(player->mo);
 
 	if (player->kartstuff[k_wipeoutslow] > 1 && (leveltime & 1))
-		K_SpawnWipeoutTrail(player->mo);
+		K_SpawnWipeoutTrail(player->mo, false);
 
 	K_DriftDustHandling(player->mo);
 

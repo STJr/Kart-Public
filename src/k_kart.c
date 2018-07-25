@@ -2154,7 +2154,7 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 	}
 }
 
-void K_SpawnWipeoutTrail(mobj_t *mo)
+void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 {
 	mobj_t *dust;
 
@@ -2168,6 +2168,9 @@ void K_SpawnWipeoutTrail(mobj_t *mo)
 	dust->destscale = mo->scale;
 	P_SetScale(dust, mo->scale);
 	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
+
+	if (translucent)
+		dust->flags2 |= MF2_SHADOW;
 }
 
 //	K_DriftDustHandling
@@ -2280,8 +2283,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	mobj_t *mo;
 	INT32 dir, PROJSPEED;
 	angle_t newangle;
-	fixed_t newx;
-	fixed_t newy;
+	fixed_t newx, newy, newz;
 	mobj_t *throwmo;
 
 	if (!player)
@@ -2393,10 +2395,13 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		{
 			mobj_t *lasttrail = K_FindLastTrailMobj(player);
 
+			player->kartstuff[k_bananadrag] = 0; // RESET timer, for multiple bananas
+
 			if (lasttrail)
 			{
 				newx = lasttrail->x;
 				newy = lasttrail->y;
+				newz = lasttrail->z;
 			}
 			else
 			{
@@ -2407,9 +2412,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle + ANGLE_180, dropradius);
 				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle + ANGLE_180, dropradius);
+				newz = player->mo->z;
 			}
 
-			mo = P_SpawnMobj(newx, newy, player->mo->z, mapthing);
+			mo = P_SpawnMobj(newx, newy, newz, mapthing);
 
 			if (P_MobjFlip(player->mo) < 0)
 				mo->z = player->mo->z + player->mo->height - mo->height;
@@ -2785,8 +2791,12 @@ static void K_MoveHeldObjects(player_t *player)
 				if (P_IsObjectOnGround(player->mo) && player->speed > 0)
 				{
 					player->kartstuff[k_bananadrag]++;
-					if (player->kartstuff[k_bananadrag] > TICRATE && leveltime % 7 == 0)
-						S_StartSound(player->mo, sfx_cdfm70);
+					if (player->kartstuff[k_bananadrag] > TICRATE)
+					{
+						K_SpawnWipeoutTrail(player->mo, true);
+						if (leveltime % 6 == 0)
+							S_StartSound(player->mo, sfx_cdfm70);
+					}
 				}
 
 				while (cur && !P_MobjWasRemoved(cur))
@@ -2823,6 +2833,15 @@ static void K_MoveHeldObjects(player_t *player)
 						targz = cur->floorz;
 
 					cur->angle = R_PointToAngle2(cur->x, cur->y, targx, targy);
+
+					if (P_IsObjectOnGround(player->mo) && player->speed > 0 && player->kartstuff[k_bananadrag] > TICRATE
+						&& P_RandomChance(min(FRACUNIT/2, FixedDiv(player->speed, K_GetKartSpeed(player, false))/2)))
+					{
+						if (leveltime & 1)
+							targz += 8*(2*FRACUNIT)/7;
+						else
+							targz -= 8*(2*FRACUNIT)/7;
+					}
 
 					if (speed > dist)
 						P_InstaThrust(cur, cur->angle, speed-dist);
