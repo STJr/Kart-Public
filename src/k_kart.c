@@ -463,7 +463,7 @@ boolean K_IsPlayerWanted(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
-			   /*Sneaker*/ {20, 0, 0, 3, 6, 5, 0, 0, 0 }, // Sneaker
+			   /*Sneaker*/ {20, 0, 0, 3, 5, 5, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 2, 5, 4, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 5, 6,16 }, // Invincibility
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
@@ -473,7 +473,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 0, 0, 0, 2, 4, 6, 4 }, // Grow
+				  /*Grow*/ { 0, 0, 0, 0, 1, 2, 4, 6, 4 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // Shrink
 	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
