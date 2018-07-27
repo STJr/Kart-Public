@@ -4901,7 +4901,7 @@ static void P_3dMovement(player_t *player)
 	if (newMagnitude > K_GetKartSpeed(player, true)) //topspeed)
 	{
 		fixed_t tempmomx, tempmomy;
-		if (oldMagnitude > K_GetKartSpeed(player, true)) //topspeed)
+		if (oldMagnitude > K_GetKartSpeed(player, true) && onground) // SRB2Kart: onground check for air speed cap
 		{
 			if (newMagnitude > oldMagnitude)
 			{

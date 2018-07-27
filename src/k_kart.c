@@ -1460,6 +1460,9 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	UINT8 kartspeed = player->kartspeed;
 	fixed_t finalspeed;
 
+	if (doboostpower && !player->kartstuff[k_pogospring] && !P_IsObjectOnGround(player->mo))
+		return (75*mapheaderinfo[gamemap-1]->mobj_scale); // air speed cap
+
 	switch (gamespeed)
 	{
 		case 0:
