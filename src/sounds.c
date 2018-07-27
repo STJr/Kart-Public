@@ -695,7 +695,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdpcm6", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdpcm7", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdpcm8", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdpcm9", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdpcm9", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // No damage taken
 
   // Knuckles Chaotix sounds
   {"kc2a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

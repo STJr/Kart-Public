@@ -3079,7 +3079,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 #else
 	static const boolean force = false;
 #endif
-	mobj_t *blueexplode;
 
 	if (objectplacing)
 		return false;
@@ -3283,12 +3282,13 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		// Self-Propelled Bomb
 		if (damage == 65)
 		{
+			mobj_t *spbexplode;
 			if (player == source->player)
 				return false;
 			// Just need to do this now! Being thrown upwards is done by the explosion.
 			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
-			blueexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
-			P_SetTarget(&blueexplode->target, source);
+			spbexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+			P_SetTarget(&spbexplode->target, source);
 			return true;
 		}
 		//}
@@ -3315,7 +3315,10 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		if (damage == 10000)
 			P_KillPlayer(player, source, damage);
 		else if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
+		{
+			K_DoInstashield(player);
 			return false;
+		}
 		else
 		{
 			if (inflictor && (inflictor->type == MT_ORBINAUT || inflictor->type == MT_ORBINAUT_SHIELD

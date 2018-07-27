@@ -597,6 +597,7 @@ typedef enum sprite
 	SPR_SSMN, // SS Mine
 	SPR_KRBM, // SS Mine BOOM
 	SPR_BHOG, // Ballhog
+	SPR_BHBM, // Ballhog BOOM
 	SPR_BLIG, // Self-Propelled Bomb
 	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
 	SPR_SINK, // Kitchen Sink
@@ -624,6 +625,8 @@ typedef enum sprite
 	SPR_FLEN, // Shell hit graphics stuff
 	SPR_CLAS, // items clash
 	SPR_PSHW, // thrown indicator
+	SPR_ISTA, // instashield layer A
+	SPR_ISTB, // instashield layer B
 
 	SPR_ARRO, // player arrows
 	SPR_ITEM,
@@ -3464,6 +3467,21 @@ typedef enum state
 	S_FIREDITEM3,
 	S_FIREDITEM4,
 
+	S_INSTASHIELDA1, // No damage instashield effect
+	S_INSTASHIELDA2,
+	S_INSTASHIELDA3,
+	S_INSTASHIELDA4,
+	S_INSTASHIELDA5,
+	S_INSTASHIELDA6,
+	S_INSTASHIELDA7,
+	S_INSTASHIELDB1,
+	S_INSTASHIELDB2,
+	S_INSTASHIELDB3,
+	S_INSTASHIELDB4,
+	S_INSTASHIELDB5,
+	S_INSTASHIELDB6,
+	S_INSTASHIELDB7,
+
 	S_PLAYERARROW, // Above player arrow
 	S_PLAYERARROW_BOX,
 	S_PLAYERARROW_ITEM,
@@ -4127,6 +4145,9 @@ typedef enum mobj_type
 	MT_ITEMCLASH,
 
 	MT_FIREDITEM,
+
+	MT_INSTASHIELDA,
+	MT_INSTASHIELDB,
 
 	MT_PLAYERARROW,
 	MT_PLAYERWANTED,

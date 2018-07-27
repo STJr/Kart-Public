@@ -2038,6 +2038,16 @@ static int lib_kKartBouncing(lua_State *L)
 	return 0;
 }
 
+static int lib_kDoInstashield(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_DoInstashield(player);
+	return 0;
+}
+
 static int lib_kSpinPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2422,6 +2432,7 @@ static luaL_Reg lib[] = {
 	{"K_IsPlayerLosing",lib_kIsPlayerLosing},
 	{"K_IsPlayerWanted",lib_kIsPlayerWanted},
 	{"K_KartBouncing",lib_kKartBouncing},
+	{"K_DoInstashield",lib_kDoInstashield},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},
 	{"K_ExplodePlayer",lib_kExplodePlayer},

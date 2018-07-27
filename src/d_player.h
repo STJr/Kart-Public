@@ -281,6 +281,7 @@ typedef enum
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam
+	k_instashield,		// Instashield no-damage animation timer
 
 	k_floorboost,		// Prevents Sneaker sounds for a breif duration when triggered by a floor panel
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still

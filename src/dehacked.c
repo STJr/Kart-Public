@@ -6625,6 +6625,21 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FIREDITEM3",
 	"S_FIREDITEM4",
 
+	"S_INSTASHIELDA1", // No damage instashield effect
+	"S_INSTASHIELDA2",
+	"S_INSTASHIELDA3",
+	"S_INSTASHIELDA4",
+	"S_INSTASHIELDA5",
+	"S_INSTASHIELDA6",
+	"S_INSTASHIELDA7",
+	"S_INSTASHIELDB1",
+	"S_INSTASHIELDB2",
+	"S_INSTASHIELDB3",
+	"S_INSTASHIELDB4",
+	"S_INSTASHIELDB5",
+	"S_INSTASHIELDB6",
+	"S_INSTASHIELDB7",
+
 	"S_PLAYERARROW", // Above player arrow
 	"S_PLAYERARROW_BOX",
 	"S_PLAYERARROW_ITEM",
@@ -7272,6 +7287,9 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_FIREDITEM",
 
+	"MT_INSTASHIELDA",
+	"MT_INSTASHIELDB",
+
 	"MT_PLAYERARROW",
 	"MT_PLAYERWANTED",
 
@@ -7609,6 +7627,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"CARDANIMATION",
 	"VOICES",
 	"TAUNTVOICES",
+	"INSTASHIELD",
 
 	"FLOORBOOST",
 	"SPINOUTTYPE",

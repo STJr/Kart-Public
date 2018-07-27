@@ -1557,6 +1557,24 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	return finalspeed;
 }
 
+void K_DoInstashield(player_t *player)
+{
+	mobj_t *layera;
+	mobj_t *layerb;
+
+	if (player->kartstuff[k_instashield] > 0)
+		return;
+
+	player->kartstuff[k_instashield] = 14; // length of instashield animation
+	S_StartSound(player->mo, sfx_cdpcm9);
+
+	layera = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDA);
+	P_SetTarget(&layera->target, player->mo);
+
+	layerb = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDB);
+	P_SetTarget(&layerb->target, player->mo);
+}
+
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
 {
 	const UINT8 scoremultiply = ((K_IsPlayerWanted(player) && !trapitem) ? 2 : 1);
@@ -1567,7 +1585,10 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
 		|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
 		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+	{
+		K_DoInstashield(player);
 		return;
+	}
 
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
@@ -1640,7 +1661,10 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_invincibilitytimer] > 0
 		|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
 		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+	{
+		K_DoInstashield(player);
 		return;
+	}
 
 	player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
@@ -1698,7 +1722,10 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
 		|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
 		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
+	{
+		K_DoInstashield(player);
 		return;
+	}
 
 	player->mo->momz = 18*(mapheaderinfo[gamemap-1]->mobj_scale);
 	player->mo->momx = player->mo->momy = 0;
@@ -1772,12 +1799,15 @@ void K_StealBumper(player_t *player, player_t *victim, boolean force)
 		if (victim->kartstuff[k_bumper] <= 0) // || player->kartstuff[k_bumper] >= cv_kartbumpers.value+2
 			return;
 
-		if ((player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
-			|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
-			|| (player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]))
-			|| (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || victim->kartstuff[k_spinouttimer] > 0
-			|| victim->kartstuff[k_invincibilitytimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_hyudorotimer] > 0))
+		if (player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0)
 			return;
+
+		if (victim->powers[pw_flashing] > 0 || victim->kartstuff[k_squishedtimer] > 0 || victim->kartstuff[k_spinouttimer] > 0
+			|| victim->kartstuff[k_invincibilitytimer] > 0 || victim->kartstuff[k_growshrinktimer] > 0 || victim->kartstuff[k_hyudorotimer] > 0)
+		{
+			K_DoInstashield(victim);
+			return;
+		}
 	}
 
 	if (netgame)
@@ -2835,14 +2865,14 @@ static void K_MoveHeldObjects(player_t *player)
 
 					cur->angle = R_PointToAngle2(cur->x, cur->y, targx, targy);
 
-					if (P_IsObjectOnGround(player->mo) && player->speed > 0 && player->kartstuff[k_bananadrag] > TICRATE
+					/*if (P_IsObjectOnGround(player->mo) && player->speed > 0 && player->kartstuff[k_bananadrag] > TICRATE
 						&& P_RandomChance(min(FRACUNIT/2, FixedDiv(player->speed, K_GetKartSpeed(player, false))/2)))
 					{
 						if (leveltime & 1)
 							targz += 8*(2*FRACUNIT)/7;
 						else
 							targz -= 8*(2*FRACUNIT)/7;
-					}
+					}*/
 
 					if (speed > dist)
 						P_InstaThrust(cur, cur->angle, speed-dist);
@@ -3035,6 +3065,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (P_IsObjectOnGround(player->mo))
 		player->kartstuff[k_waterskip] = 0;
+
+	if (player->kartstuff[k_instashield])
+		player->kartstuff[k_instashield]--;
 
 	// ???
 	/*
