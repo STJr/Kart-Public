@@ -1568,7 +1568,7 @@ void K_DoInstashield(player_t *player)
 	if (player->kartstuff[k_instashield] > 0)
 		return;
 
-	player->kartstuff[k_instashield] = 14; // length of instashield animation
+	player->kartstuff[k_instashield] = 15; // length of instashield animation
 	S_StartSound(player->mo, sfx_cdpcm9);
 
 	layera = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDA);
@@ -1651,6 +1651,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
+	player->kartstuff[k_instashield] = 15;
 	return;
 }
 
@@ -1712,6 +1713,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	P_PlayRinglossSound(player->mo);
 
+	player->kartstuff[k_instashield] = 15;
 	return;
 }
 
@@ -1781,6 +1783,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		quake.time = 5;
 	}
 
+	player->kartstuff[k_instashield] = 15;
 	return;
 }
 
@@ -1855,6 +1858,7 @@ void K_StealBumper(player_t *player, player_t *victim, boolean force)
 	/*victim->powers[pw_flashing] = K_GetKartFlashing();
 	victim->kartstuff[k_comebacktimer] = comebacktime;*/
 
+	victim->kartstuff[k_instashield] = 15;
 	return;
 }
 
