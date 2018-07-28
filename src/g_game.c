@@ -3434,8 +3434,23 @@ void G_AfterIntermission(void)
 //
 void G_NextLevel(void)
 {
+	boolean dovote = false;
+
 	if ((cv_advancemap.value == 3 && gamestate != GS_VOTING)
 		&& !modeattacking && !skipstats && (multiplayer || netgame))
+	{
+		UINT8 i;
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (playeringame[i] && !players[i].spectator)
+			{
+				dovote = true;
+				break;
+			}
+		}
+	}
+	
+	if (dovote)
 		gameaction = ga_startvote;
 	else
 	{

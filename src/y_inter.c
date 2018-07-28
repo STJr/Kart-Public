@@ -142,6 +142,7 @@ typedef struct
 	UINT8 roffset;
 	UINT8 rsynctime;
 	UINT8 rendoff;
+	boolean loaded;
 } y_voteclient;
 
 static y_votelvlinfo levelinfo[5];
@@ -954,6 +955,9 @@ void Y_VoteDrawer(void)
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
+	if (!voteclient.loaded)
+		return;
+
 	if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx > 320)
 		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(widebgpatch->width)/2),
 							(vid.height / vid.dupy) - SHORT(widebgpatch->height),
@@ -1200,8 +1204,11 @@ void Y_VoteTicker(void)
 
 	if (votetic == voteendtic)
 	{
-		Y_UnloadVoteData(); // Y_EndVote resets voteendtic too early apparently, causing the game to try to render patches that we just unloaded...
-		Y_FollowIntermission();
+		if (voteclient.loaded)
+		{
+			Y_EndVote();
+			Y_FollowIntermission();
+		}
 		return;
 	}
 
@@ -1242,14 +1249,17 @@ void Y_VoteTicker(void)
 
 			if (numvotes < 1) // Whoops! Get outta here.
 			{
-				Y_UnloadVoteData();
-				Y_FollowIntermission();
+				if (voteclient.loaded)
+				{
+					Y_EndVote();
+					Y_FollowIntermission();
+				}
 				return;
 			}
 
 			voteclient.rtics--;
 
-			if (voteclient.rtics <= 0)
+			if (voteclient.rtics <= 0 && voteclient.loaded)
 			{
 				voteclient.roffset++;
 				voteclient.rtics = min(20, (3*voteclient.roffset/4)+5);
@@ -1270,7 +1280,7 @@ void Y_VoteTicker(void)
 							if (tempvotes[((pickedvote + voteclient.roffset + i) % numvotes)] == pickedvote)
 							{
 								voteclient.rendoff = voteclient.roffset+i;
-								if (M_RandomChance(FRACUNIT/1024)) // Let it cheat occasionally~
+								if (M_RandomChance(FRACUNIT/32)) // Let it cheat occasionally~
 									voteclient.rendoff++;
 								S_ChangeMusicInternal("voteeb", false);
 								break;
@@ -1474,6 +1484,8 @@ void Y_StartVote(void)
 		else
 			levelinfo[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
 	}
+
+	voteclient.loaded = true;
 }
 
 //
@@ -1492,6 +1504,8 @@ static void Y_UnloadVoteData(void)
 {
 	if (rendermode != render_soft)
 		return;
+
+	voteclient.loaded = false;
 
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
@@ -1516,9 +1530,11 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 {
 	if (pick == -1) // No other votes? We gotta get out of here, then!
 	{
-		timer = 0;
-		Y_UnloadVoteData();
-		Y_FollowIntermission();
+		if (voteclient.loaded)
+		{
+			Y_EndVote();
+			Y_FollowIntermission();
+		}
 		return;
 	}
 
@@ -1564,9 +1580,11 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		}
 		else if (endtype == 0) // Might as well put this here, too.
 		{
-			timer = 0;
-			Y_UnloadVoteData();
-			Y_FollowIntermission();
+			if (voteclient.loaded)
+			{
+				Y_EndVote();
+				Y_FollowIntermission();
+			}
 			return;
 		}
 		else
