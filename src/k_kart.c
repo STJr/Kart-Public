@@ -2264,6 +2264,10 @@ void K_DriftDustHandling(mobj_t *spawner)
 		fixed_t spawny = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
 		INT32 speedrange = 2;
 		mobj_t *dust = P_SpawnMobj(spawner->x + spawnx, spawner->y + spawny, spawner->z, MT_DRIFTDUST);
+		if (spawner->eflags & MFE_VERTICALFLIP)
+		{
+			dust->z += spawner->height - dust->height;
+		}
 		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
 		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
 		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
@@ -2278,6 +2282,11 @@ void K_DriftDustHandling(mobj_t *spawner)
 			dust->flags2 |= MF2_DONTDRAW;
 		else
 			dust->flags2 &= ~MF2_DONTDRAW;
+
+		if (spawner->eflags & MFE_VERTICALFLIP)
+			dust->eflags |= MFE_VERTICALFLIP;
+		else
+			dust->eflags &= ~MFE_VERTICALFLIP;
 
 		if (spawner->eflags & MFE_DRAWONLYFORP1)
 			dust->eflags |= MFE_DRAWONLYFORP1;

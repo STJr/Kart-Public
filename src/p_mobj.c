@@ -6291,6 +6291,11 @@ void P_RunShadows(void)
 		else
 			mobj->flags2 &= ~MF2_DONTDRAW;
 
+		if (mobj->target->eflags & MFE_VERTICALFLIP)
+			mobj->eflags |= MFE_VERTICALFLIP;
+		else
+			mobj->eflags &= ~MFE_VERTICALFLIP;
+
 		if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
 			mobj->eflags |= MFE_DRAWONLYFORP1;
 		else
@@ -6316,12 +6321,13 @@ void P_RunShadows(void)
 
 		P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 
-		if (mobj->floorz < mobj->z)
+		if (((mobj->eflags & MFE_VERTICALFLIP) && (mobj->ceilingz > mobj->z+mobj->height))
+			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (mobj->floorz < mobj->z)))
 		{
 			INT32 i;
 			fixed_t prevz;
 
-			mobj->z = mobj->floorz;
+			mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
 
 			for (i = 0; i < MAXFFLOORS; i++)
 			{
@@ -6333,7 +6339,7 @@ void P_RunShadows(void)
 				// Check new position to see if you should still be on that ledge
 				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
 
-				mobj->z = mobj->floorz;
+				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
 
 				if (mobj->z == prevz)
 					break;
@@ -6609,7 +6615,7 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				if (mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					INT32 HEIGHT;
+					fixed_t HEIGHT;
 					fixed_t radius;
 
 					fixed_t dsone = K_GetKartDriftSparkValue(mobj->target->player);
@@ -6679,15 +6685,15 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->angle = ANGLE_180 + mobj->target->player->frameangle;
 
 					// If the player is on the ceiling, then flip
-					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
 					{
 						mobj->eflags |= MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height;
+						HEIGHT = (16<<FRACBITS);
 					}
 					else
 					{
 						mobj->eflags &= ~MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height-mobj->target->height;
+						HEIGHT = 0;
 					}
 
 					// Shrink if the player shrunk too.
@@ -6698,7 +6704,7 @@ void P_MobjThinker(mobj_t *mobj)
 						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
 						mobj->x = mobj->target->x + FixedMul(finecosine[fa],radius);
 						mobj->y = mobj->target->y + FixedMul(finesine[fa],radius);
-						mobj->z = mobj->target->z + HEIGHT;
+						mobj->z = mobj->target->z - HEIGHT;
 						P_SetThingPosition(mobj);
 					}
 				}
