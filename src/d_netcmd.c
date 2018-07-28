@@ -5194,9 +5194,9 @@ static void BaseNumLaps_OnChange(void)
 	if (gamestate == GS_LEVEL)
 	{
 		if (cv_basenumlaps.value)
-			CONS_Printf(M_GetText("Number of laps will be changed to map defaults next round.\n"));
-		else
 			CONS_Printf(M_GetText("Number of laps will be changed to %d next round.\n"), cv_basenumlaps.value);
+		else
+			CONS_Printf(M_GetText("Number of laps will be changed to map defaults next round.\n"));
 	}
 }
 
