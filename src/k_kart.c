@@ -2550,6 +2550,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	INT32 playerswappable[MAXPLAYERS];
 	INT32 stealplayer = -1; // The player that's getting stolen from
 	INT32 prandom = 0;
+	fixed_t sink = P_RandomChance(FRACUNIT/64);
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2573,7 +2574,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	prandom = P_RandomFixed();
 	S_StartSound(player->mo, sfx_s3k92);
 
-	if (P_RandomChance(FRACUNIT/64)) // BEHOLD THE KITCHEN SINK
+	if (sink) // BEHOLD THE KITCHEN SINK
 	{
 		player->kartstuff[k_hyudorotimer] = hyudorotime;
 		player->kartstuff[k_stealingtimer] = stealtime;
