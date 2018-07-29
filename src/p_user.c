@@ -1118,6 +1118,31 @@ void P_PlayLivesJingle(player_t *player)
 	}
 }
 
+void P_PlayRinglossSound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, (mariomode) ? sfx_mario8 : sfx_altow1 + key);
+	else
+		S_StartSound(source, sfx_slip);
+}
+
+void P_PlayDeathSound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_altdi1 + key);
+	else
+		S_StartSound(source, sfx_s3k35);
+}
+
+void P_PlayVictorySound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_victr1 + key);
+}
+
 //
 // P_EndingMusic
 //

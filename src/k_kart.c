@@ -1339,7 +1339,7 @@ static void K_RegularVoiceTimers(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
-#if 0
+#if 1
 	sfxenum_t pick = P_RandomKey(4); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
 
@@ -1362,7 +1362,7 @@ static void K_PlayTauntSound(mobj_t *source)
 
 static void K_PlayOvertakeSound(mobj_t *source)
 {
-#if 0
+#if 1
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
 	if (!G_RaceGametype()) // Only in race
