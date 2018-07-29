@@ -493,25 +493,8 @@ void Y_IntermissionDrawer(void)
 
 dotimer:
 
-	if (netgame) //  FREE PLAY?
-	{
-		i = MAXPLAYERS;
-
-		if (!forcefreeplay)
-		{
-			// check to see if there's anyone else at all
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (i == consoleplayer)
-					continue;
-				if (playeringame[i] && !stplyr->spectator)
-					break;
-			}
-		}
-
-		if (i == MAXPLAYERS)
-			K_drawKartFreePlay(intertic);
-	}
+	if (netgame && forcefreeplay) // FREE PLAY?
+		K_drawKartFreePlay(intertic);
 
 	if (timer)
 	{

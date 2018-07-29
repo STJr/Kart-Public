@@ -3492,22 +3492,25 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			break;
 		}
 
-	target->reactiontime = 0; // we're awake now...
-
-	if (source && source != target)
+	if (!P_MobjWasRemoved(target))
 	{
-		// if not intent on another player,
-		// chase after this one
-		P_SetTarget(&target->target, source);
-		if (target->state == &states[target->info->spawnstate] && target->info->seestate != S_NULL)
+		target->reactiontime = 0; // we're awake now...
+
+		if (source && source != target)
 		{
-			if (player)
+			// if not intent on another player,
+			// chase after this one
+			P_SetTarget(&target->target, source);
+			if (target->state == &states[target->info->spawnstate] && target->info->seestate != S_NULL)
 			{
-				if (!(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
-					P_SetPlayerMobjState(target, target->info->seestate);
+				if (player)
+				{
+					if (!(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
+						P_SetPlayerMobjState(target, target->info->seestate);
+				}
+				else
+					P_SetMobjState(target, target->info->seestate);
 			}
-			else
-				P_SetMobjState(target, target->info->seestate);
 		}
 	}
 
