@@ -1339,6 +1339,7 @@ static void K_RegularVoiceTimers(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
+#if 0
 	sfxenum_t pick = P_RandomKey(4); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
 
@@ -1349,10 +1350,19 @@ static void K_PlayTauntSound(mobj_t *source)
 		return;
 
 	K_TauntVoiceTimers(source->player);
+#else
+	if (source->player && source->player->kartstuff[k_tauntvoices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
+
+	K_TauntVoiceTimers(source->player);
+#endif
 }
 
 static void K_PlayOvertakeSound(mobj_t *source)
 {
+#if 0
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
 	if (!G_RaceGametype()) // Only in race
@@ -1369,6 +1379,21 @@ static void K_PlayOvertakeSound(mobj_t *source)
 		return;
 
 	K_RegularVoiceTimers(source->player);
+#else
+	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
+		return;
+
+	if (!G_RaceGametype()) // Only in race
+		return;
+
+	// 4 seconds from before race begins, 10 seconds afterwards
+	if (leveltime < starttime+(10*TICRATE))
+		return;
+
+	S_StartSound(source, sfx_slow);
+
+	K_RegularVoiceTimers(source->player);
+#endif
 }
 
 static void K_PlayHitEmSound(mobj_t *source)
