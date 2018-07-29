@@ -625,7 +625,7 @@ void F_CreditDrawer(void)
 			y += 12<<FRACBITS;
 			break;
 		}
-		if (FixedMul(y,vid.dupy) > vid.height)
+		if (((y>>FRACBITS) * vid.dupy) > vid.height)
 			break;
 	}
 
@@ -686,13 +686,20 @@ boolean F_CreditResponder(event_t *event)
 			break;
 	}
 
-	/*if (!(timesBeaten) && !(netgame || multiplayer))
-		return false;*/
-
 	if (event->type != ev_keydown)
 		return false;
 
-	if (key != KEY_ESCAPE && key != KEY_ENTER && key != KEY_SPACE && key != KEY_BACKSPACE)
+	if (key == KEY_DOWNARROW || key == KEY_SPACE)
+	{
+		if (!timetonext && !finalecount)
+			animtimer += 7;
+		return false;
+	}
+
+	/*if (!(timesBeaten) && !(netgame || multiplayer))
+		return false;*/
+
+	if (key != KEY_ESCAPE && key != KEY_ENTER && key != KEY_BACKSPACE)
 		return false;
 
 	if (keypressed)

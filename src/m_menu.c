@@ -1337,9 +1337,10 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 70},
 	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 80},
 
-	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		100},
+	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			100},
+	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		110},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		120},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		130},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -2203,29 +2204,30 @@ static void M_ChangeCvar(INT32 choice)
 		if (cv == &cv_playercolor)
 		{
 			SINT8 skinno = R_SkinAvailable(cv_chooseskin.string);
-			if (skinno == -1)
-				return;
-			CV_SetValue(cv,skins[skinno].prefcolor);
+			if (skinno != -1)
+				CV_SetValue(cv,skins[skinno].prefcolor);
+			return;
 		}
-		return;
 		CV_Set(cv,cv->defaultvalue);
 		return;
 	}
+
+	choice = (choice<<1) - 1;
 
 	if (((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_SLIDER)
 	    ||((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_INVISSLIDER)
 	    ||((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_NOMOD))
 	{
-		CV_SetValue(cv,cv->value+(choice*2-1));
+		CV_SetValue(cv,cv->value+choice);
 	}
 	else if (cv->flags & CV_FLOAT)
 	{
 		char s[20];
-		sprintf(s,"%f",FIXED_TO_FLOAT(cv->value)+(choice*2-1)*(1.0f/16.0f));
+		sprintf(s,"%f",FIXED_TO_FLOAT(cv->value)+(choice)*(1.0f/16.0f));
 		CV_Set(cv,s);
 	}
 	else
-		CV_AddValue(cv,choice*2-1);
+		CV_AddValue(cv,choice);
 }
 
 static boolean M_ChangeStringCvar(INT32 choice)
@@ -2583,7 +2585,7 @@ boolean M_Responder(event_t *ev)
 			if (routine && ((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS
 				|| (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
 			{
-				if (currentMenu != &OP_SoundOptionsDef)
+				if (currentMenu != &OP_SoundOptionsDef || itemOn > 3)
 					S_StartSound(NULL, sfx_menu1);
 				routine(0);
 			}
@@ -2593,7 +2595,7 @@ boolean M_Responder(event_t *ev)
 			if (routine && ((currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_ARROWS
 				|| (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR))
 			{
-				if (currentMenu != &OP_SoundOptionsDef)
+				if (currentMenu != &OP_SoundOptionsDef || itemOn > 3)
 					S_StartSound(NULL, sfx_menu1);
 				routine(1);
 			}
@@ -2680,7 +2682,7 @@ boolean M_Responder(event_t *ev)
 					|| cv == &cv_newgametype)
 					return true;
 
-				if (currentMenu != &OP_SoundOptionsDef)
+				if (currentMenu != &OP_SoundOptionsDef || itemOn > 3)
 					S_StartSound(NULL, sfx_menu1);
 				routine(-1);
 				return true;
@@ -3127,7 +3129,7 @@ static void M_DrawSlider(INT32 x, INT32 y, const consvar_t *cv, boolean ontop)
 
 	if (ontop)
 	{
-		V_DrawCharacter(x - 15 - (skullAnimCounter/5), y,
+		V_DrawCharacter(x - 16 - (skullAnimCounter/5), y,
 			'\x1C' | highlightflags, false); // left arrow
 		V_DrawCharacter(x+(SLIDER_RANGE*8) + 8 + (skullAnimCounter/5), y,
 			'\x1D' | highlightflags, false); // right arrow
@@ -4566,6 +4568,7 @@ static void M_DrawSkyRoom(void)
 			break;
 		}
 	}
+
 	if (y)
 	{
 		y += currentMenu->y;
@@ -4581,9 +4584,9 @@ static void M_DrawSkyRoom(void)
 	if (lengthstring)
 	{
 		V_DrawCharacter(BASEVIDWIDTH - currentMenu->x - 10 - lengthstring - (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
-			'\x1C' | highlightflags, false);
+			'\x1C' | highlightflags, false); // left arrow
 		V_DrawCharacter(BASEVIDWIDTH - currentMenu->x + 2 + (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
-			'\x1D' | highlightflags, false);
+			'\x1D' | highlightflags, false); // right arrow
 	}
 }
 

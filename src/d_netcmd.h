@@ -126,6 +126,7 @@ extern consvar_t cv_kartfrantic;
 extern consvar_t cv_kartcomeback;
 extern consvar_t cv_kartmirror;
 extern consvar_t cv_kartspeedometer;
+extern consvar_t cv_kartvoices;
 
 extern consvar_t cv_karteliminatelast;
 

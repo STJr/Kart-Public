@@ -1708,10 +1708,13 @@ void P_DoPlayerExit(player_t *player)
 		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
-		if (K_IsPlayerLosing(player))
-			S_StartSound(player->mo, sfx_klose);
-		else
-			S_StartSound(player->mo, sfx_kwin);
+		if (cv_kartvoices.value)
+		{
+			if (K_IsPlayerLosing(player))
+				S_StartSound(player->mo, sfx_klose);
+			else
+				S_StartSound(player->mo, sfx_kwin);
+		}
 
 		player->exiting = 3*TICRATE;
 

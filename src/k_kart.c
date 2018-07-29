@@ -403,6 +403,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartmirror);
 	CV_RegisterVar(&cv_kartspeedometer);
+	CV_RegisterVar(&cv_kartvoices);
 	CV_RegisterVar(&cv_karteliminatelast);
 	CV_RegisterVar(&cv_votetime);
 
@@ -1338,18 +1339,21 @@ static void K_RegularVoiceTimers(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
-	if (source->player && source->player->kartstuff[k_tauntvoices]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
+	sfxenum_t pick = P_RandomKey(4); // Gotta roll the RNG every time this is called for sync reasons
+	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
 
-	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
+	if (cv_kartvoices.value && (tasteful || cv_kartvoices.value == 2))
+		S_StartSound(source, sfx_taunt1+pick);
+
+	if (!tasteful)
+		return;
 
 	K_TauntVoiceTimers(source->player);
 }
 
 static void K_PlayOvertakeSound(mobj_t *source)
 {
-	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
+	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
 	if (!G_RaceGametype()) // Only in race
 		return;
@@ -1358,14 +1362,19 @@ static void K_PlayOvertakeSound(mobj_t *source)
 	if (leveltime < starttime+(10*TICRATE))
 		return;
 
-	S_StartSound(source, sfx_slow);
+	if (cv_kartvoices.value && (tasteful || cv_kartvoices.value == 2))
+		S_StartSound(source, sfx_slow);
+
+	if (!tasteful)
+		return;
 
 	K_RegularVoiceTimers(source->player);
 }
 
 static void K_PlayHitEmSound(mobj_t *source)
 {
-	S_StartSound(source, sfx_hitem);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_hitem);
 
 	K_RegularVoiceTimers(source->player);
 }
