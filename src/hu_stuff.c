@@ -1363,7 +1363,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 				V_DrawRightAlignedString(x, y-4, hilicol, "FIN");
 				V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
 			}
-			if (players[tab[i].num].pflags & PF_TIMEOVER)
+			else if (players[tab[i].num].pflags & PF_TIMEOVER)
 				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "TIME OVER...");
 			else if (circuitmap)
 			{
