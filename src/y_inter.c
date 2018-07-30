@@ -263,7 +263,6 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 //
 void Y_IntermissionDrawer(void)
 {
-	boolean forcefreeplay = false;
 	INT32 i, whiteplayer = MAXPLAYERS, x = 4, hilicol = V_YELLOWMAP; // fallback
 
 	if (intertype == int_none || rendermode == render_none)
@@ -370,11 +369,7 @@ void Y_IntermissionDrawer(void)
 		if (data.match.rankingsmode)
 			timeheader = "RANK";
 		else
-		{
 			timeheader = (intertype == int_race ? "TIME" : "SCORE");
-			if (data.match.numplayers <= 1)
-				forcefreeplay = true;
-		}
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
@@ -492,15 +487,11 @@ void Y_IntermissionDrawer(void)
 	}
 
 dotimer:
-
-	if (netgame && forcefreeplay) // FREE PLAY?
-		K_drawKartFreePlay(intertic);
-
 	if (timer)
 	{
 		INT32 tickdown = (timer+1)/TICRATE;
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
-			va("start in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
+			va("%s in %d", cv_advancemap.string, tickdown));
 	}
 
 	// Make it obvious that scrambling is happening next round.
@@ -1139,7 +1130,7 @@ void Y_VoteDrawer(void)
 		else //if (gametype == GT_MATCH)
 			hilicol = V_REDMAP;
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
-			va("Vote ends in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
+			va("Vote ends in %d", tickdown));
 	}
 }
 

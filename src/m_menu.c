@@ -1436,7 +1436,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",			&cv_inttime,			 40},
 	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",					&cv_votetime,			 50},
-	{IT_STRING | IT_CVAR,    NULL, "Advance to Next Level",		&cv_advancemap,			 60},
+	{IT_STRING | IT_CVAR,    NULL, "Advance to Next Level",			&cv_advancemap,			 60},
 
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max Player Count",				&cv_maxplayers,			 80},

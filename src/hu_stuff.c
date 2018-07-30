@@ -1376,7 +1376,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 #undef timestring
 		}
 		else
-			V_DrawRightAlignedString(x+rightoffset, y, ((players[tab[i].num].health > 0) ? 0 : V_60TRANS), va("%u", tab[i].count));
+			V_DrawRightAlignedString(x+rightoffset, y, 0, va("%u", tab[i].count));
 
 		y += 16;
 		if (i == 9)
