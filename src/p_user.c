@@ -1747,8 +1747,8 @@ void P_DoPlayerExit(player_t *player)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
-		if (!countdown2)
-			countdown2 = countdown + 8*TICRATE;
+		//if (!countdown2)
+			//countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
@@ -9088,6 +9088,12 @@ void P_DoTimeOver(player_t *player)
 	player->lives = 0;
 
 	P_EndingMusic(player);
+
+#if 0
+	// sal, when you do the f-zero explosion, this is how you make sure the map doesn't end before it's done ^u^ ~toast
+	if (!countdown2)
+		countdown2 = 5*TICRATE;
+#endif
 }
 
 //
