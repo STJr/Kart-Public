@@ -499,13 +499,13 @@ dotimer:
 	if (timer)
 	{
 		INT32 tickdown = (timer+1)/TICRATE;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
 			va("start in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
 	}
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol|V_SNAPTOBOTTOM, M_GetText("Teams will be scrambled next round!"));
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol, M_GetText("Teams will be scrambled next round!"));
 }
 
 //
@@ -936,10 +936,10 @@ void Y_VoteDrawer(void)
 	if (votetic >= voteendtic && voteendtic != -1)
 		return;
 
-	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
-
 	if (!voteclient.loaded)
 		return;
+
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx > 320)
 		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(widebgpatch->width)/2),
@@ -1138,7 +1138,7 @@ void Y_VoteDrawer(void)
 			hilicol = V_SKYMAP;
 		else //if (gametype == GT_MATCH)
 			hilicol = V_REDMAP;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
 			va("Vote ends in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
 	}
 }
