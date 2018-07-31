@@ -1167,7 +1167,7 @@ static UINT8 *CHAT_GetStringColormap(INT32 colorflags)	// pasted from video.c, s
 	case 2: // 0x82, yellow
 		return yellowmap;
 	case 3: // 0x83, lgreen
-		return lgreenmap;
+		return greenmap;
 	case 4: // 0x84, blue
 		return bluemap;
 	case 5: // 0x85, red
@@ -1176,6 +1176,8 @@ static UINT8 *CHAT_GetStringColormap(INT32 colorflags)	// pasted from video.c, s
 		return graymap;
 	case 7: // 0x87, orange
 		return orangemap;
+	case 8: // 0x88, sky
+		return skymap;
 	default: // reset
 		return NULL;
 	}
@@ -1235,7 +1237,9 @@ char *CHAT_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	return newstring;
 }
 
-INT16 chatx = 160, chaty = 16;	// let's use this as our coordinates, shh
+// 30/7/18: chaty is now the distance at which the lowest point of the chat will be drawn if that makes any sense.
+
+INT16 chatx = 13, chaty = 169;	// let's use this as our coordinates, shh
 
 // chat stuff by VincyTM LOL XD!
 
@@ -1243,19 +1247,75 @@ INT16 chatx = 160, chaty = 16;	// let's use this as our coordinates, shh
 
 static void HU_drawMiniChat(void)
 {
-	INT32 charwidth = (vid.width < 640) ? 8 : 4, charheight = (vid.width < 640) ? 8 : 6;
-	INT32 x = chatx+2, y = chaty+2, dx = 0, dy = 0;
-	size_t i = 0;
 	
-	for (i=0; i<chat_nummsg_min; i++)	// iterate through our hot messages
+	if (!chat_nummsg_min)
+		return;	// needless to say it's useless to do anything if we don't have anything to draw.
+	
+	
+	INT32 x = chatx+2; 
+	INT32 charwidth = 4, charheight = 6;	
+	INT32 dx = 0, dy = 0;
+	size_t i = chat_nummsg_min;
+	
+	INT32 msglines = 0;
+	// process all messages once without rendering anything or doing anything fancy so that we know how many lines each message has...
+	
+	for (; i>0; i--)
+	{	
+		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i-1]);
+		size_t j = 0;
+		INT32 linescount = 0;
+		
+		while(msg[j])	// iterate through msg
+		{	
+			if (msg[j] < HU_FONTSTART)	// don't draw
+			{			
+				if (msg[j] == '\n')	// get back down.
+				{
+					++j;
+					linescount += 1;
+					dx = 0;
+					continue;
+				}
+				else if (msg[j] & 0x80) // stolen from video.c, nice.
+				{
+					++j;
+					continue;
+				}
+				
+				++j;	
+			}
+			else
+			{
+				j++;
+			}
+			
+			dx += charwidth;
+			if (dx >= cv_chatwidth.value)
+			{
+				dx = 0;
+				linescount += 1;
+			}
+		}
+		dy = 0;
+		dx = 0;
+		msglines += linescount+1;
+	}
+	
+	INT32 y = chaty - charheight*(msglines+1) - (cv_kartspeedometer.value ? 16 : 0);
+	dx = 0; 
+	dy = 0;
+	i = 0;
+	
+	for (; i<=(chat_nummsg_min-1); i++)	// iterate through our hot messages
 	{
 		
 		INT32 clrflag = 0;
-		
 		INT32 timer = ((cv_chattime.value*TICRATE)-chat_timers[i]) - cv_chattime.value*TICRATE+9;	// see below...		
 		INT32 transflag = (timer >= 0 && timer <= 9) ? (timer*V_10TRANS) : 0;	// you can make bad jokes out of this one.
 		size_t j = 0;
-		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOTOP|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i]);	// get the current message, and word wrap it.
+		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i]);	// get the current message, and word wrap it.
+		
 		while(msg[j])	// iterate through msg
 		{	
 			if (msg[j] < HU_FONTSTART)	// don't draw
@@ -1279,7 +1339,7 @@ static void HU_drawMiniChat(void)
 			else
 			{
 				UINT8 *colormap = CHAT_GetStringColormap(clrflag);
-				V_DrawChatCharacter(x + dx + 2, y+dy+addy, msg[j++] |V_SNAPTOTOP|V_SNAPTORIGHT|transflag, !cv_allcaps.value, colormap);
+				V_DrawChatCharacter(x + dx + 2, y+dy, msg[j++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT|transflag, !cv_allcaps.value, colormap);
 			}
 			
 			dx += charwidth;
@@ -1292,7 +1352,7 @@ static void HU_drawMiniChat(void)
 		dy += charheight;
 		dx = 0;
 	}
-	
+		
 	// decrement addy and make that shit smooth:
 	addy /= 2;
 	
@@ -1333,25 +1393,27 @@ static void HU_DrawDownArrow(INT32 x, INT32 y, INT32 options)
 // HU_DrawChatLog
 // TODO: fix dumb word wrapping issues
 
-static void HU_drawChatLog(void)
+static void HU_drawChatLog(INT32 offset)
 {
 	
 	// before we do anything, make sure that our scroll position isn't "illegal";
 	if (chat_scroll > chat_maxscroll)
 		chat_scroll = chat_maxscroll;
 	
-	INT32 charwidth = (vid.width < 640) ? 8 : 4, charheight = (vid.width < 640) ? 8 : 6;
-	INT32 x = chatx+2, y = chaty+2-(chat_scroll*charheight), dx = 0, dy = 0;
+	INT32 charwidth = 4, charheight = 6;
+	INT32 x = chatx+2, y = chaty - offset*charheight - (chat_scroll*charheight) - cv_chatheight.value*charheight - 12 - (cv_kartspeedometer.value ? 16 : 0), dx = 0, dy = 0;
 	size_t i = 0;
+	INT32 chat_topy = y + chat_scroll*charheight;
+	INT32 chat_bottomy = chat_topy + cv_chatheight.value*charheight;
 	boolean atbottom = false;
 	
-	V_DrawFillConsoleMap(chatx, chaty, cv_chatwidth.value, cv_chatheight.value*charheight +2, 239|V_SNAPTOTOP|V_SNAPTORIGHT);	// INUT
+	V_DrawFillConsoleMap(chatx, chat_topy, cv_chatwidth.value, cv_chatheight.value*charheight +2, 239|V_SNAPTOBOTTOM|V_SNAPTOLEFT);	// log box
 		
 	for (i=0; i<chat_nummsg_log; i++)	// iterate through our chatlog
 	{
 		INT32 clrflag = 0;
 		size_t j = 0;
-		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOTOP|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_log[i]);	// get the current message, and word wrap it.
+		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_log[i]);	// get the current message, and word wrap it.
 		while(msg[j])	// iterate through msg
 		{	
 			if (msg[j] < HU_FONTSTART)	// don't draw
@@ -1374,10 +1436,10 @@ static void HU_drawChatLog(void)
 			}
 			else
 			{
-				if ((y+dy > chaty) && (y+dy < (chaty+cv_chatheight.value*charheight)))
+				if ((y+dy+2 >= chat_topy) && (y+dy < (chat_bottomy)))
 				{	
 					UINT8 *colormap = CHAT_GetStringColormap(clrflag);
-					V_DrawChatCharacter(x + dx + 2, y+dy, msg[j++] |V_SNAPTOTOP|V_SNAPTORIGHT, !cv_allcaps.value, colormap);
+					V_DrawChatCharacter(x + dx + 2, y+dy+2, msg[j++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT, !cv_allcaps.value, colormap);
 				}
 				else
 					j++;	// don't forget to increment this or we'll get stuck in the limbo.
@@ -1412,9 +1474,9 @@ static void HU_drawChatLog(void)
 	// draw arrows to indicate that we can (or not) scroll.
 	
 	if (chat_scroll > 0)
-		HU_DrawUpArrow(chatx-8, ((justscrolledup) ? (chaty-1) : (chaty)), V_SNAPTOTOP | V_SNAPTORIGHT);
+		HU_DrawUpArrow(chatx-8, ((justscrolledup) ? (chat_topy-1) : (chat_topy)), V_SNAPTOBOTTOM | V_SNAPTOLEFT);
 	if (chat_scroll < chat_maxscroll)
-		HU_DrawDownArrow(chatx-8, chaty+(cv_chatheight.value*charheight)-((justscrolleddown) ? 3 : 4), V_SNAPTOTOP | V_SNAPTORIGHT);
+		HU_DrawDownArrow(chatx-8, chat_bottomy-((justscrolleddown) ? 3 : 4), V_SNAPTOBOTTOM | V_SNAPTOLEFT);
 	
 	justscrolleddown = false;
 	justscrolledup = false;
@@ -1429,8 +1491,8 @@ static void HU_drawChatLog(void)
 static INT16 typelines = 1;	// number of drawfill lines we need. it's some weird hack and might be one frame off but I'm lazy to make another loop.
 static void HU_DrawChat(void)
 {	
-	INT32 charwidth = (vid.width < 640) ? 8 : 4, charheight = (vid.width < 640) ? 8 : 6;
-	INT32 t = 0, c = 0, y = chaty + 4 + cv_chatheight.value*charheight;
+	INT32 charwidth = 4, charheight = 6;
+	INT32 t = 0, c = 0, y = chaty - (typelines*charheight)  - (cv_kartspeedometer.value ? 16 : 0);
 	size_t i = 0;
 	const char *ntalk = "Say: ", *ttalk = "Team: ";
 	const char *talk = ntalk;
@@ -1446,15 +1508,14 @@ static void HU_DrawChat(void)
 #endif
 	}
 			
-	HU_drawChatLog();
-	V_DrawFillConsoleMap(chatx, y-1, cv_chatwidth.value, (vid.width < 640 ) ? (typelines*charheight+2) : (typelines*charheight), 239 | V_SNAPTOTOP | V_SNAPTORIGHT);
+	V_DrawFillConsoleMap(chatx, y-1, cv_chatwidth.value, (typelines*charheight), 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);
 	
 	while (talk[i])
 	{
 		if (talk[i] < HU_FONTSTART)
 			++i;
 		else
-			V_DrawChatCharacter(chatx + c + 2, y, talk[i++] |V_SNAPTOTOP|V_SNAPTORIGHT, !cv_allcaps.value, NULL);
+			V_DrawChatCharacter(chatx + c + 2, y, talk[i++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT, !cv_allcaps.value, NULL);
 
 		c += charwidth;
 	}
@@ -1463,26 +1524,34 @@ static void HU_DrawChat(void)
 	typelines = 1;
 	
 	if ((strlen(w_chat) == 0 || c_input == 0) && hu_tick < 4)
-		V_DrawChatCharacter(chatx + 2 + c, y+1, '_' |V_SNAPTOTOP|V_SNAPTORIGHT|t, !cv_allcaps.value, NULL);
-	
+		V_DrawChatCharacter(chatx + 2 + c, y+1, '_' |V_SNAPTOBOTTOM|V_SNAPTOLEFT|t, !cv_allcaps.value, NULL);
+		
 	while (w_chat[i])
 	{
-		
-		if (c_input == (i+1) && hu_tick < 4)
+		boolean skippedline = false;
+		if (c_input == (i+1))
 		{
-			int cursorx = (c+charwidth < cv_chatwidth.value-charwidth) ? (chatx + 2 + c+charwidth) : (chatx);	// we may have to go down.
-			int cursory = (cursorx != chatx) ? (y) : (y+charheight);
-			V_DrawChatCharacter(cursorx, cursory+1, '_' |V_SNAPTOTOP|V_SNAPTORIGHT|t, !cv_allcaps.value, NULL);	
+			int cursorx = (c+charwidth < cv_chatwidth.value-charwidth) ? (chatx + 2 + c+charwidth) : (chatx+1);	// we may have to go down.
+			int cursory = (cursorx != chatx+1) ? (y) : (y+charheight);
+			if (hu_tick < 4)
+				V_DrawChatCharacter(cursorx, cursory+1, '_' |V_SNAPTOBOTTOM|V_SNAPTOLEFT|t, !cv_allcaps.value, NULL);	
+			
+			if (cursorx == chatx+1)	// a weirdo hack
+			{
+				typelines += 1;
+				skippedline = true;
+			}	
+			
 		}	
 		
 		//Hurdler: isn't it better like that?
 		if (w_chat[i] < HU_FONTSTART)
 			++i;
 		else
-			V_DrawChatCharacter(chatx + c + 2, y, w_chat[i++] | V_SNAPTOTOP|V_SNAPTORIGHT | t, !cv_allcaps.value, NULL);
+			V_DrawChatCharacter(chatx + c + 2, y, w_chat[i++] | V_SNAPTOBOTTOM|V_SNAPTOLEFT | t, !cv_allcaps.value, NULL);
 
 		c += charwidth;
-		if (c > cv_chatwidth.value-charwidth)
+		if (c > cv_chatwidth.value-(charwidth*2) && !skippedline)
 		{
 			c = 0;
 			y += charheight;
@@ -1495,8 +1564,7 @@ static void HU_DrawChat(void)
 	{	
 		i = 0;
 		int count = 0;
-		INT32 p_dispy = chaty+2;
-		V_DrawFillConsoleMap(chatx-50, p_dispy-2, 48, 2, 239 | V_SNAPTOTOP | V_SNAPTORIGHT);	// top (don't mind me)
+		INT32 p_dispy = chaty - charheight -1;
 		for(i=0; (i<MAXPLAYERS); i++)
 		{
 			
@@ -1541,21 +1609,23 @@ static void HU_DrawChat(void)
 				}
 			}
 			
-			if ((playeringame[i]))
+			if (playeringame[i])
 			{	
 				char name[MAXPLAYERNAME+1];
 				strlcpy(name, player_names[i], 7);	// shorten name to 7 characters.
-				V_DrawFillConsoleMap(chatx-50, p_dispy+ (6*count), 48, 6, 239 | V_SNAPTOTOP | V_SNAPTORIGHT);	// fill it like the chat so the text doesn't become hard to read because of the hud.
-				V_DrawSmallString(chatx-48, p_dispy+ (6*count), V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE, va("\x82%d\x80 - %s", i, name));
+				V_DrawFillConsoleMap(chatx+ cv_chatwidth.value + 2, p_dispy- (6*count), 48, 6, 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);	// fill it like the chat so the text doesn't become hard to read because of the hud.
+				V_DrawSmallString(chatx+ cv_chatwidth.value + 4, p_dispy- (6*count), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, va("\x82%d\x80 - %s", i, name));
 				count++;
 			}
 		}
 		if (count == 0)	// no results.
 		{
-			V_DrawFillConsoleMap(chatx-50, p_dispy+ (6*count), 48, 6, 239 | V_SNAPTOTOP | V_SNAPTORIGHT);	// fill it like the chat so the text doesn't become hard to read because of the hud.
-			V_DrawSmallString(chatx-48, p_dispy+ (6*count), V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE, "NO RESULT.");
+			V_DrawFillConsoleMap(chatx-50, p_dispy- (6*count), 48, 6, 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);	// fill it like the chat so the text doesn't become hard to read because of the hud.
+			V_DrawSmallString(chatx-48, p_dispy- (6*count), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, "NO RESULT.");
 		}	
 	}
+	
+	HU_drawChatLog(typelines-1);	// typelines is the # of lines we're typing. If there's more than 1 then the log should scroll up to give us more space.
 	
 }
 
@@ -1887,7 +1957,7 @@ void HU_Drawer(void)
 		// count down the scroll timer. 
 		if (chat_scrolltime > 0)
 			chat_scrolltime--;
-		if (!cv_consolechat.value)
+		if (!cv_consolechat.value && vid.width > 320)	// don't even try using newchat sub 400p, I'm too fucking lazy
 			HU_DrawChat();
 		else
 			HU_DrawChat_Old();	// why the fuck.........................
@@ -1898,7 +1968,7 @@ void HU_Drawer(void)
 		{	
 			HU_drawMiniChat();		// draw messages in a cool fashion.
 			chat_scrolltime = 0;	// do scroll anyway.
-			typelines = 0;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
+			typelines = 1;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
 		}	
 	}
 	
