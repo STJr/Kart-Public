@@ -499,23 +499,46 @@ light_t *t_lspr[NUMSPRITES] =
 
 	&lspr[NOLIGHT],     //"SPRG",
 	&lspr[NOLIGHT],     //"BSPR",
+
 	&lspr[NOLIGHT],     //"RNDM",
-	&lspr[NOLIGHT],     //"SPRK",
 	&lspr[NOLIGHT],     //"KFRE",
 	&lspr[NOLIGHT],     //"DRIF",
-	&lspr[NOLIGHT],     //"FAKE",
-	&lspr[NOLIGHT],     //"DFAK",
+	&lspr[NOLIGHT],     //"DSMO",
+
+	&lspr[NOLIGHT],     //"FITM",
 	&lspr[NOLIGHT],     //"BANA",
-	&lspr[NOLIGHT],     //"DBAN",
 	&lspr[NOLIGHT],     //"GSHE",
-	&lspr[NOLIGHT],     //"GSTR",
-	&lspr[NOLIGHT],     //"DGSH",
 	&lspr[NOLIGHT],     //"RSHE",
-	&lspr[NOLIGHT],     //"RSTR",
-	&lspr[NOLIGHT],     //"DRSH",
-	&lspr[NOLIGHT],     //"BOMB",
+	&lspr[NOLIGHT],     //"SSMN",
 	&lspr[NOLIGHT],     //"BLIG",
-	&lspr[NOLIGHT],     //"LIGH"
+	&lspr[NOLIGHT],     //"LIGH",
+	&lspr[NOLIGHT],     //"SINK",
+	&lspr[NOLIGHT],     //"SITR",
+	&lspr[NOLIGHT],     //"KBLN",
+
+	&lspr[NOLIGHT],     //"LAKI",
+
+	&lspr[NOLIGHT],     //"POKE",
+	&lspr[NOLIGHT],     //"AUDI",
+	&lspr[NOLIGHT],     //"DECO",
+	&lspr[NOLIGHT],     //"DOOD",
+	&lspr[NOLIGHT],     //"SNES",
+	&lspr[NOLIGHT],     //"GBAS",
+	&lspr[NOLIGHT],     //"SPRS",
+	&lspr[NOLIGHT],     //"BUZB",
+	&lspr[NOLIGHT],     //"CHOM",
+	&lspr[NOLIGHT],     //"SACO",
+	&lspr[NOLIGHT],     //"CRAB",
+	&lspr[NOLIGHT],     //"SHAD",
+
+	&lspr[NOLIGHT],     //"BUMP",
+	&lspr[NOLIGHT],     //"FLEN",
+	&lspr[NOLIGHT],     //"CLAS",
+	&lspr[NOLIGHT],     //"PSHW",
+
+	&lspr[NOLIGHT],     //"ARRO",
+
+	&lspr[NOLIGHT],     //"PBOM"
 
 	// Free slots
 	&lspr[NOLIGHT],

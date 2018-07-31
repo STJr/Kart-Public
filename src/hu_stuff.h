@@ -21,7 +21,7 @@
 //------------------------------------
 //           heads up font
 //------------------------------------
-#define HU_FONTSTART '\x1E' // the first font character
+#define HU_FONTSTART '\x19' // the first font character
 #define HU_FONTEND '~'
 
 #define HU_FONTSIZE (HU_FONTEND - HU_FONTSTART + 1)
@@ -55,8 +55,6 @@ typedef struct
 {
 	UINT32 count;
 	INT32 num;
-	INT32 color;
-	INT32 emeralds;
 	const char *name;
 } playersort_t;
 
@@ -100,7 +98,7 @@ void HU_Init(void);
 void HU_LoadGraphics(void);
 
 // reset heads up when consoleplayer respawns.
-FUNCMATH void HU_Start(void);
+void HU_Start(void);
 
 boolean HU_Responder(event_t *ev);
 
@@ -109,10 +107,12 @@ void HU_Drawer(void);
 char HU_dequeueChatChar(void);
 void HU_Erase(void);
 void HU_clearChatChars(void);
-void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext);	// Lat': Ping drawer for scoreboard.
 void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
 void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
+void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol);
+//void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
+//void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds);
 
 INT32 HU_CreateTeamScoresTbl(playersort_t *tab, UINT32 dmtotals[]);

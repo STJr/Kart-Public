@@ -826,15 +826,12 @@ static void R_DrawVisSprite(vissprite_t *vis)
 	{
 		colfunc = transtransfunc;
 		dc_transmap = vis->transmap;
-		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
+		if (vis->mobj->colorized)
+			dc_translation = R_GetTranslationColormap(TC_RAINBOW, vis->mobj->color, GTC_CACHE);
+		else if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
 		{
-			if (vis->mobj->colorized)
-				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
-			else
-			{
-				size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-				dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
-			}
+			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
+			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
@@ -850,15 +847,12 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		colfunc = transcolfunc;
 
 		// New colormap stuff for skins Tails 06-07-2002
-		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
+		if (vis->mobj->colorized)
+			dc_translation = R_GetTranslationColormap(TC_RAINBOW, vis->mobj->color, GTC_CACHE);
+		else if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
 		{
-			if (vis->mobj->colorized)
-				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
-			else
-			{
-				size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-				dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
-			}
+			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
+			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
@@ -1676,7 +1670,7 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
+void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing; // Tails 08-25-2002
@@ -1722,19 +1716,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewnumber != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewnumber != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewnumber != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewnumber != 3)
 						continue;
 			}
 
@@ -1755,19 +1749,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewnumber != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewnumber != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewnumber != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewnumber != 3)
 						continue;
 			}
 
@@ -2502,9 +2496,9 @@ static void Sk_SetDefaultValue(skin_t *skin)
 
 	strcpy(skin->realname, "Someone");
 	strcpy(skin->hudname, "???");
-	strncpy(skin->charsel, "CHRSONIC", 8);
-	strncpy(skin->face, "MISSING", 8);
-	strncpy(skin->superface, "MISSING", 8);
+	strncpy(skin->charsel, "CHRSONIC", 9);
+	strncpy(skin->face, "MISSING", 9);
+	strncpy(skin->superface, "MISSING", 9);
 
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
@@ -2536,7 +2530,7 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	for (i = 0; i < sfx_skinsoundslot0; i++)
 		if (S_sfx[i].skinsound != -1)
 			skin->soundsid[S_sfx[i].skinsound] = i;
-	strncpy(skin->iconprefix, "SONICICN", 8);
+	strncpy(skin->iconprefix, "SONICICN", 9);
 }
 
 //
@@ -2569,9 +2563,9 @@ void R_InitSkins(void)
 	strcpy(skin->realname,   "Sonic");
 	strcpy(skin->hudname,    "SONIC");
 
-	strncpy(skin->charsel,   "CHRSONIC", 8);
-	strncpy(skin->face,      "LIVSONIC", 8);
-	strncpy(skin->superface, "LIVSUPER", 8);
+	strncpy(skin->charsel,   "CHRSONIC", 9);
+	strncpy(skin->face,      "LIVSONIC", 9);
+	strncpy(skin->superface, "LIVSUPER", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
 	skin->ability =   CA_THOK;
@@ -2591,7 +2585,7 @@ void R_InitSkins(void)
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
 	ST_LoadFaceGraphics(skin->face, skin->superface, 0);
-	strncpy(skin->iconprefix, "SONICICN", 8);
+	strncpy(skin->iconprefix, "SONICICN", 9);
 	K_LoadIconGraphics(skin->iconprefix, 0);
 
 	//MD2 for sonic doesn't want to load in Linux.

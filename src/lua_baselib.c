@@ -628,6 +628,16 @@ static int lib_pCanRunOnWater(lua_State *L)
 	return 1;
 }
 
+static int lib_pSpawnShadowMobj(lua_State *L)
+{
+	mobj_t *caster = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	NOHUD
+	if (!caster)
+		return LUA_ErrInvalid(L, "mobj_t");
+	P_SpawnShadowMobj(caster);
+	return 0;
+}
+
 // P_USER
 ////////////
 
@@ -932,7 +942,7 @@ static int lib_pHomingAttack(lua_State *L)
 	return 0;
 }
 
-static int lib_pSuperReady(lua_State *L)
+/*static int lib_pSuperReady(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	//HUDSAFE
@@ -940,7 +950,7 @@ static int lib_pSuperReady(lua_State *L)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushboolean(L, P_SuperReady(player));
 	return 1;
-}
+}*/
 
 static int lib_pDoJump(lua_State *L)
 {
@@ -2038,6 +2048,26 @@ static int lib_kGetKartColorByName(lua_State *L)
 	return 1;
 }
 
+static int lib_kIsPlayerLosing(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_IsPlayerLosing(player);
+	return 0;
+}
+
+static int lib_kIsPlayerWanted(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_IsPlayerWanted(player);
+	return 0;
+}
+
 static int lib_kKartBouncing(lua_State *L)
 {
 	mobj_t *mobj1 = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
@@ -2053,16 +2083,28 @@ static int lib_kKartBouncing(lua_State *L)
 	return 0;
 }
 
+static int lib_kDoInstashield(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_DoInstashield(player);
+	return 0;
+}
+
 static int lib_kSpinPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	INT32 type = (INT32)luaL_checkinteger(L, 3);
+	boolean trapitem = luaL_checkboolean(L, 4);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!source)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_SpinPlayer(player, source);
+	K_SpinPlayer(player, source, type, trapitem);
 	return 0;
 }
 
@@ -2092,7 +2134,7 @@ static int lib_kExplodePlayer(lua_State *L)
 	return 0;
 }
 
-static int lib_kStealBalloon(lua_State *L)
+static int lib_kStealBumper(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	player_t *victim = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
@@ -2102,7 +2144,7 @@ static int lib_kStealBalloon(lua_State *L)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!victim)
 		return LUA_ErrInvalid(L, "player_t");
-	K_StealBalloon(player, victim, force);
+	K_StealBumper(player, victim, force);
 	return 0;
 }
 
@@ -2125,13 +2167,34 @@ static int lib_kSpawnKartExplosion(lua_State *L)
 	return 0;
 }
 
-static int lib_kSpawnDriftTrail(lua_State *L)
+static int lib_kSpawnBoostTrail(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	K_SpawnBoostTrail(player);
+	return 0;
+}
+
+static int lib_kSpawnSparkleTrail(lua_State *L)
+{
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	NOHUD
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_SpawnSparkleTrail(mo);
+	return 0;
+}
+
+static int lib_kSpawnWipeoutTrail(lua_State *L)
+{
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	boolean translucent = luaL_checkboolean(L, 2);
+	NOHUD
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_SpawnWipeoutTrail(mo, translucent);
 	return 0;
 }
 
@@ -2145,25 +2208,52 @@ static int lib_kDriftDustHandling(lua_State *L)
 	return 0;
 }
 
-static int lib_kDoMushroom(lua_State *L)
+static int lib_kDoSneaker(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	boolean doPFlag = luaL_checkboolean(L, 2);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
-	K_DoMushroom(player, doPFlag);
+	K_DoSneaker(player, doPFlag);
 	return 0;
 }
 
-static int lib_kDoBouncePad(lua_State *L)
+static int lib_kDoPogoSpring(lua_State *L)
 {
 	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	fixed_t vertispeed = luaL_checkfixed(L, 2);
+	boolean mute = luaL_checkboolean(L, 3);
 	NOHUD
 	if (!mo)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_DoBouncePad(mo, vertispeed);
+	K_DoPogoSpring(mo, vertispeed, mute);
+	return 0;
+}
+
+static int lib_kKillBananaChain(lua_State *L)
+{
+	mobj_t *banana = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *inflictor = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	NOHUD
+	if (!banana)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!inflictor)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!source)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_KillBananaChain(banana, inflictor, source);
+	return 0;
+}
+
+static int lib_kRepairOrbitChain(lua_State *L)
+{
+	mobj_t *orbit = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	NOHUD
+	if (!orbit)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_RepairOrbitChain(orbit);
 	return 0;
 }
 
@@ -2260,6 +2350,7 @@ static luaL_Reg lib[] = {
 	{"P_CheckDeathPitCollide",lib_pCheckDeathPitCollide},
 	{"P_CheckSolidLava",lib_pCheckSolidLava},
 	{"P_CanRunOnWater",lib_pCanRunOnWater},
+	{"P_SpawnShadowMobj",lib_pSpawnShadowMobj},
 
 	// p_user
 	{"P_GetPlayerHeight",lib_pGetPlayerHeight},
@@ -2290,7 +2381,7 @@ static luaL_Reg lib[] = {
 	{"P_LookForEnemies",lib_pLookForEnemies},
 	{"P_NukeEnemies",lib_pNukeEnemies},
 	{"P_HomingAttack",lib_pHomingAttack},
-	{"P_SuperReady",lib_pSuperReady},
+	//{"P_SuperReady",lib_pSuperReady},
 	{"P_DoJump",lib_pDoJump},
 	{"P_SpawnThokMobj",lib_pSpawnThokMobj},
 	{"P_SpawnSpinMobj",lib_pSpawnSpinMobj},
@@ -2385,16 +2476,23 @@ static luaL_Reg lib[] = {
 
 	// k_kart
 	{"K_GetKartColorByName",lib_kGetKartColorByName},
+	{"K_IsPlayerLosing",lib_kIsPlayerLosing},
+	{"K_IsPlayerWanted",lib_kIsPlayerWanted},
 	{"K_KartBouncing",lib_kKartBouncing},
+	{"K_DoInstashield",lib_kDoInstashield},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},
 	{"K_ExplodePlayer",lib_kExplodePlayer},
-	{"K_StealBalloon",lib_kStealBalloon},
+	{"K_StealBumper",lib_kStealBumper},
 	{"K_SpawnKartExplosion",lib_kSpawnKartExplosion},
-	{"K_SpawnBoostTrail",lib_kSpawnDriftTrail},
+	{"K_SpawnBoostTrail",lib_kSpawnBoostTrail},
+	{"K_SpawnSparkleTrail",lib_kSpawnSparkleTrail},
+	{"K_SpawnWipeoutTrail",lib_kSpawnWipeoutTrail},
 	{"K_DriftDustHandling",lib_kDriftDustHandling},
-	{"K_DoMushroom",lib_kDoMushroom},
-	{"K_DoBouncePad",lib_kDoBouncePad},
+	{"K_DoSneaker",lib_kDoSneaker},
+	{"K_DoPogoSpring",lib_kDoPogoSpring},
+	{"K_KillBananaChain",lib_kKillBananaChain},
+	{"K_RepairOrbitChain",lib_kRepairOrbitChain},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
 	{"K_GetKartAccel",lib_kGetKartAccel},

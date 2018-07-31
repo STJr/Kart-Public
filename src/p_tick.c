@@ -677,12 +677,12 @@ void P_Ticker(boolean run)
 		if (countdown2)
 			countdown2--;
 
-		if (blueshellincoming && --blueshellincoming <= 0)
+		if (spbincoming && --spbincoming <= 0)
 		{
 			UINT8 best = 0;
 			SINT8 hurtthisguy = -1;
 
-			blueshellincoming = 0;
+			spbincoming = 0;
 
 			for (i = 0; i < MAXPLAYERS; i++)
 			{
@@ -703,11 +703,20 @@ void P_Ticker(boolean run)
 			}
 
 			if (hurtthisguy != -1)
-				players[hurtthisguy].kartstuff[k_deathsentence] = TICRATE+1;
+			{
+				players[hurtthisguy].kartstuff[k_deathsentence] = (2*TICRATE)+1;
+				S_StartSound(players[hurtthisguy].mo, sfx_kc57);
+			}
 		}
 
-		if (lightningcooldown)
-			lightningcooldown--;
+		if (indirectitemcooldown)
+			indirectitemcooldown--;
+
+		if (G_BattleGametype())
+		{
+			if (wantedcalcdelay && --wantedcalcdelay <= 0)
+				K_CalculateBattleWanted();
+		}
 
 		if (quake.time)
 		{
@@ -731,6 +740,11 @@ void P_Ticker(boolean run)
 			G_ConsGhostTic();
 		if (modeattacking)
 			G_GhostTicker();
+
+		if (mapreset > 1
+			&& --mapreset <= 1
+			&& server) // Remember: server uses it for mapchange, but EVERYONE ticks down for the animation
+				D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
 	}
 
 	P_MapEnd();

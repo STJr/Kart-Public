@@ -1166,7 +1166,7 @@ static inline void CL_DrawConnectionStatus(void)
 	INT32 ccstime = I_GetTime();
 
 	// Draw background fade
-	V_DrawFadeScreen();
+	V_DrawFadeScreen(0xFF00, 16);
 
 	// Draw the bottom box.
 	M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
@@ -1559,7 +1559,7 @@ static void SV_SavedGame(void)
 {
 	size_t length;
 	UINT8 *savebuffer;
-	XBOXSTATIC char tmpsave[256];
+	XBOXSTATIC char tmpsave[264];
 
 	if (!cv_dumpconsistency.value)
 		return;
@@ -1601,7 +1601,7 @@ static void CL_LoadReceivedSavegame(void)
 {
 	UINT8 *savebuffer = NULL;
 	size_t length, decompressedlen;
-	XBOXSTATIC char tmpsave[256];
+	XBOXSTATIC char tmpsave[264];
 
 	sprintf(tmpsave, "%s" PATHSEP TMPSAVENAME, srb2home);
 
@@ -2062,7 +2062,7 @@ static void CL_ConnectToServer(boolean viams)
 	tic_t asksent;
 #endif
 #ifdef JOININGAME
-	XBOXSTATIC char tmpsave[256];
+	XBOXSTATIC char tmpsave[264];
 
 	sprintf(tmpsave, "%s" PATHSEP TMPSAVENAME, srb2home);
 #endif
@@ -2145,6 +2145,8 @@ static void CL_ConnectToServer(boolean viams)
 	}
 	while (!(cl_mode == CL_CONNECTED && (client || (server && nodewaited <= pnumnodes))));
 
+	if (netgame)
+		F_StartWaitingPlayers();
 	DEBFILE(va("Synchronisation Finished\n"));
 
 	displayplayer = consoleplayer;
@@ -2430,6 +2432,9 @@ static void CL_RemovePlayer(INT32 playernum)
 		}
 	}
 
+	if (K_IsPlayerWanted(&players[playernum]))
+		K_CalculateBattleWanted();
+
 	if (gametype == GT_CTF)
 		P_PlayerFlagBurst(&players[playernum], false); // Don't take the flag with you!
 
@@ -2490,7 +2495,7 @@ static void CL_RemovePlayer(INT32 playernum)
 	if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
 		P_CheckSurvivors();
 	else if (G_BattleGametype()) // SRB2Kart
-		K_CheckBalloons();
+		K_CheckBumpers();
 	else if (G_RaceGametype())
 		P_CheckRacers();
 }
@@ -3534,7 +3539,7 @@ static void HandleConnect(SINT8 node)
 #ifdef JOININGAME
 		if (nodewaiting[node])
 		{
-			if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING) && newnode)
+			if (node && newnode)
 			{
 				SV_SendSaveGame(node); // send a complete game state
 				DEBFILE("send savegame\n");
@@ -3705,7 +3710,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			if (client)
 			{
 				maketic = gametic = neededtic = (tic_t)LONG(netbuffer->u.servercfg.gametic);
-				gametype = netbuffer->u.servercfg.gametype;
+				if ((gametype = netbuffer->u.servercfg.gametype) >= NUMGAMETYPES)
+					I_Error("Bad gametype in cliserv!");
 				modifiedgame = netbuffer->u.servercfg.modifiedgame;
 				for (j = 0; j < MAXPLAYERS; j++)
 					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];
@@ -3746,13 +3752,12 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// \note Wait. What if a Lua script uses some global custom variables synched with the NetVars hook?
 			///       Shouldn't them be downloaded even at intermission time?
 			///       Also, according to HandleConnect, the server will send the savegame even during intermission...
-			if (netbuffer->u.servercfg.gamestate == GS_LEVEL
-				/*|| netbuffer->u.servercfg.gamestate == GS_INTERMISSION
-				|| netbuffer->u.servercfg.gamestate == GS_VOTING*/)
-				cl_mode = CL_DOWNLOADSAVEGAME;
-			else
+			/// Sryder 2018-07-05: If we don't want to send the player config another way we need to send the gamestate
+			///                    At almost any gamestate there could be joiners... So just always send gamestate?
+			cl_mode = ((server) ? CL_CONNECTED : CL_DOWNLOADSAVEGAME);
+#else
+			cl_mode = CL_CONNECTED;
 #endif
-				cl_mode = CL_CONNECTED;
 			break;
 		}
 
@@ -3874,9 +3879,8 @@ FILESTAMP
 			// Update the nettics
 			nettics[node] = realend;
 
-			// Don't do anything for packets of type NODEKEEPALIVE?
-			if (netconsole == -1 || netbuffer->packettype == PT_NODEKEEPALIVE
-				|| netbuffer->packettype == PT_NODEKEEPALIVEMIS)
+			// This should probably still timeout though, as the node should always have a player 1 number
+			if (netconsole == -1)
 				break;
 
 			// If a client sends a ticcmd it should mean they are done receiving the savegame
@@ -3885,6 +3889,12 @@ FILESTAMP
 			// As long as clients send valid ticcmds, the server can keep running, so reset the timeout
 			/// \todo Use a separate cvar for that kind of timeout?
 			freezetimeout[node] = I_GetTime() + connectiontimeout;
+
+			// Don't do anything for packets of type NODEKEEPALIVE?
+			// Sryder 2018/07/01: Update the freezetimeout still!
+			if (netbuffer->packettype == PT_NODEKEEPALIVE
+				|| netbuffer->packettype == PT_NODEKEEPALIVEMIS)
+				break;
 
 			// Copy ticcmd
 			G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][netconsole], &netbuffer->u.clientpak.cmd, 1);
@@ -4335,7 +4345,7 @@ static INT16 Consistancy(void)
 	{
 		if (!playeringame[i])
 			ret ^= 0xCCCC;
-		else if (!players[i].mo);
+		else if (!players[i].mo || gamestate != GS_LEVEL);
 		else
 		{
 			ret += players[i].mo->x;
@@ -4346,7 +4356,7 @@ static INT16 Consistancy(void)
 	}
 	// I give up
 	// Coop desynching enemies is painful
-	if (!G_RaceGametype())
+	if (gamestate == GS_LEVEL)
 		ret += P_GetRandSeed();
 
 #ifdef MOBJCONSISTANCY
@@ -4355,70 +4365,73 @@ static INT16 Consistancy(void)
 		DEBFILE(va("Consistancy = %u\n", ret));
 		return ret;
 	}
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	if (gamestate == GS_LEVEL)
 	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo = (mobj_t *)th;
-
-		if (mo->flags & (MF_SPECIAL | MF_SOLID | MF_PUSHABLE | MF_BOSS | MF_MISSILE | MF_SPRING | MF_MONITOR | MF_FIRE | MF_ENEMY | MF_PAIN | MF_STICKY))
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
 		{
-			ret -= mo->type;
-			ret += mo->x;
-			ret -= mo->y;
-			ret += mo->z;
-			ret -= mo->momx;
-			ret += mo->momy;
-			ret -= mo->momz;
-			ret += mo->angle;
-			ret -= mo->flags;
-			ret += mo->flags2;
-			ret -= mo->eflags;
-			if (mo->target)
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+				continue;
+
+			mo = (mobj_t *)th;
+
+			if (mo->flags & (MF_SPECIAL | MF_SOLID | MF_PUSHABLE | MF_BOSS | MF_MISSILE | MF_SPRING | MF_MONITOR | MF_FIRE | MF_ENEMY | MF_PAIN | MF_STICKY))
 			{
-				ret += mo->target->type;
-				ret -= mo->target->x;
-				ret += mo->target->y;
-				ret -= mo->target->z;
-				ret += mo->target->momx;
-				ret -= mo->target->momy;
-				ret += mo->target->momz;
-				ret -= mo->target->angle;
-				ret += mo->target->flags;
-				ret -= mo->target->flags2;
-				ret += mo->target->eflags;
-				ret -= mo->target->state - states;
-				ret += mo->target->tics;
-				ret -= mo->target->sprite;
-				ret += mo->target->frame;
+				ret -= mo->type;
+				ret += mo->x;
+				ret -= mo->y;
+				ret += mo->z;
+				ret -= mo->momx;
+				ret += mo->momy;
+				ret -= mo->momz;
+				ret += mo->angle;
+				ret -= mo->flags;
+				ret += mo->flags2;
+				ret -= mo->eflags;
+				if (mo->target)
+				{
+					ret += mo->target->type;
+					ret -= mo->target->x;
+					ret += mo->target->y;
+					ret -= mo->target->z;
+					ret += mo->target->momx;
+					ret -= mo->target->momy;
+					ret += mo->target->momz;
+					ret -= mo->target->angle;
+					ret += mo->target->flags;
+					ret -= mo->target->flags2;
+					ret += mo->target->eflags;
+					ret -= mo->target->state - states;
+					ret += mo->target->tics;
+					ret -= mo->target->sprite;
+					ret += mo->target->frame;
+				}
+				else
+					ret ^= 0x3333;
+				if (mo->tracer && mo->tracer->type != MT_OVERLAY)
+				{
+					ret += mo->tracer->type;
+					ret -= mo->tracer->x;
+					ret += mo->tracer->y;
+					ret -= mo->tracer->z;
+					ret += mo->tracer->momx;
+					ret -= mo->tracer->momy;
+					ret += mo->tracer->momz;
+					ret -= mo->tracer->angle;
+					ret += mo->tracer->flags;
+					ret -= mo->tracer->flags2;
+					ret += mo->tracer->eflags;
+					ret -= mo->tracer->state - states;
+					ret += mo->tracer->tics;
+					ret -= mo->tracer->sprite;
+					ret += mo->tracer->frame;
+				}
+				else
+					ret ^= 0xAAAA;
+				ret -= mo->state - states;
+				ret += mo->tics;
+				ret -= mo->sprite;
+				ret += mo->frame;
 			}
-			else
-				ret ^= 0x3333;
-			if (mo->tracer && mo->tracer->type != MT_OVERLAY)
-			{
-				ret += mo->tracer->type;
-				ret -= mo->tracer->x;
-				ret += mo->tracer->y;
-				ret -= mo->tracer->z;
-				ret += mo->tracer->momx;
-				ret -= mo->tracer->momy;
-				ret += mo->tracer->momz;
-				ret -= mo->tracer->angle;
-				ret += mo->tracer->flags;
-				ret -= mo->tracer->flags2;
-				ret += mo->tracer->eflags;
-				ret -= mo->tracer->state - states;
-				ret += mo->tracer->tics;
-				ret -= mo->tracer->sprite;
-				ret += mo->tracer->frame;
-			}
-			else
-				ret ^= 0xAAAA;
-			ret -= mo->state - states;
-			ret += mo->tics;
-			ret -= mo->sprite;
-			ret += mo->frame;
 		}
 	}
 #endif

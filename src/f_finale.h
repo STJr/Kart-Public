@@ -35,9 +35,13 @@ void F_CutsceneTicker(void);
 void F_TitleDemoTicker(void);
 
 // Called by main loop.
-FUNCMATH void F_GameEndDrawer(void);
+void F_GameEndDrawer(void);
 void F_IntroDrawer(void);
 void F_TitleScreenDrawer(void);
+
+void F_StartWaitingPlayers(void);
+void F_WaitingPlayersTicker(void);
+void F_WaitingPlayersDrawer(void);
 
 void F_GameEvaluationDrawer(void);
 void F_StartGameEvaluation(void);
@@ -78,6 +82,7 @@ enum
 
 	wipe_level_toblack,
 	wipe_intermission_toblack,
+	wipe_voting_toblack,
 	wipe_continuing_toblack,
 	wipe_titlescreen_toblack,
 	wipe_timeattack_toblack,
@@ -94,6 +99,7 @@ enum
 
 	wipe_level_final,
 	wipe_intermission_final,
+	wipe_voting_final,
 	wipe_continuing_final,
 	wipe_titlescreen_final,
 	wipe_timeattack_final,
@@ -107,9 +113,10 @@ enum
 	wipe_specinter_final,
 	wipe_multinter_final,
 
-	NUMWIPEDEFS
+	NUMWIPEDEFS,
+	WIPEFINALSHIFT = wipe_level_final - wipe_level_toblack
 };
-#define WIPEFINALSHIFT 13
+
 extern UINT8 wipedefs[NUMWIPEDEFS];
 
 #endif

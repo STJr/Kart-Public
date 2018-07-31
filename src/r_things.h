@@ -55,7 +55,7 @@ void R_DelSpriteDefs(UINT16 wadnum);
 #endif
 
 //SoM: 6/5/2000: Light sprites correctly!
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer);
+void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber);
 void R_InitSprites(void);
 void R_ClearSprites(void);
 void R_ClipSprites(void);
@@ -81,7 +81,7 @@ typedef struct
 
 	char realname[SKINNAMESIZE+1]; // Display name for level completion.
 	char hudname[SKINNAMESIZE+1]; // HUD name to display (officially exactly 5 characters long)
-	char charsel[8], face[8], superface[8]; // Arbitrarily named patch lumps
+	char charsel[9], face[9], superface[9]; // Arbitrarily named patch lumps
 
 	UINT8 ability; // ability definition
 	UINT8 ability2; // secondary ability definition

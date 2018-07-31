@@ -23,8 +23,9 @@
 #define PICKUP_SOUND 0x8000
 
 extern consvar_t stereoreverse;
-extern consvar_t cv_soundvolume, cv_digmusicvolume, cv_midimusicvolume;
+extern consvar_t cv_soundvolume, cv_digmusicvolume;//, cv_midimusicvolume;
 extern consvar_t cv_numChannels;
+extern consvar_t surround;
 
 #ifdef SNDSERV
 extern consvar_t sndserver_cmd, sndserver_arg;
@@ -71,7 +72,7 @@ void S_RegisterSoundStuff(void);
 // Initializes sound stuff, including volume
 // Sets channels, SFX and music volume, allocates channel buffer, sets S_sfx lookup.
 //
-void S_Init(INT32 sfxVolume, INT32 digMusicVolume, INT32 midiMusicVolume);
+void S_Init(INT32 sfxVolume, INT32 digMusicVolume);
 
 //
 // Per level startup code.
@@ -122,7 +123,7 @@ void S_UpdateSounds(void);
 FUNCMATH fixed_t S_CalculateSoundDistance(fixed_t px1, fixed_t py1, fixed_t pz1, fixed_t px2, fixed_t py2, fixed_t pz2);
 
 void S_SetDigMusicVolume(INT32 volume);
-void S_SetMIDIMusicVolume(INT32 volume);
+//void S_SetMIDIMusicVolume(INT32 volume);
 void S_SetSfxVolume(INT32 volume);
 
 INT32 S_OriginPlaying(void *origin);
@@ -142,7 +143,7 @@ void S_StopSoundByNum(sfxenum_t sfxnum);
 #ifdef MUSICSLOT_COMPATIBILITY
 // For compatibility with code/scripts relying on older versions
 // This is a list of all the "special" slot names and their associated numbers
-const char *compat_special_music_slots[21];
+const char *compat_special_music_slots[16];
 #endif
 
 #endif

@@ -2552,28 +2552,28 @@ void I_StartupMouse2(void)
 //
 // I_Tactile
 //
-FUNCMATH void I_Tactile(FFType pFFType, const JoyFF_t *FFEffect)
+void I_Tactile(FFType pFFType, const JoyFF_t *FFEffect)
 {
 	// UNUSED.
 	(void)pFFType;
 	(void)FFEffect;
 }
 
-FUNCMATH void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
+void I_Tactile2(FFType pFFType, const JoyFF_t *FFEffect)
 {
 	// UNUSED.
 	(void)pFFType;
 	(void)FFEffect;
 }
 
-FUNCMATH void I_Tactile3(FFType pFFType, const JoyFF_t *FFEffect)
+void I_Tactile3(FFType pFFType, const JoyFF_t *FFEffect)
 {
 	// UNUSED.
 	(void)pFFType;
 	(void)FFEffect;
 }
 
-FUNCMATH void I_Tactile4(FFType pFFType, const JoyFF_t *FFEffect)
+void I_Tactile4(FFType pFFType, const JoyFF_t *FFEffect)
 {
 	// UNUSED.
 	(void)pFFType;
@@ -2705,7 +2705,7 @@ tic_t I_GetTime (void)
 //
 //I_StartupTimer
 //
-FUNCMATH void I_StartupTimer(void)
+void I_StartupTimer(void)
 {
 #ifdef _WIN32
 	// for win2k time bug
@@ -2805,11 +2805,11 @@ void I_WaitVBL(INT32 count)
 	SDL_Delay(count);
 }
 
-FUNCMATH void I_BeginRead(void)
+void I_BeginRead(void)
 {
 }
 
-FUNCMATH void I_EndRead(void)
+void I_EndRead(void)
 {
 }
 
@@ -3557,5 +3557,5 @@ const CPUInfoFlags *I_CPUInfo(void)
 }
 
 // note CPUAFFINITY code used to reside here
-FUNCMATH void I_RegisterSysCommands(void) {}
+void I_RegisterSysCommands(void) {}
 #endif
