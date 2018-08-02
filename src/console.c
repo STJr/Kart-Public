@@ -1039,14 +1039,14 @@ boolean CON_Responder(event_t *ev)
 
 	// capslock
 	if (key == KEY_CAPSLOCK)	// it's a toggle.
-	{	
+	{
 		if (capslock)
 			capslock = false;
-		else	
+		else
 			capslock = true;
 		return true;
-	}	
-	
+	}
+
 	if (capslock ^ shiftdown)	// gets capslock to work because capslock is cool
 		key = shiftxform[key];
 

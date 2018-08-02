@@ -20,6 +20,7 @@
 #include "m_random.h"
 #include "s_sound.h"
 #include "g_game.h"
+#include "hu_stuff.h"
 #include "k_kart.h"
 
 #include "lua_script.h"

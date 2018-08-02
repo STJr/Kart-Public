@@ -1047,7 +1047,7 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU|IT_STRING,		NULL, "Video Options...",		&OP_VideoOptionsDef,		 30},
 	{IT_SUBMENU|IT_STRING,		NULL, "Sound Options...",		&OP_SoundOptionsDef,		 40},
 
-	{IT_SUBMENU|IT_STRING,		NULL, "HUD Options...",		&OP_HUDOptionsDef,			 60},
+	{IT_SUBMENU|IT_STRING,		NULL, "HUD Options...",			&OP_HUDOptionsDef,			 60},
 	{IT_STRING|IT_CALL,			NULL, "Screenshot Options...",	M_ScreenshotOptions,		 70},
 
 	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 90},
@@ -1334,13 +1334,14 @@ static menuitem_t OP_SoundOptionsMenu[] =
 
 	{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
 
-	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 70},
-	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 80},
+	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 65},
+	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 75},
 
+	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 90},
 	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			100},
 	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		110},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		130},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		125},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -1393,19 +1394,27 @@ static menuitem_t OP_EraseDataMenu[] =
 
 static menuitem_t OP_HUDOptionsMenu[] =
 {
-	{IT_STRING | IT_CVAR, NULL, "Show HUD (F3)",					&cv_showhud,			 10},
+	{IT_STRING | IT_CVAR, NULL, "Show HUD (F3)",			&cv_showhud,			 10},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "HUD Visibility",			&cv_translucenthud,		 20},
 
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-						  NULL, "Minimap Visibility",		&cv_kartminimap,		 40},
-	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",		&cv_kartspeedometer,	 50},
-	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",			&cv_kartcheck,			 60},
+						  NULL, "Minimap Visibility",		&cv_kartminimap,		 35},
+	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",		&cv_kartspeedometer,	 45},
+	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",			&cv_kartcheck,			 55},
 
-	{IT_STRING | IT_CVAR, NULL, "Console Color",			&cons_backcolor,		 80},
-	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		 90},
+	{IT_STRING | IT_CVAR, NULL, "Menu Highlights",			&cons_menuhighlight,     70},
+	// highlight info - (GOOD HIGHLIGHT, WARNING HIGHLIGHT) - 80 (see M_DrawHUDOptions)
 
-	{IT_STRING | IT_CVAR, NULL, "Menu Highlights",			&cons_menuhighlight,    110},
+	//{IT_STRING | IT_CVAR, NULL, "Chat mode",				&cv_consolechat,		 95}, -- will ANYONE who doesn't know how to use the console want to touch this
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+	                      NULL, "Chat box width",			&cv_chatwidth,		 	 95},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+	                      NULL, "Chat box height",			&cv_chatheight,		 	105},
+	{IT_STRING | IT_CVAR, NULL, "Chat fadeout time",		&cv_chattime,			115},
+
+	{IT_STRING | IT_CVAR, NULL, "Background Color",			&cons_backcolor,		130},
+	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		140},
 };
 
 static menuitem_t OP_GameOptionsMenu[] =
@@ -1420,7 +1429,7 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
 
 	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
-	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",			&cv_kartbumpers,		100},
+	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",				&cv_kartbumpers,		100},
 	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		110},
 
 	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          130},
@@ -1440,10 +1449,10 @@ static menuitem_t OP_ServerOptionsMenu[] =
 
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max Player Count",				&cv_maxplayers,			 80},
-	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",		&cv_allownewplayer,		 90},
+	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		 90},
 	//{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		100},
 
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",		&cv_downloading,		100},
+	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",			&cv_downloading,		100},
 	{IT_STRING | IT_CVAR,    NULL, "Attempts to Resynch",			&cv_resynchattempts,	110},
 #endif
 };
@@ -8364,7 +8373,7 @@ static void M_DrawHUDOptions(void)
 	const char *str1 = " Warning highlight";
 	const char *str2 = ",";
 	const char *str3 = "Good highlight";
-	INT32 x = BASEVIDWIDTH - currentMenu->x + 2, y = currentMenu->y + 120;
+	INT32 x = BASEVIDWIDTH - currentMenu->x + 2, y = currentMenu->y + 80;
 	INT32 w0 = V_StringWidth(str0, 0), w1 = V_StringWidth(str1, 0), w2 = V_StringWidth(str2, 0), w3 = V_StringWidth(str3, 0);
 	M_DrawGenericMenu();
 	x -= w0;
