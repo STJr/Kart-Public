@@ -21,6 +21,7 @@
 #include "s_sound.h"
 #include "g_game.h"
 #include "hu_stuff.h"
+#include "console.h"
 #include "k_kart.h"
 
 #include "lua_script.h"
@@ -96,11 +97,14 @@ static int lib_chatprint(lua_State *L)
 	int len = strlen(str);
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
-	
-	if (cv_consolechat.value || !netgame)
+
+	HU_AddChatText(str);
+
+	if OLDCHAT
 		CONS_Printf("%s\n", str);
 	else
-		HU_AddChatText(str);
+		CON_LogMessage(str); // save to log.txt
+
 	return 0;
 }
 
@@ -124,11 +128,14 @@ static int lib_chatprintf(lua_State *L)
 	int len = strlen(str);
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
-	
-	if (cv_consolechat.value || !netgame)
+
+	HU_AddChatText(str);
+
+	if OLDCHAT
 		CONS_Printf("%s\n", str);
 	else
-		HU_AddChatText(str);
+		CON_LogMessage(str); // save to log.txt
+
 	return 0;
 }
 

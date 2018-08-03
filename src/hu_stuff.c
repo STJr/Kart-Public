@@ -388,6 +388,8 @@ static void HU_removeChatText_Log(void)
 
 void HU_AddChatText(const char *text)
 {
+	if (cv_chatnotifications.value)
+		S_StartSound(NULL, sfx_radio);
 
 	// TODO: check if we're oversaturating the log (we can only log CHAT_BUFSIZE messages.)
 
@@ -791,18 +793,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		}
 
-		if (cv_consolechat.value)
-		{
+		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
+
+		if OLDCHAT
 			CONS_Printf(fmt, prefix, cstart, dispname, cend, msg);
-			HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg));	// add it reguardless, in case we decide to change our mind about our chat type.
-		}
 		else
-		{
-			HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg));
-			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, msg));	// save to log.txt
-			if (cv_chatnotifications.value)
-				S_StartSound(NULL, sfx_radio);
-		}
+			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, msg)); // save to log.txt
 
 		if (tempchar)
 			Z_Free(tempchar);
@@ -1956,19 +1952,17 @@ void HU_Drawer(void)
 		// count down the scroll timer.
 		if (chat_scrolltime > 0)
 			chat_scrolltime--;
-		if (!cv_consolechat.value && vid.width > 320)	// don't even try using newchat sub 400p, I'm too fucking lazy
+		if (!OLDCHAT)
 			HU_DrawChat();
 		else
 			HU_DrawChat_Old();	// why the fuck.........................
 	}
 	else
 	{
-		if (!cv_consolechat.value)
-		{
+		chat_scrolltime = 0;	// do scroll anyway.
+		typelines = 1;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
+		if (!OLDCHAT)
 			HU_drawMiniChat();		// draw messages in a cool fashion.
-			chat_scrolltime = 0;	// do scroll anyway.
-			typelines = 1;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
-		}
 	}
 
 	if (netgame)	// would handle that in hu_drawminichat, but it's actually kinda awkward when you're typing a lot of messages. (only handle that in netgames duh)
