@@ -1339,7 +1339,7 @@ static void K_RegularVoiceTimers(player_t *player)
 
 static void K_PlayTauntSound(mobj_t *source)
 {
-#if 0
+#if 1
 	sfxenum_t pick = P_RandomKey(4); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
 
@@ -1362,7 +1362,7 @@ static void K_PlayTauntSound(mobj_t *source)
 
 static void K_PlayOvertakeSound(mobj_t *source)
 {
-#if 0
+#if 1
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
 	if (!G_RaceGametype()) // Only in race
@@ -5741,19 +5741,16 @@ static void K_drawBattleFullscreen(void)
 	}
 	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
 	{
-		INT32 t = stplyr->kartstuff[k_comebacktimer]/TICRATE;
-		INT32 txoff = 0;
+		UINT16 t = stplyr->kartstuff[k_comebacktimer]/(10*TICRATE);
+		INT32 txoff, adjust = (splitscreen > 1) ? 4 : 6; // normal string is 8, kart string is 12, half of that for ease
 		INT32 ty = (BASEVIDHEIGHT/2)+66;
 
-		if (t == 0)
-			txoff = 8;
-		else
+		txoff = adjust;
+
+		while (t)
 		{
-			while (t)
-			{
-				txoff += 8;
-				t /= 10;
-			}
+			txoff += adjust;
+			t /= 10;
 		}
 
 		if (splitscreen)
@@ -5774,7 +5771,7 @@ static void K_drawBattleFullscreen(void)
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewait, NULL);
 
 		if (splitscreen > 1)
-			V_DrawString(x-(txoff/2), ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		else
 		{
 			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, 0, kp_timeoutsticker, NULL);
@@ -6065,11 +6062,13 @@ static void K_drawCheckpointDebugger(void)
 
 void K_drawKartFreePlay(UINT32 flashtime)
 {
+	// no splitscreen support because it's not FREE PLAY if you have more than one player in-game
+
 	if ((flashtime % TICRATE) < TICRATE/2)
 		return;
 
-	V_DrawKartString(BASEVIDWIDTH/2 - (6*9), // horizontally centered, nice
-		LAPS_Y+3, V_SNAPTOBOTTOM, "FREE PLAY");
+	V_DrawKartString((BASEVIDWIDTH - (LAPS_X+1)) - (12*9), // mirror the laps thingy
+		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
 }
 
 void K_drawKartHUD(void)

@@ -263,7 +263,6 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 //
 void Y_IntermissionDrawer(void)
 {
-	boolean forcefreeplay = false;
 	INT32 i, whiteplayer = MAXPLAYERS, x = 4, hilicol = V_YELLOWMAP; // fallback
 
 	if (intertype == int_none || rendermode == render_none)
@@ -370,11 +369,7 @@ void Y_IntermissionDrawer(void)
 		if (data.match.rankingsmode)
 			timeheader = "RANK";
 		else
-		{
 			timeheader = (intertype == int_race ? "TIME" : "SCORE");
-			if (data.match.numplayers <= 1)
-				forcefreeplay = true;
-		}
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
@@ -492,37 +487,16 @@ void Y_IntermissionDrawer(void)
 	}
 
 dotimer:
-
-	if (netgame) //  FREE PLAY?
-	{
-		i = MAXPLAYERS;
-
-		if (!forcefreeplay)
-		{
-			// check to see if there's anyone else at all
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (i == consoleplayer)
-					continue;
-				if (playeringame[i] && !stplyr->spectator)
-					break;
-			}
-		}
-
-		if (i == MAXPLAYERS)
-			K_drawKartFreePlay(intertic);
-	}
-
 	if (timer)
 	{
 		INT32 tickdown = (timer+1)/TICRATE;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
-			va("start in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
+			va("%s in %d", cv_advancemap.string, tickdown));
 	}
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol|V_SNAPTOBOTTOM, M_GetText("Teams will be scrambled next round!"));
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol, M_GetText("Teams will be scrambled next round!"));
 }
 
 //
@@ -953,10 +927,10 @@ void Y_VoteDrawer(void)
 	if (votetic >= voteendtic && voteendtic != -1)
 		return;
 
-	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
-
 	if (!voteclient.loaded)
 		return;
+
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx > 320)
 		V_DrawScaledPatch(((vid.width/2) / vid.dupx) - (SHORT(widebgpatch->width)/2),
@@ -1155,8 +1129,8 @@ void Y_VoteDrawer(void)
 			hilicol = V_SKYMAP;
 		else //if (gametype == GT_MATCH)
 			hilicol = V_REDMAP;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
-			va("Vote ends in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
+			va("Vote ends in %d", tickdown));
 	}
 }
 

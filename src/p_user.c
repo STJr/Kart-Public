@@ -1118,6 +1118,31 @@ void P_PlayLivesJingle(player_t *player)
 	}
 }
 
+void P_PlayRinglossSound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, (mariomode) ? sfx_mario8 : sfx_altow1 + key);
+	else
+		S_StartSound(source, sfx_slip);
+}
+
+void P_PlayDeathSound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_altdi1 + key);
+	else
+		S_StartSound(source, sfx_s3k35);
+}
+
+void P_PlayVictorySound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_victr1 + key);
+}
+
 //
 // P_EndingMusic
 //
@@ -1722,8 +1747,8 @@ void P_DoPlayerExit(player_t *player)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
-		if (!countdown2)
-			countdown2 = countdown + 8*TICRATE;
+		//if (!countdown2)
+			//countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
@@ -9063,6 +9088,12 @@ void P_DoTimeOver(player_t *player)
 	player->lives = 0;
 
 	P_EndingMusic(player);
+
+#if 0
+	// sal, when you do the f-zero explosion, this is how you make sure the map doesn't end before it's done ^u^ ~toast
+	if (!countdown2)
+		countdown2 = 5*TICRATE;
+#endif
 }
 
 //

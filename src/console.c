@@ -1037,7 +1037,17 @@ boolean CON_Responder(event_t *ev)
 	else if (key == KEY_KPADSLASH)
 		key = '/';
 
-	if (shiftdown)
+	// capslock
+	if (key == KEY_CAPSLOCK)	// it's a toggle.
+	{
+		if (capslock)
+			capslock = false;
+		else
+			capslock = true;
+		return true;
+	}
+
+	if (capslock ^ shiftdown)	// gets capslock to work because capslock is cool
 		key = shiftxform[key];
 
 	// enter a char into the command prompt
@@ -1045,7 +1055,7 @@ boolean CON_Responder(event_t *ev)
 		return true; // even if key can't be printed, eat it anyway
 
 	// add key to cmd line here
-	if (key >= 'A' && key <= 'Z' && !shiftdown) //this is only really necessary for dedicated servers
+	if (key >= 'A' && key <= 'Z' && !(shiftdown ^ capslock)) //this is only really necessary for dedicated servers
 		key = key + 'a' - 'A';
 
 	if (input_sel != input_cur)
@@ -1432,7 +1442,7 @@ static void CON_DrawHudlines(void)
 	if (con_hudlines <= 0)
 		return;
 
-	if (chat_on)
+	if (chat_on && OLDCHAT)
 		y = charheight; // leave place for chat input in the first row of text
 	else
 		y = 0;
