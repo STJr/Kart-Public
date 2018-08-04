@@ -2610,7 +2610,7 @@ state_t states[NUMSTATES] =
 	{SPR_WIPD, 3, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL5}, // S_WIPEOUTTRAIL4
 	{SPR_WIPD, 4, 3, {NULL}, 0, 0, S_NULL}, // S_WIPEOUTTRAIL5
 
-	{SPR_FITM,  0|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM2},  // S_FAKEITEM1
+	{SPR_FITM,    FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM2},  // S_FAKEITEM1
 	{SPR_FITM,  1|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM3},  // S_FAKEITEM2
 	{SPR_FITM,  2|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM4},  // S_FAKEITEM3
 	{SPR_FITM,  3|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM5},  // S_FAKEITEM4
@@ -2634,20 +2634,25 @@ state_t states[NUMSTATES] =
 	{SPR_FITM, 21|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM23}, // S_FAKEITEM22  // *****
 	{SPR_FITM, 22|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM24}, // S_FAKEITEM23 // *****
 	{SPR_FITM, 23|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM1},  // S_FAKEITEM24 // *****
-	{SPR_FITM, 24|FF_FULLBRIGHT, 175, {NULL}, 0, 0, S_FAKEITEM1},  // S_DEADFAKEITEM
+	{SPR_FITM,    FF_FULLBRIGHT, 175, {NULL}, 0, 0, S_FAKEITEM1},  // S_DEADFAKEITEM
 
 	{SPR_BANA, 0,  -1, {NULL}, 0, 0, S_NULL}, // S_BANANA
-	{SPR_BANA, 1, 175, {NULL}, 0, 0, S_NULL}, // S_BANANA_DEAD
+	{SPR_BANA, 0, 175, {NULL}, 0, 0, S_NULL}, // S_BANANA_DEAD
 
-	{SPR_ORBN, 0, 1, {NULL}, 0, 0, S_ORBINAUT2},		// S_ORBINAUT1
-	{SPR_ORBN, 1, 1, {NULL}, 0, 0, S_ORBINAUT3},		// S_ORBINAUT2
-	{SPR_ORBN, 2, 1, {NULL}, 0, 0, S_ORBINAUT4},		// S_ORBINAUT3
-	{SPR_ORBN, 3, 1, {NULL}, 0, 0, S_ORBINAUT5},		// S_ORBINAUT4
-	{SPR_ORBN, 4, 1, {NULL}, 0, 0, S_ORBINAUT6},		// S_ORBINAUT5
-	{SPR_ORBN, 5, 1, {NULL}, 0, 0, S_ORBINAUT1},		// S_ORBINAUT6
-	{SPR_ORBN, 7, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD},	// S_ORBINAUT_SHIELD
-	{SPR_ORBN, 6, 175, {NULL}, 0, 0, S_NULL},			// S_ORBINAUT_DEAD
-	{SPR_ORBN, 8, 175, {NULL}, 0, 0, S_NULL},			// S_ORBINAUT_SHIELDDEAD
+	{SPR_ORBN,  0, 1, {NULL}, 0, 0, S_ORBINAUT2},			// S_ORBINAUT1
+	{SPR_ORBN,  1, 1, {NULL}, 0, 0, S_ORBINAUT3},			// S_ORBINAUT2
+	{SPR_ORBN,  2, 1, {NULL}, 0, 0, S_ORBINAUT4},			// S_ORBINAUT3
+	{SPR_ORBN,  3, 1, {NULL}, 0, 0, S_ORBINAUT5},			// S_ORBINAUT4
+	{SPR_ORBN,  4, 1, {NULL}, 0, 0, S_ORBINAUT6},			// S_ORBINAUT5
+	{SPR_ORBN,  5, 1, {NULL}, 0, 0, S_ORBINAUT1},			// S_ORBINAUT6
+	{SPR_ORBN,  0, 175, {NULL}, 0, 0, S_NULL},			// S_ORBINAUT_DEAD
+	{SPR_ORBN,  6, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD2},	// S_ORBINAUT_SHIELD1
+	{SPR_ORBN,  7, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD3},	// S_ORBINAUT_SHIELD2
+	{SPR_ORBN,  8, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD4},	// S_ORBINAUT_SHIELD3
+	{SPR_ORBN,  9, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD5},	// S_ORBINAUT_SHIELD4
+	{SPR_ORBN, 10, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD6},	// S_ORBINAUT_SHIELD5
+	{SPR_ORBN, 11, 1, {NULL}, 0, 0, S_ORBINAUT_SHIELD1},	// S_ORBINAUT_SHIELD6
+	{SPR_ORBN,  6, 175, {NULL}, 0, 0, S_NULL},			// S_ORBINAUT_SHIELDDEAD
 
 	{SPR_JAWZ, 0, 1, {A_JawzChase}, 0, 0, S_JAWZ2},	// S_JAWZ1
 	{SPR_JAWZ, 4, 1, {A_JawzChase}, 0, 0, S_JAWZ3},	// S_JAWZ2
@@ -14669,7 +14674,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_ORBINAUT_DEAD,// deathstate
 		S_NULL,         // xdeathstate
-		sfx_shbrk,      // deathsound
+		sfx_s3k5d,      // deathsound
 		64*FRACUNIT,    // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
@@ -14683,7 +14688,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_ORBINAUT_SHIELD
 		-1,             // doomednum
-		S_ORBINAUT_SHIELD, // spawnstate
+		S_ORBINAUT_SHIELD1, // spawnstate
 		1000,           // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound
@@ -14723,7 +14728,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_JAWZ_DEAD1,   // deathstate
 		S_JAWZ_DEAD2,   // xdeathstate
-		sfx_shbrk,      // deathsound
+		sfx_s3k5d,      // deathsound
 		7*FRACUNIT,     // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
@@ -14750,7 +14755,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_JAWZ_DEAD1,   // deathstate
 		S_JAWZ_DEAD2,   // xdeathstate
-		sfx_shbrk,      // deathsound
+		sfx_s3k5d,      // deathsound
 		56*FRACUNIT,    // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
@@ -15155,7 +15160,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_NULL,         // deathstate
 		S_NULL,         // xdeathstate
-		sfx_shbrk,      // deathsound
+		sfx_s3k5d,      // deathsound
 		0,              // speed
 		16*FRACUNIT,    // radius
 		24*FRACUNIT,    // height
