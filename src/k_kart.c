@@ -385,7 +385,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_selfpropelledbomb);
 	CV_RegisterVar(&cv_grow);
 	CV_RegisterVar(&cv_shrink);
-	CV_RegisterVar(&cv_lightningshield);
+	CV_RegisterVar(&cv_thundershield);
 	CV_RegisterVar(&cv_hyudoro);
 	CV_RegisterVar(&cv_pogospring);
 
@@ -476,7 +476,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
    /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 1, 2, 4, 6, 4 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // Shrink
-	  /*Lightning Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Lightning Shield
+		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
@@ -502,7 +502,7 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
    /*Self-Propelled Bomb*/ { 0, 0, 0, 0 }, // Self-Propelled Bomb
 				  /*Grow*/ { 4, 2, 0, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0 }, // Shrink
-	  /*Lightning Shield*/ { 0, 0, 0, 0 }, // Lightning Shield
+		/*Thunder Shield*/ { 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 1, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 1, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0 }, // Kitchen Sink
@@ -680,9 +680,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 				|| (indirectitemcooldown > 0)
 				|| (pingame-1 <= pexiting)) newodds = 0;
 			break;
-		case KITEM_LIGHTNINGSHIELD:
+		case KITEM_THUNDERSHIELD:
 			POWERITEMODDS(newodds);
-			if (!cv_lightningshield.value) newodds = 0;
+			if (!cv_thundershield.value) newodds = 0;
 			break;
 		case KITEM_HYUDORO:
 			if (!cv_hyudoro.value) newodds = 0;
@@ -899,7 +899,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	SETITEMRESULT(useodds, KITEM_SPB);				// Self-Propelled Bomb
 	SETITEMRESULT(useodds, KITEM_GROW);				// Grow
 	SETITEMRESULT(useodds, KITEM_SHRINK);			// Shrink
-	SETITEMRESULT(useodds, KITEM_LIGHTNINGSHIELD);	// Lightning Shield
+	SETITEMRESULT(useodds, KITEM_THUNDERSHIELD);	// Thunder Shield
 	SETITEMRESULT(useodds, KITEM_HYUDORO);			// Hyudoro
 	SETITEMRESULT(useodds, KITEM_POGOSPRING);		// Pogo Spring
 	//SETITEMRESULT(useodds, KITEM_KITCHENSINK);	// Kitchen Sink
@@ -2537,10 +2537,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	return mo;
 }
 
-static void K_DoLightningShield(player_t *player)
+static void K_DoThunderShield(player_t *player)
 {
 	S_StartSound(player->mo, sfx_s3k45);
-	player->kartstuff[k_attractiontimer] = 35;
+	//player->kartstuff[k_thunderanim] = 35;
 	P_NukeEnemies(player->mo, player->mo, RING_DIST/4);
 }
 
@@ -2550,7 +2550,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	INT32 playerswappable[MAXPLAYERS];
 	INT32 stealplayer = -1; // The player that's getting stolen from
 	INT32 prandom = 0;
-	fixed_t sink = P_RandomChance(FRACUNIT/64);
+	boolean sink = P_RandomChance(FRACUNIT/64);
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -2574,7 +2574,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	prandom = P_RandomFixed();
 	S_StartSound(player->mo, sfx_s3k92);
 
-	if (sink) // BEHOLD THE KITCHEN SINK
+	if (sink && numplayers > 0) // BEHOLD THE KITCHEN SINK
 	{
 		player->kartstuff[k_hyudorotimer] = hyudorotime;
 		player->kartstuff[k_stealingtimer] = stealtime;
@@ -3010,8 +3010,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
 		player->powers[pw_flashing]--;
 
-	if (player->kartstuff[k_attractiontimer])
-		player->kartstuff[k_attractiontimer]--;
+	/*if (player->kartstuff[k_thunderanim])
+		player->kartstuff[k_thunderanim]--;*/
 
 	if (player->kartstuff[k_sneakertimer])
 		player->kartstuff[k_sneakertimer]--;
@@ -3538,7 +3538,9 @@ void K_StripItems(player_t *player)
 	player->kartstuff[k_stealingtimer] = 0;
 	player->kartstuff[k_stolentimer] = 0;
 
-	player->kartstuff[k_attractiontimer] = 0;
+	player->kartstuff[k_curshield] = 0;
+	//player->kartstuff[k_thunderanim] = 0;
+	player->kartstuff[k_bananadrag] = 0;
 
 	player->kartstuff[k_sadtimer] = 0;
 }
@@ -3871,10 +3873,16 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
-				case KITEM_LIGHTNINGSHIELD:
+				case KITEM_THUNDERSHIELD:
+					if (player->kartstuff[k_curshield] <= 0)
+					{
+						mobj_t *shield = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNDERSHIELD);
+						P_SetTarget(&shield->target, player->mo);
+						player->kartstuff[k_curshield] = 1;
+					}
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						K_DoLightningShield(player);
+						K_DoThunderShield(player);
 						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
 					}
@@ -3923,6 +3931,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// No more!
 		if (!player->kartstuff[k_itemamount] && !player->kartstuff[k_itemheld])
 			player->kartstuff[k_itemtype] = KITEM_NONE;
+
+		if (player->kartstuff[k_itemtype] != KITEM_THUNDERSHIELD)
+			player->kartstuff[k_curshield] = 0;
 
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
@@ -4384,7 +4395,7 @@ static patch_t *kp_ballhog[2];
 static patch_t *kp_selfpropelledbomb[2];
 static patch_t *kp_grow[2];
 static patch_t *kp_shrink[2];
-static patch_t *kp_lightningshield[2];
+static patch_t *kp_thundershield[2];
 static patch_t *kp_hyudoro[2];
 static patch_t *kp_pogospring[2];
 static patch_t *kp_kitchensink[2];
@@ -4494,7 +4505,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_selfpropelledbomb[0] =	W_CachePatchName("K_ITSPB", PU_HUDGFX);
 	kp_grow[0] =				W_CachePatchName("K_ITGROW", PU_HUDGFX);
 	kp_shrink[0] =				W_CachePatchName("K_ITSHRK", PU_HUDGFX);
-	kp_lightningshield[0] =		W_CachePatchName("K_ITLITS", PU_HUDGFX);
+	kp_thundershield[0] =		W_CachePatchName("K_ITTHNS", PU_HUDGFX);
 	kp_hyudoro[0] = 			W_CachePatchName("K_ITHYUD", PU_HUDGFX);
 	kp_pogospring[0] = 			W_CachePatchName("K_ITPOGO", PU_HUDGFX);
 	kp_kitchensink[0] = 		W_CachePatchName("K_ITSINK", PU_HUDGFX);
@@ -4522,7 +4533,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_selfpropelledbomb[1] =	W_CachePatchName("K_ISSPB", PU_HUDGFX);
 	kp_grow[1] =				W_CachePatchName("K_ISGROW", PU_HUDGFX);
 	kp_shrink[1] =				W_CachePatchName("K_ISSHRK", PU_HUDGFX);
-	kp_lightningshield[1] =		W_CachePatchName("K_ISLITS", PU_HUDGFX);
+	kp_thundershield[1] =		W_CachePatchName("K_ISTHNS", PU_HUDGFX);
 	kp_hyudoro[1] = 			W_CachePatchName("K_ISHYUD", PU_HUDGFX);
 	kp_pogospring[1] = 			W_CachePatchName("K_ISPOGO", PU_HUDGFX);
 	kp_kitchensink[1] = 		W_CachePatchName("K_ISSINK", PU_HUDGFX);
@@ -4756,22 +4767,22 @@ static void K_drawKartItem(void)
 		switch((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3)
 		{
 			// Each case is handled in threes, to give three frames of in-game time to see the item on the roulette
-			case  0: localpatch = kp_sneaker[offset]; break;			// Sneaker
+			case  0: localpatch = kp_sneaker[offset]; break;				// Sneaker
 			case  1: localpatch = kp_banana[offset]; break;				// Banana
-			case  2: localpatch = kp_orbinaut[offset]; break;			// Orbinaut
-			case  3: localpatch = kp_mine[offset]; break;				// Mine
-			case  4: localpatch = kp_grow[offset]; break;				// Grow
-			case  5: localpatch = kp_hyudoro[offset]; break;			// Hyudoro
+			case  2: localpatch = kp_orbinaut[offset]; break;				// Orbinaut
+			case  3: localpatch = kp_mine[offset]; break;					// Mine
+			case  4: localpatch = kp_grow[offset]; break;					// Grow
+			case  5: localpatch = kp_hyudoro[offset]; break;				// Hyudoro
 			case  6: localpatch = kp_rocketsneaker[offset]; break;		// Rocket Sneaker
-			case  7: localpatch = kp_jawz[offset]; break;				// Jawz
+			case  7: localpatch = kp_jawz[offset]; break;					// Jawz
 			case  8: localpatch = kp_selfpropelledbomb[offset]; break;	// Self-Propelled Bomb
 			case  9: localpatch = kp_shrink[offset]; break;				// Shrink
-			case 10: localpatch = localinv; break;						// Invincibility
+			case 10: localpatch = localinv; break;							// Invincibility
 			case 11: localpatch = kp_eggman[offset]; break;				// Eggman Monitor
-			case 12: localpatch = kp_ballhog[offset]; break;			// Ballhog
-			case 13: localpatch = kp_lightningshield[offset]; break;	// Lightning Shield
-			//case 14: localpatch = kp_pogospring[offset]; break;		// Pogo Spring
-			//case 15: localpatch = kp_kitchensink[offset]; break;		// Kitchen Sink
+			case 12: localpatch = kp_ballhog[offset]; break;				// Ballhog
+			case 13: localpatch = kp_thundershield[offset]; break;		// Thunder Shield
+			//case 14: localpatch = kp_pogospring[offset]; break;			// Pogo Spring
+			//case 15: localpatch = kp_kitchensink[offset]; break;			// Kitchen Sink
 			default: break;
 		}
 	}
@@ -4832,7 +4843,7 @@ static void K_drawKartItem(void)
 				case KITEM_SPB:					localpatch = kp_selfpropelledbomb[offset]; break;
 				case KITEM_GROW:				localpatch = kp_grow[offset]; break;
 				case KITEM_SHRINK:				localpatch = kp_shrink[offset]; break;
-				case KITEM_LIGHTNINGSHIELD:		localpatch = kp_lightningshield[offset]; break;
+				case KITEM_THUNDERSHIELD:		localpatch = kp_thundershield[offset]; break;
 				case KITEM_HYUDORO:				localpatch = kp_hyudoro[offset]; break;
 				case KITEM_POGOSPRING:			localpatch = kp_pogospring[offset]; break;
 				case KITEM_KITCHENSINK:			localpatch = kp_kitchensink[offset]; break;

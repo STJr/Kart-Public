@@ -415,7 +415,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k42",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k43",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k44",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k45",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Lightning Shield use
+  {"s3k45",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Thunder Shield use
   {"s3k46",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k47",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k48",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

@@ -57,9 +57,10 @@ char sprnames[NUMSPRITES + 1][5] =
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","WIPD","DRIF","DUST",
 	"FITM","BANA","ORBN","JAWZ","SSMN","KRBM","BHOG","BHBM","BLIG","LIGH",
-	"SINK","SITR","KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS",
-	"SPRS","BUZB","CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS",
-	"PSHW","ISTA","ISTB","ARRO","ITEM","ITMI","ITMN","WANT","PBOM","VIEW"
+	"THNS","SINK","SITR","KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES",
+	"GBAS","SPRS","BUZB","CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN",
+	"CLAS","PSHW","ISTA","ISTB","ARRO","ITEM","ITMI","ITMN","WANT","PBOM",
+	"VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2761,6 +2762,31 @@ state_t states[NUMSTATES] =
 	{SPR_LIGH, 1,  2, {NULL}, 0, 0, S_LIGHTNING3}, // S_LIGHTNING2
 	{SPR_LIGH, 2,  2, {NULL}, 0, 0, S_LIGHTNING4}, // S_LIGHTNING3
 	{SPR_LIGH, 3,  2, {NULL}, 0, 0, S_NULL},       // S_LIGHTNING4
+
+	{SPR_THNS,  0, 2, {NULL}, 0, 0, S_THUNDERSHIELD2},		// S_THUNDERSHIELD1
+	{SPR_THNS,  1, 2, {NULL}, 0, 0, S_THUNDERSHIELD3},		// S_THUNDERSHIELD2
+	{SPR_THNS,  2, 2, {NULL}, 0, 0, S_THUNDERSHIELD4},		// S_THUNDERSHIELD3
+	{SPR_THNS,  3, 2, {NULL}, 0, 0, S_THUNDERSHIELD5},		// S_THUNDERSHIELD4
+	{SPR_THNS,  4, 2, {NULL}, 0, 0, S_THUNDERSHIELD6},		// S_THUNDERSHIELD5
+	{SPR_THNS,  5, 2, {NULL}, 0, 0, S_THUNDERSHIELD7},		// S_THUNDERSHIELD6
+	{SPR_THNS,  6, 2, {NULL}, 0, 0, S_THUNDERSHIELD8},		// S_THUNDERSHIELD7
+	{SPR_THNS,  7, 2, {NULL}, 0, 0, S_THUNDERSHIELD9},		// S_THUNDERSHIELD8
+	{SPR_THNS,  8, 2, {NULL}, 0, 0, S_THUNDERSHIELD10},		// S_THUNDERSHIELD9
+	{SPR_THNS,  9, 2, {NULL}, 0, 0, S_THUNDERSHIELD11},		// S_THUNDERSHIELD10
+	{SPR_THNS, 10, 2, {NULL}, 0, 0, S_THUNDERSHIELD12},		// S_THUNDERSHIELD11
+	{SPR_THNS, 11, 2, {NULL}, 0, 0, S_THUNDERSHIELD13},		// S_THUNDERSHIELD12
+	{SPR_THNS,  8, 2, {NULL}, 0, 0, S_THUNDERSHIELD14},		// S_THUNDERSHIELD13
+	{SPR_THNS,  7, 2, {NULL}, 0, 0, S_THUNDERSHIELD15},		// S_THUNDERSHIELD14
+	{SPR_THNS,  6, 2, {NULL}, 0, 0, S_THUNDERSHIELD16},		// S_THUNDERSHIELD15
+	{SPR_THNS,  5, 2, {NULL}, 0, 0, S_THUNDERSHIELD17},		// S_THUNDERSHIELD16
+	{SPR_THNS,  4, 2, {NULL}, 0, 0, S_THUNDERSHIELD18},		// S_THUNDERSHIELD17
+	{SPR_THNS,  3, 2, {NULL}, 0, 0, S_THUNDERSHIELD19},		// S_THUNDERSHIELD18
+	{SPR_THNS,  2, 2, {NULL}, 0, 0, S_THUNDERSHIELD20},		// S_THUNDERSHIELD19
+	{SPR_THNS,  1, 2, {NULL}, 0, 0, S_THUNDERSHIELD21},		// S_THUNDERSHIELD20
+	{SPR_THNS,  0, 2, {NULL}, 0, 0, S_THUNDERSHIELD22},		// S_THUNDERSHIELD21
+	{SPR_THNS,  9, 2, {NULL}, 0, 0, S_THUNDERSHIELD23},		// S_THUNDERSHIELD22
+	{SPR_THNS, 10, 2, {NULL}, 0, 0, S_THUNDERSHIELD24},		// S_THUNDERSHIELD23
+	{SPR_THNS, 11, 2, {NULL}, 0, 0, S_THUNDERSHIELD1},		// S_THUNDERSHIELD24
 
 	{SPR_SINK, 0,  4, {A_SmokeTrailer}, MT_SINKTRAIL, 0, S_SINK}, // S_SINK
 	{SPR_SITR, 0,  1, {NULL}, 0, 0, S_SINKTRAIL2},                       // S_SINKTRAIL1
@@ -15084,6 +15110,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_THUNDERSHIELD
+		-1,             // doomednum
+		S_THUNDERSHIELD1, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		16*FRACUNIT,    // radius
+		56*FRACUNIT,    // height
+		1,              // display offset
+		16,             // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
 

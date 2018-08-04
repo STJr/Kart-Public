@@ -246,7 +246,7 @@ typedef enum
 	KITEM_SPB,
 	KITEM_GROW,
 	KITEM_SHRINK,
-	KITEM_LIGHTNINGSHIELD,
+	KITEM_THUNDERSHIELD,
 	KITEM_HYUDORO,
 	KITEM_POGOSPRING,
 	KITEM_KITCHENSINK,
@@ -306,7 +306,8 @@ typedef enum
 	k_itemheld,		// Are you holding an item?
 
 	// Some items use timers for their duration or effects
-	k_attractiontimer,		// Duration of Lightning Shield's item-break and item box pull
+	//k_thunderanim,			// Duration of Thunder Shield's use animation
+	k_curshield,			// 0 = no shield, 1 = thunder shield
 	k_hyudorotimer,			// Duration of the Hyudoro offroad effect itself
 	k_stealingtimer,		// You are stealing an item, this is your timer
 	k_stolentimer,			// You are being stolen from, this is your timer

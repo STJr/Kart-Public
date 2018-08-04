@@ -1500,7 +1500,7 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Self-Propelled Bombs",&cv_selfpropelledbomb,114},
 	{IT_STRING | IT_CVAR, NULL, "Grow",				&cv_grow,             122},
 	{IT_STRING | IT_CVAR, NULL, "Shrink",				&cv_shrink,           130},
-	{IT_STRING | IT_CVAR, NULL, "Lightning Shields",	&cv_lightningshield,  138},
+	{IT_STRING | IT_CVAR, NULL, "Thunder Shields",	    &cv_thundershield,    138},
 	{IT_STRING | IT_CVAR, NULL, "Hyudoros",			&cv_hyudoro,          146},
 	{IT_STRING | IT_CVAR, NULL, "Pogo Springs",		&cv_pogospring,       154},
 };

@@ -6247,7 +6247,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DRIFTDUST3",
 	"S_DRIFTDUST4",
 
-	// Lightning Shield Burst
+	// Thunder Shield Burst
 
 	// Sneaker Fire Trail
 	"S_KARTFIRE1",
@@ -6445,6 +6445,32 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_LIGHTNING2",
 	"S_LIGHTNING3",
 	"S_LIGHTNING4",
+
+	// Thunder Shield
+	"S_THUNDERSHIELD1",
+	"S_THUNDERSHIELD2",
+	"S_THUNDERSHIELD3",
+	"S_THUNDERSHIELD4",
+	"S_THUNDERSHIELD5",
+	"S_THUNDERSHIELD6",
+	"S_THUNDERSHIELD7",
+	"S_THUNDERSHIELD8",
+	"S_THUNDERSHIELD9",
+	"S_THUNDERSHIELD10",
+	"S_THUNDERSHIELD11",
+	"S_THUNDERSHIELD12",
+	"S_THUNDERSHIELD13",
+	"S_THUNDERSHIELD14",
+	"S_THUNDERSHIELD15",
+	"S_THUNDERSHIELD16",
+	"S_THUNDERSHIELD17",
+	"S_THUNDERSHIELD18",
+	"S_THUNDERSHIELD19",
+	"S_THUNDERSHIELD20",
+	"S_THUNDERSHIELD21",
+	"S_THUNDERSHIELD22",
+	"S_THUNDERSHIELD23",
+	"S_THUNDERSHIELD24",
 
 	// The legend
 	"S_SINK",
@@ -7185,8 +7211,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_FAKESHIELD",
 	"MT_FAKEITEM",
 
-	"MT_BANANA",
-	"MT_BANANA_SHIELD", // Banana Stuff
+	"MT_BANANA", // Banana Stuff
+	"MT_BANANA_SHIELD",
 
 	"MT_ORBINAUT", // Orbinaut stuff
 	"MT_ORBINAUT_SHIELD",
@@ -7210,6 +7236,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BLUELIGHTNING", // Grow/shrink stuff
 	"MT_BLUEEXPLOSION",
 	"MT_LIGHTNING",
+
+	"MT_THUNDERSHIELD", // Thunder Shield stuff
 
 	"MT_SINK", // Kitchen Sink Stuff
 	"MT_SINKTRAIL",
@@ -7652,7 +7680,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ITEMHELD",
 
 	// Some items use timers for their duration or effects
-	"ATTRACTIONTIMER",
+	//"THUNDERANIM",
+	"CURSHIELD",
 	"HYUDOROTIMER",
 	"STEALINGTIMER",
 	"STOLENTIMER",

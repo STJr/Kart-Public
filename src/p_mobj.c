@@ -8220,6 +8220,14 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
+		case MT_THUNDERSHIELD:
+			if (!mobj->target || !mobj->target->health || (mobj->target->player && mobj->target->player->kartstuff[k_curshield] != 1))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			break;
 		case MT_KARMAHITBOX:
 			if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
 				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
