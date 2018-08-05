@@ -1341,10 +1341,11 @@ static void HU_drawMiniChat(void)
 			}
 			else
 			{
-				if (cv_chatbackteint.value)	// on request of wolfy
-					V_DrawFillConsoleMap(x + dx + 2, y+dy, charwidth, charheight, 239|V_SNAPTOBOTTOM|V_SNAPTOLEFT);
-				
 				UINT8 *colormap = CHAT_GetStringColormap(clrflag);
+
+				if (cv_chatbacktint.value)	// on request of wolfy
+					V_DrawFillConsoleMap(x + dx + 2, y+dy, charwidth, charheight, 239|V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+
 				V_DrawChatCharacter(x + dx + 2, y+dy, msg[j++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT|transflag, !cv_allcaps.value, colormap);
 			}
 
