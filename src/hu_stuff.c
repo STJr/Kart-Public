@@ -1189,7 +1189,7 @@ static char *CHAT_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	size_t chw, i, lastusablespace = 0;
 	size_t slen;
 	char *newstring = Z_StrDup(string);
-	INT32 spacewidth = (vid.width < 640) ? 8 : 4, charwidth = (vid.width < 640) ? 8 : 4;
+	INT32 charwidth = 4;
 
 	slen = strlen(string);
 	x = 0;
@@ -1213,7 +1213,7 @@ static char *CHAT_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 
 		if (c < 0 || c >= HU_FONTSIZE || !hu_font[c])
 		{
-			chw = spacewidth;
+			chw = charwidth;
 			lastusablespace = i;
 		}
 		else
@@ -1250,13 +1250,14 @@ static void HU_drawMiniChat(void)
 	INT32 charwidth = 4, charheight = 6;
 	INT32 dx = 0, dy = 0;
 	size_t i = chat_nummsg_min;
+	boolean prev_linereturn = false;	// a hack to prevent double \n while I have no idea why they happen in the first place.
 
 	INT32 msglines = 0;
 	// process all messages once without rendering anything or doing anything fancy so that we know how many lines each message has...
 
 	for (; i>0; i--)
 	{
-		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i-1]);
+		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i-1]);
 		size_t j = 0;
 		INT32 linescount = 0;
 
@@ -1267,8 +1268,12 @@ static void HU_drawMiniChat(void)
 				if (msg[j] == '\n')	// get back down.
 				{
 					++j;
-					linescount += 1;
-					dx = 0;
+					if (!prev_linereturn)
+					{	
+						linescount += 1;
+						dx = 0;
+					}	
+					prev_linereturn = true;
 					continue;
 				}
 				else if (msg[j] & 0x80) // stolen from video.c, nice.
@@ -1283,7 +1288,7 @@ static void HU_drawMiniChat(void)
 			{
 				j++;
 			}
-
+			prev_linereturn = false;
 			dx += charwidth;
 			if (dx >= cv_chatwidth.value)
 			{
@@ -1300,6 +1305,7 @@ static void HU_drawMiniChat(void)
 	dx = 0;
 	dy = 0;
 	i = 0;
+	prev_linereturn = false;
 
 	for (; i<=(chat_nummsg_min-1); i++)	// iterate through our hot messages
 	{
@@ -1307,7 +1313,7 @@ static void HU_drawMiniChat(void)
 		INT32 timer = ((cv_chattime.value*TICRATE)-chat_timers[i]) - cv_chattime.value*TICRATE+9;	// see below...
 		INT32 transflag = (timer >= 0 && timer <= 9) ? (timer*V_10TRANS) : 0;	// you can make bad jokes out of this one.
 		size_t j = 0;
-		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i]);	// get the current message, and word wrap it.
+		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i]);	// get the current message, and word wrap it.
 
 		while(msg[j])	// iterate through msg
 		{
@@ -1316,8 +1322,12 @@ static void HU_drawMiniChat(void)
 				if (msg[j] == '\n')	// get back down.
 				{
 					++j;
-					dy += charheight;
-					dx = 0;
+					if (!prev_linereturn)
+					{	
+						dy += charheight;
+						dx = 0;
+					}	
+					prev_linereturn = true;
 					continue;
 				}
 				else if (msg[j] & 0x80) // stolen from video.c, nice.
@@ -1331,11 +1341,15 @@ static void HU_drawMiniChat(void)
 			}
 			else
 			{
+				if (cv_chatbackteint.value)	// on request of wolfy
+					V_DrawFillConsoleMap(x + dx + 2, y+dy, charwidth, charheight, 239|V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+				
 				UINT8 *colormap = CHAT_GetStringColormap(clrflag);
 				V_DrawChatCharacter(x + dx + 2, y+dy, msg[j++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT|transflag, !cv_allcaps.value, colormap);
 			}
 
 			dx += charwidth;
+			prev_linereturn = false;
 			if (dx >= cv_chatwidth.value)
 			{
 				dx = 0;
@@ -1406,7 +1420,7 @@ static void HU_drawChatLog(INT32 offset)
 	{
 		INT32 clrflag = 0;
 		INT32 j = 0;
-		const char *msg = CHAT_WordWrap(x, cv_chatwidth.value-charwidth, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_log[i]);	// get the current message, and word wrap it.
+		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_log[i]);	// get the current message, and word wrap it.
 		while(msg[j])	// iterate through msg
 		{
 			if (msg[j] < HU_FONTSTART)	// don't draw

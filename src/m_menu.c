@@ -1412,9 +1412,10 @@ static menuitem_t OP_HUDOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "Chat box height",			&cv_chatheight,		 	105},
 	{IT_STRING | IT_CVAR, NULL, "Chat fadeout time",		&cv_chattime,			115},
+	{IT_STRING | IT_CVAR, NULL, "Chat background teint",	&cv_chatbackteint,		125},
 
-	{IT_STRING | IT_CVAR, NULL, "Background Color",			&cons_backcolor,		130},
-	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		140},
+	{IT_STRING | IT_CVAR, NULL, "Background Color",			&cons_backcolor,		140},
+	{IT_STRING | IT_CVAR, NULL, "Console Text Size",		&cv_constextsize,		150},
 };
 
 static menuitem_t OP_GameOptionsMenu[] =
