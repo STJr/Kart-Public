@@ -7462,12 +7462,23 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BANANA:
 		case MT_FAKEITEM:
 			if (mobj->z <= mobj->floorz)
+			{
 				P_RemoveMobj(mobj);
+				return;
+			}
+			// fallthru
+		case MT_ORBINAUT_SHIELD:
+		case MT_BANANA_SHIELD:
+		case MT_FAKESHIELD:
+			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
 			if (mobj->z <= mobj->floorz)
 				P_SetMobjState(mobj, mobj->info->xdeathstate);
+			// fallthru
+		case MT_JAWZ_SHIELD:
+			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_SSMINE:
 		case MT_BLUEEXPLOSION:
@@ -7477,11 +7488,14 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->health = -100;
 			}
 			else
+			{
 				P_RemoveMobj(mobj);
+				return;
+			}
 			break;
 		case MT_MINEEXPLOSIONSOUND:
 			P_RemoveMobj(mobj);
-			break;
+			return;
 		//}
 		default:
 			break;

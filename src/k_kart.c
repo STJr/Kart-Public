@@ -3647,6 +3647,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
+						S_StartSound(player->mo, sfx_s254);
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
@@ -3677,6 +3678,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_eggmanheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
+						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
 						mo->threshold = 10;
 						mo->movecount = 1;
@@ -3782,6 +3784,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mobj_t *mo;
 						player->kartstuff[k_itemheld] = 1;
 						player->pflags |= PF_ATTACKDOWN;
+						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SSMINE_SHIELD);
 						mo->threshold = 10;
 						mo->movecount = 1;
@@ -3892,7 +3895,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						player->kartstuff[k_itemamount]--;
 						player->pflags |= PF_ATTACKDOWN;
-						K_DoHyudoroSteal(player);
+						K_DoHyudoroSteal(player); // yes. yes they do.
 					}
 					break;
 				case KITEM_POGOSPRING:
@@ -4089,8 +4092,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	// Determine the outcome of your charge.
 	if (leveltime > starttime && player->kartstuff[k_boostcharge])
 	{
+		// Not even trying?
+		if (player->kartstuff[k_boostcharge] < 35)
+		{
+			if (player->kartstuff[k_boostcharge] > 17)
+				S_StartSound(player->mo, sfx_cdfm00); // chosen instead of a conventional skid because it's more engine-like
+		}
 		// Get an instant boost!
-		if (player->kartstuff[k_boostcharge] >= 35 && player->kartstuff[k_boostcharge] <= 50)
+		else if (player->kartstuff[k_boostcharge] <= 50)
 		{
 			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
 			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
