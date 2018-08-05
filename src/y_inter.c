@@ -87,7 +87,7 @@ typedef union
 		INT32 num[MAXPLAYERS]; // Winner's player #
 		char *name[MAXPLAYERS]; // Winner's name
 		INT32 numplayers; // Number of players being displayed
-		char levelstring[62]; // holds levelnames up to 32 characters
+		char levelstring[64]; // holds levelnames up to 64 characters
 		// SRB2kart
 		UINT8 increase[MAXPLAYERS]; //how much did the score increase by?
 		UINT32 val[MAXPLAYERS]; //Gametype-specific value
@@ -204,6 +204,39 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 	// Initialize variables
 	if ((data.match.rankingsmode = rankingsmode))
 		sprintf(data.match.levelstring, "* Total Rankings *");
+	else
+	{
+		// set up the levelstring
+		if (mapheaderinfo[prevmap]->levelflags & LF_NOZONE)
+		{
+			if (mapheaderinfo[prevmap]->actnum[0])
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s %s *",
+					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
+			else
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s *",
+					mapheaderinfo[prevmap]->lvlttl);
+		}
+		else
+		{
+			const char *zonttl = (mapheaderinfo[prevmap]->zonttl[0] ? mapheaderinfo[prevmap]->zonttl : "ZONE");
+			if (mapheaderinfo[prevmap]->actnum[0])
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s %s %s *",
+					mapheaderinfo[prevmap]->lvlttl, zonttl, mapheaderinfo[prevmap]->actnum);
+			else
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s %s *",
+					mapheaderinfo[prevmap]->lvlttl, zonttl);
+		}
+
+		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
+	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -491,7 +524,7 @@ dotimer:
 	{
 		INT32 tickdown = (timer+1)/TICRATE;
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
-			va("%s in %d", cv_advancemap.string, tickdown));
+			va("%s starts in %d", cv_advancemap.string, tickdown));
 	}
 
 	// Make it obvious that scrambling is happening next round.
@@ -750,38 +783,8 @@ void Y_StartIntermission(void)
 			break;
 	}
 
-	if (intertype == int_race || intertype == int_match)
+	//if (intertype == int_race || intertype == int_match)
 	{
-		// set up the levelstring
-		if (strlen(mapheaderinfo[prevmap]->zonttl) > 0)
-		{
-			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s %.32s %s *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
-			else
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s %.32s *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl);
-		}
-		else
-		{
-			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s %s *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
-			else
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s *",
-					mapheaderinfo[prevmap]->lvlttl);
-		}
-
-		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
-
 		//bgtile = W_CachePatchName("SRB2BACK", PU_STATIC);
 		usetile = useinterpic = false;
 		usebuffer = true;
