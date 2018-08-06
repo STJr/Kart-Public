@@ -8572,19 +8572,24 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 					return;
 				case MT_RANDOMITEM:
 					if (G_BattleGametype())
-						break;
-
-					// Respawn from mapthing if you have one!
-					if (mobj->spawnpoint)
 					{
-						P_SpawnMapThing(mobj->spawnpoint);
-						newmobj = mobj->spawnpoint->mobj; // this is set to the new mobj in P_SpawnMapThing
+						if (mobj->threshold != 69)
+							break;
 					}
 					else
-						newmobj = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->type);
+					{
+						// Respawn from mapthing if you have one!
+						if (mobj->spawnpoint)
+						{
+							P_SpawnMapThing(mobj->spawnpoint);
+							newmobj = mobj->spawnpoint->mobj; // this is set to the new mobj in P_SpawnMapThing
+						}
+						else
+							newmobj = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->type);
 
-					// Transfer flags2 (strongbox, objectflip)
-					newmobj->flags2 = mobj->flags2;
+						// Transfer flags2 (strongbox, objectflip)
+						newmobj->flags2 = mobj->flags2;
+					}
 					P_RemoveMobj(mobj); // make sure they disappear
 					return;
 				case MT_METALSONIC_BATTLE:
@@ -8607,6 +8612,8 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
+		else if (mobj->type == MT_RANDOMITEM && mobj->threshold == 69 && mobj->fuse <= TICRATE)
+			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 
 	I_Assert(mobj != NULL);

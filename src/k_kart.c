@@ -495,10 +495,10 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 		 /*Invincibility*/ { 4, 2, 1, 2 }, // Invincibility
 				/*Banana*/ { 0, 0, 2, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 0, 1, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 1, 4, 0 }, // Orbinaut
+			  /*Orbinaut*/ { 0, 1, 5, 0 }, // Orbinaut
 				  /*Jawz*/ { 1, 3, 2, 2 }, // Jawz
 				  /*Mine*/ { 1, 3, 2, 2 }, // Mine
-			   /*Ballhog*/ { 1, 2, 2, 2 }, // Ballhog
+			   /*Ballhog*/ { 1, 2, 1, 2 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 0, 0 }, // Self-Propelled Bomb
 				  /*Grow*/ { 4, 2, 0, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0 }, // Shrink
@@ -732,7 +732,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	INT32 pdis = 0, useodds = 0;
 	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
-	INT32 avgbumper = 0;
+	INT32 bestbumper = 0;
 	boolean oddsvalid[9];
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
@@ -750,12 +750,9 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (!playeringame[i] || players[i].spectator)
 			continue;
 		pingame++;
-		if (players[i].kartstuff[k_bumper] > 0)
-			avgbumper += players[i].kartstuff[k_bumper];
+		if (players[i].kartstuff[k_bumper] > bestbumper)
+			bestbumper = players[i].kartstuff[k_bumper];
 	}
-
-	if (pingame)
-		avgbumper /= pingame;
 
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
@@ -836,7 +833,9 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			useodds = 3;
 		else
 		{
-			SINT8 wantedpos = (player->kartstuff[k_bumper]-avgbumper)+2; // 0 is two bumpers below average, 2 is average
+			SINT8 wantedpos = (player->kartstuff[k_bumper]-bestbumper)+2; // 0 is two bumpers below best player's bumper count, 2 is best player's bumper count
+			if (K_IsPlayerWanted(player))
+				wantedpos--;
 			if (wantedpos > 2)
 				wantedpos = 2;
 			if (wantedpos < 0)
@@ -1614,7 +1613,14 @@ void K_DoInstashield(player_t *player)
 
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
 {
-	const UINT8 scoremultiply = ((K_IsPlayerWanted(player) && !trapitem) ? 2 : 1);
+	UINT8 scoremultiply = 1;
+	if (!trapitem && G_BattleGametype())
+	{
+		if (K_IsPlayerWanted(player))
+			scoremultiply = 3;
+		else if (player->kartstuff[k_bumper] == 1)
+			scoremultiply = 2;
+	}
 
 	if (player->health <= 0)
 		return;
@@ -1691,7 +1697,14 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 
 void K_SquishPlayer(player_t *player, mobj_t *source)
 {
-	const UINT8 scoremultiply = (K_IsPlayerWanted(player) ? 2 : 1);
+	UINT8 scoremultiply = 1;
+	if (G_BattleGametype())
+	{
+		if (K_IsPlayerWanted(player))
+			scoremultiply = 3;
+		else if (player->kartstuff[k_bumper] == 1)
+			scoremultiply = 2;
+	}
 
 	if (player->health <= 0)
 		return;
@@ -1753,7 +1766,14 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
-	const UINT8 scoremultiply = (K_IsPlayerWanted(player) ? 2 : 1);
+	UINT8 scoremultiply = 1;
+	if (G_BattleGametype())
+	{
+		if (K_IsPlayerWanted(player))
+			scoremultiply = 3;
+		else if (player->kartstuff[k_bumper] == 1)
+			scoremultiply = 2;
+	}
 
 	if (player->health <= 0)
 		return;
@@ -3593,8 +3613,22 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (player && player->mo && player->mo->health > 0 && !player->spectator && !(player->exiting || mapreset) && player->kartstuff[k_spinouttimer] == 0)
 	{
 		// First, the really specific, finicky items that function without the item being directly in your item slot.
+		// Karma item dropping
+		if (ATTACK_IS_DOWN && player->kartstuff[k_comebackmode] && !player->kartstuff[k_comebacktimer])
+		{
+			mobj_t *newitem;
+
+			player->kartstuff[k_comebackmode] = 0;
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			S_StartSound(player->mo, sfx_s254);
+
+			newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_RANDOMITEM);
+			newitem->flags2 = (player->mo->flags2 & MF2_OBJECTFLIP);
+			newitem->fuse = 15*TICRATE; // selected randomly.
+			newitem->threshold = 69; // selected "randomly".
+		}
 		// Eggman Monitor throwing
-		if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
+		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
 			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
 			K_PlayTauntSound(player->mo);
@@ -3645,7 +3679,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							S_StartSound(player->mo, sfx_kinvnc);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
-						player->pflags |= PF_ATTACKDOWN;
 					}
 					break;
 				case KITEM_BANANA:
@@ -3657,7 +3690,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
-						player->pflags |= PF_ATTACKDOWN;
 						S_StartSound(player->mo, sfx_s254);
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
@@ -3676,7 +3708,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
 						K_PlayTauntSound(player->mo);
-						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
 						if (!player->kartstuff[k_itemamount])
 							player->kartstuff[k_itemheld] = 0;
@@ -3688,7 +3719,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mobj_t *mo;
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_eggmanheld] = 1;
-						player->pflags |= PF_ATTACKDOWN;
 						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
 						mo->threshold = 10;
@@ -3713,7 +3743,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
-						player->pflags |= PF_ATTACKDOWN;
 						S_StartSound(player->mo, sfx_s3k3a);
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
@@ -3737,7 +3766,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, false);
 						K_PlayTauntSound(player->mo);
-						player->pflags |= PF_ATTACKDOWN;
 
 						player->kartstuff[k_itemamount]--;
 						if (!player->kartstuff[k_itemamount])
@@ -3756,7 +3784,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						//K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemheld] = 1;
-						player->pflags |= PF_ATTACKDOWN;
 						S_StartSound(player->mo, sfx_s3k3a);
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
@@ -3782,7 +3809,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
 							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
 						K_PlayTauntSound(player->mo);
-						player->pflags |= PF_ATTACKDOWN;
 
 						player->kartstuff[k_itemamount]--;
 						if (!player->kartstuff[k_itemamount])
@@ -3794,7 +3820,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						mobj_t *mo;
 						player->kartstuff[k_itemheld] = 1;
-						player->pflags |= PF_ATTACKDOWN;
 						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SSMINE_SHIELD);
 						mo->threshold = 10;
@@ -3856,7 +3881,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						spbplayer = player-players;
 
-						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
 
 						K_PlayTauntSound(player->mo);
@@ -3876,7 +3900,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kgrow);
 						S_StartSound(player->mo, sfx_kc5a);
-						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -3897,7 +3920,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						K_DoThunderShield(player);
-						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -3905,7 +3927,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						player->kartstuff[k_itemamount]--;
-						player->pflags |= PF_ATTACKDOWN;
 						K_DoHyudoroSteal(player); // yes. yes they do.
 					}
 					break;
@@ -3915,7 +3936,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_PlayTauntSound(player->mo);
 						K_DoPogoSpring(player->mo, 32<<FRACBITS, false);
-						player->pflags |= PF_ATTACKDOWN;
 						player->kartstuff[k_pogospring] = 1;
 						player->kartstuff[k_itemamount]--;
 					}
