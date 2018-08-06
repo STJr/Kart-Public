@@ -2440,6 +2440,8 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	}
 	else
 	{
+		player->kartstuff[k_bananadrag] = 0; // RESET timer, for multiple bananas
+
 		if (dir == 1 || dir == 2)
 		{
 			// Shoot forward
@@ -2475,8 +2477,6 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		else
 		{
 			mobj_t *lasttrail = K_FindLastTrailMobj(player);
-
-			player->kartstuff[k_bananadrag] = 0; // RESET timer, for multiple bananas
 
 			if (lasttrail)
 			{
@@ -2724,10 +2724,10 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
 {
-    if (banana->hnext)
-	{
-        K_KillBananaChain(banana->hnext, inflictor, source);
-	}
+	mobj_t *cachenext;
+
+killnext:
+	cachenext = banana->hnext;
 
 	if (banana->health)
 	{
@@ -2743,6 +2743,9 @@ void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
 		if (inflictor)
 			P_InstaThrust(banana, R_PointToAngle2(inflictor->x, inflictor->y, banana->x, banana->y)+ANGLE_90, 16*FRACUNIT);
 	}
+
+	if ((banana = cachenext))
+		goto killnext;
 }
 
 void K_RepairOrbitChain(mobj_t *orbit)
@@ -2792,6 +2795,14 @@ static void K_MoveHeldObjects(player_t *player)
 
 	if (!player->mo->hnext)
 	{
+		player->kartstuff[k_bananadrag] = 0;
+		return;
+	}
+
+	if (P_MobjWasRemoved(player->mo->hnext))
+	{
+		// we need this here too because this is done in afterthink - pointers are cleaned up at the START of each tic...
+		P_SetTarget(&player->mo->hnext, NULL);
 		player->kartstuff[k_bananadrag] = 0;
 		return;
 	}

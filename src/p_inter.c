@@ -2183,6 +2183,9 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 
 			if (!target->target->player->kartstuff[k_itemamount])
 				target->target->player->kartstuff[k_itemheld] = 0;
+
+			if (target->target->hnext == target)
+				P_SetTarget(&target->target->hnext, NULL);
 		}
 	}
 	//
