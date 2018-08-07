@@ -87,7 +87,7 @@ typedef union
 		INT32 num[MAXPLAYERS]; // Winner's player #
 		char *name[MAXPLAYERS]; // Winner's name
 		INT32 numplayers; // Number of players being displayed
-		char levelstring[62]; // holds levelnames up to 32 characters
+		char levelstring[64]; // holds levelnames up to 64 characters
 		// SRB2kart
 		UINT8 increase[MAXPLAYERS]; //how much did the score increase by?
 		UINT32 val[MAXPLAYERS]; //Gametype-specific value
@@ -143,6 +143,7 @@ typedef struct
 	UINT8 roffset;
 	UINT8 rsynctime;
 	UINT8 rendoff;
+	boolean loaded;
 } y_voteclient;
 
 static y_votelvlinfo levelinfo[5];
@@ -204,6 +205,39 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 	// Initialize variables
 	if ((data.match.rankingsmode = rankingsmode))
 		sprintf(data.match.levelstring, "* Total Rankings *");
+	else
+	{
+		// set up the levelstring
+		if (mapheaderinfo[prevmap]->levelflags & LF_NOZONE)
+		{
+			if (mapheaderinfo[prevmap]->actnum[0])
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s %s *",
+					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
+			else
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s *",
+					mapheaderinfo[prevmap]->lvlttl);
+		}
+		else
+		{
+			const char *zonttl = (mapheaderinfo[prevmap]->zonttl[0] ? mapheaderinfo[prevmap]->zonttl : "ZONE");
+			if (mapheaderinfo[prevmap]->actnum[0])
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s %s %s *",
+					mapheaderinfo[prevmap]->lvlttl, zonttl, mapheaderinfo[prevmap]->actnum);
+			else
+				snprintf(data.match.levelstring,
+					sizeof data.match.levelstring,
+					"* %s %s *",
+					mapheaderinfo[prevmap]->lvlttl, zonttl);
+		}
+
+		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
+	}
 
 	data.match.encore = (!rankingsmode && encoremode);
 
@@ -265,7 +299,6 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 //
 void Y_IntermissionDrawer(void)
 {
-	boolean forcefreeplay = false;
 	INT32 i, whiteplayer = MAXPLAYERS, x = 4, hilicol = V_YELLOWMAP; // fallback
 
 	if (intertype == int_none || rendermode == render_none)
@@ -298,7 +331,7 @@ void Y_IntermissionDrawer(void)
 		V_DrawPatchFill(bgtile);
 
 	if (usebuffer) // Fade everything out
-		V_DrawFadeScreen(0xFF00, 16);
+		V_DrawFadeScreen(0xFF00, 20);
 
 	if (!splitscreen)
 		whiteplayer = demoplayback ? displayplayer : consoleplayer;
@@ -372,11 +405,7 @@ void Y_IntermissionDrawer(void)
 		if (data.match.rankingsmode)
 			timeheader = "RANK";
 		else
-		{
 			timeheader = (intertype == int_race ? "TIME" : "SCORE");
-			if (data.match.numplayers <= 1)
-				forcefreeplay = true;
-		}
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
@@ -497,37 +526,16 @@ void Y_IntermissionDrawer(void)
 	}
 
 dotimer:
-
-	if (netgame) //  FREE PLAY?
-	{
-		i = MAXPLAYERS;
-
-		if (!forcefreeplay)
-		{
-			// check to see if there's anyone else at all
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (i == consoleplayer)
-					continue;
-				if (playeringame[i] && !stplyr->spectator)
-					break;
-			}
-		}
-
-		if (i == MAXPLAYERS)
-			K_drawKartFreePlay(intertic);
-	}
-
 	if (timer)
 	{
 		INT32 tickdown = (timer+1)/TICRATE;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
-			va("start in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
+			va("%s starts in %d", cv_advancemap.string, tickdown));
 	}
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol|V_SNAPTOBOTTOM, M_GetText("Teams will be scrambled next round!"));
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol, M_GetText("Teams will be scrambled next round!"));
 }
 
 //
@@ -781,38 +789,8 @@ void Y_StartIntermission(void)
 			break;
 	}
 
-	if (intertype == int_race || intertype == int_match)
+	//if (intertype == int_race || intertype == int_match)
 	{
-		// set up the levelstring
-		if (strlen(mapheaderinfo[prevmap]->zonttl) > 0)
-		{
-			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s %.32s %s *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl, mapheaderinfo[prevmap]->actnum);
-			else
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s %.32s *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->zonttl);
-		}
-		else
-		{
-			if (strlen(mapheaderinfo[prevmap]->actnum) > 0)
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s %s *",
-					mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[prevmap]->actnum);
-			else
-				snprintf(data.match.levelstring,
-					sizeof data.match.levelstring,
-					"* %.32s *",
-					mapheaderinfo[prevmap]->lvlttl);
-		}
-
-		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
-
 		//bgtile = W_CachePatchName("SRB2BACK", PU_STATIC);
 		usetile = useinterpic = false;
 		usebuffer = true;
@@ -956,6 +934,9 @@ void Y_VoteDrawer(void)
 		return;
 
 	if (votetic >= voteendtic && voteendtic != -1)
+		return;
+
+	if (!voteclient.loaded)
 		return;
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
@@ -1157,8 +1138,8 @@ void Y_VoteDrawer(void)
 			hilicol = V_SKYMAP;
 		else //if (gametype == GT_MATCH)
 			hilicol = V_REDMAP;
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol|V_SNAPTOBOTTOM,
-			va("Vote ends in %d second%s", tickdown, (tickdown == 1 ? "" : "s")));
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
+			va("Vote ends in %d", tickdown));
 	}
 }
 
@@ -1206,8 +1187,11 @@ void Y_VoteTicker(void)
 
 	if (votetic == voteendtic)
 	{
-		Y_UnloadVoteData(); // Y_EndVote resets voteendtic too early apparently, causing the game to try to render patches that we just unloaded...
-		Y_FollowIntermission();
+		if (voteclient.loaded)
+		{
+			Y_EndVote();
+			Y_FollowIntermission();
+		}
 		return;
 	}
 
@@ -1248,14 +1232,17 @@ void Y_VoteTicker(void)
 
 			if (numvotes < 1) // Whoops! Get outta here.
 			{
-				Y_UnloadVoteData();
-				Y_FollowIntermission();
+				if (voteclient.loaded)
+				{
+					Y_EndVote();
+					Y_FollowIntermission();
+				}
 				return;
 			}
 
 			voteclient.rtics--;
 
-			if (voteclient.rtics <= 0)
+			if (voteclient.rtics <= 0 && voteclient.loaded)
 			{
 				voteclient.roffset++;
 				voteclient.rtics = min(20, (3*voteclient.roffset/4)+5);
@@ -1276,7 +1263,7 @@ void Y_VoteTicker(void)
 							if (tempvotes[((pickedvote + voteclient.roffset + i) % numvotes)] == pickedvote)
 							{
 								voteclient.rendoff = voteclient.roffset+i;
-								if (M_RandomChance(FRACUNIT/1024)) // Let it cheat occasionally~
+								if (M_RandomChance(FRACUNIT/32)) // Let it cheat occasionally~
 									voteclient.rendoff++;
 								S_ChangeMusicInternal("voteeb", false);
 								break;
@@ -1480,6 +1467,8 @@ void Y_StartVote(void)
 		else
 			levelinfo[i].pic = W_CachePatchName("BLANKLVL", PU_STATIC);
 	}
+
+	voteclient.loaded = true;
 }
 
 //
@@ -1498,6 +1487,8 @@ static void Y_UnloadVoteData(void)
 {
 	if (rendermode != render_soft)
 		return;
+
+	voteclient.loaded = false;
 
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
@@ -1522,9 +1513,11 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 {
 	if (pick == -1) // No other votes? We gotta get out of here, then!
 	{
-		timer = 0;
-		Y_UnloadVoteData();
-		Y_FollowIntermission();
+		if (voteclient.loaded)
+		{
+			Y_EndVote();
+			Y_FollowIntermission();
+		}
 		return;
 	}
 
@@ -1570,9 +1563,11 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		}
 		else if (endtype == 0) // Might as well put this here, too.
 		{
-			timer = 0;
-			Y_UnloadVoteData();
-			Y_FollowIntermission();
+			if (voteclient.loaded)
+			{
+				Y_EndVote();
+				Y_FollowIntermission();
+			}
 			return;
 		}
 		else

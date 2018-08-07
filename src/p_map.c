@@ -881,7 +881,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true;
 
 		if (tmthing->type == MT_BALLHOG && thing->type == MT_BALLHOG)
-			return true; // Fireballs don't collide with eachother
+			return true; // Ballhogs don't collide with eachother
 
 		if (thing->player && thing->player->powers[pw_flashing])
 			return true;
@@ -1633,13 +1633,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		else if (thing->player) // bounce when players collide
 		{
-			const boolean tvulnerable = (!(thing->player->powers[pw_flashing]
-				|| thing->player->kartstuff[k_invincibilitytimer]
-				|| thing->player->kartstuff[k_spinouttimer]));
-			const boolean tmtvulnerable = (!(tmthing->player->powers[pw_flashing]
-				|| tmthing->player->kartstuff[k_invincibilitytimer]
-				|| tmthing->player->kartstuff[k_spinouttimer]));
-
 			// see if it went over / under
 			if (tmthing->z > thing->z + thing->height)
 				return true; // overhead
@@ -1659,7 +1652,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
 			{
 				K_KartBouncing(tmthing, thing, true, false);
-				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring] && tvulnerable)
+				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, false);
@@ -1668,7 +1661,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
 			{
 				K_KartBouncing(thing, tmthing, true, false);
-				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring] && tmtvulnerable)
+				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, false);
@@ -1679,12 +1672,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (G_BattleGametype())
 			{
-				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]) && tmtvulnerable)
+				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, false);
 				}
-				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]) && tvulnerable)
+				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, false);

@@ -1827,6 +1827,7 @@ static actionpointer_t actionpointers[] =
 	{{A_JawzChase},            "A_JAWZCHASE"}, // SRB2kart
 	{{A_JawzExplode},          "A_JAWZEXPLODE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
+	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -6246,7 +6247,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DRIFTDUST3",
 	"S_DRIFTDUST4",
 
-	// Lightning Shield Burst
+	// Thunder Shield Burst
 
 	// Sneaker Fire Trail
 	"S_KARTFIRE1",
@@ -6323,8 +6324,13 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_ORBINAUT4",
 	"S_ORBINAUT5",
 	"S_ORBINAUT6",
-	"S_ORBINAUT_SHIELD",
 	"S_ORBINAUT_DEAD",
+	"S_ORBINAUT_SHIELD1",
+	"S_ORBINAUT_SHIELD2",
+	"S_ORBINAUT_SHIELD3",
+	"S_ORBINAUT_SHIELD4",
+	"S_ORBINAUT_SHIELD5",
+	"S_ORBINAUT_SHIELD6",
 	"S_ORBINAUT_SHIELDDEAD",
 	//}
 	//{ Jawz
@@ -6415,6 +6421,22 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BALLHOG7",
 	"S_BALLHOG8",
 	"S_BALLHOG_DEAD",
+	"S_BALLHOGBOOM1",
+	"S_BALLHOGBOOM2",
+	"S_BALLHOGBOOM3",
+	"S_BALLHOGBOOM4",
+	"S_BALLHOGBOOM5",
+	"S_BALLHOGBOOM6",
+	"S_BALLHOGBOOM7",
+	"S_BALLHOGBOOM8",
+	"S_BALLHOGBOOM9",
+	"S_BALLHOGBOOM10",
+	"S_BALLHOGBOOM11",
+	"S_BALLHOGBOOM12",
+	"S_BALLHOGBOOM13",
+	"S_BALLHOGBOOM14",
+	"S_BALLHOGBOOM15",
+	"S_BALLHOGBOOM16",
 
 	// Self-Propelled Bomb - just an explosion for now...
 	"S_BLUELIGHTNING1",
@@ -6428,6 +6450,32 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_LIGHTNING2",
 	"S_LIGHTNING3",
 	"S_LIGHTNING4",
+
+	// Thunder Shield
+	"S_THUNDERSHIELD1",
+	"S_THUNDERSHIELD2",
+	"S_THUNDERSHIELD3",
+	"S_THUNDERSHIELD4",
+	"S_THUNDERSHIELD5",
+	"S_THUNDERSHIELD6",
+	"S_THUNDERSHIELD7",
+	"S_THUNDERSHIELD8",
+	"S_THUNDERSHIELD9",
+	"S_THUNDERSHIELD10",
+	"S_THUNDERSHIELD11",
+	"S_THUNDERSHIELD12",
+	"S_THUNDERSHIELD13",
+	"S_THUNDERSHIELD14",
+	"S_THUNDERSHIELD15",
+	"S_THUNDERSHIELD16",
+	"S_THUNDERSHIELD17",
+	"S_THUNDERSHIELD18",
+	"S_THUNDERSHIELD19",
+	"S_THUNDERSHIELD20",
+	"S_THUNDERSHIELD21",
+	"S_THUNDERSHIELD22",
+	"S_THUNDERSHIELD23",
+	"S_THUNDERSHIELD24",
 
 	// The legend
 	"S_SINK",
@@ -6607,6 +6655,21 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FIREDITEM2",
 	"S_FIREDITEM3",
 	"S_FIREDITEM4",
+
+	"S_INSTASHIELDA1", // No damage instashield effect
+	"S_INSTASHIELDA2",
+	"S_INSTASHIELDA3",
+	"S_INSTASHIELDA4",
+	"S_INSTASHIELDA5",
+	"S_INSTASHIELDA6",
+	"S_INSTASHIELDA7",
+	"S_INSTASHIELDB1",
+	"S_INSTASHIELDB2",
+	"S_INSTASHIELDB3",
+	"S_INSTASHIELDB4",
+	"S_INSTASHIELDB5",
+	"S_INSTASHIELDB6",
+	"S_INSTASHIELDB7",
 
 	"S_PLAYERARROW", // Above player arrow
 	"S_PLAYERARROW_BOX",
@@ -7153,8 +7216,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_FAKESHIELD",
 	"MT_FAKEITEM",
 
-	"MT_BANANA",
-	"MT_BANANA_SHIELD", // Banana Stuff
+	"MT_BANANA", // Banana Stuff
+	"MT_BANANA_SHIELD",
 
 	"MT_ORBINAUT", // Orbinaut stuff
 	"MT_ORBINAUT_SHIELD",
@@ -7173,10 +7236,13 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BOOMPARTICLE",
 
 	"MT_BALLHOG", // Ballhog
+	"MT_BALLHOGBOOM",
 
 	"MT_BLUELIGHTNING", // Grow/shrink stuff
 	"MT_BLUEEXPLOSION",
 	"MT_LIGHTNING",
+
+	"MT_THUNDERSHIELD", // Thunder Shield stuff
 
 	"MT_SINK", // Kitchen Sink Stuff
 	"MT_SINKTRAIL",
@@ -7253,6 +7319,9 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_ITEMCLASH",
 
 	"MT_FIREDITEM",
+
+	"MT_INSTASHIELDA",
+	"MT_INSTASHIELDB",
 
 	"MT_PLAYERARROW",
 	"MT_PLAYERWANTED",
@@ -7591,6 +7660,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"CARDANIMATION",
 	"VOICES",
 	"TAUNTVOICES",
+	"INSTASHIELD",
 
 	"FLOORBOOST",
 	"SPINOUTTYPE",
@@ -7615,7 +7685,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ITEMHELD",
 
 	// Some items use timers for their duration or effects
-	"ATTRACTIONTIMER",
+	//"THUNDERANIM",
+	"CURSHIELD",
 	"HYUDOROTIMER",
 	"STEALINGTIMER",
 	"STOLENTIMER",

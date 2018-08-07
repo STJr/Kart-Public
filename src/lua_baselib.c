@@ -20,6 +20,8 @@
 #include "m_random.h"
 #include "s_sound.h"
 #include "g_game.h"
+#include "hu_stuff.h"
+#include "console.h"
 #include "k_kart.h"
 
 #include "lua_script.h"
@@ -83,6 +85,57 @@ static int lib_print(lua_State *L)
     lua_pop(L, 1);  /* pop result */
   }
 	CONS_Printf("\n");
+	return 0;
+}
+
+// Print stuff in the chat, or in the console if we can't.
+static int lib_chatprint(lua_State *L)
+{
+	const char *str = luaL_checkstring(L, 1);	// retrieve string
+	if (str == NULL)	// error if we don't have a string!
+		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprint"));
+	int len = strlen(str);
+	if (len > 255)	// string is too long!!!
+		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
+
+	HU_AddChatText(str);
+
+	if OLDCHAT
+		CONS_Printf("%s\n", str);
+	else
+		CON_LogMessage(str); // save to log.txt
+
+	return 0;
+}
+
+// Same as above, but do it for only one player.
+static int lib_chatprintf(lua_State *L)
+{
+	int n = lua_gettop(L);  /* number of arguments */
+	player_t *plr;
+	if (n < 2)
+		return luaL_error(L, "chatprintf requires at least two arguments: player and text.");
+	
+	plr = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));	// retrieve player
+	if (!plr)
+		return LUA_ErrInvalid(L, "player_t");
+	if (plr != &players[consoleplayer])
+		return 0;
+	
+	const char *str = luaL_checkstring(L, 2);	// retrieve string
+	if (str == NULL)	// error if we don't have a string!
+		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprintf"));
+	int len = strlen(str);
+	if (len > 255)	// string is too long!!!
+		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
+
+	HU_AddChatText(str);
+
+	if OLDCHAT
+		CONS_Printf("%s\n", str);
+	else
+		CON_LogMessage(str); // save to log.txt
+
 	return 0;
 }
 
@@ -2038,6 +2091,16 @@ static int lib_kKartBouncing(lua_State *L)
 	return 0;
 }
 
+static int lib_kDoInstashield(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_DoInstashield(player);
+	return 0;
+}
+
 static int lib_kSpinPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2135,10 +2198,11 @@ static int lib_kSpawnSparkleTrail(lua_State *L)
 static int lib_kSpawnWipeoutTrail(lua_State *L)
 {
 	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	boolean translucent = luaL_checkboolean(L, 2);
 	NOHUD
 	if (!mo)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_SpawnWipeoutTrail(mo);
+	K_SpawnWipeoutTrail(mo, translucent);
 	return 0;
 }
 
@@ -2244,6 +2308,8 @@ static int lib_kGetKartFlashing(lua_State *L)
 
 static luaL_Reg lib[] = {
 	{"print", lib_print},
+	{"chatprint", lib_chatprint},
+	{"chatprintf", lib_chatprintf},
 	{"EvalMath", lib_evalMath},
 
 	// m_random
@@ -2421,6 +2487,7 @@ static luaL_Reg lib[] = {
 	{"K_IsPlayerLosing",lib_kIsPlayerLosing},
 	{"K_IsPlayerWanted",lib_kIsPlayerWanted},
 	{"K_KartBouncing",lib_kKartBouncing},
+	{"K_DoInstashield",lib_kDoInstashield},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},
 	{"K_ExplodePlayer",lib_kExplodePlayer},

@@ -1118,6 +1118,31 @@ void P_PlayLivesJingle(player_t *player)
 	}
 }
 
+void P_PlayRinglossSound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, (mariomode) ? sfx_mario8 : sfx_altow1 + key);
+	else
+		S_StartSound(source, sfx_slip);
+}
+
+void P_PlayDeathSound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_altdi1 + key);
+	else
+		S_StartSound(source, sfx_s3k35);
+}
+
+void P_PlayVictorySound(mobj_t *source)
+{
+	sfxenum_t key = P_RandomKey(4);
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_victr1 + key);
+}
+
 //
 // P_EndingMusic
 //
@@ -1708,10 +1733,13 @@ void P_DoPlayerExit(player_t *player)
 		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
-		if (K_IsPlayerLosing(player))
-			S_StartSound(player->mo, sfx_klose);
-		else
-			S_StartSound(player->mo, sfx_kwin);
+		if (cv_kartvoices.value)
+		{
+			if (K_IsPlayerLosing(player))
+				S_StartSound(player->mo, sfx_klose);
+			else
+				S_StartSound(player->mo, sfx_kwin);
+		}
 
 		player->exiting = 3*TICRATE;
 
@@ -1719,8 +1747,8 @@ void P_DoPlayerExit(player_t *player)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
-		if (!countdown2)
-			countdown2 = countdown + 8*TICRATE;
+		//if (!countdown2)
+			//countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
 			player->exiting = (14*TICRATE)/5 + 1;
@@ -4901,7 +4929,7 @@ static void P_3dMovement(player_t *player)
 	if (newMagnitude > K_GetKartSpeed(player, true)) //topspeed)
 	{
 		fixed_t tempmomx, tempmomy;
-		if (oldMagnitude > K_GetKartSpeed(player, true)) //topspeed)
+		if (oldMagnitude > K_GetKartSpeed(player, true) && onground) // SRB2Kart: onground check for air speed cap
 		{
 			if (newMagnitude > oldMagnitude)
 			{
@@ -6938,7 +6966,7 @@ static void P_MovePlayer(player_t *player)
 		K_SpawnSparkleTrail(player->mo);
 
 	if (player->kartstuff[k_wipeoutslow] > 1 && (leveltime & 1))
-		K_SpawnWipeoutTrail(player->mo);
+		K_SpawnWipeoutTrail(player->mo, false);
 
 	K_DriftDustHandling(player->mo);
 
@@ -9060,6 +9088,12 @@ void P_DoTimeOver(player_t *player)
 	player->lives = 0;
 
 	P_EndingMusic(player);
+
+#if 0
+	// sal, when you do the f-zero explosion, this is how you make sure the map doesn't end before it's done ^u^ ~toast
+	if (!countdown2)
+		countdown2 = 5*TICRATE;
+#endif
 }
 
 //

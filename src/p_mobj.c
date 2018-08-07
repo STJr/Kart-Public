@@ -1723,14 +1723,22 @@ void P_XYMovement(mobj_t *mo)
 	if (CheckForBustableBlocks && mo->flags & MF_PUSHABLE)
 		P_PushableCheckBustables(mo);
 
-	//{ SRB2kart - Fireball
+	//{ SRB2kart - Ballhogs
 	if (mo->type == MT_BALLHOG)
 	{
-		mo->health--;
-		if (mo->health == 0)
+		if (mo->health)
 		{
-			S_StartSound(mo, mo->info->deathsound);
-			P_SetMobjState(mo, mo->info->deathstate);
+			mo->health--;
+			if (mo->health == 0)
+				mo->destscale = 1;
+		}
+		else
+		{
+			if (mo->scale < mapheaderinfo[gamemap-1]->mobj_scale/16)
+			{
+				P_RemoveMobj(mo);
+				return;
+			}
 		}
 	}
 	//}
@@ -2336,6 +2344,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
 		case MT_BALLHOG:
+		case MT_SSMINE:
 			// Remove stuff from death pits.
 			if (P_CheckDeathPitCollide(mo))
 			{
@@ -6282,6 +6291,11 @@ void P_RunShadows(void)
 		else
 			mobj->flags2 &= ~MF2_DONTDRAW;
 
+		if (mobj->target->eflags & MFE_VERTICALFLIP)
+			mobj->eflags |= MFE_VERTICALFLIP;
+		else
+			mobj->eflags &= ~MFE_VERTICALFLIP;
+
 		if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
 			mobj->eflags |= MFE_DRAWONLYFORP1;
 		else
@@ -6307,12 +6321,13 @@ void P_RunShadows(void)
 
 		P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 
-		if (mobj->floorz < mobj->z)
+		if (((mobj->eflags & MFE_VERTICALFLIP) && (mobj->ceilingz > mobj->z+mobj->height))
+			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (mobj->floorz < mobj->z)))
 		{
 			INT32 i;
 			fixed_t prevz;
 
-			mobj->z = mobj->floorz;
+			mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
 
 			for (i = 0; i < MAXFFLOORS; i++)
 			{
@@ -6324,7 +6339,7 @@ void P_RunShadows(void)
 				// Check new position to see if you should still be on that ledge
 				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
 
-				mobj->z = mobj->floorz;
+				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
 
 				if (mobj->z == prevz)
 					break;
@@ -6600,7 +6615,7 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				if (mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					INT32 HEIGHT;
+					fixed_t HEIGHT;
 					fixed_t radius;
 
 					fixed_t dsone = K_GetKartDriftSparkValue(mobj->target->player);
@@ -6670,15 +6685,15 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->angle = ANGLE_180 + mobj->target->player->frameangle;
 
 					// If the player is on the ceiling, then flip
-					if (mobj->target->player && mobj->target->eflags & MFE_VERTICALFLIP)
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
 					{
 						mobj->eflags |= MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height;
+						HEIGHT = (16<<FRACBITS);
 					}
 					else
 					{
 						mobj->eflags &= ~MFE_VERTICALFLIP;
-						HEIGHT = mobj->target->height-mobj->target->height;
+						HEIGHT = 0;
 					}
 
 					// Shrink if the player shrunk too.
@@ -6689,7 +6704,7 @@ void P_MobjThinker(mobj_t *mobj)
 						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
 						mobj->x = mobj->target->x + FixedMul(finecosine[fa],radius);
 						mobj->y = mobj->target->y + FixedMul(finesine[fa],radius);
-						mobj->z = mobj->target->z + HEIGHT;
+						mobj->z = mobj->target->z - HEIGHT;
 						P_SetThingPosition(mobj);
 					}
 				}
@@ -7447,12 +7462,23 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BANANA:
 		case MT_FAKEITEM:
 			if (mobj->z <= mobj->floorz)
+			{
 				P_RemoveMobj(mobj);
+				return;
+			}
+			// fallthru
+		case MT_ORBINAUT_SHIELD:
+		case MT_BANANA_SHIELD:
+		case MT_FAKESHIELD:
+			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
 			if (mobj->z <= mobj->floorz)
 				P_SetMobjState(mobj, mobj->info->xdeathstate);
+			// fallthru
+		case MT_JAWZ_SHIELD:
+			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_SSMINE:
 		case MT_BLUEEXPLOSION:
@@ -7462,11 +7488,14 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->health = -100;
 			}
 			else
+			{
 				P_RemoveMobj(mobj);
+				return;
+			}
 			break;
 		case MT_MINEEXPLOSIONSOUND:
 			P_RemoveMobj(mobj);
-			break;
+			return;
 		//}
 		default:
 			break;
@@ -8005,7 +8034,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 			if (mobj->threshold > 0)
 				mobj->threshold--;
-			if (leveltime % 7 == 0)
+			if (leveltime % TICRATE == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			if (gamespeed == 0)
@@ -8079,7 +8108,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 
-			if (leveltime % 7 == 0)
+			if (leveltime % TICRATE == 0)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			break;
@@ -8185,6 +8214,28 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_INVULNFLASH:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_invincibilitytimer]))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			break;
+		case MT_INSTASHIELDB:
+			if (leveltime & 1)
+				mobj->flags2 |= MF2_DONTDRAW;
+			else
+				mobj->flags2 &= ~MF2_DONTDRAW;
+			/* FALLTHRU */
+		case MT_INSTASHIELDA:
+			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_instashield]))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			break;
+		case MT_THUNDERSHIELD:
+			if (!mobj->target || !mobj->target->health || (mobj->target->player && mobj->target->player->kartstuff[k_curshield] != 1))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -8521,19 +8572,24 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 					return;
 				case MT_RANDOMITEM:
 					if (G_BattleGametype())
-						break;
-
-					// Respawn from mapthing if you have one!
-					if (mobj->spawnpoint)
 					{
-						P_SpawnMapThing(mobj->spawnpoint);
-						newmobj = mobj->spawnpoint->mobj; // this is set to the new mobj in P_SpawnMapThing
+						if (mobj->threshold != 69)
+							break;
 					}
 					else
-						newmobj = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->type);
+					{
+						// Respawn from mapthing if you have one!
+						if (mobj->spawnpoint)
+						{
+							P_SpawnMapThing(mobj->spawnpoint);
+							newmobj = mobj->spawnpoint->mobj; // this is set to the new mobj in P_SpawnMapThing
+						}
+						else
+							newmobj = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->type);
 
-					// Transfer flags2 (strongbox, objectflip)
-					newmobj->flags2 = mobj->flags2;
+						// Transfer flags2 (strongbox, objectflip)
+						newmobj->flags2 = mobj->flags2;
+					}
 					P_RemoveMobj(mobj); // make sure they disappear
 					return;
 				case MT_METALSONIC_BATTLE:
@@ -8556,6 +8612,8 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
+		else if (mobj->type == MT_RANDOMITEM && mobj->threshold == 69 && mobj->fuse <= TICRATE)
+			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 
 	I_Assert(mobj != NULL);

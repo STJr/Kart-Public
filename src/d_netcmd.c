@@ -114,6 +114,7 @@ static void KartFrantic_OnChange(void);
 static void KartSpeed_OnChange(void);
 static void KartEncore_OnChange(void);
 static void KartComeback_OnChange(void);
+static void KartEliminateLast_OnChange(void);
 
 #ifdef NETGAME_DEVMODE
 static void Fishcake_OnChange(void);
@@ -272,26 +273,15 @@ INT32 cv_debug;
 consvar_t cv_usemouse = {"use_mouse", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usemouse2 = {"use_mouse2", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse2, 0, NULL, NULL, 0, 0, NULL};
 
-#if defined (DC) || defined (_XBOX) || defined (WMINPUT) || defined (_WII) //joystick 1 and 2
 consvar_t cv_usejoystick = {"use_joystick", "1", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usejoystick2 = {"use_joystick2", "2", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick2, 0, NULL, NULL, 0, 0, NULL};
-#elif defined (PSP) || defined (GP2X) || defined (_NDS) //only one joystick
-consvar_t cv_usejoystick = {"use_joystick", "1", CV_SAVE|CV_CALL, usejoystick_cons_t,
-	I_InitJoystick, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_usejoystick2 = {"use_joystick2", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
-	I_InitJoystick2, 0, NULL, NULL, 0, 0, NULL};
-#else //all esle, no joystick
-consvar_t cv_usejoystick = {"use_joystick", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
-	I_InitJoystick, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_usejoystick2 = {"use_joystick2", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
-	I_InitJoystick2, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_usejoystick3 = {"use_joystick3", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
+consvar_t cv_usejoystick3 = {"use_joystick3", "3", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick3, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_usejoystick4 = {"use_joystick4", "0", CV_SAVE|CV_CALL, usejoystick_cons_t,
+consvar_t cv_usejoystick4 = {"use_joystick4", "4", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick4, 0, NULL, NULL, 0, 0, NULL};
-#endif
+
 #if (defined (LJOYSTICK) || defined (HAVE_SDL))
 #ifdef LJOYSTICK
 consvar_t cv_joyport = {"joyport", "/dev/js0", CV_SAVE, joyport_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -342,7 +332,7 @@ consvar_t cv_ballhog = 				{"ballhog", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NU
 consvar_t cv_selfpropelledbomb =	{"selfpropelledbomb", 	"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grow = 				{"grow", 				"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_shrink = 				{"shrink", 				"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_lightningshield = 		{"lightningshield", 	"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_thundershield = 		{"thundershield", 		"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_hyudoro = 				{"hyudoro", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_pogospring = 			{"pogospring", 			"On", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -365,6 +355,11 @@ consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV
 consvar_t cv_kartencore = {"kartencore", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartEncore_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartspeedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
+static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
+consvar_t cv_kartvoices = {"kartvoices", "Tasteful", CV_SAVE, kartvoices_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// this might be a debug or it might be an undocumented regular feature
+consvar_t cv_karteliminatelast = {"karteliminatelast", "Yes", CV_NETVAR|CV_CHEAT|CV_CALL, CV_OnOff, KartEliminateLast_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t kartdebugitem_cons_t[] = {{-1, "MIN"}, {NUMKARTITEMS-1, "MAX"}, {0, NULL}};
 consvar_t cv_kartdebugitem = {"kartdebugitem", "0", CV_NETVAR|CV_CHEAT, kartdebugitem_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -437,7 +432,7 @@ consvar_t cv_maxping = {"maxping", "0", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NUL
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_inttime = {"inttime", "20", CV_NETVAR, inttime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-static CV_PossibleValue_t advancemap_cons_t[] = {{0, "Off"}, {1, "Next"}, {2, "Random"}, {3, "Vote"}, {0, NULL}};
+static CV_PossibleValue_t advancemap_cons_t[] = {{0, "Same"}, {1, "Next"}, {2, "Random"}, {3, "Vote"}, {0, NULL}};
 consvar_t cv_advancemap = {"advancemap", "Vote", CV_NETVAR, advancemap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t playersforexit_cons_t[] = {{0, "One"}, {1, "All"}, {0, NULL}};
 consvar_t cv_playersforexit = {"playersforexit", "One", CV_NETVAR, playersforexit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -785,6 +780,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_usegamma);
 
 	// m_menu.c
+	CV_RegisterVar(&cv_compactscoreboard);
+	CV_RegisterVar(&cv_chatheight);
+	CV_RegisterVar(&cv_chatwidth);
+	CV_RegisterVar(&cv_chattime);
+	CV_RegisterVar(&cv_chatspamprotection);
+	CV_RegisterVar(&cv_consolechat);
+	CV_RegisterVar(&cv_chatnotifications);
+	CV_RegisterVar(&cv_chatbacktint);
 	CV_RegisterVar(&cv_crosshair);
 	CV_RegisterVar(&cv_crosshair2);
 	CV_RegisterVar(&cv_crosshair3);
@@ -1966,26 +1969,22 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 
 void D_SetupVote(void)
 {
-	char buf[8];
-	char *p = buf;
+	UINT8 buf[6*2]; // five UINT16 maps (at twice the width of a UINT8), and two gametypes
+	UINT8 *p = buf;
 	INT32 i;
+	UINT8 secondgt = G_SometimesGetDifferentGametype();
+
+	WRITEUINT8(p, gametype);
+	WRITEUINT8(p, secondgt);
 
 	for (i = 0; i < 5; i++)
 	{
 		if (i == 2) // sometimes a different gametype
-		{
-			INT16 gt = G_SometimesGetDifferentGametype();
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gt), prevmap, false, false, 0, true));
-			WRITEUINT16(p, gt);
-		}
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(secondgt), prevmap, false, false, 0, true));
+		else if (i >= 3) // unknown-random and force-unknown MAP HELL
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
 		else
-		{
-			if (i >= 3) // unknown-random and force-unknown MAP HELL
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
-			else
-				WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
-			WRITEUINT16(p, gametype);
-		}
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
 	}
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
@@ -2531,12 +2530,12 @@ static void Command_Teamchange_f(void)
 		return;
 	}
 
-	if (players[consoleplayer].spectator && !(players[consoleplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
-		error = true;
-	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[consoleplayer].ctfteam)
-		error = true;
-	else if (G_GametypeHasSpectators() && !players[consoleplayer].spectator && NetPacket.packet.newteam == 3)
-		error = true;
+	if (players[consoleplayer].spectator)
+		error = !(NetPacket.packet.newteam || (players[consoleplayer].pflags & PF_WANTSTOJOIN)); // :lancer:
+	else if (G_GametypeHasTeams())
+		error = (NetPacket.packet.newteam == (unsigned)players[consoleplayer].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[consoleplayer].spectator)
+		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -2622,12 +2621,12 @@ static void Command_Teamchange2_f(void)
 		return;
 	}
 
-	if (players[secondarydisplayplayer].spectator && !(players[secondarydisplayplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
-		error = true;
-	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[secondarydisplayplayer].ctfteam)
-		error = true;
-	else if (G_GametypeHasSpectators() && !players[secondarydisplayplayer].spectator && NetPacket.packet.newteam == 3)
-		error = true;
+	if (players[secondarydisplayplayer].spectator)
+		error = !(NetPacket.packet.newteam || (players[secondarydisplayplayer].pflags & PF_WANTSTOJOIN));
+	else if (G_GametypeHasTeams())
+		error = (NetPacket.packet.newteam == (unsigned)players[secondarydisplayplayer].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[secondarydisplayplayer].spectator)
+		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -2713,12 +2712,12 @@ static void Command_Teamchange3_f(void)
 		return;
 	}
 
-	if (players[thirddisplayplayer].spectator && !(players[thirddisplayplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
-		error = true;
-	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam)
-		error = true;
-	else if (G_GametypeHasSpectators() && !players[thirddisplayplayer].spectator && NetPacket.packet.newteam == 3)
-		error = true;
+	if (players[thirddisplayplayer].spectator)
+		error = !(NetPacket.packet.newteam || (players[thirddisplayplayer].pflags & PF_WANTSTOJOIN));
+	else if (G_GametypeHasTeams())
+		error = (NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[thirddisplayplayer].spectator)
+		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -2804,12 +2803,12 @@ static void Command_Teamchange4_f(void)
 		return;
 	}
 
-	if (players[fourthdisplayplayer].spectator && !(players[fourthdisplayplayer].pflags & PF_WANTSTOJOIN) && !NetPacket.packet.newteam)
-		error = true;
-	else if (G_GametypeHasTeams() && NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam)
-		error = true;
-	else if (G_GametypeHasSpectators() && !players[fourthdisplayplayer].spectator && NetPacket.packet.newteam == 3)
-		error = true;
+	if (players[fourthdisplayplayer].spectator)
+		error = !(NetPacket.packet.newteam || (players[fourthdisplayplayer].pflags & PF_WANTSTOJOIN));
+	else if (G_GametypeHasTeams())
+		error = (NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[fourthdisplayplayer].spectator)
+		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
 		I_Error("Invalid gametype after initial checks!");
@@ -4582,6 +4581,7 @@ static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum)
 static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 {
 	INT32 i;
+	UINT8 gt, secondgt;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -4597,13 +4597,18 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
+	gt = (UINT8)READUINT8(*cp);
+	secondgt = (UINT8)READUINT8(*cp);
+
 	for (i = 0; i < 5; i++)
 	{
-		votelevels[i][0] = (INT16)READUINT16(*cp);
-		votelevels[i][1] = (INT16)READUINT16(*cp);
+		votelevels[i][0] = (UINT16)READUINT16(*cp);
+		votelevels[i][1] = gt;
 		if (!mapheaderinfo[votelevels[i][0]])
 			P_AllocMapHeader(votelevels[i][0]);
 	}
+
+	votelevels[2][1] = secondgt;
 
 	G_SetGamestate(GS_VOTING);
 	Y_StartVote();
@@ -5199,9 +5204,9 @@ static void BaseNumLaps_OnChange(void)
 	if (gamestate == GS_LEVEL)
 	{
 		if (cv_basenumlaps.value)
-			CONS_Printf(M_GetText("Number of laps will be changed to map defaults next round.\n"));
-		else
 			CONS_Printf(M_GetText("Number of laps will be changed to %d next round.\n"), cv_basenumlaps.value);
+		else
+			CONS_Printf(M_GetText("Number of laps will be changed to map defaults next round.\n"));
 	}
 }
 
@@ -5257,4 +5262,10 @@ static void KartComeback_OnChange(void)
 			comeback = (boolean)cv_kartcomeback.value;
 		}
 	}
+}
+
+static void KartEliminateLast_OnChange(void)
+{
+	if (G_RaceGametype() && cv_karteliminatelast.value)
+		P_CheckRacers();
 }

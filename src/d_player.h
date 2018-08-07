@@ -246,7 +246,7 @@ typedef enum
 	KITEM_SPB,
 	KITEM_GROW,
 	KITEM_SHRINK,
-	KITEM_LIGHTNINGSHIELD,
+	KITEM_THUNDERSHIELD,
 	KITEM_HYUDORO,
 	KITEM_POGOSPRING,
 	KITEM_KITCHENSINK,
@@ -281,6 +281,7 @@ typedef enum
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam
+	k_instashield,		// Instashield no-damage animation timer
 
 	k_floorboost,		// Prevents Sneaker sounds for a breif duration when triggered by a floor panel
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
@@ -305,7 +306,8 @@ typedef enum
 	k_itemheld,		// Are you holding an item?
 
 	// Some items use timers for their duration or effects
-	k_attractiontimer,		// Duration of Lightning Shield's item-break and item box pull
+	//k_thunderanim,			// Duration of Thunder Shield's use animation
+	k_curshield,			// 0 = no shield, 1 = thunder shield
 	k_hyudorotimer,			// Duration of the Hyudoro offroad effect itself
 	k_stealingtimer,		// You are stealing an item, this is your timer
 	k_stolentimer,			// You are being stolen from, this is your timer

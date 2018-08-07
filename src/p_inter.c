@@ -2068,29 +2068,32 @@ boolean P_CheckRacers(void)
 		return true;
 	}
 
-	for (j = 0; j < MAXPLAYERS; j++)
+	if (cv_karteliminatelast.value)
 	{
-		if (!playeringame[j] || players[j].spectator)
-			continue;
-		numplayersingame++;
-	}
-
-	if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
-	{
-		// check if we just got unlucky and there was only one guy who was a problem
-		for (j = i+1; j < MAXPLAYERS; j++)
+		for (j = 0; j < MAXPLAYERS; j++)
 		{
-			if (!playeringame[j] || players[j].spectator || players[j].exiting || !players[j].lives)
+			if (!playeringame[j] || players[j].spectator)
 				continue;
-
-			break;
+			numplayersingame++;
 		}
 
-		if (j == MAXPLAYERS) // finish anyways, force a time over
+		if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
 		{
-			P_DoTimeOver(&players[i]);
-			countdown = countdown2 = 0;
-			return true;
+			// check if we just got unlucky and there was only one guy who was a problem
+			for (j = i+1; j < MAXPLAYERS; j++)
+			{
+				if (!playeringame[j] || players[j].spectator || players[j].exiting || !players[j].lives)
+					continue;
+
+				break;
+			}
+
+			if (j == MAXPLAYERS) // finish anyways, force a time over
+			{
+				P_DoTimeOver(&players[i]);
+				countdown = countdown2 = 0;
+				return true;
+			}
 		}
 	}
 
@@ -2180,6 +2183,9 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 
 			if (!target->target->player->kartstuff[k_itemamount])
 				target->target->player->kartstuff[k_itemheld] = 0;
+
+			if (target->target->hnext == target)
+				P_SetTarget(&target->target->hnext, NULL);
 		}
 	}
 	//
@@ -3076,7 +3082,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 #else
 	static const boolean force = false;
 #endif
-	mobj_t *blueexplode;
 
 	if (objectplacing)
 		return false;
@@ -3280,12 +3285,13 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		// Self-Propelled Bomb
 		if (damage == 65)
 		{
+			mobj_t *spbexplode;
 			if (player == source->player)
 				return false;
 			// Just need to do this now! Being thrown upwards is done by the explosion.
 			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
-			blueexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
-			P_SetTarget(&blueexplode->target, source);
+			spbexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+			P_SetTarget(&spbexplode->target, source);
 			return true;
 		}
 		//}
@@ -3312,7 +3318,10 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		if (damage == 10000)
 			P_KillPlayer(player, source, damage);
 		else if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
+		{
+			K_DoInstashield(player);
 			return false;
+		}
 		else
 		{
 			if (inflictor && (inflictor->type == MT_ORBINAUT || inflictor->type == MT_ORBINAUT_SHIELD
@@ -3486,22 +3495,25 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			break;
 		}
 
-	target->reactiontime = 0; // we're awake now...
-
-	if (source && source != target)
+	if (!P_MobjWasRemoved(target))
 	{
-		// if not intent on another player,
-		// chase after this one
-		P_SetTarget(&target->target, source);
-		if (target->state == &states[target->info->spawnstate] && target->info->seestate != S_NULL)
+		target->reactiontime = 0; // we're awake now...
+
+		if (source && source != target)
 		{
-			if (player)
+			// if not intent on another player,
+			// chase after this one
+			P_SetTarget(&target->target, source);
+			if (target->state == &states[target->info->spawnstate] && target->info->seestate != S_NULL)
 			{
-				if (!(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
-					P_SetPlayerMobjState(target, target->info->seestate);
+				if (player)
+				{
+					if (!(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
+						P_SetPlayerMobjState(target, target->info->seestate);
+				}
+				else
+					P_SetMobjState(target, target->info->seestate);
 			}
-			else
-				P_SetMobjState(target, target->info->seestate);
 		}
 	}
 

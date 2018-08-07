@@ -25,6 +25,7 @@ void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);
+void K_DoInstashield(player_t *player);
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source);
@@ -33,7 +34,7 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 void K_SpawnMineExplosion(mobj_t *source, UINT8 color);
 void K_SpawnBoostTrail(player_t *player);
 void K_SpawnSparkleTrail(mobj_t *mo);
-void K_SpawnWipeoutTrail(mobj_t *mo);
+void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent);
 void K_DriftDustHandling(mobj_t *spawner);
 void K_DoSneaker(player_t *player, boolean doPFlag);
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute);
