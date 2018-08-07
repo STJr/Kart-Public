@@ -33,6 +33,7 @@
 #include "hw_drv.h"
 #include "hw_light.h"
 #include "hw_md2.h"
+#include "../d_main.h"
 #include "../r_bsp.h"
 #include "../r_main.h"
 #include "../m_misc.h"
@@ -68,6 +69,10 @@
  #if PNG_LIBPNG_VER < 100207
  //#undef HAVE_PNG
  #endif
+#endif
+
+#ifndef errno
+#include "errno.h"
 #endif
 
 #define NUMVERTEXNORMALS 162
@@ -291,7 +296,8 @@ static md2_model_t *md2_readModel(const char *filename)
 	if (model == NULL)
 		return 0;
 
-	file = fopen(filename, "rb");
+	//Filename checking fixed ~Monster Iestyn and Golden
+	file = fopen(va("%s"PATHSEP"%s", srb2home, filename), "rb");
 	if (!file)
 	{
 		free(model);
@@ -480,7 +486,8 @@ static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_
 #endif
 #endif
 	png_FILE_p png_FILE;
-	char *pngfilename = va("md2/%s", filename);
+	//Filename checking fixed ~Monster Iestyn and Golden
+	char *pngfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pngfilename, ".png");
 	png_FILE = fopen(pngfilename, "rb");
@@ -608,7 +615,8 @@ static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
 	size_t pw, ph, size, ptr = 0;
 	INT32 ch, rep;
 	FILE *file;
-	char *pcxfilename = va("md2/%s", filename);
+	//Filename checking fixed ~Monster Iestyn and Golden
+	char *pcxfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pcxfilename, ".pcx");
 	file = fopen(pcxfilename, "rb");
@@ -797,12 +805,13 @@ void HWR_InitMD2(void)
 		md2_models[i].error = false;
 	}
 
-	// read the kmd2.dat file
-	f = fopen("kmd2.dat", "rt");
+	// read the md2.dat file
+	//Filename checking fixed ~Monster Iestyn and Golden
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("%s", M_GetText("Error while loading kmd2.dat\n"));
+		CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
 		nomd2s = true;
 		return;
 	}
@@ -863,8 +872,9 @@ void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 
 	CONS_Printf("AddPlayerMD2()...\n");
 
-	// read the kmd2.dat file
-	f = fopen("kmd2.dat", "rt");
+	// read the md2.dat file
+	//Filename checking fixed ~Monster Iestyn and Golden
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
 
 	if (!f)
 	{
@@ -908,8 +918,9 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 	if (spritenum == SPR_PLAY) // Handled already NEWMD2: Per sprite, per-skin check
 		return;
 
-	// Read the kmd2.dat file
-	f = fopen("kmd2.dat", "rt");
+	// Read the md2.dat file
+	//Filename checking fixed ~Monster Iestyn and Golden
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
 
 	if (!f)
 	{
@@ -1320,7 +1331,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		frame = (spr->mobj->frame & FF_FRAMEMASK) % md2->model->header.numFrames;
 		buff = md2->model->glCommandBuffer;
 		curr = &md2->model->frames[frame];
-		if (cv_grmd2.value == 1)
+		if (cv_grmd2.value == 1 && tics <= durs)
 		{
 			// frames are handled differently for states with FF_ANIMATE, so get the next frame differently for the interpolation
 			if (spr->mobj->frame & FF_ANIMATE)

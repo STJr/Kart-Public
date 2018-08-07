@@ -443,8 +443,7 @@ static void ExtraDataTicker(void)
 							DEBFILE(va("player %d kicked [gametic=%u] reason as follows:\n", i, gametic));
 						}
 						CONS_Alert(CONS_WARNING, M_GetText("Got unknown net command [%s]=%d (max %d)\n"), sizeu1(curpos - bufferstart), *curpos, bufferstart[0]);
-						D_FreeTextcmd(gametic);
-						return;
+						break;
 					}
 				}
 			}
@@ -3428,7 +3427,7 @@ void SV_StopServer(void)
 	localtextcmd3[0] = 0;
 	localtextcmd4[0] = 0;
 
-	for (i = 0; i < BACKUPTICS; i++)
+	for (i = firstticstosend; i < firstticstosend + BACKUPTICS; i++)
 		D_Clearticcmd(i);
 
 	consoleplayer = 0;
