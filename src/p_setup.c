@@ -2244,6 +2244,33 @@ static void P_LevelInitStuff(void)
 		// and this stupid flag as a result
 		players[i].pflags &= ~PF_TRANSFERTOCLOSEST;
 	}
+
+	// SRB2Kart: map load variables
+	if (modeattacking) // Just play it safe and set everything
+	{
+		gamespeed = 2;
+		encoremode = false;
+		franticitems = false;
+		comeback = true;
+	}
+	else
+	{
+		if (G_BattleGametype())
+		{
+			gamespeed = 0;
+			encoremode = false;
+		}
+		else
+		{
+			gamespeed = (UINT8)cv_kartspeed.value;
+			encoremode = (boolean)cv_kartencore.value;
+		}
+		franticitems = (boolean)cv_kartfrantic.value;
+		comeback = (boolean)cv_kartcomeback.value;
+	}
+
+	for (i = 0; i < 4; i++)
+		battlewanted[i] = -1;
 }
 
 //
@@ -2618,23 +2645,31 @@ boolean P_SetupLevel(boolean skipprecip)
 	// will be set by player think.
 	players[consoleplayer].viewz = 1;
 
-	// Special stage fade to white
+	// Encore mode fade to pink to white
 	// This is handled BEFORE sounds are stopped.
-	/*if (rendermode != render_none && G_IsSpecialStage(gamemap))
+	if (rendermode != render_none && encoremode)
 	{
-		tic_t starttime = I_GetTime();
-		tic_t endtime = starttime + (3*TICRATE)/2;
-		tic_t nowtime;
+		tic_t starttime, endtime, nowtime;
 
-		S_StartSound(NULL, sfx_s3kaf);
+		S_StopMusic(); // er, about that...
+
+		S_StartSound(NULL, sfx_ruby1);
 
 		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 0);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 122);
 
 		F_WipeEndScreen();
 		F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
 
-		nowtime = lastwipetic;
+		F_WipeStartScreen();
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
+
+		F_WipeEndScreen();
+		F_RunWipe(wipedefs[wipe_level_final], false);
+
+		starttime = nowtime = lastwipetic;
+		endtime = starttime + (3*TICRATE)/2;
+
 		// Hold on white for extra effect.
 		while (nowtime < endtime)
 		{
@@ -2647,12 +2682,11 @@ boolean P_SetupLevel(boolean skipprecip)
 		}
 
 		ranspecialwipe = 1;
-	}*/
+	}
 
 	// Make sure all sounds are stopped before Z_FreeTags.
 	S_StopSounds();
 	S_ClearSfx();
-
 
 	// As oddly named as this is, this handles music only.
 	// We should be fine starting it here.
@@ -2660,10 +2694,10 @@ boolean P_SetupLevel(boolean skipprecip)
 	// SRB2 Kart - Yes this is weird, but we don't want the music to start until after the countdown is finished
 	// but we do still need the mapmusname to be changed
 	if (leveltime < (starttime + (TICRATE/2)))
-		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
+		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 
-	// Let's fade to black here
-	// But only if we didn't do the special stage wipe
+	// Let's fade to white here
+	// But only if we didn't do the encore wipe
 	if (rendermode != render_none && !ranspecialwipe)
 	{
 		F_WipeStartScreen();
@@ -2725,33 +2759,6 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// internal game map
 	lastloadedmaplumpnum = W_GetNumForName(maplumpname = G_BuildMapName(gamemap));
-
-	// SRB2Kart: map load variables
-	if (modeattacking) // Just play it safe and set everything
-	{
-		gamespeed = 2;
-		encoremode = false;
-		franticitems = false;
-		comeback = true;
-	}
-	else
-	{
-		if (G_BattleGametype())
-		{
-			gamespeed = 0;
-			encoremode = false;
-		}
-		else
-		{
-			gamespeed = (UINT8)cv_kartspeed.value;
-			encoremode = (boolean)cv_kartencore.value;
-		}
-		franticitems = (boolean)cv_kartfrantic.value;
-		comeback = (boolean)cv_kartcomeback.value;
-	}
-
-	for (i = 0; i < 4; i++)
-		battlewanted[i] = -1;
 
 	R_ReInitColormaps(mapheaderinfo[gamemap-1]->palette,
 		(encoremode ? W_CheckNumForName(va("%sE", maplumpname)) : LUMPERROR));

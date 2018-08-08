@@ -1151,14 +1151,14 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 		cg = ((HEX2INT(p1[3]) * 16) + HEX2INT(p1[4]));
 		cb = ((HEX2INT(p1[5]) * 16) + HEX2INT(p1[6]));
 
-		// i don't know why this doesn't work...
-		/*if (encoremap)
+		if (encoremap)
 		{
-			i = NearestColor(cr, cg, cb);
-			cr = pLocalPalette[encoremap[i]].s.red;
-			cg = pLocalPalette[encoremap[i]].s.green;
-			cb = pLocalPalette[encoremap[i]].s.blue;
-		}*/
+			i = encoremap[NearestColor((UINT8)cr, (UINT8)cg, (UINT8)cb)];
+			//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", i, encoremap[i]); -- moved encoremap upwards for optimisation
+			cr = pLocalPalette[i].s.red;
+			cg = pLocalPalette[i].s.green;
+			cb = pLocalPalette[i].s.blue;
+		}
 
 		cmaskr = cr;
 		cmaskg = cg;
@@ -1208,14 +1208,13 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 		cg = ((HEX2INT(p3[3]) * 16) + HEX2INT(p3[4]));
 		cb = ((HEX2INT(p3[5]) * 16) + HEX2INT(p3[6]));
 
-		// i don't know why this doesn't work...
-		/*if (encoremap)
+		if (encoremap)
 		{
-			i = NearestColor(cr, cg, cb);
-			cr = pLocalPalette[encoremap[i]].s.red;
-			cg = pLocalPalette[encoremap[i]].s.green;
-			cb = pLocalPalette[encoremap[i]].s.blue;
-		}*/
+			i = encoremap[NearestColor((UINT8)cr, (UINT8)cg, (UINT8)cb)];
+			cr = pLocalPalette[i].s.red;
+			cg = pLocalPalette[i].s.green;
+			cb = pLocalPalette[i].s.blue;
+		}
 
 		cdestr = cr;
 		cdestg = cg;
@@ -1321,14 +1320,13 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 		cg = ((HEX2INT(p1[3]) * 16) + HEX2INT(p1[4]));
 		cb = ((HEX2INT(p1[5]) * 16) + HEX2INT(p1[6]));
 
-		// i don't know why this doesn't work...
-		/*if (encoremap)
+		if (encoremap)
 		{
-			i = NearestColor(cr, cg, cb);
-			cr = pLocalPalette[encoremap[i]].s.red;
-			cg = pLocalPalette[encoremap[i]].s.green;
-			cb = pLocalPalette[encoremap[i]].s.blue;
-		}*/
+			i = encoremap[NearestColor((UINT8)cr, (UINT8)cg, (UINT8)cb)];
+			cr = pLocalPalette[i].s.red;
+			cg = pLocalPalette[i].s.green;
+			cb = pLocalPalette[i].s.blue;
+		}
 
 		cmaskr = cr;
 		cmaskg = cg;
@@ -1378,14 +1376,13 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 		cg = ((HEX2INT(p3[3]) * 16) + HEX2INT(p3[4]));
 		cb = ((HEX2INT(p3[5]) * 16) + HEX2INT(p3[6]));
 
-		// i don't know why this doesn't work...
-		/*if (encoremap)
+		if (encoremap)
 		{
-			i = NearestColor(cr, cg, cb);
-			cr = pLocalPalette[encoremap[i]].s.red;
-			cg = pLocalPalette[encoremap[i]].s.green;
-			cb = pLocalPalette[encoremap[i]].s.blue;
-		}*/
+			i = encoremap[NearestColor((UINT8)cr, (UINT8)cg, (UINT8)cb)];
+			cr = pLocalPalette[i].s.red;
+			cg = pLocalPalette[i].s.green;
+			cb = pLocalPalette[i].s.blue;
+		}
 
 		cdestr = cr;
 		cdestg = cg;

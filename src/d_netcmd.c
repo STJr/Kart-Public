@@ -5252,7 +5252,7 @@ static void KartEncore_OnChange(void)
 			CONS_Printf(M_GetText("Encore tracks will be turned %s next round.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
 		else
 		{
-			CONS_Printf(M_GetText("Encore tracks has been turned %s.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
+			CONS_Printf(M_GetText("Encore tracks have been turned %s.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
 			encoremode = (boolean)cv_kartencore.value;
 		}
 	}

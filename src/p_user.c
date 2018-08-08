@@ -1221,7 +1221,7 @@ void P_RestoreMusic(player_t *player)
 
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
-		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
+		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
 		// Item - Grow
