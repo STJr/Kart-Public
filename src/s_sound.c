@@ -1476,8 +1476,8 @@ static boolean S_MIDIMusic(const char *mname, boolean looping)
 
 	(void)looping;
 
-	if (/*nomidimusic || */music_disabled)
-		return false; // didn't search.
+	/*if (nomidimusic || music_disabled)
+		return false; // didn't search.*/
 
 	if (W_CheckNumForName(va("d_%s", mname)) == LUMPERROR)
 		return false;
@@ -1537,7 +1537,7 @@ void S_ChangeMusic(const char *mmusic, UINT16 mflags, boolean looping)
 	S_ClearSfx();
 #endif
 
-	if ((nomidimusic || music_disabled) && (nodigimusic || digital_disabled))
+	if (/*(nomidimusic || music_disabled) && */(nodigimusic || digital_disabled))
 		return;
 
 	// No Music (empty string)
