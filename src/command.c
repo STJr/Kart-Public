@@ -28,6 +28,7 @@
 #include "byteptr.h"
 #include "p_saveg.h"
 #include "g_game.h" // for player_names
+#include "m_cond.h" // for encore mode
 #include "d_netcmd.h"
 #include "hu_stuff.h"
 #include "p_setup.h"
@@ -1370,6 +1371,12 @@ static void CV_SetCVar(consvar_t *var, const char *value, boolean stealth)
 		if (!(server || (IsPlayerAdmin(consoleplayer))))
 		{
 			CONS_Printf(M_GetText("Only the server or admin can change: %s %s\n"), var->name, var->string);
+			return;
+		}
+
+		if (var == &cv_kartencore && !M_SecretUnlocked(SECRET_ENCORE))
+		{
+			CONS_Printf(M_GetText("You haven't unlocked Encore Mode yet!\n"));
 			return;
 		}
 

@@ -1444,7 +1444,7 @@ static menuitem_t OP_GameOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR, NULL, "Game Speed",					&cv_kartspeed,			 30},
 	{IT_STRING | IT_CVAR, NULL, "Frantic Items",				&cv_kartfrantic,		 40},
-	{IT_STRING | IT_CVAR, NULL, "Encore Mode",					&cv_kartencore,			 50},
+	{IT_SECRET,           NULL, "Encore Mode",					&cv_kartencore,			 50},
 
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_basenumlaps,		 70},
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
@@ -4311,6 +4311,9 @@ static void M_Options(INT32 choice)
 	OP_MainMenu[7].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
 	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
+	OP_GameOptionsMenu[3].status =
+		(M_SecretUnlocked(SECRET_ENCORE)) ? (IT_CVAR|IT_STRING) : IT_SECRET; // cv_kartencore
+
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
 }
@@ -4463,7 +4466,8 @@ static void M_DrawChecklist(void)
 	for (i = 0; i < MAXUNLOCKABLES; i++)
 	{
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
-		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS)
+		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS
+		|| !M_Achieved(unlockables[i].showconditionset - 1))
 			continue;
 
 		++line;

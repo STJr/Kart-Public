@@ -136,6 +136,8 @@ mapthing_t *playerstarts[MAXPLAYERS];
 mapthing_t *bluectfstarts[MAXPLAYERS];
 mapthing_t *redctfstarts[MAXPLAYERS];
 
+boolean prevencoremode = false;
+
 /** Logs an error about a map being corrupt, then terminate.
   * This allows reporting highly technical errors for usefulness, without
   * confusing a novice map designer who simply needs to run ZenNode.
@@ -2245,6 +2247,8 @@ static void P_LevelInitStuff(void)
 		players[i].pflags &= ~PF_TRANSFERTOCLOSEST;
 	}
 
+	prevencoremode = ((wipegamestate == GS_TITLESCREEN) ? false : encoremode);
+
 	// SRB2Kart: map load variables
 	if (modeattacking) // Just play it safe and set everything
 	{
@@ -2647,7 +2651,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Encore mode fade to pink to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && encoremode)
+	if (rendermode != render_none && encoremode && !prevencoremode)
 	{
 		tic_t starttime, endtime, nowtime;
 
@@ -2697,14 +2701,14 @@ boolean P_SetupLevel(boolean skipprecip)
 		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 
 	// Let's fade to white here
-	// But only if we didn't do the encore wipe
+	// But only if we didn't do the encore startup wipe
 	if (rendermode != render_none && !ranspecialwipe)
 	{
 		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (encoremode ? 122 : 120));
 
 		F_WipeEndScreen();
-		F_RunWipe(wipedefs[wipe_level_toblack], false);
+		F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
 	}
 
 	// Reset the palette now all fades have been done
@@ -3045,7 +3049,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Remove the loading shit from the screen
 	if (rendermode != render_none)
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (encoremode && !ranspecialwipe ? 122 : 120));
 
 	if (precache || dedicated)
 		R_PrecacheLevel();

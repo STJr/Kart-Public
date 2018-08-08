@@ -2384,8 +2384,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 			else if (fastcmp(word, "OBJECTIVE"))
 				deh_strlcpy(unlockables[num].objective, word2,
 					sizeof (unlockables[num].objective), va("Unlockable %d: objective", num));
-			else if (fastcmp(word, "HEIGHT"))
-				unlockables[num].height = (UINT16)i;
+			else if (fastcmp(word, "SHOWCONDITIONSET"))
+				unlockables[num].showconditionset = (UINT8)i;
 			else if (fastcmp(word, "CONDITIONSET"))
 				unlockables[num].conditionset = (UINT8)i;
 			else if (fastcmp(word, "NOCECHO"))
@@ -2416,6 +2416,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 					unlockables[num].type = SECRET_WARP;
 				else if (fastcmp(word2, "SOUNDTEST"))
 					unlockables[num].type = SECRET_SOUNDTEST;
+				else if (fastcmp(word2, "ENCORE"))
+					unlockables[num].type = SECRET_ENCORE;
 				else
 					unlockables[num].type = (INT16)i;
 			}
