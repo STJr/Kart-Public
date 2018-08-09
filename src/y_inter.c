@@ -753,7 +753,8 @@ void Y_StartIntermission(void)
 		{
 			// Calculate who won
 			Y_CalculateMatchData(false, Y_CompareBattle);
-			S_ChangeMusicInternal("racent", true); // loop it
+			if (cv_inttime.value > 0)
+				S_ChangeMusicInternal("racent", true); // loop it
 			break;
 		}
 		case int_race: // (time-only race)
@@ -1174,18 +1175,15 @@ void Y_VoteTicker(void)
 {
 	INT32 i;
 
-	if (paused || P_AutoPause())
+	if (paused || P_AutoPause() || !voteclient.loaded)
 		return;
 
 	votetic++;
 
 	if (votetic == voteendtic)
 	{
-		if (voteclient.loaded)
-		{
-			Y_EndVote();
-			Y_FollowIntermission();
-		}
+		Y_EndVote();
+		Y_FollowIntermission();
 		return;
 	}
 
@@ -1226,17 +1224,14 @@ void Y_VoteTicker(void)
 
 			if (numvotes < 1) // Whoops! Get outta here.
 			{
-				if (voteclient.loaded)
-				{
-					Y_EndVote();
-					Y_FollowIntermission();
-				}
+				Y_EndVote();
+				Y_FollowIntermission();
 				return;
 			}
 
 			voteclient.rtics--;
 
-			if (voteclient.rtics <= 0 && voteclient.loaded)
+			if (voteclient.rtics <= 0)
 			{
 				voteclient.roffset++;
 				voteclient.rtics = min(20, (3*voteclient.roffset/4)+5);

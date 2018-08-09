@@ -1029,7 +1029,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		nobumpx = mobj1->momx;
 		nobumpy = mobj1->momy;
 	}*/
-	
+
 	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
 	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
 
@@ -2234,8 +2234,8 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 
 		sparkle = P_SpawnMobj(newx, newy, newz, MT_SPARKLETRAIL);
 
-		if (i == 0)
-			P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
+		//if (i == 0)
+			//P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
 
 		P_SetTarget(&sparkle->target, mo);
 		sparkle->destscale = mo->destscale;
@@ -2244,6 +2244,8 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		sparkle->color = mo->color;
 		//sparkle->colorized = mo->colorized;
 	}
+
+	P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
 }
 
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
@@ -4331,7 +4333,7 @@ void K_CheckBumpers(void)
 
 void K_CheckSpectateStatus(void)
 {
-	UINT8 respawnlist[MAXPLAYERS];	
+	UINT8 respawnlist[MAXPLAYERS];
 	UINT8 i, numingame = 0, numjoiners = 0;
 
 	// Get the number of players in game, and the players to be de-spectated.
@@ -4348,7 +4350,7 @@ void K_CheckSpectateStatus(void)
 			if (players[i].exiting) // DON'T allow if anyone's exiting
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
-                continue; 
+                continue;
             if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
                 return;
 			continue;
@@ -6031,6 +6033,9 @@ static void K_drawInput(void)
 	drawbutt(   BUTTW, BT_ATTACK,     'I');
 
 #undef drawbutt
+
+#undef BUTTW
+#undef BUTTH
 
 	y -= 1;
 

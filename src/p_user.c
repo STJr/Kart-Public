@@ -8369,7 +8369,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 	else if (P_AnalogMove(player)) // Analog
 		angle = R_PointToAngle2(thiscam->x, thiscam->y, mo->x, mo->y);
-	else if (demoplayback)
+	else if (demoplayback && leveltime > starttime)
 	{
 		angle = focusangle;
 		focusangle = R_PointToAngle2(thiscam->x, thiscam->y, mo->x, mo->y);
@@ -8384,7 +8384,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	else
 		angle = focusangle + FixedAngle(camrotate*FRACUNIT);
 
-	if (!resetcalled && (cv_analog.value || demoplayback)
+	if (!resetcalled && (leveltime > starttime) && (cv_analog.value || demoplayback)
 		&& ((thiscam == &camera && t_cam_rotate != -42)
 		|| (thiscam == &camera2 && t_cam2_rotate != -42)
 		|| (thiscam == &camera3 && t_cam3_rotate != -42)

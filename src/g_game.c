@@ -400,9 +400,6 @@ static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 
 // don't mind me putting these here, I was lazy to figure out where else I could put those without blowing up the compiler.
 
-// it automatically becomes compact with 20+ players, but if you like it, I guess you can turn that on!
-consvar_t cv_compactscoreboard= {"compactscoreboard", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-
 // chat timer thingy
 static CV_PossibleValue_t chattime_cons_t[] = {{5, "MIN"}, {999, "MAX"}, {0, NULL}};
 consvar_t cv_chattime = {"chattime", "8", CV_SAVE, chattime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -425,8 +422,8 @@ consvar_t cv_chatspamprotection = {"chatspamprotection", "On", CV_SAVE, CV_OnOff
 consvar_t cv_chatbacktint = {"chatbacktint", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // old shit console chat. (mostly exists for stuff like terminal, not because I cared if anyone liked the old chat.)
-//static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Box"}, {1, "Console"}, {0, NULL}}; -- for menu, but menu disabled...
-consvar_t cv_consolechat = {"consolechat", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {0, NULL}};
+consvar_t cv_consolechat = {"chatmode", "Window", CV_SAVE, consolechat_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_crosshair = {"crosshair", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_crosshair2 = {"crosshair2", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -3306,7 +3303,7 @@ static void G_DoCompleted(void)
 		}
 
 	// play some generic music if there's no win/cool/lose music going on (for exitlevel commands)
-	if (G_RaceGametype() && j == splitscreen+1)
+	if (G_RaceGametype() && j == splitscreen+1 && (cv_inttime.value > 0))
 		S_ChangeMusicInternal("racent", true);
 
 	if (automapactive)
@@ -3464,30 +3461,25 @@ void G_AfterIntermission(void)
 //
 void G_NextLevel(void)
 {
-	boolean dovote = false;
-
-	if ((cv_advancemap.value == 3 && gamestate != GS_VOTING)
-		&& !modeattacking && !skipstats && (multiplayer || netgame))
+	if (gamestate != GS_VOTING)
 	{
-		UINT8 i;
-		for (i = 0; i < MAXPLAYERS; i++)
+		if ((cv_advancemap.value == 3) && !modeattacking && !skipstats && (multiplayer || netgame))
 		{
-			if (playeringame[i] && !players[i].spectator)
+			UINT8 i;
+			for (i = 0; i < MAXPLAYERS; i++)
 			{
-				dovote = true;
-				break;
+				if (playeringame[i] && !players[i].spectator)
+				{
+					gameaction = ga_startvote;
+					return;
+				}
 			}
 		}
+
+		forceresetplayers = false;
 	}
 	
-	if (dovote)
-		gameaction = ga_startvote;
-	else
-	{
-		if (gamestate != GS_VOTING)
-			forceresetplayers = false;
-		gameaction = ga_worlddone;
-	}
+	gameaction = ga_worlddone;
 }
 
 static void G_DoWorldDone(void)

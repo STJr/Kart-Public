@@ -804,8 +804,8 @@ static void ST_drawLevelTitle(void)
 		V_DrawDiag(sub + ttlnumxpos, bary, 10, gtc);
 		if (subttl[0])
 			V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, subttl);
-		else
-			V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, va("%s Mode", gametype_cons_t[gametype].strvalue));
+		//else
+			//V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, va("%s Mode", gametype_cons_t[gametype].strvalue));
 	}
 
 	ttlnumxpos += sub;
