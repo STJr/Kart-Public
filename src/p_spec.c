@@ -4174,7 +4174,7 @@ DoneSection2:
 				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
 					player->laps++;
-					//player->kartstuff[k_lapanimation] = 80;
+					player->kartstuff[k_lapanimation] = 80;
 
 					if (player->pflags & PF_NIGHTSMODE)
 						player->drillmeter += 48*20;

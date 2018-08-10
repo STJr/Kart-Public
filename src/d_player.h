@@ -277,7 +277,7 @@ typedef enum
 	k_respawn,			// Timer for the DEZ laser respawn effect
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
-	//k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
+	k_lapanimation,		// Used to show the lap start wing logo animation
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam

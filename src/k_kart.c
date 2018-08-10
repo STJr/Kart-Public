@@ -3103,8 +3103,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_deathsentence]--;
 	}
 
-	/*if (player->kartstuff[k_lapanimation])
-		player->kartstuff[k_lapanimation]--;*/
+	if (player->kartstuff[k_lapanimation])
+		player->kartstuff[k_lapanimation]--;
 
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
@@ -4452,6 +4452,11 @@ static patch_t *kp_inputwheel[5];
 
 static patch_t *kp_challenger[25];
 
+static patch_t *kp_lapanim_lap[7];
+static patch_t *kp_lapanim_final[11];
+static patch_t *kp_lapanim_number[10][3];
+static patch_t *kp_lapanim_emblem;
+
 void K_LoadKartHUDGraphics(void)
 {
 	INT32 i, j;
@@ -4614,6 +4619,35 @@ void K_LoadKartHUDGraphics(void)
 		buffer[7] = '0'+((i+1)%10);
 		kp_challenger[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
+
+	// Lap start animation
+	sprintf(buffer, "K_LAP0x");
+	for (i = 0; i < 7; i++)
+	{
+		buffer[6] = '0'+(i+1);
+		kp_lapanim_lap[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	sprintf(buffer, "K_LAPFxx");
+	for (i = 0; i < 11; i++)
+	{
+		buffer[6] = '0'+((i+1)/10);
+		buffer[7] = '0'+((i+1)%10);
+		kp_lapanim_final[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	sprintf(buffer, "K_LAPNxx");
+	for (i = 0; i < 10; i++)
+	{
+		buffer[6] = '0'+i;
+		for (j = 0; j < 3; j++)
+		{
+			buffer[7] = '0'+(j+1);
+			kp_lapanim_number[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+		}
+	}
+
+	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
 }
 
 //}
@@ -5060,7 +5094,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 
 	if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
-		scale = FixedMul(scale, 3*FRACUNIT/2);
+		scale *= 2;
 	if (splitscreen)
 		scale /= 2;
 
@@ -6096,13 +6130,48 @@ static void K_drawChallengerScreen(void)
 	V_DrawScaledPatch(0, 0, 0, kp_challenger[anim[offset]]);
 }
 
-static void K_drawCheckpointDebugger(void)
+static void K_drawLapStartAnim(void)
 {
-	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
-		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
+	// This is an EVEN MORE insanely complicated animation.
+	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
+
+	V_DrawScaledPatch(BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)),
+		64 - (32*max(0, progress-76)),
+		0, kp_lapanim_emblem);
+
+	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
+	{
+		V_DrawScaledPatch(27 - (32*max(0, progress-76)),
+			40,
+			0, kp_lapanim_final[min(progress/2, 10)]);
+
+		if (progress/2-12 >= 0)
+		{
+			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
+				40,
+				0, kp_lapanim_lap[min(progress/2-12, 6)]);
+		}
+	}
 	else
-		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Skip: %d)", stplyr->starpostnum, numstarposts, (numstarposts/2 + stplyr->starpostnum)));
-	V_DrawString(8, 192, 0, va("Waypoint dist: Prev %d, Next %d", stplyr->kartstuff[k_prevcheck], stplyr->kartstuff[k_nextcheck]));
+	{
+		V_DrawScaledPatch(61 - (32*max(0, progress-76)),
+			40,
+			0, kp_lapanim_lap[min(progress/2, 6)]);
+
+		if (progress/2-8 >= 0)
+		{
+			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
+				40,
+				0, kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)]);
+
+			if (progress/2-10 >= 0)
+			{
+				V_DrawScaledPatch(221 + (32*max(0, progress-76)),
+					40,
+					0, kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)]);
+			}
+		}
+	}
 }
 
 void K_drawKartFreePlay(UINT32 flashtime)
@@ -6114,6 +6183,15 @@ void K_drawKartFreePlay(UINT32 flashtime)
 
 	V_DrawKartString((BASEVIDWIDTH - (LAPS_X+1)) - (12*9), // mirror the laps thingy
 		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
+}
+
+static void K_drawCheckpointDebugger(void)
+{
+	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
+		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
+	else
+		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Skip: %d)", stplyr->starpostnum, numstarposts, (numstarposts/2 + stplyr->starpostnum)));
+	V_DrawString(8, 192, 0, va("Waypoint dist: Prev %d, Next %d", stplyr->kartstuff[k_prevcheck], stplyr->kartstuff[k_nextcheck]));
 }
 
 void K_drawKartHUD(void)
@@ -6242,15 +6320,21 @@ void K_drawKartHUD(void)
 		}
 	}
 
-	if (stplyr->exiting && G_RaceGametype())
-		K_drawKartFinish();
-
-	if (cv_kartdebugcheckpoint.value)
-		K_drawCheckpointDebugger();
+	// Race overlays
+	if (G_RaceGametype())
+	{
+		if (stplyr->exiting)
+			K_drawKartFinish();
+		else if (stplyr->kartstuff[k_lapanimation] && !splitscreen)
+			K_drawLapStartAnim();
+	}
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
 		K_drawKartFreePlay(leveltime);
+
+	if (cv_kartdebugcheckpoint.value)
+		K_drawCheckpointDebugger();
 }
 
 //}
