@@ -464,7 +464,7 @@ boolean K_IsPlayerWanted(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
-			   /*Sneaker*/ {20, 0, 0, 3, 5, 5, 0, 0, 0 }, // Sneaker
+			   /*Sneaker*/ {20, 0, 0, 3, 6, 6, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 2, 5, 4, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 5, 6,16 }, // Invincibility
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
@@ -474,7 +474,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 0, 0, 1, 2, 4, 6, 4 }, // Grow
+				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 6, 4 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
@@ -483,14 +483,15 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 6, 5, 3, 0 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Orbinaut x4
 			   /*Jawz x2*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }  // Jawz x2
 };
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
 				//P-Odds	 0  1  2  3
-			   /*Sneaker*/ { 3, 2, 2, 2 }, // Sneaker
+			   /*Sneaker*/ { 2, 2, 2, 2 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 4, 2, 1, 2 }, // Invincibility
 				/*Banana*/ { 0, 0, 2, 0 }, // Banana
@@ -509,7 +510,8 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 			/*Sneaker x3*/ { 2, 0, 0, 2 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 1, 1, 1 }, // Banana x3
 			/*Banana x10*/ { 1, 0, 0, 1 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 2, 1, 2 }, // Orbinaut x3
+		   /*Orbinaut x3*/ { 0, 1, 1, 1 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 1, 1, 0, 1 }, // Orbinaut x4
 			   /*Jawz x2*/ { 3, 2, 0, 2 }  // Jawz x2
 };
 
@@ -540,6 +542,10 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 		case KRITEM_TRIPLEORBINAUT: // Orbinaut x3
 			player->kartstuff[k_itemtype] = KITEM_ORBINAUT;
 			player->kartstuff[k_itemamount] = 3;
+			break;
+		case KRITEM_QUADORBINAUT: // Orbinaut x4
+			player->kartstuff[k_itemtype] = KITEM_ORBINAUT;
+			player->kartstuff[k_itemamount] = 4;
 			break;
 		case KRITEM_DUALJAWZ: // Jawz x2
 			player->kartstuff[k_itemtype] = KITEM_JAWZ;
@@ -706,6 +712,10 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			if (!cv_triplebanana.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEORBINAUT:
+			POWERITEMODDS(newodds);
+			if (!cv_tripleorbinaut.value) newodds = 0;
+			break;
+		case KRITEM_QUADORBINAUT:
 			POWERITEMODDS(newodds);
 			if (!cv_tripleorbinaut.value) newodds = 0;
 			break;
@@ -907,6 +917,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	SETITEMRESULT(useodds, KRITEM_TRIPLEBANANA);	// Banana x3
 	SETITEMRESULT(useodds, KRITEM_TENFOLDBANANA);	// Banana x10
 	SETITEMRESULT(useodds, KRITEM_TRIPLEORBINAUT);	// Orbinaut x3
+	SETITEMRESULT(useodds, KRITEM_QUADORBINAUT);	// Orbinaut x4
 	SETITEMRESULT(useodds, KRITEM_DUALJAWZ);		// Jawz x2
 
 #undef SETITEMRESULT
@@ -1029,7 +1040,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		nobumpx = mobj1->momx;
 		nobumpy = mobj1->momy;
 	}*/
-	
+
 	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
 	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
 
@@ -2234,8 +2245,8 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 
 		sparkle = P_SpawnMobj(newx, newy, newz, MT_SPARKLETRAIL);
 
-		if (i == 0)
-			P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
+		//if (i == 0)
+			//P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
 
 		P_SetTarget(&sparkle->target, mo);
 		sparkle->destscale = mo->destscale;
@@ -2244,6 +2255,8 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		sparkle->color = mo->color;
 		//sparkle->colorized = mo->colorized;
 	}
+
+	P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
 }
 
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
@@ -3101,8 +3114,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_deathsentence]--;
 	}
 
-	/*if (player->kartstuff[k_lapanimation])
-		player->kartstuff[k_lapanimation]--;*/
+	if (player->kartstuff[k_lapanimation])
+		player->kartstuff[k_lapanimation]--;
 
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
@@ -4331,7 +4344,7 @@ void K_CheckBumpers(void)
 
 void K_CheckSpectateStatus(void)
 {
-	UINT8 respawnlist[MAXPLAYERS];	
+	UINT8 respawnlist[MAXPLAYERS];
 	UINT8 i, numingame = 0, numjoiners = 0;
 
 	// Get the number of players in game, and the players to be de-spectated.
@@ -4348,7 +4361,7 @@ void K_CheckSpectateStatus(void)
 			if (players[i].exiting) // DON'T allow if anyone's exiting
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
-                continue; 
+                continue;
             if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
                 return;
 			continue;
@@ -4428,7 +4441,7 @@ static patch_t *kp_rocketsneaker[2];
 static patch_t *kp_invincibility[13];
 static patch_t *kp_banana[2];
 static patch_t *kp_eggman[2];
-static patch_t *kp_orbinaut[2];
+static patch_t *kp_orbinaut[5];
 static patch_t *kp_jawz[2];
 static patch_t *kp_mine[2];
 static patch_t *kp_ballhog[2];
@@ -4449,6 +4462,11 @@ static patch_t *kp_fpview[3];
 static patch_t *kp_inputwheel[5];
 
 static patch_t *kp_challenger[25];
+
+static patch_t *kp_lapanim_lap[7];
+static patch_t *kp_lapanim_final[11];
+static patch_t *kp_lapanim_number[10][3];
+static patch_t *kp_lapanim_emblem;
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -4538,7 +4556,12 @@ void K_LoadKartHUDGraphics(void)
 	}
 	kp_banana[0] =				W_CachePatchName("K_ITBANA", PU_HUDGFX);
 	kp_eggman[0] =				W_CachePatchName("K_ITEGGM", PU_HUDGFX);
-	kp_orbinaut[0] =			W_CachePatchName("K_ITORBN", PU_HUDGFX);
+	sprintf(buffer, "K_ITORBx");
+	for (i = 0; i < 4; i++)
+	{
+		buffer[7] = '1'+i;
+		kp_orbinaut[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 	kp_jawz[0] =				W_CachePatchName("K_ITJAWZ", PU_HUDGFX);
 	kp_mine[0] =				W_CachePatchName("K_ITMINE", PU_HUDGFX);
 	kp_ballhog[0] =				W_CachePatchName("K_ITBHOG", PU_HUDGFX);
@@ -4566,7 +4589,7 @@ void K_LoadKartHUDGraphics(void)
 	}
 	kp_banana[1] =				W_CachePatchName("K_ISBANA", PU_HUDGFX);
 	kp_eggman[1] =				W_CachePatchName("K_ISEGGM", PU_HUDGFX);
-	kp_orbinaut[1] =			W_CachePatchName("K_ISORBN", PU_HUDGFX);
+	kp_orbinaut[4] =			W_CachePatchName("K_ISORBN", PU_HUDGFX);
 	kp_jawz[1] =				W_CachePatchName("K_ISJAWZ", PU_HUDGFX);
 	kp_mine[1] =				W_CachePatchName("K_ISMINE", PU_HUDGFX);
 	kp_ballhog[1] =				W_CachePatchName("K_ISBHOG", PU_HUDGFX);
@@ -4612,6 +4635,35 @@ void K_LoadKartHUDGraphics(void)
 		buffer[7] = '0'+((i+1)%10);
 		kp_challenger[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
+
+	// Lap start animation
+	sprintf(buffer, "K_LAP0x");
+	for (i = 0; i < 7; i++)
+	{
+		buffer[6] = '0'+(i+1);
+		kp_lapanim_lap[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	sprintf(buffer, "K_LAPFxx");
+	for (i = 0; i < 11; i++)
+	{
+		buffer[6] = '0'+((i+1)/10);
+		buffer[7] = '0'+((i+1)%10);
+		kp_lapanim_final[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	sprintf(buffer, "K_LAPNxx");
+	for (i = 0; i < 10; i++)
+	{
+		buffer[6] = '0'+i;
+		for (j = 0; j < 3; j++)
+		{
+			buffer[7] = '0'+(j+1);
+			kp_lapanim_number[i][j] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+		}
+	}
+
+	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
 }
 
 //}
@@ -4807,22 +4859,22 @@ static void K_drawKartItem(void)
 		switch((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3)
 		{
 			// Each case is handled in threes, to give three frames of in-game time to see the item on the roulette
-			case  0: localpatch = kp_sneaker[offset]; break;				// Sneaker
-			case  1: localpatch = kp_banana[offset]; break;				// Banana
-			case  2: localpatch = kp_orbinaut[offset]; break;				// Orbinaut
-			case  3: localpatch = kp_mine[offset]; break;					// Mine
-			case  4: localpatch = kp_grow[offset]; break;					// Grow
-			case  5: localpatch = kp_hyudoro[offset]; break;				// Hyudoro
-			case  6: localpatch = kp_rocketsneaker[offset]; break;		// Rocket Sneaker
-			case  7: localpatch = kp_jawz[offset]; break;					// Jawz
-			case  8: localpatch = kp_selfpropelledbomb[offset]; break;	// Self-Propelled Bomb
-			case  9: localpatch = kp_shrink[offset]; break;				// Shrink
-			case 10: localpatch = localinv; break;							// Invincibility
-			case 11: localpatch = kp_eggman[offset]; break;				// Eggman Monitor
-			case 12: localpatch = kp_ballhog[offset]; break;				// Ballhog
-			case 13: localpatch = kp_thundershield[offset]; break;		// Thunder Shield
-			//case 14: localpatch = kp_pogospring[offset]; break;			// Pogo Spring
-			//case 15: localpatch = kp_kitchensink[offset]; break;			// Kitchen Sink
+			case  0: localpatch = kp_sneaker[offset]; break;					// Sneaker
+			case  1: localpatch = kp_banana[offset]; break;					// Banana
+			case  2: localpatch = kp_orbinaut[3+offset]; break;				// Orbinaut
+			case  3: localpatch = kp_mine[offset]; break;						// Mine
+			case  4: localpatch = kp_grow[offset]; break;						// Grow
+			case  5: localpatch = kp_hyudoro[offset]; break;					// Hyudoro
+			case  6: localpatch = kp_rocketsneaker[offset]; break;			// Rocket Sneaker
+			case  7: localpatch = kp_jawz[offset]; break;						// Jawz
+			case  8: localpatch = kp_selfpropelledbomb[offset]; break;		// Self-Propelled Bomb
+			case  9: localpatch = kp_shrink[offset]; break;					// Shrink
+			case 10: localpatch = localinv; break;								// Invincibility
+			case 11: localpatch = kp_eggman[offset]; break;					// Eggman Monitor
+			case 12: localpatch = kp_ballhog[offset]; break;					// Ballhog
+			case 13: localpatch = kp_thundershield[offset]; break;			// Thunder Shield
+			//case 14: localpatch = kp_pogospring[offset]; break;				// Pogo Spring
+			//case 15: localpatch = kp_kitchensink[offset]; break;				// Kitchen Sink
 			default: break;
 		}
 	}
@@ -4876,7 +4928,10 @@ static void K_drawKartItem(void)
 				case KITEM_INVINCIBILITY:		localpatch = localinv; localbg = kp_itembg[offset+1]; break;
 				case KITEM_BANANA:				localpatch = kp_banana[offset]; break;
 				case KITEM_EGGMAN:				localpatch = kp_eggman[offset]; break;
-				case KITEM_ORBINAUT:			localpatch = kp_orbinaut[offset]; break;
+				case KITEM_ORBINAUT:
+					localpatch = kp_orbinaut[(splitscreen ? 4
+						: min(stplyr->kartstuff[k_itemamount]-1, 3))];
+					break;
 				case KITEM_JAWZ:				localpatch = kp_jawz[offset]; break;
 				case KITEM_MINE:				localpatch = kp_mine[offset]; break;
 				case KITEM_BALLHOG:				localpatch = kp_ballhog[offset]; break;
@@ -5058,7 +5113,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 
 	if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
-		scale = FixedMul(scale, 3*FRACUNIT/2);
+		scale *= 2;
 	if (splitscreen)
 		scale /= 2;
 
@@ -6032,6 +6087,9 @@ static void K_drawInput(void)
 
 #undef drawbutt
 
+#undef BUTTW
+#undef BUTTH
+
 	y -= 1;
 
 	if (!cmd->driftturn) // no turn
@@ -6091,13 +6149,48 @@ static void K_drawChallengerScreen(void)
 	V_DrawScaledPatch(0, 0, 0, kp_challenger[anim[offset]]);
 }
 
-static void K_drawCheckpointDebugger(void)
+static void K_drawLapStartAnim(void)
 {
-	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
-		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
+	// This is an EVEN MORE insanely complicated animation.
+	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
+
+	V_DrawScaledPatch(BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)),
+		64 - (32*max(0, progress-76)),
+		0, kp_lapanim_emblem);
+
+	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
+	{
+		V_DrawScaledPatch(27 - (32*max(0, progress-76)),
+			40,
+			0, kp_lapanim_final[min(progress/2, 10)]);
+
+		if (progress/2-12 >= 0)
+		{
+			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
+				40,
+				0, kp_lapanim_lap[min(progress/2-12, 6)]);
+		}
+	}
 	else
-		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Skip: %d)", stplyr->starpostnum, numstarposts, (numstarposts/2 + stplyr->starpostnum)));
-	V_DrawString(8, 192, 0, va("Waypoint dist: Prev %d, Next %d", stplyr->kartstuff[k_prevcheck], stplyr->kartstuff[k_nextcheck]));
+	{
+		V_DrawScaledPatch(61 - (32*max(0, progress-76)),
+			40,
+			0, kp_lapanim_lap[min(progress/2, 6)]);
+
+		if (progress/2-8 >= 0)
+		{
+			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
+				40,
+				0, kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)]);
+
+			if (progress/2-10 >= 0)
+			{
+				V_DrawScaledPatch(221 + (32*max(0, progress-76)),
+					40,
+					0, kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)]);
+			}
+		}
+	}
 }
 
 void K_drawKartFreePlay(UINT32 flashtime)
@@ -6109,6 +6202,15 @@ void K_drawKartFreePlay(UINT32 flashtime)
 
 	V_DrawKartString((BASEVIDWIDTH - (LAPS_X+1)) - (12*9), // mirror the laps thingy
 		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
+}
+
+static void K_drawCheckpointDebugger(void)
+{
+	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
+		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
+	else
+		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Skip: %d)", stplyr->starpostnum, numstarposts, (numstarposts/2 + stplyr->starpostnum)));
+	V_DrawString(8, 192, 0, va("Waypoint dist: Prev %d, Next %d", stplyr->kartstuff[k_prevcheck], stplyr->kartstuff[k_nextcheck]));
 }
 
 void K_drawKartHUD(void)
@@ -6237,15 +6339,21 @@ void K_drawKartHUD(void)
 		}
 	}
 
-	if (stplyr->exiting && G_RaceGametype())
-		K_drawKartFinish();
-
-	if (cv_kartdebugcheckpoint.value)
-		K_drawCheckpointDebugger();
+	// Race overlays
+	if (G_RaceGametype())
+	{
+		if (stplyr->exiting)
+			K_drawKartFinish();
+		else if (stplyr->kartstuff[k_lapanimation] && !splitscreen)
+			K_drawLapStartAnim();
+	}
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
 		K_drawKartFreePlay(leveltime);
+
+	if (cv_kartdebugcheckpoint.value)
+		K_drawCheckpointDebugger();
 }
 
 //}

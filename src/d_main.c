@@ -125,11 +125,11 @@ INT32 postimgparam3;
 postimg_t postimgtype4 = postimg_none;
 INT32 postimgparam4;
 #ifdef _XBOX
-boolean nomidimusic = false;
+//boolean nomidimusic = false;
 boolean nosound = true;
 boolean nodigimusic = true;
 #else
-boolean nomidimusic = false;
+//boolean nomidimusic = false;
 boolean nosound = false;
 boolean nodigimusic = false; // No fmod-based music
 #endif
@@ -137,7 +137,7 @@ boolean nodigimusic = false; // No fmod-based music
 // These variables are only true if
 // the respective sound system is initialized
 // and active, but no sounds/music should play.
-boolean music_disabled = false;
+//boolean music_disabled = false;
 boolean sound_disabled = false;
 boolean digital_disabled = false;
 
@@ -318,7 +318,10 @@ static void D_Display(void)
 				F_WipeEndScreen();
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
 				if (wipegamestate == GS_LEVEL && rendermode != render_none)
+				{
 					V_SetPaletteLump("PLAYPAL"); // Reset the palette
+					R_ReInitColormaps(0, LUMPERROR);
+				}
 			}
 
 			F_WipeStartScreen();

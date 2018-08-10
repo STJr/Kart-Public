@@ -797,24 +797,16 @@ static void ST_drawLevelTitle(void)
 	}
 
 	{
-		const char *subttlstr;
-
 		dupcalc = (dupcalc - BASEVIDWIDTH)>>1;
 		V_DrawFill(sub - dupcalc, bary+9, ttlnumxpos+dupcalc + 1, 2, 31);
 		V_DrawDiag(sub + ttlnumxpos + 1, bary, 11, 31);
 		V_DrawFill(sub - dupcalc, bary, ttlnumxpos+dupcalc, 10, gtc);
 		V_DrawDiag(sub + ttlnumxpos, bary, 10, gtc);
 
-		if (encoremode)
-			subttlstr = "Encore Mode";
-		else if (subttl[0])
-			subttlstr = subttl;
-		else if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
-			subttlstr = "MAP HELL";
-		else
-			subttlstr = va("%s Mode", gametype_cons_t[gametype].strvalue);
-
-		V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, subttlstr);
+		if (subttl[0])
+			V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, subttl);
+		//else
+			//V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, va("%s Mode", gametype_cons_t[gametype].strvalue));
 	}
 
 	ttlnumxpos += sub;

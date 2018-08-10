@@ -314,7 +314,7 @@ static void M_RestartAudio(void);
 
 //Misc
 menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
-menu_t OP_HUDOptionsDef;
+menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
 //menu_t OP_NetgameOptionsDef, OP_GametypeOptionsDef;
 menu_t OP_MonitorToggleDef;
@@ -338,6 +338,7 @@ static void M_DrawTimeAttackMenu(void);
 static void M_DrawSetupChoosePlayerMenu(void);
 static void M_DrawControl(void);
 static void M_DrawVideoMenu(void);
+static void M_DrawHUDOptions(void);
 static void M_DrawVideoMode(void);
 //static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
@@ -1251,22 +1252,17 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 							NULL,	"Gamma",				&cv_usegamma,			 30},
 
-	{IT_STRING | IT_CVAR,	NULL,	"Menu Highlights",		&cons_menuhighlight,     45},
-	// highlight info - (GOOD HIGHLIGHT, WARNING HIGHLIGHT) - 55 (see M_DrawVideoMenu)
+	{IT_STRING | IT_CVAR,	NULL,	"Draw Distance",		&cv_drawdist,			 45},
+	//{IT_STRING | IT_CVAR,	NULL,	"NiGHTS Draw Dist",		&cv_drawdist_nights,	 55},
+	{IT_STRING | IT_CVAR,	NULL,	"Weather Draw Distance",&cv_drawdist_precip,	 55},
+	{IT_STRING | IT_CVAR,	NULL,	"Weather Density",		&cv_precipdensity,		 65},
+	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				 75},
 
-	{IT_STRING | IT_CVAR,	NULL,	"Draw Distance",		&cv_drawdist,			 70},
-	//{IT_STRING | IT_CVAR,	NULL,	"NiGHTS Draw Dist",		&cv_drawdist_nights,	 80},
-	{IT_STRING | IT_CVAR,	NULL,	"Weather Draw Distance",&cv_drawdist_precip,	 80},
-	{IT_STRING | IT_CVAR,	NULL,	"Weather Density",		&cv_precipdensity,		 90},
-	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				100},
-
-	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			115},
-	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			125},
-
-	{IT_STRING | IT_CVAR,	NULL,	"Console Text Size",	&cv_constextsize,		140},
+	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
+	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
 
 #ifdef HWRENDER
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	155},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	115},
 #endif
 };
 
@@ -1277,14 +1273,12 @@ enum
 	op_video_fullscreen,
 #endif
 	op_video_gamma,
-	op_video_hili,
 	op_video_dd,
 	op_video_wdd,
 	op_video_wd,
 	op_video_skybox,
 	op_video_fps,
 	op_video_vsync,
-	op_video_consoletext,
 #ifdef HWRENDER
 	op_video_ogl,
 #endif
@@ -1423,19 +1417,30 @@ static menuitem_t OP_HUDOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 	                      NULL, "HUD Visibility",			&cv_translucenthud,		 20},
 
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-						  NULL, "Minimap Visibility",		&cv_kartminimap,		 35},
-	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",		&cv_kartspeedometer,	 45},
-	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",			&cv_kartcheck,			 55},
+	{IT_STRING | IT_SUBMENU, NULL, "Online chat options...",&OP_ChatOptionsDef, 	 35},
+	{IT_STRING | IT_CVAR, NULL, "Background Glass",			&cons_backcolor,		 45},
 
-	//{IT_STRING | IT_CVAR, NULL, "Chat mode",				&cv_consolechat,		 70}, -- will ANYONE who doesn't know how to use the console want to touch this
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Chat box width",			&cv_chatwidth,		 	 70},
+						  NULL, "Minimap Visibility",		&cv_kartminimap,		 60},
+	{IT_STRING | IT_CVAR, NULL, "Speedometer Display",		&cv_kartspeedometer,	 70},
+	{IT_STRING | IT_CVAR, NULL, "Show \"CHECK\"",			&cv_kartcheck,			 80},
+
+	{IT_STRING | IT_CVAR, NULL,	"Menu Highlights",			&cons_menuhighlight,     95},
+	// highlight info - (GOOD HIGHLIGHT, WARNING HIGHLIGHT) - 105 (see M_DrawHUDOptions)
+
+	{IT_STRING | IT_CVAR, NULL,	"Console Text Size",		&cv_constextsize,		120},
+};
+
+static menuitem_t OP_ChatOptionsMenu[] =
+{
+	// will ANYONE who doesn't know how to use the console want to touch this one?
+	{IT_STRING | IT_CVAR, NULL, "Chat mode",				&cv_consolechat,		 10}, // nonetheless...
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Chat box height",			&cv_chatheight,		 	 80},
-	{IT_STRING | IT_CVAR, NULL, "Chat fadeout time",		&cv_chattime,			 90},
-	{IT_STRING | IT_CVAR, NULL, "Show tint behind messages",&cv_chatbacktint,		100},
-	{IT_STRING | IT_CVAR, NULL, "Background Color",			&cons_backcolor,		110},
+	                      NULL, "Window width",		&cv_chatwidth,		 	 25},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
+	                      NULL, "Window height",		&cv_chatheight,		 	 35},
+	{IT_STRING | IT_CVAR, NULL, "Message fadeout time",		&cv_chattime,			 50},
+	{IT_STRING | IT_CVAR, NULL, "Show tint behind messages",&cv_chatbacktint,		 60},
 };
 
 static menuitem_t OP_GameOptionsMenu[] =
@@ -1941,11 +1946,13 @@ menu_t OP_HUDOptionsDef =
 	sizeof (OP_HUDOptionsMenu)/sizeof (menuitem_t),
 	&OP_MainDef,
 	OP_HUDOptionsMenu,
-	M_DrawGenericMenu, //M_DrawHUDOptions,
+	M_DrawHUDOptions,
 	30, 30,
 	0,
 	NULL
 };
+
+menu_t OP_ChatOptionsDef = DEFAULTMENUSTYLE("M_HUD", OP_ChatOptionsMenu, &OP_HUDOptionsDef, 30, 30);
 
 menu_t OP_GameOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_GameOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, &OP_MainDef, 24, 30);
@@ -8240,11 +8247,20 @@ static void M_VideoModeMenu(INT32 choice)
 
 static void M_DrawVideoMenu(void)
 {
+	M_DrawGenericMenu();
+
+	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + OP_VideoOptionsMenu[0].alphaKey,
+		(SCR_IsAspectCorrect(vid.width, vid.height) ? recommendedflags : highlightflags),
+			va("%dx%d", vid.width, vid.height));
+}
+
+static void M_DrawHUDOptions(void)
+{
 	const char *str0 = ")";
 	const char *str1 = " Warning highlight";
 	const char *str2 = ",";
 	const char *str3 = "Good highlight";
-	INT32 x = BASEVIDWIDTH - currentMenu->x + 2, y = currentMenu->y + 55;
+	INT32 x = BASEVIDWIDTH - currentMenu->x + 2, y = currentMenu->y + 105;
 	INT32 w0 = V_StringWidth(str0, 0), w1 = V_StringWidth(str1, 0), w2 = V_StringWidth(str2, 0), w3 = V_StringWidth(str3, 0);
 
 	M_DrawGenericMenu();
@@ -8258,10 +8274,6 @@ static void M_DrawVideoMenu(void)
 	x -= w3;
 	V_DrawString(x, y, recommendedflags, str3);
 	V_DrawRightAlignedString(x, y, highlightflags, "(");
-
-	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + OP_VideoOptionsMenu[0].alphaKey,
-		(SCR_IsAspectCorrect(vid.width, vid.height) ? recommendedflags : highlightflags),
-			va("%dx%d", vid.width, vid.height));
 }
 
 // Draw the video modes list, a-la-Quake
