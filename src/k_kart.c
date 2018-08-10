@@ -464,7 +464,7 @@ boolean K_IsPlayerWanted(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
-			   /*Sneaker*/ {20, 0, 0, 3, 5, 5, 0, 0, 0 }, // Sneaker
+			   /*Sneaker*/ {20, 0, 0, 3, 6, 6, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 2, 5, 4, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 5, 6,16 }, // Invincibility
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
@@ -474,7 +474,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 0, 0, 1, 2, 4, 6, 4 }, // Grow
+				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 6, 4 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
@@ -483,14 +483,15 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 6, 5, 3, 0 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 1, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Orbinaut x4
 			   /*Jawz x2*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }  // Jawz x2
 };
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
 				//P-Odds	 0  1  2  3
-			   /*Sneaker*/ { 3, 2, 2, 2 }, // Sneaker
+			   /*Sneaker*/ { 2, 2, 2, 2 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 4, 2, 1, 2 }, // Invincibility
 				/*Banana*/ { 0, 0, 2, 0 }, // Banana
@@ -509,7 +510,8 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 			/*Sneaker x3*/ { 2, 0, 0, 2 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 1, 1, 1 }, // Banana x3
 			/*Banana x10*/ { 1, 0, 0, 1 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 2, 1, 2 }, // Orbinaut x3
+		   /*Orbinaut x3*/ { 0, 1, 1, 1 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 1, 1, 0, 1 }, // Orbinaut x4
 			   /*Jawz x2*/ { 3, 2, 0, 2 }  // Jawz x2
 };
 
@@ -540,6 +542,10 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 		case KRITEM_TRIPLEORBINAUT: // Orbinaut x3
 			player->kartstuff[k_itemtype] = KITEM_ORBINAUT;
 			player->kartstuff[k_itemamount] = 3;
+			break;
+		case KRITEM_QUADORBINAUT: // Orbinaut x4
+			player->kartstuff[k_itemtype] = KITEM_ORBINAUT;
+			player->kartstuff[k_itemamount] = 4;
 			break;
 		case KRITEM_DUALJAWZ: // Jawz x2
 			player->kartstuff[k_itemtype] = KITEM_JAWZ;
@@ -706,6 +712,10 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			if (!cv_triplebanana.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEORBINAUT:
+			POWERITEMODDS(newodds);
+			if (!cv_tripleorbinaut.value) newodds = 0;
+			break;
+		case KRITEM_QUADORBINAUT:
 			POWERITEMODDS(newodds);
 			if (!cv_tripleorbinaut.value) newodds = 0;
 			break;
@@ -907,6 +917,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	SETITEMRESULT(useodds, KRITEM_TRIPLEBANANA);	// Banana x3
 	SETITEMRESULT(useodds, KRITEM_TENFOLDBANANA);	// Banana x10
 	SETITEMRESULT(useodds, KRITEM_TRIPLEORBINAUT);	// Orbinaut x3
+	SETITEMRESULT(useodds, KRITEM_QUADORBINAUT);	// Orbinaut x4
 	SETITEMRESULT(useodds, KRITEM_DUALJAWZ);		// Jawz x2
 
 #undef SETITEMRESULT
@@ -4430,7 +4441,7 @@ static patch_t *kp_rocketsneaker[2];
 static patch_t *kp_invincibility[13];
 static patch_t *kp_banana[2];
 static patch_t *kp_eggman[2];
-static patch_t *kp_orbinaut[2];
+static patch_t *kp_orbinaut[5];
 static patch_t *kp_jawz[2];
 static patch_t *kp_mine[2];
 static patch_t *kp_ballhog[2];
@@ -4545,7 +4556,12 @@ void K_LoadKartHUDGraphics(void)
 	}
 	kp_banana[0] =				W_CachePatchName("K_ITBANA", PU_HUDGFX);
 	kp_eggman[0] =				W_CachePatchName("K_ITEGGM", PU_HUDGFX);
-	kp_orbinaut[0] =			W_CachePatchName("K_ITORBN", PU_HUDGFX);
+	sprintf(buffer, "K_ITORBx");
+	for (i = 0; i < 4; i++)
+	{
+		buffer[7] = '1'+i;
+		kp_orbinaut[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 	kp_jawz[0] =				W_CachePatchName("K_ITJAWZ", PU_HUDGFX);
 	kp_mine[0] =				W_CachePatchName("K_ITMINE", PU_HUDGFX);
 	kp_ballhog[0] =				W_CachePatchName("K_ITBHOG", PU_HUDGFX);
@@ -4573,7 +4589,7 @@ void K_LoadKartHUDGraphics(void)
 	}
 	kp_banana[1] =				W_CachePatchName("K_ISBANA", PU_HUDGFX);
 	kp_eggman[1] =				W_CachePatchName("K_ISEGGM", PU_HUDGFX);
-	kp_orbinaut[1] =			W_CachePatchName("K_ISORBN", PU_HUDGFX);
+	kp_orbinaut[4] =			W_CachePatchName("K_ISORBN", PU_HUDGFX);
 	kp_jawz[1] =				W_CachePatchName("K_ISJAWZ", PU_HUDGFX);
 	kp_mine[1] =				W_CachePatchName("K_ISMINE", PU_HUDGFX);
 	kp_ballhog[1] =				W_CachePatchName("K_ISBHOG", PU_HUDGFX);
@@ -4843,22 +4859,22 @@ static void K_drawKartItem(void)
 		switch((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3)
 		{
 			// Each case is handled in threes, to give three frames of in-game time to see the item on the roulette
-			case  0: localpatch = kp_sneaker[offset]; break;				// Sneaker
-			case  1: localpatch = kp_banana[offset]; break;				// Banana
-			case  2: localpatch = kp_orbinaut[offset]; break;				// Orbinaut
-			case  3: localpatch = kp_mine[offset]; break;					// Mine
-			case  4: localpatch = kp_grow[offset]; break;					// Grow
-			case  5: localpatch = kp_hyudoro[offset]; break;				// Hyudoro
-			case  6: localpatch = kp_rocketsneaker[offset]; break;		// Rocket Sneaker
-			case  7: localpatch = kp_jawz[offset]; break;					// Jawz
-			case  8: localpatch = kp_selfpropelledbomb[offset]; break;	// Self-Propelled Bomb
-			case  9: localpatch = kp_shrink[offset]; break;				// Shrink
-			case 10: localpatch = localinv; break;							// Invincibility
-			case 11: localpatch = kp_eggman[offset]; break;				// Eggman Monitor
-			case 12: localpatch = kp_ballhog[offset]; break;				// Ballhog
-			case 13: localpatch = kp_thundershield[offset]; break;		// Thunder Shield
-			//case 14: localpatch = kp_pogospring[offset]; break;			// Pogo Spring
-			//case 15: localpatch = kp_kitchensink[offset]; break;			// Kitchen Sink
+			case  0: localpatch = kp_sneaker[offset]; break;					// Sneaker
+			case  1: localpatch = kp_banana[offset]; break;					// Banana
+			case  2: localpatch = kp_orbinaut[3+offset]; break;				// Orbinaut
+			case  3: localpatch = kp_mine[offset]; break;						// Mine
+			case  4: localpatch = kp_grow[offset]; break;						// Grow
+			case  5: localpatch = kp_hyudoro[offset]; break;					// Hyudoro
+			case  6: localpatch = kp_rocketsneaker[offset]; break;			// Rocket Sneaker
+			case  7: localpatch = kp_jawz[offset]; break;						// Jawz
+			case  8: localpatch = kp_selfpropelledbomb[offset]; break;		// Self-Propelled Bomb
+			case  9: localpatch = kp_shrink[offset]; break;					// Shrink
+			case 10: localpatch = localinv; break;								// Invincibility
+			case 11: localpatch = kp_eggman[offset]; break;					// Eggman Monitor
+			case 12: localpatch = kp_ballhog[offset]; break;					// Ballhog
+			case 13: localpatch = kp_thundershield[offset]; break;			// Thunder Shield
+			//case 14: localpatch = kp_pogospring[offset]; break;				// Pogo Spring
+			//case 15: localpatch = kp_kitchensink[offset]; break;				// Kitchen Sink
 			default: break;
 		}
 	}
@@ -4912,7 +4928,10 @@ static void K_drawKartItem(void)
 				case KITEM_INVINCIBILITY:		localpatch = localinv; localbg = kp_itembg[offset+1]; break;
 				case KITEM_BANANA:				localpatch = kp_banana[offset]; break;
 				case KITEM_EGGMAN:				localpatch = kp_eggman[offset]; break;
-				case KITEM_ORBINAUT:			localpatch = kp_orbinaut[offset]; break;
+				case KITEM_ORBINAUT:
+					localpatch = kp_orbinaut[(splitscreen ? 4
+						: min(stplyr->kartstuff[k_itemamount]-1, 3))];
+					break;
 				case KITEM_JAWZ:				localpatch = kp_jawz[offset]; break;
 				case KITEM_MINE:				localpatch = kp_mine[offset]; break;
 				case KITEM_BALLHOG:				localpatch = kp_ballhog[offset]; break;
