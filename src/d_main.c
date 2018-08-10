@@ -125,11 +125,11 @@ INT32 postimgparam3;
 postimg_t postimgtype4 = postimg_none;
 INT32 postimgparam4;
 #ifdef _XBOX
-boolean nomidimusic = false;
+//boolean nomidimusic = false;
 boolean nosound = true;
 boolean nodigimusic = true;
 #else
-boolean nomidimusic = false;
+//boolean nomidimusic = false;
 boolean nosound = false;
 boolean nodigimusic = false; // No fmod-based music
 #endif
@@ -137,7 +137,7 @@ boolean nodigimusic = false; // No fmod-based music
 // These variables are only true if
 // the respective sound system is initialized
 // and active, but no sounds/music should play.
-boolean music_disabled = false;
+//boolean music_disabled = false;
 boolean sound_disabled = false;
 boolean digital_disabled = false;
 
