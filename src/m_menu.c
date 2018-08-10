@@ -6749,9 +6749,11 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 	lumpnum_t lumpnum;
 	patch_t *PictureOfLevel;
 	INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
+	const char *mapname = G_BuildMapName(cv_nextmap.value);
+	boolean doencore = (cv_kartencore.value && cv_newgametype.value == GT_RACE);
 
 	//  A 160x100 image of the level as entry MAPxxP
-	lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));
+	lumpnum = W_CheckNumForName(va("%sP", mapname));
 
 	if (lumpnum != LUMPERROR)
 		PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
@@ -6770,13 +6772,24 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 
 	V_DrawFill(x-1, y-1, w+2, i+2, trans); // variable reuse...
 
-	V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+	if (!doencore)
+		V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+	else
+	{
+		UINT8 *mappingforencore = NULL;
+		if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
+			mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);
+
+		V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, mappingforencore);
+	}
 	/*V_DrawDiag(x, y, 12, 31);
 	V_DrawDiag(x, y, 10, G_GetGametypeColor(cv_newgametype.value));*/
 
 	y += i/4;
 	i = cv_nextmap.value - 1;
 	trans = (leftfade ? V_TRANSLUCENT : 0);
+	if (doencore)
+		trans |= V_FLIP;
 
 #define horizspac 2
 	do
@@ -6797,20 +6810,33 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		} while (!M_CanShowLevelInList(i, cv_newgametype.value));
 
 		//  A 160x100 image of the level as entry MAPxxP
-		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
+		mapname = G_BuildMapName(i+1);
+		lumpnum = W_CheckNumForName(va("%sP", mapname));
 
 		if (lumpnum != LUMPERROR)
 			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
 		else
 			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
 
-		x -= horizspac + SHORT(PictureOfLevel->width)/4;
-		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
+		x -= horizspac + w/2;
+
+		if (!doencore)
+			V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
+		else
+		{
+			UINT8 *mappingforencore = NULL;
+			if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
+				mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);
+
+			V_DrawFixedPatch((x+(w/2))<<FRACBITS, (y)<<FRACBITS, FRACUNIT/4, trans, PictureOfLevel, mappingforencore);
+		}
 	} while (x > horizspac-dupadjust);
 
 	x = (BASEVIDWIDTH + w)/2 + horizspac;
 	i = cv_nextmap.value - 1;
 	trans = (rightfade ? V_TRANSLUCENT : 0);
+	if (doencore)
+		trans |= V_FLIP;
 
 	while (x < BASEVIDWIDTH+dupadjust-horizspac)
 	{
@@ -6830,15 +6856,26 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		} while (!M_CanShowLevelInList(i, cv_newgametype.value));
 
 		//  A 160x100 image of the level as entry MAPxxP
-		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
+		mapname = G_BuildMapName(i+1);
+		lumpnum = W_CheckNumForName(va("%sP", mapname));
 
 		if (lumpnum != LUMPERROR)
 			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
 		else
 			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
 
-		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
-		x += horizspac + SHORT(PictureOfLevel->width)/4;
+		if (!doencore)
+			V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
+		else
+		{
+			UINT8 *mappingforencore = NULL;
+			if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
+				mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);
+
+			V_DrawFixedPatch((x+(w/2))<<FRACBITS, (y)<<FRACBITS, FRACUNIT/4, trans, PictureOfLevel, mappingforencore);
+		}
+
+		x += horizspac + w/2;
 	}
 #undef horizspac
 }
