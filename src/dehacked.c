@@ -7367,6 +7367,7 @@ static const char *const MOBJFLAG_LIST[] = {
 	"NOCLIPTHING",
 	"GRENADEBOUNCE",
 	"RUNSPAWNFUNC",
+	"DONTENCOREMAP",
 	NULL
 };
 

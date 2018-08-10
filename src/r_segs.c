@@ -202,7 +202,7 @@ static void R_DrawWallSplats(void)
 			if (pindex >= MAXLIGHTSCALE)
 				pindex = MAXLIGHTSCALE - 1;
 			dc_colormap = walllights[pindex];
-			if (encoremap)
+			if (encoremap && !(seg->linedef->flags & ML_TFERLINE))
 				dc_colormap += (256*32);
 
 			if (frontsector->extra_colormap)
@@ -598,7 +598,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2)
 						if (height <= windowtop)
 						{
 							dc_colormap = rlight->rcolormap;
-							if (encoremap)
+							if (encoremap && !(ldef->flags & ML_TFERLINE))
 								dc_colormap += (256*32);
 							continue;
 						}
@@ -619,7 +619,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2)
 						colfunc_2s(col);
 						windowtop = windowbottom + 1;
 						dc_colormap = rlight->rcolormap;
-						if (encoremap)
+						if (encoremap && !(ldef->flags & ML_TFERLINE))
 							dc_colormap += (256*32);
 					}
 					windowbottom = realbot;
@@ -637,7 +637,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2)
 					pindex = MAXLIGHTSCALE - 1;
 
 				dc_colormap = walllights[pindex];
-				if (encoremap)
+				if (encoremap && !(ldef->flags & ML_TFERLINE))
 					dc_colormap += (256*32);
 
 				if (frontsector->extra_colormap)
@@ -1220,7 +1220,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 						if (lighteffect)
 						{
 							dc_colormap = rlight->rcolormap;
-							if (encoremap)
+							if (encoremap && !(curline->linedef->flags & ML_TFERLINE))
 								dc_colormap += (256*32);
 						}
 						if (solid && windowtop < bheight)
@@ -1250,7 +1250,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 					if (lighteffect)
 					{
 						dc_colormap = rlight->rcolormap;
-						if (encoremap)
+						if (encoremap && !(curline->linedef->flags & ML_TFERLINE))
 							dc_colormap += (256*32);
 					}
 				}
@@ -1269,7 +1269,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 				pindex = MAXLIGHTSCALE - 1;
 
 			dc_colormap = walllights[pindex];
-			if (encoremap)
+			if (encoremap && !(curline->linedef->flags & ML_TFERLINE))
 				dc_colormap += (256*32);
 			if (frontsector->extra_colormap)
 				dc_colormap = frontsector->extra_colormap->colormap + (dc_colormap - colormaps);
@@ -1501,7 +1501,7 @@ static void R_RenderSegLoop (void)
 				pindex = MAXLIGHTSCALE-1;
 
 			dc_colormap = walllights[pindex];
-			if (encoremap)
+			if (encoremap && !(curline->linedef->flags & ML_TFERLINE))
 				dc_colormap += (256*32);
 			dc_x = rw_x;
 			dc_iscale = 0xffffffffu / (unsigned)rw_scale;

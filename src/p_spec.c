@@ -3745,6 +3745,8 @@ void P_ProcessSpecialSector(player_t *player, sector_t *sector, sector_t *rovers
 			break;
 		case 12: // Lua sector special
 			break;
+		case 15: // Invert Encore Remap
+			break;
 	}
 DoneSection2:
 
