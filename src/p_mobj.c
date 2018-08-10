@@ -8588,7 +8588,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 							newmobj = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->type);
 
 						// Transfer flags2 (strongbox, objectflip)
-						newmobj->flags2 = mobj->flags2;
+						newmobj->flags2 = mobj->flags2 & ~MF2_DONTDRAW;
 					}
 					P_RemoveMobj(mobj); // make sure they disappear
 					return;
