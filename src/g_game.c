@@ -3229,7 +3229,7 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 
 		if (!ignorebuffer)
 		{
-			for (bufx = 0; bufx < NUMMAPS; bufx++)
+			for (bufx = 0; bufx < (maphell ? 3 : NUMMAPS); bufx++)
 			{
 				if (randmapbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
 					break;
