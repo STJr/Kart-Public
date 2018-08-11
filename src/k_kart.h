@@ -47,7 +47,7 @@ void K_StripItems(player_t *player);
 void K_MomentumToFacing(player_t *player);
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower);
 fixed_t K_GetKartAccel(player_t *player);
-UINT16 K_GetKartFlashing(void);
+UINT16 K_GetKartFlashing(player_t *player);
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove);
 void K_MoveKartPlayer(player_t *player, boolean onground);
 void K_CalculateBattleWanted(void);

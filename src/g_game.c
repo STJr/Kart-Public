@@ -2479,7 +2479,7 @@ void G_PlayerReborn(INT32 player)
 	p->panim = PA_IDLE; // standing animation
 
 	if ((netgame || multiplayer) && !p->spectator)
-		p->powers[pw_flashing] = K_GetKartFlashing()-1; // Babysitting deterrent
+		p->powers[pw_flashing] = K_GetKartFlashing(p)-1; // Babysitting deterrent
 
 	if (p-players == consoleplayer)
 	{
