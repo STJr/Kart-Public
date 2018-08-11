@@ -1546,15 +1546,13 @@ fixed_t K_GetKartAccel(player_t *player)
 	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
 }
 
-UINT16 K_GetKartFlashing(void)
+UINT16 K_GetKartFlashing(player_t *player)
 {
-	UINT16 tics = flashingtics;
-	if (G_BattleGametype())
-	{
-		tics *= 2;
-		//tics += (3*TICRATE/8) * (player->kartspeed-1);
-	}
-	return tics;
+    UINT16 tics = flashingtics;
+    if (G_BattleGametype())
+        tics *= 2;
+    flashingtics += (flashingtics/6) * (player->kartspeed-5); // when weight is buffed in battle, use this instead: (player->kartspeed - player->kartweight)
+    return tics;
 }
 
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove)
@@ -1697,7 +1695,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 	else
 		player->kartstuff[k_spinouttimer] = TICRATE+20; // Wipeout
 
-	player->powers[pw_flashing] = K_GetKartFlashing();
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -1762,7 +1760,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_squishedtimer] = 2*TICRATE;
 
-	player->powers[pw_flashing] = K_GetKartFlashing();
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	player->mo->flags |= MF_NOCLIP;
 
@@ -1835,7 +1833,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	player->kartstuff[k_spinouttype] = 1;
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
 
-	player->powers[pw_flashing] = K_GetKartFlashing();
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -1917,10 +1915,10 @@ void K_StealBumper(player_t *player, player_t *victim, boolean force)
 
 	player->kartstuff[k_bumper]++;
 	player->kartstuff[k_comebackpoints] = 0;
-	player->powers[pw_flashing] = K_GetKartFlashing();
+	player->powers[pw_flashing] = K_GetKartFlashing(player);
 	player->kartstuff[k_comebacktimer] = comebacktime;
 
-	/*victim->powers[pw_flashing] = K_GetKartFlashing();
+	/*victim->powers[pw_flashing] = K_GetKartFlashing(victim);
 	victim->kartstuff[k_comebacktimer] = comebacktime;*/
 
 	victim->kartstuff[k_instashield] = 15;
@@ -3051,7 +3049,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		}
 	}
 
-	if (player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing())
+	if (player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing(player))
 		player->powers[pw_flashing]--;
 
 	/*if (player->kartstuff[k_thunderanim])

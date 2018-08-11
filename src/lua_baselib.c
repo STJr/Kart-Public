@@ -2298,11 +2298,11 @@ static int lib_kGetKartAccel(lua_State *L)
 
 static int lib_kGetKartFlashing(lua_State *L)
 {
-	//player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	//HUDSAFE
-	//if (!player)
-		//return LUA_ErrInvalid(L, "player_t");
-	lua_pushinteger(L, K_GetKartFlashing());
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushinteger(L, K_GetKartFlashing(player));
 	return 0;
 }
 

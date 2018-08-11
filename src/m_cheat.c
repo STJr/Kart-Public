@@ -1368,7 +1368,7 @@ void Command_ObjectPlace_f(void)
 		players[0].mo->color = op_oldcolor;
 
 		// This is necessary for recovery of dying players.
-		if (players[0].powers[pw_flashing] >= K_GetKartFlashing())
-			players[0].powers[pw_flashing] = K_GetKartFlashing() - 1;
+		if (players[0].powers[pw_flashing] >= K_GetKartFlashing(&players[0]))
+			players[0].powers[pw_flashing] = K_GetKartFlashing(&players[0]) - 1;
 	}
 }
