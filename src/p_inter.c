@@ -2694,7 +2694,7 @@ static inline void P_NiGHTSDamage(mobj_t *target, mobj_t *source)
 			target->momy = FixedMul(FINESINE(fa),target->target->radius);
 		}
 
-		player->powers[pw_flashing] = K_GetKartFlashing();
+		player->powers[pw_flashing] = K_GetKartFlashing(player);
 		P_SetMobjState(target->tracer, S_NIGHTSHURT1);
 		S_StartSound(target, sfx_nghurt);
 
@@ -3437,7 +3437,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			player->health -= damage; // mirror mobj health here
 			if (damage < 10000)
 			{
-				target->player->powers[pw_flashing] = K_GetKartFlashing();
+				target->player->powers[pw_flashing] = K_GetKartFlashing(target->player);
 				if (damage > 0) // don't spill emeralds/ammo/panels for shield damage
 					P_PlayerRingBurst(player, damage);
 			}
