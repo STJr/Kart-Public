@@ -446,6 +446,7 @@ consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL
 
 INT16 gametype = GT_RACE; // SRB2kart
 boolean forceresetplayers = false;
+boolean deferencoremode = false;
 UINT8 splitscreen = 0;
 boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
@@ -1872,7 +1873,7 @@ INT32 mapchangepending = 0;
   *
   * \param mapnum          Map number to change to.
   * \param gametype        Gametype to switch to.
-  * \param pultmode        Is this 'Ultimate Mode'?
+  * \param pencoremode     Is this 'Encore Mode'?
   * \param resetplayers    1 to reset player scores and lives and such, 0 not to.
   * \param delay           Determines how the function will be executed: 0 to do
   *                        it all right now (must not be done from a menu), 1 to
@@ -1881,18 +1882,16 @@ INT32 mapchangepending = 0;
   * \sa D_GameTypeChanged, Command_Map_f
   * \author Graue <graue@oceanbase.org>
   */
-void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean resetplayers, INT32 delay, boolean skipprecutscene, boolean FLS)
+void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean resetplayers, INT32 delay, boolean skipprecutscene, boolean FLS)
 {
 	static char buf[2+MAX_WADPATH+1+4];
 	static char *buf_p = buf;
 
-	forceresetplayers = false;
-
 	// The supplied data are assumed to be good.
 	I_Assert(delay >= 0 && delay <= 2);
 
-	CONS_Debug(DBG_GAMELOGIC, "Map change: mapnum=%d gametype=%d ultmode=%d resetplayers=%d delay=%d skipprecutscene=%d\n",
-	           mapnum, newgametype, pultmode, resetplayers, delay, skipprecutscene);
+	CONS_Debug(DBG_GAMELOGIC, "Map change: mapnum=%d gametype=%d encoremode=%d resetplayers=%d delay=%d skipprecutscene=%d\n",
+	           mapnum, newgametype, pencoremode, resetplayers, delay, skipprecutscene);
 
 	if (netgame || multiplayer)
 		FLS = false;
@@ -1905,7 +1904,7 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pultmode, boolean rese
 		I_Assert(W_CheckNumForName(mapname) != LUMPERROR);
 
 		buf_p = buf;
-		if (pultmode)
+		if (pencoremode)
 			flags |= 1;
 		if (!resetplayers)
 			flags |= 1<<1;
@@ -1973,8 +1972,12 @@ void D_SetupVote(void)
 	INT32 i;
 	UINT8 secondgt = G_SometimesGetDifferentGametype();
 
-	WRITEUINT8(p, gametype);
+	if (cv_kartencore.value && G_RaceGametype())
+		WRITEUINT8(p, (gametype|0x80));
+	else
+		WRITEUINT8(p, gametype);
 	WRITEUINT8(p, secondgt);
+	secondgt &= ~0x80;
 
 	for (i = 0; i < 5; i++)
 	{
@@ -2109,10 +2112,6 @@ static void Command_Map_f(void)
 		return;
 	}
 
-	// Ultimate Mode only in SP via menu
-	if (netgame || multiplayer)
-		ultimatemode = false;
-
 	// new gametype value
 	// use current one by default
 	i = COM_CheckParm("-gametype");
@@ -2177,7 +2176,7 @@ static void Command_Map_f(void)
 	}
 
 	fromlevelselect = false;
-	D_MapChange(newmapnum, newgametype, false, newresetplayers, 0, false, false);
+	D_MapChange(newmapnum, newgametype, (boolean)cv_kartencore.value, newresetplayers, 0, false, false);
 }
 
 /** Receives a map command and changes the map.
@@ -2193,6 +2192,9 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	UINT8 flags;
 	INT32 resetplayer = 1, lastgametype;
 	UINT8 skipprecutscene, FLS;
+	boolean pencoremode;
+
+	forceresetplayers = deferencoremode = false;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -2213,9 +2215,7 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 
 	flags = READUINT8(*cp);
 
-	ultimatemode = ((flags & 1) != 0);
-	if (netgame || multiplayer)
-		ultimatemode = false;
+	pencoremode = ((flags & 1) != 0);
 
 	resetplayer = ((flags & (1<<1)) == 0);
 
@@ -2224,6 +2224,9 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 
 	if (gametype != lastgametype)
 		D_GameTypeChanged(lastgametype); // emulate consvar_t behavior for gametype
+
+	if (!G_RaceGametype())
+		pencoremode = false;
 
 	skipprecutscene = ((flags & (1<<2)) != 0);
 
@@ -2256,7 +2259,7 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	LUAh_MapChange();
 #endif
 
-	G_InitNew(ultimatemode, mapname, resetplayer, skipprecutscene);
+	G_InitNew(pencoremode, mapname, resetplayer, skipprecutscene);
 	if (demoplayback && !timingdemo)
 		precache = true;
 	CON_ToggleOff();
@@ -5250,10 +5253,7 @@ static void KartEncore_OnChange(void)
 		if ((boolean)cv_kartencore.value != encoremode && gamestate == GS_LEVEL /*&& leveltime > starttime*/)
 			CONS_Printf(M_GetText("Encore Mode will be turned %s next round.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
 		else
-		{
 			CONS_Printf(M_GetText("Encore Mode has been turned %s.\n"), cv_kartencore.value ? M_GetText("on") : M_GetText("off"));
-			//encoremode = (boolean)cv_kartencore.value;
-		}
 	}
 }
 

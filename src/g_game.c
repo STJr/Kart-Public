@@ -248,7 +248,8 @@ INT32 cheats; //for multiplayer cheat commands
 // SRB2Kart
 // Cvars that we don't want changed mid-game
 UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0 for easy, 1 for normal, 2 for hard
-boolean encoremode; // Encore Mode currently enabled?
+boolean encoremode = false; // Encore Mode currently enabled?
+boolean prevencoremode;
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
@@ -3097,13 +3098,16 @@ boolean G_BattleGametype(void)
 //
 // G_SometimesGetDifferentGametype
 //
-// I pity the fool who adds more gametypes later, because it'll require some element of randomisation which needs to be synched...
-// Although given this only gets called for the host, you could probably get away with M_Random.
+// Oh, yeah, and we sometimes flip encore mode on here too.
 //
 INT16 G_SometimesGetDifferentGametype(void)
 {
 	if (randmapbuffer[NUMMAPS] != -1)
+	{
+		if (M_SecretUnlocked(SECRET_ENCORE) && (M_RandomChance(FRACUNIT/2/*56*/) != cv_kartencore.value) && G_RaceGametype())
+			return (gametype|0x80);
 		return gametype;
+	}
 
 	randmapbuffer[NUMMAPS] = gametype;
 
@@ -3477,6 +3481,7 @@ void G_NextLevel(void)
 		}
 
 		forceresetplayers = false;
+		deferencoremode = (boolean)cv_kartencore.value;
 	}
 	
 	gameaction = ga_worlddone;
@@ -3489,7 +3494,7 @@ static void G_DoWorldDone(void)
 		// SRB2Kart
 		D_MapChange(nextmap+1,
 			gametype,
-			ultimatemode,
+			deferencoremode,
 			forceresetplayers,
 			0,
 			false,
@@ -3561,7 +3566,7 @@ static void G_DoContinued(void)
 	// Reset # of lives
 	pl->lives = (ultimatemode) ? 1 : 3;
 
-	D_MapChange(gamemap, gametype, ultimatemode, false, 0, false, false);
+	D_MapChange(gamemap, gametype, false, false, 0, false, false);
 
 	gameaction = ga_nothing;
 }
@@ -4075,7 +4080,7 @@ void G_SaveGame(UINT32 savegameslot)
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
 //
-void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
+void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
 {
 	INT32 i;
 	UINT8 color = 0;
@@ -4120,14 +4125,14 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, U
 		CV_StealthSetValue(&cv_playercolor, color);
 
 	if (mapname)
-		D_MapChange(M_MapNumber(mapname[3], mapname[4]), gametype, pultmode, true, 1, false, FLS);
+		D_MapChange(M_MapNumber(mapname[3], mapname[4]), gametype, pencoremode, true, 1, false, FLS);
 }
 
 //
 // This is the map command interpretation something like Command_Map_f
 //
 // called at: map cmd execution, doloadgame, doplaydemo
-void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean skipprecutscene)
+void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, boolean skipprecutscene)
 {
 	INT32 i;
 
@@ -4137,8 +4142,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 		S_ResumeAudio();
 	}
 
-	if (netgame || multiplayer) // Nice try, haxor.
-		ultimatemode = false;
+	prevencoremode = ((gamestate == GS_TITLESCREEN) ? false : encoremode);
+	encoremode = pencoremode;
 
 	legitimateexit = false; // SRB2Kart
 	comebackshowninfo = false;
@@ -4227,7 +4232,6 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	// Don't carry over custom music change to another map.
 	mapmusflags |= MUSIC_RELOADRESET;
 
-	ultimatemode = pultmode;
 	playerdeadview = false;
 	automapactive = false;
 	imcontinuing = false;

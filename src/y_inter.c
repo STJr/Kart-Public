@@ -126,6 +126,7 @@ typedef struct
 	UINT8 gtc;
 	const char *gts;
 	patch_t *pic;
+	boolean encore;
 } y_votelvlinfo;
 
 // Clientside & splitscreen player info.
@@ -156,6 +157,7 @@ static patch_t *cursor2 = NULL;
 static patch_t *cursor3 = NULL;
 static patch_t *cursor4 = NULL;
 static patch_t *randomlvl = NULL;
+static patch_t *rubyicon = NULL;
 
 static void Y_UnloadVoteData(void);
 
@@ -930,6 +932,7 @@ void Y_VoteDrawer(void)
 {
 	INT32 i, x, y = 0, height = 0;
 	UINT8 selected[4];
+	fixed_t rubyheight = 0;
 
 	if (rendermode == render_none)
 		return;
@@ -939,6 +942,11 @@ void Y_VoteDrawer(void)
 
 	if (!voteclient.loaded)
 		return;
+
+	{
+		angle_t rubyfloattime = (ANGLE_MAX/NEWTICRATE)*(votetic % NEWTICRATE);
+		rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+	}
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
@@ -974,19 +982,18 @@ void Y_VoteDrawer(void)
 	y = (200-height)/2;
 	for (i = 0; i < 4; i++)
 	{
-		char str[40];
+		const char *str;
 		patch_t *pic;
 		UINT8 j, color;
 
 		if (i == 3)
 		{
-			snprintf(str, sizeof str, "%.32s", "RANDOM");
-			str[sizeof str - 1] = '\0';
+			str = "RANDOM";
 			pic = randomlvl;
 		}
 		else
 		{
-			strcpy(str, levelinfo[i].str);
+			str = levelinfo[i].str;
 			pic = levelinfo[i].pic;
 		}
 
@@ -1051,7 +1058,14 @@ void Y_VoteDrawer(void)
 				sizeadd--;
 			}
 
-			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
+			if (!levelinfo[i].encore)
+				V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
+			else
+			{
+				V_DrawFixedPatch((BASEVIDWIDTH-20)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, pic, invertmap);
+				V_DrawFixedPatch((BASEVIDWIDTH-60)<<FRACBITS, ((y+25)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, rubyicon, NULL);
+			}
+
 			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
 			if (levelinfo[i].gts)
 			{
@@ -1067,7 +1081,14 @@ void Y_VoteDrawer(void)
 		}
 		else
 		{
-			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
+			if (!levelinfo[i].encore)
+				V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
+			else
+			{
+				V_DrawFixedPatch((BASEVIDWIDTH-20)<<FRACBITS, y<<FRACBITS, FRACUNIT/4, V_FLIP, pic, invertmap);
+				V_DrawFixedPatch((BASEVIDWIDTH-40)<<FRACBITS, (y<<FRACBITS) + (25<<(FRACBITS-1)) - rubyheight, FRACUNIT/2, 0, rubyicon, NULL);
+			}
+
 			if (levelinfo[i].gts)
 			{
 				V_DrawDiag(BASEVIDWIDTH-60, y, 8, V_SNAPTORIGHT|31);
@@ -1105,7 +1126,14 @@ void Y_VoteDrawer(void)
 					V_DrawFill(x-1, y-1, 42, 27, levelinfo[votes[i]].gtc|V_SNAPTOLEFT);
 			}
 
-			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
+			if (!levelinfo[votes[i]].encore)
+				V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
+			else
+			{
+				V_DrawFixedPatch((x+40)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/4, V_SNAPTOLEFT|V_FLIP, pic, invertmap);
+				V_DrawFixedPatch((x+20)<<FRACBITS, (y<<FRACBITS) + (25<<(FRACBITS-1)) - rubyheight, FRACUNIT/2, 0, rubyicon, NULL);
+			}
+
 			if (levelinfo[votes[i]].gts)
 			{
 				V_DrawDiag(x, y, 8, V_SNAPTOLEFT|31);
@@ -1170,6 +1198,8 @@ static void Y_VoteStops(SINT8 pick, SINT8 level)
 		D_GameTypeChanged(lastgametype);
 		forceresetplayers = true;
 	}
+
+	deferencoremode = (levelinfo[level].encore);
 }
 
 //
@@ -1390,6 +1420,7 @@ void Y_StartVote(void)
 	cursor3 = W_CachePatchName("P3CURSOR", PU_STATIC);
 	cursor4 = W_CachePatchName("P4CURSOR", PU_STATIC);
 	randomlvl = W_CachePatchName("RANDOMLV", PU_STATIC);
+	rubyicon = W_CachePatchName("RUBYICON", PU_STATIC);
 
 	timer = cv_votetime.value*TICRATE;
 	pickedvote = -1;
@@ -1413,36 +1444,41 @@ void Y_StartVote(void)
 	{
 		lumpnum_t lumpnum;
 
+		// set up the encore
+		levelinfo[i].encore = (votelevels[i][1] & 0x80);
+		votelevels[i][1] &= ~0x80;
+
 		// set up the str
 		if (i == 4)
 			levelinfo[i].str[0] = '\0';
 		else
 		{
-			if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)
+			// set up the levelstring
+			if (mapheaderinfo[votelevels[i][0]]->levelflags & LF_NOZONE || !mapheaderinfo[votelevels[i][0]]->zonttl[0])
 			{
-				if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
+				if (mapheaderinfo[votelevels[i][0]]->actnum[0])
 					snprintf(levelinfo[i].str,
 						sizeof levelinfo[i].str,
-						"%.32s %.32s %s",
+						"%s %s",
+						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
+				else
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl);
+			}
+			else
+			{
+				if (mapheaderinfo[votelevels[i][0]]->actnum[0])
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%s %s %s",
 						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl, mapheaderinfo[votelevels[i][0]]->actnum);
 				else
 					snprintf(levelinfo[i].str,
 						sizeof levelinfo[i].str,
-						"%.32s %.32s",
+						"%s %s",
 						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl);
-			}
-			else
-			{
-				if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
-					snprintf(levelinfo[i].str,
-						sizeof levelinfo[i].str,
-						"%.32s %s",
-						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
-				else
-					snprintf(levelinfo[i].str,
-						sizeof levelinfo[i].str,
-						"%.32s",
-						mapheaderinfo[votelevels[i][0]]->lvlttl);
 			}
 
 			levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
@@ -1493,6 +1529,7 @@ static void Y_UnloadVoteData(void)
 	UNLOAD(cursor3);
 	UNLOAD(cursor4);
 	UNLOAD(randomlvl);
+	UNLOAD(rubyicon);
 
 	UNLOAD(levelinfo[4].pic);
 	UNLOAD(levelinfo[3].pic);

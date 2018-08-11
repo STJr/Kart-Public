@@ -136,8 +136,6 @@ mapthing_t *playerstarts[MAXPLAYERS];
 mapthing_t *bluectfstarts[MAXPLAYERS];
 mapthing_t *redctfstarts[MAXPLAYERS];
 
-boolean prevencoremode = false;
-
 /** Logs an error about a map being corrupt, then terminate.
   * This allows reporting highly technical errors for usefulness, without
   * confusing a novice map designer who simply needs to run ZenNode.
@@ -218,6 +216,8 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	mapheaderinfo[num]->countdown = 0;
 	DEH_WriteUndoline("PALLETE", va("%u", mapheaderinfo[num]->palette), UNDO_NONE);
 	mapheaderinfo[num]->palette = UINT16_MAX;
+	DEH_WriteUndoline("ENCOREPAL", va("%u", mapheaderinfo[num]->encorepal), UNDO_NONE);
+	mapheaderinfo[num]->encorepal = UINT16_MAX;
 	DEH_WriteUndoline("NUMLAPS", va("%u", mapheaderinfo[num]->numlaps), UNDO_NONE);
 	mapheaderinfo[num]->numlaps = NUMLAPS_DEFAULT;
 	DEH_WriteUndoline("UNLOCKABLE", va("%s", mapheaderinfo[num]->unlockrequired), UNDO_NONE);
@@ -2247,28 +2247,19 @@ static void P_LevelInitStuff(void)
 		players[i].pflags &= ~PF_TRANSFERTOCLOSEST;
 	}
 
-	prevencoremode = ((wipegamestate == GS_TITLESCREEN) ? false : encoremode);
-
 	// SRB2Kart: map load variables
 	if (modeattacking) // Just play it safe and set everything
 	{
 		gamespeed = 2;
-		encoremode = false;
 		franticitems = false;
 		comeback = true;
 	}
 	else
 	{
 		if (G_BattleGametype())
-		{
 			gamespeed = 0;
-			encoremode = false;
-		}
 		else
-		{
 			gamespeed = (UINT8)cv_kartspeed.value;
-			encoremode = (boolean)cv_kartencore.value;
-		}
 		franticitems = (boolean)cv_kartfrantic.value;
 		comeback = (boolean)cv_kartcomeback.value;
 	}

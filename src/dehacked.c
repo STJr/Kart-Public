@@ -1221,6 +1221,8 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				mapheaderinfo[num-1]->countdown = (INT16)i;
 			else if (fastcmp(word, "PALETTE"))
 				mapheaderinfo[num-1]->palette = (UINT16)i;
+			else if (fastcmp(word, "ENCOREPAL"))
+				mapheaderinfo[num-1]->encorepal = (UINT16)i;
 			else if (fastcmp(word, "NUMLAPS"))
 				mapheaderinfo[num-1]->numlaps = (UINT8)i;
 			else if (fastcmp(word, "UNLOCKABLE"))

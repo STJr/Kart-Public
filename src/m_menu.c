@@ -5420,7 +5420,7 @@ static void M_ChoosePlayer(INT32 choice)
 {
 	char *skin1,*skin2;
 	INT32 skinnum;
-	boolean ultmode = (ultimate_selectable && SP_PlayerDef.prevMenu == &SP_LoadDef && saveSlotSelected == NOSAVESLOT);
+	//boolean ultmode = (ultimate_selectable && SP_PlayerDef.prevMenu == &SP_LoadDef && saveSlotSelected == NOSAVESLOT);
 
 	// skip this if forcecharacter
 	if (mapheaderinfo[startmap-1] && mapheaderinfo[startmap-1]->forcecharacter[0] == '\0')
@@ -5457,7 +5457,7 @@ static void M_ChoosePlayer(INT32 choice)
 	lastmapsaved = 0;
 	gamecomplete = false;
 
-	G_DeferedInitNew(ultmode, G_BuildMapName(startmap), (UINT8)skinnum, 0, fromlevelselect);
+	G_DeferedInitNew(false, G_BuildMapName(startmap), (UINT8)skinnum, 0, fromlevelselect);
 	COM_BufAddText("dummyconsvar 1\n"); // G_DeferedInitNew doesn't do this
 }
 
@@ -6724,7 +6724,7 @@ static void M_StartServer(INT32 choice)
 
 	if (ssplayers < 1)
 	{
-		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
+		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
 		COM_BufAddText("dummyconsvar 1\n");
 	}
 	else // split screen
@@ -6738,7 +6738,7 @@ static void M_StartServer(INT32 choice)
 			SplitScreen_OnChange();
 		}
 
-		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
+		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
 	}
 
 	M_ClearMenus(true);
@@ -6750,7 +6750,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 	patch_t *PictureOfLevel;
 	INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
 	const char *mapname = G_BuildMapName(cv_nextmap.value);
-	boolean doencore = (cv_kartencore.value && cv_newgametype.value == GT_RACE);
+	//boolean doencore = (cv_kartencore.value && cv_newgametype.value == GT_RACE);
 
 	//  A 160x100 image of the level as entry MAPxxP
 	lumpnum = W_CheckNumForName(va("%sP", mapname));
@@ -6772,15 +6772,22 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 
 	V_DrawFill(x-1, y-1, w+2, i+2, trans); // variable reuse...
 
-	if (!doencore)
+	if (!cv_kartencore.value || cv_newgametype.value != GT_RACE)
 		V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
 	else
 	{
-		UINT8 *mappingforencore = NULL;
+		/*UINT8 *mappingforencore = NULL;
 		if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
-			mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);
+			mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);*/
 
-		V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, mappingforencore);
+		V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, invertmap);
+
+		{
+			static angle_t rubyfloattime = 0;
+			const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+			V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+i/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+			rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+		}
 	}
 	/*V_DrawDiag(x, y, 12, 31);
 	V_DrawDiag(x, y, 10, G_GetGametypeColor(cv_newgametype.value));*/
@@ -6788,8 +6795,6 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 	y += i/4;
 	i = cv_nextmap.value - 1;
 	trans = (leftfade ? V_TRANSLUCENT : 0);
-	if (doencore)
-		trans |= V_FLIP;
 
 #define horizspac 2
 	do
@@ -6820,23 +6825,12 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 
 		x -= horizspac + w/2;
 
-		if (!doencore)
-			V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
-		else
-		{
-			UINT8 *mappingforencore = NULL;
-			if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
-				mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);
-
-			V_DrawFixedPatch((x+(w/2))<<FRACBITS, (y)<<FRACBITS, FRACUNIT/4, trans, PictureOfLevel, mappingforencore);
-		}
+		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
 	} while (x > horizspac-dupadjust);
 
 	x = (BASEVIDWIDTH + w)/2 + horizspac;
 	i = cv_nextmap.value - 1;
 	trans = (rightfade ? V_TRANSLUCENT : 0);
-	if (doencore)
-		trans |= V_FLIP;
 
 	while (x < BASEVIDWIDTH+dupadjust-horizspac)
 	{
@@ -6864,16 +6858,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		else
 			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
 
-		if (!doencore)
-			V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
-		else
-		{
-			UINT8 *mappingforencore = NULL;
-			if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
-				mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);
-
-			V_DrawFixedPatch((x+(w/2))<<FRACBITS, (y)<<FRACBITS, FRACUNIT/4, trans, PictureOfLevel, mappingforencore);
-		}
+		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
 
 		x += horizspac + w/2;
 	}

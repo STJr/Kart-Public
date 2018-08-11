@@ -112,7 +112,8 @@ INT32 *texturetranslation;
 sprcache_t *spritecachedinfo;
 
 lighttable_t *colormaps;
-lighttable_t *encoremap;
+UINT8 *encoremap;
+UINT8 invertmap[256];
 
 // for debugging/info purposes
 static size_t flatmemory, spritememory, texturememory;
@@ -1019,6 +1020,7 @@ static void R_InitColormaps(void)
 	// Init Boom colormaps.
 	R_ClearColormaps();
 	//R_InitExtraColormaps();
+	R_MakeInvertmap(); // this isn't the BEST place to do it the first time, but whatever
 }
 
 void R_ReInitColormaps(UINT16 num, lumpnum_t newencoremap)
@@ -1299,6 +1301,14 @@ void R_MakeColormaps(void)
 	for (i = 0; i < carrayindex; i++)
 		R_CreateColormap2(colormapFixingArray[i][0], colormapFixingArray[i][1],
 			colormapFixingArray[i][2]);
+}
+
+void R_MakeInvertmap(void)
+{
+	size_t i;
+
+	for (i = 0; i < 256; i++)
+		invertmap[i] = NearestColor(256 - pLocalPalette[i].s.red, 256 - pLocalPalette[i].s.green, 256 - pLocalPalette[i].s.blue);
 }
 
 void R_CreateColormap2(char *p1, char *p2, char *p3)
