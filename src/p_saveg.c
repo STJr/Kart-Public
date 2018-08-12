@@ -3207,6 +3207,8 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, tokenlist);
 
+	WRITEUINT8(save_p, encoremode);
+
 	WRITEUINT32(save_p, leveltime);
 	WRITEUINT32(save_p, totalrings);
 	WRITEINT16(save_p, lastmap);
@@ -3256,7 +3258,6 @@ static void P_NetArchiveMisc(void)
 	WRITEINT32(save_p, numgotboxes);
 
 	WRITEUINT8(save_p, gamespeed);
-	WRITEUINT8(save_p, encoremode);
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
 
@@ -3307,6 +3308,8 @@ static inline boolean P_NetUnArchiveMisc(void)
 	P_SetRandSeed(READUINT32(save_p));
 
 	tokenlist = READUINT32(save_p);
+
+	encoremode = (boolean)READUINT8(save_p);
 
 	if (!P_SetupLevel(true))
 		return false;
@@ -3361,7 +3364,6 @@ static inline boolean P_NetUnArchiveMisc(void)
 	numgotboxes = READINT32(save_p);
 
 	gamespeed = READUINT8(save_p);
-	encoremode = (boolean)READUINT8(save_p);
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
 
