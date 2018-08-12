@@ -1564,7 +1564,7 @@ UINT16 K_GetKartFlashing(player_t *player)
     UINT16 tics = flashingtics;
     if (G_BattleGametype())
         tics *= 2;
-    flashingtics += (flashingtics/6) * (player->kartspeed-5); // when weight is buffed in battle, use this instead: (player->kartspeed - player->kartweight)
+    tics += (flashingtics/6) * (player->kartspeed-5); // when weight is buffed in battle, use this instead: (player->kartspeed - player->kartweight)
     return tics;
 }
 
@@ -3177,14 +3177,23 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_eggmanexplode])
 	{
-		player->kartstuff[k_eggmanexplode]--;
-		if (player->kartstuff[k_eggmanexplode] <= 0)
+		if (player->spectator || (G_BattleGametype() && !player->kartstuff[k_bumper]))
+			player->kartstuff[k_eggmanexplode] = 0;
+		else
 		{
-			mobj_t *eggsexplode;
-			player->powers[pw_flashing] = 0;
-			eggsexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
-			if (&players[player->kartstuff[k_eggmanblame]] && players[player->kartstuff[k_eggmanblame]].mo)
-				P_SetTarget(&eggsexplode->target, players[player->kartstuff[k_eggmanblame]].mo);
+			player->kartstuff[k_eggmanexplode]--;
+			if (player->kartstuff[k_eggmanexplode] <= 0)
+			{
+				mobj_t *eggsexplode;
+				player->powers[pw_flashing] = 0;
+				eggsexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+				if (player->kartstuff[k_eggmanblame] >= 0
+				&& player->kartstuff[k_eggmanblame] < MAXPLAYERS
+				&& playeringame[player->kartstuff[k_eggmanblame]]
+				&& !players[player->kartstuff[k_eggmanblame]].spectator
+				&& players[player->kartstuff[k_eggmanblame]].mo)
+					P_SetTarget(&eggsexplode->target, players[player->kartstuff[k_eggmanblame]].mo);
+			}
 		}
 	}
 
