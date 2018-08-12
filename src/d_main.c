@@ -317,11 +317,12 @@ static void D_Display(void)
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 				F_WipeEndScreen();
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
-				if (wipegamestate == GS_LEVEL && rendermode != render_none)
-				{
-					V_SetPaletteLump("PLAYPAL"); // Reset the palette
-					R_ReInitColormaps(0);
-				}
+			}
+
+			if (wipegamestate == GS_LEVEL && rendermode != render_none)
+			{
+				V_SetPaletteLump("PLAYPAL"); // Reset the palette
+				R_ReInitColormaps(0);
 			}
 
 			F_WipeStartScreen();
