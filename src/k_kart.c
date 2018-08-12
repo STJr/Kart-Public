@@ -4474,6 +4474,7 @@ static patch_t *kp_battleinfo;
 static patch_t *kp_wanted;
 
 static patch_t *kp_itembg[4];
+static patch_t *kp_itemtimer[2];
 static patch_t *kp_itemmulsticker[2];
 static patch_t *kp_itemx;
 
@@ -4498,6 +4499,7 @@ static patch_t *kp_sadface[2];
 static patch_t *kp_check[6];
 
 static patch_t *kp_spbwarning[2];
+static patch_t *kp_eggnum[4];
 
 static patch_t *kp_fpview[3];
 static patch_t *kp_inputwheel[5];
@@ -4583,6 +4585,7 @@ void K_LoadKartHUDGraphics(void)
 	// Kart Item Windows
 	kp_itembg[0] = 				W_CachePatchName("K_ITBG", PU_HUDGFX);
 	kp_itembg[1] = 				W_CachePatchName("K_ITBGD", PU_HUDGFX);
+	kp_itemtimer[0] = 			W_CachePatchName("K_ITIMER", PU_HUDGFX);
 	kp_itemmulsticker[0] = 		W_CachePatchName("K_ITMUL", PU_HUDGFX);
 	kp_itemx = 					W_CachePatchName("K_ITX", PU_HUDGFX);
 
@@ -4618,6 +4621,7 @@ void K_LoadKartHUDGraphics(void)
 	// Splitscreen
 	kp_itembg[2] = 				W_CachePatchName("K_ISBG", PU_HUDGFX);
 	kp_itembg[3] = 				W_CachePatchName("K_ISBGD", PU_HUDGFX);
+	kp_itemtimer[1] = 			W_CachePatchName("K_ISIMER", PU_HUDGFX);
 	kp_itemmulsticker[1] = 		W_CachePatchName("K_ISMUL", PU_HUDGFX);
 
 	kp_sneaker[1] =				W_CachePatchName("K_ISSHOE", PU_HUDGFX);
@@ -4654,6 +4658,14 @@ void K_LoadKartHUDGraphics(void)
 	// SPB warning
 	kp_spbwarning[0] = 			W_CachePatchName("K_SPBW1", PU_HUDGFX);
 	kp_spbwarning[1] = 			W_CachePatchName("K_SPBW2", PU_HUDGFX);
+
+	// Eggman warning numbers
+	sprintf(buffer, "K_EGGNx");
+	for (i = 0; i < 4; i++)
+	{
+		buffer[6] = '0'+i;
+		kp_eggnum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 
 	// First person mode
 	kp_fpview[0] = 				W_CachePatchName("VIEWA0", PU_HUDGFX);
@@ -4977,7 +4989,7 @@ static void K_drawKartItem(void)
 				case KITEM_BANANA:				localpatch = kp_banana[offset]; break;
 				case KITEM_EGGMAN:				localpatch = kp_eggman[offset]; break;
 				case KITEM_ORBINAUT:
-					localpatch = kp_orbinaut[(splitscreen ? 4
+					localpatch = kp_orbinaut[(splitscreen > 1 ? 4
 						: min(stplyr->kartstuff[k_itemamount]-1, 3))];
 					break;
 				case KITEM_JAWZ:				localpatch = kp_jawz[offset]; break;
@@ -5014,14 +5026,35 @@ static void K_drawKartItem(void)
 	else
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
 
-	// Quick hack
-	if (stplyr->kartstuff[k_eggmanexplode] > 1)
+	// Meter for rocket sneaker, could be extended to work for any other timer item...
+	if (stplyr->kartstuff[k_rocketsneakertimer])
 	{
-		if (splitscreen > 1)
-			V_DrawString(ITEM_X+12, ITEM_Y+12, V_HUDTRANS|splitflags, va("%d", G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode])));
-		else
-			V_DrawKartString(ITEM_X+18, ITEM_Y+18, V_HUDTRANS|splitflags, va("%d", G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode])));
+		const INT32 barlength = (splitscreen > 1 ? 12 : 2);
+		const INT32 timer = stplyr->kartstuff[k_rocketsneakertimer]; // item's timer
+		const INT32 max = itemtime; // timer's normal highest value
+		INT32 length = min(barlength, (timer * barlength) / max);
+		INT32 height = (splitscreen > 1 ? 1 : 2);
+		INT32 x = (splitscreen > 1 ? 17 : 11), y = (splitscreen > 1 ? 27 : 35);
+
+		V_DrawScaledPatch(ITEM_X+x, ITEM_Y+y, V_HUDTRANS|splitflags, kp_itemtimer[offset]);
+		// The dark "AA" edges on the sides
+		V_DrawFill(ITEM_X+x+1, ITEM_Y+y+1, length, height, 12);
+		// The bar itself
+		if (length >= 3)
+		{
+			if (height == 1)
+				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-1, height, 120);
+			else
+			{
+				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-1, height, 8);
+				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-1, height/2, 120);
+			}
+		}
 	}
+
+	// Quick Eggman numbers
+	if (stplyr->kartstuff[k_eggmanexplode] > 1 /*&& stplyr->kartstuff[k_eggmanexplode] <= 3*TICRATE*/)
+		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
 }
 
 static void K_drawKartTimestamp(void)

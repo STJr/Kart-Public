@@ -155,8 +155,8 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 	if (player->exiting || mapreset)
 		return false;
 
-	/*if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // No bumpers in Match
-		return false;*/
+	if (weapon == 2 && G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // No bumpers in Match
+        return false;
 
 	if (weapon)
 	{
