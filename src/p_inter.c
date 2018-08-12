@@ -456,13 +456,14 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (!P_CanPickupItem(player, 2))
 				return;
 
-			/*if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
+			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
-				if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
+				/*if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
 					return;
 				if (player->kartstuff[k_comebackmode] == 0)
-					player->kartstuff[k_comebackmode] = 2;
-			}*/
+					player->kartstuff[k_comebackmode] = 2;*/
+				return;
+			}
 
 			{
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
