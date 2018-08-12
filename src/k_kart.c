@@ -784,11 +784,24 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
 
+	if (player->kartstuff[k_roulettetype] == 2) // Fake items
+	{
+		player->kartstuff[k_eggmanexplode] = 4*TICRATE;
+		player->kartstuff[k_itemroulette] = 0;
+		player->kartstuff[k_roulettetype] = 0;
+		if (P_IsLocalPlayer(player))
+			S_StartSound(NULL, sfx_mkitmF);
+		return;
+	}
+
 	if (cv_kartdebugitem.value != 0)
 	{
 		K_KartGetItemResult(player, cv_kartdebugitem.value);
 		player->kartstuff[k_itemamount] = cv_kartdebugamount.value;
 		player->kartstuff[k_itemroulette] = 0;
+		player->kartstuff[k_roulettetype] = 0;
+		if (P_IsLocalPlayer(player))
+			S_StartSound(NULL, sfx_mkitmF);
 		return;
 	}
 
@@ -3162,6 +3175,19 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_instashield])
 		player->kartstuff[k_instashield]--;
 
+	if (player->kartstuff[k_eggmanexplode])
+	{
+		player->kartstuff[k_eggmanexplode]--;
+		if (player->kartstuff[k_eggmanexplode] <= 0)
+		{
+			mobj_t *eggsexplode;
+			player->powers[pw_flashing] = 0;
+			eggsexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+			if (&players[player->kartstuff[k_eggmanblame]] && players[player->kartstuff[k_eggmanblame]].mo)
+				P_SetTarget(&eggsexplode->target, players[player->kartstuff[k_eggmanblame]].mo);
+		}
+	}
+
 	// ???
 	/*
 	if (player->kartstuff[k_jmp] > 1 && onground)
@@ -3575,6 +3601,8 @@ void K_StripItems(player_t *player)
 	player->kartstuff[k_growshrinktimer] = 0;
 
 	player->kartstuff[k_eggmanheld] = 0;
+	player->kartstuff[k_eggmanexplode] = 0;
+	player->kartstuff[k_eggmanblame] = 0;
 
 	player->kartstuff[k_hyudorotimer] = 0;
 	player->kartstuff[k_stealingtimer] = 0;
@@ -3637,6 +3665,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			newitem->flags2 = (player->mo->flags2 & MF2_OBJECTFLIP);
 			newitem->fuse = 15*TICRATE; // selected randomly.
 			newitem->threshold = 69; // selected "randomly".
+		}
+		// Eggman Monitor exploding
+		else if (player->kartstuff[k_eggmanexplode])
+		{
+			if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanexplode] <= 3*TICRATE && player->kartstuff[k_eggmanexplode] > 1)
+				player->kartstuff[k_eggmanexplode] = 1;
 		}
 		// Eggman Monitor throwing
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
@@ -4893,6 +4927,13 @@ static void K_drawKartItem(void)
 		{
 			localpatch = kp_hyudoro[offset];
 		}
+		else if (stplyr->kartstuff[k_eggmanexplode] > 1)
+		{
+			if (leveltime & 1)
+				localpatch = kp_eggman[offset];
+			else if (!(leveltime & 1))
+				localpatch = kp_nodraw;
+		}
 		else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
 		{
 			if (leveltime & 1)
@@ -4963,6 +5004,15 @@ static void K_drawKartItem(void)
 	}
 	else
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
+
+	// Quick hack
+	if (stplyr->kartstuff[k_eggmanexplode] > 1)
+	{
+		if (splitscreen > 1)
+			V_DrawString(ITEM_X+12, ITEM_Y+12, V_HUDTRANS|splitflags, va("%d", G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode])));
+		else
+			V_DrawKartString(ITEM_X+18, ITEM_Y+18, V_HUDTRANS|splitflags, va("%d", G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode])));
+	}
 }
 
 static void K_drawKartTimestamp(void)

@@ -150,7 +150,7 @@ void P_ResetStarposts(void)
 //
 // Returns true if the player is in a state where they can pick up items.
 //
-boolean P_CanPickupItem(player_t *player, boolean weapon)
+boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 {
 	if (player->exiting || mapreset)
 		return false;
@@ -161,10 +161,12 @@ boolean P_CanPickupItem(player_t *player, boolean weapon)
 	if (weapon)
 	{
 		if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-			|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]) // Item-specific timer going off
+			|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]
+			|| player->kartstuff[k_eggmanexplode]) // Item-specific timer going off
 			return false;
 
-		if (player->kartstuff[k_itemroulette]
+		if ((player->kartstuff[k_itemroulette] && weapon != 2)
+			|| (player->kartstuff[k_roulettetype] == 2 && weapon == 2)
 			|| player->kartstuff[k_itemamount]
 			|| player->kartstuff[k_itemheld]) // Item slot already taken up
 			return false;
@@ -407,7 +409,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	switch (special->type)
 	{
 		case MT_RANDOMITEM:			// SRB2kart
-			if (!P_CanPickupItem(player, true))
+			if (!P_CanPickupItem(player, 1))
 				return;
 
 			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
@@ -465,7 +467,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					K_ExplodePlayer(player, special->target);
 				}
 			}
-			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, true))
+			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
 			{
 				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->seesound);
@@ -496,7 +498,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			/* FALLTHRU */
 		case MT_RING:
 		case MT_FLINGRING:
-			if (!(P_CanPickupItem(player, false)))
+			if (!(P_CanPickupItem(player, 0)))
 				return;
 
 			special->momx = special->momy = special->momz = 0;
@@ -508,7 +510,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 		case MT_COIN:
 		case MT_FLINGCOIN:
-			if (!(P_CanPickupItem(player, false)))
+			if (!(P_CanPickupItem(player, 0)))
 				return;
 
 			special->momx = special->momy = 0;
@@ -518,7 +520,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				P_DoNightsScore(player);
 			break;
 		case MT_BLUEBALL:
-			if (!(P_CanPickupItem(player, false)))
+			if (!(P_CanPickupItem(player, 0)))
 				return;
 
 			P_GivePlayerRings(player, 1);
@@ -539,7 +541,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_GRENADEPICKUP:
 		case MT_EXPLODEPICKUP:
 		case MT_RAILPICKUP:
-			if (!(P_CanPickupItem(player, true)))
+			if (!(P_CanPickupItem(player, 1)))
 				return;
 
 			// Give the power and ringweapon
@@ -563,7 +565,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_GRENADERING:
 		case MT_EXPLOSIONRING:
 		case MT_RAILRING:
-			if (!(P_CanPickupItem(player, true)))
+			if (!(P_CanPickupItem(player, 1)))
 				return;
 
 			if (special->info->mass >= pw_infinityring && special->info->mass <= pw_railring)
@@ -651,7 +653,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 		// Power stones / Match emeralds
 		case MT_FLINGEMERALD:
-			if (!(P_CanPickupItem(player, true)) || player->tossdelay)
+			if (!(P_CanPickupItem(player, 1)) || player->tossdelay)
 				return;
 
 			player->powers[pw_emeralds] |= special->threshold;
@@ -3326,16 +3328,13 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		{
 			if (inflictor && (inflictor->type == MT_ORBINAUT || inflictor->type == MT_ORBINAUT_SHIELD
 				|| inflictor->type == MT_JAWZ || inflictor->type == MT_JAWZ_SHIELD || inflictor->type == MT_JAWZ_DUD
-				|| inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD
 				|| inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
-				K_SpinPlayer(player, source, 1, (inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD));
+				K_SpinPlayer(player, source, 1, false);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
-				if (inflictor->type == MT_FAKEITEM || inflictor->type == MT_FAKESHIELD)
-					player->mo->momx = player->mo->momy = 0;
 				if (P_IsLocalPlayer(player))
 				{
 					quake.intensity = 32*FRACUNIT;

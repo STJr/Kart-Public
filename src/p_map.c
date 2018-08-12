@@ -1036,7 +1036,19 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		else if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
-			P_DamageMobj(thing, tmthing, tmthing->target, 1);
+			{
+				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
+				S_StartSound(poof, sfx_kc2e);
+			}
+
+			if (P_CanPickupItem(thing->player, 2))
+			{
+				if (thing->player->kartstuff[k_itemroulette] <= 0)
+					thing->player->kartstuff[k_itemroulette] = 1;
+				thing->player->kartstuff[k_roulettetype] = 2;
+				if (tmthing->target && tmthing->target->player)
+					thing->player->kartstuff[k_eggmanblame] = tmthing->target->player-players;
+			}
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1045,10 +1057,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				tmthing->z += tmthing->height;
 
 			S_StartSound(tmthing, tmthing->info->deathsound);
-			P_KillMobj(tmthing, thing, thing);
-
-			P_SetObjectMomZ(tmthing, 8*FRACUNIT, false);
-			P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y)+ANGLE_90, 16*FRACUNIT);
+			P_RemoveMobj(tmthing);
 		}
 
 		return true;
@@ -1111,12 +1120,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // underneath
 
 		if (tmthing->player && tmthing->player->powers[pw_flashing]
-			&& !(thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD))
+			&& !(thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
+				|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM))
 			return true;
 
 		if (thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD
-			|| thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
-			|| thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM)
+			|| thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
 		{
 			if ((thing->target == tmthing) && (thing->threshold > 0))
 				return true;
@@ -1126,9 +1135,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
-
-			if (thing->type != MT_FAKESHIELD && thing->type != MT_FAKEITEM)
-				K_KartBouncing(tmthing, thing, false, false);
+			K_KartBouncing(tmthing, thing, false, false);
 
 			if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
 				S_StartSound(tmthing, sfx_shelit);
@@ -1144,6 +1151,38 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			P_SetObjectMomZ(thing, 8*FRACUNIT, false);
 			P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y)+ANGLE_90, 16*FRACUNIT);
+		}
+		else if (thing->type == MT_FAKESHIELD || thing->type == MT_FAKEITEM)
+		{
+			if ((thing->target == tmthing) && (thing->threshold > 0))
+				return true;
+
+			if (tmthing->health <= 0 || thing->health <= 0)
+				return true;
+
+			// Player Damage
+			{
+				mobj_t *poof = P_SpawnMobj(thing->x, thing->y, thing->z, MT_EXPLODE);
+				S_StartSound(poof, sfx_kc2e);
+			}
+
+			if (P_CanPickupItem(tmthing->player, 2))
+			{
+				if (tmthing->player->kartstuff[k_itemroulette] <= 0)
+					tmthing->player->kartstuff[k_itemroulette] = 1;
+				tmthing->player->kartstuff[k_roulettetype] = 2;
+				if (thing->target && thing->target->player)
+					tmthing->player->kartstuff[k_eggmanblame] = thing->target->player-players;
+			}
+
+			// Other Item Damage
+			if (thing->eflags & MFE_VERTICALFLIP)
+				thing->z -= thing->height;
+			else
+				thing->z += thing->height;
+
+			S_StartSound(thing, thing->info->deathsound);
+			P_RemoveMobj(thing);
 		}
 		else if (thing->type == MT_BANANA_SHIELD || thing->type == MT_BANANA
 			|| thing->type == MT_BALLHOG)
