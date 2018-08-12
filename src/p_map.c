@@ -1046,6 +1046,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_itemroulette] <= 0)
 					thing->player->kartstuff[k_itemroulette] = 1;
 				thing->player->kartstuff[k_roulettetype] = 2;
+				if (tmthing->target && tmthing->target->player)
+					thing->player->kartstuff[k_eggmanblame] = tmthing->target->player-players;
 			}
 
 			// This Item Damage
@@ -1169,6 +1171,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (tmthing->player->kartstuff[k_itemroulette] <= 0)
 					tmthing->player->kartstuff[k_itemroulette] = 1;
 				tmthing->player->kartstuff[k_roulettetype] = 2;
+				if (thing->target && thing->target->player)
+					tmthing->player->kartstuff[k_eggmanblame] = thing->target->player-players;
 			}
 
 			// Other Item Damage

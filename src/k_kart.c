@@ -3180,10 +3180,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_eggmanexplode]--;
 		if (player->kartstuff[k_eggmanexplode] <= 0)
 		{
-			/*mobj_t *eggsexplode;
+			mobj_t *eggsexplode;
+			player->powers[pw_flashing] = 0;
 			eggsexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
-			P_SetTarget(&eggsexplode->target, player->mo);*/
-			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
+			if (&players[player->kartstuff[k_eggmanblame]] && players[player->kartstuff[k_eggmanblame]].mo)
+				P_SetTarget(&eggsexplode->target, players[player->kartstuff[k_eggmanblame]].mo);
 		}
 	}
 
@@ -3600,6 +3601,8 @@ void K_StripItems(player_t *player)
 	player->kartstuff[k_growshrinktimer] = 0;
 
 	player->kartstuff[k_eggmanheld] = 0;
+	player->kartstuff[k_eggmanexplode] = 0;
+	player->kartstuff[k_eggmanblame] = 0;
 
 	player->kartstuff[k_hyudorotimer] = 0;
 	player->kartstuff[k_stealingtimer] = 0;

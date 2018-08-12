@@ -320,6 +320,7 @@ typedef enum
 	k_deathsentence,		// 30 seconds to live... (SPB murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
+	k_eggmanblame,			// Fake item recieved, who set this fake
 	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_wipeoutslow,			// Timer before you slowdown when getting wiped out

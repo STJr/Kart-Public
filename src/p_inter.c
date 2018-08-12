@@ -166,6 +166,7 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 			return false;
 
 		if ((player->kartstuff[k_itemroulette] && weapon != 2)
+			|| (player->kartstuff[k_roulettetype] == 2 && weapon == 2)
 			|| player->kartstuff[k_itemamount]
 			|| player->kartstuff[k_itemheld]) // Item slot already taken up
 			return false;
