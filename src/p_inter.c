@@ -160,16 +160,37 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 
 	if (weapon)
 	{
-		if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-			|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]
-			|| player->kartstuff[k_eggmanexplode]) // Item-specific timer going off
-			return false;
+		// Item slot already taken up
+		if (weapon == 2)
+		{
+			// Invulnerable
+			if (player->powers[pw_flashing] > 0
+				|| player->kartstuff[k_spinouttimer] > 0
+				|| player->kartstuff[k_squishedtimer] > 0
+				|| player->kartstuff[k_invincibilitytimer] > 0
+				|| player->kartstuff[k_growshrinktimer] > 0
+				|| player->kartstuff[k_hyudorotimer] > 0)
+				return false;
 
-		if ((player->kartstuff[k_itemroulette] && weapon != 2)
-			|| (player->kartstuff[k_roulettetype] == 2 && weapon == 2)
-			|| player->kartstuff[k_itemamount]
-			|| player->kartstuff[k_itemheld]) // Item slot already taken up
-			return false;
+			// Already have fake
+			if (player->kartstuff[k_roulettetype] == 2
+				|| player->kartstuff[k_eggmanexplode])
+				return false;
+		}
+		else
+		{
+			// Item-specific timer going off
+			if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
+				|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]
+				|| player->kartstuff[k_eggmanexplode])
+				return false;
+
+			// Item slot already taken up
+			if (player->kartstuff[k_itemroulette]
+				|| player->kartstuff[k_itemamount]
+				|| player->kartstuff[k_itemheld]) 
+				return false;
+		}
 	}
 
 	return true;
