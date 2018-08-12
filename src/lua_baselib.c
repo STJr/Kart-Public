@@ -1315,7 +1315,7 @@ static int lib_pPlayLivesJingle(lua_State *L)
 static int lib_pCanPickupItem(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	boolean weapon = lua_optboolean(L, 2);
+	UINT8 weapon = (UINT8)luaL_optinteger(L, 2, 0);
 	//HUDSAFE
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");

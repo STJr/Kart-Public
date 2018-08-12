@@ -7679,12 +7679,10 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ITEMROULETTE",
 	"ROULETTETYPE",
 
-	// Item held stuff
 	"ITEMTYPE",
 	"ITEMAMOUNT",
 	"ITEMHELD",
 
-	// Some items use timers for their duration or effects
 	//"THUNDERANIM",
 	"CURSHIELD",
 	"HYUDOROTIMER",
@@ -7697,6 +7695,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"INVINCIBILITYTIMER",
 	"DEATHSENTENCE",
 	"EGGMANHELD",
+	"EGGMANEXPLODE",
 	"BANANADRAG",
 	"SPINOUTTIMER",
 	"WIPEOUTSLOW",
@@ -7704,7 +7703,6 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKTIMER",
 	"SADTIMER",
 
-	// Battle Mode vars
 	"BUMPER",
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",

@@ -409,7 +409,7 @@ boolean P_CheckRacers(void);
 void P_ClearStarPost(INT32 postnum);
 void P_ResetStarposts(void);
 
-boolean P_CanPickupItem(player_t *player, boolean weapon);
+boolean P_CanPickupItem(player_t *player, UINT8 weapon);
 void P_DoNightsScore(player_t *player);
 
 //
