@@ -14566,7 +14566,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_DEADFAKEITEM, // deathstate
 		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
+		sfx_kc2e,       // deathsound
 		8,              // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
@@ -14574,7 +14574,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_None,       // activesound
-		MF_SHOOTABLE|MF_NOGRAVITY|MF_SCENERY|MF_DONTENCOREMAP, // flags
+		MF_SPECIAL|MF_SHOOTABLE|MF_NOGRAVITY|MF_SCENERY|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 
@@ -14593,7 +14593,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_DEADFAKEITEM, // deathstate
 		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
+		sfx_kc2e,       // deathsound
 		0,              // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
@@ -14601,7 +14601,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		100,            // mass
 		1,              // damage
 		sfx_fake,       // activesound
-		MF_BOUNCE|MF_SHOOTABLE|MF_DONTENCOREMAP, // flags
+		MF_SPECIAL|MF_BOUNCE|MF_SHOOTABLE|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 

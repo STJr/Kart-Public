@@ -155,21 +155,42 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 	if (player->exiting || mapreset)
 		return false;
 
-	/*if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // No bumpers in Match
-		return false;*/
+	if (weapon == 2 && G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // No bumpers in Match
+        return false;
 
 	if (weapon)
 	{
-		if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-			|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]
-			|| player->kartstuff[k_eggmanexplode]) // Item-specific timer going off
-			return false;
+		// Item slot already taken up
+		if (weapon == 2)
+		{
+			// Invulnerable
+			if (player->powers[pw_flashing] > 0
+				|| player->kartstuff[k_spinouttimer] > 0
+				|| player->kartstuff[k_squishedtimer] > 0
+				|| player->kartstuff[k_invincibilitytimer] > 0
+				|| player->kartstuff[k_growshrinktimer] > 0
+				|| player->kartstuff[k_hyudorotimer] > 0)
+				return false;
 
-		if ((player->kartstuff[k_itemroulette] && weapon != 2)
-			|| (player->kartstuff[k_roulettetype] == 2 && weapon == 2)
-			|| player->kartstuff[k_itemamount]
-			|| player->kartstuff[k_itemheld]) // Item slot already taken up
-			return false;
+			// Already have fake
+			if (player->kartstuff[k_roulettetype] == 2
+				|| player->kartstuff[k_eggmanexplode])
+				return false;
+		}
+		else
+		{
+			// Item-specific timer going off
+			if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
+				|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]
+				|| player->kartstuff[k_eggmanexplode])
+				return false;
+
+			// Item slot already taken up
+			if (player->kartstuff[k_itemroulette]
+				|| player->kartstuff[k_itemamount]
+				|| player->kartstuff[k_itemheld]) 
+				return false;
+		}
 	}
 
 	return true;
@@ -414,7 +435,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
-				if (player->kartstuff[k_comebackmode] == 1 || player->kartstuff[k_comebacktimer])
+				if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
 					return;
 				if (player->kartstuff[k_comebackmode] == 0)
 					player->kartstuff[k_comebackmode] = 1;
@@ -423,6 +444,44 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			special->momx = special->momy = special->momz = 0;
 			P_SetTarget(&special->target, toucher);
 			P_KillMobj(special, toucher, toucher);
+			break;
+		case MT_FAKESHIELD: // SRB2kart
+		case MT_FAKEITEM:
+			if ((special->target == toucher || special->target == toucher->target) && (special->threshold > 0))
+				return;
+
+			if (special->health <= 0 || toucher->health <= 0)
+				return;
+
+			if (!P_CanPickupItem(player, 2))
+				return;
+
+			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
+			{
+				/*if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
+					return;
+				if (player->kartstuff[k_comebackmode] == 0)
+					player->kartstuff[k_comebackmode] = 2;*/
+				return;
+			}
+
+			{
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
+				S_StartSound(poof, special->info->deathsound);
+
+				K_StripItems(player);
+				if (player->kartstuff[k_itemroulette] <= 0)
+					player->kartstuff[k_itemroulette] = 1;
+				player->kartstuff[k_roulettetype] = 2;
+				if (special->target && special->target->player
+					&& (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0))
+					player->kartstuff[k_eggmanblame] = special->target->player-players;
+				else
+					player->kartstuff[k_eggmanblame] = player-players;
+
+				P_RemoveMobj(special);
+				return;
+			}
 			break;
 		case MT_KARMAHITBOX:
 			if (!special->target->player)
@@ -485,6 +544,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				player->kartstuff[k_roulettetype] = 1;
 			}
 			return;
+
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //
 // ***************************************** //
