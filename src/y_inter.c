@@ -1460,7 +1460,7 @@ void Y_StartVote(void)
 					snprintf(levelinfo[i].str,
 						sizeof levelinfo[i].str,
 						"%s %s",
-						mapheaderinfo[prevmap]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
+						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
 				else
 					snprintf(levelinfo[i].str,
 						sizeof levelinfo[i].str,
