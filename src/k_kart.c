@@ -2946,6 +2946,8 @@ static void K_MoveHeldObjects(player_t *player)
 					fixed_t speed;
 					fixed_t dist = radius/2;
 
+					cur->flags &= ~MF_NOCLIPTHING;
+
 					if (!cur->health)
 					{
 						cur = cur->hnext;
@@ -3749,6 +3751,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BANANA_SHIELD);
+							mo->flags |= MF_NOCLIPTHING;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
 							mo->lastlook = moloop+1;
@@ -3775,6 +3778,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_eggmanheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
+						mo->flags |= MF_NOCLIPTHING;
 						mo->threshold = 10;
 						mo->movecount = 1;
 						mo->lastlook = 1;
@@ -3805,6 +3809,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_ORBINAUT_SHIELD);
+							mo->flags |= MF_NOCLIPTHING;
 							mo->angle = newangle;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
@@ -3846,6 +3851,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
+							mo->flags |= MF_NOCLIPTHING;
 							mo->angle = newangle;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
@@ -3876,6 +3882,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SSMINE_SHIELD);
+						mo->flags |= MF_NOCLIPTHING;
 						mo->threshold = 10;
 						mo->movecount = 1;
 						mo->lastlook = 1;
