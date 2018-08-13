@@ -8142,7 +8142,7 @@ void A_ItemPop(mobj_t *actor)
 	remains->flags = actor->flags; // Transfer flags
 	remains->flags2 = actor->flags2; // Transfer flags2
 	remains->fuse = actor->fuse; // Transfer respawn timer
-	remains->threshold = (actor->threshold = 69 ? 69 : 68);
+	remains->threshold = (actor->threshold == 69 ? 69 : 68);
 	remains->skin = NULL;
 	remains->spawnpoint = actor->spawnpoint;
 
