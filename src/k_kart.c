@@ -1564,7 +1564,7 @@ UINT16 K_GetKartFlashing(player_t *player)
     UINT16 tics = flashingtics;
     if (G_BattleGametype())
         tics *= 2;
-    tics += (flashingtics/6) * (player->kartspeed-5); // when weight is buffed in battle, use this instead: (player->kartspeed - player->kartweight)
+    tics += (flashingtics/8) * (player->kartspeed);
     return tics;
 }
 
