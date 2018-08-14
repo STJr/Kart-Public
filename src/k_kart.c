@@ -1564,7 +1564,7 @@ UINT16 K_GetKartFlashing(player_t *player)
     UINT16 tics = flashingtics;
     if (G_BattleGametype())
         tics *= 2;
-    tics += (flashingtics/6) * (player->kartspeed-5); // when weight is buffed in battle, use this instead: (player->kartspeed - player->kartweight)
+    tics += (flashingtics/8) * (player->kartspeed);
     return tics;
 }
 
@@ -3021,7 +3021,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	}
 	else if (player->kartstuff[k_eggmanexplode])
 	{
-		INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
+		const INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
 		if (player->kartstuff[k_eggmanexplode] == 1 || (player->kartstuff[k_eggmanexplode] % (flashtime/2) != 0))
 		{
 			player->mo->colorized = false;
@@ -4929,9 +4929,10 @@ static void K_drawKartItem(void)
 	// Set to 'no item' just in case.
 	const UINT8 offset = ((splitscreen > 1) ? 1 : 0);
 	patch_t *localpatch = kp_nodraw;
-	patch_t *localbg = ((splitscreen > 1) ? kp_itembg[2] : kp_itembg[0]);
-	patch_t *localinv = ((splitscreen > 1) ? kp_invincibility[((leveltime % (6*3)) / 3) + 7] : kp_invincibility[(leveltime % (7*3)) / 3]);
+	patch_t *localbg = ((offset) ? kp_itembg[2] : kp_itembg[0]);
+	patch_t *localinv = ((offset) ? kp_invincibility[((leveltime % (6*3)) / 3) + 7] : kp_invincibility[(leveltime % (7*3)) / 3]);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	const INT32 numberdisplaymin = ((!offset && stplyr->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
 	INT32 itembar = 0;
 
 	if (stplyr->kartstuff[k_itemroulette])
@@ -5017,7 +5018,7 @@ static void K_drawKartItem(void)
 				case KITEM_BANANA:				localpatch = kp_banana[offset]; break;
 				case KITEM_EGGMAN:				localpatch = kp_eggman[offset]; break;
 				case KITEM_ORBINAUT:
-					localpatch = kp_orbinaut[(splitscreen > 1 ? 4
+					localpatch = kp_orbinaut[(offset ? 4
 						: min(stplyr->kartstuff[k_itemamount]-1, 3))];
 					break;
 				case KITEM_JAWZ:				localpatch = kp_jawz[offset]; break;
@@ -5039,11 +5040,11 @@ static void K_drawKartItem(void)
 	V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localbg);
 
 	// Then, the numbers:
-	if (stplyr->kartstuff[k_itemamount] > 1 && !stplyr->kartstuff[k_itemroulette])
+	if (stplyr->kartstuff[k_itemamount] >= numberdisplaymin && !stplyr->kartstuff[k_itemroulette])
 	{
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, kp_itemmulsticker[offset]);
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
-		if (splitscreen > 1)
+		if (offset)
 			V_DrawString(ITEM_X+24, ITEM_Y+31, V_ALLOWLOWERCASE|V_HUDTRANS|splitflags, va("x%d", stplyr->kartstuff[k_itemamount]));
 		else
 		{
@@ -5059,9 +5060,9 @@ static void K_drawKartItem(void)
 	{
 		const INT32 barlength = (splitscreen > 1 ? 12 : 24);
 		const INT32 max = itemtime; // timer's normal highest value
-		INT32 length = min(barlength, (itembar * barlength) / max);
-		INT32 height = (splitscreen > 1 ? 1 : 2);
-		INT32 x = (splitscreen > 1 ? 17 : 11), y = (splitscreen > 1 ? 27 : 35);
+		const INT32 length = min(barlength, (itembar * barlength) / max);
+		const INT32 height = (offset ? 1 : 2);
+		const INT32 x = (offset ? 17 : 11), y = (offset ? 27 : 35);
 
 		V_DrawScaledPatch(ITEM_X+x, ITEM_Y+y, V_HUDTRANS|splitflags, kp_itemtimer[offset]);
 		// The left dark "AA" edge
