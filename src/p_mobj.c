@@ -6958,6 +6958,8 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!(mobj->flags2 & MF2_DONTDRAW))
 					{
+						const INT32 numberdisplaymin = ((mobj->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
+
 						// Set it to use the correct states for its condition
 						if (mobj->target->player->kartstuff[k_itemroulette])
 						{
@@ -7038,7 +7040,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 						mobj->tracer->destscale = scale;
 
-						if (mobj->target->player->kartstuff[k_itemamount] > 1
+						if (mobj->target->player->kartstuff[k_itemamount] >= numberdisplaymin
 							&& mobj->target->player->kartstuff[k_itemamount] < 10) // Meh, too difficult to support greater than this; convert this to a decent HUD object and then maybe :V
 						{
 							mobj_t *number = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
