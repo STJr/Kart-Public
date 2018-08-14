@@ -790,7 +790,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
 		if (P_IsLocalPlayer(player))
-			S_StartSound(NULL, sfx_mkitmF);
+			S_StartSound(NULL, sfx_mkitmE);
 		return;
 	}
 
@@ -801,7 +801,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
 		if (P_IsLocalPlayer(player))
-			S_StartSound(NULL, sfx_mkitmF);
+			S_StartSound(NULL, sfx_dbgsal);
 		return;
 	}
 
@@ -3019,7 +3019,26 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		ghost->fuse = 4;
 		ghost->frame |= FF_FULLBRIGHT;
 	}
-	else if (player->kartstuff[k_growshrinktimer] != 0)
+	else if (player->kartstuff[k_eggmanexplode])
+	{
+		INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
+		if (player->kartstuff[k_eggmanexplode] == 1 || (player->kartstuff[k_eggmanexplode] % (flashtime/2) != 0))
+		{
+			player->mo->colorized = false;
+			player->mo->color = player->skincolor;
+		}
+		else if (player->kartstuff[k_eggmanexplode] % flashtime == 0)
+		{
+			player->mo->colorized = true;
+			player->mo->color = SKINCOLOR_BLACK;
+		}
+		else
+		{
+			player->mo->colorized = true;
+			player->mo->color = SKINCOLOR_CRIMSON;
+		}
+	}
+	else if (player->kartstuff[k_growshrinktimer])
 	{
 		if (player->kartstuff[k_growshrinktimer] % 5 == 0)
 		{
@@ -4913,6 +4932,7 @@ static void K_drawKartItem(void)
 	patch_t *localbg = ((splitscreen > 1) ? kp_itembg[2] : kp_itembg[0]);
 	patch_t *localinv = ((splitscreen > 1) ? kp_invincibility[((leveltime % (6*3)) / 3) + 7] : kp_invincibility[(leveltime % (7*3)) / 3]);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	INT32 itembar = 0;
 
 	if (stplyr->kartstuff[k_itemroulette])
 	{
@@ -4964,6 +4984,7 @@ static void K_drawKartItem(void)
 		}
 		else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
 		{
+			itembar = stplyr->kartstuff[k_rocketsneakertimer];
 			if (leveltime & 1)
 				localpatch = kp_rocketsneaker[offset];
 			else if (!(leveltime & 1))
@@ -5033,29 +5054,25 @@ static void K_drawKartItem(void)
 	else
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
 
-	// Meter for rocket sneaker, could be extended to work for any other timer item...
-	if (stplyr->kartstuff[k_rocketsneakertimer])
+	// Extensible meter, currently only used for rocket sneaker...
+	if (itembar)
 	{
-		const INT32 barlength = (splitscreen > 1 ? 12 : 2);
-		const INT32 timer = stplyr->kartstuff[k_rocketsneakertimer]; // item's timer
+		const INT32 barlength = (splitscreen > 1 ? 12 : 24);
 		const INT32 max = itemtime; // timer's normal highest value
-		INT32 length = min(barlength, (timer * barlength) / max);
+		INT32 length = min(barlength, (itembar * barlength) / max);
 		INT32 height = (splitscreen > 1 ? 1 : 2);
 		INT32 x = (splitscreen > 1 ? 17 : 11), y = (splitscreen > 1 ? 27 : 35);
 
 		V_DrawScaledPatch(ITEM_X+x, ITEM_Y+y, V_HUDTRANS|splitflags, kp_itemtimer[offset]);
-		// The dark "AA" edges on the sides
-		V_DrawFill(ITEM_X+x+1, ITEM_Y+y+1, length, height, 12);
+		// The left dark "AA" edge
+		V_DrawFill(ITEM_X+x+1, ITEM_Y+y+1, (length == 2 ? 2 : 1), height, 12);
 		// The bar itself
-		if (length >= 3)
+		if (length > 2)
 		{
-			if (height == 1)
-				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-1, height, 120);
-			else
-			{
-				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-1, height, 8);
-				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-1, height/2, 120);
-			}
+			V_DrawFill(ITEM_X+x+length, ITEM_Y+y+1, 1, height, 12); // the right one
+			if (height == 2)
+				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+2, length-2, 1, 8); // the dulled underside
+			V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-2, 1, 120); // the shine
 		}
 	}
 

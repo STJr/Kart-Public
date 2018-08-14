@@ -871,6 +871,7 @@ typedef enum
 	sfx_mkitm7,
 	sfx_mkitm8,
 	sfx_mkitmF,
+	sfx_mkitmE,
 	sfx_clash,
 	sfx_tossed,
 	sfx_shelit,
@@ -882,6 +883,7 @@ typedef enum
 	sfx_noooo1,
 	sfx_noooo2,
 	sfx_hogbom,
+	sfx_dbgsal,
 
 	sfx_kwin,
 	sfx_klose,

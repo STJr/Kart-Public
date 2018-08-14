@@ -6964,6 +6964,45 @@ void P_MobjThinker(mobj_t *mobj)
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
 							mobj->tracer->sprite = SPR_ITEM;
 							mobj->tracer->frame = FF_FULLBRIGHT|(((mobj->target->player->kartstuff[k_itemroulette] % (13*3)) / 3) + 1);
+							mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+						}
+						else if (mobj->target->player->kartstuff[k_stolentimer] > 0)
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+							mobj->tracer->sprite = SPR_ITEM;
+							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_HYUDORO;
+							if (!(leveltime & 2))
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+						}
+						else if ((mobj->target->player->kartstuff[k_stealingtimer] > 0) && (leveltime & 2))
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+							mobj->tracer->sprite = SPR_ITEM;
+							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_HYUDORO;
+							mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+						}
+						else if (mobj->target->player->kartstuff[k_eggmanexplode] > 1)
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+							mobj->tracer->sprite = SPR_ITEM;
+							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_EGGMAN;
+							if (leveltime & 1)
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+						}
+						else if (mobj->target->player->kartstuff[k_growshrinktimer] > 0)
+						{
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+							mobj->tracer->sprite = SPR_ITEM;
+							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_GROW;
+
+							if (leveltime & 1)
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 						}
 						else if (mobj->target->player->kartstuff[k_itemtype])
 						{
@@ -6971,6 +7010,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 							switch (mobj->target->player->kartstuff[k_itemtype])
 							{
+								case KITEM_ORBINAUT:
+									mobj->tracer->sprite = SPR_ITMO;
+									mobj->tracer->frame = FF_FULLBRIGHT|(min(mobj->target->player->kartstuff[k_itemamount]-1, 3));
+									break;
 								case KITEM_INVINCIBILITY:
 									mobj->tracer->sprite = SPR_ITMI;
 									mobj->tracer->frame = FF_FULLBRIGHT|((leveltime % (7*3)) / 3);
@@ -6985,18 +7028,7 @@ void P_MobjThinker(mobj_t *mobj)
 									break;
 							}
 
-							if (mobj->target->player->kartstuff[k_growshrinktimer] > 0)
-							{
-								mobj->tracer->sprite = SPR_ITEM;
-								mobj->tracer->frame = FF_FULLBRIGHT|KITEM_GROW;
-
-								if (leveltime & 1)
-									mobj->tracer->flags2 |= MF2_DONTDRAW;
-								else
-									mobj->tracer->flags2 &= ~MF2_DONTDRAW;
-							}
-							else
-								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 						}
 						else
 						{
