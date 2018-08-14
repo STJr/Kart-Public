@@ -6780,7 +6780,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
 			mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);*/
 
-		V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, invertmap);
+		V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, 0);
 
 		{
 			static angle_t rubyfloattime = 0;

@@ -248,7 +248,9 @@ void V_SetPaletteLump(const char *pal)
 #endif
 	if (rendermode != render_none)
 		I_SetPalette(pLocalPalette);
+#ifdef HASINVERT
 	R_MakeInvertmap();
+#endif
 }
 
 static void CV_usegamma_OnChange(void)

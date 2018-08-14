@@ -95,7 +95,9 @@ INT32 R_ColormapNumForName(char *name);
 INT32 R_CreateColormap(char *p1, char *p2, char *p3);
 void R_CreateColormap2(char *p1, char *p2, char *p3);
 void R_MakeColormaps(void);
+#ifdef HASINVERT
 void R_MakeInvertmap(void);
+#endif
 const char *R_ColormapNameForNum(INT32 num);
 
 extern INT32 numtextures;
