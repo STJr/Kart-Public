@@ -631,6 +631,7 @@ typedef enum sprite
 
 	SPR_ARRO, // player arrows
 	SPR_ITEM,
+	SPR_ITMO,
 	SPR_ITMI,
 	SPR_ITMN,
 	SPR_WANT,
