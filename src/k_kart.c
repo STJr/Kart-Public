@@ -2840,6 +2840,13 @@ static void K_MoveHeldObjects(player_t *player)
 	if (!player->mo->hnext)
 	{
 		player->kartstuff[k_bananadrag] = 0;
+		if (player->kartstuff[k_eggmanheld])
+			player->kartstuff[k_eggmanheld] = 0;
+		else if (player->kartstuff[k_itemheld])
+		{
+			player->kartstuff[k_itemamount] = player->kartstuff[k_itemheld] = 0;
+			player->kartstuff[k_itemtype] = KITEM_NONE;
+		}
 		return;
 	}
 
@@ -2848,6 +2855,13 @@ static void K_MoveHeldObjects(player_t *player)
 		// we need this here too because this is done in afterthink - pointers are cleaned up at the START of each tic...
 		P_SetTarget(&player->mo->hnext, NULL);
 		player->kartstuff[k_bananadrag] = 0;
+		if (player->kartstuff[k_eggmanheld])
+			player->kartstuff[k_eggmanheld] = 0;
+		else if (player->kartstuff[k_itemheld])
+		{
+			player->kartstuff[k_itemamount] = player->kartstuff[k_itemheld] = 0;
+			player->kartstuff[k_itemtype] = KITEM_NONE;
+		}
 		return;
 	}
 
@@ -3718,6 +3732,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
 				player->kartstuff[k_rocketsneakertimer] = 1;
 		}
+		else if (player->kartstuff[k_itemamount] <= 0)
+		{
+			player->kartstuff[k_itemamount] = player->kartstuff[k_itemheld] = 0;
+		}
 		else
 		{
 			switch (player->kartstuff[k_itemtype])
@@ -3770,6 +3788,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BANANA_SHIELD);
+							if (!mo)
+							{
+								player->kartstuff[k_itemamount] = moloop;
+								break;
+							}
 							mo->flags |= MF_NOCLIPTHING;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
@@ -3784,8 +3807,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
 						K_PlayTauntSound(player->mo);
-						player->kartstuff[k_itemamount]--;
-						if (!player->kartstuff[k_itemamount])
+						if (!(--player->kartstuff[k_itemamount]))
 							player->kartstuff[k_itemheld] = 0;
 					}
 					break;
@@ -3797,12 +3819,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_eggmanheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
-						mo->flags |= MF_NOCLIPTHING;
-						mo->threshold = 10;
-						mo->movecount = 1;
-						mo->lastlook = 1;
 						if (mo)
 						{
+							mo->flags |= MF_NOCLIPTHING;
+							mo->threshold = 10;
+							mo->movecount = 1;
+							mo->lastlook = 1;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&player->mo->hnext, mo);
 						}
@@ -3828,6 +3850,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_ORBINAUT_SHIELD);
+							if (!mo)
+							{
+								player->kartstuff[k_itemamount] = moloop;
+								break;
+							}
 							mo->flags |= MF_NOCLIPTHING;
 							mo->angle = newangle;
 							mo->threshold = 10;
@@ -3845,8 +3872,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, false);
 						K_PlayTauntSound(player->mo);
 
-						player->kartstuff[k_itemamount]--;
-						if (!player->kartstuff[k_itemamount])
+						if (!(--player->kartstuff[k_itemamount]))
 							player->kartstuff[k_itemheld] = 0;
 					}
 					break;
@@ -3870,6 +3896,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
 							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
 							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
+							if (!mo)
+							{
+								player->kartstuff[k_itemamount] = moloop;
+								break;
+							}
 							mo->flags |= MF_NOCLIPTHING;
 							mo->angle = newangle;
 							mo->threshold = 10;
@@ -3889,8 +3920,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
 						K_PlayTauntSound(player->mo);
 
-						player->kartstuff[k_itemamount]--;
-						if (!player->kartstuff[k_itemamount])
+						if (!(--player->kartstuff[k_itemamount]))
 							player->kartstuff[k_itemheld] = 0;
 					}
 					break;
@@ -3901,12 +3931,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SSMINE_SHIELD);
-						mo->flags |= MF_NOCLIPTHING;
-						mo->threshold = 10;
-						mo->movecount = 1;
-						mo->lastlook = 1;
 						if (mo)
 						{
+							mo->flags |= MF_NOCLIPTHING;
+							mo->threshold = 10;
+							mo->movecount = 1;
+							mo->lastlook = 1;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&player->mo->hnext, mo);
 						}
