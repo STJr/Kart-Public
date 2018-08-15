@@ -773,10 +773,10 @@ const char *G_BuildMapName(INT32 map)
 		if (gamestate == GS_TITLESCREEN)
 			map = -1;
 		else if (gamestate == GS_LEVEL)
-			map = gamemap;
+			map = gamemap-1;
 		else
 			map = prevmap;
-		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, false, 0, false);
+		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, false, 0, false)+1;
 	}
 
 	if (map < 100)
