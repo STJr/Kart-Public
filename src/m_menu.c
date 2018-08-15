@@ -383,7 +383,7 @@ static void Dummystaff_OnChange(void);
 // ==========================================================================
 
 static CV_PossibleValue_t map_cons_t[] = {
-	{1,"MIN"},
+	{0,"MIN"},
 	{NUMMAPS, "MAX"},
 	{0, NULL}
 };
@@ -2147,9 +2147,9 @@ static void Dummystaff_OnChange(void)
 // Newgametype.  Used for gametype changes.
 static void Newgametype_OnChange(void)
 {
-	if (menuactive)
+	if (cv_nextmap.value && menuactive)
 	{
-		if(!mapheaderinfo[cv_nextmap.value-1])
+		if (!mapheaderinfo[cv_nextmap.value-1])
 			P_AllocMapHeader((INT16)(cv_nextmap.value-1));
 
 		if ((cv_newgametype.value == GT_RACE && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_RACE)) || // SRB2kart
@@ -3852,6 +3852,10 @@ static void M_PrepareLevelSelect(void)
 //
 boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 {
+	// Random map!
+	if (mapnum == -1)
+		return (gamestate != GS_TIMEATTACK && !modeattacking);
+
 	// Does the map exist?
 	if (!mapheaderinfo[mapnum])
 		return false;
@@ -5874,11 +5878,16 @@ static void M_TimeAttack(INT32 choice)
 
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&SP_TimeAttackDef);
-	Nextmap_OnChange();
+
+	G_SetGamestate(GS_TIMEATTACK);
+
+	if (cv_nextmap.value)
+		Nextmap_OnChange();
+	else
+		CV_AddValue(&cv_nextmap, 1);
 
 	itemOn = tastart; // "Start" is selected.
 
-	G_SetGamestate(GS_TIMEATTACK);
 	S_ChangeMusicInternal("racent", true);
 }
 
@@ -6689,8 +6698,11 @@ static INT32 M_FindFirstMap(INT32 gtype)
 
 	for (i = 0; i < NUMMAPS; i++)
 	{
-		if (mapheaderinfo[i] && (mapheaderinfo[i]->typeoflevel & gtype))
-			return i + 1;
+		if (!mapheaderinfo[i])
+			continue;
+		if (!(mapheaderinfo[i]->typeoflevel & gtype))
+			continue;
+		return i + 1;
 	}
 
 	return 1;
@@ -6722,6 +6734,9 @@ static void M_StartServer(INT32 choice)
 	if (metalrecording)
 		G_StopMetalDemo();
 
+	if (!cv_nextmap.value)
+		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, false, 0, false));
+
 	if (ssplayers < 1)
 	{
 		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
@@ -6749,16 +6764,18 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 	lumpnum_t lumpnum;
 	patch_t *PictureOfLevel;
 	INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
-	const char *mapname = G_BuildMapName(cv_nextmap.value);
-	//boolean doencore = (cv_kartencore.value && cv_newgametype.value == GT_RACE);
 
 	//  A 160x100 image of the level as entry MAPxxP
-	lumpnum = W_CheckNumForName(va("%sP", mapname));
-
-	if (lumpnum != LUMPERROR)
-		PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+	if (cv_nextmap.value)
+	{
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));
+		if (lumpnum != LUMPERROR)
+			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		else
+			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+	}
 	else
-		PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+		PictureOfLevel = W_CachePatchName("RANDOMLV", PU_CACHE);
 
 	w = SHORT(PictureOfLevel->width)/2;
 	i = SHORT(PictureOfLevel->height)/2;
@@ -6803,7 +6820,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		do
 		{
 			i--;
-			if (i == -1)
+			if (i == -2)
 				i = NUMMAPS-1;
 
 			if (i == oldval)
@@ -6815,13 +6832,16 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		} while (!M_CanShowLevelInList(i, cv_newgametype.value));
 
 		//  A 160x100 image of the level as entry MAPxxP
-		mapname = G_BuildMapName(i+1);
-		lumpnum = W_CheckNumForName(va("%sP", mapname));
-
-		if (lumpnum != LUMPERROR)
-			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		if (i+1)
+		{
+			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
+			if (lumpnum != LUMPERROR)
+				PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+			else
+				PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+		}
 		else
-			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+			PictureOfLevel = W_CachePatchName("RANDOMLV", PU_CACHE);
 
 		x -= horizspac + w/2;
 
@@ -6839,7 +6859,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		{
 			i++;
 			if (i == NUMMAPS)
-				i = 0;
+				i = -1;
 
 			if (i == oldval)
 				return;
@@ -6850,13 +6870,16 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		} while (!M_CanShowLevelInList(i, cv_newgametype.value));
 
 		//  A 160x100 image of the level as entry MAPxxP
-		mapname = G_BuildMapName(i+1);
-		lumpnum = W_CheckNumForName(va("%sP", mapname));
-
-		if (lumpnum != LUMPERROR)
-			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		if (i+1)
+		{
+			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
+			if (lumpnum != LUMPERROR)
+				PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+			else
+				PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+		}
 		else
-			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+			PictureOfLevel = W_CachePatchName("RANDOMLV", PU_CACHE);
 
 		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
 

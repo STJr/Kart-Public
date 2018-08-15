@@ -1482,14 +1482,12 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 				{
 					if(increment > 0) // Going up!
 					{
-						newvalue++;
-						if (newvalue == NUMMAPS)
-							newvalue = 0;
+						if (++newvalue == NUMMAPS)
+							newvalue = -1;
 					}
 					else // Going down!
 					{
-						newvalue--;
-						if (newvalue == -1)
+						if (--newvalue == -2)
 							newvalue = NUMMAPS-1;
 					}
 

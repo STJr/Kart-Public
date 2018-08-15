@@ -765,8 +765,19 @@ const char *G_BuildMapName(INT32 map)
 {
 	static char mapname[10] = "MAPXX"; // internal map name (wad resource name)
 
-	I_Assert(map > 0);
+	I_Assert(map >= 0);
 	I_Assert(map <= NUMMAPS);
+
+	if (map == 0) // hack???
+	{
+		if (gamestate == GS_TITLESCREEN)
+			map = -1;
+		else if (gamestate == GS_LEVEL)
+			map = gamemap;
+		else
+			map = prevmap;
+		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, false, 0, false);
+	}
 
 	if (map < 100)
 		sprintf(&mapname[3], "%.2d", map);
@@ -4259,6 +4270,9 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 char *G_BuildMapTitle(INT32 mapnum)
 {
 	char *title = NULL;
+
+	if (mapnum == 0)
+		return Z_StrDup("Random");
 
 	if (strcmp(mapheaderinfo[mapnum-1]->lvlttl, ""))
 	{
