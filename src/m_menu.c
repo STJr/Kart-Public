@@ -929,12 +929,13 @@ static menuitem_t MP_MainMenu[] =
 
 static menuitem_t MP_ServerMenu[] =
 {
-	{IT_STRING|IT_CVAR,              NULL, "Game Type",             &cv_newgametype,     10},
+	{IT_STRING|IT_CVAR,              NULL, "Max. Player Count",     &cv_maxplayers,      10},
 #ifndef NONET
 	{IT_STRING|IT_CALL,              NULL, "Room...",               M_RoomMenu,          20},
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Server Name",           &cv_servername,      30},
 #endif
 
+	{IT_STRING|IT_CVAR,              NULL, "Game Type",             &cv_newgametype,     68},
 	{IT_STRING|IT_CVAR,              NULL, "Level",                 &cv_nextmap,         78},
 
 	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                 M_StartServer,      130},
@@ -943,19 +944,20 @@ static menuitem_t MP_ServerMenu[] =
 // Separated splitscreen and normal servers.
 static menuitem_t MP_SplitServerMenu[] =
 {
-	{IT_STRING|IT_CVAR,      NULL, "Game Type",             &cv_newgametype,       10},
 #ifndef NOFOURPLAYER
-	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_dummysplitplayers, 20},
+	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_dummysplitplayers, 10},
 #endif
+
+	{IT_STRING|IT_CVAR,      NULL, "Game Type",             &cv_newgametype,       68},
 	{IT_STRING|IT_CVAR,      NULL, "Level",                 &cv_nextmap,           78},
 #ifdef NOFOURPLAYER
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,         108},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        118},
+	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,         110},
+	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        120},
 #else
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          88},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,         98},
-	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,        108},
-	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,        118},
+	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          90},
+	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        100},
+	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,        110},
+	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,        120},
 #endif
 	{IT_WHITESTRING|IT_CALL, NULL, "Start",                 M_StartServer,        130},
 };
@@ -1474,7 +1476,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",					&cv_votetime,			 60},
 
 #ifndef NONET
-	{IT_STRING | IT_CVAR,    NULL, "Max Player Count",				&cv_maxplayers,			 80},
+	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 80},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		 90},
 	//{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		100},
 
@@ -6921,7 +6923,7 @@ static void M_DrawServerMenu(void)
 			3*
 #endif
 			incrwidth;
-		INT32 x = BASEVIDWIDTH/2 - paw/2, y = currentMenu->y + 32, trans = 0;
+		INT32 x = BASEVIDWIDTH/2 - paw/2, y = currentMenu->y + 27, trans = 0;
 		patch_t *face;
 
 		while (++i <=
