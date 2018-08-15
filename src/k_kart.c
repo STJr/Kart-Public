@@ -5056,7 +5056,7 @@ static void K_drawKartItem(void)
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
 
 	// Extensible meter, currently only used for rocket sneaker...
-	if (itembar)
+	if (itembar && hudtrans)
 	{
 		const INT32 barlength = (splitscreen > 1 ? 12 : 24);
 		const INT32 max = itemtime; // timer's normal highest value
@@ -5066,14 +5066,14 @@ static void K_drawKartItem(void)
 
 		V_DrawScaledPatch(ITEM_X+x, ITEM_Y+y, V_HUDTRANS|splitflags, kp_itemtimer[offset]);
 		// The left dark "AA" edge
-		V_DrawFill(ITEM_X+x+1, ITEM_Y+y+1, (length == 2 ? 2 : 1), height, 12);
+		V_DrawFill(ITEM_X+x+1, ITEM_Y+y+1, (length == 2 ? 2 : 1), height, 12|splitflags);
 		// The bar itself
 		if (length > 2)
 		{
-			V_DrawFill(ITEM_X+x+length, ITEM_Y+y+1, 1, height, 12); // the right one
+			V_DrawFill(ITEM_X+x+length, ITEM_Y+y+1, 1, height, 12|splitflags); // the right one
 			if (height == 2)
-				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+2, length-2, 1, 8); // the dulled underside
-			V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-2, 1, 120); // the shine
+				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+2, length-2, 1, 8|splitflags); // the dulled underside
+			V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-2, 1, 120|splitflags); // the shine
 		}
 	}
 
