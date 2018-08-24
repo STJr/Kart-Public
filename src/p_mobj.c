@@ -7006,7 +7006,7 @@ void P_MobjThinker(mobj_t *mobj)
 							else
 								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 						}
-						else if (mobj->target->player->kartstuff[k_itemtype])
+						else if (mobj->target->player->kartstuff[k_itemtype] && mobj->target->player->kartstuff[k_itemamount] > 0)
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
 

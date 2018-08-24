@@ -2186,10 +2186,10 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 	const UINT8 *colormap;
 
 	//this function is designed for 9 or less score lines only
-	I_Assert(scorelines <= 9);
+	//I_Assert(scorelines <= 9); -- not today bitch, kart fixed it up
 
 	V_DrawFill(1, 26, 318, 1, 0); // Draw a horizontal line because it looks nice!
-	if (scorelines > 9)
+	if (scorelines > 8)
 	{
 		V_DrawFill(160, 26, 1, 154, 0); // Draw a vertical line to separate the two sides.
 		V_DrawFill(1, 180, 318, 1, 0); // And a horizontal line near the bottom.
@@ -2198,6 +2198,8 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 	for (i = 0; i < scorelines; i++)
 	{
+		char strtime[MAXPLAYERNAME+1];
+
 		if (players[tab[i].num].spectator || !players[tab[i].num].mo)
 			continue; //ignore them.
 
@@ -2207,11 +2209,16 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 				HU_drawPing(x+ 253, y+2, playerpingtable[tab[i].num], false);
 		}
 
+		if (scorelines > 8)
+			strlcpy(strtime, tab[i].name, 6);
+		else
+			STRBUFCPY(strtime, tab[i].name);
+
 		V_DrawString(x + 20, y,
 			((tab[i].num == whiteplayer)
 				? hilicol|V_ALLOWLOWERCASE
 				: V_ALLOWLOWERCASE),
-			tab[i].name);
+			strtime);
 
 		if (players[tab[i].num].mo->color)
 		{
@@ -2260,7 +2267,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			V_DrawRightAlignedString(x+rightoffset, y, 0, va("%u", tab[i].count));
 
 		y += 16;
-		if (i == 9)
+		if (i == 7)
 		{
 			y = 32;
 			x += BASEVIDWIDTH/2;
@@ -2680,15 +2687,17 @@ static void HU_DrawRankings(void)
 			tab[scorelines].count = players[i].marescore;
 
 		scorelines++;
-	}
 
-	if (scorelines > 20)
-		scorelines = 20; //dont draw past bottom of screen, show the best only
+#if MAXPLAYERS > 16
+	if (scorelines > 16)
+		break; //dont draw past bottom of screen, show the best only
+#endif
+	}
 
 	/*if (G_GametypeHasTeams())
 		HU_DrawTeamTabRankings(tab, whiteplayer); //separate function for Spazzo's silly request -- gotta fix this up later
 	else if (scorelines > 10)*/
-	HU_DrawTabRankings(((scorelines > 9) ? 32 : 40), 32, tab, scorelines, whiteplayer, hilicol);
+	HU_DrawTabRankings(((scorelines > 8) ? 32 : 40), 32, tab, scorelines, whiteplayer, hilicol);
 	/*else
 		HU_DrawDualTabRankings(32, 32, tab, scorelines, whiteplayer);*/
 

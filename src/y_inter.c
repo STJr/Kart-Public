@@ -396,7 +396,6 @@ void Y_IntermissionDrawer(void)
 	else*/ if (intertype == int_race || intertype == int_match)
 	{
 		INT32 y = 48;
-		char name[MAXPLAYERNAME+1];
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -410,7 +409,7 @@ void Y_IntermissionDrawer(void)
 
 		if (data.match.numplayers > 8)
 		{
-			V_DrawFill(160, 32, 1, 152, 0);
+			V_DrawFill(x+156, 32, 1, 152, 0);
 
 			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, hilicol, "#");
 			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, hilicol, "NAME");
@@ -427,7 +426,7 @@ void Y_IntermissionDrawer(void)
 		{
 			if (data.match.num[i] != MAXPLAYERS && playeringame[data.match.num[i]] && !players[data.match.num[i]].spectator)
 			{
-				char strtime[10];
+				char strtime[MAXPLAYERNAME+1];
 
 				V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
@@ -439,16 +438,16 @@ void Y_IntermissionDrawer(void)
 					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
 				}
 
-				if (data.match.numplayers > 9)
-					strlcpy(name, data.match.name[i], 6);
+				if (data.match.numplayers > 8)
+					strlcpy(strtime, data.match.name[i], 6);
 				else
-					STRBUFCPY(name, data.match.name[i]);
+					STRBUFCPY(strtime, data.match.name[i]);
 
 				V_DrawString(x+36, y,
 					((data.match.num[i] == whiteplayer)
 						? hilicol|V_ALLOWLOWERCASE
 						: V_ALLOWLOWERCASE),
-					name);
+					strtime);
 
 				if (data.match.rankingsmode)
 				{
@@ -507,11 +506,14 @@ void Y_IntermissionDrawer(void)
 				}
 			}
 			else
+			{
+				data.match.increase[data.match.num[i]] = 0;
 				data.match.num[i] = MAXPLAYERS; // this should be the only field setting in this function
+			}
 
 			y += 16;
 
-			if (y > 176)
+			if (i == 7)
 			{
 				y = 48;
 				x += BASEVIDWIDTH/2;
