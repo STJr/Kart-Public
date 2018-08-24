@@ -39,6 +39,8 @@ void K_DriftDustHandling(mobj_t *spawner);
 void K_DoSneaker(player_t *player, boolean doPFlag);
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute);
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source);
+void K_CleanHnextList(mobj_t *work);
+void K_UpdateHnextList(player_t *player);
 void K_RepairOrbitChain(mobj_t *orbit);
 boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);

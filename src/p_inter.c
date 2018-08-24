@@ -2221,7 +2221,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA) // trail items
 				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE))
 			{
-				if (target->lastlook != 0 && target->lastlook < target->target->player->kartstuff[k_itemamount])
+				if (target->movedir != 0 && target->movedir < (UINT16)target->target->player->kartstuff[k_itemamount])
 				{
 					if (target->target->hnext)
 						K_KillBananaChain(target->target->hnext, inflictor, source);
