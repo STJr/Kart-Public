@@ -1599,6 +1599,9 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 	if (mobj->flags2 & MF2_OBJECTFLIP)
 		ghost->flags |= MF2_OBJECTFLIP;
 
+	if (!(mobj->flags & MF_DONTENCOREMAP))
+		mobj->flags &= ~MF_DONTENCOREMAP;
+
 	return ghost;
 }
 

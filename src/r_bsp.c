@@ -39,7 +39,7 @@ INT32 doorclosed;
 
 static boolean R_NoEncore(sector_t *sector, boolean ceiling)
 {
-	boolean invertencore = (GETSECSPECIAL(sector->special, 2) != 15);
+	boolean invertencore = (GETSECSPECIAL(sector->special, 2) == 15);
 #if 0 // perfect implementation
 	INT32 val = GETSECSPECIAL(sector->special, 3);
 	if (val != 1 && val != 3 // spring panel
@@ -47,11 +47,14 @@ static boolean R_NoEncore(sector_t *sector, boolean ceiling)
 	if ((!(sector->special & (1<<8)) || (sector->special & ((4|8)<<8))) // spring panel
 #endif
 		&& GETSECSPECIAL(sector->special, 4) != 6) // sneaker panel
-			return !invertencore;
+			return invertencore;
+
+	if (invertencore)
+		return false;
 
 	if (ceiling)
-		return ((boolean)(sector->flags & SF_FLIPSPECIAL_CEILING) == invertencore);
-	return ((boolean)(sector->flags & SF_FLIPSPECIAL_FLOOR) == invertencore);
+		return ((boolean)(sector->flags & SF_FLIPSPECIAL_CEILING));
+	return ((boolean)(sector->flags & SF_FLIPSPECIAL_FLOOR));
 }
 
 //
