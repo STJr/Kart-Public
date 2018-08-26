@@ -490,29 +490,29 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
-				//P-Odds	 0  1  2  3
-			   /*Sneaker*/ { 2, 2, 2, 2 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 4, 2, 1, 2 }, // Invincibility
-				/*Banana*/ { 0, 0, 2, 0 }, // Banana
-		/*Eggman Monitor*/ { 0, 0, 1, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 1, 5, 0 }, // Orbinaut
-				  /*Jawz*/ { 1, 3, 2, 2 }, // Jawz
-				  /*Mine*/ { 1, 3, 2, 2 }, // Mine
-			   /*Ballhog*/ { 1, 2, 1, 2 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 0, 0 }, // Self-Propelled Bomb
-				  /*Grow*/ { 4, 2, 0, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0 }, // Shrink
-		/*Thunder Shield*/ { 0, 0, 0, 0 }, // Thunder Shield
-			   /*Hyudoro*/ { 0, 0, 1, 0 }, // Hyudoro
-		   /*Pogo Spring*/ { 0, 0, 1, 0 }, // Pogo Spring
-		  /*Kitchen Sink*/ { 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 2, 0, 0, 2 }, // Sneaker x3
-			 /*Banana x3*/ { 0, 1, 1, 1 }, // Banana x3
-			/*Banana x10*/ { 1, 0, 0, 1 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 1, 1, 1 }, // Orbinaut x3
-		   /*Orbinaut x4*/ { 1, 1, 0, 1 }, // Orbinaut x4
-			   /*Jawz x2*/ { 3, 2, 0, 2 }  // Jawz x2
+				//P-Odds	 0  1  2  3  4  5
+			   /*Sneaker*/ { 2, 2, 2, 1, 0, 2 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0 }, // Rocket Sneaker
+		 /*Invincibility*/ { 1, 1, 2, 4, 5, 2 }, // Invincibility
+				/*Banana*/ { 2, 1, 0, 0, 0, 0 }, // Banana
+		/*Eggman Monitor*/ { 2, 1, 0, 0, 0, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 4, 2, 1, 0, 0, 0 }, // Orbinaut
+				  /*Jawz*/ { 2, 3, 2, 1, 0, 2 }, // Jawz
+				  /*Mine*/ { 2, 3, 2, 1, 0, 2 }, // Mine
+			   /*Ballhog*/ { 1, 2, 2, 1, 0, 2 }, // Ballhog
+   /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
+				  /*Grow*/ { 0, 1, 2, 4, 5, 2 }, // Grow
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0 }, // Shrink
+		/*Thunder Shield*/ { 0, 0, 0, 0, 0, 0 }, // Thunder Shield
+			   /*Hyudoro*/ { 1, 1, 0, 0, 0, 0 }, // Hyudoro
+		   /*Pogo Spring*/ { 1, 1, 0, 0, 0, 0 }, // Pogo Spring
+		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
+			/*Sneaker x3*/ { 0, 0, 0, 2, 4, 2 }, // Sneaker x3
+			 /*Banana x3*/ { 1, 1, 2, 0, 0, 0 }, // Banana x3
+			/*Banana x10*/ { 0, 0, 1, 1, 0, 2 }, // Banana x10
+		   /*Orbinaut x3*/ { 1, 1, 2, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 0, 0, 1, 3, 4, 2 }, // Orbinaut x4
+			   /*Jawz x2*/ { 0, 0, 1, 2, 4, 2 }  // Jawz x2
 };
 
 /**	\brief	Item Roulette for Kart
@@ -851,19 +851,21 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (oddsvalid[0]) SETUPDISTTABLE(0,1);
 		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
 		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
+		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
+		if (oddsvalid[4]) SETUPDISTTABLE(4,1);
 
-		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[3]) // Player-controlled "Karma" items
-			useodds = 3;
+		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[5]) // 5 is the extreme odds of player-controlled "Karma" items
+			useodds = 5;
 		else
 		{
-			SINT8 wantedpos = (player->kartstuff[k_bumper]-bestbumper)+2; // 0 is two bumpers below best player's bumper count, 2 is best player's bumper count
+			SINT8 wantedpos = (bestbumper-player->kartstuff[k_bumper]); // 0 is the best player's bumper count, 1 is a bumper below best, 2 is two bumpers below, etc
 			if (K_IsPlayerWanted(player))
 				wantedpos--;
-			if (wantedpos > 2)
-				wantedpos = 2;
-			if (wantedpos < 0)
+			if (wantedpos > 4) // Don't run off into karma items
+				wantedpos = 4;
+			if (wantedpos < 0) // Don't go below somehow
 				wantedpos = 0;
-			useodds = disttable[(wantedpos * distlen) / 3];
+			useodds = disttable[(wantedpos * distlen) / 5];
 		}
 	}
 	else
