@@ -1086,7 +1086,7 @@ static void R_SplitSprite(vissprite_t *sprite, mobj_t *thing)
 			else
 */
 			if (!((thing->frame & (FF_FULLBRIGHT|FF_TRANSMASK) || thing->flags2 & MF2_SHADOW)
-				&& (!newsprite->extra_colormap || !newsprite->extra_colormap->fog)))
+				&& (!newsprite->extra_colormap || !(newsprite->extra_colormap->fog & 1))))
 			{
 				lindex = FixedMul(sprite->xscale, FixedDiv(640, vid.width))>>(LIGHTSCALESHIFT);
 
@@ -1469,7 +1469,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		vis->transmap = transtables + (thing->frame & FF_TRANSMASK) - 0x10000;
 
 	if (((thing->frame & FF_FULLBRIGHT) || (thing->flags2 & MF2_SHADOW))
-		&& (!vis->extra_colormap || !vis->extra_colormap->fog))
+		&& (!vis->extra_colormap || !(vis->extra_colormap->fog & 1)))
 	{
 		// full bright: goggles
 		vis->colormap = colormaps;
