@@ -860,7 +860,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		{
 			SINT8 wantedpos = (bestbumper-player->kartstuff[k_bumper]); // 0 is the best player's bumper count, 1 is a bumper below best, 2 is two bumpers below, etc
 			if (K_IsPlayerWanted(player))
-				wantedpos--;
+				wantedpos++;
 			if (wantedpos > 4) // Don't run off into karma items
 				wantedpos = 4;
 			if (wantedpos < 0) // Don't go below somehow
