@@ -483,11 +483,11 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 			{
 				// same thing here
 				if ((scrn & (V_SPLITSCREEN|V_SNAPTOTOP)) == (V_SPLITSCREEN|V_SNAPTOTOP))
-					desttop += (vid.height/2 - (BASEVIDHEIGHT/2 * dupy)) * vid.width;
+					y += (vid.height/2 - (BASEVIDHEIGHT/2 * dupy));
 				else if (scrn & V_SNAPTOBOTTOM)
-					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width;
+					y += (vid.height - (BASEVIDHEIGHT * dupy));
 				else if (!(scrn & V_SNAPTOTOP))
-					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width / 2;
+					y += (vid.height - (BASEVIDHEIGHT * dupy)) / 2;
 			}
 		}
 
@@ -597,28 +597,10 @@ void V_DrawCroppedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_
 		y = FixedMul(y,dupy<<FRACBITS);
 		x >>= FRACBITS;
 		y >>= FRACBITS;
-		desttop += (y*vid.width) + x;
 
 		// Center it if necessary
 		if (!(scrn & V_SCALEPATCHMASK))
 		{
-			if (vid.width != BASEVIDWIDTH * dupx)
-			{
-				// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
-				// so center this imaginary screen
-				if (scrn & V_SNAPTORIGHT)
-					desttop += (vid.width - (BASEVIDWIDTH * dupx));
-				else if (!(scrn & V_SNAPTOLEFT))
-					desttop += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
-			}
-			if (vid.height != BASEVIDHEIGHT * dupy)
-			{
-				// same thing here
-				if (scrn & V_SNAPTOBOTTOM)
-					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width;
-				else if (!(scrn & V_SNAPTOTOP))
-					desttop += (vid.height - (BASEVIDHEIGHT * dupy)) * vid.width / 2;
-			}
 			// if it's meant to cover the whole screen, black out the rest
 			// BAD, BAD, BAD, FUCK OFF, STOP, EW, AAAAAAA
 			// This does NOT account for transparent pixels
@@ -628,7 +610,26 @@ void V_DrawCroppedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_
 				source = (const UINT8 *)(column) + 3;
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (column->topdelta == 0xff ? 31 : source[0]));
 			}*/
+			if (vid.width != BASEVIDWIDTH * dupx)
+			{
+				// dupx adjustments pretend that screen width is BASEVIDWIDTH * dupx,
+				// so center this imaginary screen
+				if (scrn & V_SNAPTORIGHT)
+					x += (vid.width - (BASEVIDWIDTH * dupx));
+				else if (!(scrn & V_SNAPTOLEFT))
+					x += (vid.width - (BASEVIDWIDTH * dupx)) / 2;
+			}
+			if (vid.height != BASEVIDHEIGHT * dupy)
+			{
+				// same thing here
+				if (scrn & V_SNAPTOBOTTOM)
+					y += (vid.height - (BASEVIDHEIGHT * dupy));
+				else if (!(scrn & V_SNAPTOTOP))
+					y += (vid.height - (BASEVIDHEIGHT * dupy)) / 2;
+			}
 		}
+
+		desttop += (y*vid.width) + x;
 	}
 
 	for (col = sx<<FRACBITS; (col>>FRACBITS) < SHORT(patch->width) && (col>>FRACBITS) < w; col += colfrac, ++x, desttop++)
@@ -792,7 +793,7 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 
 		if (x == 0 && y == 0 && w == BASEVIDWIDTH && h == BASEVIDHEIGHT)
 		{ // Clear the entire screen, from dest to deststop. Yes, this really works.
-			memset(screens[0], (UINT8)(c&255), vid.width * vid.height * vid.bpp);
+			memset(screens[0], (c&255), vid.width * vid.height * vid.bpp);
 			return;
 		}
 
@@ -1422,6 +1423,7 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 		dupx = dupy = 1;
 		scrwidth = vid.width/vid.dupx;
 		left = (scrwidth - BASEVIDWIDTH)/2;
+		scrwidth -= left;
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
@@ -1636,6 +1638,7 @@ void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 		dupx = dupy = 1;
 		scrwidth = vid.width/vid.dupx;
 		left = (scrwidth - BASEVIDWIDTH)/2;
+		scrwidth -= left;
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
@@ -1742,6 +1745,7 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 		dupx = dupy = 1;
 		scrwidth = vid.width/vid.dupx;
 		left = (scrwidth - BASEVIDWIDTH)/2;
+		scrwidth -= left;
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
@@ -1842,6 +1846,7 @@ void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 		dupx = dupy = 1;
 		scrwidth = vid.width/vid.dupx;
 		left = (scrwidth - BASEVIDWIDTH)/2;
+		scrwidth -= left;
 	}
 
 	switch (option & V_SPACINGMASK)
@@ -1898,7 +1903,7 @@ void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 
 		if ((cx>>FRACBITS) > scrwidth)
 			break;
-		if (cx+left + w < 0) //left boundary check
+		if ((cx>>FRACBITS)+left + w < 0) //left boundary check
 		{
 			cx += w<<FRACBITS;
 			continue;
@@ -2048,6 +2053,7 @@ void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string)
 		dupx = dupy = 1;
 		scrwidth = vid.width/vid.dupx;
 		left = (scrwidth - BASEVIDWIDTH)/2;
+		scrwidth -= left;
 	}
 
 	for (;;)
@@ -2070,10 +2076,9 @@ void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string)
 		}
 
 		w = SHORT(lt_font[c]->width) * dupx;
-
 		if (cx > scrwidth)
 			break;
-		if (cx + left < 0) //left boundary check
+		if (cx+left + w < 0) //left boundary check
 		{
 			cx += w;
 			continue;

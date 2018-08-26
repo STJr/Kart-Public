@@ -1120,7 +1120,7 @@ void R_ClearColormaps(void)
 	extra_colormaps[num_extra_colormaps].fadecolor = 0x0;
 	extra_colormaps[num_extra_colormaps].maskamt = 0x0;
 	extra_colormaps[num_extra_colormaps].fadestart = 0;
-	extra_colormaps[num_extra_colormaps].fadeend = 33;
+	extra_colormaps[num_extra_colormaps].fadeend = 31;
 	extra_colormaps[num_extra_colormaps].fog = 0;
 
 	num_extra_colormaps++;
@@ -1148,7 +1148,7 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 	size_t mapnum = num_extra_colormaps;
 	size_t i;
 	UINT32 cr, cg, cb, maskcolor, fadecolor;
-	UINT32 fadestart = 0, fadeend = 33, fadedist = 33;
+	UINT32 fadestart = 0, fadeend = 31, fadedist = 31;
 
 #define HEX2INT(x) (UINT32)(x >= '0' && x <= '9' ? x - '0' : x >= 'a' && x <= 'f' ? x - 'a' + 10 : x >= 'A' && x <= 'F' ? x - 'A' + 10 : 0)
 	if (p1[0] == '#')
@@ -1199,12 +1199,12 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 		// Get parameters like fadestart, fadeend, and the fogflag
 		fadestart = NUMFROMCHAR(p2[3]) + (NUMFROMCHAR(p2[2]) * 10);
 		fadeend = NUMFROMCHAR(p2[5]) + (NUMFROMCHAR(p2[4]) * 10);
-		if (fadestart > 32)
+		if (fadestart > 30)
 			fadestart = 0;
-		if (fadeend > 33 || fadeend < 1)
-			fadeend = 33;
+		if (fadeend > 31 || fadeend < 1)
+			fadeend = 31;
 		fadedist = fadeend - fadestart;
-		fog = NUMFROMCHAR(p2[1]) ? 1 : 0;
+		fog = NUMFROMCHAR(p2[1]);
 	}
 #undef getnum
 
@@ -1327,7 +1327,7 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 	size_t i;
 	lighttable_t *colormap_p, *colormap_p2;
 	UINT32 cr, cg, cb, maskcolor, fadecolor;
-	UINT32 fadestart = 0, fadeend = 33, fadedist = 33;
+	UINT32 fadestart = 0, fadeend = 31, fadedist = 31;
 
 #define HEX2INT(x) (UINT32)(x >= '0' && x <= '9' ? x - '0' : x >= 'a' && x <= 'f' ? x - 'a' + 10 : x >= 'A' && x <= 'F' ? x - 'A' + 10 : 0)
 	if (p1[0] == '#')
@@ -1377,12 +1377,12 @@ void R_CreateColormap2(char *p1, char *p2, char *p3)
 		// Get parameters like fadestart, fadeend, and the fogflag
 		fadestart = NUMFROMCHAR(p2[3]) + (NUMFROMCHAR(p2[2]) * 10);
 		fadeend = NUMFROMCHAR(p2[5]) + (NUMFROMCHAR(p2[4]) * 10);
-		if (fadestart > 32)
+		if (fadestart > 30)
 			fadestart = 0;
-		if (fadeend > 33 || fadeend < 1)
-			fadeend = 33;
+		if (fadeend > 31 || fadeend < 1)
+			fadeend = 31;
 		fadedist = fadeend - fadestart;
-		fog = NUMFROMCHAR(p2[1]) ? 1 : 0;
+		fog = NUMFROMCHAR(p2[1]);
 	}
 #undef getnum
 

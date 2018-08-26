@@ -6972,9 +6972,9 @@ void P_MobjThinker(mobj_t *mobj)
 							else
 								mobj->tracer->flags2 |= MF2_DONTDRAW;
 						}
-						else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
+						else if (mobj->target->player->kartstuff[k_rocketsneakertimer] > 1)
 						{
-							//itembar = stplyr->kartstuff[k_rocketsneakertimer]; -- not today satan
+							//itembar = mobj->target->player->kartstuff[k_rocketsneakertimer]; -- not today satan
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
 							mobj->tracer->sprite = SPR_ITEM;
 							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_ROCKETSNEAKER;
