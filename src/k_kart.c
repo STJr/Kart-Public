@@ -1583,9 +1583,9 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 	if (player->kartstuff[k_pogospring]) // Pogo Spring minimum/maximum thrust
 	{
-		const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
-		const fixed_t minspeed = 24*scale;
-		const fixed_t maxspeed = 36*scale;
+		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+		const fixed_t minspeed = 24*hscale;
+		const fixed_t maxspeed = 36*hscale;
 
 		if (newspeed > maxspeed && player->kartstuff[k_pogospring] == 2)
 			newspeed = maxspeed;
@@ -2712,7 +2712,7 @@ static void K_DoSPB(player_t *victim, player_t *source)
 
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 {
-	fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
 
 	if (mo->player && mo->player->spectator)
 		return;
@@ -2757,10 +2757,10 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 				thrust = 32<<FRACBITS;
 		}
 
-		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, scale));
+		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, vscale));
 	}
 	else
-		mo->momz = FixedMul(vertispeed, scale);
+		mo->momz = FixedMul(vertispeed, vscale);
 
 	if (!mute)
 		S_StartSound(mo, sfx_kc2f);

@@ -116,7 +116,8 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
 boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 {
 	//INT32 pflags;
-	const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(object->scale - mapheaderinfo[gamemap-1]->mobj_scale); //max(mapheaderinfo[gamemap-1]->mobj_scale, object->scale)
+	const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - object->scale);
+	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (object->scale - mapheaderinfo[gamemap-1]->mobj_scale);
 	fixed_t offx, offy;
 	fixed_t vertispeed = spring->info->mass;
 	fixed_t horizspeed = spring->info->damage;
@@ -179,12 +180,12 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 	}
 
 	if (vertispeed)
-		object->momz = FixedMul(vertispeed,FixedSqrt(FixedMul(scale, spring->scale)));
+		object->momz = FixedMul(vertispeed,FixedSqrt(FixedMul(vscale, spring->scale)));
 
 	if (horizspeed)
 	{
 		if (!object->player)
-			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(scale, spring->scale))));
+			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(hscale, spring->scale))));
 		else
 		{
 			fixed_t finalSpeed = horizspeed;
@@ -193,7 +194,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			if (pSpeed > finalSpeed)
 				finalSpeed = pSpeed;
 
-			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(finalSpeed,FixedSqrt(FixedMul(scale, spring->scale))));
+			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(finalSpeed,FixedSqrt(FixedMul(hscale, spring->scale))));
 		}
 	}
 
