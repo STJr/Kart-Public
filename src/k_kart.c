@@ -1583,9 +1583,9 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 	if (player->kartstuff[k_pogospring]) // Pogo Spring minimum/maximum thrust
 	{
-		const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
-		const fixed_t minspeed = 24*scale;
-		const fixed_t maxspeed = 36*scale;
+		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+		const fixed_t minspeed = 24*hscale;
+		const fixed_t maxspeed = 36*hscale;
 
 		if (newspeed > maxspeed && player->kartstuff[k_pogospring] == 2)
 			newspeed = maxspeed;
@@ -2712,7 +2712,7 @@ static void K_DoSPB(player_t *victim, player_t *source)
 
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 {
-	fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
 
 	if (mo->player && mo->player->spectator)
 		return;
@@ -2757,10 +2757,10 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 				thrust = 32<<FRACBITS;
 		}
 
-		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, scale));
+		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, vscale));
 	}
 	else
-		mo->momz = FixedMul(vertispeed, scale);
+		mo->momz = FixedMul(vertispeed, vscale);
 
 	if (!mute)
 		S_StartSound(mo, sfx_kc2f);
@@ -2792,6 +2792,48 @@ killnext:
 		goto killnext;
 }
 
+// Just for firing/dropping items.
+void K_CleanHnextList(mobj_t *work)
+{
+	mobj_t *nextwork;
+
+	if (!work)
+		return;
+
+	work = work->hnext;
+
+	while (work && !P_MobjWasRemoved(work))
+	{
+		nextwork = work->hnext;
+
+		P_RemoveMobj(work);
+
+		work = nextwork;
+	}
+}
+
+// Ditto.
+void K_UpdateHnextList(player_t *player)
+{
+	mobj_t *work = player->mo, *nextwork;
+
+	if (!work)
+		return;
+
+	work = work->hnext;
+
+	while (work && !P_MobjWasRemoved(work))
+	{
+		nextwork = work->hnext;
+
+		if (work->movedir > 0 && work->movedir > (UINT16)player->kartstuff[k_itemamount])
+			P_RemoveMobj(work);
+
+		work = nextwork;
+	}
+}
+
+// When an item in the hnext chain dies.
 void K_RepairOrbitChain(mobj_t *orbit)
 {
 	mobj_t *cachenext = orbit->hnext;
@@ -2832,6 +2874,7 @@ void K_RepairOrbitChain(mobj_t *orbit)
 	}
 }
 
+// Move the hnext chain!
 static void K_MoveHeldObjects(player_t *player)
 {
 	if (!player->mo)
@@ -3657,6 +3700,8 @@ void K_StripItems(player_t *player)
 	player->kartstuff[k_bananadrag] = 0;
 
 	player->kartstuff[k_sadtimer] = 0;
+
+	K_CleanHnextList(player->mo);
 }
 
 //
@@ -3722,6 +3767,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
+			K_CleanHnextList(player->mo);
 		}
 		// Rocket Sneaker
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
@@ -3796,7 +3842,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->flags |= MF_NOCLIPTHING;
 							mo->threshold = 10;
 							mo->movecount = player->kartstuff[k_itemamount];
-							mo->lastlook = moloop+1;
+							mo->movedir = moloop+1;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&mo->hprev, prev);
 							P_SetTarget(&prev->hnext, mo);
@@ -3807,8 +3853,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
 						K_PlayTauntSound(player->mo);
-						if (!(--player->kartstuff[k_itemamount]))
-							player->kartstuff[k_itemheld] = 0;
+						player->kartstuff[k_itemamount]--;
+						K_UpdateHnextList(player);
 					}
 					break;
 				case KITEM_EGGMAN:
@@ -3824,7 +3870,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->flags |= MF_NOCLIPTHING;
 							mo->threshold = 10;
 							mo->movecount = 1;
-							mo->lastlook = 1;
+							mo->movedir = 1;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&player->mo->hnext, mo);
 						}
@@ -3871,9 +3917,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, false);
 						K_PlayTauntSound(player->mo);
-
-						if (!(--player->kartstuff[k_itemamount]))
-							player->kartstuff[k_itemheld] = 0;
+						player->kartstuff[k_itemamount]--;
+						K_UpdateHnextList(player);
 					}
 					break;
 				case KITEM_JAWZ:
@@ -3919,9 +3964,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
 							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
 						K_PlayTauntSound(player->mo);
-
-						if (!(--player->kartstuff[k_itemamount]))
-							player->kartstuff[k_itemheld] = 0;
+						player->kartstuff[k_itemamount]--;
+						K_UpdateHnextList(player);
 					}
 					break;
 				case KITEM_MINE:
@@ -3936,7 +3980,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							mo->flags |= MF_NOCLIPTHING;
 							mo->threshold = 10;
 							mo->movecount = 1;
-							mo->lastlook = 1;
+							mo->movedir = 1;
 							P_SetTarget(&mo->target, player->mo);
 							P_SetTarget(&player->mo->hnext, mo);
 						}
@@ -3947,6 +3991,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
+						K_CleanHnextList(player->mo);
 					}
 					break;
 				case KITEM_BALLHOG:
@@ -4073,8 +4118,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 
 		// No more!
-		if (!player->kartstuff[k_itemamount] && !player->kartstuff[k_itemheld])
+		if (!player->kartstuff[k_itemamount])
+		{
+			player->kartstuff[k_itemheld] = 0;
 			player->kartstuff[k_itemtype] = KITEM_NONE;
+		}
 
 		if (player->kartstuff[k_itemtype] != KITEM_THUNDERSHIELD)
 			player->kartstuff[k_curshield] = 0;
@@ -4999,7 +5047,7 @@ static void K_drawKartItem(void)
 		{
 			if (leveltime & 2)
 				localpatch = kp_hyudoro[offset];
-			else if (!(leveltime & 2))
+			else
 				localpatch = kp_nodraw;
 		}
 		else if ((stplyr->kartstuff[k_stealingtimer] > 0) && (leveltime & 2))
@@ -5010,7 +5058,7 @@ static void K_drawKartItem(void)
 		{
 			if (leveltime & 1)
 				localpatch = kp_eggman[offset];
-			else if (!(leveltime & 1))
+			else
 				localpatch = kp_nodraw;
 		}
 		else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
@@ -5018,26 +5066,26 @@ static void K_drawKartItem(void)
 			itembar = stplyr->kartstuff[k_rocketsneakertimer];
 			if (leveltime & 1)
 				localpatch = kp_rocketsneaker[offset];
-			else if (!(leveltime & 1))
+			else
 				localpatch = kp_nodraw;
 		}
 		else if (stplyr->kartstuff[k_growshrinktimer] > 1)
 		{
 			if (leveltime & 1)
 				localpatch = kp_grow[offset];
-			else if (!(leveltime & 1))
+			else
 				localpatch = kp_nodraw;
 		}
 		else if (stplyr->kartstuff[k_sadtimer] > 0)
 		{
 			if (leveltime & 2)
 				localpatch = kp_sadface[offset];
-			else if (!(leveltime & 2))
+			else
 				localpatch = kp_nodraw;
 		}
 		else
 		{
-			if (!(stplyr->kartstuff[k_itemamount] || stplyr->kartstuff[k_itemheld]))
+			if (stplyr->kartstuff[k_itemamount] <= 0)
 				return;
 
 			switch(stplyr->kartstuff[k_itemtype])

@@ -6715,12 +6715,15 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			}
-			case MT_ORBINAUT_SHIELD: // Kart orbit items
+			case MT_ORBINAUT_SHIELD: // Kart orbit/trail items
 			case MT_JAWZ_SHIELD:
-				if (mobj->health > 0 && mobj->target && mobj->target->player
+			case MT_BANANA_SHIELD:
+			case MT_SSMINE_SHIELD:
+			case MT_FAKESHIELD:
+				/*if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					// Was this so hard?
+					// Was this so hard? -- Handled this with K_UpdateHnextList and K_ClearHnextList instead of thinking it away...
 					if ((mobj->type == MT_ORBINAUT_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
 						|| (mobj->movedir > 0 && ((UINT16)mobj->target->player->kartstuff[k_itemamount] < mobj->movedir))
@@ -6730,33 +6733,7 @@ void P_MobjThinker(mobj_t *mobj)
 						return;
 					}
 				}
-				else if ((mobj->health > 0
-					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
-					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
-					|| P_CheckDeathPitCollide(mobj)) // When in death state
-				{
-					P_RemoveMobj(mobj);
-					return;
-				}
-				break;
-			case MT_BANANA_SHIELD: // Kart trailing items
-			case MT_SSMINE_SHIELD:
-			case MT_FAKESHIELD:
-				if (mobj->health > 0 && mobj->target && mobj->target->player
-					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
-				{
-					// Was this so hard?
-					if ((mobj->type == MT_BANANA_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_BANANA)
-						|| (mobj->type == MT_SSMINE_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_MINE)
-						|| (mobj->type == MT_FAKESHIELD && !mobj->target->player->kartstuff[k_eggmanheld])
-						|| (mobj->type != MT_FAKESHIELD && (!mobj->target->player->kartstuff[k_itemheld]
-						|| (mobj->lastlook > 0 && mobj->target->player->kartstuff[k_itemamount] < mobj->lastlook))))
-					{
-						P_RemoveMobj(mobj);
-						return;
-					}
-				}
-				else if ((mobj->health > 0
+				else*/ if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
 					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
@@ -6973,10 +6950,10 @@ void P_MobjThinker(mobj_t *mobj)
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
 							mobj->tracer->sprite = SPR_ITEM;
 							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_HYUDORO;
-							if (!(leveltime & 2))
-								mobj->tracer->flags2 |= MF2_DONTDRAW;
-							else
+							if (leveltime & 2)
 								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
 						}
 						else if ((mobj->target->player->kartstuff[k_stealingtimer] > 0) && (leveltime & 2))
 						{
@@ -6991,9 +6968,20 @@ void P_MobjThinker(mobj_t *mobj)
 							mobj->tracer->sprite = SPR_ITEM;
 							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_EGGMAN;
 							if (leveltime & 1)
-								mobj->tracer->flags2 |= MF2_DONTDRAW;
-							else
 								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
+						}
+						else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
+						{
+							//itembar = stplyr->kartstuff[k_rocketsneakertimer]; -- not today satan
+							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
+							mobj->tracer->sprite = SPR_ITEM;
+							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_ROCKETSNEAKER;
+							if (leveltime & 1)
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
 						}
 						else if (mobj->target->player->kartstuff[k_growshrinktimer] > 0)
 						{
@@ -7002,11 +6990,11 @@ void P_MobjThinker(mobj_t *mobj)
 							mobj->tracer->frame = FF_FULLBRIGHT|KITEM_GROW;
 
 							if (leveltime & 1)
-								mobj->tracer->flags2 |= MF2_DONTDRAW;
-							else
 								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							else
+								mobj->tracer->flags2 |= MF2_DONTDRAW;
 						}
-						else if (mobj->target->player->kartstuff[k_itemtype])
+						else if (mobj->target->player->kartstuff[k_itemtype] && mobj->target->player->kartstuff[k_itemamount] > 0)
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW_BOX);
 
