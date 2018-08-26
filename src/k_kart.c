@@ -491,26 +491,26 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
 				//P-Odds	 0  1  2  3  4  5
-			   /*Sneaker*/ { 2, 2, 2, 1, 0, 2 }, // Sneaker
+			   /*Sneaker*/ { 3, 2, 2, 2, 0, 2 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 1, 1, 2, 4, 5, 2 }, // Invincibility
+		 /*Invincibility*/ { 0, 1, 2, 3, 4, 2 }, // Invincibility
 				/*Banana*/ { 2, 1, 0, 0, 0, 0 }, // Banana
-		/*Eggman Monitor*/ { 2, 1, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 4, 2, 1, 0, 0, 0 }, // Orbinaut
-				  /*Jawz*/ { 2, 3, 2, 1, 0, 2 }, // Jawz
-				  /*Mine*/ { 2, 3, 2, 1, 0, 2 }, // Mine
-			   /*Ballhog*/ { 1, 2, 2, 1, 0, 2 }, // Ballhog
+		/*Eggman Monitor*/ { 1, 1, 0, 0, 0, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 6, 2, 1, 0, 0, 0 }, // Orbinaut
+				  /*Jawz*/ { 3, 3, 3, 2, 0, 2 }, // Jawz
+				  /*Mine*/ { 2, 3, 3, 1, 0, 2 }, // Mine
+			   /*Ballhog*/ { 0, 1, 2, 1, 0, 2 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 1, 2, 4, 5, 2 }, // Grow
+				  /*Grow*/ { 0, 0, 1, 2, 4, 2 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 1, 1, 0, 0, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 1, 1, 0, 0, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
 			/*Sneaker x3*/ { 0, 0, 0, 2, 4, 2 }, // Sneaker x3
-			 /*Banana x3*/ { 1, 1, 2, 0, 0, 0 }, // Banana x3
+			 /*Banana x3*/ { 1, 2, 1, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 1, 1, 0, 2 }, // Banana x10
-		   /*Orbinaut x3*/ { 1, 1, 2, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x3*/ { 0, 1, 2, 1, 0, 0 }, // Orbinaut x3
 		   /*Orbinaut x4*/ { 0, 0, 1, 3, 4, 2 }, // Orbinaut x4
 			   /*Jawz x2*/ { 0, 0, 1, 2, 4, 2 }  // Jawz x2
 };
@@ -668,7 +668,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			if (!cv_ballhog.value) newodds = 0;
 			break;
 		case KITEM_SPB:
-			POWERITEMODDS(newodds);
+			//POWERITEMODDS(newodds);
 			if ((!cv_selfpropelledbomb.value)
 				|| (indirectitemcooldown > 0)
 				|| (pexiting > 0)
