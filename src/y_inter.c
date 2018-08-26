@@ -89,8 +89,9 @@ typedef union
 		INT32 numplayers; // Number of players being displayed
 		char levelstring[64]; // holds levelnames up to 64 characters
 		// SRB2kart
-		UINT8 increase[MAXPLAYERS]; //how much did the score increase by?
-		UINT32 val[MAXPLAYERS]; //Gametype-specific value
+		UINT8 increase[MAXPLAYERS]; // how much did the score increase by?
+		UINT8 jitter[MAXPLAYERS]; // wiggle
+		UINT32 val[MAXPLAYERS]; // Gametype-specific value
 		UINT8 pos[MAXPLAYERS]; // player positions. used for ties
 		boolean rankingsmode; // rankings mode
 		boolean encore; // encore mode
@@ -191,22 +192,28 @@ static void Y_CompareBattle(INT32 i)
 
 static void Y_CompareRank(INT32 i)
 {
-	if (!(data.match.val[data.match.numplayers] == UINT32_MAX || players[i].score > data.match.val[data.match.numplayers]))
+	UINT8 increase = ((data.match.increase[i] == UINT8_MAX) ? 0 : data.match.increase[i]);
+	if (!(data.match.val[data.match.numplayers] == UINT32_MAX || (players[i].score - increase) > data.match.val[data.match.numplayers]))
 		return;
 
-	data.match.val[data.match.numplayers] = players[i].score;
+	data.match.val[data.match.numplayers] = (players[i].score - increase);
 	data.match.num[data.match.numplayers] = i;
 }
 
-static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32))
+static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 {
 	INT32 i, j;
 	boolean completed[MAXPLAYERS];
 	INT32 numplayersingame = 0;
 
 	// Initialize variables
-	if ((data.match.rankingsmode = rankingsmode))
+	if (rankingsmode > 1)
+		;
+	else if ((data.match.rankingsmode = (boolean)rankingsmode))
+	{
 		sprintf(data.match.levelstring, "* Total Rankings *");
+		data.match.encore = false;
+	}
 	else
 	{
 		// set up the levelstring
@@ -239,18 +246,24 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 		}
 
 		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
-	}
 
-	data.match.encore = (!rankingsmode && encoremode);
+		data.match.encore = encoremode;
+
+		memset(data.match.jitter, 0, sizeof (data.match.jitter));
+	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		data.match.val[i] = UINT32_MAX;
-		if (!rankingsmode)
-			data.match.increase[i] = UINT8_MAX;
 
 		if (!playeringame[i] || players[i].spectator)
+		{
+			data.match.increase[i] = UINT8_MAX;
 			continue;
+		}
+
+		if (!rankingsmode)
+			data.match.increase[i] = UINT8_MAX;
 
 		numplayersingame++;
 	}
@@ -432,9 +445,15 @@ void Y_IntermissionDrawer(void)
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
+			boolean dojitter = data.match.jitter[data.match.num[i]];
+			data.match.jitter[data.match.num[i]] = 0;
+
 			if (data.match.num[i] != MAXPLAYERS && playeringame[data.match.num[i]] && !players[data.match.num[i]].spectator)
 			{
 				char strtime[MAXPLAYERNAME+1];
+
+				if (dojitter)
+					y--;
 
 				V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
@@ -470,11 +489,9 @@ void Y_IntermissionDrawer(void)
 							V_DrawRightAlignedString(x+120, y, 0, strtime);
 						else
 							V_DrawRightAlignedString(x+120+BASEVIDWIDTH/2, y, 0, strtime);
-
-						snprintf(strtime, sizeof strtime, "%d", data.match.val[i]-data.match.increase[data.match.num[i]]);
 					}
-					else
-						snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
+
+					snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
 
 					if (data.match.numplayers > 8)
 						V_DrawRightAlignedString(x+152, y, 0, strtime);
@@ -512,12 +529,12 @@ void Y_IntermissionDrawer(void)
 						}
 					}
 				}
+
+				if (dojitter)
+					y++;
 			}
 			else
-			{
-				data.match.increase[data.match.num[i]] = 0;
 				data.match.num[i] = MAXPLAYERS; // this should be the only field setting in this function
-			}
 
 			y += 16;
 
@@ -598,7 +615,7 @@ void Y_Ticker(void)
 			else
 			{
 				if (!data.match.rankingsmode && (intertic >= sorttic + 8))
-					Y_CalculateMatchData(true, Y_CompareRank);
+					Y_CalculateMatchData(1, Y_CompareRank);
 
 				if (data.match.rankingsmode && intertic > sorttic+(2*TICRATE))
 				{
@@ -612,14 +629,17 @@ void Y_Ticker(void)
 						|| data.match.increase[data.match.num[q]] == UINT8_MAX)
 							continue;
 
-						data.match.increase[data.match.num[q]]--;
 						r++;
-						if (data.match.increase[data.match.num[q]])
+						data.match.jitter[data.match.num[q]] = 1;
+						if (--data.match.increase[data.match.num[q]])
 							kaching = false;
 					}
 
 					if (r)
+					{
 						S_StartSound(NULL, (kaching ? sfx_chchng : sfx_ptally));
+						Y_CalculateMatchData(2, Y_CompareRank);
+					}
 					else
 						endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
 				}
@@ -762,7 +782,7 @@ void Y_StartIntermission(void)
 		case int_match:
 		{
 			// Calculate who won
-			Y_CalculateMatchData(false, Y_CompareBattle);
+			Y_CalculateMatchData(0, Y_CompareBattle);
 			if (cv_inttime.value > 0)
 				S_ChangeMusicInternal("racent", true); // loop it
 			break;
@@ -785,7 +805,7 @@ void Y_StartIntermission(void)
 			}
 
 			// Calculate who won
-			Y_CalculateMatchData(false, Y_CompareRace);
+			Y_CalculateMatchData(0, Y_CompareRace);
 			break;
 		}
 
