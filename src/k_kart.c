@@ -1585,9 +1585,9 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 	if (player->kartstuff[k_pogospring]) // Pogo Spring minimum/maximum thrust
 	{
-		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale /*+ (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale)*/;
 		const fixed_t minspeed = 24*hscale;
-		const fixed_t maxspeed = 36*hscale;
+		const fixed_t maxspeed = 32*hscale;
 
 		if (newspeed > maxspeed && player->kartstuff[k_pogospring] == 2)
 			newspeed = maxspeed;

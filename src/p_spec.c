@@ -3621,7 +3621,7 @@ void P_ProcessSpecialSector(player_t *player, sector_t *sector, sector_t *rovers
 				player->powers[pw_spacetime] = spacetimetics + 1;
 			break;
 		case 13: // Ramp Sector (Increase step-up/down)
-		case 14: // Non-Ramp Sector (Don't step-down)
+		case 14: // Non-Ramp Sector (Don't step-up/down)
 		case 15: // Bouncy Sector (FOF Control Only)
 			break;
 	}
@@ -3756,8 +3756,8 @@ DoneSection2:
 		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
-				const fixed_t minspeed = 24*scale;
+				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t minspeed = 24*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
@@ -3776,9 +3776,9 @@ DoneSection2:
 		case 3: // SRB2kart: Spring Panel (capped speed)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
-				const fixed_t minspeed = 24*scale;
-				const fixed_t maxspeed = 36*scale;
+				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t minspeed = 24*hscale;
+				const fixed_t maxspeed = 32*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
