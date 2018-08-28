@@ -890,15 +890,15 @@ typedef enum
 
 	sfx_kwin,
 	sfx_klose,
-	sfx_kslow,
+	sfx_khurt1,
+	sfx_khurt2,
 	sfx_kattk1,
 	sfx_kattk2,
 	sfx_kbost1,
 	sfx_kbost2,
-	sfx_khurt1,
-	sfx_khurt2,
-	sfx_kgloat,
+	sfx_kslow,
 	sfx_khitem,
+	sfx_kgloat,
 
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,
