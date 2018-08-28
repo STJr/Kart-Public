@@ -39,14 +39,17 @@ typedef enum
 	SKSGASP,
 	SKSJUMP,
 	// SRB2kart
-	SKSWIN,
-	SKSLOSE,
-	SKSSLOW,
-	SKSPLTNT1,
-	SKSPLTNT2,
-	SKSPLTNT3,
-	SKSPLTNT4,
-	SKSHITEM,
+	SKSKWIN, // Win quote
+	SKSKLOSE, // Lose quote
+	SKSKPAN1, // Pain
+	SKSKPAN2,
+	SKSKATK1, // Offense item taunt
+	SKSKATK2,
+	SKSKBST1, // Boost item taunt
+	SKSKBST2,
+	SKSKSLOW, // Overtake taunt
+	SKSKHITM, // Hit confirm taunt
+	SKSKPOWR, // Power item taunt
 	NUMSKINSOUNDS
 } skinsound_t;
 
@@ -887,12 +890,15 @@ typedef enum
 
 	sfx_kwin,
 	sfx_klose,
-	sfx_slow,
-	sfx_taunt1,
-	sfx_taunt2,
-	sfx_taunt3,
-	sfx_taunt4,
-	sfx_hitem,
+	sfx_kslow,
+	sfx_kattk1,
+	sfx_kattk2,
+	sfx_kbost1,
+	sfx_kbost2,
+	sfx_khurt1,
+	sfx_khurt2,
+	sfx_kgloat,
+	sfx_khitem,
 
 	// free slots for S_AddSoundFx() at run-time --------------------
 	sfx_freeslot0,

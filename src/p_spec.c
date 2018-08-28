@@ -4231,7 +4231,7 @@ DoneSection2:
 
 				if (player->laps >= (unsigned)cv_numlaps.value)
 				{
-					if (!splitscreen && P_IsLocalPlayer(player))
+					if (P_IsLocalPlayer(player))
 						S_StartSound(NULL, sfx_s3k6a);
 					else if (player->kartstuff[k_position] == 1)
 						S_StartSound(NULL, sfx_s253);
