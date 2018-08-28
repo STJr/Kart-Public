@@ -74,6 +74,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "m_cond.h" // condition initialization
 #include "fastcmp.h"
 #include "keys.h"
+#include "filesrch.h" // refreshdirmenu, mainwadstally
 
 #ifdef CMAKECONFIG
 #include "config.h"
@@ -681,6 +682,8 @@ void D_SRB2Loop(void)
 		realtics = entertic - oldentertics;
 		oldentertics = entertic;
 
+		refreshdirmenu = 0; // not sure where to put this, here as good as any?
+
 #ifdef DEBUGFILE
 		if (!realtics)
 			if (debugload)
@@ -1253,22 +1256,37 @@ void D_SRB2Main(void)
 #ifndef DEVELOP // md5s last updated 12/14/14
 
 	// Check MD5s of autoloaded files
-	mainwads = 0;
-	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB); mainwads++;		// srb2.srb/srb2.wad
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);		// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA); mainwads++;	// patch.dta
+	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);	// patch.dta
 #endif
-	W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); mainwads++;		// gfx.kart
-	W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); mainwads++;	// chars.kart
-	W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); mainwads++;		// maps.kart
-	//W_VerifyFileMD5(mainwads, ASSET_HASH_SOUNDS_KART); mainwads++;	// sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
+	W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);		// gfx.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);	// chars.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart
+	/*W_VerifyFileMD5(mainwads, ASSET_HASH_SOUNDS_KART);*/	// sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
 #ifdef USE_PATCH_KART
-	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART); mainwads++;	// patch.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);	// patch.kart
 #endif
 
 	// don't check music.dta because people like to modify it, and it doesn't matter if they do
 	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
 #endif //ifndef DEVELOP
+
+	mainwads = 0;
+	mainwads++;		// srb2.srb/srb2.wad
+#ifdef USE_PATCH_DTA
+	mainwads++;	// patch.dta
+#endif
+	mainwads++;		// gfx.kart
+	mainwads++;	// chars.kart
+	mainwads++;		// maps.kart
+	mainwads++;	// sounds.kart
+#ifdef USE_PATCH_KART
+	mainwads++;	// patch.kart
+#endif
+	mainwads++; // music.kart
+
+	mainwadstally = packetsizetally;
 
 	cht_Init();
 
