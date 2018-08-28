@@ -9787,10 +9787,12 @@ void P_RespawnSpecials(void)
 			// Transfer flags2 (strongbox, objectflip)
 			newmobj->flags2 = box->flags2;
 			P_RemoveMobj(box); // make sure they disappear
-			continue;
+			numgotboxes--; // you've restored a box, remove it from the count
+			//continue; -- irrelevant?
 		}
 
-		numgotboxes = 0;
+		if (numgotboxes < 0)
+			numgotboxes = 0;
 	}
 
 	// only respawn items when cv_itemrespawn is on
