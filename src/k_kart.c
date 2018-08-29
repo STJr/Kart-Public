@@ -5160,78 +5160,90 @@ static void K_drawKartItem(void)
 		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
 }
 
-static void K_drawKartTimestamp(void)
+void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing)
 {
 	// TIME_X = BASEVIDWIDTH-124;	// 196
 	// TIME_Y = 6;					//   6
 
-	INT32 TIME_XB, splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
-	tic_t drawtime = stplyr->realtime;
+	tic_t worktime;
 
-	if (cv_timelimit.value && timelimitintics > 0)
+	INT32 splitflags = 0;
+	if (playing)
 	{
-		if (drawtime >= timelimitintics)
-			drawtime = 0;
-		else
-			drawtime = timelimitintics - drawtime;
+		splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
+		if (cv_timelimit.value && timelimitintics > 0)
+		{
+			if (drawtime >= timelimitintics)
+				drawtime = 0;
+			else
+				drawtime = timelimitintics - drawtime;
+		}
 	}
 
-	V_DrawScaledPatch(TIME_X, TIME_Y, splitflags, kp_timestickerwide);
+	V_DrawScaledPatch(TX, TY, splitflags, kp_timestickerwide);
 
-	TIME_XB = TIME_X+33;
+	TX += 33;
 
-	if (drawtime/(60*TICRATE) < 100) // 99:99:99 only
+	worktime = drawtime/(60*TICRATE);
+
+	if (!playing && !drawtime)
+		V_DrawKartString(TX, TY+3, splitflags, va("--'--\"--"));
+	else if (worktime < 100) // 99:99:99 only
 	{
 		// zero minute
-		if (drawtime/(60*TICRATE) < 10)
+		if (worktime < 10)
 		{
-			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("0"));
+			V_DrawKartString(TX, TY+3, splitflags, va("0"));
 			// minutes time       0 __ __
-			V_DrawKartString(TIME_XB+12, TIME_Y+3, splitflags, va("%d", drawtime/(60*TICRATE)));
+			V_DrawKartString(TX+12, TY+3, splitflags, va("%d", worktime));
 		}
 		// minutes time       0 __ __
 		else
-			V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("%d", drawtime/(60*TICRATE)));
+			V_DrawKartString(TX, TY+3, splitflags, va("%d", worktime));
 
 		// apostrophe location     _'__ __
-		V_DrawKartString(TIME_XB+24, TIME_Y+3, splitflags, va("'"));
+		V_DrawKartString(TX+24, TY+3, splitflags, va("'"));
+
+		worktime = (drawtime/TICRATE % 60);
 
 		// zero second        _ 0_ __
-		if ((drawtime/TICRATE % 60) < 10)
+		if (worktime < 10)
 		{
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("0"));
+			V_DrawKartString(TX+36, TY+3, splitflags, va("0"));
 		// seconds time       _ _0 __
-			V_DrawKartString(TIME_XB+48, TIME_Y+3, splitflags, va("%d", drawtime/TICRATE % 60));
+			V_DrawKartString(TX+48, TY+3, splitflags, va("%d", worktime));
 		}
 		// zero second        _ 00 __
 		else
-			V_DrawKartString(TIME_XB+36, TIME_Y+3, splitflags, va("%d", drawtime/TICRATE % 60));
+			V_DrawKartString(TX+36, TY+3, splitflags, va("%d", worktime));
 
 		// quotation mark location    _ __"__
-		V_DrawKartString(TIME_XB+60, TIME_Y+3, splitflags, va("\""));
+		V_DrawKartString(TX+60, TY+3, splitflags, va("\""));
+
+		worktime = G_TicsToCentiseconds(drawtime);
 
 		// zero tick          _ __ 0_
-		if (G_TicsToCentiseconds(drawtime) < 10)
+		if (worktime < 10)
 		{
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("0"));
+			V_DrawKartString(TX+72, TY+3, splitflags, va("0"));
 		// tics               _ __ _0
-			V_DrawKartString(TIME_XB+84, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(drawtime)));
+			V_DrawKartString(TX+84, TY+3, splitflags, va("%d", worktime));
 		}
 		// zero tick          _ __ 00
-		if (G_TicsToCentiseconds(drawtime) >= 10)
-			V_DrawKartString(TIME_XB+72, TIME_Y+3, splitflags, va("%d", G_TicsToCentiseconds(drawtime)));
+		else
+			V_DrawKartString(TX+72, TY+3, splitflags, va("%d", worktime));
 	}
 	else if ((drawtime/TICRATE) & 1)
-		V_DrawKartString(TIME_XB, TIME_Y+3, splitflags, va("99'59\"99"));
+		V_DrawKartString(TX, TY+3, splitflags, va("99'59\"99"));
 
-	if (modeattacking) // emblem time!
+	if (emblemmap && (modeattacking || !playing)) // emblem time!
 	{
-		INT32 workx = TIME_XB + 96, worky = TIME_Y+18;
+		INT32 workx = TX + 96, worky = TY+18;
 		SINT8 curemb = 0;
 		patch_t *emblempic[3] = {NULL, NULL, NULL};
 		UINT8 *emblemcol[3] = {NULL, NULL, NULL};
 
-		emblem_t *emblem = M_GetLevelEmblems(gamemap);
+		emblem_t *emblem = M_GetLevelEmblems(emblemmap);
 		while (emblem)
 		{
 			char targettext[9];
@@ -5252,22 +5264,25 @@ static void K_drawKartTimestamp(void)
 							goto bademblem;
 						}
 
-						snprintf(targettext, 9, "%i:%02i.%02i",
+						snprintf(targettext, 9, "%i'%02i\"%02i",
 							G_TicsToMinutes(timetoreach, false),
 							G_TicsToSeconds(timetoreach),
 							G_TicsToCentiseconds(timetoreach));
 
-						if (stplyr->realtime > timetoreach)
+						if (playing)
 						{
-							splitflags = (splitflags &~ V_HUDTRANS)|V_HUDTRANSHALF;
-							if (canplaysound)
+							if (stplyr->realtime > timetoreach)
 							{
-								S_StartSound(NULL, sfx_s3k72); //sfx_s26d); -- you STOLE fizzy lifting drinks
-								canplaysound = false;
+								splitflags = (splitflags &~ V_HUDTRANS)|V_HUDTRANSHALF;
+								if (canplaysound)
+								{
+									S_StartSound(NULL, sfx_s3k72); //sfx_s26d); -- you STOLE fizzy lifting drinks
+									canplaysound = false;
+								}
 							}
+							else if (!canplaysound)
+								canplaysound = true;
 						}
-						else if (!canplaysound)
-							canplaysound = true;
 
 						targettext[8] = 0;
 					}
@@ -5277,7 +5292,7 @@ static void K_drawKartTimestamp(void)
 			}
 
 			V_DrawRightAlignedString(workx, worky, splitflags, targettext);
-			workx -= 69; // i SWEAR i wasn't aiming for this
+			workx -= 72; //69; -- good night sweet prince
 			V_DrawSmallScaledPatch(workx + 4, worky, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
 
 			break;
@@ -5286,6 +5301,8 @@ static void K_drawKartTimestamp(void)
 			emblem = M_GetLevelEmblems(-1);
 		}
 
+		if (playing)
+			splitflags = (splitflags &~ V_HUDTRANSHALF)|V_HUDTRANS;
 		while (curemb--)
 		{
 			workx -= 16;
@@ -6469,7 +6486,7 @@ void K_drawKartHUD(void)
 	if (!splitscreen)
 	{
 		// Draw the timestamp
-		K_drawKartTimestamp();
+		K_drawKartTimestamp(stplyr->realtime, TIME_X, TIME_Y, gamemap, true);
 
 		if (!modeattacking)
 		{

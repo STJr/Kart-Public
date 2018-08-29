@@ -5705,7 +5705,6 @@ void M_DrawTimeAttackMenu(void)
 	INT32 i, x, y, cursory = 0;
 	UINT16 dispstatus;
 	patch_t *PictureOfUrFace;
-	char beststr[40];
 
 	//S_ChangeMusicInternal("racent", true); // Eww, but needed for when user hits escape during demo playback
 
@@ -5786,6 +5785,24 @@ void M_DrawTimeAttackMenu(void)
 	// Level record list
 	if (cv_nextmap.value)
 	{
+		INT32 dupadjust = (vid.width/vid.dupx);
+		tic_t lap = 0, time = 0;
+		if (mainrecords[cv_nextmap.value-1])
+		{
+			lap = mainrecords[cv_nextmap.value-1]->lap;
+			time = mainrecords[cv_nextmap.value-1]->time;
+		}
+
+		V_DrawFill((BASEVIDWIDTH - dupadjust)>>1, 78, dupadjust, 36, 239);
+
+		V_DrawRightAlignedString(149, 80, highlightflags, "BEST LAP:");
+		K_drawKartTimestamp(lap, 19, 86, 0, false);
+
+		V_DrawRightAlignedString(292, 80, highlightflags, "BEST TIME:");
+		K_drawKartTimestamp(time, 162, 86, cv_nextmap.value, false);
+	}
+	/*{
+		char beststr[40];
 		emblem_t *em;
 
 		if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->time)
@@ -5828,7 +5845,7 @@ void M_DrawTimeAttackMenu(void)
 			skipThisOne:
 			em = M_GetLevelEmblems(-1);
 		}
-	}
+	}*/
 
 	// ALWAYS DRAW player name, level name, skin and color even when not on this menu!
 	if (currentMenu != &SP_TimeAttackDef)
