@@ -563,9 +563,9 @@ static boolean filemenucmp(char *haystack, char *needle)
 	strlcpy(localhaystack, haystack, 128);
 	if (!cv_addons_search_case.value)
 		strupr(localhaystack);
-	return ((cv_addons_search_type.value)
-		? (strstr(localhaystack, needle) != 0)
-		: (!strncmp(localhaystack, needle, menusearch[0])));
+	if (cv_addons_search_type.value)
+		return (strstr(localhaystack, needle) != 0);
+	return (!strncmp(localhaystack, needle, menusearch[0]));
 }
 
 void closefilemenu(boolean validsize)
@@ -673,7 +673,7 @@ void searchfilemenu(char *tempname)
 	{
 		if ((!(dirmenu = Z_Realloc(dirmenu, sizeof(char *), PU_STATIC, NULL)))
 			|| !(dirmenu[0] = Z_StrDup(va("%c\13No results...", EXT_NORESULTS))))
-				I_Error("Ran out of memory whilst preparing add-ons menu");
+				I_Error("searchfilemenu(): could not create \"No results...\".");
 		sizedirmenu = 1;
 		dir_on[menudepthleft] = 0;
 		if (tempname)
@@ -682,7 +682,7 @@ void searchfilemenu(char *tempname)
 	}
 
 	if (!(dirmenu = Z_Realloc(dirmenu, sizedirmenu*sizeof(char *), PU_STATIC, NULL)))
-		I_Error("Ran out of memory whilst preparing add-ons menu");
+		I_Error("searchfilemenu(): could not reallocate dirmenu.");
 
 	sizedirmenu = 0;
 	for (i = first; i < sizecoredirmenu; i++)
@@ -793,7 +793,7 @@ boolean preparefilemenu(boolean samedepth)
 	if (!(coredirmenu = Z_Realloc(coredirmenu, sizecoredirmenu*sizeof(char *), PU_STATIC, NULL)))
 	{
 		closedir(dirhandle); // just in case
-		I_Error("Ran out of memory whilst preparing add-ons menu");
+		I_Error("preparefilemenu(): could not reallocate coredirmenu.");
 	}
 
 	rewinddir(dirhandle);
@@ -868,7 +868,7 @@ boolean preparefilemenu(boolean samedepth)
 				len = 255;
 
 			if (!(temp = Z_Malloc((len+DIR_STRING+folder) * sizeof (char), PU_STATIC, NULL)))
-				I_Error("Ran out of memory whilst preparing add-ons menu");
+				I_Error("preparefilemenu(): could not create file entry.");
 			temp[DIR_TYPE] = ext;
 			temp[DIR_LEN] = (UINT8)(len);
 			strlcpy(temp+DIR_STRING, dent->d_name, len);
@@ -886,7 +886,7 @@ boolean preparefilemenu(boolean samedepth)
 
 	if ((menudepthleft != menudepth-1) // now for UP... entry
 		&& !(coredirmenu[0] = Z_StrDup(va("%c\5UP...", EXT_UP))))
-			I_Error("Ran out of memory whilst preparing add-ons menu");
+			I_Error("searchfilemenu(): could not create \"UP...\".");
 
 	menupath[menupathindex[menudepthleft]] = 0;
 	sizecoredirmenu = (numfolders+pos); // just in case things shrink between opening and rewind
