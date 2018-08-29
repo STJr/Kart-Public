@@ -1731,9 +1731,9 @@ void P_DoPlayerExit(player_t *player)
 		if (cv_kartvoices.value)
 		{
 			if (K_IsPlayerLosing(player))
-				S_StartSound((P_IsLocalPlayer(player) ? player->mo : NULL), sfx_klose);
+				S_StartSound(player->mo, sfx_klose);
 			else
-				S_StartSound((P_IsLocalPlayer(player) ? player->mo : NULL), sfx_kwin);
+				S_StartSound(player->mo, sfx_kwin);
 		}
 
 		player->exiting = 3*TICRATE;
