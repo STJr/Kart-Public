@@ -3778,7 +3778,7 @@ DoneSection2:
 			{
 				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
-				const fixed_t maxspeed = 32*hscale;
+				const fixed_t maxspeed = 28*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
