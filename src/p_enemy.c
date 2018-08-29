@@ -8164,9 +8164,9 @@ void A_ItemPop(mobj_t *actor)
 
 void A_JawzChase(mobj_t *actor)
 {
-
-	INT32 c = 0;
 	INT32 stop;
+	INT32 bestang = -1, bestdist = -1;
+	SINT8 wtarg = -1;
 	player_t *player;
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_JawzChase", actor))
@@ -8199,11 +8199,14 @@ void A_JawzChase(mobj_t *actor)
 	{
 		for (; ; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
 		{
+			if (actor->lastlook == stop)
+			{
+				actor->lastlook = -1;
+				break;
+			}
+
 			if (!playeringame[actor->lastlook])
 				continue;
-
-			if (c++ == 2)
-				return;
 
 			player = &players[actor->lastlook];
 
@@ -8229,41 +8232,54 @@ void A_JawzChase(mobj_t *actor)
 				if (G_RaceGametype()) // Only in races, in match and CTF you should go after any nearby players
 				{
 					//                 USER               TARGET
-					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
-						continue;
+					if (actor->target->player->kartstuff[k_position] == (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
+					{
+						wtarg = player-players;
+						break;
+					}
 				}
 
 				if (G_BattleGametype())
 				{
+					angle_t initang;
+					INT32 thisang;
+					INT32 thisdist;
+
 					if (player->kartstuff[k_bumper] <= 0)
 						continue;
 
-					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
-						player->mo->y-actor->y), player->mo->z-actor->z) > RING_DIST)
+					initang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
+					if (initang > ANGLE_180)
+						initang = InvAngle(initang);
+					thisang = AngleFixed(initang)>>FRACBITS;
+					thisdist = P_AproxDistance(P_AproxDistance(player->mo->x - actor->x,
+						player->mo->y - actor->y), player->mo->z - actor->z)>>FRACBITS;
+
+					if (thisdist > RING_DIST>>FRACBITS)
 						continue;
+
+					if ((bestang < 0 || bestdist < 0)
+						|| (thisang < bestang)
+						|| (thisang == bestang && thisdist < bestdist))
+					{
+						wtarg = player-players;
+						bestang = thisang;
+						bestdist = thisdist;
+					}
 				}
-			}
-
-			if ((G_RaceGametype()) || (G_BattleGametype() // If in match etc. only home in when you get close enough, in race etc. home in all the time
-				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
-				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
-				&& player->kartstuff[k_bumper] > 0))
-				P_SetTarget(&actor->tracer, player->mo);
-			return;
-
-			// Moved to bottom so it doesn't not check the last player
-			// done looking
-			if (actor->lastlook == stop)
-			{
-				if (G_RaceGametype())
-					actor->lastlook = -2;
-				return;
 			}
 		}
 	}
 
-	return;
+	if (wtarg > 0
+		&& (G_RaceGametype() // Instantly go after in Race
+		|| (G_BattleGametype() && bestdist < RING_DIST>>FRACBITS))) // Wait until you're in distance in Battle
+	{
+		CONS_Printf("ang: %d, dist: %d, wtarg: %d\n", bestang, bestdist, wtarg);
+		P_SetTarget(&actor->tracer, players[wtarg].mo);
+	}
 
+	return;
 }
 
 void A_JawzExplode(mobj_t *actor)
