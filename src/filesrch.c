@@ -550,9 +550,9 @@ filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *want
 	return retval;
 }
 
-char exttable[NUM_EXT_TABLE][5] = {
-	".txt", ".cfg", // exec
-	".wad", /*".pk3",*/ ".soc", ".lua"}; // addfile
+char exttable[NUM_EXT_TABLE][7] = { // maximum extension length (currently 4) plus 3 (null terminator, stop, and length including previous two)
+	"\5.txt", "\5.cfg", // exec
+	"\5.wad", "\6.kart", /*"\5.pk3",*/ "\5.soc", "\5.lua"}; // addfile
 
 char filenamebuf[MAX_WADFILES][MAX_WADPATH];
 
@@ -760,7 +760,7 @@ boolean preparefilemenu(boolean samedepth)
 					size_t len = strlen(dent->d_name)+1;
 					UINT8 ext;
 					for (ext = 0; ext < NUM_EXT_TABLE; ext++)
-						if (!strcasecmp(exttable[ext], dent->d_name+len-5)) break; // extension comparison
+						if (!strcasecmp(exttable[ext]+1, dent->d_name+len-(exttable[ext][0]))) break; // extension comparison
 					if (ext == NUM_EXT_TABLE) continue; // not an addfile-able (or exec-able) file
 				}
 			}
@@ -826,7 +826,7 @@ boolean preparefilemenu(boolean samedepth)
 			{
 				if (!((numfolders+pos) < sizecoredirmenu)) continue; // crash prevention
 				for (; ext < NUM_EXT_TABLE; ext++)
-					if (!strcasecmp(exttable[ext], dent->d_name+len-5)) break; // extension comparison
+					if (!strcasecmp(exttable[ext]+1, dent->d_name+len-(exttable[ext][0]))) break; // extension comparison
 				if (ext == NUM_EXT_TABLE && !cv_addons_showall.value) continue; // not an addfile-able (or exec-able) file
 				ext += EXT_START; // moving to be appropriate position
 
