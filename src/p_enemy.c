@@ -8275,7 +8275,7 @@ void A_JawzChase(mobj_t *actor)
 		&& (G_RaceGametype() // Instantly go after in Race
 		|| (G_BattleGametype() && bestdist < RING_DIST>>FRACBITS))) // Wait until you're in distance in Battle
 	{
-		CONS_Printf("ang: %d, dist: %d, wtarg: %d\n", bestang, bestdist, wtarg);
+		//CONS_Printf("ang: %d, dist: %d, wtarg: %d\n", bestang, bestdist, wtarg);
 		P_SetTarget(&actor->tracer, players[wtarg].mo);
 	}
 
