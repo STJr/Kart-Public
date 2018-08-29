@@ -409,8 +409,10 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartdebugitem);
 	CV_RegisterVar(&cv_kartdebugamount);
-	CV_RegisterVar(&cv_kartdebugcheckpoint);
 	CV_RegisterVar(&cv_kartdebugshrink);
+	CV_RegisterVar(&cv_kartdebugdistribution);
+
+	CV_RegisterVar(&cv_kartdebugcheckpoint);
 }
 
 //}
@@ -733,81 +735,14 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 
 //{ SRB2kart Roulette Code - Distance Based, no waypoints
 
-static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
+static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT32 bestbumper)
 {
 	const INT32 distvar = (64*14);
 	INT32 i;
-	UINT8 pingame = 0;
-	UINT8 roulettestop;
 	INT32 pdis = 0, useodds = 0;
-	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
-	INT32 chance = 0, numchoices = 0;
-	INT32 bestbumper = 0;
-	boolean oddsvalid[9];
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
-	fixed_t mashed = 0;
-
-	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
-	if (player->kartstuff[k_itemroulette])
-		player->kartstuff[k_itemroulette]++;
-	else
-		return;
-
-	// Gotta check how many players are active at this moment.
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (!playeringame[i] || players[i].spectator)
-			continue;
-		pingame++;
-		if (players[i].kartstuff[k_bumper] > bestbumper)
-			bestbumper = players[i].kartstuff[k_bumper];
-	}
-
-	// This makes the roulette produce the random noises.
-	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
-
-	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
-
-	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
-	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
-	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop)
-	{
-		// Mashing reduces your chances for the good items
-		mashed = FixedDiv((player->kartstuff[k_itemroulette])*FRACUNIT, ((TICRATE*3)+roulettestop)*FRACUNIT) - FRACUNIT;
-	}
-	else if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)))
-		return;
-
-	if (cmd->buttons & BT_ATTACK)
-		player->pflags |= PF_ATTACKDOWN;
-
-	if (player->kartstuff[k_roulettetype] == 2) // Fake items
-	{
-		player->kartstuff[k_eggmanexplode] = 4*TICRATE;
-		player->kartstuff[k_itemroulette] = 0;
-		player->kartstuff[k_roulettetype] = 0;
-		if (P_IsLocalPlayer(player))
-			S_StartSound(NULL, sfx_mkitmE);
-		return;
-	}
-
-	if (cv_kartdebugitem.value != 0)
-	{
-		K_KartGetItemResult(player, cv_kartdebugitem.value);
-		player->kartstuff[k_itemamount] = cv_kartdebugamount.value;
-		player->kartstuff[k_itemroulette] = 0;
-		player->kartstuff[k_roulettetype] = 0;
-		if (P_IsLocalPlayer(player))
-			S_StartSound(NULL, sfx_dbgsal);
-		return;
-	}
-
-	// Initializes existing spawnchance values
-	for (i = 0; i < (NUMKARTRESULTS * NUMKARTODDS); i++)
-		spawnchance[i] = 0;
+	boolean oddsvalid[9];
 
 	for (i = 0; i < 9; i++)
 	{
@@ -892,7 +827,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			useodds = disttable[distlen-1];
 		else
 		{
-			for (i = 1; i < 12; i++)
+			for (i = 1; i < 13; i++)
 			{
 				if (pdis <= distvar * ((i * distlen) / 14))
 				{
@@ -907,33 +842,90 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 	//CONS_Printf("Got useodds %d. (position: %d, distance: %d)\n", useodds, player->kartstuff[k_position], pdis);
 
-#define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, mashed); chance++) \
+	return useodds;
+}
+
+static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
+{
+	INT32 i;
+	UINT8 pingame = 0;
+	UINT8 roulettestop;
+	INT32 useodds = 0;
+	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
+	INT32 chance = 0, numchoices = 0;
+	INT32 bestbumper = 0;
+	fixed_t mashed = 0;
+
+	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
+	if (player->kartstuff[k_itemroulette])
+		player->kartstuff[k_itemroulette]++;
+	else
+		return;
+
+	// Gotta check how many players are active at this moment.
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		pingame++;
+		if (players[i].kartstuff[k_bumper] > bestbumper)
+			bestbumper = players[i].kartstuff[k_bumper];
+	}
+
+	// This makes the roulette produce the random noises.
+	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
+		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+
+	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+
+	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
+	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
+	// Finally, if you get past this check, now you can actually start calculating what item you get.
+	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop)
+	{
+		// Mashing reduces your chances for the good items
+		mashed = FixedDiv((player->kartstuff[k_itemroulette])*FRACUNIT, ((TICRATE*3)+roulettestop)*FRACUNIT) - FRACUNIT;
+	}
+	else if (!(player->kartstuff[k_itemroulette] >= (TICRATE*3)))
+		return;
+
+	if (cmd->buttons & BT_ATTACK)
+		player->pflags |= PF_ATTACKDOWN;
+
+	if (player->kartstuff[k_roulettetype] == 2) // Fake items
+	{
+		player->kartstuff[k_eggmanexplode] = 4*TICRATE;
+		player->kartstuff[k_itemroulette] = 0;
+		player->kartstuff[k_roulettetype] = 0;
+		if (P_IsLocalPlayer(player))
+			S_StartSound(NULL, sfx_mkitmE);
+		return;
+	}
+
+	if (cv_kartdebugitem.value != 0)
+	{
+		K_KartGetItemResult(player, cv_kartdebugitem.value);
+		player->kartstuff[k_itemamount] = cv_kartdebugamount.value;
+		player->kartstuff[k_itemroulette] = 0;
+		player->kartstuff[k_roulettetype] = 0;
+		if (P_IsLocalPlayer(player))
+			S_StartSound(NULL, sfx_dbgsal);
+		return;
+	}
+
+	// Initializes existing spawnchance values
+	for (i = 0; i < (NUMKARTRESULTS * NUMKARTODDS); i++)
+		spawnchance[i] = 0;
+
+	// Split into another function for a debug function below
+	useodds = K_FindUseodds(player, mashed, pingame, bestbumper);
+
+#define SETITEMRESULT(itemnum) \
+	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
 		spawnchance[numchoices++] = itemnum
 
-	SETITEMRESULT(useodds, KITEM_SNEAKER);			// Sneaker
-	SETITEMRESULT(useodds, KITEM_ROCKETSNEAKER);	// Rocket Sneaker
-	SETITEMRESULT(useodds, KITEM_INVINCIBILITY);	// Invincibility
-	SETITEMRESULT(useodds, KITEM_BANANA);			// Banana
-	SETITEMRESULT(useodds, KITEM_EGGMAN);			// Eggman Monitor
-	SETITEMRESULT(useodds, KITEM_ORBINAUT);			// Orbinaut
-	SETITEMRESULT(useodds, KITEM_JAWZ);				// Jawz
-	SETITEMRESULT(useodds, KITEM_MINE);				// Mine
-	SETITEMRESULT(useodds, KITEM_BALLHOG);			// Ballhog
-	SETITEMRESULT(useodds, KITEM_SPB);				// Self-Propelled Bomb
-	SETITEMRESULT(useodds, KITEM_GROW);				// Grow
-	SETITEMRESULT(useodds, KITEM_SHRINK);			// Shrink
-	SETITEMRESULT(useodds, KITEM_THUNDERSHIELD);	// Thunder Shield
-	SETITEMRESULT(useodds, KITEM_HYUDORO);			// Hyudoro
-	SETITEMRESULT(useodds, KITEM_POGOSPRING);		// Pogo Spring
-	//SETITEMRESULT(useodds, KITEM_KITCHENSINK);	// Kitchen Sink
-
-	SETITEMRESULT(useodds, KRITEM_TRIPLESNEAKER);	// Sneaker x3
-	SETITEMRESULT(useodds, KRITEM_TRIPLEBANANA);	// Banana x3
-	SETITEMRESULT(useodds, KRITEM_TENFOLDBANANA);	// Banana x10
-	SETITEMRESULT(useodds, KRITEM_TRIPLEORBINAUT);	// Orbinaut x3
-	SETITEMRESULT(useodds, KRITEM_QUADORBINAUT);	// Orbinaut x4
-	SETITEMRESULT(useodds, KRITEM_DUALJAWZ);		// Jawz x2
+	for (i = 1; i < NUMKARTRESULTS; i++)
+		SETITEMRESULT(i);
 
 #undef SETITEMRESULT
 
@@ -6399,8 +6391,101 @@ void K_drawKartFreePlay(UINT32 flashtime)
 		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
 }
 
+static void K_drawDistributionDebugger(void)
+{
+	patch_t *items[NUMKARTRESULTS] = {
+		kp_sadface[1],
+		kp_sneaker[1],
+		kp_rocketsneaker[1],
+		kp_invincibility[7],
+		kp_banana[1],
+		kp_eggman[1],
+		kp_orbinaut[4],
+		kp_jawz[1],
+		kp_mine[1],
+		kp_ballhog[1],
+		kp_selfpropelledbomb[1],
+		kp_grow[1],
+		kp_shrink[1],
+		kp_thundershield[1],
+		kp_hyudoro[1],
+		kp_pogospring[1],
+		kp_kitchensink[1],
+
+		kp_sneaker[1],
+		kp_banana[1],
+		kp_banana[1],
+		kp_orbinaut[4],
+		kp_orbinaut[4],
+		kp_jawz[1]
+	};
+	INT32 useodds = 0;
+	INT32 pingame = 0, bestbumper = 0;
+	INT32 i;
+	INT32 x = -9, y = -9;
+
+	if (stplyr != &players[displayplayer]) // only for p1
+		return;
+
+	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice 
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		pingame++;
+		if (players[i].kartstuff[k_bumper] > bestbumper)
+			bestbumper = players[i].kartstuff[k_bumper];
+	}
+
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper);
+
+	for (i = 1; i < NUMKARTRESULTS; i++)
+	{
+		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0);
+		if (itemodds <= 0)
+			continue;
+
+		V_DrawScaledPatch(x, y, V_HUDTRANS|V_SNAPTOTOP, items[i]);
+		V_DrawThinString(x+11, y+31, V_HUDTRANS|V_SNAPTOTOP, va("%d", itemodds));
+
+		// Display amount for multi-items
+		if (i >= NUMKARTITEMS)
+		{
+			INT32 amount;
+			switch (i)
+			{
+				case KRITEM_TENFOLDBANANA:
+					amount = 10;
+					break;
+				case KRITEM_QUADORBINAUT:
+					amount = 4;
+					break;
+				case KRITEM_DUALJAWZ:
+					amount = 2;
+					break;
+				default:
+					amount = 3;
+					break;
+			}
+			V_DrawString(x+24, y+31, V_ALLOWLOWERCASE|V_HUDTRANS|V_SNAPTOTOP, va("x%d", amount));
+		}
+
+		x += 32;
+		if (x >= 297)
+		{
+			x = -9;
+			y += 32;
+		}
+	}
+
+	V_DrawString(0, 0, V_HUDTRANS|V_SNAPTOTOP, va("USEODDS %d", useodds));
+}
+
 static void K_drawCheckpointDebugger(void)
 {
+	if (stplyr != &players[displayplayer]) // only for p1
+		return;
+
 	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
 		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
 	else
@@ -6546,6 +6631,9 @@ void K_drawKartHUD(void)
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
 		K_drawKartFreePlay(leveltime);
+
+	if (cv_kartdebugdistribution.value)
+		K_drawDistributionDebugger();
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();

@@ -132,7 +132,8 @@ extern consvar_t cv_karteliminatelast;
 
 extern consvar_t cv_votetime;
 
-extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugcheckpoint, cv_kartdebugshrink;
+extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugshrink, cv_kartdebugdistribution;
+extern consvar_t cv_kartdebugcheckpoint;
 
 extern consvar_t cv_itemfinder;
 
