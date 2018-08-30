@@ -8164,8 +8164,7 @@ void A_ItemPop(mobj_t *actor)
 
 void A_JawzChase(mobj_t *actor)
 {
-	INT32 stop;
-	INT32 bestang = -1, bestdist = -1;
+	fixed_t best = -1;
 	SINT8 wtarg = -1;
 	player_t *player;
 #ifdef HAVE_BLUA
@@ -8176,108 +8175,99 @@ void A_JawzChase(mobj_t *actor)
 	if (actor->tracer)
 	{
 		if (!actor->tracer->health)
-		{
 			P_SetTarget(&actor->tracer, NULL);
-		}
 
-		if (actor->tracer && (actor->tracer->health))
+		if (actor->tracer && actor->tracer->health)
 		{
 			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
 			return;
 		}
 	}
 
-	// first time init, this allow minimum lastlook changes
-	if (actor->lastlook == -1)
-		actor->lastlook = P_RandomFixed();
+	if (actor->extravalue1) // Disable looking by setting this
+		return;
 
-	actor->lastlook %= MAXPLAYERS;
-
-	stop = (actor->lastlook - 1) & PLAYERSMASK;
-
-	if (actor->lastlook >= 0)
+	for (actor->lastlook = 0; actor->lastlook < MAXPLAYERS; actor->lastlook++)
 	{
-		for (; ; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
+		if (!playeringame[actor->lastlook])
+			continue;
+
+		player = &players[actor->lastlook];
+
+		if (player->spectator)
+			continue; // spectator
+
+		if (!player->mo)
+			continue;
+
+		if (player->mo->health <= 0)
+			continue; // dead
+
+		if (actor->target && actor->target->player)
 		{
-			if (actor->lastlook == stop)
-			{
-				actor->lastlook = -1;
-				break;
-			}
+			angle_t thisang;
 
-			if (!playeringame[actor->lastlook])
+			if (player->mo == actor->target)
 				continue;
 
-			player = &players[actor->lastlook];
-
-			if (!player->mo)
+			// Don't home in on teammates.
+			if (G_GametypeHasTeams() && actor->target->player->ctfteam == player->ctfteam)
 				continue;
 
-			if (player->mo->health <= 0)
-				continue; // dead
+			// Find the angle, see who's got the best.
+			thisang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
+			if (thisang > ANGLE_180)
+				thisang = InvAngle(thisang);
 
-			if ((netgame || multiplayer) && player->spectator)
-				continue; // spectator
+			if (thisang > ANGLE_45) // Don't go for people who are behind you
+				continue;
 
-			if (actor->target && actor->target->player)
+			// Jawz only go after the person directly ahead of you in race... sort of literally now!
+			if (G_RaceGametype())
 			{
-				if (player->mo == actor->target)
+				if (player->kartstuff[k_position] >= actor->target->player->kartstuff[k_position]) // Don't pay attention to people behind you
 					continue;
-
-				// Don't home in on teammates.
-				if (gametype == GT_CTF
-					&& actor->target->player->ctfteam == player->ctfteam)
-					continue;
-
-				if (G_RaceGametype()) // Only in races, in match and CTF you should go after any nearby players
+				if ((best == -1) || (player->kartstuff[k_position] > best))
 				{
-					//                 USER               TARGET
-					if (actor->target->player->kartstuff[k_position] == (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
-					{
-						wtarg = player-players;
-						break;
-					}
+					wtarg = actor->lastlook;
+					best = player->kartstuff[k_position];
 				}
+			}
+			else
+			{
+				fixed_t thisdist;
+				fixed_t thisavg;
 
-				if (G_BattleGametype())
+				if (player->kartstuff[k_bumper] <= 0)
+					continue;
+
+				thisdist = P_AproxDistance(P_AproxDistance(player->mo->x - (actor->x + actor->momx),
+					player->mo->y - (actor->y + actor->momy)), player->mo->z - (actor->z + actor->momz));
+
+				if (thisdist > RING_DIST) // Don't go for people who are too far away
+					continue;
+
+				thisavg = (AngleFixed(thisang) + thisdist) / 2;
+
+				//CONS_Printf("got avg %d from player # %d\n", thisavg>>FRACBITS, actor->lastlook);
+
+				if ((best == -1) || (thisavg < best))
 				{
-					angle_t initang;
-					INT32 thisang;
-					INT32 thisdist;
-
-					if (player->kartstuff[k_bumper] <= 0)
-						continue;
-
-					initang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
-					if (initang > ANGLE_180)
-						initang = InvAngle(initang);
-					thisang = AngleFixed(initang)>>FRACBITS;
-					thisdist = P_AproxDistance(P_AproxDistance(player->mo->x - actor->x,
-						player->mo->y - actor->y), player->mo->z - actor->z)>>FRACBITS;
-
-					if (thisdist > RING_DIST>>FRACBITS)
-						continue;
-
-					if ((bestang < 0 || bestdist < 0)
-						|| (thisang < bestang)
-						|| (thisang == bestang && thisdist < bestdist))
-					{
-						wtarg = player-players;
-						bestang = thisang;
-						bestdist = thisdist;
-					}
+					wtarg = actor->lastlook;
+					best = thisavg;
 				}
 			}
 		}
 	}
 
-	if (wtarg > 0
-		&& (G_RaceGametype() // Instantly go after in Race
-		|| (G_BattleGametype() && bestdist < RING_DIST>>FRACBITS))) // Wait until you're in distance in Battle
+	if (wtarg != -1)
 	{
-		//CONS_Printf("ang: %d, dist: %d, wtarg: %d\n", bestang, bestdist, wtarg);
+		//CONS_Printf("best: %d, final target: %d\n", best, wtarg);
 		P_SetTarget(&actor->tracer, players[wtarg].mo);
 	}
+
+	if (G_RaceGametype()) // Stop looking after first tic in race
+		actor->extravalue1 = 1;
 
 	return;
 }
