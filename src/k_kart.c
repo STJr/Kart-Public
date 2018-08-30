@@ -2966,6 +2966,10 @@ static void K_MoveHeldObjects(player_t *player)
 								z = cur->ceilingz - cur->height;
 						}
 					}
+
+					// Center it during the scale up animation
+					z += (FixedMul(mobjinfo[cur->type].height, player->mo->scale - cur->scale)>>1) * P_MobjFlip(cur);
+
 					cur->z = z;
 					cur->momx = cur->momy = 0;
 					cur->angle += ANGLE_90;
