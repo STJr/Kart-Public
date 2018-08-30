@@ -321,6 +321,7 @@ typedef enum
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
 	k_eggmanblame,			// Fake item recieved, who set this fake
+	k_lastjawztarget,		// Last person you target with jawz, for playing the target switch sfx
 	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_wipeoutslow,			// Timer before you slowdown when getting wiped out

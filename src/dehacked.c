@@ -6362,6 +6362,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_JAWZ_DEAD2",
 	//}
 
+	"S_PLAYERRETICULE", // Player reticule
+
 	// Special Stage Mine
 	"S_SSMINE1",
 	"S_SSMINE2",
@@ -7226,6 +7228,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_JAWZ_DUD",
 	"MT_JAWZ_SHIELD", 
 
+	"MT_PLAYERRETICULE", // Jawz reticule
+
 	"MT_SSMINE_SHIELD", // Special Stage Mine stuff
 	"MT_SSMINE",
 	"MT_MINEEXPLOSION",
@@ -7683,7 +7687,6 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ITEMAMOUNT",
 	"ITEMHELD",
 
-	//"THUNDERANIM",
 	"CURSHIELD",
 	"HYUDOROTIMER",
 	"STEALINGTIMER",
@@ -7697,6 +7700,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"EGGMANHELD",
 	"EGGMANEXPLODE",
 	"EGGMANBLAME",
+	"LASTJAWZTARGET",
 	"BANANADRAG",
 	"SPINOUTTIMER",
 	"WIPEOUTSLOW",

@@ -60,7 +60,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"THNS","SINK","SITR","KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES",
 	"GBAS","SPRS","BUZB","CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN",
 	"CLAS","PSHW","ISTA","ISTB","ARRO","ITEM","ITMO","ITMI","ITMN","WANT",
-	"PBOM","VIEW"
+	"PBOM","RETI","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2684,6 +2684,8 @@ state_t states[NUMSTATES] =
 	{SPR_JAWZ, 5, 175, {NULL}, 0, 0, S_JAWZ_DEAD2},	// S_JAWZ_DEAD1
 	{SPR_NULL, 0, 1, {A_JawzExplode}, 0, 0, S_NULL},	// S_JAWZ_DEAD2
 
+	{SPR_RETI, FF_FULLBRIGHT, 2, {NULL}, 0, 0, S_NULL}, // S_PLAYERRETICULE
+
 	{SPR_SSMN,  0, 30, {NULL}, 0, 0, S_SSMINE2},							// S_SSMINE1
 	{SPR_SSMN,  3,  3, {NULL}, 0, 0, S_SSMINE3},							// S_SSMINE2
 	{SPR_SSMN,  2,  3, {NULL}, 0, 0, S_SSMINE4},							// S_SSMINE3
@@ -2894,7 +2896,6 @@ state_t states[NUMSTATES] =
 	{SPR_BRNG, 10, 2, {NULL}, 0, 0, S_BIGRING12}, // S_BIGRING11
 	{SPR_BRNG, 11, 2, {NULL}, 0, 0, S_BIGRING01}, // S_BIGRING12
 
-	
 	{SPR_SNES, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH1
 	{SPR_SNES, 1, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH2
 	{SPR_SNES, 2, -1, {NULL}, 0, 0, S_NULL}, // S_SNES_DONUTBUSH3
@@ -2991,7 +2992,6 @@ state_t states[NUMSTATES] =
 	{SPR_WANT, FF_FULLBRIGHT|4, 3, {NULL}, 0, 0, S_PLAYERARROW_WANTED6}, // S_PLAYERARROW_WANTED5
 	{SPR_WANT, FF_FULLBRIGHT|5, 1, {NULL}, 0, 0, S_PLAYERARROW_WANTED7}, // S_PLAYERARROW_WANTED6
 	{SPR_WANT, FF_FULLBRIGHT|6, 3, {NULL}, 0, 0, S_PLAYERARROW_WANTED1}, // S_PLAYERARROW_WANTED7
-	
 
 	{SPR_PBOM, FF_ANIMATE, -1, {NULL}, 3, 3, S_NULL}, // S_PLAYERBOMB
 	{SPR_RNDM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERITEM
@@ -14791,6 +14791,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,              // damage
 		sfx_None,       // activesound
 		MF_SHOOTABLE|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_PLAYERRETICULE
+		-1,             // doomednum
+		S_PLAYERRETICULE, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		16*FRACUNIT,    // radius
+		56*FRACUNIT,    // height
+		2,              // display offset
+		16,             // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
 

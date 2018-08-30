@@ -483,7 +483,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k86",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k87",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k88",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k89",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k89",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Jawz target
   {"s3k8a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k8b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k8c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

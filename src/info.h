@@ -637,6 +637,7 @@ typedef enum sprite
 	SPR_WANT,
 
 	SPR_PBOM, // player bomb
+	SPR_RETI, // player reticule
 
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 
@@ -3206,6 +3207,8 @@ typedef enum state
 	S_JAWZ_DEAD2,
 	//}
 
+	S_PLAYERRETICULE, // Player reticule
+
 	// Special Stage Mine
 	S_SSMINE1,
 	S_SSMINE2,
@@ -4086,6 +4089,8 @@ typedef enum mobj_type
 	MT_JAWZ, // Jawz stuff
 	MT_JAWZ_DUD,
 	MT_JAWZ_SHIELD, 
+
+	MT_PLAYERRETICULE, // Jawz reticule
 
 	MT_SSMINE, // Mine stuff
 	MT_SSMINE_SHIELD,

@@ -3069,6 +3069,87 @@ static void K_MoveHeldObjects(player_t *player)
 	}
 }
 
+player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
+{
+	fixed_t best = -1;
+	player_t *wtarg = NULL;
+	INT32 i;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		angle_t thisang;
+		player_t *player;
+
+		if (!playeringame[i])
+			continue;
+
+		player = &players[i];
+
+		if (player->spectator)
+			continue; // spectator
+
+		if (!player->mo)
+			continue;
+
+		if (player->mo->health <= 0)
+			continue; // dead
+
+		// Don't target yourself, stupid.
+		if (player == source)
+			continue;
+
+		// Don't home in on teammates.
+		if (G_GametypeHasTeams() && source->ctfteam == player->ctfteam)
+			continue;
+
+		// Find the angle, see who's got the best.
+		thisang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
+		if (thisang > ANGLE_180)
+			thisang = InvAngle(thisang);
+
+		if (thisang > ANGLE_45) // Don't go for people who are behind you
+			continue;
+
+		// Jawz only go after the person directly ahead of you in race... sort of literally now!
+		if (G_RaceGametype())
+		{
+			if (player->kartstuff[k_position] >= source->kartstuff[k_position]) // Don't pay attention to people behind you
+				continue;
+			if ((best == -1) || (player->kartstuff[k_position] > best))
+			{
+				wtarg = player;
+				best = player->kartstuff[k_position];
+			}
+		}
+		else
+		{
+			fixed_t thisdist;
+			fixed_t thisavg;
+
+			if (player->kartstuff[k_bumper] <= 0)
+				continue;
+
+			thisdist = P_AproxDistance(P_AproxDistance(player->mo->x - (actor->x + actor->momx),
+				player->mo->y - (actor->y + actor->momy)), player->mo->z - (actor->z + actor->momz));
+
+			if (thisdist > RING_DIST) // Don't go for people who are too far away
+				continue;
+
+			thisavg = (AngleFixed(thisang) + thisdist) / 2;
+
+			//CONS_Printf("got avg %d from player # %d\n", thisavg>>FRACBITS, i);
+
+			if ((best == -1) || (thisavg < best))
+			{
+				wtarg = player;
+				best = thisavg;
+			}
+		}
+	}
+
+	return wtarg;
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -3362,6 +3443,39 @@ void K_KartPlayerAfterThink(player_t *player)
 
 	// Move held objects (Bananas, Orbinaut, etc)
 	K_MoveHeldObjects(player);
+
+	// Jawz reticule (seeking)
+	if (player->kartstuff[k_itemtype] == KITEM_JAWZ && player->kartstuff[k_itemheld])
+	{
+		player_t *targ = K_FindJawzTarget(player->mo, player);
+		mobj_t *ret;
+
+		if (!targ)
+		{
+			player->kartstuff[k_lastjawztarget] = -1;
+			return;
+		}
+
+		ret = P_SpawnMobj(targ->mo->x, targ->mo->y, targ->mo->z, MT_PLAYERRETICULE);
+		P_SetTarget(&ret->target, targ->mo);
+		ret->frame |= ((leveltime % 10) / 2);
+		ret->tics = 1;
+		ret->color = player->skincolor;
+
+		if (targ-players != player->kartstuff[k_lastjawztarget])
+		{
+			if (P_IsLocalPlayer(player) || P_IsLocalPlayer(targ))
+				S_StartSound(NULL, sfx_s3k89);
+			else
+				S_StartSound(targ->mo, sfx_s3k89);
+
+			player->kartstuff[k_lastjawztarget] = targ-players;
+		}
+	}
+	else
+	{
+		player->kartstuff[k_lastjawztarget] = -1;
+	}
 }
 
 // Returns false if this player being placed here causes them to collide with any other player
