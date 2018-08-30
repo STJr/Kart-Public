@@ -3004,7 +3004,7 @@ static void K_MoveHeldObjects(player_t *player)
 					fixed_t targy;
 					fixed_t targz;
 					fixed_t speed;
-					fixed_t dist = radius/2;
+					fixed_t dist;
 
 					cur->flags &= ~MF_NOCLIPTHING;
 
@@ -3014,14 +3014,24 @@ static void K_MoveHeldObjects(player_t *player)
 						continue;
 					}
 
+					if (cur->extravalue1 < radius)
+						cur->extravalue1 += FixedMul(P_AproxDistance(cur->extravalue1, radius), FRACUNIT/12);
+					if (cur->extravalue1 > radius)
+						cur->extravalue1 = radius;
+
 					if (cur != player->mo->hnext)
 					{
 						targ = cur->hprev;
-						dist = radius/4;
+						dist = cur->extravalue1/4;
 					}
+					else
+						dist = cur->extravalue1/2;
 
 					if (!targ || P_MobjWasRemoved(targ))
 						continue;
+
+					// Shrink your items if the player shrunk too.
+					P_SetScale(cur, (cur->destscale = FixedMul(FixedDiv(cur->extravalue1, radius), player->mo->scale)));
 
 					ang = targ->angle;
 					targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, dist);
