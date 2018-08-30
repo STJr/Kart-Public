@@ -2041,7 +2041,8 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 	{
 		// Single sided line... Deal only with the middletexture (if one exists)
 		gr_midtexture = R_GetTextureNum(gr_sidedef->midtexture);
-		if (gr_midtexture)
+		if (gr_midtexture
+			&& gr_linedef->special != 41) // Ignore horizon line for OGL
 		{
 			if (drawtextured)
 			{
