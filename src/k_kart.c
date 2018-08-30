@@ -2927,6 +2927,11 @@ static void K_MoveHeldObjects(player_t *player)
 					cur->angle -= ANGLE_90;
 					cur->angle += FixedAngle(cur->info->speed);
 
+					if (cur->extravalue1 < radius)
+						cur->extravalue1 += FixedMul(P_AproxDistance(cur->extravalue1, radius), FRACUNIT/12);
+					if (cur->extravalue1 > radius)
+						cur->extravalue1 = radius;
+
 					// If the player is on the ceiling, then flip your items as well.
 					if (player && player->mo->eflags & MFE_VERTICALFLIP)
 						cur->eflags |= MFE_VERTICALFLIP;
@@ -2934,7 +2939,7 @@ static void K_MoveHeldObjects(player_t *player)
 						cur->eflags &= ~MFE_VERTICALFLIP;
 
 					// Shrink your items if the player shrunk too.
-					P_SetScale(cur, (cur->destscale = player->mo->scale));
+					P_SetScale(cur, (cur->destscale = FixedMul(FixedDiv(cur->extravalue1, radius), player->mo->scale)));
 
 					if (P_MobjFlip(cur) > 0)
 						z = player->mo->z;
@@ -2943,8 +2948,8 @@ static void K_MoveHeldObjects(player_t *player)
 
 					cur->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
 					P_TeleportMove(cur, player->mo->x, player->mo->y, z);
-					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), radius);
-					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), radius);
+					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
+					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
 					cur->flags &= ~MF_NOCLIPTHING;
 					if (!P_TryMove(cur, player->mo->x + cur->momx, player->mo->y + cur->momy, true))
 						P_SlideMove(cur, true);
@@ -3874,8 +3879,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						INT32 moloop;
 						mobj_t *mo = NULL;
 						mobj_t *prev = player->mo;
@@ -3887,9 +3890,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_ORBINAUT_SHIELD);
+							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_ORBINAUT_SHIELD);
 							if (!mo)
 							{
 								player->kartstuff[k_itemamount] = moloop;
@@ -3919,8 +3920,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						INT32 moloop;
 						mobj_t *mo = NULL;
 						mobj_t *prev = player->mo;
@@ -3932,9 +3931,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
+							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_JAWZ_SHIELD);
 							if (!mo)
 							{
 								player->kartstuff[k_itemamount] = moloop;
