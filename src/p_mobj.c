@@ -6212,6 +6212,9 @@ void P_RunOverlays(void)
 		mo->scale = mo->destscale = mo->target->scale;
 		mo->angle = mo->target->angle;
 
+		if ((mo->flags & MF_DONTENCOREMAP) != (mo->target->flags & MF_DONTENCOREMAP))
+			mo->flags ^= MF_DONTENCOREMAP;
+
 		if (!(mo->state->frame & FF_ANIMATE))
 			zoffs = FixedMul(((signed)mo->state->var2)*FRACUNIT, mo->scale);
 		// if you're using FF_ANIMATE on an overlay,
