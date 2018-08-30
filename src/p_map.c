@@ -698,7 +698,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			K_KartBouncing(thing, tmthing, false, false);
 
 			if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
-				S_StartSound(thing, sfx_shelit);
+				S_StartSound(thing, sfx_s3k7b);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -981,7 +981,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			K_KartBouncing(tmthing, thing, false, false);
 
 			if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
-				S_StartSound(tmthing, sfx_shelit);
+				S_StartSound(tmthing, sfx_s3k7b);
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
