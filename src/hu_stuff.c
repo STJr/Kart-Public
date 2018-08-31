@@ -763,28 +763,26 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			drawstring really should be able to remap to any palette index........*/
 			
 			// there's a lot of fucking colors wtf
-			INT32 color = players[playernum].mo->color;
-			if (color >= SKINCOLOR_IVORY && color <= SKINCOLOR_SILVER)
-				prefix = "\x80";
-			else if ((color >= SKINCOLOR_CLOUDY && color <= SKINCOLOR_BLACK) || color == SKINCOLOR_JET)	// jet is more black than blue so it goes here.
-				prefix = "\x86";
-			else if (color >= SKINCOLOR_SALMON && color <= SKINCOLOR_CRIMSON)
-				prefix = "\x85";
-			else if (color >= SKINCOLOR_DAWN && color <= SKINCOLOR_CARAMEL)
-				prefix = "\x87";
-			else if (color >= SKINCOLOR_TANGERINE && color <= SKINCOLOR_CANARY)
-				prefix = "\x82";
-			else if (color >= SKINCOLOR_OLIVE && color <= SKINCOLOR_SWAMP)
-				prefix = "\x83";
-			else if ((color >= SKINCOLOR_AQUA && color <= SKINCOLOR_STEEL) || color == SKINCOLOR_SAPPHIRE)	// toaster wanted that specific one too shrug
-				prefix = "\x88";
-			else if (color >= SKINCOLOR_PERIWINKLE && color <= SKINCOLOR_NAVY)
-				prefix = "\x84";
-			else if (color >= SKINCOLOR_DUSK && color <= SKINCOLOR_LILAC)
-				prefix = "\x81";
-			else
-				prefix = "\x83";
-				
+			const UINT8 color = players[playernum].skincolor;
+            if (color <= SKINCOLOR_SILVER)
+                prefix = "\x80";
+            else if (color <= SKINCOLOR_BLACK || color == SKINCOLOR_JET)    // jet is more black than blue so it goes here.
+                prefix = "\x86";
+            else if (color <= SKINCOLOR_CRIMSON)
+                prefix = "\x85";
+            else if (color <= SKINCOLOR_CARAMEL)
+                prefix = "\x87";
+            else if (color <= SKINCOLOR_CANARY)
+                prefix = "\x82";
+            else if (color <= SKINCOLOR_SWAMP)
+                prefix = "\x83";
+            else if (color <= SKINCOLOR_STEEL || color == SKINCOLOR_SAPPHIRE)    // toaster wanted that specific one too shrug
+                prefix = "\x88";
+            else if (color <= SKINCOLOR_NAVY)
+                prefix = "\x84";
+            else
+                prefix = "\x81";
+			
 			strcat(cstart, prefix);
 			fmt = "\3%s<%s%s%s>\x80 %s\n";
 			fmt2 = "%s<%s%s%s>\x80 %s";
