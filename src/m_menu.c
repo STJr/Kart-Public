@@ -8534,7 +8534,7 @@ static void M_DrawMonitorToggles(void)
 				{
 					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITMUL", PU_CACHE));
 					V_DrawScaledPatch(x-1, y-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, !selected), PU_CACHE));
-					V_DrawScaledPatch(x+27, y+39, 0, W_CachePatchName("K_ITX", PU_CACHE));
+					V_DrawScaledPatch(x+27, y+39, translucent, W_CachePatchName("K_ITX", PU_CACHE));
 					V_DrawKartString(x+37, y+34, translucent, va("%d", drawnum));
 				}
 				else
