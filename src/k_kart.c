@@ -3161,16 +3161,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
 
-	// setting players to use the star colormap and spawning afterimages
-	if (player->kartstuff[k_invincibilitytimer])
-	{
-		mobj_t *ghost;
-		player->mo->colorized = true;
-		ghost = P_SpawnGhostMobj(player->mo);
-		ghost->fuse = 4;
-		ghost->frame |= FF_FULLBRIGHT;
-	}
-	else if (player->kartstuff[k_eggmanexplode])
+	if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie
 	{
 		const INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
 		if (player->kartstuff[k_eggmanexplode] == 1 || (player->kartstuff[k_eggmanexplode] % (flashtime/2) != 0))
@@ -3189,7 +3180,15 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			player->mo->color = SKINCOLOR_CRIMSON;
 		}
 	}
-	else if (player->kartstuff[k_growshrinktimer])
+	else if (player->kartstuff[k_invincibilitytimer]) // setting players to use the star colormap and spawning afterimages
+	{
+		mobj_t *ghost;
+		player->mo->colorized = true;
+		ghost = P_SpawnGhostMobj(player->mo);
+		ghost->fuse = 4;
+		ghost->frame |= FF_FULLBRIGHT;
+	}
+	else if (player->kartstuff[k_growshrinktimer]) // Ditto, for grow/shrink
 	{
 		if (player->kartstuff[k_growshrinktimer] % 5 == 0)
 		{
@@ -3205,6 +3204,17 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else
 	{
 		player->mo->colorized = false;
+	}
+
+	if (player->kartstuff[k_dashpadcooldown]) // Twinkle Circuit inspired afterimages
+	{
+		mobj_t *ghost;
+		ghost = P_SpawnGhostMobj(player->mo);
+		ghost->fuse = player->kartstuff[k_dashpadcooldown]+1;
+		ghost->momx = player->mo->momx / (player->kartstuff[k_dashpadcooldown]+1);
+		ghost->momy = player->mo->momy / (player->kartstuff[k_dashpadcooldown]+1);
+		ghost->momz = player->mo->momz / (player->kartstuff[k_dashpadcooldown]+1);
+		player->kartstuff[k_dashpadcooldown]--;
 	}
 
 	if (player->kartstuff[k_spinouttimer])

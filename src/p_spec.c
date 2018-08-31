@@ -3798,7 +3798,7 @@ DoneSection2:
 
 		case 5: // Speed pad w/o spin
 		case 6: // Speed pad w/ spin
-			if (player->powers[pw_flashing] != 0 && player->powers[pw_flashing] < TICRATE/2)
+			if (player->kartstuff[k_dashpadcooldown] != 0)
 				break;
 
 			i = P_FindSpecialLineFromTag(4, sector->tag, -1);
@@ -3843,15 +3843,15 @@ DoneSection2:
 
 				P_InstaThrust(player->mo, player->mo->angle, linespeed);
 
-				if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH))
+				/*if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH)) // SRB2kart
 				{
 					if (!(player->pflags & PF_SPINNING))
 						player->pflags |= PF_SPINNING;
 
-					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); // SRB2kart
-				}
+					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); 
+				}*/
 
-				player->powers[pw_flashing] = TICRATE/3;
+				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
 				S_StartSound(player->mo, sfx_spdpad);
 			}
 			break;
