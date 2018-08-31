@@ -1491,10 +1491,15 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (thing->player->kartstuff[k_squishedtimer] || thing->player->kartstuff[k_hyudorotimer]
 				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (FRACUNIT/8)
-				|| (G_BattleGametype() && thing->player->kartstuff[k_bumper] <= 0)
 				|| tmthing->player->kartstuff[k_squishedtimer] || tmthing->player->kartstuff[k_hyudorotimer]
-				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8)
-				|| (G_BattleGametype() && tmthing->player->kartstuff[k_bumper] <= 0))
+				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8))
+			{
+				return true;
+			}
+
+			if (G_BattleGametype()
+				&& ((thing->player->kartstuff[k_bumper] && !tmthing->player->kartstuff[k_bumper])
+				|| (tmthing->player->kartstuff[k_bumper] && !thing->player->kartstuff[k_bumper])))
 			{
 				return true;
 			}
