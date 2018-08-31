@@ -713,24 +713,41 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	|| target == 0 // To everyone
 	|| consoleplayer == target-1) // To you
 	{
-		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt, *fmt2;
+		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt, *fmt2, *textcolor = "\x80";
 		char *tempchar = NULL;
 
-		// In CTF and team match, color the player's name.
-		if (G_GametypeHasTeams())
-		{
-			cend = "";
-			if (players[playernum].ctfteam == 1) // red
-				cstart = "\x85";
-			else if (players[playernum].ctfteam == 2) // blue
-				cstart = "\x84";
-
-		}
-
 		// player is a spectator?
-		if (players[playernum].spectator)
-				cstart = "\x86";	// grey name
-
+        if (players[playernum].spectator)
+		{	
+			cstart = "\x86";    // grey name
+			textcolor = "\x86";
+		}	
+		else
+        {
+			const UINT8 color = players[playernum].skincolor;
+			if (color >= SKINCOLOR_IVORY && color <= SKINCOLOR_SILVER)
+				cstart = "\x80";
+			else if ((color >= SKINCOLOR_CLOUDY && color <= SKINCOLOR_BLACK) || color == SKINCOLOR_JET)    // jet is more black than blue so it goes here.
+				cstart = "\x86";
+			else if (color >= SKINCOLOR_SALMON && color <= SKINCOLOR_CRIMSON)
+				cstart = "\x85";
+			else if (color >= SKINCOLOR_DAWN && color <= SKINCOLOR_CARAMEL)
+				cstart = "\x87";
+			else if (color >= SKINCOLOR_TANGERINE && color <= SKINCOLOR_CANARY)
+				cstart = "\x82";
+			else if (color >= SKINCOLOR_OLIVE && color <= SKINCOLOR_SWAMP)
+				cstart = "\x83";
+			else if ((color >= SKINCOLOR_AQUA && color <= SKINCOLOR_STEEL) || color == SKINCOLOR_SAPPHIRE)    // toaster wanted that specific one too shrug
+				cstart = "\x88";
+			else if (color >= SKINCOLOR_PERIWINKLE && color <= SKINCOLOR_NAVY)
+				cstart = "\x84";
+			else if (color >= SKINCOLOR_DUSK && color <= SKINCOLOR_LILAC)
+				cstart = "\x81";
+			else
+				cstart = "\x83";
+        }
+		prefix = cstart;
+		
 		// Give admins and remote admins their symbols.
 		if (playernum == serverplayer)
 			tempchar = (char *)Z_Calloc(strlen(cstart) + strlen(adminchar) + 1, PU_STATIC, NULL);
@@ -757,53 +774,25 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		}
 		else if (target == 0) // To everyone
 		{
-			
-					
-			/* 31/8/18: Lat': Exclusive to kart, use a CLOSE ENOUGH colour to the player's for text (we're quite limited with our options, 
-			drawstring really should be able to remap to any palette index........*/
-			
-			// there's a lot of fucking colors wtf
-			const UINT8 color = players[playernum].skincolor;
-            if (color <= SKINCOLOR_SILVER)
-                prefix = "\x80";
-            else if (color <= SKINCOLOR_BLACK || color == SKINCOLOR_JET)    // jet is more black than blue so it goes here.
-                prefix = "\x86";
-            else if (color <= SKINCOLOR_CRIMSON)
-                prefix = "\x85";
-            else if (color <= SKINCOLOR_CARAMEL)
-                prefix = "\x87";
-            else if (color <= SKINCOLOR_CANARY)
-                prefix = "\x82";
-            else if (color <= SKINCOLOR_SWAMP)
-                prefix = "\x83";
-            else if (color <= SKINCOLOR_STEEL || color == SKINCOLOR_SAPPHIRE)    // toaster wanted that specific one too shrug
-                prefix = "\x88";
-            else if (color <= SKINCOLOR_NAVY)
-                prefix = "\x84";
-            else
-                prefix = "\x81";
-			
-			strcat(cstart, prefix);
-			fmt = "\3%s<%s%s%s>\x80 %s\n";
-			fmt2 = "%s<%s%s%s>\x80 %s";
+			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
+			fmt2 = "%s<%s%s%s>\x80 %s%s";
 		}
 		else if (target-1 == consoleplayer) // To you
 		{
 			prefix = "\x82[PM]";
 			cstart = "\x82";
-			fmt = "\4%s<%s%s>%s\x80 %s\n";	// make this yellow, however.
-			fmt2 = "%s<%s%s>%s\x80 %s";
+			textcolor = "\x82";
+			fmt = "\4%s<%s%s>%s\x80 %s%s\n";	// make this yellow, however.
+			fmt2 = "%s<%s%s>%s\x80 %s%s";
 		}
 		else if (target > 0) // By you, to another player
 		{
 			// Use target's name.
 			dispname = player_names[target-1];
-			/*fmt = "\3\x82[TO]\x80%s%s%s* %s\n";
-			fmt2 = "\x82[TO]\x80%s%s%s* %s";*/
 			prefix = "\x82[TO]";
 			cstart = "\x82";
-			fmt = "\4%s<%s%s>%s\x80 %s\n";	// make this yellow, however.
-			fmt2 = "%s<%s%s>%s\x80 %s";
+			fmt = "\4%s<%s%s>%s\x80 %s%s\n";	// make this yellow, however.
+			fmt2 = "%s<%s%s>%s\x80 %s%s";
 
 		}
 		else // To your team
@@ -815,17 +804,17 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			else
 				prefix = "\x83";	// makes sure this doesn't implode if you sayteam on non-team gamemodes
 
-			fmt = "\3%s<%s%s>\x80%s %s\n";
-			fmt2 = "%s<%s%s>\x80%s %s";
+			fmt = "\3%s<%s%s>\x80%s %s%s\n";
+			fmt2 = "%s<%s%s>\x80%s %s%s";
 
 		}
 
-		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
+		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
 
 		if OLDCHAT
-			CONS_Printf(fmt, prefix, cstart, dispname, cend, msg);
+			CONS_Printf(fmt, prefix, cstart, dispname, cend, textcolor, msg);
 		else
-			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, msg)); // save to log.txt
+			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, textcolor, msg)); // save to log.txt
 
 		if (tempchar)
 			Z_Free(tempchar);
