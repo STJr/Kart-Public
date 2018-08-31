@@ -3813,6 +3813,11 @@ DoneSection2:
 
 				player->mo->angle = lineangle;
 
+				// SRB2Kart: Scale the speed you get from them!
+				// This is scaled differently from other horizontal speed boosts from stuff like springs, because of how this is used for some ramp jumps.
+				if (player->mo->scale > mapheaderinfo[gamemap-1]->mobj_scale)
+					linespeed = FixedMul(linespeed, mapheaderinfo[gamemap-1]->mobj_scale + (player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale));
+
 				if (!demoplayback || P_AnalogMove(player))
 				{
 					if (player == &players[consoleplayer])

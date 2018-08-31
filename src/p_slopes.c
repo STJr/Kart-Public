@@ -778,6 +778,10 @@ void P_ReverseQuantizeMomentumToSlope(vector3_t *momentum, pslope_t *slope)
 	slope->zangle = InvAngle(slope->zangle);
 }
 
+// SRB2Kart: This fixes all slope-based jumps for different scales in Kart automatically without map tweaking.
+// However, they will always feel off every single time... see for yourself: https://cdn.discordapp.com/attachments/270211093761097728/484924392128774165/kart0181.gif
+//#define GROWNEVERMISSES
+
 //
 // P_SlopeLaunch
 //
@@ -786,6 +790,10 @@ void P_SlopeLaunch(mobj_t *mo)
 {
 	if (!(mo->standingslope->flags & SL_NOPHYSICS)) // If there's physics, time for launching.
 	{
+#ifdef GROWNEVERMISSES
+		const fixed_t xyscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - mo->scale);
+		const fixed_t zscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - mo->scale);
+#endif
 		// Double the pre-rotation Z, then halve the post-rotation Z. This reduces the
 		// vertical launch given from slopes while increasing the horizontal launch
 		// given. Good for SRB2's gravity and horizontal speeds.
@@ -795,9 +803,15 @@ void P_SlopeLaunch(mobj_t *mo)
 		slopemom.z = mo->momz;
 		P_QuantizeMomentumToSlope(&slopemom, mo->standingslope);
 
+#ifdef GROWNEVERMISSES
+		mo->momx = FixedMul(slopemom.x, xyscale);
+		mo->momy = FixedMul(slopemom.y, xyscale);
+		mo->momz = FixedMul(slopemom.z, zscale);
+#else
 		mo->momx = slopemom.x;
 		mo->momy = slopemom.y;
 		mo->momz = slopemom.z;
+#endif
 	}
 
 	//CONS_Printf("Launched off of slope.\n");
