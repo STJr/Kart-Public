@@ -1526,7 +1526,7 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Sneakers",				M_HandleMonitorToggles, KITEM_SNEAKER},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Sneakers x3",			M_HandleMonitorToggles, KRITEM_TRIPLESNEAKER},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Rocket Sneakers",		M_HandleMonitorToggles, KITEM_ROCKETSNEAKER},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "Invinciblity",			M_HandleMonitorToggles, KITEM_INVINCIBILITY},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Toggle All",			M_HandleMonitorToggles, 0},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas",				M_HandleMonitorToggles, KITEM_BANANA},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas x3",			M_HandleMonitorToggles, KRITEM_TRIPLEBANANA},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas x10",			M_HandleMonitorToggles, KRITEM_TENFOLDBANANA},
@@ -1539,6 +1539,7 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Jawz x2",				M_HandleMonitorToggles, KRITEM_DUALJAWZ},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Ballhogs",				M_HandleMonitorToggles, KITEM_BALLHOG},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Self-Propelled Bombs",	M_HandleMonitorToggles, KITEM_SPB},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Invinciblity",			M_HandleMonitorToggles, KITEM_INVINCIBILITY},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Grow",					M_HandleMonitorToggles, KITEM_GROW},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Shrink",				M_HandleMonitorToggles, KITEM_SHRINK},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Thunder Shields",		M_HandleMonitorToggles, KITEM_THUNDERSHIELD},
@@ -8496,6 +8497,21 @@ static void M_DrawMonitorToggles(void)
 			if (thisitem >= currentMenu->numitems)
 				continue;
 
+			if (currentMenu->menuitems[thisitem].alphaKey == 0)
+			{
+				if (selected)
+				{
+					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
+					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITTOGL", PU_CACHE));
+				}
+				else
+				{
+					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
+					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISTOGL", PU_CACHE));
+				}
+				continue;
+			}
+
 			cv = kartitemcvs[currentMenu->menuitems[thisitem].alphaKey-1];
 			translucent = (cv->value ? 0 : V_TRANSLUCENT);
 
@@ -8572,7 +8588,7 @@ static void M_HandleMonitorToggles(INT32 choice)
 	const INT32 width = 6, height = 4;
 	INT32 column = itemOn/height, row = itemOn%height;
 	INT16 next;
-	consvar_t *cv = kartitemcvs[currentMenu->menuitems[itemOn].alphaKey-1];
+	UINT8 i;
 
 	switch (choice)
 	{
@@ -8621,7 +8637,21 @@ static void M_HandleMonitorToggles(INT32 choice)
 			break;
 
 		case KEY_ENTER:
-			CV_AddValue(cv,1);
+			if (currentMenu->menuitems[itemOn].alphaKey == 0)
+			{
+				INT32 v = cv_sneaker.value;
+				S_StartSound(NULL, sfx_s1b4);
+				for (i = 0; i < NUMKARTRESULTS-1; i++)
+				{
+					if (kartitemcvs[i]->value == v)
+						CV_AddValue(kartitemcvs[i], 1);
+				}
+			}
+			else
+			{
+				S_StartSound(NULL, sfx_s1ba);
+				CV_AddValue(kartitemcvs[currentMenu->menuitems[itemOn].alphaKey-1], 1);
+			}
 			break;
 
 		case KEY_ESCAPE:
