@@ -820,7 +820,6 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		}
 
-			
 		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
 
 		if OLDCHAT
