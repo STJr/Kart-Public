@@ -413,7 +413,8 @@ void Y_IntermissionDrawer(void)
 	}
 	else*/ if (intertype == int_race || intertype == int_match)
 	{
-		INT32 y = 48;
+#define NUMFORNEWCOLUMN 8
+		INT32 y = 48, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -428,7 +429,7 @@ void Y_IntermissionDrawer(void)
 		if (data.match.encore)
 			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20-8, hilicol, "ENCORE MODE");
 
-		if (data.match.numplayers > 8)
+		if (!gutter)
 		{
 			V_DrawFill(x+156, 32, 1, 152, 0);
 
@@ -465,7 +466,7 @@ void Y_IntermissionDrawer(void)
 					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
 				}
 
-				if (data.match.numplayers > 8)
+				if (!gutter)
 					strlcpy(strtime, data.match.name[i], 6);
 				else
 					STRBUFCPY(strtime, data.match.name[i]);
@@ -485,48 +486,29 @@ void Y_IntermissionDrawer(void)
 						else
 							snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[data.match.num[i]]);
 
-						if (data.match.numplayers > 8)
-							V_DrawRightAlignedString(x+120, y, 0, strtime);
-						else
-							V_DrawRightAlignedString(x+120+BASEVIDWIDTH/2, y, 0, strtime);
+						V_DrawRightAlignedString(x+120+gutter, y, 0, strtime);
 					}
 
 					snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
 
-					if (data.match.numplayers > 8)
-						V_DrawRightAlignedString(x+152, y, 0, strtime);
-					else
-						V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
+					V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 				}
 				else
 				{
 					if (data.match.val[i] == (UINT32_MAX-1))
-					{
-						if (data.match.numplayers > 8)
-							V_DrawRightAlignedThinString(x+152, y-1, 0, "NO CONTEST");
-						else
-							V_DrawRightAlignedThinString(x+152+BASEVIDWIDTH/2, y-1, 0, "NO CONTEST");
-					}
+						V_DrawRightAlignedThinString(x+152+gutter, y-1, 0, "NO CONTEST.");
 					else
 					{
 						if (intertype == int_race)
 						{
-							snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.val[i], true),
+							snprintf(strtime, sizeof strtime, "%i'%02i\"%02i", G_TicsToMinutes(data.match.val[i], true),
 							G_TicsToSeconds(data.match.val[i]), G_TicsToCentiseconds(data.match.val[i]));
 							strtime[sizeof strtime - 1] = '\0';
 
-							if (data.match.numplayers > 8)
-								V_DrawRightAlignedString(x+152, y, 0, strtime);
-							else
-								V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
+							V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 						}
 						else
-						{
-							if (data.match.numplayers > 8)
-								V_DrawRightAlignedString(x+152, y, 0, va("%i", data.match.val[i]));
-							else
-								V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, va("%i", data.match.val[i]));
-						}
+							V_DrawRightAlignedString(x+152+gutter, y, 0, va("%i", data.match.val[i]));
 					}
 				}
 
@@ -538,11 +520,12 @@ void Y_IntermissionDrawer(void)
 
 			y += 16;
 
-			if (i == 7)
+			if (i == NUMFORNEWCOLUMN-1)
 			{
 				y = 48;
 				x += BASEVIDWIDTH/2;
 			}
+#undef NUMFORNEWCOLUMN
 		}
 	}
 
