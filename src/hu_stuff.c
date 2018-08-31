@@ -757,8 +757,37 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		}
 		else if (target == 0) // To everyone
 		{
-			fmt = "\3%s\x83<%s%s%s\x83>\x80 %s\n";
-			fmt2 = "%s\x83<%s%s%s\x83>\x80 %s";
+			
+					
+			/* 31/8/18: Lat': Exclusive to kart, use a CLOSE ENOUGH colour to the player's for text (we're quite limited with our options, 
+			drawstring really should be able to remap to any palette index........*/
+			
+			// there's a lot of fucking colors wtf
+			INT32 color = players[playernum].mo->color;
+			if (color >= SKINCOLOR_IVORY && color <= SKINCOLOR_SILVER)
+				prefix = "\x80";
+			else if ((color >= SKINCOLOR_CLOUDY && color <= SKINCOLOR_BLACK) || color == SKINCOLOR_JET)	// jet is more black than blue so it goes here.
+				prefix = "\x86";
+			else if (color >= SKINCOLOR_SALMON && color <= SKINCOLOR_CRIMSON)
+				prefix = "\x85";
+			else if (color >= SKINCOLOR_DAWN && color <= SKINCOLOR_CARAMEL)
+				prefix = "\x87";
+			else if (color >= SKINCOLOR_TANGERINE && color <= SKINCOLOR_CANARY)
+				prefix = "\x82";
+			else if (color >= SKINCOLOR_OLIVE && color <= SKINCOLOR_SWAMP)
+				prefix = "\x83";
+			else if ((color >= SKINCOLOR_AQUA && color <= SKINCOLOR_STEEL) || color == SKINCOLOR_SAPPHIRE)	// toaster wanted that specific one too shrug
+				prefix = "\x88";
+			else if (color >= SKINCOLOR_PERIWINKLE && color <= SKINCOLOR_NAVY)
+				prefix = "\x84";
+			else if (color >= SKINCOLOR_DUSK && color <= SKINCOLOR_LILAC)
+				prefix = "\x81";
+			else
+				prefix = "\x83";
+				
+			strcat(cstart, prefix);
+			fmt = "\3%s<%s%s%s>\x80 %s\n";
+			fmt2 = "%s<%s%s%s>\x80 %s";
 		}
 		else if (target-1 == consoleplayer) // To you
 		{
@@ -793,6 +822,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		}
 
+			
 		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
 
 		if OLDCHAT
