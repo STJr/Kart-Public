@@ -4309,8 +4309,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 	}
 
-	if (player->kartstuff[k_growshrinktimer] > 1)
-		player->powers[pw_flashing] = 2;
+	/*if (player->kartstuff[k_growshrinktimer] > 1)
+		player->powers[pw_flashing] = 2;*/
 
 	// Friction
 	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
