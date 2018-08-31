@@ -57,6 +57,7 @@ void K_CalculateBattleWanted(void);
 void K_CheckBumpers(void);
 void K_CheckSpectateStatus(void);
 
+const char *K_GetItemPatch(UINT8 item, boolean small);
 INT32 K_calcSplitFlags(INT32 snapflags);
 void K_LoadKartHUDGraphics(void);
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my);

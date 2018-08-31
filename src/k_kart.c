@@ -388,10 +388,13 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_thundershield);
 	CV_RegisterVar(&cv_hyudoro);
 	CV_RegisterVar(&cv_pogospring);
+	CV_RegisterVar(&cv_kitchensink);
 
 	CV_RegisterVar(&cv_triplesneaker);
 	CV_RegisterVar(&cv_triplebanana);
+	CV_RegisterVar(&cv_decabanana);
 	CV_RegisterVar(&cv_tripleorbinaut);
+	CV_RegisterVar(&cv_quadorbinaut);
 	CV_RegisterVar(&cv_dualjawz);
 
 	CV_RegisterVar(&cv_kartminimap);
@@ -711,7 +714,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			break;
 		case KRITEM_TENFOLDBANANA:
 			POWERITEMODDS(newodds);
-			if (!cv_triplebanana.value) newodds = 0;
+			if (!cv_decabanana.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEORBINAUT:
 			POWERITEMODDS(newodds);
@@ -719,7 +722,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			break;
 		case KRITEM_QUADORBINAUT:
 			POWERITEMODDS(newodds);
-			if (!cv_tripleorbinaut.value) newodds = 0;
+			if (!cv_quadorbinaut.value) newodds = 0;
 			break;
 		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
@@ -2612,7 +2615,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	prandom = P_RandomFixed();
 	S_StartSound(player->mo, sfx_s3k92);
 
-	if (sink && numplayers > 0) // BEHOLD THE KITCHEN SINK
+	if (sink && numplayers > 0 && cv_kitchensink.value) // BEHOLD THE KITCHEN SINK
 	{
 		player->kartstuff[k_hyudorotimer] = hyudorotime;
 		player->kartstuff[k_stealingtimer] = stealtime;
@@ -4950,6 +4953,56 @@ void K_LoadKartHUDGraphics(void)
 	}
 
 	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
+}
+
+// For the item toggle menu
+const char *K_GetItemPatch(UINT8 item, boolean small)
+{
+	switch (item)
+	{
+		case KITEM_SNEAKER:
+		case KRITEM_TRIPLESNEAKER:
+			return (small ? "K_ISSHOE" : "K_ITSHOE");
+		case KITEM_ROCKETSNEAKER:
+			return (small ? "K_ISRSHE" : "K_ITRSHE");
+		case KITEM_INVINCIBILITY:
+			return (small ? "K_ISINV1" : "K_ITINV1");
+		case KITEM_BANANA:
+		case KRITEM_TRIPLEBANANA:
+		case KRITEM_TENFOLDBANANA:
+			return (small ? "K_ISBANA" : "K_ITBANA");
+		case KITEM_EGGMAN:
+			return (small ? "K_ISEGGM" : "K_ITEGGM");
+		case KITEM_ORBINAUT:
+			return (small ? "K_ISORBN" : "K_ITORB1");
+		case KITEM_JAWZ:
+		case KRITEM_DUALJAWZ:
+			return (small ? "K_ISJAWZ" : "K_ITJAWZ");
+		case KITEM_MINE:
+			return (small ? "K_ISMINE" : "K_ITMINE");
+		case KITEM_BALLHOG:
+			return (small ? "K_ISBHOG" : "K_ITBHOG");
+		case KITEM_SPB:
+			return (small ? "K_ISSPB" : "K_ITSPB");
+		case KITEM_GROW:
+			return (small ? "K_ISGROW" : "K_ITGROW");
+		case KITEM_SHRINK:
+			return (small ? "K_ISSHRK" : "K_ITSHRK");
+		case KITEM_THUNDERSHIELD:
+			return (small ? "K_ISTHNS" : "K_ITTHNS");
+		case KITEM_HYUDORO:
+			return (small ? "K_ISHYUD" : "K_ITHYUD");
+		case KITEM_POGOSPRING:
+			return (small ? "K_ISPOGO" : "K_ITPOGO");
+		case KITEM_KITCHENSINK:
+			return (small ? "K_ISSINK" : "K_ITSINK");
+		case KRITEM_TRIPLEORBINAUT:
+			return (small ? "K_ISORBN" : "K_ITORB3");
+		case KRITEM_QUADORBINAUT:
+			return (small ? "K_ISORBN" : "K_ITORB4");
+		default:
+			return (small ? "K_ISSAD" : "K_ITSAD");
+	}
 }
 
 //}
