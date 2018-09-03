@@ -7128,6 +7128,8 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	patch_t *statbg = W_CachePatchName("K_STATBG", PU_CACHE);
+	patch_t *statlr = W_CachePatchName("K_STATLR", PU_CACHE);
+	patch_t *statud = W_CachePatchName("K_STATUD", PU_CACHE);
 	patch_t *statdot = W_CachePatchName("K_SDOT0", PU_CACHE);
 	patch_t *patch;
 	UINT8 frame;
@@ -7135,9 +7137,13 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	UINT8 weight;
 	UINT8 i;
 	const UINT8 *flashcol = V_GetStringColormap(highlightflags);
+	INT32 statx, staty;
 
 	mx = MP_PlayerSetupDef.x;
 	my = MP_PlayerSetupDef.y;
+
+	statx = (BASEVIDWIDTH - mx - 118);
+	staty = (my+62);
 
 	// use generic drawer for cursor, items and title
 	M_DrawGenericMenu();
@@ -7176,7 +7182,16 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	}
 
 	// SRB2Kart: draw the stat backer
-	V_DrawFixedPatch((BASEVIDWIDTH - mx - 117)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, flashcol);
+	// labels
+	V_DrawThinString(statx+16, staty, V_6WIDTHSPACE|highlightflags, "Acceleration");
+	V_DrawThinString(statx+91, staty, V_6WIDTHSPACE|highlightflags, "Max Speed");
+	V_DrawThinString(statx, staty+12, V_6WIDTHSPACE|highlightflags, "Handling");
+	V_DrawThinString(statx+7, staty+77, V_6WIDTHSPACE|highlightflags, "Weight");
+	// label arrows
+	V_DrawFixedPatch((statx+64)<<FRACBITS, staty<<FRACBITS, FRACUNIT, 0, statlr, flashcol);
+	V_DrawFixedPatch((statx+24)<<FRACBITS, (staty+22)<<FRACBITS, FRACUNIT, 0, statud, flashcol);
+	// bg
+	V_DrawFixedPatch((statx+34)<<FRACBITS, (staty+10)<<FRACBITS, FRACUNIT, 0, statbg, 0);
 
 	for (i = 0; i < numskins; i++) // draw the stat dots
 	{
