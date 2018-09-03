@@ -2592,9 +2592,9 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 				if (P_PlayerTouchingSectorSpecial(thing->player, 1, 13)
 				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 13)
 					maxstep <<= 1;
-				// If using type Section1:14, no maxstep. For ledges you want the player to LAND on, not climb! (see: SMK VL2)
-				else if (P_PlayerTouchingSectorSpecial(thing->player, 1, 14)
-				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 14)
+				// If using type Section1:12, no maxstep. For ledges you don't want the player to climb! (see: Egg Zeppelin & SMK port walls)
+				else if (P_PlayerTouchingSectorSpecial(thing->player, 1, 12)
+				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 12)
 					maxstep = 0;
 
 				// Don't 'step up' while springing,
