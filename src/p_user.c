@@ -2939,17 +2939,14 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 		P_InstaThrust(player->mo, player->mo->angle, FixedMul(-4*FRACUNIT, player->mo->scale));
 	}
 
-	if (!demoplayback || P_AnalogMove(player))
-	{
-		if (player == &players[consoleplayer])
-			localangle = player->mo->angle;
-		else if (player == &players[secondarydisplayplayer])
-			localangle2 = player->mo->angle;
-		else if (player == &players[thirddisplayplayer])
-			localangle3 = player->mo->angle;
-		else if (player == &players[fourthdisplayplayer])
-			localangle4 = player->mo->angle;
-	}
+	if (player == &players[consoleplayer])
+		localangle = player->mo->angle;
+	else if (player == &players[secondarydisplayplayer])
+		localangle2 = player->mo->angle;
+	else if (player == &players[thirddisplayplayer])
+		localangle3 = player->mo->angle;
+	else if (player == &players[fourthdisplayplayer])
+		localangle4 = player->mo->angle;
 
 	if (player->climbing == 0)
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
@@ -3772,17 +3769,14 @@ void P_DoJump(player_t *player, boolean soundandstate)
 
 		player->mo->angle = player->mo->angle - ANGLE_180; // Turn around from the wall you were climbing.
 
-		if (!demoplayback || P_AnalogMove(player))
-		{
-			if (player == &players[consoleplayer])
-				localangle = player->mo->angle; // Adjust the local control angle.
-			else if (player == &players[secondarydisplayplayer])
-				localangle2 = player->mo->angle;
-			else if (player == &players[thirddisplayplayer])
-				localangle3 = player->mo->angle;
-			else if (player == &players[fourthdisplayplayer])
-				localangle4 = player->mo->angle;
-		}
+		if (player == &players[consoleplayer])
+			localangle = player->mo->angle; // Adjust the local control angle.
+		else if (player == &players[secondarydisplayplayer])
+			localangle2 = player->mo->angle;
+		else if (player == &players[thirddisplayplayer])
+			localangle3 = player->mo->angle;
+		else if (player == &players[fourthdisplayplayer])
+			localangle4 = player->mo->angle;
 
 		player->climbing = 0; // Stop climbing, duh!
 		P_InstaThrust(player->mo, player->mo->angle, FixedMul(6*FRACUNIT, player->mo->scale)); // Jump off the wall.
@@ -7820,7 +7814,7 @@ void P_HomingAttack(mobj_t *source, mobj_t *enemy) // Home in on your target
 
 	// change angle
 	source->angle = R_PointToAngle2(source->x, source->y, enemy->x, enemy->y);
-	if (source->player && (!demoplayback || P_AnalogMove(source->player)))
+	if (source->player)
 	{
 		if (source->player == &players[consoleplayer])
 			localangle = source->angle;
@@ -8337,54 +8331,40 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			camspeed = FRACUNIT;
 	}
 
-#ifdef REDSANALOG
-	if (P_AnalogMove(player) && (player->cmd.buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)) {
-		camstill = true;
-		if (camspeed < 4*FRACUNIT/5)
-			camspeed = 4*FRACUNIT/5;
-	}
-#endif // REDSANALOG
-
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
 
-	if (twodlevel || (mo->flags2 & MF2_TWOD))
-		angle = ANGLE_90;
-	else if (camstill || resetcalled || player->playerstate == PST_DEAD)
+	if (camstill || resetcalled || player->playerstate == PST_DEAD)
 		angle = thiscam->angle;
-	else if (player->pflags & PF_NIGHTSMODE) // NiGHTS Level
-	{
-		if ((player->pflags & PF_TRANSFERTOCLOSEST) && player->axis1 && player->axis2)
-		{
-			angle = R_PointToAngle2(player->axis1->x, player->axis1->y, player->axis2->x, player->axis2->y);
-			angle += ANGLE_90;
-		}
-		else if (player->mo->target)
-		{
-			if (player->mo->target->flags2 & MF2_AMBUSH)
-				angle = R_PointToAngle2(player->mo->target->x, player->mo->target->y, player->mo->x, player->mo->y);
-			else
-				angle = R_PointToAngle2(player->mo->x, player->mo->y, player->mo->target->x, player->mo->target->y);
-		}
-	}
-	else if (P_AnalogMove(player)) // Analog
-		angle = R_PointToAngle2(thiscam->x, thiscam->y, mo->x, mo->y);
-	else if (demoplayback && leveltime > starttime)
+	else if (leveltime < starttime)
+		angle = focusangle + FixedAngle(camrotate*FRACUNIT);
+	else if (demoplayback)
 	{
 		angle = focusangle;
 		focusangle = R_PointToAngle2(thiscam->x, thiscam->y, mo->x, mo->y);
 		if (player == &players[consoleplayer])
 		{
 			if (focusangle >= localangle)
-				localangle += abs((signed)(focusangle - localangle))>>5;
+				localangle += abs((signed)(focusangle - localangle))>>3;
 			else
-				localangle -= abs((signed)(focusangle - localangle))>>5;
+				localangle -= abs((signed)(focusangle - localangle))>>3;
 		}
 	}
 	else
-		angle = focusangle + FixedAngle(camrotate*FRACUNIT);
+	{
+		angle_t input = focusangle + FixedAngle(camrotate<<FRACBITS) - thiscam->angle;
+		boolean invert = (input > ANGLE_180);
+		if (invert)
+			input = InvAngle(input);
 
-	if (!resetcalled && (leveltime > starttime) && (cv_analog.value || demoplayback)
+		input = FixedAngle(FixedMul(AngleFixed(input), camspeed));
+		if (invert)
+			input = InvAngle(input);
+
+		angle = thiscam->angle + input;
+	}
+
+	if (!resetcalled && (leveltime > starttime)
 		&& ((thiscam == &camera && t_cam_rotate != -42)
 		|| (thiscam == &camera2 && t_cam2_rotate != -42)
 		|| (thiscam == &camera3 && t_cam3_rotate != -42)
@@ -8394,72 +8374,20 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->angle = angle;
 	}
 
-	/* // SRB2kart - camera controls are disabled... for now.
-	if (!objectplacing && !(twodlevel || (mo->flags2 & MF2_TWOD)) && !(player->pflags & PF_NIGHTSMODE) && displayplayer == consoleplayer)
-	{
-#ifdef REDSANALOG
-		if ((player->cmd.buttons & (BT_FORWARD|BT_BACKWARD)) == (BT_FORWARD|BT_BACKWARD)); else
-#endif
-		if (player->cmd.buttons & BT_FORWARD)
-		{
-			if (thiscam == &camera)
-			{
-				if (cv_analog.value || demoplayback)
-					angle -= FixedAngle(cv_cam_rotspeed.value*FRACUNIT);
-				else
-					CV_SetValue(&cv_cam_rotate, camrotate == 0 ? 358
-						: camrotate - 2);
-			}
-			else
-			{
-				if (cv_analog2.value)
-					angle -= FixedAngle(cv_cam2_rotspeed.value*FRACUNIT);
-				else
-					CV_SetValue(&cv_cam2_rotate, camrotate == 0 ? 358
-						: camrotate - 2);
-			}
-		}
-		else if (player->cmd.buttons & BT_BACKWARD)
-		{
-			if (thiscam == &camera)
-			{
-				if (cv_analog.value || demoplayback)
-					angle += FixedAngle(cv_cam_rotspeed.value*FRACUNIT);
-				else
-					CV_SetValue(&cv_cam_rotate, camrotate + 2);
-			}
-			else
-			{
-				if (cv_analog2.value)
-					angle += FixedAngle(cv_cam2_rotspeed.value*FRACUNIT);
-				else
-					CV_SetValue(&cv_cam2_rotate, camrotate + 2);
-			}
-		}
-	}
-	*/
-
 	height = camheight;
 
 	// sets ideal cam pos
-	if (twodlevel || (mo->flags2 & MF2_TWOD))
-		dist = 480<<FRACBITS;
-	else if (player->pflags & PF_NIGHTSMODE)
-		dist = 320<<FRACBITS;
-	else
+	dist = camdist;
+
+	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
+	if (splitscreen == 1) // widescreen splits should get x1.5 distance
 	{
-		dist = camdist;
-
-		// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
-		if (splitscreen == 1) // widescreen splits should get x1.5 distance
-		{
-			dist = FixedMul(dist, 3*FRACUNIT/2);
-			height = FixedMul(height, 3*FRACUNIT/2);
-		}
-
-		if (player->climbing || player->exiting || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
-			dist <<= 1;
+		dist = FixedMul(dist, 3*FRACUNIT/2);
+		height = FixedMul(height, 3*FRACUNIT/2);
 	}
+
+	if (player->climbing || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
+		dist <<= 1;
 
 	checkdist = dist;
 
@@ -8468,38 +8396,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
-
-#if 0
-	if (twodlevel || (mo->flags2 & MF2_TWOD))
-	{
-		// Camera doesn't ALWAYS need to move, only when running...
-		if (abs(player->mo->momx) > 10)
-		{
-			// Move the camera all smooth-like, not jerk it around...
-			if (mo->momx > 0)
-			{
-				if (thiscam->relativex < MAXCAMERADIST)
-					thiscam->relativex += 4*FRACUNIT;
-			}
-			else if (mo->momx < 0)
-			{
-				if (thiscam->relativex > -MAXCAMERADIST)
-					thiscam->relativex -= 4*FRACUNIT;
-			}
-		}
-		else // If speed is less than required, start moving the camera back.
-		{
-			if (thiscam->relativex > 0)
-				thiscam->relativex -= 4*FRACUNIT;
-			else if (thiscam->relativex < 0)
-				thiscam->relativex += 4*FRACUNIT;
-		}
-
-		// Add the relative x to the global x
-		x += thiscam->relativex;
-		y += mo->momy << 1;
-	}
-#endif // bad 2D camera code
 
 	pviewheight = FixedMul(32<<FRACBITS, mo->scale);
 
@@ -8677,7 +8573,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			for (rover = newsubsec->sector->ffloors; rover; rover = rover->next)
 			{
 				fixed_t topheight, bottomheight;
-				if ((rover->flags & FF_BLOCKOTHERS) && (rover->flags & FF_RENDERALL) && (rover->flags & FF_EXISTS) && GETSECSPECIAL(rover->master->frontsector->special, 4) != 12)
+				if ((rover->flags & FF_BLOCKOTHERS) && (rover->flags & FF_RENDERALL) && (rover->flags & FF_EXISTS) && GETSECSPECIAL(rover->master->frontsector->special, 4) == 12)
 				{
 					topheight = P_CameraGetFOFTopZ(thiscam, newsubsec->sector, rover, midx, midy, NULL);
 					bottomheight = P_CameraGetFOFBottomZ(thiscam, newsubsec->sector, rover, midx, midy, NULL);
@@ -8703,15 +8599,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		}
 	}
 
-	if (mo->type == MT_EGGTRAP)
-		z = mo->z + 128*FRACUNIT + pviewheight + camheight;
-
 	if (thiscam->z < thiscam->floorz && !cameranoclip)
 		thiscam->z = thiscam->floorz;
 
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
-	dist = FixedMul(64 << FRACBITS, mapheaderinfo[gamemap-1]->mobj_scale);
+	dist = 64*mapheaderinfo[gamemap-1]->mobj_scale;
 	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
@@ -8721,52 +8614,28 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
-/*
-	if (twodlevel || (mo->flags2 & MF2_TWOD))
-		thiscam->angle = angle;
-*/
-	// follow the player
-	/*if (player->playerstate != PST_DEAD && (camspeed) != 0)
-	{
-		if (P_AproxDistance(mo->x - thiscam->x, mo->y - thiscam->y) > (checkdist + P_AproxDistance(mo->momx, mo->momy)) * 4
-			|| abs(mo->z - thiscam->z) > checkdist * 3)
-		{
-			if (!resetcalled)
-				P_ResetCamera(player, thiscam);
-			return true;
-		}
-	}*/
-
 	if (player->exiting)
 	{
 		thiscam->momx = 0;
 		thiscam->momy = 0;
 		thiscam->momz = 0;
 	}
+	else if (leveltime < starttime)
+	{
+		thiscam->momx = FixedMul(x - thiscam->x, FRACUNIT/4);
+		thiscam->momy = FixedMul(y - thiscam->y, FRACUNIT/4);
+		thiscam->momz = FixedMul(z - thiscam->z, FRACUNIT/4);
+	}
 	else
 	{
-		if (twodlevel || (mo->flags2 & MF2_TWOD))
-		{
-			thiscam->momx = x-thiscam->x;
-			thiscam->momy = y-thiscam->y;
-			thiscam->momz = z-thiscam->z;
-		}
+		thiscam->momx = x-thiscam->x;
+		thiscam->momy = y-thiscam->y;
+#if 1
+		if (player->kartstuff[k_pogospring]) // SRB2Kart: don't follow while bouncing, experimental
+			thiscam->momz = 0;
 		else
-		{
-			thiscam->momx = FixedMul(x - thiscam->x, camspeed);
-			thiscam->momy = FixedMul(y - thiscam->y, camspeed);
-
-			if ((GETSECSPECIAL(thiscam->subsector->sector->special, 1) == 6
-				&& thiscam->z < thiscam->subsector->sector->floorheight + 256*FRACUNIT
-				&& FixedMul(z - thiscam->z, camspeed) < 0)
-#if 0
-				|| player->kartstuff[k_pogospring] // SRB2Kart: don't follow while bouncing, experimental
 #endif
-				)
-				thiscam->momz = 0; // Don't go down a death pit
-			else
-				thiscam->momz = FixedMul(z - thiscam->z, camspeed);
-		}
+		thiscam->momz = z-thiscam->z;
 	}
 
 	// compute aming to look the viewed point
@@ -8778,6 +8647,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		angle = R_PointToAngle2(0, thiscam->z + thiscam->height, dist, mo->z + mo->height - P_GetPlayerHeight(player));
 	else
 		angle = R_PointToAngle2(0, thiscam->z, dist, mo->z + P_GetPlayerHeight(player));
+
 	if (player->playerstate != PST_DEAD && !(player->pflags & PF_NIGHTSMODE && player->exiting))
 		angle += (focusaiming < ANGLE_180 ? focusaiming/2 : InvAngle(InvAngle(focusaiming)/2)); // overcomplicated version of '((signed)focusaiming)/2;'
 
@@ -8788,40 +8658,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->aiming -= (dist>>3);
 	}
 
-	// Make player translucent if camera is too close (only in single player).
-	/*if (!(multiplayer || netgame) && !splitscreen)
-	{
-		fixed_t vx = 0, vy = 0;
-		if (player->awayviewtics) {
-			vx = player->awayviewmobj->x;
-			vy = player->awayviewmobj->y;
-		}
-		else
-		{
-			vx = thiscam->x;
-			vy = thiscam->y;
-		}
-
-		if (P_AproxDistance(vx - player->mo->x, vy - player->mo->y) < FixedMul(48*FRACUNIT, mo->scale))
-			player->mo->flags2 |= MF2_SHADOW;
-		else
-			player->mo->flags2 &= ~MF2_SHADOW;
-	}
-	else
-		player->mo->flags2 &= ~MF2_SHADOW;*/
-
-/*	if (!resetcalled && (player->pflags & PF_NIGHTSMODE && player->exiting))
-	{
-		// Don't let the camera match your movement.
-		thiscam->momz = 0;
-
-		// Only let the camera go a little bit upwards.
-		if (mo->eflags & MFE_VERTICALFLIP && thiscam->aiming < ANGLE_315 && thiscam->aiming > ANGLE_180)
-			thiscam->aiming = ANGLE_315;
-		else if (!(mo->eflags & MFE_VERTICALFLIP) && thiscam->aiming > ANGLE_45 && thiscam->aiming < ANGLE_180)
-			thiscam->aiming = ANGLE_45;
-	}
-	else */if (!resetcalled && (player->playerstate == PST_DEAD || player->playerstate == PST_REBORN))
+	if (!resetcalled && (player->playerstate == PST_DEAD || player->playerstate == PST_REBORN))
 	{
 		// Don't let the camera match your movement.
 		thiscam->momz = 0;
@@ -8832,17 +8669,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		else if (mo->eflags & MFE_VERTICALFLIP && thiscam->aiming > ANGLE_22h && thiscam->aiming < ANGLE_180)
 			thiscam->aiming = ANGLE_22h;
 	}
-
-#if 0
-	// SRB2Kart: keep camera the same distance away from the player, while maintaining its angle
-	{
-		fixed_t xlen = (thiscam->x+thiscam->momx) - (mo->x+mo->momx);
-		fixed_t ylen = (thiscam->y+thiscam->momy) - (mo->y+mo->momy);
-		fixed_t xydist = P_AproxDistance(xlen, ylen);
-		thiscam->momx = FixedMul(dist, FixedDiv(xlen, xydist));
-		thiscam->momy = FixedMul(dist, FixedDiv(ylen, xydist));
-	}
-#endif
 
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
@@ -9886,17 +9712,14 @@ void P_PlayerAfterThink(player_t *player)
 		{
 			player->mo->angle = player->mo->tracer->angle;
 
-			if (!demoplayback || P_AnalogMove(player))
-			{
-				if (player == &players[consoleplayer])
-					localangle = player->mo->angle;
-				else if (player == &players[secondarydisplayplayer])
-					localangle2 = player->mo->angle;
-				else if (player == &players[thirddisplayplayer])
-					localangle3 = player->mo->angle;
-				else if (player == &players[fourthdisplayplayer])
-					localangle4 = player->mo->angle;
-			}
+			if (player == &players[consoleplayer])
+				localangle = player->mo->angle;
+			else if (player == &players[secondarydisplayplayer])
+				localangle2 = player->mo->angle;
+			else if (player == &players[thirddisplayplayer])
+				localangle3 = player->mo->angle;
+			else if (player == &players[fourthdisplayplayer])
+				localangle4 = player->mo->angle;
 		}
 
 		if (P_AproxDistance(player->mo->x - player->mo->tracer->x, player->mo->y - player->mo->tracer->y) > player->mo->radius)
@@ -9963,17 +9786,14 @@ void P_PlayerAfterThink(player_t *player)
 			player->mo->tracer->target->health += cmd->sidemove;
 			player->mo->angle += cmd->sidemove<<ANGLETOFINESHIFT; // 2048 --> ANGLE_MAX
 
-			if (!demoplayback || P_AnalogMove(player))
-			{
-				if (player == &players[consoleplayer])
-					localangle = player->mo->angle; // Adjust the local control angle.
-				else if (player == &players[secondarydisplayplayer])
-					localangle2 = player->mo->angle;
-				else if (player == &players[thirddisplayplayer])
-					localangle3 = player->mo->angle;
-				else if (player == &players[fourthdisplayplayer])
-					localangle4 = player->mo->angle;
-			}
+			if (player == &players[consoleplayer])
+				localangle = player->mo->angle; // Adjust the local control angle.
+			else if (player == &players[secondarydisplayplayer])
+				localangle2 = player->mo->angle;
+			else if (player == &players[thirddisplayplayer])
+				localangle3 = player->mo->angle;
+			else if (player == &players[fourthdisplayplayer])
+				localangle4 = player->mo->angle;
 		}
 	}
 
