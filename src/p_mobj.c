@@ -1404,8 +1404,11 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_BANANA:
 				case MT_FAKEITEM:
 				case MT_SSMINE:
-				case MT_SINK:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
+					break;
+				case MT_SINK:
+					gravityadd = FixedMul(gravityadd, 5*FRACUNIT); // Double gravity
+					break;
 				default:
 					break;
 			}

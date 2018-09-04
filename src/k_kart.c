@@ -2402,7 +2402,7 @@ static mobj_t *K_FindLastTrailMobj(player_t *player)
 	return trail;
 }
 
-static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean minethrow)
+static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, INT32 altthrow)
 {
 	mobj_t *mo;
 	INT32 dir, PROJSPEED;
@@ -2427,14 +2427,26 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			break;
 	}
 
-	if (minethrow)
+	if (altthrow)
 	{
-		if (player->kartstuff[k_throwdir] == 1)
-			dir = 2;
-		else if (player->kartstuff[k_throwdir] == -1 && mapthing != MT_SINK)
-			dir = -1;
+		if (altthrow == 2) // Kitchen sink throwing
+		{
+			if (player->kartstuff[k_throwdir] == 1)
+				dir = 3;
+			else if (player->kartstuff[k_throwdir] == -1)
+				dir = 1;
+			else
+				dir = 2;
+		}
 		else
-			dir = 1;
+		{
+			if (player->kartstuff[k_throwdir] == 1)
+				dir = 2;
+			else if (player->kartstuff[k_throwdir] == -1)
+				dir = -1;
+			else
+				dir = 1;
+		}
 	}
 	else
 	{
@@ -2485,7 +2497,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	{
 		player->kartstuff[k_bananadrag] = 0; // RESET timer, for multiple bananas
 
-		if (dir == 1 || dir == 2)
+		if (dir > 0)
 		{
 			// Shoot forward
 			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, mapthing);
@@ -2498,15 +2510,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 HEIGHT;
+				INT32 HEIGHT = (20 + (dir*10))*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
 
-				if (dir == 2)
-					HEIGHT = 40*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
-				else
-					HEIGHT = 30*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
-
-				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
-				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
+				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
+				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
@@ -2991,7 +2998,8 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
 
-				if (P_IsObjectOnGround(player->mo) && player->speed > 0)
+				if (P_IsObjectOnGround(player->mo) && player->speed > 0
+					&& player->mo->hnext->type != MT_SINK_SHIELD) // Sink ignores debuff, and is only visible to the owner. More of a HUD indicator than an actual shield.
 				{
 					player->kartstuff[k_bananadrag]++;
 					if (player->kartstuff[k_bananadrag] > TICRATE)
@@ -3006,13 +3014,18 @@ static void K_MoveHeldObjects(player_t *player)
 				{
 					const fixed_t radius = FixedHypot(targ->radius, targ->radius) + FixedHypot(cur->radius, cur->radius);
 					angle_t ang;
-					fixed_t targx;
-					fixed_t targy;
-					fixed_t targz;
-					fixed_t speed;
-					fixed_t dist;
+					fixed_t targx, targy, targz;
+					fixed_t speed, dist;
 
 					cur->flags &= ~MF_NOCLIPTHING;
+
+					if (cur->type == MT_SINK_SHIELD)
+					{
+						if (P_IsLocalPlayer(player))
+							cur->flags2 &= ~MF2_DONTDRAW;
+						else
+							cur->flags2 |= MF2_DONTDRAW;
+					}
 
 					if (!cur->health)
 					{
@@ -3915,7 +3928,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Eggman Monitor throwing
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
-			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
+			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, 0);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
 			K_CleanHnextList(player->mo);
@@ -4002,7 +4015,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Banana x3 thrown
 					{
-						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
+						K_ThrowKartItem(player, false, MT_BANANA, -1, 0);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
@@ -4062,7 +4075,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Orbinaut x3 thrown
 					{
-						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, false);
+						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, 0);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
@@ -4103,9 +4116,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Jawz thrown
 					{
 						if (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0)
-							K_ThrowKartItem(player, true, MT_JAWZ, 1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ, 1, 0);
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
-							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, 0);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
@@ -4130,7 +4143,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld])
 					{
-						K_ThrowKartItem(player, false, MT_SSMINE, 1, true);
+						K_ThrowKartItem(player, false, MT_SSMINE, 1, 1);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
@@ -4141,7 +4154,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						player->kartstuff[k_itemamount]--;
-						K_ThrowKartItem(player, true, MT_BALLHOG, 1, false);
+						K_ThrowKartItem(player, true, MT_BALLHOG, 1, 0);
 						S_StartSound(player->mo, sfx_mario7);
 						K_PlayTauntSound(player->mo);
 					}
@@ -4243,7 +4256,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						mobj_t *mo;
 						player->kartstuff[k_itemheld] = 1;
-						S_StartSound(player->mo, sfx_s254);
+						if (P_IsLocalPlayer(player))
+							S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SINK_SHIELD);
 						if (mo)
 						{
@@ -4257,7 +4271,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Sink thrown
 					{
-						K_ThrowKartItem(player, false, MT_SINK, 1, true);
+						K_ThrowKartItem(player, false, MT_SINK, 1, 2);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
