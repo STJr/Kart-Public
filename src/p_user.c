@@ -8233,8 +8233,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	mo = player->mo;
 
-	thiscam->radius = FixedMul(20*FRACUNIT, mo->scale);
-	thiscam->height = FixedMul(16*FRACUNIT, mo->scale);
+	thiscam->radius = FixedMul(20*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
+	thiscam->height = FixedMul(16*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
 
 	if (!mo)
 		return true;
@@ -8408,7 +8408,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
-	pviewheight = FixedMul(32<<FRACBITS, mo->scale);
 	pan = thiscam->pan + FixedMul(pan - thiscam->pan, camspeed/4);
 
 	xpan = FixedMul(FINECOSINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
@@ -8417,9 +8416,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	x += xpan;
 	y += ypan;
 
+	pviewheight = FixedMul(32<<FRACBITS, mapheaderinfo[gamemap-1]->mobj_scale);
 
 	if (mo->eflags & MFE_VERTICALFLIP)
-		z = mo->z + mo->height - pviewheight - camheight;
+		z = mo->z + mobjinfo[mo->type].height - pviewheight - camheight;
 	else
 		z = mo->z + pviewheight + camheight;
 

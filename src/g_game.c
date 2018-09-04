@@ -1857,6 +1857,7 @@ boolean G_Responder(event_t *ev)
 
 			// tell who's the view
 			CONS_Printf(M_GetText("Viewpoint: %s\n"), player_names[displayplayer]);
+			P_ResetCamera(&players[displayplayer], &camera);
 
 			return true;
 		}
