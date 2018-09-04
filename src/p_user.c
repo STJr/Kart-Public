@@ -8371,6 +8371,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	// sets ideal cam pos
 	dist = camdist;
 
+	if (player->speed > K_GetKartSpeed(player, false))
+		dist += 3*(player->speed - K_GetKartSpeed(player, false));
+
+	if (player->climbing || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
+		dist <<= 1;
+
 	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
 	if (splitscreen == 1) // widescreen splits should get x1.5 distance
 	{
@@ -8378,9 +8384,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		height = FixedMul(height, 3*FRACUNIT/2);
 	}
 
+	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
+	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
+
+	// SRB2Kart: set camera panning
 	if (player->kartstuff[k_drift] != 0)
 	{
-		fixed_t panmax = (dist/5);
+		fixed_t panmax = (camdist/5);
 		pan = min(player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
 		if (pan > panmax)
 			pan = panmax;
@@ -8389,15 +8399,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 	else
 		pan = 0;
-
-	if (player->speed > K_GetKartSpeed(player, false))
-		dist += 3*(player->speed - K_GetKartSpeed(player, false));
-
-	if (player->climbing || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
-		dist <<= 1;
-
-	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
-	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
 	pan = thiscam->pan + FixedMul(pan - thiscam->pan, camspeed/4);
 
