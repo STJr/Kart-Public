@@ -8630,7 +8630,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		thiscam->momx = x-thiscam->x;
 		thiscam->momy = y-thiscam->y;
-#if 1
+#if 0
 		if (player->kartstuff[k_pogospring]) // SRB2Kart: don't follow while bouncing, experimental
 			thiscam->momz = 0;
 		else
