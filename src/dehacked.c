@@ -6481,6 +6481,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	// The legend
 	"S_SINK",
+	"S_SINK_SHIELD",
 	"S_SINKTRAIL1",
 	"S_SINKTRAIL2",
 	"S_SINKTRAIL3",
@@ -7249,6 +7250,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_THUNDERSHIELD", // Thunder Shield stuff
 
 	"MT_SINK", // Kitchen Sink Stuff
+	"MT_SINK_SHIELD",
 	"MT_SINKTRAIL",
 
 	"MT_BATTLEBUMPER", // Battle Mode bumper

@@ -2795,10 +2795,11 @@ state_t states[NUMSTATES] =
 	{SPR_THNS, 10, 2, {NULL}, 0, 0, S_THUNDERSHIELD24},		// S_THUNDERSHIELD23
 	{SPR_THNS, 11, 2, {NULL}, 0, 0, S_THUNDERSHIELD1},		// S_THUNDERSHIELD24
 
-	{SPR_SINK, 0,  4, {A_SmokeTrailer}, MT_SINKTRAIL, 0, S_SINK}, // S_SINK
-	{SPR_SITR, 0,  1, {NULL}, 0, 0, S_SINKTRAIL2},                       // S_SINKTRAIL1
-	{SPR_SITR, 1,  5, {NULL}, 0, 0, S_SINKTRAIL3},                       // S_SINKTRAIL2
-	{SPR_SITR, 2,  3, {NULL}, 0, 0, S_NULL},                             // S_SINKTRAIL3
+	{SPR_SINK, 0,  4, {A_SmokeTrailer}, MT_SINKTRAIL, 0, S_SINK},	// S_SINK
+	{SPR_SINK, 0|FF_TRANS80|FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_SINK_SHIELD}, // S_SINK_SHIELD
+	{SPR_SITR, 0,  1, {NULL}, 0, 0, S_SINKTRAIL2},				// S_SINKTRAIL1
+	{SPR_SITR, 1,  5, {NULL}, 0, 0, S_SINKTRAIL3},				// S_SINKTRAIL2
+	{SPR_SITR, 2,  3, {NULL}, 0, 0, S_NULL},						// S_SINKTRAIL3
 
 	{SPR_KBLN, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_BATTLEBUMPER1}, // S_BATTLEBUMPER1
 	{SPR_KBLN, FF_FULLBRIGHT|1, -1, {NULL}, 0, 0, S_BATTLEBUMPER2}, // S_BATTLEBUMPER2
@@ -15196,6 +15197,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,              // damage
 		sfx_bomb,       // activesound
 		MF_BOUNCE|MF_SHOOTABLE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SINK_SHIELD
+		-1,             // doomednum
+		S_SINK_SHIELD,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		100,            // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		24*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 

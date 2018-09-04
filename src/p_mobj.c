@@ -6720,6 +6720,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_BANANA_SHIELD:
 			case MT_SSMINE_SHIELD:
 			case MT_FAKESHIELD:
+			case MT_SINK_SHIELD:
 				/*if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{

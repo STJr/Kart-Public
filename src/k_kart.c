@@ -2986,6 +2986,7 @@ static void K_MoveHeldObjects(player_t *player)
 		case MT_BANANA_SHIELD: // Kart trailing items
 		case MT_SSMINE_SHIELD:
 		case MT_FAKESHIELD:
+		case MT_SINK_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
@@ -4240,10 +4241,27 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_KITCHENSINK:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
+						mobj_t *mo;
+						player->kartstuff[k_itemheld] = 1;
+						S_StartSound(player->mo, sfx_s254);
+						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SINK_SHIELD);
+						if (mo)
+						{
+							mo->flags |= MF_NOCLIPTHING;
+							mo->threshold = 10;
+							mo->movecount = 1;
+							mo->movedir = 1;
+							P_SetTarget(&mo->target, player->mo);
+							P_SetTarget(&player->mo->hnext, mo);
+						}
+					}
+					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Sink thrown
+					{
 						K_ThrowKartItem(player, false, MT_SINK, 1, true);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
+						K_CleanHnextList(player->mo);
 					}
 					break;
 				case KITEM_SAD:

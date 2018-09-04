@@ -3326,6 +3326,7 @@ typedef enum state
 
 	// The legend
 	S_SINK,
+	S_SINK_SHIELD,
 	S_SINKTRAIL1,
 	S_SINKTRAIL2,
 	S_SINKTRAIL3,
@@ -4111,6 +4112,7 @@ typedef enum mobj_type
 	MT_THUNDERSHIELD, // Thunder Shield stuff
 
 	MT_SINK, // Kitchen Sink Stuff
+	MT_SINK_SHIELD,
 	MT_SINKTRAIL,
 
 	MT_BATTLEBUMPER, // Battle Mode bumpers
