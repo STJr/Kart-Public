@@ -107,6 +107,9 @@ typedef struct camera_s
 
 	// Momentums, used to update position.
 	fixed_t momx, momy, momz;
+
+	// SRB2Kart: camera pans while drifting
+	fixed_t pan;
 } camera_t;
 
 extern camera_t camera, camera2, camera3, camera4;

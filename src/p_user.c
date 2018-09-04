@@ -8162,7 +8162,8 @@ void P_ResetCamera(player_t *player, camera_t *thiscam)
 boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcalled)
 {
 	angle_t angle = 0, focusangle = 0, focusaiming = 0;
-	fixed_t x, y, z, dist, height, checkdist, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
+	fixed_t x, y, z, dist, height, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
+	fixed_t pan, xpan, ypan;
 	INT32 camrotate;
 	boolean camstill, cameranoclip, lookback;
 	mobj_t *mo;
@@ -8379,9 +8380,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	// sets ideal cam pos
 	dist = camdist;
 
-	if (player->speed > K_GetKartSpeed(player, false))
-		dist += 3*(player->speed - K_GetKartSpeed(player, false));
-
 	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
 	if (splitscreen == 1) // widescreen splits should get x1.5 distance
 	{
@@ -8389,18 +8387,36 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		height = FixedMul(height, 3*FRACUNIT/2);
 	}
 
+	if (player->kartstuff[k_drift] != 0)
+	{
+		fixed_t panmax = (dist/5);
+		pan = min(player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
+		if (pan > panmax)
+			pan = panmax;
+		if (player->kartstuff[k_drift] < 0)
+			pan *= -1;
+	}
+	else
+		pan = 0;
+
+	if (player->speed > K_GetKartSpeed(player, false))
+		dist += 3*(player->speed - K_GetKartSpeed(player, false));
+
 	if (player->climbing || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
 		dist <<= 1;
-
-	checkdist = dist;
-
-	if (checkdist < 128*FRACUNIT)
-		checkdist = 128*FRACUNIT;
 
 	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
 	pviewheight = FixedMul(32<<FRACBITS, mo->scale);
+	pan = thiscam->pan + FixedMul(pan - thiscam->pan, camspeed/4);
+
+	xpan = FixedMul(FINECOSINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
+	ypan = FixedMul(FINESINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
+
+	x += xpan;
+	y += ypan;
+
 
 	if (mo->eflags & MFE_VERTICALFLIP)
 		z = mo->z + mo->height - pviewheight - camheight;
@@ -8608,14 +8624,11 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
 	dist = 64*mapheaderinfo[gamemap-1]->mobj_scale;
-	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
-	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
+	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + xpan;
+	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + ypan;
 
 	if (!camstill && !resetcalled && !paused)
 		thiscam->angle = R_PointToAngle2(thiscam->x, thiscam->y, viewpointx, viewpointy);
-
-	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
-	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
 	if (player->exiting)
 	{
@@ -8635,6 +8648,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->momy = y - thiscam->y;
 		thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
 	}
+
+	thiscam->pan = pan;
 
 	// compute aming to look the viewed point
 	f1 = viewpointx-thiscam->x;
