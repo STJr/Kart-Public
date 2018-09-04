@@ -298,6 +298,8 @@ typedef enum
 	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
 	k_waterskip,		// Water skipping counter
 	k_dashpadcooldown,	// Separate the vanilla SA-style dash pads from using pw_flashing
+	k_speedboost,		// Boost value smoothing for max speed
+	k_accelboost,		// Boost value smoothing for acceleration
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
@@ -323,7 +325,7 @@ typedef enum
 	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
 	k_eggmanblame,			// Fake item recieved, who set this fake
 	k_lastjawztarget,		// Last person you target with jawz, for playing the target switch sfx
-	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
+	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_wipeoutslow,			// Timer before you slowdown when getting wiped out
 	k_justbumped,			// Prevent players from endlessly bumping into each other

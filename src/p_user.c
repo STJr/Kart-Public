@@ -8379,6 +8379,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	// sets ideal cam pos
 	dist = camdist;
 
+	if (player->speed > K_GetKartSpeed(player, false))
+		dist += 3*(player->speed - K_GetKartSpeed(player, false));
+
 	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
 	if (splitscreen == 1) // widescreen splits should get x1.5 distance
 	{
@@ -8628,8 +8631,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 	else
 	{
-		thiscam->momx = x-thiscam->x;
-		thiscam->momy = y-thiscam->y;
+		thiscam->momx = x - thiscam->x;
+		thiscam->momy = y - thiscam->y;
 		thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
 	}
 

@@ -1443,67 +1443,69 @@ void K_MomentumToFacing(player_t *player)
 }
 
 // if speed is true it gets the speed boost power, otherwise it gets the acceleration
-static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
+static void K_GetKartBoostPower(player_t *player)
 {
 	fixed_t boostpower = FRACUNIT;
-	fixed_t boostvalue = 0;
+	fixed_t speedboost = 0, accelboost = 0;
 
 	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] == 1) // Slow down after you've been bumped
-		return 0;
+	{
+		player->kartstuff[k_speedboost] = player->kartstuff[k_accelboost] = 0;
+		return;
+	}
 
 	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
 	if (!(player->kartstuff[k_invincibilitytimer] || player->kartstuff[k_hyudorotimer] || player->kartstuff[k_sneakertimer])
-		&& player->kartstuff[k_offroad] >= 0 && speed)
+		&& player->kartstuff[k_offroad] >= 0)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
 	if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
-	if (player->kartstuff[k_growshrinktimer] > 0)
-	{												// Grow
-		if (speed)
+	if (player->kartstuff[k_growshrinktimer] > 0) // Grow
+	{
+		speedboost = max(speedboost, FRACUNIT/5); // + 20%
+	}
+
+	if (player->kartstuff[k_invincibilitytimer]) // Invincibility
+	{
+		speedboost = max(speedboost, 3*(FRACUNIT/8)); // + 37.5%
+		accelboost = max(accelboost, 3*FRACUNIT); // + 600%
+	}
+
+	if (player->kartstuff[k_driftboost]) // Drift Boost
+	{
+		speedboost = max(speedboost, FRACUNIT/4); // + 25%
+		accelboost = max(accelboost, 4*FRACUNIT); // + 400%
+	}
+
+	if (player->kartstuff[k_sneakertimer]) // Sneaker
+	{
+		switch (gamespeed)
 		{
-			boostvalue = max(boostvalue, FRACUNIT/5); // + 20%
+			case 0:
+				speedboost = max(speedboost, 53740+768);
+				break;
+			case 2:
+				speedboost = max(speedboost, 17294+768);
+				break;
+			default:
+				speedboost = max(speedboost, 32768);
+				break;
 		}
+		accelboost = max(accelboost, 8*FRACUNIT); // + 800%
 	}
-	if (player->kartstuff[k_invincibilitytimer])
-	{												// Invincibility
-		if (speed)
-			boostvalue = max(boostvalue, 3*(FRACUNIT/8)); // + 37.5%
-		else
-			boostvalue = max(boostvalue, 3*FRACUNIT); // + 600%
-	}
-	if (player->kartstuff[k_driftboost])
-	{												// Drift Boost
-		if (speed)
-			boostvalue = max(boostvalue, FRACUNIT/4); // + 25%
-		else
-			boostvalue = max(boostvalue, 4*FRACUNIT); // + 400%
-	}
-	if (player->kartstuff[k_sneakertimer])
-	{												// Sneaker
-		if (speed)
-		{
-			switch (gamespeed)
-			{
-				case 0:
-					boostvalue = max(boostvalue, 53740+768);
-					break;
-				case 2:
-					boostvalue = max(boostvalue, 17294+768);
-					break;
-				default:
-					boostvalue = max(boostvalue, 32768);
-					break;
-			}
-		}
-		else
-			boostvalue = max(boostvalue, 8*FRACUNIT); // + 800%
-	}
+
 	// don't average them anymore, this would make a small boost and a high boost less useful
 	// just take the highest we want instead
 
-	return boostpower + boostvalue;
+	if (boostpower + speedboost > player->kartstuff[k_speedboost])
+		player->kartstuff[k_speedboost] += ((boostpower+speedboost) - player->kartstuff[k_speedboost])/(TICRATE/2); // Quick increase if higher
+	else
+		player->kartstuff[k_speedboost] += ((boostpower+speedboost) - player->kartstuff[k_speedboost])/TICRATE; // Smoothly decrease if lower
+
+	// Accel isn't affected by boostpower, hence the FRACUNIT. Probably for making acceleration feel consistent in offroad.
+	player->kartstuff[k_accelboost] = FRACUNIT+accelboost;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
@@ -1538,7 +1540,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
 	if (doboostpower)
-		return FixedMul(finalspeed, K_GetKartBoostPower(player, true));
+		return FixedMul(finalspeed, player->kartstuff[k_speedboost]);
 	return finalspeed;
 }
 
@@ -1553,7 +1555,7 @@ fixed_t K_GetKartAccel(player_t *player)
 	//k_accel += 3 * (9 - kartspeed); // 36 - 60
 	k_accel += 4 * (9 - kartspeed); // 32 - 64
 
-	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
+	return FixedMul(k_accel, player->kartstuff[k_accelboost]);
 }
 
 UINT16 K_GetKartFlashing(player_t *player)
@@ -3163,6 +3165,7 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
+	K_GetKartBoostPower(player);
 
 	if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie
 	{
