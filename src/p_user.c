@@ -8622,20 +8622,15 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 	else if (leveltime < starttime)
 	{
-		thiscam->momx = FixedMul(x - thiscam->x, FRACUNIT/4);
-		thiscam->momy = FixedMul(y - thiscam->y, FRACUNIT/4);
-		thiscam->momz = FixedMul(z - thiscam->z, FRACUNIT/4);
+		thiscam->momx = FixedMul(x - thiscam->x, camspeed);
+		thiscam->momy = FixedMul(y - thiscam->y, camspeed);
+		thiscam->momz = FixedMul(z - thiscam->z, camspeed);
 	}
 	else
 	{
 		thiscam->momx = x-thiscam->x;
 		thiscam->momy = y-thiscam->y;
-#if 0
-		if (player->kartstuff[k_pogospring]) // SRB2Kart: don't follow while bouncing, experimental
-			thiscam->momz = 0;
-		else
-#endif
-		thiscam->momz = z-thiscam->z;
+		thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
 	}
 
 	// compute aming to look the viewed point
