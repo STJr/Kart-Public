@@ -1502,12 +1502,12 @@ static void K_GetKartBoostPower(player_t *player)
 	// just take the highest we want instead
 
 	if (boostpower + speedboost > player->kartstuff[k_speedboost])
-		player->kartstuff[k_speedboost] += ((boostpower+speedboost) - player->kartstuff[k_speedboost])/(TICRATE/2); // Quick increase if higher
+		player->kartstuff[k_speedboost] = boostpower + speedboost; // Immediate increase if higher
 	else
-		player->kartstuff[k_speedboost] += ((boostpower+speedboost) - player->kartstuff[k_speedboost])/TICRATE; // Smoothly decrease if lower
+		player->kartstuff[k_speedboost] += ((boostpower + speedboost) - player->kartstuff[k_speedboost])/TICRATE; // Smoothly decrease if lower
 
 	// Accel isn't affected by boostpower, hence the FRACUNIT. Probably for making acceleration feel consistent in offroad.
-	player->kartstuff[k_accelboost] = FRACUNIT+accelboost;
+	player->kartstuff[k_accelboost] = FRACUNIT + accelboost;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
@@ -2672,6 +2672,8 @@ static void K_DoHyudoroSteal(player_t *player)
 
 void K_DoSneaker(player_t *player, boolean doPFlag)
 {
+	const fixed_t prevboost = player->kartstuff[k_speedboost];
+
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
 		S_StartSound(player->mo, sfx_cdfm01);
 
@@ -2681,6 +2683,11 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 		player->pflags |= PF_ATTACKDOWN;
 
 	K_PlayTauntSound(player->mo);
+
+	K_GetKartBoostPower(player);
+
+	// Push the camera forward, the amount depending on how much the speed boost increases
+	player->kartstuff[k_destboostcam] = FixedMul(FRACUNIT, player->kartstuff[k_speedboost]-prevboost);
 }
 
 static void K_DoShrink(player_t *player)
@@ -3235,6 +3242,25 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		ghost->momy = player->mo->momy / (player->kartstuff[k_dashpadcooldown]+1);
 		ghost->momz = player->mo->momz / (player->kartstuff[k_dashpadcooldown]+1);
 		player->kartstuff[k_dashpadcooldown]--;
+	}
+
+	// DKR style camera for boosting
+	if (player->kartstuff[k_boostcam] != 0 || player->kartstuff[k_destboostcam] != 0)
+	{
+		if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam]
+			&& player->kartstuff[k_destboostcam] != 0)
+		{
+			player->kartstuff[k_boostcam] += FRACUNIT/8;
+			if (player->kartstuff[k_boostcam] >= player->kartstuff[k_destboostcam])
+				player->kartstuff[k_destboostcam] = 0;
+		}
+		else
+		{
+			player->kartstuff[k_boostcam] -= FRACUNIT/8;
+			if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam])
+				player->kartstuff[k_boostcam] = player->kartstuff[k_destboostcam] = 0;
+		}
+		//CONS_Printf("cam: %d, dest: %d\n", player->kartstuff[k_boostcam], player->kartstuff[k_destboostcam]);
 	}
 
 	if (player->kartstuff[k_spinouttimer])

@@ -300,6 +300,8 @@ typedef enum
 	k_dashpadcooldown,	// Separate the vanilla SA-style dash pads from using pw_flashing
 	k_speedboost,		// Boost value smoothing for max speed
 	k_accelboost,		// Boost value smoothing for acceleration
+	k_boostcam,			// Camera push forward on boost
+	k_destboostcam,		// Ditto
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
