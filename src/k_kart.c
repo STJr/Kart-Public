@@ -1460,7 +1460,7 @@ static void K_GetKartBoostPower(player_t *player)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
 	if (player->kartstuff[k_itemtype] == KITEM_KITCHENSINK)
-		boostpower = max((TICRATE/2), (5*TICRATE)-player->kartstuff[k_bananadrag])*boostpower/(5*TICRATE);
+		boostpower = max((TICRATE/2), (5*TICRATE)-(player->kartstuff[k_bananadrag]/2))*boostpower/(5*TICRATE);
 	else if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
