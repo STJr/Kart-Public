@@ -4490,7 +4490,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 void K_CalculateBattleWanted(void)
 {
-	UINT8 numingame = 0, numwanted = 0;
+	UINT8 numingame = 0, numplaying = 0, numwanted = 0;
 	SINT8 bestbumperplayer = -1, bestbumper = -1;
 	SINT8 camppos[MAXPLAYERS]; // who is the biggest camper
 	UINT8 ties = 0, nextcamppos = 0;
@@ -4518,6 +4518,8 @@ void K_CalculateBattleWanted(void)
 
 		if (players[i].exiting) // We're done, don't calculate.
 			return;
+
+		numplaying++;
 
 		if (players[i].kartstuff[k_bumper] <= 0) // Not alive, so don't do anything else
 			continue;
@@ -4554,7 +4556,7 @@ void K_CalculateBattleWanted(void)
 		camppos[position] = i;
 	}
 
-	if (numingame <= 2)
+	if (numplaying <= 2 || (numingame <= 2 && bestbumper == 1)) // In 1v1s then there's no need for WANTED. In bigger netgames, don't show anyone as WANTED when they're equally matched.
 		numwanted = 0;
 	else
 		numwanted = min(4, 1 + ((numingame-2) / 4));
