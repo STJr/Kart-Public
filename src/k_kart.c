@@ -1459,7 +1459,9 @@ static void K_GetKartBoostPower(player_t *player)
 		&& player->kartstuff[k_offroad] >= 0)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_bananadrag] > TICRATE)
+	if (player->kartstuff[k_itemtype] == KITEM_KITCHENSINK)
+		boostpower = max((TICRATE/2), (5*TICRATE)-player->kartstuff[k_bananadrag])*boostpower/(5*TICRATE);
+	else if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
 	if (player->kartstuff[k_growshrinktimer] > 0) // Grow
@@ -2998,8 +3000,7 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
 
-				if (P_IsObjectOnGround(player->mo) && player->speed > 0
-					&& player->mo->hnext->type != MT_SINK_SHIELD) // Sink ignores debuff, and is only visible to the owner. More of a HUD indicator than an actual shield.
+				if (P_IsObjectOnGround(player->mo) && player->speed > 0)
 				{
 					player->kartstuff[k_bananadrag]++;
 					if (player->kartstuff[k_bananadrag] > TICRATE)
@@ -3018,14 +3019,6 @@ static void K_MoveHeldObjects(player_t *player)
 					fixed_t speed, dist;
 
 					cur->flags &= ~MF_NOCLIPTHING;
-
-					if (cur->type == MT_SINK_SHIELD)
-					{
-						if (P_IsLocalPlayer(player))
-							cur->flags2 &= ~MF2_DONTDRAW;
-						else
-							cur->flags2 |= MF2_DONTDRAW;
-					}
 
 					if (!cur->health)
 					{
@@ -4256,8 +4249,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						mobj_t *mo;
 						player->kartstuff[k_itemheld] = 1;
-						if (P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_s254);
+						S_StartSound(player->mo, sfx_s254);
 						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SINK_SHIELD);
 						if (mo)
 						{
