@@ -3209,10 +3209,6 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 		if (player->kartstuff[k_hyudorotimer])
 			continue;
 
-		// Z pos too high/low
-		if (abs(player->mo->z - (actor->z + actor->momz)) > 48<<FRACBITS)
-			continue;
-
 		// Find the angle, see who's got the best.
 		thisang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
 		if (thisang > ANGLE_180)
@@ -3240,9 +3236,13 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 			if (player->kartstuff[k_bumper] <= 0)
 				continue;
 
+			// Z pos too high/low
+			if (abs(player->mo->z - (actor->z + actor->momz)) > RING_DIST/8)
+				continue;
+
 			thisdist = P_AproxDistance(player->mo->x - (actor->x + actor->momx), player->mo->y - (actor->y + actor->momy));
 
-			if (thisdist > RING_DIST) // Don't go for people who are too far away
+			if (thisdist > 2*RING_DIST) // Don't go for people who are too far away
 				continue;
 
 			thisavg = (AngleFixed(thisang) + thisdist) / 2;
