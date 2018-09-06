@@ -967,6 +967,16 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			else
 				weight = (mobj->player->kartweight)<<FRACBITS;
 			break;
+		case MT_FALLINGROCK:
+			if (against->player)
+			{
+				if (against->player->kartstuff[k_invincibilitytimer]
+					|| against->player->kartstuff[k_growshrinktimer] > 0)
+					weight = 0;
+				else
+					weight = (against->player->kartweight)<<FRACBITS;
+			}
+			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
 			if (against->player)
