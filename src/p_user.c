@@ -8373,8 +8373,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (player->speed > K_GetKartSpeed(player, false))
 		dist += 4*(player->speed - K_GetKartSpeed(player, false));
+
 	if (player->kartstuff[k_boostcam])
+	{
 		dist -= FixedMul(dist/2, player->kartstuff[k_boostcam]);
+		height -= FixedMul(height, player->kartstuff[k_boostcam]);
+	}
 
 	if (player->climbing || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
 		dist <<= 1;

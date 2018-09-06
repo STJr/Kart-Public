@@ -967,6 +967,16 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			else
 				weight = (mobj->player->kartweight)<<FRACBITS;
 			break;
+		case MT_FALLINGROCK:
+			if (against->player)
+			{
+				if (against->player->kartstuff[k_invincibilitytimer]
+					|| against->player->kartstuff[k_growshrinktimer] > 0)
+					weight = 0;
+				else
+					weight = (against->player->kartweight)<<FRACBITS;
+			}
+			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
 			if (against->player)
@@ -987,7 +997,7 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 	return weight;
 }
 
-void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
+void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
 	mobj_t *fx;
 	fixed_t momdifx, momdify;
@@ -1022,11 +1032,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	}
 
 	mass1 = K_GetMobjWeight(mobj1, mobj2);
-
-	if (solid == true && mass1 > 0)
-		mass2 = mass1;
-	else
-		mass2 = K_GetMobjWeight(mobj2, mobj1);
+	mass2 = K_GetMobjWeight(mobj2, mobj1);
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
@@ -1078,7 +1084,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		fixed_t newz = mobj1->momz;
 		if (mass2 > 0)
 			mobj1->momz = mobj2->momz;
-		if (mass1 > 0 && solid == false)
+		if (mass1 > 0)
 			mobj2->momz = newz;
 	}
 
@@ -1088,7 +1094,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
 	}
 
-	if (mass1 > 0 && solid == false)
+	if (mass1 > 0)
 	{
 		mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
 		mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
@@ -1130,6 +1136,83 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 			mobj2->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
 		}
 	}
+}
+
+// Alternate version for solid objects; always pushes away from the solid object, doesn't take anything else into account.
+
+void K_KartSolidBouncing(mobj_t *solid, mobj_t *mo)
+{
+	fixed_t mmomx = 0, mmomy = 0;
+
+	if (!solid || !mo)
+		return;
+
+	// Don't bump when you're being reborn
+	if (mo->player && mo->player->playerstate != PST_LIVE)
+		return;
+
+	if (mo->player && mo->player->kartstuff[k_respawn])
+		return;
+
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	{
+		P_SlideMove(mo, true);
+		return;
+	}
+
+	mmomx = mo->player->rmomx;
+	mmomy = mo->player->rmomy;
+
+	if (mo->player->kartstuff[k_drift] != 0) // SRB2kart
+	{
+		mo->player->kartstuff[k_drift] = 0;
+		mo->player->kartstuff[k_driftcharge] = 0;
+	}
+	else
+	{
+		mmomx = mo->momx;
+		mmomy = mo->momy;
+	}
+
+	mmomx = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+	mmomy = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+
+	{
+		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+		if (mo->eflags & MFE_VERTICALFLIP)
+			fx->eflags |= MFE_VERTICALFLIP;
+		else
+			fx->eflags &= ~MFE_VERTICALFLIP;
+		fx->scale = mo->scale;
+
+		S_StartSound(mo, sfx_s3k49);
+	}
+
+	{
+		angle_t pushangle;
+		fixed_t movelen;
+
+		pushangle = R_PointToAngle2(solid->x, solid->y, mo->x, mo->y);
+
+		pushangle >>= ANGLETOFINESHIFT;
+
+		movelen = P_AproxDistance(mmomx, mmomy);
+
+		if (mo->player && movelen < (15*mapheaderinfo[gamemap-1]->mobj_scale))
+			movelen = (15*mapheaderinfo[gamemap-1]->mobj_scale);
+
+		mmomx += FixedMul(movelen, FINECOSINE(pushangle));
+		mmomy += FixedMul(movelen, FINESINE(pushangle));
+	}
+
+	mo->eflags |= MFE_JUSTBOUNCEDWALL;
+
+	mo->momx = mmomx;
+	mo->momy = mmomy;
+	mo->player->cmomx = mmomx;
+	mo->player->cmomy = mmomy;
+
+	P_TryMove(mo, mo->x + mmomx, mo->y + mmomy, true);
 }
 
 /**	\brief	Checks that the player is on an offroad subsector for realsies
@@ -1451,7 +1534,7 @@ static void K_GetKartBoostPower(player_t *player)
 
 	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] == 1) // Slow down after you've been bumped
 	{
-		player->kartstuff[k_speedboost] = player->kartstuff[k_accelboost] = 0;
+		player->kartstuff[k_boostpower] = player->kartstuff[k_speedboost] = player->kartstuff[k_accelboost] = 0;
 		return;
 	}
 
@@ -1502,13 +1585,15 @@ static void K_GetKartBoostPower(player_t *player)
 	// don't average them anymore, this would make a small boost and a high boost less useful
 	// just take the highest we want instead
 
-	if (boostpower + speedboost > player->kartstuff[k_speedboost])
-		player->kartstuff[k_speedboost] = boostpower + speedboost; // Immediate increase if higher
-	else
-		player->kartstuff[k_speedboost] += ((boostpower + speedboost) - player->kartstuff[k_speedboost])/TICRATE; // Smoothly decrease if lower
+	player->kartstuff[k_boostpower] = boostpower;
 
-	// Accel isn't affected by boostpower, hence the FRACUNIT. Probably for making acceleration feel consistent in offroad.
-	player->kartstuff[k_accelboost] = FRACUNIT + accelboost;
+	// value smoothing
+	if (speedboost > player->kartstuff[k_speedboost])
+		player->kartstuff[k_speedboost] = speedboost;
+	else
+		player->kartstuff[k_speedboost] += (speedboost - player->kartstuff[k_speedboost])/(TICRATE/2);
+
+	player->kartstuff[k_accelboost] = accelboost;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
@@ -1543,7 +1628,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
 	if (doboostpower)
-		return FixedMul(finalspeed, player->kartstuff[k_speedboost]);
+		return FixedMul(finalspeed, player->kartstuff[k_boostpower]+player->kartstuff[k_speedboost]);
 	return finalspeed;
 }
 
@@ -1558,7 +1643,7 @@ fixed_t K_GetKartAccel(player_t *player)
 	//k_accel += 3 * (9 - kartspeed); // 36 - 60
 	k_accel += 4 * (9 - kartspeed); // 32 - 64
 
-	return FixedMul(k_accel, player->kartstuff[k_accelboost]);
+	return FixedMul(k_accel, FRACUNIT+player->kartstuff[k_accelboost]);
 }
 
 UINT16 K_GetKartFlashing(player_t *player)
@@ -2702,9 +2787,8 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	K_PlayTauntSound(player->mo);
 
 	K_GetKartBoostPower(player);
-
-	// Push the camera forward, the amount depending on how much the speed boost increases
-	player->kartstuff[k_destboostcam] = FixedMul(FRACUNIT, player->kartstuff[k_speedboost]-prevboost);
+	if (player->kartstuff[k_speedboost] > prevboost)
+		player->kartstuff[k_destboostcam] = FRACUNIT;
 }
 
 static void K_DoShrink(player_t *player)
@@ -3286,10 +3370,6 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 		if (player->kartstuff[k_hyudorotimer])
 			continue;
 
-		// Z pos too high/low
-		if (abs(player->mo->z - (actor->z + actor->momz)) > 48<<FRACBITS)
-			continue;
-
 		// Find the angle, see who's got the best.
 		thisang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
 		if (thisang > ANGLE_180)
@@ -3317,9 +3397,13 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 			if (player->kartstuff[k_bumper] <= 0)
 				continue;
 
+			// Z pos too high/low
+			if (abs(player->mo->z - (actor->z + actor->momz)) > RING_DIST/8)
+				continue;
+
 			thisdist = P_AproxDistance(player->mo->x - (actor->x + actor->momx), player->mo->y - (actor->y + actor->momy));
 
-			if (thisdist > RING_DIST) // Don't go for people who are too far away
+			if (thisdist > 2*RING_DIST) // Don't go for people who are too far away
 				continue;
 
 			thisavg = (AngleFixed(thisang) + thisdist) / 2;
@@ -3411,13 +3495,13 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam]
 			&& player->kartstuff[k_destboostcam] != 0)
 		{
-			player->kartstuff[k_boostcam] += FRACUNIT/8;
+			player->kartstuff[k_boostcam] += FRACUNIT/5;
 			if (player->kartstuff[k_boostcam] >= player->kartstuff[k_destboostcam])
 				player->kartstuff[k_destboostcam] = 0;
 		}
 		else
 		{
-			player->kartstuff[k_boostcam] -= FRACUNIT/8;
+			player->kartstuff[k_boostcam] -= FRACUNIT/5;
 			if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam])
 				player->kartstuff[k_boostcam] = player->kartstuff[k_destboostcam] = 0;
 		}
