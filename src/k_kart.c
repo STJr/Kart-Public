@@ -1533,7 +1533,7 @@ static void K_GetKartBoostPower(player_t *player)
 
 	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] == 1) // Slow down after you've been bumped
 	{
-		player->kartstuff[k_speedboost] = player->kartstuff[k_accelboost] = 0;
+		player->kartstuff[k_boostpower] = player->kartstuff[k_speedboost] = player->kartstuff[k_accelboost] = 0;
 		return;
 	}
 
@@ -1584,13 +1584,15 @@ static void K_GetKartBoostPower(player_t *player)
 	// don't average them anymore, this would make a small boost and a high boost less useful
 	// just take the highest we want instead
 
-	if (boostpower + speedboost > player->kartstuff[k_speedboost])
-		player->kartstuff[k_speedboost] = boostpower + speedboost; // Immediate increase if higher
-	else
-		player->kartstuff[k_speedboost] += ((boostpower + speedboost) - player->kartstuff[k_speedboost])/TICRATE; // Smoothly decrease if lower
+	player->kartstuff[k_boostpower] = boostpower;
 
-	// Accel isn't affected by boostpower, hence the FRACUNIT. Probably for making acceleration feel consistent in offroad.
-	player->kartstuff[k_accelboost] = FRACUNIT + accelboost;
+	// value smoothing
+	if (speedboost > player->kartstuff[k_speedboost])
+		player->kartstuff[k_speedboost] = speedboost;
+	else
+		player->kartstuff[k_speedboost] += (speedboost - player->kartstuff[k_speedboost])/(TICRATE/2);
+
+	player->kartstuff[k_accelboost] = accelboost;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
@@ -1625,7 +1627,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
 	if (doboostpower)
-		return FixedMul(finalspeed, player->kartstuff[k_speedboost]);
+		return FixedMul(finalspeed, player->kartstuff[k_boostpower]+player->kartstuff[k_speedboost]);
 	return finalspeed;
 }
 
@@ -1640,7 +1642,7 @@ fixed_t K_GetKartAccel(player_t *player)
 	//k_accel += 3 * (9 - kartspeed); // 36 - 60
 	k_accel += 4 * (9 - kartspeed); // 32 - 64
 
-	return FixedMul(k_accel, player->kartstuff[k_accelboost]);
+	return FixedMul(k_accel, FRACUNIT+player->kartstuff[k_accelboost]);
 }
 
 UINT16 K_GetKartFlashing(player_t *player)
@@ -2768,9 +2770,8 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	K_PlayTauntSound(player->mo);
 
 	K_GetKartBoostPower(player);
-
-	// Push the camera forward, the amount depending on how much the speed boost increases
-	player->kartstuff[k_destboostcam] = FixedMul(FRACUNIT, player->kartstuff[k_speedboost]-prevboost);
+	if (player->kartstuff[k_speedboost] > prevboost)
+		player->kartstuff[k_destboostcam] = FRACUNIT;
 }
 
 static void K_DoShrink(player_t *player)
@@ -3333,13 +3334,13 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam]
 			&& player->kartstuff[k_destboostcam] != 0)
 		{
-			player->kartstuff[k_boostcam] += FRACUNIT/8;
+			player->kartstuff[k_boostcam] += FRACUNIT/5;
 			if (player->kartstuff[k_boostcam] >= player->kartstuff[k_destboostcam])
 				player->kartstuff[k_destboostcam] = 0;
 		}
 		else
 		{
-			player->kartstuff[k_boostcam] -= FRACUNIT/8;
+			player->kartstuff[k_boostcam] -= FRACUNIT/5;
 			if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam])
 				player->kartstuff[k_boostcam] = player->kartstuff[k_destboostcam] = 0;
 		}

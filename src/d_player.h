@@ -298,6 +298,7 @@ typedef enum
 	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
 	k_waterskip,		// Water skipping counter
 	k_dashpadcooldown,	// Separate the vanilla SA-style dash pads from using pw_flashing
+	k_boostpower,		// Base boost value, for offroad
 	k_speedboost,		// Boost value smoothing for max speed
 	k_accelboost,		// Boost value smoothing for acceleration
 	k_boostcam,			// Camera push forward on boost
