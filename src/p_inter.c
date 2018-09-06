@@ -181,13 +181,13 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 		{
 			// Item-specific timer going off
 			if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-				|| player->kartstuff[k_growshrinktimer] != 0	|| player->kartstuff[k_rocketsneakertimer]
+				|| player->kartstuff[k_growshrinktimer] > 0	|| player->kartstuff[k_rocketsneakertimer]
 				|| player->kartstuff[k_eggmanexplode])
 				return false;
 
 			// Item slot already taken up
 			if (player->kartstuff[k_itemroulette]
-				|| player->kartstuff[k_itemamount]
+				|| (weapon != 3 && player->kartstuff[k_itemamount])
 				|| player->kartstuff[k_itemheld]) 
 				return false;
 		}
@@ -429,6 +429,27 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	// We now identify by object type, not sprite! Tails 04-11-2001
 	switch (special->type)
 	{
+		case MT_FLOATINGITEM: // SRB2kart
+			if (!P_CanPickupItem(player, 3) || (player->kartstuff[k_itemamount] && player->kartstuff[k_itemtype] != special->threshold))
+				return;
+
+			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
+				return;
+
+			player->kartstuff[k_itemtype] = special->threshold;
+			player->kartstuff[k_itemamount] += special->movecount;
+			if (player->kartstuff[k_itemamount] > 255)
+				player->kartstuff[k_itemamount] = 255;
+
+			S_StartSound(special, special->info->deathsound);
+
+			P_SetTarget(&special->tracer, toucher);
+			special->flags2 |= MF2_NIGHTSPULL;
+			special->destscale = mapheaderinfo[gamemap-1]->mobj_scale>>5;
+			special->scalespeed <<= 1;
+
+			special->flags &= ~MF_SPECIAL;
+			return;
 		case MT_RANDOMITEM:			// SRB2kart
 			if (!P_CanPickupItem(player, 1))
 				return;
@@ -469,9 +490,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->deathsound);
 
-				K_StripItems(player);
-				if (player->kartstuff[k_itemroulette] <= 0)
-					player->kartstuff[k_itemroulette] = 1;
+				K_DropItems(player); //K_StripItems(player);
+				K_StripOther(player);
+				player->kartstuff[k_itemroulette] = 1;
 				player->kartstuff[k_roulettetype] = 2;
 				if (special->target && special->target->player
 					&& (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0))
@@ -2626,6 +2647,11 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		}
 	}
 
+	if ((target->type == MT_JAWZ || target->type == MT_JAWZ_DUD || target->type == MT_JAWZ_SHIELD) && !(target->flags2 & MF2_AMBUSH))
+	{
+		target->z += P_MobjFlip(target)*20*target->scale;
+	}
+
 	if (target->type == MT_SPIKE && inflictor && target->info->deathstate != S_NULL)
 	{
 		const fixed_t x=target->x,y=target->y,z=target->z;
@@ -3335,6 +3361,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 					player->mo->destscale = 6*player->mo->destscale/8;
 
 				// Wipeout
+				K_DropItems(player);
 				K_SpinPlayer(player, source, 1, false);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
@@ -3346,7 +3373,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 					quake.time = 5;
 				}
 
-				K_StripItems(player);
 				player->kartstuff[k_growshrinktimer] -= (200+(40*(16-player->kartstuff[k_position])));
 			}
 			// Grow? Let's take that away.

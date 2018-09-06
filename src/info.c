@@ -2566,6 +2566,8 @@ state_t states[NUMSTATES] =
 	{SPR_RPOP, FF_FULLBRIGHT|2, 5, {NULL}, 0, 0, S_RANDOMITEMPOP4}, // S_RANDOMITEMPOP3
 	{SPR_RPOP, FF_FULLBRIGHT|3, 5, {NULL}, 0, 0, S_NULL},           // S_RANDOMITEMPOP4
 
+	{SPR_NULL, 0|FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_NULL}, // S_ITEMICON
+
 	{SPR_DRIF, 0|FF_FULLBRIGHT,  2, {NULL}, 0, 0, S_DRIFTSPARK2}, // S_DRIFTSPARK1
 	{SPR_DRIF, 1|FF_FULLBRIGHT,  2, {NULL}, 0, 0, S_DRIFTSPARK3}, // S_DRIFTSPARK2
 	{SPR_DRIF, 2|FF_FULLBRIGHT,  2, {NULL}, 0, 0, S_DRIFTSPARK1}, // S_DRIFTSPARK3
@@ -14387,6 +14389,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOCLIP,      // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_FLOATINGITEM
+		-1,             // doomednum
+		S_ITEMICON,     // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		0,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_mcitm1,     // deathsound
+		0,              // speed
+		24*FRACUNIT,    // radius
+		24*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SLIDEME|MF_SPECIAL, // flags
 		S_NULL          // raisestate
 	},
 

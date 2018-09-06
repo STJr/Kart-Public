@@ -414,6 +414,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartdebugamount);
 	CV_RegisterVar(&cv_kartdebugshrink);
 	CV_RegisterVar(&cv_kartdebugdistribution);
+	CV_RegisterVar(&cv_kartdebughuddrop);
 
 	CV_RegisterVar(&cv_kartdebugcheckpoint);
 }
@@ -1101,7 +1102,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		fx->eflags |= MFE_VERTICALFLIP;
 	else
 		fx->eflags &= ~MFE_VERTICALFLIP;
-	fx->scale = mobj1->scale;
+	P_SetScale(fx, mobj1->scale);
 
 	// Because this is done during collision now, rmomx and rmomy need to be recalculated
 	// so that friction doesn't immediately decide to stop the player if they're at a standstill
@@ -1715,6 +1716,10 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 	player->kartstuff[k_instashield] = 15;
+	if (cv_kartdebughuddrop.value)
+		K_DropItems(player);
+	else
+		K_DropHnextList(player);
 	return;
 }
 
@@ -1784,6 +1789,10 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	P_PlayRinglossSound(player->mo);
 
 	player->kartstuff[k_instashield] = 15;
+	if (cv_kartdebughuddrop.value)
+		K_DropItems(player);
+	else
+		K_DropHnextList(player);
 	return;
 }
 
@@ -1861,6 +1870,10 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	}
 
 	player->kartstuff[k_instashield] = 15;
+	if (cv_kartdebughuddrop.value)
+		K_DropItems(player);
+	else
+		K_DropHnextList(player);
 	return;
 }
 
@@ -1936,6 +1949,10 @@ void K_StealBumper(player_t *player, player_t *victim, boolean force)
 	victim->kartstuff[k_comebacktimer] = comebacktime;*/
 
 	victim->kartstuff[k_instashield] = 15;
+	if (cv_kartdebughuddrop.value)
+		K_DropItems(victim);
+	else
+		K_DropHnextList(victim);
 	return;
 }
 
@@ -2043,14 +2060,14 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 	{
 		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
 		dust->angle = (ANGLE_180/16) * i;
-		dust->scale = source->scale;
+		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
 		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
 
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
-		truc->scale = source->scale*2;
+		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*6;
 		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2065,7 +2082,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		dust = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
-		dust->scale = source->scale;
+		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
 		dust->tics = 30;
 		dust->momz = P_RandomRange(FixedMul(3*FRACUNIT, source->scale)>>FRACBITS, FixedMul(7*FRACUNIT, source->scale)>>FRACBITS)*FRACUNIT;
@@ -2073,7 +2090,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
-		truc->scale = source->scale;
+		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*5;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2350,7 +2367,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
 		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
 		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
-		dust->scale = spawner->scale/2;
+		P_SetScale(dust, spawner->scale/2);
 		dust->destscale = spawner->scale * 3;
 
 		if (leveltime % 6 == 0)
@@ -2808,44 +2825,188 @@ killnext:
 }
 
 // Just for firing/dropping items.
-void K_CleanHnextList(mobj_t *work)
-{
-	mobj_t *nextwork;
-
-	if (!work)
-		return;
-
-	work = work->hnext;
-
-	while (work && !P_MobjWasRemoved(work))
-	{
-		nextwork = work->hnext;
-
-		P_RemoveMobj(work);
-
-		work = nextwork;
-	}
-}
-
-// Ditto.
-void K_UpdateHnextList(player_t *player)
+void K_UpdateHnextList(player_t *player, boolean clean)
 {
 	mobj_t *work = player->mo, *nextwork;
 
 	if (!work)
 		return;
 
-	work = work->hnext;
+	nextwork = work->hnext;
 
-	while (work && !P_MobjWasRemoved(work))
+	while ((work = nextwork) && !P_MobjWasRemoved(work))
 	{
 		nextwork = work->hnext;
 
-		if (work->movedir > 0 && work->movedir > (UINT16)player->kartstuff[k_itemamount])
-			P_RemoveMobj(work);
+		if (!clean && (!work->movedir || work->movedir <= (UINT16)player->kartstuff[k_itemamount]))
+			continue;
 
-		work = nextwork;
+		P_RemoveMobj(work);
 	}
+}
+
+// For getting hit!
+void K_DropHnextList(player_t *player)
+{
+	mobj_t *work = player->mo, *nextwork, *dropwork;
+	INT32 flip;
+	mobjtype_t type;
+	boolean orbit, ponground;
+
+	if (!work)
+		return;
+
+	flip = P_MobjFlip(player->mo);
+	ponground = P_IsObjectOnGround(player->mo);
+
+	if (player->kartstuff[k_itemtype] == KITEM_THUNDERSHIELD && player->kartstuff[k_itemamount])
+	{
+		K_DoThunderShield(player);
+		player->kartstuff[k_itemamount] = 0;
+		player->kartstuff[k_itemtype] = KITEM_NONE;
+	}
+
+	nextwork = work->hnext;
+
+	while ((work = nextwork) && !P_MobjWasRemoved(work))
+	{
+		nextwork = work->hnext;
+
+		switch (work->type)
+		{
+			// Kart orbit items
+			case MT_ORBINAUT_SHIELD:
+				orbit = true;
+				type = MT_ORBINAUT;
+				break;
+			case MT_JAWZ_SHIELD:
+				orbit = true;
+				type = MT_JAWZ_DUD;
+				break;
+			// Kart trailing items
+			case MT_BANANA_SHIELD:
+				orbit = false;
+				type = MT_BANANA;
+				break;
+			case MT_SSMINE_SHIELD:
+				orbit = false;
+				type = MT_SSMINE;
+				break;
+			case MT_FAKESHIELD:
+				orbit = false;
+				type = MT_FAKEITEM;
+				break;
+			// intentionally do nothing
+			case MT_SINK_SHIELD:
+				return;
+			default:
+				continue;
+		}
+
+		dropwork = P_SpawnMobj(work->x, work->y, work->z, type);
+		P_SetTarget(&dropwork->target, player->mo);
+		dropwork->angle = work->angle;
+		dropwork->flags2 = work->flags2;
+		dropwork->flags |= MF_NOCLIPTHING;
+		dropwork->floorz = work->floorz;
+		dropwork->ceilingz = work->ceilingz;
+
+		if (ponground)
+		{
+			// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
+			// This should set it for FOFs
+			//P_TeleportMove(dropwork, dropwork->x, dropwork->y, dropwork->z); -- handled better by above floorz/ceilingz passing
+
+			if (flip == 1)
+			{
+				if (dropwork->floorz > dropwork->target->z - dropwork->height)
+				{
+					dropwork->z = dropwork->floorz;
+				}
+			}
+			else
+			{
+				if (dropwork->ceilingz < dropwork->target->z + dropwork->target->height + dropwork->height)
+				{
+					dropwork->z = dropwork->ceilingz - dropwork->height;
+				}
+			}
+		}
+
+		if (orbit) // splay out
+		{
+			dropwork->flags2 |= MF2_AMBUSH;
+			dropwork->z += flip;
+			dropwork->momx = player->mo->momx>>1;
+			dropwork->momy = player->mo->momy>>1;
+			dropwork->momz = 3*flip*mapheaderinfo[gamemap-1]->mobj_scale;
+			P_Thrust(dropwork, work->angle - ANGLE_90, 6*(mapheaderinfo[gamemap-1]->mobj_scale));
+			dropwork->movecount = 2;
+			dropwork->movedir = work->angle - ANGLE_90;
+			P_SetMobjState(dropwork, dropwork->info->deathstate);
+			dropwork->tics = -1;
+			if (type == MT_JAWZ_DUD)
+				dropwork->z += 20*flip*dropwork->scale;
+			else
+			{
+				dropwork->color = work->color;
+				dropwork->angle -= ANGLE_90;
+			}
+		}
+		else // plop on the ground
+		{
+			dropwork->flags &= ~MF_NOCLIPTHING;
+			dropwork->threshold = 10;
+		}
+
+		P_RemoveMobj(work);
+	}
+
+	{
+		// we need this here too because this is done in afterthink - pointers are cleaned up at the START of each tic...
+		P_SetTarget(&player->mo->hnext, NULL);
+		player->kartstuff[k_bananadrag] = 0;
+		if (player->kartstuff[k_eggmanheld])
+			player->kartstuff[k_eggmanheld] = 0;
+		else if (player->kartstuff[k_itemheld])
+		{
+			player->kartstuff[k_itemamount] = player->kartstuff[k_itemheld] = 0;
+			player->kartstuff[k_itemtype] = KITEM_NONE;
+		}
+	}
+}
+
+// For getting EXTRA hit!
+void K_DropItems(player_t *player)
+{
+	boolean thunderhack = (player->kartstuff[k_curshield] && player->kartstuff[k_itemtype] == KITEM_THUNDERSHIELD);
+
+	if (thunderhack)
+		player->kartstuff[k_itemtype] = KITEM_NONE;
+
+	K_DropHnextList(player);
+
+	if (player->mo && player->kartstuff[k_itemamount])
+	{
+		mobj_t *drop = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FLOATINGITEM);
+		P_SetScale(drop, drop->scale>>5);
+		drop->destscale = (3*drop->destscale)/2;;
+
+		drop->angle = player->mo->angle + ANGLE_90;
+		drop->momx = player->mo->momx>>1;
+		drop->momy = player->mo->momy>>1;
+		P_Thrust(drop,
+			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
+			8*(mapheaderinfo[gamemap-1]->mobj_scale));
+		drop->momz = P_MobjFlip(player->mo)*3*(mapheaderinfo[gamemap-1]->mobj_scale);
+
+		drop->threshold = (thunderhack ? KITEM_THUNDERSHIELD : player->kartstuff[k_itemtype]);
+		drop->movecount = player->kartstuff[k_itemamount];
+
+		drop->flags |= MF_NOCLIPTHING;
+	}
+
+	K_StripItems(player);
 }
 
 // When an item in the hnext chain dies.
@@ -3859,20 +4020,18 @@ static void K_KartUpdatePosition(player_t *player)
 //
 void K_StripItems(player_t *player)
 {
-	player->kartstuff[k_itemtype] = 0;
+	player->kartstuff[k_itemtype] = KITEM_NONE;
 	player->kartstuff[k_itemamount] = 0;
 	player->kartstuff[k_itemheld] = 0;
 
-	player->kartstuff[k_itemroulette] = 0;
-	player->kartstuff[k_roulettetype] = 0;
-
 	player->kartstuff[k_rocketsneakertimer] = 0;
-	player->kartstuff[k_invincibilitytimer] = 0;
-	player->kartstuff[k_growshrinktimer] = 0;
 
+	if (!player->kartstuff[k_itemroulette] || player->kartstuff[k_roulettetype] != 2)
+	{
+		player->kartstuff[k_itemroulette] = 0;
+		player->kartstuff[k_roulettetype] = 0;
+	}
 	player->kartstuff[k_eggmanheld] = 0;
-	player->kartstuff[k_eggmanexplode] = 0;
-	player->kartstuff[k_eggmanblame] = 0;
 
 	player->kartstuff[k_hyudorotimer] = 0;
 	player->kartstuff[k_stealingtimer] = 0;
@@ -3884,7 +4043,19 @@ void K_StripItems(player_t *player)
 
 	player->kartstuff[k_sadtimer] = 0;
 
-	K_CleanHnextList(player->mo);
+	K_UpdateHnextList(player, true);
+}
+
+void K_StripOther(player_t *player)
+{
+	player->kartstuff[k_itemroulette] = 0;
+	player->kartstuff[k_roulettetype] = 0;
+
+	player->kartstuff[k_invincibilitytimer] = 0;
+	player->kartstuff[k_growshrinktimer] = 0;
+
+	player->kartstuff[k_eggmanexplode] = 0;
+	player->kartstuff[k_eggmanblame] = 0;
 }
 
 //
@@ -3950,7 +4121,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, 0);
 			K_PlayTauntSound(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
-			K_CleanHnextList(player->mo);
+			K_UpdateHnextList(player, true);
 		}
 		// Rocket Sneaker
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
@@ -4037,7 +4208,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_ThrowKartItem(player, false, MT_BANANA, -1, 0);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
-						K_UpdateHnextList(player);
+						K_UpdateHnextList(player, false);
 					}
 					break;
 				case KITEM_EGGMAN:
@@ -4097,7 +4268,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, 0);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
-						K_UpdateHnextList(player);
+						K_UpdateHnextList(player, false);
 					}
 					break;
 				case KITEM_JAWZ:
@@ -4140,7 +4311,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, 0);
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
-						K_UpdateHnextList(player);
+						K_UpdateHnextList(player, false);
 					}
 					break;
 				case KITEM_MINE:
@@ -4166,7 +4337,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
-						K_CleanHnextList(player->mo);
+						K_UpdateHnextList(player, true);
 					}
 					break;
 				case KITEM_BALLHOG:
@@ -4293,7 +4464,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_PlayTauntSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
-						K_CleanHnextList(player->mo);
+						K_UpdateHnextList(player, true);
 					}
 					break;
 				case KITEM_SAD:
@@ -4372,7 +4543,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0) // dead in match? you da bomb
 		{
-			K_StripItems(player);
+			K_DropItems(player); //K_StripItems(player);
+			K_StripOther(player);
 			player->mo->flags2 |= MF2_SHADOW;
 			player->powers[pw_flashing] = player->kartstuff[k_comebacktimer];
 		}

@@ -6233,6 +6233,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_RANDOMITEMPOP4",
 	//}
 
+	"S_ITEMICON",
+
 	// Drift Sparks
 	"S_DRIFTSPARK1",
 	"S_DRIFTSPARK2",
@@ -7208,6 +7210,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BLUEDIAG",
 	"MT_RANDOMITEM",
 	"MT_RANDOMITEMPOP",
+	"MT_FLOATINGITEM",
 
 	"MT_SNEAKERTRAIL",
 	"MT_SPARKLETRAIL",

@@ -6006,7 +6006,7 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 		return;
 
 	// change angle
-	source->angle = R_PointToAngle2(source->x, source->y, tx, ty);
+	//source->angle = R_PointToAngle2(source->x, source->y, tx, ty);
 
 	// change slope
 	dist = P_AproxDistance(P_AproxDistance(tx - source->x, ty - source->y), tz - source->z);
@@ -6015,7 +6015,7 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 		dist = 1;
 
 	if (nightsgrab)
-		speedmul = P_AproxDistance(dest->momx, dest->momy) + FixedMul(8*FRACUNIT, source->scale);
+		speedmul = P_AproxDistance(dest->momx, dest->momy) + source->scale;
 	else
 		speedmul = P_AproxDistance(dest->momx, dest->momy) + FixedMul(source->info->speed, source->scale);
 
@@ -6348,6 +6348,9 @@ void P_RunShadows(void)
 					break;
 			}
 		}
+
+		if (mobj->target->type == MT_FLOATINGITEM)
+			P_SetScale(mobj, mobj->scale/2);
 	}
 	P_SetTarget(&shadowcap, NULL);
 }
@@ -6727,7 +6730,7 @@ void P_MobjThinker(mobj_t *mobj)
 				/*if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
-					// Was this so hard? -- Handled this with K_UpdateHnextList and K_ClearHnextList instead of thinking it away...
+					// Was this so hard? -- Handled this with K_UpdateHnextList instead of thinking it away...
 					if ((mobj->type == MT_ORBINAUT_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
 						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
 						|| (mobj->movedir > 0 && ((UINT16)mobj->target->player->kartstuff[k_itemamount] < mobj->movedir))
@@ -6911,14 +6914,16 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->x = mobj->target->x;
 					mobj->y = mobj->target->y;
 
+					mobj->angle = R_PointToAngle(mobj->x, mobj->y) + ANGLE_90; // literally only happened because i wanted to ^L^R the SPR_ITEM's
+
 					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
 					{
-						mobj->z = mobj->target->z + P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT;
+						mobj->z = mobj->target->z + P_GetPlayerHeight(mobj->target->player)+(16+11)*mapheaderinfo[gamemap-1]->mobj_scale;
 						mobj->eflags &= ~MFE_VERTICALFLIP;
 					}
 					else
 					{
-						mobj->z = mobj->target->z - P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT;
+						mobj->z = mobj->target->z - P_GetPlayerHeight(mobj->target->player)+(16+11)*mapheaderinfo[gamemap-1]->mobj_scale;
 						mobj->eflags |= MFE_VERTICALFLIP;
 					}
 					P_SetThingPosition(mobj);
@@ -6934,7 +6939,8 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->tracer = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
 						P_SetTarget(&mobj->tracer->target, mobj);
 						P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
-						P_SetScale(mobj->tracer, mobj->scale);
+						P_SetMobjState(mobj->tracer, S_ITEMICON); // null sprite and frame to be overwritten later
+						P_SetScale(mobj->tracer, (mobj->tracer->destscale = mobj->scale));
 					}
 
 					if (!(mobj->flags2 & MF2_DONTDRAW))
@@ -7027,7 +7033,7 @@ void P_MobjThinker(mobj_t *mobj)
 						else
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW);
-							P_SetMobjState(mobj->tracer, S_INVISIBLE);
+							P_SetMobjState(mobj->tracer, S_ITEMICON); // null sprite and frame to be overwritten later
 						}
 
 						mobj->tracer->destscale = scale;
@@ -7097,12 +7103,12 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
 					{
-						mobj->z = mobj->target->z + (P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT+(64*mobj->scale));
+						mobj->z = mobj->target->z + (P_GetPlayerHeight(mobj->target->player)+16*mapheaderinfo[gamemap-1]->mobj_scale+(64*mobj->scale));
 						mobj->eflags &= ~MFE_VERTICALFLIP;
 					}
 					else
 					{
-						mobj->z = mobj->target->z - (P_GetPlayerHeight(mobj->target->player)+16*FRACUNIT+(64*mobj->scale));
+						mobj->z = mobj->target->z - (P_GetPlayerHeight(mobj->target->player)+16*mapheaderinfo[gamemap-1]->mobj_scale+(64*mobj->scale));
 						mobj->eflags |= MFE_VERTICALFLIP;
 					}
 					P_SetThingPosition(mobj);
@@ -8007,46 +8013,120 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold = 0;
 			}
 			break;
-		case MT_ORBINAUT:
+		case MT_FLOATINGITEM:
 		{
-			sector_t *sec2;
-			fixed_t finalspeed = mobj->info->speed;
-
-			P_SpawnGhostMobj(mobj);
-
-			if (gamespeed == 0)
-				finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
-			else if (gamespeed == 2)
-				finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
-
-			mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
-			if (mobj->health <= 5)
+			if (mobj->flags & MF_NOCLIPTHING)
 			{
-				INT32 i;
-				for (i = 5; i >= mobj->health; i--)
+				if (P_IsObjectOnGround(mobj))
 				{
-					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+					mobj->momx = 1;
+					mobj->momy = 0;
+					mobj->flags &= ~MF_NOCLIPTHING;
+					mobj->flags |= MF_NOGRAVITY;
 				}
-				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
-				P_InstaThrust(mobj, mobj->angle, finalspeed);
 			}
 			else
 			{
-				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
-				P_InstaThrust(mobj, mobj->angle, finalspeed);
+				mobj->angle += 2*ANG2;
+				if (mobj->flags2 & MF2_NIGHTSPULL)
+				{
+					if (!mobj->tracer || !mobj->tracer->health
+					|| mobj->scale <= mapheaderinfo[gamemap-1]->mobj_scale>>5)
+					{
+						P_RemoveMobj(mobj);
+						return;
+					}
+					P_Attract(mobj, mobj->tracer, true);
+				}
+				else
+				{
+					fixed_t adj = FixedMul(FRACUNIT - FINECOSINE((mobj->movedir>>ANGLETOFINESHIFT) & FINEMASK), (mapheaderinfo[gamemap-1]->mobj_scale<<3));
+					mobj->movedir += 2*ANG2;
+					if (mobj->eflags & MFE_VERTICALFLIP)
+						mobj->z = mobj->ceilingz - mobj->height - adj;
+					else
+						mobj->z = mobj->floorz + adj;
+				}
 			}
 
-			sec2 = P_ThingOnSpecial3DFloor(mobj);
-			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
-				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
-				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-				K_DoPogoSpring(mobj, 0, false);
+			switch (mobj->threshold)
+			{
+				case KITEM_ORBINAUT:
+					mobj->sprite = SPR_ITMO;
+					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|(min(mobj->movecount-1, 3));
+					break;
+				case KITEM_INVINCIBILITY:
+					mobj->sprite = SPR_ITMI;
+					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|((leveltime % (7*3)) / 3);
+					break;
+				case KITEM_SAD:
+					mobj->sprite = SPR_ITEM;
+					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE;
+					break;
+				default:
+					mobj->sprite = SPR_ITEM;
+					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|(mobj->threshold);
+					break;
+				}
+			break;
+		}
+		case MT_ORBINAUT:
+		{
+			boolean grounded = P_IsObjectOnGround(mobj);
+			if (mobj->flags2 & MF2_AMBUSH)
+			{
+				if (grounded && (mobj->flags & MF_NOCLIPTHING))
+				{
+					mobj->momx = 1;
+					mobj->momy = 0;
+					mobj->frame = 3;
+					S_StartSound(mobj, mobj->info->activesound);
+					mobj->flags &= ~MF_NOCLIPTHING;
+				}
+				else if (mobj->movecount)
+					mobj->movecount--;
+				else if (mobj->frame < 3)
+				{
+					mobj->movecount = 2;
+					mobj->frame++;
+				}
+			}
+			else
+			{
+				fixed_t finalspeed = mobj->info->speed;
 
-			if (mobj->threshold > 0)
-				mobj->threshold--;
+				P_SpawnGhostMobj(mobj);
 
-			if (leveltime % 6 == 0)
-				S_StartSound(mobj, mobj->info->activesound);
+				if (gamespeed == 0)
+					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+				else if (gamespeed == 2)
+					finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
+
+				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
+				if (mobj->health <= 5)
+				{
+					INT32 i;
+					for (i = 5; i >= mobj->health; i--)
+						finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
+				}
+				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
+				P_InstaThrust(mobj, mobj->angle, finalspeed);
+
+				if (grounded)
+				{
+					sector_t *sec2 = P_ThingOnSpecial3DFloor(mobj);
+					if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
+						|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
+						&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+						K_DoPogoSpring(mobj, 0, false);
+				}
+
+				if (mobj->threshold > 0)
+					mobj->threshold--;
+
+				if (leveltime % 6 == 0)
+					S_StartSound(mobj, mobj->info->activesound);
+			}
 			break;
 		}
 		case MT_JAWZ:
@@ -8119,23 +8199,38 @@ void P_MobjThinker(mobj_t *mobj)
 		}
 		case MT_JAWZ_DUD:
 		{
-			sector_t *sec2;
+			boolean grounded = P_IsObjectOnGround(mobj);
+			if (mobj->flags2 & MF2_AMBUSH)
+			{
+				if (grounded && (mobj->flags & MF_NOCLIPTHING))
+				{
+					mobj->momx = 1;
+					mobj->momy = 0;
+					S_StartSound(mobj, mobj->info->deathsound);
+					mobj->flags &= ~MF_NOCLIPTHING;
+				}
+			}
+			else
+			{
+				P_SpawnGhostMobj(mobj);
+				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
+				P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
 
-			P_SpawnGhostMobj(mobj);
-			mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
-			P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+				if (grounded)
+				{
+					sector_t *sec2 = P_ThingOnSpecial3DFloor(mobj);
+					if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
+						|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
+						&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
+						K_DoPogoSpring(mobj, 0, false);
+				}
 
-			sec2 = P_ThingOnSpecial3DFloor(mobj);
-			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
-				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
-				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-				K_DoPogoSpring(mobj, 0, false);
+				if (mobj->threshold > 0)
+					mobj->threshold--;
 
-			if (mobj->threshold > 0)
-				mobj->threshold--;
-
-			if (leveltime % TICRATE == 0)
-				S_StartSound(mobj, mobj->info->activesound);
+				if (leveltime % TICRATE == 0)
+					S_StartSound(mobj, mobj->info->activesound);
+			}
 
 			break;
 		}
@@ -9155,6 +9250,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_BIGMACE:		case MT_SMALLMACE:
 		case MT_FALLINGROCK:
 		//case MT_RANDOMITEM:
+		case MT_FLOATINGITEM:
 		case MT_BATTLEBUMPER:
 		case MT_BANANA:			case MT_BANANA_SHIELD:
 		//case MT_FAKEITEM: 		case MT_FAKESHIELD:
@@ -9253,6 +9349,8 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 
 	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
 		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+
+	P_SetScale(mobj, mobj->destscale);
 
 	// set subsector and/or block links
 	P_SetThingPosition(mobj);
