@@ -695,7 +695,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		{
 			// Player Damage
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
-			K_KartBouncing(thing, tmthing, false);
+			K_KartBouncing(thing, tmthing, false, false);
 
 			if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
 				S_StartSound(thing, sfx_s3k7b);
@@ -978,7 +978,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
-			K_KartBouncing(tmthing, thing, false);
+			K_KartBouncing(tmthing, thing, false, false);
 
 			if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
 				S_StartSound(tmthing, sfx_s3k7b);
@@ -1084,7 +1084,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // overhead
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
-		K_KartBouncing(thing, tmthing, false);
+		K_KartBouncing(thing, tmthing, false, false);
 	}
 
 	if ((thing->type == MT_SPRINGSHELL || thing->type == MT_YELLOWSHELL) && thing->health > 0
@@ -1506,7 +1506,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
 			{
-				K_KartBouncing(tmthing, thing, true);
+				K_KartBouncing(tmthing, thing, true, false);
 				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
@@ -1515,7 +1515,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
 			{
-				K_KartBouncing(thing, tmthing, true);
+				K_KartBouncing(thing, tmthing, true, false);
 				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
@@ -1523,7 +1523,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				}
 			}
 			else
-				K_KartBouncing(tmthing, thing, false);
+				K_KartBouncing(tmthing, thing, false, false);
 
 			if (G_BattleGametype())
 			{
@@ -1549,8 +1549,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->z + tmthing->height < thing->z)
 				return true; // underneath
 
-			K_KartSolidBouncing(thing, tmthing);
-			return false;
+			if (P_IsObjectOnGround(thing) && tmthing->momz < 0)
+				K_KartBouncing(tmthing, thing, true, true);
+			else
+				K_KartBouncing(tmthing, thing, false, true);
+
+			return true;
 		}
 		// Are you touching the side of the object you're interacting with?
 		else if (thing->z - FixedMul(FRACUNIT, thing->scale) <= tmthing->z + tmthing->height
