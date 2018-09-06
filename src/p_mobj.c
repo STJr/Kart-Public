@@ -7033,7 +7033,7 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->tracer->destscale = scale;
 
 						if (mobj->target->player->kartstuff[k_itemamount] >= numberdisplaymin
-							&& mobj->target->player->kartstuff[k_itemamount] < 10) // Meh, too difficult to support greater than this; convert this to a decent HUD object and then maybe :V
+							&& mobj->target->player->kartstuff[k_itemamount] <= 10) // Meh, too difficult to support greater than this; convert this to a decent HUD object and then maybe :V
 						{
 							mobj_t *number = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
 							mobj_t *numx = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
