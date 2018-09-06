@@ -966,6 +966,16 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			else
 				weight = (mobj->player->kartweight)<<FRACBITS;
 			break;
+		case MT_FALLINGROCK:
+			if (against->player)
+			{
+				if (against->player->kartstuff[k_invincibilitytimer]
+					|| against->player->kartstuff[k_growshrinktimer] > 0)
+					weight = 0;
+				else
+					weight = (against->player->kartweight)<<FRACBITS;
+			}
+			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
 			if (against->player)
@@ -986,7 +996,7 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 	return weight;
 }
 
-void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
+void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce)
 {
 	mobj_t *fx;
 	fixed_t momdifx, momdify;
@@ -1021,11 +1031,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	}
 
 	mass1 = K_GetMobjWeight(mobj1, mobj2);
-
-	if (solid == true && mass1 > 0)
-		mass2 = mass1;
-	else
-		mass2 = K_GetMobjWeight(mobj2, mobj1);
+	mass2 = K_GetMobjWeight(mobj2, mobj1);
 
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
@@ -1077,7 +1083,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		fixed_t newz = mobj1->momz;
 		if (mass2 > 0)
 			mobj1->momz = mobj2->momz;
-		if (mass1 > 0 && solid == false)
+		if (mass1 > 0)
 			mobj2->momz = newz;
 	}
 
@@ -1087,7 +1093,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
 	}
 
-	if (mass1 > 0 && solid == false)
+	if (mass1 > 0)
 	{
 		mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
 		mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
@@ -1129,6 +1135,83 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 			mobj2->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
 		}
 	}
+}
+
+// Alternate version for solid objects; always pushes away from the solid object, doesn't take anything else into account.
+
+void K_KartSolidBouncing(mobj_t *solid, mobj_t *mo)
+{
+	fixed_t mmomx = 0, mmomy = 0;
+
+	if (!solid || !mo)
+		return;
+
+	// Don't bump when you're being reborn
+	if (mo->player && mo->player->playerstate != PST_LIVE)
+		return;
+
+	if (mo->player && mo->player->kartstuff[k_respawn])
+		return;
+
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	{
+		P_SlideMove(mo, true);
+		return;
+	}
+
+	mmomx = mo->player->rmomx;
+	mmomy = mo->player->rmomy;
+
+	if (mo->player->kartstuff[k_drift] != 0) // SRB2kart
+	{
+		mo->player->kartstuff[k_drift] = 0;
+		mo->player->kartstuff[k_driftcharge] = 0;
+	}
+	else
+	{
+		mmomx = mo->momx;
+		mmomy = mo->momy;
+	}
+
+	mmomx = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+	mmomy = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+
+	{
+		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
+		if (mo->eflags & MFE_VERTICALFLIP)
+			fx->eflags |= MFE_VERTICALFLIP;
+		else
+			fx->eflags &= ~MFE_VERTICALFLIP;
+		fx->scale = mo->scale;
+
+		S_StartSound(mo, sfx_s3k49);
+	}
+
+	{
+		angle_t pushangle;
+		fixed_t movelen;
+
+		pushangle = R_PointToAngle2(solid->x, solid->y, mo->x, mo->y);
+
+		pushangle >>= ANGLETOFINESHIFT;
+
+		movelen = P_AproxDistance(mmomx, mmomy);
+
+		if (mo->player && movelen < (15*mapheaderinfo[gamemap-1]->mobj_scale))
+			movelen = (15*mapheaderinfo[gamemap-1]->mobj_scale);
+
+		mmomx += FixedMul(movelen, FINECOSINE(pushangle));
+		mmomy += FixedMul(movelen, FINESINE(pushangle));
+	}
+
+	mo->eflags |= MFE_JUSTBOUNCEDWALL;
+
+	mo->momx = mmomx;
+	mo->momy = mmomy;
+	mo->player->cmomx = mmomx;
+	mo->player->cmomy = mmomy;
+
+	P_TryMove(mo, mo->x + mmomx, mo->y + mmomy, true);
 }
 
 /**	\brief	Checks that the player is on an offroad subsector for realsies

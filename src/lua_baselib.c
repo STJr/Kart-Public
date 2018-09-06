@@ -2081,13 +2081,25 @@ static int lib_kKartBouncing(lua_State *L)
 	mobj_t *mobj1 = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	mobj_t *mobj2 = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
 	boolean bounce = luaL_checkboolean(L, 3);
-	boolean solid = luaL_checkboolean(L, 4);
 	NOHUD
 	if (!mobj1)
 		return LUA_ErrInvalid(L, "mobj_t");
 	if (!mobj2)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_KartBouncing(mobj1, mobj2, bounce, solid);
+	K_KartBouncing(mobj1, mobj2, bounce);
+	return 0;
+}
+
+static int lib_kKartSolidBouncing(lua_State *L)
+{
+	mobj_t *solid = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	NOHUD
+	if (!solid)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_KartSolidBouncing(solid, mo);
 	return 0;
 }
 
@@ -2242,8 +2254,8 @@ static int lib_kDoPogoSpring(lua_State *L)
 static int lib_kKillBananaChain(lua_State *L)
 {
 	mobj_t *banana = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
-	mobj_t *inflictor = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
-	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *inflictor = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
 	NOHUD
 	if (!banana)
 		return LUA_ErrInvalid(L, "mobj_t");
@@ -2262,6 +2274,19 @@ static int lib_kRepairOrbitChain(lua_State *L)
 	if (!orbit)
 		return LUA_ErrInvalid(L, "mobj_t");
 	K_RepairOrbitChain(orbit);
+	return 0;
+}
+
+static int lib_kFindJawzTarget(lua_State *L)
+{
+	mobj_t *actor = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	player_t *source = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
+	NOHUD // HUDSAFE?
+	if (!actor)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!source)
+		return LUA_ErrInvalid(L, "player_t");
+	LUA_PushUserdata(L, K_FindJawzTarget(actor, source), META_PLAYER);
 	return 0;
 }
 
@@ -2487,6 +2512,7 @@ static luaL_Reg lib[] = {
 	{"K_IsPlayerLosing",lib_kIsPlayerLosing},
 	{"K_IsPlayerWanted",lib_kIsPlayerWanted},
 	{"K_KartBouncing",lib_kKartBouncing},
+	{"K_KartSolidBouncing",lib_kKartSolidBouncing},
 	{"K_DoInstashield",lib_kDoInstashield},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},
@@ -2501,6 +2527,7 @@ static luaL_Reg lib[] = {
 	{"K_DoPogoSpring",lib_kDoPogoSpring},
 	{"K_KillBananaChain",lib_kKillBananaChain},
 	{"K_RepairOrbitChain",lib_kRepairOrbitChain},
+	{"K_FindJawzTarget",lib_kFindJawzTarget},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
 	{"K_GetKartAccel",lib_kGetKartAccel},
