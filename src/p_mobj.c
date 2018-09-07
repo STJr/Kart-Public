@@ -8031,7 +8031,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->flags2 & MF2_NIGHTSPULL)
 				{
 					if (!mobj->tracer || !mobj->tracer->health
-					|| mobj->scale <= mapheaderinfo[gamemap-1]->mobj_scale>>5)
+					|| mobj->scale <= mapheaderinfo[gamemap-1]->mobj_scale>>4)
 					{
 						P_RemoveMobj(mobj);
 						return;

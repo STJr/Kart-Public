@@ -3008,7 +3008,7 @@ void K_DropItems(player_t *player)
 	if (player->mo && player->kartstuff[k_itemamount])
 	{
 		mobj_t *drop = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FLOATINGITEM);
-		P_SetScale(drop, drop->scale>>5);
+		P_SetScale(drop, drop->scale>>4);
 		drop->destscale = (3*drop->destscale)/2;;
 
 		drop->angle = player->mo->angle + ANGLE_90;

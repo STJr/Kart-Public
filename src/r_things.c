@@ -1266,7 +1266,6 @@ static void R_ProjectSprite(mobj_t *thing)
 	if (papersprite)
 	{
 		fixed_t yscale2, cosmul, sinmul, tz2;
-		INT32 range;
 
 		if (ang >= ANGLE_180)
 		{
@@ -1296,12 +1295,10 @@ static void R_ProjectSprite(mobj_t *thing)
 		if (max(tz, tz2) < FixedMul(MINZ, this_scale)) // non-papersprite clipping is handled earlier
 			return;
 
-		if (x2 > x1)
-			range = (x2 - x1);
-		else
-			range = 1;
+		if (x2 <= x1)
+			return;
 
-		scalestep = (yscale2 - yscale)/range;
+		scalestep = (yscale2 - yscale)/(x2 - x1);
 
 		// The following two are alternate sorting methods which might be more applicable in some circumstances. TODO - maybe enable via MF2?
 		// sortscale = max(yscale, yscale2);
