@@ -1728,7 +1728,7 @@ void P_DoPlayerExit(player_t *player)
 		else if (!countdown)
 			countdown = cv_countdowntime.value*TICRATE + 1; // Use cv_countdowntime
 
-		if (cv_kartvoices.value)
+		if (cv_kartvoices.value && P_IsLocalPlayer(player))
 		{
 			if (K_IsPlayerLosing(player))
 				S_StartSound(player->mo, sfx_klose);
