@@ -3853,6 +3853,13 @@ DoneSection2:
 
 				player->powers[pw_flashing] = TICRATE/3;
 				S_StartSound(player->mo, sfx_spdpad);
+
+				{
+					sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
+					if (cv_kartvoices.value)
+						S_StartSound(player->mo, sfx_kbost1+pick);
+					//K_TauntVoiceTimers(player);
+				}
 			}
 			break;
 
