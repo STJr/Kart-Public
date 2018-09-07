@@ -6249,6 +6249,16 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	// Thunder Shield Burst
 
+	// Sneaker boost effect
+	"S_BOOSTFLAME",
+	"S_BOOSTSMOKESPAWNER",
+	"S_BOOSTSMOKE1",
+	"S_BOOSTSMOKE2",
+	"S_BOOSTSMOKE3",
+	"S_BOOSTSMOKE4",
+	"S_BOOSTSMOKE5",
+	"S_BOOSTSMOKE6",
+
 	// Sneaker Fire Trail
 	"S_KARTFIRE1",
 	"S_KARTFIRE2",
@@ -7209,6 +7219,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_RANDOMITEM",
 	"MT_RANDOMITEMPOP",
 
+	"MT_BOOSTFLAME",
+	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",

@@ -2689,6 +2689,14 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
 		S_StartSound(player->mo, sfx_cdfm01);
 
+	if (!player->kartstuff[k_sneakertimer])
+	{
+		mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BOOSTFLAME);
+		P_SetTarget(&overlay->target, player->mo);
+		overlay->destscale = player->mo->scale;
+		P_SetScale(overlay, player->mo->scale);
+	}
+
 	player->kartstuff[k_sneakertimer] = sneakertime;
 
 	if (doPFlag)

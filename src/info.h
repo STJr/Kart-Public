@@ -582,6 +582,8 @@ typedef enum sprite
 
 	SPR_RNDM, // Random Item Box
 	SPR_RPOP, // Random Item Box Pop
+	SPR_BOST, // Sneaker booster flame
+	SPR_BOSM, // Sneaker booster smoke
 	SPR_KFRE, // Sneaker fire trail
 	SPR_KINV, // Invincibility sparkle trail
 	SPR_KINF, // Invincibility flash
@@ -3094,6 +3096,16 @@ typedef enum state
 
 	// Magnet Burst
 
+	// Sneaker boost effect
+	S_BOOSTFLAME,
+	S_BOOSTSMOKESPAWNER,
+	S_BOOSTSMOKE1,
+	S_BOOSTSMOKE2,
+	S_BOOSTSMOKE3,
+	S_BOOSTSMOKE4,
+	S_BOOSTSMOKE5,
+	S_BOOSTSMOKE6,
+
 	// Sneaker Fire Trail
 	S_KARTFIRE1,
 	S_KARTFIRE2,
@@ -4071,6 +4083,8 @@ typedef enum mobj_type
 	MT_RANDOMITEM,
 	MT_RANDOMITEMPOP,
 
+	MT_BOOSTFLAME,
+	MT_BOOSTSMOKE,
 	MT_SNEAKERTRAIL,
 	MT_SPARKLETRAIL,
 	MT_INVULNFLASH,

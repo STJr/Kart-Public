@@ -8229,6 +8229,39 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, sfx_prloop);
 			mobj->health--;
 			break;
+		case MT_BOOSTFLAME:
+			if (!mobj->target || !mobj->target->health)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+
+			P_TeleportMove(mobj, mobj->target->x + P_ReturnThrustX(mobj, mobj->target->angle+ANGLE_180, mobj->target->radius),
+				mobj->target->y + P_ReturnThrustY(mobj, mobj->target->angle+ANGLE_180, mobj->target->radius), mobj->target->z);
+			mobj->angle = mobj->target->angle;
+			P_SetScale(mobj, mobj->target->scale);
+
+			if (mobj->target->player)
+			{
+				if (mobj->target->player->kartstuff[k_sneakertimer] > mobj->movecount)
+					P_SetMobjState(mobj, S_BOOSTFLAME);
+				mobj->movecount = mobj->target->player->kartstuff[k_sneakertimer];
+			}
+
+			if (mobj->state == &states[S_BOOSTSMOKESPAWNER])
+			{
+				mobj_t *smoke = P_SpawnMobj(mobj->x, mobj->y, mobj->z+(8<<FRACBITS), MT_BOOSTSMOKE);
+
+				P_SetScale(smoke, mobj->target->scale/2);
+				smoke->destscale = 3*mobj->target->scale/2;
+
+				smoke->momx = mobj->target->momx/2;
+				smoke->momy = mobj->target->momy/2;
+				smoke->momz = mobj->target->momz/2;
+
+				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
+			}
+			break;
 		case MT_SPARKLETRAIL:
 			if (!mobj->target)
 			{
