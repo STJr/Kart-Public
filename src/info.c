@@ -55,12 +55,12 @@ char sprnames[NUMSPRITES + 1][5] =
 	"GWLR","SRBA","SRBB","SRBC","SRBD","SRBE","SRBF","SRBG","SRBH","SRBI",
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
-	"SPRG","BSPR","RNDM","RPOP","KFRE","KINV","KINF","WIPD","DRIF","DUST",
-	"FITM","BANA","ORBN","JAWZ","SSMN","KRBM","BHOG","BHBM","BLIG","LIGH",
-	"THNS","SINK","SITR","KBLN","DEZL","POKE","AUDI","DECO","DOOD","SNES",
-	"GBAS","SPRS","BUZB","CHOM","SACO","CRAB","SHAD","BRNG","BUMP","FLEN",
-	"CLAS","PSHW","ISTA","ISTB","ARRO","ITEM","ITMO","ITMI","ITMN","WANT",
-	"PBOM","RETI","VIEW"
+	"SPRG","BSPR","RNDM","RPOP","BOST","BOSM","KFRE","KINV","KINF","WIPD",
+	"DRIF","DUST","FITM","BANA","ORBN","JAWZ","SSMN","KRBM","BHOG","BHBM",
+	"BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL","POKE","AUDI","DECO",
+	"DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO","CRAB","SHAD","BRNG",
+	"BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO","ITEM","ITMO","ITMI",
+	"ITMN","WANT","PBOM","RETI","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2579,6 +2579,16 @@ state_t states[NUMSTATES] =
 	{SPR_DUST, 1,  3, {NULL}, 0, 0, S_DRIFTDUST3}, // S_DRIFTDUST2
 	{SPR_DUST, FF_TRANS20|2,  3, {NULL}, 0, 0, S_DRIFTDUST4}, // S_DRIFTDUST3
 	{SPR_DUST, FF_TRANS20|3,  3, {NULL}, 0, 0, S_NULL}, // S_DRIFTDUST4
+
+	{SPR_BOST, FF_FULLBRIGHT|FF_ANIMATE, TICRATE, {NULL}, 6, 1, S_BOOSTSMOKESPAWNER}, // S_BOOSTFLAME
+	{SPR_NULL, 0,                      TICRATE/2, {NULL}, 0, 0, S_NULL}, // S_BOOSTSMOKESPAWNER
+
+	{SPR_BOSM, FF_TRANS50, 3, {NULL}, 0, 0, S_BOOSTSMOKE2}, // S_BOOSTSMOKE1
+	{SPR_BOSM, FF_TRANS50|1, 3, {NULL}, 0, 0, S_BOOSTSMOKE3}, // S_BOOSTSMOKE2
+	{SPR_BOSM, FF_TRANS50|2, 3, {NULL}, 0, 0, S_BOOSTSMOKE4}, // S_BOOSTSMOKE3
+	{SPR_BOSM, FF_TRANS50|3, 3, {NULL}, 0, 0, S_BOOSTSMOKE5}, // S_BOOSTSMOKE4
+	{SPR_BOSM, FF_TRANS50|4, 3, {NULL}, 0, 0, S_BOOSTSMOKE6}, // S_BOOSTSMOKE5
+	{SPR_BOSM, FF_TRANS50|5, 3, {NULL}, 0, 0, S_NULL}, // S_BOOSTSMOKE6
 
 	{SPR_NULL, 0,               10, {NULL}, 0, 0, S_KARTFIRE2}, // S_KARTFIRE1
 	{SPR_KFRE, FF_FULLBRIGHT,    2, {NULL}, 0, 0, S_KARTFIRE3}, // S_KARTFIRE2
@@ -14417,6 +14427,60 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // activesound
 		MF_SLIDEME|MF_SPECIAL, // flags
 		S_NULL          // raisestate
+	},
+
+	{           // MT_BOOSTFLAME
+		-1,						// doomednum
+		S_BOOSTFLAME,	        // spawnstate
+		1000,					// spawnhealth
+		S_NULL,					// seestate
+		sfx_None,				// seesound
+		8,						// reactiontime
+		sfx_None,				// attacksound
+		S_NULL,					// painstate
+		0,						// painchance
+		sfx_None,				// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_NULL,					// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,				// deathsound
+		8,						// speed
+		8*FRACUNIT,				// radius
+		8*FRACUNIT,				// height
+		1,						// display offset
+		100,					// mass
+		0,						// damage
+		sfx_None,				// activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
+		S_NULL					// raisestate
+	},
+
+	{           // MT_BOOSTSMOKE
+		-1,						// doomednum
+		S_BOOSTSMOKE1,	        // spawnstate
+		1000,					// spawnhealth
+		S_NULL,					// seestate
+		sfx_None,				// seesound
+		8,						// reactiontime
+		sfx_None,				// attacksound
+		S_NULL,					// painstate
+		0,						// painchance
+		sfx_None,				// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_NULL,					// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,				// deathsound
+		8,						// speed
+		8*FRACUNIT,				// radius
+		8*FRACUNIT,				// height
+		1,						// display offset
+		100,					// mass
+		0,						// damage
+		sfx_None,				// activesound
+		MF_NOBLOCKMAP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL					// raisestate
 	},
 
 	{           // MT_SNEAKERTRAIL
