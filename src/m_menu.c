@@ -224,6 +224,7 @@ menu_t SR_MainDef, SR_UnlockChecklistDef;
 // Misc. Main Menu
 static void M_SinglePlayerMenu(INT32 choice);
 static void M_Options(INT32 choice);
+static void M_Manual(INT32 choice);
 static void M_SelectableClearMenus(INT32 choice);
 static void M_Retry(INT32 choice);
 static void M_EndGame(INT32 choice);
@@ -625,11 +626,13 @@ static menuitem_t MISC_ChangeLevelMenu[] =
 
 static menuitem_t MISC_HelpMenu[] =
 {
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPN01", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPN02", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPN03", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPM01", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPM02", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL0", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL1", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL2", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL3", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL4", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL5", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL6", M_HandleImageDef, 0},
 };
 
 // --------------------------------
@@ -1057,8 +1060,9 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 90},
 	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		100},
 
-	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					120},
-	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			130},
+	{IT_CALL|IT_STRING,			NULL, "User Manual",			M_Manual,					120},
+	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					130},
+	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			140},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1519,6 +1523,8 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",        &cv_kartcomeback,     66},
 };*/
 
+#define ITEMTOGGLEBOTTOMRIGHT
+
 static menuitem_t OP_MonitorToggleMenu[] =
 {
 	// Mostly handled by the drawing function.
@@ -1531,10 +1537,10 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas x3",			M_HandleMonitorToggles, KRITEM_TRIPLEBANANA},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas x10",			M_HandleMonitorToggles, KRITEM_TENFOLDBANANA},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Eggman Monitors",		M_HandleMonitorToggles, KITEM_EGGMAN},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts",			M_HandleMonitorToggles, KITEM_ORBINAUT},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts",				M_HandleMonitorToggles, KITEM_ORBINAUT},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts x3",			M_HandleMonitorToggles, KRITEM_TRIPLEORBINAUT},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts x4",			M_HandleMonitorToggles, KRITEM_QUADORBINAUT},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "Mines",				M_HandleMonitorToggles, KITEM_MINE},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Mines",					M_HandleMonitorToggles, KITEM_MINE},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Jawz",					M_HandleMonitorToggles, KITEM_JAWZ},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Jawz x2",				M_HandleMonitorToggles, KRITEM_DUALJAWZ},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Ballhogs",				M_HandleMonitorToggles, KITEM_BALLHOG},
@@ -1545,7 +1551,10 @@ static menuitem_t OP_MonitorToggleMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Thunder Shields",		M_HandleMonitorToggles, KITEM_THUNDERSHIELD},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Hyudoros",				M_HandleMonitorToggles, KITEM_HYUDORO},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "Pogo Springs",		 	M_HandleMonitorToggles, KITEM_POGOSPRING},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "Kitchen Sinks",		M_HandleMonitorToggles, KITEM_KITCHENSINK},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Kitchen Sinks",			M_HandleMonitorToggles, KITEM_KITCHENSINK},
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "---",					M_HandleMonitorToggles, 255},
+#endif
 };
 
 // ==========================================================================
@@ -2478,7 +2487,7 @@ boolean M_Responder(event_t *ev)
 				if (modeattacking)
 					return true;
 				M_StartControlPanel();
-				currentMenu = &MISC_HelpDef;
+				M_Manual(INT32_MAX);
 				itemOn = 0;
 				return true;
 
@@ -4166,6 +4175,9 @@ static void M_StopMessage(INT32 choice)
 // You can even put multiple images in one menu!
 static void M_DrawImageDef(void)
 {
+	// this is probably what the V_DrawFixedPatch screen-fill bullshit was for, right
+	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); -- never mind, screen fade
+
 	// Grr.  Need to autodetect for pic_ts.
 	pic_t *pictest = (pic_t *)W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
 	if (!pictest->zero)
@@ -4179,40 +4191,48 @@ static void M_DrawImageDef(void)
 			V_DrawSmallScaledPatch(0,0,0,patch);
 	}
 
-	if (currentMenu->numitems > 1)
-		V_DrawString(0,192,V_TRANSLUCENT, va("PAGE %d of %hd", itemOn+1, currentMenu->numitems));
+	if (currentMenu->menuitems[itemOn].alphaKey)
+	{
+		V_DrawString(2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", (itemOn<<1)-1)); // intentionally not highlightflags
+		V_DrawRightAlignedString(BASEVIDWIDTH-2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", itemOn<<1)); // ditto
+	}
 }
 
 // Handles the ImageDefs.  Just a specialized function that
 // uses left and right movement.
 static void M_HandleImageDef(INT32 choice)
 {
+	boolean exitmenu = false;
+
 	switch (choice)
 	{
 		case KEY_RIGHTARROW:
-			if (currentMenu->numitems == 1)
-				break;
-
-			S_StartSound(NULL, sfx_menu1);
 			if (itemOn >= (INT16)(currentMenu->numitems-1))
-				itemOn = 0;
-            else itemOn++;
+				break;
+			S_StartSound(NULL, sfx_menu1);
+			itemOn++;
 			break;
 
 		case KEY_LEFTARROW:
-			if (currentMenu->numitems == 1)
+			if (!itemOn)
 				break;
 
 			S_StartSound(NULL, sfx_menu1);
-			if (!itemOn)
-				itemOn = currentMenu->numitems - 1;
-			else itemOn--;
+			itemOn--;
 			break;
 
 		case KEY_ESCAPE:
 		case KEY_ENTER:
-			M_ClearMenus(true);
+			exitmenu = true;
 			break;
+	}
+
+	if (exitmenu)
+	{
+		if (currentMenu->prevMenu)
+			M_SetupNextMenu(currentMenu->prevMenu);
+		else
+			M_ClearMenus(true);
 	}
 }
 
@@ -4327,6 +4347,14 @@ static void M_Options(INT32 choice)
 
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
+}
+
+static void M_Manual(INT32 choice)
+{
+	(void)choice;
+
+	MISC_HelpDef.prevMenu = (choice == INT32_MAX ? NULL : currentMenu);
+	M_SetupNextMenu(&MISC_HelpDef);
 }
 
 static void M_RetryResponse(INT32 ch)
@@ -8476,8 +8504,9 @@ static void M_DrawMonitorToggles(void)
 	//const INT32 row = itemOn%height;
 	INT32 leftdraw, rightdraw, totaldraw;
 	INT32 x = currentMenu->x, y = currentMenu->y+(spacing/4);
+	INT32 onx = 0, ony = 0;
 	consvar_t *cv;
-	INT32 i;
+	INT32 i, translucent, drawnum;
 
 	M_DrawMenuTitle();
 
@@ -8505,25 +8534,30 @@ static void M_DrawMonitorToggles(void)
 		for (j = 0; j < height; j++)
 		{
 			const INT32 thisitem = (i*height)+j;
-			const boolean selected = (thisitem == itemOn);
 			INT32 drawnum = 0;
-			INT32 translucent = 0;
 
 			if (thisitem >= currentMenu->numitems)
 				continue;
 
+			if (thisitem == itemOn)
+			{
+				onx = x;
+				ony = y;
+				y += spacing;
+				continue;
+			}
+
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+			if (currentMenu->menuitems[thisitem].alphaKey == 255)
+			{
+				V_DrawScaledPatch(x, y, V_TRANSLUCENT, W_CachePatchName("K_ISBG", PU_CACHE));
+				continue;
+			}
+#endif
 			if (currentMenu->menuitems[thisitem].alphaKey == 0)
 			{
-				if (selected)
-				{
-					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
-					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITTOGL", PU_CACHE));
-				}
-				else
-				{
-					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
-					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISTOGL", PU_CACHE));
-				}
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISTOGL", PU_CACHE));
 				continue;
 			}
 
@@ -8540,59 +8574,88 @@ static void M_DrawMonitorToggles(void)
 					drawnum = 3;
 					break;
 				case KRITEM_TRIPLEORBINAUT:
-					if (!selected)
-						drawnum = 3;
+					drawnum = 3;
 					break;
 				case KRITEM_QUADORBINAUT:
-					if (!selected)
-						drawnum = 4;
+					drawnum = 4;
 					break;
 				case KRITEM_TENFOLDBANANA:
 					drawnum = 10;
 					break;
 				default:
+					drawnum = 0;
 					break;
 			}
 
-			if (selected)
-			{
-				if (cv->value)
-					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
-				else
-					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITBGD", PU_CACHE));
+			if (cv->value)
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
+			else
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBGD", PU_CACHE));
 
-				if (drawnum != 0)
-				{
-					V_DrawScaledPatch(x-1, y-2, 0, W_CachePatchName("K_ITMUL", PU_CACHE));
-					V_DrawScaledPatch(x-1, y-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, !selected), PU_CACHE));
-					V_DrawScaledPatch(x+27, y+39, translucent, W_CachePatchName("K_ITX", PU_CACHE));
-					V_DrawKartString(x+37, y+34, translucent, va("%d", drawnum));
-				}
-				else
-					V_DrawScaledPatch(x-1, y-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, !selected), PU_CACHE));
+			if (drawnum != 0)
+			{
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISMUL", PU_CACHE));
+				V_DrawScaledPatch(x, y, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, true), PU_CACHE));
+				V_DrawString(x+24, y+31, V_ALLOWLOWERCASE|translucent, va("x%d", drawnum));
 			}
 			else
-			{
-				if (cv->value)
-					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
-				else
-					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBGD", PU_CACHE));
-
-				if (drawnum != 0)
-				{
-					V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISMUL", PU_CACHE));
-					V_DrawScaledPatch(x, y, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, !selected), PU_CACHE));
-					V_DrawString(x+24, y+31, V_ALLOWLOWERCASE|translucent, va("x%d", drawnum));
-				}
-				else
-					V_DrawScaledPatch(x, y, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, !selected), PU_CACHE));
-			}
+				V_DrawScaledPatch(x, y, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, true), PU_CACHE));
 
 			y += spacing;
 		}
 
 		x += spacing;
 		y = currentMenu->y+(spacing/4);
+	}
+
+	{
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+		if (currentMenu->menuitems[itemOn].alphaKey == 255)
+			V_DrawScaledPatch(onx-1, ony-2, V_TRANSLUCENT, W_CachePatchName("K_ITBG", PU_CACHE));
+		else
+#endif
+		if (currentMenu->menuitems[itemOn].alphaKey == 0)
+		{
+			V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
+			V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITTOGL", PU_CACHE));
+		}
+		else
+		{
+			cv = kartitemcvs[currentMenu->menuitems[itemOn].alphaKey-1];
+			translucent = (cv->value ? 0 : V_TRANSLUCENT);
+
+			switch (currentMenu->menuitems[itemOn].alphaKey)
+			{
+				case KRITEM_DUALJAWZ:
+					drawnum = 2;
+					break;
+				case KRITEM_TRIPLESNEAKER:
+				case KRITEM_TRIPLEBANANA:
+					drawnum = 3;
+					break;
+				case KRITEM_TENFOLDBANANA:
+					drawnum = 10;
+					break;
+				default:
+					drawnum = 0;
+					break;
+			}
+
+			if (cv->value)
+				V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
+			else
+				V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITBGD", PU_CACHE));
+
+			if (drawnum != 0)
+			{
+				V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITMUL", PU_CACHE));
+				V_DrawScaledPatch(onx-1, ony-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[itemOn].alphaKey, false), PU_CACHE));
+				V_DrawScaledPatch(onx+27, ony+39, translucent, W_CachePatchName("K_ITX", PU_CACHE));
+				V_DrawKartString(onx+37, ony+34, translucent, va("%d", drawnum));
+			}
+			else
+				V_DrawScaledPatch(onx-1, ony-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[itemOn].alphaKey, false), PU_CACHE));
+		}
 	}
 
 	V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, highlightflags, va("* %s *", currentMenu->menuitems[itemOn].text));
@@ -8604,6 +8667,7 @@ static void M_HandleMonitorToggles(INT32 choice)
 	INT32 column = itemOn/height, row = itemOn%height;
 	INT16 next;
 	UINT8 i;
+	boolean exitmenu = false;
 
 	switch (choice)
 	{
@@ -8652,6 +8716,11 @@ static void M_HandleMonitorToggles(INT32 choice)
 			break;
 
 		case KEY_ENTER:
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+			if (currentMenu->menuitems[itemOn].alphaKey == 255)
+				S_StartSound(NULL, sfx_lose);
+			else
+#endif
 			if (currentMenu->menuitems[itemOn].alphaKey == 0)
 			{
 				INT32 v = cv_sneaker.value;
@@ -8670,8 +8739,16 @@ static void M_HandleMonitorToggles(INT32 choice)
 			break;
 
 		case KEY_ESCAPE:
-			M_ClearMenus(true);
+			exitmenu = true;
 			break;
+	}
+
+	if (exitmenu)
+	{
+		if (currentMenu->prevMenu)
+			M_SetupNextMenu(currentMenu->prevMenu);
+		else
+			M_ClearMenus(true);
 	}
 }
 
@@ -8790,7 +8867,6 @@ static void M_HandleFogColor(INT32 choice)
 			break;
 
 		case KEY_ESCAPE:
-			S_StartSound(NULL, sfx_menu1);
 			exitmenu = true;
 			break;
 
