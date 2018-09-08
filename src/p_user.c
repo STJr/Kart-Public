@@ -8373,15 +8373,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (player->speed > K_GetKartSpeed(player, false))
 		dist += 4*(player->speed - K_GetKartSpeed(player, false));
+	dist += abs(thiscam->momz)/4;
 
 	if (player->kartstuff[k_boostcam])
 	{
-		dist -= FixedMul(19*dist/32, player->kartstuff[k_boostcam]);
+		dist -= FixedMul(11*dist/16, player->kartstuff[k_boostcam]);
 		height -= FixedMul(height, player->kartstuff[k_boostcam]);
 	}
-
-	if (player->climbing || player->playerstate == PST_DEAD || (player->pflags & (PF_MACESPIN|PF_ITEMHANG|PF_ROPEHANG)))
-		dist <<= 1;
 
 	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
 	if (splitscreen == 1) // widescreen splits should get x1.5 distance
@@ -8397,7 +8395,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (player->kartstuff[k_drift] != 0)
 	{
 		fixed_t panmax = (camdist/5);
-		pan = min(player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
+		pan = min(player->kartstuff[k_driftcharge]/2, K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
 		if (pan > panmax)
 			pan = panmax;
 		if (player->kartstuff[k_drift] < 0)
