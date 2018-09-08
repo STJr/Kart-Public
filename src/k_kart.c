@@ -470,28 +470,28 @@ boolean K_IsPlayerWanted(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
-			   /*Sneaker*/ {20, 0, 0, 3, 6, 6, 0, 0, 0 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 2, 5, 4, 0 }, // Rocket Sneaker
+			   /*Sneaker*/ {20, 0, 0, 3, 6, 5, 0, 0, 0 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 2, 6, 5, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 5, 6,16 }, // Invincibility
-				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
+				/*Banana*/ { 0, 9, 3, 2, 1, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 6, 5, 4, 2, 0, 0, 0, 0 }, // Orbinaut
+			  /*Orbinaut*/ { 0, 6, 3, 4, 2, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 2, 1, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
-			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
+			   /*Ballhog*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 1, 1, 2, 2, 3, 2 }, // Self-Propelled Bomb
 				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 6, 4 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 1, 0 }, // Shrink
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 2, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 6, 5, 3, 0 }, // Sneaker x3
-			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
+			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 8, 5, 2, 0 }, // Sneaker x3
+			 /*Banana x3*/ { 0, 0, 2, 1, 0, 0, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }, // Orbinaut x3
-		   /*Orbinaut x4*/ { 0, 0, 0, 0, 0, 1, 1, 0, 0 }, // Orbinaut x4
-			   /*Jawz x2*/ { 0, 0, 0, 1, 1, 0, 0, 0, 0 }  // Jawz x2
+		   /*Orbinaut x3*/ { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Orbinaut x4
+			   /*Jawz x2*/ { 0, 0, 1, 1, 1, 0, 0, 0, 0 }  // Jawz x2
 };
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
@@ -965,7 +965,11 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			if (against->player && !against->player->kartstuff[k_spinouttimer] && mobj->player->kartstuff[k_spinouttimer])
 				weight = 0; // Do not bump
 			else
+			{
 				weight = (mobj->player->kartweight)<<FRACBITS;
+				if (mobj->player->speed > K_GetKartSpeed(mobj->player, false))
+					weight += (mobj->player->speed - K_GetKartSpeed(mobj->player, false))/8;
+			}
 			break;
 		case MT_FALLINGROCK:
 			if (against->player)
@@ -3880,9 +3884,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = 5;
 
 			if (player->cmd.driftturn > 0) // Inward
-				driftadditive += (player->cmd.driftturn/800)/8;
+				driftadditive += abs(player->cmd.driftturn)/100;
 			if (player->cmd.driftturn < 0) // Outward
-				driftadditive -= (player->cmd.driftturn/800)/8;
+				driftadditive -= abs(player->cmd.driftturn)/75;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
@@ -3891,9 +3895,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = -5;
 
 			if (player->cmd.driftturn < 0) // Inward
-				driftadditive += (player->cmd.driftturn/800)/4;
+				driftadditive += abs(player->cmd.driftturn)/100;
 			if (player->cmd.driftturn > 0) // Outward
-				driftadditive -= (player->cmd.driftturn/800)/4;
+				driftadditive -= abs(player->cmd.driftturn)/75;
 		}
 
 		// This spawns the drift sparks
