@@ -917,6 +917,16 @@ static void R_DrawVisSprite(vissprite_t *vis)
 
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{
+		if (vis->scalestep) // currently papersprites only
+		{
+#ifndef RANGECHECK
+			if ((frac>>FRACBITS) >= SHORT(patch->width)) // slower but kills intermittent crashes...
+				break;
+#endif
+			sprtopscreen = (centeryfrac - FixedMul(dc_texturemid, spryscale));
+			dc_iscale = (0xffffffffu / (unsigned)spryscale);
+			spryscale += vis->scalestep;
+		}
 #ifdef RANGECHECK
 		texturecolumn = frac>>FRACBITS;
 
@@ -926,16 +936,10 @@ static void R_DrawVisSprite(vissprite_t *vis)
 #else
 		column = (column_t *)((UINT8 *)patch + LONG(patch->columnofs[frac>>FRACBITS]));
 #endif
-		if (vis->scalestep)
-		{
-			sprtopscreen = (centeryfrac - FixedMul(dc_texturemid, spryscale));
-			dc_iscale = (0xffffffffu / (unsigned)spryscale);
-		}
 		if (vis->vflip)
 			R_DrawFlippedMaskedColumn(column, patch->height);
 		else
 			R_DrawMaskedColumn(column);
-		spryscale += vis->scalestep;
 	}
 
 	colfunc = basecolfunc;
@@ -1257,7 +1261,7 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	offset2 = FixedMul(spritecachedinfo[lump].width, this_scale);
 	tx += FixedMul(offset2, ang_scale);
-	x2 = ((centerxfrac + FixedMul (tx,xscale)) >> FRACBITS) - (papersprite ? 2 : 1);
+	x2 = ((centerxfrac + FixedMul (tx,xscale)) >> FRACBITS) - 1;
 
 	// off the left side
 	if (x2 < 0)
