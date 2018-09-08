@@ -3517,9 +3517,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = 5;
 
 			if (player->cmd.driftturn > 0) // Inward
-				driftadditive += (player->cmd.driftturn/800)/8;
+				driftadditive += abs(player->cmd.driftturn)/100;
 			if (player->cmd.driftturn < 0) // Outward
-				driftadditive -= (player->cmd.driftturn/800)/8;
+				driftadditive -= abs(player->cmd.driftturn)/75;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
@@ -3528,9 +3528,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = -5;
 
 			if (player->cmd.driftturn < 0) // Inward
-				driftadditive += (player->cmd.driftturn/800)/4;
+				driftadditive += abs(player->cmd.driftturn)/100;
 			if (player->cmd.driftturn > 0) // Outward
-				driftadditive -= (player->cmd.driftturn/800)/4;
+				driftadditive -= abs(player->cmd.driftturn)/75;
 		}
 
 		// This spawns the drift sparks
