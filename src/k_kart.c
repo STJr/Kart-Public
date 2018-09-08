@@ -2187,6 +2187,8 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 		case MT_JAWZ_DUD:
 			S_StartSound(th, th->info->activesound);
 			break;
+		default:
+			break;
 	}
 
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
