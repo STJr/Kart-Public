@@ -964,7 +964,11 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			if (against->player && !against->player->kartstuff[k_spinouttimer] && mobj->player->kartstuff[k_spinouttimer])
 				weight = 0; // Do not bump
 			else
+			{
 				weight = (mobj->player->kartweight)<<FRACBITS;
+				if (mobj->player->speed > K_GetKartSpeed(mobj->player, false))
+					weight += (mobj->player->speed - K_GetKartSpeed(mobj->player, false))/8;
+			}
 			break;
 		case MT_FALLINGROCK:
 			if (against->player)
