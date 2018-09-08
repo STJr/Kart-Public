@@ -1886,10 +1886,10 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	}
 
 	player->kartstuff[k_instashield] = 15;
-	if (cv_kartdebughuddrop.value)
+	//if (cv_kartdebughuddrop.value)
 		K_DropItems(player);
-	else
-		K_DropHnextList(player);
+	/*else
+		K_DropHnextList(player);*/
 	return;
 }
 
