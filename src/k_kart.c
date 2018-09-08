@@ -3273,13 +3273,13 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam]
 			&& player->kartstuff[k_destboostcam] != 0)
 		{
-			player->kartstuff[k_boostcam] += FRACUNIT/(TICRATE/4);
+			player->kartstuff[k_boostcam] += FRACUNIT/5;
 			if (player->kartstuff[k_boostcam] >= player->kartstuff[k_destboostcam])
 				player->kartstuff[k_destboostcam] = 0;
 		}
 		else
 		{
-			player->kartstuff[k_boostcam] -= FRACUNIT/TICRATE;
+			player->kartstuff[k_boostcam] -= FRACUNIT/20;
 			if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam])
 				player->kartstuff[k_boostcam] = player->kartstuff[k_destboostcam] = 0;
 		}

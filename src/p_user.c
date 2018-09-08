@@ -8376,7 +8376,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (player->kartstuff[k_boostcam])
 	{
-		dist -= FixedMul(3*dist/4, player->kartstuff[k_boostcam]);
+		dist -= FixedMul(19*dist/32, player->kartstuff[k_boostcam]);
 		height -= FixedMul(height, player->kartstuff[k_boostcam]);
 	}
 
