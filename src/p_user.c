@@ -8395,7 +8395,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (player->kartstuff[k_drift] != 0)
 	{
 		fixed_t panmax = (camdist/5);
-		pan = min(player->kartstuff[k_driftcharge]/2, K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
+		pan = min(player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
 		if (pan > panmax)
 			pan = panmax;
 		if (player->kartstuff[k_drift] < 0)
