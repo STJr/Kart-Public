@@ -4787,8 +4787,8 @@ static void M_HandleAddons(INT32 choice)
 	{
 		closefilemenu(true);
 
-		// secrets disabled by addfile...
-		MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
+		// Secret menu!
+		//MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
 
 		if (currentMenu->prevMenu)
 			M_SetupNextMenu(currentMenu->prevMenu);
