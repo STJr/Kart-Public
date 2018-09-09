@@ -920,7 +920,7 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		if (vis->scalestep) // currently papersprites only
 		{
 #ifndef RANGECHECK
-			if ((frac>>FRACBITS) >= SHORT(patch->width)) // slower but kills intermittent crashes...
+			if ((frac>>FRACBITS) < 0 || (frac>>FRACBITS) >= SHORT(patch->width)) // if this doesn't work i'm removing papersprites
 				break;
 #endif
 			sprtopscreen = (centeryfrac - FixedMul(dc_texturemid, spryscale));
@@ -1271,6 +1271,9 @@ static void R_ProjectSprite(mobj_t *thing)
 	{
 		fixed_t yscale2, cosmul, sinmul, tz2;
 
+		if (x2 <= x1)
+			return;
+
 		if (ang >= ANGLE_180)
 		{
 			offset *= -1;
@@ -1297,9 +1300,6 @@ static void R_ProjectSprite(mobj_t *thing)
 		if (yscale2 < 64) return; // ditto
 
 		if (max(tz, tz2) < FixedMul(MINZ, this_scale)) // non-papersprite clipping is handled earlier
-			return;
-
-		if (x2 <= x1)
 			return;
 
 		scalestep = (yscale2 - yscale)/(x2 - x1);
