@@ -4342,8 +4342,8 @@ static void M_Options(INT32 choice)
 	OP_MainMenu[5].status = OP_MainMenu[6].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	// if the player is playing _at all_, disable the erase data & credits options
-	OP_MainMenu[7].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
-	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
+	OP_MainMenu[9].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
