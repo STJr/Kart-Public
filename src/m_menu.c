@@ -1090,12 +1090,13 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CONTROL, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
 	//{IT_CONTROL, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
 	{IT_CONTROL, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
+	{IT_CONTROL, NULL, "Open/Close Menu (ESC)", M_ChangeControl, gc_systemmenu},
 	{IT_CONTROL, NULL, "Pause",            M_ChangeControl, gc_pause      },
 	{IT_CONTROL, NULL, "Console",          M_ChangeControl, gc_console    },
 
-	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        112},
-	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 120},
-	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   128},
+	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        120},
+	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 128},
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   136},
 };
 
 static menuitem_t OP_SpectateControlsMenu[] =
@@ -1145,8 +1146,6 @@ static menuitem_t OP_MiscControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Custom Action 1",  M_ChangeControl, gc_custom1      },
 	{IT_CALL | IT_STRING2, NULL, "Custom Action 2",  M_ChangeControl, gc_custom2      },
 	{IT_CALL | IT_STRING2, NULL, "Custom Action 3",  M_ChangeControl, gc_custom3      },
-
-	{IT_CALL | IT_STRING2, NULL, "System Menu (ESC)",M_ChangeControl, gc_systemmenu   },
 
 	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause        },
 	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console      },
