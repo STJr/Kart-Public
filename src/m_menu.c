@@ -5564,7 +5564,8 @@ static void M_DrawStatsMaps(int location)
 	boolean dotopname = true, dobottomarrow = (location < statsMax);
 
 	if (location)
-		V_DrawString(10, y-(skullAnimCounter/5), highlightflags, "\x1A");
+		V_DrawCharacter(10, y-(skullAnimCounter/5),
+			'\x1A' | highlightflags, false); // up arrow
 
 	while (statsMapList[++i] != -1)
 	{
@@ -5646,7 +5647,8 @@ static void M_DrawStatsMaps(int location)
 	}
 bottomarrow:
 	if (dobottomarrow)
-		V_DrawString(10, y-8 + (skullAnimCounter/5), highlightflags, "\x1B");
+		V_DrawCharacter(10, y-8 + (skullAnimCounter/5),
+			'\x1B' | highlightflags, false); // up arrow
 }
 
 static void M_DrawLevelStats(void)
