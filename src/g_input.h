@@ -114,6 +114,7 @@ typedef enum
 	gc_scores,
 	gc_console,
 	gc_pause,
+	gc_systemmenu,
 	gc_custom1, // Lua scriptable
 	gc_custom2, // Lua scriptable
 	gc_custom3, // Lua scriptable

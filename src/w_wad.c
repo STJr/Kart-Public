@@ -769,6 +769,24 @@ static size_t W_RawReadLumpHeader(UINT16 wad, UINT16 lump, void *dest, size_t si
 	fseek(handle, (long)(l->position + offset), SEEK_SET);
 	bytesread = fread(dest, 1, size, handle);
 
+#if 1 // we're fucking sick of this
+    if (bytesread < 67) // http://garethrees.org/2007/11/14/pngcrush/
+        return bytesread;
+
+#define sigcheck ((UINT8 *)dest)
+    if (sigcheck[0] == 0x89
+    && sigcheck[1] == 0x50
+    && sigcheck[2] == 0x4e
+    && sigcheck[3] == 0x47
+    && sigcheck[4] == 0x0d
+    && sigcheck[5] == 0x0a
+    && sigcheck[6] == 0x1a
+    && sigcheck[7] == 0x0a)
+        I_Error("W_Wad: Tried to cache a .PNG - have you tried converting to Doom or Flat (raw) image formats?");
+#undef sigcheck
+
+#endif
+
 	return bytesread;
 }
 

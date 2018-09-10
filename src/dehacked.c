@@ -7672,6 +7672,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"WAYPOINT",
 	"STARPOSTWP",
 	"RESPAWN",
+	"DROPDASH",
 
 	"THROWDIR",
 	"LAPANIMATION",
@@ -7688,6 +7689,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"DRIFTCHARGE",
 	"DRIFTBOOST",
 	"BOOSTCHARGE",
+	"STARTBOOST",
 	"JMP",
 	"OFFROAD",
 	"POGOSPRING",

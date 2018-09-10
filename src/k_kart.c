@@ -1236,7 +1236,7 @@ void K_RespawnChecker(player_t *player)
 	if (player->spectator)
 		return;
 
-	if (player->kartstuff[k_respawn] > 3)
+	if (player->kartstuff[k_respawn] > 1)
 	{
 		player->kartstuff[k_respawn]--;
 		player->mo->momz = 0;
@@ -1274,26 +1274,39 @@ void K_RespawnChecker(player_t *player)
 			}
 		}
 	}
-
-	if (player->kartstuff[k_respawn] > 0 && player->kartstuff[k_respawn] <= 3)
+	else if (player->kartstuff[k_respawn] == 1)
 	{
 		if (!P_IsObjectOnGround(player->mo))
 		{
 			player->powers[pw_flashing] = 2;
-			// If you tried to boost while in the air,
-			// you lose your chance of boosting at all.
+
+			// Sal: That's stupid and prone to accidental usage.
+			// Let's rip off Mania instead, and turn this into a Drop Dash!
+
 			if (cmd->buttons & BT_ACCELERATE)
-			{
-				player->powers[pw_flashing] = 0;
-				player->kartstuff[k_respawn] = 0;
-			}
+				player->kartstuff[k_dropdash]++;
+			else
+				player->kartstuff[k_dropdash] = 0;
+
+			if (player->kartstuff[k_dropdash] == TICRATE/4)
+				S_StartSound(player->mo, sfx_ddash);
+
+			if ((player->kartstuff[k_dropdash] >= TICRATE/4)
+				&& (player->kartstuff[k_dropdash] & 1))
+				player->mo->colorized = true;
+			else
+				player->mo->colorized = false;
 		}
 		else
 		{
-			player->kartstuff[k_respawn]--;
-			// Quick! You only have three tics to boost!
-			if (cmd->buttons & BT_ACCELERATE)
-				K_DoSneaker(player, true);
+			if ((cmd->buttons & BT_ACCELERATE) && (player->kartstuff[k_dropdash] >= TICRATE/4))
+			{
+				S_StartSound(player->mo, sfx_s23c);
+				player->kartstuff[k_startboost] = 50;
+			}
+			player->mo->colorized = false;
+			player->kartstuff[k_dropdash] = 0;
+			player->kartstuff[k_respawn] = 0;
 		}
 	}
 }
@@ -1478,23 +1491,6 @@ static void K_GetKartBoostPower(player_t *player)
 	else if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
-	if (player->kartstuff[k_growshrinktimer] > 0) // Grow
-	{
-		speedboost = max(speedboost, FRACUNIT/5); // + 20%
-	}
-
-	if (player->kartstuff[k_invincibilitytimer]) // Invincibility
-	{
-		speedboost = max(speedboost, 3*(FRACUNIT/8)); // + 37.5%
-		accelboost = max(accelboost, 3*FRACUNIT); // + 600%
-	}
-
-	if (player->kartstuff[k_driftboost]) // Drift Boost
-	{
-		speedboost = max(speedboost, FRACUNIT/4); // + 25%
-		accelboost = max(accelboost, 4*FRACUNIT); // + 400%
-	}
-
 	if (player->kartstuff[k_sneakertimer]) // Sneaker
 	{
 		switch (gamespeed)
@@ -1510,6 +1506,29 @@ static void K_GetKartBoostPower(player_t *player)
 				break;
 		}
 		accelboost = max(accelboost, 8*FRACUNIT); // + 800%
+	}
+
+	if (player->kartstuff[k_invincibilitytimer]) // Invincibility
+	{
+		speedboost = max(speedboost, 3*FRACUNIT/8); // + 37.5%
+		accelboost = max(accelboost, 3*FRACUNIT); // + 300%
+	}
+
+	if (player->kartstuff[k_growshrinktimer] > 0) // Grow
+	{
+		speedboost = max(speedboost, FRACUNIT/5); // + 20%
+	}
+
+	if (player->kartstuff[k_driftboost]) // Drift Boost
+	{
+		speedboost = max(speedboost, FRACUNIT/4); // + 25%
+		accelboost = max(accelboost, 4*FRACUNIT); // + 400%
+	}
+
+	if (player->kartstuff[k_startboost]) // Startup Boost
+	{
+		speedboost = max(speedboost, FRACUNIT/4); // + 25%
+		accelboost = max(accelboost, 6*FRACUNIT); // + 300%
 	}
 
 	// don't average them anymore, this would make a small boost and a high boost less useful
@@ -2713,9 +2732,10 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	player->kartstuff[k_sneakertimer] = sneakertime;
 
 	if (doPFlag)
+	{
 		player->pflags |= PF_ATTACKDOWN;
-
-	K_PlayTauntSound(player->mo);
+		K_PlayTauntSound(player->mo);
+	}
 
 	K_GetKartBoostPower(player);
 	if (player->kartstuff[k_speedboost] > prevboost)
@@ -3336,6 +3356,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_driftboost])
 		player->kartstuff[k_driftboost]--;
+
+	if (player->kartstuff[k_startboost])
+		player->kartstuff[k_startboost]--;
 
 	if (player->kartstuff[k_invincibilitytimer])
 		player->kartstuff[k_invincibilitytimer]--;
@@ -4514,16 +4537,24 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Get an instant boost!
 		else if (player->kartstuff[k_boostcharge] <= 50)
 		{
-			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
-			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+			player->kartstuff[k_startboost] = (50-player->kartstuff[k_boostcharge])+20;
+
+			if (player->kartstuff[k_boostcharge] <= 36)
 			{
-				if (player->kartstuff[k_sneakertimer] >= 70)
-					S_StartSound(player->mo, sfx_s25f); // Special sound for the perfect start boost!
-				else if (player->kartstuff[k_sneakertimer] >= sneakertime)
-					S_StartSound(player->mo, sfx_cdfm01); // Sneaker boost sound for big boost
-				else
-					S_StartSound(player->mo, sfx_s23c); // Drift boost sound for small boost
+				player->kartstuff[k_startboost] = 0;
+				K_DoSneaker(player, false);
+				player->kartstuff[k_sneakertimer] = 70; // PERFECT BOOST!!
+
+				if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) // Let everyone hear this one
+					S_StartSound(player->mo, sfx_s25f);
 			}
+			else if ((!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) && P_IsLocalPlayer(player))
+			{
+				if (player->kartstuff[k_boostcharge] <= 40)
+					S_StartSound(player->mo, sfx_cdfm01); // You were almost there!
+				else
+					S_StartSound(player->mo, sfx_s23c); // Nope, better luck next time.
+			}	
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		else if (player->kartstuff[k_boostcharge] > 50)
@@ -4733,6 +4764,8 @@ void K_CheckSpectateStatus(void)
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
                 continue;
+			if (leveltime > 20*TICRATE) // DON'T allow if the match is 20 seconds in
+                return;
             if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
                 return;
 			continue;
@@ -5388,6 +5421,9 @@ static void K_drawKartItem(void)
 				case KITEM_SAD:					localpatch = kp_sadface[offset]; break;
 				default: return;
 			}
+
+			if (stplyr->kartstuff[k_itemheld] && !(leveltime & 1))
+				localpatch = kp_nodraw;
 		}
 	}
 

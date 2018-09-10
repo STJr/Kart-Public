@@ -1096,12 +1096,13 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CONTROL, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
 	//{IT_CONTROL, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
 	{IT_CONTROL, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
+	{IT_CONTROL, NULL, "Open/Close Menu (ESC)", M_ChangeControl, gc_systemmenu},
 	{IT_CONTROL, NULL, "Pause",            M_ChangeControl, gc_pause      },
 	{IT_CONTROL, NULL, "Console",          M_ChangeControl, gc_console    },
 
-	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        112},
-	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 120},
-	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   128},
+	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        120},
+	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 128},
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   136},
 };
 
 static menuitem_t OP_SpectateControlsMenu[] =
@@ -2476,11 +2477,14 @@ boolean M_Responder(event_t *ev)
 
 	if (ch == -1)
 		return false;
+	else if (ch == gamecontrol[gc_systemmenu][0]) // allow remappable ESC key
+		ch = KEY_ESCAPE;
 
 	// F-Keys
 	if (!menuactive)
 	{
 		noFurtherInput = true;
+
 		switch (ch)
 		{
 			case KEY_F1: // Help key

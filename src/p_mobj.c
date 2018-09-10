@@ -7022,7 +7022,15 @@ void P_MobjThinker(mobj_t *mobj)
 									break;
 							}
 
-							mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							if (mobj->target->player->kartstuff[k_itemheld])
+							{
+								if (leveltime & 1)
+									mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+								else
+									mobj->tracer->flags2 |= MF2_DONTDRAW;
+							}
+							else
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 						}
 						else
 						{
