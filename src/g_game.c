@@ -2408,22 +2408,39 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	starpostwp = players[player].kartstuff[k_starpostwp];
-	itemroulette = (players[player].kartstuff[k_itemroulette] > 0 ? 1 : 0);
-	roulettetype = players[player].kartstuff[k_roulettetype];
-	if (players[player].kartstuff[k_itemheld])
+	if (leveltime <= starttime)
 	{
+		itemroulette = 0;
+		roulettetype = 0;
 		itemtype = 0;
 		itemamount = 0;
+		bumper = (G_BattleGametype() ? cv_kartbumpers.value : 0);
+		comebackpoints = 0;
+		wanted = 0;
+		starpostwp = 0;
 	}
 	else
 	{
-		itemtype = players[player].kartstuff[k_itemtype];
-		itemamount = players[player].kartstuff[k_itemamount];
+		starpostwp = players[player].kartstuff[k_starpostwp];
+
+		itemroulette = (players[player].kartstuff[k_itemroulette] > 0 ? 1 : 0);
+		roulettetype = players[player].kartstuff[k_roulettetype];
+
+		if (players[player].kartstuff[k_itemheld])
+		{
+			itemtype = 0;
+			itemamount = 0;
+		}
+		else
+		{
+			itemtype = players[player].kartstuff[k_itemtype];
+			itemamount = players[player].kartstuff[k_itemamount];
+		}
+
+		bumper = players[player].kartstuff[k_bumper];
+		comebackpoints = players[player].kartstuff[k_comebackpoints];
+		wanted = players[player].kartstuff[k_wanted];
 	}
-	bumper = players[player].kartstuff[k_bumper];
-	comebackpoints = players[player].kartstuff[k_comebackpoints];
-	wanted = players[player].kartstuff[k_wanted];
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
