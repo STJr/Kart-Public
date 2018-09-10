@@ -626,13 +626,19 @@ static menuitem_t MISC_ChangeLevelMenu[] =
 
 static menuitem_t MISC_HelpMenu[] =
 {
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL0", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL1", M_HandleImageDef, 1},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL2", M_HandleImageDef, 1},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL3", M_HandleImageDef, 1},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL4", M_HandleImageDef, 1},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL5", M_HandleImageDef, 1},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL6", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL00", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL01", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL02", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL03", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL04", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL05", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL06", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL07", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL08", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL09", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL10", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL11", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL12", M_HandleImageDef, 0},
 };
 
 // --------------------------------
@@ -1060,7 +1066,7 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 90},
 	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		100},
 
-	{IT_CALL|IT_STRING,			NULL, "User Manual",			M_Manual,					120},
+	{IT_CALL|IT_STRING,			NULL, "Tricks & Secrets (F1)",	M_Manual,					120},
 	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					130},
 	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			140},
 };
@@ -4197,8 +4203,18 @@ static void M_DrawImageDef(void)
 
 	if (currentMenu->menuitems[itemOn].alphaKey)
 	{
-		V_DrawString(2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", (itemOn<<1)-1)); // intentionally not highlightflags
+		V_DrawString(2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", (itemOn<<1)-1)); // intentionally not highlightflags, unlike below
 		V_DrawRightAlignedString(BASEVIDWIDTH-2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", itemOn<<1)); // ditto
+	}
+	else
+	{
+		INT32 x = ((itemOn ? 3 : 1)*BASEVIDWIDTH)>>2, y = (BASEVIDHEIGHT>>1) - 4;
+		V_DrawCenteredString(x, y-10, highlightflags, "USE ARROW KEYS");
+		V_DrawCharacter(x - 10 - (skullAnimCounter/5), y,
+			'\x1C' | highlightflags, false); // left arrow
+		V_DrawCharacter(x + 2 + (skullAnimCounter/5), y,
+			'\x1D' | highlightflags, false); // right arrow
+		V_DrawCenteredString(x, y+10, highlightflags, "TO LEAF THROUGH");
 	}
 }
 
