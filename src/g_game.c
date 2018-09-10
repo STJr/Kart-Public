@@ -2347,6 +2347,10 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	INT32 starpostwp;
+	INT32 itemtype;
+	INT32 itemamount;
+	INT32 itemroulette;
+	INT32 roulettetype;
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
@@ -2405,6 +2409,18 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	starpostwp = players[player].kartstuff[k_starpostwp];
+	itemroulette = (players[player].kartstuff[k_itemroulette] > 0 ? 1 : 0);
+	roulettetype = players[player].kartstuff[k_roulettetype];
+	if (players[player].kartstuff[k_itemheld])
+	{
+		itemtype = 0;
+		itemamount = 0;
+	}
+	else
+	{
+		itemtype = players[player].kartstuff[k_itemtype];
+		itemamount = players[player].kartstuff[k_itemamount];
+	}
 	bumper = players[player].kartstuff[k_bumper];
 	comebackpoints = players[player].kartstuff[k_comebackpoints];
 	wanted = players[player].kartstuff[k_wanted];
@@ -2464,6 +2480,10 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
+	p->kartstuff[k_itemroulette] = itemroulette;
+	p->kartstuff[k_roulettetype] = roulettetype;
+	p->kartstuff[k_itemtype] = itemtype;
+	p->kartstuff[k_itemamount] = itemamount;
 	p->kartstuff[k_bumper] = bumper;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;

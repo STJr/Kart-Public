@@ -5410,6 +5410,9 @@ static void K_drawKartItem(void)
 				case KITEM_SAD:					localpatch = kp_sadface[offset]; break;
 				default: return;
 			}
+
+			if (stplyr->kartstuff[k_itemheld] && !(leveltime & 1))
+				localpatch = kp_nodraw;
 		}
 	}
 
