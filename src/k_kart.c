@@ -2211,6 +2211,98 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	return NULL;
 }
 
+static void K_SpawnDriftSparks(player_t *player)
+{
+	fixed_t newx;
+	fixed_t newy;
+	//fixed_t ground;
+	mobj_t *spark;
+	angle_t travelangle;
+	INT32 i;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	if (leveltime % 2 == 1)
+		return;
+
+	if (!P_IsObjectOnGround(player->mo))
+		return;
+
+	if (!player->kartstuff[k_drift] || player->kartstuff[k_driftcharge] < K_GetKartDriftSparkValue(player))
+		return;
+
+	/*if (player->mo->eflags & MFE_VERTICALFLIP)
+		ground = player->mo->ceilingz - FixedMul(mobjinfo[MT_DRIFTSPARK].height, player->mo->scale);
+	else
+		ground = player->mo->floorz;*/
+
+	travelangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
+
+	for (i = 0; i < 2; i++)
+	{
+		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(32*FRACUNIT, player->mo->scale));
+		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(32*FRACUNIT, player->mo->scale));
+/*#ifdef ESLOPE
+		if (player->mo->standingslope)
+		{
+			ground = P_GetZAt(player->mo->standingslope, newx, newy);
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				ground -= FixedMul(mobjinfo[MT_DRIFTSPARK].height, player->mo->scale);
+		}
+#endif*/
+		spark = P_SpawnMobj(newx, newy, player->mo->z, MT_DRIFTSPARK);
+
+		P_SetTarget(&spark->target, player->mo);
+		spark->angle = travelangle-(ANGLE_45/5)*player->kartstuff[k_drift];
+		spark->destscale = player->mo->scale;
+		P_SetScale(spark, player->mo->scale);
+
+		spark->momx = player->mo->momx/2;
+		spark->momy = player->mo->momy/2;
+		//spark->momz = player->mo->momz/2;
+
+		if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*2)
+		{
+			if (player->kartstuff[k_driftcharge] <= (K_GetKartDriftSparkValue(player)*2)+(32*3))
+				spark->color = SKINCOLOR_DUSK; // transition
+			else
+				spark->color = SKINCOLOR_RUBY;
+		}
+		else
+			spark->color = SKINCOLOR_SAPPHIRE;
+
+		if ((player->kartstuff[k_drift] > 0 && player->cmd.driftturn > 0) // Inward drifts
+			|| (player->kartstuff[k_drift] < 0 && player->cmd.driftturn < 0))
+		{
+			if ((player->kartstuff[k_drift] < 0 && (i & 1))
+				|| (player->kartstuff[k_drift] > 0 && !(i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_A1);
+			else if ((player->kartstuff[k_drift] < 0 && !(i & 1))
+				|| (player->kartstuff[k_drift] > 0 && (i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_C1);
+		}
+		else if ((player->kartstuff[k_drift] > 0 && player->cmd.driftturn < 0) // Outward drifts
+			|| (player->kartstuff[k_drift] < 0 && player->cmd.driftturn > 0))
+		{
+			if ((player->kartstuff[k_drift] < 0 && (i & 1))
+				|| (player->kartstuff[k_drift] > 0 && !(i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_C1);
+			else if ((player->kartstuff[k_drift] < 0 && !(i & 1))
+				|| (player->kartstuff[k_drift] > 0 && (i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_A1);
+		}
+
+		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->eflags & MF2_DONTDRAW);
+		spark->eflags = (spark->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP3)|(player->mo->eflags & MFE_DRAWONLYFORP3);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP4)|(player->mo->eflags & MFE_DRAWONLYFORP4);
+	}
+}
+
 void K_SpawnBoostTrail(player_t *player)
 {
 	fixed_t newx;
@@ -3763,8 +3855,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		}
 
 		// This spawns the drift sparks
-		if (player->kartstuff[k_driftcharge] < dsone && player->kartstuff[k_driftcharge] + driftadditive >= dsone)
-			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
+		if (player->kartstuff[k_driftcharge] + driftadditive >= dsone)
+			K_SpawnDriftSparks(player);
 
 		player->kartstuff[k_driftcharge] += driftadditive;
 		player->kartstuff[k_driftend] = 0;

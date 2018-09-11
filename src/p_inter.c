@@ -1749,7 +1749,6 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
 						str = M_GetText("%s%s's tagging hand %s %s.\n");
 					break;
 				case MT_SPINFIRE:
-				case MT_SNEAKERTRAIL:
 					str = M_GetText("%s%s's elemental fire trail %s %s.\n");
 					break;
 				case MT_THROWNBOUNCE:
