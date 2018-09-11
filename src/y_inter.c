@@ -1548,13 +1548,13 @@ static void Y_UnloadVoteData(void)
 //
 void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 {
+	if (!voteclient.loaded)
+		return;
+
 	if (pick == -1) // No other votes? We gotta get out of here, then!
 	{
-		if (voteclient.loaded)
-		{
-			Y_EndVote();
-			Y_FollowIntermission();
-		}
+		Y_EndVote();
+		Y_FollowIntermission();
 		return;
 	}
 
@@ -1600,11 +1600,8 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		}
 		else if (endtype == 0) // Might as well put this here, too.
 		{
-			if (voteclient.loaded)
-			{
-				Y_EndVote();
-				Y_FollowIntermission();
-			}
+			Y_EndVote();
+			Y_FollowIntermission();
 			return;
 		}
 		else

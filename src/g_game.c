@@ -3113,14 +3113,48 @@ boolean G_BattleGametype(void)
 //
 INT16 G_SometimesGetDifferentGametype(void)
 {
-	if (randmapbuffer[NUMMAPS] != -1)
+	boolean encorepossible = (M_SecretUnlocked(SECRET_ENCORE) && G_RaceGametype());
+
+	if (!cv_kartvoterulechanges.value) // never
+		return gametype;
+
+	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
 	{
-		if (M_SecretUnlocked(SECRET_ENCORE) && (M_RandomChance(FRACUNIT/2/*56*/) != cv_kartencore.value) && G_RaceGametype())
-			return (gametype|0x80);
+		if (cv_kartvoterulechanges.value != 1)
+			randmapbuffer[NUMMAPS]--;
+		if (encorepossible)
+		{
+			switch (cv_kartvoterulechanges.value)
+			{
+				case 3: // always
+					randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
+					break;
+				case 2: // frequent
+					encorepossible = M_RandomChance(FRACUNIT>>1);
+					break;
+				case 1: // sometimes
+				default:
+					encorepossible = M_RandomChance(FRACUNIT>>3);
+					break;
+			}
+			if (encorepossible != cv_kartencore.value)
+				return (gametype|0x80);
+		}
 		return gametype;
 	}
 
-	randmapbuffer[NUMMAPS] = gametype;
+	switch (cv_kartvoterulechanges.value) // okay, we're having a gametype change! when's the next one, luv?
+	{
+		case 3: // always
+			randmapbuffer[NUMMAPS] = 1; // every other vote (or always if !encorepossible)
+			break;
+		case 1: // sometimes
+		default:
+			// fallthrough - happens when clearing buffer, but needs a reasonable countdown if cvar is modified
+		case 2: // frequent
+			randmapbuffer[NUMMAPS] = 5; // per "cup"
+			break;
+	}
 
 	if (gametype == GT_MATCH)
 		return GT_RACE;
@@ -3188,6 +3222,7 @@ INT16 G_TOLFlag(INT32 pgametype)
 	return INT16_MAX;
 }
 
+#ifdef FLUSHMAPBUFFEREARLY
 static INT32 TOLMaps(INT16 tolflags)
 {
 	INT32 num = 0;
@@ -3205,6 +3240,7 @@ static INT32 TOLMaps(INT16 tolflags)
 
 	return num;
 }
+#endif
 
 /** Select a random map with the given typeoflevel flags.
   * If no map has those flags, this arbitrarily gives you map 1.
@@ -3222,6 +3258,8 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 
 	if (!okmaps)
 		okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
+
+tryagain:
 
 	// Find all the maps that are ok and and put them in an array.
 	for (ix = 0; ix < NUMMAPS; ix++)
@@ -3256,12 +3294,28 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 			okmaps[numokmaps++] = ix;
 	}
 
-	if (numokmaps == 0)
+	if (numokmaps == 0)  // If there's no matches... (Goodbye, incredibly silly function chains :V)
 	{
 		if (!ignorebuffer)
-			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon); // If there's no matches, (An incredibly silly function chain, buuut... :V)
-		if (maphell)
-			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
+		{
+			if (randmapbuffer[3] == -1) // Is the buffer basically empty?
+			{
+				ignorebuffer = true; // This will probably only help in situations where there's very few maps, but it's folly not to at least try it
+				goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon);
+			}
+
+			for (bufx = 3; bufx < NUMMAPS; bufx++) // Let's clear all but the three most recent maps...
+				randmapbuffer[bufx] = -1;
+			if (cv_kartvoterulechanges.value == 1) // sometimes
+				randmapbuffer[NUMMAPS] = 0;
+			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, ignorebuffer, maphell, callagainsoon);
+		}
+
+		if (maphell) // Any wiggle room to loosen our restrictions here?
+		{
+			maphell--;
+			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
+		}
 
 		ix = 0; // Sorry, none match. You get MAP01.
 		for (bufx = 0; bufx < NUMMAPS+1; bufx++)
@@ -3423,11 +3477,15 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
-	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-4] != -1) // we're getting pretty full, so lets clear it
+#ifdef FLUSHMAPBUFFEREARLY
+	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-5] != -1) // We're getting pretty full, so! -- no need for this, handled in G_RandMap
 	{
-		for (i = 0; i < NUMMAPS+1; i++)
+		for (i = 3; i < NUMMAPS; i++) // Let's clear all but the three most recent maps...
 			randmapbuffer[i] = -1;
+		if (cv_kartvoterulechanges.value == 1) // sometimes
+			randmapbuffer[NUMMAPS] = 0;
 	}
+#endif
 
 	if (gametype != GT_COOP)
 	{
