@@ -782,7 +782,12 @@ static size_t W_RawReadLumpHeader(UINT16 wad, UINT16 lump, void *dest, size_t si
     && sigcheck[5] == 0x0a
     && sigcheck[6] == 0x1a
     && sigcheck[7] == 0x0a)
-        I_Error("W_Wad: Tried to cache a .PNG - have you tried converting to Doom or Flat (raw) image formats?");
+    {
+        char pnglump[9];
+        strncpy(pnglump, l->name, 8);
+        pnglump[8] = '\0';
+        I_Error("W_Wad: Lump \"%s\" is a .PNG - have you tried converting to Doom or Flat (raw) image formats?", pnglump);
+    }
 #undef sigcheck
 
 #endif

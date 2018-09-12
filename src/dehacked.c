@@ -6236,12 +6236,12 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_ITEMICON",
 
 	// Drift Sparks
-	"S_DRIFTSPARK1",
-	"S_DRIFTSPARK2",
-	"S_DRIFTSPARK3",
-	"S_DRIFTSPARK4",
-	"S_DRIFTSPARK5",
-	"S_DRIFTSPARK6",
+	"S_DRIFTSPARK_A1",
+	"S_DRIFTSPARK_A2",
+	"S_DRIFTSPARK_A3",
+	"S_DRIFTSPARK_B1",
+	"S_DRIFTSPARK_C1",
+	"S_DRIFTSPARK_C2",
 
 	// Drift Smoke
 	"S_DRIFTDUST1",
@@ -7228,7 +7228,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
-	"MT_DRIFT",
+	"MT_DRIFTSPARK",
 	"MT_DRIFTDUST",
 
 	"MT_FAKESHIELD",
@@ -7675,6 +7675,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"WAYPOINT",
 	"STARPOSTWP",
 	"RESPAWN",
+	"DROPDASH",
 
 	"THROWDIR",
 	"LAPANIMATION",
@@ -7691,6 +7692,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"DRIFTCHARGE",
 	"DRIFTBOOST",
 	"BOOSTCHARGE",
+	"STARTBOOST",
 	"JMP",
 	"OFFROAD",
 	"POGOSPRING",

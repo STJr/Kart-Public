@@ -811,6 +811,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"noooo1", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"hogbom", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mcitm1", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"dbgsal", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
 

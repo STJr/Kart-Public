@@ -8394,8 +8394,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	// SRB2Kart: set camera panning
 	if (player->kartstuff[k_drift] != 0)
 	{
-		fixed_t panmax = (camdist/5);
-		pan = min(player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)) * panmax / K_GetKartDriftSparkValue(player);
+		fixed_t panmax = (dist/5);
+		pan = FixedDiv(FixedMul(min((fixed_t)player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)), panmax), K_GetKartDriftSparkValue(player));
 		if (pan > panmax)
 			pan = panmax;
 		if (player->kartstuff[k_drift] < 0)
@@ -9285,7 +9285,7 @@ void P_PlayerThink(player_t *player)
 #if 1
 	// "Blur" a bit when you have speed shoes and are going fast enough
 	if ((player->powers[pw_super] || player->powers[pw_sneakers]
-		|| player->kartstuff[k_driftboost] || player->kartstuff[k_sneakertimer]) && !player->kartstuff[k_invincibilitytimer] // SRB2kart
+		|| player->kartstuff[k_driftboost] || player->kartstuff[k_sneakertimer] || player->kartstuff[k_startboost]) && !player->kartstuff[k_invincibilitytimer] // SRB2kart
 		&& (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
 	{
 		mobj_t *gmobj = P_SpawnGhostMobj(player->mo);
@@ -9434,6 +9434,7 @@ void P_PlayerThink(player_t *player)
 	if (!(player->pflags & PF_NIGHTSMODE
 		|| player->kartstuff[k_hyudorotimer] // SRB2kart - fixes Hyudoro not flashing when it should.
 		|| player->kartstuff[k_growshrinktimer] > 0 // Grow doesn't flash either.
+		|| player->kartstuff[k_respawn] // Respawn timer (for drop dash effect)
 		|| (G_BattleGametype() && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer])
 		|| leveltime < starttime)) // Level intro
 	{

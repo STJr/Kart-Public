@@ -276,6 +276,7 @@ typedef enum
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
 	k_respawn,			// Timer for the DEZ laser respawn effect
+	k_dropdash,			// Charge up for respawn Drop Dash
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_lapanimation,		// Used to show the lap start wing logo animation
@@ -291,7 +292,8 @@ typedef enum
 	k_driftend,			// Drift has ended, used to adjust character angle after drift
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
-	k_boostcharge,		// Charge-up for boosting at the start of the race, or when dropping from respawn
+	k_boostcharge,		// Charge-up for boosting at the start of the race
+	k_startboost,		// Boost you get from start of race or respawn drop dash
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
 	k_pogospring,		// Pogo spring bounce effect

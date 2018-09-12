@@ -883,6 +883,7 @@ typedef enum
 	sfx_noooo1,
 	sfx_noooo2,
 	sfx_hogbom,
+	sfx_ddash,
 	sfx_mcitm1,
 	sfx_dbgsal,
 
