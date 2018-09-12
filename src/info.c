@@ -2831,18 +2831,15 @@ state_t states[NUMSTATES] =
 	{SPR_POKE, 3,  2, {A_MoveAbsolute}, 180, 2, S_POKEY5}, // S_POKEY8
 	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_NULL},               // S_POKEYIDLE
 
-	{SPR_NULL, 0,  1, {A_RandomStateRange}, S_AUDIENCE_TOAD1, S_AUDIENCE_SNIF1, S_RANDOMAUDIENCE}, // S_RANDOMAUDIENCE
+	{SPR_NULL, 0,  1, {A_RandomStateRange}, S_AUDIENCE_CHAO_CHEER1, S_AUDIENCE_CHAO_CHEER2, S_RANDOMAUDIENCE}, // S_RANDOMAUDIENCE
 
-	{SPR_AUDI, 0,  5, {NULL},       0, 0, S_AUDIENCE_TOAD2}, // S_AUDIENCE_TOAD1
-	{SPR_AUDI, 1, 20, {A_BunnyHop}, 7, 0, S_AUDIENCE_TOAD1}, // S_AUDIENCE_TOAD2
-	{SPR_AUDI, 2,  5, {NULL},       0, 0, S_AUDIENCE_BOO2},  // S_AUDIENCE_BOO1
-	{SPR_AUDI, 3, 20, {A_BunnyHop}, 7, 0, S_AUDIENCE_BOO1},  // S_AUDIENCE_BOO2
-	{SPR_AUDI, 4,  5, {NULL},       0, 0, S_AUDIENCE_GMBA2}, // S_AUDIENCE_GMBA1
-	{SPR_AUDI, 5, 20, {A_BunnyHop}, 7, 0, S_AUDIENCE_GMBA1}, // S_AUDIENCE_GMBA2
-	{SPR_AUDI, 6,  5, {NULL},       0, 0, S_AUDIENCE_SHYG2}, // S_AUDIENCE_SHYG1
-	{SPR_AUDI, 7, 20, {A_BunnyHop}, 7, 0, S_AUDIENCE_SHYG1}, // S_AUDIENCE_SHYG2
-	{SPR_AUDI, 8,  5, {NULL},       0, 0, S_AUDIENCE_SNIF2}, // S_AUDIENCE_SNIF1
-	{SPR_AUDI, 9, 20, {A_BunnyHop}, 7, 0, S_AUDIENCE_SNIF1}, // S_AUDIENCE_SNIF2
+	{SPR_AUDI, 0,  5, {NULL},       0, 0, S_AUDIENCE_CHAO_CHEER2}, // S_AUDIENCE_CHAO_CHEER1
+	{SPR_AUDI, 1, 20, {A_BunnyHop}, 7, 0, S_AUDIENCE_CHAO_CHEER1}, // S_AUDIENCE_CHAO_CHEER2
+
+	{SPR_AUDI, 2,  5, {NULL},       0, 0, S_AUDIENCE_CHAO_WIN2}, // S_AUDIENCE_CHAO_WIN1
+	{SPR_AUDI, 3, 25, {A_BunnyHop}, 10, 0, S_AUDIENCE_CHAO_WIN1}, // S_AUDIENCE_CHAO_WIN2
+
+	{SPR_AUDI, 4|FF_ANIMATE,  -1, {NULL},       1, 17, S_NULL}, // S_AUDIENCE_CHAO_LOSE
 
 	{SPR_AUDI, 10, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_KOTE
 	{SPR_AUDI, 11, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_RYAN
@@ -14691,7 +14688,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // xdeathstate
 		sfx_kc2e,       // deathsound
 		0,              // speed
-		16*FRACUNIT,    // radius
+		24*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
@@ -14772,7 +14769,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // xdeathstate
 		sfx_s3k5d,      // deathsound
 		64*FRACUNIT,    // speed
-		16*FRACUNIT,    // radius
+		24*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
@@ -15501,8 +15498,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
 		8,              // speed
-		16*FRACUNIT,    // radius
-		40*FRACUNIT,    // height
+		8*FRACUNIT,     // radius
+		20*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
 		0,              // damage

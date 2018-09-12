@@ -8927,6 +8927,39 @@ void P_SceneryThinker(mobj_t *mobj)
 	}
 
 	P_CycleMobjState(mobj);
+
+	if (mobj->type != MT_RANDOMAUDIENCE)
+		return;
+
+	{
+		if (!mobj->colorized) // a fan of someone?
+			return;
+
+		if (mobj->threshold >= 0) // not already happy or sad?
+		{
+			if (!playeringame[mobj->threshold] || players[mobj->threshold].spectator) // focused on a valid player?
+				return;
+
+			if (!(players[mobj->threshold].exiting) && !(players[mobj->threshold].pflags & PF_TIMEOVER)) // not finished yet?
+				return;
+
+			if (K_IsPlayerLosing(&players[mobj->threshold]))
+				mobj->threshold = -2;
+			else
+			{
+				mobj->threshold = -1;
+				S_StartSound(mobj, sfx_chaooo);
+			}
+		}
+
+		if (mobj->threshold == -1)
+			mobj->angle += ANGLE_22h;
+
+		if (((statenum_t)(mobj->state-states) != S_AUDIENCE_CHAO_CHEER2) || (mobj->tics != states[S_AUDIENCE_CHAO_CHEER2].tics)) // not at the start of your cheer jump?
+			return;
+
+		P_SetMobjState(mobj, ((mobj->threshold == -1) ? S_AUDIENCE_CHAO_WIN2 : S_AUDIENCE_CHAO_LOSE));
+	}
 }
 
 //
@@ -9174,9 +9207,43 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			}
 			break;
 		case MT_BIGRING:
-			mobj->destscale = 3*FRACUNIT;
-			P_SetScale(mobj, 3*FRACUNIT);
+			P_SetScale(mobj, (mobj->destscale = 3*FRACUNIT));
 			break;
+		case MT_RANDOMAUDIENCE:
+		{
+			fixed_t randu = P_RandomFixed();
+			P_SetScale(mobj, (mobj->destscale <<= 1));
+			if (randu < (FRACUNIT/9)) // a fan of someone?
+			{
+				UINT8 i, pcount = 0;
+				UINT8 pnum[MAXPLAYERS];
+
+				for (i = 0; i < MAXPLAYERS; i++)
+				{
+					if (!playeringame[i])
+						continue;
+					pnum[pcount] = i;
+					pcount++;
+				}
+
+				if (pcount)
+				{
+					mobj->threshold = pnum[P_RandomKey(pcount)];
+					mobj->color = players[mobj->threshold].skincolor;
+					mobj->colorized = true;
+					break;
+				}
+			}
+
+			if (randu > (FRACUNIT/2))
+			{
+				mobj->color = P_RandomKey(MAXSKINCOLORS-1)+1;
+				break;
+			}
+
+			mobj->color = SKINCOLOR_AQUA;
+			break;
+		}
 		default:
 			break;
 	}
