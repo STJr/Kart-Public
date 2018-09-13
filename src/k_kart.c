@@ -43,55 +43,55 @@
 const char *KartColor_Names[MAXSKINCOLORS] =
 {
 	"None",           // 00 // SKINCOLOR_NONE
-	"Ivory",          // 01 // SKINCOLOR_IVORY
-	"White",          // 02 // SKINCOLOR_WHITE
-	"Silver",         // 03 // SKINCOLOR_SILVER
-	"Cloudy",         // 04 // SKINCOLOR_CLOUDY
-	"Grey",           // 05 // SKINCOLOR_GREY
-	"Nickel",         // 06 // SKINCOLOR_NICKEL
-	"Black",          // 07 // SKINCOLOR_BLACK
-	"Salmon",         // 08 // SKINCOLOR_SALMON
-	"Pink",           // 09 // SKINCOLOR_PINK
-	"Rose",           // 10 // SKINCOLOR_ROSE
-	"Raspberry",      // 11 // SKINCOLOR_RASPBERRY
-	"Red",            // 12 // SKINCOLOR_RED
-	"Ruby",           // 13 // SKINCOLOR_RUBY
-	"Crimson",        // 14 // SKINCOLOR_CRIMSON
-	"Dawn",           // 15 // SKINCOLOR_DAWN
-	"Creamsicle",     // 16 // SKINCOLOR_CREAMSICLE
-	"Orange",         // 17 // SKINCOLOR_ORANGE
-	"Pumpkin",        // 18 // SKINCOLOR_PUMPKIN
-	"Rosewood",       // 19 // SKINCOLOR_ROSEWOOD
-	"Burgundy",       // 20 // SKINCOLOR_BURGUNDY
-	"Bronze",         // 21 // SKINCOLOR_BRONZE
-	"Sepia",          // 22 // SKINCOLOR_SEPIA
-	"Beige",          // 23 // SKINCOLOR_BEIGE
-	"Brown",          // 24 // SKINCOLOR_BROWN
-	"Leather",        // 25 // SKINCOLOR_LEATHER
-	"Peach",          // 26 // SKINCOLOR_PEACH
-	"Caramel",        // 27 // SKINCOLOR_CARAMEL
-	"Tangerine",      // 28 // SKINCOLOR_TANGERINE
-	"Gold",           // 29 // SKINCOLOR_GOLD
-	"Vomit",          // 30 // SKINCOLOR_VOMIT
-	"Yellow",         // 31 // SKINCOLOR_YELLOW
-	"Canary",         // 32 // SKINCOLOR_CANARY
-	"Olive",          // 33 // SKINCOLOR_OLIVE
-	"Garden",         // 34 // SKINCOLOR_GARDEN
-	"Lime",           // 35 // SKINCOLOR_LIME
+	"White",          // 01 // SKINCOLOR_WHITE
+	"Silver",         // 02 // SKINCOLOR_SILVER
+	"Cloudy",         // 03 // SKINCOLOR_CLOUDY
+	"Grey",           // 04 // SKINCOLOR_GREY
+	"Black",          // 05 // SKINCOLOR_BLACK
+	"Salmon",         // 06 // SKINCOLOR_SALMON
+	"Pink",           // 07 // SKINCOLOR_PINK
+	"Rose",           // 08 // SKINCOLOR_ROSE
+	"Raspberry",      // 09 // SKINCOLOR_RASPBERRY
+	"Red",            // 10 // SKINCOLOR_RED
+	"Ruby",           // 11 // SKINCOLOR_RUBY
+	"Crimson",        // 12 // SKINCOLOR_CRIMSON
+	"Ketchup",        // 13 // SKINCOLOR_KETCHUP
+	"Dawn",           // 14 // SKINCOLOR_DAWN
+	"Creamsicle",     // 15 // SKINCOLOR_CREAMSICLE
+	"Orange",         // 16 // SKINCOLOR_ORANGE
+	"Pumpkin",        // 17 // SKINCOLOR_PUMPKIN
+	"Rosewood",       // 18 // SKINCOLOR_ROSEWOOD
+	"Burgundy",       // 19 // SKINCOLOR_BURGUNDY
+	"Bronze",         // 20 // SKINCOLOR_BRONZE
+	"Sepia",          // 21 // SKINCOLOR_SEPIA
+	"Beige",          // 22 // SKINCOLOR_BEIGE
+	"Brown",          // 23 // SKINCOLOR_BROWN
+	"Leather",        // 24 // SKINCOLOR_LEATHER
+	"Peach",          // 25 // SKINCOLOR_PEACH
+	"Caramel",        // 26 // SKINCOLOR_CARAMEL
+	"Tangerine",      // 27 // SKINCOLOR_TANGERINE
+	"Gold",           // 28 // SKINCOLOR_GOLD
+	"Vomit",          // 29 // SKINCOLOR_VOMIT
+	"Yellow",         // 30 // SKINCOLOR_YELLOW
+	"Mustard",        // 31 // SKINCOLOR_MUSTARD
+	"Olive",          // 32 // SKINCOLOR_OLIVE
+	"Garden",         // 33 // SKINCOLOR_GARDEN
+	"Lime",           // 34 // SKINCOLOR_LIME
+	"Dream",          // 35 // SKINCOLOR_DREAM
 	"Tea",            // 36 // SKINCOLOR_TEA
-	"Army",           // 37 // SKINCOLOR_ARMY
-	"Pistachio",      // 38 // SKINCOLOR_PISTACHIO
-	"Moss",           // 39 // SKINCOLOR_MOSS
-	"Mint",           // 40 // SKINCOLOR_MINT
-	"Green",          // 41 // SKINCOLOR_GREEN
-	"Robo-Hood",      // 42 // SKINCOLOR_ROBOHOOD
-	"Pinetree",       // 43 // SKINCOLOR_PINETREE
-	"Emerald",        // 44 // SKINCOLOR_EMERALD
-	"Swamp",          // 45 // SKINCOLOR_SWAMP
-	"Aqua",           // 46 // SKINCOLOR_AQUA
-	"Teal",           // 47 // SKINCOLOR_TEAL
-	"Cyan",           // 48 // SKINCOLOR_CYAN
-	"Cerulean",       // 49 // SKINCOLOR_CERULEAN
+	"Pistachio",      // 37 // SKINCOLOR_PISTACHIO
+	"Moss",           // 38 // SKINCOLOR_MOSS
+	"Mint",           // 39 // SKINCOLOR_MINT
+	"Green",          // 40 // SKINCOLOR_GREEN
+	"Robo-Hood",      // 41 // SKINCOLOR_ROBOHOOD
+	"Pinetree",       // 42 // SKINCOLOR_PINETREE
+	"Emerald",        // 43 // SKINCOLOR_EMERALD
+	"Swamp",          // 44 // SKINCOLOR_SWAMP
+	"Aqua",           // 45 // SKINCOLOR_AQUA
+	"Teal",           // 46 // SKINCOLOR_TEAL
+	"Cyan",           // 47 // SKINCOLOR_CYAN
+	"Cerulean",       // 48 // SKINCOLOR_CERULEAN
+	"Jawz",           // 49 // SKINCOLOR_JAWZ
 	"Slate",          // 50 // SKINCOLOR_SLATE
 	"Steel",          // 51 // SKINCOLOR_STEEL
 	"Periwinkle",     // 52 // SKINCOLOR_PERIWINKLE
@@ -112,87 +112,86 @@ const char *KartColor_Names[MAXSKINCOLORS] =
 const UINT8 KartColor_Opposite[MAXSKINCOLORS*2] =
 {
 	SKINCOLOR_NONE,8,        // 00 // SKINCOLOR_NONE
-	SKINCOLOR_BLACK,8,       // 01 // SKINCOLOR_IVORY
-	SKINCOLOR_NICKEL,8,      // 02 // SKINCOLOR_WHITE
-	SKINCOLOR_GREY,8,        // 03 // SKINCOLOR_SILVER
-	SKINCOLOR_CLOUDY,8,      // 04 // SKINCOLOR_CLOUDY
-	SKINCOLOR_SILVER,8,      // 05 // SKINCOLOR_GREY
-	SKINCOLOR_WHITE,8,       // 06 // SKINCOLOR_NICKEL
-	SKINCOLOR_IVORY,8,       // 07 // SKINCOLOR_BLACK
-	SKINCOLOR_TEA,8,         // 08 // SKINCOLOR_SALMON
-	SKINCOLOR_ARMY,8,        // 09 // SKINCOLOR_PINK
-	SKINCOLOR_MOSS,8,        // 10 // SKINCOLOR_ROSE
-	SKINCOLOR_MINT,10,       // 11 // SKINCOLOR_RASPBERRY
-	SKINCOLOR_GREEN,8,       // 12 // SKINCOLOR_RED
-	SKINCOLOR_EMERALD,6,     // 13 // SKINCOLOR_RUBY
-	SKINCOLOR_PINETREE,6,    // 14 // SKINCOLOR_CRIMSON
-	SKINCOLOR_DUSK,8,        // 15 // SKINCOLOR_DAWN
-	SKINCOLOR_PERIWINKLE,8,  // 16 // SKINCOLOR_CREAMSICLE
-	SKINCOLOR_BLUE,8,        // 17 // SKINCOLOR_ORANGE
-	SKINCOLOR_BLUEBERRY,8,   // 18 // SKINCOLOR_PUMPKIN
-	SKINCOLOR_NAVY,8,        // 19 // SKINCOLOR_ROSEWOOD
-	SKINCOLOR_JET,8,         // 20 // SKINCOLOR_BURGUNDY
-	SKINCOLOR_STEEL,8,       // 21 // SKINCOLOR_BRONZE
-	SKINCOLOR_LEATHER,6,     // 22 // SKINCOLOR_SEPIA
-	SKINCOLOR_BROWN,2,       // 23 // SKINCOLOR_BEIGE
-	SKINCOLOR_BEIGE,8,       // 24 // SKINCOLOR_BROWN
-	SKINCOLOR_SEPIA,8,       // 25 // SKINCOLOR_LEATHER
-	SKINCOLOR_SLATE,8,       // 26 // SKINCOLOR_PEACH
-	SKINCOLOR_TEAL,8,        // 27 // SKINCOLOR_CARAMEL
-	SKINCOLOR_LIME,8,        // 28 // SKINCOLOR_TANGERINE
-	SKINCOLOR_LAVENDER,6,    // 29 // SKINCOLOR_GOLD
-	SKINCOLOR_ROBOHOOD,8,    // 30 // SKINCOLOR_VOMIT
-	SKINCOLOR_BYZANTIUM,8,   // 31 // SKINCOLOR_YELLOW
-	SKINCOLOR_PURPLE,8,      // 32 // SKINCOLOR_CANARY
-	SKINCOLOR_INDIGO,8,      // 33 // SKINCOLOR_OLIVE
-	SKINCOLOR_AQUA,8,        // 34 // SKINCOLOR_GARDEN
-	SKINCOLOR_TANGERINE,8,   // 35 // SKINCOLOR_LIME
+	SKINCOLOR_BLACK,8,       // 01 // SKINCOLOR_WHITE
+	SKINCOLOR_GREY,8,        // 02 // SKINCOLOR_SILVER
+	SKINCOLOR_CLOUDY,8,      // 03 // SKINCOLOR_CLOUDY
+	SKINCOLOR_SILVER,8,      // 04 // SKINCOLOR_GREY
+	SKINCOLOR_WHITE,8,       // 05 // SKINCOLOR_BLACK
+	SKINCOLOR_TEA,8,         // 06 // SKINCOLOR_SALMON
+	SKINCOLOR_PISTACHIO,8,   // 07 // SKINCOLOR_PINK
+	SKINCOLOR_MOSS,8,        // 08 // SKINCOLOR_ROSE
+	SKINCOLOR_MINT,10,       // 09 // SKINCOLOR_RASPBERRY
+	SKINCOLOR_GREEN,8,       // 10 // SKINCOLOR_RED
+	SKINCOLOR_SAPPHIRE,8,    // 11 // SKINCOLOR_RUBY
+	SKINCOLOR_PINETREE,6,    // 12 // SKINCOLOR_CRIMSON
+	SKINCOLOR_MUSTARD,6,     // 13 // SKINCOLOR_KETCHUP
+	SKINCOLOR_DUSK,8,        // 14 // SKINCOLOR_DAWN
+	SKINCOLOR_PERIWINKLE,8,  // 15 // SKINCOLOR_CREAMSICLE
+	SKINCOLOR_BLUE,8,        // 16 // SKINCOLOR_ORANGE
+	SKINCOLOR_BLUEBERRY,8,   // 17 // SKINCOLOR_PUMPKIN
+	SKINCOLOR_NAVY,8,        // 18 // SKINCOLOR_ROSEWOOD
+	SKINCOLOR_JET,8,         // 19 // SKINCOLOR_BURGUNDY
+	SKINCOLOR_AQUA,8,        // 20 // SKINCOLOR_BRONZE
+	SKINCOLOR_LEATHER,6,     // 21 // SKINCOLOR_SEPIA
+	SKINCOLOR_BROWN,2,       // 22 // SKINCOLOR_BEIGE
+	SKINCOLOR_BEIGE,8,       // 23 // SKINCOLOR_BROWN
+	SKINCOLOR_SEPIA,8,       // 24 // SKINCOLOR_LEATHER
+	SKINCOLOR_SLATE,8,       // 25 // SKINCOLOR_PEACH
+	SKINCOLOR_STEEL,8,       // 26 // SKINCOLOR_CARAMEL
+	SKINCOLOR_LIME,8,        // 27 // SKINCOLOR_TANGERINE
+	SKINCOLOR_CYAN,8,        // 28 // SKINCOLOR_GOLD
+	SKINCOLOR_ROBOHOOD,8,    // 29 // SKINCOLOR_VOMIT
+	SKINCOLOR_CERULEAN,8,    // 30 // SKINCOLOR_YELLOW
+	SKINCOLOR_KETCHUP,8,     // 31 // SKINCOLOR_MUSTARD
+	SKINCOLOR_TEAL,8,        // 32 // SKINCOLOR_OLIVE
+	SKINCOLOR_LAVENDER,8,    // 33 // SKINCOLOR_GARDEN
+	SKINCOLOR_TANGERINE,8,   // 34 // SKINCOLOR_LIME
+	SKINCOLOR_BYZANTIUM,6,   // 35 // SKINCOLOR_DREAM
 	SKINCOLOR_SALMON,8,      // 36 // SKINCOLOR_TEA
-	SKINCOLOR_PINK,6,        // 37 // SKINCOLOR_ARMY
-	SKINCOLOR_CYAN,8,        // 38 // SKINCOLOR_PISTACHIO
-	SKINCOLOR_ROSE,8,        // 39 // SKINCOLOR_MOSS
-	SKINCOLOR_RASPBERRY,6,   // 40 // SKINCOLOR_MINT
-	SKINCOLOR_RED,8,         // 41 // SKINCOLOR_GREEN
-	SKINCOLOR_VOMIT,8,       // 42 // SKINCOLOR_ROBOHOOD
-	SKINCOLOR_CRIMSON,8,     // 43 // SKINCOLOR_PINETREE
-	SKINCOLOR_RUBY,8,        // 44 // SKINCOLOR_EMERALD
-	SKINCOLOR_SAPPHIRE,8,    // 45 // SKINCOLOR_SWAMP
-	SKINCOLOR_GARDEN,10,     // 46 // SKINCOLOR_AQUA
-	SKINCOLOR_CARAMEL,8,     // 47 // SKINCOLOR_TEAL
-	SKINCOLOR_PISTACHIO,6,   // 48 // SKINCOLOR_CYAN
-	SKINCOLOR_LILAC,8,       // 49 // SKINCOLOR_CERULEAN
+	SKINCOLOR_PINK,8,        // 37 // SKINCOLOR_PISTACHIO
+	SKINCOLOR_ROSE,8,        // 38 // SKINCOLOR_MOSS
+	SKINCOLOR_RASPBERRY,6,   // 39 // SKINCOLOR_MINT
+	SKINCOLOR_RED,8,         // 40 // SKINCOLOR_GREEN
+	SKINCOLOR_VOMIT,8,       // 41 // SKINCOLOR_ROBOHOOD
+	SKINCOLOR_CRIMSON,8,     // 42 // SKINCOLOR_PINETREE
+	SKINCOLOR_PURPLE,8,      // 43 // SKINCOLOR_EMERALD
+	SKINCOLOR_INDIGO,6,      // 44 // SKINCOLOR_SWAMP
+	SKINCOLOR_BRONZE,7,      // 45 // SKINCOLOR_AQUA
+	SKINCOLOR_OLIVE,10,      // 46 // SKINCOLOR_TEAL
+	SKINCOLOR_GOLD,8,        // 47 // SKINCOLOR_CYAN
+	SKINCOLOR_YELLOW,8,      // 48 // SKINCOLOR_CERULEAN
+	SKINCOLOR_LILAC,6,       // 49 // SKINCOLOR_JAWZ
 	SKINCOLOR_PEACH,8,       // 50 // SKINCOLOR_SLATE
-	SKINCOLOR_BRONZE,10,     // 51 // SKINCOLOR_STEEL
+	SKINCOLOR_CARAMEL,8,     // 51 // SKINCOLOR_STEEL
 	SKINCOLOR_CREAMSICLE,8,  // 52 // SKINCOLOR_PERIWINKLE
 	SKINCOLOR_ORANGE,8,      // 53 // SKINCOLOR_BLUE
-	SKINCOLOR_SWAMP,8,       // 54 // SKINCOLOR_SAPPHIRE
+	SKINCOLOR_RUBY,8,        // 54 // SKINCOLOR_SAPPHIRE
 	SKINCOLOR_PUMPKIN,8,     // 55 // SKINCOLOR_BLUEBERRY
 	SKINCOLOR_ROSEWOOD,8,    // 56 // SKINCOLOR_NAVY
 	SKINCOLOR_BURGUNDY,6,    // 57 // SKINCOLOR_JET
 	SKINCOLOR_DAWN,8,        // 58 // SKINCOLOR_DUSK
-	SKINCOLOR_CANARY,8,      // 59 // SKINCOLOR_PURPLE
-	SKINCOLOR_GOLD,10,       // 60 // SKINCOLOR_LAVENDER
-	SKINCOLOR_OLIVE,8,       // 61 // SKINCOLOR_INDIGO
-	SKINCOLOR_YELLOW,8,      // 62 // SKINCOLOR_BYZANTIUM
-	SKINCOLOR_CERULEAN,8     // 63 // SKINCOLOR_LILAC
+	SKINCOLOR_EMERALD,8,     // 59 // SKINCOLOR_PURPLE
+	SKINCOLOR_GARDEN,8,      // 60 // SKINCOLOR_LAVENDER
+	SKINCOLOR_SWAMP,6,       // 61 // SKINCOLOR_INDIGO
+	SKINCOLOR_DREAM,8,       // 62 // SKINCOLOR_BYZANTIUM
+	SKINCOLOR_JAWZ,6         // 63 // SKINCOLOR_LILAC
 };
 
 UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}, // SKINCOLOR_NONE
-	{120, 120, 120, 120,   0,   1,   3,   4,   6,   7,  10,  14,  18,  22,  25,  28}, // SKINCOLOR_IVORY
-	{120, 120,   0,   1,   3,   4,   6,   7,   9,  11,  13,  16,  19,  23,  26,  29}, // SKINCOLOR_WHITE
+	{120, 120, 120, 120,   0,   1,   3,   4,   6,   7,  10,  14,  18,  22,  25,  28}, // SKINCOLOR_WHITE
 	{  0,   1,   3,   5,   6,   8,  10,  11,  13,  15,  16,  18,  20,  24,  27,  30}, // SKINCOLOR_SILVER
 	{  1,   3,   5,   7,   9,  11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_CLOUDY
 	{  8,   9,  10,  12,  13,  15,  16,  19,  19,  20,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_GREY
-	{ 16,  16,  17,  18,  19,  20,  21,  23,  24,  25,  26,  27,  28,  29,  30,  31}, // SKINCOLOR_NICKEL
 	{ 16,  17,  19,  21,  22,  24,  26,  27,  27,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_BLACK
 	{120, 120, 120, 121, 121, 122, 122, 123, 124, 125, 126, 128, 129, 131, 133, 135}, // SKINCOLOR_SALMON
-	{121, 121, 121, 121, 121, 122, 144, 145, 146, 147, 148, 149, 150, 150, 150, 151}, // SKINCOLOR_PINK
+	{121, 121, 122, 144, 144, 145, 145, 146, 147, 148, 149, 150, 151, 134, 136, 138}, // SKINCOLOR_PINK
 	{144, 145, 146, 147, 148, 149, 150, 151, 134, 135, 136, 137, 138, 139, 140, 141}, // SKINCOLOR_ROSE
 	{120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 131, 133, 134, 136, 137, 139}, // SKINCOLOR_RASPBERRY
 	{125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140}, // SKINCOLOR_RED
-	{120, 121, 144, 146, 149, 132, 132, 133, 134, 135, 197, 197, 198, 198, 199, 255}, // SKINCOLOR_RUBY
+	{121, 122, 145, 146, 147, 149, 131, 132, 133, 134, 135, 197, 197, 198, 199, 255}, // SKINCOLOR_RUBY
 	{130, 131, 132, 133, 134, 136, 137, 138, 139, 139, 140, 140, 141, 141, 142, 143}, // SKINCOLOR_CRIMSON
+	{104, 113, 113,  85,  86,  88, 128, 129, 131, 133, 134, 136, 138, 139, 141, 143}, // SKINCOLOR_KETCHUP
 	{120, 121, 122, 123, 124, 147, 147, 148,  90,  91,  92,  93,  94,  95, 152, 154}, // SKINCOLOR_DAWN
 	{120, 120,  80,  80,  81,  82,  83,  83,  84,  85,  86,  88,  89,  91,  93,  95}, // SKINCOLOR_CREAMSICLE
 	{ 80,  81,  82,  83,  84,  85,  86,  88,  89,  91,  94,  95, 154, 156, 158, 159}, // SKINCOLOR_ORANGE
@@ -210,12 +209,12 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{112, 112, 112, 113, 113, 114, 114, 115, 115, 116, 116, 117, 117, 118, 118, 119}, // SKINCOLOR_GOLD
 	{121, 144, 145,  72,  73,  84, 114, 115, 107, 108, 109, 183, 223, 207,  30, 246}, // SKINCOLOR_VOMIT
 	{ 96,  97,  98, 100, 101, 102, 104, 113, 114, 115, 116, 117, 118, 119, 156, 159}, // SKINCOLOR_YELLOW
-	{ 96,  97,  99, 100, 102, 104, 105, 105, 106, 107, 107, 108, 109, 109, 110, 111}, // SKINCOLOR_CANARY
+	{ 96,  98,  99, 112, 113, 114, 114, 106, 106, 107, 107, 108, 108, 109, 110, 111}, // SKINCOLOR_MUSTARD
 	{105, 105, 105, 106, 106, 107, 107, 108, 108, 109, 109, 110, 110, 111, 111,  31}, // SKINCOLOR_OLIVE
 	{ 98,  99, 112, 101, 113, 114, 106, 179, 180, 180, 181, 182, 183, 173, 174, 175}, // SKINCOLOR_GARDEN
 	{ 96,  97,  99, 100, 102, 104, 160, 162, 164, 166, 168, 171, 223, 223, 207,  31}, // SKINCOLOR_LIME
+	{ 96,  98,  99, 112, 113, 178, 179, 165, 203, 203, 204, 204, 205, 205, 206, 207}, // SKINCOLOR_DREAM
 	{120, 120, 176, 176, 176, 177, 177, 178, 178, 179, 180, 180, 181, 181, 182, 183}, // SKINCOLOR_TEA
-	{176, 176, 176, 177, 177, 178, 178, 179, 179, 180, 180, 181, 181, 182, 182, 183}, // SKINCOLOR_ARMY
 	{120, 120, 176, 176, 177, 177, 178, 179, 165, 166, 167, 168, 169, 170, 171, 172}, // SKINCOLOR_PISTACHIO
 	{178, 178, 178, 179, 179, 180, 181, 182, 183, 172, 172, 173, 173, 174, 174, 175}, // SKINCOLOR_MOSS
 	{120, 176, 176, 176, 177, 163, 164, 165, 167, 221, 221, 222, 223, 207, 207,  31}, // SKINCOLOR_MINT
@@ -228,6 +227,7 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{210, 213, 220, 220, 220, 221, 221, 221, 221, 222, 222, 222, 223, 223, 191,  31}, // SKINCOLOR_TEAL
 	{120, 208, 209, 210, 211, 212, 213, 215, 216, 216, 216, 217, 217, 218, 218, 219}, // SKINCOLOR_CYAN
 	{208, 209, 211, 213, 215, 216, 216, 217, 217, 218, 218, 219, 205, 206, 207, 207}, // SKINCOLOR_CERULEAN
+	{120, 120, 208, 209, 210, 226, 215, 216, 217, 229, 229, 205, 205, 206, 207,  31}, // SKINCOLOR_JAWZ
 	{120, 120, 200, 200, 200, 201, 201, 201, 202, 202, 202, 203, 204, 205, 206, 207}, // SKINCOLOR_SLATE
 	{120, 200, 200, 201, 201, 202, 202, 203, 203, 204, 204, 205, 205, 206, 207,  31}, // SKINCOLOR_STEEL
 	{120, 224, 225, 226, 226, 227, 228, 228, 229, 230, 231, 234, 235, 237, 239, 241}, // SKINCOLOR_PERIWINKLE
@@ -243,9 +243,9 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{192, 248, 249, 250, 251, 252, 253, 254, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_BYZANTIUM
 	{120, 120, 120, 121, 121, 122, 122, 123, 192, 248, 249, 250, 251, 252, 253, 254}, // SKINCOLOR_LILAC
 	/* Removed Colours
-		{120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143}, // SKINCOLOR_RUBY, removed for other colors
+		{120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143}, // old SKINCOLOR_RUBY, removed for other colors
 		{ 80,  81,  83,  85,  86,  88,  90,  91,  93,  95, 152, 153, 154, 156, 157, 159}, // SKINCOLOR_AMBER, removed for other colors
-		{224, 225, 226, 228, 229, 231, 232, 234, 235, 237, 238, 240, 241, 243, 244, 246}, // SKINCOLOR_SAPPHIRE, removed for other colors
+		{224, 225, 226, 228, 229, 231, 232, 234, 235, 237, 238, 240, 241, 243, 244, 246}, // old SKINCOLOR_SAPPHIRE, removed for other colors
 		{160, 160, 160, 184, 184, 184, 185, 185, 185, 186, 187, 187, 188, 188, 189, 190}, // SKINCOLOR_JADE, removed for other colors
 		{224, 225, 226, 212, 213, 213, 214, 215, 220, 221, 172, 222, 173, 223, 174, 175}, // SKINCOLOR_FROST, merged into Aqua
 		{ 72,  73,  74,  75,  76,  77,  78,  79,  48,  49,  50,  51,  52,  53,  54,  55}, // SKINCOLOR_CARAMEL, new Caramel was previously Shiny Caramel
@@ -2215,7 +2215,6 @@ static void K_SpawnDriftSparks(player_t *player)
 {
 	fixed_t newx;
 	fixed_t newy;
-	//fixed_t ground;
 	mobj_t *spark;
 	angle_t travelangle;
 	INT32 i;
@@ -2233,25 +2232,12 @@ static void K_SpawnDriftSparks(player_t *player)
 	if (!player->kartstuff[k_drift] || player->kartstuff[k_driftcharge] < K_GetKartDriftSparkValue(player))
 		return;
 
-	/*if (player->mo->eflags & MFE_VERTICALFLIP)
-		ground = player->mo->ceilingz - FixedMul(mobjinfo[MT_DRIFTSPARK].height, player->mo->scale);
-	else
-		ground = player->mo->floorz;*/
-
 	travelangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
 
 	for (i = 0; i < 2; i++)
 	{
 		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(32*FRACUNIT, player->mo->scale));
 		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(32*FRACUNIT, player->mo->scale));
-/*#ifdef ESLOPE
-		if (player->mo->standingslope)
-		{
-			ground = P_GetZAt(player->mo->standingslope, newx, newy);
-			if (player->mo->eflags & MFE_VERTICALFLIP)
-				ground -= FixedMul(mobjinfo[MT_DRIFTSPARK].height, player->mo->scale);
-		}
-#endif*/
 		spark = P_SpawnMobj(newx, newy, player->mo->z, MT_DRIFTSPARK);
 
 		P_SetTarget(&spark->target, player->mo);
