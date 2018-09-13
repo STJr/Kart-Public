@@ -6276,8 +6276,7 @@ static void P_RemoveOverlay(mobj_t *thing)
 
 void P_RunShadows(void)
 {
-	mobj_t *mobj;
-	mobj_t *next;
+	mobj_t *mobj, *next, *dest;
 
 	for (mobj = shadowcap; mobj; mobj = next)
 	{
@@ -6322,7 +6321,12 @@ void P_RunShadows(void)
 		// First scale to the same radius
 		P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
 
-		P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+		dest = mobj->target;
+
+		if (dest->type == MT_THUNDERSHIELD)
+			dest = dest->target;
+
+		P_TeleportMove(mobj, dest->x, dest->y, mobj->target->z);
 
 		if (((mobj->eflags & MFE_VERTICALFLIP) && (mobj->ceilingz > mobj->z+mobj->height))
 			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (mobj->floorz < mobj->z)))
@@ -6340,7 +6344,7 @@ void P_RunShadows(void)
 				P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
 
 				// Check new position to see if you should still be on that ledge
-				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->z);
+				P_TeleportMove(mobj, dest->x, dest->y, mobj->z);
 
 				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
 
@@ -8301,13 +8305,41 @@ void P_MobjThinker(mobj_t *mobj)
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_THUNDERSHIELD:
+		{
+			fixed_t destx, desty;
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && mobj->target->player->kartstuff[k_curshield] != 1))
 			{
 				P_RemoveMobj(mobj);
 				return;
 			}
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			P_SetScale(mobj, (mobj->destscale = (5*mobj->target->destscale)>>2));
+
+			if (!splitscreen /*&& rendermode != render_soft*/)
+			{
+				angle_t viewingangle;
+				statenum_t curstate = ((mobj->tics == 1) ? (mobj->state->nextstate) : ((statenum_t)(mobj->state-states)));
+
+				if (players[displayplayer].awayviewtics)
+					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, players[displayplayer].awayviewmobj->x, players[displayplayer].awayviewmobj->y);
+				else if (!camera.chase && players[displayplayer].mo)
+					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, players[displayplayer].mo->x, players[displayplayer].mo->y);
+				else
+					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, camera.x, camera.y);
+
+				if (curstate > S_THUNDERSHIELD15)
+					viewingangle += ANGLE_180;
+				destx = mobj->target->x + P_ReturnThrustX(mobj->target, viewingangle, mobj->scale>>4);
+				desty = mobj->target->y + P_ReturnThrustY(mobj->target, viewingangle, mobj->scale>>4);
+			}
+			else
+			{
+				destx = mobj->target->x;
+				desty = mobj->target->y;
+			}
+
+			P_TeleportMove(mobj, destx, desty, mobj->target->z);
 			break;
+		}
 		case MT_KARMAHITBOX:
 			if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
 				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
@@ -9264,6 +9296,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
 		case MT_BALLHOG: 		case MT_SINK:
+		case MT_THUNDERSHIELD:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

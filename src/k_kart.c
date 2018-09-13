@@ -2985,6 +2985,7 @@ void K_DropHnextList(player_t *player)
 		K_DoThunderShield(player);
 		player->kartstuff[k_itemamount] = 0;
 		player->kartstuff[k_itemtype] = KITEM_NONE;
+		player->kartstuff[k_curshield] = 0;
 	}
 
 	nextwork = work->hnext;
@@ -3771,7 +3772,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 void K_KartPlayerAfterThink(player_t *player)
 {
-	if (player->kartstuff[k_invincibilitytimer]
+	if (player->kartstuff[k_curshield]
+		|| player->kartstuff[k_invincibilitytimer]
 		|| (player->kartstuff[k_growshrinktimer] != 0 && player->kartstuff[k_growshrinktimer] % 5 == 4)) // 4 instead of 0 because this is afterthink!
 	{
 		player->mo->frame |= FF_FULLBRIGHT;
@@ -4539,6 +4541,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (player->kartstuff[k_curshield] <= 0)
 					{
 						mobj_t *shield = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNDERSHIELD);
+						P_SetScale(shield, (shield->destscale = (5*shield->destscale)>>2));
 						P_SetTarget(&shield->target, player->mo);
 						player->kartstuff[k_curshield] = 1;
 					}
@@ -5655,7 +5658,7 @@ static void K_drawKartItem(void)
 				case KITEM_SPB:					localpatch = kp_selfpropelledbomb[offset]; localbg = kp_itembg[offset+1]; break;
 				case KITEM_GROW:				localpatch = kp_grow[offset]; break;
 				case KITEM_SHRINK:				localpatch = kp_shrink[offset]; break;
-				case KITEM_THUNDERSHIELD:		localpatch = kp_thundershield[offset]; break;
+				case KITEM_THUNDERSHIELD:		localpatch = kp_thundershield[offset]; localbg = kp_itembg[offset+1]; break;
 				case KITEM_HYUDORO:				localpatch = kp_hyudoro[offset]; break;
 				case KITEM_POGOSPRING:			localpatch = kp_pogospring[offset]; break;
 				case KITEM_KITCHENSINK:			localpatch = kp_kitchensink[offset]; break;
