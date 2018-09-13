@@ -60,7 +60,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL","POKE","AUDI","DECO",
 	"DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO","CRAB","SHAD","BRNG",
 	"BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO","ITEM","ITMO","ITMI",
-	"ITMN","WANT","PBOM","RETI","VIEW"
+	"ITMN","WANT","PBOM","RETI","AIDU","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2600,6 +2600,8 @@ state_t states[NUMSTATES] =
 	{SPR_KFRE, FF_FULLBRIGHT|4,  2, {NULL}, 0, 0, S_KARTFIRE7}, // S_KARTFIRE6
 	{SPR_KFRE, FF_FULLBRIGHT|5,  2, {NULL}, 0, 0, S_KARTFIRE8}, // S_KARTFIRE7
 	{SPR_KFRE, FF_FULLBRIGHT|6,  2, {NULL}, 0, 0, S_NULL},      // S_KARTFIRE8
+
+	{SPR_AIDU, FF_ANIMATE|FF_PAPERSPRITE, 5*2, {NULL}, 5, 2, S_NULL}, // S_KARTAIZDRIFTSTRAT
 
 	{SPR_KINV, FF_FULLBRIGHT,    1, {NULL}, 0, 0, S_KARTINVULN_SMALL2},	// S_KARTINVULN_SMALL1
 	{SPR_KINV, FF_FULLBRIGHT|1,  1, {NULL}, 0, 0, S_KARTINVULN_SMALL3},	// S_KARTINVULN_SMALL2
@@ -14485,6 +14487,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_SNEAKERTRAIL
 		-1,             // doomednum
 		S_KARTFIRE1,    // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		8,              // speed
+		14*FRACUNIT,    // radius
+		14*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_AIZDRIFTSTRAT
+		-1,             // doomednum
+		S_KARTAIZDRIFTSTRAT,// spawnstate
 		1,              // spawnhealth
 		S_NULL,         // seestate
 		sfx_None,       // seesound

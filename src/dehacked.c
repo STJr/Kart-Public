@@ -6271,6 +6271,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARTFIRE7",
 	"S_KARTFIRE8",
 
+	// Angel Island Drift Strat Dust (what a mouthful!)
+	"S_KARTAIZDRIFTSTRAT",
+
 	// Invincibility Sparks
 	"S_KARTINVULN_SMALL1",
 	"S_KARTINVULN_SMALL2",
@@ -7220,6 +7223,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
+	"MT_AIZDRIFTSTRAT",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",

@@ -2271,7 +2271,7 @@ static void K_SpawnDriftSparks(player_t *player)
 			if (player->kartstuff[k_driftcharge] <= (K_GetKartDriftSparkValue(player)*2)+(32*3))
 				spark->color = SKINCOLOR_DUSK; // transition
 			else
-				spark->color = SKINCOLOR_RUBY;
+				spark->color = SKINCOLOR_KETCHUP;
 		}
 		else
 			spark->color = SKINCOLOR_SAPPHIRE;
@@ -2296,6 +2296,46 @@ static void K_SpawnDriftSparks(player_t *player)
 				|| (player->kartstuff[k_drift] > 0 && (i & 1)))
 				P_SetMobjState(spark, S_DRIFTSPARK_A1);
 		}
+
+		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->eflags & MF2_DONTDRAW);
+		spark->eflags = (spark->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP3)|(player->mo->eflags & MFE_DRAWONLYFORP3);
+		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP4)|(player->mo->eflags & MFE_DRAWONLYFORP4);
+	}
+}
+
+static void K_SpawnAIZDust(player_t *player)
+{
+	fixed_t newx;
+	fixed_t newy;
+	mobj_t *spark;
+	angle_t travelangle;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	if (leveltime % 2 == 1)
+		return;
+
+	if (!P_IsObjectOnGround(player->mo))
+		return;
+
+	travelangle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
+
+	{
+		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle - (player->kartstuff[k_aizdriftstrat]*ANGLE_45), FixedMul(24*FRACUNIT, player->mo->scale));
+		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle - (player->kartstuff[k_aizdriftstrat]*ANGLE_45), FixedMul(24*FRACUNIT, player->mo->scale));
+		spark = P_SpawnMobj(newx, newy, player->mo->z, MT_AIZDRIFTSTRAT);
+
+		spark->angle = travelangle+(player->kartstuff[k_aizdriftstrat]*ANGLE_90);
+		P_SetScale(spark, (spark->destscale = (3*player->mo->scale)>>2));
+
+		spark->momx = (6*player->mo->momx)/5;
+		spark->momy = (6*player->mo->momy)/5;
+		//spark->momz = player->mo->momz/2;
 
 		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->eflags & MF2_DONTDRAW);
 		spark->eflags = (spark->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
@@ -3947,16 +3987,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		// Starting left drift
 		player->kartstuff[k_drift] = 1;
-		player->kartstuff[k_driftend] = 0;
-		player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
 	}
 	else if ((player->cmd.driftturn < 0) && player->speed > FixedMul(10<<16, player->mo->scale) && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
 	{
 		// Starting right drift
 		player->kartstuff[k_drift] = -1;
-		player->kartstuff[k_driftend] = 0;
-		player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
 	}
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
 	{
@@ -4015,9 +4053,20 @@ static void K_KartDrift(player_t *player, boolean onground)
 	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
 		|| player->speed < FixedMul(10<<16, player->mo->scale)) // you're too slow!
 	{
-		player->kartstuff[k_drift] = 0;
-		player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_drift] = player->kartstuff[k_driftcharge] = player->kartstuff[k_aizdriftstrat] = 0;
 	}
+
+	if ((!player->kartstuff[k_sneakertimer])
+	|| (!player->cmd.driftturn)
+	|| (player->cmd.driftturn > 0) != (player->kartstuff[k_aizdriftstrat] > 0))
+	{
+		if (!player->kartstuff[k_drift])
+			player->kartstuff[k_aizdriftstrat] = 0;
+		else
+			player->kartstuff[k_aizdriftstrat] = ((player->kartstuff[k_drift] > 0) ? 1 : -1);
+	}
+	else if (player->kartstuff[k_aizdriftstrat] && !player->kartstuff[k_drift])
+		K_SpawnAIZDust(player);
 }
 //
 // K_KartUpdatePosition
