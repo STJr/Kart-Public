@@ -3227,6 +3227,11 @@ void P_SetupSignExit(player_t *player)
 		if (thing->info->seesound)
 			S_StartSound(thing, thing->info->seesound);
 
+		// SRB2Kart: Set sign spinning variables
+		thing->movefactor = thing->z;
+		thing->z += (512<<FRACBITS) * P_MobjFlip(thing);
+		thing->movecount = 1;
+
 		++numfound;
 	}
 
@@ -3252,7 +3257,28 @@ void P_SetupSignExit(player_t *player)
 		if (thing->info->seesound)
 			S_StartSound(thing, thing->info->seesound);
 
+		// SRB2Kart: Set sign spinning variables
+		thing->movefactor = thing->z;
+		thing->z += (512<<FRACBITS) * P_MobjFlip(thing);
+		thing->movecount = 1;
+
 		++numfound;
+	}
+
+	if (numfound)
+		return;
+
+	// SRB2Kart: FINALLY, add in an alternative if no place is found
+	if (player->mo)
+	{
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (512<<FRACBITS), MT_SIGN);
+
+		P_SetTarget(&sign->target, player->mo);
+		P_SetMobjState(sign, S_SIGN1);
+		if (sign->info->seesound)
+			S_StartSound(sign, sign->info->seesound);
+		sign->movefactor = player->mo->z;
+		sign->movecount = 1;
 	}
 }
 
@@ -4239,6 +4265,7 @@ DoneSection2:
 						S_StartSound(NULL, sfx_s253);
 
 					P_DoPlayerExit(player);
+					P_SetupSignExit(player);
 				}
 			}
 			break;

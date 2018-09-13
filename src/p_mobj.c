@@ -1409,6 +1409,9 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_SINK:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT); // Double gravity
 					break;
+				case MT_SIGN:
+					gravityadd /= 3;
+					break;
 				default:
 					break;
 			}
@@ -8279,6 +8282,26 @@ void P_MobjThinker(mobj_t *mobj)
 						cur->flags2 &= ~MF2_DONTDRAW;
 
 					cur = cur->hnext;
+				}
+			}
+			break;
+		case MT_SIGN: // Kart's unique sign behavior
+			if (mobj->movecount)
+			{
+				if (mobj->z <= mobj->movefactor)
+				{
+					P_SetMobjState(mobj, S_SIGN53);
+					//mobj->flags |= MF_NOGRAVITY; // ?
+					mobj->flags &= ~MF_NOCLIPHEIGHT;
+					mobj->movecount = 0;
+				}
+				else
+				{
+					P_SpawnMobj(mobj->x + (P_RandomRange(-32,32)<<FRACBITS),
+						mobj->y + (P_RandomRange(-32,32)<<FRACBITS),
+						mobj->z + (24<<FRACBITS) + (P_RandomRange(-16,16)<<FRACBITS),
+						MT_RINGSPARKLE);
+					mobj->flags &= ~MF_NOGRAVITY;
 				}
 			}
 			break;

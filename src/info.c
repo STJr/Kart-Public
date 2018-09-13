@@ -175,14 +175,15 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_OBJPLACE_DUMMY}, //S_OBJPLACE_DUMMY
 
 	// 1-Up Box Sprites (uses player sprite)
-	{SPR_PLAY, 35,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
+	// Kart: default to signpost just to ensure there are no missing sprite errors...
+	{SPR_PLAY, 24,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
 	{SPR_NULL,  0,  1, {NULL}, 0,  0, S_PLAY_BOX1},  // S_PLAY_BOX2
-	{SPR_PLAY, 35,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
+	{SPR_PLAY, 24,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
 	{SPR_NULL,  0, 12, {NULL}, 0,  0, S_PLAY_ICON3}, // S_PLAY_ICON2
-	{SPR_PLAY, 35, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
+	{SPR_PLAY, 24, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
 
 	// Level end sign (uses player sprite)
-	{SPR_PLAY, 34, 1, {NULL}, 0, 24, S_PLAY_SIGN},         // S_PLAY_SIGN
+	{SPR_PLAY, 24, 1, {NULL}, 0, 24, S_PLAY_SIGN},         // S_PLAY_SIGN
 
 	// Blue Crawla
 	{SPR_POSS, 0, 5, {A_Look}, 0, 0, S_POSS_STND},   // S_POSS_STND
@@ -1090,7 +1091,7 @@ state_t states[NUMSTATES] =
 	{SPR_SIGN, 3, 1, {NULL}, 0, 0, S_SIGN49},        // S_SIGN48
 	{SPR_SIGN, 0, 1, {NULL}, 0, 0, S_SIGN50},        // S_SIGN49
 	{SPR_SIGN, 1, 1, {NULL}, 0, 0, S_SIGN51},        // S_SIGN50
-	{SPR_SIGN, 2, 1, {NULL}, 0, 0, S_SIGN53},        // S_SIGN51
+	{SPR_SIGN, 2, 1, {NULL}, 0, 0, S_SIGN1},         // S_SIGN51
 	{SPR_SIGN, 3, -1, {NULL}, 0, 0, S_NULL},         // S_SIGN52 Eggman
 	{SPR_SIGN, 7, -1, {A_SignPlayer}, 0, 0, S_NULL}, // S_SIGN53 Blank
 
@@ -5796,7 +5797,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 
 	{           // MT_SIGN
 		501,            // doomednum
-		S_SIGN52,       // spawnstate
+		S_INVISIBLE,    // spawnstate
 		1000,           // spawnhealth
 		S_PLAY_SIGN,    // seestate
 		sfx_lvpass,     // seesound
@@ -5817,7 +5818,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16,             // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOCLIP|MF_SCENERY, // flags
+		MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
 
@@ -14400,6 +14401,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // activesound
 		MF_NOCLIP,      // flags
 		S_NULL          // raisestate
+	},
+
+	{           // MT_RINGSPARKLE
+		-1,              // doomednum
+		S_SPRK1,         // spawnstate
+		1,               // spawnhealth
+		S_NULL,          // seestate
+		sfx_None,        // seesound
+		8,               // reactiontime
+		sfx_None,        // attacksound
+		S_NULL,          // painstate
+		0,               // painchance
+		sfx_None,        // painsound
+		S_NULL,          // meleestate
+		S_NULL,          // missilestate
+		S_NULL,          // deathstate
+		S_NULL,          // xdeathstate
+		sfx_None,        // deathsound
+		8,               // speed
+		14*FRACUNIT,     // radius
+		14*FRACUNIT,     // height
+		0,               // display offset
+		100,             // mass
+		0,               // damage
+		sfx_None,        // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL           // raisestate
 	},
 
 	{           // MT_BOOSTFLAME
