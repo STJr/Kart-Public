@@ -6283,8 +6283,11 @@ void P_RunShadows(void)
 		next = mobj->hnext;
 		P_SetTarget(&mobj->hnext, NULL);
 
-		if (!mobj->target)
+		if (!mobj->target || P_MobjWasRemoved(mobj->target))
+		{
+			mobj->flags2 |= MF2_DONTDRAW;
 			continue; // shouldn't you already be dead?
+		}
 
 		if ((mobj->target->flags2 & MF2_DONTDRAW)
 			|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
