@@ -1410,7 +1410,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT); // Double gravity
 					break;
 				case MT_SIGN:
-					gravityadd /= 3;
+					gravityadd /= 4;
 					break;
 				default:
 					break;
