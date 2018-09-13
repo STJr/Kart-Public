@@ -8958,6 +8958,8 @@ void P_SceneryThinker(mobj_t *mobj)
 		if (((statenum_t)(mobj->state-states) != S_AUDIENCE_CHAO_CHEER2) || (mobj->tics != states[S_AUDIENCE_CHAO_CHEER2].tics)) // not at the start of your cheer jump?
 			return;
 
+		mobj->momz = 0;
+
 		P_SetMobjState(mobj, ((mobj->threshold == -1) ? S_AUDIENCE_CHAO_WIN2 : S_AUDIENCE_CHAO_LOSE));
 	}
 }
