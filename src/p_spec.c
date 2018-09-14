@@ -3213,6 +3213,9 @@ void P_SetupSignExit(player_t *player)
 	thinker_t *think;
 	INT32 numfound = 0;
 
+	if (player->kartstuff[k_position] != 1)
+		return;
+
 	for (; node; node = node->m_thinglist_next)
 	{
 		thing = node->m_thing;
