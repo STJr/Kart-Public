@@ -3309,6 +3309,19 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	K_UpdateOffroad(player);
 	K_GetKartBoostPower(player);
 
+	// Speed lines
+	if (player->kartstuff[k_speedboost] > FRACUNIT/8 && (leveltime & 1))
+	{
+		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-32,32)<<FRACBITS),
+			player->mo->y + (P_RandomRange(-32,32)<<FRACBITS),
+			player->mo->z + (player->mo->height/2) + (P_RandomRange(-24,24)<<FRACBITS),
+			MT_FASTLINE);
+		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
+		fast->momx = player->mo->momx/2;
+		fast->momy = player->mo->momy/2;
+		fast->momz = player->mo->momz/2;
+	}
+
 	if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie
 	{
 		const INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
