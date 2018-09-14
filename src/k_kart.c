@@ -2249,9 +2249,13 @@ static void K_SpawnDriftSparks(player_t *player)
 		spark->momy = player->mo->momy/2;
 		//spark->momz = player->mo->momz/2;
 
-		if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*2)
+		if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*4)
 		{
-			if (player->kartstuff[k_driftcharge] <= (K_GetKartDriftSparkValue(player)*2)+(32*3))
+			spark->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
+		}
+		else if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*2)
+		{
+			if (player->kartstuff[k_driftcharge] <= (K_GetKartDriftSparkValue(player)*2)+(24*3))
 				spark->color = SKINCOLOR_RASPBERRY; // transition
 			else
 				spark->color = SKINCOLOR_KETCHUP;
@@ -3760,6 +3764,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 {
 	fixed_t dsone = K_GetKartDriftSparkValue(player);
 	fixed_t dstwo = dsone*2;
+	fixed_t dsthree = dstwo*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -3783,10 +3788,19 @@ static void K_KartDrift(player_t *player, boolean onground)
 	}
 	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
-		&& player->kartstuff[k_driftcharge] >= dstwo
+		&& player->kartstuff[k_driftcharge] < dsthree
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 50;
+		S_StartSound(player->mo, sfx_s23c);
+		player->kartstuff[k_driftcharge] = 0;
+	}
+	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
+		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
+		&& player->kartstuff[k_driftcharge] >= dsthree
+		&& onground)
+	{
+		player->kartstuff[k_driftboost] = 80;
 		S_StartSound(player->mo, sfx_s23c);
 		player->kartstuff[k_driftcharge] = 0;
 	}
@@ -6566,6 +6580,7 @@ static void K_drawKartFirstPerson(void)
 	{
 		fixed_t dsone = K_GetKartDriftSparkValue(stplyr);
 		fixed_t dstwo = dsone*2;
+		fixed_t dsthree = dstwo*2;
 
 #ifndef DONTLIKETOASTERSFPTWEAKS
 		{
@@ -6604,8 +6619,10 @@ static void K_drawKartFirstPerson(void)
 		}
 
 		// drift sparks!
-		if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dstwo))
-			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_TANGERINE, 0);
+		if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsthree))
+			colmap = R_GetTranslationColormap(TC_RAINBOW, (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1))), 0);
+		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dstwo))
+			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_KETCHUP, 0);
 		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsone))
 			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SAPPHIRE, 0);
 		else
