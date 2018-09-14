@@ -2252,9 +2252,9 @@ static void K_SpawnDriftSparks(player_t *player)
 		if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*2)
 		{
 			if (player->kartstuff[k_driftcharge] <= (K_GetKartDriftSparkValue(player)*2)+(32*3))
-				spark->color = SKINCOLOR_DUSK; // transition
+				spark->color = SKINCOLOR_RASPBERRY; // transition
 			else
-				spark->color = SKINCOLOR_RUBY;
+				spark->color = SKINCOLOR_KETCHUP;
 		}
 		else
 			spark->color = SKINCOLOR_SAPPHIRE;
