@@ -3101,9 +3101,6 @@ typedef enum state
 	S_FASTLINE3,
 	S_FASTLINE4,
 	S_FASTLINE5,
-	S_FASTLINE6,
-	S_FASTLINE7,
-	S_FASTLINE8,
 
 	// Magnet Burst
 

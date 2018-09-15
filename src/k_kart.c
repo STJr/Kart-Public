@@ -3314,16 +3314,16 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	K_GetKartBoostPower(player);
 
 	// Speed lines
-	if (player->kartstuff[k_speedboost] > FRACUNIT/8 && (leveltime & 1))
+	if ((player->kartstuff[k_sneakertimer] || player->kartstuff[k_driftboost] || player->kartstuff[k_startboost]) && player->speed > 0)
 	{
-		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-32,32)<<FRACBITS),
-			player->mo->y + (P_RandomRange(-32,32)<<FRACBITS),
-			player->mo->z + (player->mo->height/2) + (P_RandomRange(-24,24)<<FRACBITS),
+		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36)<<FRACBITS),
+			player->mo->y + (P_RandomRange(-36,36)<<FRACBITS),
+			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20)<<FRACBITS),
 			MT_FASTLINE);
 		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
-		fast->momx = player->mo->momx/2;
-		fast->momy = player->mo->momy/2;
-		fast->momz = player->mo->momz/2;
+		fast->momx = 3*player->mo->momx/4;
+		fast->momy = 3*player->mo->momy/4;
+		fast->momz = 3*player->mo->momz/4;
 	}
 
 	if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie

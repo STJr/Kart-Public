@@ -6253,9 +6253,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FASTLINE3",
 	"S_FASTLINE4",
 	"S_FASTLINE5",
-	"S_FASTLINE6",
-	"S_FASTLINE7",
-	"S_FASTLINE8",
 
 	// Thunder Shield Burst
 
