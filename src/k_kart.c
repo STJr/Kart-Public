@@ -3800,7 +3800,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= dsthree
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 80;
+		player->kartstuff[k_driftboost] = 125;
 		S_StartSound(player->mo, sfx_s23c);
 		player->kartstuff[k_driftcharge] = 0;
 	}
