@@ -192,6 +192,7 @@ void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_JawzExplode(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
+void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -8313,6 +8314,25 @@ void A_BallhogExplode(mobj_t *actor)
 	S_StartSound(mo2, actor->info->deathsound);
 	return;
 }
+
+// A_LightningFollowPlayer:
+// Dumb simple function that gives a mobj its target's momentums without updating its angle.
+void A_LightningFollowPlayer(mobj_t *actor)
+{
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_LightningFollowPlayer", actor))
+		return;
+#endif
+	if (actor->target)
+	{	
+		P_TeleportMove(actor, actor->target->x, actor->target->y, actor->target->z);
+		actor->momx = actor->target->momx;
+		actor->momy = actor->target->momy;
+		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
+	}
+	return;
+}
+
 //}
 
 // Function: A_OrbitNights

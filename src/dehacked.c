@@ -1828,6 +1828,7 @@ static actionpointer_t actionpointers[] =
 	{{A_JawzExplode},          "A_JAWZEXPLODE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
+	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
