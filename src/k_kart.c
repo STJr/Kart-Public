@@ -2706,7 +2706,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	return mo;
 }
 
-INT32 LightningRadius = 320;
+#define THUNDERRADIUS 320
 
 static void K_DoThunderShield(player_t *player)
 {
@@ -2742,21 +2742,16 @@ static void K_DoThunderShield(player_t *player)
 		P_SetMobjState(mo, S_KLIT1);
 	}
 	
-	// spawn the radius thing:
-	/*x = source->x + source->momx + FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
-	y = source->y + source->momy + FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));*/
-	
+	// spawn the radius thing:	
 	angle_t an = ANGLE_22h;
-	
 	for (i=0; i<15; i++)
 	{
-		sx = player->mo->x + FixedMul((player->mo->scale*LightningRadius), FINECOSINE((an*i)>>ANGLETOFINESHIFT));
-		sy = player->mo->y + FixedMul((player->mo->scale*LightningRadius), FINESINE((an*i)>>ANGLETOFINESHIFT));
+		sx = player->mo->x + FixedMul((player->mo->scale*THUNDERRADIUS), FINECOSINE((an*i)>>ANGLETOFINESHIFT));
+		sy = player->mo->y + FixedMul((player->mo->scale*THUNDERRADIUS), FINESINE((an*i)>>ANGLETOFINESHIFT));
 		mo = P_SpawnMobj(sx, sy, player->mo->z, MT_THOK);
 		mo->scale = player->mo->scale*3;
 		P_SetMobjState(mo, S_KSPARK1);
 	}
-	
 }
 
 static void K_DoHyudoroSteal(player_t *player)
