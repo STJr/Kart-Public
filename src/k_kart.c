@@ -253,6 +253,8 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	*/
 };
 
+//#define SALLYALTRAINBOW // Sal's edited version of the below, which keeps a colors' lightness, and looks better with hue-shifted colors like Ruby & Dream. Not strictly *better*, just different...
+
 /** \brief	Generates the rainbow colourmaps that are used when a player has the invincibility power
 
 	\param	dest_colormap	colormap to populate
@@ -260,10 +262,12 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 */
 void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 {
-	INT32 i, j;
+	INT32 i;
 	RGBA_t color;
-	UINT8 colorbrightnesses[16];
 	UINT8 brightness;
+#ifndef SALLYALTRAINBOW
+	INT32 j;
+	UINT8 colorbrightnesses[16];
 	UINT16 brightdif;
 	INT32 temp;
 
@@ -273,6 +277,7 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		color = V_GetColor(colortranslations[skincolor][i]);
 		colorbrightnesses[i] = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
 	}
+#endif
 
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -284,6 +289,10 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		}
 		color = V_GetColor(i);
 		brightness = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
+#ifdef SALLYALTRAINBOW
+		brightness = 15-(brightness/16); // Yes, 15.
+		dest_colormap[i] = colortranslations[skincolor][brightness];
+#else
 		brightdif = 256;
 		for (j = 0; j < 16; j++)
 		{
@@ -294,6 +303,7 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 				dest_colormap[i] = colortranslations[skincolor][j];
 			}
 		}
+#endif
 	}
 }
 
