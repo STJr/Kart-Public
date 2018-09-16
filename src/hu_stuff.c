@@ -856,6 +856,9 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 				{
 					if (s[m])
 						s[m+1] = (s[m]);
+					
+					if (m < 1)
+						break;	// fix the chat going ham if your replace the first character. (For whatever reason this didn't happen in vanilla????)
 				}
 				s[c_input] = ch;		// and replace this.
 			}
