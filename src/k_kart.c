@@ -255,6 +255,15 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 
 //#define SALLYALTRAINBOW // Sal's edited version of the below, which keeps a colors' lightness, and looks better with hue-shifted colors like Ruby & Dream. Not strictly *better*, just different...
 
+// Define for getting accurate color brightness readings according to how the human eye sees them.
+// https://en.wikipedia.org/wiki/Relative_luminance
+// 0.2126 to red
+// 0.7152 to green
+// 0.0722 to blue
+// (See this same define in hw_md2.c!)
+#define SETBRIGHTNESS(brightness,r,g,b) \
+	brightness = (UINT8)(((1063*((UINT16)r)/5000) + (3576*((UINT16)g)/5000) + (361*((UINT16)b)/5000)) / 3)
+
 /** \brief	Generates the rainbow colourmaps that are used when a player has the invincibility power
 
 	\param	dest_colormap	colormap to populate
@@ -275,7 +284,7 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	for (i = 0; i < 16; i++)
 	{
 		color = V_GetColor(colortranslations[skincolor][i]);
-		colorbrightnesses[i] = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
+		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
 #endif
 
@@ -288,7 +297,7 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 			continue;
 		}
 		color = V_GetColor(i);
-		brightness = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
+		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
 #ifdef SALLYALTRAINBOW
 		brightness = 15-(brightness/16); // Yes, 15.
 		dest_colormap[i] = colortranslations[skincolor][brightness];
@@ -306,6 +315,8 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 #endif
 	}
 }
+
+#undef SETBRIGHTNESS
 
 /**	\brief	Generates a translation colormap for Kart, to replace R_GenerateTranslationColormap in r_draw.c
 
