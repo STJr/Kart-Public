@@ -2219,7 +2219,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 			if (source && source->player)
 				th->color = source->player->skincolor;
 			else
-				th->color = SKINCOLOR_CLOUDY;
+				th->color = SKINCOLOR_GREY;
 			break;
 		case MT_JAWZ:
 			if (source && source->player)
