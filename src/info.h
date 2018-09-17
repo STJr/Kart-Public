@@ -582,6 +582,7 @@ typedef enum sprite
 
 	SPR_RNDM, // Random Item Box
 	SPR_RPOP, // Random Item Box Pop
+	SPR_FAST, // Speed boost trail
 	SPR_BOST, // Sneaker booster flame
 	SPR_BOSM, // Sneaker booster smoke
 	SPR_KFRE, // Sneaker fire trail
@@ -3081,18 +3082,25 @@ typedef enum state
 	//}
 
 	// Drift Sparks
-	S_DRIFTSPARK1,
-	S_DRIFTSPARK2,
-	S_DRIFTSPARK3,
-	S_DRIFTSPARK4,
-	S_DRIFTSPARK5,
-	S_DRIFTSPARK6,
+	S_DRIFTSPARK_A1,
+	S_DRIFTSPARK_A2,
+	S_DRIFTSPARK_A3,
+	S_DRIFTSPARK_B1,
+	S_DRIFTSPARK_C1,
+	S_DRIFTSPARK_C2,
 
 	// Drift Smoke
 	S_DRIFTDUST1,
 	S_DRIFTDUST2,
 	S_DRIFTDUST3,
 	S_DRIFTDUST4,
+
+	// Fast lines
+	S_FASTLINE1,
+	S_FASTLINE2,
+	S_FASTLINE3,
+	S_FASTLINE4,
+	S_FASTLINE5,
 
 	// Magnet Burst
 
@@ -4083,13 +4091,14 @@ typedef enum mobj_type
 	MT_RANDOMITEM,
 	MT_RANDOMITEMPOP,
 
+	MT_FASTLINE,
 	MT_BOOSTFLAME,
 	MT_BOOSTSMOKE,
 	MT_SNEAKERTRAIL,
 	MT_SPARKLETRAIL,
 	MT_INVULNFLASH,
 	MT_WIPEOUTTRAIL,
-	MT_DRIFT,
+	MT_DRIFTSPARK,
 	MT_DRIFTDUST,
 
 	MT_FAKESHIELD,

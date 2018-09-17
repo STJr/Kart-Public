@@ -2752,10 +2752,9 @@ boolean M_Responder(event_t *ev)
 			}
 
 			// Why _does_ backspace go back anyway?
-			// Sal: Because it supports gamepads better. And still makes sense for keyboard.
-			currentMenu->lastOn = itemOn;
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
+			//currentMenu->lastOn = itemOn;
+			//if (currentMenu->prevMenu)
+			//	M_SetupNextMenu(currentMenu->prevMenu);
 			return false;
 
 		default:
