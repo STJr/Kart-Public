@@ -2297,7 +2297,7 @@ static void K_SpawnDriftSparks(player_t *player)
 				P_SetMobjState(spark, S_DRIFTSPARK_A1);
 		}
 
-		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->eflags & MF2_DONTDRAW);
+		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->flags2 & MF2_DONTDRAW);
 		spark->eflags = (spark->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
 		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
 		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
@@ -2337,7 +2337,7 @@ static void K_SpawnAIZDust(player_t *player)
 		spark->momy = (6*player->mo->momy)/5;
 		//spark->momz = player->mo->momz/2;
 
-		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->eflags & MF2_DONTDRAW);
+		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->flags2 & MF2_DONTDRAW);
 		spark->eflags = (spark->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
 		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
 		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
