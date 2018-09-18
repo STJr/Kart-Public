@@ -92,4 +92,7 @@ void COM_Lua_f(void);
 	}\
 }
 
+// uncomment for extended music features
+#define HAVE_LUA_MUSICPLUS
+
 #endif
