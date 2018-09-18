@@ -3459,7 +3459,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_thunderanim]--;*/
 
 	if (player->kartstuff[k_sneakertimer])
+	{
 		player->kartstuff[k_sneakertimer]--;
+		if (player->kartstuff[k_wipeoutslow] > 0 && player->kartstuff[k_wipeoutslow] < wipeoutslowtime+1)
+			player->kartstuff[k_wipeoutslow] = wipeoutslowtime+1;
+	}
 
 	if (player->kartstuff[k_floorboost])
 		player->kartstuff[k_floorboost]--;
