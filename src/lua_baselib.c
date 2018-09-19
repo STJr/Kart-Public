@@ -2151,7 +2151,7 @@ static int lib_sFadeMusic(lua_State *L)
 		source_volume = (INT32)luaL_checkinteger(L, 2);
 		ms = (UINT32)luaL_checkinteger(L, 3);
 	}
-	else if (luaL_optinteger(L, 3, UINT32_MAX) == UINT32_MAX)
+	else if (luaL_optinteger(L, 3, INT32_MAX) == INT32_MAX)
 	{
 		ms = (UINT32)luaL_checkinteger(L, 2);
 		source_volume = -1;
