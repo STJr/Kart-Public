@@ -8182,7 +8182,7 @@ void A_JawzChase(mobj_t *actor)
 			ret = P_SpawnMobj(actor->tracer->x, actor->tracer->y, actor->tracer->z, MT_PLAYERRETICULE);
 			P_SetTarget(&ret->target, actor->tracer);
 			ret->frame |= ((leveltime % 10) / 2) + 5;
-			ret->color = actor->target->player->skincolor;
+			ret->color = actor->cvmem;
 
 			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
 			return;

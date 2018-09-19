@@ -2213,16 +2213,25 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	th->momx = FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
 	th->momy = FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));
 
-	if (type == MT_ORBINAUT)
+	switch (type)
 	{
-		if (source && source->player)
-			th->color = source->player->skincolor;
-		else
-			th->color = SKINCOLOR_GREY;
-	}
-	else if (type == MT_JAWZ || type == MT_JAWZ_DUD)
-	{
-		S_StartSound(th, th->info->activesound);
+		case MT_ORBINAUT:
+			if (source && source->player)
+				th->color = source->player->skincolor;
+			else
+				th->color = SKINCOLOR_GREY;
+			break;
+		case MT_JAWZ:
+			if (source && source->player)
+				th->cvmem = source->player->skincolor;
+			else
+				th->cvmem = SKINCOLOR_RED;
+			//fallthrough
+		case MT_JAWZ_DUD:
+			S_StartSound(th, th->info->activesound);
+			break;
+		default:
+			break;
 	}
 
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
