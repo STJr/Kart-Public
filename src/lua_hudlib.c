@@ -424,6 +424,30 @@ static int libd_drawFill(lua_State *L)
 	return 0;
 }
 
+static int libd_fadeScreen(lua_State *L)
+{
+    UINT16 color = luaL_checkinteger(L, 1);
+    UINT8 strength = luaL_checkinteger(L, 2);
+    const UINT8 maxstrength = ((color & 0xFF00) ? 32 : 10);
+
+    HUDONLY
+
+    if (!strength)
+        return 0;
+
+    if (strength > maxstrength)
+        return luaL_error(L, "%s fade strength %d out of range (0 - %d)", ((color & 0xFF00) ? "COLORMAP" : "TRANSMAP"), strength, maxstrength);
+
+    if (strength == maxstrength) // Allow as a shortcut for drawfill...
+    {
+        V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, ((color & 0xFF00) ? 31 : color));
+        return 0;
+    }
+
+    V_DrawFadeScreen(color, strength);
+    return 0;
+}
+
 static int libd_drawString(lua_State *L)
 {
 	fixed_t x = luaL_checkinteger(L, 1);
@@ -568,6 +592,7 @@ static luaL_Reg lib_draw[] = {
 	{"drawNum", libd_drawNum},
 	{"drawPaddedNum", libd_drawPaddedNum},
 	{"drawFill", libd_drawFill},
+	{"fadeScreen", libd_fadeScreen},
 	{"drawString", libd_drawString},
 	{"stringWidth", libd_stringWidth},
 	{"getColormap", libd_getColormap},

@@ -43,6 +43,8 @@ const char *GetPalette(void);
 
 extern RGBA_t *pLocalPalette;
 
+extern UINT8 hudtrans;
+
 // Retrieve the ARGB value from a palette color index
 #define V_GetColor(color) (pLocalPalette[color&0xFF])
 
@@ -76,6 +78,7 @@ extern RGBA_t *pLocalPalette;
 #define V_REDMAP             0x00005000
 #define V_GRAYMAP            0x00006000
 #define V_ORANGEMAP          0x00007000
+#define V_SKYMAP             0x00008000
 
 // use bits 17-20 for alpha transparency
 #define V_ALPHASHIFT         16
@@ -139,16 +142,22 @@ void V_DrawScaledPic (INT32 px1, INT32 py1, INT32 scrn, INT32 lumpnum);
 
 // fill a box with a single color
 void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c);
+void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c);
+// fill a triangle with a single color
+void V_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 c);
 // fill a box with a flat as a pattern
 void V_DrawFlatFill(INT32 x, INT32 y, INT32 w, INT32 h, lumpnum_t flatnum);
 
 // fade down the screen buffer before drawing the menu over
-void V_DrawFadeScreen(void);
+void V_DrawFadeScreen(UINT16 color, UINT8 strength);
 
 void V_DrawFadeConsBack(INT32 plines);
 
 // draw a single character
 void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed);
+// draw a single character, but for the chat
+void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UINT8 *colormap);
+const UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
 

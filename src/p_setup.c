@@ -2197,11 +2197,15 @@ static void P_LevelInitStuff(void)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+#if 0
 		if ((netgame || multiplayer) && (gametype == GT_COMPETITION || players[i].lives <= 0))
 		{
 			// In Co-Op, replenish a user's lives if they are depleted.
 			players[i].lives = cv_startinglives.value;
 		}
+#else
+		players[i].lives = 1;
+#endif
 
 		players[i].realtime = countdown = countdown2 = 0;
 		curlap = bestlap = 0; // SRB2Kart
@@ -2426,6 +2430,7 @@ static void P_ForceCharacter(const char *forcecharskin)
 
 static void P_LoadRecordGhosts(void)
 {
+	// see also m_menu.c's Nextmap_OnChange
 	const size_t glen = strlen(srb2home)+1+strlen("replay")+1+strlen(timeattackfolder)+1+strlen("MAPXX")+1;
 	char *gpath = malloc(glen);
 	INT32 i;
@@ -2559,11 +2564,6 @@ boolean P_SetupLevel(boolean skipprecip)
 	CON_Drawer(); // let the user know what we are going to do
 	I_FinishUpdate(); // page flip or blit buffer
 
-
-	// Reset the palette
-	if (rendermode != render_none)
-		V_SetPaletteLump("PLAYPAL");
-
 	// Initialize sector node list.
 	P_Initsecnode();
 
@@ -2620,7 +2620,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Special stage fade to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && G_IsSpecialStage(gamemap))
+	/*if (rendermode != render_none && G_IsSpecialStage(gamemap))
 	{
 		tic_t starttime = I_GetTime();
 		tic_t endtime = starttime + (3*TICRATE)/2;
@@ -2647,7 +2647,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		}
 
 		ranspecialwipe = 1;
-	}
+	}*/
 
 	// Make sure all sounds are stopped before Z_FreeTags.
 	S_StopSounds();
@@ -2659,19 +2659,23 @@ boolean P_SetupLevel(boolean skipprecip)
 	S_Start();
 	// SRB2 Kart - Yes this is weird, but we don't want the music to start until after the countdown is finished
 	// but we do still need the mapmusname to be changed
-	if (leveltime < 158)
-		S_StopMusic();
+	if (leveltime < (starttime + (TICRATE/2)))
+		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
 
 	// Let's fade to black here
 	// But only if we didn't do the special stage wipe
 	if (rendermode != render_none && !ranspecialwipe)
 	{
 		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
 		F_WipeEndScreen();
 		F_RunWipe(wipedefs[wipe_level_toblack], false);
 	}
+
+	// Reset the palette now all fades have been done
+	if (rendermode != render_none)
+		V_SetPaletteLump(GetPalette()); // Set the level palette
 
 	// Print "SPEEDING OFF TO [ZONE] [ACT 1]..."
 	/*if (rendermode != render_none)
@@ -2875,8 +2879,11 @@ boolean P_SetupLevel(boolean skipprecip)
 			CONS_Printf(M_GetText("No player currently available to become IT. Awaiting available players.\n"));
 
 	}
-	else if (G_RaceGametype() && server && cv_usemapnumlaps.value)
-		CV_StealthSetValue(&cv_numlaps, mapheaderinfo[gamemap - 1]->numlaps);
+	else if (G_RaceGametype() && server)
+		CV_StealthSetValue(&cv_numlaps,
+			((netgame || multiplayer) && cv_basenumlaps.value)
+			? cv_basenumlaps.value
+			: mapheaderinfo[gamemap - 1]->numlaps);
 
 	// ===========
 	// landing point for netgames.
@@ -2990,22 +2997,27 @@ boolean P_SetupLevel(boolean skipprecip)
 	else
 	{
 		if (G_BattleGametype())
+		{
 			gamespeed = 0;
-		else
-			gamespeed = (UINT8)cv_kartspeed.value;
-
-		if (G_BattleGametype())
 			mirrormode = false;
+		}
 		else
+		{
+			gamespeed = (UINT8)cv_kartspeed.value;
 			mirrormode = (boolean)cv_kartmirror.value;
-
+		}
 		franticitems = (boolean)cv_kartfrantic.value;
 		comeback = (boolean)cv_kartcomeback.value;
 	}
 
-	lightningcooldown = 0;
-	blueshellincoming = 0;
-	blueshellplayer = 0;
+	for (i = 0; i < 4; i++)
+		battlewanted[i] = -1;
+
+	wantedcalcdelay = wantedfrequency*2;
+	indirectitemcooldown = 0;
+	spbincoming = 0;
+	spbplayer = 0;
+	mapreset = 0;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;
@@ -3025,7 +3037,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Remove the loading shit from the screen
 	if (rendermode != render_none)
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (ranspecialwipe) ? 0 : 31);
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
 	if (precache || dedicated)
 		R_PrecacheLevel();
@@ -3143,7 +3155,7 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 			}
 			else if (name[1] == '_')
 			{
-				CONS_Debug(DBG_SETUP, "Music %.8s replaced\n", name);
+				CONS_Debug(DBG_SETUP, "Music %.8s ignored\n", name);
 				mreplaces++;
 			}
 		}
@@ -3164,7 +3176,7 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 	if (!devparm && sreplaces)
 		CONS_Printf(M_GetText("%s sounds replaced\n"), sizeu1(sreplaces));
 	if (!devparm && mreplaces)
-		CONS_Printf(M_GetText("%s midi musics replaced\n"), sizeu1(mreplaces));
+		CONS_Printf(M_GetText("%s midi musics ignored\n"), sizeu1(mreplaces));
 	if (!devparm && digmreplaces)
 		CONS_Printf(M_GetText("%s digital musics replaced\n"), sizeu1(digmreplaces));
 

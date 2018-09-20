@@ -59,7 +59,7 @@ struct hwdriver_s hwdriver;
 // ==========================================================================
 
 
-static void HWR_AddSprites(sector_t *sec);
+static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer);
 static void HWR_ProjectSprite(mobj_t *thing);
 #ifdef HWPRECIP
 static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing);
@@ -2186,27 +2186,34 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				}
 				else if (drawtextured)
 				{
-#ifdef ESLOPE // P.S. this is better-organized than the old version
-					fixed_t offs = sides[(newline ? newline : rover->master)->sidenum[0]].rowoffset;
-					grTex = HWR_GetTexture(texnum);
+					fixed_t texturevpeg;
 
-					wallVerts[3].t = (*rover->topheight - h + offs) * grTex->scaleY;
-					wallVerts[2].t = (*rover->topheight - hS + offs) * grTex->scaleY;
-					wallVerts[0].t = (*rover->topheight - l + offs) * grTex->scaleY;
-					wallVerts[1].t = (*rover->topheight - lS + offs) * grTex->scaleY;
-#else
-					grTex = HWR_GetTexture(texnum);
-
+					// Wow, how was this missing from OpenGL for so long?
+					// ...Oh well, anyway, Lower Unpegged now changes pegging of FOFs like in software
+					// -- Monster Iestyn 26/06/18
 					if (newline)
 					{
-						wallVerts[3].t = wallVerts[2].t = (*rover->topheight - h + sides[newline->sidenum[0]].rowoffset) * grTex->scaleY;
-						wallVerts[0].t = wallVerts[1].t = (h - l + (*rover->topheight - h + sides[newline->sidenum[0]].rowoffset)) * grTex->scaleY;
+						texturevpeg = sides[newline->sidenum[0]].rowoffset;
+						if (newline->flags & ML_DONTPEGBOTTOM)
+							texturevpeg -= *rover->topheight - *rover->bottomheight;
 					}
 					else
 					{
-						wallVerts[3].t = wallVerts[2].t = (*rover->topheight - h + sides[rover->master->sidenum[0]].rowoffset) * grTex->scaleY;
-						wallVerts[0].t = wallVerts[1].t = (h - l + (*rover->topheight - h + sides[rover->master->sidenum[0]].rowoffset)) * grTex->scaleY;
+						texturevpeg = sides[rover->master->sidenum[0]].rowoffset;
+						if (gr_linedef->flags & ML_DONTPEGBOTTOM)
+							texturevpeg -= *rover->topheight - *rover->bottomheight;
 					}
+
+					grTex = HWR_GetTexture(texnum);
+
+#ifdef ESLOPE
+					wallVerts[3].t = (*rover->topheight - h + texturevpeg) * grTex->scaleY;
+					wallVerts[2].t = (*rover->topheight - hS + texturevpeg) * grTex->scaleY;
+					wallVerts[0].t = (*rover->topheight - l + texturevpeg) * grTex->scaleY;
+					wallVerts[1].t = (*rover->topheight - lS + texturevpeg) * grTex->scaleY;
+#else
+					wallVerts[3].t = wallVerts[2].t = (*rover->topheight - h + texturevpeg) * grTex->scaleY;
+					wallVerts[0].t = wallVerts[1].t = (*rover->topheight - l + texturevpeg) * grTex->scaleY;
 #endif
 
 					wallVerts[0].s = wallVerts[3].s = cliplow * grTex->scaleX;
@@ -3234,7 +3241,7 @@ static void HWR_AddPolyObjectPlanes(void)
 //                  : Draw one or more line segments.
 // Notes            : Sets gr_cursectorlight to the light of the parent sector, to modulate wall textures
 // -----------------+
-static void HWR_Subsector(size_t num)
+static void HWR_Subsector(size_t num, UINT8 ssplayer)
 {
 	INT16 count;
 	seg_t *line;
@@ -3602,7 +3609,7 @@ static void HWR_Subsector(size_t num)
 	{
 		// draw sprites first, coz they are clipped to the solidsegs of
 		// subsectors more 'in front'
-		HWR_AddSprites(gr_frontsector);
+		HWR_AddSprites(gr_frontsector, ssplayer);
 
 		//Hurdler: at this point validcount must be the same, but is not because
 		//         gr_frontsector doesn't point anymore to sub->sector due to
@@ -3654,7 +3661,7 @@ static boolean HWR_CheckHackBBox(fixed_t *bb)
 // BP: big hack for a test in lighning ref : 1249753487AB
 fixed_t *hwbbox;
 
-static void HWR_RenderBSPNode(INT32 bspnum)
+static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
 {
 	/*//GZDoom code
 	if(bspnum == -1)
@@ -3694,12 +3701,12 @@ static void HWR_RenderBSPNode(INT32 bspnum)
 		if (bspnum == -1)
 		{
 			//*(gr_drawsubsector_p++) = 0;
-			HWR_Subsector(0);
+			HWR_Subsector(0, ssplayer);
 		}
 		else
 		{
 			//*(gr_drawsubsector_p++) = bspnum&(~NF_SUBSECTOR);
-			HWR_Subsector(bspnum&(~NF_SUBSECTOR));
+			HWR_Subsector(bspnum&(~NF_SUBSECTOR), ssplayer);
 		}
 		return;
 	}
@@ -3711,14 +3718,14 @@ static void HWR_RenderBSPNode(INT32 bspnum)
 	hwbbox = bsp->bbox[side];
 
 	// Recursively divide front space.
-	HWR_RenderBSPNode(bsp->children[side]);
+	HWR_RenderBSPNode(bsp->children[side], ssplayer);
 
 	// Possibly divide back space.
 	if (HWR_CheckBBox(bsp->bbox[side^1]))
 	{
 		// BP: big hack for a test in lighning ref : 1249753487AB
 		hwbbox = bsp->bbox[side^1];
-		HWR_RenderBSPNode(bsp->children[side^1]);
+		HWR_RenderBSPNode(bsp->children[side^1], ssplayer);
 	}
 }
 
@@ -5110,7 +5117,7 @@ static void HWR_DrawSprites(void)
 // During BSP traversal, this adds sprites by sector.
 // --------------------------------------------------------------------------
 static UINT8 sectorlight;
-static void HWR_AddSprites(sector_t *sec)
+static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 {
 	mobj_t *thing;
 #ifdef HWPRECIP
@@ -5140,6 +5147,25 @@ static void HWR_AddSprites(sector_t *sec)
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
+			if (splitscreen)
+			{
+				if (thing->eflags & MFE_DRAWONLYFORP1)
+					if (ssplayer != 1)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP2)
+					if (ssplayer != 2)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
+					if (ssplayer != 3)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
+					if (ssplayer != 4)
+						continue;
+			}
+
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
 			if (approx_dist <= limit_dist)
@@ -5150,8 +5176,31 @@ static void HWR_AddSprites(sector_t *sec)
 	{
 		// Draw everything in sector, no checks
 		for (thing = sec->thinglist; thing; thing = thing->snext)
-			if (!(thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW))
-				HWR_ProjectSprite(thing);
+		{
+			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
+				continue;
+
+			if (splitscreen)
+			{
+				if (thing->eflags & MFE_DRAWONLYFORP1)
+					if (ssplayer != 1)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP2)
+					if (ssplayer != 2)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
+					if (ssplayer != 3)
+						continue;
+
+				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
+					if (ssplayer != 4)
+						continue;
+			}
+
+			HWR_ProjectSprite(thing);
+		}
 	}
 
 #ifdef HWPRECIP
@@ -5347,7 +5396,10 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	}
 
 	heightsec = thing->subsector->sector->heightsec;
-	phs = players[displayplayer].mo->subsector->sector->heightsec;
+	if (viewplayer->mo && viewplayer->mo->subsector)
+		phs = viewplayer->mo->subsector->sector->heightsec;
+	else
+		phs = -1;
 
 	if (heightsec != -1 && phs != -1) // only clip things which are in special sectors
 	{
@@ -5388,23 +5440,15 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	else if (thing->color)
 	{
 		// New colormap stuff for skins Tails 06-07-2002
-		if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
+		if (thing->colorized)
+			vis->colormap = R_GetTranslationColormap(TC_RAINBOW, thing->color, GTC_CACHE);
+		else if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
 		{
-			if (thing->colorized)
-				vis->colormap = R_GetTranslationColormap(TC_STARMAN, thing->color, GTC_CACHE);
-			else
-			{
-				size_t skinnum = (skin_t*)thing->skin-skins;
-				vis->colormap = R_GetTranslationColormap((INT32)skinnum, thing->color, GTC_CACHE);
-			}
+			size_t skinnum = (skin_t*)thing->skin-skins;
+			vis->colormap = R_GetTranslationColormap((INT32)skinnum, thing->color, GTC_CACHE);
 		}
 		else
-		{
-			if (vis->mobj && vis->mobj->colorized)
-				vis->colormap = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
-			else
-				vis->colormap = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
-		}
+			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, thing->color, GTC_CACHE);
 	}
 	else
 		vis->colormap = colormaps;
@@ -5666,13 +5710,31 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 {
 	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);
 	postimg_t *type;
+	UINT8 ssplayer = 0;
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
-		type = &postimgtype2;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		type = &postimgtype3;
-	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		type = &postimgtype4;
+	if (splitscreen)
+	{
+		if (player == &players[secondarydisplayplayer])
+		{
+			type = &postimgtype2;
+			ssplayer = 2;
+		}
+		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		{
+			type = &postimgtype3;
+			ssplayer = 3;
+		}
+		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		{
+			type = &postimgtype4;
+			ssplayer = 4;
+		}
+		else
+		{
+			type = &postimgtype;
+			ssplayer = 1;
+		}
+	}
 	else
 		type = &postimgtype;
 
@@ -5789,7 +5851,7 @@ if (0)
 
 	validcount++;
 
-	HWR_RenderBSPNode((INT32)numnodes-1);
+	HWR_RenderBSPNode((INT32)numnodes-1, ssplayer);
 
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
@@ -5806,18 +5868,18 @@ if (0)
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1); //left
+		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //left
 
 		dup_viewangle += ANGLE_90;
 		if (((INT32)aimingangle > ANGLE_45 || (INT32)aimingangle<-ANGLE_45))
 		{
 			HWR_ClearClipSegs();
-			HWR_RenderBSPNode((INT32)numnodes-1); //back
+			HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //back
 		}
 
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1); //right
+		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //right
 
 		dup_viewangle += ANGLE_90;
 	}
@@ -5881,17 +5943,35 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 {
 	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);
 	postimg_t *type;
+	UINT8 ssplayer = 0;
 
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value); // True if there's a skybox object and skyboxes are on
 
 	FRGBAFloat ClearColor;
 
-	if (splitscreen && player == &players[secondarydisplayplayer])
-		type = &postimgtype2;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		type = &postimgtype3;
-	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		type = &postimgtype4;
+	if (splitscreen)
+	{
+		if (player == &players[secondarydisplayplayer])
+		{
+			type = &postimgtype2;
+			ssplayer = 2;
+		}
+		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+		{
+			type = &postimgtype3;
+			ssplayer = 3;
+		}
+		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+		{
+			type = &postimgtype4;
+			ssplayer = 4;
+		}
+		else
+		{
+			type = &postimgtype;
+			ssplayer = 1;
+		}
+	}
 	else
 		type = &postimgtype;
 
@@ -6019,7 +6099,7 @@ if (0)
 
 	validcount++;
 
-	HWR_RenderBSPNode((INT32)numnodes-1);
+	HWR_RenderBSPNode((INT32)numnodes-1, ssplayer);
 
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
@@ -6036,18 +6116,18 @@ if (0)
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1); //left
+		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //left
 
 		dup_viewangle += ANGLE_90;
 		if (((INT32)aimingangle > ANGLE_45 || (INT32)aimingangle<-ANGLE_45))
 		{
 			HWR_ClearClipSegs();
-			HWR_RenderBSPNode((INT32)numnodes-1); //back
+			HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //back
 		}
 
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1); //right
+		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //right
 
 		dup_viewangle += ANGLE_90;
 	}

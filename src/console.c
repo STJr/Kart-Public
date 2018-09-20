@@ -139,6 +139,21 @@ static CV_PossibleValue_t backcolor_cons_t[] = {{0, "White"}, 	{1, "Gray"},	{2, 
 												{0, NULL}};
 consvar_t cons_backcolor = {"con_backcolor", "Green", CV_CALL|CV_SAVE, backcolor_cons_t, CONS_backcolor_Change, 0, NULL, NULL, 0, 0, NULL};
 
+static CV_PossibleValue_t menuhighlight_cons_t[] =
+{
+	{0, "Game type"},
+	{V_YELLOWMAP, "Always yellow"},
+	{V_PURPLEMAP, "Always purple"},
+	{V_GREENMAP, "Always green"},
+	{V_BLUEMAP, "Always blue"},
+	{V_REDMAP, "Always red"},
+	{V_GRAYMAP, "Always gray"},
+	{V_ORANGEMAP, "Always orange"},
+	{V_SKYMAP, "Always sky-blue"},
+	{0, NULL}
+};
+consvar_t cons_menuhighlight = {"menuhighlight", "Game type", CV_SAVE, menuhighlight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 static void CON_Print(char *msg);
 
 //
@@ -227,13 +242,7 @@ static void CONS_Bind_f(void)
 // Font colormap colors
 // TODO: This could probably be improved somehow...
 // These colormaps are 99% identical, with just a few changed bytes
-UINT8 *yellowmap;
-UINT8 *purplemap;
-UINT8 *lgreenmap;
-UINT8 *bluemap;
-UINT8 *graymap;
-UINT8 *redmap;
-UINT8 *orangemap;
+UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *orangemap, *skymap;
 
 // Console BG color
 UINT8 *consolebgmap = NULL;
@@ -278,39 +287,34 @@ static void CONS_backcolor_Change(void)
 static void CON_SetupColormaps(void)
 {
 	INT32 i;
+	UINT8 *memorysrc = (UINT8 *)Z_Malloc((256*8), PU_STATIC, NULL);
 
-	yellowmap = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
-	graymap   = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
-	purplemap = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
-	lgreenmap = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
-	bluemap   = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
-	redmap    = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
-	orangemap = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
+	purplemap  = memorysrc;
+	yellowmap  = (purplemap+256);
+	greenmap  = (yellowmap+256);
+	bluemap    = (greenmap+256);
+	redmap     = (bluemap+256);
+	graymap    = (redmap+256);
+	orangemap  = (graymap+256);
+	skymap     = (orangemap+256);
 
 	// setup the other colormaps, for console text
 
 	// these don't need to be aligned, unless you convert the
 	// V_DrawMappedPatch() into optimised asm.
 
-	for (i = 0; i < 256; i++)
-	{
-		yellowmap[i] = (UINT8)i; // remap each color to itself...
-		graymap[i] = (UINT8)i;
-		purplemap[i] = (UINT8)i;
-		lgreenmap[i] = (UINT8)i;
-		bluemap[i] = (UINT8)i;
-		redmap[i] = (UINT8)i;
-		orangemap[i] = (UINT8)i;
-	}
+	for (i = 0; i < (256*8); i++, ++memorysrc)
+		*memorysrc = (UINT8)(i & 0xFF); // remap each color to itself...
 
 	// SRB2Kart: Different console font, new colors
-	yellowmap[120] = (UINT8)103;
 	purplemap[120] = (UINT8)194;
-	lgreenmap[120] = (UINT8)162;
+	yellowmap[120] = (UINT8)103;
+	greenmap[120]  = (UINT8)162;
 	bluemap[120]   = (UINT8)228;
 	graymap[120]   = (UINT8)10;
-	redmap[120]    = (UINT8)126;
-	orangemap[120] = (UINT8)85;
+	redmap[120]    = (UINT8)126; // battle
+	orangemap[120] = (UINT8)85; // record attack
+	skymap[120]    = (UINT8)214; // race
 
 	// Init back colormap
 	CON_SetupBackColormap();
@@ -367,6 +371,7 @@ void CON_Init(void)
 		CV_RegisterVar(&cons_height);
 		CV_RegisterVar(&cons_backpic);
 		CV_RegisterVar(&cons_backcolor);
+		CV_RegisterVar(&cons_menuhighlight);
 		COM_AddCommand("bind", CONS_Bind_f);
 	}
 	else
@@ -1032,7 +1037,17 @@ boolean CON_Responder(event_t *ev)
 	else if (key == KEY_KPADSLASH)
 		key = '/';
 
-	if (shiftdown)
+	// capslock
+	if (key == KEY_CAPSLOCK)	// it's a toggle.
+	{
+		if (capslock)
+			capslock = false;
+		else
+			capslock = true;
+		return true;
+	}
+
+	if (capslock ^ shiftdown)	// gets capslock to work because capslock is cool
 		key = shiftxform[key];
 
 	// enter a char into the command prompt
@@ -1040,7 +1055,7 @@ boolean CON_Responder(event_t *ev)
 		return true; // even if key can't be printed, eat it anyway
 
 	// add key to cmd line here
-	if (key >= 'A' && key <= 'Z' && !shiftdown) //this is only really necessary for dedicated servers
+	if (key >= 'A' && key <= 'Z' && !(shiftdown ^ capslock)) //this is only really necessary for dedicated servers
 		key = key + 'a' - 'A';
 
 	if (input_sel != input_cur)
@@ -1427,7 +1442,7 @@ static void CON_DrawHudlines(void)
 	if (con_hudlines <= 0)
 		return;
 
-	if (chat_on)
+	if (chat_on && OLDCHAT)
 		y = charheight; // leave place for chat input in the first row of text
 	else
 		y = 0;
@@ -1620,6 +1635,6 @@ void CON_Drawer(void)
 	if (con_curlines > 0)
 		CON_DrawConsole();
 	else if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_CUTSCENE || gamestate == GS_CREDITS
-		|| gamestate == GS_VOTING)
+		|| gamestate == GS_VOTING || gamestate == GS_EVALUATION || gamestate == GS_WAITINGPLAYERS)
 		CON_DrawHudlines();
 }

@@ -50,7 +50,7 @@ struct JoyType_s
 };
 typedef struct JoyType_s JoyType_t;
 /**	\brief Joystick info
-	for palyer 1 and 2's joystick/gamepad
+	for palyer[sic] 1-4's joystick/gamepad
 */
 
 extern JoyType_t Joystick, Joystick2, Joystick3, Joystick4;

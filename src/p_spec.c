@@ -3753,22 +3753,46 @@ DoneSection2:
 	// Process Section 3
 	switch (special)
 	{
-		case 1: // SRB2kart: bounce pad
+		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
+				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+				const fixed_t minspeed = 24*scale;
+
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
-				if (player->speed < K_GetKartSpeed(player, true)/4) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
+				if (player->speed < minspeed) // Push forward to prevent getting stuck
+					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
-				player->kartstuff[k_feather] |= 2;
-				K_DoBouncePad(player->mo, 0);
+				player->kartstuff[k_pogospring] = 1;
+				K_DoPogoSpring(player->mo, 0, false);
 			}
 			break;
 
 		case 2: // Wind/Current
-		case 3: // Unused   (was "Ice/Sludge and Wind/Current")
+			break;
+
+		case 3: // SRB2kart: Spring Panel (capped speed)
+			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
+			{
+				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+				const fixed_t minspeed = 24*scale;
+				const fixed_t maxspeed = 36*scale;
+
+				if (player->mo->eflags & MFE_SPRUNG)
+					break;
+
+				if (player->speed > maxspeed) // Prevent overshooting jumps
+					P_InstaThrust(player->mo, R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy), maxspeed);
+				else if (player->speed < minspeed) // Push forward to prevent getting stuck
+					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+
+				player->kartstuff[k_pogospring] = 2;
+				K_DoPogoSpring(player->mo, 0, false);
+			}
+			break;
+
 		case 4: // Conveyor Belt
 			break;
 
@@ -3969,22 +3993,21 @@ DoneSection2:
 			//	P_SetPlayerMobjState(player->mo, S_PLAY_FALL1);
 			break;
 
-		case 6: // SRB2kart 190117 - Mushroom Boost Panel
+		case 6: // SRB2kart 190117 - Sneaker Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
 				if (!player->kartstuff[k_floorboost])
 					player->kartstuff[k_floorboost] = 3;
 				else
 					player->kartstuff[k_floorboost] = 2;
-				K_DoMushroom(player, false);
+				K_DoSneaker(player, false);
 			}
 			break;
 
 		case 7: // SRB2kart 190117 - Oil Slick
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				player->kartstuff[k_spinouttype] = -1;
-				K_SpinPlayer(player, NULL);
+				K_SpinPlayer(player, NULL, 0, false);
 			}
 			break;
 
@@ -4184,11 +4207,12 @@ DoneSection2:
 
 					if (P_IsLocalPlayer(player))
 					{
-						if (player->laps < (UINT8)(cv_numlaps.value - 1))
-							S_StartSound(NULL, sfx_mlap);
-						else if (player->laps == (UINT8)(cv_numlaps.value - 1))
-							S_StartSound(NULL, sfx_mlap);
+						if (player->laps == (UINT8)(cv_numlaps.value - 1))
+							S_StartSound(NULL, sfx_s3k68);
+						else if (player->laps < (UINT8)(cv_numlaps.value - 1))
+							S_StartSound(NULL, sfx_s221);
 					}
+
 					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;
 					//player->starpostx = player->starposty = player->starpostz = 0;
@@ -4207,26 +4231,10 @@ DoneSection2:
 
 				if (player->laps >= (unsigned)cv_numlaps.value)
 				{
-					if (P_IsLocalPlayer(player))
-					{
-						// SRB2kart 200117
-						if (splitscreen)
-							S_ChangeMusicInternal("karwin", true);
-						else
-						{
-							if (player->kartstuff[k_position] == 1)
-								S_ChangeMusicInternal("karwin", true);
-							else if (K_IsPlayerLosing(player))
-								S_ChangeMusicInternal("karlos", true);
-							else
-								S_ChangeMusicInternal("karok", true);
-						}
-					}
-
-					if (player->kartstuff[k_position] == 1)
+					if (!splitscreen && P_IsLocalPlayer(player))
+						S_StartSound(NULL, sfx_s3k6a);
+					else if (player->kartstuff[k_position] == 1)
 						S_StartSound(NULL, sfx_s253);
-					else if (P_IsLocalPlayer(player))
-						S_StartSound(NULL, sfx_s24f);
 
 					P_DoPlayerExit(player);
 				}
@@ -7222,8 +7230,8 @@ void T_Friction(friction_t *f)
 		// friction works for all mobj's
 		// (or at least MF_PUSHABLEs, which is all I care about anyway)
 		if ((!(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) && thing->z == thing->floorz) && (thing->player
-			&& (thing->player->kartstuff[k_startimer] == 0 && thing->player->kartstuff[k_bootimer] == 0
-			&& thing->player->kartstuff[k_mushroomtimer] == 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)))
+			&& (thing->player->kartstuff[k_invincibilitytimer] == 0 && thing->player->kartstuff[k_hyudorotimer] == 0
+			&& thing->player->kartstuff[k_sneakertimer] == 0 && thing->player->kartstuff[k_growshrinktimer] <= 0)))
 		{
 			if (f->roverfriction)
 			{
@@ -7619,7 +7627,9 @@ void T_Pusher(pusher_t *p)
 		if (thing->player && thing->player->pflags & PF_ROPEHANG)
 			continue;
 
-		if (thing->player && (thing->state == &states[thing->info->painstate]) && (thing->player->powers[pw_flashing] > (K_GetKartFlashing()/4)*3 && thing->player->powers[pw_flashing] <= K_GetKartFlashing()))
+		if (thing->player && (thing->state == &states[thing->info->painstate])
+			&& (thing->player->powers[pw_flashing] > (K_GetKartFlashing(thing->player)/4)*3
+			&& thing->player->powers[pw_flashing] <= K_GetKartFlashing(thing->player)))
 			continue;
 
 		inFOF = touching = moved = false;
@@ -7756,7 +7766,6 @@ void T_Pusher(pusher_t *p)
 					thing->player->pflags |= PF_JUMPED;
 
 				thing->player->pflags |= PF_SLIDING;
-				P_SetPlayerMobjState (thing, thing->info->painstate); // Whee!
 				thing->angle = R_PointToAngle2 (0, 0, xspeed<<(FRACBITS-PUSH_FACTOR), yspeed<<(FRACBITS-PUSH_FACTOR));
 
 				if (!demoplayback || P_AnalogMove(thing->player))

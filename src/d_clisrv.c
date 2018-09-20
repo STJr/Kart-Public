@@ -443,8 +443,7 @@ static void ExtraDataTicker(void)
 							DEBFILE(va("player %d kicked [gametic=%u] reason as follows:\n", i, gametic));
 						}
 						CONS_Alert(CONS_WARNING, M_GetText("Got unknown net command [%s]=%d (max %d)\n"), sizeu1(curpos - bufferstart), *curpos, bufferstart[0]);
-						D_FreeTextcmd(gametic);
-						return;
+						break;
 					}
 				}
 			}
@@ -1166,7 +1165,7 @@ static inline void CL_DrawConnectionStatus(void)
 	INT32 ccstime = I_GetTime();
 
 	// Draw background fade
-	V_DrawFadeScreen();
+	V_DrawFadeScreen(0xFF00, 16);
 
 	// Draw the bottom box.
 	M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
@@ -2145,7 +2144,8 @@ static void CL_ConnectToServer(boolean viams)
 	}
 	while (!(cl_mode == CL_CONNECTED && (client || (server && nodewaited <= pnumnodes))));
 
-	F_StartWaitingPlayers();
+	if (netgame)
+		F_StartWaitingPlayers();
 	DEBFILE(va("Synchronisation Finished\n"));
 
 	displayplayer = consoleplayer;
@@ -2431,6 +2431,9 @@ static void CL_RemovePlayer(INT32 playernum)
 		}
 	}
 
+	if (K_IsPlayerWanted(&players[playernum]))
+		K_CalculateBattleWanted();
+
 	if (gametype == GT_CTF)
 		P_PlayerFlagBurst(&players[playernum], false); // Don't take the flag with you!
 
@@ -2491,7 +2494,7 @@ static void CL_RemovePlayer(INT32 playernum)
 	if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
 		P_CheckSurvivors();
 	else if (G_BattleGametype()) // SRB2Kart
-		K_CheckBalloons();
+		K_CheckBumpers();
 	else if (G_RaceGametype())
 		P_CheckRacers();
 }
@@ -3424,7 +3427,7 @@ void SV_StopServer(void)
 	localtextcmd3[0] = 0;
 	localtextcmd4[0] = 0;
 
-	for (i = 0; i < BACKUPTICS; i++)
+	for (i = firstticstosend; i < firstticstosend + BACKUPTICS; i++)
 		D_Clearticcmd(i);
 
 	consoleplayer = 0;
@@ -3706,7 +3709,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			if (client)
 			{
 				maketic = gametic = neededtic = (tic_t)LONG(netbuffer->u.servercfg.gametic);
-				gametype = netbuffer->u.servercfg.gametype;
+				if ((gametype = netbuffer->u.servercfg.gametype) >= NUMGAMETYPES)
+					I_Error("Bad gametype in cliserv!");
 				modifiedgame = netbuffer->u.servercfg.modifiedgame;
 				for (j = 0; j < MAXPLAYERS; j++)
 					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];

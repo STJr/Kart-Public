@@ -125,17 +125,19 @@ INT32 postimgparam3;
 postimg_t postimgtype4 = postimg_none;
 INT32 postimgparam4;
 #ifdef _XBOX
-boolean nomidimusic = true, nosound = true;
+//boolean nomidimusic = false;
+boolean nosound = true;
 boolean nodigimusic = true;
 #else
-boolean nomidimusic = false, nosound = false;
+//boolean nomidimusic = false;
+boolean nosound = false;
 boolean nodigimusic = false; // No fmod-based music
 #endif
 
 // These variables are only true if
 // the respective sound system is initialized
 // and active, but no sounds/music should play.
-boolean music_disabled = false;
+//boolean music_disabled = false;
 boolean sound_disabled = false;
 boolean digital_disabled = false;
 
@@ -184,6 +186,7 @@ void D_PostEvent_end(void) {};
 UINT8 shiftdown = 0; // 0x1 left, 0x2 right
 UINT8 ctrldown = 0; // 0x1 left, 0x2 right
 UINT8 altdown = 0; // 0x1 left, 0x2 right
+boolean capslock = 0; // jeez i wonder what this does.
 //
 // D_ModifierKeyResponder
 // Sets global shift/ctrl/alt variables, never actually eats events
@@ -294,15 +297,15 @@ static void D_Display(void)
 	{
 		// set for all later
 		wipedefindex = gamestate; // wipe_xxx_toblack
-		if (gamestate == GS_INTERMISSION)
+		if (gamestate == GS_TITLESCREEN && wipegamestate != GS_INTRO)
+			wipedefindex = wipe_timeattack_toblack;
+		else if (gamestate == GS_INTERMISSION)
 		{
 			if (intertype == int_spec) // Special Stage
 				wipedefindex = wipe_specinter_toblack;
 			else //if (intertype != int_coop) // Multiplayer
 				wipedefindex = wipe_multinter_toblack;
 		}
-		else if (gamestate == GS_VOTING)
-			wipedefindex = wipe_multinter_toblack;
 
 		if (rendermode != render_none)
 		{
@@ -314,6 +317,12 @@ static void D_Display(void)
 				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 				F_WipeEndScreen();
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
+			}
+
+			if (wipegamestate == GS_LEVEL && rendermode != render_none)
+			{
+				V_SetPaletteLump("PLAYPAL"); // Reset the palette
+				R_ReInitColormaps(0);
 			}
 
 			F_WipeStartScreen();
@@ -367,6 +376,7 @@ static void D_Display(void)
 
 		case GS_EVALUATION:
 			F_GameEvaluationDrawer();
+			HU_Erase();
 			HU_Drawer();
 			break;
 
@@ -382,12 +392,19 @@ static void D_Display(void)
 
 		case GS_TITLESCREEN:
 			F_TitleScreenDrawer();
+			if (wipe)
+				wipedefindex = wipe_titlescreen_toblack;
 			break;
 
 		case GS_WAITINGPLAYERS:
 			// The clientconnect drawer is independent...
-			// I don't think HOM from nothing drawing is independent...
-			F_WaitingPlayersDrawer();
+			if (netgame)
+			{
+				// I don't think HOM from nothing drawing is independent...
+				F_WaitingPlayersDrawer();
+				HU_Erase();
+				HU_Drawer();
+			}
 		case GS_DEDICATEDSERVER:
 		case GS_NULL:
 			break;
@@ -527,7 +544,7 @@ static void D_Display(void)
 	wipegamestate = gamestate;
 
 	// draw pause pic
-	if (paused && cv_showhud.value && (!menuactive || netgame))
+	if (paused && cv_showhud.value)
 	{
 		INT32 py;
 		patch_t *patch;
@@ -813,9 +830,9 @@ void D_StartTitle(void)
 	F_StartTitleScreen();
 	CON_ToggleOff();
 
-	// Reset the palette
-	if (rendermode != render_none)
-		V_SetPaletteLump("PLAYPAL");
+	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
+	/*if (rendermode != render_none)
+		V_SetPaletteLump("PLAYPAL");*/
 }
 
 //
@@ -942,6 +959,10 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 	D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
+
+#ifdef USE_PATCH_KART
+	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+#endif
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 	{
@@ -1153,15 +1174,6 @@ void D_SRB2Main(void)
 
 	if (M_CheckParm("-password") && M_IsNextParm())
 		D_SetPassword(M_GetNextParm());
-	else
-	{
-		size_t z;
-		char junkpw[25];
-		for (z = 0; z < 24; z++)
-			junkpw[z] = (char)(rand() & 64)+32;
-		junkpw[24] = '\0';
-		D_SetPassword(junkpw);
-	}
 
 	// add any files specified on the command line with -file wadfile
 	// to the wad list
@@ -1241,24 +1253,22 @@ void D_SRB2Main(void)
 #ifndef DEVELOP // md5s last updated 12/14/14
 
 	// Check MD5s of autoloaded files
-	W_VerifyFileMD5(0, ASSET_HASH_SRB2_SRB);  // srb2.srb/srb2.wad
-	W_VerifyFileMD5(1, ASSET_HASH_GFX_DTA);   // gfx.kart
-	W_VerifyFileMD5(2, ASSET_HASH_CHARS_DTA); // chars.kart
-	W_VerifyFileMD5(3, ASSET_HASH_MAPS_DTA);  // maps.kart
-											  // sounds.kart - since music is large, we'll ignore it for now.
-
+	mainwads = 0;
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB); mainwads++;		// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	W_VerifyFileMD5(4, ASSET_HASH_PATCH_DTA); // patch.dta
+	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA); mainwads++;	// patch.dta
+#endif
+	W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); mainwads++;		// gfx.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); mainwads++;	// chars.kart
+	W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); mainwads++;		// maps.kart
+	//W_VerifyFileMD5(mainwads, ASSET_HASH_SOUNDS_KART); mainwads++;	// sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
+#ifdef USE_PATCH_KART
+	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART); mainwads++;	// patch.kart
 #endif
 
 	// don't check music.dta because people like to modify it, and it doesn't matter if they do
 	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
 #endif //ifndef DEVELOP
-
-	mainwads = 4; // there are 4 wads not to unload
-#ifdef USE_PATCH_DTA
-	++mainwads; // patch.dta adds one more
-#endif
 
 	cht_Init();
 
@@ -1326,7 +1336,7 @@ void D_SRB2Main(void)
 	if (dedicated)
 	{
 		nosound = true;
-		nomidimusic = nodigimusic = true;
+		/*nomidimusic = */nodigimusic = true;
 	}
 	else
 	{
@@ -1335,17 +1345,17 @@ void D_SRB2Main(void)
 	if (M_CheckParm("-nosound"))
 		nosound = true;
 	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
-		nomidimusic = nodigimusic = true;
+		/*nomidimusic = */nodigimusic = true;
 	else
 	{
-		if (M_CheckParm("-nomidimusic"))
-			nomidimusic = true; ; // WARNING: DOS version initmusic in I_StartupSound
+		/*if (M_CheckParm("-nomidimusic"))
+			nomidimusic = true; ; // WARNING: DOS version initmusic in I_StartupSound*/
 		if (M_CheckParm("-nodigmusic"))
 			nodigimusic = true; // WARNING: DOS version initmusic in I_StartupSound
 	}
 	I_StartupSound();
 	I_InitMusic();
-	S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
+	S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
 
 	CONS_Printf("ST_Init(): Init status bar.\n");
 	ST_Init();

@@ -267,7 +267,7 @@ void Screenshot_option_Onchange(void);
 	prev,\
 	source,\
 	M_DrawServerMenu,\
-	27,40,\
+	24,40,\
 	0,\
 	NULL\
 }
@@ -279,7 +279,7 @@ void Screenshot_option_Onchange(void);
 	prev,\
 	source,\
 	M_DrawControl,\
-	24, 40,\
+	26, 40,\
 	0,\
 	NULL\
 }

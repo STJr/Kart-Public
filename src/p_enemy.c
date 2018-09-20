@@ -187,9 +187,11 @@ void A_RandomStateRange(mobj_t *actor);
 void A_DualAction(mobj_t *actor);
 void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
-void A_ItemPop(mobj_t *actor);       // SRB2kart
-void A_RedShellChase(mobj_t *actor); // SRB2kart
-void A_BobombExplode(mobj_t *actor); // SRB2kart
+void A_ItemPop(mobj_t *actor); // SRB2kart
+void A_JawzChase(mobj_t *actor); // SRB2kart
+void A_JawzExplode(mobj_t *actor); // SRB2kart
+void A_MineExplode(mobj_t *actor); // SRB2kart
+void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -849,7 +851,7 @@ void A_Look(mobj_t *actor)
 	if (!P_LookForPlayers(actor, locvar1 & 65535, false , FixedMul((locvar1 >> 16)*FRACUNIT, actor->scale)))
 		return;
 
-	if (leveltime < 4*TICRATE) // SRB2kart - no looking before race starts
+	if (leveltime < starttime) // SRB2kart - no looking before race starts
 		return;
 
 	// go into chase state
@@ -2549,7 +2551,7 @@ void A_MonitorPop(mobj_t *actor)
 	mobj_t *remains;
 	mobjtype_t explode;
 	mobjtype_t item = 0;
-	mobjtype_t newbox;
+	//mobjtype_t newbox;
 
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MonitorPop", actor))
@@ -2601,7 +2603,7 @@ void A_MonitorPop(mobj_t *actor)
 
 	switch (actor->type)
 	{
-		case MT_QUESTIONBOX: // Random!
+		/*case MT_QUESTIONBOX: // Random!
 		{
 			mobjtype_t spawnchance[256];
 			INT32 numchoices = 0, i = 0;
@@ -2635,7 +2637,7 @@ for (i = cvar.value; i; --i) spawnchance[numchoices++] = type
 
 			remains->flags2 &= ~MF2_AMBUSH;
 			break;
-		}
+		}*/
 		default:
 			item = actor->info->damage;
 			break;
@@ -3238,8 +3240,10 @@ void A_WaterShield(mobj_t *actor)
 		P_SpawnShieldOrb(player);
 	}
 
+	/* // SRB2kart - Can't drown.
 	if (player->powers[pw_underwater] && player->powers[pw_underwater] <= 12*TICRATE + 1)
 		P_RestoreMusic(player);
+	*/
 
 	player->powers[pw_underwater] = 0;
 
@@ -3825,7 +3829,7 @@ void A_ThrownRing(mobj_t *actor)
 			P_SetTarget(&actor->tracer, NULL);
 		}
 
-		if (actor->tracer && (actor->tracer->health)) // SRB2kart - red shells always follow
+		if (actor->tracer && (actor->tracer->health)) // SRB2kart - jawz always follow
 			//&& (actor->tracer->player->powers[pw_shield] & SH_NOSTACK) == SH_ATTRACT)// Already found someone to follow.
 		{
 			const INT32 temp = actor->threshold;
@@ -3877,7 +3881,7 @@ void A_ThrownRing(mobj_t *actor)
 				&& actor->target->player->ctfteam == player->ctfteam)
 				continue;
 
-			if (actor->target->player->kartstuff[k_position] < player->kartstuff[k_position]) // SRB2kart - Red Shells only go after people ahead of you
+			if (actor->target->player->kartstuff[k_position] < player->kartstuff[k_position]) // SRB2kart - Jawz only go after people ahead of you
 				continue;
 
 		}
@@ -3920,8 +3924,8 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (thing == grenade->target && grenade->threshold != 0) // Don't blow up at your owner.
 		return true;
 
-	if (thing->player && (thing->player->kartstuff[k_bootimer]
-	|| (G_BattleGametype() && thing->player && thing->player->kartstuff[k_balloon] <= 0 && thing->player->kartstuff[k_comebacktimer])))
+	if (thing->player && (thing->player->kartstuff[k_hyudorotimer]
+		|| (G_BattleGametype() && thing->player && thing->player->kartstuff[k_bumper] <= 0 && thing->player->kartstuff[k_comebacktimer])))
 		return true;
 
 	if ((gametype == GT_CTF || gametype == GT_TEAMMATCH)
@@ -3990,15 +3994,19 @@ void A_SetSolidSteam(mobj_t *actor)
 #endif
 	actor->flags &= ~MF_NOCLIP;
 	actor->flags |= MF_SOLID;
-	if (P_RandomChance(FRACUNIT/8))
+
+	if (!(actor->flags2 & MF2_AMBUSH)) // Don't be so obnoxious.
 	{
-		if (actor->info->deathsound)
-			S_StartSound(actor, actor->info->deathsound); // Hiss!
-	}
-	else
-	{
-		if (actor->info->painsound)
-			S_StartSound(actor, actor->info->painsound);
+		if (P_RandomChance(FRACUNIT/8))
+		{
+			if (actor->info->deathsound)
+				S_StartSound(actor, actor->info->deathsound); // Hiss!
+		}
+		else
+		{
+			if (actor->info->painsound)
+				S_StartSound(actor, actor->info->painsound);
+		}
 	}
 
 	P_SetObjectMomZ (actor, 1, true);
@@ -4042,8 +4050,8 @@ void A_SignPlayer(mobj_t *actor)
 		return;
 
 	// Set the sign to be an appropriate background color for this player's skincolor.
-	actor->color = Color_Opposite[actor->target->player->skincolor*2];
-	actor->frame += Color_Opposite[actor->target->player->skincolor*2+1];
+	actor->color = KartColor_Opposite[actor->target->player->skincolor*2];
+	actor->frame += KartColor_Opposite[actor->target->player->skincolor*2+1];
 
 	// spawn an overlay of the player's face.
 	ov = P_SpawnMobj(actor->x, actor->y, actor->z, MT_OVERLAY);
@@ -8085,7 +8093,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_RedShellChase and A_BobombExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, and A_BallhogExplode
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8134,7 +8142,7 @@ void A_ItemPop(mobj_t *actor)
 	remains->flags = actor->flags; // Transfer flags
 	remains->flags2 = actor->flags2; // Transfer flags2
 	remains->fuse = actor->fuse; // Transfer respawn timer
-	remains->threshold = 68;
+	remains->threshold = (actor->threshold == 69 ? 69 : 68);
 	remains->skin = NULL;
 	remains->spawnpoint = actor->spawnpoint;
 
@@ -8143,25 +8151,25 @@ void A_ItemPop(mobj_t *actor)
 	if (actor->info->deathsound)
 		S_StartSound(remains, actor->info->deathsound);
 
-	if (!(G_BattleGametype() && actor->target->player->kartstuff[k_balloon] <= 0))
+	if (!(G_BattleGametype() && actor->target->player->kartstuff[k_bumper] <= 0))
 		actor->target->player->kartstuff[k_itemroulette] = 1;
 
 	remains->flags2 &= ~MF2_AMBUSH;
 
-	if (G_BattleGametype())
+	if (G_BattleGametype() && actor->threshold != 69)
 		numgotboxes++;
 
 	P_RemoveMobj(actor);
 }
 
-void A_RedShellChase(mobj_t *actor)
+void A_JawzChase(mobj_t *actor)
 {
 
 	INT32 c = 0;
 	INT32 stop;
 	player_t *player;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_RedShellChase", actor))
+	if (LUA_CallAction("A_JawzChase", actor))
 		return;
 #endif
 
@@ -8221,13 +8229,13 @@ void A_RedShellChase(mobj_t *actor)
 				if (G_RaceGametype()) // Only in races, in match and CTF you should go after any nearby players
 				{
 					//                 USER               TARGET
-					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Red Shells only go after the person directly ahead of you -Sryder
+					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
 						continue;
 				}
 
 				if (G_BattleGametype())
 				{
-					if (player->kartstuff[k_balloon] <= 0)
+					if (player->kartstuff[k_bumper] <= 0)
 						continue;
 
 					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
@@ -8239,7 +8247,7 @@ void A_RedShellChase(mobj_t *actor)
 			if ((G_RaceGametype()) || (G_BattleGametype() // If in match etc. only home in when you get close enough, in race etc. home in all the time
 				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
 				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
-				&& player->kartstuff[k_balloon] > 0))
+				&& player->kartstuff[k_bumper] > 0))
 				P_SetTarget(&actor->tracer, player->mo);
 			return;
 
@@ -8258,7 +8266,45 @@ void A_RedShellChase(mobj_t *actor)
 
 }
 
-void A_BobombExplode(mobj_t *actor)
+void A_JawzExplode(mobj_t *actor)
+{
+	INT32 shrapnel = 2;
+	mobj_t *truc;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_JawzExplode", actor))
+		return;
+#endif
+
+	truc = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOOMEXPLODE);
+	truc->scale = actor->scale*2;
+	truc->color = SKINCOLOR_RED;
+
+	while (shrapnel)
+	{
+		INT32 speed, speed2;
+
+		truc = P_SpawnMobj(actor->x + P_RandomRange(-8, 8)*FRACUNIT, actor->y + P_RandomRange(-8, 8)*FRACUNIT,
+			actor->z + P_RandomRange(0, 8)*FRACUNIT, MT_BOOMPARTICLE);
+		truc->scale = actor->scale*2;
+
+		speed = FixedMul(7*FRACUNIT, actor->scale)>>FRACBITS;
+		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
+
+		speed = FixedMul(5*FRACUNIT, actor->scale)>>FRACBITS;
+		speed2 = FixedMul(15*FRACUNIT, actor->scale)>>FRACBITS;
+		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
+		truc->tics = TICRATE*2;
+		truc->color = SKINCOLOR_RED;
+
+		shrapnel--;
+	}
+
+	return;
+}
+
+void A_MineExplode(mobj_t *actor)
 {
 	mobj_t *mo2;
 	thinker_t *th;
@@ -8266,7 +8312,7 @@ void A_BobombExplode(mobj_t *actor)
 	INT32 locvar1 = var1;
 	mobjtype_t type;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_BobombExplode", actor))
+	if (LUA_CallAction("A_MineExplode", actor))
 		return;
 #endif
 
@@ -8282,10 +8328,10 @@ void A_BobombExplode(mobj_t *actor)
 
 		mo2 = (mobj_t *)th;
 
-		if (mo2 == actor || mo2->type == MT_BOMBEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
+		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
-		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_balloon] <= 0 && mo2 == actor->target)
+		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_bumper] <= 0 && mo2 == actor->target)
 			continue;
 
 		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)
@@ -8308,12 +8354,27 @@ void A_BobombExplode(mobj_t *actor)
 		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
 
 	if (actor->target && actor->target->player)
-		K_SpawnBobombExplosion(actor, actor->target->player->skincolor);
+		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
 	else
-		K_SpawnBobombExplosion(actor, SKINCOLOR_RED);
+		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
 
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOMBEXPLOSIONSOUND);
+	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 
+	return;
+}
+
+void A_BallhogExplode(mobj_t *actor)
+{
+	mobj_t *mo2;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_BallhogExplode", actor))
+		return;
+#endif
+
+	mo2 = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BALLHOGBOOM);
+	P_SetScale(mo2, actor->scale*2);
+	mo2->destscale = mo2->scale;
+	S_StartSound(mo2, actor->info->deathsound);
 	return;
 }
 //}

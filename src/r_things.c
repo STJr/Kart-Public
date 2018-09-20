@@ -826,15 +826,12 @@ static void R_DrawVisSprite(vissprite_t *vis)
 	{
 		colfunc = transtransfunc;
 		dc_transmap = vis->transmap;
-		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
+		if (vis->mobj->colorized)
+			dc_translation = R_GetTranslationColormap(TC_RAINBOW, vis->mobj->color, GTC_CACHE);
+		else if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // MT_GHOST LOOKS LIKE A PLAYER SO USE THE PLAYER TRANSLATION TABLES. >_>
 		{
-			if (vis->mobj->colorized)
-				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
-			else
-			{
-				size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-				dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
-			}
+			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
+			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
@@ -850,15 +847,12 @@ static void R_DrawVisSprite(vissprite_t *vis)
 		colfunc = transcolfunc;
 
 		// New colormap stuff for skins Tails 06-07-2002
-		if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
+		if (vis->mobj->colorized)
+			dc_translation = R_GetTranslationColormap(TC_RAINBOW, vis->mobj->color, GTC_CACHE);
+		else if (vis->mobj->skin && vis->mobj->sprite == SPR_PLAY) // This thing is a player!
 		{
-			if (vis->mobj->colorized)
-				dc_translation = R_GetTranslationColormap(TC_STARMAN, vis->mobj->color, GTC_CACHE);
-			else
-			{
-				size_t skinnum = (skin_t*)vis->mobj->skin-skins;
-				dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
-			}
+			size_t skinnum = (skin_t*)vis->mobj->skin-skins;
+			dc_translation = R_GetTranslationColormap((INT32)skinnum, vis->mobj->color, GTC_CACHE);
 		}
 		else // Use the defaults
 			dc_translation = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color, GTC_CACHE);
@@ -1092,7 +1086,7 @@ static void R_SplitSprite(vissprite_t *sprite, mobj_t *thing)
 			else
 */
 			if (!((thing->frame & (FF_FULLBRIGHT|FF_TRANSMASK) || thing->flags2 & MF2_SHADOW)
-				&& (!newsprite->extra_colormap || !newsprite->extra_colormap->fog)))
+				&& (!newsprite->extra_colormap || !(newsprite->extra_colormap->fog & 1))))
 			{
 				lindex = FixedMul(sprite->xscale, FixedDiv(640, vid.width))>>(LIGHTSCALESHIFT);
 
@@ -1475,7 +1469,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		vis->transmap = transtables + (thing->frame & FF_TRANSMASK) - 0x10000;
 
 	if (((thing->frame & FF_FULLBRIGHT) || (thing->flags2 & MF2_SHADOW))
-		&& (!vis->extra_colormap || !vis->extra_colormap->fog))
+		&& (!vis->extra_colormap || !(vis->extra_colormap->fog & 1)))
 	{
 		// full bright: goggles
 		vis->colormap = colormaps;
@@ -1676,7 +1670,7 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
+void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing; // Tails 08-25-2002
@@ -1722,19 +1716,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewnumber != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewnumber != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewnumber != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewnumber != 3)
 						continue;
 			}
 
@@ -1755,19 +1749,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewnumber != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewnumber != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewnumber != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewnumber != 3)
 						continue;
 			}
 

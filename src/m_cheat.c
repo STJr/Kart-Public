@@ -1149,7 +1149,7 @@ void OP_ObjectplaceMovement(player_t *player)
 
 	// make sure viewz follows player if in 1st person mode
 	//player->deltaviewheight = 0;
-	player->viewheight = FixedMul(cv_viewheight.value << FRACBITS, player->mo->scale);
+	player->viewheight = FixedMul(32 << FRACBITS, player->mo->scale);
 	if (player->mo->eflags & MFE_VERTICALFLIP)
 		player->viewz = player->mo->z + player->mo->height - player->viewheight;
 	else
@@ -1368,7 +1368,7 @@ void Command_ObjectPlace_f(void)
 		players[0].mo->color = op_oldcolor;
 
 		// This is necessary for recovery of dying players.
-		if (players[0].powers[pw_flashing] >= K_GetKartFlashing())
-			players[0].powers[pw_flashing] = K_GetKartFlashing() - 1;
+		if (players[0].powers[pw_flashing] >= K_GetKartFlashing(&players[0]))
+			players[0].powers[pw_flashing] = K_GetKartFlashing(&players[0]) - 1;
 	}
 }

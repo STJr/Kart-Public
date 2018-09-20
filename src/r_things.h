@@ -55,7 +55,7 @@ void R_DelSpriteDefs(UINT16 wadnum);
 #endif
 
 //SoM: 6/5/2000: Light sprites correctly!
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 ssplayer);
+void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber);
 void R_InitSprites(void);
 void R_ClearSprites(void);
 void R_ClipSprites(void);

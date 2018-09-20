@@ -436,7 +436,7 @@ static void P_NetUnArchivePlayers(void)
 		if (flags & AWAYVIEW)
 			players[i].awayviewmobj = (mobj_t *)(size_t)READUINT32(save_p);
 
-		players[i].viewheight = cv_viewheight.value<<FRACBITS;
+		players[i].viewheight = 32<<FRACBITS;
 
 		//SetPlayerSkinByNum(i, players[i].skin);
 		players[i].charability = READUINT8(save_p);
@@ -944,12 +944,11 @@ typedef enum
 	MD2_EXTVAL1     = 1<<5,
 	MD2_EXTVAL2     = 1<<6,
 	MD2_HNEXT       = 1<<7,
-#ifdef ESLOPE
 	MD2_HPREV       = 1<<8,
+#ifdef ESLOPE
 	MD2_SLOPE       = 1<<9,
 	MD2_COLORIZED	= 1<<10
 #else
-	MD2_HPREV       = 1<<8,
 	MD2_COLORIZED	= 1<<9
 #endif
 } mobj_diff2_t;
@@ -3213,7 +3212,10 @@ static void P_NetArchiveMisc(void)
 	WRITEINT16(save_p, lastmap);
 
 	for (i = 0; i < 4; i++)
-		WRITEINT16(save_p, votelevels[i]);
+	{
+		WRITEINT16(save_p, votelevels[i][0]);
+		WRITEINT16(save_p, votelevels[i][1]);
+	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		WRITESINT8(save_p, votes[i]);
@@ -3258,9 +3260,14 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT8(save_p, franticitems);
 	WRITEUINT8(save_p, comeback);
 
-	WRITEUINT32(save_p, lightningcooldown);
-	WRITEUINT32(save_p, blueshellincoming);
-	WRITEUINT8(save_p, blueshellplayer);
+	for (i = 0; i < 4; i++)
+		WRITESINT8(save_p, battlewanted[i]);
+
+	WRITEUINT32(save_p, wantedcalcdelay);
+	WRITEUINT32(save_p, indirectitemcooldown);
+	WRITEUINT32(save_p, spbincoming);
+	WRITEUINT8(save_p, spbplayer);
+	WRITEUINT32(save_p, mapreset);
 
 	// Is it paused?
 	if (paused)
@@ -3310,7 +3317,10 @@ static inline boolean P_NetUnArchiveMisc(void)
 	lastmap = READINT16(save_p);
 
 	for (i = 0; i < 4; i++)
-		votelevels[i] = READINT16(save_p);
+	{
+		votelevels[i][0] = READINT16(save_p);
+		votelevels[i][1] = READINT16(save_p);
+	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		votes[i] = READSINT8(save_p);
@@ -3355,9 +3365,14 @@ static inline boolean P_NetUnArchiveMisc(void)
 	franticitems = (boolean)READUINT8(save_p);
 	comeback = (boolean)READUINT8(save_p);
 
-	lightningcooldown = READUINT32(save_p);
-	blueshellincoming = READUINT32(save_p);
-	blueshellplayer = READUINT8(save_p);
+	for (i = 0; i < 4; i++)
+		battlewanted[i] = READSINT8(save_p);
+
+	wantedcalcdelay = READUINT32(save_p);
+	indirectitemcooldown = READUINT32(save_p);
+	spbincoming = READUINT32(save_p);
+	spbplayer = READUINT8(save_p);
+	mapreset = READUINT32(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

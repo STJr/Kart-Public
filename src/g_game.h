@@ -54,6 +54,7 @@ extern tic_t timeinmap; // Ticker for time spent in level (used for levelcard di
 extern INT16 rw_maximums[NUM_WEAPONS];
 
 // used in game menu
+extern consvar_t cv_chatwidth, cv_chatnotifications, cv_chatheight, cv_chattime, cv_consolechat, cv_chatspamprotection, cv_chatbacktint;
 extern consvar_t cv_crosshair, cv_crosshair2, cv_crosshair3, cv_crosshair4;
 extern consvar_t cv_invertmouse, cv_alwaysfreelook, cv_mousemove;
 extern consvar_t cv_turnaxis,cv_moveaxis,cv_brakeaxis,cv_aimaxis,cv_lookaxis,cv_fireaxis,cv_driftaxis;
@@ -167,6 +168,17 @@ void G_WriteMetalTic(mobj_t *metal);
 void G_SaveMetal(UINT8 **buffer);
 void G_LoadMetal(UINT8 **buffer);
 
+// Your naming conventions are stupid and useless.
+// There is no conflict here.
+typedef struct demoghost {
+	UINT8 checksum[16];
+	UINT8 *buffer, *p, color;
+	UINT16 version;
+	mobj_t oldmo, *mo;
+	struct demoghost *next;
+} demoghost;
+extern demoghost *ghosts;
+
 void G_DoPlayDemo(char *defdemoname);
 void G_TimeDemo(const char *name);
 void G_AddGhost(char *defdemoname);
@@ -183,6 +195,8 @@ boolean G_GametypeUsesLives(void);
 boolean G_GametypeHasTeams(void);
 boolean G_GametypeHasSpectators(void);
 boolean G_BattleGametype(void);
+INT16 G_SometimesGetDifferentGametype(void);
+UINT8 G_GetGametypeColor(INT16 gt);
 boolean G_RaceGametype(void);
 boolean G_TagGametype(void);
 void G_ExitLevel(void);
@@ -236,6 +250,6 @@ FUNCMATH INT32 G_TicsToMilliseconds(tic_t tics);
 // Don't split up TOL handling
 INT16 G_TOLFlag(INT32 pgametype);
 
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer);
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon);
 
 #endif

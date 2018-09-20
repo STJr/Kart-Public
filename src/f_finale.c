@@ -528,6 +528,7 @@ static const char *credits[] = {
 	"\"Nev3r\"",
 	"\"Ritz\"",
 	"\"Spherallic\"",
+	"\"DirkTheHusky\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
@@ -593,7 +594,7 @@ void F_CreditDrawer(void)
 	UINT16 i;
 	fixed_t y = (80<<FRACBITS) - 5*(animtimer<<FRACBITS)/8;
 
-	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	// Draw background
 	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
@@ -624,7 +625,7 @@ void F_CreditDrawer(void)
 			y += 12<<FRACBITS;
 			break;
 		}
-		if (FixedMul(y,vid.dupy) > vid.height)
+		if (((y>>FRACBITS) * vid.dupy) > vid.height)
 			break;
 	}
 
@@ -685,13 +686,20 @@ boolean F_CreditResponder(event_t *event)
 			break;
 	}
 
-	/*if (!(timesBeaten) && !(netgame || multiplayer))
-		return false;*/
-
 	if (event->type != ev_keydown)
 		return false;
 
-	if (key != KEY_ESCAPE && key != KEY_ENTER && key != KEY_SPACE && key != KEY_BACKSPACE)
+	if (key == KEY_DOWNARROW || key == KEY_SPACE)
+	{
+		if (!timetonext && !finalecount)
+			animtimer += 7;
+		return false;
+	}
+
+	/*if (!(timesBeaten) && !(netgame || multiplayer))
+		return false;*/
+
+	if (key != KEY_ESCAPE && key != KEY_ENTER && key != KEY_BACKSPACE)
 		return false;
 
 	if (keypressed)
@@ -906,36 +914,52 @@ void F_TitleScreenDrawer(void)
 	if (modeattacking)
 		return; // We likely came here from retrying. Don't do a damn thing.
 
-	if (finalecount < 50)
-		V_DrawFill(0, 0, 320, 200, 31);
-	else
-		// Draw that sky!
-		F_SkyScroll(titlescrollspeed);
-
-	// Don't draw outside of the title screewn, or if the patch isn't there.
+	// Don't draw outside of the title screen, or if the patch isn't there.
 	if (!ttbanner || (gamestate != GS_TITLESCREEN && gamestate != GS_WAITINGPLAYERS))
-		return;
-
-	V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
-
-	if (finalecount < 20)
 	{
-		if (finalecount >= 10)
+		F_SkyScroll(titlescrollspeed);
+		return;
+	}
+
+	if (finalecount < 50)
+	{
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+
+		V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
+
+		if (finalecount >= 20)
+			V_DrawSmallScaledPatch(84, 87, 0, ttkart);
+		else if (finalecount >= 10)
 			V_DrawSciencePatch((84<<FRACBITS) - FixedDiv(180<<FRACBITS, 10<<FRACBITS)*(20-finalecount), (87<<FRACBITS), 0, ttkart, FRACUNIT/2);
 	}
+	else if (finalecount < 52)
+	{
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
+		V_DrawSmallScaledPatch(84, 36, 0, ttkflash);
+	}
 	else
 	{
-		V_DrawSmallScaledPatch(84, 87, 0, ttkart);
+		INT32 transval = 0;
 
-		// Checkers, only need to be drawn after the whiteout, but we can do it here because it won't be seen before anyway
+		if (finalecount <= (50+(9<<1)))
+			transval = (finalecount - 50)>>1;
+
+		F_SkyScroll(titlescrollspeed);
+
 		V_DrawSciencePatch(0, 0 - FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTOLEFT, ttcheckers, FRACUNIT);
 		V_DrawSciencePatch(280<<FRACBITS, -(40<<FRACBITS) + FixedMul(40<<FRACBITS, FixedDiv(finalecount%70, 70)), V_SNAPTOTOP|V_SNAPTORIGHT, ttcheckers, FRACUNIT);
-	}
 
-	if (finalecount >= 50 && finalecount < 55)
-	{
-		V_DrawFill(0, 0, 320, 200, 120);
-		V_DrawSmallScaledPatch(84, 36, 0, ttkflash);
+		if (transval)
+			V_DrawFadeScreen(120, 10 - transval);
+
+		V_DrawSmallScaledPatch(84, 36, 0, ttbanner);
+
+		V_DrawSmallScaledPatch(84, 87, 0, ttkart);
+
+		if (!transval)
+			return;
+
+		V_DrawSmallScaledPatch(84, 36, transval<<V_ALPHASHIFT, ttkflash);
 	}
 }
 
@@ -1059,7 +1083,7 @@ void F_WaitingPlayersDrawer(void)
 	INT32 flags = V_FLIP;
 	const char *waittext1 = "You will join";
 	const char *waittext2 = "the next race...";
-	V_DrawFill(0, 0, 320, 200, 31);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 	V_DrawCreditString((160 - (V_CreditStringWidth(waittext1)>>1))<<FRACBITS, 48<<FRACBITS, 0, waittext1);
 	V_DrawCreditString((160 - (V_CreditStringWidth(waittext2)>>1))<<FRACBITS, 64<<FRACBITS, 0, waittext2);
 	V_DrawFixedPatch((160<<FRACBITS) - driver[frame]->width / 2, 150<<FRACBITS, 1<<FRACBITS, flags, driver[frame], waitcolormap);
@@ -1298,7 +1322,7 @@ void F_CutsceneDrawer(void)
 		// Fade to any palette color you want.
 		if (cutscenes[cutnum]->scene[scenenum].fadecolor)
 		{
-			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,cutscenes[cutnum]->scene[scenenum].fadecolor);
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, cutscenes[cutnum]->scene[scenenum].fadecolor);
 
 			F_WipeEndScreen();
 			F_RunWipe(cutscenes[cutnum]->scene[scenenum].fadeinid, true);
@@ -1306,7 +1330,7 @@ void F_CutsceneDrawer(void)
 			F_WipeStartScreen();
 		}
 	}
-	V_DrawFill(0,0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	if (cutscenes[cutnum]->scene[scenenum].picname[picnum][0] != '\0')
 	{

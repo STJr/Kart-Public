@@ -80,15 +80,18 @@ extern INT16 gametype;
 extern UINT8 splitscreen;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
+extern boolean forceresetplayers;
 
 // ========================================
 // Internal parameters for sound rendering.
 // ========================================
 
-extern boolean nomidimusic; // defined in d_main.c
+//extern boolean nomidimusic; // defined in d_main.c
+#define nomidimusic true
 extern boolean nosound;
 extern boolean nodigimusic;
-extern boolean music_disabled;
+//extern boolean music_disabled;
+#define music_disabled false
 extern boolean sound_disabled;
 extern boolean digital_disabled;
 
@@ -303,21 +306,19 @@ enum TypeOfLevel
 };
 
 // Gametypes
-enum GameType
+enum GameType // SRB2Kart
 {
-	GT_COOP = 0, // also used in single player
-	GT_COMPETITION, // Classic "Race"
-	GT_RACE,
+	GT_RACE = 0, // also used in record attack
+	GT_MATCH, // battle, but renaming would be silly
+	NUMGAMETYPES,
 
-	GT_MATCH,
+	// the following have been left in on account of just not wanting to deal with removing all the checks for them
+	GT_COOP,
+	GT_COMPETITION,
 	GT_TEAMMATCH,
-
 	GT_TAG,
 	GT_HIDEANDSEEK,
-
-	GT_CTF, // capture the flag
-
-	NUMGAMETYPES
+	GT_CTF
 };
 // If you alter this list, update gametype_cons_t in m_menu.c
 
@@ -409,12 +410,17 @@ extern UINT16 spacetimetics;
 extern UINT16 extralifetics;
 
 // SRB2kart
-extern INT32 bootime;
-extern INT32 boostealtime;
-extern INT32 mushroomtime;
+extern tic_t introtime;
+extern tic_t starttime;
+extern INT32 hyudorotime;
+extern INT32 stealtime;
+extern INT32 sneakertime;
 extern INT32 itemtime;
 extern INT32 comebacktime;
 extern INT32 bumptime;
+extern INT32 wipeoutslowtime;
+extern INT32 wantedreduce;
+extern INT32 wantedfrequency;
 
 extern UINT8 introtoplay;
 extern UINT8 creditscutscene;
@@ -445,15 +451,18 @@ extern boolean franticitems;
 extern boolean mirrormode;
 extern boolean comeback;
 
-extern tic_t lightningcooldown;
-extern tic_t blueshellincoming;
-extern UINT8 blueshellplayer;
+extern SINT8 battlewanted[4];
+extern tic_t wantedcalcdelay;
+extern tic_t indirectitemcooldown;
+extern tic_t spbincoming;
+extern UINT8 spbplayer;
+extern tic_t mapreset;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;
 extern tic_t curlap, bestlap;
 
-extern INT16 votelevels[4];
+extern INT16 votelevels[5][2];
 extern SINT8 votes[MAXPLAYERS];
 extern SINT8 pickedvote;
 

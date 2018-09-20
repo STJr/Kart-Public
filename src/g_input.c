@@ -1208,6 +1208,7 @@ static const char *gamecontrolname[num_gamecontrols] =
 	"scores",
 	"console",
 	"pause",
+	"systemmenu",
 	"custom1",
 	"custom2",
 	"custom3",

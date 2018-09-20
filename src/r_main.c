@@ -170,7 +170,7 @@ consvar_t cv_drawdist_precip = {"drawdist_precip", "1024", CV_SAVE, drawdist_con
 consvar_t cv_precipdensity = {"precipdensity", "Moderate", CV_SAVE, precipdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Okay, whoever said homremoval causes a performance hit should be shot.
-consvar_t cv_homremoval = {"homremoval", "No", CV_SAVE, homremoval_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_homremoval = {"homremoval", "Yes", CV_SAVE, homremoval_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_maxportals = {"maxportals", "2", CV_SAVE, maxportals_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -1334,28 +1334,43 @@ void R_RenderPlayerView(player_t *player)
 {
 	portal_pair *portal;
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value);
-	UINT8 ssplayer;
+	UINT8 viewnumber;
 
 	if (player == &players[secondarydisplayplayer] && splitscreen)
-		ssplayer = 2;
+		viewnumber = 1;
 	else if (player == &players[thirddisplayplayer] && splitscreen > 1)
-		ssplayer = 3;
+		viewnumber = 2;
 	else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
-		ssplayer = 4;
-	else if (splitscreen)
-		ssplayer = 1;
+		viewnumber = 3;
 	else
-		ssplayer = 0;
+		viewnumber = 0;
 
-	if (cv_homremoval.value && player == &players[displayplayer]) // if this is display player 1
+	// if this is display player 1
+	if (cv_homremoval.value && player == &players[displayplayer])
 	{
 		if (cv_homremoval.value == 1)
 			V_DrawFill(0, 0, vid.width, vid.height, 31); // No HOM effect!
 		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
 			V_DrawFill(0, 0, vid.width, vid.height, 128+(timeinmap&15));
 	}
+	// Draw over the fourth screen so you don't have to stare at a HOM :V
 	else if (splitscreen == 2 && player == &players[thirddisplayplayer])
-		V_DrawFill(viewwidth, viewheight, viewwidth, viewheight, 31|V_NOSCALESTART); // Draw over the fourth screen so you don't have to stare at a HOM :V
+#if 1
+	{
+		// V_DrawPatchFill, but for the fourth screen only
+		patch_t *pat = W_CachePatchName("SRB2BACK", PU_CACHE);
+		INT32 dupz = (vid.dupx < vid.dupy ? vid.dupx : vid.dupy);
+		INT32 x, y, pw = SHORT(pat->width) * dupz, ph = SHORT(pat->height) * dupz;
+
+		for (x = vid.width>>1; x < vid.width; x += pw)
+		{
+			for (y = vid.height>>1; y < vid.height; y += ph)
+				V_DrawScaledPatch(x, y, V_NOSCALESTART, pat);
+		}
+	}
+#else
+	V_DrawFill(viewwidth, viewheight, viewwidth, viewheight, 31|V_NOSCALESTART);
+#endif
 
 	// load previous saved value of skyVisible for the player
 	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
@@ -1382,7 +1397,7 @@ void R_RenderPlayerView(player_t *player)
 		R_ClearVisibleFloorSplats();
 #endif
 
-		R_RenderBSPNode((INT32)numnodes - 1, ssplayer);
+		R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
 		R_ClipSprites();
 		R_DrawPlanes();
 #ifdef FLOORSPLATS
@@ -1415,7 +1430,7 @@ void R_RenderPlayerView(player_t *player)
 	mytotal = 0;
 	ProfZeroTimer();
 #endif
-	R_RenderBSPNode((INT32)numnodes - 1, ssplayer);
+	R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
 	R_ClipSprites();
 #ifdef TIMING
 	RDMSR(0x10, &mycount);
@@ -1440,7 +1455,7 @@ void R_RenderPlayerView(player_t *player)
 
 		validcount++;
 
-		R_RenderBSPNode((INT32)numnodes - 1, ssplayer);
+		R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
 		R_ClipSprites();
 		//R_DrawPlanes();
 		//R_DrawMasked();
@@ -1547,7 +1562,7 @@ void R_RegisterEngineStuff(void)
 
 	// Default viewheight is changeable,
 	// initialized to standard viewheight
-	CV_RegisterVar(&cv_viewheight);
+	//CV_RegisterVar(&cv_viewheight);
 
 #ifdef HWRENDER
 	// GL-specific Commands

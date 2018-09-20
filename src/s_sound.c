@@ -78,9 +78,9 @@ consvar_t stereoreverse = {"stereoreverse", "Off", CV_SAVE, CV_OnOff, NULL, 0, N
 static consvar_t precachesound = {"precachesound", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // actual general (maximum) sound & music volume, saved into the config
-consvar_t cv_soundvolume = {"soundvolume", "31", CV_SAVE, soundvolume_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_soundvolume = {"soundvolume", "18", CV_SAVE, soundvolume_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_digmusicvolume = {"digmusicvolume", "18", CV_SAVE, soundvolume_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_midimusicvolume = {"midimusicvolume", "18", CV_SAVE, soundvolume_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+//consvar_t cv_midimusicvolume = {"midimusicvolume", "18", CV_SAVE, soundvolume_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 // number of channels available
 #if defined (_WIN32_WCE) || defined (DC) || defined (PSP) || defined(GP2X)
 consvar_t cv_numChannels = {"snd_channels", "8", CV_SAVE|CV_CALL, CV_Unsigned, SetChannelsNum, 0, NULL, NULL, 0, 0, NULL};
@@ -88,7 +88,7 @@ consvar_t cv_numChannels = {"snd_channels", "8", CV_SAVE|CV_CALL, CV_Unsigned, S
 consvar_t cv_numChannels = {"snd_channels", "32", CV_SAVE|CV_CALL, CV_Unsigned, SetChannelsNum, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
-static consvar_t surround = {"surround", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t surround = {"surround", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 #define S_MAX_VOLUME 127
 
@@ -846,7 +846,7 @@ void S_StopSound(void *origin)
 //
 static INT32 actualsfxvolume; // check for change through console
 static INT32 actualdigmusicvolume;
-static INT32 actualmidimusicvolume;
+//static INT32 actualmidimusicvolume;
 
 void S_UpdateSounds(void)
 {
@@ -873,8 +873,8 @@ void S_UpdateSounds(void)
 		S_SetSfxVolume (cv_soundvolume.value);
 	if (actualdigmusicvolume != cv_digmusicvolume.value)
 		S_SetDigMusicVolume (cv_digmusicvolume.value);
-	if (actualmidimusicvolume != cv_midimusicvolume.value)
-		S_SetMIDIMusicVolume (cv_midimusicvolume.value);
+	//if (actualmidimusicvolume != cv_midimusicvolume.value)
+		//S_SetMIDIMusicVolume (cv_midimusicvolume.value);
 
 	// We're done now, if we're not in a level.
 	if (gamestate != GS_LEVEL)
@@ -1438,7 +1438,7 @@ void S_StartSoundName(void *mo, const char *soundname)
 /// ------------------------
 
 #ifdef MUSICSLOT_COMPATIBILITY
-const char *compat_special_music_slots[21] =
+const char *compat_special_music_slots[16] =
 {
 	"titles", // 1036  title screen
 	"read_m", // 1037  intro
@@ -1455,12 +1455,6 @@ const char *compat_special_music_slots[21] =
 	"credit", // 1048  credits
 	"racent", // 1049  Race Results
 	"stjr",   // 1050  Sonic Team Jr. Presents
-	// SRB2kart 040217
-	"finlap", // 1051  Sonic Team Jr. Presents
-	"karwin", // 1052  Sonic Team Jr. Presents
-	"karok",  // 1053  Sonic Team Jr. Presents
-	"karlos", // 1054  Sonic Team Jr. Presents
-	"mega",   // 1055  Sonic Team Jr. Presents
 	""
 };
 #endif
@@ -1476,16 +1470,22 @@ static boolean mus_paused     = 0;  // whether songs are mus_paused
 
 static boolean S_MIDIMusic(const char *mname, boolean looping)
 {
-	lumpnum_t mlumpnum;
+	/*lumpnum_t mlumpnum;
 	void *mdata;
-	INT32 mhandle;
+	INT32 mhandle;*/
 
-	if (nomidimusic || music_disabled)
-		return false; // didn't search.
+	(void)looping;
+
+	/*if (nomidimusic || music_disabled)
+		return false; // didn't search.*/
 
 	if (W_CheckNumForName(va("d_%s", mname)) == LUMPERROR)
 		return false;
-	mlumpnum = W_GetNumForName(va("d_%s", mname));
+
+	CONS_Alert(CONS_ERROR, "A MIDI Music lump %.6s was found,\nbut SRB2Kart does not support MIDI output.\nWe apologise for the inconvenience.\n", mname);
+	return false;
+
+	/*mlumpnum = W_GetNumForName(va("d_%s", mname));
 
 	// load & register it
 	mdata = W_CacheLumpNum(mlumpnum, PU_MUSIC);
@@ -1512,7 +1512,7 @@ static boolean S_MIDIMusic(const char *mname, boolean looping)
 	music_lumpnum = mlumpnum;
 	music_data = mdata;
 	music_handle = mhandle;
-	return true;
+	return true;*/
 }
 
 static boolean S_DigMusic(const char *mname, boolean looping)
@@ -1537,7 +1537,7 @@ void S_ChangeMusic(const char *mmusic, UINT16 mflags, boolean looping)
 	S_ClearSfx();
 #endif
 
-	if ((nomidimusic || music_disabled) && (nodigimusic || digital_disabled))
+	if (/*(nomidimusic || music_disabled) && */(nodigimusic || digital_disabled))
 		return;
 
 	// No Music (empty string)
@@ -1601,7 +1601,7 @@ void S_SetDigMusicVolume(INT32 volume)
 	I_SetDigMusicVolume(volume&31);
 }
 
-void S_SetMIDIMusicVolume(INT32 volume)
+/*void S_SetMIDIMusicVolume(INT32 volume)
 {
 	if (volume < 0 || volume > 31)
 		CONS_Alert(CONS_WARNING, "musicvolume should be between 0-31\n");
@@ -1613,7 +1613,7 @@ void S_SetMIDIMusicVolume(INT32 volume)
 	I_SetMIDIMusicVolume(31); // Trick for buggy dos drivers. Win32 doesn't need this.
 #endif
 	I_SetMIDIMusicVolume(volume&0x1f);
-}
+}*/
 
 /// ------------------------
 /// Init & Others
@@ -1624,7 +1624,7 @@ void S_SetMIDIMusicVolume(INT32 volume)
 // Sets channels, SFX and music volume,
 //  allocates channel buffer, sets S_sfx lookup.
 //
-void S_Init(INT32 sfxVolume, INT32 digMusicVolume, INT32 midiMusicVolume)
+void S_Init(INT32 sfxVolume, INT32 digMusicVolume)
 {
 	INT32 i;
 
@@ -1633,7 +1633,7 @@ void S_Init(INT32 sfxVolume, INT32 digMusicVolume, INT32 midiMusicVolume)
 
 	S_SetSfxVolume(sfxVolume);
 	S_SetDigMusicVolume(digMusicVolume);
-	S_SetMIDIMusicVolume(midiMusicVolume);
+	//S_SetMIDIMusicVolume(midiMusicVolume);
 
 	SetChannelsNum();
 

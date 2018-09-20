@@ -25,7 +25,7 @@
 
 #define FLOATSPEED (FRACUNIT*4)
 
-#define VIEWHEIGHTS "41"
+//#define VIEWHEIGHTS "41"
 
 // Maximum player score.
 #define MAXSCORE 999999990
@@ -150,6 +150,7 @@ boolean P_InQuicksand(mobj_t *mo);
 
 void P_SetObjectMomZ(mobj_t *mo, fixed_t value, boolean relative);
 void P_RestoreMusic(player_t *player);
+boolean P_EndingMusic(player_t *player);
 void P_SpawnShieldOrb(player_t *player);
 mobj_t *P_SpawnGhostMobj(mobj_t *mobj);
 void P_GivePlayerRings(player_t *player, INT32 num_rings);
@@ -167,6 +168,7 @@ void P_ElementalFireTrail(player_t *player);
 void P_PlayerThink(player_t *player);
 void P_PlayerAfterThink(player_t *player);
 void P_DoPlayerExit(player_t *player);
+void P_DoTimeOver(player_t *player);
 void P_NightserizePlayer(player_t *player, INT32 ptime);
 
 void P_InstaThrust(mobj_t *mo, angle_t angle, fixed_t move);
@@ -177,12 +179,13 @@ void P_InstaThrustEvenIn2D(mobj_t *mo, angle_t angle, fixed_t move);
 boolean P_LookForEnemies(player_t *player);
 void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius);
 void P_HomingAttack(mobj_t *source, mobj_t *enemy); /// \todo doesn't belong in p_user
-boolean P_SuperReady(player_t *player);
+//boolean P_SuperReady(player_t *player);
 void P_DoJump(player_t *player, boolean soundandstate);
 boolean P_AnalogMove(player_t *player);
 boolean P_TransferToNextMare(player_t *player);
 UINT8 P_FindLowestMare(void);
 UINT8 P_FindLowestLap(void);
+UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
 void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
@@ -191,9 +194,9 @@ void P_SpawnSpinMobj(player_t *player, mobjtype_t type);
 void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range);
 
 void P_PlayLivesJingle(player_t *player);
-#define P_PlayRinglossSound(s)	S_StartSound(s, (mariomode) ? sfx_mario8 : sfx_altow1 + P_RandomKey(4));
-#define P_PlayDeathSound(s)		S_StartSound(s, sfx_altdi1 + P_RandomKey(4));
-#define P_PlayVictorySound(s)	S_StartSound(s, sfx_victr1 + P_RandomKey(4));
+void P_PlayRinglossSound(mobj_t *source);
+void P_PlayDeathSound(mobj_t *source);
+void P_PlayVictorySound(mobj_t *source);
 
 
 //
@@ -209,7 +212,7 @@ void P_PlayLivesJingle(player_t *player);
 extern mapthing_t *itemrespawnque[ITEMQUESIZE];
 extern tic_t itemrespawntime[ITEMQUESIZE];
 extern size_t iquehead, iquetail;
-extern consvar_t cv_gravity, cv_viewheight;
+extern consvar_t cv_gravity/*, cv_viewheight*/;
 
 void P_RespawnSpecials(void);
 
@@ -338,6 +341,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff);
 boolean P_Move(mobj_t *actor, fixed_t speed);
 boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z);
 void P_SlideMove(mobj_t *mo, boolean forceslide);
+void P_BouncePlayerMove(mobj_t *mo);
 void P_BounceMove(mobj_t *mo);
 boolean P_CheckSight(mobj_t *t1, mobj_t *t2);
 void P_CheckHoopPosition(mobj_t *hoopthing, fixed_t x, fixed_t y, fixed_t z, fixed_t radius);
@@ -405,7 +409,7 @@ boolean P_CheckRacers(void);
 void P_ClearStarPost(INT32 postnum);
 void P_ResetStarposts(void);
 
-boolean P_CanPickupItem(player_t *player, boolean weapon);
+boolean P_CanPickupItem(player_t *player, UINT8 weapon);
 void P_DoNightsScore(player_t *player);
 
 //

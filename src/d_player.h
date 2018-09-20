@@ -108,8 +108,8 @@ typedef enum
 	// Did you get a time-over?
 	PF_TIMEOVER = 1<<10,
 
-	// Ready for Super?
-	PF_SUPERREADY = 1<<11,
+	// SRB2Kart: Spectator that wants to join
+	PF_WANTSTOJOIN = 1<<11,
 
 	// Character action status
 	PF_JUMPED    = 1<<12,
@@ -230,93 +230,109 @@ typedef enum
 	NUMPOWERS
 } powertype_t;
 
+typedef enum
+{
+	KITEM_SAD = -1,
+	KITEM_NONE = 0,
+	KITEM_SNEAKER,
+	KITEM_ROCKETSNEAKER,
+	KITEM_INVINCIBILITY,
+	KITEM_BANANA,
+	KITEM_EGGMAN,
+	KITEM_ORBINAUT,
+	KITEM_JAWZ,
+	KITEM_MINE,
+	KITEM_BALLHOG,
+	KITEM_SPB,
+	KITEM_GROW,
+	KITEM_SHRINK,
+	KITEM_THUNDERSHIELD,
+	KITEM_HYUDORO,
+	KITEM_POGOSPRING,
+	KITEM_KITCHENSINK,
+
+	NUMKARTITEMS,
+
+	// Additional roulette numbers, only used for K_KartGetItemResult
+	KRITEM_TRIPLESNEAKER = NUMKARTITEMS,
+	KRITEM_TRIPLEBANANA,
+	KRITEM_TENFOLDBANANA,
+	KRITEM_TRIPLEORBINAUT,
+	KRITEM_QUADORBINAUT,
+	KRITEM_DUALJAWZ,
+
+	NUMKARTRESULTS
+} kartitems_t;
+
 //{ SRB2kart - kartstuff
 typedef enum
 {
 	// Basic gameplay things
 	k_position,			// Used for Kart positions, mostly for deterministic stuff
 	k_oldposition,		// Used for taunting when you pass someone
-	k_positiondelay,	// Prevents player from taunting continuously if two people were neck-and-neck
+	k_positiondelay,	// Used for position number, so it can grow when passing/being passed
 	k_prevcheck,		// Previous checkpoint distance; for p_user.c (was "pw_pcd")
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
-	k_lakitu,			// Timer for Lakitu to carry and drop the player
+	k_respawn,			// Timer for the DEZ laser respawn effect
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
-	k_lapanimation,		// Used to make a swoopy lap lakitu, maybe other effects in the future
+	k_lapanimation,		// Used to show the lap start wing logo animation
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam
+	k_instashield,		// Instashield no-damage animation timer
 
-	k_boosting,			// Determines if you're currently shroom-boosting
-	k_floorboost,		// Prevents Mushroom sounds for a breif duration when triggered by a floor panel
-	k_spinout,			// Separate confirmation to prevent endless wipeout loops
+	k_floorboost,		// Prevents Sneaker sounds for a breif duration when triggered by a floor panel
 	k_spinouttype,		// Determines whether to thrust forward or not while spinning out; 0 = move forwards, 1 = stay still
 
 	k_drift,			// Drifting Left or Right, plus a bigger counter = sharper turn
 	k_driftend,			// Drift has ended, used to adjust character angle after drift
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
-	k_boostcharge,		// Charge-up for boosting at the start of the race, or when Lakitu drops you
+	k_boostcharge,		// Charge-up for boosting at the start of the race, or when dropping from respawn
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
+	k_pogospring,		// Pogo spring bounce effect
 	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
+	k_waterskip,		// Water skipping counter
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
-	k_itemclose,		// Used to animate the item window closing (was "pw_psychic")
+
+	// Item held stuff
+	k_itemtype,		// KITEM_ constant for item number
+	k_itemamount,	// Amount of said item
+	k_itemheld,		// Are you holding an item?
 
 	// Some items use timers for their duration or effects
-	k_magnettimer,		// Duration of Magnet's item-break and item box pull
-	k_bootimer,			// Duration of the boo offroad effect itself
-	k_bootaketimer,		// You are stealing an item, this is your timer
-	k_boostolentimer,	// You are being stolen from, this is your timer
-	k_mushroomtimer,	// Duration of the Mushroom Boost itself
-	k_growshrinktimer,	// > 0 = Big, < 0 = small
-	k_squishedtimer,	// Squished frame timer
-	k_goldshroomtimer,	// Gold Mushroom duration timer
-	k_startimer,		// Invincibility timer
-	k_spinouttimer,		// Spin-out from a banana peel or oil slick (was "pw_bananacam")
-	k_laserwisptimer,	// The duration and relative angle of the laser
-	k_justbumped,		// Prevent players from endlessly bumping into each other
-	k_deathsentence,	// 30 seconds to live... (Blue Shell murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
-	k_poweritemtimer,	// Battle mode, how long before you're allowed another power item (Star, Megashroom)
-	k_comebacktimer,	// Battle mode, how long before you become a bomb after death
-
-	// Each item needs its own power slot, for the HUD and held use
-	// *** ADDING A NEW ITEM? ADD IT TO K_DoBooSteal PLEASE!! -Salt ***
-	k_magnet,			// 0x1 = Magnet in inventory
-	k_boo,				// 0x1 = Boo in inventory
-	k_mushroom,			// 0x1 = 1 Mushroom in inventory, 0x2 = 2 Mushrooms in inventory
-						// 0x4 = 3 Mushrooms in inventory
-	k_megashroom,		// 0x1 = Mega Mushroom in inventory
-	k_goldshroom,		// 0x1 = Gold Mushroom in inventory
-	k_star,				// 0x1 = Star in inventory
-	k_triplebanana,		// 0x1 = 1 Banana following, 0x2 = 2 Bananas following
-						// 0x4 = 3 Bananas following, 0x8 = Triple Banana in inventory
-	k_fakeitem,			// 0x1 = Fake Item being held, 0x2 = Fake Item in inventory
-	k_banana,			// 0x1 = Banana being held, 0x2 = Banana in inventory
-	k_greenshell,		// 0x1 = Green Shell being held, 0x2 = Green Shell in inventory
-	k_redshell,			// 0x1 = Red Shell being held, 0x2 = Red Shell in inventory
-	k_laserwisp,		// 0x1 = Laser Wisp in inventory
-	k_triplegreenshell,	// 0x1 = 1 Green Shell orbiting, 0x2 = 2 Green Shells orbiting
-						// 0x4 = 3 Green Shells orbiting, 0x8 = Triple Green Shell in inventory
-	k_bobomb,			// 0x1 = Bob-omb being held, 0x2 = Bob-omb in inventory
-	k_blueshell,		// 0x1 = Blue Shell in inventory
-	k_jaws,				// 0x1 = 1 Jaws orbiting, 0x2 = 2 Jaws orbiting,
-						// 0x4 = 2x Jaws in inventory
-	k_fireflower,		// 0x1 = Fire Flower in inventory
-	k_tripleredshell,	// 0x1 = 1 Red Shell orbiting, 0x2 = 2 Red Shells orbiting
-						// 0x4 = 3 Red Shells orbiting, 0x8 = Triple Red Shell in inventory
-	k_lightning,		// 0x1 = Lightning in inventory
-	k_feather,			// 0x1 = Feather in inventory, 0x2 = Player is feather jumping
-	k_kitchensink,		// 0x1 = Sink in inventory
+	//k_thunderanim,			// Duration of Thunder Shield's use animation
+	k_curshield,			// 0 = no shield, 1 = thunder shield
+	k_hyudorotimer,			// Duration of the Hyudoro offroad effect itself
+	k_stealingtimer,		// You are stealing an item, this is your timer
+	k_stolentimer,			// You are being stolen from, this is your timer
+	k_sneakertimer,			// Duration of the Sneaker Boost itself
+	k_growshrinktimer,		// > 0 = Big, < 0 = small
+	k_squishedtimer,		// Squished frame timer
+	k_rocketsneakertimer,	// Rocket Sneaker duration timer
+	k_invincibilitytimer,	// Invincibility timer
+	k_deathsentence,		// 30 seconds to live... (SPB murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
+	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
+	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
+	k_eggmanblame,			// Fake item recieved, who set this fake
+	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
+	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
+	k_wipeoutslow,			// Timer before you slowdown when getting wiped out
+	k_justbumped,			// Prevent players from endlessly bumping into each other
+	k_comebacktimer,		// Battle mode, how long before you become a bomb after death
+	k_sadtimer,				// How long you've been sad
 
 	// Battle Mode vars
-	k_balloon,			// Number of balloons left
-	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a balloon
+	k_bumper,			// Number of bumpers left
+	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a bumper
 	k_comebackmode, 	// 0 = bomb, 1 = item
+	k_wanted, 			// Timer for determining WANTED status, lowers when hitting people, prevents the game turning into Camp Lazlo
 
 	NUMKARTSTUFF
 } kartstufftype_t;
@@ -511,7 +527,7 @@ typedef struct player_s
 	tic_t startedtime; // Time which you started this mare with.
 	tic_t finishedtime; // Time it took you to finish the mare (used for display)
 	INT16 finishedrings; // The rings you had left upon finishing the mare
-	UINT32 marescore; // score for this nights stage
+	UINT32 marescore; // SRB2Kart: Battle score
 	UINT32 lastmarescore; // score for the last mare
 	UINT8 lastmare; // previous mare
 	INT32 maxlink; // maximum link obtained
