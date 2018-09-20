@@ -8516,6 +8516,8 @@ static consvar_t *kartitemcvs[NUMKARTRESULTS-1] = {
 	&cv_dualjawz
 };
 
+static tic_t shitsfree = 0;
+
 static void M_DrawMonitorToggles(void)
 {
 	const INT32 edges = 4;
@@ -8632,7 +8634,18 @@ static void M_DrawMonitorToggles(void)
 	{
 #ifdef ITEMTOGGLEBOTTOMRIGHT
 		if (currentMenu->menuitems[itemOn].alphaKey == 255)
+		{
 			V_DrawScaledPatch(onx-1, ony-2, V_TRANSLUCENT, W_CachePatchName("K_ITBG", PU_CACHE));
+			if (shitsfree)
+			{
+				INT32 trans = V_TRANSLUCENT;
+				if (shitsfree-1 > TICRATE-5)
+					trans = ((10-TICRATE)+shitsfree-1)<<V_ALPHASHIFT;
+				else if (shitsfree < 5)
+					trans = (10-shitsfree)<<V_ALPHASHIFT;
+				V_DrawScaledPatch(onx-1, ony-2, trans, W_CachePatchName("K_ITFREE", PU_CACHE));
+			}
+		}
 		else
 #endif
 		if (currentMenu->menuitems[itemOn].alphaKey == 0)
@@ -8678,6 +8691,9 @@ static void M_DrawMonitorToggles(void)
 				V_DrawScaledPatch(onx-1, ony-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[itemOn].alphaKey, false), PU_CACHE));
 		}
 	}
+
+	if (shitsfree)
+		shitsfree--;
 
 	V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, highlightflags, va("* %s *", currentMenu->menuitems[itemOn].text));
 }
@@ -8739,7 +8755,14 @@ static void M_HandleMonitorToggles(INT32 choice)
 		case KEY_ENTER:
 #ifdef ITEMTOGGLEBOTTOMRIGHT
 			if (currentMenu->menuitems[itemOn].alphaKey == 255)
-				S_StartSound(NULL, sfx_lose);
+			{
+				//S_StartSound(NULL, sfx_lose);
+				if (!shitsfree)
+				{
+					shitsfree = TICRATE;
+					S_StartSound(NULL, sfx_itfree);
+				}
+			}
 			else
 #endif
 			if (currentMenu->menuitems[itemOn].alphaKey == 0)
