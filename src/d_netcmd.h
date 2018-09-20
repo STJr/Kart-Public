@@ -117,7 +117,6 @@ extern consvar_t cv_thundershield, cv_hyudoro, cv_pogospring, cv_kitchensink;
 extern consvar_t cv_triplesneaker, cv_triplebanana, cv_decabanana;
 extern consvar_t cv_tripleorbinaut, cv_quadorbinaut, cv_dualjawz;
 
-//extern consvar_t cv_karthud;
 extern consvar_t cv_kartminimap;
 extern consvar_t cv_kartcheck;
 extern consvar_t cv_kartinvinsfx;

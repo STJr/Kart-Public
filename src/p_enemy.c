@@ -8172,10 +8172,7 @@ void A_JawzChase(mobj_t *actor)
 
 	if (actor->tracer)
 	{
-		if (!actor->tracer->health)
-			P_SetTarget(&actor->tracer, NULL);
-
-		if (actor->tracer && actor->tracer->health)
+		if (actor->tracer->health)
 		{
 			mobj_t *ret;
 
@@ -8187,6 +8184,8 @@ void A_JawzChase(mobj_t *actor)
 			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
 			return;
 		}
+		else
+			P_SetTarget(&actor->tracer, NULL);
 	}
 
 	if (actor->extravalue1) // Disable looking by setting this

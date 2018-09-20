@@ -1247,8 +1247,19 @@ static void K_UpdateOffroad(player_t *player)
 		player->kartstuff[k_offroad] = 0;
 }
 
+// These have to go earlier than its sisters because of K_RespawnChecker...
+static void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
+{
+	// flipping
+	mo->eflags = (mo->eflags & ~MFE_VERTICALFLIP)|(master->eflags & MFE_VERTICALFLIP);
+	// visibility (usually for hyudoro)
+	mo->flags2 = (mo->flags2 & ~MF2_DONTDRAW)|(master->flags2 & MF2_DONTDRAW);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP1)|(master->eflags & MFE_DRAWONLYFORP1);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP2)|(master->eflags & MFE_DRAWONLYFORP2);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP3)|(master->eflags & MFE_DRAWONLYFORP3);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP4)|(master->eflags & MFE_DRAWONLYFORP4);
+}
 
-// This has to go earlier than its sisters because of K_RespawnChecker...
 static void K_SpawnDashDustRelease(player_t *player)
 {
 	fixed_t newx;
@@ -1287,12 +1298,7 @@ static void K_SpawnDashDustRelease(player_t *player)
 		dust->momy = 3*player->mo->momy/5;
 		//dust->momz = 3*player->mo->momz/5;
 
-		dust->flags2 = (dust->flags2 & ~MF2_DONTDRAW)|(player->mo->flags2 & MF2_DONTDRAW);
-		dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
-		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
-		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
-		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP3)|(player->mo->eflags & MFE_DRAWONLYFORP3);
-		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP4)|(player->mo->eflags & MFE_DRAWONLYFORP4);
+		K_MatchGenericExtraFlags(dust, player->mo);
 	}
 }
 
@@ -1543,7 +1549,7 @@ void K_MomentumToFacing(player_t *player)
 	player->mo->momy = FixedMul(player->mo->momy - player->cmomy, player->mo->friction) + player->cmomy;
 }
 
-// if speed is true it gets the speed boost power, otherwise it gets the acceleration
+// sets k_boostpower, k_speedboost, and k_accelboost to whatever we need it to be
 static void K_GetKartBoostPower(player_t *player)
 {
 	fixed_t boostpower = FRACUNIT;
@@ -2367,12 +2373,7 @@ static void K_SpawnDriftSparks(player_t *player)
 				P_SetMobjState(spark, S_DRIFTSPARK_A1);
 		}
 
-		spark->flags2 = (spark->flags2 & ~MF2_DONTDRAW)|(player->mo->flags2 & MF2_DONTDRAW);
-		spark->eflags = (spark->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
-		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
-		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
-		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP3)|(player->mo->eflags & MFE_DRAWONLYFORP3);
-		spark->eflags = (spark->eflags & ~MFE_DRAWONLYFORP4)|(player->mo->eflags & MFE_DRAWONLYFORP4);
+		K_MatchGenericExtraFlags(spark, player->mo);
 	}
 }
 
@@ -2423,7 +2424,7 @@ void K_SpawnBoostTrail(player_t *player)
 		flame->fuse = TICRATE*2;
 		flame->destscale = player->mo->scale;
 		P_SetScale(flame, player->mo->scale);
-		flame->eflags = (flame->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+		flame->eflags = (flame->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags so that a stolen sneaker can be seen
 
 		flame->momx = 8;
 		P_XYMovement(flame);
@@ -2463,7 +2464,7 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		P_SetTarget(&sparkle->target, mo);
 		sparkle->destscale = mo->destscale;
 		P_SetScale(sparkle, mo->scale);
-		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
+		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags so that a stolen invincibility can be seen
 		sparkle->color = mo->color;
 		//sparkle->colorized = mo->colorized;
 	}
@@ -2484,7 +2485,7 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
 	dust->destscale = mo->scale;
 	P_SetScale(dust, mo->scale);
-	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
+	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags because hyudoro shouldn't be able to wipeout
 
 	if (translucent)
 		dust->flags2 |= MF2_SHADOW;
@@ -4623,9 +4624,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->mo->flags2 &= ~MF2_SHADOW;
 		}
 	}
-
-	/*if (player->kartstuff[k_growshrinktimer] > 1)
-		player->powers[pw_flashing] = 2;*/
 
 	// Friction
 	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
