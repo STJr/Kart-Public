@@ -8323,9 +8323,18 @@ void A_LightningFollowPlayer(mobj_t *actor)
 	if (LUA_CallAction("A_LightningFollowPlayer", actor))
 		return;
 #endif
+	fixed_t sx, sy;
 	if (actor->target)
 	{	
-		P_TeleportMove(actor, actor->target->x, actor->target->y, actor->target->z);
+		if (actor->extravalue1)	// Make the radius also follow the player somewhat accuratly
+		{
+			sx = actor->target->x + FixedMul((actor->target->scale*actor->extravalue1), FINECOSINE((actor->angle)>>ANGLETOFINESHIFT));
+			sy = actor->target->y + FixedMul((actor->target->scale*actor->extravalue1), FINESINE((actor->angle)>>ANGLETOFINESHIFT));
+			P_TeleportMove(actor, sx, sy, actor->target->z);
+		}
+		else	// else just teleport to player directly
+			P_TeleportMove(actor, actor->target->x, actor->target->y, actor->target->z);
+		
 		actor->momx = actor->target->momx;
 		actor->momy = actor->target->momy;
 		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
