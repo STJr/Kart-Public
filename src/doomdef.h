@@ -546,6 +546,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 /// SRB2Kart: Camera always has noclip.
 /// \note   Kind of problematic. If we decide to keep this on, we'll need serious map changes.
-#define NOCLIPCAM
+//#define NOCLIPCAM
 
 #endif // __DOOMDEF__
