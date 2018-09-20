@@ -1247,6 +1247,55 @@ static void K_UpdateOffroad(player_t *player)
 		player->kartstuff[k_offroad] = 0;
 }
 
+
+// This has to go earlier than its sisters because of K_RespawnChecker...
+static void K_SpawnDashDustRelease(player_t *player)
+{
+	fixed_t newx;
+	fixed_t newy;
+	mobj_t *dust;
+	angle_t travelangle;
+	INT32 i;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	if (!P_IsObjectOnGround(player->mo))
+		return;
+
+	if (player->speed == 0)
+		return;
+
+	travelangle = player->mo->angle;
+
+	if (player->kartstuff[k_drift] || player->kartstuff[k_driftend])
+		travelangle -= (ANGLE_45/5)*player->kartstuff[k_drift];
+
+	for (i = 0; i < 2; i++)
+	{
+		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_90, FixedMul(48*FRACUNIT, player->mo->scale));
+		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_90, FixedMul(48*FRACUNIT, player->mo->scale));
+		dust = P_SpawnMobj(newx, newy, player->mo->z, MT_FASTDUST);
+
+		P_SetTarget(&dust->target, player->mo);
+		dust->angle = travelangle - ((i&1) ? -1 : 1)*ANGLE_45;
+		dust->destscale = player->mo->scale;
+		P_SetScale(dust, player->mo->scale);
+
+		dust->momx = 3*player->mo->momx/5;
+		dust->momy = 3*player->mo->momy/5;
+		//dust->momz = 3*player->mo->momz/5;
+
+		dust->flags2 = (dust->flags2 & ~MF2_DONTDRAW)|(player->mo->flags2 & MF2_DONTDRAW);
+		dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP1)|(player->mo->eflags & MFE_DRAWONLYFORP1);
+		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP2)|(player->mo->eflags & MFE_DRAWONLYFORP2);
+		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP3)|(player->mo->eflags & MFE_DRAWONLYFORP3);
+		dust->eflags = (dust->eflags & ~MFE_DRAWONLYFORP4)|(player->mo->eflags & MFE_DRAWONLYFORP4);
+	}
+}
+
 /**	\brief	Calculates the respawn timer and drop-boosting
 
 	\param	player	player object passed from K_KartPlayerThink
@@ -1327,6 +1376,7 @@ void K_RespawnChecker(player_t *player)
 			{
 				S_StartSound(player->mo, sfx_s23c);
 				player->kartstuff[k_startboost] = 50;
+				K_SpawnDashDustRelease(player);
 			}
 			player->mo->colorized = false;
 			player->kartstuff[k_dropdash] = 0;
@@ -2836,6 +2886,7 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	}
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
+	K_SpawnDashDustRelease(player);
 
 	if (doPFlag)
 	{
@@ -2936,7 +2987,7 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 		mo->momz = FixedMul(vertispeed, vscale);
 
 	if (!mute)
-		S_StartSound(mo, sfx_kc2f);
+		S_StartSound(mo, sfx_kpogos);
 }
 
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
@@ -3821,6 +3872,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		player->kartstuff[k_driftboost] = 20;
 		S_StartSound(player->mo, sfx_s23c);
+		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
@@ -3830,6 +3882,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		player->kartstuff[k_driftboost] = 50;
 		S_StartSound(player->mo, sfx_s23c);
+		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
@@ -3839,6 +3892,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		player->kartstuff[k_driftboost] = 125;
 		S_StartSound(player->mo, sfx_s23c);
+		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 
@@ -4681,13 +4735,17 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) // Let everyone hear this one
 					S_StartSound(player->mo, sfx_s25f);
 			}
-			else if ((!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) && P_IsLocalPlayer(player))
+			else
 			{
-				if (player->kartstuff[k_boostcharge] <= 40)
-					S_StartSound(player->mo, sfx_cdfm01); // You were almost there!
-				else
-					S_StartSound(player->mo, sfx_s23c); // Nope, better luck next time.
-			}	
+				K_SpawnDashDustRelease(player); // already handled for perfect boosts by K_DoSneaker
+				if ((!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) && P_IsLocalPlayer(player))
+				{
+					if (player->kartstuff[k_boostcharge] <= 40)
+						S_StartSound(player->mo, sfx_cdfm01); // You were almost there!
+					else
+						S_StartSound(player->mo, sfx_s23c); // Nope, better luck next time.
+				}
+			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
 		else if (player->kartstuff[k_boostcharge] > 50)

@@ -6254,6 +6254,15 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FASTLINE4",
 	"S_FASTLINE5",
 
+	// Fast dust release
+	"S_FASTDUST1",
+	"S_FASTDUST2",
+	"S_FASTDUST3",
+	"S_FASTDUST4",
+	"S_FASTDUST5",
+	"S_FASTDUST6",
+	"S_FASTDUST7",
+
 	// Thunder Shield Burst
 
 	// Sneaker boost effect
@@ -7227,6 +7236,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_RANDOMITEMPOP",
 
 	"MT_FASTLINE",
+	"MT_FASTDUST",
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",

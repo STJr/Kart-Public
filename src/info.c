@@ -55,12 +55,12 @@ char sprnames[NUMSPRITES + 1][5] =
 	"GWLR","SRBA","SRBB","SRBC","SRBD","SRBE","SRBF","SRBG","SRBH","SRBI",
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
-	"SPRG","BSPR","RNDM","RPOP","FAST","BOST","BOSM","KFRE","KINV","KINF",
-	"WIPD","DRIF","DUST","FITM","BANA","ORBN","JAWZ","SSMN","KRBM","BHOG",
-	"BHBM","BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL","POKE","AUDI",
-	"DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO","CRAB","SHAD",
-	"BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO","ITEM","ITMO",
-	"ITMI","ITMN","WANT","PBOM","RETI","VIEW"
+	"SPRG","BSPR","RNDM","RPOP","FAST","DSHR","BOST","BOSM","KFRE","KINV",
+	"KINF","WIPD","DRIF","DUST","FITM","BANA","ORBN","JAWZ","SSMN","KRBM",
+	"BHOG","BHBM","BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL","POKE",
+	"AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO","CRAB",
+	"SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO","ITEM",
+	"ITMO","ITMI","ITMN","WANT","PBOM","RETI","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2585,6 +2585,14 @@ state_t states[NUMSTATES] =
 	{SPR_FAST, FF_PAPERSPRITE|FF_FULLBRIGHT|2, 1, {NULL}, 0, 0, S_FASTLINE4}, // S_FASTLINE3
 	{SPR_FAST, FF_PAPERSPRITE|FF_FULLBRIGHT|3, 1, {NULL}, 0, 0, S_FASTLINE5}, // S_FASTLINE4
 	{SPR_FAST, FF_PAPERSPRITE|FF_FULLBRIGHT|4, 1, {NULL}, 0, 0, S_NULL}, // S_FASTLINE5
+
+	{SPR_DSHR, FF_PAPERSPRITE,   1, {NULL}, 0, 0, S_FASTDUST2}, // S_FASTDUST1
+	{SPR_DSHR, FF_PAPERSPRITE|1, 1, {NULL}, 0, 0, S_FASTDUST3}, // S_FASTDUST2
+	{SPR_DSHR, FF_PAPERSPRITE|2, 1, {NULL}, 0, 0, S_FASTDUST4}, // S_FASTDUST3
+	{SPR_DSHR, FF_PAPERSPRITE|3, 1, {NULL}, 0, 0, S_FASTDUST5}, // S_FASTDUST4
+	{SPR_DSHR, FF_PAPERSPRITE|4, 1, {NULL}, 0, 0, S_FASTDUST6}, // S_FASTDUST5
+	{SPR_DSHR, FF_PAPERSPRITE|5, 1, {NULL}, 0, 0, S_FASTDUST7}, // S_FASTDUST6
+	{SPR_DSHR, FF_PAPERSPRITE|6, 1, {NULL}, 0, 0, S_NULL}, // S_FASTDUST7
 
 	{SPR_BOST, FF_FULLBRIGHT|FF_ANIMATE, TICRATE, {NULL}, 6, 1, S_BOOSTSMOKESPAWNER}, // S_BOOSTFLAME
 	{SPR_NULL, 0,                      TICRATE/2, {NULL}, 0, 0, S_NULL}, // S_BOOSTSMOKESPAWNER
@@ -14411,6 +14419,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	{           // MT_FASTLINE
 		-1,						// doomednum
 		S_FASTLINE1,            // spawnstate
+		1000,					// spawnhealth
+		S_NULL,					// seestate
+		sfx_None,				// seesound
+		8,						// reactiontime
+		sfx_None,				// attacksound
+		S_NULL,					// painstate
+		0,						// painchance
+		sfx_None,				// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_NULL,					// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,				// deathsound
+		8,						// speed
+		14*FRACUNIT,			// radius
+		14*FRACUNIT,			// height
+		0,						// display offset
+		100,					// mass
+		0,						// damage
+		sfx_None,				// activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
+		S_NULL					// raisestate
+	},
+
+	{           // MT_FASTDUST
+		-1,						// doomednum
+		S_FASTDUST1,            // spawnstate
 		1000,					// spawnhealth
 		S_NULL,					// seestate
 		sfx_None,				// seesound
