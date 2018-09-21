@@ -948,6 +948,15 @@ spritemd2found:
 	fclose(f);
 }
 
+// Define for getting accurate color brightness readings according to how the human eye sees them.
+// https://en.wikipedia.org/wiki/Relative_luminance
+// 0.2126 to red
+// 0.7152 to green
+// 0.0722 to blue
+// (See this same define in k_kart.c!)
+#define SETBRIGHTNESS(brightness,r,g,b) \
+	brightness = (UINT8)(((1063*((UINT16)r)/5000) + (3576*((UINT16)g)/5000) + (361*((UINT16)b)/5000)) / 3)
+	
 static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, GLMipmap_t *grmip, INT32 skinnum, skincolors_t color)
 {
 	UINT8 i;
@@ -978,40 +987,26 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 
 	// Average all of the translation's colors
 	{
-		UINT16 r, g, b;
-		UINT8 div = 0;
+		const UINT8 div = 6;
+		const UINT8 start = 4;
+		UINT32 r, g, b;
 
-		blendcolor = V_GetColor(colortranslations[color][0]);
-		r = (UINT16)blendcolor.s.red;
-		g = (UINT16)blendcolor.s.green;
-		b = (UINT16)blendcolor.s.blue;
+		blendcolor = V_GetColor(colortranslations[color][start]);
+		r = (UINT32)(blendcolor.s.red*blendcolor.s.red);
+		g = (UINT32)(blendcolor.s.green*blendcolor.s.green);
+		b = (UINT32)(blendcolor.s.blue*blendcolor.s.blue);
 
-		for (i = 1; i < 16; i++)
+		for (i = 1; i < div; i++)
 		{
-			RGBA_t nextcolor = V_GetColor(colortranslations[color][i]);
-			UINT8 mul = 1;
-			// Weight these shades more. Indices 1-9 weren't randomly picked, they are commonly used on sprites and are generally what the colors "look" like
-			if (i >= 1 && i <= 9)
-				mul++;
-			// The mid & dark tons on the minimap icons get weighted even harder
-			if (i == 4 || i == 6)
-				mul += 2;
-			// And the shade between them, why not
-			if (i == 5)
-				mul++;
-			r += (UINT16)(nextcolor.s.red)*mul;
-			g += (UINT16)(nextcolor.s.green)*mul;
-			b += (UINT16)(nextcolor.s.blue)*mul;
-			div += mul;
+			RGBA_t nextcolor = V_GetColor(colortranslations[color][start+i]);
+			r += (UINT32)(nextcolor.s.red*nextcolor.s.red);
+			g += (UINT32)(nextcolor.s.green*nextcolor.s.green);
+			b += (UINT32)(nextcolor.s.blue*nextcolor.s.blue);
 		}
 
-		// This shouldn't happen.
-		if (div < 1)
-			div = 1;
-
-		blendcolor.s.red = (UINT8)(r/div);
-		blendcolor.s.green = (UINT8)(g/div);
-		blendcolor.s.blue = (UINT8)(b/div);
+		blendcolor.s.red = (UINT8)(FixedSqrt((r/div)<<FRACBITS)>>FRACBITS);
+		blendcolor.s.green = (UINT8)(FixedSqrt((g/div)<<FRACBITS)>>FRACBITS);
+		blendcolor.s.blue = (UINT8)(FixedSqrt((b/div)<<FRACBITS)>>FRACBITS);
 	}
 
 	// rainbow support, could theoretically support boss ones too
@@ -1028,11 +1023,11 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 			{
 				UINT32 tempcolor;
 				UINT16 imagebright, blendbright, finalbright, colorbright;
-				imagebright = (image->s.red+image->s.green+image->s.blue)/3;
-				blendbright = (blendimage->s.red+blendimage->s.green+blendimage->s.blue)/3;
+				SETBRIGHTNESS(imagebright,image->s.red,image->s.green,image->s.blue);
+				SETBRIGHTNESS(blendbright,blendimage->s.red,blendimage->s.green,blendimage->s.blue);
 				// slightly dumb average between the blend image color and base image colour, usually one or the other will be fully opaque anyway
 				finalbright = (imagebright*(255-blendimage->s.alpha))/255 + (blendbright*blendimage->s.alpha)/255;
-				colorbright = (blendcolor.s.red+blendcolor.s.green+blendcolor.s.blue)/3;
+				SETBRIGHTNESS(colorbright,blendcolor.s.red,blendcolor.s.green,blendcolor.s.blue);
 
 				tempcolor = (finalbright*blendcolor.s.red)/colorbright;
 				tempcolor = min(255, tempcolor);
@@ -1089,6 +1084,8 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 
 	return;
 }
+
+#undef SETBRIGHTNESS
 
 static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT32 skinnum, const UINT8 *colormap, skincolors_t color)
 {

@@ -1755,8 +1755,9 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 		case V_OLDSPACING:
 			charwidth = 5;
 			break;
-		case V_6WIDTHSPACE:
-			spacewidth = 3;
+		// Out of video flags, so we're reusing this for alternate charwidth instead
+		/*case V_6WIDTHSPACE:
+			spacewidth = 3;*/
 		default:
 			break;
 	}
@@ -1798,7 +1799,8 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 		if (charwidth)
 			w = charwidth * dupx;
 		else
-			w = (SHORT(tny_font[c]->width) * dupx);
+			w = ((option & V_6WIDTHSPACE ? max(1, SHORT(tny_font[c]->width)-1) // Reuse this flag for the alternate bunched-up spacing
+				: SHORT(tny_font[c]->width)) * dupx);
 
 		if (cx > scrwidth)
 			break;
@@ -2220,8 +2222,9 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		case V_OLDSPACING:
 			charwidth = 5;
 			break;
-		case V_6WIDTHSPACE:
-			spacewidth = 3;
+		// Out of video flags, so we're reusing this for alternate charwidth instead
+		/*case V_6WIDTHSPACE:
+			spacewidth = 3;*/
 		default:
 			break;
 	}
@@ -2236,7 +2239,8 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		if (c < 0 || c >= HU_FONTSIZE || !tny_font[c])
 			w += spacewidth;
 		else
-			w += (charwidth ? charwidth : SHORT(tny_font[c]->width));
+			w += (charwidth ? charwidth
+				: (option & V_6WIDTHSPACE ? max(1, SHORT(tny_font[c]->width)-1) : SHORT(tny_font[c]->width))); // Reuse this flag for the alternate bunched-up spacing
 	}
 
 	return w;

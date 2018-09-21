@@ -8164,9 +8164,6 @@ void A_ItemPop(mobj_t *actor)
 
 void A_JawzChase(mobj_t *actor)
 {
-
-	INT32 c = 0;
-	INT32 stop;
 	player_t *player;
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_JawzChase", actor))
@@ -8175,95 +8172,33 @@ void A_JawzChase(mobj_t *actor)
 
 	if (actor->tracer)
 	{
-		if (!actor->tracer->health)
+		if (actor->tracer->health)
 		{
-			P_SetTarget(&actor->tracer, NULL);
-		}
+			mobj_t *ret;
 
-		if (actor->tracer && (actor->tracer->health))
-		{
+			ret = P_SpawnMobj(actor->tracer->x, actor->tracer->y, actor->tracer->z, MT_PLAYERRETICULE);
+			P_SetTarget(&ret->target, actor->tracer);
+			ret->frame |= ((leveltime % 10) / 2) + 5;
+			ret->color = actor->cvmem;
+
 			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
 			return;
 		}
+		else
+			P_SetTarget(&actor->tracer, NULL);
 	}
 
-	// first time init, this allow minimum lastlook changes
-	if (actor->lastlook == -1)
-		actor->lastlook = P_RandomFixed();
+	if (actor->extravalue1) // Disable looking by setting this
+		return;
 
-	actor->lastlook %= MAXPLAYERS;
+	player = K_FindJawzTarget(actor, actor->target->player);
+	if (player)
+		P_SetTarget(&actor->tracer, player->mo);
 
-	stop = (actor->lastlook - 1) & PLAYERSMASK;
-
-	if (actor->lastlook >= 0)
-	{
-		for (; ; actor->lastlook = (actor->lastlook + 1) & PLAYERSMASK)
-		{
-			if (!playeringame[actor->lastlook])
-				continue;
-
-			if (c++ == 2)
-				return;
-
-			player = &players[actor->lastlook];
-
-			if (!player->mo)
-				continue;
-
-			if (player->mo->health <= 0)
-				continue; // dead
-
-			if ((netgame || multiplayer) && player->spectator)
-				continue; // spectator
-
-			if (actor->target && actor->target->player)
-			{
-				if (player->mo == actor->target)
-					continue;
-
-				// Don't home in on teammates.
-				if (gametype == GT_CTF
-					&& actor->target->player->ctfteam == player->ctfteam)
-					continue;
-
-				if (G_RaceGametype()) // Only in races, in match and CTF you should go after any nearby players
-				{
-					//                 USER               TARGET
-					if (actor->target->player->kartstuff[k_position] != (player->kartstuff[k_position] + 1)) // Jawz only go after the person directly ahead of you -Sryder
-						continue;
-				}
-
-				if (G_BattleGametype())
-				{
-					if (player->kartstuff[k_bumper] <= 0)
-						continue;
-
-					if (P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
-						player->mo->y-actor->y), player->mo->z-actor->z) > RING_DIST)
-						continue;
-				}
-			}
-
-			if ((G_RaceGametype()) || (G_BattleGametype() // If in match etc. only home in when you get close enough, in race etc. home in all the time
-				&& P_AproxDistance(P_AproxDistance(player->mo->x-actor->x,
-				player->mo->y-actor->y), player->mo->z-actor->z) < RING_DIST
-				&& player->kartstuff[k_bumper] > 0))
-				P_SetTarget(&actor->tracer, player->mo);
-			return;
-
-			// Moved to bottom so it doesn't not check the last player
-			// done looking
-			if (actor->lastlook == stop)
-			{
-				if (G_RaceGametype())
-					actor->lastlook = -2;
-				return;
-			}
-		}
-	}
+	if (G_RaceGametype()) // Stop looking after first tic in race
+		actor->extravalue1 = 1;
 
 	return;
-
 }
 
 void A_JawzExplode(mobj_t *actor)
