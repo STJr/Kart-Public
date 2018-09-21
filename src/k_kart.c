@@ -2715,7 +2715,7 @@ static void K_DoThunderShield(player_t *player)
 	fixed_t sx;
 	fixed_t sy;
 	
-	S_StartSound(player->mo, sfx_s3k45);
+	S_StartSound(player->mo, sfx_zio3);
 	//player->kartstuff[k_thunderanim] = 35;
 	P_NukeEnemies(player->mo, player->mo, RING_DIST/4);
 	
