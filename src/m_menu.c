@@ -8592,8 +8592,6 @@ static void M_DrawMonitorToggles(void)
 					break;
 				case KRITEM_TRIPLESNEAKER:
 				case KRITEM_TRIPLEBANANA:
-					drawnum = 3;
-					break;
 				case KRITEM_TRIPLEORBINAUT:
 					drawnum = 3;
 					break;
