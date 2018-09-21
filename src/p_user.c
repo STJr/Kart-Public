@@ -1751,7 +1751,7 @@ void P_DoPlayerExit(player_t *player)
 			//countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
-			player->exiting = (21*TICRATE)/5 + 1;
+			player->exiting = (28*TICRATE)/5 + 1;
 	}
 	else if (G_BattleGametype()) // Battle Mode exiting
 	{
@@ -1759,7 +1759,7 @@ void P_DoPlayerExit(player_t *player)
 		P_EndingMusic(player);
 	}
 	else
-		player->exiting = (21*TICRATE)/5 + 2; // Accidental death safeguard???
+		player->exiting = (28*TICRATE)/5 + 2; // Accidental death safeguard???
 
 	//player->pflags &= ~PF_GLIDING;
 	/*	// SRB2kart - don't need
@@ -6569,7 +6569,7 @@ static void P_MovePlayer(player_t *player)
 					S_StartSound(NULL, sfx_s3k6a);
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
-						players[i].exiting = (21*TICRATE)/5 + 1;
+						players[i].exiting = (28*TICRATE)/5 + 1;
 			}
 			else if (player->health > 1)
 				P_DamageMobj(player->mo, NULL, NULL, 1);
@@ -9038,7 +9038,7 @@ void P_PlayerThink(player_t *player)
 			}
 
 			if (i == MAXPLAYERS && player->exiting == 6*TICRATE) // finished
-				player->exiting = (21*TICRATE)/5 + 1;
+				player->exiting = (28*TICRATE)/5 + 1;
 
 			// If 10 seconds are left on the timer,
 			// begin the drown music for countdown!

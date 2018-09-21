@@ -3227,12 +3227,10 @@ void P_SetupSignExit(player_t *player)
 
 		P_SetTarget(&thing->target, player->mo);
 		P_SetMobjState(thing, S_SIGN1);
-		if (thing->info->seesound)
-			S_StartSound(thing, thing->info->seesound);
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (640<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3257,12 +3255,10 @@ void P_SetupSignExit(player_t *player)
 
 		P_SetTarget(&thing->target, player->mo);
 		P_SetMobjState(thing, S_SIGN1);
-		if (thing->info->seesound)
-			S_StartSound(thing, thing->info->seesound);
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (640<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3274,12 +3270,10 @@ void P_SetupSignExit(player_t *player)
 	// SRB2Kart: FINALLY, add in an alternative if no place is found
 	if (player->mo)
 	{
-		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (640<<FRACBITS), MT_SIGN);
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768<<FRACBITS), MT_SIGN);
 
 		P_SetTarget(&sign->target, player->mo);
 		P_SetMobjState(sign, S_SIGN1);
-		if (sign->info->seesound)
-			S_StartSound(sign, sign->info->seesound);
 		sign->movefactor = player->mo->floorz;
 		sign->movecount = 1;
 	}

@@ -1410,7 +1410,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT); // Double gravity
 					break;
 				case MT_SIGN:
-					gravityadd /= 4;
+					gravityadd /= 8;
 					break;
 				default:
 					break;
@@ -8291,8 +8291,8 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->z <= mobj->movefactor)
 				{
 					P_SetMobjState(mobj, S_SIGN_END);
-					if (thing->info->attacksound)
-						S_StartSound(thing, thing->info->attacksound);
+					if (mobj->info->attacksound)
+						S_StartSound(mobj, mobj->info->attacksound);
 					mobj->z = mobj->movefactor;
 					//mobj->flags |= MF_NOGRAVITY; // ?
 					mobj->flags &= ~MF_NOCLIPHEIGHT;
@@ -8305,6 +8305,12 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->z + (24<<FRACBITS) + (P_RandomRange(-16,16)<<FRACBITS),
 						MT_RINGSPARKLE);
 					mobj->flags &= ~MF_NOGRAVITY;
+					if (abs(mobj->z - mobj->movefactor) <= 512<<FRACBITS && !mobj->cvmem)
+					{
+						if (mobj->info->seesound)
+							S_StartSound(mobj, mobj->info->seesound);
+						mobj->cvmem = 1;
+					}
 				}
 			}
 			break;
