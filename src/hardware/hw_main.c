@@ -5452,8 +5452,10 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	else
 	{
 		vis->colormap = colormaps;
+#ifdef GLENCORE
 		if (encoremap && (thing->flags & (MF_SCENERY|MF_NOTHINK)))
 			vis->colormap += (256*32);
+#endif
 	}
 
 	// set top/bottom coords
@@ -5558,8 +5560,10 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->mobj = (mobj_t *)thing;
 
 	vis->colormap = colormaps;
+#ifdef GLENCORE
 	if (encoremap)
 		vis->colormap += (256*32);
+#endif
 
 	// set top/bottom coords
 	vis->ty = FIXED_TO_FLOAT(thing->z + spritecachedinfo[lumpoff].topoffset);
