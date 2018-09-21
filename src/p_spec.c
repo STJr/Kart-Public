@@ -3280,7 +3280,7 @@ void P_SetupSignExit(player_t *player)
 		P_SetMobjState(sign, S_SIGN1);
 		if (sign->info->seesound)
 			S_StartSound(sign, sign->info->seesound);
-		sign->movefactor = player->mo->z;
+		sign->movefactor = player->mo->floorz;
 		sign->movecount = 1;
 	}
 }

@@ -8290,7 +8290,9 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				if (mobj->z <= mobj->movefactor)
 				{
-					P_SetMobjState(mobj, S_SIGN53);
+					P_SetMobjState(mobj, S_SIGN_END);
+					if (thing->info->attacksound)
+						S_StartSound(thing, thing->info->attacksound);
 					mobj->z = mobj->movefactor;
 					//mobj->flags |= MF_NOGRAVITY; // ?
 					mobj->flags &= ~MF_NOCLIPHEIGHT;
