@@ -8291,6 +8291,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->z <= mobj->movefactor)
 				{
 					P_SetMobjState(mobj, S_SIGN53);
+					mobj->z = mobj->movefactor;
 					//mobj->flags |= MF_NOGRAVITY; // ?
 					mobj->flags &= ~MF_NOCLIPHEIGHT;
 					mobj->movecount = 0;
