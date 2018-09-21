@@ -642,14 +642,14 @@ typedef enum sprite
 
 	SPR_PBOM, // player bomb
 	SPR_RETI, // player reticule
-
-	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
 	SPR_KSPK,	// Spark radius for the lightning shield
 	SPR_LZI1,	// Lightning that falls on the player for lightning shield
 	SPR_LZI2,	// ditto
 	SPR_KLIT,	// You have a twisted mind. But this actually is for the diagonal lightning.
-
+	
+	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
+	
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
 	NUMSPRITES

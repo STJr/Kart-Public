@@ -2757,6 +2757,8 @@ static void K_DoThunderShield(player_t *player)
 	}
 }
 
+#undef THUNDERRADIUS
+
 static void K_DoHyudoroSteal(player_t *player)
 {
 	INT32 i, numplayers = 0;

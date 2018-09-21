@@ -884,8 +884,8 @@ typedef enum
 	sfx_noooo2,
 	sfx_hogbom,
 	sfx_ddash,
-	sfx_dbgsal,
 	sfx_zio3,
+	sfx_dbgsal,
 
 	sfx_kwin,
 	sfx_klose,

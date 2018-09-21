@@ -812,8 +812,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"hogbom", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"dbgsal", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"zio3", 	 false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"dbgsal", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
   {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
