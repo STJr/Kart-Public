@@ -720,7 +720,7 @@ void R_DrawPlanes(void)
 						dc_iscale = FixedMul(skyscale, FINECOSINE(xtoviewangle[x]>>ANGLETOFINESHIFT));
 						dc_x = x;
 						dc_source =
-							R_GetColumn(skytexture,
+							R_GetColumn(texturetranslation[skytexture],
 								angle);
 						wallcolfunc();
 					}
