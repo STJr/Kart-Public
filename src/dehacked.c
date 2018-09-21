@@ -6249,6 +6249,22 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DRIFTDUST3",
 	"S_DRIFTDUST4",
 
+	// Fast lines
+	"S_FASTLINE1",
+	"S_FASTLINE2",
+	"S_FASTLINE3",
+	"S_FASTLINE4",
+	"S_FASTLINE5",
+
+	// Fast dust release
+	"S_FASTDUST1",
+	"S_FASTDUST2",
+	"S_FASTDUST3",
+	"S_FASTDUST4",
+	"S_FASTDUST5",
+	"S_FASTDUST6",
+	"S_FASTDUST7",
+
 	// Thunder Shield Burst
 
 	// Sneaker boost effect
@@ -7220,6 +7236,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_RANDOMITEMPOP",
 	"MT_FLOATINGITEM",
 
+	"MT_FASTLINE",
+	"MT_FASTDUST",
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
@@ -7548,66 +7566,66 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"NONE",           // 00 // SKINCOLOR_NONE
 	"WHITE",          // 01 // SKINCOLOR_WHITE
 	"SILVER",         // 02 // SKINCOLOR_SILVER
-	"CLOUDY",         // 03 // SKINCOLOR_CLOUDY
-	"GREY",           // 04 // SKINCOLOR_GREY
+	"GREY",           // 03 // SKINCOLOR_GREY
+	"NICKEL",         // 04 // SKINCOLOR_NICKEL
 	"BLACK",          // 05 // SKINCOLOR_BLACK
-	"SALMON",         // 06 // SKINCOLOR_SALMON
-	"PINK",           // 07 // SKINCOLOR_PINK
-	"ROSE",           // 08 // SKINCOLOR_ROSE
-	"RASPBERRY",      // 09 // SKINCOLOR_RASPBERRY
-	"RED",            // 10 // SKINCOLOR_RED
-	"RUBY",           // 11 // SKINCOLOR_RUBY
-	"CRIMSON",        // 12 // SKINCOLOR_CRIMSON
-	"KETCHUP",        // 13 // SKINCOLOR_KETCHUP
-	"DAWN",           // 14 // SKINCOLOR_DAWN
-	"CREAMSICLE",     // 15 // SKINCOLOR_CREAMSICLE
-	"ORANGE",         // 16 // SKINCOLOR_ORANGE
-	"PUMPKIN",        // 17 // SKINCOLOR_PUMPKIN
-	"ROSEWOOD",       // 18 // SKINCOLOR_ROSEWOOD
-	"BURGUNDY",       // 19 // SKINCOLOR_BURGUNDY
-	"BRONZE",         // 20 // SKINCOLOR_BRONZE
-	"SEPIA",          // 21 // SKINCOLOR_SEPIA
-	"BEIGE",          // 22 // SKINCOLOR_BEIGE
-	"BROWN",          // 23 // SKINCOLOR_BROWN
-	"LEATHER",        // 24 // SKINCOLOR_LEATHER
+	"SEPIA",          // 06 // SKINCOLOR_SEPIA
+	"BEIGE",          // 07 // SKINCOLOR_BEIGE
+	"BROWN",          // 08 // SKINCOLOR_BROWN
+	"LEATHER",        // 09 // SKINCOLOR_LEATHER
+	"SALMON",         // 10 // SKINCOLOR_SALMON
+	"PINK",           // 11 // SKINCOLOR_PINK
+	"ROSE",           // 12 // SKINCOLOR_ROSE
+	"RASPBERRY",      // 13 // SKINCOLOR_RASPBERRY
+	"RED",            // 14 // SKINCOLOR_RED
+	"RUBY",           // 15 // SKINCOLOR_RUBY
+	"CRIMSON",        // 16 // SKINCOLOR_CRIMSON
+	"KETCHUP",        // 17 // SKINCOLOR_KETCHUP
+	"DAWN",           // 18 // SKINCOLOR_DAWN
+	"CREAMSICLE",     // 19 // SKINCOLOR_CREAMSICLE
+	"ORANGE",         // 20 // SKINCOLOR_ORANGE
+	"PUMPKIN",        // 21 // SKINCOLOR_PUMPKIN
+	"ROSEWOOD",       // 22 // SKINCOLOR_ROSEWOOD
+	"BURGUNDY",       // 23 // SKINCOLOR_BURGUNDY
+	"TANGERINE",      // 24 // SKINCOLOR_TANGERINE
 	"PEACH",          // 25 // SKINCOLOR_PEACH
 	"CARAMEL",        // 26 // SKINCOLOR_CARAMEL
-	"TANGERINE",      // 27 // SKINCOLOR_TANGERINE
-	"GOLD",           // 28 // SKINCOLOR_GOLD
-	"VOMIT",          // 29 // SKINCOLOR_VOMIT
-	"YELLOW",         // 30 // SKINCOLOR_YELLOW
-	"MUSTARD",        // 31 // SKINCOLOR_MUSTARD
-	"OLIVE",          // 32 // SKINCOLOR_OLIVE
+	"GOLD",           // 27 // SKINCOLOR_GOLD
+	"BRONZE",         // 28 // SKINCOLOR_BRONZE
+	"YELLOW",         // 29 // SKINCOLOR_YELLOW
+	"MUSTARD",        // 30 // SKINCOLOR_MUSTARD
+	"OLIVE",          // 31 // SKINCOLOR_OLIVE
+	"VOMIT",          // 32 // SKINCOLOR_VOMIT
 	"GARDEN",         // 33 // SKINCOLOR_GARDEN
 	"LIME",           // 34 // SKINCOLOR_LIME
 	"DREAM",          // 35 // SKINCOLOR_DREAM
 	"TEA",            // 36 // SKINCOLOR_TEA
 	"PISTACHIO",      // 37 // SKINCOLOR_PISTACHIO
-	"MOSS",           // 38 // SKINCOLOR_MOSS
-	"MINT",           // 39 // SKINCOLOR_MINT
-	"GREEN",          // 40 // SKINCOLOR_GREEN
-	"ROBOHOOD",       // 41 // SKINCOLOR_ROBOHOOD
+	"ROBOHOOD",       // 38 // SKINCOLOR_ROBOHOOD
+	"MOSS",           // 39 // SKINCOLOR_MOSS
+	"MINT",           // 40 // SKINCOLOR_MINT
+	"GREEN",          // 41 // SKINCOLOR_GREEN
 	"PINETREE",       // 42 // SKINCOLOR_PINETREE
 	"EMERALD",        // 43 // SKINCOLOR_EMERALD
 	"SWAMP",          // 44 // SKINCOLOR_SWAMP
 	"AQUA",           // 45 // SKINCOLOR_AQUA
 	"TEAL",           // 46 // SKINCOLOR_TEAL
 	"CYAN",           // 47 // SKINCOLOR_CYAN
-	"CERULEAN",       // 48 // SKINCOLOR_CERULEAN
-	"JAWZ",           // 49 // SKINCOLOR_JAWZ
-	"SLATE",          // 50 // SKINCOLOR_SLATE
-	"STEEL",          // 51 // SKINCOLOR_STEEL
-	"PERIWINKLE",     // 52 // SKINCOLOR_PERIWINKLE
-	"BLUE",           // 53 // SKINCOLOR_BLUE
-	"SAPPHIRE",       // 54 // SKINCOLOR_SAPPHIRE
-	"BLUEBERRY",      // 55 // SKINCOLOR_BLUEBERRY
-	"NAVY",           // 56 // SKINCOLOR_NAVY
-	"JET",            // 57 // SKINCOLOR_JET
+	"JAWZ",           // 48 // SKINCOLOR_JAWZ
+	"CERULEAN",       // 49 // SKINCOLOR_CERULEAN
+	"NAVY",           // 50 // SKINCOLOR_NAVY
+	"SLATE",          // 51 // SKINCOLOR_SLATE
+	"STEEL",          // 52 // SKINCOLOR_STEEL
+	"JET",            // 53 // SKINCOLOR_JET
+	"PERIWINKLE",     // 54 // SKINCOLOR_PERIWINKLE
+	"BLUE",           // 55 // SKINCOLOR_BLUE
+	"SAPPHIRE",       // 56 // SKINCOLOR_SAPPHIRE
+	"BLUEBERRY",      // 57 // SKINCOLOR_BLUEBERRY
 	"DUSK",           // 58 // SKINCOLOR_DUSK
 	"PURPLE",         // 59 // SKINCOLOR_PURPLE
 	"LAVENDER",       // 60 // SKINCOLOR_LAVENDER
-	"INDIGO",         // 61 // SKINCOLOR_INDIGO
-	"BYZANTIUM",      // 62 // SKINCOLOR_BYZANTIUM
+	"BYZANTIUM",      // 61 // SKINCOLOR_BYZANTIUM
+	"POMEGRANATE",    // 62 // SKINCOLOR_POMEGRANATE
 	"LILAC",          // 63 // SKINCOLOR_LILAC
 
 	// Super special awesome Super flashing colors!

@@ -188,7 +188,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(hscale, spring->scale))));
 		else
 		{
-			fixed_t finalSpeed = horizspeed;
+			fixed_t finalSpeed = FixedDiv(horizspeed, hscale);
 			fixed_t pSpeed = object->player->speed;
 
 			if (pSpeed > finalSpeed)
