@@ -1565,7 +1565,7 @@ static void HU_DrawChat(void)
 			if (hu_tick < 4)
 				V_DrawChatCharacter(cursorx, cursory+1, '_' |V_SNAPTOBOTTOM|V_SNAPTOLEFT|t, !cv_allcaps.value, NULL);
 
-			if (cursorx == chatx+1)	// a weirdo hack
+			if (cursorx == chatx+1 && strlen(w_chat) == i)	// a weirdo hack
 			{
 				typelines += 1;
 				skippedline = true;
