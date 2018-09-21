@@ -112,11 +112,11 @@ extern consvar_t cv_recycler;*/
 extern consvar_t cv_sneaker, cv_rocketsneaker, cv_invincibility, cv_banana;
 extern consvar_t cv_eggmanmonitor, cv_orbinaut, cv_jawz, cv_mine;
 extern consvar_t cv_ballhog, cv_selfpropelledbomb, cv_grow, cv_shrink;
-extern consvar_t cv_thundershield, cv_hyudoro, cv_pogospring;
+extern consvar_t cv_thundershield, cv_hyudoro, cv_pogospring, cv_kitchensink;
 
-extern consvar_t cv_triplesneaker, cv_triplebanana, cv_tripleorbinaut, cv_dualjawz;
+extern consvar_t cv_triplesneaker, cv_triplebanana, cv_decabanana;
+extern consvar_t cv_tripleorbinaut, cv_quadorbinaut, cv_dualjawz;
 
-extern consvar_t cv_karthud;
 extern consvar_t cv_kartminimap;
 extern consvar_t cv_kartcheck;
 extern consvar_t cv_kartinvinsfx;
@@ -133,7 +133,8 @@ extern consvar_t cv_karteliminatelast;
 
 extern consvar_t cv_votetime;
 
-extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugcheckpoint, cv_kartdebugshrink;
+extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugshrink, cv_kartdebugdistribution;
+extern consvar_t cv_kartdebugcheckpoint;
 
 extern consvar_t cv_itemfinder;
 

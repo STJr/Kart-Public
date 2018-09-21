@@ -885,6 +885,8 @@ typedef enum
 	sfx_ruby1,
 	sfx_ruby2,
 	sfx_hogbom,
+	sfx_kpogos,
+	sfx_ddash,
 	sfx_dbgsal,
 
 	sfx_kwin,

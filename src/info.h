@@ -582,6 +582,10 @@ typedef enum sprite
 
 	SPR_RNDM, // Random Item Box
 	SPR_RPOP, // Random Item Box Pop
+	SPR_FAST, // Speed boost trail
+	SPR_DSHR, // Speed boost dust release
+	SPR_BOST, // Sneaker booster flame
+	SPR_BOSM, // Sneaker booster smoke
 	SPR_KFRE, // Sneaker fire trail
 	SPR_KINV, // Invincibility sparkle trail
 	SPR_KINF, // Invincibility flash
@@ -637,6 +641,7 @@ typedef enum sprite
 	SPR_WANT,
 
 	SPR_PBOM, // player bomb
+	SPR_RETI, // player reticule
 
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 
@@ -3078,12 +3083,12 @@ typedef enum state
 	//}
 
 	// Drift Sparks
-	S_DRIFTSPARK1,
-	S_DRIFTSPARK2,
-	S_DRIFTSPARK3,
-	S_DRIFTSPARK4,
-	S_DRIFTSPARK5,
-	S_DRIFTSPARK6,
+	S_DRIFTSPARK_A1,
+	S_DRIFTSPARK_A2,
+	S_DRIFTSPARK_A3,
+	S_DRIFTSPARK_B1,
+	S_DRIFTSPARK_C1,
+	S_DRIFTSPARK_C2,
 
 	// Drift Smoke
 	S_DRIFTDUST1,
@@ -3091,7 +3096,33 @@ typedef enum state
 	S_DRIFTDUST3,
 	S_DRIFTDUST4,
 
+	// Fast lines
+	S_FASTLINE1,
+	S_FASTLINE2,
+	S_FASTLINE3,
+	S_FASTLINE4,
+	S_FASTLINE5,
+
+	// Fast dust release
+	S_FASTDUST1,
+	S_FASTDUST2,
+	S_FASTDUST3,
+	S_FASTDUST4,
+	S_FASTDUST5,
+	S_FASTDUST6,
+	S_FASTDUST7,
+
 	// Magnet Burst
+
+	// Sneaker boost effect
+	S_BOOSTFLAME,
+	S_BOOSTSMOKESPAWNER,
+	S_BOOSTSMOKE1,
+	S_BOOSTSMOKE2,
+	S_BOOSTSMOKE3,
+	S_BOOSTSMOKE4,
+	S_BOOSTSMOKE5,
+	S_BOOSTSMOKE6,
 
 	// Sneaker Fire Trail
 	S_KARTFIRE1,
@@ -3205,6 +3236,8 @@ typedef enum state
 	S_JAWZ_DEAD1,
 	S_JAWZ_DEAD2,
 	//}
+
+	S_PLAYERRETICULE, // Player reticule
 
 	// Special Stage Mine
 	S_SSMINE1,
@@ -3323,6 +3356,7 @@ typedef enum state
 
 	// The legend
 	S_SINK,
+	S_SINK_SHIELD,
 	S_SINKTRAIL1,
 	S_SINKTRAIL2,
 	S_SINKTRAIL3,
@@ -4067,11 +4101,15 @@ typedef enum mobj_type
 	MT_RANDOMITEM,
 	MT_RANDOMITEMPOP,
 
+	MT_FASTLINE,
+	MT_FASTDUST,
+	MT_BOOSTFLAME,
+	MT_BOOSTSMOKE,
 	MT_SNEAKERTRAIL,
 	MT_SPARKLETRAIL,
 	MT_INVULNFLASH,
 	MT_WIPEOUTTRAIL,
-	MT_DRIFT,
+	MT_DRIFTSPARK,
 	MT_DRIFTDUST,
 
 	MT_FAKESHIELD,
@@ -4086,6 +4124,8 @@ typedef enum mobj_type
 	MT_JAWZ, // Jawz stuff
 	MT_JAWZ_DUD,
 	MT_JAWZ_SHIELD, 
+
+	MT_PLAYERRETICULE, // Jawz reticule
 
 	MT_SSMINE, // Mine stuff
 	MT_SSMINE_SHIELD,
@@ -4106,6 +4146,7 @@ typedef enum mobj_type
 	MT_THUNDERSHIELD, // Thunder Shield stuff
 
 	MT_SINK, // Kitchen Sink Stuff
+	MT_SINK_SHIELD,
 	MT_SINKTRAIL,
 
 	MT_BATTLEBUMPER, // Battle Mode bumpers

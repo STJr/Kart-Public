@@ -64,9 +64,6 @@ CV_PossibleValue_t CV_Unsigned[] = {{0, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 CV_PossibleValue_t CV_Natural[] = {{1, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 
 //SRB2kart
-CV_PossibleValue_t karthud_cons_t[] = {
-	{0, "Off"}, {1, "Default"}, {2, "SNES"}, {3, "MK64"},
-	{0, NULL}};
 CV_PossibleValue_t kartspeed_cons_t[] = {
 	{0, "Easy"}, {1, "Normal"}, {2, "Hard"},
 	{0, NULL}};

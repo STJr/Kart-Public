@@ -29,7 +29,7 @@ consvar_t cv_mousesens = {"mousesens", "35", CV_SAVE, mousesens_cons_t, NULL, 0,
 consvar_t cv_mousesens2 = {"mousesens2", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_mouseysens = {"mouseysens", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_mouseysens2 = {"mouseysens2", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_controlperkey = {"controlperkey", "One", CV_SAVE, onecontrolperkey_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_controlperkey = {"controlperkey", "Several", CV_SAVE, onecontrolperkey_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 INT32 mousex, mousey;
 INT32 mlooky; // like mousey but with a custom sensitivity for mlook
@@ -1208,6 +1208,7 @@ static const char *gamecontrolname[num_gamecontrols] =
 	"scores",
 	"console",
 	"pause",
+	"systemmenu",
 	"custom1",
 	"custom2",
 	"custom3",
@@ -1283,68 +1284,53 @@ void G_Controldefault(void)
 	gamecontrol[gc_fire       ][0] = KEY_SPACE;
 	gamecontrol[gc_lookback   ][0] = KEY_LSHIFT;
 
-	gamecontrol[gc_aimforward ][1] = KEY_HAT1+0;
-	gamecontrol[gc_aimbackward][1] = KEY_HAT1+1;
-	gamecontrol[gc_turnleft   ][1] = KEY_HAT1+2;
-	gamecontrol[gc_turnright  ][1] = KEY_HAT1+3;
 	gamecontrol[gc_accelerate ][1] = KEY_JOY1+0; // A
-	gamecontrol[gc_drift      ][1] = KEY_JOY1+1; // X
+	gamecontrol[gc_lookback   ][1] = KEY_JOY1+1; // X
 	gamecontrol[gc_brake      ][1] = KEY_JOY1+2; // B
-	gamecontrol[gc_fire       ][1] = KEY_JOY1+4; // LB 
-	gamecontrol[gc_lookback   ][1] = KEY_JOY1+5; // RB
+	gamecontrol[gc_fire       ][1] = KEY_JOY1+4; // LB
+	gamecontrol[gc_drift      ][1] = KEY_JOY1+5; // RB
 	
 	// Extra controls
 	gamecontrol[gc_pause      ][0] = KEY_PAUSE;
 	gamecontrol[gc_console    ][0] = KEY_CONSOLE;
 	gamecontrol[gc_talkkey    ][0] = 't';
-	gamecontrol[gc_teamkey    ][0] = 'y';
+	//gamecontrol[gc_teamkey    ][0] = 'y';
 	gamecontrol[gc_scores     ][0] = KEY_TAB;
 	gamecontrol[gc_spectate   ][0] = '\'';
-
-	gamecontrol[gc_scores     ][1] = KEY_JOY1+6; // Back
-	gamecontrol[gc_spectate   ][1] = KEY_JOY1+7; // Start (This is sort of like MP's pause...?)
-
 	gamecontrol[gc_lookup     ][0] = KEY_PGUP;
 	gamecontrol[gc_lookdown   ][0] = KEY_PGDN;
 	gamecontrol[gc_centerview ][0] = KEY_END;
 	gamecontrol[gc_camreset   ][0] = KEY_HOME;
 	gamecontrol[gc_camtoggle  ][0] = KEY_BACKSPACE;
 
+	//gamecontrol[gc_viewpoint  ][1] = KEY_JOY1+3; // Y
+	gamecontrol[gc_pause      ][1] = KEY_JOY1+6; // Back
+	gamecontrol[gc_systemmenu ][0] = KEY_JOY1+7; // Start
+	gamecontrol[gc_camtoggle  ][1] = KEY_HAT1+0; // D-Pad Up
+	//gamecontrol[gc_screenshot ][1] = KEY_HAT1+1; // D-Pad Down
+	gamecontrol[gc_talkkey    ][1] = KEY_HAT1+2; // D-Pad Left
+	gamecontrol[gc_scores     ][1] = KEY_HAT1+3; // D-Pad Right
+
 	// Player 2 controls
-	gamecontrolbis[gc_aimforward ][0] = KEY_2HAT1+0;
-	gamecontrolbis[gc_aimbackward][0] = KEY_2HAT1+1;
-	gamecontrolbis[gc_turnleft   ][0] = KEY_2HAT1+2;
-	gamecontrolbis[gc_turnright  ][0] = KEY_2HAT1+3;
 	gamecontrolbis[gc_accelerate ][0] = KEY_2JOY1+0; // A
-	gamecontrolbis[gc_drift      ][0] = KEY_2JOY1+1; // X
+	gamecontrolbis[gc_lookback   ][0] = KEY_2JOY1+1; // X
 	gamecontrolbis[gc_brake      ][0] = KEY_2JOY1+2; // B
 	gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+4; // LB 
-	gamecontrolbis[gc_lookback   ][0] = KEY_2JOY1+5; // RB
-	gamecontrolbis[gc_spectate   ][0] = KEY_2JOY1+7; // Start
+	gamecontrolbis[gc_drift      ][0] = KEY_2JOY1+5; // RB
 
 	// Player 3 controls
-	gamecontrol3[gc_aimforward ][0] = KEY_3HAT1+0;
-	gamecontrol3[gc_aimbackward][0] = KEY_3HAT1+1;
-	gamecontrol3[gc_turnleft   ][0] = KEY_3HAT1+2;
-	gamecontrol3[gc_turnright  ][0] = KEY_3HAT1+3;
 	gamecontrol3[gc_accelerate ][0] = KEY_3JOY1+0; // A
-	gamecontrol3[gc_drift      ][0] = KEY_3JOY1+1; // X
+	gamecontrol3[gc_lookback   ][0] = KEY_3JOY1+1; // X
 	gamecontrol3[gc_brake      ][0] = KEY_3JOY1+2; // B
 	gamecontrol3[gc_fire       ][0] = KEY_3JOY1+4; // LB 
-	gamecontrol3[gc_lookback   ][0] = KEY_3JOY1+5; // RB
-	gamecontrol3[gc_spectate   ][0] = KEY_3JOY1+7; // Start
+	gamecontrol3[gc_drift      ][0] = KEY_3JOY1+5; // RB
 
 	// Player 4 controls
-	gamecontrol4[gc_aimforward ][0] = KEY_4HAT1+0;
-	gamecontrol4[gc_aimbackward][0] = KEY_4HAT1+1;
-	gamecontrol4[gc_turnleft   ][0] = KEY_4HAT1+2;
-	gamecontrol4[gc_turnright  ][0] = KEY_4HAT1+3;
 	gamecontrol4[gc_accelerate ][0] = KEY_4JOY1+0; // A
-	gamecontrol4[gc_drift      ][0] = KEY_4JOY1+1; // X
+	gamecontrol4[gc_lookback   ][0] = KEY_4JOY1+1; // X
 	gamecontrol4[gc_brake      ][0] = KEY_4JOY1+2; // B
 	gamecontrol4[gc_fire       ][0] = KEY_4JOY1+4; // LB 
-	gamecontrol4[gc_lookback   ][0] = KEY_4JOY1+5; // RB
-	gamecontrol4[gc_spectate   ][0] = KEY_4JOY1+7; // Start
+	gamecontrol4[gc_drift      ][0] = KEY_4JOY1+5; // RB
 }
 //#endif
 

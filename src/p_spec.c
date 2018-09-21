@@ -3618,10 +3618,7 @@ void P_ProcessSpecialSector(player_t *player, sector_t *sector, sector_t *rovers
 			if (gametype == GT_CTF && player->gotflag & (GF_REDFLAG|GF_BLUEFLAG))
 				P_PlayerFlagBurst(player, false);
 			break;
-		case 12: // Space Countdown
-			if ((player->powers[pw_shield] & SH_NOSTACK) != SH_ELEMENTAL && !player->powers[pw_spacetime])
-				player->powers[pw_spacetime] = spacetimetics + 1;
-			break;
+		case 12: // Wall Sector (Don't step-up/down)
 		case 13: // Ramp Sector (Increase step-up/down)
 		case 14: // Non-Ramp Sector (Don't step-down)
 		case 15: // Bouncy Sector (FOF Control Only)
@@ -3760,8 +3757,8 @@ DoneSection2:
 		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
-				const fixed_t minspeed = 24*scale;
+				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t minspeed = 24*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
@@ -3780,9 +3777,9 @@ DoneSection2:
 		case 3: // SRB2kart: Spring Panel (capped speed)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t scale = mapheaderinfo[gamemap-1]->mobj_scale + abs(player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
-				const fixed_t minspeed = 24*scale;
-				const fixed_t maxspeed = 36*scale;
+				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t minspeed = 24*hscale;
+				const fixed_t maxspeed = 28*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
@@ -3802,7 +3799,7 @@ DoneSection2:
 
 		case 5: // Speed pad w/o spin
 		case 6: // Speed pad w/ spin
-			if (player->powers[pw_flashing] != 0 && player->powers[pw_flashing] < TICRATE/2)
+			if (player->kartstuff[k_dashpadcooldown] != 0)
 				break;
 
 			i = P_FindSpecialLineFromTag(4, sector->tag, -1);
@@ -3816,6 +3813,11 @@ DoneSection2:
 				linespeed = P_AproxDistance(lines[i].v2->x-lines[i].v1->x, lines[i].v2->y-lines[i].v1->y);
 
 				player->mo->angle = lineangle;
+
+				// SRB2Kart: Scale the speed you get from them!
+				// This is scaled differently from other horizontal speed boosts from stuff like springs, because of how this is used for some ramp jumps.
+				if (player->mo->scale > mapheaderinfo[gamemap-1]->mobj_scale)
+					linespeed = FixedMul(linespeed, mapheaderinfo[gamemap-1]->mobj_scale + (player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale));
 
 				if (!demoplayback || P_AnalogMove(player))
 				{
@@ -3847,15 +3849,15 @@ DoneSection2:
 
 				P_InstaThrust(player->mo, player->mo->angle, linespeed);
 
-				if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH))
+				/*if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH)) // SRB2kart
 				{
 					if (!(player->pflags & PF_SPINNING))
 						player->pflags |= PF_SPINNING;
 
-					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); // SRB2kart
-				}
+					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); 
+				}*/
 
-				player->powers[pw_flashing] = TICRATE/3;
+				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
 				S_StartSound(player->mo, sfx_spdpad);
 			}
 			break;

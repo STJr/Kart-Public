@@ -188,7 +188,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			P_InstaThrustEvenIn2D(object, spring->angle, FixedMul(horizspeed,FixedSqrt(FixedMul(hscale, spring->scale))));
 		else
 		{
-			fixed_t finalSpeed = horizspeed;
+			fixed_t finalSpeed = FixedDiv(horizspeed, hscale);
 			fixed_t pSpeed = object->player->speed;
 
 			if (pSpeed > finalSpeed)
@@ -698,7 +698,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			K_KartBouncing(thing, tmthing, false, false);
 
 			if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD)
-				S_StartSound(thing, sfx_shelit);
+				S_StartSound(thing, sfx_s3k7b);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -981,7 +981,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			K_KartBouncing(tmthing, thing, false, false);
 
 			if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
-				S_StartSound(tmthing, sfx_shelit);
+				S_StartSound(tmthing, sfx_s3k7b);
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -1491,10 +1491,15 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (thing->player->kartstuff[k_squishedtimer] || thing->player->kartstuff[k_hyudorotimer]
 				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (FRACUNIT/8)
-				|| (G_BattleGametype() && thing->player->kartstuff[k_bumper] <= 0)
 				|| tmthing->player->kartstuff[k_squishedtimer] || tmthing->player->kartstuff[k_hyudorotimer]
-				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8)
-				|| (G_BattleGametype() && tmthing->player->kartstuff[k_bumper] <= 0))
+				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8))
+			{
+				return true;
+			}
+
+			if (G_BattleGametype()
+				&& ((thing->player->kartstuff[k_bumper] && !tmthing->player->kartstuff[k_bumper])
+				|| (tmthing->player->kartstuff[k_bumper] && !thing->player->kartstuff[k_bumper])))
 			{
 				return true;
 			}
@@ -2587,6 +2592,10 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 				if (P_PlayerTouchingSectorSpecial(thing->player, 1, 13)
 				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 13)
 					maxstep <<= 1;
+				// If using type Section1:12, no maxstep. For ledges you don't want the player to climb! (see: Egg Zeppelin & SMK port walls)
+				else if (P_PlayerTouchingSectorSpecial(thing->player, 1, 12)
+				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 12)
+					maxstep = 0;
 
 				// Don't 'step up' while springing,
 				// Only step up "if needed".
@@ -2793,7 +2802,7 @@ boolean P_SceneryTryMove(mobj_t *thing, fixed_t x, fixed_t y)
 
 		if (!(thing->flags & MF_NOCLIP))
 		{
-			const fixed_t maxstep = MAXSTEPMOVE;
+			const fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
 
 			if (tmceilingz - tmfloorz < thing->height)
 				return false; // doesn't fit
@@ -3276,7 +3285,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
 	if (opentop - slidemo->z < slidemo->height)
 		goto isblocking; // mobj is too high
 
-	if (openbottom - slidemo->z > FixedMul(MAXSTEPMOVE, slidemo->scale))
+	if (openbottom - slidemo->z > FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale))
 		goto isblocking; // too big a step up
 
 	// this line doesn't block movement

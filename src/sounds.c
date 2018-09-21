@@ -438,7 +438,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k59",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k5c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k5c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Mine tick
   {"s3k5d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5f",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -469,7 +469,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k78",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k79",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k7a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k7b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k7b",  false,  64, 16, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart successful hit
   {"s3k7c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k7d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k7e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -483,7 +483,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k86",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k87",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k88",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k89",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k89",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Jawz target
   {"s3k8a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k8b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k8c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -645,7 +645,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm36", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm37", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm38", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm39", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SS Mine deployed
+  {"cdfm39", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Mine deployed
   {"cdfm40", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm41", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm42", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -813,6 +813,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"ruby1",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"ruby2",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"hogbom", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kpogos", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"dbgsal", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
