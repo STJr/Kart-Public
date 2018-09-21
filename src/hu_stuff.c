@@ -1523,6 +1523,7 @@ static void HU_DrawChat(void)
 	INT32 charwidth = 4, charheight = 6;
 	INT32 t = 0, c = 0, y = chaty - (typelines*charheight)  - (cv_kartspeedometer.value ? 16 : 0);
 	UINT32 i = 0;
+	INT32 saylen = strlen(w_chat);	// You learn new things everyday!
 	const char *ntalk = "Say: ", *ttalk = "Team: ";
 	const char *talk = ntalk;
 
@@ -1538,7 +1539,7 @@ static void HU_DrawChat(void)
 	}
 
 	V_DrawFillConsoleMap(chatx, y-1, cv_chatwidth.value, (typelines*charheight), 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);
-
+	
 	while (talk[i])
 	{
 		if (talk[i] < HU_FONTSTART)
@@ -1565,7 +1566,7 @@ static void HU_DrawChat(void)
 			if (hu_tick < 4)
 				V_DrawChatCharacter(cursorx, cursory+1, '_' |V_SNAPTOBOTTOM|V_SNAPTOLEFT|t, !cv_allcaps.value, NULL);
 
-			if (cursorx == chatx+1 && strlen(w_chat) == i)	// a weirdo hack
+			if (cursorx == chatx+1 && saylen == i)	// a weirdo hack
 			{
 				typelines += 1;
 				skippedline = true;
