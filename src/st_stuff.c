@@ -770,7 +770,7 @@ static void ST_drawLevelTitle(void)
 
 	lvlw = V_LevelNameWidth(lvlttl);
 
-	if (strlen(actnum) > 0)
+	if (actnum[0])
 		lvlttlxpos = ((BASEVIDWIDTH/2) - (lvlw/2)) - V_LevelNameWidth(actnum);
 	else
 		lvlttlxpos = ((BASEVIDWIDTH/2) - (lvlw/2));
@@ -802,6 +802,7 @@ static void ST_drawLevelTitle(void)
 		V_DrawDiag(sub + ttlnumxpos + 1, bary, 11, 31);
 		V_DrawFill(sub - dupcalc, bary, ttlnumxpos+dupcalc, 10, gtc);
 		V_DrawDiag(sub + ttlnumxpos, bary, 10, gtc);
+
 		if (subttl[0])
 			V_DrawRightAlignedString(sub + zonexpos - 8, bary+1, V_ALLOWLOWERCASE, subttl);
 		//else

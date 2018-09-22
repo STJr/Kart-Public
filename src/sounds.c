@@ -810,6 +810,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"yeeeah", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"noooo1", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"ruby1",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"ruby2",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"hogbom", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kpogos", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

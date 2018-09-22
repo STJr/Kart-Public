@@ -207,7 +207,7 @@ const char *R_GetPalname(UINT16 num)
 const char *GetPalette(void)
 {
 	if (gamestate == GS_LEVEL)
-		return R_GetPalname(mapheaderinfo[gamemap-1]->palette);
+		return R_GetPalname((encoremode ? mapheaderinfo[gamemap-1]->encorepal : mapheaderinfo[gamemap-1]->palette));
 	return "PLAYPAL";
 }
 
@@ -248,6 +248,9 @@ void V_SetPaletteLump(const char *pal)
 #endif
 	if (rendermode != render_none)
 		I_SetPalette(pLocalPalette);
+#ifdef HASINVERT
+	R_MakeInvertmap();
+#endif
 }
 
 static void CV_usegamma_OnChange(void)

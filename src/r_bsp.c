@@ -37,6 +37,26 @@ drawseg_t *ds_p = NULL;
 // indicates doors closed wrt automap bugfix:
 INT32 doorclosed;
 
+static boolean R_NoEncore(sector_t *sector, boolean ceiling)
+{
+	boolean invertencore = (GETSECSPECIAL(sector->special, 2) == 15);
+#if 0 // perfect implementation
+	INT32 val = GETSECSPECIAL(sector->special, 3);
+	if (val != 1 && val != 3 // spring panel
+#else // optimised, see #define GETSECSPECIAL(i,j) ((i >> ((j-1)*4))&15)
+	if ((!(sector->special & (1<<8)) || (sector->special & ((4|8)<<8))) // spring panel
+#endif
+		&& GETSECSPECIAL(sector->special, 4) != 6) // sneaker panel
+			return invertencore;
+
+	if (invertencore)
+		return false;
+
+	if (ceiling)
+		return ((boolean)(sector->flags & SF_FLIPSPECIAL_CEILING));
+	return ((boolean)(sector->flags & SF_FLIPSPECIAL_FLOOR));
+}
+
 //
 // R_ClearDrawSegs
 //
@@ -935,7 +955,7 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 #ifdef ESLOPE
 			, frontsector->f_slope
 #endif
-			);
+			, R_NoEncore(frontsector, false));
 	}
 	else
 		floorplane = NULL;
@@ -957,7 +977,7 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 #ifdef ESLOPE
 			, frontsector->c_slope
 #endif
-			);
+			, R_NoEncore(frontsector, true));
 	}
 	else
 		ceilingplane = NULL;
@@ -1018,7 +1038,7 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 #ifdef ESLOPE
 					, *rover->b_slope
 #endif
-					);
+					, R_NoEncore(rover->master->frontsector, true));
 
 #ifdef ESLOPE
 				ffloor[numffloors].slope = *rover->b_slope;
@@ -1064,7 +1084,7 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 #ifdef ESLOPE
 					, *rover->t_slope
 #endif
-					);
+					, R_NoEncore(rover->master->frontsector, false));
 
 #ifdef ESLOPE
 				ffloor[numffloors].slope = *rover->t_slope;
@@ -1133,7 +1153,7 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 #ifdef ESLOPE
 					, NULL // will ffloors be slopable eventually?
 #endif
-					);
+					, R_NoEncore(polysec, false));
 
 				ffloor[numffloors].height = polysec->floorheight;
 				ffloor[numffloors].polyobj = po;
@@ -1179,7 +1199,7 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 #ifdef ESLOPE
 					, NULL // will ffloors be slopable eventually?
 #endif
-					);
+					, R_NoEncore(polysec, true));
 
 				ffloor[numffloors].polyobj = po;
 				ffloor[numffloors].height = polysec->ceilingheight;

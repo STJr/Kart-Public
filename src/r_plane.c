@@ -338,6 +338,8 @@ void R_MapPlane(INT32 y, INT32 x1, INT32 x2)
 	else
 #endif
 	ds_colormap = planezlight[pindex];
+	if (encoremap && !currentplane->noencore)
+		ds_colormap += (256*32);
 
 	if (currentplane->extra_colormap)
 		ds_colormap = currentplane->extra_colormap->colormap + (ds_colormap - colormaps);
@@ -440,7 +442,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 #ifdef ESLOPE
 			, pslope_t *slope
 #endif
-			)
+			, boolean noencore)
 {
 	visplane_t *check;
 	unsigned hash;
@@ -489,7 +491,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 #ifdef ESLOPE
 			&& check->slope == slope
 #endif
-			)
+			&& check->noencore == noencore)
 		{
 			return check;
 		}
@@ -517,6 +519,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 #ifdef ESLOPE
 	check->slope = slope;
 #endif
+	check->noencore = noencore;
 
 	memset(check->top, 0xff, sizeof (check->top));
 	memset(check->bottom, 0x00, sizeof (check->bottom));
@@ -589,6 +592,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop)
 #ifdef ESLOPE
 		new_pl->slope = pl->slope;
 #endif
+		new_pl->noencore = pl->noencore;
 		pl = new_pl;
 		pl->minx = start;
 		pl->maxx = stop;
@@ -706,6 +710,8 @@ void R_DrawPlanes(void)
 				// Because of this hack, sky is not affected
 				//  by INVUL inverse mapping.
 				dc_colormap = colormaps;
+				if (encoremap)
+					dc_colormap += (256*32);
 				dc_texturemid = skytexturemid;
 				dc_texheight = textureheight[skytexture]
 					>>FRACBITS;

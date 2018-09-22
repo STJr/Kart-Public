@@ -873,6 +873,9 @@ static void R_DrawVisSprite(vissprite_t *vis)
 	if (!dc_colormap)
 		dc_colormap = colormaps;
 
+	if (encoremap && !vis->mobj->color && !(vis->mobj->flags & MF_DONTENCOREMAP))
+			dc_colormap += (256*32);
+
 	dc_texturemid = vis->texturemid;
 	dc_texheight = 0;
 
@@ -973,6 +976,8 @@ static void R_DrawPrecipitationVisSprite(vissprite_t *vis)
 	}
 
 	dc_colormap = colormaps;
+	if (encoremap)
+		dc_colormap += (256*32);
 
 	dc_iscale = FixedDiv(FRACUNIT, vis->scale);
 	dc_texturemid = vis->texturemid;
