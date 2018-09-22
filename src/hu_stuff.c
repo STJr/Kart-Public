@@ -726,25 +726,39 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
         {
 			const UINT8 color = players[playernum].skincolor;
 			if (color <= SKINCOLOR_SILVER)
-				cstart = "\x80";
-			else if (color <= SKINCOLOR_BLACK || color == SKINCOLOR_JET)    // jet is more black than blue so it goes here.
-				cstart = "\x86";
+				cstart = "\x80"; // white
+			else if (color <= SKINCOLOR_BEIGE || color == SKINCOLOR_JET)
+				cstart = "\x86"; // V_GRAYMAP
+			else if (color <= SKINCOLOR_LEATHER)
+				cstart = "\x8A"; // V_GOLDMAP
+			else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_RUBY || color == SKINCOLOR_DAWN || color == SKINCOLOR_LILAC)
+				cstart = "\x8d"; // V_PINKMAP
 			else if (color <= SKINCOLOR_KETCHUP)
-				cstart = "\x85";
+				cstart = "\x85"; // V_REDMAP
+			else if (color <= SKINCOLOR_TANGERINE)
+				cstart = "\x87"; // V_ORANGEMAP
 			else if (color <= SKINCOLOR_CARAMEL)
-				cstart = "\x87";
-			else if (color <= SKINCOLOR_MUSTARD)
-				cstart = "\x82";
-			else if (SKINCOLOR_SWAMP)
-				cstart = "\x83";
-			else if (color <= SKINCOLOR_STEEL || color == SKINCOLOR_SAPPHIRE)    // toaster wanted that specific one too shrug
-				cstart = "\x88";
-			else if (color <= SKINCOLOR_NAVY)
-				cstart = "\x84";
-			else if (color <= SKINCOLOR_LILAC)
-				cstart = "\x81";
-			else
-				cstart = "\x83";
+				cstart = "\x8f"; // V_PEACHMAP
+			else if (color <= SKINCOLOR_BRONZE)
+				cstart = "\x8A"; // V_GOLDMAP
+			else if (color <= SKINCOLOR_MUSTARD || color == SKINCOLOR_LIME)
+				cstart = "\x82"; // V_YELLOWMAP
+			else if (color <= SKINCOLOR_PISTACHIO)
+				cstart = "\x8b"; // V_TEAMAP
+			else if (color <= SKINCOLOR_SWAMP)
+				cstart = "\x83"; // V_GREENMAP
+			else if (color <= SKINCOLOR_TEAL)
+				cstart = "\x8e"; // V_TEALMAP
+			else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
+				cstart = "\x88"; // V_SKYMAP
+			else if (color <= SKINCOLOR_STEEL)
+				cstart = "\x8c"; // V_STEELMAP
+			else if (color <= SKINCOLOR_BLUEBERRY)
+				cstart = "\x84"; // V_BLUEMAP
+			else if (color == SKINCOLOR_PURPLE)
+				cstart = "\x81"; // V_PURPLEMAP
+			else //if (color <= SKINCOLOR_POMEGRANATE)
+				cstart = "\x89"; // V_LAVENDERMAP
         }
 		prefix = cstart;
 		
@@ -1171,33 +1185,6 @@ boolean HU_Responder(event_t *ev)
 //                         HEADS UP DRAWING
 //======================================================================
 
-// Gets string colormap, used for 0x80 color codes
-//
-static UINT8 *CHAT_GetStringColormap(INT32 colorflags)	// pasted from video.c, sorry for the mess.
-{
-	switch ((colorflags & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT)
-	{
-	case 1: // 0x81, purple
-		return purplemap;
-	case 2: // 0x82, yellow
-		return yellowmap;
-	case 3: // 0x83, lgreen
-		return greenmap;
-	case 4: // 0x84, blue
-		return bluemap;
-	case 5: // 0x85, red
-		return redmap;
-	case 6: // 0x86, gray
-		return graymap;
-	case 7: // 0x87, orange
-		return orangemap;
-	case 8: // 0x88, sky
-		return skymap;
-	default: // reset
-		return NULL;
-	}
-}
-
 // Precompile a wordwrapped string to any given width.
 // This is a muuuch better method than V_WORDWRAP.
 // again stolen and modified a bit from video.c, don't mind me, will need to rearrange this one day.
@@ -1216,7 +1203,7 @@ static char *CHAT_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	for (i = 0; i < slen; ++i)
 	{
 		c = newstring[i];
-		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x89) //color parsing! -Inuyasha 2.16.09
+		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
 		if (c == '\n')
@@ -1333,6 +1320,7 @@ static void HU_drawMiniChat(void)
 		INT32 transflag = (timer >= 0 && timer <= 9) ? (timer*V_10TRANS) : 0;	// you can make bad jokes out of this one.
 		size_t j = 0;
 		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i]);	// get the current message, and word wrap it.
+		UINT8 *colormap = NULL;
 
 		while(msg[j])	// iterate through msg
 		{
@@ -1352,6 +1340,7 @@ static void HU_drawMiniChat(void)
 				else if (msg[j] & 0x80) // stolen from video.c, nice.
 				{
 					clrflag = ((msg[j] & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+					colormap = V_GetStringColormap(clrflag);
 					++j;
 					continue;
 				}
@@ -1360,8 +1349,6 @@ static void HU_drawMiniChat(void)
 			}
 			else
 			{
-				UINT8 *colormap = CHAT_GetStringColormap(clrflag);
-
 				if (cv_chatbacktint.value)	// on request of wolfy
 					V_DrawFillConsoleMap(x + dx + 2, y+dy, charwidth, charheight, 239|V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
@@ -1411,6 +1398,7 @@ static void HU_drawChatLog(INT32 offset)
 		INT32 clrflag = 0;
 		INT32 j = 0;
 		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_log[i]);	// get the current message, and word wrap it.
+		UINT8 *colormap = NULL;
 		while(msg[j])	// iterate through msg
 		{
 			if (msg[j] < HU_FONTSTART)	// don't draw
@@ -1425,6 +1413,7 @@ static void HU_drawChatLog(INT32 offset)
 				else if (msg[j] & 0x80) // stolen from video.c, nice.
 				{
 					clrflag = ((msg[j] & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+					colormap = V_GetStringColormap(clrflag);
 					++j;
 					continue;
 				}
@@ -1434,10 +1423,7 @@ static void HU_drawChatLog(INT32 offset)
 			else
 			{
 				if ((y+dy+2 >= chat_topy) && (y+dy < (chat_bottomy)))
-				{
-					UINT8 *colormap = CHAT_GetStringColormap(clrflag);
 					V_DrawChatCharacter(x + dx + 2, y+dy+2, msg[j++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT, !cv_allcaps.value, colormap);
-				}
 				else
 					j++;	// don't forget to increment this or we'll get stuck in the limbo.
 			}
@@ -1498,8 +1484,7 @@ static void HU_DrawChat(void)
 {
 	INT32 charwidth = 4, charheight = 6;
 	INT32 t = 0, c = 0, y = chaty - (typelines*charheight)  - (cv_kartspeedometer.value ? 16 : 0);
-	UINT32 i = 0;
-	INT32 saylen = strlen(w_chat);	// You learn new things everyday!
+	UINT32 i = 0, saylen = strlen(w_chat);	// You learn new things everyday!
 	const char *ntalk = "Say: ", *ttalk = "Team: ";
 	const char *talk = ntalk;
 
