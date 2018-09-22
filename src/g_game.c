@@ -3175,7 +3175,7 @@ INT16 G_SometimesGetDifferentGametype(void)
 					encorepossible = M_RandomChance(FRACUNIT>>3);
 					break;
 			}
-			if (encorepossible != cv_kartencore.value)
+			if (encorepossible != (boolean)cv_kartencore.value)
 				return (gametype|0x80);
 		}
 		return gametype;
