@@ -725,13 +725,13 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		else
         {
 			const UINT8 color = players[playernum].skincolor;
-			if (color <= SKINCOLOR_SILVER)
+			if (color <= SKINCOLOR_SILVER || color == SKINCOLOR_SLATE)
 				cstart = "\x80"; // white
 			else if (color <= SKINCOLOR_BEIGE || color == SKINCOLOR_JET)
 				cstart = "\x86"; // V_GRAYMAP
 			else if (color <= SKINCOLOR_LEATHER)
 				cstart = "\x8A"; // V_GOLDMAP
-			else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_RUBY || color == SKINCOLOR_DAWN || color == SKINCOLOR_LILAC)
+			else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_LILAC)
 				cstart = "\x8d"; // V_PINKMAP
 			else if (color <= SKINCOLOR_KETCHUP)
 				cstart = "\x85"; // V_REDMAP
@@ -741,11 +741,11 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x8f"; // V_PEACHMAP
 			else if (color <= SKINCOLOR_BRONZE)
 				cstart = "\x8A"; // V_GOLDMAP
-			else if (color <= SKINCOLOR_MUSTARD || color == SKINCOLOR_LIME)
+			else if (color <= SKINCOLOR_MUSTARD)
 				cstart = "\x82"; // V_YELLOWMAP
 			else if (color <= SKINCOLOR_PISTACHIO)
 				cstart = "\x8b"; // V_TEAMAP
-			else if (color <= SKINCOLOR_SWAMP)
+			else if (color <= SKINCOLOR_SWAMP || color == SKINCOLOR_LIME)
 				cstart = "\x83"; // V_GREENMAP
 			else if (color <= SKINCOLOR_TEAL)
 				cstart = "\x8e"; // V_TEALMAP
