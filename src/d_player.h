@@ -276,6 +276,7 @@ typedef enum
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
 	k_respawn,			// Timer for the DEZ laser respawn effect
+	k_dropdash,			// Charge up for respawn Drop Dash
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_lapanimation,		// Used to show the lap start wing logo animation
@@ -291,12 +292,19 @@ typedef enum
 	k_driftend,			// Drift has ended, used to adjust character angle after drift
 	k_driftcharge,		// Charge your drift so you can release a burst of speed
 	k_driftboost,		// Boost you get from drifting
-	k_boostcharge,		// Charge-up for boosting at the start of the race, or when dropping from respawn
+	k_boostcharge,		// Charge-up for boosting at the start of the race
+	k_startboost,		// Boost you get from start of race or respawn drop dash
 	k_jmp,				// In Mario Kart, letting go of the jump button stops the drift
 	k_offroad,			// In Super Mario Kart, going offroad has lee-way of about 1 second before you start losing speed
 	k_pogospring,		// Pogo spring bounce effect
 	k_brakestop,		// Wait until you've made a complete stop for a few tics before letting brake go in reverse.
 	k_waterskip,		// Water skipping counter
+	k_dashpadcooldown,	// Separate the vanilla SA-style dash pads from using pw_flashing
+	k_boostpower,		// Base boost value, for offroad
+	k_speedboost,		// Boost value smoothing for max speed
+	k_accelboost,		// Boost value smoothing for acceleration
+	k_boostcam,			// Camera push forward on boost
+	k_destboostcam,		// Ditto
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
@@ -321,7 +329,8 @@ typedef enum
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
 	k_eggmanblame,			// Fake item recieved, who set this fake
-	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down 
+	k_lastjawztarget,		// Last person you target with jawz, for playing the target switch sfx
+	k_bananadrag,			// After a second of holding a banana behind you, you start to slow down
 	k_spinouttimer,			// Spin-out from a banana peel or oil slick (was "pw_bananacam")
 	k_wipeoutslow,			// Timer before you slowdown when getting wiped out
 	k_justbumped,			// Prevent players from endlessly bumping into each other

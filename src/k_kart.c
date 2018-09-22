@@ -43,215 +43,229 @@
 const char *KartColor_Names[MAXSKINCOLORS] =
 {
 	"None",           // 00 // SKINCOLOR_NONE
-	"Ivory",          // 01 // SKINCOLOR_IVORY
-	"White",          // 02 // SKINCOLOR_WHITE
-	"Silver",         // 03 // SKINCOLOR_SILVER
-	"Cloudy",         // 04 // SKINCOLOR_CLOUDY
-	"Grey",           // 05 // SKINCOLOR_GREY
-	"Nickel",         // 06 // SKINCOLOR_NICKEL
-	"Black",          // 07 // SKINCOLOR_BLACK
-	"Salmon",         // 08 // SKINCOLOR_SALMON
-	"Pink",           // 09 // SKINCOLOR_PINK
-	"Rose",           // 10 // SKINCOLOR_ROSE
-	"Raspberry",      // 11 // SKINCOLOR_RASPBERRY
-	"Red",            // 12 // SKINCOLOR_RED
-	"Ruby",           // 13 // SKINCOLOR_RUBY
-	"Crimson",        // 14 // SKINCOLOR_CRIMSON
-	"Dawn",           // 15 // SKINCOLOR_DAWN
-	"Creamsicle",     // 16 // SKINCOLOR_CREAMSICLE
-	"Orange",         // 17 // SKINCOLOR_ORANGE
-	"Pumpkin",        // 18 // SKINCOLOR_PUMPKIN
-	"Rosewood",       // 19 // SKINCOLOR_ROSEWOOD
-	"Burgundy",       // 20 // SKINCOLOR_BURGUNDY
-	"Bronze",         // 21 // SKINCOLOR_BRONZE
-	"Sepia",          // 22 // SKINCOLOR_SEPIA
-	"Beige",          // 23 // SKINCOLOR_BEIGE
-	"Brown",          // 24 // SKINCOLOR_BROWN
-	"Leather",        // 25 // SKINCOLOR_LEATHER
-	"Peach",          // 26 // SKINCOLOR_PEACH
-	"Caramel",        // 27 // SKINCOLOR_CARAMEL
-	"Tangerine",      // 28 // SKINCOLOR_TANGERINE
-	"Gold",           // 29 // SKINCOLOR_GOLD
-	"Vomit",          // 30 // SKINCOLOR_VOMIT
-	"Yellow",         // 31 // SKINCOLOR_YELLOW
-	"Canary",         // 32 // SKINCOLOR_CANARY
-	"Olive",          // 33 // SKINCOLOR_OLIVE
-	"Garden",         // 34 // SKINCOLOR_GARDEN
-	"Lime",           // 35 // SKINCOLOR_LIME
+	"White",          // 01 // SKINCOLOR_WHITE
+	"Silver",         // 02 // SKINCOLOR_SILVER
+	"Grey",           // 03 // SKINCOLOR_GREY
+	"Nickel",         // 04 // SKINCOLOR_NICKEL
+	"Black",          // 05 // SKINCOLOR_BLACK
+	"Sepia",          // 06 // SKINCOLOR_SEPIA
+	"Beige",          // 07 // SKINCOLOR_BEIGE
+	"Brown",          // 08 // SKINCOLOR_BROWN
+	"Leather",        // 09 // SKINCOLOR_LEATHER
+	"Salmon",         // 10 // SKINCOLOR_SALMON
+	"Pink",           // 11 // SKINCOLOR_PINK
+	"Rose",           // 12 // SKINCOLOR_ROSE
+	"Raspberry",      // 13 // SKINCOLOR_RASPBERRY
+	"Red",            // 14 // SKINCOLOR_RED
+	"Ruby",           // 15 // SKINCOLOR_RUBY
+	"Crimson",        // 16 // SKINCOLOR_CRIMSON
+	"Ketchup",        // 17 // SKINCOLOR_KETCHUP
+	"Dawn",           // 18 // SKINCOLOR_DAWN
+	"Creamsicle",     // 19 // SKINCOLOR_CREAMSICLE
+	"Orange",         // 20 // SKINCOLOR_ORANGE
+	"Pumpkin",        // 21 // SKINCOLOR_PUMPKIN
+	"Rosewood",       // 22 // SKINCOLOR_ROSEWOOD
+	"Burgundy",       // 23 // SKINCOLOR_BURGUNDY
+	"Tangerine",      // 24 // SKINCOLOR_TANGERINE
+	"Peach",          // 25 // SKINCOLOR_PEACH
+	"Caramel",        // 26 // SKINCOLOR_CARAMEL
+	"Gold",           // 27 // SKINCOLOR_GOLD
+	"Bronze",         // 28 // SKINCOLOR_BRONZE
+	"Yellow",         // 29 // SKINCOLOR_YELLOW
+	"Mustard",        // 30 // SKINCOLOR_MUSTARD
+	"Olive",          // 31 // SKINCOLOR_OLIVE
+	"Vomit",          // 32 // SKINCOLOR_VOMIT
+	"Garden",         // 33 // SKINCOLOR_GARDEN
+	"Lime",           // 34 // SKINCOLOR_LIME
+	"Dream",          // 35 // SKINCOLOR_DREAM
 	"Tea",            // 36 // SKINCOLOR_TEA
-	"Army",           // 37 // SKINCOLOR_ARMY
-	"Pistachio",      // 38 // SKINCOLOR_PISTACHIO
+	"Pistachio",      // 37 // SKINCOLOR_PISTACHIO
+	"Robo-Hood",      // 38 // SKINCOLOR_ROBOHOOD
 	"Moss",           // 39 // SKINCOLOR_MOSS
 	"Mint",           // 40 // SKINCOLOR_MINT
 	"Green",          // 41 // SKINCOLOR_GREEN
-	"Robo-Hood",      // 42 // SKINCOLOR_ROBOHOOD
-	"Pinetree",       // 43 // SKINCOLOR_PINETREE
-	"Emerald",        // 44 // SKINCOLOR_EMERALD
-	"Swamp",          // 45 // SKINCOLOR_SWAMP
-	"Aqua",           // 46 // SKINCOLOR_AQUA
-	"Teal",           // 47 // SKINCOLOR_TEAL
-	"Cyan",           // 48 // SKINCOLOR_CYAN
+	"Pinetree",       // 42 // SKINCOLOR_PINETREE
+	"Emerald",        // 43 // SKINCOLOR_EMERALD
+	"Swamp",          // 44 // SKINCOLOR_SWAMP
+	"Aqua",           // 45 // SKINCOLOR_AQUA
+	"Teal",           // 46 // SKINCOLOR_TEAL
+	"Cyan",           // 47 // SKINCOLOR_CYAN
+	"Jawz",           // 48 // SKINCOLOR_JAWZ
 	"Cerulean",       // 49 // SKINCOLOR_CERULEAN
-	"Slate",          // 50 // SKINCOLOR_SLATE
-	"Steel",          // 51 // SKINCOLOR_STEEL
-	"Periwinkle",     // 52 // SKINCOLOR_PERIWINKLE
-	"Blue",           // 53 // SKINCOLOR_BLUE
-	"Sapphire",       // 54 // SKINCOLOR_SAPPHIRE
-	"Blueberry",      // 55 // SKINCOLOR_BLUEBERRY
-	"Navy",           // 56 // SKINCOLOR_NAVY
-	"Jet",            // 57 // SKINCOLOR_JET
+	"Navy",           // 50 // SKINCOLOR_NAVY
+	"Slate",          // 51 // SKINCOLOR_SLATE
+	"Steel",          // 52 // SKINCOLOR_STEEL
+	"Jet",            // 53 // SKINCOLOR_JET
+	"Periwinkle",     // 54 // SKINCOLOR_PERIWINKLE
+	"Blue",           // 55 // SKINCOLOR_BLUE
+	"Sapphire",       // 56 // SKINCOLOR_SAPPHIRE
+	"Blueberry",      // 57 // SKINCOLOR_BLUEBERRY
 	"Dusk",           // 58 // SKINCOLOR_DUSK
 	"Purple",         // 59 // SKINCOLOR_PURPLE
 	"Lavender",       // 60 // SKINCOLOR_LAVENDER
-	"Indigo",         // 61 // SKINCOLOR_INDIGO
-	"Byzantium",      // 62 // SKINCOLOR_BYZANTIUM
+	"Byzantium",      // 61 // SKINCOLOR_BYZANTIUM
+	"Pomegranate",    // 62 // SKINCOLOR_POMEGRANATE
 	"Lilac"           // 63 // SKINCOLOR_LILAC
 };
 
 // Color_Opposite replacement; frame setting has not been changed from 8 for most, should be done later
 const UINT8 KartColor_Opposite[MAXSKINCOLORS*2] =
 {
-	SKINCOLOR_NONE,8,        // 00 // SKINCOLOR_NONE
-	SKINCOLOR_BLACK,8,       // 01 // SKINCOLOR_IVORY
-	SKINCOLOR_NICKEL,8,      // 02 // SKINCOLOR_WHITE
-	SKINCOLOR_GREY,8,        // 03 // SKINCOLOR_SILVER
-	SKINCOLOR_CLOUDY,8,      // 04 // SKINCOLOR_CLOUDY
-	SKINCOLOR_SILVER,8,      // 05 // SKINCOLOR_GREY
-	SKINCOLOR_WHITE,8,       // 06 // SKINCOLOR_NICKEL
-	SKINCOLOR_IVORY,8,       // 07 // SKINCOLOR_BLACK
-	SKINCOLOR_TEA,8,         // 08 // SKINCOLOR_SALMON
-	SKINCOLOR_ARMY,8,        // 09 // SKINCOLOR_PINK
-	SKINCOLOR_MOSS,8,        // 10 // SKINCOLOR_ROSE
-	SKINCOLOR_MINT,10,       // 11 // SKINCOLOR_RASPBERRY
-	SKINCOLOR_GREEN,8,       // 12 // SKINCOLOR_RED
-	SKINCOLOR_EMERALD,6,     // 13 // SKINCOLOR_RUBY
-	SKINCOLOR_PINETREE,6,    // 14 // SKINCOLOR_CRIMSON
-	SKINCOLOR_DUSK,8,        // 15 // SKINCOLOR_DAWN
-	SKINCOLOR_PERIWINKLE,8,  // 16 // SKINCOLOR_CREAMSICLE
-	SKINCOLOR_BLUE,8,        // 17 // SKINCOLOR_ORANGE
-	SKINCOLOR_BLUEBERRY,8,   // 18 // SKINCOLOR_PUMPKIN
-	SKINCOLOR_NAVY,8,        // 19 // SKINCOLOR_ROSEWOOD
-	SKINCOLOR_JET,8,         // 20 // SKINCOLOR_BURGUNDY
-	SKINCOLOR_STEEL,8,       // 21 // SKINCOLOR_BRONZE
-	SKINCOLOR_LEATHER,6,     // 22 // SKINCOLOR_SEPIA
-	SKINCOLOR_BROWN,2,       // 23 // SKINCOLOR_BEIGE
-	SKINCOLOR_BEIGE,8,       // 24 // SKINCOLOR_BROWN
-	SKINCOLOR_SEPIA,8,       // 25 // SKINCOLOR_LEATHER
-	SKINCOLOR_SLATE,8,       // 26 // SKINCOLOR_PEACH
-	SKINCOLOR_TEAL,8,        // 27 // SKINCOLOR_CARAMEL
-	SKINCOLOR_LIME,8,        // 28 // SKINCOLOR_TANGERINE
-	SKINCOLOR_LAVENDER,6,    // 29 // SKINCOLOR_GOLD
-	SKINCOLOR_ROBOHOOD,8,    // 30 // SKINCOLOR_VOMIT
-	SKINCOLOR_BYZANTIUM,8,   // 31 // SKINCOLOR_YELLOW
-	SKINCOLOR_PURPLE,8,      // 32 // SKINCOLOR_CANARY
-	SKINCOLOR_INDIGO,8,      // 33 // SKINCOLOR_OLIVE
-	SKINCOLOR_AQUA,8,        // 34 // SKINCOLOR_GARDEN
-	SKINCOLOR_TANGERINE,8,   // 35 // SKINCOLOR_LIME
-	SKINCOLOR_SALMON,8,      // 36 // SKINCOLOR_TEA
-	SKINCOLOR_PINK,6,        // 37 // SKINCOLOR_ARMY
-	SKINCOLOR_CYAN,8,        // 38 // SKINCOLOR_PISTACHIO
-	SKINCOLOR_ROSE,8,        // 39 // SKINCOLOR_MOSS
-	SKINCOLOR_RASPBERRY,6,   // 40 // SKINCOLOR_MINT
-	SKINCOLOR_RED,8,         // 41 // SKINCOLOR_GREEN
-	SKINCOLOR_VOMIT,8,       // 42 // SKINCOLOR_ROBOHOOD
-	SKINCOLOR_CRIMSON,8,     // 43 // SKINCOLOR_PINETREE
-	SKINCOLOR_RUBY,8,        // 44 // SKINCOLOR_EMERALD
-	SKINCOLOR_SAPPHIRE,8,    // 45 // SKINCOLOR_SWAMP
-	SKINCOLOR_GARDEN,10,     // 46 // SKINCOLOR_AQUA
-	SKINCOLOR_CARAMEL,8,     // 47 // SKINCOLOR_TEAL
-	SKINCOLOR_PISTACHIO,6,   // 48 // SKINCOLOR_CYAN
-	SKINCOLOR_LILAC,8,       // 49 // SKINCOLOR_CERULEAN
-	SKINCOLOR_PEACH,8,       // 50 // SKINCOLOR_SLATE
-	SKINCOLOR_BRONZE,10,     // 51 // SKINCOLOR_STEEL
-	SKINCOLOR_CREAMSICLE,8,  // 52 // SKINCOLOR_PERIWINKLE
-	SKINCOLOR_ORANGE,8,      // 53 // SKINCOLOR_BLUE
-	SKINCOLOR_SWAMP,8,       // 54 // SKINCOLOR_SAPPHIRE
-	SKINCOLOR_PUMPKIN,8,     // 55 // SKINCOLOR_BLUEBERRY
-	SKINCOLOR_ROSEWOOD,8,    // 56 // SKINCOLOR_NAVY
-	SKINCOLOR_BURGUNDY,6,    // 57 // SKINCOLOR_JET
-	SKINCOLOR_DAWN,8,        // 58 // SKINCOLOR_DUSK
-	SKINCOLOR_CANARY,8,      // 59 // SKINCOLOR_PURPLE
-	SKINCOLOR_GOLD,10,       // 60 // SKINCOLOR_LAVENDER
-	SKINCOLOR_OLIVE,8,       // 61 // SKINCOLOR_INDIGO
-	SKINCOLOR_YELLOW,8,      // 62 // SKINCOLOR_BYZANTIUM
-	SKINCOLOR_CERULEAN,8     // 63 // SKINCOLOR_LILAC
+	SKINCOLOR_NONE,8,         // 00 // SKINCOLOR_NONE
+	SKINCOLOR_BLACK,8,        // 01 // SKINCOLOR_WHITE
+	SKINCOLOR_NICKEL,8,       // 02 // SKINCOLOR_SILVER
+	SKINCOLOR_GREY,8,         // 03 // SKINCOLOR_GREY
+	SKINCOLOR_SILVER,8,       // 04 // SKINCOLOR_NICKEL
+	SKINCOLOR_WHITE,8,        // 05 // SKINCOLOR_BLACK
+	SKINCOLOR_LEATHER,6,      // 06 // SKINCOLOR_SEPIA
+	SKINCOLOR_BROWN,2,        // 07 // SKINCOLOR_BEIGE
+	SKINCOLOR_BEIGE,8,        // 08 // SKINCOLOR_BROWN
+	SKINCOLOR_SEPIA,8,        // 09 // SKINCOLOR_LEATHER
+	SKINCOLOR_TEA,8,          // 10 // SKINCOLOR_SALMON
+	SKINCOLOR_PISTACHIO,8,    // 11 // SKINCOLOR_PINK
+	SKINCOLOR_MOSS,8,         // 12 // SKINCOLOR_ROSE
+	SKINCOLOR_MINT,10,        // 13 // SKINCOLOR_RASPBERRY
+	SKINCOLOR_GREEN,8,        // 14 // SKINCOLOR_RED
+	SKINCOLOR_SAPPHIRE,8,     // 15 // SKINCOLOR_RUBY
+	SKINCOLOR_PINETREE,6,     // 16 // SKINCOLOR_CRIMSON
+	SKINCOLOR_MUSTARD,6,      // 17 // SKINCOLOR_KETCHUP
+	SKINCOLOR_DUSK,8,         // 18 // SKINCOLOR_DAWN
+	SKINCOLOR_PERIWINKLE,8,   // 19 // SKINCOLOR_CREAMSICLE
+	SKINCOLOR_BLUE,8,         // 20 // SKINCOLOR_ORANGE
+	SKINCOLOR_BLUEBERRY,8,    // 21 // SKINCOLOR_PUMPKIN
+	SKINCOLOR_NAVY,8,         // 22 // SKINCOLOR_ROSEWOOD
+	SKINCOLOR_JET,6,          // 23 // SKINCOLOR_BURGUNDY
+	SKINCOLOR_LIME,8,         // 24 // SKINCOLOR_TANGERINE
+	SKINCOLOR_CYAN,8,         // 25 // SKINCOLOR_PEACH
+	SKINCOLOR_CERULEAN,8,     // 26 // SKINCOLOR_CARAMEL
+	SKINCOLOR_SLATE,8,        // 27 // SKINCOLOR_GOLD
+	SKINCOLOR_STEEL,8,        // 28 // SKINCOLOR_BRONZE
+	SKINCOLOR_AQUA,8,         // 29 // SKINCOLOR_YELLOW
+	SKINCOLOR_KETCHUP,8,      // 30 // SKINCOLOR_MUSTARD
+	SKINCOLOR_TEAL,8,         // 31 // SKINCOLOR_OLIVE
+	SKINCOLOR_ROBOHOOD,8,     // 32 // SKINCOLOR_VOMIT
+	SKINCOLOR_LAVENDER,8,     // 33 // SKINCOLOR_GARDEN
+	SKINCOLOR_TANGERINE,8,    // 34 // SKINCOLOR_LIME
+	SKINCOLOR_POMEGRANATE,8,  // 35 // SKINCOLOR_DREAM
+	SKINCOLOR_SALMON,8,       // 36 // SKINCOLOR_TEA
+	SKINCOLOR_PINK,8,         // 37 // SKINCOLOR_PISTACHIO
+	SKINCOLOR_VOMIT,8,        // 38 // SKINCOLOR_ROBOHOOD
+	SKINCOLOR_ROSE,8,         // 39 // SKINCOLOR_MOSS
+	SKINCOLOR_RASPBERRY,6,    // 40 // SKINCOLOR_MINT
+	SKINCOLOR_RED,8,          // 41 // SKINCOLOR_GREEN
+	SKINCOLOR_CRIMSON,8,      // 42 // SKINCOLOR_PINETREE
+	SKINCOLOR_PURPLE,8,       // 43 // SKINCOLOR_EMERALD
+	SKINCOLOR_BYZANTIUM,6,    // 44 // SKINCOLOR_SWAMP
+	SKINCOLOR_YELLOW,8,       // 45 // SKINCOLOR_AQUA
+	SKINCOLOR_OLIVE,8,        // 46 // SKINCOLOR_TEAL
+	SKINCOLOR_PEACH,8,        // 47 // SKINCOLOR_CYAN
+	SKINCOLOR_LILAC,6,        // 48 // SKINCOLOR_JAWZ
+	SKINCOLOR_CARAMEL,8,      // 49 // SKINCOLOR_CERULEAN
+	SKINCOLOR_ROSEWOOD,8,     // 50 // SKINCOLOR_NAVY
+	SKINCOLOR_GOLD,8,         // 51 // SKINCOLOR_SLATE
+	SKINCOLOR_BRONZE,8,       // 52 // SKINCOLOR_STEEL
+	SKINCOLOR_BURGUNDY,6,     // 53 // SKINCOLOR_JET
+	SKINCOLOR_CREAMSICLE,8,   // 54 // SKINCOLOR_PERIWINKLE
+	SKINCOLOR_ORANGE,8,       // 55 // SKINCOLOR_BLUE
+	SKINCOLOR_RUBY,8,         // 56 // SKINCOLOR_SAPPHIRE
+	SKINCOLOR_PUMPKIN,8,      // 57 // SKINCOLOR_BLUEBERRY
+	SKINCOLOR_DAWN,8,         // 58 // SKINCOLOR_DUSK
+	SKINCOLOR_EMERALD,8,      // 59 // SKINCOLOR_PURPLE
+	SKINCOLOR_GARDEN,8,       // 60 // SKINCOLOR_LAVENDER
+	SKINCOLOR_SWAMP,8,        // 61 // SKINCOLOR_BYZANTIUM
+	SKINCOLOR_DREAM,6,        // 62 // SKINCOLOR_POMEGRANATE
+	SKINCOLOR_JAWZ,6          // 63 // SKINCOLOR_LILAC
 };
 
 UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}, // SKINCOLOR_NONE
-	{120, 120, 120, 120,   0,   1,   3,   4,   6,   7,  10,  14,  18,  22,  25,  28}, // SKINCOLOR_IVORY
-	{120, 120,   0,   1,   3,   4,   6,   7,   9,  11,  13,  16,  19,  23,  26,  29}, // SKINCOLOR_WHITE
-	{  0,   1,   3,   5,   6,   8,  10,  11,  13,  15,  16,  18,  20,  24,  27,  30}, // SKINCOLOR_SILVER
-	{  1,   3,   5,   7,   9,  11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_CLOUDY
-	{  8,   9,  10,  12,  13,  15,  16,  19,  19,  20,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_GREY
-	{ 16,  16,  17,  18,  19,  20,  21,  23,  24,  25,  26,  27,  28,  29,  30,  31}, // SKINCOLOR_NICKEL
+	{120, 120, 120, 120,   0,   1,   3,   4,   6,   7,  10,  14,  18,  22,  25,  28}, // SKINCOLOR_WHITE
+	{  0,   1,   2,   4,   5,   7,   8,  10,  13,  15,  18,  20,  23,  25,  28,  30}, // SKINCOLOR_SILVER
+	{  1,   3,   5,   7,   9,  11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_GREY
+	{ 12,  14,  16,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31}, // SKINCOLOR_NICKEL
 	{ 16,  17,  19,  21,  22,  24,  26,  27,  27,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_BLACK
+	{  0,   1,   3,   5,   7,   9,  34,  36,  38,  40,  42,  44,  60,  61,  62,  63}, // SKINCOLOR_SEPIA
+	{ 32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47}, // SKINCOLOR_BEIGE
+	{ 48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63}, // SKINCOLOR_BROWN
+	{ 51,  52,  53,  55,  56,  57,  58,  60,  61,  63,  28,  28,  29,  29,  30,  31}, // SKINCOLOR_LEATHER
 	{120, 120, 120, 121, 121, 122, 122, 123, 124, 125, 126, 128, 129, 131, 133, 135}, // SKINCOLOR_SALMON
-	{121, 121, 121, 121, 121, 122, 144, 145, 146, 147, 148, 149, 150, 150, 150, 151}, // SKINCOLOR_PINK
+	{121, 121, 144, 144, 145, 145, 146, 146, 147, 148, 149, 150, 151, 134, 136, 138}, // SKINCOLOR_PINK
 	{144, 145, 146, 147, 148, 149, 150, 151, 134, 135, 136, 137, 138, 139, 140, 141}, // SKINCOLOR_ROSE
 	{120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 131, 133, 134, 136, 137, 139}, // SKINCOLOR_RASPBERRY
 	{125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140}, // SKINCOLOR_RED
-	{120, 121, 144, 146, 149, 132, 132, 133, 134, 135, 197, 197, 198, 198, 199, 255}, // SKINCOLOR_RUBY
+	{121, 122, 145, 146, 147, 149, 131, 132, 133, 134, 135, 197, 197, 198, 199, 255}, // SKINCOLOR_RUBY
 	{130, 131, 132, 133, 134, 136, 137, 138, 139, 139, 140, 140, 141, 141, 142, 143}, // SKINCOLOR_CRIMSON
+	{104, 113, 113,  85,  86,  88, 128, 129, 131, 133, 134, 136, 138, 139, 141, 143}, // SKINCOLOR_KETCHUP
 	{120, 121, 122, 123, 124, 147, 147, 148,  90,  91,  92,  93,  94,  95, 152, 154}, // SKINCOLOR_DAWN
 	{120, 120,  80,  80,  81,  82,  83,  83,  84,  85,  86,  88,  89,  91,  93,  95}, // SKINCOLOR_CREAMSICLE
 	{ 80,  81,  82,  83,  84,  85,  86,  88,  89,  91,  94,  95, 154, 156, 158, 159}, // SKINCOLOR_ORANGE
 	{ 84,  85,  86,  87,  88,  90,  92,  93,  94,  95, 152, 153, 154, 156, 157, 159}, // SKINCOLOR_PUMPKIN
 	{ 90,  91,  92,  93,  94, 152, 153, 154, 155, 156, 157, 158, 159, 139, 141, 143}, // SKINCOLOR_ROSEWOOD
 	{ 94,  95, 152, 153, 154, 156, 157, 159, 141, 141, 141, 142, 142, 143, 143,  31}, // SKINCOLOR_BURGUNDY
-	{112, 113, 114, 115, 116, 117, 118, 119, 156, 157, 158, 159, 141, 141, 142, 143}, // SKINCOLOR_BRONZE
-	{  0,   1,   3,   5,   7,   9,  34,  36,  38,  40,  42,  44,  60,  61,  62,  63}, // SKINCOLOR_SEPIA
-	{ 32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47}, // SKINCOLOR_BEIGE
-	{ 48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63}, // SKINCOLOR_BROWN
-	{ 51,  52,  53,  55,  56,  57,  58,  60,  61,  63,  28,  28,  29,  29,  30,  31}, // SKINCOLOR_LEATHER
+	{ 98,  98, 112, 112, 113, 113,  84,  85,  87,  89,  91,  93,  95, 153, 156, 159}, // SKINCOLOR_TANGERINE
 	{ 64,  65,  67,  68,  70,  71,  73,  74,  76,  77,  79,  48,  50,  53,  56,  59}, // SKINCOLOR_PEACH
 	{ 64,  66,  68,  70,  72,  74,  76,  78,  48,  50,  52,  54,  56,  58,  60,  62}, // SKINCOLOR_CARAMEL
-	{ 98,  98, 112, 112, 113, 113,  84,  85,  87,  89,  91,  93,  95, 153, 156, 159}, // SKINCOLOR_TANGERINE
 	{112, 112, 112, 113, 113, 114, 114, 115, 115, 116, 116, 117, 117, 118, 118, 119}, // SKINCOLOR_GOLD
-	{121, 144, 145,  72,  73,  84, 114, 115, 107, 108, 109, 183, 223, 207,  30, 246}, // SKINCOLOR_VOMIT
+	{112, 113, 114, 115, 116, 117, 118, 119, 156, 157, 158, 159, 141, 141, 142, 143}, // SKINCOLOR_BRONZE
 	{ 96,  97,  98, 100, 101, 102, 104, 113, 114, 115, 116, 117, 118, 119, 156, 159}, // SKINCOLOR_YELLOW
-	{ 96,  97,  99, 100, 102, 104, 105, 105, 106, 107, 107, 108, 109, 109, 110, 111}, // SKINCOLOR_CANARY
+	{ 96,  98,  99, 112, 113, 114, 114, 106, 106, 107, 107, 108, 108, 109, 110, 111}, // SKINCOLOR_MUSTARD
 	{105, 105, 105, 106, 106, 107, 107, 108, 108, 109, 109, 110, 110, 111, 111,  31}, // SKINCOLOR_OLIVE
+	{121, 144, 145,  72,  73,  84, 114, 115, 107, 108, 109, 183, 223, 207,  30, 246}, // SKINCOLOR_VOMIT
 	{ 98,  99, 112, 101, 113, 114, 106, 179, 180, 180, 181, 182, 183, 173, 174, 175}, // SKINCOLOR_GARDEN
 	{ 96,  97,  99, 100, 102, 104, 160, 162, 164, 166, 168, 171, 223, 223, 207,  31}, // SKINCOLOR_LIME
-	{120, 120, 176, 176, 176, 177, 177, 178, 178, 179, 180, 180, 181, 181, 182, 183}, // SKINCOLOR_TEA
-	{176, 176, 176, 177, 177, 178, 178, 179, 179, 180, 180, 181, 181, 182, 182, 183}, // SKINCOLOR_ARMY
+	{120, 120,  80,  80,  81, 177, 162, 164, 228, 228, 204, 204, 205, 205, 206, 207}, // SKINCOLOR_DREAM
+	{120, 120, 176, 176, 176, 177, 177, 178, 178, 179, 179, 180, 180, 181, 182, 183}, // SKINCOLOR_TEA
 	{120, 120, 176, 176, 177, 177, 178, 179, 165, 166, 167, 168, 169, 170, 171, 172}, // SKINCOLOR_PISTACHIO
+	{176, 176, 177, 178, 165, 166, 167, 167, 168, 169, 182, 182, 182, 183, 183, 183}, // SKINCOLOR_ROBOHOOD
 	{178, 178, 178, 179, 179, 180, 181, 182, 183, 172, 172, 173, 173, 174, 174, 175}, // SKINCOLOR_MOSS
 	{120, 176, 176, 176, 177, 163, 164, 165, 167, 221, 221, 222, 223, 207, 207,  31}, // SKINCOLOR_MINT
 	{160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175}, // SKINCOLOR_GREEN
-	{176, 176, 177, 178, 165, 166, 167, 167, 168, 169, 182, 182, 182, 183, 183, 183}, // SKINCOLOR_ROBOHOOD
 	{160, 161, 162, 164, 165, 167, 169, 170, 171, 171, 172, 173, 174, 175,  30,  31}, // SKINCOLOR_PINETREE
 	{160, 184, 184, 185, 185, 186, 186, 187, 187, 188, 188, 189, 189, 190, 191, 175}, // SKINCOLOR_EMERALD
 	{186, 187, 188, 188, 188, 189, 189, 190, 190, 191, 175, 175,  30,  30,  31,  31}, // SKINCOLOR_SWAMP
 	{120, 208, 208, 210, 212, 214, 220, 220, 220, 221, 221, 222, 222, 223, 223, 191}, // SKINCOLOR_AQUA
-	{210, 213, 220, 220, 220, 221, 221, 221, 221, 222, 222, 222, 223, 223, 191,  31}, // SKINCOLOR_TEAL
-	{120, 208, 209, 210, 211, 212, 213, 215, 216, 216, 216, 217, 217, 218, 218, 219}, // SKINCOLOR_CYAN
+	{210, 213, 220, 220, 220, 216, 216, 221, 221, 221, 222, 222, 223, 223, 191,  31}, // SKINCOLOR_TEAL
+	{120, 120, 208, 208, 209, 210, 211, 212, 213, 215, 216, 217, 218, 219, 222, 223}, // SKINCOLOR_CYAN
+	{120, 120, 208, 209, 210, 226, 215, 216, 217, 229, 229, 205, 205, 206, 207,  31}, // SKINCOLOR_JAWZ
 	{208, 209, 211, 213, 215, 216, 216, 217, 217, 218, 218, 219, 205, 206, 207, 207}, // SKINCOLOR_CERULEAN
+	{215, 215, 215, 216, 216, 217, 218, 204, 204, 205, 205, 206, 207,  29,  30,  31}, // SKINCOLOR_NAVY
 	{120, 120, 200, 200, 200, 201, 201, 201, 202, 202, 202, 203, 204, 205, 206, 207}, // SKINCOLOR_SLATE
 	{120, 200, 200, 201, 201, 202, 202, 203, 203, 204, 204, 205, 205, 206, 207,  31}, // SKINCOLOR_STEEL
+	{200, 201, 202, 203, 204, 205, 206, 207,  28,  28,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_JET
 	{120, 224, 225, 226, 226, 227, 228, 228, 229, 230, 231, 234, 235, 237, 239, 241}, // SKINCOLOR_PERIWINKLE
 	{224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239}, // SKINCOLOR_BLUE
 	{208, 209, 211, 213, 215, 217, 229, 230, 232, 234, 236, 238, 240, 242, 244, 246}, // SKINCOLOR_SAPPHIRE
 	{228, 229, 230, 231, 232, 233, 234, 235, 237, 238, 239, 240, 242, 243, 244, 245}, // SKINCOLOR_BLUEBERRY
-	{215, 216, 217, 218, 204, 205, 206, 237, 238, 239, 240, 241, 242, 243, 244, 245}, // SKINCOLOR_NAVY
-	{200, 201, 202, 203, 204, 205, 206, 207,  28,  28,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_JET
 	{192, 192, 248, 249, 250, 251, 204, 204, 205, 205, 206, 206, 207,  29,  30,  31}, // SKINCOLOR_DUSK
 	{192, 192, 192, 193, 193, 194, 194, 195, 195, 196, 196, 197, 197, 198, 198, 199}, // SKINCOLOR_PURPLE
 	{248, 248, 248, 249, 249, 250, 250, 251, 251, 252, 252, 253, 253, 254, 254, 255}, // SKINCOLOR_LAVENDER
-	{192, 193, 194, 195, 196, 197, 198, 199, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_INDIGO
 	{192, 248, 249, 250, 251, 252, 253, 254, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_BYZANTIUM
+	{144, 145, 146, 147, 148, 149, 150, 251, 251, 252, 252, 253, 254, 255,  29,  30}, // SKINCOLOR_POMEGRANATE
 	{120, 120, 120, 121, 121, 122, 122, 123, 192, 248, 249, 250, 251, 252, 253, 254}, // SKINCOLOR_LILAC
 	/* Removed Colours
-		{120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143}, // SKINCOLOR_RUBY, removed for other colors
+		{120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143}, // old SKINCOLOR_RUBY, removed for other colors
+		{224, 225, 226, 228, 229, 231, 232, 234, 235, 237, 238, 240, 241, 243, 244, 246}, // old SKINCOLOR_SAPPHIRE, removed for other colors
+		{ 72,  73,  74,  75,  76,  77,  78,  79,  48,  49,  50,  51,  52,  53,  54,  55}, // old SKINCOLOR_CARAMEL, new Caramel was previously Shiny Caramel
+		{215, 216, 217, 218, 204, 205, 206, 237, 238, 239, 240, 241, 242, 243, 244, 245}, // old SKINCOLOR_NAVY, too similar to Jet
 		{ 80,  81,  83,  85,  86,  88,  90,  91,  93,  95, 152, 153, 154, 156, 157, 159}, // SKINCOLOR_AMBER, removed for other colors
-		{224, 225, 226, 228, 229, 231, 232, 234, 235, 237, 238, 240, 241, 243, 244, 246}, // SKINCOLOR_SAPPHIRE, removed for other colors
 		{160, 160, 160, 184, 184, 184, 185, 185, 185, 186, 187, 187, 188, 188, 189, 190}, // SKINCOLOR_JADE, removed for other colors
 		{224, 225, 226, 212, 213, 213, 214, 215, 220, 221, 172, 222, 173, 223, 174, 175}, // SKINCOLOR_FROST, merged into Aqua
-		{ 72,  73,  74,  75,  76,  77,  78,  79,  48,  49,  50,  51,  52,  53,  54,  55}, // SKINCOLOR_CARAMEL, new Caramel was previously Shiny Caramel
+		{ 96,  97,  99, 100, 102, 104, 105, 105, 106, 107, 107, 108, 109, 109, 110, 111}, // SKINCOLOR_CANARY, replaced with Mustard
+		{192, 193, 194, 195, 196, 197, 198, 199, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_INDIGO, too similar to Byzantium
 		{  1, 145, 125,  73,  83, 114, 106, 180, 187, 168, 219, 205, 236, 206, 199, 255}, // SKINCOLOR_RAINBOW, is Vomit 2.0
 	*/
 };
+
+//#define SALLYALTRAINBOW // Sal's edited version of the below, which keeps a colors' lightness, and looks better with hue-shifted colors like Ruby & Dream. Not strictly *better*, just different...
+
+// Define for getting accurate color brightness readings according to how the human eye sees them.
+// https://en.wikipedia.org/wiki/Relative_luminance
+// 0.2126 to red
+// 0.7152 to green
+// 0.0722 to blue
+// (See this same define in hw_md2.c!)
+#define SETBRIGHTNESS(brightness,r,g,b) \
+	brightness = (UINT8)(((1063*((UINT16)r)/5000) + (3576*((UINT16)g)/5000) + (361*((UINT16)b)/5000)) / 3)
 
 /** \brief	Generates the rainbow colourmaps that are used when a player has the invincibility power
 
@@ -260,10 +274,12 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 */
 void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 {
-	INT32 i, j;
+	INT32 i;
 	RGBA_t color;
-	UINT8 colorbrightnesses[16];
 	UINT8 brightness;
+#ifndef SALLYALTRAINBOW
+	INT32 j;
+	UINT8 colorbrightnesses[16];
 	UINT16 brightdif;
 	INT32 temp;
 
@@ -271,8 +287,9 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	for (i = 0; i < 16; i++)
 	{
 		color = V_GetColor(colortranslations[skincolor][i]);
-		colorbrightnesses[i] = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
+		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
+#endif
 
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -283,7 +300,11 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 			continue;
 		}
 		color = V_GetColor(i);
-		brightness = (UINT8)(((UINT16)color.s.red + (UINT16)color.s.green + (UINT16)color.s.blue)/3);
+		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
+#ifdef SALLYALTRAINBOW
+		brightness = 15-(brightness/16); // Yes, 15.
+		dest_colormap[i] = colortranslations[skincolor][brightness];
+#else
 		brightdif = 256;
 		for (j = 0; j < 16; j++)
 		{
@@ -294,8 +315,11 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 				dest_colormap[i] = colortranslations[skincolor][j];
 			}
 		}
+#endif
 	}
 }
+
+#undef SETBRIGHTNESS
 
 /**	\brief	Generates a translation colormap for Kart, to replace R_GenerateTranslationColormap in r_draw.c
 
@@ -388,10 +412,13 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_thundershield);
 	CV_RegisterVar(&cv_hyudoro);
 	CV_RegisterVar(&cv_pogospring);
+	CV_RegisterVar(&cv_kitchensink);
 
 	CV_RegisterVar(&cv_triplesneaker);
 	CV_RegisterVar(&cv_triplebanana);
+	CV_RegisterVar(&cv_decabanana);
 	CV_RegisterVar(&cv_tripleorbinaut);
+	CV_RegisterVar(&cv_quadorbinaut);
 	CV_RegisterVar(&cv_dualjawz);
 
 	CV_RegisterVar(&cv_kartminimap);
@@ -409,8 +436,10 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartdebugitem);
 	CV_RegisterVar(&cv_kartdebugamount);
-	CV_RegisterVar(&cv_kartdebugcheckpoint);
 	CV_RegisterVar(&cv_kartdebugshrink);
+	CV_RegisterVar(&cv_kartdebugdistribution);
+
+	CV_RegisterVar(&cv_kartdebugcheckpoint);
 }
 
 //}
@@ -490,29 +519,29 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
-				//P-Odds	 0  1  2  3
-			   /*Sneaker*/ { 2, 2, 2, 2 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 4, 2, 1, 2 }, // Invincibility
-				/*Banana*/ { 0, 0, 2, 0 }, // Banana
-		/*Eggman Monitor*/ { 0, 0, 1, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 1, 5, 0 }, // Orbinaut
-				  /*Jawz*/ { 1, 3, 2, 2 }, // Jawz
-				  /*Mine*/ { 1, 3, 2, 2 }, // Mine
-			   /*Ballhog*/ { 1, 2, 1, 2 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 0, 0 }, // Self-Propelled Bomb
-				  /*Grow*/ { 4, 2, 0, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0 }, // Shrink
-		/*Thunder Shield*/ { 0, 0, 0, 0 }, // Thunder Shield
-			   /*Hyudoro*/ { 0, 0, 1, 0 }, // Hyudoro
-		   /*Pogo Spring*/ { 0, 0, 1, 0 }, // Pogo Spring
-		  /*Kitchen Sink*/ { 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 2, 0, 0, 2 }, // Sneaker x3
-			 /*Banana x3*/ { 0, 1, 1, 1 }, // Banana x3
-			/*Banana x10*/ { 1, 0, 0, 1 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 1, 1, 1 }, // Orbinaut x3
-		   /*Orbinaut x4*/ { 1, 1, 0, 1 }, // Orbinaut x4
-			   /*Jawz x2*/ { 3, 2, 0, 2 }  // Jawz x2
+				//P-Odds	 0  1  2  3  4  5
+			   /*Sneaker*/ { 3, 2, 2, 2, 0, 2 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0 }, // Rocket Sneaker
+		 /*Invincibility*/ { 0, 1, 2, 3, 4, 2 }, // Invincibility
+				/*Banana*/ { 2, 1, 0, 0, 0, 0 }, // Banana
+		/*Eggman Monitor*/ { 1, 1, 0, 0, 0, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 6, 2, 1, 0, 0, 0 }, // Orbinaut
+				  /*Jawz*/ { 3, 3, 3, 2, 0, 2 }, // Jawz
+				  /*Mine*/ { 2, 3, 3, 1, 0, 2 }, // Mine
+			   /*Ballhog*/ { 0, 1, 2, 1, 0, 2 }, // Ballhog
+   /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
+				  /*Grow*/ { 0, 0, 1, 2, 4, 2 }, // Grow
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0 }, // Shrink
+		/*Thunder Shield*/ { 0, 0, 0, 0, 0, 0 }, // Thunder Shield
+			   /*Hyudoro*/ { 1, 1, 0, 0, 0, 0 }, // Hyudoro
+		   /*Pogo Spring*/ { 1, 1, 0, 0, 0, 0 }, // Pogo Spring
+		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
+			/*Sneaker x3*/ { 0, 0, 0, 2, 4, 2 }, // Sneaker x3
+			 /*Banana x3*/ { 1, 2, 1, 0, 0, 0 }, // Banana x3
+			/*Banana x10*/ { 0, 0, 1, 1, 0, 2 }, // Banana x10
+		   /*Orbinaut x3*/ { 0, 1, 2, 1, 0, 0 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 0, 0, 1, 3, 4, 2 }, // Orbinaut x4
+			   /*Jawz x2*/ { 0, 0, 1, 2, 4, 2 }  // Jawz x2
 };
 
 /**	\brief	Item Roulette for Kart
@@ -615,8 +644,8 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale;
 		if (franticitems)
 			secondist = (15*secondist/14);
-		if (pingame < 6 && !G_BattleGametype())
-			secondist = ((28+(6-pingame))*secondist/28);
+		if (pingame < 8 && !G_BattleGametype())
+			secondist = ((28+(8-pingame))*secondist/28);
 	}
 
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
@@ -628,8 +657,8 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
 		odds *= 2; \
-	if (pingame < 6 && !G_BattleGametype()) \
-		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((6-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
+	if (pingame < 8 && !G_BattleGametype()) \
+		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((8-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
 	if (mashed > 0) \
 		odds = FixedDiv(odds*FRACUNIT, mashed+FRACUNIT)/FRACUNIT \
 
@@ -668,7 +697,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			if (!cv_ballhog.value) newodds = 0;
 			break;
 		case KITEM_SPB:
-			POWERITEMODDS(newodds);
+			//POWERITEMODDS(newodds);
 			if ((!cv_selfpropelledbomb.value)
 				|| (indirectitemcooldown > 0)
 				|| (pexiting > 0)
@@ -709,7 +738,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			break;
 		case KRITEM_TENFOLDBANANA:
 			POWERITEMODDS(newodds);
-			if (!cv_triplebanana.value) newodds = 0;
+			if (!cv_decabanana.value) newodds = 0;
 			break;
 		case KRITEM_TRIPLEORBINAUT:
 			POWERITEMODDS(newodds);
@@ -717,7 +746,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			break;
 		case KRITEM_QUADORBINAUT:
 			POWERITEMODDS(newodds);
-			if (!cv_tripleorbinaut.value) newodds = 0;
+			if (!cv_quadorbinaut.value) newodds = 0;
 			break;
 		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
@@ -733,19 +762,125 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 
 //{ SRB2kart Roulette Code - Distance Based, no waypoints
 
-static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
+static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT32 bestbumper)
 {
 	const INT32 distvar = (64*14);
 	INT32 i;
+	INT32 pdis = 0, useodds = 0;
+	UINT8 disttable[14];
+	UINT8 distlen = 0;
+	boolean oddsvalid[9];
+
+	for (i = 0; i < 9; i++)
+	{
+		INT32 j;
+		boolean available = false;
+
+		if (G_BattleGametype() && i > 5)
+		{
+			oddsvalid[i] = false;
+			break;
+		}
+
+		for (j = 0; j < NUMKARTRESULTS; j++)
+		{
+			if (K_KartGetItemOdds(i, j, mashed) > 0)
+			{
+				available = true;
+				break;
+			}
+		}
+
+		oddsvalid[i] = available;
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (playeringame[i] && !players[i].spectator && players[i].mo
+			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
+			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
+													players[i].mo->y - player->mo->y),
+													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
+													* (pingame - players[i].kartstuff[k_position])
+													/ ((pingame - 1) * (pingame + 1) / 3);
+	}
+
+#define SETUPDISTTABLE(odds, num) \
+	for (i = num; i; --i) disttable[distlen++] = odds
+
+	if (G_BattleGametype()) // Battle Mode
+	{
+		if (oddsvalid[0]) SETUPDISTTABLE(0,1);
+		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
+		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
+		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
+		if (oddsvalid[4]) SETUPDISTTABLE(4,1);
+
+		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[5]) // 5 is the extreme odds of player-controlled "Karma" items
+			useodds = 5;
+		else
+		{
+			SINT8 wantedpos = (bestbumper-player->kartstuff[k_bumper]); // 0 is the best player's bumper count, 1 is a bumper below best, 2 is two bumpers below, etc
+			if (K_IsPlayerWanted(player))
+				wantedpos++;
+			if (wantedpos > 4) // Don't run off into karma items
+				wantedpos = 4;
+			if (wantedpos < 0) // Don't go below somehow
+				wantedpos = 0;
+			useodds = disttable[(wantedpos * distlen) / 5];
+		}
+	}
+	else
+	{
+		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
+		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
+		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
+		if (oddsvalid[4]) SETUPDISTTABLE(4,2);
+		if (oddsvalid[5]) SETUPDISTTABLE(5,2);
+		if (oddsvalid[6]) SETUPDISTTABLE(6,3);
+		if (oddsvalid[7]) SETUPDISTTABLE(7,3);
+		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
+
+		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
+			pdis = (15*pdis/14);
+		if (pingame < 8 && !G_BattleGametype())
+			pdis = ((28+(8-pingame))*pdis/28);
+
+		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
+			useodds = 0;
+		else if (pdis <= 0)								// (64*14) *  0 =     0
+			useodds = disttable[0];
+		else if (pdis > distvar * ((12 * distlen) / 14))	// (64*14) * 12 = 10752
+			useodds = disttable[distlen-1];
+		else
+		{
+			for (i = 1; i < 13; i++)
+			{
+				if (pdis <= distvar * ((i * distlen) / 14))
+				{
+					useodds = disttable[((i * distlen) / 14)];
+					break;
+				}
+			}
+		}
+	}
+
+#undef SETUPDISTTABLE
+
+	//CONS_Printf("Got useodds %d. (position: %d, distance: %d)\n", useodds, player->kartstuff[k_position], pdis);
+
+	return useodds;
+}
+
+static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
+{
+	INT32 i;
 	UINT8 pingame = 0;
 	UINT8 roulettestop;
-	INT32 pdis = 0, useodds = 0;
+	INT32 useodds = 0;
 	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
 	INT32 chance = 0, numchoices = 0;
 	INT32 bestbumper = 0;
-	boolean oddsvalid[9];
-	UINT8 disttable[14];
-	UINT8 distlen = 0;
 	fixed_t mashed = 0;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
@@ -809,129 +944,15 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	for (i = 0; i < (NUMKARTRESULTS * NUMKARTODDS); i++)
 		spawnchance[i] = 0;
 
-	for (i = 0; i < 9; i++)
-	{
-		INT32 j;
-		boolean available = false;
+	// Split into another function for a debug function below
+	useodds = K_FindUseodds(player, mashed, pingame, bestbumper);
 
-		if (G_BattleGametype() && i > 5)
-		{
-			oddsvalid[i] = false;
-			break;
-		}
-
-		for (j = 0; j < NUMKARTRESULTS; j++)
-		{
-			if (K_KartGetItemOdds(i, j, mashed) > 0)
-			{
-				available = true;
-				break;
-			}
-		}
-
-		oddsvalid[i] = available;
-	}
-
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i] && !players[i].spectator && players[i].mo
-			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
-			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
-													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
-													* (pingame - players[i].kartstuff[k_position])
-													/ ((pingame - 1) * (pingame + 1) / 3);
-	}
-
-#define SETUPDISTTABLE(odds, num) \
-	for (i = num; i; --i) disttable[distlen++] = odds
-
-	if (G_BattleGametype()) // Battle Mode
-	{
-		if (oddsvalid[0]) SETUPDISTTABLE(0,1);
-		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
-		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
-
-		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[3]) // Player-controlled "Karma" items
-			useodds = 3;
-		else
-		{
-			SINT8 wantedpos = (player->kartstuff[k_bumper]-bestbumper)+2; // 0 is two bumpers below best player's bumper count, 2 is best player's bumper count
-			if (K_IsPlayerWanted(player))
-				wantedpos--;
-			if (wantedpos > 2)
-				wantedpos = 2;
-			if (wantedpos < 0)
-				wantedpos = 0;
-			useodds = disttable[(wantedpos * distlen) / 3];
-		}
-	}
-	else
-	{
-		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
-		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
-		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
-		if (oddsvalid[4]) SETUPDISTTABLE(4,2);
-		if (oddsvalid[5]) SETUPDISTTABLE(5,2);
-		if (oddsvalid[6]) SETUPDISTTABLE(6,3);
-		if (oddsvalid[7]) SETUPDISTTABLE(7,3);
-		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
-
-		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
-			pdis = (15*pdis/14);
-		if (pingame < 6 && !G_BattleGametype())
-			pdis = ((28+(6-pingame))*pdis/28);
-
-		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
-			useodds = 0;
-		else if (pdis <= 0)								// (64*14) *  0 =     0
-			useodds = disttable[0];
-		else if (pdis > distvar * ((12 * distlen) / 14))	// (64*14) * 12 = 10752
-			useodds = disttable[distlen-1];
-		else
-		{
-			for (i = 1; i < 12; i++)
-			{
-				if (pdis <= distvar * ((i * distlen) / 14))
-				{
-					useodds = disttable[((i * distlen) / 14)];
-					break;
-				}
-			}
-		}
-	}
-
-#undef SETUPDISTTABLE
-
-	//CONS_Printf("Got useodds %d. (position: %d, distance: %d)\n", useodds, player->kartstuff[k_position], pdis);
-
-#define SETITEMRESULT(pos, itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(pos, itemnum, mashed); chance++) \
+#define SETITEMRESULT(itemnum) \
+	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
 		spawnchance[numchoices++] = itemnum
 
-	SETITEMRESULT(useodds, KITEM_SNEAKER);			// Sneaker
-	SETITEMRESULT(useodds, KITEM_ROCKETSNEAKER);	// Rocket Sneaker
-	SETITEMRESULT(useodds, KITEM_INVINCIBILITY);	// Invincibility
-	SETITEMRESULT(useodds, KITEM_BANANA);			// Banana
-	SETITEMRESULT(useodds, KITEM_EGGMAN);			// Eggman Monitor
-	SETITEMRESULT(useodds, KITEM_ORBINAUT);			// Orbinaut
-	SETITEMRESULT(useodds, KITEM_JAWZ);				// Jawz
-	SETITEMRESULT(useodds, KITEM_MINE);				// Mine
-	SETITEMRESULT(useodds, KITEM_BALLHOG);			// Ballhog
-	SETITEMRESULT(useodds, KITEM_SPB);				// Self-Propelled Bomb
-	SETITEMRESULT(useodds, KITEM_GROW);				// Grow
-	SETITEMRESULT(useodds, KITEM_SHRINK);			// Shrink
-	SETITEMRESULT(useodds, KITEM_THUNDERSHIELD);	// Thunder Shield
-	SETITEMRESULT(useodds, KITEM_HYUDORO);			// Hyudoro
-	SETITEMRESULT(useodds, KITEM_POGOSPRING);		// Pogo Spring
-	//SETITEMRESULT(useodds, KITEM_KITCHENSINK);	// Kitchen Sink
-
-	SETITEMRESULT(useodds, KRITEM_TRIPLESNEAKER);	// Sneaker x3
-	SETITEMRESULT(useodds, KRITEM_TRIPLEBANANA);	// Banana x3
-	SETITEMRESULT(useodds, KRITEM_TENFOLDBANANA);	// Banana x10
-	SETITEMRESULT(useodds, KRITEM_TRIPLEORBINAUT);	// Orbinaut x3
-	SETITEMRESULT(useodds, KRITEM_QUADORBINAUT);	// Orbinaut x4
-	SETITEMRESULT(useodds, KRITEM_DUALJAWZ);		// Jawz x2
+	for (i = 1; i < NUMKARTRESULTS; i++)
+		SETITEMRESULT(i);
 
 #undef SETITEMRESULT
 
@@ -967,7 +988,21 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			if (against->player && !against->player->kartstuff[k_spinouttimer] && mobj->player->kartstuff[k_spinouttimer])
 				weight = 0; // Do not bump
 			else
+			{
 				weight = (mobj->player->kartweight)<<FRACBITS;
+				if (mobj->player->speed > K_GetKartSpeed(mobj->player, false))
+					weight += (mobj->player->speed - K_GetKartSpeed(mobj->player, false))/8;
+			}
+			break;
+		case MT_FALLINGROCK:
+			if (against->player)
+			{
+				if (against->player->kartstuff[k_invincibilitytimer]
+					|| against->player->kartstuff[k_growshrinktimer] > 0)
+					weight = 0;
+				else
+					weight = (against->player->kartweight)<<FRACBITS;
+			}
 			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
@@ -1212,6 +1247,61 @@ static void K_UpdateOffroad(player_t *player)
 		player->kartstuff[k_offroad] = 0;
 }
 
+// These have to go earlier than its sisters because of K_RespawnChecker...
+static void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
+{
+	// flipping
+	mo->eflags = (mo->eflags & ~MFE_VERTICALFLIP)|(master->eflags & MFE_VERTICALFLIP);
+	// visibility (usually for hyudoro)
+	mo->flags2 = (mo->flags2 & ~MF2_DONTDRAW)|(master->flags2 & MF2_DONTDRAW);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP1)|(master->eflags & MFE_DRAWONLYFORP1);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP2)|(master->eflags & MFE_DRAWONLYFORP2);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP3)|(master->eflags & MFE_DRAWONLYFORP3);
+	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP4)|(master->eflags & MFE_DRAWONLYFORP4);
+}
+
+static void K_SpawnDashDustRelease(player_t *player)
+{
+	fixed_t newx;
+	fixed_t newy;
+	mobj_t *dust;
+	angle_t travelangle;
+	INT32 i;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	if (!P_IsObjectOnGround(player->mo))
+		return;
+
+	if (player->speed == 0)
+		return;
+
+	travelangle = player->mo->angle;
+
+	if (player->kartstuff[k_drift] || player->kartstuff[k_driftend])
+		travelangle -= (ANGLE_45/5)*player->kartstuff[k_drift];
+
+	for (i = 0; i < 2; i++)
+	{
+		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_90, FixedMul(48*FRACUNIT, player->mo->scale));
+		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_90, FixedMul(48*FRACUNIT, player->mo->scale));
+		dust = P_SpawnMobj(newx, newy, player->mo->z, MT_FASTDUST);
+
+		P_SetTarget(&dust->target, player->mo);
+		dust->angle = travelangle - ((i&1) ? -1 : 1)*ANGLE_45;
+		dust->destscale = player->mo->scale;
+		P_SetScale(dust, player->mo->scale);
+
+		dust->momx = 3*player->mo->momx/5;
+		dust->momy = 3*player->mo->momy/5;
+		//dust->momz = 3*player->mo->momz/5;
+
+		K_MatchGenericExtraFlags(dust, player->mo);
+	}
+}
+
 /**	\brief	Calculates the respawn timer and drop-boosting
 
 	\param	player	player object passed from K_KartPlayerThink
@@ -1225,7 +1315,7 @@ void K_RespawnChecker(player_t *player)
 	if (player->spectator)
 		return;
 
-	if (player->kartstuff[k_respawn] > 3)
+	if (player->kartstuff[k_respawn] > 1)
 	{
 		player->kartstuff[k_respawn]--;
 		player->mo->momz = 0;
@@ -1263,26 +1353,40 @@ void K_RespawnChecker(player_t *player)
 			}
 		}
 	}
-
-	if (player->kartstuff[k_respawn] > 0 && player->kartstuff[k_respawn] <= 3)
+	else if (player->kartstuff[k_respawn] == 1)
 	{
 		if (!P_IsObjectOnGround(player->mo))
 		{
 			player->powers[pw_flashing] = 2;
-			// If you tried to boost while in the air,
-			// you lose your chance of boosting at all.
+
+			// Sal: That's stupid and prone to accidental usage.
+			// Let's rip off Mania instead, and turn this into a Drop Dash!
+
 			if (cmd->buttons & BT_ACCELERATE)
-			{
-				player->powers[pw_flashing] = 0;
-				player->kartstuff[k_respawn] = 0;
-			}
+				player->kartstuff[k_dropdash]++;
+			else
+				player->kartstuff[k_dropdash] = 0;
+
+			if (player->kartstuff[k_dropdash] == TICRATE/4)
+				S_StartSound(player->mo, sfx_ddash);
+
+			if ((player->kartstuff[k_dropdash] >= TICRATE/4)
+				&& (player->kartstuff[k_dropdash] & 1))
+				player->mo->colorized = true;
+			else
+				player->mo->colorized = false;
 		}
 		else
 		{
-			player->kartstuff[k_respawn]--;
-			// Quick! You only have three tics to boost!
-			if (cmd->buttons & BT_ACCELERATE)
-				K_DoSneaker(player, true);
+			if ((cmd->buttons & BT_ACCELERATE) && (player->kartstuff[k_dropdash] >= TICRATE/4))
+			{
+				S_StartSound(player->mo, sfx_s23c);
+				player->kartstuff[k_startboost] = 50;
+				K_SpawnDashDustRelease(player);
+			}
+			player->mo->colorized = false;
+			player->kartstuff[k_dropdash] = 0;
+			player->kartstuff[k_respawn] = 0;
 		}
 	}
 }
@@ -1444,68 +1548,80 @@ void K_MomentumToFacing(player_t *player)
 	player->mo->momy = FixedMul(player->mo->momy - player->cmomy, player->mo->friction) + player->cmomy;
 }
 
-// if speed is true it gets the speed boost power, otherwise it gets the acceleration
-static fixed_t K_GetKartBoostPower(player_t *player, boolean speed)
+// sets k_boostpower, k_speedboost, and k_accelboost to whatever we need it to be
+static void K_GetKartBoostPower(player_t *player)
 {
 	fixed_t boostpower = FRACUNIT;
-	fixed_t boostvalue = 0;
+	fixed_t speedboost = 0, accelboost = 0;
 
 	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] == 1) // Slow down after you've been bumped
-		return 0;
+	{
+		player->kartstuff[k_boostpower] = player->kartstuff[k_speedboost] = player->kartstuff[k_accelboost] = 0;
+		return;
+	}
 
 	// Offroad is separate, it's difficult to factor it in with a variable value anyway.
 	if (!(player->kartstuff[k_invincibilitytimer] || player->kartstuff[k_hyudorotimer] || player->kartstuff[k_sneakertimer])
-		&& player->kartstuff[k_offroad] >= 0 && speed)
+		&& player->kartstuff[k_offroad] >= 0)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_bananadrag] > TICRATE)
+	if (player->kartstuff[k_itemtype] == KITEM_KITCHENSINK)
+		boostpower = max((TICRATE/2), (5*TICRATE)-(player->kartstuff[k_bananadrag]/2))*boostpower/(5*TICRATE);
+	else if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
-	if (player->kartstuff[k_growshrinktimer] > 0)
-	{												// Grow
-		if (speed)
+	if (player->kartstuff[k_sneakertimer]) // Sneaker
+	{
+		switch (gamespeed)
 		{
-			boostvalue = max(boostvalue, FRACUNIT/5); // + 20%
+			case 0:
+				speedboost = max(speedboost, 53740+768);
+				break;
+			case 2:
+				speedboost = max(speedboost, 17294+768);
+				break;
+			default:
+				speedboost = max(speedboost, 32768);
+				break;
 		}
+		accelboost = max(accelboost, 8*FRACUNIT); // + 800%
 	}
-	if (player->kartstuff[k_invincibilitytimer])
-	{												// Invincibility
-		if (speed)
-			boostvalue = max(boostvalue, 3*(FRACUNIT/8)); // + 37.5%
-		else
-			boostvalue = max(boostvalue, 3*FRACUNIT); // + 600%
+
+	if (player->kartstuff[k_invincibilitytimer]) // Invincibility
+	{
+		speedboost = max(speedboost, 3*FRACUNIT/8); // + 37.5%
+		accelboost = max(accelboost, 3*FRACUNIT); // + 300%
 	}
-	if (player->kartstuff[k_driftboost])
-	{												// Drift Boost
-		if (speed)
-			boostvalue = max(boostvalue, FRACUNIT/4); // + 25%
-		else
-			boostvalue = max(boostvalue, 4*FRACUNIT); // + 400%
+
+	if (player->kartstuff[k_growshrinktimer] > 0) // Grow
+	{
+		speedboost = max(speedboost, FRACUNIT/5); // + 20%
 	}
-	if (player->kartstuff[k_sneakertimer])
-	{												// Sneaker
-		if (speed)
-		{
-			switch (gamespeed)
-			{
-				case 0:
-					boostvalue = max(boostvalue, 53740+768);
-					break;
-				case 2:
-					boostvalue = max(boostvalue, 17294+768);
-					break;
-				default:
-					boostvalue = max(boostvalue, 32768);
-					break;
-			}
-		}
-		else
-			boostvalue = max(boostvalue, 8*FRACUNIT); // + 800%
+
+	if (player->kartstuff[k_driftboost]) // Drift Boost
+	{
+		speedboost = max(speedboost, FRACUNIT/4); // + 25%
+		accelboost = max(accelboost, 4*FRACUNIT); // + 400%
 	}
+
+	if (player->kartstuff[k_startboost]) // Startup Boost
+	{
+		speedboost = max(speedboost, FRACUNIT/4); // + 25%
+		accelboost = max(accelboost, 6*FRACUNIT); // + 300%
+	}
+
 	// don't average them anymore, this would make a small boost and a high boost less useful
 	// just take the highest we want instead
 
-	return boostpower + boostvalue;
+	player->kartstuff[k_boostpower] = boostpower;
+
+	// value smoothing
+	if (speedboost > player->kartstuff[k_speedboost])
+		player->kartstuff[k_speedboost] = speedboost;
+	else
+		player->kartstuff[k_speedboost] += (speedboost - player->kartstuff[k_speedboost])/(TICRATE/2);
+
+	player->kartstuff[k_accelboost] = accelboost;
 }
 
 fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
@@ -1540,7 +1656,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	finalspeed = FixedMul(FixedMul(k_speed<<14, g_cc), player->mo->scale);
 
 	if (doboostpower)
-		return FixedMul(finalspeed, K_GetKartBoostPower(player, true));
+		return FixedMul(finalspeed, player->kartstuff[k_boostpower]+player->kartstuff[k_speedboost]);
 	return finalspeed;
 }
 
@@ -1555,7 +1671,7 @@ fixed_t K_GetKartAccel(player_t *player)
 	//k_accel += 3 * (9 - kartspeed); // 36 - 60
 	k_accel += 4 * (9 - kartspeed); // 32 - 64
 
-	return FixedMul(k_accel, K_GetKartBoostPower(player, false));
+	return FixedMul(k_accel, FRACUNIT+player->kartstuff[k_accelboost]);
 }
 
 UINT16 K_GetKartFlashing(player_t *player)
@@ -1582,9 +1698,9 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 	if (player->kartstuff[k_pogospring]) // Pogo Spring minimum/maximum thrust
 	{
-		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale /*+ (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale)*/;
 		const fixed_t minspeed = 24*hscale;
-		const fixed_t maxspeed = 36*hscale;
+		const fixed_t maxspeed = 28*hscale;
 
 		if (newspeed > maxspeed && player->kartstuff[k_pogospring] == 2)
 			newspeed = maxspeed;
@@ -2152,16 +2268,25 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	th->momx = FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
 	th->momy = FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));
 
-	if (type == MT_ORBINAUT)
+	switch (type)
 	{
-		if (source && source->player)
-			th->color = source->player->skincolor;
-		else
-			th->color = SKINCOLOR_CLOUDY;
-	}
-	else if (type == MT_JAWZ || type == MT_JAWZ_DUD)
-	{
-		S_StartSound(th, th->info->activesound);
+		case MT_ORBINAUT:
+			if (source && source->player)
+				th->color = source->player->skincolor;
+			else
+				th->color = SKINCOLOR_GREY;
+			break;
+		case MT_JAWZ:
+			if (source && source->player)
+				th->cvmem = source->player->skincolor;
+			else
+				th->cvmem = SKINCOLOR_RED;
+			//fallthrough
+		case MT_JAWZ_DUD:
+			S_StartSound(th, th->info->activesound);
+			break;
+		default:
+			break;
 	}
 
 	x = x + P_ReturnThrustX(source, an, source->radius + th->radius);
@@ -2172,6 +2297,83 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 	P_SetTarget(&throwmo->target, source);
 
 	return NULL;
+}
+
+static void K_SpawnDriftSparks(player_t *player)
+{
+	fixed_t newx;
+	fixed_t newy;
+	mobj_t *spark;
+	angle_t travelangle;
+	INT32 i;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	if (leveltime % 2 == 1)
+		return;
+
+	if (!P_IsObjectOnGround(player->mo))
+		return;
+
+	if (!player->kartstuff[k_drift] || player->kartstuff[k_driftcharge] < K_GetKartDriftSparkValue(player))
+		return;
+
+	travelangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
+
+	for (i = 0; i < 2; i++)
+	{
+		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(32*FRACUNIT, player->mo->scale));
+		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(32*FRACUNIT, player->mo->scale));
+		spark = P_SpawnMobj(newx, newy, player->mo->z, MT_DRIFTSPARK);
+
+		P_SetTarget(&spark->target, player->mo);
+		spark->angle = travelangle-(ANGLE_45/5)*player->kartstuff[k_drift];
+		spark->destscale = player->mo->scale;
+		P_SetScale(spark, player->mo->scale);
+
+		spark->momx = player->mo->momx/2;
+		spark->momy = player->mo->momy/2;
+		//spark->momz = player->mo->momz/2;
+
+		if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*4)
+		{
+			spark->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
+		}
+		else if (player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(player)*2)
+		{
+			if (player->kartstuff[k_driftcharge] <= (K_GetKartDriftSparkValue(player)*2)+(24*3))
+				spark->color = SKINCOLOR_RASPBERRY; // transition
+			else
+				spark->color = SKINCOLOR_KETCHUP;
+		}
+		else
+			spark->color = SKINCOLOR_SAPPHIRE;
+
+		if ((player->kartstuff[k_drift] > 0 && player->cmd.driftturn > 0) // Inward drifts
+			|| (player->kartstuff[k_drift] < 0 && player->cmd.driftturn < 0))
+		{
+			if ((player->kartstuff[k_drift] < 0 && (i & 1))
+				|| (player->kartstuff[k_drift] > 0 && !(i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_A1);
+			else if ((player->kartstuff[k_drift] < 0 && !(i & 1))
+				|| (player->kartstuff[k_drift] > 0 && (i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_C1);
+		}
+		else if ((player->kartstuff[k_drift] > 0 && player->cmd.driftturn < 0) // Outward drifts
+			|| (player->kartstuff[k_drift] < 0 && player->cmd.driftturn > 0))
+		{
+			if ((player->kartstuff[k_drift] < 0 && (i & 1))
+				|| (player->kartstuff[k_drift] > 0 && !(i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_C1);
+			else if ((player->kartstuff[k_drift] < 0 && !(i & 1))
+				|| (player->kartstuff[k_drift] > 0 && (i & 1)))
+				P_SetMobjState(spark, S_DRIFTSPARK_A1);
+		}
+
+		K_MatchGenericExtraFlags(spark, player->mo);
+	}
 }
 
 void K_SpawnBoostTrail(player_t *player)
@@ -2221,7 +2423,7 @@ void K_SpawnBoostTrail(player_t *player)
 		flame->fuse = TICRATE*2;
 		flame->destscale = player->mo->scale;
 		P_SetScale(flame, player->mo->scale);
-		flame->eflags = (flame->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP);
+		flame->eflags = (flame->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags so that a stolen sneaker can be seen
 
 		flame->momx = 8;
 		P_XYMovement(flame);
@@ -2261,7 +2463,7 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		P_SetTarget(&sparkle->target, mo);
 		sparkle->destscale = mo->destscale;
 		P_SetScale(sparkle, mo->scale);
-		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
+		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags so that a stolen invincibility can be seen
 		sparkle->color = mo->color;
 		//sparkle->colorized = mo->colorized;
 	}
@@ -2282,7 +2484,7 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
 	dust->destscale = mo->scale;
 	P_SetScale(dust, mo->scale);
-	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP);
+	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags because hyudoro shouldn't be able to wipeout
 
 	if (translucent)
 		dust->flags2 |= MF2_SHADOW;
@@ -2402,7 +2604,7 @@ static mobj_t *K_FindLastTrailMobj(player_t *player)
 	return trail;
 }
 
-static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, boolean minethrow)
+static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, INT32 altthrow)
 {
 	mobj_t *mo;
 	INT32 dir, PROJSPEED;
@@ -2427,14 +2629,26 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			break;
 	}
 
-	if (minethrow)
+	if (altthrow)
 	{
-		if (player->kartstuff[k_throwdir] == 1)
-			dir = 2;
-		else if (player->kartstuff[k_throwdir] == -1 && mapthing != MT_SINK)
-			dir = -1;
+		if (altthrow == 2) // Kitchen sink throwing
+		{
+			if (player->kartstuff[k_throwdir] == 1)
+				dir = 3;
+			else if (player->kartstuff[k_throwdir] == -1)
+				dir = 1;
+			else
+				dir = 2;
+		}
 		else
-			dir = 1;
+		{
+			if (player->kartstuff[k_throwdir] == 1)
+				dir = 2;
+			else if (player->kartstuff[k_throwdir] == -1)
+				dir = -1;
+			else
+				dir = 1;
+		}
 	}
 	else
 	{
@@ -2451,11 +2665,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (dir == -1)
 			{
 				// Shoot backward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, PROJSPEED/2);
-				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, PROJSPEED/2);
-				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
-				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, PROJSPEED/2);
-				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, PROJSPEED/2);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x06000000, 0, PROJSPEED/4);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 - 0x03000000, 0, PROJSPEED/4);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/4);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x03000000, 0, PROJSPEED/4);
+				K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180 + 0x06000000, 0, PROJSPEED/4);
 			}
 			else
 			{
@@ -2472,7 +2686,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (dir == -1)
 			{
 				// Shoot backward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/4);
 			}
 			else
 			{
@@ -2485,7 +2699,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	{
 		player->kartstuff[k_bananadrag] = 0; // RESET timer, for multiple bananas
 
-		if (dir == 1 || dir == 2)
+		if (dir > 0)
 		{
 			// Shoot forward
 			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, mapthing);
@@ -2498,15 +2712,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 HEIGHT;
+				INT32 HEIGHT = (20 + (dir*10))*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
 
-				if (dir == 2)
-					HEIGHT = 40*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
-				else
-					HEIGHT = 30*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
-
-				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
-				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
+				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
+				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
@@ -2617,7 +2826,7 @@ static void K_DoHyudoroSteal(player_t *player)
 	prandom = P_RandomFixed();
 	S_StartSound(player->mo, sfx_s3k92);
 
-	if (sink && numplayers > 0) // BEHOLD THE KITCHEN SINK
+	if (sink && numplayers > 0 && cv_kitchensink.value) // BEHOLD THE KITCHEN SINK
 	{
 		player->kartstuff[k_hyudorotimer] = hyudorotime;
 		player->kartstuff[k_stealingtimer] = stealtime;
@@ -2663,13 +2872,31 @@ static void K_DoHyudoroSteal(player_t *player)
 
 void K_DoSneaker(player_t *player, boolean doPFlag)
 {
+	const fixed_t prevboost = player->kartstuff[k_speedboost];
+
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
 		S_StartSound(player->mo, sfx_cdfm01);
 
+	if (!player->kartstuff[k_sneakertimer])
+	{
+		mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BOOSTFLAME);
+		P_SetTarget(&overlay->target, player->mo);
+		overlay->destscale = player->mo->scale;
+		P_SetScale(overlay, player->mo->scale);
+	}
+
 	player->kartstuff[k_sneakertimer] = sneakertime;
+	K_SpawnDashDustRelease(player);
 
 	if (doPFlag)
+	{
 		player->pflags |= PF_ATTACKDOWN;
+		K_PlayBoostTaunt(player->mo);
+	}
+
+	K_GetKartBoostPower(player);
+	if (player->kartstuff[k_speedboost] > prevboost)
+		player->kartstuff[k_destboostcam] = FRACUNIT;
 }
 
 static void K_DoShrink(player_t *player)
@@ -2758,7 +2985,7 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 		mo->momz = FixedMul(vertispeed, vscale);
 
 	if (!mute)
-		S_StartSound(mo, sfx_kc2f);
+		S_StartSound(mo, sfx_kpogos);
 }
 
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
@@ -2928,6 +3155,11 @@ static void K_MoveHeldObjects(player_t *player)
 					cur->angle -= ANGLE_90;
 					cur->angle += FixedAngle(cur->info->speed);
 
+					if (cur->extravalue1 < radius)
+						cur->extravalue1 += FixedMul(P_AproxDistance(cur->extravalue1, radius), FRACUNIT/12);
+					if (cur->extravalue1 > radius)
+						cur->extravalue1 = radius;
+
 					// If the player is on the ceiling, then flip your items as well.
 					if (player && player->mo->eflags & MFE_VERTICALFLIP)
 						cur->eflags |= MFE_VERTICALFLIP;
@@ -2935,7 +3167,7 @@ static void K_MoveHeldObjects(player_t *player)
 						cur->eflags &= ~MFE_VERTICALFLIP;
 
 					// Shrink your items if the player shrunk too.
-					P_SetScale(cur, (cur->destscale = player->mo->scale));
+					P_SetScale(cur, (cur->destscale = FixedMul(FixedDiv(cur->extravalue1, radius), player->mo->scale)));
 
 					if (P_MobjFlip(cur) > 0)
 						z = player->mo->z;
@@ -2944,8 +3176,8 @@ static void K_MoveHeldObjects(player_t *player)
 
 					cur->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
 					P_TeleportMove(cur, player->mo->x, player->mo->y, z);
-					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), radius);
-					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), radius);
+					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
+					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
 					cur->flags &= ~MF_NOCLIPTHING;
 					if (!P_TryMove(cur, player->mo->x + cur->momx, player->mo->y + cur->momy, true))
 						P_SlideMove(cur, true);
@@ -2962,6 +3194,10 @@ static void K_MoveHeldObjects(player_t *player)
 								z = cur->ceilingz - cur->height;
 						}
 					}
+
+					// Center it during the scale up animation
+					z += (FixedMul(mobjinfo[cur->type].height, player->mo->scale - cur->scale)>>1) * P_MobjFlip(cur);
+
 					cur->z = z;
 					cur->momx = cur->momy = 0;
 					cur->angle += ANGLE_90;
@@ -2973,6 +3209,7 @@ static void K_MoveHeldObjects(player_t *player)
 		case MT_BANANA_SHIELD: // Kart trailing items
 		case MT_SSMINE_SHIELD:
 		case MT_FAKESHIELD:
+		case MT_SINK_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
 				mobj_t *targ = player->mo;
@@ -2992,11 +3229,8 @@ static void K_MoveHeldObjects(player_t *player)
 				{
 					const fixed_t radius = FixedHypot(targ->radius, targ->radius) + FixedHypot(cur->radius, cur->radius);
 					angle_t ang;
-					fixed_t targx;
-					fixed_t targy;
-					fixed_t targz;
-					fixed_t speed;
-					fixed_t dist = radius/2;
+					fixed_t targx, targy, targz;
+					fixed_t speed, dist;
 
 					cur->flags &= ~MF_NOCLIPTHING;
 
@@ -3006,14 +3240,24 @@ static void K_MoveHeldObjects(player_t *player)
 						continue;
 					}
 
+					if (cur->extravalue1 < radius)
+						cur->extravalue1 += FixedMul(P_AproxDistance(cur->extravalue1, radius), FRACUNIT/12);
+					if (cur->extravalue1 > radius)
+						cur->extravalue1 = radius;
+
 					if (cur != player->mo->hnext)
 					{
 						targ = cur->hprev;
-						dist = radius/4;
+						dist = cur->extravalue1/4;
 					}
+					else
+						dist = cur->extravalue1/2;
 
 					if (!targ || P_MobjWasRemoved(targ))
 						continue;
+
+					// Shrink your items if the player shrunk too.
+					P_SetScale(cur, (cur->destscale = FixedMul(FixedDiv(cur->extravalue1, radius), player->mo->scale)));
 
 					ang = targ->angle;
 					targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, dist);
@@ -3051,6 +3295,94 @@ static void K_MoveHeldObjects(player_t *player)
 	}
 }
 
+player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
+{
+	fixed_t best = -1;
+	player_t *wtarg = NULL;
+	INT32 i;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		angle_t thisang;
+		player_t *player;
+
+		if (!playeringame[i])
+			continue;
+
+		player = &players[i];
+
+		if (player->spectator)
+			continue; // spectator
+
+		if (!player->mo)
+			continue;
+
+		if (player->mo->health <= 0)
+			continue; // dead
+
+		// Don't target yourself, stupid.
+		if (player == source)
+			continue;
+
+		// Don't home in on teammates.
+		if (G_GametypeHasTeams() && source->ctfteam == player->ctfteam)
+			continue;
+
+		// Invisible, don't bother
+		if (player->kartstuff[k_hyudorotimer])
+			continue;
+
+		// Find the angle, see who's got the best.
+		thisang = actor->angle - R_PointToAngle2(actor->x, actor->y, player->mo->x, player->mo->y);
+		if (thisang > ANGLE_180)
+			thisang = InvAngle(thisang);
+
+		if (thisang > ANGLE_45) // Don't go for people who are behind you
+			continue;
+
+		// Jawz only go after the person directly ahead of you in race... sort of literally now!
+		if (G_RaceGametype())
+		{
+			if (player->kartstuff[k_position] >= source->kartstuff[k_position]) // Don't pay attention to people behind you
+				continue;
+			if ((best == -1) || (player->kartstuff[k_position] > best))
+			{
+				wtarg = player;
+				best = player->kartstuff[k_position];
+			}
+		}
+		else
+		{
+			fixed_t thisdist;
+			fixed_t thisavg;
+
+			if (player->kartstuff[k_bumper] <= 0)
+				continue;
+
+			// Z pos too high/low
+			if (abs(player->mo->z - (actor->z + actor->momz)) > RING_DIST/8)
+				continue;
+
+			thisdist = P_AproxDistance(player->mo->x - (actor->x + actor->momx), player->mo->y - (actor->y + actor->momy));
+
+			if (thisdist > 2*RING_DIST) // Don't go for people who are too far away
+				continue;
+
+			thisavg = (AngleFixed(thisang) + thisdist) / 2;
+
+			//CONS_Printf("got avg %d from player # %d\n", thisavg>>FRACBITS, i);
+
+			if ((best == -1) || (thisavg < best))
+			{
+				wtarg = player;
+				best = thisavg;
+			}
+		}
+	}
+
+	return wtarg;
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -3061,17 +3393,22 @@ static void K_MoveHeldObjects(player_t *player)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
+	K_GetKartBoostPower(player);
 
-	// setting players to use the star colormap and spawning afterimages
-	if (player->kartstuff[k_invincibilitytimer])
+	// Speed lines
+	if ((player->kartstuff[k_sneakertimer] || player->kartstuff[k_driftboost] || player->kartstuff[k_startboost]) && player->speed > 0)
 	{
-		mobj_t *ghost;
-		player->mo->colorized = true;
-		ghost = P_SpawnGhostMobj(player->mo);
-		ghost->fuse = 4;
-		ghost->frame |= FF_FULLBRIGHT;
+		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36)<<FRACBITS),
+			player->mo->y + (P_RandomRange(-36,36)<<FRACBITS),
+			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20)<<FRACBITS),
+			MT_FASTLINE);
+		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
+		fast->momx = 3*player->mo->momx/4;
+		fast->momy = 3*player->mo->momy/4;
+		fast->momz = 3*player->mo->momz/4;
 	}
-	else if (player->kartstuff[k_eggmanexplode])
+
+	if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie
 	{
 		const INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
 		if (player->kartstuff[k_eggmanexplode] == 1 || (player->kartstuff[k_eggmanexplode] % (flashtime/2) != 0))
@@ -3090,7 +3427,15 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			player->mo->color = SKINCOLOR_CRIMSON;
 		}
 	}
-	else if (player->kartstuff[k_growshrinktimer])
+	else if (player->kartstuff[k_invincibilitytimer]) // setting players to use the star colormap and spawning afterimages
+	{
+		mobj_t *ghost;
+		player->mo->colorized = true;
+		ghost = P_SpawnGhostMobj(player->mo);
+		ghost->fuse = 4;
+		ghost->frame |= FF_FULLBRIGHT;
+	}
+	else if (player->kartstuff[k_growshrinktimer]) // Ditto, for grow/shrink
 	{
 		if (player->kartstuff[k_growshrinktimer] % 5 == 0)
 		{
@@ -3106,6 +3451,36 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	else
 	{
 		player->mo->colorized = false;
+	}
+
+	if (player->kartstuff[k_dashpadcooldown]) // Twinkle Circuit inspired afterimages
+	{
+		mobj_t *ghost;
+		ghost = P_SpawnGhostMobj(player->mo);
+		ghost->fuse = player->kartstuff[k_dashpadcooldown]+1;
+		ghost->momx = player->mo->momx / (player->kartstuff[k_dashpadcooldown]+1);
+		ghost->momy = player->mo->momy / (player->kartstuff[k_dashpadcooldown]+1);
+		ghost->momz = player->mo->momz / (player->kartstuff[k_dashpadcooldown]+1);
+		player->kartstuff[k_dashpadcooldown]--;
+	}
+
+	// DKR style camera for boosting
+	if (player->kartstuff[k_boostcam] != 0 || player->kartstuff[k_destboostcam] != 0)
+	{
+		if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam]
+			&& player->kartstuff[k_destboostcam] != 0)
+		{
+			player->kartstuff[k_boostcam] += FRACUNIT/(TICRATE/4);
+			if (player->kartstuff[k_boostcam] >= player->kartstuff[k_destboostcam])
+				player->kartstuff[k_destboostcam] = 0;
+		}
+		else
+		{
+			player->kartstuff[k_boostcam] -= FRACUNIT/TICRATE;
+			if (player->kartstuff[k_boostcam] < player->kartstuff[k_destboostcam])
+				player->kartstuff[k_boostcam] = player->kartstuff[k_destboostcam] = 0;
+		}
+		//CONS_Printf("cam: %d, dest: %d\n", player->kartstuff[k_boostcam], player->kartstuff[k_destboostcam]);
 	}
 
 	if (player->kartstuff[k_spinouttimer])
@@ -3142,13 +3517,20 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_thunderanim]--;*/
 
 	if (player->kartstuff[k_sneakertimer])
+	{
 		player->kartstuff[k_sneakertimer]--;
+		if (player->kartstuff[k_wipeoutslow] > 0 && player->kartstuff[k_wipeoutslow] < wipeoutslowtime+1)
+			player->kartstuff[k_wipeoutslow] = wipeoutslowtime+1;
+	}
 
 	if (player->kartstuff[k_floorboost])
 		player->kartstuff[k_floorboost]--;
 
 	if (player->kartstuff[k_driftboost])
 		player->kartstuff[k_driftboost]--;
+
+	if (player->kartstuff[k_startboost])
+		player->kartstuff[k_startboost]--;
 
 	if (player->kartstuff[k_invincibilitytimer])
 		player->kartstuff[k_invincibilitytimer]--;
@@ -3344,6 +3726,39 @@ void K_KartPlayerAfterThink(player_t *player)
 
 	// Move held objects (Bananas, Orbinaut, etc)
 	K_MoveHeldObjects(player);
+
+	// Jawz reticule (seeking)
+	if (player->kartstuff[k_itemtype] == KITEM_JAWZ && player->kartstuff[k_itemheld])
+	{
+		player_t *targ = K_FindJawzTarget(player->mo, player);
+		mobj_t *ret;
+
+		if (!targ)
+		{
+			player->kartstuff[k_lastjawztarget] = -1;
+			return;
+		}
+
+		ret = P_SpawnMobj(targ->mo->x, targ->mo->y, targ->mo->z, MT_PLAYERRETICULE);
+		P_SetTarget(&ret->target, targ->mo);
+		ret->frame |= ((leveltime % 10) / 2);
+		ret->tics = 1;
+		ret->color = player->skincolor;
+
+		if (targ-players != player->kartstuff[k_lastjawztarget])
+		{
+			if (P_IsLocalPlayer(player) || P_IsLocalPlayer(targ))
+				S_StartSound(NULL, sfx_s3k89);
+			else
+				S_StartSound(targ->mo, sfx_s3k89);
+
+			player->kartstuff[k_lastjawztarget] = targ-players;
+		}
+	}
+	else
+	{
+		player->kartstuff[k_lastjawztarget] = -1;
+	}
 }
 
 // Returns false if this player being placed here causes them to collide with any other player
@@ -3435,6 +3850,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 {
 	fixed_t dsone = K_GetKartDriftSparkValue(player);
 	fixed_t dstwo = dsone*2;
+	fixed_t dsthree = dstwo*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -3454,15 +3870,27 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		player->kartstuff[k_driftboost] = 20;
 		S_StartSound(player->mo, sfx_s23c);
+		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
 		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
-		&& player->kartstuff[k_driftcharge] >= dstwo
+		&& player->kartstuff[k_driftcharge] < dsthree
 		&& onground)
 	{
 		player->kartstuff[k_driftboost] = 50;
 		S_StartSound(player->mo, sfx_s23c);
+		//K_SpawnDashDustRelease(player);
+		player->kartstuff[k_driftcharge] = 0;
+	}
+	else if ((player->kartstuff[k_drift] != -5 && player->kartstuff[k_drift] != 5)
+		// || (player->kartstuff[k_drift] >= 1 && player->kartstuff[k_turndir] != 1) || (player->kartstuff[k_drift] <= -1 && player->kartstuff[k_turndir] != -1))
+		&& player->kartstuff[k_driftcharge] >= dsthree
+		&& onground)
+	{
+		player->kartstuff[k_driftboost] = 125;
+		S_StartSound(player->mo, sfx_s23c);
+		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
 	}
 
@@ -3512,9 +3940,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = 5;
 
 			if (player->cmd.driftturn > 0) // Inward
-				driftadditive += (player->cmd.driftturn/800)/8;
+				driftadditive += abs(player->cmd.driftturn)/100;
 			if (player->cmd.driftturn < 0) // Outward
-				driftadditive -= (player->cmd.driftturn/800)/8;
+				driftadditive -= abs(player->cmd.driftturn)/75;
 		}
 		else if (player->kartstuff[k_drift] <= -1) // Drifting to the right
 		{
@@ -3523,14 +3951,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 				player->kartstuff[k_drift] = -5;
 
 			if (player->cmd.driftturn < 0) // Inward
-				driftadditive += (player->cmd.driftturn/800)/4;
+				driftadditive += abs(player->cmd.driftturn)/100;
 			if (player->cmd.driftturn > 0) // Outward
-				driftadditive -= (player->cmd.driftturn/800)/4;
+				driftadditive -= abs(player->cmd.driftturn)/75;
 		}
 
 		// This spawns the drift sparks
-		if (player->kartstuff[k_driftcharge] < dsone && player->kartstuff[k_driftcharge] + driftadditive >= dsone)
-			P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_DRIFT)->target = player->mo;
+		if (player->kartstuff[k_driftcharge] + driftadditive >= dsone)
+			K_SpawnDriftSparks(player);
 
 		player->kartstuff[k_driftcharge] += driftadditive;
 		player->kartstuff[k_driftend] = 0;
@@ -3759,7 +4187,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Eggman Monitor throwing
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
-			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, false);
+			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, 0);
 			K_PlayAttackTaunt(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
 			K_CleanHnextList(player->mo);
@@ -3849,7 +4277,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Banana x3 thrown
 					{
-						K_ThrowKartItem(player, false, MT_BANANA, -1, false);
+						K_ThrowKartItem(player, false, MT_BANANA, -1, 0);
 						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
@@ -3878,8 +4306,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						INT32 moloop;
 						mobj_t *mo = NULL;
 						mobj_t *prev = player->mo;
@@ -3891,9 +4317,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_ORBINAUT_SHIELD);
+							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_ORBINAUT_SHIELD);
 							if (!mo)
 							{
 								player->kartstuff[k_itemamount] = moloop;
@@ -3913,7 +4337,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Orbinaut x3 thrown
 					{
-						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, false);
+						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, 0);
 						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
@@ -3923,8 +4347,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						angle_t newangle;
-						fixed_t newx;
-						fixed_t newy;
 						INT32 moloop;
 						mobj_t *mo = NULL;
 						mobj_t *prev = player->mo;
@@ -3936,9 +4358,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
 							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
-							newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 64*FRACUNIT);
-							newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 64*FRACUNIT);
-							mo = P_SpawnMobj(newx, newy, player->mo->z, MT_JAWZ_SHIELD);
+							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_JAWZ_SHIELD);
 							if (!mo)
 							{
 								player->kartstuff[k_itemamount] = moloop;
@@ -3958,9 +4378,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Jawz thrown
 					{
 						if (player->kartstuff[k_throwdir] == 1 || player->kartstuff[k_throwdir] == 0)
-							K_ThrowKartItem(player, true, MT_JAWZ, 1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ, 1, 0);
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
-							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, false);
+							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, 0);
 						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
@@ -3985,7 +4405,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld])
 					{
-						K_ThrowKartItem(player, false, MT_SSMINE, 1, true);
+						K_ThrowKartItem(player, false, MT_SSMINE, 1, 1);
 						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
@@ -3996,7 +4416,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
 						player->kartstuff[k_itemamount]--;
-						K_ThrowKartItem(player, true, MT_BALLHOG, 1, false);
+						K_ThrowKartItem(player, true, MT_BALLHOG, 1, 0);
 						S_StartSound(player->mo, sfx_mario7);
 						K_PlayAttackTaunt(player->mo);
 					}
@@ -4098,10 +4518,27 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_KITCHENSINK:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
 					{
-						K_ThrowKartItem(player, false, MT_SINK, 1, true);
+						mobj_t *mo;
+						player->kartstuff[k_itemheld] = 1;
+						S_StartSound(player->mo, sfx_s254);
+						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SINK_SHIELD);
+						if (mo)
+						{
+							mo->flags |= MF_NOCLIPTHING;
+							mo->threshold = 10;
+							mo->movecount = 1;
+							mo->movedir = 1;
+							P_SetTarget(&mo->target, player->mo);
+							P_SetTarget(&player->mo->hnext, mo);
+						}
+					}
+					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Sink thrown
+					{
+						K_ThrowKartItem(player, false, MT_SINK, 1, 2);
 						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
+						K_CleanHnextList(player->mo);
 					}
 					break;
 				case KITEM_SAD:
@@ -4189,9 +4626,6 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->mo->flags2 &= ~MF2_SHADOW;
 		}
 	}
-
-	if (player->kartstuff[k_growshrinktimer] > 1)
-		player->powers[pw_flashing] = 2;
 
 	// Friction
 	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
@@ -4290,15 +4724,27 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Get an instant boost!
 		else if (player->kartstuff[k_boostcharge] <= 50)
 		{
-			player->kartstuff[k_sneakertimer] = -((21*(player->kartstuff[k_boostcharge]*player->kartstuff[k_boostcharge]))/425)+131; // max time is 70, min time is 7; yay parabooolas
-			if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+			player->kartstuff[k_startboost] = (50-player->kartstuff[k_boostcharge])+20;
+
+			if (player->kartstuff[k_boostcharge] <= 36)
 			{
-				if (player->kartstuff[k_sneakertimer] >= 70)
-					S_StartSound(player->mo, sfx_s25f); // Special sound for the perfect start boost!
-				else if (player->kartstuff[k_sneakertimer] >= sneakertime)
-					S_StartSound(player->mo, sfx_cdfm01); // Sneaker boost sound for big boost
-				else
-					S_StartSound(player->mo, sfx_s23c); // Drift boost sound for small boost
+				player->kartstuff[k_startboost] = 0;
+				K_DoSneaker(player, false);
+				player->kartstuff[k_sneakertimer] = 70; // PERFECT BOOST!!
+
+				if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) // Let everyone hear this one
+					S_StartSound(player->mo, sfx_s25f);
+			}
+			else
+			{
+				K_SpawnDashDustRelease(player); // already handled for perfect boosts by K_DoSneaker
+				if ((!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) && P_IsLocalPlayer(player))
+				{
+					if (player->kartstuff[k_boostcharge] <= 40)
+						S_StartSound(player->mo, sfx_cdfm01); // You were almost there!
+					else
+						S_StartSound(player->mo, sfx_s23c); // Nope, better luck next time.
+				}
 			}
 		}
 		// You overcharged your engine? Those things are expensive!!!
@@ -4316,7 +4762,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 void K_CalculateBattleWanted(void)
 {
-	UINT8 numingame = 0, numwanted = 0;
+	UINT8 numingame = 0, numplaying = 0, numwanted = 0;
 	SINT8 bestbumperplayer = -1, bestbumper = -1;
 	SINT8 camppos[MAXPLAYERS]; // who is the biggest camper
 	UINT8 ties = 0, nextcamppos = 0;
@@ -4344,6 +4790,8 @@ void K_CalculateBattleWanted(void)
 
 		if (players[i].exiting) // We're done, don't calculate.
 			return;
+
+		numplaying++;
 
 		if (players[i].kartstuff[k_bumper] <= 0) // Not alive, so don't do anything else
 			continue;
@@ -4380,7 +4828,7 @@ void K_CalculateBattleWanted(void)
 		camppos[position] = i;
 	}
 
-	if (numingame <= 2)
+	if (numplaying <= 2 || (numingame <= 2 && bestbumper == 1)) // In 1v1s then there's no need for WANTED. In bigger netgames, don't show anyone as WANTED when they're equally matched.
 		numwanted = 0;
 	else
 		numwanted = min(4, 1 + ((numingame-2) / 4));
@@ -4507,6 +4955,8 @@ void K_CheckSpectateStatus(void)
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
                 continue;
+			if (leveltime > 20*TICRATE) // DON'T allow if the match is 20 seconds in
+                return;
             if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
                 return;
 			continue;
@@ -4823,6 +5273,56 @@ void K_LoadKartHUDGraphics(void)
 	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
 }
 
+// For the item toggle menu
+const char *K_GetItemPatch(UINT8 item, boolean small)
+{
+	switch (item)
+	{
+		case KITEM_SNEAKER:
+		case KRITEM_TRIPLESNEAKER:
+			return (small ? "K_ISSHOE" : "K_ITSHOE");
+		case KITEM_ROCKETSNEAKER:
+			return (small ? "K_ISRSHE" : "K_ITRSHE");
+		case KITEM_INVINCIBILITY:
+			return (small ? "K_ISINV1" : "K_ITINV1");
+		case KITEM_BANANA:
+		case KRITEM_TRIPLEBANANA:
+		case KRITEM_TENFOLDBANANA:
+			return (small ? "K_ISBANA" : "K_ITBANA");
+		case KITEM_EGGMAN:
+			return (small ? "K_ISEGGM" : "K_ITEGGM");
+		case KITEM_ORBINAUT:
+			return (small ? "K_ISORBN" : "K_ITORB1");
+		case KITEM_JAWZ:
+		case KRITEM_DUALJAWZ:
+			return (small ? "K_ISJAWZ" : "K_ITJAWZ");
+		case KITEM_MINE:
+			return (small ? "K_ISMINE" : "K_ITMINE");
+		case KITEM_BALLHOG:
+			return (small ? "K_ISBHOG" : "K_ITBHOG");
+		case KITEM_SPB:
+			return (small ? "K_ISSPB" : "K_ITSPB");
+		case KITEM_GROW:
+			return (small ? "K_ISGROW" : "K_ITGROW");
+		case KITEM_SHRINK:
+			return (small ? "K_ISSHRK" : "K_ITSHRK");
+		case KITEM_THUNDERSHIELD:
+			return (small ? "K_ISTHNS" : "K_ITTHNS");
+		case KITEM_HYUDORO:
+			return (small ? "K_ISHYUD" : "K_ITHYUD");
+		case KITEM_POGOSPRING:
+			return (small ? "K_ISPOGO" : "K_ITPOGO");
+		case KITEM_KITCHENSINK:
+			return (small ? "K_ISSINK" : "K_ITSINK");
+		case KRITEM_TRIPLEORBINAUT:
+			return (small ? "K_ISORBN" : "K_ITORB3");
+		case KRITEM_QUADORBINAUT:
+			return (small ? "K_ISORBN" : "K_ITORB4");
+		default:
+			return (small ? "K_ISSAD" : "K_ITSAD");
+	}
+}
+
 //}
 
 INT32 ITEM_X, ITEM_Y;	// Item Window
@@ -5112,6 +5612,9 @@ static void K_drawKartItem(void)
 				case KITEM_SAD:					localpatch = kp_sadface[offset]; break;
 				default: return;
 			}
+
+			if (stplyr->kartstuff[k_itemheld] && !(leveltime & 1))
+				localpatch = kp_nodraw;
 		}
 	}
 
@@ -6172,6 +6675,7 @@ static void K_drawKartFirstPerson(void)
 	{
 		fixed_t dsone = K_GetKartDriftSparkValue(stplyr);
 		fixed_t dstwo = dsone*2;
+		fixed_t dsthree = dstwo*2;
 
 #ifndef DONTLIKETOASTERSFPTWEAKS
 		{
@@ -6210,8 +6714,10 @@ static void K_drawKartFirstPerson(void)
 		}
 
 		// drift sparks!
-		if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dstwo))
-			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_TANGERINE, 0);
+		if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsthree))
+			colmap = R_GetTranslationColormap(TC_RAINBOW, (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1))), 0);
+		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dstwo))
+			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_KETCHUP, 0);
 		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsone))
 			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SAPPHIRE, 0);
 		else
@@ -6397,8 +6903,101 @@ void K_drawKartFreePlay(UINT32 flashtime)
 		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
 }
 
+static void K_drawDistributionDebugger(void)
+{
+	patch_t *items[NUMKARTRESULTS] = {
+		kp_sadface[1],
+		kp_sneaker[1],
+		kp_rocketsneaker[1],
+		kp_invincibility[7],
+		kp_banana[1],
+		kp_eggman[1],
+		kp_orbinaut[4],
+		kp_jawz[1],
+		kp_mine[1],
+		kp_ballhog[1],
+		kp_selfpropelledbomb[1],
+		kp_grow[1],
+		kp_shrink[1],
+		kp_thundershield[1],
+		kp_hyudoro[1],
+		kp_pogospring[1],
+		kp_kitchensink[1],
+
+		kp_sneaker[1],
+		kp_banana[1],
+		kp_banana[1],
+		kp_orbinaut[4],
+		kp_orbinaut[4],
+		kp_jawz[1]
+	};
+	INT32 useodds = 0;
+	INT32 pingame = 0, bestbumper = 0;
+	INT32 i;
+	INT32 x = -9, y = -9;
+
+	if (stplyr != &players[displayplayer]) // only for p1
+		return;
+
+	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice 
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+		pingame++;
+		if (players[i].kartstuff[k_bumper] > bestbumper)
+			bestbumper = players[i].kartstuff[k_bumper];
+	}
+
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper);
+
+	for (i = 1; i < NUMKARTRESULTS; i++)
+	{
+		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0);
+		if (itemodds <= 0)
+			continue;
+
+		V_DrawScaledPatch(x, y, V_HUDTRANS|V_SNAPTOTOP, items[i]);
+		V_DrawThinString(x+11, y+31, V_HUDTRANS|V_SNAPTOTOP, va("%d", itemodds));
+
+		// Display amount for multi-items
+		if (i >= NUMKARTITEMS)
+		{
+			INT32 amount;
+			switch (i)
+			{
+				case KRITEM_TENFOLDBANANA:
+					amount = 10;
+					break;
+				case KRITEM_QUADORBINAUT:
+					amount = 4;
+					break;
+				case KRITEM_DUALJAWZ:
+					amount = 2;
+					break;
+				default:
+					amount = 3;
+					break;
+			}
+			V_DrawString(x+24, y+31, V_ALLOWLOWERCASE|V_HUDTRANS|V_SNAPTOTOP, va("x%d", amount));
+		}
+
+		x += 32;
+		if (x >= 297)
+		{
+			x = -9;
+			y += 32;
+		}
+	}
+
+	V_DrawString(0, 0, V_HUDTRANS|V_SNAPTOTOP, va("USEODDS %d", useodds));
+}
+
 static void K_drawCheckpointDebugger(void)
 {
+	if (stplyr != &players[displayplayer]) // only for p1
+		return;
+
 	if ((numstarposts/2 + stplyr->starpostnum) >= numstarposts)
 		V_DrawString(8, 184, 0, va("Checkpoint: %d / %d (Can finish)", stplyr->starpostnum, numstarposts));
 	else
@@ -6544,6 +7143,9 @@ void K_drawKartHUD(void)
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
 		K_drawKartFreePlay(leveltime);
+
+	if (cv_kartdebugdistribution.value)
+		K_drawDistributionDebugger();
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();

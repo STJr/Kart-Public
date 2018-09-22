@@ -1048,7 +1048,7 @@ void Y_VoteDrawer(void)
 			}
 
 			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
-			V_DrawRightAlignedThinString(BASEVIDWIDTH-20, 40+y, V_SNAPTORIGHT, str);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-22, 40+y, V_SNAPTORIGHT|V_6WIDTHSPACE, str);
 			if (levelinfo[i].gts)
 			{
 				INT32 w = V_ThinStringWidth(levelinfo[i].gts, V_SNAPTORIGHT)+1;
