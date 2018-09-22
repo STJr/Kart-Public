@@ -323,7 +323,7 @@ static void D_Display(void)
 			if (wipegamestate == GS_LEVEL && rendermode != render_none)
 			{
 				V_SetPaletteLump("PLAYPAL"); // Reset the palette
-				R_ReInitColormaps(0);
+				R_ReInitColormaps(0, LUMPERROR);
 			}
 
 			F_WipeStartScreen();
@@ -1496,7 +1496,7 @@ void D_SRB2Main(void)
 			else if (!dedicated && M_MapLocked(pstartmap))
 				I_Error("You need to unlock this level before you can warp to it!\n");
 			else
-				D_MapChange(pstartmap, gametype, ultimatemode, true, 0, false, false);
+				D_MapChange(pstartmap, gametype, (boolean)cv_kartencore.value, true, 0, false, false);
 		}
 	}
 	else if (M_CheckParm("-skipintro"))

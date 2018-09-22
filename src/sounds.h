@@ -882,7 +882,12 @@ typedef enum
 	sfx_yeeeah,
 	sfx_noooo1,
 	sfx_noooo2,
+	sfx_ruby1,
+	sfx_ruby2,
 	sfx_hogbom,
+	sfx_kpogos,
+	sfx_ddash,
+	sfx_itfree,
 	sfx_dbgsal,
 
 	sfx_kwin,

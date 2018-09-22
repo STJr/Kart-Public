@@ -391,7 +391,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 {
 	INT32 sep, pitch, priority, cnum;
 	sfxinfo_t *sfx;
-	const boolean reverse = (stereoreverse.value ^ mirrormode);
+	const boolean reverse = (stereoreverse.value ^ encoremode);
 	const mobj_t *origin = (const mobj_t *)origin_p;
 
 	listener_t listener  = {0,0,0,0};
@@ -1198,7 +1198,7 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 
 	listener_t listensource;
 
-	const boolean reverse = (stereoreverse.value ^ mirrormode);
+	const boolean reverse = (stereoreverse.value ^ encoremode);
 
 	(void)pitch;
 	if (!listener)

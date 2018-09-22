@@ -2041,7 +2041,8 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 	{
 		// Single sided line... Deal only with the middletexture (if one exists)
 		gr_midtexture = R_GetTextureNum(gr_sidedef->midtexture);
-		if (gr_midtexture)
+		if (gr_midtexture
+			&& gr_linedef->special != 41) // Ignore horizon line for OGL
 		{
 			if (drawtextured)
 			{
@@ -3153,7 +3154,6 @@ static void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, 
 		v3d->y = height;
 		v3d->z = FIXED_TO_FLOAT(polysector->vertices[i]->y);
 	}
-
 
 	if (planecolormap)
 		Surf.FlatColor.rgba = HWR_Lighting(lightlevel, planecolormap->rgba, planecolormap->fadergba, false, true);
@@ -5451,7 +5451,13 @@ static void HWR_ProjectSprite(mobj_t *thing)
 			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, thing->color, GTC_CACHE);
 	}
 	else
+	{
 		vis->colormap = colormaps;
+#ifdef GLENCORE
+		if (encoremap && (thing->flags & (MF_SCENERY|MF_NOTHINK)))
+			vis->colormap += (256*32);
+#endif
+	}
 
 	// set top/bottom coords
 	vis->ty = gzt;
@@ -5555,6 +5561,10 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->mobj = (mobj_t *)thing;
 
 	vis->colormap = colormaps;
+#ifdef GLENCORE
+	if (encoremap)
+		vis->colormap += (256*32);
+#endif
 
 	// set top/bottom coords
 	vis->ty = FIXED_TO_FLOAT(thing->z + spritecachedinfo[lumpoff].topoffset);
@@ -5580,7 +5590,7 @@ static void HWR_DrawSkyBackground(player_t *player)
 //  0--1
 
 	(void)player;
-	HWR_GetTexture(skytexture);
+	HWR_GetTexture(texturetranslation[skytexture]);
 
 	//Hurdler: the sky is the only texture who need 4.0f instead of 1.0
 	//         because it's called just after clearing the screen
@@ -5600,7 +5610,7 @@ static void HWR_DrawSkyBackground(player_t *player)
 	// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
 
 	angle = (dup_viewangle + gr_xtoviewangle[0]);
-	dimensionmultiply = ((float)textures[skytexture]->width/256.0f);
+	dimensionmultiply = ((float)textures[texturetranslation[skytexture]]->width/256.0f);
 
 	if (atransform.mirror)
 	{
@@ -5615,7 +5625,7 @@ static void HWR_DrawSkyBackground(player_t *player)
 	angle = aimingangle;
 
 	aspectratio = (float)vid.width/(float)vid.height;
-	dimensionmultiply = ((float)textures[skytexture]->height/(128.0f*aspectratio));
+	dimensionmultiply = ((float)textures[texturetranslation[skytexture]]->height/(128.0f*aspectratio));
 	angleturn = (((float)ANGLE_45-1.0f)*aspectratio)*dimensionmultiply;
 
 	// Middle of the sky should always be at angle 0
@@ -6547,6 +6557,7 @@ static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 	alpha = pSurf->FlatColor.s.alpha; // retain the alpha
 
 	// Lighting is done here instead so that fog isn't drawn incorrectly on transparent walls after sorting
+
 	if (wallcolormap)
 	{
 		if (fogwall)

@@ -57,6 +57,7 @@
 #include "st_stuff.h"
 #include "i_sound.h"
 #include "k_kart.h" // SRB2kart
+#include "d_player.h" // KITEM_ constants
 
 // Condition Sets
 #include "m_cond.h"
@@ -231,6 +232,7 @@ menu_t SR_MainDef, SR_UnlockChecklistDef;
 // Misc. Main Menu
 static void M_SinglePlayerMenu(INT32 choice);
 static void M_Options(INT32 choice);
+static void M_Manual(INT32 choice);
 static void M_SelectableClearMenus(INT32 choice);
 static void M_Retry(INT32 choice);
 static void M_EndGame(INT32 choice);
@@ -355,7 +357,7 @@ static void M_DrawControl(void);
 static void M_DrawVideoMenu(void);
 static void M_DrawHUDOptions(void);
 static void M_DrawVideoMode(void);
-//static void M_DrawMonitorToggles(void);
+static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
 static void M_OGL_DrawFogMenu(void);
 static void M_OGL_DrawColorMenu(void);
@@ -387,6 +389,7 @@ static void M_HandleSetupMultiPlayer(INT32 choice);
 static void M_HandleFogColor(INT32 choice);
 #endif
 static void M_HandleVideoMode(INT32 choice);
+static void M_HandleMonitorToggles(INT32 choice);
 
 // Consvar onchange functions
 static void Nextmap_OnChange(void);
@@ -399,7 +402,7 @@ static void Dummystaff_OnChange(void);
 // ==========================================================================
 
 static CV_PossibleValue_t map_cons_t[] = {
-	{1,"MIN"},
+	{0,"MIN"},
 	{NUMMAPS, "MAX"},
 	{0, NULL}
 };
@@ -648,11 +651,19 @@ static menuitem_t MISC_ChangeLevelMenu[] =
 
 static menuitem_t MISC_HelpMenu[] =
 {
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPN01", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPN02", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPN03", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPM01", M_HandleImageDef, 0},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "HELPM02", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL00", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL01", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL02", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL03", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL04", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL05", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL06", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL07", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL08", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL09", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL10", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL11", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL12", M_HandleImageDef, 0},
 };
 
 // --------------------------------
@@ -1081,8 +1092,9 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		100},
 	{IT_STRING|IT_CALL,			NULL, "Add-on Options...",      M_AddonsOptions,			110},
 
-	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					130},
-	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			140},
+	{IT_CALL|IT_STRING,			NULL, "Tricks & Secrets (F1)",	M_Manual,					130},
+	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					140},
+	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			150},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1116,12 +1128,13 @@ static menuitem_t OP_MoveControlsMenu[] =
 	{IT_CONTROL, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
 	//{IT_CONTROL, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
 	{IT_CONTROL, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
+	{IT_CONTROL, NULL, "Open/Close Menu (ESC)", M_ChangeControl, gc_systemmenu},
 	{IT_CONTROL, NULL, "Pause",            M_ChangeControl, gc_pause      },
 	{IT_CONTROL, NULL, "Console",          M_ChangeControl, gc_console    },
 
-	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        112},
-	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 120},
-	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   128},
+	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        120},
+	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 128},
+	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   136},
 };
 
 static menuitem_t OP_SpectateControlsMenu[] =
@@ -1495,7 +1508,7 @@ static menuitem_t OP_GameOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR, NULL, "Game Speed",					&cv_kartspeed,			 30},
 	{IT_STRING | IT_CVAR, NULL, "Frantic Items",				&cv_kartfrantic,		 40},
-	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",					&cv_kartmirror,			 50},
+	{IT_SECRET,           NULL, "Encore Mode",					&cv_kartencore,			 50},
 
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_basenumlaps,		 70},
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
@@ -1518,14 +1531,15 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",			&cv_inttime,			 40},
 	{IT_STRING | IT_CVAR,    NULL, "Map Progression",				&cv_advancemap,			 50},
 	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",					&cv_votetime,			 60},
+	{IT_STRING | IT_CVAR,    NULL, "Voting Rule Changes",				&cv_kartvoterulechanges, 70},
 
 #ifndef NONET
-	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 80},
-	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		 90},
-	//{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		100},
+	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
+	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
+	//{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		110},
 
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",			&cv_downloading,		100},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	110},
+	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",			&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	120},
 #endif
 };
 
@@ -1552,7 +1566,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 {
 	{IT_HEADER,           NULL, "RACE",                  NULL,                 2},
 	{IT_STRING | IT_CVAR, NULL, "Game Speed",    		  &cv_kartspeed,    	10},
-	{IT_STRING | IT_CVAR, NULL, "Mirror Mode",    		  &cv_kartmirror,    	18},
+	{IT_STRING | IT_CVAR, NULL, "Encore Mode",    		  &cv_kartencore,    	18},
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",        &cv_numlaps,          26},
 	{IT_STRING | IT_CVAR, NULL, "Use Map Lap Counts",    &cv_usemapnumlaps,    34},
 
@@ -1561,29 +1575,38 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",        &cv_kartcomeback,     66},
 };*/
 
+#define ITEMTOGGLEBOTTOMRIGHT
+
 static menuitem_t OP_MonitorToggleMenu[] =
 {
-	// Printing handled by drawing function
+	// Mostly handled by the drawing function.
 	// Instead of using this for dumb monitors, lets use the new item bools we have :V
-	{IT_STRING | IT_CVAR, NULL, "Sneakers",			&cv_sneaker,           10},
-	{IT_STRING | IT_CVAR, NULL, "Sneakers x3",			&cv_triplesneaker,     18},
-	{IT_STRING | IT_CVAR, NULL, "Rocket Sneakers",		&cv_rocketsneaker,     26},
-	{IT_STRING | IT_CVAR, NULL, "Invinciblity",		&cv_invincibility,     34},
-	{IT_STRING | IT_CVAR, NULL, "Bananas",				&cv_banana,            42},
-	{IT_STRING | IT_CVAR, NULL, "Bananas x3",			&cv_triplebanana,      50},
-	{IT_STRING | IT_CVAR, NULL, "Eggman Monitors",		&cv_eggmanmonitor,     58},
-	{IT_STRING | IT_CVAR, NULL, "Orbinauts",			&cv_orbinaut,          66},
-	{IT_STRING | IT_CVAR, NULL, "Orbinauts x3",		&cv_tripleorbinaut,    74},
-	{IT_STRING | IT_CVAR, NULL, "Jawz",				&cv_jawz,              82},
-	{IT_STRING | IT_CVAR, NULL, "Jawz x2",				&cv_dualjawz,          90},
-	{IT_STRING | IT_CVAR, NULL, "Mines",				&cv_mine,              98},
-	{IT_STRING | IT_CVAR, NULL, "Ballhogs",			&cv_ballhog,          106},
-	{IT_STRING | IT_CVAR, NULL, "Self-Propelled Bombs",&cv_selfpropelledbomb,114},
-	{IT_STRING | IT_CVAR, NULL, "Grow",				&cv_grow,             122},
-	{IT_STRING | IT_CVAR, NULL, "Shrink",				&cv_shrink,           130},
-	{IT_STRING | IT_CVAR, NULL, "Thunder Shields",	    &cv_thundershield,    138},
-	{IT_STRING | IT_CVAR, NULL, "Hyudoros",			&cv_hyudoro,          146},
-	{IT_STRING | IT_CVAR, NULL, "Pogo Springs",		&cv_pogospring,       154},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Sneakers",				M_HandleMonitorToggles, KITEM_SNEAKER},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Sneakers x3",			M_HandleMonitorToggles, KRITEM_TRIPLESNEAKER},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Rocket Sneakers",		M_HandleMonitorToggles, KITEM_ROCKETSNEAKER},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Toggle All",			M_HandleMonitorToggles, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas",				M_HandleMonitorToggles, KITEM_BANANA},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas x3",			M_HandleMonitorToggles, KRITEM_TRIPLEBANANA},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Bananas x10",			M_HandleMonitorToggles, KRITEM_TENFOLDBANANA},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Eggman Monitors",		M_HandleMonitorToggles, KITEM_EGGMAN},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts",				M_HandleMonitorToggles, KITEM_ORBINAUT},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts x3",			M_HandleMonitorToggles, KRITEM_TRIPLEORBINAUT},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Orbinauts x4",			M_HandleMonitorToggles, KRITEM_QUADORBINAUT},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Mines",					M_HandleMonitorToggles, KITEM_MINE},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Jawz",					M_HandleMonitorToggles, KITEM_JAWZ},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Jawz x2",				M_HandleMonitorToggles, KRITEM_DUALJAWZ},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Ballhogs",				M_HandleMonitorToggles, KITEM_BALLHOG},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Self-Propelled Bombs",	M_HandleMonitorToggles, KITEM_SPB},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Invinciblity",			M_HandleMonitorToggles, KITEM_INVINCIBILITY},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Grow",					M_HandleMonitorToggles, KITEM_GROW},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Shrink",				M_HandleMonitorToggles, KITEM_SHRINK},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Thunder Shields",		M_HandleMonitorToggles, KITEM_THUNDERSHIELD},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Hyudoros",				M_HandleMonitorToggles, KITEM_HYUDORO},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Pogo Springs",		 	M_HandleMonitorToggles, KITEM_POGOSPRING},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "Kitchen Sinks",			M_HandleMonitorToggles, KITEM_KITCHENSINK},
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "---",					M_HandleMonitorToggles, 255},
+#endif
 };
 
 // ==========================================================================
@@ -2017,18 +2040,17 @@ menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, 
 
 //menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
 //menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
-menu_t OP_MonitorToggleDef = DEFAULTMENUSTYLE("M_GAME", OP_MonitorToggleMenu, &OP_GameOptionsDef, 30, 30);
-/*menu_t OP_MonitorToggleDef =
+menu_t OP_MonitorToggleDef =
 {
-	"M_SERVER",
+	"M_GAME",
 	sizeof (OP_MonitorToggleMenu)/sizeof (menuitem_t),
-	&OP_ServerOptionsDef,
+	&OP_GameOptionsDef,
 	OP_MonitorToggleMenu,
 	M_DrawMonitorToggles,
-	30, 30,
+	47, 30,
 	0,
 	NULL
-};*/
+};
 
 #ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLOptionsMenu, &OP_VideoOptionsDef, 30, 30);
@@ -2206,9 +2228,9 @@ static void Dummystaff_OnChange(void)
 // Newgametype.  Used for gametype changes.
 static void Newgametype_OnChange(void)
 {
-	if (menuactive)
+	if (cv_nextmap.value && menuactive)
 	{
-		if(!mapheaderinfo[cv_nextmap.value-1])
+		if (!mapheaderinfo[cv_nextmap.value-1])
 			P_AllocMapHeader((INT16)(cv_nextmap.value-1));
 
 		if ((cv_newgametype.value == GT_RACE && !(mapheaderinfo[cv_nextmap.value-1]->typeoflevel & TOL_RACE)) || // SRB2kart
@@ -2525,18 +2547,21 @@ boolean M_Responder(event_t *ev)
 
 	if (ch == -1)
 		return false;
+	else if (ch == gamecontrol[gc_systemmenu][0]) // allow remappable ESC key
+		ch = KEY_ESCAPE;
 
 	// F-Keys
 	if (!menuactive)
 	{
 		noFurtherInput = true;
+
 		switch (ch)
 		{
 			case KEY_F1: // Help key
 				if (modeattacking)
 					return true;
 				M_StartControlPanel();
-				currentMenu = &MISC_HelpDef;
+				M_Manual(INT32_MAX);
 				itemOn = 0;
 				return true;
 
@@ -2791,10 +2816,9 @@ boolean M_Responder(event_t *ev)
 			}
 
 			// Why _does_ backspace go back anyway?
-			// Sal: Because it supports gamepads better. And still makes sense for keyboard.
-			currentMenu->lastOn = itemOn;
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
+			//currentMenu->lastOn = itemOn;
+			//if (currentMenu->prevMenu)
+			//	M_SetupNextMenu(currentMenu->prevMenu);
 			return false;
 
 		default:
@@ -3919,6 +3943,10 @@ static void M_PrepareLevelSelect(void)
 //
 boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 {
+	// Random map!
+	if (mapnum == -1)
+		return (gamestate != GS_TIMEATTACK && !modeattacking);
+
 	// Does the map exist?
 	if (!mapheaderinfo[mapnum])
 		return false;
@@ -4226,6 +4254,9 @@ static void M_StopMessage(INT32 choice)
 // You can even put multiple images in one menu!
 static void M_DrawImageDef(void)
 {
+	// this is probably what the V_DrawFixedPatch screen-fill bullshit was for, right
+	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); -- never mind, screen fade
+
 	// Grr.  Need to autodetect for pic_ts.
 	pic_t *pictest = (pic_t *)W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
 	if (!pictest->zero)
@@ -4239,40 +4270,58 @@ static void M_DrawImageDef(void)
 			V_DrawSmallScaledPatch(0,0,0,patch);
 	}
 
-	if (currentMenu->numitems > 1)
-		V_DrawString(0,192,V_TRANSLUCENT, va("PAGE %d of %hd", itemOn+1, currentMenu->numitems));
+	if (currentMenu->menuitems[itemOn].alphaKey)
+	{
+		V_DrawString(2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", (itemOn<<1)-1)); // intentionally not highlightflags, unlike below
+		V_DrawRightAlignedString(BASEVIDWIDTH-2,BASEVIDHEIGHT-10, V_YELLOWMAP, va("%d", itemOn<<1)); // ditto
+	}
+	else
+	{
+		INT32 x = ((itemOn ? 3 : 1)*BASEVIDWIDTH)>>2, y = (BASEVIDHEIGHT>>1) - 4;
+		V_DrawCenteredString(x, y-10, highlightflags, "USE ARROW KEYS");
+		V_DrawCharacter(x - 10 - (skullAnimCounter/5), y,
+			'\x1C' | highlightflags, false); // left arrow
+		V_DrawCharacter(x + 2 + (skullAnimCounter/5), y,
+			'\x1D' | highlightflags, false); // right arrow
+		V_DrawCenteredString(x, y+10, highlightflags, "TO LEAF THROUGH");
+	}
 }
 
 // Handles the ImageDefs.  Just a specialized function that
 // uses left and right movement.
 static void M_HandleImageDef(INT32 choice)
 {
+	boolean exitmenu = false;
+
 	switch (choice)
 	{
 		case KEY_RIGHTARROW:
-			if (currentMenu->numitems == 1)
-				break;
-
-			S_StartSound(NULL, sfx_menu1);
 			if (itemOn >= (INT16)(currentMenu->numitems-1))
-				itemOn = 0;
-            else itemOn++;
+				break;
+			S_StartSound(NULL, sfx_menu1);
+			itemOn++;
 			break;
 
 		case KEY_LEFTARROW:
-			if (currentMenu->numitems == 1)
+			if (!itemOn)
 				break;
 
 			S_StartSound(NULL, sfx_menu1);
-			if (!itemOn)
-				itemOn = currentMenu->numitems - 1;
-			else itemOn--;
+			itemOn--;
 			break;
 
 		case KEY_ESCAPE:
 		case KEY_ENTER:
-			M_ClearMenus(true);
+			exitmenu = true;
 			break;
+	}
+
+	if (exitmenu)
+	{
+		if (currentMenu->prevMenu)
+			M_SetupNextMenu(currentMenu->prevMenu);
+		else
+			M_ClearMenus(true);
 	}
 }
 
@@ -4899,11 +4948,22 @@ static void M_Options(INT32 choice)
 	OP_MainMenu[5].status = OP_MainMenu[6].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	// if the player is playing _at all_, disable the erase data & credits options
-	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
-	OP_MainMenu[9].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[9].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
+	OP_MainMenu[10].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+
+	OP_GameOptionsMenu[3].status =
+		(M_SecretUnlocked(SECRET_ENCORE)) ? (IT_CVAR|IT_STRING) : IT_SECRET; // cv_kartencore
 
 	OP_MainDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&OP_MainDef);
+}
+
+static void M_Manual(INT32 choice)
+{
+	(void)choice;
+
+	MISC_HelpDef.prevMenu = (choice == INT32_MAX ? NULL : currentMenu);
+	M_SetupNextMenu(&MISC_HelpDef);
 }
 
 static void M_RetryResponse(INT32 ch)
@@ -5054,7 +5114,8 @@ static void M_DrawChecklist(void)
 	for (i = 0; i < MAXUNLOCKABLES; i++)
 	{
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
-		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS)
+		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS
+		|| !M_Achieved(unlockables[i].showconditionset - 1))
 			continue;
 
 		++line;
@@ -6000,7 +6061,7 @@ static void M_ChoosePlayer(INT32 choice)
 {
 	char *skin1,*skin2;
 	INT32 skinnum;
-	boolean ultmode = (ultimate_selectable && SP_PlayerDef.prevMenu == &SP_LoadDef && saveSlotSelected == NOSAVESLOT);
+	//boolean ultmode = (ultimate_selectable && SP_PlayerDef.prevMenu == &SP_LoadDef && saveSlotSelected == NOSAVESLOT);
 
 	// skip this if forcecharacter
 	if (mapheaderinfo[startmap-1] && mapheaderinfo[startmap-1]->forcecharacter[0] == '\0')
@@ -6037,7 +6098,7 @@ static void M_ChoosePlayer(INT32 choice)
 	lastmapsaved = 0;
 	gamecomplete = false;
 
-	G_DeferedInitNew(ultmode, G_BuildMapName(startmap), (UINT8)skinnum, 0, fromlevelselect);
+	G_DeferedInitNew(false, G_BuildMapName(startmap), (UINT8)skinnum, 0, fromlevelselect);
 	COM_BufAddText("dummyconsvar 1\n"); // G_DeferedInitNew doesn't do this
 }
 
@@ -6093,7 +6154,8 @@ static void M_DrawStatsMaps(int location)
 	boolean dotopname = true, dobottomarrow = (location < statsMax);
 
 	if (location)
-		V_DrawString(10, y-(skullAnimCounter/5), highlightflags, "\x1A");
+		V_DrawCharacter(10, y-(skullAnimCounter/5),
+			'\x1A' | highlightflags, false); // up arrow
 
 	while (statsMapList[++i] != -1)
 	{
@@ -6175,7 +6237,8 @@ static void M_DrawStatsMaps(int location)
 	}
 bottomarrow:
 	if (dobottomarrow)
-		V_DrawString(10, y-8 + (skullAnimCounter/5), highlightflags, "\x1B");
+		V_DrawCharacter(10, y-8 + (skullAnimCounter/5),
+			'\x1B' | highlightflags, false); // up arrow
 }
 
 static void M_DrawLevelStats(void)
@@ -6279,7 +6342,6 @@ void M_DrawTimeAttackMenu(void)
 	INT32 i, x, y, cursory = 0;
 	UINT16 dispstatus;
 	patch_t *PictureOfUrFace;
-	char beststr[40];
 
 	//S_ChangeMusicInternal("racent", true); // Eww, but needed for when user hits escape during demo playback
 
@@ -6360,6 +6422,24 @@ void M_DrawTimeAttackMenu(void)
 	// Level record list
 	if (cv_nextmap.value)
 	{
+		INT32 dupadjust = (vid.width/vid.dupx);
+		tic_t lap = 0, time = 0;
+		if (mainrecords[cv_nextmap.value-1])
+		{
+			lap = mainrecords[cv_nextmap.value-1]->lap;
+			time = mainrecords[cv_nextmap.value-1]->time;
+		}
+
+		V_DrawFill((BASEVIDWIDTH - dupadjust)>>1, 78, dupadjust, 36, 239);
+
+		V_DrawRightAlignedString(149, 80, highlightflags, "BEST LAP:");
+		K_drawKartTimestamp(lap, 19, 86, 0, false);
+
+		V_DrawRightAlignedString(292, 80, highlightflags, "BEST TIME:");
+		K_drawKartTimestamp(time, 162, 86, cv_nextmap.value, false);
+	}
+	/*{
+		char beststr[40];
 		emblem_t *em;
 
 		if (!mainrecords[cv_nextmap.value-1] || !mainrecords[cv_nextmap.value-1]->time)
@@ -6402,7 +6482,7 @@ void M_DrawTimeAttackMenu(void)
 			skipThisOne:
 			em = M_GetLevelEmblems(-1);
 		}
-	}
+	}*/
 
 	// ALWAYS DRAW player name, level name, skin and color even when not on this menu!
 	if (currentMenu != &SP_TimeAttackDef)
@@ -6454,11 +6534,16 @@ static void M_TimeAttack(INT32 choice)
 
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&SP_TimeAttackDef);
-	Nextmap_OnChange();
+
+	G_SetGamestate(GS_TIMEATTACK);
+
+	if (cv_nextmap.value)
+		Nextmap_OnChange();
+	else
+		CV_AddValue(&cv_nextmap, 1);
 
 	itemOn = tastart; // "Start" is selected.
 
-	G_SetGamestate(GS_TIMEATTACK);
 	S_ChangeMusicInternal("racent", true);
 }
 
@@ -7269,8 +7354,11 @@ static INT32 M_FindFirstMap(INT32 gtype)
 
 	for (i = 0; i < NUMMAPS; i++)
 	{
-		if (mapheaderinfo[i] && (mapheaderinfo[i]->typeoflevel & gtype))
-			return i + 1;
+		if (!mapheaderinfo[i])
+			continue;
+		if (!(mapheaderinfo[i]->typeoflevel & gtype))
+			continue;
+		return i + 1;
 	}
 
 	return 1;
@@ -7302,9 +7390,12 @@ static void M_StartServer(INT32 choice)
 	if (metalrecording)
 		G_StopMetalDemo();
 
+	if (!cv_nextmap.value)
+		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, false, 0, false)+1);
+
 	if (ssplayers < 1)
 	{
-		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
+		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
 		COM_BufAddText("dummyconsvar 1\n");
 	}
 	else // split screen
@@ -7318,7 +7409,7 @@ static void M_StartServer(INT32 choice)
 			SplitScreen_OnChange();
 		}
 
-		D_MapChange(cv_nextmap.value, cv_newgametype.value, false, 1, 1, false, false);
+		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
 	}
 
 	M_ClearMenus(true);
@@ -7331,12 +7422,16 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 	INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
 
 	//  A 160x100 image of the level as entry MAPxxP
-	lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));
-
-	if (lumpnum != LUMPERROR)
-		PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+	if (cv_nextmap.value)
+	{
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(cv_nextmap.value)));
+		if (lumpnum != LUMPERROR)
+			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		else
+			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+	}
 	else
-		PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+		PictureOfLevel = W_CachePatchName("RANDOMLV", PU_CACHE);
 
 	w = SHORT(PictureOfLevel->width)/2;
 	i = SHORT(PictureOfLevel->height)/2;
@@ -7350,7 +7445,23 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 
 	V_DrawFill(x-1, y-1, w+2, i+2, trans); // variable reuse...
 
-	V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+	if (!cv_kartencore.value || gamestate == GS_TIMEATTACK || cv_newgametype.value != GT_RACE)
+		V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+	else
+	{
+		/*UINT8 *mappingforencore = NULL;
+		if ((lumpnum = W_CheckNumForName(va("%sE", mapname))) != LUMPERROR)
+			mappingforencore = W_CachePatchNum(lumpnum, PU_CACHE);*/
+
+		V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, 0);
+
+		{
+			static angle_t rubyfloattime = 0;
+			const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+			V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+i/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+			rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+		}
+	}
 	/*V_DrawDiag(x, y, 12, 31);
 	V_DrawDiag(x, y, 10, G_GetGametypeColor(cv_newgametype.value));*/
 
@@ -7365,7 +7476,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		do
 		{
 			i--;
-			if (i == -1)
+			if (i == -2)
 				i = NUMMAPS-1;
 
 			if (i == oldval)
@@ -7377,14 +7488,19 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		} while (!M_CanShowLevelInList(i, cv_newgametype.value));
 
 		//  A 160x100 image of the level as entry MAPxxP
-		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
-
-		if (lumpnum != LUMPERROR)
-			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		if (i+1)
+		{
+			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
+			if (lumpnum != LUMPERROR)
+				PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+			else
+				PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+		}
 		else
-			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+			PictureOfLevel = W_CachePatchName("RANDOMLV", PU_CACHE);
 
-		x -= horizspac + SHORT(PictureOfLevel->width)/4;
+		x -= horizspac + w/2;
+
 		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
 	} while (x > horizspac-dupadjust);
 
@@ -7399,7 +7515,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		{
 			i++;
 			if (i == NUMMAPS)
-				i = 0;
+				i = -1;
 
 			if (i == oldval)
 				return;
@@ -7410,15 +7526,20 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 		} while (!M_CanShowLevelInList(i, cv_newgametype.value));
 
 		//  A 160x100 image of the level as entry MAPxxP
-		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
-
-		if (lumpnum != LUMPERROR)
-			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		if (i+1)
+		{
+			lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(i+1)));
+			if (lumpnum != LUMPERROR)
+				PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+			else
+				PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+		}
 		else
-			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+			PictureOfLevel = W_CachePatchName("RANDOMLV", PU_CACHE);
 
 		V_DrawTinyScaledPatch(x, y, trans, PictureOfLevel);
-		x += horizspac + SHORT(PictureOfLevel->width)/4;
+
+		x += horizspac + w/2;
 	}
 #undef horizspac
 }
@@ -7705,6 +7826,8 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	spritedef_t *sprdef;
 	spriteframe_t *sprframe;
 	patch_t *statbg = W_CachePatchName("K_STATBG", PU_CACHE);
+	patch_t *statlr = W_CachePatchName("K_STATLR", PU_CACHE);
+	patch_t *statud = W_CachePatchName("K_STATUD", PU_CACHE);
 	patch_t *statdot = W_CachePatchName("K_SDOT0", PU_CACHE);
 	patch_t *patch;
 	UINT8 frame;
@@ -7712,9 +7835,13 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	UINT8 weight;
 	UINT8 i;
 	const UINT8 *flashcol = V_GetStringColormap(highlightflags);
+	INT32 statx, staty;
 
 	mx = MP_PlayerSetupDef.x;
 	my = MP_PlayerSetupDef.y;
+
+	statx = (BASEVIDWIDTH - mx - 118);
+	staty = (my+62);
 
 	// use generic drawer for cursor, items and title
 	M_DrawGenericMenu();
@@ -7753,7 +7880,16 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	}
 
 	// SRB2Kart: draw the stat backer
-	V_DrawFixedPatch((BASEVIDWIDTH - mx - 117)<<FRACBITS, (my+62)<<FRACBITS, FRACUNIT, 0, statbg, flashcol);
+	// labels
+	V_DrawThinString(statx+16, staty, V_6WIDTHSPACE|highlightflags, "Acceleration");
+	V_DrawThinString(statx+91, staty, V_6WIDTHSPACE|highlightflags, "Max Speed");
+	V_DrawThinString(statx, staty+12, V_6WIDTHSPACE|highlightflags, "Handling");
+	V_DrawThinString(statx+7, staty+77, V_6WIDTHSPACE|highlightflags, "Weight");
+	// label arrows
+	V_DrawFixedPatch((statx+64)<<FRACBITS, staty<<FRACBITS, FRACUNIT, 0, statlr, flashcol);
+	V_DrawFixedPatch((statx+24)<<FRACBITS, (staty+22)<<FRACBITS, FRACUNIT, 0, statud, flashcol);
+	// bg
+	V_DrawFixedPatch((statx+34)<<FRACBITS, (staty+10)<<FRACBITS, FRACUNIT, 0, statbg, 0);
 
 	for (i = 0; i < numskins; i++) // draw the stat dots
 	{
@@ -9004,41 +9140,308 @@ static void M_HandleVideoMode(INT32 ch)
 // ===============
 // Monitor Toggles
 // ===============
-/*static void M_DrawMonitorToggles(void)
+static consvar_t *kartitemcvs[NUMKARTRESULTS-1] = {
+	&cv_sneaker,
+	&cv_rocketsneaker,
+	&cv_invincibility,
+	&cv_banana,
+	&cv_eggmanmonitor,
+	&cv_orbinaut,
+	&cv_jawz,
+	&cv_mine,
+	&cv_ballhog,
+	&cv_selfpropelledbomb,
+	&cv_grow,
+	&cv_shrink,
+	&cv_thundershield,
+	&cv_hyudoro,
+	&cv_pogospring,
+	&cv_kitchensink,
+	&cv_triplesneaker,
+	&cv_triplebanana,
+	&cv_decabanana,
+	&cv_tripleorbinaut,
+	&cv_quadorbinaut,
+	&cv_dualjawz
+};
+
+static tic_t shitsfree = 0;
+
+static void M_DrawMonitorToggles(void)
 {
-	INT32 i, y;
-	INT32 sum = 0;
+	const INT32 edges = 4;
+	const INT32 height = 4;
+	const INT32 spacing = 35;
+	const INT32 column = itemOn/height;
+	//const INT32 row = itemOn%height;
+	INT32 leftdraw, rightdraw, totaldraw;
+	INT32 x = currentMenu->x, y = currentMenu->y+(spacing/4);
+	INT32 onx = 0, ony = 0;
 	consvar_t *cv;
-	boolean cheating = false;
+	INT32 i, translucent, drawnum;
 
-	M_DrawGenericMenu();
+	M_DrawMenuTitle();
 
-	// Assumes all are cvar type.
-	for (i = 0; i < currentMenu->numitems; ++i)
+	// Find the available space around column
+	leftdraw = rightdraw = column;
+	totaldraw = 0;
+	for (i = 0; (totaldraw < edges*2 && i < edges*4); i++)
 	{
-		cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
-		sum += cv->value;
-
-		if (!CV_IsSetToDefault(cv))
-			cheating = true;
+		if (rightdraw+1 < (currentMenu->numitems/height)+1)
+		{
+			rightdraw++;
+			totaldraw++;
+		}
+		if (leftdraw-1 >= 0)
+		{
+			leftdraw--;
+			totaldraw++;
+		}
 	}
 
-	for (i = 0; i < currentMenu->numitems; ++i)
+	for (i = leftdraw; i <= rightdraw; i++)
 	{
-		cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
-		y = currentMenu->y + currentMenu->menuitems[i].alphaKey;
+		INT32 j;
 
-		M_DrawSlider(currentMenu->x + 20, y, cv, (i == itemOn));
+		for (j = 0; j < height; j++)
+		{
+			const INT32 thisitem = (i*height)+j;
+			INT32 drawnum = 0;
 
-		if (!cv->value)
-			V_DrawRightAlignedString(312, y, V_OLDSPACING|((i == itemOn) ? highlightflags : 0), "None");
+			if (thisitem >= currentMenu->numitems)
+				continue;
+
+			if (thisitem == itemOn)
+			{
+				onx = x;
+				ony = y;
+				y += spacing;
+				continue;
+			}
+
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+			if (currentMenu->menuitems[thisitem].alphaKey == 255)
+			{
+				V_DrawScaledPatch(x, y, V_TRANSLUCENT, W_CachePatchName("K_ISBG", PU_CACHE));
+				continue;
+			}
+#endif
+			if (currentMenu->menuitems[thisitem].alphaKey == 0)
+			{
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISTOGL", PU_CACHE));
+				continue;
+			}
+
+			cv = kartitemcvs[currentMenu->menuitems[thisitem].alphaKey-1];
+			translucent = (cv->value ? 0 : V_TRANSLUCENT);
+
+			switch (currentMenu->menuitems[thisitem].alphaKey)
+			{
+				case KRITEM_DUALJAWZ:
+					drawnum = 2;
+					break;
+				case KRITEM_TRIPLESNEAKER:
+				case KRITEM_TRIPLEBANANA:
+				case KRITEM_TRIPLEORBINAUT:
+					drawnum = 3;
+					break;
+				case KRITEM_QUADORBINAUT:
+					drawnum = 4;
+					break;
+				case KRITEM_TENFOLDBANANA:
+					drawnum = 10;
+					break;
+				default:
+					drawnum = 0;
+					break;
+			}
+
+			if (cv->value)
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBG", PU_CACHE));
+			else
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISBGD", PU_CACHE));
+
+			if (drawnum != 0)
+			{
+				V_DrawScaledPatch(x, y, 0, W_CachePatchName("K_ISMUL", PU_CACHE));
+				V_DrawScaledPatch(x, y, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, true), PU_CACHE));
+				V_DrawString(x+24, y+31, V_ALLOWLOWERCASE|translucent, va("x%d", drawnum));
+			}
+			else
+				V_DrawScaledPatch(x, y, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[thisitem].alphaKey, true), PU_CACHE));
+
+			y += spacing;
+		}
+
+		x += spacing;
+		y = currentMenu->y+(spacing/4);
+	}
+
+	{
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+		if (currentMenu->menuitems[itemOn].alphaKey == 255)
+		{
+			V_DrawScaledPatch(onx-1, ony-2, V_TRANSLUCENT, W_CachePatchName("K_ITBG", PU_CACHE));
+			if (shitsfree)
+			{
+				INT32 trans = V_TRANSLUCENT;
+				if (shitsfree-1 > TICRATE-5)
+					trans = ((10-TICRATE)+shitsfree-1)<<V_ALPHASHIFT;
+				else if (shitsfree < 5)
+					trans = (10-shitsfree)<<V_ALPHASHIFT;
+				V_DrawScaledPatch(onx-1, ony-2, trans, W_CachePatchName("K_ITFREE", PU_CACHE));
+			}
+		}
 		else
-			V_DrawRightAlignedString(312, y, V_OLDSPACING|((i == itemOn) ? highlightflags : 0), va("%3d%%", (cv->value*100)/sum));
+#endif
+		if (currentMenu->menuitems[itemOn].alphaKey == 0)
+		{
+			V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
+			V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITTOGL", PU_CACHE));
+		}
+		else
+		{
+			cv = kartitemcvs[currentMenu->menuitems[itemOn].alphaKey-1];
+			translucent = (cv->value ? 0 : V_TRANSLUCENT);
+
+			switch (currentMenu->menuitems[itemOn].alphaKey)
+			{
+				case KRITEM_DUALJAWZ:
+					drawnum = 2;
+					break;
+				case KRITEM_TRIPLESNEAKER:
+				case KRITEM_TRIPLEBANANA:
+					drawnum = 3;
+					break;
+				case KRITEM_TENFOLDBANANA:
+					drawnum = 10;
+					break;
+				default:
+					drawnum = 0;
+					break;
+			}
+
+			if (cv->value)
+				V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITBG", PU_CACHE));
+			else
+				V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITBGD", PU_CACHE));
+
+			if (drawnum != 0)
+			{
+				V_DrawScaledPatch(onx-1, ony-2, 0, W_CachePatchName("K_ITMUL", PU_CACHE));
+				V_DrawScaledPatch(onx-1, ony-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[itemOn].alphaKey, false), PU_CACHE));
+				V_DrawScaledPatch(onx+27, ony+39, translucent, W_CachePatchName("K_ITX", PU_CACHE));
+				V_DrawKartString(onx+37, ony+34, translucent, va("%d", drawnum));
+			}
+			else
+				V_DrawScaledPatch(onx-1, ony-2, translucent, W_CachePatchName(K_GetItemPatch(currentMenu->menuitems[itemOn].alphaKey, false), PU_CACHE));
+		}
 	}
 
-	if (cheating)
-		V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, warningflags, "* MODIFIED, CHEATS ENABLED *");
-}*/
+	if (shitsfree)
+		shitsfree--;
+
+	V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, highlightflags, va("* %s *", currentMenu->menuitems[itemOn].text));
+}
+
+static void M_HandleMonitorToggles(INT32 choice)
+{
+	const INT32 width = 6, height = 4;
+	INT32 column = itemOn/height, row = itemOn%height;
+	INT16 next;
+	UINT8 i;
+	boolean exitmenu = false;
+
+	switch (choice)
+	{
+		case KEY_RIGHTARROW:
+			S_StartSound(NULL, sfx_menu1);
+			column++;
+			if (((column*height)+row) >= currentMenu->numitems)
+				column = 0;
+			next = min(((column*height)+row), currentMenu->numitems-1);
+			itemOn = next;
+			break;
+
+		case KEY_LEFTARROW:
+			S_StartSound(NULL, sfx_menu1);
+			column--;
+			if (column < 0)
+				column = width-1;
+			if (((column*height)+row) >= currentMenu->numitems)
+				column--;
+			next = max(((column*height)+row), 0);
+			if (next >= currentMenu->numitems)
+				next = currentMenu->numitems-1;
+			itemOn = next;
+			break;
+
+		case KEY_DOWNARROW:
+			S_StartSound(NULL, sfx_menu1);
+			row = (row+1) % height;
+			if (((column*height)+row) >= currentMenu->numitems)
+				row = 0;
+			next = min(((column*height)+row), currentMenu->numitems-1);
+			itemOn = next;
+			break;
+
+		case KEY_UPARROW:
+			S_StartSound(NULL, sfx_menu1);
+			row = (row-1) % height;
+			if (row < 0)
+				row = height-1;
+			if (((column*height)+row) >= currentMenu->numitems)
+				row--;
+			next = max(((column*height)+row), 0);
+			if (next >= currentMenu->numitems)
+				next = currentMenu->numitems-1;
+			itemOn = next;
+			break;
+
+		case KEY_ENTER:
+#ifdef ITEMTOGGLEBOTTOMRIGHT
+			if (currentMenu->menuitems[itemOn].alphaKey == 255)
+			{
+				//S_StartSound(NULL, sfx_lose);
+				if (!shitsfree)
+				{
+					shitsfree = TICRATE;
+					S_StartSound(NULL, sfx_itfree);
+				}
+			}
+			else
+#endif
+			if (currentMenu->menuitems[itemOn].alphaKey == 0)
+			{
+				INT32 v = cv_sneaker.value;
+				S_StartSound(NULL, sfx_s1b4);
+				for (i = 0; i < NUMKARTRESULTS-1; i++)
+				{
+					if (kartitemcvs[i]->value == v)
+						CV_AddValue(kartitemcvs[i], 1);
+				}
+			}
+			else
+			{
+				S_StartSound(NULL, sfx_s1ba);
+				CV_AddValue(kartitemcvs[currentMenu->menuitems[itemOn].alphaKey-1], 1);
+			}
+			break;
+
+		case KEY_ESCAPE:
+			exitmenu = true;
+			break;
+	}
+
+	if (exitmenu)
+	{
+		if (currentMenu->prevMenu)
+			M_SetupNextMenu(currentMenu->prevMenu);
+		else
+			M_ClearMenus(true);
+	}
+}
 
 // =========
 // Quit Game
@@ -9155,7 +9558,6 @@ static void M_HandleFogColor(INT32 choice)
 			break;
 
 		case KEY_ESCAPE:
-			S_StartSound(NULL, sfx_menu1);
 			exitmenu = true;
 			break;
 

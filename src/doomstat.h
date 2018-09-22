@@ -80,7 +80,7 @@ extern INT16 gametype;
 extern UINT8 splitscreen;
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
-extern boolean forceresetplayers;
+extern boolean forceresetplayers, deferencoremode;
 
 // ========================================
 // Internal parameters for sound rendering.
@@ -243,6 +243,7 @@ typedef struct
 	UINT8 cutscenenum;    ///< Cutscene number to use, 0 for none.
 	INT16 countdown;      ///< Countdown until level end?
 	UINT16 palette;       ///< PAL lump to use on this map
+	UINT16 encorepal;     ///< PAL for encore mode
 	UINT8 numlaps;        ///< Number of laps in circuit mode, unless overridden.
 	SINT8 unlockrequired; ///< Is an unlockable required to play this level? -1 if no.
 	UINT8 levelselect;    ///< Is this map available in the level select? If so, which map list is it available in?
@@ -448,7 +449,7 @@ extern INT32 cheats;
 // SRB2kart
 extern UINT8 gamespeed;
 extern boolean franticitems;
-extern boolean mirrormode;
+extern boolean encoremode, prevencoremode;
 extern boolean comeback;
 
 extern SINT8 battlewanted[4];

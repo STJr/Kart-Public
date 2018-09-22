@@ -207,7 +207,7 @@ const char *R_GetPalname(UINT16 num)
 const char *GetPalette(void)
 {
 	if (gamestate == GS_LEVEL)
-		return R_GetPalname(mapheaderinfo[gamemap-1]->palette);
+		return R_GetPalname((encoremode ? mapheaderinfo[gamemap-1]->encorepal : mapheaderinfo[gamemap-1]->palette));
 	return "PLAYPAL";
 }
 
@@ -248,6 +248,9 @@ void V_SetPaletteLump(const char *pal)
 #endif
 	if (rendermode != render_none)
 		I_SetPalette(pLocalPalette);
+#ifdef HASINVERT
+	R_MakeInvertmap();
+#endif
 }
 
 static void CV_usegamma_OnChange(void)
@@ -1248,27 +1251,41 @@ void V_DrawFadeConsBack(INT32 plines)
 
 // Gets string colormap, used for 0x80 color codes
 //
-const UINT8 *V_GetStringColormap(INT32 colorflags)
+UINT8 *V_GetStringColormap(INT32 colorflags)
 {
 #if 0 // perfect
 	switch ((colorflags & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT)
 	{
-	case 1: // 0x81, purple
+	case  1: // 0x81, purple
 		return purplemap;
-	case 2: // 0x82, yellow
+	case  2: // 0x82, yellow
 		return yellowmap;
-	case 3: // 0x83, lgreen
+	case  3: // 0x83, green
 		return greenmap;
-	case 4: // 0x84, blue
+	case  4: // 0x84, blue
 		return bluemap;
-	case 5: // 0x85, red
+	case  5: // 0x85, red
 		return redmap;
-	case 6: // 0x86, gray
+	case  6: // 0x86, gray
 		return graymap;
-	case 7: // 0x87, orange
+	case  7: // 0x87, orange
 		return orangemap;
-	case 8: // 0x88, sky
+	case  8: // 0x88, sky
 		return skymap;
+	case  9: // 0x89, lavender
+		return lavendermap;
+	case 10: // 0x8A, gold
+		return goldmap;
+	case 11: // 0x8B, tea-green
+		return teamap;
+	case 12: // 0x8C, steel
+		return steelmap;
+	case 13: // 0x8D, pink
+		return pinkmap;
+	case 14: // 0x8E, teal
+		return tealmap;
+	case 15: // 0x8F, peach
+		return peachmap;
 	default: // reset
 		return NULL;
 	}
@@ -1366,7 +1383,7 @@ char *V_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	for (i = 0; i < slen; ++i)
 	{
 		c = newstring[i];
-		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x89) //color parsing! -Inuyasha 2.16.09
+		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
 		if (c == '\n')
@@ -1431,6 +1448,7 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
+	colormap = V_GetStringColormap(charflags);
 
 	switch (option & V_SPACINGMASK)
 	{
@@ -1454,7 +1472,10 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 		{
 			// manually set flags override color codes
 			if (!(option & V_CHARCOLORMASK))
+			{
 				charflags = ((*ch & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+				colormap = V_GetStringColormap(charflags);
+			}
 			continue;
 		}
 		if (*ch == '\n')
@@ -1497,7 +1518,6 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 			continue;
 		}
 
-		colormap = V_GetStringColormap(charflags);
 		V_DrawFixedPatch((cx + center)<<FRACBITS, cy<<FRACBITS, FRACUNIT, option, hu_font[c], colormap);
 
 		cx += w;
@@ -1530,6 +1550,7 @@ void V_DrawKartString(INT32 x, INT32 y, INT32 option, const char *string)
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
+	colormap = V_GetStringColormap(charflags);
 
 	switch (option & V_SPACINGMASK)
 	{
@@ -1553,7 +1574,10 @@ void V_DrawKartString(INT32 x, INT32 y, INT32 option, const char *string)
 		{
 			// manually set flags override color codes
 			if (!(option & V_CHARCOLORMASK))
+			{
 				charflags = ((*ch & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+				colormap = V_GetStringColormap(charflags);
+			}
 			continue;
 		}
 		if (*ch == '\n')
@@ -1596,7 +1620,6 @@ void V_DrawKartString(INT32 x, INT32 y, INT32 option, const char *string)
 			continue;
 		}
 
-		colormap = V_GetStringColormap(charflags);
 		V_DrawFixedPatch((cx + center)<<FRACBITS, cy<<FRACBITS, FRACUNIT, option, kart_font[c], colormap);
 
 		cx += w;
@@ -1646,6 +1669,7 @@ void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
+	colormap = V_GetStringColormap(charflags);
 
 	switch (option & V_SPACINGMASK)
 	{
@@ -1669,7 +1693,10 @@ void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 		{
 			// manually set flags override color codes
 			if (!(option & V_CHARCOLORMASK))
+			{
 				charflags = ((*ch & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+				colormap = V_GetStringColormap(charflags);
+			}
 			continue;
 		}
 		if (*ch == '\n')
@@ -1710,7 +1737,6 @@ void V_DrawSmallString(INT32 x, INT32 y, INT32 option, const char *string)
 			continue;
 		}
 
-		colormap = V_GetStringColormap(charflags);
 		V_DrawFixedPatch((cx + center)<<FRACBITS, cy<<FRACBITS, FRACUNIT/2, option, hu_font[c], colormap);
 
 		cx += w;
@@ -1753,6 +1779,7 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
+	colormap = V_GetStringColormap(charflags);
 
 	switch (option & V_SPACINGMASK)
 	{
@@ -1762,8 +1789,9 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 		case V_OLDSPACING:
 			charwidth = 5;
 			break;
-		case V_6WIDTHSPACE:
-			spacewidth = 3;
+		// Out of video flags, so we're reusing this for alternate charwidth instead
+		/*case V_6WIDTHSPACE:
+			spacewidth = 3;*/
 		default:
 			break;
 	}
@@ -1776,7 +1804,10 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 		{
 			// manually set flags override color codes
 			if (!(option & V_CHARCOLORMASK))
+			{
 				charflags = ((*ch & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+				colormap = V_GetStringColormap(charflags);
+			}
 			continue;
 		}
 		if (*ch == '\n')
@@ -1805,7 +1836,8 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 		if (charwidth)
 			w = charwidth * dupx;
 		else
-			w = (SHORT(tny_font[c]->width) * dupx);
+			w = ((option & V_6WIDTHSPACE ? max(1, SHORT(tny_font[c]->width)-1) // Reuse this flag for the alternate bunched-up spacing
+				: SHORT(tny_font[c]->width)) * dupx);
 
 		if (cx > scrwidth)
 			break;
@@ -1815,7 +1847,6 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 			continue;
 		}
 
-		colormap = V_GetStringColormap(charflags);
 		V_DrawFixedPatch(cx<<FRACBITS, cy<<FRACBITS, FRACUNIT, option, tny_font[c], colormap);
 
 		cx += w;
@@ -2158,7 +2189,7 @@ INT32 V_StringWidth(const char *string, INT32 option)
 	for (i = 0; i < strlen(string); i++)
 	{
 		c = string[i];
-		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x89) //color parsing! -Inuyasha 2.16.09
+		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
 		c = toupper(c) - HU_FONTSTART;
@@ -2197,7 +2228,7 @@ INT32 V_SmallStringWidth(const char *string, INT32 option)
 	for (i = 0; i < strlen(string); i++)
 	{
 		c = string[i];
-		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x89) //color parsing! -Inuyasha 2.16.09
+		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
 		c = toupper(c) - HU_FONTSTART;
@@ -2227,8 +2258,9 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		case V_OLDSPACING:
 			charwidth = 5;
 			break;
-		case V_6WIDTHSPACE:
-			spacewidth = 3;
+		// Out of video flags, so we're reusing this for alternate charwidth instead
+		/*case V_6WIDTHSPACE:
+			spacewidth = 3;*/
 		default:
 			break;
 	}
@@ -2236,14 +2268,15 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 	for (i = 0; i < strlen(string); i++)
 	{
 		c = string[i];
-		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x89) //color parsing! -Inuyasha 2.16.09
+		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
 		c = toupper(c) - HU_FONTSTART;
 		if (c < 0 || c >= HU_FONTSIZE || !tny_font[c])
 			w += spacewidth;
 		else
-			w += (charwidth ? charwidth : SHORT(tny_font[c]->width));
+			w += (charwidth ? charwidth
+				: (option & V_6WIDTHSPACE ? max(1, SHORT(tny_font[c]->width)-1) : SHORT(tny_font[c]->width))); // Reuse this flag for the alternate bunched-up spacing
 	}
 
 	return w;

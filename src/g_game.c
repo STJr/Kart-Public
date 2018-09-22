@@ -248,7 +248,8 @@ INT32 cheats; //for multiplayer cheat commands
 // SRB2Kart
 // Cvars that we don't want changed mid-game
 UINT8 gamespeed; // Game's current speed (or difficulty, or cc, or etc); 0 for easy, 1 for normal, 2 for hard
-boolean mirrormode; // Mirror Mode currently enabled?
+boolean encoremode = false; // Encore Mode currently enabled?
+boolean prevencoremode;
 boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
@@ -764,8 +765,19 @@ const char *G_BuildMapName(INT32 map)
 {
 	static char mapname[10] = "MAPXX"; // internal map name (wad resource name)
 
-	I_Assert(map > 0);
+	I_Assert(map >= 0);
 	I_Assert(map <= NUMMAPS);
+
+	if (map == 0) // hack???
+	{
+		if (gamestate == GS_TITLESCREEN)
+			map = -1;
+		else if (gamestate == GS_LEVEL)
+			map = gamemap-1;
+		else
+			map = prevmap;
+		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, false, 0, false)+1;
+	}
 
 	if (map < 100)
 		sprintf(&mapname[3], "%.2d", map);
@@ -1294,7 +1306,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	axis = JoyAxis(AXISTURN, ssplayer);
 
-	if (mirrormode)
+	if (encoremode)
 	{
 		turnright ^= turnleft; // swap these using three XORs
 		turnleft ^= turnright;
@@ -1345,8 +1357,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// Specator mouse turning
 	if (player->spectator)
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*(mirrormode ? -1 : 1)*8));
-		cmd->driftturn = (INT16)(cmd->driftturn - (mousex*(mirrormode ? -1 : 1)*8));
+		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*(encoremode ? -1 : 1)*8));
+		cmd->driftturn = (INT16)(cmd->driftturn - (mousex*(encoremode ? -1 : 1)*8));
 	}
 
 	// Speed bump strafing
@@ -1857,6 +1869,7 @@ boolean G_Responder(event_t *ev)
 
 			// tell who's the view
 			CONS_Printf(M_GetText("Viewpoint: %s\n"), player_names[displayplayer]);
+			P_ResetCamera(&players[displayplayer], &camera);
 
 			return true;
 		}
@@ -2346,6 +2359,10 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	INT32 starpostwp;
+	INT32 itemtype;
+	INT32 itemamount;
+	INT32 itemroulette;
+	INT32 roulettetype;
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
@@ -2403,10 +2420,39 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	starpostwp = players[player].kartstuff[k_starpostwp];
-	bumper = players[player].kartstuff[k_bumper];
-	comebackpoints = players[player].kartstuff[k_comebackpoints];
-	wanted = players[player].kartstuff[k_wanted];
+	if (leveltime <= starttime)
+	{
+		itemroulette = 0;
+		roulettetype = 0;
+		itemtype = 0;
+		itemamount = 0;
+		bumper = (G_BattleGametype() ? cv_kartbumpers.value : 0);
+		comebackpoints = 0;
+		wanted = 0;
+		starpostwp = 0;
+	}
+	else
+	{
+		starpostwp = players[player].kartstuff[k_starpostwp];
+
+		itemroulette = (players[player].kartstuff[k_itemroulette] > 0 ? 1 : 0);
+		roulettetype = players[player].kartstuff[k_roulettetype];
+
+		if (players[player].kartstuff[k_itemheld])
+		{
+			itemtype = 0;
+			itemamount = 0;
+		}
+		else
+		{
+			itemtype = players[player].kartstuff[k_itemtype];
+			itemamount = players[player].kartstuff[k_itemamount];
+		}
+
+		bumper = players[player].kartstuff[k_bumper];
+		comebackpoints = players[player].kartstuff[k_comebackpoints];
+		wanted = players[player].kartstuff[k_wanted];
+	}
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2463,6 +2509,10 @@ void G_PlayerReborn(INT32 player)
 
 	// SRB2kart
 	p->kartstuff[k_starpostwp] = starpostwp; // TODO: get these out of kartstuff, it causes desync
+	p->kartstuff[k_itemroulette] = itemroulette;
+	p->kartstuff[k_roulettetype] = roulettetype;
+	p->kartstuff[k_itemtype] = itemtype;
+	p->kartstuff[k_itemamount] = itemamount;
 	p->kartstuff[k_bumper] = bumper;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
@@ -3097,15 +3147,52 @@ boolean G_BattleGametype(void)
 //
 // G_SometimesGetDifferentGametype
 //
-// I pity the fool who adds more gametypes later, because it'll require some element of randomisation which needs to be synched...
-// Although given this only gets called for the host, you could probably get away with M_Random.
+// Oh, yeah, and we sometimes flip encore mode on here too.
 //
 INT16 G_SometimesGetDifferentGametype(void)
 {
-	if (randmapbuffer[NUMMAPS] != -1)
+	boolean encorepossible = (M_SecretUnlocked(SECRET_ENCORE) && G_RaceGametype());
+
+	if (!cv_kartvoterulechanges.value) // never
 		return gametype;
 
-	randmapbuffer[NUMMAPS] = gametype;
+	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
+	{
+		if (cv_kartvoterulechanges.value != 1)
+			randmapbuffer[NUMMAPS]--;
+		if (encorepossible)
+		{
+			switch (cv_kartvoterulechanges.value)
+			{
+				case 3: // always
+					randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
+					break;
+				case 2: // frequent
+					encorepossible = M_RandomChance(FRACUNIT>>1);
+					break;
+				case 1: // sometimes
+				default:
+					encorepossible = M_RandomChance(FRACUNIT>>3);
+					break;
+			}
+			if (encorepossible != (boolean)cv_kartencore.value)
+				return (gametype|0x80);
+		}
+		return gametype;
+	}
+
+	switch (cv_kartvoterulechanges.value) // okay, we're having a gametype change! when's the next one, luv?
+	{
+		case 3: // always
+			randmapbuffer[NUMMAPS] = 1; // every other vote (or always if !encorepossible)
+			break;
+		case 1: // sometimes
+		default:
+			// fallthrough - happens when clearing buffer, but needs a reasonable countdown if cvar is modified
+		case 2: // frequent
+			randmapbuffer[NUMMAPS] = 5; // per "cup"
+			break;
+	}
 
 	if (gametype == GT_MATCH)
 		return GT_RACE;
@@ -3173,6 +3260,7 @@ INT16 G_TOLFlag(INT32 pgametype)
 	return INT16_MAX;
 }
 
+#ifdef FLUSHMAPBUFFEREARLY
 static INT32 TOLMaps(INT16 tolflags)
 {
 	INT32 num = 0;
@@ -3190,6 +3278,7 @@ static INT32 TOLMaps(INT16 tolflags)
 
 	return num;
 }
+#endif
 
 /** Select a random map with the given typeoflevel flags.
   * If no map has those flags, this arbitrarily gives you map 1.
@@ -3207,6 +3296,8 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 
 	if (!okmaps)
 		okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
+
+tryagain:
 
 	// Find all the maps that are ok and and put them in an array.
 	for (ix = 0; ix < NUMMAPS; ix++)
@@ -3241,12 +3332,28 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 			okmaps[numokmaps++] = ix;
 	}
 
-	if (numokmaps == 0)
+	if (numokmaps == 0)  // If there's no matches... (Goodbye, incredibly silly function chains :V)
 	{
 		if (!ignorebuffer)
-			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon); // If there's no matches, (An incredibly silly function chain, buuut... :V)
-		if (maphell)
-			return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
+		{
+			if (randmapbuffer[3] == -1) // Is the buffer basically empty?
+			{
+				ignorebuffer = true; // This will probably only help in situations where there's very few maps, but it's folly not to at least try it
+				goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon);
+			}
+
+			for (bufx = 3; bufx < NUMMAPS; bufx++) // Let's clear all but the three most recent maps...
+				randmapbuffer[bufx] = -1;
+			if (cv_kartvoterulechanges.value == 1) // sometimes
+				randmapbuffer[NUMMAPS] = 0;
+			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, ignorebuffer, maphell, callagainsoon);
+		}
+
+		if (maphell) // Any wiggle room to loosen our restrictions here?
+		{
+			maphell--;
+			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
+		}
 
 		ix = 0; // Sorry, none match. You get MAP01.
 		for (bufx = 0; bufx < NUMMAPS+1; bufx++)
@@ -3408,11 +3515,15 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
-	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-4] != -1) // we're getting pretty full, so lets clear it
+#ifdef FLUSHMAPBUFFEREARLY
+	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-5] != -1) // We're getting pretty full, so! -- no need for this, handled in G_RandMap
 	{
-		for (i = 0; i < NUMMAPS+1; i++)
+		for (i = 3; i < NUMMAPS; i++) // Let's clear all but the three most recent maps...
 			randmapbuffer[i] = -1;
+		if (cv_kartvoterulechanges.value == 1) // sometimes
+			randmapbuffer[NUMMAPS] = 0;
 	}
+#endif
 
 	if (gametype != GT_COOP)
 	{
@@ -3477,6 +3588,7 @@ void G_NextLevel(void)
 		}
 
 		forceresetplayers = false;
+		deferencoremode = (boolean)cv_kartencore.value;
 	}
 	
 	gameaction = ga_worlddone;
@@ -3489,7 +3601,7 @@ static void G_DoWorldDone(void)
 		// SRB2Kart
 		D_MapChange(nextmap+1,
 			gametype,
-			ultimatemode,
+			deferencoremode,
 			forceresetplayers,
 			0,
 			false,
@@ -3561,7 +3673,7 @@ static void G_DoContinued(void)
 	// Reset # of lives
 	pl->lives = (ultimatemode) ? 1 : 3;
 
-	D_MapChange(gamemap, gametype, ultimatemode, false, 0, false, false);
+	D_MapChange(gamemap, gametype, false, false, 0, false, false);
 
 	gameaction = ga_nothing;
 }
@@ -4075,7 +4187,7 @@ void G_SaveGame(UINT32 savegameslot)
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
 //
-void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
+void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
 {
 	INT32 i;
 	UINT8 color = 0;
@@ -4120,14 +4232,14 @@ void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar, U
 		CV_StealthSetValue(&cv_playercolor, color);
 
 	if (mapname)
-		D_MapChange(M_MapNumber(mapname[3], mapname[4]), gametype, pultmode, true, 1, false, FLS);
+		D_MapChange(M_MapNumber(mapname[3], mapname[4]), gametype, pencoremode, true, 1, false, FLS);
 }
 
 //
 // This is the map command interpretation something like Command_Map_f
 //
 // called at: map cmd execution, doloadgame, doplaydemo
-void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean skipprecutscene)
+void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, boolean skipprecutscene)
 {
 	INT32 i;
 
@@ -4137,8 +4249,8 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 		S_ResumeAudio();
 	}
 
-	if (netgame || multiplayer) // Nice try, haxor.
-		ultimatemode = false;
+	prevencoremode = ((gamestate == GS_TITLESCREEN) ? false : encoremode);
+	encoremode = pencoremode;
 
 	legitimateexit = false; // SRB2Kart
 	comebackshowninfo = false;
@@ -4227,7 +4339,6 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 	// Don't carry over custom music change to another map.
 	mapmusflags |= MUSIC_RELOADRESET;
 
-	ultimatemode = pultmode;
 	playerdeadview = false;
 	automapactive = false;
 	imcontinuing = false;
@@ -4255,6 +4366,9 @@ void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer, boolean
 char *G_BuildMapTitle(INT32 mapnum)
 {
 	char *title = NULL;
+
+	if (mapnum == 0)
+		return Z_StrDup("Random");
 
 	if (strcmp(mapheaderinfo[mapnum-1]->lvlttl, ""))
 	{

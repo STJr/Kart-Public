@@ -1404,8 +1404,11 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_BANANA:
 				case MT_FAKEITEM:
 				case MT_SSMINE:
-				case MT_SINK:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
+					break;
+				case MT_SINK:
+					gravityadd = FixedMul(gravityadd, 5*FRACUNIT); // Double gravity
+					break;
 				default:
 					break;
 			}
@@ -3652,7 +3655,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
 		itsatwodlevel = true;
 
-	if (mirrormode)
+	if (encoremode)
 		postimg = postimg_mirror;
 	else if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
 		postimg = postimg_flip;
@@ -6212,6 +6215,9 @@ void P_RunOverlays(void)
 		mo->scale = mo->destscale = mo->target->scale;
 		mo->angle = mo->target->angle;
 
+		if ((mo->flags & MF_DONTENCOREMAP) != (mo->target->flags & MF_DONTENCOREMAP))
+			mo->flags ^= MF_DONTENCOREMAP;
+
 		if (!(mo->state->frame & FF_ANIMATE))
 			zoffs = FixedMul(((signed)mo->state->var2)*FRACUNIT, mo->scale);
 		// if you're using FF_ANIMATE on an overlay,
@@ -6611,115 +6617,12 @@ void P_MobjThinker(mobj_t *mobj)
 					return;
 				break;
 			//{ SRB2kart mobs
-			case MT_DRIFT:
-			{
-				if (mobj->target && mobj->target->player && mobj->target->player->mo && mobj->target->player->health > 0 && !mobj->target->player->spectator)
-				{
-					fixed_t HEIGHT;
-					fixed_t radius;
-
-					fixed_t dsone = K_GetKartDriftSparkValue(mobj->target->player);
-					fixed_t dstwo = dsone*2;
-
-					if (mobj->target->player->kartstuff[k_driftcharge] < dsone)
-					{
-						P_RemoveMobj(mobj);
-						return;
-					}
-
-					if (mobj->target->player->kartstuff[k_hyudorotimer] > 0)
-					{
-						if (splitscreen)
-						{
-							if (leveltime & 1)
-								mobj->flags2 |= MF2_DONTDRAW;
-							else
-								mobj->flags2 &= ~MF2_DONTDRAW;
-
-							if (mobj->target->player->kartstuff[k_hyudorotimer] >= (1*TICRATE/2) && mobj->target->player->kartstuff[k_hyudorotimer] <= hyudorotime-(1*TICRATE/2))
-							{
-								if (mobj->target->player == &players[secondarydisplayplayer])
-									mobj->eflags |= MFE_DRAWONLYFORP2;
-								else if (mobj->target->player == &players[thirddisplayplayer] && splitscreen > 1)
-									mobj->eflags |= MFE_DRAWONLYFORP3;
-								else if (mobj->target->player == &players[fourthdisplayplayer] && splitscreen > 2)
-									mobj->eflags |= MFE_DRAWONLYFORP4;
-								else
-									mobj->eflags |= MFE_DRAWONLYFORP1;
-							}
-							else
-								mobj->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
-						}
-						else
-						{
-							if (mobj->target->player == &players[displayplayer]
-								|| (mobj->target->player != &players[displayplayer]
-								&& (mobj->target->player->kartstuff[k_hyudorotimer] < (1*TICRATE/2) || mobj->target->player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
-							{
-								if (leveltime & 1)
-									mobj->flags2 |= MF2_DONTDRAW;
-								else
-									mobj->flags2 &= ~MF2_DONTDRAW;
-							}
-							else
-								mobj->flags2 |= MF2_DONTDRAW;
-						}
-					}
-					else if (mobj->target->player->kartstuff[k_hyudorotimer] == 0)
-					{
-						mobj->flags2 &= ~MF2_DONTDRAW;
-						mobj->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
-					}
-
-					// Actor's distance from its Target, or Radius.
-					radius = 7*mobj->target->scale;
-
-					// Switch blue flames to red flames
-					if (mobj->target->player && mobj->type == MT_DRIFT
-					&& mobj->target->player->kartstuff[k_driftcharge] >= dstwo
-					&& !(mobj->state >= &states[S_DRIFTSPARK4] && mobj->state <= &states[S_DRIFTSPARK6]))
-						P_SetMobjStateNF(mobj, S_DRIFTSPARK4);
-
-					// Get the angle
-					if (mobj->target->player)
-						mobj->angle = ANGLE_180 + mobj->target->player->frameangle;
-
-					// If the player is on the ceiling, then flip
-					if (mobj->target->eflags & MFE_VERTICALFLIP)
-					{
-						mobj->eflags |= MFE_VERTICALFLIP;
-						HEIGHT = (16<<FRACBITS);
-					}
-					else
-					{
-						mobj->eflags &= ~MFE_VERTICALFLIP;
-						HEIGHT = 0;
-					}
-
-					// Shrink if the player shrunk too.
-					mobj->scale = mobj->target->scale;
-
-					P_UnsetThingPosition(mobj);
-					{
-						const angle_t fa = mobj->angle>>ANGLETOFINESHIFT;
-						mobj->x = mobj->target->x + FixedMul(finecosine[fa],radius);
-						mobj->y = mobj->target->y + FixedMul(finesine[fa],radius);
-						mobj->z = mobj->target->z - HEIGHT;
-						P_SetThingPosition(mobj);
-					}
-				}
-				else
-				{
-					P_RemoveMobj(mobj);
-					return;
-				}
-				break;
-			}
 			case MT_ORBINAUT_SHIELD: // Kart orbit/trail items
 			case MT_JAWZ_SHIELD:
 			case MT_BANANA_SHIELD:
 			case MT_SSMINE_SHIELD:
 			case MT_FAKESHIELD:
+			case MT_SINK_SHIELD:
 				/*if (mobj->health > 0 && mobj->target && mobj->target->player
 					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
 				{
@@ -7018,7 +6921,15 @@ void P_MobjThinker(mobj_t *mobj)
 									break;
 							}
 
-							mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+							if (mobj->target->player->kartstuff[k_itemheld])
+							{
+								if (leveltime & 1)
+									mobj->tracer->flags2 &= ~MF2_DONTDRAW;
+								else
+									mobj->tracer->flags2 |= MF2_DONTDRAW;
+							}
+							else
+								mobj->tracer->flags2 &= ~MF2_DONTDRAW;
 						}
 						else
 						{
@@ -7029,7 +6940,7 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->tracer->destscale = scale;
 
 						if (mobj->target->player->kartstuff[k_itemamount] >= numberdisplaymin
-							&& mobj->target->player->kartstuff[k_itemamount] < 10) // Meh, too difficult to support greater than this; convert this to a decent HUD object and then maybe :V
+							&& mobj->target->player->kartstuff[k_itemamount] <= 10) // Meh, too difficult to support greater than this; convert this to a decent HUD object and then maybe :V
 						{
 							mobj_t *number = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
 							mobj_t *numx = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
@@ -7913,7 +7824,7 @@ void P_MobjThinker(mobj_t *mobj)
 			else
 			{
 				mobj->flags &= ~MF_NOGRAVITY;
-				if (mobj->z > mobj->watertop && mobj->z - mobj->watertop < FixedMul(MAXSTEPMOVE, mobj->scale))
+				if (mobj->z > mobj->watertop && mobj->z - mobj->watertop < FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale))
 					mobj->z = mobj->watertop;
 			}
 			break;
@@ -8225,6 +8136,39 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, sfx_prloop);
 			mobj->health--;
 			break;
+		case MT_BOOSTFLAME:
+			if (!mobj->target || !mobj->target->health)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+
+			P_TeleportMove(mobj, mobj->target->x + P_ReturnThrustX(mobj, mobj->target->angle+ANGLE_180, mobj->target->radius),
+				mobj->target->y + P_ReturnThrustY(mobj, mobj->target->angle+ANGLE_180, mobj->target->radius), mobj->target->z);
+			mobj->angle = mobj->target->angle;
+			P_SetScale(mobj, mobj->target->scale);
+
+			if (mobj->target->player)
+			{
+				if (mobj->target->player->kartstuff[k_sneakertimer] > mobj->movecount)
+					P_SetMobjState(mobj, S_BOOSTFLAME);
+				mobj->movecount = mobj->target->player->kartstuff[k_sneakertimer];
+			}
+
+			if (mobj->state == &states[S_BOOSTSMOKESPAWNER])
+			{
+				mobj_t *smoke = P_SpawnMobj(mobj->x, mobj->y, mobj->z+(8<<FRACBITS), MT_BOOSTSMOKE);
+
+				P_SetScale(smoke, mobj->target->scale/2);
+				smoke->destscale = 3*mobj->target->scale/2;
+
+				smoke->momx = mobj->target->momx/2;
+				smoke->momy = mobj->target->momy/2;
+				smoke->momz = mobj->target->momz/2;
+
+				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
+			}
+			break;
 		case MT_SPARKLETRAIL:
 			if (!mobj->target)
 			{
@@ -8236,6 +8180,14 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_INVULNFLASH:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_invincibilitytimer]))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			break;
+		case MT_PLAYERRETICULE:
+			if (!mobj->target || !mobj->target->health)
 			{
 				P_RemoveMobj(mobj);
 				return;

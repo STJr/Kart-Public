@@ -66,8 +66,6 @@ extern UINT8 hudtrans;
 #define V_MONOSPACE          0x00000C00 // Don't do width checks on characters, all characters 8 width
 
 // use bits 13-16 for colors
-// though we only have 7 colors now, perhaps we can introduce
-// more as needed later
 #define V_CHARCOLORSHIFT     12
 #define V_CHARCOLORMASK      0x0000F000
 // for simplicity's sake, shortcuts to specific colors
@@ -79,6 +77,13 @@ extern UINT8 hudtrans;
 #define V_GRAYMAP            0x00006000
 #define V_ORANGEMAP          0x00007000
 #define V_SKYMAP             0x00008000
+#define V_LAVENDERMAP        0x00009000
+#define V_GOLDMAP            0x0000A000
+#define V_TEAMAP             0x0000B000
+#define V_STEELMAP           0x0000C000
+#define V_PINKMAP            0x0000D000
+#define V_TEALMAP            0x0000E000
+#define V_PEACHMAP           0x0000F000
 
 // use bits 17-20 for alpha transparency
 #define V_ALPHASHIFT         16
@@ -157,7 +162,7 @@ void V_DrawFadeConsBack(INT32 plines);
 void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed);
 // draw a single character, but for the chat
 void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UINT8 *colormap);
-const UINT8 *V_GetStringColormap(INT32 colorflags);
+UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
 

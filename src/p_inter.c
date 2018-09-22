@@ -516,6 +516,22 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						boom->color = SKINCOLOR_RED;
 					S_StartSound(boom, special->info->attacksound);
 
+					if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
+					{
+						INT32 numingame = 0;
+						INT32 i;
+
+						for (i = 0; i < MAXPLAYERS; i++)
+						{
+							if (!playeringame[i] || players[i].spectator || players[i].kartstuff[k_bumper] <= 0)
+								continue;
+							numingame++;
+						}
+
+						if (numingame <= 2) // If so, then an extra karma point so they are 100% certain to switch places; it's annoying to end matches with a bomb kill
+							special->target->player->kartstuff[k_comebackpoints]++;
+					}
+
 					special->target->player->kartstuff[k_comebackpoints] += 2 * (K_IsPlayerWanted(player) ? 2 : 1);
 					if (netgame && cv_hazardlog.value)
 						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
@@ -1733,7 +1749,6 @@ static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *sour
 						str = M_GetText("%s%s's tagging hand %s %s.\n");
 					break;
 				case MT_SPINFIRE:
-				case MT_SNEAKERTRAIL:
 					str = M_GetText("%s%s's elemental fire trail %s %s.\n");
 					break;
 				case MT_THROWNBOUNCE:
@@ -2219,7 +2234,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		if (target->target->player->kartstuff[k_itemheld])
 		{
 			if ((target->type == MT_BANANA_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_BANANA) // trail items
-				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE))
+				|| (target->type == MT_SSMINE_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_MINE)
+				|| (target->type == MT_SINK_SHIELD && target->target->player->kartstuff[k_itemtype] == KITEM_KITCHENSINK))
 			{
 				if (target->movedir != 0 && target->movedir < (UINT16)target->target->player->kartstuff[k_itemamount])
 				{
