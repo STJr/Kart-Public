@@ -101,6 +101,7 @@ side_t *sides;
 mapthing_t *mapthings;
 INT32 numstarposts;
 boolean levelloading;
+UINT8 levelfadecol;
 
 // BLOCKMAP
 // Created from axis aligned bounding box
@@ -2691,12 +2692,14 @@ boolean P_SetupLevel(boolean skipprecip)
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 
+	levelfadecol = (encoremode && !ranspecialwipe ? 122 : 120);
+
 	// Let's fade to white here
 	// But only if we didn't do the encore startup wipe
 	if (rendermode != render_none && !ranspecialwipe)
 	{
 		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (encoremode ? 122 : 120));
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
 
 		F_WipeEndScreen();
 		F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
@@ -3040,7 +3043,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Remove the loading shit from the screen
 	if (rendermode != render_none)
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, (encoremode && !ranspecialwipe ? 122 : 120));
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
 
 	if (precache || dedicated)
 		R_PrecacheLevel();
