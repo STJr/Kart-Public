@@ -713,24 +713,55 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	|| target == 0 // To everyone
 	|| consoleplayer == target-1) // To you
 	{
-		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt, *fmt2;
+		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt, *fmt2, *textcolor = "\x80";
 		char *tempchar = NULL;
 
-		// In CTF and team match, color the player's name.
-		if (G_GametypeHasTeams())
-		{
-			cend = "";
-			if (players[playernum].ctfteam == 1) // red
-				cstart = "\x85";
-			else if (players[playernum].ctfteam == 2) // blue
-				cstart = "\x84";
-
-		}
-
 		// player is a spectator?
-		if (players[playernum].spectator)
-				cstart = "\x86";	// grey name
-
+        if (players[playernum].spectator)
+		{	
+			cstart = "\x86";    // grey name
+			textcolor = "\x86";
+		}	
+		else
+        {
+			const UINT8 color = players[playernum].skincolor;
+			if (color <= SKINCOLOR_SILVER || color == SKINCOLOR_SLATE)
+				cstart = "\x80"; // white
+			else if (color <= SKINCOLOR_BEIGE || color == SKINCOLOR_JET)
+				cstart = "\x86"; // V_GRAYMAP
+			else if (color <= SKINCOLOR_LEATHER)
+				cstart = "\x8A"; // V_GOLDMAP
+			else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_LILAC)
+				cstart = "\x8d"; // V_PINKMAP
+			else if (color <= SKINCOLOR_KETCHUP)
+				cstart = "\x85"; // V_REDMAP
+			else if (color <= SKINCOLOR_TANGERINE)
+				cstart = "\x87"; // V_ORANGEMAP
+			else if (color <= SKINCOLOR_CARAMEL)
+				cstart = "\x8f"; // V_PEACHMAP
+			else if (color <= SKINCOLOR_BRONZE)
+				cstart = "\x8A"; // V_GOLDMAP
+			else if (color <= SKINCOLOR_MUSTARD)
+				cstart = "\x82"; // V_YELLOWMAP
+			else if (color <= SKINCOLOR_PISTACHIO)
+				cstart = "\x8b"; // V_TEAMAP
+			else if (color <= SKINCOLOR_SWAMP || color == SKINCOLOR_LIME)
+				cstart = "\x83"; // V_GREENMAP
+			else if (color <= SKINCOLOR_TEAL)
+				cstart = "\x8e"; // V_TEALMAP
+			else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
+				cstart = "\x88"; // V_SKYMAP
+			else if (color <= SKINCOLOR_STEEL)
+				cstart = "\x8c"; // V_STEELMAP
+			else if (color <= SKINCOLOR_BLUEBERRY)
+				cstart = "\x84"; // V_BLUEMAP
+			else if (color == SKINCOLOR_PURPLE)
+				cstart = "\x81"; // V_PURPLEMAP
+			else //if (color <= SKINCOLOR_POMEGRANATE)
+				cstart = "\x89"; // V_LAVENDERMAP
+        }
+		prefix = cstart;
+		
 		// Give admins and remote admins their symbols.
 		if (playernum == serverplayer)
 			tempchar = (char *)Z_Calloc(strlen(cstart) + strlen(adminchar) + 1, PU_STATIC, NULL);
@@ -757,26 +788,25 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		}
 		else if (target == 0) // To everyone
 		{
-			fmt = "\3%s\x83<%s%s%s\x83>\x80 %s\n";
-			fmt2 = "%s\x83<%s%s%s\x83>\x80 %s";
+			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
+			fmt2 = "%s<%s%s%s>\x80 %s%s";
 		}
 		else if (target-1 == consoleplayer) // To you
 		{
 			prefix = "\x82[PM]";
 			cstart = "\x82";
-			fmt = "\4%s<%s%s>%s\x80 %s\n";	// make this yellow, however.
-			fmt2 = "%s<%s%s>%s\x80 %s";
+			textcolor = "\x82";
+			fmt = "\4%s<%s%s>%s\x80 %s%s\n";	// make this yellow, however.
+			fmt2 = "%s<%s%s>%s\x80 %s%s";
 		}
 		else if (target > 0) // By you, to another player
 		{
 			// Use target's name.
 			dispname = player_names[target-1];
-			/*fmt = "\3\x82[TO]\x80%s%s%s* %s\n";
-			fmt2 = "\x82[TO]\x80%s%s%s* %s";*/
 			prefix = "\x82[TO]";
 			cstart = "\x82";
-			fmt = "\4%s<%s%s>%s\x80 %s\n";	// make this yellow, however.
-			fmt2 = "%s<%s%s>%s\x80 %s";
+			fmt = "\4%s<%s%s>%s\x80 %s%s\n";	// make this yellow, however.
+			fmt2 = "%s<%s%s>%s\x80 %s%s";
 
 		}
 		else // To your team
@@ -788,17 +818,17 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			else
 				prefix = "\x83";	// makes sure this doesn't implode if you sayteam on non-team gamemodes
 
-			fmt = "\3%s<%s%s>\x80%s %s\n";
-			fmt2 = "%s<%s%s>\x80%s %s";
+			fmt = "\3%s<%s%s>\x80%s %s%s\n";
+			fmt2 = "%s<%s%s>\x80%s %s%s";
 
 		}
 
-		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
+		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
 
 		if OLDCHAT
-			CONS_Printf(fmt, prefix, cstart, dispname, cend, msg);
+			CONS_Printf(fmt, prefix, cstart, dispname, cend, textcolor, msg);
 		else
-			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, msg)); // save to log.txt
+			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, textcolor, msg)); // save to log.txt
 
 		if (tempchar)
 			Z_Free(tempchar);
@@ -840,6 +870,9 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 				{
 					if (s[m])
 						s[m+1] = (s[m]);
+					
+					if (m < 1)
+						break;	// fix the chat going ham if your replace the first character. (For whatever reason this didn't happen in vanilla????)
 				}
 				s[c_input] = ch;		// and replace this.
 			}
@@ -1152,33 +1185,6 @@ boolean HU_Responder(event_t *ev)
 //                         HEADS UP DRAWING
 //======================================================================
 
-// Gets string colormap, used for 0x80 color codes
-//
-static UINT8 *CHAT_GetStringColormap(INT32 colorflags)	// pasted from video.c, sorry for the mess.
-{
-	switch ((colorflags & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT)
-	{
-	case 1: // 0x81, purple
-		return purplemap;
-	case 2: // 0x82, yellow
-		return yellowmap;
-	case 3: // 0x83, lgreen
-		return greenmap;
-	case 4: // 0x84, blue
-		return bluemap;
-	case 5: // 0x85, red
-		return redmap;
-	case 6: // 0x86, gray
-		return graymap;
-	case 7: // 0x87, orange
-		return orangemap;
-	case 8: // 0x88, sky
-		return skymap;
-	default: // reset
-		return NULL;
-	}
-}
-
 // Precompile a wordwrapped string to any given width.
 // This is a muuuch better method than V_WORDWRAP.
 // again stolen and modified a bit from video.c, don't mind me, will need to rearrange this one day.
@@ -1197,7 +1203,7 @@ static char *CHAT_WordWrap(INT32 x, INT32 w, INT32 option, const char *string)
 	for (i = 0; i < slen; ++i)
 	{
 		c = newstring[i];
-		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x89) //color parsing! -Inuyasha 2.16.09
+		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
 		if (c == '\n')
@@ -1314,6 +1320,7 @@ static void HU_drawMiniChat(void)
 		INT32 transflag = (timer >= 0 && timer <= 9) ? (timer*V_10TRANS) : 0;	// you can make bad jokes out of this one.
 		size_t j = 0;
 		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_mini[i]);	// get the current message, and word wrap it.
+		UINT8 *colormap = NULL;
 
 		while(msg[j])	// iterate through msg
 		{
@@ -1333,6 +1340,7 @@ static void HU_drawMiniChat(void)
 				else if (msg[j] & 0x80) // stolen from video.c, nice.
 				{
 					clrflag = ((msg[j] & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+					colormap = V_GetStringColormap(clrflag);
 					++j;
 					continue;
 				}
@@ -1341,8 +1349,6 @@ static void HU_drawMiniChat(void)
 			}
 			else
 			{
-				UINT8 *colormap = CHAT_GetStringColormap(clrflag);
-
 				if (cv_chatbacktint.value)	// on request of wolfy
 					V_DrawFillConsoleMap(x + dx + 2, y+dy, charwidth, charheight, 239|V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 
@@ -1392,6 +1398,7 @@ static void HU_drawChatLog(INT32 offset)
 		INT32 clrflag = 0;
 		INT32 j = 0;
 		const char *msg = CHAT_WordWrap(x+2, cv_chatwidth.value-(charwidth*2), V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, chat_log[i]);	// get the current message, and word wrap it.
+		UINT8 *colormap = NULL;
 		while(msg[j])	// iterate through msg
 		{
 			if (msg[j] < HU_FONTSTART)	// don't draw
@@ -1406,6 +1413,7 @@ static void HU_drawChatLog(INT32 offset)
 				else if (msg[j] & 0x80) // stolen from video.c, nice.
 				{
 					clrflag = ((msg[j] & 0x7f) << V_CHARCOLORSHIFT) & V_CHARCOLORMASK;
+					colormap = V_GetStringColormap(clrflag);
 					++j;
 					continue;
 				}
@@ -1415,10 +1423,7 @@ static void HU_drawChatLog(INT32 offset)
 			else
 			{
 				if ((y+dy+2 >= chat_topy) && (y+dy < (chat_bottomy)))
-				{
-					UINT8 *colormap = CHAT_GetStringColormap(clrflag);
 					V_DrawChatCharacter(x + dx + 2, y+dy+2, msg[j++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT, !cv_allcaps.value, colormap);
-				}
 				else
 					j++;	// don't forget to increment this or we'll get stuck in the limbo.
 			}
@@ -1479,7 +1484,7 @@ static void HU_DrawChat(void)
 {
 	INT32 charwidth = 4, charheight = 6;
 	INT32 t = 0, c = 0, y = chaty - (typelines*charheight)  - (cv_kartspeedometer.value ? 16 : 0);
-	UINT32 i = 0;
+	UINT32 i = 0, saylen = strlen(w_chat);	// You learn new things everyday!
 	const char *ntalk = "Say: ", *ttalk = "Team: ";
 	const char *talk = ntalk;
 
@@ -1495,7 +1500,7 @@ static void HU_DrawChat(void)
 	}
 
 	V_DrawFillConsoleMap(chatx, y-1, cv_chatwidth.value, (typelines*charheight), 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);
-
+	
 	while (talk[i])
 	{
 		if (talk[i] < HU_FONTSTART)
@@ -1522,7 +1527,7 @@ static void HU_DrawChat(void)
 			if (hu_tick < 4)
 				V_DrawChatCharacter(cursorx, cursory+1, '_' |V_SNAPTOBOTTOM|V_SNAPTOLEFT|t, !cv_allcaps.value, NULL);
 
-			if (cursorx == chatx+1)	// a weirdo hack
+			if (cursorx == chatx+1 && saylen == i)	// a weirdo hack
 			{
 				typelines += 1;
 				skippedline = true;
