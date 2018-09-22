@@ -65,6 +65,8 @@ typedef struct visplane_s
 #ifdef ESLOPE
 	pslope_t *slope;
 #endif
+
+	boolean noencore;
 } visplane_t;
 
 extern visplane_t *floorplane;
@@ -103,7 +105,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel, fixed_t 
 #ifdef ESLOPE
 	, pslope_t *slope
 #endif
-	);
+	, boolean noencore);
 visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop);
 void R_ExpandPlane(visplane_t *pl, INT32 start, INT32 stop);
 void R_PlaneBounds(visplane_t *plane);

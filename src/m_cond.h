@@ -103,7 +103,7 @@ typedef struct
 {
 	char name[64];
 	char objective[64];
-	UINT16 height; // menu height
+	UINT8 showconditionset;
 	UINT8 conditionset;
 	INT16 type;
 	INT16 variable;
@@ -112,6 +112,7 @@ typedef struct
 	UINT8 unlocked;
 } unlockable_t;
 
+// I have NO idea why these are going negative, but whatever.
 #define SECRET_NONE         -6 // Does nil.  Use with levels locked by UnlockRequired
 #define SECRET_ITEMFINDER	-5 // Enables Item Finder/Emblem Radar
 #define SECRET_EMBLEMHINTS	-4 // Enables Emblem Hints
@@ -123,6 +124,7 @@ typedef struct
 #define SECRET_WARP			 2 // Selectable warp
 #define SECRET_SOUNDTEST	 3 // Sound Test
 #define SECRET_CREDITS		 4 // Enables Credits
+#define SECRET_ENCORE        5 // Enables Encore mode cvar
 
 // If you have more secrets than these variables allow in your game,
 // you seriously need to get a life.

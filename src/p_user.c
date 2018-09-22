@@ -1221,7 +1221,7 @@ void P_RestoreMusic(player_t *player)
 
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
-		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
+		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
 		// Item - Grow
@@ -1598,6 +1598,9 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 
 	if (mobj->flags2 & MF2_OBJECTFLIP)
 		ghost->flags |= MF2_OBJECTFLIP;
+
+	if (!(mobj->flags & MF_DONTENCOREMAP))
+		mobj->flags &= ~MF_DONTENCOREMAP;
 
 	return ghost;
 }
@@ -8878,7 +8881,7 @@ static void P_CalcPostImg(player_t *player)
 	}
 #endif
 
-	if (mirrormode) // srb2kart
+	if (encoremode) // srb2kart
 		*type = postimg_mirror;
 }
 
