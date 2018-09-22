@@ -150,6 +150,13 @@ static CV_PossibleValue_t menuhighlight_cons_t[] =
 	{V_GRAYMAP, "Always gray"},
 	{V_ORANGEMAP, "Always orange"},
 	{V_SKYMAP, "Always sky-blue"},
+	{V_GOLDMAP, "Always gold"},
+	{V_LAVENDERMAP, "Always lavender"},
+	{V_TEAMAP, "Always tea-green"},
+	{V_STEELMAP, "Always steel"},
+	{V_PINKMAP, "Always pink"},
+	{V_TEALMAP, "Always teal"},
+	{V_PEACHMAP, "Always peach"},
 	{0, NULL}
 };
 consvar_t cons_menuhighlight = {"menuhighlight", "Game type", CV_SAVE, menuhighlight_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -239,11 +246,6 @@ static void CONS_Bind_f(void)
 //                          CONSOLE SETUP
 //======================================================================
 
-// Font colormap colors
-// TODO: This could probably be improved somehow...
-// These colormaps are 99% identical, with just a few changed bytes
-UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *orangemap, *skymap;
-
 // Console BG color
 UINT8 *consolebgmap = NULL;
 
@@ -284,37 +286,57 @@ static void CONS_backcolor_Change(void)
 	CON_SetupBackColormap();
 }
 
+// Font colormap colors
+// TODO: This could probably be improved somehow...
+// These colormaps are 99% identical, with just a few changed bytes
+UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *orangemap,\
+ *skymap, *goldmap, *lavendermap, *teamap, *steelmap, *pinkmap, *tealmap, *peachmap;
+
 static void CON_SetupColormaps(void)
 {
 	INT32 i;
-	UINT8 *memorysrc = (UINT8 *)Z_Malloc((256*8), PU_STATIC, NULL);
+	UINT8 *memorysrc = (UINT8 *)Z_Malloc((256*15), PU_STATIC, NULL);
 
-	purplemap  = memorysrc;
-	yellowmap  = (purplemap+256);
-	greenmap  = (yellowmap+256);
-	bluemap    = (greenmap+256);
-	redmap     = (bluemap+256);
-	graymap    = (redmap+256);
-	orangemap  = (graymap+256);
-	skymap     = (orangemap+256);
+	purplemap   = memorysrc;
+	yellowmap   = (purplemap+256);
+	greenmap    = (yellowmap+256);
+	bluemap     = (greenmap+256);
+	redmap      = (bluemap+256);
+	graymap     = (redmap+256);
+	orangemap   = (graymap+256);
+	skymap      = (orangemap+256);
+	lavendermap = (skymap+256);
+	goldmap     = (lavendermap+256);
+	teamap      = (goldmap+256);
+	steelmap    = (teamap+256);
+	pinkmap     = (steelmap+256);
+	tealmap     = (pinkmap+256);
+	peachmap    = (tealmap+256);
 
 	// setup the other colormaps, for console text
 
 	// these don't need to be aligned, unless you convert the
 	// V_DrawMappedPatch() into optimised asm.
 
-	for (i = 0; i < (256*8); i++, ++memorysrc)
+	for (i = 0; i < (256*15); i++, ++memorysrc)
 		*memorysrc = (UINT8)(i & 0xFF); // remap each color to itself...
 
 	// SRB2Kart: Different console font, new colors
-	purplemap[120] = (UINT8)194;
-	yellowmap[120] = (UINT8)103;
-	greenmap[120]  = (UINT8)162;
-	bluemap[120]   = (UINT8)228;
-	graymap[120]   = (UINT8)10;
-	redmap[120]    = (UINT8)126; // battle
-	orangemap[120] = (UINT8)85; // record attack
-	skymap[120]    = (UINT8)214; // race
+	purplemap[120]   = (UINT8)194;
+	yellowmap[120]   = (UINT8)103;
+	greenmap[120]    = (UINT8)162;
+	bluemap[120]     = (UINT8)228;
+	redmap[120]      = (UINT8)126; // battle
+	graymap[120]     =  (UINT8)10;
+	orangemap[120]   =  (UINT8)85; // record attack
+	skymap[120]      = (UINT8)214; // race
+	lavendermap[120] = (UINT8)248;
+	goldmap[120]     = (UINT8)114;
+	teamap[120]      = (UINT8)177;
+	steelmap[120]    = (UINT8)201;
+	pinkmap[120]     = (UINT8)124;
+	tealmap[120]     = (UINT8)220;
+	peachmap[120]    =  (UINT8)69; // nice
 
 	// Init back colormap
 	CON_SetupBackColormap();

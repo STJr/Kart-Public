@@ -744,7 +744,7 @@ void P_Ticker(boolean run)
 		if (mapreset > 1
 			&& --mapreset <= 1
 			&& server) // Remember: server uses it for mapchange, but EVERYONE ticks down for the animation
-				D_MapChange(gamemap, gametype, ultimatemode, true, 0, false, false);
+				D_MapChange(gamemap, gametype, encoremode, true, 0, false, false);
 	}
 
 	P_MapEnd();

@@ -89,10 +89,12 @@ typedef union
 		INT32 numplayers; // Number of players being displayed
 		char levelstring[64]; // holds levelnames up to 64 characters
 		// SRB2kart
-		UINT8 increase[MAXPLAYERS]; //how much did the score increase by?
-		UINT32 val[MAXPLAYERS]; //Gametype-specific value
+		UINT8 increase[MAXPLAYERS]; // how much did the score increase by?
+		UINT8 jitter[MAXPLAYERS]; // wiggle
+		UINT32 val[MAXPLAYERS]; // Gametype-specific value
 		UINT8 pos[MAXPLAYERS]; // player positions. used for ties
 		boolean rankingsmode; // rankings mode
+		boolean encore; // encore mode
 	} match;
 } y_data;
 
@@ -125,6 +127,7 @@ typedef struct
 	UINT8 gtc;
 	const char *gts;
 	patch_t *pic;
+	boolean encore;
 } y_votelvlinfo;
 
 // Clientside & splitscreen player info.
@@ -155,6 +158,7 @@ static patch_t *cursor2 = NULL;
 static patch_t *cursor3 = NULL;
 static patch_t *cursor4 = NULL;
 static patch_t *randomlvl = NULL;
+static patch_t *rubyicon = NULL;
 
 static void Y_UnloadVoteData(void);
 
@@ -188,22 +192,28 @@ static void Y_CompareBattle(INT32 i)
 
 static void Y_CompareRank(INT32 i)
 {
-	if (!(data.match.val[data.match.numplayers] == UINT32_MAX || players[i].score > data.match.val[data.match.numplayers]))
+	UINT8 increase = ((data.match.increase[i] == UINT8_MAX) ? 0 : data.match.increase[i]);
+	if (!(data.match.val[data.match.numplayers] == UINT32_MAX || (players[i].score - increase) > data.match.val[data.match.numplayers]))
 		return;
 
-	data.match.val[data.match.numplayers] = players[i].score;
+	data.match.val[data.match.numplayers] = (players[i].score - increase);
 	data.match.num[data.match.numplayers] = i;
 }
 
-static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32))
+static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 {
 	INT32 i, j;
 	boolean completed[MAXPLAYERS];
 	INT32 numplayersingame = 0;
 
 	// Initialize variables
-	if ((data.match.rankingsmode = rankingsmode))
+	if (rankingsmode > 1)
+		;
+	else if ((data.match.rankingsmode = (boolean)rankingsmode))
+	{
 		sprintf(data.match.levelstring, "* Total Rankings *");
+		data.match.encore = false;
+	}
 	else
 	{
 		// set up the levelstring
@@ -236,16 +246,24 @@ static void Y_CalculateMatchData(boolean rankingsmode, void (*comparison)(INT32)
 		}
 
 		data.match.levelstring[sizeof data.match.levelstring - 1] = '\0';
+
+		data.match.encore = encoremode;
+
+		memset(data.match.jitter, 0, sizeof (data.match.jitter));
 	}
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		data.match.val[i] = UINT32_MAX;
-		if (!rankingsmode)
-			data.match.increase[i] = UINT8_MAX;
 
 		if (!playeringame[i] || players[i].spectator)
+		{
+			data.match.increase[i] = UINT8_MAX;
 			continue;
+		}
+
+		if (!rankingsmode)
+			data.match.increase[i] = UINT8_MAX;
 
 		numplayersingame++;
 	}
@@ -395,7 +413,8 @@ void Y_IntermissionDrawer(void)
 	}
 	else*/ if (intertype == int_race || intertype == int_match)
 	{
-		INT32 y = 48;
+#define NUMFORNEWCOLUMN 8
+		INT32 y = 48, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -407,7 +426,10 @@ void Y_IntermissionDrawer(void)
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
 		V_DrawFill(x, 42, 312, 1, 0);
 
-		if (data.match.numplayers > 8)
+		if (data.match.encore)
+			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20-8, hilicol, "ENCORE MODE");
+
+		if (!gutter)
 		{
 			V_DrawFill(x+156, 32, 1, 152, 0);
 
@@ -424,9 +446,15 @@ void Y_IntermissionDrawer(void)
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
+			boolean dojitter = data.match.jitter[data.match.num[i]];
+			data.match.jitter[data.match.num[i]] = 0;
+
 			if (data.match.num[i] != MAXPLAYERS && playeringame[data.match.num[i]] && !players[data.match.num[i]].spectator)
 			{
 				char strtime[MAXPLAYERNAME+1];
+
+				if (dojitter)
+					y--;
 
 				V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
@@ -438,7 +466,7 @@ void Y_IntermissionDrawer(void)
 					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
 				}
 
-				if (data.match.numplayers > 8)
+				if (!gutter)
 					strlcpy(strtime, data.match.name[i], 6);
 				else
 					STRBUFCPY(strtime, data.match.name[i]);
@@ -458,66 +486,46 @@ void Y_IntermissionDrawer(void)
 						else
 							snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[data.match.num[i]]);
 
-						if (data.match.numplayers > 8)
-							V_DrawRightAlignedString(x+120, y, 0, strtime);
-						else
-							V_DrawRightAlignedString(x+120+BASEVIDWIDTH/2, y, 0, strtime);
-
-						snprintf(strtime, sizeof strtime, "%d", data.match.val[i]-data.match.increase[data.match.num[i]]);
+						V_DrawRightAlignedString(x+120+gutter, y, 0, strtime);
 					}
-					else
-						snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
 
-					if (data.match.numplayers > 8)
-						V_DrawRightAlignedString(x+152, y, 0, strtime);
-					else
-						V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
+					snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
+
+					V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 				}
 				else
 				{
 					if (data.match.val[i] == (UINT32_MAX-1))
-					{
-						if (data.match.numplayers > 8)
-							V_DrawRightAlignedThinString(x+152, y-1, 0, "NO CONTEST");
-						else
-							V_DrawRightAlignedThinString(x+152+BASEVIDWIDTH/2, y-1, 0, "NO CONTEST");
-					}
+						V_DrawRightAlignedThinString(x+152+gutter, y-1, 0, "NO CONTEST.");
 					else
 					{
 						if (intertype == int_race)
 						{
-							snprintf(strtime, sizeof strtime, "%i:%02i.%02i", G_TicsToMinutes(data.match.val[i], true),
+							snprintf(strtime, sizeof strtime, "%i'%02i\"%02i", G_TicsToMinutes(data.match.val[i], true),
 							G_TicsToSeconds(data.match.val[i]), G_TicsToCentiseconds(data.match.val[i]));
 							strtime[sizeof strtime - 1] = '\0';
 
-							if (data.match.numplayers > 8)
-								V_DrawRightAlignedString(x+152, y, 0, strtime);
-							else
-								V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, strtime);
+							V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 						}
 						else
-						{
-							if (data.match.numplayers > 8)
-								V_DrawRightAlignedString(x+152, y, 0, va("%i", data.match.val[i]));
-							else
-								V_DrawRightAlignedString(x+152+BASEVIDWIDTH/2, y, 0, va("%i", data.match.val[i]));
-						}
+							V_DrawRightAlignedString(x+152+gutter, y, 0, va("%i", data.match.val[i]));
 					}
 				}
+
+				if (dojitter)
+					y++;
 			}
 			else
-			{
-				data.match.increase[data.match.num[i]] = 0;
 				data.match.num[i] = MAXPLAYERS; // this should be the only field setting in this function
-			}
 
 			y += 16;
 
-			if (i == 7)
+			if (i == NUMFORNEWCOLUMN-1)
 			{
 				y = 48;
 				x += BASEVIDWIDTH/2;
 			}
+#undef NUMFORNEWCOLUMN
 		}
 	}
 
@@ -590,9 +598,9 @@ void Y_Ticker(void)
 			else
 			{
 				if (!data.match.rankingsmode && (intertic >= sorttic + 8))
-					Y_CalculateMatchData(true, Y_CompareRank);
+					Y_CalculateMatchData(1, Y_CompareRank);
 
-				if (data.match.rankingsmode && intertic > sorttic+(2*TICRATE))
+				if (data.match.rankingsmode && intertic > sorttic+16+(2*TICRATE))
 				{
 					INT32 q=0,r=0;
 					boolean kaching = true;
@@ -604,14 +612,17 @@ void Y_Ticker(void)
 						|| data.match.increase[data.match.num[q]] == UINT8_MAX)
 							continue;
 
-						data.match.increase[data.match.num[q]]--;
 						r++;
-						if (data.match.increase[data.match.num[q]])
+						data.match.jitter[data.match.num[q]] = 1;
+						if (--data.match.increase[data.match.num[q]])
 							kaching = false;
 					}
 
 					if (r)
+					{
 						S_StartSound(NULL, (kaching ? sfx_chchng : sfx_ptally));
+						Y_CalculateMatchData(2, Y_CompareRank);
+					}
 					else
 						endtic = intertic + 3*TICRATE; // 3 second pause after end of tally
 				}
@@ -754,7 +765,7 @@ void Y_StartIntermission(void)
 		case int_match:
 		{
 			// Calculate who won
-			Y_CalculateMatchData(false, Y_CompareBattle);
+			Y_CalculateMatchData(0, Y_CompareBattle);
 			if (cv_inttime.value > 0)
 				S_ChangeMusicInternal("racent", true); // loop it
 			break;
@@ -777,7 +788,7 @@ void Y_StartIntermission(void)
 			}
 
 			// Calculate who won
-			Y_CalculateMatchData(false, Y_CompareRace);
+			Y_CalculateMatchData(0, Y_CompareRace);
 			break;
 		}
 
@@ -926,6 +937,7 @@ void Y_VoteDrawer(void)
 {
 	INT32 i, x, y = 0, height = 0;
 	UINT8 selected[4];
+	fixed_t rubyheight = 0;
 
 	if (rendermode == render_none)
 		return;
@@ -935,6 +947,11 @@ void Y_VoteDrawer(void)
 
 	if (!voteclient.loaded)
 		return;
+
+	{
+		angle_t rubyfloattime = (ANGLE_MAX/NEWTICRATE)*(votetic % NEWTICRATE);
+		rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+	}
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
@@ -970,19 +987,18 @@ void Y_VoteDrawer(void)
 	y = (200-height)/2;
 	for (i = 0; i < 4; i++)
 	{
-		char str[40];
+		const char *str;
 		patch_t *pic;
 		UINT8 j, color;
 
 		if (i == 3)
 		{
-			snprintf(str, sizeof str, "%.32s", "RANDOM");
-			str[sizeof str - 1] = '\0';
+			str = "RANDOM";
 			pic = randomlvl;
 		}
 		else
 		{
-			strcpy(str, levelinfo[i].str);
+			str = levelinfo[i].str;
 			pic = levelinfo[i].pic;
 		}
 
@@ -1047,8 +1063,16 @@ void Y_VoteDrawer(void)
 				sizeadd--;
 			}
 
-			V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
+			if (!levelinfo[i].encore)
+				V_DrawSmallScaledPatch(BASEVIDWIDTH-100, y, V_SNAPTORIGHT, pic);
+			else
+			{
+				V_DrawFixedPatch((BASEVIDWIDTH-20)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP|V_SNAPTORIGHT, pic, 0);
+				V_DrawFixedPatch((BASEVIDWIDTH-60)<<FRACBITS, ((y+25)<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTORIGHT, rubyicon, NULL);
+			}
+
 			V_DrawRightAlignedThinString(BASEVIDWIDTH-22, 40+y, V_SNAPTORIGHT|V_6WIDTHSPACE, str);
+
 			if (levelinfo[i].gts)
 			{
 				INT32 w = V_ThinStringWidth(levelinfo[i].gts, V_SNAPTORIGHT)+1;
@@ -1063,7 +1087,14 @@ void Y_VoteDrawer(void)
 		}
 		else
 		{
-			V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
+			if (!levelinfo[i].encore)
+				V_DrawTinyScaledPatch(BASEVIDWIDTH-60, y, V_SNAPTORIGHT, pic);
+			else
+			{
+				V_DrawFixedPatch((BASEVIDWIDTH-20)<<FRACBITS, y<<FRACBITS, FRACUNIT/4, V_FLIP|V_SNAPTORIGHT, pic, 0);
+				V_DrawFixedPatch((BASEVIDWIDTH-40)<<FRACBITS, (y<<FRACBITS) + (25<<(FRACBITS-1)) - rubyheight, FRACUNIT/2, V_SNAPTORIGHT, rubyicon, NULL);
+			}
+
 			if (levelinfo[i].gts)
 			{
 				V_DrawDiag(BASEVIDWIDTH-60, y, 8, V_SNAPTORIGHT|31);
@@ -1101,7 +1132,14 @@ void Y_VoteDrawer(void)
 					V_DrawFill(x-1, y-1, 42, 27, levelinfo[votes[i]].gtc|V_SNAPTOLEFT);
 			}
 
-			V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
+			if (!levelinfo[votes[i]].encore)
+				V_DrawTinyScaledPatch(x, y, V_SNAPTOLEFT, pic);
+			else
+			{
+				V_DrawFixedPatch((x+40)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/4, V_SNAPTOLEFT|V_FLIP, pic, 0);
+				V_DrawFixedPatch((x+20)<<FRACBITS, (y<<FRACBITS) + (25<<(FRACBITS-1)) - rubyheight, FRACUNIT/2, V_SNAPTORIGHT, rubyicon, NULL);
+			}
+
 			if (levelinfo[votes[i]].gts)
 			{
 				V_DrawDiag(x, y, 8, V_SNAPTOLEFT|31);
@@ -1166,6 +1204,8 @@ static void Y_VoteStops(SINT8 pick, SINT8 level)
 		D_GameTypeChanged(lastgametype);
 		forceresetplayers = true;
 	}
+
+	deferencoremode = (levelinfo[level].encore);
 }
 
 //
@@ -1386,6 +1426,7 @@ void Y_StartVote(void)
 	cursor3 = W_CachePatchName("P3CURSOR", PU_STATIC);
 	cursor4 = W_CachePatchName("P4CURSOR", PU_STATIC);
 	randomlvl = W_CachePatchName("RANDOMLV", PU_STATIC);
+	rubyicon = W_CachePatchName("RUBYICON", PU_STATIC);
 
 	timer = cv_votetime.value*TICRATE;
 	pickedvote = -1;
@@ -1409,36 +1450,41 @@ void Y_StartVote(void)
 	{
 		lumpnum_t lumpnum;
 
+		// set up the encore
+		levelinfo[i].encore = (votelevels[i][1] & 0x80);
+		votelevels[i][1] &= ~0x80;
+
 		// set up the str
 		if (i == 4)
 			levelinfo[i].str[0] = '\0';
 		else
 		{
-			if (strlen(mapheaderinfo[votelevels[i][0]]->zonttl) > 0)
+			// set up the levelstring
+			if (mapheaderinfo[votelevels[i][0]]->levelflags & LF_NOZONE || !mapheaderinfo[votelevels[i][0]]->zonttl[0])
 			{
-				if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
+				if (mapheaderinfo[votelevels[i][0]]->actnum[0])
 					snprintf(levelinfo[i].str,
 						sizeof levelinfo[i].str,
-						"%.32s %.32s %s",
-						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl, mapheaderinfo[votelevels[i][0]]->actnum);
-				else
-					snprintf(levelinfo[i].str,
-						sizeof levelinfo[i].str,
-						"%.32s %.32s",
-						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl);
-			}
-			else
-			{
-				if (strlen(mapheaderinfo[votelevels[i][0]]->actnum) > 0)
-					snprintf(levelinfo[i].str,
-						sizeof levelinfo[i].str,
-						"%.32s %s",
+						"%s %s",
 						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->actnum);
 				else
 					snprintf(levelinfo[i].str,
 						sizeof levelinfo[i].str,
-						"%.32s",
+						"%s",
 						mapheaderinfo[votelevels[i][0]]->lvlttl);
+			}
+			else
+			{
+				if (mapheaderinfo[votelevels[i][0]]->actnum[0])
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%s %s %s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl, mapheaderinfo[votelevels[i][0]]->actnum);
+				else
+					snprintf(levelinfo[i].str,
+						sizeof levelinfo[i].str,
+						"%s %s",
+						mapheaderinfo[votelevels[i][0]]->lvlttl, mapheaderinfo[votelevels[i][0]]->zonttl);
 			}
 
 			levelinfo[i].str[sizeof levelinfo[i].str - 1] = '\0';
@@ -1489,6 +1535,7 @@ static void Y_UnloadVoteData(void)
 	UNLOAD(cursor3);
 	UNLOAD(cursor4);
 	UNLOAD(randomlvl);
+	UNLOAD(rubyicon);
 
 	UNLOAD(levelinfo[4].pic);
 	UNLOAD(levelinfo[3].pic);
@@ -1502,13 +1549,13 @@ static void Y_UnloadVoteData(void)
 //
 void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 {
+	if (!voteclient.loaded)
+		return;
+
 	if (pick == -1) // No other votes? We gotta get out of here, then!
 	{
-		if (voteclient.loaded)
-		{
-			Y_EndVote();
-			Y_FollowIntermission();
-		}
+		Y_EndVote();
+		Y_FollowIntermission();
 		return;
 	}
 
@@ -1554,11 +1601,8 @@ void Y_SetupVoteFinish(SINT8 pick, SINT8 level)
 		}
 		else if (endtype == 0) // Might as well put this here, too.
 		{
-			if (voteclient.loaded)
-			{
-				Y_EndVote();
-				Y_FollowIntermission();
-			}
+			Y_EndVote();
+			Y_FollowIntermission();
 			return;
 		}
 		else

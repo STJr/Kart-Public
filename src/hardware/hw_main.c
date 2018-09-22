@@ -3155,7 +3155,6 @@ static void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, 
 		v3d->z = FIXED_TO_FLOAT(polysector->vertices[i]->y);
 	}
 
-
 	if (planecolormap)
 		Surf.FlatColor.rgba = HWR_Lighting(lightlevel, planecolormap->rgba, planecolormap->fadergba, false, true);
 	else
@@ -5452,7 +5451,13 @@ static void HWR_ProjectSprite(mobj_t *thing)
 			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, thing->color, GTC_CACHE);
 	}
 	else
+	{
 		vis->colormap = colormaps;
+#ifdef GLENCORE
+		if (encoremap && (thing->flags & (MF_SCENERY|MF_NOTHINK)))
+			vis->colormap += (256*32);
+#endif
+	}
 
 	// set top/bottom coords
 	vis->ty = gzt;
@@ -5556,6 +5561,10 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->mobj = (mobj_t *)thing;
 
 	vis->colormap = colormaps;
+#ifdef GLENCORE
+	if (encoremap)
+		vis->colormap += (256*32);
+#endif
 
 	// set top/bottom coords
 	vis->ty = FIXED_TO_FLOAT(thing->z + spritecachedinfo[lumpoff].topoffset);
@@ -6548,6 +6557,7 @@ static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 	alpha = pSurf->FlatColor.s.alpha; // retain the alpha
 
 	// Lighting is done here instead so that fog isn't drawn incorrectly on transparent walls after sorting
+
 	if (wallcolormap)
 	{
 		if (fogwall)

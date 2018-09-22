@@ -1940,6 +1940,7 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 	 || specialtype == 318  // Unlockable trigger - Once
 	 || specialtype == 320  // Unlockable - Once
 	 || specialtype == 321 || specialtype == 322 // Trigger on X calls - Continuous + Each Time
+	 || specialtype == 328 // Encore Load
 	 || specialtype == 399) // Level Load
 		triggerline->special = 0; // Clear it out
 
@@ -1975,6 +1976,7 @@ void P_LinedefExecute(INT16 tag, mobj_t *actor, sector_t *caller)
 		// "No More Enemies" and "Level Load" take care of themselves.
 		if (lines[masterline].special == 313
 		 || lines[masterline].special == 399
+		 || lines[masterline].special == 328
 		 // Each-time executors handle themselves, too
 		 || lines[masterline].special == 301 // Each time
 		 || lines[masterline].special == 306 // Character ability - Each time
@@ -3764,6 +3766,8 @@ void P_ProcessSpecialSector(player_t *player, sector_t *sector, sector_t *rovers
 		case 11: // Custom Gravity
 			break;
 		case 12: // Lua sector special
+			break;
+		case 15: // Invert Encore Remap
 			break;
 	}
 DoneSection2:
@@ -5585,7 +5589,7 @@ static void P_RunLevelLoadExecutors(void)
 
 	for (i = 0; i < numlines; i++)
 	{
-		if (lines[i].special == 399)
+		if (lines[i].special == 399 || lines[i].special == 328)
 			P_RunTriggerLinedef(&lines[i], NULL, NULL);
 	}
 }
@@ -6474,6 +6478,12 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					sec = sides[*lines[i].sidenum].sector - sectors;
 					P_AddEachTimeThinker(&sectors[sec], &lines[i]);
 				}
+				break;
+
+			case 328: // Encore-only linedef execute on map load
+				if (!encoremode)
+					lines[i].special = 0;
+				// This is handled in P_RunLevelLoadExecutors.
 				break;
 
 			case 399: // Linedef execute on map load
