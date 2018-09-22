@@ -8296,9 +8296,9 @@ void P_MobjThinker(mobj_t *mobj)
 					P_SetMobjState(mobj, S_SIGN_END);
 					if (mobj->info->attacksound)
 						S_StartSound(mobj, mobj->info->attacksound);
-					mobj->z = mobj->movefactor;
-					//mobj->flags |= MF_NOGRAVITY; // ?
+					mobj->flags |= MF_NOGRAVITY; // ?
 					mobj->flags &= ~MF_NOCLIPHEIGHT;
+					mobj->z = mobj->movefactor;
 					mobj->movecount = 0;
 				}
 				else
