@@ -8303,9 +8303,9 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else
 				{
-					P_SpawnMobj(mobj->x + (P_RandomRange(-32,32)<<FRACBITS),
-						mobj->y + (P_RandomRange(-32,32)<<FRACBITS),
-						mobj->z + (24<<FRACBITS) + (P_RandomRange(-16,16)<<FRACBITS),
+					P_SpawnMobj(mobj->x + (P_RandomRange(-48,48)<<FRACBITS),
+						mobj->y + (P_RandomRange(-48,48)<<FRACBITS),
+						mobj->z + (24<<FRACBITS) + (P_RandomRange(-8,8)<<FRACBITS),
 						MT_RINGSPARKLE);
 					mobj->flags &= ~MF_NOGRAVITY;
 					if (abs(mobj->z - mobj->movefactor) <= 512<<FRACBITS && !mobj->cvmem)
