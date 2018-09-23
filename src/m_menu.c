@@ -4731,12 +4731,15 @@ static void M_HandleAddons(INT32 choice)
 		char *tempname = NULL;
 		if (dirmenu && dirmenu[dir_on[menudepthleft]])
 			tempname = Z_StrDup(dirmenu[dir_on[menudepthleft]]+DIR_STRING); // don't need to I_Error if can't make - not important, just QoL
-		searchfilemenu(tempname);
-		/*if (!preparefilemenu(true))
+#if 0 // much slower
+		if (!preparefilemenu(true))
 		{
 			UNEXIST;
 			return;
-		}*/
+		}
+#else // streamlined
+		searchfilemenu(tempname);
+#endif
 	}
 
 	switch (choice)
