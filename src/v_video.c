@@ -1291,7 +1291,7 @@ UINT8 *V_GetStringColormap(INT32 colorflags)
 	}
 #else // optimised
 	colorflags = ((colorflags & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT);
-	if (!colorflags || colorflags > 8) // INT32 is signed, but V_CHARCOLORMASK is a very restrictive mask.
+	if (!colorflags || colorflags > 15) // INT32 is signed, but V_CHARCOLORMASK is a very restrictive mask.
 		return NULL;
 	return (purplemap+((colorflags-1)<<8));
 #endif
