@@ -3701,6 +3701,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 	{
 		if (!P_TryCameraMove(thiscam->x + thiscam->momx, thiscam->y + thiscam->momy, thiscam))
 		{ // Never fails for 2D mode.
+#ifndef NOCLIPCAM
 			mobj_t dummy;
 			dummy.thinker.function.acp1 = (actionf_p1)P_MobjThinker;
 			dummy.subsector = thiscam->subsector;
@@ -3711,6 +3712,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 			if (!resetcalled && !(player->pflags & PF_NOCLIP || leveltime < introtime) && !P_CheckSight(&dummy, player->mo)) // TODO: "P_CheckCameraSight" instead.
 				P_ResetCamera(player, thiscam);
 			else
+#endif
 				P_SlideCameraMove(thiscam);
 			if (resetcalled) // Okay this means the camera is fully reset.
 				return true;
