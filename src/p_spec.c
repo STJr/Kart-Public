@@ -1940,6 +1940,7 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 	 || specialtype == 318  // Unlockable trigger - Once
 	 || specialtype == 320  // Unlockable - Once
 	 || specialtype == 321 || specialtype == 322 // Trigger on X calls - Continuous + Each Time
+	 || specialtype == 328 // Encore Load
 	 || specialtype == 399) // Level Load
 		triggerline->special = 0; // Clear it out
 
@@ -1975,6 +1976,7 @@ void P_LinedefExecute(INT16 tag, mobj_t *actor, sector_t *caller)
 		// "No More Enemies" and "Level Load" take care of themselves.
 		if (lines[masterline].special == 313
 		 || lines[masterline].special == 399
+		 || lines[masterline].special == 328
 		 // Each-time executors handle themselves, too
 		 || lines[masterline].special == 301 // Each time
 		 || lines[masterline].special == 306 // Character ability - Each time
@@ -3213,6 +3215,9 @@ void P_SetupSignExit(player_t *player)
 	thinker_t *think;
 	INT32 numfound = 0;
 
+	if (player->kartstuff[k_position] != 1)
+		return;
+
 	for (; node; node = node->m_thinglist_next)
 	{
 		thing = node->m_thing;
@@ -3224,8 +3229,11 @@ void P_SetupSignExit(player_t *player)
 
 		P_SetTarget(&thing->target, player->mo);
 		P_SetMobjState(thing, S_SIGN1);
-		if (thing->info->seesound)
-			S_StartSound(thing, thing->info->seesound);
+
+		// SRB2Kart: Set sign spinning variables
+		thing->movefactor = thing->z;
+		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->movecount = 1;
 
 		++numfound;
 	}
@@ -3249,10 +3257,27 @@ void P_SetupSignExit(player_t *player)
 
 		P_SetTarget(&thing->target, player->mo);
 		P_SetMobjState(thing, S_SIGN1);
-		if (thing->info->seesound)
-			S_StartSound(thing, thing->info->seesound);
+
+		// SRB2Kart: Set sign spinning variables
+		thing->movefactor = thing->z;
+		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->movecount = 1;
 
 		++numfound;
+	}
+
+	if (numfound)
+		return;
+
+	// SRB2Kart: FINALLY, add in an alternative if no place is found
+	if (player->mo)
+	{
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768<<FRACBITS), MT_SIGN);
+
+		P_SetTarget(&sign->target, player->mo);
+		P_SetMobjState(sign, S_SIGN1);
+		sign->movefactor = player->mo->floorz;
+		sign->movecount = 1;
 	}
 }
 
@@ -3742,6 +3767,8 @@ void P_ProcessSpecialSector(player_t *player, sector_t *sector, sector_t *rovers
 			break;
 		case 12: // Lua sector special
 			break;
+		case 15: // Invert Encore Remap
+			break;
 	}
 DoneSection2:
 
@@ -3855,6 +3882,13 @@ DoneSection2:
 
 				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
 				S_StartSound(player->mo, sfx_spdpad);
+
+				{
+					sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
+					if (cv_kartvoices.value)
+						S_StartSound(player->mo, sfx_kbost1+pick);
+					//K_TauntVoiceTimers(player);
+				}
 			}
 			break;
 
@@ -4233,12 +4267,13 @@ DoneSection2:
 
 				if (player->laps >= (unsigned)cv_numlaps.value)
 				{
-					if (!splitscreen && P_IsLocalPlayer(player))
+					if (P_IsLocalPlayer(player))
 						S_StartSound(NULL, sfx_s3k6a);
 					else if (player->kartstuff[k_position] == 1)
 						S_StartSound(NULL, sfx_s253);
 
 					P_DoPlayerExit(player);
+					P_SetupSignExit(player);
 				}
 			}
 			break;
@@ -5561,7 +5596,7 @@ static void P_RunLevelLoadExecutors(void)
 
 	for (i = 0; i < numlines; i++)
 	{
-		if (lines[i].special == 399)
+		if (lines[i].special == 399 || lines[i].special == 328)
 			P_RunTriggerLinedef(&lines[i], NULL, NULL);
 	}
 }
@@ -6450,6 +6485,12 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					sec = sides[*lines[i].sidenum].sector - sectors;
 					P_AddEachTimeThinker(&sectors[sec], &lines[i]);
 				}
+				break;
+
+			case 328: // Encore-only linedef execute on map load
+				if (!encoremode)
+					lines[i].special = 0;
+				// This is handled in P_RunLevelLoadExecutors.
 				break;
 
 			case 399: // Linedef execute on map load

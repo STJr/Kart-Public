@@ -28,6 +28,7 @@
 #include "byteptr.h"
 #include "p_saveg.h"
 #include "g_game.h" // for player_names
+#include "m_cond.h" // for encore mode
 #include "d_netcmd.h"
 #include "hu_stuff.h"
 #include "p_setup.h"
@@ -1370,6 +1371,12 @@ static void CV_SetCVar(consvar_t *var, const char *value, boolean stealth)
 			return;
 		}
 
+		if (var == &cv_kartencore && !M_SecretUnlocked(SECRET_ENCORE))
+		{
+			CONS_Printf(M_GetText("You haven't unlocked Encore Mode yet!\n"));
+			return;
+		}
+
 		// Only add to netcmd buffer if in a netgame, otherwise, just change it.
 		if (netgame || multiplayer)
 		{
@@ -1472,14 +1479,12 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 				{
 					if(increment > 0) // Going up!
 					{
-						newvalue++;
-						if (newvalue == NUMMAPS)
-							newvalue = 0;
+						if (++newvalue == NUMMAPS)
+							newvalue = -1;
 					}
 					else // Going down!
 					{
-						newvalue--;
-						if (newvalue == -1)
+						if (--newvalue == -2)
 							newvalue = NUMMAPS-1;
 					}
 

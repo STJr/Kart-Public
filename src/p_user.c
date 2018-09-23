@@ -673,7 +673,7 @@ static void P_DeNightserizePlayer(player_t *player)
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].pflags & PF_NIGHTSMODE)
 				players[i].nightstime = 1; // force everyone else to fall too.
-		player->exiting = 3*TICRATE;
+		player->exiting = raceexittime+2;
 		stagefailed = true; // NIGHT OVER
 	}
 
@@ -1120,27 +1120,22 @@ void P_PlayLivesJingle(player_t *player)
 
 void P_PlayRinglossSound(mobj_t *source)
 {
-	sfxenum_t key = P_RandomKey(4);
+	sfxenum_t key = P_RandomKey(2);
 	if (cv_kartvoices.value)
-		S_StartSound(source, (mariomode) ? sfx_mario8 : sfx_altow1 + key);
+		S_StartSound(source, (mariomode) ? sfx_mario8 : sfx_khurt1 + key);
 	else
 		S_StartSound(source, sfx_slip);
 }
 
 void P_PlayDeathSound(mobj_t *source)
 {
-	sfxenum_t key = P_RandomKey(4);
-	if (cv_kartvoices.value)
-		S_StartSound(source, sfx_altdi1 + key);
-	else
-		S_StartSound(source, sfx_s3k35);
+	S_StartSound(source, sfx_s3k35);
 }
 
 void P_PlayVictorySound(mobj_t *source)
 {
-	sfxenum_t key = P_RandomKey(4);
 	if (cv_kartvoices.value)
-		S_StartSound(source, sfx_victr1 + key);
+		S_StartSound(source, sfx_kwin);
 }
 
 //
@@ -1221,7 +1216,7 @@ void P_RestoreMusic(player_t *player)
 
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
-		S_ChangeMusicInternal("kstart", false); //S_StopMusic();
+		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
 		// Item - Grow
@@ -1599,6 +1594,9 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 	if (mobj->flags2 & MF2_OBJECTFLIP)
 		ghost->flags |= MF2_OBJECTFLIP;
 
+	if (!(mobj->flags & MF_DONTENCOREMAP))
+		mobj->flags &= ~MF_DONTENCOREMAP;
+
 	return ghost;
 }
 
@@ -1735,13 +1733,25 @@ void P_DoPlayerExit(player_t *player)
 
 		if (cv_kartvoices.value)
 		{
-			if (K_IsPlayerLosing(player))
-				S_StartSound(player->mo, sfx_klose);
+			if (P_IsLocalPlayer(player))
+			{
+				sfxenum_t sfx_id;
+				if (K_IsPlayerLosing(player))
+					sfx_id = ((skin_t *)player->mo->skin)->soundsid[S_sfx[sfx_klose].skinsound];
+				else
+					sfx_id = ((skin_t *)player->mo->skin)->soundsid[S_sfx[sfx_kwin].skinsound];
+				S_StartSound(NULL, sfx_id);
+			}
 			else
-				S_StartSound(player->mo, sfx_kwin);
+			{
+				if (K_IsPlayerLosing(player))
+					S_StartSound(player->mo, sfx_klose);
+				else
+					S_StartSound(player->mo, sfx_kwin);
+			}
 		}
 
-		player->exiting = 3*TICRATE;
+		player->exiting = raceexittime+2;
 
 		if (cv_inttime.value > 0)
 			P_EndingMusic(player);
@@ -1751,15 +1761,15 @@ void P_DoPlayerExit(player_t *player)
 			//countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
-			player->exiting = (14*TICRATE)/5 + 1;
+			player->exiting = raceexittime+1;
 	}
 	else if (G_BattleGametype()) // Battle Mode exiting
 	{
-		player->exiting = 8*TICRATE + 1;
+		player->exiting = battleexittime+1;
 		P_EndingMusic(player);
 	}
 	else
-		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
+		player->exiting = raceexittime+2; // Accidental death safeguard???
 
 	//player->pflags &= ~PF_GLIDING;
 	/*	// SRB2kart - don't need
@@ -6569,7 +6579,7 @@ static void P_MovePlayer(player_t *player)
 					S_StartSound(NULL, sfx_s3k6a);
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
-						players[i].exiting = (14*TICRATE)/5 + 1;
+						players[i].exiting = raceexittime+1;
 			}
 			else if (player->health > 1)
 				P_DamageMobj(player->mo, NULL, NULL, 1);
@@ -8878,7 +8888,7 @@ static void P_CalcPostImg(player_t *player)
 	}
 #endif
 
-	if (mirrormode) // srb2kart
+	if (encoremode) // srb2kart
 		*type = postimg_mirror;
 }
 
@@ -9037,8 +9047,8 @@ void P_PlayerThink(player_t *player)
 				}
 			}
 
-			if (i == MAXPLAYERS && player->exiting == 3*TICRATE) // finished
-				player->exiting = (14*TICRATE)/5 + 1;
+			if (i == MAXPLAYERS && player->exiting == raceexittime+2) // finished
+				player->exiting = raceexittime+1;
 
 			// If 10 seconds are left on the timer,
 			// begin the drown music for countdown!
@@ -9063,7 +9073,7 @@ void P_PlayerThink(player_t *player)
 
 		// If it is set, start subtracting
 		// Don't allow it to go back to 0
-		if (player->exiting > 1 && (player->exiting < 3*TICRATE || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
+		if (player->exiting > 1 && (player->exiting < raceexittime+2 || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
 			player->exiting--;
 
 		if (player->exiting && countdown2)

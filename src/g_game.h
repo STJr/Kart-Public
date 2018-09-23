@@ -107,7 +107,7 @@ extern boolean camspin, camspin2, camspin3, camspin4; // SRB2Kart
 void G_ChangePlayerReferences(mobj_t *oldmo, mobj_t *newmo);
 void G_DoReborn(INT32 playernum);
 void G_PlayerReborn(INT32 player);
-void G_InitNew(UINT8 pultmode, const char *mapname, boolean resetplayer,
+void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer,
 	boolean skipprecutscene);
 char *G_BuildMapTitle(INT32 mapnum);
 
@@ -119,7 +119,7 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost);
 
 // Can be called by the startup code or M_Responder.
 // A normal game starts at map 1, but a warp test can start elsewhere
-void G_DeferedInitNew(boolean pultmode, const char *mapname, INT32 pickedchar,
+void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar,
 	UINT8 ssplayers, boolean FLS);
 void G_DoLoadLevel(boolean resetplayer);
 

@@ -1221,6 +1221,8 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				mapheaderinfo[num-1]->countdown = (INT16)i;
 			else if (fastcmp(word, "PALETTE"))
 				mapheaderinfo[num-1]->palette = (UINT16)i;
+			else if (fastcmp(word, "ENCOREPAL"))
+				mapheaderinfo[num-1]->encorepal = (UINT16)i;
 			else if (fastcmp(word, "NUMLAPS"))
 				mapheaderinfo[num-1]->numlaps = (UINT8)i;
 			else if (fastcmp(word, "UNLOCKABLE"))
@@ -2385,8 +2387,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 			else if (fastcmp(word, "OBJECTIVE"))
 				deh_strlcpy(unlockables[num].objective, word2,
 					sizeof (unlockables[num].objective), va("Unlockable %d: objective", num));
-			else if (fastcmp(word, "HEIGHT"))
-				unlockables[num].height = (UINT16)i;
+			else if (fastcmp(word, "SHOWCONDITIONSET"))
+				unlockables[num].showconditionset = (UINT8)i;
 			else if (fastcmp(word, "CONDITIONSET"))
 				unlockables[num].conditionset = (UINT8)i;
 			else if (fastcmp(word, "NOCECHO"))
@@ -2417,6 +2419,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 					unlockables[num].type = SECRET_WARP;
 				else if (fastcmp(word2, "SOUNDTEST"))
 					unlockables[num].type = SECRET_SOUNDTEST;
+				else if (fastcmp(word2, "ENCORE"))
+					unlockables[num].type = SECRET_ENCORE;
 				else
 					unlockables[num].type = (INT16)i;
 			}
@@ -4788,39 +4792,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SIGN18",
 	"S_SIGN19",
 	"S_SIGN20",
-	"S_SIGN21",
-	"S_SIGN22",
-	"S_SIGN23",
-	"S_SIGN24",
-	"S_SIGN25",
-	"S_SIGN26",
-	"S_SIGN27",
-	"S_SIGN28",
-	"S_SIGN29",
-	"S_SIGN30",
-	"S_SIGN31",
-	"S_SIGN32",
-	"S_SIGN33",
-	"S_SIGN34",
-	"S_SIGN35",
-	"S_SIGN36",
-	"S_SIGN37",
-	"S_SIGN38",
-	"S_SIGN39",
-	"S_SIGN40",
-	"S_SIGN41",
-	"S_SIGN42",
-	"S_SIGN43",
-	"S_SIGN44",
-	"S_SIGN45",
-	"S_SIGN46",
-	"S_SIGN47",
-	"S_SIGN48",
-	"S_SIGN49",
-	"S_SIGN50",
-	"S_SIGN51",
-	"S_SIGN52", // Eggman
-	"S_SIGN53",
+	"S_SIGN_END",
 
 	// Steam Riser
 	"S_STEAM1",
@@ -6234,6 +6206,21 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_RANDOMITEMPOP4",
 	//}
 
+	"S_ITEMICON",
+
+	// Signpost sparkles
+	"S_SIGNSPARK1",
+	"S_SIGNSPARK2",
+	"S_SIGNSPARK3",
+	"S_SIGNSPARK4",
+	"S_SIGNSPARK5",
+	"S_SIGNSPARK6",
+	"S_SIGNSPARK7",
+	"S_SIGNSPARK8",
+	"S_SIGNSPARK9",
+	"S_SIGNSPARK10",
+	"S_SIGNSPARK11",
+
 	// Drift Sparks
 	"S_DRIFTSPARK_A1",
 	"S_DRIFTSPARK_A2",
@@ -6285,6 +6272,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARTFIRE6",
 	"S_KARTFIRE7",
 	"S_KARTFIRE8",
+
+	// Angel Island Drift Strat Dust (what a mouthful!)
+	"S_KARTAIZDRIFTSTRAT",
 
 	// Invincibility Sparks
 	"S_KARTINVULN_SMALL1",
@@ -6534,16 +6524,11 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	// Audience Members
 	"S_RANDOMAUDIENCE",
-	"S_AUDIENCE_TOAD1",
-	"S_AUDIENCE_TOAD2",
-	"S_AUDIENCE_BOO1",
-	"S_AUDIENCE_BOO2",
-	"S_AUDIENCE_GMBA1",
-	"S_AUDIENCE_GMBA2",
-	"S_AUDIENCE_SHYG1",
-	"S_AUDIENCE_SHYG2",
-	"S_AUDIENCE_SNIF1",
-	"S_AUDIENCE_SNIF2",
+	"S_AUDIENCE_CHAO_CHEER1",
+	"S_AUDIENCE_CHAO_CHEER2",
+	"S_AUDIENCE_CHAO_WIN1",
+	"S_AUDIENCE_CHAO_WIN2",
+	"S_AUDIENCE_CHAO_LOSE",
 
 	"S_FANCHAR_KOTE",
 	"S_FANCHAR_RYAN",
@@ -7235,12 +7220,16 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BLUEDIAG",
 	"MT_RANDOMITEM",
 	"MT_RANDOMITEMPOP",
+	"MT_FLOATINGITEM",
+
+	"MT_SIGNSPARKLE",
 
 	"MT_FASTLINE",
 	"MT_FASTDUST",
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
+	"MT_AIZDRIFTSTRAT",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
@@ -7402,6 +7391,7 @@ static const char *const MOBJFLAG_LIST[] = {
 	"NOCLIPTHING",
 	"GRENADEBOUNCE",
 	"RUNSPAWNFUNC",
+	"DONTENCOREMAP",
 	NULL
 };
 
@@ -7720,6 +7710,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ACCELBOOST",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
+	"AIZDRIFTSTRAT",
 
 	"ITEMROULETTE",
 	"ROULETTETYPE",
@@ -8083,6 +8074,18 @@ struct {
 	{"SKSSKID",SKSSKID},
 	{"SKSGASP",SKSGASP},
 	{"SKSJUMP",SKSJUMP},
+	// SRB2kart
+	{"SKSKWIN",SKSKWIN}, // Win quote
+	{"SKSKLOSE",SKSKLOSE}, // Lose quote
+	{"SKSKPAN1",SKSKPAN1}, // Pain
+	{"SKSKPAN2",SKSKPAN2},
+	{"SKSKATK1",SKSKATK1}, // Offense item taunt
+	{"SKSKATK2",SKSKATK2},
+	{"SKSKBST1",SKSKBST1}, // Boost item taunt
+	{"SKSKBST2",SKSKBST2},
+	{"SKSKSLOW",SKSKSLOW}, // Overtake taunt
+	{"SKSKHITM",SKSKHITM}, // Hit confirm taunt
+	{"SKSKPOWR",SKSKPOWR}, // Power item taunt
 
 	// 3D Floor/Fake Floor/FOF/whatever flags
 	{"FF_EXISTS",FF_EXISTS},                   ///< Always set, to check for validity.
@@ -8207,6 +8210,14 @@ struct {
 	{"V_REDMAP",V_REDMAP},
 	{"V_GRAYMAP",V_GRAYMAP},
 	{"V_ORANGEMAP",V_ORANGEMAP},
+	{"V_SKYMAP",V_SKYMAP},
+	{"V_LAVENDERMAP",V_LAVENDERMAP},
+	{"V_GOLDMAP",V_GOLDMAP},
+	{"V_TEAMAP",V_TEAMAP},
+	{"V_STEELMAP",V_STEELMAP},
+	{"V_PINKMAP",V_PINKMAP},
+	{"V_TEALMAP",V_TEALMAP},
+	{"V_PEACHMAP",V_PEACHMAP},
 	{"V_TRANSLUCENT",V_TRANSLUCENT},
 	{"V_10TRANS",V_10TRANS},
 	{"V_20TRANS",V_20TRANS},

@@ -38,6 +38,10 @@ typedef struct
 extern sprcache_t *spritecachedinfo;
 
 extern lighttable_t *colormaps;
+extern UINT8 *encoremap;
+#ifdef HASINVERT
+extern UINT8 invertmap[256];
+#endif
 
 // Boom colormaps.
 // Had to put a limit on colormaps :(
