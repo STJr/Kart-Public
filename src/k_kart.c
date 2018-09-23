@@ -1465,32 +1465,36 @@ static void K_RegularVoiceTimers(player_t *player)
 		player->kartstuff[k_tauntvoices] = 4*TICRATE;
 }
 
-static void K_PlayTauntSound(mobj_t *source)
+static void K_PlayAttackTaunt(mobj_t *source)
 {
-#if 1
-	sfxenum_t pick = P_RandomKey(4); // Gotta roll the RNG every time this is called for sync reasons
+	sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
 
 	if (cv_kartvoices.value && (tasteful || cv_kartvoices.value == 2))
-		S_StartSound(source, sfx_taunt1+pick);
+		S_StartSound(source, sfx_kattk1+pick);
 
 	if (!tasteful)
 		return;
 
 	K_TauntVoiceTimers(source->player);
-#else
-	if (source->player && source->player->kartstuff[k_tauntvoices]) // Prevents taunt sounds from playing every time the button is pressed
+}
+
+static void K_PlayBoostTaunt(mobj_t *source)
+{
+	sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
+	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
+
+	if (cv_kartvoices.value && (tasteful || cv_kartvoices.value == 2))
+		S_StartSound(source, sfx_kbost1+pick);
+
+	if (!tasteful)
 		return;
 
-	S_StartSound(source, sfx_taunt1+P_RandomKey(4));
-
 	K_TauntVoiceTimers(source->player);
-#endif
 }
 
 static void K_PlayOvertakeSound(mobj_t *source)
 {
-#if 1
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
 	if (!G_RaceGametype()) // Only in race
@@ -1501,33 +1505,28 @@ static void K_PlayOvertakeSound(mobj_t *source)
 		return;
 
 	if (cv_kartvoices.value && (tasteful || cv_kartvoices.value == 2))
-		S_StartSound(source, sfx_slow);
+		S_StartSound(source, sfx_kslow);
 
 	if (!tasteful)
 		return;
 
 	K_RegularVoiceTimers(source->player);
-#else
-	if (source->player && source->player->kartstuff[k_voices]) // Prevents taunt sounds from playing every time the button is pressed
-		return;
-
-	if (!G_RaceGametype()) // Only in race
-		return;
-
-	// 4 seconds from before race begins, 10 seconds afterwards
-	if (leveltime < starttime+(10*TICRATE))
-		return;
-
-	S_StartSound(source, sfx_slow);
-
-	K_RegularVoiceTimers(source->player);
-#endif
 }
 
 static void K_PlayHitEmSound(mobj_t *source)
 {
 	if (cv_kartvoices.value)
-		S_StartSound(source, sfx_hitem);
+		S_StartSound(source, sfx_khitem);
+	else
+		S_StartSound(source, sfx_s1c9); // The only lost gameplay functionality with voices disabled
+
+	K_RegularVoiceTimers(source->player);
+}
+
+static void K_PlayPowerGloatSound(mobj_t *source)
+{
+	if (cv_kartvoices.value)
+		S_StartSound(source, sfx_kgloat);
 
 	K_RegularVoiceTimers(source->player);
 }
@@ -2893,7 +2892,7 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	if (doPFlag)
 	{
 		player->pflags |= PF_ATTACKDOWN;
-		K_PlayTauntSound(player->mo);
+		K_PlayBoostTaunt(player->mo);
 	}
 
 	K_GetKartBoostPower(player);
@@ -2917,8 +2916,6 @@ static void K_DoShrink(player_t *player)
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			P_DamageMobj(players[i].mo, player->mo, player->mo, 64);
 	}
-
-	K_PlayTauntSound(player->mo);
 }
 
 static void K_DoSPB(player_t *victim, player_t *source)
@@ -4192,7 +4189,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
 			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, 0);
-			K_PlayTauntSound(player->mo);
+			K_PlayAttackTaunt(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
 			K_CleanHnextList(player->mo);
 		}
@@ -4201,6 +4198,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			&& player->kartstuff[k_rocketsneakertimer] > 1)
 		{
 			K_DoSneaker(player, true);
+			K_PlayBoostTaunt(player->mo);
 			player->kartstuff[k_rocketsneakertimer] -= 5;
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
 				player->kartstuff[k_rocketsneakertimer] = 1;
@@ -4217,6 +4215,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO)
 					{
 						K_DoSneaker(player, true);
+						K_PlayBoostTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -4225,6 +4224,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& player->kartstuff[k_rocketsneakertimer] == 0)
 					{
 						K_DoSneaker(player, true);
+						K_PlayBoostTaunt(player->mo);
 						player->kartstuff[k_rocketsneakertimer] = itemtime;
 						player->kartstuff[k_itemamount]--;
 					}
@@ -4243,7 +4243,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						P_RestoreMusic(player);
 						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
 							S_StartSound(player->mo, sfx_kinvnc);
-						K_PlayTauntSound(player->mo);
+						K_PlayPowerGloatSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -4254,7 +4254,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mobj_t *mo;
 						mobj_t *prev = player->mo;
 
-						//K_PlayTauntSound(player->mo);
+						//K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
 
@@ -4279,7 +4279,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Banana x3 thrown
 					{
 						K_ThrowKartItem(player, false, MT_BANANA, -1, 0);
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
 					}
@@ -4311,7 +4311,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mobj_t *mo = NULL;
 						mobj_t *prev = player->mo;
 
-						//K_PlayTauntSound(player->mo);
+						//K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemheld] = 1;
 						S_StartSound(player->mo, sfx_s3k3a);
 
@@ -4339,7 +4339,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld]) // Orbinaut x3 thrown
 					{
 						K_ThrowKartItem(player, true, MT_ORBINAUT, 1, 0);
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
 					}
@@ -4352,7 +4352,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						mobj_t *mo = NULL;
 						mobj_t *prev = player->mo;
 
-						//K_PlayTauntSound(player->mo);
+						//K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemheld] = 1;
 						S_StartSound(player->mo, sfx_s3k3a);
 
@@ -4382,7 +4382,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							K_ThrowKartItem(player, true, MT_JAWZ, 1, 0);
 						else if (player->kartstuff[k_throwdir] == -1) // Throwing backward gives you a dud that doesn't home in
 							K_ThrowKartItem(player, true, MT_JAWZ_DUD, -1, 0);
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player);
 					}
@@ -4407,7 +4407,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					else if (ATTACK_IS_DOWN && player->kartstuff[k_itemheld])
 					{
 						K_ThrowKartItem(player, false, MT_SSMINE, 1, 1);
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
 						K_CleanHnextList(player->mo);
@@ -4419,7 +4419,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 						K_ThrowKartItem(player, true, MT_BALLHOG, 1, 0);
 						S_StartSound(player->mo, sfx_mario7);
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 					}
 					break;
 				case KITEM_SPB:
@@ -4457,14 +4457,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						player->kartstuff[k_itemamount]--;
 
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 					}
 					break;
 				case KITEM_GROW:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
-						K_PlayTauntSound(player->mo);
+						K_PlayPowerGloatSound(player->mo);
 						player->mo->scalespeed = FRACUNIT/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
 						if (cv_kartdebugshrink.value && !player->bot)
@@ -4482,6 +4482,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_DoShrink(player);
 						player->kartstuff[k_itemamount]--;
+						K_PlayPowerGloatSound(player->mo);
 					}
 					break;
 				case KITEM_THUNDERSHIELD:
@@ -4495,6 +4496,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					{
 						K_DoThunderShield(player);
 						player->kartstuff[k_itemamount]--;
+						K_PlayAttackTaunt(player->mo);
 					}
 					break;
 				case KITEM_HYUDORO:
@@ -4508,7 +4510,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
 						&& !player->kartstuff[k_pogospring])
 					{
-						K_PlayTauntSound(player->mo);
+						K_PlayBoostTaunt(player->mo);
 						K_DoPogoSpring(player->mo, 32<<FRACBITS, false);
 						player->kartstuff[k_pogospring] = 1;
 						player->kartstuff[k_itemamount]--;
@@ -4534,7 +4536,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					else if (ATTACK_IS_DOWN && HOLDING_ITEM && player->kartstuff[k_itemheld]) // Sink thrown
 					{
 						K_ThrowKartItem(player, false, MT_SINK, 1, 2);
-						K_PlayTauntSound(player->mo);
+						K_PlayAttackTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_itemheld] = 0;
 						K_CleanHnextList(player->mo);

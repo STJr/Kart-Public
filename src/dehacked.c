@@ -8069,6 +8069,18 @@ struct {
 	{"SKSSKID",SKSSKID},
 	{"SKSGASP",SKSGASP},
 	{"SKSJUMP",SKSJUMP},
+	// SRB2kart
+	{"SKSKWIN",SKSKWIN}, // Win quote
+	{"SKSKLOSE",SKSKLOSE}, // Lose quote
+	{"SKSKPAN1",SKSKPAN1}, // Pain
+	{"SKSKPAN2",SKSKPAN2},
+	{"SKSKATK1",SKSKATK1}, // Offense item taunt
+	{"SKSKATK2",SKSKATK2},
+	{"SKSKBST1",SKSKBST1}, // Boost item taunt
+	{"SKSKBST2",SKSKBST2},
+	{"SKSKSLOW",SKSKSLOW}, // Overtake taunt
+	{"SKSKHITM",SKSKHITM}, // Hit confirm taunt
+	{"SKSKPOWR",SKSKPOWR}, // Power item taunt
 
 	// 3D Floor/Fake Floor/FOF/whatever flags
 	{"FF_EXISTS",FF_EXISTS},                   ///< Always set, to check for validity.
