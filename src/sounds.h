@@ -890,6 +890,8 @@ typedef enum
 	sfx_hogbom,
 	sfx_kpogos,
 	sfx_ddash,
+	sfx_mcitm1,
+	sfx_chaooo,
 	sfx_itfree,
 	sfx_dbgsal,
 

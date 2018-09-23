@@ -6205,6 +6205,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_RANDOMITEMPOP4",
 	//}
 
+	"S_ITEMICON",
+
 	// Signpost sparkles
 	"S_SIGNSPARK1",
 	"S_SIGNSPARK2",
@@ -6269,6 +6271,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARTFIRE6",
 	"S_KARTFIRE7",
 	"S_KARTFIRE8",
+
+	// Angel Island Drift Strat Dust (what a mouthful!)
+	"S_KARTAIZDRIFTSTRAT",
 
 	// Invincibility Sparks
 	"S_KARTINVULN_SMALL1",
@@ -6518,16 +6523,11 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	// Audience Members
 	"S_RANDOMAUDIENCE",
-	"S_AUDIENCE_TOAD1",
-	"S_AUDIENCE_TOAD2",
-	"S_AUDIENCE_BOO1",
-	"S_AUDIENCE_BOO2",
-	"S_AUDIENCE_GMBA1",
-	"S_AUDIENCE_GMBA2",
-	"S_AUDIENCE_SHYG1",
-	"S_AUDIENCE_SHYG2",
-	"S_AUDIENCE_SNIF1",
-	"S_AUDIENCE_SNIF2",
+	"S_AUDIENCE_CHAO_CHEER1",
+	"S_AUDIENCE_CHAO_CHEER2",
+	"S_AUDIENCE_CHAO_WIN1",
+	"S_AUDIENCE_CHAO_WIN2",
+	"S_AUDIENCE_CHAO_LOSE",
 
 	"S_FANCHAR_KOTE",
 	"S_FANCHAR_RYAN",
@@ -7219,6 +7219,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BLUEDIAG",
 	"MT_RANDOMITEM",
 	"MT_RANDOMITEMPOP",
+	"MT_FLOATINGITEM",
+
 	"MT_SIGNSPARKLE",
 
 	"MT_FASTLINE",
@@ -7226,6 +7228,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
+	"MT_AIZDRIFTSTRAT",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
@@ -7706,6 +7709,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ACCELBOOST",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
+	"AIZDRIFTSTRAT",
 
 	"ITEMROULETTE",
 	"ROULETTETYPE",
