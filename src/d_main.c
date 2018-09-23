@@ -74,6 +74,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "m_cond.h" // condition initialization
 #include "fastcmp.h"
 #include "keys.h"
+#include "filesrch.h" // refreshdirmenu, mainwadstally
 
 #ifdef CMAKECONFIG
 #include "config.h"
@@ -681,6 +682,8 @@ void D_SRB2Loop(void)
 		realtics = entertic - oldentertics;
 		oldentertics = entertic;
 
+		refreshdirmenu = 0; // not sure where to put this, here as good as any?
+
 #ifdef DEBUGFILE
 		if (!realtics)
 			if (debugload)
@@ -954,43 +957,29 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
 #endif
 
+#define MUSICTEST(str) \
+	{\
+		const char *musicpath = va(pandf,srb2waddir,str);\
+		int ms = W_VerifyNMUSlumps(musicpath); \
+		if (ms == 1) \
+			D_AddFile(musicpath); \
+		else if (ms == 0) \
+			I_Error("File "str" has been modified with non-music/sound lumps"); \
+	}
+
 	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
 	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
-	D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
+	//D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
+	MUSICTEST("sounds.kart")
 
 #ifdef USE_PATCH_KART
 	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
 #endif
 
-#if !defined (HAVE_SDL) || defined (HAVE_MIXER)
-	{
-#if defined (DC) && 0
-		const char *musicfile = "music_dc.dta";
-#else
-		const char *musicfile = "music.dta";
-#endif
-		const char *kmusicfile;
-		const char *musicpath = va(pandf,srb2waddir,musicfile);
-		const char *kmusicpath;
-		int ms = W_VerifyNMUSlumps(musicpath); // Don't forget the music!
-		int kms;
-		if (ms == 1)
-			D_AddFile(musicpath);
-		else if (ms == 0)
-			I_Error("File %s has been modified with non-music lumps",musicfile);
-
-		kmusicfile = "music.kart";
-		kmusicpath = va(pandf,srb2waddir,kmusicfile);
-		kms = W_VerifyNMUSlumps(kmusicpath); // kill me now
-
-		if (kms == 1)
-			D_AddFile(kmusicpath);
-		else if (kms == 0)
-			I_Error("File %s has been modified with non-music lumps",kmusicfile);
-	}
-#endif
+	MUSICTEST("music.dta")
+	MUSICTEST("music.kart")
 }
 
 /* ======================================================================== */
@@ -1250,25 +1239,42 @@ void D_SRB2Main(void)
 #endif
 	D_CleanFile();
 
+	mainwads = 0;
+
 #ifndef DEVELOP // md5s last updated 12/14/14
 
 	// Check MD5s of autoloaded files
-	mainwads = 0;
-	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB); mainwads++;		// srb2.srb/srb2.wad
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);		// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA); mainwads++;	// patch.dta
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);	// patch.dta
 #endif
-	W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); mainwads++;		// gfx.kart
-	W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); mainwads++;	// chars.kart
-	W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); mainwads++;		// maps.kart
-	//W_VerifyFileMD5(mainwads, ASSET_HASH_SOUNDS_KART); mainwads++;	// sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); // gfx.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); // chars.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); // maps.kart
+	mainwads++; //W_VerifyFileMD5(5, ASSET_HASH_SOUNDS_KART); -- sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
 #ifdef USE_PATCH_KART
-	W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART); mainwads++;	// patch.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);	// patch.kart
 #endif
-
-	// don't check music.dta because people like to modify it, and it doesn't matter if they do
+	mainwads++; // music.dta
+	mainwads++; // music.kart
+	// don't check music.dta or kart because people like to modify it, and it doesn't matter if they do
 	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
+#else
+#ifdef USE_PATCH_DTA
+	mainwads++;	// patch.dta
+#endif
+	mainwads++;		// gfx.kart
+	mainwads++;	// chars.kart
+	mainwads++;		// maps.kart
+	mainwads++;	// sounds.kart
+#ifdef USE_PATCH_KART
+	mainwads++;	// patch.kart
+#endif
+	mainwads++; // music.dta
+	mainwads++; // music.kart
 #endif //ifndef DEVELOP
+
+	mainwadstally = packetsizetally;
 
 	cht_Init();
 
