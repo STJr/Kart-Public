@@ -6613,7 +6613,7 @@ static void K_drawKartMinimap(void)
 
 	// Draw the HUD only when playing in a level.
 	// hu_stuff needs this, unlike st_stuff.
-	if (!(Playing() && gamestate == GS_LEVEL))
+	if (gamestate != GS_LEVEL)
 		return;
 
 	if (stplyr != &players[displayplayer])
