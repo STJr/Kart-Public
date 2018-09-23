@@ -5540,52 +5540,52 @@ void K_LoadKartHUDGraphics(void)
 }
 
 // For the item toggle menu
-const char *K_GetItemPatch(UINT8 item, boolean smoll)
+const char *K_GetItemPatch(UINT8 item, boolean tiny)
 {
 	switch (item)
 	{
 		case KITEM_SNEAKER:
 		case KRITEM_TRIPLESNEAKER:
-			return (smoll ? "K_ISSHOE" : "K_ITSHOE");
+			return (tiny ? "K_ISSHOE" : "K_ITSHOE");
 		case KITEM_ROCKETSNEAKER:
-			return (smoll ? "K_ISRSHE" : "K_ITRSHE");
+			return (tiny ? "K_ISRSHE" : "K_ITRSHE");
 		case KITEM_INVINCIBILITY:
-			return (smoll ? "K_ISINV1" : "K_ITINV1");
+			return (tiny ? "K_ISINV1" : "K_ITINV1");
 		case KITEM_BANANA:
 		case KRITEM_TRIPLEBANANA:
 		case KRITEM_TENFOLDBANANA:
-			return (smoll ? "K_ISBANA" : "K_ITBANA");
+			return (tiny ? "K_ISBANA" : "K_ITBANA");
 		case KITEM_EGGMAN:
-			return (smoll ? "K_ISEGGM" : "K_ITEGGM");
+			return (tiny ? "K_ISEGGM" : "K_ITEGGM");
 		case KITEM_ORBINAUT:
-			return (smoll ? "K_ISORBN" : "K_ITORB1");
+			return (tiny ? "K_ISORBN" : "K_ITORB1");
 		case KITEM_JAWZ:
 		case KRITEM_DUALJAWZ:
-			return (smoll ? "K_ISJAWZ" : "K_ITJAWZ");
+			return (tiny ? "K_ISJAWZ" : "K_ITJAWZ");
 		case KITEM_MINE:
-			return (smoll ? "K_ISMINE" : "K_ITMINE");
+			return (tiny ? "K_ISMINE" : "K_ITMINE");
 		case KITEM_BALLHOG:
-			return (smoll ? "K_ISBHOG" : "K_ITBHOG");
+			return (tiny ? "K_ISBHOG" : "K_ITBHOG");
 		case KITEM_SPB:
-			return (smoll ? "K_ISSPB" : "K_ITSPB");
+			return (tiny ? "K_ISSPB" : "K_ITSPB");
 		case KITEM_GROW:
-			return (smoll ? "K_ISGROW" : "K_ITGROW");
+			return (tiny ? "K_ISGROW" : "K_ITGROW");
 		case KITEM_SHRINK:
-			return (smoll ? "K_ISSHRK" : "K_ITSHRK");
+			return (tiny ? "K_ISSHRK" : "K_ITSHRK");
 		case KITEM_THUNDERSHIELD:
-			return (smoll ? "K_ISTHNS" : "K_ITTHNS");
+			return (tiny ? "K_ISTHNS" : "K_ITTHNS");
 		case KITEM_HYUDORO:
-			return (smoll ? "K_ISHYUD" : "K_ITHYUD");
+			return (tiny ? "K_ISHYUD" : "K_ITHYUD");
 		case KITEM_POGOSPRING:
-			return (smoll ? "K_ISPOGO" : "K_ITPOGO");
+			return (tiny ? "K_ISPOGO" : "K_ITPOGO");
 		case KITEM_KITCHENSINK:
-			return (smoll ? "K_ISSINK" : "K_ITSINK");
+			return (tiny ? "K_ISSINK" : "K_ITSINK");
 		case KRITEM_TRIPLEORBINAUT:
-			return (smoll ? "K_ISORBN" : "K_ITORB3");
+			return (tiny ? "K_ISORBN" : "K_ITORB3");
 		case KRITEM_QUADORBINAUT:
-			return (smoll ? "K_ISORBN" : "K_ITORB4");
+			return (tiny ? "K_ISORBN" : "K_ITORB4");
 		default:
-			return (smoll ? "K_ISSAD" : "K_ITSAD");
+			return (tiny ? "K_ISSAD" : "K_ITSAD");
 	}
 }
 
