@@ -209,6 +209,8 @@ UINT16 extralifetics = 4*TICRATE;
 // SRB2kart
 tic_t introtime = 108+5; // plus 5 for white fade
 tic_t starttime = 6*TICRATE + (3*TICRATE/4);
+tic_t raceexittime = 5*TICRATE + (2*TICRATE/3);
+tic_t battleexittime = 8*TICRATE;
 INT32 hyudorotime = 7*TICRATE;
 INT32 stealtime = TICRATE/2;
 INT32 sneakertime = TICRATE + (TICRATE/3);

@@ -1409,6 +1409,9 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_SINK:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT); // Double gravity
 					break;
+				case MT_SIGN:
+					gravityadd /= 8;
+					break;
 				default:
 					break;
 			}
@@ -8412,6 +8415,35 @@ void P_MobjThinker(mobj_t *mobj)
 						cur->flags2 &= ~MF2_DONTDRAW;
 
 					cur = cur->hnext;
+				}
+			}
+			break;
+		case MT_SIGN: // Kart's unique sign behavior
+			if (mobj->movecount)
+			{
+				if (mobj->z <= mobj->movefactor)
+				{
+					P_SetMobjState(mobj, S_SIGN_END);
+					if (mobj->info->attacksound)
+						S_StartSound(mobj, mobj->info->attacksound);
+					mobj->flags |= MF_NOGRAVITY; // ?
+					mobj->flags &= ~MF_NOCLIPHEIGHT;
+					mobj->z = mobj->movefactor;
+					mobj->movecount = 0;
+				}
+				else
+				{
+					P_SpawnMobj(mobj->x + (P_RandomRange(-48,48)<<FRACBITS),
+						mobj->y + (P_RandomRange(-48,48)<<FRACBITS),
+						mobj->z + (24<<FRACBITS) + (P_RandomRange(-8,8)<<FRACBITS),
+						MT_SIGNSPARKLE);
+					mobj->flags &= ~MF_NOGRAVITY;
+					if (abs(mobj->z - mobj->movefactor) <= 512<<FRACBITS && !mobj->cvmem)
+					{
+						if (mobj->info->seesound)
+							S_StartSound(mobj, mobj->info->seesound);
+						mobj->cvmem = 1;
+					}
 				}
 			}
 			break;

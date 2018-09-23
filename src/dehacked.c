@@ -4791,39 +4791,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_SIGN18",
 	"S_SIGN19",
 	"S_SIGN20",
-	"S_SIGN21",
-	"S_SIGN22",
-	"S_SIGN23",
-	"S_SIGN24",
-	"S_SIGN25",
-	"S_SIGN26",
-	"S_SIGN27",
-	"S_SIGN28",
-	"S_SIGN29",
-	"S_SIGN30",
-	"S_SIGN31",
-	"S_SIGN32",
-	"S_SIGN33",
-	"S_SIGN34",
-	"S_SIGN35",
-	"S_SIGN36",
-	"S_SIGN37",
-	"S_SIGN38",
-	"S_SIGN39",
-	"S_SIGN40",
-	"S_SIGN41",
-	"S_SIGN42",
-	"S_SIGN43",
-	"S_SIGN44",
-	"S_SIGN45",
-	"S_SIGN46",
-	"S_SIGN47",
-	"S_SIGN48",
-	"S_SIGN49",
-	"S_SIGN50",
-	"S_SIGN51",
-	"S_SIGN52", // Eggman
-	"S_SIGN53",
+	"S_SIGN_END",
 
 	// Steam Riser
 	"S_STEAM1",
@@ -6239,6 +6207,19 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_ITEMICON",
 
+	// Signpost sparkles
+	"S_SIGNSPARK1",
+	"S_SIGNSPARK2",
+	"S_SIGNSPARK3",
+	"S_SIGNSPARK4",
+	"S_SIGNSPARK5",
+	"S_SIGNSPARK6",
+	"S_SIGNSPARK7",
+	"S_SIGNSPARK8",
+	"S_SIGNSPARK9",
+	"S_SIGNSPARK10",
+	"S_SIGNSPARK11",
+
 	// Drift Sparks
 	"S_DRIFTSPARK_A1",
 	"S_DRIFTSPARK_A2",
@@ -7240,6 +7221,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_RANDOMITEMPOP",
 	"MT_FLOATINGITEM",
 
+	"MT_SIGNSPARKLE",
+
 	"MT_FASTLINE",
 	"MT_FASTDUST",
 	"MT_BOOSTFLAME",
@@ -8090,6 +8073,18 @@ struct {
 	{"SKSSKID",SKSSKID},
 	{"SKSGASP",SKSGASP},
 	{"SKSJUMP",SKSJUMP},
+	// SRB2kart
+	{"SKSKWIN",SKSKWIN}, // Win quote
+	{"SKSKLOSE",SKSKLOSE}, // Lose quote
+	{"SKSKPAN1",SKSKPAN1}, // Pain
+	{"SKSKPAN2",SKSKPAN2},
+	{"SKSKATK1",SKSKATK1}, // Offense item taunt
+	{"SKSKATK2",SKSKATK2},
+	{"SKSKBST1",SKSKBST1}, // Boost item taunt
+	{"SKSKBST2",SKSKBST2},
+	{"SKSKSLOW",SKSKSLOW}, // Overtake taunt
+	{"SKSKHITM",SKSKHITM}, // Hit confirm taunt
+	{"SKSKPOWR",SKSKPOWR}, // Power item taunt
 
 	// 3D Floor/Fake Floor/FOF/whatever flags
 	{"FF_EXISTS",FF_EXISTS},                   ///< Always set, to check for validity.

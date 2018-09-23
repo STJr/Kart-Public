@@ -821,14 +821,17 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"dbgsal", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
-  {"kwin",   false,  64,  0, -1, NULL, 0,    SKSWIN,  -1, LUMPERROR},
-  {"klose",  false,  64,  0, -1, NULL, 0,   SKSLOSE,  -1, LUMPERROR},
-  {"slow",   false, 128, 32, -1, NULL, 0,   SKSSLOW,  -1, LUMPERROR},
-  {"taunt1", false,  64, 96, -1, NULL, 0, SKSPLTNT1,  -1, LUMPERROR},
-  {"taunt2", false,  64, 96, -1, NULL, 0, SKSPLTNT2,  -1, LUMPERROR},
-  {"taunt3", false,  64, 96, -1, NULL, 0, SKSPLTNT3,  -1, LUMPERROR},
-  {"taunt4", false,  64, 96, -1, NULL, 0, SKSPLTNT4,  -1, LUMPERROR},
-  {"hitem",  false,  64, 32, -1, NULL, 0,  SKSHITEM,  -1, LUMPERROR},
+  {"kwin",   false,  64, 96, -1, NULL, 0,   SKSKWIN,  -1, LUMPERROR},
+  {"klose",  false,  64, 96, -1, NULL, 0,  SKSKLOSE,  -1, LUMPERROR},
+  {"khurt1", false,  64, 96, -1, NULL, 0,  SKSKPAN1,  -1, LUMPERROR},
+  {"khurt2", false,  64, 96, -1, NULL, 0,  SKSKPAN2,  -1, LUMPERROR},
+  {"kattk1", false,  64, 96, -1, NULL, 0,  SKSKATK1,  -1, LUMPERROR},
+  {"kattk2", false,  64, 96, -1, NULL, 0,  SKSKATK2,  -1, LUMPERROR},
+  {"kbost1", false,  64, 96, -1, NULL, 0,  SKSKBST1,  -1, LUMPERROR},
+  {"kbost2", false,  64, 96, -1, NULL, 0,  SKSKBST2,  -1, LUMPERROR},
+  {"kslow",  false, 128, 32, -1, NULL, 0,  SKSKSLOW,  -1, LUMPERROR},
+  {"khitem", false,  64, 32, -1, NULL, 0,  SKSKHITM,  -1, LUMPERROR},
+  {"kgloat", false,  64, 48, -1, NULL, 0,  SKSKPOWR,  -1, LUMPERROR},
 
   // skin sounds free slots to add sounds at run time (Boris HACK!!!)
   // initialized to NULL
