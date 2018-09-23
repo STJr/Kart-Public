@@ -60,7 +60,8 @@ char sprnames[NUMSPRITES + 1][5] =
 	"KRBM","BHOG","BHBM","BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL",
 	"POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO",
 	"CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO",
-	"ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","VIEW"
+	"ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK","LZI1",
+	"LZI2","KLIT","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3007,6 +3008,57 @@ state_t states[NUMSTATES] =
 	{SPR_RNDM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERITEM
 
 	{SPR_PBOM, 4, -1, {NULL}, 0, 0, S_NULL}, // S_KARMAWHEEL
+	
+	// Oh no it's annoying lightning states.......
+	// Lightning Sparks (it's the ones we'll use for the radius)
+	{SPR_KSPK, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK2},	// S_KSPARK1
+	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK3},	// S_KSPARK2
+	{SPR_KSPK, FF_FULLBRIGHT|1, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK4},	// S_KSPARK3
+	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK5},	// S_KSPARK4
+	{SPR_KSPK, FF_FULLBRIGHT|2, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK6},	// S_KSPARK5
+	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK7},	// S_KSPARK6
+	{SPR_KSPK, FF_FULLBRIGHT|3, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK8},	// S_KSPARK7
+	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK9},	// S_KSPARK8
+	{SPR_KSPK, FF_TRANS40|FF_FULLBRIGHT|4, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK10},	// S_KSPARK9
+	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK11},	// S_KSPARK10
+	{SPR_KSPK, FF_TRANS50|FF_FULLBRIGHT|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK12},	// S_KSPARK11
+	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK13},	// S_KSPARK12
+	{SPR_KSPK, FF_TRANS60|FF_FULLBRIGHT|6, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},	// S_KSPARK13
+	
+	// The straight bolt...
+	{SPR_LZI1, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO12},	// S_LZIO11
+	{SPR_NULL, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO13},	// S_LZIO12
+	{SPR_LZI1, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO14},	// S_LZIO13
+	{SPR_LZI1, FF_FULLBRIGHT|1, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO15},	// S_LZIO14
+	{SPR_NULL, FF_FULLBRIGHT, 4, {A_LightningFollowPlayer}, 0, 0, S_LZIO16},	// S_LZIO15
+	{SPR_LZI1, FF_FULLBRIGHT|1, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO17},	// S_LZIO16
+	{SPR_NULL, 0, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO18},	// S_LZIO17
+	{SPR_LZI1, FF_TRANS50|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO19},	// S_LZIO18
+	{SPR_LZI1, FF_TRANS70|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},		// S_LZIO19
+	
+	{SPR_NULL, FF_FULLBRIGHT, 6, {A_LightningFollowPlayer}, 0, 0, S_LZIO22},	// S_LZIO21
+	{SPR_LZI2, FF_FULLBRIGHT|1, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO23},	// S_LZIO22
+	{SPR_LZI2, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO24},	// S_LZIO23
+	{SPR_NULL, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO25},	// S_LZIO24
+	{SPR_NULL, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO26},	// S_LZIO25
+	{SPR_NULL, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO27},	// S_LZIO26
+	{SPR_LZI2, FF_TRANS30|FF_FULLBRIGHT|2, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO28},	// S_LZIO27
+	{SPR_NULL, 0, 4, {A_LightningFollowPlayer}, 0, 0, S_LZIO29},	// S_LZIO28
+	{SPR_LZI2, FF_TRANS70|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},		// S_LZIO29
+	
+	// The slanted bolt. Man these states are boring as all heck to do.
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT2},	// S_KLIT1
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT3},	// S_KLIT2
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|1, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT4},	// S_KLIT3
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT5},	// S_KLIT4
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|2, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT6},	// S_KLIT5
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT7},	// S_KLIT6
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|3, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT8},	// S_KLIT7
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT9},	// S_KLIT8
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|4, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT10},	// S_KLIT9
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT11},	// S_KLIT10
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT12},	// S_KLIT11
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12	
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK

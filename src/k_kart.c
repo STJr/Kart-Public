@@ -2842,12 +2842,58 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	return mo;
 }
 
+#define THUNDERRADIUS 320
+
 static void K_DoThunderShield(player_t *player)
 {
-	S_StartSound(player->mo, sfx_s3k45);
+	mobj_t *mo;
+	int i = 0;
+	fixed_t sx;
+	fixed_t sy;
+	
+	S_StartSound(player->mo, sfx_zio3);
 	//player->kartstuff[k_thunderanim] = 35;
 	P_NukeEnemies(player->mo, player->mo, RING_DIST/4);
+	
+	// spawn vertical bolt
+	mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
+	P_SetTarget(&mo->target, player->mo);
+	P_SetMobjState(mo, S_LZIO11);
+	mo->color = SKINCOLOR_TEAL;
+	mo->scale = player->mo->scale*3 + (player->mo->scale/2);
+	
+	mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
+	P_SetTarget(&mo->target, player->mo);
+	P_SetMobjState(mo, S_LZIO21);
+	mo->color = SKINCOLOR_CYAN;
+	mo->scale = player->mo->scale*3 + (player->mo->scale/2);
+	
+	// spawn horizontal bolts;
+	for (i=0; i<7; i++)
+	{
+		mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
+		mo->angle = P_RandomRange(0, 359)*ANG1;
+		mo->fuse = P_RandomRange(20, 50);
+		P_SetTarget(&mo->target, player->mo);
+		P_SetMobjState(mo, S_KLIT1);
+	}
+	
+	// spawn the radius thing:	
+	angle_t an = ANGLE_22h;
+	for (i=0; i<15; i++)
+	{
+		sx = player->mo->x + FixedMul((player->mo->scale*THUNDERRADIUS), FINECOSINE((an*i)>>ANGLETOFINESHIFT));
+		sy = player->mo->y + FixedMul((player->mo->scale*THUNDERRADIUS), FINESINE((an*i)>>ANGLETOFINESHIFT));
+		mo = P_SpawnMobj(sx, sy, player->mo->z, MT_THOK);
+		mo-> angle = an*i;
+		mo->extravalue1 = THUNDERRADIUS;	// Used to know whether we should teleport by radius or something.
+		mo->scale = player->mo->scale*3;
+		P_SetTarget(&mo->target, player->mo);
+		P_SetMobjState(mo, S_KSPARK1);
+	}
 }
+
+#undef THUNDERRADIUS
 
 static void K_DoHyudoroSteal(player_t *player)
 {
@@ -5494,52 +5540,52 @@ void K_LoadKartHUDGraphics(void)
 }
 
 // For the item toggle menu
-const char *K_GetItemPatch(UINT8 item, boolean small)
+const char *K_GetItemPatch(UINT8 item, boolean tiny)
 {
 	switch (item)
 	{
 		case KITEM_SNEAKER:
 		case KRITEM_TRIPLESNEAKER:
-			return (small ? "K_ISSHOE" : "K_ITSHOE");
+			return (tiny ? "K_ISSHOE" : "K_ITSHOE");
 		case KITEM_ROCKETSNEAKER:
-			return (small ? "K_ISRSHE" : "K_ITRSHE");
+			return (tiny ? "K_ISRSHE" : "K_ITRSHE");
 		case KITEM_INVINCIBILITY:
-			return (small ? "K_ISINV1" : "K_ITINV1");
+			return (tiny ? "K_ISINV1" : "K_ITINV1");
 		case KITEM_BANANA:
 		case KRITEM_TRIPLEBANANA:
 		case KRITEM_TENFOLDBANANA:
-			return (small ? "K_ISBANA" : "K_ITBANA");
+			return (tiny ? "K_ISBANA" : "K_ITBANA");
 		case KITEM_EGGMAN:
-			return (small ? "K_ISEGGM" : "K_ITEGGM");
+			return (tiny ? "K_ISEGGM" : "K_ITEGGM");
 		case KITEM_ORBINAUT:
-			return (small ? "K_ISORBN" : "K_ITORB1");
+			return (tiny ? "K_ISORBN" : "K_ITORB1");
 		case KITEM_JAWZ:
 		case KRITEM_DUALJAWZ:
-			return (small ? "K_ISJAWZ" : "K_ITJAWZ");
+			return (tiny ? "K_ISJAWZ" : "K_ITJAWZ");
 		case KITEM_MINE:
-			return (small ? "K_ISMINE" : "K_ITMINE");
+			return (tiny ? "K_ISMINE" : "K_ITMINE");
 		case KITEM_BALLHOG:
-			return (small ? "K_ISBHOG" : "K_ITBHOG");
+			return (tiny ? "K_ISBHOG" : "K_ITBHOG");
 		case KITEM_SPB:
-			return (small ? "K_ISSPB" : "K_ITSPB");
+			return (tiny ? "K_ISSPB" : "K_ITSPB");
 		case KITEM_GROW:
-			return (small ? "K_ISGROW" : "K_ITGROW");
+			return (tiny ? "K_ISGROW" : "K_ITGROW");
 		case KITEM_SHRINK:
-			return (small ? "K_ISSHRK" : "K_ITSHRK");
+			return (tiny ? "K_ISSHRK" : "K_ITSHRK");
 		case KITEM_THUNDERSHIELD:
-			return (small ? "K_ISTHNS" : "K_ITTHNS");
+			return (tiny ? "K_ISTHNS" : "K_ITTHNS");
 		case KITEM_HYUDORO:
-			return (small ? "K_ISHYUD" : "K_ITHYUD");
+			return (tiny ? "K_ISHYUD" : "K_ITHYUD");
 		case KITEM_POGOSPRING:
-			return (small ? "K_ISPOGO" : "K_ITPOGO");
+			return (tiny ? "K_ISPOGO" : "K_ITPOGO");
 		case KITEM_KITCHENSINK:
-			return (small ? "K_ISSINK" : "K_ITSINK");
+			return (tiny ? "K_ISSINK" : "K_ITSINK");
 		case KRITEM_TRIPLEORBINAUT:
-			return (small ? "K_ISORBN" : "K_ITORB3");
+			return (tiny ? "K_ISORBN" : "K_ITORB3");
 		case KRITEM_QUADORBINAUT:
-			return (small ? "K_ISORBN" : "K_ITORB4");
+			return (tiny ? "K_ISORBN" : "K_ITORB4");
 		default:
-			return (small ? "K_ISSAD" : "K_ITSAD");
+			return (tiny ? "K_ISSAD" : "K_ITSAD");
 	}
 }
 
