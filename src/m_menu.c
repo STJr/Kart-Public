@@ -4530,8 +4530,9 @@ static boolean M_AddonsRefresh(void)
 static void M_DrawAddons(void)
 {
 	INT32 x, y;
-	ssize_t i, max;
+	ssize_t i, m;
 	const UINT8 *flashcol = NULL;
+	UINT8 hilicol;
 
 	// hack - need to refresh at end of frame to handle addfile...
 	if (refreshdirmenu & M_AddonsRefresh())
@@ -4565,26 +4566,45 @@ static void M_DrawAddons(void)
 	x = currentMenu->x;
 	y = currentMenu->y + 1;
 
+	hilicol = V_GetStringColormap(highlightflags)[120];
+
 	V_DrawString(x-21, (y - 16) + (lsheadingheight - 12), highlightflags|V_ALLOWLOWERCASE, M_AddonsHeaderPath());
-	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 3), (MAXSTRINGLENGTH*8+6 - 1), 1, V_GetStringColormap(highlightflags)[120]);
-	V_DrawFill(x-21 + (MAXSTRINGLENGTH*8+6 - 1), (y - 16) + (lsheadingheight - 3), 1, 1, 30);
+	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 3), MAXSTRINGLENGTH*8+6, 1, hilicol);
 	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 2), MAXSTRINGLENGTH*8+6, 1, 30);
 
-	V_DrawFill(x - 21, y - 1, MAXSTRINGLENGTH*8+6, (BASEVIDHEIGHT - currentMenu->y + 2) - (y - 1), 239);
+	m = (BASEVIDHEIGHT - currentMenu->y + 2) - (y - 1);
+	V_DrawFill(x - 21, y - 1, MAXSTRINGLENGTH*8+6, m, 239);
+
+	// scrollbar!
+	if (sizedirmenu <= (2*numaddonsshown + 1))
+		i = 0;
+	else
+	{
+		ssize_t q = m;
+		m = ((2*numaddonsshown + 1) * m)/sizedirmenu;
+		if (dir_on[menudepthleft] <= numaddonsshown) // all the way up
+			i = 0;
+		else if (sizedirmenu <= (dir_on[menudepthleft] + numaddonsshown + 1)) // all the way down
+			i = q-m;
+		else
+			i = ((dir_on[menudepthleft] - numaddonsshown) * (q-m))/(sizedirmenu - (2*numaddonsshown + 1));
+	}
+
+	V_DrawFill(x + MAXSTRINGLENGTH*8+5 - 21, (y - 1) + i, 1, m, hilicol);
 
 	// get bottom...
-	max = dir_on[menudepthleft] + numaddonsshown + 1;
-	if (max > (ssize_t)sizedirmenu)
-		max = sizedirmenu;
+	m = dir_on[menudepthleft] + numaddonsshown + 1;
+	if (m > (ssize_t)sizedirmenu)
+		m = sizedirmenu;
 
 	// then top...
-	i = max - (2*numaddonsshown + 1);
+	i = m - (2*numaddonsshown + 1);
 
 	// then adjust!
 	if (i < 0)
 	{
-		if ((max -= i) > (ssize_t)sizedirmenu)
-			max = sizedirmenu;
+		if ((m -= i) > (ssize_t)sizedirmenu)
+			m = sizedirmenu;
 		i = 0;
 	}
 
@@ -4594,7 +4614,7 @@ static void M_DrawAddons(void)
 	if (skullAnimCounter < 4)
 		flashcol = V_GetStringColormap(highlightflags);
 
-	for (; i < max; i++)
+	for (; i < m; i++)
 	{
 		UINT32 flags = V_ALLOWLOWERCASE;
 		if (y > BASEVIDHEIGHT) break;
@@ -4626,7 +4646,7 @@ static void M_DrawAddons(void)
 		y += 16;
 	}
 
-	if (max != (ssize_t)sizedirmenu)
+	if (m != (ssize_t)sizedirmenu)
 		V_DrawString(19, y-12 + (skullAnimCounter/5), highlightflags, "\x1B");
 
 	y = BASEVIDHEIGHT - currentMenu->y + 1;
