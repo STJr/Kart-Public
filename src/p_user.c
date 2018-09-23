@@ -673,7 +673,7 @@ static void P_DeNightserizePlayer(player_t *player)
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].pflags & PF_NIGHTSMODE)
 				players[i].nightstime = 1; // force everyone else to fall too.
-		player->exiting = 3*TICRATE;
+		player->exiting = raceexittime+2;
 		stagefailed = true; // NIGHT OVER
 	}
 
@@ -1744,7 +1744,7 @@ void P_DoPlayerExit(player_t *player)
 				S_StartSound(player->mo, sfx_kwin);
 		}
 
-		player->exiting = 3*TICRATE;
+		player->exiting = raceexittime+2;
 
 		if (cv_inttime.value > 0)
 			P_EndingMusic(player);
@@ -1754,15 +1754,15 @@ void P_DoPlayerExit(player_t *player)
 			//countdown2 = countdown + 8*TICRATE;
 
 		if (P_CheckRacers())
-			player->exiting = (14*TICRATE)/5 + 1;
+			player->exiting = raceexittime+1;
 	}
 	else if (G_BattleGametype()) // Battle Mode exiting
 	{
-		player->exiting = 8*TICRATE + 1;
+		player->exiting = battleexittime+1;
 		P_EndingMusic(player);
 	}
 	else
-		player->exiting = (14*TICRATE)/5 + 2; // Accidental death safeguard???
+		player->exiting = raceexittime+2; // Accidental death safeguard???
 
 	//player->pflags &= ~PF_GLIDING;
 	/*	// SRB2kart - don't need
@@ -6572,7 +6572,7 @@ static void P_MovePlayer(player_t *player)
 					S_StartSound(NULL, sfx_s3k6a);
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
-						players[i].exiting = (14*TICRATE)/5 + 1;
+						players[i].exiting = raceexittime+1;
 			}
 			else if (player->health > 1)
 				P_DamageMobj(player->mo, NULL, NULL, 1);
@@ -9040,8 +9040,8 @@ void P_PlayerThink(player_t *player)
 				}
 			}
 
-			if (i == MAXPLAYERS && player->exiting == 3*TICRATE) // finished
-				player->exiting = (14*TICRATE)/5 + 1;
+			if (i == MAXPLAYERS && player->exiting == raceexittime+2) // finished
+				player->exiting = raceexittime+1;
 
 			// If 10 seconds are left on the timer,
 			// begin the drown music for countdown!
@@ -9066,7 +9066,7 @@ void P_PlayerThink(player_t *player)
 
 		// If it is set, start subtracting
 		// Don't allow it to go back to 0
-		if (player->exiting > 1 && (player->exiting < 3*TICRATE || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
+		if (player->exiting > 1 && (player->exiting < raceexittime+2 || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
 			player->exiting--;
 
 		if (player->exiting && countdown2)

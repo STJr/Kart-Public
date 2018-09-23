@@ -582,6 +582,7 @@ typedef enum sprite
 
 	SPR_RNDM, // Random Item Box
 	SPR_RPOP, // Random Item Box Pop
+	SPR_SGNS, // Signpost sparkle
 	SPR_FAST, // Speed boost trail
 	SPR_DSHR, // Speed boost dust release
 	SPR_BOST, // Sneaker booster flame
@@ -1636,39 +1637,7 @@ typedef enum state
 	S_SIGN18,
 	S_SIGN19,
 	S_SIGN20,
-	S_SIGN21,
-	S_SIGN22,
-	S_SIGN23,
-	S_SIGN24,
-	S_SIGN25,
-	S_SIGN26,
-	S_SIGN27,
-	S_SIGN28,
-	S_SIGN29,
-	S_SIGN30,
-	S_SIGN31,
-	S_SIGN32,
-	S_SIGN33,
-	S_SIGN34,
-	S_SIGN35,
-	S_SIGN36,
-	S_SIGN37,
-	S_SIGN38,
-	S_SIGN39,
-	S_SIGN40,
-	S_SIGN41,
-	S_SIGN42,
-	S_SIGN43,
-	S_SIGN44,
-	S_SIGN45,
-	S_SIGN46,
-	S_SIGN47,
-	S_SIGN48,
-	S_SIGN49,
-	S_SIGN50,
-	S_SIGN51,
-	S_SIGN52, // Eggman
-	S_SIGN53,
+	S_SIGN_END,
 
 	// Steam Riser
 	S_STEAM1,
@@ -3082,6 +3051,19 @@ typedef enum state
 	S_RANDOMITEMPOP4,
 	//}
 
+	// Signpost sparkles
+	S_SIGNSPARK1,
+	S_SIGNSPARK2,
+	S_SIGNSPARK3,
+	S_SIGNSPARK4,
+	S_SIGNSPARK5,
+	S_SIGNSPARK6,
+	S_SIGNSPARK7,
+	S_SIGNSPARK8,
+	S_SIGNSPARK9,
+	S_SIGNSPARK10,
+	S_SIGNSPARK11,
+
 	// Drift Sparks
 	S_DRIFTSPARK_A1,
 	S_DRIFTSPARK_A2,
@@ -4100,6 +4082,7 @@ typedef enum mobj_type
 	MT_BLUEDIAG,
 	MT_RANDOMITEM,
 	MT_RANDOMITEMPOP,
+	MT_SIGNSPARKLE,
 
 	MT_FASTLINE,
 	MT_FASTDUST,

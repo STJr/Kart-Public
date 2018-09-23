@@ -448,7 +448,7 @@ static inline void P_DoSpecialStageStuff(void)
 		{
 			if (playeringame[i])
 			{
-				players[i].exiting = (14*TICRATE)/5 + 1;
+				players[i].exiting = raceexittime+1;
 				players[i].pflags &= ~PF_GLIDING;
 			}
 
@@ -485,7 +485,7 @@ static inline void P_DoSpecialStageStuff(void)
 				if (playeringame[i])
 				{
 					players[i].mo->momx = players[i].mo->momy = 0;
-					players[i].exiting = (14*TICRATE)/5 + 1;
+					players[i].exiting = raceexittime+1;
 				}
 
 			sstimer = 0;
