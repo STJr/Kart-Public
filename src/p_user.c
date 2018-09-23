@@ -1734,15 +1734,10 @@ void P_DoPlayerExit(player_t *player)
 			{
 				sfxenum_t sfx_id;
 				if (K_IsPlayerLosing(player))
-				{
 					sfx_id = ((skin_t *)player->mo->skin)->soundsid[S_sfx[sfx_klose].skinsound];
-					S_StartSound(NULL, sfx_id);
-				}
 				else
-				{
 					sfx_id = ((skin_t *)player->mo->skin)->soundsid[S_sfx[sfx_kwin].skinsound];
-					S_StartSound(NULL, sfx_id);
-				}
+				S_StartSound(NULL, sfx_id);
 			}
 			else
 			{
