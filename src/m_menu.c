@@ -4622,12 +4622,13 @@ static void M_DrawAddons(void)
 #define type (UINT8)(dirmenu[i][DIR_TYPE])
 		{
 			if (type & EXT_LOADED)
-			flags |= V_TRANSLUCENT;
-
-			V_DrawSmallScaledPatch(x-(16+4), y, (flags & V_TRANSLUCENT), addonsp[((UINT8)(dirmenu[i][DIR_TYPE]) & ~EXT_LOADED)]);
-
-			if (type & EXT_LOADED)
+			{
+				flags |= V_TRANSLUCENT;
+				V_DrawSmallScaledPatch(x-(16+4), y, V_TRANSLUCENT, addonsp[(type & ~EXT_LOADED)]);
 				V_DrawSmallScaledPatch(x-(16+4), y, 0, addonsp[NUM_EXT+2]);
+			}
+			else
+				V_DrawSmallScaledPatch(x-(16+4), y, 0, addonsp[(type & ~EXT_LOADED)]);
 
 			if ((size_t)i == dir_on[menudepthleft])
 			{
