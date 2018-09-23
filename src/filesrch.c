@@ -701,7 +701,7 @@ void searchfilemenu(char *tempname)
 
 	if (tempname)
 	{
-		dir_on[menudepthleft] = first;
+		dir_on[menudepthleft] = 0; //first; -- can't be first, causes problems
 		Z_Free(tempname);
 	}
 }
@@ -886,7 +886,7 @@ boolean preparefilemenu(boolean samedepth)
 
 	if ((menudepthleft != menudepth-1) // now for UP... entry
 		&& !(coredirmenu[0] = Z_StrDup(va("%c\5UP...", EXT_UP))))
-			I_Error("searchfilemenu(): could not create \"UP...\".");
+			I_Error("preparefilemenu(): could not create \"UP...\".");
 
 	menupath[menupathindex[menudepthleft]] = 0;
 	sizecoredirmenu = (numfolders+pos); // just in case things shrink between opening and rewind
