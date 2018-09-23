@@ -8349,6 +8349,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		angle = thiscam->angle;
 	else if (leveltime < starttime)
 		angle = focusangle + FixedAngle(camrotate*FRACUNIT);
+	else if (demoplayback)
+		angle = players[consoleplayer].cmd.angleturn<<16;
 	else
 	{
 		angle_t input = focusangle + FixedAngle(camrotate<<FRACBITS) - thiscam->angle;
@@ -8361,9 +8363,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			input = InvAngle(input);
 
 		angle = thiscam->angle + input;
-
-		if (demoplayback && player == &players[consoleplayer])
-			localangle = angle;
 	}
 
 	if (!resetcalled && (leveltime > starttime)
