@@ -176,7 +176,7 @@ extern FILE *logstream;
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
 #define UPDATE_ALERT_STRING \
 "A new update is available for SRB2Kart.\n"\
-"Please visit the forums on SRB2.org to download it.\n"\
+"Please visit mb.srb2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -193,7 +193,7 @@ extern FILE *logstream;
 // Generally less filled with newlines, since Windows gives you lots more room to work with.
 #define UPDATE_ALERT_STRING_CONSOLE \
 "A new update is available for SRB2Kart.\n"\
-"Please visit the forums on SRB2.org to download it.\n"\
+"Please visit mb.srb2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
