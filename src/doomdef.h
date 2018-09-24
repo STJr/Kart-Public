@@ -151,8 +151,8 @@ extern FILE *logstream;
 #else
 #define VERSION    100 // Game version
 #define SUBVERSION 0 // more precise version number
-#define VERSIONSTRING "v1.0.0"
-#define VERSIONSTRINGW L"v1.0.0"
+#define VERSIONSTRING "Kart v1.0.0"
+#define VERSIONSTRINGW L"Kart v1.0.0"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
