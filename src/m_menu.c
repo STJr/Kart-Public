@@ -663,7 +663,8 @@ static menuitem_t MISC_HelpMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL09", M_HandleImageDef, 1},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL10", M_HandleImageDef, 1},
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL11", M_HandleImageDef, 1},
-	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL12", M_HandleImageDef, 0},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL12", M_HandleImageDef, 1},
+	{IT_KEYHANDLER | IT_NOTHING, NULL, "MANUAL99", M_HandleImageDef, 0},
 };
 
 // --------------------------------
@@ -4264,7 +4265,7 @@ static void M_DrawImageDef(void)
 	else
 	{
 		patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-		if (patch->width <= BASEVIDWIDTH)
+		if (patch->height <= BASEVIDHEIGHT)
 			V_DrawScaledPatch(0,0,0,patch);
 		else
 			V_DrawSmallScaledPatch(0,0,0,patch);
