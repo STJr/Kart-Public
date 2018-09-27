@@ -1155,7 +1155,10 @@ boolean HU_Responder(event_t *ev)
 			c_input = 0;			// reset input cursor
 			chat_scrollmedown = true; // you hit enter, so you might wanna autoscroll to see what you just sent. :)
 		}
-		else if (c == KEY_ESCAPE)
+		else if (c == KEY_ESCAPE
+			|| ((c == gamecontrol[gc_talkkey][0] || c == gamecontrol[gc_talkkey][1]
+			|| c == gamecontrol[gc_teamkey][0] || c == gamecontrol[gc_teamkey][1])
+			&& c >= KEY_MOUSE1)) // If it's not a keyboard key, then the chat button is used as a toggle.
 		{
 			chat_on = false;
 			c_input = 0;			// reset input cursor
