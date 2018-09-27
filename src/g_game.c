@@ -1831,6 +1831,7 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].spectator)
 					continue;
 
+				// SRB2Kart: we have no team-based modes, YET...
 				/*if (G_GametypeHasTeams())
 				{
 					if (players[consoleplayer].ctfteam
@@ -1855,12 +1856,16 @@ boolean G_Responder(event_t *ev)
 						continue;
 				}*/
 
-				// SRB2Kart: Ehhh, who cares, Mario Kart's designed around screen-cheating anyway
-				/*if (gametype != GT_RACE)
+				// SRB2Kart: Only go through players who are actually playing
+				if (players[displayplayer].exiting)
+					continue;
+
+				// I don't know if we want this actually, but I'll humor the suggestion anyway
+				if (G_BattleGametype())
 				{
-					if (players[consoleplayer].kartstuff[k_bumper] > 0)
+					if (players[displayplayer].kartstuff[k_bumper] <= 0)
 						continue;
-				}*/
+				}
 
 				break;
 			} while (displayplayer != consoleplayer);
@@ -1868,10 +1873,6 @@ boolean G_Responder(event_t *ev)
 			// change statusbar also if playing back demo
 			if (singledemo)
 				ST_changeDemoView();
-
-			// tell who's the view
-			CONS_Printf(M_GetText("Viewpoint: %s\n"), player_names[displayplayer]);
-			P_ResetCamera(&players[displayplayer], &camera);
 
 			return true;
 		}
