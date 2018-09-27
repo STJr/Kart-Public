@@ -1695,7 +1695,7 @@ static void HU_DrawChat_Old(void)
 //
 // Crosshairs are pre-cached at HU_Init
 
-static inline void HU_DrawCrosshair(void)
+/*static inline void HU_DrawCrosshair(void)
 {
 	INT32 i, x, y;
 
@@ -1847,7 +1847,7 @@ static inline void HU_DrawCrosshair4(void)
 
 		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
-}
+}*/
 
 static void HU_DrawCEcho(void)
 {
@@ -2018,7 +2018,7 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	if (!automapactive && !demoplayback)
+	/*if (!automapactive && !demoplayback)
 	{
 		if (cv_crosshair.value && !camera.chase && !players[displayplayer].spectator)
 			HU_DrawCrosshair();
@@ -2031,7 +2031,7 @@ void HU_Drawer(void)
 
 		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
 			HU_DrawCrosshair4();
-	}
+	}*/
 
 	// draw desynch text
 	if (hu_resynching)
