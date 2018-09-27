@@ -256,8 +256,6 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	*/
 };
 
-//#define SALLYALTRAINBOW // Sal's edited version of the below, which keeps a colors' lightness, and looks better with hue-shifted colors like Ruby & Dream. Not strictly *better*, just different...
-
 // Define for getting accurate color brightness readings according to how the human eye sees them.
 // https://en.wikipedia.org/wiki/Relative_luminance
 // 0.2126 to red
@@ -277,7 +275,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	INT32 i;
 	RGBA_t color;
 	UINT8 brightness;
-#ifndef SALLYALTRAINBOW
 	INT32 j;
 	UINT8 colorbrightnesses[16];
 	UINT16 brightdif;
@@ -289,7 +286,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		color = V_GetColor(colortranslations[skincolor][i]);
 		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
-#endif
 
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -301,10 +297,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		}
 		color = V_GetColor(i);
 		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
-#ifdef SALLYALTRAINBOW
-		brightness = 15-(brightness/16); // Yes, 15.
-		dest_colormap[i] = colortranslations[skincolor][brightness];
-#else
 		brightdif = 256;
 		for (j = 0; j < 16; j++)
 		{
@@ -315,7 +307,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 				dest_colormap[i] = colortranslations[skincolor][j];
 			}
 		}
-#endif
 	}
 }
 
