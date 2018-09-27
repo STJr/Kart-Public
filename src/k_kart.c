@@ -3031,7 +3031,7 @@ static void K_DoSPB(player_t *victim, player_t *source)
 		P_DamageMobj(victim->mo, source->mo, source->mo, 65);
 }
 
-void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
+void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 {
 	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
 
@@ -3083,8 +3083,8 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 	else
 		mo->momz = FixedMul(vertispeed, vscale);
 
-	if (!mute)
-		S_StartSound(mo, sfx_kpogos);
+	if (sound)
+		S_StartSound(mo, (sound == 1 ? sfx_kc2f : sfx_kpogos));
 }
 
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
@@ -4775,7 +4775,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& !player->kartstuff[k_pogospring])
 					{
 						K_PlayBoostTaunt(player->mo);
-						K_DoPogoSpring(player->mo, 32<<FRACBITS, false);
+						K_DoPogoSpring(player->mo, 32<<FRACBITS, 2);
 						player->kartstuff[k_pogospring] = 1;
 						player->kartstuff[k_itemamount]--;
 					}
