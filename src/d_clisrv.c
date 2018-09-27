@@ -2920,7 +2920,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 }
 
 consvar_t cv_allownewplayer = {"allowjoin", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
+#ifdef VANILLAJOINNEXTROUND
 consvar_t cv_joinnextround = {"joinnextround", "Off", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
+#endif
 static CV_PossibleValue_t maxplayers_cons_t[] = {{2, "MIN"}, {MAXPLAYERS, "MAX"}, {0, NULL}};
 consvar_t cv_maxplayers = {"maxplayers", "8", CV_SAVE, maxplayers_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t resynchattempts_cons_t[] = {{0, "MIN"}, {20, "MAX"}, {0, NULL}};
@@ -2966,7 +2968,9 @@ void D_ClientServerInit(void)
 	RegisterNetXCmd(XD_ADDPLAYER, Got_AddPlayer);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
+#ifdef VANILLAJOINNEXTROUND
 	CV_RegisterVar(&cv_joinnextround);
+#endif
 	CV_RegisterVar(&cv_showjoinaddress);
 	CV_RegisterVar(&cv_resynchattempts);
 	CV_RegisterVar(&cv_blamecfail);
@@ -3519,8 +3523,10 @@ static void HandleConnect(SINT8 node)
 			// you get a free second before desynch checks. use it wisely.
 			SV_InitResynchVars(node);
 
+#ifdef VANILLAJOINNEXTROUND
 			if (cv_joinnextround.value && gameaction == ga_nothing)
 				G_SetGamestate(GS_WAITINGPLAYERS);
+#endif
 			if (!SV_SendServerConfig(node))
 			{
 				G_SetGamestate(backupstate);
