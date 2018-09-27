@@ -3607,9 +3607,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	// Speed lines
 	if ((player->kartstuff[k_sneakertimer] || player->kartstuff[k_driftboost] || player->kartstuff[k_startboost]) && player->speed > 0)
 	{
-		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36)<<FRACBITS),
-			player->mo->y + (P_RandomRange(-36,36)<<FRACBITS),
-			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20)<<FRACBITS),
+		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36) * player->mo->scale),
+			player->mo->y + (P_RandomRange(-36,36) * player->mo->scale),
+			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20) * player->mo->scale),
 			MT_FASTLINE);
 		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
 		fast->momx = 3*player->mo->momx/4;
