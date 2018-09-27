@@ -8647,6 +8647,8 @@ static void M_DrawControl(void)
         W_CachePatchName("M_CURSOR", PU_CACHE));
 }
 
+#undef controlheight
+
 static INT32 controltochange;
 
 static void M_ChangecontrolResponse(event_t *ev)

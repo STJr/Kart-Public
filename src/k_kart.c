@@ -2522,7 +2522,7 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25)<<FRACBITS), mo->y + (P_RandomRange(-25,25)<<FRACBITS), mo->z, MT_WIPEOUTTRAIL);
+	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25) * mo->scale), mo->y + (P_RandomRange(-25,25) * mo->scale), mo->z, MT_WIPEOUTTRAIL);
 
 	P_SetTarget(&dust->target, mo);
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
@@ -2591,45 +2591,17 @@ void K_DriftDustHandling(mobj_t *spawner)
 		{
 			dust->z += spawner->height - dust->height;
 		}
-		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
-		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
-		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
+		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
+		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
+		dust->momz = P_MobjFlip(spawner) * (P_RandomRange(1, 4) * (spawner->scale));
 		P_SetScale(dust, spawner->scale/2);
 		dust->destscale = spawner->scale * 3;
+		dust->scalespeed = FixedMul(dust->scalespeed, spawner->scale);
 
 		if (leveltime % 6 == 0)
 			S_StartSound(spawner, sfx_screec);
 
-		// Now time for a bunch of flag shit, groooooaann...
-		if (spawner->flags2 & MF2_DONTDRAW)
-			dust->flags2 |= MF2_DONTDRAW;
-		else
-			dust->flags2 &= ~MF2_DONTDRAW;
-
-		if (spawner->eflags & MFE_VERTICALFLIP)
-			dust->eflags |= MFE_VERTICALFLIP;
-		else
-			dust->eflags &= ~MFE_VERTICALFLIP;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP1)
-			dust->eflags |= MFE_DRAWONLYFORP1;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP1;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP2)
-			dust->eflags |= MFE_DRAWONLYFORP2;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP2;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP3)
-			dust->eflags |= MFE_DRAWONLYFORP3;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP3;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP4)
-			dust->eflags |= MFE_DRAWONLYFORP4;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP4;
+		K_MatchGenericExtraFlags(dust, spawner);
 	}
 }
 
@@ -2965,7 +2937,10 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	const fixed_t prevboost = player->kartstuff[k_speedboost];
 
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+	{
 		S_StartSound(player->mo, sfx_cdfm01);
+		K_SpawnDashDustRelease(player);
+	}
 
 	if (!player->kartstuff[k_sneakertimer])
 	{
@@ -2976,7 +2951,6 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	}
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
-	K_SpawnDashDustRelease(player);
 
 	if (doPFlag)
 	{
