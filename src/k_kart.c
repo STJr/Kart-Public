@@ -1277,7 +1277,7 @@ static void K_SpawnDashDustRelease(player_t *player)
 	if (!P_IsObjectOnGround(player->mo))
 		return;
 
-	if (player->speed == 0)
+	if (!player->speed && !player->kartstuff[k_startboost])
 		return;
 
 	travelangle = player->mo->angle;
