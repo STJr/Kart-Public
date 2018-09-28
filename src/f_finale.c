@@ -525,10 +525,13 @@ static const char *credits[] = {
 	"\1Special Thanks",
 	"Sonic Team Jr. & SRB2",
 	"Bandit \"Bobby\" Cochenour", // i <3 my dog
+	"Bear", // i <3 MY dog too
+	"\"Chrispy\"",
+	"\"DirkTheHusky\"",
+	"\"fickle\"", // and my sharki
 	"\"Nev3r\"",
 	"\"Ritz\"",
 	"\"Spherallic\"",
-	"\"DirkTheHusky\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
@@ -554,7 +557,7 @@ static struct {
 	{112, 80+200* 7, "CREDIT10"},
 	{240, 80+200* 8, "CREDIT05"},
 	{120, 80+200* 9, "CREDIT06"},*/
-	{112, 80+200*10, "TYLER52"},
+	{112, 80+100+200*10, "TYLER52"},
 	{0, 0, NULL}
 };
 
