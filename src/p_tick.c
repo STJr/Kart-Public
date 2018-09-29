@@ -180,6 +180,7 @@ void Command_CountMobjs_f(void)
 void P_InitThinkers(void)
 {
 	thinkercap.prev = thinkercap.next = &thinkercap;
+	waypointcap = NULL;
 }
 
 //
