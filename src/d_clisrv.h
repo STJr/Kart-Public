@@ -480,6 +480,7 @@ extern consvar_t cv_playbackspeed;
 #endif
 #define KICK_MSG_CUSTOM_KICK 7
 #define KICK_MSG_CUSTOM_BAN  8
+#define KICK_MSG_SPLITSCREEN 9
 
 extern boolean server;
 #define client (!server)

@@ -2870,6 +2870,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			if (netgame) // not splitscreen/bots
 				CONS_Printf(M_GetText("left the game\n"));
 			break;
+		case KICK_MSG_SPLITSCREEN:
+			CONS_Printf(M_GetText("left the game (Splitscreen session)\n"));
+			break;
 		case KICK_MSG_BANNED:
 			CONS_Printf(M_GetText("has been banned (Don't come back)\n"));
 			break;
@@ -2885,6 +2888,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 
 	if (playernode[pnum] == playernode[consoleplayer])
 	{
+		if (msg == KICK_MSG_SPLITSCREEN) return;
 #ifdef DUMPCONSISTENCY
 		if (msg == KICK_MSG_CON_FAIL) SV_SavedGame();
 #endif
@@ -2908,26 +2912,30 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 	else
 	{
-		UINT8 splitnode = playernode[pnum];
+		CL_RemovePlayer(pnum);
 
 		// Sal: Because kicks (and a lot of other commands) are player-based, we can't tell which player pnum is on the node from a glance.
 		// When we want to remove everyone from a node, we have to get the kicked player's node, then remove everyone on that node manually so we don't miss any.
-		// This avoids the old bugs with older SRB2 version's online splitscreen kicks, and means we can keep it in now! :D
+		// This avoids the bugs with older SRB2 version's online splitscreen kicks, specifically ghosting.
+		// On top of this, it can't just be a CL_RemovePlayer call; it has to be a server-side kick.
+		// Clients don't bother setting any nodes for anything but THE server player (even ignoring the server's extra players!), so it'll often remove everyone because they all have node -1/255, insta-desync!
 
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
 #define removethisplayer(otherp) \
-	if (otherp >= 0) \
+	if (otherp != -1 && otherp != pnum) \
 	{ \
-		if (otherp != pnum) \
-			CONS_Printf("\x82%s\x80 left the game (Joined with \x82%s\x80)\n", player_names[otherp], player_names[pnum]); \
-		CL_RemovePlayer(otherp); \
+		buf[0] = (UINT8)otherp; \
+		buf[1] = KICK_MSG_SPLITSCREEN; \
+		SendNetXCmd(XD_KICK, &buf, 2); \
 	}
-
-		removethisplayer(nodetoplayer[splitnode])
-		removethisplayer(nodetoplayer2[splitnode])
-		removethisplayer(nodetoplayer3[splitnode])
-		removethisplayer(nodetoplayer4[splitnode])
-
+			removethisplayer(nodetoplayer[playernode[pnum]])
+			removethisplayer(nodetoplayer2[playernode[pnum]])
+			removethisplayer(nodetoplayer3[playernode[pnum]])
+			removethisplayer(nodetoplayer4[playernode[pnum]])
 #undef removethisplayer
+		}
 	}
 }
 
@@ -3167,9 +3175,8 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	newplayernum %= MAXPLAYERS;
 
 	// Clear player before joining, lest some things get set incorrectly
-	// HACK: don't do this for splitscreen, it relies on preset values
-	//if (!splitscreen && !botingame)
-		CL_ClearPlayer(newplayernum);
+	CL_ClearPlayer(newplayernum);
+
 	playeringame[newplayernum] = true;
 	G_AddPlayer(newplayernum);
 	if (newplayernum+1 > doomcom->numslots)
