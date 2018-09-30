@@ -7434,6 +7434,12 @@ void K_drawKartHUD(void)
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();
+
+	{
+		UINT8 p;
+		for (p = 0; p < MAXPLAYERS; p++)
+			V_DrawString(8, 64+(8*p), V_YELLOWMAP, va("%d - %d", p, playernode[p]));
+	}
 }
 
 //}
