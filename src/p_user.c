@@ -8973,7 +8973,7 @@ void P_PlayerThink(player_t *player)
 	}
 
 #ifdef SEENAMES
-	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)))
+	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)) && !splitscreen)
 	{
 		seenplayer = NULL;
 
@@ -9194,7 +9194,7 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 
-	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
+	if ((netgame || multiplayer) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;
 		//player->powers[pw_flashing] = TICRATE + 1;

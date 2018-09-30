@@ -4852,8 +4852,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->mo->eflags |= MFE_DRAWONLYFORP3;
 					else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
 						player->mo->eflags |= MFE_DRAWONLYFORP4;
-					else
+					else if (player == &players[consoleplayer])
 						player->mo->eflags |= MFE_DRAWONLYFORP1;
+					else
+						player->mo->flags2 |= MF2_DONTDRAW;
 				}
 				else
 					player->mo->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);

@@ -6802,17 +6802,15 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->target && mobj->target->health
 					&& mobj->target->player && !mobj->target->player->spectator
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
-					&& players[displayplayer].mo && !players[displayplayer].spectator)
+					/*&& players[displayplayer].mo && !players[displayplayer].spectator*/)
 				{
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
+					K_MatchGenericExtraFlags(mobj, mobj->target);
 
-					if (G_RaceGametype()
-						|| mobj->target->player == &players[displayplayer]
-						|| mobj->target->player->kartstuff[k_bumper] <= 0
-						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW)
+					if ((G_RaceGametype() || mobj->target->player->kartstuff[k_bumper] <= 0)
 #if 1 // Set to 0 to test without needing to host
-						|| !netgame
+						|| ((mobj->target->player == &players[displayplayer]) || P_IsLocalPlayer(mobj->target->player))
 #endif
 						)
 						mobj->flags2 |= MF2_DONTDRAW;
