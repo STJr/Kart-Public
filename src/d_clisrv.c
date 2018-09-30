@@ -2424,7 +2424,7 @@ static void CL_RemovePlayer(INT32 playernum)
 		if (playerpernode[node] <= 0)
 		{
 			// If a resynch was in progress, well, it no longer needs to be.
-			SV_InitResynchVars(playernode[playernum]);
+			SV_InitResynchVars(node);
 
 			nodeingame[node] = false;
 			Net_CloseConnection(node);
@@ -3487,6 +3487,7 @@ static void HandleConnect(SINT8 node)
 				/// \note Shouldn't SV_SendRefuse be called before ResetNode?
 				ResetNode(node);
 				SV_SendRefuse(node, M_GetText("Server couldn't send info, please try again"));
+				ResetNode(node); // Yeah, lets try it!
 				/// \todo fix this !!!
 				return; // restart the while
 			}
