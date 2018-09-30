@@ -178,16 +178,6 @@ void SplitScreen_OnChange(void)
 {
 	UINT8 i;
 
-	if (!cv_debug && netgame)
-	{
-		if (splitscreen)
-		{
-			CONS_Alert(CONS_NOTICE, M_GetText("Splitscreen not supported in netplay, sorry!\n"));
-			splitscreen = 0;
-		}
-		return;
-	}
-
 	// recompute screen size
 	R_ExecuteSetViewSize();
 

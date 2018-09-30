@@ -1350,15 +1350,22 @@ static void SendNameAndColor(void)
 // splitscreen
 static void SendNameAndColor2(void)
 {
-	INT32 secondplaya;
+	INT32 secondplaya = -1;
+	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	char *p;
 
 	if (splitscreen < 1 && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
 	if (secondarydisplayplayer != consoleplayer)
 		secondplaya = secondarydisplayplayer;
-	else // HACK
+	else if (!netgame) // HACK
 		secondplaya = 1;
+
+	if (secondplaya == -1)
+		return;
+
+	p = buf;
 
 	// normal player colors
 	if (G_GametypeHasTeams())
@@ -1436,20 +1443,52 @@ static void SendNameAndColor2(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	snac2pending++;
+
+	// Don't change name if muted
+	if (cv_mute.value && !(server || IsPlayerAdmin(secondarydisplayplayer)))
+		CV_StealthSet(&cv_playername2, player_names[secondarydisplayplayer]);
+	else // Cleanup name if changing it
+		CleanupPlayerName(secondarydisplayplayer, cv_playername2.zstring);
+
+	// Don't change skin if the server doesn't want you to.
+	if (!CanChangeSkin(secondarydisplayplayer))
+		CV_StealthSet(&cv_skin2, skins[players[secondarydisplayplayer].skin].name);
+
+	// check if player has the skin loaded (cv_skin2 may have
+	// the name of a skin that was available in the previous game)
+	cv_skin2.value = R_SkinAvailable(cv_skin2.string);
+	if (cv_skin2.value < 0)
+	{
+		CV_StealthSet(&cv_skin2, DEFAULTSKIN);
+		cv_skin2.value = 0;
+	}
+
+	// Finally write out the complete packet and send it off.
+	WRITESTRINGN(p, cv_playername2.zstring, MAXPLAYERNAME);
+	WRITEUINT8(p, (UINT8)cv_playercolor2.value);
+	WRITEUINT8(p, (UINT8)cv_skin2.value);
+	SendNetXCmd2(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void SendNameAndColor3(void)
 {
-	INT32 thirdplaya;
+	INT32 thirdplaya = -1;
+	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	char *p;
 
 	if (splitscreen < 2)
 		return; // can happen if skin3/color3/name3 changed
 
 	if (thirddisplayplayer != consoleplayer)
 		thirdplaya = thirddisplayplayer;
-	else // HACK
+	else if (!netgame) // HACK
 		thirdplaya = 2;
+
+	if (thirdplaya == -1)
+		return;
+
+	p = buf;
 
 	// normal player colors
 	if (G_GametypeHasTeams())
@@ -1519,20 +1558,52 @@ static void SendNameAndColor3(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	snac3pending++;
+
+	// Don't change name if muted
+	if (cv_mute.value && !(server || IsPlayerAdmin(thirddisplayplayer)))
+		CV_StealthSet(&cv_playername3, player_names[thirddisplayplayer]);
+	else // Cleanup name if changing it
+		CleanupPlayerName(thirddisplayplayer, cv_playername3.zstring);
+
+	// Don't change skin if the server doesn't want you to.
+	if (!CanChangeSkin(thirddisplayplayer))
+		CV_StealthSet(&cv_skin3, skins[players[thirddisplayplayer].skin].name);
+
+	// check if player has the skin loaded (cv_skin3 may have
+	// the name of a skin that was available in the previous game)
+	cv_skin3.value = R_SkinAvailable(cv_skin3.string);
+	if (cv_skin3.value < 0)
+	{
+		CV_StealthSet(&cv_skin3, DEFAULTSKIN);
+		cv_skin3.value = 0;
+	}
+
+	// Finally write out the complete packet and send it off.
+	WRITESTRINGN(p, cv_playername3.zstring, MAXPLAYERNAME);
+	WRITEUINT8(p, (UINT8)cv_playercolor3.value);
+	WRITEUINT8(p, (UINT8)cv_skin3.value);
+	SendNetXCmd3(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void SendNameAndColor4(void)
 {
-	INT32 fourthplaya;
+	INT32 fourthplaya = -1;
+	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	char *p;
 
 	if (splitscreen < 3)
 		return; // can happen if skin4/color4/name4 changed
 
 	if (fourthdisplayplayer != consoleplayer)
 		fourthplaya = fourthdisplayplayer;
-	else // HACK
+	else if (!netgame) // HACK
 		fourthplaya = 3;
+
+	if (fourthplaya == -1)
+		return;
+
+	p = buf;
 
 	// normal player colors
 	if (G_GametypeHasTeams())
@@ -1610,7 +1681,32 @@ static void SendNameAndColor4(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	snac4pending++;
+
+	// Don't change name if muted
+	if (cv_mute.value && !(server || IsPlayerAdmin(fourthdisplayplayer)))
+		CV_StealthSet(&cv_playername4, player_names[fourthdisplayplayer]);
+	else // Cleanup name if changing it
+		CleanupPlayerName(fourthdisplayplayer, cv_playername4.zstring);
+
+	// Don't change skin if the server doesn't want you to.
+	if (!CanChangeSkin(fourthdisplayplayer))
+		CV_StealthSet(&cv_skin4, skins[players[fourthdisplayplayer].skin].name);
+
+	// check if player has the skin loaded (cv_skin4 may have
+	// the name of a skin that was available in the previous game)
+	cv_skin4.value = R_SkinAvailable(cv_skin4.string);
+	if (cv_skin4.value < 0)
+	{
+		CV_StealthSet(&cv_skin4, DEFAULTSKIN);
+		cv_skin4.value = 0;
+	}
+
+	// Finally write out the complete packet and send it off.
+	WRITESTRINGN(p, cv_playername4.zstring, MAXPLAYERNAME);
+	WRITEUINT8(p, (UINT8)cv_playercolor4.value);
+	WRITEUINT8(p, (UINT8)cv_skin4.value);
+	SendNetXCmd4(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
