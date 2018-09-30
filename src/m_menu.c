@@ -463,9 +463,9 @@ consvar_t cv_ghost_staff     = {"ghost_staff",     "Show", CV_SAVE, ghost2_cons_
 //todo: add a way to use non-console variables in the menu
 //      or make these consvars legitimate like color or skin.
 #ifndef NOFOURPLAYER
-static void Dummysplitplayers_OnChange(void);
-static CV_PossibleValue_t dummysplitplayers_cons_t[] = {{1, "One"}, {2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
-static consvar_t cv_dummysplitplayers = {"dummysplitplayers", "One", CV_HIDEN|CV_CALL, dummysplitplayers_cons_t, Dummysplitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
+static void Splitplayers_OnChange(void);
+CV_PossibleValue_t splitplayers_cons_t[] = {{1, "One"}, {2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
+consvar_t cv_splitplayers = {"splitplayers", "One", CV_CALL, splitplayers_cons_t, Splitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
 static CV_PossibleValue_t dummyteam_cons_t[] = {{0, "Spectator"}, {1, "Red"}, {2, "Blue"}, {0, NULL}};
@@ -949,7 +949,7 @@ menuitem_t PlayerMenu[32] =
 static menuitem_t MP_SetPlayersMenu[] =
 {
 #ifndef NOFOURPLAYER
-	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_dummysplitplayers, 10},
+	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_splitplayers, 10},
 #endif
 
 #ifdef NOFOURPLAYER
@@ -1002,13 +1002,13 @@ static menuitem_t MP_OfflineServerMenu[] =
 };
 
 #ifndef NOFOURPLAYER
-static void Dummysplitplayers_OnChange(void)
+static void Splitplayers_OnChange(void)
 {
 	UINT8 i = 1; // player 1 is the last unchanging setup
 
 	while (i < 4)
 	{
-		if (i < cv_dummysplitplayers.value)
+		if (i < cv_splitplayers.value)
 			MP_SetPlayersMenu[i+1].status = IT_STRING|IT_CALL;
 		else
 			MP_SetPlayersMenu[i+1].status = IT_GRAYEDOUT;
@@ -3144,7 +3144,7 @@ void M_Init(void)
 
 	// Menu hacks
 #ifndef NOFOURPLAYER
-	CV_RegisterVar(&cv_dummysplitplayers);
+	CV_RegisterVar(&cv_splitplayers);
 #endif
 	CV_RegisterVar(&cv_dummyteam);
 	CV_RegisterVar(&cv_dummyscramble);
@@ -7398,7 +7398,7 @@ static void M_StartServer(INT32 choice)
 #ifdef NOFOURPLAYER
 		1;
 #else
-		cv_dummysplitplayers.value-1;
+		cv_splitplayers.value-1;
 #endif
 
 	(void)choice;
@@ -7643,7 +7643,7 @@ static void M_DrawServerMenu(void)
 				pskin = 0;
 
 #ifndef NOFOURPLAYER
-			if (!trans && i > cv_dummysplitplayers.value)
+			if (!trans && i > cv_splitplayers.value)
 				trans = V_TRANSLUCENT;
 #endif
 

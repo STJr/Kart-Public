@@ -2377,8 +2377,11 @@ static void Command_connect(void)
 			CONS_Alert(CONS_ERROR, M_GetText("There is no network driver\n"));
 	}
 
-	splitscreen = 3; // TEMPORARY TESTING MEASURE
-	SplitScreen_OnChange();
+	if (splitscreen != cv_splitplayers.value-1)
+	{
+		splitscreen = cv_splitplayers.value-1;
+		SplitScreen_OnChange();
+	}
 	botingame = false;
 	botskin = 0;
 	CL_ConnectToServer(viams);

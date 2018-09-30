@@ -759,6 +759,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_playername4);
 	CV_RegisterVar(&cv_playercolor4);
 	CV_RegisterVar(&cv_skin4);
+	// preferred number of players
+	CV_RegisterVar(&cv_splitplayers);
 
 #ifdef SEENAMES
 	CV_RegisterVar(&cv_seenames);
