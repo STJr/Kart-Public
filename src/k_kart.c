@@ -1250,7 +1250,7 @@ static void K_UpdateOffroad(player_t *player)
 }
 
 // These have to go earlier than its sisters because of K_RespawnChecker...
-static void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
+void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
 {
 	// flipping
 	mo->eflags = (mo->eflags & ~MFE_VERTICALFLIP)|(master->eflags & MFE_VERTICALFLIP);

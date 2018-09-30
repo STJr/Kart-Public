@@ -2892,7 +2892,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		CL_Reset();
 		D_StartTitle();
 		if (msg == KICK_MSG_CON_FAIL)
-			M_StartMessage(M_GetText("Server closed connection\n(synch failure)\nPress ESC\n"), NULL, MM_NOTHING);
+			M_StartMessage(M_GetText("Server closed connection\n(Synch failure)\nPress ESC\n"), NULL, MM_NOTHING);
 #ifdef NEWPING
 		else if (msg == KICK_MSG_PING_HIGH)
 			M_StartMessage(M_GetText("Server closed connection\n(Broke ping limit)\nPress ESC\n"), NULL, MM_NOTHING);
@@ -2909,15 +2909,25 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	else
 	{
 		UINT8 splitnode = playernode[pnum];
-		// Can't tell which player pnum is on the node from a glance, so we have to convert to node, then check each player on the node
-		if (nodetoplayer[splitnode] != -1)
-			CL_RemovePlayer(nodetoplayer[splitnode]);
-		if (nodetoplayer2[splitnode] != -1)
-			CL_RemovePlayer(nodetoplayer2[splitnode]);
-		if (nodetoplayer3[splitnode] != -1)
-			CL_RemovePlayer(nodetoplayer3[splitnode]);
-		if (nodetoplayer4[splitnode] != -1)
-			CL_RemovePlayer(nodetoplayer4[splitnode]);
+
+		// Sal: Because kicks (and a lot of other commands) are player-based, we can't tell which player pnum is on the node from a glance.
+		// When we want to remove everyone from a node, we have to get the kicked player's node, then remove everyone on that node manually so we don't miss any.
+		// This avoids the old bugs with older SRB2 version's online splitscreen kicks, and means we can keep it in now! :D
+
+#define removethisplayer(otherp) \
+	if (otherp >= 0) \
+	{ \
+		if (otherp != pnum) \
+			CONS_Printf("\x82%s\x80 left the game (Joined with \x82%s\x80)\n", player_names[otherp], player_names[pnum]); \
+		CL_RemovePlayer(otherp); \
+	}
+
+		removethisplayer(nodetoplayer[splitnode])
+		removethisplayer(nodetoplayer2[splitnode])
+		removethisplayer(nodetoplayer3[splitnode])
+		removethisplayer(nodetoplayer4[splitnode])
+
+#undef removethisplayer
 	}
 }
 
