@@ -442,6 +442,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartdebughuddrop);
 
 	CV_RegisterVar(&cv_kartdebugcheckpoint);
+	CV_RegisterVar(&cv_kartdebugnodes);
 }
 
 //}
@@ -7435,6 +7436,7 @@ void K_drawKartHUD(void)
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();
 
+	if (cv_kartdebugnodes.value)
 	{
 		UINT8 p;
 		for (p = 0; p < MAXPLAYERS; p++)
