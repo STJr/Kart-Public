@@ -2870,9 +2870,6 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			if (netgame) // not splitscreen/bots
 				CONS_Printf(M_GetText("left the game\n"));
 			break;
-		case KICK_MSG_SPLITSCREEN:
-			CONS_Printf(M_GetText("left the game (Splitscreen session)\n"));
-			break;
 		case KICK_MSG_BANNED:
 			CONS_Printf(M_GetText("has been banned (Don't come back)\n"));
 			break;
@@ -2888,7 +2885,6 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 
 	if (playernode[pnum] == playernode[consoleplayer])
 	{
-		if (msg == KICK_MSG_SPLITSCREEN) return;
 #ifdef DUMPCONSISTENCY
 		if (msg == KICK_MSG_CON_FAIL) SV_SavedGame();
 #endif
@@ -2910,32 +2906,31 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		else
 			M_StartMessage(M_GetText("You have been kicked by the server\n\nPress ESC\n"), NULL, MM_NOTHING);
 	}
-	else
+	else if (server)
 	{
-		CL_RemovePlayer(pnum);
+		XBOXSTATIC UINT8 buf[0];
 
 		// Sal: Because kicks (and a lot of other commands) are player-based, we can't tell which player pnum is on the node from a glance.
 		// When we want to remove everyone from a node, we have to get the kicked player's node, then remove everyone on that node manually so we don't miss any.
 		// This avoids the bugs with older SRB2 version's online splitscreen kicks, specifically ghosting.
-		// On top of this, it can't just be a CL_RemovePlayer call; it has to be a server-side kick.
+		// On top of this, it can't just be a CL_RemovePlayer call; it has to be a server-sided.
 		// Clients don't bother setting any nodes for anything but THE server player (even ignoring the server's extra players!), so it'll often remove everyone because they all have node -1/255, insta-desync!
+		// And yes. This is a netxcmd wrap for just CL_RemovePlayer! :V 
 
-		if (server && msg != KICK_MSG_SPLITSCREEN)
-		{
-			XBOXSTATIC UINT8 buf[2];
 #define removethisplayer(otherp) \
-	if (otherp != -1 && otherp != pnum) \
+	if (otherp >= 0) \
 	{ \
+		if (otherp != pnum) \
+			CONS_Printf("\x82%s\x80 left the game (Joined with \x82%s\x80)\n", player_names[otherp], player_names[pnum]); \
 		buf[0] = (UINT8)otherp; \
-		buf[1] = KICK_MSG_SPLITSCREEN; \
-		SendNetXCmd(XD_KICK, &buf, 2); \
+		SendNetXCmd(XD_REMOVEPLAYER, &buf, 1); \
+		otherp = -1; \
 	}
-			removethisplayer(nodetoplayer[playernode[pnum]])
-			removethisplayer(nodetoplayer2[playernode[pnum]])
-			removethisplayer(nodetoplayer3[playernode[pnum]])
-			removethisplayer(nodetoplayer4[playernode[pnum]])
+		removethisplayer(nodetoplayer[playernode[pnum]])
+		removethisplayer(nodetoplayer2[playernode[pnum]])
+		removethisplayer(nodetoplayer3[playernode[pnum]])
+		removethisplayer(nodetoplayer4[playernode[pnum]])
 #undef removethisplayer
-		}
 	}
 }
 
@@ -2957,6 +2952,7 @@ static CV_PossibleValue_t downloadspeed_cons_t[] = {{0, "MIN"}, {32, "MAX"}, {0,
 consvar_t cv_downloadspeed = {"downloadspeed", "16", CV_SAVE, downloadspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void Got_AddPlayer(UINT8 **p, INT32 playernum);
+static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
 
 // called one time at init
 void D_ClientServerInit(void)
@@ -2984,6 +2980,7 @@ void D_ClientServerInit(void)
 
 	RegisterNetXCmd(XD_KICK, Got_KickCmd);
 	RegisterNetXCmd(XD_ADDPLAYER, Got_AddPlayer);
+	RegisterNetXCmd(XD_REMOVEPLAYER, Got_RemovePlayer);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
 	CV_RegisterVar(&cv_joinnextround);
@@ -3256,6 +3253,27 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 #ifdef HAVE_BLUA
 	LUAh_PlayerJoin(newplayernum);
 #endif
+}
+
+// Xcmd XD_REMOVEPLAYER
+static void Got_RemovePlayer(UINT8 **p, INT32 playernum)
+{
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	{
+		// protect against hacked/buggy client
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal remove player command received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	CL_RemovePlayer(READUINT8(*p));
 }
 
 static boolean SV_AddWaitingPlayers(void)
@@ -4036,9 +4054,9 @@ FILESTAMP
 				else
 					buf[1] = KICK_MSG_PLAYER_QUIT;
 				SendNetXCmd(XD_KICK, &buf, 2);
-				nodetoplayer[node] = -1;
+				//nodetoplayer[node] = -1;
 
-				if (nodetoplayer2[node] != -1 && nodetoplayer2[node] >= 0
+				/*if (nodetoplayer2[node] != -1 && nodetoplayer2[node] >= 0
 					&& playeringame[(UINT8)nodetoplayer2[node]])
 				{
 					buf[0] = nodetoplayer2[node];
@@ -4060,7 +4078,7 @@ FILESTAMP
 					buf[0] = nodetoplayer4[node];
 					SendNetXCmd(XD_KICK, &buf, 2);
 					nodetoplayer4[node] = -1;
-				}
+				}*/
 			}
 			Net_CloseConnection(node);
 			nodeingame[node] = false;
