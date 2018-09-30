@@ -2920,7 +2920,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		// On top of this, it can't just be a CL_RemovePlayer call; it has to be a server-side kick.
 		// Clients don't bother setting any nodes for anything but THE server player (even ignoring the server's extra players!), so it'll often remove everyone because they all have node -1/255, insta-desync!
 
-		if (server)
+		if (server && msg != KICK_MSG_SPLITSCREEN)
 		{
 			XBOXSTATIC UINT8 buf[2];
 #define removethisplayer(otherp) \
