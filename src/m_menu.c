@@ -246,6 +246,7 @@ static void M_ConfirmTeamChange(INT32 choice);
 static void M_SetupChoosePlayer(INT32 choice);
 static void M_QuitSRB2(INT32 choice);
 menu_t SP_MainDef, MP_MainDef, OP_MainDef;
+menu_t MP_SetPlayersDef;
 menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef;
 
 // Single Player
@@ -271,7 +272,7 @@ static menu_t SP_TimeAttackDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
 static void M_StartServerMenu(INT32 choice);
 static void M_ConnectMenu(INT32 choice);
 #endif
-static void M_StartSplitServerMenu(INT32 choice);
+static void M_StartOfflineServerMenu(INT32 choice);
 static void M_StartServer(INT32 choice);
 #ifndef NONET
 static void M_Refresh(INT32 choice);
@@ -463,8 +464,8 @@ consvar_t cv_ghost_staff     = {"ghost_staff",     "Show", CV_SAVE, ghost2_cons_
 //      or make these consvars legitimate like color or skin.
 #ifndef NOFOURPLAYER
 static void Dummysplitplayers_OnChange(void);
-static CV_PossibleValue_t dummysplitplayers_cons_t[] = {{2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
-static consvar_t cv_dummysplitplayers = {"dummysplitplayers", "Two", CV_HIDEN|CV_CALL, dummysplitplayers_cons_t, Dummysplitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
+static CV_PossibleValue_t dummysplitplayers_cons_t[] = {{1, "One"}, {2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
+static consvar_t cv_dummysplitplayers = {"dummysplitplayers", "One", CV_HIDEN|CV_CALL, dummysplitplayers_cons_t, Dummysplitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
 static CV_PossibleValue_t dummyteam_cons_t[] = {{0, "Spectator"}, {1, "Red"}, {2, "Blue"}, {0, NULL}};
@@ -500,12 +501,7 @@ static menuitem_t MainMenu[] =
 {
 	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_UnlockChecklistDef, 76},
 	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu,     84},
-#ifdef NONET
-M_StartSplitServerMenu
-	{IT_CALL   |IT_STRING, NULL, "Splitscreen", M_StartSplitServerMenu, 92},
-#else
-	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,            92},
-#endif
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_SetPlayersDef,      92},
 	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,             100},
 	{IT_CALL   |IT_STRING, NULL, "Addons",      M_Addons,              108},
 	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,            116},
@@ -949,16 +945,35 @@ menuitem_t PlayerMenu[32] =
 
 #ifndef NONET
 
+// Set number of players first!
+static menuitem_t MP_SetPlayersMenu[] =
+{
+#ifndef NOFOURPLAYER
+	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_dummysplitplayers, 10},
+#endif
+
+#ifdef NOFOURPLAYER
+	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          90},
+	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        100},
+#else
+	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          80},
+	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,         90},
+	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,        100},
+	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,        110},
+#endif
+	{IT_SUBMENU|IT_STRING, NULL, "Next...",                   &MP_MainDef,        130},
+};
+
 static menuitem_t MP_MainMenu[] =
 {
 	{IT_HEADER, NULL, "Host a game", NULL, 0},
-	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,      10},
-	{IT_STRING|IT_CALL,       NULL, "Splitscreen...",            M_StartSplitServerMenu, 18},
+	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,        10},
+	{IT_STRING|IT_CALL,       NULL, "Offline...",                M_StartOfflineServerMenu, 18},
 	{IT_HEADER, NULL, "Join a game", NULL, 32},
-	{IT_STRING|IT_CALL,       NULL, "Server browser...",         M_ConnectMenu,          42},
-	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,      50},
-	{IT_HEADER, NULL, "Player setup", NULL, 80},
-	{IT_STRING|IT_CALL,       NULL, "Name, character, color...", M_SetupMultiPlayer,     90},
+	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenu,            42},
+	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,        50},
+	//{IT_HEADER, NULL, "Player setup", NULL, 80},
+	//{IT_STRING|IT_CALL,       NULL, "Name, character, color...", M_SetupMultiPlayer,       90},
 };
 
 #endif
@@ -977,38 +992,26 @@ static menuitem_t MP_ServerMenu[] =
 	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                 M_StartServer,      130},
 };
 
-// Separated splitscreen and normal servers.
-static menuitem_t MP_SplitServerMenu[] =
+// Separated offline and normal servers.
+static menuitem_t MP_OfflineServerMenu[] =
 {
-#ifndef NOFOURPLAYER
-	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_dummysplitplayers, 10},
-#endif
-
 	{IT_STRING|IT_CVAR,      NULL, "Game Type",             &cv_newgametype,       68},
 	{IT_STRING|IT_CVAR,      NULL, "Level",                 &cv_nextmap,           78},
-#ifdef NOFOURPLAYER
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,         110},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        120},
-#else
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          90},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        100},
-	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,        110},
-	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,        120},
-#endif
+
 	{IT_WHITESTRING|IT_CALL, NULL, "Start",                 M_StartServer,        130},
 };
 
 #ifndef NOFOURPLAYER
 static void Dummysplitplayers_OnChange(void)
 {
-	UINT8 i = 2; // player 2 is the last unchanging setup
+	UINT8 i = 1; // player 1 is the last unchanging setup
 
 	while (i < 4)
 	{
 		if (i < cv_dummysplitplayers.value)
-			MP_SplitServerMenu[3+i].status = IT_STRING|IT_CALL;
+			MP_SetPlayersMenu[i+1].status = IT_STRING|IT_CALL;
 		else
-			MP_SplitServerMenu[3+i].status = IT_GRAYEDOUT;
+			MP_SetPlayersMenu[i+1].status = IT_GRAYEDOUT;
 		i++;
 	}
 }
@@ -1890,7 +1893,7 @@ menu_t MP_MainDef =
 {
 	"M_MULTI",
 	sizeof (MP_MainMenu)/sizeof (menuitem_t),
-	&MainDef,
+	&MP_SetPlayersDef,
 	MP_MainMenu,
 	M_DrawMPMainMenu,
 	42, 50,
@@ -1899,7 +1902,8 @@ menu_t MP_MainDef =
 };
 menu_t MP_ServerDef = MAPICONMENUSTYLE("M_MULTI", MP_ServerMenu, &MP_MainDef);
 #endif
-menu_t MP_SplitServerDef = MAPICONMENUSTYLE("M_MULTI", MP_SplitServerMenu, &MP_MainDef);
+menu_t MP_OfflineServerDef = MAPICONMENUSTYLE("M_MULTI", MP_OfflineServerMenu, &MP_MainDef);
+menu_t MP_SetPlayersDef = MAPICONMENUSTYLE("M_MULTI", MP_SetPlayersMenu, &MainDef);
 #ifndef NONET
 menu_t MP_ConnectDef =
 {
@@ -7390,17 +7394,17 @@ static INT32 M_FindFirstMap(INT32 gtype)
 
 static void M_StartServer(INT32 choice)
 {
-	UINT8 ssplayers = 0;
+	UINT8 ssplayers =
+#ifdef NOFOURPLAYER
+		1;
+#else
+		cv_dummysplitplayers.value-1;
+#endif
 
 	(void)choice;
 
-	if (currentMenu == &MP_SplitServerDef)
-		ssplayers =
-#ifdef NOFOURPLAYER
-			1;
-#else
-			cv_dummysplitplayers.value-1;
-#endif
+	if (currentMenu == &MP_OfflineServerDef)
+		netgame = false;
 	else
 		netgame = true;
 
@@ -7417,24 +7421,22 @@ static void M_StartServer(INT32 choice)
 	if (!cv_nextmap.value)
 		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, false, 0, false)+1);
 
-	if (ssplayers < 1)
+	if (splitscreen != ssplayers)
 	{
-		splitscreen = 3; SplitScreen_OnChange(); // TEMPORARY TESTING MEASURE
-		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
-		COM_BufAddText("dummyconsvar 1\n");
+		splitscreen = ssplayers;
+		SplitScreen_OnChange();
 	}
-	else // split screen
+
+	if (currentMenu == &MP_OfflineServerDef) // offline server
 	{
 		paused = false;
 		SV_StartSinglePlayerServer();
-
-		if (splitscreen != ssplayers)
-		{
-			splitscreen = ssplayers;
-			SplitScreen_OnChange();
-		}
-
 		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
+	}
+	else
+	{
+		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
+		COM_BufAddText("dummyconsvar 1\n");
 	}
 
 	M_ClearMenus(true);
@@ -7571,7 +7573,8 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 
 static void M_DrawServerMenu(void)
 {
-	M_DrawLevelSelectOnly((currentMenu == &MP_SplitServerDef), false);
+	if (currentMenu != &MP_SetPlayersDef)
+		M_DrawLevelSelectOnly(false, false);
 	M_DrawGenericMenu();
 
 #ifndef NONET
@@ -7581,7 +7584,7 @@ static void M_DrawServerMenu(void)
 #define mp_server_room 1
 		if (ms_RoomId < 0)
 			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         highlightflags, (itemOn == mp_server_room) ? "<Select to change>" : "<Offline Mode>");
+			                         highlightflags, (itemOn == mp_server_room) ? "<Select to change>" : "<LAN Mode>");
 		else
 			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
 			                         highlightflags, room_list[menuRoomIndex].name);
@@ -7589,7 +7592,7 @@ static void M_DrawServerMenu(void)
 	}
 	else
 #endif
-	if (currentMenu == &MP_SplitServerDef)
+	if (currentMenu == &MP_SetPlayersDef)
 	// character bar, ripped off the color bar :V
 	{
 #define iconwidth 32
@@ -7664,12 +7667,12 @@ static void M_MapChange(INT32 choice)
 	M_SetupNextMenu(&MISC_ChangeLevelDef);
 }
 
-static void M_StartSplitServerMenu(INT32 choice)
+static void M_StartOfflineServerMenu(INT32 choice)
 {
 	(void)choice;
 	levellistmode = LLM_CREATESERVER;
 	M_PrepareLevelSelect();
-	M_SetupNextMenu(&MP_SplitServerDef);
+	M_SetupNextMenu(&MP_OfflineServerDef);
 }
 
 #ifndef NONET
