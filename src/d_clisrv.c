@@ -2377,7 +2377,7 @@ static void Command_connect(void)
 			CONS_Alert(CONS_ERROR, M_GetText("There is no network driver\n"));
 	}
 
-	splitscreen = 0;
+	splitscreen = 3; // TEMPORARY TESTING MEASURE
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;
