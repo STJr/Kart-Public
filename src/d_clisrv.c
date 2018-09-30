@@ -3485,7 +3485,6 @@ static void HandleConnect(SINT8 node)
 			{
 				G_SetGamestate(backupstate);
 				/// \note Shouldn't SV_SendRefuse be called before ResetNode?
-				ResetNode(node);
 				SV_SendRefuse(node, M_GetText("Server couldn't send info, please try again"));
 				ResetNode(node); // Yeah, lets try it!
 				/// \todo fix this !!!
