@@ -4113,7 +4113,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& (player->kartstuff[k_driftcharge] >= dsone && player->kartstuff[k_driftcharge] < dstwo)
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 20;
+		if (player->kartstuff[k_driftboost] < 20)
+			player->kartstuff[k_driftboost] = 20;
 		S_StartSound(player->mo, sfx_s23c);
 		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
@@ -4123,7 +4124,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] < dsthree
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 50;
+		if (player->kartstuff[k_driftboost] < 50)
+			player->kartstuff[k_driftboost] = 50;
 		S_StartSound(player->mo, sfx_s23c);
 		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
@@ -4133,7 +4135,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= dsthree
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 125;
+		if (player->kartstuff[k_driftboost] < 125)
+			player->kartstuff[k_driftboost] = 125;
 		S_StartSound(player->mo, sfx_s23c);
 		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
