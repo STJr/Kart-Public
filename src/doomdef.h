@@ -140,7 +140,7 @@
 extern FILE *logstream;
 #endif
 
-#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+//#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
 #define VERSION    0 // Game version
 #define SUBVERSION 0 // more precise version number
@@ -162,7 +162,7 @@ extern FILE *logstream;
 //#define USE_PATCH_DTA
 
 // Kart has it's own, as well.
-#define USE_PATCH_KART
+//#define USE_PATCH_KART
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
@@ -211,7 +211,8 @@ extern FILE *logstream;
 // The Modification ID; must be obtained from Rob ( https://mb.srb2.org/private.php?do=newpm&u=546 ).
 // DO NOT try to set this otherwise, or your modification will be unplayable through the Master Server.
 // "12" is the default mod ID for version 2.1
-#define MODID 12
+// "17" is the 2.1 Kart's mod ID
+#define MODID 17
 
 // The Modification Version, starting from 1. Do not follow your version string for this,
 // it's only for detection of the version the player is using so the MS can alert them of an update.
