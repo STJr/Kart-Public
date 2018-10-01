@@ -2916,7 +2916,9 @@ boolean P_SetupLevel(boolean skipprecip)
 	}
 	else if (G_RaceGametype() && server)
 		CV_StealthSetValue(&cv_numlaps,
-			((netgame || multiplayer) && cv_basenumlaps.value)
+			((netgame || multiplayer) && cv_basenumlaps.value
+				&& (!(mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
+					|| (mapheaderinfo[gamemap - 1]->numlaps > cv_basenumlaps.value)))
 			? cv_basenumlaps.value
 			: mapheaderinfo[gamemap - 1]->numlaps);
 
