@@ -3016,7 +3016,7 @@ static void K_DoShrink(player_t *player)
 	}
 }
 
-static void K_DoSPB(player_t *victim, player_t *source)
+static void K_DoSPB(player_t *victim)
 {
 	//INT32 i;
 	S_StartSound(victim->mo, sfx_bkpoof); // Sound the BANG!
@@ -3027,8 +3027,25 @@ static void K_DoSPB(player_t *victim, player_t *source)
 			P_FlashPal(&players[i], PAL_NUKE, 10);
 	}*/
 
-	if (victim->mo && !victim->spectator)
-		P_DamageMobj(victim->mo, source->mo, source->mo, 65);
+	if (!victim->mo || !victim->mo->health || victim->spectator)
+		return;
+
+	{
+		mobj_t *spbexplode;
+
+		if (!victim->kartstuff[k_invincibilitytimer] && !victim->kartstuff[k_growshrinktimer])
+		{
+			K_DropHnextList(victim);
+			K_StripItems(victim);
+		}
+
+		victim->powers[pw_flashing] = 0;
+
+		spbexplode = P_SpawnMobj(victim->mo->x, victim->mo->y, victim->mo->z, MT_BLUEEXPLOSION);
+
+		if (playeringame[spbplayer] && !players[spbplayer].spectator && players[spbplayer].mo)
+			P_SetTarget(&spbexplode->target, players[spbplayer].mo);
+	}
 }
 
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
@@ -3820,7 +3837,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_deathsentence])
 	{
 		if (player->kartstuff[k_deathsentence] == 1)
-			K_DoSPB(player, &players[spbplayer]);
+			K_DoSPB(player);
 		player->kartstuff[k_deathsentence]--;
 	}
 
