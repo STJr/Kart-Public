@@ -523,7 +523,7 @@ static const char *credits[] = {
 	"\"VirtAnderson\"",
 	"",
 	"\1Special Thanks",
-	"Sonic Team Jr. & SRB2",
+	"Sonic Team Jr. & SRB2 (www.srb2.org)",
 	"Bandit \"Bobby\" Cochenour", // i <3 my dog
 	"Bear", // i <3 MY dog too
 	"\"Chrispy\"",
