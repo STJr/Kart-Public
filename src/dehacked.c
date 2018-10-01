@@ -6704,6 +6704,54 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_KARMAWHEEL", // Karma player wheels
 
+	// Thunder shield use stuff;
+	"S_KSPARK1",	// Sparkling Radius
+	"S_KSPARK2",
+	"S_KSPARK3",
+	"S_KSPARK4",
+	"S_KSPARK5",
+	"S_KSPARK6",
+	"S_KSPARK7",
+	"S_KSPARK8",
+	"S_KSPARK9",
+	"S_KSPARK10",
+	"S_KSPARK11",
+	"S_KSPARK12",
+	"S_KSPARK13",	// ... that's an awful lot.
+
+	"S_LZIO11",	// Straight lightning bolt
+	"S_LZIO12",
+	"S_LZIO13",
+	"S_LZIO14",
+	"S_LZIO15",
+	"S_LZIO16",
+	"S_LZIO17",
+	"S_LZIO18",
+	"S_LZIO19",
+
+	"S_LZIO21",	// Straight lightning bolt (flipped)
+	"S_LZIO22",
+	"S_LZIO23",
+	"S_LZIO24",
+	"S_LZIO25",
+	"S_LZIO26",
+	"S_LZIO27",
+	"S_LZIO28",
+	"S_LZIO29",
+
+	"S_KLIT1",	// Diagonal lightning. No, it not being straight doesn't make it gay.
+	"S_KLIT2",
+	"S_KLIT3",
+	"S_KLIT4",
+	"S_KLIT5",
+	"S_KLIT6",
+	"S_KLIT7",
+	"S_KLIT8",
+	"S_KLIT9",
+	"S_KLIT10",
+	"S_KLIT11",
+	"S_KLIT12",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
