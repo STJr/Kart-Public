@@ -8188,7 +8188,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		|| (leveltime < introtime)); // Kart intro cam
 #endif
 
-	if (!(player->climbing || (player->pflags & PF_NIGHTSMODE) || player->playerstate == PST_DEAD))
+	if (!(player->playerstate == PST_DEAD || player->exiting))
 	{
 		if (player->spectator) // force cam off for spectators
 			return true;
