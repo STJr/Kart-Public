@@ -3132,7 +3132,7 @@ boolean G_GametypeHasSpectators(void)
 #if 0
 	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
 #else
-	return (multiplayer && !netgame); //true
+	return (netgame); //true
 #endif
 }
 
