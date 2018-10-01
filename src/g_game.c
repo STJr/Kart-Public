@@ -340,7 +340,7 @@ void SendWeaponPref2(void);
 void SendWeaponPref3(void);
 void SendWeaponPref4(void);
 
-static CV_PossibleValue_t crosshair_cons_t[] = {{0, "Off"}, {1, "Cross"}, {2, "Angle"}, {3, "Point"}, {0, NULL}};
+//static CV_PossibleValue_t crosshair_cons_t[] = {{0, "Off"}, {1, "Cross"}, {2, "Angle"}, {3, "Point"}, {0, NULL}};
 static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 #ifdef _WII
 {1, "LStick.X"}, {2, "LStick.Y"}, {-1, "LStick.X-"}, {-2, "LStick.Y-"},

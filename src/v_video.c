@@ -820,6 +820,10 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 			else if (!(c & V_SNAPTOTOP))
 				y += (vid.height - (BASEVIDHEIGHT * dupy)) / 2;
 		}
+		if (c & V_SPLITSCREEN)
+			y += (BASEVIDHEIGHT * dupy)/2;
+		if (c & V_HORZSCREEN)
+			x += (BASEVIDWIDTH * dupx)/2;
 	}
 
 	if (x >= vid.width || y >= vid.height)
@@ -901,6 +905,10 @@ void V_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 c)
 			else if (!(c & V_SNAPTOTOP))
 				y += (vid.height - (BASEVIDHEIGHT * dupy)) / 2;
 		}
+		if (c & V_SPLITSCREEN)
+			y += (BASEVIDHEIGHT * dupy)/2;
+		if (c & V_HORZSCREEN)
+			x += (BASEVIDWIDTH * dupx)/2;
 	}
 
 	if (x >= vid.width || y >= vid.height)
