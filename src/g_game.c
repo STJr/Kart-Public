@@ -2282,28 +2282,11 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	{
 		if (legitimateexit && !demoplayback && !mapreset) // (yes you're allowed to unlock stuff this way when the game is modified)
 		{
-			UINT8 i = 0;
-
-			if (netgame)
+			matchesplayed++;
+			if (M_UpdateUnlockablesAndExtraEmblems(true))
 			{
-				// check to see if there's anyone else at all
-				for (; i < MAXPLAYERS; i++)
-				{
-					if (i == consoleplayer)
-						continue;
-					if (playeringame[i] && !stplyr->spectator)
-						break;
-				}
-			}
-
-			if (i != MAXPLAYERS) // Not FREE PLAY
-			{
-				matchesplayed++;
-				if (M_UpdateUnlockablesAndExtraEmblems(true))
-				{
-					S_StartSound(NULL, sfx_ncitem);
-					G_SaveGameData(true); // only save if unlocked something
-				}
+				S_StartSound(NULL, sfx_ncitem);
+				G_SaveGameData(true); // only save if unlocked something
 			}
 		}
 
