@@ -1826,11 +1826,25 @@ boolean G_Responder(event_t *ev)
 				if (displayplayer == MAXPLAYERS)
 					displayplayer = 0;
 
+				if (displayplayer == consoleplayer)
+					break; // End loop
+
 				if (!playeringame[displayplayer])
 					continue;
 
 				if (players[displayplayer].spectator)
 					continue;
+
+				// SRB2Kart: Only go through players who are actually playing
+				if (players[displayplayer].exiting)
+					continue;
+
+				// I don't know if we want this actually, but I'll humor the suggestion anyway
+				if (G_BattleGametype())
+				{
+					if (players[displayplayer].kartstuff[k_bumper] <= 0)
+						continue;
+				}
 
 				// SRB2Kart: we have no team-based modes, YET...
 				/*if (G_GametypeHasTeams())
@@ -1857,19 +1871,8 @@ boolean G_Responder(event_t *ev)
 						continue;
 				}*/
 
-				// SRB2Kart: Only go through players who are actually playing
-				if (players[displayplayer].exiting)
-					continue;
-
-				// I don't know if we want this actually, but I'll humor the suggestion anyway
-				if (G_BattleGametype())
-				{
-					if (players[displayplayer].kartstuff[k_bumper] <= 0)
-						continue;
-				}
-
 				break;
-			} while (displayplayer != consoleplayer);
+			}
 
 			// change statusbar also if playing back demo
 			if (singledemo)

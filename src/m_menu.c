@@ -8588,11 +8588,11 @@ static void M_DrawControl(void)
     // draw title (or big pic)
     M_DrawMenuTitle();
 
-    M_CentreText(30,
-		(setupcontrols_fourthplayer ? "Set controls for Player 4" :
-		(setupcontrols_thirdplayer ? "Set controls for Player 3" :
-        (setupcontrols_secondaryplayer ? "Set controls for Player 2" :
-                                          "Press ENTER to change, BACKSPACE to clear"))));
+    M_CentreText(28,
+		(setupcontrols_fourthplayer ? "\x86""Set controls for ""\x82""Player 4" :
+		(setupcontrols_thirdplayer ? "\x86""Set controls for ""\x82""Player 3" :
+        (setupcontrols_secondaryplayer ? "\x86""Set controls for ""\x82""Player 2" :
+                                          "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
 
     if (i)
         V_DrawString(currentMenu->x - 16, y-(skullAnimCounter/5), highlightflags, "\x1A"); // up arrow
