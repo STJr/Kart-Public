@@ -2226,22 +2226,13 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 		if (G_RaceGametype())
 		{
-#define timestring(time) va("%i:%02i.%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
+#define timestring(time) va("%i'%02i\"%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
 			if (players[tab[i].num].exiting)
-			{
-				V_DrawRightAlignedString(x, y-4, hilicol, "FIN");
 				V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
-			}
 			else if (players[tab[i].num].pflags & PF_TIMEOVER)
-				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "TIME OVER...");
+				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "NO CONTEST.");
 			else if (circuitmap)
-			{
-				V_DrawRightAlignedString(x, y-4, 0, "Lap");
-				V_DrawRightAlignedString(x, y+4, 0, va("%d", tab[i].count));
-				V_DrawRightAlignedString(x+rightoffset, y, 0, timestring(players[tab[i].num].starposttime));
-			}
-			else
-				V_DrawRightAlignedString(x+rightoffset, y, 0, timestring(tab[i].count));
+				V_DrawRightAlignedString(x+rightoffset, y, 0, va("Lap %d", tab[i].count));
 #undef timestring
 		}
 		else
