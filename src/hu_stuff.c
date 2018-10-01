@@ -721,7 +721,20 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		{	
 			cstart = "\x86";    // grey name
 			textcolor = "\x86";
-		}	
+		}
+		else if (target == -1)	// say team
+		{
+			if (players[playernum].ctfteam == 1) // red
+			{
+				cstart = "\x85";
+				textcolor = "\x85";
+			}	
+			else // blue
+			{
+				cstart = "\x84";
+				textcolor = "\x84";
+			}	
+		}
 		else
         {
 			const UINT8 color = players[playernum].skincolor;
@@ -783,13 +796,8 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		// '\4' makes the message yellow and beeps; '\3' just beeps.
 		if (action)
 		{
-			fmt = "\3* %s%s%s%s \x82%s\n";	// don't make /me yellow, yellow will be for mentions and PMs!
-			fmt2 = "* %s%s%s%s \x82%s";
-		}
-		else if (target == 0) // To everyone
-		{
-			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
-			fmt2 = "%s<%s%s%s>\x80 %s%s";
+			fmt = "\3* %s%s%s%s \x82%s%s\n";	// don't make /me yellow, yellow will be for mentions and PMs!
+			fmt2 = "* %s%s%s%s \x82%s%s";
 		}
 		else if (target-1 == consoleplayer) // To you
 		{
@@ -809,7 +817,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			fmt2 = "%s<%s%s>%s\x80 %s%s";
 
 		}
-		else // To your team
+		else // To everyone or sayteam, it doesn't change anything.
+		{
+			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
+			fmt2 = "%s<%s%s%s>\x80 %s%s";
+		}
+		/*else // To your team
 		{
 			if (players[playernum].ctfteam == 1) // red
 				prefix = "\x85[TEAM]";
@@ -820,8 +833,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 			fmt = "\3%s<%s%s>\x80%s %s%s\n";
 			fmt2 = "%s<%s%s>\x80%s %s%s";
-
-		}
+		}*/
 
 		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
 
@@ -1070,7 +1082,8 @@ boolean HU_Responder(event_t *ev)
 				return false;
 			chat_on = true;
 			w_chat[0] = 0;
-			teamtalk = true;
+			teamtalk = false;	// CHANGE THIS TO TRUE TO MAKE SAYTEAM WORK AGAIN
+			//teamtalk = true;
 			chat_scrollmedown = true;
 			return true;
 		}
@@ -1955,10 +1968,13 @@ void HU_Drawer(void)
 	}
 	else
 	{
+		if (netgame)			// Don't draw it outside, I know it leads to stupid stuff.
+		{
 		chat_scrolltime = 0;	// do scroll anyway.
 		typelines = 1;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
 		if (!OLDCHAT)
 			HU_drawMiniChat();		// draw messages in a cool fashion.
+		}
 	}
 
 	if (netgame)	// would handle that in hu_drawminichat, but it's actually kinda awkward when you're typing a lot of messages. (only handle that in netgames duh)
