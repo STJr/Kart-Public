@@ -3037,9 +3037,9 @@ static void K_DoSPB(player_t *victim)
 		{
 			K_DropHnextList(victim);
 			K_StripItems(victim);
-		}
 
-		victim->powers[pw_flashing] = 0;
+			victim->powers[pw_flashing] = 0;
+		}
 
 		spbexplode = P_SpawnMobj(victim->mo->x, victim->mo->y, victim->mo->z, MT_BLUEEXPLOSION);
 
