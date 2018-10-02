@@ -2109,16 +2109,20 @@ void D_SetupVote(void)
 
 void D_ModifyClientVote(SINT8 voted, UINT8 splitplayer)
 {
-	char buf[1];
+	char buf[2];
 	char *p = buf;
+	UINT8 player = consoleplayer;
 
-	if (splitplayer > 0) // Don't actually send anything for splitscreen
-		votes[splitplayer] = voted;
-	else
-	{
-		WRITESINT8(p, voted);
-		SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
-	}
+	if (splitplayer == 1)
+		player = secondarydisplayplayer;
+	else if (splitplayer == 2)
+		player = thirddisplayplayer;
+	else if (splitplayer == 3)
+		player = fourthdisplayplayer;
+
+	WRITESINT8(p, voted);
+	WRITEUINT8(p, player);
+	SendNetXCmd(XD_MODIFYVOTE, &buf, 2);
 }
 
 void D_PickVote(void)
@@ -4722,7 +4726,10 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum)
 {
 	SINT8 voted = READSINT8(*cp);
-	votes[playernum] = voted;
+	UINT8 p = READUINT8(*cp);
+
+	(void)playernum;
+	votes[p] = voted;
 }
 
 static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
