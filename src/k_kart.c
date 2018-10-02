@@ -904,7 +904,35 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+	{
+#define PLAYROULETTESND S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+		if (splitscreen)
+		{
+			if (players[displayplayer].kartstuff[k_itemroulette])
+			{
+				if (player == &players[displayplayer])
+					PLAYROULETTESND;
+			}
+			else if (players[secondarydisplayplayer].kartstuff[k_itemroulette])
+			{
+				if (player == &players[secondarydisplayplayer])
+					PLAYROULETTESND;
+			}
+			else if (players[thirddisplayplayer].kartstuff[k_itemroulette])
+			{
+				if (player == &players[thirddisplayplayer])
+					PLAYROULETTESND;
+			}
+			else if (players[fourthdisplayplayer].kartstuff[k_itemroulette])
+			{
+				if (player == &players[fourthdisplayplayer])
+					PLAYROULETTESND;
+			}
+		}
+		else
+			PLAYROULETTESND;
+#undef PLAYROULETTESND
+	}
 
 	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
 
