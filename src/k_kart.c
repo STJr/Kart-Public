@@ -7116,7 +7116,10 @@ static void K_drawInput(void)
 	}
 
 	if (pn < 0)
+	{
 		splitflags |= V_FLIP; // right turn
+		x--;
+	}
 
 	target = abs(pn);
 	if (target > 4)
