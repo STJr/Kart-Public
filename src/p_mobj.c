@@ -10091,6 +10091,8 @@ void P_SpawnPlayer(INT32 playernum)
 			continue;
 		if (!playeringame[i] || players[i].spectator)
 			continue;
+		if (players[i].jointime <= 1) // Prevent splitscreen hosters/joiners from only adding 1 player at a time in empty servers
+			continue;
 		pcount++;
 	}
 
