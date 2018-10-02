@@ -7319,7 +7319,7 @@ void K_drawKartHUD(void)
 		K_drawKartMinimap();
 
 	// Draw full screen stuff that turns off the rest of the HUD
-	if (mapreset)
+	if (mapreset && stplyr == &players[displayplayer])
 	{
 		K_drawChallengerScreen();
 		return;
