@@ -918,12 +918,12 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 				if (player == &players[secondarydisplayplayer])
 					PLAYROULETTESND;
 			}
-			else if (players[thirddisplayplayer].kartstuff[k_itemroulette])
+			else if (players[thirddisplayplayer].kartstuff[k_itemroulette] && splitscreen > 1)
 			{
 				if (player == &players[thirddisplayplayer])
 					PLAYROULETTESND;
 			}
-			else if (players[fourthdisplayplayer].kartstuff[k_itemroulette])
+			else if (players[fourthdisplayplayer].kartstuff[k_itemroulette] && splitscreen > 2)
 			{
 				if (player == &players[fourthdisplayplayer])
 					PLAYROULETTESND;
