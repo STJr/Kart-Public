@@ -435,7 +435,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 	numwords = COM_Argc() - usedargs;
 	I_Assert(numwords > 0);
 
-	if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))	// TODO: Per Player mute.
+	if (CHAT_MUTE)	// TODO: Per Player mute.
 	{
 		HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"));
 		return;
@@ -962,7 +962,7 @@ static void HU_queueChatChar(INT32 c)
 		c_input = 0;
 
 		// last minute mute check
-		if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
+		if (CHAT_MUTE)
 		{
 			HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"));
 			return;
@@ -1055,20 +1055,20 @@ static boolean justscrolledup;
 boolean HU_Responder(event_t *ev)
 {
 	INT32 c=0;
-
+	
 	if (ev->type != ev_keydown)
 		return false;
 
 	// only KeyDown events now...
-
+	
 	if (!chat_on)
 	{
 		// enter chat mode
 		if ((ev->data1 == gamecontrol[gc_talkkey][0] || ev->data1 == gamecontrol[gc_talkkey][1])
-			&& netgame && (!cv_mute.value || server || (IsPlayerAdmin(consoleplayer))))
+			&& netgame && !OLD_MUTE)	// check for old chat mute, still let the players open the chat incase they want to scroll otherwise.
 		{
-			if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
-				return false;
+			//if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
+			//	return false;
 			chat_on = true;
 			w_chat[0] = 0;
 			teamtalk = false;
@@ -1076,10 +1076,10 @@ boolean HU_Responder(event_t *ev)
 			return true;
 		}
 		if ((ev->data1 == gamecontrol[gc_teamkey][0] || ev->data1 == gamecontrol[gc_teamkey][1])
-			&& netgame && (!cv_mute.value || server || (IsPlayerAdmin(consoleplayer))))
+			&& netgame && !OLD_MUTE)
 		{
-			if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
-				return false;
+			//if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
+			//	return false;
 			chat_on = true;
 			w_chat[0] = 0;
 			teamtalk = false;	// CHANGE THIS TO TRUE TO MAKE SAYTEAM WORK AGAIN
@@ -1090,7 +1090,7 @@ boolean HU_Responder(event_t *ev)
 	}
 	else // if chat_on
 	{
-
+		
 		// Ignore modifier keys
 		// Note that we do this here so users can still set
 		// their chat keys to one of these, if they so desire.
@@ -1118,7 +1118,7 @@ boolean HU_Responder(event_t *ev)
 		// TODO: make chat behave like the console, so that we can go back and edit stuff when we fuck up.
 
 		// pasting. pasting is cool. chat is a bit limited, though :(
-		if ((c == 'v' || c == 'V') && ctrldown)
+		if (((c == 'v' || c == 'V') && ctrldown) && !CHAT_MUTE)
 		{
 			const char *paste = I_ClipboardPaste();
 
@@ -1158,7 +1158,7 @@ boolean HU_Responder(event_t *ev)
 			}
 		}
 
-		if (HU_keyInChatString(w_chat,c))
+		if (!CHAT_MUTE && HU_keyInChatString(w_chat,c))
 		{
 			HU_queueChatChar(c);
 		}
@@ -1173,21 +1173,21 @@ boolean HU_Responder(event_t *ev)
 			chat_on = false;
 			c_input = 0;			// reset input cursor
 		}
-		else if ((c == KEY_UPARROW || c == KEY_MOUSEWHEELUP) && chat_scroll > 0)	// CHAT SCROLLING YAYS!
+		else if ((c == KEY_UPARROW || c == KEY_MOUSEWHEELUP) && chat_scroll > 0 && !OLDCHAT)	// CHAT SCROLLING YAYS!
 		{
 			chat_scroll--;
 			justscrolledup = true;
 			chat_scrolltime = 4;
 		}
-		else if ((c == KEY_DOWNARROW || c == KEY_MOUSEWHEELDOWN) && chat_scroll < chat_maxscroll && chat_maxscroll > 0)
+		else if ((c == KEY_DOWNARROW || c == KEY_MOUSEWHEELDOWN) && chat_scroll < chat_maxscroll && chat_maxscroll > 0 && !OLDCHAT)
 		{
 			chat_scroll++;
 			justscrolleddown = true;
 			chat_scrolltime = 4;
 		}
-		else if (c == KEY_LEFTARROW && c_input != 0)	// i said go back
+		else if (c == KEY_LEFTARROW && c_input != 0 && !OLDCHAT)	// i said go back
 			c_input--;
-		else if (c == KEY_RIGHTARROW && c_input < strlen(w_chat))
+		else if (c == KEY_RIGHTARROW && c_input < strlen(w_chat) && !OLDCHAT)	// don't need to check for admin or w/e here since the chat won't ever contain anything if it's muted.
 			c_input++;
 		return true;
 	}
@@ -1498,8 +1498,10 @@ static void HU_DrawChat(void)
 	INT32 charwidth = 4, charheight = 6;
 	INT32 t = 0, c = 0, y = chaty - (typelines*charheight)  - (cv_kartspeedometer.value ? 16 : 0);
 	UINT32 i = 0, saylen = strlen(w_chat);	// You learn new things everyday!
+	INT32 cflag = 0;
 	const char *ntalk = "Say: ", *ttalk = "Team: ";
 	const char *talk = ntalk;
+	const char *mute = "Chat has been muted.";
 
 	if (teamtalk)
 	{
@@ -1511,7 +1513,14 @@ static void HU_DrawChat(void)
 			t = 0x400; // Blue
 #endif
 	}
-
+	
+	if (CHAT_MUTE)
+	{
+		talk = mute;
+		typelines = 1;
+		cflag = V_GRAYMAP;	// set text in gray if chat is muted.
+	}	
+	
 	V_DrawFillConsoleMap(chatx, y-1, cv_chatwidth.value, (typelines*charheight), 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);
 	
 	while (talk[i])
@@ -1519,11 +1528,21 @@ static void HU_DrawChat(void)
 		if (talk[i] < HU_FONTSTART)
 			++i;
 		else
-			V_DrawChatCharacter(chatx + c + 2, y, talk[i++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT, !cv_allcaps.value, NULL);
+		{	
+			V_DrawChatCharacter(chatx + c + 2, y, talk[i] |V_SNAPTOBOTTOM|V_SNAPTOLEFT|cflag, !cv_allcaps.value, V_GetStringColormap(talk[i]|cflag));
+			i++;
+		}	
 
 		c += charwidth;
 	}
-
+	
+	// if chat is muted, just draw the log and get it over with:
+	if (CHAT_MUTE)
+	{	
+		HU_drawChatLog(0);
+		return;
+	}	
+	
 	i = 0;
 	typelines = 1;
 
