@@ -168,6 +168,7 @@ void A_JawzChase(); // SRB2kart
 void A_JawzExplode(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
+void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -644,8 +645,15 @@ typedef enum sprite
 	SPR_PBOM, // player bomb
 	SPR_RETI, // player reticule
 
-	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
+	SPR_AIDU,
 
+	SPR_KSPK, // Spark radius for the lightning shield
+	SPR_LZI1, // Lightning that falls on the player for lightning shield
+	SPR_LZI2, // ditto
+	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
+
+	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
+	
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
 	NUMSPRITES
@@ -3051,6 +3059,8 @@ typedef enum state
 	S_RANDOMITEMPOP4,
 	//}
 
+	S_ITEMICON,
+
 	// Signpost sparkles
 	S_SIGNSPARK1,
 	S_SIGNSPARK2,
@@ -3115,6 +3125,9 @@ typedef enum state
 	S_KARTFIRE6,
 	S_KARTFIRE7,
 	S_KARTFIRE8,
+
+	// Angel Island Drift Strat Dust (what a mouthful!)
+	S_KARTAIZDRIFTSTRAT,
 
 	// Invincibility Sparks
 	S_KARTINVULN_SMALL1,
@@ -3364,16 +3377,11 @@ typedef enum state
 
 	// Audience Members
 	S_RANDOMAUDIENCE,
-	S_AUDIENCE_TOAD1,
-	S_AUDIENCE_TOAD2,
-	S_AUDIENCE_BOO1,
-	S_AUDIENCE_BOO2,
-	S_AUDIENCE_GMBA1,
-	S_AUDIENCE_GMBA2,
-	S_AUDIENCE_SHYG1,
-	S_AUDIENCE_SHYG2,
-	S_AUDIENCE_SNIF1,
-	S_AUDIENCE_SNIF2,
+	S_AUDIENCE_CHAO_CHEER1,
+	S_AUDIENCE_CHAO_CHEER2,
+	S_AUDIENCE_CHAO_WIN1,
+	S_AUDIENCE_CHAO_WIN2,
+	S_AUDIENCE_CHAO_LOSE,
 
 	S_FANCHAR_KOTE,
 	S_FANCHAR_RYAN,
@@ -3548,6 +3556,54 @@ typedef enum state
 	S_PLAYERITEM,
 
 	S_KARMAWHEEL,
+	
+	// Thunder shield use stuff;
+	S_KSPARK1,	// Sparkling Radius
+	S_KSPARK2,
+	S_KSPARK3,
+	S_KSPARK4,
+	S_KSPARK5,
+	S_KSPARK6,
+	S_KSPARK7,
+	S_KSPARK8,
+	S_KSPARK9,
+	S_KSPARK10,
+	S_KSPARK11,
+	S_KSPARK12,
+	S_KSPARK13,	// ... that's an awful lot.
+
+	S_LZIO11,	// Straight lightning bolt
+	S_LZIO12,
+	S_LZIO13,
+	S_LZIO14,
+	S_LZIO15,
+	S_LZIO16,
+	S_LZIO17,
+	S_LZIO18,
+	S_LZIO19,
+
+	S_LZIO21,	// Straight lightning bolt (flipped)
+	S_LZIO22,
+	S_LZIO23,
+	S_LZIO24,
+	S_LZIO25,
+	S_LZIO26,
+	S_LZIO27,
+	S_LZIO28,
+	S_LZIO29,
+
+	S_KLIT1,	// Diagonal lightning. No, it not being straight doesn't make it gay.
+	S_KLIT2,
+	S_KLIT3,
+	S_KLIT4,
+	S_KLIT5,
+	S_KLIT6,
+	S_KLIT7,
+	S_KLIT8,
+	S_KLIT9,
+	S_KLIT10,
+	S_KLIT11,
+	S_KLIT12,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4082,6 +4138,8 @@ typedef enum mobj_type
 	MT_BLUEDIAG,
 	MT_RANDOMITEM,
 	MT_RANDOMITEMPOP,
+	MT_FLOATINGITEM,
+
 	MT_SIGNSPARKLE,
 
 	MT_FASTLINE,
@@ -4089,6 +4147,7 @@ typedef enum mobj_type
 	MT_BOOSTFLAME,
 	MT_BOOSTSMOKE,
 	MT_SNEAKERTRAIL,
+	MT_AIZDRIFTSTRAT,
 	MT_SPARKLETRAIL,
 	MT_INVULNFLASH,
 	MT_WIPEOUTTRAIL,

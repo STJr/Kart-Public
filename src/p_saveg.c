@@ -945,11 +945,10 @@ typedef enum
 	MD2_EXTVAL2     = 1<<6,
 	MD2_HNEXT       = 1<<7,
 	MD2_HPREV       = 1<<8,
+	MD2_COLORIZED	= 1<<9,
+	MD2_WAYPOINTCAP	= 1<<10
 #ifdef ESLOPE
-	MD2_SLOPE       = 1<<9,
-	MD2_COLORIZED	= 1<<10
-#else
-	MD2_COLORIZED	= 1<<9
+	, MD2_SLOPE       = 1<<11
 #endif
 } mobj_diff2_t;
 
@@ -1146,6 +1145,8 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 #endif
 	if (mobj->colorized)
 		diff2 |= MD2_COLORIZED;
+	if (mobj == waypointcap)
+		diff2 |= MD2_WAYPOINTCAP;
 	if (diff2 != 0)
 		diff |= MD_MORE;
 
@@ -2164,6 +2165,9 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	}
 
 	P_AddThinker(&mobj->thinker);
+
+	if (diff2 & MD2_WAYPOINTCAP)
+		P_SetTarget(&waypointcap, mobj);
 
 	mobj->info = (mobjinfo_t *)next; // temporarily, set when leave this function
 }

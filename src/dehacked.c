@@ -1830,6 +1830,7 @@ static actionpointer_t actionpointers[] =
 	{{A_JawzExplode},          "A_JAWZEXPLODE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
+	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -6205,6 +6206,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_RANDOMITEMPOP4",
 	//}
 
+	"S_ITEMICON",
+
 	// Signpost sparkles
 	"S_SIGNSPARK1",
 	"S_SIGNSPARK2",
@@ -6269,6 +6272,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARTFIRE6",
 	"S_KARTFIRE7",
 	"S_KARTFIRE8",
+
+	// Angel Island Drift Strat Dust (what a mouthful!)
+	"S_KARTAIZDRIFTSTRAT",
 
 	// Invincibility Sparks
 	"S_KARTINVULN_SMALL1",
@@ -6518,16 +6524,11 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	// Audience Members
 	"S_RANDOMAUDIENCE",
-	"S_AUDIENCE_TOAD1",
-	"S_AUDIENCE_TOAD2",
-	"S_AUDIENCE_BOO1",
-	"S_AUDIENCE_BOO2",
-	"S_AUDIENCE_GMBA1",
-	"S_AUDIENCE_GMBA2",
-	"S_AUDIENCE_SHYG1",
-	"S_AUDIENCE_SHYG2",
-	"S_AUDIENCE_SNIF1",
-	"S_AUDIENCE_SNIF2",
+	"S_AUDIENCE_CHAO_CHEER1",
+	"S_AUDIENCE_CHAO_CHEER2",
+	"S_AUDIENCE_CHAO_WIN1",
+	"S_AUDIENCE_CHAO_WIN2",
+	"S_AUDIENCE_CHAO_LOSE",
 
 	"S_FANCHAR_KOTE",
 	"S_FANCHAR_RYAN",
@@ -6702,6 +6703,54 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERITEM", // Player item overlay
 
 	"S_KARMAWHEEL", // Karma player wheels
+
+	// Thunder shield use stuff;
+	"S_KSPARK1",	// Sparkling Radius
+	"S_KSPARK2",
+	"S_KSPARK3",
+	"S_KSPARK4",
+	"S_KSPARK5",
+	"S_KSPARK6",
+	"S_KSPARK7",
+	"S_KSPARK8",
+	"S_KSPARK9",
+	"S_KSPARK10",
+	"S_KSPARK11",
+	"S_KSPARK12",
+	"S_KSPARK13",	// ... that's an awful lot.
+
+	"S_LZIO11",	// Straight lightning bolt
+	"S_LZIO12",
+	"S_LZIO13",
+	"S_LZIO14",
+	"S_LZIO15",
+	"S_LZIO16",
+	"S_LZIO17",
+	"S_LZIO18",
+	"S_LZIO19",
+
+	"S_LZIO21",	// Straight lightning bolt (flipped)
+	"S_LZIO22",
+	"S_LZIO23",
+	"S_LZIO24",
+	"S_LZIO25",
+	"S_LZIO26",
+	"S_LZIO27",
+	"S_LZIO28",
+	"S_LZIO29",
+
+	"S_KLIT1",	// Diagonal lightning. No, it not being straight doesn't make it gay.
+	"S_KLIT2",
+	"S_KLIT3",
+	"S_KLIT4",
+	"S_KLIT5",
+	"S_KLIT6",
+	"S_KLIT7",
+	"S_KLIT8",
+	"S_KLIT9",
+	"S_KLIT10",
+	"S_KLIT11",
+	"S_KLIT12",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7219,6 +7268,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BLUEDIAG",
 	"MT_RANDOMITEM",
 	"MT_RANDOMITEMPOP",
+	"MT_FLOATINGITEM",
+
 	"MT_SIGNSPARKLE",
 
 	"MT_FASTLINE",
@@ -7226,6 +7277,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
+	"MT_AIZDRIFTSTRAT",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
@@ -7706,6 +7758,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ACCELBOOST",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
+	"AIZDRIFTSTRAT",
 
 	"ITEMROULETTE",
 	"ROULETTETYPE",
