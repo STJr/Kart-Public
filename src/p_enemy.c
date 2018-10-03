@@ -3913,6 +3913,7 @@ void A_ThrownRing(mobj_t *actor)
 
 //{ SRB2kart - A_GRENADERING
 static mobj_t *grenade;
+static fixed_t explodedist;
 
 static inline boolean PIT_GrenadeRing(mobj_t *thing)
 {
@@ -3935,9 +3936,9 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 		return true;
 
 	// see if it went over / under
-	if (grenade->z - grenade->info->painchance > thing->z + thing->height)
+	if (grenade->z - explodedist > thing->z + thing->height)
 		return true; // overhead
-	if (grenade->z + grenade->height + grenade->info->painchance < thing->z)
+	if (grenade->z + grenade->height + explodedist < thing->z)
 		return true; // underneath
 
 	if (netgame && thing->player && thing->player->spectator)
@@ -3950,7 +3951,7 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	}
 
 	if (P_AproxDistance(P_AproxDistance(thing->x - grenade->x, thing->y - grenade->y),
-		thing->z - grenade->z) > grenade->info->painchance)
+		thing->z - grenade->z) > explodedist)
 		return true; // Too far away
 
 	// Explode!
@@ -3961,7 +3962,7 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 void A_GrenadeRing(mobj_t *actor)
 {
 	INT32 bx, by, xl, xh, yl, yh;
-	const fixed_t explodedist = actor->info->painchance;
+	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
 
 	if (leveltime % 35 == 0)
 		S_StartSound(actor, actor->info->activesound);
