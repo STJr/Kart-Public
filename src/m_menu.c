@@ -2798,6 +2798,7 @@ boolean M_Responder(event_t *ev)
 			{
 				// detach any keys associated with the game control
 				G_ClearControlKeys(setupcontrols, currentMenu->menuitems[itemOn].alphaKey);
+				S_StartSound(NULL, sfx_shldls);
 				return true;
 			}
 
@@ -8676,23 +8677,22 @@ static void M_ChangecontrolResponse(event_t *ev)
 				setupcontrols[control][found] = ch-KEY_4JOY1+KEY_DBL4JOY1;
 		}
 		else
-		{
-			// check if change key1 or key2, or replace the two by the new
-			found = 0;
-			if (setupcontrols[control][0] == KEY_NULL)
-				found++;
-			if (setupcontrols[control][1] == KEY_NULL)
-				found++;
-			if (found == 2)
-			{
-				found = 0;
-				setupcontrols[control][1] = KEY_NULL;  //replace key 1,clear key2
-			}
-			G_CheckDoubleUsage(ch);
-			setupcontrols[control][found] = ch;
-		}
-
+        {
+            // check if change key1 or key2, or shuffle them along in a queue
+            found = 0;
+            if (setupcontrols[control][0] != KEY_NULL)
+            {
+                found++;
+                if (setupcontrols[control][1] != KEY_NULL)
+                    setupcontrols[control][0] = setupcontrols[control][1];
+             }
+            G_CheckDoubleUsage(ch);
+            setupcontrols[control][found] = ch;
+        }
+		S_StartSound(NULL, sfx_strpst);
 	}
+	else
+		S_StartSound(NULL, sfx_skid);
 
 	M_StopMessage(0);
 }
