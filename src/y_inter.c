@@ -560,13 +560,13 @@ void Y_Ticker(void)
 
 	// Team scramble code for team match and CTF.
 	// Don't do this if we're going to automatically scramble teams next round.
-	if (G_GametypeHasTeams() && cv_teamscramble.value && !cv_scrambleonchange.value && server)
+	/*if (G_GametypeHasTeams() && cv_teamscramble.value && !cv_scrambleonchange.value && server)
 	{
 		// If we run out of time in intermission, the beauty is that
 		// the P_Ticker() team scramble code will pick it up.
 		if ((intertic % (TICRATE/7)) == 0)
 			P_DoTeamscrambling();
-	}
+	}*/
 
 	// multiplayer uses timer (based on cv_inttime)
 	if (timer)

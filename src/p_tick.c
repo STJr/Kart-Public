@@ -310,7 +310,7 @@ static inline void P_RunThinkers(void)
 //
 // Determine if the teams are unbalanced, and if so, move a player to the other team.
 //
-static void P_DoAutobalanceTeams(void)
+/*static void P_DoAutobalanceTeams(void)
 {
 	changeteam_union NetPacket;
 	UINT16 usvalue;
@@ -562,7 +562,7 @@ static inline void P_DoCTFStuff(void)
 		if (cv_teamscramble.value && server)
 			P_DoTeamscrambling();
 	}
-}
+}*/
 
 //
 // P_Ticker
@@ -612,11 +612,11 @@ void P_Ticker(boolean run)
 	if (!demoplayback) // Don't increment if a demo is playing.
 		totalplaytime++;
 
-	if (!useNightsSS && G_IsSpecialStage(gamemap))
+	/*if (!useNightsSS && G_IsSpecialStage(gamemap))
 		P_DoSpecialStageStuff();
 
 	if (runemeraldmanager)
-		P_EmeraldManager(); // Power stone mode
+		P_EmeraldManager(); // Power stone mode*/
 
 	if (run)
 	{
@@ -633,7 +633,7 @@ void P_Ticker(boolean run)
 	}
 
 	// Run shield positioning
-	P_RunShields();
+	//P_RunShields();
 	P_RunOverlays();
 
 	P_RunShadows();
@@ -648,11 +648,11 @@ void P_Ticker(boolean run)
 		leveltime++;
 	timeinmap++;
 
-	if (G_TagGametype())
+	/*if (G_TagGametype())
 		P_DoTagStuff();
 
 	if (G_GametypeHasTeams())
-		P_DoCTFStuff();
+		P_DoCTFStuff();*/
 
 	if (run)
 	{
@@ -793,7 +793,7 @@ void P_PreTicker(INT32 frames)
 #endif
 
 		// Run shield positioning
-		P_RunShields();
+		//P_RunShields();
 		P_RunOverlays();
 
 		P_UpdateSpecials();

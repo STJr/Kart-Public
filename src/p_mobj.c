@@ -495,7 +495,7 @@ boolean P_WeaponOrPanel(mobjtype_t type)
 //
 // Power Stone emerald management
 //
-void P_EmeraldManager(void)
+/*void P_EmeraldManager(void)
 {
 	thinker_t *think;
 	mobj_t *mo;
@@ -664,7 +664,7 @@ void P_EmeraldManager(void)
 			break;
 		}
 	}
-}
+}*/
 
 //
 // P_ExplodeMissile

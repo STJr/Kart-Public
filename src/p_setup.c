@@ -2865,7 +2865,6 @@ boolean P_SetupLevel(boolean skipprecip)
 				if (players[i].starposttime)
 				{
 					G_SpawnPlayer(i, true);
-					P_ClearStarPost(players[i].starpostnum);
 				}
 				else
 					G_SpawnPlayer(i, false);

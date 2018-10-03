@@ -172,7 +172,7 @@ void P_PlayerThink(player_t *player);
 void P_PlayerAfterThink(player_t *player);
 void P_DoPlayerExit(player_t *player);
 void P_DoTimeOver(player_t *player);
-void P_NightserizePlayer(player_t *player, INT32 ptime);
+//void P_NightserizePlayer(player_t *player, INT32 ptime);
 
 void P_InstaThrust(mobj_t *mo, angle_t angle, fixed_t move);
 fixed_t P_ReturnThrustX(mobj_t *mo, angle_t angle, fixed_t move);
@@ -185,12 +185,12 @@ void P_HomingAttack(mobj_t *source, mobj_t *enemy); /// \todo doesn't belong in 
 //boolean P_SuperReady(player_t *player);
 void P_DoJump(player_t *player, boolean soundandstate);
 boolean P_AnalogMove(player_t *player);
-boolean P_TransferToNextMare(player_t *player);
-UINT8 P_FindLowestMare(void);
+/*boolean P_TransferToNextMare(player_t *player);
+UINT8 P_FindLowestMare(void);*/
 UINT8 P_FindLowestLap(void);
 UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
-void P_TransferToAxis(player_t *player, INT32 axisnum);
+//void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
 void P_SpawnThokMobj(player_t *player);
 void P_SpawnSpinMobj(player_t *player, mobjtype_t type);
@@ -406,11 +406,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck);
 void P_PlayerFlagBurst(player_t *player, boolean toss);
 void P_CheckTimeLimit(void);
 void P_CheckPointLimit(void);
-void P_CheckSurvivors(void);
+//void P_CheckSurvivors(void);
 boolean P_CheckRacers(void);
-
-void P_ClearStarPost(INT32 postnum);
-void P_ResetStarposts(void);
 
 boolean P_CanPickupItem(player_t *player, UINT8 weapon);
 void P_DoNightsScore(player_t *player);
