@@ -6127,7 +6127,7 @@ static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
 	return true;
 }
 
-mobj_t *shields[MAXPLAYERS*2];
+/*mobj_t *shields[MAXPLAYERS*2];
 INT32 numshields = 0;
 
 void P_RunShields(void)
@@ -6175,7 +6175,7 @@ static boolean P_AddShield(mobj_t *thing)
 
 	P_SetTarget(&shields[numshields++], thing);
 	return true;
-}
+}*/
 
 void P_RunOverlays(void)
 {
@@ -6609,8 +6609,8 @@ void P_MobjThinker(mobj_t *mobj)
 					P_RemoveMobj(mobj);
 					return;
 				}
-				else
-					P_AddOverlay(mobj);
+
+				P_AddOverlay(mobj);
 				break;
 			case MT_SHADOW:
 				if (!mobj->target)
@@ -6618,10 +6618,10 @@ void P_MobjThinker(mobj_t *mobj)
 					P_RemoveMobj(mobj);
 					return;
 				}
-				else
-					P_AddShadow(mobj);
+
+				P_AddShadow(mobj);
 				break;
-			case MT_BLACKORB:
+			/*case MT_BLACKORB:
 			case MT_WHITEORB:
 			case MT_GREENORB:
 			case MT_YELLOWORB:
@@ -6629,7 +6629,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_PITYORB:
 				if (!P_AddShield(mobj))
 					return;
-				break;
+				break;*/
 			//{ SRB2kart mobs
 			case MT_ORBINAUT_SHIELD: // Kart orbit/trail items
 			case MT_JAWZ_SHIELD:

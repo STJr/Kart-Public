@@ -231,7 +231,7 @@ boolean P_MobjWasRemoved(mobj_t *th);
 void P_RemoveSavegameMobj(mobj_t *th);
 boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state);
 boolean P_SetMobjState(mobj_t *mobj, statenum_t state);
-void P_RunShields(void);
+//void P_RunShields(void);
 void P_RunOverlays(void);
 void P_RunShadows(void);
 void P_MobjThinker(mobj_t *mobj);
