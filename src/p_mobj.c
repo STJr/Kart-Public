@@ -6059,7 +6059,7 @@ static void P_NightsItemChase(mobj_t *thing)
 	P_Attract(thing, thing->tracer, true);
 }
 
-static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
+/*static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
 {
 	if (!thing->target || thing->target->health <= 0 || !thing->target->player
 		|| (thing->target->player->powers[pw_shield] & SH_NOSTACK) == SH_NONE || thing->target->player->powers[pw_super]
@@ -6127,7 +6127,7 @@ static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
 	return true;
 }
 
-/*mobj_t *shields[MAXPLAYERS*2];
+mobj_t *shields[MAXPLAYERS*2];
 INT32 numshields = 0;
 
 void P_RunShields(void)
