@@ -8247,12 +8247,14 @@ void A_MineExplode(mobj_t *actor)
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
+	fixed_t range;
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MineExplode", actor))
 		return;
 #endif
 
 	type = (mobjtype_t)locvar1;
+	range = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
 
 	for (th = thinkercap.next; th != &thinkercap; th = th->next)
 	{
@@ -8267,27 +8269,25 @@ void A_MineExplode(mobj_t *actor)
 		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 			continue;
 
+		if (!(mo2->flags & MF_SHOOTABLE) || (mo2->flags & MF_SCENERY))
+			continue;
+
 		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_bumper] <= 0 && mo2 == actor->target)
 			continue;
 
-		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > actor->info->painchance)
+		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > range)
 			continue;
 
-		if ((mo2->flags & MF_SHOOTABLE) && !(mo2->flags & MF_SCENERY))
-		{
-			actor->flags2 |= MF2_DEBRIS;
+		actor->flags2 |= MF2_DEBRIS;
 
-			if (mo2->player) // Looks like we're going to have to need a seperate function for this too
-				K_ExplodePlayer(mo2->player, actor->target);
-			else
-				P_DamageMobj(mo2, actor, actor->target, 1);
-
-			continue;
-		}
+		if (mo2->player) // Looks like we're going to have to need a seperate function for this too
+			K_ExplodePlayer(mo2->player, actor->target);
+		else
+			P_DamageMobj(mo2, actor, actor->target, 1);
 	}
 
 	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, actor->info->painchance + 32*FRACUNIT, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, range + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
 
 	if (actor->target && actor->target->player)
 		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
