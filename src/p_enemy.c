@@ -3918,9 +3918,18 @@ static fixed_t explodedist;
 static inline boolean PIT_GrenadeRing(mobj_t *thing)
 {
 	if (!grenade)
-		return true;
+		return false;
 
 	if (thing->type != MT_PLAYER) // Don't explode for anything but an actual player.
+		return true;
+
+	if (!(thing->flags & MF_SHOOTABLE))
+	{
+		// didn't do any damage
+		return true;
+	}
+
+	if (netgame && thing->player && thing->player->spectator)
 		return true;
 
 	if (thing == grenade->target && grenade->threshold != 0) // Don't blow up at your owner.
@@ -3941,15 +3950,6 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (grenade->z + grenade->height + explodedist < thing->z)
 		return true; // underneath
 
-	if (netgame && thing->player && thing->player->spectator)
-		return true;
-
-	if (!(thing->flags & MF_SHOOTABLE))
-	{
-		// didn't do any damage
-		return true;
-	}
-
 	if (P_AproxDistance(P_AproxDistance(thing->x - grenade->x, thing->y - grenade->y),
 		thing->z - grenade->z) > explodedist)
 		return true; // Too far away
@@ -3963,6 +3963,10 @@ void A_GrenadeRing(mobj_t *actor)
 {
 	INT32 bx, by, xl, xh, yl, yh;
 	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_GrenadeRing", actor))
+		return;
+#endif
 
 	if (leveltime % 35 == 0)
 		S_StartSound(actor, actor->info->activesound);
@@ -3978,6 +3982,80 @@ void A_GrenadeRing(mobj_t *actor)
 	for (by = yl; by <= yh; by++)
 		for (bx = xl; bx <= xh; bx++)
 			P_BlockThingsIterator(bx, by, PIT_GrenadeRing);
+}
+
+static inline boolean PIT_MineExplode(mobj_t *thing)
+{
+	if (!grenade || P_MobjWasRemoved(grenade))
+		return false; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
+
+	if (thing == grenade || thing->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
+		return true;
+
+	if (!(thing->flags & MF_SHOOTABLE) || (thing->flags & MF_SCENERY))
+		return true;
+
+	if (netgame && thing->player && thing->player->spectator)
+		return true;
+
+	if (G_BattleGametype() && grenade->target && grenade->target->player && grenade->target->player->kartstuff[k_bumper] <= 0 && thing == grenade->target)
+		return true;
+
+	// see if it went over / under
+	if (grenade->z - explodedist > thing->z + thing->height)
+		return true; // overhead
+	if (grenade->z + grenade->height + explodedist < thing->z)
+		return true; // underneath
+
+	if (P_AproxDistance(P_AproxDistance(thing->x - grenade->x, thing->y - grenade->y),
+		thing->z - grenade->z) > explodedist)
+		return true; // Too far away
+
+	grenade->flags2 |= MF2_DEBRIS;
+
+	if (thing->player) // Looks like we're going to have to need a seperate function for this too
+		K_ExplodePlayer(thing->player, grenade->target);
+	else
+		P_DamageMobj(thing, grenade, grenade->target, 1);
+
+	return true;
+}
+
+void A_MineExplode(mobj_t *actor)
+{
+	INT32 bx, by, xl, xh, yl, yh;
+	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	INT32 d;
+	INT32 locvar1 = var1;
+	mobjtype_t type;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_MineExplode", actor))
+		return;
+#endif
+
+	type = (mobjtype_t)locvar1;
+
+	// Use blockmap to check for nearby shootables
+	yh = (unsigned)(actor->y + explodedist - bmaporgy)>>MAPBLOCKSHIFT;
+	yl = (unsigned)(actor->y - explodedist - bmaporgy)>>MAPBLOCKSHIFT;
+	xh = (unsigned)(actor->x + explodedist - bmaporgx)>>MAPBLOCKSHIFT;
+	xl = (unsigned)(actor->x - explodedist - bmaporgx)>>MAPBLOCKSHIFT;
+
+	grenade = actor;
+
+	for (by = yl; by <= yh; by++)
+		for (bx = xl; bx <= xh; bx++)
+			P_BlockThingsIterator(bx, by, PIT_MineExplode);
+
+	for (d = 0; d < 16; d++)
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, explodedist + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+
+	if (actor->target && actor->target->player)
+		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
+	else
+		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+
+	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 }
 //}
 
@@ -8241,6 +8319,7 @@ void A_JawzExplode(mobj_t *actor)
 	return;
 }
 
+/* old A_MineExplode - see elsewhere in the file
 void A_MineExplode(mobj_t *actor)
 {
 	mobj_t *mo2;
@@ -8298,7 +8377,7 @@ void A_MineExplode(mobj_t *actor)
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 
 	return;
-}
+}*/
 
 void A_BallhogExplode(mobj_t *actor)
 {
