@@ -723,20 +723,6 @@ void D_SRB2Loop(void)
 		}
 		else if (rendertimeout < entertic) // in case the server hang or netsplit
 		{
-			// Lagless camera! Yay!
-			/* Not yay, it ruins Kart's drift :y
-			if (gamestate == GS_LEVEL && netgame)
-			{
-				if (camera.chase)
-					P_MoveChaseCamera(&players[displayplayer], &camera, false);
-				if (splitscreen && camera2.chase)
-					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
-				if (splitscreen > 1 && camera3.chase)
-					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
-				if (splitscreen > 2 && camera4.chase)
-					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
-			}
-			*/
 			D_Display();
 
 			if (moviemode)

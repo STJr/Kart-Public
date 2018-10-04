@@ -9546,12 +9546,6 @@ void P_PlayerAfterThink(player_t *player)
 
 	if (player->playerstate == PST_DEAD)
 	{
-		// camera may still move when guy is dead
-		//if (!netgame)
-		{
-			if (thiscam && thiscam->chase)
-				P_MoveChaseCamera(player, thiscam, false);
-		}
 		return;
 	}
 
@@ -9833,8 +9827,6 @@ void P_PlayerAfterThink(player_t *player)
 				player->viewz = player->mo->z + player->mo->height - player->viewheight;
 			else
 				player->viewz = player->mo->z + player->viewheight;
-			if (server || addedtogame)
-				P_MoveChaseCamera(player, thiscam, false); // calculate the camera movement
 		}
 	}
 
