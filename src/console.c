@@ -154,7 +154,7 @@ static CV_PossibleValue_t menuhighlight_cons_t[] =
 	{V_GOLDMAP, "Always gold"},
 	{V_LAVENDERMAP, "Always lavender"},
 	{V_TEAMAP, "Always tea-green"},
-	{V_STEELMAP, "Always steel"},
+	{V_STEELMAP, "Always steel-blue"},
 	{V_PINKMAP, "Always pink"},
 	{V_TEALMAP, "Always teal"},
 	{V_PEACHMAP, "Always peach"},
@@ -330,12 +330,12 @@ static void CON_SetupColormaps(void)
 	redmap[120]      = (UINT8)126; // battle
 	graymap[120]     =  (UINT8)10;
 	orangemap[120]   =  (UINT8)85; // record attack
-	skymap[120]      = (UINT8)214; // race
+	skymap[120]      = (UINT8)212; // race
 	lavendermap[120] = (UINT8)248;
 	goldmap[120]     = (UINT8)114;
 	teamap[120]      = (UINT8)177;
 	steelmap[120]    = (UINT8)201;
-	pinkmap[120]     = (UINT8)124;
+	pinkmap[120]     = (UINT8)144;
 	tealmap[120]     = (UINT8)220;
 	peachmap[120]    =  (UINT8)69; // nice
 
