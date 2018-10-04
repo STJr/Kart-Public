@@ -741,11 +741,11 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x8f"; // V_PEACHMAP
 			else if (color <= SKINCOLOR_BRONZE)
 				cstart = "\x8A"; // V_GOLDMAP
-			else if (color <= SKINCOLOR_MUSTARD)
+			else if (color <= SKINCOLOR_OLIVE)
 				cstart = "\x82"; // V_YELLOWMAP
 			else if (color <= SKINCOLOR_PISTACHIO)
 				cstart = "\x8b"; // V_TEAMAP
-			else if (color <= SKINCOLOR_SWAMP || color == SKINCOLOR_LIME)
+			else if (color <= SKINCOLOR_DREAM || color == SKINCOLOR_LIME)
 				cstart = "\x83"; // V_GREENMAP
 			else if (color <= SKINCOLOR_TEAL)
 				cstart = "\x8e"; // V_TEALMAP
