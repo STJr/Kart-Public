@@ -156,7 +156,7 @@ static CV_PossibleValue_t menuhighlight_cons_t[] =
 	{V_TEAMAP, "Always tea-green"},
 	{V_STEELMAP, "Always steel-blue"},
 	{V_PINKMAP, "Always pink"},
-	{V_TEALMAP, "Always teal"},
+	{V_BROWNMAP, "Always brown"},
 	{V_PEACHMAP, "Always peach"},
 	{0, NULL}
 };
@@ -291,7 +291,7 @@ static void CONS_backcolor_Change(void)
 // TODO: This could probably be improved somehow...
 // These colormaps are 99% identical, with just a few changed bytes
 UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *orangemap,\
- *skymap, *goldmap, *lavendermap, *teamap, *steelmap, *pinkmap, *tealmap, *peachmap;
+ *skymap, *goldmap, *lavendermap, *teamap, *steelmap, *pinkmap, *brownmap, *peachmap;
 
 static void CON_SetupColormaps(void)
 {
@@ -311,8 +311,8 @@ static void CON_SetupColormaps(void)
 	teamap      = (goldmap+256);
 	steelmap    = (teamap+256);
 	pinkmap     = (steelmap+256);
-	tealmap     = (pinkmap+256);
-	peachmap    = (tealmap+256);
+	brownmap    = (pinkmap+256);
+	peachmap    = (brownmap+256);
 
 	// setup the other colormaps, for console text
 
@@ -330,13 +330,13 @@ static void CON_SetupColormaps(void)
 	redmap[120]      = (UINT8)126; // battle
 	graymap[120]     =  (UINT8)10;
 	orangemap[120]   =  (UINT8)85; // record attack
-	skymap[120]      = (UINT8)212; // race
+	skymap[120]      = (UINT8)214; // race
 	lavendermap[120] = (UINT8)248;
 	goldmap[120]     = (UINT8)114;
 	teamap[120]      = (UINT8)177;
 	steelmap[120]    = (UINT8)201;
-	pinkmap[120]     = (UINT8)144;
-	tealmap[120]     = (UINT8)220;
+	pinkmap[120]     = (UINT8)145;
+	brownmap[120]    =  (UINT8)48;
 	peachmap[120]    =  (UINT8)69; // nice
 
 	// Init back colormap
