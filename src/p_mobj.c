@@ -48,6 +48,7 @@ actioncache_t actioncachehead;
 
 static mobj_t *overlaycap = NULL;
 static mobj_t *shadowcap = NULL;
+mobj_t *waypointcap = NULL;
 
 void P_InitCachedActions(void)
 {
@@ -11077,6 +11078,8 @@ ML_NOCLIMB : Direction not controllable
 	else if (i == MT_BOSS3WAYPOINT) // SRB2kart 120217 - Used to store checkpoint num
 	{
 		mobj->health = mthing->angle;
+		P_SetTarget(&mobj->tracer, waypointcap);
+		P_SetTarget(&waypointcap, mobj);
 	}
 	else if (i == MT_SPIKE)
 	{

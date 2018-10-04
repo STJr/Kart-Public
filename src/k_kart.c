@@ -4200,7 +4200,6 @@ static void K_KartUpdatePosition(player_t *player)
 	fixed_t oldposition = player->kartstuff[k_position];
 	fixed_t i, ppcd, pncd, ipcd, incd;
 	fixed_t pmo, imo;
-	thinker_t *th;
 	mobj_t *mo;
 
 	if (player->spectator || !player->mo)
@@ -4225,16 +4224,8 @@ static void K_KartUpdatePosition(player_t *player)
 				player->kartstuff[k_nextcheck] = players[i].kartstuff[k_nextcheck] = 0;
 
 				// This checks every thing on the map, and looks for MT_BOSS3WAYPOINT (the thing we're using for checkpoint wp's, for now)
-				for (th = thinkercap.next; th != &thinkercap; th = th->next)
+				for (mo = waypointcap; mo != NULL; mo = mo->tracer)
 				{
-					if (th->function.acp1 != (actionf_p1)P_MobjThinker)	// Not a mobj at all, shoo
-						continue;
-
-					mo = (mobj_t *)th;
-
-					if (mo->type != MT_BOSS3WAYPOINT) // TODO: Change to 'MT_WAYPOINT'?
-						continue;
-
 					pmo = P_AproxDistance(P_AproxDistance(	mo->x - player->mo->x,
 															mo->y - player->mo->y),
 															mo->z - player->mo->z) / FRACUNIT;
