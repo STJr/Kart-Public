@@ -8037,7 +8037,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 						|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
 						&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-						K_DoPogoSpring(mobj, 0, false);
+						K_DoPogoSpring(mobj, 0, 1);
 				}
 
 				if (mobj->threshold > 0)
@@ -8112,7 +8112,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
 				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-				K_DoPogoSpring(mobj, 0, false);
+				K_DoPogoSpring(mobj, 0, 1);
 
 			break;
 		}
@@ -8141,7 +8141,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 						|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
 						&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-						K_DoPogoSpring(mobj, 0, false);
+						K_DoPogoSpring(mobj, 0, 1);
 				}
 
 				if (mobj->threshold > 0)

@@ -7938,7 +7938,7 @@ static void P_DeathThink(player_t *player)
 	/*if (player->deadtimer > 30*TICRATE && !G_RaceGametype())
 		player->playerstate = PST_REBORN;
 	else if (player->lives > 0 && !G_IsSpecialStage(gamemap)*/
-	if (player->lives > 0 && leveltime >= starttime) // *could* you respawn?
+	if (player->lives > 0 /*&& leveltime >= starttime*/) // *could* you respawn?
 	{
 		// SRB2kart - spawn automatically after 1 second
 		if (player->deadtimer > ((netgame || multiplayer)
@@ -8211,7 +8211,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		|| (leveltime < introtime)); // Kart intro cam
 #endif
 
-	if (!(player->climbing || (player->pflags & PF_NIGHTSMODE) || player->playerstate == PST_DEAD))
+	if (!(player->playerstate == PST_DEAD || player->exiting))
 	{
 		if (player->spectator) // force cam off for spectators
 			return true;
@@ -8704,9 +8704,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		// Don't let the camera match your movement.
 		thiscam->momz = 0;
-
+		if (player->spectator)
+			thiscam->aiming = 0;
 		// Only let the camera go a little bit downwards.
-		if (!(mo->eflags & MFE_VERTICALFLIP) && thiscam->aiming < ANGLE_337h && thiscam->aiming > ANGLE_180)
+		else if (!(mo->eflags & MFE_VERTICALFLIP) && thiscam->aiming < ANGLE_337h && thiscam->aiming > ANGLE_180)
 			thiscam->aiming = ANGLE_337h;
 		else if (mo->eflags & MFE_VERTICALFLIP && thiscam->aiming > ANGLE_22h && thiscam->aiming < ANGLE_180)
 			thiscam->aiming = ANGLE_22h;
