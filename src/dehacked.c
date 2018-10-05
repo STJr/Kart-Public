@@ -1308,6 +1308,13 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				else
 					mapheaderinfo[num-1]->levelflags &= ~LF_NOZONE;
 			}
+			else if (fastcmp(word, "SECTIONRACE"))
+			{
+				if (i || word2[0] == 'T' || word2[0] == 'Y')
+					mapheaderinfo[num-1]->levelflags |= LF_SECTIONRACE;
+				else
+					mapheaderinfo[num-1]->levelflags &= ~LF_SECTIONRACE;
+			}
 
 			// Individual triggers for menu flags
 			else if (fastcmp(word, "HIDDEN"))
@@ -7943,6 +7950,7 @@ struct {
 	{"LF_NOSSMUSIC",LF_NOSSMUSIC},
 	{"LF_NORELOAD",LF_NORELOAD},
 	{"LF_NOZONE",LF_NOZONE},
+	{"LF_SECTIONRACE",LF_SECTIONRACE},
 	// And map flags
 	{"LF2_HIDEINMENU",LF2_HIDEINMENU},
 	{"LF2_HIDEINSTATS",LF2_HIDEINSTATS},

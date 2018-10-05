@@ -316,7 +316,7 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 					break;
 				if (object->player)
 					object->player->kartstuff[k_pogospring] = 1;
-				K_DoPogoSpring(object, 0, true);
+				K_DoPogoSpring(object, 0, 0);
 				return;
 			}
 			else

@@ -1277,7 +1277,7 @@ static void K_SpawnDashDustRelease(player_t *player)
 	if (!P_IsObjectOnGround(player->mo))
 		return;
 
-	if (player->speed == 0)
+	if (!player->speed && !player->kartstuff[k_startboost])
 		return;
 
 	travelangle = player->mo->angle;
@@ -3016,7 +3016,7 @@ static void K_DoShrink(player_t *player)
 	}
 }
 
-static void K_DoSPB(player_t *victim, player_t *source)
+static void K_DoSPB(player_t *victim)
 {
 	//INT32 i;
 	S_StartSound(victim->mo, sfx_bkpoof); // Sound the BANG!
@@ -3027,11 +3027,28 @@ static void K_DoSPB(player_t *victim, player_t *source)
 			P_FlashPal(&players[i], PAL_NUKE, 10);
 	}*/
 
-	if (victim->mo && !victim->spectator)
-		P_DamageMobj(victim->mo, source->mo, source->mo, 65);
+	if (!victim->mo || !victim->mo->health || victim->spectator)
+		return;
+
+	{
+		mobj_t *spbexplode;
+
+		if (!victim->kartstuff[k_invincibilitytimer] && !victim->kartstuff[k_growshrinktimer])
+		{
+			K_DropHnextList(victim);
+			K_StripItems(victim);
+
+			victim->powers[pw_flashing] = 0;
+		}
+
+		spbexplode = P_SpawnMobj(victim->mo->x, victim->mo->y, victim->mo->z, MT_BLUEEXPLOSION);
+
+		if (playeringame[spbplayer] && !players[spbplayer].spectator && players[spbplayer].mo)
+			P_SetTarget(&spbexplode->target, players[spbplayer].mo);
+	}
 }
 
-void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
+void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 {
 	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
 
@@ -3083,8 +3100,8 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, boolean mute)
 	else
 		mo->momz = FixedMul(vertispeed, vscale);
 
-	if (!mute)
-		S_StartSound(mo, sfx_kpogos);
+	if (sound)
+		S_StartSound(mo, (sound == 1 ? sfx_kc2f : sfx_kpogos));
 }
 
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source)
@@ -3820,7 +3837,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_deathsentence])
 	{
 		if (player->kartstuff[k_deathsentence] == 1)
-			K_DoSPB(player, &players[spbplayer]);
+			K_DoSPB(player);
 		player->kartstuff[k_deathsentence]--;
 	}
 
@@ -4113,7 +4130,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& (player->kartstuff[k_driftcharge] >= dsone && player->kartstuff[k_driftcharge] < dstwo)
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 20;
+		if (player->kartstuff[k_driftboost] < 20)
+			player->kartstuff[k_driftboost] = 20;
 		S_StartSound(player->mo, sfx_s23c);
 		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
@@ -4123,7 +4141,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] < dsthree
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 50;
+		if (player->kartstuff[k_driftboost] < 50)
+			player->kartstuff[k_driftboost] = 50;
 		S_StartSound(player->mo, sfx_s23c);
 		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
@@ -4133,7 +4152,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 		&& player->kartstuff[k_driftcharge] >= dsthree
 		&& onground)
 	{
-		player->kartstuff[k_driftboost] = 125;
+		if (player->kartstuff[k_driftboost] < 125)
+			player->kartstuff[k_driftboost] = 125;
 		S_StartSound(player->mo, sfx_s23c);
 		//K_SpawnDashDustRelease(player);
 		player->kartstuff[k_driftcharge] = 0;
@@ -4766,7 +4786,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& !player->kartstuff[k_pogospring])
 					{
 						K_PlayBoostTaunt(player->mo);
-						K_DoPogoSpring(player->mo, 32<<FRACBITS, false);
+						K_DoPogoSpring(player->mo, 32<<FRACBITS, 2);
 						player->kartstuff[k_pogospring] = 1;
 						player->kartstuff[k_itemamount]--;
 					}
@@ -5917,7 +5937,7 @@ static void K_drawKartItem(void)
 
 	// Quick Eggman numbers
 	if (stplyr->kartstuff[k_eggmanexplode] > 1 /*&& stplyr->kartstuff[k_eggmanexplode] <= 3*TICRATE*/)
-		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
+		V_DrawScaledPatch(ITEM_X+17-offset, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
 }
 
 void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing)

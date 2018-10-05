@@ -3385,19 +3385,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			S_StartSound(player->mo, sfx_kc59);
 			return true;
 		}
-
-		// Self-Propelled Bomb
-		if (damage == 65)
-		{
-			mobj_t *spbexplode;
-			if (player == source->player)
-				return false;
-			// Just need to do this now! Being thrown upwards is done by the explosion.
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
-			spbexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
-			P_SetTarget(&spbexplode->target, source);
-			return true;
-		}
 		//}
 
 		// Sudden-Death mode
