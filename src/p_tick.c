@@ -748,6 +748,16 @@ void P_Ticker(boolean run)
 				D_MapChange(gamemap, gametype, encoremode, true, 0, false, false);
 	}
 
+	// Always move the camera.
+	if (camera.chase)
+		P_MoveChaseCamera(&players[displayplayer], &camera, false);
+	if (splitscreen && camera2.chase)
+		P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
+	if (splitscreen > 1 && camera3.chase)
+		P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
+	if (splitscreen > 2 && camera4.chase)
+		P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
+
 	P_MapEnd();
 
 //	Z_CheckMemCleanup();
