@@ -1819,8 +1819,8 @@ boolean G_Responder(event_t *ev)
 			displayplayer = consoleplayer;
 		else
 		{
-			// spy mode
-			do
+			UINT8 i = 0; // spy mode
+			for (i = 0; i < MAXPLAYERS; i++)
 			{
 				displayplayer++;
 				if (displayplayer == MAXPLAYERS)
