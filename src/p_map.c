@@ -2181,12 +2181,6 @@ boolean P_CheckCameraPosition(fixed_t x, fixed_t y, camera_t *thiscam)
 
 	mapcampointer = thiscam;
 
-#ifdef NOCLIPCAM
-	if (newsubsec->sector->floorheight >= newsubsec->sector->ceilingheight
-		|| newsubsec->sector->ceilingheight <= newsubsec->sector->floorheight)
-		return false;
-#endif
-
 	if (GETSECSPECIAL(newsubsec->sector->special, 4) == 12)
 	{ // Camera noclip on entire sector.
 		tmfloorz = tmdropoffz = thiscam->z;
@@ -2384,15 +2378,12 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 		fixed_t tryx = thiscam->x;
 		fixed_t tryy = thiscam->y;
 
-#ifdef NOCLIPCAM
-		if (!(s->sector->floorheight >= s->sector->ceilingheight
-			|| s->sector->ceilingheight <= s->sector->floorheight))
-#else
+#ifndef NOCLIPCAM
 		if ((thiscam == &camera && (players[displayplayer].pflags & PF_NOCLIP))
-			|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP))
-			|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
-			|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP))
-			|| (leveltime < introtime))
+		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP))
+		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
+		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP))
+		|| (leveltime < introtime))
 #endif
 		{ // Noclipping player camera noclips too!!
 			floatok = true;
