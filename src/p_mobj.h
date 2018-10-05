@@ -429,6 +429,8 @@ typedef struct actioncache_s
 
 extern actioncache_t actioncachehead;
 
+extern mobj_t *waypointcap;
+
 void P_InitCachedActions(void);
 void P_RunCachedActions(void);
 void P_AddCachedAction(mobj_t *mobj, INT32 statenum);
