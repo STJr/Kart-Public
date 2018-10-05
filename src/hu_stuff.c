@@ -567,8 +567,11 @@ static void Command_Sayteam_f(void)
 		CONS_Alert(CONS_NOTICE, M_GetText("Dedicated servers can't send team messages. Use \"say\".\n"));
 		return;
 	}
-
-	DoSayCommand(-1, 1, 0);
+	
+	if (G_GametypeHasTeams())	// revert to normal say if we don't have teams in this gametype.
+		DoSayCommand(-1, 1, 0);
+	else	
+		DoSayCommand(0, 1, 0);
 }
 
 /** Send a message to everyone, to be displayed by CECHO. Only
@@ -1067,8 +1070,6 @@ boolean HU_Responder(event_t *ev)
 		if ((ev->data1 == gamecontrol[gc_talkkey][0] || ev->data1 == gamecontrol[gc_talkkey][1])
 			&& netgame && !OLD_MUTE)	// check for old chat mute, still let the players open the chat incase they want to scroll otherwise.
 		{
-			//if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
-			//	return false;
 			chat_on = true;
 			w_chat[0] = 0;
 			teamtalk = false;
@@ -1078,12 +1079,9 @@ boolean HU_Responder(event_t *ev)
 		if ((ev->data1 == gamecontrol[gc_teamkey][0] || ev->data1 == gamecontrol[gc_teamkey][1])
 			&& netgame && !OLD_MUTE)
 		{
-			//if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
-			//	return false;
 			chat_on = true;
 			w_chat[0] = 0;
-			teamtalk = false;	// CHANGE THIS TO TRUE TO MAKE SAYTEAM WORK AGAIN
-			//teamtalk = true;
+			teamtalk = G_GametypeHasTeams();	// Don't teamtalk if we don't have teams.
 			chat_scrollmedown = true;
 			return true;
 		}
