@@ -97,14 +97,14 @@ extraemblem_t extraemblems[MAXEXTRAEMBLEMS] =
 unlockable_t unlockables[MAXUNLOCKABLES] =
 {
 	// Name, Objective, Showing Conditionset, ConditionSet, Unlock Type, Variable, NoCecho, NoChecklist
-	/* 01 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
+	/* 01 */ {"Egg Cup",  "", -1, 1, SECRET_NONE, 0, false, false, 0},
+	/* 02 */ {"SMK Cup",  "", -1, 2, SECRET_NONE, 0, false, false, 0},
+	/* 03 */ {"Chao Cup", "", -1, 3, SECRET_NONE, 0, false, false, 0},
 
-	/* 02 */ {"Egg Cup",  "", -1, 1, SECRET_NONE, 0, false, false, 0},
-	/* 03 */ {"SMK Cup",  "", -1, 2, SECRET_NONE, 0, false, false, 0},
-	/* 04 */ {"Chao Cup", "", -1, 3, SECRET_NONE, 0, false, false, 0},
+	/* 04 */ {"Encore Mode", "", 3, 4, SECRET_ENCORE, 0, false, false, 0},
+	/* 05 */ {"Hell Attack", "", 5, 5, SECRET_HELLATTACK, 0, false, false, 0},
 
-	/* 05 */ {"Encore Mode", "", 3, 4, SECRET_ENCORE, 0, false, false, 0},
-	/* 06 */ {"Hell Attack", "", 5, 5, SECRET_HELLATTACK, 0, false, false, 0},
+	/* 06 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
 };
 
 // Default number of emblems and extra emblems
