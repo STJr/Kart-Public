@@ -374,6 +374,7 @@ static void R_AddLine(seg_t *line)
 	INT32 x1, x2;
 	angle_t angle1, angle2, span, tspan;
 	static sector_t tempsec; // ceiling/water hack
+	sector_t *thissec = R_PointInSubsector(viewx, viewy)->sector;
 
 	if (line->polyseg && !(line->polyseg->flags & POF_RENDERSIDES))
 		return;
@@ -478,20 +479,23 @@ static void R_AddLine(seg_t *line)
 		SLOPEPARAMS( backsector->f_slope, backf1,  backf2,  backsector->floorheight)
 		SLOPEPARAMS( backsector->c_slope, backc1,  backc2,  backsector->ceilingheight)
 #undef SLOPEPARAMS
-		if ((backc1 <= frontf1 && backc2 <= frontf2)
-			|| (backf1 >= frontc1 && backf2 >= frontc2))
+		if (thissec != backsector && thissec != frontsector)
 		{
-			goto clipsolid;
+			if ((backc1 <= frontf1 && backc2 <= frontf2)
+				|| (backf1 >= frontc1 && backf2 >= frontc2))
+			{
+				goto clipsolid;
+			}
+
+			// Check for automap fix. Store in doorclosed for r_segs.c
+			doorclosed = (backc1 <= backf1 && backc2 <= backf2
+			&& ((backc1 >= frontc1 && backc2 >= frontc2) || curline->sidedef->toptexture)
+			&& ((backf1 <= frontf1 && backf2 >= frontf2) || curline->sidedef->bottomtexture)
+			&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
+
+			if (doorclosed)
+				goto clipsolid;
 		}
-
-		// Check for automap fix. Store in doorclosed for r_segs.c
-		doorclosed = (backc1 <= backf1 && backc2 <= backf2
-		&& ((backc1 >= frontc1 && backc2 >= frontc2) || curline->sidedef->toptexture)
-		&& ((backf1 <= frontf1 && backf2 >= frontf2) || curline->sidedef->bottomtexture)
-		&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
-
-		if (doorclosed)
-			goto clipsolid;
 
 		// Window.
 		if (backc1 != frontc1 || backc2 != frontc2
@@ -503,20 +507,23 @@ static void R_AddLine(seg_t *line)
 	else
 #endif
 	{
-		if (backsector->ceilingheight <= frontsector->floorheight
-			|| backsector->floorheight >= frontsector->ceilingheight)
+		if (thissec != backsector && thissec != frontsector)
 		{
-			goto clipsolid;
+			if (backsector->ceilingheight <= frontsector->floorheight
+				|| backsector->floorheight >= frontsector->ceilingheight)
+			{
+				goto clipsolid;
+			}
+
+			// Check for automap fix. Store in doorclosed for r_segs.c
+			doorclosed = (backsector->ceilingheight <= backsector->floorheight
+			&& (backsector->ceilingheight >= frontsector->ceilingheight || curline->sidedef->toptexture)
+			&& (backsector->floorheight <= frontsector->floorheight || curline->sidedef->bottomtexture)
+			&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
+
+			if (doorclosed)
+				goto clipsolid;
 		}
-
-		// Check for automap fix. Store in doorclosed for r_segs.c
-		doorclosed = (backsector->ceilingheight <= backsector->floorheight
-		&& (backsector->ceilingheight >= frontsector->ceilingheight || curline->sidedef->toptexture)
-		&& (backsector->floorheight <= frontsector->floorheight || curline->sidedef->bottomtexture)
-		&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
-
-		if (doorclosed)
-			goto clipsolid;
 
 		// Window.
 		if (backsector->ceilingheight != frontsector->ceilingheight
