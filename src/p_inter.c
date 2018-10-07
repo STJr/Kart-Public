@@ -589,6 +589,15 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				player->kartstuff[k_roulettetype] = 1;
 			}
 			return;
+		case MT_ROCKETSNEAKER:
+			if (!player->mo)
+				return;
+			if (special->extravalue2)
+				return;
+			if (special->target && player->mo == special->target)
+				return;
+			K_KartBouncing(player->mo, special, false, false);
+			return;
 
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //

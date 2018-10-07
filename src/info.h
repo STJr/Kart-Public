@@ -596,6 +596,7 @@ typedef enum sprite
 	SPR_DUST, // Drift Dust
 
 	// Kart Items
+	SPR_RSHE, // Rocket sneaker
 	SPR_FITM, // Eggman Monitor
  	SPR_BANA, // Banana Peel
 	SPR_ORBN, // Orbinaut
@@ -3155,6 +3156,10 @@ typedef enum state
 	S_WIPEOUTTRAIL4,
 	S_WIPEOUTTRAIL5,
 
+	// Rocket sneaker
+	S_ROCKETSNEAKER_L,
+	S_ROCKETSNEAKER_R,
+
 	//{ Eggman Monitor
 	S_FAKEITEM1,
 	S_FAKEITEM2,
@@ -4153,6 +4158,8 @@ typedef enum mobj_type
 	MT_WIPEOUTTRAIL,
 	MT_DRIFTSPARK,
 	MT_DRIFTDUST,
+
+	MT_ROCKETSNEAKER,
 
 	MT_FAKESHIELD,
 	MT_FAKEITEM,

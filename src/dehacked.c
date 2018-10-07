@@ -6309,6 +6309,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_WIPEOUTTRAIL4",
 	"S_WIPEOUTTRAIL5",
 
+	// Rocket sneaker
+	"S_ROCKETSNEAKER_L",
+	"S_ROCKETSNEAKER_R",
+
 	//{ Eggman Monitor
 	"S_FAKEITEM1",
 	"S_FAKEITEM2",
@@ -7291,6 +7295,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_DRIFTSPARK",
 	"MT_DRIFTDUST",
 
+	"MT_ROCKETSNEAKER", // Rocket sneakers
+
 	"MT_FAKESHIELD",
 	"MT_FAKEITEM",
 
@@ -7302,7 +7308,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_JAWZ", // Jawz stuff
 	"MT_JAWZ_DUD",
-	"MT_JAWZ_SHIELD", 
+	"MT_JAWZ_SHIELD",
 
 	"MT_PLAYERRETICULE", // Jawz reticule
 

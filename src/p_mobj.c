@@ -6637,20 +6637,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_SSMINE_SHIELD:
 			case MT_FAKESHIELD:
 			case MT_SINK_SHIELD:
-				/*if (mobj->health > 0 && mobj->target && mobj->target->player
-					&& mobj->target->player->health > 0 && !mobj->target->player->spectator)
-				{
-					// Was this so hard? -- Handled this with K_UpdateHnextList instead of thinking it away...
-					if ((mobj->type == MT_ORBINAUT_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_ORBINAUT)
-						|| (mobj->type == MT_JAWZ_SHIELD && mobj->target->player->kartstuff[k_itemtype] != KITEM_JAWZ)
-						|| (mobj->movedir > 0 && ((UINT16)mobj->target->player->kartstuff[k_itemamount] < mobj->movedir))
-						|| (!mobj->target->player->kartstuff[k_itemheld]))
-					{
-						P_RemoveMobj(mobj);
-						return;
-					}
-				}
-				else*/ if ((mobj->health > 0
+				if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
 					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
@@ -8249,16 +8236,24 @@ void P_MobjThinker(mobj_t *mobj)
 				return;
 			}
 
-			P_TeleportMove(mobj, mobj->target->x + P_ReturnThrustX(mobj, mobj->target->angle+ANGLE_180, mobj->target->radius),
-				mobj->target->y + P_ReturnThrustY(mobj, mobj->target->angle+ANGLE_180, mobj->target->radius), mobj->target->z);
 			mobj->angle = mobj->target->angle;
+			P_TeleportMove(mobj, mobj->target->x + P_ReturnThrustX(mobj, mobj->angle+ANGLE_180, mobj->target->radius),
+				mobj->target->y + P_ReturnThrustY(mobj, mobj->angle+ANGLE_180, mobj->target->radius), mobj->target->z);
 			P_SetScale(mobj, mobj->target->scale);
 
-			if (mobj->target->player)
 			{
-				if (mobj->target->player->kartstuff[k_sneakertimer] > mobj->movecount)
-					P_SetMobjState(mobj, S_BOOSTFLAME);
-				mobj->movecount = mobj->target->player->kartstuff[k_sneakertimer];
+				player_t *p = NULL;
+				if (mobj->target->target && mobj->target->target->player)
+					p = mobj->target->target->player;
+				else if (mobj->target->player)
+					p = mobj->target->player;
+
+				if (p)
+				{
+					if (p->kartstuff[k_sneakertimer] > mobj->movecount)
+						P_SetMobjState(mobj, S_BOOSTFLAME);
+					mobj->movecount = p->kartstuff[k_sneakertimer];
+				}
 			}
 
 			if (mobj->state == &states[S_BOOSTSMOKESPAWNER])
@@ -8272,7 +8267,7 @@ void P_MobjThinker(mobj_t *mobj)
 				smoke->momy = mobj->target->momy/2;
 				smoke->momz = mobj->target->momz/2;
 
-				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
+				P_Thrust(smoke, mobj->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
 			}
 			break;
 		case MT_SPARKLETRAIL:
@@ -8350,6 +8345,39 @@ void P_MobjThinker(mobj_t *mobj)
 			P_TeleportMove(mobj, destx, desty, mobj->target->z);
 			break;
 		}
+		case MT_ROCKETSNEAKER:
+			if (!mobj->target || !mobj->target->health)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			if (mobj->target->player && !mobj->target->player->kartstuff[k_rocketsneakertimer])
+			{
+				mobj->flags &= ~MF_NOGRAVITY;
+				mobj->angle += ANGLE_45;
+
+				if (!mobj->extravalue2)
+				{
+					if (mobj->eflags & MFE_VERTICALFLIP)
+						mobj->z -= mobj->height;
+					else
+						mobj->z += mobj->height;
+
+					S_StartSound(mobj, mobj->info->deathsound);
+					P_SetObjectMomZ(mobj, 8*FRACUNIT, false);
+					P_InstaThrust(mobj, R_PointToAngle2(mobj->target->x, mobj->target->y, mobj->x, mobj->y)+ANGLE_90, 16*FRACUNIT);
+					mobj->momx += mobj->target->momx;
+					mobj->momy += mobj->target->momy;
+					mobj->momz += mobj->target->momz;
+					mobj->extravalue2 = 1;
+				}
+				else if (P_IsObjectOnGround(mobj))
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+			}
+			break;
 		case MT_KARMAHITBOX:
 			if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
 				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
@@ -9335,7 +9363,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
 		case MT_BALLHOG: 		case MT_SINK:
-		case MT_THUNDERSHIELD:
+		case MT_THUNDERSHIELD:	case MT_ROCKETSNEAKER:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

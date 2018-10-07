@@ -1006,6 +1006,12 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 					weight = (against->player->kartweight)<<FRACBITS;
 			}
 			break;
+		case MT_ROCKETSNEAKER:
+			if (against->player)
+				weight = (against->player->kartweight*2)<<FRACBITS;
+			else
+				weight = 10<<FRACBITS;
+			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
 			if (against->player)
@@ -2969,25 +2975,45 @@ static void K_DoHyudoroSteal(player_t *player)
 	}
 }
 
-void K_DoSneaker(player_t *player, boolean doPFlag)
+void K_DoSneaker(player_t *player, INT32 type)
 {
-	const fixed_t prevboost = player->kartstuff[k_speedboost];
+	fixed_t prevboost = player->kartstuff[k_speedboost];
 
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
 		S_StartSound(player->mo, sfx_cdfm01);
 
 	if (!player->kartstuff[k_sneakertimer])
 	{
-		mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BOOSTFLAME);
-		P_SetTarget(&overlay->target, player->mo);
-		overlay->destscale = player->mo->scale;
-		P_SetScale(overlay, player->mo->scale);
+		if (type == 2)
+		{
+			if (player->mo->hnext)
+			{
+				mobj_t *cur = player->mo->hnext;
+				while (cur && !P_MobjWasRemoved(cur))
+				{
+					if (!cur->tracer)
+					{
+						mobj_t *overlay = P_SpawnMobj(cur->x, cur->y, cur->z, MT_BOOSTFLAME);
+						P_SetTarget(&overlay->target, cur);
+						P_SetTarget(&cur->tracer, overlay);
+						P_SetScale(overlay, (overlay->destscale = 3*cur->scale/4));
+					}
+					cur = cur->hnext;
+				}
+			}
+		}
+		else
+		{
+			mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BOOSTFLAME);
+			P_SetTarget(&overlay->target, player->mo);
+			P_SetScale(overlay, (overlay->destscale = player->mo->scale));
+		}
 	}
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
 	K_SpawnDashDustRelease(player);
 
-	if (doPFlag)
+	if (type != 0)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		K_PlayBoostTaunt(player->mo);
@@ -3206,6 +3232,7 @@ void K_DropHnextList(player_t *player)
 				break;
 			// intentionally do nothing
 			case MT_SINK_SHIELD:
+			case MT_ROCKETSNEAKER:
 				return;
 			default:
 				continue;
@@ -3549,6 +3576,92 @@ static void K_MoveHeldObjects(player_t *player)
 					if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
 						P_TeleportMove(cur, targx, targy, cur->z);
 
+					cur = cur->hnext;
+				}
+			}
+			break;
+		case MT_ROCKETSNEAKER: // Special rocket sneaker stuff
+			{
+				mobj_t *cur = player->mo->hnext;
+				INT32 num = 0;
+
+				while (cur && !P_MobjWasRemoved(cur))
+				{
+					const fixed_t radius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(cur->radius, cur->radius);
+					angle_t angoffset;
+					fixed_t targx, targy, targz;
+
+					cur->flags &= ~MF_NOCLIPTHING;
+
+					if (player->kartstuff[k_rocketsneakertimer] <= TICRATE && (leveltime & 1))
+						cur->flags2 |= MF2_DONTDRAW;
+					else
+						cur->flags2 &= ~MF2_DONTDRAW;
+
+					if (num & 1)
+						P_SetMobjStateNF(cur, S_ROCKETSNEAKER_L);
+					else
+						P_SetMobjStateNF(cur, S_ROCKETSNEAKER_R);
+
+					if (!player->kartstuff[k_rocketsneakertimer] || cur->extravalue2 || !cur->health)
+					{
+						num = (num+1) % 2;
+						cur = cur->hnext;
+						continue;
+					}
+
+					if (cur->extravalue1 < radius)
+						cur->extravalue1 += FixedMul(P_AproxDistance(cur->extravalue1, radius), FRACUNIT/12);
+					if (cur->extravalue1 > radius)
+						cur->extravalue1 = radius;
+
+					// Shrink your items if the player shrunk too.
+					P_SetScale(cur, (cur->destscale = FixedMul(FixedDiv(cur->extravalue1, radius), player->mo->scale)));
+
+#if 1
+					{
+						angle_t input = player->mo->angle - cur->angle;
+						boolean invert = (input > ANGLE_180);
+						if (invert)
+							input = InvAngle(input);
+
+						input = FixedAngle(AngleFixed(input)/4);
+						if (invert)
+							input = InvAngle(input);
+
+						cur->angle = cur->angle + input;
+					}
+#else
+					cur->angle = player->mo->angle;
+#endif
+
+					angoffset = ANGLE_90 + (ANGLE_180 * num);
+
+					targx = player->mo->x + P_ReturnThrustX(cur, cur->angle + angoffset, cur->extravalue1);
+					targy = player->mo->y + P_ReturnThrustY(cur, cur->angle + angoffset, cur->extravalue1);
+
+					{ // bobbing, copy pasted from my kimokawaiii entry
+						const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
+						fixed_t sine = 8 * FINESINE((((2*pi*(4*TICRATE)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
+						targz = (player->mo->z + (player->mo->height/2)) + sine;
+					}
+
+					if (cur->tracer)
+					{
+						fixed_t diffx, diffy, diffz;
+
+						diffx = targx - cur->x;
+						diffy = targy - cur->y;
+						diffz = targz - cur->z;
+
+						P_TeleportMove(cur->tracer, cur->tracer->x + diffx + P_ReturnThrustX(cur, cur->angle + angoffset, 6*cur->scale),
+							cur->tracer->y + diffy + P_ReturnThrustY(cur, cur->angle + angoffset, 6*cur->scale), cur->tracer->z + diffz);
+						P_SetScale(cur->tracer, (cur->tracer->destscale = 3*cur->scale/4));
+					}
+
+					P_TeleportMove(cur, targx, targy, targz);
+
+					num = (num+1) % 2;
 					cur = cur->hnext;
 				}
 			}
@@ -4473,7 +4586,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		else if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
 			&& player->kartstuff[k_rocketsneakertimer] > 1)
 		{
-			K_DoSneaker(player, true);
+			K_DoSneaker(player, 2);
 			K_PlayBoostTaunt(player->mo);
 			player->kartstuff[k_rocketsneakertimer] -= 5;
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
@@ -4490,7 +4603,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				case KITEM_SNEAKER:
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO)
 					{
-						K_DoSneaker(player, true);
+						K_DoSneaker(player, 1);
 						K_PlayBoostTaunt(player->mo);
 						player->kartstuff[k_itemamount]--;
 					}
@@ -4499,10 +4612,33 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && onground && NO_HYUDORO
 						&& player->kartstuff[k_rocketsneakertimer] == 0)
 					{
-						K_DoSneaker(player, true);
+						INT32 moloop;
+						mobj_t *mo = NULL;
+						mobj_t *prev = player->mo;
+
 						K_PlayBoostTaunt(player->mo);
+						//player->kartstuff[k_itemheld] = 1;
+						S_StartSound(player->mo, sfx_s3k3a);
+
+						//K_DoSneaker(player, 2);
+
 						player->kartstuff[k_rocketsneakertimer] = itemtime;
 						player->kartstuff[k_itemamount]--;
+						K_UpdateHnextList(player, true);
+
+						for (moloop = 0; moloop < 2; moloop++)
+						{
+							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_ROCKETSNEAKER);
+							mo->flags |= MF_NOCLIPTHING;
+							mo->angle = player->mo->angle;
+							mo->threshold = 10;
+							mo->movecount = moloop%2;
+							mo->movedir = mo->lastlook = moloop+1;
+							P_SetTarget(&mo->target, player->mo);
+							P_SetTarget(&mo->hprev, prev);
+							P_SetTarget(&prev->hnext, mo);
+							prev = mo;
+						}
 					}
 					break;
 				case KITEM_INVINCIBILITY:
@@ -5008,7 +5144,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			if (player->kartstuff[k_boostcharge] <= 36)
 			{
 				player->kartstuff[k_startboost] = 0;
-				K_DoSneaker(player, false);
+				K_DoSneaker(player, 0);
 				player->kartstuff[k_sneakertimer] = 70; // PERFECT BOOST!!
 
 				if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3) // Let everyone hear this one

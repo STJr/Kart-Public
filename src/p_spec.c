@@ -4036,7 +4036,7 @@ DoneSection2:
 					player->kartstuff[k_floorboost] = 3;
 				else
 					player->kartstuff[k_floorboost] = 2;
-				K_DoSneaker(player, false);
+				K_DoSneaker(player, 0);
 			}
 			break;
 
