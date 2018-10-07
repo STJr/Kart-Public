@@ -3157,7 +3157,7 @@ void K_DropHnextList(player_t *player)
 	mobj_t *work = player->mo, *nextwork, *dropwork;
 	INT32 flip;
 	mobjtype_t type;
-	boolean orbit, ponground;
+	boolean orbit, ponground, dropall = true;
 
 	if (!work)
 		return;
@@ -3197,6 +3197,7 @@ void K_DropHnextList(player_t *player)
 				break;
 			case MT_SSMINE_SHIELD:
 				orbit = false;
+				dropall = false;
 				type = MT_SSMINE;
 				break;
 			case MT_FAKESHIELD:
@@ -3275,7 +3276,8 @@ void K_DropHnextList(player_t *player)
 		player->kartstuff[k_bananadrag] = 0;
 		if (player->kartstuff[k_eggmanheld])
 			player->kartstuff[k_eggmanheld] = 0;
-		else if (player->kartstuff[k_itemheld])
+		else if (player->kartstuff[k_itemheld]
+			&& (dropall || (--player->kartstuff[k_itemamount] <= 0)))
 		{
 			player->kartstuff[k_itemamount] = player->kartstuff[k_itemheld] = 0;
 			player->kartstuff[k_itemtype] = KITEM_NONE;
