@@ -7620,9 +7620,9 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"SALMON",         // 10 // SKINCOLOR_SALMON
 	"PINK",           // 11 // SKINCOLOR_PINK
 	"ROSE",           // 12 // SKINCOLOR_ROSE
-	"RASPBERRY",      // 13 // SKINCOLOR_RASPBERRY
-	"RED",            // 14 // SKINCOLOR_RED
-	"RUBY",           // 15 // SKINCOLOR_RUBY
+	"RUBY",           // 13 // SKINCOLOR_RUBY
+	"RASPBERRY",      // 14 // SKINCOLOR_RASPBERRY
+	"RED",            // 15 // SKINCOLOR_RED
 	"CRIMSON",        // 16 // SKINCOLOR_CRIMSON
 	"KETCHUP",        // 17 // SKINCOLOR_KETCHUP
 	"DAWN",           // 18 // SKINCOLOR_DAWN
@@ -7642,16 +7642,16 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"VOMIT",          // 32 // SKINCOLOR_VOMIT
 	"GARDEN",         // 33 // SKINCOLOR_GARDEN
 	"LIME",           // 34 // SKINCOLOR_LIME
-	"DREAM",          // 35 // SKINCOLOR_DREAM
-	"TEA",            // 36 // SKINCOLOR_TEA
-	"PISTACHIO",      // 37 // SKINCOLOR_PISTACHIO
-	"ROBOHOOD",       // 38 // SKINCOLOR_ROBOHOOD
-	"MOSS",           // 39 // SKINCOLOR_MOSS
-	"MINT",           // 40 // SKINCOLOR_MINT
-	"GREEN",          // 41 // SKINCOLOR_GREEN
-	"PINETREE",       // 42 // SKINCOLOR_PINETREE
-	"EMERALD",        // 43 // SKINCOLOR_EMERALD
-	"SWAMP",          // 44 // SKINCOLOR_SWAMP
+	"TEA",            // 35 // SKINCOLOR_TEA
+	"PISTACHIO",      // 36 // SKINCOLOR_PISTACHIO
+	"ROBOHOOD",       // 37 // SKINCOLOR_ROBOHOOD
+	"MOSS",           // 38 // SKINCOLOR_MOSS
+	"MINT",           // 39 // SKINCOLOR_MINT
+	"GREEN",          // 40 // SKINCOLOR_GREEN
+	"PINETREE",       // 41 // SKINCOLOR_PINETREE
+	"EMERALD",        // 42 // SKINCOLOR_EMERALD
+	"SWAMP",          // 43 // SKINCOLOR_SWAMP
+	"DREAM",          // 44 // SKINCOLOR_DREAM
 	"AQUA",           // 45 // SKINCOLOR_AQUA
 	"TEAL",           // 46 // SKINCOLOR_TEAL
 	"CYAN",           // 47 // SKINCOLOR_CYAN
@@ -7661,9 +7661,9 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"SLATE",          // 51 // SKINCOLOR_SLATE
 	"STEEL",          // 52 // SKINCOLOR_STEEL
 	"JET",            // 53 // SKINCOLOR_JET
-	"PERIWINKLE",     // 54 // SKINCOLOR_PERIWINKLE
-	"BLUE",           // 55 // SKINCOLOR_BLUE
-	"SAPPHIRE",       // 56 // SKINCOLOR_SAPPHIRE
+	"SAPPHIRE",       // 54 // SKINCOLOR_SAPPHIRE
+	"PERIWINKLE",     // 55 // SKINCOLOR_PERIWINKLE
+	"BLUE",           // 56 // SKINCOLOR_BLUE
 	"BLUEBERRY",      // 57 // SKINCOLOR_BLUEBERRY
 	"DUSK",           // 58 // SKINCOLOR_DUSK
 	"PURPLE",         // 59 // SKINCOLOR_PURPLE
@@ -8272,7 +8272,7 @@ struct {
 	{"V_TEAMAP",V_TEAMAP},
 	{"V_STEELMAP",V_STEELMAP},
 	{"V_PINKMAP",V_PINKMAP},
-	{"V_TEALMAP",V_TEALMAP},
+	{"V_BROWNMAP",V_BROWNMAP},
 	{"V_PEACHMAP",V_PEACHMAP},
 	{"V_TRANSLUCENT",V_TRANSLUCENT},
 	{"V_10TRANS",V_10TRANS},
