@@ -494,11 +494,19 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				K_StripOther(player);
 				player->kartstuff[k_itemroulette] = 1;
 				player->kartstuff[k_roulettetype] = 2;
-				if (special->target && special->target->player
-					&& (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0))
-					player->kartstuff[k_eggmanblame] = special->target->player-players;
-				else
-					player->kartstuff[k_eggmanblame] = player-players;
+				if (special->target && special->target->player)
+				{
+					if (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0)
+						player->kartstuff[k_eggmanblame] = special->target->player-players;
+					else
+						player->kartstuff[k_eggmanblame] = player-players;
+
+					if (special->target->hnext == special)
+					{
+						P_SetTarget(&special->target->hnext, NULL);
+						special->target->player->kartstuff[k_eggmanheld] = 0;
+					}
+				}
 
 				P_RemoveMobj(special);
 				return;
