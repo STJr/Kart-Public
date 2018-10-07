@@ -374,7 +374,6 @@ static void R_AddLine(seg_t *line)
 	INT32 x1, x2;
 	angle_t angle1, angle2, span, tspan;
 	static sector_t tempsec; // ceiling/water hack
-	sector_t *thissec = R_PointInSubsector(viewx, viewy)->sector;
 
 	if (line->polyseg && !(line->polyseg->flags & POF_RENDERSIDES))
 		return;
@@ -479,7 +478,7 @@ static void R_AddLine(seg_t *line)
 		SLOPEPARAMS( backsector->f_slope, backf1,  backf2,  backsector->floorheight)
 		SLOPEPARAMS( backsector->c_slope, backc1,  backc2,  backsector->ceilingheight)
 #undef SLOPEPARAMS
-		if (thissec != backsector && thissec != frontsector)
+		if (viewsector != backsector && viewsector != frontsector)
 		{
 			if ((backc1 <= frontf1 && backc2 <= frontf2)
 				|| (backf1 >= frontc1 && backf2 >= frontc2))
@@ -507,7 +506,7 @@ static void R_AddLine(seg_t *line)
 	else
 #endif
 	{
-		if (thissec != backsector && thissec != frontsector)
+		if (viewsector != backsector && viewsector != frontsector)
 		{
 			if (backsector->ceilingheight <= frontsector->floorheight
 				|| backsector->floorheight >= frontsector->ceilingheight)

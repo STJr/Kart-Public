@@ -2690,8 +2690,6 @@ static void HWR_AddLine(seg_t * line)
 	// SoM: Backsector needs to be run through R_FakeFlat
 	static sector_t tempsec;
 
-	sector_t *thissec = R_PointInSubsector(viewx, viewy)->sector;
-
 	if (line->polyseg && !(line->polyseg->flags & POF_RENDERSIDES))
 		return;
 
@@ -2813,7 +2811,7 @@ static void HWR_AddLine(seg_t * line)
 		SLOPEPARAMS( gr_backsector->c_slope, backc1,  backc2,  gr_backsector->ceilingheight)
 #undef SLOPEPARAMS
 
-		if (thissec != gr_backsector && thissec != gr_frontsector)
+		if (viewsector != gr_backsector && viewsector != gr_frontsector)
 		{
 			// Closed door.
 			if ((backc1 <= frontf1 && backc2 <= frontf2)
@@ -2833,7 +2831,7 @@ static void HWR_AddLine(seg_t * line)
 	else
 #endif
 	{
-		if (thissec != gr_backsector && thissec != gr_frontsector)
+		if (viewsector != gr_backsector && viewsector != gr_frontsector)
 		{
 			// Closed door.
 			if (gr_backsector->ceilingheight <= gr_frontsector->floorheight ||

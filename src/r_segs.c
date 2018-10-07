@@ -1365,7 +1365,7 @@ static void R_RenderSegLoop (void)
 			if (bottom >= floorclip[rw_x])
 				bottom = floorclip[rw_x]-1;
 
-			if (top <= bottom)
+			if (top <= bottom && ceilingplane)
 			{
 				ceilingplane->top[rw_x] = (INT16)top;
 				ceilingplane->bottom[rw_x] = (INT16)bottom;
@@ -2020,8 +2020,6 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 	{
 		// two sided line
 
-		sector_t *thissec = R_PointInSubsector(viewx, viewy)->sector;
-
 #ifdef ESLOPE
 		if (backsector->c_slope) {
 			worldhigh = P_GetZAt(backsector->c_slope, segleft.x, segleft.y) - viewz;
@@ -2115,7 +2113,7 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 			// ds_p->sprtopclip = screenheightarray;
 		}
 
-		if (thissec != frontsector && thissec != backsector)
+		if (viewsector != frontsector && viewsector != backsector)
 		{
 #ifdef ESLOPE
 			if (worldhigh <= worldbottom && worldhighslope <= worldbottomslope)
