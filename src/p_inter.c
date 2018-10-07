@@ -456,10 +456,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
-				if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
+				if (player->kartstuff[k_comebackmode] || player->kartstuff[k_comebacktimer])
 					return;
-				if (player->kartstuff[k_comebackmode] == 0)
-					player->kartstuff[k_comebackmode] = 1;
+				player->kartstuff[k_comebackmode] = 1;
 			}
 
 			special->momx = special->momy = special->momz = 0;
@@ -479,21 +478,22 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
-				/*if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
+				if (player->kartstuff[k_comebackmode] || player->kartstuff[k_comebacktimer])
 					return;
-				if (player->kartstuff[k_comebackmode] == 0)
-					player->kartstuff[k_comebackmode] = 2;*/
-				return;
+				player->kartstuff[k_comebackmode] = 2;
+			}
+			else
+			{
+				K_DropItems(player); //K_StripItems(player);
+				K_StripOther(player);
+				player->kartstuff[k_itemroulette] = 1;
+				player->kartstuff[k_roulettetype] = 2;
 			}
 
 			{
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->deathsound);
 
-				K_DropItems(player); //K_StripItems(player);
-				K_StripOther(player);
-				player->kartstuff[k_itemroulette] = 1;
-				player->kartstuff[k_roulettetype] = 2;
 				if (special->target && special->target->player
 					&& (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0))
 					player->kartstuff[k_eggmanblame] = special->target->player-players;
@@ -503,7 +503,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				P_RemoveMobj(special);
 				return;
 			}
-			break;
 		case MT_KARMAHITBOX:
 			if (!special->target->player)
 				return;
@@ -519,7 +518,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				|| special->target->player->kartstuff[k_squishedtimer])
 				return;
 
-			if (special->target->player->kartstuff[k_comebackmode] == 0)
+			if (!special->target->player->kartstuff[k_comebackmode])
 			{
 				if (player->kartstuff[k_growshrinktimer] || player->kartstuff[k_squishedtimer]
 					|| player->kartstuff[k_hyudorotimer] || player->kartstuff[k_spinouttimer]
@@ -579,6 +578,36 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 				player->kartstuff[k_itemroulette] = 1;
 				player->kartstuff[k_roulettetype] = 1;
+			}
+			else if (special->target->player->kartstuff[k_comebackmode] == 2 && P_CanPickupItem(player, 2))
+			{
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
+				S_StartSound(poof, special->info->seesound);
+
+				special->target->player->kartstuff[k_comebackmode] = 0;
+				special->target->player->kartstuff[k_comebackpoints]++;
+
+				if (netgame && cv_hazardlog.value)
+					CONS_Printf(M_GetText("%s gave an \"item\" to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
+				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+					K_StealBumper(special->target->player, player, true);
+				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
+
+				K_DropItems(player); //K_StripItems(player);
+				K_StripOther(player);
+
+				player->kartstuff[k_itemroulette] = 1;
+				player->kartstuff[k_roulettetype] = 2;
+
+				if (special->target->player->kartstuff[k_eggmanblame] >= 0
+				&& special->target->player->kartstuff[k_eggmanblame] < MAXPLAYERS
+				&& playeringame[special->target->player->kartstuff[k_eggmanblame]]
+				&& !players[special->target->player->kartstuff[k_eggmanblame]].spectator)
+					player->kartstuff[k_eggmanblame] = special->target->player->kartstuff[k_eggmanblame];
+				else
+					player->kartstuff[k_eggmanblame] = -1;
+
+				special->target->player->kartstuff[k_eggmanblame] = -1;
 			}
 			return;
 

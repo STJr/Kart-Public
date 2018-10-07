@@ -4398,8 +4398,11 @@ void K_StripOther(player_t *player)
 	player->kartstuff[k_invincibilitytimer] = 0;
 	player->kartstuff[k_growshrinktimer] = 0;
 
-	player->kartstuff[k_eggmanexplode] = 0;
-	player->kartstuff[k_eggmanblame] = 0;
+	if (player->kartstuff[k_eggmanexplode])
+	{
+		player->kartstuff[k_eggmanexplode] = 0;
+		player->kartstuff[k_eggmanblame] = -1;
+	}
 }
 
 //
@@ -4444,14 +4447,29 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			mobj_t *newitem;
 
+			if (player->kartstuff[k_comebackmode] == 1)
+			{
+				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_RANDOMITEM);
+				newitem->threshold = 69; // selected "randomly".
+			}
+			else
+			{
+				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKEITEM);
+				if (player->kartstuff[k_eggmanblame] >= 0
+				&& player->kartstuff[k_eggmanblame] < MAXPLAYERS
+				&& playeringame[player->kartstuff[k_eggmanblame]]
+				&& !players[player->kartstuff[k_eggmanblame]].spectator
+				&& players[player->kartstuff[k_eggmanblame]].mo)
+					P_SetTarget(&newitem->target, players[player->kartstuff[k_eggmanblame]].mo);
+				player->kartstuff[k_eggmanblame] = -1;
+			}
+
+			newitem->flags2 = (player->mo->flags2 & MF2_OBJECTFLIP);
+			newitem->fuse = 15*TICRATE; // selected randomly.
+
 			player->kartstuff[k_comebackmode] = 0;
 			player->kartstuff[k_comebacktimer] = comebacktime;
 			S_StartSound(player->mo, sfx_s254);
-
-			newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_RANDOMITEM);
-			newitem->flags2 = (player->mo->flags2 & MF2_OBJECTFLIP);
-			newitem->fuse = 15*TICRATE; // selected randomly.
-			newitem->threshold = 69; // selected "randomly".
 		}
 		// Eggman Monitor exploding
 		else if (player->kartstuff[k_eggmanexplode])
@@ -5937,7 +5955,7 @@ static void K_drawKartItem(void)
 
 	// Quick Eggman numbers
 	if (stplyr->kartstuff[k_eggmanexplode] > 1 /*&& stplyr->kartstuff[k_eggmanexplode] <= 3*TICRATE*/)
-		V_DrawScaledPatch(ITEM_X+17-offset, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
+		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
 }
 
 void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing)

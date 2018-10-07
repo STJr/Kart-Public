@@ -3006,6 +3006,7 @@ state_t states[NUMSTATES] =
 
 	{SPR_PBOM, FF_ANIMATE, -1, {NULL}, 3, 3, S_NULL}, // S_PLAYERBOMB
 	{SPR_RNDM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERITEM
+	{SPR_FITM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERFAKE
 
 	{SPR_PBOM, 4, -1, {NULL}, 0, 0, S_NULL}, // S_KARMAWHEEL
 	
@@ -17132,7 +17133,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_kc2e,       // seesound
 		8,              // reactiontime
 		sfx_s3k4e,      // attacksound
-		S_NULL,         // painstate
+		S_PLAYERFAKE,   // painstate
 		0,              // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate

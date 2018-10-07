@@ -2519,6 +2519,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
+	p->kartstuff[k_eggmanblame] = -1;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
