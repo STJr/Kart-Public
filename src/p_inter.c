@@ -493,16 +493,24 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->deathsound);
+			}
 
-				if (special->target && special->target->player
-					&& (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0))
+			if (special->target && special->target->player)
+			{
+				if (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0)
 					player->kartstuff[k_eggmanblame] = special->target->player-players;
 				else
 					player->kartstuff[k_eggmanblame] = player-players;
 
-				P_RemoveMobj(special);
-				return;
+				if (special->target->hnext == special)
+				{
+					P_SetTarget(&special->target->hnext, NULL);
+					special->target->player->kartstuff[k_eggmanheld] = 0;
+				}
 			}
+
+			P_RemoveMobj(special);
+			return;
 		case MT_KARMAHITBOX:
 			if (!special->target->player)
 				return;
