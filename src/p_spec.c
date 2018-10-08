@@ -1707,16 +1707,16 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 
 			if (actor && actor->player && triggerline->flags & ML_EFFECT4)
 			{
-				if (maptol & TOL_NIGHTS)
+				/*if (maptol & TOL_NIGHTS)
 					lap = actor->player->mare;
-				else 
+				else*/
 					lap = actor->player->laps;
 			}
 			else
 			{
-				if (maptol & TOL_NIGHTS)
+				/*if (maptol & TOL_NIGHTS)
 					lap = P_FindLowestMare();
-				else 
+				else*/
 					lap = P_FindLowestLap();
 			}
 
@@ -3790,7 +3790,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
-				K_DoPogoSpring(player->mo, 0, false);
+				K_DoPogoSpring(player->mo, 0, 1);
 			}
 			break;
 
@@ -3813,7 +3813,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 2;
-				K_DoPogoSpring(player->mo, 0, false);
+				K_DoPogoSpring(player->mo, 0, 1);
 			}
 			break;
 
@@ -4252,7 +4252,6 @@ DoneSection2:
 					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;
 					//player->starpostx = player->starposty = player->starpostz = 0;
-					P_ResetStarposts();
 
 					// Play the starpost sound for 'consistency'
 					// S_StartSound(player->mo, sfx_strpst);
@@ -5821,10 +5820,8 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					}
 					else // Otherwise, set calculated offsets such that line's v1 is the apparent origin
 					{
-						fixed_t cosinecomponent = FINECOSINE(flatangle>>ANGLETOFINESHIFT);
-						fixed_t sinecomponent = FINESINE(flatangle>>ANGLETOFINESHIFT);
-						xoffs = (-FixedMul(lines[i].v1->x, cosinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, sinecomponent) % MAXFLATSIZE); // No danger of overflow thanks to the strategically placed modulo operations.
-						yoffs = (FixedMul(lines[i].v1->x, sinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, cosinecomponent) % MAXFLATSIZE); // Ditto.
+						xoffs = -lines[i].v1->x;
+						yoffs = lines[i].v1->y;
 					}
 
 					for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)

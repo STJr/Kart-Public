@@ -2231,11 +2231,11 @@ static int lib_kDoPogoSpring(lua_State *L)
 {
 	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	fixed_t vertispeed = luaL_checkfixed(L, 2);
-	boolean mute = luaL_checkboolean(L, 3);
+	UINT8 sound = luaL_checkinteger(L, 3);
 	NOHUD
 	if (!mo)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_DoPogoSpring(mo, vertispeed, mute);
+	K_DoPogoSpring(mo, vertispeed, sound);
 	return 0;
 }
 

@@ -46,7 +46,7 @@ static void VID_Command_ModeInfo_f (void);
 static void VID_Command_ModeList_f (void);
 static void VID_Command_Mode_f (void);
 
-consvar_t cv_vidwait = {"vid_wait", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_vidwait = {"vid_wait", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_stretch = {"stretch", "On", CV_SAVE|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 #define VBEVERSION      2       // we need vesa2 or higher
@@ -92,8 +92,8 @@ static vmode_t *pcurrentmode; // the current active videomode.
 
 
 // table des modes videos.
-// seul le mode 320x200x256c standard VGA est support‚ sans le VESA.
-// ce mode est le mode num‚ro 0 dans la liste.
+// seul le mode 320x200x256c standard VGA est supportï¿½ sans le VESA.
+// ce mode est le mode numï¿½ro 0 dans la liste.
 typedef struct
 {
 	int modenum;            // vesa vbe2.0 modenum

@@ -316,7 +316,7 @@ static void P_DoFanAndGasJet(mobj_t *spring, mobj_t *object)
 					break;
 				if (object->player)
 					object->player->kartstuff[k_pogospring] = 1;
-				K_DoPogoSpring(object, 0, true);
+				K_DoPogoSpring(object, 0, 0);
 				return;
 			}
 			else
@@ -469,7 +469,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 #endif
 
 	// Metal Sonic destroys tiny baby objects.
-	if (tmthing->type == MT_METALSONIC_RACE
+	/*if (tmthing->type == MT_METALSONIC_RACE
 	&& (thing->flags & (MF_MISSILE|MF_ENEMY|MF_BOSS) || thing->type == MT_SPIKE))
 	{
 		if ((thing->flags & (MF_ENEMY|MF_BOSS)) && (thing->health <= 0 || !(thing->flags & MF_SHOOTABLE)))
@@ -495,7 +495,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			P_KillMobj(thing, tmthing, tmthing);
 		}
 		return true;
-	}
+	}*/
 
 	if (!(thing->flags & (MF_SOLID|MF_SPECIAL|MF_PAIN|MF_SHOOTABLE)) || (thing->flags & MF_NOCLIPTHING))
 		return true;
@@ -647,9 +647,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// check for skulls slamming into things
 	if (tmthing->flags2 & MF2_SKULLFLY)
 	{
-		if (tmthing->type == MT_EGGMOBILE) // Don't make Eggman stop!
+		/*if (tmthing->type == MT_EGGMOBILE) // Don't make Eggman stop!
 			return true; // Let him RUN YOU RIGHT OVER. >:3
-		else
+		else*/
 		{
 			// see if it went over / under
 			if (tmthing->z > thing->z + thing->height)
@@ -1133,7 +1133,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true;
 
 		// Missiles ignore Brak's helper.
-		if (thing->type == MT_BLACKEGGMAN_HELPER)
+		/*if (thing->type == MT_BLACKEGGMAN_HELPER)
 			return true;
 
 		// Hurting Brak
@@ -1144,9 +1144,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (!(thing->state >= &states[S_BLACKEGG_PAIN1] && thing->state <= &states[S_BLACKEGG_PAIN35]))
 				P_SetMobjState(thing, thing->info->painstate);
 			return false;
-		}
+		}*/
 
-		if (!(thing->flags & MF_SHOOTABLE) && !(thing->type == MT_EGGSHIELD))
+		if (!(thing->flags & MF_SHOOTABLE)/* && !(thing->type == MT_EGGSHIELD)*/)
 		{
 			// didn't do any damage
 			return !(thing->flags & MF_SOLID);
@@ -1157,7 +1157,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		&& thing->player->pflags & PF_CARRIED && thing->tracer == tmthing->target)
 			return true; // Don't give rings to your carry player by accident.
 
-		if (thing->type == MT_EGGSHIELD)
+		/*if (thing->type == MT_EGGSHIELD)
 		{
 			fixed_t touchx, touchy;
 			angle_t angle;
@@ -1183,14 +1183,14 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				P_KillMobj(thing, tmthing, tmthing);
 				return false;
 			}
-		}
+		}*/
 
 		if (tmthing->type == MT_SHELL && tmthing->threshold > TICRATE)
 			return true;
 		// damage / explode
 		if (tmthing->flags & MF_ENEMY) // An actual ENEMY! (Like the deton, for example)
 			P_DamageMobj(thing, tmthing, tmthing, 1);
-		else if (tmthing->type == MT_BLACKEGGMAN_MISSILE && thing->player
+		/*else if (tmthing->type == MT_BLACKEGGMAN_MISSILE && thing->player
 			&& (thing->player->pflags & PF_JUMPED)
 			&& !thing->player->powers[pw_flashing]
 			&& thing->tracer != tmthing
@@ -1230,16 +1230,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			tmthing->x = thing->x;
 			tmthing->y = thing->y;
 			P_SetThingPosition(tmthing);
-		}
+		}*/
 		else
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
 
 		// don't traverse any more
 
-		if (tmthing->type == MT_SHELL)
-			return true;
-		else
-			return false;
+		return (tmthing->type == MT_SHELL);
 	}
 
 	if (thing->flags & MF_PUSHABLE && (tmthing->player || tmthing->flags & MF_PUSHABLE)
@@ -1303,7 +1300,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	// Respawn rings and items
-	if ((tmthing->type == MT_NIGHTSDRONE || thing->type == MT_NIGHTSDRONE)
+	/*if ((tmthing->type == MT_NIGHTSDRONE || thing->type == MT_NIGHTSDRONE)
 	 && (tmthing->player || thing->player))
 	{
 		mobj_t *droneobj = (tmthing->type == MT_NIGHTSDRONE) ? tmthing : thing;
@@ -1323,7 +1320,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 		droneobj->extravalue1 = pl->anotherflyangle;
 		droneobj->extravalue2 = (INT32)leveltime + TICRATE;
-	}
+	}*/
 
 	// check for special pickup
 	if (thing->flags & MF_SPECIAL && tmthing->player && thing->type != MT_POKEY)
@@ -1394,7 +1391,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		else if (thing->scale > tmthing->scale + (FRACUNIT/8))
 			K_SquishPlayer(tmthing->player, thing);
 
-		// SRB2kart - Starpower!
+		// SRB2kart - Invincibility!
 		if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer])
 			P_DamageMobj(thing, tmthing, tmthing, 1);
 		else if (thing->player->kartstuff[k_invincibilitytimer] && !tmthing->player->kartstuff[k_invincibilitytimer])
@@ -1440,7 +1437,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	if (thing->player)
 	{
 		// Doesn't matter what gravity player's following! Just do your stuff in YOUR direction only
-		if (tmthing->eflags & MFE_VERTICALFLIP
+		/*if (tmthing->eflags & MFE_VERTICALFLIP
 		&& (tmthing->z + tmthing->height + tmthing->momz < thing->z
 		 || tmthing->z + tmthing->height + tmthing->momz >= thing->z + thing->height))
 			;
@@ -1462,7 +1459,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				// The tmthing->target allows the pusher of the object
 				// to get the point if he topples it on an opponent.
 			}
-		}
+		}*/
 
 		if (tmthing->type == MT_FAN || tmthing->type == MT_STEAM)
 			P_DoFanAndGasJet(tmthing, thing);
@@ -1585,9 +1582,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		; // Fix a few nasty spring-jumping bugs that happen sometimes.
 	// Monitors are not treated as solid to players who are jumping, spinning or gliding,
 	// unless it's a CTF team monitor and you're on the wrong team
-	else if (thing->flags & MF_MONITOR && tmthing->player && tmthing->player->pflags & (PF_JUMPED|PF_SPINNING|PF_GLIDING)
+	/*else if (thing->flags & MF_MONITOR && tmthing->player && tmthing->player->pflags & (PF_JUMPED|PF_SPINNING|PF_GLIDING)
 	&& !((thing->type == MT_REDRINGBOX && tmthing->player->ctfteam != 1) || (thing->type == MT_BLUERINGBOX && tmthing->player->ctfteam != 2)))
-		;
+		;*/
 	// z checking at last
 	// Treat noclip things as non-solid!
 	else if ((thing->flags & (MF_SOLID|MF_NOCLIP)) == MF_SOLID

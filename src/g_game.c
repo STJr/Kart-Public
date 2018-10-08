@@ -2542,15 +2542,15 @@ void G_PlayerReborn(INT32 player)
 	p->maxlink = 0;
 
 	// If NiGHTS, find lowest mare to start with.
-	p->mare = P_FindLowestMare();
+	p->mare = 0; /*P_FindLowestMare();
 
 	CONS_Debug(DBG_NIGHTS, M_GetText("Current mare is %d\n"), p->mare);
 
 	if (p->mare == 255)
-		p->mare = 0;
+		p->mare = 0;*/
 
 	// Check to make sure their color didn't change somehow...
-	if (G_GametypeHasTeams())
+	/*if (G_GametypeHasTeams())
 	{
 		if (p->ctfteam == 1 && p->skincolor != skincolor_redteam)
 		{
@@ -2574,7 +2574,7 @@ void G_PlayerReborn(INT32 player)
 			else if (p == &players[fourthdisplayplayer])
 				CV_SetValue(&cv_playercolor4, skincolor_blueteam);
 		}
-	}
+	}*/
 }
 
 //
@@ -2954,8 +2954,6 @@ void G_DoReborn(INT32 playernum)
 			player->playerstate = PST_REBORN;
 
 			P_LoadThingsOnly();
-
-			P_ClearStarPost(player->starpostnum);
 
 			// Do a wipe
 			wipegamestate = -1;
