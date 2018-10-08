@@ -2977,10 +2977,27 @@ static void K_DoHyudoroSteal(player_t *player)
 
 void K_DoSneaker(player_t *player, INT32 type)
 {
-	fixed_t prevboost = player->kartstuff[k_speedboost];
+	fixed_t intendedboost;
+
+	switch (gamespeed)
+	{
+		case 0:
+			intendedboost = 53740+768;
+			break;
+		case 2:
+			intendedboost = 17294+768;
+			break;
+		default:
+			intendedboost = 32768;
+			break;
+	}
 
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+	{
 		S_StartSound(player->mo, sfx_cdfm01);
+		if (intendedboost > player->kartstuff[k_speedboost])
+			player->kartstuff[k_destboostcam] = FixedMul(FRACUNIT, FixedDiv((intendedboost - player->kartstuff[k_speedboost]), intendedboost));
+	}
 
 	if (!player->kartstuff[k_sneakertimer])
 	{
@@ -3018,10 +3035,6 @@ void K_DoSneaker(player_t *player, INT32 type)
 		player->pflags |= PF_ATTACKDOWN;
 		K_PlayBoostTaunt(player->mo);
 	}
-
-	K_GetKartBoostPower(player);
-	if (player->kartstuff[k_speedboost] > prevboost)
-		player->kartstuff[k_destboostcam] = FRACUNIT;
 }
 
 static void K_DoShrink(player_t *player)
