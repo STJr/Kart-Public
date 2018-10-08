@@ -1297,7 +1297,7 @@ static void HU_drawMiniChat(void)
 	// process all messages once without rendering anything or doing anything fancy so that we know how many lines each message has...
 
 	if (splitscreen > 1)
-		boxw = max(1, boxw/2);
+		boxw = max(64, boxw/2);
 
 	for (; i>0; i--)
 	{
@@ -1438,9 +1438,9 @@ static void HU_drawChatLog(INT32 offset)
 
 	if (splitscreen)
 	{
-		boxh = max(1, boxh/2);
+		boxh = max(6, boxh/2);
 		if (splitscreen > 1)
-			boxw = max(1, boxw/2);
+			boxw = max(64, boxw/2);
 	}
 
 	y = chaty - offset*charheight - (chat_scroll*charheight) - boxh*charheight - 12;
@@ -1563,7 +1563,7 @@ static void HU_DrawChat(void)
 		if (splitscreen > 1)
 		{
 			y += 16;
-			boxw = max(1, boxw/2);
+			boxw = max(64, boxw/2);
 		}
 	}
 	else
