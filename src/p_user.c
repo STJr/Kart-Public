@@ -344,7 +344,7 @@ void P_ResetScore(player_t *player)
 //
 // Returns the lowest open mare available
 //
-UINT8 P_FindLowestMare(void)
+/*UINT8 P_FindLowestMare(void)
 {
 	thinker_t *th;
 	mobj_t *mo2;
@@ -375,7 +375,7 @@ UINT8 P_FindLowestMare(void)
 	CONS_Debug(DBG_NIGHTS, "Lowest mare found: %d\n", mare);
 
 	return mare;
-}
+}*/
 
 //
 // P_FindLowestLap
@@ -438,7 +438,7 @@ UINT8 P_FindHighestLap(void)
 // (Finds the lowest mare # for capsules that have not been destroyed).
 // Returns true if successful, false if there is no other mare.
 //
-boolean P_TransferToNextMare(player_t *player)
+/*boolean P_TransferToNextMare(player_t *player)
 {
 	thinker_t *th;
 	mobj_t *mo2;
@@ -759,7 +759,7 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 		if (G_IsSpecialStage(gamemap))
 		{
 			for (i = 0; i < MAXPLAYERS; i++)
-				if (playeringame[i]/* && players[i].pflags & PF_NIGHTSMODE*/)
+				if (playeringame[i])
 					total_rings += players[i].health-1;
 		}
 
@@ -782,10 +782,6 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 				P_AddPlayerScore(&players[i], (players[i].health - 1) * 50);
 			}
 
-			// Add score to leaderboards now
-			/*if (!(netgame||multiplayer) && P_IsLocalPlayer(&players[i]))
-				G_AddTempNightsRecords(players[i].marescore, leveltime - player->marebegunat, players[i].mare + 1);*/
-
 			// transfer scores anyway
 
 			players[i].mo->health = players[i].health = 1;
@@ -802,10 +798,6 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 		player->texttimer = 4*TICRATE;
 		player->textvar = 4; // Score and grades
 		player->finishedrings = (INT16)(player->health - 1);
-
-		// Add score to temp leaderboards
-		/*if (!(netgame||multiplayer) && P_IsLocalPlayer(player))
-			G_AddTempNightsRecords(player->marescore, leveltime - player->marebegunat, (UINT8)(oldmare + 1));*/
 
 		// Starting a new mare, transfer scores
 		player->marebegunat = leveltime;
@@ -824,7 +816,7 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 	}
 
 	player->pflags |= PF_NIGHTSMODE;
-}
+}*/
 
 //
 // P_PlayerInPain
@@ -4559,7 +4551,7 @@ INT32 P_GetPlayerControlDirection(player_t *player)
 }
 
 // Control scheme for 2d levels.
-static void P_2dMovement(player_t *player)
+/*static void P_2dMovement(player_t *player)
 {
 	ticcmd_t *cmd;
 	INT32 topspeed, acceleration, thrustfactor;
@@ -4736,7 +4728,7 @@ static void P_2dMovement(player_t *player)
 		else if (player->rmomx > -topspeed && cmd->sidemove < 0)
 			P_Thrust(player->mo, movepushangle, movepushforward);
 	}
-}
+}*/
 
 //#define OLD_MOVEMENT_CODE 1
 static void P_3dMovement(player_t *player)
@@ -5027,7 +5019,7 @@ static void P_SpectatorMovement(player_t *player)
 // graphical indicator
 // for building/debugging
 // NiGHTS levels!
-static void P_ShootLine(mobj_t *source, mobj_t *dest, fixed_t height)
+/*static void P_ShootLine(mobj_t *source, mobj_t *dest, fixed_t height)
 {
 	mobj_t *mo;
 	INT32 i;
@@ -5601,16 +5593,6 @@ static void P_DoNiGHTSCapsule(player_t *player)
 					UINT8 em = P_GetNextEmerald();
 					tic_t lowest_time;
 
-					/*for (i = 0; i < MAXPLAYERS; i++)
-					{
-						if (!playeringame[i] || players[i].spectator || !players[i].mo || !players[i].mo->tracer)
-							continue;
-
-						emmo = P_SpawnMobj(players[i].mo->x, players[i].mo->y, players[i].mo->z + players[i].mo->info->height, MT_GOTEMERALD);
-						P_SetTarget(&emmo->target, players[i].mo);
-						P_SetMobjState(emmo, mobjinfo[MT_GOTEMERALD].meleestate + em);
-					}*/
-
 					if (player->mo->tracer)
 					{
 						// Only give it to ONE person, and THAT player has to get to the goal!
@@ -5706,7 +5688,7 @@ static void P_NiGHTSMovement(player_t *player)
 		boolean capsule = false;
 		// NiGHTS special stages have a pseudo-shared timer, so check if ANYONE is feeding the capsule.
 		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i] /*&& players[i].pflags & PF_NIGHTSMODE*/
+			if (playeringame[i]
 			&& (players[i].capsule && players[i].capsule->reactiontime))
 				capsule = true;
 		if (!capsule
@@ -6261,7 +6243,7 @@ static void P_NiGHTSMovement(player_t *player)
 
 	if (objectplacing)
 		OP_NightsObjectplace(player);
-}
+}*/
 
 // May be used in future for CTF
 #if 0
@@ -6480,7 +6462,7 @@ void P_ElementalFireTrail(player_t *player)
 static void P_MovePlayer(player_t *player)
 {
 	ticcmd_t *cmd;
-	INT32 i;
+	//INT32 i;
 
 	fixed_t runspd;
 
@@ -6555,7 +6537,7 @@ static void P_MovePlayer(player_t *player)
 	}
 
 	// Locate the capsule for this mare.
-	else if (maptol & TOL_NIGHTS)
+	/*else if (maptol & TOL_NIGHTS)
 	{
 		if (!player->capsule && !player->bonustime)
 		{
@@ -6608,15 +6590,15 @@ static void P_MovePlayer(player_t *player)
 				P_DamageMobj(player->mo, NULL, NULL, 1);
 			player->pflags &= ~PF_NIGHTSFALL;
 		}
-	}
+	}*/
 
 	//////////////////////
 	// MOVEMENT CODE	//
 	//////////////////////
 
-	if (twodlevel || player->mo->flags2 & MF2_TWOD) // 2d-level, so special control applies.
+	/*if (twodlevel || player->mo->flags2 & MF2_TWOD) // 2d-level, so special control applies.
 		P_2dMovement(player);
-	else
+	else*/
 	{
 		if (!player->climbing && (!P_AnalogMove(player)))
 			player->mo->angle = (cmd->angleturn<<16 /* not FRACBITS */);
@@ -9465,8 +9447,8 @@ void P_PlayerThink(player_t *player)
 		player->losstime--;
 
 	// Flash player after being hit.
-	if (!(player->pflags & PF_NIGHTSMODE
-		|| player->kartstuff[k_hyudorotimer] // SRB2kart - fixes Hyudoro not flashing when it should.
+	if (!(//player->pflags & PF_NIGHTSMODE ||
+		player->kartstuff[k_hyudorotimer] // SRB2kart - fixes Hyudoro not flashing when it should.
 		|| player->kartstuff[k_growshrinktimer] > 0 // Grow doesn't flash either.
 		|| player->kartstuff[k_respawn] // Respawn timer (for drop dash effect)
 		|| (G_BattleGametype() && player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer])
@@ -9478,13 +9460,13 @@ void P_PlayerThink(player_t *player)
 		else
 			player->mo->flags2 &= ~MF2_DONTDRAW;
 	}
-	else if (player->mo->tracer)
+	/*else if (player->mo->tracer)
 	{
 		if (player->powers[pw_flashing] & 1)
 			player->mo->tracer->flags2 |= MF2_DONTDRAW;
 		else
 			player->mo->tracer->flags2 &= ~MF2_DONTDRAW;
-	}
+	}*/
 
 	player->pflags &= ~PF_SLIDING;
 

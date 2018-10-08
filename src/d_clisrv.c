@@ -2495,9 +2495,9 @@ static void CL_RemovePlayer(INT32 playernum)
 	LUA_InvalidatePlayer(&players[playernum]);
 #endif
 
-	if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
+	/*if (G_TagGametype()) //Check if you still have a game. Location flexible. =P
 		P_CheckSurvivors();
-	else if (G_BattleGametype()) // SRB2Kart
+	else*/ if (G_BattleGametype()) // SRB2Kart
 		K_CheckBumpers();
 	else if (G_RaceGametype())
 		P_CheckRacers();

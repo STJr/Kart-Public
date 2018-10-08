@@ -377,7 +377,7 @@ void Command_Hurtme_f(void)
 }
 
 // Moves the NiGHTS player to another axis within the current mare
-void Command_JumpToAxis_f(void)
+/*void Command_JumpToAxis_f(void)
 {
 	REQUIRE_DEVMODE;
 	REQUIRE_INLEVEL;
@@ -438,7 +438,7 @@ void Command_Charspeed_f(void)
 		players[consoleplayer].actionspd = atoi(COM_Argv(2))<<FRACBITS;
 	else
 		CONS_Printf(M_GetText("charspeed <normalspeed/runspeed/thrustfactor/accelstart/acceleration/actionspd> <value>: set character speed\n"));
-}
+}*/
 
 void Command_RTeleport_f(void)
 {
@@ -683,7 +683,7 @@ void Command_Savecheckpoint_f(void)
 }
 
 // Like M_GetAllEmeralds() but for console devmode junkies.
-void Command_Getallemeralds_f(void)
+/*void Command_Getallemeralds_f(void)
 {
 	REQUIRE_SINGLEPLAYER;
 	REQUIRE_NOULTIMATE;
@@ -702,7 +702,7 @@ void Command_Resetemeralds_f(void)
 	emeralds = 0;
 
 	CONS_Printf(M_GetText("Emeralds reset to zero.\n"));
-}
+}*/
 
 void Command_Devmode_f(void)
 {
@@ -730,7 +730,7 @@ void Command_Devmode_f(void)
 	G_SetGameModified(multiplayer);
 }
 
-void Command_Setrings_f(void)
+/*void Command_Setrings_f(void)
 {
 	REQUIRE_INLEVEL;
 	REQUIRE_SINGLEPLAYER;
@@ -785,7 +785,7 @@ void Command_Setcontinues_f(void)
 
 		G_SetGameModified(multiplayer);
 	}
-}
+}*/
 
 //
 // OBJECTPLACE (and related variables)
