@@ -1056,7 +1056,6 @@ static boolean justscrolledup;
 boolean HU_Responder(event_t *ev)
 {
 	INT32 c=0;
-	INT32 i, j;
 	
 	if (ev->type != ev_keydown)
 		return false;
@@ -1065,33 +1064,27 @@ boolean HU_Responder(event_t *ev)
 
 	// Shoot, to prevent P1 chatting from ruining the game for everyone else, it's either:
 	// A. completely disallow opening chat entirely in online splitscreen
-	// or B. iterate through all controls to make sure it's not bound to another player's
+	// or B. iterate through all controls to make sure it's bound to player 1 before eating
 	// You can see which one I chose.
 	// (Unless if you're sharing a keyboard, since you probably establish when you start chatting that you have dibs on it...)
 	// (Ahhh, the good ol days when I was a kid who couldn't afford an extra USB controller...)
 
-	if (chat_on && splitscreen && ev->data1 >= KEY_MOUSE1)
+	if (ev->data1 >= KEY_MOUSE1)
 	{
+		INT32 i;
+		boolean p1control = false;
+
 		for (i = 0; i < num_gamecontrols; i++)
 		{
-			for (j = 0; j < 2; j++)
+			if (gamecontrol[i][0] == ev->data1 || gamecontrol[i][1] == ev->data1)
 			{
-				if (gamecontrolbis[i][j] == ev->data1)
-					return false;
-
-				if (splitscreen > 1)
-				{
-					if (gamecontrol3[i][j] == ev->data1)
-						return false;
-
-					if (splitscreen > 2)
-					{
-						if (gamecontrol4[i][j] == ev->data1)
-							return false;
-					}
-				}
+				p1control = true;
+				break;
 			}
 		}
+
+		if (!p1control)
+			return false;
 	}
 
 	if (!chat_on)

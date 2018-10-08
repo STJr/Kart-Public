@@ -745,33 +745,25 @@ boolean CON_Responder(event_t *ev)
 	// check for console toggle key
 	if (ev->type != ev_console)
 	{
-		INT32 i, j;
-
 		if (modeattacking || metalrecording)
 			return false;
 
-		if (splitscreen && ev->data1 >= KEY_MOUSE1) // See also: HUD_Responder
+		if (ev->data1 >= KEY_MOUSE1) // See also: HUD_Responder
 		{
+			INT32 i;
+			boolean p1control = false;
+
 			for (i = 0; i < num_gamecontrols; i++)
 			{
-				for (j = 0; j < 2; j++)
+				if (gamecontrol[i][0] == ev->data1 || gamecontrol[i][1] == ev->data1)
 				{
-					if (gamecontrolbis[i][j] == ev->data1)
-						return false;
-
-					if (splitscreen > 1)
-					{
-						if (gamecontrol3[i][j] == ev->data1)
-							return false;
-
-						if (splitscreen > 2)
-						{
-							if (gamecontrol4[i][j] == ev->data1)
-								return false;
-						}
-					}
+					p1control = true;
+					break;
 				}
 			}
+
+			if (!p1control)
+				return false;
 		}
 
 		if (key == gamecontrol[gc_console][0] || key == gamecontrol[gc_console][1])
