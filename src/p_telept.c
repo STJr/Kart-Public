@@ -96,10 +96,6 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 		thing->player->starpostangle = starpostangle;
 		thing->player->starpostnum = starpostnum;
 
-		// Reset map starposts for the player's new info.
-		P_ResetStarposts();
-		P_ClearStarPost(starpostnum);
-
 		P_ResetPlayer(thing->player);
 		P_SetPlayerMobjState(thing, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 
