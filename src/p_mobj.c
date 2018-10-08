@@ -6815,8 +6815,6 @@ void P_MobjThinker(mobj_t *mobj)
 #endif
 						)
 						mobj->flags2 |= MF2_DONTDRAW;
-					else
-						mobj->flags2 &= ~MF2_DONTDRAW;
 
 					P_UnsetThingPosition(mobj);
 					mobj->x = mobj->target->x;
