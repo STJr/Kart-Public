@@ -3673,7 +3673,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 				|| (i == fourthdisplayplayer && splitscreen > 2))
 				continue;
 			if (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
-				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 12288<<FRACBITS) // engine sounds' approx. range
+				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 3072<<FRACBITS) // engine sounds' approx. range
 				numcloseplayers++;
 		}
 		if (numcloseplayers > 1)
