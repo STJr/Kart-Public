@@ -3649,17 +3649,26 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 // Engine Sounds.
 static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 {
-	INT32 forwardamount = (6*cmd->forwardmove) / 25; // max of 50 is 12
-	INT32 momamount = ((player->speed>>FRACBITS) / 5);
-	INT32 targetsnd = (forwardamount+momamount)/2;
-	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class (3*weight/3 LOOKS redundant, but it's to reduce the precision and get things into 3 unique categories)
 	const INT32 numsnds = 13;
+	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class number
+	INT32 numcloseplayers = 0;
+	UINT8 volume = 255;
+	INT32 targetsnd = 0;
+	INT32 i;
 
-	if (leveltime < 8) // stats may not be set on level start, so it plays class A sounds
+	if (player->spectator || player->exiting)
 		return;
 
-	if (leveltime % 8)
+	if (leveltime < 8) // stats may not be set on level start, so it might play class A sounds
 		return;
+
+	if (leveltime % 8) // .25 seconds of wait time
+		return;
+
+	if (leveltime <= starttime || player->kartstuff[k_respawn] == 1) // Startup boosts
+		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 6 : 0);
+	else
+		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed>>FRACBITS)/5))/2;
 
 	if (targetsnd < 0)
 		targetsnd = 0;
@@ -3676,7 +3685,32 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_enginesnd] > 12)
 		player->kartstuff[k_enginesnd] = 12;
 
-	S_StartSound(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds));
+	// Display player's engines are quieter
+	if ((player == &players[displayplayer])
+		|| (player == &players[secondarydisplayplayer] && splitscreen)
+		|| (player == &players[thirddisplayplayer] && splitscreen > 1)
+		|| (player == &players[fourthdisplayplayer] && splitscreen > 2))
+		volume = FixedDiv(volume<<FRACBITS, FixedSqrt(((splitscreen+1)*3)<<FRACBITS))>>FRACBITS;
+	else
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
+				continue;
+			if ((i == displayplayer)
+				|| (i == secondarydisplayplayer && splitscreen)
+				|| (i == thirddisplayplayer && splitscreen > 1)
+				|| (i == fourthdisplayplayer && splitscreen > 2))
+				continue;
+			if (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
+				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 12288<<FRACBITS) // engine sounds' approx. range
+				numcloseplayers++;
+		}
+		if (numcloseplayers > 1)
+			volume = FixedDiv(volume<<FRACBITS, FixedSqrt(numcloseplayers<<FRACBITS))>>FRACBITS;
+	}
+
+	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
 }
 
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
