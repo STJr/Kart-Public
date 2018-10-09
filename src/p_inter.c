@@ -592,6 +592,22 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->seesound);
 
+				if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
+				{
+					INT32 numingame = 0;
+					INT32 i;
+
+					for (i = 0; i < MAXPLAYERS; i++)
+					{
+						if (!playeringame[i] || players[i].spectator || players[i].kartstuff[k_bumper] <= 0)
+							continue;
+						numingame++;
+					}
+
+					if (numingame <= 2) // If so, then an extra two karma points so they are 100% certain to switch places; it's annoying to end matches with a fake kill
+						special->target->player->kartstuff[k_comebackpoints] += 2;
+				}
+
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
