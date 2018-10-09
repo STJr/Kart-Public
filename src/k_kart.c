@@ -1796,10 +1796,19 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 				K_CalculateBattleWanted();
 		}
 
+		if (!player->kartstuff[k_bumper])
+		{
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			if (player->kartstuff[k_comebackmode])
+			{
+				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
+				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
+				player->kartstuff[k_comebackmode] = 0;
+			}
+		}
+
 		K_CheckBumpers();
 	}
-
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_spinouttype] = type;
 
@@ -1878,10 +1887,19 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				K_CalculateBattleWanted();
 		}
 
+		if (!player->kartstuff[k_bumper])
+		{
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			if (player->kartstuff[k_comebackmode])
+			{
+				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
+				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
+				player->kartstuff[k_comebackmode] = 0;
+			}
+		}
+
 		K_CheckBumpers();
 	}
-
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_squishedtimer] = 2*TICRATE;
 
@@ -1957,10 +1975,19 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				K_CalculateBattleWanted();
 		}
 
+		if (!player->kartstuff[k_bumper])
+		{
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			if (player->kartstuff[k_comebackmode])
+			{
+				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
+				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
+				player->kartstuff[k_comebackmode] = 0;
+			}
+		}
+
 		K_CheckBumpers();
 	}
-
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_spinouttype] = 1;
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
