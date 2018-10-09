@@ -132,7 +132,7 @@ void M_SetupDefaultConditionSets(void)
 	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 40, 0, 0);
 	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 150, 0, 0);
 
-	// -- 4: Collect 50 emblems ONLY
+	// -- 5: Collect 50 emblems ONLY
 	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 50, 0, 0);
 
 	// -- 10: Play 100 matches
