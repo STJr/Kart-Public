@@ -1799,7 +1799,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		if (!player->kartstuff[k_bumper])
 		{
 			player->kartstuff[k_comebacktimer] = comebacktime;
-			if (player->kartstuff[k_comebackmode])
+			if (player->kartstuff[k_comebackmode] == 2)
 			{
 				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
 				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
@@ -1890,7 +1890,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		if (!player->kartstuff[k_bumper])
 		{
 			player->kartstuff[k_comebacktimer] = comebacktime;
-			if (player->kartstuff[k_comebackmode])
+			if (player->kartstuff[k_comebackmode] == 2)
 			{
 				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
 				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
@@ -1978,7 +1978,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		if (!player->kartstuff[k_bumper])
 		{
 			player->kartstuff[k_comebacktimer] = comebacktime;
-			if (player->kartstuff[k_comebackmode])
+			if (player->kartstuff[k_comebackmode] == 2)
 			{
 				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
 				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
