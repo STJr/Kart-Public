@@ -8541,114 +8541,113 @@ static void M_Setup4PControlsMenu(INT32 choice)
 // Draws the Customise Controls menu
 static void M_DrawControl(void)
 {
-    char     tmp[50];
-    INT32    x, y, i, max, cursory = 0, iter;
-    INT32    keys[2];
+	char tmp[50];
+	INT32 x, y, i, max, cursory = 0, iter;
+	INT32 keys[2];
 
-    x = currentMenu->x;
-    y = currentMenu->y;
+	x = currentMenu->x;
+	y = currentMenu->y;
 
-    /*i = itemOn - (controlheight/2);
-    if (i < 0)
-        i = 0;
-    */
+	/*i = itemOn - (controlheight/2);
+	if (i < 0)
+		i = 0;
+	*/
 
-    iter = (controlheight/2);
-    for (i = itemOn; ((iter || currentMenu->menuitems[i].status == IT_GRAYEDOUT2) && i > 0); i--)
-    {
-        if (currentMenu->menuitems[i].status != IT_GRAYEDOUT2)
-            iter--;
-    }
-    if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
-        i--;
+	iter = (controlheight/2);
+	for (i = itemOn; ((iter || currentMenu->menuitems[i].status == IT_GRAYEDOUT2) && i > 0); i--)
+	{
+		if (currentMenu->menuitems[i].status != IT_GRAYEDOUT2)
+			iter--;
+	}
+	if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
+		i--;
 
-    iter += (controlheight/2);
-    for (max = itemOn; (iter && max < currentMenu->numitems); max++)
-    {
-        if (currentMenu->menuitems[max].status != IT_GRAYEDOUT2)
-            iter--;
-    }
+	iter += (controlheight/2);
+	for (max = itemOn; (iter && max < currentMenu->numitems); max++)
+	{
+		if (currentMenu->menuitems[max].status != IT_GRAYEDOUT2)
+			iter--;
+	}
 
-    if (iter)
-    {
-        iter += (controlheight/2);
-        for (i = itemOn; ((iter || currentMenu->menuitems[i].status == IT_GRAYEDOUT2) && i > 0); i--)
-        {
-            if (currentMenu->menuitems[i].status != IT_GRAYEDOUT2)
-                iter--;
-        }
-    }
+	if (iter)
+	{
+		iter += (controlheight/2);
+		for (i = itemOn; ((iter || currentMenu->menuitems[i].status == IT_GRAYEDOUT2) && i > 0); i--)
+		{
+			if (currentMenu->menuitems[i].status != IT_GRAYEDOUT2)
+				iter--;
+		}
+	}
 
-    /*max = i + controlheight;
-    if (max > currentMenu->numitems)
-    {
-        max = currentMenu->numitems;
-        if (max < controlheight)
-            i = 0;
-        else
-            i = max - controlheight;
-    }*/
+	/*max = i + controlheight;
+	if (max > currentMenu->numitems)
+	{
+		max = currentMenu->numitems;
+		if (max < controlheight)
+			i = 0;
+		else
+			i = max - controlheight;
+	}*/
 
-    // draw title (or big pic)
-    M_DrawMenuTitle();
+	// draw title (or big pic)
+	M_DrawMenuTitle();
 
-    M_CentreText(28,
+	M_CentreText(28,
 		(setupcontrols_fourthplayer ? "\x86""Set controls for ""\x82""Player 4" :
 		(setupcontrols_thirdplayer ? "\x86""Set controls for ""\x82""Player 3" :
-        (setupcontrols_secondaryplayer ? "\x86""Set controls for ""\x82""Player 2" :
-                                          "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
+		(setupcontrols_secondaryplayer ? "\x86""Set controls for ""\x82""Player 2" :
+										"\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
 
-    if (i)
-        V_DrawString(currentMenu->x - 16, y-(skullAnimCounter/5), highlightflags, "\x1A"); // up arrow
-    if (max != currentMenu->numitems)
-        V_DrawString(currentMenu->x - 16, y+(SMALLLINEHEIGHT*(controlheight-1))+(skullAnimCounter/5), highlightflags, "\x1B"); // down arrow
+	if (i)
+		V_DrawString(currentMenu->x - 16, y-(skullAnimCounter/5), highlightflags, "\x1A"); // up arrow
+	if (max != currentMenu->numitems)
+		V_DrawString(currentMenu->x - 16, y+(SMALLLINEHEIGHT*(controlheight-1))+(skullAnimCounter/5), highlightflags, "\x1B"); // down arrow
 
-    for (; i < max; i++)
-    {
-        if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
-            continue;
+	for (; i < max; i++)
+	{
+		if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
+			continue;
 
-        if (i == itemOn)
-            cursory = y;
+		if (i == itemOn)
+			cursory = y;
 
-        if (currentMenu->menuitems[i].status == IT_CONTROL)
-        {
-            V_DrawString(x, y, ((i == itemOn) ? highlightflags : 0), currentMenu->menuitems[i].text);
-            keys[0] = setupcontrols[currentMenu->menuitems[i].alphaKey][0];
-            keys[1] = setupcontrols[currentMenu->menuitems[i].alphaKey][1];
+		if (currentMenu->menuitems[i].status == IT_CONTROL)
+		{
+			V_DrawString(x, y, ((i == itemOn) ? highlightflags : 0), currentMenu->menuitems[i].text);
+			keys[0] = setupcontrols[currentMenu->menuitems[i].alphaKey][0];
+			keys[1] = setupcontrols[currentMenu->menuitems[i].alphaKey][1];
 
-            tmp[0] ='\0';
-            if (keys[0] == KEY_NULL && keys[1] == KEY_NULL)
-            {
-                strcpy(tmp, "---");
-            }
-            else
-            {
-                if (keys[0] != KEY_NULL)
-                    strcat (tmp, G_KeynumToString (keys[0]));
+			tmp[0] ='\0';
+			if (keys[0] == KEY_NULL && keys[1] == KEY_NULL)
+			{
+				strcpy(tmp, "---");
+			}
+			else
+			{
+				if (keys[0] != KEY_NULL)
+					strcat (tmp, G_KeynumToString (keys[0]));
 
-                if (keys[0] != KEY_NULL && keys[1] != KEY_NULL)
-                    strcat(tmp,", ");
+				if (keys[0] != KEY_NULL && keys[1] != KEY_NULL)
+					strcat(tmp,", ");
 
-                if (keys[1] != KEY_NULL)
-                    strcat (tmp, G_KeynumToString (keys[1]));
+				if (keys[1] != KEY_NULL)
+					strcat (tmp, G_KeynumToString (keys[1]));
 
-
-            }
-            V_DrawRightAlignedString(BASEVIDWIDTH-currentMenu->x, y, highlightflags, tmp);
-        }
-        /*else if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
-            V_DrawString(x, y, V_TRANSLUCENT, currentMenu->menuitems[i].text);*/
-        else if ((currentMenu->menuitems[i].status == IT_HEADER) && (i != max-1))
+			}
+			V_DrawRightAlignedString(BASEVIDWIDTH-currentMenu->x, y, highlightflags, tmp);
+		}
+		/*else if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
+			V_DrawString(x, y, V_TRANSLUCENT, currentMenu->menuitems[i].text);*/
+		else if ((currentMenu->menuitems[i].status == IT_HEADER) && (i != max-1))
 			V_DrawString(19, y+6, highlightflags, currentMenu->menuitems[i].text);
 		else if (currentMenu->menuitems[i].status & IT_STRING)
 			V_DrawString(x, y, ((i == itemOn) ? highlightflags : 0), currentMenu->menuitems[i].text);
 
-        y += SMALLLINEHEIGHT;
-    }
+		y += SMALLLINEHEIGHT;
+	}
 
-    V_DrawScaledPatch(currentMenu->x - 20, cursory, 0,
-        W_CachePatchName("M_CURSOR", PU_CACHE));
+	V_DrawScaledPatch(currentMenu->x - 20, cursory, 0,
+		W_CachePatchName("M_CURSOR", PU_CACHE));
 }
 
 #undef controlheight
