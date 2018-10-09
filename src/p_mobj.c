@@ -495,7 +495,7 @@ boolean P_WeaponOrPanel(mobjtype_t type)
 //
 // Power Stone emerald management
 //
-void P_EmeraldManager(void)
+/*void P_EmeraldManager(void)
 {
 	thinker_t *think;
 	mobj_t *mo;
@@ -664,7 +664,7 @@ void P_EmeraldManager(void)
 			break;
 		}
 	}
-}
+}*/
 
 //
 // P_ExplodeMissile
@@ -6059,7 +6059,7 @@ static void P_NightsItemChase(mobj_t *thing)
 	P_Attract(thing, thing->tracer, true);
 }
 
-static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
+/*static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
 {
 	if (!thing->target || thing->target->health <= 0 || !thing->target->player
 		|| (thing->target->player->powers[pw_shield] & SH_NOSTACK) == SH_NONE || thing->target->player->powers[pw_super]
@@ -6175,7 +6175,7 @@ static boolean P_AddShield(mobj_t *thing)
 
 	P_SetTarget(&shields[numshields++], thing);
 	return true;
-}
+}*/
 
 void P_RunOverlays(void)
 {
@@ -6609,8 +6609,8 @@ void P_MobjThinker(mobj_t *mobj)
 					P_RemoveMobj(mobj);
 					return;
 				}
-				else
-					P_AddOverlay(mobj);
+
+				P_AddOverlay(mobj);
 				break;
 			case MT_SHADOW:
 				if (!mobj->target)
@@ -6618,10 +6618,10 @@ void P_MobjThinker(mobj_t *mobj)
 					P_RemoveMobj(mobj);
 					return;
 				}
-				else
-					P_AddShadow(mobj);
+
+				P_AddShadow(mobj);
 				break;
-			case MT_BLACKORB:
+			/*case MT_BLACKORB:
 			case MT_WHITEORB:
 			case MT_GREENORB:
 			case MT_YELLOWORB:
@@ -6629,7 +6629,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_PITYORB:
 				if (!P_AddShield(mobj))
 					return;
-				break;
+				break;*/
 			//{ SRB2kart mobs
 			case MT_ORBINAUT_SHIELD: // Kart orbit/trail items
 			case MT_JAWZ_SHIELD:
@@ -8267,12 +8267,13 @@ void P_MobjThinker(mobj_t *mobj)
 
 				P_SetScale(smoke, mobj->target->scale/2);
 				smoke->destscale = 3*mobj->target->scale/2;
+				smoke->scalespeed = FixedMul(smoke->scalespeed, mobj->target->scale);
 
 				smoke->momx = mobj->target->momx/2;
 				smoke->momy = mobj->target->momy/2;
 				smoke->momz = mobj->target->momz/2;
 
-				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
+				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mobj->target->scale);
 			}
 			break;
 		case MT_SPARKLETRAIL:

@@ -222,30 +222,6 @@ void R_PortalClearClipSegs(INT32 start, INT32 end)
 	newend = solidsegs + 2;
 }
 
-
-// R_DoorClosed
-//
-// This function is used to fix the automap bug which
-// showed lines behind closed doors simply because the door had a dropoff.
-//
-// It assumes that Doom has already ruled out a door being closed because
-// of front-back closure (e.g. front floor is taller than back ceiling).
-static INT32 R_DoorClosed(void)
-{
-	return
-
-	// if door is closed because back is shut:
-	backsector->ceilingheight <= backsector->floorheight
-
-	// preserve a kind of transparent door/lift special effect:
-	&& (backsector->ceilingheight >= frontsector->ceilingheight || curline->sidedef->toptexture)
-
-	&& (backsector->floorheight <= frontsector->floorheight || curline->sidedef->bottomtexture)
-
-	// properly render skies (consider door "open" if both ceilings are sky):
-	&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum);
-}
-
 //
 // If player's view height is underneath fake floor, lower the
 // drawn ceiling to be just under the floor height, and replace
@@ -502,20 +478,23 @@ static void R_AddLine(seg_t *line)
 		SLOPEPARAMS( backsector->f_slope, backf1,  backf2,  backsector->floorheight)
 		SLOPEPARAMS( backsector->c_slope, backc1,  backc2,  backsector->ceilingheight)
 #undef SLOPEPARAMS
-		if ((backc1 <= frontf1 && backc2 <= frontf2)
-			|| (backf1 >= frontc1 && backf2 >= frontc2))
+		if (viewsector != backsector && viewsector != frontsector)
 		{
-			goto clipsolid;
+			if ((backc1 <= frontf1 && backc2 <= frontf2)
+				|| (backf1 >= frontc1 && backf2 >= frontc2))
+			{
+				goto clipsolid;
+			}
+
+			// Check for automap fix. Store in doorclosed for r_segs.c
+			doorclosed = (backc1 <= backf1 && backc2 <= backf2
+			&& ((backc1 >= frontc1 && backc2 >= frontc2) || curline->sidedef->toptexture)
+			&& ((backf1 <= frontf1 && backf2 >= frontf2) || curline->sidedef->bottomtexture)
+			&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
+
+			if (doorclosed)
+				goto clipsolid;
 		}
-
-		// Check for automap fix. Store in doorclosed for r_segs.c
-		doorclosed = (backc1 <= backf1 && backc2 <= backf2
-		&& ((backc1 >= frontc1 && backc2 >= frontc2) || curline->sidedef->toptexture)
-		&& ((backf1 <= frontf1 && backf2 >= frontf2) || curline->sidedef->bottomtexture)
-		&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
-
-		if (doorclosed)
-			goto clipsolid;
 
 		// Window.
 		if (backc1 != frontc1 || backc2 != frontc2
@@ -527,16 +506,23 @@ static void R_AddLine(seg_t *line)
 	else
 #endif
 	{
-		if (backsector->ceilingheight <= frontsector->floorheight
-			|| backsector->floorheight >= frontsector->ceilingheight)
+		if (viewsector != backsector && viewsector != frontsector)
 		{
-			goto clipsolid;
-		}
+			if (backsector->ceilingheight <= frontsector->floorheight
+				|| backsector->floorheight >= frontsector->ceilingheight)
+			{
+				goto clipsolid;
+			}
 
-		// Check for automap fix. Store in doorclosed for r_segs.c
-		doorclosed = R_DoorClosed();
-		if (doorclosed)
-			goto clipsolid;
+			// Check for automap fix. Store in doorclosed for r_segs.c
+			doorclosed = (backsector->ceilingheight <= backsector->floorheight
+			&& (backsector->ceilingheight >= frontsector->ceilingheight || curline->sidedef->toptexture)
+			&& (backsector->floorheight <= frontsector->floorheight || curline->sidedef->bottomtexture)
+			&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
+
+			if (doorclosed)
+				goto clipsolid;
+		}
 
 		// Window.
 		if (backsector->ceilingheight != frontsector->ceilingheight

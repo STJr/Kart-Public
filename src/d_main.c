@@ -1470,6 +1470,29 @@ void D_SRB2Main(void)
 			}
 		}
 
+		if (M_CheckParm("-skill") && M_IsNextParm())
+		{
+			INT32 j;
+			INT16 newskill = -1;
+			const char *sskill = M_GetNextParm();
+
+			for (j = 0; kartspeed_cons_t[j].strvalue; j++)
+				if (!strcasecmp(kartspeed_cons_t[j].strvalue, sskill))
+				{
+					newskill = (INT16)kartspeed_cons_t[j].value;
+					break;
+				}
+			if (!kartspeed_cons_t[j].strvalue) // reached end of the list with no match
+			{
+				j = atoi(sskill); // assume they gave us a skill number, which is okay too
+				if (j >= 0 && j <= 2)
+					newskill = (INT16)j;
+			}
+
+			if (newskill != -1)
+				CV_SetValue(&cv_kartspeed, newskill);
+		}
+
 		if (server && !M_CheckParm("+map"))
 		{
 			// Prevent warping to nonexistent levels
