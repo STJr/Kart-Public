@@ -3646,6 +3646,39 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 	return wtarg;
 }
 
+// Engine Sounds.
+static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
+{
+	INT32 forwardamount = (6*cmd->forwardmove) / 25; // max of 50 is 12
+	INT32 momamount = ((player->speed>>FRACBITS) / 5);
+	INT32 targetsnd = (forwardamount+momamount)/2;
+	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class (3*weight/3 LOOKS redundant, but it's to reduce the precision and get things into 3 unique categories)
+	const INT32 numsnds = 13;
+
+	if (leveltime < 6) // stats may not be set on level start, so it plays class A sounds
+		return;
+
+	if (leveltime % 6)
+		return;
+
+	if (targetsnd < 0)
+		targetsnd = 0;
+	if (targetsnd > 12)
+		targetsnd = 12;
+
+	if (player->kartstuff[k_enginesnd] < targetsnd)
+		player->kartstuff[k_enginesnd]++;
+	if (player->kartstuff[k_enginesnd] > targetsnd)
+		player->kartstuff[k_enginesnd]--;
+
+	if (player->kartstuff[k_enginesnd] < 0)
+		player->kartstuff[k_enginesnd] = 0;
+	if (player->kartstuff[k_enginesnd] > 12)
+		player->kartstuff[k_enginesnd] = 12;
+
+	S_StartSound(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds));
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -3656,6 +3689,7 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
+	K_UpdateEngineSounds(player, cmd);
 	K_GetKartBoostPower(player);
 
 	// Speed lines
