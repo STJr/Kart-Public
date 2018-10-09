@@ -1195,7 +1195,10 @@ boolean HU_Responder(event_t *ev)
 			c_input = 0;			// reset input cursor
 			chat_scrollmedown = true; // you hit enter, so you might wanna autoscroll to see what you just sent. :)
 		}
-		else if (c == KEY_ESCAPE)
+		else if (c == KEY_ESCAPE
+			|| ((c == gamecontrol[gc_talkkey][0] || c == gamecontrol[gc_talkkey][1]
+			|| c == gamecontrol[gc_teamkey][0] || c == gamecontrol[gc_teamkey][1])
+			&& c >= KEY_MOUSE1)) // If it's not a keyboard key, then the chat button is used as a toggle.
 		{
 			chat_on = false;
 			c_input = 0;			// reset input cursor
@@ -1809,7 +1812,7 @@ static void HU_DrawChat_Old(void)
 //
 // Crosshairs are pre-cached at HU_Init
 
-static inline void HU_DrawCrosshair(void)
+/*static inline void HU_DrawCrosshair(void)
 {
 	INT32 i, x, y;
 
@@ -1961,7 +1964,7 @@ static inline void HU_DrawCrosshair4(void)
 
 		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
-}
+}*/
 
 static void HU_DrawCEcho(void)
 {
@@ -2135,7 +2138,7 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	if (!automapactive && !demoplayback)
+	/*if (!automapactive && !demoplayback)
 	{
 		if (cv_crosshair.value && !camera.chase && !players[displayplayer].spectator)
 			HU_DrawCrosshair();
@@ -2148,7 +2151,7 @@ void HU_Drawer(void)
 
 		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
 			HU_DrawCrosshair4();
-	}
+	}*/
 
 	// draw desynch text
 	if (hu_resynching)

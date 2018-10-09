@@ -799,10 +799,10 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_consolechat);
 	CV_RegisterVar(&cv_chatnotifications);
 	CV_RegisterVar(&cv_chatbacktint);
-	CV_RegisterVar(&cv_crosshair);
-	CV_RegisterVar(&cv_crosshair2);
-	CV_RegisterVar(&cv_crosshair3);
-	CV_RegisterVar(&cv_crosshair4);
+	//CV_RegisterVar(&cv_crosshair);
+	//CV_RegisterVar(&cv_crosshair2);
+	//CV_RegisterVar(&cv_crosshair3);
+	//CV_RegisterVar(&cv_crosshair4);
 	//CV_RegisterVar(&cv_alwaysfreelook);
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 
