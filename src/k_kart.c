@@ -256,8 +256,6 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	*/
 };
 
-//#define SALLYALTRAINBOW // Sal's edited version of the below, which keeps a colors' lightness, and looks better with hue-shifted colors like Ruby & Dream. Not strictly *better*, just different...
-
 // Define for getting accurate color brightness readings according to how the human eye sees them.
 // https://en.wikipedia.org/wiki/Relative_luminance
 // 0.2126 to red
@@ -277,7 +275,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	INT32 i;
 	RGBA_t color;
 	UINT8 brightness;
-#ifndef SALLYALTRAINBOW
 	INT32 j;
 	UINT8 colorbrightnesses[16];
 	UINT16 brightdif;
@@ -289,7 +286,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		color = V_GetColor(colortranslations[skincolor][i]);
 		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
-#endif
 
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -301,10 +297,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		}
 		color = V_GetColor(i);
 		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
-#ifdef SALLYALTRAINBOW
-		brightness = 15-(brightness/16); // Yes, 15.
-		dest_colormap[i] = colortranslations[skincolor][brightness];
-#else
 		brightdif = 256;
 		for (j = 0; j < 16; j++)
 		{
@@ -315,7 +307,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 				dest_colormap[i] = colortranslations[skincolor][j];
 			}
 		}
-#endif
 	}
 }
 
@@ -905,12 +896,12 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
-	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+	roulettestop = TICRATE + (3*(pingame - player->kartstuff[k_position]));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop)
+	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop && !modeattacking)
 	{
 		// Mashing reduces your chances for the good items
 		mashed = FixedDiv((player->kartstuff[k_itemroulette])*FRACUNIT, ((TICRATE*3)+roulettestop)*FRACUNIT) - FRACUNIT;
@@ -2177,6 +2168,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		dust->angle = (ANGLE_180/16) * i;
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
+		dust->scalespeed = FixedMul(dust->scalespeed, source->scale);
 		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
 
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
@@ -2184,6 +2176,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*6;
+		truc->scalespeed = FixedMul(truc->scalespeed, source->scale);
 		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2199,6 +2192,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
+		dust->scalespeed = FixedMul(dust->scalespeed, source->scale);
 		dust->tics = 30;
 		dust->momz = P_RandomRange(FixedMul(3*FRACUNIT, source->scale)>>FRACBITS, FixedMul(7*FRACUNIT, source->scale)>>FRACBITS)*FRACUNIT;
 
@@ -2207,6 +2201,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*5;
+		truc->scalespeed = FixedMul(truc->scalespeed, source->scale);
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2531,7 +2526,7 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25)<<FRACBITS), mo->y + (P_RandomRange(-25,25)<<FRACBITS), mo->z, MT_WIPEOUTTRAIL);
+	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25) * mo->scale), mo->y + (P_RandomRange(-25,25) * mo->scale), mo->z, MT_WIPEOUTTRAIL);
 
 	P_SetTarget(&dust->target, mo);
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
@@ -2600,45 +2595,17 @@ void K_DriftDustHandling(mobj_t *spawner)
 		{
 			dust->z += spawner->height - dust->height;
 		}
-		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
-		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
-		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
+		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
+		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
+		dust->momz = P_MobjFlip(spawner) * (P_RandomRange(1, 4) * (spawner->scale));
 		P_SetScale(dust, spawner->scale/2);
 		dust->destscale = spawner->scale * 3;
+		dust->scalespeed = FixedMul(dust->scalespeed, spawner->scale);
 
 		if (leveltime % 6 == 0)
 			S_StartSound(spawner, sfx_screec);
 
-		// Now time for a bunch of flag shit, groooooaann...
-		if (spawner->flags2 & MF2_DONTDRAW)
-			dust->flags2 |= MF2_DONTDRAW;
-		else
-			dust->flags2 &= ~MF2_DONTDRAW;
-
-		if (spawner->eflags & MFE_VERTICALFLIP)
-			dust->eflags |= MFE_VERTICALFLIP;
-		else
-			dust->eflags &= ~MFE_VERTICALFLIP;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP1)
-			dust->eflags |= MFE_DRAWONLYFORP1;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP1;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP2)
-			dust->eflags |= MFE_DRAWONLYFORP2;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP2;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP3)
-			dust->eflags |= MFE_DRAWONLYFORP3;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP3;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP4)
-			dust->eflags |= MFE_DRAWONLYFORP4;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP4;
+		K_MatchGenericExtraFlags(dust, spawner);
 	}
 }
 
@@ -2975,7 +2942,10 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	const fixed_t prevboost = player->kartstuff[k_speedboost];
 
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
+	{
 		S_StartSound(player->mo, sfx_cdfm01);
+		K_SpawnDashDustRelease(player);
+	}
 
 	if (!player->kartstuff[k_sneakertimer])
 	{
@@ -2986,7 +2956,6 @@ void K_DoSneaker(player_t *player, boolean doPFlag)
 	}
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
-	K_SpawnDashDustRelease(player);
 
 	if (doPFlag)
 	{
@@ -3730,9 +3699,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	// Speed lines
 	if ((player->kartstuff[k_sneakertimer] || player->kartstuff[k_driftboost] || player->kartstuff[k_startboost]) && player->speed > 0)
 	{
-		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36)<<FRACBITS),
-			player->mo->y + (P_RandomRange(-36,36)<<FRACBITS),
-			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20)<<FRACBITS),
+		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36) * player->mo->scale),
+			player->mo->y + (P_RandomRange(-36,36) * player->mo->scale),
+			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20) * player->mo->scale),
 			MT_FASTLINE);
 		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
 		fast->momx = 3*player->mo->momx/4;

@@ -8267,12 +8267,13 @@ void P_MobjThinker(mobj_t *mobj)
 
 				P_SetScale(smoke, mobj->target->scale/2);
 				smoke->destscale = 3*mobj->target->scale/2;
+				smoke->scalespeed = FixedMul(smoke->scalespeed, mobj->target->scale);
 
 				smoke->momx = mobj->target->momx/2;
 				smoke->momy = mobj->target->momy/2;
 				smoke->momz = mobj->target->momz/2;
 
-				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
+				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mobj->target->scale);
 			}
 			break;
 		case MT_SPARKLETRAIL:
