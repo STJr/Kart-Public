@@ -2850,24 +2850,25 @@ static void K_DoThunderShield(player_t *player)
 	int i = 0;
 	fixed_t sx;
 	fixed_t sy;
-	
+	angle_t an;
+
 	S_StartSound(player->mo, sfx_zio3);
 	//player->kartstuff[k_thunderanim] = 35;
 	P_NukeEnemies(player->mo, player->mo, RING_DIST/4);
-	
+
 	// spawn vertical bolt
 	mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
 	P_SetTarget(&mo->target, player->mo);
 	P_SetMobjState(mo, S_LZIO11);
 	mo->color = SKINCOLOR_TEAL;
 	mo->scale = player->mo->scale*3 + (player->mo->scale/2);
-	
+
 	mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
 	P_SetTarget(&mo->target, player->mo);
 	P_SetMobjState(mo, S_LZIO21);
 	mo->color = SKINCOLOR_CYAN;
 	mo->scale = player->mo->scale*3 + (player->mo->scale/2);
-	
+
 	// spawn horizontal bolts;
 	for (i=0; i<7; i++)
 	{
@@ -2877,9 +2878,9 @@ static void K_DoThunderShield(player_t *player)
 		P_SetTarget(&mo->target, player->mo);
 		P_SetMobjState(mo, S_KLIT1);
 	}
-	
-	// spawn the radius thing:	
-	angle_t an = ANGLE_22h;
+
+	// spawn the radius thing:
+	an = ANGLE_22h;
 	for (i=0; i<15; i++)
 	{
 		sx = player->mo->x + FixedMul((player->mo->scale*THUNDERRADIUS), FINECOSINE((an*i)>>ANGLETOFINESHIFT));
@@ -7235,7 +7236,7 @@ static void K_drawDistributionDebugger(void)
 	if (stplyr != &players[displayplayer]) // only for p1
 		return;
 
-	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice 
+	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i] || players[i].spectator)
