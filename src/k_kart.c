@@ -3655,10 +3655,10 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class (3*weight/3 LOOKS redundant, but it's to reduce the precision and get things into 3 unique categories)
 	const INT32 numsnds = 13;
 
-	if (leveltime < 6) // stats may not be set on level start, so it plays class A sounds
+	if (leveltime < 8) // stats may not be set on level start, so it plays class A sounds
 		return;
 
-	if (leveltime % 6)
+	if (leveltime % 8)
 		return;
 
 	if (targetsnd < 0)
