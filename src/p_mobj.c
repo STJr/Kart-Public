@@ -8239,7 +8239,7 @@ void P_MobjThinker(mobj_t *mobj)
 			return;
 		case MT_MINEEXPLOSIONSOUND:
 			if (mobj->health == 100)
-				S_StartSound(mobj, sfx_prloop);
+				S_StartSound(mobj, sfx_s3k4e);
 			mobj->health--;
 			break;
 		case MT_BOOSTFLAME:
@@ -8364,7 +8364,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->destscale = mobj->target->destscale;
 			P_SetScale(mobj, mobj->target->scale);
 			mobj->color = mobj->target->color;
-			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode] == 1);
+			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode]);
 
 			if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
 			{
@@ -8378,12 +8378,15 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			else
 			{
-				if (mobj->target->player->kartstuff[k_comebackmode] == 0
+				if (!mobj->target->player->kartstuff[k_comebackmode]
 					&& mobj->state != &states[mobj->info->spawnstate])
 					P_SetMobjState(mobj, mobj->info->spawnstate);
 				else if (mobj->target->player->kartstuff[k_comebackmode] == 1
 					&& mobj->state != &states[mobj->info->seestate])
 					P_SetMobjState(mobj, mobj->info->seestate);
+				else if (mobj->target->player->kartstuff[k_comebackmode] == 2
+					&& mobj->state != &states[mobj->info->painstate])
+					P_SetMobjState(mobj, mobj->info->painstate);
 
 				if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
 					mobj->flags2 |= MF2_DONTDRAW;
@@ -8750,7 +8753,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
-		else if (mobj->type == MT_RANDOMITEM && mobj->threshold == 69 && mobj->fuse <= TICRATE)
+		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM) && mobj->fuse <= TICRATE)
 			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 

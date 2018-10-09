@@ -3554,6 +3554,7 @@ typedef enum state
 
 	S_PLAYERBOMB,
 	S_PLAYERITEM,
+	S_PLAYERFAKE,
 
 	S_KARMAWHEEL,
 	
