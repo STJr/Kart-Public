@@ -465,6 +465,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 	{
 		// what we're gonna do now is check if the node exists
 		// with that logic, characters 4 and 5 are our numbers:
+		const char *newmsg;
 		int spc = 1;	// used if nodenum[1] is a space.
 		char *nodenum = (char*) malloc(3);
 		strncpy(nodenum, msg+3, 5);
@@ -503,7 +504,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 			return;
 		}
 		buf[0] = target;
-		const char *newmsg = msg+5+spc;
+		newmsg = msg+5+spc;
 		memcpy(msg, newmsg, 252);
 	}
 
@@ -567,10 +568,10 @@ static void Command_Sayteam_f(void)
 		CONS_Alert(CONS_NOTICE, M_GetText("Dedicated servers can't send team messages. Use \"say\".\n"));
 		return;
 	}
-	
+
 	if (G_GametypeHasTeams())	// revert to normal say if we don't have teams in this gametype.
 		DoSayCommand(-1, 1, 0);
-	else	
+	else
 		DoSayCommand(0, 1, 0);
 }
 
@@ -607,6 +608,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	char *msg;
 	boolean action = false;
 	char *ptr;
+	int spam_eatmsg = 0;
 
 	CONS_Debug(DBG_NETPLAY,"Received SAY cmd from Player %d (%s)\n", playernum+1, player_names[playernum]);
 
@@ -652,8 +654,6 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			}
 		}
 	}
-
-	int spam_eatmsg = 0;
 
 	// before we do anything, let's verify the guy isn't spamming, get this easier on us.
 
@@ -721,7 +721,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		// player is a spectator?
         if (players[playernum].spectator)
-		{	
+		{
 			cstart = "\x86";    // grey name
 			textcolor = "\x86";
 		}
@@ -731,12 +731,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			{
 				cstart = "\x85";
 				textcolor = "\x85";
-			}	
+			}
 			else // blue
 			{
 				cstart = "\x84";
 				textcolor = "\x84";
-			}	
+			}
 		}
 		else
         {
@@ -775,7 +775,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x89"; // V_LAVENDERMAP
         }
 		prefix = cstart;
-		
+
 		// Give admins and remote admins their symbols.
 		if (playernum == serverplayer)
 			tempchar = (char *)Z_Calloc(strlen(cstart) + strlen(adminchar) + 1, PU_STATIC, NULL);
@@ -883,7 +883,7 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 				{
 					if (s[m])
 						s[m+1] = (s[m]);
-					
+
 					if (m < 1)
 						break;	// fix the chat going ham if your replace the first character. (For whatever reason this didn't happen in vanilla????)
 				}
@@ -896,9 +896,10 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 	}
 	else if (ch == KEY_BACKSPACE)
 	{
+		size_t i;
 		if (c_input <= 0)
 			return false;
-		size_t i = c_input;
+		i = c_input;
 		if (!s[i-1])
 			return false;
 
@@ -951,12 +952,14 @@ static void HU_queueChatChar(INT32 c)
 		char buf[2+256];
 		size_t ci = 2;
 		char *msg = &buf[2];
+		size_t i;
+		INT32 target = 0;
 		do {
 			c = w_chat[-2+ci++];
 			if (!c || (c >= ' ' && !(c & 0x80))) // copy printable characters and terminating '\0' only.
 				buf[ci-1]=c;
 		} while (c);
-		size_t i = 0;
+		i = 0;
 		for (;(i<HU_MAXMSGLEN);i++)
 			w_chat[i] = 0;	// reset this.
 
@@ -969,10 +972,11 @@ static void HU_queueChatChar(INT32 c)
 			return;
 		}
 
-		INT32 target = 0;
-
 		if (strlen(msg) > 4 && strnicmp(msg, "/pm", 3) == 0)	// used /pm
 		{
+			int spc;
+			char *nodenum;
+			const char *newmsg;
 			// what we're gonna do now is check if the node exists
 			// with that logic, characters 4 and 5 are our numbers:
 
@@ -983,8 +987,8 @@ static void HU_queueChatChar(INT32 c)
 				return;
 			}
 
-			int spc = 1;	// used if nodenum[1] is a space.
-			char *nodenum = (char*) malloc(3);
+			spc = 1;	// used if nodenum[1] is a space.
+			nodenum = (char*) malloc(3);
 			strncpy(nodenum, msg+3, 5);
 			// check for undesirable characters in our "number"
 			if 	(((nodenum[0] < '0') || (nodenum[0] > '9')) || ((nodenum[1] < '0') || (nodenum[1] > '9')))
@@ -1021,7 +1025,7 @@ static void HU_queueChatChar(INT32 c)
 				return;
 			}
 			// we need to get rid of the /pm<node>
-			const char *newmsg = msg+5+spc;
+			newmsg = msg+5+spc;
 			memcpy(msg, newmsg, 255);
 		}
 		if (ci > 3) // don't send target+flags+empty message.
@@ -1056,7 +1060,7 @@ static boolean justscrolledup;
 boolean HU_Responder(event_t *ev)
 {
 	INT32 c=0;
-	
+
 	if (ev->type != ev_keydown)
 		return false;
 
@@ -1111,7 +1115,7 @@ boolean HU_Responder(event_t *ev)
 	}
 	else // if chat_on
 	{
-		
+
 		// Ignore modifier keys
 		// Note that we do this here so users can still set
 		// their chat keys to one of these, if they so desire.
@@ -1142,14 +1146,16 @@ boolean HU_Responder(event_t *ev)
 		if (((c == 'v' || c == 'V') && ctrldown) && !CHAT_MUTE)
 		{
 			const char *paste = I_ClipboardPaste();
+			size_t chatlen;
+			size_t pastelen;
 
 			// create a dummy string real quickly
 
 			if (paste == NULL)
 				return true;
 
-			size_t chatlen = strlen(w_chat);
-			size_t pastelen = strlen(paste);
+			chatlen = strlen(w_chat);
+			pastelen = strlen(paste);
 			if (chatlen+pastelen > HU_MAXMSGLEN)
 				return true; // we can't paste this!!
 
@@ -1283,9 +1289,6 @@ INT16 chatx = 13, chaty = 169;	// let's use this as our coordinates, shh
 
 static void HU_drawMiniChat(void)
 {
-	if (!chat_nummsg_min)
-		return;	// needless to say it's useless to do anything if we don't have anything to draw.
-
 	INT32 x = chatx+2;
 	INT32 charwidth = 4, charheight = 6;
 	INT32 boxw = cv_chatwidth.value;
@@ -1295,6 +1298,10 @@ static void HU_drawMiniChat(void)
 
 	INT32 msglines = 0;
 	// process all messages once without rendering anything or doing anything fancy so that we know how many lines each message has...
+	INT32 y;
+
+	if (!chat_nummsg_min)
+		return;	// needless to say it's useless to do anything if we don't have anything to draw.
 
 	if (splitscreen > 1)
 		boxw = max(64, boxw/2);
@@ -1313,10 +1320,10 @@ static void HU_drawMiniChat(void)
 				{
 					++j;
 					if (!prev_linereturn)
-					{	
+					{
 						linescount += 1;
 						dx = 0;
-					}	
+					}
 					prev_linereturn = true;
 					continue;
 				}
@@ -1345,7 +1352,7 @@ static void HU_drawMiniChat(void)
 		msglines += linescount+1;
 	}
 
-	INT32 y = chaty - charheight*(msglines+1);
+	y = chaty - charheight*(msglines+1);
 
 	if (splitscreen)
 	{
@@ -1378,10 +1385,10 @@ static void HU_drawMiniChat(void)
 				{
 					++j;
 					if (!prev_linereturn)
-					{	
+					{
 						dy += charheight;
 						dx = 0;
-					}	
+					}
 					prev_linereturn = true;
 					continue;
 				}
@@ -1579,36 +1586,36 @@ static void HU_DrawChat(void)
 			t = 0x400; // Blue
 #endif
 	}
-	
+
 	if (CHAT_MUTE)
 	{
 		talk = mute;
 		typelines = 1;
 		cflag = V_GRAYMAP;	// set text in gray if chat is muted.
-	}	
-	
+	}
+
 	V_DrawFillConsoleMap(chatx, y-1, boxw, (typelines*charheight), 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);
-	
+
 	while (talk[i])
 	{
 		if (talk[i] < HU_FONTSTART)
 			++i;
 		else
-		{	
+		{
 			V_DrawChatCharacter(chatx + c + 2, y, talk[i] |V_SNAPTOBOTTOM|V_SNAPTOLEFT|cflag, !cv_allcaps.value, V_GetStringColormap(talk[i]|cflag));
 			i++;
-		}	
+		}
 
 		c += charwidth;
 	}
-	
+
 	// if chat is muted, just draw the log and get it over with:
 	if (CHAT_MUTE)
-	{	
+	{
 		HU_drawChatLog(0);
 		return;
-	}	
-	
+	}
+
 	i = 0;
 	typelines = 1;
 
@@ -1651,7 +1658,6 @@ static void HU_DrawChat(void)
 	// handle /pm list.
 	if (strnicmp(w_chat, "/pm", 3) == 0 && vid.width >= 400 && !teamtalk)	// 320x200 unsupported kthxbai
 	{
-		i = 0;
 		INT32 count = 0;
 		INT32 p_dispy = chaty - charheight -1;
 		if (splitscreen)
@@ -1662,21 +1668,23 @@ static void HU_DrawChat(void)
 		}
 		else
 			p_dispy -= (cv_kartspeedometer.value ? 16 : 0);
+		i = 0;
 		for(i=0; (i<MAXPLAYERS); i++)
 		{
 
 			// filter: (code needs optimization pls help I'm bad with C)
 			if (w_chat[3])
 			{
-
+				char *nodenum;
+				UINT32 n;
 				// right, that's half important: (w_chat[4] may be a space since /pm0 msg is perfectly acceptable!)
 				if ( ( ((w_chat[3] != 0) && ((w_chat[3] < '0') || (w_chat[3] > '9'))) || ((w_chat[4] != 0) && (((w_chat[4] < '0') || (w_chat[4] > '9'))))) && (w_chat[4] != ' '))
 					break;
 
 
-				char *nodenum = (char*) malloc(3);
+				nodenum = (char*) malloc(3);
 				strncpy(nodenum, w_chat+3, 4);
-				UINT32 n = atoi((const char*) nodenum);	// turn that into a number
+				n = atoi((const char*) nodenum);	// turn that into a number
 				// special cases:
 
 				if ((n == 0) && !(w_chat[4] == '0'))
@@ -2242,6 +2250,7 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 	UINT8 barcolor = 128;	// color we use for the bars (green, yellow or red)
 	SINT8 i = 0;
 	SINT8 yoffset = 6;
+	INT32 dx;
 	if (ping < 128)
 	{
 		numbars = 3;
@@ -2253,7 +2262,7 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 		barcolor = 103;
 	}
 
-	INT32 dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
+	dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
 	if (!notext || vid.width >= 640)	// how sad, we're using a shit resolution.
 		V_DrawSmallString(dx, y+4, V_ALLOWLOWERCASE, va("%dms", ping));
 
