@@ -1924,6 +1924,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		return;
 	}
 
+	if (source && source != player->mo && source->player)
+		K_PlayHitEmSound(source);
+
 	player->mo->momz = 18*(mapheaderinfo[gamemap-1]->mobj_scale);
 	player->mo->momx = player->mo->momy = 0;
 
