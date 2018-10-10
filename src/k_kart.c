@@ -4719,7 +4719,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						//K_DoSneaker(player, 2);
 
-						player->kartstuff[k_rocketsneakertimer] = itemtime*3;
+						player->kartstuff[k_rocketsneakertimer] = (itemtime*3);
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player, true);
 
@@ -6152,7 +6152,7 @@ static void K_drawKartItem(void)
 	if (itembar && hudtrans)
 	{
 		const INT32 barlength = (splitscreen > 1 ? 12 : 24);
-		const INT32 max = itemtime*3; // timer's normal highest value
+		const INT32 max = (itemtime*3); // timer's normal highest value
 		const INT32 length = min(barlength, (itembar * barlength) / max);
 		const INT32 height = (offset ? 1 : 2);
 		const INT32 x = (offset ? 17 : 11), y = (offset ? 27 : 35);
