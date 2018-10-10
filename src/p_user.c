@@ -6685,36 +6685,17 @@ static void P_MovePlayer(player_t *player)
 		P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 
 	//{ SRB2kart
-	// Engine Sounds.
-	if (!player->exiting)
-	{
-		if (player->speed == 0 && onground && player->speed == 0 && leveltime % 6 == 0)
-			S_StartSound(player->mo, sfx_kart1);
 
-		if ((player->speed < runspd && player->speed != 0) && leveltime % 8 == 0)
-			S_StartSound(player->mo, sfx_kart2);
-
-		if ((player->speed > runspd) && leveltime % 8 == 0)
-			S_StartSound(player->mo, sfx_kart3);
-
-		// Drifting sound
-		{
-			// Start looping the sound now.
-			if (leveltime % 50 == 0 && onground
-			&& player->kartstuff[k_drift] != 0)
-				S_StartSound(player->mo, sfx_mkdrft);
-			// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
-			else if ((player->kartstuff[k_drift] >= 1 || player->kartstuff[k_drift] <= -1) && !S_SoundPlaying(player->mo, sfx_mkdrft) && onground)
-				S_StartSound(player->mo, sfx_mkdrft);
-			// Ok, we'll stop now.
-			else if ((player->kartstuff[k_drift] == 0)
-			&& (player == &players[consoleplayer]
-			|| (splitscreen && player == &players[secondarydisplayplayer])
-			|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-			|| (splitscreen > 2 && player == &players[fourthdisplayplayer])))
-				S_StopSoundByID(player->mo, sfx_mkdrft);
-		}
-	}
+	// Drifting sound
+	// Start looping the sound now.
+	if (leveltime % 50 == 0 && onground && player->kartstuff[k_drift] != 0)
+		S_StartSound(player->mo, sfx_mkdrft);
+	// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
+	else if (!S_SoundPlaying(player->mo, sfx_mkdrft) && onground && player->kartstuff[k_drift] != 0)
+		S_StartSound(player->mo, sfx_mkdrft);
+	// Ok, we'll stop now.
+	else if (player->kartstuff[k_drift] == 0)
+		S_StopSoundByID(player->mo, sfx_mkdrft);
 
 	K_MoveKartPlayer(player, onground);
 	//}

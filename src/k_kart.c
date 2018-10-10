@@ -3675,6 +3675,78 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 	return wtarg;
 }
 
+// Engine Sounds.
+static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
+{
+	const INT32 numsnds = 13;
+	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class number
+	INT32 numcloseplayers = 0;
+	UINT8 volume = 255;
+	INT32 targetsnd = 0;
+	INT32 i;
+
+	// Silence the engines
+	if (leveltime < 8 || player->spectator || player->exiting)
+	{
+		player->kartstuff[k_enginesnd] = 0; // Reset sound number
+		return;
+	}
+
+#if 0
+	if ((leveltime % 8) != ((player-players) % 8)) // Per-player offset, to make engines sound distinct!
+#else
+	if (leveltime % 8) // .25 seconds of wait time between engine sounds
+#endif
+		return;
+
+	if ((leveltime >= starttime-(2*TICRATE) && leveltime <= starttime) || (player->kartstuff[k_respawn] == 1)) // Startup boosts
+		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 12 : 0);
+	else
+		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed / mapheaderinfo[gamemap-1]->mobj_scale)/5))/2;
+
+	if (targetsnd < 0)
+		targetsnd = 0;
+	if (targetsnd > 12)
+		targetsnd = 12;
+
+	if (player->kartstuff[k_enginesnd] < targetsnd)
+		player->kartstuff[k_enginesnd]++;
+	if (player->kartstuff[k_enginesnd] > targetsnd)
+		player->kartstuff[k_enginesnd]--;
+
+	if (player->kartstuff[k_enginesnd] < 0)
+		player->kartstuff[k_enginesnd] = 0;
+	if (player->kartstuff[k_enginesnd] > 12)
+		player->kartstuff[k_enginesnd] = 12;
+
+	// Display player's engines are quieter
+	if ((player == &players[displayplayer])
+		|| (player == &players[secondarydisplayplayer] && splitscreen)
+		|| (player == &players[thirddisplayplayer] && splitscreen > 1)
+		|| (player == &players[fourthdisplayplayer] && splitscreen > 2))
+		volume = FixedDiv(volume<<FRACBITS, FixedSqrt(((splitscreen+1)*3)<<FRACBITS))>>FRACBITS;
+	else
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
+				continue;
+			if ((i == displayplayer)
+				|| (i == secondarydisplayplayer && splitscreen)
+				|| (i == thirddisplayplayer && splitscreen > 1)
+				|| (i == fourthdisplayplayer && splitscreen > 2))
+				continue;
+			if (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
+				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 3072<<FRACBITS) // engine sounds' approx. range
+				numcloseplayers++;
+		}
+		if (numcloseplayers > 1)
+			volume = FixedDiv(volume<<FRACBITS, FixedSqrt(numcloseplayers<<FRACBITS))>>FRACBITS;
+	}
+
+	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -3685,6 +3757,7 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
+	K_UpdateEngineSounds(player, cmd);
 	K_GetKartBoostPower(player);
 
 	// Speed lines

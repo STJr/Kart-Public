@@ -7745,6 +7745,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"VOICES",
 	"TAUNTVOICES",
 	"INSTASHIELD",
+	"ENGINESND",
 
 	"FLOORBOOST",
 	"SPINOUTTYPE",
