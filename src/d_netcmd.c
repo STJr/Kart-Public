@@ -5144,13 +5144,17 @@ static void Color4_OnChange(void)
   */
 static void Mute_OnChange(void)
 {
-	if (server || (IsPlayerAdmin(consoleplayer)))
-		return;
+	/*if (server || (IsPlayerAdmin(consoleplayer)))
+		return;*/
+	// Kinda dumb IMO, you should be able to see confirmation for having muted the chat as the host or admin.
+	
+	if (leveltime <= 1)
+		return;	// avoid having this notification put in our console / log when we boot the server.
 
 	if (cv_mute.value)
-		CONS_Printf(M_GetText("Chat has been muted.\n"));
+		HU_AddChatText(M_GetText("*Chat has been muted."), false);
 	else
-		CONS_Printf(M_GetText("Chat is no longer muted.\n"));
+		HU_AddChatText(M_GetText("*Chat is no longer muted."), false);
 }
 
 /** Hack to clear all changed flags after game start.

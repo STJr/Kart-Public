@@ -386,13 +386,12 @@ static void HU_removeChatText_Log(void)
     chat_nummsg_log--;	// lost 1 msg.
 }
 
-void HU_AddChatText(const char *text)
+void HU_AddChatText(const char *text, boolean playsound)
 {
-	if (cv_chatnotifications.value)
+	if (playsound && cv_consolechat.value != 2)	// Don't play the sound if we're using hidden chat.
 		S_StartSound(NULL, sfx_radio);
-
-	// TODO: check if we're oversaturating the log (we can only log CHAT_BUFSIZE messages.)
-
+	// reguardless of our preferences, put all of this in the chat buffer in case we decide to change from oldchat mid-game.
+	
 	if (chat_nummsg_log >= CHAT_BUFSIZE)
 		HU_removeChatText_Log();
 
@@ -405,6 +404,11 @@ void HU_AddChatText(const char *text)
 	strcpy(chat_mini[chat_nummsg_min], text);
 	chat_timers[chat_nummsg_min] = TICRATE*cv_chattime.value;
 	chat_nummsg_min++;
+	
+	if (OLDCHAT)	// if we're using oldchat, print directly in console
+		CONS_Printf("%s\n", text);
+	else			// if we aren't, still save the message to log.txt
+		CON_LogMessage(va("%s\n", text));
 }
 
 /** Runs a say command, sending an ::XD_SAY message.
@@ -437,7 +441,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 
 	if (CHAT_MUTE)	// TODO: Per Player mute.
 	{
-		HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"));
+		HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"), false);
 		return;
 	}
 
@@ -478,7 +482,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 				// let it slide
 			else
 			{
-				HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.");
+				HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.", false);
 				return;
 			}
 		}
@@ -487,7 +491,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 			{
 				if (msg[5] != ' ')
 				{
-					HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.");
+					HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.", false);
 					return;
 				}
 			}
@@ -500,7 +504,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 			target++;				// even though playernums are from 0 to 31, target is 1 to 32, so up that by 1 to have it work!
 		else
 		{
-			HU_AddChatText(va("\x82NOTICE: \x80Player %d does not exist.", target));	// same
+			HU_AddChatText(va("\x82NOTICE: \x80Player %d does not exist.", target), false);	// same
 			return;
 		}
 		buf[0] = target;
@@ -716,7 +720,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	|| target == 0 // To everyone
 	|| consoleplayer == target-1) // To you
 	{
-		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt, *fmt2, *textcolor = "\x80";
+		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt2, *textcolor = "\x80";
 		char *tempchar = NULL;
 
 		// player is a spectator?
@@ -796,16 +800,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		// name, color end, and the message itself.
 		// '\4' makes the message yellow and beeps; '\3' just beeps.
 		if (action)
-		{
-			fmt = "\3* %s%s%s%s \x82%s%s\n";	// don't make /me yellow, yellow will be for mentions and PMs!
 			fmt2 = "* %s%s%s%s \x82%s%s";
-		}
 		else if (target-1 == consoleplayer) // To you
 		{
 			prefix = "\x82[PM]";
 			cstart = "\x82";
 			textcolor = "\x82";
-			fmt = "\4%s<%s%s>%s\x80 %s%s\n";	// make this yellow, however.
 			fmt2 = "%s<%s%s>%s\x80 %s%s";
 		}
 		else if (target > 0) // By you, to another player
@@ -814,15 +814,11 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			dispname = player_names[target-1];
 			prefix = "\x82[TO]";
 			cstart = "\x82";
-			fmt = "\4%s<%s%s>%s\x80 %s%s\n";	// make this yellow, however.
 			fmt2 = "%s<%s%s>%s\x80 %s%s";
 
 		}
 		else // To everyone or sayteam, it doesn't change anything.
-		{
-			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
 			fmt2 = "%s<%s%s%s>\x80 %s%s";
-		}
 		/*else // To your team
 		{
 			if (players[playernum].ctfteam == 1) // red
@@ -836,12 +832,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			fmt2 = "%s<%s%s>\x80%s %s%s";
 		}*/
 
-		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
-
-		if OLDCHAT
-			CONS_Printf(fmt, prefix, cstart, dispname, cend, textcolor, msg);
-		else
-			CON_LogMessage(va(fmt, prefix, cstart, dispname, cend, textcolor, msg)); // save to log.txt
+		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg), cv_chatnotifications.value); // add to chat
 
 		if (tempchar)
 			Z_Free(tempchar);
@@ -968,7 +959,7 @@ static void HU_queueChatChar(INT32 c)
 		// last minute mute check
 		if (CHAT_MUTE)
 		{
-			HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"));
+			HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"), false);
 			return;
 		}
 
@@ -983,7 +974,7 @@ static void HU_queueChatChar(INT32 c)
 			// teamtalk can't send PMs, just don't send it, else everyone would be able to see it, and no one wants to see your sex RP sicko.
 			if (teamtalk)
 			{
-				HU_AddChatText(va("%sCannot send sayto in Say-Team.", "\x85"));
+				HU_AddChatText(va("%sCannot send sayto in Say-Team.", "\x85"), false);
 				return;
 			}
 
@@ -999,7 +990,7 @@ static void HU_queueChatChar(INT32 c)
 					// let it slide
 				else
 				{
-					HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.");
+					HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.", false);
 					return;
 				}
 			}
@@ -1008,7 +999,7 @@ static void HU_queueChatChar(INT32 c)
 			{
 				if (msg[5] != ' ')
 				{
-					HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.");
+					HU_AddChatText("\x82NOTICE: \x80Invalid command format. Correct format is \'/pm<node> \'.", false);
 					return;
 				}
 			}
@@ -1021,7 +1012,7 @@ static void HU_queueChatChar(INT32 c)
 				target++;				// even though playernums are from 0 to 31, target is 1 to 32, so up that by 1 to have it work!
 			else
 			{
-				HU_AddChatText(va("\x82NOTICE: \x80Player %d does not exist.", target));	// same
+				HU_AddChatText(va("\x82NOTICE: \x80Player %d does not exist.", target), false);	// same
 				return;
 			}
 			// we need to get rid of the /pm<node>
@@ -1998,7 +1989,7 @@ void HU_Drawer(void)
 		{
 		chat_scrolltime = 0;	// do scroll anyway.
 		typelines = 1;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
-		if (!OLDCHAT)
+		if (!OLDCHAT && cv_consolechat.value < 2)	// Don't display minimized chat if you set the mode to Window (Hidden)
 			HU_drawMiniChat();		// draw messages in a cool fashion.
 		}
 	}
