@@ -6314,6 +6314,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	// Rocket sneaker
 	"S_ROCKETSNEAKER_L",
 	"S_ROCKETSNEAKER_R",
+	"S_ROCKETSNEAKER_LVIBRATE",
+	"S_ROCKETSNEAKER_RVIBRATE",
 
 	//{ Eggman Monitor
 	"S_FAKEITEM1",

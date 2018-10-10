@@ -997,14 +997,9 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 					weight = (against->player->kartweight)<<FRACBITS;
 			}
 			break;
-		case MT_ROCKETSNEAKER:
-			if (against->player)
-				weight = (against->player->kartweight*2)<<FRACBITS;
-			else
-				weight = 10<<FRACBITS;
-			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
+		case MT_ROCKETSNEAKER:
 			if (against->player)
 				weight = (against->player->kartweight)<<FRACBITS;
 			break;
@@ -2993,9 +2988,9 @@ void K_DoSneaker(player_t *player, INT32 type)
 	if (!player->kartstuff[k_floorboost] || player->kartstuff[k_floorboost] == 3)
 	{
 		S_StartSound(player->mo, sfx_cdfm01);
+		K_SpawnDashDustRelease(player);
 		if (intendedboost > player->kartstuff[k_speedboost])
 			player->kartstuff[k_destboostcam] = FixedMul(FRACUNIT, FixedDiv((intendedboost - player->kartstuff[k_speedboost]), intendedboost));
-		K_SpawnDashDustRelease(player);
 	}
 
 	if (!player->kartstuff[k_sneakertimer])
@@ -3599,6 +3594,7 @@ static void K_MoveHeldObjects(player_t *player)
 				while (cur && !P_MobjWasRemoved(cur))
 				{
 					const fixed_t radius = FixedHypot(player->mo->radius, player->mo->radius) + FixedHypot(cur->radius, cur->radius);
+					boolean vibrate = ((leveltime & 1) && !cur->tracer);
 					angle_t angoffset;
 					fixed_t targx, targy, targz;
 
@@ -3610,9 +3606,9 @@ static void K_MoveHeldObjects(player_t *player)
 						cur->flags2 &= ~MF2_DONTDRAW;
 
 					if (num & 1)
-						P_SetMobjStateNF(cur, S_ROCKETSNEAKER_L);
+						P_SetMobjStateNF(cur, (vibrate ? S_ROCKETSNEAKER_LVIBRATE : S_ROCKETSNEAKER_L));
 					else
-						P_SetMobjStateNF(cur, S_ROCKETSNEAKER_R);
+						P_SetMobjStateNF(cur, (vibrate ? S_ROCKETSNEAKER_RVIBRATE : S_ROCKETSNEAKER_R));
 
 					if (!player->kartstuff[k_rocketsneakertimer] || cur->extravalue2 || !cur->health)
 					{
@@ -4690,7 +4686,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			K_DoSneaker(player, 2);
 			K_PlayBoostTaunt(player->mo);
-			player->kartstuff[k_rocketsneakertimer] -= 5;
+			player->kartstuff[k_rocketsneakertimer] -= 2*TICRATE;
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
 				player->kartstuff[k_rocketsneakertimer] = 1;
 		}
@@ -4724,7 +4720,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						//K_DoSneaker(player, 2);
 
-						player->kartstuff[k_rocketsneakertimer] = itemtime;
+						player->kartstuff[k_rocketsneakertimer] = itemtime*3;
 						player->kartstuff[k_itemamount]--;
 						K_UpdateHnextList(player, true);
 
@@ -6157,7 +6153,7 @@ static void K_drawKartItem(void)
 	if (itembar && hudtrans)
 	{
 		const INT32 barlength = (splitscreen > 1 ? 12 : 24);
-		const INT32 max = itemtime; // timer's normal highest value
+		const INT32 max = itemtime*3; // timer's normal highest value
 		const INT32 length = min(barlength, (itembar * barlength) / max);
 		const INT32 height = (offset ? 1 : 2);
 		const INT32 x = (offset ? 17 : 11), y = (offset ? 27 : 35);
