@@ -999,7 +999,6 @@ static fixed_t K_GetMobjWeight(mobj_t *mobj, mobj_t *against)
 			break;
 		case MT_ORBINAUT:
 		case MT_ORBINAUT_SHIELD:
-		case MT_ROCKETSNEAKER:
 			if (against->player)
 				weight = (against->player->kartweight)<<FRACBITS;
 			break;
