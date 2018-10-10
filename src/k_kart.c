@@ -3626,19 +3626,24 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	INT32 targetsnd = 0;
 	INT32 i;
 
-	if (player->spectator || player->exiting)
+	// Silence the engines
+	if (leveltime < 8 || player->spectator || player->exiting)
+	{
+		player->kartstuff[k_enginesnd] = 0; // Reset sound number
+		return;
+	}
+
+#if 0
+	if ((leveltime % 8) != ((player-players) % 8)) // Per-player offset, to make engines sound distinct!
+#else
+	if (leveltime % 8) // .25 seconds of wait time between engine sounds
+#endif
 		return;
 
-	if (leveltime < 8) // stats may not be set on level start, so it might play class A sounds
-		return;
-
-	if (leveltime % 8) // .25 seconds of wait time
-		return;
-
-	if (leveltime <= starttime || player->kartstuff[k_respawn] == 1) // Startup boosts
-		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 6 : 0);
+	if ((leveltime >= starttime-(2*TICRATE) && leveltime <= starttime) || (player->kartstuff[k_respawn] == 1)) // Startup boosts
+		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 12 : 0);
 	else
-		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed>>FRACBITS)/5))/2;
+		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed / mapheaderinfo[gamemap-1]->mobj_scale)/5))/2;
 
 	if (targetsnd < 0)
 		targetsnd = 0;
