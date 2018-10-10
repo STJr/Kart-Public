@@ -340,7 +340,7 @@ void SendWeaponPref2(void);
 void SendWeaponPref3(void);
 void SendWeaponPref4(void);
 
-static CV_PossibleValue_t crosshair_cons_t[] = {{0, "Off"}, {1, "Cross"}, {2, "Angle"}, {3, "Point"}, {0, NULL}};
+//static CV_PossibleValue_t crosshair_cons_t[] = {{0, "Off"}, {1, "Cross"}, {2, "Angle"}, {3, "Point"}, {0, NULL}};
 static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 #ifdef _WII
 {1, "LStick.X"}, {2, "LStick.Y"}, {-1, "LStick.X-"}, {-2, "LStick.Y-"},
@@ -428,10 +428,10 @@ consvar_t cv_chatbacktint = {"chatbacktint", "Off", CV_SAVE, CV_OnOff, NULL, 0, 
 static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {0, NULL}};
 consvar_t cv_consolechat = {"chatmode", "Window", CV_SAVE, consolechat_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_crosshair = {"crosshair", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_crosshair2 = {"crosshair2", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_crosshair3 = {"crosshair3", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_crosshair4 = {"crosshair4", "Cross", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+/*consvar_t cv_crosshair = {"crosshair", "Off", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_crosshair2 = {"crosshair2", "Off", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_crosshair3 = {"crosshair3", "Off", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_crosshair4 = {"crosshair4", "Off", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};*/
 consvar_t cv_invertmouse = {"invertmouse", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_alwaysfreelook = {"alwaysmlook", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_invertmouse2 = {"invertmouse2", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1812,18 +1812,22 @@ static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 boolean G_Responder(event_t *ev)
 {
 	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12)
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown
+		&& (ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
 	{
 		if (splitscreen || !netgame)
 			displayplayer = consoleplayer;
 		else
 		{
-			// spy mode
-			do
+			UINT8 i = 0; // spy mode
+			for (i = 0; i < MAXPLAYERS; i++)
 			{
 				displayplayer++;
 				if (displayplayer == MAXPLAYERS)
 					displayplayer = 0;
+
+				if (displayplayer == consoleplayer)
+					break; // End loop
 
 				if (!playeringame[displayplayer])
 					continue;
@@ -1831,6 +1835,18 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].spectator)
 					continue;
 
+				// SRB2Kart: Only go through players who are actually playing
+				if (players[displayplayer].exiting)
+					continue;
+
+				// I don't know if we want this actually, but I'll humor the suggestion anyway
+				if (G_BattleGametype())
+				{
+					if (players[displayplayer].kartstuff[k_bumper] <= 0)
+						continue;
+				}
+
+				// SRB2Kart: we have no team-based modes, YET...
 				/*if (G_GametypeHasTeams())
 				{
 					if (players[consoleplayer].ctfteam
@@ -1855,23 +1871,12 @@ boolean G_Responder(event_t *ev)
 						continue;
 				}*/
 
-				// SRB2Kart: Ehhh, who cares, Mario Kart's designed around screen-cheating anyway
-				/*if (gametype != GT_RACE)
-				{
-					if (players[consoleplayer].kartstuff[k_bumper] > 0)
-						continue;
-				}*/
-
 				break;
-			} while (displayplayer != consoleplayer);
+			}
 
 			// change statusbar also if playing back demo
 			if (singledemo)
 				ST_changeDemoView();
-
-			// tell who's the view
-			CONS_Printf(M_GetText("Viewpoint: %s\n"), player_names[displayplayer]);
-			P_ResetCamera(&players[displayplayer], &camera);
 
 			return true;
 		}
@@ -2280,28 +2285,11 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	{
 		if (legitimateexit && !demoplayback && !mapreset) // (yes you're allowed to unlock stuff this way when the game is modified)
 		{
-			UINT8 i = 0;
-
-			if (netgame)
+			matchesplayed++;
+			if (M_UpdateUnlockablesAndExtraEmblems(true))
 			{
-				// check to see if there's anyone else at all
-				for (; i < MAXPLAYERS; i++)
-				{
-					if (i == consoleplayer)
-						continue;
-					if (playeringame[i] && !stplyr->spectator)
-						break;
-				}
-			}
-
-			if (i != MAXPLAYERS) // Not FREE PLAY
-			{
-				matchesplayed++;
-				if (M_UpdateUnlockablesAndExtraEmblems(true))
-				{
-					S_StartSound(NULL, sfx_ncitem);
-					G_SaveGameData(true); // only save if unlocked something
-				}
+				S_StartSound(NULL, sfx_ncitem);
+				G_SaveGameData(true); // only save if unlocked something
 			}
 		}
 
@@ -2519,6 +2507,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
+	p->kartstuff[k_eggmanblame] = -1;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -2554,15 +2543,15 @@ void G_PlayerReborn(INT32 player)
 	p->maxlink = 0;
 
 	// If NiGHTS, find lowest mare to start with.
-	p->mare = P_FindLowestMare();
+	p->mare = 0; /*P_FindLowestMare();
 
 	CONS_Debug(DBG_NIGHTS, M_GetText("Current mare is %d\n"), p->mare);
 
 	if (p->mare == 255)
-		p->mare = 0;
+		p->mare = 0;*/
 
 	// Check to make sure their color didn't change somehow...
-	if (G_GametypeHasTeams())
+	/*if (G_GametypeHasTeams())
 	{
 		if (p->ctfteam == 1 && p->skincolor != skincolor_redteam)
 		{
@@ -2586,7 +2575,7 @@ void G_PlayerReborn(INT32 player)
 			else if (p == &players[fourthdisplayplayer])
 				CV_SetValue(&cv_playercolor4, skincolor_blueteam);
 		}
-	}
+	}*/
 }
 
 //
@@ -2966,8 +2955,6 @@ void G_DoReborn(INT32 playernum)
 			player->playerstate = PST_REBORN;
 
 			P_LoadThingsOnly();
-
-			P_ClearStarPost(player->starpostnum);
 
 			// Do a wipe
 			wipegamestate = -1;

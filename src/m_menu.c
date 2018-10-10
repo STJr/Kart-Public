@@ -288,8 +288,7 @@ static void M_SetupMultiPlayer4(INT32 choice);
 // Options
 // Split into multiple parts due to size
 // Controls
-menu_t OP_ControlsDef, /*OP_ControlListDef,*/ OP_MoveControlsDef;
-menu_t /*OP_MPControlsDef, OP_CameraControlsDef, OP_MiscControlsDef,*/ OP_CustomControlsDef, OP_SpectateControlsDef;
+menu_t OP_ControlsDef, OP_AllControlsDef;
 menu_t OP_MouseOptionsDef, OP_Mouse2OptionsDef;
 menu_t OP_Joystick1Def, OP_Joystick2Def;
 #ifndef NOFOURPLAYER
@@ -1113,87 +1112,46 @@ static menuitem_t OP_ControlsMenu[] =
 #endif
 };
 
-static menuitem_t OP_MoveControlsMenu[] =
+static menuitem_t OP_AllControlsMenu[] =
 {
-	{IT_CONTROL, NULL, "Accelerate",       M_ChangeControl, gc_accelerate },
-	{IT_CONTROL, NULL, "Turn Left",        M_ChangeControl, gc_turnleft   },
-	{IT_CONTROL, NULL, "Turn Right",       M_ChangeControl, gc_turnright  },
-	{IT_CONTROL, NULL, "Drift",            M_ChangeControl, gc_drift      },
-	{IT_CONTROL, NULL, "Brake",            M_ChangeControl, gc_brake      },
-	{IT_CONTROL, NULL, "Use/Throw Item",   M_ChangeControl, gc_fire       },
-	{IT_CONTROL, NULL, "Aim Forward",      M_ChangeControl, gc_aimforward },
-	{IT_CONTROL, NULL, "Aim Backward",     M_ChangeControl, gc_aimbackward},
-	{IT_CONTROL, NULL, "Look Backward",    M_ChangeControl, gc_lookback   },
-
-	{IT_SPACE, NULL, "", NULL, 76},
-	{IT_CONTROL, NULL, "Talk key",         M_ChangeControl, gc_talkkey    },
-	//{IT_CONTROL, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey    },
-	{IT_CONTROL, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores     },
-	{IT_CONTROL, NULL, "Open/Close Menu (ESC)", M_ChangeControl, gc_systemmenu},
-	{IT_CONTROL, NULL, "Pause",            M_ChangeControl, gc_pause      },
-	{IT_CONTROL, NULL, "Console",          M_ChangeControl, gc_console    },
-
-	{IT_SUBMENU | IT_STRING, NULL, "Gamepad Options...",    &OP_Joystick1Def,        120},
-	{IT_SUBMENU | IT_STRING, NULL, "Spectator Controls...", &OP_SpectateControlsDef, 128},
-	{IT_SUBMENU | IT_STRING, NULL, "Custom Lua Actions...", &OP_CustomControlsDef,   136},
+	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 0},
+	//{IT_SPACE, NULL, NULL, NULL, 0},
+	{IT_HEADER, NULL, "Gameplay Controls", NULL, 0},
+	{IT_SPACE, NULL, NULL, NULL, 0},
+	{IT_CONTROL, NULL, "Accelerate",            M_ChangeControl, gc_accelerate },
+	{IT_CONTROL, NULL, "Turn Left",             M_ChangeControl, gc_turnleft   },
+	{IT_CONTROL, NULL, "Turn Right",            M_ChangeControl, gc_turnright  },
+	{IT_CONTROL, NULL, "Drift",                 M_ChangeControl, gc_drift      },
+	{IT_CONTROL, NULL, "Brake",                 M_ChangeControl, gc_brake      },
+	{IT_CONTROL, NULL, "Use/Throw Item",        M_ChangeControl, gc_fire       },
+	{IT_CONTROL, NULL, "Aim Forward",           M_ChangeControl, gc_aimforward },
+	{IT_CONTROL, NULL, "Aim Backward",          M_ChangeControl, gc_aimbackward},
+	{IT_CONTROL, NULL, "Look Backward",         M_ChangeControl, gc_lookback   },
+	{IT_HEADER, NULL, "Miscelleanous Controls", NULL, 0},
+	{IT_SPACE, NULL, NULL, NULL, 0},
+	{IT_CONTROL, NULL, "Chat",                  M_ChangeControl, gc_talkkey    },
+	//{IT_CONTROL, NULL, "Team Chat",             M_ChangeControl, gc_teamkey    },
+	{IT_CONTROL, NULL, "Show Rankings",         M_ChangeControl, gc_scores     },
+	{IT_CONTROL, NULL, "Change Viewpoint",      M_ChangeControl, gc_viewpoint  },
+	{IT_CONTROL, NULL, "Reset Camera",          M_ChangeControl, gc_camreset   },
+	{IT_CONTROL, NULL, "Toggle First-Person",   M_ChangeControl, gc_camtoggle  },
+	{IT_CONTROL, NULL, "Pause",                 M_ChangeControl, gc_pause      },
+	{IT_CONTROL, NULL, "Screenshot",            M_ChangeControl, gc_screenshot },
+	{IT_CONTROL, NULL, "Toggle GIF Recording",  M_ChangeControl, gc_recordgif  },
+	{IT_CONTROL, NULL, "Open/Close Menu (ESC)", M_ChangeControl, gc_systemmenu },
+	{IT_CONTROL, NULL, "Developer Console",     M_ChangeControl, gc_console    },
+	{IT_HEADER, NULL, "Spectator Controls", NULL, 0},
+	{IT_SPACE, NULL, NULL, NULL, 0},
+	{IT_CONTROL, NULL, "Become Spectator",      M_ChangeControl, gc_spectate   },
+	{IT_CONTROL, NULL, "Look Up",               M_ChangeControl, gc_lookup     },
+	{IT_CONTROL, NULL, "Look Down",             M_ChangeControl, gc_lookdown   },
+	{IT_CONTROL, NULL, "Center View",           M_ChangeControl, gc_centerview },
+	{IT_HEADER, NULL, "Custom Lua Actions", NULL, 0},
+	{IT_SPACE, NULL, NULL, NULL, 0},
+	{IT_CONTROL, NULL, "Custom Action 1",       M_ChangeControl, gc_custom1    },
+	{IT_CONTROL, NULL, "Custom Action 2",       M_ChangeControl, gc_custom2    },
+	{IT_CONTROL, NULL, "Custom Action 3",       M_ChangeControl, gc_custom3    },
 };
-
-static menuitem_t OP_SpectateControlsMenu[] =
-{
-	{IT_CONTROL, NULL, "Become Spectator", M_ChangeControl, gc_spectate  },
-	{IT_CONTROL, NULL, "Look Up",          M_ChangeControl, gc_lookup    },
-	{IT_CONTROL, NULL, "Look Down",        M_ChangeControl, gc_lookdown  },
-	{IT_CONTROL, NULL, "Center View",      M_ChangeControl, gc_centerview},
-	{IT_CONTROL, NULL, "Reset Camera",     M_ChangeControl, gc_camreset  },
-	{IT_CONTROL, NULL, "Toggle Chasecam",  M_ChangeControl, gc_camtoggle },
-
-	{IT_STRING | IT_CVAR, NULL, "Chasecam" , &cv_chasecam , 52},
-	{IT_STRING | IT_CVAR, NULL, "Crosshair", &cv_crosshair, 60},
-};
-
-static menuitem_t OP_CustomControlsMenu[] = 
-{
-	{IT_CONTROL, NULL, "Custom Action 1", M_ChangeControl, gc_custom1},
-	{IT_CONTROL, NULL, "Custom Action 2", M_ChangeControl, gc_custom2},
-	{IT_CONTROL, NULL, "Custom Action 3", M_ChangeControl, gc_custom3},
-};
-
-// Obsolete thanks to Kart
-/*static menuitem_t OP_MPControlsMenu[] =
-{
-//	{IT_CALL | IT_STRING2, NULL, "Next Weapon",      M_ChangeControl, gc_driftleft    },
-//	{IT_CALL | IT_STRING2, NULL, "Prev Weapon",      M_ChangeControl, gc_driftright   },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 1",    M_ChangeControl, gc_wepslot1     },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 2",    M_ChangeControl, gc_wepslot2     },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 3",    M_ChangeControl, gc_wepslot3     },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 4",    M_ChangeControl, gc_wepslot4     },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 5",    M_ChangeControl, gc_wepslot5     },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 6",    M_ChangeControl, gc_wepslot6     },
-//	{IT_CALL | IT_STRING2, NULL, "Weapon Slot 7",    M_ChangeControl, gc_wepslot7     },
-};
-
-static menuitem_t OP_CameraControlsMenu[] =
-{
-//	{IT_CALL | IT_STRING2, NULL, "Look Up",          M_ChangeControl, gc_lookup       },
-//	{IT_CALL | IT_STRING2, NULL, "Look Down",        M_ChangeControl, gc_lookdown     },
-//	{IT_CALL | IT_STRING2, NULL, "Center View",      M_ChangeControl, gc_centerview   },
-//	{IT_CALL | IT_STRING2, NULL, "Mouselook",        M_ChangeControl, gc_mouseaiming  },
-};
-
-static menuitem_t OP_MiscControlsMenu[] =
-{
-	{IT_CALL | IT_STRING2, NULL, "Custom Action 1",  M_ChangeControl, gc_custom1      },
-	{IT_CALL | IT_STRING2, NULL, "Custom Action 2",  M_ChangeControl, gc_custom2      },
-	{IT_CALL | IT_STRING2, NULL, "Custom Action 3",  M_ChangeControl, gc_custom3      },
-
-	{IT_CALL | IT_STRING2, NULL, "Pause",            M_ChangeControl, gc_pause        },
-	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, gc_console      },
-	
-	{IT_CALL | IT_STRING2, NULL, "Talk key",         M_ChangeControl, gc_talkkey      },
-	{IT_CALL | IT_STRING2, NULL, "Team-Talk key",    M_ChangeControl, gc_teamkey      },
-	{IT_CALL | IT_STRING2, NULL, "Rankings/Scores",  M_ChangeControl, gc_scores       },
-	{IT_CALL | IT_STRING2, NULL, "Spectate",         M_ChangeControl, gc_spectate     },
-};*/
 
 static menuitem_t OP_Joystick1Menu[] =
 {
@@ -1953,28 +1911,12 @@ menu_t OP_MainDef =
 };
 
 menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDef, 60, 30);
-//menu_t OP_ControlListDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlListMenu, &OP_ControlsDef, 60, 30);
-menu_t OP_MoveControlsDef = CONTROLMENUSTYLE(OP_MoveControlsMenu, &OP_ControlsDef);
-//menu_t OP_MPControlsDef = CONTROLMENUSTYLE(OP_MPControlsMenu, &OP_ControlListDef);
-//menu_t OP_CameraControlsDef = CONTROLMENUSTYLE(OP_CameraControlsMenu, &OP_ControlListDef);
-//menu_t OP_MiscControlsDef = CONTROLMENUSTYLE(OP_MiscControlsMenu, &OP_ControlListDef);
-menu_t OP_CustomControlsDef = CONTROLMENUSTYLE(OP_CustomControlsMenu, &OP_MoveControlsDef);
-menu_t OP_SpectateControlsDef = CONTROLMENUSTYLE(OP_SpectateControlsMenu, &OP_MoveControlsDef);
-/*
-menu_t OP_P1ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P1ControlsMenu, &OP_ControlsDef, 60, 30);
-menu_t OP_P2ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P2ControlsMenu, &OP_ControlsDef, 60, 30);
+menu_t OP_AllControlsDef = CONTROLMENUSTYLE(OP_AllControlsMenu, &OP_ControlsDef);
+menu_t OP_Joystick1Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick1Menu, &OP_AllControlsDef, 60, 30);
+menu_t OP_Joystick2Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick2Menu, &OP_AllControlsDef, 60, 30);
 #ifndef NOFOURPLAYER
-menu_t OP_P3ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P3ControlsMenu, &OP_ControlsDef, 60, 30);
-menu_t OP_P4ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_P4ControlsMenu, &OP_ControlsDef, 60, 30);
-#endif
-menu_t OP_MouseOptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_MouseOptionsMenu, &OP_P1ControlsDef, 60, 30);
-menu_t OP_Mouse2OptionsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_Mouse2OptionsMenu, &OP_P2ControlsDef, 60, 30);
-*/
-menu_t OP_Joystick1Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick1Menu, &OP_MoveControlsDef, 60, 30);
-menu_t OP_Joystick2Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick2Menu, &OP_MoveControlsDef, 60, 30);
-#ifndef NOFOURPLAYER
-menu_t OP_Joystick3Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick3Menu, &OP_MoveControlsDef, 60, 30);
-menu_t OP_Joystick4Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick4Menu, &OP_MoveControlsDef, 60, 30);
+menu_t OP_Joystick3Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick3Menu, &OP_AllControlsDef, 60, 30);
+menu_t OP_Joystick4Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick4Menu, &OP_AllControlsDef, 60, 30);
 #endif
 menu_t OP_JoystickSetDef =
 {
@@ -2550,7 +2492,7 @@ boolean M_Responder(event_t *ev)
 
 	if (ch == -1)
 		return false;
-	else if (ch == gamecontrol[gc_systemmenu][0]) // allow remappable ESC key
+	else if (ch == gamecontrol[gc_systemmenu][0] || ch == gamecontrol[gc_systemmenu][1]) // allow remappable ESC key
 		ch = KEY_ESCAPE;
 
 	// F-Keys
@@ -3969,7 +3911,7 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 			if (M_MapLocked(mapnum+1))
 				return false; // not unlocked
 
-			if (gt == GT_COOP && (mapheaderinfo[mapnum]->typeoflevel & TOL_COOP))
+			/*if (gt == GT_COOP && (mapheaderinfo[mapnum]->typeoflevel & TOL_COOP))
 				return true;
 
 			if (gt == GT_COMPETITION && (mapheaderinfo[mapnum]->typeoflevel & TOL_COMPETITION))
@@ -3978,10 +3920,10 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 			if (gt == GT_CTF && (mapheaderinfo[mapnum]->typeoflevel & TOL_CTF))
 				return true;
 
-			if ((gt == GT_MATCH || gt == GT_TEAMMATCH) && (mapheaderinfo[mapnum]->typeoflevel & TOL_MATCH))
-				return true;
-
 			if ((gt == GT_TAG || gt == GT_HIDEANDSEEK) && (mapheaderinfo[mapnum]->typeoflevel & TOL_TAG))
+				return true;*/
+
+			if ((gt == GT_MATCH || gt == GT_TEAMMATCH) && (mapheaderinfo[mapnum]->typeoflevel & TOL_MATCH))
 				return true;
 
 			if (gt == GT_RACE && (mapheaderinfo[mapnum]->typeoflevel & TOL_RACE))
@@ -3989,29 +3931,38 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 
 			return false;
 
-		case LLM_LEVELSELECT:
+		/*case LLM_LEVELSELECT:
 			if (mapheaderinfo[mapnum]->levelselect != maplistoption)
 				return false;
 
 			if (M_MapLocked(mapnum+1))
 				return false; // not unlocked
 
-			return true;
+			return true;*/
 		case LLM_RECORDATTACK:
-			if (!(mapheaderinfo[mapnum]->menuflags & LF2_RECORDATTACK))
+			/*if (!(mapheaderinfo[mapnum]->menuflags & LF2_RECORDATTACK))
+				return false;*/
+
+			if (!(mapheaderinfo[mapnum]->typeoflevel & TOL_RACE))
 				return false;
 
 			if (M_MapLocked(mapnum+1))
 				return false; // not unlocked
 
-			if (mapheaderinfo[mapnum]->menuflags & LF2_NOVISITNEEDED)
+			if (M_SecretUnlocked(SECRET_HELLATTACK))
+				return true; // now you're in hell
+
+			if (mapheaderinfo[mapnum]->menuflags & LF2_HIDEINMENU)
+				return false; // map hell
+
+			/*if (mapheaderinfo[mapnum]->menuflags & LF2_NOVISITNEEDED)
 				return true;
 
 			if (!mapvisited[mapnum])
-				return false;
+				return false;*/
 
 			return true;
-		case LLM_NIGHTSATTACK:
+		/*case LLM_NIGHTSATTACK:
 			if (!(mapheaderinfo[mapnum]->menuflags & LF2_NIGHTSATTACK))
 				return false;
 
@@ -4024,7 +3975,9 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 			if (!mapvisited[mapnum])
 				return false;
 
-			return true;
+			return true;*/
+		default:
+			return false;
 	}
 
 	// Hmm? Couldn't decide?
@@ -8472,19 +8425,28 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
+	// Set proper gamepad options
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick1Def;
+
 	// Unhide P1-only controls
-	OP_MoveControlsMenu[10].status = IT_CONTROL; // Talk
-	//OP_MoveControlsMenu[11].status = IT_CONTROL; // Team-talk
-	OP_MoveControlsMenu[11].status = IT_CONTROL; // Rankings
-	OP_MoveControlsMenu[12].status = IT_CONTROL; // Pause
-	OP_MoveControlsMenu[13].status = IT_CONTROL; // Console
-	OP_MoveControlsMenu[14].itemaction = &OP_Joystick1Def; // Gamepad
+	OP_AllControlsMenu[14].status = IT_CONTROL; // Chat
+	//OP_AllControlsMenu[15].status = IT_CONTROL; // Team-chat
+	OP_AllControlsMenu[15].status = IT_CONTROL; // Rankings
+	OP_AllControlsMenu[16].status = IT_CONTROL; // Viewpoint
+	// 17 is Reset Camera, 18 is Toggle Chasecam
+	OP_AllControlsMenu[19].status = IT_CONTROL; // Pause
+	OP_AllControlsMenu[20].status = IT_CONTROL; // Screenshot
+	OP_AllControlsMenu[21].status = IT_CONTROL; // GIF
+	OP_AllControlsMenu[22].status = IT_CONTROL; // System Menu
+	OP_AllControlsMenu[23].status = IT_CONTROL; // Console
+	OP_AllControlsMenu[24].status = IT_HEADER; // Spectator Controls header
+	OP_AllControlsMenu[25].status = IT_SPACE; // Spectator Controls space
+	OP_AllControlsMenu[26].status = IT_CONTROL; // Spectate
+	OP_AllControlsMenu[27].status = IT_CONTROL; // Look Up
+	OP_AllControlsMenu[28].status = IT_CONTROL; // Look Down
+	OP_AllControlsMenu[29].status = IT_CONTROL; // Center View
 
-	// Set cvars
-	OP_SpectateControlsMenu[6].itemaction = &cv_chasecam; // Chasecam
-	OP_SpectateControlsMenu[7].itemaction = &cv_crosshair; // Crosshair
-
-	M_SetupNextMenu(&OP_MoveControlsDef);
+	M_SetupNextMenu(&OP_AllControlsDef);
 }
 
 static void M_Setup2PControlsMenu(INT32 choice)
@@ -8495,19 +8457,28 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrolbis;
 	currentMenu->lastOn = itemOn;
 
+	// Set proper gamepad options
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick2Def;
+
 	// Hide P1-only controls
-	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2; // Talk
-	//OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Team-talk
-	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Rankings
-	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2; // Pause
-	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2; // Console
-	OP_MoveControlsMenu[14].itemaction = &OP_Joystick2Def; // Gamepad
+	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
+	// 17 is Reset Camera, 18 is Toggle Chasecam
+	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
 
-	// Set cvars
-	OP_SpectateControlsMenu[6].itemaction = &cv_chasecam2; // Chasecam
-	OP_SpectateControlsMenu[7].itemaction = &cv_crosshair2; // Crosshair
-
-	M_SetupNextMenu(&OP_MoveControlsDef);
+	M_SetupNextMenu(&OP_AllControlsDef);
 }
 
 #ifndef NOFOURPLAYER
@@ -8519,19 +8490,28 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrol3;
 	currentMenu->lastOn = itemOn;
 
+	// Set proper gamepad options
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick3Def;
+
 	// Hide P1-only controls
-	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2; // Talk
-	//OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Team-talk
-	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Rankings
-	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2; // Pause
-	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2; // Console
-	OP_MoveControlsMenu[14].itemaction = &OP_Joystick3Def; // Gamepad
+	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
+	// 17 is Reset Camera, 18 is Toggle Chasecam
+	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
 
-	// Set cvars
-	OP_SpectateControlsMenu[6].itemaction = &cv_chasecam3; // Chasecam
-	OP_SpectateControlsMenu[7].itemaction = &cv_crosshair3; // Crosshair
-
-	M_SetupNextMenu(&OP_MoveControlsDef);
+	M_SetupNextMenu(&OP_AllControlsDef);
 }
 
 static void M_Setup4PControlsMenu(INT32 choice)
@@ -8542,81 +8522,146 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	setupcontrols = gamecontrol4;
 	currentMenu->lastOn = itemOn;
 
+	// Set proper gamepad options
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick4Def;
+
 	// Hide P1-only controls
-	OP_MoveControlsMenu[10].status = IT_GRAYEDOUT2; // Talk
-	//OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Team-talk
-	OP_MoveControlsMenu[11].status = IT_GRAYEDOUT2; // Rankings
-	OP_MoveControlsMenu[12].status = IT_GRAYEDOUT2; // Pause
-	OP_MoveControlsMenu[13].status = IT_GRAYEDOUT2; // Console
-	OP_MoveControlsMenu[14].itemaction = &OP_Joystick4Def; // Gamepad
+	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
+	// 17 is Reset Camera, 18 is Toggle Chasecam
+	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
 
-	// Set cvars
-	OP_SpectateControlsMenu[6].itemaction = &cv_chasecam4; // Chasecam
-	OP_SpectateControlsMenu[7].itemaction = &cv_crosshair4; // Crosshair
-
-	M_SetupNextMenu(&OP_MoveControlsDef);
+	M_SetupNextMenu(&OP_AllControlsDef);
 }
 #endif
+
+#define controlheight 18
 
 // Draws the Customise Controls menu
 static void M_DrawControl(void)
 {
-	char     tmp[50];
-	INT32    i, y;
-	INT32    keys[2];
-	const char *ctrl;
+	char tmp[50];
+	INT32 x, y, i, max, cursory = 0, iter;
+	INT32 keys[2];
 
-	// draw title, strings and submenu
-	M_DrawGenericMenu();
-
-	if (setupcontrols_secondaryplayer)
-		ctrl = "\x86""SET ""\x82""CONTROLS""\x86"" FOR ""\x82""SECONDARY PLAYER";
-	else if (setupcontrols_thirdplayer)
-		ctrl = "\x86""SET ""\x82""CONTROLS""\x86"" FOR ""\x82""THIRD PLAYER";
-	else if (setupcontrols_fourthplayer)
-		ctrl = "\x86""SET ""\x82""CONTROLS""\x86"" FOR ""\x82""FOURTH PLAYER";
-	else
-		ctrl = "\x86""PRESS ""\x82""ENTER""\x86"" TO CHANGE, ""\x82""BACKSPACE""\x86"" TO CLEAR";
-
-	M_CentreText(28, ctrl);
-
+	x = currentMenu->x;
 	y = currentMenu->y;
 
-	for (i = 0; i < currentMenu->numitems;i++)
+	/*i = itemOn - (controlheight/2);
+	if (i < 0)
+		i = 0;
+	*/
+
+	iter = (controlheight/2);
+	for (i = itemOn; ((iter || currentMenu->menuitems[i].status == IT_GRAYEDOUT2) && i > 0); i--)
 	{
-		if (currentMenu->menuitems[i].status != IT_CONTROL)
-		{
-			y = currentMenu->y+currentMenu->menuitems[i].alphaKey;
-			continue;
-		}
-		if (currentMenu->menuitems[i].status != IT_CONTROL)
-			continue;
+		if (currentMenu->menuitems[i].status != IT_GRAYEDOUT2)
+			iter--;
+	}
+	if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
+		i--;
 
-		keys[0] = setupcontrols[currentMenu->menuitems[i].alphaKey][0];
-		keys[1] = setupcontrols[currentMenu->menuitems[i].alphaKey][1];
+	iter += (controlheight/2);
+	for (max = itemOn; (iter && max < currentMenu->numitems); max++)
+	{
+		if (currentMenu->menuitems[max].status != IT_GRAYEDOUT2)
+			iter--;
+	}
 
-		tmp[0] ='\0';
-		if (keys[0] == KEY_NULL && keys[1] == KEY_NULL)
+	if (iter)
+	{
+		iter += (controlheight/2);
+		for (i = itemOn; ((iter || currentMenu->menuitems[i].status == IT_GRAYEDOUT2) && i > 0); i--)
 		{
-			strcpy(tmp, "---");
+			if (currentMenu->menuitems[i].status != IT_GRAYEDOUT2)
+				iter--;
 		}
+	}
+
+	/*max = i + controlheight;
+	if (max > currentMenu->numitems)
+	{
+		max = currentMenu->numitems;
+		if (max < controlheight)
+			i = 0;
 		else
+			i = max - controlheight;
+	}*/
+
+	// draw title (or big pic)
+	M_DrawMenuTitle();
+
+	M_CentreText(28,
+		(setupcontrols_fourthplayer ? "\x86""Set controls for ""\x82""Player 4" :
+		(setupcontrols_thirdplayer ? "\x86""Set controls for ""\x82""Player 3" :
+		(setupcontrols_secondaryplayer ? "\x86""Set controls for ""\x82""Player 2" :
+										"\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
+
+	if (i)
+		V_DrawString(currentMenu->x - 16, y-(skullAnimCounter/5), highlightflags, "\x1A"); // up arrow
+	if (max != currentMenu->numitems)
+		V_DrawString(currentMenu->x - 16, y+(SMALLLINEHEIGHT*(controlheight-1))+(skullAnimCounter/5), highlightflags, "\x1B"); // down arrow
+
+	for (; i < max; i++)
+	{
+		if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
+			continue;
+
+		if (i == itemOn)
+			cursory = y;
+
+		if (currentMenu->menuitems[i].status == IT_CONTROL)
 		{
-			if (keys[0] != KEY_NULL)
-				strcat (tmp, G_KeynumToString (keys[0]));
+			V_DrawString(x, y, ((i == itemOn) ? highlightflags : 0), currentMenu->menuitems[i].text);
+			keys[0] = setupcontrols[currentMenu->menuitems[i].alphaKey][0];
+			keys[1] = setupcontrols[currentMenu->menuitems[i].alphaKey][1];
 
-			if (keys[0] != KEY_NULL && keys[1] != KEY_NULL)
-				strcat(tmp," or ");
+			tmp[0] ='\0';
+			if (keys[0] == KEY_NULL && keys[1] == KEY_NULL)
+			{
+				strcpy(tmp, "---");
+			}
+			else
+			{
+				if (keys[0] != KEY_NULL)
+					strcat (tmp, G_KeynumToString (keys[0]));
 
-			if (keys[1] != KEY_NULL)
-				strcat (tmp, G_KeynumToString (keys[1]));
+				if (keys[0] != KEY_NULL && keys[1] != KEY_NULL)
+					strcat(tmp,", ");
 
+				if (keys[1] != KEY_NULL)
+					strcat (tmp, G_KeynumToString (keys[1]));
 
+			}
+			V_DrawRightAlignedString(BASEVIDWIDTH-currentMenu->x, y, highlightflags, tmp);
 		}
-		V_DrawRightAlignedString(BASEVIDWIDTH-currentMenu->x, y, highlightflags, tmp);
+		/*else if (currentMenu->menuitems[i].status == IT_GRAYEDOUT2)
+			V_DrawString(x, y, V_TRANSLUCENT, currentMenu->menuitems[i].text);*/
+		else if ((currentMenu->menuitems[i].status == IT_HEADER) && (i != max-1))
+			V_DrawString(19, y+6, highlightflags, currentMenu->menuitems[i].text);
+		else if (currentMenu->menuitems[i].status & IT_STRING)
+			V_DrawString(x, y, ((i == itemOn) ? highlightflags : 0), currentMenu->menuitems[i].text);
+
 		y += SMALLLINEHEIGHT;
 	}
+
+	V_DrawScaledPatch(currentMenu->x - 20, cursory, 0,
+		W_CachePatchName("M_CURSOR", PU_CACHE));
 }
+
+#undef controlheight
 
 static INT32 controltochange;
 

@@ -256,8 +256,6 @@ UINT8 colortranslations[MAXSKINCOLORS][16] = {
 	*/
 };
 
-//#define SALLYALTRAINBOW // Sal's edited version of the below, which keeps a colors' lightness, and looks better with hue-shifted colors like Ruby & Dream. Not strictly *better*, just different...
-
 // Define for getting accurate color brightness readings according to how the human eye sees them.
 // https://en.wikipedia.org/wiki/Relative_luminance
 // 0.2126 to red
@@ -277,7 +275,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 	INT32 i;
 	RGBA_t color;
 	UINT8 brightness;
-#ifndef SALLYALTRAINBOW
 	INT32 j;
 	UINT8 colorbrightnesses[16];
 	UINT16 brightdif;
@@ -289,7 +286,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		color = V_GetColor(colortranslations[skincolor][i]);
 		SETBRIGHTNESS(colorbrightnesses[i], color.s.red, color.s.green, color.s.blue);
 	}
-#endif
 
 	// next, for every colour in the palette, choose the transcolor that has the closest brightness
 	for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
@@ -301,10 +297,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 		}
 		color = V_GetColor(i);
 		SETBRIGHTNESS(brightness, color.s.red, color.s.green, color.s.blue);
-#ifdef SALLYALTRAINBOW
-		brightness = 15-(brightness/16); // Yes, 15.
-		dest_colormap[i] = colortranslations[skincolor][brightness];
-#else
 		brightdif = 256;
 		for (j = 0; j < 16; j++)
 		{
@@ -315,7 +307,6 @@ void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor)
 				dest_colormap[i] = colortranslations[skincolor][j];
 			}
 		}
-#endif
 	}
 }
 
@@ -905,12 +896,12 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 
-	roulettestop = (TICRATE*1) + (3*(pingame - player->kartstuff[k_position]));
+	roulettestop = TICRATE + (3*(pingame - player->kartstuff[k_position]));
 
 	// If the roulette finishes or the player presses BT_ATTACK, stop the roulette and calculate the item.
 	// I'm returning via the exact opposite, however, to forgo having another bracket embed. Same result either way, I think.
 	// Finally, if you get past this check, now you can actually start calculating what item you get.
-	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop)
+	if ((cmd->buttons & BT_ATTACK) && !(player->kartstuff[k_eggmanheld] || player->kartstuff[k_itemheld]) && player->kartstuff[k_itemroulette] >= roulettestop && !modeattacking)
 	{
 		// Mashing reduces your chances for the good items
 		mashed = FixedDiv((player->kartstuff[k_itemroulette])*FRACUNIT, ((TICRATE*3)+roulettestop)*FRACUNIT) - FRACUNIT;
@@ -1811,10 +1802,19 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 				K_CalculateBattleWanted();
 		}
 
+		if (!player->kartstuff[k_bumper])
+		{
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			if (player->kartstuff[k_comebackmode] == 2)
+			{
+				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
+				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
+				player->kartstuff[k_comebackmode] = 0;
+			}
+		}
+
 		K_CheckBumpers();
 	}
-
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_spinouttype] = type;
 
@@ -1893,10 +1893,19 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 				K_CalculateBattleWanted();
 		}
 
+		if (!player->kartstuff[k_bumper])
+		{
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			if (player->kartstuff[k_comebackmode] == 2)
+			{
+				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
+				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
+				player->kartstuff[k_comebackmode] = 0;
+			}
+		}
+
 		K_CheckBumpers();
 	}
-
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_squishedtimer] = 2*TICRATE;
 
@@ -1939,6 +1948,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 		return;
 	}
 
+	if (source && source != player->mo && source->player)
+		K_PlayHitEmSound(source);
+
 	player->mo->momz = 18*(mapheaderinfo[gamemap-1]->mobj_scale);
 	player->mo->momx = player->mo->momy = 0;
 
@@ -1969,10 +1981,19 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 				K_CalculateBattleWanted();
 		}
 
+		if (!player->kartstuff[k_bumper])
+		{
+			player->kartstuff[k_comebacktimer] = comebacktime;
+			if (player->kartstuff[k_comebackmode] == 2)
+			{
+				mobj_t *poof = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EXPLODE);
+				S_StartSound(poof, mobjinfo[MT_KARMAHITBOX].seesound);
+				player->kartstuff[k_comebackmode] = 0;
+			}
+		}
+
 		K_CheckBumpers();
 	}
-
-	player->kartstuff[k_comebacktimer] = comebacktime;
 
 	player->kartstuff[k_spinouttype] = 1;
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
@@ -2183,6 +2204,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		dust->angle = (ANGLE_180/16) * i;
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
+		dust->scalespeed = FixedMul(dust->scalespeed, source->scale);
 		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
 
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
@@ -2190,6 +2212,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*6;
+		truc->scalespeed = FixedMul(truc->scalespeed, source->scale);
 		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2205,6 +2228,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
+		dust->scalespeed = FixedMul(dust->scalespeed, source->scale);
 		dust->tics = 30;
 		dust->momz = P_RandomRange(FixedMul(3*FRACUNIT, source->scale)>>FRACBITS, FixedMul(7*FRACUNIT, source->scale)>>FRACBITS)*FRACUNIT;
 
@@ -2213,6 +2237,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*5;
+		truc->scalespeed = FixedMul(truc->scalespeed, source->scale);
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2537,7 +2562,7 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25)<<FRACBITS), mo->y + (P_RandomRange(-25,25)<<FRACBITS), mo->z, MT_WIPEOUTTRAIL);
+	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25) * mo->scale), mo->y + (P_RandomRange(-25,25) * mo->scale), mo->z, MT_WIPEOUTTRAIL);
 
 	P_SetTarget(&dust->target, mo);
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
@@ -2606,45 +2631,17 @@ void K_DriftDustHandling(mobj_t *spawner)
 		{
 			dust->z += spawner->height - dust->height;
 		}
-		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
-		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*FRACUNIT/4);
-		dust->momz = P_MobjFlip(spawner) * P_RandomRange(1, 4)<<FRACBITS;
+		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
+		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
+		dust->momz = P_MobjFlip(spawner) * (P_RandomRange(1, 4) * (spawner->scale));
 		P_SetScale(dust, spawner->scale/2);
 		dust->destscale = spawner->scale * 3;
+		dust->scalespeed = FixedMul(dust->scalespeed, spawner->scale);
 
 		if (leveltime % 6 == 0)
 			S_StartSound(spawner, sfx_screec);
 
-		// Now time for a bunch of flag shit, groooooaann...
-		if (spawner->flags2 & MF2_DONTDRAW)
-			dust->flags2 |= MF2_DONTDRAW;
-		else
-			dust->flags2 &= ~MF2_DONTDRAW;
-
-		if (spawner->eflags & MFE_VERTICALFLIP)
-			dust->eflags |= MFE_VERTICALFLIP;
-		else
-			dust->eflags &= ~MFE_VERTICALFLIP;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP1)
-			dust->eflags |= MFE_DRAWONLYFORP1;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP1;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP2)
-			dust->eflags |= MFE_DRAWONLYFORP2;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP2;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP3)
-			dust->eflags |= MFE_DRAWONLYFORP3;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP3;
-
-		if (spawner->eflags & MFE_DRAWONLYFORP4)
-			dust->eflags |= MFE_DRAWONLYFORP4;
-		else
-			dust->eflags &= ~MFE_DRAWONLYFORP4;
+		K_MatchGenericExtraFlags(dust, spawner);
 	}
 }
 
@@ -2856,24 +2853,25 @@ static void K_DoThunderShield(player_t *player)
 	int i = 0;
 	fixed_t sx;
 	fixed_t sy;
-	
+	angle_t an;
+
 	S_StartSound(player->mo, sfx_zio3);
 	//player->kartstuff[k_thunderanim] = 35;
 	P_NukeEnemies(player->mo, player->mo, RING_DIST/4);
-	
+
 	// spawn vertical bolt
 	mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
 	P_SetTarget(&mo->target, player->mo);
 	P_SetMobjState(mo, S_LZIO11);
 	mo->color = SKINCOLOR_TEAL;
 	mo->scale = player->mo->scale*3 + (player->mo->scale/2);
-	
+
 	mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THOK);
 	P_SetTarget(&mo->target, player->mo);
 	P_SetMobjState(mo, S_LZIO21);
 	mo->color = SKINCOLOR_CYAN;
 	mo->scale = player->mo->scale*3 + (player->mo->scale/2);
-	
+
 	// spawn horizontal bolts;
 	for (i=0; i<7; i++)
 	{
@@ -2883,9 +2881,9 @@ static void K_DoThunderShield(player_t *player)
 		P_SetTarget(&mo->target, player->mo);
 		P_SetMobjState(mo, S_KLIT1);
 	}
-	
-	// spawn the radius thing:	
-	angle_t an = ANGLE_22h;
+
+	// spawn the radius thing:
+	an = ANGLE_22h;
 	for (i=0; i<15; i++)
 	{
 		sx = player->mo->x + FixedMul((player->mo->scale*THUNDERRADIUS), FINECOSINE((an*i)>>ANGLETOFINESHIFT));
@@ -2997,6 +2995,7 @@ void K_DoSneaker(player_t *player, INT32 type)
 		S_StartSound(player->mo, sfx_cdfm01);
 		if (intendedboost > player->kartstuff[k_speedboost])
 			player->kartstuff[k_destboostcam] = FixedMul(FRACUNIT, FixedDiv((intendedboost - player->kartstuff[k_speedboost]), intendedboost));
+		K_SpawnDashDustRelease(player);
 	}
 
 	if (!player->kartstuff[k_sneakertimer])
@@ -3028,7 +3027,6 @@ void K_DoSneaker(player_t *player, INT32 type)
 	}
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
-	K_SpawnDashDustRelease(player);
 
 	if (type != 0)
 	{
@@ -3772,6 +3770,78 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 	return wtarg;
 }
 
+// Engine Sounds.
+static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
+{
+	const INT32 numsnds = 13;
+	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class number
+	INT32 numcloseplayers = 0;
+	UINT8 volume = 255;
+	INT32 targetsnd = 0;
+	INT32 i;
+
+	// Silence the engines
+	if (leveltime < 8 || player->spectator || player->exiting)
+	{
+		player->kartstuff[k_enginesnd] = 0; // Reset sound number
+		return;
+	}
+
+#if 0
+	if ((leveltime % 8) != ((player-players) % 8)) // Per-player offset, to make engines sound distinct!
+#else
+	if (leveltime % 8) // .25 seconds of wait time between engine sounds
+#endif
+		return;
+
+	if ((leveltime >= starttime-(2*TICRATE) && leveltime <= starttime) || (player->kartstuff[k_respawn] == 1)) // Startup boosts
+		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 12 : 0);
+	else
+		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed / mapheaderinfo[gamemap-1]->mobj_scale)/5))/2;
+
+	if (targetsnd < 0)
+		targetsnd = 0;
+	if (targetsnd > 12)
+		targetsnd = 12;
+
+	if (player->kartstuff[k_enginesnd] < targetsnd)
+		player->kartstuff[k_enginesnd]++;
+	if (player->kartstuff[k_enginesnd] > targetsnd)
+		player->kartstuff[k_enginesnd]--;
+
+	if (player->kartstuff[k_enginesnd] < 0)
+		player->kartstuff[k_enginesnd] = 0;
+	if (player->kartstuff[k_enginesnd] > 12)
+		player->kartstuff[k_enginesnd] = 12;
+
+	// Display player's engines are quieter
+	if ((player == &players[displayplayer])
+		|| (player == &players[secondarydisplayplayer] && splitscreen)
+		|| (player == &players[thirddisplayplayer] && splitscreen > 1)
+		|| (player == &players[fourthdisplayplayer] && splitscreen > 2))
+		volume = FixedDiv(volume<<FRACBITS, FixedSqrt(((splitscreen+1)*3)<<FRACBITS))>>FRACBITS;
+	else
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
+				continue;
+			if ((i == displayplayer)
+				|| (i == secondarydisplayplayer && splitscreen)
+				|| (i == thirddisplayplayer && splitscreen > 1)
+				|| (i == fourthdisplayplayer && splitscreen > 2))
+				continue;
+			if (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
+				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 3072<<FRACBITS) // engine sounds' approx. range
+				numcloseplayers++;
+		}
+		if (numcloseplayers > 1)
+			volume = FixedDiv(volume<<FRACBITS, FixedSqrt(numcloseplayers<<FRACBITS))>>FRACBITS;
+	}
+
+	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -3782,14 +3852,15 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
+	K_UpdateEngineSounds(player, cmd);
 	K_GetKartBoostPower(player);
 
 	// Speed lines
 	if ((player->kartstuff[k_sneakertimer] || player->kartstuff[k_driftboost] || player->kartstuff[k_startboost]) && player->speed > 0)
 	{
-		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36)<<FRACBITS),
-			player->mo->y + (P_RandomRange(-36,36)<<FRACBITS),
-			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20)<<FRACBITS),
+		mobj_t *fast = P_SpawnMobj(player->mo->x + (P_RandomRange(-36,36) * player->mo->scale),
+			player->mo->y + (P_RandomRange(-36,36) * player->mo->scale),
+			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20) * player->mo->scale),
 			MT_FASTLINE);
 		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
 		fast->momx = 3*player->mo->momx/4;
@@ -4526,8 +4597,11 @@ void K_StripOther(player_t *player)
 	player->kartstuff[k_invincibilitytimer] = 0;
 	player->kartstuff[k_growshrinktimer] = 0;
 
-	player->kartstuff[k_eggmanexplode] = 0;
-	player->kartstuff[k_eggmanblame] = 0;
+	if (player->kartstuff[k_eggmanexplode])
+	{
+		player->kartstuff[k_eggmanexplode] = 0;
+		player->kartstuff[k_eggmanblame] = -1;
+	}
 }
 
 //
@@ -4572,14 +4646,29 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			mobj_t *newitem;
 
+			if (player->kartstuff[k_comebackmode] == 1)
+			{
+				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_RANDOMITEM);
+				newitem->threshold = 69; // selected "randomly".
+			}
+			else
+			{
+				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKEITEM);
+				if (player->kartstuff[k_eggmanblame] >= 0
+				&& player->kartstuff[k_eggmanblame] < MAXPLAYERS
+				&& playeringame[player->kartstuff[k_eggmanblame]]
+				&& !players[player->kartstuff[k_eggmanblame]].spectator
+				&& players[player->kartstuff[k_eggmanblame]].mo)
+					P_SetTarget(&newitem->target, players[player->kartstuff[k_eggmanblame]].mo);
+				player->kartstuff[k_eggmanblame] = -1;
+			}
+
+			newitem->flags2 = (player->mo->flags2 & MF2_OBJECTFLIP);
+			newitem->fuse = 15*TICRATE; // selected randomly.
+
 			player->kartstuff[k_comebackmode] = 0;
 			player->kartstuff[k_comebacktimer] = comebacktime;
 			S_StartSound(player->mo, sfx_s254);
-
-			newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_RANDOMITEM);
-			newitem->flags2 = (player->mo->flags2 & MF2_OBJECTFLIP);
-			newitem->fuse = 15*TICRATE; // selected randomly.
-			newitem->threshold = 69; // selected "randomly".
 		}
 		// Eggman Monitor exploding
 		else if (player->kartstuff[k_eggmanexplode])
@@ -6088,7 +6177,7 @@ static void K_drawKartItem(void)
 
 	// Quick Eggman numbers
 	if (stplyr->kartstuff[k_eggmanexplode] > 1 /*&& stplyr->kartstuff[k_eggmanexplode] <= 3*TICRATE*/)
-		V_DrawScaledPatch(ITEM_X+17-offset, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
+		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
 }
 
 void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing)
@@ -7384,7 +7473,7 @@ static void K_drawDistributionDebugger(void)
 	if (stplyr != &players[displayplayer]) // only for p1
 		return;
 
-	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice 
+	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i] || players[i].spectator)

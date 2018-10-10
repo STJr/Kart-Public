@@ -2428,6 +2428,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 					unlockables[num].type = SECRET_SOUNDTEST;
 				else if (fastcmp(word2, "ENCORE"))
 					unlockables[num].type = SECRET_ENCORE;
+				else if (fastcmp(word2, "HELLATTACK"))
+					unlockables[num].type = SECRET_HELLATTACK;
 				else
 					unlockables[num].type = (INT16)i;
 			}
@@ -6712,6 +6714,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_PLAYERBOMB", // Player bomb overlay
 	"S_PLAYERITEM", // Player item overlay
+	"S_PLAYERFAKE", // Player fake overlay
 
 	"S_KARMAWHEEL", // Karma player wheels
 
@@ -7750,6 +7753,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"VOICES",
 	"TAUNTVOICES",
 	"INSTASHIELD",
+	"ENGINESND",
 
 	"FLOORBOOST",
 	"SPINOUTTYPE",

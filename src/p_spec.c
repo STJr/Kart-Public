@@ -1707,16 +1707,16 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 
 			if (actor && actor->player && triggerline->flags & ML_EFFECT4)
 			{
-				if (maptol & TOL_NIGHTS)
+				/*if (maptol & TOL_NIGHTS)
 					lap = actor->player->mare;
-				else 
+				else*/
 					lap = actor->player->laps;
 			}
 			else
 			{
-				if (maptol & TOL_NIGHTS)
+				/*if (maptol & TOL_NIGHTS)
 					lap = P_FindLowestMare();
-				else 
+				else*/
 					lap = P_FindLowestLap();
 			}
 
@@ -4252,7 +4252,6 @@ DoneSection2:
 					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;
 					//player->starpostx = player->starposty = player->starpostz = 0;
-					P_ResetStarposts();
 
 					// Play the starpost sound for 'consistency'
 					// S_StartSound(player->mo, sfx_strpst);

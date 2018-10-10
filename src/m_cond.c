@@ -102,8 +102,9 @@ unlockable_t unlockables[MAXUNLOCKABLES] =
 	/* 03 */ {"Chao Cup", "", -1, 3, SECRET_NONE, 0, false, false, 0},
 
 	/* 04 */ {"Encore Mode", "", 3, 4, SECRET_ENCORE, 0, false, false, 0},
+	/* 05 */ {"Hell Attack", "", 5, 5, SECRET_HELLATTACK, 0, false, false, 0},
 
-	/* 05 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
+	/* 06 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
 };
 
 // Default number of emblems and extra emblems
@@ -127,9 +128,12 @@ void M_SetupDefaultConditionSets(void)
 	M_AddRawCondition(3, 1, UC_TOTALEMBLEMS, 30, 0, 0);
 	M_AddRawCondition(3, 2, UC_MATCHESPLAYED, 50, 0, 0);
 
-	// -- 4: Collect 50 emblems OR play 150 matches
-	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 50, 0, 0);
+	// -- 4: Collect 40 emblems OR play 150 matches
+	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 40, 0, 0);
 	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 150, 0, 0);
+
+	// -- 5: Collect 50 emblems ONLY
+	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 50, 0, 0);
 
 	// -- 10: Play 100 matches
 	M_AddRawCondition(10, 1, UC_MATCHESPLAYED, 100, 0, 0);
