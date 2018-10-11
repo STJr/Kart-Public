@@ -1140,8 +1140,8 @@ static void SetPlayerName(INT32 playernum, char *newname)
 		if (strcasecmp(newname, player_names[playernum]) != 0)
 		{
 			if (netgame)
-				CONS_Printf(M_GetText("%s renamed to %s\n"),
-					player_names[playernum], newname);
+				HU_AddChatText(va("\x82*%s renamed to %s", player_names[playernum], newname), false);
+
 			strcpy(player_names[playernum], newname);
 		}
 	}
@@ -5152,9 +5152,9 @@ static void Mute_OnChange(void)
 		return;	// avoid having this notification put in our console / log when we boot the server.
 
 	if (cv_mute.value)
-		HU_AddChatText(M_GetText("*Chat has been muted."), false);
+		HU_AddChatText(M_GetText("\x82*Chat has been muted."), false);
 	else
-		HU_AddChatText(M_GetText("*Chat is no longer muted."), false);
+		HU_AddChatText(M_GetText("\x82*Chat is no longer muted."), false);
 }
 
 /** Hack to clear all changed flags after game start.
