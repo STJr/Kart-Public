@@ -6151,9 +6151,10 @@ static void K_drawKartItem(void)
 	// Extensible meter, currently only used for rocket sneaker...
 	if (itembar && hudtrans)
 	{
-		const INT32 barlength = (splitscreen > 1 ? 12 : 24);
-		const INT32 max = (itemtime*3); // timer's normal highest value
-		const INT32 length = min(barlength, (itembar * barlength) / max);
+		const INT32 barlength = (splitscreen > 1 ? 12 : 26);
+		const INT32 maxl = (itemtime*3) - barlength; // timer's normal highest value
+		const INT32 fill = ((itembar*barlength)/maxl);
+		const INT32 length = min(barlength, fill);
 		const INT32 height = (offset ? 1 : 2);
 		const INT32 x = (offset ? 17 : 11), y = (offset ? 27 : 35);
 
