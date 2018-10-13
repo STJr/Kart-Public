@@ -3690,30 +3690,21 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_enginesnd] > 12)
 		player->kartstuff[k_enginesnd] = 12;
 
-	// Display player's engines are quieter
-	if ((player == &players[displayplayer])
-		|| (player == &players[secondarydisplayplayer] && splitscreen)
-		|| (player == &players[thirddisplayplayer] && splitscreen > 1)
-		|| (player == &players[fourthdisplayplayer] && splitscreen > 2))
-		volume = FixedDiv(volume<<FRACBITS, FixedSqrt(((splitscreen+1)*3)<<FRACBITS))>>FRACBITS;
-	else
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
-				continue;
-			if ((i == displayplayer)
-				|| (i == secondarydisplayplayer && splitscreen)
-				|| (i == thirddisplayplayer && splitscreen > 1)
-				|| (i == fourthdisplayplayer && splitscreen > 2))
-				continue;
-			if (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
-				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 3072<<FRACBITS) // engine sounds' approx. range
-				numcloseplayers++;
-		}
-		if (numcloseplayers > 1)
-			volume = FixedDiv(volume<<FRACBITS, FixedSqrt(numcloseplayers<<FRACBITS))>>FRACBITS;
+		if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
+			continue;
+		if (((i == displayplayer)
+			|| (i == secondarydisplayplayer && splitscreen)
+			|| (i == thirddisplayplayer && splitscreen > 1)
+			|| (i == fourthdisplayplayer && splitscreen > 2))
+			|| (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
+			player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 3072<<FRACBITS)) // engine sounds' approx. range
+			numcloseplayers++;
 	}
+
+	if (numcloseplayers > 1)
+		volume /= numcloseplayers;
 
 	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
 }
