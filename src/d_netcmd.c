@@ -5233,6 +5233,13 @@ static void KartFrantic_OnChange(void)
 
 static void KartSpeed_OnChange(void)
 {
+	if (!M_SecretUnlocked(SECRET_HARDSPEED) && cv_kartspeed.value == 2)
+	{
+		CONS_Printf(M_GetText("You haven't earned this yet.\n"));
+		CV_StealthSetValue(&cv_kartspeed, 1);
+		return;
+	}
+
 	if (G_RaceGametype())
 	{
 		if ((UINT8)cv_kartspeed.value != gamespeed && gamestate == GS_LEVEL && leveltime > starttime)

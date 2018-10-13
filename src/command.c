@@ -1600,6 +1600,31 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 					return;
 				}
 			}
+			else if (var == &cv_kartspeed)
+			{
+				INT32 maxspeed = (M_SecretUnlocked(SECRET_HARDSPEED) ? 2 : 1);
+				// Special case for the kartspeed variable, used only directly from the menu to prevent selecting hard mode
+				if (increment > 0) // Going up!
+				{
+					newvalue = var->value + 1;
+					if (newvalue > maxspeed)
+						newvalue = 0;
+					var->value = newvalue;
+					var->string = var->PossibleValue[var->value].strvalue;
+					var->func();
+					return;
+				}
+				else if (increment < 0) // Going down!
+				{
+					newvalue = var->value - 1;
+					if (newvalue < 0)
+						newvalue = maxspeed;
+					var->value = newvalue;
+					var->string = var->PossibleValue[var->value].strvalue;
+					var->func();
+					return;
+				}
+			}
 #ifdef PARANOIA
 			if (currentindice == -1)
 				I_Error("CV_AddValue: current value %d not found in possible value\n",
