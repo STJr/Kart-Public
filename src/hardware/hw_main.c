@@ -3276,7 +3276,6 @@ static void HWR_Subsector(size_t num, UINT8 ssplayer)
 
 	if (num < numsubsectors)
 	{
-		sscount++;
 		// subsector
 		sub = &subsectors[num];
 		// sector
@@ -5176,8 +5175,10 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
-			if (approx_dist <= limit_dist)
-				HWR_ProjectSprite(thing);
+			if (approx_dist > limit_dist)
+				continue;
+
+			HWR_ProjectSprite(thing);
 		}
 	}
 	else
@@ -5222,8 +5223,10 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 
 			approx_dist = P_AproxDistance(viewx-precipthing->x, viewy-precipthing->y);
 
-			if (approx_dist <= limit_dist)
-				HWR_ProjectPrecipitationSprite(precipthing);
+			if (approx_dist > limit_dist)
+				continue;
+
+			HWR_ProjectPrecipitationSprite(precipthing);
 		}
 	}
 	else
@@ -5553,6 +5556,16 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	z2 = tr_y - x2 * rightsin;
 	x1 = tr_x + x1 * rightcos;
 	x2 = tr_x - x2 * rightcos;
+
+	// okay, we can't return now... this is a hack, but weather isn't networked, so it should be ok
+	if (!(thing->precipflags & PCF_THUNK))
+	{
+		if (thing->precipflags & PCF_RAIN)
+			P_RainThinker(thing);
+		else
+			P_SnowThinker(thing);
+		thing->precipflags |= PCF_THUNK;
+	}
 
 	//
 	// store information in a vissprite
