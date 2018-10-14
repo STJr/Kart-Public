@@ -2042,13 +2042,8 @@ void K_StealBumper(player_t *player, player_t *victim, boolean force)
 		}
 	}
 
-	if (netgame)
-	{
-		if (player->kartstuff[k_bumper] <= 0)
-			CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
-		else if (cv_hazardlog.value)
-			CONS_Printf(M_GetText("%s stole a bumper from %s!\n"), player_names[player-players], player_names[victim-players]);
-	}
+	if (netgame && player->kartstuff[k_bumper] <= 0)
+		CONS_Printf(M_GetText("%s is back in the game!\n"), player_names[player-players]);
 
 	newbumper = player->kartstuff[k_bumper];
 	if (newbumper <= 1)

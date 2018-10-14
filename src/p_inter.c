@@ -510,8 +510,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					}
 
 					special->target->player->kartstuff[k_comebackpoints] += 2 * (K_IsPlayerWanted(player) ? 2 : 1);
-					if (netgame && cv_hazardlog.value)
-						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
 					if (special->target->player->kartstuff[k_comebackpoints] >= 3)
 						K_StealBumper(special->target->player, player, true);
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -527,8 +525,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
 				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -560,8 +556,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s gave an \"item\" to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
 				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
