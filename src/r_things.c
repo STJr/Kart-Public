@@ -1723,7 +1723,7 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 
 	// Handle all things in sector.
 	// If a limit exists, handle things a tiny bit different.
-	if ((limit_dist = (fixed_t)((maptol & TOL_NIGHTS) ? cv_drawdist_nights.value : cv_drawdist.value) << FRACBITS))
+	if ((limit_dist = (fixed_t)(/*(maptol & TOL_NIGHTS) ? cv_drawdist_nights.value : */cv_drawdist.value) << FRACBITS))
 	{
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
