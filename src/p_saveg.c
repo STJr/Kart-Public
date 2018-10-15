@@ -3273,6 +3273,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, spbincoming);
 	WRITEUINT8(save_p, spbplayer);
 	WRITEUINT32(save_p, mapreset);
+	WRITEUINT8(save_p, nospectategrief);
 
 	// Is it paused?
 	if (paused)
@@ -3379,6 +3380,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	spbincoming = READUINT32(save_p);
 	spbplayer = READUINT8(save_p);
 	mapreset = READUINT32(save_p);
+	nospectategrief = READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

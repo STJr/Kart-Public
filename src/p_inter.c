@@ -2150,7 +2150,7 @@ boolean P_CheckRacers(void)
 			numplayersingame++;
 		}
 
-		if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
+		if (numplayersingame >= nospectategrief) // prevent spectate griefing
 		{
 			// check if we just got unlucky and there was only one guy who was a problem
 			for (j = i+1; j < MAXPLAYERS; j++)
