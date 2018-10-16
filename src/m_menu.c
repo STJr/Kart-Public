@@ -242,12 +242,13 @@ static void M_ConfirmSpectate(INT32 choice);
 static void M_ConfirmEnterGame(INT32 choice);
 static void M_ConfirmTeamScramble(INT32 choice);
 static void M_ConfirmTeamChange(INT32 choice);
+static void M_ConfirmSpectateChange(INT32 choice);
 //static void M_SecretsMenu(INT32 choice);
 static void M_SetupChoosePlayer(INT32 choice);
 static void M_QuitSRB2(INT32 choice);
 menu_t SP_MainDef, MP_MainDef, OP_MainDef;
 menu_t MP_SetPlayersDef;
-menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef;
+menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef, MISC_ChangeSpectateDef;
 
 // Single Player
 //static void M_LoadGame(INT32 choice);
@@ -394,6 +395,7 @@ static void M_HandleMonitorToggles(INT32 choice);
 // Consvar onchange functions
 static void Nextmap_OnChange(void);
 static void Newgametype_OnChange(void);
+static void Dummymenuplayer_OnChange(void);
 //static void Dummymares_OnChange(void);
 static void Dummystaff_OnChange(void);
 
@@ -467,7 +469,9 @@ CV_PossibleValue_t splitplayers_cons_t[] = {{1, "One"}, {2, "Two"}, {3, "Three"}
 consvar_t cv_splitplayers = {"splitplayers", "One", CV_CALL, splitplayers_cons_t, Splitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
+static CV_PossibleValue_t dummymenuplayer_cons_t[] = {{0, "NOPE"}, {1, "P1"}, {2, "P2"}, {3, "P3"}, {4, "P4"}, {0, NULL}};
 static CV_PossibleValue_t dummyteam_cons_t[] = {{0, "Spectator"}, {1, "Red"}, {2, "Blue"}, {0, NULL}};
+static CV_PossibleValue_t dummyspectate_cons_t[] = {{0, "Spectator"}, {1, "Playing"}, {0, NULL}};
 static CV_PossibleValue_t dummyscramble_cons_t[] = {{0, "Random"}, {1, "Points"}, {0, NULL}};
 static CV_PossibleValue_t ringlimit_cons_t[] = {{0, "MIN"}, {9999, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t liveslimit_cons_t[] = {{0, "MIN"}, {99, "MAX"}, {0, NULL}};
@@ -476,7 +480,9 @@ static CV_PossibleValue_t liveslimit_cons_t[] = {{0, "MIN"}, {99, "MAX"}, {0, NU
 };*/
 static CV_PossibleValue_t dummystaff_cons_t[] = {{0, "MIN"}, {100, "MAX"}, {0, NULL}};
 
+static consvar_t cv_dummymenuplayer = {"dummymenuplayer", "P1", CV_HIDEN|CV_CALL, dummymenuplayer_cons_t, Dummymenuplayer_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummyteam = {"dummyteam", "Spectator", CV_HIDEN, dummyteam_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+static consvar_t cv_dummyspectate = {"dummyspectate", "Spectator", CV_HIDEN, dummyspectate_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummyscramble = {"dummyscramble", "Random", CV_HIDEN, dummyscramble_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummyrings = {"dummyrings", "0", CV_HIDEN, ringlimit_cons_t,	NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_dummylives = {"dummylives", "0", CV_HIDEN, liveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -555,10 +561,11 @@ static menuitem_t MPauseMenu[] =
 	{IT_CALL | IT_STRING,    NULL, "P4 Setup...",          M_SetupMultiPlayer4,   72}, // splitscreen
 #endif
 
-	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48},
-	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48},
-	{IT_STRING | IT_CALL,    NULL, "Cancel Join",          M_ConfirmSpectate,     48},
+	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48}, // alone
+	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48}, // alone
+	{IT_STRING | IT_CALL,    NULL, "Cancel Join",          M_ConfirmSpectate,     48}, // alone
 	{IT_STRING | IT_SUBMENU, NULL, "Switch Team...",       &MISC_ChangeTeamDef,   48},
+	{IT_STRING | IT_SUBMENU, NULL, "Enter/Spectate...",   &MISC_ChangeSpectateDef,48},
 	{IT_CALL | IT_STRING,    NULL, "Player Setup...",      M_SetupMultiPlayer,    56}, // alone
 	{IT_CALL | IT_STRING,    NULL, "Options",              M_Options,             64},
 
@@ -583,6 +590,7 @@ typedef enum
 	mpause_entergame,
 	mpause_canceljoin,
 	mpause_switchteam,
+	mpause_switchspectate,
 	mpause_psetup,
 	mpause_options,
 
@@ -633,8 +641,16 @@ static menuitem_t MISC_ScrambleTeamMenu[] =
 
 static menuitem_t MISC_ChangeTeamMenu[] =
 {
-	{IT_STRING|IT_CVAR,              NULL, "Select Team",             &cv_dummyteam,    30},
+	{IT_STRING|IT_CVAR,              NULL, "Player",            &cv_dummymenuplayer,    30},
+	{IT_STRING|IT_CVAR,              NULL, "Team",              &cv_dummyteam,          40},
 	{IT_WHITESTRING|IT_CALL,         NULL, "Confirm",           M_ConfirmTeamChange,    90},
+};
+
+static menuitem_t MISC_ChangeSpectateMenu[] =
+{
+	{IT_STRING|IT_CVAR,              NULL, "Player",        &cv_dummymenuplayer,        30},
+	{IT_STRING|IT_CVAR,              NULL, "Status",        &cv_dummyspectate,          40},
+	{IT_WHITESTRING|IT_CALL,         NULL, "Confirm",       M_ConfirmSpectateChange,    90},
 };
 
 static menuitem_t MISC_ChangeLevelMenu[] =
@@ -1599,6 +1615,7 @@ menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 72);
 // Misc Main Menu
 menu_t MISC_ScrambleTeamDef = DEFAULTMENUSTYLE(NULL, MISC_ScrambleTeamMenu, &MPauseDef, 27, 40);
 menu_t MISC_ChangeTeamDef = DEFAULTMENUSTYLE(NULL, MISC_ChangeTeamMenu, &MPauseDef, 27, 40);
+menu_t MISC_ChangeSpectateDef = DEFAULTMENUSTYLE(NULL, MISC_ChangeSpectateMenu, &MPauseDef, 27, 40);
 menu_t MISC_ChangeLevelDef = MAPICONMENUSTYLE(NULL, MISC_ChangeLevelMenu, &MPauseDef);
 menu_t MISC_HelpDef = IMAGEDEF(MISC_HelpMenu);
 
@@ -2133,6 +2150,14 @@ static void Nextmap_OnChange(void)
 
 		free(gpath);
 	}
+}
+
+static void Dummymenuplayer_OnChange(void)
+{
+	if (cv_dummymenuplayer.value < 1)
+		CV_StealthSetValue(&cv_dummymenuplayer, splitscreen+1);
+	else if (cv_dummymenuplayer.value > splitscreen+1)
+		CV_StealthSetValue(&cv_dummymenuplayer, 1);
 }
 
 /*static void Dummymares_OnChange(void)
@@ -2926,11 +2951,17 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_entergame].status = IT_DISABLED;
 		MPauseMenu[mpause_canceljoin].status = IT_DISABLED;
 		MPauseMenu[mpause_switchteam].status = IT_DISABLED;
+		MPauseMenu[mpause_switchspectate].status = IT_DISABLED;
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
+		MISC_ChangeTeamMenu[0].status = IT_DISABLED;
+		MISC_ChangeSpectateMenu[0].status = IT_DISABLED;
 		// Reset these in case splitscreen messes things up
+		MPauseMenu[mpause_switchteam].alphaKey = 48;
+		MPauseMenu[mpause_switchspectate].alphaKey = 48;
 		MPauseMenu[mpause_options].alphaKey = 64;
 		MPauseMenu[mpause_title].alphaKey = 80;
 		MPauseMenu[mpause_quit].alphaKey = 88;
+		Dummymenuplayer_OnChange();
 
 		if ((server || IsPlayerAdmin(consoleplayer)))
 		{
@@ -2943,25 +2974,43 @@ void M_StartControlPanel(void)
 		if (splitscreen)
 		{
 			MPauseMenu[mpause_psetupsplit].status = MPauseMenu[mpause_psetupsplit2].status = IT_STRING | IT_CALL;
+			MISC_ChangeTeamMenu[0].status = MISC_ChangeSpectateMenu[0].status = IT_STRING|IT_CVAR;
+
+			if (netgame)
+			{
+				if (G_GametypeHasTeams())
+				{
+					MPauseMenu[mpause_switchteam].status = IT_STRING | IT_SUBMENU;
+					MPauseMenu[mpause_switchteam].alphaKey += ((splitscreen+1) * 8);
+					MPauseMenu[mpause_options].alphaKey += 8;
+					MPauseMenu[mpause_title].alphaKey += 8;
+					MPauseMenu[mpause_quit].alphaKey += 8;
+				}
+				else if (G_GametypeHasSpectators())
+				{
+					MPauseMenu[mpause_switchspectate].status = IT_STRING | IT_SUBMENU;
+					MPauseMenu[mpause_switchspectate].alphaKey += ((splitscreen+1) * 8);
+					MPauseMenu[mpause_options].alphaKey += 8;
+					MPauseMenu[mpause_title].alphaKey += 8;
+					MPauseMenu[mpause_quit].alphaKey += 8;
+				}
+			}
 
 #ifndef NOFOURPLAYER
 			if (splitscreen > 1)
 			{
 				MPauseMenu[mpause_psetupsplit3].status = IT_STRING | IT_CALL;
 
-				if (splitscreen == 2)
-				{
-					MPauseMenu[mpause_options].alphaKey = 72;
-					MPauseMenu[mpause_title].alphaKey = 88;
-					MPauseMenu[mpause_quit].alphaKey = 96;
-				}
+				MPauseMenu[mpause_options].alphaKey += 8;
+				MPauseMenu[mpause_title].alphaKey += 8;
+				MPauseMenu[mpause_quit].alphaKey += 8;
 
-				if (splitscreen == 3)
+				if (splitscreen > 2)
 				{
 					MPauseMenu[mpause_psetupsplit4].status = IT_STRING | IT_CALL;
-					MPauseMenu[mpause_options].alphaKey = 80;
-					MPauseMenu[mpause_title].alphaKey = 96;
-					MPauseMenu[mpause_quit].alphaKey = 104;
+					MPauseMenu[mpause_options].alphaKey += 8;
+					MPauseMenu[mpause_title].alphaKey += 8;
+					MPauseMenu[mpause_quit].alphaKey += 8;
 				}
 			}
 #endif
@@ -3092,7 +3141,9 @@ void M_Init(void)
 #ifndef NOFOURPLAYER
 	CV_RegisterVar(&cv_splitplayers);
 #endif
+	CV_RegisterVar(&cv_dummymenuplayer);
 	CV_RegisterVar(&cv_dummyteam);
+	CV_RegisterVar(&cv_dummyspectate);
 	CV_RegisterVar(&cv_dummyscramble);
 	CV_RegisterVar(&cv_dummyrings);
 	CV_RegisterVar(&cv_dummylives);
@@ -4864,11 +4915,11 @@ static void M_ConfirmSpectate(INT32 choice)
 static void M_ConfirmEnterGame(INT32 choice)
 {
 	(void)choice;
-	/*if (!cv_allowteamchange.value)
+	if (!cv_allowteamchange.value)
 	{
 		M_StartMessage(M_GetText("The server is not allowing\nteam changes at this time.\nPress a key.\n"), NULL, MM_NOTHING);
 		return;
-	}*/
+	}
 	M_ClearMenus(true);
 	COM_ImmedExecute("changeteam playing");
 }
@@ -4878,20 +4929,16 @@ static void M_ConfirmTeamScramble(INT32 choice)
 	(void)choice;
 	M_ClearMenus(true);
 
-	switch (cv_dummyscramble.value)
-	{
-		case 0:
-			COM_ImmedExecute("teamscramble 1");
-			break;
-		case 1:
-			COM_ImmedExecute("teamscramble 2");
-			break;
-	}
+	COM_ImmedExecute(va("teamscramble %d", cv_dummyscramble.value+1));
 }
 
 static void M_ConfirmTeamChange(INT32 choice)
 {
 	(void)choice;
+
+	if (cv_dummymenuplayer.value > splitscreen+1)
+		return;
+
 	if (!cv_allowteamchange.value && cv_dummyteam.value)
 	{
 		M_StartMessage(M_GetText("The server is not allowing\nteam changes at this time.\nPress a key.\n"), NULL, MM_NOTHING);
@@ -4900,16 +4947,53 @@ static void M_ConfirmTeamChange(INT32 choice)
 
 	M_ClearMenus(true);
 
-	switch (cv_dummyteam.value)
+	switch (cv_dummymenuplayer.value)
 	{
-		case 0:
-			COM_ImmedExecute("changeteam spectator");
-			break;
 		case 1:
-			COM_ImmedExecute("changeteam red");
+		default:
+			COM_ImmedExecute(va("changeteam %s", cv_dummyteam.string));
 			break;
 		case 2:
-			COM_ImmedExecute("changeteam blue");
+			COM_ImmedExecute(va("changeteam2 %s", cv_dummyteam.string));
+			break;
+		case 3:
+			COM_ImmedExecute(va("changeteam3 %s", cv_dummyteam.string));
+			break;
+		case 4:
+			COM_ImmedExecute(va("changeteam4 %s", cv_dummyteam.string));
+			break;
+	}
+}
+
+static void M_ConfirmSpectateChange(INT32 choice)
+{
+	(void)choice;
+
+	if (cv_dummymenuplayer.value > splitscreen+1)
+		return;
+
+	if (!cv_allowteamchange.value && cv_dummyspectate.value)
+	{
+		M_StartMessage(M_GetText("The server is not allowing\nteam changes at this time.\nPress a key.\n"), NULL, MM_NOTHING);
+		return;
+	}
+
+	M_ClearMenus(true);
+
+	switch (cv_dummymenuplayer.value)
+	{
+		case 1:
+		default:
+			COM_ImmedExecute(va("changeteam %s", cv_dummyspectate.string));
+			break;
+		case 2:
+			COM_ImmedExecute(va("changeteam2 %s", cv_dummyspectate.string));
+			break;
+		case 3:
+			COM_ImmedExecute(va("changeteam3 %s", cv_dummyspectate.string));
+			break;
+		case 4:
+			COM_ImmedExecute(va("changeteam4 %s", cv_dummyspectate.string));
 			break;
 	}
 }
