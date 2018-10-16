@@ -93,8 +93,6 @@ void R_ReInitColormaps(UINT16 num, lumpnum_t newencoremap);
 void R_ClearColormaps(void);
 INT32 R_ColormapNumForName(char *name);
 INT32 R_CreateColormap(char *p1, char *p2, char *p3);
-void R_CreateColormap2(char *p1, char *p2, char *p3);
-void R_MakeColormaps(void);
 #ifdef HASINVERT
 void R_MakeInvertmap(void);
 #endif
