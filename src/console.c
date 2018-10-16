@@ -751,18 +751,13 @@ boolean CON_Responder(event_t *ev)
 		if (ev->data1 >= KEY_MOUSE1) // See also: HUD_Responder
 		{
 			INT32 i;
-			boolean p1control = false;
-
 			for (i = 0; i < num_gamecontrols; i++)
 			{
 				if (gamecontrol[i][0] == ev->data1 || gamecontrol[i][1] == ev->data1)
-				{
-					p1control = true;
 					break;
-				}
 			}
 
-			if (!p1control)
+			if (i == num_gamecontrols)
 				return false;
 		}
 
