@@ -247,7 +247,6 @@ static void M_ConfirmSpectateChange(INT32 choice);
 static void M_SetupChoosePlayer(INT32 choice);
 static void M_QuitSRB2(INT32 choice);
 menu_t SP_MainDef, MP_MainDef, OP_MainDef;
-menu_t MP_SetPlayersDef;
 menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef, MISC_ChangeSpectateDef;
 
 // Single Player
@@ -282,33 +281,27 @@ static void M_ChooseRoom(INT32 choice);
 #endif
 static void M_SetupMultiPlayer(INT32 choice);
 static void M_SetupMultiPlayer2(INT32 choice);
-#ifndef NOFOURPLAYER
 static void M_SetupMultiPlayer3(INT32 choice);
 static void M_SetupMultiPlayer4(INT32 choice);
-#endif
+static void M_SetupMultiHandler(INT32 choice);
 
 // Options
 // Split into multiple parts due to size
 // Controls
 menu_t OP_ControlsDef, OP_AllControlsDef;
 menu_t OP_MouseOptionsDef, OP_Mouse2OptionsDef;
-menu_t OP_Joystick1Def, OP_Joystick2Def;
-#ifndef NOFOURPLAYER
-menu_t OP_Joystick3Def, OP_Joystick4Def;
-#endif
+menu_t OP_Joystick1Def, OP_Joystick2Def, OP_Joystick3Def, OP_Joystick4Def;
 static void M_VideoModeMenu(INT32 choice);
 static void M_Setup1PControlsMenu(INT32 choice);
 static void M_Setup2PControlsMenu(INT32 choice);
-#ifndef NOFOURPLAYER
 static void M_Setup3PControlsMenu(INT32 choice);
 static void M_Setup4PControlsMenu(INT32 choice);
-#endif
+
 static void M_Setup1PJoystickMenu(INT32 choice);
 static void M_Setup2PJoystickMenu(INT32 choice);
-#ifndef NOFOURPLAYER
 static void M_Setup3PJoystickMenu(INT32 choice);
 static void M_Setup4PJoystickMenu(INT32 choice);
-#endif
+
 static void M_AssignJoystick(INT32 choice);
 static void M_ChangeControl(INT32 choice);
 
@@ -363,9 +356,9 @@ static void M_DrawMonitorToggles(void);
 static void M_OGL_DrawFogMenu(void);
 static void M_OGL_DrawColorMenu(void);
 #endif
+static void M_DrawMPMainMenu(void);
 #ifndef NONET
 static void M_DrawConnectMenu(void);
-static void M_DrawMPMainMenu(void);
 static void M_DrawRoomMenu(void);
 #endif
 static void M_DrawJoystick(void);
@@ -463,11 +456,9 @@ consvar_t cv_ghost_staff     = {"ghost_staff",     "Show", CV_SAVE, ghost2_cons_
 //Console variables used solely in the menu system.
 //todo: add a way to use non-console variables in the menu
 //      or make these consvars legitimate like color or skin.
-#ifndef NOFOURPLAYER
 static void Splitplayers_OnChange(void);
 CV_PossibleValue_t splitplayers_cons_t[] = {{1, "One"}, {2, "Two"}, {3, "Three"}, {4, "Four"}, {0, NULL}};
 consvar_t cv_splitplayers = {"splitplayers", "One", CV_CALL, splitplayers_cons_t, Splitplayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
-#endif
 
 static CV_PossibleValue_t dummymenuplayer_cons_t[] = {{0, "NOPE"}, {1, "P1"}, {2, "P2"}, {3, "P3"}, {4, "P4"}, {0, NULL}};
 static CV_PossibleValue_t dummyteam_cons_t[] = {{0, "Spectator"}, {1, "Red"}, {2, "Blue"}, {0, NULL}};
@@ -506,7 +497,7 @@ static menuitem_t MainMenu[] =
 {
 	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_UnlockChecklistDef, 76},
 	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu,     84},
-	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_SetPlayersDef,      92},
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,            92},
 	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,             100},
 	{IT_CALL   |IT_STRING, NULL, "Addons",      M_Addons,              108},
 	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,            116},
@@ -556,10 +547,8 @@ static menuitem_t MPauseMenu[] =
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,40},
 	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",          M_SetupMultiPlayer,    48}, // splitscreen
 	{IT_CALL | IT_STRING,    NULL, "P2 Setup...",          M_SetupMultiPlayer2,   56}, // splitscreen
-#ifndef NOFOURPLAYER
 	{IT_CALL | IT_STRING,    NULL, "P3 Setup...",          M_SetupMultiPlayer3,   64}, // splitscreen
 	{IT_CALL | IT_STRING,    NULL, "P4 Setup...",          M_SetupMultiPlayer4,   72}, // splitscreen
-#endif
 
 	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48}, // alone
 	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48}, // alone
@@ -582,10 +571,9 @@ typedef enum
 	mpause_continue,
 	mpause_psetupsplit,
 	mpause_psetupsplit2,
-#ifndef NOFOURPLAYER
 	mpause_psetupsplit3,
 	mpause_psetupsplit4,
-#endif
+
 	mpause_spectate,
 	mpause_entergame,
 	mpause_canceljoin,
@@ -959,54 +947,48 @@ menuitem_t PlayerMenu[32] =
 // -----------------------------------
 // Prefix: MP_
 
-#ifndef NONET
-
-// Set number of players first!
-static menuitem_t MP_SetPlayersMenu[] =
-{
-#ifndef NOFOURPLAYER
-	{IT_STRING|IT_CVAR,      NULL, "Number of players",     &cv_splitplayers, 10},
-#endif
-
-#ifdef NOFOURPLAYER
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          90},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,        100},
-#else
-	{IT_STRING|IT_CALL,      NULL, "P1 Setup...",     M_SetupMultiPlayer,          80},
-	{IT_STRING|IT_CALL,      NULL, "P2 Setup... ",    M_SetupMultiPlayer2,         90},
-	{IT_GRAYEDOUT,           NULL, "P3 Setup...",     M_SetupMultiPlayer3,        100},
-	{IT_GRAYEDOUT,           NULL, "P4 Setup... ",    M_SetupMultiPlayer4,        110},
-#endif
-	{IT_SUBMENU|IT_STRING, NULL, "Next...",                   &MP_MainDef,        130},
-};
-
 static menuitem_t MP_MainMenu[] =
 {
-	{IT_HEADER, NULL, "Host a game", NULL, 0},
-	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,        10},
-	{IT_STRING|IT_CALL,       NULL, "Offline...",                M_StartOfflineServerMenu, 18},
-	{IT_HEADER, NULL, "Join a game", NULL, 32},
-	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenu,            42},
-	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,        50},
+	{IT_HEADER, NULL, "Players", NULL, 0},
+	{IT_STRING|IT_CVAR,      NULL, "Number of local players",     &cv_splitplayers, 10},
+
+	{IT_STRING|IT_KEYHANDLER,NULL, "Player setup...",     M_SetupMultiHandler,18},
+
+	{IT_HEADER, NULL, "Host a game", NULL, 100-24},
+#ifndef NONET
+	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,        110-24},
+#else
+	{IT_GRAYEDOUT,            NULL, "Internet/LAN...",           NULL,                     110-24},
+#endif
+	{IT_STRING|IT_CALL,       NULL, "Offline...",                M_StartOfflineServerMenu, 118-24},
+
+	{IT_HEADER, NULL, "Join a game", NULL, 132-24},
+#ifndef NONET
+	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenu,            142-24},
+	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,        150-24},
+#else
+	{IT_GRAYEDOUT,            NULL, "Internet server browser...",M_ConnectMenu,            142-24},
+	{IT_GRAYEDOUT,            NULL, "Specify IPv4 address:",     M_HandleConnectIP,        150-24},
+#endif
 	//{IT_HEADER, NULL, "Player setup", NULL, 80},
 	//{IT_STRING|IT_CALL,       NULL, "Name, character, color...", M_SetupMultiPlayer,       90},
 };
 
-#endif
+#ifndef NONET
 
 static menuitem_t MP_ServerMenu[] =
 {
 	{IT_STRING|IT_CVAR,              NULL, "Max. Player Count",     &cv_maxplayers,      10},
-#ifndef NONET
 	{IT_STRING|IT_CALL,              NULL, "Room...",               M_RoomMenu,          20},
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Server Name",           &cv_servername,      30},
-#endif
 
 	{IT_STRING|IT_CVAR,              NULL, "Game Type",             &cv_newgametype,     68},
 	{IT_STRING|IT_CVAR,              NULL, "Level",                 &cv_nextmap,         78},
 
 	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                 M_StartServer,      130},
 };
+
+#endif
 
 // Separated offline and normal servers.
 static menuitem_t MP_OfflineServerMenu[] =
@@ -1016,22 +998,6 @@ static menuitem_t MP_OfflineServerMenu[] =
 
 	{IT_WHITESTRING|IT_CALL, NULL, "Start",                 M_StartServer,        130},
 };
-
-#ifndef NOFOURPLAYER
-static void Splitplayers_OnChange(void)
-{
-	UINT8 i = 1; // player 1 is the last unchanging setup
-
-	while (i < 4)
-	{
-		if (i < cv_splitplayers.value)
-			MP_SetPlayersMenu[i+1].status = IT_STRING|IT_CALL;
-		else
-			MP_SetPlayersMenu[i+1].status = IT_GRAYEDOUT;
-		i++;
-	}
-}
-#endif
 
 static menuitem_t MP_PlayerSetupMenu[] =
 {
@@ -1121,14 +1087,10 @@ static menuitem_t OP_ControlsMenu[] =
 	{IT_CALL | IT_STRING, NULL, "Player 1 Controls...", M_Setup1PControlsMenu,  10},
 	{IT_CALL | IT_STRING, NULL, "Player 2 Controls...", M_Setup2PControlsMenu,  20},
 
-#ifdef NOFOURPLAYER
-	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 40},
-#else
 	{IT_CALL | IT_STRING, NULL, "Player 3 Controls...", &M_Setup3PControlsMenu,  30},
 	{IT_CALL | IT_STRING, NULL, "Player 4 Controls...", &M_Setup4PControlsMenu,  40},
 
 	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
-#endif
 };
 
 static menuitem_t OP_AllControlsMenu[] =
@@ -1196,7 +1158,6 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
 };
 
-#ifndef NOFOURPLAYER
 static menuitem_t OP_Joystick3Menu[] =
 {
 	{IT_STRING | IT_CALL,  NULL, "Select Gamepad..."  , M_Setup3PJoystickMenu, 10},
@@ -1220,7 +1181,6 @@ static menuitem_t OP_Joystick4Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
 };
-#endif
 
 static menuitem_t OP_JoystickSetMenu[] =
 {
@@ -1871,17 +1831,16 @@ menu_t MP_MainDef =
 {
 	"M_MULTI",
 	sizeof (MP_MainMenu)/sizeof (menuitem_t),
-	&MP_SetPlayersDef,
+	&MainDef,
 	MP_MainMenu,
 	M_DrawMPMainMenu,
-	42, 50,
+	42, 30,
 	0,
 	M_CancelConnect
 };
 menu_t MP_ServerDef = MAPICONMENUSTYLE("M_MULTI", MP_ServerMenu, &MP_MainDef);
 #endif
 menu_t MP_OfflineServerDef = MAPICONMENUSTYLE("M_MULTI", MP_OfflineServerMenu, &MP_MainDef);
-menu_t MP_SetPlayersDef = MAPICONMENUSTYLE("M_MULTI", MP_SetPlayersMenu, &MainDef);
 #ifndef NONET
 menu_t MP_ConnectDef =
 {
@@ -1935,10 +1894,8 @@ menu_t OP_ControlsDef = DEFAULTMENUSTYLE("M_CONTRO", OP_ControlsMenu, &OP_MainDe
 menu_t OP_AllControlsDef = CONTROLMENUSTYLE(OP_AllControlsMenu, &OP_ControlsDef);
 menu_t OP_Joystick1Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick1Menu, &OP_AllControlsDef, 60, 30);
 menu_t OP_Joystick2Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick2Menu, &OP_AllControlsDef, 60, 30);
-#ifndef NOFOURPLAYER
 menu_t OP_Joystick3Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick3Menu, &OP_AllControlsDef, 60, 30);
 menu_t OP_Joystick4Def = DEFAULTMENUSTYLE("M_CONTRO", OP_Joystick4Menu, &OP_AllControlsDef, 60, 30);
-#endif
 menu_t OP_JoystickSetDef =
 {
 	"M_CONTRO",
@@ -2943,10 +2900,8 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_scramble].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit2].status = IT_DISABLED;
-#ifndef NOFOURPLAYER
 		MPauseMenu[mpause_psetupsplit3].status = IT_DISABLED;
 		MPauseMenu[mpause_psetupsplit4].status = IT_DISABLED;
-#endif
 		MPauseMenu[mpause_spectate].status = IT_DISABLED;
 		MPauseMenu[mpause_entergame].status = IT_DISABLED;
 		MPauseMenu[mpause_canceljoin].status = IT_DISABLED;
@@ -2996,7 +2951,6 @@ void M_StartControlPanel(void)
 				}
 			}
 
-#ifndef NOFOURPLAYER
 			if (splitscreen > 1)
 			{
 				MPauseMenu[mpause_psetupsplit3].status = IT_STRING | IT_CALL;
@@ -3013,7 +2967,6 @@ void M_StartControlPanel(void)
 					MPauseMenu[mpause_quit].alphaKey += 8;
 				}
 			}
-#endif
 		}
 		else
 		{
@@ -3138,9 +3091,7 @@ void M_Init(void)
 		return;
 
 	// Menu hacks
-#ifndef NOFOURPLAYER
 	CV_RegisterVar(&cv_splitplayers);
-#endif
 	CV_RegisterVar(&cv_dummymenuplayer);
 	CV_RegisterVar(&cv_dummyteam);
 	CV_RegisterVar(&cv_dummyspectate);
@@ -6307,7 +6258,7 @@ static void M_DrawStatsMaps(int location)
 bottomarrow:
 	if (dobottomarrow)
 		V_DrawCharacter(10, y-8 + (skullAnimCounter/5),
-			'\x1B' | highlightflags, false); // up arrow
+			'\x1B' | highlightflags, false); // down arrow
 }
 
 static void M_DrawLevelStats(void)
@@ -7435,12 +7386,7 @@ static INT32 M_FindFirstMap(INT32 gtype)
 
 static void M_StartServer(INT32 choice)
 {
-	UINT8 ssplayers =
-#ifdef NOFOURPLAYER
-		1;
-#else
-		cv_splitplayers.value-1;
-#endif
+	UINT8 ssplayers = cv_splitplayers.value-1;
 
 	(void)choice;
 
@@ -7617,8 +7563,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 
 static void M_DrawServerMenu(void)
 {
-	if (currentMenu != &MP_SetPlayersDef)
-		M_DrawLevelSelectOnly(false, false);
+	M_DrawLevelSelectOnly(false, false);
 	M_DrawGenericMenu();
 
 #ifndef NONET
@@ -7634,68 +7579,7 @@ static void M_DrawServerMenu(void)
 			                         highlightflags, room_list[menuRoomIndex].name);
 #undef mp_server_room
 	}
-	else
 #endif
-	if (currentMenu == &MP_SetPlayersDef)
-	// character bar, ripped off the color bar :V
-	{
-#define iconwidth 32
-#define spacingwidth 32
-#define incrwidth (iconwidth + spacingwidth)
-		UINT8 i = 0, pskin, pcol;
-		// player arrangement width, but there's also a chance i'm a furry, shhhhhh
-		const INT32 paw = iconwidth +
-#ifndef NOFOURPLAYER
-			3*
-#endif
-			incrwidth;
-		INT32 x = BASEVIDWIDTH/2 - paw/2, y = currentMenu->y + 27, trans = 0;
-		patch_t *face;
-
-		while (++i <=
-#ifdef NOFOURPLAYER
-			2
-#else
-			4
-#endif
-			)
-		{
-			switch (i)
-			{
-				default:
-					pskin = R_SkinAvailable(cv_skin.string);
-					pcol = cv_playercolor.value;
-					break;
-				case 2:
-					pskin = R_SkinAvailable(cv_skin2.string);
-					pcol = cv_playercolor2.value;
-					break;
-				case 3:
-					pskin = R_SkinAvailable(cv_skin3.string);
-					pcol = cv_playercolor3.value;
-					break;
-				case 4:
-					pskin = R_SkinAvailable(cv_skin4.string);
-					pcol = cv_playercolor4.value;
-					break;
-			}
-
-			if (pskin >= MAXSKINS)
-				pskin = 0;
-
-#ifndef NOFOURPLAYER
-			if (!trans && i > cv_splitplayers.value)
-				trans = V_TRANSLUCENT;
-#endif
-
-			face = W_CachePatchName(skins[pskin].face, PU_CACHE);
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, trans, face, R_GetTranslationColormap(pskin, pcol, 0));
-			x += incrwidth;
-		}
-#undef incrwidth
-#undef spacingwidth
-#undef iconwidth
-	}
 }
 
 static void M_MapChange(INT32 choice)
@@ -7735,6 +7619,8 @@ static void M_StartServerMenu(INT32 choice)
 // ==============
 
 static char setupm_ip[16];
+#endif
+static UINT8 setupm_pselect = 1;
 
 // Draw the funky Connect IP menu. Tails 11-19-2002
 // So much work for such a little thing!
@@ -7746,23 +7632,21 @@ static void M_DrawMPMainMenu(void)
 	// use generic drawer for cursor, items and title
 	M_DrawGenericMenu();
 
-#if MAXPLAYERS == 16
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[1].alphaKey,
-		((itemOn == 1) ? highlightflags : 0), "(2-16 players)");
-#else
+#ifndef NONET
+#if MAXPLAYERS != 16
 Update the maxplayers label...
 #endif
-
-	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[2].alphaKey,
-		((itemOn == 2) ? highlightflags : 0),
-#ifdef NOFOURPLAYER
-		"(2 players)"
-#else
-		"(2-4 players)"
+	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[4].alphaKey,
+		((itemOn == 4) ? highlightflags : 0), "(2-16 players)");
 #endif
+
+	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+MP_MainMenu[5].alphaKey,
+		((itemOn == 5) ? highlightflags : 0),
+		"(2-4 players)"
 		);
 
-	y += MP_MainMenu[5].alphaKey;
+#ifndef NONET
+	y += MP_MainMenu[8].alphaKey;
 
 	V_DrawFill(x+5, y+4+5, /*16*8 + 6,*/ BASEVIDWIDTH - 2*(x+5), 8+6, 239);
 
@@ -7770,10 +7654,151 @@ Update the maxplayers label...
 	V_DrawString(x+8,y+12, V_MONOSPACE, setupm_ip);
 
 	// draw text cursor for name
-	if (itemOn == 5
+	if (itemOn == 8
 	    && skullAnimCounter < 4)   //blink cursor
 		V_DrawCharacter(x+8+V_StringWidth(setupm_ip, V_MONOSPACE),y+12,'_',false);
+#endif
+
+	// character bar, ripped off the color bar :V
+	{
+#define iconwidth 32
+#define spacingwidth 32
+#define incrwidth (iconwidth + spacingwidth)
+		UINT8 i = 0, pskin, pcol;
+		// player arrangement width, but there's also a chance i'm a furry, shhhhhh
+		const INT32 paw = iconwidth + 3*incrwidth;
+		INT32 trans = 0;
+		patch_t *face;
+		UINT8 *colmap;
+		x = BASEVIDWIDTH/2 - paw/2;
+		y = currentMenu->y + 32;
+
+		while (++i <= 4)
+		{
+			switch (i)
+			{
+				default:
+					pskin = R_SkinAvailable(cv_skin.string);
+					pcol = cv_playercolor.value;
+					break;
+				case 2:
+					pskin = R_SkinAvailable(cv_skin2.string);
+					pcol = cv_playercolor2.value;
+					break;
+				case 3:
+					pskin = R_SkinAvailable(cv_skin3.string);
+					pcol = cv_playercolor3.value;
+					break;
+				case 4:
+					pskin = R_SkinAvailable(cv_skin4.string);
+					pcol = cv_playercolor4.value;
+					break;
+			}
+
+			if (pskin >= MAXSKINS)
+				pskin = 0;
+
+			if (!trans && i > cv_splitplayers.value)
+				trans = V_TRANSLUCENT;
+
+			colmap = R_GetTranslationColormap(pskin, pcol, 0);
+
+			face = W_CachePatchName(skins[pskin].face, PU_CACHE);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, trans, face, colmap);
+
+			if (itemOn == 2 && i == setupm_pselect)
+			{
+				/*V_DrawCharacter(x + 12, y-4 + (skullAnimCounter/5),
+					'\x1B' | highlightflags, false); // down arrow*/
+				face = W_CachePatchName("K_CHRCUR", PU_CACHE);
+				V_DrawFixedPatch((x-2)<<FRACBITS, (y-2)<<FRACBITS, FRACUNIT, 0, face, colmap);
+			}
+
+			x += incrwidth;
+		}
+#undef incrwidth
+#undef spacingwidth
+#undef iconwidth
+	}
 }
+
+static void Splitplayers_OnChange(void)
+{
+	if (cv_splitplayers.value < setupm_pselect)
+		setupm_pselect = 1;
+}
+
+static void M_SetupMultiHandler(INT32 choice)
+{
+	boolean exitmenu = false;  // exit to previous menu and send name change
+
+	switch (choice)
+	{
+		case KEY_LEFTARROW:
+			if (cv_splitplayers.value > 1)
+			{
+				if (--setupm_pselect < 1)
+					setupm_pselect = cv_splitplayers.value;
+				S_StartSound(NULL,sfx_menu1); // Tails
+			}
+			break;
+
+		case KEY_RIGHTARROW:
+			if (cv_splitplayers.value > 1)
+			{
+				if (++setupm_pselect > cv_splitplayers.value)
+					setupm_pselect = 1;
+				S_StartSound(NULL,sfx_menu1); // Tails
+			}
+			break;
+
+		case KEY_DOWNARROW:
+			M_NextOpt();
+			S_StartSound(NULL,sfx_menu1); // Tails
+			break;
+
+		case KEY_UPARROW:
+			M_PrevOpt();
+			S_StartSound(NULL,sfx_menu1); // Tails
+			break;
+
+		case KEY_ENTER:
+		{
+			S_StartSound(NULL,sfx_menu1); // Tails
+			currentMenu->lastOn = itemOn;
+			switch (setupm_pselect)
+			{
+				case 2:
+					M_SetupMultiPlayer2(0);
+					return;
+				case 3:
+					M_SetupMultiPlayer3(0);
+					return;
+				case 4:
+					M_SetupMultiPlayer4(0);
+					return;
+				default:
+					M_SetupMultiPlayer(0);
+					return;
+			}
+			break;
+		}
+
+		case KEY_ESCAPE:
+			exitmenu = true;
+			break;
+	}
+
+	if (exitmenu)
+	{
+		if (currentMenu->prevMenu)
+			M_SetupNextMenu (currentMenu->prevMenu);
+		else
+			M_ClearMenus(true);
+	}
+}
+
+#ifndef NONET
 
 // Tails 11-19-2002
 static void M_ConnectIP(INT32 choice)
@@ -8026,6 +8051,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		INT32 offx = 8, offy = 8;
 		patch_t *cursor = W_CachePatchName("K_CHRCUR", PU_CACHE);
 		patch_t *face;
+		UINT8 *colmap;
 
 		if (col < 0)
 			col += numskins;
@@ -8044,9 +8070,10 @@ static void M_DrawSetupMultiPlayerMenu(void)
 				offy = 8;
 			}
 			face = W_CachePatchName(skins[col].face, PU_CACHE);
-			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, scale, 0, face, R_GetTranslationColormap(col, setupm_fakecolor, 0));
+			colmap =  R_GetTranslationColormap(col, setupm_fakecolor, 0);
+			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, scale, 0, face, colmap);
 			if (scale == FRACUNIT) // bit of a hack
-				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, scale, 0, cursor, R_GetTranslationColormap(col, setupm_fakecolor, 0));
+				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, scale, 0, cursor, colmap);
 			if (++col >= numskins)
 				col -= numskins;
 			x += FixedMul(iconwidth<<FRACBITS, 3*scale/2)/FRACUNIT;
@@ -8278,7 +8305,6 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	M_SetupNextMenu(&MP_PlayerSetupDef);
 }
 
-#ifndef NOFOURPLAYER
 // start the multiplayer setup menu, for third player (splitscreen mode)
 static void M_SetupMultiPlayer3(INT32 choice)
 {
@@ -8340,7 +8366,6 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	MP_PlayerSetupDef.prevMenu = currentMenu;
 	M_SetupNextMenu(&MP_PlayerSetupDef);
 }
-#endif
 
 static boolean M_QuitMultiPlayerMenu(void)
 {
@@ -8475,7 +8500,6 @@ static void M_Setup2PJoystickMenu(INT32 choice)
 	M_SetupJoystickMenu(choice);
 }
 
-#ifndef NOFOURPLAYER
 static void M_Setup3PJoystickMenu(INT32 choice)
 {
 	setupcontrols_thirdplayer = true;
@@ -8491,7 +8515,6 @@ static void M_Setup4PJoystickMenu(INT32 choice)
 	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
 	M_SetupJoystickMenu(choice);
 }
-#endif
 
 static void M_AssignJoystick(INT32 choice)
 {
@@ -8574,7 +8597,6 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	M_SetupNextMenu(&OP_AllControlsDef);
 }
 
-#ifndef NOFOURPLAYER
 static void M_Setup3PControlsMenu(INT32 choice)
 {
 	(void)choice;
@@ -8640,7 +8662,6 @@ static void M_Setup4PControlsMenu(INT32 choice)
 
 	M_SetupNextMenu(&OP_AllControlsDef);
 }
-#endif
 
 #define controlheight 18
 
@@ -8705,9 +8726,11 @@ static void M_DrawControl(void)
 										"\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
 
 	if (i)
-		V_DrawString(currentMenu->x - 16, y-(skullAnimCounter/5), highlightflags, "\x1A"); // up arrow
+		V_DrawCharacter(currentMenu->x - 16, y-(skullAnimCounter/5),
+			'\x1A' | highlightflags, false); // up arrow
 	if (max != currentMenu->numitems)
-		V_DrawString(currentMenu->x - 16, y+(SMALLLINEHEIGHT*(controlheight-1))+(skullAnimCounter/5), highlightflags, "\x1B"); // down arrow
+		V_DrawCharacter(currentMenu->x - 16, y+(SMALLLINEHEIGHT*(controlheight-1))+(skullAnimCounter/5) + (skullAnimCounter/5),
+			'\x1B' | highlightflags, false); // down arrow
 
 	for (; i < max; i++)
 	{
