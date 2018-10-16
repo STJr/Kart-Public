@@ -8519,12 +8519,13 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[21].status = IT_CONTROL; // GIF
 	OP_AllControlsMenu[22].status = IT_CONTROL; // System Menu
 	OP_AllControlsMenu[23].status = IT_CONTROL; // Console
-	OP_AllControlsMenu[24].status = IT_HEADER; // Spectator Controls header
+	/*OP_AllControlsMenu[24].status = IT_HEADER; // Spectator Controls header
 	OP_AllControlsMenu[25].status = IT_SPACE; // Spectator Controls space
 	OP_AllControlsMenu[26].status = IT_CONTROL; // Spectate
 	OP_AllControlsMenu[27].status = IT_CONTROL; // Look Up
 	OP_AllControlsMenu[28].status = IT_CONTROL; // Look Down
 	OP_AllControlsMenu[29].status = IT_CONTROL; // Center View
+	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
 }
@@ -8551,12 +8552,13 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
 	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
 	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
+	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
 	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
 	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
 	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
 	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
 	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
 }
@@ -8584,12 +8586,13 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
 	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
 	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
+	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
 	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
 	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
 	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
 	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
 	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
 }
@@ -8616,12 +8619,13 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
 	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
 	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
+	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
 	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
 	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
 	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
 	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
 	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
 }
