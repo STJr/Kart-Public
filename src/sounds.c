@@ -955,8 +955,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kattk2", false,  64, 96, -1, NULL, 0,  SKSKATK2,  -1, LUMPERROR},
   {"kbost1", false,  64, 96, -1, NULL, 0,  SKSKBST1,  -1, LUMPERROR},
   {"kbost2", false,  64, 96, -1, NULL, 0,  SKSKBST2,  -1, LUMPERROR},
-  {"kslow",  false, 128, 32, -1, NULL, 0,  SKSKSLOW,  -1, LUMPERROR},
-  {"khitem", false,  64, 32, -1, NULL, 0,  SKSKHITM,  -1, LUMPERROR},
+  {"kslow",  false,  64, 32, -1, NULL, 0,  SKSKSLOW,  -1, LUMPERROR},
+  {"khitem", false, 128, 32, -1, NULL, 0,  SKSKHITM,  -1, LUMPERROR},
   {"kgloat", false,  64, 48, -1, NULL, 0,  SKSKPOWR,  -1, LUMPERROR},
 
   // skin sounds free slots to add sounds at run time (Boris HACK!!!)
