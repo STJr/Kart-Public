@@ -1631,8 +1631,6 @@ static void CL_LoadReceivedSavegame(void)
 	automapactive = false;
 
 	// load a base level
-	playerdeadview = false;
-
 	if (P_LoadNetGame())
 	{
 		CONS_Printf(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap));

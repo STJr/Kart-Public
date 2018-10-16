@@ -4007,7 +4007,8 @@ void P_RecalcPrecipInSector(sector_t *sector)
 //
 void P_NullPrecipThinker(precipmobj_t *mobj)
 {
-	(void)mobj;
+	//(void)mobj;
+	mobj->precipflags &= ~PCF_THUNK;
 }
 
 void P_SnowThinker(precipmobj_t *mobj)
@@ -4027,25 +4028,26 @@ void P_RainThinker(precipmobj_t *mobj)
 	{
 		// cycle through states,
 		// calling action functions at transitions
-		if (mobj->tics > 0 && --mobj->tics == 0)
-		{
-			// you can cycle through multiple states in a tic
-			if (!P_SetPrecipMobjState(mobj, mobj->state->nextstate))
-				return; // freed itself
-		}
+		if (mobj->tics <= 0)
+			return;
 
-		if (mobj->state == &states[S_RAINRETURN])
-		{
-			mobj->z = mobj->ceilingz;
-			P_SetPrecipMobjState(mobj, S_RAIN1);
-		}
+		if (--mobj->tics)
+			return;
+
+		if (!P_SetPrecipMobjState(mobj, mobj->state->nextstate))
+			return;
+
+		if (mobj->state != &states[S_RAINRETURN])
+			return;
+
+		mobj->z = mobj->ceilingz;
+		P_SetPrecipMobjState(mobj, S_RAIN1);
+
 		return;
 	}
 
 	// adjust height
-	mobj->z += mobj->momz;
-
-	if (mobj->z <= mobj->floorz)
+	if ((mobj->z += mobj->momz) <= mobj->floorz)
 	{
 		// no splashes on sky or bottomless pits
 		if (mobj->precipflags & PCF_PIT)
@@ -9544,14 +9546,15 @@ static precipmobj_t *P_SpawnPrecipMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype
 static inline precipmobj_t *P_SpawnRainMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
 	precipmobj_t *mo = P_SpawnPrecipMobj(x,y,z,type);
-	mo->thinker.function.acp1 = (actionf_p1)P_RainThinker;
+	mo->precipflags |= PCF_RAIN;
+	//mo->thinker.function.acp1 = (actionf_p1)P_RainThinker;
 	return mo;
 }
 
 static inline precipmobj_t *P_SpawnSnowMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
 	precipmobj_t *mo = P_SpawnPrecipMobj(x,y,z,type);
-	mo->thinker.function.acp1 = (actionf_p1)P_SnowThinker;
+	//mo->thinker.function.acp1 = (actionf_p1)P_SnowThinker;
 	return mo;
 }
 
@@ -9740,13 +9743,12 @@ consvar_t cv_suddendeath = {"suddendeath", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, 
 
 void P_SpawnPrecipitation(void)
 {
-	INT32 i, j, mrand;
+	INT32 i, mrand;
 	fixed_t basex, basey, x, y, height;
 	subsector_t *precipsector = NULL;
 	precipmobj_t *rainmo = NULL;
 
-	if (dedicated || !cv_precipdensity.value || curWeather == PRECIP_NONE
-		|| netgame) // SRB2Kart
+	if (dedicated || /*!cv_precipdensity*/!cv_drawdist_precip.value || curWeather == PRECIP_NONE) // SRB2Kart
 		return;
 
 	// Use the blockmap to narrow down our placing patterns
@@ -9755,7 +9757,7 @@ void P_SpawnPrecipitation(void)
 		basex = bmaporgx + (i % bmapwidth) * MAPBLOCKSIZE;
 		basey = bmaporgy + (i / bmapwidth) * MAPBLOCKSIZE;
 
-		for (j = 0; j < cv_precipdensity.value; ++j)
+		//for (j = 0; j < cv_precipdensity.value; ++j) -- density is 1 for kart always
 		{
 			x = basex + ((M_RandomKey(MAPBLOCKUNITS<<3)<<FRACBITS)>>3);
 			y = basey + ((M_RandomKey(MAPBLOCKUNITS<<3)<<FRACBITS)>>3);
@@ -9765,7 +9767,11 @@ void P_SpawnPrecipitation(void)
 			// No sector? Stop wasting time,
 			// move on to the next entry in the blockmap
 			if (!precipsector)
-				break;
+				continue;
+
+			// Not in a sector with visible sky?
+			if (precipsector->sector->ceilingpic != skyflatnum)
+				continue;
 
 			// Exists, but is too small for reasonable precipitation.
 			if (!(precipsector->sector->floorheight <= precipsector->sector->ceilingheight - (32<<FRACBITS)))
@@ -9776,10 +9782,6 @@ void P_SpawnPrecipitation(void)
 
 			if (curWeather == PRECIP_SNOW)
 			{
-				// Not in a sector with visible sky -- exception for NiGHTS.
-				if (!(maptol & TOL_NIGHTS) && precipsector->sector->ceilingpic != skyflatnum)
-					continue;
-
 				rainmo = P_SpawnSnowMobj(x, y, height, MT_SNOWFLAKE);
 				mrand = M_RandomByte();
 				if (mrand < 64)
@@ -9788,13 +9790,7 @@ void P_SpawnPrecipitation(void)
 					P_SetPrecipMobjState(rainmo, S_SNOW2);
 			}
 			else // everything else.
-			{
-				// Not in a sector with visible sky.
-				if (precipsector->sector->ceilingpic != skyflatnum)
-					continue;
-
 				rainmo = P_SpawnRainMobj(x, y, height, MT_RAIN);
-			}
 
 			// Randomly assign a height, now that floorz is set.
 			rainmo->z = M_RandomRange(rainmo->floorz>>FRACBITS, rainmo->ceilingz>>FRACBITS)<<FRACBITS;
