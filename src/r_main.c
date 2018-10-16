@@ -60,7 +60,6 @@ fixed_t projectiony; // aspect ratio
 // just for profiling purposes
 size_t framecount;
 
-size_t sscount;
 size_t loopcount;
 
 fixed_t viewx, viewy, viewz;
@@ -123,11 +122,19 @@ size_t num_extra_colormaps;
 extracolormap_t extra_colormaps[MAXCOLORMAPS];
 
 static CV_PossibleValue_t drawdist_cons_t[] = {
-	{256, "256"},	{512, "512"},	{768, "768"},
+	/*{256, "256"},*/	{512, "512"},	{768, "768"},
 	{1024, "1024"},	{1536, "1536"},	{2048, "2048"},
 	{3072, "3072"},	{4096, "4096"},	{6144, "6144"},
 	{8192, "8192"},	{0, "Infinite"},	{0, NULL}};
-static CV_PossibleValue_t precipdensity_cons_t[] = {{0, "None"}, {1, "Light"}, {2, "Moderate"}, {4, "Heavy"}, {6, "Thick"}, {8, "V.Thick"}, {0, NULL}};
+
+//static CV_PossibleValue_t precipdensity_cons_t[] = {{0, "None"}, {1, "Light"}, {2, "Moderate"}, {4, "Heavy"}, {6, "Thick"}, {8, "V.Thick"}, {0, NULL}};
+
+static CV_PossibleValue_t drawdist_precip_cons_t[] = {
+	{256, "256"},	{512, "512"},	{768, "768"},
+	{1024, "1024"},	{1536, "1536"},	{2048, "2048"},
+	{0, "None"},	{0, NULL}};
+
+//static CV_PossibleValue_t precipdensity_cons_t[] = {{0, "None"}, {1, "Light"}, {2, "Moderate"}, {4, "Heavy"}, {6, "Thick"}, {8, "V.Thick"}, {0, NULL}};
 static CV_PossibleValue_t translucenthud_cons_t[] = {{0, "MIN"}, {10, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t maxportals_cons_t[] = {{0, "MIN"}, {12, "MAX"}, {0, NULL}}; // lmao rendering 32 portals, you're a card
 static CV_PossibleValue_t homremoval_cons_t[] = {{0, "No"}, {1, "Yes"}, {2, "Flash"}, {0, NULL}};
@@ -165,9 +172,9 @@ consvar_t cv_translucenthud = {"translucenthud", "10", CV_SAVE, translucenthud_c
 
 consvar_t cv_translucency = {"translucency", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_drawdist = {"drawdist", "Infinite", CV_SAVE, drawdist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_drawdist_nights = {"drawdist_nights", "2048", CV_SAVE, drawdist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_drawdist_precip = {"drawdist_precip", "1024", CV_SAVE, drawdist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_precipdensity = {"precipdensity", "Moderate", CV_SAVE, precipdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+//consvar_t cv_drawdist_nights = {"drawdist_nights", "2048", CV_SAVE, drawdist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_drawdist_precip = {"drawdist_precip", "1024", CV_SAVE, drawdist_precip_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+//consvar_t cv_precipdensity = {"precipdensity", "Moderate", CV_SAVE, precipdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Okay, whoever said homremoval causes a performance hit should be shot.
 consvar_t cv_homremoval = {"homremoval", "Yes", CV_SAVE, homremoval_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -557,9 +564,6 @@ static void R_InitTextureMapping(void)
 	// Take out the fencepost cases from viewangletox.
 	for (i = 0; i < FINEANGLES/2; i++)
 	{
-		t = FixedMul(FINETANGENT(i), focallength);
-		t = centerx - t;
-
 		if (viewangletox[i] == -1)
 			viewangletox[i] = 0;
 		else if (viewangletox[i] == viewwidth+1)
@@ -1048,8 +1052,6 @@ void R_SkyboxFrame(player_t *player)
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
-	sscount = 0;
-
 	// recalc necessary stuff for mouseaiming
 	// slopes are already calculated for the full possible view (which is 4*viewheight).
 
@@ -1191,8 +1193,6 @@ void R_SetupFrame(player_t *player, boolean skybox)
 
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
-
-	sscount = 0;
 
 	// recalc necessary stuff for mouseaiming
 	// slopes are already calculated for the full possible view (which is 4*viewheight).
@@ -1349,9 +1349,9 @@ void R_RenderPlayerView(player_t *player)
 	if (cv_homremoval.value && player == &players[displayplayer])
 	{
 		if (cv_homremoval.value == 1)
-			V_DrawFill(0, 0, vid.width, vid.height, 31); // No HOM effect!
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); // No HOM effect!
 		else //'development' HOM removal -- makes it blindingly obvious if HOM is spotted.
-			V_DrawFill(0, 0, vid.width, vid.height, 128+(timeinmap&15));
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 128+(timeinmap&15));
 	}
 	// Draw over the fourth screen so you don't have to stare at a HOM :V
 	else if (splitscreen == 2 && player == &players[thirddisplayplayer])
@@ -1513,10 +1513,10 @@ void R_RegisterEngineStuff(void)
 	if (dedicated)
 		return;
 
-	CV_RegisterVar(&cv_precipdensity);
+	//CV_RegisterVar(&cv_precipdensity);
 	CV_RegisterVar(&cv_translucency);
 	CV_RegisterVar(&cv_drawdist);
-	CV_RegisterVar(&cv_drawdist_nights);
+	//CV_RegisterVar(&cv_drawdist_nights);
 	CV_RegisterVar(&cv_drawdist_precip);
 
 	CV_RegisterVar(&cv_chasecam);
