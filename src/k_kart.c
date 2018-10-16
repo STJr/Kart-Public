@@ -3651,8 +3651,8 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 {
 	const INT32 numsnds = 13;
 	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class number
-	INT32 numcloseplayers = 0;
 	UINT8 volume = 255;
+	fixed_t volumedampen = 0;
 	INT32 targetsnd = 0;
 	INT32 i;
 
@@ -3690,30 +3690,44 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_enginesnd] > 12)
 		player->kartstuff[k_enginesnd] = 12;
 
-	// Display player's engines are quieter
-	if ((player == &players[displayplayer])
-		|| (player == &players[secondarydisplayplayer] && splitscreen)
-		|| (player == &players[thirddisplayplayer] && splitscreen > 1)
-		|| (player == &players[fourthdisplayplayer] && splitscreen > 2))
-		volume = FixedDiv(volume<<FRACBITS, FixedSqrt(((splitscreen+1)*3)<<FRACBITS))>>FRACBITS;
-	else
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		for (i = 0; i < MAXPLAYERS; i++)
+		UINT8 thisvol = 0;
+		fixed_t dist;
+
+		if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
+			continue;
+
+		if ((i == displayplayer)
+			|| (i == secondarydisplayplayer && splitscreen)
+			|| (i == thirddisplayplayer && splitscreen > 1)
+			|| (i == fourthdisplayplayer && splitscreen > 2))
 		{
-			if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
-				continue;
-			if ((i == displayplayer)
-				|| (i == secondarydisplayplayer && splitscreen)
-				|| (i == thirddisplayplayer && splitscreen > 1)
-				|| (i == fourthdisplayplayer && splitscreen > 2))
-				continue;
-			if (P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
-				player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) <= 3072<<FRACBITS) // engine sounds' approx. range
-				numcloseplayers++;
+			volumedampen += FRACUNIT; // We already know what this is gonna be, let's not waste our time.
+			continue;
 		}
-		if (numcloseplayers > 1)
-			volume = FixedDiv(volume<<FRACBITS, FixedSqrt(numcloseplayers<<FRACBITS))>>FRACBITS;
+
+		dist = P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
+			player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) / 2;
+
+		if (dist > 1536<<FRACBITS)
+			continue;
+		else if (dist < 160<<FRACBITS) // engine sounds' approx. range
+			thisvol = 255;
+		else
+			thisvol = (15 * (((160<<FRACBITS) - dist)>>FRACBITS)) / (((1536<<FRACBITS)-(160<<FRACBITS))>>(FRACBITS+4));
+
+		if (thisvol == 0)
+			continue;
+
+		volumedampen += (thisvol * 257); // 255 * 257 = FRACUNIT
 	}
+
+	if (volumedampen > FRACUNIT)
+		volume = FixedDiv(volume<<FRACBITS, volumedampen)>>FRACBITS;
+
+	if (volume <= 0) // Might as well
+		return;
 
 	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
 }

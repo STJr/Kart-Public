@@ -10755,7 +10755,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
-		-24*FRACUNIT,   // speed
+		-72*FRACUNIT,   // speed -- -24*FRACUNIT originally, srb2kart x3 (nya)
 		1*FRACUNIT,     // radius
 		8*FRACUNIT,     // height
 		0,              // display offset

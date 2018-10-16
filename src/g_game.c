@@ -4327,7 +4327,6 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	// Don't carry over custom music change to another map.
 	mapmusflags |= MUSIC_RELOADRESET;
 
-	playerdeadview = false;
 	automapactive = false;
 	imcontinuing = false;
 

@@ -85,7 +85,7 @@ consvar_t cv_digmusicvolume = {"digmusicvolume", "18", CV_SAVE, soundvolume_cons
 #if defined (_WIN32_WCE) || defined (DC) || defined (PSP) || defined(GP2X)
 consvar_t cv_numChannels = {"snd_channels", "8", CV_SAVE|CV_CALL, CV_Unsigned, SetChannelsNum, 0, NULL, NULL, 0, 0, NULL};
 #else
-consvar_t cv_numChannels = {"snd_channels", "32", CV_SAVE|CV_CALL, CV_Unsigned, SetChannelsNum, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_numChannels = {"snd_channels", "64", CV_SAVE|CV_CALL, CV_Unsigned, SetChannelsNum, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
 consvar_t surround = {"surround", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -186,7 +186,7 @@ static INT32 S_getChannel(const void *origin, sfxinfo_t *sfxinfo)
 		}
 		else if (origin && channels[cnum].origin == origin
 			&& channels[cnum].sfxinfo->name != sfxinfo->name
-			&& channels[cnum].sfxinfo->pitch == SF_TOTALLYSINGLE && sfxinfo->pitch == SF_TOTALLYSINGLE)
+			&& (channels[cnum].sfxinfo->pitch & SF_TOTALLYSINGLE) && (sfxinfo->pitch & SF_TOTALLYSINGLE))
 		{
 			S_StopChannel(cnum);
 			break;
@@ -582,7 +582,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 
 		// Assigns the handle to one of the channels in the
 		// mix/output buffer.
-		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
+		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority, cnum);
 	}
 
 dontplay:
@@ -638,7 +638,7 @@ dontplay:
 
 		// Assigns the handle to one of the channels in the
 		// mix/output buffer.
-		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
+		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority, cnum);
 	}
 
 dontplay3:
@@ -694,7 +694,7 @@ dontplay3:
 
 		// Assigns the handle to one of the channels in the
 		// mix/output buffer.
-		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
+		channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority, cnum);
 	}
 
 dontplay4:
@@ -743,7 +743,7 @@ dontplay4:
 
 	// Assigns the handle to one of the channels in the
 	// mix/output buffer.
-	channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
+	channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority, cnum);
 }
 
 void S_StartSound(const void *origin, sfxenum_t sfx_id)
