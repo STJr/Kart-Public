@@ -4256,7 +4256,7 @@ DoneSection2:
 					// S_StartSound(player->mo, sfx_strpst);
 
 					// Figure out how many are playing on the last lap, to prevent spectate griefing
-					if (!nospectategrief && player->laps == (UINT8)(cv_numlaps.value - 1))
+					if (!nospectategrief && player->laps >= (UINT8)(cv_numlaps.value - 1))
 					{
 						UINT8 i;
 						for (i = 0; i < MAXPLAYERS; i++)
