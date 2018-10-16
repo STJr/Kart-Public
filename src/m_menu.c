@@ -3966,7 +3966,7 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 			if (M_MapLocked(mapnum+1))
 				return false; // not unlocked
 
-			if (gt == GT_COOP && (mapheaderinfo[mapnum]->typeoflevel & TOL_COOP))
+			/*if (gt == GT_COOP && (mapheaderinfo[mapnum]->typeoflevel & TOL_COOP))
 				return true;
 
 			if (gt == GT_COMPETITION && (mapheaderinfo[mapnum]->typeoflevel & TOL_COMPETITION))
@@ -3975,10 +3975,10 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 			if (gt == GT_CTF && (mapheaderinfo[mapnum]->typeoflevel & TOL_CTF))
 				return true;
 
-			if ((gt == GT_MATCH || gt == GT_TEAMMATCH) && (mapheaderinfo[mapnum]->typeoflevel & TOL_MATCH))
-				return true;
-
 			if ((gt == GT_TAG || gt == GT_HIDEANDSEEK) && (mapheaderinfo[mapnum]->typeoflevel & TOL_TAG))
+				return true;*/
+
+			if ((gt == GT_MATCH || gt == GT_TEAMMATCH) && (mapheaderinfo[mapnum]->typeoflevel & TOL_MATCH))
 				return true;
 
 			if (gt == GT_RACE && (mapheaderinfo[mapnum]->typeoflevel & TOL_RACE))
@@ -3986,29 +3986,38 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 
 			return false;
 
-		case LLM_LEVELSELECT:
+		/*case LLM_LEVELSELECT:
 			if (mapheaderinfo[mapnum]->levelselect != maplistoption)
 				return false;
 
 			if (M_MapLocked(mapnum+1))
 				return false; // not unlocked
 
-			return true;
+			return true;*/
 		case LLM_RECORDATTACK:
-			if (!(mapheaderinfo[mapnum]->menuflags & LF2_RECORDATTACK))
+			/*if (!(mapheaderinfo[mapnum]->menuflags & LF2_RECORDATTACK))
+				return false;*/
+
+			if (!(mapheaderinfo[mapnum]->typeoflevel & TOL_RACE))
 				return false;
 
 			if (M_MapLocked(mapnum+1))
 				return false; // not unlocked
 
-			if (mapheaderinfo[mapnum]->menuflags & LF2_NOVISITNEEDED)
+			if (M_SecretUnlocked(SECRET_HELLATTACK))
+				return true; // now you're in hell
+
+			if (mapheaderinfo[mapnum]->menuflags & LF2_HIDEINMENU)
+				return false; // map hell
+
+			/*if (mapheaderinfo[mapnum]->menuflags & LF2_NOVISITNEEDED)
 				return true;
 
 			if (!mapvisited[mapnum])
-				return false;
+				return false;*/
 
 			return true;
-		case LLM_NIGHTSATTACK:
+		/*case LLM_NIGHTSATTACK:
 			if (!(mapheaderinfo[mapnum]->menuflags & LF2_NIGHTSATTACK))
 				return false;
 
@@ -4021,7 +4030,9 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt)
 			if (!mapvisited[mapnum])
 				return false;
 
-			return true;
+			return true;*/
+		default:
+			return false;
 	}
 
 	// Hmm? Couldn't decide?
