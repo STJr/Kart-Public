@@ -11235,7 +11235,7 @@ ML_NOCLIMB : Direction not controllable
 void P_SpawnHoopsAndRings(mapthing_t *mthing)
 {
 	mobj_t *mobj = NULL;
-	INT32 r, i;
+	INT32 /*r,*/ i;
 	fixed_t x, y, z, finalx, finaly, finalz;
 	sector_t *sec;
 	TVector v, *res;
@@ -11309,8 +11309,8 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 
 			mobj = P_SpawnMobj(finalx, finaly, finalz, MT_HOOP);
 
-			if (maptol & TOL_XMAS)
-				P_SetMobjState(mobj, mobj->info->seestate + (i & 1));
+			//if (maptol & TOL_XMAS)
+				//P_SetMobjState(mobj, mobj->info->seestate + (i & 1));
 
 			mobj->z -= mobj->height/2;
 			P_SetTarget(&mobj->target, hoopcenter); // Link the sprite to the center.
@@ -11319,8 +11319,10 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 			// Link all the sprites in the hoop together
 			if (nextmobj)
 			{
-				mobj->hprev = nextmobj;
-				mobj->hprev->hnext = mobj;
+				P_SetTarget(&mobj->hprev, nextmobj);
+				P_SetTarget(&mobj->hprev->hnext, mobj);
+				//mobj->hprev = nextmobj;
+				//mobj->hprev->hnext = mobj;
 			}
 			else
 				mobj->hprev = mobj->hnext = NULL;
@@ -11350,8 +11352,10 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 
 			// Link all the collision sprites together.
 			mobj->hnext = NULL;
-			mobj->hprev = nextmobj;
-			mobj->hprev->hnext = mobj;
+			P_SetTarget(&mobj->hprev, nextmobj);
+			P_SetTarget(&mobj->hprev->hnext, mobj);
+			//mobj->hprev = nextmobj;
+			//mobj->hprev->hnext = mobj;
 
 			nextmobj = mobj;
 		}
@@ -11377,8 +11381,10 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 
 			// Link all the collision sprites together.
 			mobj->hnext = NULL;
-			mobj->hprev = nextmobj;
-			mobj->hprev->hnext = mobj;
+			P_SetTarget(&mobj->hprev, nextmobj);
+			P_SetTarget(&mobj->hprev->hnext, mobj);
+			//mobj->hprev = nextmobj;
+			//mobj->hprev->hnext = mobj;
 
 			nextmobj = mobj;
 		}
@@ -11451,8 +11457,8 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 
 			mobj = P_SpawnMobj(finalx, finaly, finalz, MT_HOOP);
 
-			if (maptol & TOL_XMAS)
-				P_SetMobjState(mobj, mobj->info->seestate + (i & 1));
+			//if (maptol & TOL_XMAS)
+				//P_SetMobjState(mobj, mobj->info->seestate + (i & 1));
 
 			mobj->z -= mobj->height/2;
 			P_SetTarget(&mobj->target, hoopcenter); // Link the sprite to the center.
@@ -11461,8 +11467,10 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 			// Link all the sprites in the hoop together
 			if (nextmobj)
 			{
-				mobj->hprev = nextmobj;
-				mobj->hprev->hnext = mobj;
+				P_SetTarget(&mobj->hprev, nextmobj);
+				P_SetTarget(&mobj->hprev->hnext, mobj);
+				//mobj->hprev = nextmobj;
+				//mobj->hprev->hnext = mobj;
 			}
 			else
 				mobj->hprev = mobj->hnext = NULL;
@@ -11503,8 +11511,10 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 
 				// Link all the collision sprites together.
 				mobj->hnext = NULL;
-				mobj->hprev = nextmobj;
-				mobj->hprev->hnext = mobj;
+				P_SetTarget(&mobj->hprev, nextmobj);
+				P_SetTarget(&mobj->hprev->hnext, mobj);
+				//mobj->hprev = nextmobj;
+				//mobj->hprev->hnext = mobj;
 
 				nextmobj = mobj;
 			}
@@ -11512,6 +11522,8 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 
 		return;
 	}
+	else return; // srb2kart - no rings or ring-like objects in R1
+	/*
 	// Wing logo item.
 	else if (mthing->type == mobjinfo[MT_NIGHTSWING].doomednum)
 	{
@@ -11805,7 +11817,7 @@ void P_SpawnHoopsAndRings(mapthing_t *mthing)
 			}
 		}
 		return;
-	}
+	}*/
 }
 
 //
