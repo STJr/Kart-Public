@@ -296,9 +296,9 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 		else
 			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
 
-		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] != numplayersingame))
+		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] != nospectategrief))
 		{
-			data.match.increase[i] = numplayersingame - data.match.pos[data.match.numplayers];
+			data.match.increase[i] = nospectategrief - data.match.pos[data.match.numplayers];
 			players[i].score += data.match.increase[i];
 		}
 
