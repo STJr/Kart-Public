@@ -2388,11 +2388,12 @@ static void Command_Suicide(void)
 	}*/
 
 	// Retry is quicker.  Probably should force people to use it.
-	if (!(netgame || multiplayer))
+	// nope, this is srb2kart - a complete retry is overkill
+	/*if (!(netgame || multiplayer))
 	{
 		CONS_Printf(M_GetText("You can't use this in Single Player! Use \"retry\" instead.\n"));
 		return;
-	}
+	}*/
 
 	SendNetXCmd(XD_SUICIDE, &buf, 4);
 }
@@ -4792,10 +4793,10 @@ void Command_Retry_f(void)
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else if (netgame || multiplayer)
 		CONS_Printf(M_GetText("This only works in single player.\n"));
-	else if (!&players[consoleplayer] || players[consoleplayer].lives <= 1)
+	/*else if (!&players[consoleplayer] || players[consoleplayer].lives <= 1)
 		CONS_Printf(M_GetText("You can't retry without any lives remaining!\n"));
 	else if (G_IsSpecialStage(gamemap))
-		CONS_Printf(M_GetText("You can't retry special stages!\n"));
+		CONS_Printf(M_GetText("You can't retry special stages!\n"));*/
 	else
 	{
 		M_ClearMenus(true);
