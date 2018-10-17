@@ -6941,10 +6941,15 @@ static void K_drawBattleFullscreen(void)
 		}
 		else
 		{
-			if (stplyr == &players[secondarydisplayplayer])
-				x = BASEVIDWIDTH-96;
+			if (stplyr->exiting)
+			{
+				if (stplyr == &players[secondarydisplayplayer])
+					x = BASEVIDWIDTH-96;
+				else
+					x = 96;
+			}
 			else
-				x = 96;
+				scale /= 2;
 		}
 	}
 
