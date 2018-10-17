@@ -1952,14 +1952,13 @@ static void ST_overlayDrawer(void)
 		)
 		{
 			// SRB2kart: changed positions & text
-			V_DrawString(2, BASEVIDHEIGHT-50, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
+			V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
 			if (stplyr->pflags & PF_WANTSTOJOIN)
-				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF, M_GetText("Item - Cancel Join"));
+				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Cancel Join"));
 			/*else if (G_GametypeHasTeams())
-				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF, M_GetText("Item - Join Team"));*/
+				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Join Team"));*/
 			else
-				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF, M_GetText("Item - Join Game"));
-			V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("F12 - Change View"));
+				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Join Game"));
 			V_DrawString(2, BASEVIDHEIGHT-20, V_HUDTRANSHALF, M_GetText("Accelerate - Float"));
 			V_DrawString(2, BASEVIDHEIGHT-10, V_HUDTRANSHALF, M_GetText("Brake - Sink"));
 		}

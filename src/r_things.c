@@ -920,6 +920,16 @@ static void R_DrawVisSprite(vissprite_t *vis)
 
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{
+		if (vis->scalestep) // currently papersprites only
+		{
+#ifndef RANGECHECK
+			if ((frac>>FRACBITS) < 0 || (frac>>FRACBITS) >= SHORT(patch->width)) // if this doesn't work i'm removing papersprites
+				break;
+#endif
+			sprtopscreen = (centeryfrac - FixedMul(dc_texturemid, spryscale));
+			dc_iscale = (0xffffffffu / (unsigned)spryscale);
+			spryscale += vis->scalestep;
+		}
 #ifdef RANGECHECK
 		texturecolumn = frac>>FRACBITS;
 
@@ -929,16 +939,10 @@ static void R_DrawVisSprite(vissprite_t *vis)
 #else
 		column = (column_t *)((UINT8 *)patch + LONG(patch->columnofs[frac>>FRACBITS]));
 #endif
-		if (vis->scalestep)
-		{
-			sprtopscreen = (centeryfrac - FixedMul(dc_texturemid, spryscale));
-			dc_iscale = (0xffffffffu / (unsigned)spryscale);
-		}
 		if (vis->vflip)
 			R_DrawFlippedMaskedColumn(column, patch->height);
 		else
 			R_DrawMaskedColumn(column);
-		spryscale += vis->scalestep;
 	}
 
 	colfunc = basecolfunc;
@@ -1262,7 +1266,7 @@ static void R_ProjectSprite(mobj_t *thing)
 
 	offset2 = FixedMul(spritecachedinfo[lump].width, this_scale);
 	tx += FixedMul(offset2, ang_scale);
-	x2 = ((centerxfrac + FixedMul (tx,xscale)) >> FRACBITS) - (papersprite ? 2 : 1);
+	x2 = ((centerxfrac + FixedMul (tx,xscale)) >> FRACBITS) - 1;
 
 	// off the left side
 	if (x2 < 0)
@@ -1271,7 +1275,9 @@ static void R_ProjectSprite(mobj_t *thing)
 	if (papersprite)
 	{
 		fixed_t yscale2, cosmul, sinmul, tz2;
-		INT32 range;
+
+		if (x2 <= x1)
+			return;
 
 		if (ang >= ANGLE_180)
 		{
@@ -1301,12 +1307,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		if (max(tz, tz2) < FixedMul(MINZ, this_scale)) // non-papersprite clipping is handled earlier
 			return;
 
-		if (x2 > x1)
-			range = (x2 - x1);
-		else
-			range = 1;
-
-		scalestep = (yscale2 - yscale)/range;
+		scalestep = (yscale2 - yscale)/(x2 - x1);
 
 		// The following two are alternate sorting methods which might be more applicable in some circumstances. TODO - maybe enable via MF2?
 		// sortscale = max(yscale, yscale2);
@@ -1601,6 +1602,17 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 			return;
 	}
 
+	// okay, we can't return now except for vertical clipping... this is a hack, but weather isn't networked, so it should be ok
+	if (!(thing->precipflags & PCF_THUNK))
+	{
+		if (thing->precipflags & PCF_RAIN)
+			P_RainThinker(thing);
+		else
+			P_SnowThinker(thing);
+		thing->precipflags |= PCF_THUNK;
+	}
+
+
 	//SoM: 3/17/2000: Disregard sprites that are out of view..
 	gzt = thing->z + spritecachedinfo[lump].topoffset;
 	gz = gzt - spritecachedinfo[lump].height;
@@ -1711,7 +1723,7 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 
 	// Handle all things in sector.
 	// If a limit exists, handle things a tiny bit different.
-	if ((limit_dist = (fixed_t)((maptol & TOL_NIGHTS) ? cv_drawdist_nights.value : cv_drawdist.value) << FRACBITS))
+	if ((limit_dist = (fixed_t)(/*(maptol & TOL_NIGHTS) ? cv_drawdist_nights.value : */cv_drawdist.value) << FRACBITS))
 	{
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
@@ -1739,8 +1751,10 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
-			if (approx_dist <= limit_dist)
-				R_ProjectSprite(thing);
+			if (approx_dist > limit_dist)
+				continue;
+
+			R_ProjectSprite(thing);
 		}
 	}
 	else
@@ -1784,8 +1798,10 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 
 			approx_dist = P_AproxDistance(viewx-precipthing->x, viewy-precipthing->y);
 
-			if (approx_dist <= limit_dist)
-				R_ProjectPrecipitationSprite(precipthing);
+			if (approx_dist > limit_dist)
+				continue;
+
+			R_ProjectPrecipitationSprite(precipthing);
 		}
 	}
 	else

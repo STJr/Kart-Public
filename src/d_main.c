@@ -723,20 +723,6 @@ void D_SRB2Loop(void)
 		}
 		else if (rendertimeout < entertic) // in case the server hang or netsplit
 		{
-			// Lagless camera! Yay!
-			/* Not yay, it ruins Kart's drift :y
-			if (gamestate == GS_LEVEL && netgame)
-			{
-				if (camera.chase)
-					P_MoveChaseCamera(&players[displayplayer], &camera, false);
-				if (splitscreen && camera2.chase)
-					P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
-				if (splitscreen > 1 && camera3.chase)
-					P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
-				if (splitscreen > 2 && camera4.chase)
-					P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
-			}
-			*/
 			D_Display();
 
 			if (moviemode)
@@ -824,7 +810,6 @@ void D_StartTitle(void)
 	maptol = 0;
 
 	gameaction = ga_nothing;
-	playerdeadview = false;
 	displayplayer = consoleplayer = 0;
 	//demosequence = -1;
 	gametype = GT_RACE; // SRB2kart
@@ -1482,6 +1467,29 @@ void D_SRB2Main(void)
 				gametype = newgametype;
 				D_GameTypeChanged(j);
 			}
+		}
+
+		if (M_CheckParm("-skill") && M_IsNextParm())
+		{
+			INT32 j;
+			INT16 newskill = -1;
+			const char *sskill = M_GetNextParm();
+
+			for (j = 0; kartspeed_cons_t[j].strvalue; j++)
+				if (!strcasecmp(kartspeed_cons_t[j].strvalue, sskill))
+				{
+					newskill = (INT16)kartspeed_cons_t[j].value;
+					break;
+				}
+			if (!kartspeed_cons_t[j].strvalue) // reached end of the list with no match
+			{
+				j = atoi(sskill); // assume they gave us a skill number, which is okay too
+				if (j >= 0 && j <= 2)
+					newskill = (INT16)j;
+			}
+
+			if (newskill != -1)
+				CV_SetValue(&cv_kartspeed, newskill);
 		}
 
 		if (server && !M_CheckParm("+map"))

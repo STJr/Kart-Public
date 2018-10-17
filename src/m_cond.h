@@ -125,6 +125,7 @@ typedef struct
 #define SECRET_SOUNDTEST	 3 // Sound Test
 #define SECRET_CREDITS		 4 // Enables Credits
 #define SECRET_ENCORE        5 // Enables Encore mode cvar
+#define SECRET_HELLATTACK    6 // Map Hell in record attack
 
 // If you have more secrets than these variables allow in your game,
 // you seriously need to get a life.

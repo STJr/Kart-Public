@@ -1308,6 +1308,13 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				else
 					mapheaderinfo[num-1]->levelflags &= ~LF_NOZONE;
 			}
+			else if (fastcmp(word, "SECTIONRACE"))
+			{
+				if (i || word2[0] == 'T' || word2[0] == 'Y')
+					mapheaderinfo[num-1]->levelflags |= LF_SECTIONRACE;
+				else
+					mapheaderinfo[num-1]->levelflags &= ~LF_SECTIONRACE;
+			}
 
 			// Individual triggers for menu flags
 			else if (fastcmp(word, "HIDDEN"))
@@ -1830,6 +1837,7 @@ static actionpointer_t actionpointers[] =
 	{{A_JawzExplode},          "A_JAWZEXPLODE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
+	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -2420,6 +2428,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 					unlockables[num].type = SECRET_SOUNDTEST;
 				else if (fastcmp(word2, "ENCORE"))
 					unlockables[num].type = SECRET_ENCORE;
+				else if (fastcmp(word2, "HELLATTACK"))
+					unlockables[num].type = SECRET_HELLATTACK;
 				else
 					unlockables[num].type = (INT16)i;
 			}
@@ -6205,6 +6215,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_RANDOMITEMPOP4",
 	//}
 
+	"S_ITEMICON",
+
 	// Signpost sparkles
 	"S_SIGNSPARK1",
 	"S_SIGNSPARK2",
@@ -6269,6 +6281,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARTFIRE6",
 	"S_KARTFIRE7",
 	"S_KARTFIRE8",
+
+	// Angel Island Drift Strat Dust (what a mouthful!)
+	"S_KARTAIZDRIFTSTRAT",
 
 	// Invincibility Sparks
 	"S_KARTINVULN_SMALL1",
@@ -6518,16 +6533,11 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	// Audience Members
 	"S_RANDOMAUDIENCE",
-	"S_AUDIENCE_TOAD1",
-	"S_AUDIENCE_TOAD2",
-	"S_AUDIENCE_BOO1",
-	"S_AUDIENCE_BOO2",
-	"S_AUDIENCE_GMBA1",
-	"S_AUDIENCE_GMBA2",
-	"S_AUDIENCE_SHYG1",
-	"S_AUDIENCE_SHYG2",
-	"S_AUDIENCE_SNIF1",
-	"S_AUDIENCE_SNIF2",
+	"S_AUDIENCE_CHAO_CHEER1",
+	"S_AUDIENCE_CHAO_CHEER2",
+	"S_AUDIENCE_CHAO_WIN1",
+	"S_AUDIENCE_CHAO_WIN2",
+	"S_AUDIENCE_CHAO_LOSE",
 
 	"S_FANCHAR_KOTE",
 	"S_FANCHAR_RYAN",
@@ -6700,8 +6710,57 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_PLAYERBOMB", // Player bomb overlay
 	"S_PLAYERITEM", // Player item overlay
+	"S_PLAYERFAKE", // Player fake overlay
 
 	"S_KARMAWHEEL", // Karma player wheels
+
+	// Thunder shield use stuff;
+	"S_KSPARK1",	// Sparkling Radius
+	"S_KSPARK2",
+	"S_KSPARK3",
+	"S_KSPARK4",
+	"S_KSPARK5",
+	"S_KSPARK6",
+	"S_KSPARK7",
+	"S_KSPARK8",
+	"S_KSPARK9",
+	"S_KSPARK10",
+	"S_KSPARK11",
+	"S_KSPARK12",
+	"S_KSPARK13",	// ... that's an awful lot.
+
+	"S_LZIO11",	// Straight lightning bolt
+	"S_LZIO12",
+	"S_LZIO13",
+	"S_LZIO14",
+	"S_LZIO15",
+	"S_LZIO16",
+	"S_LZIO17",
+	"S_LZIO18",
+	"S_LZIO19",
+
+	"S_LZIO21",	// Straight lightning bolt (flipped)
+	"S_LZIO22",
+	"S_LZIO23",
+	"S_LZIO24",
+	"S_LZIO25",
+	"S_LZIO26",
+	"S_LZIO27",
+	"S_LZIO28",
+	"S_LZIO29",
+
+	"S_KLIT1",	// Diagonal lightning. No, it not being straight doesn't make it gay.
+	"S_KLIT2",
+	"S_KLIT3",
+	"S_KLIT4",
+	"S_KLIT5",
+	"S_KLIT6",
+	"S_KLIT7",
+	"S_KLIT8",
+	"S_KLIT9",
+	"S_KLIT10",
+	"S_KLIT11",
+	"S_KLIT12",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7219,6 +7278,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BLUEDIAG",
 	"MT_RANDOMITEM",
 	"MT_RANDOMITEMPOP",
+	"MT_FLOATINGITEM",
+
 	"MT_SIGNSPARKLE",
 
 	"MT_FASTLINE",
@@ -7226,6 +7287,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BOOSTFLAME",
 	"MT_BOOSTSMOKE",
 	"MT_SNEAKERTRAIL",
+	"MT_AIZDRIFTSTRAT",
 	"MT_SPARKLETRAIL",
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
@@ -7561,9 +7623,9 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"SALMON",         // 10 // SKINCOLOR_SALMON
 	"PINK",           // 11 // SKINCOLOR_PINK
 	"ROSE",           // 12 // SKINCOLOR_ROSE
-	"RASPBERRY",      // 13 // SKINCOLOR_RASPBERRY
-	"RED",            // 14 // SKINCOLOR_RED
-	"RUBY",           // 15 // SKINCOLOR_RUBY
+	"RUBY",           // 13 // SKINCOLOR_RUBY
+	"RASPBERRY",      // 14 // SKINCOLOR_RASPBERRY
+	"RED",            // 15 // SKINCOLOR_RED
 	"CRIMSON",        // 16 // SKINCOLOR_CRIMSON
 	"KETCHUP",        // 17 // SKINCOLOR_KETCHUP
 	"DAWN",           // 18 // SKINCOLOR_DAWN
@@ -7583,16 +7645,16 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"VOMIT",          // 32 // SKINCOLOR_VOMIT
 	"GARDEN",         // 33 // SKINCOLOR_GARDEN
 	"LIME",           // 34 // SKINCOLOR_LIME
-	"DREAM",          // 35 // SKINCOLOR_DREAM
-	"TEA",            // 36 // SKINCOLOR_TEA
-	"PISTACHIO",      // 37 // SKINCOLOR_PISTACHIO
-	"ROBOHOOD",       // 38 // SKINCOLOR_ROBOHOOD
-	"MOSS",           // 39 // SKINCOLOR_MOSS
-	"MINT",           // 40 // SKINCOLOR_MINT
-	"GREEN",          // 41 // SKINCOLOR_GREEN
-	"PINETREE",       // 42 // SKINCOLOR_PINETREE
-	"EMERALD",        // 43 // SKINCOLOR_EMERALD
-	"SWAMP",          // 44 // SKINCOLOR_SWAMP
+	"TEA",            // 35 // SKINCOLOR_TEA
+	"PISTACHIO",      // 36 // SKINCOLOR_PISTACHIO
+	"ROBOHOOD",       // 37 // SKINCOLOR_ROBOHOOD
+	"MOSS",           // 38 // SKINCOLOR_MOSS
+	"MINT",           // 39 // SKINCOLOR_MINT
+	"GREEN",          // 40 // SKINCOLOR_GREEN
+	"PINETREE",       // 41 // SKINCOLOR_PINETREE
+	"EMERALD",        // 42 // SKINCOLOR_EMERALD
+	"SWAMP",          // 43 // SKINCOLOR_SWAMP
+	"DREAM",          // 44 // SKINCOLOR_DREAM
 	"AQUA",           // 45 // SKINCOLOR_AQUA
 	"TEAL",           // 46 // SKINCOLOR_TEAL
 	"CYAN",           // 47 // SKINCOLOR_CYAN
@@ -7602,9 +7664,9 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"SLATE",          // 51 // SKINCOLOR_SLATE
 	"STEEL",          // 52 // SKINCOLOR_STEEL
 	"JET",            // 53 // SKINCOLOR_JET
-	"PERIWINKLE",     // 54 // SKINCOLOR_PERIWINKLE
-	"BLUE",           // 55 // SKINCOLOR_BLUE
-	"SAPPHIRE",       // 56 // SKINCOLOR_SAPPHIRE
+	"SAPPHIRE",       // 54 // SKINCOLOR_SAPPHIRE
+	"PERIWINKLE",     // 55 // SKINCOLOR_PERIWINKLE
+	"BLUE",           // 56 // SKINCOLOR_BLUE
 	"BLUEBERRY",      // 57 // SKINCOLOR_BLUEBERRY
 	"DUSK",           // 58 // SKINCOLOR_DUSK
 	"PURPLE",         // 59 // SKINCOLOR_PURPLE
@@ -7685,6 +7747,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"VOICES",
 	"TAUNTVOICES",
 	"INSTASHIELD",
+	"ENGINESND",
 
 	"FLOORBOOST",
 	"SPINOUTTYPE",
@@ -7706,6 +7769,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ACCELBOOST",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
+	"AIZDRIFTSTRAT",
 
 	"ITEMROULETTE",
 	"ROULETTETYPE",
@@ -7890,6 +7954,7 @@ struct {
 	{"LF_NOSSMUSIC",LF_NOSSMUSIC},
 	{"LF_NORELOAD",LF_NORELOAD},
 	{"LF_NOZONE",LF_NOZONE},
+	{"LF_SECTIONRACE",LF_SECTIONRACE},
 	// And map flags
 	{"LF2_HIDEINMENU",LF2_HIDEINMENU},
 	{"LF2_HIDEINSTATS",LF2_HIDEINSTATS},
@@ -8211,7 +8276,7 @@ struct {
 	{"V_TEAMAP",V_TEAMAP},
 	{"V_STEELMAP",V_STEELMAP},
 	{"V_PINKMAP",V_PINKMAP},
-	{"V_TEALMAP",V_TEALMAP},
+	{"V_BROWNMAP",V_BROWNMAP},
 	{"V_PEACHMAP",V_PEACHMAP},
 	{"V_TRANSLUCENT",V_TRANSLUCENT},
 	{"V_10TRANS",V_10TRANS},

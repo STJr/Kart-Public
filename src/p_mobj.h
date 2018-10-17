@@ -261,6 +261,10 @@ typedef enum {
 	PCF_FOF = 4,
 	// Above MOVING FOF (this means we need to keep floorz up to date...)
 	PCF_MOVINGFOF = 8,
+	// Is rain.
+	PCF_RAIN = 16,
+	// Ran the thinker this tic.
+	PCF_THUNK = 32,
 } precipflag_t;
 // Map Object definition.
 typedef struct mobj_s
@@ -428,6 +432,8 @@ typedef struct actioncache_s
 } actioncache_t;
 
 extern actioncache_t actioncachehead;
+
+extern mobj_t *waypointcap;
 
 void P_InitCachedActions(void);
 void P_RunCachedActions(void);
