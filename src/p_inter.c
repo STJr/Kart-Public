@@ -490,7 +490,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					if (special->target->color)
 						boom->color = special->target->color;
 					else
-						boom->color = SKINCOLOR_RED;
+						boom->color = SKINCOLOR_KETCHUP;
 					S_StartSound(boom, special->info->attacksound);
 
 					if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
@@ -582,6 +582,36 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 				special->target->player->kartstuff[k_eggmanblame] = -1;
 			}
+			return;
+		case MT_SPB:
+			if ((special->target == toucher || special->target == toucher->target) && (special->threshold > 0))
+				return;
+
+			if (special->health <= 0 || toucher->health <= 0)
+				return;
+
+			if (!player->mo || player->spectator)
+				return;
+
+			if (special->tracer && toucher == special->tracer)
+			{
+				mobj_t *spbexplode;
+
+				if (!player->kartstuff[k_invincibilitytimer] && !player->kartstuff[k_growshrinktimer])
+				{
+					K_DropHnextList(player);
+					K_StripItems(player);
+					player->powers[pw_flashing] = 0;
+				}
+
+				spbexplode = P_SpawnMobj(toucher->x, toucher->y, toucher->z, MT_SPBEXPLOSION);
+				P_SetTarget(&spbexplode->target, special->target);
+
+				P_RemoveMobj(special);
+			}
+			else
+				K_SpinPlayer(player, special, 0, false);
+
 			return;
 
 // ***************************************** //
@@ -2201,7 +2231,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		 || target->type == MT_JAWZ || target->type == MT_JAWZ_DUD || target->type == MT_JAWZ_SHIELD
 		 || target->type == MT_BANANA || target->type == MT_BANANA_SHIELD
 		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD
-		 || target->type == MT_BALLHOG)) // kart dead items
+		 || target->type == MT_BALLHOG || target->type == MT_SPB)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
 	else
 		target->flags &= ~MF_NOGRAVITY; // lose it if you for whatever reason have it, I'm looking at you shields
@@ -3355,8 +3385,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->kartstuff[k_growshrinktimer] = 2;
 			}
 			player->kartstuff[k_sneakertimer] = 0;
-			// Invincible or not, we still need this.
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			S_StartSound(player->mo, sfx_kc59);
 			return true;
 		}

@@ -3284,8 +3284,6 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, wantedcalcdelay);
 	WRITEUINT32(save_p, indirectitemcooldown);
-	WRITEUINT32(save_p, spbincoming);
-	WRITEUINT8(save_p, spbplayer);
 	WRITEUINT32(save_p, mapreset);
 
 	// Is it paused?
@@ -3390,8 +3388,6 @@ static inline boolean P_NetUnArchiveMisc(void)
 
 	wantedcalcdelay = READUINT32(save_p);
 	indirectitemcooldown = READUINT32(save_p);
-	spbincoming = READUINT32(save_p);
-	spbplayer = READUINT8(save_p);
 	mapreset = READUINT32(save_p);
 
 	// Is it paused?

@@ -1835,6 +1835,7 @@ static actionpointer_t actionpointers[] =
 	{{A_ItemPop},              "A_ITEMPOP"},       // SRB2kart
 	{{A_JawzChase},            "A_JAWZCHASE"}, // SRB2kart
 	{{A_JawzExplode},          "A_JAWZEXPLODE"}, // SRB2kart
+	{{A_SPBChase},             "A_SPBCHASE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
 	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
@@ -6467,17 +6468,8 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BALLHOGBOOM16",
 
 	// Self-Propelled Bomb - just an explosion for now...
-	"S_BLUELIGHTNING1",
-	"S_BLUELIGHTNING2",
-	"S_BLUELIGHTNING3",
-	"S_BLUELIGHTNING4",
-	"S_BLUEEXPLODE",
-
-	// Grow/shrink beams
-	"S_LIGHTNING1",
-	"S_LIGHTNING2",
-	"S_LIGHTNING3",
-	"S_LIGHTNING4",
+	"S_SPB",
+	"S_SPB_DEAD",
 
 	// Thunder Shield
 	"S_THUNDERSHIELD1",
@@ -7321,9 +7313,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_BALLHOG", // Ballhog
 	"MT_BALLHOGBOOM",
 
-	"MT_BLUELIGHTNING", // Grow/shrink stuff
-	"MT_BLUEEXPLOSION",
-	"MT_LIGHTNING",
+	"MT_SPB", // Self-Propelled Bomb
+	"MT_SPBEXPLOSION",
 
 	"MT_THUNDERSHIELD", // Thunder Shield stuff
 
@@ -7787,7 +7778,6 @@ static const char *const KARTSTUFF_LIST[] = {
 	"SQUISHEDTIMER",
 	"ROCKETSNEAKERTIMER",
 	"INVINCIBILITYTIMER",
-	"DEATHSENTENCE",
 	"EGGMANHELD",
 	"EGGMANEXPLODE",
 	"EGGMANBLAME",

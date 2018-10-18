@@ -57,11 +57,11 @@ char sprnames[NUMSPRITES + 1][5] =
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","SGNS","FAST","DSHR","BOST","BOSM","KFRE",
 	"KINV","KINF","WIPD","DRIF","DUST","FITM","BANA","ORBN","JAWZ","SSMN",
-	"KRBM","BHOG","BHBM","BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL",
-	"POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO",
-	"CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO",
-	"ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK","LZI1",
-	"LZI2","KLIT","VIEW"
+	"KRBM","BHOG","BHBM","SPBM","THNS","SINK","SITR","KBLN","DEZL","POKE",
+	"AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO","CRAB",
+	"SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO","ITEM",
+	"ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK","LZI1","LZI2",
+	"KLIT","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2772,16 +2772,8 @@ state_t states[NUMSTATES] =
 	{SPR_BHBM, FF_FULLBRIGHT|14, 1, {NULL}, 0, 0, S_BALLHOGBOOM16},			// S_BALLHOGBOOM15
 	{SPR_BHBM, FF_FULLBRIGHT|15, 1, {NULL}, 0, 0, S_NULL},					// S_BALLHOGBOOM16
 
-	{SPR_BLIG, 0,  2, {NULL}, 0, 0, S_BLUELIGHTNING2},             // S_BLUELIGHTNING1
-	{SPR_BLIG, 1,  2, {NULL}, 0, 0, S_BLUELIGHTNING3},             // S_BLUELIGHTNING2
-	{SPR_BLIG, 2,  2, {NULL}, 0, 0, S_BLUELIGHTNING4},             // S_BLUELIGHTNING3
-	{SPR_BLIG, 3,  2, {NULL}, 0, 0, S_NULL},                       // S_BLUELIGHTNING4
-	{SPR_SSMN, 0,  1, {A_MineExplode}, MT_BLUEEXPLOSION, 0, S_NULL}, // S_BLUEEXPLODE
-
-	{SPR_LIGH, 0,  2, {NULL}, 0, 0, S_LIGHTNING2}, // S_LIGHTNING1
-	{SPR_LIGH, 1,  2, {NULL}, 0, 0, S_LIGHTNING3}, // S_LIGHTNING2
-	{SPR_LIGH, 2,  2, {NULL}, 0, 0, S_LIGHTNING4}, // S_LIGHTNING3
-	{SPR_LIGH, 3,  2, {NULL}, 0, 0, S_NULL},       // S_LIGHTNING4
+	{SPR_SPBM, 0, 1, {A_SPBChase}, 0, 0, S_SPB}, // S_SPB
+	{SPR_SPBM, 0, 175, {NULL}, 0, 0, S_NULL}, // S_SPB_DEAD
 
 	{SPR_THNS, FF_FULLBRIGHT|9,  2, {NULL}, 0, 0, S_THUNDERSHIELD2},		// S_THUNDERSHIELD1
 	{SPR_THNS, FF_FULLBRIGHT|10, 2, {NULL}, 0, 0, S_THUNDERSHIELD3},		// S_THUNDERSHIELD2
@@ -15109,7 +15101,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		320*FRACUNIT,   // painchance
+		288*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
@@ -15316,34 +15308,34 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BLUELIGHTNING
+	{           // MT_SPB
 		-1,             // doomednum
-		S_BLUELIGHTNING1, // spawnstate
-		1000,           // spawnhealth
+		S_SPB,          // spawnstate
+		1,              // spawnhealth
 		S_NULL,         // seestate
-		sfx_None,       // seesound
+		sfx_tossed,     // seesound
 		8,              // reactiontime
-		sfx_None,       // attacksound
+		sfx_kc57,       // attacksound
 		S_NULL,         // painstate
 		0,              // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
-		S_NULL,         // deathstate
+		S_SPB_DEAD,     // deathstate
 		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		8,              // speed
-		64*FRACUNIT,    // radius
-		64*FRACUNIT,    // height
+		sfx_s3k5d,      // deathsound
+		64*FRACUNIT,    // speed
+		16*FRACUNIT,    // radius
+		32*FRACUNIT,    // height
 		0,              // display offset
-		16,              // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY|MF_DONTENCOREMAP, // flags
+		100,            // mass
+		1,              // damage
+		sfx_kc64,       // activesound
+		MF_SPECIAL|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 
-	{           // MT_BLUEEXPLOSION
+	{           // MT_SPBEXPLOSION
 		-1,             // doomednum
 		S_INVISIBLE,    // spawnstate
 		1,              // spawnhealth
@@ -15352,7 +15344,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		256*FRACUNIT,   // painchance
+		288*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate
@@ -15367,33 +15359,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,              // damage
 		sfx_None,       // activesound
 		MF_BOUNCE|MF_FLOAT|MF_NOCLIPTHING|MF_MISSILE|MF_SHOOTABLE|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_LIGHTNING
-		-1,             // doomednum
-		S_LIGHTNING1,   // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		8,              // speed
-		64*FRACUNIT,    // radius
-		64*FRACUNIT,    // height
-		0,              // display offset
-		16,             // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 

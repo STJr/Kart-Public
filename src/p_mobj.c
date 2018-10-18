@@ -7413,6 +7413,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_ORBINAUT:
 		case MT_BANANA:
 		case MT_FAKEITEM:
+		case MT_SPB:
 			if (mobj->z <= mobj->floorz)
 			{
 				P_RemoveMobj(mobj);
@@ -7433,7 +7434,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_SSMINE:
-		case MT_BLUEEXPLOSION:
+		case MT_SPBEXPLOSION:
 			if (mobj->health > -100)
 			{
 				P_SetMobjState(mobj, mobj->info->deathstate);
@@ -8168,6 +8169,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_BALLHOG:
+		case MT_SPB:
 			P_SpawnGhostMobj(mobj)->fuse = 3;
 			if (mobj->threshold > 0)
 				mobj->threshold--;
@@ -8187,7 +8189,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->target && mobj->target->player)
 				mobj->color = mobj->target->player->skincolor;
 			else
-				mobj->color = SKINCOLOR_RED;
+				mobj->color = SKINCOLOR_KETCHUP;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (P_IsObjectOnGround(mobj))
@@ -8213,7 +8215,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
-		case MT_BLUEEXPLOSION:
+		case MT_SPBEXPLOSION:
 			mobj->health--;
 			break;
 		case MT_MINEEXPLOSION:
@@ -9341,7 +9343,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
 		case MT_BALLHOG: 		case MT_SINK:
-		case MT_THUNDERSHIELD:
+		case MT_THUNDERSHIELD:	case MT_SPB:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;

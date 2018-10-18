@@ -190,6 +190,7 @@ void A_ToggleFlameJet(mobj_t *actor);
 void A_ItemPop(mobj_t *actor); // SRB2kart
 void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_JawzExplode(mobj_t *actor); // SRB2kart
+void A_SPBChase(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
@@ -4053,7 +4054,7 @@ void A_MineExplode(mobj_t *actor)
 	if (actor->target && actor->target->player)
 		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
 	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+		K_SpawnMineExplosion(actor, SKINCOLOR_KETCHUP);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 }
@@ -8173,7 +8174,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, and A_BallhogExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_SPBChase, A_MineExplode, and A_BallhogExplode
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8293,7 +8294,7 @@ void A_JawzExplode(mobj_t *actor)
 
 	truc = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOOMEXPLODE);
 	truc->scale = actor->scale*2;
-	truc->color = SKINCOLOR_RED;
+	truc->color = SKINCOLOR_KETCHUP;
 
 	while (shrapnel)
 	{
@@ -8311,7 +8312,7 @@ void A_JawzExplode(mobj_t *actor)
 		speed2 = FixedMul(15*FRACUNIT, actor->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
 		truc->tics = TICRATE*2;
-		truc->color = SKINCOLOR_RED;
+		truc->color = SKINCOLOR_KETCHUP;
 
 		shrapnel--;
 	}
@@ -8319,65 +8320,99 @@ void A_JawzExplode(mobj_t *actor)
 	return;
 }
 
-/* old A_MineExplode - see elsewhere in the file
-void A_MineExplode(mobj_t *actor)
+void A_SPBChase(mobj_t *actor)
 {
-	mobj_t *mo2;
-	thinker_t *th;
-	INT32 d;
-	INT32 locvar1 = var1;
-	mobjtype_t type;
-	fixed_t range;
+	player_t *player = NULL;
+	UINT8 i;
+	UINT8 bestrank = UINT8_MAX;
+	fixed_t dist;
+	angle_t hang, vang;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_MineExplode", actor))
+	if (LUA_CallAction("A_SPBChase", actor))
 		return;
 #endif
 
-	type = (mobjtype_t)locvar1;
-	range = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
-
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	if (actor->threshold)
 	{
-		if (P_MobjWasRemoved(actor))
-			return; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
-
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo2 = (mobj_t *)th;
-
-		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
-			continue;
-
-		if (!(mo2->flags & MF_SHOOTABLE) || (mo2->flags & MF_SCENERY))
-			continue;
-
-		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_bumper] <= 0 && mo2 == actor->target)
-			continue;
-
-		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > range)
-			continue;
-
-		actor->flags2 |= MF2_DEBRIS;
-
-		if (mo2->player) // Looks like we're going to have to need a seperate function for this too
-			K_ExplodePlayer(mo2->player, actor->target);
-		else
-			P_DamageMobj(mo2, actor, actor->target, 1);
+		P_InstaThrust(actor, actor->angle, actor->info->speed);
+		return;
 	}
 
-	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, range + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+	if (actor->extravalue1)
+	{
+		if (actor->tracer && actor->tracer->health && actor->tracer->player)
+		{
+			fixed_t maxspeed = K_GetKartSpeed(actor->tracer->player, false) - (actor->tracer->scale);
 
-	if (actor->target && actor->target->player)
-		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
-	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+			if (!S_SoundPlaying(actor, actor->info->activesound))
+				S_StartSound(actor, actor->info->activesound);
 
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
+			dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+
+			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
+			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+			actor->momx = FixedMul(FixedMul(maxspeed, FINECOSINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
+			actor->momy = FixedMul(FixedMul(maxspeed, FINESINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
+			actor->momz = FixedMul(maxspeed, FINESINE(vang>>ANGLETOFINESHIFT));
+
+			actor->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
+			return;
+		}
+		else
+		{
+			P_SetTarget(&actor->tracer, NULL);
+			actor->extravalue1 = 0;
+		}
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
+
+		if (players[i].spectator)
+			continue;
+
+		if (players[i].exiting)
+			continue; // exiting
+
+		if (!players[i].mo)
+			continue; // no mobj
+
+		if (players[i].mo->health <= 0)
+			continue; // dead
+
+		if (players[i].kartstuff[k_position] < bestrank)
+		{
+			bestrank = players[i].kartstuff[k_position];
+			player = &players[i];
+		}
+	}
+
+	if (player != NULL && player->mo)
+	{
+		P_SetTarget(&actor->tracer, player->mo);
+
+		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+		hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
+		vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+		actor->momx = FixedMul(FixedMul(actor->info->speed, FINECOSINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
+		actor->momy = FixedMul(FixedMul(actor->info->speed, FINESINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
+		actor->momz = FixedMul(actor->info->speed, FINESINE(vang>>ANGLETOFINESHIFT));
+
+		actor->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
+
+		if (dist <= RING_DIST && (actor->z > actor->floorz && actor->z+actor->height < actor->ceilingz))
+		{
+			S_StartSound(actor, actor->info->attacksound);
+			actor->extravalue1 = 1;
+		}
+	}
 
 	return;
-}*/
+}
 
 void A_BallhogExplode(mobj_t *actor)
 {

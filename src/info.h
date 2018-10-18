@@ -166,6 +166,7 @@ void A_ToggleFlameJet();
 void A_ItemPop(); // SRB2kart
 void A_JawzChase(); // SRB2kart
 void A_JawzExplode(); // SRB2kart
+void A_SPBChase(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
@@ -604,8 +605,7 @@ typedef enum sprite
 	SPR_KRBM, // SS Mine BOOM
 	SPR_BHOG, // Ballhog
 	SPR_BHBM, // Ballhog BOOM
-	SPR_BLIG, // Self-Propelled Bomb
-	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
+	SPR_SPBM, // Self-Propelled Bomb
 	SPR_THNS, // Thunder Shield
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
@@ -3310,18 +3310,9 @@ typedef enum state
 	S_BALLHOGBOOM15,
 	S_BALLHOGBOOM16,
 
-	// Self-Propelled Bomb - just an explosion for now...
-	S_BLUELIGHTNING1,
-	S_BLUELIGHTNING2,
-	S_BLUELIGHTNING3,
-	S_BLUELIGHTNING4,
-	S_BLUEEXPLODE,
-
-	// Grow/Shrink
-	S_LIGHTNING1,
-	S_LIGHTNING2,
-	S_LIGHTNING3,
-	S_LIGHTNING4,
+	// Self-Propelled Bomb
+	S_SPB,
+	S_SPB_DEAD,
 
 	// Thunder Shield
 	S_THUNDERSHIELD1,
@@ -4182,9 +4173,8 @@ typedef enum mobj_type
 	MT_BALLHOG, // Ballhog
 	MT_BALLHOGBOOM,
 
-	MT_BLUELIGHTNING, // Grow/shrink stuff
-	MT_BLUEEXPLOSION,
-	MT_LIGHTNING,
+	MT_SPB, // SPB stuff
+	MT_SPBEXPLOSION,
 
 	MT_THUNDERSHIELD, // Thunder Shield stuff
 
