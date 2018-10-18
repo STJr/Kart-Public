@@ -5339,7 +5339,7 @@ void K_CheckSpectateStatus(void)
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
                 continue;
-			if (leveltime > 20*TICRATE) // DON'T allow if the match is 20 seconds in
+			if (leveltime > (starttime + 20*TICRATE)) // DON'T allow if the match is 20 seconds in
                 return;
             if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
                 return;
