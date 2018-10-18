@@ -1263,9 +1263,9 @@ void D_SRB2Main(void)
 #ifdef USE_PATCH_DTA
 	mainwads++;	// patch.dta
 #endif
-	mainwads++;		// gfx.kart
+	mainwads++;	// gfx.kart
 	mainwads++;	// chars.kart
-	mainwads++;		// maps.kart
+	mainwads++;	// maps.kart
 	mainwads++;	// sounds.kart
 #ifdef USE_PATCH_KART
 	mainwads++;	// patch.kart
