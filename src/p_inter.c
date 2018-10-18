@@ -96,55 +96,6 @@ void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
 // GET STUFF
 //
 
-/** Makes sure all previous starposts are cleared.
-  * For instance, hitting starpost 5 will clear starposts 1 through 4, even if
-  * you didn't touch them. This is how the classic games work, although it can
-  * lead to bizarre situations on levels that allow you to make a circuit.
-  *
-  * \param postnum The number of the starpost just touched.
-  */
-void P_ClearStarPost(INT32 postnum)
-{
-	thinker_t *th;
-	mobj_t *mo2;
-
-	// scan the thinkers
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
-	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo2 = (mobj_t *)th;
-
-		if (mo2->type == MT_STARPOST && mo2->health <= postnum)
-			P_SetMobjState(mo2, mo2->info->seestate);
-	}
-	return;
-}
-
-//
-// P_ResetStarposts
-//
-// Resets all starposts back to their spawn state, used on A_Mixup and some other things.
-//
-void P_ResetStarposts(void)
-{
-	// Search through all the thinkers.
-	thinker_t *th;
-	mobj_t *post;
-
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
-	{
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		post = (mobj_t *)th;
-
-		if (post->type == MT_STARPOST)
-			P_SetMobjState(post, post->info->spawnstate);
-	}
-}
-
 //
 // P_CanPickupItem
 //
@@ -299,14 +250,14 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 	if (heightcheck)
 	{
-		if (special->type == MT_FLINGEMERALD) // little hack here...
+		/*if (special->type == MT_FLINGEMERALD) // little hack here...
 		{ // flingemerald sprites are low to the ground, so extend collision radius down some.
 			if (toucher->z > (special->z + special->height))
 				return;
 			if (special->z - special->height > (toucher->z + toucher->height))
 				return;
 		}
-		else
+		else*/
 		{
 			if (toucher->momz < 0) {
 				if (toucher->z + toucher->momz > special->z + special->height)
@@ -341,7 +292,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 	if (special->flags & MF_BOSS)
 	{
-		if (special->type == MT_BLACKEGGMAN)
+		/*if (special->type == MT_BLACKEGGMAN)
 		{
 			P_DamageMobj(toucher, special, special, 1); // ouch
 			return;
@@ -357,7 +308,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			toucher->momy = -toucher->momy;
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
-		/*
 		else if (((toucher->z < special->z && !(toucher->eflags & MFE_VERTICALFLIP))
 		|| (toucher->z + toucher->height > special->z + special->height && (toucher->eflags & MFE_VERTICALFLIP)))
 		&& player->charability == CA_FLY
@@ -368,8 +318,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
-		*/																						// SRB2kart - Removed: No more fly states
-		else
+		// SRB2kart - Removed: No more fly states
+		else*/
 			P_DamageMobj(toucher, special, special, 1);
 
 		return;
@@ -379,7 +329,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		////////////////////////////////////////////////////////
 		/////ENEMIES!!//////////////////////////////////////////
 		////////////////////////////////////////////////////////
-		if (special->type == MT_GSNAPPER && !(((player->pflags & PF_NIGHTSMODE) && (player->pflags & PF_DRILLING))
+		/*if (special->type == MT_GSNAPPER && !(((player->pflags & PF_NIGHTSMODE) && (player->pflags & PF_DRILLING))
 		|| player->powers[pw_invulnerability] || player->powers[pw_super])
 		&& toucher->z < special->z + special->height && toucher->z + toucher->height > special->z)
 		{
@@ -401,7 +351,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
-		/*
 		else if (((toucher->z < special->z && !(toucher->eflags & MFE_VERTICALFLIP))
 		|| (toucher->z + toucher->height > special->z + special->height && (toucher->eflags & MFE_VERTICALFLIP))) // Flame is bad at logic - JTE
 		&& player->charability == CA_FLY
@@ -413,8 +362,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_DamageMobj(special, toucher, toucher, 1);
 		}
-		*/																						// SRB2kart - Removed: No more fly states
-		else
+		// SRB2kart - Removed: No more fly states
+		else*/
 			P_DamageMobj(toucher, special, special, 1);
 
 		return;
@@ -456,10 +405,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
-				if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
+				if (player->kartstuff[k_comebackmode] || player->kartstuff[k_comebacktimer])
 					return;
-				if (player->kartstuff[k_comebackmode] == 0)
-					player->kartstuff[k_comebackmode] = 1;
+				player->kartstuff[k_comebackmode] = 1;
 			}
 
 			special->momx = special->momy = special->momz = 0;
@@ -479,31 +427,39 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 			{
-				/*if (player->kartstuff[k_comebackmode] != 0 || player->kartstuff[k_comebacktimer])
+				if (player->kartstuff[k_comebackmode] || player->kartstuff[k_comebacktimer])
 					return;
-				if (player->kartstuff[k_comebackmode] == 0)
-					player->kartstuff[k_comebackmode] = 2;*/
-				return;
+				player->kartstuff[k_comebackmode] = 2;
+			}
+			else
+			{
+				K_DropItems(player); //K_StripItems(player);
+				K_StripOther(player);
+				player->kartstuff[k_itemroulette] = 1;
+				player->kartstuff[k_roulettetype] = 2;
 			}
 
 			{
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->deathsound);
+			}
 
-				K_DropItems(player); //K_StripItems(player);
-				K_StripOther(player);
-				player->kartstuff[k_itemroulette] = 1;
-				player->kartstuff[k_roulettetype] = 2;
-				if (special->target && special->target->player
-					&& (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0))
+			if (special->target && special->target->player)
+			{
+				if (G_RaceGametype() || special->target->player->kartstuff[k_bumper] > 0)
 					player->kartstuff[k_eggmanblame] = special->target->player-players;
 				else
 					player->kartstuff[k_eggmanblame] = player-players;
 
-				P_RemoveMobj(special);
-				return;
+				if (special->target->hnext == special)
+				{
+					P_SetTarget(&special->target->hnext, NULL);
+					special->target->player->kartstuff[k_eggmanheld] = 0;
+				}
 			}
-			break;
+
+			P_RemoveMobj(special);
+			return;
 		case MT_KARMAHITBOX:
 			if (!special->target->player)
 				return;
@@ -519,7 +475,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				|| special->target->player->kartstuff[k_squishedtimer])
 				return;
 
-			if (special->target->player->kartstuff[k_comebackmode] == 0)
+			if (!special->target->player->kartstuff[k_comebackmode])
 			{
 				if (player->kartstuff[k_growshrinktimer] || player->kartstuff[k_squishedtimer]
 					|| player->kartstuff[k_hyudorotimer] || player->kartstuff[k_spinouttimer]
@@ -579,6 +535,52 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 				player->kartstuff[k_itemroulette] = 1;
 				player->kartstuff[k_roulettetype] = 1;
+			}
+			else if (special->target->player->kartstuff[k_comebackmode] == 2 && P_CanPickupItem(player, 2))
+			{
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
+				S_StartSound(poof, special->info->seesound);
+
+				if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
+				{
+					INT32 numingame = 0;
+					INT32 i;
+
+					for (i = 0; i < MAXPLAYERS; i++)
+					{
+						if (!playeringame[i] || players[i].spectator || players[i].kartstuff[k_bumper] <= 0)
+							continue;
+						numingame++;
+					}
+
+					if (numingame <= 2) // If so, then an extra two karma points so they are 100% certain to switch places; it's annoying to end matches with a fake kill
+						special->target->player->kartstuff[k_comebackpoints] += 2;
+				}
+
+				special->target->player->kartstuff[k_comebackmode] = 0;
+				special->target->player->kartstuff[k_comebackpoints]++;
+
+				if (netgame && cv_hazardlog.value)
+					CONS_Printf(M_GetText("%s gave an \"item\" to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
+				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+					K_StealBumper(special->target->player, player, true);
+				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
+
+				K_DropItems(player); //K_StripItems(player);
+				K_StripOther(player);
+
+				player->kartstuff[k_itemroulette] = 1;
+				player->kartstuff[k_roulettetype] = 2;
+
+				if (special->target->player->kartstuff[k_eggmanblame] >= 0
+				&& special->target->player->kartstuff[k_eggmanblame] < MAXPLAYERS
+				&& playeringame[special->target->player->kartstuff[k_eggmanblame]]
+				&& !players[special->target->player->kartstuff[k_eggmanblame]].spectator)
+					player->kartstuff[k_eggmanblame] = special->target->player->kartstuff[k_eggmanblame];
+				else
+					player->kartstuff[k_eggmanblame] = -1;
+
+				special->target->player->kartstuff[k_eggmanblame] = -1;
 			}
 			return;
 
@@ -843,7 +845,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 // ********************************** //
 // NiGHTS gameplay items and powerups //
 // ********************************** //
-		case MT_NIGHTSDRONE:
+		/*case MT_NIGHTSDRONE:
 			if (player->bot)
 				return;
 			if (player->exiting)
@@ -1034,7 +1036,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			// Clear text
 			player->texttimer = 0;
-			return;
+			return;*/
 		case MT_NIGHTSBUMPER:
 			// Don't trigger if the stage is ended/failed
 			if (player->exiting)
@@ -1102,7 +1104,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				}
 			}
 			return;
-		case MT_NIGHTSSUPERLOOP:
+		/*case MT_NIGHTSSUPERLOOP:
 			if (player->bot || !(player->pflags & PF_NIGHTSMODE))
 				return;
 			if (!G_IsSpecialStage(gamemap))
@@ -1235,7 +1237,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				HU_SetCEchoDuration(4);
 				HU_DoCEcho(M_GetText("\\\\\\\\\\\\\\\\Link Freeze"));
 			}
-			break;
+			break;*/
 		case MT_NIGHTSWING:
 			if (G_IsSpecialStage(gamemap) && useNightsSS)
 			{ // Pseudo-ring.
@@ -1387,35 +1389,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
 			player->starpostcount++;
-			P_ClearStarPost(special->health);
 
-			// Find all starposts in the level with this value.
-			{
-				thinker_t *th;
-				mobj_t *mo2;
-
-				for (th = thinkercap.next; th != &thinkercap; th = th->next)
-				{
-					if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-					continue;
-
-					mo2 = (mobj_t *)th;
-
-					if (mo2 == special)
-						continue;
-
-					if (mo2->type == MT_STARPOST && mo2->health == special->health)
-					{
-						if (!(netgame && circuitmap && player != &players[consoleplayer]))
-							P_SetMobjState(mo2, mo2->info->painstate);
-					}
-				}
-			}
-
-			S_StartSound(toucher, special->info->painsound);
-
-			if (!(netgame && circuitmap && player != &players[consoleplayer]))
-				P_SetMobjState(special, special->info->painstate);
+			//S_StartSound(toucher, special->info->painsound);
 			return;
 
 		case MT_FAKEMOBILE:
@@ -1914,7 +1889,7 @@ void P_CheckTimeLimit(void)
 
 	//Tagmode round end but only on the tic before the
 	//XD_EXITLEVEL packet is received by all players.
-	if (G_TagGametype())
+	/*if (G_TagGametype())
 	{
 		if (leveltime == (timelimitintics + 1))
 		{
@@ -1931,7 +1906,7 @@ void P_CheckTimeLimit(void)
 	}
 
 	//Optional tie-breaker for Match/CTF
-	else if (cv_overtime.value)
+	else*/ if (cv_overtime.value)
 	{
 		INT32 playerarray[MAXPLAYERS];
 		INT32 tempplayer = 0;
@@ -2064,7 +2039,7 @@ void P_CheckPointLimit(void)
 /*Checks for untagged remaining players in both tag derivitave modes.
  *If no untagged players remain, end the round.
  *Also serves as error checking if the only IT player leaves.*/
-void P_CheckSurvivors(void)
+/*void P_CheckSurvivors(void)
 {
 	INT32 i;
 	INT32 survivors = 0;
@@ -2144,7 +2119,7 @@ void P_CheckSurvivors(void)
 		if (server)
 			SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 	}
-}
+}*/
 
 // Checks whether or not to end a race netgame.
 boolean P_CheckRacers(void)
@@ -2444,7 +2419,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			localaiming4 = 0;
 
 		//tag deaths handled differently in suicide cases. Don't count spectators!
-		if (G_TagGametype()
+		/*if (G_TagGametype()
 		 && !(target->player->pflags & PF_TAGIT) && (!source || !source->player) && !(target->player->spectator))
 		{
 			// if you accidentally die before you run out of time to hide, ignore it.
@@ -2478,7 +2453,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				}
 			}
 		}
-		else if (G_BattleGametype())
+		else*/ if (G_BattleGametype())
 			K_CheckBumpers();
 
 		target->player->kartstuff[k_pogospring] = 0;
@@ -2841,7 +2816,7 @@ static inline boolean P_TagDamage(mobj_t *target, mobj_t *inflictor, mobj_t *sou
 	}
 
 	// The tag occurs so long as you aren't shooting another tagger with friendlyfire on.
-	if (source->player->pflags & PF_TAGIT && !(player->pflags & PF_TAGIT))
+	/*if (source->player->pflags & PF_TAGIT && !(player->pflags & PF_TAGIT))
 	{
 		P_AddPlayerScore(source->player, 1); //award points to tagger.
 		P_HitDeathMessages(player, inflictor, source);
@@ -2859,7 +2834,7 @@ static inline boolean P_TagDamage(mobj_t *target, mobj_t *inflictor, mobj_t *sou
 
 		//checks if tagger has tagged all players, if so, end round early.
 		P_CheckSurvivors();
-	}
+	}*/
 
 	P_DoPlayerPain(player, source, inflictor);
 
@@ -3383,19 +3358,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			// Invincible or not, we still need this.
 			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			S_StartSound(player->mo, sfx_kc59);
-			return true;
-		}
-
-		// Self-Propelled Bomb
-		if (damage == 65)
-		{
-			mobj_t *spbexplode;
-			if (player == source->player)
-				return false;
-			// Just need to do this now! Being thrown upwards is done by the explosion.
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUELIGHTNING);
-			spbexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BLUEEXPLOSION);
-			P_SetTarget(&spbexplode->target, source);
 			return true;
 		}
 		//}

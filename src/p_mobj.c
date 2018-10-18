@@ -48,6 +48,7 @@ actioncache_t actioncachehead;
 
 static mobj_t *overlaycap = NULL;
 static mobj_t *shadowcap = NULL;
+mobj_t *waypointcap = NULL;
 
 void P_InitCachedActions(void)
 {
@@ -494,7 +495,7 @@ boolean P_WeaponOrPanel(mobjtype_t type)
 //
 // Power Stone emerald management
 //
-void P_EmeraldManager(void)
+/*void P_EmeraldManager(void)
 {
 	thinker_t *think;
 	mobj_t *mo;
@@ -663,7 +664,7 @@ void P_EmeraldManager(void)
 			break;
 		}
 	}
-}
+}*/
 
 //
 // P_ExplodeMissile
@@ -4006,7 +4007,8 @@ void P_RecalcPrecipInSector(sector_t *sector)
 //
 void P_NullPrecipThinker(precipmobj_t *mobj)
 {
-	(void)mobj;
+	//(void)mobj;
+	mobj->precipflags &= ~PCF_THUNK;
 }
 
 void P_SnowThinker(precipmobj_t *mobj)
@@ -4026,25 +4028,26 @@ void P_RainThinker(precipmobj_t *mobj)
 	{
 		// cycle through states,
 		// calling action functions at transitions
-		if (mobj->tics > 0 && --mobj->tics == 0)
-		{
-			// you can cycle through multiple states in a tic
-			if (!P_SetPrecipMobjState(mobj, mobj->state->nextstate))
-				return; // freed itself
-		}
+		if (mobj->tics <= 0)
+			return;
 
-		if (mobj->state == &states[S_RAINRETURN])
-		{
-			mobj->z = mobj->ceilingz;
-			P_SetPrecipMobjState(mobj, S_RAIN1);
-		}
+		if (--mobj->tics)
+			return;
+
+		if (!P_SetPrecipMobjState(mobj, mobj->state->nextstate))
+			return;
+
+		if (mobj->state != &states[S_RAINRETURN])
+			return;
+
+		mobj->z = mobj->ceilingz;
+		P_SetPrecipMobjState(mobj, S_RAIN1);
+
 		return;
 	}
 
 	// adjust height
-	mobj->z += mobj->momz;
-
-	if (mobj->z <= mobj->floorz)
+	if ((mobj->z += mobj->momz) <= mobj->floorz)
 	{
 		// no splashes on sky or bottomless pits
 		if (mobj->precipflags & PCF_PIT)
@@ -6058,7 +6061,7 @@ static void P_NightsItemChase(mobj_t *thing)
 	P_Attract(thing, thing->tracer, true);
 }
 
-static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
+/*static boolean P_ShieldLook(mobj_t *thing, shieldtype_t shield)
 {
 	if (!thing->target || thing->target->health <= 0 || !thing->target->player
 		|| (thing->target->player->powers[pw_shield] & SH_NOSTACK) == SH_NONE || thing->target->player->powers[pw_super]
@@ -6174,7 +6177,7 @@ static boolean P_AddShield(mobj_t *thing)
 
 	P_SetTarget(&shields[numshields++], thing);
 	return true;
-}
+}*/
 
 void P_RunOverlays(void)
 {
@@ -6608,8 +6611,8 @@ void P_MobjThinker(mobj_t *mobj)
 					P_RemoveMobj(mobj);
 					return;
 				}
-				else
-					P_AddOverlay(mobj);
+
+				P_AddOverlay(mobj);
 				break;
 			case MT_SHADOW:
 				if (!mobj->target)
@@ -6617,10 +6620,10 @@ void P_MobjThinker(mobj_t *mobj)
 					P_RemoveMobj(mobj);
 					return;
 				}
-				else
-					P_AddShadow(mobj);
+
+				P_AddShadow(mobj);
 				break;
-			case MT_BLACKORB:
+			/*case MT_BLACKORB:
 			case MT_WHITEORB:
 			case MT_GREENORB:
 			case MT_YELLOWORB:
@@ -6628,7 +6631,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_PITYORB:
 				if (!P_AddShield(mobj))
 					return;
-				break;
+				break;*/
 			//{ SRB2kart mobs
 			case MT_ORBINAUT_SHIELD: // Kart orbit/trail items
 			case MT_JAWZ_SHIELD:
@@ -8035,7 +8038,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 						|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
 						&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-						K_DoPogoSpring(mobj, 0, false);
+						K_DoPogoSpring(mobj, 0, 1);
 				}
 
 				if (mobj->threshold > 0)
@@ -8110,7 +8113,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 				|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
 				&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-				K_DoPogoSpring(mobj, 0, false);
+				K_DoPogoSpring(mobj, 0, 1);
 
 			break;
 		}
@@ -8139,7 +8142,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if ((sec2 && GETSECSPECIAL(sec2->special, 3) == 1)
 						|| (P_IsObjectOnRealGround(mobj, mobj->subsector->sector)
 						&& GETSECSPECIAL(mobj->subsector->sector->special, 3) == 1))
-						K_DoPogoSpring(mobj, 0, false);
+						K_DoPogoSpring(mobj, 0, 1);
 				}
 
 				if (mobj->threshold > 0)
@@ -8238,7 +8241,7 @@ void P_MobjThinker(mobj_t *mobj)
 			return;
 		case MT_MINEEXPLOSIONSOUND:
 			if (mobj->health == 100)
-				S_StartSound(mobj, sfx_prloop);
+				S_StartSound(mobj, sfx_s3k4e);
 			mobj->health--;
 			break;
 		case MT_BOOSTFLAME:
@@ -8266,12 +8269,13 @@ void P_MobjThinker(mobj_t *mobj)
 
 				P_SetScale(smoke, mobj->target->scale/2);
 				smoke->destscale = 3*mobj->target->scale/2;
+				smoke->scalespeed = FixedMul(smoke->scalespeed, mobj->target->scale);
 
 				smoke->momx = mobj->target->momx/2;
 				smoke->momy = mobj->target->momy/2;
 				smoke->momz = mobj->target->momz/2;
 
-				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mapheaderinfo[gamemap-1]->mobj_scale);
+				P_Thrust(smoke, mobj->target->angle+FixedAngle(P_RandomRange(135, 225)<<FRACBITS), P_RandomRange(0, 8) * mobj->target->scale);
 			}
 			break;
 		case MT_SPARKLETRAIL:
@@ -8362,7 +8366,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->destscale = mobj->target->destscale;
 			P_SetScale(mobj, mobj->target->scale);
 			mobj->color = mobj->target->color;
-			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode] == 1);
+			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode]);
 
 			if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
 			{
@@ -8376,12 +8380,15 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			else
 			{
-				if (mobj->target->player->kartstuff[k_comebackmode] == 0
+				if (!mobj->target->player->kartstuff[k_comebackmode]
 					&& mobj->state != &states[mobj->info->spawnstate])
 					P_SetMobjState(mobj, mobj->info->spawnstate);
 				else if (mobj->target->player->kartstuff[k_comebackmode] == 1
 					&& mobj->state != &states[mobj->info->seestate])
 					P_SetMobjState(mobj, mobj->info->seestate);
+				else if (mobj->target->player->kartstuff[k_comebackmode] == 2
+					&& mobj->state != &states[mobj->info->painstate])
+					P_SetMobjState(mobj, mobj->info->painstate);
 
 				if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
 					mobj->flags2 |= MF2_DONTDRAW;
@@ -8748,7 +8755,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
-		else if (mobj->type == MT_RANDOMITEM && mobj->threshold == 69 && mobj->fuse <= TICRATE)
+		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM) && mobj->fuse <= TICRATE)
 			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 
@@ -9540,14 +9547,15 @@ static precipmobj_t *P_SpawnPrecipMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype
 static inline precipmobj_t *P_SpawnRainMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
 	precipmobj_t *mo = P_SpawnPrecipMobj(x,y,z,type);
-	mo->thinker.function.acp1 = (actionf_p1)P_RainThinker;
+	mo->precipflags |= PCF_RAIN;
+	//mo->thinker.function.acp1 = (actionf_p1)P_RainThinker;
 	return mo;
 }
 
 static inline precipmobj_t *P_SpawnSnowMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
 	precipmobj_t *mo = P_SpawnPrecipMobj(x,y,z,type);
-	mo->thinker.function.acp1 = (actionf_p1)P_SnowThinker;
+	//mo->thinker.function.acp1 = (actionf_p1)P_SnowThinker;
 	return mo;
 }
 
@@ -9736,13 +9744,12 @@ consvar_t cv_suddendeath = {"suddendeath", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, 
 
 void P_SpawnPrecipitation(void)
 {
-	INT32 i, j, mrand;
+	INT32 i, mrand;
 	fixed_t basex, basey, x, y, height;
 	subsector_t *precipsector = NULL;
 	precipmobj_t *rainmo = NULL;
 
-	if (dedicated || !cv_precipdensity.value || curWeather == PRECIP_NONE
-		|| netgame) // SRB2Kart
+	if (dedicated || /*!cv_precipdensity*/!cv_drawdist_precip.value || curWeather == PRECIP_NONE) // SRB2Kart
 		return;
 
 	// Use the blockmap to narrow down our placing patterns
@@ -9751,7 +9758,7 @@ void P_SpawnPrecipitation(void)
 		basex = bmaporgx + (i % bmapwidth) * MAPBLOCKSIZE;
 		basey = bmaporgy + (i / bmapwidth) * MAPBLOCKSIZE;
 
-		for (j = 0; j < cv_precipdensity.value; ++j)
+		//for (j = 0; j < cv_precipdensity.value; ++j) -- density is 1 for kart always
 		{
 			x = basex + ((M_RandomKey(MAPBLOCKUNITS<<3)<<FRACBITS)>>3);
 			y = basey + ((M_RandomKey(MAPBLOCKUNITS<<3)<<FRACBITS)>>3);
@@ -9761,7 +9768,11 @@ void P_SpawnPrecipitation(void)
 			// No sector? Stop wasting time,
 			// move on to the next entry in the blockmap
 			if (!precipsector)
-				break;
+				continue;
+
+			// Not in a sector with visible sky?
+			if (precipsector->sector->ceilingpic != skyflatnum)
+				continue;
 
 			// Exists, but is too small for reasonable precipitation.
 			if (!(precipsector->sector->floorheight <= precipsector->sector->ceilingheight - (32<<FRACBITS)))
@@ -9772,10 +9783,6 @@ void P_SpawnPrecipitation(void)
 
 			if (curWeather == PRECIP_SNOW)
 			{
-				// Not in a sector with visible sky -- exception for NiGHTS.
-				if (!(maptol & TOL_NIGHTS) && precipsector->sector->ceilingpic != skyflatnum)
-					continue;
-
 				rainmo = P_SpawnSnowMobj(x, y, height, MT_SNOWFLAKE);
 				mrand = M_RandomByte();
 				if (mrand < 64)
@@ -9784,13 +9791,7 @@ void P_SpawnPrecipitation(void)
 					P_SetPrecipMobjState(rainmo, S_SNOW2);
 			}
 			else // everything else.
-			{
-				// Not in a sector with visible sky.
-				if (precipsector->sector->ceilingpic != skyflatnum)
-					continue;
-
 				rainmo = P_SpawnRainMobj(x, y, height, MT_RAIN);
-			}
 
 			// Randomly assign a height, now that floorz is set.
 			rainmo->z = M_RandomRange(rainmo->floorz>>FRACBITS, rainmo->ceilingz>>FRACBITS)<<FRACBITS;
@@ -11076,6 +11077,8 @@ ML_NOCLIMB : Direction not controllable
 	else if (i == MT_BOSS3WAYPOINT) // SRB2kart 120217 - Used to store checkpoint num
 	{
 		mobj->health = mthing->angle;
+		P_SetTarget(&mobj->tracer, waypointcap);
+		P_SetTarget(&waypointcap, mobj);
 	}
 	else if (i == MT_SPIKE)
 	{

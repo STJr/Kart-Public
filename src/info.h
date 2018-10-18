@@ -3554,11 +3554,12 @@ typedef enum state
 
 	S_PLAYERBOMB,
 	S_PLAYERITEM,
+	S_PLAYERFAKE,
 
 	S_KARMAWHEEL,
 	
-	// Lightning shield use stuff;
-	S_KSPARK1,	// Sparkling Radius 
+	// Thunder shield use stuff;
+	S_KSPARK1,	// Sparkling Radius
 	S_KSPARK2,
 	S_KSPARK3,
 	S_KSPARK4,
@@ -3571,7 +3572,7 @@ typedef enum state
 	S_KSPARK11,
 	S_KSPARK12,
 	S_KSPARK13,	// ... that's an awful lot.
-	
+
 	S_LZIO11,	// Straight lightning bolt
 	S_LZIO12,
 	S_LZIO13,
@@ -3581,7 +3582,7 @@ typedef enum state
 	S_LZIO17,
 	S_LZIO18,
 	S_LZIO19,
-	
+
 	S_LZIO21,	// Straight lightning bolt (flipped)
 	S_LZIO22,
 	S_LZIO23,
@@ -3591,7 +3592,7 @@ typedef enum state
 	S_LZIO27,
 	S_LZIO28,
 	S_LZIO29,
-	
+
 	S_KLIT1,	// Diagonal lightning. No, it not being straight doesn't make it gay.
 	S_KLIT2,
 	S_KLIT3,

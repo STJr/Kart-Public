@@ -435,7 +435,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 	numwords = COM_Argc() - usedargs;
 	I_Assert(numwords > 0);
 
-	if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))	// TODO: Per Player mute.
+	if (CHAT_MUTE)	// TODO: Per Player mute.
 	{
 		HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"));
 		return;
@@ -465,6 +465,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 	{
 		// what we're gonna do now is check if the node exists
 		// with that logic, characters 4 and 5 are our numbers:
+		const char *newmsg;
 		int spc = 1;	// used if nodenum[1] is a space.
 		char *nodenum = (char*) malloc(3);
 		strncpy(nodenum, msg+3, 5);
@@ -503,7 +504,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 			return;
 		}
 		buf[0] = target;
-		const char *newmsg = msg+5+spc;
+		newmsg = msg+5+spc;
 		memcpy(msg, newmsg, 252);
 	}
 
@@ -568,7 +569,10 @@ static void Command_Sayteam_f(void)
 		return;
 	}
 
-	DoSayCommand(-1, 1, 0);
+	if (G_GametypeHasTeams())	// revert to normal say if we don't have teams in this gametype.
+		DoSayCommand(-1, 1, 0);
+	else
+		DoSayCommand(0, 1, 0);
 }
 
 /** Send a message to everyone, to be displayed by CECHO. Only
@@ -604,6 +608,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	char *msg;
 	boolean action = false;
 	char *ptr;
+	int spam_eatmsg = 0;
 
 	CONS_Debug(DBG_NETPLAY,"Received SAY cmd from Player %d (%s)\n", playernum+1, player_names[playernum]);
 
@@ -649,8 +654,6 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			}
 		}
 	}
-
-	int spam_eatmsg = 0;
 
 	// before we do anything, let's verify the guy isn't spamming, get this easier on us.
 
@@ -718,19 +721,32 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		// player is a spectator?
         if (players[playernum].spectator)
-		{	
+		{
 			cstart = "\x86";    // grey name
 			textcolor = "\x86";
-		}	
+		}
+		else if (target == -1)	// say team
+		{
+			if (players[playernum].ctfteam == 1) // red
+			{
+				cstart = "\x85";
+				textcolor = "\x85";
+			}
+			else // blue
+			{
+				cstart = "\x84";
+				textcolor = "\x84";
+			}
+		}
 		else
         {
 			const UINT8 color = players[playernum].skincolor;
 			if (color <= SKINCOLOR_SILVER || color == SKINCOLOR_SLATE)
 				cstart = "\x80"; // white
-			else if (color <= SKINCOLOR_BEIGE || color == SKINCOLOR_JET)
+			else if (color <= SKINCOLOR_BLACK || color == SKINCOLOR_JET)
 				cstart = "\x86"; // V_GRAYMAP
 			else if (color <= SKINCOLOR_LEATHER)
-				cstart = "\x8A"; // V_GOLDMAP
+				cstart = "\x8e"; // V_BROWNMAP
 			else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_LILAC)
 				cstart = "\x8d"; // V_PINKMAP
 			else if (color <= SKINCOLOR_KETCHUP)
@@ -741,14 +757,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x8f"; // V_PEACHMAP
 			else if (color <= SKINCOLOR_BRONZE)
 				cstart = "\x8A"; // V_GOLDMAP
-			else if (color <= SKINCOLOR_MUSTARD)
+			else if (color <= SKINCOLOR_OLIVE)
 				cstart = "\x82"; // V_YELLOWMAP
 			else if (color <= SKINCOLOR_PISTACHIO)
 				cstart = "\x8b"; // V_TEAMAP
-			else if (color <= SKINCOLOR_SWAMP || color == SKINCOLOR_LIME)
+			else if (color <= SKINCOLOR_DREAM || color == SKINCOLOR_LIME)
 				cstart = "\x83"; // V_GREENMAP
-			else if (color <= SKINCOLOR_TEAL)
-				cstart = "\x8e"; // V_TEALMAP
 			else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
 				cstart = "\x88"; // V_SKYMAP
 			else if (color <= SKINCOLOR_STEEL)
@@ -761,7 +775,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x89"; // V_LAVENDERMAP
         }
 		prefix = cstart;
-		
+
 		// Give admins and remote admins their symbols.
 		if (playernum == serverplayer)
 			tempchar = (char *)Z_Calloc(strlen(cstart) + strlen(adminchar) + 1, PU_STATIC, NULL);
@@ -783,13 +797,8 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		// '\4' makes the message yellow and beeps; '\3' just beeps.
 		if (action)
 		{
-			fmt = "\3* %s%s%s%s \x82%s\n";	// don't make /me yellow, yellow will be for mentions and PMs!
-			fmt2 = "* %s%s%s%s \x82%s";
-		}
-		else if (target == 0) // To everyone
-		{
-			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
-			fmt2 = "%s<%s%s%s>\x80 %s%s";
+			fmt = "\3* %s%s%s%s \x82%s%s\n";	// don't make /me yellow, yellow will be for mentions and PMs!
+			fmt2 = "* %s%s%s%s \x82%s%s";
 		}
 		else if (target-1 == consoleplayer) // To you
 		{
@@ -809,7 +818,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			fmt2 = "%s<%s%s>%s\x80 %s%s";
 
 		}
-		else // To your team
+		else // To everyone or sayteam, it doesn't change anything.
+		{
+			fmt = "\3%s<%s%s%s>\x80 %s%s\n";
+			fmt2 = "%s<%s%s%s>\x80 %s%s";
+		}
+		/*else // To your team
 		{
 			if (players[playernum].ctfteam == 1) // red
 				prefix = "\x85[TEAM]";
@@ -820,8 +834,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 			fmt = "\3%s<%s%s>\x80%s %s%s\n";
 			fmt2 = "%s<%s%s>\x80%s %s%s";
-
-		}
+		}*/
 
 		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg)); // add it reguardless, in case we decide to change our mind about our chat type.
 
@@ -870,7 +883,7 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 				{
 					if (s[m])
 						s[m+1] = (s[m]);
-					
+
 					if (m < 1)
 						break;	// fix the chat going ham if your replace the first character. (For whatever reason this didn't happen in vanilla????)
 				}
@@ -883,9 +896,10 @@ static inline boolean HU_keyInChatString(char *s, char ch)
 	}
 	else if (ch == KEY_BACKSPACE)
 	{
+		size_t i;
 		if (c_input <= 0)
 			return false;
-		size_t i = c_input;
+		i = c_input;
 		if (!s[i-1])
 			return false;
 
@@ -938,28 +952,31 @@ static void HU_queueChatChar(INT32 c)
 		char buf[2+256];
 		size_t ci = 2;
 		char *msg = &buf[2];
+		size_t i;
+		INT32 target = 0;
 		do {
 			c = w_chat[-2+ci++];
 			if (!c || (c >= ' ' && !(c & 0x80))) // copy printable characters and terminating '\0' only.
 				buf[ci-1]=c;
 		} while (c);
-		size_t i = 0;
+		i = 0;
 		for (;(i<HU_MAXMSGLEN);i++)
 			w_chat[i] = 0;	// reset this.
 
 		c_input = 0;
 
 		// last minute mute check
-		if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
+		if (CHAT_MUTE)
 		{
 			HU_AddChatText(va("%s>ERROR: The chat is muted. You can't say anything.", "\x85"));
 			return;
 		}
 
-		INT32 target = 0;
-
 		if (strlen(msg) > 4 && strnicmp(msg, "/pm", 3) == 0)	// used /pm
 		{
+			int spc;
+			char *nodenum;
+			const char *newmsg;
 			// what we're gonna do now is check if the node exists
 			// with that logic, characters 4 and 5 are our numbers:
 
@@ -970,8 +987,8 @@ static void HU_queueChatChar(INT32 c)
 				return;
 			}
 
-			int spc = 1;	// used if nodenum[1] is a space.
-			char *nodenum = (char*) malloc(3);
+			spc = 1;	// used if nodenum[1] is a space.
+			nodenum = (char*) malloc(3);
 			strncpy(nodenum, msg+3, 5);
 			// check for undesirable characters in our "number"
 			if 	(((nodenum[0] < '0') || (nodenum[0] > '9')) || ((nodenum[1] < '0') || (nodenum[1] > '9')))
@@ -1008,7 +1025,7 @@ static void HU_queueChatChar(INT32 c)
 				return;
 			}
 			// we need to get rid of the /pm<node>
-			const char *newmsg = msg+5+spc;
+			newmsg = msg+5+spc;
 			memcpy(msg, newmsg, 255);
 		}
 		if (ci > 3) // don't send target+flags+empty message.
@@ -1053,10 +1070,8 @@ boolean HU_Responder(event_t *ev)
 	{
 		// enter chat mode
 		if ((ev->data1 == gamecontrol[gc_talkkey][0] || ev->data1 == gamecontrol[gc_talkkey][1])
-			&& netgame && (!cv_mute.value || server || (IsPlayerAdmin(consoleplayer))))
+			&& netgame && !OLD_MUTE)	// check for old chat mute, still let the players open the chat incase they want to scroll otherwise.
 		{
-			if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
-				return false;
 			chat_on = true;
 			w_chat[0] = 0;
 			teamtalk = false;
@@ -1064,13 +1079,11 @@ boolean HU_Responder(event_t *ev)
 			return true;
 		}
 		if ((ev->data1 == gamecontrol[gc_teamkey][0] || ev->data1 == gamecontrol[gc_teamkey][1])
-			&& netgame && (!cv_mute.value || server || (IsPlayerAdmin(consoleplayer))))
+			&& netgame && !OLD_MUTE)
 		{
-			if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
-				return false;
 			chat_on = true;
 			w_chat[0] = 0;
-			teamtalk = true;
+			teamtalk = G_GametypeHasTeams();	// Don't teamtalk if we don't have teams.
 			chat_scrollmedown = true;
 			return true;
 		}
@@ -1105,17 +1118,19 @@ boolean HU_Responder(event_t *ev)
 		// TODO: make chat behave like the console, so that we can go back and edit stuff when we fuck up.
 
 		// pasting. pasting is cool. chat is a bit limited, though :(
-		if ((c == 'v' || c == 'V') && ctrldown)
+		if (((c == 'v' || c == 'V') && ctrldown) && !CHAT_MUTE)
 		{
 			const char *paste = I_ClipboardPaste();
+			size_t chatlen;
+			size_t pastelen;
 
 			// create a dummy string real quickly
 
 			if (paste == NULL)
 				return true;
 
-			size_t chatlen = strlen(w_chat);
-			size_t pastelen = strlen(paste);
+			chatlen = strlen(w_chat);
+			pastelen = strlen(paste);
 			if (chatlen+pastelen > HU_MAXMSGLEN)
 				return true; // we can't paste this!!
 
@@ -1145,7 +1160,7 @@ boolean HU_Responder(event_t *ev)
 			}
 		}
 
-		if (HU_keyInChatString(w_chat,c))
+		if (!CHAT_MUTE && HU_keyInChatString(w_chat,c))
 		{
 			HU_queueChatChar(c);
 		}
@@ -1155,26 +1170,29 @@ boolean HU_Responder(event_t *ev)
 			c_input = 0;			// reset input cursor
 			chat_scrollmedown = true; // you hit enter, so you might wanna autoscroll to see what you just sent. :)
 		}
-		else if (c == KEY_ESCAPE)
+		else if (c == KEY_ESCAPE
+			|| ((c == gamecontrol[gc_talkkey][0] || c == gamecontrol[gc_talkkey][1]
+			|| c == gamecontrol[gc_teamkey][0] || c == gamecontrol[gc_teamkey][1])
+			&& c >= KEY_MOUSE1)) // If it's not a keyboard key, then the chat button is used as a toggle.
 		{
 			chat_on = false;
 			c_input = 0;			// reset input cursor
 		}
-		else if ((c == KEY_UPARROW || c == KEY_MOUSEWHEELUP) && chat_scroll > 0)	// CHAT SCROLLING YAYS!
+		else if ((c == KEY_UPARROW || c == KEY_MOUSEWHEELUP) && chat_scroll > 0 && !OLDCHAT)	// CHAT SCROLLING YAYS!
 		{
 			chat_scroll--;
 			justscrolledup = true;
 			chat_scrolltime = 4;
 		}
-		else if ((c == KEY_DOWNARROW || c == KEY_MOUSEWHEELDOWN) && chat_scroll < chat_maxscroll && chat_maxscroll > 0)
+		else if ((c == KEY_DOWNARROW || c == KEY_MOUSEWHEELDOWN) && chat_scroll < chat_maxscroll && chat_maxscroll > 0 && !OLDCHAT)
 		{
 			chat_scroll++;
 			justscrolleddown = true;
 			chat_scrolltime = 4;
 		}
-		else if (c == KEY_LEFTARROW && c_input != 0)	// i said go back
+		else if (c == KEY_LEFTARROW && c_input != 0 && !OLDCHAT)	// i said go back
 			c_input--;
-		else if (c == KEY_RIGHTARROW && c_input < strlen(w_chat))
+		else if (c == KEY_RIGHTARROW && c_input < strlen(w_chat) && !OLDCHAT)	// don't need to check for admin or w/e here since the chat won't ever contain anything if it's muted.
 			c_input++;
 		return true;
 	}
@@ -1249,9 +1267,6 @@ INT16 chatx = 13, chaty = 169;	// let's use this as our coordinates, shh
 
 static void HU_drawMiniChat(void)
 {
-	if (!chat_nummsg_min)
-		return;	// needless to say it's useless to do anything if we don't have anything to draw.
-
 	INT32 x = chatx+2;
 	INT32 charwidth = 4, charheight = 6;
 	INT32 dx = 0, dy = 0;
@@ -1260,6 +1275,10 @@ static void HU_drawMiniChat(void)
 
 	INT32 msglines = 0;
 	// process all messages once without rendering anything or doing anything fancy so that we know how many lines each message has...
+	INT32 y;
+
+	if (!chat_nummsg_min)
+		return;	// needless to say it's useless to do anything if we don't have anything to draw.
 
 	for (; i>0; i--)
 	{
@@ -1275,10 +1294,10 @@ static void HU_drawMiniChat(void)
 				{
 					++j;
 					if (!prev_linereturn)
-					{	
+					{
 						linescount += 1;
 						dx = 0;
-					}	
+					}
 					prev_linereturn = true;
 					continue;
 				}
@@ -1307,7 +1326,7 @@ static void HU_drawMiniChat(void)
 		msglines += linescount+1;
 	}
 
-	INT32 y = chaty - charheight*(msglines+1) - (cv_kartspeedometer.value ? 16 : 0);
+	y = chaty - charheight*(msglines+1) - (cv_kartspeedometer.value ? 16 : 0);
 	dx = 0;
 	dy = 0;
 	i = 0;
@@ -1330,10 +1349,10 @@ static void HU_drawMiniChat(void)
 				{
 					++j;
 					if (!prev_linereturn)
-					{	
+					{
 						dy += charheight;
 						dx = 0;
-					}	
+					}
 					prev_linereturn = true;
 					continue;
 				}
@@ -1485,8 +1504,10 @@ static void HU_DrawChat(void)
 	INT32 charwidth = 4, charheight = 6;
 	INT32 t = 0, c = 0, y = chaty - (typelines*charheight)  - (cv_kartspeedometer.value ? 16 : 0);
 	UINT32 i = 0, saylen = strlen(w_chat);	// You learn new things everyday!
+	INT32 cflag = 0;
 	const char *ntalk = "Say: ", *ttalk = "Team: ";
 	const char *talk = ntalk;
+	const char *mute = "Chat has been muted.";
 
 	if (teamtalk)
 	{
@@ -1499,16 +1520,33 @@ static void HU_DrawChat(void)
 #endif
 	}
 
+	if (CHAT_MUTE)
+	{
+		talk = mute;
+		typelines = 1;
+		cflag = V_GRAYMAP;	// set text in gray if chat is muted.
+	}
+
 	V_DrawFillConsoleMap(chatx, y-1, cv_chatwidth.value, (typelines*charheight), 239 | V_SNAPTOBOTTOM | V_SNAPTOLEFT);
-	
+
 	while (talk[i])
 	{
 		if (talk[i] < HU_FONTSTART)
 			++i;
 		else
-			V_DrawChatCharacter(chatx + c + 2, y, talk[i++] |V_SNAPTOBOTTOM|V_SNAPTOLEFT, !cv_allcaps.value, NULL);
+		{
+			V_DrawChatCharacter(chatx + c + 2, y, talk[i] |V_SNAPTOBOTTOM|V_SNAPTOLEFT|cflag, !cv_allcaps.value, V_GetStringColormap(talk[i]|cflag));
+			i++;
+		}
 
 		c += charwidth;
+	}
+
+	// if chat is muted, just draw the log and get it over with:
+	if (CHAT_MUTE)
+	{
+		HU_drawChatLog(0);
+		return;
 	}
 
 	i = 0;
@@ -1553,24 +1591,25 @@ static void HU_DrawChat(void)
 	// handle /pm list.
 	if (strnicmp(w_chat, "/pm", 3) == 0 && vid.width >= 400 && !teamtalk)	// 320x200 unsupported kthxbai
 	{
-		i = 0;
 		INT32 count = 0;
 		INT32 p_dispy = chaty - charheight -1;
+		i = 0;
 		for(i=0; (i<MAXPLAYERS); i++)
 		{
 
 			// filter: (code needs optimization pls help I'm bad with C)
 			if (w_chat[3])
 			{
-
+				char *nodenum;
+				UINT32 n;
 				// right, that's half important: (w_chat[4] may be a space since /pm0 msg is perfectly acceptable!)
 				if ( ( ((w_chat[3] != 0) && ((w_chat[3] < '0') || (w_chat[3] > '9'))) || ((w_chat[4] != 0) && (((w_chat[4] < '0') || (w_chat[4] > '9'))))) && (w_chat[4] != ' '))
 					break;
 
 
-				char *nodenum = (char*) malloc(3);
+				nodenum = (char*) malloc(3);
 				strncpy(nodenum, w_chat+3, 4);
-				UINT32 n = atoi((const char*) nodenum);	// turn that into a number
+				n = atoi((const char*) nodenum);	// turn that into a number
 				// special cases:
 
 				if ((n == 0) && !(w_chat[4] == '0'))
@@ -1695,7 +1734,7 @@ static void HU_DrawChat_Old(void)
 //
 // Crosshairs are pre-cached at HU_Init
 
-static inline void HU_DrawCrosshair(void)
+/*static inline void HU_DrawCrosshair(void)
 {
 	INT32 i, x, y;
 
@@ -1847,7 +1886,7 @@ static inline void HU_DrawCrosshair4(void)
 
 		V_DrawScaledPatch(x, y, V_NOSCALESTART|V_OFFSET|V_TRANSLUCENT, crosshair[i - 1]);
 	}
-}
+}*/
 
 static void HU_DrawCEcho(void)
 {
@@ -1955,10 +1994,13 @@ void HU_Drawer(void)
 	}
 	else
 	{
+		if (netgame)			// Don't draw it outside, I know it leads to stupid stuff.
+		{
 		chat_scrolltime = 0;	// do scroll anyway.
 		typelines = 1;			// make sure that the chat doesn't have a weird blinking huge ass square if we typed a lot last time.
 		if (!OLDCHAT)
 			HU_drawMiniChat();		// draw messages in a cool fashion.
+		}
 	}
 
 	if (netgame)	// would handle that in hu_drawminichat, but it's actually kinda awkward when you're typing a lot of messages. (only handle that in netgames duh)
@@ -2018,7 +2060,7 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	if (!automapactive && !demoplayback)
+	/*if (!automapactive && !demoplayback)
 	{
 		if (cv_crosshair.value && !camera.chase && !players[displayplayer].spectator)
 			HU_DrawCrosshair();
@@ -2031,7 +2073,7 @@ void HU_Drawer(void)
 
 		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
 			HU_DrawCrosshair4();
-	}
+	}*/
 
 	// draw desynch text
 	if (hu_resynching)
@@ -2133,6 +2175,7 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 	UINT8 barcolor = 128;	// color we use for the bars (green, yellow or red)
 	SINT8 i = 0;
 	SINT8 yoffset = 6;
+	INT32 dx;
 	if (ping < 128)
 	{
 		numbars = 3;
@@ -2144,7 +2187,7 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 		barcolor = 103;
 	}
 
-	INT32 dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
+	dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
 	if (!notext || vid.width >= 640)	// how sad, we're using a shit resolution.
 		V_DrawSmallString(dx, y+4, V_ALLOWLOWERCASE, va("%dms", ping));
 
@@ -2226,22 +2269,13 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 		if (G_RaceGametype())
 		{
-#define timestring(time) va("%i:%02i.%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
+#define timestring(time) va("%i'%02i\"%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
 			if (players[tab[i].num].exiting)
-			{
-				V_DrawRightAlignedString(x, y-4, hilicol, "FIN");
 				V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
-			}
 			else if (players[tab[i].num].pflags & PF_TIMEOVER)
-				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "TIME OVER...");
+				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "NO CONTEST.");
 			else if (circuitmap)
-			{
-				V_DrawRightAlignedString(x, y-4, 0, "Lap");
-				V_DrawRightAlignedString(x, y+4, 0, va("%d", tab[i].count));
-				V_DrawRightAlignedString(x+rightoffset, y, 0, timestring(players[tab[i].num].starposttime));
-			}
-			else
-				V_DrawRightAlignedString(x+rightoffset, y, 0, timestring(tab[i].count));
+				V_DrawRightAlignedString(x+rightoffset, y, 0, va("Lap %d", tab[i].count));
 #undef timestring
 		}
 		else

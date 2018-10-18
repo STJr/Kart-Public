@@ -1209,6 +1209,9 @@ static const char *gamecontrolname[num_gamecontrols] =
 	"console",
 	"pause",
 	"systemmenu",
+	"screenshot",
+	"recordgif",
+	"viewpoint",
 	"custom1",
 	"custom2",
 	"custom3",
@@ -1293,6 +1296,9 @@ void G_Controldefault(void)
 	// Extra controls
 	gamecontrol[gc_pause      ][0] = KEY_PAUSE;
 	gamecontrol[gc_console    ][0] = KEY_CONSOLE;
+	gamecontrol[gc_screenshot ][0] = KEY_F8;
+	gamecontrol[gc_recordgif  ][0] = KEY_F9;
+	gamecontrol[gc_viewpoint  ][0] = KEY_F12;
 	gamecontrol[gc_talkkey    ][0] = 't';
 	//gamecontrol[gc_teamkey    ][0] = 'y';
 	gamecontrol[gc_scores     ][0] = KEY_TAB;
@@ -1303,11 +1309,11 @@ void G_Controldefault(void)
 	gamecontrol[gc_camreset   ][0] = KEY_HOME;
 	gamecontrol[gc_camtoggle  ][0] = KEY_BACKSPACE;
 
-	//gamecontrol[gc_viewpoint  ][1] = KEY_JOY1+3; // Y
+	gamecontrol[gc_viewpoint  ][1] = KEY_JOY1+3; // Y
 	gamecontrol[gc_pause      ][1] = KEY_JOY1+6; // Back
 	gamecontrol[gc_systemmenu ][0] = KEY_JOY1+7; // Start
 	gamecontrol[gc_camtoggle  ][1] = KEY_HAT1+0; // D-Pad Up
-	//gamecontrol[gc_screenshot ][1] = KEY_HAT1+1; // D-Pad Down
+	gamecontrol[gc_screenshot ][1] = KEY_HAT1+1; // D-Pad Down
 	gamecontrol[gc_talkkey    ][1] = KEY_HAT1+2; // D-Pad Left
 	gamecontrol[gc_scores     ][1] = KEY_HAT1+3; // D-Pad Right
 

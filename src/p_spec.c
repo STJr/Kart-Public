@@ -1707,16 +1707,16 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 
 			if (actor && actor->player && triggerline->flags & ML_EFFECT4)
 			{
-				if (maptol & TOL_NIGHTS)
+				/*if (maptol & TOL_NIGHTS)
 					lap = actor->player->mare;
-				else 
+				else*/
 					lap = actor->player->laps;
 			}
 			else
 			{
-				if (maptol & TOL_NIGHTS)
+				/*if (maptol & TOL_NIGHTS)
 					lap = P_FindLowestMare();
-				else 
+				else*/
 					lap = P_FindLowestLap();
 			}
 
@@ -2056,8 +2056,7 @@ void P_SwitchWeather(INT32 weathernum)
 
 		for (think = thinkercap.next; think != &thinkercap; think = think->next)
 		{
-			if ((think->function.acp1 != (actionf_p1)P_SnowThinker)
-				&& (think->function.acp1 != (actionf_p1)P_RainThinker))
+			if (think->function.acp1 != (actionf_p1)P_NullPrecipThinker)
 				continue; // not a precipmobj thinker
 
 			precipmobj = (precipmobj_t *)think;
@@ -2073,14 +2072,12 @@ void P_SwitchWeather(INT32 weathernum)
 
 		for (think = thinkercap.next; think != &thinkercap; think = think->next)
 		{
+			if (think->function.acp1 != (actionf_p1)P_NullPrecipThinker)
+				continue; // not a precipmobj thinker
+			precipmobj = (precipmobj_t *)think;
+
 			if (swap == PRECIP_RAIN) // Snow To Rain
 			{
-				if (!(think->function.acp1 == (actionf_p1)P_SnowThinker
-					|| think->function.acp1 == (actionf_p1)P_NullPrecipThinker))
-					continue; // not a precipmobj thinker
-
-				precipmobj = (precipmobj_t *)think;
-
 				precipmobj->flags = mobjinfo[MT_RAIN].flags;
 				st = &states[mobjinfo[MT_RAIN].spawnstate];
 				precipmobj->state = st;
@@ -2091,17 +2088,12 @@ void P_SwitchWeather(INT32 weathernum)
 
 				precipmobj->precipflags &= ~PCF_INVISIBLE;
 
-				think->function.acp1 = (actionf_p1)P_RainThinker;
+				precipmobj->precipflags |= PCF_RAIN;
+				//think->function.acp1 = (actionf_p1)P_RainThinker;
 			}
 			else if (swap == PRECIP_SNOW) // Rain To Snow
 			{
 				INT32 z;
-
-				if (!(think->function.acp1 == (actionf_p1)P_RainThinker
-					|| think->function.acp1 == (actionf_p1)P_NullPrecipThinker))
-					continue; // not a precipmobj thinker
-
-				precipmobj = (precipmobj_t *)think;
 
 				precipmobj->flags = mobjinfo[MT_SNOWFLAKE].flags;
 				z = M_RandomByte();
@@ -2120,19 +2112,13 @@ void P_SwitchWeather(INT32 weathernum)
 				precipmobj->frame = st->frame;
 				precipmobj->momz = mobjinfo[MT_SNOWFLAKE].speed;
 
-				precipmobj->precipflags &= ~PCF_INVISIBLE;
+				precipmobj->precipflags &= ~(PCF_INVISIBLE|PCF_RAIN);
 
-				think->function.acp1 = (actionf_p1)P_SnowThinker;
+				//think->function.acp1 = (actionf_p1)P_SnowThinker;
 			}
 			else if (swap == PRECIP_BLANK || swap == PRECIP_STORM_NORAIN) // Remove precip, but keep it around for reuse.
 			{
-				if (!(think->function.acp1 == (actionf_p1)P_RainThinker
-					|| think->function.acp1 == (actionf_p1)P_SnowThinker))
-					continue;
-
-				precipmobj = (precipmobj_t *)think;
-
-				think->function.acp1 = (actionf_p1)P_NullPrecipThinker;
+				//think->function.acp1 = (actionf_p1)P_NullPrecipThinker;
 
 				precipmobj->precipflags |= PCF_INVISIBLE;
 			}
@@ -3790,7 +3776,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
-				K_DoPogoSpring(player->mo, 0, false);
+				K_DoPogoSpring(player->mo, 0, 1);
 			}
 			break;
 
@@ -3813,7 +3799,7 @@ DoneSection2:
 					P_InstaThrust(player->mo, player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 2;
-				K_DoPogoSpring(player->mo, 0, false);
+				K_DoPogoSpring(player->mo, 0, 1);
 			}
 			break;
 
@@ -4252,7 +4238,6 @@ DoneSection2:
 					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;
 					//player->starpostx = player->starposty = player->starpostz = 0;
-					P_ResetStarposts();
 
 					// Play the starpost sound for 'consistency'
 					// S_StartSound(player->mo, sfx_strpst);
@@ -5821,10 +5806,8 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					}
 					else // Otherwise, set calculated offsets such that line's v1 is the apparent origin
 					{
-						fixed_t cosinecomponent = FINECOSINE(flatangle>>ANGLETOFINESHIFT);
-						fixed_t sinecomponent = FINESINE(flatangle>>ANGLETOFINESHIFT);
-						xoffs = (-FixedMul(lines[i].v1->x, cosinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, sinecomponent) % MAXFLATSIZE); // No danger of overflow thanks to the strategically placed modulo operations.
-						yoffs = (FixedMul(lines[i].v1->x, sinecomponent) % MAXFLATSIZE) + (FixedMul(lines[i].v1->y, cosinecomponent) % MAXFLATSIZE); // Ditto.
+						xoffs = -lines[i].v1->x;
+						yoffs = lines[i].v1->y;
 					}
 
 					for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0 ;)

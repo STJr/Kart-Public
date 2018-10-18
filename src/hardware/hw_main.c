@@ -643,13 +643,13 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 		{
 			scrollx = FIXED_TO_FLOAT(FOFsector->floor_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(FOFsector->floor_yoffs)/fflatsize;
-			angle = FOFsector->floorpic_angle>>ANGLETOFINESHIFT;
+			angle = FOFsector->floorpic_angle;
 		}
 		else // it's a ceiling
 		{
 			scrollx = FIXED_TO_FLOAT(FOFsector->ceiling_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(FOFsector->ceiling_yoffs)/fflatsize;
-			angle = FOFsector->ceilingpic_angle>>ANGLETOFINESHIFT;
+			angle = FOFsector->ceilingpic_angle;
 		}
 	}
 	else if (gr_frontsector)
@@ -658,24 +658,26 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 		{
 			scrollx = FIXED_TO_FLOAT(gr_frontsector->floor_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(gr_frontsector->floor_yoffs)/fflatsize;
-			angle = gr_frontsector->floorpic_angle>>ANGLETOFINESHIFT;
+			angle = gr_frontsector->floorpic_angle;
 		}
 		else // it's a ceiling
 		{
 			scrollx = FIXED_TO_FLOAT(gr_frontsector->ceiling_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(gr_frontsector->ceiling_yoffs)/fflatsize;
-			angle = gr_frontsector->ceilingpic_angle>>ANGLETOFINESHIFT;
+			angle = gr_frontsector->ceilingpic_angle;
 		}
 	}
 
 	if (angle) // Only needs to be done if there's an altered angle
 	{
 
+		angle = InvAngle(angle)>>ANGLETOFINESHIFT;
+
 		// This needs to be done so that it scrolls in a different direction after rotation like software
-		tempxsow = FLOAT_TO_FIXED(scrollx);
+		/*tempxsow = FLOAT_TO_FIXED(scrollx);
 		tempytow = FLOAT_TO_FIXED(scrolly);
 		scrollx = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINECOSINE(angle)) - FixedMul(tempytow, FINESINE(angle))));
-		scrolly = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINESINE(angle)) + FixedMul(tempytow, FINECOSINE(angle))));
+		scrolly = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINESINE(angle)) + FixedMul(tempytow, FINECOSINE(angle))));*/
 
 		// This needs to be done so everything aligns after rotation
 		// It would be done so that rotation is done, THEN the translation, but I couldn't get it to rotate AND scroll like software does
@@ -689,7 +691,7 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 	{
 		// Hurdler: add scrolling texture on floor/ceiling
 		v3d->sow = (float)((pv->x / fflatsize) - flatxref + scrollx);
-		v3d->tow = (float)(flatyref - (pv->y / fflatsize) + scrolly);
+		v3d->tow = (float)(-(pv->y / fflatsize) + flatyref + scrolly);
 
 		//v3d->sow = (float)(pv->x / fflatsize);
 		//v3d->tow = (float)(pv->y / fflatsize);
@@ -700,7 +702,7 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 			tempxsow = FLOAT_TO_FIXED(v3d->sow);
 			tempytow = FLOAT_TO_FIXED(v3d->tow);
 			v3d->sow = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINECOSINE(angle)) - FixedMul(tempytow, FINESINE(angle))));
-			v3d->tow = (FIXED_TO_FLOAT(-FixedMul(tempxsow, FINESINE(angle)) - FixedMul(tempytow, FINECOSINE(angle))));
+			v3d->tow = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINESINE(angle)) + FixedMul(tempytow, FINECOSINE(angle))));
 		}
 
 		//v3d->sow = (float)(v3d->sow - flatxref + scrollx);
@@ -2811,11 +2813,14 @@ static void HWR_AddLine(seg_t * line)
 		SLOPEPARAMS( gr_backsector->c_slope, backc1,  backc2,  gr_backsector->ceilingheight)
 #undef SLOPEPARAMS
 
-		// Closed door.
-		if ((backc1 <= frontf1 && backc2 <= frontf2)
-			|| (backf1 >= frontc1 && backf2 >= frontc2))
+		if (viewsector != gr_backsector && viewsector != gr_frontsector)
 		{
-			goto clipsolid;
+			// Closed door.
+			if ((backc1 <= frontf1 && backc2 <= frontf2)
+				|| (backf1 >= frontc1 && backf2 >= frontc2))
+			{
+				goto clipsolid;
+			}
 		}
 
 		// Window.
@@ -2828,10 +2833,13 @@ static void HWR_AddLine(seg_t * line)
 	else
 #endif
 	{
-		// Closed door.
-		if (gr_backsector->ceilingheight <= gr_frontsector->floorheight ||
-			gr_backsector->floorheight >= gr_frontsector->ceilingheight)
-			goto clipsolid;
+		if (viewsector != gr_backsector && viewsector != gr_frontsector)
+		{
+			// Closed door.
+			if (gr_backsector->ceilingheight <= gr_frontsector->floorheight ||
+				gr_backsector->floorheight >= gr_frontsector->ceilingheight)
+				goto clipsolid;
+		}
 
 		// Window.
 		if (gr_backsector->ceilingheight != gr_frontsector->ceilingheight ||
@@ -3268,7 +3276,6 @@ static void HWR_Subsector(size_t num, UINT8 ssplayer)
 
 	if (num < numsubsectors)
 	{
-		sscount++;
 		// subsector
 		sub = &subsectors[num];
 		// sector
@@ -5140,7 +5147,7 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 
 	// Handle all things in sector.
 	// If a limit exists, handle things a tiny bit different.
-	if ((limit_dist = (fixed_t)((maptol & TOL_NIGHTS) ? cv_drawdist_nights.value : cv_drawdist.value) << FRACBITS))
+	if ((limit_dist = (fixed_t)(/*(maptol & TOL_NIGHTS) ? cv_drawdist_nights.value : */cv_drawdist.value) << FRACBITS))
 	{
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
@@ -5168,8 +5175,10 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
-			if (approx_dist <= limit_dist)
-				HWR_ProjectSprite(thing);
+			if (approx_dist > limit_dist)
+				continue;
+
+			HWR_ProjectSprite(thing);
 		}
 	}
 	else
@@ -5214,8 +5223,10 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 
 			approx_dist = P_AproxDistance(viewx-precipthing->x, viewy-precipthing->y);
 
-			if (approx_dist <= limit_dist)
-				HWR_ProjectPrecipitationSprite(precipthing);
+			if (approx_dist > limit_dist)
+				continue;
+
+			HWR_ProjectPrecipitationSprite(precipthing);
 		}
 	}
 	else
@@ -5545,6 +5556,16 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	z2 = tr_y - x2 * rightsin;
 	x1 = tr_x + x1 * rightcos;
 	x2 = tr_x - x2 * rightcos;
+
+	// okay, we can't return now... this is a hack, but weather isn't networked, so it should be ok
+	if (!(thing->precipflags & PCF_THUNK))
+	{
+		if (thing->precipflags & PCF_RAIN)
+			P_RainThinker(thing);
+		else
+			P_SnowThinker(thing);
+		thing->precipflags |= PCF_THUNK;
+	}
 
 	//
 	// store information in a vissprite

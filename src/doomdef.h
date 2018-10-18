@@ -245,9 +245,9 @@ typedef enum
 	SKINCOLOR_SALMON,
 	SKINCOLOR_PINK,
 	SKINCOLOR_ROSE,
+	SKINCOLOR_RUBY,
 	SKINCOLOR_RASPBERRY,
 	SKINCOLOR_RED,
-	SKINCOLOR_RUBY,
 	SKINCOLOR_CRIMSON,
 	SKINCOLOR_KETCHUP,
 	SKINCOLOR_DAWN,
@@ -267,7 +267,6 @@ typedef enum
 	SKINCOLOR_VOMIT,
 	SKINCOLOR_GARDEN,
 	SKINCOLOR_LIME,
-	SKINCOLOR_DREAM,
 	SKINCOLOR_TEA,
 	SKINCOLOR_PISTACHIO,
 	SKINCOLOR_ROBOHOOD,
@@ -277,6 +276,7 @@ typedef enum
 	SKINCOLOR_PINETREE,
 	SKINCOLOR_EMERALD,
 	SKINCOLOR_SWAMP,
+	SKINCOLOR_DREAM,
 	SKINCOLOR_AQUA,
 	SKINCOLOR_TEAL,
 	SKINCOLOR_CYAN,
@@ -286,9 +286,9 @@ typedef enum
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
 	SKINCOLOR_JET,
+	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave – slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
 	SKINCOLOR_BLUE,
-	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave – slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_BLUEBERRY,
 	SKINCOLOR_DUSK,
 	SKINCOLOR_PURPLE,
@@ -547,6 +547,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 /// SRB2Kart: Camera always has noclip.
 /// \note   Kind of problematic. If we decide to keep this on, we'll need serious map changes.
-//#define NOCLIPCAM
+#define NOCLIPCAM
 
 #endif // __DOOMDEF__

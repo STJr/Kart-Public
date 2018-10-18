@@ -857,6 +857,10 @@ void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color)
 			else if (!(color & V_SNAPTOTOP))
 				fy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy)) / 2;
 		}
+		if (color & V_SPLITSCREEN)
+			fy += ((float)BASEVIDHEIGHT * dupy)/2;
+		if (color & V_HORZSCREEN)
+			fx += ((float)BASEVIDWIDTH * dupx)/2;
 	}
 
 	if (fx >= vid.width || fy >= vid.height)
@@ -963,6 +967,10 @@ void HWR_DrawConsoleFill(INT32 x, INT32 y, INT32 w, INT32 h, UINT32 color, INT32
 			else if (!(options & V_SNAPTOTOP))
 				fy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy)) / 2;
 		}
+		if (options & V_SPLITSCREEN)
+			fy += ((float)BASEVIDHEIGHT * dupy)/2;
+		if (options & V_HORZSCREEN)
+			fx += ((float)BASEVIDWIDTH * dupx)/2;
 	}
 
 	if (fx >= vid.width || fy >= vid.height)

@@ -222,30 +222,6 @@ void R_PortalClearClipSegs(INT32 start, INT32 end)
 	newend = solidsegs + 2;
 }
 
-
-// R_DoorClosed
-//
-// This function is used to fix the automap bug which
-// showed lines behind closed doors simply because the door had a dropoff.
-//
-// It assumes that Doom has already ruled out a door being closed because
-// of front-back closure (e.g. front floor is taller than back ceiling).
-static INT32 R_DoorClosed(void)
-{
-	return
-
-	// if door is closed because back is shut:
-	backsector->ceilingheight <= backsector->floorheight
-
-	// preserve a kind of transparent door/lift special effect:
-	&& (backsector->ceilingheight >= frontsector->ceilingheight || curline->sidedef->toptexture)
-
-	&& (backsector->floorheight <= frontsector->floorheight || curline->sidedef->bottomtexture)
-
-	// properly render skies (consider door "open" if both ceilings are sky):
-	&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum);
-}
-
 //
 // If player's view height is underneath fake floor, lower the
 // drawn ceiling to be just under the floor height, and replace
@@ -502,20 +478,23 @@ static void R_AddLine(seg_t *line)
 		SLOPEPARAMS( backsector->f_slope, backf1,  backf2,  backsector->floorheight)
 		SLOPEPARAMS( backsector->c_slope, backc1,  backc2,  backsector->ceilingheight)
 #undef SLOPEPARAMS
-		if ((backc1 <= frontf1 && backc2 <= frontf2)
-			|| (backf1 >= frontc1 && backf2 >= frontc2))
+		if (viewsector != backsector && viewsector != frontsector)
 		{
-			goto clipsolid;
+			if ((backc1 <= frontf1 && backc2 <= frontf2)
+				|| (backf1 >= frontc1 && backf2 >= frontc2))
+			{
+				goto clipsolid;
+			}
+
+			// Check for automap fix. Store in doorclosed for r_segs.c
+			doorclosed = (backc1 <= backf1 && backc2 <= backf2
+			&& ((backc1 >= frontc1 && backc2 >= frontc2) || curline->sidedef->toptexture)
+			&& ((backf1 <= frontf1 && backf2 >= frontf2) || curline->sidedef->bottomtexture)
+			&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
+
+			if (doorclosed)
+				goto clipsolid;
 		}
-
-		// Check for automap fix. Store in doorclosed for r_segs.c
-		doorclosed = (backc1 <= backf1 && backc2 <= backf2
-		&& ((backc1 >= frontc1 && backc2 >= frontc2) || curline->sidedef->toptexture)
-		&& ((backf1 <= frontf1 && backf2 >= frontf2) || curline->sidedef->bottomtexture)
-		&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
-
-		if (doorclosed)
-			goto clipsolid;
 
 		// Window.
 		if (backc1 != frontc1 || backc2 != frontc2
@@ -527,16 +506,23 @@ static void R_AddLine(seg_t *line)
 	else
 #endif
 	{
-		if (backsector->ceilingheight <= frontsector->floorheight
-			|| backsector->floorheight >= frontsector->ceilingheight)
+		if (viewsector != backsector && viewsector != frontsector)
 		{
-			goto clipsolid;
-		}
+			if (backsector->ceilingheight <= frontsector->floorheight
+				|| backsector->floorheight >= frontsector->ceilingheight)
+			{
+				goto clipsolid;
+			}
 
-		// Check for automap fix. Store in doorclosed for r_segs.c
-		doorclosed = R_DoorClosed();
-		if (doorclosed)
-			goto clipsolid;
+			// Check for automap fix. Store in doorclosed for r_segs.c
+			doorclosed = (backsector->ceilingheight <= backsector->floorheight
+			&& (backsector->ceilingheight >= frontsector->ceilingheight || curline->sidedef->toptexture)
+			&& (backsector->floorheight <= frontsector->floorheight || curline->sidedef->bottomtexture)
+			&& (backsector->ceilingpic != skyflatnum || frontsector->ceilingpic != skyflatnum));
+
+			if (doorclosed)
+				goto clipsolid;
+		}
 
 		// Window.
 		if (backsector->ceilingheight != frontsector->ceilingheight
@@ -1126,30 +1112,12 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 				&& polysec->floorheight >= floorcenterz
 				&& (viewz < polysec->floorheight))
 			{
-				fixed_t xoff, yoff;
-				xoff = polysec->floor_xoffs;
-				yoff = polysec->floor_yoffs;
-
-				if (po->angle != 0) {
-					angle_t fineshift = po->angle >> ANGLETOFINESHIFT;
-
-					xoff -= FixedMul(FINECOSINE(fineshift), po->centerPt.x)+FixedMul(FINESINE(fineshift), po->centerPt.y);
-					yoff -= FixedMul(FINESINE(fineshift), po->centerPt.x)-FixedMul(FINECOSINE(fineshift), po->centerPt.y);
-				} else {
-					xoff -= po->centerPt.x;
-					yoff += po->centerPt.y;
-				}
-
 				light = R_GetPlaneLight(frontsector, polysec->floorheight, viewz < polysec->floorheight);
 				light = 0;
 				ffloor[numffloors].plane = R_FindPlane(polysec->floorheight, polysec->floorpic,
-						polysec->lightlevel, xoff, yoff,
+						polysec->lightlevel, polysec->floor_xoffs, polysec->floor_yoffs,
 						polysec->floorpic_angle-po->angle,
-						NULL,
-						NULL
-#ifdef POLYOBJECTS_PLANES
-					, po
-#endif
+						NULL, NULL, po
 #ifdef ESLOPE
 					, NULL // will ffloors be slopable eventually?
 #endif
@@ -1174,28 +1142,12 @@ static void R_Subsector(size_t num, UINT8 viewnumber)
 				&& polysec->ceilingheight <= ceilingcenterz
 				&& (viewz > polysec->ceilingheight))
 			{
-				fixed_t xoff, yoff;
-				xoff = polysec->ceiling_xoffs;
-				yoff = polysec->ceiling_yoffs;
-
-				if (po->angle != 0) {
-					angle_t fineshift = po->angle >> ANGLETOFINESHIFT;
-
-					xoff -= FixedMul(FINECOSINE(fineshift), po->centerPt.x)+FixedMul(FINESINE(fineshift), po->centerPt.y);
-					yoff -= FixedMul(FINESINE(fineshift), po->centerPt.x)-FixedMul(FINECOSINE(fineshift), po->centerPt.y);
-				} else {
-					xoff -= po->centerPt.x;
-					yoff += po->centerPt.y;
-				}
-
 				light = R_GetPlaneLight(frontsector, polysec->ceilingheight, viewz < polysec->ceilingheight);
 				light = 0;
 				ffloor[numffloors].plane = R_FindPlane(polysec->ceilingheight, polysec->ceilingpic,
-					polysec->lightlevel, xoff, yoff, polysec->ceilingpic_angle-po->angle,
-					NULL, NULL
-#ifdef POLYOBJECTS_PLANES
-					, po
-#endif
+					polysec->lightlevel, polysec->ceiling_xoffs, polysec->ceiling_yoffs,
+					polysec->ceilingpic_angle-po->angle,
+					NULL, NULL, po
 #ifdef ESLOPE
 					, NULL // will ffloors be slopable eventually?
 #endif

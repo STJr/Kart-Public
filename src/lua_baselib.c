@@ -92,9 +92,10 @@ static int lib_print(lua_State *L)
 static int lib_chatprint(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);	// retrieve string
+	int len;
 	if (str == NULL)	// error if we don't have a string!
 		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprint"));
-	int len = strlen(str);
+	len = strlen(str);
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
@@ -113,19 +114,21 @@ static int lib_chatprintf(lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
 	player_t *plr;
+	const char *str;
+	int len;
 	if (n < 2)
 		return luaL_error(L, "chatprintf requires at least two arguments: player and text.");
-	
+
 	plr = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));	// retrieve player
 	if (!plr)
 		return LUA_ErrInvalid(L, "player_t");
 	if (plr != &players[consoleplayer])
 		return 0;
-	
-	const char *str = luaL_checkstring(L, 2);	// retrieve string
+
+	str = luaL_checkstring(L, 2);	// retrieve string
 	if (str == NULL)	// error if we don't have a string!
 		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprintf"));
-	int len = strlen(str);
+	len = strlen(str);
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
@@ -2231,11 +2234,11 @@ static int lib_kDoPogoSpring(lua_State *L)
 {
 	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	fixed_t vertispeed = luaL_checkfixed(L, 2);
-	boolean mute = luaL_checkboolean(L, 3);
+	UINT8 sound = luaL_checkinteger(L, 3);
 	NOHUD
 	if (!mo)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_DoPogoSpring(mo, vertispeed, mute);
+	K_DoPogoSpring(mo, vertispeed, sound);
 	return 0;
 }
 

@@ -796,10 +796,10 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_consolechat);
 	CV_RegisterVar(&cv_chatnotifications);
 	CV_RegisterVar(&cv_chatbacktint);
-	CV_RegisterVar(&cv_crosshair);
-	CV_RegisterVar(&cv_crosshair2);
-	CV_RegisterVar(&cv_crosshair3);
-	CV_RegisterVar(&cv_crosshair4);
+	//CV_RegisterVar(&cv_crosshair);
+	//CV_RegisterVar(&cv_crosshair2);
+	//CV_RegisterVar(&cv_crosshair3);
+	//CV_RegisterVar(&cv_crosshair4);
 	//CV_RegisterVar(&cv_alwaysfreelook);
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 
@@ -915,19 +915,19 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("noclip", Command_CheatNoClip_f);
 	COM_AddCommand("god", Command_CheatGod_f);
 	COM_AddCommand("notarget", Command_CheatNoTarget_f);
-	COM_AddCommand("getallemeralds", Command_Getallemeralds_f);
+	/*COM_AddCommand("getallemeralds", Command_Getallemeralds_f);
 	COM_AddCommand("resetemeralds", Command_Resetemeralds_f);
 	COM_AddCommand("setrings", Command_Setrings_f);
 	COM_AddCommand("setlives", Command_Setlives_f);
-	COM_AddCommand("setcontinues", Command_Setcontinues_f);
+	COM_AddCommand("setcontinues", Command_Setcontinues_f);*/
 	COM_AddCommand("devmode", Command_Devmode_f);
 	COM_AddCommand("savecheckpoint", Command_Savecheckpoint_f);
 	COM_AddCommand("scale", Command_Scale_f);
 	COM_AddCommand("gravflip", Command_Gravflip_f);
 	COM_AddCommand("hurtme", Command_Hurtme_f);
-	COM_AddCommand("jumptoaxis", Command_JumpToAxis_f);
+	/*COM_AddCommand("jumptoaxis", Command_JumpToAxis_f);
 	COM_AddCommand("charability", Command_Charability_f);
-	COM_AddCommand("charspeed", Command_Charspeed_f);
+	COM_AddCommand("charspeed", Command_Charspeed_f);*/
 	COM_AddCommand("teleport", Command_Teleport_f);
 	COM_AddCommand("rteleport", Command_RTeleport_f);
 	COM_AddCommand("skynum", Command_Skynum_f);
@@ -3260,9 +3260,9 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	}
 
 	// In tag, check to see if you still have a game.
-	if (G_TagGametype())
+	/*if (G_TagGametype())
 		P_CheckSurvivors();
-	else if (G_BattleGametype())
+	else*/ if (G_BattleGametype())
 		K_CheckBumpers(); // SRB2Kart
 	else if (G_RaceGametype())
 		P_CheckRacers(); // also SRB2Kart
@@ -3340,6 +3340,12 @@ static void Command_Login_f(void)
 #else
 	XBOXSTATIC UINT8 finalmd5[16];
 	const char *pw;
+
+	if (!netgame)
+	{
+		CONS_Printf(M_GetText("This only works in a netgame.\n"));
+		return;
+	}
 
 	// If the server uses login, it will effectively just remove admin privileges
 	// from whoever has them. This is good.
@@ -3452,6 +3458,12 @@ static void Command_Verify_f(void)
 	if (client)
 	{
 		CONS_Printf(M_GetText("Only the server can use this.\n"));
+		return;
+	}
+
+	if (!netgame)
+	{
+		CONS_Printf(M_GetText("This only works in a netgame.\n"));
 		return;
 	}
 
@@ -3809,7 +3821,7 @@ static void Command_Addfile(void)
 		WRITEMEM(buf_p, md5sum, 16);
 	}
 
-	if (IsPlayerAdmin(consoleplayer)) // Request to add file
+	if (IsPlayerAdmin(consoleplayer) && (!server)) // Request to add file
 		SendNetXCmd(XD_REQADDFILE, buf, buf_p - buf);
 	else
 		SendNetXCmd(XD_ADDFILE, buf, buf_p - buf);

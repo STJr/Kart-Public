@@ -3006,6 +3006,7 @@ state_t states[NUMSTATES] =
 
 	{SPR_PBOM, FF_ANIMATE, -1, {NULL}, 3, 3, S_NULL}, // S_PLAYERBOMB
 	{SPR_RNDM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERITEM
+	{SPR_FITM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERFAKE
 
 	{SPR_PBOM, 4, -1, {NULL}, 0, 0, S_NULL}, // S_KARMAWHEEL
 	
@@ -4089,7 +4090,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		4,              // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY, // flags
+		MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
@@ -10754,7 +10755,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
-		-24*FRACUNIT,   // speed
+		-72*FRACUNIT,   // speed -- -24*FRACUNIT originally, srb2kart x3 (nya)
 		1*FRACUNIT,     // radius
 		8*FRACUNIT,     // height
 		0,              // display offset
@@ -17132,7 +17133,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_kc2e,       // seesound
 		8,              // reactiontime
 		sfx_s3k4e,      // attacksound
-		S_NULL,         // painstate
+		S_PLAYERFAKE,   // painstate
 		0,              // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
