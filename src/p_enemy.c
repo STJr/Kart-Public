@@ -8327,87 +8327,171 @@ void A_SPBChase(mobj_t *actor)
 	UINT8 bestrank = UINT8_MAX;
 	fixed_t dist;
 	angle_t hang, vang;
+	fixed_t wspeed, xyspeed, zspeed;
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_SPBChase", actor))
 		return;
 #endif
 
-	if (actor->threshold)
+	// Default speed
+	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
+	if (gamespeed == 0)
+		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
+	else if (gamespeed == 2)
+		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
+
+	if (actor->threshold) // Just fired, go straight.
 	{
-		P_InstaThrust(actor, actor->angle, actor->info->speed);
+		P_InstaThrust(actor, actor->angle, wspeed);
 		return;
 	}
 
-	if (actor->extravalue1)
+	if (actor->extravalue1) // MODE: TARGETING
 	{
-		if (actor->tracer && actor->tracer->health && actor->tracer->player)
+		if (actor->tracer && actor->tracer->health)
 		{
-			fixed_t maxspeed = K_GetKartSpeed(actor->tracer->player, false) - (actor->tracer->scale);
+			fixed_t defspeed = wspeed;
+			fixed_t range = (160*actor->tracer->scale);
 
+			// Maybe we want SPB to target an object later? IDK lol
+			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
+				defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+
+			// Play the intimidating gurgle
 			if (!S_SoundPlaying(actor, actor->info->activesound))
 				S_StartSound(actor, actor->info->activesound);
 
 			dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
 
+			wspeed = FixedMul(defspeed, FRACUNIT + FixedDiv(dist-range, range));
+			if (wspeed < defspeed)
+				wspeed = defspeed;
+			if (wspeed > defspeed*2)
+				wspeed = defspeed*2;
+
 			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
 
-			actor->momx = FixedMul(FixedMul(maxspeed, FINECOSINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
-			actor->momy = FixedMul(FixedMul(maxspeed, FINESINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
-			actor->momz = FixedMul(maxspeed, FINESINE(vang>>ANGLETOFINESHIFT));
+			{
+				// Smoothly rotate horz angle
+				angle_t input = hang - actor->angle;
+				boolean invert = (input > ANGLE_180);
+				if (invert)
+					input = InvAngle(input);
 
-			actor->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
+				// Slow down when turning; it looks better and makes U-turns not unfair
+				xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+				input = FixedAngle(AngleFixed(input)/4);
+				if (invert)
+					input = InvAngle(input);
+
+				actor->angle += input;
+
+				// Smoothly rotate vert angle
+				input = vang - actor->movedir;
+				invert = (input > ANGLE_180);
+				if (invert)
+					input = InvAngle(input);
+
+				// Slow down when turning; might as well do it for momz, since we do it above too
+				zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+				input = FixedAngle(AngleFixed(input)/4);
+				if (invert)
+					input = InvAngle(input);
+
+				actor->movedir += input;
+			}
+
+			actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
 			return;
 		}
-		else
+		else // Target's gone, return to SEEKING
 		{
 			P_SetTarget(&actor->tracer, NULL);
-			actor->extravalue1 = 0;
+			actor->extravalue1 = 0; // Find someone new next tic
+			return;
 		}
 	}
-
-	for (i = 0; i < MAXPLAYERS; i++)
+	else // MODE: SEEKING
 	{
-		if (!playeringame[i])
-			continue;
-
-		if (players[i].spectator)
-			continue;
-
-		if (players[i].exiting)
-			continue; // exiting
-
-		if (!players[i].mo)
-			continue; // no mobj
-
-		if (players[i].mo->health <= 0)
-			continue; // dead
-
-		if (players[i].kartstuff[k_position] < bestrank)
+		// Find the player with the best rank
+		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			bestrank = players[i].kartstuff[k_position];
-			player = &players[i];
-		}
-	}
+			if (!playeringame[i] || players[i].spectator || players[i].exiting)
+				continue; // not in-game
 
-	if (player != NULL && player->mo)
-	{
+			if (!players[i].mo)
+				continue; // no mobj
+
+			if (players[i].mo->health <= 0)
+				continue; // dead
+
+			if (players[i].kartstuff[k_respawn])
+				continue; // respawning
+
+			if (players[i].kartstuff[k_position] < bestrank)
+			{
+				bestrank = players[i].kartstuff[k_position];
+				player = &players[i];
+			}
+		}
+
+		// No one there?
+		if (player == NULL || !player->mo)
+			return;
+
+		// Found someone, now get close enough to initiate the slaughter...
 		P_SetTarget(&actor->tracer, player->mo);
 
 		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+
 		hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 		vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
 
-		actor->momx = FixedMul(FixedMul(actor->info->speed, FINECOSINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
-		actor->momy = FixedMul(FixedMul(actor->info->speed, FINESINE(hang>>ANGLETOFINESHIFT)), FINECOSINE(vang>>ANGLETOFINESHIFT));
-		actor->momz = FixedMul(actor->info->speed, FINESINE(vang>>ANGLETOFINESHIFT));
-
-		actor->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
-
-		if (dist <= RING_DIST && (actor->z > actor->floorz && actor->z+actor->height < actor->ceilingz))
 		{
-			S_StartSound(actor, actor->info->attacksound);
-			actor->extravalue1 = 1;
+			// Smoothly rotate horz angle
+			angle_t input = hang - actor->angle;
+			boolean invert = (input > ANGLE_180);
+			if (invert)
+				input = InvAngle(input);
+
+			// Slow down when turning; it looks better and makes U-turns not unfair
+			xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+			input = FixedAngle(AngleFixed(input)/4);
+			if (invert)
+				input = InvAngle(input);
+
+			actor->angle += input;
+
+			// Smoothly rotate vert angle
+			input = vang - actor->movedir;
+			invert = (input > ANGLE_180);
+			if (invert)
+				input = InvAngle(input);
+
+			// Slow down when turning; might as well do it for momz, since we do it above too
+			zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+			input = FixedAngle(AngleFixed(input)/4);
+			if (invert)
+				input = InvAngle(input);
+
+			actor->movedir += input;
+		}
+
+		actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+		actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+		actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
+
+		if (dist <= (3072*actor->tracer->scale)) // Close enough to target?
+		{
+			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
+			actor->extravalue1 = 1; // TARGET ACQUIRED
 		}
 	}
 

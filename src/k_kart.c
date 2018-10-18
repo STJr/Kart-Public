@@ -1932,8 +1932,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	if (player->health <= 0)
 		return;
 
-	if (player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0
-		|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
+	if (/*player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0 // Explosions should combo, because of SPB and Eggman
+		||*/player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
 		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 	{
 		K_DoInstashield(player);
@@ -3949,7 +3949,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			if (player->kartstuff[k_eggmanexplode] <= 0)
 			{
 				mobj_t *eggsexplode;
-				player->powers[pw_flashing] = 0;
+				//player->powers[pw_flashing] = 0;
 				eggsexplode = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_SPBEXPLOSION);
 				if (player->kartstuff[k_eggmanblame] >= 0
 				&& player->kartstuff[k_eggmanblame] < MAXPLAYERS
@@ -4878,7 +4878,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
 			|| player->kartstuff[k_growshrinktimer] < 0)
-			indirectitemcooldown = 30*TICRATE;
+			indirectitemcooldown = 20*TICRATE;
 
 		if (player->kartstuff[k_hyudorotimer] > 0)
 		{

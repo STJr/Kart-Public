@@ -597,11 +597,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				mobj_t *spbexplode;
 
+				S_StopSound(special); // Don't continue playing the gurgle or the siren
+
 				if (!player->kartstuff[k_invincibilitytimer] && !player->kartstuff[k_growshrinktimer])
 				{
 					K_DropHnextList(player);
 					K_StripItems(player);
-					player->powers[pw_flashing] = 0;
+					//player->powers[pw_flashing] = 0;
 				}
 
 				spbexplode = P_SpawnMobj(toucher->x, toucher->y, toucher->z, MT_SPBEXPLOSION);
