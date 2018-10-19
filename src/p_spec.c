@@ -36,6 +36,7 @@
 #include "lua_hook.h" // LUAh_LinedefExecute
 
 #include "k_kart.h" // SRB2kart
+#include "console.h" // CON_LogMessage
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
@@ -4201,15 +4202,8 @@ DoneSection2:
 					if (player->pflags & PF_NIGHTSMODE)
 						player->drillmeter += 48*20;
 
-					if (netgame)
-					{
-						if (player->laps >= (UINT8)cv_numlaps.value)
-							CONS_Printf(M_GetText("%s has finished the race.\n"), player_names[player-players]);
-						else if (player->laps == (UINT8)(cv_numlaps.value - 1))
-							CONS_Printf("%s started the final lap\n", player_names[player-players]);
-						else
-							CONS_Printf(M_GetText("%s started lap %u\n"), player_names[player-players], (UINT32)player->laps+1);
-					}
+					if (netgame && player->laps >= (UINT8)cv_numlaps.value)
+						CON_LogMessage(va(M_GetText("%s has finished the race.\n"), player_names[player-players]));
 
 					// SRB2Kart: save best lap for record attack
 					if (player == &players[consoleplayer])

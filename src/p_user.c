@@ -45,6 +45,7 @@
 // SRB2kart
 #include "m_cond.h" // M_UpdateUnlockablesAndExtraEmblems
 #include "k_kart.h"
+#include "console.h" // CON_LogMessage
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
@@ -8730,7 +8731,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
 			displayplayer = consoleplayer;
 
-		CONS_Printf(M_GetText("%s entered the game.\n"), player_names[player-players]);
+		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[player-players]));
 		return true; // no more player->mo, cannot continue.
 	}
 	return false;

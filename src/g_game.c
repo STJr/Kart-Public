@@ -3051,7 +3051,7 @@ void G_ExitLevel(void)
 		}
 
 		if (netgame || multiplayer)
-			CONS_Printf(M_GetText("The round has ended.\n"));
+			CON_LogMessage(M_GetText("The round has ended.\n"));
 
 		// Remove CEcho text on round end.
 		HU_DoCEcho("");
@@ -4339,13 +4339,13 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	{
 		char *title = G_BuildMapTitle(gamemap);
 
-		CONS_Printf(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap));
+		CON_LogMessage(va(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap)));
 		if (title)
 		{
-			CONS_Printf(": %s", title);
+			CON_LogMessage(va(": %s", title));
 			Z_Free(title);
 		}
-		CONS_Printf("\"\n");
+		CON_LogMessage("\"\n");
 	}
 }
 

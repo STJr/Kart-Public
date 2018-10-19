@@ -419,9 +419,6 @@ consvar_t cv_numlaps = {"numlaps", "3", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_con
 static CV_PossibleValue_t basenumlaps_cons_t[] = {{1, "MIN"}, {50, "MAX"}, {0, "Map default"}, {0, NULL}};
 consvar_t cv_basenumlaps = {"basenumlaps", "Map default", CV_NETVAR|CV_CALL|CV_CHEAT, basenumlaps_cons_t, BaseNumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
-// log elemental hazards -- not a netvar, is local to current player
-consvar_t cv_hazardlog = {"hazardlog", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
-
 consvar_t cv_forceskin = {"forceskin", "-1", CV_NETVAR|CV_CALL|CV_CHEAT, NULL, ForceSkin_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_downloading = {"downloading", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowexitlevel = {"allowexitlevel", "No", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -593,8 +590,6 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_pointlimit);
 	CV_RegisterVar(&cv_numlaps);
 	CV_RegisterVar(&cv_basenumlaps);
-
-	CV_RegisterVar(&cv_hazardlog);
 
 	CV_RegisterVar(&cv_autobalance);
 	CV_RegisterVar(&cv_teamscramble);
@@ -3217,11 +3212,11 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
 	else if (NetPacket.packet.newteam == 3)
-		/*CONS_Printf(M_GetText("%s entered the game.\n"), player_names[playernum])*/;
+		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[playernum]));
 	else if (players[playernum].pflags & PF_WANTSTOJOIN)
 		players[playernum].pflags &= ~PF_WANTSTOJOIN;
 	else
-		CONS_Printf(M_GetText("%s became a spectator.\n"), player_names[playernum]);
+		CON_LogMessage(va(M_GetText("%s became a spectator.\n"), player_names[playernum]));
 
 	//reset view if you are changed, or viewing someone who was changed.
 	if (playernum == consoleplayer || displayplayer == playernum)

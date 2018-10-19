@@ -1633,18 +1633,18 @@ static void CL_LoadReceivedSavegame(void)
 	// load a base level
 	if (P_LoadNetGame())
 	{
-		CONS_Printf(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap));
+		CON_LogMessage(va(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap)));
 		if (strlen(mapheaderinfo[gamemap-1]->lvlttl) > 0)
 		{
-			CONS_Printf(": %s", mapheaderinfo[gamemap-1]->lvlttl);
+			CON_LogMessage(va(": %s", mapheaderinfo[gamemap-1]->lvlttl));
 			if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
-				CONS_Printf(" %s", mapheaderinfo[gamemap-1]->zonttl);
+				CON_LogMessage(va(" %s", mapheaderinfo[gamemap-1]->zonttl));
 			else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-				CONS_Printf(M_GetText(" ZONE"));
+				CON_LogMessage(M_GetText(" ZONE"));
 			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
-				CONS_Printf(" %s", mapheaderinfo[gamemap-1]->actnum);
+				CON_LogMessage(va(" %s", mapheaderinfo[gamemap-1]->actnum));
 		}
-		CONS_Printf("\"\n");
+		CON_LogMessage("\"\n");
 	}
 	else
 	{
