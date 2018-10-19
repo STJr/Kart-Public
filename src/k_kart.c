@@ -1918,7 +1918,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	return;
 }
 
-void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
+void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
 	UINT8 scoremultiply = 1;
 	if (G_BattleGametype())
@@ -1991,6 +1991,12 @@ void K_ExplodePlayer(player_t *player, mobj_t *source) // A bit of a hack, we ju
 	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
+
+	if (inflictor && inflictor->type == MT_SPBEXPLOSION && inflictor->extravalue1)
+	{
+		player->kartstuff[k_spinouttimer] = (3*player->kartstuff[k_spinouttimer])/2;
+		player->mo->momz *= 2;
+	}
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);

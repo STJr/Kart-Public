@@ -516,7 +516,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						K_StealBumper(special->target->player, player, true);
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
-					K_ExplodePlayer(player, special->target);
+					K_ExplodePlayer(player, special->target, special);
 				}
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
@@ -607,6 +607,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				}
 
 				spbexplode = P_SpawnMobj(toucher->x, toucher->y, toucher->z, MT_SPBEXPLOSION);
+				spbexplode->extravalue1 = 1; // Tell K_ExplodePlayer to use extra knockback
 				P_SetTarget(&spbexplode->target, special->target);
 
 				P_RemoveMobj(special);

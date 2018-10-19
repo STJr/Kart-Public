@@ -4015,7 +4015,7 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	grenade->flags2 |= MF2_DEBRIS;
 
 	if (thing->player) // Looks like we're going to have to need a seperate function for this too
-		K_ExplodePlayer(thing->player, grenade->target);
+		K_ExplodePlayer(thing->player, grenade->target, grenade);
 	else
 		P_DamageMobj(thing, grenade, grenade->target, 1);
 
