@@ -2100,10 +2100,12 @@ void G_Ticker(boolean run)
 			G_ClearRetryFlag();
 
 			// Costs a life to retry ... unless the player in question is dead already.
-			if (G_GametypeUsesLives() && players[consoleplayer].playerstate == PST_LIVE)
+			/*if (G_GametypeUsesLives() && players[consoleplayer].playerstate == PST_LIVE)
 				players[consoleplayer].lives -= 1;
 
-			G_DoReborn(consoleplayer);
+			G_DoReborn(consoleplayer);*/
+
+			D_MapChange(gamemap, gametype, cv_kartencore.value, true, 1, false, false);
 		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -2935,7 +2937,7 @@ void G_DoReborn(INT32 playernum)
 		if (oldmo)
 			G_ChangePlayerReferences(oldmo, players[playernum].mo);
 	}
-	else if (countdowntimeup || (!multiplayer && gametype == GT_COOP))
+	/*else if (countdowntimeup || (!multiplayer && !modeattacking))
 	{
 		// reload the level from scratch
 		if (countdowntimeup)
@@ -3004,7 +3006,7 @@ void G_DoReborn(INT32 playernum)
 #ifdef HAVE_BLUA
 		}
 #endif
-	}
+	}*/
 	else
 	{
 		// respawn at the start

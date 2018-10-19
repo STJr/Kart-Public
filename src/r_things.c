@@ -2699,7 +2699,7 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 
 		player->jumpfactor = skin->jumpfactor;
 
-		if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
+		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
 		{
 			if (playernum == consoleplayer)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);
@@ -2712,7 +2712,7 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 			player->skincolor = skin->prefcolor;
 			if (player->mo)
 				player->mo->color = player->skincolor;
-		}
+		}*/
 
 		if (player->mo)
 			P_SetScale(player->mo, player->mo->scale);
