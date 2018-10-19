@@ -56,12 +56,12 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SRBJ","SRBK","SRBL","SRBM","SRBN","SRBO",
 	//SRB2kart Sprites
 	"SPRG","BSPR","RNDM","RPOP","SGNS","FAST","DSHR","BOST","BOSM","KFRE",
-	"KINV","KINF","WIPD","DRIF","DUST","FITM","BANA","ORBN","JAWZ","SSMN",
-	"KRBM","BHOG","BHBM","BLIG","LIGH","THNS","SINK","SITR","KBLN","DEZL",
-	"POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM","SACO",
-	"CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB","ARRO",
-	"ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK","LZI1",
-	"LZI2","KLIT","VIEW"
+	"KINV","KINF","WIPD","DRIF","DUST","RSHE","FITM","BANA","ORBN","JAWZ",
+	"SSMN","KRBM","BHOG","BHBM","BLIG","LIGH","THNS","SINK","SITR","KBLN",
+	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
+	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
+	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
+	"LZI1","LZI2","KLIT","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -2622,6 +2622,11 @@ state_t states[NUMSTATES] =
 	{SPR_WIPD, 2, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL4}, // S_WIPEOUTTRAIL3
 	{SPR_WIPD, 3, 3, {NULL}, 0, 0, S_WIPEOUTTRAIL5}, // S_WIPEOUTTRAIL4
 	{SPR_WIPD, 4, 3, {NULL}, 0, 0, S_NULL}, // S_WIPEOUTTRAIL5
+
+	{SPR_RSHE, 0, -1, {NULL}, 0, 0, S_NULL}, // S_ROCKETSNEAKER_L
+	{SPR_RSHE, 1, -1, {NULL}, 0, 0, S_NULL}, // S_ROCKETSNEAKER_R
+	{SPR_RSHE, 2, -1, {NULL}, 0, 0, S_NULL}, // S_ROCKETSNEAKER_LVIBRATE
+	{SPR_RSHE, 3, -1, {NULL}, 0, 0, S_NULL}, // S_ROCKETSNEAKER_RVIBRATE
 
 	{SPR_FITM,    FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM2},  // S_FAKEITEM1
 	{SPR_FITM,  1|FF_FULLBRIGHT,   3, {NULL}, 0, 0, S_FAKEITEM3},  // S_FAKEITEM2
@@ -14800,6 +14805,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOCLIPHEIGHT|MF_NOGRAVITY|MF_FLOAT|MF_SCENERY|MF_DONTENCOREMAP, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_ROCKETSNEAKER
+		-1,             // doomednum
+		S_ROCKETSNEAKER_L, // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_tossed,     // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_s3k5d,      // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		16*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_s3kc0s,     // activesound
+		MF_NOGRAVITY|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 

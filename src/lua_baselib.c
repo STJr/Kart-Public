@@ -2222,11 +2222,11 @@ static int lib_kDriftDustHandling(lua_State *L)
 static int lib_kDoSneaker(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	boolean doPFlag = luaL_checkboolean(L, 2);
+	INT32 type = luaL_checkinteger(L, 2);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
-	K_DoSneaker(player, doPFlag);
+	K_DoSneaker(player, type);
 	return 0;
 }
 
