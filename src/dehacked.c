@@ -2430,6 +2430,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 					unlockables[num].type = SECRET_ENCORE;
 				else if (fastcmp(word2, "HELLATTACK"))
 					unlockables[num].type = SECRET_HELLATTACK;
+				else if (fastcmp(word2, "HARDSPEED"))
+					unlockables[num].type = SECRET_HARDSPEED;
 				else
 					unlockables[num].type = (INT16)i;
 			}

@@ -5096,7 +5096,7 @@ static void M_DrawChecklist(void)
 	{
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
 		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS
-		|| !M_Achieved(unlockables[i].showconditionset - 1))
+		|| (!M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked))
 			continue;
 
 		++line;
