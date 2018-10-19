@@ -8216,7 +8216,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 //	if (leveltime > 0 && timeinmap <= 0)
 //		return true;
 
-	if (player->pflags & PF_NIGHTSMODE)
+	if (demoplayback)
 	{
 		focusangle = mo->angle;
 		focusaiming = 0;
@@ -8323,9 +8323,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			input = InvAngle(input);
 
 		angle = thiscam->angle + input;
-
-		if (demoplayback && player == &players[consoleplayer])
-			localangle = angle;
 	}
 
 	if (!resetcalled && (leveltime > starttime)
