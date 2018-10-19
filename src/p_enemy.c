@@ -3406,7 +3406,7 @@ void A_ParticleSpawn(mobj_t *actor)
 	P_SetScale(spawn, actor->scale);
 	spawn->momz = speed;
 	spawn->destscale = FixedDiv(spawn->scale<<FRACBITS, 100<<FRACBITS);
-	spawn->scalespeed = FixedDiv(((actor->spawnpoint->angle >> 8) & 63) << FRACBITS, 100<<FRACBITS);
+	spawn->scalespeed = FixedDiv(((actor->spawnpoint->angle >> 8) & 63) * actor->scale, 100<<FRACBITS);
 	actor->tics = actor->spawnpoint->extrainfo + 1;
 }
 

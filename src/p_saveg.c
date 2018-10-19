@@ -1116,7 +1116,7 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		diff |= MD_SCALE;
 	if (mobj->destscale != mobj->scale)
 		diff |= MD_DSCALE;
-	if (mobj->scalespeed != FRACUNIT/12)
+	if (mobj->scalespeed != mapheaderinfo[gamemap-1]->mobj_scale/12)
 		diff2 |= MD2_SCALESPEED;
 
 	if (mobj == redflag)
@@ -2123,7 +2123,7 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	if (diff2 & MD2_SCALESPEED)
 		mobj->scalespeed = READFIXED(save_p);
 	else
-		mobj->scalespeed = FRACUNIT/12;
+		mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 	if (diff2 & MD2_CUSVAL)
 		mobj->cusval = READINT32(save_p);
 	if (diff2 & MD2_CVMEM)

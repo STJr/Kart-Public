@@ -2198,7 +2198,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		dust->angle = (ANGLE_180/16) * i;
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
-		dust->scalespeed = FixedMul(dust->scalespeed, source->scale);
+		dust->scalespeed = source->scale/12;
 		P_InstaThrust(dust, dust->angle, FixedMul(20*FRACUNIT, source->scale));
 
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
@@ -2206,7 +2206,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*6;
-		truc->scalespeed = FixedMul(truc->scalespeed, source->scale);
+		truc->scalespeed = source->scale/12;
 		speed = FixedMul(10*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2222,7 +2222,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
-		dust->scalespeed = FixedMul(dust->scalespeed, source->scale);
+		dust->scalespeed = source->scale/12;
 		dust->tics = 30;
 		dust->momz = P_RandomRange(FixedMul(3*FRACUNIT, source->scale)>>FRACBITS, FixedMul(7*FRACUNIT, source->scale)>>FRACBITS)*FRACUNIT;
 
@@ -2231,7 +2231,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*5;
-		truc->scalespeed = FixedMul(truc->scalespeed, source->scale);
+		truc->scalespeed = source->scale/12;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
@@ -2630,7 +2630,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 		dust->momz = P_MobjFlip(spawner) * (P_RandomRange(1, 4) * (spawner->scale));
 		P_SetScale(dust, spawner->scale/2);
 		dust->destscale = spawner->scale * 3;
-		dust->scalespeed = FixedMul(dust->scalespeed, spawner->scale);
+		dust->scalespeed = spawner->scale/12;
 
 		if (leveltime % 6 == 0)
 			S_StartSound(spawner, sfx_screec);
