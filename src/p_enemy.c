@@ -8355,7 +8355,12 @@ void A_SPBChase(mobj_t *actor)
 
 			// Maybe we want SPB to target an object later? IDK lol
 			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
-				defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+			{
+				if (!P_IsObjectOnGround(actor->tracer) && !actor->tracer->player->kartstuff[k_pogospring])
+					defspeed = 7*actor->tracer->player->speed/8; // In the air you have no control; basically don't hit unless you make a near complete stop
+				else
+					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+			}
 
 			// Play the intimidating gurgle
 			if (!S_SoundPlaying(actor, actor->info->activesound))
@@ -8366,8 +8371,8 @@ void A_SPBChase(mobj_t *actor)
 			wspeed = FixedMul(defspeed, FRACUNIT + FixedDiv(dist-range, range));
 			if (wspeed < defspeed)
 				wspeed = defspeed;
-			if (wspeed > defspeed*2)
-				wspeed = defspeed*2;
+			if (wspeed > (3*defspeed)/2)
+				wspeed = (3*defspeed)/2;
 
 			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
