@@ -5005,11 +5005,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					}
 					break;
 				case KITEM_THUNDERSHIELD:
-					if (player->kartstuff[k_curshield] <= 0)
+					if (player->kartstuff[k_curshield] != 1)
 					{
 						mobj_t *shield = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_THUNDERSHIELD);
 						P_SetScale(shield, (shield->destscale = (5*shield->destscale)>>2));
 						P_SetTarget(&shield->target, player->mo);
+						S_StartSound(shield, sfx_s3k41);
 						player->kartstuff[k_curshield] = 1;
 					}
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO)
