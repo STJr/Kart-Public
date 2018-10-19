@@ -8442,7 +8442,21 @@ void A_SPBChase(mobj_t *actor)
 
 		// No one there?
 		if (player == NULL || !player->mo)
+		{
+#if 0
+			// SELF-DESTRUCT?
+			mobj_t *spbexplode;
+
+			S_StopSound(actor); // Don't continue playing the gurgle or the siren
+			spbexplode = P_SpawnMobj(actor->x, actor->y, actor->z, MT_SPBEXPLOSION);
+			P_SetTarget(&spbexplode->target, actor->target);
+
+			P_RemoveMobj(actor);
+#else
+			actor->momx = actor->momy = actor->momz = 0;
+#endif
 			return;
+		}
 
 		// Found someone, now get close enough to initiate the slaughter...
 		P_SetTarget(&actor->tracer, player->mo);
