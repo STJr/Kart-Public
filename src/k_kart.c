@@ -4846,7 +4846,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
 						K_PlayPowerGloatSound(player->mo);
-						player->mo->scalespeed = FRACUNIT/TICRATE;
+						player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
 						if (cv_kartdebugshrink.value && !player->bot)
 							player->mo->destscale = 6*player->mo->destscale/8;

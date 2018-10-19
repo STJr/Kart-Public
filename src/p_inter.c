@@ -395,7 +395,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			P_SetTarget(&special->tracer, toucher);
 			special->flags2 |= MF2_NIGHTSPULL;
 			special->destscale = mapheaderinfo[gamemap-1]->mobj_scale>>4;
-			special->scalespeed <<= 1;
+			special->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/6; // (FRACUNIT/12)<<1 but mapheader-scale-considering
 
 			special->flags &= ~MF_SPECIAL;
 			return;
@@ -3329,7 +3329,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
 				// Start shrinking!
-				player->mo->scalespeed = FRACUNIT/TICRATE;
+				player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				if (cv_kartdebugshrink.value && !player->bot)
 					player->mo->destscale = 6*player->mo->destscale/8;
