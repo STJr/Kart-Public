@@ -2209,7 +2209,7 @@ static void P_LevelInitStuff(void)
 			players[i].lives = cv_startinglives.value;
 		}
 #else
-		players[i].lives = 1;
+		players[i].lives = 1; // SRB2Kart
 #endif
 
 		players[i].realtime = countdown = countdown2 = 0;
@@ -3026,6 +3026,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	spbincoming = 0;
 	spbplayer = 0;
 	mapreset = 0;
+	nospectategrief = 0;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;

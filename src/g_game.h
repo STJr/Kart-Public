@@ -189,7 +189,6 @@ void G_StopMetalDemo(void);
 ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void);
 void G_StopDemo(void);
 boolean G_CheckDemoStatus(void);
-char *G_DemoPlayerName(char *defdemoname);
 
 boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);

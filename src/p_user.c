@@ -45,6 +45,7 @@
 // SRB2kart
 #include "m_cond.h" // M_UpdateUnlockablesAndExtraEmblems
 #include "k_kart.h"
+#include "console.h" // CON_LogMessage
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
@@ -8238,7 +8239,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 //	if (leveltime > 0 && timeinmap <= 0)
 //		return true;
 
-	if (player->pflags & PF_NIGHTSMODE)
+	if (demoplayback)
 	{
 		focusangle = mo->angle;
 		focusaiming = 0;
@@ -8345,9 +8346,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			input = InvAngle(input);
 
 		angle = thiscam->angle + input;
-
-		if (demoplayback && player == &players[consoleplayer])
-			localangle = angle;
 	}
 
 	if (!resetcalled && (leveltime > starttime)
@@ -8753,7 +8751,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
 			displayplayer = consoleplayer;
 
-		CONS_Printf(M_GetText("%s entered the game.\n"), player_names[player-players]);
+		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[player-players]));
 		return true; // no more player->mo, cannot continue.
 	}
 	return false;
@@ -9173,7 +9171,7 @@ void P_PlayerThink(player_t *player)
 	if ((netgame || multiplayer) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;
-		//player->powers[pw_flashing] = TICRATE + 1;
+		player->powers[pw_flashing] = TICRATE/2 + 1;
 		/*if (P_SpectatorJoinGame(player))
 			return; // player->mo was removed.*/
 	}

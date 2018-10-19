@@ -2851,18 +2851,18 @@ void M_StartControlPanel(void)
 	}
 	else if (!(netgame || multiplayer)) // Single Player
 	{
-		if (gamestate != GS_LEVEL || ultimatemode) // intermission, so gray out stuff.
+		if (gamestate != GS_LEVEL /*|| ultimatemode*/) // intermission, so gray out stuff.
 		{
 			SPauseMenu[spause_pandora].status = (M_SecretUnlocked(SECRET_PANDORA)) ? (IT_GRAYEDOUT) : (IT_DISABLED);
 			SPauseMenu[spause_retry].status = IT_GRAYEDOUT;
 		}
 		else
 		{
-			INT32 numlives = 2;
+			//INT32 numlives = 2;
 
 			SPauseMenu[spause_pandora].status = (M_SecretUnlocked(SECRET_PANDORA)) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
 
-			if (&players[consoleplayer])
+			/*if (&players[consoleplayer])
 			{
 				numlives = players[consoleplayer].lives;
 				if (players[consoleplayer].playerstate != PST_LIVE)
@@ -2873,7 +2873,7 @@ void M_StartControlPanel(void)
 			// for me to want to use the short if statement syntax
 			if (numlives <= 1 || G_IsSpecialStage(gamemap))
 				SPauseMenu[spause_retry].status = (IT_GRAYEDOUT);
-			else
+			else*/
 				SPauseMenu[spause_retry].status = (IT_STRING | IT_CALL);
 		}
 
@@ -5001,7 +5001,7 @@ static void M_RetryResponse(INT32 ch)
 static void M_Retry(INT32 choice)
 {
 	(void)choice;
-	M_StartMessage(M_GetText("Retry this act from the last starpost?\n\n(Press 'Y' to confirm)\n"),M_RetryResponse,MM_YESNO);
+	M_StartMessage(M_GetText("Start this race over?\n\n(Press 'Y' to confirm)\n"),M_RetryResponse,MM_YESNO);
 }
 
 static void M_SelectableClearMenus(INT32 choice)
@@ -5135,7 +5135,7 @@ static void M_DrawChecklist(void)
 	{
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
 		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS
-		|| !M_Achieved(unlockables[i].showconditionset - 1))
+		|| (!M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked))
 			continue;
 
 		++line;

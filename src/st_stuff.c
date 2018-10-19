@@ -1955,18 +1955,22 @@ static void ST_overlayDrawer(void)
 			if (splitscreen)
 			{
 				INT32 splitflags = K_calcSplitFlags(0);
-				V_DrawThinString(2, (BASEVIDHEIGHT/2)-20, V_YELLOWMAP|V_HUDTRANSHALF|V_6WIDTHSPACE|splitflags, M_GetText("- SPECTATING -"));
-				if (stplyr->pflags & PF_WANTSTOJOIN)
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|V_6WIDTHSPACE|splitflags, M_GetText("Item - Cancel Join"));
+				V_DrawThinString(2, (BASEVIDHEIGHT/2)-20, V_YELLOWMAP|V_HUDTRANSHALF|splitflags, M_GetText("- SPECTATING -"));
+				if (stplyr->powers[pw_flashing])
+					V_DrawString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - . . ."));
+				else if (stplyr->pflags & PF_WANTSTOJOIN)
+					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Cancel Join"));
 				/*else if (G_GametypeHasTeams())
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|V_6WIDTHSPACE|splitflags, M_GetText("Item - Join Team"));*/
+					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Join Team"));*/
 				else
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|V_6WIDTHSPACE|splitflags, M_GetText("Item - Join Game"));
+					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Join Game"));
 			}
 			else
 			{
 				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
-				if (stplyr->pflags & PF_WANTSTOJOIN)
+				if (stplyr->powers[pw_flashing])
+					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - . . ."));
+				else if (stplyr->pflags & PF_WANTSTOJOIN)
 					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Cancel Join"));
 				/*else if (G_GametypeHasTeams())
 					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Join Team"));*/

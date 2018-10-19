@@ -267,6 +267,7 @@ tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any othe
 tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
 UINT8 spbplayer; // Player num that used the last SPB
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
+UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 
 // Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
@@ -2100,10 +2101,12 @@ void G_Ticker(boolean run)
 			G_ClearRetryFlag();
 
 			// Costs a life to retry ... unless the player in question is dead already.
-			if (G_GametypeUsesLives() && players[consoleplayer].playerstate == PST_LIVE)
+			/*if (G_GametypeUsesLives() && players[consoleplayer].playerstate == PST_LIVE)
 				players[consoleplayer].lives -= 1;
 
-			G_DoReborn(consoleplayer);
+			G_DoReborn(consoleplayer);*/
+
+			D_MapChange(gamemap, gametype, cv_kartencore.value, true, 1, false, false);
 		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -2935,7 +2938,7 @@ void G_DoReborn(INT32 playernum)
 		if (oldmo)
 			G_ChangePlayerReferences(oldmo, players[playernum].mo);
 	}
-	else if (countdowntimeup || (!multiplayer && gametype == GT_COOP))
+	/*else if (countdowntimeup || (!multiplayer && !modeattacking))
 	{
 		// reload the level from scratch
 		if (countdowntimeup)
@@ -3004,7 +3007,7 @@ void G_DoReborn(INT32 playernum)
 #ifdef HAVE_BLUA
 		}
 #endif
-	}
+	}*/
 	else
 	{
 		// respawn at the start
@@ -3051,7 +3054,7 @@ void G_ExitLevel(void)
 		}
 
 		if (netgame || multiplayer)
-			CONS_Printf(M_GetText("The round has ended.\n"));
+			CON_LogMessage(M_GetText("The round has ended.\n"));
 
 		// Remove CEcho text on round end.
 		HU_DoCEcho("");
@@ -4339,13 +4342,13 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	{
 		char *title = G_BuildMapTitle(gamemap);
 
-		CONS_Printf(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap));
+		CON_LogMessage(va(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap)));
 		if (title)
 		{
-			CONS_Printf(": %s", title);
+			CON_LogMessage(va(": %s", title));
 			Z_Free(title);
 		}
-		CONS_Printf("\"\n");
+		CON_LogMessage("\"\n");
 	}
 }
 
@@ -4495,6 +4498,13 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 		oldcmd.driftturn = READINT16(demo_p);
 
 	G_CopyTiccmd(cmd, &oldcmd, 1);
+
+	// SRB2kart: Copy-pasted from ticcmd building, removes that crappy demo cam
+	if (((players[displayplayer].mo && players[displayplayer].speed > 0) // Moving
+		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+		|| (players[displayplayer].spectator || objectplacing)) // Not a physical player
+		&& !(players[displayplayer].kartstuff[k_spinouttimer] && players[displayplayer].kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
+		localangle += (cmd->angleturn<<16);
 
 	if (!(demoflags & DF_GHOST) && *demo_p == DEMOMARKER)
 	{

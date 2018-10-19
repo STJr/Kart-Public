@@ -81,8 +81,6 @@ extern consvar_t cv_basenumlaps;
 extern UINT32 timelimitintics;
 extern consvar_t cv_allowexitlevel;
 
-extern consvar_t cv_hazardlog;
-
 extern consvar_t cv_autobalance;
 extern consvar_t cv_teamscramble;
 extern consvar_t cv_scrambleonchange;
