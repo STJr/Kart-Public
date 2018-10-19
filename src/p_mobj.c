@@ -6792,22 +6792,18 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->target && mobj->target->health
 					&& mobj->target->player && !mobj->target->player->spectator
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
-					&& players[displayplayer].mo && !players[displayplayer].spectator)
+					/*&& players[displayplayer].mo && !players[displayplayer].spectator*/)
 				{
 					fixed_t scale = mobj->target->scale;
 					mobj->color = mobj->target->color;
+					K_MatchGenericExtraFlags(mobj, mobj->target);
 
-					if (G_RaceGametype()
-						|| mobj->target->player == &players[displayplayer]
-						|| mobj->target->player->kartstuff[k_bumper] <= 0
-						|| (mobj->target->player->mo->flags2 & MF2_DONTDRAW)
+					if ((G_RaceGametype() || mobj->target->player->kartstuff[k_bumper] <= 0)
 #if 1 // Set to 0 to test without needing to host
-						|| !netgame
+						|| ((mobj->target->player == &players[displayplayer]) || P_IsLocalPlayer(mobj->target->player))
 #endif
 						)
 						mobj->flags2 |= MF2_DONTDRAW;
-					else
-						mobj->flags2 &= ~MF2_DONTDRAW;
 
 					P_UnsetThingPosition(mobj);
 					mobj->x = mobj->target->x;
@@ -6827,10 +6823,13 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 					P_SetThingPosition(mobj);
 
-					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
-						players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-					if (scale > 16*FRACUNIT)
-						scale = 16*FRACUNIT;
+					if (!splitscreen)
+					{
+						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
+						if (scale > 16*FRACUNIT)
+							scale = 16*FRACUNIT;
+					}
 					mobj->destscale = scale;
 
 					if (!mobj->tracer)
@@ -10121,6 +10120,8 @@ void P_SpawnPlayer(INT32 playernum)
 		if (i == playernum)
 			continue;
 		if (!playeringame[i] || players[i].spectator)
+			continue;
+		if (players[i].jointime <= 1) // Prevent splitscreen hosters/joiners from only adding 1 player at a time in empty servers
 			continue;
 		pcount++;
 	}

@@ -1140,34 +1140,57 @@ boolean P_EndingMusic(player_t *player)
 {
 	char buffer[9];
 	boolean looping = true;
+	INT32 bestlocalpos;
+	player_t *bestlocalplayer;
 
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return false;
 
 	// Event - Level Finish
-	if (splitscreen
-		&& (players[displayplayer].exiting
-		|| players[secondarydisplayplayer].exiting
-		|| ((splitscreen < 2) && players[thirddisplayplayer].exiting)
-		|| ((splitscreen < 3) && players[fourthdisplayplayer].exiting)))
+	// Check for if this is valid or not
+	if (splitscreen)
 	{
-		sprintf(buffer, "k*ok");
+		if (!((players[displayplayer].exiting || (players[displayplayer].pflags & PF_TIMEOVER))
+			|| (players[secondarydisplayplayer].exiting || (players[secondarydisplayplayer].pflags & PF_TIMEOVER))
+			|| ((splitscreen < 2) && (players[thirddisplayplayer].exiting || (players[thirddisplayplayer].pflags & PF_TIMEOVER)))
+			|| ((splitscreen < 3) && (players[fourthdisplayplayer].exiting || (players[fourthdisplayplayer].pflags & PF_TIMEOVER)))))
+			return false;
+
+		bestlocalplayer = &players[displayplayer];
+		bestlocalpos = ((players[displayplayer].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[displayplayer].kartstuff[k_position]);
+#define setbests(p) \
+	if (((players[p].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[p].kartstuff[k_position]) < bestlocalpos) \
+	{ \
+		bestlocalplayer = &players[p]; \
+		bestlocalpos = ((players[p].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[p].kartstuff[k_position]); \
 	}
-	else if (player->pflags & PF_TIMEOVER) // || !player->lives) -- outta lives, outta time
-	{
-		sprintf(buffer, "k*lose");
+		setbests(secondarydisplayplayer);
+		if (splitscreen > 1)
+			setbests(thirddisplayplayer);
+		if (splitscreen > 2)
+			setbests(fourthdisplayplayer);
+#undef setbests
 	}
-	else if (player->exiting)
+	else
 	{
-		if (player->kartstuff[k_position] == 1)
+		if (!(player->exiting || (player->pflags & PF_TIMEOVER)))
+			return false;
+
+		bestlocalplayer = player;
+		bestlocalpos = ((player->pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : player->kartstuff[k_position]);
+	}
+	
+	if (G_RaceGametype() && bestlocalpos == MAXPLAYERS+1)
+		sprintf(buffer, "k*lose"); // krfail, for eventual F-Zero death results theme
+	else
+	{
+		if (bestlocalpos == 1)
 			sprintf(buffer, "k*win");
-		else if (K_IsPlayerLosing(player))
+		else if (K_IsPlayerLosing(bestlocalplayer))
 			sprintf(buffer, "k*lose");
 		else
 			sprintf(buffer, "k*ok");
 	}
-	else
-		return false;
 
 	S_SpeedMusic(1.0f);
 
@@ -8931,7 +8954,7 @@ void P_PlayerThink(player_t *player)
 	}
 
 #ifdef SEENAMES
-	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)))
+	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)) && !splitscreen)
 	{
 		seenplayer = NULL;
 
@@ -9145,7 +9168,7 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 
-	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
+	if ((netgame || multiplayer) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;
 		player->powers[pw_flashing] = TICRATE/2 + 1;

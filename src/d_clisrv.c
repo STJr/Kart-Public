@@ -2375,8 +2375,11 @@ static void Command_connect(void)
 			CONS_Alert(CONS_ERROR, M_GetText("There is no network driver\n"));
 	}
 
-	splitscreen = 0;
-	SplitScreen_OnChange();
+	if (splitscreen != cv_splitplayers.value-1)
+	{
+		splitscreen = cv_splitplayers.value-1;
+		SplitScreen_OnChange();
+	}
 	botingame = false;
 	botskin = 0;
 	CL_ConnectToServer(viams);
@@ -2417,14 +2420,15 @@ static void CL_RemovePlayer(INT32 playernum)
 	if (server && !demoplayback)
 	{
 		INT32 node = playernode[playernum];
+		//playerpernode[node] = 0; // It'd be better to remove them all at once, but ghosting happened, so continue to let CL_RemovePlayer do it one-by-one
 		playerpernode[node]--;
 		if (playerpernode[node] <= 0)
 		{
 			// If a resynch was in progress, well, it no longer needs to be.
-			SV_InitResynchVars(playernode[playernum]);
+			SV_InitResynchVars(node);
 
-			nodeingame[playernode[playernum]] = false;
-			Net_CloseConnection(playernode[playernum]);
+			nodeingame[node] = false;
+			Net_CloseConnection(node);
 			ResetNode(node);
 		}
 	}
@@ -2759,11 +2763,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 
 	// Is playernum authorized to make this kick?
-	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
-		&& !(playerpernode[playernode[playernum]] >= 2
-		&& (nodetoplayer2[playernode[playernum]] == pnum
-		|| nodetoplayer3[playernode[playernum]] == pnum
-		|| nodetoplayer4[playernode[playernum]] == pnum)))
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
 		// We received a kick command from someone who isn't the
 		// server or admin, and who isn't in splitscreen removing
@@ -2774,12 +2774,6 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		// We deal with this by changing the kick reason to
 		// "consistency failure" and kicking the offending user
 		// instead.
-
-		// Note: Splitscreen in netgames is broken because of
-		// this. Only the server has any idea of which players
-		// are using splitscreen on the same computer, so
-		// clients cannot always determine if a kick is
-		// legitimate.
 
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal kick command received from %s for player %d\n"), player_names[playernum], pnum);
 
@@ -2890,7 +2884,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			break;
 	}
 
-	if (pnum == consoleplayer)
+	if (playernode[pnum] == playernode[consoleplayer])
 	{
 #ifdef DUMPCONSISTENCY
 		if (msg == KICK_MSG_CON_FAIL) SV_SavedGame();
@@ -2899,7 +2893,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		CL_Reset();
 		D_StartTitle();
 		if (msg == KICK_MSG_CON_FAIL)
-			M_StartMessage(M_GetText("Server closed connection\n(synch failure)\nPress ESC\n"), NULL, MM_NOTHING);
+			M_StartMessage(M_GetText("Server closed connection\n(Synch failure)\nPress ESC\n"), NULL, MM_NOTHING);
 #ifdef NEWPING
 		else if (msg == KICK_MSG_PING_HIGH)
 			M_StartMessage(M_GetText("Server closed connection\n(Broke ping limit)\nPress ESC\n"), NULL, MM_NOTHING);
@@ -2913,8 +2907,32 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		else
 			M_StartMessage(M_GetText("You have been kicked by the server\n\nPress ESC\n"), NULL, MM_NOTHING);
 	}
-	else
-		CL_RemovePlayer(pnum);
+	else if (server)
+	{
+		XBOXSTATIC UINT8 buf[0];
+
+		// Sal: Because kicks (and a lot of other commands) are player-based, we can't tell which player pnum is on the node from a glance.
+		// When we want to remove everyone from a node, we have to get the kicked player's node, then remove everyone on that node manually so we don't miss any.
+		// This avoids the bugs with older SRB2 version's online splitscreen kicks, specifically ghosting.
+		// On top of this, it can't just be a CL_RemovePlayer call; it has to be a server-sided.
+		// Clients don't bother setting any nodes for anything but THE server player (even ignoring the server's extra players!), so it'll often remove everyone because they all have node -1/255, insta-desync!
+		// And yes. This is a netxcmd wrap for just CL_RemovePlayer! :V 
+
+#define removethisplayer(otherp) \
+	if (otherp >= 0) \
+	{ \
+		if (otherp != pnum) \
+			CONS_Printf("\x82%s\x80 left the game (Joined with \x82%s\x80)\n", player_names[otherp], player_names[pnum]); \
+		buf[0] = (UINT8)otherp; \
+		SendNetXCmd(XD_REMOVEPLAYER, &buf, 1); \
+		otherp = -1; \
+	}
+		removethisplayer(nodetoplayer[playernode[pnum]])
+		removethisplayer(nodetoplayer2[playernode[pnum]])
+		removethisplayer(nodetoplayer3[playernode[pnum]])
+		removethisplayer(nodetoplayer4[playernode[pnum]])
+#undef removethisplayer
+	}
 }
 
 consvar_t cv_allownewplayer = {"allowjoin", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
@@ -2937,6 +2955,7 @@ static CV_PossibleValue_t downloadspeed_cons_t[] = {{0, "MIN"}, {32, "MAX"}, {0,
 consvar_t cv_downloadspeed = {"downloadspeed", "16", CV_SAVE, downloadspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void Got_AddPlayer(UINT8 **p, INT32 playernum);
+static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
 
 // called one time at init
 void D_ClientServerInit(void)
@@ -2964,6 +2983,7 @@ void D_ClientServerInit(void)
 
 	RegisterNetXCmd(XD_KICK, Got_KickCmd);
 	RegisterNetXCmd(XD_ADDPLAYER, Got_AddPlayer);
+	RegisterNetXCmd(XD_REMOVEPLAYER, Got_RemovePlayer);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
 #ifdef VANILLAJOINNEXTROUND
@@ -3157,9 +3177,8 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	newplayernum %= MAXPLAYERS;
 
 	// Clear player before joining, lest some things get set incorrectly
-	// HACK: don't do this for splitscreen, it relies on preset values
-	if (!splitscreen && !botingame)
-		CL_ClearPlayer(newplayernum);
+	CL_ClearPlayer(newplayernum);
+
 	playeringame[newplayernum] = true;
 	G_AddPlayer(newplayernum);
 	if (newplayernum+1 > doomcom->numslots)
@@ -3241,6 +3260,27 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 #endif
 }
 
+// Xcmd XD_REMOVEPLAYER
+static void Got_RemovePlayer(UINT8 **p, INT32 playernum)
+{
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	{
+		// protect against hacked/buggy client
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal remove player command received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	CL_RemovePlayer(READUINT8(*p));
+}
+
 static boolean SV_AddWaitingPlayers(void)
 {
 	INT32 node, n, newplayer = false;
@@ -3258,69 +3298,17 @@ static boolean SV_AddWaitingPlayers(void)
 		{
 			newplayer = true;
 
-			if (netgame)
-				// !!!!!!!!! EXTREMELY SUPER MEGA GIGA ULTRA ULTIMATELY TERRIBLY IMPORTANT !!!!!!!!!
-				//
-				// The line just after that comment is an awful, horrible, terrible, TERRIBLE hack.
-				//
-				// Basically, the fix I did in order to fix the download freezes happens
-				// to cause situations in which a player number does not match
-				// the node number associated to that player.
-				// That is totally normal, there is absolutely *nothing* wrong with that.
-				// Really. Player 7 being tied to node 29, for instance, is totally fine.
-				//
-				// HOWEVER. A few (broken) parts of the netcode do the TERRIBLE mistake
-				// of mixing up the concepts of node and player, resulting in
-				// incorrect handling of cases where a player is tied to a node that has
-				// a different number (which is a totally normal case, or at least should be).
-				// This incorrect handling can go as far as literally
-				// anyone from joining your server at all, forever.
-				//
-				// Given those two facts, there are two options available
-				// in order to let this download freeze fix be:
-				//  1) Fix the broken parts that assume a node is a player or similar bullshit.
-				//  2) Change the part this comment is located at, so that any player who joins
-				//     is given the same number as their associated node.
-				//
-				// No need to say, 1) is by far the obvious best, whereas 2) is a terrible hack.
-				// Unfortunately, after trying 1), I most likely didn't manage to find all
-				// of those broken parts, and thus 2) has become the only safe option that remains.
-				//
-				// So I did this hack.
-				//
-				// If it isn't clear enough, in order to get rid of this ugly hack,
-				// you will have to fix all parts of the netcode that
-				// make a confusion between nodes and players.
-				//
-				// And if it STILL isn't clear enough, a node and a player
-				// is NOT the same thing. Never. NEVER. *NEVER*.
-				//
-				// And if someday you make the terrible mistake of
-				// daring to have the unforgivable idea to try thinking
-				// that a node might possibly be the same as a player,
-				// or that a player should have the same number as its node,
-				// be sure that I will somehow know about it and
-				// hunt you down tirelessly and make you regret it,
-				// even if you live on the other side of the world.
-				//
-				// TODO:            vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-				// \todo >>>>>>>>>> Remove this horrible hack as soon as possible <<<<<<<<<<
-				// TODO:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-				//
-				// !!!!!!!!! EXTREMELY SUPER MEGA GIGA ULTRA ULTIMATELY TERRIBLY IMPORTANT !!!!!!!!!
-				newplayernum = node; // OMFG SAY WELCOME TO TEH NEW HACK FOR FIX FIL DOWNLOAD!!1!
-			else // Don't use the hack if we don't have to
-				// search for a free playernum
-				// we can't use playeringame since it is not updated here
-				for (; newplayernum < MAXPLAYERS; newplayernum++)
-				{
-					for (n = 0; n < MAXNETNODES; n++)
-						if (nodetoplayer[n] == newplayernum || nodetoplayer2[n] == newplayernum
-							|| nodetoplayer3[n] == newplayernum || nodetoplayer4[n] == newplayernum)
-							break;
-					if (n == MAXNETNODES)
+			// search for a free playernum
+			// we can't use playeringame since it is not updated here
+			for (; newplayernum < MAXPLAYERS; newplayernum++)
+			{
+				for (n = 0; n < MAXNETNODES; n++)
+					if (nodetoplayer[n] == newplayernum || nodetoplayer2[n] == newplayernum
+						|| nodetoplayer3[n] == newplayernum || nodetoplayer4[n] == newplayernum)
 						break;
-				}
+				if (n == MAXNETNODES)
+					break;
+			}
 
 			// should never happen since we check the playernum
 			// before accepting the join
@@ -3495,7 +3483,7 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
 	else if (D_NumPlayers() >= cv_maxplayers.value)
 		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), cv_maxplayers.value));
-	else if (netgame && netbuffer->u.clientcfg.localplayers > 1) // Hacked client?
+	else if (netgame && netbuffer->u.clientcfg.localplayers > 4) // Hacked client?
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
 		SV_SendRefuse(node, M_GetText("No players from\nthis node."));
@@ -3529,8 +3517,8 @@ static void HandleConnect(SINT8 node)
 			{
 				G_SetGamestate(backupstate);
 				/// \note Shouldn't SV_SendRefuse be called before ResetNode?
-				ResetNode(node);
 				SV_SendRefuse(node, M_GetText("Server couldn't send info, please try again"));
+				ResetNode(node); // Yeah, lets try it!
 				/// \todo fix this !!!
 				return; // restart the while
 			}
@@ -3983,10 +3971,10 @@ FILESTAMP
 				--resynch_score[node];
 			break;
 		case PT_TEXTCMD:
-		case PT_TEXTCMD2: // splitscreen special
+		case PT_TEXTCMD2:
 		case PT_TEXTCMD3:
 		case PT_TEXTCMD4:
-			if (netbuffer->packettype == PT_TEXTCMD2)
+			if (netbuffer->packettype == PT_TEXTCMD2) // splitscreen special
 				netconsole = nodetoplayer2[node];
 			else if (netbuffer->packettype == PT_TEXTCMD3)
 				netconsole = nodetoplayer3[node];
@@ -4073,9 +4061,9 @@ FILESTAMP
 				else
 					buf[1] = KICK_MSG_PLAYER_QUIT;
 				SendNetXCmd(XD_KICK, &buf, 2);
-				nodetoplayer[node] = -1;
+				//nodetoplayer[node] = -1;
 
-				if (nodetoplayer2[node] != -1 && nodetoplayer2[node] >= 0
+				/*if (nodetoplayer2[node] != -1 && nodetoplayer2[node] >= 0
 					&& playeringame[(UINT8)nodetoplayer2[node]])
 				{
 					buf[0] = nodetoplayer2[node];
@@ -4097,7 +4085,7 @@ FILESTAMP
 					buf[0] = nodetoplayer4[node];
 					SendNetXCmd(XD_KICK, &buf, 2);
 					nodetoplayer4[node] = -1;
-				}
+				}*/
 			}
 			Net_CloseConnection(node);
 			nodeingame[node] = false;

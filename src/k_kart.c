@@ -434,6 +434,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartdebughuddrop);
 
 	CV_RegisterVar(&cv_kartdebugcheckpoint);
+	CV_RegisterVar(&cv_kartdebugnodes);
 }
 
 //}
@@ -895,7 +896,35 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+	{
+#define PLAYROULETTESND S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+		if (splitscreen)
+		{
+			if (players[displayplayer].kartstuff[k_itemroulette])
+			{
+				if (player == &players[displayplayer])
+					PLAYROULETTESND;
+			}
+			else if (players[secondarydisplayplayer].kartstuff[k_itemroulette])
+			{
+				if (player == &players[secondarydisplayplayer])
+					PLAYROULETTESND;
+			}
+			else if (players[thirddisplayplayer].kartstuff[k_itemroulette] && splitscreen > 1)
+			{
+				if (player == &players[thirddisplayplayer])
+					PLAYROULETTESND;
+			}
+			else if (players[fourthdisplayplayer].kartstuff[k_itemroulette] && splitscreen > 2)
+			{
+				if (player == &players[fourthdisplayplayer])
+					PLAYROULETTESND;
+			}
+		}
+		else
+			PLAYROULETTESND;
+#undef PLAYROULETTESND
+	}
 
 	roulettestop = TICRATE + (3*(pingame - player->kartstuff[k_position]));
 
@@ -1242,7 +1271,7 @@ static void K_UpdateOffroad(player_t *player)
 }
 
 // These have to go earlier than its sisters because of K_RespawnChecker...
-static void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
+void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
 {
 	// flipping
 	mo->eflags = (mo->eflags & ~MFE_VERTICALFLIP)|(master->eflags & MFE_VERTICALFLIP);
@@ -5109,8 +5138,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->mo->eflags |= MFE_DRAWONLYFORP3;
 					else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
 						player->mo->eflags |= MFE_DRAWONLYFORP4;
-					else
+					else if (player == &players[consoleplayer])
 						player->mo->eflags |= MFE_DRAWONLYFORP1;
+					else
+						player->mo->flags2 |= MF2_DONTDRAW;
 				}
 				else
 					player->mo->eflags &= ~(MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
@@ -7050,10 +7081,15 @@ static void K_drawBattleFullscreen(void)
 		}
 		else
 		{
-			if (stplyr == &players[secondarydisplayplayer])
-				x = BASEVIDWIDTH-96;
+			if (stplyr->exiting)
+			{
+				if (stplyr == &players[secondarydisplayplayer])
+					x = BASEVIDWIDTH-96;
+				else
+					x = 96;
+			}
 			else
-				x = 96;
+				scale /= 2;
 		}
 	}
 
@@ -7574,7 +7610,7 @@ void K_drawKartHUD(void)
 		K_drawKartMinimap();
 
 	// Draw full screen stuff that turns off the rest of the HUD
-	if (mapreset)
+	if (mapreset && stplyr == &players[displayplayer])
 	{
 		K_drawChallengerScreen();
 		return;
@@ -7690,6 +7726,13 @@ void K_drawKartHUD(void)
 
 	if (cv_kartdebugcheckpoint.value)
 		K_drawCheckpointDebugger();
+
+	if (cv_kartdebugnodes.value)
+	{
+		UINT8 p;
+		for (p = 0; p < MAXPLAYERS; p++)
+			V_DrawString(8, 64+(8*p), V_YELLOWMAP, va("%d - %d", p, playernode[p]));
+	}
 }
 
 //}
