@@ -9148,7 +9148,7 @@ void P_PlayerThink(player_t *player)
 	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;
-		//player->powers[pw_flashing] = TICRATE + 1;
+		player->powers[pw_flashing] = TICRATE/2 + 1;
 		/*if (P_SpectatorJoinGame(player))
 			return; // player->mo was removed.*/
 	}

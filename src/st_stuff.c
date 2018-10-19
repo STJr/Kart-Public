@@ -1953,7 +1953,9 @@ static void ST_overlayDrawer(void)
 		{
 			// SRB2kart: changed positions & text
 			V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
-			if (stplyr->pflags & PF_WANTSTOJOIN)
+			if (stplyr->powers[pw_flashing])
+				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - . . ."));
+			else if (stplyr->pflags & PF_WANTSTOJOIN)
 				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Cancel Join"));
 			/*else if (G_GametypeHasTeams())
 				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Join Team"));*/
