@@ -267,6 +267,7 @@ tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any othe
 tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
 UINT8 spbplayer; // Player num that used the last SPB
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
+UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 
 // Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?

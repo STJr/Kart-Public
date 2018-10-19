@@ -31,6 +31,7 @@
 // spbincoming is the timer before k_deathsentence is cast on the player in 1st
 // spbplayer is the last player who fired a SPB
 // mapreset is set when enough players fill an empty server
+// nospectategrief is the players in-game needed to eliminate the person in last
 
 
 //{ SRB2kart Color Code

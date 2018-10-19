@@ -4229,12 +4229,23 @@ DoneSection2:
 							S_StartSound(NULL, sfx_s221);
 					}
 
-					//
 					//player->starpostangle = player->starposttime = player->starpostnum = 0;
 					//player->starpostx = player->starposty = player->starpostz = 0;
 
 					// Play the starpost sound for 'consistency'
 					// S_StartSound(player->mo, sfx_strpst);
+
+					// Figure out how many are playing on the last lap, to prevent spectate griefing
+					if (!nospectategrief && player->laps >= (UINT8)(cv_numlaps.value - 1))
+					{
+						UINT8 i;
+						for (i = 0; i < MAXPLAYERS; i++)
+						{
+							if (!playeringame[i] || players[i].spectator)
+								continue;
+							nospectategrief++;
+						}
+					}
 				}
 				else if (player->starpostnum)
 				{
