@@ -185,16 +185,6 @@ void SplitScreen_OnChange(void)
 {
 	UINT8 i;
 
-	if (!cv_debug && netgame)
-	{
-		if (splitscreen)
-		{
-			CONS_Alert(CONS_NOTICE, M_GetText("Splitscreen not supported in netplay, sorry!\n"));
-			splitscreen = 0;
-		}
-		return;
-	}
-
 	// recompute screen size
 	R_ExecuteSetViewSize();
 
@@ -861,7 +851,7 @@ void R_SkyboxFrame(player_t *player)
 	{
 		aimingangle = player->aiming;
 		viewangle = player->mo->angle;
-		if (!demoplayback && player->playerstate != PST_DEAD)
+		if (/*!demoplayback && */player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{
@@ -1138,7 +1128,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		aimingangle = player->aiming;
 		viewangle = viewmobj->angle;
 
-		if (!demoplayback && player->playerstate != PST_DEAD)
+		if (/*!demoplayback && */player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{

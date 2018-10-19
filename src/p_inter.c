@@ -510,8 +510,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					}
 
 					special->target->player->kartstuff[k_comebackpoints] += 2 * (K_IsPlayerWanted(player) ? 2 : 1);
-					if (netgame && cv_hazardlog.value)
-						CONS_Printf(M_GetText("%s bombed %s!\n"), player_names[special->target->player-players], player_names[player-players]);
 					if (special->target->player->kartstuff[k_comebackpoints] >= 3)
 						K_StealBumper(special->target->player, player, true);
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -527,8 +525,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s gave an item to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
 				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -560,8 +556,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
-				if (netgame && cv_hazardlog.value)
-					CONS_Printf(M_GetText("%s gave an \"item\" to %s.\n"), player_names[special->target->player-players], player_names[player-players]);
 				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
 					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
@@ -1700,199 +1694,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	}
 }
 
-//
-/** Prints death messages relating to a dying or hit player.
-  *
-  * \param player    Affected player.
-  * \param inflictor The attack weapon used, can be NULL.
-  * \param source    The attacker, can be NULL.
-  */
-static void P_HitDeathMessages(player_t *player, mobj_t *inflictor, mobj_t *source)
-{
-	const char *str = NULL;
-	boolean deathonly = false;
-	boolean deadsource = false;
-	boolean deadtarget = false;
-	// player names complete with control codes
-	char targetname[MAXPLAYERNAME+4];
-	char sourcename[MAXPLAYERNAME+4];
-
-	if (G_RaceGametype())
-		return; // Not in coop, etc.
-
-	if (!player)
-		return; // Impossible!
-
-	if (player->spectator)
-		return; // No messages for dying (crushed) spectators.
-
-	if (!netgame)
-		return; // Presumably it's obvious what's happening in splitscreen.
-
-#ifdef HAVE_BLUA
-	if (LUAh_HurtMsg(player, inflictor, source))
-		return;
-#endif
-
-	deadtarget = (player->health <= 0);
-
-	// Target's name
-	snprintf(targetname, sizeof(targetname), "%s%s%s",
-	         CTFTEAMCODE(player),
-	         player_names[player - players],
-	         CTFTEAMENDCODE(player));
-
-	if (source)
-	{
-		// inflictor shouldn't be NULL if source isn't
-		I_Assert(inflictor != NULL);
-
-		if (source->player)
-		{
-			// Source's name (now that we know there is one)
-			snprintf(sourcename, sizeof(sourcename), "%s%s%s",
-					 CTFTEAMCODE(source->player),
-					 player_names[source->player - players],
-					 CTFTEAMENDCODE(source->player));
-
-			// We don't care if it's us.
-			// "Player 1's [redacted] killed Player 1."
-			if (source->player->playerstate == PST_DEAD && source->player != player &&
-			 (inflictor->flags2 & MF2_BEYONDTHEGRAVE))
-				deadsource = true;
-
-			if (inflictor->flags & MF_PUSHABLE)
-			{
-				str = M_GetText("%s%s's playtime with heavy objects %s %s.\n");
-			}
-			else switch (inflictor->type)
-			{
-				case MT_PLAYER:
-					if ((inflictor->player->powers[pw_shield] & SH_NOSTACK) == SH_BOMB)
-						str = M_GetText("%s%s's armageddon blast %s %s.\n");
-					else if (inflictor->player->powers[pw_invulnerability])
-						str = M_GetText("%s%s's invincibility aura %s %s.\n");
-					else if (inflictor->player->powers[pw_super])
-						str = M_GetText("%s%s's super aura %s %s.\n");
-					else
-						str = M_GetText("%s%s's tagging hand %s %s.\n");
-					break;
-				case MT_SPINFIRE:
-					str = M_GetText("%s%s's elemental fire trail %s %s.\n");
-					break;
-				case MT_THROWNBOUNCE:
-					str = M_GetText("%s%s's bounce ring %s %s.\n");
-					break;
-				case MT_THROWNINFINITY:
-					str = M_GetText("%s%s's infinity ring %s %s.\n");
-					break;
-				case MT_THROWNAUTOMATIC:
-					str = M_GetText("%s%s's automatic ring %s %s.\n");
-					break;
-				case MT_THROWNSCATTER:
-					str = M_GetText("%s%s's scatter ring %s %s.\n");
-					break;
-				// TODO: For next two, figure out how to determine if it was a direct hit or splash damage. -SH
-				case MT_THROWNEXPLOSION:
-					str = M_GetText("%s%s's explosion ring %s %s.\n");
-					break;
-				case MT_THROWNGRENADE:
-					str = M_GetText("%s%s's grenade ring %s %s.\n");
-					break;
-				case MT_REDRING:
-					if (inflictor->flags2 & MF2_RAILRING)
-						str = M_GetText("%s%s's rail ring %s %s.\n");
-					else
-						str = M_GetText("%s%s's thrown ring %s %s.\n");
-					break;
-				default:
-					str = M_GetText("%s%s %s %s.\n");
-					break;
-			}
-
-			CONS_Printf(str,
-				deadsource ? M_GetText("The late ") : "",
-				sourcename,
-				deadtarget ? M_GetText("killed") : M_GetText("hit"),
-				targetname);
-			return;
-		}
-		else switch (source->type)
-		{
-			case MT_NULL:
-				switch(source->threshold)
-				{
-				case 42:
-					deathonly = true;
-					str = M_GetText("%s drowned.\n");
-					break;
-				case 43:
-					str = M_GetText("%s was %s by spikes.\n");
-					break;
-				case 44:
-					deathonly = true;
-					str = M_GetText("%s was crushed.\n");
-					break;
-				}
-				break;
-			case MT_EGGMANICO:
-			case MT_EGGMANBOX:
-				str = M_GetText("%s was %s by Eggman's nefarious TV magic.\n");
-				break;
-			case MT_SPIKE:
-				str = M_GetText("%s was %s by spikes.\n");
-				break;
-			default:
-				str = M_GetText("%s was %s by an environmental hazard.\n");
-				break;
-		}
-	}
-	else
-	{
-		// null source, environment kills
-		// TERRIBLE HACK for hit damage because P_DoPlayerPain moves the player...
-		// I'll put it back, I promise!
-		player->mo->z -= player->mo->momz+1;
-		if (P_PlayerTouchingSectorSpecial(player, 1, 2))
-			str = M_GetText("%s was %s by chemical water.\n");
-		else if (P_PlayerTouchingSectorSpecial(player, 1, 3))
-			str = M_GetText("%s was %s by molten lava.\n");
-		else if (P_PlayerTouchingSectorSpecial(player, 1, 4))
-			str = M_GetText("%s was %s by electricity.\n");
-		else if (deadtarget)
-		{
-			deathonly = true;
-			if (P_PlayerTouchingSectorSpecial(player, 1, 6)
-			 || P_PlayerTouchingSectorSpecial(player, 1, 7))
-				str = M_GetText("%s fell into a bottomless pit.\n");
-			else if (P_PlayerTouchingSectorSpecial(player, 1, 12))
-				str = M_GetText("%s asphyxiated in space.\n");
-			else
-				str = M_GetText("%s died.\n");
-		}
-		if (!str)
-			str = M_GetText("%s was %s by an environmental hazard.\n");
-
-		player->mo->z += player->mo->momz+1;
-	}
-
-	if (!str) // Should not happen! Unless we missed catching something above.
-		return;
-
-	// Don't log every hazard hit if they don't want us to.
-	if (!deadtarget && !cv_hazardlog.value)
-		return;
-
-	if (deathonly)
-	{
-		if (!deadtarget)
-			return;
-		CONS_Printf(str, targetname);
-	}
-	else
-		CONS_Printf(str, targetname, deadtarget ? M_GetText("killed") : M_GetText("hit"));
-}
-
 /** Checks if the level timer is over the timelimit and the round should end,
   * unless you are in overtime. In which case leveltime may stretch out beyond
   * timelimitintics and overtime's status will be checked here each tick.
@@ -2183,7 +1984,7 @@ boolean P_CheckRacers(void)
 			numplayersingame++;
 		}
 
-		if (numplayersingame > 1) // if there's more than one player in-game, this is safe to do
+		if (numplayersingame >= nospectategrief) // prevent spectate griefing
 		{
 			// check if we just got unlucky and there was only one guy who was a problem
 			for (j = i+1; j < MAXPLAYERS; j++)
@@ -2852,7 +2653,6 @@ static inline boolean P_TagDamage(mobj_t *target, mobj_t *inflictor, mobj_t *sou
 	/*if (source->player->pflags & PF_TAGIT && !(player->pflags & PF_TAGIT))
 	{
 		P_AddPlayerScore(source->player, 1); //award points to tagger.
-		P_HitDeathMessages(player, inflictor, source);
 
 		if (gametype == GT_TAG) //survivor
 		{
@@ -3539,8 +3339,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 
 		if (player->health < 0)
 			player->health = 0;
-
-		P_HitDeathMessages(player, inflictor, source);
 
 		P_ForceFeed(player, 40, 10, TICRATE, 40 + min(damage, 100)*2);
 	}
