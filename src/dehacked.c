@@ -1840,6 +1840,8 @@ static actionpointer_t actionpointers[] =
 	{{A_LightningFollowPlayer},"A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
 	{{A_RandomShadowFrame},	   "A_RANDOMSHADOWFRAME"},	//SRB2kart
 	{{A_RoamingShadowThinker}, "A_ROAMINGSHADOWTHINKER"},	//SRB2kart
+	{{A_ReaperThinker}, 	   "A_REAPERTHINKER"},	//SRB2kart
+	{{A_MementosTPParticles},  "A_MEMENTOSTPPARTICLES"}, //SRB2kart 
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},

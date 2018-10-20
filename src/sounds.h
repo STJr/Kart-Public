@@ -890,6 +890,7 @@ typedef enum
 	sfx_zio3,
 	sfx_wind1,
 	sfx_fire2,
+	sfx_chain,
 	sfx_mcitm1,
 	sfx_chaooo,
 	sfx_itfree,

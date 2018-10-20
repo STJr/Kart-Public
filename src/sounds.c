@@ -815,6 +815,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"zio3", 	 false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"wind1",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"fire2",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"chain",  false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mcitm1", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"chaooo", false, 110,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"itfree", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

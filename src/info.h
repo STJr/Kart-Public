@@ -172,6 +172,8 @@ void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chas
 void A_RandomShadowFrame();	//SRB2kart: Shadow spawner frame randomizer
 void A_RoamingShadowThinker();	// SRB2kart: Roaming Shadow moving + attacking players.
 void A_MayonakaArrow();	//SRB2kart: midnight channel arrow sign
+void A_ReaperThinker();	//SRB2kart: mementos reaper
+void A_MementosTPParticles();	//SRB2kart: mementos teleporter particles. Man that's a lot of actions for my shite.
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -661,6 +663,9 @@ typedef enum sprite
 	SPR_ENM1,	// Shadows (Roaming and static)
 	SPR_GARU,	// Wind attack roaming shadows use.
 	SPR_MARR,	// Mayonaka Arrow
+	
+	//Mementos stuff:
+	SPR_REAP,
 
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
@@ -3634,6 +3639,11 @@ typedef enum state
 	S_TGARU3,	// Wind attack used by Roaming Shadows on Players.
 	S_ROAMINGSHADOW,	// Roaming Shadow (the one that uses above's wind attack or smth)
 	S_MAYONAKAARROW,	// Arrow sign
+	
+	// Mementos stuff:
+	S_REAPER_INVIS,		// Reaper waiting for spawning
+	S_REAPER,			// Reaper main frame where its thinker is handled
+	S_MEMENTOSTP,		// Mementos teleporter state. (Used for spawning particles)
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4310,6 +4320,12 @@ typedef enum mobj_type
 	MT_RANDOMSHADOW,	// Random static Shadows.
 	MT_ROAMINGSHADOW,	// Roaming Shadows.
 	MT_MAYONAKAARROW,	// Arrow static signs for Mayonaka
+	
+	// Mementos stuff
+	MT_REAPERWAYPOINT,
+	MT_REAPER,
+	MT_MEMENTOSTP,
+	MT_MEMENTOSPARTICLE,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

@@ -378,6 +378,16 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	// We now identify by object type, not sprite! Tails 04-11-2001
 	switch (special->type)
 	{
+		case MT_MEMENTOSTP:	 // Mementos teleport
+			// Teleport player to the other teleporter (special->target). We'll assume there's always only ever 2.
+			if (!special->target)
+				return;	// foolproof crash prevention check!!!!!
+			
+			P_TeleportMove(player->mo, special->target->x, special->target->y, special->target->z + (48<<FRACBITS));
+			player->mo->angle = special->target->angle;
+			P_SetObjectMomZ(player->mo, 12<<FRACBITS, false);
+			P_InstaThrust(player->mo, player->mo->angle, 20<<FRACBITS);
+			return;
 		case MT_FLOATINGITEM: // SRB2kart
 			if (!P_CanPickupItem(player, 3) || (player->kartstuff[k_itemamount] && player->kartstuff[k_itemtype] != special->threshold))
 				return;
