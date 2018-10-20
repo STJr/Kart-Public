@@ -61,7 +61,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
-	"LZI1","LZI2","KLIT","VIEW"
+	"LZI1","LZI2","KLIT", "SPTL", "ENM1", "GARU", "MARR", "VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3064,7 +3064,24 @@ state_t states[NUMSTATES] =
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|4, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT10},	// S_KLIT9
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT11},	// S_KLIT10
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT12},	// S_KLIT11
-	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12	
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12
+	
+	// Midnight Channel stuff, yay more boring states!
+	{SPR_SPTL, 0, -1, {NULL}, 0, 0, S_SPOTLIGHT},		// S_SPOTLIGHT
+	{SPR_ENM1, 0, 1, {A_RandomShadowFrame}, 0, 0, S_RANDOMSHADOW},		// S_RANDOMSHADOW
+	
+	{SPR_GARU, 0, 2, {NULL}, 0, 0, S_GARU2},	// S_GARU1
+	{SPR_GARU, 1, 2, {NULL}, 0, 0, S_GARU3},	// S_GARU2
+	{SPR_GARU, 2, 2, {NULL}, 0, 0, S_NULL},		// S_GARU3
+	
+	{SPR_NULL, 0, 2, {NULL}, 0, 0, S_TGARU1},	// S_TGARU0
+	{SPR_GARU, FF_TRANS30, 2, {NULL}, 0, 0, S_GARU2},	// S_TGARU1
+	{SPR_GARU, 1|FF_TRANS30, 2, {NULL}, 0, 0, S_GARU3},	// S_TGARU2
+	{SPR_GARU, 2|FF_TRANS30, 2, {NULL}, 0, 0, S_NULL},		// S_TGARU3
+	
+	{SPR_ENM1, 2, 1, {A_RoamingShadowThinker}, 0, 0, S_ROAMINGSHADOW}, //S_ROAMINGSHADOW
+	
+	{SPR_MARR, 0, 1, {A_MayonakaArrow}, 0, 0, S_MAYONAKAARROW}, //S_MAYONAKAARROW
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -17208,6 +17225,116 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
+		S_NULL          // raisestate
+	},
+	
+	// Midnight Channel stuff:
+	
+	{           // MT_SPOTLIGHT
+		3124,           // doomednum
+		S_SPOTLIGHT,   	// spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		8*FRACUNIT,     // radius
+		16*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
+		S_NULL          // raisestate
+	},
+	
+	{           // MT_RANDOMSHADOW
+		3120,           // doomednum
+		S_RANDOMSHADOW, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,     // radius
+		32*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SCENERY|MF_PAIN, // flags
+		S_NULL          // raisestate
+	},
+	
+	{           // MT_ROAMINGSHADOW
+		3121,           // doomednum
+		S_ROAMINGSHADOW, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,     // radius
+		32*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SOLID|MF_PAIN|MF_SPECIAL|MF_RUNSPAWNFUNC, // flags
+		S_NULL          // raisestate
+	},
+	
+	{           // MT_MAYONAKAARROW
+		3122,           // doomednum
+		S_MAYONAKAARROW, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		64*FRACUNIT,     // radius
+		128*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_RUNSPAWNFUNC, // flags
 		S_NULL          // raisestate
 	},
 

@@ -193,6 +193,9 @@ void A_JawzExplode(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
+void A_RandomShadowFrame(mobj_t *actor);	// SRB2kart
+void A_RoamingShadowThinker(mobj_t *actor);	//SRB2kart
+void A_MayonakaArrow(mobj_t *actor);	//SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -8421,6 +8424,138 @@ void A_LightningFollowPlayer(mobj_t *actor)
 	return;
 }
 
+// A_RandomShadowFrame
+// Gives a random sprite for the Mayonaka static shadows. Dumb and simple.
+void A_RandomShadowFrame(mobj_t *actor)
+{
+	mobj_t *fire;
+	mobj_t *fake;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RandomShadowFrame", (actor)))
+		return;
+#endif
+
+	if (!actor->extravalue1)	// Hack that spawns thoks that look like random shadows. Otherwise the state would overwrite our frame and that's a pain.
+	{	
+		fake = P_SpawnMobj(actor->x, actor->y, actor->z, MT_THOK);
+		fake->sprite = SPR_ENM1;
+		fake->frame = P_RandomRange(0, 6);
+		P_SetScale(fake, FRACUNIT*3/2);
+		fake->scale = FRACUNIT*3/2;
+		fake->destscale = FRACUNIT*3/2;
+		fake->angle = actor->angle;
+		fake->tics = -1;
+		actor->flags2 |= MF2_DONTDRAW;
+		actor->extravalue1 = 1;
+	}
+	
+	P_SetScale(actor, FRACUNIT*3/2);
+	
+	// I have NO CLUE how to hardcode all of that fancy Linedef Executor shit so the fire spinout will be done by these entities directly.
+	if (P_LookForPlayers(actor, false, false, 512<<FRACBITS))	// got target
+	{
+		if (actor->target && !actor->target->player->powers[pw_flashing]
+		&& !actor->target->player->kartstuff[k_invincibilitytimer]
+		&& !actor->target->player->kartstuff[k_growshrinktimer]
+		&& !actor->target->player->kartstuff[k_spinouttimer]
+		&& P_IsObjectOnGround(actor->target)
+		&& actor->z == actor->target->z)
+		{
+			P_DamageMobj(actor->target, actor, actor, 1);
+			P_InstaThrust(actor->target, actor->angle, 16<<FRACBITS);
+			fire = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);
+			P_SetMobjStateNF(fire, S_QUICKBOOM1);
+			P_SetScale(fire, 4<<FRACBITS);
+			fire->color = SKINCOLOR_RED;
+			S_StartSound(actor->target, sfx_fire2);
+		}
+	}
+	return;
+}
+
+// A_RoamingShadowThinker
+// Thinker for Midnight Channel's Roaming Shadows:
+void A_RoamingShadowThinker(mobj_t *actor)
+{
+	mobj_t *wind;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RoamingShadowThinker", (actor)))
+		return;
+#endif
+	// extravalue1 replaces "movetimer"
+	// extravalue2 replaces "stoptimer"
+	
+	P_SetScale(actor, FRACUNIT*3/2);
+	if (!actor->extravalue2)
+	{
+		P_InstaThrust(actor, actor->angle, 8<<FRACBITS);	// move at 8 fracs / sec
+		actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1-1) : (TICRATE*5+1));	// deplete timer if set, set to 5 ticrate otherwise.
+		if (actor->extravalue1 == 1)	// if timer reaches 1, do a u-turn.
+		{
+			actor->extravalue1 = 0;
+			actor->extravalue2 = 60;
+		}
+		// Search for and attack Players venturing too close in front of us.
+		
+		if (P_LookForPlayers(actor, false, false, 256<<FRACBITS))	// got target
+		{
+			if (actor->target && !actor->target->player->powers[pw_flashing]
+			&& !actor->target->player->kartstuff[k_invincibilitytimer]
+			&& !actor->target->player->kartstuff[k_growshrinktimer]
+			&& !actor->target->player->kartstuff[k_spinouttimer])
+			{
+				// send them flying and spawn the WIND!
+				P_InstaThrust(actor->target, 0, 0);
+				P_DamageMobj(actor->target, actor, actor, 1);
+				P_SetObjectMomZ(actor->target, 16<<FRACBITS, false);
+				S_StartSound(actor->target, sfx_wind1);
+
+				// Spawn the WIND:
+				wind = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);	// Opaque layer:
+				P_SetMobjState(wind, S_GARU1);
+				P_SetScale(wind, FRACUNIT*3/2);
+				wind = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);	// Translucent layer:
+				P_SetMobjState(wind, S_TGARU0);
+				P_SetScale(wind, FRACUNIT*3/2);
+				wind->destscale = 30<<FRACBITS;
+			}
+		}
+	}
+	else	// Handle U-Turn
+	{
+		actor->angle += ANG1*3;
+		actor->extravalue2--;
+	}
+	return;
+}
+
+// A_MayonakaArrow
+// Used for the arrow sprite animations in Mayonaka. It's only extra visual bullshit to make em more random.
+
+void A_MayonakaArrow(mobj_t *actor)
+{
+	INT32 flip = 0;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_MayonakaArrow", (actor)))
+		return;
+#endif	
+	// "animtimer" is replaced by "extravalue1" here.
+	actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1+1) : (P_RandomRange(0, TICRATE*3)));
+	flip = ((actor->spawnpoint->options & 1) ? (3) : (0));	// flip adds 3 frames, which is the flipped version of the sign.
+	
+	actor->frame = flip;
+	if (actor->extravalue1 >= TICRATE*7/2)
+		actor->extravalue1 = 0;	// reset to 0 and start a new cycle.
+	else if (actor->extravalue1 > TICRATE*7/2 -4)
+		actor->frame = flip+2;
+	else if (actor->extravalue1 > TICRATE*3 && leveltime%2 > 0)
+		actor->frame = flip+1;
+	
+	actor->frame |= FF_PAPERSPRITE;
+	actor->momz = 0;
+	return;	
+}
 //}
 
 // Function: A_OrbitNights

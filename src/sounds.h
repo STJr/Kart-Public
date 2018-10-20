@@ -888,6 +888,8 @@ typedef enum
 	sfx_kpogos,
 	sfx_ddash,
 	sfx_zio3,
+	sfx_wind1,
+	sfx_fire2,
 	sfx_mcitm1,
 	sfx_chaooo,
 	sfx_itfree,

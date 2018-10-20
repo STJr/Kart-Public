@@ -169,6 +169,9 @@ void A_JawzExplode(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
+void A_RandomShadowFrame();	//SRB2kart: Shadow spawner frame randomizer
+void A_RoamingShadowThinker();	// SRB2kart: Roaming Shadow moving + attacking players.
+void A_MayonakaArrow();	//SRB2kart: midnight channel arrow sign
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -652,6 +655,12 @@ typedef enum sprite
 	SPR_LZI1, // Lightning that falls on the player for lightning shield
 	SPR_LZI2, // ditto
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
+	
+	// Midnight Channel stuff:
+	SPR_SPTL,	// Spotlight
+	SPR_ENM1,	// Shadows (Roaming and static)
+	SPR_GARU,	// Wind attack roaming shadows use.
+	SPR_MARR,	// Mayonaka Arrow
 
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
@@ -3612,6 +3621,19 @@ typedef enum state
 	S_KLIT10,
 	S_KLIT11,
 	S_KLIT12,
+	
+	// Midnight Channel stuff:
+	S_SPOTLIGHT,	// Spotlight decoration
+	S_RANDOMSHADOW,	// Random Shadow. They're static and don't do nothing.
+	S_GARU1,
+	S_GARU2,
+	S_GARU3,
+	S_TGARU0,	
+	S_TGARU1,
+	S_TGARU2,
+	S_TGARU3,	// Wind attack used by Roaming Shadows on Players.
+	S_ROAMINGSHADOW,	// Roaming Shadow (the one that uses above's wind attack or smth)
+	S_MAYONAKAARROW,	// Arrow sign
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4282,6 +4304,12 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+	
+	// Midnight Channel stuff:
+	MT_SPOTLIGHT,		// Spotlight Object
+	MT_RANDOMSHADOW,	// Random static Shadows.
+	MT_ROAMINGSHADOW,	// Roaming Shadows.
+	MT_MAYONAKAARROW,	// Arrow static signs for Mayonaka
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
