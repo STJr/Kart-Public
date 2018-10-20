@@ -6476,7 +6476,26 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BALLHOGBOOM16",
 
 	// Self-Propelled Bomb - just an explosion for now...
-	"S_SPB",
+	"S_SPB1",
+	"S_SPB2",
+	"S_SPB3",
+	"S_SPB4",
+	"S_SPB5",
+	"S_SPB6",
+	"S_SPB7",
+	"S_SPB8",
+	"S_SPB9",
+	"S_SPB10",
+	"S_SPB11",
+	"S_SPB12",
+	"S_SPB13",
+	"S_SPB14",
+	"S_SPB15",
+	"S_SPB16",
+	"S_SPB17",
+	"S_SPB18",
+	"S_SPB19",
+	"S_SPB20",
 	"S_SPB_DEAD",
 
 	// Thunder Shield

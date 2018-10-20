@@ -8412,6 +8412,24 @@ void A_SPBChase(mobj_t *actor)
 			actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
 			actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
 			actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
+
+			// Red speed lines for when it's gaining on its target. A tell for when you're starting to lose too much speed!
+			if (R_PointToDist2(0, 0, actor->momx, actor->momy) > (actor->tracer->player ? (16*actor->tracer->player->speed)/15
+				: (16*R_PointToDist2(0, 0, actor->tracer->momx, actor->tracer->momy))/15) // Going faster than the target
+				&& xyspeed > K_GetKartSpeed(actor->tracer->player, false)/4) // Don't display speedup lines at pitifully low speeds
+			{
+				mobj_t *fast = P_SpawnMobj(actor->x + (P_RandomRange(-24,24) * actor->scale),
+					actor->y + (P_RandomRange(-24,24) * actor->scale),
+					actor->z + (actor->height/2) + (P_RandomRange(-24,24) * actor->scale),
+					MT_FASTLINE);
+				fast->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
+				//fast->momx = 3*actor->momx/4;
+				//fast->momy = 3*actor->momy/4;
+				//fast->momz = 3*actor->momz/4;
+				fast->color = SKINCOLOR_RED;
+				fast->colorized = true;
+			}
+
 			return;
 		}
 		else // Target's gone, return to SEEKING
