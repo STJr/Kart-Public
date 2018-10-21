@@ -953,7 +953,7 @@ static void IdentifyVersion(void)
 	}
 
 	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
-	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
+	D_AddFile(va(pandf,srb2waddir,"gfxHC.kart")); // temporary, don't let this line get merged
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 	//D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
