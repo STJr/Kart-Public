@@ -169,6 +169,7 @@ void A_JawzExplode(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
+void A_FlameParticle();
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -652,6 +653,9 @@ typedef enum sprite
 	SPR_LZI1, // Lightning that falls on the player for lightning shield
 	SPR_LZI2, // ditto
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
+
+	SPR_MARB, // Marble Zone sprites
+	SPR_FUFO, // CD Special Stage UFO (don't ask me why it begins with an F)
 
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
@@ -3613,6 +3617,16 @@ typedef enum state
 	S_KLIT11,
 	S_KLIT12,
 
+	// Marble Zone
+	S_FLAMEPARTICLE,
+	S_MARBLETORCH,
+	S_MARBLELIGHT,
+	S_MARBLEBURNER,
+
+	// CD Special Stage
+	S_CDUFO,
+	S_CDUFO_DIE,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4282,6 +4296,15 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+
+	// Marble Zone
+	MT_FLAMEPARTICLE,
+	MT_MARBLETORCH,
+	MT_MARBLELIGHT,
+	MT_MARBLEBURNER,
+
+	// CD Special Stage
+	MT_CDUFO,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

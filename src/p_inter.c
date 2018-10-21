@@ -577,6 +577,20 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_eggmanblame] = -1;
 			}
 			return;
+		case MT_CDUFO:			// SRB2kart
+			if (special->fuse || !P_CanPickupItem(player, 1) || (G_BattleGametype() && player->kartstuff[k_bumper] <= 0))
+				return;
+
+			player->kartstuff[k_itemroulette] = 1;
+			player->kartstuff[k_roulettetype] = 1;
+
+			S_StartSound(toucher, sfx_cdfm73); // they don't make this sound in the original game but it's nice to have a "reward" for good play
+
+			//special->momx = special->momy = special->momz = 0;
+			special->momz = -(3*special->scale)/2;
+			//P_SetTarget(&special->target, toucher);
+			special->fuse = 2*TICRATE;
+			break;
 
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //

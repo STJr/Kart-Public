@@ -61,7 +61,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
-	"LZI1","LZI2","KLIT","VIEW"
+	"LZI1","LZI2","KLIT","MARB","FUFO","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3065,6 +3065,16 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT11},	// S_KLIT10
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT12},	// S_KLIT11
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12	
+
+	// Marble Zone
+	{SPR_MARB, FF_FULLBRIGHT|FF_ANIMATE|5, TICRATE, {NULL}, 3, 3, S_NULL}, // S_FLAMEPARTICLE
+	{SPR_MARB, FF_FULLBRIGHT|FF_ANIMATE, 8*3, {A_FlameParticle}, 3, 3, S_MARBLETORCH}, // S_MARBLETORCH
+	{SPR_MARB, FF_FULLBRIGHT|FF_TRANS80|4, -1, {NULL}, 1, 29, S_NULL}, // S_MARBLELIGHT
+	{SPR_MARB, 9, -1, {NULL}, 0, 0, S_NULL}, // S_MARBLEBURNER
+
+	// CD Special Stage
+	{SPR_FUFO, 0, 1, {A_Thrust}, 5, 2, S_CDUFO}, // S_CDUFO
+	{SPR_FUFO, 0, 4, {A_BossScream}, 0, MT_EXPLODE, S_CDUFO_DIE}, // S_CDUFO_DIE
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -17208,6 +17218,141 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_FLAMEPARTICLE
+		-1,             // doomednum
+		S_FLAMEPARTICLE,// spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		FRACUNIT,       // radius
+		FRACUNIT,       // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_SCENERY|MF_NOCLIPTHING|MF_NOCLIPHEIGHT, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_MARBLETORCH
+		1969,           // doomednum
+		S_MARBLETORCH,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		MT_FLAMEPARTICLE,// painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		12*FRACUNIT,    // radius
+		45*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SCENERY|MF_NOGRAVITY|MF_FIRE|MF_PAIN, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_MARBLELIGHT
+		-1,             // doomednum
+		S_MARBLELIGHT,  // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		FRACUNIT,       // radius
+		FRACUNIT,       // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_SCENERY|MF_NOCLIPTHING|MF_NOCLIPHEIGHT, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_MARBLEBURNER
+		1970,           // doomednum
+		S_MARBLEBURNER, // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		24*FRACUNIT,    // radius
+		96*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOTHINK|MF_SOLID, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_CDUFO
+		4050,           // doomednum
+		S_CDUFO,        // spawnstate
+		1,              // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_CDUFO_DIE,    // deathstate
+		S_NULL,         // xdeathstate
+		sfx_cdfm19,     // deathsound
+		0,              // speed
+		70*FRACUNIT,    // radius
+		70*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOGRAVITY|MF_NOCLIPHEIGHT|MF_SPECIAL, // flags
 		S_NULL          // raisestate
 	},
 

@@ -7434,6 +7434,10 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_MINEEXPLOSIONSOUND:
 			P_RemoveMobj(mobj);
 			return;
+		case MT_CDUFO:
+			if (mobj->fuse > TICRATE)
+				mobj->flags2 ^= MF2_DONTDRAW; // only by good fortune does this end with it having MF2_DONTDRAW... don't touch!
+			break;
 		//}
 		default:
 			break;
@@ -8481,6 +8485,31 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 			break;
+		case MT_CDUFO:
+			if (!mobj->spawnpoint || mobj->fuse)
+				break;
+
+			if (mobj->movecount)
+			{
+				mobj->movecount--;
+				break;
+			}
+			else if (P_AproxDistance(mobj->x - (mobj->spawnpoint->x<<FRACBITS), mobj->y - (mobj->spawnpoint->y<<FRACBITS)) < (420<<FRACBITS))
+				break;
+
+			mobj->movecount = 3;
+
+			{
+				angle_t facing = P_RandomRange(0, 90);
+				if (facing >= 45)
+					facing = InvAngle((facing - 45)*ANG1);
+				else
+					facing *= ANG1;
+
+				mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->spawnpoint->x<<FRACBITS, mobj->spawnpoint->y<<FRACBITS) + facing;
+			}
+
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);
@@ -9350,6 +9379,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			mobj->color = SKINCOLOR_AQUA;
 			break;
 		}
+		case MT_MARBLETORCH:
+			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (29<<FRACBITS), MT_MARBLELIGHT);
+			break;
 		default:
 			break;
 	}

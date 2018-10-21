@@ -1838,6 +1838,7 @@ static actionpointer_t actionpointers[] =
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
 	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
+	{{A_FlameParticle},        "A_FLAMEPARTICLE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -6770,6 +6771,16 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KLIT11",
 	"S_KLIT12",
 
+	// Marble Zone
+	"S_FLAMEPARTICLE",
+	"S_MARBLETORCH",
+	"S_MARBLELIGHT",
+	"S_MARBLEBURNER",
+
+	// CD Special Stage
+	"S_CDUFO",
+	"S_CDUFO_DIE",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -7422,6 +7433,15 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
+
+	// Marble Zone
+	"MT_FLAMEPARTICLE",
+	"MT_MARBLETORCH",
+	"MT_MARBLELIGHT",
+	"MT_MARBLEBURNER",
+
+	// CD Special Stage
+	"MT_CDUFO",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",
