@@ -101,10 +101,11 @@ unlockable_t unlockables[MAXUNLOCKABLES] =
 	/* 02 */ {"SMK Cup",  "", -1, 2, SECRET_NONE, 0, false, false, 0},
 	/* 03 */ {"Chao Cup", "", -1, 3, SECRET_NONE, 0, false, false, 0},
 
-	/* 04 */ {"Encore Mode", "", 3, 4, SECRET_ENCORE, 0, false, false, 0},
-	/* 05 */ {"Hell Attack", "", 5, 5, SECRET_HELLATTACK, 0, false, false, 0},
+	/* 04 */ {"Hard Game Speed", "", -1, 4, SECRET_HARDSPEED, 0, false, false, 0},
+	/* 05 */ {"Encore Mode",     "",  4, 5, SECRET_ENCORE, 0, false, false, 0},
+	/* 06 */ {"Hell Attack",     "",  6, 6, SECRET_HELLATTACK, 0, false, false, 0},
 
-	/* 06 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
+	/* 07 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
 };
 
 // Default number of emblems and extra emblems
@@ -120,23 +121,27 @@ void M_SetupDefaultConditionSets(void)
 	M_AddRawCondition(1, 1, UC_TOTALEMBLEMS, 5, 0, 0);
 	M_AddRawCondition(1, 2, UC_MATCHESPLAYED, 10, 0, 0);
 
-	// -- 2: Collect 15 emblems OR play 25 matches
-	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 15, 0, 0);
+	// -- 2: Collect 10 emblems OR play 25 matches
+	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 10, 0, 0);
 	M_AddRawCondition(2, 2, UC_MATCHESPLAYED, 25, 0, 0);
 
-	// -- 3: Collect 30 emblems OR play 50 matches
-	M_AddRawCondition(3, 1, UC_TOTALEMBLEMS, 30, 0, 0);
+	// -- 3: Collect 20 emblems OR play 50 matches
+	M_AddRawCondition(3, 1, UC_TOTALEMBLEMS, 20, 0, 0);
 	M_AddRawCondition(3, 2, UC_MATCHESPLAYED, 50, 0, 0);
 
-	// -- 4: Collect 40 emblems OR play 150 matches
-	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 40, 0, 0);
-	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 150, 0, 0);
+	// -- 4: Collect 30 emblems OR play 100 matches
+	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 30, 0, 0);
+	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 100, 0, 0);
 
-	// -- 5: Collect 50 emblems ONLY
-	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 50, 0, 0);
+	// -- 5: Collect 40 emblems OR play 150 matches
+	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 40, 0, 0);
+	M_AddRawCondition(5, 2, UC_MATCHESPLAYED, 150, 0, 0);
 
-	// -- 10: Play 100 matches
-	M_AddRawCondition(10, 1, UC_MATCHESPLAYED, 100, 0, 0);
+	// -- 6: Collect 50 emblems ONLY
+	M_AddRawCondition(6, 1, UC_TOTALEMBLEMS, 50, 0, 0);
+
+	// -- 10: Play 300 matches
+	M_AddRawCondition(10, 1, UC_MATCHESPLAYED, 300, 0, 0);
 }
 
 void M_AddRawCondition(UINT8 set, UINT8 id, conditiontype_t c, INT32 r, INT16 x1, INT16 x2)

@@ -2430,6 +2430,8 @@ static void readunlockable(MYFILE *f, INT32 num)
 					unlockables[num].type = SECRET_ENCORE;
 				else if (fastcmp(word2, "HELLATTACK"))
 					unlockables[num].type = SECRET_HELLATTACK;
+				else if (fastcmp(word2, "HARDSPEED"))
+					unlockables[num].type = SECRET_HARDSPEED;
 				else
 					unlockables[num].type = (INT16)i;
 			}
@@ -6311,6 +6313,12 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_WIPEOUTTRAIL4",
 	"S_WIPEOUTTRAIL5",
 
+	// Rocket sneaker
+	"S_ROCKETSNEAKER_L",
+	"S_ROCKETSNEAKER_R",
+	"S_ROCKETSNEAKER_LVIBRATE",
+	"S_ROCKETSNEAKER_RVIBRATE",
+
 	//{ Eggman Monitor
 	"S_FAKEITEM1",
 	"S_FAKEITEM2",
@@ -7294,6 +7302,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_DRIFTSPARK",
 	"MT_DRIFTDUST",
 
+	"MT_ROCKETSNEAKER", // Rocket sneakers
+
 	"MT_FAKESHIELD",
 	"MT_FAKEITEM",
 
@@ -7305,7 +7315,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_JAWZ", // Jawz stuff
 	"MT_JAWZ_DUD",
-	"MT_JAWZ_SHIELD", 
+	"MT_JAWZ_SHIELD",
 
 	"MT_PLAYERRETICULE", // Jawz reticule
 

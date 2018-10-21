@@ -461,6 +461,7 @@ extern tic_t indirectitemcooldown;
 extern tic_t spbincoming;
 extern UINT8 spbplayer;
 extern tic_t mapreset;
+extern UINT8 nospectategrief;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;
@@ -497,19 +498,17 @@ extern mapthing_t *redctfstarts[MAXPLAYERS]; // CTF
 
 #if defined (macintosh)
 #define DEBFILE(msg) I_OutputMsg(msg)
-extern FILE *debugfile;
 #else
 #define DEBUGFILE
 #ifdef DEBUGFILE
 #define DEBFILE(msg) { if (debugfile) { fputs(msg, debugfile); fflush(debugfile); } }
-extern FILE *debugfile;
 #else
 #define DEBFILE(msg) {}
-extern FILE *debugfile;
 #endif
 #endif
 
 #ifdef DEBUGFILE
+extern FILE *debugfile;
 extern INT32 debugload;
 #endif
 
