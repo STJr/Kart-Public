@@ -976,12 +976,19 @@ void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 			case 0:		hwcolor = 0xffffff00;	break; // White
 			case 1:		hwcolor = 0x80808000;	break; // Gray
 			case 2:		hwcolor = 0x40201000;	break; // Brown
-			case 3:		hwcolor = 0xff000000;	break; // Red
-			case 4:		hwcolor = 0xff800000;	break; // Orange
-			case 5:		hwcolor = 0x80800000;	break; // Yellow
-			case 6:		hwcolor = 0x00800000;	break; // Green
-			case 7:		hwcolor = 0x0000ff00;	break; // Blue
-			case 8:		hwcolor = 0x4080ff00;	break; // Cyan
+			case 3:		hwcolor = 0xfa807200;	break; // Pink
+			case 4:		hwcolor = 0xff69b400;	break; // Rose
+			case 5:		hwcolor = 0xff000000;	break; // Red
+			case 6:		hwcolor = 0xff800000;	break; // Orange
+			case 7:		hwcolor = 0xdaa52000;	break; // Gold
+			case 8:		hwcolor = 0x80800000;	break; // Yellow
+			case 9:		hwcolor = 0x00ff0000;	break; // Emerald
+			case 10:	hwcolor = 0x00800000;	break; // Green
+			case 11:	hwcolor = 0x4080ff00;	break; // Cyan
+			case 12:	hwcolor = 0x4682b400;	break; // Steel
+			case 13:	hwcolor = 0x0000ff00;	break; // Blue
+			case 14:	hwcolor = 0xff00ff00;	break; // Purple
+			case 15:	hwcolor = 0xee82ee00;	break; // Lavender
 			// Default green
 			default:	hwcolor = 0x00800000;	break;
 		}
@@ -1236,12 +1243,20 @@ void V_DrawFadeConsBack(INT32 plines)
 			case 0:		hwcolor = 0xffffff00;	break; // White
 			case 1:		hwcolor = 0x80808000;	break; // Gray
 			case 2:		hwcolor = 0x40201000;	break; // Brown
-			case 3:		hwcolor = 0xff000000;	break; // Red
-			case 4:		hwcolor = 0xff800000;	break; // Orange
-			case 5:		hwcolor = 0x80800000;	break; // Yellow
-			case 6:		hwcolor = 0x00800000;	break; // Green
-			case 7:		hwcolor = 0x0000ff00;	break; // Blue
-			case 8:		hwcolor = 0x4080ff00;	break; // Cyan
+			case 3:		hwcolor = 0xfa807200;	break; // Pink
+			case 4:		hwcolor = 0xff69b400;	break; // Rose
+			case 5:		hwcolor = 0xff000000;	break; // Red
+			case 6:		hwcolor = 0xff800000;	break; // Orange
+			case 7:		hwcolor = 0xdaa52000;	break; // Gold
+			case 8:		hwcolor = 0x80800000;	break; // Yellow
+			case 9:		hwcolor = 0x00ff0000;	break; // Emerald
+			case 10:	hwcolor = 0x00800000;	break; // Green
+			case 11:	hwcolor = 0x4080ff00;	break; // Cyan
+			case 12:	hwcolor = 0x4682b400;	break; // Steel
+			case 13:	hwcolor = 0x0000ff00;	break; // Blue
+			case 14:	hwcolor = 0xff00ff00;	break; // Purple
+			case 15:	hwcolor = 0xee82ee00;	break; // Lavender
+			
 			// Default green
 			default:	hwcolor = 0x00800000;	break;
 		}

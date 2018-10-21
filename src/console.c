@@ -135,8 +135,11 @@ static CV_PossibleValue_t backpic_cons_t[] = {{0, "translucent"}, {1, "picture"}
 static consvar_t cons_backpic = {"con_backpic", "translucent", CV_SAVE, backpic_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t backcolor_cons_t[] = {{0, "White"}, 	{1, "Gray"},	{2, "Brown"},
-												{3, "Red"},		{4, "Orange"},	{5, "Yellow"},
-												{6, "Green"},	{7, "Blue"},	{8,	"Cyan"},
+												{3, "Pink"},	{4, "Rose"},	{5, "Red"},
+												{6, "Orange"},	{7, "Gold"},	{8,	"Yellow"},
+												{9, "Emerald"},	{10,"Green"},	{11,"Cyan"},
+												{12,"Steel"},	{13,"Blue"},	{14,"Purple"},
+												{15,"Lavender"},
 												{0, NULL}};
 consvar_t cons_backcolor = {"con_backcolor", "Green", CV_CALL|CV_SAVE, backcolor_cons_t, CONS_backcolor_Change, 0, NULL, NULL, 0, 0, NULL};
 
@@ -255,6 +258,7 @@ void CON_SetupBackColormap(void)
 	UINT16 i, palsum;
 	UINT8 j, palindex;
 	UINT8 *pal = W_CacheLumpName(GetPalette(), PU_CACHE);
+	INT32 shift = 6;
 
 	if (!consolebgmap)
 		consolebgmap = (UINT8 *)Z_Malloc(256, PU_STATIC, NULL);
@@ -264,12 +268,19 @@ void CON_SetupBackColormap(void)
 		case 0:		palindex = 15; 	break; // White
 		case 1:		palindex = 31;	break; // Gray
 		case 2:		palindex = 63;	break; // Brown
-		case 3:		palindex = 143;	break; // Red
-		case 4:		palindex = 95;	break; // Orange
-		case 5:		palindex = 111;	break; // Yellow
-		case 6:		palindex = 175;	break; // Green
-		case 7:		palindex = 239;	break; // Blue
-		case 8:		palindex = 219;	break; // Cyan
+		case 3:		palindex = 150; shift = 7; 	break; // Pink
+		case 4:		palindex = 127; shift = 7;	break; // Rose
+		case 5:		palindex = 143;	break; // Red
+		case 6:		palindex = 95;	break; // Orange
+		case 7:		palindex = 119; shift = 7;	break; // Gold
+		case 8:		palindex = 111;	break; // Yellow
+		case 9:		palindex = 191; shift = 7; 	break; // Emerald
+		case 10:	palindex = 175;	break; // Green
+		case 11:	palindex = 219;	break; // Cyan
+		case 12:	palindex = 207; shift = 7;	break; // Steel
+		case 13:	palindex = 239;	break; // Blue
+		case 14:	palindex = 199; shift = 7; break; // Purple
+		case 15:	palindex = 255; shift = 7; break; // Lavender
 		// Default green
 		default:	palindex = 175; break;
 }
@@ -277,7 +288,7 @@ void CON_SetupBackColormap(void)
 	// setup background colormap
 	for (i = 0, j = 0; i < 768; i += 3, j++)
 	{
-		palsum = (pal[i] + pal[i+1] + pal[i+2]) >> 6;
+		palsum = (pal[i] + pal[i+1] + pal[i+2]) >> shift;
 		consolebgmap[j] = (UINT8)(palindex - palsum);
 	}
 }
