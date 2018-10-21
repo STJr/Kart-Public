@@ -8687,27 +8687,29 @@ void A_ReaperThinker(mobj_t *actor)
 
 			mo2 = (mobj_t *)th;
 
-			if (mo2->type == MT_REAPERWAYPOINT && mo2->spawnpoint->angle == 0)
+			if (mo2->type != MT_REAPERWAYPOINT)
+				continue;
+			if (mo2->spawnpoint->angle != 0)
+				continue;
+
+			P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+			P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
+			actor->extravalue1 = 0;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
+			if (!actor->tracer)	// If we already have a tracer (Waypoint #0), don't do anything.
 			{
-				P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
-				P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
-				actor->extravalue1 = 0;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
-				if (!actor->tracer)	// If we already have a tracer (Waypoint #0), don't do anything.
-					P_SetTarget(&actor->tracer, mo2);	// Because our target might be a player OR a waypoint, we need some sort of fallback option. This will always be waypoint 0.
-				
+				P_SetTarget(&actor->tracer, mo2);	// Because our target might be a player OR a waypoint, we need some sort of fallback option. This will always be waypoint 0.
 				break;
 			}
 		}
 	}	
 	else	// Awesome, we now have a target.
-	{	
+	{			
 		// Follow target:
 		P_InstaThrust(actor, R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y), 20<<FRACBITS);
 		actor->angle = R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y);
 		
 		// The player we should target if it's near us:
-		i = 0;
-		for (; i<MAXPLAYERS; i++)
+		for (i=0; i<MAXPLAYERS; i++)
 		{	
 
 			if (!playeringame[i])
@@ -8751,13 +8753,15 @@ void A_ReaperThinker(mobj_t *actor)
 
 					mo2 = (mobj_t *)th;
 
-					if (mo2->type == MT_REAPERWAYPOINT && mo2->spawnpoint->angle == actor->extravalue1+1)
-					{
-						P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
-						P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
-						actor->extravalue1++;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
+					if (mo2->type != MT_REAPERWAYPOINT)
+						continue;
+					if (mo2->spawnpoint->angle != actor->extravalue1+1)
+						continue;
+					
+					P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+					P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
+					actor->extravalue1++;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
 					break;
-					}
 				}
 			}
 			
