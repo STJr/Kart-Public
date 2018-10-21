@@ -134,14 +134,14 @@ static CV_PossibleValue_t backpic_cons_t[] = {{0, "translucent"}, {1, "picture"}
 // whether to use console background picture, or translucent mode
 static consvar_t cons_backpic = {"con_backpic", "translucent", CV_SAVE, backpic_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-static CV_PossibleValue_t backcolor_cons_t[] = {{0, "White"}, 	{1, "Gray"},	{2, "Brown"},
+static CV_PossibleValue_t backcolor_cons_t[] = {{0, "White"}, 	{1, "Black"},	{2, "Brown"},
 												{3, "Pink"},	{4, "Rose"},	{5, "Red"},
 												{6, "Orange"},	{7, "Gold"},	{8,	"Yellow"},
 												{9, "Emerald"},	{10,"Green"},	{11,"Cyan"},
 												{12,"Steel"},	{13,"Blue"},	{14,"Purple"},
 												{15,"Lavender"},
 												{0, NULL}};
-consvar_t cons_backcolor = {"con_backcolor", "Green", CV_CALL|CV_SAVE, backcolor_cons_t, CONS_backcolor_Change, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cons_backcolor = {"con_backcolor", "Black", CV_CALL|CV_SAVE, backcolor_cons_t, CONS_backcolor_Change, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t menuhighlight_cons_t[] =
 {
