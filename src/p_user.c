@@ -45,6 +45,7 @@
 // SRB2kart
 #include "m_cond.h" // M_UpdateUnlockablesAndExtraEmblems
 #include "k_kart.h"
+#include "console.h" // CON_LogMessage
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
@@ -1139,34 +1140,57 @@ boolean P_EndingMusic(player_t *player)
 {
 	char buffer[9];
 	boolean looping = true;
+	INT32 bestlocalpos;
+	player_t *bestlocalplayer;
 
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return false;
 
 	// Event - Level Finish
-	if (splitscreen
-		&& (players[displayplayer].exiting
-		|| players[secondarydisplayplayer].exiting
-		|| ((splitscreen < 2) && players[thirddisplayplayer].exiting)
-		|| ((splitscreen < 3) && players[fourthdisplayplayer].exiting)))
+	// Check for if this is valid or not
+	if (splitscreen)
 	{
-		sprintf(buffer, "k*ok");
+		if (!((players[displayplayer].exiting || (players[displayplayer].pflags & PF_TIMEOVER))
+			|| (players[secondarydisplayplayer].exiting || (players[secondarydisplayplayer].pflags & PF_TIMEOVER))
+			|| ((splitscreen < 2) && (players[thirddisplayplayer].exiting || (players[thirddisplayplayer].pflags & PF_TIMEOVER)))
+			|| ((splitscreen < 3) && (players[fourthdisplayplayer].exiting || (players[fourthdisplayplayer].pflags & PF_TIMEOVER)))))
+			return false;
+
+		bestlocalplayer = &players[displayplayer];
+		bestlocalpos = ((players[displayplayer].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[displayplayer].kartstuff[k_position]);
+#define setbests(p) \
+	if (((players[p].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[p].kartstuff[k_position]) < bestlocalpos) \
+	{ \
+		bestlocalplayer = &players[p]; \
+		bestlocalpos = ((players[p].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[p].kartstuff[k_position]); \
 	}
-	else if (player->pflags & PF_TIMEOVER) // || !player->lives) -- outta lives, outta time
-	{
-		sprintf(buffer, "k*lose");
+		setbests(secondarydisplayplayer);
+		if (splitscreen > 1)
+			setbests(thirddisplayplayer);
+		if (splitscreen > 2)
+			setbests(fourthdisplayplayer);
+#undef setbests
 	}
-	else if (player->exiting)
+	else
 	{
-		if (player->kartstuff[k_position] == 1)
+		if (!(player->exiting || (player->pflags & PF_TIMEOVER)))
+			return false;
+
+		bestlocalplayer = player;
+		bestlocalpos = ((player->pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : player->kartstuff[k_position]);
+	}
+	
+	if (G_RaceGametype() && bestlocalpos == MAXPLAYERS+1)
+		sprintf(buffer, "k*lose"); // krfail, for eventual F-Zero death results theme
+	else
+	{
+		if (bestlocalpos == 1)
 			sprintf(buffer, "k*win");
-		else if (K_IsPlayerLosing(player))
+		else if (K_IsPlayerLosing(bestlocalplayer))
 			sprintf(buffer, "k*lose");
 		else
 			sprintf(buffer, "k*ok");
 	}
-	else
-		return false;
 
 	S_SpeedMusic(1.0f);
 
@@ -8143,11 +8167,17 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	subsector_t *newsubsec;
 	fixed_t f1, f2;
 
+	// We probably shouldn't move the camera if there is no player or player mobj somehow
+	if (!player || !player->mo)
+		return true;
+
+	mo = player->mo;
+
 #ifdef NOCLIPCAM
 	cameranoclip = true; // We like camera noclip!
 #else
 	cameranoclip = ((player->pflags & (PF_NOCLIP|PF_NIGHTSMODE))
-		|| (player->mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)) // Noclipping player camera noclips too!!
+		|| (mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)) // Noclipping player camera noclips too!!
 		|| (leveltime < introtime)); // Kart intro cam
 #endif
 
@@ -8180,7 +8210,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		else if (player == &players[fourthdisplayplayer])
 			focusangle = localangle4;
 		else
-			focusangle = player->mo->angle;
+			focusangle = mo->angle;
 		if (thiscam == &camera)
 			camrotate = cv_cam_rotate.value;
 		else if (thiscam == &camera2)
@@ -8201,25 +8231,17 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		return true;
 	}
 
-	if (!player || !player->mo)
-		return true;
-
-	mo = player->mo;
-
 	thiscam->radius = FixedMul(20*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
 	thiscam->height = FixedMul(16*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
-
-	if (!mo)
-		return true;
 
 	// Don't run while respawning from a starpost
 	// Inu 4/8/13 Why not?!
 //	if (leveltime > 0 && timeinmap <= 0)
 //		return true;
 
-	if (player->pflags & PF_NIGHTSMODE)
+	if (demoplayback)
 	{
-		focusangle = player->mo->angle;
+		focusangle = mo->angle;
 		focusaiming = 0;
 	}
 	else if (player == &players[consoleplayer])
@@ -8244,7 +8266,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 	else
 	{
-		focusangle = player->mo->angle;
+		focusangle = mo->angle;
 		focusaiming = player->aiming;
 	}
 
@@ -8324,9 +8346,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			input = InvAngle(input);
 
 		angle = thiscam->angle + input;
-
-		if (demoplayback && player == &players[consoleplayer])
-			localangle = angle;
 	}
 
 	if (!resetcalled && (leveltime > starttime)
@@ -8732,7 +8751,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
 			displayplayer = consoleplayer;
 
-		CONS_Printf(M_GetText("%s entered the game.\n"), player_names[player-players]);
+		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[player-players]));
 		return true; // no more player->mo, cannot continue.
 	}
 	return false;
@@ -8909,8 +8928,6 @@ void P_DoTimeOver(player_t *player)
 // P_PlayerThink
 //
 
-boolean playerdeadview; // show match/chaos/tag/capture the flag rankings while in death view
-
 void P_PlayerThink(player_t *player)
 {
 	ticcmd_t *cmd;
@@ -8937,7 +8954,7 @@ void P_PlayerThink(player_t *player)
 	}
 
 #ifdef SEENAMES
-	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)))
+	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)) && !splitscreen)
 	{
 		seenplayer = NULL;
 
@@ -9093,10 +9110,6 @@ void P_PlayerThink(player_t *player)
 	if (player->playerstate == PST_DEAD)
 	{
 		player->mo->flags2 &= ~MF2_SHADOW;
-		// show the multiplayer rankings while dead
-		if (player == &players[displayplayer])
-			playerdeadview = true;
-
 		P_DeathThink(player);
 
 		return;
@@ -9120,9 +9133,6 @@ void P_PlayerThink(player_t *player)
 #else
 	player->lives = 1; // SRB2Kart
 #endif
-
-	if (player == &players[displayplayer])
-		playerdeadview = false;
 
 	// SRB2kart 010217
 	if (leveltime < starttime)
@@ -9158,10 +9168,10 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 
-	if ((netgame || splitscreen) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
+	if ((netgame || multiplayer) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;
-		//player->powers[pw_flashing] = TICRATE + 1;
+		player->powers[pw_flashing] = TICRATE/2 + 1;
 		/*if (P_SpectatorJoinGame(player))
 			return; // player->mo was removed.*/
 	}

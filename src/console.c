@@ -759,6 +759,19 @@ boolean CON_Responder(event_t *ev)
 		if (modeattacking || metalrecording)
 			return false;
 
+		if (ev->data1 >= KEY_MOUSE1) // See also: HUD_Responder
+		{
+			INT32 i;
+			for (i = 0; i < num_gamecontrols; i++)
+			{
+				if (gamecontrol[i][0] == ev->data1 || gamecontrol[i][1] == ev->data1)
+					break;
+			}
+
+			if (i == num_gamecontrols)
+				return false;
+		}
+
 		if (key == gamecontrol[gc_console][0] || key == gamecontrol[gc_console][1])
 		{
 			if (consdown) // ignore repeat

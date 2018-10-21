@@ -810,7 +810,6 @@ void D_StartTitle(void)
 	maptol = 0;
 
 	gameaction = ga_nothing;
-	playerdeadview = false;
 	displayplayer = consoleplayer = 0;
 	//demosequence = -1;
 	gametype = GT_RACE; // SRB2kart
@@ -1363,10 +1362,25 @@ void D_SRB2Main(void)
 #endif
 	}
 
+	// Set up splitscreen players before joining!
+	if (!dedicated && (M_CheckParm("-splitscreen") && M_IsNextParm()))
+	{
+		UINT8 num = atoi(M_GetNextParm());
+		if (num >= 1 && num <= 4)
+		{
+			CV_StealthSetValue(&cv_splitplayers, num);
+			splitscreen = num-1;
+			SplitScreen_OnChange();
+		}
+	}
+
 	// init all NETWORK
 	CONS_Printf("D_CheckNetGame(): Checking network game status.\n");
 	if (D_CheckNetGame())
 		autostart = true;
+
+	if (splitscreen) // Make sure multiplayer & autostart is set if you have splitscreen, even after D_CheckNetGame
+		multiplayer = autostart = true;
 
 	// check for a driver that wants intermission stats
 	// start the apropriate game based on parms

@@ -375,6 +375,7 @@ consvar_t cv_kartdebugdistribution = {"kartdebugdistribution", "Off", CV_NETVAR|
 consvar_t cv_kartdebughuddrop = {"kartdebughuddrop", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_kartdebugcheckpoint = {"kartdebugcheckpoint", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugnodes = {"kartdebugnodes", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -418,9 +419,6 @@ consvar_t cv_numlaps = {"numlaps", "3", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_con
 	NumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t basenumlaps_cons_t[] = {{1, "MIN"}, {50, "MAX"}, {0, "Map default"}, {0, NULL}};
 consvar_t cv_basenumlaps = {"basenumlaps", "Map default", CV_NETVAR|CV_CALL|CV_CHEAT, basenumlaps_cons_t, BaseNumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
-
-// log elemental hazards -- not a netvar, is local to current player
-consvar_t cv_hazardlog = {"hazardlog", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_forceskin = {"forceskin", "-1", CV_NETVAR|CV_CALL|CV_CHEAT, NULL, ForceSkin_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_downloading = {"downloading", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -594,8 +592,6 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_numlaps);
 	CV_RegisterVar(&cv_basenumlaps);
 
-	CV_RegisterVar(&cv_hazardlog);
-
 	CV_RegisterVar(&cv_autobalance);
 	CV_RegisterVar(&cv_teamscramble);
 	CV_RegisterVar(&cv_scrambleonchange);
@@ -758,6 +754,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_playername4);
 	CV_RegisterVar(&cv_playercolor4);
 	CV_RegisterVar(&cv_skin4);
+	// preferred number of players
+	CV_RegisterVar(&cv_splitplayers);
 
 #ifdef SEENAMES
 	CV_RegisterVar(&cv_seenames);
@@ -1350,15 +1348,22 @@ static void SendNameAndColor(void)
 // splitscreen
 static void SendNameAndColor2(void)
 {
-	INT32 secondplaya;
+	INT32 secondplaya = -1;
+	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	char *p;
 
 	if (splitscreen < 1 && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
 	if (secondarydisplayplayer != consoleplayer)
 		secondplaya = secondarydisplayplayer;
-	else // HACK
+	else if (!netgame) // HACK
 		secondplaya = 1;
+
+	if (secondplaya == -1)
+		return;
+
+	p = buf;
 
 	// normal player colors
 	if (G_GametypeHasTeams())
@@ -1436,20 +1441,52 @@ static void SendNameAndColor2(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	snac2pending++;
+
+	// Don't change name if muted
+	if (cv_mute.value && !(server || IsPlayerAdmin(secondarydisplayplayer)))
+		CV_StealthSet(&cv_playername2, player_names[secondarydisplayplayer]);
+	else // Cleanup name if changing it
+		CleanupPlayerName(secondarydisplayplayer, cv_playername2.zstring);
+
+	// Don't change skin if the server doesn't want you to.
+	if (!CanChangeSkin(secondarydisplayplayer))
+		CV_StealthSet(&cv_skin2, skins[players[secondarydisplayplayer].skin].name);
+
+	// check if player has the skin loaded (cv_skin2 may have
+	// the name of a skin that was available in the previous game)
+	cv_skin2.value = R_SkinAvailable(cv_skin2.string);
+	if (cv_skin2.value < 0)
+	{
+		CV_StealthSet(&cv_skin2, DEFAULTSKIN);
+		cv_skin2.value = 0;
+	}
+
+	// Finally write out the complete packet and send it off.
+	WRITESTRINGN(p, cv_playername2.zstring, MAXPLAYERNAME);
+	WRITEUINT8(p, (UINT8)cv_playercolor2.value);
+	WRITEUINT8(p, (UINT8)cv_skin2.value);
+	SendNetXCmd2(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void SendNameAndColor3(void)
 {
-	INT32 thirdplaya;
+	INT32 thirdplaya = -1;
+	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	char *p;
 
 	if (splitscreen < 2)
 		return; // can happen if skin3/color3/name3 changed
 
 	if (thirddisplayplayer != consoleplayer)
 		thirdplaya = thirddisplayplayer;
-	else // HACK
+	else if (!netgame) // HACK
 		thirdplaya = 2;
+
+	if (thirdplaya == -1)
+		return;
+
+	p = buf;
 
 	// normal player colors
 	if (G_GametypeHasTeams())
@@ -1519,20 +1556,52 @@ static void SendNameAndColor3(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	snac3pending++;
+
+	// Don't change name if muted
+	if (cv_mute.value && !(server || IsPlayerAdmin(thirddisplayplayer)))
+		CV_StealthSet(&cv_playername3, player_names[thirddisplayplayer]);
+	else // Cleanup name if changing it
+		CleanupPlayerName(thirddisplayplayer, cv_playername3.zstring);
+
+	// Don't change skin if the server doesn't want you to.
+	if (!CanChangeSkin(thirddisplayplayer))
+		CV_StealthSet(&cv_skin3, skins[players[thirddisplayplayer].skin].name);
+
+	// check if player has the skin loaded (cv_skin3 may have
+	// the name of a skin that was available in the previous game)
+	cv_skin3.value = R_SkinAvailable(cv_skin3.string);
+	if (cv_skin3.value < 0)
+	{
+		CV_StealthSet(&cv_skin3, DEFAULTSKIN);
+		cv_skin3.value = 0;
+	}
+
+	// Finally write out the complete packet and send it off.
+	WRITESTRINGN(p, cv_playername3.zstring, MAXPLAYERNAME);
+	WRITEUINT8(p, (UINT8)cv_playercolor3.value);
+	WRITEUINT8(p, (UINT8)cv_skin3.value);
+	SendNetXCmd3(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void SendNameAndColor4(void)
 {
-	INT32 fourthplaya;
+	INT32 fourthplaya = -1;
+	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	char *p;
 
 	if (splitscreen < 3)
 		return; // can happen if skin4/color4/name4 changed
 
 	if (fourthdisplayplayer != consoleplayer)
 		fourthplaya = fourthdisplayplayer;
-	else // HACK
+	else if (!netgame) // HACK
 		fourthplaya = 3;
+
+	if (fourthplaya == -1)
+		return;
+
+	p = buf;
 
 	// normal player colors
 	if (G_GametypeHasTeams())
@@ -1610,7 +1679,32 @@ static void SendNameAndColor4(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	snac4pending++;
+
+	// Don't change name if muted
+	if (cv_mute.value && !(server || IsPlayerAdmin(fourthdisplayplayer)))
+		CV_StealthSet(&cv_playername4, player_names[fourthdisplayplayer]);
+	else // Cleanup name if changing it
+		CleanupPlayerName(fourthdisplayplayer, cv_playername4.zstring);
+
+	// Don't change skin if the server doesn't want you to.
+	if (!CanChangeSkin(fourthdisplayplayer))
+		CV_StealthSet(&cv_skin4, skins[players[fourthdisplayplayer].skin].name);
+
+	// check if player has the skin loaded (cv_skin4 may have
+	// the name of a skin that was available in the previous game)
+	cv_skin4.value = R_SkinAvailable(cv_skin4.string);
+	if (cv_skin4.value < 0)
+	{
+		CV_StealthSet(&cv_skin4, DEFAULTSKIN);
+		cv_skin4.value = 0;
+	}
+
+	// Finally write out the complete packet and send it off.
+	WRITESTRINGN(p, cv_playername4.zstring, MAXPLAYERNAME);
+	WRITEUINT8(p, (UINT8)cv_playercolor4.value);
+	WRITEUINT8(p, (UINT8)cv_skin4.value);
+	SendNetXCmd4(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
@@ -2010,16 +2104,20 @@ void D_SetupVote(void)
 
 void D_ModifyClientVote(SINT8 voted, UINT8 splitplayer)
 {
-	char buf[1];
+	char buf[2];
 	char *p = buf;
+	UINT8 player = consoleplayer;
 
-	if (splitplayer > 0) // Don't actually send anything for splitscreen
-		votes[splitplayer] = voted;
-	else
-	{
-		WRITESINT8(p, voted);
-		SendNetXCmd(XD_MODIFYVOTE, &buf, 1);
-	}
+	if (splitplayer == 1)
+		player = secondarydisplayplayer;
+	else if (splitplayer == 2)
+		player = thirddisplayplayer;
+	else if (splitplayer == 3)
+		player = fourthdisplayplayer;
+
+	WRITESINT8(p, voted);
+	WRITEUINT8(p, player);
+	SendNetXCmd(XD_MODIFYVOTE, &buf, 2);
 }
 
 void D_PickVote(void)
@@ -2388,11 +2486,12 @@ static void Command_Suicide(void)
 	}*/
 
 	// Retry is quicker.  Probably should force people to use it.
-	if (!(netgame || multiplayer))
+	// nope, this is srb2kart - a complete retry is overkill
+	/*if (!(netgame || multiplayer))
 	{
 		CONS_Printf(M_GetText("You can't use this in Single Player! Use \"retry\" instead.\n"));
 		return;
-	}
+	}*/
 
 	SendNetXCmd(XD_SUICIDE, &buf, 4);
 }
@@ -3217,11 +3316,11 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
 	else if (NetPacket.packet.newteam == 3)
-		/*CONS_Printf(M_GetText("%s entered the game.\n"), player_names[playernum])*/;
+		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[playernum]));
 	else if (players[playernum].pflags & PF_WANTSTOJOIN)
 		players[playernum].pflags &= ~PF_WANTSTOJOIN;
 	else
-		CONS_Printf(M_GetText("%s became a spectator.\n"), player_names[playernum]);
+		CON_LogMessage(va(M_GetText("%s became a spectator.\n"), player_names[playernum]));
 
 	//reset view if you are changed, or viewing someone who was changed.
 	if (playernum == consoleplayer || displayplayer == playernum)
@@ -3341,6 +3440,12 @@ static void Command_Login_f(void)
 	XBOXSTATIC UINT8 finalmd5[16];
 	const char *pw;
 
+	if (!netgame)
+	{
+		CONS_Printf(M_GetText("This only works in a netgame.\n"));
+		return;
+	}
+
 	// If the server uses login, it will effectively just remove admin privileges
 	// from whoever has them. This is good.
 	if (COM_Argc() != 2)
@@ -3452,6 +3557,12 @@ static void Command_Verify_f(void)
 	if (client)
 	{
 		CONS_Printf(M_GetText("Only the server can use this.\n"));
+		return;
+	}
+
+	if (!netgame)
+	{
+		CONS_Printf(M_GetText("This only works in a netgame.\n"));
 		return;
 	}
 
@@ -3809,7 +3920,7 @@ static void Command_Addfile(void)
 		WRITEMEM(buf_p, md5sum, 16);
 	}
 
-	if (IsPlayerAdmin(consoleplayer)) // Request to add file
+	if (IsPlayerAdmin(consoleplayer) && (!server)) // Request to add file
 		SendNetXCmd(XD_REQADDFILE, buf, buf_p - buf);
 	else
 		SendNetXCmd(XD_ADDFILE, buf, buf_p - buf);
@@ -4623,7 +4734,10 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 static void Got_ModifyVotecmd(UINT8 **cp, INT32 playernum)
 {
 	SINT8 voted = READSINT8(*cp);
-	votes[playernum] = voted;
+	UINT8 p = READUINT8(*cp);
+
+	(void)playernum;
+	votes[p] = voted;
 }
 
 static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
@@ -4780,10 +4894,10 @@ void Command_Retry_f(void)
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else if (netgame || multiplayer)
 		CONS_Printf(M_GetText("This only works in single player.\n"));
-	else if (!&players[consoleplayer] || players[consoleplayer].lives <= 1)
+	/*else if (!&players[consoleplayer] || players[consoleplayer].lives <= 1)
 		CONS_Printf(M_GetText("You can't retry without any lives remaining!\n"));
 	else if (G_IsSpecialStage(gamemap))
-		CONS_Printf(M_GetText("You can't retry special stages!\n"));
+		CONS_Printf(M_GetText("You can't retry special stages!\n"));*/
 	else
 	{
 		M_ClearMenus(true);
@@ -5237,6 +5351,13 @@ static void KartFrantic_OnChange(void)
 
 static void KartSpeed_OnChange(void)
 {
+	if (!M_SecretUnlocked(SECRET_HARDSPEED) && cv_kartspeed.value == 2)
+	{
+		CONS_Printf(M_GetText("You haven't earned this yet.\n"));
+		CV_StealthSetValue(&cv_kartspeed, 1);
+		return;
+	}
+
 	if (G_RaceGametype())
 	{
 		if ((UINT8)cv_kartspeed.value != gamespeed && gamestate == GS_LEVEL && leveltime > starttime)
