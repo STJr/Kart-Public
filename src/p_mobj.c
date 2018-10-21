@@ -8385,74 +8385,80 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		case MT_KARMAHITBOX:
-			if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
-				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
 			{
-				P_RemoveMobj(mobj);
-				return;
-			}
+				statenum_t state = (mobj->state-states);
 
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
-			mobj->scalespeed = mobj->target->scalespeed;
-			mobj->destscale = mobj->target->destscale;
-			P_SetScale(mobj, mobj->target->scale);
-			mobj->color = mobj->target->color;
-			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode]);
-
-			if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
-			{
-				if (mobj->state != &states[mobj->info->spawnstate])
-					P_SetMobjState(mobj, mobj->info->spawnstate);
-
-				if (mobj->target->player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
-					mobj->flags2 &= ~MF2_DONTDRAW;
-				else
-					mobj->flags2 |= MF2_DONTDRAW;
-			}
-			else
-			{
-				if (!mobj->target->player->kartstuff[k_comebackmode]
-					&& mobj->state != &states[mobj->info->spawnstate])
-					P_SetMobjState(mobj, mobj->info->spawnstate);
-				else if (mobj->target->player->kartstuff[k_comebackmode] == 1
-					&& mobj->state != &states[mobj->info->seestate])
-					P_SetMobjState(mobj, mobj->info->seestate);
-				else if (mobj->target->player->kartstuff[k_comebackmode] == 2
-					&& mobj->state != &states[mobj->info->painstate])
-					P_SetMobjState(mobj, mobj->info->painstate);
-
-				if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
-					mobj->flags2 |= MF2_DONTDRAW;
-				else
-					mobj->flags2 &= ~MF2_DONTDRAW;
-			}
-
-			// Now for the wheels
-			{
-				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
-				mobj_t *cur = mobj->hnext;
-
-				while (cur && !P_MobjWasRemoved(cur))
+				if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
+					|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
 				{
-					fixed_t offx = rad;
-					fixed_t offy = rad;
+					P_RemoveMobj(mobj);
+					return;
+				}
 
-					if (cur->lastlook == 1 || cur->lastlook == 3)
-						offx *= -1;
-					if (cur->lastlook == 2 || cur->lastlook == 3)
-						offy *= -1;
+				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+				mobj->angle = mobj->target->angle;
+				mobj->scalespeed = mobj->target->scalespeed;
+				mobj->destscale = mobj->target->destscale;
+				P_SetScale(mobj, mobj->target->scale);
+				mobj->color = mobj->target->color;
+				mobj->colorized = true;
 
-					P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
-					cur->scalespeed = mobj->target->scalespeed;
-					cur->destscale = mobj->target->destscale;
-					P_SetScale(cur, mobj->target->scale);
-
-					if (mobj->flags2 & MF2_DONTDRAW)
-						cur->flags2 |= MF2_DONTDRAW;
+				if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
+				{
+					if (state < mobj->info->spawnstate || state > mobj->info->spawnstate+19)
+						P_SetMobjState(mobj, mobj->info->spawnstate);
+					if (mobj->target->player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
+						mobj->flags2 &= ~MF2_DONTDRAW;
 					else
-						cur->flags2 &= ~MF2_DONTDRAW;
+						mobj->flags2 |= MF2_DONTDRAW;
+				}
+				else
+				{
+					if (!mobj->target->player->kartstuff[k_comebackmode]
+						&& (state < mobj->info->spawnstate || state > mobj->info->spawnstate+19))
+						P_SetMobjState(mobj, mobj->info->spawnstate);
+					else if (mobj->target->player->kartstuff[k_comebackmode] == 1
+						&& state != mobj->info->seestate)
+						P_SetMobjState(mobj, mobj->info->seestate);
+					else if (mobj->target->player->kartstuff[k_comebackmode] == 2
+						&& state != mobj->info->painstate)
+						P_SetMobjState(mobj, mobj->info->painstate);
 
-					cur = cur->hnext;
+					if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
+						mobj->flags2 |= MF2_DONTDRAW;
+					else
+						mobj->flags2 &= ~MF2_DONTDRAW;
+				}
+
+				// Now for the wheels
+				{
+					const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
+					mobj_t *cur = mobj->hnext;
+
+					while (cur && !P_MobjWasRemoved(cur))
+					{
+						fixed_t offx = rad;
+						fixed_t offy = rad;
+
+						if (cur->lastlook == 1 || cur->lastlook == 3)
+							offx *= -1;
+						if (cur->lastlook == 2 || cur->lastlook == 3)
+							offy *= -1;
+
+						P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
+						cur->scalespeed = mobj->target->scalespeed;
+						cur->destscale = mobj->target->destscale;
+						P_SetScale(cur, mobj->target->scale);
+						cur->color = mobj->target->color;
+						cur->colorized = true;
+
+						if (mobj->flags2 & MF2_DONTDRAW)
+							cur->flags2 |= MF2_DONTDRAW;
+						else
+							cur->flags2 &= ~MF2_DONTDRAW;
+
+						cur = cur->hnext;
+					}
 				}
 			}
 			break;

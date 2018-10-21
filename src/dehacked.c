@@ -6727,7 +6727,26 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERARROW_WANTED6",
 	"S_PLAYERARROW_WANTED7",
 
-	"S_PLAYERBOMB", // Player bomb overlay
+	"S_PLAYERBOMB1", // Player bomb overlay
+	"S_PLAYERBOMB2",
+	"S_PLAYERBOMB3",
+	"S_PLAYERBOMB4",
+	"S_PLAYERBOMB5",
+	"S_PLAYERBOMB6",
+	"S_PLAYERBOMB7",
+	"S_PLAYERBOMB8",
+	"S_PLAYERBOMB9",
+	"S_PLAYERBOMB10",
+	"S_PLAYERBOMB11",
+	"S_PLAYERBOMB12",
+	"S_PLAYERBOMB13",
+	"S_PLAYERBOMB14",
+	"S_PLAYERBOMB15",
+	"S_PLAYERBOMB16",
+	"S_PLAYERBOMB17",
+	"S_PLAYERBOMB18",
+	"S_PLAYERBOMB19",
+	"S_PLAYERBOMB20",
 	"S_PLAYERITEM", // Player item overlay
 	"S_PLAYERFAKE", // Player fake overlay
 
