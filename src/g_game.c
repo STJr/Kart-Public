@@ -2359,6 +2359,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 itemamount;
 	INT32 itemroulette;
 	INT32 roulettetype;
+	INT32 growshrinktimer;
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
@@ -2422,6 +2423,7 @@ void G_PlayerReborn(INT32 player)
 		roulettetype = 0;
 		itemtype = 0;
 		itemamount = 0;
+		growshrinktimer = 0;
 		bumper = (G_BattleGametype() ? cv_kartbumpers.value : 0);
 		comebackpoints = 0;
 		wanted = 0;
@@ -2444,6 +2446,9 @@ void G_PlayerReborn(INT32 player)
 			itemtype = players[player].kartstuff[k_itemtype];
 			itemamount = players[player].kartstuff[k_itemamount];
 		}
+
+		// Keep Shrink status, remove Grow status
+		growshrinktimer = min(players[player].kartstuff[k_growshrinktimer], 0);
 
 		bumper = players[player].kartstuff[k_bumper];
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
@@ -2509,6 +2514,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_roulettetype] = roulettetype;
 	p->kartstuff[k_itemtype] = itemtype;
 	p->kartstuff[k_itemamount] = itemamount;
+	p->kartstuff[k_growshrinktimer] = growshrinktimer;
 	p->kartstuff[k_bumper] = bumper;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
