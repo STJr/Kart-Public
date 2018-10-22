@@ -1315,7 +1315,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 {
 	{IT_KEYHANDLER|IT_STRING,	NULL, "SFX",					M_ToggleSFX,			 10},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "SFX Volume",				&cv_soundvolume,		 18},
+								NULL, "SFX Volume",			&cv_soundvolume,		 18},
 
 	{IT_KEYHANDLER|IT_STRING,	NULL, "Music",					M_ToggleDigital,		 30},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
@@ -1330,16 +1330,16 @@ static menuitem_t OP_SoundOptionsMenu[] =
 								NULL, "CD Volume",				&cd_volume,				 40},
 #endif*/
 
-	{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
+	//{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
 
-	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 65},
-	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 75},
+	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 50},
+	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,			 60},
 
-	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 90},
-	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			100},
-	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		110},
+	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 75},
+	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			 85},
+	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		125},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",			M_HandleSoundTest,		110},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
