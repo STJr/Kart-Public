@@ -314,7 +314,7 @@ menu_t OP_SoundOptionsDef;
 static void M_ToggleSFX(INT32 choice);
 static void M_ToggleDigital(INT32 choice);
 //static void M_ToggleMIDI(INT32 choice);
-static void M_RestartAudio(void);
+//static void M_RestartAudio(void);
 
 //Misc
 menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
@@ -9041,10 +9041,10 @@ static void M_ToggleDigital(INT32 choice)
 	}
 }*/
 
-static void M_RestartAudio(void)
+/*static void M_RestartAudio(void)
 {
 	COM_ImmedExecute("restartaudio");
-}
+}*/
 
 // ===============
 // VIDEO MODE MENU

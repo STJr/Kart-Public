@@ -1109,16 +1109,16 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		fixed_t nx = FixedDiv(distx, dist);
 		fixed_t ny = FixedDiv(disty, dist);
 
-		if (P_AproxDistance(distx, disty) < 3*mobj1->radius/4)
+		if (P_AproxDistance(distx, disty) < (3*mobj1->radius)/4)
 		{
-			distx = FixedMul(mobj1->radius/2, nx);
-			disty = FixedMul(mobj1->radius/2, ny);
+			distx = FixedMul((3*mobj1->radius)/4, nx);
+			disty = FixedMul((3*mobj1->radius)/4, ny);
 		}
 
-		if (P_AproxDistance(distx, disty) < 3*mobj2->radius/4)
+		if (P_AproxDistance(distx, disty) < (3*mobj2->radius)/4)
 		{
-			distx = FixedMul(mobj2->radius/2, nx);
-			disty = FixedMul(mobj2->radius/2, ny);
+			distx = FixedMul((3*mobj2->radius)/4, nx);
+			disty = FixedMul((3*mobj2->radius)/4, ny);
 		}
 	}
 
