@@ -9043,22 +9043,7 @@ static void M_ToggleDigital(INT32 choice)
 
 static void M_RestartAudio(void)
 {
-	S_StopMusic();
-	I_ShutdownMusic();
-	I_ShutdownSound();
-	I_StartupSound();
-	I_InitMusic();
-
-	I_SetSfxVolume(cv_soundvolume.value);
-	I_SetDigMusicVolume(cv_digmusicvolume.value);
-	//I_SetMIDIMusicVolume(cv_midimusicvolume.value);
-
-	S_StartSound(NULL, sfx_strpst);
-
-	if (Playing()) // Gotta make sure the player is in a level
-		P_RestoreMusic(&players[consoleplayer]);
-	else
-		S_ChangeMusicInternal("titles", looptitle);
+	COM_ImmedExecute("restartaudio");
 }
 
 // ===============
