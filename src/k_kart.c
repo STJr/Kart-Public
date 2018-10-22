@@ -1979,7 +1979,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 	player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
-	if (G_BattleGametype())
+	// This is the only part that SHOULDN'T combo :VVVVV
+	if (G_BattleGametype() && !(player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0))
 	{
 		if (source && source->player && player != source->player)
 		{
