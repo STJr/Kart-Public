@@ -659,6 +659,8 @@ typedef enum sprite
 
 	SPR_RUST, // Rusty Rig sprites
 
+	SPR_BLON, // D2 Balloon Panic
+
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
 	SPR_FIRSTFREESLOT,
@@ -3633,6 +3635,12 @@ typedef enum state
 	S_RUSTYLAMP_ORANGE,
 	S_RUSTYCHAIN,
 
+	// D2 Balloon Panic
+	S_BALLOON,
+	S_BALLOONPOP1,
+	S_BALLOONPOP2,
+	S_BALLOONPOP3,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4315,6 +4323,9 @@ typedef enum mobj_type
 	// Rusty Rig
 	MT_RUSTYLAMP_ORANGE,
 	MT_RUSTYCHAIN,
+
+	// D2 Balloon Panic
+	MT_BALLOON,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

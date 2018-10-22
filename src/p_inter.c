@@ -577,7 +577,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_eggmanblame] = -1;
 			}
 			return;
-		case MT_CDUFO:			// SRB2kart
+		case MT_CDUFO: // SRB2kart
 			if (special->fuse || !P_CanPickupItem(player, 1) || (G_BattleGametype() && player->kartstuff[k_bumper] <= 0))
 				return;
 
@@ -590,6 +590,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			special->momz = -(3*special->scale)/2;
 			//P_SetTarget(&special->target, toucher);
 			special->fuse = 2*TICRATE;
+			break;
+		case MT_BALLOON: // SRB2kart
+			P_SetObjectMomZ(toucher, 20<<FRACBITS, false);
 			break;
 
 // ***************************************** //

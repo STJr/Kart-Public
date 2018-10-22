@@ -9383,7 +9383,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (29*mobj->scale), MT_MARBLELIGHT);
 			break;
 		case MT_RUSTYLAMP_ORANGE:
-			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (68*mobj->scale), MT_MARBLELIGHT);
+			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (69*mobj->scale), MT_MARBLELIGHT);
 			break;
 		default:
 			break;
@@ -11044,6 +11044,11 @@ ML_NOCLIMB : Direction not controllable
 	case MT_TRAPGOYLELONG:
 		if (mthing->angle >= 360)
 			mobj->tics += 7*(mthing->angle / 360) + 1; // starting delay
+		break;
+	case MT_BALLOON: // SRB2Kart
+		if (mthing->angle < MAXSKINCOLORS && mthing->angle > 0)
+			mobj->color = mthing->angle;
+		break;
 	default:
 		break;
 	}

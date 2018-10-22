@@ -6785,6 +6785,12 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_RUSTYLAMP_ORANGE",
 	"S_RUSTYCHAIN",
 
+	// D2 Balloon Panic
+	"S_BALLOON",
+	"S_BALLOONPOP1",
+	"S_BALLOONPOP2",
+	"S_BALLOONPOP3",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -7450,6 +7456,9 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	// Rusty Rig
 	"MT_RUSTYLAMP_ORANGE",
 	"MT_RUSTYCHAIN",
+
+	// D2 Balloon Panic
+	"MT_BALLOON",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

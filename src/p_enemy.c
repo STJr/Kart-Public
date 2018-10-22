@@ -10583,4 +10583,6 @@ void A_SpawnFreshCopy(mobj_t *actor)
 
 	if (newObject->info->seesound)
 		S_StartSound(newObject, newObject->info->seesound);
+
+	newObject->color = actor->color; // SRB2Kart
 }

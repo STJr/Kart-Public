@@ -61,7 +61,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
-	"LZI1","LZI2","KLIT","MARB","FUFO","RUST","VIEW"
+	"LZI1","LZI2","KLIT","MARB","FUFO","RUST","BLON","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3079,6 +3079,12 @@ state_t states[NUMSTATES] =
 	// Rusty Rig
 	{SPR_RUST, FF_FULLBRIGHT, -1, {NULL}, 0, 0, S_NULL}, // S_RUSTYLAMP_ORANGE
 	{SPR_RUST, 1,             -1, {NULL}, 0, 0, S_NULL}, // S_RUSTYCHAIN
+
+	// D2 Balloon Panic
+	{SPR_BLON, FF_ANIMATE,   -1,         {NULL},             2, 5, S_BALLOON},     // S_BALLOON
+	{SPR_BLON, FF_ANIMATE|3, 2,          {NULL},             1, 1, S_BALLOONPOP2}, // S_BALLOONPOP1
+	{SPR_NULL, 0,            15*TICRATE, {NULL},             0, 0, S_BALLOONPOP3}, // S_BALLOONPOP2
+	{SPR_NULL, 0,            0,          {A_SpawnFreshCopy}, 0, 0, S_NULL},        // S_BALLOONPOP3
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -17411,6 +17417,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SCENERY|MF_NOBLOCKMAP, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_BALLOON
+		462,            // doomednum
+		S_BALLOON,      // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_BALLOONPOP1,  // deathstate
+		S_NULL,         // xdeathstate
+		sfx_s3k77,      // deathsound
+		0,              // speed
+		32*FRACUNIT,    // radius
+		64*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SPECIAL|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
