@@ -654,6 +654,13 @@ typedef enum sprite
 	SPR_LZI2, // ditto
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
 
+	// Various plants
+	SPR_PALM,
+	SPR_SHRB,
+	SPR_TWEE,
+
+	SPR_BALN, // Diddy Kong Racing
+
 	SPR_MARB, // Marble Zone sprites
 	SPR_FUFO, // CD Special Stage UFO (don't ask me why it begins with an F)
 
@@ -3621,6 +3628,14 @@ typedef enum state
 	S_KLIT11,
 	S_KLIT12,
 
+	// Various plants
+	S_PALMTREE,
+	S_SHRUB,
+	S_TALLBUSH,
+	S_AZURECITYTREE,
+
+	S_DKRBALLOON, // Diddy Kong Racing
+
 	// Marble Zone
 	S_FLAMEPARTICLE,
 	S_MARBLETORCH,
@@ -4310,6 +4325,14 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+
+	// Various plants
+	MT_PALMTREE,
+	MT_SHRUB,
+	MT_TALLBUSH,
+	MT_AZURECITYTREE,
+
+	MT_DKRBALLOON, // Diddy Kong Racing
 
 	// Marble Zone
 	MT_FLAMEPARTICLE,
