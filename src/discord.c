@@ -101,7 +101,7 @@ void DRPC_UpdatePresence(void)
 			discordPresence.partyId = "1"; // We don't really have "party" IDs, so to make invites expire we just let it reset to 0 outside of servers
 
 			// Grab the host's IP for joining.
-			if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode, true)) != NULL)
+			if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode)) != NULL)
 			{
 				discordPresence.joinSecret = address;
 				CONS_Printf("%s\n", address);

@@ -903,7 +903,7 @@ void SendAskInfoViaMS(INT32 node, tic_t asktime)
 
 	// This must be called after calling MSOpenUDPSocket, due to the
 	// static buffer.
-	address = I_GetNodeAddress(node, false);
+	address = I_GetNodeAddress(node);
 
 	// no address?
 	if (!address)
