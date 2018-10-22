@@ -97,6 +97,10 @@
 
 #include "i_addrinfo.h"
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 // ================================ DEFINITIONS ===============================
 
 #define PACKET_SIZE 1024
@@ -845,6 +849,9 @@ void RegisterServer(void)
 	MSOpenUDPSocket();
 
 	// keep the TCP connection open until AddToMasterServer() is completed;
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 static inline void SendPingToMasterServer(void)
@@ -896,7 +903,7 @@ void SendAskInfoViaMS(INT32 node, tic_t asktime)
 
 	// This must be called after calling MSOpenUDPSocket, due to the
 	// static buffer.
-	address = I_GetNodeAddress(node);
+	address = I_GetNodeAddress(node, false);
 
 	// no address?
 	if (!address)
@@ -946,6 +953,10 @@ void UnregisterServer(void)
 	CloseConnection();
 	MSCloseUDPSocket();
 	MSLastPing = 0;
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 void MasterClient_Ticker(void)

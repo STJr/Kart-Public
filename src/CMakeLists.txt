@@ -220,6 +220,8 @@ set(SRB2_CONFIG_HAVE_ZLIB ON CACHE BOOL
 	"Enable zlib support.")
 set(SRB2_CONFIG_HAVE_GME ON CACHE BOOL
 	"Enable GME support.")
+set(SRB2_CONFIG_HAVE_DISCORDRPC OFF CACHE BOOL
+	"Enable Discord rich presence support.")
 set(SRB2_CONFIG_HWRENDER ON CACHE BOOL
 	"Enable hardware rendering through OpenGL.")
 set(SRB2_CONFIG_USEASM OFF CACHE BOOL
@@ -323,6 +325,19 @@ if(${SRB2_CONFIG_HAVE_GME})
 	else()
 		message(WARNING "You have specified that GME is available but it was not found.")
 	endif()
+endif()
+
+# TO-DO: make this check for the dependency like the others..
+if(${SRB2_CONFIG_HAVE_DISCORDRPC})
+	add_definitions(-DHAVE_DISCORDRPC)
+	set(SRB2_DISCORDRPC_SOURCES
+		discord.c
+		discord.h
+	)
+
+	prepend_sources(SRB2_DISCORDRPC_SOURCES)
+
+	source_group("Discord RPC" FILES ${SRB2_DISCORDRPC_SOURCES})
 endif()
 
 if(${SRB2_CONFIG_HAVE_ZLIB})

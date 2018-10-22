@@ -55,6 +55,10 @@
 #include "sdl12/SRB2XBOX/xboxhelp.h"
 #endif
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 //
 // NETWORKING
 //
@@ -3258,6 +3262,10 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 #ifdef HAVE_BLUA
 	LUAh_PlayerJoin(newplayernum);
 #endif
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 // Xcmd XD_REMOVEPLAYER
@@ -3279,6 +3287,10 @@ static void Got_RemovePlayer(UINT8 **p, INT32 playernum)
 	}
 
 	CL_RemovePlayer(READUINT8(*p));
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 static boolean SV_AddWaitingPlayers(void)

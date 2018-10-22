@@ -47,6 +47,10 @@
 #include "md5.h" // demo checksums
 #include "k_kart.h" // SRB2kart
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
 UINT8 ultimatemode = false;
@@ -2252,6 +2256,10 @@ void G_Ticker(boolean run)
 		if (spectatedelay4)
 			spectatedelay4--;
 	}
+
+#ifdef HAVE_DISCORDRPC
+	Discord_RunCallbacks();
+#endif
 }
 
 //
@@ -6347,6 +6355,9 @@ boolean G_CheckDemoStatus(void)
 void G_SetGamestate(gamestate_t newstate)
 {
 	gamestate = newstate;
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 /* These functions handle the exitgame flag. Before, when the user
