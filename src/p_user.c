@@ -8162,10 +8162,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	fixed_t x, y, z, dist, height, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
 	fixed_t pan, xpan, ypan;
 	INT32 camrotate;
-	boolean camstill, cameranoclip, lookback;
+	boolean camstill, lookback;
 	mobj_t *mo;
-	subsector_t *newsubsec;
 	fixed_t f1, f2;
+#ifndef NOCLIPCAM
+	boolean cameranoclip;
+	subsector_t *newsubsec;
+#endif
 
 	// We probably shouldn't move the camera if there is no player or player mobj somehow
 	if (!player || !player->mo)
@@ -8173,9 +8176,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	mo = player->mo;
 
-#ifdef NOCLIPCAM
-	cameranoclip = true; // We like camera noclip!
-#else
+#ifndef NOCLIPCAM
 	cameranoclip = ((player->pflags & (PF_NOCLIP|PF_NIGHTSMODE))
 		|| (mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)) // Noclipping player camera noclips too!!
 		|| (leveltime < introtime)); // Kart intro cam
@@ -8411,6 +8412,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	else
 		z = mo->z + pviewheight + camheight;
 
+#ifndef NOCLIPCAM // Disable all z-clipping for noclip cam
 	// move camera down to move under lower ceilings
 	newsubsec = R_IsPointInSubsector(((mo->x>>FRACBITS) + (thiscam->x>>FRACBITS))<<(FRACBITS-1), ((mo->y>>FRACBITS) + (thiscam->y>>FRACBITS))<<(FRACBITS-1));
 
@@ -8608,6 +8610,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (thiscam->z < thiscam->floorz && !cameranoclip)
 		thiscam->z = thiscam->floorz;
+#endif // NOCLIPCAM
 
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
