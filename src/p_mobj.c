@@ -9380,7 +9380,10 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			break;
 		}
 		case MT_MARBLETORCH:
-			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (29<<FRACBITS), MT_MARBLELIGHT);
+			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (29*mobj->scale), MT_MARBLELIGHT);
+			break;
+		case MT_RUSTYLAMP_ORANGE:
+			P_SpawnMobj(mobj->x, mobj->y, mobj->z + (68*mobj->scale), MT_MARBLELIGHT);
 			break;
 		default:
 			break;

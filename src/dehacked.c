@@ -6781,6 +6781,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_CDUFO",
 	"S_CDUFO_DIE",
 
+	// Rusty Rig
+	"S_RUSTYLAMP_ORANGE",
+	"S_RUSTYCHAIN",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -7442,6 +7446,10 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	// CD Special Stage
 	"MT_CDUFO",
+
+	// Rusty Rig
+	"MT_RUSTYLAMP_ORANGE",
+	"MT_RUSTYCHAIN",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

@@ -657,6 +657,8 @@ typedef enum sprite
 	SPR_MARB, // Marble Zone sprites
 	SPR_FUFO, // CD Special Stage UFO (don't ask me why it begins with an F)
 
+	SPR_RUST, // Rusty Rig sprites
+
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
 	SPR_FIRSTFREESLOT,
@@ -3627,6 +3629,10 @@ typedef enum state
 	S_CDUFO,
 	S_CDUFO_DIE,
 
+	// Rusty Rig
+	S_RUSTYLAMP_ORANGE,
+	S_RUSTYCHAIN,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4305,6 +4311,10 @@ typedef enum mobj_type
 
 	// CD Special Stage
 	MT_CDUFO,
+
+	// Rusty Rig
+	MT_RUSTYLAMP_ORANGE,
+	MT_RUSTYCHAIN,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
