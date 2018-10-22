@@ -1840,6 +1840,9 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].exiting)
 					continue;
 
+				if (players[displayplayer].pflags & PF_TIMEOVER)
+					continue;
+
 				// I don't know if we want this actually, but I'll humor the suggestion anyway
 				if (G_BattleGametype())
 				{
