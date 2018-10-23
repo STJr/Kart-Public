@@ -7458,27 +7458,27 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
-	
+
 	// Midnight Channel stuff:
 	"MT_SPOTLIGHT",		// Spotlight Object
 	"MT_RANDOMSHADOW",	// Random static Shadows.
 	"MT_ROAMINGSHADOW",	// Roaming Shadows.
 	"MT_MAYONAKAARROW",	// Arrow static signs for Mayonaka
-	
+
 	// Mementos stuff
 	"MT_REAPERWAYPOINT",
 	"MT_REAPER",
 	"MT_MEMENTOSTP",
 	"MT_MEMENTOSPARTICLE",
-	
+
 	"MT_JACKINTHEBOX",
-	
+
 	// Color Drive:
 	"MT_CDMOON",
 	"MT_CDBUSH",
 	"MT_CDTREEA",
 	"MT_CDTREEB",
-
+	
 #ifdef SEENAMES
 	"MT_NAMECHECK",
 #endif
