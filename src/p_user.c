@@ -8298,25 +8298,30 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 
 	// SRB2Kart: set camera panning
-	if (player->kartstuff[k_drift] != 0)
-	{
-		fixed_t panmax = (dist/5);
-		pan = FixedDiv(FixedMul(min((fixed_t)player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)), panmax), K_GetKartDriftSparkValue(player));
-		if (pan > panmax)
-			pan = panmax;
-		if (player->kartstuff[k_drift] < 0)
-			pan *= -1;
-	}
-	else
+	if (camstill || resetcalled || player->playerstate == PST_DEAD)
 		pan = 0;
+	else
+	{
+		if (player->kartstuff[k_drift] != 0)
+		{
+			fixed_t panmax = (dist/5);
+			pan = FixedDiv(FixedMul(min((fixed_t)player->kartstuff[k_driftcharge], K_GetKartDriftSparkValue(player)), panmax), K_GetKartDriftSparkValue(player));
+			if (pan > panmax)
+				pan = panmax;
+			if (player->kartstuff[k_drift] < 0)
+				pan *= -1;
+		}
+		else
+			pan = 0;
 
-	pan = thiscam->pan + FixedMul(pan - thiscam->pan, camspeed/4);
+		pan = thiscam->pan + FixedMul(pan - thiscam->pan, camspeed/4);
 
-	xpan = FixedMul(FINECOSINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
-	ypan = FixedMul(FINESINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
+		xpan = FixedMul(FINECOSINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
+		ypan = FixedMul(FINESINE(((angle+ANGLE_90)>>ANGLETOFINESHIFT) & FINEMASK), pan);
 
-	x += xpan;
-	y += ypan;
+		x += xpan;
+		y += ypan;
+	}
 
 	pviewheight = FixedMul(32<<FRACBITS, mo->scale);
 
