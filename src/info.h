@@ -169,6 +169,8 @@ void A_JawzExplode(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
+void A_FZBoomFlash(); // SRB2kart
+void A_FZBoomSmoke(); // SRB2kart
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -653,6 +655,10 @@ typedef enum sprite
 	SPR_LZI2, // ditto
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
 
+	SPR_FZSM, // F-Zero NO CONTEST explosion
+	SPR_FZBM,
+	SPR_FPRT,
+	
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
 	SPR_FIRSTFREESLOT,
@@ -3613,6 +3619,31 @@ typedef enum state
 	S_KLIT11,
 	S_KLIT12,
 
+	S_FZEROSMOKE1, // F-Zero NO CONTEST explosion
+	S_FZEROSMOKE2,
+	S_FZEROSMOKE3,
+	S_FZEROSMOKE4,
+	S_FZEROSMOKE5,
+
+	S_FZEROBOOM1,
+	S_FZEROBOOM2,
+	S_FZEROBOOM3,
+	S_FZEROBOOM4,
+	S_FZEROBOOM5,
+	S_FZEROBOOM6,
+	S_FZEROBOOM7,
+	S_FZEROBOOM8,
+	S_FZEROBOOM9,
+	S_FZEROBOOM10,
+	S_FZEROBOOM11,
+	S_FZEROBOOM12,
+
+	S_FZSLOWSMOKE1,
+	S_FZSLOWSMOKE2,
+	S_FZSLOWSMOKE3,
+	S_FZSLOWSMOKE4,
+	S_FZSLOWSMOKE5,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4282,6 +4313,8 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+
+	MT_FZEROBOOM,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

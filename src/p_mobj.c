@@ -8481,6 +8481,66 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 			break;
+		case MT_FZEROBOOM: // F-Zero explosion
+			if (!mobj->extravalue1)
+			{
+				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32<<FRACBITS);
+				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32<<FRACBITS);
+				mobj_t *explosion = P_SpawnMobj(mobj->x + (2*mx), mobj->y + (2*my), mobj->z+(mobj->height/2), MT_THOK);
+
+				P_SetMobjState(explosion, S_FZEROBOOM1);
+				explosion->scale = mobj->scale*2;
+				explosion->momx = mx;
+				explosion->momy = my;
+
+				S_StartSound(mobj, mobj->info->seesound);
+				mobj->extravalue1 = 1;
+			}
+
+			if (!S_SoundPlaying(mobj, mobj->info->attacksound))
+				S_StartSound(mobj, mobj->info->attacksound);
+
+			if (mobj->extravalue2 > 70) // fire + smoke pillar
+			{
+				UINT8 i;
+				mobj_t *fire = P_SpawnMobj(mobj->x + (P_RandomRange(-32, 32)*mobj->scale), mobj->y + (P_RandomRange(-32, 32)*mobj->scale), mobj->z, MT_THOK);
+
+				fire->sprite = SPR_FPRT;
+				fire->frame = FF_TRANS30;
+				fire->scale = mobj->scale*4;
+				fire->momz = P_RandomRange(2, 3)*mobj->scale;
+				fire->scalespeed = mobj->scale/12;
+				fire->destscale = 1;
+				fire->tics = TICRATE;
+				if (!mobj->target || (mobj->target && mobj->target->player && !P_IsLocalPlayer(mobj->target->player)))
+					fire->flags2 |= MF2_DONTDRAW;
+
+				for (i = 0; i < 2; i++)
+				{
+					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-16, 16)*mobj->scale), mobj->y + (P_RandomRange(-16, 16)*mobj->scale), mobj->z, MT_SMOKE);
+
+					P_SetMobjState(smoke, S_FZSLOWSMOKE1);
+					smoke->scale = mobj->scale;
+					smoke->momz = P_RandomRange(3, 10)*mobj->scale;
+					smoke->destscale = mobj->scale*4;
+					smoke->scalespeed = mobj->scale/24;
+				}
+			}
+			else
+			{
+				mobj->extravalue2++; // flametimer
+
+				if (mobj->extravalue2 > 8)
+				{
+					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-31, 31)*mobj->scale), mobj->y + (P_RandomRange(-31, 31)*mobj->scale),
+						mobj->z + (P_RandomRange(0, 48)*mobj->scale), MT_THOK);
+
+					P_SetMobjState(smoke, S_FZEROSMOKE1);
+					smoke->tics += P_RandomRange(-3, 4);
+					smoke->scale = mobj->scale*2;
+				}
+			}
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);

@@ -61,7 +61,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
-	"LZI1","LZI2","KLIT","VIEW"
+	"LZI1","LZI2","KLIT","FZSM","FZBM","FPRT","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3053,18 +3053,43 @@ state_t states[NUMSTATES] =
 	{SPR_LZI2, FF_TRANS70|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},		// S_LZIO29
 	
 	// The slanted bolt. Man these states are boring as all heck to do.
-	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT2},	// S_KLIT1
-	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT3},	// S_KLIT2
+	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT2},		// S_KLIT1
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT3},		// S_KLIT2
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|1, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT4},	// S_KLIT3
-	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT5},	// S_KLIT4
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT5},		// S_KLIT4
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|2, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT6},	// S_KLIT5
-	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT7},	// S_KLIT6
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT7},		// S_KLIT6
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|3, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT8},	// S_KLIT7
-	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT9},	// S_KLIT8
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT9},		// S_KLIT8
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|4, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT10},	// S_KLIT9
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT11},	// S_KLIT10
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT12},	// S_KLIT11
-	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12	
+	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},		// S_KLIT12
+
+	{SPR_FZSM, 0, 4, {NULL}, 0, 0, S_FZEROSMOKE2},   // S_FZEROSMOKE1
+	{SPR_FZSM, 1, 4, {NULL}, 0, 0, S_FZEROSMOKE3}, // S_FZEROSMOKE2
+	{SPR_FZSM, 2, 4, {NULL}, 0, 0, S_FZEROSMOKE4}, // S_FZEROSMOKE3
+	{SPR_FZSM, 3, 4, {NULL}, 0, 0, S_FZEROSMOKE5}, // S_FZEROSMOKE4
+	{SPR_FZSM, 4, 4, {NULL}, 0, 0, S_NULL},        // S_FZEROSMOKE5
+
+	{SPR_FZBM, 0, 2, {NULL}, 0, 0, S_FZEROBOOM2}, // S_FZEROBOOM1
+	{SPR_FZBM, 1, 2, {NULL}, 0, 0, S_FZEROBOOM3}, // S_FZEROBOOM2
+	{SPR_FZBM, 2, 2, {NULL}, 0, 0, S_FZEROBOOM4}, // S_FZEROBOOM3
+	{SPR_FZBM, 3, 2, {A_FZBoomFlash}, 0, 0, S_FZEROBOOM5}, // S_FZEROBOOM4
+	{SPR_FZBM, 2, 1, {A_FZBoomSmoke}, 0, 0, S_FZEROBOOM6}, // S_FZEROBOOM5
+	{SPR_FZBM, 1, 1, {A_FZBoomSmoke}, 0, 0, S_FZEROBOOM7}, // S_FZEROBOOM6
+	{SPR_NULL, 0, 1, {A_FZBoomSmoke}, 1, 0, S_FZEROBOOM8}, // S_FZEROBOOM7
+	{SPR_NULL, 0, 1, {A_FZBoomSmoke}, 2, 0, S_FZEROBOOM9}, // S_FZEROBOOM8
+	{SPR_NULL, 0, 1, {A_FZBoomSmoke}, 3, 0, S_FZEROBOOM10}, // S_FZEROBOOM9
+	{SPR_NULL, 0, 1, {A_FZBoomSmoke}, 2, 0, S_FZEROBOOM11}, // S_FZEROBOOM10
+	{SPR_NULL, 0, 1, {A_FZBoomSmoke}, 1, 0, S_FZEROBOOM12}, // S_FZEROBOOM11
+	{SPR_NULL, 0, 1, {A_FZBoomSmoke}, 0, 0, S_NULL}, // S_FZEROBOOM12
+
+	{SPR_SMOK, FF_TRANS30, 30, {NULL}, 0, 0, S_FZSLOWSMOKE2},		// S_FZSLOWSMOKE1
+	{SPR_SMOK, FF_TRANS30|1, 30, {NULL}, 0, 0, S_FZSLOWSMOKE3},	// S_FZSLOWSMOKE2
+	{SPR_SMOK, FF_TRANS30|2, 30, {NULL}, 0, 0, S_FZSLOWSMOKE4},	// S_FZSLOWSMOKE3
+	{SPR_SMOK, FF_TRANS30|3, 30, {NULL}, 0, 0, S_FZSLOWSMOKE5},	// S_FZSLOWSMOKE4
+	{SPR_SMOK, FF_TRANS30|4, 30, {NULL}, 0, 0, S_NULL},			// S_FZSLOWSMOKE5
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -17208,6 +17233,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_FZEROBOOM
+		-1,             // doomednum
+		S_INVISIBLE,    // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_kc31,       // seesound
+		8,              // reactiontime
+		sfx_kc51,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		FRACUNIT,       // radius
+		FRACUNIT,       // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 

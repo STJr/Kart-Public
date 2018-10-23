@@ -306,6 +306,7 @@ typedef enum
 	k_accelboost,		// Boost value smoothing for acceleration
 	k_boostcam,			// Camera push forward on boost
 	k_destboostcam,		// Ditto
+	k_timeovercam,		// Camera timer for leaving behind or not
 	k_aizdriftstrat,	// Let go of your drift while boosting? Helper for the SICK STRATZ you have just unlocked
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")

@@ -192,7 +192,9 @@ void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_JawzExplode(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
-void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
+void A_LightningFollowPlayer(mobj_t *actor); // SRB2kart
+void A_FZBoomFlash(mobj_t *actor); // SRB2kart
+void A_FZBoomSmoke(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -8173,7 +8175,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, and A_BallhogExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, A_BallhogExplode, A_LightningFollowPlayer, A_FZBoomFlash, A_FZBoomSmoke
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8417,6 +8419,50 @@ void A_LightningFollowPlayer(mobj_t *actor)
 		actor->momx = actor->target->momx;
 		actor->momy = actor->target->momy;
 		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
+	}
+	return;
+}
+
+// A_FZBoomFlash:
+// Flash everyone close enough to the boom
+void A_FZBoomFlash(mobj_t *actor)
+{
+	UINT8 i;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_FZBoomFlash", actor))
+		return;
+#endif
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		fixed_t dist;
+		if (!playeringame[i] || !players[i].mo)
+			continue;
+		dist = P_AproxDistance(P_AproxDistance(actor->x-players[i].mo->x, actor->y-players[i].mo->y), actor->z-players[i].mo->z);
+		if (dist < 1536<<FRACBITS)
+			P_FlashPal(&players[i], PAL_WHITE, 2);
+	}
+	return;
+}
+
+// A_FZBoomSmoke:
+// Spawns pinkish smoke around the object
+// Var1 is radius add
+void A_FZBoomSmoke(mobj_t *actor)
+{
+	INT32 i;
+	INT32 rad = 47+(23*var1);
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_FZBoomSmoke", actor))
+		return;
+#endif
+	for (i = 0; i < 8+(4*var1); i++)
+	{
+		mobj_t *smoke = P_SpawnMobj(actor->x + (P_RandomRange(-rad, rad)*actor->scale), actor->y + (P_RandomRange(-rad, rad)*actor->scale),
+			actor->z + (P_RandomRange(0, 72)*actor->scale), MT_THOK);
+
+		P_SetMobjState(smoke, S_FZEROSMOKE1);
+		smoke->tics += P_RandomRange(-3, 4);
+		smoke->scale = actor->scale*3;
 	}
 	return;
 }
