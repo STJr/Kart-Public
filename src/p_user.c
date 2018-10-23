@@ -8221,7 +8221,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (timeover)
 	{
-		const INT32 timeovercam = min(180, (player->kartstuff[k_timeovercam] - 2*TICRATE)*15);
+		const INT32 timeovercam = max(0, min(180, (player->kartstuff[k_timeovercam] - 2*TICRATE)*15));
 		camrotate += timeovercam;
 	}
 	else if (leveltime < introtime) // Whoooshy camera!
@@ -8244,7 +8244,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
 
-	if (leveltime < starttime || timeover == 2)
+	if (timeover)
+		angle = mo->angle + FixedAngle(camrotate*FRACUNIT);
+	else if (leveltime < starttime)
 		angle = focusangle + FixedAngle(camrotate*FRACUNIT);
 	else if (camstill || resetcalled || player->playerstate == PST_DEAD)
 		angle = thiscam->angle;
@@ -8534,15 +8536,15 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + xpan;
 	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + ypan;
 
-	if (timeover == 2)
+	if (timeover)
 		thiscam->angle = angle;
 	else if (!camstill && !resetcalled && !paused && timeover != 1)
 		thiscam->angle = R_PointToAngle2(thiscam->x, thiscam->y, viewpointx, viewpointy);
 
 	if (timeover == 1)
 	{
-		thiscam->momx = P_ReturnThrustX(NULL, thiscam->angle, 32<<FRACBITS); // Push forward
-		thiscam->momy = P_ReturnThrustY(NULL, thiscam->angle, 32<<FRACBITS);
+		thiscam->momx = P_ReturnThrustX(NULL, mo->angle, 32<<FRACBITS); // Push forward
+		thiscam->momy = P_ReturnThrustY(NULL, mo->angle, 32<<FRACBITS);
 		thiscam->momz = 0;
 	}
 	else if (player->exiting || timeover == 2)
