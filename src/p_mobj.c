@@ -8512,8 +8512,6 @@ void P_MobjThinker(mobj_t *mobj)
 				fire->scalespeed = mobj->scale/12;
 				fire->destscale = 1;
 				fire->tics = TICRATE;
-				if (!mobj->target || (mobj->target && mobj->target->player && !P_IsLocalPlayer(mobj->target->player)))
-					fire->flags2 |= MF2_DONTDRAW;
 
 				for (i = 0; i < 2; i++)
 				{
