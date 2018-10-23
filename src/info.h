@@ -668,6 +668,10 @@ typedef enum sprite
 
 	SPR_BLON, // D2 Balloon Panic
 
+	// Xmas-specific sprites that don't fit aboxe
+	SPR_XMS4,
+	SPR_XMS5,
+
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
 	SPR_FIRSTFREESLOT,
@@ -2125,6 +2129,10 @@ typedef enum state
 	S_XMASPOLE,
 	S_CANDYCANE,
 	S_SNOWMAN,
+	S_SNOWMANHAT,
+	S_LAMPPOST1,
+	S_LAMPPOST2,
+	S_HANGSTAR,
 
 	// Botanic Serenity's loads of scenery states
 	S_BSZTALLFLOWER_RED,
@@ -3959,6 +3967,10 @@ typedef enum mobj_type
 	MT_XMASPOLE,
 	MT_CANDYCANE,
 	MT_SNOWMAN,
+	MT_SNOWMANHAT,
+	MT_LAMPPOST1,
+	MT_LAMPPOST2,
+	MT_HANGSTAR,
 
 	// Botanic Serenity scenery
 	MT_BSZTALLFLOWER_RED,

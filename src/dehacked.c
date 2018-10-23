@@ -5268,6 +5268,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_XMASPOLE",
 	"S_CANDYCANE",
 	"S_SNOWMAN",
+	"S_SNOWMANHAT",
+	"S_LAMPPOST1",
+	"S_LAMPPOST2",
+	"S_HANGSTAR",
 
 	// Botanic Serenity's loads of scenery states
 	"S_BSZTALLFLOWER_RED",
@@ -7085,6 +7089,10 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_XMASPOLE",
 	"MT_CANDYCANE",
 	"MT_SNOWMAN",
+	"MT_SNOWMANHAT",
+	"MT_LAMPPOST1",
+	"MT_LAMPPOST2",
+	"MT_HANGSTAR",
 
 	// Botanic Serenity
 	"MT_BSZTALLFLOWER_RED",

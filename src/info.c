@@ -62,7 +62,9 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
 	"LZI1","LZI2","KLIT","PALM","SHRB","TWEE","BALN","MARB","FUFO","RUST",
-	"BLON","VIEW"
+	"BLON",
+	"XMS4","XMS5",
+	"VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -1535,6 +1537,10 @@ state_t states[NUMSTATES] =
 	{SPR_XMS1, 0, -1, {NULL}, 0, 0, S_NULL}, // S_XMASPOLE
 	{SPR_XMS2, 0, -1, {NULL}, 0, 0, S_NULL}, // S_CANDYCANE
 	{SPR_XMS3, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SNOWMAN
+	{SPR_XMS3, 1, -1, {NULL}, 0, 0, S_NULL}, // S_SNOWMANHAT
+	{SPR_XMS4, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LAMPPOST1
+	{SPR_XMS4, 1, -1, {NULL}, 0, 0, S_NULL}, // S_LAMPPOST2
+	{SPR_XMS5, 0, -1, {NULL}, 0, 0, S_NULL}, // S_HANGSTAR
 
 	// Loads of Botanic Serenity bullshit
 	{SPR_BSZ1, 0, -1, {NULL}, 0, 0, S_NULL}, // S_BSZTALLFLOWER_RED
@@ -9086,12 +9092,120 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // deathsound
 		25*FRACUNIT,    // speed
 		16*FRACUNIT,    // radius
-		40*FRACUNIT,    // height
+		64*FRACUNIT,    // height
 		0,              // display offset
 		100,            // mass
 		1,              // damage
 		sfx_None,       // activesound
 		MF_SLIDEME|MF_SOLID|MF_PUSHABLE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_SNOWMANHAT
+		1853,           // doomednum
+		S_SNOWMANHAT,   // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		25*FRACUNIT,    // speed
+		16*FRACUNIT,    // radius
+		80*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_SLIDEME|MF_SOLID|MF_PUSHABLE, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_LAMPPOST1
+		1854,           // doomednum
+		S_LAMPPOST1,    // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		8*FRACUNIT,     // radius
+		120*FRACUNIT,   // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_SOLID|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_LAMPPOST2
+		1855,           // doomednum
+		S_LAMPPOST2,    // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		8*FRACUNIT,     // radius
+		120*FRACUNIT,   // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_SOLID|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_HANGSTAR
+		1856,           // doomednum
+		S_HANGSTAR,     // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		FRACUNIT,       // radius
+		80*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		1,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_SPAWNCEILING|MF_NOGRAVITY|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
