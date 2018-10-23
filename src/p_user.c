@@ -8299,7 +8299,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	// SRB2Kart: set camera panning
 	if (camstill || resetcalled || player->playerstate == PST_DEAD)
-		pan = 0;
+		pan = xpan = ypan = 0;
 	else
 	{
 		if (player->kartstuff[k_drift] != 0)
