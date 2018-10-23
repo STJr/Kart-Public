@@ -62,6 +62,7 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
 	"LZI1","LZI2","KLIT","PALM","SHRB","TWEE","MARB","FUFO","RUST","BLON",
+	"VAPE",
 	"XMS4","XMS5",
 	"VIEW"
 };
@@ -3073,7 +3074,6 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12	
 
 	// Various plants
-	{SPR_PALM, 0, -1, {NULL}, 0, 0, S_NULL}, // S_PALMTREE
 	{SPR_SHRB, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SHRUB
 	{SPR_BUS2, 1, -1, {NULL}, 0, 0, S_NULL}, // S_TALLBUSH
 	{SPR_TWEE, 0, -1, {NULL}, 0, 0, S_NULL}, // S_AZURECITYTREE
@@ -3097,6 +3097,21 @@ state_t states[NUMSTATES] =
 	{SPR_BLON, FF_ANIMATE|3, 2,          {NULL},             1, 1, S_BALLOONPOP2}, // S_BALLOONPOP1
 	{SPR_NULL, 0,            15*TICRATE, {NULL},             0, 0, S_BALLOONPOP3}, // S_BALLOONPOP2
 	{SPR_NULL, 0,            0,          {A_SpawnFreshCopy}, 0, 0, S_NULL},        // S_BALLOONPOP3
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	{SPR_SMOK, 0,  1, {A_SetScale},   FRACUNIT/2, 0,     S_PETSMOKE1}, // S_PETSMOKE0
+	{SPR_SMOK, 0,  5, {A_SetScale},   FRACUNIT*2, 1,     S_PETSMOKE2}, // S_PETSMOKE1
+	{SPR_SMOK, 1,  5, {A_BubbleRise}, 0,          50096, S_PETSMOKE3}, // S_PETSMOKE2
+	{SPR_SMOK, 2, 15, {A_BubbleRise}, 0,          50096, S_PETSMOKE4}, // S_PETSMOKE3
+	{SPR_SMOK, 3, 25, {A_BubbleRise}, 0,          50096, S_PETSMOKE5}, // S_PETSMOKE4
+	{SPR_SMOK, 4, 35, {A_BubbleRise}, 0,          50096, S_NULL},      // S_PETSMOKE5
+	{SPR_VAPE, 0,  1, {NULL},         0,          0,     S_VVVAPING1}, // S_VVVAPING0
+	{SPR_SMOK, 0,  5, {A_SetScale},   FRACUNIT*2, 1,     S_VVVAPING2}, // S_VVVAPING1
+	{SPR_VAPE, 1,  5, {A_BubbleRise}, 0,          50096, S_VVVAPING3}, // S_VVVAPING2
+	{SPR_VAPE, 2, 15, {A_BubbleRise}, 0,          50096, S_VVVAPING4}, // S_VVVAPING3
+	{SPR_VAPE, 3, 25, {A_BubbleRise}, 0,          50096, S_VVVAPING5}, // S_VVVAPING4
+	{SPR_VAPE, 4, 35, {A_BubbleRise}, 0,          50096, S_NULL},      // S_VVVAPING5
+	{SPR_VAPE, FF_ANIMATE|FF_TRANS30, -1, {NULL}, 6, 6, S_NULL}, // S_VVVAPE
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -16152,14 +16167,14 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
-		8,              // speed
+		0,              // speed
 		16*FRACUNIT,    // radius
-		40*FRACUNIT,    // height
+		189*FRACUNIT,   // height
 		0,              // display offset
-		100,            // mass
+		0,              // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOCLIP|MF_SCENERY, // flags
+		MF_NOTHINK|MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY, // flags
 		S_NULL          // raisestate
 	},
 
@@ -17351,33 +17366,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_PALMTREE,
-		1482,           // doomednum
-		S_PALMTREE,     // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		16*FRACUNIT,    // radius
-		189*FRACUNIT,   // height
-		0,              // display offset
-		0,              // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY, // flags
-		S_NULL          // raisestate
-	},
-
 	{           // MT_SHRUB,
 		4022,           // doomednum
 		S_SHRUB,        // spawnstate
@@ -17672,6 +17660,87 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_SPECIAL|MF_NOGRAVITY|MF_SCENERY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_PETSMOKER
+		2018,           // doomednum
+		S_INVISIBLE,    // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		24*FRACUNIT,    // radius
+		64*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SCENERY|MF_NOBLOCKMAP|MF_NOGRAVITY, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_PETSMOKE
+		-1,             // doomednum
+		S_PETSMOKE0,    // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_VVVAPING0,    // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		8*FRACUNIT,     // radius
+		12*FRACUNIT,    // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_NOGRAVITY|MF_SCENERY|MF_RUNSPAWNFUNC, // flags
+		S_NULL          // raisestate
+	},
+
+	{           // MT_VVVAPE
+		1600,           // doomednum
+		S_VVVAPE,       // spawnstate
+		1000,           // spawnhealth
+		S_NULL,         // seestate
+		sfx_None,       // seesound
+		8,              // reactiontime
+		sfx_None,       // attacksound
+		S_NULL,         // painstate
+		0,              // painchance
+		sfx_None,       // painsound
+		S_NULL,         // meleestate
+		S_NULL,         // missilestate
+		S_NULL,         // deathstate
+		S_NULL,         // xdeathstate
+		sfx_None,       // deathsound
+		0,              // speed
+		16*FRACUNIT,    // radius
+		64*FRACUNIT,    // height
+		0,              // display offset
+		100,            // mass
+		0,              // damage
+		sfx_None,       // activesound
+		MF_SCENERY|MF_NOGRAVITY|MF_NOBLOCKMAP, // flags
 		S_NULL          // raisestate
 	},
 

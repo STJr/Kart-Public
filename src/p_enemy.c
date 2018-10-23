@@ -9755,6 +9755,8 @@ void A_SetScale(mobj_t *actor)
 		return;
 	}
 
+	locvar1 = FixedMul(locvar1, mapheaderinfo[gamemap-1]->mobj_scale); // SRB2Kart
+
 	target->destscale = locvar1; // destination scale
 	if (!(locvar2 & 65535))
 		P_SetScale(target, locvar1); // this instantly changes current scale to var1 if used, if not destscale will alter scale to var1 anyway

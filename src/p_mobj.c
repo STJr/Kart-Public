@@ -7031,6 +7031,14 @@ void P_MobjThinker(mobj_t *mobj)
 					return;
 				}
 				break;
+			case MT_PETSMOKER:
+				if (!(leveltime % 10))
+				{
+					mobj_t *smok = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_PETSMOKE);
+					if (mobj->spawnpoint && mobj->spawnpoint->options & MTF_OBJECTSPECIAL)
+						P_SetMobjStateNF(smok, smok->info->painstate); // same function, diff sprite
+				}
+				break;
 			//}
 			case MT_WATERDROP:
 				P_SceneryCheckWater(mobj);

@@ -6776,7 +6776,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KLIT12",
 
 	// Various plants
-	"S_PALMTREE",
 	"S_SHRUB",
 	"S_TALLBUSH",
 	"S_AZURECITYTREE",
@@ -6800,6 +6799,21 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BALLOONPOP1",
 	"S_BALLOONPOP2",
 	"S_BALLOONPOP3",
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	"S_PETSMOKE0",
+	"S_PETSMOKE1",
+	"S_PETSMOKE2",
+	"S_PETSMOKE3",
+	"S_PETSMOKE4",
+	"S_PETSMOKE5",
+	"S_VVVAPING0",
+	"S_VVVAPING1",
+	"S_VVVAPING2",
+	"S_VVVAPING3",
+	"S_VVVAPING4",
+	"S_VVVAPING5",
+	"S_VVVAPE",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7459,7 +7473,6 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_KARMAWHEEL",
 
 	// Various plants
-	"MT_PALMTREE",
 	"MT_SHRUB",
 	"MT_TALLBUSH",
 	"MT_AZURECITYTREE",
@@ -7479,6 +7492,11 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	// D2 Balloon Panic
 	"MT_BALLOON",
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	"MT_PETSMOKER",
+	"MT_PETSMOKE",
+	"MT_VVVAPE",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",
