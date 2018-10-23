@@ -666,6 +666,12 @@ typedef enum sprite
 	
 	//Mementos stuff:
 	SPR_REAP,
+	
+	SPR_JITB,	// Jack In The Box
+	
+	// Color Drive stuff:
+	SPR_CDMO,
+	SPR_CDBU,
 
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
 	
@@ -3644,6 +3650,20 @@ typedef enum state
 	S_REAPER_INVIS,		// Reaper waiting for spawning
 	S_REAPER,			// Reaper main frame where its thinker is handled
 	S_MEMENTOSTP,		// Mementos teleporter state. (Used for spawning particles)
+	
+	// JackInTheBox
+	S_JITB1,
+	S_JITB2,
+	S_JITB3,
+	S_JITB4,
+	S_JITB5,
+	S_JITB6,
+	
+	// Color Drive
+	S_CDMOONSP,
+	S_CDBUSHSP,
+	S_CDTREEASP,
+	S_CDTREEBSP,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4326,6 +4346,15 @@ typedef enum mobj_type
 	MT_REAPER,
 	MT_MEMENTOSTP,
 	MT_MEMENTOSPARTICLE,
+	
+	MT_JACKINTHEBOX,
+	
+	// Color Drive:
+	MT_CDMOON,
+	MT_CDBUSH,
+	MT_CDTREEA,
+	MT_CDTREEB,
+	
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
