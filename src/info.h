@@ -655,7 +655,7 @@ typedef enum sprite
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
 
 	// Various plants
-	SPR_PALM,
+	SPR_SBUS,
 	SPR_SHRB,
 	SPR_TWEE,
 
@@ -667,6 +667,21 @@ typedef enum sprite
 	SPR_BLON, // D2 Balloon Panic
 
 	SPR_VAPE, // Volcanic Valley
+
+	// Hill Top Zone
+	SPR_HTZA,
+	SPR_HTZB,
+
+	// Ports of gardens
+	SPR_SGVA,
+	SPR_SGVB,
+	SPR_SGVC,
+	SPR_PGTR,
+	SPR_PGF1,
+	SPR_PGF2,
+	SPR_PGF3,
+	SPR_PGBH,
+	SPR_DPLR,
 
 	// Xmas-specific sprites that don't fit aboxe
 	SPR_XMS4,
@@ -3637,6 +3652,7 @@ typedef enum state
 	S_KLIT12,
 
 	// Various plants
+	S_SONICBUSH,
 	S_SHRUB,
 	S_TALLBUSH,
 	S_AZURECITYTREE,
@@ -3675,6 +3691,21 @@ typedef enum state
 	S_VVVAPING4,
 	S_VVVAPING5,
 	S_VVVAPE,
+
+	// Hill Top Zone
+	S_HTZTREE,
+	S_HTZBUSH,
+
+	// Ports of gardens
+	S_SGVINE1,
+	S_SGVINE2,
+	S_SGVINE3,
+	S_PGTREE,
+	S_PGFLOWER1,
+	S_PGFLOWER2,
+	S_PGFLOWER3,
+	S_PGBUSH,
+	S_DHPILLAR,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4351,6 +4382,7 @@ typedef enum mobj_type
 	MT_KARMAWHEEL,
 
 	// Various plants
+	MT_SONICBUSH,
 	MT_SHRUB,
 	MT_TALLBUSH,
 	MT_AZURECITYTREE,
@@ -4375,6 +4407,21 @@ typedef enum mobj_type
 	MT_PETSMOKER,
 	MT_PETSMOKE,
 	MT_VVVAPE,
+
+	// Hill Top Zone
+	MT_HTZTREE,
+	MT_HTZBUSH,
+
+	// Ports of gardens
+	MT_SGVINE1,
+	MT_SGVINE2,
+	MT_SGVINE3,
+	MT_PGTREE,
+	MT_PGFLOWER1,
+	MT_PGFLOWER2,
+	MT_PGFLOWER3,
+	MT_PGBUSH,
+	MT_DHPILLAR,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,
