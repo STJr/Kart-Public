@@ -3013,9 +3013,9 @@ state_t states[NUMSTATES] =
 	{SPR_PBOM, FF_ANIMATE, -1, {NULL}, 3, 3, S_NULL}, // S_PLAYERBOMB
 	{SPR_RNDM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERITEM
 	{SPR_FITM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERFAKE
-
-	{SPR_PBOM, 4, -1, {NULL}, 0, 0, S_NULL}, // S_KARMAWHEEL
 	
+	{SPR_PBOM, 4, -1, {NULL}, 0, 0, S_NULL}, // S_KARMAWHEEL
+
 	// Oh no it's annoying lightning states.......
 	// Lightning Sparks (it's the ones we'll use for the radius)
 	{SPR_KSPK, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK2},	// S_KSPARK1
@@ -3031,7 +3031,7 @@ state_t states[NUMSTATES] =
 	{SPR_KSPK, FF_TRANS50|FF_FULLBRIGHT|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KSPARK12},	// S_KSPARK11
 	{SPR_NULL, FF_FULLBRIGHT, 1, {A_LightningFollowPlayer}, 0, 0, S_KSPARK13},	// S_KSPARK12
 	{SPR_KSPK, FF_TRANS60|FF_FULLBRIGHT|6, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},	// S_KSPARK13
-	
+
 	// The straight bolt...
 	{SPR_LZI1, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO12},	// S_LZIO11
 	{SPR_NULL, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO13},	// S_LZIO12
@@ -3042,7 +3042,7 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, 0, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO18},	// S_LZIO17
 	{SPR_LZI1, FF_TRANS50|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO19},	// S_LZIO18
 	{SPR_LZI1, FF_TRANS70|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},		// S_LZIO19
-	
+
 	{SPR_NULL, FF_FULLBRIGHT, 6, {A_LightningFollowPlayer}, 0, 0, S_LZIO22},	// S_LZIO21
 	{SPR_LZI2, FF_FULLBRIGHT|1, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO23},	// S_LZIO22
 	{SPR_LZI2, FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO24},	// S_LZIO23
@@ -3052,7 +3052,7 @@ state_t states[NUMSTATES] =
 	{SPR_LZI2, FF_TRANS30|FF_FULLBRIGHT|2, 2, {A_LightningFollowPlayer}, 0, 0, S_LZIO28},	// S_LZIO27
 	{SPR_NULL, 0, 4, {A_LightningFollowPlayer}, 0, 0, S_LZIO29},	// S_LZIO28
 	{SPR_LZI2, FF_TRANS70|FF_FULLBRIGHT, 2, {A_LightningFollowPlayer}, 0, 0, S_NULL},		// S_LZIO29
-	
+
 	// The slanted bolt. Man these states are boring as all heck to do.
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT2},	// S_KLIT1
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT3},	// S_KLIT2
@@ -3066,29 +3066,29 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT11},	// S_KLIT10
 	{SPR_KLIT, FF_FULLBRIGHT|FF_PAPERSPRITE|5, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT12},	// S_KLIT11
 	{SPR_NULL, FF_FULLBRIGHT|FF_PAPERSPRITE, 2, {A_LightningFollowPlayer}, 0, 0, S_KLIT1},	// S_KLIT12
-	
+
 	// Midnight Channel stuff, yay more boring states!
 	{SPR_SPTL, 0, -1, {NULL}, 0, 0, S_SPOTLIGHT},		// S_SPOTLIGHT
 	{SPR_ENM1, 0, 1, {A_RandomShadowFrame}, 0, 0, S_RANDOMSHADOW},		// S_RANDOMSHADOW
-	
+
 	{SPR_GARU, 0, 2, {NULL}, 0, 0, S_GARU2},	// S_GARU1
 	{SPR_GARU, 1, 2, {NULL}, 0, 0, S_GARU3},	// S_GARU2
 	{SPR_GARU, 2, 2, {NULL}, 0, 0, S_NULL},		// S_GARU3
-	
+
 	{SPR_NULL, 0, 2, {NULL}, 0, 0, S_TGARU1},	// S_TGARU0
 	{SPR_GARU, FF_TRANS30, 2, {NULL}, 0, 0, S_GARU2},	// S_TGARU1
 	{SPR_GARU, 1|FF_TRANS30, 2, {NULL}, 0, 0, S_GARU3},	// S_TGARU2
 	{SPR_GARU, 2|FF_TRANS30, 2, {NULL}, 0, 0, S_NULL},		// S_TGARU3
-	
+
 	{SPR_ENM1, 2, 1, {A_RoamingShadowThinker}, 0, 0, S_ROAMINGSHADOW}, //S_ROAMINGSHADOW
-	
+
 	{SPR_MARR, 0, 1, {A_MayonakaArrow}, 0, 0, S_MAYONAKAARROW}, //S_MAYONAKAARROW
-	
+
 	//Mementos stuff
 	{SPR_NULL, 0, TICRATE*130, {NULL}, 0, 0, S_REAPER}, //S_REAPER_INVIS
 	{SPR_REAP, 0, 1, {A_ReaperThinker}, 0, 0, S_REAPER}, //S_REAPER
 	{SPR_NULL, 0, 1, {A_MementosTPParticles}, 0, 0, S_MEMENTOSTP}, //S_MEMENTOSTP
-	
+
 	//JackInTheBox
 	{SPR_JITB, 0, 4, {NULL}, 0, 0, S_JITB2},	// S_JITB1
 	{SPR_JITB, 1, 4, {NULL}, 0, 0, S_JITB3},	// S_JITB2
@@ -3096,13 +3096,13 @@ state_t states[NUMSTATES] =
 	{SPR_JITB, 3, 4, {NULL}, 0, 0, S_JITB5},	// S_JITB4
 	{SPR_JITB, 2, 4, {NULL}, 0, 0, S_JITB6},	// S_JITB5
 	{SPR_JITB, 1, 4, {NULL}, 0, 0, S_JITB1},	// S_JITB6
-	
+
 	// Color Drive Stuff:
 	{SPR_CDMO, 0, -1, {NULL}, 0, 0, S_CDMOONSP},	// S_CDMOONSP
 	{SPR_CDBU, 0, -1, {NULL}, 0, 0, S_CDBUSHSP},	// S_CDBUSHSP
 	{SPR_CDBU, 1, -1, {NULL}, 0, 0, S_CDTREEASP},	// S_CDTREEASP
 	{SPR_CDBU, 2, -1, {NULL}, 0, 0, S_CDTREEBSP},	// S_CDTREEBSP
-	
+
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
 #endif
@@ -17247,9 +17247,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	// Midnight Channel stuff:
-	
+
 	{           // MT_SPOTLIGHT
 		3124,           // doomednum
 		S_SPOTLIGHT,   	// spawnstate
@@ -17276,7 +17276,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_RANDOMSHADOW
 		3120,           // doomednum
 		S_RANDOMSHADOW, // spawnstate
@@ -17303,7 +17303,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_SCENERY|MF_PAIN, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_ROAMINGSHADOW
 		3121,           // doomednum
 		S_ROAMINGSHADOW, // spawnstate
@@ -17330,7 +17330,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_SOLID|MF_PAIN|MF_SPECIAL|MF_RUNSPAWNFUNC, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_MAYONAKAARROW
 		3122,           // doomednum
 		S_MAYONAKAARROW, // spawnstate
@@ -17357,7 +17357,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOGRAVITY|MF_RUNSPAWNFUNC, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	// Mementos stuff
 	{           // MT_REAPERWAYPOINT
 		3199,           // doomednum
@@ -17385,7 +17385,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_REAPER
 		3202,           // doomednum
 		S_REAPER_INVIS, // spawnstate
@@ -17412,7 +17412,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_MEMENTOSTP
 		3201,           // doomednum
 		S_MEMENTOSTP, // spawnstate
@@ -17439,7 +17439,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOGRAVITY|MF_SPECIAL, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_MEMENTOSPARTICLE
 		-1,           // doomednum
 		S_THOK, // spawnstate
@@ -17466,7 +17466,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_NOGRAVITY, // flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_JACKINTHEBOX
 		1601,           // doomednum
 		S_JITB4, 		// spawnstate
@@ -17493,7 +17493,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_SCENERY, 	// flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_CDMOON
 		2499,           // doomednum
 		S_CDMOONSP, 	// spawnstate
@@ -17520,7 +17520,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_SCENERY|MF_NOCLIP|MF_NOGRAVITY, 	// flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_CDBUSH
 		2498,           // doomednum
 		S_CDBUSHSP, 	// spawnstate
@@ -17547,7 +17547,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_SCENERY|MF_NOCLIP|MF_NOGRAVITY, 	// flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_CDTREEA
 		2496,           // doomednum
 		S_CDTREEASP, 	// spawnstate
@@ -17574,7 +17574,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		MF_SCENERY|MF_NOCLIP|MF_NOGRAVITY, 	// flags
 		S_NULL          // raisestate
 	},
-	
+
 	{           // MT_CDTREEB
 		2497,           // doomednum
 		S_CDTREEBSP, 	// spawnstate
