@@ -2626,12 +2626,14 @@ static boolean P_ZMovement(mobj_t *mo)
 
 					mom.z /= 2; // Rocks not so bouncy
 
-					if (abs(mom.x) < FixedMul(STOPSPEED, mo->scale)
-						&& abs(mom.y) < FixedMul(STOPSPEED, mo->scale)
-						&& abs(mom.z) < FixedMul(STOPSPEED*3, mo->scale))
+					if (!mo->fuse
+						&& abs(mom.x) < FixedMul(STOPSPEED*2, mo->scale)
+						&& abs(mom.y) < FixedMul(STOPSPEED*2, mo->scale)
+						&& abs(mom.z) < FixedMul(STOPSPEED*2*3, mo->scale))
 					{
-						P_RemoveMobj(mo);
-						return false;
+						//P_RemoveMobj(mo);
+						//return false;
+						mo->fuse = TICRATE;
 					}
 				}
 				else if (mo->type == MT_CANNONBALLDECOR)
@@ -7442,13 +7444,14 @@ void P_MobjThinker(mobj_t *mobj)
 	{
 		case MT_FALLINGROCK:
 			// Despawn rocks here in case zmovement code can't do so (blame slopes)
-			if (!mobj->momx && !mobj->momy && !mobj->momz
+			if (!mobj->fuse && !mobj->momx && !mobj->momy && !mobj->momz
 			&& ((mobj->eflags & MFE_VERTICALFLIP) ?
 				  mobj->z + mobj->height >= mobj->ceilingz
 				: mobj->z <= mobj->floorz))
 			{
-				P_RemoveMobj(mobj);
-				return;
+				//P_RemoveMobj(mobj);
+				//return;
+				mobj->fuse = TICRATE;
 			}
 			P_MobjCheckWater(mobj);
 			break;
@@ -8782,7 +8785,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
-		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM) && mobj->fuse <= TICRATE)
+		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM || mobj->type == MT_FALLINGROCK) && mobj->fuse <= TICRATE)
 			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 
