@@ -8674,6 +8674,10 @@ void A_ReaperThinker(mobj_t *actor)
 	if (!(leveltime%5))
 		actor->extravalue2 = (actor->extravalue2 < 9) ? (actor->extravalue2+1) : (0);	// Ghetto animation, but hey it works for what it's worth
 
+	// Chain sfx
+	if (!S_SoundPlaying(actor, sfx_chain))
+		S_StartSound(actor, sfx_chain);
+
 	actor->frame = actor->extravalue2;	// yes i'm that bad at maths don't @ me.
 
 	if (!actor->target)
@@ -8720,7 +8724,7 @@ void A_ReaperThinker(mobj_t *actor)
 			if (!playeringame[i])
 				continue;
 
-			player = &players[actor->lastlook];
+			player = &players[i];
 			if (player && player->mo && player->kartstuff[k_bumper] && player->score >= maxscore)
 			{
 				targetplayermo = player->mo;
