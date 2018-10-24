@@ -8542,7 +8542,7 @@ void A_MayonakaArrow(mobj_t *actor)
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MayonakaArrow", (actor)))
 		return;
-#endif	
+#endif
 
 	iswarning = actor->spawnpoint->options & MTF_OBJECTSPECIAL;	// is our object a warning sign?
 	// "animtimer" is replaced by "extravalue1" here.
@@ -8553,14 +8553,14 @@ void A_MayonakaArrow(mobj_t *actor)
 		flip = 6;
 
 	actor->frame = flip + actor->extravalue2*3;
-	
+
 	if (actor->extravalue1 >= TICRATE*7/2)
-	{	
+	{
 		actor->extravalue1 = 0;	// reset to 0 and start a new cycle.
 		// special behavior for warning sign; swap from warning to sneaker & reverse
 		if (iswarning)
 			actor->extravalue2 = (actor->extravalue2) ? (0) : (1);
-	}		
+	}
 	else if (actor->extravalue1 > TICRATE*7/2 -4)
 		actor->frame = flip+2;
 	else if (actor->extravalue1 > TICRATE*3 && leveltime%2 > 0)
