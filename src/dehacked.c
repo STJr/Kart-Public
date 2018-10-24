@@ -990,7 +990,7 @@ static const struct {
 	{"2D",TOL_2D},
 	{"MARIO",TOL_MARIO},
 	{"NIGHTS",TOL_NIGHTS},
-	//{"OLDBRAK",TOL_ERZ3},
+	{"TV",TOL_TV},
 
 	{"XMAS",TOL_XMAS},
 	{"CHRISTMAS",TOL_XMAS},
