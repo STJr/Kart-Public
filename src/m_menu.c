@@ -7421,6 +7421,7 @@ static void M_StartServer(INT32 choice)
 	{
 		paused = false;
 		SV_StartSinglePlayerServer();
+		multiplayer = true; // yeah, SV_StartSinglePlayerServer clobbers this...
 		D_MapChange(cv_nextmap.value, cv_newgametype.value, (boolean)cv_kartencore.value, 1, 1, false, false);
 	}
 	else

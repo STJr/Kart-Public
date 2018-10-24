@@ -678,38 +678,6 @@ void P_Ticker(boolean run)
 		if (countdown2)
 			countdown2--;
 
-		if (spbincoming && --spbincoming <= 0)
-		{
-			UINT8 best = 0;
-			SINT8 hurtthisguy = -1;
-
-			spbincoming = 0;
-
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (!playeringame[i] || players[i].spectator)
-					continue;
-
-				if (!players[i].mo)
-					continue;
-
-				if (players[i].exiting)
-					continue;
-
-				if (best <= 0 || players[i].kartstuff[k_position] < best)
-				{
-					best = players[i].kartstuff[k_position];
-					hurtthisguy = i;
-				}
-			}
-
-			if (hurtthisguy != -1)
-			{
-				players[hurtthisguy].kartstuff[k_deathsentence] = (2*TICRATE)+1;
-				S_StartSound(players[hurtthisguy].mo, sfx_kc57);
-			}
-		}
-
 		if (indirectitemcooldown)
 			indirectitemcooldown--;
 

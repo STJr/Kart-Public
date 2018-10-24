@@ -190,6 +190,7 @@ void A_ToggleFlameJet(mobj_t *actor);
 void A_ItemPop(mobj_t *actor); // SRB2kart
 void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_JawzExplode(mobj_t *actor); // SRB2kart
+void A_SPBChase(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
@@ -3411,7 +3412,7 @@ void A_ParticleSpawn(mobj_t *actor)
 	P_SetScale(spawn, actor->scale);
 	spawn->momz = speed;
 	spawn->destscale = FixedDiv(spawn->scale<<FRACBITS, 100<<FRACBITS);
-	spawn->scalespeed = FixedDiv(((actor->spawnpoint->angle >> 8) & 63) << FRACBITS, 100<<FRACBITS);
+	spawn->scalespeed = FixedDiv(((actor->spawnpoint->angle >> 8) & 63) * actor->scale, 100<<FRACBITS);
 	actor->tics = actor->spawnpoint->extrainfo + 1;
 }
 
@@ -4019,7 +4020,7 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	grenade->flags2 |= MF2_DEBRIS;
 
 	if (thing->player) // Looks like we're going to have to need a seperate function for this too
-		K_ExplodePlayer(thing->player, grenade->target);
+		K_ExplodePlayer(thing->player, grenade->target, grenade);
 	else
 		P_DamageMobj(thing, grenade, grenade->target, 1);
 
@@ -4058,7 +4059,7 @@ void A_MineExplode(mobj_t *actor)
 	if (actor->target && actor->target->player)
 		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
 	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+		K_SpawnMineExplosion(actor, SKINCOLOR_KETCHUP);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 }
@@ -8178,7 +8179,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, and A_BallhogExplode
+//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_SPBChase, A_MineExplode, and A_BallhogExplode
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8298,7 +8299,7 @@ void A_JawzExplode(mobj_t *actor)
 
 	truc = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOOMEXPLODE);
 	truc->scale = actor->scale*2;
-	truc->color = SKINCOLOR_RED;
+	truc->color = SKINCOLOR_KETCHUP;
 
 	while (shrapnel)
 	{
@@ -8316,7 +8317,7 @@ void A_JawzExplode(mobj_t *actor)
 		speed2 = FixedMul(15*FRACUNIT, actor->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
 		truc->tics = TICRATE*2;
-		truc->color = SKINCOLOR_RED;
+		truc->color = SKINCOLOR_KETCHUP;
 
 		shrapnel--;
 	}
@@ -8324,65 +8325,220 @@ void A_JawzExplode(mobj_t *actor)
 	return;
 }
 
-/* old A_MineExplode - see elsewhere in the file
-void A_MineExplode(mobj_t *actor)
+void A_SPBChase(mobj_t *actor)
 {
-	mobj_t *mo2;
-	thinker_t *th;
-	INT32 d;
-	INT32 locvar1 = var1;
-	mobjtype_t type;
-	fixed_t range;
+	player_t *player = NULL;
+	UINT8 i;
+	UINT8 bestrank = UINT8_MAX;
+	fixed_t dist;
+	angle_t hang, vang;
+	fixed_t wspeed, xyspeed, zspeed;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_MineExplode", actor))
+	if (LUA_CallAction("A_SPBChase", actor))
 		return;
 #endif
 
-	type = (mobjtype_t)locvar1;
-	range = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	// Default speed
+	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
+	if (gamespeed == 0)
+		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
+	else if (gamespeed == 2)
+		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
 
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	if (actor->threshold) // Just fired, go straight.
 	{
-		if (P_MobjWasRemoved(actor))
-			return; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
-
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo2 = (mobj_t *)th;
-
-		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
-			continue;
-
-		if (!(mo2->flags & MF_SHOOTABLE) || (mo2->flags & MF_SCENERY))
-			continue;
-
-		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_bumper] <= 0 && mo2 == actor->target)
-			continue;
-
-		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > range)
-			continue;
-
-		actor->flags2 |= MF2_DEBRIS;
-
-		if (mo2->player) // Looks like we're going to have to need a seperate function for this too
-			K_ExplodePlayer(mo2->player, actor->target);
-		else
-			P_DamageMobj(mo2, actor, actor->target, 1);
+		P_InstaThrust(actor, actor->angle, wspeed);
+		return;
 	}
 
-	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, range + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+	if (actor->extravalue1) // MODE: TARGETING
+	{
+		if (actor->tracer && actor->tracer->health)
+		{
+			fixed_t defspeed = wspeed;
+			fixed_t range = (160*actor->tracer->scale);
 
-	if (actor->target && actor->target->player)
-		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
-	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+			// Maybe we want SPB to target an object later? IDK lol
+			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
+			{
+				if (!P_IsObjectOnGround(actor->tracer) && !actor->tracer->player->kartstuff[k_pogospring])
+					defspeed = 7*actor->tracer->player->speed/8; // In the air you have no control; basically don't hit unless you make a near complete stop
+				else
+					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+			}
 
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
+			// Play the intimidating gurgle
+			if (!S_SoundPlaying(actor, actor->info->activesound))
+				S_StartSound(actor, actor->info->activesound);
+
+			dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+
+			wspeed = FixedMul(defspeed, FRACUNIT + FixedDiv(dist-range, range));
+			if (wspeed < defspeed)
+				wspeed = defspeed;
+			if (wspeed > (3*defspeed)/2)
+				wspeed = (3*defspeed)/2;
+
+			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
+			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+			{
+				// Smoothly rotate horz angle
+				angle_t input = hang - actor->angle;
+				boolean invert = (input > ANGLE_180);
+				if (invert)
+					input = InvAngle(input);
+
+				// Slow down when turning; it looks better and makes U-turns not unfair
+				xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+				input = FixedAngle(AngleFixed(input)/4);
+				if (invert)
+					input = InvAngle(input);
+
+				actor->angle += input;
+
+				// Smoothly rotate vert angle
+				input = vang - actor->movedir;
+				invert = (input > ANGLE_180);
+				if (invert)
+					input = InvAngle(input);
+
+				// Slow down when turning; might as well do it for momz, since we do it above too
+				zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+				input = FixedAngle(AngleFixed(input)/4);
+				if (invert)
+					input = InvAngle(input);
+
+				actor->movedir += input;
+			}
+
+			actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
+
+			// Red speed lines for when it's gaining on its target. A tell for when you're starting to lose too much speed!
+			if (R_PointToDist2(0, 0, actor->momx, actor->momy) > (actor->tracer->player ? (16*actor->tracer->player->speed)/15
+				: (16*R_PointToDist2(0, 0, actor->tracer->momx, actor->tracer->momy))/15) // Going faster than the target
+				&& xyspeed > K_GetKartSpeed(actor->tracer->player, false)/4) // Don't display speedup lines at pitifully low speeds
+			{
+				mobj_t *fast = P_SpawnMobj(actor->x + (P_RandomRange(-24,24) * actor->scale),
+					actor->y + (P_RandomRange(-24,24) * actor->scale),
+					actor->z + (actor->height/2) + (P_RandomRange(-24,24) * actor->scale),
+					MT_FASTLINE);
+				fast->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
+				//fast->momx = 3*actor->momx/4;
+				//fast->momy = 3*actor->momy/4;
+				//fast->momz = 3*actor->momz/4;
+				fast->color = SKINCOLOR_RED;
+				fast->colorized = true;
+			}
+
+			return;
+		}
+		else // Target's gone, return to SEEKING
+		{
+			P_SetTarget(&actor->tracer, NULL);
+			actor->extravalue1 = 0; // Find someone new next tic
+			return;
+		}
+	}
+	else // MODE: SEEKING
+	{
+		// Find the player with the best rank
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator || players[i].exiting)
+				continue; // not in-game
+
+			if (!players[i].mo)
+				continue; // no mobj
+
+			if (players[i].mo->health <= 0)
+				continue; // dead
+
+			if (players[i].kartstuff[k_respawn])
+				continue; // respawning
+
+			if (players[i].kartstuff[k_position] < bestrank)
+			{
+				bestrank = players[i].kartstuff[k_position];
+				player = &players[i];
+			}
+		}
+
+		// No one there?
+		if (player == NULL || !player->mo)
+		{
+#if 0
+			// SELF-DESTRUCT?
+			mobj_t *spbexplode;
+
+			S_StopSound(actor); // Don't continue playing the gurgle or the siren
+			spbexplode = P_SpawnMobj(actor->x, actor->y, actor->z, MT_SPBEXPLOSION);
+			P_SetTarget(&spbexplode->target, actor->target);
+
+			P_RemoveMobj(actor);
+#else
+			actor->momx = actor->momy = actor->momz = 0;
+#endif
+			return;
+		}
+
+		// Found someone, now get close enough to initiate the slaughter...
+		P_SetTarget(&actor->tracer, player->mo);
+
+		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+
+		hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
+		vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+		{
+			// Smoothly rotate horz angle
+			angle_t input = hang - actor->angle;
+			boolean invert = (input > ANGLE_180);
+			if (invert)
+				input = InvAngle(input);
+
+			// Slow down when turning; it looks better and makes U-turns not unfair
+			xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+			input = FixedAngle(AngleFixed(input)/4);
+			if (invert)
+				input = InvAngle(input);
+
+			actor->angle += input;
+
+			// Smoothly rotate vert angle
+			input = vang - actor->movedir;
+			invert = (input > ANGLE_180);
+			if (invert)
+				input = InvAngle(input);
+
+			// Slow down when turning; might as well do it for momz, since we do it above too
+			zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+			input = FixedAngle(AngleFixed(input)/4);
+			if (invert)
+				input = InvAngle(input);
+
+			actor->movedir += input;
+		}
+
+		actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+		actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+		actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
+
+		if (dist <= (3072*actor->tracer->scale)) // Close enough to target?
+		{
+			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
+			actor->extravalue1 = 1; // TARGET ACQUIRED
+		}
+	}
 
 	return;
-}*/
+}
 
 void A_BallhogExplode(mobj_t *actor)
 {
