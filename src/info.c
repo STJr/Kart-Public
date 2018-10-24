@@ -3108,7 +3108,7 @@ state_t states[NUMSTATES] =
 	{SPR_SMOK, 3, 25, {A_BubbleRise}, 0,          50096, S_PETSMOKE5}, // S_PETSMOKE4
 	{SPR_SMOK, 4, 35, {A_BubbleRise}, 0,          50096, S_NULL},      // S_PETSMOKE5
 	{SPR_VAPE, 0,  1, {NULL},         0,          0,     S_VVVAPING1}, // S_VVVAPING0
-	{SPR_SMOK, 0,  5, {A_SetScale},   FRACUNIT*2, 1,     S_VVVAPING2}, // S_VVVAPING1
+	{SPR_VAPE, 0,  5, {A_SetScale},   FRACUNIT*2, 1,     S_VVVAPING2}, // S_VVVAPING1
 	{SPR_VAPE, 1,  5, {A_BubbleRise}, 0,          50096, S_VVVAPING3}, // S_VVVAPING2
 	{SPR_VAPE, 2, 15, {A_BubbleRise}, 0,          50096, S_VVVAPING4}, // S_VVVAPING3
 	{SPR_VAPE, 3, 25, {A_BubbleRise}, 0,          50096, S_VVVAPING5}, // S_VVVAPING4
