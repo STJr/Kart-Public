@@ -3129,7 +3129,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
 				// Start shrinking!
-				player->mo->scalespeed = FRACUNIT/TICRATE;
+				player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				if (cv_kartdebugshrink.value && !player->bot)
 					player->mo->destscale = 6*player->mo->destscale/8;

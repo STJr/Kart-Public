@@ -8263,7 +8263,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 				P_SetScale(smoke, mobj->target->scale/2);
 				smoke->destscale = 3*mobj->target->scale/2;
-				smoke->scalespeed = FixedMul(smoke->scalespeed, mobj->target->scale);
+				smoke->scalespeed = mobj->target->scale/12;
 
 				smoke->momx = mobj->target->momx/2;
 				smoke->momy = mobj->target->momy/2;
@@ -9116,7 +9116,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = FRACUNIT/12;
+	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 
 	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
 		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
@@ -9456,7 +9456,7 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = FRACUNIT/12;
+	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 
 	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
 		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
