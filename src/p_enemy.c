@@ -8454,7 +8454,7 @@ void A_RandomShadowFrame(mobj_t *actor)
 	P_SetScale(actor, FRACUNIT*3/2);
 
 	// I have NO CLUE how to hardcode all of that fancy Linedef Executor shit so the fire spinout will be done by these entities directly.
-	if (P_LookForPlayers(actor, false, false, 512<<FRACBITS))	// got target
+	if (P_LookForPlayers(actor, false, false, 380<<FRACBITS))	// got target
 	{
 		if (actor->target && !actor->target->player->powers[pw_flashing]
 		&& !actor->target->player->kartstuff[k_invincibilitytimer]

@@ -2043,7 +2043,7 @@ void ST_Drawer(void)
 		// No deadview!
 		stplyr = &players[displayplayer];
 		ST_overlayDrawer();
-		
+
 		if (splitscreen)
 		{
 			stplyr = &players[secondarydisplayplayer];
