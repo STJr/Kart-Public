@@ -8395,6 +8395,13 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->color = mobj->target->color;
 			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode]);
 
+			// Give items an item-sized hitbox
+			if (mobj->target->player->kartstuff[k_comebackmode] == 1)
+				mobj->radius = 36*mobj->target->scale;
+			else
+				mobj->radius = 24*mobj->target->scale;
+			mobj->height = 2*mobj->radius;
+
 			if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
 			{
 				if (mobj->state != &states[mobj->info->spawnstate])
