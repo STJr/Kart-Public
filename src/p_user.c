@@ -7666,7 +7666,8 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 
 		mo = (mobj_t *)think;
 
-		if (!(mo->flags & MF_SHOOTABLE) && !(mo->type == MT_EGGGUARD || mo->type == MT_MINUS))
+		if (!(mo->flags & MF_SHOOTABLE) && !(mo->type == MT_EGGGUARD || mo->type == MT_MINUS
+			|| mo->type == MT_SPB)) // Don't want to give SPB MF_SHOOTABLE, to ensure it's undamagable through other means
 			continue;
 
 		if (mo->flags & MF_MONITOR)
@@ -7695,7 +7696,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			|| mo->type == MT_ORBINAUT_SHIELD || mo->type == MT_JAWZ_SHIELD
 			|| mo->type == MT_BANANA || mo->type == MT_BANANA_SHIELD
 			|| mo->type == MT_FAKEITEM || mo->type == MT_FAKESHIELD
-			|| mo->type == MT_BALLHOG)
+			|| mo->type == MT_BALLHOG || mo->type == MT_SPB)
 		{
 			if (mo->eflags & MFE_VERTICALFLIP)
 				mo->z -= mo->height;
@@ -7708,6 +7709,9 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			P_SetObjectMomZ(mo, 8*FRACUNIT, false);
 			P_InstaThrust(mo, R_PointToAngle2(inflictor->x, inflictor->y, mo->x, mo->y)+ANGLE_90, 16*FRACUNIT);
 		}
+
+		if (mo->type == MT_SPB) // If you destroy a SPB, you don't get the luxury of a cooldown.
+			indirectitemcooldown = 0;
 
 		if (mo == inflictor) // Don't nuke yourself, dummy!
 			continue;

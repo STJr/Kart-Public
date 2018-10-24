@@ -166,6 +166,7 @@ void A_ToggleFlameJet();
 void A_ItemPop(); // SRB2kart
 void A_JawzChase(); // SRB2kart
 void A_JawzExplode(); // SRB2kart
+void A_SPBChase(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
@@ -606,8 +607,7 @@ typedef enum sprite
 	SPR_KRBM, // SS Mine BOOM
 	SPR_BHOG, // Ballhog
 	SPR_BHBM, // Ballhog BOOM
-	SPR_BLIG, // Self-Propelled Bomb
-	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
+	SPR_SPBM, // Self-Propelled Bomb
 	SPR_THNS, // Thunder Shield
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
@@ -3355,18 +3355,28 @@ typedef enum state
 	S_BALLHOGBOOM15,
 	S_BALLHOGBOOM16,
 
-	// Self-Propelled Bomb - just an explosion for now...
-	S_BLUELIGHTNING1,
-	S_BLUELIGHTNING2,
-	S_BLUELIGHTNING3,
-	S_BLUELIGHTNING4,
-	S_BLUEEXPLODE,
-
-	// Grow/Shrink
-	S_LIGHTNING1,
-	S_LIGHTNING2,
-	S_LIGHTNING3,
-	S_LIGHTNING4,
+	// Self-Propelled Bomb
+	S_SPB1,
+	S_SPB2,
+	S_SPB3,
+	S_SPB4,
+	S_SPB5,
+	S_SPB6,
+	S_SPB7,
+	S_SPB8,
+	S_SPB9,
+	S_SPB10,
+	S_SPB11,
+	S_SPB12,
+	S_SPB13,
+	S_SPB14,
+	S_SPB15,
+	S_SPB16,
+	S_SPB17,
+	S_SPB18,
+	S_SPB19,
+	S_SPB20,
+	S_SPB_DEAD,
 
 	// Thunder Shield
 	S_THUNDERSHIELD1,
@@ -3597,7 +3607,26 @@ typedef enum state
 	S_PLAYERARROW_WANTED6,
 	S_PLAYERARROW_WANTED7,
 
-	S_PLAYERBOMB,
+	S_PLAYERBOMB1, // Karma player overlays
+	S_PLAYERBOMB2,
+	S_PLAYERBOMB3,
+	S_PLAYERBOMB4,
+	S_PLAYERBOMB5,
+	S_PLAYERBOMB6,
+	S_PLAYERBOMB7,
+	S_PLAYERBOMB8,
+	S_PLAYERBOMB9,
+	S_PLAYERBOMB10,
+	S_PLAYERBOMB11,
+	S_PLAYERBOMB12,
+	S_PLAYERBOMB13,
+	S_PLAYERBOMB14,
+	S_PLAYERBOMB15,
+	S_PLAYERBOMB16,
+	S_PLAYERBOMB17,
+	S_PLAYERBOMB18,
+	S_PLAYERBOMB19,
+	S_PLAYERBOMB20,
 	S_PLAYERITEM,
 	S_PLAYERFAKE,
 
@@ -4289,9 +4318,8 @@ typedef enum mobj_type
 	MT_BALLHOG, // Ballhog
 	MT_BALLHOGBOOM,
 
-	MT_BLUELIGHTNING, // Grow/shrink stuff
-	MT_BLUEEXPLOSION,
-	MT_LIGHTNING,
+	MT_SPB, // SPB stuff
+	MT_SPBEXPLOSION,
 
 	MT_THUNDERSHIELD, // Thunder Shield stuff
 
