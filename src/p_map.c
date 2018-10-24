@@ -1077,7 +1077,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	//}
 
-	if (thing->type == MT_FALLINGROCK || tmthing->type == MT_FALLINGROCK)
+	if ((thing->type == MT_FALLINGROCK && (tmthing->player || tmthing->type == MT_FALLINGROCK))
+		|| (tmthing->type == MT_FALLINGROCK && (thing->player || thing->type == MT_FALLINGROCK)))
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)

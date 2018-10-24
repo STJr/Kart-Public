@@ -314,7 +314,7 @@ menu_t OP_SoundOptionsDef;
 static void M_ToggleSFX(INT32 choice);
 static void M_ToggleDigital(INT32 choice);
 //static void M_ToggleMIDI(INT32 choice);
-static void M_RestartAudio(void);
+//static void M_RestartAudio(void);
 
 //Misc
 menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
@@ -1315,7 +1315,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 {
 	{IT_KEYHANDLER|IT_STRING,	NULL, "SFX",					M_ToggleSFX,			 10},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "SFX Volume",				&cv_soundvolume,		 18},
+								NULL, "SFX Volume",			&cv_soundvolume,		 18},
 
 	{IT_KEYHANDLER|IT_STRING,	NULL, "Music",					M_ToggleDigital,		 30},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
@@ -1330,16 +1330,16 @@ static menuitem_t OP_SoundOptionsMenu[] =
 								NULL, "CD Volume",				&cd_volume,				 40},
 #endif*/
 
-	{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
+	//{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
 
-	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 65},
-	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,				 75},
+	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 50},
+	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,			 60},
 
-	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 90},
-	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			100},
-	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		110},
+	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 75},
+	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			 85},
+	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		125},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",			M_HandleSoundTest,		110},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -9042,25 +9042,10 @@ static void M_ToggleDigital(INT32 choice)
 	}
 }*/
 
-static void M_RestartAudio(void)
+/*static void M_RestartAudio(void)
 {
-	S_StopMusic();
-	I_ShutdownMusic();
-	I_ShutdownSound();
-	I_StartupSound();
-	I_InitMusic();
-
-	I_SetSfxVolume(cv_soundvolume.value);
-	I_SetDigMusicVolume(cv_digmusicvolume.value);
-	//I_SetMIDIMusicVolume(cv_midimusicvolume.value);
-
-	S_StartSound(NULL, sfx_strpst);
-
-	if (Playing()) // Gotta make sure the player is in a level
-		P_RestoreMusic(&players[consoleplayer]);
-	else
-		S_ChangeMusicInternal("titles", looptitle);
-}
+	COM_ImmedExecute("restartaudio");
+}*/
 
 // ===============
 // VIDEO MODE MENU
