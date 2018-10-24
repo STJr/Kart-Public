@@ -8538,17 +8538,29 @@ void A_RoamingShadowThinker(mobj_t *actor)
 void A_MayonakaArrow(mobj_t *actor)
 {
 	INT32 flip = 0;
+	INT32 iswarning;
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MayonakaArrow", (actor)))
 		return;
-#endif
-	// "animtimer" is replaced by "extravalue1" here.
-	actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1+1) : (P_RandomRange(0, TICRATE*3)));
-	flip = ((actor->spawnpoint->options & 1) ? (3) : (0));	// flip adds 3 frames, which is the flipped version of the sign.
+#endif	
 
-	actor->frame = flip;
+	iswarning = actor->spawnpoint->options & MTF_OBJECTSPECIAL;	// is our object a warning sign?
+	// "animtimer" is replaced by "extravalue1" here.
+	actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1+1) : (P_RandomRange(0, (iswarning) ? (TICRATE/2) : TICRATE*3)));
+	flip = ((actor->spawnpoint->options & 1) ? (3) : (0));	// flip adds 3 frames, which is the flipped version of the sign.
+	// special warning behavior:
+	if (iswarning)
+		flip = 6;
+
+	actor->frame = flip + actor->extravalue2*3;
+	
 	if (actor->extravalue1 >= TICRATE*7/2)
+	{	
 		actor->extravalue1 = 0;	// reset to 0 and start a new cycle.
+		// special behavior for warning sign; swap from warning to sneaker & reverse
+		if (iswarning)
+			actor->extravalue2 = (actor->extravalue2) ? (0) : (1);
+	}		
 	else if (actor->extravalue1 > TICRATE*7/2 -4)
 		actor->frame = flip+2;
 	else if (actor->extravalue1 > TICRATE*3 && leveltime%2 > 0)
