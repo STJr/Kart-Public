@@ -275,7 +275,7 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 
 	for (j = 0; j < numplayersingame; j++)
 	{
-		INT32 nump = ((G_RaceGametype() && nospectategrief > 0) ? nospectategrief : data.match.numplayers);
+		INT32 nump = ((G_RaceGametype() && nospectategrief > 0) ? nospectategrief : numplayersingame);
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
