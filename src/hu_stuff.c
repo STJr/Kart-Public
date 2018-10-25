@@ -1406,6 +1406,7 @@ static void HU_drawChatLog(INT32 offset)
 	INT32 x = chatx+2, y, dx = 0, dy = 0;
 	UINT32 i = 0;
 	INT32 chat_topy, chat_bottomy;
+	INT32 highlight = HU_GetHighlightColor();
 	boolean atbottom = false;
 
 	// make sure that our scroll position isn't "illegal";
@@ -1503,12 +1504,12 @@ static void HU_drawChatLog(INT32 offset)
 	if (chat_scroll > 0)
 	{
 		V_DrawCharacter(chatx-9, ((justscrolledup) ? (chat_topy-1) : (chat_topy)),
-			'\x1A' | V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlightflags, false); // up arrow
+			'\x1A' | V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight, false); // up arrow
 	}
 	if (chat_scroll < chat_maxscroll)
 	{
 		V_DrawCharacter(chatx-9, chat_bottomy-((justscrolleddown) ? 5 : 6),
-			'\x1B' | V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlightflags, false); // down arrow
+			'\x1B' | V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight, false); // down arrow
 	}
 
 	justscrolleddown = false;

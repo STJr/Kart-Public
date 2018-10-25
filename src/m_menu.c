@@ -1586,7 +1586,7 @@ menu_t MISC_HelpDef = IMAGEDEF(MISC_HelpMenu);
 // See also G_GetGametypeColor.
 //
 
-static INT32 recommendedflags, warningflags;
+static INT32 highlightflags, recommendedflags, warningflags;
 
 inline static void M_GetGametypeColor(void)
 {
@@ -1644,6 +1644,13 @@ inline static void M_GetGametypeColor(void)
 	}
 
 	highlightflags = V_YELLOWMAP; // FALLBACK
+}
+
+// excuse me but I'm extremely lazy:
+INT32 HU_GetHighlightColor(void)
+{
+	M_GetGametypeColor();	// update flag colour reguardless of the menu being opened or not.
+	return highlightflags;
 }
 
 // Sky Room

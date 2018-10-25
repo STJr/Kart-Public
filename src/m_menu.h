@@ -228,8 +228,7 @@ void Screenshot_option_Onchange(void);
 // Addons menu updating
 void Addons_option_Onchange(void);
 
-// This is now defined here so that the chat arrows can also benefit from the highlight to look good.
-INT32 highlightflags;
+INT32 HU_GetHighlightColor(void);
 
 // These defines make it a little easier to make menus
 #define DEFAULTMENUSTYLE(header, source, prev, x, y)\
