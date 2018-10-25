@@ -6523,7 +6523,7 @@ static void K_drawKartBumpersOrKarma(void)
 		if (stplyr->kartstuff[k_bumper] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y-1, V_HUDTRANS|splitflags, kp_splitkarmabomb, colormap);
-			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
+			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
@@ -6536,7 +6536,7 @@ static void K_drawKartBumpersOrKarma(void)
 		if (stplyr->kartstuff[k_bumper] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_karmasticker, colormap);
-			V_DrawKartString(LAPS_X+59, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/3", stplyr->kartstuff[k_comebackpoints]));
+			V_DrawKartString(LAPS_X+59, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{

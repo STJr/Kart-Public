@@ -519,8 +519,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 							special->target->player->kartstuff[k_comebackpoints]++;
 					}
 
-					special->target->player->kartstuff[k_comebackpoints] += 2 * (K_IsPlayerWanted(player) ? 2 : 1);
-					if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+					special->target->player->kartstuff[k_comebackpoints] += (K_IsPlayerWanted(player) ? 2 : 1);
+					if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 						K_StealBumper(special->target->player, player, true);
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
@@ -535,7 +535,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
-				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+				if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
@@ -559,14 +559,14 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						numingame++;
 					}
 
-					if (numingame <= 2) // If so, then an extra two karma points so they are 100% certain to switch places; it's annoying to end matches with a fake kill
-						special->target->player->kartstuff[k_comebackpoints] += 2;
+					if (numingame <= 2) // If so, then an extra karma point so they are 100% certain to switch places; it's annoying to end matches with a fake kill
+						special->target->player->kartstuff[k_comebackpoints]++;
 				}
 
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
 
-				if (special->target->player->kartstuff[k_comebackpoints] >= 3)
+				if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 					K_StealBumper(special->target->player, player, true);
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
