@@ -2626,12 +2626,14 @@ static boolean P_ZMovement(mobj_t *mo)
 
 					mom.z /= 2; // Rocks not so bouncy
 
-					if (abs(mom.x) < FixedMul(STOPSPEED, mo->scale)
-						&& abs(mom.y) < FixedMul(STOPSPEED, mo->scale)
-						&& abs(mom.z) < FixedMul(STOPSPEED*3, mo->scale))
+					if (!mo->fuse
+						&& abs(mom.x) < FixedMul(STOPSPEED*2, mo->scale)
+						&& abs(mom.y) < FixedMul(STOPSPEED*2, mo->scale)
+						&& abs(mom.z) < FixedMul(STOPSPEED*2*3, mo->scale))
 					{
-						P_RemoveMobj(mo);
-						return false;
+						//P_RemoveMobj(mo);
+						//return false;
+						mo->fuse = TICRATE;
 					}
 				}
 				else if (mo->type == MT_CANNONBALLDECOR)
@@ -3709,6 +3711,8 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 			dummy.y = thiscam->y;
 			dummy.z = thiscam->z;
 			dummy.height = thiscam->height;
+			if (player->pflags & PF_TIMEOVER)
+				player->kartstuff[k_timeovercam] = (2*TICRATE)+1;
 			if (!resetcalled && !(player->pflags & PF_NOCLIP || leveltime < introtime) && !P_CheckSight(&dummy, player->mo)) // TODO: "P_CheckCameraSight" instead.
 				P_ResetCamera(player, thiscam);
 			else
@@ -7399,6 +7403,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_ORBINAUT:
 		case MT_BANANA:
 		case MT_FAKEITEM:
+		case MT_SPB:
 			if (mobj->z <= mobj->floorz)
 			{
 				P_RemoveMobj(mobj);
@@ -7419,7 +7424,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_SSMINE:
-		case MT_BLUEEXPLOSION:
+		case MT_SPBEXPLOSION:
 			if (mobj->health > -100)
 			{
 				P_SetMobjState(mobj, mobj->info->deathstate);
@@ -7442,13 +7447,14 @@ void P_MobjThinker(mobj_t *mobj)
 	{
 		case MT_FALLINGROCK:
 			// Despawn rocks here in case zmovement code can't do so (blame slopes)
-			if (!mobj->momx && !mobj->momy && !mobj->momz
+			if (!mobj->fuse && !mobj->momx && !mobj->momy && !mobj->momz
 			&& ((mobj->eflags & MFE_VERTICALFLIP) ?
 				  mobj->z + mobj->height >= mobj->ceilingz
 				: mobj->z <= mobj->floorz))
 			{
-				P_RemoveMobj(mobj);
-				return;
+				//P_RemoveMobj(mobj);
+				//return;
+				mobj->fuse = TICRATE;
 			}
 			P_MobjCheckWater(mobj);
 			break;
@@ -8153,6 +8159,9 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
+		case MT_SPB:
+			indirectitemcooldown = 20*TICRATE;
+			/* FALLTHRU */
 		case MT_BALLHOG:
 			P_SpawnGhostMobj(mobj)->fuse = 3;
 			if (mobj->threshold > 0)
@@ -8173,7 +8182,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->target && mobj->target->player)
 				mobj->color = mobj->target->player->skincolor;
 			else
-				mobj->color = SKINCOLOR_RED;
+				mobj->color = SKINCOLOR_KETCHUP;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (P_IsObjectOnGround(mobj))
@@ -8199,7 +8208,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
-		case MT_BLUEEXPLOSION:
+		case MT_SPBEXPLOSION:
 			mobj->health--;
 			break;
 		case MT_MINEEXPLOSION:
@@ -8263,7 +8272,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 				P_SetScale(smoke, mobj->target->scale/2);
 				smoke->destscale = 3*mobj->target->scale/2;
-				smoke->scalespeed = FixedMul(smoke->scalespeed, mobj->target->scale);
+				smoke->scalespeed = mobj->target->scale/12;
 
 				smoke->momx = mobj->target->momx/2;
 				smoke->momy = mobj->target->momy/2;
@@ -8381,74 +8390,80 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		case MT_KARMAHITBOX:
-			if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
-				|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
 			{
-				P_RemoveMobj(mobj);
-				return;
-			}
+				statenum_t state = (mobj->state-states);
 
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
-			mobj->scalespeed = mobj->target->scalespeed;
-			mobj->destscale = mobj->target->destscale;
-			P_SetScale(mobj, mobj->target->scale);
-			mobj->color = mobj->target->color;
-			mobj->colorized = (mobj->target->player->kartstuff[k_comebackmode]);
-
-			if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
-			{
-				if (mobj->state != &states[mobj->info->spawnstate])
-					P_SetMobjState(mobj, mobj->info->spawnstate);
-
-				if (mobj->target->player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
-					mobj->flags2 &= ~MF2_DONTDRAW;
-				else
-					mobj->flags2 |= MF2_DONTDRAW;
-			}
-			else
-			{
-				if (!mobj->target->player->kartstuff[k_comebackmode]
-					&& mobj->state != &states[mobj->info->spawnstate])
-					P_SetMobjState(mobj, mobj->info->spawnstate);
-				else if (mobj->target->player->kartstuff[k_comebackmode] == 1
-					&& mobj->state != &states[mobj->info->seestate])
-					P_SetMobjState(mobj, mobj->info->seestate);
-				else if (mobj->target->player->kartstuff[k_comebackmode] == 2
-					&& mobj->state != &states[mobj->info->painstate])
-					P_SetMobjState(mobj, mobj->info->painstate);
-
-				if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
-					mobj->flags2 |= MF2_DONTDRAW;
-				else
-					mobj->flags2 &= ~MF2_DONTDRAW;
-			}
-
-			// Now for the wheels
-			{
-				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
-				mobj_t *cur = mobj->hnext;
-
-				while (cur && !P_MobjWasRemoved(cur))
+				if (!mobj->target || !mobj->target->health || !mobj->target->player || mobj->target->player->spectator
+					|| (G_RaceGametype() || mobj->target->player->kartstuff[k_bumper]))
 				{
-					fixed_t offx = rad;
-					fixed_t offy = rad;
+					P_RemoveMobj(mobj);
+					return;
+				}
 
-					if (cur->lastlook == 1 || cur->lastlook == 3)
-						offx *= -1;
-					if (cur->lastlook == 2 || cur->lastlook == 3)
-						offy *= -1;
+				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+				mobj->angle = mobj->target->angle;
+				mobj->scalespeed = mobj->target->scalespeed;
+				mobj->destscale = mobj->target->destscale;
+				P_SetScale(mobj, mobj->target->scale);
+				mobj->color = mobj->target->color;
+				mobj->colorized = true;
 
-					P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
-					cur->scalespeed = mobj->target->scalespeed;
-					cur->destscale = mobj->target->destscale;
-					P_SetScale(cur, mobj->target->scale);
-
-					if (mobj->flags2 & MF2_DONTDRAW)
-						cur->flags2 |= MF2_DONTDRAW;
+				if (mobj->target->player->kartstuff[k_comebacktimer] > 0)
+				{
+					if (state < mobj->info->spawnstate || state > mobj->info->spawnstate+19)
+						P_SetMobjState(mobj, mobj->info->spawnstate);
+					if (mobj->target->player->kartstuff[k_comebacktimer] < TICRATE && (leveltime & 1))
+						mobj->flags2 &= ~MF2_DONTDRAW;
 					else
-						cur->flags2 &= ~MF2_DONTDRAW;
+						mobj->flags2 |= MF2_DONTDRAW;
+				}
+				else
+				{
+					if (!mobj->target->player->kartstuff[k_comebackmode]
+						&& (state < mobj->info->spawnstate || state > mobj->info->spawnstate+19))
+						P_SetMobjState(mobj, mobj->info->spawnstate);
+					else if (mobj->target->player->kartstuff[k_comebackmode] == 1
+						&& state != mobj->info->seestate)
+						P_SetMobjState(mobj, mobj->info->seestate);
+					else if (mobj->target->player->kartstuff[k_comebackmode] == 2
+						&& state != mobj->info->painstate)
+						P_SetMobjState(mobj, mobj->info->painstate);
 
-					cur = cur->hnext;
+					if (mobj->target->player->powers[pw_flashing] && (leveltime & 1))
+						mobj->flags2 |= MF2_DONTDRAW;
+					else
+						mobj->flags2 &= ~MF2_DONTDRAW;
+				}
+
+				// Now for the wheels
+				{
+					const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
+					mobj_t *cur = mobj->hnext;
+
+					while (cur && !P_MobjWasRemoved(cur))
+					{
+						fixed_t offx = rad;
+						fixed_t offy = rad;
+
+						if (cur->lastlook == 1 || cur->lastlook == 3)
+							offx *= -1;
+						if (cur->lastlook == 2 || cur->lastlook == 3)
+							offy *= -1;
+
+						P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
+						cur->scalespeed = mobj->target->scalespeed;
+						cur->destscale = mobj->target->destscale;
+						P_SetScale(cur, mobj->target->scale);
+						cur->color = mobj->target->color;
+						cur->colorized = true;
+
+						if (mobj->flags2 & MF2_DONTDRAW)
+							cur->flags2 |= MF2_DONTDRAW;
+						else
+							cur->flags2 &= ~MF2_DONTDRAW;
+
+						cur = cur->hnext;
+					}
 				}
 			}
 			break;
@@ -8478,6 +8493,64 @@ void P_MobjThinker(mobj_t *mobj)
 							S_StartSound(mobj, mobj->info->seesound);
 						mobj->cvmem = 1;
 					}
+				}
+			}
+			break;
+		case MT_FZEROBOOM: // F-Zero explosion
+			if (!mobj->extravalue1)
+			{
+				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32<<FRACBITS);
+				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32<<FRACBITS);
+				mobj_t *explosion = P_SpawnMobj(mobj->x + (2*mx), mobj->y + (2*my), mobj->z+(mobj->height/2), MT_THOK);
+
+				P_SetMobjState(explosion, S_FZEROBOOM1);
+				explosion->scale = mobj->scale*2;
+				explosion->momx = mx;
+				explosion->momy = my;
+
+				S_StartSound(mobj, mobj->info->seesound);
+				mobj->extravalue1 = 1;
+			}
+
+			if (!S_SoundPlaying(mobj, mobj->info->attacksound))
+				S_StartSound(mobj, mobj->info->attacksound);
+
+			if (mobj->extravalue2 > 70) // fire + smoke pillar
+			{
+				UINT8 i;
+				mobj_t *fire = P_SpawnMobj(mobj->x + (P_RandomRange(-32, 32)*mobj->scale), mobj->y + (P_RandomRange(-32, 32)*mobj->scale), mobj->z, MT_THOK);
+
+				fire->sprite = SPR_FPRT;
+				fire->frame = FF_FULLBRIGHT|FF_TRANS30;
+				fire->scale = mobj->scale*4;
+				fire->momz = P_RandomRange(2, 3)*mobj->scale;
+				fire->scalespeed = mobj->scale/12;
+				fire->destscale = 1;
+				fire->tics = TICRATE;
+
+				for (i = 0; i < 2; i++)
+				{
+					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-16, 16)*mobj->scale), mobj->y + (P_RandomRange(-16, 16)*mobj->scale), mobj->z, MT_SMOKE);
+
+					P_SetMobjState(smoke, S_FZSLOWSMOKE1);
+					smoke->scale = mobj->scale;
+					smoke->momz = P_RandomRange(3, 10)*mobj->scale;
+					smoke->destscale = mobj->scale*4;
+					smoke->scalespeed = mobj->scale/24;
+				}
+			}
+			else
+			{
+				mobj->extravalue2++; // flametimer
+
+				if (mobj->extravalue2 > 8)
+				{
+					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-31, 31)*mobj->scale), mobj->y + (P_RandomRange(-31, 31)*mobj->scale),
+						mobj->z + (P_RandomRange(0, 48)*mobj->scale), MT_THOK);
+
+					P_SetMobjState(smoke, S_FZEROSMOKE1);
+					smoke->tics += P_RandomRange(-3, 4);
+					smoke->scale = mobj->scale*2;
 				}
 			}
 			break;
@@ -8782,7 +8855,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
-		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM) && mobj->fuse <= TICRATE)
+		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM || mobj->type == MT_FALLINGROCK) && mobj->fuse <= TICRATE)
 			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 
@@ -9116,7 +9189,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = FRACUNIT/12;
+	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 
 	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
 		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
@@ -9369,6 +9442,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
 		case MT_BALLHOG: 		case MT_SINK:
 		case MT_THUNDERSHIELD:	case MT_ROCKETSNEAKER:
+		case MT_SPB:
 			P_SpawnShadowMobj(mobj);
 		default:
 			break;
@@ -9456,7 +9530,7 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = FRACUNIT/12;
+	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 
 	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
 		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;

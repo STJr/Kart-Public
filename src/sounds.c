@@ -705,7 +705,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc2e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2f",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring use
   {"kc30",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc31",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc31",   false,  64, 64, -1, NULL, 0,        -1,  -1, LUMPERROR}, // NO CONTEST explosion
   {"kc32",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc33",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc34",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -737,7 +737,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc4e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc4f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc50",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc51",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc51",   false,  64, 64, -1, NULL, 0,        -1,  -1, LUMPERROR}, // NO CONTEST debris ambience
   {"kc52",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc53",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc54",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -813,6 +813,9 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kpogos", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"zio3", 	 false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"wind1",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"fire2",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"chain",  false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"mcitm1", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"chaooo", false, 110,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"itfree", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},

@@ -378,6 +378,16 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	// We now identify by object type, not sprite! Tails 04-11-2001
 	switch (special->type)
 	{
+		case MT_MEMENTOSTP:	 // Mementos teleport
+			// Teleport player to the other teleporter (special->target). We'll assume there's always only ever 2.
+			if (!special->target)
+				return;	// foolproof crash prevention check!!!!!
+			
+			P_TeleportMove(player->mo, special->target->x, special->target->y, special->target->z + (48<<FRACBITS));
+			player->mo->angle = special->target->angle;
+			P_SetObjectMomZ(player->mo, 12<<FRACBITS, false);
+			P_InstaThrust(player->mo, player->mo->angle, 20<<FRACBITS);
+			return;
 		case MT_FLOATINGITEM: // SRB2kart
 			if (!P_CanPickupItem(player, 3) || (player->kartstuff[k_itemamount] && player->kartstuff[k_itemtype] != special->threshold))
 				return;
@@ -490,7 +500,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					if (special->target->color)
 						boom->color = special->target->color;
 					else
-						boom->color = SKINCOLOR_RED;
+						boom->color = SKINCOLOR_KETCHUP;
 					S_StartSound(boom, special->info->attacksound);
 
 					if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
@@ -514,7 +524,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						K_StealBumper(special->target->player, player, true);
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
-					K_ExplodePlayer(player, special->target);
+					K_ExplodePlayer(player, special->target, special);
 				}
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
@@ -576,6 +586,39 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 				special->target->player->kartstuff[k_eggmanblame] = -1;
 			}
+			return;
+		case MT_SPB:
+			if ((special->target == toucher || special->target == toucher->target) && (special->threshold > 0))
+				return;
+
+			if (special->health <= 0 || toucher->health <= 0)
+				return;
+
+			if (!player->mo || player->spectator)
+				return;
+
+			if (special->tracer && toucher == special->tracer)
+			{
+				mobj_t *spbexplode;
+
+				S_StopSound(special); // Don't continue playing the gurgle or the siren
+
+				if (!player->kartstuff[k_invincibilitytimer] && !player->kartstuff[k_growshrinktimer])
+				{
+					K_DropHnextList(player);
+					K_StripItems(player);
+					//player->powers[pw_flashing] = 0;
+				}
+
+				spbexplode = P_SpawnMobj(toucher->x, toucher->y, toucher->z, MT_SPBEXPLOSION);
+				spbexplode->extravalue1 = 1; // Tell K_ExplodePlayer to use extra knockback
+				P_SetTarget(&spbexplode->target, special->target);
+
+				P_RemoveMobj(special);
+			}
+			else
+				K_SpinPlayer(player, special, 0, false);
+
 			return;
 
 // ***************************************** //
@@ -1951,7 +1994,7 @@ boolean P_CheckRacers(void)
 			numplayersingame++;
 		}
 
-		if (numplayersingame >= nospectategrief) // prevent spectate griefing
+		if (numplayersingame > 1 && nospectategrief > 0 && numplayersingame >= nospectategrief) // prevent spectate griefing
 		{
 			// check if we just got unlucky and there was only one guy who was a problem
 			for (j = i+1; j < MAXPLAYERS; j++)
@@ -2002,7 +2045,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		 || target->type == MT_JAWZ || target->type == MT_JAWZ_DUD || target->type == MT_JAWZ_SHIELD
 		 || target->type == MT_BANANA || target->type == MT_BANANA_SHIELD
 		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD
-		 || target->type == MT_BALLHOG)) // kart dead items
+		 || target->type == MT_BALLHOG || target->type == MT_SPB)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
 	else
 		target->flags &= ~MF_NOGRAVITY; // lose it if you for whatever reason have it, I'm looking at you shields
@@ -2355,8 +2398,12 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			break;
 
 		case MT_PLAYER:
-			target->fuse = TICRATE*3; // timer before mobj disappears from view (even if not an actual player)
 			target->momx = target->momy = target->momz = 0;
+
+			if (target->player && target->player->pflags & PF_TIMEOVER)
+				break;
+
+			target->fuse = TICRATE*3; // timer before mobj disappears from view (even if not an actual player)
 			if (!(source && source->type == MT_NULL && source->threshold == 42)) // Don't jump up when drowning
 				P_SetObjectMomZ(target, 14*FRACUNIT, false);
 
@@ -2723,6 +2770,7 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	// Get rid of shield
 	player->powers[pw_shield] = SH_NONE;
 	player->mo->color = player->skincolor;
+	player->mo->colorized = false;
 
 	// Get rid of emeralds
 	player->powers[pw_emeralds] = 0;
@@ -2732,6 +2780,7 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	P_ResetPlayer(player);
 
 	P_SetPlayerMobjState(player->mo, player->mo->info->deathstate);
+
 	/*if (gametype == GT_CTF && (player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
 	{
 		P_PlayerFlagBurst(player, false);
@@ -2757,6 +2806,17 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		HU_SetCEchoDuration(5);
 		HU_DoCEcho(va("%s\\is no longer super.\\\\\\\\", player_names[player-players]));
 	}*/
+
+	if (player->pflags & PF_TIMEOVER)
+	{
+		mobj_t *boom;
+		player->mo->flags |= (MF_NOGRAVITY|MF_NOCLIP);
+		player->mo->flags2 |= MF2_DONTDRAW;
+		boom = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FZEROBOOM);
+		boom->scale = player->mo->scale;
+		boom->angle = player->mo->angle;
+		P_SetTarget(&boom->target, player->mo);
+	}
 
 	if (G_BattleGametype())
 	{
@@ -3129,7 +3189,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
 			{
 				// Start shrinking!
-				player->mo->scalespeed = FRACUNIT/TICRATE;
+				player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				if (cv_kartdebugshrink.value && !player->bot)
 					player->mo->destscale = 6*player->mo->destscale/8;
@@ -3155,8 +3215,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				player->kartstuff[k_growshrinktimer] = 2;
 			}
 			player->kartstuff[k_sneakertimer] = 0;
-			// Invincible or not, we still need this.
-			//P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_LIGHTNING);
 			S_StartSound(player->mo, sfx_kc59);
 			return true;
 		}
