@@ -378,6 +378,16 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	// We now identify by object type, not sprite! Tails 04-11-2001
 	switch (special->type)
 	{
+		case MT_MEMENTOSTP:	 // Mementos teleport
+			// Teleport player to the other teleporter (special->target). We'll assume there's always only ever 2.
+			if (!special->target)
+				return;	// foolproof crash prevention check!!!!!
+			
+			P_TeleportMove(player->mo, special->target->x, special->target->y, special->target->z + (48<<FRACBITS));
+			player->mo->angle = special->target->angle;
+			P_SetObjectMomZ(player->mo, 12<<FRACBITS, false);
+			P_InstaThrust(player->mo, player->mo->angle, 20<<FRACBITS);
+			return;
 		case MT_FLOATINGITEM: // SRB2kart
 			if (!P_CanPickupItem(player, 3) || (player->kartstuff[k_itemamount] && player->kartstuff[k_itemtype] != special->threshold))
 				return;
@@ -2001,7 +2011,7 @@ boolean P_CheckRacers(void)
 			numplayersingame++;
 		}
 
-		if (numplayersingame >= nospectategrief) // prevent spectate griefing
+		if (numplayersingame > 1 && nospectategrief > 0 && numplayersingame >= nospectategrief) // prevent spectate griefing
 		{
 			// check if we just got unlucky and there was only one guy who was a problem
 			for (j = i+1; j < MAXPLAYERS; j++)
@@ -2405,8 +2415,12 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			break;
 
 		case MT_PLAYER:
-			target->fuse = TICRATE*3; // timer before mobj disappears from view (even if not an actual player)
 			target->momx = target->momy = target->momz = 0;
+
+			if (target->player && target->player->pflags & PF_TIMEOVER)
+				break;
+
+			target->fuse = TICRATE*3; // timer before mobj disappears from view (even if not an actual player)
 			if (!(source && source->type == MT_NULL && source->threshold == 42)) // Don't jump up when drowning
 				P_SetObjectMomZ(target, 14*FRACUNIT, false);
 
@@ -2773,6 +2787,7 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	// Get rid of shield
 	player->powers[pw_shield] = SH_NONE;
 	player->mo->color = player->skincolor;
+	player->mo->colorized = false;
 
 	// Get rid of emeralds
 	player->powers[pw_emeralds] = 0;
@@ -2782,6 +2797,7 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	P_ResetPlayer(player);
 
 	P_SetPlayerMobjState(player->mo, player->mo->info->deathstate);
+
 	/*if (gametype == GT_CTF && (player->gotflag & (GF_REDFLAG|GF_BLUEFLAG)))
 	{
 		P_PlayerFlagBurst(player, false);
@@ -2807,6 +2823,17 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		HU_SetCEchoDuration(5);
 		HU_DoCEcho(va("%s\\is no longer super.\\\\\\\\", player_names[player-players]));
 	}*/
+
+	if (player->pflags & PF_TIMEOVER)
+	{
+		mobj_t *boom;
+		player->mo->flags |= (MF_NOGRAVITY|MF_NOCLIP);
+		player->mo->flags2 |= MF2_DONTDRAW;
+		boom = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FZEROBOOM);
+		boom->scale = player->mo->scale;
+		boom->angle = player->mo->angle;
+		P_SetTarget(&boom->target, player->mo);
+	}
 
 	if (G_BattleGametype())
 	{

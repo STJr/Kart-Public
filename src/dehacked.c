@@ -990,7 +990,7 @@ static const struct {
 	{"2D",TOL_2D},
 	{"MARIO",TOL_MARIO},
 	{"NIGHTS",TOL_NIGHTS},
-	//{"OLDBRAK",TOL_ERZ3},
+	{"TV",TOL_TV},
 
 	{"XMAS",TOL_XMAS},
 	{"CHRISTMAS",TOL_XMAS},
@@ -1838,7 +1838,13 @@ static actionpointer_t actionpointers[] =
 	{{A_SPBChase},             "A_SPBCHASE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
-	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
+	{{A_LightningFollowPlayer},"A_LIGHTNINGFOLLOWPLAYER"}, //SRB2kart
+	{{A_FZBoomFlash},          "A_FZBOOMFLASH"}, //SRB2kart
+	{{A_FZBoomSmoke},          "A_FZBOOMSMOKE"}, //SRB2kart
+	{{A_RandomShadowFrame},	   "A_RANDOMSHADOWFRAME"}, //SRB2kart
+	{{A_RoamingShadowThinker}, "A_ROAMINGSHADOWTHINKER"}, //SRB2kart
+	{{A_ReaperThinker}, 	   "A_REAPERTHINKER"}, //SRB2kart
+	{{A_MementosTPParticles},  "A_MEMENTOSTPPARTICLES"}, //SRB2kart
 	{{A_FlameParticle},        "A_FLAMEPARTICLE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
@@ -6805,6 +6811,31 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KLIT11",
 	"S_KLIT12",
 
+	"S_FZEROSMOKE1", // F-Zero NO CONTEST explosion
+	"S_FZEROSMOKE2",
+	"S_FZEROSMOKE3",
+	"S_FZEROSMOKE4",
+	"S_FZEROSMOKE5",
+
+	"S_FZEROBOOM1",
+	"S_FZEROBOOM2",
+	"S_FZEROBOOM3",
+	"S_FZEROBOOM4",
+	"S_FZEROBOOM5",
+	"S_FZEROBOOM6",
+	"S_FZEROBOOM7",
+	"S_FZEROBOOM8",
+	"S_FZEROBOOM9",
+	"S_FZEROBOOM10",
+	"S_FZEROBOOM11",
+	"S_FZEROBOOM12",
+
+	"S_FZSLOWSMOKE1",
+	"S_FZSLOWSMOKE2",
+	"S_FZSLOWSMOKE3",
+	"S_FZSLOWSMOKE4",
+	"S_FZSLOWSMOKE5",
+
 	// Various plants
 	"S_SONICBUSH",
 	"S_SHRUB",
@@ -6860,6 +6891,38 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PGFLOWER3",
 	"S_PGBUSH",
 	"S_DHPILLAR",
+
+	// Midnight Channel stuff:
+	"S_SPOTLIGHT",	// Spotlight decoration
+	"S_RANDOMSHADOW",	// Random Shadow. They're static and don't do nothing.
+	"S_GARU1",
+	"S_GARU2",
+	"S_GARU3",
+	"S_TGARU",	
+	"S_TGARU1",
+	"S_TGARU2",
+	"S_TGARU3",	// Wind attack used by Roaming Shadows on Players.
+	"S_ROAMINGSHADOW",	// Roaming Shadow (the one that uses above's wind attack or smth)
+	"S_MAYONAKAARROW",	// Arrow sign
+
+	// Mementos stuff:
+	"S_REAPER_INVIS",		// Reaper waiting for spawning
+	"S_REAPER",			// Reaper main frame where its thinker is handled
+	"S_MEMENTOSTP",		// Mementos teleporter state. (Used for spawning particles)
+
+	// JackInTheBox
+	"S_JITB1",
+	"S_JITB2",
+	"S_JITB3",
+	"S_JITB4",
+	"S_JITB5",
+	"S_JITB6",
+
+	// Color Drive
+	"S_CDMOONSP",
+	"S_CDBUSHSP",
+	"S_CDTREEASP",
+	"S_CDTREEBSP",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7517,6 +7580,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
 
+	"MT_FZEROBOOM",
+
 	// Various plants
 	"MT_SONICBUSH",
 	"MT_SHRUB",
@@ -7558,6 +7623,26 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_PGFLOWER3",
 	"MT_PGBUSH",
 	"MT_DHPILLAR",
+
+	// Midnight Channel stuff:
+	"MT_SPOTLIGHT",		// Spotlight Object
+	"MT_RANDOMSHADOW",	// Random static Shadows.
+	"MT_ROAMINGSHADOW",	// Roaming Shadows.
+	"MT_MAYONAKAARROW",	// Arrow static signs for Mayonaka
+
+	// Mementos stuff
+	"MT_REAPERWAYPOINT",
+	"MT_REAPER",
+	"MT_MEMENTOSTP",
+	"MT_MEMENTOSPARTICLE",
+
+	"MT_JACKINTHEBOX",
+
+	// Color Drive:
+	"MT_CDMOON",
+	"MT_CDBUSH",
+	"MT_CDTREEA",
+	"MT_CDTREEB",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",
@@ -7915,6 +8000,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ACCELBOOST",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
+	"TIMEOVERCAM",
 	"AIZDRIFTSTRAT",
 
 	"ITEMROULETTE",

@@ -275,6 +275,8 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 
 	for (j = 0; j < numplayersingame; j++)
 	{
+		INT32 nump = ((G_RaceGametype() && nospectategrief > 0) ? nospectategrief : numplayersingame);
+
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (!playeringame[i] || players[i].spectator || completed[i])
@@ -296,9 +298,9 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 		else
 			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
 
-		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] < nospectategrief))
+		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] < nump))
 		{
-			data.match.increase[i] = nospectategrief - data.match.pos[data.match.numplayers];
+			data.match.increase[i] = nump - data.match.pos[data.match.numplayers];
 			players[i].score += data.match.increase[i];
 		}
 

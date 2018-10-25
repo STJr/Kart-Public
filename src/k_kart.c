@@ -1050,7 +1050,6 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	mobj_t *fx;
 	fixed_t momdifx, momdify;
 	fixed_t distx, disty;
-	//fixed_t nobumpx = 0, nobumpy = 0;
 	fixed_t dot, p;
 	fixed_t mass1, mass2;
 
@@ -1099,19 +1098,27 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		momdify = FixedMul((25*mapheaderinfo[gamemap-1]->mobj_scale), normalisedy);
 	}
 
-	/*if (mass1 == 0 && mass2 > 0)
-	{
-		nobumpx = mobj2->momx;
-		nobumpy = mobj2->momy;
-	}
-	else if (mass2 == 0 && mass1 > 0)
-	{
-		nobumpx = mobj1->momx;
-		nobumpy = mobj1->momy;
-	}*/
-
+	// Adds the OTHER player's momentum, so that it reduces the chance of you being "inside" the other object
 	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
 	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
+
+	{ // Don't allow dist to get WAY too low, that it pushes you stupidly huge amounts, or backwards...
+		fixed_t dist = P_AproxDistance(distx, disty);
+		fixed_t nx = FixedDiv(distx, dist);
+		fixed_t ny = FixedDiv(disty, dist);
+
+		if (P_AproxDistance(distx, disty) < (3*mobj1->radius)/4)
+		{
+			distx = FixedMul((3*mobj1->radius)/4, nx);
+			disty = FixedMul((3*mobj1->radius)/4, ny);
+		}
+
+		if (P_AproxDistance(distx, disty) < (3*mobj2->radius)/4)
+		{
+			distx = FixedMul((3*mobj2->radius)/4, nx);
+			disty = FixedMul((3*mobj2->radius)/4, ny);
+		}
+	}
 
 	if (distx == 0 && disty == 0)
 	{
@@ -2198,9 +2205,6 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 		mobj->momx = FixedMul(FixedDiv(mobjx - x, dist), FixedDiv(dist, 6*FRACUNIT));
 		mobj->momy = FixedMul(FixedDiv(mobjy - y, dist), FixedDiv(dist, 6*FRACUNIT));
 		mobj->momz = FixedMul(FixedDiv(mobjz - z, dist), FixedDiv(dist, 6*FRACUNIT));
-
-		mobj->flags |= MF_NOCLIPTHING;
-		mobj->flags &= ~MF_SPECIAL;
 
 		P_SetTarget(&mobj->target, source);
 	}
@@ -3949,6 +3953,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		}
 		//CONS_Printf("cam: %d, dest: %d\n", player->kartstuff[k_boostcam], player->kartstuff[k_destboostcam]);
 	}
+
+	player->kartstuff[k_timeovercam] = 0;
 
 	if (player->kartstuff[k_spinouttimer])
 	{

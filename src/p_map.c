@@ -1077,7 +1077,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	//}
 
-	if (thing->type == MT_FALLINGROCK || tmthing->type == MT_FALLINGROCK)
+	if ((thing->type == MT_FALLINGROCK && (tmthing->player || tmthing->type == MT_FALLINGROCK))
+		|| (tmthing->type == MT_FALLINGROCK && (thing->player || thing->type == MT_FALLINGROCK)))
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -2381,6 +2382,11 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
 		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP))
 		|| (leveltime < introtime))
+#else
+		if ((thiscam == &camera && !(players[displayplayer].pflags & PF_TIMEOVER))
+		|| (thiscam == &camera2 && !(players[secondarydisplayplayer].pflags & PF_TIMEOVER))
+		|| (thiscam == &camera3 && !(players[thirddisplayplayer].pflags & PF_TIMEOVER))
+		|| (thiscam == &camera4 && !(players[fourthdisplayplayer].pflags & PF_TIMEOVER)))
 #endif
 		{ // Noclipping player camera noclips too!!
 			floatok = true;

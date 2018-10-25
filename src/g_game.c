@@ -1838,6 +1838,9 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].exiting)
 					continue;
 
+				if (players[displayplayer].pflags & PF_TIMEOVER)
+					continue;
+
 				// I don't know if we want this actually, but I'll humor the suggestion anyway
 				if (G_BattleGametype())
 				{
@@ -2354,6 +2357,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 itemamount;
 	INT32 itemroulette;
 	INT32 roulettetype;
+	INT32 growshrinktimer;
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
@@ -2366,7 +2370,7 @@ void G_PlayerReborn(INT32 player)
 	exiting = players[player].exiting;
 	jointime = players[player].jointime;
 	spectator = players[player].spectator;
-	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE));
+	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE|PF_WANTSTOJOIN));
 
 	// As long as we're not in multiplayer, carry over cheatcodes from map to map
 	if (!(netgame || multiplayer))
@@ -2417,6 +2421,7 @@ void G_PlayerReborn(INT32 player)
 		roulettetype = 0;
 		itemtype = 0;
 		itemamount = 0;
+		growshrinktimer = 0;
 		bumper = (G_BattleGametype() ? cv_kartbumpers.value : 0);
 		comebackpoints = 0;
 		wanted = 0;
@@ -2439,6 +2444,9 @@ void G_PlayerReborn(INT32 player)
 			itemtype = players[player].kartstuff[k_itemtype];
 			itemamount = players[player].kartstuff[k_itemamount];
 		}
+
+		// Keep Shrink status, remove Grow status
+		growshrinktimer = min(players[player].kartstuff[k_growshrinktimer], 0);
 
 		bumper = players[player].kartstuff[k_bumper];
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
@@ -2504,6 +2512,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_roulettetype] = roulettetype;
 	p->kartstuff[k_itemtype] = itemtype;
 	p->kartstuff[k_itemamount] = itemamount;
+	p->kartstuff[k_growshrinktimer] = growshrinktimer;
 	p->kartstuff[k_bumper] = bumper;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
