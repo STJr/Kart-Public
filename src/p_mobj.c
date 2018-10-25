@@ -8521,7 +8521,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj_t *fire = P_SpawnMobj(mobj->x + (P_RandomRange(-32, 32)*mobj->scale), mobj->y + (P_RandomRange(-32, 32)*mobj->scale), mobj->z, MT_THOK);
 
 				fire->sprite = SPR_FPRT;
-				fire->frame = FF_TRANS30;
+				fire->frame = FF_FULLBRIGHT|FF_TRANS30;
 				fire->scale = mobj->scale*4;
 				fire->momz = P_RandomRange(2, 3)*mobj->scale;
 				fire->scalespeed = mobj->scale/12;
