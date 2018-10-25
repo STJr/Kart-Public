@@ -2206,9 +2206,6 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 		mobj->momy = FixedMul(FixedDiv(mobjy - y, dist), FixedDiv(dist, 6*FRACUNIT));
 		mobj->momz = FixedMul(FixedDiv(mobjz - z, dist), FixedDiv(dist, 6*FRACUNIT));
 
-		mobj->flags |= MF_NOCLIPTHING;
-		mobj->flags &= ~MF_SPECIAL;
-
 		P_SetTarget(&mobj->target, source);
 	}
 }
