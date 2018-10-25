@@ -3315,12 +3315,10 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
-	else if (NetPacket.packet.newteam == 3)
-		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[playernum]));
 	else if (players[playernum].pflags & PF_WANTSTOJOIN)
 		players[playernum].pflags &= ~PF_WANTSTOJOIN;
 	else
-		CON_LogMessage(va(M_GetText("%s became a spectator.\n"), player_names[playernum]));
+		HU_AddChatText(va("\x82*%s became a spectator.", player_names[playernum]), false);
 
 	//reset view if you are changed, or viewing someone who was changed.
 	if (playernum == consoleplayer || displayplayer == playernum)
@@ -5265,7 +5263,7 @@ static void Mute_OnChange(void)
 	/*if (server || (IsPlayerAdmin(consoleplayer)))
 		return;*/
 	// Kinda dumb IMO, you should be able to see confirmation for having muted the chat as the host or admin.
-	
+
 	if (leveltime <= 1)
 		return;	// avoid having this notification put in our console / log when we boot the server.
 

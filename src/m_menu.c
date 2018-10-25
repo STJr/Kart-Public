@@ -1586,7 +1586,7 @@ menu_t MISC_HelpDef = IMAGEDEF(MISC_HelpMenu);
 // See also G_GetGametypeColor.
 //
 
-static INT32 highlightflags, recommendedflags, warningflags;
+static INT32 recommendedflags, warningflags;
 
 inline static void M_GetGametypeColor(void)
 {
@@ -7410,7 +7410,7 @@ static void M_StartServer(INT32 choice)
 
 	if (cv_maxplayers.value < ssplayers+1)
 		CV_SetValue(&cv_maxplayers, ssplayers+1);
-	
+
 	if (splitscreen != ssplayers)
 	{
 		splitscreen = ssplayers;

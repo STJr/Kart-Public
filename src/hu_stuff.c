@@ -391,7 +391,7 @@ void HU_AddChatText(const char *text, boolean playsound)
 	if (playsound && cv_consolechat.value != 2)	// Don't play the sound if we're using hidden chat.
 		S_StartSound(NULL, sfx_radio);
 	// reguardless of our preferences, put all of this in the chat buffer in case we decide to change from oldchat mid-game.
-	
+
 	if (chat_nummsg_log >= CHAT_BUFSIZE)
 		HU_removeChatText_Log();
 
@@ -404,7 +404,7 @@ void HU_AddChatText(const char *text, boolean playsound)
 	strcpy(chat_mini[chat_nummsg_min], text);
 	chat_timers[chat_nummsg_min] = TICRATE*cv_chattime.value;
 	chat_nummsg_min++;
-	
+
 	if (OLDCHAT)	// if we're using oldchat, print directly in console
 		CONS_Printf("%s\n", text);
 	else			// if we aren't, still save the message to log.txt
@@ -1503,12 +1503,12 @@ static void HU_drawChatLog(INT32 offset)
 	if (chat_scroll > 0)
 	{
 		V_DrawCharacter(chatx-9, ((justscrolledup) ? (chat_topy-1) : (chat_topy)),
-			'\x1A' | V_SNAPTOBOTTOM | V_SNAPTOLEFT, false); // up arrow
+			'\x1A' | V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlightflags, false); // up arrow
 	}
 	if (chat_scroll < chat_maxscroll)
 	{
 		V_DrawCharacter(chatx-9, chat_bottomy-((justscrolleddown) ? 5 : 6),
-			'\x1B' | V_SNAPTOBOTTOM | V_SNAPTOLEFT, false); // down arrow
+			'\x1B' | V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlightflags, false); // down arrow
 	}
 
 	justscrolleddown = false;
