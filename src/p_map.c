@@ -2382,6 +2382,11 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
 		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP))
 		|| (leveltime < introtime))
+#else
+		if ((thiscam == &camera && !(players[displayplayer].pflags & PF_TIMEOVER))
+		|| (thiscam == &camera2 && !(players[secondarydisplayplayer].pflags & PF_TIMEOVER))
+		|| (thiscam == &camera3 && !(players[thirddisplayplayer].pflags & PF_TIMEOVER))
+		|| (thiscam == &camera4 && !(players[fourthdisplayplayer].pflags & PF_TIMEOVER)))
 #endif
 		{ // Noclipping player camera noclips too!!
 			floatok = true;

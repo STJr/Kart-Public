@@ -3954,6 +3954,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		//CONS_Printf("cam: %d, dest: %d\n", player->kartstuff[k_boostcam], player->kartstuff[k_destboostcam]);
 	}
 
+	player->kartstuff[k_timeovercam] = 0;
+
 	if (player->kartstuff[k_spinouttimer])
 	{
 		if ((P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)

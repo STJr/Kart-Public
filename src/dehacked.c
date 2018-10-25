@@ -1838,11 +1838,13 @@ static actionpointer_t actionpointers[] =
 	{{A_SPBChase},             "A_SPBCHASE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
-	{{A_LightningFollowPlayer},"A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
-	{{A_RandomShadowFrame},	   "A_RANDOMSHADOWFRAME"},	//SRB2kart
-	{{A_RoamingShadowThinker}, "A_ROAMINGSHADOWTHINKER"},	//SRB2kart
-	{{A_ReaperThinker}, 	   "A_REAPERTHINKER"},	//SRB2kart
-	{{A_MementosTPParticles},  "A_MEMENTOSTPPARTICLES"}, //SRB2kart 
+	{{A_LightningFollowPlayer},"A_LIGHTNINGFOLLOWPLAYER"}, //SRB2kart
+	{{A_FZBoomFlash},          "A_FZBOOMFLASH"}, //SRB2kart
+	{{A_FZBoomSmoke},          "A_FZBOOMSMOKE"}, //SRB2kart
+	{{A_RandomShadowFrame},	   "A_RANDOMSHADOWFRAME"}, //SRB2kart
+	{{A_RoamingShadowThinker}, "A_ROAMINGSHADOWTHINKER"}, //SRB2kart
+	{{A_ReaperThinker}, 	   "A_REAPERTHINKER"}, //SRB2kart
+	{{A_MementosTPParticles},  "A_MEMENTOSTPPARTICLES"}, //SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -6804,6 +6806,31 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KLIT11",
 	"S_KLIT12",
 
+	"S_FZEROSMOKE1", // F-Zero NO CONTEST explosion
+	"S_FZEROSMOKE2",
+	"S_FZEROSMOKE3",
+	"S_FZEROSMOKE4",
+	"S_FZEROSMOKE5",
+
+	"S_FZEROBOOM1",
+	"S_FZEROBOOM2",
+	"S_FZEROBOOM3",
+	"S_FZEROBOOM4",
+	"S_FZEROBOOM5",
+	"S_FZEROBOOM6",
+	"S_FZEROBOOM7",
+	"S_FZEROBOOM8",
+	"S_FZEROBOOM9",
+	"S_FZEROBOOM10",
+	"S_FZEROBOOM11",
+	"S_FZEROBOOM12",
+
+	"S_FZSLOWSMOKE1",
+	"S_FZSLOWSMOKE2",
+	"S_FZSLOWSMOKE3",
+	"S_FZSLOWSMOKE4",
+	"S_FZSLOWSMOKE5",
+
 	// Midnight Channel stuff:
 	"S_SPOTLIGHT",	// Spotlight decoration
 	"S_RANDOMSHADOW",	// Random Shadow. They're static and don't do nothing.
@@ -7488,6 +7515,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
 
+	"MT_FZEROBOOM",
+
 	// Midnight Channel stuff:
 	"MT_SPOTLIGHT",		// Spotlight Object
 	"MT_RANDOMSHADOW",	// Random static Shadows.
@@ -7507,7 +7536,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CDBUSH",
 	"MT_CDTREEA",
 	"MT_CDTREEB",
-	
+
 #ifdef SEENAMES
 	"MT_NAMECHECK",
 #endif
@@ -7864,6 +7893,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ACCELBOOST",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
+	"TIMEOVERCAM",
 	"AIZDRIFTSTRAT",
 
 	"ITEMROULETTE",
