@@ -1179,7 +1179,7 @@ boolean P_EndingMusic(player_t *player)
 		bestlocalplayer = player;
 		bestlocalpos = ((player->pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : player->kartstuff[k_position]);
 	}
-	
+
 	if (G_RaceGametype() && bestlocalpos == MAXPLAYERS+1)
 		sprintf(buffer, "k*fail"); // F-Zero death results theme
 	else
@@ -8687,7 +8687,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
 			displayplayer = consoleplayer;
 
-		CON_LogMessage(va(M_GetText("%s entered the game.\n"), player_names[player-players]));
+		HU_AddChatText(va(M_GetText("\x82*%s entered the game."), player_names[player-players]), false);
 		return true; // no more player->mo, cannot continue.
 	}
 	return false;

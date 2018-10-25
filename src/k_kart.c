@@ -5434,6 +5434,8 @@ void K_CheckSpectateStatus(void)
 	UINT8 respawnlist[MAXPLAYERS];
 	UINT8 i, numingame = 0, numjoiners = 0;
 
+	if (!cv_allowteamchange.value) return;
+
 	// Get the number of players in game, and the players to be de-spectated.
 	for (i = 0; i < MAXPLAYERS; i++)
 	{

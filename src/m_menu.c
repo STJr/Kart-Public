@@ -1646,6 +1646,13 @@ inline static void M_GetGametypeColor(void)
 	highlightflags = V_YELLOWMAP; // FALLBACK
 }
 
+// excuse me but I'm extremely lazy:
+INT32 HU_GetHighlightColor(void)
+{
+	M_GetGametypeColor();	// update flag colour reguardless of the menu being opened or not.
+	return highlightflags;
+}
+
 // Sky Room
 menu_t SR_PandoraDef =
 {
@@ -7410,7 +7417,7 @@ static void M_StartServer(INT32 choice)
 
 	if (cv_maxplayers.value < ssplayers+1)
 		CV_SetValue(&cv_maxplayers, ssplayers+1);
-	
+
 	if (splitscreen != ssplayers)
 	{
 		splitscreen = ssplayers;
