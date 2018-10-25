@@ -8830,9 +8830,9 @@ void A_ReaperThinker(mobj_t *actor)
 	thinker_t *th;
 
 	//Player targetting stuff:
-	INT32 maxscore = 0;	// we target the player with the highest score so yeah there you go.
+	UINT32 maxscore = 0;	// we target the player with the highest score so yeah there you go.
 	player_t *player;	// used as a shortcut in a loop.
-	mobj_t *targetplayermo;	// the player mo we can eventually target, or whatever.
+	mobj_t *targetplayermo = NULL;	// the player mo we can eventually target, or whatever.
 
 
 #ifdef HAVE_BLUA

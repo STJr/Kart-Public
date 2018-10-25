@@ -17648,6 +17648,10 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		16<<FRACBITS,   // speed
 		20<<FRACBITS,   // radius
 		20<<FRACBITS,  // height
+		0,              // display offset
+		0,              // mass
+		0,              // damage
+		sfx_None,       // activesound
 		MF_SCENERY|MF_NOCLIP|MF_NOGRAVITY, 	// flags
 		S_NULL          // raisestate
 	},
