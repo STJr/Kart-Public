@@ -194,6 +194,11 @@ void A_SPBChase(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
+void A_RandomShadowFrame(mobj_t *actor);	// SRB2kart
+void A_RoamingShadowThinker(mobj_t *actor);	//SRB2kart
+void A_MayonakaArrow(mobj_t *actor);	//SRB2kart
+void A_ReaperThinker(mobj_t *actor);	//SRB2kart
+void A_MementosTPParticles(mobj_t *actor);	//SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -8575,6 +8580,381 @@ void A_LightningFollowPlayer(mobj_t *actor)
 		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
 	}
 	return;
+}
+
+// A_RandomShadowFrame
+// Gives a random sprite for the Mayonaka static shadows. Dumb and simple.
+void A_RandomShadowFrame(mobj_t *actor)
+{
+	mobj_t *fire;
+	mobj_t *fake;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RandomShadowFrame", (actor)))
+		return;
+#endif
+
+	if (!actor->extravalue1)	// Hack that spawns thoks that look like random shadows. Otherwise the state would overwrite our frame and that's a pain.
+	{
+		fake = P_SpawnMobj(actor->x, actor->y, actor->z, MT_THOK);
+		fake->sprite = SPR_ENM1;
+		fake->frame = P_RandomRange(0, 6);
+		P_SetScale(fake, FRACUNIT*3/2);
+		fake->scale = FRACUNIT*3/2;
+		fake->destscale = FRACUNIT*3/2;
+		fake->angle = actor->angle;
+		fake->tics = -1;
+		actor->flags2 |= MF2_DONTDRAW;
+		actor->extravalue1 = 1;
+	}
+
+	P_SetScale(actor, FRACUNIT*3/2);
+
+	// I have NO CLUE how to hardcode all of that fancy Linedef Executor shit so the fire spinout will be done by these entities directly.
+	if (P_LookForPlayers(actor, false, false, 380<<FRACBITS))	// got target
+	{
+		if (actor->target && !actor->target->player->powers[pw_flashing]
+		&& !actor->target->player->kartstuff[k_invincibilitytimer]
+		&& !actor->target->player->kartstuff[k_growshrinktimer]
+		&& !actor->target->player->kartstuff[k_spinouttimer]
+		&& P_IsObjectOnGround(actor->target)
+		&& actor->z == actor->target->z)
+		{
+			P_DamageMobj(actor->target, actor, actor, 1);
+			P_InstaThrust(actor->target, actor->angle, 16<<FRACBITS);
+			fire = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);
+			P_SetMobjStateNF(fire, S_QUICKBOOM1);
+			P_SetScale(fire, 4<<FRACBITS);
+			fire->color = SKINCOLOR_RED;
+			S_StartSound(actor->target, sfx_fire2);
+		}
+	}
+	return;
+}
+
+// A_RoamingShadowThinker
+// Thinker for Midnight Channel's Roaming Shadows:
+void A_RoamingShadowThinker(mobj_t *actor)
+{
+	mobj_t *wind;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RoamingShadowThinker", (actor)))
+		return;
+#endif
+	// extravalue1 replaces "movetimer"
+	// extravalue2 replaces "stoptimer"
+
+	P_SetScale(actor, FRACUNIT*3/2);
+	if (!actor->extravalue2)
+	{
+		P_InstaThrust(actor, actor->angle, 8<<FRACBITS);	// move at 8 fracs / sec
+		actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1-1) : (TICRATE*5+1));	// deplete timer if set, set to 5 ticrate otherwise.
+		if (actor->extravalue1 == 1)	// if timer reaches 1, do a u-turn.
+		{
+			actor->extravalue1 = 0;
+			actor->extravalue2 = 60;
+		}
+		// Search for and attack Players venturing too close in front of us.
+
+		if (P_LookForPlayers(actor, false, false, 256<<FRACBITS))	// got target
+		{
+			if (actor->target && !actor->target->player->powers[pw_flashing]
+			&& !actor->target->player->kartstuff[k_invincibilitytimer]
+			&& !actor->target->player->kartstuff[k_growshrinktimer]
+			&& !actor->target->player->kartstuff[k_spinouttimer])
+			{
+				// send them flying and spawn the WIND!
+				P_InstaThrust(actor->target, 0, 0);
+				P_DamageMobj(actor->target, actor, actor, 1);
+				P_SetObjectMomZ(actor->target, 16<<FRACBITS, false);
+				S_StartSound(actor->target, sfx_wind1);
+
+				// Spawn the WIND:
+				wind = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);	// Opaque layer:
+				P_SetMobjState(wind, S_GARU1);
+				P_SetScale(wind, FRACUNIT*3/2);
+				wind = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);	// Translucent layer:
+				P_SetMobjState(wind, S_TGARU0);
+				P_SetScale(wind, FRACUNIT*3/2);
+				wind->destscale = 30<<FRACBITS;
+			}
+		}
+	}
+	else	// Handle U-Turn
+	{
+		actor->angle += ANG1*3;
+		actor->extravalue2--;
+	}
+	return;
+}
+
+// A_MayonakaArrow
+// Used for the arrow sprite animations in Mayonaka. It's only extra visual bullshit to make em more random.
+
+void A_MayonakaArrow(mobj_t *actor)
+{
+	INT32 flip = 0;
+	INT32 iswarning;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_MayonakaArrow", (actor)))
+		return;
+#endif
+
+	iswarning = actor->spawnpoint->options & MTF_OBJECTSPECIAL;	// is our object a warning sign?
+	// "animtimer" is replaced by "extravalue1" here.
+	actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1+1) : (P_RandomRange(0, (iswarning) ? (TICRATE/2) : TICRATE*3)));
+	flip = ((actor->spawnpoint->options & 1) ? (3) : (0));	// flip adds 3 frames, which is the flipped version of the sign.
+	// special warning behavior:
+	if (iswarning)
+		flip = 6;
+
+	actor->frame = flip + actor->extravalue2*3;
+
+	if (actor->extravalue1 >= TICRATE*7/2)
+	{
+		actor->extravalue1 = 0;	// reset to 0 and start a new cycle.
+		// special behavior for warning sign; swap from warning to sneaker & reverse
+		if (iswarning)
+			actor->extravalue2 = (actor->extravalue2) ? (0) : (1);
+	}
+	else if (actor->extravalue1 > TICRATE*7/2 -4)
+		actor->frame = flip+2;
+	else if (actor->extravalue1 > TICRATE*3 && leveltime%2 > 0)
+		actor->frame = flip+1;
+
+	actor->frame |= FF_PAPERSPRITE;
+	actor->momz = 0;
+	return;
+}
+
+// A_MementosTPParticles
+// Mementos teleporters particles effects. Short and simple.
+
+void A_MementosTPParticles(mobj_t *actor)
+{
+	mobj_t *particle;
+	mobj_t *mo2;
+	int i = 0;
+	thinker_t *th;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_MementosTPParticles", (actor)))
+		return;
+#endif
+
+	for (; i<4; i++)
+	{
+		particle = P_SpawnMobj(actor->x + (P_RandomRange(-256, 256)<<FRACBITS), actor->y + (P_RandomRange(-256, 256)<<FRACBITS), actor->z + (P_RandomRange(48, 256)<<FRACBITS), MT_MEMENTOSPARTICLE);
+		particle->frame = 0;
+		particle->color = ((i%2) ? (SKINCOLOR_RED) : (SKINCOLOR_BLACK));
+		particle->destscale = 1;
+		P_HomingAttack(particle, actor);
+	}
+
+	// Although this is mostly used to spawn particles, we will also save the OTHER teleport inside actor->target. That way teleporting doesn't require a thinker iteration.
+	// Doesn't seem like much given the small amount of mobjs this map has but heh.
+	if (!actor->target)
+	{
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+		{
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+				continue;
+
+			mo2 = (mobj_t *)th;
+			if (mo2->type == MT_MEMENTOSTP && mo2 != actor)
+			{
+				P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+				break;
+			}
+		}
+	}
+}
+
+// A_ReaperThinker
+// Mementos's Reaper's thinker. A huge pain in the Derek Bum to translate from Lua to this shite if you ask me.
+
+void A_ReaperThinker(mobj_t *actor)
+{
+	mobj_t *particle;	// particles to spawn
+	int i = 0;			// for loops
+	angle_t an = ANGLE_22h;		// Reminder that angle constants suck.
+
+	//Waypoint stuff:
+	mobj_t *mo2;
+	thinker_t *th;
+
+	//Player targetting stuff:
+	INT32 maxscore = 0;	// we target the player with the highest score so yeah there you go.
+	player_t *player;	// used as a shortcut in a loop.
+	mobj_t *targetplayermo;	// the player mo we can eventually target, or whatever.
+
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_ReaperThinker", (actor)))
+		return;
+#endif
+
+	// We don't have custom variables or whatever so we'll do with whatever the fuck we have left.
+
+	if (actor->health == 1000)	// if health is 1000, set it to a small scale and have it start growing with destscale. Then set the health to uh, not 1000.
+	{
+		actor->scale = 1;
+		actor->destscale = 2<<FRACBITS;
+		actor->scalespeed = FRACUNIT/24;	// Should take a bit less than 2 seconds to fully grow.
+		S_StartSound(NULL, sfx_chain);
+		actor->health--;	// now we have 999 health, so that above won't happen again. Awesome.
+	}
+
+	if (actor->scale < 2<<FRACBITS)	// we haven't finished growing YET.
+	{
+		// Spawn particles as we grow out of the floor, ゴ ゴ ゴ ゴ
+		for (; i<16; i++)
+		{
+			particle = P_SpawnMobj(actor->x + (P_RandomRange(-60, 60)<<FRACBITS), actor->y + (P_RandomRange(-60, 60)<<FRACBITS), actor->z, MT_THOK);
+			particle->momz = 20<<FRACBITS;
+			particle->color = ((i%2 !=0) ? (SKINCOLOR_RED) : (SKINCOLOR_BLACK));
+			particle->frame = 0;
+			P_SetScale(particle, FRACUNIT/2);
+		}
+
+		// Spawn particles in some edgy circle or w/e.
+
+		if (leveltime%5 != 0)	// spawn the thing under that every tic.
+			return;
+
+		i=0;
+		for (; i<15; i++)	// spawn in a circle formation or w/e.
+		{
+			particle = P_SpawnMobj(actor->x, actor->y, actor->z, MT_THOK);
+			particle->momz = 20<<FRACBITS;
+			particle->color = ((i%2 !=0) ? (SKINCOLOR_RED) : (SKINCOLOR_BLACK));
+			particle->frame = 0;
+			P_SetScale(particle, FRACUNIT/2);
+			P_InstaThrust(particle, an*i, 30<<FRACBITS);
+		}
+		return;	// don't continue, what lies beyond that is the movement code.
+	}
+
+	// We finished growing and can now be a dangerous piece o' garbage scaring the living heck outta players!
+
+	actor->flags = MF_NOGRAVITY|MF_PAIN|MF_SPECIAL|MF_NOCLIP|MF_NOCLIPHEIGHT;	// set our flags to be a damaging thing.
+	// Handle animation:
+	if (!(leveltime%5))
+		actor->extravalue2 = (actor->extravalue2 < 9) ? (actor->extravalue2+1) : (0);	// Ghetto animation, but hey it works for what it's worth
+
+	// Chain sfx
+	if (!S_SoundPlaying(actor, sfx_chain))
+		S_StartSound(actor, sfx_chain);
+
+	actor->frame = actor->extravalue2;	// yes i'm that bad at maths don't @ me.
+
+	if (!actor->target)
+	{
+		if (actor->hnext)
+		{
+			P_SetTarget(&actor->target, actor->hnext);	// Default back to last waypoint.
+			return;
+		}
+
+		// We have no target and oughta find one, so let's scan through thinkers for a waypoint of angle 0, or something.
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+		{
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+				continue;
+
+			mo2 = (mobj_t *)th;
+
+			if (mo2->type != MT_REAPERWAYPOINT)
+				continue;
+			if (mo2->spawnpoint->angle != 0)
+				continue;
+
+			P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+			P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
+			actor->extravalue1 = 0;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
+			if (!actor->tracer)	// If we already have a tracer (Waypoint #0), don't do anything.
+			{
+				P_SetTarget(&actor->tracer, mo2);	// Because our target might be a player OR a waypoint, we need some sort of fallback option. This will always be waypoint 0.
+				break;
+			}
+		}
+	}
+	else	// Awesome, we now have a target.
+	{
+		// Follow target:
+		P_InstaThrust(actor, R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y), 20<<FRACBITS);
+		actor->angle = R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y);
+
+		// The player we should target if it's near us:
+		for (i=0; i<MAXPLAYERS; i++)
+		{
+
+			if (!playeringame[i])
+				continue;
+
+			player = &players[i];
+			if (player && player->mo && player->kartstuff[k_bumper] && player->score >= maxscore)
+			{
+				targetplayermo = player->mo;
+				maxscore = player->score;
+			}
+		}
+
+		// Try to target that player:
+		if (targetplayermo)
+		{
+			if (P_LookForPlayers(actor, false, false, 1024<<FRACBITS))	// got target
+			{
+				if (!(actor->target == targetplayermo && actor->target && !actor->target->player->powers[pw_flashing]
+				&& !actor->target->player->kartstuff[k_invincibilitytimer]
+				&& !actor->target->player->kartstuff[k_growshrinktimer]
+				&& !actor->target->player->kartstuff[k_spinouttimer]))
+					P_SetTarget(&actor->target, actor->hnext);
+					// if the above isn't correct, then we should go back to targetting waypoints or something.
+			}
+		}
+
+		// Waypoint behavior.
+		if (actor->target->type == MT_REAPERWAYPOINT)
+		{
+
+			if (R_PointToDist2(actor->x, actor->y, actor->target->x, actor->target->y) < 22<<FRACBITS)
+			{
+				P_SetTarget(&actor->target, NULL);	// remove target so we can default back to first waypoint if things go ham.
+
+				// If we reach close to a waypoint, then we should go to the NEXT one.
+				for (th = thinkercap.next; th != &thinkercap; th = th->next)
+				{
+					if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+						continue;
+
+					mo2 = (mobj_t *)th;
+
+					if (mo2->type != MT_REAPERWAYPOINT)
+						continue;
+					if (mo2->spawnpoint->angle != actor->extravalue1+1)
+						continue;
+
+					P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+					P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
+					actor->extravalue1++;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
+					break;
+				}
+			}
+
+
+			if (!actor->target)	// If we have no target, revert back to waypoint 0.
+			{
+				actor->extravalue1 = 0;
+				P_SetTarget(&actor->target, actor->tracer);
+			}
+		}
+		else	// if our target ISN'T a waypoint, then it can only be a player.
+		{
+			if (!P_CheckSight(actor, actor->target) || R_PointToDist2(actor->x, actor->y, actor->target->x, actor->target->y) > 1024<<FRACBITS)
+				P_SetTarget(&actor->target, actor->hnext);
+		}
+	}
 }
 
 //}

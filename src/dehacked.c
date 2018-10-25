@@ -990,7 +990,7 @@ static const struct {
 	{"2D",TOL_2D},
 	{"MARIO",TOL_MARIO},
 	{"NIGHTS",TOL_NIGHTS},
-	//{"OLDBRAK",TOL_ERZ3},
+	{"TV",TOL_TV},
 
 	{"XMAS",TOL_XMAS},
 	{"CHRISTMAS",TOL_XMAS},
@@ -1838,7 +1838,11 @@ static actionpointer_t actionpointers[] =
 	{{A_SPBChase},             "A_SPBCHASE"}, // SRB2kart
 	{{A_MineExplode},          "A_MINEEXPLODE"}, // SRB2kart
 	{{A_BallhogExplode},       "A_BALLHOGEXPLODE"}, // SRB2kart
-	{{A_LightningFollowPlayer}, "A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
+	{{A_LightningFollowPlayer},"A_LIGHTNINGFOLLOWPLAYER"},	//SRB2kart
+	{{A_RandomShadowFrame},	   "A_RANDOMSHADOWFRAME"},	//SRB2kart
+	{{A_RoamingShadowThinker}, "A_ROAMINGSHADOWTHINKER"},	//SRB2kart
+	{{A_ReaperThinker}, 	   "A_REAPERTHINKER"},	//SRB2kart
+	{{A_MementosTPParticles},  "A_MEMENTOSTPPARTICLES"}, //SRB2kart 
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -6800,6 +6804,38 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KLIT11",
 	"S_KLIT12",
 
+	// Midnight Channel stuff:
+	"S_SPOTLIGHT",	// Spotlight decoration
+	"S_RANDOMSHADOW",	// Random Shadow. They're static and don't do nothing.
+	"S_GARU1",
+	"S_GARU2",
+	"S_GARU3",
+	"S_TGARU",	
+	"S_TGARU1",
+	"S_TGARU2",
+	"S_TGARU3",	// Wind attack used by Roaming Shadows on Players.
+	"S_ROAMINGSHADOW",	// Roaming Shadow (the one that uses above's wind attack or smth)
+	"S_MAYONAKAARROW",	// Arrow sign
+
+	// Mementos stuff:
+	"S_REAPER_INVIS",		// Reaper waiting for spawning
+	"S_REAPER",			// Reaper main frame where its thinker is handled
+	"S_MEMENTOSTP",		// Mementos teleporter state. (Used for spawning particles)
+
+	// JackInTheBox
+	"S_JITB1",
+	"S_JITB2",
+	"S_JITB3",
+	"S_JITB4",
+	"S_JITB5",
+	"S_JITB6",
+
+	// Color Drive
+	"S_CDMOONSP",
+	"S_CDBUSHSP",
+	"S_CDTREEASP",
+	"S_CDTREEBSP",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -7452,6 +7488,26 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
 
+	// Midnight Channel stuff:
+	"MT_SPOTLIGHT",		// Spotlight Object
+	"MT_RANDOMSHADOW",	// Random static Shadows.
+	"MT_ROAMINGSHADOW",	// Roaming Shadows.
+	"MT_MAYONAKAARROW",	// Arrow static signs for Mayonaka
+
+	// Mementos stuff
+	"MT_REAPERWAYPOINT",
+	"MT_REAPER",
+	"MT_MEMENTOSTP",
+	"MT_MEMENTOSPARTICLE",
+
+	"MT_JACKINTHEBOX",
+
+	// Color Drive:
+	"MT_CDMOON",
+	"MT_CDBUSH",
+	"MT_CDTREEA",
+	"MT_CDTREEB",
+	
 #ifdef SEENAMES
 	"MT_NAMECHECK",
 #endif
