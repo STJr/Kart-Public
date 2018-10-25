@@ -7666,7 +7666,8 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 
 		mo = (mobj_t *)think;
 
-		if (!(mo->flags & MF_SHOOTABLE) && !(mo->type == MT_EGGGUARD || mo->type == MT_MINUS))
+		if (!(mo->flags & MF_SHOOTABLE) && !(mo->type == MT_EGGGUARD || mo->type == MT_MINUS
+			|| mo->type == MT_SPB)) // Don't want to give SPB MF_SHOOTABLE, to ensure it's undamagable through other means
 			continue;
 
 		if (mo->flags & MF_MONITOR)
@@ -7695,7 +7696,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			|| mo->type == MT_ORBINAUT_SHIELD || mo->type == MT_JAWZ_SHIELD
 			|| mo->type == MT_BANANA || mo->type == MT_BANANA_SHIELD
 			|| mo->type == MT_FAKEITEM || mo->type == MT_FAKESHIELD
-			|| mo->type == MT_BALLHOG)
+			|| mo->type == MT_BALLHOG || mo->type == MT_SPB)
 		{
 			if (mo->eflags & MFE_VERTICALFLIP)
 				mo->z -= mo->height;
@@ -7708,6 +7709,9 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 			P_SetObjectMomZ(mo, 8*FRACUNIT, false);
 			P_InstaThrust(mo, R_PointToAngle2(inflictor->x, inflictor->y, mo->x, mo->y)+ANGLE_90, 16*FRACUNIT);
 		}
+
+		if (mo->type == MT_SPB) // If you destroy a SPB, you don't get the luxury of a cooldown.
+			indirectitemcooldown = 0;
 
 		if (mo == inflictor) // Don't nuke yourself, dummy!
 			continue;
@@ -8066,11 +8070,14 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	fixed_t x, y, z, dist, height, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
 	fixed_t pan, xpan, ypan;
 	INT32 camrotate;
-	boolean camstill, cameranoclip, lookback;
+	boolean camstill, lookback;
 	UINT8 timeover;
 	mobj_t *mo;
-	subsector_t *newsubsec;
 	fixed_t f1, f2;
+#ifndef NOCLIPCAM
+	boolean cameranoclip;
+	subsector_t *newsubsec;
+#endif
 
 	// We probably shouldn't move the camera if there is no player or player mobj somehow
 	if (!player || !player->mo)
@@ -8078,13 +8085,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	mo = player->mo;
 
-#ifdef NOCLIPCAM
-	cameranoclip = true; // We like camera noclip!
-#else
+#ifndef NOCLIPCAM
 	cameranoclip = ((player->pflags & (PF_NOCLIP|PF_NIGHTSMODE))
 		|| (mo->flags & (MF_NOCLIP|MF_NOCLIPHEIGHT)) // Noclipping player camera noclips too!!
 		|| (leveltime < introtime)); // Kart intro cam
 #endif
+
 	if (player->pflags & PF_TIMEOVER) // 1 for momentum keep, 2 for turnaround
 		timeover = (player->kartstuff[k_timeovercam] > 2*TICRATE ? 2 : 1);
 	else
@@ -8332,6 +8338,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	else
 		z = mo->z + pviewheight + camheight;
 
+#ifndef NOCLIPCAM // Disable all z-clipping for noclip cam
 	// move camera down to move under lower ceilings
 	newsubsec = R_IsPointInSubsector(((mo->x>>FRACBITS) + (thiscam->x>>FRACBITS))<<(FRACBITS-1), ((mo->y>>FRACBITS) + (thiscam->y>>FRACBITS))<<(FRACBITS-1));
 
@@ -8529,6 +8536,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (thiscam->z < thiscam->floorz && !cameranoclip)
 		thiscam->z = thiscam->floorz;
+#endif // NOCLIPCAM
 
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
@@ -8559,7 +8567,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		thiscam->momx = x - thiscam->x;
 		thiscam->momy = y - thiscam->y;
-		thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
+		if (splitscreen == 1) // Wide-screen needs to follow faster, due to a smaller vertical:horizontal ratio of screen space
+			thiscam->momz = FixedMul(z - thiscam->z, (3*camspeed)/4);
+		else
+			thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
 	}
 
 	thiscam->pan = pan;

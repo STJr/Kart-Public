@@ -824,7 +824,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->type == MT_PLAYER && thing->player)
 		{
 			if (tmthing->state == &states[S_MINEEXPLOSION1])
-				K_ExplodePlayer(thing->player, tmthing->target);
+				K_ExplodePlayer(thing->player, tmthing->target, tmthing);
 			else
 				K_SpinPlayer(thing->player, tmthing->target, 0, false);
 		}
@@ -1033,7 +1033,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		{
 			// Player Damage
 			if (thing->state == &states[S_MINEEXPLOSION1])
-				K_ExplodePlayer(tmthing->player, thing->target);
+				K_ExplodePlayer(tmthing->player, thing->target, thing);
 			else
 				K_SpinPlayer(tmthing->player, thing->target, 0, false);
 
@@ -1077,7 +1077,8 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	//}
 
-	if (thing->type == MT_FALLINGROCK || tmthing->type == MT_FALLINGROCK)
+	if ((thing->type == MT_FALLINGROCK && (tmthing->player || tmthing->type == MT_FALLINGROCK))
+		|| (tmthing->type == MT_FALLINGROCK && (thing->player || thing->type == MT_FALLINGROCK)))
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
