@@ -1057,6 +1057,26 @@ boolean HU_Responder(event_t *ev)
 
 	// only KeyDown events now...
 
+	// Shoot, to prevent P1 chatting from ruining the game for everyone else, it's either:
+	// A. completely disallow opening chat entirely in online splitscreen
+	// or B. iterate through all controls to make sure it's bound to player 1 before eating
+	// You can see which one I chose.
+	// (Unless if you're sharing a keyboard, since you probably establish when you start chatting that you have dibs on it...)
+	// (Ahhh, the good ol days when I was a kid who couldn't afford an extra USB controller...)
+
+	if (ev->data1 >= KEY_MOUSE1)
+	{
+		INT32 i;
+		for (i = 0; i < num_gamecontrols; i++)
+		{
+			if (gamecontrol[i][0] == ev->data1 || gamecontrol[i][1] == ev->data1)
+				break;
+		}
+
+		if (i == num_gamecontrols)
+			return false;
+	}
+
 	if (!chat_on)
 	{
 		// enter chat mode
