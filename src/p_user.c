@@ -6654,10 +6654,15 @@ static void P_MovePlayer(player_t *player)
 	}
 	else if (player->kartstuff[k_spinouttimer] > 0 || player->pflags & PF_SLIDING)
 	{
+		INT32 speed = max(1, min(8, player->kartstuff[k_spinouttimer]/8));
+
 		if (player->mo->state != &states[S_KART_SPIN])
 			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
-		player->frameangle -= (ANGLE_11hh * min(8, player->kartstuff[k_spinouttimer]/8));
+		if (speed == 1 && abs(player->mo->angle - player->frameangle) < ANGLE_22h)
+			player->frameangle = player->mo->angle; // Face forward at the end of the animation
+		else
+			player->frameangle -= (ANGLE_11hh * speed);
 	}
 	else if (player->powers[pw_nocontrol] && player->pflags & PF_SKIDDOWN)
 	{
