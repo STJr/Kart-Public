@@ -306,6 +306,7 @@ typedef enum
 	k_accelboost,		// Boost value smoothing for acceleration
 	k_boostcam,			// Camera push forward on boost
 	k_destboostcam,		// Ditto
+	k_timeovercam,		// Camera timer for leaving behind or not
 	k_aizdriftstrat,	// Let go of your drift while boosting? Helper for the SICK STRATZ you have just unlocked
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
@@ -327,7 +328,6 @@ typedef enum
 	k_squishedtimer,		// Squished frame timer
 	k_rocketsneakertimer,	// Rocket Sneaker duration timer
 	k_invincibilitytimer,	// Invincibility timer
-	k_deathsentence,		// 30 seconds to live... (SPB murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
 	k_eggmanblame,			// Fake item recieved, who set this fake

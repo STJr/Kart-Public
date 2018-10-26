@@ -124,6 +124,10 @@ static patch_t *minicaps;
 static patch_t *gotrflag;
 static patch_t *gotbflag;
 
+// Midnight Channel:
+static patch_t *hud_tv1;
+static patch_t *hud_tv2;
+
 // SRB2kart
 
 //
@@ -345,6 +349,10 @@ void ST_LoadGraphics(void)
 		ngradeletters[i] = W_CachePatchName(va("GRADE%d", i), PU_HUDGFX);
 
 	K_LoadKartHUDGraphics();
+
+	// Midnight Channel:
+	hud_tv1 = W_CachePatchName("HUD_TV1", PU_HUDGFX);
+	hud_tv2 = W_CachePatchName("HUD_TV2", PU_HUDGFX);
 }
 
 // made separate so that skins code can reload custom face graphics
@@ -1985,6 +1993,17 @@ static void ST_overlayDrawer(void)
 	ST_drawDebugInfo();
 }
 
+// MayonakaStatic: draw Midnight Channel's TV-like borders
+static void ST_MayonakaStatic(void)
+{
+	INT32 flag = (leveltime%2) ? V_90TRANS : V_70TRANS;
+
+	V_DrawFixedPatch(0, 0, FRACUNIT, V_SNAPTOTOP|V_SNAPTOLEFT|flag, hud_tv1, NULL);
+	V_DrawFixedPatch(320<<FRACBITS, 0, FRACUNIT, V_SNAPTOTOP|V_SNAPTORIGHT|V_FLIP|flag, hud_tv1, NULL);
+	V_DrawFixedPatch(0, 142<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTOLEFT|flag, hud_tv2, NULL);
+	V_DrawFixedPatch(320<<FRACBITS, 142<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_FLIP|flag, hud_tv2, NULL);
+}
+
 void ST_Drawer(void)
 {
 #ifdef SEENAMES
@@ -2042,5 +2061,8 @@ void ST_Drawer(void)
 				}
 			}
 		}
+		// draw Midnight Channel's overlay ontop
+		if (mapheaderinfo[gamemap-1]->typeoflevel & TOL_TV)	// Very specific Midnight Channel stuff.
+			ST_MayonakaStatic();
 	}
 }

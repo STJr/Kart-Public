@@ -190,9 +190,17 @@ void A_ToggleFlameJet(mobj_t *actor);
 void A_ItemPop(mobj_t *actor); // SRB2kart
 void A_JawzChase(mobj_t *actor); // SRB2kart
 void A_JawzExplode(mobj_t *actor); // SRB2kart
+void A_SPBChase(mobj_t *actor); // SRB2kart
 void A_MineExplode(mobj_t *actor); // SRB2kart
 void A_BallhogExplode(mobj_t *actor); // SRB2kart
-void A_LightningFollowPlayer(mobj_t *actor);	// SRB2kart
+void A_LightningFollowPlayer(mobj_t *actor); // SRB2kart
+void A_FZBoomFlash(mobj_t *actor); // SRB2kart
+void A_FZBoomSmoke(mobj_t *actor); // SRB2kart
+void A_RandomShadowFrame(mobj_t *actor);	// SRB2kart
+void A_RoamingShadowThinker(mobj_t *actor);	//SRB2kart
+void A_MayonakaArrow(mobj_t *actor);	//SRB2kart
+void A_ReaperThinker(mobj_t *actor);	//SRB2kart
+void A_MementosTPParticles(mobj_t *actor);	//SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -3406,7 +3414,7 @@ void A_ParticleSpawn(mobj_t *actor)
 	P_SetScale(spawn, actor->scale);
 	spawn->momz = speed;
 	spawn->destscale = FixedDiv(spawn->scale<<FRACBITS, 100<<FRACBITS);
-	spawn->scalespeed = FixedDiv(((actor->spawnpoint->angle >> 8) & 63) << FRACBITS, 100<<FRACBITS);
+	spawn->scalespeed = FixedDiv(((actor->spawnpoint->angle >> 8) & 63) * actor->scale, 100<<FRACBITS);
 	actor->tics = actor->spawnpoint->extrainfo + 1;
 }
 
@@ -4014,7 +4022,7 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	grenade->flags2 |= MF2_DEBRIS;
 
 	if (thing->player) // Looks like we're going to have to need a seperate function for this too
-		K_ExplodePlayer(thing->player, grenade->target);
+		K_ExplodePlayer(thing->player, grenade->target, grenade);
 	else
 		P_DamageMobj(thing, grenade, grenade->target, 1);
 
@@ -4053,7 +4061,7 @@ void A_MineExplode(mobj_t *actor)
 	if (actor->target && actor->target->player)
 		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
 	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+		K_SpawnMineExplosion(actor, SKINCOLOR_KETCHUP);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
 }
@@ -8173,7 +8181,7 @@ void A_ToggleFlameJet(mobj_t* actor)
 	}
 }
 
-//{ SRB2kart - A_ItemPop, A_JawzChase, A_JawzExplode, A_MineExplode, and A_BallhogExplode
+//{ SRB2kart Actions
 void A_ItemPop(mobj_t *actor)
 {
 	mobj_t *remains;
@@ -8293,7 +8301,7 @@ void A_JawzExplode(mobj_t *actor)
 
 	truc = P_SpawnMobj(actor->x, actor->y, actor->z, MT_BOOMEXPLODE);
 	truc->scale = actor->scale*2;
-	truc->color = SKINCOLOR_RED;
+	truc->color = SKINCOLOR_KETCHUP;
 
 	while (shrapnel)
 	{
@@ -8311,7 +8319,7 @@ void A_JawzExplode(mobj_t *actor)
 		speed2 = FixedMul(15*FRACUNIT, actor->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
 		truc->tics = TICRATE*2;
-		truc->color = SKINCOLOR_RED;
+		truc->color = SKINCOLOR_KETCHUP;
 
 		shrapnel--;
 	}
@@ -8319,65 +8327,220 @@ void A_JawzExplode(mobj_t *actor)
 	return;
 }
 
-/* old A_MineExplode - see elsewhere in the file
-void A_MineExplode(mobj_t *actor)
+void A_SPBChase(mobj_t *actor)
 {
-	mobj_t *mo2;
-	thinker_t *th;
-	INT32 d;
-	INT32 locvar1 = var1;
-	mobjtype_t type;
-	fixed_t range;
+	player_t *player = NULL;
+	UINT8 i;
+	UINT8 bestrank = UINT8_MAX;
+	fixed_t dist;
+	angle_t hang, vang;
+	fixed_t wspeed, xyspeed, zspeed;
 #ifdef HAVE_BLUA
-	if (LUA_CallAction("A_MineExplode", actor))
+	if (LUA_CallAction("A_SPBChase", actor))
 		return;
 #endif
 
-	type = (mobjtype_t)locvar1;
-	range = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	// Default speed
+	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
+	if (gamespeed == 0)
+		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
+	else if (gamespeed == 2)
+		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
 
-	for (th = thinkercap.next; th != &thinkercap; th = th->next)
+	if (actor->threshold) // Just fired, go straight.
 	{
-		if (P_MobjWasRemoved(actor))
-			return; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
-
-		if (th->function.acp1 != (actionf_p1)P_MobjThinker)
-			continue;
-
-		mo2 = (mobj_t *)th;
-
-		if (mo2 == actor || mo2->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
-			continue;
-
-		if (!(mo2->flags & MF_SHOOTABLE) || (mo2->flags & MF_SCENERY))
-			continue;
-
-		if (G_BattleGametype() && actor->target && actor->target->player && actor->target->player->kartstuff[k_bumper] <= 0 && mo2 == actor->target)
-			continue;
-
-		if (P_AproxDistance(P_AproxDistance(mo2->x - actor->x, mo2->y - actor->y), mo2->z - actor->z) > range)
-			continue;
-
-		actor->flags2 |= MF2_DEBRIS;
-
-		if (mo2->player) // Looks like we're going to have to need a seperate function for this too
-			K_ExplodePlayer(mo2->player, actor->target);
-		else
-			P_DamageMobj(mo2, actor, actor->target, 1);
+		P_InstaThrust(actor, actor->angle, wspeed);
+		return;
 	}
 
-	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, range + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+	if (actor->extravalue1) // MODE: TARGETING
+	{
+		if (actor->tracer && actor->tracer->health)
+		{
+			fixed_t defspeed = wspeed;
+			fixed_t range = (160*actor->tracer->scale);
 
-	if (actor->target && actor->target->player)
-		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
-	else
-		K_SpawnMineExplosion(actor, SKINCOLOR_RED);
+			// Maybe we want SPB to target an object later? IDK lol
+			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
+			{
+				if (!P_IsObjectOnGround(actor->tracer) && !actor->tracer->player->kartstuff[k_pogospring])
+					defspeed = 7*actor->tracer->player->speed/8; // In the air you have no control; basically don't hit unless you make a near complete stop
+				else
+					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+			}
 
-	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
+			// Play the intimidating gurgle
+			if (!S_SoundPlaying(actor, actor->info->activesound))
+				S_StartSound(actor, actor->info->activesound);
+
+			dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+
+			wspeed = FixedMul(defspeed, FRACUNIT + FixedDiv(dist-range, range));
+			if (wspeed < defspeed)
+				wspeed = defspeed;
+			if (wspeed > (3*defspeed)/2)
+				wspeed = (3*defspeed)/2;
+
+			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
+			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+			{
+				// Smoothly rotate horz angle
+				angle_t input = hang - actor->angle;
+				boolean invert = (input > ANGLE_180);
+				if (invert)
+					input = InvAngle(input);
+
+				// Slow down when turning; it looks better and makes U-turns not unfair
+				xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+				input = FixedAngle(AngleFixed(input)/4);
+				if (invert)
+					input = InvAngle(input);
+
+				actor->angle += input;
+
+				// Smoothly rotate vert angle
+				input = vang - actor->movedir;
+				invert = (input > ANGLE_180);
+				if (invert)
+					input = InvAngle(input);
+
+				// Slow down when turning; might as well do it for momz, since we do it above too
+				zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+				input = FixedAngle(AngleFixed(input)/4);
+				if (invert)
+					input = InvAngle(input);
+
+				actor->movedir += input;
+			}
+
+			actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
+
+			// Red speed lines for when it's gaining on its target. A tell for when you're starting to lose too much speed!
+			if (R_PointToDist2(0, 0, actor->momx, actor->momy) > (actor->tracer->player ? (16*actor->tracer->player->speed)/15
+				: (16*R_PointToDist2(0, 0, actor->tracer->momx, actor->tracer->momy))/15) // Going faster than the target
+				&& xyspeed > K_GetKartSpeed(actor->tracer->player, false)/4) // Don't display speedup lines at pitifully low speeds
+			{
+				mobj_t *fast = P_SpawnMobj(actor->x + (P_RandomRange(-24,24) * actor->scale),
+					actor->y + (P_RandomRange(-24,24) * actor->scale),
+					actor->z + (actor->height/2) + (P_RandomRange(-24,24) * actor->scale),
+					MT_FASTLINE);
+				fast->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
+				//fast->momx = 3*actor->momx/4;
+				//fast->momy = 3*actor->momy/4;
+				//fast->momz = 3*actor->momz/4;
+				fast->color = SKINCOLOR_RED;
+				fast->colorized = true;
+			}
+
+			return;
+		}
+		else // Target's gone, return to SEEKING
+		{
+			P_SetTarget(&actor->tracer, NULL);
+			actor->extravalue1 = 0; // Find someone new next tic
+			return;
+		}
+	}
+	else // MODE: SEEKING
+	{
+		// Find the player with the best rank
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator || players[i].exiting)
+				continue; // not in-game
+
+			if (!players[i].mo)
+				continue; // no mobj
+
+			if (players[i].mo->health <= 0)
+				continue; // dead
+
+			if (players[i].kartstuff[k_respawn])
+				continue; // respawning
+
+			if (players[i].kartstuff[k_position] < bestrank)
+			{
+				bestrank = players[i].kartstuff[k_position];
+				player = &players[i];
+			}
+		}
+
+		// No one there?
+		if (player == NULL || !player->mo)
+		{
+#if 0
+			// SELF-DESTRUCT?
+			mobj_t *spbexplode;
+
+			S_StopSound(actor); // Don't continue playing the gurgle or the siren
+			spbexplode = P_SpawnMobj(actor->x, actor->y, actor->z, MT_SPBEXPLOSION);
+			P_SetTarget(&spbexplode->target, actor->target);
+
+			P_RemoveMobj(actor);
+#else
+			actor->momx = actor->momy = actor->momz = 0;
+#endif
+			return;
+		}
+
+		// Found someone, now get close enough to initiate the slaughter...
+		P_SetTarget(&actor->tracer, player->mo);
+
+		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
+
+		hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
+		vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+		{
+			// Smoothly rotate horz angle
+			angle_t input = hang - actor->angle;
+			boolean invert = (input > ANGLE_180);
+			if (invert)
+				input = InvAngle(input);
+
+			// Slow down when turning; it looks better and makes U-turns not unfair
+			xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+			input = FixedAngle(AngleFixed(input)/4);
+			if (invert)
+				input = InvAngle(input);
+
+			actor->angle += input;
+
+			// Smoothly rotate vert angle
+			input = vang - actor->movedir;
+			invert = (input > ANGLE_180);
+			if (invert)
+				input = InvAngle(input);
+
+			// Slow down when turning; might as well do it for momz, since we do it above too
+			zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+
+			input = FixedAngle(AngleFixed(input)/4);
+			if (invert)
+				input = InvAngle(input);
+
+			actor->movedir += input;
+		}
+
+		actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+		actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+		actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
+
+		if (dist <= (3072*actor->tracer->scale)) // Close enough to target?
+		{
+			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
+			actor->extravalue1 = 1; // TARGET ACQUIRED
+		}
+	}
 
 	return;
-}*/
+}
 
 void A_BallhogExplode(mobj_t *actor)
 {
@@ -8419,6 +8582,425 @@ void A_LightningFollowPlayer(mobj_t *actor)
 		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
 	}
 	return;
+}
+
+// A_FZBoomFlash:
+// Flash everyone close enough to the boom
+void A_FZBoomFlash(mobj_t *actor)
+{
+	UINT8 i;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_FZBoomFlash", actor))
+		return;
+#endif
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		fixed_t dist;
+		if (!playeringame[i] || !players[i].mo)
+			continue;
+		dist = P_AproxDistance(P_AproxDistance(actor->x-players[i].mo->x, actor->y-players[i].mo->y), actor->z-players[i].mo->z);
+		if (dist < 1536<<FRACBITS)
+			P_FlashPal(&players[i], PAL_WHITE, 2);
+	}
+	return;
+}
+
+// A_FZBoomSmoke:
+// Spawns pinkish smoke around the object
+// Var1 is radius add
+void A_FZBoomSmoke(mobj_t *actor)
+{
+	INT32 i;
+	INT32 rad = 47+(23*var1);
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_FZBoomSmoke", actor))
+		return;
+#endif
+	for (i = 0; i < 8+(4*var1); i++)
+	{
+		mobj_t *smoke = P_SpawnMobj(actor->x + (P_RandomRange(-rad, rad)*actor->scale), actor->y + (P_RandomRange(-rad, rad)*actor->scale),
+			actor->z + (P_RandomRange(0, 72)*actor->scale), MT_THOK);
+
+		P_SetMobjState(smoke, S_FZEROSMOKE1);
+		smoke->tics += P_RandomRange(-3, 4);
+		smoke->scale = actor->scale*3;
+	}
+	return;
+}
+
+// A_RandomShadowFrame
+// Gives a random sprite for the Mayonaka static shadows. Dumb and simple.
+void A_RandomShadowFrame(mobj_t *actor)
+{
+	mobj_t *fire;
+	mobj_t *fake;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RandomShadowFrame", (actor)))
+		return;
+#endif
+
+	if (!actor->extravalue1)	// Hack that spawns thoks that look like random shadows. Otherwise the state would overwrite our frame and that's a pain.
+	{
+		fake = P_SpawnMobj(actor->x, actor->y, actor->z, MT_THOK);
+		fake->sprite = SPR_ENM1;
+		fake->frame = P_RandomRange(0, 6);
+		P_SetScale(fake, FRACUNIT*3/2);
+		fake->scale = FRACUNIT*3/2;
+		fake->destscale = FRACUNIT*3/2;
+		fake->angle = actor->angle;
+		fake->tics = -1;
+		actor->flags2 |= MF2_DONTDRAW;
+		actor->extravalue1 = 1;
+	}
+
+	P_SetScale(actor, FRACUNIT*3/2);
+
+	// I have NO CLUE how to hardcode all of that fancy Linedef Executor shit so the fire spinout will be done by these entities directly.
+	if (P_LookForPlayers(actor, false, false, 380<<FRACBITS))	// got target
+	{
+		if (actor->target && !actor->target->player->powers[pw_flashing]
+		&& !actor->target->player->kartstuff[k_invincibilitytimer]
+		&& !actor->target->player->kartstuff[k_growshrinktimer]
+		&& !actor->target->player->kartstuff[k_spinouttimer]
+		&& P_IsObjectOnGround(actor->target)
+		&& actor->z == actor->target->z)
+		{
+			P_DamageMobj(actor->target, actor, actor, 1);
+			P_InstaThrust(actor->target, actor->angle, 16<<FRACBITS);
+			fire = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);
+			P_SetMobjStateNF(fire, S_QUICKBOOM1);
+			P_SetScale(fire, 4<<FRACBITS);
+			fire->color = SKINCOLOR_RED;
+			S_StartSound(actor->target, sfx_fire2);
+		}
+	}
+	return;
+}
+
+// A_RoamingShadowThinker
+// Thinker for Midnight Channel's Roaming Shadows:
+void A_RoamingShadowThinker(mobj_t *actor)
+{
+	mobj_t *wind;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_RoamingShadowThinker", (actor)))
+		return;
+#endif
+	// extravalue1 replaces "movetimer"
+	// extravalue2 replaces "stoptimer"
+
+	P_SetScale(actor, FRACUNIT*3/2);
+	if (!actor->extravalue2)
+	{
+		P_InstaThrust(actor, actor->angle, 8<<FRACBITS);	// move at 8 fracs / sec
+		actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1-1) : (TICRATE*5+1));	// deplete timer if set, set to 5 ticrate otherwise.
+		if (actor->extravalue1 == 1)	// if timer reaches 1, do a u-turn.
+		{
+			actor->extravalue1 = 0;
+			actor->extravalue2 = 60;
+		}
+		// Search for and attack Players venturing too close in front of us.
+
+		if (P_LookForPlayers(actor, false, false, 256<<FRACBITS))	// got target
+		{
+			if (actor->target && !actor->target->player->powers[pw_flashing]
+			&& !actor->target->player->kartstuff[k_invincibilitytimer]
+			&& !actor->target->player->kartstuff[k_growshrinktimer]
+			&& !actor->target->player->kartstuff[k_spinouttimer])
+			{
+				// send them flying and spawn the WIND!
+				P_InstaThrust(actor->target, 0, 0);
+				P_DamageMobj(actor->target, actor, actor, 1);
+				P_SetObjectMomZ(actor->target, 16<<FRACBITS, false);
+				S_StartSound(actor->target, sfx_wind1);
+
+				// Spawn the WIND:
+				wind = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);	// Opaque layer:
+				P_SetMobjState(wind, S_GARU1);
+				P_SetScale(wind, FRACUNIT*3/2);
+				wind = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);	// Translucent layer:
+				P_SetMobjState(wind, S_TGARU0);
+				P_SetScale(wind, FRACUNIT*3/2);
+				wind->destscale = 30<<FRACBITS;
+			}
+		}
+	}
+	else	// Handle U-Turn
+	{
+		actor->angle += ANG1*3;
+		actor->extravalue2--;
+	}
+	return;
+}
+
+// A_MayonakaArrow
+// Used for the arrow sprite animations in Mayonaka. It's only extra visual bullshit to make em more random.
+
+void A_MayonakaArrow(mobj_t *actor)
+{
+	INT32 flip = 0;
+	INT32 iswarning;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_MayonakaArrow", (actor)))
+		return;
+#endif
+
+	iswarning = actor->spawnpoint->options & MTF_OBJECTSPECIAL;	// is our object a warning sign?
+	// "animtimer" is replaced by "extravalue1" here.
+	actor->extravalue1 = ((actor->extravalue1) ? (actor->extravalue1+1) : (P_RandomRange(0, (iswarning) ? (TICRATE/2) : TICRATE*3)));
+	flip = ((actor->spawnpoint->options & 1) ? (3) : (0));	// flip adds 3 frames, which is the flipped version of the sign.
+	// special warning behavior:
+	if (iswarning)
+		flip = 6;
+
+	actor->frame = flip + actor->extravalue2*3;
+
+	if (actor->extravalue1 >= TICRATE*7/2)
+	{
+		actor->extravalue1 = 0;	// reset to 0 and start a new cycle.
+		// special behavior for warning sign; swap from warning to sneaker & reverse
+		if (iswarning)
+			actor->extravalue2 = (actor->extravalue2) ? (0) : (1);
+	}
+	else if (actor->extravalue1 > TICRATE*7/2 -4)
+		actor->frame = flip+2;
+	else if (actor->extravalue1 > TICRATE*3 && leveltime%2 > 0)
+		actor->frame = flip+1;
+
+	actor->frame |= FF_PAPERSPRITE;
+	actor->momz = 0;
+	return;
+}
+
+// A_MementosTPParticles
+// Mementos teleporters particles effects. Short and simple.
+
+void A_MementosTPParticles(mobj_t *actor)
+{
+	mobj_t *particle;
+	mobj_t *mo2;
+	int i = 0;
+	thinker_t *th;
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_MementosTPParticles", (actor)))
+		return;
+#endif
+
+	for (; i<4; i++)
+	{
+		particle = P_SpawnMobj(actor->x + (P_RandomRange(-256, 256)<<FRACBITS), actor->y + (P_RandomRange(-256, 256)<<FRACBITS), actor->z + (P_RandomRange(48, 256)<<FRACBITS), MT_MEMENTOSPARTICLE);
+		particle->frame = 0;
+		particle->color = ((i%2) ? (SKINCOLOR_RED) : (SKINCOLOR_BLACK));
+		particle->destscale = 1;
+		P_HomingAttack(particle, actor);
+	}
+
+	// Although this is mostly used to spawn particles, we will also save the OTHER teleport inside actor->target. That way teleporting doesn't require a thinker iteration.
+	// Doesn't seem like much given the small amount of mobjs this map has but heh.
+	if (!actor->target)
+	{
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+		{
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+				continue;
+
+			mo2 = (mobj_t *)th;
+			if (mo2->type == MT_MEMENTOSTP && mo2 != actor)
+			{
+				P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+				break;
+			}
+		}
+	}
+}
+
+// A_ReaperThinker
+// Mementos's Reaper's thinker. A huge pain in the Derek Bum to translate from Lua to this shite if you ask me.
+
+void A_ReaperThinker(mobj_t *actor)
+{
+	mobj_t *particle;	// particles to spawn
+	int i = 0;			// for loops
+	angle_t an = ANGLE_22h;		// Reminder that angle constants suck.
+
+	//Waypoint stuff:
+	mobj_t *mo2;
+	thinker_t *th;
+
+	//Player targetting stuff:
+	UINT32 maxscore = 0;	// we target the player with the highest score so yeah there you go.
+	player_t *player;	// used as a shortcut in a loop.
+	mobj_t *targetplayermo = NULL;	// the player mo we can eventually target, or whatever.
+
+
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_ReaperThinker", (actor)))
+		return;
+#endif
+
+	// We don't have custom variables or whatever so we'll do with whatever the fuck we have left.
+
+	if (actor->health == 1000)	// if health is 1000, set it to a small scale and have it start growing with destscale. Then set the health to uh, not 1000.
+	{
+		actor->scale = 1;
+		actor->destscale = 2<<FRACBITS;
+		actor->scalespeed = FRACUNIT/24;	// Should take a bit less than 2 seconds to fully grow.
+		S_StartSound(NULL, sfx_chain);
+		actor->health--;	// now we have 999 health, so that above won't happen again. Awesome.
+	}
+
+	if (actor->scale < 2<<FRACBITS)	// we haven't finished growing YET.
+	{
+		// Spawn particles as we grow out of the floor, ゴ ゴ ゴ ゴ
+		for (; i<16; i++)
+		{
+			particle = P_SpawnMobj(actor->x + (P_RandomRange(-60, 60)<<FRACBITS), actor->y + (P_RandomRange(-60, 60)<<FRACBITS), actor->z, MT_THOK);
+			particle->momz = 20<<FRACBITS;
+			particle->color = ((i%2 !=0) ? (SKINCOLOR_RED) : (SKINCOLOR_BLACK));
+			particle->frame = 0;
+			P_SetScale(particle, FRACUNIT/2);
+		}
+
+		// Spawn particles in some edgy circle or w/e.
+
+		if (leveltime%5 != 0)	// spawn the thing under that every tic.
+			return;
+
+		i=0;
+		for (; i<15; i++)	// spawn in a circle formation or w/e.
+		{
+			particle = P_SpawnMobj(actor->x, actor->y, actor->z, MT_THOK);
+			particle->momz = 20<<FRACBITS;
+			particle->color = ((i%2 !=0) ? (SKINCOLOR_RED) : (SKINCOLOR_BLACK));
+			particle->frame = 0;
+			P_SetScale(particle, FRACUNIT/2);
+			P_InstaThrust(particle, an*i, 30<<FRACBITS);
+		}
+		return;	// don't continue, what lies beyond that is the movement code.
+	}
+
+	// We finished growing and can now be a dangerous piece o' garbage scaring the living heck outta players!
+
+	actor->flags = MF_NOGRAVITY|MF_PAIN|MF_SPECIAL|MF_NOCLIP|MF_NOCLIPHEIGHT;	// set our flags to be a damaging thing.
+	// Handle animation:
+	if (!(leveltime%5))
+		actor->extravalue2 = (actor->extravalue2 < 9) ? (actor->extravalue2+1) : (0);	// Ghetto animation, but hey it works for what it's worth
+
+	// Chain sfx
+	if (!S_SoundPlaying(actor, sfx_chain))
+		S_StartSound(actor, sfx_chain);
+
+	actor->frame = actor->extravalue2;	// yes i'm that bad at maths don't @ me.
+
+	if (!actor->target)
+	{
+		if (actor->hnext)
+		{
+			P_SetTarget(&actor->target, actor->hnext);	// Default back to last waypoint.
+			return;
+		}
+
+		// We have no target and oughta find one, so let's scan through thinkers for a waypoint of angle 0, or something.
+		for (th = thinkercap.next; th != &thinkercap; th = th->next)
+		{
+			if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+				continue;
+
+			mo2 = (mobj_t *)th;
+
+			if (mo2->type != MT_REAPERWAYPOINT)
+				continue;
+			if (mo2->spawnpoint->angle != 0)
+				continue;
+
+			P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+			P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
+			actor->extravalue1 = 0;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
+			if (!actor->tracer)	// If we already have a tracer (Waypoint #0), don't do anything.
+			{
+				P_SetTarget(&actor->tracer, mo2);	// Because our target might be a player OR a waypoint, we need some sort of fallback option. This will always be waypoint 0.
+				break;
+			}
+		}
+	}
+	else	// Awesome, we now have a target.
+	{
+		// Follow target:
+		P_InstaThrust(actor, R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y), 20<<FRACBITS);
+		actor->angle = R_PointToAngle2(actor->x, actor->y, actor->target->x, actor->target->y);
+
+		// The player we should target if it's near us:
+		for (i=0; i<MAXPLAYERS; i++)
+		{
+
+			if (!playeringame[i])
+				continue;
+
+			player = &players[i];
+			if (player && player->mo && player->kartstuff[k_bumper] && player->score >= maxscore)
+			{
+				targetplayermo = player->mo;
+				maxscore = player->score;
+			}
+		}
+
+		// Try to target that player:
+		if (targetplayermo)
+		{
+			if (P_LookForPlayers(actor, false, false, 1024<<FRACBITS))	// got target
+			{
+				if (!(actor->target == targetplayermo && actor->target && !actor->target->player->powers[pw_flashing]
+				&& !actor->target->player->kartstuff[k_invincibilitytimer]
+				&& !actor->target->player->kartstuff[k_growshrinktimer]
+				&& !actor->target->player->kartstuff[k_spinouttimer]))
+					P_SetTarget(&actor->target, actor->hnext);
+					// if the above isn't correct, then we should go back to targetting waypoints or something.
+			}
+		}
+
+		// Waypoint behavior.
+		if (actor->target->type == MT_REAPERWAYPOINT)
+		{
+
+			if (R_PointToDist2(actor->x, actor->y, actor->target->x, actor->target->y) < 22<<FRACBITS)
+			{
+				P_SetTarget(&actor->target, NULL);	// remove target so we can default back to first waypoint if things go ham.
+
+				// If we reach close to a waypoint, then we should go to the NEXT one.
+				for (th = thinkercap.next; th != &thinkercap; th = th->next)
+				{
+					if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+						continue;
+
+					mo2 = (mobj_t *)th;
+
+					if (mo2->type != MT_REAPERWAYPOINT)
+						continue;
+					if (mo2->spawnpoint->angle != actor->extravalue1+1)
+						continue;
+
+					P_SetTarget(&actor->target, mo2);	// The main target we're pursing.
+					P_SetTarget(&actor->hnext, mo2);	// The last waypoint we hit. We will default back to that if a player goes out of our range!
+					actor->extravalue1++;	// This will store the angle of the last waypoint we touched. This will essentially be useful later on.
+					break;
+				}
+			}
+
+
+			if (!actor->target)	// If we have no target, revert back to waypoint 0.
+			{
+				actor->extravalue1 = 0;
+				P_SetTarget(&actor->target, actor->tracer);
+			}
+		}
+		else	// if our target ISN'T a waypoint, then it can only be a player.
+		{
+			if (!P_CheckSight(actor, actor->target) || R_PointToDist2(actor->x, actor->y, actor->target->x, actor->target->y) > 1024<<FRACBITS)
+				P_SetTarget(&actor->target, actor->hnext);
+		}
+	}
 }
 
 //}

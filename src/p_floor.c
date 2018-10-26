@@ -3003,6 +3003,7 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 	fixed_t topz;
 	fixed_t a, b, c;
 	mobjtype_t type = MT_ROCKCRUMBLE1;
+	const fixed_t spacing = 48*mapheaderinfo[gamemap-1]->mobj_scale;
 
 	// If the control sector has a special
 	// of Section3:7-15, use the custom debris.
@@ -3034,16 +3035,16 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 	rightx = sec->lines[rightmostvertex]->v1->x;
 	topy = sec->lines[topmostvertex]->v1->y-(16<<FRACBITS);
 	bottomy = sec->lines[bottommostvertex]->v1->y;
-	topz = *rover->topheight-(16<<FRACBITS);
+	topz = *rover->topheight-(spacing/2);
 
-	for (a = leftx; a < rightx; a += (32<<FRACBITS))
+	for (a = leftx; a < rightx; a += spacing)
 	{
-		for (b = topy; b > bottomy; b -= (32<<FRACBITS))
+		for (b = topy; b > bottomy; b -= spacing)
 		{
 			if (R_PointInSubsector(a, b)->sector == sec)
 			{
 				mobj_t *spawned = NULL;
-				for (c = topz; c > *rover->bottomheight; c -= (32<<FRACBITS))
+				for (c = topz; c > *rover->bottomheight; c -= spacing)
 				{
 					spawned = P_SpawnMobj(a, b, c, type);
 					spawned->fuse = 3*TICRATE;

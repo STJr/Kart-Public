@@ -166,9 +166,17 @@ void A_ToggleFlameJet();
 void A_ItemPop(); // SRB2kart
 void A_JawzChase(); // SRB2kart
 void A_JawzExplode(); // SRB2kart
+void A_SPBChase(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
+void A_FZBoomFlash(); // SRB2kart
+void A_FZBoomSmoke(); // SRB2kart
+void A_RandomShadowFrame();	//SRB2kart: Shadow spawner frame randomizer
+void A_RoamingShadowThinker();	// SRB2kart: Roaming Shadow moving + attacking players.
+void A_MayonakaArrow();	//SRB2kart: midnight channel arrow sign
+void A_ReaperThinker();	//SRB2kart: mementos reaper
+void A_MementosTPParticles();	//SRB2kart: mementos teleporter particles. Man that's a lot of actions for my shite.
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -605,8 +613,7 @@ typedef enum sprite
 	SPR_KRBM, // SS Mine BOOM
 	SPR_BHOG, // Ballhog
 	SPR_BHBM, // Ballhog BOOM
-	SPR_BLIG, // Self-Propelled Bomb
-	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
+	SPR_SPBM, // Self-Propelled Bomb
 	SPR_THNS, // Thunder Shield
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
@@ -653,8 +660,27 @@ typedef enum sprite
 	SPR_LZI2, // ditto
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
 
+	SPR_FZSM, // F-Zero NO CONTEST explosion
+	SPR_FZBM,
+	SPR_FPRT,
+
+	// Midnight Channel stuff:
+	SPR_SPTL,	// Spotlight
+	SPR_ENM1,	// Shadows (Roaming and static)
+	SPR_GARU,	// Wind attack roaming shadows use.
+	SPR_MARR,	// Mayonaka Arrow
+
+	//Mementos stuff:
+	SPR_REAP,
+
+	SPR_JITB,	// Jack In The Box
+
+	// Color Drive stuff:
+	SPR_CDMO,
+	SPR_CDBU,
+
 	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
-	
+
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
 	NUMSPRITES
@@ -3317,18 +3343,28 @@ typedef enum state
 	S_BALLHOGBOOM15,
 	S_BALLHOGBOOM16,
 
-	// Self-Propelled Bomb - just an explosion for now...
-	S_BLUELIGHTNING1,
-	S_BLUELIGHTNING2,
-	S_BLUELIGHTNING3,
-	S_BLUELIGHTNING4,
-	S_BLUEEXPLODE,
-
-	// Grow/Shrink
-	S_LIGHTNING1,
-	S_LIGHTNING2,
-	S_LIGHTNING3,
-	S_LIGHTNING4,
+	// Self-Propelled Bomb
+	S_SPB1,
+	S_SPB2,
+	S_SPB3,
+	S_SPB4,
+	S_SPB5,
+	S_SPB6,
+	S_SPB7,
+	S_SPB8,
+	S_SPB9,
+	S_SPB10,
+	S_SPB11,
+	S_SPB12,
+	S_SPB13,
+	S_SPB14,
+	S_SPB15,
+	S_SPB16,
+	S_SPB17,
+	S_SPB18,
+	S_SPB19,
+	S_SPB20,
+	S_SPB_DEAD,
 
 	// Thunder Shield
 	S_THUNDERSHIELD1,
@@ -3559,7 +3595,26 @@ typedef enum state
 	S_PLAYERARROW_WANTED6,
 	S_PLAYERARROW_WANTED7,
 
-	S_PLAYERBOMB,
+	S_PLAYERBOMB1, // Karma player overlays
+	S_PLAYERBOMB2,
+	S_PLAYERBOMB3,
+	S_PLAYERBOMB4,
+	S_PLAYERBOMB5,
+	S_PLAYERBOMB6,
+	S_PLAYERBOMB7,
+	S_PLAYERBOMB8,
+	S_PLAYERBOMB9,
+	S_PLAYERBOMB10,
+	S_PLAYERBOMB11,
+	S_PLAYERBOMB12,
+	S_PLAYERBOMB13,
+	S_PLAYERBOMB14,
+	S_PLAYERBOMB15,
+	S_PLAYERBOMB16,
+	S_PLAYERBOMB17,
+	S_PLAYERBOMB18,
+	S_PLAYERBOMB19,
+	S_PLAYERBOMB20,
 	S_PLAYERITEM,
 	S_PLAYERFAKE,
 
@@ -3612,6 +3667,63 @@ typedef enum state
 	S_KLIT10,
 	S_KLIT11,
 	S_KLIT12,
+
+	S_FZEROSMOKE1, // F-Zero NO CONTEST explosion
+	S_FZEROSMOKE2,
+	S_FZEROSMOKE3,
+	S_FZEROSMOKE4,
+	S_FZEROSMOKE5,
+
+	S_FZEROBOOM1,
+	S_FZEROBOOM2,
+	S_FZEROBOOM3,
+	S_FZEROBOOM4,
+	S_FZEROBOOM5,
+	S_FZEROBOOM6,
+	S_FZEROBOOM7,
+	S_FZEROBOOM8,
+	S_FZEROBOOM9,
+	S_FZEROBOOM10,
+	S_FZEROBOOM11,
+	S_FZEROBOOM12,
+
+	S_FZSLOWSMOKE1,
+	S_FZSLOWSMOKE2,
+	S_FZSLOWSMOKE3,
+	S_FZSLOWSMOKE4,
+	S_FZSLOWSMOKE5,
+
+	// Midnight Channel stuff:
+	S_SPOTLIGHT,	// Spotlight decoration
+	S_RANDOMSHADOW,	// Random Shadow. They're static and don't do nothing.
+	S_GARU1,
+	S_GARU2,
+	S_GARU3,
+	S_TGARU0,	
+	S_TGARU1,
+	S_TGARU2,
+	S_TGARU3,	// Wind attack used by Roaming Shadows on Players.
+	S_ROAMINGSHADOW,	// Roaming Shadow (the one that uses above's wind attack or smth)
+	S_MAYONAKAARROW,	// Arrow sign
+
+	// Mementos stuff:
+	S_REAPER_INVIS,		// Reaper waiting for spawning
+	S_REAPER,			// Reaper main frame where its thinker is handled
+	S_MEMENTOSTP,		// Mementos teleporter state. (Used for spawning particles)
+
+	// JackInTheBox
+	S_JITB1,
+	S_JITB2,
+	S_JITB3,
+	S_JITB4,
+	S_JITB5,
+	S_JITB6,
+
+	// Color Drive
+	S_CDMOONSP,
+	S_CDBUSHSP,
+	S_CDTREEASP,
+	S_CDTREEBSP,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4191,9 +4303,8 @@ typedef enum mobj_type
 	MT_BALLHOG, // Ballhog
 	MT_BALLHOGBOOM,
 
-	MT_BLUELIGHTNING, // Grow/shrink stuff
-	MT_BLUEEXPLOSION,
-	MT_LIGHTNING,
+	MT_SPB, // SPB stuff
+	MT_SPBEXPLOSION,
 
 	MT_THUNDERSHIELD, // Thunder Shield stuff
 
@@ -4282,6 +4393,28 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+
+	MT_FZEROBOOM,
+
+	// Midnight Channel stuff:
+	MT_SPOTLIGHT,		// Spotlight Object
+	MT_RANDOMSHADOW,	// Random static Shadows.
+	MT_ROAMINGSHADOW,	// Roaming Shadows.
+	MT_MAYONAKAARROW,	// Arrow static signs for Mayonaka
+
+	// Mementos stuff
+	MT_REAPERWAYPOINT,
+	MT_REAPER,
+	MT_MEMENTOSTP,
+	MT_MEMENTOSPARTICLE,
+
+	MT_JACKINTHEBOX,
+
+	// Color Drive:
+	MT_CDMOON,
+	MT_CDBUSH,
+	MT_CDTREEA,
+	MT_CDTREEB,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

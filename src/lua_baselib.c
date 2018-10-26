@@ -92,6 +92,7 @@ static int lib_print(lua_State *L)
 static int lib_chatprint(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);	// retrieve string
+	boolean sound = luaL_checkboolean(L, 2);	// retrieve sound boolean
 	int len;
 	if (str == NULL)	// error if we don't have a string!
 		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprint"));
@@ -99,12 +100,7 @@ static int lib_chatprint(lua_State *L)
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
-	HU_AddChatText(str);
-
-	if OLDCHAT
-		CONS_Printf("%s\n", str);
-	else
-		CON_LogMessage(str); // save to log.txt
+	HU_AddChatText(str, sound);
 
 	return 0;
 }
@@ -115,6 +111,7 @@ static int lib_chatprintf(lua_State *L)
 	int n = lua_gettop(L);  /* number of arguments */
 	player_t *plr;
 	const char *str;
+	boolean sound = luaL_checkboolean(L, 3);
 	int len;
 	if (n < 2)
 		return luaL_error(L, "chatprintf requires at least two arguments: player and text.");
@@ -132,12 +129,7 @@ static int lib_chatprintf(lua_State *L)
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
-	HU_AddChatText(str);
-
-	if OLDCHAT
-		CONS_Printf("%s\n", str);
-	else
-		CON_LogMessage(str); // save to log.txt
+	HU_AddChatText(str, sound);
 
 	return 0;
 }
@@ -2149,12 +2141,15 @@ static int lib_kExplodePlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	mobj_t *inflictor = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!source)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_ExplodePlayer(player, source);
+	if (!inflictor)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_ExplodePlayer(player, source, inflictor);
 	return 0;
 }
 
