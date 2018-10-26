@@ -1849,7 +1849,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 
 	if (player->kartstuff[k_spinouttype] <= 0)
 	{
-		player->kartstuff[k_spinouttimer] = 3*TICRATE/2; // Banana Spinout
+		player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2; // Banana Spinout
 
 		// At spinout, player speed is increased to 1/4 their regular speed, moving them forward
 		if (player->speed < K_GetKartSpeed(player, true)/4)
@@ -1858,7 +1858,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		S_StartSound(player->mo, sfx_slip);
 	}
 	else
-		player->kartstuff[k_spinouttimer] = TICRATE+20; // Wipeout
+		player->kartstuff[k_spinouttimer] = TICRATE+27; // Wipeout
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
@@ -2032,7 +2032,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 
 	if (inflictor && inflictor->type == MT_SPBEXPLOSION && inflictor->extravalue1)
 	{
-		player->kartstuff[k_spinouttimer] = (3*player->kartstuff[k_spinouttimer])/2;
+		player->kartstuff[k_spinouttimer] = ((3*player->kartstuff[k_spinouttimer])/2)+1;
 		player->mo->momz *= 2;
 	}
 
