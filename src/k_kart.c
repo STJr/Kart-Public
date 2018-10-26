@@ -1847,19 +1847,15 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 
 	player->kartstuff[k_spinouttype] = type;
 
-	if (player->kartstuff[k_spinouttype] <= 0)
+	if (player->kartstuff[k_spinouttype] <= 0) // type 0 is spinout, type 1 is wipeout
 	{
-		player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2; // Banana Spinout
-
 		// At spinout, player speed is increased to 1/4 their regular speed, moving them forward
 		if (player->speed < K_GetKartSpeed(player, true)/4)
 			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
-
 		S_StartSound(player->mo, sfx_slip);
 	}
-	else
-		player->kartstuff[k_spinouttimer] = TICRATE+27; // Wipeout
 
+	player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2;
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (player->mo->state != &states[S_KART_SPIN])
