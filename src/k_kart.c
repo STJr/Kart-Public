@@ -3956,6 +3956,18 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_timeovercam] = 0;
 
+	// Make ABSOLUTELY SURE that your flashing tics don't get set WHILE you're still in hit animations.
+	if (player->kartstuff[k_spinouttimer] != 0
+		|| player->kartstuff[k_wipeoutslow] != 0
+		|| player->kartstuff[k_squishedtimer] != 0)
+	{
+		player->powers[pw_flashing] = K_GetKartFlashing(player);
+	}
+	else if (player->powers[pw_flashing] == K_GetKartFlashing(player))
+	{
+		player->powers[pw_flashing]--;
+	}
+
 	if (player->kartstuff[k_spinouttimer])
 	{
 		if ((P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
@@ -3982,9 +3994,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 				comebackshowninfo = true; // client has already seen the message
 		}
 	}
-
-	if (player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing(player))
-		player->powers[pw_flashing]--;
 
 	/*if (player->kartstuff[k_thunderanim])
 		player->kartstuff[k_thunderanim]--;*/
