@@ -6652,7 +6652,13 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->state != &states[S_KART_SQUISH])
 			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
 	}
-	else if (player->kartstuff[k_spinouttimer] > 0 || player->pflags & PF_SLIDING)
+	else if ((player->pflags & PF_SLIDING) || (player->mo->tracer && player->mo->tracer->type == MT_TUBEWAYPOINT))
+	{
+		if (player->mo->state != &states[S_KART_SPIN])
+			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+		player->frameangle -= ANGLE_22h;
+	}
+	else if (player->kartstuff[k_spinouttimer] > 0)
 	{
 		INT32 speed = max(1, min(8, player->kartstuff[k_spinouttimer]/8));
 
