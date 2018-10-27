@@ -185,7 +185,7 @@ state_t states[NUMSTATES] =
 	{SPR_PLAY, 18, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
 
 	// Level end sign (uses player sprite)
-	{SPR_PLAY, 18, 1, {NULL}, 0, 18, S_PLAY_SIGN},         // S_PLAY_SIGN	S
+	{SPR_PLAY, 18, 1, {NULL}, 0, 24, S_PLAY_SIGN},         // S_PLAY_SIGN	S
 
 	// Blue Crawla
 	{SPR_POSS, 0, 5, {A_Look}, 0, 0, S_POSS_STND},   // S_POSS_STND
