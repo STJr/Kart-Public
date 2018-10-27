@@ -348,7 +348,7 @@ void Y_IntermissionDrawer(void)
 		V_DrawPatchFill(bgtile);
 
 	if (usebuffer) // Fade everything out
-		V_DrawFadeScreen(0xFF00, 20);
+		V_DrawFadeScreen(0xFF00, 22);
 
 	if (!splitscreen)
 		whiteplayer = demoplayback ? displayplayer : consoleplayer;

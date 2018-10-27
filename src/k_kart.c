@@ -7509,15 +7509,6 @@ void K_drawKartHUD(void)
 		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		K_drawKartFirstPerson();
 
-	// Draw a white fade on level opening
-	if (leveltime < 15 && stplyr == &players[displayplayer])
-	{
-		if (leveltime <= 5)
-			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first few frames, to hide SRB2's awful level load artifacts
-		else
-			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there
-	}
-
 	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
 		K_drawKartMinimap();
 
