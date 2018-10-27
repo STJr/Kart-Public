@@ -1241,7 +1241,8 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			 90},
 
 #ifdef HWRENDER
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	105},
+	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmd2,              105},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   115},
 #endif
 };
 
@@ -1271,18 +1272,19 @@ static menuitem_t OP_VideoModeMenu[] =
 #ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
-	{IT_STRING|IT_CVAR,         NULL, "Field of View",   &cv_grfov,            10},
-	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,        20},
-	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,     30},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode,40},
-#ifdef _WINDOWS
+	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,      10},
+	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,    20},
+
+	{IT_STRING|IT_CVAR,         NULL, "Field of View",   &cv_grfov,             35},
+	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         45},
+	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      55},
+	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 65},
+/*#ifdef _WINDOWS
 	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",      &cv_fullscreen,       50},
 #endif
 #ifdef ALAM_LIGHTING
 	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",     &OP_OpenGLLightingDef,     70},
-#endif
-	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,          80},
-	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,        90},
+#endif*/
 };
 
 #ifdef ALAM_LIGHTING
