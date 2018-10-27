@@ -6652,7 +6652,7 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->state != &states[S_KART_SQUISH])
 			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
 	}
-	else if ((player->pflags & PF_SLIDING) || (player->mo->tracer && player->mo->tracer->type == MT_TUBEWAYPOINT))
+	else if (player->pflags & PF_SLIDING)
 	{
 		if (player->mo->state != &states[S_KART_SPIN])
 			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -7346,7 +7346,7 @@ static void P_DoZoomTube(player_t *player)
 	fixed_t dist;
 	boolean reverse;
 
-	player->mo->height = P_GetPlayerSpinHeight(player);
+	//player->mo->height = P_GetPlayerSpinHeight(player);
 
 	if (player->speed > 0)
 		reverse = false;
@@ -7451,6 +7451,11 @@ static void P_DoZoomTube(player_t *player)
 		else if (player == &players[fourthdisplayplayer])
 			localangle4 = player->mo->angle;
 	}
+#if 0
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+	player->frameangle -= ANGLE_22h;
+#endif
 }
 
 //
