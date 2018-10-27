@@ -109,8 +109,8 @@ static patch_t *crosshair[HU_CROSSHAIRS]; // 3 precached crosshair graphics
 // protos.
 // -------
 static void HU_DrawRankings(void);
-static void HU_DrawCoopOverlay(void);
-static void HU_DrawNetplayCoopOverlay(void);
+//static void HU_DrawCoopOverlay(void);
+//static void HU_DrawNetplayCoopOverlay(void);
 
 //======================================================================
 //                 KEYBOARD LAYOUTS FOR ENTERING TEXT
@@ -2020,26 +2020,27 @@ UINT32 hu_demolap;
 
 static void HU_DrawDemoInfo(void)
 {
-	V_DrawString(4, 188-16, V_YELLOWMAP, va(M_GetText("%s's replay"), player_names[0]));
+	V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Replay:"));
+	V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[0]);
 	if (modeattacking)
 	{
-		V_DrawString(4, 188-8, V_YELLOWMAP|V_MONOSPACE, "BEST TIME:");
+		V_DrawRightAlignedString((BASEVIDWIDTH/2)-4, BASEVIDHEIGHT-24, V_YELLOWMAP|V_MONOSPACE, "BEST TIME:");
 		if (hu_demotime != UINT32_MAX)
-			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, va("%i:%02i.%02i",
+			V_DrawString((BASEVIDWIDTH/2)+4, BASEVIDHEIGHT-24, V_MONOSPACE, va("%i'%02i\"%02i",
 				G_TicsToMinutes(hu_demotime,true),
 				G_TicsToSeconds(hu_demotime),
 				G_TicsToCentiseconds(hu_demotime)));
 		else
-			V_DrawRightAlignedString(120, 188-8, V_MONOSPACE, "--:--.--");
+			V_DrawString((BASEVIDWIDTH/2)+4, BASEVIDHEIGHT-24, V_MONOSPACE, "--'--\"--");
 
-		V_DrawString(4, 188, V_YELLOWMAP|V_MONOSPACE, "BEST LAP:");
+		V_DrawRightAlignedString((BASEVIDWIDTH/2)-4, BASEVIDHEIGHT-16, V_YELLOWMAP|V_MONOSPACE, "BEST LAP:");
 		if (hu_demolap != UINT32_MAX)
-			V_DrawRightAlignedString(120, 188, V_MONOSPACE, va("%i:%02i.%02i",
+			V_DrawString((BASEVIDWIDTH/2)+4, BASEVIDHEIGHT-16, V_MONOSPACE, va("%i'%02i\"%02i",
 				G_TicsToMinutes(hu_demolap,true),
 				G_TicsToSeconds(hu_demolap),
 				G_TicsToCentiseconds(hu_demolap)));
 		else
-			V_DrawRightAlignedString(120, 188, V_MONOSPACE, "--:--.--");
+			V_DrawString((BASEVIDWIDTH/2)+4, BASEVIDHEIGHT-16, V_MONOSPACE, "--'--\"--");
 	}
 }
 
@@ -2112,11 +2113,11 @@ void HU_Drawer(void)
 			if (LUA_HudEnabled(hud_rankings))
 #endif
 			HU_DrawRankings();
-			if (gametype == GT_COOP)
-				HU_DrawNetplayCoopOverlay();
+			//if (gametype == GT_COOP)
+				//HU_DrawNetplayCoopOverlay();
 		}
-		else
-			HU_DrawCoopOverlay();
+		//else
+			//HU_DrawCoopOverlay();
 #ifdef HAVE_BLUA
 		LUAh_ScoresHUD();
 #endif
@@ -2274,11 +2275,12 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 {
 	INT32 i, j, rightoffset = 240;
 	const UINT8 *colormap;
+	INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
 
 	//this function is designed for 9 or less score lines only
 	//I_Assert(scorelines <= 9); -- not today bitch, kart fixed it up
 
-	V_DrawFill(1, 26, 318, 1, 0); // Draw a horizontal line because it looks nice!
+	V_DrawFill(1-duptweak, 26, dupadjust-2, 1, 0); // Draw a horizontal line because it looks nice!
 	if (scorelines > 8)
 	{
 		V_DrawFill(160, 26, 1, 154, 0); // Draw a vertical line to separate the two sides.
@@ -2562,16 +2564,17 @@ void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds)
 //
 static inline void HU_DrawSpectatorTicker(void)
 {
-	int i;
-	int length = 0, height = 174;
-	int totallength = 0, templength = 0;
+	INT32 i;
+	INT32 length = 0, height = 174;
+	INT32 totallength = 0, templength = -8;
+	INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && players[i].spectator)
 			totallength += (signed)strlen(player_names[i]) * 8 + 16;
 
-	length -= (leveltime % (totallength + BASEVIDWIDTH));
-	length += BASEVIDWIDTH;
+	length -= (leveltime % (totallength + dupadjust+8));
+	length += dupadjust;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (playeringame[i] && players[i].spectator)
@@ -2579,15 +2582,18 @@ static inline void HU_DrawSpectatorTicker(void)
 			char *pos;
 			char initial[MAXPLAYERNAME+1];
 			char current[MAXPLAYERNAME+1];
+			INT32 len;
+
+			len = ((signed)strlen(player_names[i]) * 8 + 16);
 
 			strcpy(initial, player_names[i]);
 			pos = initial;
 
-			if (length >= -((signed)strlen(player_names[i]) * 8 + 16) && length <= BASEVIDWIDTH)
+			if (length >= -len)
 			{
-				if (length < 0)
+				if (length < -8)
 				{
-					UINT8 eatenchars = (UINT8)(abs(length) / 8 + 1);
+					UINT8 eatenchars = (UINT8)(abs(length) / 8);
 
 					if (eatenchars <= strlen(initial))
 					{
@@ -2595,7 +2601,7 @@ static inline void HU_DrawSpectatorTicker(void)
 						// then compensate the drawing position.
 						pos += eatenchars;
 						strcpy(current, pos);
-						templength = length % 8 + 8;
+						templength = ((length + 8) % 8);
 					}
 					else
 					{
@@ -2609,10 +2615,11 @@ static inline void HU_DrawSpectatorTicker(void)
 					templength = length;
 				}
 
-				V_DrawString(templength, height + 8, V_TRANSLUCENT, current);
+				V_DrawString(templength - duptweak, height, V_TRANSLUCENT|V_ALLOWLOWERCASE, current);
 			}
 
-			length += (signed)strlen(player_names[i]) * 8 + 16;
+			if ((length += len) >= dupadjust+8)
+				break;
 		}
 }
 
@@ -2627,6 +2634,8 @@ static void HU_DrawRankings(void)
 	boolean completed[MAXPLAYERS];
 	UINT32 whiteplayer = MAXPLAYERS;
 
+	V_DrawFadeScreen(0xFF00, 16); // A little more readable, and prevents cheating the fades under other circumstances.
+
 	if (cons_menuhighlight.value)
 		hilicol = cons_menuhighlight.value;
 	else if (modeattacking)
@@ -2636,9 +2645,9 @@ static void HU_DrawRankings(void)
 
 	// draw the current gametype in the lower right
 	if (modeattacking)
-		V_DrawString(4, 188, hilicol, "Record Attack");
+		V_DrawString(4, 188, hilicol|V_SNAPTOBOTTOM|V_SNAPTOLEFT, "Record Attack");
 	else
-		V_DrawString(4, 188, hilicol, gametype_cons_t[gametype].strvalue);
+		V_DrawString(4, 188, hilicol|V_SNAPTOBOTTOM|V_SNAPTOLEFT, gametype_cons_t[gametype].strvalue);
 
 	if (G_GametypeHasTeams())
 	{
@@ -2733,9 +2742,6 @@ static void HU_DrawRankings(void)
 		numplayersingame++;
 	}
 
-	if (netgame && numplayersingame <= 1)
-		K_drawKartFreePlay(leveltime);
-
 	for (j = 0; j < numplayersingame; j++)
 	{
 		UINT8 lowestposition = MAXPLAYERS;
@@ -2783,11 +2789,11 @@ static void HU_DrawRankings(void)
 		HU_DrawDualTabRankings(32, 32, tab, scorelines, whiteplayer);*/
 
 	// draw spectators in a ticker across the bottom
-	if (!splitscreen && G_GametypeHasSpectators())
+	if (netgame && G_GametypeHasSpectators())
 		HU_DrawSpectatorTicker();
 }
 
-static void HU_DrawCoopOverlay(void)
+/*static void HU_DrawCoopOverlay(void)
 {
 	if (token
 #ifdef HAVE_BLUA
@@ -2843,7 +2849,7 @@ static void HU_DrawNetplayCoopOverlay(void)
 		if (emeralds & (1 << i))
 			V_DrawScaledPatch(20 + (i * 20), 6, 0, emeraldpics[i]);
 	}
-}
+}*/
 
 
 // Interface to CECHO settings for the outside world, avoiding the
