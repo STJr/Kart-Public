@@ -7360,38 +7360,38 @@ static void K_drawLapStartAnim(void)
 	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
 
 	V_DrawScaledPatch(BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)),
-		64 - (32*max(0, progress-76)),
+		56 - (32*max(0, progress-76)),
 		0, kp_lapanim_emblem);
 
 	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
 	{
 		V_DrawScaledPatch(27 - (32*max(0, progress-76)),
-			40,
+			32,
 			0, kp_lapanim_final[min(progress/2, 10)]);
 
 		if (progress/2-12 >= 0)
 		{
 			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
-				40,
+				32,
 				0, kp_lapanim_lap[min(progress/2-12, 6)]);
 		}
 	}
 	else
 	{
 		V_DrawScaledPatch(61 - (32*max(0, progress-76)),
-			40,
+			32,
 			0, kp_lapanim_lap[min(progress/2, 6)]);
 
 		if (progress/2-8 >= 0)
 		{
 			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
-				40,
+				32,
 				0, kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)]);
 
 			if (progress/2-10 >= 0)
 			{
 				V_DrawScaledPatch(221 + (32*max(0, progress-76)),
-					40,
+					32,
 					0, kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)]);
 			}
 		}
