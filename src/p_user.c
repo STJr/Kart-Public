@@ -1217,6 +1217,8 @@ void P_RestoreMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return;
 
+	S_SpeedMusic(1.0f);
+
 	// Event - HERE COMES A NEW CHALLENGER
 	if (mapreset)
 	{
@@ -1228,24 +1230,47 @@ void P_RestoreMusic(player_t *player)
 	if (P_EndingMusic(player))
 		return;
 
-	S_SpeedMusic(1.0f);
-
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
+		INT32 bestlocalmus = 0; // 0 is level music, 1 is invincibility, 2 is grow
+
+		if (splitscreen)
+		{
+			if (players[displayplayer].playerstate == PST_LIVE)
+				bestlocalmus = (players[displayplayer].kartstuff[k_growshrinktimer] > 1 ? 2 : (players[displayplayer].kartstuff[k_invincibilitytimer] > 1 ? 1 : 0));
+#define setbests(p) \
+	if (players[p].playerstate == PST_LIVE && (players[p].kartstuff[k_growshrinktimer] > 1 ? 2 : (players[p].kartstuff[k_invincibilitytimer] > 1 ? 1 : 0)) > bestlocalmus) \
+		bestlocalmus = (players[p].kartstuff[k_growshrinktimer] > 1 ? 2 : (players[p].kartstuff[k_invincibilitytimer] > 1 ? 1 : 0));
+			setbests(secondarydisplayplayer);
+			if (splitscreen > 1)
+				setbests(thirddisplayplayer);
+			if (splitscreen > 2)
+				setbests(fourthdisplayplayer);
+#undef setbests
+		}
+		else
+		{
+			if (player->playerstate == PST_LIVE)
+				bestlocalmus = (player->kartstuff[k_growshrinktimer] > 1 ? 2 : (player->kartstuff[k_invincibilitytimer] > 1 ? 1 : 0));
+		}
+
 		// Item - Grow
-		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
+		if (bestlocalmus == 2)
 			S_ChangeMusicInternal("kgrow", true);
 		// Item - Invincibility
-		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
+		else if (bestlocalmus == 1)
 			S_ChangeMusicInternal("kinvnc", true);
 		else
 		{
+#if 0
 			// Event - Final Lap
+			// Still works for GME, but disabled for consistency
 			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
+#endif
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 		}
 	}
