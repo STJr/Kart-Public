@@ -7013,7 +7013,7 @@ static void K_drawBattleFullscreen(void)
 		{
 			if (stplyr->kartstuff[k_position] == 1)
 				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
-			else if (splitscreen < 2)
+			else
 				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, (K_IsPlayerLosing(stplyr) ? kp_battlelose : kp_battlecool), NULL);
 		}
 		else
