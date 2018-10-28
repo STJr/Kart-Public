@@ -5501,8 +5501,8 @@ static patch_t *kp_karmasticker;
 static patch_t *kp_splitkarmabomb;
 static patch_t *kp_timeoutsticker;
 
-static patch_t *kp_startcountdown[8];
-static patch_t *kp_racefinish[2];
+static patch_t *kp_startcountdown[16];
+static patch_t *kp_racefinish[6];
 
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_winnernum[NUMPOSFRAMES];
@@ -5589,9 +5589,25 @@ void K_LoadKartHUDGraphics(void)
 	kp_startcountdown[5] = 		W_CachePatchName("K_CNT2B", PU_HUDGFX);
 	kp_startcountdown[6] = 		W_CachePatchName("K_CNT1B", PU_HUDGFX);
 	kp_startcountdown[7] = 		W_CachePatchName("K_CNTGOB", PU_HUDGFX);
+	// Splitscreen
+	kp_startcountdown[8] = 		W_CachePatchName("K_SMC3A", PU_HUDGFX);
+	kp_startcountdown[9] = 		W_CachePatchName("K_SMC2A", PU_HUDGFX);
+	kp_startcountdown[10] = 	W_CachePatchName("K_SMC1A", PU_HUDGFX);
+	kp_startcountdown[11] = 	W_CachePatchName("K_SMCGOA", PU_HUDGFX);
+	kp_startcountdown[12] = 	W_CachePatchName("K_SMC3B", PU_HUDGFX);
+	kp_startcountdown[13] = 	W_CachePatchName("K_SMC2B", PU_HUDGFX);
+	kp_startcountdown[14] = 	W_CachePatchName("K_SMC1B", PU_HUDGFX);
+	kp_startcountdown[15] = 	W_CachePatchName("K_SMCGOB", PU_HUDGFX);
 
+	// Finish
 	kp_racefinish[0] = 			W_CachePatchName("K_FINA", PU_HUDGFX);
 	kp_racefinish[1] = 			W_CachePatchName("K_FINB", PU_HUDGFX);
+	// Splitscreen
+	kp_racefinish[2] = 			W_CachePatchName("K_SMFINA", PU_HUDGFX);
+	kp_racefinish[3] = 			W_CachePatchName("K_SMFINB", PU_HUDGFX);
+	// 2P splitscreen
+	kp_racefinish[4] = 			W_CachePatchName("K_2PFINA", PU_HUDGFX);
+	kp_racefinish[5] = 			W_CachePatchName("K_2PFINB", PU_HUDGFX);
 
 	// Position numbers
 	sprintf(buffer, "K_POSNxx");
@@ -6924,11 +6940,10 @@ static void K_drawKartStartCountdown(void)
 		pnum++;
 	if ((leveltime % (2*5)) / 5) // blink
 		pnum += 4;
+	if (splitscreen) // splitscreen
+		pnum += 8;
 
-	if (splitscreen)
-		V_DrawSmallScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/4), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/4), splitflags, kp_startcountdown[pnum]);
-	else
-		V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), splitflags, kp_startcountdown[pnum]);
+	V_DrawScaledPatch(STCD_X - (SHORT(kp_startcountdown[pnum]->width)/2), STCD_Y - (SHORT(kp_startcountdown[pnum]->height)/2), splitflags, kp_startcountdown[pnum]);
 }
 
 static void K_drawKartFinish(void)
@@ -6941,12 +6956,14 @@ static void K_drawKartFinish(void)
 	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
 		pnum = 1;
 
-	if (splitscreen > 1)
-	{
-		V_DrawTinyScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/8), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/8), splitflags, kp_racefinish[pnum]);
-		return;
-	}
+	if (splitscreen > 1) // small splitscreen
+		pnum += 2;
+	else if (splitscreen == 1) // wide splitscreen
+		pnum += 4;
 
+	if (splitscreen > 1) // Stationary FIN
+		V_DrawScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/2), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2), splitflags, kp_racefinish[pnum]);
+	else // Scrolling FINISH
 	{
 		INT32 scaleshift = (FRACBITS - splitscreen); // FRACUNIT or FRACUNIT/2
 		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<scaleshift);
