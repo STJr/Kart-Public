@@ -2295,7 +2295,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		if (!splitscreen)	// don't draw it on splitscreen,
 		{
 			if (!(tab[i].num == serverplayer))
-				HU_drawPing(x + rightoffset + 13, y+2, playerpingtable[tab[i].num], false);
+				HU_drawPing(x + rightoffset + ((scorelines > 8) ? 13 : -27), y+2, playerpingtable[tab[i].num], false);
 		}
 
 		if (scorelines > 8)
