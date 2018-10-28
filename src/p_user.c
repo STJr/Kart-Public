@@ -8250,6 +8250,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
 
+	if (splitscreen == 1)
+		camspeed = (3*camspeed)/4;
+
 	if (timeover)
 		angle = mo->angle + FixedAngle(camrotate*FRACUNIT);
 	else if (leveltime < starttime)
