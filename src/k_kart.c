@@ -5507,11 +5507,7 @@ static patch_t *kp_racefinish[2];
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_winnernum[NUMPOSFRAMES];
 
-static patch_t *kp_facenull;
-static patch_t *kp_facefirst;
-static patch_t *kp_facesecond;
-static patch_t *kp_facethird;
-static patch_t *kp_facefourth;
+static patch_t *kp_facenum[MAXPLAYERS+1];
 
 static patch_t *kp_rankbumper;
 static patch_t *kp_ranknobumpers;
@@ -5613,11 +5609,13 @@ void K_LoadKartHUDGraphics(void)
 		kp_winnernum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	kp_facenull = 				W_CachePatchName("K_PFACE0", PU_HUDGFX);
-	kp_facefirst = 				W_CachePatchName("K_PFACE1", PU_HUDGFX);
-	kp_facesecond = 			W_CachePatchName("K_PFACE2", PU_HUDGFX);
-	kp_facethird = 				W_CachePatchName("K_PFACE3", PU_HUDGFX);
-	kp_facefourth = 			W_CachePatchName("K_PFACE4", PU_HUDGFX);
+	sprintf(buffer, "OPPRNKxx");
+	for (i = 0; i <= MAXPLAYERS; i++)
+	{
+		buffer[6] = '0'+(i/10);
+		buffer[7] = '0'+(i%10);
+		kp_facenum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 
 	// Extra ranking icons
 	kp_rankbumper =				W_CachePatchName("K_BLNICO", PU_HUDGFX);
@@ -6374,12 +6372,11 @@ static boolean K_drawKartPositionFaces(void)
 	// FACE_Y = 72;				//  72
 
 	INT32 Y = FACE_Y+9; // +9 to offset where it's being drawn if there are more than one
-	INT32 i, j, ranklines;
+	INT32 i, j, ranklines, strank = 0;
 	boolean completed[MAXPLAYERS];
 	INT32 rankplayer[MAXPLAYERS];
 	INT32 bumperx, numplayersingame = 0;
 	UINT8 *colormap;
-	patch_t *localpatch = kp_facenull;
 
 	ranklines = 0;
 	memset(completed, 0, sizeof (completed));
@@ -6402,7 +6399,7 @@ static boolean K_drawKartPositionFaces(void)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i] && completed[i] == false && players[i].mo && !players[i].spectator
+			if (playeringame[i] && !completed[i] && players[i].mo && !players[i].spectator
 				&& (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position]))
 			{
 				rankplayer[ranklines] = i;
@@ -6412,15 +6409,35 @@ static boolean K_drawKartPositionFaces(void)
 
 		completed[i] = true;
 
-		if (ranklines == 4)
-			break; // Only draw the top 4 players
+		if (players+i == stplyr)
+			strank = ranklines;
+
+		//if (ranklines == 5)
+			//break; // Only draw the top 5 players -- we do this a different way now...
 
 		ranklines++;
 	}
 
-	Y -= (9*ranklines);
+	if (ranklines < 5)
+		Y -= (9*ranklines);
+	else
+		Y -= (9*5);
 
-	for (i = 0; i < ranklines; i++)
+	if (strank <= 2) // too close to the top?
+	{
+		i = 0;
+		if (ranklines > 5) // could be both...
+			ranklines = 5;
+	}
+	else if (strank+3 > ranklines) // too close to the bottom?
+		i = ranklines - 5;
+	else
+	{
+		i = strank-2;
+		ranklines = strank+3;
+	}
+
+	for (; i < ranklines; i++)
 	{
 		if (players[rankplayer[i]].spectator) continue; // Spectators are ignored
 		if (!players[rankplayer[i]].mo) continue;
@@ -6435,7 +6452,7 @@ static boolean K_drawKartPositionFaces(void)
 			else
 				colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
 
-			V_DrawSmallMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
+			V_DrawMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, facerankprefix[players[rankplayer[i]].skin], colormap);
 			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 			{
 				for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
@@ -6446,20 +6463,16 @@ static boolean K_drawKartPositionFaces(void)
 			}
 		}
 
-		// Draws the little number over the face
-		switch (players[rankplayer[i]].kartstuff[k_position])
-		{
-			case 1: localpatch = kp_facefirst; break;
-			case 2: localpatch = kp_facesecond; break;
-			case 3: localpatch = kp_facethird; break;
-			case 4: localpatch = kp_facefourth; break;
-			default: break;
-		}
-
 		if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
 			V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
 		else
-			V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
+		{
+			INT32 pos = players[rankplayer[i]].kartstuff[k_position];
+			if (pos < 0 || pos > MAXPLAYERS)
+				pos = 0;
+			// Draws the little number over the face
+			V_DrawScaledPatch(FACE_X-5, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_facenum[pos]);
+		}
 
 		Y += 18;
 	}
@@ -6605,7 +6618,7 @@ static void K_drawKartWanted(void)
 
 	for (i = 0; i < numwanted; i++)
 	{
-		INT32 x = WANT_X+7, y = WANT_Y+20;
+		INT32 x = WANT_X+8, y = WANT_Y+21;
 		fixed_t scale = FRACUNIT/2;
 		player_t *p = &players[battlewanted[i]];
 
@@ -6613,24 +6626,19 @@ static void K_drawKartWanted(void)
 			break;
 
 		if (numwanted == 1)
-		{
-			x++; //y++;
 			scale = FRACUNIT;
-		}
 		else
 		{
 			if (i & 1)
-				x += 18;
+				x += 16;
 			if (i > 1)
-				y += 17;
+				y += 16;
 		}
 
-		if (players[battlewanted[i]].skincolor == 0)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], NULL);
-		else
+		if (players[battlewanted[i]].skincolor)
 		{
 			colormap = R_GetTranslationColormap(TC_RAINBOW, p->skincolor, GTC_CACHE);
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], colormap);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, (scale == FRACUNIT ? facewantprefix[p->skin] : facerankprefix[p->skin]), colormap);
 		}
 	}
 }
@@ -6683,35 +6691,6 @@ static void K_drawKartPlayerCheck(void)
 			V_DrawMappedPatch(x, CHEK_Y, V_HUDTRANS|splitflags, kp_check[pnum], colormap);
 		}
 	}
-}
-
-void K_LoadIconGraphics(char *facestr, INT32 skinnum)
-{
-	char namelump[9];
-
-	// hack: make sure base face name is no more than 8 chars
-	if (strlen(facestr) > 8)
-		facestr[8] = '\0';
-	strcpy(namelump, facestr); // copy base name
-
-	iconprefix[skinnum] = W_CachePatchName(namelump, PU_HUDGFX);
-	iconfreed[skinnum] = false;
-}
-
-#if 0 //unused
-static void K_UnLoadIconGraphics(INT32 skinnum)
-{
-	Z_Free(iconprefix[skinnum]);
-	iconfreed[skinnum] = true;
-}
-#endif
-
-void K_ReloadSkinIconGraphics(void)
-{
-	INT32 i;
-
-	for (i = 0; i < numskins; i++)
-		K_LoadIconGraphics(skins[i].iconprefix, i);
 }
 
 static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, patch_t *AutomapPic)
@@ -6780,18 +6759,18 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	if (encoremode)
 		amnumxpos = -amnumxpos;
 
-	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[skin]->width/2))<<FRACBITS);
-	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[skin]->height/2))<<FRACBITS);
+	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (facemmapprefix[skin]->width/2))<<FRACBITS);
+	amypos = amnumypos + ((y + AutomapPic->height/2 - (facemmapprefix[skin]->height/2))<<FRACBITS);
 
 	// do we want this? it feels unnecessary. easier to just modify the amnumxpos?
 	/*if (encoremode)
 	{
 		flags |= V_FLIP;
-		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[skin]->width/2))<<FRACBITS);
+		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (facemmapprefix[skin]->width/2))<<FRACBITS);
 	}*/
 
 	if (!mo->color) // 'default' color
-		V_DrawSciencePatch(amxpos, amypos, flags, iconprefix[skin], FRACUNIT);
+		V_DrawSciencePatch(amxpos, amypos, flags, facemmapprefix[skin], FRACUNIT);
 	else
 	{
 		UINT8 *colormap;
@@ -6799,7 +6778,7 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, 0);
 		else
 			colormap = R_GetTranslationColormap(skin, mo->color, 0);
-		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, iconprefix[skin], colormap);
+		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
 	}
 }
 

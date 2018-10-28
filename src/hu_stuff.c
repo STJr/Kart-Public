@@ -87,7 +87,6 @@ patch_t *rmatcico;
 patch_t *bmatcico;
 patch_t *tagico;
 patch_t *tallminus;
-patch_t *iconprefix[MAXSKINS]; // minimap icons
 
 //-------------------------------------------
 //              coop hud
@@ -2281,9 +2280,9 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 	V_DrawFill(1, 26, 318, 1, 0); // Draw a horizontal line because it looks nice!
 	if (scorelines > 8)
 	{
-		V_DrawFill(160, 26, 1, 154, 0); // Draw a vertical line to separate the two sides.
-		V_DrawFill(1, 180, 318, 1, 0); // And a horizontal line near the bottom.
-		rightoffset = 156;
+		V_DrawFill(160, 26, 1, 147, 0); // Draw a vertical line to separate the two sides.
+		V_DrawFill(1, 173, 318, 1, 0); // And a horizontal line near the bottom.
+		rightoffset = (BASEVIDWIDTH/2) - 4 - x;
 	}
 
 	for (i = 0; i < scorelines; i++)
@@ -2318,8 +2317,8 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			else
 				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo->color, GTC_CACHE);
 
-			V_DrawSmallMappedPatch(x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
-			if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] > 0)
+			V_DrawMappedPatch(x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
+			/*if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] > 0) -- doesn't physically fit...
 			{
 				INT32 bumperx = x-5;
 				for (j = 0; j < players[tab[i].num].kartstuff[k_bumper]; j++)
@@ -2327,7 +2326,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 					bumperx -= 3;
 					V_DrawSmallMappedPatch(bumperx, y+6, 0, W_CachePatchName("K_BLNICO", PU_CACHE), colormap);
 				}
-			}
+			}*/
 		}
 
 		if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] <= 0)
@@ -2347,11 +2346,11 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		else
 			V_DrawRightAlignedString(x+rightoffset, y, 0, va("%u", tab[i].count));
 
-		y += 16;
+		y += 18;
 		if (i == 7)
 		{
-			y = 32;
-			x += BASEVIDWIDTH/2;
+			y = 33;
+			x = (BASEVIDWIDTH/2) + 4;
 		}
 	}
 }
@@ -2416,15 +2415,15 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		if (players[tab[i].num].powers[pw_super])
 		{
 			colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-			V_DrawSmallMappedPatch (x, y-4, 0, superprefix[players[tab[i].num].skin], colormap);
+			V_DrawSmallMappedPatch (x, y-4, 0, facewantprefix[players[tab[i].num].skin], colormap);
 		}
 		else
 		{
 			colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
 			if (players[tab[i].num].health <= 0)
-				V_DrawSmallTranslucentMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
+				V_DrawSmallTranslucentMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
 			else
-				V_DrawSmallMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
+				V_DrawSmallMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
 		}
 		V_DrawRightAlignedThinString(x+120, y-1, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
 		if (!splitscreen)
@@ -2478,13 +2477,13 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 		{
 			colormap = colormaps;
 			if (players[tab[i].num].powers[pw_super])
-				V_DrawSmallScaledPatch (x, y-4, 0, superprefix[players[tab[i].num].skin]);
+				V_DrawSmallScaledPatch (x, y-4, 0, facewantprefix[players[tab[i].num].skin]);
 			else
 			{
 				if (players[tab[i].num].health <= 0)
-					V_DrawSmallTranslucentPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin]);
+					V_DrawSmallTranslucentPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin]);
 				else
-					V_DrawSmallScaledPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin]);
+					V_DrawSmallScaledPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin]);
 			}
 		}
 		else
@@ -2492,15 +2491,15 @@ void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scoreline
 			if (players[tab[i].num].powers[pw_super])
 			{
 				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-				V_DrawSmallMappedPatch (x, y-4, 0, superprefix[players[tab[i].num].skin], colormap);
+				V_DrawSmallMappedPatch (x, y-4, 0, facewantprefix[players[tab[i].num].skin], colormap);
 			}
 			else
 			{
 				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
 				if (players[tab[i].num].health <= 0)
-					V_DrawSmallTranslucentMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
+					V_DrawSmallTranslucentMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
 				else
-					V_DrawSmallMappedPatch (x, y-4, 0, faceprefix[players[tab[i].num].skin], colormap);
+					V_DrawSmallMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
 			}
 		}
 
@@ -2778,7 +2777,7 @@ static void HU_DrawRankings(void)
 	/*if (G_GametypeHasTeams())
 		HU_DrawTeamTabRankings(tab, whiteplayer); //separate function for Spazzo's silly request -- gotta fix this up later
 	else if (scorelines > 10)*/
-	HU_DrawTabRankings(((scorelines > 8) ? 32 : 40), 32, tab, scorelines, whiteplayer, hilicol);
+	HU_DrawTabRankings(((scorelines > 8) ? 32 : 40), 33, tab, scorelines, whiteplayer, hilicol);
 	/*else
 		HU_DrawDualTabRankings(32, 32, tab, scorelines, whiteplayer);*/
 

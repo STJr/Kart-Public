@@ -50,8 +50,9 @@ UINT16 objectsdrawn = 0;
 // STATUS BAR DATA
 //
 
-patch_t *faceprefix[MAXSKINS]; // face status patches
-patch_t *superprefix[MAXSKINS]; // super face status patches
+patch_t *facerankprefix[MAXSKINS]; // ranking
+patch_t *facewantprefix[MAXSKINS]; // wanted
+patch_t *facemmapprefix[MAXSKINS]; // minimap
 
 // ------------------------------------------
 //             status bar overlay
@@ -356,28 +357,20 @@ void ST_LoadGraphics(void)
 }
 
 // made separate so that skins code can reload custom face graphics
-void ST_LoadFaceGraphics(char *facestr, char *superstr, INT32 skinnum)
+void ST_LoadFaceGraphics(char *rankstr, char *wantstr, char *mmapstr, INT32 skinnum)
 {
-	faceprefix[skinnum] = W_CachePatchName(facestr, PU_HUDGFX);
-	superprefix[skinnum] = W_CachePatchName(superstr, PU_HUDGFX);
+	facerankprefix[skinnum] = W_CachePatchName(rankstr, PU_HUDGFX);
+	facewantprefix[skinnum] = W_CachePatchName(wantstr, PU_HUDGFX);
+	facemmapprefix[skinnum] = W_CachePatchName(mmapstr, PU_HUDGFX);
 	facefreed[skinnum] = false;
 }
-
-#ifdef DELFILE
-void ST_UnLoadFaceGraphics(INT32 skinnum)
-{
-	Z_Free(faceprefix[skinnum]);
-	Z_Free(superprefix[skinnum]);
-	facefreed[skinnum] = true;
-}
-#endif
 
 void ST_ReloadSkinFaceGraphics(void)
 {
 	INT32 i;
 
 	for (i = 0; i < numskins; i++)
-		ST_LoadFaceGraphics(skins[i].face, skins[i].superface, i);
+		ST_LoadFaceGraphics(skins[i].facerank, skins[i].facewant, skins[i].facemmap, i);
 }
 
 static inline void ST_InitData(void)
@@ -726,9 +719,9 @@ static void ST_drawLives(void) // SRB2kart - unused.
 	{
 		// skincolor face/super
 		UINT8 *colormap = R_GetTranslationColormap(stplyr->skin, stplyr->mo->color, GTC_CACHE);
-		patch_t *face = faceprefix[stplyr->skin];
+		patch_t *face = facerankprefix[stplyr->skin];
 		if (stplyr->powers[pw_super] || stplyr->pflags & PF_NIGHTSMODE)
-			face = superprefix[stplyr->skin];
+			face = facewantprefix[stplyr->skin];
 		V_DrawSmallMappedPatch(hudinfo[HUD_LIVESPIC].x, hudinfo[HUD_LIVESPIC].y + (v_splitflag ? -12 : 0),
 			V_SNAPTOLEFT|V_SNAPTOBOTTOM|V_HUDTRANS|v_splitflag,face, colormap);
 	}
@@ -737,7 +730,7 @@ static void ST_drawLives(void) // SRB2kart - unused.
 		// skincolor face
 		UINT8 *colormap = R_GetTranslationColormap(stplyr->skin, stplyr->skincolor, GTC_CACHE);
 		V_DrawSmallMappedPatch(hudinfo[HUD_LIVESPIC].x, hudinfo[HUD_LIVESPIC].y + (v_splitflag ? -12 : 0),
-			V_SNAPTOLEFT|V_SNAPTOBOTTOM|V_HUDTRANS|v_splitflag,faceprefix[stplyr->skin], colormap);
+			V_SNAPTOLEFT|V_SNAPTOBOTTOM|V_HUDTRANS|v_splitflag,facerankprefix[stplyr->skin], colormap);
 	}
 
 	// name
@@ -1965,7 +1958,7 @@ static void ST_overlayDrawer(void)
 				INT32 splitflags = K_calcSplitFlags(0);
 				V_DrawThinString(2, (BASEVIDHEIGHT/2)-20, V_YELLOWMAP|V_HUDTRANSHALF|splitflags, M_GetText("- SPECTATING -"));
 				if (stplyr->powers[pw_flashing])
-					V_DrawString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - . . ."));
+					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - . . ."));
 				else if (stplyr->pflags & PF_WANTSTOJOIN)
 					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Cancel Join"));
 				/*else if (G_GametypeHasTeams())

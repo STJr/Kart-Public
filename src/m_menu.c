@@ -151,8 +151,8 @@ description_t description[32] =
 	{"???", "", ""},
 	{"???", "", ""}
 };
-static char *char_notes = NULL;
-static fixed_t char_scroll = 0;
+//static char *char_notes = NULL;
+//static fixed_t char_scroll = 0;
 
 boolean menuactive = false;
 boolean fromlevelselect = false;
@@ -173,7 +173,7 @@ static char joystickInfo[8][25];
 static UINT32 serverlistpage;
 #endif
 
-static saveinfo_t savegameinfo[MAXSAVEGAMES]; // Extra info about the save games.
+//static saveinfo_t savegameinfo[MAXSAVEGAMES]; // Extra info about the save games.
 
 INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 
@@ -219,10 +219,10 @@ menu_t SPauseDef;
 //static void M_CustomLevelSelect(INT32 choice);
 //static void M_CustomWarp(INT32 choice);
 FUNCNORETURN static ATTRNORETURN void M_UltimateCheat(INT32 choice);
-static void M_LoadGameLevelSelect(INT32 choice);
+//static void M_LoadGameLevelSelect(INT32 choice);
 static void M_GetAllEmeralds(INT32 choice);
 static void M_DestroyRobots(INT32 choice);
-static void M_LevelSelectWarp(INT32 choice);
+//static void M_LevelSelectWarp(INT32 choice);
 static void M_Credits(INT32 choice);
 static void M_PandorasBox(INT32 choice);
 static void M_EmblemHints(INT32 choice);
@@ -244,7 +244,7 @@ static void M_ConfirmTeamScramble(INT32 choice);
 static void M_ConfirmTeamChange(INT32 choice);
 static void M_ConfirmSpectateChange(INT32 choice);
 //static void M_SecretsMenu(INT32 choice);
-static void M_SetupChoosePlayer(INT32 choice);
+//static void M_SetupChoosePlayer(INT32 choice);
 static void M_QuitSRB2(INT32 choice);
 menu_t SP_MainDef, MP_MainDef, OP_MainDef;
 menu_t MISC_ScrambleTeamDef, MISC_ChangeTeamDef, MISC_ChangeSpectateDef;
@@ -262,7 +262,7 @@ static void M_ChooseTimeAttack(INT32 choice);
 static void M_ModeAttackRetry(INT32 choice);
 static void M_ModeAttackEndGame(INT32 choice);
 static void M_SetGuestReplay(INT32 choice);
-static void M_ChoosePlayer(INT32 choice);
+//static void M_ChoosePlayer(INT32 choice);
 menu_t SP_LevelStatsDef;
 static menu_t SP_TimeAttackDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
 //static menu_t SP_NightsAttackDef, SP_NightsReplayDef, SP_NightsGuestReplayDef, SP_NightsGhostDef;
@@ -342,11 +342,11 @@ static void M_DrawPauseMenu(void);
 static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade);
 static void M_DrawServerMenu(void);
 static void M_DrawImageDef(void);
-static void M_DrawLoad(void);
+//static void M_DrawLoad(void);
 static void M_DrawLevelStats(void);
 static void M_DrawTimeAttackMenu(void);
 //static void M_DrawNightsAttackMenu(void);
-static void M_DrawSetupChoosePlayerMenu(void);
+//static void M_DrawSetupChoosePlayerMenu(void);
 static void M_DrawControl(void);
 static void M_DrawVideoMenu(void);
 static void M_DrawHUDOptions(void);
@@ -373,7 +373,7 @@ static boolean M_QuitMultiPlayerMenu(void);
 static void M_HandleAddons(INT32 choice);
 static void M_HandleSoundTest(INT32 choice);
 static void M_HandleImageDef(INT32 choice);
-static void M_HandleLoadSave(INT32 choice);
+//static void M_HandleLoadSave(INT32 choice);
 static void M_HandleLevelStats(INT32 choice);
 #ifndef NONET
 static void M_HandleConnectIP(INT32 choice);
@@ -594,7 +594,7 @@ static menuitem_t SPauseMenu[] =
 	// Pandora's Box will be shifted up if both options are available
 	{IT_CALL | IT_STRING,    NULL, "Pandora's Box...",     M_PandorasBox,         16},
 	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         24},
-	{IT_CALL | IT_STRING,    NULL, "Level Select...",      M_LoadGameLevelSelect, 32},
+	//{IT_CALL | IT_STRING,    NULL, "Level Select...",      M_LoadGameLevelSelect, 32},
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,48},
 	{IT_CALL | IT_STRING,    NULL, "Retry",                M_Retry,               56},
@@ -608,7 +608,7 @@ typedef enum
 {
 	spause_pandora = 0,
 	spause_hints,
-	spause_levelselect,
+	//spause_levelselect,
 
 	spause_continue,
 	spause_retry,
@@ -726,11 +726,11 @@ static menuitem_t SR_MainMenu[] =
 
 };
 
-static menuitem_t SR_LevelSelectMenu[] =
+/*static menuitem_t SR_LevelSelectMenu[] =
 {
 	{IT_STRING|IT_CVAR,              NULL, "Level",                 &cv_nextmap,            78},
 	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                 M_LevelSelectWarp,     130},
-};
+};*/
 
 static menuitem_t SR_UnlockChecklistMenu[] =
 {
@@ -766,7 +766,7 @@ enum
 };
 
 // Single Player Load Game
-static menuitem_t SP_LoadGameMenu[] =
+/*static menuitem_t SP_LoadGameMenu[] =
 {
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleLoadSave, '\0'},     // dummy menuitem for the control func
 };
@@ -776,7 +776,7 @@ static menuitem_t SP_LevelSelectMenu[] =
 {
 	{IT_STRING|IT_CVAR,              NULL, "Level",                 &cv_nextmap,            78},
 	{IT_WHITESTRING|IT_CALL,         NULL, "Start",                 M_LevelSelectWarp,     130},
-};
+};*/
 
 // Single Player Time Attack
 static menuitem_t SP_TimeAttackMenu[] =
@@ -906,6 +906,7 @@ static menuitem_t SP_LevelStatsMenu[] =
 // A rare case.
 // External files modify this menu, so we can't call it static.
 // And I'm too lazy to go through and rename it everywhere. ARRGH!
+#define M_ChoosePlayer NULL
 menuitem_t PlayerMenu[32] =
 {
 	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
@@ -1677,7 +1678,7 @@ menu_t SR_MainDef =
 	NULL
 };
 
-menu_t SR_LevelSelectDef = MAPICONMENUSTYLE(NULL, SR_LevelSelectMenu, &SR_MainDef);
+//menu_t SR_LevelSelectDef = MAPICONMENUSTYLE(NULL, SR_LevelSelectMenu, &SR_MainDef);
 
 menu_t SR_UnlockChecklistDef =
 {
@@ -1704,7 +1705,7 @@ menu_t SR_EmblemHintDef =
 
 // Single Player
 menu_t SP_MainDef = CENTERMENUSTYLE(NULL, SP_MainMenu, &MainDef, 72);
-menu_t SP_LoadDef =
+/*menu_t SP_LoadDef =
 {
 	"M_PICKG",
 	1,
@@ -1715,7 +1716,7 @@ menu_t SP_LoadDef =
 	0,
 	NULL
 };
-menu_t SP_LevelSelectDef = MAPICONMENUSTYLE(NULL, SP_LevelSelectMenu, &SP_LoadDef);
+menu_t SP_LevelSelectDef = MAPICONMENUSTYLE(NULL, SP_LevelSelectMenu, &SP_LoadDef);*/
 
 menu_t SP_LevelStatsDef =
 {
@@ -1820,7 +1821,7 @@ static menu_t SP_NightsGhostDef =
 };*/
 
 
-menu_t SP_PlayerDef =
+/*menu_t SP_PlayerDef =
 {
 	"M_PICKP",
 	sizeof (PlayerMenu)/sizeof (menuitem_t),//player_end,
@@ -1830,7 +1831,7 @@ menu_t SP_PlayerDef =
 	24, 32,
 	0,
 	NULL
-};
+};*/
 
 #ifndef NONET
 // Multiplayer
@@ -2629,21 +2630,21 @@ boolean M_Responder(event_t *ev)
 		case KEY_DOWNARROW:
 			M_NextOpt();
 			S_StartSound(NULL, sfx_menu1);
-			if (currentMenu == &SP_PlayerDef)
+			/*if (currentMenu == &SP_PlayerDef)
 			{
 				Z_Free(char_notes);
 				char_notes = NULL;
-			}
+			}*/
 			return true;
 
 		case KEY_UPARROW:
 			M_PrevOpt();
 			S_StartSound(NULL, sfx_menu1);
-			if (currentMenu == &SP_PlayerDef)
+			/*if (currentMenu == &SP_PlayerDef)
 			{
 				Z_Free(char_notes);
 				char_notes = NULL;
-			}
+			}*/
 			return true;
 
 		case KEY_LEFTARROW:
@@ -2885,7 +2886,7 @@ void M_StartControlPanel(void)
 		}
 
 		// We can always use level select though. :33
-		SPauseMenu[spause_levelselect].status = (gamecomplete) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
+		//SPauseMenu[spause_levelselect].status = (gamecomplete) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
 
 		// And emblem hints.
 		SPauseMenu[spause_hints].status = (M_SecretUnlocked(SECRET_EMBLEMHINTS)) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
@@ -5055,7 +5056,7 @@ static void M_DestroyRobots(INT32 choice)
 	M_StartMessage(M_GetText("Do you want to destroy all\nrobots in the current level?\n\n(Press 'Y' to confirm)\n"),M_DestroyRobotsResponse,MM_YESNO);
 }
 
-static void M_LevelSelectWarp(INT32 choice)
+/*static void M_LevelSelectWarp(INT32 choice)
 {
 	boolean fromloadgame = (currentMenu == &SP_LevelSelectDef);
 
@@ -5078,7 +5079,7 @@ static void M_LevelSelectWarp(INT32 choice)
 		cursaveslot = -1;
 		M_SetupChoosePlayer(0);
 	}
-}
+}*/
 
 // ========
 // SKY ROOM
@@ -5423,7 +5424,7 @@ static void M_HandleSoundTest(INT32 choice)
 // NEW GAME FUNCTIONS
 // ==================
 
-INT32 ultimate_selectable = false;
+/*INT32 ultimate_selectable = false;
 
 static void M_NewGame(void)
 {
@@ -5433,7 +5434,7 @@ static void M_NewGame(void)
 	CV_SetValue(&cv_newgametype, GT_RACE); // SRB2kart
 
 	M_SetupChoosePlayer(0);
-}
+}*/
 
 /*static void M_CustomWarp(INT32 choice)
 {
@@ -5484,7 +5485,7 @@ static void M_SinglePlayerMenu(INT32 choice)
 	M_SetupNextMenu(&SP_MainDef);
 }
 
-static void M_LoadGameLevelSelect(INT32 choice)
+/*static void M_LoadGameLevelSelect(INT32 choice)
 {
 	(void)choice;
 	levellistmode = LLM_LEVELSELECT;
@@ -5499,13 +5500,13 @@ static void M_LoadGameLevelSelect(INT32 choice)
 
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&SP_LevelSelectDef);
-}
+}*/
 
 // ==============
 // LOAD GAME MENU
 // ==============
 
-static INT32 saveSlotSelected = 0;
+/*static INT32 saveSlotSelected = 0;
 static short menumovedir = 0;
 
 static void M_DrawLoadGameData(void)
@@ -5904,13 +5905,13 @@ static void M_HandleLoadSave(INT32 choice)
 //
 // Selected from SRB2 menu
 //
-/*static void M_LoadGame(INT32 choice)
+static void M_LoadGame(INT32 choice)
 {
 	(void)choice;
 
 	M_ReadSaveStrings();
 	M_SetupNextMenu(&SP_LoadDef);
-}*/
+}
 
 //
 // Used by cheats to force the save menu to a specific spot.
@@ -6127,11 +6128,7 @@ static void M_ChoosePlayer(INT32 choice)
 
 	G_DeferedInitNew(false, G_BuildMapName(startmap), (UINT8)skinnum, 0, fromlevelselect);
 	COM_BufAddText("dummyconsvar 1\n"); // G_DeferedInitNew doesn't do this
-}
-
-// ===============
-// STATISTICS MENU
-// ===============
+}*/
 
 // ===============
 // STATISTICS MENU
@@ -6368,7 +6365,6 @@ void M_DrawTimeAttackMenu(void)
 {
 	INT32 i, x, y, cursory = 0;
 	UINT16 dispstatus;
-	patch_t *PictureOfUrFace;
 
 	//S_ChangeMusicInternal("racent", true); // Eww, but needed for when user hits escape during demo playback
 
@@ -6384,11 +6380,10 @@ void M_DrawTimeAttackMenu(void)
 	y = currentMenu->y;
 
 	// Character face!
-	if (W_CheckNumForName(skins[cv_chooseskin.value-1].face) != LUMPERROR)
+	if (W_CheckNumForName(skins[cv_chooseskin.value-1].facewant) != LUMPERROR)
 	{
 		UINT8 *colormap = R_GetTranslationColormap(cv_chooseskin.value-1, cv_playercolor.value, 0);
-		PictureOfUrFace = W_CachePatchName(skins[cv_chooseskin.value-1].face, PU_CACHE);
-		V_DrawMappedPatch(BASEVIDWIDTH-x - SHORT(PictureOfUrFace->width), y, 0, PictureOfUrFace, colormap);
+		V_DrawMappedPatch(BASEVIDWIDTH-x - SHORT(facewantprefix[cv_chooseskin.value-1]->width), y, 0, facewantprefix[cv_chooseskin.value-1], colormap);
 	}
 
 	for (i = 0; i < currentMenu->numitems; ++i)
@@ -7676,7 +7671,6 @@ Update the maxplayers label...
 		// player arrangement width, but there's also a chance i'm a furry, shhhhhh
 		const INT32 paw = iconwidth + 3*incrwidth;
 		INT32 trans = 0;
-		patch_t *face;
 		UINT8 *colmap;
 		x = BASEVIDWIDTH/2 - paw/2;
 		y = currentMenu->y + 32;
@@ -7711,15 +7705,13 @@ Update the maxplayers label...
 
 			colmap = R_GetTranslationColormap(pskin, pcol, 0);
 
-			face = W_CachePatchName(skins[pskin].face, PU_CACHE);
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, trans, face, colmap);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, trans, facewantprefix[pskin], colmap);
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
 				/*V_DrawCharacter(x + 12, y-4 + (skullAnimCounter/5),
 					'\x1B' | highlightflags, false); // down arrow*/
-				face = W_CachePatchName("K_CHRCUR", PU_CACHE);
-				V_DrawFixedPatch((x-2)<<FRACBITS, (y-2)<<FRACBITS, FRACUNIT, 0, face, colmap);
+				V_DrawFixedPatch((x-2)<<FRACBITS, (y-2)<<FRACBITS, FRACUNIT, 0, W_CachePatchName("K_CHRCUR", PU_CACHE), colmap);
 			}
 
 			x += incrwidth;
@@ -8068,20 +8060,21 @@ static void M_DrawSetupMultiPlayerMenu(void)
 			if (!(k++))
 			{
 				scale = FRACUNIT;
+				face = facewantprefix[col];
 				offx = 12;
 				offy = 0;
 			}
 			else
 			{
 				scale = FRACUNIT/2;
+				face = facerankprefix[col];
 				offx = 8;
 				offy = 8;
 			}
-			face = W_CachePatchName(skins[col].face, PU_CACHE);
 			colmap =  R_GetTranslationColormap(col, setupm_fakecolor, 0);
-			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, scale, 0, face, colmap);
+			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, FRACUNIT, 0, face, colmap);
 			if (scale == FRACUNIT) // bit of a hack
-				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, scale, 0, cursor, colmap);
+				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, FRACUNIT, 0, cursor, colmap);
 			if (++col >= numskins)
 				col -= numskins;
 			x += FixedMul(iconwidth<<FRACBITS, 3*scale/2)/FRACUNIT;
