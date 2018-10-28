@@ -8083,6 +8083,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (!player || !player->mo)
 		return true;
 
+	// This can happen when joining
+	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
+		return true;
+
 	mo = player->mo;
 
 #ifndef NOCLIPCAM
