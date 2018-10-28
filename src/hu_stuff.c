@@ -2271,7 +2271,7 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 //
 void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol)
 {
-	INT32 i, j, rightoffset = 240;
+	INT32 i, rightoffset = 240;
 	const UINT8 *colormap;
 
 	//this function is designed for 9 or less score lines only
