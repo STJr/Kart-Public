@@ -1362,8 +1362,8 @@ void K_RespawnChecker(player_t *player)
 				fixed_t newx, newy, newz;
 
 				newangle = FixedAngle(((360/8)*i)*FRACUNIT);
-				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 31*player->mo->scale);
-				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 31*player->mo->scale);
+				newx = player->mo->x + P_ReturnThrustX(player->mo, newangle, 31<<FRACBITS); // does NOT use scale, since this effect doesn't scale properly
+				newy = player->mo->y + P_ReturnThrustY(player->mo, newangle, 31<<FRACBITS);
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					newz = player->mo->z + player->mo->height;
 				else
@@ -1383,11 +1383,19 @@ void K_RespawnChecker(player_t *player)
 	}
 	else if (player->kartstuff[k_respawn] == 1)
 	{
-		if (!P_IsObjectOnGround(player->mo))
+		if (player->kartstuff[k_growshrinktimer] < 0)
+		{
+			player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
+			player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
+			if (cv_kartdebugshrink.value && !player->bot)
+				player->mo->destscale = 6*player->mo->destscale/8;
+		}
+
+		if (!P_IsObjectOnGround(player->mo) && !mapreset)
 		{
 			player->powers[pw_flashing] = 2;
 
-			// Sal: That's stupid and prone to accidental usage.
+			// Sal: The old behavior was stupid and prone to accidental usage.
 			// Let's rip off Mania instead, and turn this into a Drop Dash!
 
 			if (cmd->buttons & BT_ACCELERATE)
@@ -3879,7 +3887,12 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		fast->momz = 3*player->mo->momz/4;
 	}
 
-	if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie
+	if (player->playerstate == PST_DEAD || player->kartstuff[k_respawn] > 1) // Ensure these are set correctly here
+	{
+		player->mo->colorized = false;
+		player->mo->color = player->skincolor;
+	}
+	else if (player->kartstuff[k_eggmanexplode]) // You're gonna diiiiie
 	{
 		const INT32 flashtime = 4<<(player->kartstuff[k_eggmanexplode]/TICRATE);
 		if (player->kartstuff[k_eggmanexplode] == 1 || (player->kartstuff[k_eggmanexplode] % (flashtime/2) != 0))
@@ -4008,11 +4021,13 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_invincibilitytimer])
 		player->kartstuff[k_invincibilitytimer]--;
 
-	if (player->kartstuff[k_growshrinktimer] > 0)
-		player->kartstuff[k_growshrinktimer]--;
-
-	if (player->kartstuff[k_growshrinktimer] < 0)
-		player->kartstuff[k_growshrinktimer]++;
+	if (!player->kartstuff[k_respawn])
+	{
+		if (player->kartstuff[k_growshrinktimer] > 0)
+			player->kartstuff[k_growshrinktimer]--;
+		if (player->kartstuff[k_growshrinktimer] < 0)
+			player->kartstuff[k_growshrinktimer]++;
+	}
 
 	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
 	{
