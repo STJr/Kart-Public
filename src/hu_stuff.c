@@ -2609,7 +2609,7 @@ static inline void HU_DrawSpectatorTicker(void)
 					templength = length;
 				}
 
-				V_DrawString(templength, height + 8, V_TRANSLUCENT, current);
+				V_DrawString(templength, height + 8, V_TRANSLUCENT|V_ALLOWLOWERCASE, current);
 			}
 
 			length += (signed)strlen(player_names[i]) * 8 + 16;
