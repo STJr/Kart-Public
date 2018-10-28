@@ -6601,7 +6601,7 @@ static void K_drawKartWanted(void)
 	if (splitscreen) // Can't fit the poster on screen, sadly
 	{
 		if (K_IsPlayerWanted(stplyr) && leveltime % 10 > 3)
-			V_DrawRightAlignedString(WANT_X, WANT_Y, K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS|V_REDMAP), "WANTED");
+			V_DrawRightAlignedString(WANT_X, WANT_Y, K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS|V_ORANGEMAP), "WANTED");
 		return;
 	}
 
