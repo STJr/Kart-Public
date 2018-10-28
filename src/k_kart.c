@@ -700,7 +700,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			break;
 		case KITEM_GROW:
 			POWERITEMODDS(newodds);
-			if ((!cv_grow.value) || (pinvin > 2)) newodds = 0;
+			if ((!cv_grow.value) || (pinvin >= 2)) newodds = 0;
 			break;
 		case KITEM_SHRINK:
 			POWERITEMODDS(newodds);
