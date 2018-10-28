@@ -1235,15 +1235,21 @@ void P_RestoreMusic(player_t *player)
 		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
-		INT32 bestlocalmus = 0; // 0 is level music, 1 is invincibility, 2 is grow
+		INT32 wantedmus = 0; // 0 is level music, 1 is invincibility, 2 is grow
 
 		if (splitscreen)
 		{
-			if (players[displayplayer].playerstate == PST_LIVE)
-				bestlocalmus = (players[displayplayer].kartstuff[k_growshrinktimer] > 1 ? 2 : (players[displayplayer].kartstuff[k_invincibilitytimer] > 1 ? 1 : 0));
+			INT32 bestlocaltimer = 1;
+
 #define setbests(p) \
-	if (players[p].playerstate == PST_LIVE && (players[p].kartstuff[k_growshrinktimer] > 1 ? 2 : (players[p].kartstuff[k_invincibilitytimer] > 1 ? 1 : 0)) > bestlocalmus) \
-		bestlocalmus = (players[p].kartstuff[k_growshrinktimer] > 1 ? 2 : (players[p].kartstuff[k_invincibilitytimer] > 1 ? 1 : 0));
+	if (players[p].playerstate == PST_LIVE) \
+	{ \
+		if (players[p].kartstuff[k_growshrinktimer] > bestlocaltimer) \
+		{ wantedmus = 2; bestlocaltimer = players[p].kartstuff[k_growshrinktimer]; } \
+		else if (players[p].kartstuff[k_invincibilitytimer] > bestlocaltimer) \
+		{ wantedmus = 1; bestlocaltimer = players[p].kartstuff[k_invincibilitytimer]; } \
+	}
+			setbests(displayplayer);
 			setbests(secondarydisplayplayer);
 			if (splitscreen > 1)
 				setbests(thirddisplayplayer);
@@ -1254,14 +1260,19 @@ void P_RestoreMusic(player_t *player)
 		else
 		{
 			if (player->playerstate == PST_LIVE)
-				bestlocalmus = (player->kartstuff[k_growshrinktimer] > 1 ? 2 : (player->kartstuff[k_invincibilitytimer] > 1 ? 1 : 0));
+			{
+				if (player->kartstuff[k_growshrinktimer] > 1)
+					wantedmus = 2;
+				else if (player->kartstuff[k_invincibilitytimer] > 1)
+					wantedmus = 1;
+			}
 		}
 
 		// Item - Grow
-		if (bestlocalmus == 2)
+		if (wantedmus == 2)
 			S_ChangeMusicInternal("kgrow", true);
 		// Item - Invincibility
-		else if (bestlocalmus == 1)
+		else if (wantedmus == 1)
 			S_ChangeMusicInternal("kinvnc", true);
 		else
 		{
