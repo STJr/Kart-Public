@@ -666,7 +666,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			break;
 		case KITEM_INVINCIBILITY:
 			POWERITEMODDS(newodds);
-			if ((!cv_invincibility.value) || (pinvin > 2)) newodds = 0;
+			if ((!cv_invincibility.value) || (pinvin >= 2)) newodds = 0;
 			break;
 		case KITEM_BANANA:
 			if (!cv_banana.value) newodds = 0;
