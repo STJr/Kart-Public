@@ -4344,7 +4344,7 @@ static INT16 Consistancy(void)
 		{
 			ret += players[i].mo->x;
 			ret -= players[i].mo->y;
-			ret += players[i].powers[pw_shield];
+			ret += players[i].kartstuff[k_itemtype]; // powers[pw_shield]
 			ret *= i+1;
 		}
 	}
