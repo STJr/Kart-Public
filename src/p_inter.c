@@ -324,48 +324,10 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 		return;
 	}
-	else if ((special->flags & MF_ENEMY) && !(special->flags & MF_MISSILE))
+	else if ((special->flags & MF_ENEMY) && !(special->flags & MF_MISSILE)
+		&& (special->type != MT_SPRINGSHELL)) // Kart: prevent random hits from these things
 	{
-		////////////////////////////////////////////////////////
-		/////ENEMIES!!//////////////////////////////////////////
-		////////////////////////////////////////////////////////
-		/*if (special->type == MT_GSNAPPER && !(((player->pflags & PF_NIGHTSMODE) && (player->pflags & PF_DRILLING))
-		|| player->powers[pw_invulnerability] || player->powers[pw_super])
-		&& toucher->z < special->z + special->height && toucher->z + toucher->height > special->z)
-		{
-			// Can only hit snapper from above
-			P_DamageMobj(toucher, special, special, 1);
-		}
-		else if (special->type == MT_SHARP
-		&& ((special->state == &states[special->info->xdeathstate]) || (toucher->z > special->z + special->height/2)))
-		{
-			// Cannot hit sharp from above or when red and angry
-			P_DamageMobj(toucher, special, special, 1);
-		}
-		else if (((player->pflags & PF_NIGHTSMODE) && (player->pflags & PF_DRILLING))
-		|| (player->pflags & (PF_JUMPED|PF_SPINNING|PF_GLIDING))
-		|| player->powers[pw_invulnerability] || player->powers[pw_super]) // Do you possess the ability to subdue the object?
-		{
-			if (P_MobjFlip(toucher)*toucher->momz < 0)
-				toucher->momz = -toucher->momz;
-
-			P_DamageMobj(special, toucher, toucher, 1);
-		}
-		else if (((toucher->z < special->z && !(toucher->eflags & MFE_VERTICALFLIP))
-		|| (toucher->z + toucher->height > special->z + special->height && (toucher->eflags & MFE_VERTICALFLIP))) // Flame is bad at logic - JTE
-		&& player->charability == CA_FLY
-		&& (player->powers[pw_tailsfly]
-		|| (toucher->state >= &states[S_PLAY_SPC1] && toucher->state <= &states[S_PLAY_SPC4]))) // Tails can shred stuff with his propeller.
-		{
-			if (P_MobjFlip(toucher)*toucher->momz < 0)
-				toucher->momz = -toucher->momz/2;
-
-			P_DamageMobj(special, toucher, toucher, 1);
-		}
-		// SRB2kart - Removed: No more fly states
-		else*/
-			P_DamageMobj(toucher, special, special, 1);
-
+		P_DamageMobj(toucher, special, special, 1);
 		return;
 	}
 	else if (special->flags & MF_FIRE)
@@ -424,8 +386,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			P_SetTarget(&special->target, toucher);
 			P_KillMobj(special, toucher, toucher);
 			break;
-		case MT_FAKESHIELD: // SRB2kart
-		case MT_FAKEITEM:
+		case MT_EGGMANITEM_SHIELD: // SRB2kart
+		case MT_EGGMANITEM:
 			if ((special->target == toucher || special->target == toucher->target) && (special->threshold > 0))
 				return;
 
@@ -618,7 +580,36 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			else
 				K_SpinPlayer(player, special, 0, false);
+			return;
+		/*case MT_EERIEFOG:
+			special->frame &= ~FF_TRANS80;
+			special->frame |= FF_TRANS90;
+			return;*/
+		case MT_SMK_MOLE:
+			if (special->target && !P_MobjWasRemoved(special->target))
+				return;
 
+			if (special->health <= 0 || toucher->health <= 0)
+				return;
+
+			if (!player->mo || player->spectator)
+				return;
+
+			// kill
+			if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0)
+			{
+				P_KillMobj(special, toucher, toucher);
+				return;
+			}
+
+			// no interaction
+			if (player->powers[pw_flashing] > 0 || player->kartstuff[k_hyudorotimer] > 0
+				|| player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0)
+				return;
+
+			// attach to player!
+			P_SetTarget(&special->target, toucher);
+			S_StartSound(special, sfx_s1a2);
 			return;
 		case MT_CDUFO: // SRB2kart
 			if (special->fuse || !P_CanPickupItem(player, 1) || (G_BattleGametype() && player->kartstuff[k_bumper] <= 0))
@@ -2061,7 +2052,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 		 && !(target->type == MT_ORBINAUT || target->type == MT_ORBINAUT_SHIELD
 		 || target->type == MT_JAWZ || target->type == MT_JAWZ_DUD || target->type == MT_JAWZ_SHIELD
 		 || target->type == MT_BANANA || target->type == MT_BANANA_SHIELD
-		 || target->type == MT_FAKEITEM || target->type == MT_FAKESHIELD
+		 || target->type == MT_EGGMANITEM || target->type == MT_EGGMANITEM_SHIELD
 		 || target->type == MT_BALLHOG || target->type == MT_SPB)) // kart dead items
 		target->flags |= MF_NOGRAVITY; // Don't drop Tails 03-08-2000
 	else
@@ -2085,7 +2076,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	// I wish I knew a better way to do this
 	if (target->target && target->target->player && target->target->player->mo)
 	{
-		if (target->target->player->kartstuff[k_eggmanheld] && target->type == MT_FAKESHIELD)
+		if (target->target->player->kartstuff[k_eggmanheld] && target->type == MT_EGGMANITEM_SHIELD)
 			target->target->player->kartstuff[k_eggmanheld] = 0;
 
 		if (target->target->player->kartstuff[k_itemheld])
@@ -2431,6 +2422,21 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 			else
 				P_PlayDeathSound(target);
 			break;
+
+		// SRB2Kart:
+		case MT_SMK_ICEBLOCK:
+			{
+				mobj_t *cur = target->hnext;
+				while (cur && !P_MobjWasRemoved(cur))
+				{
+					P_SetMobjState(cur, S_SMK_ICEBLOCK2);
+					cur = cur->hnext;
+				}
+				target->fuse = 10;
+				S_StartSound(target, sfx_s3k80);
+			}
+			break;
+
 		default:
 			break;
 	}
@@ -2489,6 +2495,40 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	if ((target->type == MT_JAWZ || target->type == MT_JAWZ_DUD || target->type == MT_JAWZ_SHIELD) && !(target->flags2 & MF2_AMBUSH))
 	{
 		target->z += P_MobjFlip(target)*20*target->scale;
+	}
+
+	// kill tracer
+	if (target->type == MT_FROGGER)
+	{
+		if (target->tracer && !P_MobjWasRemoved(target->tracer))
+			P_KillMobj(target->tracer, inflictor, source);
+	}
+
+	if (target->type == MT_FROGGER || target->type == MT_ROBRA_HEAD || target->type == MT_BLUEROBRA_HEAD) // clean hnext list
+	{
+		mobj_t *cur = target->hnext;
+		while (cur && !P_MobjWasRemoved(cur))
+		{
+			P_KillMobj(cur, inflictor, source);
+			cur = cur->hnext;
+		}
+	}
+
+	// Bounce up on death
+	if (target->type == MT_SMK_PIPE || target->type == MT_SMK_MOLE || target->type == MT_SMK_THWOMP)
+	{
+		target->flags &= (~MF_NOGRAVITY);
+
+		if (target->eflags & MFE_VERTICALFLIP)
+			target->z -= target->height;
+		else
+			target->z += target->height;
+
+		S_StartSound(target, target->info->deathsound);
+
+		P_SetObjectMomZ(target, 8<<FRACBITS, false);
+		if (inflictor)
+			P_InstaThrust(target, R_PointToAngle2(inflictor->x, inflictor->y, target->x, target->y)+ANGLE_90, 16<<FRACBITS);
 	}
 
 	if (target->type == MT_SPIKE && inflictor && target->info->deathstate != S_NULL)
@@ -3267,7 +3307,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		{
 			if (inflictor && (inflictor->type == MT_ORBINAUT || inflictor->type == MT_ORBINAUT_SHIELD
 				|| inflictor->type == MT_JAWZ || inflictor->type == MT_JAWZ_SHIELD || inflictor->type == MT_JAWZ_DUD
-				|| inflictor->player))
+				|| inflictor->type == MT_SMK_THWOMP || inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
 				K_SpinPlayer(player, source, 1, false);

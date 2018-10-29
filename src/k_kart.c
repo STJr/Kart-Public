@@ -3233,9 +3233,9 @@ void K_DropHnextList(player_t *player)
 				dropall = false;
 				type = MT_SSMINE;
 				break;
-			case MT_FAKESHIELD:
+			case MT_EGGMANITEM_SHIELD:
 				orbit = false;
-				type = MT_FAKEITEM;
+				type = MT_EGGMANITEM;
 				break;
 			// intentionally do nothing
 			case MT_SINK_SHIELD:
@@ -3505,7 +3505,7 @@ static void K_MoveHeldObjects(player_t *player)
 			break;
 		case MT_BANANA_SHIELD: // Kart trailing items
 		case MT_SSMINE_SHIELD:
-		case MT_FAKESHIELD:
+		case MT_EGGMANITEM_SHIELD:
 		case MT_SINK_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
@@ -4659,7 +4659,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			}
 			else
 			{
-				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKEITEM);
+				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EGGMANITEM);
 				if (player->kartstuff[k_eggmanblame] >= 0
 				&& player->kartstuff[k_eggmanblame] < MAXPLAYERS
 				&& playeringame[player->kartstuff[k_eggmanblame]]
@@ -4685,7 +4685,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Eggman Monitor throwing
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
-			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, 0);
+			K_ThrowKartItem(player, false, MT_EGGMANITEM, -1, 0);
 			K_PlayAttackTaunt(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
 			K_UpdateHnextList(player, true);
@@ -4811,7 +4811,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_eggmanheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
-						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
+						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EGGMANITEM_SHIELD);
 						if (mo)
 						{
 							mo->flags |= MF_NOCLIPTHING;
