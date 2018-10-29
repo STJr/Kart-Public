@@ -1217,6 +1217,8 @@ void P_RestoreMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return;
 
+	S_SpeedMusic(1.0f);
+
 	// Event - HERE COMES A NEW CHALLENGER
 	if (mapreset)
 	{
@@ -1228,24 +1230,58 @@ void P_RestoreMusic(player_t *player)
 	if (P_EndingMusic(player))
 		return;
 
-	S_SpeedMusic(1.0f);
-
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
+		INT32 wantedmus = 0; // 0 is level music, 1 is invincibility, 2 is grow
+
+		if (splitscreen)
+		{
+			INT32 bestlocaltimer = 1;
+
+#define setbests(p) \
+	if (players[p].playerstate == PST_LIVE) \
+	{ \
+		if (players[p].kartstuff[k_growshrinktimer] > bestlocaltimer) \
+		{ wantedmus = 2; bestlocaltimer = players[p].kartstuff[k_growshrinktimer]; } \
+		else if (players[p].kartstuff[k_invincibilitytimer] > bestlocaltimer) \
+		{ wantedmus = 1; bestlocaltimer = players[p].kartstuff[k_invincibilitytimer]; } \
+	}
+			setbests(displayplayer);
+			setbests(secondarydisplayplayer);
+			if (splitscreen > 1)
+				setbests(thirddisplayplayer);
+			if (splitscreen > 2)
+				setbests(fourthdisplayplayer);
+#undef setbests
+		}
+		else
+		{
+			if (player->playerstate == PST_LIVE)
+			{
+				if (player->kartstuff[k_growshrinktimer] > 1)
+					wantedmus = 2;
+				else if (player->kartstuff[k_invincibilitytimer] > 1)
+					wantedmus = 1;
+			}
+		}
+
 		// Item - Grow
-		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
+		if (wantedmus == 2)
 			S_ChangeMusicInternal("kgrow", true);
 		// Item - Invincibility
-		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
+		else if (wantedmus == 1)
 			S_ChangeMusicInternal("kinvnc", true);
 		else
 		{
+#if 0
 			// Event - Final Lap
+			// Still works for GME, but disabled for consistency
 			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
+#endif
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 		}
 	}
@@ -8265,6 +8301,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
+
+	if (splitscreen == 1)
+		camspeed = (3*camspeed)/4;
 
 	if (timeover)
 		angle = mo->angle + FixedAngle(camrotate*FRACUNIT);
