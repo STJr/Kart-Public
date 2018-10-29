@@ -3340,8 +3340,6 @@ void K_DropItems(player_t *player)
 		drop->destscale = (3*drop->destscale)/2;;
 
 		drop->angle = player->mo->angle + ANGLE_90;
-		drop->momx = player->mo->momx>>1;
-		drop->momy = player->mo->momy>>1;
 		P_Thrust(drop,
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
 			8*(mapheaderinfo[gamemap-1]->mobj_scale));
