@@ -6293,6 +6293,8 @@ void P_RunShadows(void)
 
 	for (mobj = shadowcap; mobj; mobj = next)
 	{
+		fixed_t floorz;
+
 		next = mobj->hnext;
 		P_SetTarget(&mobj->hnext, NULL);
 
@@ -6302,37 +6304,16 @@ void P_RunShadows(void)
 			continue; // shouldn't you already be dead?
 		}
 
-		if ((mobj->target->flags2 & MF2_DONTDRAW)
-			|| (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
-			|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < mobj->target->floorz)))
+		if (mobj->target->player)
+			floorz = mobj->target->floorz;
+		else // FOR SOME REASON, plain floorz is not reliable for normal objects, only players?!
+			floorz = P_FloorzAtPos(mobj->target->x, mobj->target->y, mobj->target->z, mobj->target->height);
+
+		K_MatchGenericExtraFlags(mobj, mobj->target);
+
+		if (((mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z+mobj->target->height > mobj->target->ceilingz)
+			|| (!(mobj->target->eflags & MFE_VERTICALFLIP) && mobj->target->z < floorz))
 			mobj->flags2 |= MF2_DONTDRAW;
-		else
-			mobj->flags2 &= ~MF2_DONTDRAW;
-
-		if (mobj->target->eflags & MFE_VERTICALFLIP)
-			mobj->eflags |= MFE_VERTICALFLIP;
-		else
-			mobj->eflags &= ~MFE_VERTICALFLIP;
-
-		if (mobj->target->eflags & MFE_DRAWONLYFORP1) // groooooaann...
-			mobj->eflags |= MFE_DRAWONLYFORP1;
-		else
-			mobj->eflags &= ~MFE_DRAWONLYFORP1;
-
-		if (mobj->target->eflags & MFE_DRAWONLYFORP2)
-			mobj->eflags |= MFE_DRAWONLYFORP2;
-		else
-			mobj->eflags &= ~MFE_DRAWONLYFORP2;
-
-		if (mobj->target->eflags & MFE_DRAWONLYFORP3)
-			mobj->eflags |= MFE_DRAWONLYFORP3;
-		else
-			mobj->eflags &= ~MFE_DRAWONLYFORP3;
-
-		if (mobj->target->eflags & MFE_DRAWONLYFORP4)
-			mobj->eflags |= MFE_DRAWONLYFORP4;
-		else
-			mobj->eflags &= ~MFE_DRAWONLYFORP4;
 
 		// First scale to the same radius
 		P_SetScale(mobj, FixedDiv(mobj->target->radius, mobj->info->radius));
@@ -6345,12 +6326,12 @@ void P_RunShadows(void)
 		P_TeleportMove(mobj, dest->x, dest->y, mobj->target->z);
 
 		if (((mobj->eflags & MFE_VERTICALFLIP) && (mobj->ceilingz > mobj->z+mobj->height))
-			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (mobj->floorz < mobj->z)))
+			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (floorz < mobj->z)))
 		{
 			INT32 i;
 			fixed_t prevz;
 
-			mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
+			mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : floorz);
 
 			for (i = 0; i < MAXFFLOORS; i++)
 			{
@@ -6362,7 +6343,7 @@ void P_RunShadows(void)
 				// Check new position to see if you should still be on that ledge
 				P_TeleportMove(mobj, dest->x, dest->y, mobj->z);
 
-				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : mobj->floorz);
+				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : floorz);
 
 				if (mobj->z == prevz)
 					break;
