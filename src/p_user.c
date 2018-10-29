@@ -6652,12 +6652,23 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->state != &states[S_KART_SQUISH])
 			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
 	}
-	else if (player->kartstuff[k_spinouttimer] > 0 || player->pflags & PF_SLIDING)
+	else if (player->pflags & PF_SLIDING)
 	{
 		if (player->mo->state != &states[S_KART_SPIN])
 			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
-
 		player->frameangle -= ANGLE_22h;
+	}
+	else if (player->kartstuff[k_spinouttimer] > 0)
+	{
+		INT32 speed = max(1, min(8, player->kartstuff[k_spinouttimer]/8));
+
+		if (player->mo->state != &states[S_KART_SPIN])
+			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+
+		if (speed == 1 && abs(player->mo->angle - player->frameangle) < ANGLE_22h)
+			player->frameangle = player->mo->angle; // Face forward at the end of the animation
+		else
+			player->frameangle -= (ANGLE_11hh * speed);
 	}
 	else if (player->powers[pw_nocontrol] && player->pflags & PF_SKIDDOWN)
 	{
@@ -7335,7 +7346,7 @@ static void P_DoZoomTube(player_t *player)
 	fixed_t dist;
 	boolean reverse;
 
-	player->mo->height = P_GetPlayerSpinHeight(player);
+	//player->mo->height = P_GetPlayerSpinHeight(player);
 
 	if (player->speed > 0)
 		reverse = false;
@@ -7440,6 +7451,11 @@ static void P_DoZoomTube(player_t *player)
 		else if (player == &players[fourthdisplayplayer])
 			localangle4 = player->mo->angle;
 	}
+#if 0
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+	player->frameangle -= ANGLE_22h;
+#endif
 }
 
 //

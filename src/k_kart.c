@@ -1847,19 +1847,15 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 
 	player->kartstuff[k_spinouttype] = type;
 
-	if (player->kartstuff[k_spinouttype] <= 0)
+	if (player->kartstuff[k_spinouttype] <= 0) // type 0 is spinout, type 1 is wipeout
 	{
-		player->kartstuff[k_spinouttimer] = 3*TICRATE/2; // Banana Spinout
-
 		// At spinout, player speed is increased to 1/4 their regular speed, moving them forward
 		if (player->speed < K_GetKartSpeed(player, true)/4)
 			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
-
 		S_StartSound(player->mo, sfx_slip);
 	}
-	else
-		player->kartstuff[k_spinouttimer] = TICRATE+20; // Wipeout
 
+	player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2;
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (player->mo->state != &states[S_KART_SPIN])
@@ -2032,7 +2028,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 
 	if (inflictor && inflictor->type == MT_SPBEXPLOSION && inflictor->extravalue1)
 	{
-		player->kartstuff[k_spinouttimer] = (3*player->kartstuff[k_spinouttimer])/2;
+		player->kartstuff[k_spinouttimer] = ((3*player->kartstuff[k_spinouttimer])/2)+1;
 		player->mo->momz *= 2;
 	}
 
@@ -3956,6 +3952,18 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	player->kartstuff[k_timeovercam] = 0;
 
+	// Make ABSOLUTELY SURE that your flashing tics don't get set WHILE you're still in hit animations.
+	if (player->kartstuff[k_spinouttimer] != 0
+		|| player->kartstuff[k_wipeoutslow] != 0
+		|| player->kartstuff[k_squishedtimer] != 0)
+	{
+		player->powers[pw_flashing] = K_GetKartFlashing(player);
+	}
+	else if (player->powers[pw_flashing] == K_GetKartFlashing(player))
+	{
+		player->powers[pw_flashing]--;
+	}
+
 	if (player->kartstuff[k_spinouttimer])
 	{
 		if ((P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
@@ -3982,9 +3990,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 				comebackshowninfo = true; // client has already seen the message
 		}
 	}
-
-	if (player->kartstuff[k_spinouttimer] == 0 && player->powers[pw_flashing] == K_GetKartFlashing(player))
-		player->powers[pw_flashing]--;
 
 	/*if (player->kartstuff[k_thunderanim])
 		player->kartstuff[k_thunderanim]--;*/
