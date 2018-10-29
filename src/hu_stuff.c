@@ -2295,9 +2295,9 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		if (players[tab[i].num].spectator || !players[tab[i].num].mo)
 			continue; //ignore them.
 
-		if (!splitscreen)	// don't draw it on splitscreen,
+		if (netgame) // don't draw it offline
 		{
-			if (!(tab[i].num == serverplayer))
+			if (tab[i].num != serverplayer)
 				HU_drawPing(x+ 253, y+2, playerpingtable[tab[i].num], false);
 		}
 
