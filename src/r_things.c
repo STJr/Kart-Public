@@ -2519,7 +2519,7 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	strcpy(skin->hudname, "???");
 	strncpy(skin->facerank, "PLAYRANK", 9);
 	strncpy(skin->facewant, "PLAYWANT", 9);
-	strncpy(skin->facemmap, "PLAYICON", 9);
+	strncpy(skin->facemmap, "PLAYMMAP", 9);
 
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
@@ -2585,7 +2585,7 @@ void R_InitSkins(void)
 
 	strncpy(skin->facerank, "PLAYRANK", 9);
 	strncpy(skin->facewant, "PLAYWANT", 9);
-	strncpy(skin->facemmap, "PLAYICON", 9);
+	strncpy(skin->facemmap, "PLAYMMAP", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
 	skin->ability =   CA_THOK;
