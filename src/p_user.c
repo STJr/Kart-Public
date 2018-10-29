@@ -846,7 +846,8 @@ void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor)
 	fixed_t fallbackspeed;
 
 	if (inflictor && (inflictor->type != MT_PLAYER && inflictor->type != MT_ORBINAUT && inflictor->type != MT_ORBINAUT_SHIELD
-		&& inflictor->type != MT_JAWZ && inflictor->type != MT_JAWZ_DUD && inflictor->type != MT_JAWZ_SHIELD))
+		&& inflictor->type != MT_JAWZ && inflictor->type != MT_JAWZ_DUD && inflictor->type != MT_JAWZ_SHIELD
+		&& inflictor->type != MT_SMK_THWOMP))
 	{
 		if (player->mo->eflags & MFE_VERTICALFLIP)
 			player->mo->z--;
