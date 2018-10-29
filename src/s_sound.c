@@ -531,7 +531,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	pitch = NORM_PITCH;
 	priority = NORM_PRIORITY;
 
-	if (origin)
+	if (splitscreen && origin)
 		volume = FixedDiv(volume<<FRACBITS, FixedSqrt((splitscreen+1)<<FRACBITS))>>FRACBITS;
 
 	if (splitscreen && listenmobj2) // Copy the sound for the split player
@@ -1014,7 +1014,7 @@ void S_UpdateSounds(void)
 				pitch = NORM_PITCH;
 				sep = NORM_SEP;
 
-				if (c->origin)
+				if (splitscreen && c->origin)
 					volume = FixedDiv(volume<<FRACBITS, FixedSqrt((splitscreen+1)<<FRACBITS))>>FRACBITS;
 
 				// check non-local sounds for distance clipping
@@ -1331,7 +1331,8 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 		*vol = (15 * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS)) / S_ATTENUATOR;
 	}
 
-	*vol = FixedDiv((*vol)<<FRACBITS, FixedSqrt((splitscreen+1)<<FRACBITS))>>FRACBITS;
+	if (splitscreen)
+		*vol = FixedDiv((*vol)<<FRACBITS, FixedSqrt((splitscreen+1)<<FRACBITS))>>FRACBITS;
 
 	return (*vol > 0);
 }
