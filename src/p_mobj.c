@@ -1403,7 +1403,7 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					gravityadd >>= 1;
 					break;
 				case MT_BANANA:
-				case MT_FAKEITEM:
+				case MT_EGGMANITEM:
 				case MT_SSMINE:
 					gravityadd = FixedMul(gravityadd, 5*FRACUNIT/2);
 					break;
@@ -2345,7 +2345,7 @@ static boolean P_ZMovement(mobj_t *mo)
 		case MT_SHELL:
 		// SRB2kart stuff that should die in pits
 		// Shouldn't stop moving along the Z if there's no speed though!
-		case MT_FAKEITEM:
+		case MT_EGGMANITEM:
 		case MT_BANANA:
 		case MT_ORBINAUT:
 		case MT_JAWZ:
@@ -6641,7 +6641,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_JAWZ_SHIELD:
 			case MT_BANANA_SHIELD:
 			case MT_SSMINE_SHIELD:
-			case MT_FAKESHIELD:
+			case MT_EGGMANITEM_SHIELD:
 			case MT_SINK_SHIELD:
 				if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
@@ -6838,7 +6838,8 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!mobj->tracer)
 					{
-						mobj->tracer = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+						mobj_t *overlay = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+						P_SetTarget(&mobj->tracer, overlay);
 						P_SetTarget(&mobj->tracer->target, mobj);
 						P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
 						P_SetMobjState(mobj->tracer, S_ITEMICON); // null sprite and frame to be overwritten later
@@ -7402,7 +7403,7 @@ void P_MobjThinker(mobj_t *mobj)
 		//{ SRB2kart Items - Death States
 		case MT_ORBINAUT:
 		case MT_BANANA:
-		case MT_FAKEITEM:
+		case MT_EGGMANITEM:
 		case MT_SPB:
 			if (mobj->z <= mobj->floorz)
 			{
@@ -7412,7 +7413,7 @@ void P_MobjThinker(mobj_t *mobj)
 			// fallthru
 		case MT_ORBINAUT_SHIELD:
 		case MT_BANANA_SHIELD:
-		case MT_FAKESHIELD:
+		case MT_EGGMANITEM_SHIELD:
 			mobj->flags2 ^= MF2_DONTDRAW;
 			break;
 		case MT_JAWZ:
@@ -7439,6 +7440,41 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_MINEEXPLOSIONSOUND:
 			P_RemoveMobj(mobj);
 			return;
+		case MT_SMK_PIPE:
+			if (mobj->flags2 & MF2_AMBUSH)
+				P_SetMobjStateNF(mobj, mobj->info->seestate);
+			else
+				P_SetMobjStateNF(mobj, mobj->info->spawnstate);
+			/* FALLTHRU */
+		case MT_SMK_MOLE:
+			mobj->flags2 ^= MF2_DONTDRAW;
+			if (mobj->z <= mobj->floorz)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			break;
+		case MT_SMK_THWOMP:
+			if (mobj->flags2 & MF2_AMBUSH)
+			{
+				mobj->colorized = true;
+				mobj->color = (1 + (leveltime % (MAXSKINCOLORS-1)));
+				mobj->frame |= FF_FULLBRIGHT;
+			}
+			else
+			{
+				mobj->colorized = false;
+				mobj->color = SKINCOLOR_NONE;
+				mobj->frame &= (~FF_FULLBRIGHT);
+			}
+
+			mobj->flags2 ^= MF2_DONTDRAW;
+			if (mobj->z <= mobj->floorz)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			break;
 		//}
 		default:
 			break;
@@ -7881,50 +7917,6 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			break;
 		//{ SRB2kart Items
-		case MT_POKEY:
-			if (mobj->threshold)
-			{
-				if (mobj->state == &states[S_POKEY1])
-					mobj->health = 1;
-				else if (mobj->state == &states[S_POKEY2])
-					mobj->health = 2;
-				else if (mobj->state == &states[S_POKEY3])
-					mobj->health = 3;
-				else if (mobj->state == &states[S_POKEY4])
-					mobj->health = 4;
-				else if (mobj->state == &states[S_POKEY5])
-					mobj->health = 5;
-				else if (mobj->state == &states[S_POKEY6])
-					mobj->health = 6;
-				else if (mobj->state == &states[S_POKEY7])
-					mobj->health = 7;
-				else if (mobj->state == &states[S_POKEY8])
-					mobj->health = 8;
-
-				mobj->threshold++;
-				P_SetMobjState(mobj, S_POKEYIDLE);
-			}
-			if (mobj->state == &states[S_POKEYIDLE] && mobj->threshold >= 105)
-			{
-				if (mobj->health == 1)
-					P_SetMobjState(mobj, S_POKEY1);
-				else if (mobj->health == 2)
-					P_SetMobjState(mobj, S_POKEY2);
-				else if (mobj->health == 3)
-					P_SetMobjState(mobj, S_POKEY3);
-				else if (mobj->health == 4)
-					P_SetMobjState(mobj, S_POKEY4);
-				else if (mobj->health == 5)
-					P_SetMobjState(mobj, S_POKEY5);
-				else if (mobj->health == 6)
-					P_SetMobjState(mobj, S_POKEY6);
-				else if (mobj->health == 7)
-					P_SetMobjState(mobj, S_POKEY7);
-				else if (mobj->health == 8)
-					P_SetMobjState(mobj, S_POKEY8);
-				mobj->threshold = 0;
-			}
-			break;
 		case MT_FLOATINGITEM:
 		{
 			if (mobj->flags & MF_NOCLIPTHING)
@@ -8147,7 +8139,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		}
 		case MT_BANANA:
-		case MT_FAKEITEM:
+		case MT_EGGMANITEM:
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz && mobj->health > 1)
@@ -8561,6 +8553,449 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 			break;
+		case MT_EZZPROPELLER:
+			if (mobj->hnext)
+			{
+				mobj_t *cur = mobj->hnext;
+
+				while (cur && !P_MobjWasRemoved(cur))
+				{
+					cur->angle += FixedAngle(mobj->info->speed);
+					P_TeleportMove(cur, mobj->x + FINECOSINE((cur->angle*8)>>ANGLETOFINESHIFT),
+						mobj->y + FINESINE((cur->angle*8)>>ANGLETOFINESHIFT), mobj->z);
+					//P_SpawnGhostMobj(cur)->tics = 2;
+
+					cur = cur->hnext;
+				}
+			}
+			if (!S_SoundPlaying(mobj, mobj->info->seesound))
+				S_StartSound(mobj, mobj->info->seesound);
+			break;
+		case MT_FROGGER:
+			{
+				statenum_t frogstate = (mobj->state-states);
+
+				// FROG ATTACK VALUES:
+				// threshold: distance
+				// movecount: time
+				// lastlook: direction
+				// extravalue1: x step
+				// extravalue2: y step
+				// cusval: z step
+
+				if (frogstate == S_FROGGER)
+				{
+					mobj->threshold = mobj->movecount = mobj->lastlook = 0; // clear tongue attack
+					mobj->extravalue1 = mobj->extravalue2 = mobj->cusval = 0;
+					if (mobj->hnext) // Clean hnext list
+					{
+						mobj_t *cur = mobj->hnext;
+						while (cur && !P_MobjWasRemoved(cur))
+						{
+							mobj_t *next = cur->hnext;
+							P_RemoveMobj(cur);
+							cur = next;
+						}
+					}
+
+					if (mobj->reactiontime)
+						mobj->reactiontime--;
+					else
+					{
+						if (mobj->flags2 & MF2_AMBUSH)
+						{
+							mobj->momz = P_RandomRange(12, 16)<<FRACBITS;
+							S_StartSound(mobj, sfx_s3kb1);
+							P_SetMobjState(mobj, S_FROGGER_JUMP);
+						}
+						else
+						{
+							mobj_t *tongue = P_SpawnMobj(mobj->x, mobj->y, mobj->z + (mobj->height/2), MT_FROGTONGUE);
+							P_SetTarget(&mobj->tracer, tongue);
+							P_SetMobjState(mobj, S_FROGGER_ATTACK);
+						}
+					}
+				}
+				else if (frogstate == S_FROGGER_ATTACK)
+				{
+					if (!mobj->tracer || P_MobjWasRemoved(mobj->tracer))
+					{
+						mobj->reactiontime = mobj->info->reactiontime;
+						P_SetMobjState(mobj, S_FROGGER);
+						break;
+					}
+
+					if (mobj->threshold == 0)
+					{
+						fixed_t targetz = mobj->tracer->z; //mobj->z + (mobj->height/2)
+
+						mobj->threshold = 256;
+						mobj->movecount = 1;
+						mobj->lastlook = 1;
+						
+						mobj->tracer->angle = mobj->angle;
+
+						mobj->extravalue1 = FixedMul(FixedMul((mobj->threshold/16)<<FRACBITS,
+							FINECOSINE(((angle_t)targetz)>>ANGLETOFINESHIFT)),
+							FINECOSINE(mobj->angle>>ANGLETOFINESHIFT)) >> FRACBITS;
+
+						mobj->extravalue2 = FixedMul(FixedMul((mobj->threshold/16)<<FRACBITS,
+							FINECOSINE(((angle_t)targetz)>>ANGLETOFINESHIFT)),
+							FINESINE(mobj->angle>>ANGLETOFINESHIFT)) >> FRACBITS;
+
+						mobj->cusval = FixedMul((mobj->threshold/16)<<FRACBITS,
+							FINESINE(((angle_t)targetz)>>ANGLETOFINESHIFT)) >> FRACBITS;
+
+						S_StartSound(mobj, sfx_s3k8c); // Play that tongue-y sound.
+					}
+
+					mobj->movecount += mobj->lastlook;
+
+					if (!(P_TryMove(mobj->tracer, mobj->x + ((mobj->extravalue1<<FRACBITS) * mobj->movecount), mobj->y + ((mobj->extravalue2<<FRACBITS) * mobj->movecount), true))
+						|| (mobj->movecount >= 16) // maximum travel time
+						|| (mobj->tracer->z <= mobj->tracer->floorz) // Through the floor
+						|| ((mobj->tracer->z + mobj->tracer->height) >= mobj->tracer->ceilingz)) // Through the ceiling
+					{
+						mobj->lastlook = -1; // Reverse direction.
+					}
+
+					if (mobj->movecount == 0) // It's back to its source, time to reset.
+					{
+						mobj->threshold = mobj->lastlook = 0;
+						
+						P_RemoveMobj(mobj->tracer);
+
+						if (mobj->hnext) // Clean hnext list
+						{
+							mobj_t *cur = mobj->hnext;
+							while (cur && !P_MobjWasRemoved(cur))
+							{
+								mobj_t *next = cur->hnext;
+								P_RemoveMobj(cur);
+								cur = next;
+							}
+						}
+						
+						mobj->reactiontime = mobj->info->reactiontime;
+						P_SetMobjState(mobj, S_FROGGER);
+					}
+					else
+					{
+						const UINT8 numjoints = 11;
+						UINT8 joint = numjoints;
+						mobj_t *cur = mobj->hnext, *prev = mobj;
+
+						mobj->angle = R_PointToAngle2(mobj->x, mobj->y, mobj->tracer->x, mobj->tracer->y);
+
+						for (; joint > 0; joint--)
+						{
+							fixed_t wx = mobj->tracer->x + (joint * (mobj->x - mobj->tracer->x) / (numjoints+1));
+							fixed_t wy = mobj->tracer->y + (joint * (mobj->y - mobj->tracer->y) / (numjoints+1));
+							fixed_t wz = mobj->tracer->z + (joint * ((mobj->z + (mobj->height/2)) - mobj->tracer->z) / (numjoints+1));
+
+							if (cur && !P_MobjWasRemoved(cur))
+								P_TeleportMove(cur, wx, wy, wz);
+							else
+								cur = P_SpawnMobj(wx, wy, wz, MT_FROGTONGUE_JOINT);
+
+							P_SetTarget(&cur->target, mobj);
+
+							P_SetTarget(&prev->hnext, cur);
+							P_SetTarget(&cur->hprev, prev);
+
+							prev = cur;
+							cur = cur->hnext;
+						}
+					}
+				}
+				else if (frogstate == S_FROGGER_JUMP)
+				{
+					if (P_IsObjectOnGround(mobj))
+					{
+						mobj->reactiontime = mobj->info->reactiontime;
+						P_SetMobjState(mobj, S_FROGGER);
+					}
+				}
+			}
+			break;
+		case MT_ROBRA:
+		case MT_BLUEROBRA:
+			if (mobj->health)
+			{
+				boolean blue = (mobj->type == MT_BLUEROBRA);
+
+				if (blue)
+				{
+					if (mobj->spawnpoint)
+						mobj->extravalue2 = mobj->spawnpoint->angle;
+					else
+						mobj->extravalue2 = 128;
+				}
+				else
+				{
+					if (!mobj->extravalue2)
+						mobj->extravalue2 = P_RandomRange(64, 192);
+				}
+
+				if (mobj->reactiontime)
+					mobj->reactiontime--;
+				else
+				{
+					if (!mobj->extravalue1)
+					{
+						mobj_t *head = P_SpawnMobj(mobj->x, mobj->y, mobj->z, (blue ? MT_BLUEROBRA_HEAD : MT_ROBRA_HEAD));
+						P_SetTarget(&mobj->tracer, head);
+
+						mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+						P_SetTarget(&mobj->tracer->target, mobj->target);
+						P_SetTarget(&mobj->tracer->tracer, mobj);
+						mobj->tracer->extravalue2 = mobj->extravalue2;
+
+						if (!blue)
+							mobj->tracer->angle = mobj->angle;
+
+						mobj->extravalue1 = 1;
+					}
+				}
+
+				if ((mobj->extravalue1) && !(mobj->tracer && !P_MobjWasRemoved(mobj->tracer)))
+				{
+					mobj->reactiontime = 20*mobj->info->reactiontime;
+					P_SetTarget(&mobj->target, NULL);
+					mobj->extravalue1 = 0;
+				}
+
+				if ((mobj->tracer && !P_MobjWasRemoved(mobj->tracer)) && !(leveltime % 10))
+				{
+					mobj_t *dust = P_SpawnMobj(mobj->x + (P_RandomRange(-4, 4)<<FRACBITS),
+						mobj->y + (P_RandomRange(-4, 4)<<FRACBITS),
+						mobj->z + (P_RandomRange(0, 2)<<FRACBITS), MT_BBZDUST);
+					P_SetScale(dust, mobj->scale/2);
+					P_InstaThrust(dust, FixedAngle(P_RandomRange(0,359)<<FRACBITS), abs(mobj->tracer->momz)/2);
+
+					if (abs(mobj->tracer->momz) >= 2<<FRACBITS)
+						S_StartSound(mobj, sfx_s3k7e);
+				}
+			}
+			break;
+		case MT_ROBRA_HEAD:
+		case MT_BLUEROBRA_HEAD:
+			if (mobj->health)
+			{
+				boolean blue = (mobj->type == MT_BLUEROBRA_HEAD);
+				UINT8 numsegs = abs(mobj->z - mobj->floorz) / (32 * mobj->scale);
+				UINT8 i;
+				mobj_t *cur = mobj->hnext, *prev = mobj;
+
+				if (blue)
+					mobj->angle = (angle_t)mobj->extravalue1;
+				mobj->extravalue1 += (FixedAngle(2*mobj->momz) * (blue ? -1 : 1));
+
+				for (i = 0; i < numsegs*2; i++) // *2 to check for any extra segs still present
+				{
+					fixed_t segz = mobj->z - ((i+1) * (32 * mobj->scale));
+
+					if (cur && !P_MobjWasRemoved(cur))
+					{
+						if (i >= numsegs) // Remove extras
+						{
+							mobj_t *next = cur->hnext;
+							P_RemoveMobj(cur);
+							cur = next;
+							continue;
+						}
+						else // Move into place
+							P_TeleportMove(cur, mobj->x, mobj->y, segz);
+					}
+					else
+					{
+						if (i >= numsegs) // We're done with this list
+							continue; //break;
+						else // Need another here!
+							cur = P_SpawnMobj(mobj->x, mobj->y, segz, (blue ? MT_BLUEROBRA_JOINT : MT_ROBRA_JOINT));
+					}
+
+					P_SetTarget(&cur->target, mobj);
+					P_SetScale(cur, (7*mobj->scale)/8);
+
+					cur->angle = mobj->extravalue1;
+					mobj->extravalue1 += (FixedAngle(2*mobj->momz) * (blue ? -1 : 1));
+
+					P_SetTarget(&prev->hnext, cur);
+					P_SetTarget(&cur->hprev, prev);
+
+					prev = cur;
+					cur = cur->hnext;
+				}
+
+				{
+					//fixed_t ceilingheight = mobj->ceilingz - (72<<FRACBITS);
+					fixed_t floorheight = mobj->floorz + (72<<FRACBITS);
+					fixed_t maxheight = mobj->floorz + (mobj->extravalue2<<FRACBITS);
+					fixed_t targetheight = maxheight;
+					
+					if (mobj->z < targetheight)
+					{
+						mobj->momz += mobj->info->speed;
+						if ((mobj->z < floorheight) && (mobj->momz < 0))
+							mobj->momz /= 2;
+					}
+					else
+					{
+						mobj->momz -= mobj->info->speed;
+						if ((mobj->z > (targetheight + (64<<FRACBITS))) && (mobj->momz > 0))
+							mobj->momz /= 2;
+					}
+				}
+			}
+			break;
+		case MT_ROBRA_JOINT:
+		case MT_BLUEROBRA_JOINT:
+			if (!mobj->target || P_MobjWasRemoved(mobj->target))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			break;
+		case MT_SMK_PIPE:
+			if (mobj->flags2 & MF2_AMBUSH)
+				P_SetMobjStateNF(mobj, mobj->info->seestate);
+			else
+				P_SetMobjStateNF(mobj, mobj->info->spawnstate);
+			break;
+		case MT_SMK_MOLESPAWNER:
+			if (!mobj->target || P_MobjWasRemoved(mobj->target))
+			{
+				mobj_t *newmole = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_SMK_MOLE);
+				P_SetTarget(&mobj->target, newmole);
+				return;
+			}
+			break;
+		case MT_SMK_MOLE:
+			if (mobj->target && !P_MobjWasRemoved(mobj->target) && mobj->target->player)
+			{
+				player_t *player = mobj->target->player;
+
+				mobj->extravalue1 = 1;
+				player->kartstuff[k_offroad] += 2<<FRACBITS;
+
+				P_TeleportMove(mobj,
+					player->mo->x + P_ReturnThrustX(NULL, player->mo->angle, player->mo->radius)
+						+ P_ReturnThrustX(NULL, player->mo->angle+ANGLE_90, (mobj->threshold)<<FRACBITS),
+					player->mo->y + P_ReturnThrustY(NULL, player->mo->angle, player->mo->radius)
+						+ P_ReturnThrustY(NULL, player->mo->angle+ANGLE_90, (mobj->threshold)<<FRACBITS),
+					player->mo->z + (player->mo->height/2 * P_MobjFlip(player->mo))
+						+ (P_RandomRange(-abs(mobj->threshold), abs(mobj->threshold))<<FRACBITS));
+
+				mobj->threshold /= 2;
+				mobj->momz = 0;
+
+				if (mobj->movecount > 8*TICRATE)
+				{
+					P_KillMobj(mobj, mobj->target, mobj->target);
+					break;
+				}
+
+				if (abs(player->cmd.driftturn) > 100)
+				{
+					INT32 lastsign = 0;
+					if (mobj->lastlook > 0)
+						lastsign = 1;
+					else if (mobj->lastlook < 0)
+						lastsign = -1;
+
+					if ((player->cmd.driftturn > 0 && lastsign < 0)
+						|| (player->cmd.driftturn < 0 && lastsign > 0))
+					{
+						mobj->movecount += (TICRATE/2);
+						mobj->threshold = 16*lastsign;
+						S_StartSound(mobj, sfx_s1ab);
+					}
+
+					mobj->lastlook = player->cmd.driftturn;
+				}
+
+				mobj->movecount++;
+			}
+			else if (mobj->extravalue1) // lost your player somehow, DIE
+			{
+				P_KillMobj(mobj, NULL, NULL);
+				break;
+			}
+			else
+			{
+				if (P_IsObjectOnGround(mobj))
+				{
+					if (mobj->reactiontime)
+						mobj->reactiontime--;
+					else
+					{
+						mobj->momz = (mobj->info->speed * P_MobjFlip(mobj));
+						mobj->reactiontime = mobj->info->reactiontime;
+					}
+				}
+			}
+			break;
+		case MT_SMK_THWOMP:
+			if (mobj->flags2 & MF2_AMBUSH)
+			{
+				mobj->colorized = true;
+				mobj->color = (1 + (leveltime % (MAXSKINCOLORS-1)));
+				mobj->frame |= FF_FULLBRIGHT;
+			}
+			else
+			{
+				mobj->colorized = false;
+				mobj->color = SKINCOLOR_NONE;
+				mobj->frame &= (~FF_FULLBRIGHT);
+			}
+
+			if (!thwompsactive)
+				break;
+
+			if (mobj->reactiontime)
+				mobj->reactiontime--;
+			else
+			{
+				if (mobj->extravalue1)
+				{
+					P_SpawnGhostMobj(mobj)->tics = 3;
+
+					if (mobj->z == mobj->floorz)
+					{
+						UINT8 i;
+
+						mobj->extravalue1 = 0;
+						mobj->reactiontime = mobj->info->reactiontime;
+						S_StartSound(mobj, sfx_s1bd);
+
+						for (i = 0; i < 8; i++)
+						{
+							mobj_t *dust = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_DRIFTDUST);
+							P_InstaThrust(dust, FixedAngle(((360*FRACUNIT)/8) * i), mobj->info->speed/8);
+							dust->momz = P_MobjFlip(mobj) * (P_RandomRange(1,4)<<FRACBITS);
+							dust->scale = mobj->scale/2;
+							dust->destscale = mobj->scale*3;
+						}
+					}
+					else
+						mobj->momz = (-mobj->info->speed) * P_MobjFlip(mobj);
+				}
+				else
+				{
+					if (mobj->z > mobj->movefactor)
+						mobj->z = mobj->movefactor;
+
+					if (mobj->z == mobj->movefactor)
+					{
+						mobj->extravalue1 = 1;
+						//S_StartSound(mobj, sfx_s1bb);
+					}
+					else
+						mobj->momz = (mobj->info->speed/16) * P_MobjFlip(mobj);
+				}
+			}
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);
@@ -8855,6 +9290,31 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 					return;
 				case MT_PLAYER:
 					break; // don't remove
+				case MT_SMK_ICEBLOCK:
+					{
+						mobj_t *cur = mobj->hnext, *next;
+						UINT8 i;
+
+						for (i = 0; i < 5; i++)
+						{
+							mobj_t *debris = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_SMK_ICEBLOCK_DEBRIS);
+							debris->angle = FixedAngle(P_RandomRange(0,360)<<FRACBITS);
+							P_InstaThrust(debris, debris->angle, P_RandomRange(3,18)*(FRACUNIT/4));
+							debris->momz = P_RandomRange(4,8)<<FRACBITS;
+							if (!i) // kinda hacky :V
+								S_StartSound(debris, sfx_s3k82);
+						}
+
+						while (cur && !P_MobjWasRemoved(cur))
+						{
+							next = cur->hnext;
+							P_RemoveMobj(cur);
+							cur = next;
+						}
+
+						P_RemoveMobj(mobj);
+						return;
+					}
 				default:
 					P_SetMobjState(mobj, mobj->info->xdeathstate); // will remove the mobj if S_NULL.
 					break;
@@ -8862,7 +9322,7 @@ for (i = ((mobj->flags2 & MF2_STRONGBOX) ? strongboxamt : weakboxamt); i; --i) s
 			if (P_MobjWasRemoved(mobj))
 				return;
 		}
-		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_FAKEITEM || mobj->type == MT_FALLINGROCK) && mobj->fuse <= TICRATE)
+		else if (((mobj->type == MT_RANDOMITEM && mobj->threshold == 69) || mobj->type == MT_EGGMANITEM || mobj->type == MT_FALLINGROCK) && mobj->fuse <= TICRATE)
 			mobj->flags2 ^= MF2_DONTDRAW;
 	}
 
@@ -9363,7 +9823,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_BLUEBALL:
 			nummaprings++;
 			break;
-		case MT_KARMAHITBOX: // SRB2Kart
+		// SRB2Kart
+		case MT_KARMAHITBOX:
 			{
 				const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->scale);
 				mobj_t *cur, *prev = mobj;
@@ -9430,6 +9891,103 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			mobj->color = SKINCOLOR_AQUA;
 			break;
 		}
+		case MT_PINETREE:
+		{
+			angle_t diff = FixedAngle((360/mobj->info->mass)*FRACUNIT);
+			UINT8 i;
+
+			for (i = 0; i < mobj->info->mass; i++)
+			{
+				angle_t ang = i * diff;
+				mobj_t *side = P_SpawnMobj(mobj->x + FINECOSINE((ang>>ANGLETOFINESHIFT) & FINEMASK),
+					mobj->y + FINESINE((ang>>ANGLETOFINESHIFT) & FINEMASK), mobj->z, MT_PINETREE_SIDE);
+				side->angle = ang;
+				side->target = mobj;
+				side->threshold = i;
+			}
+			break;
+		}
+		case MT_EZZPROPELLER:
+		{
+			mobj_t *cur, *prev = mobj;
+			UINT8 i;
+
+			for (i = 0; i < mobj->info->mass; i++)
+			{
+				mobj->angle = FixedAngle((i * (360/mobj->info->mass))<<FRACBITS);
+
+				cur = P_SpawnMobj(mobj->x + FINECOSINE(((mobj->angle*8)>>ANGLETOFINESHIFT) & FINEMASK),
+					mobj->y + FINESINE(((mobj->angle*8)>>ANGLETOFINESHIFT) & FINEMASK), mobj->z, MT_EZZPROPELLER_BLADE);
+				cur->angle = mobj->angle;
+
+				P_SetTarget(&cur->hprev, prev);
+				P_SetTarget(&prev->hnext, cur);
+
+				prev = cur;
+			}
+			break;
+		}
+		case MT_ROBRA:
+		case MT_BLUEROBRA:
+			P_SetScale(mobj, (mobj->destscale = 1));
+			break;
+		case MT_ROBRA_HEAD:
+			{
+				mobj_t *shell;
+
+				shell = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+				P_SetTarget(&shell->target, mobj);
+				P_SetMobjState(shell, S_ROBRASHELL_INSIDE);
+
+				shell = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
+				P_SetTarget(&shell->target, mobj);
+				P_SetMobjState(shell, S_ROBRASHELL_OUTSIDE);
+			}
+			break;
+		case MT_EERIEFOGGEN:
+			{
+				UINT16 i;
+				for (i = 0; i < mobj->info->mass; i++)
+				{
+					fixed_t newx = mobj->x + (P_RandomRange(-mobj->info->mass, mobj->info->mass)<<FRACBITS);
+					fixed_t newy = mobj->y + (P_RandomRange(-mobj->info->mass, mobj->info->mass)<<FRACBITS);
+
+					if (P_FloorzAtPos(newx, newy, mobj->z, 8<<FRACBITS) == mobj->z)
+						P_SpawnMobj(newx, newy, mobj->z, MT_EERIEFOG);
+				}
+			}
+			break;
+		case MT_SMK_MOLE:
+			mobj->reactiontime = P_RandomRange(0, 3*mobj->info->reactiontime/2); // Random delay on start of level
+			break;
+		case MT_SMK_THWOMP:
+			mobj->reactiontime = P_RandomRange(0, 3*mobj->info->reactiontime); // Random delay on start of level
+			if (mobj->z == mobj->floorz)
+				mobj->z += (256<<FRACBITS);
+			mobj->movefactor = mobj->z + (256<<FRACBITS);
+			break;
+		case MT_SMK_ICEBLOCK:
+			mobj->flags2 |= MF2_STANDONME;
+			{
+				mobj_t *cur, *prev = mobj;
+				UINT8 i;
+
+				for (i = 0; i < 4; i++)
+				{
+					cur = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_SMK_ICEBLOCK_SIDE);
+					P_SetTarget(&cur->target, mobj);
+					cur->threshold = i;
+					P_TeleportMove(cur, cur->x + ((cur->radius>>FRACBITS) * FINECOSINE((FixedAngle((90*cur->threshold)<<FRACBITS)>>ANGLETOFINESHIFT) & FINEMASK)),
+						cur->y + ((cur->radius>>FRACBITS) * FINESINE((FixedAngle((90*cur->threshold)<<FRACBITS)>>ANGLETOFINESHIFT) & FINEMASK)), cur->z);
+					cur->angle = ANGLE_90*(cur->threshold+1);
+
+					P_SetTarget(&cur->hprev, prev);
+					P_SetTarget(&prev->hnext, cur);
+
+					prev = cur;
+				}
+			}
+			break;
 		default:
 			break;
 	}
@@ -9437,17 +9995,19 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	switch (mobj->type)
 	{
 		case MT_PLAYER:
-		case MT_BIGMACE:		case MT_SMALLMACE:
+		case MT_SMALLMACE:		case MT_BIGMACE:
+		case MT_PUMA:			case MT_BIGPUMA:
 		case MT_FALLINGROCK:
+		case MT_SMK_MOLE:		case MT_SMK_THWOMP:
 		//case MT_RANDOMITEM:
 		case MT_FLOATINGITEM:
 		case MT_BATTLEBUMPER:
 		case MT_BANANA:			case MT_BANANA_SHIELD:
-		//case MT_FAKEITEM: 		case MT_FAKESHIELD:
+		//case MT_EGGMANITEM:	case MT_EGGMANSHIELD:
 		case MT_ORBINAUT:		case MT_ORBINAUT_SHIELD:
-		case MT_JAWZ: 			case MT_JAWZ_DUD: 		case MT_JAWZ_SHIELD:
-		case MT_SSMINE: 		case MT_SSMINE_SHIELD:
-		case MT_BALLHOG: 		case MT_SINK:
+		case MT_JAWZ:			case MT_JAWZ_DUD:		case MT_JAWZ_SHIELD:
+		case MT_SSMINE:			case MT_SSMINE_SHIELD:
+		case MT_BALLHOG:		case MT_SINK:
 		case MT_THUNDERSHIELD:	case MT_ROCKETSNEAKER:
 		case MT_SPB:
 			P_SpawnShadowMobj(mobj);
@@ -11090,6 +11650,46 @@ ML_NOCLIMB : Direction not controllable
 	case MT_TRAPGOYLELONG:
 		if (mthing->angle >= 360)
 			mobj->tics += 7*(mthing->angle / 360) + 1; // starting delay
+		break;
+	// SRB2Kart
+	case MT_AAZTREE_HELPER:
+		{
+			fixed_t top = mobj->z;
+			UINT8 numsegs = (mthing->extrainfo)+2;
+			UINT8 numleaves = max(3, (abs(mthing->angle+1) % 6) + 3);
+			UINT8 i;
+			mobj_t *coconut;
+
+			// Spawn tree segments
+			for (i = 0; i < numsegs; i++)
+			{
+				P_SpawnMobj(mobj->x, mobj->y, top, MT_AAZTREE_SEG);
+				top += FixedMul(mobjinfo[MT_AAZTREE_SEG].height, mobj->scale);
+			}
+
+			// Big coconut topper
+			coconut = P_SpawnMobj(mobj->x, mobj->y, top - (8<<FRACBITS), MT_AAZTREE_COCONUT);
+			P_SetScale(coconut, (coconut->destscale = (2*mobj->scale)));
+
+			// Spawn all of the papersprite leaves
+			for (i = 0; i < numleaves; i++)
+			{
+				mobj_t *leaf;
+
+				mobj->angle = FixedAngle((i * (360/numleaves))<<FRACBITS);
+
+				leaf = P_SpawnMobj(mobj->x + FINECOSINE((mobj->angle>>ANGLETOFINESHIFT) & FINEMASK),
+					mobj->y + FINESINE((mobj->angle>>ANGLETOFINESHIFT) & FINEMASK), top, MT_AAZTREE_LEAF);
+				leaf->angle = mobj->angle;
+
+				// Small coconut for each leaf
+				P_SpawnMobj(mobj->x + (32 * FINECOSINE((mobj->angle>>ANGLETOFINESHIFT) & FINEMASK)),
+					mobj->y + (32 * FINESINE((mobj->angle>>ANGLETOFINESHIFT) & FINEMASK)), top - (24<<FRACBITS), MT_AAZTREE_COCONUT);
+			}
+
+			P_RemoveMobj(mobj); // Don't need this helper obj anymore
+			return;
+		}
 	default:
 		break;
 	}

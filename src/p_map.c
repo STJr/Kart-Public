@@ -663,7 +663,38 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		}
 	}
 
-	// SRB2kart 011617 - Colission code for kart items //{
+	// SRB2kart 011617 - Colission[sic] code for kart items //{
+
+	if (thing->type == MT_SMK_ICEBLOCK)
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		if (!(tmthing->flags & MF_SOLID || tmthing->flags & MF_SHOOTABLE || tmthing->flags & MF_BOUNCE))
+			return true;
+
+		if (!(tmthing->health))
+			return true;
+
+		if (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD
+			|| tmthing->type == MT_EGGMANITEM || tmthing->type == MT_EGGMANITEM_SHIELD
+			|| tmthing->type == MT_SSMINE || tmthing->type == MT_SSMINE_SHIELD
+			|| tmthing->type == MT_ORBINAUT_SHIELD || tmthing->type == MT_JAWZ_SHIELD)
+			return false;
+
+		if (thing->health)
+			P_KillMobj(thing, tmthing, tmthing);
+
+		/*if (tmthing->player && (tmthing->player->kartstuff[k_invincibilitytimer] > 0
+			|| tmthing->player->kartstuff[k_growshrinktimer] > 0))
+			return true;*/
+
+		K_KartBouncing(tmthing, thing, false, true);
+		return false;
+	}
 
 	if (tmthing->type == MT_RANDOMITEM)
 		return true;
@@ -1539,6 +1570,106 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			return true;
 		}
+		else if (thing->type == MT_BLUEROBRA_HEAD || thing->type == MT_BLUEROBRA_JOINT)
+		{
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
+			if (!thing->health)
+				return true; // dead
+
+			if (tmthing->player->kartstuff[k_invincibilitytimer] > 0
+				|| tmthing->player->kartstuff[k_growshrinktimer] > 0)
+			{
+				if (thing->type == MT_BLUEROBRA_JOINT)
+					P_KillMobj(thing->target, tmthing, tmthing);
+				else
+					P_KillMobj(thing, tmthing, tmthing);
+				return true;
+			}
+			else
+			{
+				K_KartBouncing(tmthing, thing, false, true);
+				return false;
+			}
+		}
+		else if (thing->type == MT_SMK_PIPE)
+		{
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
+			if (!thing->health)
+				return true; // dead
+
+			if (tmthing->player->kartstuff[k_invincibilitytimer] > 0
+				|| tmthing->player->kartstuff[k_growshrinktimer] > 0)
+			{
+				P_KillMobj(thing, tmthing, tmthing);
+				return true; // kill
+			}
+
+			K_KartBouncing(tmthing, thing, false, true);
+			return false;
+		}
+		else if (thing->type == MT_SMK_THWOMP)
+		{
+			if (!thing->health)
+				return true; // dead
+
+			if (!thwompsactive)
+				return true; // not active yet
+
+			if ((tmthing->z < thing->z) && (thing->z >= thing->movefactor-(256<<FRACBITS)))
+			{
+				thing->extravalue1 = 1; // purposely try to stomp on players early
+				//S_StartSound(thing, sfx_s1bb);
+			}
+
+			// see if it went over / under
+			if (tmthing->z > thing->z + thing->height)
+				return true; // overhead
+			if (tmthing->z + tmthing->height < thing->z)
+				return true; // underneath
+
+			// kill
+			if (tmthing->player->kartstuff[k_invincibilitytimer] > 0
+				|| tmthing->player->kartstuff[k_growshrinktimer] > 0)
+			{
+				P_KillMobj(thing, tmthing, tmthing);
+				return true;
+			}
+
+			// continue to squish
+			if (tmthing->player->kartstuff[k_squishedtimer])
+			{
+				tmthing->player->kartstuff[k_squishedtimer] = 2*TICRATE;
+				tmthing->player->powers[pw_flashing] = K_GetKartFlashing(tmthing->player);
+				return true;
+			}
+
+			// no interaction
+			if (tmthing->player->powers[pw_flashing] > 0 || tmthing->player->kartstuff[k_hyudorotimer] > 0
+				|| tmthing->player->kartstuff[k_spinouttimer] > 0) //|| tmthing->player->kartstuff[k_squishedtimer] > 0
+				return true;
+
+			// collide
+			if (tmthing->z < thing->z && thing->momz < 0)
+				K_SquishPlayer(tmthing->player, thing);
+			else
+			{
+				if (thing->flags2 & MF2_AMBUSH)
+					P_DamageMobj(tmthing, thing, thing, 1);
+				K_KartBouncing(tmthing, thing, false, true);
+			}
+
+			return false;
+		}
 		else if (thing->flags & MF_SOLID)
 		{
 			// see if it went over / under
@@ -1552,7 +1683,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			else
 				K_KartBouncing(tmthing, thing, false, true);
 
-			return true;
+			return false;
 		}
 		// Are you touching the side of the object you're interacting with?
 		else if (thing->z - FixedMul(FRACUNIT, thing->scale) <= tmthing->z + tmthing->height

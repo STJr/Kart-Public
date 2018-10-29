@@ -4246,6 +4246,8 @@ DoneSection2:
 							nospectategrief++;
 						}
 					}
+
+					thwompsactive = true; // Lap 2 effects
 				}
 				else if (player->starpostnum)
 				{

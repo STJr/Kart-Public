@@ -6327,31 +6327,31 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_ROCKETSNEAKER_RVIBRATE",
 
 	//{ Eggman Monitor
-	"S_FAKEITEM1",
-	"S_FAKEITEM2",
-	"S_FAKEITEM3",
-	"S_FAKEITEM4",
-	"S_FAKEITEM5",
-	"S_FAKEITEM6",
-	"S_FAKEITEM7",
-	"S_FAKEITEM8",
-	"S_FAKEITEM9",
-	"S_FAKEITEM10",
-	"S_FAKEITEM11",
-	"S_FAKEITEM12",
-	"S_FAKEITEM13",
-	"S_FAKEITEM14",
-	"S_FAKEITEM15",
-	"S_FAKEITEM16",
-	"S_FAKEITEM17",
-	"S_FAKEITEM18",
-	"S_FAKEITEM19",
-	"S_FAKEITEM20",
-	"S_FAKEITEM21",
-	"S_FAKEITEM22",
-	"S_FAKEITEM23",
-	"S_FAKEITEM24",
-	"S_DEADFAKEITEM",
+	"S_EGGMANITEM1",
+	"S_EGGMANITEM2",
+	"S_EGGMANITEM3",
+	"S_EGGMANITEM4",
+	"S_EGGMANITEM5",
+	"S_EGGMANITEM6",
+	"S_EGGMANITEM7",
+	"S_EGGMANITEM8",
+	"S_EGGMANITEM9",
+	"S_EGGMANITEM10",
+	"S_EGGMANITEM11",
+	"S_EGGMANITEM12",
+	"S_EGGMANITEM13",
+	"S_EGGMANITEM14",
+	"S_EGGMANITEM15",
+	"S_EGGMANITEM16",
+	"S_EGGMANITEM17",
+	"S_EGGMANITEM18",
+	"S_EGGMANITEM19",
+	"S_EGGMANITEM20",
+	"S_EGGMANITEM21",
+	"S_EGGMANITEM22",
+	"S_EGGMANITEM23",
+	"S_EGGMANITEM24",
+	"S_EGGMANITEM_DEAD",
 	//}
 
 	// Banana
@@ -6862,6 +6862,59 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_CDBUSHSP",
 	"S_CDTREEASP",
 	"S_CDTREEBSP",
+
+	// Daytona Speedway
+	"S_PINETREE",
+	"S_PINETREE_SIDE",
+
+	// Egg Zeppelin
+	"S_EZZPROPELLER",
+	"S_EZZPROPELLER_BLADE",
+
+	// Desert Palace
+	"S_DP_PALMTREE",
+
+	// Aurora Atoll
+	"S_AAZTREE_SEG",
+	"S_AAZTREE_COCONUT",
+	"S_AAZTREE_LEAF",
+
+	// Barren Badlands
+	"S_BBZDUST1", // Dust
+	"S_BBZDUST2",
+	"S_BBZDUST3",
+	"S_BBZDUST4",
+	"S_FROGGER", // Frog badniks
+	"S_FROGGER_ATTACK",
+	"S_FROGGER_JUMP",
+	"S_FROGTONGUE",
+	"S_FROGTONGUE_JOINT",
+	"S_ROBRA", // Black cobra badniks
+	"S_ROBRA_HEAD",
+	"S_ROBRA_JOINT",
+	"S_ROBRASHELL_INSIDE",
+	"S_ROBRASHELL_OUTSIDE",
+	"S_BLUEROBRA", // Blue cobra badniks
+	"S_BLUEROBRA_HEAD",
+	"S_BLUEROBRA_JOINT",
+
+	// Eerie Grove
+	"S_EERIEFOG1",
+	"S_EERIEFOG2",
+	"S_EERIEFOG3",
+	"S_EERIEFOG4",
+	"S_EERIEFOG5",
+
+	// SMK ports
+	"S_SMK_PIPE1", // Generic pipes
+	"S_SMK_PIPE2",
+	"S_SMK_MOLE", // Donut Plains Monty Moles
+	"S_SMK_THWOMP", // Bowser Castle Thwomps
+	"S_SMK_SNOWBALL", // Vanilla Lake snowballs
+	"S_SMK_ICEBLOCK", // Vanilla Lake breakable ice blocks
+	"S_SMK_ICEBLOCK2",
+	"S_SMK_ICEBLOCK_DEBRIS",
+	"S_SMK_ICEBLOCK_DEBRIS2",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7397,8 +7450,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_ROCKETSNEAKER", // Rocket sneakers
 
-	"MT_FAKESHIELD",
-	"MT_FAKEITEM",
+	"MT_EGGMANITEM", // Eggman items
+	"MT_EGGMANITEM_SHIELD",
 
 	"MT_BANANA", // Banana Stuff
 	"MT_BANANA_SHIELD",
@@ -7536,6 +7589,49 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CDBUSH",
 	"MT_CDTREEA",
 	"MT_CDTREEB",
+
+	// Daytona Speedway
+	"MT_PINETREE",
+	"MT_PINETREE_SIDE",
+
+	// Egg Zeppelin
+	"MT_EZZPROPELLER",
+	"MT_EZZPROPELLER_BLADE",
+
+	// Desert Palace
+	"MT_DP_PALMTREE",
+
+	// Aurora Atoll
+	"MT_AAZTREE_HELPER",
+	"MT_AAZTREE_SEG",
+	"MT_AAZTREE_COCONUT",
+	"MT_AAZTREE_LEAF",
+
+	// Barren Badlands
+	"MT_BBZDUST",
+	"MT_FROGGER",
+	"MT_FROGTONGUE",
+	"MT_FROGTONGUE_JOINT",
+	"MT_ROBRA",
+	"MT_ROBRA_HEAD",
+	"MT_ROBRA_JOINT",
+	"MT_BLUEROBRA",
+	"MT_BLUEROBRA_HEAD",
+	"MT_BLUEROBRA_JOINT",
+
+	// Eerie Grove
+	"MT_EERIEFOG",
+	"MT_EERIEFOGGEN",
+
+	// SMK ports
+	"MT_SMK_PIPE",
+	"MT_SMK_MOLESPAWNER",
+	"MT_SMK_MOLE",
+	"MT_SMK_THWOMP",
+	"MT_SMK_SNOWBALL",
+	"MT_SMK_ICEBLOCK",
+	"MT_SMK_ICEBLOCK_SIDE",
+	"MT_SMK_ICEBLOCK_DEBRIS",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

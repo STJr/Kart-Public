@@ -7695,7 +7695,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		if (mo->type == MT_ORBINAUT || mo->type == MT_JAWZ || mo->type == MT_JAWZ_DUD
 			|| mo->type == MT_ORBINAUT_SHIELD || mo->type == MT_JAWZ_SHIELD
 			|| mo->type == MT_BANANA || mo->type == MT_BANANA_SHIELD
-			|| mo->type == MT_FAKEITEM || mo->type == MT_FAKESHIELD
+			|| mo->type == MT_EGGMANITEM || mo->type == MT_EGGMANITEM_SHIELD
 			|| mo->type == MT_BALLHOG || mo->type == MT_SPB)
 		{
 			if (mo->eflags & MFE_VERTICALFLIP)
