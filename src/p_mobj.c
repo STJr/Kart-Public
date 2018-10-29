@@ -6779,7 +6779,7 @@ void P_MobjThinker(mobj_t *mobj)
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
 					/*&& players[displayplayer].mo && !players[displayplayer].spectator*/)
 				{
-					fixed_t scale = mobj->target->scale;
+					fixed_t scale = 4*mobj->target->scale;
 					mobj->color = mobj->target->color;
 					K_MatchGenericExtraFlags(mobj, mobj->target);
 
@@ -6975,7 +6975,7 @@ void P_MobjThinker(mobj_t *mobj)
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
 					&& players[displayplayer].mo && !players[displayplayer].spectator)
 				{
-					fixed_t scale = mobj->target->scale;
+					fixed_t scale = 4*mobj->target->scale;
 
 					if (!K_IsPlayerWanted(mobj->target->player))
 					{
@@ -7005,10 +7005,13 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 					P_SetThingPosition(mobj);
 
-					scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
-						players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-					if (scale > 16*FRACUNIT)
-						scale = 16*FRACUNIT;
+					if (!splitscreen)
+					{
+						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
+						if (scale > 16*FRACUNIT)
+							scale = 16*FRACUNIT;
+					}
 					mobj->destscale = scale;
 				}
 				else if (mobj->health > 0)
