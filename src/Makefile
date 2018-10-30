@@ -371,7 +371,6 @@ ifdef HAVE_DISCORDRPC
 LIBS+=-ldiscord-rpc
 CFLAGS+=-DHAVE_DISCORDRPC
 OBJS+=$(OBJDIR)/discord.o
-OBJS+=$(OBJDIR)/discord_pass.o
 endif
 
 ifndef NO_LUA
