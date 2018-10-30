@@ -660,7 +660,7 @@ static int lib_hudadd(lua_State *L)
 static luaL_Reg lib_hud[] = {
 	{"enable", lib_hudenable},
 	{"disable", lib_huddisable},
-	{"enabled", LUA_hudenabled},
+	{"enabled", lib_hudenabled},
 	{"add", lib_hudadd},
 	{NULL, NULL}
 };
