@@ -6435,8 +6435,10 @@ static boolean K_drawKartPositionFaces(void)
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i] && !completed[i] && players[i].mo && !players[i].spectator
-				&& (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position]))
+			if (completed[i] || !playeringame[i] || players[i].spectator || !players[i].mo)
+				continue;
+
+			if (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position])
 			{
 				rankplayer[ranklines] = i;
 			}
@@ -6459,7 +6461,7 @@ static boolean K_drawKartPositionFaces(void)
 	else
 		Y -= (9*5);
 
-	if (strank <= 2) // too close to the top?
+	if (G_BattleGametype() || strank <= 2) // too close to the top, or playing battle?
 	{
 		i = 0;
 		if (ranklines > 5) // could be both...
@@ -6475,7 +6477,8 @@ static boolean K_drawKartPositionFaces(void)
 
 	for (; i < ranklines; i++)
 	{
-		if (players[rankplayer[i]].spectator) continue; // Spectators are ignored
+		if (!playeringame[rankplayer[i]]) continue;
+		if (players[rankplayer[i]].spectator) continue;
 		if (!players[rankplayer[i]].mo) continue;
 
 		bumperx = FACE_X+18;
