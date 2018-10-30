@@ -3176,15 +3176,15 @@ state_t states[NUMSTATES] =
 	{SPR_HTZB, 0, -1, {A_SetScale}, 2*FRACUNIT, 0, S_NULL}, // S_HTZBUSH
 
 	// Ports of gardens
-	{SPR_SGVA, 0, 1, {NULL}, 0, 0, S_NULL}, // S_SGVINE1
-	{SPR_SGVB, 0, 1, {NULL}, 0, 0, S_NULL}, // S_SGVINE2
-	{SPR_SGVC, 0, 1, {NULL}, 0, 0, S_NULL}, // S_SGVINE3
-	{SPR_PGTR, 0, 1, {NULL}, 0, 0, S_NULL}, // S_PGTREE
-	{SPR_PGF1, 0, 1, {NULL}, 0, 0, S_NULL}, // S_PGFLOWER1
-	{SPR_PGF2, 0, 1, {NULL}, 0, 0, S_NULL}, // S_PGFLOWER2
-	{SPR_PGF3, 0, 1, {NULL}, 0, 0, S_NULL}, // S_PGFLOWER3
-	{SPR_PGBH, 0, 1, {NULL}, 0, 0, S_NULL}, // S_PGBUSH
-	{SPR_DPLR, 0, 1, {NULL}, 0, 0, S_NULL}, // S_DHPILLAR
+	{SPR_SGVA, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SGVINE1
+	{SPR_SGVB, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SGVINE2
+	{SPR_SGVC, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SGVINE3
+	{SPR_PGTR, 0, -1, {NULL}, 0, 0, S_NULL}, // S_PGTREE
+	{SPR_PGF1, 0, -1, {NULL}, 0, 0, S_NULL}, // S_PGFLOWER1
+	{SPR_PGF2, 0, -1, {NULL}, 0, 0, S_NULL}, // S_PGFLOWER2
+	{SPR_PGF3, 0, -1, {NULL}, 0, 0, S_NULL}, // S_PGFLOWER3
+	{SPR_PGBH, 0, -1, {NULL}, 0, 0, S_NULL}, // S_PGBUSH
+	{SPR_DPLR, 0, -1, {NULL}, 0, 0, S_NULL}, // S_DHPILLAR
 
 	// Midnight Channel stuff, yay more boring states!
 	{SPR_SPTL, 0, -1, {NULL}, 0, 0, S_SPOTLIGHT},		// S_SPOTLIGHT
