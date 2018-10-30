@@ -658,26 +658,26 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->health = LONG(players[i].mo->health);
 
 	rsp->angle = (angle_t)LONG(players[i].mo->angle);
-	rsp->x = LONG(players[i].mo->x);
-	rsp->y = LONG(players[i].mo->y);
-	rsp->z = LONG(players[i].mo->z);
-	rsp->momx = LONG(players[i].mo->momx);
-	rsp->momy = LONG(players[i].mo->momy);
-	rsp->momz = LONG(players[i].mo->momz);
-	rsp->friction = LONG(players[i].mo->friction);
-	rsp->movefactor = LONG(players[i].mo->movefactor);
+	rsp->x = (fixed_t)LONG(players[i].mo->x);
+	rsp->y = (fixed_t)LONG(players[i].mo->y);
+	rsp->z = (fixed_t)LONG(players[i].mo->z);
+	rsp->momx = (fixed_t)LONG(players[i].mo->momx);
+	rsp->momy = (fixed_t)LONG(players[i].mo->momy);
+	rsp->momz = (fixed_t)LONG(players[i].mo->momz);
+	rsp->friction = (fixed_t)LONG(players[i].mo->friction);
+	rsp->movefactor = (fixed_t)LONG(players[i].mo->movefactor);
 
 	rsp->tics = LONG(players[i].mo->tics);
 	rsp->statenum = (statenum_t)LONG(players[i].mo->state-states); // :(
+	rsp->flags = (UINT32)LONG(players[i].mo->flags);
+	rsp->flags2 = (UINT32)LONG(players[i].mo->flags2);
 	rsp->eflags = (UINT16)SHORT(players[i].mo->eflags);
-	rsp->flags = LONG(players[i].mo->flags);
-	rsp->flags2 = LONG(players[i].mo->flags2);
 
-	rsp->radius = LONG(players[i].mo->radius);
-	rsp->height = LONG(players[i].mo->height);
-	rsp->scale = LONG(players[i].mo->scale);
-	rsp->destscale = LONG(players[i].mo->destscale);
-	rsp->scalespeed = LONG(players[i].mo->scalespeed);
+	rsp->radius = (fixed_t)LONG(players[i].mo->radius);
+	rsp->height = (fixed_t)LONG(players[i].mo->height);
+	rsp->scale = (fixed_t)LONG(players[i].mo->scale);
+	rsp->destscale = (fixed_t)LONG(players[i].mo->destscale);
+	rsp->scalespeed = (fixed_t)LONG(players[i].mo->scalespeed);
 }
 
 static void resynch_read_player(resynch_pak *rsp)
@@ -802,27 +802,30 @@ static void resynch_read_player(resynch_pak *rsp)
 
 	//At this point, the player should have a body, whether they were respawned or not.
 	P_UnsetThingPosition(players[i].mo);
-	players[i].mo->angle = (angle_t)LONG(rsp->angle);
-	players[i].mo->eflags = (UINT16)SHORT(rsp->eflags);
-	players[i].mo->flags = LONG(rsp->flags);
-	players[i].mo->flags2 = LONG(rsp->flags2);
-	players[i].mo->friction = LONG(rsp->friction);
 	players[i].mo->health = LONG(rsp->health);
-	players[i].mo->momx = LONG(rsp->momx);
-	players[i].mo->momy = LONG(rsp->momy);
-	players[i].mo->momz = LONG(rsp->momz);
-	players[i].mo->movefactor = LONG(rsp->movefactor);
+
+	players[i].mo->angle = (angle_t)LONG(rsp->angle);
+	players[i].mo->x = (fixed_t)LONG(rsp->x);
+	players[i].mo->y = (fixed_t)LONG(rsp->y);
+	players[i].mo->z = (fixed_t)LONG(rsp->z);
+	players[i].mo->momx = (fixed_t)LONG(rsp->momx);
+	players[i].mo->momy = (fixed_t)LONG(rsp->momy);
+	players[i].mo->momz = (fixed_t)LONG(rsp->momz);
+	players[i].mo->friction = (fixed_t)LONG(rsp->friction);
+	players[i].mo->movefactor = (fixed_t)LONG(rsp->movefactor);
+
 	players[i].mo->tics = LONG(rsp->tics);
-	P_SetMobjStateNF(players[i].mo, LONG(rsp->statenum));
-	players[i].mo->x = LONG(rsp->x);
-	players[i].mo->y = LONG(rsp->y);
-	players[i].mo->z = LONG(rsp->z);
-	players[i].mo->radius = LONG(rsp->radius);
-	players[i].mo->height = LONG(rsp->height);
+	P_SetMobjStateNF(players[i].mo, (statenum_t)LONG(rsp->statenum));
+	players[i].mo->flags = (UINT32)LONG(rsp->flags);
+	players[i].mo->flags2 = (UINT32)LONG(rsp->flags2);
+	players[i].mo->eflags = (UINT16)SHORT(rsp->eflags);
+
+	players[i].mo->radius = (fixed_t)LONG(rsp->radius);
+	players[i].mo->height = (fixed_t)LONG(rsp->height);
 	// P_SetScale is redundant for this, as all related variables are already restored properly.
-	players[i].mo->scale = LONG(rsp->scale);
-	players[i].mo->destscale = LONG(rsp->destscale);
-	players[i].mo->scalespeed = LONG(rsp->scalespeed);
+	players[i].mo->scale = (fixed_t)LONG(rsp->scale);
+	players[i].mo->destscale = (fixed_t)LONG(rsp->destscale);
+	players[i].mo->scalespeed = (fixed_t)LONG(rsp->scalespeed);
 
 	// And finally, SET THE MOBJ SKIN damn it.
 	players[i].mo->skin = &skins[players[i].skin];
