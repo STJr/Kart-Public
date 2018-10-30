@@ -2296,7 +2296,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 		if (netgame // don't draw it offline
         && tab[i].num != serverplayer)
-			HU_drawPing(x + rightoffset + ((scorelines > 8) ? 13 : -27), y+2, playerpingtable[tab[i].num], false);
+			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
 
 		if (scorelines > 8)
 			strlcpy(strtime, tab[i].name, 6);
