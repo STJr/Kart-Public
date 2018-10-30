@@ -555,21 +555,17 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->panim  = (UINT8)players[i].panim; //panim_t
 
 	rsp->aiming = (angle_t)LONG(players[i].aiming);
-	rsp->currentweapon = LONG(players[i].currentweapon);
-	rsp->ringweapons = LONG(players[i].ringweapons);
 
 	for (j = 0; j < NUMPOWERS; ++j)
 		rsp->powers[j] = (UINT16)SHORT(players[i].powers[j]);
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		rsp->kartstuff[j] = LONG(players[i].kartstuff[j]); // SRB2kart
 
+	rsp->frameangle = (angle_t)LONG(players[i].frameangle); // SRB2kart
+
 	// Score is resynched in the rspfirm resync packet
 	rsp->health = 0; // resynched with mo health
 	rsp->lives = players[i].lives;
-	rsp->continues = players[i].continues;
-	rsp->scoreadd = players[i].scoreadd;
-	rsp->xtralife = players[i].xtralife;
-	rsp->pity = players[i].pity;
 
 	rsp->skincolor = players[i].skincolor;
 	rsp->skin = LONG(players[i].skin);
@@ -578,40 +574,15 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	// SRB2kart
 	rsp->kartspeed = (UINT8)players[i].kartspeed;
 	rsp->kartweight = (UINT8)players[i].kartweight;
-	//
-	rsp->normalspeed = (fixed_t)LONG(players[i].normalspeed);
-	rsp->runspeed = (fixed_t)LONG(players[i].runspeed);
-	rsp->thrustfactor = players[i].thrustfactor;
-	rsp->accelstart = players[i].accelstart;
-	rsp->acceleration = players[i].acceleration;
-	rsp->charability = players[i].charability;
-	rsp->charability2 = players[i].charability2;
-	rsp->charflags = (UINT32)LONG(players[i].charflags);
-	rsp->thokitem = (UINT32)LONG(players[i].thokitem); //mobjtype_t
-	rsp->spinitem = (UINT32)LONG(players[i].spinitem); //mobjtype_t
-	rsp->revitem = (UINT32)LONG(players[i].revitem); //mobjtype_t
-	rsp->actionspd = (fixed_t)LONG(players[i].actionspd);
-	rsp->mindash = (fixed_t)LONG(players[i].mindash);
-	rsp->maxdash = (fixed_t)LONG(players[i].maxdash);
-	rsp->jumpfactor = (fixed_t)LONG(players[i].jumpfactor);
 
 	rsp->speed = (fixed_t)LONG(players[i].speed);
-	rsp->jumping = players[i].jumping;
-	rsp->secondjump = players[i].secondjump;
-	rsp->fly1 = players[i].fly1;
-	rsp->glidetime = (tic_t)LONG(players[i].glidetime);
-	rsp->climbing = players[i].climbing;
 	rsp->deadtimer = players[i].deadtimer;
 	rsp->exiting = (tic_t)LONG(players[i].exiting);
-	rsp->homing = players[i].homing;
 	rsp->skidtime = (tic_t)LONG(players[i].skidtime);
 	rsp->cmomx = (fixed_t)LONG(players[i].cmomx);
 	rsp->cmomy = (fixed_t)LONG(players[i].cmomy);
 	rsp->rmomx = (fixed_t)LONG(players[i].rmomx);
 	rsp->rmomy = (fixed_t)LONG(players[i].rmomy);
-
-	rsp->weapondelay = LONG(players[i].weapondelay);
-	rsp->tossdelay = LONG(players[i].tossdelay);
 
 	rsp->starpostx = SHORT(players[i].starpostx);
 	rsp->starposty = SHORT(players[i].starposty);
@@ -621,28 +592,11 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->starposttime = (tic_t)LONG(players[i].starposttime);
 	rsp->starpostangle = (angle_t)LONG(players[i].starpostangle);
 
-	rsp->maxlink = LONG(players[i].maxlink);
-	rsp->dashspeed = (fixed_t)LONG(players[i].dashspeed);
-	rsp->dashtime = LONG(players[i].dashtime);
-	rsp->angle_pos = (angle_t)LONG(players[i].angle_pos);
-	rsp->old_angle_pos = (angle_t)LONG(players[i].old_angle_pos);
-	rsp->bumpertime = (tic_t)LONG(players[i].bumpertime);
-	rsp->flyangle = LONG(players[i].flyangle);
-	rsp->drilltimer = (tic_t)LONG(players[i].drilltimer);
-	rsp->linkcount = LONG(players[i].linkcount);
-	rsp->linktimer = (tic_t)LONG(players[i].linktimer);
-	rsp->anotherflyangle = LONG(players[i].anotherflyangle);
-	rsp->nightstime = (tic_t)LONG(players[i].nightstime);
-	rsp->drillmeter = LONG(players[i].drillmeter);
-	rsp->drilldelay = players[i].drilldelay;
-	rsp->bonustime = players[i].bonustime;
-	rsp->mare = players[i].mare;
-	rsp->lastsidehit = SHORT(players[i].lastsidehit);
-	rsp->lastlinehit = SHORT(players[i].lastlinehit);
-
 	rsp->losstime = (tic_t)LONG(players[i].losstime);
 	rsp->timeshit = players[i].timeshit;
 	rsp->onconveyor = LONG(players[i].onconveyor);
+
+	rsp->jointime = (tic_t)LONG(players[i].jointime);
 
 	rsp->hasmo = false;
 	//Transfer important mo information if the player has a body.
@@ -688,21 +642,17 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].panim  = (UINT8)rsp->panim; //panim_t
 
 	players[i].aiming = (angle_t)LONG(rsp->aiming);
-	players[i].currentweapon = LONG(rsp->currentweapon);
-	players[i].ringweapons = LONG(rsp->ringweapons);
 
 	for (j = 0; j < NUMPOWERS; ++j)
 		players[i].powers[j] = (UINT16)SHORT(rsp->powers[j]);
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		players[i].kartstuff[j] = LONG(rsp->kartstuff[j]); // SRB2kart
 
+	players[i].frameangle = (angle_t)LONG(rsp->frameangle); // SRB2kart
+
 	// Score is resynched in the rspfirm resync packet
 	players[i].health = rsp->health;
 	players[i].lives = rsp->lives;
-	players[i].continues = rsp->continues;
-	players[i].scoreadd = rsp->scoreadd;
-	players[i].xtralife = rsp->xtralife;
-	players[i].pity = rsp->pity;
 
 	players[i].skincolor = rsp->skincolor;
 	players[i].skin = LONG(rsp->skin);
@@ -711,39 +661,14 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].kartspeed = (UINT8)rsp->kartspeed;
 	players[i].kartweight = (UINT8)rsp->kartweight;
 
-	players[i].normalspeed = (fixed_t)LONG(rsp->normalspeed);
-	players[i].runspeed = (fixed_t)LONG(rsp->runspeed);
-	players[i].thrustfactor = rsp->thrustfactor;
-	players[i].accelstart = rsp->accelstart;
-	players[i].acceleration = rsp->acceleration;
-	players[i].charability = rsp->charability;
-	players[i].charability2 = rsp->charability2;
-	players[i].charflags = (UINT32)LONG(rsp->charflags);
-	players[i].thokitem = (UINT32)LONG(rsp->thokitem); //mobjtype_t
-	players[i].spinitem = (UINT32)LONG(rsp->spinitem); //mobjtype_t
-	players[i].revitem = (UINT32)LONG(rsp->revitem); //mobjtype_t
-	players[i].actionspd = (fixed_t)LONG(rsp->actionspd);
-	players[i].mindash = (fixed_t)LONG(rsp->mindash);
-	players[i].maxdash = (fixed_t)LONG(rsp->maxdash);
-	players[i].jumpfactor = (fixed_t)LONG(rsp->jumpfactor);
-
 	players[i].speed = (fixed_t)LONG(rsp->speed);
-	players[i].jumping = rsp->jumping;
-	players[i].secondjump = rsp->secondjump;
-	players[i].fly1 = rsp->fly1;
-	players[i].glidetime = (tic_t)LONG(rsp->glidetime);
-	players[i].climbing = rsp->climbing;
 	players[i].deadtimer = rsp->deadtimer;
 	players[i].exiting = (tic_t)LONG(rsp->exiting);
-	players[i].homing = rsp->homing;
 	players[i].skidtime = (tic_t)LONG(rsp->skidtime);
 	players[i].cmomx = (fixed_t)LONG(rsp->cmomx);
 	players[i].cmomy = (fixed_t)LONG(rsp->cmomy);
 	players[i].rmomx = (fixed_t)LONG(rsp->rmomx);
 	players[i].rmomy = (fixed_t)LONG(rsp->rmomy);
-
-	players[i].weapondelay = LONG(rsp->weapondelay);
-	players[i].tossdelay = LONG(rsp->tossdelay);
 
 	players[i].starpostx = SHORT(rsp->starpostx);
 	players[i].starposty = SHORT(rsp->starposty);
@@ -753,28 +678,11 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].starposttime = (tic_t)LONG(rsp->starposttime);
 	players[i].starpostangle = (angle_t)LONG(rsp->starpostangle);
 
-	players[i].maxlink = LONG(rsp->maxlink);
-	players[i].dashspeed = (fixed_t)LONG(rsp->dashspeed);
-	players[i].dashtime = LONG(rsp->dashtime);
-	players[i].angle_pos = (angle_t)LONG(rsp->angle_pos);
-	players[i].old_angle_pos = (angle_t)LONG(rsp->old_angle_pos);
-	players[i].bumpertime = (tic_t)LONG(rsp->bumpertime);
-	players[i].flyangle = LONG(rsp->flyangle);
-	players[i].drilltimer = (tic_t)LONG(rsp->drilltimer);
-	players[i].linkcount = LONG(rsp->linkcount);
-	players[i].linktimer = (tic_t)LONG(rsp->linktimer);
-	players[i].anotherflyangle = LONG(rsp->anotherflyangle);
-	players[i].nightstime = (tic_t)LONG(rsp->nightstime);
-	players[i].drillmeter = LONG(rsp->drillmeter);
-	players[i].drilldelay = rsp->drilldelay;
-	players[i].bonustime = rsp->bonustime;
-	players[i].mare = rsp->mare;
-	players[i].lastsidehit = SHORT(rsp->lastsidehit);
-	players[i].lastlinehit = SHORT(rsp->lastlinehit);
-
 	players[i].losstime = (tic_t)LONG(rsp->losstime);
 	players[i].timeshit = rsp->timeshit;
 	players[i].onconveyor = LONG(rsp->onconveyor);
+
+	players[i].jointime = (tic_t)LONG(rsp->jointime);
 
 	//We get a packet for each player in game.
 	if (!playeringame[i])

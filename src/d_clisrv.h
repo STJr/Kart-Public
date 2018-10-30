@@ -184,8 +184,7 @@ typedef struct
 	UINT8 panim; // panim_t
 
 	angle_t aiming;
-	INT32 currentweapon;
-	INT32 ringweapons;
+
 	UINT16 powers[NUMPOWERS];
 
 	INT32 kartstuff[NUMKARTSTUFF]; // SRB2kart
@@ -194,10 +193,6 @@ typedef struct
 	// Score is resynched in the confirm resync packet
 	INT32 health;
 	SINT8 lives;
-	SINT8 continues;
-	UINT8 scoreadd;
-	SINT8 xtralife;
-	SINT8 pity;
 
 	UINT8 skincolor;
 	INT32 skin;
@@ -206,40 +201,15 @@ typedef struct
 	// SRB2kart
 	UINT8 kartspeed;
 	UINT8 kartweight;
-	//
-	fixed_t normalspeed;
-	fixed_t runspeed;
-	UINT8 thrustfactor;
-	UINT8 accelstart;
-	UINT8 acceleration;
-	UINT8 charability;
-	UINT8 charability2;
-	UINT32 charflags;
-	UINT32 thokitem; // mobjtype_t
-	UINT32 spinitem; // mobjtype_t
-	UINT32 revitem; // mobjtype_t
-	fixed_t actionspd;
-	fixed_t mindash;
-	fixed_t maxdash;
-	fixed_t jumpfactor;
 
 	fixed_t speed;
-	UINT8 jumping;
-	UINT8 secondjump;
-	UINT8 fly1;
-	tic_t glidetime;
-	UINT8 climbing;
 	INT32 deadtimer;
 	tic_t exiting;
-	UINT8 homing;
 	tic_t skidtime;
 	fixed_t cmomx;
 	fixed_t cmomy;
 	fixed_t rmomx;
 	fixed_t rmomy;
-
-	INT32 weapondelay;
-	INT32 tossdelay;
 
 	INT16 starpostx;
 	INT16 starposty;
@@ -249,27 +219,11 @@ typedef struct
 	tic_t starposttime;
 	angle_t starpostangle;
 
-	INT32 maxlink;
-	fixed_t dashspeed;
-	INT32 dashtime;
-	angle_t angle_pos;
-	angle_t old_angle_pos;
-	tic_t bumpertime;
-	INT32 flyangle;
-	tic_t drilltimer;
-	INT32 linkcount;
-	tic_t linktimer;
-	INT32 anotherflyangle;
-	tic_t nightstime;
-	INT32 drillmeter;
-	UINT8 drilldelay;
-	UINT8 bonustime;
-	UINT8 mare;
-	INT16 lastsidehit, lastlinehit;
-
 	tic_t losstime;
 	UINT8 timeshit;
 	INT32 onconveyor;
+
+	tic_t jointime;
 
 	//player->mo stuff
 	UINT8 hasmo; // Boolean
