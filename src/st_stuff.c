@@ -1896,13 +1896,13 @@ static void ST_overlayDrawer(void)
 
 		if(!P_IsLocalPlayer(stplyr))
 		{
-			char name[MAXPLAYERNAME+1];
+			/*char name[MAXPLAYERNAME+1];
 			// shorten the name if its more than twelve characters.
-			strlcpy(name, player_names[stplyr-players], 13);
+			strlcpy(name, player_names[stplyr-players], 13);*/
 
 			// Show name of player being displayed
 			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Viewpoint:"));
-			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, name);
+			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[stplyr-players]);
 		}
 
 		// This is where we draw all the fun cheese if you have the chasecam off!
@@ -2057,5 +2057,14 @@ void ST_Drawer(void)
 		// draw Midnight Channel's overlay ontop
 		if (mapheaderinfo[gamemap-1]->typeoflevel & TOL_TV)	// Very specific Midnight Channel stuff.
 			ST_MayonakaStatic();
+	}
+
+	// Draw a white fade on level opening
+	if (leveltime < 15)
+	{
+		if (leveltime <= 5)
+			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first few frames, to hide SRB2's awful level load artifacts
+		else
+			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there
 	}
 }

@@ -3340,8 +3340,6 @@ void K_DropItems(player_t *player)
 		drop->destscale = (3*drop->destscale)/2;;
 
 		drop->angle = player->mo->angle + ANGLE_90;
-		drop->momx = player->mo->momx>>1;
-		drop->momy = player->mo->momy>>1;
 		P_Thrust(drop,
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
 			8*(mapheaderinfo[gamemap-1]->mobj_scale));
@@ -7527,15 +7525,6 @@ void K_drawKartHUD(void)
 		|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
 		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		K_drawKartFirstPerson();
-
-	// Draw a white fade on level opening
-	if (leveltime < 15 && stplyr == &players[displayplayer])
-	{
-		if (leveltime <= 5)
-			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,120); // Pure white on first few frames, to hide SRB2's awful level load artifacts
-		else
-			V_DrawFadeScreen(120, 15-leveltime); // Then gradually fade out from there
-	}
 
 	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
 		K_drawKartMinimap();
