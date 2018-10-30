@@ -2283,7 +2283,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 	if (scorelines > 8)
 	{
 		V_DrawFill(160, 26, 1, 147, 0); // Draw a vertical line to separate the two sides.
-		V_DrawFill(1, 173, 318, 1, 0); // And a horizontal line near the bottom.
+		V_DrawFill(1-duptweak, 173, dupadjust-2, 1, 0); // And a horizontal line near the bottom.
 		rightoffset = (BASEVIDWIDTH/2) - 4 - x;
 	}
 
