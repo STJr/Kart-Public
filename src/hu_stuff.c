@@ -2733,7 +2733,7 @@ static void HU_DrawRankings(void)
 		tab[i].name = NULL;
 		tab[i].count = INT32_MAX;
 
-		if (!playeringame[i] || players[i].spectator)
+		if (!playeringame[i] || players[i].spectator || !players[i].mo)
 			continue;
 
 		numplayersingame++;
@@ -2744,7 +2744,7 @@ static void HU_DrawRankings(void)
 		UINT8 lowestposition = MAXPLAYERS;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (!playeringame[i] || players[i].spectator || completed[i])
+			if (completed[i] || !playeringame[i] || players[i].spectator || !players[i].mo)
 				continue;
 
 			if (players[i].kartstuff[k_position] >= lowestposition)

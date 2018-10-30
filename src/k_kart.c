@@ -6431,16 +6431,19 @@ static boolean K_drawKartPositionFaces(void)
 
 	for (j = 0; j < numplayersingame; j++)
 	{
+		UINT8 lowestposition = MAXPLAYERS;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (completed[i] || !playeringame[i] || players[i].spectator || !players[i].mo)
 				continue;
 
-			if (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position])
-			{
-				rankplayer[ranklines] = i;
-			}
+			if (players[i].kartstuff[k_position] >= lowestposition)
+				continue;
+
+			rankplayer[ranklines] = i;
+			lowestposition = players[i].kartstuff[k_position];
 		}
+
 		i = rankplayer[ranklines];
 
 		completed[i] = true;
