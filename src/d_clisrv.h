@@ -166,8 +166,7 @@ typedef struct
 
 	// Resynch game scores and the like all at once
 	UINT32 score[MAXPLAYERS]; // Everyone's score
-	INT16 numboxes[MAXPLAYERS];
-	INT16 totalring[MAXPLAYERS];
+	UINT32 marescore[MAXPLAYERS]; // SRB2kart: Battle score
 	tic_t realtime[MAXPLAYERS];
 	UINT8 laps[MAXPLAYERS];
 } ATTRPACK resynchend_pak;

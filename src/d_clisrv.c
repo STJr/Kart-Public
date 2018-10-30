@@ -847,8 +847,7 @@ static inline void resynch_write_others(resynchend_pak *rst)
 		{
 			rst->ctfteam[i] = 0;
 			rst->score[i] = 0;
-			rst->numboxes[i] = 0;
-			rst->totalring[i] = 0;
+			rst->marescore[i] = 0;
 			rst->realtime[i] = 0;
 			rst->laps[i] = 0;
 			continue;
@@ -858,8 +857,7 @@ static inline void resynch_write_others(resynchend_pak *rst)
 			rst->ingame |= (1<<i);
 		rst->ctfteam[i] = (INT32)LONG(players[i].ctfteam);
 		rst->score[i] = (UINT32)LONG(players[i].score);
-		rst->numboxes[i] = SHORT(players[i].numboxes);
-		rst->totalring[i] = SHORT(players[i].totalring);
+		rst->marescore[i] = (UINT32)LONG(players[i].marescore);
 		rst->realtime[i] = (tic_t)LONG(players[i].realtime);
 		rst->laps[i] = players[i].laps;
 	}
@@ -879,8 +877,7 @@ static inline void resynch_read_others(resynchend_pak *p)
 		players[i].spectator = !(loc_ingame & (1<<i));
 		players[i].ctfteam = (INT32)LONG(p->ctfteam[i]); // no, 0 does not mean spectator, at least not in Match
 		players[i].score = (UINT32)LONG(p->score[i]);
-		players[i].numboxes = SHORT(p->numboxes[i]);
-		players[i].totalring = SHORT(p->totalring[i]);
+		players[i].marescore = (UINT32)LONG(p->marescore[i]);
 		players[i].realtime = (tic_t)LONG(p->realtime[i]);
 		players[i].laps = p->laps[i];
 	}
@@ -4326,6 +4323,47 @@ static INT16 Consistancy(void)
 					ret += mo->tracer->tics;
 					ret -= mo->tracer->sprite;
 					ret += mo->tracer->frame;
+				}
+				else
+					ret ^= 0xAAAA;
+				// SRB2Kart: We use hnext & hprev very extensively
+				if (mo->hnext)
+				{
+					ret += mo->hnext->type;
+					ret -= mo->hnext->x;
+					ret += mo->hnext->y;
+					ret -= mo->hnext->z;
+					ret += mo->hnext->momx;
+					ret -= mo->hnext->momy;
+					ret += mo->hnext->momz;
+					ret -= mo->hnext->angle;
+					ret += mo->hnext->flags;
+					ret -= mo->hnext->flags2;
+					ret += mo->hnext->eflags;
+					ret -= mo->hnext->state - states;
+					ret += mo->hnext->tics;
+					ret -= mo->hnext->sprite;
+					ret += mo->hnext->frame;
+				}
+				else
+					ret ^= 0x3333;
+				if (mo->hprev)
+				{
+					ret += mo->hprev->type;
+					ret -= mo->hprev->x;
+					ret += mo->hprev->y;
+					ret -= mo->hprev->z;
+					ret += mo->hprev->momx;
+					ret -= mo->hprev->momy;
+					ret += mo->hprev->momz;
+					ret -= mo->hprev->angle;
+					ret += mo->hprev->flags;
+					ret -= mo->hprev->flags2;
+					ret += mo->hprev->eflags;
+					ret -= mo->hprev->state - states;
+					ret += mo->hprev->tics;
+					ret -= mo->hprev->sprite;
+					ret += mo->hprev->frame;
 				}
 				else
 					ret ^= 0xAAAA;
