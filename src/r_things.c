@@ -2592,8 +2592,8 @@ void R_InitSkins(void)
 	skin->actionspd = 60<<FRACBITS;
 
 	// SRB2kart
-	skin->kartspeed = 7;
-	skin->kartweight = 3;
+	skin->kartspeed = 8;
+	skin->kartweight = 2;
 	//
 
 	skin->normalspeed =  36<<FRACBITS;
