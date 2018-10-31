@@ -1940,7 +1940,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		K_CheckBumpers();
 	}
 
-	player->kartstuff[k_squishedtimer] = 2*TICRATE;
+	player->kartstuff[k_squishedtimer] = TICRATE;
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
