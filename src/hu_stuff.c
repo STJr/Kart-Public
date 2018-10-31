@@ -2114,7 +2114,8 @@ void HU_Drawer(void)
 #ifdef HAVE_BLUA
 		LUAh_ScoresHUD();
 #endif
-	}
+		}
+	}	
 
 	if (gamestate != GS_LEVEL)
 		return;
