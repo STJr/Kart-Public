@@ -8151,6 +8151,7 @@ void P_MobjThinker(mobj_t *mobj)
 		}
 		case MT_BANANA:
 		case MT_FAKEITEM:
+			mobj->friction = ORIG_FRICTION/4;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz && mobj->health > 1)

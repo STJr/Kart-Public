@@ -665,8 +665,33 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	// SRB2kart 011617 - Colission code for kart items //{
 
+	// Push fakes out of other items
+	if (tmthing->type == MT_FAKEITEM && (thing->type == MT_RANDOMITEM || thing->type == MT_FAKEITEM))
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y), thing->radius/4);
+		return true;
+	}
+	else if (thing->type == MT_FAKEITEM && (tmthing->type == MT_RANDOMITEM || tmthing->type == MT_FAKEITEM))
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y), tmthing->radius/4);
+		return true;
+	}
+
 	if (tmthing->type == MT_RANDOMITEM)
 		return true;
+
 	if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD
 		|| tmthing->type == MT_ORBINAUT_SHIELD || tmthing->type == MT_JAWZ_SHIELD)
 	{
