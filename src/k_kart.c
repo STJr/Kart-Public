@@ -3630,7 +3630,7 @@ static void K_MoveHeldObjects(player_t *player)
 
 #if 1
 					{
-						angle_t input = player->mo->angle - cur->angle;
+						angle_t input = player->frameangle - cur->angle;
 						boolean invert = (input > ANGLE_180);
 						if (invert)
 							input = InvAngle(input);
@@ -3642,7 +3642,7 @@ static void K_MoveHeldObjects(player_t *player)
 						cur->angle = cur->angle + input;
 					}
 #else
-					cur->angle = player->mo->angle;
+					cur->angle = player->frameangle;
 #endif
 
 					angoffset = ANGLE_90 + (ANGLE_180 * num);
