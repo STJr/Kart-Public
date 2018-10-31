@@ -3325,6 +3325,12 @@ state_t states[NUMSTATES] =
     {SPR_BOWH, 1, 2, {NULL}, 0, 0, S_BOWLINGHIT3}, // S_BOWLINGHIT2
     {SPR_BOWH, 2, 2, {NULL}, 0, 0, S_BOWLINGHIT4}, // S_BOWLINGHIT3
     {SPR_BOWH, 3, 2, {NULL}, 0, 0, S_NULL},        // S_BOWLINGHIT4
+
+    {SPR_TOAD, 0, -1, {NULL}, 0, 0, S_NULL}, // S_ARIDTOAD
+    {SPR_TOAH, 0, 4, {A_BunnyHop}, 10, 60, S_TOADHIT2}, // S_TOADHIT1
+    {SPR_TOAH, 1, 3, {NULL}, 0, 0, S_TOADHIT3},  // S_TOADHIT2
+    {SPR_TOAH, 2, 3, {NULL}, 0, 0, S_TOADHIT4},  // S_TOADHIT3
+    {SPR_TOAH, 3, 3, {NULL}, 0, 0, S_EBARREL18}, // S_TOADHIT4
  
     {SPR_BRRL, 0, 1, {A_Look}, (96<<16)|1, 0, S_EBARRELIDLE}, // S_EBARRELIDLE
     {SPR_BRRR,  0, 4, {NULL}, 0, 0, S_EBARREL2},  // S_EBARREL1
@@ -3368,12 +3374,6 @@ state_t states[NUMSTATES] =
  
     {SPR_HBSO,   FF_FULLBRIGHT, 5, {NULL}, 0, 0, S_BOOSTON2}, // S_BOOSTON1
     {SPR_HBSO, 1|FF_FULLBRIGHT, 5, {NULL}, 0, 0, S_BOOSTON1}, // S_BOOSTON2
- 
-    {SPR_TOAD, 0, -1, {NULL}, 0, 0, S_NULL}, // S_ARIDTOAD
-    {SPR_TOAH, 0, 4, {A_BunnyHop}, 10, 60, S_TOADHIT2}, // S_TOADHIT1
-    {SPR_TOAH, 1, 3, {NULL}, 0, 0, S_TOADHIT3},  // S_TOADHIT2
-    {SPR_TOAH, 2, 3, {NULL}, 0, 0, S_TOADHIT4},  // S_TOADHIT3
-    {SPR_TOAH, 3, 3, {NULL}, 0, 0, S_EBARREL18}, // S_TOADHIT4
  
     {SPR_WBLZ, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIZARDMAN
     {SPR_WBLN, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIONMAN
@@ -19469,6 +19469,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // activesound
 		MF_SCENERY|MF_NOCLIP|MF_NOCLIPHEIGHT, // flags
 		S_NULL          // raisestate
+	},
 
 	{			// MT_BLUEFIRE
 		749,            // doomednum
