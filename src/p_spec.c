@@ -3219,7 +3219,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3247,7 +3247,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3259,7 +3259,7 @@ void P_SetupSignExit(player_t *player)
 	// SRB2Kart: FINALLY, add in an alternative if no place is found
 	if (player->mo)
 	{
-		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768<<FRACBITS), MT_SIGN);
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapheaderinfo[gamemap-1]->mobj_scale), MT_SIGN);
 
 		P_SetTarget(&sign->target, player->mo);
 		P_SetMobjState(sign, S_SIGN1);

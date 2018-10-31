@@ -8509,8 +8509,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_FZEROBOOM: // F-Zero explosion
 			if (!mobj->extravalue1)
 			{
-				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32<<FRACBITS);
-				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32<<FRACBITS);
+				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32*mobj->scale);
+				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32*mobj->scale);
 				mobj_t *explosion = P_SpawnMobj(mobj->x + (2*mx), mobj->y + (2*my), mobj->z+(mobj->height/2), MT_THOK);
 
 				P_SetMobjState(explosion, S_FZEROBOOM1);
