@@ -3784,6 +3784,7 @@ void P_BouncePlayerMove(mobj_t *mo)
 		S_StartSound(mo, sfx_s3k49);
 	}
 
+	mo->player->kartstuff[k_pogospring] = 0; // Cancel pogo spring effect so you aren't shoved forward back into the wall you just bounced off
 	P_PlayerHitBounceLine(bestslideline);
 	mo->eflags |= MFE_JUSTBOUNCEDWALL;
 
