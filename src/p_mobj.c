@@ -6829,10 +6829,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-						if (scale > 16*FRACUNIT)
-							scale = 16*FRACUNIT;
+						if (scale > 16*mobj->target->scale)
+							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
 
@@ -7025,10 +7025,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-						if (scale > 16*FRACUNIT)
-							scale = 16*FRACUNIT;
+						if (scale > 16*mobj->target->scale)
+							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
 				}
