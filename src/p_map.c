@@ -1411,19 +1411,17 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Make sure they aren't able to damage you ANYWHERE along the Z axis, you have to be TOUCHING the person.
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
-		// SRB2kart - Squish!
-		if (tmthing->scale > thing->scale + (FRACUNIT/8))
+		
+		if (tmthing->scale > thing->scale + (FRACUNIT/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing);
 		else if (thing->scale > tmthing->scale + (FRACUNIT/8))
 			K_SquishPlayer(tmthing->player, thing);
-
-		// SRB2kart - Invincibility!
-		if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer])
+		else if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer]) // SRB2kart - Then invincibility!
 			P_DamageMobj(thing, tmthing, tmthing, 1);
 		else if (thing->player->kartstuff[k_invincibilitytimer] && !tmthing->player->kartstuff[k_invincibilitytimer])
 			P_DamageMobj(tmthing, thing, thing, 1);
 
-		if (G_BattleGametype() && (!G_GametypeHasTeams() || tmthing->player->ctfteam != thing->player->ctfteam))
+		/*if (G_BattleGametype() && (!G_GametypeHasTeams() || tmthing->player->ctfteam != thing->player->ctfteam))
 		{
 			if ((tmthing->player->powers[pw_invulnerability] || tmthing->player->powers[pw_super])
 				&& !thing->player->powers[pw_super])
@@ -1441,7 +1439,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				P_DamageMobj(thing, tmthing, tmthing, 1);
 			else if ((thing->player->pflags & PF_TAGIT) && !(tmthing->player->pflags & PF_TAGIT))
 				P_DamageMobj(tmthing, thing, tmthing, 1);
-		}
+		}*/
 	}
 
 	// Force solid players in hide and seek to avoid corner stacking.
