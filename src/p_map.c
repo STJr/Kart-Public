@@ -665,8 +665,33 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 	// SRB2kart 011617 - Colission code for kart items //{
 
+	// Push fakes out of other items
+	if (tmthing->type == MT_FAKEITEM && (thing->type == MT_RANDOMITEM || thing->type == MT_FAKEITEM))
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y), thing->radius/4);
+		return true;
+	}
+	else if (thing->type == MT_FAKEITEM && (tmthing->type == MT_RANDOMITEM || tmthing->type == MT_FAKEITEM))
+	{
+		// see if it went over / under
+		if (tmthing->z > thing->z + thing->height)
+			return true; // overhead
+		if (tmthing->z + tmthing->height < thing->z)
+			return true; // underneath
+
+		P_InstaThrust(thing, R_PointToAngle2(tmthing->x, tmthing->y, thing->x, thing->y), tmthing->radius/4);
+		return true;
+	}
+
 	if (tmthing->type == MT_RANDOMITEM)
 		return true;
+
 	if (tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD
 		|| tmthing->type == MT_ORBINAUT_SHIELD || tmthing->type == MT_JAWZ_SHIELD)
 	{
@@ -1386,19 +1411,17 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Make sure they aren't able to damage you ANYWHERE along the Z axis, you have to be TOUCHING the person.
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
-		// SRB2kart - Squish!
-		if (tmthing->scale > thing->scale + (FRACUNIT/8))
+		
+		if (tmthing->scale > thing->scale + (FRACUNIT/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing);
 		else if (thing->scale > tmthing->scale + (FRACUNIT/8))
 			K_SquishPlayer(tmthing->player, thing);
-
-		// SRB2kart - Invincibility!
-		if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer])
+		else if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer]) // SRB2kart - Then invincibility!
 			P_DamageMobj(thing, tmthing, tmthing, 1);
 		else if (thing->player->kartstuff[k_invincibilitytimer] && !tmthing->player->kartstuff[k_invincibilitytimer])
 			P_DamageMobj(tmthing, thing, thing, 1);
 
-		if (G_BattleGametype() && (!G_GametypeHasTeams() || tmthing->player->ctfteam != thing->player->ctfteam))
+		/*if (G_BattleGametype() && (!G_GametypeHasTeams() || tmthing->player->ctfteam != thing->player->ctfteam))
 		{
 			if ((tmthing->player->powers[pw_invulnerability] || tmthing->player->powers[pw_super])
 				&& !thing->player->powers[pw_super])
@@ -1416,7 +1439,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				P_DamageMobj(thing, tmthing, tmthing, 1);
 			else if ((thing->player->pflags & PF_TAGIT) && !(tmthing->player->pflags & PF_TAGIT))
 				P_DamageMobj(tmthing, thing, tmthing, 1);
-		}
+		}*/
 	}
 
 	// Force solid players in hide and seek to avoid corner stacking.
@@ -3784,6 +3807,7 @@ void P_BouncePlayerMove(mobj_t *mo)
 		S_StartSound(mo, sfx_s3k49);
 	}
 
+	mo->player->kartstuff[k_pogospring] = 0; // Cancel pogo spring effect so you aren't shoved forward back into the wall you just bounced off
 	P_PlayerHitBounceLine(bestslideline);
 	mo->eflags |= MFE_JUSTBOUNCEDWALL;
 

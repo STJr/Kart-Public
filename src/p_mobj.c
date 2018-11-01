@@ -6829,10 +6829,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-						if (scale > 16*FRACUNIT)
-							scale = 16*FRACUNIT;
+						if (scale > 16*mobj->target->scale)
+							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
 
@@ -7025,10 +7025,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-						if (scale > 16*FRACUNIT)
-							scale = 16*FRACUNIT;
+						if (scale > 16*mobj->target->scale)
+							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
 				}
@@ -8151,6 +8151,7 @@ void P_MobjThinker(mobj_t *mobj)
 		}
 		case MT_BANANA:
 		case MT_FAKEITEM:
+			mobj->friction = ORIG_FRICTION/4;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz && mobj->health > 1)
@@ -8565,8 +8566,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_FZEROBOOM: // F-Zero explosion
 			if (!mobj->extravalue1)
 			{
-				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32<<FRACBITS);
-				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32<<FRACBITS);
+				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32*mobj->scale);
+				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32*mobj->scale);
 				mobj_t *explosion = P_SpawnMobj(mobj->x + (2*mx), mobj->y + (2*my), mobj->z+(mobj->height/2), MT_THOK);
 
 				P_SetMobjState(explosion, S_FZEROBOOM1);
