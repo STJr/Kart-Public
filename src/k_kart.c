@@ -5528,6 +5528,7 @@ static patch_t *kp_winnernum[NUMPOSFRAMES];
 static patch_t *kp_facenum[MAXPLAYERS+1];
 
 static patch_t *kp_rankbumper;
+static patch_t *kp_tinybumpera, *kp_tinybumperb;
 static patch_t *kp_ranknobumpers;
 
 static patch_t *kp_battlewin;
@@ -5653,6 +5654,8 @@ void K_LoadKartHUDGraphics(void)
 
 	// Extra ranking icons
 	kp_rankbumper =				W_CachePatchName("K_BLNICO", PU_HUDGFX);
+	kp_tinybumpera =			W_CachePatchName("K_BLNA", PU_HUDGFX);
+	kp_tinybumperb =			W_CachePatchName("K_BLNB", PU_HUDGFX);
 	kp_ranknobumpers =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
 
 	// Battle graphics
@@ -6311,7 +6314,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 			}
 
 			V_DrawRightAlignedString(workx, worky, splitflags, targettext);
-			workx -= 72; //69; -- good night sweet prince
+			workx -= 67;
 			V_DrawSmallScaledPatch(workx + 4, worky, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
 
 			break;
@@ -6324,7 +6327,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 			splitflags = (splitflags &~ V_HUDTRANSHALF)|V_HUDTRANS;
 		while (curemb--)
 		{
-			workx -= 16;
+			workx -= 12;
 			V_DrawSmallMappedPatch(workx + 4, worky, splitflags, emblempic[curemb], emblemcol[curemb]);
 		}
 	}
@@ -6482,7 +6485,7 @@ static boolean K_drawKartPositionFaces(void)
 		if (players[rankplayer[i]].spectator) continue;
 		if (!players[rankplayer[i]].mo) continue;
 
-		bumperx = FACE_X+18;
+		bumperx = FACE_X+19;
 
 		if (players[rankplayer[i]].mo->color)
 		{
@@ -6495,16 +6498,17 @@ static boolean K_drawKartPositionFaces(void)
 			V_DrawMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, facerankprefix[players[rankplayer[i]].skin], colormap);
 			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 			{
-				for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
+				V_DrawMappedPatch(bumperx-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumpera, colormap);
+				for (j = 1; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 				{
-					V_DrawSmallMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
-					bumperx += 3;
+					bumperx += 5;
+					V_DrawMappedPatch(bumperx, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumperb, colormap);
 				}
 			}
 		}
 
 		if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
-			V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
+			V_DrawScaledPatch(FACE_X-4, Y-3, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
 		else
 		{
 			INT32 pos = players[rankplayer[i]].kartstuff[k_position];
@@ -6518,6 +6522,103 @@ static boolean K_drawKartPositionFaces(void)
 	}
 
 	return false;
+}
+
+//
+// HU_DrawTabRankings -- moved here to take advantage of kart stuff!
+//
+void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol)
+{
+	INT32 i, rightoffset = 240;
+	const UINT8 *colormap;
+	INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
+
+	//this function is designed for 9 or less score lines only
+	//I_Assert(scorelines <= 9); -- not today bitch, kart fixed it up
+
+	V_DrawFill(1-duptweak, 26, dupadjust-2, 1, 0); // Draw a horizontal line because it looks nice!
+	if (scorelines > 8)
+	{
+		V_DrawFill(160, 26, 1, 147, 0); // Draw a vertical line to separate the two sides.
+		V_DrawFill(1-duptweak, 173, dupadjust-2, 1, 0); // And a horizontal line near the bottom.
+		rightoffset = (BASEVIDWIDTH/2) - 4 - x;
+	}
+
+	for (i = 0; i < scorelines; i++)
+	{
+		char strtime[MAXPLAYERNAME+1];
+
+		if (players[tab[i].num].spectator || !players[tab[i].num].mo)
+			continue; //ignore them.
+
+		if (netgame // don't draw it offline
+        && tab[i].num != serverplayer)
+			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
+
+		if (scorelines > 8)
+			strlcpy(strtime, tab[i].name, 6);
+		else
+			STRBUFCPY(strtime, tab[i].name);
+
+		V_DrawString(x + 20, y,
+			((tab[i].num == whiteplayer)
+				? hilicol|V_ALLOWLOWERCASE
+				: V_ALLOWLOWERCASE),
+			strtime);
+
+		if (players[tab[i].num].mo->color)
+		{
+			colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo->color, GTC_CACHE);
+			if (players[tab[i].num].mo->colorized)
+				colormap = R_GetTranslationColormap(TC_RAINBOW, players[tab[i].num].mo->color, GTC_CACHE);
+			else
+				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo->color, GTC_CACHE);
+
+			V_DrawMappedPatch(x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
+			/*if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] > 0) -- not enough space for this
+			{
+				INT32 bumperx = x+19;
+				V_DrawMappedPatch(bumperx-2, y-4, 0, kp_tinybumpera, colormap);
+				for (j = 1; j < players[tab[i].num].kartstuff[k_bumper]; j++)
+				{
+					bumperx += 5;
+					V_DrawMappedPatch(bumperx, y-4, 0, kp_tinybumperb, colormap);
+				}
+			}*/
+		}
+
+		if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] <= 0)
+			V_DrawScaledPatch(x-4, y-7, 0, kp_ranknobumpers);
+		else
+		{
+			INT32 pos = players[tab[i].num].kartstuff[k_position];
+			if (pos < 0 || pos > MAXPLAYERS)
+				pos = 0;
+			// Draws the little number over the face
+			V_DrawScaledPatch(x-5, y+6, 0, kp_facenum[pos]);
+		}
+
+		if (G_RaceGametype())
+		{
+#define timestring(time) va("%i'%02i\"%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
+			if (players[tab[i].num].exiting)
+				V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
+			else if (players[tab[i].num].pflags & PF_TIMEOVER)
+				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "NO CONTEST.");
+			else if (circuitmap)
+				V_DrawRightAlignedString(x+rightoffset, y, 0, va("Lap %d", tab[i].count));
+#undef timestring
+		}
+		else
+			V_DrawRightAlignedString(x+rightoffset, y, 0, va("%u", tab[i].count));
+
+		y += 18;
+		if (i == 7)
+		{
+			y = 33;
+			x = (BASEVIDWIDTH/2) + 4;
+		}
+	}
 }
 
 static void K_drawKartLaps(void)
