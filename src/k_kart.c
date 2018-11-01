@@ -7689,7 +7689,7 @@ void K_drawKartHUD(void)
 	}
 
 	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *
-		V_DrawScaledPatch(BASEVIDWIDTH/2 - SHORT(kp_yougotem->width), 32, V_HUDTRANS, kp_yougotem);
+		V_DrawScaledPatch(BASEVIDWIDTH/2 - (SHORT(kp_yougotem->width)/2), 32, V_HUDTRANS, kp_yougotem);
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
