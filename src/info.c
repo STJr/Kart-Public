@@ -60,9 +60,9 @@ char sprnames[NUMSPRITES + 1][5] =
 	"JAWZ","SSMN","KRBM","BHOG","BHBM","SPBM","THNS","SINK","SITR","KBLN",
 	"DEZL","POKE","AUDI","DECO","DOOD","SNES","GBAS","SPRS","BUZB","CHOM",
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
-	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","RETI","AIDU","KSPK",
-	"LZI1","LZI2","KLIT","FZSM","FZBM","FPRT","SPTL","ENM1","GARU","MARR",
-	"REAP","JITB","CDMO","CDBU","VIEW"
+	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","HIT1","HIT2","HIT3",
+	"RETI","AIDU","KSPK","LZI1","LZI2","KLIT","FZSM","FZBM","FPRT","SPTL",
+	"ENM1","GARU","MARR","REAP","JITB","CDMO","CDBU","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3047,6 +3047,36 @@ state_t states[NUMSTATES] =
 	{SPR_FITM, FF_ANIMATE, -1, {NULL}, 23, 3, S_NULL}, // S_PLAYERFAKE
 
 	{SPR_PBOM, 0, -1, {NULL}, 0, 0, S_NULL}, // S_KARMAWHEEL
+
+	{SPR_HIT1, 0, 7, {NULL}, 0, 0, S_BATTLEPOINT1B}, // S_BATTLEPOINT1A
+	{SPR_HIT1, 2, 1, {NULL}, 0, 0, S_BATTLEPOINT1C}, // S_BATTLEPOINT1B
+	{SPR_HIT1, 4, 1, {NULL}, 0, 0, S_BATTLEPOINT1D}, // S_BATTLEPOINT1C
+	{SPR_HIT1, 3, 1, {NULL}, 0, 0, S_BATTLEPOINT1E}, // S_BATTLEPOINT1D
+	{SPR_HIT1, 2, 1, {NULL}, 0, 0, S_BATTLEPOINT1F}, // S_BATTLEPOINT1E
+	{SPR_HIT1, 1, 1, {NULL}, 0, 0, S_BATTLEPOINT1G}, // S_BATTLEPOINT1F
+	{SPR_HIT1, 2, TICRATE, {NULL}, 0, 0, S_BATTLEPOINT1H}, // S_BATTLEPOINT1G
+	{SPR_HIT1, 5, 1, {NULL}, 0, 0, S_BATTLEPOINT1I}, // S_BATTLEPOINT1H
+	{SPR_HIT1, 6, 1, {NULL}, 0, 0, S_NULL}, // S_BATTLEPOINT1I
+
+	{SPR_HIT2, 0, 7, {NULL}, 0, 0, S_BATTLEPOINT2B}, // S_BATTLEPOINT2A
+	{SPR_HIT2, 2, 1, {NULL}, 0, 0, S_BATTLEPOINT2C}, // S_BATTLEPOINT2B
+	{SPR_HIT2, 4, 1, {NULL}, 0, 0, S_BATTLEPOINT2D}, // S_BATTLEPOINT2C
+	{SPR_HIT2, 3, 1, {NULL}, 0, 0, S_BATTLEPOINT2E}, // S_BATTLEPOINT2D
+	{SPR_HIT2, 2, 1, {NULL}, 0, 0, S_BATTLEPOINT2F}, // S_BATTLEPOINT2E
+	{SPR_HIT2, 1, 1, {NULL}, 0, 0, S_BATTLEPOINT2G}, // S_BATTLEPOINT2F
+	{SPR_HIT2, 2, TICRATE, {NULL}, 0, 0, S_BATTLEPOINT2H}, // S_BATTLEPOINT2G
+	{SPR_HIT2, 5, 1, {NULL}, 0, 0, S_BATTLEPOINT2I}, // S_BATTLEPOINT2H
+	{SPR_HIT2, 6, 1, {NULL}, 0, 0, S_NULL}, // S_BATTLEPOINT2I
+
+	{SPR_HIT3, 0, 7, {NULL}, 0, 0, S_BATTLEPOINT3B}, // S_BATTLEPOINT3A
+	{SPR_HIT3, 2, 1, {NULL}, 0, 0, S_BATTLEPOINT3C}, // S_BATTLEPOINT3B
+	{SPR_HIT3, 4, 1, {NULL}, 0, 0, S_BATTLEPOINT3D}, // S_BATTLEPOINT3C
+	{SPR_HIT3, 3, 1, {NULL}, 0, 0, S_BATTLEPOINT3E}, // S_BATTLEPOINT3D
+	{SPR_HIT3, 2, 1, {NULL}, 0, 0, S_BATTLEPOINT3F}, // S_BATTLEPOINT3E
+	{SPR_HIT3, 1, 1, {NULL}, 0, 0, S_BATTLEPOINT3G}, // S_BATTLEPOINT3F
+	{SPR_HIT3, 2, TICRATE, {NULL}, 0, 0, S_BATTLEPOINT3H}, // S_BATTLEPOINT3G
+	{SPR_HIT3, 5, 1, {NULL}, 0, 0, S_BATTLEPOINT3I}, // S_BATTLEPOINT3H
+	{SPR_HIT3, 6, 1, {NULL}, 0, 0, S_NULL}, // S_BATTLEPOINT3I
 
 	// Oh no it's annoying lightning states.......
 	// Lightning Sparks (it's the ones we'll use for the radius)
@@ -17303,6 +17333,33 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_None,       // activesound
 		MF_NOTHINK|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
+	},
+
+	{           // MT_BATTLEPOINT
+		-1,						// doomednum
+		S_INVISIBLE,			// spawnstate
+		1000,					// spawnhealth
+		S_NULL,					// seestate
+		sfx_None,				// seesound
+		8,						// reactiontime
+		sfx_None,				// attacksound
+		S_NULL,					// painstate
+		0,						// painchance
+		sfx_None,				// painsound
+		S_NULL,					// meleestate
+		S_NULL,					// missilestate
+		S_NULL,					// deathstate
+		S_NULL,					// xdeathstate
+		sfx_None,				// deathsound
+		8,						// speed
+		8*FRACUNIT,				// radius
+		8*FRACUNIT,				// height
+		-1,						// display offset
+		100,					// mass
+		0,						// damage
+		sfx_None,				// activesound
+		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_DONTENCOREMAP, // flags
+		S_NULL					// raisestate
 	},
 
 	{           // MT_FZEROBOOM

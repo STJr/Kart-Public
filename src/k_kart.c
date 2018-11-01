@@ -1801,6 +1801,32 @@ void K_DoInstashield(player_t *player)
 	P_SetTarget(&layerb->target, player->mo);
 }
 
+void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount)
+{
+	statenum_t st;
+	mobj_t *pt;
+
+	if (!source || !source->mo)
+		return;
+
+	if (amount == 1)
+		st = S_BATTLEPOINT1A;
+	else if (amount == 2)
+		st = S_BATTLEPOINT2A;
+	else if (amount == 3)
+		st = S_BATTLEPOINT3A;
+	else
+		return; // NO STATE!
+
+	pt = P_SpawnMobj(source->mo->x, source->mo->y, source->mo->z, MT_BATTLEPOINT);
+	P_SetTarget(&pt->target, source->mo);
+	P_SetMobjState(pt, st);
+	if (victim && victim->skincolor)
+		pt->color = victim->skincolor;
+	else
+		pt->color = source->skincolor;
+}
+
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
 {
 	UINT8 scoremultiply = 1;
@@ -1834,6 +1860,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			if (!trapitem)
 			{
 				source->player->kartstuff[k_wanted] -= wantedreduce;
@@ -1924,6 +1951,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			source->player->kartstuff[k_wanted] -= wantedreduce;
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
@@ -2013,6 +2041,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			source->player->kartstuff[k_wanted] -= wantedreduce;
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
@@ -4085,6 +4114,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
 
+	if (player->kartstuff[k_yougotem])
+		player->kartstuff[k_yougotem]--;
+	
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
 		if (player->exiting)
@@ -5610,6 +5642,8 @@ static patch_t *kp_lapanim_number[10][3];
 static patch_t *kp_lapanim_emblem;
 static patch_t *kp_lapanim_hand[3];
 
+static patch_t *kp_yougotem;
+
 void K_LoadKartHUDGraphics(void)
 {
 	INT32 i, j;
@@ -5835,6 +5869,8 @@ void K_LoadKartHUDGraphics(void)
 		buffer[7] = '0'+(i+1);
 		kp_lapanim_hand[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
+
+	kp_yougotem = (patch_t *) W_CachePatchName("YOUGOTEM", PU_HUDGFX);
 }
 
 // For the item toggle menu
@@ -7706,6 +7742,9 @@ void K_drawKartHUD(void)
 		else if (stplyr->kartstuff[k_lapanimation] && !splitscreen)
 			K_drawLapStartAnim();
 	}
+
+	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *
+		V_DrawScaledPatch(BASEVIDWIDTH/2 - (SHORT(kp_yougotem->width)/2), 32, V_HUDTRANS, kp_yougotem);
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)

@@ -6761,6 +6761,36 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_KARMAWHEEL", // Karma player wheels
 
+	"S_BATTLEPOINT1A", // Battle point indicators
+	"S_BATTLEPOINT1B",
+	"S_BATTLEPOINT1C",
+	"S_BATTLEPOINT1D",
+	"S_BATTLEPOINT1E",
+	"S_BATTLEPOINT1F",
+	"S_BATTLEPOINT1G",
+	"S_BATTLEPOINT1H",
+	"S_BATTLEPOINT1I",
+
+	"S_BATTLEPOINT2A",
+	"S_BATTLEPOINT2B",
+	"S_BATTLEPOINT2C",
+	"S_BATTLEPOINT2D",
+	"S_BATTLEPOINT2E",
+	"S_BATTLEPOINT2F",
+	"S_BATTLEPOINT2G",
+	"S_BATTLEPOINT2H",
+	"S_BATTLEPOINT2I",
+
+	"S_BATTLEPOINT3A",
+	"S_BATTLEPOINT3B",
+	"S_BATTLEPOINT3C",
+	"S_BATTLEPOINT3D",
+	"S_BATTLEPOINT3E",
+	"S_BATTLEPOINT3F",
+	"S_BATTLEPOINT3G",
+	"S_BATTLEPOINT3H",
+	"S_BATTLEPOINT3I",
+
 	// Thunder shield use stuff;
 	"S_KSPARK1",	// Sparkling Radius
 	"S_KSPARK2",
@@ -7519,6 +7549,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
 
+	"MT_BATTLEPOINT",
+
 	"MT_FZEROBOOM",
 
 	// Midnight Channel stuff:
@@ -7933,6 +7965,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
 	"WANTED",
+	"YOUGOTEM",
 };
 
 static const char *const HUDITEMS_LIST[] = {
