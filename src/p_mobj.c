@@ -8301,6 +8301,43 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
+		case MT_BRAKEDRIFT:
+			if ((!mobj->target || !mobj->target->health || !mobj->target->player || !P_IsObjectOnGround(mobj->target))
+				|| !mobj->target->player->kartstuff[k_drift] || !mobj->target->player->kartstuff[k_brakedrift]
+				|| !((mobj->target->player->cmd.buttons & BT_BRAKE)
+				|| !(mobj->target->player->cmd.buttons & BT_ACCELERATE))) // Letting go of accel functions about the same as brake-drifting
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			else
+			{
+				fixed_t newx, newy;
+				angle_t travelangle;
+
+				travelangle = mobj->target->angle - ((ANGLE_45/5)*mobj->target->player->kartstuff[k_drift]);
+
+				newx = mobj->target->x + P_ReturnThrustX(mobj->target, travelangle+ANGLE_180, 24*mobj->target->scale);
+				newy = mobj->target->y + P_ReturnThrustY(mobj->target, travelangle+ANGLE_180, 24*mobj->target->scale);
+				P_TeleportMove(mobj, newx, newy, mobj->target->z);
+
+				mobj->angle = travelangle - ((ANGLE_90/5)*mobj->target->player->kartstuff[k_drift]);
+				P_SetScale(mobj, (mobj->destscale = mobj->target->scale));
+
+				if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player)*4)
+					mobj->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
+				else if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player)*2)
+					mobj->color = SKINCOLOR_KETCHUP;
+				else if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player))
+					mobj->color = SKINCOLOR_SAPPHIRE;
+				else
+					mobj->color = SKINCOLOR_WHITE;
+
+				K_MatchGenericExtraFlags(mobj, mobj->target);
+				if (leveltime & 1)
+					mobj->flags2 |= MF2_DONTDRAW;
+			}
+			break;
 		case MT_PLAYERRETICULE:
 			if (!mobj->target || !mobj->target->health)
 			{
@@ -8310,10 +8347,7 @@ void P_MobjThinker(mobj_t *mobj)
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_INSTASHIELDB:
-			if (leveltime & 1)
-				mobj->flags2 |= MF2_DONTDRAW;
-			else
-				mobj->flags2 &= ~MF2_DONTDRAW;
+			mobj->flags2 ^= MF2_DONTDRAW;
 			/* FALLTHRU */
 		case MT_INSTASHIELDA:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_instashield]))

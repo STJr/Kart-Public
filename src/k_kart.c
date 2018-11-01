@@ -1330,6 +1330,23 @@ static void K_SpawnDashDustRelease(player_t *player)
 	}
 }
 
+static void K_SpawnBrakeDriftSparks(player_t *player) // Be sure to update the mobj thinker case too!
+{
+	mobj_t *sparks;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	// Position & etc are handled in its thinker, and its spawned invisible.
+	// This avoids needing to dupe code if we don't need it.
+	sparks = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BRAKEDRIFT);
+	P_SetTarget(&sparks->target, player->mo);
+	P_SetScale(sparks, (sparks->destscale = player->mo->scale));
+	K_MatchGenericExtraFlags(sparks, player->mo);
+	sparks->flags2 |= MF2_DONTDRAW;
+}
+
 /**	\brief	Calculates the respawn timer and drop-boosting
 
 	\param	player	player object passed from K_KartPlayerThink
@@ -3908,6 +3925,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		fast->momx = 3*player->mo->momx/4;
 		fast->momy = 3*player->mo->momy/4;
 		fast->momz = 3*player->mo->momz/4;
+		K_MatchGenericExtraFlags(fast, player->mo);
 	}
 
 	if (player->playerstate == PST_DEAD || player->kartstuff[k_respawn] > 1) // Ensure these are set correctly here
@@ -4486,7 +4504,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
 		|| player->speed < FixedMul(10<<16, player->mo->scale)) // you're too slow!
 	{
-		player->kartstuff[k_drift] = player->kartstuff[k_driftcharge] = player->kartstuff[k_aizdriftstrat] = 0;
+		player->kartstuff[k_drift] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_aizdriftstrat] = player->kartstuff[k_brakedrift] = 0;
 	}
 
 	if ((!player->kartstuff[k_sneakertimer])
@@ -4500,6 +4519,18 @@ static void K_KartDrift(player_t *player, boolean onground)
 	}
 	else if (player->kartstuff[k_aizdriftstrat] && !player->kartstuff[k_drift])
 		K_SpawnAIZDust(player);
+
+	if (player->kartstuff[k_drift]
+		&& ((player->cmd.buttons & BT_BRAKE)
+		|| !(player->cmd.buttons & BT_ACCELERATE))
+		&& P_IsObjectOnGround(player->mo))
+	{
+		if (!player->kartstuff[k_brakedrift])
+			K_SpawnBrakeDriftSparks(player);
+		player->kartstuff[k_brakedrift] = 1;
+	}
+	else
+		player->kartstuff[k_brakedrift] = 0;
 }
 //
 // K_KartUpdatePosition
