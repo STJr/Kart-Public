@@ -4067,6 +4067,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
 
+	if (player->kartstuff[k_yougotem])
+		player->kartstuff[k_yougotem]--;
+	
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
 		if (player->exiting)
@@ -5578,6 +5581,8 @@ static patch_t *kp_lapanim_final[11];
 static patch_t *kp_lapanim_number[10][3];
 static patch_t *kp_lapanim_emblem;
 
+static patch_t *kp_yougotem;
+
 void K_LoadKartHUDGraphics(void)
 {
 	INT32 i, j;
@@ -5796,6 +5801,8 @@ void K_LoadKartHUDGraphics(void)
 	}
 
 	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
+
+	kp_yougotem = (patch_t *) W_CachePatchName("YOUGOTEM", PU_HUDGFX);
 }
 
 // For the item toggle menu
@@ -7651,6 +7658,9 @@ void K_drawKartHUD(void)
 		else if (stplyr->kartstuff[k_lapanimation] && !splitscreen)
 			K_drawLapStartAnim();
 	}
+
+	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *
+		V_DrawScaledPatch(BASEVIDWIDTH/2 - SHORT(kp_yougotem->width), 32, V_HUDTRANS, kp_yougotem);
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)

@@ -7927,6 +7927,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
 	"WANTED",
+	"YOUGOTEM",
 };
 
 static const char *const HUDITEMS_LIST[] = {

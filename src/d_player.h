@@ -344,6 +344,7 @@ typedef enum
 	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a bumper
 	k_comebackmode, 	// 0 = bomb, 1 = item
 	k_wanted, 			// Timer for determining WANTED status, lowers when hitting people, prevents the game turning into Camp Lazlo
+	k_yougotem, 		// "You Got Em" gfx when hitting someone as a karma player via a method that gets you back in the game instantly
 
 	NUMKARTSTUFF
 } kartstufftype_t;
