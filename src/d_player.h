@@ -280,6 +280,7 @@ typedef enum
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_lapanimation,		// Used to show the lap start wing logo animation
+	k_laphand,			// Lap hand gfx to use; 0 = none, 1 = :ok_hand:, 2 = :thumbs_up:, 3 = :thumps_down:
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam

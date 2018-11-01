@@ -5577,6 +5577,7 @@ static patch_t *kp_lapanim_lap[7];
 static patch_t *kp_lapanim_final[11];
 static patch_t *kp_lapanim_number[10][3];
 static patch_t *kp_lapanim_emblem;
+static patch_t *kp_lapanim_hand[3];
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -5796,6 +5797,13 @@ void K_LoadKartHUDGraphics(void)
 	}
 
 	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
+
+	sprintf(buffer, "K_LAPH0x");
+	for (i = 0; i < 3; i++)
+	{
+		buffer[7] = '0'+(i+1);
+		kp_lapanim_hand[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 }
 
 // For the item toggle menu
@@ -7376,41 +7384,57 @@ static void K_drawLapStartAnim(void)
 {
 	// This is an EVEN MORE insanely complicated animation.
 	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
+	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
 
-	V_DrawScaledPatch(BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)),
-		56 - (32*max(0, progress-76)),
-		0, kp_lapanim_emblem);
+	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
+		(48 - (32*max(0, progress-76)))*FRACUNIT,
+		FRACUNIT, V_HUDTRANS,
+		kp_lapanim_emblem, colormap);
+
+	if (stplyr->kartstuff[k_laphand] >= 1 && stplyr->kartstuff[k_laphand] <= 3)
+	{
+		V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
+			(48 - (32*max(0, progress-76))
+				+ 4 - abs((leveltime % 8) - 4))*FRACUNIT,
+			FRACUNIT, V_HUDTRANS,
+			kp_lapanim_hand[stplyr->kartstuff[k_laphand]-1], NULL);
+	}
 
 	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
 	{
-		V_DrawScaledPatch(27 - (32*max(0, progress-76)),
-			32,
-			0, kp_lapanim_final[min(progress/2, 10)]);
+		V_DrawFixedPatch((62 - (32*max(0, progress-76)))*FRACUNIT, // 27
+			(-6)*FRACUNIT, // 24
+			FRACUNIT, V_HUDTRANS,
+			kp_lapanim_final[min(progress/2, 10)], NULL);
 
 		if (progress/2-12 >= 0)
 		{
-			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
-				32,
-				0, kp_lapanim_lap[min(progress/2-12, 6)]);
+			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
+				(-6)*FRACUNIT, // 24
+				FRACUNIT, V_HUDTRANS,
+				kp_lapanim_lap[min(progress/2-12, 6)], NULL);
 		}
 	}
 	else
 	{
-		V_DrawScaledPatch(61 - (32*max(0, progress-76)),
-			32,
-			0, kp_lapanim_lap[min(progress/2, 6)]);
+		V_DrawFixedPatch((82 - (32*max(0, progress-76)))*FRACUNIT, // 61
+			(-6)*FRACUNIT, // 24
+			FRACUNIT, V_HUDTRANS,
+			kp_lapanim_lap[min(progress/2, 6)], NULL);
 
 		if (progress/2-8 >= 0)
 		{
-			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
-				32,
-				0, kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)]);
+			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
+				(-6)*FRACUNIT, // 24
+				FRACUNIT, V_HUDTRANS,
+				kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)], NULL);
 
 			if (progress/2-10 >= 0)
 			{
-				V_DrawScaledPatch(221 + (32*max(0, progress-76)),
-					32,
-					0, kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)]);
+				V_DrawFixedPatch((208 + (32*max(0, progress-76)))*FRACUNIT, // 221
+					(-6)*FRACUNIT, // 24
+					FRACUNIT, V_HUDTRANS,
+					kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)], NULL);
 			}
 		}
 	}
