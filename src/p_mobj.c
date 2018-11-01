@@ -8323,6 +8323,28 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
+		case MT_BATTLEPOINT:
+			if (!mobj->target || P_MobjWasRemoved(mobj->target))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+
+			if (mobj->movefactor < 48*mobj->target->scale)
+			{
+				mobj->movefactor += (48*mobj->target->scale)/6;
+				if (mobj->movefactor > mobj->target->height)
+					mobj->movefactor = mobj->target->height;
+			}
+			else if (mobj->movefactor > 48*mobj->target->scale)
+			{
+				mobj->movefactor -= (48*mobj->target->scale)/6;
+				if (mobj->movefactor < mobj->target->height)
+					mobj->movefactor = mobj->target->height;
+			}
+
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z + (mobj->target->height/2) + mobj->movefactor);
+			break;
 		case MT_THUNDERSHIELD:
 		{
 			fixed_t destx, desty;

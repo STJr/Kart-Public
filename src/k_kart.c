@@ -1784,6 +1784,32 @@ void K_DoInstashield(player_t *player)
 	P_SetTarget(&layerb->target, player->mo);
 }
 
+void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount)
+{
+	statenum_t st;
+	mobj_t *pt;
+
+	if (!source || !source->mo)
+		return;
+
+	if (amount == 1)
+		st = S_BATTLEPOINT1A;
+	else if (amount == 2)
+		st = S_BATTLEPOINT2A;
+	else if (amount == 3)
+		st = S_BATTLEPOINT3A;
+	else
+		return; // NO STATE!
+
+	pt = P_SpawnMobj(source->mo->x, source->mo->y, source->mo->z, MT_BATTLEPOINT);
+	P_SetTarget(&pt->target, source->mo);
+	P_SetMobjState(pt, st);
+	if (victim && victim->skincolor)
+		pt->color = victim->skincolor;
+	else
+		pt->color = source->skincolor;
+}
+
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
 {
 	UINT8 scoremultiply = 1;
@@ -1817,6 +1843,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			if (!trapitem)
 			{
 				source->player->kartstuff[k_wanted] -= wantedreduce;
@@ -1907,6 +1934,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			source->player->kartstuff[k_wanted] -= wantedreduce;
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
@@ -1996,6 +2024,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			source->player->kartstuff[k_wanted] -= wantedreduce;
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
