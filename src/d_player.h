@@ -308,6 +308,7 @@ typedef enum
 	k_destboostcam,		// Ditto
 	k_timeovercam,		// Camera timer for leaving behind or not
 	k_aizdriftstrat,	// Let go of your drift while boosting? Helper for the SICK STRATZ you have just unlocked
+	k_brakedrift,		// Helper for brake-drift spark spawning
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)

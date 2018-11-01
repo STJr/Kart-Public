@@ -8435,6 +8435,7 @@ void A_SPBChase(mobj_t *actor)
 				//fast->momz = 3*actor->momz/4;
 				fast->color = SKINCOLOR_RED;
 				fast->colorized = true;
+				K_MatchGenericExtraFlags(fast, actor);
 			}
 
 			return;
