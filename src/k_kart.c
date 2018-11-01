@@ -5577,6 +5577,9 @@ static patch_t *kp_lapanim_lap[7];
 static patch_t *kp_lapanim_final[11];
 static patch_t *kp_lapanim_number[10][3];
 static patch_t *kp_lapanim_emblem;
+#if 0
+static patch_t *kp_lapanim_hand[3];
+#endif
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -5796,6 +5799,15 @@ void K_LoadKartHUDGraphics(void)
 	}
 
 	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
+
+#if 0
+	sprintf(buffer, "K_LAPH0x");
+	for (i = 0; i < 3; i++)
+	{
+		buffer[7] = '0'+(i+1);
+		kp_lapanim_hand[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+#endif
 }
 
 // For the item toggle menu
@@ -7377,11 +7389,27 @@ static void K_drawLapStartAnim(void)
 	// This is an EVEN MORE insanely complicated animation.
 	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
 	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
+#if 0
+	UINT8 h = 1;
+
+	if (stplyr->kartstuff[k_position] == 1)
+		h = 0;
+	else if (K_IsPlayerLosing(stplyr))
+		h = 2;
+#endif
 
 	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
 		(48 - (32*max(0, progress-76)))*FRACUNIT,
 		FRACUNIT, V_HUDTRANS,
 		kp_lapanim_emblem, colormap);
+
+#if 0
+	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
+		(48 - (32*max(0, progress-76))
+			+ 4 - abs((leveltime % 8) - 4))*FRACUNIT,
+		FRACUNIT, V_HUDTRANS,
+		kp_lapanim_hand[h], NULL);
+#endif
 
 	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
 	{
