@@ -6252,6 +6252,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DRIFTSPARK_C1",
 	"S_DRIFTSPARK_C2",
 
+	// Brake drift sparks
+	"S_BRAKEDRIFT",
+
 	// Drift Smoke
 	"S_DRIFTDUST1",
 	"S_DRIFTDUST2",
@@ -6762,6 +6765,36 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_PLAYERFAKE", // Player fake overlay
 
 	"S_KARMAWHEEL", // Karma player wheels
+
+	"S_BATTLEPOINT1A", // Battle point indicators
+	"S_BATTLEPOINT1B",
+	"S_BATTLEPOINT1C",
+	"S_BATTLEPOINT1D",
+	"S_BATTLEPOINT1E",
+	"S_BATTLEPOINT1F",
+	"S_BATTLEPOINT1G",
+	"S_BATTLEPOINT1H",
+	"S_BATTLEPOINT1I",
+
+	"S_BATTLEPOINT2A",
+	"S_BATTLEPOINT2B",
+	"S_BATTLEPOINT2C",
+	"S_BATTLEPOINT2D",
+	"S_BATTLEPOINT2E",
+	"S_BATTLEPOINT2F",
+	"S_BATTLEPOINT2G",
+	"S_BATTLEPOINT2H",
+	"S_BATTLEPOINT2I",
+
+	"S_BATTLEPOINT3A",
+	"S_BATTLEPOINT3B",
+	"S_BATTLEPOINT3C",
+	"S_BATTLEPOINT3D",
+	"S_BATTLEPOINT3E",
+	"S_BATTLEPOINT3F",
+	"S_BATTLEPOINT3G",
+	"S_BATTLEPOINT3H",
+	"S_BATTLEPOINT3I",
 
 	// Thunder shield use stuff;
 	"S_KSPARK1",	// Sparkling Radius
@@ -7593,6 +7626,7 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
 	"MT_DRIFTSPARK",
+	"MT_BRAKEDRIFT",
 	"MT_DRIFTDUST",
 
 	"MT_ROCKETSNEAKER", // Rocket sneakers
@@ -7714,6 +7748,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
+
+	"MT_BATTLEPOINT",
 
 	"MT_FZEROBOOM",
 
@@ -8186,6 +8222,7 @@ static const char *const KARTSTUFF_LIST[] = {
 
 	"THROWDIR",
 	"LAPANIMATION",
+	"LAPHAND",
 	"CARDANIMATION",
 	"VOICES",
 	"TAUNTVOICES",
@@ -8214,6 +8251,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"DESTBOOSTCAM",
 	"TIMEOVERCAM",
 	"AIZDRIFTSTRAT",
+	"BRAKEDRIFT",
 
 	"ITEMROULETTE",
 	"ROULETTETYPE",
@@ -8246,6 +8284,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
 	"WANTED",
+	"YOUGOTEM",
 };
 
 static const char *const HUDITEMS_LIST[] = {

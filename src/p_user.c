@@ -8136,6 +8136,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (!player || !player->mo)
 		return true;
 
+	// This can happen when joining
+	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
+		return true;
+
 	mo = player->mo;
 
 #ifndef NOCLIPCAM
@@ -8607,8 +8611,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (timeover == 1)
 	{
-		thiscam->momx = P_ReturnThrustX(NULL, mo->angle, 32<<FRACBITS); // Push forward
-		thiscam->momy = P_ReturnThrustY(NULL, mo->angle, 32<<FRACBITS);
+		thiscam->momx = P_ReturnThrustX(NULL, mo->angle, 32*mo->scale); // Push forward
+		thiscam->momy = P_ReturnThrustY(NULL, mo->angle, 32*mo->scale);
 		thiscam->momz = 0;
 	}
 	else if (player->exiting || timeover == 2)

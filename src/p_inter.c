@@ -456,6 +456,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				else
 				{
 					mobj_t *boom = P_SpawnMobj(special->target->x, special->target->y, special->target->z, MT_BOOMEXPLODE);
+					UINT8 ptadd = (K_IsPlayerWanted(player) ? 2 : 1);
+
 					boom->scale = special->target->scale;
 					boom->destscale = special->target->scale;
 					boom->momz = 5*FRACUNIT;
@@ -478,12 +480,17 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 						}
 
 						if (numingame <= 2) // If so, then an extra karma point so they are 100% certain to switch places; it's annoying to end matches with a bomb kill
-							special->target->player->kartstuff[k_comebackpoints]++;
+							ptadd++;
 					}
 
-					special->target->player->kartstuff[k_comebackpoints] += (K_IsPlayerWanted(player) ? 2 : 1);
+					special->target->player->kartstuff[k_comebackpoints] += ptadd;
+
+					if (ptadd > 1)
+						special->target->player->kartstuff[k_yougotem] = 2*TICRATE;
+
 					if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 						K_StealBumper(special->target->player, player, true);
+
 					special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
 					K_ExplodePlayer(player, special->target, special);
@@ -507,6 +514,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			else if (special->target->player->kartstuff[k_comebackmode] == 2 && P_CanPickupItem(player, 2))
 			{
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
+				UINT8 ptadd = 1; // No WANTED bonus for tricking
+
 				S_StartSound(poof, special->info->seesound);
 
 				if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
@@ -522,14 +531,18 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					}
 
 					if (numingame <= 2) // If so, then an extra karma point so they are 100% certain to switch places; it's annoying to end matches with a fake kill
-						special->target->player->kartstuff[k_comebackpoints]++;
+						ptadd++;
 				}
 
 				special->target->player->kartstuff[k_comebackmode] = 0;
-				special->target->player->kartstuff[k_comebackpoints]++;
+				special->target->player->kartstuff[k_comebackpoints] += ptadd;
+
+				if (ptadd > 1)
+					special->target->player->kartstuff[k_yougotem] = 2*TICRATE;
 
 				if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 					K_StealBumper(special->target->player, player, true);
+
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
 				K_DropItems(player); //K_StripItems(player);
