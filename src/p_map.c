@@ -697,7 +697,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}
 
 	// Push fakes out of other items
-	if (tmthing->type == MT_FAKEITEM && (thing->type == MT_RANDOMITEM || thing->type == MT_FAKEITEM))
+	if (tmthing->type == MT_EGGMANITEM && (thing->type == MT_RANDOMITEM || thing->type == MT_EGGMANITEM))
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
@@ -708,7 +708,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		P_InstaThrust(tmthing, R_PointToAngle2(thing->x, thing->y, tmthing->x, tmthing->y), thing->radius/4);
 		return true;
 	}
-	else if (thing->type == MT_FAKEITEM && (tmthing->type == MT_RANDOMITEM || tmthing->type == MT_FAKEITEM))
+	else if (thing->type == MT_EGGMANITEM && (tmthing->type == MT_RANDOMITEM || tmthing->type == MT_EGGMANITEM))
 	{
 		// see if it went over / under
 		if (tmthing->z > thing->z + thing->height)
