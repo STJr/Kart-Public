@@ -3654,6 +3654,11 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 {
 	boolean itsatwodlevel = false;
 	postimg_t postimg = postimg_none;
+
+	// This can happen when joining
+	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
+		return true;
+
 	if (twodlevel
 		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
 		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
@@ -6829,10 +6834,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-						if (scale > 16*FRACUNIT)
-							scale = 16*FRACUNIT;
+						if (scale > 16*mobj->target->scale)
+							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
 
@@ -7025,10 +7030,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale += FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
-						if (scale > 16*FRACUNIT)
-							scale = 16*FRACUNIT;
+						if (scale > 16*mobj->target->scale)
+							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
 				}
@@ -8151,6 +8156,7 @@ void P_MobjThinker(mobj_t *mobj)
 		}
 		case MT_BANANA:
 		case MT_FAKEITEM:
+			mobj->friction = ORIG_FRICTION/4;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 			if (mobj->z <= mobj->floorz && mobj->health > 1)
@@ -8301,6 +8307,43 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
+		case MT_BRAKEDRIFT:
+			if ((!mobj->target || !mobj->target->health || !mobj->target->player || !P_IsObjectOnGround(mobj->target))
+				|| !mobj->target->player->kartstuff[k_drift] || !mobj->target->player->kartstuff[k_brakedrift]
+				|| !((mobj->target->player->cmd.buttons & BT_BRAKE)
+				|| !(mobj->target->player->cmd.buttons & BT_ACCELERATE))) // Letting go of accel functions about the same as brake-drifting
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			else
+			{
+				fixed_t newx, newy;
+				angle_t travelangle;
+
+				travelangle = mobj->target->angle - ((ANGLE_45/5)*mobj->target->player->kartstuff[k_drift]);
+
+				newx = mobj->target->x + P_ReturnThrustX(mobj->target, travelangle+ANGLE_180, 24*mobj->target->scale);
+				newy = mobj->target->y + P_ReturnThrustY(mobj->target, travelangle+ANGLE_180, 24*mobj->target->scale);
+				P_TeleportMove(mobj, newx, newy, mobj->target->z);
+
+				mobj->angle = travelangle - ((ANGLE_90/5)*mobj->target->player->kartstuff[k_drift]);
+				P_SetScale(mobj, (mobj->destscale = mobj->target->scale));
+
+				if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player)*4)
+					mobj->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
+				else if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player)*2)
+					mobj->color = SKINCOLOR_KETCHUP;
+				else if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player))
+					mobj->color = SKINCOLOR_SAPPHIRE;
+				else
+					mobj->color = SKINCOLOR_WHITE;
+
+				K_MatchGenericExtraFlags(mobj, mobj->target);
+				if (leveltime & 1)
+					mobj->flags2 |= MF2_DONTDRAW;
+			}
+			break;
 		case MT_PLAYERRETICULE:
 			if (!mobj->target || !mobj->target->health)
 			{
@@ -8310,10 +8353,7 @@ void P_MobjThinker(mobj_t *mobj)
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_INSTASHIELDB:
-			if (leveltime & 1)
-				mobj->flags2 |= MF2_DONTDRAW;
-			else
-				mobj->flags2 &= ~MF2_DONTDRAW;
+			mobj->flags2 ^= MF2_DONTDRAW;
 			/* FALLTHRU */
 		case MT_INSTASHIELDA:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_instashield]))
@@ -8322,6 +8362,28 @@ void P_MobjThinker(mobj_t *mobj)
 				return;
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			break;
+		case MT_BATTLEPOINT:
+			if (!mobj->target || P_MobjWasRemoved(mobj->target))
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+
+			if (mobj->movefactor < 48*mobj->target->scale)
+			{
+				mobj->movefactor += (48*mobj->target->scale)/6;
+				if (mobj->movefactor > mobj->target->height)
+					mobj->movefactor = mobj->target->height;
+			}
+			else if (mobj->movefactor > 48*mobj->target->scale)
+			{
+				mobj->movefactor -= (48*mobj->target->scale)/6;
+				if (mobj->movefactor < mobj->target->height)
+					mobj->movefactor = mobj->target->height;
+			}
+
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z + (mobj->target->height/2) + mobj->movefactor);
 			break;
 		case MT_THUNDERSHIELD:
 		{
@@ -8509,8 +8571,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_FZEROBOOM: // F-Zero explosion
 			if (!mobj->extravalue1)
 			{
-				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32<<FRACBITS);
-				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32<<FRACBITS);
+				fixed_t mx = P_ReturnThrustX(NULL, mobj->angle, 32*mobj->scale);
+				fixed_t my = P_ReturnThrustY(NULL, mobj->angle, 32*mobj->scale);
 				mobj_t *explosion = P_SpawnMobj(mobj->x + (2*mx), mobj->y + (2*my), mobj->z+(mobj->height/2), MT_THOK);
 
 				P_SetMobjState(explosion, S_FZEROBOOM1);

@@ -3219,7 +3219,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3247,7 +3247,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3259,7 +3259,7 @@ void P_SetupSignExit(player_t *player)
 	// SRB2Kart: FINALLY, add in an alternative if no place is found
 	if (player->mo)
 	{
-		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768<<FRACBITS), MT_SIGN);
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapheaderinfo[gamemap-1]->mobj_scale), MT_SIGN);
 
 		P_SetTarget(&sign->target, player->mo);
 		P_SetMobjState(sign, S_SIGN1);
@@ -4196,7 +4196,34 @@ DoneSection2:
 			{
 				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
+					UINT8 i;
+					UINT8 nump = 0;
+
+					for (i = 0; i < MAXPLAYERS; i++)
+					{
+						if (!playeringame[i] || players[i].spectator)
+							continue;
+						nump++;
+					}
+
 					player->laps++;
+
+					// Set up lap animation vars
+					if (nump > 1)
+					{
+						if (K_IsPlayerLosing(player))
+							player->kartstuff[k_laphand] = 3;
+						else
+						{
+							if (nump > 2 && player->kartstuff[k_position] == 1) // 1st place in 1v1 uses thumbs up
+								player->kartstuff[k_laphand] = 1;
+							else
+								player->kartstuff[k_laphand] = 2;
+						}
+					}
+					else
+						player->kartstuff[k_laphand] = 0; // No hands in FREE PLAY
+
 					player->kartstuff[k_lapanimation] = 80;
 
 					if (player->pflags & PF_NIGHTSMODE)
@@ -4237,15 +4264,7 @@ DoneSection2:
 
 					// Figure out how many are playing on the last lap, to prevent spectate griefing
 					if (!nospectategrief && player->laps >= (UINT8)(cv_numlaps.value - 1))
-					{
-						UINT8 i;
-						for (i = 0; i < MAXPLAYERS; i++)
-						{
-							if (!playeringame[i] || players[i].spectator)
-								continue;
-							nospectategrief++;
-						}
-					}
+						nospectategrief = nump;
 				}
 				else if (player->starpostnum)
 				{

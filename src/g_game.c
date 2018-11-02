@@ -4033,6 +4033,7 @@ static void M_ForceLoadGameResponse(INT32 ch)
 	displayplayer = consoleplayer;
 	multiplayer = false;
 	splitscreen = 0;
+	SplitScreen_OnChange(); // not needed?
 
 	if (setsizeneeded)
 		R_ExecuteSetViewSize();
@@ -4122,6 +4123,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	displayplayer = consoleplayer;
 	multiplayer = false;
 	splitscreen = 0;
+	SplitScreen_OnChange(); // not needed?
 
 //	G_DeferedInitNew(sk_medium, G_BuildMapName(1), 0, 0, 1);
 	if (setsizeneeded)
