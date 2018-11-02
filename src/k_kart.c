@@ -6548,7 +6548,11 @@ static boolean K_drawKartPositionFaces(void)
 			ranklines = 5;
 	}
 	else if (strank+3 > ranklines) // too close to the bottom?
+	{
 		i = ranklines - 5;
+		if (ranklines < 0)
+			ranklines = 0;
+	}
 	else
 	{
 		i = strank-2;
