@@ -266,6 +266,7 @@ tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
 UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
+boolean thwompsactive; // Thwomps activate on lap 2
 
 // Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
