@@ -2930,7 +2930,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	if (otherp >= 0) \
 	{ \
 		if (otherp != pnum) \
-			CONS_Printf("\x82%s\x80 left the game (Joined with \x82%s\x80)\n", player_names[otherp], player_names[pnum]); \
+			HU_AddChatText(va("\x82*%s left the game (Joined with %s)", player_names[otherp], player_names[pnum]), false); \
 		buf[0] = (UINT8)otherp; \
 		SendNetXCmd(XD_REMOVEPLAYER, &buf, 1); \
 		otherp = -1; \

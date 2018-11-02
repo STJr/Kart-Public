@@ -601,6 +601,7 @@ typedef enum sprite
 	SPR_KINF, // Invincibility flash
 	SPR_WIPD, // Wipeout dust trail
 	SPR_DRIF, // Drift Sparks
+	SPR_BDRF, // Brake drift sparks
 	SPR_DUST, // Drift Dust
 
 	// Kart Items
@@ -651,6 +652,11 @@ typedef enum sprite
 	SPR_WANT,
 
 	SPR_PBOM, // player bomb
+
+	SPR_HIT1, // battle points
+	SPR_HIT2, // battle points
+	SPR_HIT3, // battle points
+
 	SPR_RETI, // player reticule
 
 	SPR_AIDU,
@@ -3109,6 +3115,9 @@ typedef enum state
 	S_DRIFTSPARK_C1,
 	S_DRIFTSPARK_C2,
 
+	// Brake drift sparks
+	S_BRAKEDRIFT,
+
 	// Drift Smoke
 	S_DRIFTDUST1,
 	S_DRIFTDUST2,
@@ -3619,7 +3628,37 @@ typedef enum state
 	S_PLAYERFAKE,
 
 	S_KARMAWHEEL,
-	
+
+	S_BATTLEPOINT1A, // Battle point indicators
+	S_BATTLEPOINT1B,
+	S_BATTLEPOINT1C,
+	S_BATTLEPOINT1D,
+	S_BATTLEPOINT1E,
+	S_BATTLEPOINT1F,
+	S_BATTLEPOINT1G,
+	S_BATTLEPOINT1H,
+	S_BATTLEPOINT1I,
+
+	S_BATTLEPOINT2A,
+	S_BATTLEPOINT2B,
+	S_BATTLEPOINT2C,
+	S_BATTLEPOINT2D,
+	S_BATTLEPOINT2E,
+	S_BATTLEPOINT2F,
+	S_BATTLEPOINT2G,
+	S_BATTLEPOINT2H,
+	S_BATTLEPOINT2I,
+
+	S_BATTLEPOINT3A,
+	S_BATTLEPOINT3B,
+	S_BATTLEPOINT3C,
+	S_BATTLEPOINT3D,
+	S_BATTLEPOINT3E,
+	S_BATTLEPOINT3F,
+	S_BATTLEPOINT3G,
+	S_BATTLEPOINT3H,
+	S_BATTLEPOINT3I,
+
 	// Thunder shield use stuff;
 	S_KSPARK1,	// Sparkling Radius
 	S_KSPARK2,
@@ -4272,6 +4311,7 @@ typedef enum mobj_type
 	MT_INVULNFLASH,
 	MT_WIPEOUTTRAIL,
 	MT_DRIFTSPARK,
+	MT_BRAKEDRIFT,
 	MT_DRIFTDUST,
 
 	MT_ROCKETSNEAKER,
@@ -4393,6 +4433,8 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+
+	MT_BATTLEPOINT,
 
 	MT_FZEROBOOM,
 

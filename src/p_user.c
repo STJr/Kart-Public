@@ -1217,6 +1217,8 @@ void P_RestoreMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return;
 
+	S_SpeedMusic(1.0f);
+
 	// Event - HERE COMES A NEW CHALLENGER
 	if (mapreset)
 	{
@@ -1228,24 +1230,58 @@ void P_RestoreMusic(player_t *player)
 	if (P_EndingMusic(player))
 		return;
 
-	S_SpeedMusic(1.0f);
-
 	// Event - Level Start
 	if (leveltime < (starttime + (TICRATE/2)))
 		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 	else // see also where time overs are handled - search for "lives = 2" in this file
 	{
+		INT32 wantedmus = 0; // 0 is level music, 1 is invincibility, 2 is grow
+
+		if (splitscreen)
+		{
+			INT32 bestlocaltimer = 1;
+
+#define setbests(p) \
+	if (players[p].playerstate == PST_LIVE) \
+	{ \
+		if (players[p].kartstuff[k_growshrinktimer] > bestlocaltimer) \
+		{ wantedmus = 2; bestlocaltimer = players[p].kartstuff[k_growshrinktimer]; } \
+		else if (players[p].kartstuff[k_invincibilitytimer] > bestlocaltimer) \
+		{ wantedmus = 1; bestlocaltimer = players[p].kartstuff[k_invincibilitytimer]; } \
+	}
+			setbests(displayplayer);
+			setbests(secondarydisplayplayer);
+			if (splitscreen > 1)
+				setbests(thirddisplayplayer);
+			if (splitscreen > 2)
+				setbests(fourthdisplayplayer);
+#undef setbests
+		}
+		else
+		{
+			if (player->playerstate == PST_LIVE)
+			{
+				if (player->kartstuff[k_growshrinktimer] > 1)
+					wantedmus = 2;
+				else if (player->kartstuff[k_invincibilitytimer] > 1)
+					wantedmus = 1;
+			}
+		}
+
 		// Item - Grow
-		if (player->kartstuff[k_growshrinktimer] > 1 && player->playerstate == PST_LIVE)
+		if (wantedmus == 2)
 			S_ChangeMusicInternal("kgrow", true);
 		// Item - Invincibility
-		else if (player->kartstuff[k_invincibilitytimer] > 1 && player->playerstate == PST_LIVE)
+		else if (wantedmus == 1)
 			S_ChangeMusicInternal("kinvnc", true);
 		else
 		{
+#if 0
 			// Event - Final Lap
+			// Still works for GME, but disabled for consistency
 			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
+#endif
 			S_ChangeMusic(mapmusname, mapmusflags, true);
 		}
 	}
@@ -6652,12 +6688,23 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->state != &states[S_KART_SQUISH])
 			P_SetPlayerMobjState(player->mo, S_KART_SQUISH);
 	}
-	else if (player->kartstuff[k_spinouttimer] > 0 || player->pflags & PF_SLIDING)
+	else if (player->pflags & PF_SLIDING)
 	{
 		if (player->mo->state != &states[S_KART_SPIN])
 			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
-
 		player->frameangle -= ANGLE_22h;
+	}
+	else if (player->kartstuff[k_spinouttimer] > 0)
+	{
+		INT32 speed = max(1, min(8, player->kartstuff[k_spinouttimer]/8));
+
+		if (player->mo->state != &states[S_KART_SPIN])
+			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+
+		if (speed == 1 && abs(player->mo->angle - player->frameangle) < ANGLE_22h)
+			player->frameangle = player->mo->angle; // Face forward at the end of the animation
+		else
+			player->frameangle -= (ANGLE_11hh * speed);
 	}
 	else if (player->powers[pw_nocontrol] && player->pflags & PF_SKIDDOWN)
 	{
@@ -7335,7 +7382,7 @@ static void P_DoZoomTube(player_t *player)
 	fixed_t dist;
 	boolean reverse;
 
-	player->mo->height = P_GetPlayerSpinHeight(player);
+	//player->mo->height = P_GetPlayerSpinHeight(player);
 
 	if (player->speed > 0)
 		reverse = false;
@@ -7440,6 +7487,11 @@ static void P_DoZoomTube(player_t *player)
 		else if (player == &players[fourthdisplayplayer])
 			localangle4 = player->mo->angle;
 	}
+#if 0
+	if (player->mo->state != &states[S_KART_SPIN])
+		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
+	player->frameangle -= ANGLE_22h;
+#endif
 }
 
 //
@@ -8254,6 +8306,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
 
+	if (splitscreen == 1)
+		camspeed = (3*camspeed)/4;
+
 	if (timeover)
 		angle = mo->angle + FixedAngle(camrotate*FRACUNIT);
 	else if (leveltime < starttime)
@@ -8555,8 +8610,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	if (timeover == 1)
 	{
-		thiscam->momx = P_ReturnThrustX(NULL, mo->angle, 32<<FRACBITS); // Push forward
-		thiscam->momy = P_ReturnThrustY(NULL, mo->angle, 32<<FRACBITS);
+		thiscam->momx = P_ReturnThrustX(NULL, mo->angle, 32*mo->scale); // Push forward
+		thiscam->momy = P_ReturnThrustY(NULL, mo->angle, 32*mo->scale);
 		thiscam->momz = 0;
 	}
 	else if (player->exiting || timeover == 2)
