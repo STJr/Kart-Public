@@ -949,6 +949,21 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"krti11", false,  48, 65, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"krti12", false,  48, 65, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
+  // SOC_CHAO SFX
+  {"mkuma", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"mkpop", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"bfare", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"merry", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"bowlh", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"tcart", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"tppop", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"toada", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"hsdoor",false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"hstrn", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"aspkb", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"msmnj1",false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"msmnj2",false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+
   // SRB2kart - Skin sounds
   {"kwin",   false,  64, 96, -1, NULL, 0,   SKSKWIN,  -1, LUMPERROR},
   {"klose",  false,  64, 96, -1, NULL, 0,  SKSKLOSE,  -1, LUMPERROR},

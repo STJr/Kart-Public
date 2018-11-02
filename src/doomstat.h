@@ -460,6 +460,7 @@ extern tic_t wantedcalcdelay;
 extern tic_t indirectitemcooldown;
 extern tic_t mapreset;
 extern UINT8 nospectategrief;
+extern boolean thwompsactive;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;

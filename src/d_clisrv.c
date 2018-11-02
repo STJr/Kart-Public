@@ -3251,11 +3251,11 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		D_SendPlayerConfig();
 		addedtogame = true;
 	}
-	
+
 	if (netgame)
-	{	
+	{
 		if (server && netgame && cv_showjoinaddress.value)
-		{	
+		{
 			const char *address;
 			if (I_GetNodeAddress && (address = I_GetNodeAddress(node)) != NULL)
 				HU_AddChatText(va("\x82*Player %d has joined the game (node %d) (%s)", newplayernum+1, node, address), false);	// merge join notification + IP to avoid clogging console/chat.
@@ -3263,7 +3263,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		else
 			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);
 	}
-	
+
 	if (server && multiplayer && motd[0] != '\0')
 		COM_BufAddText(va("sayto %d %s\n", newplayernum, motd));
 
