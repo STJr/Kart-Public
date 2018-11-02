@@ -4449,7 +4449,7 @@ static INT16 Consistancy(void)
 					ret += mo->hnext->frame;
 				}
 				else
-					ret ^= 0x3333;
+					ret ^= 0x5555;
 				if (mo->hprev)
 				{
 					ret += mo->hprev->type;
@@ -4469,7 +4469,7 @@ static INT16 Consistancy(void)
 					ret += mo->hprev->frame;
 				}
 				else
-					ret ^= 0xAAAA;
+					ret ^= 0xCCCC;
 				ret -= mo->state - states;
 				ret += mo->tics;
 				ret -= mo->sprite;
