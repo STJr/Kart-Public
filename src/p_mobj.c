@@ -3654,6 +3654,11 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 {
 	boolean itsatwodlevel = false;
 	postimg_t postimg = postimg_none;
+
+	// This can happen when joining
+	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
+		return true;
+
 	if (twodlevel
 		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
 		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
