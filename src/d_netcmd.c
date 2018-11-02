@@ -3317,8 +3317,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
-	else
-		HU_AddChatText(va("\x82*%s became a spectator.", player_names[playernum]), false);
+	else if (NetPacket.packet.newteam == 0)
+		HU_AddChatText(va("\x82*%s became a spectator.", player_names[playernum]), false); // "entered the game" text was moved to P_SpectatorJoinGame
 
 	//reset view if you are changed, or viewing someone who was changed.
 	if (playernum == consoleplayer || displayplayer == playernum)
