@@ -8261,6 +8261,9 @@ void A_JawzChase(mobj_t *actor)
 
 	if (actor->tracer)
 	{
+		if (G_RaceGametype()) // Stop looking after first target in race
+			actor->extravalue1 = 1;
+
 		if (actor->tracer->health)
 		{
 			mobj_t *ret;
@@ -8280,12 +8283,12 @@ void A_JawzChase(mobj_t *actor)
 	if (actor->extravalue1) // Disable looking by setting this
 		return;
 
+	if (actor->target && !P_MobjWasRemoved(actor->target)) // No source!
+		return;
+
 	player = K_FindJawzTarget(actor, actor->target->player);
 	if (player)
 		P_SetTarget(&actor->tracer, player->mo);
-
-	if (G_RaceGametype()) // Stop looking after first tic in race
-		actor->extravalue1 = 1;
 
 	return;
 }
