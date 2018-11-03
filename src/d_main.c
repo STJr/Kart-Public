@@ -954,6 +954,7 @@ static void IdentifyVersion(void)
 
 	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
 	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
+	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 	//D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
@@ -1234,6 +1235,7 @@ void D_SRB2Main(void)
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);	// patch.dta
 #endif
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); // gfx.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART); // textures.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); // chars.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); // maps.kart
 	mainwads++; //W_VerifyFileMD5(5, ASSET_HASH_SOUNDS_KART); -- sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
@@ -1249,6 +1251,7 @@ void D_SRB2Main(void)
 	mainwads++;	// patch.dta
 #endif
 	mainwads++;	// gfx.kart
+	mainwads++;	// textures.kart
 	mainwads++;	// chars.kart
 	mainwads++;	// maps.kart
 	mainwads++;	// sounds.kart

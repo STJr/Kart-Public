@@ -5,6 +5,7 @@ set(SRB2_ASSET_ALL
 	${CMAKE_CURRENT_SOURCE_DIR}/srb2.srb
 	${CMAKE_CURRENT_SOURCE_DIR}/patch.dta
 	${CMAKE_CURRENT_SOURCE_DIR}/gfx.kart
+	${CMAKE_CURRENT_SOURCE_DIR}/textures.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/chars.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/maps.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/sounds.kart
@@ -16,6 +17,7 @@ set(SRB2_ASSET_HASHED
 	srb2.srb
 	patch.dta
 	gfx.kart
+	textures.kart
 	chars.kart
 	maps.kart
 )

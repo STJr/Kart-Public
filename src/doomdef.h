@@ -140,7 +140,7 @@
 extern FILE *logstream;
 #endif
 
-//#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
 #define VERSION    0 // Game version
 #define SUBVERSION 0 // more precise version number
@@ -546,7 +546,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 #define SECTORSPECIALSAFTERTHINK
 
 /// SRB2Kart: Camera always has noclip.
-/// \note   Kind of problematic. If we decide to keep this on, we'll need serious map changes.
 #define NOCLIPCAM
 
 #endif // __DOOMDEF__
