@@ -2517,9 +2517,9 @@ static void Sk_SetDefaultValue(skin_t *skin)
 
 	strcpy(skin->realname, "Someone");
 	strcpy(skin->hudname, "???");
-	strncpy(skin->charsel, "CHRSONIC", 9);
-	strncpy(skin->face, "MISSING", 9);
-	strncpy(skin->superface, "MISSING", 9);
+	strncpy(skin->facerank, "PLAYRANK", 9);
+	strncpy(skin->facewant, "PLAYWANT", 9);
+	strncpy(skin->facemmap, "PLAYMMAP", 9);
 
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
@@ -2551,7 +2551,6 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	for (i = 0; i < sfx_skinsoundslot0; i++)
 		if (S_sfx[i].skinsound != -1)
 			skin->soundsid[S_sfx[i].skinsound] = i;
-	strncpy(skin->iconprefix, "SONICICN", 9);
 }
 
 //
@@ -2584,17 +2583,17 @@ void R_InitSkins(void)
 	strcpy(skin->realname,   "Sonic");
 	strcpy(skin->hudname,    "SONIC");
 
-	strncpy(skin->charsel,   "CHRSONIC", 9);
-	strncpy(skin->face,      "LIVSONIC", 9);
-	strncpy(skin->superface, "LIVSUPER", 9);
+	strncpy(skin->facerank, "PLAYRANK", 9);
+	strncpy(skin->facewant, "PLAYWANT", 9);
+	strncpy(skin->facemmap, "PLAYMMAP", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
 	skin->ability =   CA_THOK;
 	skin->actionspd = 60<<FRACBITS;
 
 	// SRB2kart
-	skin->kartspeed = 7;
-	skin->kartweight = 3;
+	skin->kartspeed = 8;
+	skin->kartweight = 2;
 	//
 
 	skin->normalspeed =  36<<FRACBITS;
@@ -2605,9 +2604,7 @@ void R_InitSkins(void)
 
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
-	ST_LoadFaceGraphics(skin->face, skin->superface, 0);
-	strncpy(skin->iconprefix, "SONICICN", 9);
-	K_LoadIconGraphics(skin->iconprefix, 0);
+	ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, 0);
 
 	//MD2 for sonic doesn't want to load in Linux.
 #ifdef HWRENDER
@@ -2699,7 +2696,7 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 
 		player->jumpfactor = skin->jumpfactor;
 
-		if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
+		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
 		{
 			if (playernum == consoleplayer)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);
@@ -2712,7 +2709,7 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 			player->skincolor = skin->prefcolor;
 			if (player->mo)
 				player->mo->color = player->skincolor;
-		}
+		}*/
 
 		if (player->mo)
 			P_SetScale(player->mo, player->mo->scale);
@@ -2763,7 +2760,7 @@ void R_AddSkins(UINT16 wadnum)
 	char *value;
 	size_t size;
 	skin_t *skin;
-	boolean hudname, realname, superface;
+	boolean hudname, realname;
 
 	//
 	// search for all skin markers in pwad
@@ -2793,7 +2790,7 @@ void R_AddSkins(UINT16 wadnum)
 		skin = &skins[numskins];
 		Sk_SetDefaultValue(skin);
 		skin->wadnum = wadnum;
-		hudname = realname = superface = false;
+		hudname = realname = false;
 		// parse
 		stoken = strtok (buf2, "\r\n= ");
 		while (stoken)
@@ -2878,23 +2875,20 @@ void R_AddSkins(UINT16 wadnum)
 				strupr(value);
 				strncpy(skin->sprite, value, sizeof skin->sprite);
 			}
-			else if (!stricmp(stoken, "charsel"))
+			else if (!stricmp(stoken, "facerank"))
 			{
 				strupr(value);
-				strncpy(skin->charsel, value, sizeof skin->charsel);
+				strncpy(skin->facerank, value, sizeof skin->facerank);
 			}
-			else if (!stricmp(stoken, "face"))
+			else if (!stricmp(stoken, "facewant"))
 			{
 				strupr(value);
-				strncpy(skin->face, value, sizeof skin->face);
-				if (!superface)
-					strncpy(skin->superface, value, sizeof skin->superface);
+				strncpy(skin->facewant, value, sizeof skin->facewant);
 			}
-			else if (!stricmp(stoken, "superface"))
+			else if (!stricmp(stoken, "facemmap"))
 			{
-				superface = true;
 				strupr(value);
-				strncpy(skin->superface, value, sizeof skin->superface);
+				strncpy(skin->facemmap, value, sizeof skin->facemmap);
 			}
 
 #define FULLPROCESS(field) else if (!stricmp(stoken, #field)) skin->field = get_number(value);
@@ -2936,11 +2930,6 @@ void R_AddSkins(UINT16 wadnum)
 				skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
 			else if (!stricmp(stoken, "highresscale"))
 				skin->highresscale = FLOAT_TO_FIXED(atof(value));
-			else if (!stricmp(stoken, "faceicon"))
-			{
-				strupr(value);
-				strncpy(skin->iconprefix, value, sizeof skin->iconprefix);
-			}
 			else
 			{
 				INT32 found = false;
@@ -3041,10 +3030,7 @@ next_token:
 #endif
 
 		// add face graphics
-		ST_LoadFaceGraphics(skin->face, skin->superface, numskins);
-		
-		// load minimap icons
-		K_LoadIconGraphics(skin->iconprefix, numskins);
+		ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, numskins);
 
 #ifdef HWRENDER
 		if (rendermode == render_opengl)

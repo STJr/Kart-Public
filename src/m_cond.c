@@ -33,64 +33,64 @@ conditionset_t conditionSets[MAXCONDITIONSETS];
 emblem_t emblemlocations[MAXEMBLEMS] =
 {
 	// SILVER TIME TROPHIES
-	{ET_TIME, 0,0,0,  1, 'T', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // Green Hills Zone - Time: 1:30
-	{ET_TIME, 0,0,0,  2, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Pipe Speedway Zone - Time: 1:50
-	{ET_TIME, 0,0,0,  3, 'T', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Dark Race - 2:15
-	{ET_TIME, 0,0,0,  4, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Darkvile Garden Zone - 1:45
-	{ET_TIME, 0,0,0,  5, 'T', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Northern District Zone - 2:20
-	{ET_TIME, 0,0,0,  6, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Sonic Speedway Zone - 2:00
-	{ET_TIME, 0,0,0,  7, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Egg Zeppelin Zone - 2:00
-	{ET_TIME, 0,0,0,  8, 'T', SKINCOLOR_GREY,  95*TICRATE, "", 0}, // Hill Top Zone - 1:35
-	{ET_TIME, 0,0,0,  9, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Sunbeam Paradise Zone - 1:50
-	{ET_TIME, 0,0,0, 10, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Diamond Square Zone - 1:50
-	{ET_TIME, 0,0,0, 11, 'T', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Misty Maze Zone - 2:30
-	{ET_TIME, 0,0,0, 12, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Midnight Meadow Zone - 2:00
-	{ET_TIME, 0,0,0, 13, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Megablock Castle Zone - 2:10
-	{ET_TIME, 0,0,0, 14, 'T', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Sub-Zero Peak Zone - 2:30
-	{ET_TIME, 0,0,0, 15, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Sapphire Coast Zone - 1:50
-	{ET_TIME, 0,0,0, 16, 'T', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Silvercloud Island Zone - 2:20
-	{ET_TIME, 0,0,0, 17, 'T', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Petroleum Refinery Zone - 2:15
-	{ET_TIME, 0,0,0, 18, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Canyon Rush Zone - 2:10
-	{ET_TIME, 0,0,0, 19, 'T', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Blue Mountain Zone - 2:40
-	{ET_TIME, 0,0,0, 20, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Casino Resort Zone - 1:50
-	{ET_TIME, 0,0,0, 21, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Desert Palace Zone - 1:45
-	{ET_TIME, 0,0,0, 22, 'T', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Red Barrage Area - 2:45
-	{ET_TIME, 0,0,0, 23, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Vanilla Hotel Zone - 1:45
-	{ET_TIME, 0,0,0, 24, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Twinkle Cart - 1:50
-	{ET_TIME, 0,0,0, 25, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Pleasure Castle - 1:50
-	{ET_TIME, 0,0,0, 26, 'T', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Aurora Atoll Zone - 2:20
-	{ET_TIME, 0,0,0, 27, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Barren Badlands Zone - 2:10
-	{ET_TIME, 0,0,0, 28, 'T', SKINCOLOR_GREY, 155*TICRATE, "", 0}, // Toxic Palace Zone - 2:35
-	{ET_TIME, 0,0,0, 29, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Ancient Tomb Zone - 2:10
-	{ET_TIME, 0,0,0, 30, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Cloud Cradle Zone K - 2:00
-	{ET_TIME, 0,0,0, 31, 'T', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Kodachrome Void Zone - 1:50
-	{ET_TIME, 0,0,0, 32, 'T', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Egg Quarters - 2:20
-	{ET_TIME, 0,0,0, 33, 'T', SKINCOLOR_GREY, 115*TICRATE, "", 0}, // Boiling Bedrock Zone - 1:55
-	{ET_TIME, 0,0,0, 34, 'T', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Virtual Highway Zone - 2:20
-	{ET_TIME, 0,0,0, 35, 'T', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Eggman's Nightclub Zone - 2:00
-	{ET_TIME, 0,0,0, 36, 'T', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // KKR Ganbare Dochu 2 - 1:30
-	{ET_TIME, 0,0,0, 37, 'T', SKINCOLOR_GREY,  80*TICRATE, "", 0}, // CK Chao Circuit 1 - 1:20
-	{ET_TIME, 0,0,0, 38, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // CK Chao Circuit 2 - 2:10
-	{ET_TIME, 0,0,0, 39, 'T', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // CK Cloud Tops 2 - 1:40
-	{ET_TIME, 0,0,0, 40, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // CK Regal Raceway - 2:10
-	{ET_TIME, 0,0,0, 41, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // SM Dimension Heist - 2:10
-	{ET_TIME, 0,0,0, 42, 'T', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // SRB2 Frozen Night - 1:40
-	{ET_TIME, 0,0,0, 43, 'T', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // MKSC Sky Garden - 1:40
-	{ET_TIME, 0,0,0, 44, 'T', SKINCOLOR_GREY,  95*TICRATE, "", 0}, // MKDS Peach Gardens - 1:35
-	{ET_TIME, 0,0,0, 45, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // MKSC Rainbow Road - 1:45
-	{ET_TIME, 0,0,0, 46, 'T', SKINCOLOR_GREY,  70*TICRATE, "", 0}, // SMK Mario Circuit 1 - 1:10
-	{ET_TIME, 0,0,0, 47, 'T', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // SMK Donut Plains 1 - 1:30
-	{ET_TIME, 0,0,0, 48, 'T', SKINCOLOR_GREY,  75*TICRATE, "", 0}, // SMK Ghost Valley 2 - 1:15
-	{ET_TIME, 0,0,0, 49, 'T', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // SMK Mario Circuit 3 - 1:45
-	{ET_TIME, 0,0,0, 50, 'T', SKINCOLOR_GREY, 130*TICRATE, "", 0}  // SMK Rainbow Road - 2:10
+	{ET_TIME, 0,0,0,  1, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // Green Hills Zone - Time: 1:30
+	{ET_TIME, 0,0,0,  2, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Pipe Speedway Zone - Time: 1:50
+	{ET_TIME, 0,0,0,  3, 'B', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Dark Race - 2:15
+	{ET_TIME, 0,0,0,  4, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Darkvile Garden Zone - 1:45
+	{ET_TIME, 0,0,0,  5, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Northern District Zone - 2:20
+	{ET_TIME, 0,0,0,  6, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Sonic Speedway Zone - 2:00
+	{ET_TIME, 0,0,0,  7, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Egg Zeppelin Zone - 2:00
+	{ET_TIME, 0,0,0,  8, 'B', SKINCOLOR_GREY,  95*TICRATE, "", 0}, // Hill Top Zone - 1:35
+	{ET_TIME, 0,0,0,  9, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Sunbeam Paradise Zone - 1:50
+	{ET_TIME, 0,0,0, 10, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Diamond Square Zone - 1:50
+	{ET_TIME, 0,0,0, 11, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Misty Maze Zone - 2:30
+	{ET_TIME, 0,0,0, 12, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Midnight Meadow Zone - 2:00
+	{ET_TIME, 0,0,0, 13, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Megablock Castle Zone - 2:10
+	{ET_TIME, 0,0,0, 14, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Sub-Zero Peak Zone - 2:30
+	{ET_TIME, 0,0,0, 15, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Sapphire Coast Zone - 1:50
+	{ET_TIME, 0,0,0, 16, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Silvercloud Island Zone - 2:20
+	{ET_TIME, 0,0,0, 17, 'B', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Petroleum Refinery Zone - 2:15
+	{ET_TIME, 0,0,0, 18, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Canyon Rush Zone - 2:10
+	{ET_TIME, 0,0,0, 19, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Blue Mountain Zone - 2:40
+	{ET_TIME, 0,0,0, 20, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Casino Resort Zone - 1:50
+	{ET_TIME, 0,0,0, 21, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Desert Palace Zone - 1:45
+	{ET_TIME, 0,0,0, 22, 'B', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Red Barrage Area - 2:45
+	{ET_TIME, 0,0,0, 23, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // Vanilla Hotel Zone - 1:45
+	{ET_TIME, 0,0,0, 24, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Twinkle Cart - 1:50
+	{ET_TIME, 0,0,0, 25, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Pleasure Castle - 1:50
+	{ET_TIME, 0,0,0, 26, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Aurora Atoll Zone - 2:20
+	{ET_TIME, 0,0,0, 27, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Barren Badlands Zone - 2:10
+	{ET_TIME, 0,0,0, 28, 'B', SKINCOLOR_GREY, 155*TICRATE, "", 0}, // Toxic Palace Zone - 2:35
+	{ET_TIME, 0,0,0, 29, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Ancient Tomb Zone - 2:10
+	{ET_TIME, 0,0,0, 30, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Cloud Cradle Zone K - 2:00
+	{ET_TIME, 0,0,0, 31, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Kodachrome Void Zone - 1:50
+	{ET_TIME, 0,0,0, 32, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Egg Quarters - 2:20
+	{ET_TIME, 0,0,0, 33, 'B', SKINCOLOR_GREY, 115*TICRATE, "", 0}, // Boiling Bedrock Zone - 1:55
+	{ET_TIME, 0,0,0, 34, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Virtual Highway Zone - 2:20
+	{ET_TIME, 0,0,0, 35, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Eggman's Nightclub Zone - 2:00
+	{ET_TIME, 0,0,0, 36, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // KKR Ganbare Dochu 2 - 1:30
+	{ET_TIME, 0,0,0, 37, 'B', SKINCOLOR_GREY,  80*TICRATE, "", 0}, // CK Chao Circuit 1 - 1:20
+	{ET_TIME, 0,0,0, 38, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // CK Chao Circuit 2 - 2:10
+	{ET_TIME, 0,0,0, 39, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // CK Cloud Tops 2 - 1:40
+	{ET_TIME, 0,0,0, 40, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // CK Regal Raceway - 2:10
+	{ET_TIME, 0,0,0, 41, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // SM Dimension Heist - 2:10
+	{ET_TIME, 0,0,0, 42, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // SRB2 Frozen Night - 1:40
+	{ET_TIME, 0,0,0, 43, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // MKSC Sky Garden - 1:40
+	{ET_TIME, 0,0,0, 44, 'B', SKINCOLOR_GREY,  95*TICRATE, "", 0}, // MKDS Peach Gardens - 1:35
+	{ET_TIME, 0,0,0, 45, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // MKSC Rainbow Road - 1:45
+	{ET_TIME, 0,0,0, 46, 'B', SKINCOLOR_GREY,  70*TICRATE, "", 0}, // SMK Mario Circuit 1 - 1:10
+	{ET_TIME, 0,0,0, 47, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // SMK Donut Plains 1 - 1:30
+	{ET_TIME, 0,0,0, 48, 'B', SKINCOLOR_GREY,  75*TICRATE, "", 0}, // SMK Ghost Valley 2 - 1:15
+	{ET_TIME, 0,0,0, 49, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // SMK Mario Circuit 3 - 1:45
+	{ET_TIME, 0,0,0, 50, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}  // SMK Rainbow Road - 2:10
 	// GOLD DEV TIME TROPHIES
-	// ...none yet!
+	// ...none yet! uses 'A'
 };
 
 // Default Extra Emblems
 extraemblem_t extraemblems[MAXEXTRAEMBLEMS] =
 {
-	{"Experienced Driver", "Play 100 Matches", 10, 'X', SKINCOLOR_BLUE, 0},
+	{"Experienced Driver", "Play 100 Matches", 10, 'C', SKINCOLOR_RED, 0},
 };
 
 // Default Unlockables
@@ -101,10 +101,11 @@ unlockable_t unlockables[MAXUNLOCKABLES] =
 	/* 02 */ {"SMK Cup",  "", -1, 2, SECRET_NONE, 0, false, false, 0},
 	/* 03 */ {"Chao Cup", "", -1, 3, SECRET_NONE, 0, false, false, 0},
 
-	/* 04 */ {"Encore Mode", "", 3, 4, SECRET_ENCORE, 0, false, false, 0},
-	/* 05 */ {"Hell Attack", "", 5, 5, SECRET_HELLATTACK, 0, false, false, 0},
+	/* 04 */ {"Hard Game Speed", "", -1, 4, SECRET_HARDSPEED, 0, false, false, 0},
+	/* 05 */ {"Encore Mode",     "",  4, 5, SECRET_ENCORE, 0, false, false, 0},
+	/* 06 */ {"Hell Attack",     "",  6, 6, SECRET_HELLATTACK, 0, false, false, 0},
 
-	/* 06 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
+	/* 07 */ {"Record Attack", "", -1, -1, SECRET_RECORDATTACK, 0, true, true, 0},
 };
 
 // Default number of emblems and extra emblems
@@ -120,23 +121,27 @@ void M_SetupDefaultConditionSets(void)
 	M_AddRawCondition(1, 1, UC_TOTALEMBLEMS, 5, 0, 0);
 	M_AddRawCondition(1, 2, UC_MATCHESPLAYED, 10, 0, 0);
 
-	// -- 2: Collect 15 emblems OR play 25 matches
-	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 15, 0, 0);
+	// -- 2: Collect 10 emblems OR play 25 matches
+	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 10, 0, 0);
 	M_AddRawCondition(2, 2, UC_MATCHESPLAYED, 25, 0, 0);
 
-	// -- 3: Collect 30 emblems OR play 50 matches
-	M_AddRawCondition(3, 1, UC_TOTALEMBLEMS, 30, 0, 0);
+	// -- 3: Collect 20 emblems OR play 50 matches
+	M_AddRawCondition(3, 1, UC_TOTALEMBLEMS, 20, 0, 0);
 	M_AddRawCondition(3, 2, UC_MATCHESPLAYED, 50, 0, 0);
 
-	// -- 4: Collect 40 emblems OR play 150 matches
-	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 40, 0, 0);
-	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 150, 0, 0);
+	// -- 4: Collect 30 emblems OR play 100 matches
+	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 30, 0, 0);
+	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 100, 0, 0);
 
-	// -- 5: Collect 50 emblems ONLY
-	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 50, 0, 0);
+	// -- 5: Collect 40 emblems OR play 150 matches
+	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 40, 0, 0);
+	M_AddRawCondition(5, 2, UC_MATCHESPLAYED, 150, 0, 0);
 
-	// -- 10: Play 100 matches
-	M_AddRawCondition(10, 1, UC_MATCHESPLAYED, 100, 0, 0);
+	// -- 6: Collect 50 emblems ONLY
+	M_AddRawCondition(6, 1, UC_TOTALEMBLEMS, 50, 0, 0);
+
+	// -- 10: Play 300 matches
+	M_AddRawCondition(10, 1, UC_MATCHESPLAYED, 300, 0, 0);
 }
 
 void M_AddRawCondition(UINT8 set, UINT8 id, conditiontype_t c, INT32 r, INT16 x1, INT16 x2)

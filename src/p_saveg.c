@@ -1116,7 +1116,7 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		diff |= MD_SCALE;
 	if (mobj->destscale != mobj->scale)
 		diff |= MD_DSCALE;
-	if (mobj->scalespeed != FRACUNIT/12)
+	if (mobj->scalespeed != mapheaderinfo[gamemap-1]->mobj_scale/12)
 		diff2 |= MD2_SCALESPEED;
 
 	if (mobj == redflag)
@@ -2123,7 +2123,7 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	if (diff2 & MD2_SCALESPEED)
 		mobj->scalespeed = READFIXED(save_p);
 	else
-		mobj->scalespeed = FRACUNIT/12;
+		mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 	if (diff2 & MD2_CUSVAL)
 		mobj->cusval = READINT32(save_p);
 	if (diff2 & MD2_CVMEM)
@@ -3284,9 +3284,9 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, wantedcalcdelay);
 	WRITEUINT32(save_p, indirectitemcooldown);
-	WRITEUINT32(save_p, spbincoming);
-	WRITEUINT8(save_p, spbplayer);
 	WRITEUINT32(save_p, mapreset);
+	WRITEUINT8(save_p, nospectategrief);
+	WRITEUINT8(save_p, thwompsactive);
 
 	// Is it paused?
 	if (paused)
@@ -3390,9 +3390,9 @@ static inline boolean P_NetUnArchiveMisc(void)
 
 	wantedcalcdelay = READUINT32(save_p);
 	indirectitemcooldown = READUINT32(save_p);
-	spbincoming = READUINT32(save_p);
-	spbplayer = READUINT8(save_p);
 	mapreset = READUINT32(save_p);
+	nospectategrief = READUINT8(save_p);
+	thwompsactive = (boolean)READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

@@ -166,8 +166,7 @@ typedef struct
 
 	// Resynch game scores and the like all at once
 	UINT32 score[MAXPLAYERS]; // Everyone's score
-	INT16 numboxes[MAXPLAYERS];
-	INT16 totalring[MAXPLAYERS];
+	UINT32 marescore[MAXPLAYERS]; // SRB2kart: Battle score
 	tic_t realtime[MAXPLAYERS];
 	UINT8 laps[MAXPLAYERS];
 } ATTRPACK resynchend_pak;
@@ -186,6 +185,7 @@ typedef struct
 	angle_t aiming;
 	INT32 currentweapon;
 	INT32 ringweapons;
+
 	UINT16 powers[NUMPOWERS];
 
 	INT32 kartstuff[NUMKARTSTUFF]; // SRB2kart
@@ -270,6 +270,8 @@ typedef struct
 	tic_t losstime;
 	UINT8 timeshit;
 	INT32 onconveyor;
+
+	tic_t jointime;
 
 	//player->mo stuff
 	UINT8 hasmo; // Boolean

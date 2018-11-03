@@ -27,9 +27,9 @@ enum skin {
 	skin_flags,
 	skin_realname,
 	skin_hudname,
-	skin_charsel,
-	skin_face,
-	skin_superface,
+	skin_facerank,
+	skin_facewant,
+	skin_facemmap,
 	skin_ability,
 	skin_ability2,
 	skin_thokitem,
@@ -61,9 +61,9 @@ static const char *const skin_opt[] = {
 	"flags",
 	"realname",
 	"hudname",
-	"charsel",
-	"face",
-	"superface",
+	"facerank",
+	"facewant",
+	"facemmap",
 	"ability",
 	"ability2",
 	"thokitem",
@@ -121,23 +121,23 @@ static int skin_get(lua_State *L)
 	case skin_hudname:
 		lua_pushstring(L, skin->hudname);
 		break;
-	case skin_charsel:
+	case skin_facerank:
 		for (i = 0; i < 8; i++)
-			if (!skin->charsel[i])
+			if (!skin->facerank[i])
 				break;
-		lua_pushlstring(L, skin->charsel, i);
+		lua_pushlstring(L, skin->facerank, i);
 		break;
-	case skin_face:
+	case skin_facewant:
 		for (i = 0; i < 8; i++)
-			if (!skin->face[i])
+			if (!skin->facewant[i])
 				break;
-		lua_pushlstring(L, skin->face, i);
+		lua_pushlstring(L, skin->facewant, i);
 		break;
-	case skin_superface:
+	case skin_facemmap:
 		for (i = 0; i < 8; i++)
-			if (!skin->superface[i])
+			if (!skin->facemmap[i])
 				break;
-		lua_pushlstring(L, skin->superface, i);
+		lua_pushlstring(L, skin->facemmap, i);
 		break;
 	case skin_ability:
 		lua_pushinteger(L, skin->ability);

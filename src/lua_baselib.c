@@ -92,6 +92,7 @@ static int lib_print(lua_State *L)
 static int lib_chatprint(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);	// retrieve string
+	boolean sound = luaL_checkboolean(L, 2);	// retrieve sound boolean
 	int len;
 	if (str == NULL)	// error if we don't have a string!
 		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprint"));
@@ -99,12 +100,7 @@ static int lib_chatprint(lua_State *L)
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
-	HU_AddChatText(str);
-
-	if OLDCHAT
-		CONS_Printf("%s\n", str);
-	else
-		CON_LogMessage(str); // save to log.txt
+	HU_AddChatText(str, sound);
 
 	return 0;
 }
@@ -115,6 +111,7 @@ static int lib_chatprintf(lua_State *L)
 	int n = lua_gettop(L);  /* number of arguments */
 	player_t *plr;
 	const char *str;
+	boolean sound = luaL_checkboolean(L, 3);
 	int len;
 	if (n < 2)
 		return luaL_error(L, "chatprintf requires at least two arguments: player and text.");
@@ -132,12 +129,7 @@ static int lib_chatprintf(lua_State *L)
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
-	HU_AddChatText(str);
-
-	if OLDCHAT
-		CONS_Printf("%s\n", str);
-	else
-		CON_LogMessage(str); // save to log.txt
+	HU_AddChatText(str, sound);
 
 	return 0;
 }
@@ -2094,6 +2086,19 @@ static int lib_kKartBouncing(lua_State *L)
 	return 0;
 }
 
+static int lib_kMatchGenericExtraFlags(lua_State *L)
+{
+	mobj_t *mo = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	mobj_t *master = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	NOHUD
+	if (!mo)
+		return LUA_ErrInvalid(L, "mobj_t");
+	if (!master)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_MatchGenericExtraFlags(mo, master);
+	return 0;
+}
+
 static int lib_kDoInstashield(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2101,6 +2106,20 @@ static int lib_kDoInstashield(lua_State *L)
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	K_DoInstashield(player);
+	return 0;
+}
+
+static int lib_kSpawnBattlePoints(lua_State *L)
+{
+	player_t *source = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	player_t *victim = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
+	UINT8 amount = (UINT8)luaL_checkinteger(L, 3);
+	NOHUD
+	if (!source)
+		return LUA_ErrInvalid(L, "player_t");
+	if (!victim)
+		return LUA_ErrInvalid(L, "player_t");
+	K_SpawnBattlePoints(source, victim, amount);
 	return 0;
 }
 
@@ -2136,12 +2155,15 @@ static int lib_kExplodePlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	mobj_t *inflictor = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!source)
 		return LUA_ErrInvalid(L, "mobj_t");
-	K_ExplodePlayer(player, source);
+	if (!inflictor)
+		return LUA_ErrInvalid(L, "mobj_t");
+	K_ExplodePlayer(player, source, inflictor);
 	return 0;
 }
 
@@ -2222,11 +2244,11 @@ static int lib_kDriftDustHandling(lua_State *L)
 static int lib_kDoSneaker(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	boolean doPFlag = luaL_checkboolean(L, 2);
+	INT32 type = luaL_checkinteger(L, 2);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
-	K_DoSneaker(player, doPFlag);
+	K_DoSneaker(player, type);
 	return 0;
 }
 
@@ -2490,7 +2512,9 @@ static luaL_Reg lib[] = {
 	{"K_IsPlayerLosing",lib_kIsPlayerLosing},
 	{"K_IsPlayerWanted",lib_kIsPlayerWanted},
 	{"K_KartBouncing",lib_kKartBouncing},
+	{"K_MatchGenericExtraFlags",lib_kMatchGenericExtraFlags},
 	{"K_DoInstashield",lib_kDoInstashield},
+	{"K_SpawnBattlePoints",lib_kSpawnBattlePoints},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},
 	{"K_ExplodePlayer",lib_kExplodePlayer},

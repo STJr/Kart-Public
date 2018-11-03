@@ -1321,21 +1321,21 @@ void G_Controldefault(void)
 	gamecontrolbis[gc_accelerate ][0] = KEY_2JOY1+0; // A
 	gamecontrolbis[gc_lookback   ][0] = KEY_2JOY1+1; // X
 	gamecontrolbis[gc_brake      ][0] = KEY_2JOY1+2; // B
-	gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+4; // LB 
+	gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+4; // LB
 	gamecontrolbis[gc_drift      ][0] = KEY_2JOY1+5; // RB
 
 	// Player 3 controls
 	gamecontrol3[gc_accelerate ][0] = KEY_3JOY1+0; // A
 	gamecontrol3[gc_lookback   ][0] = KEY_3JOY1+1; // X
 	gamecontrol3[gc_brake      ][0] = KEY_3JOY1+2; // B
-	gamecontrol3[gc_fire       ][0] = KEY_3JOY1+4; // LB 
+	gamecontrol3[gc_fire       ][0] = KEY_3JOY1+4; // LB
 	gamecontrol3[gc_drift      ][0] = KEY_3JOY1+5; // RB
 
 	// Player 4 controls
 	gamecontrol4[gc_accelerate ][0] = KEY_4JOY1+0; // A
 	gamecontrol4[gc_lookback   ][0] = KEY_4JOY1+1; // X
 	gamecontrol4[gc_brake      ][0] = KEY_4JOY1+2; // B
-	gamecontrol4[gc_fire       ][0] = KEY_4JOY1+4; // LB 
+	gamecontrol4[gc_fire       ][0] = KEY_4JOY1+4; // LB
 	gamecontrol4[gc_drift      ][0] = KEY_4JOY1+5; // RB
 }
 //#endif

@@ -302,7 +302,7 @@ enum TypeOfLevel
 	TOL_2D     = 0x0100, ///< 2D
 	TOL_MARIO  = 0x0200, ///< Mario
 	TOL_NIGHTS = 0x0400, ///< NiGHTS
-	//TOL_ERZ3   = 0x0800, ///< ERZ3
+	TOL_TV   = 0x0800, ///< Midnight Channel specific: draw TV like overlay on HUD
 	TOL_XMAS   = 0x1000 ///< Christmas NiGHTS
 	//TOL_KART   = 0x4000  ///< Kart 32768
 };
@@ -458,9 +458,9 @@ extern boolean comeback;
 extern SINT8 battlewanted[4];
 extern tic_t wantedcalcdelay;
 extern tic_t indirectitemcooldown;
-extern tic_t spbincoming;
-extern UINT8 spbplayer;
 extern tic_t mapreset;
+extern UINT8 nospectategrief;
+extern boolean thwompsactive;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;

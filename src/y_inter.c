@@ -275,6 +275,8 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 
 	for (j = 0; j < numplayersingame; j++)
 	{
+		INT32 nump = ((G_RaceGametype() && nospectategrief > 0) ? nospectategrief : numplayersingame);
+
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (!playeringame[i] || players[i].spectator || completed[i])
@@ -296,9 +298,9 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 		else
 			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
 
-		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] != numplayersingame))
+		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] < nump))
 		{
-			data.match.increase[i] = numplayersingame - data.match.pos[data.match.numplayers];
+			data.match.increase[i] = nump - data.match.pos[data.match.numplayers];
 			players[i].score += data.match.increase[i];
 		}
 
@@ -346,7 +348,7 @@ void Y_IntermissionDrawer(void)
 		V_DrawPatchFill(bgtile);
 
 	if (usebuffer) // Fade everything out
-		V_DrawFadeScreen(0xFF00, 20);
+		V_DrawFadeScreen(0xFF00, 22);
 
 	if (!splitscreen)
 		whiteplayer = demoplayback ? displayplayer : consoleplayer;
@@ -414,7 +416,7 @@ void Y_IntermissionDrawer(void)
 	else*/ if (intertype == int_race || intertype == int_match)
 	{
 #define NUMFORNEWCOLUMN 8
-		INT32 y = 48, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
+		INT32 y = 41, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -423,26 +425,27 @@ void Y_IntermissionDrawer(void)
 			timeheader = (intertype == int_race ? "TIME" : "SCORE");
 
 		// draw the level name
-		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
-		V_DrawFill(x, 42, 312, 1, 0);
+		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12, 0, data.match.levelstring);
+		V_DrawFill(x, 34, 312, 1, 0);
 
 		if (data.match.encore)
-			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20-8, hilicol, "ENCORE MODE");
+			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12-8, hilicol, "ENCORE MODE");
 
 		if (!gutter)
 		{
-			V_DrawFill(x+156, 32, 1, 152, 0);
+			V_DrawFill(x+156, 24, 1, 158, 0);
+			V_DrawFill(x, 182, 312, 1, 0);
 
-			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, hilicol, "#");
-			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, hilicol, "NAME");
+			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 24, hilicol, "#");
+			V_DrawString(x+36+(BASEVIDWIDTH/2), 24, hilicol, "NAME");
 
-			V_DrawRightAlignedString(x+152, 32, hilicol, timeheader);
+			V_DrawRightAlignedString(x+152, 24, hilicol, timeheader);
 		}
 
-		V_DrawCenteredString(x+6, 32, hilicol, "#");
-		V_DrawString(x+36, 32, hilicol, "NAME");
+		V_DrawCenteredString(x+6, 24, hilicol, "#");
+		V_DrawString(x+36, 24, hilicol, "NAME");
 
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, hilicol, timeheader);
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 24, hilicol, timeheader);
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -458,12 +461,10 @@ void Y_IntermissionDrawer(void)
 
 				V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
-				if (data.match.color[i] == 0)
-					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]]);
-				else
+				if (data.match.color[i])
 				{
 					UINT8 *colormap = R_GetTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
-					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
+					V_DrawMappedPatch(x+16, y-4, 0,facerankprefix[*data.match.character[i]], colormap);
 				}
 
 				if (!gutter)
@@ -518,11 +519,11 @@ void Y_IntermissionDrawer(void)
 			else
 				data.match.num[i] = MAXPLAYERS; // this should be the only field setting in this function
 
-			y += 16;
+			y += 18;
 
 			if (i == NUMFORNEWCOLUMN-1)
 			{
-				y = 48;
+				y = 41;
 				x += BASEVIDWIDTH/2;
 			}
 #undef NUMFORNEWCOLUMN
@@ -1146,12 +1147,10 @@ void Y_VoteDrawer(void)
 				V_DrawDiag(x, y, 6, V_SNAPTOLEFT|levelinfo[votes[i]].gtc);
 			}
 
-			if (players[i].skincolor == 0)
-				V_DrawSmallScaledPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin]);
-			else
+			if (players[i].skincolor)
 			{
 				UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, GTC_CACHE);
-				V_DrawSmallMappedPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin], colormap);
+				V_DrawMappedPatch(x+24, y+9, V_SNAPTOLEFT, facerankprefix[players[i].skin], colormap);
 			}
 		}
 

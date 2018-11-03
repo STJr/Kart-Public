@@ -81,8 +81,6 @@ extern consvar_t cv_basenumlaps;
 extern UINT32 timelimitintics;
 extern consvar_t cv_allowexitlevel;
 
-extern consvar_t cv_hazardlog;
-
 extern consvar_t cv_autobalance;
 extern consvar_t cv_teamscramble;
 extern consvar_t cv_scrambleonchange;
@@ -134,7 +132,7 @@ extern consvar_t cv_karteliminatelast;
 extern consvar_t cv_votetime;
 
 extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugshrink, cv_kartdebugdistribution, cv_kartdebughuddrop;
-extern consvar_t cv_kartdebugcheckpoint;
+extern consvar_t cv_kartdebugcheckpoint, cv_kartdebugnodes;
 
 extern consvar_t cv_itemfinder;
 
@@ -197,9 +195,10 @@ typedef enum
 	XD_SETUPVOTE,   // 22
 	XD_MODIFYVOTE,  // 23
 	XD_PICKVOTE,    // 24
+	XD_REMOVEPLAYER,// 25
 #ifdef HAVE_BLUA
-	XD_LUACMD,      // 25
-	XD_LUAVAR,      // 26
+	XD_LUACMD,      // 26
+	XD_LUAVAR,      // 27
 #endif
 	MAXNETXCMD
 } netxcmd_t;

@@ -264,9 +264,9 @@ SINT8 pickedvote; // What vote the host rolls
 SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
 tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
-tic_t spbincoming; // Timer before SPB hits, can switch targets at this point
-UINT8 spbplayer; // Player num that used the last SPB
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
+UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
+boolean thwompsactive; // Thwomps activate on lap 2
 
 // Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
@@ -425,7 +425,7 @@ consvar_t cv_chatspamprotection = {"chatspamprotection", "On", CV_SAVE, CV_OnOff
 consvar_t cv_chatbacktint = {"chatbacktint", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // old shit console chat. (mostly exists for stuff like terminal, not because I cared if anyone liked the old chat.)
-static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {0, NULL}};
+static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {2, "Window (Hidden)"}, {0, NULL}};
 consvar_t cv_consolechat = {"chatmode", "Window", CV_SAVE, consolechat_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 /*consvar_t cv_crosshair = {"crosshair", "Off", CV_SAVE, crosshair_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1839,6 +1839,9 @@ boolean G_Responder(event_t *ev)
 				if (players[displayplayer].exiting)
 					continue;
 
+				if (players[displayplayer].pflags & PF_TIMEOVER)
+					continue;
+
 				// I don't know if we want this actually, but I'll humor the suggestion anyway
 				if (G_BattleGametype())
 				{
@@ -2100,10 +2103,12 @@ void G_Ticker(boolean run)
 			G_ClearRetryFlag();
 
 			// Costs a life to retry ... unless the player in question is dead already.
-			if (G_GametypeUsesLives() && players[consoleplayer].playerstate == PST_LIVE)
+			/*if (G_GametypeUsesLives() && players[consoleplayer].playerstate == PST_LIVE)
 				players[consoleplayer].lives -= 1;
 
-			G_DoReborn(consoleplayer);
+			G_DoReborn(consoleplayer);*/
+
+			D_MapChange(gamemap, gametype, cv_kartencore.value, true, 1, false, false);
 		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -2353,6 +2358,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 itemamount;
 	INT32 itemroulette;
 	INT32 roulettetype;
+	INT32 growshrinktimer;
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
@@ -2365,7 +2371,7 @@ void G_PlayerReborn(INT32 player)
 	exiting = players[player].exiting;
 	jointime = players[player].jointime;
 	spectator = players[player].spectator;
-	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE));
+	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE|PF_WANTSTOJOIN));
 
 	// As long as we're not in multiplayer, carry over cheatcodes from map to map
 	if (!(netgame || multiplayer))
@@ -2416,6 +2422,7 @@ void G_PlayerReborn(INT32 player)
 		roulettetype = 0;
 		itemtype = 0;
 		itemamount = 0;
+		growshrinktimer = 0;
 		bumper = (G_BattleGametype() ? cv_kartbumpers.value : 0);
 		comebackpoints = 0;
 		wanted = 0;
@@ -2438,6 +2445,9 @@ void G_PlayerReborn(INT32 player)
 			itemtype = players[player].kartstuff[k_itemtype];
 			itemamount = players[player].kartstuff[k_itemamount];
 		}
+
+		// Keep Shrink status, remove Grow status
+		growshrinktimer = min(players[player].kartstuff[k_growshrinktimer], 0);
 
 		bumper = players[player].kartstuff[k_bumper];
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
@@ -2503,6 +2513,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_roulettetype] = roulettetype;
 	p->kartstuff[k_itemtype] = itemtype;
 	p->kartstuff[k_itemamount] = itemamount;
+	p->kartstuff[k_growshrinktimer] = growshrinktimer;
 	p->kartstuff[k_bumper] = bumper;
 	p->kartstuff[k_comebackpoints] = comebackpoints;
 	p->kartstuff[k_comebacktimer] = comebacktime;
@@ -2935,7 +2946,7 @@ void G_DoReborn(INT32 playernum)
 		if (oldmo)
 			G_ChangePlayerReferences(oldmo, players[playernum].mo);
 	}
-	else if (countdowntimeup || (!multiplayer && gametype == GT_COOP))
+	/*else if (countdowntimeup || (!multiplayer && !modeattacking))
 	{
 		// reload the level from scratch
 		if (countdowntimeup)
@@ -3004,7 +3015,7 @@ void G_DoReborn(INT32 playernum)
 #ifdef HAVE_BLUA
 		}
 #endif
-	}
+	}*/
 	else
 	{
 		// respawn at the start
@@ -3051,7 +3062,7 @@ void G_ExitLevel(void)
 		}
 
 		if (netgame || multiplayer)
-			CONS_Printf(M_GetText("The round has ended.\n"));
+			CON_LogMessage(M_GetText("The round has ended.\n"));
 
 		// Remove CEcho text on round end.
 		HU_DoCEcho("");
@@ -3119,7 +3130,7 @@ boolean G_GametypeHasSpectators(void)
 #if 0
 	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
 #else
-	return (!splitscreen);//true;
+	return (netgame); //true
 #endif
 }
 
@@ -4023,6 +4034,7 @@ static void M_ForceLoadGameResponse(INT32 ch)
 	displayplayer = consoleplayer;
 	multiplayer = false;
 	splitscreen = 0;
+	SplitScreen_OnChange(); // not needed?
 
 	if (setsizeneeded)
 		R_ExecuteSetViewSize();
@@ -4112,6 +4124,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	displayplayer = consoleplayer;
 	multiplayer = false;
 	splitscreen = 0;
+	SplitScreen_OnChange(); // not needed?
 
 //	G_DeferedInitNew(sk_medium, G_BuildMapName(1), 0, 0, 1);
 	if (setsizeneeded)
@@ -4339,13 +4352,13 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	{
 		char *title = G_BuildMapTitle(gamemap);
 
-		CONS_Printf(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap));
+		CON_LogMessage(va(M_GetText("Map is now \"%s"), G_BuildMapName(gamemap)));
 		if (title)
 		{
-			CONS_Printf(": %s", title);
+			CON_LogMessage(va(": %s", title));
 			Z_Free(title);
 		}
-		CONS_Printf("\"\n");
+		CON_LogMessage("\"\n");
 	}
 }
 
@@ -4495,6 +4508,13 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 		oldcmd.driftturn = READINT16(demo_p);
 
 	G_CopyTiccmd(cmd, &oldcmd, 1);
+
+	// SRB2kart: Copy-pasted from ticcmd building, removes that crappy demo cam
+	if (((players[displayplayer].mo && players[displayplayer].speed > 0) // Moving
+		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+		|| (players[displayplayer].spectator || objectplacing)) // Not a physical player
+		&& !(players[displayplayer].kartstuff[k_spinouttimer] && players[displayplayer].kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
+		localangle += (cmd->angleturn<<16);
 
 	if (!(demoflags & DF_GHOST) && *demo_p == DEMOMARKER)
 	{
