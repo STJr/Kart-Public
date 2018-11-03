@@ -1845,6 +1845,7 @@ static actionpointer_t actionpointers[] =
 	{{A_RoamingShadowThinker}, "A_ROAMINGSHADOWTHINKER"}, //SRB2kart
 	{{A_ReaperThinker}, 	   "A_REAPERTHINKER"}, //SRB2kart
 	{{A_MementosTPParticles},  "A_MEMENTOSTPPARTICLES"}, //SRB2kart
+	{{A_FlameParticle},        "A_FLAMEPARTICLE"}, // SRB2kart
 	{{A_OrbitNights},          "A_ORBITNIGHTS"},
 	{{A_GhostMe},              "A_GHOSTME"},
 	{{A_SetObjectState},       "A_SETOBJECTSTATE"},
@@ -5274,6 +5275,10 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_XMASPOLE",
 	"S_CANDYCANE",
 	"S_SNOWMAN",
+	"S_SNOWMANHAT",
+	"S_LAMPPOST1",
+	"S_LAMPPOST2",
+	"S_HANGSTAR",
 
 	// Botanic Serenity's loads of scenery states
 	"S_BSZTALLFLOWER_RED",
@@ -6247,6 +6252,9 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_DRIFTSPARK_C1",
 	"S_DRIFTSPARK_C2",
 
+	// Brake drift sparks
+	"S_BRAKEDRIFT",
+
 	// Drift Smoke
 	"S_DRIFTDUST1",
 	"S_DRIFTDUST2",
@@ -6327,31 +6335,31 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_ROCKETSNEAKER_RVIBRATE",
 
 	//{ Eggman Monitor
-	"S_FAKEITEM1",
-	"S_FAKEITEM2",
-	"S_FAKEITEM3",
-	"S_FAKEITEM4",
-	"S_FAKEITEM5",
-	"S_FAKEITEM6",
-	"S_FAKEITEM7",
-	"S_FAKEITEM8",
-	"S_FAKEITEM9",
-	"S_FAKEITEM10",
-	"S_FAKEITEM11",
-	"S_FAKEITEM12",
-	"S_FAKEITEM13",
-	"S_FAKEITEM14",
-	"S_FAKEITEM15",
-	"S_FAKEITEM16",
-	"S_FAKEITEM17",
-	"S_FAKEITEM18",
-	"S_FAKEITEM19",
-	"S_FAKEITEM20",
-	"S_FAKEITEM21",
-	"S_FAKEITEM22",
-	"S_FAKEITEM23",
-	"S_FAKEITEM24",
-	"S_DEADFAKEITEM",
+	"S_EGGMANITEM1",
+	"S_EGGMANITEM2",
+	"S_EGGMANITEM3",
+	"S_EGGMANITEM4",
+	"S_EGGMANITEM5",
+	"S_EGGMANITEM6",
+	"S_EGGMANITEM7",
+	"S_EGGMANITEM8",
+	"S_EGGMANITEM9",
+	"S_EGGMANITEM10",
+	"S_EGGMANITEM11",
+	"S_EGGMANITEM12",
+	"S_EGGMANITEM13",
+	"S_EGGMANITEM14",
+	"S_EGGMANITEM15",
+	"S_EGGMANITEM16",
+	"S_EGGMANITEM17",
+	"S_EGGMANITEM18",
+	"S_EGGMANITEM19",
+	"S_EGGMANITEM20",
+	"S_EGGMANITEM21",
+	"S_EGGMANITEM22",
+	"S_EGGMANITEM23",
+	"S_EGGMANITEM24",
+	"S_EGGMANITEM_DEAD",
 	//}
 
 	// Banana
@@ -6758,6 +6766,36 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 
 	"S_KARMAWHEEL", // Karma player wheels
 
+	"S_BATTLEPOINT1A", // Battle point indicators
+	"S_BATTLEPOINT1B",
+	"S_BATTLEPOINT1C",
+	"S_BATTLEPOINT1D",
+	"S_BATTLEPOINT1E",
+	"S_BATTLEPOINT1F",
+	"S_BATTLEPOINT1G",
+	"S_BATTLEPOINT1H",
+	"S_BATTLEPOINT1I",
+
+	"S_BATTLEPOINT2A",
+	"S_BATTLEPOINT2B",
+	"S_BATTLEPOINT2C",
+	"S_BATTLEPOINT2D",
+	"S_BATTLEPOINT2E",
+	"S_BATTLEPOINT2F",
+	"S_BATTLEPOINT2G",
+	"S_BATTLEPOINT2H",
+	"S_BATTLEPOINT2I",
+
+	"S_BATTLEPOINT3A",
+	"S_BATTLEPOINT3B",
+	"S_BATTLEPOINT3C",
+	"S_BATTLEPOINT3D",
+	"S_BATTLEPOINT3E",
+	"S_BATTLEPOINT3F",
+	"S_BATTLEPOINT3G",
+	"S_BATTLEPOINT3H",
+	"S_BATTLEPOINT3I",
+
 	// Thunder shield use stuff;
 	"S_KSPARK1",	// Sparkling Radius
 	"S_KSPARK2",
@@ -6831,6 +6869,62 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_FZSLOWSMOKE4",
 	"S_FZSLOWSMOKE5",
 
+	// Various plants
+	"S_SONICBUSH",
+	"S_SHRUB",
+	"S_TALLBUSH",
+	"S_AZURECITYTREE",
+
+	// Marble Zone
+	"S_FLAMEPARTICLE",
+	"S_MARBLETORCH",
+	"S_MARBLELIGHT",
+	"S_MARBLEBURNER",
+
+	// CD Special Stage
+	"S_CDUFO",
+	"S_CDUFO_DIE",
+
+	// Rusty Rig
+	"S_RUSTYLAMP_ORANGE",
+	"S_RUSTYCHAIN",
+
+	// D2 Balloon Panic
+	"S_BALLOON",
+	"S_BALLOONPOP1",
+	"S_BALLOONPOP2",
+	"S_BALLOONPOP3",
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	"S_PETSMOKE0",
+	"S_PETSMOKE1",
+	"S_PETSMOKE2",
+	"S_PETSMOKE3",
+	"S_PETSMOKE4",
+	"S_PETSMOKE5",
+	"S_VVVAPING0",
+	"S_VVVAPING1",
+	"S_VVVAPING2",
+	"S_VVVAPING3",
+	"S_VVVAPING4",
+	"S_VVVAPING5",
+	"S_VVVAPE",
+
+	// Hill Top Zone
+	"S_HTZTREE",
+	"S_HTZBUSH",
+
+	// Ports of gardens
+	"S_SGVINE1",
+	"S_SGVINE2",
+	"S_SGVINE3",
+	"S_PGTREE",
+	"S_PGFLOWER1",
+	"S_PGFLOWER2",
+	"S_PGFLOWER3",
+	"S_PGBUSH",
+	"S_DHPILLAR",
+
 	// Midnight Channel stuff:
 	"S_SPOTLIGHT",	// Spotlight decoration
 	"S_RANDOMSHADOW",	// Random Shadow. They're static and don't do nothing.
@@ -6862,6 +6956,141 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_CDBUSHSP",
 	"S_CDTREEASP",
 	"S_CDTREEBSP",
+
+	// Daytona Speedway
+	"S_PINETREE",
+	"S_PINETREE_SIDE",
+
+	// Egg Zeppelin
+	"S_EZZPROPELLER",
+	"S_EZZPROPELLER_BLADE",
+
+	// Desert Palace
+	"S_DP_PALMTREE",
+
+	// Aurora Atoll
+	"S_AAZTREE_SEG",
+	"S_AAZTREE_COCONUT",
+	"S_AAZTREE_LEAF",
+
+	// Barren Badlands
+	"S_BBZDUST1", // Dust
+	"S_BBZDUST2",
+	"S_BBZDUST3",
+	"S_BBZDUST4",
+	"S_FROGGER", // Frog badniks
+	"S_FROGGER_ATTACK",
+	"S_FROGGER_JUMP",
+	"S_FROGTONGUE",
+	"S_FROGTONGUE_JOINT",
+	"S_ROBRA", // Black cobra badniks
+	"S_ROBRA_HEAD",
+	"S_ROBRA_JOINT",
+	"S_ROBRASHELL_INSIDE",
+	"S_ROBRASHELL_OUTSIDE",
+	"S_BLUEROBRA", // Blue cobra badniks
+	"S_BLUEROBRA_HEAD",
+	"S_BLUEROBRA_JOINT",
+
+	// Eerie Grove
+	"S_EERIEFOG1",
+	"S_EERIEFOG2",
+	"S_EERIEFOG3",
+	"S_EERIEFOG4",
+	"S_EERIEFOG5",
+
+	// SMK ports
+	"S_SMK_PIPE1", // Generic pipes
+	"S_SMK_PIPE2",
+	"S_SMK_MOLE", // Donut Plains Monty Moles
+	"S_SMK_THWOMP", // Bowser Castle Thwomps
+	"S_SMK_SNOWBALL", // Vanilla Lake snowballs
+	"S_SMK_ICEBLOCK", // Vanilla Lake breakable ice blocks
+	"S_SMK_ICEBLOCK2",
+	"S_SMK_ICEBLOCK_DEBRIS",
+	"S_SMK_ICEBLOCK_DEBRIS2",
+
+	// Ezo's maps
+	"S_BLUEFIRE1",
+	"S_BLUEFIRE2",
+	"S_BLUEFIRE3",
+	"S_BLUEFIRE4",
+	"S_GREENFIRE1",
+	"S_GREENFIRE2",
+	"S_GREENFIRE3",
+	"S_GREENFIRE4",
+	"S_REGALCHEST",
+	"S_CHIMERASTATUE",
+	"S_DRAGONSTATUE",
+	"S_LIZARDMANSTATUE",
+	"S_PEGASUSSTATUE",
+	"S_ZELDAFIRE1",
+	"S_ZELDAFIRE2",
+	"S_ZELDAFIRE3",
+	"S_ZELDAFIRE4",
+	"S_GANBARETHING",
+	"S_GANBAREDUCK",
+	"S_GANBARETREE",
+	"S_MONOIDLE",
+	"S_MONOCHASE1",
+	"S_MONOCHASE2",
+	"S_MONOCHASE3",
+	"S_MONOCHASE4",
+	"S_MONOPAIN",
+	"S_REDZELDAFIRE1",
+	"S_REDZELDAFIRE2",
+	"S_REDZELDAFIRE3",
+	"S_REDZELDAFIRE4",
+	"S_BOWLINGPIN",
+	"S_BOWLINGHIT1",
+	"S_BOWLINGHIT2",
+	"S_BOWLINGHIT3",
+	"S_BOWLINGHIT4",
+	"S_ARIDTOAD",
+	"S_TOADHIT1",
+	"S_TOADHIT2",
+	"S_TOADHIT3",
+	"S_TOADHIT4",
+	"S_EBARRELIDLE",
+	"S_EBARREL1",
+	"S_EBARREL2",
+	"S_EBARREL3",
+	"S_EBARREL4",
+	"S_EBARREL5",
+	"S_EBARREL6",
+	"S_EBARREL7",
+	"S_EBARREL8",
+	"S_EBARREL9",
+	"S_EBARREL10",
+	"S_EBARREL11",
+	"S_EBARREL12",
+	"S_EBARREL13",
+	"S_EBARREL14",
+	"S_EBARREL15",
+	"S_EBARREL16",
+	"S_EBARREL17",
+	"S_EBARREL18",
+	"S_MERRYHORSE",
+	"S_BLUEFRUIT",
+	"S_ORANGEFRUIT",
+	"S_REDFRUIT",
+	"S_PINKFRUIT",
+	"S_ADVENTURESPIKEA1",
+	"S_ADVENTURESPIKEA2",
+	"S_ADVENTURESPIKEB1",
+	"S_ADVENTURESPIKEB2",
+	"S_ADVENTURESPIKEC1",
+	"S_ADVENTURESPIKEC2",
+	"S_BOOSTPROMPT1",
+	"S_BOOSTPROMPT2",
+	"S_BOOSTOFF1",
+	"S_BOOSTOFF2",
+	"S_BOOSTON1",
+	"S_BOOSTON2",
+	"S_LIZARDMAN",
+	"S_LIONMAN",
+	"S_MOUSEMAN1",
+	"S_MOUSEMAN2",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7149,6 +7378,10 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_XMASPOLE",
 	"MT_CANDYCANE",
 	"MT_SNOWMAN",
+	"MT_SNOWMANHAT",
+	"MT_LAMPPOST1",
+	"MT_LAMPPOST2",
+	"MT_HANGSTAR",
 
 	// Botanic Serenity
 	"MT_BSZTALLFLOWER_RED",
@@ -7393,12 +7626,13 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_INVULNFLASH",
 	"MT_WIPEOUTTRAIL",
 	"MT_DRIFTSPARK",
+	"MT_BRAKEDRIFT",
 	"MT_DRIFTDUST",
 
 	"MT_ROCKETSNEAKER", // Rocket sneakers
 
-	"MT_FAKESHIELD",
-	"MT_FAKEITEM",
+	"MT_EGGMANITEM", // Eggman items
+	"MT_EGGMANITEM_SHIELD",
 
 	"MT_BANANA", // Banana Stuff
 	"MT_BANANA_SHIELD",
@@ -7515,7 +7749,51 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_KARMAHITBOX",
 	"MT_KARMAWHEEL",
 
+	"MT_BATTLEPOINT",
+
 	"MT_FZEROBOOM",
+
+	// Various plants
+	"MT_SONICBUSH",
+	"MT_SHRUB",
+	"MT_TALLBUSH",
+	"MT_AZURECITYTREE",
+
+	// Marble Zone
+	"MT_FLAMEPARTICLE",
+	"MT_MARBLETORCH",
+	"MT_MARBLELIGHT",
+	"MT_MARBLEBURNER",
+
+	// CD Special Stage
+	"MT_CDUFO",
+
+	// Rusty Rig
+	"MT_RUSTYLAMP_ORANGE",
+	"MT_RUSTYCHAIN",
+
+	// D2 Balloon Panic
+	"MT_BALLOON",
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	"MT_PETSMOKER",
+	"MT_PETSMOKE",
+	"MT_VVVAPE",
+
+	// Hill Top Zone
+	"MT_HTZTREE",
+	"MT_HTZBUSH",
+
+	// Ports of gardens
+	"MT_SGVINE1",
+	"MT_SGVINE2",
+	"MT_SGVINE3",
+	"MT_PGTREE",
+	"MT_PGFLOWER1",
+	"MT_PGFLOWER2",
+	"MT_PGFLOWER3",
+	"MT_PGBUSH",
+	"MT_DHPILLAR",
 
 	// Midnight Channel stuff:
 	"MT_SPOTLIGHT",		// Spotlight Object
@@ -7536,6 +7814,83 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_CDBUSH",
 	"MT_CDTREEA",
 	"MT_CDTREEB",
+
+	// Daytona Speedway
+	"MT_PINETREE",
+	"MT_PINETREE_SIDE",
+
+	// Egg Zeppelin
+	"MT_EZZPROPELLER",
+	"MT_EZZPROPELLER_BLADE",
+
+	// Desert Palace
+	"MT_DP_PALMTREE",
+
+	// Aurora Atoll
+	"MT_AAZTREE_HELPER",
+	"MT_AAZTREE_SEG",
+	"MT_AAZTREE_COCONUT",
+	"MT_AAZTREE_LEAF",
+
+	// Barren Badlands
+	"MT_BBZDUST",
+	"MT_FROGGER",
+	"MT_FROGTONGUE",
+	"MT_FROGTONGUE_JOINT",
+	"MT_ROBRA",
+	"MT_ROBRA_HEAD",
+	"MT_ROBRA_JOINT",
+	"MT_BLUEROBRA",
+	"MT_BLUEROBRA_HEAD",
+	"MT_BLUEROBRA_JOINT",
+
+	// Eerie Grove
+	"MT_EERIEFOG",
+	"MT_EERIEFOGGEN",
+
+	// SMK ports
+	"MT_SMK_PIPE",
+	"MT_SMK_MOLESPAWNER",
+	"MT_SMK_MOLE",
+	"MT_SMK_THWOMP",
+	"MT_SMK_SNOWBALL",
+	"MT_SMK_ICEBLOCK",
+	"MT_SMK_ICEBLOCK_SIDE",
+	"MT_SMK_ICEBLOCK_DEBRIS",
+
+	// Ezo's maps
+	"MT_BLUEFIRE",
+	"MT_GREENFIRE",
+	"MT_REGALCHEST",
+	"MT_CHIMERASTATUE",
+	"MT_DRAGONSTATUE",
+	"MT_LIZARDMANSTATUE",
+	"MT_PEGASUSSTATUE",
+	"MT_ZELDAFIRE",
+	"MT_GANBARETHING",
+	"MT_GANBAREDUCK",
+	"MT_GANBARETREE",
+	"MT_MONOKUMA",
+	"MT_REDZELDAFIRE",
+	"MT_BOWLINGPIN",
+	"MT_MERRYAMBIENCE",
+	"MT_TWINKLECARTAMBIENCE",
+	"MT_EXPLODINGBARREL",
+	"MT_MERRYHORSE",
+	"MT_ARIDTOAD",
+	"MT_BLUEFRUIT",
+	"MT_ORANGEFRUIT",
+	"MT_REDFRUIT",
+	"MT_PINKFRUIT",
+	"MT_ADVENTURESPIKEA",
+	"MT_ADVENTURESPIKEB",
+	"MT_ADVENTURESPIKEC",
+	"MT_BOOSTPROMPT",
+	"MT_BOOSTOFF",
+	"MT_BOOSTON",
+	"MT_LIZARDMAN",
+	"MT_LIONMAN",
+	"MT_MOUSEMAN",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",
@@ -7867,6 +8222,7 @@ static const char *const KARTSTUFF_LIST[] = {
 
 	"THROWDIR",
 	"LAPANIMATION",
+	"LAPHAND",
 	"CARDANIMATION",
 	"VOICES",
 	"TAUNTVOICES",
@@ -7895,6 +8251,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"DESTBOOSTCAM",
 	"TIMEOVERCAM",
 	"AIZDRIFTSTRAT",
+	"BRAKEDRIFT",
 
 	"ITEMROULETTE",
 	"ROULETTETYPE",
@@ -7927,6 +8284,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKPOINTS",
 	"COMEBACKMODE",
 	"WANTED",
+	"YOUGOTEM",
 };
 
 static const char *const HUDITEMS_LIST[] = {

@@ -3025,6 +3025,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	indirectitemcooldown = 0;
 	mapreset = 0;
 	nospectategrief = 0;
+	thwompsactive = false;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;
@@ -3209,7 +3210,6 @@ boolean P_AddWadFile(const char *wadfilename, char **firstmapname)
 	HU_LoadGraphics();
 	ST_LoadGraphics();
 	ST_ReloadSkinFaceGraphics();
-	K_ReloadSkinIconGraphics();
 
 	//
 	// look for skins

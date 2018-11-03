@@ -27,6 +27,7 @@ void K_KartMoveAnimation(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);
 void K_DoInstashield(player_t *player);
+void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount);
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor);
@@ -67,8 +68,6 @@ fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my
 void K_drawKartHUD(void);
 void K_drawKartFreePlay(UINT32 flashtime);
 void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing);
-void K_LoadIconGraphics(char *facestr, INT32 skinnum);
-void K_ReloadSkinIconGraphics(void);
 
 // =========================================================================
 #endif  // __K_KART__

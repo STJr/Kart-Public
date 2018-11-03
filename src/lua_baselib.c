@@ -2109,6 +2109,20 @@ static int lib_kDoInstashield(lua_State *L)
 	return 0;
 }
 
+static int lib_kSpawnBattlePoints(lua_State *L)
+{
+	player_t *source = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	player_t *victim = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
+	UINT8 amount = (UINT8)luaL_checkinteger(L, 3);
+	NOHUD
+	if (!source)
+		return LUA_ErrInvalid(L, "player_t");
+	if (!victim)
+		return LUA_ErrInvalid(L, "player_t");
+	K_SpawnBattlePoints(source, victim, amount);
+	return 0;
+}
+
 static int lib_kSpinPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2500,6 +2514,7 @@ static luaL_Reg lib[] = {
 	{"K_KartBouncing",lib_kKartBouncing},
 	{"K_MatchGenericExtraFlags",lib_kMatchGenericExtraFlags},
 	{"K_DoInstashield",lib_kDoInstashield},
+	{"K_SpawnBattlePoints",lib_kSpawnBattlePoints},
 	{"K_SpinPlayer",lib_kSpinPlayer},
 	{"K_SquishPlayer",lib_kSquishPlayer},
 	{"K_ExplodePlayer",lib_kExplodePlayer},

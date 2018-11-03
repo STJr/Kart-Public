@@ -1024,6 +1024,21 @@ typedef enum
 	sfx_krti11,
 	sfx_krti12,
 
+	// SOC_CHAO hardcode
+	sfx_mkuma,
+	sfx_mkpop,
+	sfx_bfare,
+	sfx_merry,
+	sfx_bowlh,
+	sfx_tcart,
+	sfx_tppop,
+	sfx_toada,
+	sfx_hsdoor,
+	sfx_hstrn,
+	sfx_aspkb,
+	sfx_msmnj1,
+	sfx_msmnj2,
+
 	// And LASTLY, Kart's skin sounds.
 	sfx_kwin,
 	sfx_klose,

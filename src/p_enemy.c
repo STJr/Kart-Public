@@ -201,6 +201,7 @@ void A_RoamingShadowThinker(mobj_t *actor);	//SRB2kart
 void A_MayonakaArrow(mobj_t *actor);	//SRB2kart
 void A_ReaperThinker(mobj_t *actor);	//SRB2kart
 void A_MementosTPParticles(mobj_t *actor);	//SRB2kart
+void A_FlameParticle(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -8260,6 +8261,9 @@ void A_JawzChase(mobj_t *actor)
 
 	if (actor->tracer)
 	{
+		if (G_RaceGametype()) // Stop looking after first target in race
+			actor->extravalue1 = 1;
+
 		if (actor->tracer->health)
 		{
 			mobj_t *ret;
@@ -8279,12 +8283,12 @@ void A_JawzChase(mobj_t *actor)
 	if (actor->extravalue1) // Disable looking by setting this
 		return;
 
+	if (actor->target && !P_MobjWasRemoved(actor->target)) // No source!
+		return;
+
 	player = K_FindJawzTarget(actor, actor->target->player);
 	if (player)
 		P_SetTarget(&actor->tracer, player->mo);
-
-	if (G_RaceGametype()) // Stop looking after first tic in race
-		actor->extravalue1 = 1;
 
 	return;
 }
@@ -8435,6 +8439,7 @@ void A_SPBChase(mobj_t *actor)
 				//fast->momz = 3*actor->momz/4;
 				fast->color = SKINCOLOR_RED;
 				fast->colorized = true;
+				K_MatchGenericExtraFlags(fast, actor);
 			}
 
 			return;
@@ -8566,7 +8571,9 @@ void A_LightningFollowPlayer(mobj_t *actor)
 	if (LUA_CallAction("A_LightningFollowPlayer", actor))
 		return;
 #endif
-	if (actor->target)
+	if (!actor->target)
+		return;
+
 	{
 		if (actor->extravalue1)	// Make the radius also follow the player somewhat accuratly
 		{
@@ -8581,7 +8588,6 @@ void A_LightningFollowPlayer(mobj_t *actor)
 		actor->momy = actor->target->momy;
 		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
 	}
-	return;
 }
 
 // A_FZBoomFlash:
@@ -9001,6 +9007,23 @@ void A_ReaperThinker(mobj_t *actor)
 				P_SetTarget(&actor->target, actor->hnext);
 		}
 	}
+}
+
+void A_FlameParticle(mobj_t *actor)
+{
+	fixed_t rad = actor->radius>>FRACBITS, hei = actor->radius>>FRACBITS;
+	mobj_t *par;
+#ifdef HAVE_BLUA
+	if (LUA_CallAction("A_FlameParticle", actor))
+		return;
+#endif
+
+	par = P_SpawnMobj(
+		actor->x + (P_RandomRange(-rad, rad)<<FRACBITS),
+		actor->y + (P_RandomRange(-rad, rad)<<FRACBITS),
+		actor->z + (P_RandomRange(hei/2, hei)<<FRACBITS),
+		actor->info->painchance);
+	par->momz = actor->scale<<1;
 }
 
 //}
@@ -10318,6 +10341,8 @@ void A_SetScale(mobj_t *actor)
 		return;
 	}
 
+	locvar1 = FixedMul(locvar1, mapheaderinfo[gamemap-1]->mobj_scale); // SRB2Kart
+
 	target->destscale = locvar1; // destination scale
 	if (!(locvar2 & 65535))
 		P_SetScale(target, locvar1); // this instantly changes current scale to var1 if used, if not destscale will alter scale to var1 anyway
@@ -11146,4 +11171,6 @@ void A_SpawnFreshCopy(mobj_t *actor)
 
 	if (newObject->info->seesound)
 		S_StartSound(newObject, newObject->info->seesound);
+
+	newObject->color = actor->color; // SRB2Kart
 }

@@ -563,6 +563,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		rsp->kartstuff[j] = LONG(players[i].kartstuff[j]); // SRB2kart
 
+	rsp->frameangle = (angle_t)LONG(players[i].frameangle); // SRB2kart
+
 	// Score is resynched in the rspfirm resync packet
 	rsp->health = 0; // resynched with mo health
 	rsp->lives = players[i].lives;
@@ -576,8 +578,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	// Just in case Lua does something like
 	// modify these at runtime
 	// SRB2kart
-	rsp->kartspeed = (UINT8)LONG(players[i].kartspeed);
-	rsp->kartweight = (UINT8)LONG(players[i].kartweight);
+	rsp->kartspeed = (UINT8)players[i].kartspeed;
+	rsp->kartweight = (UINT8)players[i].kartweight;
 	//
 	rsp->normalspeed = (fixed_t)LONG(players[i].normalspeed);
 	rsp->runspeed = (fixed_t)LONG(players[i].runspeed);
@@ -644,6 +646,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->timeshit = players[i].timeshit;
 	rsp->onconveyor = LONG(players[i].onconveyor);
 
+	rsp->jointime = (tic_t)LONG(players[i].jointime);
+
 	rsp->hasmo = false;
 	//Transfer important mo information if the player has a body.
 	//This lets us resync players even if they are dead.
@@ -654,26 +658,26 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->health = LONG(players[i].mo->health);
 
 	rsp->angle = (angle_t)LONG(players[i].mo->angle);
-	rsp->x = LONG(players[i].mo->x);
-	rsp->y = LONG(players[i].mo->y);
-	rsp->z = LONG(players[i].mo->z);
-	rsp->momx = LONG(players[i].mo->momx);
-	rsp->momy = LONG(players[i].mo->momy);
-	rsp->momz = LONG(players[i].mo->momz);
-	rsp->friction = LONG(players[i].mo->friction);
-	rsp->movefactor = LONG(players[i].mo->movefactor);
+	rsp->x = (fixed_t)LONG(players[i].mo->x);
+	rsp->y = (fixed_t)LONG(players[i].mo->y);
+	rsp->z = (fixed_t)LONG(players[i].mo->z);
+	rsp->momx = (fixed_t)LONG(players[i].mo->momx);
+	rsp->momy = (fixed_t)LONG(players[i].mo->momy);
+	rsp->momz = (fixed_t)LONG(players[i].mo->momz);
+	rsp->friction = (fixed_t)LONG(players[i].mo->friction);
+	rsp->movefactor = (fixed_t)LONG(players[i].mo->movefactor);
 
 	rsp->tics = LONG(players[i].mo->tics);
 	rsp->statenum = (statenum_t)LONG(players[i].mo->state-states); // :(
+	rsp->flags = (UINT32)LONG(players[i].mo->flags);
+	rsp->flags2 = (UINT32)LONG(players[i].mo->flags2);
 	rsp->eflags = (UINT16)SHORT(players[i].mo->eflags);
-	rsp->flags = LONG(players[i].mo->flags);
-	rsp->flags2 = LONG(players[i].mo->flags2);
 
-	rsp->radius = LONG(players[i].mo->radius);
-	rsp->height = LONG(players[i].mo->height);
-	rsp->scale = LONG(players[i].mo->scale);
-	rsp->destscale = LONG(players[i].mo->destscale);
-	rsp->scalespeed = LONG(players[i].mo->scalespeed);
+	rsp->radius = (fixed_t)LONG(players[i].mo->radius);
+	rsp->height = (fixed_t)LONG(players[i].mo->height);
+	rsp->scale = (fixed_t)LONG(players[i].mo->scale);
+	rsp->destscale = (fixed_t)LONG(players[i].mo->destscale);
+	rsp->scalespeed = (fixed_t)LONG(players[i].mo->scalespeed);
 }
 
 static void resynch_read_player(resynch_pak *rsp)
@@ -696,6 +700,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	for (j = 0; j < NUMKARTSTUFF; ++j)
 		players[i].kartstuff[j] = LONG(rsp->kartstuff[j]); // SRB2kart
 
+	players[i].frameangle = (angle_t)LONG(rsp->frameangle); // SRB2kart
+
 	// Score is resynched in the rspfirm resync packet
 	players[i].health = rsp->health;
 	players[i].lives = rsp->lives;
@@ -708,8 +714,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].skin = LONG(rsp->skin);
 	// Just in case Lua does something like
 	// modify these at runtime
-	players[i].kartspeed = (UINT8)LONG(rsp->kartspeed);
-	players[i].kartweight = (UINT8)LONG(rsp->kartweight);
+	players[i].kartspeed = (UINT8)rsp->kartspeed;
+	players[i].kartweight = (UINT8)rsp->kartweight;
 
 	players[i].normalspeed = (fixed_t)LONG(rsp->normalspeed);
 	players[i].runspeed = (fixed_t)LONG(rsp->runspeed);
@@ -776,6 +782,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].timeshit = rsp->timeshit;
 	players[i].onconveyor = LONG(rsp->onconveyor);
 
+	players[i].jointime = (tic_t)LONG(rsp->jointime);
+
 	//We get a packet for each player in game.
 	if (!playeringame[i])
 		return;
@@ -794,27 +802,30 @@ static void resynch_read_player(resynch_pak *rsp)
 
 	//At this point, the player should have a body, whether they were respawned or not.
 	P_UnsetThingPosition(players[i].mo);
-	players[i].mo->angle = (angle_t)LONG(rsp->angle);
-	players[i].mo->eflags = (UINT16)SHORT(rsp->eflags);
-	players[i].mo->flags = LONG(rsp->flags);
-	players[i].mo->flags2 = LONG(rsp->flags2);
-	players[i].mo->friction = LONG(rsp->friction);
 	players[i].mo->health = LONG(rsp->health);
-	players[i].mo->momx = LONG(rsp->momx);
-	players[i].mo->momy = LONG(rsp->momy);
-	players[i].mo->momz = LONG(rsp->momz);
-	players[i].mo->movefactor = LONG(rsp->movefactor);
+
+	players[i].mo->angle = (angle_t)LONG(rsp->angle);
+	players[i].mo->x = (fixed_t)LONG(rsp->x);
+	players[i].mo->y = (fixed_t)LONG(rsp->y);
+	players[i].mo->z = (fixed_t)LONG(rsp->z);
+	players[i].mo->momx = (fixed_t)LONG(rsp->momx);
+	players[i].mo->momy = (fixed_t)LONG(rsp->momy);
+	players[i].mo->momz = (fixed_t)LONG(rsp->momz);
+	players[i].mo->friction = (fixed_t)LONG(rsp->friction);
+	players[i].mo->movefactor = (fixed_t)LONG(rsp->movefactor);
+
 	players[i].mo->tics = LONG(rsp->tics);
-	P_SetMobjStateNF(players[i].mo, LONG(rsp->statenum));
-	players[i].mo->x = LONG(rsp->x);
-	players[i].mo->y = LONG(rsp->y);
-	players[i].mo->z = LONG(rsp->z);
-	players[i].mo->radius = LONG(rsp->radius);
-	players[i].mo->height = LONG(rsp->height);
+	P_SetMobjStateNF(players[i].mo, (statenum_t)LONG(rsp->statenum));
+	players[i].mo->flags = (UINT32)LONG(rsp->flags);
+	players[i].mo->flags2 = (UINT32)LONG(rsp->flags2);
+	players[i].mo->eflags = (UINT16)SHORT(rsp->eflags);
+
+	players[i].mo->radius = (fixed_t)LONG(rsp->radius);
+	players[i].mo->height = (fixed_t)LONG(rsp->height);
 	// P_SetScale is redundant for this, as all related variables are already restored properly.
-	players[i].mo->scale = LONG(rsp->scale);
-	players[i].mo->destscale = LONG(rsp->destscale);
-	players[i].mo->scalespeed = LONG(rsp->scalespeed);
+	players[i].mo->scale = (fixed_t)LONG(rsp->scale);
+	players[i].mo->destscale = (fixed_t)LONG(rsp->destscale);
+	players[i].mo->scalespeed = (fixed_t)LONG(rsp->scalespeed);
 
 	// And finally, SET THE MOBJ SKIN damn it.
 	players[i].mo->skin = &skins[players[i].skin];
@@ -939,8 +950,7 @@ static inline void resynch_write_others(resynchend_pak *rst)
 		{
 			rst->ctfteam[i] = 0;
 			rst->score[i] = 0;
-			rst->numboxes[i] = 0;
-			rst->totalring[i] = 0;
+			rst->marescore[i] = 0;
 			rst->realtime[i] = 0;
 			rst->laps[i] = 0;
 			continue;
@@ -950,8 +960,7 @@ static inline void resynch_write_others(resynchend_pak *rst)
 			rst->ingame |= (1<<i);
 		rst->ctfteam[i] = (INT32)LONG(players[i].ctfteam);
 		rst->score[i] = (UINT32)LONG(players[i].score);
-		rst->numboxes[i] = SHORT(players[i].numboxes);
-		rst->totalring[i] = SHORT(players[i].totalring);
+		rst->marescore[i] = (UINT32)LONG(players[i].marescore);
 		rst->realtime[i] = (tic_t)LONG(players[i].realtime);
 		rst->laps[i] = players[i].laps;
 	}
@@ -971,8 +980,7 @@ static inline void resynch_read_others(resynchend_pak *p)
 		players[i].spectator = !(loc_ingame & (1<<i));
 		players[i].ctfteam = (INT32)LONG(p->ctfteam[i]); // no, 0 does not mean spectator, at least not in Match
 		players[i].score = (UINT32)LONG(p->score[i]);
-		players[i].numboxes = SHORT(p->numboxes[i]);
-		players[i].totalring = SHORT(p->totalring[i]);
+		players[i].marescore = (UINT32)LONG(p->marescore[i]);
 		players[i].realtime = (tic_t)LONG(p->realtime[i]);
 		players[i].laps = p->laps[i];
 	}
@@ -993,7 +1001,8 @@ static void SV_RequireResynch(INT32 node)
 
 	resynch_delay[node] = 10; // Delay before you can fail sync again
 	resynch_score[node] += 200; // Add score for initial desynch
-	resynch_status[node] = 0xFFFFFFFF; // No players assumed synched
+	for (i = 0; i < MAXPLAYERS; ++i)
+		resynch_status[node] |= (1<<i); // No players assumed synched
 	resynch_inprogress[node] = true; // so we know to send a PT_RESYNCHEND after sync
 
 	// Initial setup
@@ -2922,7 +2931,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	if (otherp >= 0) \
 	{ \
 		if (otherp != pnum) \
-			CONS_Printf("\x82%s\x80 left the game (Joined with \x82%s\x80)\n", player_names[otherp], player_names[pnum]); \
+			HU_AddChatText(va("\x82*%s left the game (Joined with %s)", player_names[otherp], player_names[pnum]), false); \
 		buf[0] = (UINT8)otherp; \
 		SendNetXCmd(XD_REMOVEPLAYER, &buf, 1); \
 		otherp = -1; \
@@ -3242,11 +3251,11 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		D_SendPlayerConfig();
 		addedtogame = true;
 	}
-	
+
 	if (netgame)
-	{	
+	{
 		if (server && netgame && cv_showjoinaddress.value)
-		{	
+		{
 			const char *address;
 			if (I_GetNodeAddress && (address = I_GetNodeAddress(node)) != NULL)
 				HU_AddChatText(va("\x82*Player %d has joined the game (node %d) (%s)", newplayernum+1, node, address), false);	// merge join notification + IP to avoid clogging console/chat.
@@ -3254,7 +3263,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		else
 			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);
 	}
-	
+
 	if (server && multiplayer && motd[0] != '\0')
 		COM_BufAddText(va("sayto %d %s\n", newplayernum, motd));
 
@@ -4344,7 +4353,7 @@ static INT16 Consistancy(void)
 		{
 			ret += players[i].mo->x;
 			ret -= players[i].mo->y;
-			ret += players[i].powers[pw_shield];
+			ret += players[i].kartstuff[k_itemtype]; // powers[pw_shield]
 			ret *= i+1;
 		}
 	}
@@ -4421,6 +4430,47 @@ static INT16 Consistancy(void)
 				}
 				else
 					ret ^= 0xAAAA;
+				// SRB2Kart: We use hnext & hprev very extensively
+				if (mo->hnext)
+				{
+					ret += mo->hnext->type;
+					ret -= mo->hnext->x;
+					ret += mo->hnext->y;
+					ret -= mo->hnext->z;
+					ret += mo->hnext->momx;
+					ret -= mo->hnext->momy;
+					ret += mo->hnext->momz;
+					ret -= mo->hnext->angle;
+					ret += mo->hnext->flags;
+					ret -= mo->hnext->flags2;
+					ret += mo->hnext->eflags;
+					ret -= mo->hnext->state - states;
+					ret += mo->hnext->tics;
+					ret -= mo->hnext->sprite;
+					ret += mo->hnext->frame;
+				}
+				else
+					ret ^= 0x5555;
+				if (mo->hprev)
+				{
+					ret += mo->hprev->type;
+					ret -= mo->hprev->x;
+					ret += mo->hprev->y;
+					ret -= mo->hprev->z;
+					ret += mo->hprev->momx;
+					ret -= mo->hprev->momy;
+					ret += mo->hprev->momz;
+					ret -= mo->hprev->angle;
+					ret += mo->hprev->flags;
+					ret -= mo->hprev->flags2;
+					ret += mo->hprev->eflags;
+					ret -= mo->hprev->state - states;
+					ret += mo->hprev->tics;
+					ret -= mo->hprev->sprite;
+					ret += mo->hprev->frame;
+				}
+				else
+					ret ^= 0xCCCC;
 				ret -= mo->state - states;
 				ret += mo->tics;
 				ret -= mo->sprite;

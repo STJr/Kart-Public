@@ -488,22 +488,22 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][9] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8
 			   /*Sneaker*/ {20, 0, 0, 4, 6, 6, 0, 0, 0 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 2, 5, 5, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,16 }, // Invincibility
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3 }, // Rocket Sneaker
+		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,14 }, // Invincibility
 				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0 }, // Eggman Monitor
 			  /*Orbinaut*/ { 0, 6, 5, 3, 2, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 1, 1, 0, 0, 0 }, // Jawz
-				  /*Mine*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Mine
-			   /*Ballhog*/ { 0, 0, 1, 2, 1, 0, 0, 0, 0 }, // Ballhog
+				  /*Mine*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0 }, // Mine
+			   /*Ballhog*/ { 0, 0, 0, 2, 1, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 2, 3, 4, 2, 2, 0 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 5, 4 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 1, 2, 0 }, // Shrink
+				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3 }, // Grow
+				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 2, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0 }, // Hyudoro
 		   /*Pogo Spring*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Pogo Spring
 		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 6, 6, 2, 0 }, // Sneaker x3
+			/*Sneaker x3*/ { 0, 0, 0, 0, 3, 7, 9, 2, 0 }, // Sneaker x3
 			 /*Banana x3*/ { 0, 0, 1, 1, 0, 0, 0, 0, 0 }, // Banana x3
 			/*Banana x10*/ { 0, 0, 0, 0, 1, 0, 0, 0, 0 }, // Banana x10
 		   /*Orbinaut x3*/ { 0, 0, 0, 1, 0, 0, 0, 0, 0 }, // Orbinaut x3
@@ -1331,6 +1331,23 @@ static void K_SpawnDashDustRelease(player_t *player)
 	}
 }
 
+static void K_SpawnBrakeDriftSparks(player_t *player) // Be sure to update the mobj thinker case too!
+{
+	mobj_t *sparks;
+
+	I_Assert(player != NULL);
+	I_Assert(player->mo != NULL);
+	I_Assert(!P_MobjWasRemoved(player->mo));
+
+	// Position & etc are handled in its thinker, and its spawned invisible.
+	// This avoids needing to dupe code if we don't need it.
+	sparks = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BRAKEDRIFT);
+	P_SetTarget(&sparks->target, player->mo);
+	P_SetScale(sparks, (sparks->destscale = player->mo->scale));
+	K_MatchGenericExtraFlags(sparks, player->mo);
+	sparks->flags2 |= MF2_DONTDRAW;
+}
+
 /**	\brief	Calculates the respawn timer and drop-boosting
 
 	\param	player	player object passed from K_KartPlayerThink
@@ -1785,6 +1802,32 @@ void K_DoInstashield(player_t *player)
 	P_SetTarget(&layerb->target, player->mo);
 }
 
+void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount)
+{
+	statenum_t st;
+	mobj_t *pt;
+
+	if (!source || !source->mo)
+		return;
+
+	if (amount == 1)
+		st = S_BATTLEPOINT1A;
+	else if (amount == 2)
+		st = S_BATTLEPOINT2A;
+	else if (amount == 3)
+		st = S_BATTLEPOINT3A;
+	else
+		return; // NO STATE!
+
+	pt = P_SpawnMobj(source->mo->x, source->mo->y, source->mo->z, MT_BATTLEPOINT);
+	P_SetTarget(&pt->target, source->mo);
+	P_SetMobjState(pt, st);
+	if (victim && victim->skincolor)
+		pt->color = victim->skincolor;
+	else
+		pt->color = source->skincolor;
+}
+
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
 {
 	UINT8 scoremultiply = 1;
@@ -1818,6 +1861,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			if (!trapitem)
 			{
 				source->player->kartstuff[k_wanted] -= wantedreduce;
@@ -1908,6 +1952,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			source->player->kartstuff[k_wanted] -= wantedreduce;
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
@@ -1941,7 +1986,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 		K_CheckBumpers();
 	}
 
-	player->kartstuff[k_squishedtimer] = 2*TICRATE;
+	player->kartstuff[k_squishedtimer] = TICRATE;
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
@@ -1997,6 +2042,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		if (source && source->player && player != source->player)
 		{
 			P_AddPlayerScore(source->player, scoremultiply);
+			K_SpawnBattlePoints(source->player, player, scoremultiply);
 			source->player->kartstuff[k_wanted] -= wantedreduce;
 			player->kartstuff[k_wanted] -= (wantedreduce/2);
 		}
@@ -3238,9 +3284,9 @@ void K_DropHnextList(player_t *player)
 				dropall = false;
 				type = MT_SSMINE;
 				break;
-			case MT_FAKESHIELD:
+			case MT_EGGMANITEM_SHIELD:
 				orbit = false;
-				type = MT_FAKEITEM;
+				type = MT_EGGMANITEM;
 				break;
 			// intentionally do nothing
 			case MT_SINK_SHIELD:
@@ -3508,7 +3554,7 @@ static void K_MoveHeldObjects(player_t *player)
 			break;
 		case MT_BANANA_SHIELD: // Kart trailing items
 		case MT_SSMINE_SHIELD:
-		case MT_FAKESHIELD:
+		case MT_EGGMANITEM_SHIELD:
 		case MT_SINK_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
@@ -3631,7 +3677,7 @@ static void K_MoveHeldObjects(player_t *player)
 
 #if 1
 					{
-						angle_t input = player->mo->angle - cur->angle;
+						angle_t input = player->frameangle - cur->angle;
 						boolean invert = (input > ANGLE_180);
 						if (invert)
 							input = InvAngle(input);
@@ -3643,7 +3689,7 @@ static void K_MoveHeldObjects(player_t *player)
 						cur->angle = cur->angle + input;
 					}
 #else
-					cur->angle = player->mo->angle;
+					cur->angle = player->frameangle;
 #endif
 
 					angoffset = ANGLE_90 + (ANGLE_180 * num);
@@ -3880,6 +3926,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		fast->momx = 3*player->mo->momx/4;
 		fast->momy = 3*player->mo->momy/4;
 		fast->momz = 3*player->mo->momz/4;
+		K_MatchGenericExtraFlags(fast, player->mo);
 	}
 
 	if (player->playerstate == PST_DEAD || player->kartstuff[k_respawn] > 1) // Ensure these are set correctly here
@@ -4068,6 +4115,9 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_lapanimation])
 		player->kartstuff[k_lapanimation]--;
 
+	if (player->kartstuff[k_yougotem])
+		player->kartstuff[k_yougotem]--;
+	
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
 		if (player->exiting)
@@ -4455,7 +4505,8 @@ static void K_KartDrift(player_t *player, boolean onground)
 	if (player->kartstuff[k_spinouttimer] > 0 // banana peel
 		|| player->speed < FixedMul(10<<16, player->mo->scale)) // you're too slow!
 	{
-		player->kartstuff[k_drift] = player->kartstuff[k_driftcharge] = player->kartstuff[k_aizdriftstrat] = 0;
+		player->kartstuff[k_drift] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_aizdriftstrat] = player->kartstuff[k_brakedrift] = 0;
 	}
 
 	if ((!player->kartstuff[k_sneakertimer])
@@ -4469,6 +4520,18 @@ static void K_KartDrift(player_t *player, boolean onground)
 	}
 	else if (player->kartstuff[k_aizdriftstrat] && !player->kartstuff[k_drift])
 		K_SpawnAIZDust(player);
+
+	if (player->kartstuff[k_drift]
+		&& ((player->cmd.buttons & BT_BRAKE)
+		|| !(player->cmd.buttons & BT_ACCELERATE))
+		&& P_IsObjectOnGround(player->mo))
+	{
+		if (!player->kartstuff[k_brakedrift])
+			K_SpawnBrakeDriftSparks(player);
+		player->kartstuff[k_brakedrift] = 1;
+	}
+	else
+		player->kartstuff[k_brakedrift] = 0;
 }
 //
 // K_KartUpdatePosition
@@ -4663,7 +4726,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	else if (cmd->buttons & BT_ATTACK)
 		player->pflags |= PF_ATTACKDOWN;
 
-	if (player && player->mo && player->mo->health > 0 && !player->spectator && !(player->exiting || mapreset) && player->kartstuff[k_spinouttimer] == 0)
+	if (player && player->mo && player->mo->health > 0 && !player->spectator && !(player->exiting || mapreset)
+		&& player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_squishedtimer] == 0 && player->kartstuff[k_respawn] == 0)
 	{
 		// First, the really specific, finicky items that function without the item being directly in your item slot.
 		// Karma item dropping
@@ -4678,7 +4742,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			}
 			else
 			{
-				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKEITEM);
+				newitem = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EGGMANITEM);
 				if (player->kartstuff[k_eggmanblame] >= 0
 				&& player->kartstuff[k_eggmanblame] < MAXPLAYERS
 				&& playeringame[player->kartstuff[k_eggmanblame]]
@@ -4704,7 +4768,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Eggman Monitor throwing
 		else if (ATTACK_IS_DOWN && player->kartstuff[k_eggmanheld])
 		{
-			K_ThrowKartItem(player, false, MT_FAKEITEM, -1, 0);
+			K_ThrowKartItem(player, false, MT_EGGMANITEM, -1, 0);
 			K_PlayAttackTaunt(player->mo);
 			player->kartstuff[k_eggmanheld] = 0;
 			K_UpdateHnextList(player, true);
@@ -4830,7 +4894,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						player->kartstuff[k_itemamount]--;
 						player->kartstuff[k_eggmanheld] = 1;
 						S_StartSound(player->mo, sfx_s254);
-						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_FAKESHIELD);
+						mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_EGGMANITEM_SHIELD);
 						if (mo)
 						{
 							mo->flags |= MF_NOCLIPTHING;
@@ -5526,13 +5590,10 @@ static patch_t *kp_racefinish[6];
 static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_winnernum[NUMPOSFRAMES];
 
-static patch_t *kp_facenull;
-static patch_t *kp_facefirst;
-static patch_t *kp_facesecond;
-static patch_t *kp_facethird;
-static patch_t *kp_facefourth;
+static patch_t *kp_facenum[MAXPLAYERS+1];
 
 static patch_t *kp_rankbumper;
+static patch_t *kp_tinybumpera, *kp_tinybumperb;
 static patch_t *kp_ranknobumpers;
 
 static patch_t *kp_battlewin;
@@ -5578,6 +5639,9 @@ static patch_t *kp_lapanim_lap[7];
 static patch_t *kp_lapanim_final[11];
 static patch_t *kp_lapanim_number[10][3];
 static patch_t *kp_lapanim_emblem;
+static patch_t *kp_lapanim_hand[3];
+
+static patch_t *kp_yougotem;
 
 void K_LoadKartHUDGraphics(void)
 {
@@ -5648,14 +5712,18 @@ void K_LoadKartHUDGraphics(void)
 		kp_winnernum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	kp_facenull = 				W_CachePatchName("K_PFACE0", PU_HUDGFX);
-	kp_facefirst = 				W_CachePatchName("K_PFACE1", PU_HUDGFX);
-	kp_facesecond = 			W_CachePatchName("K_PFACE2", PU_HUDGFX);
-	kp_facethird = 				W_CachePatchName("K_PFACE3", PU_HUDGFX);
-	kp_facefourth = 			W_CachePatchName("K_PFACE4", PU_HUDGFX);
+	sprintf(buffer, "OPPRNKxx");
+	for (i = 0; i <= MAXPLAYERS; i++)
+	{
+		buffer[6] = '0'+(i/10);
+		buffer[7] = '0'+(i%10);
+		kp_facenum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
 
 	// Extra ranking icons
 	kp_rankbumper =				W_CachePatchName("K_BLNICO", PU_HUDGFX);
+	kp_tinybumpera =			W_CachePatchName("K_BLNA", PU_HUDGFX);
+	kp_tinybumperb =			W_CachePatchName("K_BLNB", PU_HUDGFX);
 	kp_ranknobumpers =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
 
 	// Battle graphics
@@ -5797,6 +5865,15 @@ void K_LoadKartHUDGraphics(void)
 	}
 
 	kp_lapanim_emblem = (patch_t *) W_CachePatchName("K_LAPE00", PU_HUDGFX);
+
+	sprintf(buffer, "K_LAPH0x");
+	for (i = 0; i < 3; i++)
+	{
+		buffer[7] = '0'+(i+1);
+		kp_lapanim_hand[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	kp_yougotem = (patch_t *) W_CachePatchName("YOUGOTEM", PU_HUDGFX);
 }
 
 // For the item toggle menu
@@ -6314,7 +6391,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 			}
 
 			V_DrawRightAlignedString(workx, worky, splitflags, targettext);
-			workx -= 72; //69; -- good night sweet prince
+			workx -= 67;
 			V_DrawSmallScaledPatch(workx + 4, worky, splitflags, W_CachePatchName("NEEDIT", PU_CACHE));
 
 			break;
@@ -6327,7 +6404,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 			splitflags = (splitflags &~ V_HUDTRANSHALF)|V_HUDTRANS;
 		while (curemb--)
 		{
-			workx -= 16;
+			workx -= 12;
 			V_DrawSmallMappedPatch(workx + 4, worky, splitflags, emblempic[curemb], emblemcol[curemb]);
 		}
 	}
@@ -6409,12 +6486,11 @@ static boolean K_drawKartPositionFaces(void)
 	// FACE_Y = 72;				//  72
 
 	INT32 Y = FACE_Y+9; // +9 to offset where it's being drawn if there are more than one
-	INT32 i, j, ranklines;
+	INT32 i, j, ranklines, strank = 0;
 	boolean completed[MAXPLAYERS];
 	INT32 rankplayer[MAXPLAYERS];
 	INT32 bumperx, numplayersingame = 0;
 	UINT8 *colormap;
-	patch_t *localpatch = kp_facenull;
 
 	ranklines = 0;
 	memset(completed, 0, sizeof (completed));
@@ -6440,32 +6516,62 @@ static boolean K_drawKartPositionFaces(void)
 
 	for (j = 0; j < numplayersingame; j++)
 	{
+		UINT8 lowestposition = MAXPLAYERS;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i] && completed[i] == false && players[i].mo && !players[i].spectator
-				&& (rankplayer[ranklines] < 0 || players[i].kartstuff[k_position] < players[rankplayer[ranklines]].kartstuff[k_position]))
-			{
-				rankplayer[ranklines] = i;
-			}
+			if (completed[i] || !playeringame[i] || players[i].spectator || !players[i].mo)
+				continue;
+
+			if (players[i].kartstuff[k_position] >= lowestposition)
+				continue;
+
+			rankplayer[ranklines] = i;
+			lowestposition = players[i].kartstuff[k_position];
 		}
+
 		i = rankplayer[ranklines];
 
 		completed[i] = true;
 
-		if (ranklines == 4)
-			break; // Only draw the top 4 players
+		if (players+i == stplyr)
+			strank = ranklines;
+
+		//if (ranklines == 5)
+			//break; // Only draw the top 5 players -- we do this a different way now...
 
 		ranklines++;
 	}
 
-	Y -= (9*ranklines);
+	if (ranklines < 5)
+		Y -= (9*ranklines);
+	else
+		Y -= (9*5);
 
-	for (i = 0; i < ranklines; i++)
+	if (G_BattleGametype() || strank <= 2) // too close to the top, or playing battle?
 	{
-		if (players[rankplayer[i]].spectator) continue; // Spectators are ignored
+		i = 0;
+		if (ranklines > 5) // could be both...
+			ranklines = 5;
+	}
+	else if (strank+3 > ranklines) // too close to the bottom?
+	{
+		i = ranklines - 5;
+		if (i < 0)
+			i = 0;
+	}
+	else
+	{
+		i = strank-2;
+		ranklines = strank+3;
+	}
+
+	for (; i < ranklines; i++)
+	{
+		if (!playeringame[rankplayer[i]]) continue;
+		if (players[rankplayer[i]].spectator) continue;
 		if (!players[rankplayer[i]].mo) continue;
 
-		bumperx = FACE_X+18;
+		bumperx = FACE_X+19;
 
 		if (players[rankplayer[i]].mo->color)
 		{
@@ -6475,36 +6581,130 @@ static boolean K_drawKartPositionFaces(void)
 			else
 				colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
 
-			V_DrawSmallMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, faceprefix[players[rankplayer[i]].skin], colormap);
+			V_DrawMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, facerankprefix[players[rankplayer[i]].skin], colormap);
 			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 			{
-				for (j = 0; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
+				V_DrawMappedPatch(bumperx-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumpera, colormap);
+				for (j = 1; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 				{
-					V_DrawSmallMappedPatch(bumperx, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_rankbumper, colormap);
-					bumperx += 3;
+					bumperx += 5;
+					V_DrawMappedPatch(bumperx, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumperb, colormap);
 				}
 			}
 		}
 
-		// Draws the little number over the face
-		switch (players[rankplayer[i]].kartstuff[k_position])
-		{
-			case 1: localpatch = kp_facefirst; break;
-			case 2: localpatch = kp_facesecond; break;
-			case 3: localpatch = kp_facethird; break;
-			case 4: localpatch = kp_facefourth; break;
-			default: break;
-		}
-
 		if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
-			V_DrawSmallScaledPatch(FACE_X-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
+			V_DrawScaledPatch(FACE_X-4, Y-3, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
 		else
-			V_DrawSmallScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, localpatch);
+		{
+			INT32 pos = players[rankplayer[i]].kartstuff[k_position];
+			if (pos < 0 || pos > MAXPLAYERS)
+				pos = 0;
+			// Draws the little number over the face
+			V_DrawScaledPatch(FACE_X-5, Y+10, V_HUDTRANS|V_SNAPTOLEFT, kp_facenum[pos]);
+		}
 
 		Y += 18;
 	}
 
 	return false;
+}
+
+//
+// HU_DrawTabRankings -- moved here to take advantage of kart stuff!
+//
+void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol)
+{
+	INT32 i, rightoffset = 240;
+	const UINT8 *colormap;
+	INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
+
+	//this function is designed for 9 or less score lines only
+	//I_Assert(scorelines <= 9); -- not today bitch, kart fixed it up
+
+	V_DrawFill(1-duptweak, 26, dupadjust-2, 1, 0); // Draw a horizontal line because it looks nice!
+	if (scorelines > 8)
+	{
+		V_DrawFill(160, 26, 1, 147, 0); // Draw a vertical line to separate the two sides.
+		V_DrawFill(1-duptweak, 173, dupadjust-2, 1, 0); // And a horizontal line near the bottom.
+		rightoffset = (BASEVIDWIDTH/2) - 4 - x;
+	}
+
+	for (i = 0; i < scorelines; i++)
+	{
+		char strtime[MAXPLAYERNAME+1];
+
+		if (players[tab[i].num].spectator || !players[tab[i].num].mo)
+			continue; //ignore them.
+
+		if (netgame // don't draw it offline
+        && tab[i].num != serverplayer)
+			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
+
+		if (scorelines > 8)
+			strlcpy(strtime, tab[i].name, 6);
+		else
+			STRBUFCPY(strtime, tab[i].name);
+
+		V_DrawString(x + 20, y,
+			((tab[i].num == whiteplayer)
+				? hilicol|V_ALLOWLOWERCASE
+				: V_ALLOWLOWERCASE),
+			strtime);
+
+		if (players[tab[i].num].mo->color)
+		{
+			colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo->color, GTC_CACHE);
+			if (players[tab[i].num].mo->colorized)
+				colormap = R_GetTranslationColormap(TC_RAINBOW, players[tab[i].num].mo->color, GTC_CACHE);
+			else
+				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo->color, GTC_CACHE);
+
+			V_DrawMappedPatch(x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
+			/*if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] > 0) -- not enough space for this
+			{
+				INT32 bumperx = x+19;
+				V_DrawMappedPatch(bumperx-2, y-4, 0, kp_tinybumpera, colormap);
+				for (j = 1; j < players[tab[i].num].kartstuff[k_bumper]; j++)
+				{
+					bumperx += 5;
+					V_DrawMappedPatch(bumperx, y-4, 0, kp_tinybumperb, colormap);
+				}
+			}*/
+		}
+
+		if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] <= 0)
+			V_DrawScaledPatch(x-4, y-7, 0, kp_ranknobumpers);
+		else
+		{
+			INT32 pos = players[tab[i].num].kartstuff[k_position];
+			if (pos < 0 || pos > MAXPLAYERS)
+				pos = 0;
+			// Draws the little number over the face
+			V_DrawScaledPatch(x-5, y+6, 0, kp_facenum[pos]);
+		}
+
+		if (G_RaceGametype())
+		{
+#define timestring(time) va("%i'%02i\"%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
+			if (players[tab[i].num].exiting)
+				V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
+			else if (players[tab[i].num].pflags & PF_TIMEOVER)
+				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "NO CONTEST.");
+			else if (circuitmap)
+				V_DrawRightAlignedString(x+rightoffset, y, 0, va("Lap %d", tab[i].count));
+#undef timestring
+		}
+		else
+			V_DrawRightAlignedString(x+rightoffset, y, 0, va("%u", tab[i].count));
+
+		y += 18;
+		if (i == 7)
+		{
+			y = 33;
+			x = (BASEVIDWIDTH/2) + 4;
+		}
+	}
 }
 
 static void K_drawKartLaps(void)
@@ -6645,7 +6845,7 @@ static void K_drawKartWanted(void)
 
 	for (i = 0; i < numwanted; i++)
 	{
-		INT32 x = WANT_X+7, y = WANT_Y+20;
+		INT32 x = WANT_X+8, y = WANT_Y+21;
 		fixed_t scale = FRACUNIT/2;
 		player_t *p = &players[battlewanted[i]];
 
@@ -6653,24 +6853,19 @@ static void K_drawKartWanted(void)
 			break;
 
 		if (numwanted == 1)
-		{
-			x++; //y++;
 			scale = FRACUNIT;
-		}
 		else
 		{
 			if (i & 1)
-				x += 18;
+				x += 16;
 			if (i > 1)
-				y += 17;
+				y += 16;
 		}
 
-		if (players[battlewanted[i]].skincolor == 0)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], NULL);
-		else
+		if (players[battlewanted[i]].skincolor)
 		{
 			colormap = R_GetTranslationColormap(TC_RAINBOW, p->skincolor, GTC_CACHE);
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, faceprefix[p->skin], colormap);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, (scale == FRACUNIT ? facewantprefix[p->skin] : facerankprefix[p->skin]), colormap);
 		}
 	}
 }
@@ -6723,35 +6918,6 @@ static void K_drawKartPlayerCheck(void)
 			V_DrawMappedPatch(x, CHEK_Y, V_HUDTRANS|splitflags, kp_check[pnum], colormap);
 		}
 	}
-}
-
-void K_LoadIconGraphics(char *facestr, INT32 skinnum)
-{
-	char namelump[9];
-
-	// hack: make sure base face name is no more than 8 chars
-	if (strlen(facestr) > 8)
-		facestr[8] = '\0';
-	strcpy(namelump, facestr); // copy base name
-
-	iconprefix[skinnum] = W_CachePatchName(namelump, PU_HUDGFX);
-	iconfreed[skinnum] = false;
-}
-
-#if 0 //unused
-static void K_UnLoadIconGraphics(INT32 skinnum)
-{
-	Z_Free(iconprefix[skinnum]);
-	iconfreed[skinnum] = true;
-}
-#endif
-
-void K_ReloadSkinIconGraphics(void)
-{
-	INT32 i;
-
-	for (i = 0; i < numskins; i++)
-		K_LoadIconGraphics(skins[i].iconprefix, i);
 }
 
 static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, patch_t *AutomapPic)
@@ -6820,18 +6986,18 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	if (encoremode)
 		amnumxpos = -amnumxpos;
 
-	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (iconprefix[skin]->width/2))<<FRACBITS);
-	amypos = amnumypos + ((y + AutomapPic->height/2 - (iconprefix[skin]->height/2))<<FRACBITS);
+	amxpos = amnumxpos + ((x + AutomapPic->width/2 - (facemmapprefix[skin]->width/2))<<FRACBITS);
+	amypos = amnumypos + ((y + AutomapPic->height/2 - (facemmapprefix[skin]->height/2))<<FRACBITS);
 
 	// do we want this? it feels unnecessary. easier to just modify the amnumxpos?
 	/*if (encoremode)
 	{
 		flags |= V_FLIP;
-		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (iconprefix[skin]->width/2))<<FRACBITS);
+		amxpos = -amnumxpos + ((x + AutomapPic->width/2 + (facemmapprefix[skin]->width/2))<<FRACBITS);
 	}*/
 
 	if (!mo->color) // 'default' color
-		V_DrawSciencePatch(amxpos, amypos, flags, iconprefix[skin], FRACUNIT);
+		V_DrawSciencePatch(amxpos, amypos, flags, facemmapprefix[skin], FRACUNIT);
 	else
 	{
 		UINT8 *colormap;
@@ -6839,7 +7005,7 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, 0);
 		else
 			colormap = R_GetTranslationColormap(skin, mo->color, 0);
-		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, iconprefix[skin], colormap);
+		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
 	}
 }
 
@@ -6980,25 +7146,30 @@ static void K_drawKartFinish(void)
 	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
 		pnum = 1;
 
-	if (splitscreen > 1) // small splitscreen
-		pnum += 2;
-	else if (splitscreen == 1) // wide splitscreen
-		pnum += 4;
-
-	if (splitscreen > 1) // Stationary FIN
-		V_DrawScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/2), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2), splitflags, kp_racefinish[pnum]);
-	else // Scrolling FINISH
+	if (splitscreen > 1) // 3/4p, stationary FIN
 	{
-		INT32 scaleshift = (FRACBITS - splitscreen); // FRACUNIT or FRACUNIT/2
-		INT32 x = ((vid.width<<FRACBITS)/vid.dupx), xval = (SHORT(kp_racefinish[pnum]->width)<<scaleshift);
+		pnum += 2;
+		V_DrawScaledPatch(STCD_X - (SHORT(kp_racefinish[pnum]->width)/2), STCD_Y - (SHORT(kp_racefinish[pnum]->height)/2), splitflags, kp_racefinish[pnum]);
+		return;
+	}
+
+	//else -- 1/2p, scrolling FINISH
+	{
+		INT32 x, xval;
+
+		if (splitscreen) // wide splitscreen
+			pnum += 4;
+
+		x = ((vid.width<<FRACBITS)/vid.dupx);
+		xval = (SHORT(kp_racefinish[pnum]->width)<<FRACBITS);
 		x = ((TICRATE - stplyr->kartstuff[k_cardanimation])*(xval > x ? xval : x))/TICRATE;
 
 		if (splitscreen && stplyr == &players[secondarydisplayplayer])
 			x = -x;
 
-		V_DrawFixedPatch(x + (STCD_X<<FRACBITS) - (SHORT(kp_racefinish[pnum]->width)<<(scaleshift-1)),
-			(STCD_Y<<FRACBITS) - (SHORT(kp_racefinish[pnum]->height)<<(scaleshift-1)),
-			(1<<scaleshift),
+		V_DrawFixedPatch(x + (STCD_X<<FRACBITS) - (xval>>1),
+			(STCD_Y<<FRACBITS) - (SHORT(kp_racefinish[pnum]->height)<<(FRACBITS-1)),
+			FRACUNIT,
 			splitflags, kp_racefinish[pnum], NULL);
 	}
 }
@@ -7382,41 +7553,57 @@ static void K_drawLapStartAnim(void)
 {
 	// This is an EVEN MORE insanely complicated animation.
 	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
+	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
 
-	V_DrawScaledPatch(BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)),
-		56 - (32*max(0, progress-76)),
-		0, kp_lapanim_emblem);
+	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
+		(48 - (32*max(0, progress-76)))*FRACUNIT,
+		FRACUNIT, V_HUDTRANS,
+		kp_lapanim_emblem, colormap);
+
+	if (stplyr->kartstuff[k_laphand] >= 1 && stplyr->kartstuff[k_laphand] <= 3)
+	{
+		V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
+			(48 - (32*max(0, progress-76))
+				+ 4 - abs((leveltime % 8) - 4))*FRACUNIT,
+			FRACUNIT, V_HUDTRANS,
+			kp_lapanim_hand[stplyr->kartstuff[k_laphand]-1], NULL);
+	}
 
 	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
 	{
-		V_DrawScaledPatch(27 - (32*max(0, progress-76)),
-			32,
-			0, kp_lapanim_final[min(progress/2, 10)]);
+		V_DrawFixedPatch((62 - (32*max(0, progress-76)))*FRACUNIT, // 27
+			(-6)*FRACUNIT, // 24
+			FRACUNIT, V_HUDTRANS,
+			kp_lapanim_final[min(progress/2, 10)], NULL);
 
 		if (progress/2-12 >= 0)
 		{
-			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
-				32,
-				0, kp_lapanim_lap[min(progress/2-12, 6)]);
+			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
+				(-6)*FRACUNIT, // 24
+				FRACUNIT, V_HUDTRANS,
+				kp_lapanim_lap[min(progress/2-12, 6)], NULL);
 		}
 	}
 	else
 	{
-		V_DrawScaledPatch(61 - (32*max(0, progress-76)),
-			32,
-			0, kp_lapanim_lap[min(progress/2, 6)]);
+		V_DrawFixedPatch((82 - (32*max(0, progress-76)))*FRACUNIT, // 61
+			(-6)*FRACUNIT, // 24
+			FRACUNIT, V_HUDTRANS,
+			kp_lapanim_lap[min(progress/2, 6)], NULL);
 
 		if (progress/2-8 >= 0)
 		{
-			V_DrawScaledPatch(194 + (32*max(0, progress-76)),
-				32,
-				0, kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)]);
+			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
+				(-6)*FRACUNIT, // 24
+				FRACUNIT, V_HUDTRANS,
+				kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)], NULL);
 
 			if (progress/2-10 >= 0)
 			{
-				V_DrawScaledPatch(221 + (32*max(0, progress-76)),
-					32,
-					0, kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)]);
+				V_DrawFixedPatch((208 + (32*max(0, progress-76)))*FRACUNIT, // 221
+					(-6)*FRACUNIT, // 24
+					FRACUNIT, V_HUDTRANS,
+					kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)], NULL);
 			}
 		}
 	}
@@ -7697,6 +7884,9 @@ void K_drawKartHUD(void)
 		else if (stplyr->kartstuff[k_lapanimation] && !splitscreen)
 			K_drawLapStartAnim();
 	}
+
+	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *
+		V_DrawScaledPatch(BASEVIDWIDTH/2 - (SHORT(kp_yougotem->width)/2), 32, V_HUDTRANS, kp_yougotem);
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
