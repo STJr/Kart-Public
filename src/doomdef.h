@@ -142,17 +142,17 @@ extern FILE *logstream;
 
 #define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
-#define VERSION    104 // Game version
-#define SUBVERSION 8 // more precise version number
+#define VERSION    0 // Game version
+#define SUBVERSION 0 // more precise version number
 #define VERSIONSTRING "Development EXE"
-#define VERSIONSTRINGW "v1.4.8"
+#define VERSIONSTRINGW L"Development EXE"
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
-#define VERSION    104 // Game version
-#define SUBVERSION 8 // more precise version number
-#define VERSIONSTRING "DevEXE v1.4.8"
-#define VERSIONSTRINGW L"v1.4.8"
+#define VERSION    100 // Game version
+#define SUBVERSION 0 // more precise version number
+#define VERSIONSTRING "Kart v1.0.0"
+#define VERSIONSTRINGW L"Kart v1.0.0"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
@@ -162,7 +162,7 @@ extern FILE *logstream;
 //#define USE_PATCH_DTA
 
 // Kart has it's own, as well.
-#define USE_PATCH_KART
+//#define USE_PATCH_KART
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
@@ -176,7 +176,7 @@ extern FILE *logstream;
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
 #define UPDATE_ALERT_STRING \
 "A new update is available for SRB2Kart.\n"\
-"Please visit the forums on SRB2.org to download it.\n"\
+"Please visit mb.srb2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -193,7 +193,7 @@ extern FILE *logstream;
 // Generally less filled with newlines, since Windows gives you lots more room to work with.
 #define UPDATE_ALERT_STRING_CONSOLE \
 "A new update is available for SRB2Kart.\n"\
-"Please visit the forums on SRB2.org to download it.\n"\
+"Please visit mb.srb2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -211,7 +211,8 @@ extern FILE *logstream;
 // The Modification ID; must be obtained from Rob ( https://mb.srb2.org/private.php?do=newpm&u=546 ).
 // DO NOT try to set this otherwise, or your modification will be unplayable through the Master Server.
 // "12" is the default mod ID for version 2.1
-#define MODID 12
+// "17" is the 2.1 Kart's mod ID
+#define MODID 17
 
 // The Modification Version, starting from 1. Do not follow your version string for this,
 // it's only for detection of the version the player is using so the MS can alert them of an update.
@@ -545,7 +546,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 #define SECTORSPECIALSAFTERTHINK
 
 /// SRB2Kart: Camera always has noclip.
-/// \note   Kind of problematic. If we decide to keep this on, we'll need serious map changes.
 #define NOCLIPCAM
 
 #endif // __DOOMDEF__
