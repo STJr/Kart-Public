@@ -1472,7 +1472,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",			&cv_inttime,			 40},
 	{IT_STRING | IT_CVAR,    NULL, "Map Progression",				&cv_advancemap,			 50},
 	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",					&cv_votetime,			 60},
-	{IT_STRING | IT_CVAR,    NULL, "Voting Rule Changes",				&cv_kartvoterulechanges, 70},
+	{IT_STRING | IT_CVAR,    NULL, "Voting Rule Changes",			&cv_kartvoterulechanges, 70},
 
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
@@ -2098,6 +2098,9 @@ static void Nextmap_OnChange(void)
 			SP_GhostMenu[4].status = IT_STRING|IT_CVAR;
 			CV_StealthSetValue(&cv_dummystaff, 1);
 			active |= 1;
+
+			dummystaffname[0] = '\0';
+			G_UpdateStaffGhostName(l);
 		}
 
 		if (active) {
@@ -2145,9 +2148,14 @@ static void Dummymenuplayer_OnChange(void)
 	}
 }*/
 
+char dummystaffname[17];
+
 static void Dummystaff_OnChange(void)
 {
 	lumpnum_t l;
+
+	dummystaffname[0] = '\0';
+
 	if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) == LUMPERROR)
 	{
 		CV_StealthSetValue(&cv_dummystaff, 0);
@@ -2163,6 +2171,11 @@ static void Dummystaff_OnChange(void)
 			CV_StealthSetValue(&cv_dummystaff, numstaff);
 		else if (cv_dummystaff.value > numstaff)
 			CV_StealthSetValue(&cv_dummystaff, 1);
+
+		if ((l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value), cv_dummystaff.value))) == LUMPERROR)
+			return; // shouldn't happen but might as well check...
+
+		G_UpdateStaffGhostName(l);
 	}
 }
 
@@ -6433,7 +6446,17 @@ void M_DrawTimeAttackMenu(void)
 			}
 		}
 		else if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_KEYHANDLER && cv_dummystaff.value) // bad hacky assumption: IT_KEYHANDLER is assumed to be staff ghost selector
-			V_DrawString(BASEVIDWIDTH - x - 80 - V_StringWidth(cv_dummystaff.string, 0), y, highlightflags, cv_dummystaff.string);
+		{
+			INT32 strw = V_StringWidth(dummystaffname, V_ALLOWLOWERCASE);
+			V_DrawString(BASEVIDWIDTH - x - strw, y, highlightflags|V_ALLOWLOWERCASE, dummystaffname);
+			if (i == itemOn)
+			{
+				V_DrawCharacter(BASEVIDWIDTH - x - 10 - strw - (skullAnimCounter/5), y,
+					'\x1C' | highlightflags, false); // left arrow
+				V_DrawCharacter(BASEVIDWIDTH - x + 2 + (skullAnimCounter/5), y,
+					'\x1D' | highlightflags, false); // right arrow
+			}
+		}
 	}
 
 	x = currentMenu->x;

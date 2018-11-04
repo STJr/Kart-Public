@@ -5861,7 +5861,7 @@ void G_DoPlayDemo(char *defdemoname)
 			players[0].skincolor = i;
 			break;
 		}
-	CV_StealthSetValue(&cv_playercolor, players[0].skincolor);
+	//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
 	if (players[0].mo)
 	{
 		players[0].mo->color = players[0].skincolor;
@@ -6113,6 +6113,68 @@ void G_AddGhost(char *defdemoname)
 
 	CONS_Printf(M_GetText("Added ghost %s from %s\n"), name, pdemoname);
 	Z_Free(pdemoname);
+}
+
+// A simplified version of G_AddGhost...
+void G_UpdateStaffGhostName(lumpnum_t l)
+{
+	UINT8 *buffer,*p;
+	UINT16 ghostversion;
+	UINT8 flags;
+
+	buffer = p = W_CacheLumpNum(l, PU_CACHE);
+
+	// read demo header
+	if (memcmp(p, DEMOHEADER, 12))
+	{
+		goto fail;
+	} p += 12; // DEMOHEADER
+	p++; // VERSION
+	p++; // SUBVERSION
+	ghostversion = READUINT16(p);
+	switch(ghostversion)
+	{
+	case DEMOVERSION: // latest always supported
+		break;
+	// too old, cannot support.
+	default:
+		goto fail;
+	}
+	p += 16; // demo checksum
+	if (memcmp(p, "PLAY", 4))
+	{
+		goto fail;
+	} p += 4; // "PLAY"
+	p += 2; // gamemap
+	p += 16; // mapmd5 (possibly check for consistency?)
+	flags = READUINT8(p);
+	if (!(flags & DF_GHOST))
+	{
+		goto fail; // we don't NEED to do it here, but whatever
+	}
+	switch ((flags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
+	{
+	case ATTACKING_NONE: // 0
+		break;
+	case ATTACKING_RECORD: // 1
+		p += 8; // demo time, lap
+		break;
+	/*case ATTACKING_NIGHTS: // 2
+		p += 8; // demo time left, score
+		break;*/
+	default: // 3
+		break;
+	}
+	p += 4; // random seed
+
+	// Player name
+	M_Memcpy(dummystaffname, p,16);
+	dummystaffname[16] = '\0';
+
+	// Ok, no longer any reason to care, bye
+fail:
+	Z_Free(buffer);
+	return;
 }
 
 //
