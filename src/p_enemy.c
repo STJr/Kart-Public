@@ -4033,10 +4033,10 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 void A_MineExplode(mobj_t *actor)
 {
 	INT32 bx, by, xl, xh, yl, yh;
-	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
+	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MineExplode", actor))
 		return;
