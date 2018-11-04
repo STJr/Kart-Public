@@ -6480,10 +6480,10 @@ void M_DrawTimeAttackMenu(void)
 		V_DrawFill((BASEVIDWIDTH - dupadjust)>>1, 78, dupadjust, 36, 239);
 
 		V_DrawRightAlignedString(149, 80, highlightflags, "BEST LAP:");
-		K_drawKartTimestamp(lap, 19, 86, 0, false);
+		K_drawKartTimestamp(lap, 19, 86, 0, 2);
 
 		V_DrawRightAlignedString(292, 80, highlightflags, "BEST TIME:");
-		K_drawKartTimestamp(time, 162, 86, cv_nextmap.value, false);
+		K_drawKartTimestamp(time, 162, 86, cv_nextmap.value, 1);
 	}
 	/*{
 		char beststr[40];

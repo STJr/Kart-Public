@@ -5575,6 +5575,7 @@ static patch_t *kp_nodraw;
 static patch_t *kp_timesticker;
 static patch_t *kp_timestickerwide;
 static patch_t *kp_lapsticker;
+static patch_t *kp_lapstickerwide;
 static patch_t *kp_lapstickernarrow;
 static patch_t *kp_splitlapflag;
 static patch_t *kp_bumpersticker;
@@ -5654,6 +5655,7 @@ void K_LoadKartHUDGraphics(void)
 	kp_timesticker = 			W_CachePatchName("K_STTIME", PU_HUDGFX);
 	kp_timestickerwide = 		W_CachePatchName("K_STTIMW", PU_HUDGFX);
 	kp_lapsticker = 			W_CachePatchName("K_STLAPS", PU_HUDGFX);
+	kp_lapstickerwide = 		W_CachePatchName("K_STLAPW", PU_HUDGFX);
 	kp_lapstickernarrow = 		W_CachePatchName("K_STLAPN", PU_HUDGFX);
 	kp_splitlapflag = 			W_CachePatchName("K_SPTLAP", PU_HUDGFX);
 	kp_bumpersticker = 			W_CachePatchName("K_STBALN", PU_HUDGFX);
@@ -6258,7 +6260,7 @@ static void K_drawKartItem(void)
 		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
 }
 
-void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing)
+void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, UINT8 mode)
 {
 	// TIME_X = BASEVIDWIDTH-124;	// 196
 	// TIME_Y = 6;					//   6
@@ -6266,7 +6268,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 	tic_t worktime;
 
 	INT32 splitflags = 0;
-	if (playing)
+	if (!mode)
 	{
 		splitflags = V_HUDTRANS|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTORIGHT);
 		if (cv_timelimit.value && timelimitintics > 0)
@@ -6278,13 +6280,13 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 		}
 	}
 
-	V_DrawScaledPatch(TX, TY, splitflags, kp_timestickerwide);
+	V_DrawScaledPatch(TX, TY, splitflags, ((mode == 2) ? kp_lapstickerwide : kp_timestickerwide));
 
 	TX += 33;
 
 	worktime = drawtime/(60*TICRATE);
 
-	if (!playing && !drawtime)
+	if (mode && !drawtime)
 		V_DrawKartString(TX, TY+3, splitflags, va("--'--\"--"));
 	else if (worktime < 100) // 99:99:99 only
 	{
@@ -6334,7 +6336,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 	else if ((drawtime/TICRATE) & 1)
 		V_DrawKartString(TX, TY+3, splitflags, va("99'59\"99"));
 
-	if (emblemmap && (modeattacking || !playing)) // emblem time!
+	if (emblemmap && (modeattacking || (mode == 1))) // emblem time!
 	{
 		INT32 workx = TX + 96, worky = TY+18;
 		SINT8 curemb = 0;
@@ -6367,7 +6369,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 							G_TicsToSeconds(timetoreach),
 							G_TicsToCentiseconds(timetoreach));
 
-						if (playing)
+						if (!mode)
 						{
 							if (stplyr->realtime > timetoreach)
 							{
@@ -6399,7 +6401,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, bo
 			emblem = M_GetLevelEmblems(-1);
 		}
 
-		if (playing)
+		if (!mode)
 			splitflags = (splitflags &~ V_HUDTRANSHALF)|V_HUDTRANS;
 		while (curemb--)
 		{
@@ -7770,7 +7772,7 @@ void K_drawKartHUD(void)
 	if (!splitscreen)
 	{
 		// Draw the timestamp
-		K_drawKartTimestamp(stplyr->realtime, TIME_X, TIME_Y, gamemap, true);
+		K_drawKartTimestamp(stplyr->realtime, TIME_X, TIME_Y, gamemap, 0);
 
 		if (!modeattacking)
 		{

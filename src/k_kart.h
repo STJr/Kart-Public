@@ -67,7 +67,7 @@ void K_LoadKartHUDGraphics(void);
 fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my);
 void K_drawKartHUD(void);
 void K_drawKartFreePlay(UINT32 flashtime);
-void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing);
+void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, UINT8 mode);
 
 // =========================================================================
 #endif  // __K_KART__
