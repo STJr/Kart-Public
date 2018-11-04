@@ -8283,7 +8283,7 @@ void A_JawzChase(mobj_t *actor)
 	if (actor->extravalue1) // Disable looking by setting this
 		return;
 
-	if (actor->target && !P_MobjWasRemoved(actor->target)) // No source!
+	if (!actor->target || P_MobjWasRemoved(actor->target)) // No source!
 		return;
 
 	player = K_FindJawzTarget(actor, actor->target->player);
