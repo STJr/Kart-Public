@@ -1261,6 +1261,7 @@ enum
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
+	op_video_md2,
 	op_video_ogl,
 #endif
 };
@@ -3140,7 +3141,7 @@ void M_Init(void)
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
-		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
+		OP_VideoOptionsMenu[op_video_ogl].status = OP_VideoOptionsMenu[op_video_md2].status = IT_DISABLED;
 #endif
 
 #ifndef NONET
