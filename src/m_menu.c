@@ -9662,6 +9662,7 @@ void M_QuitResponse(INT32 ch)
 		ptime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds Tails 03-26-2001
 		while (ptime > I_GetTime())
 		{
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 			V_DrawSmallScaledPatch(0, 0, 0, W_CachePatchName("GAMEQUIT", PU_CACHE)); // Demo 3 Quit Screen Tails 06-16-2001
 			I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
 			I_Sleep();
