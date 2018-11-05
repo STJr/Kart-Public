@@ -1034,18 +1034,16 @@ void F_TitleScreenTicker(boolean run)
 		numstaff = 1;
 		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)
 			numstaff++;
-		if (laststaff && laststaff <= numstaff) // don't do the same staff member twice in a row, even if they're on different maps
+		if (laststaff && laststaff <= numstaff && numstaff > 1) // don't do the same staff member twice in a row, even if they're on different maps
 		{
 			numstaff = M_RandomKey(numstaff-1)+1;
 			if (numstaff >= laststaff)
 				numstaff++;
-			laststaff = numstaff;
 		}
 		else
-		{
 			numstaff = M_RandomKey(numstaff)+1;
-			laststaff = 0;
-		}
+
+		laststaff = numstaff;
 
 		// Setup demo name
 		snprintf(dname, 9, "%sS%02u", mapname, numstaff);
