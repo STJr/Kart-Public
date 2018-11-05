@@ -3312,7 +3312,7 @@ tryagain:
 			|| (!dedicated && M_MapLocked(ix+1))
 			|| (!maphell && (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU)) // this is bad
 			|| ((maphell == 2) && !(mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // gasp
-			isokmap = false;
+			continue; //isokmap = false;
 
 		if (!ignorebuffer)
 		{
@@ -3328,8 +3328,17 @@ tryagain:
 			}
 		}
 
-		if (isokmap)
-			okmaps[numokmaps++] = ix;
+		if (!isokmap)
+			continue;
+
+		if (pprevmap == -2) // title demos
+		{
+			lumpnum_t l;
+			if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(ix+1)))) == LUMPERROR)
+				continue;
+		}
+
+		okmaps[numokmaps++] = ix;
 	}
 
 	if (numokmaps == 0)  // If there's no matches... (Goodbye, incredibly silly function chains :V)
@@ -4095,8 +4104,8 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	}
 	save_p += VERSIONSIZE;
 
-//	if (demoplayback) // reset game engine
-//		G_StopDemo();
+	if (demoplayback) // reset game engine
+		G_StopDemo();
 
 //	paused = false;
 //	automapactive = false;
@@ -6321,10 +6330,17 @@ void G_StopDemo(void)
 	Z_Free(demobuffer);
 	demobuffer = NULL;
 	demoplayback = false;
+	if (titledemo)
+		modeattacking = false;
 	titledemo = false;
 	timingdemo = false;
 	singletics = false;
 
+	if (gamestate == GS_LEVEL && rendermode != render_none)
+	{
+		V_SetPaletteLump("PLAYPAL"); // Reset the palette
+		R_ReInitColormaps(0, LUMPERROR);
+	}
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission(); // cleanup
 	if (gamestate == GS_VOTING)

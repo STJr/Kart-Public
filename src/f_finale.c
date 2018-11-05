@@ -49,7 +49,7 @@ static tic_t stoptimer;
 static boolean keypressed = false;
 
 // (no longer) De-Demo'd Title Screen
-static UINT8  curDemo = 0;
+static UINT8  laststaff = 0;
 static UINT32 demoDelayLeft;
 static UINT32 demoIdleLeft;
 
@@ -985,8 +985,8 @@ void F_TitleScreenTicker(boolean run)
 	if (gameaction != ga_nothing || gamestate != GS_TITLESCREEN)
 		return;
 
-	// no demos to play? or, are they disabled?
-	if (!cv_rollingdemos.value || !numDemos)
+	// are demos disabled?
+	if (!cv_rollingdemos.value)
 		return;
 
 	// Wait for a while (for the music to finish, preferably)
@@ -1009,27 +1009,53 @@ void F_TitleScreenTicker(boolean run)
 	{
 		char dname[9];
 		lumpnum_t l;
+		const char *mapname;
+		UINT8 numstaff;
 
 		// prevent console spam if failed
 		demoIdleLeft = demoIdleTime;
 
+		if ((l = W_CheckNumForName("MAP01S01")) == LUMPERROR) // gotta have ONE
+		{
+			F_StartIntro();
+			return;
+		}
+
 		// Replay intro when done cycling through demos
-		if (curDemo == numDemos)
+		/*if (curDemo == numDemos) -- uuuh... we have a LOT of maps AND a big devteam... probably not gonna see a repeat unless you're super unlucky :V
 		{
 			curDemo = 0;
 			F_StartIntro();
 			return;
+		}*/
+
+		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, false, 0, false)+1);
+
+		numstaff = 1;
+		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)
+			numstaff++;
+		if (laststaff && laststaff <= numstaff) // don't do the same staff member twice in a row, even if they're on different maps
+		{
+			numstaff = M_RandomKey(numstaff-1)+1;
+			if (numstaff >= laststaff)
+				numstaff++;
+			laststaff = numstaff;
+		}
+		else
+		{
+			numstaff = M_RandomKey(numstaff)+1;
+			laststaff = 0;
 		}
 
 		// Setup demo name
-		snprintf(dname, 9, "DEMO_%03u", ++curDemo);
+		snprintf(dname, 9, "%sS%02u", mapname, numstaff);
 
-		if ((l = W_CheckNumForName(dname)) == LUMPERROR)
+		/*if ((l = W_CheckNumForName(dname)) == LUMPERROR) -- we KNOW it exists now
 		{
 			CONS_Alert(CONS_ERROR, M_GetText("Demo lump \"%s\" doesn't exist\n"), dname);
 			F_StartIntro();
 			return;
-		}
+		}*/
 
 		titledemo = true;
 		G_DoPlayDemo(dname);
