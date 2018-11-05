@@ -6553,17 +6553,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	// DEZ respawn laser
 	"S_DEZLASER",
 
-	// Pokey
-	"S_POKEY1",
-	"S_POKEY2",
-	"S_POKEY3",
-	"S_POKEY4",
-	"S_POKEY5",
-	"S_POKEY6",
-	"S_POKEY7",
-	"S_POKEY8",
-	"S_POKEYIDLE",
-
 	// Audience Members
 	"S_RANDOMAUDIENCE",
 	"S_AUDIENCE_CHAO_CHEER1",
@@ -6571,15 +6560,6 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_AUDIENCE_CHAO_WIN1",
 	"S_AUDIENCE_CHAO_WIN2",
 	"S_AUDIENCE_CHAO_LOSE",
-
-	"S_FANCHAR_KOTE",
-	"S_FANCHAR_RYAN",
-	"S_FANCHAR_WENDY",
-	"S_FANCHAR_FREEZOR",
-	"S_FANCHAR_METALKO",
-	"S_FANCHAR_BLACKOUT",
-	"S_FANCHAR_BLADE",
-	"S_FANCHAR_HINOTE",
 
 	// 1.0 Kart Decoratives
 	"S_FLAYM1",
@@ -7671,20 +7651,9 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 
 	"MT_DEZLASER",
 
-	"MT_POKEY", // Huh, thought this was a default asset for some reason, guess not.
-
-	"MT_ENEMYFLIP",
 	"MT_WAYPOINT",
 
 	"MT_RANDOMAUDIENCE",
-	"MT_FANCHAR_KOTE",
-	"MT_FANCHAR_RYAN",
-	"MT_FANCHAR_WENDY",
-	"MT_FANCHAR_FREEZOR",
-	"MT_FANCHAR_METALKO",
-	"MT_FANCHAR_BLACKOUT",
-	"MT_FANCHAR_BLADE",
-	"MT_FANCHAR_HINOTE",
 
 	"MT_FLAYM",
 	"MT_DEVIL",

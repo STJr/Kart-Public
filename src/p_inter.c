@@ -3150,13 +3150,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return false;
 	}
 
-	// SRB2kart 011617 - Special Case for Pokey so it doesn't die.
-	if (target->type == MT_POKEY)
-	{
-		target->threshold = 1;
-		return false;
-	}
-
 	// Special case for Crawla Commander
 	if (target->type == MT_CRAWLACOMMANDER)
 	{

@@ -1112,25 +1112,6 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		return true;
 	}
 
-	if (thing->type == MT_POKEY)
-	{
-		// see if it went over / under
-		if (tmthing->z > thing->z + thing->height)
-			return true; // overhead
-		if (tmthing->z + tmthing->height < thing->z)
-			return true; // underneath
-
-		if (tmthing->type == MT_ENEMYFLIP)
-		{
-			if (tmthing->angle)
-				P_SetMobjState(thing, S_POKEY5);
-			else
-				P_SetMobjState(thing, S_POKEY1);
-		}
-		if (tmthing->type == MT_PLAYER && !thing->threshold)
-			P_DamageMobj(tmthing, thing, thing->target, 1);
-	}
-
 	//}
 
 	if ((thing->type == MT_FALLINGROCK && (tmthing->player || tmthing->type == MT_FALLINGROCK))
@@ -1380,13 +1361,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	}*/
 
 	// check for special pickup
-	if (thing->flags & MF_SPECIAL && tmthing->player && thing->type != MT_POKEY)
+	if (thing->flags & MF_SPECIAL && tmthing->player)
 	{
 		P_TouchSpecialThing(thing, tmthing, true); // can remove thing
 		return true;
 	}
 	// check again for special pickup
-	if (tmthing->flags & MF_SPECIAL && thing->player && tmthing->type != MT_POKEY)
+	if (tmthing->flags & MF_SPECIAL && thing->player)
 	{
 		P_TouchSpecialThing(tmthing, thing, true); // can remove thing
 		return true;
