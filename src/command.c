@@ -672,7 +672,8 @@ static void COM_Help_f(void)
 
 	if (COM_Argc() > 1)
 	{
-		cvar = CV_FindVar(COM_Argv(1));
+		const char *help = COM_Argv(1);
+		cvar = CV_FindVar(help);
 		if (cvar)
 		{
 			CONS_Printf(M_GetText("Variable %s:\n"), cvar->name);
@@ -721,12 +722,37 @@ static void COM_Help_f(void)
 				CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
 		}
 		else
-			CONS_Printf(M_GetText("No help for this command/variable\n"));
+		{
+			CONS_Printf("\x87%s", M_GetText("No exact match, searching...\n"));
+			//CONS_Printf(M_GetText("No help for this command/variable\n"));
+			// commands
+			CONS_Printf("\x82%s", M_GetText("Commands:\n"));
+			for (cmd = com_commands; cmd; cmd = cmd->next)
+			{
+				if (strstr(cmd->name, help))
+					CONS_Printf("%s ",cmd->name);
+				i++;
+			}
+
+			// variables
+			CONS_Printf("\n\x82%s", M_GetText("Variables:\n"));
+			for (cvar = consvar_vars; cvar; cvar = cvar->next)
+			{
+				if (!(cvar->flags & CV_NOSHOWHELP) && (strstr(cvar->name, help)))
+					CONS_Printf("%s ", cvar->name);
+				i++;
+			}
+
+			CONS_Printf("\n\x87%s", M_GetText("Check wiki.srb2.org for more or type help <command or variable>\n"));
+
+			CONS_Debug(DBG_GAMELOGIC, "\x87Total : %d\n", i);
+		}
+		return;
 	}
-	else
+
 	{
 		// commands
-		CONS_Printf("\x82%s", M_GetText("Commands\n"));
+		CONS_Printf("\x82%s", M_GetText("Commands:\n"));
 		for (cmd = com_commands; cmd; cmd = cmd->next)
 		{
 			CONS_Printf("%s ",cmd->name);
@@ -734,7 +760,7 @@ static void COM_Help_f(void)
 		}
 
 		// variables
-		CONS_Printf("\n\x82%s", M_GetText("Variables\n"));
+		CONS_Printf("\n\x82%s", M_GetText("Variables:\n"));
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
 			if (!(cvar->flags & CV_NOSHOWHELP))
@@ -742,9 +768,9 @@ static void COM_Help_f(void)
 			i++;
 		}
 
-		CONS_Printf("\n\x82%s", M_GetText("Read help file for more or type help <command or variable>\n"));
+		CONS_Printf("\n\x87%s", M_GetText("Check wiki.srb2.org for more or type help <command or variable>\n"));
 
-		CONS_Debug(DBG_GAMELOGIC, "\x82Total : %d\n", i);
+		CONS_Debug(DBG_GAMELOGIC, "\x87Total : %d\n", i);
 	}
 }
 
