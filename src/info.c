@@ -184,12 +184,12 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_OBJPLACE_DUMMY}, //S_OBJPLACE_DUMMY
 
 	// 1-Up Box Sprites (uses player sprite)
-	// Kart: default to signpost just to ensure there are no missing sprite errors...
-	{SPR_PLAY, 18,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
+	// Kart: hide for now, fix for R2
+	{SPR_NULL,  0,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
 	{SPR_NULL,  0,  1, {NULL}, 0,  0, S_PLAY_BOX1},  // S_PLAY_BOX2
-	{SPR_PLAY, 18,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
+	{SPR_NULL,  0,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
 	{SPR_NULL,  0, 12, {NULL}, 0,  0, S_PLAY_ICON3}, // S_PLAY_ICON2
-	{SPR_PLAY, 18, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
+	{SPR_NULL,  0, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
 
 	// Level end sign (uses player sprite)
 	{SPR_PLAY, 18, 1, {NULL}, 0, 24, S_PLAY_SIGN},         // S_PLAY_SIGN	S
@@ -2870,14 +2870,14 @@ state_t states[NUMSTATES] =
 
 	{SPR_AUDI, 4|FF_ANIMATE,  -1, {NULL},       1, 17, S_NULL}, // S_AUDIENCE_CHAO_LOSE
 
-	{SPR_AUDI, 10, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_KOTE
-	{SPR_AUDI, 11, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_RYAN
-	{SPR_AUDI, 12, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_WENDY
-	{SPR_AUDI, 13, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_FREEZOR
-	{SPR_AUDI, 14, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_METALKO
-	{SPR_AUDI, 15, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_BLACKOUT
-	{SPR_AUDI, 16, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_BLADE
-	{SPR_AUDI, 17, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_HINOTE
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_KOTE
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_RYAN
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_WENDY
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_FREEZOR
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_METALKO
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_BLACKOUT
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_BLADE
+	{SPR_NULL, 0, 0, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_HINOTE
 
 	{SPR_FLAM,  0,  3, {NULL}, 0, 0, S_FLAYM2}, // S_FLAYM1,
 	{SPR_FLAM,  1,  3, {NULL}, 0, 0, S_FLAYM3}, // S_FLAYM2,
@@ -16154,7 +16154,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_KOTE
-		1994,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_KOTE, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16181,7 +16181,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_RYAN
-		1995,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_RYAN, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16208,7 +16208,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_WENDY
-		1996,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_WENDY, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16235,7 +16235,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_FREEZOR
-		1997,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_FREEZOR, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16262,7 +16262,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_METALKO
-		1998,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_METALKO, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16289,7 +16289,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_BLACKOUT
-		1999,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_BLACKOUT, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16316,7 +16316,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_BLADE
-		1993,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_BLADE, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
@@ -16343,7 +16343,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	},
 
 	{           // MT_FANCHAR_HINOTE
-		1992,           // doomednum
+		-1,             // doomednum
 		S_FANCHAR_HINOTE, // spawnstate
 		-1,             // spawnhealth
 		S_NULL,         // seestate
