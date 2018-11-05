@@ -49,7 +49,9 @@ static tic_t stoptimer;
 static boolean keypressed = false;
 
 // (no longer) De-Demo'd Title Screen
+#if 0
 static UINT8  laststaff = 0;
+#endif
 static UINT32 demoDelayLeft;
 static UINT32 demoIdleLeft;
 
@@ -1034,6 +1036,8 @@ void F_TitleScreenTicker(boolean run)
 		numstaff = 1;
 		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)
 			numstaff++;
+
+#if 0 // turns out this isn't how we're gonna organise 'em
 		if (numstaff > 1)
 		{
 			if (laststaff && laststaff <= numstaff) // don't do the same staff member twice in a row, even if they're on different maps
@@ -1045,8 +1049,10 @@ void F_TitleScreenTicker(boolean run)
 			else
 				numstaff = M_RandomKey(numstaff)+1;
 		}
-
 		laststaff = numstaff;
+#else
+		numstaff = M_RandomKey(numstaff)+1;
+#endif
 
 		// Setup demo name
 		snprintf(dname, 9, "%sS%02u", mapname, numstaff);
