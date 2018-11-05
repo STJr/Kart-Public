@@ -417,6 +417,7 @@ void Y_IntermissionDrawer(void)
 	{
 #define NUMFORNEWCOLUMN 8
 		INT32 y = 41, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
+		INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -426,7 +427,7 @@ void Y_IntermissionDrawer(void)
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12, 0, data.match.levelstring);
-		V_DrawFill(x, 34, 312, 1, 0);
+		V_DrawFill((x-3) - duptweak, 34, dupadjust-2, 1, 0);
 
 		if (data.match.encore)
 			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12-8, hilicol, "ENCORE MODE");
@@ -434,7 +435,7 @@ void Y_IntermissionDrawer(void)
 		if (!gutter)
 		{
 			V_DrawFill(x+156, 24, 1, 158, 0);
-			V_DrawFill(x, 182, 312, 1, 0);
+			V_DrawFill((x-3) - duptweak, 182, dupadjust-2, 1, 0);
 
 			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 24, hilicol, "#");
 			V_DrawString(x+36+(BASEVIDWIDTH/2), 24, hilicol, "NAME");

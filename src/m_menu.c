@@ -1261,6 +1261,7 @@ enum
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
+	op_video_md2,
 	op_video_ogl,
 #endif
 };
@@ -3153,7 +3154,7 @@ void M_Init(void)
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
-		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
+		OP_VideoOptionsMenu[op_video_ogl].status = OP_VideoOptionsMenu[op_video_md2].status = IT_DISABLED;
 #endif
 
 #ifndef NONET
@@ -9684,6 +9685,7 @@ void M_QuitResponse(INT32 ch)
 		ptime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds Tails 03-26-2001
 		while (ptime > I_GetTime())
 		{
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 			V_DrawSmallScaledPatch(0, 0, 0, W_CachePatchName("GAMEQUIT", PU_CACHE)); // Demo 3 Quit Screen Tails 06-16-2001
 			I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
 			I_Sleep();

@@ -6784,7 +6784,7 @@ void P_MobjThinker(mobj_t *mobj)
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
 					/*&& players[displayplayer].mo && !players[displayplayer].spectator*/)
 				{
-					fixed_t scale = 4*mobj->target->scale;
+					fixed_t scale = 3*mobj->target->scale;
 					mobj->color = mobj->target->color;
 					K_MatchGenericExtraFlags(mobj, mobj->target);
 
@@ -6801,18 +6801,6 @@ void P_MobjThinker(mobj_t *mobj)
 
 					mobj->angle = R_PointToAngle(mobj->x, mobj->y) + ANGLE_90; // literally only happened because i wanted to ^L^R the SPR_ITEM's
 
-					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
-					{
-						mobj->z = mobj->target->z + P_GetPlayerHeight(mobj->target->player)+(16+11)*mapheaderinfo[gamemap-1]->mobj_scale;
-						mobj->eflags &= ~MFE_VERTICALFLIP;
-					}
-					else
-					{
-						mobj->z = mobj->target->z - P_GetPlayerHeight(mobj->target->player)+(16+11)*mapheaderinfo[gamemap-1]->mobj_scale;
-						mobj->eflags |= MFE_VERTICALFLIP;
-					}
-					P_SetThingPosition(mobj);
-
 					if (!splitscreen)
 					{
 						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
@@ -6822,13 +6810,24 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 					mobj->destscale = scale;
 
+					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
+					{
+						mobj->z = mobj->target->z + P_GetPlayerHeight(mobj->target->player) + (16*mobj->target->scale);
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+					}
+					else
+					{
+						mobj->z = mobj->target->z - P_GetPlayerHeight(mobj->target->player) - (16*mobj->target->scale);
+						mobj->eflags |= MFE_VERTICALFLIP;
+					}
+					P_SetThingPosition(mobj);
+
 					if (!mobj->tracer)
 					{
 						mobj_t *overlay = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_OVERLAY);
 						P_SetTarget(&mobj->tracer, overlay);
 						P_SetTarget(&mobj->tracer->target, mobj);
 						P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
-						P_SetMobjState(mobj->tracer, S_ITEMICON); // null sprite and frame to be overwritten later
 						P_SetScale(mobj->tracer, (mobj->tracer->destscale = mobj->scale));
 					}
 
@@ -6930,7 +6929,7 @@ void P_MobjThinker(mobj_t *mobj)
 						else
 						{
 							P_SetMobjState(mobj, S_PLAYERARROW);
-							P_SetMobjState(mobj->tracer, S_ITEMICON); // null sprite and frame to be overwritten later
+							P_SetMobjState(mobj->tracer, S_PLAYERARROW_ITEM);
 						}
 
 						mobj->tracer->destscale = scale;
@@ -6980,7 +6979,7 @@ void P_MobjThinker(mobj_t *mobj)
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
 					&& players[displayplayer].mo && !players[displayplayer].spectator)
 				{
-					fixed_t scale = 4*mobj->target->scale;
+					fixed_t scale = 3*mobj->target->scale;
 
 					if (!K_IsPlayerWanted(mobj->target->player))
 					{
@@ -6998,18 +6997,6 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->x = mobj->target->x;
 					mobj->y = mobj->target->y;
 
-					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
-					{
-						mobj->z = mobj->target->z + (P_GetPlayerHeight(mobj->target->player)+16*mapheaderinfo[gamemap-1]->mobj_scale+(64*mobj->scale));
-						mobj->eflags &= ~MFE_VERTICALFLIP;
-					}
-					else
-					{
-						mobj->z = mobj->target->z - (P_GetPlayerHeight(mobj->target->player)+16*mapheaderinfo[gamemap-1]->mobj_scale+(64*mobj->scale));
-						mobj->eflags |= MFE_VERTICALFLIP;
-					}
-					P_SetThingPosition(mobj);
-
 					if (!splitscreen)
 					{
 						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
@@ -7018,6 +7005,18 @@ void P_MobjThinker(mobj_t *mobj)
 							scale = 16*mobj->target->scale;
 					}
 					mobj->destscale = scale;
+
+					if (!(mobj->target->eflags & MFE_VERTICALFLIP))
+					{
+						mobj->z = mobj->target->z + (P_GetPlayerHeight(mobj->target->player)) + (16*mobj->target->scale) + (64*scale);
+						mobj->eflags &= ~MFE_VERTICALFLIP;
+					}
+					else
+					{
+						mobj->z = mobj->target->z - (P_GetPlayerHeight(mobj->target->player)) - (16*mobj->target->scale) - (64*scale);
+						mobj->eflags |= MFE_VERTICALFLIP;
+					}
+					P_SetThingPosition(mobj);
 				}
 				else if (mobj->health > 0)
 				{
