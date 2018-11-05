@@ -72,7 +72,7 @@ static void Got_Delfilecmd(UINT8 **cp, INT32 playernum);
 #endif
 static void Got_Addfilecmd(UINT8 **cp, INT32 playernum);
 static void Got_Pause(UINT8 **cp, INT32 playernum);
-static void Got_Suicide(UINT8 **cp, INT32 playernum);
+static void Got_Respawn(UINT8 **cp, INT32 playernum);
 static void Got_RandomSeed(UINT8 **cp, INT32 playernum);
 static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum);
 static void Got_Teamchange(UINT8 **cp, INT32 playernum);
@@ -136,7 +136,7 @@ static void Command_Delfile(void);
 #endif
 static void Command_RunSOC(void);
 static void Command_Pause(void);
-static void Command_Suicide(void);
+static void Command_Respawn(void);
 
 static void Command_Version_f(void);
 #ifdef UPDATE_ALERT
@@ -479,7 +479,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"REQADDFILE",
 	"DELFILE",
 	"SETMOTD",
-	"SUICIDE",
+	"RESPAWN",
 	"DEMOTED",
 	"SETUPVOTE",
 	"MODIFYVOTE",
@@ -511,7 +511,7 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_DELFILE, Got_Delfilecmd);
 #endif
 	RegisterNetXCmd(XD_PAUSE, Got_Pause);
-	RegisterNetXCmd(XD_SUICIDE, Got_Suicide);
+	RegisterNetXCmd(XD_RESPAWN, Got_Respawn);
 	RegisterNetXCmd(XD_RUNSOC, Got_RunSOCcmd);
 #ifdef HAVE_BLUA
 	RegisterNetXCmd(XD_LUACMD, Got_Luacmd);
@@ -554,7 +554,7 @@ void D_RegisterServerCommands(void)
 #endif
 	COM_AddCommand("runsoc", Command_RunSOC);
 	COM_AddCommand("pause", Command_Pause);
-	COM_AddCommand("suicide", Command_Suicide);
+	COM_AddCommand("respawn", Command_Respawn);
 
 	COM_AddCommand("gametype", Command_ShowGametype_f);
 	COM_AddCommand("version", Command_Version_f);
@@ -2466,7 +2466,7 @@ static void Got_Pause(UINT8 **cp, INT32 playernum)
 }
 
 // Command for stuck characters in netgames, griefing, etc.
-static void Command_Suicide(void)
+static void Command_Respawn(void)
 {
 	XBOXSTATIC UINT8 buf[4];
 	UINT8 *cp = buf;
@@ -2479,7 +2479,7 @@ static void Command_Suicide(void)
 		return;
 	}
 
-	/*if (!G_RaceGametype()) // srb2kart: not necessary, suiciding makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
+	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
 		return;
@@ -2493,17 +2493,17 @@ static void Command_Suicide(void)
 		return;
 	}*/
 
-	SendNetXCmd(XD_SUICIDE, &buf, 4);
+	SendNetXCmd(XD_RESPAWN, &buf, 4);
 }
 
-static void Got_Suicide(UINT8 **cp, INT32 playernum)
+static void Got_Respawn(UINT8 **cp, INT32 playernum)
 {
-	INT32 suicideplayer = READINT32(*cp);
+	INT32 respawnplayer = READINT32(*cp);
 
-	// You can't suicide someone else.  Nice try, there.
-	if (suicideplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
+	// You can't respawn someone else.  Nice try, there.
+	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("Illegal suicide command received from %s\n"), player_names[playernum]);
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
 		if (server)
 		{
 			XBOXSTATIC UINT8 buf[2];
@@ -2515,8 +2515,8 @@ static void Got_Suicide(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	if (players[suicideplayer].mo)
-		P_DamageMobj(players[suicideplayer].mo, NULL, NULL, 10000);
+	if (players[respawnplayer].mo)
+		P_DamageMobj(players[respawnplayer].mo, NULL, NULL, 10000);
 }
 
 /** Deals with an ::XD_RANDOMSEED message in a netgame.

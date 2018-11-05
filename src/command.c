@@ -676,7 +676,7 @@ static void COM_Help_f(void)
 		cvar = CV_FindVar(help);
 		if (cvar)
 		{
-			CONS_Printf(M_GetText("Variable %s:\n"), cvar->name);
+			CONS_Printf("\x82""Variable %s:\n", cvar->name);
 			CONS_Printf(M_GetText("  flags :"));
 			if (cvar->flags & CV_SAVE)
 				CONS_Printf("AUTOSAVE ");
@@ -691,59 +691,68 @@ static void COM_Help_f(void)
 			CONS_Printf("\n");
 			if (cvar->PossibleValue)
 			{
-				if (stricmp(cvar->PossibleValue[0].strvalue, "MIN") == 0)
+				if (!stricmp(cvar->PossibleValue[0].strvalue, "MIN") && !stricmp(cvar->PossibleValue[1].strvalue, "MAX"))
 				{
-					for (i = 1; cvar->PossibleValue[i].strvalue != NULL; i++)
-						if (!stricmp(cvar->PossibleValue[i].strvalue, "MAX"))
-							break;
-					CONS_Printf(M_GetText("  range from %d to %d\n"), cvar->PossibleValue[0].value,
-						cvar->PossibleValue[i].value);
-					CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
+					CONS_Printf("  range from %d to %d\n", cvar->PossibleValue[0].value,
+						cvar->PossibleValue[1].value);
+					i = 2;
 				}
-				else
+
 				{
 					const char *cvalue = NULL;
-					CONS_Printf(M_GetText("  possible value : %s\n"), cvar->name);
+					//CONS_Printf(M_GetText("  possible value : %s\n"), cvar->name);
 					while (cvar->PossibleValue[i].strvalue)
 					{
-						CONS_Printf("    %-2d : %s\n", cvar->PossibleValue[i].value,
+						CONS_Printf("  %-2d : %s\n", cvar->PossibleValue[i].value,
 							cvar->PossibleValue[i].strvalue);
 						if (cvar->PossibleValue[i].value == cvar->value)
 							cvalue = cvar->PossibleValue[i].strvalue;
 						i++;
 					}
 					if (cvalue)
-						CONS_Printf(M_GetText(" Current value: %s\n"), cvalue);
+						CONS_Printf(" Current value: %s\n", cvalue);
 					else
-						CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
+						CONS_Printf(" Current value: %d\n", cvar->value);
 				}
 			}
 			else
-				CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
+				CONS_Printf(" Current value: %d\n", cvar->value);
 		}
 		else
 		{
-			CONS_Printf("\x87%s", M_GetText("No exact match, searching...\n"));
-			//CONS_Printf(M_GetText("No help for this command/variable\n"));
-			// commands
-			CONS_Printf("\x82%s", M_GetText("Commands:\n"));
 			for (cmd = com_commands; cmd; cmd = cmd->next)
 			{
-				if (strstr(cmd->name, help))
-					CONS_Printf("%s ",cmd->name);
+				if (strcmp(cmd->name, help))
+					continue;
+
+				CONS_Printf("\x82""Command %s:\n", cmd->name);
+				CONS_Printf("  help is not available for commands");
+				CONS_Printf("\x82""\nCheck wiki.srb2.org for more or try typing <name> without arguments\n");
+				return;
+			}
+
+			CONS_Printf("No exact match, searching...\n");
+			// commands
+			CONS_Printf("\x82""Commands:\n");
+			for (cmd = com_commands; cmd; cmd = cmd->next)
+			{
+				if (!strstr(cmd->name, help))
+					continue;
+				CONS_Printf("%s ",cmd->name);
 				i++;
 			}
 
 			// variables
-			CONS_Printf("\n\x82%s", M_GetText("Variables:\n"));
+			CONS_Printf("\x82""\nVariables:\n");
 			for (cvar = consvar_vars; cvar; cvar = cvar->next)
 			{
-				if (!(cvar->flags & CV_NOSHOWHELP) && (strstr(cvar->name, help)))
-					CONS_Printf("%s ", cvar->name);
+				if ((cvar->flags & CV_NOSHOWHELP) || (!strstr(cvar->name, help)))
+					continue;
+				CONS_Printf("%s ", cvar->name);
 				i++;
 			}
 
-			CONS_Printf("\n\x87%s", M_GetText("Check wiki.srb2.org for more or type help <command or variable>\n"));
+			CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
 
 			CONS_Debug(DBG_GAMELOGIC, "\x87Total : %d\n", i);
 		}
@@ -752,7 +761,7 @@ static void COM_Help_f(void)
 
 	{
 		// commands
-		CONS_Printf("\x82%s", M_GetText("Commands:\n"));
+		CONS_Printf("\x82""Commands:\n");
 		for (cmd = com_commands; cmd; cmd = cmd->next)
 		{
 			CONS_Printf("%s ",cmd->name);
@@ -760,17 +769,18 @@ static void COM_Help_f(void)
 		}
 
 		// variables
-		CONS_Printf("\n\x82%s", M_GetText("Variables:\n"));
+		CONS_Printf("\x82""\nVariables:\n");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
-			if (!(cvar->flags & CV_NOSHOWHELP))
-				CONS_Printf("%s ", cvar->name);
+			if (cvar->flags & CV_NOSHOWHELP)
+				continue;
+			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
 
-		CONS_Printf("\n\x87%s", M_GetText("Check wiki.srb2.org for more or type help <command or variable>\n"));
+		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
 
-		CONS_Debug(DBG_GAMELOGIC, "\x87Total : %d\n", i);
+		CONS_Debug(DBG_GAMELOGIC, "\x82Total : %d\n", i);
 	}
 }
 
