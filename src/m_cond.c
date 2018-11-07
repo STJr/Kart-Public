@@ -117,27 +117,27 @@ void M_SetupDefaultConditionSets(void)
 {
 	memset(conditionSets, 0, sizeof(conditionSets));
 
-	// -- 1: Collect 5 emblems OR play 10 matches
+	// -- 1: Collect 5 medals OR play 10 matches
 	M_AddRawCondition(1, 1, UC_TOTALEMBLEMS, 5, 0, 0);
 	M_AddRawCondition(1, 2, UC_MATCHESPLAYED, 10, 0, 0);
 
-	// -- 2: Collect 10 emblems OR play 25 matches
+	// -- 2: Collect 10 medals OR play 25 matches
 	M_AddRawCondition(2, 1, UC_TOTALEMBLEMS, 10, 0, 0);
 	M_AddRawCondition(2, 2, UC_MATCHESPLAYED, 25, 0, 0);
 
-	// -- 3: Collect 20 emblems OR play 50 matches
+	// -- 3: Collect 20 medals OR play 50 matches
 	M_AddRawCondition(3, 1, UC_TOTALEMBLEMS, 20, 0, 0);
 	M_AddRawCondition(3, 2, UC_MATCHESPLAYED, 50, 0, 0);
 
-	// -- 4: Collect 30 emblems OR play 100 matches
+	// -- 4: Collect 30 medals OR play 100 matches
 	M_AddRawCondition(4, 1, UC_TOTALEMBLEMS, 30, 0, 0);
 	M_AddRawCondition(4, 2, UC_MATCHESPLAYED, 100, 0, 0);
 
-	// -- 5: Collect 40 emblems OR play 150 matches
+	// -- 5: Collect 40 medals OR play 150 matches
 	M_AddRawCondition(5, 1, UC_TOTALEMBLEMS, 40, 0, 0);
 	M_AddRawCondition(5, 2, UC_MATCHESPLAYED, 150, 0, 0);
 
-	// -- 6: Collect 50 emblems ONLY
+	// -- 6: Collect 50 medals ONLY
 	M_AddRawCondition(6, 1, UC_TOTALEMBLEMS, 50, 0, 0);
 
 	// -- 10: Play 300 matches
@@ -318,7 +318,7 @@ UINT8 M_UpdateUnlockablesAndExtraEmblems(boolean force)
 			continue;
 		if ((extraemblems[i].collected = M_Achieved(extraemblems[i].conditionset - 1)) != false)
 		{
-			strcat(cechoText, va(M_GetText("Got \"%s\" emblem!\\"), extraemblems[i].name));
+			strcat(cechoText, va(M_GetText("Got \"%s\" medal!\\"), extraemblems[i].name));
 			++cechoLines;
 		}
 	}

@@ -593,7 +593,7 @@ static menuitem_t SPauseMenu[] =
 {
 	// Pandora's Box will be shifted up if both options are available
 	{IT_CALL | IT_STRING,    NULL, "Pandora's Box...",     M_PandorasBox,         16},
-	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         24},
+	{IT_CALL | IT_STRING,    NULL, "Medal Hints...",       M_EmblemHints,         24},
 	//{IT_CALL | IT_STRING,    NULL, "Level Select...",      M_LoadGameLevelSelect, 32},
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,48},
@@ -739,7 +739,7 @@ static menuitem_t SR_UnlockChecklistMenu[] =
 
 static menuitem_t SR_EmblemHintMenu[] =
 {
-	{IT_STRING|IT_CVAR,         NULL, "Emblem Radar", &cv_itemfinder, 10},
+	{IT_STRING|IT_CVAR,         NULL, "Medal Radar",  &cv_itemfinder, 10},
 	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",         &SPauseDef,     20}
 };
 
@@ -5141,9 +5141,9 @@ static char *M_GetConditionString(condition_t cond)
 				G_TicsToSeconds(cond.requirement),
 				G_TicsToCentiseconds(cond.requirement));
 		case UC_TOTALEMBLEMS:
-			return va("Get %d emblems", cond.requirement);
+			return va("Get %d medals", cond.requirement);
 		case UC_EXTRAEMBLEM:
-			return va("Get \"%s\" emblem", extraemblems[cond.requirement-1].name);
+			return va("Get \"%s\" medal", extraemblems[cond.requirement-1].name);
 		default:
 			return NULL;
 	}
@@ -5249,7 +5249,7 @@ static void M_DrawEmblemHints(void)
 			break;
 	}
 	if (!j)
-		V_DrawCenteredString(160, 48, highlightflags, "No hidden emblems on this map.");
+		V_DrawCenteredString(160, 48, highlightflags, "No hidden medals on this map.");
 
 	M_DrawGenericMenu();
 }
@@ -5547,7 +5547,7 @@ static void M_DrawLoadGameData(void)
 			V_DrawCenteredString(ecks + 68, 144, V_ORANGEMAP, "PLAY WITHOUT SAVING");
 			V_DrawCenteredString(ecks + 68, 156, 0, "THIS GAME WILL NOT BE");
 			V_DrawCenteredString(ecks + 68, 164, 0, "SAVED, BUT YOU CAN STILL");
-			V_DrawCenteredString(ecks + 68, 172, 0, "GET EMBLEMS AND SECRETS.");
+			V_DrawCenteredString(ecks + 68, 172, 0, "GET MEDALS AND SECRETS.");
 		}
 		return;
 	}
@@ -6207,7 +6207,7 @@ static void M_DrawStatsMaps(int location)
 		else if (dotopname)
 		{
 			V_DrawString(20,  y, highlightflags, "LEVEL NAME");
-			V_DrawString(248, y, highlightflags, "EMBLEMS");
+			V_DrawString(256, y, highlightflags, "MEDALS");
 			y += 8;
 			dotopname = false;
 		}
@@ -6233,7 +6233,7 @@ static void M_DrawStatsMaps(int location)
 	if (dotopname && !location)
 	{
 		V_DrawString(20,  y, highlightflags, "LEVEL NAME");
-		V_DrawString(248, y, highlightflags, "EMBLEMS");
+		V_DrawString(256, y, highlightflags, "MEDALS");
 		y += 8;
 	}
 	else if (location)
@@ -6244,7 +6244,7 @@ static void M_DrawStatsMaps(int location)
 	{
 		if (i == -1)
 		{
-			V_DrawString(20, y, highlightflags, "EXTRA EMBLEMS");
+			V_DrawString(20, y, highlightflags, "EXTRA MEDALS");
 			if (location)
 			{
 				y += 8;

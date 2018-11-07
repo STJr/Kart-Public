@@ -704,7 +704,7 @@ static void Y_UpdateRecordReplays(void)
 
 	// Check emblems when level data is updated
 	if ((earnedEmblems = M_CheckLevelEmblems()))
-		CONS_Printf(M_GetText("\x82" "Earned %hu emblem%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
+		CONS_Printf(M_GetText("\x82" "Earned %hu medal%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
 
 	// Update timeattack menu's replay availability.
 	CV_AddValue(&cv_nextmap, 1);
