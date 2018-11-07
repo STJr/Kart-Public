@@ -1034,7 +1034,7 @@ void F_TitleScreenTicker(boolean run)
 		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, false, 0, false)+1);
 
 		numstaff = 1;
-		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)
+		while (numstaff < 99 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)
 			numstaff++;
 
 #if 0 // turns out this isn't how we're gonna organise 'em

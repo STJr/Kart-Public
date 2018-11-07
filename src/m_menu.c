@@ -2033,7 +2033,6 @@ static void Nextmap_OnChange(void)
 {
 	char *leveltitle;
 	UINT8 active;
-	lumpnum_t l;
 
 	// Update the string in the consvar.
 	Z_Free(cv_nextmap.zstring);
@@ -2093,15 +2092,14 @@ static void Nextmap_OnChange(void)
 			SP_GhostMenu[3].status = IT_STRING|IT_CVAR;
 			active |= 3;
 		}
-		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR)
+
+		CV_SetValue(&cv_dummystaff, 1);
+		if (cv_dummystaff.value)
 		{
 			SP_ReplayMenu[4].status = IT_WHITESTRING|IT_KEYHANDLER;
 			SP_GhostMenu[4].status = IT_STRING|IT_CVAR;
 			CV_StealthSetValue(&cv_dummystaff, 1);
 			active |= 1;
-
-			dummystaffname[0] = '\0';
-			G_UpdateStaffGhostName(l);
 		}
 
 		if (active) {
@@ -2149,7 +2147,7 @@ static void Dummymenuplayer_OnChange(void)
 	}
 }*/
 
-char dummystaffname[17];
+char dummystaffname[22];
 
 static void Dummystaff_OnChange(void)
 {
@@ -2164,8 +2162,9 @@ static void Dummystaff_OnChange(void)
 	}
 	else
 	{
+		char *temp = dummystaffname;
 		UINT8 numstaff = 1;
-		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value),numstaff+1))) != LUMPERROR)
+		while (numstaff < 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value),numstaff+1))) != LUMPERROR)
 			numstaff++;
 
 		if (cv_dummystaff.value < 1)
@@ -2177,6 +2176,11 @@ static void Dummystaff_OnChange(void)
 			return; // shouldn't happen but might as well check...
 
 		G_UpdateStaffGhostName(l);
+
+		while (*temp)
+			temp++;
+
+		sprintf(temp, " - %d", cv_dummystaff.value);
 	}
 }
 
