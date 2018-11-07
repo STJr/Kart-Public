@@ -313,7 +313,9 @@ menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
 menu_t OP_SoundOptionsDef;
 static void M_ToggleSFX(INT32 choice);
 static void M_ToggleDigital(INT32 choice);
-//static void M_ToggleMIDI(INT32 choice);
+#ifndef NO_MIDI
+static void M_ToggleMIDI(INT32 choice);
+#endif
 //static void M_RestartAudio(void);
 
 //Misc
@@ -1261,6 +1263,7 @@ enum
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
+	op_video_md2,
 	op_video_ogl,
 #endif
 };
@@ -3140,7 +3143,7 @@ void M_Init(void)
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
-		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
+		OP_VideoOptionsMenu[op_video_ogl].status = OP_VideoOptionsMenu[op_video_md2].status = IT_DISABLED;
 #endif
 
 #ifndef NONET
@@ -5251,25 +5254,25 @@ static void M_DrawSkyRoom(void)
 	{
 		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
 			currentMenu->y+currentMenu->menuitems[0].alphaKey,
-			(nosound ? warningflags : highlightflags),
-			((nosound || sound_disabled) ? "OFF" : "ON"));
+			(sound_disabled ? warningflags : highlightflags),
+			(sound_disabled ? "OFF" : "ON"));
 
 		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
 			currentMenu->y+currentMenu->menuitems[2].alphaKey,
-			(nodigimusic ? warningflags : highlightflags),
-			((nodigimusic || digital_disabled) ? "OFF" : "ON"));
+			(digital_disabled ? warningflags : highlightflags),
+			(digital_disabled ? "OFF" : "ON"));
 
 		/*V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
 			currentMenu->y+currentMenu->menuitems[5].alphaKey,
-			(nomidimusic ? warningflags : highlightflags),
-			((nomidimusic || music_disabled) ? "OFF" : "ON"));*/
+			(midi_disabled ? warningflags : highlightflags),
+			(midi_disabled ? "OFF" : "ON"));*/
 
 		if (itemOn == 0)
-			lengthstring = 8*((nosound || sound_disabled) ? 3 : 2);
+			lengthstring = 8*(sound_disabled ? 3 : 2);
 		else if (itemOn == 2)
-			lengthstring = 8*((nodigimusic || digital_disabled) ? 3 : 2);
+			lengthstring = 8*(digital_disabled ? 3 : 2);
 		/*else if (itemOn == 5)
-			lengthstring = 8*((nomidimusic || music_disabled) ? 3 : 2);*/
+			lengthstring = 8*(midi_disabled ? 3 : 2);*/
 	}
 
 	for (i = 0; i < currentMenu->numitems; ++i)
@@ -8905,29 +8908,18 @@ static void M_ToggleSFX(INT32 choice)
 			break;
 	}
 
-	if (nosound)
+	if (sound_disabled)
 	{
-		nosound = false;
-		I_StartupSound();
-		if (nosound) return;
-		S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
+		sound_disabled = false;
+		S_InitSfxChannels(cv_soundvolume.value);
 		S_StartSound(NULL, sfx_strpst);
 		//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
 	{
-		if (sound_disabled)
-		{
-			sound_disabled = false;
-			S_StartSound(NULL, sfx_strpst);
-			//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
-		}
-		else
-		{
-			sound_disabled = true;
-			S_StopSounds();
-			//M_StartMessage(M_GetText("SFX Disabled\n"), NULL, MM_NOTHING);
-		}
+		sound_disabled = true;
+		S_StopSounds();
+		//M_StartMessage(M_GetText("SFX Disabled\n"), NULL, MM_NOTHING);
 	}
 }
 
@@ -8956,12 +8948,10 @@ static void M_ToggleDigital(INT32 choice)
 			break;
 	}
 
-	if (nodigimusic)
+	if (digital_disabled)
 	{
-		nodigimusic = false;
-		I_InitDigMusic();
-		if (nodigimusic) return;
-		S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
+		digital_disabled = false;
+		I_InitMusic();
 		S_StopMusic();
 		if (Playing())
 			P_RestoreMusic(&players[consoleplayer]);
@@ -8971,25 +8961,34 @@ static void M_ToggleDigital(INT32 choice)
 	}
 	else
 	{
-		if (digital_disabled)
+		digital_disabled = true;
+#ifndef NO_MIDI
+		if (S_MusicType() != MU_MID)
 		{
-			digital_disabled = false;
-			if (Playing())
-				P_RestoreMusic(&players[consoleplayer]);
+			if (midi_disabled)
+				S_StopMusic();
 			else
-				S_ChangeMusicInternal("titles", looptitle);
-			//M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
+			{
+				char mmusic[7];
+				UINT16 mflags;
+				boolean looping;
+
+				if (S_MusicInfo(mmusic, &mflags, &looping) && S_MIDIExists(mmusic))
+				{
+					S_StopMusic();
+					S_ChangeMusic(mmusic, mflags, looping);
+				}
+				else
+					S_StopMusic();
+			}
 		}
-		else
-		{
-			digital_disabled = true;
-			S_StopMusic();
-			//M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
-		}
+#endif
+		//M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
 	}
 }
 
-/*static void M_ToggleMIDI(INT32 choice)
+#ifndef NO_MIDI
+static void M_ToggleMIDI(INT32 choice)
 {
 	switch (choice)
 	{
@@ -9013,37 +9012,42 @@ static void M_ToggleDigital(INT32 choice)
 			break;
 	}
 
-	if (nomidimusic)
+	if (midi_disabled)
 	{
-		nomidimusic = false;
-		I_InitMIDIMusic();
-		if (nomidimusic) return;
-		S_Init(cv_soundvolume.value, cv_digmusicvolume.value, cv_midimusicvolume.value);
+		midi_disabled = false;
+		I_InitMusic();
 		if (Playing())
 			P_RestoreMusic(&players[consoleplayer]);
 		else
-			S_ChangeMusicInternal("_clear", false);
+			S_ChangeMusicInternal("titles", looptitle);
 		//M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
 	{
-		if (music_disabled)
+		midi_disabled = true;
+		if (S_MusicType() == MU_MID)
 		{
-			music_disabled = false;
-			if (Playing())
-				P_RestoreMusic(&players[consoleplayer]);
+			if (digital_disabled)
+				S_StopMusic();
 			else
-				S_ChangeMusicInternal("_clear", false);
-			//M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
+			{
+				char mmusic[7];
+				UINT16 mflags;
+				boolean looping;
+
+				if (S_MusicInfo(mmusic, &mflags, &looping) && S_DigExists(mmusic))
+				{
+					S_StopMusic();
+					S_ChangeMusic(mmusic, mflags, looping);
+				}
+				else
+					S_StopMusic();
+			}
 		}
-		else
-		{
-			music_disabled = true;
-			S_StopMusic();
-			//M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
-		}
+		//M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
 	}
-}*/
+}
+#endif
 
 /*static void M_RestartAudio(void)
 {
@@ -9661,6 +9665,7 @@ void M_QuitResponse(INT32 ch)
 		ptime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds Tails 03-26-2001
 		while (ptime > I_GetTime())
 		{
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 			V_DrawSmallScaledPatch(0, 0, 0, W_CachePatchName("GAMEQUIT", PU_CACHE)); // Demo 3 Quit Screen Tails 06-16-2001
 			I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
 			I_Sleep();

@@ -125,22 +125,23 @@ postimg_t postimgtype3 = postimg_none;
 INT32 postimgparam3;
 postimg_t postimgtype4 = postimg_none;
 INT32 postimgparam4;
-#ifdef _XBOX
-//boolean nomidimusic = false;
-boolean nosound = true;
-boolean nodigimusic = true;
-#else
-//boolean nomidimusic = false;
-boolean nosound = false;
-boolean nodigimusic = false; // No fmod-based music
-#endif
 
 // These variables are only true if
-// the respective sound system is initialized
-// and active, but no sounds/music should play.
-//boolean music_disabled = false;
+// whether the respective sound system is disabled
+// or they're init'ed, but the player just toggled them
+#ifdef _XBOX
+#ifndef NO_MIDI
+boolean midi_disabled = true;
+#endif
+boolean sound_disabled = true;
+boolean digital_disabled = true;
+#else
+#ifndef NO_MIDI
+boolean midi_disabled = false;
+#endif
 boolean sound_disabled = false;
 boolean digital_disabled = false;
+#endif
 
 boolean advancedemo;
 #ifdef DEBUGFILE
@@ -1329,27 +1330,37 @@ void D_SRB2Main(void)
 	// setting up sound
 	if (dedicated)
 	{
-		nosound = true;
-		/*nomidimusic = */nodigimusic = true;
+		sound_disabled = true;
+		digital_disabled = true;
+#ifndef NO_MIDI
+		midi_disabled = true;
+#endif
 	}
 	else
 	{
-		CONS_Printf("S_Init(): Setting up sound.\n");
+		CONS_Printf("S_InitSfxChannels(): Setting up sound channels.\n");
 	}
 	if (M_CheckParm("-nosound"))
-		nosound = true;
+		sound_disabled = true;
 	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
-		/*nomidimusic = */nodigimusic = true;
+	{
+		digital_disabled = true;
+#ifndef NO_MIDI
+		midi_disabled = true;
+#endif
+	}
 	else
 	{
-		/*if (M_CheckParm("-nomidimusic"))
-			nomidimusic = true; ; // WARNING: DOS version initmusic in I_StartupSound*/
+#ifndef NO_MIDI
+		if (M_CheckParm("-nomidimusic"))
+			midi_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+#endif
 		if (M_CheckParm("-nodigmusic"))
-			nodigimusic = true; // WARNING: DOS version initmusic in I_StartupSound
+			digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
 	}
 	I_StartupSound();
 	I_InitMusic();
-	S_Init(cv_soundvolume.value, cv_digmusicvolume.value);//, cv_midimusicvolume.value);
+	S_InitSfxChannels(cv_soundvolume.value);
 
 	CONS_Printf("ST_Init(): Init status bar.\n");
 	ST_Init();

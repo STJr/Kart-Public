@@ -574,7 +574,7 @@ static int libd_renderer(lua_State *L)
 	return 1;
 }
 
-// Lat': Get cv_translucenthud's value for HUD rendering as a normal V_xxTRANS int instead of V_HUDTRANS. This is useful if we want to work from that transparency value
+// 30/10/18 Lat': Get cv_translucenthud's value for HUD rendering as a normal V_xxTRANS int
 // Could as well be thrown in global vars for ease of access but I guess it makes sense for it to be a HUD fn
 static int libd_getlocaltransflag(lua_State *L)
 {
@@ -624,7 +624,7 @@ static int lib_huddisable(lua_State *L)
 	return 0;
 }
 
-// 30/10/18: Lat': Why the FUCK is this NOT in vanilla
+// 30/10/18: Lat': How come this wasn't here before?
 static int lib_hudenabled(lua_State *L)
 {
 	enum hud option = luaL_checkoption(L, 1, NULL, hud_disable_options);

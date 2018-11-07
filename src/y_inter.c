@@ -417,6 +417,7 @@ void Y_IntermissionDrawer(void)
 	{
 #define NUMFORNEWCOLUMN 8
 		INT32 y = 41, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
+		INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -426,7 +427,7 @@ void Y_IntermissionDrawer(void)
 
 		// draw the level name
 		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12, 0, data.match.levelstring);
-		V_DrawFill(x, 34, 312, 1, 0);
+		V_DrawFill((x-3) - duptweak, 34, dupadjust-2, 1, 0);
 
 		if (data.match.encore)
 			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12-8, hilicol, "ENCORE MODE");
@@ -434,7 +435,7 @@ void Y_IntermissionDrawer(void)
 		if (!gutter)
 		{
 			V_DrawFill(x+156, 24, 1, 158, 0);
-			V_DrawFill(x, 182, 312, 1, 0);
+			V_DrawFill((x-3) - duptweak, 182, dupadjust-2, 1, 0);
 
 			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 24, hilicol, "#");
 			V_DrawString(x+36+(BASEVIDWIDTH/2), 24, hilicol, "NAME");
@@ -822,62 +823,14 @@ void Y_EndIntermission(void)
 }
 
 //
-// Y_EndGame
-//
-// Why end the game?
-// Because Y_FollowIntermission and F_EndCutscene would
-// both do this exact same thing *in different ways* otherwise,
-// which made it so that you could only unlock Ultimate mode
-// if you had a cutscene after the final level and crap like that.
-// This function simplifies it so only one place has to be updated
-// when something new is added.
-void Y_EndGame(void)
-{
-	// Only do evaluation and credits in coop games.
-	if (gametype == GT_COOP)
-	{
-		if (nextmap == 1102-1) // end game with credits
-		{
-			F_StartCredits();
-			return;
-		}
-		if (nextmap == 1101-1) // end game with evaluation
-		{
-			F_StartGameEvaluation();
-			return;
-		}
-	}
-
-	// 1100 or competitive multiplayer, so go back to title screen.
-	D_StartTitle();
-}
-
-//
 // Y_FollowIntermission
 //
 static void Y_FollowIntermission(void)
 {
-	if (modeattacking)
-	{
-		M_EndModeAttackRun();
-		return;
-	}
-
-	if (nextmap < 1100-1)
-	{
-		// normal level
-		G_AfterIntermission();
-		return;
-	}
-
-	// Start a custom cutscene if there is one.
-	if (mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking)
-	{
-		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
-		return;
-	}
-
-	Y_EndGame();
+	// This handles whether to play a post-level cutscene, end the game,
+	// or simply go to the next level.
+	// No need to duplicate the code here!
+	G_AfterIntermission();
 }
 
 #define UNLOAD(x) Z_ChangeTag(x, PU_CACHE); x = NULL
