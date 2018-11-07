@@ -2623,7 +2623,7 @@ static luaL_Reg lib[] = {
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
 	{"K_GetKartAccel",lib_kGetKartAccel},
 	{"K_GetKartFlashing",lib_kGetKartFlashing},
-	{"K_GetItemPatch",lib_kK_GetItemPatch},
+	{"K_GetItemPatch",lib_kGetItemPatch},
 
 	{NULL, NULL}
 };
