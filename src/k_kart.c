@@ -6783,7 +6783,7 @@ static void K_drawKartBumpersOrKarma(void)
 	}
 }
 
-fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
+static fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
 {
 	fixed_t dist, x;
 	fixed_t range = RING_DIST/3;
