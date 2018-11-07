@@ -9728,10 +9728,10 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushboolean(L, comeback);
 		return 1;
 	} else if (fastcmp(word,"wantedcalcdelay")) {
-		lua_pushboolean(L, wantedcalcdelay);
+		lua_pushinteger(L, wantedcalcdelay);
 		return 1;
 	} else if (fastcmp(word,"indirectitemcooldown")) {
-		lua_pushboolean(L, indirectitemcooldown);
+		lua_pushinteger(L, indirectitemcooldown);
 		return 1;
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);
