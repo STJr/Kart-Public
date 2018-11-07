@@ -2621,10 +2621,10 @@ static boolean G_CheckSpot(INT32 playernum, mapthing_t *mthing)
 	x = mthing->x << FRACBITS;
 	y = mthing->y << FRACBITS;
 
-	if (!P_CheckPosition(players[playernum].mo, x, y))
+	if (!K_CheckPlayersRespawnColliding(playernum, x, y))
 		return false;
 
-	if (!K_CheckPlayersRespawnColliding(playernum, x, y))
+	if (!P_CheckPosition(players[playernum].mo, x, y))
 		return false;
 
 	return true;
