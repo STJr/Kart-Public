@@ -8892,8 +8892,8 @@ static void P_CalcPostImg(player_t *player)
 
 void P_DoTimeOver(player_t *player)
 {
-	/*if (netgame && player->health > 0)
-		CONS_Printf(M_GetText("%s ran out of time.\n"), player_names[player-players]);*/
+	if (netgame && player->health > 0)
+		CON_LogMessage(va(M_GetText("%s ran out of time.\n"), player_names[player-players]));
 
 	player->pflags |= PF_TIMEOVER;
 
