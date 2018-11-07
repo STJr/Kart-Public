@@ -548,4 +548,7 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// SRB2Kart: Camera always has noclip.
 #define NOCLIPCAM
 
+/// SRB2Kart: MIDI support is shitty and busted and we don't want it, lets throw it behind a define
+#define NO_MIDI
+
 #endif // __DOOMDEF__
