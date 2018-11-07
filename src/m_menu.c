@@ -8982,6 +8982,8 @@ static void M_ToggleDigital(INT32 choice)
 					S_StopMusic();
 			}
 		}
+#else
+		S_StopMusic();
 #endif
 		//M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
 	}
