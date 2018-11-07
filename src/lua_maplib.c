@@ -645,6 +645,7 @@ static int side_get(lua_State *L)
 {
 	side_t *side = *((side_t **)luaL_checkudata(L, 1, META_SIDE));
 	enum side_e field = luaL_checkoption(L, 2, side_opt[0], side_opt);
+	UINT8 i;
 
 	if (!side)
 	{
@@ -667,14 +668,32 @@ static int side_get(lua_State *L)
 		lua_pushfixed(L, side->rowoffset);
 		return 1;
 	case side_toptexture:
-		lua_pushinteger(L, side->toptexture);
+	{
+		texture_t *texture = textures[side->toptexture];
+		for (i = 0; i < 8; i++)
+			if (!texture->name[i])
+				break;
+		lua_pushlstring(L, texture->name, i);
 		return 1;
+	}
 	case side_bottomtexture:
-		lua_pushinteger(L, side->bottomtexture);
+	{
+		texture_t *texture = textures[side->bottomtexture];
+		for (i = 0; i < 8; i++)
+			if (!texture->name[i])
+				break;
+		lua_pushlstring(L, texture->name, i);
 		return 1;
+	}
 	case side_midtexture:
-		lua_pushinteger(L, side->midtexture);
+	{
+		texture_t *texture = textures[side->midtexture];
+		for (i = 0; i < 8; i++)
+			if (!texture->name[i])
+				break;
+		lua_pushlstring(L, texture->name, i);
 		return 1;
+	}
 	case side_sector:
 		LUA_PushUserdata(L, side->sector, META_SECTOR);
 		return 1;
@@ -720,13 +739,16 @@ static int side_set(lua_State *L)
 		side->rowoffset = luaL_checkfixed(L, 3);
 		break;
 	case side_toptexture:
-        side->toptexture = luaL_checkinteger(L, 3);
+		if (R_CheckTextureNumForName(luaL_checkstring(L, 3)) != -1)
+			side->toptexture = R_TextureNumForName(luaL_checkstring(L, 3));
 		break;
 	case side_bottomtexture:
-        side->bottomtexture = luaL_checkinteger(L, 3);
+        if (R_CheckTextureNumForName(luaL_checkstring(L, 3)) != -1)
+			side->bottomtexture = R_TextureNumForName(luaL_checkstring(L, 3));
 		break;
 	case side_midtexture:
-        side->midtexture = luaL_checkinteger(L, 3);
+        if (R_CheckTextureNumForName(luaL_checkstring(L, 3)) != -1)
+			side->midtexture = R_TextureNumForName(luaL_checkstring(L, 3));
 		break;
 	case side_repeatcnt:
         side->repeatcnt = luaL_checkinteger(L, 3);
