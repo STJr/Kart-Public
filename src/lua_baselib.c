@@ -22,7 +22,8 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "console.h"
-#include "k_kart.h"
+#include "k_kart.h" // SRB2Kart
+#include "d_netcmd.h" // IsPlayerAdmin
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -139,6 +140,16 @@ static int lib_evalMath(lua_State *L)
 	const char *word = luaL_checkstring(L, 1);
 	LUA_Deprecated(L, "EvalMath(string)", "_G[string]");
 	lua_pushinteger(L, LUA_EvalMath(word));
+	return 1;
+}
+
+static int lib_isPlayerAdmin(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	//HUDSAFE
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	lua_pushboolean(L, IsPlayerAdmin(player-players));
 	return 1;
 }
 
@@ -2336,6 +2347,7 @@ static luaL_Reg lib[] = {
 	{"chatprint", lib_chatprint},
 	{"chatprintf", lib_chatprintf},
 	{"EvalMath", lib_evalMath},
+	{"IsPlayerAdmin", lib_isPlayerAdmin},
 
 	// m_random
 	{"P_RandomFixed",lib_pRandomFixed},
