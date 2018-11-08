@@ -3552,7 +3552,13 @@ void G_AfterIntermission(void)
 	HU_ClearCEcho();
 	//G_NextLevel();
 
-	if (mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking) // Start a custom cutscene.
+	if (modeattacking) // End the run.
+	{
+		M_EndModeAttackRun();
+		return;
+	}
+
+	if (mapheaderinfo[gamemap-1]->cutscenenum) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
 	else
 	{

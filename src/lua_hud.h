@@ -13,26 +13,17 @@
 enum hud {
 	hud_stagetitle = 0,
 	hud_textspectator,
-	// Singleplayer / Co-op
-	hud_score,
+
 	hud_time,
-	hud_rings,
-	hud_lives,
-	// Match / CTF / Tag / Ringslinger
-	hud_weaponrings,
-	hud_powerstones,
-	// NiGHTS mode
-	hud_nightslink,
-	hud_nightsdrill,
-	hud_nightsrings,
-	hud_nightsscore,
-	hud_nightstime,
-	hud_nightsrecords,
-	// TAB scores overlays
-	hud_rankings,
-	hud_coopemeralds,
-	hud_tokens,
-	hud_tabemblems,
+	hud_gametypeinfo,
+	hud_minimap,
+	hud_item,
+	hud_position,
+	hud_minirankings,	// Rankings to the left
+	hud_wanted,
+	hud_speedometer,
+	hud_rankings,		// Tab rankings
+
 	hud_MAX
 };
 
