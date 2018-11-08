@@ -2357,7 +2357,7 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	{
 		DEBFILE(va("Warping to %s [resetplayer=%d lastgametype=%d gametype=%d cpnd=%d]\n",
 			mapname, resetplayer, lastgametype, gametype, chmappending));
-		CONS_Printf(M_GetText("Speeding off to level...\n"));
+		CON_LogMessage(M_GetText("Speeding off to level...\n"));
 	}
 	if (demoplayback && !timingdemo)
 		precache = false;
