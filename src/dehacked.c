@@ -8788,6 +8788,35 @@ struct {
 
 	{"V_CHARCOLORSHIFT",V_CHARCOLORSHIFT},
 	{"V_ALPHASHIFT",V_ALPHASHIFT},
+
+	// SRB2Kart
+	// kartitems_t
+	{"KITEM_SAD",KITEM_SAD}, // Actual items (can be set for k_itemtype)
+	{"KITEM_NONE",KITEM_NONE},
+	{"KITEM_SNEAKER",KITEM_SNEAKER},
+	{"KITEM_ROCKETSNEAKER",KITEM_ROCKETSNEAKER},
+	{"KITEM_INVINCIBILITY",KITEM_INVINCIBILITY},
+	{"KITEM_BANANA",KITEM_BANANA},
+	{"KITEM_EGGMAN",KITEM_EGGMAN},
+	{"KITEM_ORBINAUT",KITEM_ORBINAUT},
+	{"KITEM_JAWZ",KITEM_JAWZ},
+	{"KITEM_MINE",KITEM_MINE},
+	{"KITEM_BALLHOG",KITEM_BALLHOG},
+	{"KITEM_SPB",KITEM_SPB},
+	{"KITEM_GROW",KITEM_GROW},
+	{"KITEM_SHRINK",KITEM_SHRINK},
+	{"KITEM_THUNDERSHIELD",KITEM_THUNDERSHIELD},
+	{"KITEM_HYUDORO",KITEM_HYUDORO},
+	{"KITEM_POGOSPRING",KITEM_POGOSPRING},
+	{"KITEM_KITCHENSINK",KITEM_KITCHENSINK},
+	{"NUMKARTITEMS",NUMKARTITEMS},
+	{"KRITEM_TRIPLESNEAKER",KRITEM_TRIPLESNEAKER}, // Additional roulette IDs (not usable for much in Lua besides K_GetItemPatch)
+	{"KRITEM_TRIPLEBANANA",KRITEM_TRIPLEBANANA},
+	{"KRITEM_TENFOLDBANANA",KRITEM_TENFOLDBANANA},
+	{"KRITEM_TRIPLEORBINAUT",KRITEM_TRIPLEORBINAUT},
+	{"KRITEM_QUADORBINAUT",KRITEM_QUADORBINAUT},
+	{"KRITEM_DUALJAWZ",KRITEM_DUALJAWZ},
+	{"NUMKARTRESULTS",NUMKARTRESULTS},
 #endif
 
 	{NULL,0}
@@ -9698,11 +9727,11 @@ static inline int lib_getenum(lua_State *L)
 			return 0;
 		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
 		return 1;
-	} else if (fastcmp(word,"admin")) {
-		//if (!playeringame[adminplayer] || IsPlayerAdmin(serverplayer))
-			//return 0;
-		//LUA_PushUserdata(L, &players[adminplayer], META_PLAYER);
-		return 1;
+	/*} else if (fastcmp(word,"admin")) { // Replaced with IsPlayerAdmin
+		if (!playeringame[adminplayer] || IsPlayerAdmin(serverplayer))
+			return 0;
+		LUA_PushUserdata(L, &players[adminplayer], META_PLAYER);
+		return 1;*/
 	} else if (fastcmp(word,"emeralds")) {
 		lua_pushinteger(L, emeralds);
 		return 1;
@@ -9714,6 +9743,27 @@ static inline int lib_getenum(lua_State *L)
 		return 1;
 	} else if (fastcmp(word, "token")) {
 		lua_pushinteger(L, token);
+		return 1;
+	} else if (fastcmp(word,"gamespeed")) {
+		lua_pushinteger(L, gamespeed);
+		return 1;
+	} else if (fastcmp(word,"encoremode")) {
+		lua_pushboolean(L, encoremode);
+		return 1;
+	} else if (fastcmp(word,"franticitems")) {
+		lua_pushboolean(L, franticitems);
+		return 1;
+	} else if (fastcmp(word,"comeback")) {
+		lua_pushboolean(L, comeback);
+		return 1;
+	} else if (fastcmp(word,"wantedcalcdelay")) {
+		lua_pushinteger(L, wantedcalcdelay);
+		return 1;
+	} else if (fastcmp(word,"indirectitemcooldown")) {
+		lua_pushinteger(L, indirectitemcooldown);
+		return 1;
+	} else if (fastcmp(word,"thwompsactive")) {
+		lua_pushboolean(L, thwompsactive);
 		return 1;
 	}
 

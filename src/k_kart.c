@@ -2257,7 +2257,8 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 		mobj->momy = FixedMul(FixedDiv(mobjy - y, dist), FixedDiv(dist, 6*FRACUNIT));
 		mobj->momz = FixedMul(FixedDiv(mobjz - z, dist), FixedDiv(dist, 6*FRACUNIT));
 
-		P_SetTarget(&mobj->target, source);
+		if (source && !P_MobjWasRemoved(source))
+			P_SetTarget(&mobj->target, source);
 	}
 }
 
@@ -4374,7 +4375,7 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 	return turnvalue;
 }
 
-fixed_t K_GetKartDriftSparkValue(player_t *player)
+INT32 K_GetKartDriftSparkValue(player_t *player)
 {
 	UINT8 kartspeed = (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 		? 1
@@ -4384,9 +4385,9 @@ fixed_t K_GetKartDriftSparkValue(player_t *player)
 
 static void K_KartDrift(player_t *player, boolean onground)
 {
-	fixed_t dsone = K_GetKartDriftSparkValue(player);
-	fixed_t dstwo = dsone*2;
-	fixed_t dsthree = dstwo*2;
+	INT32 dsone = K_GetKartDriftSparkValue(player);
+	INT32 dstwo = dsone*2;
+	INT32 dsthree = dstwo*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -6791,7 +6792,7 @@ static void K_drawKartBumpersOrKarma(void)
 	}
 }
 
-fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
+static fixed_t K_FindCheckX(fixed_t px, fixed_t py, angle_t ang, fixed_t mx, fixed_t my)
 {
 	fixed_t dist, x;
 	fixed_t range = RING_DIST/3;
@@ -7376,9 +7377,9 @@ static void K_drawKartFirstPerson(void)
 
 	if (stplyr->mo)
 	{
-		fixed_t dsone = K_GetKartDriftSparkValue(stplyr);
-		fixed_t dstwo = dsone*2;
-		fixed_t dsthree = dstwo*2;
+		INT32 dsone = K_GetKartDriftSparkValue(stplyr);
+		INT32 dstwo = dsone*2;
+		INT32 dsthree = dstwo*2;
 
 #ifndef DONTLIKETOASTERSFPTWEAKS
 		{
