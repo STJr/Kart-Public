@@ -2419,7 +2419,7 @@ void CL_ClearPlayer(INT32 playernum)
 //
 // Removes a player from the current game
 //
-static void CL_RemovePlayer(INT32 playernum)
+static void CL_RemovePlayer(INT32 playernum, INT32 reason)
 {
 	// Sanity check: exceptional cases (i.e. c-fails) can cause multiple
 	// kick commands to be issued for the same player.
@@ -2477,6 +2477,10 @@ static void CL_RemovePlayer(INT32 playernum)
 			}
 		}
 	}
+	
+#ifdef HAVE_BLUA
+	LUAh_PlayerQuit(&players[playernum], reason); // Lua hook for player quitting
+#endif
 
 	// Reset player data
 	CL_ClearPlayer(playernum);
@@ -2757,6 +2761,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	INT32 pnum, msg;
 	XBOXSTATIC char buf[3 + MAX_REASONLENGTH];
 	char *reason = buf;
+	kickreason_t kickreason = KR_KICK;
 
 	pnum = READUINT8(*p);
 	msg = READUINT8(*p);
@@ -2831,14 +2836,17 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	{
 		case KICK_MSG_GO_AWAY:
 			HU_AddChatText(va("\x82*%s has been kicked (Go away)", player_names[pnum]), false);
+			kickreason = KR_KICK;
 			break;
 #ifdef NEWPING
 		case KICK_MSG_PING_HIGH:
 			HU_AddChatText(va("\x82*%s left the game (Broke ping limit)", player_names[pnum]), false);
+			kickreason = KR_PINGLIMIT;
 			break;
 #endif
 		case KICK_MSG_CON_FAIL:
 			HU_AddChatText(va("\x82*%s left the game (Synch Failure)", player_names[pnum]), false);
+			kickreason = KR_SYNCH;
 
 			if (M_CheckParm("-consisdump")) // Helps debugging some problems
 			{
@@ -2875,21 +2883,26 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			break;
 		case KICK_MSG_TIMEOUT:
 			HU_AddChatText(va("\x82*%s left the game (Connection timeout)", player_names[pnum]), false);
+			kickreason = KR_TIMEOUT;
 			break;
 		case KICK_MSG_PLAYER_QUIT:
 			if (netgame) // not splitscreen/bots
 				HU_AddChatText(va("\x82*%s left the game", player_names[pnum]), false);
+			kickreason = KR_LEAVE;
 			break;
 		case KICK_MSG_BANNED:
 			HU_AddChatText(va("\x82*%s has been banned (Don't come back)", player_names[pnum]), false);
+			kickreason = KR_BAN;
 			break;
 		case KICK_MSG_CUSTOM_KICK:
 			READSTRINGN(*p, reason, MAX_REASONLENGTH+1);
 			HU_AddChatText(va("\x82*%s has been kicked (%s)", player_names[pnum], reason), false);
+			kickreason = KR_KICK;
 			break;
 		case KICK_MSG_CUSTOM_BAN:
 			READSTRINGN(*p, reason, MAX_REASONLENGTH+1);
 			HU_AddChatText(va("\x82*%s has been banned (%s)", player_names[pnum], reason), false);
+			kickreason = KR_BAN;
 			break;
 	}
 
@@ -2918,7 +2931,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 	else if (server)
 	{
-		XBOXSTATIC UINT8 buf[0];
+		XBOXSTATIC UINT8 buf[2];
 
 		// Sal: Because kicks (and a lot of other commands) are player-based, we can't tell which player pnum is on the node from a glance.
 		// When we want to remove everyone from a node, we have to get the kicked player's node, then remove everyone on that node manually so we don't miss any.
@@ -2930,10 +2943,15 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 #define removethisplayer(otherp) \
 	if (otherp >= 0) \
 	{ \
-		if (otherp != pnum) \
-			HU_AddChatText(va("\x82*%s left the game (Joined with %s)", player_names[otherp], player_names[pnum]), false); \
 		buf[0] = (UINT8)otherp; \
-		SendNetXCmd(XD_REMOVEPLAYER, &buf, 1); \
+		if (otherp != pnum) \
+		{ \
+			HU_AddChatText(va("\x82*%s left the game (Joined with %s)", player_names[otherp], player_names[pnum]), false); \
+			buf[1] = KR_LEAVE; \
+		} \
+		else \
+			buf[1] = (UINT8)kickreason; \
+		SendNetXCmd(XD_REMOVEPLAYER, &buf, 2); \
 		otherp = -1; \
 	}
 		removethisplayer(nodetoplayer[playernode[pnum]])
@@ -3275,6 +3293,8 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 // Xcmd XD_REMOVEPLAYER
 static void Got_RemovePlayer(UINT8 **p, INT32 playernum)
 {
+	SINT8 pnum, reason;
+
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
 		// protect against hacked/buggy client
@@ -3290,7 +3310,10 @@ static void Got_RemovePlayer(UINT8 **p, INT32 playernum)
 		return;
 	}
 
-	CL_RemovePlayer(READUINT8(*p));
+	pnum = READUINT8(*p);
+	reason = READUINT8(*p);
+
+	CL_RemovePlayer(pnum, reason);
 }
 
 static boolean SV_AddWaitingPlayers(void)
