@@ -1393,7 +1393,7 @@ void D_SRB2Main(void)
 	if (D_CheckNetGame())
 		autostart = true;
 
-	if (splitscreen) // Make sure multiplayer & autostart is set if you have splitscreen, even after D_CheckNetGame
+	if (splitscreen && !M_CheckParm("-connect")) // Make sure multiplayer & autostart is set if you have splitscreen, even after D_CheckNetGame
 		multiplayer = autostart = true;
 
 	// check for a driver that wants intermission stats
