@@ -3312,7 +3312,7 @@ tryagain:
 			|| (!dedicated && M_MapLocked(ix+1))
 			|| (!maphell && (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU)) // this is bad
 			|| ((maphell == 2) && !(mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // gasp
-			isokmap = false;
+			continue; //isokmap = false;
 
 		if (!ignorebuffer)
 		{
@@ -3328,8 +3328,17 @@ tryagain:
 			}
 		}
 
-		if (isokmap)
-			okmaps[numokmaps++] = ix;
+		if (!isokmap)
+			continue;
+
+		if (pprevmap == -2) // title demos
+		{
+			lumpnum_t l;
+			if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(ix+1)))) == LUMPERROR)
+				continue;
+		}
+
+		okmaps[numokmaps++] = ix;
 	}
 
 	if (numokmaps == 0)  // If there's no matches... (Goodbye, incredibly silly function chains :V)
@@ -4133,8 +4142,8 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	}
 	save_p += VERSIONSIZE;
 
-//	if (demoplayback) // reset game engine
-//		G_StopDemo();
+	if (demoplayback) // reset game engine
+		G_StopDemo();
 
 //	paused = false;
 //	automapactive = false;
@@ -5899,7 +5908,7 @@ void G_DoPlayDemo(char *defdemoname)
 			players[0].skincolor = i;
 			break;
 		}
-	CV_StealthSetValue(&cv_playercolor, players[0].skincolor);
+	//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
 	if (players[0].mo)
 	{
 		players[0].mo->color = players[0].skincolor;
@@ -6153,6 +6162,68 @@ void G_AddGhost(char *defdemoname)
 	Z_Free(pdemoname);
 }
 
+// A simplified version of G_AddGhost...
+void G_UpdateStaffGhostName(lumpnum_t l)
+{
+	UINT8 *buffer,*p;
+	UINT16 ghostversion;
+	UINT8 flags;
+
+	buffer = p = W_CacheLumpNum(l, PU_CACHE);
+
+	// read demo header
+	if (memcmp(p, DEMOHEADER, 12))
+	{
+		goto fail;
+	} p += 12; // DEMOHEADER
+	p++; // VERSION
+	p++; // SUBVERSION
+	ghostversion = READUINT16(p);
+	switch(ghostversion)
+	{
+	case DEMOVERSION: // latest always supported
+		break;
+	// too old, cannot support.
+	default:
+		goto fail;
+	}
+	p += 16; // demo checksum
+	if (memcmp(p, "PLAY", 4))
+	{
+		goto fail;
+	} p += 4; // "PLAY"
+	p += 2; // gamemap
+	p += 16; // mapmd5 (possibly check for consistency?)
+	flags = READUINT8(p);
+	if (!(flags & DF_GHOST))
+	{
+		goto fail; // we don't NEED to do it here, but whatever
+	}
+	switch ((flags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
+	{
+	case ATTACKING_NONE: // 0
+		break;
+	case ATTACKING_RECORD: // 1
+		p += 8; // demo time, lap
+		break;
+	/*case ATTACKING_NIGHTS: // 2
+		p += 8; // demo time left, score
+		break;*/
+	default: // 3
+		break;
+	}
+	p += 4; // random seed
+
+	// Player name
+	M_Memcpy(dummystaffname, p,16);
+	dummystaffname[16] = '\0';
+
+	// Ok, no longer any reason to care, bye
+fail:
+	Z_Free(buffer);
+	return;
+}
+
 //
 // G_TimeDemo
 // NOTE: name is a full filename for external demos
@@ -6297,10 +6368,17 @@ void G_StopDemo(void)
 	Z_Free(demobuffer);
 	demobuffer = NULL;
 	demoplayback = false;
+	if (titledemo)
+		modeattacking = false;
 	titledemo = false;
 	timingdemo = false;
 	singletics = false;
 
+	if (gamestate == GS_LEVEL && rendermode != render_none)
+	{
+		V_SetPaletteLump("PLAYPAL"); // Reset the palette
+		R_ReInitColormaps(0, LUMPERROR);
+	}
 	if (gamestate == GS_INTERMISSION)
 		Y_EndIntermission(); // cleanup
 	if (gamestate == GS_VOTING)

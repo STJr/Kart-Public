@@ -595,7 +595,7 @@ static menuitem_t SPauseMenu[] =
 {
 	// Pandora's Box will be shifted up if both options are available
 	{IT_CALL | IT_STRING,    NULL, "Pandora's Box...",     M_PandorasBox,         16},
-	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         24},
+	{IT_CALL | IT_STRING,    NULL, "Medal Hints...",       M_EmblemHints,         24},
 	//{IT_CALL | IT_STRING,    NULL, "Level Select...",      M_LoadGameLevelSelect, 32},
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,48},
@@ -741,7 +741,7 @@ static menuitem_t SR_UnlockChecklistMenu[] =
 
 static menuitem_t SR_EmblemHintMenu[] =
 {
-	{IT_STRING|IT_CVAR,         NULL, "Emblem Radar", &cv_itemfinder, 10},
+	{IT_STRING|IT_CVAR,         NULL, "Medal Radar",  &cv_itemfinder, 10},
 	{IT_WHITESTRING|IT_SUBMENU, NULL, "Back",         &SPauseDef,     20}
 };
 
@@ -1475,7 +1475,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 	{IT_STRING | IT_CVAR,    NULL, "Intermission Timer",			&cv_inttime,			 40},
 	{IT_STRING | IT_CVAR,    NULL, "Map Progression",				&cv_advancemap,			 50},
 	{IT_STRING | IT_CVAR,    NULL, "Voting Timer",					&cv_votetime,			 60},
-	{IT_STRING | IT_CVAR,    NULL, "Voting Rule Changes",				&cv_kartvoterulechanges, 70},
+	{IT_STRING | IT_CVAR,    NULL, "Voting Rule Changes",			&cv_kartvoterulechanges, 70},
 
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
@@ -2035,7 +2035,6 @@ static void Nextmap_OnChange(void)
 {
 	char *leveltitle;
 	UINT8 active;
-	lumpnum_t l;
 
 	// Update the string in the consvar.
 	Z_Free(cv_nextmap.zstring);
@@ -2095,7 +2094,9 @@ static void Nextmap_OnChange(void)
 			SP_GhostMenu[3].status = IT_STRING|IT_CVAR;
 			active |= 3;
 		}
-		if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) != LUMPERROR)
+
+		CV_SetValue(&cv_dummystaff, 1);
+		if (cv_dummystaff.value)
 		{
 			SP_ReplayMenu[4].status = IT_WHITESTRING|IT_KEYHANDLER;
 			SP_GhostMenu[4].status = IT_STRING|IT_CVAR;
@@ -2148,9 +2149,14 @@ static void Dummymenuplayer_OnChange(void)
 	}
 }*/
 
+char dummystaffname[22];
+
 static void Dummystaff_OnChange(void)
 {
 	lumpnum_t l;
+
+	dummystaffname[0] = '\0';
+
 	if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(cv_nextmap.value)))) == LUMPERROR)
 	{
 		CV_StealthSetValue(&cv_dummystaff, 0);
@@ -2158,14 +2164,25 @@ static void Dummystaff_OnChange(void)
 	}
 	else
 	{
+		char *temp = dummystaffname;
 		UINT8 numstaff = 1;
-		while (numstaff < 100 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value),numstaff+1))) != LUMPERROR)
+		while (numstaff < 99 && (l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value),numstaff+1))) != LUMPERROR)
 			numstaff++;
 
 		if (cv_dummystaff.value < 1)
 			CV_StealthSetValue(&cv_dummystaff, numstaff);
 		else if (cv_dummystaff.value > numstaff)
 			CV_StealthSetValue(&cv_dummystaff, 1);
+
+		if ((l = W_CheckNumForName(va("%sS%02u",G_BuildMapName(cv_nextmap.value), cv_dummystaff.value))) == LUMPERROR)
+			return; // shouldn't happen but might as well check...
+
+		G_UpdateStaffGhostName(l);
+
+		while (*temp)
+			temp++;
+
+		sprintf(temp, " - %d", cv_dummystaff.value);
 	}
 }
 
@@ -5130,9 +5147,9 @@ static char *M_GetConditionString(condition_t cond)
 				G_TicsToSeconds(cond.requirement),
 				G_TicsToCentiseconds(cond.requirement));
 		case UC_TOTALEMBLEMS:
-			return va("Get %d emblems", cond.requirement);
+			return va("Get %d medals", cond.requirement);
 		case UC_EXTRAEMBLEM:
-			return va("Get \"%s\" emblem", extraemblems[cond.requirement-1].name);
+			return va("Get \"%s\" medal", extraemblems[cond.requirement-1].name);
 		default:
 			return NULL;
 	}
@@ -5238,7 +5255,7 @@ static void M_DrawEmblemHints(void)
 			break;
 	}
 	if (!j)
-		V_DrawCenteredString(160, 48, highlightflags, "No hidden emblems on this map.");
+		V_DrawCenteredString(160, 48, highlightflags, "No hidden medals on this map.");
 
 	M_DrawGenericMenu();
 }
@@ -5536,7 +5553,7 @@ static void M_DrawLoadGameData(void)
 			V_DrawCenteredString(ecks + 68, 144, V_ORANGEMAP, "PLAY WITHOUT SAVING");
 			V_DrawCenteredString(ecks + 68, 156, 0, "THIS GAME WILL NOT BE");
 			V_DrawCenteredString(ecks + 68, 164, 0, "SAVED, BUT YOU CAN STILL");
-			V_DrawCenteredString(ecks + 68, 172, 0, "GET EMBLEMS AND SECRETS.");
+			V_DrawCenteredString(ecks + 68, 172, 0, "GET MEDALS AND SECRETS.");
 		}
 		return;
 	}
@@ -6196,7 +6213,7 @@ static void M_DrawStatsMaps(int location)
 		else if (dotopname)
 		{
 			V_DrawString(20,  y, highlightflags, "LEVEL NAME");
-			V_DrawString(248, y, highlightflags, "EMBLEMS");
+			V_DrawString(256, y, highlightflags, "MEDALS");
 			y += 8;
 			dotopname = false;
 		}
@@ -6222,7 +6239,7 @@ static void M_DrawStatsMaps(int location)
 	if (dotopname && !location)
 	{
 		V_DrawString(20,  y, highlightflags, "LEVEL NAME");
-		V_DrawString(248, y, highlightflags, "EMBLEMS");
+		V_DrawString(256, y, highlightflags, "MEDALS");
 		y += 8;
 	}
 	else if (location)
@@ -6233,7 +6250,7 @@ static void M_DrawStatsMaps(int location)
 	{
 		if (i == -1)
 		{
-			V_DrawString(20, y, highlightflags, "EXTRA EMBLEMS");
+			V_DrawString(20, y, highlightflags, "EXTRA MEDALS");
 			if (location)
 			{
 				y += 8;
@@ -6436,7 +6453,17 @@ void M_DrawTimeAttackMenu(void)
 			}
 		}
 		else if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_KEYHANDLER && cv_dummystaff.value) // bad hacky assumption: IT_KEYHANDLER is assumed to be staff ghost selector
-			V_DrawString(BASEVIDWIDTH - x - 80 - V_StringWidth(cv_dummystaff.string, 0), y, highlightflags, cv_dummystaff.string);
+		{
+			INT32 strw = V_StringWidth(dummystaffname, V_ALLOWLOWERCASE);
+			V_DrawString(BASEVIDWIDTH - x - strw, y, highlightflags|V_ALLOWLOWERCASE, dummystaffname);
+			if (i == itemOn)
+			{
+				V_DrawCharacter(BASEVIDWIDTH - x - 10 - strw - (skullAnimCounter/5), y,
+					'\x1C' | highlightflags, false); // left arrow
+				V_DrawCharacter(BASEVIDWIDTH - x + 2 + (skullAnimCounter/5), y,
+					'\x1D' | highlightflags, false); // right arrow
+			}
+		}
 	}
 
 	x = currentMenu->x;
@@ -6460,10 +6487,10 @@ void M_DrawTimeAttackMenu(void)
 		V_DrawFill((BASEVIDWIDTH - dupadjust)>>1, 78, dupadjust, 36, 239);
 
 		V_DrawRightAlignedString(149, 80, highlightflags, "BEST LAP:");
-		K_drawKartTimestamp(lap, 19, 86, 0, false);
+		K_drawKartTimestamp(lap, 19, 86, 0, 2);
 
 		V_DrawRightAlignedString(292, 80, highlightflags, "BEST TIME:");
-		K_drawKartTimestamp(time, 162, 86, cv_nextmap.value, false);
+		K_drawKartTimestamp(time, 162, 86, cv_nextmap.value, 1);
 	}
 	/*{
 		char beststr[40];
@@ -6830,9 +6857,7 @@ static void M_ReplayTimeAttack(INT32 choice)
 		case 2: // last
 			which = "last";
 			break;
-		case 3: // best staff
-			return; // M_HandleStaffReplay
-		case 4: // guest
+		case 3: // guest
 			// srb2/replay/main/map01-guest.lmp
 			G_DoPlayDemo(va("%s"PATHSEP"replay"PATHSEP"%s"PATHSEP"%s-guest.lmp", srb2home, timeattackfolder, G_BuildMapName(cv_nextmap.value)));
 			return;

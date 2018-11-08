@@ -4939,7 +4939,7 @@ static void Fishcake_OnChange(void)
 static void Command_Isgamemodified_f(void)
 {
 	if (savemoddata)
-		CONS_Printf(M_GetText("modifiedgame is true, but you can save emblem and time data in this mod.\n"));
+		CONS_Printf(M_GetText("modifiedgame is true, but you can save medal and time data in this mod.\n"));
 	else if (modifiedgame)
 		CONS_Printf(M_GetText("modifiedgame is true, secrets will not be unlocked\n"));
 	else

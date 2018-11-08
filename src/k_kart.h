@@ -66,7 +66,7 @@ INT32 K_calcSplitFlags(INT32 snapflags);
 void K_LoadKartHUDGraphics(void);
 void K_drawKartHUD(void);
 void K_drawKartFreePlay(UINT32 flashtime);
-void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, boolean playing);
+void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, UINT8 mode);
 
 // =========================================================================
 #endif  // __K_KART__
