@@ -720,22 +720,13 @@ static int side_set(lua_State *L)
 		side->rowoffset = luaL_checkfixed(L, 3);
 		break;
 	case side_toptexture:
-		if (lua_isstring(L, 3))
-			side->toptexture = R_TextureNumForName(lua_tostring(L, 3));
-		else
-			side->toptexture = luaL_checkinteger(L, 3);
+		side->toptexture = luaL_checkinteger(L, 3);
 		break;
 	case side_bottomtexture:
-		if (lua_isstring(L, 3))
-			side->bottomtexture = R_TextureNumForName(lua_tostring(L, 3));
-		else
-			side->bottomtexture = luaL_checkinteger(L, 3);
+		side->bottomtexture = luaL_checkinteger(L, 3);
 		break;
 	case side_midtexture:
-		if (lua_isstring(L, 3))
-			side->midtexture = R_TextureNumForName(lua_tostring(L, 3));
-		else
-			side->midtexture = luaL_checkinteger(L, 3);
+		side->midtexture = luaL_checkinteger(L, 3);
 		break;
 	case side_repeatcnt:
         side->repeatcnt = luaL_checkinteger(L, 3);
