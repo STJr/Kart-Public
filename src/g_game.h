@@ -186,6 +186,7 @@ extern demoghost *ghosts;
 void G_DoPlayDemo(char *defdemoname);
 void G_TimeDemo(const char *name);
 void G_AddGhost(char *defdemoname);
+void G_UpdateStaffGhostName(lumpnum_t l);
 void G_DoPlayMetal(void);
 void G_DoneLevelLoad(void);
 void G_StopMetalDemo(void);
