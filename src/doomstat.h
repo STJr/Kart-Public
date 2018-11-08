@@ -86,12 +86,11 @@ extern boolean forceresetplayers, deferencoremode;
 // Internal parameters for sound rendering.
 // ========================================
 
-//extern boolean nomidimusic; // defined in d_main.c
-#define nomidimusic true
-extern boolean nosound;
-extern boolean nodigimusic;
-//extern boolean music_disabled;
-#define music_disabled false
+#ifdef NO_MIDI
+#define midi_disabled true
+#else
+extern boolean midi_disabled;
+#endif
 extern boolean sound_disabled;
 extern boolean digital_disabled;
 

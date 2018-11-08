@@ -184,12 +184,12 @@ state_t states[NUMSTATES] =
 	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_OBJPLACE_DUMMY}, //S_OBJPLACE_DUMMY
 
 	// 1-Up Box Sprites (uses player sprite)
-	// Kart: default to signpost just to ensure there are no missing sprite errors...
-	{SPR_PLAY, 18,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
+	// Kart: hide for now, fix for R2
+	{SPR_NULL,  0,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
 	{SPR_NULL,  0,  1, {NULL}, 0,  0, S_PLAY_BOX1},  // S_PLAY_BOX2
-	{SPR_PLAY, 18,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
+	{SPR_NULL,  0,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
 	{SPR_NULL,  0, 12, {NULL}, 0,  0, S_PLAY_ICON3}, // S_PLAY_ICON2
-	{SPR_PLAY, 18, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
+	{SPR_NULL,  0, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
 
 	// Level end sign (uses player sprite)
 	{SPR_PLAY, 18, 1, {NULL}, 0, 24, S_PLAY_SIGN},         // S_PLAY_SIGN	S
@@ -2850,16 +2850,6 @@ state_t states[NUMSTATES] =
 
 	{SPR_DEZL, FF_FULLBRIGHT|FF_PAPERSPRITE, 8, {NULL}, 0, 0, S_NULL},  // S_DEZLASER
 
-	{SPR_POKE, 0,  2, {A_MoveAbsolute},   0, 2, S_POKEY2}, // S_POKEY1
-	{SPR_POKE, 1,  2, {A_MoveAbsolute},   0, 2, S_POKEY3}, // S_POKEY2
-	{SPR_POKE, 2,  2, {A_MoveAbsolute},   0, 2, S_POKEY4}, // S_POKEY3
-	{SPR_POKE, 3,  2, {A_MoveAbsolute},   0, 2, S_POKEY1}, // S_POKEY4
-	{SPR_POKE, 0,  2, {A_MoveAbsolute}, 180, 2, S_POKEY6}, // S_POKEY5
-	{SPR_POKE, 1,  2, {A_MoveAbsolute}, 180, 2, S_POKEY7}, // S_POKEY6
-	{SPR_POKE, 2,  2, {A_MoveAbsolute}, 180, 2, S_POKEY8}, // S_POKEY7
-	{SPR_POKE, 3,  2, {A_MoveAbsolute}, 180, 2, S_POKEY5}, // S_POKEY8
-	{SPR_NULL, 0, -1, {NULL}, 0, 0, S_NULL},               // S_POKEYIDLE
-
 	{SPR_NULL, 0,  1, {A_RandomStateRange}, S_AUDIENCE_CHAO_CHEER1, S_AUDIENCE_CHAO_CHEER2, S_RANDOMAUDIENCE}, // S_RANDOMAUDIENCE
 
 	{SPR_AUDI, 0,  5, {NULL},       0, 0, S_AUDIENCE_CHAO_CHEER2}, // S_AUDIENCE_CHAO_CHEER1
@@ -2869,15 +2859,6 @@ state_t states[NUMSTATES] =
 	{SPR_AUDI, 3, 25, {A_BunnyHop}, 10, 0, S_AUDIENCE_CHAO_WIN1}, // S_AUDIENCE_CHAO_WIN2
 
 	{SPR_AUDI, 4|FF_ANIMATE,  -1, {NULL},       1, 17, S_NULL}, // S_AUDIENCE_CHAO_LOSE
-
-	{SPR_AUDI, 10, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_KOTE
-	{SPR_AUDI, 11, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_RYAN
-	{SPR_AUDI, 12, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_WENDY
-	{SPR_AUDI, 13, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_FREEZOR
-	{SPR_AUDI, 14, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_METALKO
-	{SPR_AUDI, 15, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_BLACKOUT
-	{SPR_AUDI, 16, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_BLADE
-	{SPR_AUDI, 17, -1, {NULL}, 0, 0, S_NULL}, // S_FANCHAR_HINOTE
 
 	{SPR_FLAM,  0,  3, {NULL}, 0, 0, S_FLAYM2}, // S_FLAYM1,
 	{SPR_FLAM,  1,  3, {NULL}, 0, 0, S_FLAYM3}, // S_FLAYM2,
@@ -16045,60 +16026,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_POKEY
-		2100,           // doomednum
-		S_POKEY1,       // spawnstate
-		1000,           // spawnhealth
-		S_POKEY1,       // seestate
-		sfx_None,       // seesound
-		32,             // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		100,            // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		3,              // speed
-		21*FRACUNIT,    // radius
-		69*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_SPECIAL|MF_SHOOTABLE, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_ENEMYFLIP
-		2101,           // doomednum
-		S_NULL,         // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		100,            // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		8,              // speed
-		32*FRACUNIT,    // radius
-		64*FRACUNIT,    // height
-		0,              // display offset
-		100,            // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_SCENERY,     // flags
-		S_NULL          // raisestate
-	},
-
 	{           // MT_WAYPOINT
 		2001,           // doomednum
 		S_NULL,         // spawnstate
@@ -16150,222 +16077,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // damage
 		sfx_None,       // activesound
 		MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_KOTE
-		1994,           // doomednum
-		S_FANCHAR_KOTE, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_RYAN
-		1995,           // doomednum
-		S_FANCHAR_RYAN, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_WENDY
-		1996,           // doomednum
-		S_FANCHAR_WENDY, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_FREEZOR
-		1997,           // doomednum
-		S_FANCHAR_FREEZOR, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_METALKO
-		1998,           // doomednum
-		S_FANCHAR_METALKO, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_BLACKOUT
-		1999,           // doomednum
-		S_FANCHAR_BLACKOUT, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_BLADE
-		1993,           // doomednum
-		S_FANCHAR_BLADE, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_FANCHAR_HINOTE
-		1992,           // doomednum
-		S_FANCHAR_HINOTE, // spawnstate
-		-1,             // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		0,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		1048576,        // radius
-		3670016,        // height
-		0,              // display offset
-		1000,           // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 

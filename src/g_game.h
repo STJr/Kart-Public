@@ -57,6 +57,9 @@ extern INT16 rw_maximums[NUM_WEAPONS];
 extern consvar_t cv_chatwidth, cv_chatnotifications, cv_chatheight, cv_chattime, cv_consolechat, cv_chatspamprotection, cv_chatbacktint;
 //extern consvar_t cv_crosshair, cv_crosshair2, cv_crosshair3, cv_crosshair4;
 extern consvar_t cv_invertmouse, cv_alwaysfreelook, cv_mousemove;
+extern consvar_t cv_invertmouse2, cv_alwaysfreelook2, cv_mousemove2;
+extern consvar_t cv_useranalog, cv_useranalog2, cv_useranalog3, cv_useranalog4;
+extern consvar_t cv_analog, cv_analog2, cv_analog3, cv_analog4;
 extern consvar_t cv_turnaxis,cv_moveaxis,cv_brakeaxis,cv_aimaxis,cv_lookaxis,cv_fireaxis,cv_driftaxis;
 extern consvar_t cv_turnaxis2,cv_moveaxis2,cv_brakeaxis2,cv_aimaxis2,cv_lookaxis2,cv_fireaxis2,cv_driftaxis2;
 extern consvar_t cv_turnaxis3,cv_moveaxis3,cv_brakeaxis3,cv_aimaxis3,cv_lookaxis3,cv_fireaxis3,cv_driftaxis3;
@@ -205,6 +208,7 @@ void G_NextLevel(void);
 void G_Continue(void);
 void G_UseContinue(void);
 void G_AfterIntermission(void);
+void G_EndGame(void); // moved from y_inter.c/h and renamed
 
 void G_Ticker(boolean run);
 boolean G_Responder(event_t *ev);
