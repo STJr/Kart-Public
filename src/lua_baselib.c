@@ -1719,6 +1719,26 @@ static int lib_rSetPlayerSkin(lua_State *L)
 	return 0;
 }
 
+// R_DATA
+////////////
+
+// This also doesn't exist, but we need it for texture find+replace to not be a horrible chore.
+static int lib_rGetTextureName(lua_State *L)
+{
+	INT32 texnum = luaL_checkinteger(L, 1);
+	texture_t *texture;
+	UINT8 i;
+	//HUDSAFE
+	if (texnum < 0 || texnum >= numtextures)
+		return luaL_error(L, "texture number %d out of range (0 - %d)", texnum, numtextures-1);
+	texture = textures[texnum];
+	for (i = 0; i < 8; i++)
+		if (!texture->name[i])
+			break;
+	lua_pushlstring(L, texture->name, i);
+	return 1;
+}
+
 // S_SOUND
 ////////////
 
@@ -2563,6 +2583,9 @@ static luaL_Reg lib[] = {
 	{"R_Char2Frame",lib_rChar2Frame},
 	{"R_Frame2Char",lib_rFrame2Char},
 	{"R_SetPlayerSkin",lib_rSetPlayerSkin},
+
+	// r_data
+	{"R_GetTextureName",lib_rGetTextureName},
 
 	// s_sound
 	{"S_StartSound",lib_sStartSound},
