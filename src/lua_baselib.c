@@ -2335,7 +2335,7 @@ static int lib_kFindJawzTarget(lua_State *L)
 {
 	mobj_t *actor = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
 	player_t *source = *((player_t **)luaL_checkudata(L, 2, META_PLAYER));
-	NOHUD
+	//HUDSAFE
 	if (!actor)
 		return LUA_ErrInvalid(L, "mobj_t");
 	if (!source)
@@ -2347,7 +2347,7 @@ static int lib_kFindJawzTarget(lua_State *L)
 static int lib_kGetKartDriftSparkValue(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
+	//HUDSAFE
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushinteger(L, K_GetKartDriftSparkValue(player));

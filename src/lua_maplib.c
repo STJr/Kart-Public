@@ -729,7 +729,7 @@ static int side_set(lua_State *L)
 		side->midtexture = luaL_checkinteger(L, 3);
 		break;
 	case side_repeatcnt:
-        side->repeatcnt = luaL_checkinteger(L, 3);
+		side->repeatcnt = luaL_checkinteger(L, 3);
 		break;
 	}
 	return 0;
