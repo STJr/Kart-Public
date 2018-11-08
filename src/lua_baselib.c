@@ -1738,23 +1738,6 @@ static int lib_rTextureNumForName(lua_State *L)
 	return 1;
 }
 
-// This doesn't exist, but we need it for texture find+replace to not be a horrible chore.
-static int lib_rGetTextureName(lua_State *L)
-{
-	INT32 texnum = luaL_checkinteger(L, 1);
-	texture_t *texture;
-	UINT8 i;
-	//HUDSAFE
-	if (texnum < 0 || texnum >= numtextures)
-		return luaL_error(L, "texture number %d out of range (0 - %d)", texnum, numtextures-1);
-	texture = textures[texnum];
-	for (i = 0; i < 8; i++)
-		if (!texture->name[i])
-			break;
-	lua_pushlstring(L, texture->name, i);
-	return 1;
-}
-
 // S_SOUND
 ////////////
 
@@ -2603,7 +2586,6 @@ static luaL_Reg lib[] = {
 	// r_data
 	{"R_CheckTextureNumForName",lib_rCheckTextureNumForName),
 	{"R_TextureNumForName",lib_rTextureNumForName),
-	{"R_GetTextureName",lib_rGetTextureName},
 
 	// s_sound
 	{"S_StartSound",lib_sStartSound},
