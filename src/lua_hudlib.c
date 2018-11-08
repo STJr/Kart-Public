@@ -39,25 +39,15 @@ static const char *const hud_disable_options[] = {
 	"stagetitle",
 	"textspectator",
 
-	"score",
 	"time",
-	"rings",
-	"lives",
-
-	"weaponrings",
-	"powerstones",
-
-	"nightslink",
-	"nightsdrill",
-	"nightsrings",
-	"nightsscore",
-	"nightstime",
-	"nightsrecords",
-
+	"gametypeinfo",	// Bumpers / Karma / Laps depending on gametype
+	"minimap",
+	"item",
+	"position",
+	"minirankings",	// Gametype rankings to the left
+	"wanted",
+	"speedometer",
 	"rankings",
-	"coopemeralds",
-	"tokens",
-	"tabemblems",
 	NULL};
 
 enum hudinfo {
@@ -645,7 +635,6 @@ static int lib_hudenabled(lua_State *L)
 
 	return 1;
 }
-
 
 // add a HUD element for rendering
 static int lib_hudadd(lua_State *L)

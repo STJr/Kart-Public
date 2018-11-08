@@ -20,6 +20,7 @@
 #include "m_cond.h"
 #include "k_kart.h"
 #include "f_finale.h"
+#include "lua_hud.h"	// For Lua hud checks
 
 // SOME IMPORTANT VARIABLES DEFINED IN DOOMDEF.H:
 // gamespeed is cc (0 for easy, 1 for normal, 2 for hard)
@@ -6507,6 +6508,11 @@ static boolean K_drawKartPositionFaces(void)
 
 	if (numplayersingame <= 1)
 		return true;
+	
+#ifdef HAVE_BLUA
+	if (!LUA_HudEnabled(hud_minirankings))
+		return false;	// Don't proceed but still return true for free play above if HUD is disabled.
+#endif	
 
 	for (j = 0; j < numplayersingame; j++)
 	{
@@ -7732,7 +7738,12 @@ void K_drawKartHUD(void)
 		K_drawKartFirstPerson();
 
 	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
+	{
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_minimap))
+#endif
 		K_drawKartMinimap();
+	}
 
 	// Draw full screen stuff that turns off the rest of the HUD
 	if (mapreset && stplyr == &players[displayplayer])
@@ -7757,25 +7768,45 @@ void K_drawKartHUD(void)
 		K_drawKartPlayerCheck();
 
 	if (splitscreen == 0 && cv_kartminimap.value)
-		K_drawKartMinimap(); // 3P splitscreen is handled above
+	{
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_minimap))
+#endif
+			K_drawKartMinimap(); // 3P splitscreen is handled above
+
+	}
 
 	// Draw the item window
-	K_drawKartItem();
+#ifdef HAVE_BLUA
+	if (LUA_HudEnabled(hud_item))
+#endif
+		K_drawKartItem();
 
 	// Draw WANTED status
 	if (G_BattleGametype())
-		K_drawKartWanted();
+	{
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_wanted))
+#endif
+			K_drawKartWanted();
+	}
 
 	// If not splitscreen, draw...
 	if (!splitscreen)
 	{
 		// Draw the timestamp
-		K_drawKartTimestamp(stplyr->realtime, TIME_X, TIME_Y, gamemap, true);
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_time))
+#endif
+			K_drawKartTimestamp(stplyr->realtime, TIME_X, TIME_Y, gamemap, true);
 
 		if (!modeattacking)
 		{
 			// The top-four faces on the left
-			isfreeplay = K_drawKartPositionFaces();
+			/*#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_minirankings))
+			#endif*/
+				isfreeplay = K_drawKartPositionFaces();
 		}
 	}
 
@@ -7784,12 +7815,18 @@ void K_drawKartHUD(void)
 		if (G_RaceGametype()) // Race-only elements
 		{
 			// Draw the lap counter
-			K_drawKartLaps();
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_gametypeinfo))
+#endif
+				K_drawKartLaps();
 
 			if (!splitscreen)
 			{
 				// Draw the speedometer
 				// TODO: Make a better speedometer.
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_speedometer))
+#endif
 				K_drawKartSpeedometer();
 			}
 
@@ -7798,18 +7835,27 @@ void K_drawKartHUD(void)
 			else if (!modeattacking)
 			{
 				// Draw the numerical position
-				K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
+#ifdef HAVE_BLUA
+				if (LUA_HudEnabled(hud_position))
+#endif
+					K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 			}
 			else //if (!(demoplayback && hu_showscores))
 			{
 				// Draw the input UI
-				K_drawInput();
+#ifdef HAVE_BLUA
+				if (LUA_HudEnabled(hud_position))
+#endif
+					K_drawInput();
 			}
 		}
 		else if (G_BattleGametype()) // Battle-only
 		{
 			// Draw the hits left!
-			K_drawKartBumpersOrKarma();
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_gametypeinfo))
+#endif
+				K_drawKartBumpersOrKarma();
 		}
 	}
 

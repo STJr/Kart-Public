@@ -108,8 +108,6 @@ static patch_t *crosshair[HU_CROSSHAIRS]; // 3 precached crosshair graphics
 // protos.
 // -------
 static void HU_DrawRankings(void);
-//static void HU_DrawCoopOverlay(void);
-//static void HU_DrawNetplayCoopOverlay(void);
 
 //======================================================================
 //                 KEYBOARD LAYOUTS FOR ENTERING TEXT
@@ -2111,16 +2109,12 @@ void HU_Drawer(void)
 #ifdef HAVE_BLUA
 			if (LUA_HudEnabled(hud_rankings))
 #endif
-			HU_DrawRankings();
-			//if (gametype == GT_COOP)
-				//HU_DrawNetplayCoopOverlay();
-		}
-		//else
-			//HU_DrawCoopOverlay();
+				HU_DrawRankings();
 #ifdef HAVE_BLUA
 		LUAh_ScoresHUD();
 #endif
-	}
+		}
+	}	
 
 	if (gamestate != GS_LEVEL)
 		return;
@@ -2705,65 +2699,6 @@ static void HU_DrawRankings(void)
 	if (netgame && G_GametypeHasSpectators())
 		HU_DrawSpectatorTicker();
 }
-
-/*static void HU_DrawCoopOverlay(void)
-{
-	if (token
-#ifdef HAVE_BLUA
-	&& LUA_HudEnabled(hud_tokens)
-#endif
-	)
-	{
-		V_DrawString(168, 176, 0, va("- %d", token));
-		V_DrawSmallScaledPatch(148, 172, 0, tokenicon);
-	}
-
-#ifdef HAVE_BLUA
-	if (LUA_HudEnabled(hud_tabemblems))
-#endif
-	if (!modifiedgame || savemoddata)
-	{
-		V_DrawString(160, 144, 0, va("- %d/%d", M_CountEmblems(), numemblems+numextraemblems));
-		V_DrawScaledPatch(128, 144 - SHORT(emblemicon->height)/4, 0, emblemicon);
-	}
-
-#ifdef HAVE_BLUA
-	if (!LUA_HudEnabled(hud_coopemeralds))
-		return;
-#endif
-
-	if (emeralds & EMERALD1)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8   , (BASEVIDHEIGHT/3)-32, 0, emeraldpics[0]);
-	if (emeralds & EMERALD2)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8+24, (BASEVIDHEIGHT/3)-16, 0, emeraldpics[1]);
-	if (emeralds & EMERALD3)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8+24, (BASEVIDHEIGHT/3)+16, 0, emeraldpics[2]);
-	if (emeralds & EMERALD4)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8   , (BASEVIDHEIGHT/3)+32, 0, emeraldpics[3]);
-	if (emeralds & EMERALD5)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8-24, (BASEVIDHEIGHT/3)+16, 0, emeraldpics[4]);
-	if (emeralds & EMERALD6)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8-24, (BASEVIDHEIGHT/3)-16, 0, emeraldpics[5]);
-	if (emeralds & EMERALD7)
-		V_DrawScaledPatch((BASEVIDWIDTH/2)-8   , (BASEVIDHEIGHT/3)   , 0, emeraldpics[6]);
-}
-
-static void HU_DrawNetplayCoopOverlay(void)
-{
-	int i;
-
-#ifdef HAVE_BLUA
-	if (!LUA_HudEnabled(hud_coopemeralds))
-		return;
-#endif
-
-	for (i = 0; i < 7; ++i)
-	{
-		if (emeralds & (1 << i))
-			V_DrawScaledPatch(20 + (i * 20), 6, 0, emeraldpics[i]);
-	}
-}*/
-
 
 // Interface to CECHO settings for the outside world, avoiding the
 // expense (and security problems) of going via the console buffer.
