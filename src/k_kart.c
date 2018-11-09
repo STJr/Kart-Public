@@ -3388,7 +3388,7 @@ void K_DropItems(player_t *player)
 		drop->angle = player->mo->angle + ANGLE_90;
 		P_Thrust(drop,
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
-			8*(mapheaderinfo[gamemap-1]->mobj_scale));
+			16*(mapheaderinfo[gamemap-1]->mobj_scale));
 		drop->momz = P_MobjFlip(player->mo)*3*(mapheaderinfo[gamemap-1]->mobj_scale);
 
 		drop->threshold = (thunderhack ? KITEM_THUNDERSHIELD : player->kartstuff[k_itemtype]);

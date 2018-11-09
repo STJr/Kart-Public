@@ -10090,7 +10090,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 		case MT_FLOATINGITEM:
 		case MT_BATTLEBUMPER:
 		case MT_BANANA:			case MT_BANANA_SHIELD:
-		//case MT_EGGMANITEM:	case MT_EGGMANSHIELD:
+		//case MT_EGGMANITEM:	case MT_EGGMANITEM_SHIELD:
 		case MT_ORBINAUT:		case MT_ORBINAUT_SHIELD:
 		case MT_JAWZ:			case MT_JAWZ_DUD:		case MT_JAWZ_SHIELD:
 		case MT_SSMINE:			case MT_SSMINE_SHIELD:
