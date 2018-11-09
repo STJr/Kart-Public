@@ -8538,12 +8538,12 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else
 				{
-					P_SpawnMobj(mobj->x + (P_RandomRange(-48,48)<<FRACBITS),
-						mobj->y + (P_RandomRange(-48,48)<<FRACBITS),
-						mobj->z + (24<<FRACBITS) + (P_RandomRange(-8,8)<<FRACBITS),
+					P_SpawnMobj(mobj->x + (P_RandomRange(-48,48)*mobj->scale),
+						mobj->y + (P_RandomRange(-48,48)*mobj->scale),
+						mobj->z + (24*mobj->scale) + (P_RandomRange(-8,8)*mobj->scale),
 						MT_SIGNSPARKLE);
 					mobj->flags &= ~MF_NOGRAVITY;
-					if (abs(mobj->z - mobj->movefactor) <= 512<<FRACBITS && !mobj->cvmem)
+					if (abs(mobj->z - mobj->movefactor) <= (512*mobj->scale) && !mobj->cvmem)
 					{
 						if (mobj->info->seesound)
 							S_StartSound(mobj, mobj->info->seesound);
