@@ -951,7 +951,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		return;
 	}
 
-	if (cv_kartdebugitem.value != 0)
+	if (cv_kartdebugitem.value != 0 && !modeattacking)
 	{
 		K_KartGetItemResult(player, cv_kartdebugitem.value);
 		player->kartstuff[k_itemamount] = cv_kartdebugamount.value;
@@ -1405,7 +1405,7 @@ void K_RespawnChecker(player_t *player)
 		{
 			player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 			player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
-			if (cv_kartdebugshrink.value && !player->bot)
+			if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 				player->mo->destscale = 6*player->mo->destscale/8;
 		}
 
@@ -1915,7 +1915,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
 	player->kartstuff[k_instashield] = 15;
-	if (cv_kartdebughuddrop.value)
+	if (cv_kartdebughuddrop.value && !modeattacking)
 		K_DropItems(player);
 	else
 		K_DropHnextList(player);
@@ -1998,7 +1998,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	P_PlayRinglossSound(player->mo);
 
 	player->kartstuff[k_instashield] = 15;
-	if (cv_kartdebughuddrop.value)
+	if (cv_kartdebughuddrop.value && !modeattacking)
 		K_DropItems(player);
 	else
 		K_DropHnextList(player);
@@ -2099,10 +2099,8 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 	}
 
 	player->kartstuff[k_instashield] = 15;
-	//if (cv_kartdebughuddrop.value)
-		K_DropItems(player);
-	/*else
-		K_DropHnextList(player);*/
+	K_DropItems(player);
+
 	return;
 }
 
@@ -2173,7 +2171,7 @@ void K_StealBumper(player_t *player, player_t *victim, boolean force)
 	victim->kartstuff[k_comebacktimer] = comebacktime;*/
 
 	victim->kartstuff[k_instashield] = 15;
-	if (cv_kartdebughuddrop.value)
+	if (cv_kartdebughuddrop.value && !modeattacking)
 		K_DropItems(victim);
 	else
 		K_DropHnextList(victim);
@@ -4086,7 +4084,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		if (player->kartstuff[k_invincibilitytimer] == 0)
 			player->mo->color = player->skincolor;
 		player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
-		if (cv_kartdebugshrink.value && !player->bot)
+		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = 6*player->mo->destscale/8;
 		P_RestoreMusic(player);
 	}
@@ -5040,7 +5038,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						K_PlayPowerGloatSound(player->mo);
 						player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
-						if (cv_kartdebugshrink.value && !player->bot)
+						if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 							player->mo->destscale = 6*player->mo->destscale/8;
 						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
 						P_RestoreMusic(player);
@@ -5286,7 +5284,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime < starttime+10)
 	{
 		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
-		if (cv_kartdebugshrink.value && !player->bot)
+		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = 6*player->mo->destscale/8;
 	}
 
@@ -7892,6 +7890,9 @@ void K_drawKartHUD(void)
 		else if (stplyr->kartstuff[k_lapanimation] && !splitscreen)
 			K_drawLapStartAnim();
 	}
+
+	if (modeattacking) // everything after here is MP and debug only
+		return;
 
 	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *
 		V_DrawScaledPatch(BASEVIDWIDTH/2 - (SHORT(kp_yougotem->width)/2), 32, V_HUDTRANS, kp_yougotem);
