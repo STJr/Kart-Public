@@ -3254,7 +3254,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				// Start shrinking!
 				player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
-				if (cv_kartdebugshrink.value && !player->bot)
+				if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 					player->mo->destscale = 6*player->mo->destscale/8;
 
 				// Wipeout
