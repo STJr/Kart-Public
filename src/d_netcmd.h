@@ -172,7 +172,7 @@ typedef enum
 	XD_REQADDFILE,  // 17
 	XD_DELFILE,     // 18
 	XD_SETMOTD,     // 19
-	XD_SUICIDE,     // 20
+	XD_RESPAWN,     // 20
 	XD_DEMOTED,     // 21
 	XD_SETUPVOTE,   // 22
 	XD_MODIFYVOTE,  // 23

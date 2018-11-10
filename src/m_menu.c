@@ -2392,6 +2392,15 @@ static void M_PrevOpt(void)
 // (in other words -- stop bullshit happening by mashing buttons in fades)
 static boolean noFurtherInput = false;
 
+static void Command_Manual_f(void)
+{
+	if (modeattacking)
+		return;
+	M_StartControlPanel();
+	M_Manual(INT32_MAX);
+	itemOn = 0;
+}
+
 //
 // M_Responder
 //
@@ -2519,11 +2528,7 @@ boolean M_Responder(event_t *ev)
 		switch (ch)
 		{
 			case KEY_F1: // Help key
-				if (modeattacking)
-					return true;
-				M_StartControlPanel();
-				M_Manual(INT32_MAX);
-				itemOn = 0;
+				Command_Manual_f();
 				return true;
 
 			case KEY_F2: // Empty
@@ -3112,6 +3117,8 @@ void M_Ticker(void)
 //
 void M_Init(void)
 {
+	COM_AddCommand("manual", Command_Manual_f);
+
 	CV_RegisterVar(&cv_nextmap);
 	CV_RegisterVar(&cv_newgametype);
 	CV_RegisterVar(&cv_chooseskin);

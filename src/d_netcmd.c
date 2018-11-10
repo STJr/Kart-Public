@@ -72,7 +72,7 @@ static void Got_Delfilecmd(UINT8 **cp, INT32 playernum);
 #endif
 static void Got_Addfilecmd(UINT8 **cp, INT32 playernum);
 static void Got_Pause(UINT8 **cp, INT32 playernum);
-static void Got_Suicide(UINT8 **cp, INT32 playernum);
+static void Got_Respawn(UINT8 **cp, INT32 playernum);
 static void Got_RandomSeed(UINT8 **cp, INT32 playernum);
 static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum);
 static void Got_Teamchange(UINT8 **cp, INT32 playernum);
@@ -136,7 +136,7 @@ static void Command_Delfile(void);
 #endif
 static void Command_RunSOC(void);
 static void Command_Pause(void);
-static void Command_Suicide(void);
+static void Command_Respawn(void);
 
 static void Command_Version_f(void);
 #ifdef UPDATE_ALERT
@@ -238,12 +238,12 @@ static consvar_t cv_dummyconsvar = {"dummyconsvar", "Off", CV_CALL|CV_NOSHOWHELP
 consvar_t cv_restrictskinchange = {"restrictskinchange", "No", CV_NETVAR|CV_CHEAT, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowteamchange = {"allowteamchange", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t respawntime_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
 consvar_t cv_respawntime = {"respawndelay", "1", CV_NETVAR|CV_CHEAT, respawntime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_competitionboxes = {"competitionboxes", "Random", CV_NETVAR|CV_CHEAT, competitionboxes_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_competitionboxes = {"competitionboxes", "Random", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, competitionboxes_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 #ifdef SEENAMES
 static CV_PossibleValue_t seenames_cons_t[] = {{0, "Off"}, {1, "Colorless"}, {2, "Team"}, {3, "Ally/Foe"}, {0, NULL}};
@@ -303,9 +303,9 @@ consvar_t cv_mouse2opt = {"mouse2opt", "0", CV_SAVE, NULL, NULL, 0, NULL, NULL, 
 consvar_t cv_mouse2port = {"mouse2port", "COM2", CV_SAVE, mouse2port_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
 
-consvar_t cv_matchboxes = {"matchboxes", "Normal", CV_NETVAR|CV_CHEAT, matchboxes_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_specialrings = {"specialrings", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_powerstones = {"powerstones", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_matchboxes = {"matchboxes", "Normal", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, matchboxes_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_specialrings = {"specialrings", "On", CV_NETVAR|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_powerstones = {"powerstones", "On", CV_NETVAR|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 /*consvar_t cv_recycler =      {"tv_recycler",      "5", CV_NETVAR|CV_CHEAT, chances_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_teleporters =   {"tv_teleporter",    "5", CV_NETVAR|CV_CHEAT, chances_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -363,19 +363,18 @@ consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedome
 static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
 consvar_t cv_kartvoices = {"kartvoices", "Tasteful", CV_SAVE, kartvoices_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-// this might be a debug or it might be an undocumented regular feature
-consvar_t cv_karteliminatelast = {"karteliminatelast", "Yes", CV_NETVAR|CV_CHEAT|CV_CALL, CV_OnOff, KartEliminateLast_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_karteliminatelast = {"kartdebugeliminatelast", "Yes", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOSHOWHELP, CV_OnOff, KartEliminateLast_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t kartdebugitem_cons_t[] = {{-1, "MIN"}, {NUMKARTITEMS-1, "MAX"}, {0, NULL}};
-consvar_t cv_kartdebugitem = {"kartdebugitem", "0", CV_NETVAR|CV_CHEAT, kartdebugitem_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugitem = {"kartdebugitem", "0", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, kartdebugitem_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartdebugamount_cons_t[] = {{1, "MIN"}, {255, "MAX"}, {0, NULL}};
-consvar_t cv_kartdebugamount = {"kartdebugamount", "1", CV_NETVAR|CV_CHEAT, kartdebugamount_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartdebugshrink = {"kartdebugshrink", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartdebugdistribution = {"kartdebugdistribution", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartdebughuddrop = {"kartdebughuddrop", "Off", CV_NETVAR|CV_CHEAT, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugamount = {"kartdebugamount", "1", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, kartdebugamount_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugshrink = {"kartdebugshrink", "Off", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugdistribution = {"kartdebugdistribution", "Off", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebughuddrop = {"kartdebughuddrop", "Off", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_kartdebugcheckpoint = {"kartdebugcheckpoint", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_kartdebugnodes = {"kartdebugnodes", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugcheckpoint = {"kartdebugcheckpoint", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugnodes = {"kartdebugnodes", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -389,8 +388,8 @@ consvar_t cv_soundtest = {"soundtest", "0", CV_CALL, NULL, SoundTest_OnChange, 0
 static CV_PossibleValue_t minitimelimit_cons_t[] = {{15, "MIN"}, {9999, "MAX"}, {0, NULL}};
 consvar_t cv_countdowntime = {"countdowntime", "30", CV_NETVAR|CV_CHEAT, minitimelimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_touchtag = {"touchtag", "Off", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_hidetime = {"hidetime", "30", CV_NETVAR|CV_CALL, minitimelimit_cons_t, Hidetime_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_touchtag = {"touchtag", "Off", CV_NETVAR|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_hidetime = {"hidetime", "30", CV_NETVAR|CV_CALL|CV_NOSHOWHELP, minitimelimit_cons_t, Hidetime_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_autobalance = {"autobalance", "0", CV_NETVAR|CV_CALL, autobalance_cons_t, AutoBalance_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_teamscramble = {"teamscramble", "Off", CV_NETVAR|CV_CALL|CV_NOINIT, teamscramble_cons_t, TeamScramble_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -400,13 +399,13 @@ consvar_t cv_friendlyfire = {"friendlyfire", "Off", CV_NETVAR, CV_OnOff, NULL, 0
 consvar_t cv_itemfinder = {"itemfinder", "Off", CV_CALL, CV_OnOff, ItemFinder_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 // Scoring type options
-consvar_t cv_match_scoring = {"matchscoring", "Normal", CV_NETVAR|CV_CHEAT, match_scoring_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_match_scoring = {"matchscoring", "Normal", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, match_scoring_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_overtime = {"overtime", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_rollingdemos = {"rollingdemos", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_timetic = {"timerres", "Normal", CV_SAVE, timetic_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
-consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_timetic = {"timerres", "Normal", CV_SAVE|CV_NOSHOWHELP, timetic_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
+consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t pointlimit_cons_t[] = {{0, "MIN"}, {999999990, "MAX"}, {0, NULL}};
 consvar_t cv_pointlimit = {"pointlimit", "0", CV_NETVAR|CV_CALL|CV_NOINIT, pointlimit_cons_t,
@@ -424,7 +423,7 @@ consvar_t cv_forceskin = {"forceskin", "-1", CV_NETVAR|CV_CALL|CV_CHEAT, NULL, F
 consvar_t cv_downloading = {"downloading", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowexitlevel = {"allowexitlevel", "No", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_killingdead = {"killingdead", "Off", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_killingdead = {"killingdead", "Off", CV_NETVAR|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_netstat = {"netstat", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; // show bandwidth statistics
 static CV_PossibleValue_t nettimeout_cons_t[] = {{TICRATE/7, "MIN"}, {60*TICRATE, "MAX"}, {0, NULL}};
@@ -479,7 +478,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"REQADDFILE",
 	"DELFILE",
 	"SETMOTD",
-	"SUICIDE",
+	"RESPAWN",
 	"DEMOTED",
 	"SETUPVOTE",
 	"MODIFYVOTE",
@@ -511,7 +510,7 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_DELFILE, Got_Delfilecmd);
 #endif
 	RegisterNetXCmd(XD_PAUSE, Got_Pause);
-	RegisterNetXCmd(XD_SUICIDE, Got_Suicide);
+	RegisterNetXCmd(XD_RESPAWN, Got_Respawn);
 	RegisterNetXCmd(XD_RUNSOC, Got_RunSOCcmd);
 #ifdef HAVE_BLUA
 	RegisterNetXCmd(XD_LUACMD, Got_Luacmd);
@@ -554,7 +553,7 @@ void D_RegisterServerCommands(void)
 #endif
 	COM_AddCommand("runsoc", Command_RunSOC);
 	COM_AddCommand("pause", Command_Pause);
-	COM_AddCommand("suicide", Command_Suicide);
+	COM_AddCommand("respawn", Command_Respawn);
 
 	COM_AddCommand("gametype", Command_ShowGametype_f);
 	COM_AddCommand("version", Command_Version_f);
@@ -2468,7 +2467,7 @@ static void Got_Pause(UINT8 **cp, INT32 playernum)
 }
 
 // Command for stuck characters in netgames, griefing, etc.
-static void Command_Suicide(void)
+static void Command_Respawn(void)
 {
 	XBOXSTATIC UINT8 buf[4];
 	UINT8 *cp = buf;
@@ -2481,7 +2480,7 @@ static void Command_Suicide(void)
 		return;
 	}
 
-	/*if (!G_RaceGametype()) // srb2kart: not necessary, suiciding makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
+	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
 		return;
@@ -2495,17 +2494,17 @@ static void Command_Suicide(void)
 		return;
 	}*/
 
-	SendNetXCmd(XD_SUICIDE, &buf, 4);
+	SendNetXCmd(XD_RESPAWN, &buf, 4);
 }
 
-static void Got_Suicide(UINT8 **cp, INT32 playernum)
+static void Got_Respawn(UINT8 **cp, INT32 playernum)
 {
-	INT32 suicideplayer = READINT32(*cp);
+	INT32 respawnplayer = READINT32(*cp);
 
-	// You can't suicide someone else.  Nice try, there.
-	if (suicideplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
+	// You can't respawn someone else.  Nice try, there.
+	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("Illegal suicide command received from %s\n"), player_names[playernum]);
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
 		if (server)
 		{
 			XBOXSTATIC UINT8 buf[2];
@@ -2517,8 +2516,8 @@ static void Got_Suicide(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	if (players[suicideplayer].mo)
-		P_DamageMobj(players[suicideplayer].mo, NULL, NULL, 10000);
+	if (players[respawnplayer].mo)
+		P_DamageMobj(players[respawnplayer].mo, NULL, NULL, 10000);
 }
 
 /** Deals with an ::XD_RANDOMSEED message in a netgame.
