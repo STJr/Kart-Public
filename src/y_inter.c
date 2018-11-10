@@ -468,6 +468,12 @@ void Y_IntermissionDrawer(void)
 					V_DrawMappedPatch(x+16, y-4, 0,facerankprefix[*data.match.character[i]], colormap);
 				}
 
+				if (data.match.num[i] == whiteplayer)
+				{
+					UINT8 cursorframe = (intertic / 4) % 8;
+					V_DrawScaledPatch(x+16, y-4, 0, W_CachePatchName(va("K_CHILI%d", cursorframe+1), PU_CACHE));
+				}
+
 				if (!gutter)
 					strlcpy(strtime, data.match.name[i], 6);
 				else
@@ -1104,6 +1110,12 @@ void Y_VoteDrawer(void)
 			{
 				UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, GTC_CACHE);
 				V_DrawMappedPatch(x+24, y+9, V_SNAPTOLEFT, facerankprefix[players[i].skin], colormap);
+			}
+
+			if (!splitscreen && i == consoleplayer)
+			{
+				UINT8 cursorframe = (votetic / 4) % 8;
+				V_DrawScaledPatch(x+24, y+9, 0, W_CachePatchName(va("K_CHILI%d", cursorframe+1), PU_CACHE));
 			}
 		}
 

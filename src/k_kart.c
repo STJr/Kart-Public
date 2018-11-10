@@ -6513,7 +6513,7 @@ static boolean K_drawKartPositionFaces(void)
 	// FACE_Y = 72;				//  72
 
 	INT32 Y = FACE_Y+9; // +9 to offset where it's being drawn if there are more than one
-	INT32 i, j, ranklines, strank = 0;
+	INT32 i, j, ranklines, strank = -1;
 	boolean completed[MAXPLAYERS];
 	INT32 rankplayer[MAXPLAYERS];
 	INT32 bumperx, numplayersingame = 0;
@@ -6574,7 +6574,7 @@ static boolean K_drawKartPositionFaces(void)
 	else
 		Y -= (9*5);
 
-	if (G_BattleGametype() || strank <= 2) // too close to the top, or playing battle?
+	if (G_BattleGametype() || strank <= 2) // too close to the top, or playing battle, or a spectator? would have had (strank == -1) called out, but already caught by (strank <= 2)
 	{
 		i = 0;
 		if (ranklines > 5) // could be both...
@@ -6702,6 +6702,9 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 				}
 			}*/
 		}
+
+		if (tab[i].num == whiteplayer)
+			V_DrawScaledPatch(x, y-4, 0, kp_facehighlight[(leveltime / 4) % 8]);
 
 		if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] <= 0)
 			V_DrawScaledPatch(x-4, y-7, 0, kp_ranknobumpers);
