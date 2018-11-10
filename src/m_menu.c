@@ -7739,9 +7739,12 @@ Update the maxplayers label...
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
-				/*V_DrawCharacter(x + 12, y-4 + (skullAnimCounter/5),
-					'\x1B' | highlightflags, false); // down arrow*/
-				V_DrawFixedPatch((x-2)<<FRACBITS, (y-2)<<FRACBITS, FRACUNIT, 0, W_CachePatchName("K_CHRCUR", PU_CACHE), colmap);
+				static UINT8 cursorframe = 0; 
+				if (skullAnimCounter % 4 == 0)
+					cursorframe++;
+				if (cursorframe > 7)
+					cursorframe = 0;
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE), NULL);
 			}
 
 			x += incrwidth;
@@ -8080,9 +8083,17 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		INT32 x = BASEVIDWIDTH/2 - ((icons+1)*24) - 4;
 		fixed_t scale = FRACUNIT/2;
 		INT32 offx = 8, offy = 8;
-		patch_t *cursor = W_CachePatchName("K_CHRCUR", PU_CACHE);
+		patch_t *cursor;
+		static UINT8 cursorframe = 0;
 		patch_t *face;
 		UINT8 *colmap;
+
+		if (skullAnimCounter % 4 == 0)
+			cursorframe++;
+		if (cursorframe > 7)
+			cursorframe = 0;
+
+		cursor = W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE);
 
 		if (col < 0)
 			col += numskins;
@@ -8105,7 +8116,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 			colmap =  R_GetTranslationColormap(col, setupm_fakecolor, 0);
 			V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, FRACUNIT, 0, face, colmap);
 			if (scale == FRACUNIT) // bit of a hack
-				V_DrawFixedPatch((x-2+offx)<<FRACBITS, (my+26+offy)<<FRACBITS, FRACUNIT, 0, cursor, colmap);
+				V_DrawFixedPatch((x+offx)<<FRACBITS, (my+28+offy)<<FRACBITS, FRACUNIT, 0, cursor, colmap);
 			if (++col >= numskins)
 				col -= numskins;
 			x += FixedMul(iconwidth<<FRACBITS, 3*scale/2)/FRACUNIT;

@@ -5604,9 +5604,10 @@ static patch_t *kp_positionnum[NUMPOSNUMS][NUMPOSFRAMES];
 static patch_t *kp_winnernum[NUMPOSFRAMES];
 
 static patch_t *kp_facenum[MAXPLAYERS+1];
+static patch_t *kp_facehighlight[8];
 
 static patch_t *kp_rankbumper;
-static patch_t *kp_tinybumpera, *kp_tinybumperb;
+static patch_t *kp_tinybumper[2];
 static patch_t *kp_ranknobumpers;
 
 static patch_t *kp_battlewin;
@@ -5734,10 +5735,17 @@ void K_LoadKartHUDGraphics(void)
 		kp_facenum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
+	sprintf(buffer, "K_CHILIx");
+	for (i = 0; i < 8; i++)
+	{
+		buffer[7] = '0'+(i+1);
+		kp_facehighlight[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
 	// Extra ranking icons
 	kp_rankbumper =				W_CachePatchName("K_BLNICO", PU_HUDGFX);
-	kp_tinybumpera =			W_CachePatchName("K_BLNA", PU_HUDGFX);
-	kp_tinybumperb =			W_CachePatchName("K_BLNB", PU_HUDGFX);
+	kp_tinybumper[0] =			W_CachePatchName("K_BLNA", PU_HUDGFX);
+	kp_tinybumper[1] =			W_CachePatchName("K_BLNB", PU_HUDGFX);
 	kp_ranknobumpers =			W_CachePatchName("K_NOBLNS", PU_HUDGFX);
 
 	// Battle graphics
@@ -6603,14 +6611,17 @@ static boolean K_drawKartPositionFaces(void)
 			V_DrawMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, facerankprefix[players[rankplayer[i]].skin], colormap);
 			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 			{
-				V_DrawMappedPatch(bumperx-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumpera, colormap);
+				V_DrawMappedPatch(bumperx-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumper[0], colormap);
 				for (j = 1; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
 				{
 					bumperx += 5;
-					V_DrawMappedPatch(bumperx, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumperb, colormap);
+					V_DrawMappedPatch(bumperx, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumper[1], colormap);
 				}
 			}
 		}
+
+		if (i == strank)
+			V_DrawScaledPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_facehighlight[(leveltime / 4) % 8]);
 
 		if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] <= 0)
 			V_DrawScaledPatch(FACE_X-4, Y-3, V_HUDTRANS|V_SNAPTOLEFT, kp_ranknobumpers);
@@ -6683,11 +6694,11 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			/*if (G_BattleGametype() && players[tab[i].num].kartstuff[k_bumper] > 0) -- not enough space for this
 			{
 				INT32 bumperx = x+19;
-				V_DrawMappedPatch(bumperx-2, y-4, 0, kp_tinybumpera, colormap);
+				V_DrawMappedPatch(bumperx-2, y-4, 0, kp_tinybumper[0], colormap);
 				for (j = 1; j < players[tab[i].num].kartstuff[k_bumper]; j++)
 				{
 					bumperx += 5;
-					V_DrawMappedPatch(bumperx, y-4, 0, kp_tinybumperb, colormap);
+					V_DrawMappedPatch(bumperx, y-4, 0, kp_tinybumper[1], colormap);
 				}
 			}*/
 		}
