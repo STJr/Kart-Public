@@ -8321,7 +8321,7 @@ void P_MobjThinker(mobj_t *mobj)
 				else if (mobj->target->player->kartstuff[k_driftcharge] >= K_GetKartDriftSparkValue(mobj->target->player))
 					mobj->color = SKINCOLOR_SAPPHIRE;
 				else
-					mobj->color = SKINCOLOR_WHITE;
+					mobj->color = SKINCOLOR_SILVER;
 
 				K_MatchGenericExtraFlags(mobj, mobj->target);
 				if (leveltime & 1)
