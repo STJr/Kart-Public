@@ -4233,7 +4233,7 @@ static void PointLimit_OnChange(void)
 static void NumLaps_OnChange(void)
 {
 	// Just don't be verbose
-	if (G_RaceGametype())
+	if (G_RaceGametype() && !(modeattacking || demoplayback))
 		CONS_Printf(M_GetText("Number of laps set to %d\n"), cv_numlaps.value);
 }
 
