@@ -8986,8 +8986,9 @@ void P_PlayerThink(player_t *player)
 	if (player->flashcount)
 		player->flashcount--;
 
-	if (player->awayviewtics)
-		player->awayviewtics--;
+	// By the time P_MoveChaseCamera is called, this might be zero. Do not do it here.
+	//if (player->awayviewtics)
+	//	player->awayviewtics--;
 
 	/// \note do this in the cheat code
 	if (player->pflags & PF_NOCLIP)
@@ -9798,6 +9799,9 @@ void P_PlayerAfterThink(player_t *player)
 				player->viewz = player->mo->z + player->viewheight;
 		}
 	}
+
+	if (player->awayviewtics)
+		player->awayviewtics--;
 
 	// spectator invisibility and nogravity.
 	if ((netgame || multiplayer) && player->spectator)

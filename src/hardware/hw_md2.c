@@ -307,8 +307,8 @@ static md2_model_t *md2_readModel(const char *filename)
 	// initialize model and read header
 
 	if (fread(&model->header, sizeof (model->header), 1, file) != 1
-		|| model->header.magic !=
-		(INT32)(('2' << 24) + ('P' << 16) + ('D' << 8) + 'I'))
+		|| model->header.magic != MD2_IDENT
+		|| model->header.version != MD2_VERSION)
 	{
 		fclose(file);
 		free(model);
@@ -322,6 +322,7 @@ static md2_model_t *md2_readModel(const char *filename)
 	{ \
 		CONS_Alert(CONS_ERROR, "md2_readModel: %s has too many " msgname " (# found: %d, maximum: %d)\n", filename, field, max); \
 		md2_freeModel (model); \
+		fclose(file); \
 		return 0; \
 	}
 
@@ -343,6 +344,7 @@ static md2_model_t *md2_readModel(const char *filename)
 			fread(model->skins, sizeof (md2_skin_t), model->header.numSkins, file))
 		{
 			md2_freeModel (model);
+			fclose(file);
 			return 0;
 		}
 	}
@@ -356,6 +358,7 @@ static md2_model_t *md2_readModel(const char *filename)
 			fread(model->texCoords, sizeof (md2_textureCoordinate_t), model->header.numTexCoords, file))
 		{
 			md2_freeModel (model);
+			fclose(file);
 			return 0;
 		}
 	}
@@ -369,6 +372,7 @@ static md2_model_t *md2_readModel(const char *filename)
 			fread(model->triangles, sizeof (md2_triangle_t), model->header.numTriangles, file))
 		{
 			md2_freeModel (model);
+			fclose(file);
 			return 0;
 		}
 	}
@@ -381,6 +385,7 @@ static md2_model_t *md2_readModel(const char *filename)
 		if (!model->frames)
 		{
 			md2_freeModel (model);
+			fclose(file);
 			return 0;
 		}
 
@@ -394,6 +399,7 @@ static md2_model_t *md2_readModel(const char *filename)
 				fread(frame, 1, model->header.frameSize, file))
 			{
 				md2_freeModel (model);
+				fclose(file);
 				return 0;
 			}
 
@@ -419,6 +425,7 @@ static md2_model_t *md2_readModel(const char *filename)
 			fread(model->glCommandBuffer, sizeof (INT32), model->header.numGlCommands, file))
 		{
 			md2_freeModel (model);
+			fclose(file);
 			return 0;
 		}
 	}

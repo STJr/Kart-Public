@@ -180,7 +180,7 @@ void D_PostEvent(const event_t *ev)
 	eventhead = (eventhead+1) & (MAXEVENTS-1);
 }
 // just for lock this function
-#ifndef DOXYGEN
+#if defined (PC_DOS) && !defined (DOXYGEN)
 void D_PostEvent_end(void) {};
 #endif
 
@@ -512,15 +512,17 @@ static void D_Display(void)
 				}
 			}
 
-			// Image postprocessing effect
-			if (postimgtype)
-				V_DoPostProcessor(0, postimgtype, postimgparam);
-			if (postimgtype2)
-				V_DoPostProcessor(1, postimgtype2, postimgparam2);
-			if (postimgtype3)
-				V_DoPostProcessor(2, postimgtype3, postimgparam3);
-			if (postimgtype4)
-				V_DoPostProcessor(3, postimgtype4, postimgparam4);
+			if (rendermode == render_soft)
+			{
+				if (postimgtype)
+					V_DoPostProcessor(0, postimgtype, postimgparam);
+				if (postimgtype2)
+					V_DoPostProcessor(1, postimgtype2, postimgparam2);
+				if (postimgtype3)
+					V_DoPostProcessor(2, postimgtype3, postimgparam3);
+				if (postimgtype4)
+					V_DoPostProcessor(3, postimgtype4, postimgparam4);
+			}
 		}
 
 		if (lastdraw)
@@ -854,10 +856,6 @@ static inline void D_CleanFile(void)
 		startupwadfiles[pnumwadfiles] = NULL;
 	}
 }
-
-#ifndef _MAX_PATH
-#define _MAX_PATH MAX_WADPATH
-#endif
 
 // ==========================================================================
 // Identify the SRB2 version, and IWAD file to use.
