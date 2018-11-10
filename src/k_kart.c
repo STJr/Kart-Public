@@ -3901,6 +3901,41 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
 }
 
+static void K_UpdateInvincibilitySounds(player_t *player)
+{
+	INT32 sfxnum = sfx_None;
+
+	if (player->mo->health > 0 && !P_IsLocalPlayer(player))
+	{
+		if (cv_kartinvinsfx.value)
+		{
+			if (player->kartstuff[k_growshrinktimer] > 0) // Prioritize Grow
+				sfxnum = sfx_alarmg;
+			else if (player->kartstuff[k_invincibilitytimer] > 0)
+				sfxnum = sfx_alarmi;
+		}
+		else
+		{
+			if (player->kartstuff[k_growshrinktimer] > 0)
+				sfxnum = sfx_kgrow;
+			else if (player->kartstuff[k_invincibilitytimer] > 0)
+				sfxnum = sfx_kinvnc;
+		}
+	}
+
+	if (sfxnum != sfx_None && !S_SoundPlaying(player->mo, sfxnum))
+		S_StartSound(player->mo, sfxnum);
+
+#define STOPTHIS(this) \
+	if (sfxnum != this && S_SoundPlaying(player->mo, this)) \
+		S_StopSoundByID(player->mo, this);
+	STOPTHIS(sfx_alarmi);
+	STOPTHIS(sfx_alarmg);
+	STOPTHIS(sfx_kinvnc);
+	STOPTHIS(sfx_kgrow);
+#undef STOPTHIS
+}
+
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
 
 	\param	player	player object passed from P_PlayerThink
@@ -3911,7 +3946,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
-	K_UpdateEngineSounds(player, cmd);
+	K_UpdateEngineSounds(player, cmd); // Thanks, VAda!
 	K_GetKartBoostPower(player);
 
 	// Speed lines
@@ -4215,30 +4250,8 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	// Roulette Code
 	K_KartItemRoulette(player, cmd);
 
-	// Stopping of the horrible invincibility SFX
-	if (player->mo->health <= 0 || player->mo->player->kartstuff[k_invincibilitytimer] <= 0
-		|| player->mo->player->kartstuff[k_growshrinktimer] > 0) 	// If you don't have invincibility (or grow is active too)
-	{
-		if (S_SoundPlaying(player->mo, sfx_kinvnc)) 					// But the sound is playing
-			S_StopSoundByID(player->mo, sfx_kinvnc); 					// Stop it
-	}
-
-	// And the same for the grow SFX
-	if (!(player->mo->health > 0 && player->mo->player->kartstuff[k_growshrinktimer] > 0)) // If you aren't big
-	{
-		if (S_SoundPlaying(player->mo, sfx_kgrow)) // But the sound is playing
-			S_StopSoundByID(player->mo, sfx_kgrow); // Stop it
-	}
-
-	// AAAAAAND handle the invincibility alarm
-	if (player->mo->health > 0 && (player->mo->player->kartstuff[k_invincibilitytimer] > 0
-		|| player->mo->player->kartstuff[k_growshrinktimer] > 0))
-	{
-		if (leveltime % 13 == 0 && cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
-			S_StartSound(player->mo, sfx_smkinv);
-	}
-	else if (S_SoundPlaying(player->mo, sfx_smkinv))
-		S_StopSoundByID(player->mo, sfx_smkinv);
+	// Handle invincibility sfx
+	K_UpdateInvincibilitySounds(player); // Also thanks, VAda!
 
 	// Plays the music after the starting countdown.
 	if (P_IsLocalPlayer(player) && leveltime == (starttime + (TICRATE/2)))
@@ -4843,8 +4856,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						}
 						player->kartstuff[k_invincibilitytimer] = itemtime+(2*TICRATE); // 10 seconds
 						P_RestoreMusic(player);
-						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_kinvnc);
+						if (!P_IsLocalPlayer(player))
+							S_StartSound(player->mo, (cv_kartinvinsfx.value ? sfx_alarmi : sfx_kinvnc));
 						K_PlayPowerGloatSound(player->mo);
 						player->kartstuff[k_itemamount]--;
 					}
@@ -5042,8 +5055,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 							player->mo->destscale = 6*player->mo->destscale/8;
 						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
 						P_RestoreMusic(player);
-						if (!cv_kartinvinsfx.value && !P_IsLocalPlayer(player))
-							S_StartSound(player->mo, sfx_kgrow);
+						if (!P_IsLocalPlayer(player))
+							S_StartSound(player->mo, (cv_kartinvinsfx.value ? sfx_alarmg : sfx_kgrow));
 						S_StartSound(player->mo, sfx_kc5a);
 						player->kartstuff[k_itemamount]--;
 					}
