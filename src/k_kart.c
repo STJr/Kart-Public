@@ -6806,7 +6806,7 @@ static void K_drawKartBumpersOrKarma(void)
 		if (stplyr->kartstuff[k_bumper] <= 0)
 		{
 			V_DrawMappedPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_karmasticker, colormap);
-			V_DrawKartString(LAPS_X+59, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
+			V_DrawKartString(LAPS_X+47, LAPS_Y+3, V_HUDTRANS|splitflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
