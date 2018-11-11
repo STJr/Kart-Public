@@ -551,4 +551,11 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// SRB2Kart: MIDI support is shitty and busted and we don't want it, lets throw it behind a define
 #define NO_MIDI
 
+/// FINALLY some real clipping that doesn't make walls dissappear AND speeds the game up
+/// (that was the original comment from SRB2CB, sadly it is a lie and actually slows game down)
+/// on the bright side it fixes some weird issues with translucent walls
+/// \note	SRB2CB port.
+///      	SRB2CB itself ported this from PrBoom+
+#define NEWCLIP
+
 #endif // __DOOMDEF__
