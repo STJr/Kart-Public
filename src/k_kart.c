@@ -896,7 +896,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
 	{
-#define PLAYROULETTESND S_StartSound(NULL, sfx_mkitm1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
+#define PLAYROULETTESND S_StartSound(NULL, sfx_itrol1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
 		if (splitscreen)
 		{
 			if (players[displayplayer].kartstuff[k_itemroulette])
@@ -947,7 +947,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
 		if (P_IsLocalPlayer(player))
-			S_StartSound(NULL, sfx_mkitmE);
+			S_StartSound(NULL, sfx_itrole);
 		return;
 	}
 
@@ -991,7 +991,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	player->kartstuff[k_roulettetype] = 0; // This too
 
 	if (P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_mkitmF);
+		S_StartSound(NULL, sfx_itrolf);
 }
 
 //}
@@ -2407,8 +2407,8 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 			if (source && source->player)
 				th->cvmem = source->player->skincolor;
 			else
-				th->cvmem = SKINCOLOR_RED;
-			//fallthrough
+				th->cvmem = SKINCOLOR_KETCHUP;
+			/* FALLTHRU */
 		case MT_JAWZ_DUD:
 			S_StartSound(th, th->info->activesound);
 			break;
@@ -2476,7 +2476,9 @@ static void K_SpawnDriftSparks(player_t *player)
 				spark->color = SKINCOLOR_KETCHUP;
 		}
 		else
+		{
 			spark->color = SKINCOLOR_SAPPHIRE;
+		}
 
 		if ((player->kartstuff[k_drift] > 0 && player->cmd.driftturn > 0) // Inward drifts
 			|| (player->kartstuff[k_drift] < 0 && player->cmd.driftturn < 0))
@@ -2521,6 +2523,7 @@ static void K_SpawnAIZDust(player_t *player)
 		return;
 
 	travelangle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
+	//S_StartSound(player->mo, sfx_s3k47);
 
 	{
 		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle - (player->kartstuff[k_aizdriftstrat]*ANGLE_45), FixedMul(24*FRACUNIT, player->mo->scale));
@@ -4509,6 +4512,12 @@ static void K_KartDrift(player_t *player, boolean onground)
 		if (player->kartstuff[k_driftcharge] + driftadditive >= dsone)
 			K_SpawnDriftSparks(player);
 
+		// Sound whenever you get a different tier of sparks
+		if ((player->kartstuff[k_driftcharge] < dsone && player->kartstuff[k_driftcharge]+driftadditive >= dsone)
+			|| (player->kartstuff[k_driftcharge] < dstwo && player->kartstuff[k_driftcharge]+driftadditive >= dstwo)
+			|| (player->kartstuff[k_driftcharge] < dsthree && player->kartstuff[k_driftcharge]+driftadditive >= dsthree))
+			S_StartSound(player->mo, sfx_s3ka2);
+
 		player->kartstuff[k_driftcharge] += driftadditive;
 		player->kartstuff[k_driftend] = 0;
 	}
@@ -5254,8 +5263,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	// So now it's time to burn some rubber!
 	if (player->speed < 2 && leveltime > starttime && cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE && cmd->driftturn != 0)
 	{
-		if (leveltime % 20 == 0)
-			S_StartSound(player->mo, sfx_mkslid);
+		if (leveltime % 8 == 0)
+			S_StartSound(player->mo, sfx_s224);
 	}
 
 	// Squishing

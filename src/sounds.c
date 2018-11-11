@@ -266,7 +266,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   // Sonic 1 sounds
   {"s1a0",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1a1",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1a2",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1a2",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Monty Mole attach
   {"s1a3",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1a4",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1a5",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -275,8 +275,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s1a8",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1a9",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1aa",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1ab",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1ac",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1ab",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Monty Mole twitch
+  {"s1ac",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Misc. obstacle destroyed
   {"s1ad",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1ae",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1af",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -284,20 +284,20 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s1b1",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1b2",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1b3",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1b4",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1b4",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Toggle all items
   {"s1b5",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1b6",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1b7",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1b8",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1b9",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1ba",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1bb",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1ba",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Toggle item
+  {"s1bb",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Thwomp drop
   {"s1bc",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1bd",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Ballhog bounce
   {"s1be",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1bf",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1c0",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1c1",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1c1",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Monokuma death
   {"s1c2",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1c3",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1c4",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -305,7 +305,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s1c6",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1c7",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1c8",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s1c9",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s1c9",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Item hit w/ voices off
   {"s1ca",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1cb",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s1cc",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -365,13 +365,13 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s250",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s251",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s252",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s253",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // 1st place finish
+  {"s253",   false, 255,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // 1st place finish
   {"s254",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s255",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s256",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s257",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s258",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s259",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s259",   false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Item clashing
   {"s25a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s25b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s25c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -404,7 +404,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k37",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k38",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k39",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k3a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart item shield
+  {"s3k3a",  false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart item shield
   {"s3k3b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k3c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k3d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -417,7 +417,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k44",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k45",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Thunder Shield use
   {"s3k46",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k47",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k47",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart AIZ dust
   {"s3k48",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k49",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart bump sound
   {"s3k4a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -438,7 +438,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k59",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k5c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Mine tick
+  {"s3k5c",  false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Mine tick
   {"s3k5d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k5f",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -469,7 +469,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k78",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k79",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k7a",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k7b",  false,  64, 16, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart successful hit
+  {"s3k7b",  false,  96, 16, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart successful hit
   {"s3k7c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k7d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k7e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -477,7 +477,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k80",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k81",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k82",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k83",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k83",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Overcharged start boost
   {"s3k84",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k85",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k86",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -496,7 +496,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k93",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k94",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k95",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k96",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Orbinaut
+  {"s3k96",  false, 128,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Orbinaut
   {"s3k97",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k98",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k99",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -508,7 +508,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k9f",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka0",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka1",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3ka2",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3ka2",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart drift spark gain
   {"s3ka3",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka4",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3ka5",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -542,7 +542,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kbel", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kbfs", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kbfl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3kc0s", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Jawz
+  {"s3kc0s", false, 192,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Jawz
   {"s3kc0l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kc1s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kc1l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -577,7 +577,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kd0s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kd0l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kd1s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3kd1l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3kd1l", false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kd2s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kd2l", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3kd3s", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -600,13 +600,13 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3kdbl", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // 3D Blast sounds (the "missing" ones are direct copies of S3K's, no minor differences what-so-ever)
-  {"3db06",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Bumper stolen
+  {"3db06",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Bumper stolen
   {"3db09",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"3db14",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"3db16",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // Sonic CD sounds
-  {"cdfm00", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm00", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Undercharged start boost
   {"cdfm01", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Sneaker boost
   {"cdfm02", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm03", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -623,9 +623,9 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm14", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm15", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm16", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm17", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm17", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Brake drift ambient
   {"cdfm18", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm19", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm19", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // CD SS1 UFO death
   {"cdfm20", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm21", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm22", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -634,7 +634,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm25", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm26", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm27", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm28", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm28", false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Eggman item landing
   {"cdfm29", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm30", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm31", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -645,7 +645,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm36", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm37", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm38", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm39", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Mine deployed
+  {"cdfm39", false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Mine deployed
   {"cdfm40", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm41", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm42", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -676,10 +676,10 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdfm67", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm68", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm69", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm70", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Trail item dragging
+  {"cdfm70", false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Trail item dragging
   {"cdfm71", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm72", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdfm73", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"cdfm73", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // CD SS1 UFO hit
   {"cdfm74", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm75", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdfm76", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -695,15 +695,15 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"cdpcm6", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdpcm7", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"cdpcm8", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"cdpcm9", false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // No damage taken
+  {"cdpcm9", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // No damage taken
 
   // Knuckles Chaotix sounds
   {"kc2a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc2d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc2e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc2f",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring use
+  {"kc2e",   false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Item box gotten
+  {"kc2f",   false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Spring pad
   {"kc30",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc31",   false,  64, 64, -1, NULL, 0,        -1,  -1, LUMPERROR}, // NO CONTEST explosion
   {"kc32",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -726,7 +726,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc43",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc44",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc45",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc46",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink use
+  {"kc46",   false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink use
   {"kc47",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc48",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Vote picked
   {"kc49",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -743,10 +743,10 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc54",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc55",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc56",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc57",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SPB locked in
+  {"kc57",   false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SPB locked in
   {"kc58",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc59",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink
-  {"kc5a",   false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow
+  {"kc59",   false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Shrink
+  {"kc5a",   false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow
   {"kc5b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc5c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc5d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -756,7 +756,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc61",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc62",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc63",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kc64",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"kc64",   false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // SPB ambient
   {"kc65",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc66",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"kc67",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
@@ -768,59 +768,53 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"kc6e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart
-  {"lkt1",    true, 192,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"lkt2",    true, 192,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"lkt3",    true,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mlap",    true, 127,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"sboost",  true,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mush",   false,  90,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kinvnc", false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kgrow",  false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"bomb",   false, 110,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"bomb2",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"peel",   false, 100,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"slip",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"fake",   false, 100,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"grnshl", false, 120, 64, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"redshl", false, 130,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"shbrk",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkdrft", false,  52,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkslid", false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitem", false,  80,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm1",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm2",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm3",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm4",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm5",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm6",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm7",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitm8",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitmF",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkitmE",  true,  72,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"clash",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"tossed", false, 150,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"shelit", false,  64, 16, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"vroom",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"boing",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"alarmi", false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"alarmg", false, 140,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"screec", false,  52,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"yeeeah", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"noooo1", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"ruby1",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"ruby2",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"hogbom", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"kpogos", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"zio3", 	 false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"wind1",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"fire2",  false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"chain",  false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mcitm1", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"chaooo", false, 110,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"itfree", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"dbgsal", false, 110,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"slip",   false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Spinout
+  {"screec", false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Tight turning screech
+  {"drift",  false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Drifting ambient
+  {"ruburn", false,  48,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Rubber-burn turn ambient
+  {"ddash",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Respawn Drop Dash
+  {"tossed", false, 192,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Item fired
+  {"itpick", false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pick up HUD drop
+  {"peel",   false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Edited S25A for banana landing
+  {"hogbom", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Ballhog explosions
+  {"zio3",   false, 128,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Thunder Shield use
+  {"kpogos", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pogo Spring use
+  {"alarmi", false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Invincibility alarm
+  {"alarmg", false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow alarm
+  {"kinvnc", false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Invincibility music
+  {"kgrow",  false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Grow music
+  {"itrol1",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette spinning
+  {"itrol2",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrol3",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrol4",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrol5",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrol6",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrol7",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrol8",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"itrolf",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end
+  {"itrole",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (Eggman)
+  {"vroom",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Krew opening vroom
+  {"chaooo", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Chao audience cheer
+  {"yeeeah", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Voting picks you
+  {"noooo1", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Voting picks hell (by chance)
+  {"noooo2", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Voting picks hell (on purpose)
+  {"ruby1",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Phantom Ruby charge up
+  {"ruby2",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Phantom Ruby teleport
+  {"tcart",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Twinkle Cart
+  {"bfare",  false, 128,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pleasure Castle fanfare
+  {"merry",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pleasure Castle merry-go-round ambient
+  {"bowlh",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pleasure Castle pins
+  {"tppop",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Pleasure Castle bombs
+  {"hsdoor", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Red Barrage Area door
+  {"hstrn",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Red Barrage Area train
+  {"aspkb",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Red Barrage Area spikeballs
+  {"wind1",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Midnight Channel monsters
+  {"fire2",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"chain",  false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Mementos Reaper
+  {"mkuma",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Trigger Happy Havoc Monokuma
+  {"toada",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Arid Sands Toad scream
+  {"itfree", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // :shitsfree:
+  {"dbgsal", false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Debug notification
 
   // SRB2Kart - Engine sounds
   // Engine class A
@@ -949,21 +943,6 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"krti10", false,  48, 65, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"krti11", false,  48, 65, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"krti12", false,  48, 65, -1, NULL, 0,        -1,  -1, LUMPERROR},
-
-  // SOC_CHAO SFX
-  {"mkuma", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"mkpop", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"bfare", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"merry", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"bowlh", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"tcart", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"tppop", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"toada", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"hsdoor",false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"hstrn", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"aspkb", false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"msmnj1",false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"msmnj2",false,   60,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
 
   // SRB2kart - Skin sounds
   {"kwin",   false,  64, 96, -1, NULL, 0,   SKSKWIN,  -1, LUMPERROR},

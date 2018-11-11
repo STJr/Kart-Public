@@ -6738,13 +6738,13 @@ static void P_MovePlayer(player_t *player)
 	// Drifting sound
 	// Start looping the sound now.
 	if (leveltime % 50 == 0 && onground && player->kartstuff[k_drift] != 0)
-		S_StartSound(player->mo, sfx_mkdrft);
+		S_StartSound(player->mo, sfx_drift);
 	// Leveltime being 50 might take a while at times. We'll start it up once, isntantly.
-	else if (!S_SoundPlaying(player->mo, sfx_mkdrft) && onground && player->kartstuff[k_drift] != 0)
-		S_StartSound(player->mo, sfx_mkdrft);
+	else if (!S_SoundPlaying(player->mo, sfx_drift) && onground && player->kartstuff[k_drift] != 0)
+		S_StartSound(player->mo, sfx_drift);
 	// Ok, we'll stop now.
 	else if (player->kartstuff[k_drift] == 0)
-		S_StopSoundByID(player->mo, sfx_mkdrft);
+		S_StopSoundByID(player->mo, sfx_drift);
 
 	K_MoveKartPlayer(player, onground);
 	//}

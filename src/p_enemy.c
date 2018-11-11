@@ -8676,7 +8676,7 @@ void A_RandomShadowFrame(mobj_t *actor)
 			fire = P_SpawnMobj(actor->target->x, actor->target->y, actor->target->z, MT_THOK);
 			P_SetMobjStateNF(fire, S_QUICKBOOM1);
 			P_SetScale(fire, 4<<FRACBITS);
-			fire->color = SKINCOLOR_RED;
+			fire->color = SKINCOLOR_KETCHUP;
 			S_StartSound(actor->target, sfx_fire2);
 		}
 	}
