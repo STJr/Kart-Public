@@ -344,7 +344,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s23b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s23c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Drift boost
   {"s23d",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s23e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s23e",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Title screen opening
   {"s23f",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s240",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s241",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
