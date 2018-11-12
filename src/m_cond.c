@@ -32,64 +32,6 @@ conditionset_t conditionSets[MAXCONDITIONSETS];
 // Default Emblem locations
 emblem_t emblemlocations[MAXEMBLEMS] =
 {
-	// SILVER NORMAL MEDALS
-	// The general "guideline" of how good we want a player to be at a map.
-	{ET_TIME, 0,0,0,  1, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Green Hills Zone - 1'50"00
-	{ET_TIME, 0,0,0,  2, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Dark Race - 2'40"00
-	{ET_TIME, 0,0,0,  3, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Northern District Zone - 2'40"00
-	{ET_TIME, 0,0,0,  4, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Darkvile Garden Zone - 2'00"00
-	{ET_TIME, 0,0,0,  5, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Daytona Speedway Zone - 2'10"00
-	{ET_TIME, 0,0,0,  6, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Egg Zeppelin Zone - 2'20"00
-	{ET_TIME, 0,0,0,  7, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Sonic Speedway Zone - 2'20"00
-	{ET_TIME, 0,0,0,  8, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Hill Top Zone - 1'50"00
-	{ET_TIME, 0,0,0,  9, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Misty Maze Zone - 2'50"00
-	{ET_TIME, 0,0,0, 10, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Grand Metropolis - 2'20"00
-	{ET_TIME, 0,0,0, 11, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Sunbeam Paradise Zone - 2'00"00
-	{ET_TIME, 0,0,0, 12, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Diamond Square Zone - 2'10"00
-	{ET_TIME, 0,0,0, 13, 'B', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Midnight Meadow Zone - 2'15"00
-	{ET_TIME, 0,0,0, 14, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Twinkle Cart - 2'00"00
-	{ET_TIME, 0,0,0, 15, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Pleasure Castle - 2'00"00
-	{ET_TIME, 0,0,0, 16, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Paradise Hill Zone - 2'40"00
-	{ET_TIME, 0,0,0, 17, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Sub-Zero Peak Zone - 2'50"00
-	{ET_TIME, 0,0,0, 18, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Sapphire Coast Zone - 2'10"00
-	{ET_TIME, 0,0,0, 19, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Sand Valley Zone - 2'50"00
-	{ET_TIME, 0,0,0, 20, 'B', SKINCOLOR_GREY, 145*TICRATE, "", 0}, // Megablock Castle Zone - 2'25"00
-	{ET_TIME, 0,0,0, 21, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Canyon Rush Zone - 2'20"00
-	{ET_TIME, 0,0,0, 22, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Casino Resort Zone - 2'00"00
-	{ET_TIME, 0,0,0, 23, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Silvercloud Island Zone - 2'30"00
-	{ET_TIME, 0,0,0, 24, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Blue Mountain Zone - 2'50"00
-	{ET_TIME, 0,0,0, 25, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Petroleum Refinery Zone - 2'30"00
-	{ET_TIME, 0,0,0, 26, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Desert Palace Zone - 2'00"00
-	{ET_TIME, 0,0,0, 27, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Aurora Atoll Zone - 2'40"00
-	{ET_TIME, 0,0,0, 28, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Barren Badlands Zone - 2'30"00
-	{ET_TIME, 0,0,0, 29, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Red Barrage Area - 2'50"00
-	{ET_TIME, 0,0,0, 30, 'B', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Midnight Channel - 2'15"00
-	{ET_TIME, 0,0,0, 31, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Vanilla Hotel Zone - 2'40"00
-	{ET_TIME, 0,0,0, 32, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Toxic Palace Zone - 2'40"00
-	{ET_TIME, 0,0,0, 33, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Ancient Tomb Zone - 2'30"00
-	{ET_TIME, 0,0,0, 34, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Cloud Cradle Zone K - 2'00"00
-	{ET_TIME, 0,0,0, 35, 'B', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Volcanic Valley Zone - 2'45"00
-	{ET_TIME, 0,0,0, 36, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Kodachrome Void Zone - 1'50"00
-	{ET_TIME, 0,0,0, 37, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Boiling Bedrock Zone - 2'10"00
-	{ET_TIME, 0,0,0, 38, 'B', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Egg Quarters - 2'45"00
-	{ET_TIME, 0,0,0, 39, 'B', SKINCOLOR_GREY, 145*TICRATE, "", 0}, // Virtual Highway Zone - 2'25"00
-	{ET_TIME, 0,0,0, 40, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Eggman's Nightclub Zone - 2'00"00
-	{ET_TIME, 0,0,0, 41, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // KKR Ganbare Dochu 2 - 1'40"00
-	{ET_TIME, 0,0,0, 42, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // CK Chao Circuit 1 - 1'50"00
-	{ET_TIME, 0,0,0, 43, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // CK Chao Circuit 2 - 2'00"00
-	{ET_TIME, 0,0,0, 44, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // CK Cloud Tops 2 - 1'50"00
-	{ET_TIME, 0,0,0, 45, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // CK Regal Raceway - 2'10"00
-	{ET_TIME, 0,0,0, 46, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // SD2 Balloon Panic - 1'50"00
-	{ET_TIME, 0,0,0, 47, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // SM Dimension Heist - 2'10"00
-	{ET_TIME, 0,0,0, 48, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // MKSC Sky Garden - 1'50"00
-	{ET_TIME, 0,0,0, 49, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // MKDS Peach Gardens - 1'45"00
-	{ET_TIME, 0,0,0, 50, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // MKSC Rainbow Road - 2'00"00
-	{ET_TIME, 0,0,0, 51, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // SMK Donut Plains 1 - 1'40"00
-	{ET_TIME, 0,0,0, 52, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // SMK Mario Circuit 2 - 1'45"00
-	{ET_TIME, 0,0,0, 53, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // SMK Ghost Valley 2 - 1'30"00
-	{ET_TIME, 0,0,0, 54, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // SMK Bowser Castle 3 - 2'30"00
-	{ET_TIME, 0,0,0, 55, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0},  // SMK Vanilla Lake 2 - 1'30"00
-
 	// GOLD DEV MEDALS
 	// These values are directly lifted from the Champion ghost, through the power of hex editing!
 	{ET_TIME, 0,0,0,  1, 'A', SKINCOLOR_GOLD, 3021, "", 0}, // Green Hills Zone - 1'26"31
@@ -146,7 +88,65 @@ emblem_t emblemlocations[MAXEMBLEMS] =
 	{ET_TIME, 0,0,0, 52, 'A', SKINCOLOR_GOLD, 2930, "", 0}, // SMK Mario Circuit 2 - 1'23"71
 	{ET_TIME, 0,0,0, 53, 'A', SKINCOLOR_GOLD, 2389, "", 0}, // SMK Ghost Valley 2 - 1'08"25
 	{ET_TIME, 0,0,0, 54, 'A', SKINCOLOR_GOLD, 4292, "", 0}, // SMK Bowser Castle 3 - 2'02"62
-	{ET_TIME, 0,0,0, 55, 'A', SKINCOLOR_GOLD, 2346, "", 0}  // SMK Vanilla Lake 2 - 1'07"02
+	{ET_TIME, 0,0,0, 55, 'A', SKINCOLOR_GOLD, 2346, "", 0}, // SMK Vanilla Lake 2 - 1'07"02
+
+	// SILVER NORMAL MEDALS
+	// The general "guideline" of how good we want a player to be at a map.
+	{ET_TIME, 0,0,0,  1, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Green Hills Zone - 1'50"00
+	{ET_TIME, 0,0,0,  2, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Dark Race - 2'40"00
+	{ET_TIME, 0,0,0,  3, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Northern District Zone - 2'40"00
+	{ET_TIME, 0,0,0,  4, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Darkvile Garden Zone - 2'00"00
+	{ET_TIME, 0,0,0,  5, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Daytona Speedway Zone - 2'10"00
+	{ET_TIME, 0,0,0,  6, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Egg Zeppelin Zone - 2'20"00
+	{ET_TIME, 0,0,0,  7, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Sonic Speedway Zone - 2'20"00
+	{ET_TIME, 0,0,0,  8, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Hill Top Zone - 1'50"00
+	{ET_TIME, 0,0,0,  9, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Misty Maze Zone - 2'50"00
+	{ET_TIME, 0,0,0, 10, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Grand Metropolis - 2'20"00
+	{ET_TIME, 0,0,0, 11, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Sunbeam Paradise Zone - 2'00"00
+	{ET_TIME, 0,0,0, 12, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Diamond Square Zone - 2'10"00
+	{ET_TIME, 0,0,0, 13, 'B', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Midnight Meadow Zone - 2'15"00
+	{ET_TIME, 0,0,0, 14, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Twinkle Cart - 2'00"00
+	{ET_TIME, 0,0,0, 15, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Pleasure Castle - 2'00"00
+	{ET_TIME, 0,0,0, 16, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Paradise Hill Zone - 2'40"00
+	{ET_TIME, 0,0,0, 17, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Sub-Zero Peak Zone - 2'50"00
+	{ET_TIME, 0,0,0, 18, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Sapphire Coast Zone - 2'10"00
+	{ET_TIME, 0,0,0, 19, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Sand Valley Zone - 2'50"00
+	{ET_TIME, 0,0,0, 20, 'B', SKINCOLOR_GREY, 145*TICRATE, "", 0}, // Megablock Castle Zone - 2'25"00
+	{ET_TIME, 0,0,0, 21, 'B', SKINCOLOR_GREY, 140*TICRATE, "", 0}, // Canyon Rush Zone - 2'20"00
+	{ET_TIME, 0,0,0, 22, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Casino Resort Zone - 2'00"00
+	{ET_TIME, 0,0,0, 23, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Silvercloud Island Zone - 2'30"00
+	{ET_TIME, 0,0,0, 24, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Blue Mountain Zone - 2'50"00
+	{ET_TIME, 0,0,0, 25, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Petroleum Refinery Zone - 2'30"00
+	{ET_TIME, 0,0,0, 26, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Desert Palace Zone - 2'00"00
+	{ET_TIME, 0,0,0, 27, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Aurora Atoll Zone - 2'40"00
+	{ET_TIME, 0,0,0, 28, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Barren Badlands Zone - 2'30"00
+	{ET_TIME, 0,0,0, 29, 'B', SKINCOLOR_GREY, 170*TICRATE, "", 0}, // Red Barrage Area - 2'50"00
+	{ET_TIME, 0,0,0, 30, 'B', SKINCOLOR_GREY, 135*TICRATE, "", 0}, // Midnight Channel - 2'15"00
+	{ET_TIME, 0,0,0, 31, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Vanilla Hotel Zone - 2'40"00
+	{ET_TIME, 0,0,0, 32, 'B', SKINCOLOR_GREY, 160*TICRATE, "", 0}, // Toxic Palace Zone - 2'40"00
+	{ET_TIME, 0,0,0, 33, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // Ancient Tomb Zone - 2'30"00
+	{ET_TIME, 0,0,0, 34, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Cloud Cradle Zone K - 2'00"00
+	{ET_TIME, 0,0,0, 35, 'B', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Volcanic Valley Zone - 2'45"00
+	{ET_TIME, 0,0,0, 36, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // Kodachrome Void Zone - 1'50"00
+	{ET_TIME, 0,0,0, 37, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // Boiling Bedrock Zone - 2'10"00
+	{ET_TIME, 0,0,0, 38, 'B', SKINCOLOR_GREY, 165*TICRATE, "", 0}, // Egg Quarters - 2'45"00
+	{ET_TIME, 0,0,0, 39, 'B', SKINCOLOR_GREY, 145*TICRATE, "", 0}, // Virtual Highway Zone - 2'25"00
+	{ET_TIME, 0,0,0, 40, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // Eggman's Nightclub Zone - 2'00"00
+	{ET_TIME, 0,0,0, 41, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // KKR Ganbare Dochu 2 - 1'40"00
+	{ET_TIME, 0,0,0, 42, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // CK Chao Circuit 1 - 1'50"00
+	{ET_TIME, 0,0,0, 43, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // CK Chao Circuit 2 - 2'00"00
+	{ET_TIME, 0,0,0, 44, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // CK Cloud Tops 2 - 1'50"00
+	{ET_TIME, 0,0,0, 45, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // CK Regal Raceway - 2'10"00
+	{ET_TIME, 0,0,0, 46, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // SD2 Balloon Panic - 1'50"00
+	{ET_TIME, 0,0,0, 47, 'B', SKINCOLOR_GREY, 130*TICRATE, "", 0}, // SM Dimension Heist - 2'10"00
+	{ET_TIME, 0,0,0, 48, 'B', SKINCOLOR_GREY, 110*TICRATE, "", 0}, // MKSC Sky Garden - 1'50"00
+	{ET_TIME, 0,0,0, 49, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // MKDS Peach Gardens - 1'45"00
+	{ET_TIME, 0,0,0, 50, 'B', SKINCOLOR_GREY, 120*TICRATE, "", 0}, // MKSC Rainbow Road - 2'00"00
+	{ET_TIME, 0,0,0, 51, 'B', SKINCOLOR_GREY, 100*TICRATE, "", 0}, // SMK Donut Plains 1 - 1'40"00
+	{ET_TIME, 0,0,0, 52, 'B', SKINCOLOR_GREY, 105*TICRATE, "", 0}, // SMK Mario Circuit 2 - 1'45"00
+	{ET_TIME, 0,0,0, 53, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0}, // SMK Ghost Valley 2 - 1'30"00
+	{ET_TIME, 0,0,0, 54, 'B', SKINCOLOR_GREY, 150*TICRATE, "", 0}, // SMK Bowser Castle 3 - 2'30"00
+	{ET_TIME, 0,0,0, 55, 'B', SKINCOLOR_GREY,  90*TICRATE, "", 0}  // SMK Vanilla Lake 2 - 1'30"00
 };
 
 // Default Extra Emblems

@@ -2255,7 +2255,7 @@ static void reademblemdata(MYFILE *f, INT32 num)
 		case ET_SCORE: case ET_NGRADE:
 			emblemlocations[num-1].sprite = 'S'; break;*/
 		case ET_TIME: //case ET_NTIME:
-			emblemlocations[num-1].sprite = 'T'; break;
+			emblemlocations[num-1].sprite = 'B'; break;
 		default:
 			emblemlocations[num-1].sprite = 'A'; break;
 	}
@@ -2270,7 +2270,7 @@ static void reademblemdata(MYFILE *f, INT32 num)
 		case ET_TIME: //case ET_NTIME:
 			emblemlocations[num-1].color = SKINCOLOR_GREY; break;
 		default:
-			emblemlocations[num-1].color = SKINCOLOR_BLUE; break;
+			emblemlocations[num-1].color = SKINCOLOR_GOLD; break;
 	}
 
 	Z_Free(s);
@@ -2353,9 +2353,9 @@ static void readextraemblemdata(MYFILE *f, INT32 num)
 	} while (!myfeof(f));
 
 	if (!extraemblems[num-1].sprite)
-		extraemblems[num-1].sprite = 'X';
+		extraemblems[num-1].sprite = 'C';
 	if (!extraemblems[num-1].color)
-		extraemblems[num-1].color = SKINCOLOR_BLUE;
+		extraemblems[num-1].color = SKINCOLOR_RED;
 
 	Z_Free(s);
 }

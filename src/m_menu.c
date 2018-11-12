@@ -8446,16 +8446,17 @@ static void M_EraseDataResponse(INT32 ch)
 		return;
 
 	// Delete the data
-	if (erasecontext != 1)
-		G_ClearRecords();
-	if (erasecontext != 0)
-		M_ClearSecrets();
 	if (erasecontext == 2)
 	{
+		// SRB2Kart: This actually needs to be done FIRST, so that you don't immediately regain playtime/matches secrets
 		totalplaytime = 0;
 		matchesplayed = 0;
 		F_StartIntro();
 	}
+	if (erasecontext != 1)
+		G_ClearRecords();
+	if (erasecontext != 0)
+		M_ClearSecrets();
 	M_ClearMenus(true);
 }
 
