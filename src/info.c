@@ -14907,7 +14907,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL,         // missilestate
 		S_NULL,         // deathstate
 		S_NULL,         // xdeathstate
-		sfx_mcitm1,     // deathsound
+		sfx_itpick,     // deathsound
 		0,              // speed
 		24*FRACUNIT,    // radius
 		24*FRACUNIT,    // height
@@ -15319,7 +15319,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		1,              // damage
-		sfx_fake,       // activesound
+		sfx_cdfm28,     // activesound
 		MF_SPECIAL|MF_BOUNCE|MF_SHOOTABLE|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
@@ -15913,7 +15913,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		1,              // damage
-		sfx_bomb,       // activesound
+		sfx_s3k5c,      // activesound
 		MF_BOUNCE|MF_SHOOTABLE|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
@@ -17182,7 +17182,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // display offset
 		100,            // mass
 		0,              // damage
-		sfx_clash,      // activesound
+		sfx_s259,       // activesound
 		MF_NOBLOCKMAP|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT|MF_SCENERY|MF_RUNSPAWNFUNC|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
@@ -19580,7 +19580,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	    S_NULL,         // missilestate
 	    S_RINGEXPLODE,  // deathstate
 	    S_NULL,         // xdeathstate
-	    sfx_mkpop,      // deathsound
+	    sfx_s1c1,       // deathsound
 	    30,             // speed
 	    16<<FRACBITS,   // radius
 	    64<<FRACBITS,   // height
@@ -19705,7 +19705,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	    S_EBARRELIDLE,  // spawnstate
 	    1,              // spawnhealth
 	    S_EBARREL1,     // seestate
-	    sfx_bomb,       // seesound
+	    sfx_s3k5c,      // seesound
 	    0,              // reactiontime
 	    sfx_None,       // attacksound
 	    S_NULL,         // painstate

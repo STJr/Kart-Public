@@ -8324,6 +8324,9 @@ void P_MobjThinker(mobj_t *mobj)
 				else
 					mobj->color = SKINCOLOR_SILVER;
 
+				if (!S_SoundPlaying(mobj, sfx_cdfm17))
+					S_StartSound(mobj, sfx_cdfm17);
+
 				K_MatchGenericExtraFlags(mobj, mobj->target);
 				if (leveltime & 1)
 					mobj->flags2 |= MF2_DONTDRAW;

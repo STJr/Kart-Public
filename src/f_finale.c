@@ -974,13 +974,13 @@ void F_TitleScreenTicker(boolean run)
 
 		if (finalecount == 10)
 		{
-			S_StartSound(NULL, sfx_spin);
+			S_StartSound(NULL, sfx_s23e);
 		}
 		else if (finalecount == 50)
 		{
 			// Now start the music
 			S_ChangeMusicInternal("titles", looptitle);
-			S_StartSound(NULL, sfx_zoom);
+			S_StartSound(NULL, sfx_s23c);
 		}
 	}
 

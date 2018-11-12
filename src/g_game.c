@@ -1552,7 +1552,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (((player->mo && player->speed > 0) // Moving
 		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
 		|| (player->spectator || objectplacing)) // Not a physical player
-		&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
+		&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out turning
 		lang += (cmd->angleturn<<16);
 
 	cmd->angleturn = (INT16)(lang >> 16);
