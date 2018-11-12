@@ -4513,10 +4513,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 			K_SpawnDriftSparks(player);
 
 		// Sound whenever you get a different tier of sparks
-		if ((player->kartstuff[k_driftcharge] < dsone && player->kartstuff[k_driftcharge]+driftadditive >= dsone)
+		if (P_IsLocalPlayer(player) // UGHGHGH...
+			&& ((player->kartstuff[k_driftcharge] < dsone && player->kartstuff[k_driftcharge]+driftadditive >= dsone)
 			|| (player->kartstuff[k_driftcharge] < dstwo && player->kartstuff[k_driftcharge]+driftadditive >= dstwo)
-			|| (player->kartstuff[k_driftcharge] < dsthree && player->kartstuff[k_driftcharge]+driftadditive >= dsthree))
-			S_StartSound(player->mo, sfx_s3ka2);
+			|| (player->kartstuff[k_driftcharge] < dsthree && player->kartstuff[k_driftcharge]+driftadditive >= dsthree)))
+		{
+			//S_StartSound(player->mo, sfx_s3ka2); 
+			S_StartSoundAtVolume(player->mo, sfx_s3ka2, 192); // Ugh...
+		}
 
 		player->kartstuff[k_driftcharge] += driftadditive;
 		player->kartstuff[k_driftend] = 0;
