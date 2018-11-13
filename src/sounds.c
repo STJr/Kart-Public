@@ -424,7 +424,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s3k4b",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k4c",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k4d",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s3k4e",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
+  {"s3k4e",  false,  64,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart explosion
   {"s3k4f",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k50",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s3k51",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
