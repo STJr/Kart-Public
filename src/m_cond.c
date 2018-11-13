@@ -164,8 +164,8 @@ unlockable_t unlockables[MAXUNLOCKABLES] =
 {
 	// Name, Objective, Showing Conditionset, ConditionSet, Unlock Type, Variable, NoCecho, NoChecklist
 	/* 01 */ {"Egg Cup",  "", -1, 1, SECRET_NONE, 0, false, false, 0},
-	/* 02 */ {"SMK Cup",  "", -1, 2, SECRET_NONE, 0, false, false, 0},
-	/* 03 */ {"Chao Cup", "", -1, 3, SECRET_NONE, 0, false, false, 0},
+	/* 02 */ {"Chao Cup", "", -1, 2, SECRET_NONE, 0, false, false, 0},
+	/* 03 */ {"SMK Cup",  "", -1, 3, SECRET_NONE, 0, false, false, 0},
 
 	/* 04 */ {"Hard Game Speed", "", -1, 4, SECRET_HARDSPEED, 0, false, false, 0},
 	/* 05 */ {"Encore Mode",     "",  4, 5, SECRET_ENCORE, 0, false, false, 0},
