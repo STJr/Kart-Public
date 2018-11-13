@@ -371,7 +371,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"s256",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s257",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s258",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
-  {"s259",   false,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Item clashing
+  {"s259",   false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Item clashing
   {"s25a",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s25b",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"s25c",   false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
