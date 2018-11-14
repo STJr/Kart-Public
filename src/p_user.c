@@ -5028,9 +5028,9 @@ static void P_SpectatorMovement(player_t *player)
 		player->mo->z = player->mo->floorz;
 
 	if (cmd->buttons & BT_ACCELERATE)
-		player->mo->z += FRACUNIT*16;
+		player->mo->z += 32*mapheaderinfo[gamemap-1]->mobj_scale;
 	else if (cmd->buttons & BT_BRAKE)
-		player->mo->z -= FRACUNIT*16;
+		player->mo->z -= 32*mapheaderinfo[gamemap-1]->mobj_scale;
 
 	// Aiming needed for SEENAMES, etc.
 	// We may not need to fire as a spectator, but this is still handy!
@@ -5039,14 +5039,14 @@ static void P_SpectatorMovement(player_t *player)
 	player->mo->momx = player->mo->momy = player->mo->momz = 0;
 	if (cmd->forwardmove != 0)
 	{
-		P_Thrust(player->mo, player->mo->angle, cmd->forwardmove*(FRACUNIT/2));
+		P_Thrust(player->mo, player->mo->angle, cmd->forwardmove*(mapheaderinfo[gamemap-1]->mobj_scale));
 
 		// Quake-style flying spectators :D
-		player->mo->momz += FixedMul(cmd->forwardmove*(FRACUNIT/2), AIMINGTOSLOPE(player->aiming));
+		player->mo->momz += FixedMul(cmd->forwardmove*(mapheaderinfo[gamemap-1]->mobj_scale), AIMINGTOSLOPE(player->aiming));
 	}
 	if (cmd->sidemove != 0)
 	{
-		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*(FRACUNIT/2));
+		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*(mapheaderinfo[gamemap-1]->mobj_scale));
 	}
 }
 
