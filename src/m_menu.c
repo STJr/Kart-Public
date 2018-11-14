@@ -7885,6 +7885,7 @@ static void M_HandleConnectIP(INT32 choice)
 
 		case KEY_ENTER:
 			S_StartSound(NULL,sfx_menu1); // Tails
+			currentMenu->lastOn = itemOn;
 			M_ConnectIP(1);
 			break;
 

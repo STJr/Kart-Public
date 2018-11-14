@@ -992,6 +992,9 @@ static consvar_t *CV_FindNetVar(UINT16 netid)
 		if (cvar->netid == netid)
 			return cvar;
 
+	if (netid == 44542) // ouch this hack
+		return &cv_karteliminatelast;
+
 	return NULL;
 }
 
@@ -1089,9 +1092,15 @@ const char *CV_CompleteVar(char *partial, INT32 skips)
 
 	// check variables
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		if (!strncmp(partial, cvar->name, len))
-			if (!skips--)
-				return cvar->name;
+	{
+		if (cvar->flags & CV_NOSHOWHELP)
+			continue;
+		if (strncmp(partial, cvar->name, len))
+			continue;
+		if (skips--)
+			continue;
+		return cvar->name;
+	}
 
 	return NULL;
 }
