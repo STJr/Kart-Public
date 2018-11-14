@@ -5708,6 +5708,7 @@ void G_DeferedPlayDemo(const char *name)
 //
 // Start a demo from a .LMP file or from a wad resource
 //
+#define SKIPERRORS 
 void G_DoPlayDemo(char *defdemoname)
 {
 	UINT8 i;
@@ -5717,6 +5718,9 @@ void G_DoPlayDemo(char *defdemoname)
 	UINT32 randseed;
 	fixed_t actionspd,mindash,maxdash,normalspeed,runspeed,jumpfactor;
 	char msg[1024];
+#if defined(SKIPERRORS) && !defined(DEVELOP)
+	boolean skiperrors = false;
+#endif
 
 	skin[16] = '\0';
 	color[16] = '\0';
@@ -5753,7 +5757,12 @@ void G_DoPlayDemo(char *defdemoname)
 		return;
 	}
 	else // it's an internal demo
+	{
 		demobuffer = demo_p = W_CacheLumpNum(l, PU_STATIC);
+#if defined(SKIPERRORS) && !defined(DEVELOP)
+		skiperrors = true; // SRB2Kart: Don't print warnings for staff ghosts, since they'll inevitably happen when we make bugfixes/changes...
+#endif
+	}
 
 	// read demo header
 	gameaction = ga_nothing;
@@ -5881,11 +5890,19 @@ void G_DoPlayDemo(char *defdemoname)
 	memset(&oldcmd,0,sizeof(oldcmd));
 	memset(&oldghost,0,sizeof(oldghost));
 
+#if defined(SKIPERRORS) && !defined(DEVELOP)
+	if ((VERSION != version || SUBVERSION != subversion) && !skiperrors)
+#else
 	if (VERSION != version || SUBVERSION != subversion)
+#endif
 		CONS_Alert(CONS_WARNING, M_GetText("Demo version does not match game version. Desyncs may occur.\n"));
 
 	// console warning messages
+#if defined(SKIPERRORS) && !defined(DEVELOP)
+	demosynced = (!skiperrors);
+#else
 	demosynced = true;
+#endif
 
 	// didn't start recording right away.
 	demo_start = false;
@@ -5939,6 +5956,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	demo_start = true;
 }
+#undef SKIPERRORS
 
 void G_AddGhost(char *defdemoname)
 {
