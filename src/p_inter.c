@@ -139,7 +139,7 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 			// Item slot already taken up
 			if (player->kartstuff[k_itemroulette]
 				|| (weapon != 3 && player->kartstuff[k_itemamount])
-				|| player->kartstuff[k_itemheld]) 
+				|| player->kartstuff[k_itemheld])
 				return false;
 		}
 	}
@@ -344,7 +344,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			// Teleport player to the other teleporter (special->target). We'll assume there's always only ever 2.
 			if (!special->target)
 				return;	// foolproof crash prevention check!!!!!
-			
+
 			P_TeleportMove(player->mo, special->target->x, special->target->y, special->target->z + (48<<FRACBITS));
 			player->mo->angle = special->target->angle;
 			P_SetObjectMomZ(player->mo, 12<<FRACBITS, false);
@@ -470,7 +470,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
 					{
 						INT32 numingame = 0;
-						INT32 i;
 
 						for (i = 0; i < MAXPLAYERS; i++)
 						{
@@ -521,7 +520,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				if (player->kartstuff[k_bumper] == 1) // If you have only one bumper left, and see if it's a 1v1
 				{
 					INT32 numingame = 0;
-					INT32 i;
 
 					for (i = 0; i < MAXPLAYERS; i++)
 					{
@@ -2113,7 +2111,7 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				target->target->player->kartstuff[k_itemamount]--;
 				if (target->lastlook != 0)
 				{
-					K_RepairOrbitChain(target);	
+					K_RepairOrbitChain(target);
 				}
 			}
 

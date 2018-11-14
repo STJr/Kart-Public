@@ -7755,7 +7755,7 @@ Update the maxplayers label...
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
-				static UINT8 cursorframe = 0; 
+				static UINT8 cursorframe = 0;
 				if (skullAnimCounter % 4 == 0)
 					cursorframe++;
 				if (cursorframe > 7)
@@ -9447,7 +9447,6 @@ static void M_DrawMonitorToggles(void)
 		for (j = 0; j < height; j++)
 		{
 			const INT32 thisitem = (i*height)+j;
-			INT32 drawnum = 0;
 
 			if (thisitem >= currentMenu->numitems)
 				continue;

@@ -2648,7 +2648,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	// This is handled BEFORE sounds are stopped.
 	if (rendermode != render_none && encoremode && !prevencoremode)
 	{
-		tic_t starttime, endtime, nowtime;
+		tic_t locstarttime, endtime, nowtime;
 
 		S_StopMusic(); // er, about that...
 
@@ -2666,8 +2666,8 @@ boolean P_SetupLevel(boolean skipprecip)
 		F_WipeEndScreen();
 		F_RunWipe(wipedefs[wipe_level_final], false);
 
-		starttime = nowtime = lastwipetic;
-		endtime = starttime + (3*TICRATE)/2;
+		locstarttime = nowtime = lastwipetic;
+		endtime = locstarttime + (3*TICRATE)/2;
 
 		// Hold on white for extra effect.
 		while (nowtime < endtime)

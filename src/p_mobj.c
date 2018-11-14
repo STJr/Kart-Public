@@ -8868,7 +8868,7 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->health)
 			{
 				boolean blue = (mobj->type == MT_BLUEROBRA_HEAD);
-				UINT8 numsegs = abs(mobj->z - mobj->floorz) / (32 * mobj->scale);
+				UINT8 locnumsegs = abs(mobj->z - mobj->floorz) / (32 * mobj->scale);
 				UINT8 i;
 				mobj_t *cur = mobj->hnext, *prev = mobj;
 
@@ -8876,13 +8876,13 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->angle = (angle_t)mobj->extravalue1;
 				mobj->extravalue1 += (FixedAngle(2*mobj->momz) * (blue ? -1 : 1));
 
-				for (i = 0; i < numsegs*2; i++) // *2 to check for any extra segs still present
+				for (i = 0; i < locnumsegs*2; i++) // *2 to check for any extra segs still present
 				{
 					fixed_t segz = mobj->z - ((i+1) * (32 * mobj->scale));
 
 					if (cur && !P_MobjWasRemoved(cur))
 					{
-						if (i >= numsegs) // Remove extras
+						if (i >= locnumsegs) // Remove extras
 						{
 							mobj_t *next = cur->hnext;
 							P_RemoveMobj(cur);
@@ -8894,7 +8894,7 @@ void P_MobjThinker(mobj_t *mobj)
 					}
 					else
 					{
-						if (i >= numsegs) // We're done with this list
+						if (i >= locnumsegs) // We're done with this list
 							continue; //break;
 						else // Need another here!
 							cur = P_SpawnMobj(mobj->x, mobj->y, segz, (blue ? MT_BLUEROBRA_JOINT : MT_ROBRA_JOINT));
@@ -10959,7 +10959,6 @@ void P_SpawnPlayer(INT32 playernum)
 
 			if (p->kartstuff[k_bumper])
 			{
-				INT32 i;
 				angle_t diff = FixedAngle(360*FRACUNIT/p->kartstuff[k_bumper]);
 				angle_t newangle = mobj->angle;
 				fixed_t newx = mobj->x + P_ReturnThrustX(mobj, newangle + ANGLE_180, 64*FRACUNIT);
@@ -11746,13 +11745,12 @@ ML_NOCLIMB : Direction not controllable
 	case MT_AAZTREE_HELPER:
 		{
 			fixed_t top = mobj->z;
-			UINT8 numsegs = (mthing->extrainfo)+2;
+			UINT8 locnumsegs = (mthing->extrainfo)+2;
 			UINT8 numleaves = max(3, (abs(mthing->angle+1) % 6) + 3);
-			UINT8 i;
 			mobj_t *coconut;
 
 			// Spawn tree segments
-			for (i = 0; i < numsegs; i++)
+			for (i = 0; i < locnumsegs; i++)
 			{
 				P_SpawnMobj(mobj->x, mobj->y, top, MT_AAZTREE_SEG);
 				top += FixedMul(mobjinfo[MT_AAZTREE_SEG].height, mobj->scale);

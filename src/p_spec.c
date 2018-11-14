@@ -3864,7 +3864,7 @@ DoneSection2:
 					if (!(player->pflags & PF_SPINNING))
 						player->pflags |= PF_SPINNING;
 
-					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); 
+					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
 				}*/
 
 				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
@@ -4196,7 +4196,6 @@ DoneSection2:
 			{
 				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
-					UINT8 i;
 					UINT8 nump = 0;
 
 					for (i = 0; i < MAXPLAYERS; i++)

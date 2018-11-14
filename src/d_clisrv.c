@@ -2477,7 +2477,7 @@ static void CL_RemovePlayer(INT32 playernum, INT32 reason)
 			}
 		}
 	}
-	
+
 #ifdef HAVE_BLUA
 	LUAh_PlayerQuit(&players[playernum], reason); // Lua hook for player quitting
 #endif
@@ -2931,14 +2931,12 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 	else if (server)
 	{
-		XBOXSTATIC UINT8 buf[2];
-
 		// Sal: Because kicks (and a lot of other commands) are player-based, we can't tell which player pnum is on the node from a glance.
 		// When we want to remove everyone from a node, we have to get the kicked player's node, then remove everyone on that node manually so we don't miss any.
 		// This avoids the bugs with older SRB2 version's online splitscreen kicks, specifically ghosting.
 		// On top of this, it can't just be a CL_RemovePlayer call; it has to be a server-sided.
 		// Clients don't bother setting any nodes for anything but THE server player (even ignoring the server's extra players!), so it'll often remove everyone because they all have node -1/255, insta-desync!
-		// And yes. This is a netxcmd wrap for just CL_RemovePlayer! :V 
+		// And yes. This is a netxcmd wrap for just CL_RemovePlayer! :V
 
 #define removethisplayer(otherp) \
 	if (otherp >= 0) \
