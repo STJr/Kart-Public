@@ -9681,21 +9681,35 @@ static void M_HandleMonitorToggles(INT32 choice)
 static INT32 quitsounds[] =
 {
 	// holy shit we're changing things up!
-	sfx_itemup, // Tails 11-09-99
-	sfx_jump, // Tails 11-09-99
-	sfx_skid, // Inu 04-03-13
-	sfx_spring, // Tails 11-09-99
-	sfx_pop,
-	sfx_spdpad, // Inu 04-03-13
-	sfx_wdjump, // Inu 04-03-13
-	sfx_mswarp, // Inu 04-03-13
-	sfx_splash, // Tails 11-09-99
-	sfx_floush, // Tails 11-09-99
-	sfx_gloop, // Tails 11-09-99
-	sfx_s3k66, // Inu 04-03-13
-	sfx_s3k6a, // Inu 04-03-13
-	sfx_s3k73, // Inu 04-03-13
-	sfx_chchng // Tails 11-09-99
+	// srb2kart: you ain't seen nothing yet
+	sfx_kc2e,
+	sfx_kc2f,
+	sfx_cdfm01,
+	sfx_ddash,
+	sfx_s3ka2,
+	sfx_s3k49,
+	sfx_slip,
+	sfx_tossed,
+	sfx_s3k7b,
+	sfx_itrolf,
+	sfx_itrole,
+	sfx_cdpcm9,
+	sfx_s3k4e,
+	sfx_s259,
+	sfx_3db06,
+	sfx_s3k3a,
+	sfx_peel,
+	sfx_cdfm28,
+	sfx_s3k96,
+	sfx_s3kc0s,
+	sfx_cdfm39,
+	sfx_hogbom,
+	sfx_kc5a,
+	sfx_kc46,
+	sfx_s3k92,
+	sfx_s3k42,
+	sfx_kpogos,
+	sfx_screec
 };
 
 void M_QuitResponse(INT32 ch)
