@@ -265,6 +265,14 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 
 void F_StartIntro(void)
 {
+	if (gamestate)
+	{
+		F_WipeStartScreen();
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+		F_WipeEndScreen();
+		F_RunWipe(wipedefs[wipe_level_final], false);
+	}
+
 	if (introtoplay)
 	{
 		if (!cutscenes[introtoplay - 1])
