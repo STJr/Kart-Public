@@ -1395,6 +1395,7 @@ void K_RespawnChecker(player_t *player)
 					P_SetTarget(&mo->target, player->mo);
 					mo->angle = newangle+ANGLE_90;
 					mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+					P_SetScale(mo, (mo->destscale = FRACUNIT));
 				}
 			}
 		}

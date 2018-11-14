@@ -11095,7 +11095,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z -= 128*FRACUNIT;
+				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapheaderinfo[gamemap-1]->mobj_scale;
 		}
 		else
 		{
@@ -11103,7 +11103,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z += 128*FRACUNIT;
+				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapheaderinfo[gamemap-1]->mobj_scale;
 		}
 
 		if (mthing->options & MTF_OBJECTFLIP) // flip the player!
