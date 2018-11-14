@@ -5171,13 +5171,20 @@ static void M_DrawChecklist(void)
 
 	for (i = 0; i < MAXUNLOCKABLES; i++)
 	{
+		const char *secretname;
+		boolean secret = false;
+
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
 		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS
-		|| (!M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked))
+		|| (unlockables[i].type == SECRET_HELLATTACK // TODO: turn this into an unlockable setting instead of tying it to this unlockable
+		&& !M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked))
 			continue;
 
 		++line;
-		V_DrawString(8, (line*8), V_RETURN8|(unlockables[i].unlocked ? recommendedflags : warningflags), unlockables[i].name);
+		secretname = M_CreateSecretMenuOption(unlockables[i].name);
+		secret = (!M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked);
+
+		V_DrawString(8, (line*8), V_RETURN8|(unlockables[i].unlocked ? recommendedflags : warningflags), (secret ? secretname : unlockables[i].name));
 
 		if (conditionSets[unlockables[i].conditionset - 1].numconditions)
 		{
@@ -5189,6 +5196,7 @@ static void M_DrawChecklist(void)
 				condition_t cond = conditionSets[unlockables[i].conditionset - 1].condition[c];
 				UINT8 achieved = M_CheckCondition(&cond);
 				char *str = M_GetConditionString(cond);
+				const char *secretstr = M_CreateSecretMenuOption(str);
 
 				if (!str)
 					continue;
@@ -5198,12 +5206,12 @@ static void M_DrawChecklist(void)
 				if (lastid == -1 || cond.id != (UINT32)lastid)
 				{
 					V_DrawString(16, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), "*");
-					V_DrawString(32, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), str);
+					V_DrawString(32, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), (secret ? secretstr : str));
 				}
 				else
 				{
-					V_DrawString(32, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), "&");
-					V_DrawString(48, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), str);
+					V_DrawString(32, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), (secret ? "?" : "&"));
+					V_DrawString(48, (line*8), V_MONOSPACE|V_ALLOWLOWERCASE|(achieved ? highlightflags : 0), (secret ? secretstr : str));
 				}
 
 				lastid = cond.id;
