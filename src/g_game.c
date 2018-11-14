@@ -286,6 +286,7 @@ static char demoname[64];
 boolean demorecording;
 boolean demoplayback;
 boolean titledemo; // Title Screen demo can be cancelled by any key
+boolean fromtitledemo; // SRB2Kart: Don't stop the music
 static UINT8 *demobuffer = NULL;
 static UINT8 *demo_p, *demotime_p;
 static UINT8 *demoend;

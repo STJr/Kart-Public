@@ -897,7 +897,9 @@ void F_StartTitleScreen(void)
 	// IWAD dependent stuff.
 
 	// music is started in the ticker
-	S_StopMusic();
+	if (!fromtitledemo) // SRB2Kart: Don't reset music if the right track is already playing
+		S_StopMusic();
+	fromtitledemo = false;
 
 	animtimer = 0;
 
@@ -1065,7 +1067,7 @@ void F_TitleScreenTicker(boolean run)
 			return;
 		}*/
 
-		titledemo = true;
+		titledemo = fromtitledemo = true;
 		G_DoPlayDemo(dname);
 	}
 }
