@@ -154,96 +154,46 @@ static void F_NewCutscene(const char *basetext)
 }
 
 //
-// F_DrawPatchCol
-//
-static void F_DrawPatchCol(INT32 x, patch_t *patch, INT32 col)
-{
-	const column_t *column;
-	const UINT8 *source;
-	UINT8 *desttop, *dest = NULL;
-	const UINT8 *deststop, *destbottom;
-	size_t count;
-
-	desttop = screens[0] + x*vid.dupx;
-	deststop = screens[0] + vid.rowbytes * vid.height;
-	destbottom = desttop + vid.height*vid.width;
-
-	do {
-		INT32 topdelta, prevdelta = -1;
-		column = (column_t *)((UINT8 *)patch + LONG(patch->columnofs[col]));
-
-		// step through the posts in a column
-		while (column->topdelta != 0xff)
-		{
-			topdelta = column->topdelta;
-			if (topdelta <= prevdelta)
-				topdelta += prevdelta;
-			prevdelta = topdelta;
-			source = (const UINT8 *)column + 3;
-			dest = desttop + topdelta*vid.width;
-			count = column->length;
-
-			while (count--)
-			{
-				INT32 dupycount = vid.dupy;
-
-				while (dupycount-- && dest < destbottom)
-				{
-					INT32 dupxcount = vid.dupx;
-					while (dupxcount-- && dest <= deststop)
-						*dest++ = *source;
-
-					dest += (vid.width - vid.dupx);
-				}
-				source++;
-			}
-			column = (const column_t *)((const UINT8 *)column + column->length + 4);
-		}
-
-		desttop += SHORT(patch->height)*vid.dupy*vid.width;
-	} while(dest < destbottom);
-}
-
-//
 // F_SkyScroll
 //
 static void F_SkyScroll(INT32 scrollspeed)
 {
-	INT32 scrolled, x, mx, fakedwidth;
-	patch_t *pat;
+	INT32 x, y, w;
+	patch_t *pat, *pat2;
+	INT32 anim2 = 0;
 
-	pat = W_CachePatchName("TITLESKY", PU_CACHE);
+	pat = W_CachePatchName("TITLEBG1", PU_CACHE);
+	pat2 = W_CachePatchName("TITLEBG2", PU_CACHE);
+
+	w = vid.width / vid.dupx;
 
 	animtimer = ((finalecount*scrollspeed)/16) % SHORT(pat->width);
+	anim2 = SHORT(pat2->width) - (((finalecount*scrollspeed)/16) % SHORT(pat2->width));
 
-	fakedwidth = vid.width / vid.dupx;
+	// SRB2Kart: F_DrawPatchCol is over-engineered; recoded to be less shitty and error-prone
+	if (rendermode != render_none)
+	{
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
-	if (rendermode == render_soft)
-	{ // if only hardware rendering could be this elegant and complete
-		scrolled = (SHORT(pat->width) - animtimer) - 1;
-		for (x = 0, mx = scrolled; x < fakedwidth; x++, mx = (mx+1)%SHORT(pat->width))
-			F_DrawPatchCol(x, pat, mx);
-	}
-#ifdef HWRENDER
-	else if (rendermode != render_none)
-	{ // if only software rendering could be this simple and retarded
-		INT32 dupz = (vid.dupx < vid.dupy ? vid.dupx : vid.dupy);
-		INT32 y, pw = SHORT(pat->width) * dupz, ph = SHORT(pat->height) * dupz;
-		scrolled = animtimer * dupz;
-		for (x = 0; x < vid.width; x += pw)
+		x = -animtimer;
+		y = 0;
+		while (x < w)
 		{
-			for (y = 0; y < vid.height; y += ph)
-			{
-				if (scrolled > 0)
-					V_DrawScaledPatch(scrolled - pw, y, V_NOSCALESTART, pat);
+			V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, V_SNAPTOTOP|V_SNAPTOLEFT, pat, NULL);
+			x += SHORT(pat->width);
+		} 
 
-				V_DrawScaledPatch(x + scrolled, y, V_NOSCALESTART, pat);
-			}
+		x = -anim2;
+		y = BASEVIDHEIGHT - SHORT(pat2->height);
+		while (x < w)
+		{
+			V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTOLEFT, pat2, NULL);
+			x += SHORT(pat2->width);
 		}
 	}
-#endif
 
 	W_UnlockCachedPatch(pat);
+	W_UnlockCachedPatch(pat2);
 }
 
 // =============
