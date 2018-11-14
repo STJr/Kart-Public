@@ -5168,21 +5168,21 @@ static void M_DrawChecklist(void)
 {
 	UINT32 i, line = 0, c;
 	INT32 lastid;
+	boolean secret = false;
 
 	for (i = 0; i < MAXUNLOCKABLES; i++)
 	{
 		const char *secretname;
-		boolean secret = false;
+
+		secret = (!M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked);
 
 		if (unlockables[i].name[0] == 0 || unlockables[i].nochecklist
 		|| !unlockables[i].conditionset || unlockables[i].conditionset > MAXCONDITIONSETS
-		|| (unlockables[i].type == SECRET_HELLATTACK // TODO: turn this into an unlockable setting instead of tying it to this unlockable
-		&& !M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked))
+		|| (unlockables[i].type == SECRET_HELLATTACK && secret)) // TODO: turn this into an unlockable setting instead of tying it to Hell Attack
 			continue;
 
 		++line;
 		secretname = M_CreateSecretMenuOption(unlockables[i].name);
-		secret = (!M_Achieved(unlockables[i].showconditionset - 1) && !unlockables[i].unlocked);
 
 		V_DrawString(8, (line*8), V_RETURN8|(unlockables[i].unlocked ? recommendedflags : warningflags), (secret ? secretname : unlockables[i].name));
 
