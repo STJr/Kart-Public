@@ -11741,8 +11741,7 @@ ML_NOCLIMB : Direction not controllable
 		break;
 	// SRB2Kart
 	case MT_BALLOON:
-		if (mthing->angle < MAXSKINCOLORS && mthing->angle > 0)
-			mobj->color = mthing->angle;
+		mobj->color = (1 + (mthing->angle % (MAXSKINCOLORS-1)));
 		break;
 	case MT_AAZTREE_HELPER:
 		{
