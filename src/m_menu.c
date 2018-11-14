@@ -4277,7 +4277,8 @@ static void M_DrawImageDef(void)
 	}
 	else
 	{
-		INT32 x = ((itemOn ? 3 : 1)*BASEVIDWIDTH)>>2, y = (BASEVIDHEIGHT>>1) - 4;
+		INT32 x = BASEVIDWIDTH>>1, y = (BASEVIDHEIGHT>>1) - 4;
+		x += (itemOn ? 1 : -1)*((BASEVIDWIDTH>>2) + 10);
 		V_DrawCenteredString(x, y-10, highlightflags, "USE ARROW KEYS");
 		V_DrawCharacter(x - 10 - (skullAnimCounter/5), y,
 			'\x1C' | highlightflags, false); // left arrow
@@ -4470,7 +4471,7 @@ static char *M_AddonsHeaderPath(void)
 	return header+len;
 }
 
-#define UNEXIST S_StartSound(NULL, sfx_lose);\
+#define UNEXIST S_StartSound(NULL, sfx_s26d);\
 		M_SetupNextMenu(MISC_AddonsDef.prevMenu);\
 		M_StartMessage(va("\x82%s\x80\nThis folder no longer exists!\nAborting to main menu.\n\n(Press a key)\n", M_AddonsHeaderPath()),NULL,MM_NOTHING)
 
@@ -4498,7 +4499,7 @@ static boolean M_AddonsRefresh(void)
 
 		if (refreshdirmenu & REFRESHDIR_NOTLOADED)
 		{
-			S_StartSound(NULL, sfx_lose);
+			S_StartSound(NULL, sfx_s26d);
 			if (refreshdirmenu & REFRESHDIR_MAX)
 				message = va("%c%s\x80\nMaximum number of add-ons reached.\nA file could not be loaded.\nIf you want to play with this add-on, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			else
@@ -4506,7 +4507,7 @@ static boolean M_AddonsRefresh(void)
 		}
 		else if (refreshdirmenu & (REFRESHDIR_WARNING|REFRESHDIR_ERROR))
 		{
-			S_StartSound(NULL, sfx_skid);
+			S_StartSound(NULL, sfx_s224);
 			message = va("%c%s\x80\nA file was loaded with %s.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname, ((refreshdirmenu & REFRESHDIR_ERROR) ? "errors" : "warnings"));
 		}
 
@@ -4516,7 +4517,7 @@ static boolean M_AddonsRefresh(void)
 			return true;
 		}
 
-		S_StartSound(NULL, sfx_strpst);
+		S_StartSound(NULL, sfx_s221);
 		CLEARNAME;
 	}
 
@@ -4774,7 +4775,7 @@ static void M_HandleAddons(INT32 choice)
 			{
 				boolean refresh = true;
 				if (!dirmenu[dir_on[menudepthleft]])
-					S_StartSound(NULL, sfx_lose);
+					S_StartSound(NULL, sfx_s26d);
 				else
 				{
 					switch (dirmenu[dir_on[menudepthleft]][DIR_TYPE])
@@ -4788,7 +4789,7 @@ static void M_HandleAddons(INT32 choice)
 
 								if (!preparefilemenu(false))
 								{
-									S_StartSound(NULL, sfx_skid);
+									S_StartSound(NULL, sfx_s224);
 									M_StartMessage(va("%c%s\x80\nThis folder is empty.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
 									menupath[menupathindex[++menudepthleft]] = 0;
 
@@ -4807,7 +4808,7 @@ static void M_HandleAddons(INT32 choice)
 							}
 							else
 							{
-								S_StartSound(NULL, sfx_lose);
+								S_StartSound(NULL, sfx_s26d);
 								M_StartMessage(va("%c%s\x80\nThis folder is too deep to navigate to!\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
 								menupath[menupathindex[menudepthleft]] = 0;
 							}
@@ -4829,7 +4830,7 @@ static void M_HandleAddons(INT32 choice)
 							break;
 						case EXT_LUA:
 #ifndef HAVE_BLUA
-							S_StartSound(NULL, sfx_lose);
+							S_StartSound(NULL, sfx_s26d);
 							M_StartMessage(va("%c%s\x80\nThis copy of SRB2 was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
 							break;
 #endif
@@ -4841,7 +4842,7 @@ static void M_HandleAddons(INT32 choice)
 							COM_BufAddText(va("addfile \"%s%s\"", menupath, dirmenu[dir_on[menudepthleft]]+DIR_STRING));
 							break;
 						default:
-							S_StartSound(NULL, sfx_lose);
+							S_StartSound(NULL, sfx_s26d);
 					}
 				}
 				if (refresh)
@@ -8445,6 +8446,8 @@ static void M_EraseDataResponse(INT32 ch)
 	if (ch != 'y' && ch != KEY_ENTER)
 		return;
 
+	S_StartSound(NULL, sfx_itrole); // bweh heh heh
+
 	// Delete the data
 	if (erasecontext == 2)
 	{
@@ -8903,10 +8906,10 @@ static void M_ChangecontrolResponse(event_t *ev)
             G_CheckDoubleUsage(ch);
             setupcontrols[control][found] = ch;
         }
-		S_StartSound(NULL, sfx_strpst);
+		S_StartSound(NULL, sfx_s221);
 	}
 	else
-		S_StartSound(NULL, sfx_skid);
+		S_StartSound(NULL, sfx_s224);
 
 	M_StopMessage(0);
 }
@@ -8956,7 +8959,7 @@ static void M_ToggleSFX(INT32 choice)
 	{
 		sound_disabled = false;
 		S_InitSfxChannels(cv_soundvolume.value);
-		S_StartSound(NULL, sfx_strpst);
+		S_StartSound(NULL, sfx_s221);
 		//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
 	}
 	else
@@ -9632,7 +9635,7 @@ static void M_HandleMonitorToggles(INT32 choice)
 #ifdef ITEMTOGGLEBOTTOMRIGHT
 			if (currentMenu->menuitems[itemOn].alphaKey == 255)
 			{
-				//S_StartSound(NULL, sfx_lose);
+				//S_StartSound(NULL, sfx_s26d);
 				if (!shitsfree)
 				{
 					shitsfree = TICRATE;
@@ -9678,21 +9681,35 @@ static void M_HandleMonitorToggles(INT32 choice)
 static INT32 quitsounds[] =
 {
 	// holy shit we're changing things up!
-	sfx_itemup, // Tails 11-09-99
-	sfx_jump, // Tails 11-09-99
-	sfx_skid, // Inu 04-03-13
-	sfx_spring, // Tails 11-09-99
-	sfx_pop,
-	sfx_spdpad, // Inu 04-03-13
-	sfx_wdjump, // Inu 04-03-13
-	sfx_mswarp, // Inu 04-03-13
-	sfx_splash, // Tails 11-09-99
-	sfx_floush, // Tails 11-09-99
-	sfx_gloop, // Tails 11-09-99
-	sfx_s3k66, // Inu 04-03-13
-	sfx_s3k6a, // Inu 04-03-13
-	sfx_s3k73, // Inu 04-03-13
-	sfx_chchng // Tails 11-09-99
+	// srb2kart: you ain't seen nothing yet
+	sfx_kc2e,
+	sfx_kc2f,
+	sfx_cdfm01,
+	sfx_ddash,
+	sfx_s3ka2,
+	sfx_s3k49,
+	sfx_slip,
+	sfx_tossed,
+	sfx_s3k7b,
+	sfx_itrolf,
+	sfx_itrole,
+	sfx_cdpcm9,
+	sfx_s3k4e,
+	sfx_s259,
+	sfx_3db06,
+	sfx_s3k3a,
+	sfx_peel,
+	sfx_cdfm28,
+	sfx_s3k96,
+	sfx_s3kc0s,
+	sfx_cdfm39,
+	sfx_hogbom,
+	sfx_kc5a,
+	sfx_kc46,
+	sfx_s3k92,
+	sfx_s3k42,
+	sfx_kpogos,
+	sfx_screec
 };
 
 void M_QuitResponse(INT32 ch)
