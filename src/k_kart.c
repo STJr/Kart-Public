@@ -7503,10 +7503,17 @@ static void K_drawInput(void)
 	if (timeinmap < 113)
 	{
 		INT32 count = ((INT32)(timeinmap) - 105);
-		offs = 64;
+		offs = (titledemo ? 128 : 64);
 		while (count-- > 0)
 			offs >>= 1;
 		x += offs;
+	}
+
+	if (titledemo)
+	{
+		V_DrawTinyScaledPatch(x-54, 128, splitflags, W_CachePatchName("TTKBANNR", PU_CACHE));
+		V_DrawTinyScaledPatch(x-54, 128+25, splitflags, W_CachePatchName("TTKART", PU_CACHE));
+		return;
 	}
 
 #define BUTTW 8
@@ -7814,7 +7821,7 @@ void K_drawKartHUD(void)
 	if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
 		K_drawKartPlayerCheck();
 
-	if (splitscreen == 0 && cv_kartminimap.value)
+	if (splitscreen == 0 && cv_kartminimap.value && !titledemo)
 	{
 #ifdef HAVE_BLUA
 		if (LUA_HudEnabled(hud_minimap))
@@ -7839,7 +7846,7 @@ void K_drawKartHUD(void)
 	}
 
 	// If not splitscreen, draw...
-	if (!splitscreen)
+	if (!splitscreen && !titledemo)
 	{
 		// Draw the timestamp
 #ifdef HAVE_BLUA
@@ -7861,20 +7868,23 @@ void K_drawKartHUD(void)
 	{
 		if (G_RaceGametype()) // Race-only elements
 		{
-			// Draw the lap counter
-#ifdef HAVE_BLUA
-			if (LUA_HudEnabled(hud_gametypeinfo))
-#endif
-				K_drawKartLaps();
-
-			if (!splitscreen)
+			if (!titledemo)
 			{
-				// Draw the speedometer
-				// TODO: Make a better speedometer.
+				// Draw the lap counter
 #ifdef HAVE_BLUA
-			if (LUA_HudEnabled(hud_speedometer))
+				if (LUA_HudEnabled(hud_gametypeinfo))
 #endif
-				K_drawKartSpeedometer();
+					K_drawKartLaps();
+
+				if (!splitscreen)
+				{
+					// Draw the speedometer
+					// TODO: Make a better speedometer.
+#ifdef HAVE_BLUA
+				if (LUA_HudEnabled(hud_speedometer))
+#endif
+					K_drawKartSpeedometer();
+				}
 			}
 
 			if (isfreeplay)
