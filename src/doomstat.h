@@ -301,7 +301,7 @@ enum TypeOfLevel
 	TOL_2D     = 0x0100, ///< 2D
 	TOL_MARIO  = 0x0200, ///< Mario
 	TOL_NIGHTS = 0x0400, ///< NiGHTS
-	TOL_TV   = 0x0800, ///< Midnight Channel specific: draw TV like overlay on HUD
+	TOL_TV     = 0x0800, ///< Midnight Channel specific: draw TV like overlay on HUD
 	TOL_XMAS   = 0x1000 ///< Christmas NiGHTS
 	//TOL_KART   = 0x4000  ///< Kart 32768
 };
