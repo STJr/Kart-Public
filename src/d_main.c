@@ -963,7 +963,7 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
 #endif
 
-	MUSICTEST("music.dta")
+	//MUSICTEST("music.dta")
 	MUSICTEST("music.kart")
 }
 
@@ -1241,7 +1241,7 @@ void D_SRB2Main(void)
 #ifdef USE_PATCH_KART
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);	// patch.kart
 #endif
-	mainwads++; // music.dta
+	//mainwads++; // music.dta
 	mainwads++; // music.kart
 	// don't check music.dta or kart because people like to modify it, and it doesn't matter if they do
 	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
@@ -1257,7 +1257,7 @@ void D_SRB2Main(void)
 #ifdef USE_PATCH_KART
 	mainwads++;	// patch.kart
 #endif
-	mainwads++; // music.dta
+	//mainwads++; // music.dta
 	mainwads++; // music.kart
 #endif //ifndef DEVELOP
 

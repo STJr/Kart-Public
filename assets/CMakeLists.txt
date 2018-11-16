@@ -9,7 +9,7 @@ set(SRB2_ASSET_ALL
 	${CMAKE_CURRENT_SOURCE_DIR}/chars.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/maps.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/sounds.kart
-	${CMAKE_CURRENT_SOURCE_DIR}/music.dta
+	#${CMAKE_CURRENT_SOURCE_DIR}/music.dta
 	${CMAKE_CURRENT_SOURCE_DIR}/music.kart
 )
 
