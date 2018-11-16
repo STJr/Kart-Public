@@ -422,81 +422,134 @@ boolean F_IntroResponder(event_t *event)
 //  CREDITS
 // =========
 static const char *credits[] = {
-	"\1SRB2 Kart",
+	"\1SRB2Kart",
 	"\1Credits",
 	"",
 	"\1Game Design",
-	"\"Chaos Zero 64\"",
-	"\"Iceman404\" aka \"VelocitOni\"",
-	"\"ZarroTsu\"",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Jeffery \"Chromatian\" Scott",
+	"\"VelocitOni\"",
 	"",
-	"\1Programming",
-	"\"Chaos Zero 64\"",
+	"\1Lead Programming",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Vivian \"toaster\" Grannell",
-	"\"Lat\'\"",
-	"\"Monster Iestyn\"",
 	"Sean \"Sryder\" Ryder",
 	"Ehab \"wolfs\" Saeed",
 	"\"ZarroTsu\"",
 	"",
-	"\1Artists",
-	"\"Chaos Zero 64\"",
-	"Sally \"TehRealSalt\" Cochenour",
+	"\1Support Programming",
+	"\"fickle\"",
+	"\"Lat\'\"",
+	"\"Monster Iestyn\"",
+	"\"Shuffle\"",
+	"",
+	"\1Lead Artists",
 	"Desmond \"Blade\" DesJardins",
-	"Sherman \"CoatRack\" DesJardin",
+	"\"VelocitOni\"",
+	"",
+	"\1Support Artists",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Sherman \"CoatRack\" DesJardins",
+	"Jesse \"Jeck Jims\" Emerick",
 	"Wesley \"Charyb\" Gillebaard",
+	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
-	"\"Iceman404\"",
-	"\"MotorRoach\"",
-	"\"VAdaPEGA\"",
+	"\"Tyrannosaur Chao\"",
 	"\"ZarroTsu\"",
 	"",
-	"\1Music and Sound",
-	"Karl Brueggemann",
-	"Wesley \"Charyb\" Gillebaard",
-	"James \"SeventhSentinel\" Hall",
-	"\"MaxieDaMan\"",
+	"\1External Artists",
+	"\"Chrispy\"",
+	"\"DirkTheHusky\"",
+	"\"MotorRoach\"",
+	"\"Nev3r\"",
+	"\"Ritz\"",
+	"\"Rob\"",
+	"\"SmithyGNC\"",
+	"\"Spherallic\"",
+	"\"VAdaPEGA\"",
 	"",
-	"\1Level Design",
+	"\1Sound Design",
+	"James \"SeventhSentinel\" Hall",
+	"Sonic Team",
+	"\"VAdaPEGA\"",
+	"\"VelocitOni\"",
+	"",
+	"\1Music", // Can't list song names here, so we're listing artists
+	"\"Arrow\"",
+	"Jonny Atma",
+	"Moot Booxle", // Booxlé, add the accent char later?
+	"Malcolm Brown",
+	"Karl Brueggemann",
+	"\"DrTapeworm\"",
+	"\"Elwood\"",
+	"Wesley \"Charyb\" Gillebaard",
+	"\"gxf4c3\"",
+	"James \"SeventhSentinel\" Hall",
+	"Chris Holland",
+	"Johnny \"J\"",
+	"Masato Kouda",
+	"Fumie Kumatani",
+	"Luke Kwing",
+	"James Landino",
+	"\"Lange\"",
+	"Takenobu Mitsuyoshi",
+	"\"Nib Roc\"",
+	"Tomoya Ohtani",
+	"Vincent Rubinetti",
+	"Jun Senoue",
+	"\"SSNTails\"",
+	"Michael \"MaxieDaMan\" Staple",
+	"Simon Stålenhag", // Stålenhag, add the accent char later?
+	"\"Synthescissor\"",
+	"Yuko Takehara",
+	"Tony Thai",
+	"\"The8BitDrummer\"",
+	"Kenichi Tokoi",
+	"\"Tokyo Active NEETs\"",
+	"\"xaki\"",
+	"Michiru Yamane",
+	"",
+	"\1Lead Level Design",
 	"\"Blitz-T\"",
-	"\"D00D64-X\"",
-	"\"Chaos Zero 64\"",
-	"Paul \"Boinciel\" Clempson",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Desmond \"Blade\" DesJardins",
-	"Sherman \"CoatRack\" DesJardin",
+	"Jeffery \"Chromatian\" Scott",
+	"\"Tyrannosaur Chao\"",
+	"",
+	"\1Support Level Design",
+	"\"Chaos Zero 64\"",
+	"\"D00D64\"",
+	"\"DrTapeworm\"",
+	"Paul \"Boinciel\" Clempson",
+	"Sherman \"CoatRack\" DesJardins",
 	"James \"SeventhSentinel\" Hall",
+	"\"Lat\'\"",
 	"Sean \"Sryder\" Ryder",
 	"\"Ryuspark\"",
-	"Jeffery \"Chromatian\" Scott",
 	"\"Simsmagic\"",
-	"\"Tyrannosaur Chao\" aka \"Chaotic Chao\"",
+	"\"SP47\"",
 	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
-	"Jesse \"Jeck Jims\" Emerick",
 	"\"VirtAnderson\"",
 	"",
 	"\1Special Thanks",
-	"Sonic Team Jr. & SRB2 (www.srb2.org)",
-	"Bandit \"Bobby\" Cochenour", // i <3 my dog
-	"Bear", // i <3 MY dog too
-	"\"Chrispy\"",
-	"\"DirkTheHusky\"",
-	"\"fickle\"", // and my sharki
-	"\"Nev3r\"",
-	"\"Ritz\"",
-	"\"Spherallic\"",
+	"SEGA",
+	"Sonic Team",
+	"SRB2 & Sonic Team Jr. (www.srb2.org)",
+	"\"blazethecat\"",
+	"\"Chaos Zero 64\"",
+	"\"Rob\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
 	"",
 	"\1In Memory of",
 	"\"Tyler52\"",
+	"",
 	"",
 	"\1Thank you",
 	"\1for playing!",
@@ -506,18 +559,29 @@ static const char *credits[] = {
 static struct {
 	UINT32 x, y;
 	const char *patch;
+	UINT8 colorize;
 } credits_pics[] = {
-	/*{  8, 80+200* 1, "CREDIT01"},
-	{  4, 80+200* 2, "CREDIT13"},
-	{250, 80+200* 3, "CREDIT12"},
-	{  8, 80+200* 4, "CREDIT03"},
-	{248, 80+200* 5, "CREDIT11"},
-	{  8, 80+200* 6, "CREDIT04"},
-	{112, 80+200* 7, "CREDIT10"},
-	{240, 80+200* 8, "CREDIT05"},
-	{120, 80+200* 9, "CREDIT06"},*/
-	{112, 80+100+200*10, "TYLER52"},
-	{0, 0, NULL}
+	// We don't have time to be fancy, let's just colorize some item sprites :V
+	{224, 80+(200* 1), "K_ITJAWZ", SKINCOLOR_CREAMSICLE},
+	{224, 80+(200* 2), "K_ITSPB",  SKINCOLOR_GARDEN},
+	{224, 80+(200* 3), "K_ITBANA", SKINCOLOR_LILAC},
+	{224, 80+(200* 4), "K_ITHYUD", SKINCOLOR_DREAM},
+	{224, 80+(200* 5), "K_ITBHOG", SKINCOLOR_TANGERINE},
+	{224, 80+(200* 6), "K_ITSHRK", SKINCOLOR_JAWZ},
+	{224, 80+(200* 7), "K_ITSHOE", SKINCOLOR_MINT},
+	{224, 80+(200* 8), "K_ITGROW", SKINCOLOR_RUBY},
+	{224, 80+(200* 9), "K_ITPOGO", SKINCOLOR_SAPPHIRE},
+	{224, 80+(200*10), "K_ITRSHE", SKINCOLOR_YELLOW},
+	{224, 80+(200*11), "K_ITORB4", SKINCOLOR_DUSK},
+	{224, 80+(200*12), "K_ITEGGM", SKINCOLOR_GREEN},
+	{224, 80+(200*13), "K_ITMINE", SKINCOLOR_BRONZE},
+	{224, 80+(200*14), "K_ITTHNS", SKINCOLOR_RASPBERRY},
+	{224, 80+(200*15), "K_ITINV1", SKINCOLOR_GREY},
+	// This Tyler52 gag is troublesome
+	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
+	// Current max image spacing: (200*17)
+	{112, (15*100)+(17*38)+(96*15), "TYLER52", SKINCOLOR_NONE},
+	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
 void F_StartCredits(void)
@@ -565,7 +629,18 @@ void F_CreditDrawer(void)
 
 	// Draw pictures
 	for (i = 0; credits_pics[i].patch; i++)
-		V_DrawSciencePatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), FRACUNIT>>1);
+	{
+		UINT8 *colormap = NULL;
+		fixed_t sc = FRACUNIT>>1;
+
+		if (credits_pics[i].colorize != SKINCOLOR_NONE)
+		{
+			colormap = R_GetTranslationColormap(TC_RAINBOW, credits_pics[i].colorize, 0);
+			sc = FRACUNIT; // quick hack so I don't have to add another field to credits_pics
+		}
+
+		V_DrawFixedPatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, sc, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), colormap);
+	}
 
 	// Draw credits text on top
 	for (i = 0; credits[i]; i++)
