@@ -84,12 +84,15 @@
 # SRB2 data files
 D_DIR?=../bin/Resources
 D_FILES=$(D_DIR)/srb2.srb \
-	$(D_DIR)/player.dta \
-	$(D_DIR)/rings.wpn \
-	$(D_DIR)/drill.dta \
-	$(D_DIR)/soar.dta \
-	$(D_DIR)/zones.dta \
-	$(D_DIR)/music.dta \
+	$(D_DIR)/patch.dta \
+	#$(D_DIR)/music.dta \
+	$(D_DIR)/gfx.kart \
+	$(D_DIR)/textures.kart \
+	$(D_DIR)/chars.kart \
+	$(D_DIR)/maps.kart \
+	$(D_DIR)/sounds.kart \
+	$(D_DIR)/patch.kart \
+	$(D_DIR)/music.kart \
 
 PKG_CONFIG?=pkg-config
 
