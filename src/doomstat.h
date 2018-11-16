@@ -313,6 +313,7 @@ enum GameType // SRB2Kart
 	GT_MATCH, // battle, but renaming would be silly
 	NUMGAMETYPES,
 
+	// TODO: This is *horrid*. Remove this hack ASAP.
 	// the following have been left in on account of just not wanting to deal with removing all the checks for them
 	GT_COOP,
 	GT_COMPETITION,
