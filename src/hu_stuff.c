@@ -1129,10 +1129,10 @@ boolean HU_Responder(event_t *ev)
 				c = shiftxform[c];
 		}
 		else	// if we're holding shift we should still shift non letter symbols
-		{	
+		{
 			if (shiftdown)
 				c = shiftxform[c];
-		}	
+		}
 
 		// pasting. pasting is cool. chat is a bit limited, though :(
 		if (((c == 'v' || c == 'V') && ctrldown) && !CHAT_MUTE)

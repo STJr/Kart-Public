@@ -3605,7 +3605,7 @@ void G_NextLevel(void)
 		forceresetplayers = false;
 		deferencoremode = (boolean)cv_kartencore.value;
 	}
-	
+
 	gameaction = ga_worlddone;
 }
 
@@ -5708,7 +5708,7 @@ void G_DeferedPlayDemo(const char *name)
 //
 // Start a demo from a .LMP file or from a wad resource
 //
-#define SKIPERRORS 
+#define SKIPERRORS
 void G_DoPlayDemo(char *defdemoname)
 {
 	UINT8 i;
