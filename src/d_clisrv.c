@@ -3516,6 +3516,8 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
 	else if (D_NumPlayers() >= cv_maxplayers.value)
 		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), cv_maxplayers.value));
+	else if (netgame && D_NumPlayers() + netbuffer->u.clientcfg.localplayers > cv_maxplayers.value)
+		SV_SendRefuse(node, va(M_GetText("Number of local players\nwould exceed maximum: %d"), cv_maxplayers.value));
 	else if (netgame && netbuffer->u.clientcfg.localplayers > 4) // Hacked client?
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
