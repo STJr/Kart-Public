@@ -24,6 +24,10 @@
 //  one that defines the actual packets to
 //  be transmitted.
 
+// SOME numpty changed all the gametype constants and it fell out of sync with vanilla and now we have to pretend to be vanilla when talking to the master server...
+#define VANILLA_GT_RACE 2
+#define VANILLA_GT_MATCH 3
+
 // Networking and tick handling related.
 #define BACKUPTICS 32
 #define MAXTEXTCMD 256
