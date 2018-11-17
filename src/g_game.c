@@ -2293,10 +2293,8 @@ static inline void G_PlayerFinishLevel(INT32 player)
 		{
 			matchesplayed++;
 			if (M_UpdateUnlockablesAndExtraEmblems(true))
-			{
 				S_StartSound(NULL, sfx_ncitem);
-				G_SaveGameData(true); // only save if unlocked something
-			}
+			G_SaveGameData(true);
 		}
 
 		legitimateexit = false;
