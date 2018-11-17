@@ -6456,6 +6456,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	// POSI_X = BASEVIDWIDTH - 51;	// 269
 	// POSI_Y = BASEVIDHEIGHT- 64;	// 136
 
+	boolean win = (stplyr->exiting && num == 1);
 	INT32 X = POSI_X;
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
 	fixed_t scale = FRACUNIT;
@@ -6481,7 +6482,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	// Draw the number
 	while (num)
 	{
-		if (stplyr->exiting && num == 1) // 1st place winner? You get rainbows!!
+		if (win) // 1st place winner? You get rainbows!!
 			localpatch = kp_winnernum[(leveltime % (NUMWINFRAMES*3)) / 3];
 		else if (stplyr->laps+1 >= cv_numlaps.value || stplyr->exiting) // Check for the final lap, or won
 		{
