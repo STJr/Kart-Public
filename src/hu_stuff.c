@@ -1074,6 +1074,18 @@ boolean HU_Responder(event_t *ev)
 			return false;
 	}
 
+	c = (INT32)ev->data1;
+
+	// capslock (now handled outside of chat on so that it works everytime......)
+	if (c && c == KEY_CAPSLOCK)	// it's a toggle.
+	{
+		if (capslock)
+			capslock = false;
+		else
+			capslock = true;
+		return true;
+	}
+
 	if (!chat_on)
 	{
 		// enter chat mode
@@ -1109,21 +1121,18 @@ boolean HU_Responder(event_t *ev)
 
 		c = (INT32)ev->data1;
 
-		// capslock
-		if (c && c == KEY_CAPSLOCK)	// it's a toggle.
+		// I know this looks very messy but this works. If it ain't broke, don't fix it!
+		// shift LETTERS to uppercase if we have capslock or are holding shift
+		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 		{
-			if (capslock)
-				capslock = false;
-			else
-				capslock = true;
-			return true;
+			if (shiftdown ^ capslock)
+				c = shiftxform[c];
 		}
-
-		// use console translations
-		if (shiftdown ^ capslock)
-			c = shiftxform[c];
-
-		// TODO: make chat behave like the console, so that we can go back and edit stuff when we fuck up.
+		else	// if we're holding shift we should still shift non letter symbols
+		{
+			if (shiftdown)
+				c = shiftxform[c];
+		}
 
 		// pasting. pasting is cool. chat is a bit limited, though :(
 		if (((c == 'v' || c == 'V') && ctrldown) && !CHAT_MUTE)
@@ -2114,7 +2123,7 @@ void HU_Drawer(void)
 		LUAh_ScoresHUD();
 #endif
 		}
-	}	
+	}
 
 	if (gamestate != GS_LEVEL)
 		return;
