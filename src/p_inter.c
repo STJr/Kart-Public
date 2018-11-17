@@ -406,7 +406,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			else
 			{
 				K_DropItems(player); //K_StripItems(player);
-				K_StripOther(player);
+				//K_StripOther(player);
 				player->kartstuff[k_itemroulette] = 1;
 				player->kartstuff[k_roulettetype] = 2;
 			}
@@ -544,7 +544,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebacktimer] = comebacktime;
 
 				K_DropItems(player); //K_StripItems(player);
-				K_StripOther(player);
+				//K_StripOther(player);
 
 				player->kartstuff[k_itemroulette] = 1;
 				player->kartstuff[k_roulettetype] = 2;

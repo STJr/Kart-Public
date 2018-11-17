@@ -4709,7 +4709,10 @@ void K_StripOther(player_t *player)
 	player->kartstuff[k_roulettetype] = 0;
 
 	player->kartstuff[k_invincibilitytimer] = 0;
-	player->kartstuff[k_growshrinktimer] = 0;
+	if (player->kartstuff[k_growshrinktimer] > 0)
+		player->kartstuff[k_growshrinktimer] = 2;
+	else if (player->kartstuff[k_growshrinktimer] < 0)
+		player->kartstuff[k_growshrinktimer] = -2;
 
 	if (player->kartstuff[k_eggmanexplode])
 	{
