@@ -1305,7 +1305,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.numberofplayer = (UINT8)D_NumPlayers();
 	netbuffer->u.serverinfo.maxplayer = (UINT8)cv_maxplayers.value;
-	netbuffer->u.serverinfo.gametype = (UINT8)(G_BattleGametype() ? 3 : 2); // SRB2Kart: Vanilla's gametype constants for MS support
+	netbuffer->u.serverinfo.gametype = (UINT8)(G_BattleGametype() ? VANILLA_GT_MATCH : VANILLA_GT_RACE); // SRB2Kart: Vanilla's gametype constants for MS support
 	netbuffer->u.serverinfo.modifiedgame = (UINT8)modifiedgame;
 	netbuffer->u.serverinfo.cheatsenabled = CV_CheatsEnabled();
 	netbuffer->u.serverinfo.isdedicated = (UINT8)dedicated;
@@ -1315,17 +1315,46 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	M_Memcpy(netbuffer->u.serverinfo.mapmd5, mapmd5, 16);
 
-	if (strcmp(mapheaderinfo[gamemap-1]->lvlttl, ""))
-		strncpy(netbuffer->u.serverinfo.maptitle, (char *)mapheaderinfo[gamemap-1]->lvlttl, 33);
+	if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) && !(mapheaderinfo[prevmap]->zonttl[0]))
+		netbuffer->u.serverinfo.iszone = 1;
+	else
+		netbuffer->u.serverinfo.iszone = 0;
+
+	if (!(mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU) && mapheaderinfo[gamemap-1]->lvlttl[0])
+	{
+		//strncpy(netbuffer->u.serverinfo.maptitle, (char *)mapheaderinfo[gamemap-1]->lvlttl, 33);
+		// set up the levelstring
+		if (netbuffer->u.serverinfo.iszone || (mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
+		{
+			if (mapheaderinfo[gamemap-1]->actnum[0])
+				snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s %s",
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
+			else
+				snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s",
+					mapheaderinfo[gamemap-1]->lvlttl);
+		}
+		else
+		{
+			if (mapheaderinfo[gamemap-1]->actnum[0])
+				snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s %s %s",
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum);
+			else
+				snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s %s",
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl);
+		}
+	}
 	else
 		strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
 
 	netbuffer->u.serverinfo.maptitle[32] = '\0';
-
-	if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-		netbuffer->u.serverinfo.iszone = 1;
-	else
-		netbuffer->u.serverinfo.iszone = 0;
 
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
@@ -3625,6 +3654,7 @@ static void HandleServerInfo(SINT8 node)
 	const tic_t ticdiff = (ticnow - ticthen)*1000/NEWTICRATE;
 	netbuffer->u.serverinfo.time = (tic_t)LONG(ticdiff);
 	netbuffer->u.serverinfo.servername[MAXSERVERNAME-1] = 0;
+	netbuffer->u.serverinfo.gametype == (UINT8)((netbuffer->u.serverinfo.gametype == VANILLA_GT_MATCH) ? GT_MATCH : GT_RACE);
 
 	SL_InsertServer(&netbuffer->u.serverinfo, node);
 }

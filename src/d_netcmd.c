@@ -4618,16 +4618,16 @@ static void Command_Showmap_f(void)
 {
 	if (gamestate == GS_LEVEL)
 	{
-		if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
+		if (mapheaderinfo[gamemap-1]->zonttl[0] && !(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
 		{
-			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+			if (mapheaderinfo[gamemap-1]->actnum[0])
 				CONS_Printf("%s (%d): %s %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum);
 			else
 				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl);
 		}
 		else
 		{
-			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+			if (smapheaderinfo[gamemap-1]->actnum[0])
 				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
 			else
 				CONS_Printf("%s (%d): %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl);
