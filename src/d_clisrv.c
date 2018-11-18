@@ -3654,7 +3654,7 @@ static void HandleServerInfo(SINT8 node)
 	const tic_t ticdiff = (ticnow - ticthen)*1000/NEWTICRATE;
 	netbuffer->u.serverinfo.time = (tic_t)LONG(ticdiff);
 	netbuffer->u.serverinfo.servername[MAXSERVERNAME-1] = 0;
-	netbuffer->u.serverinfo.gametype == (UINT8)((netbuffer->u.serverinfo.gametype == VANILLA_GT_MATCH) ? GT_MATCH : GT_RACE);
+	netbuffer->u.serverinfo.gametype = (UINT8)((netbuffer->u.serverinfo.gametype == VANILLA_GT_MATCH) ? GT_MATCH : GT_RACE);
 
 	SL_InsertServer(&netbuffer->u.serverinfo, node);
 }

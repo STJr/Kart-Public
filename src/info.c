@@ -62,14 +62,14 @@ char sprnames[NUMSPRITES + 1][5] =
 	"SACO","CRAB","SHAD","BRNG","BUMP","FLEN","CLAS","PSHW","ISTA","ISTB",
 	"ARRO","ITEM","ITMO","ITMI","ITMN","WANT","PBOM","HIT1","HIT2","HIT3",
 	"RETI","AIDU","KSPK","LZI1","LZI2","KLIT","FZSM","FZBM","FPRT","SBUS",
-	"SHRB","TWEE","MARB","FUFO","RUST","BLON","VAPE","HTZA","HTZB","SGVA",
-	"SGVB","SGVC","PGTR","PGF1","PGF2","PGF3","PGBH","DPLR","SPTL","ENM1",
-	"GARU","MARR","REAP","JITB","CDMO","CDBU","PINE","PPLR","DPPT","AATR",
-	"COCO","BDST","FROG","CBRA","HOLE","BBRA","EGFG","SMKP","MTYM","THWP",
-	"SNOB","ICEB","CNDL","DOCH","DUCK","GTRE","CHES","CHIM","DRGN","LZMN",
-	"PGSS","ZTCH","MKMA","MKMP","RTCH","BOWL","BOWH","BRRL","BRRR","HRSE",
-	"TOAH","BFRT","OFRT","RFRT","PFRT","ASPK","HBST","HBSO","HBSF","WBLZ",
-	"WBLN","MSMF","XMS4","XMS5","VIEW"
+	"MARB","FUFO","RUST","BLON","VAPE","HTZA","HTZB","SGVA","SGVB","SGVC",
+	"PGTR","PGF1","PGF2","PGF3","PGBH","DPLR","SPTL","ENM1","GARU","MARR",
+	"REAP","JITB","CDMO","CDBU","PINE","PPLR","DPPT","AATR","COCO","BDST",
+	"FROG","CBRA","HOLE","BBRA","EGFG","SMKP","MTYM","THWP","SNOB","ICEB",
+	"CNDL","DOCH","DUCK","GTRE","CHES","CHIM","DRGN","LZMN","PGSS","ZTCH",
+	"MKMA","MKMP","RTCH","BOWL","BOWH","BRRL","BRRR","HRSE","TOAH","BFRT",
+	"OFRT","RFRT","PFRT","ASPK","HBST","HBSO","HBSF","WBLZ","WBLN","XMS4",
+	"XMS5","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3148,9 +3148,6 @@ state_t states[NUMSTATES] =
 
 	// Various plants
 	{SPR_SBUS, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SONICBUSH
-	{SPR_SHRB, 0, -1, {NULL}, 0, 0, S_NULL}, // S_SHRUB
-	{SPR_BUS2, 1, -1, {NULL}, 0, 0, S_NULL}, // S_TALLBUSH
-	{SPR_TWEE, 0, -1, {NULL}, 0, 0, S_NULL}, // S_AZURECITYTREE
 
 	// Marble Zone
 	{SPR_MARB, FF_FULLBRIGHT|FF_ANIMATE|5, TICRATE, {NULL}, 3, 3, S_NULL}, // S_FLAMEPARTICLE
@@ -3390,8 +3387,6 @@ state_t states[NUMSTATES] =
  
     {SPR_WBLZ, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIZARDMAN
     {SPR_WBLN, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIONMAN
-    {SPR_MSMF,   FF_FULLBRIGHT, 5, {NULL}, 0, 0, S_MOUSEMAN2}, // S_MOUSEMAN1
-    {SPR_MSMF, 1|FF_FULLBRIGHT, 5, {NULL}, 0, 0, S_MOUSEMAN1}, // S_MOUSEMAN2
 
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
@@ -17457,87 +17452,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_NULL          // raisestate
 	},
 
-	{           // MT_SHRUB,
-		4022,           // doomednum
-		S_SHRUB,        // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		91*FRACUNIT,    // radius
-		166*FRACUNIT,   // height
-		0,              // display offset
-		0,              // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_TALLBUSH,
-		1485,           // doomednum
-		S_TALLBUSH,     // spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		91*FRACUNIT,    // radius
-		166*FRACUNIT,   // height
-		0,              // display offset
-		0,              // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY, // flags
-		S_NULL          // raisestate
-	},
-
-	{           // MT_AZURECITYTREE,
-		1486,           // doomednum
-		S_AZURECITYTREE,// spawnstate
-		1000,           // spawnhealth
-		S_NULL,         // seestate
-		sfx_None,       // seesound
-		8,              // reactiontime
-		sfx_None,       // attacksound
-		S_NULL,         // painstate
-		0,              // painchance
-		sfx_None,       // painsound
-		S_NULL,         // meleestate
-		S_NULL,         // missilestate
-		S_NULL,         // deathstate
-		S_NULL,         // xdeathstate
-		sfx_None,       // deathsound
-		0,              // speed
-		91*FRACUNIT,    // radius
-		166*FRACUNIT,   // height
-		0,              // display offset
-		0,              // mass
-		0,              // damage
-		sfx_None,       // activesound
-		MF_NOTHINK|MF_NOBLOCKMAP|MF_NOCLIP|MF_SCENERY, // flags
-		S_NULL          // raisestate
-	},
-
 	{           // MT_FLAMEPARTICLE
 		-1,             // doomednum
 		S_FLAMEPARTICLE,// spawnstate
@@ -20102,33 +20016,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	    0,              // damage
 	    sfx_None,       // activesound
 	    MF_SOLID,       // flags
-	    S_NULL          // raisestate
-	},
-
-	{           // MT_MOUSEMAN
-	    3800,           // doomednum
-	    S_MOUSEMAN1,    // spawnstate
-	    1000,           // spawnhealth
-	    S_NULL,         // seestate
-	    sfx_None,       // seesound
-	    8,              // reactiontime
-	    sfx_None,       // attacksound
-	    S_NULL,         // painstate
-	    0,              // painchance
-	    sfx_None,       // painsound
-	    S_NULL,         // meleestate
-	    S_NULL,         // missilestate
-	    S_NULL,         // deathstate
-	    S_NULL,         // xdeathstate
-	    sfx_None,       // deathsound
-	    0,              // speed
-	    16<<FRACBITS,   // radius
-	    64<<FRACBITS,   // height
-	    0,              // display offset
-	    100,            // mass
-	    0,              // damage
-	    sfx_None,       // activesound
-	    MF_SCENERY|MF_NOGRAVITY, // flags
 	    S_NULL          // raisestate
 	},
 

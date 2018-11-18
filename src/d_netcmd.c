@@ -4627,7 +4627,7 @@ static void Command_Showmap_f(void)
 		}
 		else
 		{
-			if (smapheaderinfo[gamemap-1]->actnum[0])
+			if (mapheaderinfo[gamemap-1]->actnum[0])
 				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
 			else
 				CONS_Printf("%s (%d): %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl);
