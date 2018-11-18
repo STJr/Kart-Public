@@ -4155,7 +4155,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_yougotem])
 		player->kartstuff[k_yougotem]--;
-	
+
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
 		if (player->exiting)
@@ -4519,7 +4519,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 			|| (player->kartstuff[k_driftcharge] < dstwo && player->kartstuff[k_driftcharge]+driftadditive >= dstwo)
 			|| (player->kartstuff[k_driftcharge] < dsthree && player->kartstuff[k_driftcharge]+driftadditive >= dsthree)))
 		{
-			//S_StartSound(player->mo, sfx_s3ka2); 
+			//S_StartSound(player->mo, sfx_s3ka2);
 			S_StartSoundAtVolume(player->mo, sfx_s3ka2, 192); // Ugh...
 		}
 
@@ -6553,11 +6553,11 @@ static boolean K_drawKartPositionFaces(void)
 
 	if (numplayersingame <= 1)
 		return true;
-	
+
 #ifdef HAVE_BLUA
 	if (!LUA_HudEnabled(hud_minirankings))
 		return false;	// Don't proceed but still return true for free play above if HUD is disabled.
-#endif	
+#endif
 
 	for (j = 0; j < numplayersingame; j++)
 	{
@@ -7053,9 +7053,9 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	{
 		UINT8 *colormap;
 		if (mo->colorized)
-			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, 0);
+			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, GTC_CACHE);
 		else
-			colormap = R_GetTranslationColormap(skin, mo->color, 0);
+			colormap = R_GetTranslationColormap(skin, mo->color, GTC_CACHE);
 		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
 	}
 }
