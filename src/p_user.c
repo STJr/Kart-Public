@@ -1792,7 +1792,7 @@ void P_DoPlayerExit(player_t *player)
 			}
 
 			if (i == MAXPLAYERS)
-				countdown = (((netgame || multiplayer) ? cv_countdowntime.defaultvalue : cv_countdowntime.value)*TICRATE) + 1; // 30 seconds to finish, get going!
+				countdown = ((!(netgame || multiplayer) ? cv_countdowntime.defaultvalue : cv_countdowntime.value)*TICRATE) + 1; // 30 seconds to finish, get going!
 		}
 
 		if (cv_kartvoices.value)
