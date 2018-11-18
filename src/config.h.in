@@ -52,7 +52,7 @@
 #define ASSET_HASH_CHARS_KART    "784ee9177b01c8cb26edff43eaf93d87"
 #define ASSET_HASH_MAPS_KART     "84018d9b35d181ca9fcc2be5a9d43a45"
 #ifdef USE_PATCH_KART
-#define ASSET_HASH_PATCH_KART    "heyguysdidyouknowilovedogssomuch"
+#define ASSET_HASH_PATCH_KART    "c19c373465f9240c5d61238c35b36a8e"
 #endif
 
 #endif
