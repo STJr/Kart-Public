@@ -1625,6 +1625,14 @@ static void K_GetKartBoostPower(player_t *player)
 	else if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
+	// Banana drag/offroad dust
+	if (boostpower < FRACUNIT)
+	{
+		K_SpawnWipeoutTrail(player->mo, true);
+		if (leveltime % 6 == 0)
+			S_StartSound(player->mo, sfx_cdfm70);
+	}
+
 	if (player->kartstuff[k_sneakertimer]) // Sneaker
 	{
 		switch (gamespeed)
@@ -3564,15 +3572,7 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *targ = player->mo;
 
 				if (P_IsObjectOnGround(player->mo) && player->speed > 0)
-				{
 					player->kartstuff[k_bananadrag]++;
-					if (player->kartstuff[k_bananadrag] > TICRATE)
-					{
-						K_SpawnWipeoutTrail(player->mo, true);
-						if (leveltime % 6 == 0)
-							S_StartSound(player->mo, sfx_cdfm70);
-					}
-				}
 
 				while (cur && !P_MobjWasRemoved(cur))
 				{
