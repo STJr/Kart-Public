@@ -3265,31 +3265,16 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 				if (botingame)
 					players[newplayernum].bot = 1;
 				// Same goes for player 2 when relevant
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam2.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog2.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
 			else if (splitscreenplayer == 2)
 			{
 				thirddisplayplayer = newplayernum;
 				DEBFILE("spawning my sister\n");
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam3.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog3.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
 			else if (splitscreenplayer == 3)
 			{
 				fourthdisplayplayer = newplayernum;
 				DEBFILE("spawning my trusty pet dog\n");
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam4.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog4.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
 		}
 		else
@@ -3300,12 +3285,6 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 			thirddisplayplayer = newplayernum;
 			fourthdisplayplayer = newplayernum;
 			DEBFILE("spawning me\n");
-			// Apply player flags as soon as possible!
-			players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-			if (cv_flipcam.value)
-				players[newplayernum].pflags |= PF_FLIPCAM;
-			if (cv_analog.value)
-				players[newplayernum].pflags |= PF_ANALOGMODE;
 		}
 		D_SendPlayerConfig();
 		addedtogame = true;

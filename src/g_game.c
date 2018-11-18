@@ -1657,11 +1657,6 @@ static void Analog_OnChange(void)
 		return;
 	}*/
 
-	if (cv_analog.value)
-		players[consoleplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[consoleplayer].pflags &= ~PF_ANALOGMODE;
-
 	SendWeaponPref();
 }
 
@@ -1676,11 +1671,6 @@ static void Analog2_OnChange(void)
 		CV_SetValue(&cv_analog2, 0);
 		return;
 	}*/
-
-	if (cv_analog2.value)
-		players[secondarydisplayplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[secondarydisplayplayer].pflags &= ~PF_ANALOGMODE;
 
 	SendWeaponPref2();
 }
@@ -1697,11 +1687,6 @@ static void Analog3_OnChange(void)
 		return;
 	}*/
 
-	if (cv_analog3.value)
-		players[thirddisplayplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[thirddisplayplayer].pflags &= ~PF_ANALOGMODE;
-
 	SendWeaponPref3();
 }
 
@@ -1716,11 +1701,6 @@ static void Analog4_OnChange(void)
 		CV_SetValue(&cv_analog4, 0);
 		return;
 	}*/
-
-	if (cv_analog4.value)
-		players[fourthdisplayplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[fourthdisplayplayer].pflags &= ~PF_ANALOGMODE;
 
 	SendWeaponPref4();
 }
