@@ -264,41 +264,21 @@ static void ChaseCam4_OnChange(void)
 
 static void FlipCam_OnChange(void)
 {
-	if (cv_flipcam.value)
-		players[consoleplayer].pflags |= PF_FLIPCAM;
-	else
-		players[consoleplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref();
 }
 
 static void FlipCam2_OnChange(void)
 {
-	if (cv_flipcam2.value)
-		players[secondarydisplayplayer].pflags |= PF_FLIPCAM;
-	else
-		players[secondarydisplayplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref2();
 }
 
 static void FlipCam3_OnChange(void)
 {
-	if (cv_flipcam3.value)
-		players[thirddisplayplayer].pflags |= PF_FLIPCAM;
-	else
-		players[thirddisplayplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref3();
 }
 
 static void FlipCam4_OnChange(void)
 {
-	if (cv_flipcam4.value)
-		players[fourthdisplayplayer].pflags |= PF_FLIPCAM;
-	else
-		players[fourthdisplayplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref4();
 }
 
