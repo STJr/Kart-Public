@@ -1786,13 +1786,13 @@ void P_DoPlayerExit(player_t *player)
 			{
 				if (!playeringame[i] || players[i].spectator)
 					continue;
-				if (players[i].exiting || K_IsPlayerLosing(players[i])) // Only start countdown when all winners are declared
+				if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
 					continue;
 				break;
 			}
 
 			if (i == MAXPLAYERS)
-				countdown = ((!(netgame || multiplayer) ? cv_countdowntime.defaultvalue : cv_countdowntime.value)*TICRATE) + 1; // 30 seconds to finish, get going!
+				countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
 		}
 
 		if (cv_kartvoices.value)

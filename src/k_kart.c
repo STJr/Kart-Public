@@ -3134,12 +3134,50 @@ static void K_DoShrink(player_t *player)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		/*if (playeringame[i])
-			P_FlashPal(&players[i], PAL_NUKE, 10);*/
+		if (!playeringame[i] || player->spectator || !players[i].mo)
+			continue;
+		if (&players[i] == player)
+			continue;
+		if (players[i].kartstuff[k_position] < player->kartstuff[k_position])
+		{
+			//P_FlashPal(&players[i], PAL_NUKE, 10);
 
-		if (playeringame[i] && players[i].mo && !player->spectator
-			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
-			P_DamageMobj(players[i].mo, player->mo, player->mo, 64);
+			if (!player->kartstuff[k_invincibilitytimer] // Don't hit while invulnerable!
+				&& player->kartstuff[k_growshrinktimer] <= 0)
+			{
+				// Start shrinking!
+				players[i].mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
+				players[i].mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
+				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
+					players[i].mo->destscale = 6*players[i].mo->destscale/8;
+
+				// Wipeout
+				K_DropItems(&players[i]);
+				K_SpinPlayer(&players[i], player->mo, 1, false);
+
+				// P_RingDamage
+				P_DoPlayerPain(&players[i], player->mo, player->mo);
+				P_ForceFeed(&players[i], 40, 10, TICRATE, 40 + min((players[i].mo->health-1), 100)*2);
+				P_PlayRinglossSound(players[i].mo); // Ringledingle!
+
+				P_PlayerRingBurst(&players[i], 5);
+				players[i].mo->momx = players[i].mo->momy = 0;
+				if (P_IsLocalPlayer(&players[i]))
+				{
+					quake.intensity = 32*FRACUNIT;
+					quake.time = 5;
+				}
+
+				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(16-players[i].kartstuff[k_position])));
+				players[i].kartstuff[k_sneakertimer] = 0;
+			}
+
+			// Grow should get taken away.
+			if (players[i].kartstuff[k_growshrinktimer] > 0)
+				players[i].kartstuff[k_growshrinktimer] = 2;
+
+			S_StartSound(players[i].mo, sfx_kc59);
+		}
 	}
 }
 

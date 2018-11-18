@@ -3239,48 +3239,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				return false; // Don't get hurt by fire generated from friends.
 		}
 
-		//{ SRB2kart - special damage sources
-
-		// Shrink
-		if (damage == 64)
-		{
-			if (player == source->player)
-				return false;
-			// Don't flip out while super!
-			if (!player->kartstuff[k_invincibilitytimer] && player->kartstuff[k_growshrinktimer] <= 0)
-			{
-				// Start shrinking!
-				player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
-				player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
-				if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-					player->mo->destscale = 6*player->mo->destscale/8;
-
-				// Wipeout
-				K_DropItems(player);
-				K_SpinPlayer(player, source, 1, false);
-				damage = player->mo->health - 1;
-				P_RingDamage(player, inflictor, source, damage);
-				P_PlayerRingBurst(player, 5);
-				player->mo->momx = player->mo->momy = 0;
-				if (P_IsLocalPlayer(player))
-				{
-					quake.intensity = 32*FRACUNIT;
-					quake.time = 5;
-				}
-
-				player->kartstuff[k_growshrinktimer] -= (200+(40*(16-player->kartstuff[k_position])));
-			}
-			// Grow? Let's take that away.
-			if (player->kartstuff[k_growshrinktimer] > 0)
-			{
-				player->kartstuff[k_growshrinktimer] = 2;
-			}
-			player->kartstuff[k_sneakertimer] = 0;
-			S_StartSound(player->mo, sfx_kc59);
-			return true;
-		}
-		//}
-
 		// Sudden-Death mode
 		if (source && source->type == MT_PLAYER)
 		{
