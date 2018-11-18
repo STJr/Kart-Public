@@ -62,6 +62,12 @@ typedef enum
 
 	// Add non-PT_CANFAIL packet types here to avoid breaking MS compatibility.
 
+	// Kart-specific packets
+	PT_CLIENT3CMD,    // 3P
+	PT_CLIENT3MIS,
+	PT_CLIENT4CMD,    // 4P
+	PT_CLIENT4MIS,
+
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.
 	                  // In addition, this packet can't occupy all the available slots.
@@ -79,13 +85,6 @@ typedef enum
 #ifdef NEWPING
 	PT_PING,          // Packet sent to tell clients the other client's latency to server.
 #endif
-
-	// Kart-specific packets
-	PT_CLIENT3CMD,    // 3P
-	PT_CLIENT3MIS,
-	PT_CLIENT4CMD,    // 4P
-	PT_CLIENT4MIS,
-
 	NUMPACKETTYPE
 } packettype_t;
 
@@ -495,10 +494,10 @@ typedef enum
 	KR_KICK          = 1, //Kicked by server
 	KR_PINGLIMIT     = 2, //Broke Ping Limit
 	KR_SYNCH         = 3, //Synch Failure
-	KR_TIMEOUT       = 4, //Connection Timeout 
+	KR_TIMEOUT       = 4, //Connection Timeout
 	KR_BAN           = 5, //Banned by server
 	KR_LEAVE         = 6, //Quit the game
-	
+
 } kickreason_t;
 
 extern boolean server;
