@@ -1320,6 +1320,8 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	else
 		netbuffer->u.serverinfo.iszone = 0;
 
+	memset(netbuffer->u.serverinfo.maptitle, 0, 33);
+
 	if (!(mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU) && mapheaderinfo[gamemap-1]->lvlttl[0])
 	{
 		//strncpy(netbuffer->u.serverinfo.maptitle, (char *)mapheaderinfo[gamemap-1]->lvlttl, 33);
@@ -1340,15 +1342,27 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 		else
 		{
 			if (mapheaderinfo[gamemap-1]->actnum[0])
-				snprintf(netbuffer->u.serverinfo.maptitle,
+			{
+				if (snprintf(netbuffer->u.serverinfo.maptitle,
 					33,
 					"%s %s %s",
-					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum);
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum) < 0)
+				{
+					// If there's an encoding error, send UNKNOWN, we accept that the above may be truncated
+					strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+				}
+			}
 			else
-				snprintf(netbuffer->u.serverinfo.maptitle,
+			{
+				if (snprintf(netbuffer->u.serverinfo.maptitle,
 					33,
 					"%s %s",
-					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl);
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl) < 0)
+				{
+					// If there's an encoding error, send UNKNOWN, we accept that the above may be truncated
+					strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+				}
+			}
 		}
 	}
 	else
