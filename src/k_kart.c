@@ -1625,6 +1625,14 @@ static void K_GetKartBoostPower(player_t *player)
 	else if (player->kartstuff[k_bananadrag] > TICRATE)
 		boostpower = 4*boostpower/5;
 
+	// Banana drag/offroad dust
+	if (boostpower < FRACUNIT)
+	{
+		K_SpawnWipeoutTrail(player->mo, true);
+		if (leveltime % 6 == 0)
+			S_StartSound(player->mo, sfx_cdfm70);
+	}
+
 	if (player->kartstuff[k_sneakertimer]) // Sneaker
 	{
 		switch (gamespeed)
@@ -3126,12 +3134,50 @@ static void K_DoShrink(player_t *player)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		/*if (playeringame[i])
-			P_FlashPal(&players[i], PAL_NUKE, 10);*/
+		if (!playeringame[i] || player->spectator || !players[i].mo)
+			continue;
+		if (&players[i] == player)
+			continue;
+		if (players[i].kartstuff[k_position] < player->kartstuff[k_position])
+		{
+			//P_FlashPal(&players[i], PAL_NUKE, 10);
 
-		if (playeringame[i] && players[i].mo && !player->spectator
-			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
-			P_DamageMobj(players[i].mo, player->mo, player->mo, 64);
+			if (!player->kartstuff[k_invincibilitytimer] // Don't hit while invulnerable!
+				&& player->kartstuff[k_growshrinktimer] <= 0)
+			{
+				// Start shrinking!
+				players[i].mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
+				players[i].mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
+				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
+					players[i].mo->destscale = 6*players[i].mo->destscale/8;
+
+				// Wipeout
+				K_DropItems(&players[i]);
+				K_SpinPlayer(&players[i], player->mo, 1, false);
+
+				// P_RingDamage
+				P_DoPlayerPain(&players[i], player->mo, player->mo);
+				P_ForceFeed(&players[i], 40, 10, TICRATE, 40 + min((players[i].mo->health-1), 100)*2);
+				P_PlayRinglossSound(players[i].mo); // Ringledingle!
+
+				P_PlayerRingBurst(&players[i], 5);
+				players[i].mo->momx = players[i].mo->momy = 0;
+				if (P_IsLocalPlayer(&players[i]))
+				{
+					quake.intensity = 32*FRACUNIT;
+					quake.time = 5;
+				}
+
+				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(16-players[i].kartstuff[k_position])));
+				players[i].kartstuff[k_sneakertimer] = 0;
+			}
+
+			// Grow should get taken away.
+			if (players[i].kartstuff[k_growshrinktimer] > 0)
+				players[i].kartstuff[k_growshrinktimer] = 2;
+
+			S_StartSound(players[i].mo, sfx_kc59);
+		}
 	}
 }
 
@@ -3564,15 +3610,7 @@ static void K_MoveHeldObjects(player_t *player)
 				mobj_t *targ = player->mo;
 
 				if (P_IsObjectOnGround(player->mo) && player->speed > 0)
-				{
 					player->kartstuff[k_bananadrag]++;
-					if (player->kartstuff[k_bananadrag] > TICRATE)
-					{
-						K_SpawnWipeoutTrail(player->mo, true);
-						if (leveltime % 6 == 0)
-							S_StartSound(player->mo, sfx_cdfm70);
-					}
-				}
 
 				while (cur && !P_MobjWasRemoved(cur))
 				{
@@ -4155,7 +4193,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_yougotem])
 		player->kartstuff[k_yougotem]--;
-	
+
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
 		if (player->exiting)
@@ -4519,7 +4557,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 			|| (player->kartstuff[k_driftcharge] < dstwo && player->kartstuff[k_driftcharge]+driftadditive >= dstwo)
 			|| (player->kartstuff[k_driftcharge] < dsthree && player->kartstuff[k_driftcharge]+driftadditive >= dsthree)))
 		{
-			//S_StartSound(player->mo, sfx_s3ka2); 
+			//S_StartSound(player->mo, sfx_s3ka2);
 			S_StartSoundAtVolume(player->mo, sfx_s3ka2, 192); // Ugh...
 		}
 
@@ -4709,7 +4747,10 @@ void K_StripOther(player_t *player)
 	player->kartstuff[k_roulettetype] = 0;
 
 	player->kartstuff[k_invincibilitytimer] = 0;
-	player->kartstuff[k_growshrinktimer] = 0;
+	if (player->kartstuff[k_growshrinktimer] > 0)
+		player->kartstuff[k_growshrinktimer] = 2;
+	else if (player->kartstuff[k_growshrinktimer] < 0)
+		player->kartstuff[k_growshrinktimer] = -2;
 
 	if (player->kartstuff[k_eggmanexplode])
 	{
@@ -6456,6 +6497,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	// POSI_X = BASEVIDWIDTH - 51;	// 269
 	// POSI_Y = BASEVIDHEIGHT- 64;	// 136
 
+	boolean win = (stplyr->exiting && num == 1);
 	INT32 X = POSI_X;
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
 	fixed_t scale = FRACUNIT;
@@ -6481,7 +6523,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	// Draw the number
 	while (num)
 	{
-		if (stplyr->exiting && num == 1) // 1st place winner? You get rainbows!!
+		if (win) // 1st place winner? You get rainbows!!
 			localpatch = kp_winnernum[(leveltime % (NUMWINFRAMES*3)) / 3];
 		else if (stplyr->laps+1 >= cv_numlaps.value || stplyr->exiting) // Check for the final lap, or won
 		{
@@ -6549,15 +6591,15 @@ static boolean K_drawKartPositionFaces(void)
 
 	if (numplayersingame <= 1)
 		return true;
-	
+
 #ifdef HAVE_BLUA
 	if (!LUA_HudEnabled(hud_minirankings))
 		return false;	// Don't proceed but still return true for free play above if HUD is disabled.
-#endif	
+#endif
 
 	for (j = 0; j < numplayersingame; j++)
 	{
-		UINT8 lowestposition = MAXPLAYERS;
+		UINT8 lowestposition = MAXPLAYERS+1;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (completed[i] || !playeringame[i] || players[i].spectator || !players[i].mo)
@@ -7049,9 +7091,9 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 	{
 		UINT8 *colormap;
 		if (mo->colorized)
-			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, 0);
+			colormap = R_GetTranslationColormap(TC_RAINBOW, mo->color, GTC_CACHE);
 		else
-			colormap = R_GetTranslationColormap(skin, mo->color, 0);
+			colormap = R_GetTranslationColormap(skin, mo->color, GTC_CACHE);
 		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
 	}
 }

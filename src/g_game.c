@@ -423,7 +423,7 @@ consvar_t cv_chatnotifications = {"chatnotifications", "On", CV_SAVE, CV_OnOff, 
 consvar_t cv_chatspamprotection = {"chatspamprotection", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // minichat text background
-consvar_t cv_chatbacktint = {"chatbacktint", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_chatbacktint = {"chatbacktint", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // old shit console chat. (mostly exists for stuff like terminal, not because I cared if anyone liked the old chat.)
 static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {2, "Window (Hidden)"}, {0, NULL}};
@@ -1657,11 +1657,6 @@ static void Analog_OnChange(void)
 		return;
 	}*/
 
-	if (cv_analog.value)
-		players[consoleplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[consoleplayer].pflags &= ~PF_ANALOGMODE;
-
 	SendWeaponPref();
 }
 
@@ -1676,11 +1671,6 @@ static void Analog2_OnChange(void)
 		CV_SetValue(&cv_analog2, 0);
 		return;
 	}*/
-
-	if (cv_analog2.value)
-		players[secondarydisplayplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[secondarydisplayplayer].pflags &= ~PF_ANALOGMODE;
 
 	SendWeaponPref2();
 }
@@ -1697,11 +1687,6 @@ static void Analog3_OnChange(void)
 		return;
 	}*/
 
-	if (cv_analog3.value)
-		players[thirddisplayplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[thirddisplayplayer].pflags &= ~PF_ANALOGMODE;
-
 	SendWeaponPref3();
 }
 
@@ -1716,11 +1701,6 @@ static void Analog4_OnChange(void)
 		CV_SetValue(&cv_analog4, 0);
 		return;
 	}*/
-
-	if (cv_analog4.value)
-		players[fourthdisplayplayer].pflags |= PF_ANALOGMODE;
-	else
-		players[fourthdisplayplayer].pflags &= ~PF_ANALOGMODE;
 
 	SendWeaponPref4();
 }
@@ -2293,10 +2273,8 @@ static inline void G_PlayerFinishLevel(INT32 player)
 		{
 			matchesplayed++;
 			if (M_UpdateUnlockablesAndExtraEmblems(true))
-			{
 				S_StartSound(NULL, sfx_ncitem);
-				G_SaveGameData(true); // only save if unlocked something
-			}
+			G_SaveGameData(true);
 		}
 
 		legitimateexit = false;
@@ -3605,7 +3583,7 @@ void G_NextLevel(void)
 		forceresetplayers = false;
 		deferencoremode = (boolean)cv_kartencore.value;
 	}
-	
+
 	gameaction = ga_worlddone;
 }
 
@@ -5708,7 +5686,7 @@ void G_DeferedPlayDemo(const char *name)
 //
 // Start a demo from a .LMP file or from a wad resource
 //
-#define SKIPERRORS 
+#define SKIPERRORS
 void G_DoPlayDemo(char *defdemoname)
 {
 	UINT8 i;

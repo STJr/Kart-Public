@@ -1129,7 +1129,7 @@ void F_StartWaitingPlayers(void)
 
 	for (i = 0; i < 2; i++)
 	{
-		sprframe = &skins[randskin].spritedef.spriteframes[(6+i) & FF_FRAMEMASK];
+		sprframe = &skins[randskin].spritedef.spriteframes[(6+(i*3)) & FF_FRAMEMASK];
 		driver[i] = W_CachePatchNum(sprframe->lumppat[1], PU_LEVEL);
 	}
 }

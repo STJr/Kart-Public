@@ -673,8 +673,6 @@ typedef enum sprite
 
 	// Various plants
 	SPR_SBUS,
-	SPR_SHRB,
-	SPR_TWEE,
 
 	SPR_MARB, // Marble Zone sprites
 	SPR_FUFO, // CD Special Stage UFO (don't ask me why it begins with an F)
@@ -775,7 +773,6 @@ typedef enum sprite
 	SPR_HBSF,
 	SPR_WBLZ,
 	SPR_WBLN,
-	SPR_MSMF,
 
 	// Xmas-specific sprites that don't fit aboxe
 	SPR_XMS4,
@@ -3815,9 +3812,6 @@ typedef enum state
 
 	// Various plants
 	S_SONICBUSH,
-	S_SHRUB,
-	S_TALLBUSH,
-	S_AZURECITYTREE,
 
 	// Marble Zone
 	S_FLAMEPARTICLE,
@@ -4049,8 +4043,6 @@ typedef enum state
 
 	S_LIZARDMAN,
 	S_LIONMAN,
-	S_MOUSEMAN1,
-	S_MOUSEMAN2,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -4721,9 +4713,6 @@ typedef enum mobj_type
 
 	// Various plants
 	MT_SONICBUSH,
-	MT_SHRUB,
-	MT_TALLBUSH,
-	MT_AZURECITYTREE,
 
 	// Marble Zone
 	MT_FLAMEPARTICLE,
@@ -4856,7 +4845,6 @@ typedef enum mobj_type
 	MT_BOOSTON,
 	MT_LIZARDMAN,
 	MT_LIONMAN,
-	MT_MOUSEMAN,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

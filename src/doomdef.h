@@ -150,9 +150,9 @@ extern FILE *logstream;
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    100 // Game version
-#define SUBVERSION 0 // more precise version number
-#define VERSIONSTRING "v1.0.0"
-#define VERSIONSTRINGW L"v1.0.0"
+#define SUBVERSION 1 // more precise version number
+#define VERSIONSTRING "v1.0.1"
+#define VERSIONSTRINGW L"v1.0.1"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
@@ -162,7 +162,7 @@ extern FILE *logstream;
 //#define USE_PATCH_DTA
 
 // Kart has it's own, as well.
-//#define USE_PATCH_KART
+#define USE_PATCH_KART
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update

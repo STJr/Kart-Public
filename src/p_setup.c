@@ -2565,6 +2565,43 @@ static void P_LoadRecordGhosts(void)
 	free(gpath);
 }*/
 
+static void P_SetupCamera(UINT8 pnum, camera_t *cam)
+{
+	if (players[pnum].mo && (server || addedtogame))
+	{
+		cam->x = players[pnum].mo->x;
+		cam->y = players[pnum].mo->y;
+		cam->z = players[pnum].mo->z;
+		cam->angle = players[pnum].mo->angle;
+		cam->subsector = R_PointInSubsector(cam->x, cam->y); // make sure camera has a subsector set -- Monster Iestyn (12/11/18)
+	}
+	else
+	{
+		mapthing_t *thing;
+
+		switch (gametype)
+		{
+		case GT_MATCH:
+		case GT_TAG:
+			thing = deathmatchstarts[0];
+			break;
+
+		default:
+			thing = playerstarts[0];
+			break;
+		}
+
+		if (!thing)
+			return; // we can't do jack shit
+
+		cam->x = thing->x;
+		cam->y = thing->y;
+		cam->z = thing->z;
+		cam->angle = FixedAngle((fixed_t)thing->angle << FRACBITS);
+		cam->subsector = R_PointInSubsector(cam->x, cam->y); // make sure camera has a subsector set -- Monster Iestyn (12/11/18)
+	}
+}
+
 /** Loads a level from a lump or external wad.
   *
   * \param skipprecip If true, don't spawn precipitation.
@@ -2927,35 +2964,17 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	if (!dedicated)
 	{
-		if (players[displayplayer].mo && (server || addedtogame))
+		P_SetupCamera(displayplayer, &camera);
+		if (splitscreen)
 		{
-			camera.x = players[displayplayer].mo->x;
-			camera.y = players[displayplayer].mo->y;
-			camera.z = players[displayplayer].mo->z;
-			camera.angle = players[displayplayer].mo->angle;
-		}
-		else
-		{
-			mapthing_t *thing;
-
-			switch (gametype)
+			P_SetupCamera(secondarydisplayplayer, &camera2);
+			if (splitscreen > 1)
 			{
-			case GT_MATCH:
-			case GT_TAG:
-				thing = deathmatchstarts[0];
-				break;
-
-			default:
-				thing = playerstarts[0];
-				break;
-			}
-
-			if (thing)
-			{
-				camera.x = thing->x;
-				camera.y = thing->y;
-				camera.z = thing->z;
-				camera.angle = FixedAngle((fixed_t)thing->angle << FRACBITS);
+				P_SetupCamera(thirddisplayplayer, &camera3);
+				if (splitscreen > 2)
+				{
+					P_SetupCamera(fourthdisplayplayer, &camera4);
+				}
 			}
 		}
 
