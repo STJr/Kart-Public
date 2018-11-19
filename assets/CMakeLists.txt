@@ -3,6 +3,7 @@
 # MD5 generation
 set(SRB2_ASSET_ALL
 	${CMAKE_CURRENT_SOURCE_DIR}/srb2.srb
+	#${CMAKE_CURRENT_SOURCE_DIR}/patch.dta
 	${CMAKE_CURRENT_SOURCE_DIR}/patch.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/gfx.kart
 	${CMAKE_CURRENT_SOURCE_DIR}/textures.kart
@@ -15,6 +16,7 @@ set(SRB2_ASSET_ALL
 
 set(SRB2_ASSET_HASHED
 	srb2.srb
+	#patch.dta
 	patch.kart
 	gfx.kart
 	textures.kart
