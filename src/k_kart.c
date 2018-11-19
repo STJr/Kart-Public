@@ -3142,8 +3142,8 @@ static void K_DoShrink(player_t *player)
 		{
 			//P_FlashPal(&players[i], PAL_NUKE, 10);
 
-			if (!player->kartstuff[k_invincibilitytimer] // Don't hit while invulnerable!
-				&& player->kartstuff[k_growshrinktimer] <= 0)
+			if (!players[i].kartstuff[k_invincibilitytimer] // Don't hit while invulnerable!
+				&& players[i].kartstuff[k_growshrinktimer] <= 0)
 			{
 				// Start shrinking!
 				players[i].mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
