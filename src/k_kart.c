@@ -3144,7 +3144,7 @@ static void K_DoShrink(player_t *player)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		if (!playeringame[i] || player->spectator || !players[i].mo)
+		if (!playeringame[i] || players[i].spectator || !players[i].mo)
 			continue;
 		if (&players[i] == player)
 			continue;
