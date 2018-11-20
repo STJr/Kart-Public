@@ -2680,13 +2680,6 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		// SRB2kart
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
-		
-		// Cheat Checks
-		if (player->kartspeed < 1) player->kartspeed = 1;
-		if (player->kartspeed > 9) player->kartspeed = 9;
-		if (player->kartweight < 1) player->kartweight = 1;
-		if (player->kartweight > 9) player->kartweight = 9;
-		//
 
 		player->normalspeed = skin->normalspeed;
 		player->runspeed = skin->runspeed;
@@ -2911,14 +2904,21 @@ void R_AddSkins(UINT16 wadnum)
 #undef GETSPEED
 
 #define GETINT(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value);
-			// SRB2kart
-			GETINT(kartspeed)
-			GETINT(kartweight)
-			//
 			GETINT(thrustfactor)
 			GETINT(accelstart)
 			GETINT(acceleration)
 #undef GETINT
+
+#define GETKARTSTAT(field) \
+	else if (!stricmp(stoken, #field)) \
+	{ \
+		skin->field = atoi(value); \
+		if (skin->field < 1) skin->field = 1; \
+		if (skin->field > 9) skin->field = 9; \
+	}
+			GETKARTSTAT(kartspeed)
+			GETKARTSTAT(kartweight)
+#undef GETKARTSTAT
 
 			// custom translation table
 			else if (!stricmp(stoken, "startcolor"))

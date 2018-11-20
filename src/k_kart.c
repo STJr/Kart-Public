@@ -1257,8 +1257,6 @@ static void K_UpdateOffroad(player_t *player)
 
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			if (kartweight < 1) { kartweight = 1; } if (kartweight > 9) { kartweight = 9; } // Safety Net
-
 			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
 			// A higher kart weight means you can stay offroad for longer without losing speed
 			offroad = (1872 + 5*156 - kartweight*156)*offroadstrength;
@@ -3871,11 +3869,23 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 {
 	const INT32 numsnds = 13;
-	INT32 class = ((player->kartspeed-1)/3) + (3*((player->kartweight-1)/3)); // engine class number
+	INT32 class, s, w; // engine class number
 	UINT8 volume = 255;
 	fixed_t volumedampen = 0;
 	INT32 targetsnd = 0;
 	INT32 i;
+
+	s = (player->kartspeed-1)/3;
+	w = (player->kartweight-1)/3;
+
+#define LOCKSTAT(stat) \
+	if (stat < 0) { stat = 0; } \
+	if (stat > 2) { stat = 2; }
+	LOCKSTAT(s);
+	LOCKSTAT(w);
+#undef LOCKSTAT
+
+	class = s+(3*w);
 
 	// Silence the engines
 	if (leveltime < 8 || player->spectator || player->exiting)
