@@ -9163,7 +9163,7 @@ static fixed_t find_const(const char **rword)
 		free(word);
 		return r;
 	}
-	else if (fastncmp("SKINCOLOR_",word,20)) {
+	else if (fastncmp("SKINCOLOR_",word,10)) {
 		char *p = word+10;
 		for (i = 0; i < MAXTRANSLATIONS; i++)
 			if (fastcmp(p, COLOR_ENUMS[i])) {
@@ -9595,7 +9595,7 @@ static inline int lib_getenum(lua_State *L)
 		if (mathlib) return luaL_error(L, "huditem '%s' could not be found.\n", word);
 		return 0;
 	}
-	else if (fastncmp("SKINCOLOR_",word,20)) {
+	else if (fastncmp("SKINCOLOR_",word,10)) {
 		p = word+10;
 		for (i = 0; i < MAXTRANSLATIONS; i++)
 			if (fastcmp(p, COLOR_ENUMS[i])) {
