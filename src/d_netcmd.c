@@ -2066,6 +2066,7 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean r
 		chmappending++;
 		if (netgame)
 			WRITEUINT32(buf_p, M_RandomizedSeed()); // random seed
+		G_AddMapToBuffer(mapnum-1);
 		SendNetXCmd(XD_MAP, buf, buf_p - buf);
 	}
 }
@@ -2087,11 +2088,11 @@ void D_SetupVote(void)
 	for (i = 0; i < 5; i++)
 	{
 		if (i == 2) // sometimes a different gametype
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(secondgt), prevmap, false, false, 0, true));
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(secondgt), prevmap, false, 0, true));
 		else if (i >= 3) // unknown-random and force-unknown MAP HELL
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, (i-2), (i < 4)));
 		else
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
+			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, true));
 	}
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);

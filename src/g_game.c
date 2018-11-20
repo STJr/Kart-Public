@@ -779,7 +779,7 @@ const char *G_BuildMapName(INT32 map)
 			map = gamemap-1;
 		else
 			map = prevmap;
-		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, false, 0, false)+1;
+		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, 0, false)+1;
 	}
 
 	if (map < 100)
@@ -3268,7 +3268,7 @@ static INT32 TOLMaps(INT16 tolflags)
   * \author Graue <graue@oceanbase.org>
   */
 static INT16 *okmaps = NULL;
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon)
 {
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
@@ -3329,20 +3329,20 @@ tryagain:
 			if (randmapbuffer[3] == -1) // Is the buffer basically empty?
 			{
 				ignorebuffer = true; // This will probably only help in situations where there's very few maps, but it's folly not to at least try it
-				goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon);
+				goto tryagain; //return G_RandMap(tolflags, pprevmap, true, maphell, callagainsoon);
 			}
 
 			for (bufx = 3; bufx < NUMMAPS; bufx++) // Let's clear all but the three most recent maps...
 				randmapbuffer[bufx] = -1;
 			if (cv_kartvoterulechanges.value == 1) // sometimes
 				randmapbuffer[NUMMAPS] = 0;
-			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, ignorebuffer, maphell, callagainsoon);
+			goto tryagain; //return G_RandMap(tolflags, pprevmap, ignorebuffer, maphell, callagainsoon);
 		}
 
 		if (maphell) // Any wiggle room to loosen our restrictions here?
 		{
 			maphell--;
-			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
+			goto tryagain; //return G_RandMap(tolflags, pprevmap, true, maphell-1, callagainsoon);
 		}
 
 		ix = 0; // Sorry, none match. You get MAP01.
@@ -3350,15 +3350,7 @@ tryagain:
 			randmapbuffer[bufx] = -1; // if we're having trouble finding a map we should probably clear it
 	}
 	else
-	{
 		ix = okmaps[M_RandomKey(numokmaps)];
-		if (!dontadd)
-		{
-			for (bufx = NUMMAPS-1; bufx > 0; bufx--)
-				randmapbuffer[bufx] = randmapbuffer[bufx-1];
-			randmapbuffer[0] = ix;
-		}
-	}
 
 	if (!callagainsoon)
 	{
@@ -3367,6 +3359,14 @@ tryagain:
 	}
 
 	return ix;
+}
+
+void G_AddMapToBuffer(INT16 map)
+{
+	INT16 bufx;
+	for (bufx = NUMMAPS-1; bufx > 0; bufx--)
+		randmapbuffer[bufx] = randmapbuffer[bufx-1];
+	randmapbuffer[0] = map;
 }
 
 //
@@ -3519,7 +3519,7 @@ static void G_DoCompleted(void)
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, false);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, false);
 	}
 
 	// We are committed to this map now.
