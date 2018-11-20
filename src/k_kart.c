@@ -1626,7 +1626,7 @@ static void K_GetKartBoostPower(player_t *player)
 		boostpower = 4*boostpower/5;
 
 	// Banana drag/offroad dust
-	if (boostpower < FRACUNIT)
+	if (boostpower < FRACUNIT && player->mo && P_IsObjectOnGround(player->mo) && player->speed > 0)
 	{
 		K_SpawnWipeoutTrail(player->mo, true);
 		if (leveltime % 6 == 0)
@@ -2659,6 +2659,13 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	dust->destscale = mo->scale;
 	P_SetScale(dust, mo->scale);
 	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags because hyudoro shouldn't be able to wipeout
+
+	if (translucent) // offroad effect
+	{
+		dust->momx = mo->momx/2;
+		dust->momy = mo->momy/2;
+		dust->momz = mo->momz/2;
+	}
 
 	if (translucent)
 		dust->flags2 |= MF2_SHADOW;
