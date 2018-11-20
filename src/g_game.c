@@ -3272,11 +3272,14 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignoreb
 {
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
+	boolean usehellmaps; // Only consider Hell maps in this pick
 
 	if (!okmaps)
 		okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
 
 tryagain:
+
+	usehellmaps = (maphell == 0 ? false : (maphell == 2 || M_RandomChance(FRACUNIT/100))); // 1% chance of Hell
 
 	// Find all the maps that are ok and and put them in an array.
 	for (ix = 0; ix < NUMMAPS; ix++)
@@ -3289,8 +3292,7 @@ tryagain:
 		if ((mapheaderinfo[ix]->typeoflevel & tolflags) != tolflags
 			|| ix == pprevmap
 			|| (!dedicated && M_MapLocked(ix+1))
-			|| (!maphell && (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU)) // this is bad
-			|| ((maphell == 2) && !(mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // gasp
+			|| (usehellmaps != (mapheaderinfo[ix]->menuflags & LF2_HIDEINMENU))) // this is bad
 			continue; //isokmap = false;
 
 		if (!ignorebuffer)
