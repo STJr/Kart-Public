@@ -1626,7 +1626,10 @@ static void K_GetKartBoostPower(player_t *player)
 		boostpower = 4*boostpower/5;
 
 	// Banana drag/offroad dust
-	if (boostpower < FRACUNIT && player->mo && P_IsObjectOnGround(player->mo) && player->speed > 0)
+	if (boostpower < FRACUNIT
+		&& player->mo && P_IsObjectOnGround(player->mo)
+		&& player->speed > 0
+		&& !player->spectator)
 	{
 		K_SpawnWipeoutTrail(player->mo, true);
 		if (leveltime % 6 == 0)
