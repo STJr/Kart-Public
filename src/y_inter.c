@@ -1159,7 +1159,10 @@ static void Y_VoteStops(SINT8 pick, SINT8 level)
 		S_StartSound(NULL, sfx_noooo2); // gasp
 	else if (mapheaderinfo[nextmap] && (mapheaderinfo[nextmap]->menuflags & LF2_HIDEINMENU))
 		S_StartSound(NULL, sfx_noooo1); // this is bad
-	else if (!splitscreen && pick == consoleplayer)
+	else if (netgame && (pick == consoleplayer
+		|| pick == secondarydisplayplayer
+		|| pick == thirddisplayplayer
+		|| pick == fourthdisplayplayer))
 		S_StartSound(NULL, sfx_yeeeah); // yeeeah!
 	else
 		S_StartSound(NULL, sfx_kc48); // just a cool sound
