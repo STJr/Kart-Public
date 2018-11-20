@@ -1778,23 +1778,6 @@ void P_DoPlayerExit(player_t *player)
 
 	if (G_RaceGametype()) // If in Race Mode, allow
 	{
-		if (!countdown)
-		{
-			UINT8 i;
-
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (!playeringame[i] || players[i].spectator)
-					continue;
-				if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
-					continue;
-				break;
-			}
-
-			if (i == MAXPLAYERS)
-				countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
-		}
-
 		if (cv_kartvoices.value)
 		{
 			if (P_IsLocalPlayer(player))

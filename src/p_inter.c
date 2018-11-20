@@ -2003,6 +2003,19 @@ boolean P_CheckRacers(void)
 		countdown = countdown2 = 0;
 		return true;
 	}
+	else if (!countdown) // Check to see if the winners have finished, to set countdown.
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
+				continue;
+			break;
+		}
+		if (i == MAXPLAYERS)
+			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
+	}
 
 	if (cv_karteliminatelast.value)
 	{
