@@ -3135,20 +3135,20 @@ void K_DoSneaker(player_t *player, INT32 type)
 	}
 }
 
-static void K_DoShrink(player_t *player)
+static void K_DoShrink(player_t *user)
 {
 	INT32 i;
 
-	S_StartSound(player->mo, sfx_kc46); // Sound the BANG!
-	player->pflags |= PF_ATTACKDOWN;
+	S_StartSound(user->mo, sfx_kc46); // Sound the BANG!
+	user->pflags |= PF_ATTACKDOWN;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i] || players[i].spectator || !players[i].mo)
 			continue;
-		if (&players[i] == player)
+		if (&players[i] == user)
 			continue;
-		if (players[i].kartstuff[k_position] < player->kartstuff[k_position])
+		if (players[i].kartstuff[k_position] < user->kartstuff[k_position])
 		{
 			//P_FlashPal(&players[i], PAL_NUKE, 10);
 
@@ -3163,10 +3163,10 @@ static void K_DoShrink(player_t *player)
 
 				// Wipeout
 				K_DropItems(&players[i]);
-				K_SpinPlayer(&players[i], player->mo, 1, false);
+				K_SpinPlayer(&players[i], user->mo, 1, false);
 
 				// P_RingDamage
-				P_DoPlayerPain(&players[i], player->mo, player->mo);
+				P_DoPlayerPain(&players[i], user->mo, user->mo);
 				P_ForceFeed(&players[i], 40, 10, TICRATE, 40 + min((players[i].mo->health-1), 100)*2);
 				P_PlayRinglossSound(players[i].mo); // Ringledingle!
 
@@ -3178,7 +3178,7 @@ static void K_DoShrink(player_t *player)
 					quake.time = 5;
 				}
 
-				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(16-players[i].kartstuff[k_position])));
+				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
 				players[i].kartstuff[k_sneakertimer] = 0;
 			}
 
