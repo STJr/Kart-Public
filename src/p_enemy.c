@@ -8353,11 +8353,12 @@ void A_SPBChase(mobj_t *actor)
 
 	if (actor->threshold) // Just fired, go straight.
 	{
+		actor->lastlook = -1;
 		P_InstaThrust(actor, actor->angle, wspeed);
 		return;
 	}
 
-	if (actor->extravalue1) // MODE: TARGETING
+	if (actor->extravalue1 == 1) // MODE: TARGETING
 	{
 		if (actor->tracer && actor->tracer->health)
 		{
@@ -8367,6 +8368,7 @@ void A_SPBChase(mobj_t *actor)
 			// Maybe we want SPB to target an object later? IDK lol
 			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
 			{
+				actor->lastlook = actor->tracer->player-players; // Save the player num for death scumming...
 				if (!P_IsObjectOnGround(actor->tracer) && !actor->tracer->player->kartstuff[k_pogospring])
 					defspeed = 7*actor->tracer->player->speed/8; // In the air you have no control; basically don't hit unless you make a near complete stop
 				else
@@ -8447,8 +8449,24 @@ void A_SPBChase(mobj_t *actor)
 		else // Target's gone, return to SEEKING
 		{
 			P_SetTarget(&actor->tracer, NULL);
-			actor->extravalue1 = 0; // Find someone new next tic
+			actor->extravalue1 = 2; // WAIT...
+			actor->extravalue2 = 52; // Slightly over the respawn timer length
 			return;
+		}
+	}
+	else if (actor->extravalue1 == 2) // MODE: WAIT...
+	{
+		actor->momx = actor->momy = actor->momz = 0; // Stoooop
+		if (actor->extravalue2-- <= 0)
+		{
+			if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
+			{
+				P_SetTarget(&actor->tracer, players[actor->lastlook].mo);
+				actor->extravalue1 = 1; // TARGETING
+			}
+			else
+				actor->extravalue1 = 0; // SEEKING
+			actor->extravalue2 = 0;
 		}
 	}
 	else // MODE: SEEKING
@@ -8465,8 +8483,8 @@ void A_SPBChase(mobj_t *actor)
 			if (players[i].mo->health <= 0)
 				continue; // dead
 
-			if (players[i].kartstuff[k_respawn])
-				continue; // respawning
+			/*if (players[i].kartstuff[k_respawn])
+				continue;*/ // respawning
 
 			if (players[i].kartstuff[k_position] < bestrank)
 			{
