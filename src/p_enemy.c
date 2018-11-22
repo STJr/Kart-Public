@@ -8369,10 +8369,11 @@ void A_SPBChase(mobj_t *actor)
 			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
 			{
 				actor->lastlook = actor->tracer->player-players; // Save the player num for death scumming...
-				if (!P_IsObjectOnGround(actor->tracer) && !actor->tracer->player->kartstuff[k_pogospring])
-					defspeed = 7*actor->tracer->player->speed/8; // In the air you have no control; basically don't hit unless you make a near complete stop
+				if (!P_IsObjectOnGround(actor->tracer) /*&& !actor->tracer->player->kartstuff[k_pogospring]*/)
+					defspeed = (7*actor->tracer->player->speed)/8; // In the air you have no control; basically don't hit unless you make a near complete stop
 				else
 					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+				defspeed -= (9*R_PointToDist2(0, 0, actor->tracer->player->cmomx, actor->tracer->player->cmomy))/8; // Be fairer on conveyors
 			}
 
 			// Play the intimidating gurgle
@@ -8436,9 +8437,9 @@ void A_SPBChase(mobj_t *actor)
 					actor->z + (actor->height/2) + (P_RandomRange(-24,24) * actor->scale),
 					MT_FASTLINE);
 				fast->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
-				//fast->momx = 3*actor->momx/4;
-				//fast->momy = 3*actor->momy/4;
-				//fast->momz = 3*actor->momz/4;
+				//fast->momx = (3*actor->momx)/4;
+				//fast->momy = (3*actor->momy)/4;
+				//fast->momz = (3*actor->momz)/4;
 				fast->color = SKINCOLOR_RED;
 				fast->colorized = true;
 				K_MatchGenericExtraFlags(fast, actor);
