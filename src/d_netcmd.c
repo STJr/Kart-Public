@@ -2066,7 +2066,6 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean r
 		chmappending++;
 		if (netgame)
 			WRITEUINT32(buf_p, M_RandomizedSeed()); // random seed
-		G_AddMapToBuffer(mapnum-1);
 		SendNetXCmd(XD_MAP, buf, buf_p - buf);
 	}
 }

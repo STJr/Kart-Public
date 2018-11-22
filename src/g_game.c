@@ -3137,8 +3137,7 @@ INT16 G_SometimesGetDifferentGametype(void)
 
 	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
 	{
-		if (cv_kartvoterulechanges.value != 1)
-			randmapbuffer[NUMMAPS]--;
+		randmapbuffer[NUMMAPS]--;
 		if (encorepossible)
 		{
 			switch (cv_kartvoterulechanges.value)
@@ -3166,6 +3165,8 @@ INT16 G_SometimesGetDifferentGametype(void)
 			randmapbuffer[NUMMAPS] = 1; // every other vote (or always if !encorepossible)
 			break;
 		case 1: // sometimes
+			randmapbuffer[NUMMAPS] = 10; // ...every two cups?
+			break;
 		default:
 			// fallthrough - happens when clearing buffer, but needs a reasonable countdown if cvar is modified
 		case 2: // frequent
@@ -3268,6 +3269,7 @@ static INT32 TOLMaps(INT16 tolflags)
   * \author Graue <graue@oceanbase.org>
   */
 static INT16 *okmaps = NULL;
+static INT16 votebuffer[3] = {-1, -1, -1};
 INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon)
 {
 	INT32 numokmaps = 0;
@@ -3297,6 +3299,26 @@ tryagain:
 
 		if (!ignorebuffer)
 		{
+			if (votebuffer[0] != -1)
+			{
+				if (ix == votebuffer[0])
+					continue;
+
+				for (bufx = 1; bufx < 3; bufx++)
+				{
+					if (votebuffer[bufx] == -1) // Rest of buffer SHOULD be empty
+						break;
+					if (ix == votebuffer[bufx])
+					{
+						isokmap = false;
+						break;
+					}
+				}
+
+				if (!isokmap)
+					continue;
+			}
+
 			for (bufx = 0; bufx < (maphell ? 3 : NUMMAPS); bufx++)
 			{
 				if (randmapbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
@@ -3307,12 +3329,12 @@ tryagain:
 					break;
 				}
 			}
+
+			if (!isokmap)
+				continue;
 		}
 
-		if (!isokmap)
-			continue;
-
-		if (pprevmap == -2) // title demos
+		if (pprevmap == -2) // title demo hack
 		{
 			lumpnum_t l;
 			if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(ix+1)))) == LUMPERROR)
@@ -3334,8 +3356,6 @@ tryagain:
 
 			for (bufx = 3; bufx < NUMMAPS; bufx++) // Let's clear all but the three most recent maps...
 				randmapbuffer[bufx] = -1;
-			if (cv_kartvoterulechanges.value == 1) // sometimes
-				randmapbuffer[NUMMAPS] = 0;
 			goto tryagain; //return G_RandMap(tolflags, pprevmap, ignorebuffer, maphell, callagainsoon);
 		}
 
@@ -3356,6 +3376,17 @@ tryagain:
 	{
 		Z_Free(okmaps);
 		okmaps = NULL;
+		for (bufx = 0; bufx < 3; bufx++)
+			votebuffer[bufx] = -1;
+	}
+	else if (votebuffer[2] == -1)
+	{
+		for (bufx = 0; bufx < 3; bufx++)
+			if (votebuffer[bufx] == -1)
+			{
+				votebuffer[bufx] = ix;
+				break;
+			}
 	}
 
 	return ix;
@@ -3509,8 +3540,6 @@ static void G_DoCompleted(void)
 	{
 		for (i = 3; i < NUMMAPS; i++) // Let's clear all but the three most recent maps...
 			randmapbuffer[i] = -1;
-		if (cv_kartvoterulechanges.value == 1) // sometimes
-			randmapbuffer[NUMMAPS] = 0;
 	}
 #endif
 

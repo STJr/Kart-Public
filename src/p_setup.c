@@ -3113,6 +3113,8 @@ boolean P_SetupLevel(boolean skipprecip)
 #endif
 	}
 
+	G_AddMapToBuffer(gamemap-1);
+
 	return true;
 }
 
