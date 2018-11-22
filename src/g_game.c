@@ -1552,6 +1552,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// SRB2kart - no additional angle if not moving
 	if (((player->mo && player->speed > 0) // Moving
 		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+		|| (player->kartstuff[k_respawn]) // Respawning
 		|| (player->spectator || objectplacing)) // Not a physical player
 		&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out turning
 		lang += (cmd->angleturn<<16);
@@ -4540,6 +4541,7 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 	// SRB2kart: Copy-pasted from ticcmd building, removes that crappy demo cam
 	if (((players[displayplayer].mo && players[displayplayer].speed > 0) // Moving
 		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+		|| (players[displayplayer].kartstuff[k_respawn]) // Respawning
 		|| (players[displayplayer].spectator || objectplacing)) // Not a physical player
 		&& !(players[displayplayer].kartstuff[k_spinouttimer] && players[displayplayer].kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
 		localangle += (cmd->angleturn<<16);
