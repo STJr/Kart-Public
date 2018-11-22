@@ -1424,9 +1424,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
 		
-		if (tmthing->scale > thing->scale + (FRACUNIT/8)) // SRB2kart - Handle squishes first!
+		if (tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing);
-		else if (thing->scale > tmthing->scale + (FRACUNIT/8))
+		else if (thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
 			K_SquishPlayer(tmthing->player, thing);
 		else if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer]) // SRB2kart - Then invincibility!
 			P_DamageMobj(thing, tmthing, tmthing, 1);
@@ -1523,9 +1523,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true; // underneath
 
 			if (thing->player->kartstuff[k_squishedtimer] || thing->player->kartstuff[k_hyudorotimer]
-				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (FRACUNIT/8)
+				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)
 				|| tmthing->player->kartstuff[k_squishedtimer] || tmthing->player->kartstuff[k_hyudorotimer]
-				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (FRACUNIT/8))
+				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
 			{
 				return true;
 			}
