@@ -1866,6 +1866,10 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 	//player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
+	player->kartstuff[k_drift] = 0;
+	player->kartstuff[k_driftcharge] = 0;
+	player->kartstuff[k_pogospring] = 0;
+
 	if (G_BattleGametype())
 	{
 		if (source && source->player && player != source->player)
@@ -1957,6 +1961,10 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 	player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
 
+	player->kartstuff[k_drift] = 0;
+	player->kartstuff[k_driftcharge] = 0;
+	player->kartstuff[k_pogospring] = 0;
+
 	if (G_BattleGametype())
 	{
 		if (source && source->player && player != source->player)
@@ -2045,6 +2053,10 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 
 	player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
+
+	player->kartstuff[k_drift] = 0;
+	player->kartstuff[k_driftcharge] = 0;
+	player->kartstuff[k_pogospring] = 0;
 
 	// This is the only part that SHOULDN'T combo :VVVVV
 	if (G_BattleGametype() && !(player->powers[pw_flashing] > 0 || player->kartstuff[k_squishedtimer] > 0 || player->kartstuff[k_spinouttimer] > 0))
@@ -3151,13 +3163,17 @@ static void K_DoShrink(player_t *user)
 			//P_FlashPal(&players[i], PAL_NUKE, 10);
 
 			if (!players[i].kartstuff[k_invincibilitytimer] // Don't hit while invulnerable!
-				&& players[i].kartstuff[k_growshrinktimer] <= 0)
+				&& players[i].kartstuff[k_growshrinktimer] <= 0
+				&& !players[i].kartstuff[k_hyudorotimer])
 			{
 				// Start shrinking!
 				players[i].mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 				players[i].mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
 					players[i].mo->destscale = 6*players[i].mo->destscale/8;
+
+				if (!players[i].powers[pw_flashing] && !players[i].kartstuff[k_squishedtimer] && !players[i].kartstuff[k_spinouttimer])
+					P_PlayerRingBurst(&players[i], 5);
 
 				// Wipeout
 				K_DropItems(&players[i]);
@@ -3168,7 +3184,6 @@ static void K_DoShrink(player_t *user)
 				P_ForceFeed(&players[i], 40, 10, TICRATE, 40 + min((players[i].mo->health-1), 100)*2);
 				P_PlayRinglossSound(players[i].mo); // Ringledingle!
 
-				P_PlayerRingBurst(&players[i], 5);
 				players[i].mo->momx = players[i].mo->momy = 0;
 				if (P_IsLocalPlayer(&players[i]))
 				{
@@ -3176,8 +3191,14 @@ static void K_DoShrink(player_t *user)
 					quake.time = 5;
 				}
 
-				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
 				players[i].kartstuff[k_sneakertimer] = 0;
+				players[i].kartstuff[k_driftboost] = 0;
+
+				players[i].kartstuff[k_drift] = 0;
+				players[i].kartstuff[k_driftcharge] = 0;
+				players[i].kartstuff[k_pogospring] = 0;
+
+				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
 			}
 
 			// Grow should get taken away.

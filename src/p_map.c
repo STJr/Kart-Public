@@ -3855,16 +3855,9 @@ void P_BouncePlayerMove(mobj_t *mo)
 	mmomx = mo->player->rmomx;
 	mmomy = mo->player->rmomy;
 
-	if (mo->player->kartstuff[k_drift] != 0) // SRB2kart
-	{
-		mo->player->kartstuff[k_drift] = 0;
-		mo->player->kartstuff[k_driftcharge] = 0;
-	}
-	else
-	{
-		mmomx = mo->momx;
-		mmomy = mo->momy;
-	}
+	mo->player->kartstuff[k_drift] = 0;
+	mo->player->kartstuff[k_driftcharge] = 0;
+	mo->player->kartstuff[k_pogospring] = 0;
 
 	// trace along the three leading corners
 	if (mo->momx > 0)
@@ -3919,7 +3912,6 @@ void P_BouncePlayerMove(mobj_t *mo)
 		S_StartSound(mo, sfx_s3k49);
 	}
 
-	mo->player->kartstuff[k_pogospring] = 0; // Cancel pogo spring effect so you aren't shoved forward back into the wall you just bounced off
 	P_PlayerHitBounceLine(bestslideline);
 	mo->eflags |= MFE_JUSTBOUNCEDWALL;
 

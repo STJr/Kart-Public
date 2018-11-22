@@ -3868,6 +3868,9 @@ DoneSection2:
 				}*/
 
 				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
+				player->kartstuff[k_drift] = 0;
+				player->kartstuff[k_driftcharge] = 0;
+				player->kartstuff[k_pogospring] = 0;
 				S_StartSound(player->mo, sfx_spdpad);
 
 				{
@@ -4027,7 +4030,7 @@ DoneSection2:
 			}
 			break;
 
-		case 7: // SRB2kart 190117 - Oil Slick
+		case 7: // SRB2kart 190117 - Oil Slick (deprecated)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
 				K_SpinPlayer(player, NULL, 0, false);
