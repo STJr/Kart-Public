@@ -574,6 +574,10 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 			player->kartstuff[k_itemtype] = KITEM_JAWZ;
 			player->kartstuff[k_itemamount] = 2;
 			break;
+		case KITEM_SPB: // Indirect items
+		case KITEM_SHRINK:
+			indirectitemcooldown = 30*TICRATE;
+			/* FALLTHRU */
 		default:
 			if (getitem <= 0 || getitem >= NUMKARTRESULTS) // Sad (Fallback)
 			{
@@ -5250,7 +5254,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
 			|| player->kartstuff[k_growshrinktimer] < 0)
-			indirectitemcooldown = 20*TICRATE;
+			indirectitemcooldown = 30*TICRATE;
 
 		if (player->kartstuff[k_hyudorotimer] > 0)
 		{

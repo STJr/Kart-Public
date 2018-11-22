@@ -8154,7 +8154,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->threshold--;
 			break;
 		case MT_SPB:
-			indirectitemcooldown = 20*TICRATE;
+			indirectitemcooldown = 30*TICRATE;
 			/* FALLTHRU */
 		case MT_BALLHOG:
 			P_SpawnGhostMobj(mobj)->fuse = 3;
