@@ -800,7 +800,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 													players[i].mo->y - player->mo->y),
 													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
 													* (pingame - players[i].kartstuff[k_position])
-													/ ((pingame - 1) * (pingame + 1) / 3);
+													/ max(1, ((pingame - 1) * (pingame + 1) / 3));
 	}
 
 #define SETUPDISTTABLE(odds, num) \
