@@ -7365,7 +7365,7 @@ static void K_drawBattleFullscreen(void)
 		else
 			K_drawKartFinish();
 	}
-	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback)
+	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback && !stplyr->spectator)
 	{
 		UINT16 t = stplyr->kartstuff[k_comebacktimer]/(10*TICRATE);
 		INT32 txoff, adjust = (splitscreen > 1) ? 4 : 6; // normal string is 8, kart string is 12, half of that for ease
