@@ -180,9 +180,7 @@ INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
 
-static  boolean setupcontrols_secondaryplayer;
-static  boolean setupcontrols_thirdplayer;
-static  boolean setupcontrols_fourthplayer;
+static  UINT8 setupcontrolplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
 
 // shhh... what am I doing... nooooo!
@@ -304,6 +302,7 @@ static void M_Setup4PJoystickMenu(INT32 choice);
 
 static void M_AssignJoystick(INT32 choice);
 static void M_ChangeControl(INT32 choice);
+static void M_ResetControls(INT32 choice);
 
 // Video & Sound
 menu_t OP_VideoOptionsDef, OP_VideoModeDef;
@@ -1093,12 +1092,13 @@ static menuitem_t OP_ControlsMenu[] =
 	{IT_CALL | IT_STRING, NULL, "Player 3 Controls...", &M_Setup3PControlsMenu,  30},
 	{IT_CALL | IT_STRING, NULL, "Player 4 Controls...", &M_Setup4PControlsMenu,  40},
 
-	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
+	{IT_STRING | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
 };
 
 static menuitem_t OP_AllControlsMenu[] =
 {
-	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 0},
+	{IT_CALL|IT_STRING, NULL, "Reset to defaults", M_ResetControls, 0},
+	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 8},
 	//{IT_SPACE, NULL, NULL, NULL, 0},
 	{IT_HEADER, NULL, "Gameplay Controls", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0},
@@ -8514,10 +8514,10 @@ static void M_DrawJoystick(void)
 	{
 		M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
-		if ((setupcontrols_fourthplayer && (i == cv_usejoystick4.value))
-			|| (setupcontrols_thirdplayer && (i == cv_usejoystick3.value))
-			|| (setupcontrols_secondaryplayer && (i == cv_usejoystick2.value))
-			|| (!(setupcontrols_secondaryplayer || setupcontrols_thirdplayer || setupcontrols_fourthplayer) && (i == cv_usejoystick.value)))
+		if ((setupcontrolplayer == 4 && (i == cv_usejoystick4.value))
+			|| (setupcontrolplayer == 3 && (i == cv_usejoystick3.value))
+			|| (setupcontrolplayer == 2 && (i == cv_usejoystick2.value))
+			|| (setupcontrolplayer == 1 && (i == cv_usejoystick.value)))
 			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,recommendedflags,joystickInfo[i]);
 		else
 			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,0,joystickInfo[i]);
@@ -8550,42 +8550,39 @@ static void M_SetupJoystickMenu(INT32 choice)
 
 static void M_Setup1PJoystickMenu(INT32 choice)
 {
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 1;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick1Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_Setup2PJoystickMenu(INT32 choice)
 {
-	setupcontrols_secondaryplayer = true;
-	setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 2;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick2Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_Setup3PJoystickMenu(INT32 choice)
 {
-	setupcontrols_thirdplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 3;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick3Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_Setup4PJoystickMenu(INT32 choice)
 {
-	setupcontrols_fourthplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = false;
+	setupcontrolplayer = 3;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_AssignJoystick(INT32 choice)
 {
-	if (setupcontrols_fourthplayer)
+	if (setupcontrolplayer == 4)
 		CV_SetValue(&cv_usejoystick4, choice);
-	else if (setupcontrols_thirdplayer)
+	else if (setupcontrolplayer == 3)
 		CV_SetValue(&cv_usejoystick3, choice);
-	else if (setupcontrols_secondaryplayer)
+	else if (setupcontrolplayer == 2)
 		CV_SetValue(&cv_usejoystick2, choice);
 	else
 		CV_SetValue(&cv_usejoystick, choice);
@@ -8598,30 +8595,30 @@ static void M_AssignJoystick(INT32 choice)
 static void M_Setup1PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 1;
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[0].itemaction = &OP_Joystick1Def;
+	OP_AllControlsMenu[1].itemaction = &OP_Joystick1Def;
 
 	// Unhide P1-only controls
-	OP_AllControlsMenu[14].status = IT_CONTROL; // Chat
-	//OP_AllControlsMenu[15].status = IT_CONTROL; // Team-chat
-	OP_AllControlsMenu[15].status = IT_CONTROL; // Rankings
-	OP_AllControlsMenu[16].status = IT_CONTROL; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_CONTROL; // Pause
-	OP_AllControlsMenu[20].status = IT_CONTROL; // Screenshot
-	OP_AllControlsMenu[21].status = IT_CONTROL; // GIF
-	OP_AllControlsMenu[22].status = IT_CONTROL; // System Menu
-	OP_AllControlsMenu[23].status = IT_CONTROL; // Console
-	/*OP_AllControlsMenu[24].status = IT_HEADER; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_SPACE; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_CONTROL; // Spectate
-	OP_AllControlsMenu[27].status = IT_CONTROL; // Look Up
-	OP_AllControlsMenu[28].status = IT_CONTROL; // Look Down
-	OP_AllControlsMenu[29].status = IT_CONTROL; // Center View
+	OP_AllControlsMenu[15].status = IT_CONTROL; // Chat
+	//OP_AllControlsMenu[16].status = IT_CONTROL; // Team-chat
+	OP_AllControlsMenu[16].status = IT_CONTROL; // Rankings
+	OP_AllControlsMenu[17].status = IT_CONTROL; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_CONTROL; // Pause
+	OP_AllControlsMenu[21].status = IT_CONTROL; // Screenshot
+	OP_AllControlsMenu[22].status = IT_CONTROL; // GIF
+	OP_AllControlsMenu[23].status = IT_CONTROL; // System Menu
+	OP_AllControlsMenu[24].status = IT_CONTROL; // Console
+	/*OP_AllControlsMenu[25].status = IT_HEADER; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_SPACE; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_CONTROL; // Spectate
+	OP_AllControlsMenu[28].status = IT_CONTROL; // Look Up
+	OP_AllControlsMenu[29].status = IT_CONTROL; // Look Down
+	OP_AllControlsMenu[30].status = IT_CONTROL; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8630,31 +8627,30 @@ static void M_Setup1PControlsMenu(INT32 choice)
 static void M_Setup2PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_secondaryplayer = true;
-	setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 2;
 	setupcontrols = gamecontrolbis;
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[0].itemaction = &OP_Joystick2Def;
+	OP_AllControlsMenu[1].itemaction = &OP_Joystick2Def;
 
 	// Hide P1-only controls
-	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
-	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
-	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
-	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
-	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
-	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
-	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
-	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
-	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
-	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Console
+	/*OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[30].status = IT_GRAYEDOUT2; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8663,31 +8659,30 @@ static void M_Setup2PControlsMenu(INT32 choice)
 static void M_Setup3PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_thirdplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 3;
 	setupcontrols = gamecontrol3;
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[0].itemaction = &OP_Joystick3Def;
+	OP_AllControlsMenu[1].itemaction = &OP_Joystick3Def;
 
 	// Hide P1-only controls
-	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
-	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
-	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
-	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
-	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
-	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
-	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
-	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
-	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
-	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Console
+	/*OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[30].status = IT_GRAYEDOUT2; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8696,31 +8691,30 @@ static void M_Setup3PControlsMenu(INT32 choice)
 static void M_Setup4PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_fourthplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = false;
+	setupcontrolplayer = 4;
 	setupcontrols = gamecontrol4;
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[0].itemaction = &OP_Joystick4Def;
+	OP_AllControlsMenu[1].itemaction = &OP_Joystick4Def;
 
 	// Hide P1-only controls
-	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
-	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
-	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
-	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
-	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
-	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
-	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
-	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
-	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
-	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Console
+	/*OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[30].status = IT_GRAYEDOUT2; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8783,10 +8777,10 @@ static void M_DrawControl(void)
 	M_DrawMenuTitle();
 
 	M_CentreText(28,
-		(setupcontrols_fourthplayer ? "\x86""Set controls for ""\x82""Player 4" :
-		(setupcontrols_thirdplayer ? "\x86""Set controls for ""\x82""Player 3" :
-		(setupcontrols_secondaryplayer ? "\x86""Set controls for ""\x82""Player 2" :
-										"\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
+		(setupcontrolplayer == 4 ? "\x86""Set controls for ""\x82""Player 4" :
+		(setupcontrolplayer == 3 ? "\x86""Set controls for ""\x82""Player 3" :
+		(setupcontrolplayer == 2 ? "\x86""Set controls for ""\x82""Player 2" :
+		                           "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
 
 	if (i)
 		V_DrawCharacter(currentMenu->x - 16, y-(skullAnimCounter/5),
@@ -8932,6 +8926,84 @@ static void M_ChangeControl(INT32 choice)
 		currentMenu->menuitems[choice].text);
 
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
+}
+
+static void M_ResetControls(INT32 choice)
+{
+	INT32 i;
+	(void)choice;
+
+	// clear all controls
+	for (i = 0; i < num_gamecontrols; i++)
+	{
+		switch (setupcontrolplayer)
+		{
+			case 4:
+				G_ClearControlKeys(gamecontrol4, i);
+				break;
+			case 3:
+				G_ClearControlKeys(gamecontrol3, i);
+				break;
+			case 2:
+				G_ClearControlKeys(gamecontrolbis, i);
+				break;
+			case 1:
+			default:
+				G_ClearControlKeys(gamecontrol, i);
+				break;
+		}
+	}
+
+	// Setup original defaults
+	G_Controldefault(setupcontrolplayer);
+
+	// Setup gamepad option defaults (yucky)
+	switch (setupcontrolplayer)
+	{
+		case 4:
+			CV_StealthSet(&cv_usejoystick4, cv_usejoystick4.defaultvalue);
+			CV_StealthSet(&cv_turnaxis4, cv_turnaxis4.defaultvalue);
+			CV_StealthSet(&cv_moveaxis4, cv_moveaxis4.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis4, cv_brakeaxis4.defaultvalue);
+			CV_StealthSet(&cv_aimaxis4, cv_aimaxis4.defaultvalue);
+			CV_StealthSet(&cv_lookaxis4, cv_lookaxis4.defaultvalue);
+			CV_StealthSet(&cv_fireaxis4, cv_fireaxis4.defaultvalue);
+			CV_StealthSet(&cv_driftaxis4, cv_driftaxis4.defaultvalue);
+			break;
+		case 3:
+			CV_StealthSet(&cv_usejoystick3, cv_usejoystick3.defaultvalue);
+			CV_StealthSet(&cv_turnaxis3, cv_turnaxis3.defaultvalue);
+			CV_StealthSet(&cv_moveaxis3, cv_moveaxis3.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis3, cv_brakeaxis3.defaultvalue);
+			CV_StealthSet(&cv_aimaxis3, cv_aimaxis3.defaultvalue);
+			CV_StealthSet(&cv_lookaxis3, cv_lookaxis3.defaultvalue);
+			CV_StealthSet(&cv_fireaxis3, cv_fireaxis3.defaultvalue);
+			CV_StealthSet(&cv_driftaxis3, cv_driftaxis3.defaultvalue);
+			break;
+		case 2:
+			CV_StealthSet(&cv_usejoystick2, cv_usejoystick2.defaultvalue);
+			CV_StealthSet(&cv_turnaxis2, cv_turnaxis2.defaultvalue);
+			CV_StealthSet(&cv_moveaxis2, cv_moveaxis2.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis2, cv_brakeaxis2.defaultvalue);
+			CV_StealthSet(&cv_aimaxis2, cv_aimaxis2.defaultvalue);
+			CV_StealthSet(&cv_lookaxis2, cv_lookaxis2.defaultvalue);
+			CV_StealthSet(&cv_fireaxis2, cv_fireaxis2.defaultvalue);
+			CV_StealthSet(&cv_driftaxis2, cv_driftaxis2.defaultvalue);
+			break;
+		case 1:
+		default:
+			CV_StealthSet(&cv_usejoystick, cv_usejoystick.defaultvalue);
+			CV_StealthSet(&cv_turnaxis, cv_turnaxis.defaultvalue);
+			CV_StealthSet(&cv_moveaxis, cv_moveaxis.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis, cv_brakeaxis.defaultvalue);
+			CV_StealthSet(&cv_aimaxis, cv_aimaxis.defaultvalue);
+			CV_StealthSet(&cv_lookaxis, cv_lookaxis.defaultvalue);
+			CV_StealthSet(&cv_fireaxis, cv_fireaxis.defaultvalue);
+			CV_StealthSet(&cv_driftaxis, cv_driftaxis.defaultvalue);
+			break;
+	}
+
+	S_StartSound(NULL, sfx_s224);
 }
 
 // =====

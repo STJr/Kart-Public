@@ -165,7 +165,7 @@ void Command_Setcontrol_f(void);
 void Command_Setcontrol2_f(void);
 void Command_Setcontrol3_f(void);
 void Command_Setcontrol4_f(void);
-void G_Controldefault(void);
+void G_Controldefault(UINT8 player);
 void G_SaveKeySetting(FILE *f);
 void G_CheckDoubleUsage(INT32 keynum);
 
