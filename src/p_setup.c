@@ -3046,6 +3046,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	mapreset = 0;
 	nospectategrief = 0;
 	thwompsactive = false;
+	spbexists = false;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;

@@ -8155,6 +8155,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_SPB:
 			indirectitemcooldown = 30*TICRATE;
+			spbexists = true;
 			/* FALLTHRU */
 		case MT_BALLHOG:
 			P_SpawnGhostMobj(mobj)->fuse = 3;
@@ -10377,6 +10378,9 @@ void P_RemoveMobj(mobj_t *mobj)
 
 	if (mobj->type == MT_SHADOW)
 		P_RemoveShadow(mobj);
+
+	if (mobj->type == MT_SPB)
+		spbexists = false;
 
 	mobj->health = 0; // Just because
 

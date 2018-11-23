@@ -574,8 +574,10 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 			player->kartstuff[k_itemtype] = KITEM_JAWZ;
 			player->kartstuff[k_itemamount] = 2;
 			break;
-		case KITEM_SPB: // Indirect items
-		case KITEM_SHRINK:
+		case KITEM_SPB:
+			spbexists = true;
+			/* FALLTHRU */
+		case KITEM_SHRINK: // Indirect items
 			indirectitemcooldown = 30*TICRATE;
 			/* FALLTHRU */
 		default:
@@ -599,7 +601,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
+static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean insecondplace)
 {
 	const INT32 distvar = (64*14);
 	INT32 newodds;
@@ -648,12 +650,15 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
 	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
-	// Then, it multiplies it further if there's less than 5 players in game.
+	// Next, it multiplies it again if it's in SPB mode and 2nd needs to apply pressure to 1st.
+	// Then, it multiplies it further if there's less than 8 players in game.
 	// This is done to make low player count races more fair & interesting. (1v1s are basically the same as franticitems false in a normal race)
 	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
 	// The last two are very fractional and complicated, very sorry!
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
+		odds *= 2; \
+	if (spbexists && insecondplace) \
 		odds *= 2; \
 	if (pingame < 8 && !G_BattleGametype()) \
 		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((8-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
@@ -782,7 +787,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		for (j = 0; j < NUMKARTRESULTS; j++)
 		{
-			if (K_KartGetItemOdds(i, j, mashed) > 0)
+			if (K_KartGetItemOdds(i, j, mashed, (player->kartstuff[k_position] == 2)) > 0)
 			{
 				available = true;
 				break;
@@ -974,7 +979,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	useodds = K_FindUseodds(player, mashed, pingame, bestbumper);
 
 #define SETITEMRESULT(itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
+	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed, (player->kartstuff[k_position] == 2)); chance++) \
 		spawnchance[numchoices++] = itemnum
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
@@ -7811,7 +7816,7 @@ static void K_drawDistributionDebugger(void)
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
 	{
-		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0);
+		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0, (stplyr->kartstuff[k_position] == 2));
 		if (itemodds <= 0)
 			continue;
 
