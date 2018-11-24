@@ -609,7 +609,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean insecondplace)
+static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 {
 	const INT32 distvar = (64*14);
 	INT32 newodds;
@@ -665,8 +665,6 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean in
 	// The last two are very fractional and complicated, very sorry!
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
-		odds *= 2; \
-	if (spbexists && insecondplace) \
 		odds *= 2; \
 	if (pingame < 8 && !G_BattleGametype()) \
 		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((8-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
@@ -773,7 +771,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean in
 
 //{ SRB2kart Roulette Code - Distance Based, no waypoints
 
-static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT32 bestbumper)
+static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT32 bestbumper, boolean spbrush)
 {
 	const INT32 distvar = (64*14);
 	INT32 i;
@@ -795,7 +793,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		for (j = 0; j < NUMKARTRESULTS; j++)
 		{
-			if (K_KartGetItemOdds(i, j, mashed, (player->kartstuff[k_position] == 2)) > 0)
+			if (K_KartGetItemOdds(i, j, mashed) > 0)
 			{
 				available = true;
 				break;
@@ -853,9 +851,11 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
 
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
-			pdis = (15*pdis/14);
-		if (pingame < 8 && !G_BattleGametype())
-			pdis = ((28+(8-pingame))*pdis/28);
+			pdis = (15*pdis)/14;
+		if (spbrush) // SPB Rush Mode: It's 2nd place's job to catch-up items and make 1st place's job hell
+			pdis *= 2;
+		if (pingame < 8)
+			pdis = ((28+(8-pingame))*pdis)/28;
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
@@ -988,10 +988,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		spawnchance[i] = 0;
 
 	// Split into another function for a debug function below
-	useodds = K_FindUseodds(player, mashed, pingame, bestbumper);
+	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, (player->kartstuff[k_position] == 2 && spbexists));
 
 #define SETITEMRESULT(itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed, (player->kartstuff[k_position] == 2)); chance++) \
+	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
 		spawnchance[numchoices++] = itemnum
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
@@ -7944,11 +7944,11 @@ static void K_drawDistributionDebugger(void)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
 
-	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper);
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (player->kartstuff[k_position] == 2 && spbexists));
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
 	{
-		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0, (stplyr->kartstuff[k_position] == 2));
+		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0);
 		if (itemodds <= 0)
 			continue;
 
