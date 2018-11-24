@@ -8369,11 +8369,19 @@ void A_SPBChase(mobj_t *actor)
 			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
 			{
 				actor->lastlook = actor->tracer->player-players; // Save the player num for death scumming...
+
 				if (!P_IsObjectOnGround(actor->tracer) /*&& !actor->tracer->player->kartstuff[k_pogospring]*/)
 					defspeed = (7*actor->tracer->player->speed)/8; // In the air you have no control; basically don't hit unless you make a near complete stop
 				else
 					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+
 				defspeed -= (9*R_PointToDist2(0, 0, actor->tracer->player->cmomx, actor->tracer->player->cmomy))/8; // Be fairer on conveyors
+
+				// Switch targets if you're no longer 1st for long enough
+				if (actor->tracer->player->kartstuff[k_position] == 1)
+					actor->extravalue2 = 7*TICRATE;
+				else if (actor->extravalue2-- <= 0)
+					actor->extravalue1 = 0; // back to SEEKING
 			}
 
 			// Play the intimidating gurgle
@@ -8464,6 +8472,7 @@ void A_SPBChase(mobj_t *actor)
 			{
 				P_SetTarget(&actor->tracer, players[actor->lastlook].mo);
 				actor->extravalue1 = 1; // TARGETING
+				actor->extravalue2 = 7*TICRATE;
 			}
 			else
 				actor->extravalue1 = 0; // SEEKING
@@ -8472,6 +8481,8 @@ void A_SPBChase(mobj_t *actor)
 	}
 	else // MODE: SEEKING
 	{
+		actor->lastlook = -1; // Just make sure this is reset
+
 		// Find the player with the best rank
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
@@ -8560,6 +8571,7 @@ void A_SPBChase(mobj_t *actor)
 		{
 			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
 			actor->extravalue1 = 1; // TARGET ACQUIRED
+			actor->extravalue2 = 7*TICRATE;
 		}
 	}
 
