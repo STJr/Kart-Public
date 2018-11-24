@@ -867,6 +867,7 @@ typedef enum
 	sfx_itrol7,
 	sfx_itrol8,
 	sfx_itrolf,
+	sfx_itrolm,
 	sfx_itrole,
 	sfx_vroom,
 	sfx_chaooo,

@@ -8270,6 +8270,9 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKMODE",
 	"WANTED",
 	"YOUGOTEM",
+
+	"ITEMBLINK",
+	"ITEMBLINKMODE"
 };
 
 static const char *const HUDITEMS_LIST[] = {

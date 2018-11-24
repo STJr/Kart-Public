@@ -326,12 +326,20 @@ void K_GenerateKartColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color)
 	INT32 starttranscolor;
 
 	// Handle a couple of simple special cases
-	if (skinnum == TC_BOSS || skinnum == TC_ALLWHITE || skinnum == TC_METALSONIC || color == SKINCOLOR_NONE)
+	if (skinnum == TC_BOSS
+		|| skinnum == TC_ALLWHITE
+		|| skinnum == TC_METALSONIC
+		|| skinnum == TC_BLINK
+		|| color == SKINCOLOR_NONE)
 	{
 		for (i = 0; i < NUM_PALETTE_ENTRIES; i++)
 		{
-			if (skinnum == TC_ALLWHITE) dest_colormap[i] = 0;
-			else dest_colormap[i] = (UINT8)i;
+			if (skinnum == TC_ALLWHITE)
+				dest_colormap[i] = 0;
+			else if (skinnum == TC_BLINK)
+				dest_colormap[i] = colortranslations[color][7];
+			else
+				dest_colormap[i] = (UINT8)i;
 		}
 
 		// White!
@@ -953,6 +961,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_roulettetype] == 2) // Fake items
 	{
 		player->kartstuff[k_eggmanexplode] = 4*TICRATE;
+		//player->kartstuff[k_itemblink] = TICRATE;
+		//player->kartstuff[k_itemblinkmode] = 1;
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
 		if (P_IsLocalPlayer(player))
@@ -964,6 +974,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	{
 		K_KartGetItemResult(player, cv_kartdebugitem.value);
 		player->kartstuff[k_itemamount] = cv_kartdebugamount.value;
+		player->kartstuff[k_itemblink] = TICRATE;
+		player->kartstuff[k_itemblinkmode] = 2;
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
 		if (P_IsLocalPlayer(player))
@@ -996,11 +1008,13 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemamount] = 1;
 	}
 
+	player->kartstuff[k_itemblink] = TICRATE;
+	player->kartstuff[k_itemblinkmode] = ((player->kartstuff[k_roulettetype] == 1) ? 2 : (mashed ? 1 : 0));
 	player->kartstuff[k_itemroulette] = 0; // Since we're done, clear the roulette number
 	player->kartstuff[k_roulettetype] = 0; // This too
 
 	if (P_IsLocalPlayer(player))
-		S_StartSound(NULL, sfx_itrolf);
+		S_StartSound(NULL, (mashed ? sfx_itrolm : sfx_itrolf));
 }
 
 //}
@@ -3038,7 +3052,8 @@ static void K_DoHyudoroSteal(player_t *player)
 			// Has an item
 			&& (players[i].kartstuff[k_itemtype]
 			&& players[i].kartstuff[k_itemamount]
-			&& !players[i].kartstuff[k_itemheld]))
+			&& !players[i].kartstuff[k_itemheld]
+			&& !players[i].kartstuff[k_itemblink]))
 		{
 			playerswappable[numplayers] = i;
 			numplayers++;
@@ -4243,6 +4258,12 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_yougotem])
 		player->kartstuff[k_yougotem]--;
+
+	if (player->kartstuff[k_itemblink] && player->kartstuff[k_itemblink]-- <= 0)
+	{
+		player->kartstuff[k_itemblinkmode] = 0;
+		player->kartstuff[k_itemblink] = 0;
+	}
 
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
@@ -6239,29 +6260,84 @@ static void K_drawKartItem(void)
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	const INT32 numberdisplaymin = ((!offset && stplyr->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
 	INT32 itembar = 0;
+	UINT8 localcolor = SKINCOLOR_NONE;
+	SINT8 colormode = TC_RAINBOW;
+	UINT8 *colmap = NULL;
 
 	if (stplyr->kartstuff[k_itemroulette])
 	{
-		switch((stplyr->kartstuff[k_itemroulette] % (13*3)) / 3)
+		if (stplyr->skincolor)
+			localcolor = stplyr->skincolor;
+
+		switch((stplyr->kartstuff[k_itemroulette] % (14*3)) / 3)
 		{
 			// Each case is handled in threes, to give three frames of in-game time to see the item on the roulette
-			case  0: localpatch = kp_sneaker[offset]; break;					// Sneaker
-			case  1: localpatch = kp_banana[offset]; break;					// Banana
-			case  2: localpatch = kp_orbinaut[3+offset]; break;				// Orbinaut
-			case  3: localpatch = kp_mine[offset]; break;						// Mine
-			case  4: localpatch = kp_grow[offset]; break;						// Grow
-			case  5: localpatch = kp_hyudoro[offset]; break;					// Hyudoro
-			case  6: localpatch = kp_rocketsneaker[offset]; break;			// Rocket Sneaker
-			case  7: localpatch = kp_jawz[offset]; break;						// Jawz
-			case  8: localpatch = kp_selfpropelledbomb[offset]; break;		// Self-Propelled Bomb
-			case  9: localpatch = kp_shrink[offset]; break;					// Shrink
-			case 10: localpatch = localinv; break;								// Invincibility
-			case 11: localpatch = kp_eggman[offset]; break;					// Eggman Monitor
-			case 12: localpatch = kp_ballhog[offset]; break;					// Ballhog
-			case 13: localpatch = kp_thundershield[offset]; break;			// Thunder Shield
-			//case 14: localpatch = kp_pogospring[offset]; break;				// Pogo Spring
-			//case 15: localpatch = kp_kitchensink[offset]; break;				// Kitchen Sink
-			default: break;
+			case 0: // Sneaker
+				localpatch = kp_sneaker[offset];
+				//localcolor = SKINCOLOR_RASPBERRY;
+				break;
+			case 1: // Banana
+				localpatch = kp_banana[offset];
+				//localcolor = SKINCOLOR_YELLOW;
+				break;
+			case 2: // Orbinaut
+				localpatch = kp_orbinaut[3+offset];
+				//localcolor = SKINCOLOR_STEEL;
+				break;
+			case 3: // Mine
+				localpatch = kp_mine[offset];
+				//localcolor = SKINCOLOR_JET;
+				break;
+			case 4: // Grow
+				localpatch = kp_grow[offset];
+				//localcolor = SKINCOLOR_TEAL;
+				break;
+			case 5: // Hyudoro
+				localpatch = kp_hyudoro[offset];
+				//localcolor = SKINCOLOR_STEEL;
+				break;
+			case 6: // Rocket Sneaker
+				localpatch = kp_rocketsneaker[offset];
+				//localcolor = SKINCOLOR_TANGERINE;
+				break;
+			case 7: // Jawz
+				localpatch = kp_jawz[offset];
+				//localcolor = SKINCOLOR_JAWZ;
+				break;
+			case 8: // Self-Propelled Bomb
+				localpatch = kp_selfpropelledbomb[offset];
+				//localcolor = SKINCOLOR_JET;
+				break;
+			case 9: // Shrink
+				localpatch = kp_shrink[offset];
+				//localcolor = SKINCOLOR_ORANGE;
+				break;
+			case 10: // Invincibility
+				localpatch = localinv;
+				//localcolor = SKINCOLOR_GREY;
+				break;
+			case 11: // Eggman Monitor
+				localpatch = kp_eggman[offset];
+				//localcolor = SKINCOLOR_ROSE;
+				break;
+			case 12: // Ballhog
+				localpatch = kp_ballhog[offset];
+				//localcolor = SKINCOLOR_LILAC;
+				break;
+			case 13: // Thunder Shield
+				localpatch = kp_thundershield[offset];
+				//localcolor = SKINCOLOR_CYAN;
+				break;
+			/*case 14: // Pogo Spring
+				localpatch = kp_pogospring[offset];
+				localcolor = SKINCOLOR_TANGERINE;
+				break;
+			case 15: // Kitchen Sink
+				localpatch = kp_kitchensink[offset];
+				localcolor = SKINCOLOR_STEEL;
+				break;*/
+			default:
+				break;
 		}
 	}
 	else
@@ -6317,33 +6393,89 @@ static void K_drawKartItem(void)
 
 			switch(stplyr->kartstuff[k_itemtype])
 			{
-				case KITEM_SNEAKER:				localpatch = kp_sneaker[offset]; break;
-				case KITEM_ROCKETSNEAKER:		localpatch = kp_rocketsneaker[offset]; break;
-				case KITEM_INVINCIBILITY:		localpatch = localinv; localbg = kp_itembg[offset+1]; break;
-				case KITEM_BANANA:				localpatch = kp_banana[offset]; break;
-				case KITEM_EGGMAN:				localpatch = kp_eggman[offset]; break;
-				case KITEM_ORBINAUT:
-					localpatch = kp_orbinaut[(offset ? 4
-						: min(stplyr->kartstuff[k_itemamount]-1, 3))];
+				case KITEM_SNEAKER:
+					localpatch = kp_sneaker[offset];
 					break;
-				case KITEM_JAWZ:				localpatch = kp_jawz[offset]; break;
-				case KITEM_MINE:				localpatch = kp_mine[offset]; break;
-				case KITEM_BALLHOG:				localpatch = kp_ballhog[offset]; break;
-				case KITEM_SPB:					localpatch = kp_selfpropelledbomb[offset]; localbg = kp_itembg[offset+1]; break;
-				case KITEM_GROW:				localpatch = kp_grow[offset]; break;
-				case KITEM_SHRINK:				localpatch = kp_shrink[offset]; break;
-				case KITEM_THUNDERSHIELD:		localpatch = kp_thundershield[offset]; localbg = kp_itembg[offset+1]; break;
-				case KITEM_HYUDORO:				localpatch = kp_hyudoro[offset]; break;
-				case KITEM_POGOSPRING:			localpatch = kp_pogospring[offset]; break;
-				case KITEM_KITCHENSINK:			localpatch = kp_kitchensink[offset]; break;
-				case KITEM_SAD:					localpatch = kp_sadface[offset]; break;
-				default: return;
+				case KITEM_ROCKETSNEAKER:
+					localpatch = kp_rocketsneaker[offset];
+					break;
+				case KITEM_INVINCIBILITY:
+					localpatch = localinv;
+					localbg = kp_itembg[offset+1];
+					break;
+				case KITEM_BANANA:
+					localpatch = kp_banana[offset];
+					break;
+				case KITEM_EGGMAN:
+					localpatch = kp_eggman[offset];
+					break;
+				case KITEM_ORBINAUT:
+					localpatch = kp_orbinaut[(offset ? 4 : min(stplyr->kartstuff[k_itemamount]-1, 3))];
+					break;
+				case KITEM_JAWZ:
+					localpatch = kp_jawz[offset];
+					break;
+				case KITEM_MINE:
+					localpatch = kp_mine[offset];
+					break;
+				case KITEM_BALLHOG:
+					localpatch = kp_ballhog[offset];
+					break;
+				case KITEM_SPB:
+					localpatch = kp_selfpropelledbomb[offset];
+					localbg = kp_itembg[offset+1];
+					break;
+				case KITEM_GROW:
+					localpatch = kp_grow[offset];
+					break;
+				case KITEM_SHRINK:
+					localpatch = kp_shrink[offset];
+					break;
+				case KITEM_THUNDERSHIELD:
+					localpatch = kp_thundershield[offset];
+					localbg = kp_itembg[offset+1];
+					break;
+				case KITEM_HYUDORO:
+					localpatch = kp_hyudoro[offset];
+					break;
+				case KITEM_POGOSPRING:
+					localpatch = kp_pogospring[offset];
+					break;
+				case KITEM_KITCHENSINK:
+					localpatch = kp_kitchensink[offset];
+					break;
+				case KITEM_SAD:
+					localpatch = kp_sadface[offset];
+					break;
+				default:
+					return;
 			}
 
 			if (stplyr->kartstuff[k_itemheld] && !(leveltime & 1))
 				localpatch = kp_nodraw;
 		}
+
+		if (stplyr->kartstuff[k_itemblink] && (leveltime & 1))
+		{
+			colormode = TC_BLINK;
+
+			switch (stplyr->kartstuff[k_itemblinkmode])
+			{
+				case 2:
+					localcolor = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
+					break;
+				case 1:
+					localcolor = SKINCOLOR_RED;
+					break;
+				default:
+					localcolor = SKINCOLOR_WHITE;
+					break;
+			}
+		}
 	}
+
+	if (localcolor != SKINCOLOR_NONE)
+		colmap = R_GetTranslationColormap(colormode, localcolor, 0);
 
 	V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localbg);
 
@@ -6351,7 +6483,7 @@ static void K_drawKartItem(void)
 	if (stplyr->kartstuff[k_itemamount] >= numberdisplaymin && !stplyr->kartstuff[k_itemroulette])
 	{
 		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, kp_itemmulsticker[offset]);
-		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
+		V_DrawFixedPatch(ITEM_X<<FRACBITS, ITEM_Y<<FRACBITS, FRACUNIT, V_HUDTRANS|splitflags, localpatch, colmap);
 		if (offset)
 			V_DrawString(ITEM_X+24, ITEM_Y+31, V_ALLOWLOWERCASE|V_HUDTRANS|splitflags, va("x%d", stplyr->kartstuff[k_itemamount]));
 		else
@@ -6361,7 +6493,7 @@ static void K_drawKartItem(void)
 		}
 	}
 	else
-		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localpatch);
+		V_DrawFixedPatch(ITEM_X<<FRACBITS, ITEM_Y<<FRACBITS, FRACUNIT, V_HUDTRANS|splitflags, localpatch, colmap);
 
 	// Extensible meter, currently only used for rocket sneaker...
 	if (itembar && hudtrans)
