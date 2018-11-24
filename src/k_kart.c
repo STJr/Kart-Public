@@ -7944,7 +7944,7 @@ static void K_drawDistributionDebugger(void)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
 
-	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (player->kartstuff[k_position] == 2 && spbexists));
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (stplyr->kartstuff[k_position] == 2 && spbexists));
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
 	{
