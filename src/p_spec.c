@@ -4098,7 +4098,6 @@ DoneSection2:
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
 				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
-				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 				player->pflags &= ~PF_GLIDING;
 				player->climbing = 0;
@@ -4176,7 +4175,6 @@ DoneSection2:
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
 				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
-				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 
 				if (!(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
