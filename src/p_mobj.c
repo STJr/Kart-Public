@@ -6832,6 +6832,18 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetScale(mobj->tracer, (mobj->tracer->destscale = mobj->scale));
 					}
 
+					// Do this in an easy way
+					if (mobj->target->player->kartstuff[k_itemroulette])
+					{
+						mobj->tracer->color = mobj->target->player->skincolor;
+						mobj->tracer->colorized = true;
+					}
+					else
+					{
+						mobj->tracer->color = SKINCOLOR_NONE;
+						mobj->tracer->colorized = false;
+					}
+
 					if (!(mobj->flags2 & MF2_DONTDRAW))
 					{
 						const INT32 numberdisplaymin = ((mobj->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
