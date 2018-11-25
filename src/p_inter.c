@@ -2003,19 +2003,6 @@ boolean P_CheckRacers(void)
 		countdown = countdown2 = 0;
 		return true;
 	}
-	else if (!countdown) // Check to see if the winners have finished, to set countdown.
-	{
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || players[i].spectator)
-				continue;
-			if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
-				continue;
-			break;
-		}
-		if (i == MAXPLAYERS)
-			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
-	}
 
 	if (cv_karteliminatelast.value)
 	{
@@ -2044,6 +2031,28 @@ boolean P_CheckRacers(void)
 				return true;
 			}
 		}
+	}
+
+	if (!countdown) // Check to see if the winners have finished, to set countdown.
+	{
+		UINT8 numingame = 0, numexiting = 0;
+		UINT8 winningpos = 1;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			numingame++;
+			if (players[i].exiting)
+				numexiting++;
+		}
+
+		winningpos = max(1, numingame/2);
+		if (numingame % 2) // any remainder?
+			winningpos++;
+
+		if (numexiting >= winningpos)
+			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
 	}
 
 	return false;
