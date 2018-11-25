@@ -1206,7 +1206,7 @@ static void ForceAllSkins(INT32 forcedskin)
 
 		SetPlayerSkinByNum(i, forcedskin);
 
-		// If it's me (or my brother), set appropriate skin value in cv_skin/cv_skin2
+		// If it's me (or my brother (or my sister (or my trusty pet dog))), set appropriate skin value in cv_skin
 		if (!dedicated) // But don't do this for dedicated servers, of course.
 		{
 			if (i == consoleplayer)
