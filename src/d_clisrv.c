@@ -1304,7 +1304,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.leveltime = (tic_t)LONG(leveltime);
 
 	netbuffer->u.serverinfo.numberofplayer = (UINT8)D_NumPlayers();
-	netbuffer->u.serverinfo.maxplayer = (UINT8)cv_maxplayers.value;
+	netbuffer->u.serverinfo.maxplayer = (UINT8)(min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value));
 	netbuffer->u.serverinfo.gametype = (UINT8)(G_BattleGametype() ? VANILLA_GT_MATCH : VANILLA_GT_RACE); // SRB2Kart: Vanilla's gametype constants for MS support
 	netbuffer->u.serverinfo.modifiedgame = (UINT8)modifiedgame;
 	netbuffer->u.serverinfo.cheatsenabled = CV_CheatsEnabled();
@@ -3343,6 +3343,7 @@ static boolean SV_AddWaitingPlayers(void)
 	UINT8 newplayernum = 0;
 
 	// What is the reason for this? Why can't newplayernum always be 0?
+	// Sal: Because the dedicated player is stupidly forced into players[0].....
 	if (dedicated)
 		newplayernum = 1;
 
@@ -3529,6 +3530,11 @@ static size_t TotalTextCmdPerTic(tic_t tic)
   */
 static void HandleConnect(SINT8 node)
 {
+	// Sal: Dedicated mode is INCREDIBLY hacked together.
+	// If a server filled out, then it'd overwrite the host and turn everyone into weird husks.....
+	// It's too much effort to legimately fix right now. Just prevent it from reaching that state.
+	UINT8 maxplayers = min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value);
+
 	if (bannednode && bannednode[node])
 		SV_SendRefuse(node, M_GetText("You have been banned\nfrom the server"));
 	else if (netbuffer->u.clientcfg.version != VERSION
@@ -3536,10 +3542,10 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, va(M_GetText("Different SRB2 versions cannot\nplay a netgame!\n(server version %d.%d.%d)"), VERSION/100, VERSION%100, SUBVERSION));
 	else if (!cv_allownewplayer.value && node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
-	else if (D_NumPlayers() >= cv_maxplayers.value)
-		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), cv_maxplayers.value));
-	else if (netgame && D_NumPlayers() + netbuffer->u.clientcfg.localplayers > cv_maxplayers.value)
-		SV_SendRefuse(node, va(M_GetText("Number of local players\nwould exceed maximum: %d"), cv_maxplayers.value));
+	else if (D_NumPlayers() >= maxplayers)
+		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), maxplayers));
+	else if (netgame && D_NumPlayers() + netbuffer->u.clientcfg.localplayers > maxplayers)
+		SV_SendRefuse(node, va(M_GetText("Number of local players\nwould exceed maximum: %d"), maxplayers));
 	else if (netgame && netbuffer->u.clientcfg.localplayers > 4) // Hacked client?
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
@@ -4557,31 +4563,30 @@ static void CL_SendClientCmd(void)
 	}
 	else if (gamestate != GS_NULL)
 	{
+		packetsize = sizeof (clientcmd_pak);
 		G_MoveTiccmd(&netbuffer->u.clientpak.cmd, &localcmds, 1);
 		netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
 
 		if (splitscreen || botingame) // Send a special packet with 2 cmd for splitscreen
 		{
 			netbuffer->packettype = (mis ? PT_CLIENT2MIS : PT_CLIENT2CMD);
+			packetsize = sizeof (client2cmd_pak);
 			G_MoveTiccmd(&netbuffer->u.client2pak.cmd2, &localcmds2, 1);
+
 			if (splitscreen > 1)
 			{
 				netbuffer->packettype = (mis ? PT_CLIENT3MIS : PT_CLIENT3CMD);
+				packetsize = sizeof (client3cmd_pak);
 				G_MoveTiccmd(&netbuffer->u.client3pak.cmd3, &localcmds3, 1);
+
 				if (splitscreen > 2)
 				{
 					netbuffer->packettype = (mis ? PT_CLIENT4MIS : PT_CLIENT4CMD);
-					G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
 					packetsize = sizeof (client4cmd_pak);
+					G_MoveTiccmd(&netbuffer->u.client4pak.cmd4, &localcmds4, 1);
 				}
-				else
-					packetsize = sizeof (client3cmd_pak);
 			}
-			else
-				packetsize = sizeof (client2cmd_pak);
 		}
-		else
-			packetsize = sizeof (clientcmd_pak);
 
 		HSendPacket(servernode, false, 0, packetsize);
 	}
