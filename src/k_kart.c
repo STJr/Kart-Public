@@ -3966,6 +3966,8 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		dist = P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
 			player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) / 2;
 
+		dist = FixedDiv(dist, mapheaderinfo[gamemap-1]->mobj_scale);
+
 		if (dist > 1536<<FRACBITS)
 			continue;
 		else if (dist < 160<<FRACBITS) // engine sounds' approx. range
