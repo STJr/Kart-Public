@@ -853,13 +853,13 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
 			pdis = (15*pdis)/14;
 		if (spbrush) // SPB Rush Mode: It's 2nd place's job to catch-up items and make 1st place's job hell
-			pdis *= 2;
+			pdis = (3*pdis)/2;
 		if (pingame < 8)
 			pdis = ((28+(8-pingame))*pdis)/28;
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
-		else if (pdis <= 0)								// (64*14) *  0 =     0
+		else if (pdis <= 0)									// (64*14) *  0 =     0
 			useodds = disttable[0];
 		else if (pdis > distvar * ((12 * distlen) / 14))	// (64*14) * 12 = 10752
 			useodds = disttable[distlen-1];
