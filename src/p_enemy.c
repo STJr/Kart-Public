@@ -8469,7 +8469,11 @@ void A_SPBChase(mobj_t *actor)
 	else if (actor->extravalue1 == 2) // MODE: WAIT...
 	{
 		actor->momx = actor->momy = actor->momz = 0; // Stoooop
-		spbplace = -1;
+
+		if (actor->lastlook == -1)
+			spbplace = -1;
+		else
+			spbplace = players[actor->lastlook].kartstuff[k_position];
 
 		if (actor->extravalue2-- <= 0)
 		{
@@ -8487,7 +8491,6 @@ void A_SPBChase(mobj_t *actor)
 	else // MODE: SEEKING
 	{
 		actor->lastlook = -1; // Just make sure this is reset
-		spbplace = -1;
 
 		// Find the player with the best rank
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -8510,6 +8513,8 @@ void A_SPBChase(mobj_t *actor)
 				player = &players[i];
 			}
 		}
+
+		spbplace = bestrank; // While seeking, it's trying to go for first place.
 
 		// No one there?
 		if (player == NULL || !player->mo)
