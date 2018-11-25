@@ -17282,7 +17282,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // speed
 		36*FRACUNIT,    // radius
 		37*FRACUNIT,    // height
-		0,              // display offset
+		-2,             // display offset
 		16,             // mass
 		0,              // damage
 		sfx_None,       // activesound
@@ -17309,7 +17309,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // speed
 		36*FRACUNIT,    // radius
 		37*FRACUNIT,    // height
-		0,              // display offset
+		-2,             // display offset
 		16,             // mass
 		0,              // damage
 		sfx_None,       // activesound
@@ -17363,7 +17363,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // speed
 		8*FRACUNIT,     // radius
 		16*FRACUNIT,    // height
-		0,              // display offset
+		-1,             // display offset
 		0,              // mass
 		0,              // damage
 		sfx_None,       // activesound
