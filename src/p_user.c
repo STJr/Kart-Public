@@ -7759,7 +7759,7 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 
 		if (mo->type == MT_SPB) // If you destroy a SPB, you don't get the luxury of a cooldown.
 		{
-			spbexists = false;
+			spbplace = -1;
 			indirectitemcooldown = 0;
 		}
 

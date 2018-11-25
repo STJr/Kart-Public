@@ -9773,8 +9773,8 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);
 		return 1;
-	} else if (fastcmp(word,"spbexists")) {
-		lua_pushboolean(L, spbexists);
+	} else if (fastcmp(word,"spbplace")) {
+		lua_pushinteger(L, spbplace);
 		return 1;
 	}
 

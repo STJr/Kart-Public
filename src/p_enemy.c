@@ -8354,6 +8354,7 @@ void A_SPBChase(mobj_t *actor)
 	if (actor->threshold) // Just fired, go straight.
 	{
 		actor->lastlook = -1;
+		spbplace = -1;
 		P_InstaThrust(actor, actor->angle, wspeed);
 		return;
 	}
@@ -8382,6 +8383,8 @@ void A_SPBChase(mobj_t *actor)
 					actor->extravalue2 = 7*TICRATE;
 				else if (actor->extravalue2-- <= 0)
 					actor->extravalue1 = 0; // back to SEEKING
+
+				spbplace = actor->tracer->player->kartstuff[k_position];
 			}
 
 			// Play the intimidating gurgle
@@ -8466,6 +8469,8 @@ void A_SPBChase(mobj_t *actor)
 	else if (actor->extravalue1 == 2) // MODE: WAIT...
 	{
 		actor->momx = actor->momy = actor->momz = 0; // Stoooop
+		spbplace = -1;
+
 		if (actor->extravalue2-- <= 0)
 		{
 			if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
@@ -8482,6 +8487,7 @@ void A_SPBChase(mobj_t *actor)
 	else // MODE: SEEKING
 	{
 		actor->lastlook = -1; // Just make sure this is reset
+		spbplace = -1;
 
 		// Find the player with the best rank
 		for (i = 0; i < MAXPLAYERS; i++)

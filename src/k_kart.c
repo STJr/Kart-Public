@@ -583,8 +583,6 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 			player->kartstuff[k_itemamount] = 2;
 			break;
 		case KITEM_SPB:
-			spbexists = true;
-			/* FALLTHRU */
 		case KITEM_SHRINK: // Indirect items
 			indirectitemcooldown = 30*TICRATE;
 			/* FALLTHRU */
@@ -988,7 +986,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		spawnchance[i] = 0;
 
 	// Split into another function for a debug function below
-	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, (player->kartstuff[k_position] == 2 && spbexists));
+	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, (spbplace != -1 && player->kartstuff[k_position] == spbplace+1));
 
 #define SETITEMRESULT(itemnum) \
 	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
@@ -7944,7 +7942,7 @@ static void K_drawDistributionDebugger(void)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
 
-	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (stplyr->kartstuff[k_position] == 2 && spbexists));
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (spbplace != -1 && stplyr->kartstuff[k_position] == spbplace+1));
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
 	{
