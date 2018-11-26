@@ -779,7 +779,7 @@ const char *G_BuildMapName(INT32 map)
 			map = gamemap-1;
 		else
 			map = prevmap;
-		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, 0, false)+1;
+		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, 0, false, NULL)+1;
 	}
 
 	if (map < 100)
@@ -3269,8 +3269,7 @@ static INT32 TOLMaps(INT16 tolflags)
   * \author Graue <graue@oceanbase.org>
   */
 static INT16 *okmaps = NULL;
-static INT16 votebuffer[3] = {-1, -1, -1};
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon, INT16 *extbuffer)
 {
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
@@ -3299,24 +3298,18 @@ tryagain:
 
 		if (!ignorebuffer)
 		{
-			if (votebuffer[0] != -1)
+			if (extbuffer != NULL)
 			{
-				if (ix == votebuffer[0])
-					continue;
-
-				for (bufx = 1; bufx < 3; bufx++)
+				for (bufx = 0; bufx < (INT16)(sizeof extbuffer); bufx++)
 				{
-					if (votebuffer[bufx] == -1) // Rest of buffer SHOULD be empty
+					if (extbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
 						break;
-					if (ix == votebuffer[bufx])
+					if (ix == extbuffer[bufx])
 					{
 						isokmap = false;
 						break;
 					}
 				}
-
-				if (!isokmap)
-					continue;
 			}
 
 			for (bufx = 0; bufx < (maphell ? 3 : NUMMAPS); bufx++)
@@ -3351,18 +3344,18 @@ tryagain:
 			if (randmapbuffer[3] == -1) // Is the buffer basically empty?
 			{
 				ignorebuffer = true; // This will probably only help in situations where there's very few maps, but it's folly not to at least try it
-				goto tryagain; //return G_RandMap(tolflags, pprevmap, true, maphell, callagainsoon);
+				goto tryagain;
 			}
 
 			for (bufx = 3; bufx < NUMMAPS; bufx++) // Let's clear all but the three most recent maps...
 				randmapbuffer[bufx] = -1;
-			goto tryagain; //return G_RandMap(tolflags, pprevmap, ignorebuffer, maphell, callagainsoon);
+			goto tryagain;
 		}
 
 		if (maphell) // Any wiggle room to loosen our restrictions here?
 		{
 			maphell--;
-			goto tryagain; //return G_RandMap(tolflags, pprevmap, true, maphell-1, callagainsoon);
+			goto tryagain;
 		}
 
 		ix = 0; // Sorry, none match. You get MAP01.
@@ -3376,17 +3369,6 @@ tryagain:
 	{
 		Z_Free(okmaps);
 		okmaps = NULL;
-		for (bufx = 0; bufx < 3; bufx++)
-			votebuffer[bufx] = -1;
-	}
-	else if (votebuffer[2] == -1)
-	{
-		for (bufx = 0; bufx < 3; bufx++)
-			if (votebuffer[bufx] == -1)
-			{
-				votebuffer[bufx] = ix;
-				break;
-			}
 	}
 
 	return ix;
@@ -3548,7 +3530,7 @@ static void G_DoCompleted(void)
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, false);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, false, NULL);
 	}
 
 	// We are committed to this map now.

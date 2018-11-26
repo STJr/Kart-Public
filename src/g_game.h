@@ -255,7 +255,7 @@ FUNCMATH INT32 G_TicsToMilliseconds(tic_t tics);
 // Don't split up TOL handling
 INT16 G_TOLFlag(INT32 pgametype);
 
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon);
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon, INT16 votebuffer[5]);
 void G_AddMapToBuffer(INT16 map);
 
 #endif
