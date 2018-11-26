@@ -3273,10 +3273,19 @@ INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maph
 {
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
+	UINT16 extbufsize = 0;
 	boolean usehellmaps; // Only consider Hell maps in this pick
 
 	if (!okmaps)
 		okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
+
+	if (extbuffer != NULL)
+	{
+		bufx = 0;
+		while (extbuffer[bufx]) {
+			extbufsize++; bufx++;
+		}
+	}
 
 tryagain:
 
@@ -3298,9 +3307,9 @@ tryagain:
 
 		if (!ignorebuffer)
 		{
-			if (extbuffer != NULL)
+			if (extbufsize > 0)
 			{
-				for (bufx = 0; bufx < (INT16)(sizeof extbuffer); bufx++)
+				for (bufx = 0; bufx < extbufsize; bufx++)
 				{
 					if (extbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
 						break;
