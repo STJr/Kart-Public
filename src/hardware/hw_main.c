@@ -5968,6 +5968,7 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	//                     It should replace all other gr_viewxxx when finished
 	atransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
 	atransform.angley = (float)(viewangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+	atransform.anglez = 0.0f;
 
 	if (*type == postimg_flip)
 		atransform.flip = true;
@@ -6230,6 +6231,7 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	//                     It should replace all other gr_viewxxx when finished
 	atransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
 	atransform.angley = (float)(viewangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+	atransform.anglez = 0.0f;
 
 	if (*type == postimg_flip)
 		atransform.flip = true;
