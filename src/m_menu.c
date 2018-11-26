@@ -1097,8 +1097,8 @@ static menuitem_t OP_ControlsMenu[] =
 
 static menuitem_t OP_AllControlsMenu[] =
 {
-	{IT_CALL|IT_STRING, NULL, "Reset to defaults", M_ResetControls, 0},
-	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 8},
+	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 0},
+	{IT_CALL|IT_STRING, NULL, "Reset to defaults", M_ResetControls, 8},
 	//{IT_SPACE, NULL, NULL, NULL, 0},
 	{IT_HEADER, NULL, "Gameplay Controls", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0},
@@ -8600,7 +8600,7 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick1Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick1Def;
 
 	// Unhide P1-only controls
 	OP_AllControlsMenu[15].status = IT_CONTROL; // Chat
@@ -8632,7 +8632,7 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick2Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick2Def;
 
 	// Hide P1-only controls
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
@@ -8664,7 +8664,7 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick3Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick3Def;
 
 	// Hide P1-only controls
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
@@ -8696,7 +8696,7 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick4Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick4Def;
 
 	// Hide P1-only controls
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
@@ -8777,10 +8777,8 @@ static void M_DrawControl(void)
 	M_DrawMenuTitle();
 
 	M_CentreText(28,
-		(setupcontrolplayer == 4 ? "\x86""Set controls for ""\x82""Player 4" :
-		(setupcontrolplayer == 3 ? "\x86""Set controls for ""\x82""Player 3" :
-		(setupcontrolplayer == 2 ? "\x86""Set controls for ""\x82""Player 2" :
-		                           "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
+		(setupcontrolplayer > 1 ? va("\x86""Set controls for ""\x82""Player %d", setupcontrolplayer) :
+		                          "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"));
 
 	if (i)
 		V_DrawCharacter(currentMenu->x - 16, y-(skullAnimCounter/5),
@@ -8928,10 +8926,12 @@ static void M_ChangeControl(INT32 choice)
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
 }
 
-static void M_ResetControls(INT32 choice)
+static void M_ResetControlsResponse(INT32 ch)
 {
 	INT32 i;
-	(void)choice;
+
+	if (ch != 'y' && ch != KEY_ENTER)
+		return;
 
 	// clear all controls
 	for (i = 0; i < num_gamecontrols; i++)
@@ -9004,6 +9004,12 @@ static void M_ResetControls(INT32 choice)
 	}
 
 	S_StartSound(NULL, sfx_s224);
+}
+
+static void M_ResetControls(INT32 choice)
+{
+	(void)choice;
+	M_StartMessage(va(M_GetText("Reset Player %d's controls to defaults?\n\n(Press 'Y' to confirm)\n"), setupcontrolplayer), M_ResetControlsResponse, MM_YESNO);
 }
 
 // =====
