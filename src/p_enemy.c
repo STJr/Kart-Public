@@ -8470,22 +8470,22 @@ void A_SPBChase(mobj_t *actor)
 	{
 		actor->momx = actor->momy = actor->momz = 0; // Stoooop
 
-		if (actor->lastlook == -1)
-			spbplace = -1;
-		else
-			spbplace = players[actor->lastlook].kartstuff[k_position];
-
-		if (actor->extravalue2-- <= 0)
+		if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
 		{
-			if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
+			spbplace = players[actor->lastlook].kartstuff[k_position];
+			if (actor->extravalue2-- <= 0)
 			{
 				P_SetTarget(&actor->tracer, players[actor->lastlook].mo);
 				actor->extravalue1 = 1; // TARGETING
 				actor->extravalue2 = 7*TICRATE;
+				actor->extravalue2 = 0;
 			}
-			else
-				actor->extravalue1 = 0; // SEEKING
+		}
+		else
+		{
+			actor->extravalue1 = 0; // SEEKING
 			actor->extravalue2 = 0;
+			spbplace = -1;
 		}
 	}
 	else // MODE: SEEKING
