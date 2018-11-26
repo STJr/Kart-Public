@@ -3966,6 +3966,8 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		dist = P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
 			player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) / 2;
 
+		dist = FixedDiv(dist, mapheaderinfo[gamemap-1]->mobj_scale);
+
 		if (dist > 1536<<FRACBITS)
 			continue;
 		else if (dist < 160<<FRACBITS) // engine sounds' approx. range
@@ -4021,6 +4023,47 @@ static void K_UpdateInvincibilitySounds(player_t *player)
 	STOPTHIS(sfx_kinvnc);
 	STOPTHIS(sfx_kgrow);
 #undef STOPTHIS
+}
+
+void K_KartPlayerHUDUpdate(player_t *player)
+{
+	if (player->kartstuff[k_lapanimation])
+		player->kartstuff[k_lapanimation]--;
+
+	if (player->kartstuff[k_yougotem])
+		player->kartstuff[k_yougotem]--;
+
+	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
+	{
+		if (player->exiting)
+		{
+			if (player->exiting < 6*TICRATE)
+				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+			else if (player->exiting == 6*TICRATE)
+				player->kartstuff[k_cardanimation] = 0;
+			else if (player->kartstuff[k_cardanimation] < 2*TICRATE)
+				player->kartstuff[k_cardanimation]++;
+		}
+		else
+		{
+			if (player->kartstuff[k_comebacktimer] < 6*TICRATE)
+				player->kartstuff[k_cardanimation] -= ((164-player->kartstuff[k_cardanimation])/8)+1;
+			else if (player->kartstuff[k_comebacktimer] < 9*TICRATE)
+				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+		}
+
+		if (player->kartstuff[k_cardanimation] > 164)
+			player->kartstuff[k_cardanimation] = 164;
+		if (player->kartstuff[k_cardanimation] < 0)
+			player->kartstuff[k_cardanimation] = 0;
+	}
+	else if (G_RaceGametype() && player->exiting)
+	{
+		if (player->kartstuff[k_cardanimation] < 2*TICRATE)
+			player->kartstuff[k_cardanimation]++;
+	}
+	else
+		player->kartstuff[k_cardanimation] = 0;
 }
 
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
@@ -4233,49 +4276,14 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_justbumped])
 		player->kartstuff[k_justbumped]--;
 
-	if (player->kartstuff[k_lapanimation])
-		player->kartstuff[k_lapanimation]--;
-
-	if (player->kartstuff[k_yougotem])
-		player->kartstuff[k_yougotem]--;
-
+	// This doesn't go in HUD update because it has potential gameplay ramifications
 	if (player->kartstuff[k_itemblink] && player->kartstuff[k_itemblink]-- <= 0)
 	{
 		player->kartstuff[k_itemblinkmode] = 0;
 		player->kartstuff[k_itemblink] = 0;
 	}
 
-	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
-	{
-		if (player->exiting)
-		{
-			if (player->exiting < 6*TICRATE)
-				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
-			else if (player->exiting == 6*TICRATE)
-				player->kartstuff[k_cardanimation] = 0;
-			else if (player->kartstuff[k_cardanimation] < 2*TICRATE)
-				player->kartstuff[k_cardanimation]++;
-		}
-		else
-		{
-			if (player->kartstuff[k_comebacktimer] < 6*TICRATE)
-				player->kartstuff[k_cardanimation] -= ((164-player->kartstuff[k_cardanimation])/8)+1;
-			else if (player->kartstuff[k_comebacktimer] < 9*TICRATE)
-				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
-		}
-
-		if (player->kartstuff[k_cardanimation] > 164)
-			player->kartstuff[k_cardanimation] = 164;
-		if (player->kartstuff[k_cardanimation] < 0)
-			player->kartstuff[k_cardanimation] = 0;
-	}
-	else if (G_RaceGametype() && player->exiting)
-	{
-		if (player->kartstuff[k_cardanimation] < 2*TICRATE)
-			player->kartstuff[k_cardanimation]++;
-	}
-	else
-		player->kartstuff[k_cardanimation] = 0;
+	K_KartPlayerHUDUpdate(player);
 
 	if (player->kartstuff[k_voices])
 		player->kartstuff[k_voices]--;

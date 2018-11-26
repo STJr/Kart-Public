@@ -7949,6 +7949,8 @@ static void P_DeathThink(player_t *player)
 	else
 		player->kartstuff[k_timeovercam] = 0;
 
+	K_KartPlayerHUDUpdate(player);
+
 	if (player->deadtimer < INT32_MAX)
 		player->deadtimer++;
 
@@ -7986,6 +7988,9 @@ static void P_DeathThink(player_t *player)
 
 	if (!player->mo)
 		return;
+
+	player->mo->colorized = false;
+	player->mo->color = player->skincolor;
 
 	P_CalcHeight(player);
 }
@@ -9101,7 +9106,10 @@ void P_PlayerThink(player_t *player)
 
 	if (player->playerstate == PST_DEAD)
 	{
-		player->mo->flags2 &= ~MF2_SHADOW;
+		if (player->spectator)
+			player->mo->flags2 |= MF2_SHADOW;
+		else
+			player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
 
 		return;

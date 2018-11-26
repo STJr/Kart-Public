@@ -1199,7 +1199,7 @@ fixed_t S_CalculateSoundDistance(fixed_t sx1, fixed_t sy1, fixed_t sz1, fixed_t 
 
 	approx_dist <<= FRACBITS;
 
-	return approx_dist;
+	return FixedDiv(approx_dist, mapheaderinfo[gamemap-1]->mobj_scale); // approx_dist
 }
 
 //
