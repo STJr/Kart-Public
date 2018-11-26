@@ -3240,7 +3240,6 @@ INT16 G_TOLFlag(INT32 pgametype)
 	return INT16_MAX;
 }
 
-#ifdef FLUSHMAPBUFFEREARLY
 static INT32 TOLMaps(INT16 tolflags)
 {
 	INT32 num = 0;
@@ -3251,14 +3250,14 @@ static INT32 TOLMaps(INT16 tolflags)
 	{
 		if (!mapheaderinfo[i])
 			continue;
-
+		if (mapheaderinfo[i]->menuflags & LF2_HIDEINMENU) // Don't include Map Hell
+			continue;
 		if ((mapheaderinfo[i]->typeoflevel & tolflags) == tolflags)
 			num++;
 	}
 
 	return num;
 }
-#endif
 
 /** Select a random map with the given typeoflevel flags.
   * If no map has those flags, this arbitrarily gives you map 1.
@@ -3388,10 +3387,21 @@ tryagain:
 
 void G_AddMapToBuffer(INT16 map)
 {
-	INT16 bufx;
+	INT16 bufx, refreshnum = (TOLMaps(G_TOLFlag(gametype)) / 2) + 1;
+
+	// Add the map to the buffer.
 	for (bufx = NUMMAPS-1; bufx > 0; bufx--)
 		randmapbuffer[bufx] = randmapbuffer[bufx-1];
 	randmapbuffer[0] = map;
+
+	// We're getting pretty full, so lets flush this for future usage.
+	if (randmapbuffer[refreshnum] != -1)
+	{
+		// Clear all but the five most recent maps.
+		for (bufx = 5; bufx < NUMMAPS; bufx++) // bufx < refreshnum? Might not handle everything for gametype switches, though.
+			randmapbuffer[bufx] = -1;
+		//CONS_Printf("Random map buffer has been flushed.\n");
+	}
 }
 
 //
@@ -3528,14 +3538,6 @@ static void G_DoCompleted(void)
 		nextmap = lastmap; // Exiting from a special stage? Go back to the game. Tails 08-11-2001
 
 	automapactive = false;
-
-#ifdef FLUSHMAPBUFFEREARLY
-	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-5] != -1) // We're getting pretty full, so! -- no need for this, handled in G_RandMap
-	{
-		for (i = 3; i < NUMMAPS; i++) // Let's clear all but the three most recent maps...
-			randmapbuffer[i] = -1;
-	}
-#endif
 
 	if (gametype != GT_COOP)
 	{
