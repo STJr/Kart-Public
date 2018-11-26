@@ -3310,6 +3310,9 @@ tryagain:
 						break;
 					}
 				}
+
+				if (!isokmap)
+					continue;
 			}
 
 			for (bufx = 0; bufx < (maphell ? 3 : NUMMAPS); bufx++)
