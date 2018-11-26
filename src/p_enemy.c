@@ -8514,8 +8514,6 @@ void A_SPBChase(mobj_t *actor)
 			}
 		}
 
-		spbplace = bestrank; // While seeking, it's trying to go for first place.
-
 		// No one there?
 		if (player == NULL || !player->mo)
 		{
@@ -8531,11 +8529,13 @@ void A_SPBChase(mobj_t *actor)
 #else
 			actor->momx = actor->momy = actor->momz = 0;
 #endif
+			spbplace = -1;
 			return;
 		}
 
 		// Found someone, now get close enough to initiate the slaughter...
 		P_SetTarget(&actor->tracer, player->mo);
+		spbplace = bestrank;
 
 		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
 
