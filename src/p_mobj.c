@@ -1938,7 +1938,9 @@ void P_XYMovement(mobj_t *mo)
 						FIXED_TO_FLOAT(AngleFixed(newangle)),
 						FIXED_TO_FLOAT(AngleFixed(oldangle-newangle))
 						);*/
-		} else if (predictedz-mo->z > abs(slopemom.z/2)) { // Now check if we were supposed to stick to this slope
+		// Sryder 2018-11-26: Don't launch here if it's a slope without physics, we stick to those like glue anyway
+		} else if (predictedz-mo->z > abs(slopemom.z/2)
+			&& !(mo->standingslope->flags & SL_NOPHYSICS)) { // Now check if we were supposed to stick to this slope
 			//CONS_Printf("%d-%d > %d\n", (predictedz), (mo->z), (slopemom.z/2));
 			P_SlopeLaunch(mo);
 		}

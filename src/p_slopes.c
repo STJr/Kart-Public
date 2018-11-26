@@ -812,10 +812,10 @@ void P_SlopeLaunch(mobj_t *mo)
 		mo->momy = slopemom.y;
 		mo->momz = slopemom.z;
 #endif
+	}
 
 	//CONS_Printf("Launched off of slope.\n");
 	mo->standingslope = NULL;
-	}
 }
 
 // Function to help handle landing on slopes
