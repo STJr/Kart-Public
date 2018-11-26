@@ -8359,6 +8359,28 @@ void A_SPBChase(mobj_t *actor)
 		return;
 	}
 
+	// Find the player with the best rank
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator || players[i].exiting)
+			continue; // not in-game
+
+		if (!players[i].mo)
+			continue; // no mobj
+
+		if (players[i].mo->health <= 0)
+			continue; // dead
+
+		/*if (players[i].kartstuff[k_respawn])
+			continue;*/ // respawning
+
+		if (players[i].kartstuff[k_position] < bestrank)
+		{
+			bestrank = players[i].kartstuff[k_position];
+			player = &players[i];
+		}
+	}
+
 	if (actor->extravalue1 == 1) // MODE: TARGETING
 	{
 		if (actor->tracer && actor->tracer->health)
@@ -8379,7 +8401,7 @@ void A_SPBChase(mobj_t *actor)
 				defspeed -= (9*R_PointToDist2(0, 0, actor->tracer->player->cmomx, actor->tracer->player->cmomy))/8; // Be fairer on conveyors
 
 				// Switch targets if you're no longer 1st for long enough
-				if (actor->tracer->player->kartstuff[k_position] == 1)
+				if (actor->tracer->player->kartstuff[k_position] <= bestrank)
 					actor->extravalue2 = 7*TICRATE;
 				else if (actor->extravalue2-- <= 0)
 					actor->extravalue1 = 0; // back to SEEKING
@@ -8491,28 +8513,6 @@ void A_SPBChase(mobj_t *actor)
 	else // MODE: SEEKING
 	{
 		actor->lastlook = -1; // Just make sure this is reset
-
-		// Find the player with the best rank
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || players[i].spectator || players[i].exiting)
-				continue; // not in-game
-
-			if (!players[i].mo)
-				continue; // no mobj
-
-			if (players[i].mo->health <= 0)
-				continue; // dead
-
-			/*if (players[i].kartstuff[k_respawn])
-				continue;*/ // respawning
-
-			if (players[i].kartstuff[k_position] < bestrank)
-			{
-				bestrank = players[i].kartstuff[k_position];
-				player = &players[i];
-			}
-		}
 
 		// No one there?
 		if (player == NULL || !player->mo)
