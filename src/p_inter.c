@@ -590,7 +590,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				P_RemoveMobj(special);
 			}
 			else
-				K_SpinPlayer(player, special, 0, false);
+				K_SpinPlayer(player, special, 0, false, NULL);
 			return;
 		/*case MT_EERIEFOG:
 			special->frame &= ~FF_TRANS80;
@@ -3243,6 +3243,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return true;
 		}
 
+#ifdef HAVE_BLUA	// Add this back here for ACTUAL NORMAL DAMAGE. The funny shit is that the player is barely ever "actually" damaged.
+		if (LUAh_MobjDamage(target, inflictor, source, damage))
+			return true;
+#endif
+
 		if (!force && inflictor && (inflictor->flags & MF_FIRE))
 		{
 			if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL)
@@ -3275,8 +3280,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			P_KillPlayer(player, source, damage);
 		else if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
 		{
-			K_DoInstashield(player);
-			return false;
+			if (!force)	// shoulddamage bypasses all of that.
+			{
+				K_DoInstashield(player);
+				return false;
+			}
 		}
 		else
 		{
@@ -3285,7 +3293,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_SMK_THWOMP || inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
-				K_SpinPlayer(player, source, 1, false);
+				K_SpinPlayer(player, source, 1, false, inflictor);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3297,7 +3305,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			}
 			else
 			{
-				K_SpinPlayer(player, source, 0, false);
+				K_SpinPlayer(player, source, 0, false, inflictor);
 			}
 			return true;
 		}

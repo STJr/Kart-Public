@@ -2191,12 +2191,15 @@ static int lib_kSpinPlayer(lua_State *L)
 	mobj_t *source = NULL;
 	INT32 type = (INT32)luaL_optinteger(L, 3, 0);
 	boolean trapitem = lua_optboolean(L, 4);
+	mobj_t *inflictor = NULL;
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	K_SpinPlayer(player, source, type, trapitem);
+	if (!lua_isnone(L, 5) && lua_isuserdata(L, 5))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 5, META_MOBJ));
+	K_SpinPlayer(player, source, type, trapitem, inflictor);
 	return 0;
 }
 

@@ -21,6 +21,7 @@
 #include "k_kart.h"
 #include "f_finale.h"
 #include "lua_hud.h"	// For Lua hud checks
+#include "lua_hook.h"	// For MobjDamage and ShouldDamage
 
 // SOME IMPORTANT VARIABLES DEFINED IN DOOMDEF.H:
 // gamespeed is cc (0 for easy, 1 for normal, 2 for hard)
@@ -1842,8 +1843,24 @@ void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount)
 		pt->color = source->skincolor;
 }
 
-void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem)
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem, mobj_t *inflictor)
 {
+
+	// PS: Inflictor is unused for all purposes here and is actually only ever relevant to Lua. It may be nil too.
+#ifdef HAVE_BLUA
+	boolean force = false;	// Used to check if Lua ShouldDamage should get us damaged reguardless of flashtics or heck knows what.
+	UINT8 shouldForce = LUAh_ShouldDamage(player->mo, inflictor, source, 1);
+	if (P_MobjWasRemoved(player->mo))
+		return; // mobj was removed (in theory that shouldn't happen)
+	if (shouldForce == 1)
+		force = true;
+	else if (shouldForce == 2)
+		return;
+#else
+	static const boolean force = false;
+#endif
+
+
 	UINT8 scoremultiply = 1;
 	if (!trapitem && G_BattleGametype())
 	{
@@ -1860,10 +1877,16 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 		|| player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
 		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 	{
-		K_DoInstashield(player);
-		return;
+		if (!force)	// if shoulddamage force, we go THROUGH that.
+		{
+			K_DoInstashield(player);
+			return;
+		}
 	}
-
+	
+	if (LUAh_MobjDamage(player->mo, inflictor, source, 1))
+		return;
+	
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
 
@@ -2029,6 +2052,20 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
+
+#ifdef HAVE_BLUA
+	boolean force = false;	// Used to check if Lua ShouldDamage should get us damaged reguardless of flashtics or heck knows what.
+	UINT8 shouldForce = LUAh_ShouldDamage(player->mo, inflictor, source, 1);
+	if (P_MobjWasRemoved(player->mo))
+		return; // mobj was removed (in theory that shouldn't happen)
+	if (shouldForce == 1)
+		force = true;
+	else if (shouldForce == 2)
+		return;
+
+#else
+	static const boolean force = false;
+#endif
 	UINT8 scoremultiply = 1;
 	if (G_BattleGametype())
 	{
@@ -2045,10 +2082,16 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		||*/player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0
 		|| (G_BattleGametype() && ((player->kartstuff[k_bumper] <= 0 && player->kartstuff[k_comebacktimer]) || player->kartstuff[k_comebackmode] == 1)))
 	{
-		K_DoInstashield(player);
-		return;
+		if (!force)	// ShouldDamage can bypass that, again.
+		{
+			K_DoInstashield(player);
+			return;
+		}
 	}
-
+	
+	if (LUAh_MobjDamage(player->mo, inflictor, source, 1))
+		return;
+	
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
 
@@ -3181,7 +3224,7 @@ static void K_DoShrink(player_t *user)
 
 				// Wipeout
 				K_DropItems(&players[i]);
-				K_SpinPlayer(&players[i], user->mo, 1, false);
+				K_SpinPlayer(&players[i], user->mo, 1, false, NULL);
 
 				// P_RingDamage
 				P_DoPlayerPain(&players[i], user->mo, user->mo);

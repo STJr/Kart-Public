@@ -28,7 +28,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);
 void K_DoInstashield(player_t *player);
 void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount);
-void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem);
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem, mobj_t *inflictor);
 void K_SquishPlayer(player_t *player, mobj_t *source);
 void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor);
 void K_StealBumper(player_t *player, player_t *victim, boolean force);

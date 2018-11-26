@@ -882,7 +882,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(thing->player, tmthing->target, tmthing);
 			else
-				K_SpinPlayer(thing->player, tmthing->target, 0, false);
+				K_SpinPlayer(thing->player, tmthing->target, 0, false, tmthing);
 		}
 
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
@@ -915,7 +915,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
-			K_SpinPlayer(thing->player, tmthing->target, 0, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD));
+			K_SpinPlayer(thing->player, tmthing->target, 0, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD), tmthing);
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1061,7 +1061,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true;
 
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target, 0, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
+			K_SpinPlayer(tmthing->player, thing->target, 0, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD), tmthing);
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -1091,7 +1091,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target, thing);
 			else
-				K_SpinPlayer(tmthing->player, thing->target, 0, false);
+				K_SpinPlayer(tmthing->player, thing->target, 0, false, tmthing);
 
 			return true;
 		}
@@ -1423,7 +1423,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Make sure they aren't able to damage you ANYWHERE along the Z axis, you have to be TOUCHING the person.
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
-		
+
 		if (tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing);
 		else if (thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
@@ -1543,7 +1543,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing, 0, false);
+					K_SpinPlayer(thing->player, tmthing, 0, false, tmthing);
 				}
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
@@ -1552,7 +1552,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing, 0, false);
+					K_SpinPlayer(tmthing->player, thing, 0, false, thing);
 				}
 			}
 			else
@@ -1563,12 +1563,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing, 0, false);
+					K_SpinPlayer(tmthing->player, thing, 0, false, tmthing);
 				}
 				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing, 0, false);
+					K_SpinPlayer(thing->player, tmthing, 0, false, thing);
 				}
 			}
 
