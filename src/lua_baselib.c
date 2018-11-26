@@ -2251,7 +2251,7 @@ static int lib_kSpawnKartExplosion(lua_State *L)
 	fixed_t x = luaL_checkfixed(L, 1);
 	fixed_t y = luaL_checkfixed(L, 2);
 	fixed_t z = luaL_checkfixed(L, 3);
-	fixed_t radius = (fixed_t)luaL_optinteger(L, 4, 32*FRACUNIT); 
+	fixed_t radius = (fixed_t)luaL_optinteger(L, 4, 32*FRACUNIT);
 	INT32 number = (INT32)luaL_optinteger(L, 5, 32);
 	mobjtype_t type = luaL_optinteger(L, 6, MT_MINEEXPLOSION);
 	angle_t rotangle = luaL_optinteger(L, 7, 0);

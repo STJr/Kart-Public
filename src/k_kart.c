@@ -1883,10 +1883,10 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem
 			return;
 		}
 	}
-	
+
 	if (LUAh_MobjDamage(player->mo, inflictor, source, 1))
 		return;
-	
+
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
 
@@ -2088,10 +2088,10 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 			return;
 		}
 	}
-	
+
 	if (LUAh_MobjDamage(player->mo, inflictor, source, 1))
 		return;
-	
+
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
 
