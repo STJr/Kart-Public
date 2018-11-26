@@ -584,7 +584,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 			break;
 		case KITEM_SPB:
 		case KITEM_SHRINK: // Indirect items
-			indirectitemcooldown = 30*TICRATE;
+			indirectitemcooldown = 20*TICRATE;
 			/* FALLTHRU */
 		default:
 			if (getitem <= 0 || getitem >= NUMKARTRESULTS) // Sad (Fallback)
@@ -2027,6 +2027,14 @@ void K_SquishPlayer(player_t *player, mobj_t *source)
 
 	player->kartstuff[k_squishedtimer] = TICRATE;
 
+	// Reduce Shrink timer
+	if (player->kartstuff[k_growshrinktimer] < 0)
+	{
+		player->kartstuff[k_growshrinktimer] += TICRATE;
+		if (player->kartstuff[k_growshrinktimer] > -2)
+			player->kartstuff[k_growshrinktimer] = -2;
+	}
+
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	player->mo->flags |= MF_NOCLIP;
@@ -3182,44 +3190,17 @@ static void K_DoShrink(player_t *user)
 			continue;
 		if (players[i].kartstuff[k_position] < user->kartstuff[k_position])
 		{
-			//P_FlashPal(&players[i], PAL_NUKE, 10);
-
-			if (!players[i].kartstuff[k_invincibilitytimer] // Don't hit while invulnerable!
+			// Don't hit while invulnerable!
+			if (!players[i].kartstuff[k_invincibilitytimer]
 				&& players[i].kartstuff[k_growshrinktimer] <= 0
 				&& !players[i].kartstuff[k_hyudorotimer])
 			{
 				// Start shrinking!
+				K_DropItems(&players[i]);
 				players[i].mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
 				players[i].mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
 				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
 					players[i].mo->destscale = 6*players[i].mo->destscale/8;
-
-				if (!players[i].powers[pw_flashing] && !players[i].kartstuff[k_squishedtimer] && !players[i].kartstuff[k_spinouttimer])
-					P_PlayerRingBurst(&players[i], 5);
-
-				// Wipeout
-				K_DropItems(&players[i]);
-				K_SpinPlayer(&players[i], user->mo, 1, false);
-
-				// P_RingDamage
-				P_DoPlayerPain(&players[i], user->mo, user->mo);
-				P_ForceFeed(&players[i], 40, 10, TICRATE, 40 + min((players[i].mo->health-1), 100)*2);
-				P_PlayRinglossSound(players[i].mo); // Ringledingle!
-
-				players[i].mo->momx = players[i].mo->momy = 0;
-				if (P_IsLocalPlayer(&players[i]))
-				{
-					quake.intensity = 32*FRACUNIT;
-					quake.time = 5;
-				}
-
-				players[i].kartstuff[k_sneakertimer] = 0;
-				players[i].kartstuff[k_driftboost] = 0;
-
-				players[i].kartstuff[k_drift] = 0;
-				players[i].kartstuff[k_driftcharge] = 0;
-				players[i].kartstuff[k_pogospring] = 0;
-
 				players[i].kartstuff[k_growshrinktimer] -= (200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
 			}
 
@@ -3227,6 +3208,7 @@ static void K_DoShrink(player_t *user)
 			if (players[i].kartstuff[k_growshrinktimer] > 0)
 				players[i].kartstuff[k_growshrinktimer] = 2;
 
+			//P_FlashPal(&players[i], PAL_NUKE, 10);
 			S_StartSound(players[i].mo, sfx_kc59);
 		}
 	}
@@ -5278,7 +5260,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
 			|| player->kartstuff[k_growshrinktimer] < 0)
-			indirectitemcooldown = 30*TICRATE;
+			indirectitemcooldown = 20*TICRATE;
 
 		if (player->kartstuff[k_hyudorotimer] > 0)
 		{
