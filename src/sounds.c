@@ -793,6 +793,7 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"itrol8",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"itrolf",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end
   {"itrolm",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (mashed)
+  {"itrolk",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (karma enhanced)
   {"itrole",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (Eggman)
   {"vroom",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Krew opening vroom
   {"chaooo", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Chao audience cheer

@@ -1012,7 +1012,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	player->kartstuff[k_roulettetype] = 0; // This too
 
 	if (P_IsLocalPlayer(player))
-		S_StartSound(NULL, (mashed ? sfx_itrolm : sfx_itrolf));
+		S_StartSound(NULL, ((player->kartstuff[k_roulettetype] == 1) ? sfx_itrolk : (mashed ? sfx_itrolm : sfx_itrolf)));
 }
 
 //}
