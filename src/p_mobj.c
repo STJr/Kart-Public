@@ -1413,6 +1413,9 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_SIGN:
 					gravityadd /= 8;
 					break;
+				case MT_KARMAFIREWORK:
+					gravityadd /= 3;
+					break;
 				default:
 					break;
 			}
@@ -2523,7 +2526,7 @@ static boolean P_ZMovement(mobj_t *mo)
 					if (P_MobjFlip(mo)*mom.z < 0)
 					{
 						// If going slower than a fracunit, just stop.
-						if (abs(mom.z) < FixedMul(FRACUNIT, mo->scale))
+						if (abs(mom.z) < mo->scale)
 						{
 							mom.x = mom.y = mom.z = 0;
 
@@ -8611,7 +8614,9 @@ void P_MobjThinker(mobj_t *mobj)
 			if (!S_SoundPlaying(mobj, mobj->info->attacksound))
 				S_StartSound(mobj, mobj->info->attacksound);
 
-			if (mobj->extravalue2 > 70) // fire + smoke pillar
+			if (mobj->extravalue2 <= 8) // Short delay
+				mobj->extravalue2++; // flametimer
+			else // fire + smoke pillar
 			{
 				UINT8 i;
 				mobj_t *fire = P_SpawnMobj(mobj->x + (P_RandomRange(-32, 32)*mobj->scale), mobj->y + (P_RandomRange(-32, 32)*mobj->scale), mobj->z, MT_THOK);
@@ -8633,20 +8638,6 @@ void P_MobjThinker(mobj_t *mobj)
 					smoke->momz = P_RandomRange(3, 10)*mobj->scale;
 					smoke->destscale = mobj->scale*4;
 					smoke->scalespeed = mobj->scale/24;
-				}
-			}
-			else
-			{
-				mobj->extravalue2++; // flametimer
-
-				if (mobj->extravalue2 > 8)
-				{
-					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-31, 31)*mobj->scale), mobj->y + (P_RandomRange(-31, 31)*mobj->scale),
-						mobj->z + (P_RandomRange(0, 48)*mobj->scale), MT_THOK);
-
-					P_SetMobjState(smoke, S_FZEROSMOKE1);
-					smoke->tics += P_RandomRange(-3, 4);
-					smoke->scale = mobj->scale*2;
 				}
 			}
 			break;
@@ -9091,6 +9082,22 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						mobj->momz = (mobj->info->speed/16) * P_MobjFlip(mobj);
 				}
+			}
+			break;
+		case MT_KARMAFIREWORK:
+			if (mobj->momz == 0)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			else
+			{
+				mobj_t *trail = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_THOK);
+				P_SetMobjState(trail, S_KARMAFIREWORKTRAIL);
+				P_SetScale(trail, mobj->scale);
+				trail->destscale = 1;
+				trail->scalespeed = mobj->scale/12;
+				trail->color = mobj->color;
 			}
 			break;
 		//}

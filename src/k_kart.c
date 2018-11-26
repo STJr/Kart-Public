@@ -337,7 +337,7 @@ void K_GenerateKartColormap(UINT8 *dest_colormap, INT32 skinnum, UINT8 color)
 			if (skinnum == TC_ALLWHITE)
 				dest_colormap[i] = 0;
 			else if (skinnum == TC_BLINK)
-				dest_colormap[i] = colortranslations[color][7];
+				dest_colormap[i] = colortranslations[color][3];
 			else
 				dest_colormap[i] = (UINT8)i;
 		}

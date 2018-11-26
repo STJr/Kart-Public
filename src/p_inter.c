@@ -497,8 +497,17 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
 			{
-				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->seesound);
+
+				// Karma fireworks
+				for (i = 0; i < 5; i++)
+				{
+					mobj_t *firework = P_SpawnMobj(special->x, special->y, special->z, MT_KARMAFIREWORK);
+					P_Thrust(firework, FixedAngle((72*i)<<FRACBITS), P_RandomRange(1,8)*special->scale);
+					P_SetObjectMomZ(firework, P_RandomRange(1,8)*special->scale, false);
+					firework->color = special->target->color;
+				}
 
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
