@@ -779,7 +779,7 @@ const char *G_BuildMapName(INT32 map)
 			map = gamemap-1;
 		else
 			map = prevmap;
-		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, false, 0, false)+1;
+		map = G_RandMap(G_TOLFlag(cv_newgametype.value), map, false, 0, false, NULL)+1;
 	}
 
 	if (map < 100)
@@ -3138,8 +3138,7 @@ INT16 G_SometimesGetDifferentGametype(void)
 
 	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
 	{
-		if (cv_kartvoterulechanges.value != 1)
-			randmapbuffer[NUMMAPS]--;
+		randmapbuffer[NUMMAPS]--;
 		if (encorepossible)
 		{
 			switch (cv_kartvoterulechanges.value)
@@ -3167,6 +3166,8 @@ INT16 G_SometimesGetDifferentGametype(void)
 			randmapbuffer[NUMMAPS] = 1; // every other vote (or always if !encorepossible)
 			break;
 		case 1: // sometimes
+			randmapbuffer[NUMMAPS] = 10; // ...every two cups?
+			break;
 		default:
 			// fallthrough - happens when clearing buffer, but needs a reasonable countdown if cvar is modified
 		case 2: // frequent
@@ -3240,7 +3241,6 @@ INT16 G_TOLFlag(INT32 pgametype)
 	return INT16_MAX;
 }
 
-#ifdef FLUSHMAPBUFFEREARLY
 static INT32 TOLMaps(INT16 tolflags)
 {
 	INT32 num = 0;
@@ -3251,14 +3251,14 @@ static INT32 TOLMaps(INT16 tolflags)
 	{
 		if (!mapheaderinfo[i])
 			continue;
-
+		if (mapheaderinfo[i]->menuflags & LF2_HIDEINMENU) // Don't include Map Hell
+			continue;
 		if ((mapheaderinfo[i]->typeoflevel & tolflags) == tolflags)
 			num++;
 	}
 
 	return num;
 }
-#endif
 
 /** Select a random map with the given typeoflevel flags.
   * If no map has those flags, this arbitrarily gives you map 1.
@@ -3269,14 +3269,23 @@ static INT32 TOLMaps(INT16 tolflags)
   * \author Graue <graue@oceanbase.org>
   */
 static INT16 *okmaps = NULL;
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon)
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon, INT16 *extbuffer)
 {
 	INT32 numokmaps = 0;
 	INT16 ix, bufx;
+	UINT16 extbufsize = 0;
 	boolean usehellmaps; // Only consider Hell maps in this pick
 
 	if (!okmaps)
 		okmaps = Z_Malloc(NUMMAPS * sizeof(INT16), PU_STATIC, NULL);
+
+	if (extbuffer != NULL)
+	{
+		bufx = 0;
+		while (extbuffer[bufx]) {
+			extbufsize++; bufx++;
+		}
+	}
 
 tryagain:
 
@@ -3298,6 +3307,23 @@ tryagain:
 
 		if (!ignorebuffer)
 		{
+			if (extbufsize > 0)
+			{
+				for (bufx = 0; bufx < extbufsize; bufx++)
+				{
+					if (extbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
+						break;
+					if (ix == extbuffer[bufx])
+					{
+						isokmap = false;
+						break;
+					}
+				}
+
+				if (!isokmap)
+					continue;
+			}
+
 			for (bufx = 0; bufx < (maphell ? 3 : NUMMAPS); bufx++)
 			{
 				if (randmapbuffer[bufx] == -1) // Rest of buffer SHOULD be empty
@@ -3308,12 +3334,12 @@ tryagain:
 					break;
 				}
 			}
+
+			if (!isokmap)
+				continue;
 		}
 
-		if (!isokmap)
-			continue;
-
-		if (pprevmap == -2) // title demos
+		if (pprevmap == -2) // title demo hack
 		{
 			lumpnum_t l;
 			if ((l = W_CheckNumForName(va("%sS01",G_BuildMapName(ix+1)))) == LUMPERROR)
@@ -3330,20 +3356,18 @@ tryagain:
 			if (randmapbuffer[3] == -1) // Is the buffer basically empty?
 			{
 				ignorebuffer = true; // This will probably only help in situations where there's very few maps, but it's folly not to at least try it
-				goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell, callagainsoon);
+				goto tryagain;
 			}
 
 			for (bufx = 3; bufx < NUMMAPS; bufx++) // Let's clear all but the three most recent maps...
 				randmapbuffer[bufx] = -1;
-			if (cv_kartvoterulechanges.value == 1) // sometimes
-				randmapbuffer[NUMMAPS] = 0;
-			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, ignorebuffer, maphell, callagainsoon);
+			goto tryagain;
 		}
 
 		if (maphell) // Any wiggle room to loosen our restrictions here?
 		{
 			maphell--;
-			goto tryagain; //return G_RandMap(tolflags, pprevmap, dontadd, true, maphell-1, callagainsoon);
+			goto tryagain;
 		}
 
 		ix = 0; // Sorry, none match. You get MAP01.
@@ -3351,15 +3375,7 @@ tryagain:
 			randmapbuffer[bufx] = -1; // if we're having trouble finding a map we should probably clear it
 	}
 	else
-	{
 		ix = okmaps[M_RandomKey(numokmaps)];
-		if (!dontadd)
-		{
-			for (bufx = NUMMAPS-1; bufx > 0; bufx--)
-				randmapbuffer[bufx] = randmapbuffer[bufx-1];
-			randmapbuffer[0] = ix;
-		}
-	}
 
 	if (!callagainsoon)
 	{
@@ -3368,6 +3384,25 @@ tryagain:
 	}
 
 	return ix;
+}
+
+void G_AddMapToBuffer(INT16 map)
+{
+	INT16 bufx, refreshnum = (TOLMaps(G_TOLFlag(gametype)) / 2) + 1;
+
+	// Add the map to the buffer.
+	for (bufx = NUMMAPS-1; bufx > 0; bufx--)
+		randmapbuffer[bufx] = randmapbuffer[bufx-1];
+	randmapbuffer[0] = map;
+
+	// We're getting pretty full, so lets flush this for future usage.
+	if (randmapbuffer[refreshnum] != -1)
+	{
+		// Clear all but the five most recent maps.
+		for (bufx = 5; bufx < NUMMAPS; bufx++) // bufx < refreshnum? Might not handle everything for gametype switches, though.
+			randmapbuffer[bufx] = -1;
+		//CONS_Printf("Random map buffer has been flushed.\n");
+	}
 }
 
 //
@@ -3505,22 +3540,12 @@ static void G_DoCompleted(void)
 
 	automapactive = false;
 
-#ifdef FLUSHMAPBUFFEREARLY
-	if (randmapbuffer[TOLMaps(G_TOLFlag(gametype))-5] != -1) // We're getting pretty full, so! -- no need for this, handled in G_RandMap
-	{
-		for (i = 3; i < NUMMAPS; i++) // Let's clear all but the three most recent maps...
-			randmapbuffer[i] = -1;
-		if (cv_kartvoterulechanges.value == 1) // sometimes
-			randmapbuffer[NUMMAPS] = 0;
-	}
-#endif
-
 	if (gametype != GT_COOP)
 	{
 		if (cv_advancemap.value == 0) // Stay on same map.
 			nextmap = prevmap;
 		else if (cv_advancemap.value == 2) // Go to random map.
-			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, false);
+			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, false, NULL);
 	}
 
 	// We are committed to this map now.

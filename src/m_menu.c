@@ -7454,7 +7454,7 @@ static void M_StartServer(INT32 choice)
 		G_StopMetalDemo();
 
 	if (!cv_nextmap.value)
-		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, false, 0, false)+1);
+		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, 0, false, NULL)+1);
 
 	if (cv_maxplayers.value < ssplayers+1)
 		CV_SetValue(&cv_maxplayers, ssplayers+1);

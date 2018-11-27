@@ -2076,6 +2076,7 @@ void D_SetupVote(void)
 	UINT8 *p = buf;
 	INT32 i;
 	UINT8 secondgt = G_SometimesGetDifferentGametype();
+	INT16 votebuffer[3] = {-1,-1,-1};
 
 	if (cv_kartencore.value && G_RaceGametype())
 		WRITEUINT8(p, (gametype|0x80));
@@ -2086,12 +2087,16 @@ void D_SetupVote(void)
 
 	for (i = 0; i < 5; i++)
 	{
+		UINT16 m;
 		if (i == 2) // sometimes a different gametype
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(secondgt), prevmap, false, false, 0, true));
+			m = G_RandMap(G_TOLFlag(secondgt), prevmap, false, 0, true, votebuffer);
 		else if (i >= 3) // unknown-random and force-unknown MAP HELL
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, true, false, (i-2), (i < 4)));
+			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, (i-2), (i < 4), votebuffer);
 		else
-			WRITEUINT16(p, G_RandMap(G_TOLFlag(gametype), prevmap, false, false, 0, true));
+			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, true, votebuffer);
+		if (i < 3)
+			votebuffer[i] = m;
+		WRITEUINT16(p, m);
 	}
 
 	SendNetXCmd(XD_SETUPVOTE, buf, p - buf);
