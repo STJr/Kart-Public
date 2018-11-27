@@ -3844,7 +3844,7 @@ void P_BouncePlayerMove(mobj_t *mo)
 	if (!mo->player)
 		return;
 
-	if ((mo->eflags & MFE_JUSTBOUNCEDWALL) || (mo->player->spectator))
+	if (mo->player->spectator)
 	{
 		P_SlideMove(mo, true);
 		return;
@@ -3898,8 +3898,16 @@ void P_BouncePlayerMove(mobj_t *mo)
 	if (bestslidefrac <= 0)
 		return;
 
-	tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
-	tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL) // Stronger push-out
+	{
+		tmxmove = mmomx;
+		tmymove = mmomy;
+	}
+	else
+	{
+		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+	}
 
 	{
 		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
@@ -3936,15 +3944,15 @@ void P_BounceMove(mobj_t *mo)
 	INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
-	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
-	{
-		P_SlideMove(mo, true);
-		return;
-	}
-
 	if (mo->player)
 	{
 		P_BouncePlayerMove(mo);
+		return;
+	}
+
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	{
+		P_SlideMove(mo, true);
 		return;
 	}
 

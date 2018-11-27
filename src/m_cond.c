@@ -535,6 +535,12 @@ UINT8 M_AnySecretUnlocked(void)
 UINT8 M_SecretUnlocked(INT32 type)
 {
 	INT32 i;
+
+#if 1
+	if (dedicated)
+		return true;
+#endif
+
 	for (i = 0; i < MAXUNLOCKABLES; ++i)
 	{
 		if (unlockables[i].type == type && unlockables[i].unlocked)

@@ -497,8 +497,17 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
 			{
-				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->seesound);
+
+				// Karma fireworks
+				for (i = 0; i < 5; i++)
+				{
+					mobj_t *firework = P_SpawnMobj(special->x, special->y, special->z, MT_KARMAFIREWORK);
+					P_Thrust(firework, FixedAngle((72*i)<<FRACBITS), P_RandomRange(1,8)*special->scale);
+					P_SetObjectMomZ(firework, P_RandomRange(1,8)*special->scale, false);
+					firework->color = special->target->color;
+				}
 
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
@@ -2003,19 +2012,6 @@ boolean P_CheckRacers(void)
 		countdown = countdown2 = 0;
 		return true;
 	}
-	else if (!countdown) // Check to see if the winners have finished, to set countdown.
-	{
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || players[i].spectator)
-				continue;
-			if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
-				continue;
-			break;
-		}
-		if (i == MAXPLAYERS)
-			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
-	}
 
 	if (cv_karteliminatelast.value)
 	{
@@ -2044,6 +2040,28 @@ boolean P_CheckRacers(void)
 				return true;
 			}
 		}
+	}
+
+	if (!countdown) // Check to see if the winners have finished, to set countdown.
+	{
+		UINT8 numingame = 0, numexiting = 0;
+		UINT8 winningpos = 1;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			numingame++;
+			if (players[i].exiting)
+				numexiting++;
+		}
+
+		winningpos = max(1, numingame/2);
+		if (numingame % 2) // any remainder?
+			winningpos++;
+
+		if (numexiting >= winningpos)
+			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
 	}
 
 	return false;

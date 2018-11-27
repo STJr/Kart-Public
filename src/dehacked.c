@@ -7092,6 +7092,12 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_LIZARDMAN",
 	"S_LIONMAN",
 
+	"S_KARMAFIREWORK1",
+	"S_KARMAFIREWORK2",
+	"S_KARMAFIREWORK3",
+	"S_KARMAFIREWORK4",
+	"S_KARMAFIREWORKTRAIL",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -7877,6 +7883,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_LIZARDMAN",
 	"MT_LIONMAN",
 
+	"MT_KARMAFIREWORK",
+
 #ifdef SEENAMES
 	"MT_NAMECHECK",
 #endif
@@ -8270,6 +8278,9 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKMODE",
 	"WANTED",
 	"YOUGOTEM",
+
+	"ITEMBLINK",
+	"ITEMBLINKMODE"
 };
 
 static const char *const HUDITEMS_LIST[] = {
@@ -9769,6 +9780,9 @@ static inline int lib_getenum(lua_State *L)
 		return 1;
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);
+		return 1;
+	} else if (fastcmp(word,"spbplace")) {
+		lua_pushinteger(L, spbplace);
 		return 1;
 	}
 
