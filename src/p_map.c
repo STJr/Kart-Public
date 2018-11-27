@@ -1423,7 +1423,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Make sure they aren't able to damage you ANYWHERE along the Z axis, you have to be TOUCHING the person.
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
-		
+
 		if (tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing);
 		else if (thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))

@@ -1962,8 +1962,9 @@ static  void DrawMD2Ex(INT32 *gl_cmd_buffer, md2_frame_t *frame, INT32 duration,
 	pglTranslatef(pos->x, pos->z, pos->y);
 	if (flipped)
 		scaley = -scaley;
-	pglRotatef(pos->angley, 0.0f, -1.0f, 0.0f);
+	pglRotatef(pos->anglez, 0.0f, 0.0f, -1.0f);
 	pglRotatef(pos->anglex, -1.0f, 0.0f, 0.0f);
+	pglRotatef(pos->angley, 0.0f, -1.0f, 0.0f);
 
 	val = *gl_cmd_buffer++;
 
