@@ -321,6 +321,9 @@ static void M_ToggleMIDI(INT32 choice);
 menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
+#ifndef NONET
+menu_t OP_AdvServerOptionsDef;
+#endif
 //menu_t OP_NetgameOptionsDef, OP_GametypeOptionsDef;
 menu_t OP_MonitorToggleDef;
 static void M_ScreenshotOptions(INT32 choice);
@@ -1480,14 +1483,33 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
-#ifdef VANILLAJOINNEXTROUND
-	{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		110},
-#endif
+	{IT_STRING | IT_CVAR,    NULL, "Allow Add-on Downloading",		&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Pause Permission",				&cv_pause,				120},
+	{IT_STRING | IT_CVAR,    NULL, "Mute All Chat",					&cv_mute,				130},
 
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",			&cv_downloading,		110},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	120},
+	{IT_SUBMENU|IT_STRING,   NULL, "Advanced Options...",			&OP_AdvServerOptionsDef,150},
 #endif
 };
+
+#ifndef NONET
+static menuitem_t OP_AdvServerOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR | IT_CV_STRING,
+	                         NULL, "Server Browser Address",		&cv_masterserver,		 10},
+
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	 40},
+	{IT_STRING | IT_CVAR,    NULL, "Ping limit (ms)",				&cv_maxping,			 50},
+	{IT_STRING | IT_CVAR,    NULL, "Connection timeout (tics)",		&cv_nettimeout,			 60},
+	{IT_STRING | IT_CVAR,    NULL, "Join timeout (tics)",			&cv_jointimeout,		 70},
+
+	{IT_STRING | IT_CVAR,    NULL, "Max. file transfer send (KB)",	&cv_maxsend,			 90},
+	{IT_STRING | IT_CVAR,    NULL, "File transfer packet rate",		&cv_downloadspeed,		100},
+
+	{IT_STRING | IT_CVAR,    NULL, "Log join addresses",			&cv_showjoinaddress,	120},
+	{IT_STRING | IT_CVAR,    NULL, "Log resyncs",					&cv_blamecfail,			130},
+	{IT_STRING | IT_CVAR,    NULL, "Log file transfers",			&cv_noticedownload,		140},
+};
+#endif
 
 /*static menuitem_t OP_NetgameOptionsMenu[] =
 {
@@ -1973,6 +1995,9 @@ menu_t OP_ChatOptionsDef = DEFAULTMENUSTYLE("M_HUD", OP_ChatOptionsMenu, &OP_HUD
 
 menu_t OP_GameOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_GameOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, &OP_MainDef, 24, 30);
+#ifndef NONET
+menu_t OP_AdvServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_AdvServerOptionsMenu, &OP_ServerOptionsDef, 24, 30);
+#endif
 
 //menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
 //menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
@@ -2312,7 +2337,19 @@ static void M_ChangeCvar(INT32 choice)
 		CV_Set(cv,s);
 	}
 	else
+	{
+#ifndef NONET
+		if (cv == &cv_nettimeout || cv == &cv_jointimeout)
+			choice *= (TICRATE/7);
+		else if (cv == &cv_maxsend)
+			choice *= 512;
+#ifdef NEWPING
+		else if (cv == &cv_maxping)
+			choice *= 50;
+#endif
+#endif
 		CV_AddValue(cv,choice);
+	}
 }
 
 static boolean M_ChangeStringCvar(INT32 choice)

@@ -531,6 +531,11 @@ extern boolean singletics;
 extern consvar_t cv_timetic; // display high resolution timer
 extern consvar_t cv_forceskin; // force clients to use the server's skin
 extern consvar_t cv_downloading; // allow clients to downloading WADs.
+extern consvar_t cv_nettimeout; // SRB2Kart: Advanced server options menu
+extern consvar_t cv_jointimeout;
+#ifdef NEWPING
+extern consvar_t cv_maxping;
+#endif
 extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 extern INT32 serverplayer;
 extern INT32 adminplayers[MAXPLAYERS];
