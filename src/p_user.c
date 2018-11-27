@@ -7242,7 +7242,7 @@ static void P_MovePlayer(player_t *player)
 				P_DamageMobj(player->mo, NULL, NULL, 42000); // Respawn crushed spectators
 			else
 			{
-				K_SquishPlayer(player, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
+				K_SquishPlayer(player, NULL, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
 				/*
 				mobj_t *killer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_NULL);
 				killer->threshold = 44; // Special flag that it was crushing which killed you.

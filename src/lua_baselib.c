@@ -2207,12 +2207,15 @@ static int lib_kSquishPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = NULL;
+	mobj_t *inflictor = NULL;
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	K_SquishPlayer(player, source);
+	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	K_SquishPlayer(player, source, inflictor);
 	return 0;
 }
 

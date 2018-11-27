@@ -590,7 +590,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				P_RemoveMobj(special);
 			}
 			else
-				K_SpinPlayer(player, special, 0, false, NULL);
+				K_SpinPlayer(player, NULL, 0, false, special);
 			return;
 		/*case MT_EERIEFOG:
 			special->frame &= ~FF_TRANS80;

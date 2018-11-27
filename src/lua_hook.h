@@ -44,6 +44,12 @@ enum hook {
 	hook_HurtMsg,
 	hook_PlayerSpawn,
 	hook_PlayerQuit,
+	hook_ShouldSpin,	//SRB2KART
+	hook_ShouldExplode,	//SRB2KART
+	hook_ShouldSquish,	//SRB2KART
+	hook_PlayerSpin,	//SRB2KART
+	hook_PlayerExplode,	//SRB2KART
+	hook_PlayerSquish,	//SRB2KART
 
 	hook_MAX // last hook
 };
@@ -80,4 +86,11 @@ boolean LUAh_HurtMsg(player_t *player, mobj_t *inflictor, mobj_t *source); // Ho
 #define LUAh_PlayerSpawn(player) LUAh_PlayerHook(player, hook_PlayerSpawn) // Hook for G_SpawnPlayer
 void LUAh_PlayerQuit(player_t *plr, int reason); // Hook for player quitting
 
+UINT8 LUAh_ShouldSpin(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be spun out?
+UINT8 LUAh_ShouldExplode(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be exploded?
+UINT8 LUAh_ShouldSquish(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be squished?
+
+boolean LUAh_PlayerSpin(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_SpinPlayer. Allows Lua to execute code and/or overwrite its behavior.
+boolean LUAh_PlayerExplode(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_ExplodePlayer. Allows Lua to execute code and/or overwrite its behavior.
+boolean LUAh_PlayerSquish(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_SquishPlayer. Allows Lua to execute code and/or overwrite its behavior.
 #endif

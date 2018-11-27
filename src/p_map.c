@@ -1425,9 +1425,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	{
 
 		if (tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)) // SRB2kart - Handle squishes first!
-			K_SquishPlayer(thing->player, tmthing);
+			K_SquishPlayer(thing->player, tmthing, tmthing);
 		else if (thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
-			K_SquishPlayer(tmthing->player, thing);
+			K_SquishPlayer(tmthing->player, thing, tmthing);
 		else if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer]) // SRB2kart - Then invincibility!
 			P_DamageMobj(thing, tmthing, tmthing, 1);
 		else if (thing->player->kartstuff[k_invincibilitytimer] && !tmthing->player->kartstuff[k_invincibilitytimer])
@@ -1664,7 +1664,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// collide
 			if (tmthing->z < thing->z && thing->momz < 0)
-				K_SquishPlayer(tmthing->player, thing);
+				K_SquishPlayer(tmthing->player, thing, thing);
 			else
 			{
 				if (thing->flags2 & MF2_AMBUSH)
@@ -4262,7 +4262,7 @@ static boolean PIT_ChangeSector(mobj_t *thing, boolean realcrush)
 				if (!thing->player)
 					P_DamageMobj(thing, killer, killer, 10000);
 				else
-					K_SquishPlayer(thing->player, killer); // SRB2kart - Squish instead of kill
+					K_SquishPlayer(thing->player, killer, killer); // SRB2kart - Squish instead of kill
 			}
 		}
 	}
