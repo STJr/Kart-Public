@@ -1863,6 +1863,7 @@ void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount)
 
 void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflictor, boolean trapitem)
 {
+	UINT8 scoremultiply = 1;
 	// PS: Inflictor is unused for all purposes here and is actually only ever relevant to Lua. It may be nil too.
 #ifdef HAVE_BLUA
 	boolean force = false;	// Used to check if Lua ShouldSpin should get us damaged reguardless of flashtics or heck knows what.
@@ -1874,12 +1875,11 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 	else if (shouldForce == 2)
 		return;
 #else
-	(void)inflictor;	// in case some weirdo doesn't want Lua.
 	static const boolean force = false;
+	(void)inflictor;	// in case some weirdo doesn't want Lua.
 #endif
 
 
-	UINT8 scoremultiply = 1;
 	if (!trapitem && G_BattleGametype())
 	{
 		if (K_IsPlayerWanted(player))
@@ -1983,6 +1983,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 
 void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 {
+	UINT8 scoremultiply = 1;
 	// PS: Inflictor is unused for all purposes here and is actually only ever relevant to Lua. It may be nil too.
 #ifdef HAVE_BLUA
 	boolean force = false;	// Used to check if Lua ShouldSquish should get us damaged reguardless of flashtics or heck knows what.
@@ -1994,11 +1995,10 @@ void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 	else if (shouldForce == 2)
 		return;
 #else
-	(void)inflictor;	// Please stop forgetting to put inflictor in yer functions thank -Lat'
 	static const boolean force = false;
+	(void)inflictor;	// Please stop forgetting to put inflictor in yer functions thank -Lat'
 #endif
 
-	UINT8 scoremultiply = 1;
 	if (G_BattleGametype())
 	{
 		if (K_IsPlayerWanted(player))
@@ -2099,7 +2099,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 
 void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
-
+	UINT8 scoremultiply = 1;
 #ifdef HAVE_BLUA
 	boolean force = false;	// Used to check if Lua ShouldExplode should get us damaged reguardless of flashtics or heck knows what.
 	UINT8 shouldForce = LUAh_ShouldExplode(player, inflictor, source);
@@ -2113,7 +2113,6 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 #else
 	static const boolean force = false;
 #endif
-	UINT8 scoremultiply = 1;
 	if (G_BattleGametype())
 	{
 		if (K_IsPlayerWanted(player))
