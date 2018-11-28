@@ -1778,6 +1778,9 @@ void P_DoPlayerExit(player_t *player)
 
 	if (G_RaceGametype()) // If in Race Mode, allow
 	{
+		player->exiting = raceexittime+2;
+		K_KartUpdatePosition(player);
+
 		if (cv_kartvoices.value)
 		{
 			if (P_IsLocalPlayer(player))
@@ -1797,8 +1800,6 @@ void P_DoPlayerExit(player_t *player)
 					S_StartSound(player->mo, sfx_kwin);
 			}
 		}
-
-		player->exiting = raceexittime+2;
 
 		if (cv_inttime.value > 0)
 			P_EndingMusic(player);

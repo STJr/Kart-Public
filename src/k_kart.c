@@ -4660,7 +4660,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 //
 // K_KartUpdatePosition
 //
-static void K_KartUpdatePosition(player_t *player)
+void K_KartUpdatePosition(player_t *player)
 {
 	fixed_t position = 1;
 	fixed_t oldposition = player->kartstuff[k_position];
