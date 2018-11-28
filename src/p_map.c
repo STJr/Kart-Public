@@ -882,7 +882,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(thing->player, tmthing->target, tmthing);
 			else
-				K_SpinPlayer(thing->player, tmthing->target, 0, false, tmthing);
+				K_SpinPlayer(thing->player, tmthing->target, 0, tmthing, false);
 		}
 
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
@@ -915,7 +915,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
-			K_SpinPlayer(thing->player, tmthing->target, 0, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD), tmthing);
+			K_SpinPlayer(thing->player, tmthing->target, 0, tmthing, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD));
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1061,7 +1061,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true;
 
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target, 0, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD), tmthing);
+			K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -1091,7 +1091,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target, thing);
 			else
-				K_SpinPlayer(tmthing->player, thing->target, 0, false, tmthing);
+				K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, false);
 
 			return true;
 		}
@@ -1543,7 +1543,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing, 0, false, tmthing);
+					K_SpinPlayer(thing->player, tmthing, 0, tmthing, false);
 				}
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
@@ -1552,7 +1552,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing, 0, false, thing);
+					K_SpinPlayer(tmthing->player, thing, 0, thing, false);
 				}
 			}
 			else
@@ -1563,12 +1563,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing, 0, false, tmthing);
+					K_SpinPlayer(tmthing->player, thing, 0, tmthing, false);
 				}
 				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing, 0, false, thing);
+					K_SpinPlayer(thing->player, tmthing, 0, thing, false);
 				}
 			}
 
@@ -3844,7 +3844,7 @@ void P_BouncePlayerMove(mobj_t *mo)
 	if (!mo->player)
 		return;
 
-	if ((mo->eflags & MFE_JUSTBOUNCEDWALL) || (mo->player->spectator))
+	if (mo->player->spectator)
 	{
 		P_SlideMove(mo, true);
 		return;
@@ -3898,8 +3898,16 @@ void P_BouncePlayerMove(mobj_t *mo)
 	if (bestslidefrac <= 0)
 		return;
 
-	tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
-	tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL) // Stronger push-out
+	{
+		tmxmove = mmomx;
+		tmymove = mmomy;
+	}
+	else
+	{
+		tmxmove = FixedMul(mmomx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+		tmymove = FixedMul(mmomy, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
+	}
 
 	{
 		mobj_t *fx = P_SpawnMobj(mo->x, mo->y, mo->z, MT_BUMP);
@@ -3936,15 +3944,15 @@ void P_BounceMove(mobj_t *mo)
 	INT32 hitcount;
 	fixed_t mmomx = 0, mmomy = 0;
 
-	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
-	{
-		P_SlideMove(mo, true);
-		return;
-	}
-
 	if (mo->player)
 	{
 		P_BouncePlayerMove(mo);
+		return;
+	}
+
+	if (mo->eflags & MFE_JUSTBOUNCEDWALL)
+	{
+		P_SlideMove(mo, true);
 		return;
 	}
 

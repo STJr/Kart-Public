@@ -497,8 +497,17 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
 			{
-				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->seesound);
+
+				// Karma fireworks
+				for (i = 0; i < 5; i++)
+				{
+					mobj_t *firework = P_SpawnMobj(special->x, special->y, special->z, MT_KARMAFIREWORK);
+					P_Thrust(firework, FixedAngle((72*i)<<FRACBITS), P_RandomRange(1,8)*special->scale);
+					P_SetObjectMomZ(firework, P_RandomRange(1,8)*special->scale, false);
+					firework->color = special->target->color;
+				}
 
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
@@ -590,7 +599,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				P_RemoveMobj(special);
 			}
 			else
-				K_SpinPlayer(player, NULL, 0, false, special);
+				K_SpinPlayer(player, NULL, 0, special, false);
 			return;
 		/*case MT_EERIEFOG:
 			special->frame &= ~FF_TRANS80;
@@ -1416,8 +1425,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			//
 			// SRB2kart: make sure the player will have enough checkpoints to touch
-			if (circuitmap
-				&& special->health >= (numstarposts/2 + player->starpostnum))
+			if (circuitmap && special->health >= ((2*numstarposts)/5 + player->starpostnum))
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
@@ -1444,7 +1452,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostz = special->z>>FRACBITS;
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
-			player->starpostcount++;
 
 			//S_StartSound(toucher, special->info->painsound);
 			return;
@@ -2003,19 +2010,6 @@ boolean P_CheckRacers(void)
 		countdown = countdown2 = 0;
 		return true;
 	}
-	else if (!countdown) // Check to see if the winners have finished, to set countdown.
-	{
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || players[i].spectator)
-				continue;
-			if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
-				continue;
-			break;
-		}
-		if (i == MAXPLAYERS)
-			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
-	}
 
 	if (cv_karteliminatelast.value)
 	{
@@ -2044,6 +2038,28 @@ boolean P_CheckRacers(void)
 				return true;
 			}
 		}
+	}
+
+	if (!countdown) // Check to see if the winners have finished, to set countdown.
+	{
+		UINT8 numingame = 0, numexiting = 0;
+		UINT8 winningpos = 1;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			numingame++;
+			if (players[i].exiting)
+				numexiting++;
+		}
+
+		winningpos = max(1, numingame/2);
+		if (numingame % 2) // any remainder?
+			winningpos++;
+
+		if (numexiting >= winningpos)
+			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
 	}
 
 	return false;
@@ -3293,7 +3309,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_SMK_THWOMP || inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
-				K_SpinPlayer(player, source, 1, false, inflictor);
+				K_SpinPlayer(player, source, 1, inflictor, false);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3305,7 +3321,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			}
 			else
 			{
-				K_SpinPlayer(player, source, 0, false, inflictor);
+				K_SpinPlayer(player, source, 0, inflictor, false);
 			}
 			return true;
 		}

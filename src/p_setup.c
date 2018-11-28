@@ -3046,6 +3046,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	mapreset = 0;
 	nospectategrief = 0;
 	thwompsactive = false;
+	spbplace = -1;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;
@@ -3112,6 +3113,8 @@ boolean P_SetupLevel(boolean skipprecip)
 		LUAh_MapLoad();
 #endif
 	}
+
+	G_AddMapToBuffer(gamemap-1);
 
 	return true;
 }

@@ -4036,7 +4036,7 @@ void A_MineExplode(mobj_t *actor)
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
-	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	explodedist = FixedMul((3*actor->info->painchance)/2, mapheaderinfo[gamemap-1]->mobj_scale);
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MineExplode", actor))
 		return;
@@ -8354,8 +8354,31 @@ void A_SPBChase(mobj_t *actor)
 	if (actor->threshold) // Just fired, go straight.
 	{
 		actor->lastlook = -1;
+		spbplace = -1;
 		P_InstaThrust(actor, actor->angle, wspeed);
 		return;
+	}
+
+	// Find the player with the best rank
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator || players[i].exiting)
+			continue; // not in-game
+
+		if (!players[i].mo)
+			continue; // no mobj
+
+		if (players[i].mo->health <= 0)
+			continue; // dead
+
+		/*if (players[i].kartstuff[k_respawn])
+			continue;*/ // respawning
+
+		if (players[i].kartstuff[k_position] < bestrank)
+		{
+			bestrank = players[i].kartstuff[k_position];
+			player = &players[i];
+		}
 	}
 
 	if (actor->extravalue1 == 1) // MODE: TARGETING
@@ -8369,11 +8392,21 @@ void A_SPBChase(mobj_t *actor)
 			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
 			{
 				actor->lastlook = actor->tracer->player-players; // Save the player num for death scumming...
+
 				if (!P_IsObjectOnGround(actor->tracer) /*&& !actor->tracer->player->kartstuff[k_pogospring]*/)
 					defspeed = (7*actor->tracer->player->speed)/8; // In the air you have no control; basically don't hit unless you make a near complete stop
 				else
 					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+
 				defspeed -= (9*R_PointToDist2(0, 0, actor->tracer->player->cmomx, actor->tracer->player->cmomy))/8; // Be fairer on conveyors
+
+				// Switch targets if you're no longer 1st for long enough
+				if (actor->tracer->player->kartstuff[k_position] <= bestrank)
+					actor->extravalue2 = 7*TICRATE;
+				else if (actor->extravalue2-- <= 0)
+					actor->extravalue1 = 0; // back to SEEKING
+
+				spbplace = actor->tracer->player->kartstuff[k_position];
 			}
 
 			// Play the intimidating gurgle
@@ -8458,41 +8491,28 @@ void A_SPBChase(mobj_t *actor)
 	else if (actor->extravalue1 == 2) // MODE: WAIT...
 	{
 		actor->momx = actor->momy = actor->momz = 0; // Stoooop
-		if (actor->extravalue2-- <= 0)
+
+		if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
 		{
-			if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
+			spbplace = players[actor->lastlook].kartstuff[k_position];
+			if (actor->extravalue2-- <= 0)
 			{
 				P_SetTarget(&actor->tracer, players[actor->lastlook].mo);
 				actor->extravalue1 = 1; // TARGETING
+				actor->extravalue2 = 7*TICRATE;
+				actor->extravalue2 = 0;
 			}
-			else
-				actor->extravalue1 = 0; // SEEKING
+		}
+		else
+		{
+			actor->extravalue1 = 0; // SEEKING
 			actor->extravalue2 = 0;
+			spbplace = -1;
 		}
 	}
 	else // MODE: SEEKING
 	{
-		// Find the player with the best rank
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i] || players[i].spectator || players[i].exiting)
-				continue; // not in-game
-
-			if (!players[i].mo)
-				continue; // no mobj
-
-			if (players[i].mo->health <= 0)
-				continue; // dead
-
-			/*if (players[i].kartstuff[k_respawn])
-				continue;*/ // respawning
-
-			if (players[i].kartstuff[k_position] < bestrank)
-			{
-				bestrank = players[i].kartstuff[k_position];
-				player = &players[i];
-			}
-		}
+		actor->lastlook = -1; // Just make sure this is reset
 
 		// No one there?
 		if (player == NULL || !player->mo)
@@ -8509,11 +8529,13 @@ void A_SPBChase(mobj_t *actor)
 #else
 			actor->momx = actor->momy = actor->momz = 0;
 #endif
+			spbplace = -1;
 			return;
 		}
 
 		// Found someone, now get close enough to initiate the slaughter...
 		P_SetTarget(&actor->tracer, player->mo);
+		spbplace = bestrank;
 
 		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
 
@@ -8560,6 +8582,7 @@ void A_SPBChase(mobj_t *actor)
 		{
 			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
 			actor->extravalue1 = 1; // TARGET ACQUIRED
+			actor->extravalue2 = 7*TICRATE;
 		}
 	}
 

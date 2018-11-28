@@ -251,7 +251,6 @@ typedef struct
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
-	INT32 starpostcount;
 	tic_t starposttime;
 	angle_t starpostangle;
 
@@ -472,6 +471,7 @@ extern INT32 mapchangepending;
 // Points inside doomcom
 extern doomdata_t *netbuffer;
 
+extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
 #define BASEPACKETSIZE ((size_t)&(((doomdata_t *)0)->u))

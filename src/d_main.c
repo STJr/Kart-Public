@@ -662,7 +662,6 @@ void D_SRB2Loop(void)
 	"===========================================================================\n"
 	"                   We hope you enjoy this game as\n"
 	"                     much as we did making it!\n"
-	"                            ...wait. =P\n"
 	"===========================================================================\n");
 
 	// hack to start on a nice clear console screen.

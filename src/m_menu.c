@@ -321,6 +321,9 @@ static void M_ToggleMIDI(INT32 choice);
 menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
+#ifndef NONET
+menu_t OP_AdvServerOptionsDef;
+#endif
 //menu_t OP_NetgameOptionsDef, OP_GametypeOptionsDef;
 menu_t OP_MonitorToggleDef;
 static void M_ScreenshotOptions(INT32 choice);
@@ -1097,8 +1100,8 @@ static menuitem_t OP_ControlsMenu[] =
 
 static menuitem_t OP_AllControlsMenu[] =
 {
-	{IT_CALL|IT_STRING, NULL, "Reset to defaults", M_ResetControls, 0},
-	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 8},
+	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 0},
+	{IT_CALL|IT_STRING, NULL, "Reset to defaults", M_ResetControls, 8},
 	//{IT_SPACE, NULL, NULL, NULL, 0},
 	{IT_HEADER, NULL, "Gameplay Controls", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0},
@@ -1480,14 +1483,33 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
-#ifdef VANILLAJOINNEXTROUND
-	{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		110},
-#endif
+	{IT_STRING | IT_CVAR,    NULL, "Allow Add-on Downloading",		&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Pause Permission",				&cv_pause,				120},
+	{IT_STRING | IT_CVAR,    NULL, "Mute All Chat",					&cv_mute,				130},
 
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",			&cv_downloading,		110},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	120},
+	{IT_SUBMENU|IT_STRING,   NULL, "Advanced Options...",			&OP_AdvServerOptionsDef,150},
 #endif
 };
+
+#ifndef NONET
+static menuitem_t OP_AdvServerOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR | IT_CV_STRING,
+	                         NULL, "Server Browser Address",		&cv_masterserver,		 10},
+
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	 40},
+	{IT_STRING | IT_CVAR,    NULL, "Ping limit (ms)",				&cv_maxping,			 50},
+	{IT_STRING | IT_CVAR,    NULL, "Connection timeout (tics)",		&cv_nettimeout,			 60},
+	{IT_STRING | IT_CVAR,    NULL, "Join timeout (tics)",			&cv_jointimeout,		 70},
+
+	{IT_STRING | IT_CVAR,    NULL, "Max. file transfer send (KB)",	&cv_maxsend,			 90},
+	{IT_STRING | IT_CVAR,    NULL, "File transfer packet rate",		&cv_downloadspeed,		100},
+
+	{IT_STRING | IT_CVAR,    NULL, "Log join addresses",			&cv_showjoinaddress,	120},
+	{IT_STRING | IT_CVAR,    NULL, "Log resyncs",					&cv_blamecfail,			130},
+	{IT_STRING | IT_CVAR,    NULL, "Log file transfers",			&cv_noticedownload,		140},
+};
+#endif
 
 /*static menuitem_t OP_NetgameOptionsMenu[] =
 {
@@ -1973,6 +1995,9 @@ menu_t OP_ChatOptionsDef = DEFAULTMENUSTYLE("M_HUD", OP_ChatOptionsMenu, &OP_HUD
 
 menu_t OP_GameOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_GameOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, &OP_MainDef, 24, 30);
+#ifndef NONET
+menu_t OP_AdvServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_AdvServerOptionsMenu, &OP_ServerOptionsDef, 24, 30);
+#endif
 
 //menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
 //menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
@@ -2312,7 +2337,19 @@ static void M_ChangeCvar(INT32 choice)
 		CV_Set(cv,s);
 	}
 	else
+	{
+#ifndef NONET
+		if (cv == &cv_nettimeout || cv == &cv_jointimeout)
+			choice *= (TICRATE/7);
+		else if (cv == &cv_maxsend)
+			choice *= 512;
+#ifdef NEWPING
+		else if (cv == &cv_maxping)
+			choice *= 50;
+#endif
+#endif
 		CV_AddValue(cv,choice);
+	}
 }
 
 static boolean M_ChangeStringCvar(INT32 choice)
@@ -7454,7 +7491,7 @@ static void M_StartServer(INT32 choice)
 		G_StopMetalDemo();
 
 	if (!cv_nextmap.value)
-		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, false, 0, false)+1);
+		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, 0, false, NULL)+1);
 
 	if (cv_maxplayers.value < ssplayers+1)
 		CV_SetValue(&cv_maxplayers, ssplayers+1);
@@ -8600,7 +8637,7 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick1Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick1Def;
 
 	// Unhide P1-only controls
 	OP_AllControlsMenu[15].status = IT_CONTROL; // Chat
@@ -8632,7 +8669,7 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick2Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick2Def;
 
 	// Hide P1-only controls
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
@@ -8664,7 +8701,7 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick3Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick3Def;
 
 	// Hide P1-only controls
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
@@ -8696,7 +8733,7 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	currentMenu->lastOn = itemOn;
 
 	// Set proper gamepad options
-	OP_AllControlsMenu[1].itemaction = &OP_Joystick4Def;
+	OP_AllControlsMenu[0].itemaction = &OP_Joystick4Def;
 
 	// Hide P1-only controls
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
@@ -8777,10 +8814,8 @@ static void M_DrawControl(void)
 	M_DrawMenuTitle();
 
 	M_CentreText(28,
-		(setupcontrolplayer == 4 ? "\x86""Set controls for ""\x82""Player 4" :
-		(setupcontrolplayer == 3 ? "\x86""Set controls for ""\x82""Player 3" :
-		(setupcontrolplayer == 2 ? "\x86""Set controls for ""\x82""Player 2" :
-		                           "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
+		(setupcontrolplayer > 1 ? va("\x86""Set controls for ""\x82""Player %d", setupcontrolplayer) :
+		                          "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"));
 
 	if (i)
 		V_DrawCharacter(currentMenu->x - 16, y-(skullAnimCounter/5),
@@ -8928,10 +8963,12 @@ static void M_ChangeControl(INT32 choice)
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
 }
 
-static void M_ResetControls(INT32 choice)
+static void M_ResetControlsResponse(INT32 ch)
 {
 	INT32 i;
-	(void)choice;
+
+	if (ch != 'y' && ch != KEY_ENTER)
+		return;
 
 	// clear all controls
 	for (i = 0; i < num_gamecontrols; i++)
@@ -9004,6 +9041,12 @@ static void M_ResetControls(INT32 choice)
 	}
 
 	S_StartSound(NULL, sfx_s224);
+}
+
+static void M_ResetControls(INT32 choice)
+{
+	(void)choice;
+	M_StartMessage(va(M_GetText("Reset Player %d's controls to defaults?\n\n(Press 'Y' to confirm)\n"), setupcontrolplayer), M_ResetControlsResponse, MM_YESNO);
 }
 
 // =====

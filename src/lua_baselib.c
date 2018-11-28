@@ -2190,16 +2190,16 @@ static int lib_kSpinPlayer(lua_State *L)
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = NULL;
 	INT32 type = (INT32)luaL_optinteger(L, 3, 0);
-	boolean trapitem = lua_optboolean(L, 4);
 	mobj_t *inflictor = NULL;
+	boolean trapitem = lua_optboolean(L, 5);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	if (!lua_isnone(L, 5) && lua_isuserdata(L, 5))
-		inflictor = *((mobj_t **)luaL_checkudata(L, 5, META_MOBJ));
-	K_SpinPlayer(player, source, type, trapitem, inflictor);
+	if (!lua_isnone(L, 4) && lua_isuserdata(L, 4))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 4, META_MOBJ));
+	K_SpinPlayer(player, source, type, inflictor, trapitem);
 	return 0;
 }
 
@@ -2390,6 +2390,16 @@ static int lib_kGetKartDriftSparkValue(lua_State *L)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushinteger(L, K_GetKartDriftSparkValue(player));
 	return 1;
+}
+
+static int lib_kKartUpdatePosition(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_KartUpdatePosition(player);
+	return 0;
 }
 
 static int lib_kDropItems(lua_State *L)
@@ -2683,6 +2693,7 @@ static luaL_Reg lib[] = {
 	{"K_RepairOrbitChain",lib_kRepairOrbitChain},
 	{"K_FindJawzTarget",lib_kFindJawzTarget},
 	{"K_GetKartDriftSparkValue",lib_kGetKartDriftSparkValue},
+	{"K_KartUpdatePosition",lib_kKartUpdatePosition},
 	{"K_DropItems",lib_kDropItems},
 	{"K_StripItems",lib_kStripItems},
 	{"K_StripOther",lib_kStripOther},
