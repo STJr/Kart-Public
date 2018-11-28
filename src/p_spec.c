@@ -4190,12 +4190,12 @@ DoneSection2:
 
 		case 10: // Finish Line
 			// SRB2kart - 150117
-			if (G_RaceGametype() && (player->starpostcount >= numstarposts/2 || player->exiting))
+			if (G_RaceGametype() && (player->starpostnum >= (numstarposts - (2*numstarposts)/5) || player->exiting))
 				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
 			//
 			if (G_RaceGametype() && !player->exiting)
 			{
-				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
+				if (player->starpostnum >= (numstarposts - (2*numstarposts)/5)) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
 					UINT8 nump = 0;
 
@@ -4244,7 +4244,6 @@ DoneSection2:
 					// SRB2kart 200117
 					player->starpostangle = player->starpostnum = 0;
 					player->starpostx = player->starposty = player->starpostz = 0;
-					player->starpostcount = 0;
 					//except the time!
 					player->starposttime = player->realtime;
 

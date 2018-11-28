@@ -198,7 +198,6 @@ static void P_NetArchivePlayers(void)
 		WRITEINT16(save_p, players[i].starposty);
 		WRITEINT16(save_p, players[i].starpostz);
 		WRITEINT32(save_p, players[i].starpostnum);
-		WRITEINT32(save_p, players[i].starpostcount);
 		WRITEANGLE(save_p, players[i].starpostangle);
 
 		WRITEANGLE(save_p, players[i].angle_pos);
@@ -382,7 +381,6 @@ static void P_NetUnArchivePlayers(void)
 		players[i].starposty = READINT16(save_p);
 		players[i].starpostz = READINT16(save_p);
 		players[i].starpostnum = READINT32(save_p);
-		players[i].starpostcount = READINT32(save_p);
 		players[i].starpostangle = READANGLE(save_p);
 
 		players[i].angle_pos = READANGLE(save_p);

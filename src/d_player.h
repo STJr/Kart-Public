@@ -515,7 +515,6 @@ typedef struct player_s
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum; // The number of the last starpost you hit
-	INT32 starpostcount; // SRB2kart: how many did you hit?
 	tic_t starposttime; // Your time when you hit the starpost
 	angle_t starpostangle; // Angle that the starpost is facing - you respawn facing this way
 

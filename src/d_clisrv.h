@@ -251,7 +251,6 @@ typedef struct
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
-	INT32 starpostcount;
 	tic_t starposttime;
 	angle_t starpostangle;
 
