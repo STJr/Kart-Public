@@ -26,7 +26,11 @@
 
 // SOME numpty changed all the gametype constants and it fell out of sync with vanilla and now we have to pretend to be vanilla when talking to the master server...
 #define VANILLA_GT_RACE 2
+#if VERSION < 210
+#define VANILLA_GT_MATCH 1
+#else
 #define VANILLA_GT_MATCH 3
+#endif
 
 // Networking and tick handling related.
 #define BACKUPTICS 32
