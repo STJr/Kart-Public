@@ -4033,7 +4033,7 @@ DoneSection2:
 		case 7: // SRB2kart 190117 - Oil Slick (deprecated)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				K_SpinPlayer(player, NULL, 0, false);
+				K_SpinPlayer(player, NULL, 0, NULL, false);
 			}
 			break;
 

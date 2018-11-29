@@ -882,7 +882,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(thing->player, tmthing->target, tmthing);
 			else
-				K_SpinPlayer(thing->player, tmthing->target, 0, false);
+				K_SpinPlayer(thing->player, tmthing->target, 0, tmthing, false);
 		}
 
 		return true; // This doesn't collide with anything, but we want it to effect the player anyway.
@@ -915,7 +915,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
-			K_SpinPlayer(thing->player, tmthing->target, 0, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD));
+			K_SpinPlayer(thing->player, tmthing->target, 0, tmthing, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD));
 
 			// This Item Damage
 			if (tmthing->eflags & MFE_VERTICALFLIP)
@@ -1061,7 +1061,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true;
 
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target, 0, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
+			K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -1091,7 +1091,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target, thing);
 			else
-				K_SpinPlayer(tmthing->player, thing->target, 0, false);
+				K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, false);
 
 			return true;
 		}
@@ -1425,9 +1425,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	{
 
 		if (tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)) // SRB2kart - Handle squishes first!
-			K_SquishPlayer(thing->player, tmthing);
+			K_SquishPlayer(thing->player, tmthing, tmthing);
 		else if (thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
-			K_SquishPlayer(tmthing->player, thing);
+			K_SquishPlayer(tmthing->player, thing, tmthing);
 		else if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer]) // SRB2kart - Then invincibility!
 			P_DamageMobj(thing, tmthing, tmthing, 1);
 		else if (thing->player->kartstuff[k_invincibilitytimer] && !tmthing->player->kartstuff[k_invincibilitytimer])
@@ -1543,7 +1543,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && tmthing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing, 0, false);
+					K_SpinPlayer(thing->player, tmthing, 0, tmthing, false);
 				}
 			}
 			else if (P_IsObjectOnGround(tmthing) && thing->momz < 0)
@@ -1552,7 +1552,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (G_BattleGametype() && thing->player->kartstuff[k_pogospring])
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing, 0, false);
+					K_SpinPlayer(tmthing->player, thing, 0, thing, false);
 				}
 			}
 			else
@@ -1563,12 +1563,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
-					K_SpinPlayer(tmthing->player, thing, 0, false);
+					K_SpinPlayer(tmthing->player, thing, 0, tmthing, false);
 				}
 				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
-					K_SpinPlayer(thing->player, tmthing, 0, false);
+					K_SpinPlayer(thing->player, tmthing, 0, thing, false);
 				}
 			}
 
@@ -1664,7 +1664,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// collide
 			if (tmthing->z < thing->z && thing->momz < 0)
-				K_SquishPlayer(tmthing->player, thing);
+				K_SquishPlayer(tmthing->player, thing, thing);
 			else
 			{
 				if (thing->flags2 & MF2_AMBUSH)
@@ -4270,7 +4270,7 @@ static boolean PIT_ChangeSector(mobj_t *thing, boolean realcrush)
 				if (!thing->player)
 					P_DamageMobj(thing, killer, killer, 10000);
 				else
-					K_SquishPlayer(thing->player, killer); // SRB2kart - Squish instead of kill
+					K_SquishPlayer(thing->player, killer, killer); // SRB2kart - Squish instead of kill
 			}
 		}
 	}
