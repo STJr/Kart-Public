@@ -6802,7 +6802,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 					mobj->angle = R_PointToAngle(mobj->x, mobj->y) + ANGLE_90; // literally only happened because i wanted to ^L^R the SPR_ITEM's
 
-					if (!splitscreen)
+					if (!splitscreen && players[displayplayer].mo)
 					{
 						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
 							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);

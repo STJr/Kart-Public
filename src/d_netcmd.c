@@ -361,7 +361,7 @@ consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedome
 static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
 consvar_t cv_kartvoices = {"kartvoices", "Tasteful", CV_SAVE, kartvoices_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_karteliminatelast = {"karteliminatelast", "Yes", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOSHOWHELP, CV_OnOff, KartEliminateLast_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_karteliminatelast = {"karteliminatelast", "Yes", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOSHOWHELP, CV_YesNo, KartEliminateLast_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t kartdebugitem_cons_t[] = {{-1, "MIN"}, {NUMKARTITEMS-1, "MAX"}, {0, NULL}};
 consvar_t cv_kartdebugitem = {"kartdebugitem", "0", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, kartdebugitem_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1795,9 +1795,9 @@ void SendWeaponPref(void)
 	XBOXSTATIC UINT8 buf[1];
 
 	buf[0] = 0;
-	if (players[consoleplayer].pflags & PF_FLIPCAM)
+	if (cv_flipcam.value)
 		buf[0] |= 1;
-	if (players[consoleplayer].pflags & PF_ANALOGMODE)
+	if (cv_analog.value)
 		buf[0] |= 2;
 	SendNetXCmd(XD_WEAPONPREF, buf, 1);
 }
@@ -1807,9 +1807,9 @@ void SendWeaponPref2(void)
 	XBOXSTATIC UINT8 buf[1];
 
 	buf[0] = 0;
-	if (players[secondarydisplayplayer].pflags & PF_FLIPCAM)
+	if (cv_flipcam2.value)
 		buf[0] |= 1;
-	if (players[secondarydisplayplayer].pflags & PF_ANALOGMODE)
+	if (cv_analog2.value)
 		buf[0] |= 2;
 	SendNetXCmd2(XD_WEAPONPREF, buf, 1);
 }
@@ -1819,9 +1819,9 @@ void SendWeaponPref3(void)
 	XBOXSTATIC UINT8 buf[1];
 
 	buf[0] = 0;
-	if (players[thirddisplayplayer].pflags & PF_FLIPCAM)
+	if (cv_flipcam3.value)
 		buf[0] |= 1;
-	if (players[thirddisplayplayer].pflags & PF_ANALOGMODE)
+	if (cv_analog3.value)
 		buf[0] |= 2;
 	SendNetXCmd3(XD_WEAPONPREF, buf, 1);
 }
@@ -1831,9 +1831,9 @@ void SendWeaponPref4(void)
 	XBOXSTATIC UINT8 buf[1];
 
 	buf[0] = 0;
-	if (players[fourthdisplayplayer].pflags & PF_FLIPCAM)
+	if (cv_flipcam4.value)
 		buf[0] |= 1;
-	if (players[fourthdisplayplayer].pflags & PF_ANALOGMODE)
+	if (cv_analog4.value)
 		buf[0] |= 2;
 	SendNetXCmd4(XD_WEAPONPREF, buf, 1);
 }
@@ -4618,16 +4618,16 @@ static void Command_Showmap_f(void)
 {
 	if (gamestate == GS_LEVEL)
 	{
-		if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
+		if (mapheaderinfo[gamemap-1]->zonttl[0] && !(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
 		{
-			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+			if (mapheaderinfo[gamemap-1]->actnum[0])
 				CONS_Printf("%s (%d): %s %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum);
 			else
 				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl);
 		}
 		else
 		{
-			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
+			if (mapheaderinfo[gamemap-1]->actnum[0])
 				CONS_Printf("%s (%d): %s %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
 			else
 				CONS_Printf("%s (%d): %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl);
@@ -4835,11 +4835,11 @@ static void Fishcake_OnChange(void)
 static void Command_Isgamemodified_f(void)
 {
 	if (savemoddata)
-		CONS_Printf(M_GetText("modifiedgame is true, but you can save medal and time data in this mod.\n"));
+		CONS_Printf(M_GetText("modifiedgame is true, but you can save medal and record data in this mod.\n"));
 	else if (modifiedgame)
-		CONS_Printf(M_GetText("modifiedgame is true, secrets will not be unlocked\n"));
+		CONS_Printf(M_GetText("modifiedgame is true, extras will not be unlocked\n"));
 	else
-		CONS_Printf(M_GetText("modifiedgame is false, you can unlock secrets\n"));
+		CONS_Printf(M_GetText("modifiedgame is false, you can unlock extras\n"));
 }
 
 static void Command_Cheats_f(void)

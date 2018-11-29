@@ -1305,7 +1305,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.numberofplayer = (UINT8)D_NumPlayers();
 	netbuffer->u.serverinfo.maxplayer = (UINT8)cv_maxplayers.value;
-	netbuffer->u.serverinfo.gametype = (UINT8)(G_BattleGametype() ? 3 : 2); // SRB2Kart: Vanilla's gametype constants for MS support
+	netbuffer->u.serverinfo.gametype = (UINT8)(G_BattleGametype() ? VANILLA_GT_MATCH : VANILLA_GT_RACE); // SRB2Kart: Vanilla's gametype constants for MS support
 	netbuffer->u.serverinfo.modifiedgame = (UINT8)modifiedgame;
 	netbuffer->u.serverinfo.cheatsenabled = CV_CheatsEnabled();
 	netbuffer->u.serverinfo.isdedicated = (UINT8)dedicated;
@@ -1315,17 +1315,60 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	M_Memcpy(netbuffer->u.serverinfo.mapmd5, mapmd5, 16);
 
-	if (strcmp(mapheaderinfo[gamemap-1]->lvlttl, ""))
-		strncpy(netbuffer->u.serverinfo.maptitle, (char *)mapheaderinfo[gamemap-1]->lvlttl, 33);
+	if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) && !(mapheaderinfo[prevmap]->zonttl[0]))
+		netbuffer->u.serverinfo.iszone = 1;
+	else
+		netbuffer->u.serverinfo.iszone = 0;
+
+	memset(netbuffer->u.serverinfo.maptitle, 0, 33);
+
+	if (!(mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU) && mapheaderinfo[gamemap-1]->lvlttl[0])
+	{
+		//strncpy(netbuffer->u.serverinfo.maptitle, (char *)mapheaderinfo[gamemap-1]->lvlttl, 33);
+		// set up the levelstring
+		if (netbuffer->u.serverinfo.iszone || (mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
+		{
+			if (mapheaderinfo[gamemap-1]->actnum[0])
+				snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s %s",
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
+			else
+				snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s",
+					mapheaderinfo[gamemap-1]->lvlttl);
+		}
+		else
+		{
+			if (mapheaderinfo[gamemap-1]->actnum[0])
+			{
+				if (snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s %s %s",
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum) < 0)
+				{
+					// If there's an encoding error, send UNKNOWN, we accept that the above may be truncated
+					strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+				}
+			}
+			else
+			{
+				if (snprintf(netbuffer->u.serverinfo.maptitle,
+					33,
+					"%s %s",
+					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl) < 0)
+				{
+					// If there's an encoding error, send UNKNOWN, we accept that the above may be truncated
+					strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+				}
+			}
+		}
+	}
 	else
 		strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
 
 	netbuffer->u.serverinfo.maptitle[32] = '\0';
-
-	if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-		netbuffer->u.serverinfo.iszone = 1;
-	else
-		netbuffer->u.serverinfo.iszone = 0;
 
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
@@ -3222,31 +3265,16 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 				if (botingame)
 					players[newplayernum].bot = 1;
 				// Same goes for player 2 when relevant
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam2.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog2.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
 			else if (splitscreenplayer == 2)
 			{
 				thirddisplayplayer = newplayernum;
 				DEBFILE("spawning my sister\n");
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam3.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog3.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
 			else if (splitscreenplayer == 3)
 			{
 				fourthdisplayplayer = newplayernum;
 				DEBFILE("spawning my trusty pet dog\n");
-				players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-				if (cv_flipcam4.value)
-					players[newplayernum].pflags |= PF_FLIPCAM;
-				if (cv_analog4.value)
-					players[newplayernum].pflags |= PF_ANALOGMODE;
 			}
 		}
 		else
@@ -3257,12 +3285,6 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 			thirddisplayplayer = newplayernum;
 			fourthdisplayplayer = newplayernum;
 			DEBFILE("spawning me\n");
-			// Apply player flags as soon as possible!
-			players[newplayernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE);
-			if (cv_flipcam.value)
-				players[newplayernum].pflags |= PF_FLIPCAM;
-			if (cv_analog.value)
-				players[newplayernum].pflags |= PF_ANALOGMODE;
 		}
 		D_SendPlayerConfig();
 		addedtogame = true;
@@ -3516,6 +3538,8 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
 	else if (D_NumPlayers() >= cv_maxplayers.value)
 		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), cv_maxplayers.value));
+	else if (netgame && D_NumPlayers() + netbuffer->u.clientcfg.localplayers > cv_maxplayers.value)
+		SV_SendRefuse(node, va(M_GetText("Number of local players\nwould exceed maximum: %d"), cv_maxplayers.value));
 	else if (netgame && netbuffer->u.clientcfg.localplayers > 4) // Hacked client?
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
@@ -3623,6 +3647,7 @@ static void HandleServerInfo(SINT8 node)
 	const tic_t ticdiff = (ticnow - ticthen)*1000/NEWTICRATE;
 	netbuffer->u.serverinfo.time = (tic_t)LONG(ticdiff);
 	netbuffer->u.serverinfo.servername[MAXSERVERNAME-1] = 0;
+	netbuffer->u.serverinfo.gametype = (UINT8)((netbuffer->u.serverinfo.gametype == VANILLA_GT_MATCH) ? GT_MATCH : GT_RACE);
 
 	SL_InsertServer(&netbuffer->u.serverinfo, node);
 }

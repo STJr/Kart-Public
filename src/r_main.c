@@ -165,7 +165,7 @@ consvar_t cv_flipcam4 = {"flipcam4", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, 
 consvar_t cv_shadow = {"shadow", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_shadowoffs = {"offsetshadows", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_skybox = {"skybox", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_soniccd = {"soniccd", "On", CV_NETVAR|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_soniccd = {"soniccd", "Off", CV_NETVAR|CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowmlook = {"allowmlook", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_showhud = {"showhud", "Yes", CV_CALL,  CV_YesNo, R_SetViewSize, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_translucenthud = {"translucenthud", "10", CV_SAVE, translucenthud_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -264,41 +264,21 @@ static void ChaseCam4_OnChange(void)
 
 static void FlipCam_OnChange(void)
 {
-	if (cv_flipcam.value)
-		players[consoleplayer].pflags |= PF_FLIPCAM;
-	else
-		players[consoleplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref();
 }
 
 static void FlipCam2_OnChange(void)
 {
-	if (cv_flipcam2.value)
-		players[secondarydisplayplayer].pflags |= PF_FLIPCAM;
-	else
-		players[secondarydisplayplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref2();
 }
 
 static void FlipCam3_OnChange(void)
 {
-	if (cv_flipcam3.value)
-		players[thirddisplayplayer].pflags |= PF_FLIPCAM;
-	else
-		players[thirddisplayplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref3();
 }
 
 static void FlipCam4_OnChange(void)
 {
-	if (cv_flipcam4.value)
-		players[fourthdisplayplayer].pflags |= PF_FLIPCAM;
-	else
-		players[fourthdisplayplayer].pflags &= ~PF_FLIPCAM;
-
 	SendWeaponPref4();
 }
 

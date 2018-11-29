@@ -112,10 +112,10 @@ static GLint       viewport[4];
 //			These need to start at 0 and be set to their number, and be reset to 0 when deleted so that intel GPUs
 //			can know when the textures aren't there, as textures are always considered resident in their virtual memory
 // TODO:	Store them in a more normal way
-#define SCRTEX_SCREENTEXTURE 65535
-#define SCRTEX_STARTSCREENWIPE 65534
-#define SCRTEX_ENDSCREENWIPE 65533
-#define SCRTEX_FINALSCREENTEXTURE 65532
+#define SCRTEX_SCREENTEXTURE 4294967295
+#define SCRTEX_STARTSCREENWIPE 4294967294
+#define SCRTEX_ENDSCREENWIPE 4294967293
+#define SCRTEX_FINALSCREENTEXTURE 4294967292
 static GLuint screentexture = 0;
 static GLuint startScreenWipe = 0;
 static GLuint endScreenWipe = 0;

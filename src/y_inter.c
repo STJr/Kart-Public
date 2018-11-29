@@ -712,6 +712,9 @@ static void Y_UpdateRecordReplays(void)
 	if ((earnedEmblems = M_CheckLevelEmblems()))
 		CONS_Printf(M_GetText("\x82" "Earned %hu medal%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
 
+	// SRB2Kart - save here so you NEVER lose your earned times/medals.
+	G_SaveGameData(false);
+
 	// Update timeattack menu's replay availability.
 	CV_AddValue(&cv_nextmap, 1);
 	CV_AddValue(&cv_nextmap, -1);
