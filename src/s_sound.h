@@ -29,7 +29,9 @@ extern consvar_t cv_numChannels;
 extern consvar_t surround;
 extern consvar_t cv_resetmusic;
 extern consvar_t cv_gamedigimusic;
+#ifndef NO_MIDI
 extern consvar_t cv_gamemidimusic;
+#endif
 extern consvar_t cv_gamesounds;
 
 #ifdef SNDSERV

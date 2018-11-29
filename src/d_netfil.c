@@ -430,27 +430,8 @@ void CL_LoadServerFiles(void)
 			fileneeded[i].status = FS_OPEN;
 		}
 		else if (fileneeded[i].status == FS_MD5SUMBAD)
-		{
-			// If the file is marked important, don't even bother proceeding.
-			if (fileneeded[i].important)
-				I_Error("Wrong version of important file %s", fileneeded[i].filename);
-
-			// If it isn't, no need to worry the user with a console message,
-			// although it can't hurt to put something in the debug file.
-
-			// ...but wait a second. What if the local version is "important"?
-			if (!W_VerifyNMUSlumps(fileneeded[i].filename))
-				I_Error("File %s should only contain music and sound effects!",
-					fileneeded[i].filename);
-
-			// Okay, NOW we know it's safe. Whew.
-			P_AddWadFile(fileneeded[i].filename);
-			if (fileneeded[i].important)
-				G_SetGameModified(true);
-			fileneeded[i].status = FS_OPEN;
-			DEBFILE(va("File %s found but with different md5sum\n", fileneeded[i].filename));
-		}
-		else if (fileneeded[i].important)
+			I_Error("Wrong version of file %s", fileneeded[i].filename);
+		else
 		{
 			const char *s;
 			switch(fileneeded[i].status)

@@ -51,7 +51,9 @@ static void Command_Tunes_f(void);
 static void Command_RestartAudio_f(void);
 
 // Sound system toggles
+#ifndef NO_MIDI
 static void GameMIDIMusic_OnChange(void);
+#endif
 static void GameSounds_OnChange(void);
 static void GameDigiMusic_OnChange(void);
 
@@ -103,7 +105,9 @@ consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, 
 
 // Sound system toggles, saved into the config
 consvar_t cv_gamedigimusic = {"digimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameDigiMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#ifndef NO_MIDI
 consvar_t cv_gamemidimusic = {"midimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameMIDIMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#endif
 consvar_t cv_gamesounds = {"sounds", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameSounds_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 #define S_MAX_VOLUME 127
@@ -262,7 +266,9 @@ void S_RegisterSoundStuff(void)
 	CV_RegisterVar(&cv_resetmusic);
 	CV_RegisterVar(&cv_gamesounds);
 	CV_RegisterVar(&cv_gamedigimusic);
+#ifndef NO_MIDI
 	CV_RegisterVar(&cv_gamemidimusic);
+#endif
 
 	COM_AddCommand("tunes", Command_Tunes_f);
 	COM_AddCommand("restartaudio", Command_RestartAudio_f);
@@ -1995,6 +2001,7 @@ void GameDigiMusic_OnChange(void)
 	}
 }
 
+#ifndef NO_MIDI
 void GameMIDIMusic_OnChange(void)
 {
 	if (M_CheckParm("-nomusic"))
@@ -2035,3 +2042,4 @@ void GameMIDIMusic_OnChange(void)
 		}
 	}
 }
+#endif

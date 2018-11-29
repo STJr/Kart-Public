@@ -648,7 +648,7 @@ void F_CreditDrawer(void)
 	}
 
 	// Dim the background
-	V_DrawFadeScreen();
+	//V_DrawFadeScreen();
 
 	// Draw credits text on top
 	for (i = 0; credits[i]; i++)
