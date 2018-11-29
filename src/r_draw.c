@@ -137,11 +137,12 @@ UINT32 nflatxshift, nflatyshift, nflatshiftup, nflatmask;
 #define ALLWHITE_TT_CACHE_INDEX (MAXSKINS + 3)
 #define RAINBOW_TT_CACHE_INDEX (MAXSKINS + 4)
 #define BLINK_TT_CACHE_INDEX (MAXSKINS + 5)
+#define TT_CACHE_SIZE (MAXSKINS + 6)
 #define SKIN_RAMP_LENGTH 16
 #define DEFAULT_STARTTRANSCOLOR 160
 #define NUM_PALETTE_ENTRIES 256
 
-static UINT8** translationtablecache[MAXSKINS + 5] = {NULL};
+static UINT8** translationtablecache[TT_CACHE_SIZE] = {NULL};
 
 
 // See also the enum skincolors_t
