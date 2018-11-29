@@ -7210,23 +7210,24 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			case MT_FIREDITEM:
-			{
-				fixed_t x, y, z;
-				if (mobj->movecount)
+				if (mobj->target && !P_MobjWasRemoved(mobj->target))
 				{
-					x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
-					y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
-					z = mobj->target->z + mobj->target->height/3;
+					fixed_t x, y, z;
+					if (mobj->movecount)
+					{
+						x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+						y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+						z = mobj->target->z + mobj->target->height/3;
+					}
+					else
+					{
+						x = mobj->target->x;
+						y = mobj->target->y;
+						z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
+					}
+					P_TeleportMove(mobj, x, y, z);
 				}
-				else
-				{
-					x = mobj->target->x;
-					y = mobj->target->y;
-					z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
-				}
-				P_TeleportMove(mobj, x, y, z);
 				break;
-			}
 			default:
 				if (mobj->fuse)
 				{ // Scenery object fuse! Very basic!
