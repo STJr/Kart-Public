@@ -522,9 +522,9 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
 	COM_AddCommand("login", Command_Login_f); // useful in dedicated to kick off remote admin
-	COM_AddCommand("giveadmin", Command_Verify_f);
+	COM_AddCommand("promote", Command_Verify_f);
 	RegisterNetXCmd(XD_VERIFIED, Got_Verification);
-	COM_AddCommand("removeadmin", Command_RemoveAdmin_f);
+	COM_AddCommand("demote", Command_RemoveAdmin_f);
 	RegisterNetXCmd(XD_DEMOTED, Got_Removal);
 
 	COM_AddCommand("motd", Command_MotD_f);
@@ -3498,7 +3498,7 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	if (!memcmp(sentmd5, finalmd5, 16))
 	{
 		CONS_Printf(M_GetText("%s passed authentication.\n"), player_names[playernum]);
-		COM_BufInsertText(va("giveadmin %d\n", playernum)); // do this immediately
+		COM_BufInsertText(va("promote %d\n", playernum)); // do this immediately
 	}
 	else
 		CONS_Printf(M_GetText("Password from %s failed.\n"), player_names[playernum]);
@@ -3572,7 +3572,7 @@ static void Command_Verify_f(void)
 
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf(M_GetText("giveadmin <node>: give admin privileges to a node\n"));
+		CONS_Printf(M_GetText("promote <node>: give admin privileges to a node\n"));
 		return;
 	}
 
@@ -3628,7 +3628,7 @@ static void Command_RemoveAdmin_f(void)
 
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf(M_GetText("removeadmin <node>: remove admin privileges from a node\n"));
+		CONS_Printf(M_GetText("demote <node>: remove admin privileges from a node\n"));
 		return;
 	}
 
