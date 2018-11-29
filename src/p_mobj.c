@@ -7940,7 +7940,12 @@ void P_MobjThinker(mobj_t *mobj)
 		{
 			if (mobj->flags & MF_NOCLIPTHING)
 			{
-				if (P_IsObjectOnGround(mobj))
+				if (P_CheckDeathPitCollide(mobj))
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				else if (P_IsObjectOnGround(mobj))
 				{
 					mobj->momx = 1;
 					mobj->momy = 0;
