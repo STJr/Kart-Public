@@ -4231,9 +4231,17 @@ static void PointLimit_OnChange(void)
 
 static void NumLaps_OnChange(void)
 {
+	if (!G_RaceGametype() || (modeattacking || demoplayback))
+		return;
+
+	if (server && Playing()
+		&& (netgame || multiplayer)
+		&& (mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
+		&& (cv_numlaps.value > mapheaderinfo[gamemap - 1]->numlaps))
+		CV_StealthSetValue(&cv_numlaps, mapheaderinfo[gamemap - 1]->numlaps);
+
 	// Just don't be verbose
-	if (G_RaceGametype() && !(modeattacking || demoplayback))
-		CONS_Printf(M_GetText("Number of laps set to %d\n"), cv_numlaps.value);
+	CONS_Printf(M_GetText("Number of laps set to %d\n"), cv_numlaps.value);
 }
 
 static void NetTimeout_OnChange(void)

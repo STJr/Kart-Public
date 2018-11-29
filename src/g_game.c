@@ -2997,7 +2997,7 @@ void G_DoReborn(INT32 playernum)
 		// respawn at the start
 		mobj_t *oldmo = NULL;
 
-		if (player->starpostnum) // SRB2kart
+		if (player->starpostnum || ((mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE) && player->laps)) // SRB2kart
 			starpost = true;
 
 		// first dissasociate the corpse
