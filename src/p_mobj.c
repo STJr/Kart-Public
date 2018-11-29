@@ -7940,7 +7940,12 @@ void P_MobjThinker(mobj_t *mobj)
 		{
 			if (mobj->flags & MF_NOCLIPTHING)
 			{
-				if (P_IsObjectOnGround(mobj))
+				if (P_CheckDeathPitCollide(mobj))
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				else if (P_IsObjectOnGround(mobj))
 				{
 					mobj->momx = 1;
 					mobj->momy = 0;
@@ -7986,11 +7991,15 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE;
 					break;
+				case KITEM_SPB:
+				case KITEM_SHRINK:
+					indirectitemcooldown = 20*TICRATE;
+					/* FALLTHRU */
 				default:
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|(mobj->threshold);
 					break;
-				}
+			}
 			break;
 		}
 		case MT_ORBINAUT:
