@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1737,6 +1737,8 @@ static void SendAskInfo(INT32 node, boolean viams)
 serverelem_t serverlist[MAXSERVERLIST];
 UINT32 serverlistcount = 0;
 
+#define FORCECLOSE 0x8000
+
 static void SL_ClearServerList(INT32 connectedserver)
 {
 	UINT32 i;
@@ -1744,7 +1746,7 @@ static void SL_ClearServerList(INT32 connectedserver)
 	for (i = 0; i < serverlistcount; i++)
 		if (connectedserver != serverlist[i].node)
 		{
-			Net_CloseConnection(serverlist[i].node);
+			Net_CloseConnection(serverlist[i].node|FORCECLOSE);
 			serverlist[i].node = 0;
 		}
 	serverlistcount = 0;
@@ -1826,12 +1828,25 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 				// Make sure MS version matches our own, to
 				// thwart nefarious servers who lie to the MS.
 
-				if(strcmp(version, server_list[i].version) == 0)
+				if (strcmp(version, server_list[i].version) == 0)
 				{
 					INT32 node = I_NetMakeNodewPort(server_list[i].ip, server_list[i].port);
 					if (node == -1)
 						break; // no more node free
 					SendAskInfo(node, true);
+					// Force close the connection so that servers can't eat
+					// up nodes forever if we never get a reply back from them
+					// (usually when they've not forwarded their ports).
+					//
+					// Don't worry, we'll get in contact with the working
+					// servers again when they send SERVERINFO to us later!
+					//
+					// (Note: as a side effect this probably means every
+					// server in the list will probably be using the same node (e.g. node 1),
+					// not that it matters which nodes they use when
+					// the connections are closed afterwards anyway)
+					// -- Monster Iestyn 12/11/18
+					Net_CloseConnection(node|FORCECLOSE);
 				}
 			}
 		}

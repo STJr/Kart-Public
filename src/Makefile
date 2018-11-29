@@ -2,7 +2,7 @@
 #     GNU Make makefile for SRB2
 #############################################################################
 # Copyright (C) 1998-2000 by DooM Legacy Team.
-# Copyright (C) 2003-2014 by Sonic Team Junior.
+# Copyright (C) 2003-2018 by Sonic Team Junior.
 #
 # This program is free software distributed under the
 # terms of the GNU General Public License, version 2.
@@ -178,6 +178,11 @@ endif
 ifdef MINGW
 include win32/Makefile.cfg
 endif #ifdef MINGW
+
+ifdef MINGW64
+MINGW=1
+include win32/Makefile.cfg
+endif #ifdef MINGW64
 
 ifdef UNIX
 UNIXCOMMON=1
@@ -715,7 +720,6 @@ $(BIN)/s_openal.so: $(OBJDIR)/s_openal.o
 	-$(MKDIR) $(BIN)
 	@echo Linking S_OpenAL.so...
 	$(CC) --shared $^ -o $@ -g --nostartfiles -lm -lopenal
-
 endif
 
 else

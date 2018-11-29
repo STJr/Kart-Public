@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -25,11 +25,11 @@ static CV_PossibleValue_t mousesens_cons_t[] = {{1, "MIN"}, {MAXMOUSESENSITIVITY
 static CV_PossibleValue_t onecontrolperkey_cons_t[] = {{1, "One"}, {2, "Several"}, {0, NULL}};
 
 // mouse values are used once
-consvar_t cv_mousesens = {"mousesens", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mousesens2 = {"mousesens2", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mouseysens = {"mouseysens", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_mouseysens2 = {"mouseysens2", "35", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_controlperkey = {"controlperkey", "Several", CV_SAVE, onecontrolperkey_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mousesens = {"mousesens", "20", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mousesens2 = {"mousesens2", "20", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mouseysens = {"mouseysens", "20", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_mouseysens2 = {"mouseysens2", "20", CV_SAVE, mousesens_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_controlperkey = {"controlperkey", "One", CV_SAVE, onecontrolperkey_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 INT32 mousex, mousey;
 INT32 mlooky; // like mousey but with a custom sensitivity for mlook
@@ -1404,25 +1404,20 @@ void G_CheckDoubleUsage(INT32 keynum)
 {
 	if (cv_controlperkey.value == 1)
 	{
-		INT32 i;
+		INT32 i, j;
 		for (i = 0; i < num_gamecontrols; i++)
 		{
-			if (gamecontrol[i][0] == keynum)
-				gamecontrol[i][0] = KEY_NULL;
-			if (gamecontrol[i][1] == keynum)
-				gamecontrol[i][1] = KEY_NULL;
-			if (gamecontrolbis[i][0] == keynum)
-				gamecontrolbis[i][0] = KEY_NULL;
-			if (gamecontrolbis[i][1] == keynum)
-				gamecontrolbis[i][1] = KEY_NULL;
-			if (gamecontrol3[i][0] == keynum)
-				gamecontrol3[i][0] = KEY_NULL;
-			if (gamecontrol3[i][1] == keynum)
-				gamecontrol3[i][1] = KEY_NULL;
-			if (gamecontrol4[i][0] == keynum)
-				gamecontrol4[i][0] = KEY_NULL;
-			if (gamecontrol4[i][1] == keynum)
-				gamecontrol4[i][1] = KEY_NULL;
+			for (j = 0; j < 2; j++)
+			{
+				if (gamecontrol[i][j] == keynum)
+					gamecontrol[i][j] = KEY_NULL;
+				if (gamecontrolbis[i][j] == keynum)
+					gamecontrolbis[i][j] = KEY_NULL;
+				if (gamecontrol3[i][j] == keynum)
+					gamecontrol3[i][j] = KEY_NULL;
+				if (gamecontrol4[i][j] == keynum)
+					gamecontrol4[i][j] = KEY_NULL;
+			}
 		}
 	}
 }
@@ -1443,11 +1438,31 @@ static void setcontrol(INT32 (*gc)[2], INT32 na)
 		return;
 	}
 	keynum = G_KeyStringtoNum(COM_Argv(2));
+
+	if (keynum == KEY_PAUSE) // fail silently; pause is hardcoded
+	{
+		if (na == 4)
+		{
+			na--;
+			keynum = G_KeyStringtoNum(COM_Argv(3));
+			if (keynum == KEY_PAUSE)
+				return;
+		}
+		else
+			return;
+	}
+
 	G_CheckDoubleUsage(keynum);
 	gc[numctrl][0] = keynum;
 
 	if (na == 4)
-		gc[numctrl][1] = G_KeyStringtoNum(COM_Argv(3));
+	{
+		keynum = G_KeyStringtoNum(COM_Argv(3));
+		if (keynum != KEY_PAUSE)
+			gc[numctrl][1] = keynum;
+		else
+			gc[numctrl][1] = 0;
+	}
 	else
 		gc[numctrl][1] = 0;
 }

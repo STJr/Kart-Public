@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -794,6 +794,8 @@ void D_RegisterClientCommands(void)
 	//CV_RegisterVar(&cv_crosshair4);
 	//CV_RegisterVar(&cv_alwaysfreelook);
 	//CV_RegisterVar(&cv_alwaysfreelook2);
+	//CV_RegisterVar(&cv_chasefreelook);
+	//CV_RegisterVar(&cv_chasefreelook2);
 
 	// g_input.c
 	CV_RegisterVar(&cv_turnaxis);
@@ -2358,6 +2360,10 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 			mapname, resetplayer, lastgametype, gametype, chmappending));
 		CON_LogMessage(M_GetText("Speeding off to level...\n"));
 	}
+
+	CON_ToggleOff();
+	CON_ClearHUD();
+
 	if (demoplayback && !timingdemo)
 		precache = false;
 
@@ -2377,7 +2383,6 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	G_InitNew(pencoremode, mapname, resetplayer, skipprecutscene);
 	if (demoplayback && !timingdemo)
 		precache = true;
-	CON_ToggleOff();
 	if (timingdemo)
 		G_DoneLevelLoad();
 
@@ -3868,7 +3873,7 @@ static void Command_Addfile(void)
 	// Add file on your client directly if it is trivial, or you aren't in a netgame.
 	if (!(netgame || multiplayer) || musiconly)
 	{
-		P_AddWadFile(fn, NULL);
+		P_AddWadFile(fn);
 		return;
 	}
 
@@ -4078,7 +4083,7 @@ static void Got_Addfilecmd(UINT8 **cp, INT32 playernum)
 
 	ncs = findfile(filename,md5sum,true);
 
-	if (ncs != FS_FOUND || !P_AddWadFile(filename, NULL))
+	if (ncs != FS_FOUND || !P_AddWadFile(filename))
 	{
 		Command_ExitGame_f();
 		if (ncs == FS_FOUND)

@@ -3,7 +3,7 @@
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2011-2016 by Matthew "Inuyasha" Walsh.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -310,11 +310,6 @@ menu_t OP_VideoOptionsDef, OP_VideoModeDef;
 menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
 #endif
 menu_t OP_SoundOptionsDef;
-static void M_ToggleSFX(INT32 choice);
-static void M_ToggleDigital(INT32 choice);
-#ifndef NO_MIDI
-static void M_ToggleMIDI(INT32 choice);
-#endif
 //static void M_RestartAudio(void);
 
 //Misc
@@ -1205,13 +1200,14 @@ static menuitem_t OP_JoystickSetMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Use Mouse",        &cv_usemouse,         10},
 
 
-	{IT_STRING | IT_CVAR, NULL, "Always MouseLook", &cv_alwaysfreelook,   30},
-	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove,        40},
-	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse,      50},
+	{IT_STRING | IT_CVAR, NULL, "First-Person MouseLook", &cv_alwaysfreelook,   30},
+	{IT_STRING | IT_CVAR, NULL, "Third-Person MouseLook", &cv_chasefreelook,   40},
+	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove,        50},
+	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse,      60},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse X Speed",    &cv_mousesens,        60},
+	                      NULL, "Mouse X Speed",    &cv_mousesens,        70},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse Y Speed",    &cv_mouseysens,        70},
+	                      NULL, "Mouse Y Speed",    &cv_mouseysens,        80},
 };
 
 static menuitem_t OP_Mouse2OptionsMenu[] =
@@ -1219,13 +1215,14 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Use Mouse 2",      &cv_usemouse2,        10},
 	{IT_STRING | IT_CVAR, NULL, "Second Mouse Serial Port",
 	                                                &cv_mouse2port,       20},
-	{IT_STRING | IT_CVAR, NULL, "Always MouseLook", &cv_alwaysfreelook2,  30},
-	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove2,       40},
-	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse2,     50},
+	{IT_STRING | IT_CVAR, NULL, "First-Person MouseLook", &cv_alwaysfreelook2,  30},
+	{IT_STRING | IT_CVAR, NULL, "Third-Person MouseLook", &cv_chasefreelook2,  40},
+	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove2,       50},
+	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse2,     60},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse X Speed",    &cv_mousesens2,       60},
+	                      NULL, "Mouse X Speed",    &cv_mousesens2,       70},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse Y Speed",    &cv_mouseysens2,      70},
+	                      NULL, "Mouse Y Speed",    &cv_mouseysens2,      80},
 };*/
 
 static menuitem_t OP_VideoOptionsMenu[] =
@@ -1322,16 +1319,16 @@ static menuitem_t OP_OpenGLColorMenu[] =
 
 static menuitem_t OP_SoundOptionsMenu[] =
 {
-	{IT_KEYHANDLER|IT_STRING,	NULL, "SFX",					M_ToggleSFX,			 10},
+	{IT_STRING|IT_CVAR,			NULL, "SFX",					&cv_gamesounds,			 10},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "SFX Volume",			&cv_soundvolume,		 18},
+								NULL, "SFX Volume",				&cv_soundvolume,		 18},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Music",					M_ToggleDigital,		 30},
+	{IT_STRING|IT_CVAR,			NULL, "Music",					&cv_gamedigimusic,		 30},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
 								NULL, "Music Volume",			&cv_digmusicvolume,		 38},
 
 /* -- :nonnathisshit:
-	{IT_KEYHANDLER|IT_STRING,	NULL, "MIDI",					M_ToggleMIDI,			 50},
+	{IT_STRING|IT_CVAR,			NULL, "MIDI",					&cv_gamemidimusic,		 50},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
 								NULL, "MIDI Volume",			&cv_midimusicvolume,	 58},
 #ifdef PC_DOS
@@ -1348,7 +1345,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			 85},
 	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",			M_HandleSoundTest,		110},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		110},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -7353,7 +7350,7 @@ void M_SortServerList(void)
 
 #ifndef NONET
 #ifdef UPDATE_ALERT
-static int M_CheckMODVersion(void)
+static boolean M_CheckMODVersion(void)
 {
 	char updatestring[500];
 	const char *updatecheck = GetMODVersion();
@@ -8874,6 +8871,7 @@ static void M_DrawControl(void)
 #undef controlheight
 
 static INT32 controltochange;
+static char controltochangetext[55];
 
 static void M_ChangecontrolResponse(event_t *ev)
 {
@@ -8881,8 +8879,8 @@ static void M_ChangecontrolResponse(event_t *ev)
 	INT32        found;
 	INT32        ch = ev->data1;
 
-	// ESCAPE cancels
-	if (ch != KEY_ESCAPE)
+	// ESCAPE cancels; dummy out PAUSE
+	if (ch != KEY_ESCAPE && ch != KEY_PAUSE)
 	{
 
 		switch (ev->type)
@@ -8932,19 +8930,40 @@ static void M_ChangecontrolResponse(event_t *ev)
 				setupcontrols[control][found] = ch-KEY_4JOY1+KEY_DBL4JOY1;
 		}
 		else
-        {
-            // check if change key1 or key2, or shuffle them along in a queue
-            found = 0;
-            if (setupcontrols[control][0] != KEY_NULL)
-            {
-                found++;
-                if (setupcontrols[control][1] != KEY_NULL)
-                    setupcontrols[control][0] = setupcontrols[control][1];
-             }
-            G_CheckDoubleUsage(ch);
-            setupcontrols[control][found] = ch;
-        }
+		{
+			// check if change key1 or key2, or replace the two by the new
+			found = 0;
+			if (setupcontrols[control][0] == KEY_NULL)
+				found++;
+			if (setupcontrols[control][1] == KEY_NULL)
+				found++;
+			if (found == 2)
+			{
+				found = 0;
+				setupcontrols[control][1] = KEY_NULL;  //replace key 1,clear key2
+			}
+			G_CheckDoubleUsage(ch);
+			setupcontrols[control][found] = ch;
+		}
 		S_StartSound(NULL, sfx_s221);
+	}
+	else if (ch == KEY_PAUSE)
+	{
+		static char tmp[155];
+		menu_t *prev = currentMenu->prevMenu;
+
+		if (controltochange == gc_pause)
+			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nyou may select another key. \n\nHit another key for\n%s\nESC for Cancel"),
+				controltochangetext);
+		else
+			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nit is not configurable. \n\nHit another key for\n%s\nESC for Cancel"),
+				controltochangetext);
+
+		M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
+		currentMenu->prevMenu = prev;
+
+		S_StartSound(NULL, sfx_s3k42);
+		return;
 	}
 	else
 		S_StartSound(NULL, sfx_s224);
@@ -8959,6 +8978,7 @@ static void M_ChangeControl(INT32 choice)
 	controltochange = currentMenu->menuitems[choice].alphaKey;
 	sprintf(tmp, M_GetText("Hit the new key for\n%s\nESC for Cancel"),
 		currentMenu->menuitems[choice].text);
+	strncpy(controltochangetext, currentMenu->menuitems[choice].text, 55);
 
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
 }
@@ -9052,175 +9072,6 @@ static void M_ResetControls(INT32 choice)
 // =====
 // SOUND
 // =====
-
-// Toggles sound systems in-game.
-static void M_ToggleSFX(INT32 choice)
-{
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			return;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn = currentMenu->numitems-1;
-			return;
-
-		case KEY_ESCAPE:
-			currentMenu->lastOn = itemOn;
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
-			else
-				M_ClearMenus(true);
-			return;
-		default:
-			break;
-	}
-
-	if (sound_disabled)
-	{
-		sound_disabled = false;
-		S_InitSfxChannels(cv_soundvolume.value);
-		S_StartSound(NULL, sfx_s221);
-		//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
-	}
-	else
-	{
-		sound_disabled = true;
-		S_StopSounds();
-		//M_StartMessage(M_GetText("SFX Disabled\n"), NULL, MM_NOTHING);
-	}
-}
-
-static void M_ToggleDigital(INT32 choice)
-{
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			return;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
-			return;
-
-		case KEY_ESCAPE:
-			currentMenu->lastOn = itemOn;
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
-			else
-				M_ClearMenus(true);
-			return;
-		default:
-			break;
-	}
-
-	if (digital_disabled)
-	{
-		digital_disabled = false;
-		I_InitMusic();
-		S_StopMusic();
-		if (Playing())
-			P_RestoreMusic(&players[consoleplayer]);
-		else
-			S_ChangeMusicInternal("titles", looptitle);
-		//M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
-	}
-	else
-	{
-		digital_disabled = true;
-#ifndef NO_MIDI
-		if (S_MusicType() != MU_MID)
-		{
-			if (midi_disabled)
-				S_StopMusic();
-			else
-			{
-				char mmusic[7];
-				UINT16 mflags;
-				boolean looping;
-
-				if (S_MusicInfo(mmusic, &mflags, &looping) && S_MIDIExists(mmusic))
-				{
-					S_StopMusic();
-					S_ChangeMusic(mmusic, mflags, looping);
-				}
-				else
-					S_StopMusic();
-			}
-		}
-#else
-		S_StopMusic();
-#endif
-		//M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
-	}
-}
-
-#ifndef NO_MIDI
-static void M_ToggleMIDI(INT32 choice)
-{
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			return;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
-			return;
-
-		case KEY_ESCAPE:
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
-			else
-				M_ClearMenus(true);
-			return;
-		default:
-			break;
-	}
-
-	if (midi_disabled)
-	{
-		midi_disabled = false;
-		I_InitMusic();
-		if (Playing())
-			P_RestoreMusic(&players[consoleplayer]);
-		else
-			S_ChangeMusicInternal("titles", looptitle);
-		//M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
-	}
-	else
-	{
-		midi_disabled = true;
-		if (S_MusicType() == MU_MID)
-		{
-			if (digital_disabled)
-				S_StopMusic();
-			else
-			{
-				char mmusic[7];
-				UINT16 mflags;
-				boolean looping;
-
-				if (S_MusicInfo(mmusic, &mflags, &looping) && S_DigExists(mmusic))
-				{
-					S_StopMusic();
-					S_ChangeMusic(mmusic, mflags, looping);
-				}
-				else
-					S_StopMusic();
-			}
-		}
-		//M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
-	}
-}
-#endif
 
 /*static void M_RestartAudio(void)
 {

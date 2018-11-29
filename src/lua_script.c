@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -173,6 +173,7 @@ static inline void LUA_LoadFile(MYFILE *f, char *name)
 		LUA_ClearState();
 	lua_pushinteger(gL, f->wad);
 	lua_setfield(gL, LUA_REGISTRYINDEX, "WAD");
+
 	if (luaL_loadbuffer(gL, f->data, f->size, va("@%s",name)) || lua_pcall(gL, 0, 0, 0)) {
 		CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL,-1));
 		lua_pop(gL,1);
@@ -192,17 +193,23 @@ void LUA_LoadLump(UINT16 wad, UINT16 lump)
 	W_ReadLumpPwad(wad, lump, f.data);
 	f.curpos = f.data;
 
-	len = strlen(wadfiles[wad]->filename);
-	name = malloc(len+10);
-	strcpy(name, wadfiles[wad]->filename);
-	if (!fasticmp(&name[len - 4], ".lua")) {
-		// If it's not a .lua file, copy the lump name in too.
-		name[len] = '|';
-		M_Memcpy(name+len+1, wadfiles[wad]->lumpinfo[lump].name, 8);
-		name[len+9] = '\0';
+	len = strlen(wadfiles[wad]->filename); // length of file name
+
+	if (wadfiles[wad]->type == RET_LUA)
+	{
+		name = malloc(len+1);
+		strcpy(name, wadfiles[wad]->filename);
+	}
+	else // If it's not a .lua file, copy the lump name in too.
+	{
+		lumpinfo_t *lump_p = &wadfiles[wad]->lumpinfo[lump];
+		len += 1 + strlen(lump_p->name2); // length of file name, '|', and lump name
+		name = malloc(len+1);
+		sprintf(name, "%s|%s", wadfiles[wad]->filename, lump_p->name2);
+		name[len] = '\0';
 	}
 
-	LUA_LoadFile(&f, name);
+	LUA_LoadFile(&f, name); // actually load file!
 
 	free(name);
 	Z_Free(f.data);

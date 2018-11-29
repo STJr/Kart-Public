@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -285,10 +285,13 @@ void P_InitPicAnims(void)
 				Z_Free(animatedLump);
 			}
 
-			// Now find ANIMDEFS
+			// Find ANIMDEFS lump in the WAD
 			animdefsLumpNum = W_CheckNumForNamePwad("ANIMDEFS", w, 0);
-			if (animdefsLumpNum != INT16_MAX)
+			while (animdefsLumpNum != INT16_MAX)
+			{
 				P_ParseANIMDEFSLump(w, animdefsLumpNum);
+				animdefsLumpNum = W_CheckNumForNamePwad("ANIMDEFS", (UINT16)w, animdefsLumpNum + 1);
+			}
 		}
 		// Define the last one
 		animdefs[maxanims].istexture = -1;
@@ -6416,8 +6419,20 @@ void P_SpawnSpecials(INT32 fromnetsave)
 			case 259: // Make-Your-Own FOF!
 				if (lines[i].sidenum[1] != 0xffff)
 				{
-					UINT8 *data = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS,PU_STATIC);
+					UINT8 *data;
 					UINT16 b;
+
+					if (W_IsLumpWad(lastloadedmaplumpnum)) // welp it's a map wad in a pk3
+					{ // HACK: Open wad file rather quickly so we can get the data from the sidedefs lump
+						UINT8 *wadData = W_CacheLumpNum(lastloadedmaplumpnum, PU_STATIC);
+						filelump_t *fileinfo = (filelump_t *)(wadData + ((wadinfo_t *)wadData)->infotableofs);
+						fileinfo += ML_SIDEDEFS; // we only need the SIDEDEFS lump
+						data = Z_Malloc(fileinfo->size, PU_STATIC, NULL);
+						M_Memcpy(data, wadData + fileinfo->filepos, fileinfo->size); // copy data
+						Z_Free(wadData); // we're done with this now
+					}
+					else // phew it's just a WAD
+						data = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS,PU_STATIC);
 
 					for (b = 0; b < (INT16)numsides; b++)
 					{

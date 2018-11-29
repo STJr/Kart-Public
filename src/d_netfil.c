@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -94,7 +94,7 @@ static filetran_t transfer[MAXNETNODES];
 // Receiver structure
 INT32 fileneedednum; // Number of files needed to join the server
 fileneeded_t fileneeded[MAX_WADFILES]; // List of needed files
-char downloaddir[256] = "DOWNLOAD";
+char downloaddir[512] = "DOWNLOAD";
 
 #ifdef CLIENT_LOADINGSCREEN
 // for cl loading screen
@@ -425,13 +425,32 @@ void CL_LoadServerFiles(void)
 			continue; // Already loaded
 		else if (fileneeded[i].status == FS_FOUND)
 		{
-			P_AddWadFile(fileneeded[i].filename, NULL);
+			P_AddWadFile(fileneeded[i].filename);
 			G_SetGameModified(true);
 			fileneeded[i].status = FS_OPEN;
 		}
 		else if (fileneeded[i].status == FS_MD5SUMBAD)
-			I_Error("Wrong version of file %s", fileneeded[i].filename);
-		else
+		{
+			// If the file is marked important, don't even bother proceeding.
+			if (fileneeded[i].important)
+				I_Error("Wrong version of important file %s", fileneeded[i].filename);
+
+			// If it isn't, no need to worry the user with a console message,
+			// although it can't hurt to put something in the debug file.
+
+			// ...but wait a second. What if the local version is "important"?
+			if (!W_VerifyNMUSlumps(fileneeded[i].filename))
+				I_Error("File %s should only contain music and sound effects!",
+					fileneeded[i].filename);
+
+			// Okay, NOW we know it's safe. Whew.
+			P_AddWadFile(fileneeded[i].filename);
+			if (fileneeded[i].important)
+				G_SetGameModified(true);
+			fileneeded[i].status = FS_OPEN;
+			DEBFILE(va("File %s found but with different md5sum\n", fileneeded[i].filename));
+		}
+		else if (fileneeded[i].important)
 		{
 			const char *s;
 			switch(fileneeded[i].status)
