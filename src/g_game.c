@@ -1342,27 +1342,27 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// let movement keys cancel each other out
 	if (turnright && !(turnleft))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - angleturn[tspeed]);
-		cmd->driftturn = (INT16)(cmd->driftturn - angleturn[tspeed]);
+		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed] * realtics));
+		cmd->driftturn = (INT16)(cmd->driftturn - (angleturn[tspeed] * realtics));
 	}
 	else if (turnleft && !(turnright))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn + angleturn[tspeed]);
-		cmd->driftturn = (INT16)(cmd->driftturn + angleturn[tspeed]);
+		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed] * realtics));
+		cmd->driftturn = (INT16)(cmd->driftturn + (angleturn[tspeed] * realtics));
 	}
 
 	if (analogjoystickmove && axis != 0)
 	{
 		// JOYAXISRANGE should be 1023 (divide by 1024)
-		cmd->angleturn = (INT16)(cmd->angleturn - ((axis * angleturn[1]) >> 10)); // ANALOG!
-		cmd->driftturn = (INT16)(cmd->driftturn - ((axis * angleturn[1]) >> 10));
+		cmd->angleturn = (INT16)(cmd->angleturn - (((axis * angleturn[1]) >> 10) * realtics)); // ANALOG!
+		cmd->driftturn = (INT16)(cmd->driftturn - (((axis * angleturn[1]) >> 10) * realtics));
 	}
 
 	// Specator mouse turning
 	if (player->spectator)
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - (mousex*(encoremode ? -1 : 1)*8));
-		cmd->driftturn = (INT16)(cmd->driftturn - (mousex*(encoremode ? -1 : 1)*8));
+		cmd->angleturn = (INT16)(cmd->angleturn - ((mousex*(encoremode ? -1 : 1)*8) * realtics));
+		cmd->driftturn = (INT16)(cmd->driftturn - ((mousex*(encoremode ? -1 : 1)*8) * realtics));
 	}
 
 	// Speed bump strafing
@@ -1537,15 +1537,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	//{ SRB2kart - Drift support
 	// Not grouped with the rest of turn stuff because it needs to know what buttons you're pressing for rubber-burn turn
 	// limit turning to angleturn[1] to stop mouselook letting you look too fast
-	if (cmd->angleturn > angleturn[1])
-		cmd->angleturn = angleturn[1];
-	else if (cmd->angleturn < -angleturn[1])
-		cmd->angleturn = -angleturn[1];
+	if (cmd->angleturn > (angleturn[1] * realtics))
+		cmd->angleturn = (angleturn[1] * realtics);
+	else if (cmd->angleturn < (-angleturn[1] * realtics))
+		cmd->angleturn = (-angleturn[1] * realtics);
 
-	if (cmd->driftturn > angleturn[1])
-		cmd->driftturn = angleturn[1];
-	else if (cmd->driftturn < -angleturn[1])
-		cmd->driftturn = -angleturn[1];
+	if (cmd->driftturn > (angleturn[1] * realtics))
+		cmd->driftturn = (angleturn[1] * realtics);
+	else if (cmd->driftturn < (-angleturn[1] * realtics))
+		cmd->driftturn = (-angleturn[1] * realtics);
 
 	if (player->mo)
 		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
