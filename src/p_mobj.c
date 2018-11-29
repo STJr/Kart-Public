@@ -7986,11 +7986,15 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE;
 					break;
+				case KITEM_SPB:
+				case KITEM_SHRINK:
+					indirectitemcooldown = 20*TICRATE;
+					/* FALLTHRU */
 				default:
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|(mobj->threshold);
 					break;
-				}
+			}
 			break;
 		}
 		case MT_ORBINAUT:
