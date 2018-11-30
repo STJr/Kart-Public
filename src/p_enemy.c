@@ -3977,6 +3977,9 @@ void A_GrenadeRing(mobj_t *actor)
 		return;
 #endif
 
+	if (actor->state == &states[S_SSMINE_DEPLOY8])
+		explodedist = (3*explodedist)/2;
+
 	if (leveltime % 35 == 0)
 		S_StartSound(actor, actor->info->activesound);
 
