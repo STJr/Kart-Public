@@ -38,6 +38,7 @@
 
 #ifdef HAVE_BLUA
 #include "v_video.h" // video flags (for lua)
+#include "r_draw.h" // translation colormap consts (for lua)
 #endif
 
 #ifdef HWRENDER
