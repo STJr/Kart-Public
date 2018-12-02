@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -2190,13 +2190,16 @@ static int lib_kSpinPlayer(lua_State *L)
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = NULL;
 	INT32 type = (INT32)luaL_optinteger(L, 3, 0);
-	boolean trapitem = lua_optboolean(L, 4);
+	mobj_t *inflictor = NULL;
+	boolean trapitem = lua_optboolean(L, 5);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	K_SpinPlayer(player, source, type, trapitem);
+	if (!lua_isnone(L, 4) && lua_isuserdata(L, 4))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 4, META_MOBJ));
+	K_SpinPlayer(player, source, type, inflictor, trapitem);
 	return 0;
 }
 
@@ -2204,12 +2207,15 @@ static int lib_kSquishPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = NULL;
+	mobj_t *inflictor = NULL;
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	K_SquishPlayer(player, source);
+	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	K_SquishPlayer(player, source, inflictor);
 	return 0;
 }
 
@@ -2248,7 +2254,7 @@ static int lib_kSpawnKartExplosion(lua_State *L)
 	fixed_t x = luaL_checkfixed(L, 1);
 	fixed_t y = luaL_checkfixed(L, 2);
 	fixed_t z = luaL_checkfixed(L, 3);
-	fixed_t radius = (fixed_t)luaL_optinteger(L, 4, 32*FRACUNIT); 
+	fixed_t radius = (fixed_t)luaL_optinteger(L, 4, 32*FRACUNIT);
 	INT32 number = (INT32)luaL_optinteger(L, 5, 32);
 	mobjtype_t type = luaL_optinteger(L, 6, MT_MINEEXPLOSION);
 	angle_t rotangle = luaL_optinteger(L, 7, 0);
@@ -2384,6 +2390,16 @@ static int lib_kGetKartDriftSparkValue(lua_State *L)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushinteger(L, K_GetKartDriftSparkValue(player));
 	return 1;
+}
+
+static int lib_kKartUpdatePosition(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_KartUpdatePosition(player);
+	return 0;
 }
 
 static int lib_kDropItems(lua_State *L)
@@ -2677,6 +2693,7 @@ static luaL_Reg lib[] = {
 	{"K_RepairOrbitChain",lib_kRepairOrbitChain},
 	{"K_FindJawzTarget",lib_kFindJawzTarget},
 	{"K_GetKartDriftSparkValue",lib_kGetKartDriftSparkValue},
+	{"K_KartUpdatePosition",lib_kKartUpdatePosition},
 	{"K_DropItems",lib_kDropItems},
 	{"K_StripItems",lib_kStripItems},
 	{"K_StripOther",lib_kStripOther},

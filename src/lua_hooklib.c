@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -55,6 +55,12 @@ const char *const hookNames[hook_MAX+1] = {
 	"HurtMsg",
 	"PlayerSpawn",
 	"PlayerQuit",
+	"ShouldSpin",
+	"ShouldExplode",
+	"ShouldSquish",
+	"PlayerSpin",
+	"PlayerExplode",
+	"PlayerSquish",
 	NULL
 };
 
@@ -154,6 +160,12 @@ static int lib_addHook(lua_State *L)
 			*p = 0;
 		}
 		break;
+	case hook_ShouldSpin:
+	case hook_ShouldExplode:
+	case hook_ShouldSquish:
+	case hook_PlayerSpin:
+	case hook_PlayerExplode:
+	case hook_PlayerSquish:
 	default:
 		break;
 	}
@@ -195,6 +207,12 @@ static int lib_addHook(lua_State *L)
 	case hook_LinedefExecute:
 		lastp = &linedefexecutorhooks;
 		break;
+	case hook_ShouldSpin:
+	case hook_ShouldExplode:
+	case hook_ShouldSquish:
+	case hook_PlayerSpin:
+	case hook_PlayerExplode:
+	case hook_PlayerSquish:
 	default:
 		lastp = &roothook;
 		break;
@@ -953,7 +971,7 @@ boolean LUAh_LinedefExecute(line_t *line, mobj_t *mo, sector_t *sector)
 }
 
 // Hook for player chat
-// Added the "mute" field. It's set to true if the message was supposed to be eaten by spam protection. 
+// Added the "mute" field. It's set to true if the message was supposed to be eaten by spam protection.
 // But for netgame consistency purposes, this hook is ran first reguardless, so this boolean allows for modders to adapt if they so desire.
 boolean LUAh_PlayerMsg(int source, int target, int flags, char *msg, int mute)
 {
@@ -987,7 +1005,7 @@ boolean LUAh_PlayerMsg(int source, int target, int flags, char *msg, int mute)
 				if (mute)
 					lua_pushboolean(gL, true); // the message was supposed to be eaten by spamprotecc.
 				else
-					lua_pushboolean(gL, false);	
+					lua_pushboolean(gL, false);
 			}
 			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
 			lua_gettable(gL, LUA_REGISTRYINDEX);
@@ -1106,6 +1124,270 @@ void LUAh_PlayerQuit(player_t *plr, int reason)
 		}
 
 	lua_settop(gL, 0);
+}
+
+// Hook for K_SpinPlayer. Determines if yes or no we should get damaged reguardless of circumstances.
+UINT8 LUAh_ShouldSpin(player_t *player, mobj_t *inflictor, mobj_t *source)
+{
+	hook_p hookp;
+	UINT8 shouldDamage = 0; // 0 = default, 1 = force yes, 2 = force no.
+	if (!gL || !(hooksAvailable[hook_ShouldSpin/8] & (1<<(hook_ShouldSpin%8))))
+		return 0;
+
+	lua_settop(gL, 0);
+
+	// We can afford not to check for mobj type because it will always be MT_PLAYER in this case.
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_ShouldSpin)
+		{
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, inflictor, META_MOBJ);
+				LUA_PushUserdata(gL, source, META_MOBJ);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			if (lua_pcall(gL, 3, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (!lua_isnil(gL, -1))
+			{
+				if (lua_toboolean(gL, -1))
+					shouldDamage = 1; // Force yes
+				else
+					shouldDamage = 2; // Force no
+			}
+			lua_pop(gL, 1);
+		}
+
+	lua_settop(gL, 0);
+	return shouldDamage;
+}
+
+// Hook for K_ExplodePlayer. Determines if yes or no we should get damaged reguardless of circumstances.
+UINT8 LUAh_ShouldExplode(player_t *player, mobj_t *inflictor, mobj_t *source)
+{
+	hook_p hookp;
+	UINT8 shouldDamage = 0; // 0 = default, 1 = force yes, 2 = force no.
+	if (!gL || !(hooksAvailable[hook_ShouldExplode/8] & (1<<(hook_ShouldExplode%8))))
+		return 0;
+
+	lua_settop(gL, 0);
+
+	// We can afford not to check for mobj type because it will always be MT_PLAYER in this case.
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_ShouldExplode)
+		{
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, inflictor, META_MOBJ);
+				LUA_PushUserdata(gL, source, META_MOBJ);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			if (lua_pcall(gL, 3, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (!lua_isnil(gL, -1))
+			{
+				if (lua_toboolean(gL, -1))
+					shouldDamage = 1; // Force yes
+				else
+					shouldDamage = 2; // Force no
+			}
+			lua_pop(gL, 1);
+		}
+
+	lua_settop(gL, 0);
+	return shouldDamage;
+}
+
+// Hook for K_SquishPlayer. Determines if yes or no we should get damaged reguardless of circumstances.
+UINT8 LUAh_ShouldSquish(player_t *player, mobj_t *inflictor, mobj_t *source)
+{
+	hook_p hookp;
+	UINT8 shouldDamage = 0; // 0 = default, 1 = force yes, 2 = force no.
+	if (!gL || !(hooksAvailable[hook_ShouldSquish/8] & (1<<(hook_ShouldSquish%8))))
+		return 0;
+
+	lua_settop(gL, 0);
+
+	// We can afford not to check for mobj type because it will always be MT_PLAYER in this case.
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_ShouldSquish)
+		{
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, inflictor, META_MOBJ);
+				LUA_PushUserdata(gL, source, META_MOBJ);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			if (lua_pcall(gL, 3, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (!lua_isnil(gL, -1))
+			{
+				if (lua_toboolean(gL, -1))
+					shouldDamage = 1; // Force yes
+				else
+					shouldDamage = 2; // Force no
+			}
+			lua_pop(gL, 1);
+		}
+
+	lua_settop(gL, 0);
+	return shouldDamage;
+}
+
+// Hook for K_SpinPlayer. This is used when the player has actually been spun out, but before anything has actually been done. This allows Lua to overwrite the behavior or to just perform actions.
+boolean LUAh_PlayerSpin(player_t *player, mobj_t *inflictor, mobj_t *source)
+{
+	hook_p hookp;
+	boolean hooked = false;
+	if (!gL || !(hooksAvailable[hook_PlayerSpin/8] & (1<<(hook_PlayerSpin%8))))
+		return 0;
+
+	lua_settop(gL, 0);
+
+	// We can afford not to look for target->type because it will always be MT_PLAYER.
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_PlayerSpin)
+		{
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, inflictor, META_MOBJ);
+				LUA_PushUserdata(gL, source, META_MOBJ);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			if (lua_pcall(gL, 3, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (lua_toboolean(gL, -1))
+				hooked = true;
+			lua_pop(gL, 1);
+		}
+	lua_settop(gL, 0);
+	return hooked;
+}
+
+// Hook for K_SquishPlayer. This is used when the player has actually been spun out, but before anything has actually been done. This allows Lua to overwrite the behavior or to just perform actions.
+boolean LUAh_PlayerSquish(player_t *player, mobj_t *inflictor, mobj_t *source)
+{
+	hook_p hookp;
+	boolean hooked = false;
+	if (!gL || !(hooksAvailable[hook_PlayerSquish/8] & (1<<(hook_PlayerSquish%8))))
+		return 0;
+
+	lua_settop(gL, 0);
+
+	// We can afford not to look for target->type because it will always be MT_PLAYER.
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_PlayerSquish)
+		{
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, inflictor, META_MOBJ);
+				LUA_PushUserdata(gL, source, META_MOBJ);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			if (lua_pcall(gL, 3, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (lua_toboolean(gL, -1))
+				hooked = true;
+			lua_pop(gL, 1);
+		}
+	lua_settop(gL, 0);
+	return hooked;
+}
+
+// Hook for K_ExplodePlayer. This is used when the player has actually been spun out, but before anything has actually been done. This allows Lua to overwrite the behavior or to just perform actions.
+boolean LUAh_PlayerExplode(player_t *player, mobj_t *inflictor, mobj_t *source)
+{
+	hook_p hookp;
+	boolean hooked = false;
+	if (!gL || !(hooksAvailable[hook_PlayerExplode/8] & (1<<(hook_PlayerExplode%8))))
+		return 0;
+
+	lua_settop(gL, 0);
+
+	// We can afford not to look for target->type because it will always be MT_PLAYER.
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_PlayerExplode)
+		{
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, inflictor, META_MOBJ);
+				LUA_PushUserdata(gL, source, META_MOBJ);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			lua_pushvalue(gL, -4);
+			if (lua_pcall(gL, 3, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (lua_toboolean(gL, -1))
+				hooked = true;
+			lua_pop(gL, 1);
+		}
+	lua_settop(gL, 0);
+	return hooked;
 }
 
 #endif

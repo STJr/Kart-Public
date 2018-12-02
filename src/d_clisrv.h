@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -26,7 +26,11 @@
 
 // SOME numpty changed all the gametype constants and it fell out of sync with vanilla and now we have to pretend to be vanilla when talking to the master server...
 #define VANILLA_GT_RACE 2
+#if VERSION < 210
+#define VANILLA_GT_MATCH 1
+#else
 #define VANILLA_GT_MATCH 3
+#endif
 
 // Networking and tick handling related.
 #define BACKUPTICS 32
@@ -251,7 +255,6 @@ typedef struct
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
-	INT32 starpostcount;
 	tic_t starposttime;
 	angle_t starpostangle;
 
@@ -472,6 +475,7 @@ extern INT32 mapchangepending;
 // Points inside doomcom
 extern doomdata_t *netbuffer;
 
+extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
 #define BASEPACKETSIZE ((size_t)&(((doomdata_t *)0)->u))

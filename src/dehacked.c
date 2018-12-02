@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -38,6 +38,7 @@
 
 #ifdef HAVE_BLUA
 #include "v_video.h" // video flags (for lua)
+#include "r_draw.h" // translation colormap consts (for lua)
 #endif
 
 #ifdef HWRENDER
@@ -3133,7 +3134,7 @@ static void readmaincfg(MYFILE *f)
 				strncpy(timeattackfolder, gamedatafilename, filenamelen);
 				timeattackfolder[min(filenamelen, sizeof (timeattackfolder) - 1)] = '\0';
 
-				strncpy(savegamename, timeattackfolder, filenamelen);
+				strncpy(savegamename, timeattackfolder, strlen(timeattackfolder));
 				strlcat(savegamename, "%u.ssg", sizeof(savegamename));
 				// can't use sprintf since there is %u in savegamename
 				strcatbf(savegamename, srb2home, PATHSEP);
@@ -7092,6 +7093,12 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_LIZARDMAN",
 	"S_LIONMAN",
 
+	"S_KARMAFIREWORK1",
+	"S_KARMAFIREWORK2",
+	"S_KARMAFIREWORK3",
+	"S_KARMAFIREWORK4",
+	"S_KARMAFIREWORKTRAIL",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -7877,6 +7884,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_LIZARDMAN",
 	"MT_LIONMAN",
 
+	"MT_KARMAFIREWORK",
+
 #ifdef SEENAMES
 	"MT_NAMECHECK",
 #endif
@@ -8270,6 +8279,9 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKMODE",
 	"WANTED",
 	"YOUGOTEM",
+
+	"ITEMBLINK",
+	"ITEMBLINKMODE"
 };
 
 static const char *const HUDITEMS_LIST[] = {
@@ -8819,6 +8831,14 @@ struct {
 	{"KRITEM_QUADORBINAUT",KRITEM_QUADORBINAUT},
 	{"KRITEM_DUALJAWZ",KRITEM_DUALJAWZ},
 	{"NUMKARTRESULTS",NUMKARTRESULTS},
+
+	// translation colormaps
+	{"TC_DEFAULT",TC_DEFAULT},
+	{"TC_BOSS",TC_BOSS},
+	{"TC_METALSONIC",TC_METALSONIC},
+	{"TC_ALLWHITE",TC_ALLWHITE},
+	{"TC_RAINBOW",TC_RAINBOW},
+	{"TC_BLINK",TC_BLINK},
 #endif
 
 	{NULL,0}
@@ -9769,6 +9789,9 @@ static inline int lib_getenum(lua_State *L)
 		return 1;
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);
+		return 1;
+	} else if (fastcmp(word,"spbplace")) {
+		lua_pushinteger(L, spbplace);
 		return 1;
 	}
 

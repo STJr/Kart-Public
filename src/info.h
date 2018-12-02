@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -773,6 +773,8 @@ typedef enum sprite
 	SPR_HBSF,
 	SPR_WBLZ,
 	SPR_WBLN,
+
+	SPR_FWRK,
 
 	// Xmas-specific sprites that don't fit aboxe
 	SPR_XMS4,
@@ -4044,6 +4046,12 @@ typedef enum state
 	S_LIZARDMAN,
 	S_LIONMAN,
 
+	S_KARMAFIREWORK1,
+	S_KARMAFIREWORK2,
+	S_KARMAFIREWORK3,
+	S_KARMAFIREWORK4,
+	S_KARMAFIREWORKTRAIL,
+
 #ifdef SEENAMES
 	S_NAMECHECK,
 #endif
@@ -4845,6 +4853,8 @@ typedef enum mobj_type
 	MT_BOOSTON,
 	MT_LIZARDMAN,
 	MT_LIONMAN,
+
+	MT_KARMAFIREWORK,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

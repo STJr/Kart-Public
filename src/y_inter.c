@@ -1,6 +1,6 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-// Copyright (C) 2004-2016 by Sonic Team Junior.
+// Copyright (C) 2004-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -711,6 +711,9 @@ static void Y_UpdateRecordReplays(void)
 	// Check emblems when level data is updated
 	if ((earnedEmblems = M_CheckLevelEmblems()))
 		CONS_Printf(M_GetText("\x82" "Earned %hu medal%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
+
+	if (M_UpdateUnlockablesAndExtraEmblems(false))
+		S_StartSound(NULL, sfx_ncitem);
 
 	// SRB2Kart - save here so you NEVER lose your earned times/medals.
 	G_SaveGameData(false);

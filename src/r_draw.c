@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -136,11 +136,13 @@ UINT32 nflatxshift, nflatyshift, nflatshiftup, nflatmask;
 #define METALSONIC_TT_CACHE_INDEX (MAXSKINS + 2)
 #define ALLWHITE_TT_CACHE_INDEX (MAXSKINS + 3)
 #define RAINBOW_TT_CACHE_INDEX (MAXSKINS + 4)
+#define BLINK_TT_CACHE_INDEX (MAXSKINS + 5)
+#define TT_CACHE_SIZE (MAXSKINS + 6)
 #define SKIN_RAMP_LENGTH 16
 #define DEFAULT_STARTTRANSCOLOR 160
 #define NUM_PALETTE_ENTRIES 256
 
-static UINT8** translationtablecache[MAXSKINS + 5] = {NULL};
+static UINT8** translationtablecache[TT_CACHE_SIZE] = {NULL};
 
 
 // See also the enum skincolors_t
@@ -530,6 +532,7 @@ UINT8* R_GetTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags)
 	else if (skinnum == TC_METALSONIC) skintableindex = METALSONIC_TT_CACHE_INDEX;
 	else if (skinnum == TC_ALLWHITE) skintableindex = ALLWHITE_TT_CACHE_INDEX;
 	else if (skinnum == TC_RAINBOW) skintableindex = RAINBOW_TT_CACHE_INDEX;
+	else if (skinnum == TC_BLINK) skintableindex = BLINK_TT_CACHE_INDEX;
 	else skintableindex = skinnum;
 
 	if (flags & GTC_CACHE)

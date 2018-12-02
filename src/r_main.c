@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -666,7 +666,7 @@ void R_ExecuteSetViewSize(void)
 	if (rendermode == render_soft)
 	{
 		// this is only used for planes rendering in software mode
-		j = viewheight*4;
+		j = viewheight*8;
 		for (i = 0; i < j; i++)
 		{
 			dy = ((i - viewheight*2)<<FRACBITS) + FRACUNIT/2;
@@ -1024,6 +1024,7 @@ void R_SkyboxFrame(player_t *player)
 
 	// recalc necessary stuff for mouseaiming
 	// slopes are already calculated for the full possible view (which is 4*viewheight).
+	// 18/08/18: (No it's actually 8*viewheight, thanks MPC aka Jimita for finding this out)
 
 	if (rendermode == render_soft)
 	{
@@ -1166,6 +1167,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 
 	// recalc necessary stuff for mouseaiming
 	// slopes are already calculated for the full possible view (which is 4*viewheight).
+	// 18/08/18: (No it's actually 8*viewheight, thanks MPC aka Jimita for finding this out)
 
 	if (rendermode == render_soft)
 	{

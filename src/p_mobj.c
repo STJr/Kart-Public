@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1413,6 +1413,9 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_SIGN:
 					gravityadd /= 8;
 					break;
+				case MT_KARMAFIREWORK:
+					gravityadd /= 3;
+					break;
 				default:
 					break;
 			}
@@ -1938,7 +1941,9 @@ void P_XYMovement(mobj_t *mo)
 						FIXED_TO_FLOAT(AngleFixed(newangle)),
 						FIXED_TO_FLOAT(AngleFixed(oldangle-newangle))
 						);*/
-		} else if (predictedz-mo->z > abs(slopemom.z/2)) { // Now check if we were supposed to stick to this slope
+		// Sryder 2018-11-26: Don't launch here if it's a slope without physics, we stick to those like glue anyway
+		} else if (predictedz-mo->z > abs(slopemom.z/2)
+			&& !(mo->standingslope->flags & SL_NOPHYSICS)) { // Now check if we were supposed to stick to this slope
 			//CONS_Printf("%d-%d > %d\n", (predictedz), (mo->z), (slopemom.z/2));
 			P_SlopeLaunch(mo);
 		}
@@ -2523,7 +2528,7 @@ static boolean P_ZMovement(mobj_t *mo)
 					if (P_MobjFlip(mo)*mom.z < 0)
 					{
 						// If going slower than a fracunit, just stop.
-						if (abs(mom.z) < FixedMul(FRACUNIT, mo->scale))
+						if (abs(mom.z) < mo->scale)
 						{
 							mom.x = mom.y = mom.z = 0;
 
@@ -6832,6 +6837,18 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetScale(mobj->tracer, (mobj->tracer->destscale = mobj->scale));
 					}
 
+					// Do this in an easy way
+					if (mobj->target->player->kartstuff[k_itemroulette])
+					{
+						mobj->tracer->color = mobj->target->player->skincolor;
+						mobj->tracer->colorized = true;
+					}
+					else
+					{
+						mobj->tracer->color = SKINCOLOR_NONE;
+						mobj->tracer->colorized = false;
+					}
+
 					if (!(mobj->flags2 & MF2_DONTDRAW))
 					{
 						const INT32 numberdisplaymin = ((mobj->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
@@ -7193,23 +7210,24 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			case MT_FIREDITEM:
-			{
-				fixed_t x, y, z;
-				if (mobj->movecount)
+				if (mobj->target && !P_MobjWasRemoved(mobj->target))
 				{
-					x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
-					y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
-					z = mobj->target->z + mobj->target->height/3;
+					fixed_t x, y, z;
+					if (mobj->movecount)
+					{
+						x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+						y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+						z = mobj->target->z + mobj->target->height/3;
+					}
+					else
+					{
+						x = mobj->target->x;
+						y = mobj->target->y;
+						z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
+					}
+					P_TeleportMove(mobj, x, y, z);
 				}
-				else
-				{
-					x = mobj->target->x;
-					y = mobj->target->y;
-					z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
-				}
-				P_TeleportMove(mobj, x, y, z);
 				break;
-			}
 			default:
 				if (mobj->fuse)
 				{ // Scenery object fuse! Very basic!
@@ -7922,7 +7940,12 @@ void P_MobjThinker(mobj_t *mobj)
 		{
 			if (mobj->flags & MF_NOCLIPTHING)
 			{
-				if (P_IsObjectOnGround(mobj))
+				if (P_CheckDeathPitCollide(mobj))
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				else if (P_IsObjectOnGround(mobj))
 				{
 					mobj->momx = 1;
 					mobj->momy = 0;
@@ -7968,11 +7991,15 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE;
 					break;
+				case KITEM_SPB:
+				case KITEM_SHRINK:
+					indirectitemcooldown = 20*TICRATE;
+					/* FALLTHRU */
 				default:
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|(mobj->threshold);
 					break;
-				}
+			}
 			break;
 		}
 		case MT_ORBINAUT:
@@ -8599,7 +8626,9 @@ void P_MobjThinker(mobj_t *mobj)
 			if (!S_SoundPlaying(mobj, mobj->info->attacksound))
 				S_StartSound(mobj, mobj->info->attacksound);
 
-			if (mobj->extravalue2 > 70) // fire + smoke pillar
+			if (mobj->extravalue2 <= 8) // Short delay
+				mobj->extravalue2++; // flametimer
+			else // fire + smoke pillar
 			{
 				UINT8 i;
 				mobj_t *fire = P_SpawnMobj(mobj->x + (P_RandomRange(-32, 32)*mobj->scale), mobj->y + (P_RandomRange(-32, 32)*mobj->scale), mobj->z, MT_THOK);
@@ -8621,20 +8650,6 @@ void P_MobjThinker(mobj_t *mobj)
 					smoke->momz = P_RandomRange(3, 10)*mobj->scale;
 					smoke->destscale = mobj->scale*4;
 					smoke->scalespeed = mobj->scale/24;
-				}
-			}
-			else
-			{
-				mobj->extravalue2++; // flametimer
-
-				if (mobj->extravalue2 > 8)
-				{
-					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-31, 31)*mobj->scale), mobj->y + (P_RandomRange(-31, 31)*mobj->scale),
-						mobj->z + (P_RandomRange(0, 48)*mobj->scale), MT_THOK);
-
-					P_SetMobjState(smoke, S_FZEROSMOKE1);
-					smoke->tics += P_RandomRange(-3, 4);
-					smoke->scale = mobj->scale*2;
 				}
 			}
 			break;
@@ -9079,6 +9094,22 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 						mobj->momz = (mobj->info->speed/16) * P_MobjFlip(mobj);
 				}
+			}
+			break;
+		case MT_KARMAFIREWORK:
+			if (mobj->momz == 0)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			else
+			{
+				mobj_t *trail = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_THOK);
+				P_SetMobjState(trail, S_KARMAFIREWORKTRAIL);
+				P_SetScale(trail, mobj->scale);
+				trail->destscale = 1;
+				trail->scalespeed = mobj->scale/12;
+				trail->color = mobj->color;
 			}
 			break;
 		//}
@@ -10377,6 +10408,9 @@ void P_RemoveMobj(mobj_t *mobj)
 
 	if (mobj->type == MT_SHADOW)
 		P_RemoveShadow(mobj);
+
+	if (mobj->type == MT_SPB)
+		spbplace = -1;
 
 	mobj->health = 0; // Just because
 

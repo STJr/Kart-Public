@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -450,10 +450,12 @@ static const char *credits[] = {
 	"\1Support Artists",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Sherman \"CoatRack\" DesJardins",
+	"\"DrTapeworm\"",
 	"Jesse \"Jeck Jims\" Emerick",
 	"Wesley \"Charyb\" Gillebaard",
 	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
+	"\"Lat\'\"",
 	"\"Tyrannosaur Chao\"",
 	"\"ZarroTsu\"",
 	"",
@@ -465,8 +467,10 @@ static const char *credits[] = {
 	"\"Ritz\"",
 	"\"Rob\"",
 	"\"SmithyGNC\"",
+	"\"Snu\"",
 	"\"Spherallic\"",
 	"\"VAdaPEGA\"",
+	"\"Virt\"",
 	"",
 	"\1Sound Design",
 	"James \"SeventhSentinel\" Hall",
@@ -581,7 +585,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(97*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(101*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
@@ -642,6 +646,9 @@ void F_CreditDrawer(void)
 
 		V_DrawFixedPatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, sc, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), colormap);
 	}
+
+	// Dim the background
+	//V_DrawFadeScreen();
 
 	// Draw credits text on top
 	for (i = 0; credits[i]; i++)
@@ -1068,7 +1075,7 @@ void F_TitleScreenTicker(boolean run)
 			return;
 		}*/
 
-		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, false, 0, false)+1);
+		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, 0, false, NULL)+1);
 
 		numstaff = 1;
 		while (numstaff < 99 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)

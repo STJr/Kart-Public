@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1778,6 +1778,9 @@ void P_DoPlayerExit(player_t *player)
 
 	if (G_RaceGametype()) // If in Race Mode, allow
 	{
+		player->exiting = raceexittime+2;
+		K_KartUpdatePosition(player);
+
 		if (cv_kartvoices.value)
 		{
 			if (P_IsLocalPlayer(player))
@@ -1797,8 +1800,6 @@ void P_DoPlayerExit(player_t *player)
 					S_StartSound(player->mo, sfx_kwin);
 			}
 		}
-
-		player->exiting = raceexittime+2;
 
 		if (cv_inttime.value > 0)
 			P_EndingMusic(player);
@@ -7242,7 +7243,7 @@ static void P_MovePlayer(player_t *player)
 				P_DamageMobj(player->mo, NULL, NULL, 42000); // Respawn crushed spectators
 			else
 			{
-				K_SquishPlayer(player, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
+				K_SquishPlayer(player, NULL, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
 				/*
 				mobj_t *killer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_NULL);
 				killer->threshold = 44; // Special flag that it was crushing which killed you.
@@ -7758,13 +7759,16 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		}
 
 		if (mo->type == MT_SPB) // If you destroy a SPB, you don't get the luxury of a cooldown.
+		{
+			spbplace = -1;
 			indirectitemcooldown = 0;
+		}
 
 		if (mo == inflictor) // Don't nuke yourself, dummy!
 			continue;
 
 		if (mo->type == MT_PLAYER) // Players wipe out in Kart
-			K_SpinPlayer(mo->player, source, 0, false);
+			K_SpinPlayer(mo->player, source, 0, inflictor, false);
 		//}
 		else
 			P_DamageMobj(mo, inflictor, source, 1000);
@@ -7946,6 +7950,8 @@ static void P_DeathThink(player_t *player)
 	else
 		player->kartstuff[k_timeovercam] = 0;
 
+	K_KartPlayerHUDUpdate(player);
+
 	if (player->deadtimer < INT32_MAX)
 		player->deadtimer++;
 
@@ -7983,6 +7989,9 @@ static void P_DeathThink(player_t *player)
 
 	if (!player->mo)
 		return;
+
+	player->mo->colorized = false;
+	player->mo->color = player->skincolor;
 
 	P_CalcHeight(player);
 }
@@ -9098,7 +9107,10 @@ void P_PlayerThink(player_t *player)
 
 	if (player->playerstate == PST_DEAD)
 	{
-		player->mo->flags2 &= ~MF2_SHADOW;
+		if (player->spectator)
+			player->mo->flags2 |= MF2_SHADOW;
+		else
+			player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
 
 		return;
