@@ -650,7 +650,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				firework->momz = toucher->momz;
 				P_Thrust(firework, FixedAngle((72*i)<<FRACBITS), P_RandomRange(1,8)*special->scale);
 				P_SetObjectMomZ(firework, P_RandomRange(1,8)*special->scale, false);
-				firework->color = special->target->color;
+				firework->color = toucher->color;
 			}
 
 			S_StartSound(toucher, sfx_cdfm73); // they don't make this sound in the original game but it's nice to have a "reward" for good play
