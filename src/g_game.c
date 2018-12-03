@@ -1383,8 +1383,10 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
 	{
+		axis = JoyAxis(AXISMOVE, ssplayer);
 		if (InputDown(gc_accelerate, ssplayer) || (usejoystick && axis > 0))
 			cmd->buttons |= BT_ACCELERATE;
+		axis = JoyAxis(AXISBRAKE, ssplayer);
 		if (InputDown(gc_brake, ssplayer) || (usejoystick && axis > 0))
 			cmd->buttons |= BT_BRAKE;
 		axis = JoyAxis(AXISAIM, ssplayer);
