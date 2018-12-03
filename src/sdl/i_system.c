@@ -1060,7 +1060,7 @@ static int joy_open(const char *fname)
 
 	if (joystick_started == 0 && joystick2_started == 0 && joystick3_started == 0 && joystick4_started == 0)
 	{
-		if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == -1)
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 		{
 			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
 			return -1;
