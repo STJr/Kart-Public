@@ -1,6 +1,6 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-// Copyright (C) 2004-2016 by Sonic Team Junior.
+// Copyright (C) 2004-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -712,6 +712,9 @@ static void Y_UpdateRecordReplays(void)
 	if ((earnedEmblems = M_CheckLevelEmblems()))
 		CONS_Printf(M_GetText("\x82" "Earned %hu medal%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
 
+	if (M_UpdateUnlockablesAndExtraEmblems(false))
+		S_StartSound(NULL, sfx_ncitem);
+
 	// SRB2Kart - save here so you NEVER lose your earned times/medals.
 	G_SaveGameData(false);
 
@@ -1159,7 +1162,10 @@ static void Y_VoteStops(SINT8 pick, SINT8 level)
 		S_StartSound(NULL, sfx_noooo2); // gasp
 	else if (mapheaderinfo[nextmap] && (mapheaderinfo[nextmap]->menuflags & LF2_HIDEINMENU))
 		S_StartSound(NULL, sfx_noooo1); // this is bad
-	else if (!splitscreen && pick == consoleplayer)
+	else if (netgame && (pick == consoleplayer
+		|| pick == secondarydisplayplayer
+		|| pick == thirddisplayplayer
+		|| pick == fourthdisplayplayer))
 		S_StartSound(NULL, sfx_yeeeah); // yeeeah!
 	else
 		S_StartSound(NULL, sfx_kc48); // just a cool sound

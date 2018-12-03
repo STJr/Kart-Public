@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -198,7 +198,6 @@ static void P_NetArchivePlayers(void)
 		WRITEINT16(save_p, players[i].starposty);
 		WRITEINT16(save_p, players[i].starpostz);
 		WRITEINT32(save_p, players[i].starpostnum);
-		WRITEINT32(save_p, players[i].starpostcount);
 		WRITEANGLE(save_p, players[i].starpostangle);
 
 		WRITEANGLE(save_p, players[i].angle_pos);
@@ -382,7 +381,6 @@ static void P_NetUnArchivePlayers(void)
 		players[i].starposty = READINT16(save_p);
 		players[i].starpostz = READINT16(save_p);
 		players[i].starpostnum = READINT32(save_p);
-		players[i].starpostcount = READINT32(save_p);
 		players[i].starpostangle = READANGLE(save_p);
 
 		players[i].angle_pos = READANGLE(save_p);
@@ -507,16 +505,34 @@ static void P_NetArchiveWorld(void)
 	UINT8 *put;
 
 	// reload the map just to see difference
-	const mapsector_t *ms;
-	const mapsidedef_t *msd;
-	const maplinedef_t *mld;
+	mapsector_t *ms;
+	mapsidedef_t *msd;
+	maplinedef_t *mld;
 	const sector_t *ss = sectors;
 	UINT8 diff, diff2;
 
 	WRITEUINT32(save_p, ARCHIVEBLOCK_WORLD);
 	put = save_p;
 
-	ms = W_CacheLumpNum(lastloadedmaplumpnum+ML_SECTORS, PU_CACHE);
+	if (W_IsLumpWad(lastloadedmaplumpnum)) // welp it's a map wad in a pk3
+	{ // HACK: Open wad file rather quickly so we can get the data from the relevant lumps
+		UINT8 *wadData = W_CacheLumpNum(lastloadedmaplumpnum, PU_STATIC);
+		filelump_t *fileinfo = (filelump_t *)(wadData + ((wadinfo_t *)wadData)->infotableofs);
+#define retrieve_mapdata(d, f)\
+		d = Z_Malloc((f)->size, PU_CACHE, NULL); \
+		M_Memcpy(d, wadData + (f)->filepos, (f)->size)
+		retrieve_mapdata(ms, fileinfo + ML_SECTORS);
+		retrieve_mapdata(mld, fileinfo + ML_LINEDEFS);
+		retrieve_mapdata(msd, fileinfo + ML_SIDEDEFS);
+#undef retrieve_mapdata
+		Z_Free(wadData); // we're done with this now
+	}
+	else // phew it's just a WAD
+	{
+			ms = W_CacheLumpNum(lastloadedmaplumpnum+ML_SECTORS, PU_CACHE);
+			mld = W_CacheLumpNum(lastloadedmaplumpnum+ML_LINEDEFS, PU_CACHE);
+			msd = W_CacheLumpNum(lastloadedmaplumpnum+ML_SIDEDEFS, PU_CACHE);
+	}
 
 	for (i = 0; i < numsectors; i++, ss++, ms++)
 	{
@@ -3287,6 +3303,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, mapreset);
 	WRITEUINT8(save_p, nospectategrief);
 	WRITEUINT8(save_p, thwompsactive);
+	WRITESINT8(save_p, spbplace);
 
 	// Is it paused?
 	if (paused)
@@ -3393,6 +3410,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	mapreset = READUINT32(save_p);
 	nospectategrief = READUINT8(save_p);
 	thwompsactive = (boolean)READUINT8(save_p);
+	spbplace = READSINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

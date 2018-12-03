@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -165,7 +165,7 @@ void Command_Setcontrol_f(void);
 void Command_Setcontrol2_f(void);
 void Command_Setcontrol3_f(void);
 void Command_Setcontrol4_f(void);
-void G_Controldefault(void);
+void G_Controldefault(UINT8 player);
 void G_SaveKeySetting(FILE *f);
 void G_CheckDoubleUsage(INT32 keynum);
 

@@ -104,7 +104,7 @@ typedef struct
 typedef struct
 {
 	FLOAT       x,y,z;           // position
-	FLOAT       anglex,angley;   // aimingangle / viewangle
+	FLOAT       anglex,angley,anglez;   // aimingangle / viewangle
 	FLOAT       scalex,scaley,scalez;
 	FLOAT       fovxangle, fovyangle;
 	UINT8       splitscreen;

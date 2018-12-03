@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -594,8 +594,8 @@ void R_RenderMaskedSegRange(drawseg_t *ds, INT32 x1, INT32 x2)
 						else
 							rlight->rcolormap = xwalllights[pindex];
 
-						rlight->height += rlight->heightstep;
 						height = rlight->height;
+						rlight->height += rlight->heightstep;
 
 						if (height <= windowtop)
 						{
@@ -843,26 +843,21 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 			light = &frontsector->lightlist[i];
 			rlight = &dc_lightlist[p];
 #ifdef ESLOPE
-			if (light->slope) {
-				leftheight = P_GetZAt(light->slope, ds->leftpos.x, ds->leftpos.y);
-				rightheight = P_GetZAt(light->slope, ds->rightpos.x, ds->rightpos.y);
-			} else
-				leftheight = rightheight = light->height;
 
-			if (*pfloor->b_slope) {
-				pfloorleft = P_GetZAt(*pfloor->b_slope, ds->leftpos.x, ds->leftpos.y);
-				pfloorright = P_GetZAt(*pfloor->b_slope, ds->rightpos.x, ds->rightpos.y);
-			} else
-				pfloorleft = pfloorright = *pfloor->bottomheight;
+#define SLOPEPARAMS(slope, end1, end2, normalheight) \
+	if (slope) { \
+		end1 = P_GetZAt(slope, ds->leftpos.x, ds->leftpos.y); \
+		end2 = P_GetZAt(slope, ds->rightpos.x, ds->rightpos.y); \
+	} else \
+		end1 = end2 = normalheight;
+
+			SLOPEPARAMS(light->slope,     leftheight, rightheight, light->height)
+			SLOPEPARAMS(*pfloor->b_slope, pfloorleft, pfloorright, *pfloor->bottomheight)
 
 			if (leftheight < pfloorleft && rightheight < pfloorright)
 				continue;
 
-			if (*pfloor->t_slope) {
-				pfloorleft = P_GetZAt(*pfloor->t_slope, ds->leftpos.x, ds->leftpos.y);
-				pfloorright = P_GetZAt(*pfloor->t_slope, ds->rightpos.x, ds->rightpos.y);
-			} else
-				pfloorleft = pfloorright = *pfloor->topheight;
+			SLOPEPARAMS(*pfloor->t_slope, pfloorleft, pfloorright, *pfloor->topheight)
 
 			if (leftheight > pfloorleft && rightheight > pfloorright && i+1 < dc_numlights)
 			{
@@ -875,17 +870,17 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 			leftheight -= viewz;
 			rightheight -= viewz;
 
-			overflow_test = (INT64)centeryfrac - (((INT64)leftheight*ds->scale1)>>FRACBITS);
-			if (overflow_test < 0) overflow_test = -overflow_test;
-			if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;
-			overflow_test = (INT64)centeryfrac - (((INT64)rightheight*ds->scale2)>>FRACBITS);
-			if (overflow_test < 0) overflow_test = -overflow_test;
-			if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;
+#define OVERFLOWTEST(height, scale) \
+	overflow_test = (INT64)centeryfrac - (((INT64)height*scale)>>FRACBITS); \
+	if (overflow_test < 0) overflow_test = -overflow_test; \
+	if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;
+
+			OVERFLOWTEST(leftheight, ds->scale1)
+			OVERFLOWTEST(rightheight, ds->scale2)
 
 			rlight->height = (centeryfrac) - FixedMul(leftheight, ds->scale1);
 			rlight->heightstep = (centeryfrac) - FixedMul(rightheight, ds->scale2);
 			rlight->heightstep = (rlight->heightstep-rlight->height)/(range);
-			rlight->height -= rlight->heightstep;
 #else
 			if (light->height < *pfloor->bottomheight)
 				continue;
@@ -895,36 +890,28 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 
 			lheight = light->height;// > *pfloor->topheight ? *pfloor->topheight + FRACUNIT : light->height;
 			rlight->heightstep = -FixedMul (rw_scalestep, (lheight - viewz));
-			rlight->height = (centeryfrac) - FixedMul((lheight - viewz), spryscale) - rlight->heightstep;
+			rlight->height = (centeryfrac) - FixedMul((lheight - viewz), spryscale);
 #endif
 			rlight->flags = light->flags;
 			if (light->flags & FF_CUTLEVEL)
 			{
 #ifdef ESLOPE
-				if (*light->caster->b_slope) {
-					leftheight = P_GetZAt(*light->caster->b_slope, ds->leftpos.x, ds->leftpos.y);
-					rightheight = P_GetZAt(*light->caster->b_slope, ds->rightpos.x, ds->rightpos.y);
-				} else
-					leftheight = rightheight = *light->caster->bottomheight;
-
+				SLOPEPARAMS(*light->caster->b_slope, leftheight, rightheight, *light->caster->bottomheight)
+#undef SLOPEPARAMS
 				leftheight -= viewz;
 				rightheight -= viewz;
 
-				overflow_test = (INT64)centeryfrac - (((INT64)leftheight*ds->scale1)>>FRACBITS);
-				if (overflow_test < 0) overflow_test = -overflow_test;
-				if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;
-				overflow_test = (INT64)centeryfrac - (((INT64)rightheight*ds->scale2)>>FRACBITS);
-				if (overflow_test < 0) overflow_test = -overflow_test;
-				if ((UINT64)overflow_test&0xFFFFFFFF80000000ULL) continue;
+				OVERFLOWTEST(leftheight, ds->scale1)
+				OVERFLOWTEST(rightheight, ds->scale2)
+#undef OVERFLOWTEST
 
 				rlight->botheight = (centeryfrac) - FixedMul(leftheight, ds->scale1);
 				rlight->botheightstep = (centeryfrac) - FixedMul(rightheight, ds->scale2);
 				rlight->botheightstep = (rlight->botheightstep-rlight->botheight)/(range);
-				rlight->botheight -= rlight->botheightstep;
 #else
 				lheight = *light->caster->bottomheight;// > *pfloor->topheight ? *pfloor->topheight + FRACUNIT : *light->caster->bottomheight;
 				rlight->botheightstep = -FixedMul (rw_scalestep, (lheight - viewz));
-				rlight->botheight = (centeryfrac) - FixedMul((lheight - viewz), spryscale) - rlight->botheightstep;
+				rlight->botheight = (centeryfrac) - FixedMul((lheight - viewz), spryscale);
 #endif
 			}
 
@@ -1107,6 +1094,46 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 				oldx = dc_x;
 			}
 #endif
+			// Calculate bounds
+			// clamp the values if necessary to avoid overflows and rendering glitches caused by them
+
+#ifdef ESLOPE
+			if      (top_frac > (INT64)CLAMPMAX) sprtopscreen = windowtop = CLAMPMAX;
+			else if (top_frac > (INT64)CLAMPMIN) sprtopscreen = windowtop = (fixed_t)top_frac;
+			else                                 sprtopscreen = windowtop = CLAMPMIN;
+			if      (bottom_frac > (INT64)CLAMPMAX) sprbotscreen = windowbottom = CLAMPMAX;
+			else if (bottom_frac > (INT64)CLAMPMIN) sprbotscreen = windowbottom = (fixed_t)bottom_frac;
+			else                                    sprbotscreen = windowbottom = CLAMPMIN;
+
+			top_frac += top_step;
+			bottom_frac += bottom_step;
+#else
+			sprtopscreen = windowtop = (centeryfrac - FixedMul((dc_texturemid - offsetvalue), spryscale));
+			sprbotscreen = windowbottom = FixedMul(*pfloor->topheight - *pfloor->bottomheight, spryscale) + sprtopscreen;
+#endif
+
+			// SoM: If column is out of range, why bother with it??
+			if (windowbottom < topbounds || windowtop > bottombounds)
+			{
+				if (dc_numlights)
+				{
+					for (i = 0; i < dc_numlights; i++)
+					{
+						rlight = &dc_lightlist[i];
+						rlight->height += rlight->heightstep;
+						if (rlight->flags & FF_CUTLEVEL)
+							rlight->botheight += rlight->botheightstep;
+					}
+				}
+				spryscale += rw_scalestep;
+				continue;
+			}
+
+			dc_iscale = 0xffffffffu / (unsigned)spryscale;
+
+			// Get data for the column
+			col = (column_t *)((UINT8 *)R_GetColumn(texnum,maskedtexturecol[dc_x]) - 3);
+
 			// SoM: New code does not rely on R_DrawColumnShadowed_8 which
 			// will (hopefully) put less strain on the stack.
 			if (dc_numlights)
@@ -1116,40 +1143,6 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 				fixed_t bheight = 0;
 				INT32 solid = 0;
 				INT32 lighteffect = 0;
-
-#ifdef ESLOPE
-				if      (top_frac > (INT64)CLAMPMAX) sprtopscreen = windowtop = CLAMPMAX;
-				else if (top_frac > (INT64)CLAMPMIN) sprtopscreen = windowtop = (fixed_t)top_frac;
-				else                                 sprtopscreen = windowtop = CLAMPMIN;
-				if      (bottom_frac > (INT64)CLAMPMAX) sprbotscreen = windowbottom = CLAMPMAX;
-				else if (bottom_frac > (INT64)CLAMPMIN) sprbotscreen = windowbottom = (fixed_t)bottom_frac;
-				else                                    sprbotscreen = windowbottom = CLAMPMIN;
-
-				top_frac += top_step;
-				bottom_frac += bottom_step;
-#else
-				sprtopscreen = windowtop = (centeryfrac - FixedMul((dc_texturemid - offsetvalue), spryscale));
-				sprbotscreen = windowbottom = FixedMul(*pfloor->topheight - *pfloor->bottomheight, spryscale) + sprtopscreen;
-#endif
-
-				// SoM: If column is out of range, why bother with it??
-				if (windowbottom < topbounds || windowtop > bottombounds)
-				{
-					for (i = 0; i < dc_numlights; i++)
-					{
-						rlight = &dc_lightlist[i];
-						rlight->height += rlight->heightstep;
-						if (rlight->flags & FF_CUTLEVEL)
-							rlight->botheight += rlight->botheightstep;
-					}
-					spryscale += rw_scalestep;
-					continue;
-				}
-
-				dc_iscale = 0xffffffffu / (unsigned)spryscale;
-
-				// draw the texture
-				col = (column_t *)((UINT8 *)R_GetColumn(texnum,maskedtexturecol[dc_x]) - 3);
 
 				for (i = 0; i < dc_numlights; i++)
 				{
@@ -1169,7 +1162,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 
 						pindex = FixedMul(spryscale, FixedDiv(640, vid.width))>>LIGHTSCALESHIFT;
 
-						if (pindex >=  MAXLIGHTSCALE)
+						if (pindex >= MAXLIGHTSCALE)
 							pindex = MAXLIGHTSCALE-1;
 
 						if (pfloor->flags & FF_FOG)
@@ -1208,13 +1201,13 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 					else
 						solid = 0;
 
-					rlight->height += rlight->heightstep;
 					height = rlight->height;
+					rlight->height += rlight->heightstep;
 
 					if (solid)
 					{
-						rlight->botheight += rlight->botheightstep;
 						bheight = rlight->botheight - (FRACUNIT >> 1);
+						rlight->botheight += rlight->botheightstep;
 					}
 
 					if (height <= windowtop)
@@ -1234,6 +1227,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 					if (windowbottom >= sprbotscreen)
 					{
 						windowbottom = sprbotscreen;
+						// draw the texture
 						colfunc_2s (col);
 						for (i++; i < dc_numlights; i++)
 						{
@@ -1244,6 +1238,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 						}
 						continue;
 					}
+					// draw the texture
 					colfunc_2s (col);
 					if (solid)
 						windowtop = bheight;
@@ -1257,6 +1252,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 					}
 				}
 				windowbottom = sprbotscreen;
+				// draw the texture, if there is any space left
 				if (windowtop < windowbottom)
 					colfunc_2s (col);
 
@@ -1271,33 +1267,16 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 				pindex = MAXLIGHTSCALE - 1;
 
 			dc_colormap = walllights[pindex];
+
 			if (encoremap && !(curline->linedef->flags & ML_TFERLINE))
 				dc_colormap += (256*32);
-			if (frontsector->extra_colormap)
-				dc_colormap = frontsector->extra_colormap->colormap + (dc_colormap - colormaps);
+
 			if (pfloor->flags & FF_FOG && pfloor->master->frontsector->extra_colormap)
 				dc_colormap = pfloor->master->frontsector->extra_colormap->colormap + (dc_colormap - colormaps);
-
-#ifdef ESLOPE
-			if      (top_frac > (INT64)CLAMPMAX) sprtopscreen = windowtop = CLAMPMAX;
-			else if (top_frac > (INT64)CLAMPMIN) sprtopscreen = windowtop = (fixed_t)top_frac;
-			else                                 sprtopscreen = windowtop = CLAMPMIN;
-			if      (bottom_frac > (INT64)CLAMPMAX) sprbotscreen = windowbottom = CLAMPMAX;
-			else if (bottom_frac > (INT64)CLAMPMIN) sprbotscreen = windowbottom = (fixed_t)bottom_frac;
-			else                                    sprbotscreen = windowbottom = CLAMPMIN;
-
-			top_frac += top_step;
-			bottom_frac += bottom_step;
-#else
-			sprtopscreen = windowtop = (centeryfrac - FixedMul((dc_texturemid - offsetvalue), spryscale));
-			sprbotscreen = windowbottom = FixedMul(*pfloor->topheight - *pfloor->bottomheight, spryscale) + sprtopscreen;
-#endif
-
-			dc_iscale = 0xffffffffu / (unsigned)spryscale;
+			else if (frontsector->extra_colormap)
+				dc_colormap = frontsector->extra_colormap->colormap + (dc_colormap - colormaps);
 
 			// draw the texture
-			col = (column_t *)((UINT8 *)R_GetColumn(texnum,maskedtexturecol[dc_x]) - 3);
-
 			colfunc_2s (col);
 			spryscale += rw_scalestep;
 		}

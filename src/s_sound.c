@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -50,6 +50,13 @@ static void SetChannelsNum(void);
 static void Command_Tunes_f(void);
 static void Command_RestartAudio_f(void);
 
+// Sound system toggles
+#ifndef NO_MIDI
+static void GameMIDIMusic_OnChange(void);
+#endif
+static void GameSounds_OnChange(void);
+static void GameDigiMusic_OnChange(void);
+
 // commands for music and sound servers
 #ifdef MUSSERV
 consvar_t musserver_cmd = {"musserver_cmd", "musserver", CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -95,6 +102,13 @@ consvar_t cv_numChannels = {"snd_channels", "64", CV_SAVE|CV_CALL, CV_Unsigned, 
 
 consvar_t surround = {"surround", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// Sound system toggles, saved into the config
+consvar_t cv_gamedigimusic = {"digimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameDigiMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#ifndef NO_MIDI
+consvar_t cv_gamemidimusic = {"midimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameMIDIMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#endif
+consvar_t cv_gamesounds = {"sounds", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameSounds_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 #define S_MAX_VOLUME 127
 
@@ -250,6 +264,11 @@ void S_RegisterSoundStuff(void)
 	CV_RegisterVar(&surround);
 	CV_RegisterVar(&cv_samplerate);
 	CV_RegisterVar(&cv_resetmusic);
+	CV_RegisterVar(&cv_gamesounds);
+	CV_RegisterVar(&cv_gamedigimusic);
+#ifndef NO_MIDI
+	CV_RegisterVar(&cv_gamemidimusic);
+#endif
 
 	COM_AddCommand("tunes", Command_Tunes_f);
 	COM_AddCommand("restartaudio", Command_RestartAudio_f);
@@ -1199,7 +1218,7 @@ fixed_t S_CalculateSoundDistance(fixed_t sx1, fixed_t sy1, fixed_t sz1, fixed_t 
 
 	approx_dist <<= FRACBITS;
 
-	return approx_dist;
+	return FixedDiv(approx_dist, mapheaderinfo[gamemap-1]->mobj_scale); // approx_dist
 }
 
 //
@@ -1921,3 +1940,106 @@ static void Command_RestartAudio_f(void)
 	else
 		S_ChangeMusicInternal("titles", looptitle);
 }
+
+void GameSounds_OnChange(void)
+{
+	if (M_CheckParm("-nosound"))
+		return;
+
+	if (sound_disabled)
+	{
+		sound_disabled = false;
+		S_InitSfxChannels(cv_soundvolume.value);
+		S_StartSound(NULL, sfx_strpst);
+	}
+	else
+	{
+		sound_disabled = true;
+		S_StopSounds();
+	}
+}
+
+void GameDigiMusic_OnChange(void)
+{
+	if (M_CheckParm("-nomusic"))
+		return;
+	else if (M_CheckParm("-nodigmusic"))
+		return;
+
+	if (digital_disabled)
+	{
+		digital_disabled = false;
+		I_InitMusic();
+		S_StopMusic();
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("lclear", false);
+	}
+	else
+	{
+		digital_disabled = true;
+		if (S_MusicType() != MU_MID)
+		{
+			if (midi_disabled)
+				S_StopMusic();
+			else
+			{
+				char mmusic[7];
+				UINT16 mflags;
+				boolean looping;
+
+				if (S_MusicInfo(mmusic, &mflags, &looping) && S_MIDIExists(mmusic))
+				{
+					S_StopMusic();
+					S_ChangeMusic(mmusic, mflags, looping);
+				}
+				else
+					S_StopMusic();
+			}
+		}
+	}
+}
+
+#ifndef NO_MIDI
+void GameMIDIMusic_OnChange(void)
+{
+	if (M_CheckParm("-nomusic"))
+		return;
+	else if (M_CheckParm("-nomidimusic"))
+		return;
+
+	if (midi_disabled)
+	{
+		midi_disabled = false;
+		I_InitMusic();
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("lclear", false);
+	}
+	else
+	{
+		midi_disabled = true;
+		if (S_MusicType() == MU_MID)
+		{
+			if (digital_disabled)
+				S_StopMusic();
+			else
+			{
+				char mmusic[7];
+				UINT16 mflags;
+				boolean looping;
+
+				if (S_MusicInfo(mmusic, &mflags, &looping) && S_DigExists(mmusic))
+				{
+					S_StopMusic();
+					S_ChangeMusic(mmusic, mflags, looping);
+				}
+				else
+					S_StopMusic();
+			}
+		}
+	}
+}
+#endif
