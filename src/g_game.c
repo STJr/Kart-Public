@@ -2988,14 +2988,12 @@ void G_DoReborn(INT32 playernum)
 			}
 		}
 		else
-#ifdef HAVE_BLUA
 		{
-			LUAh_MapChange();
+#ifdef HAVE_BLUA
+			LUAh_MapChange(gamemap);
 #endif
 			G_DoLoadLevel(true);
-#ifdef HAVE_BLUA
 		}
-#endif
 	}*/
 	else
 	{
@@ -4400,7 +4398,12 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	if (!skipprecutscene && mapheaderinfo[gamemap-1]->precutscenenum && !modeattacking) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->precutscenenum-1, true, resetplayer);
 	else
+	{
+#ifdef HAVE_BLUA
+		LUAh_MapChange(gamemap);
+#endif
 		G_DoLoadLevel(resetplayer);
+	}
 
 	if (netgame)
 	{
@@ -5915,7 +5918,7 @@ void G_DoPlayDemo(char *defdemoname)
 	demo_start = false;
 
 #ifdef HAVE_BLUA
-	LUAh_MapChange();
+	LUAh_MapChange(gamemap);
 #endif
 	displayplayer = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));

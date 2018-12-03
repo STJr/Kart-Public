@@ -2310,6 +2310,9 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	INT32 resetplayer = 1, lastgametype;
 	UINT8 skipprecutscene, FLS;
 	boolean pencoremode;
+#ifdef HAVE_BLUA
+	INT16 mapnumber;
+#endif
 
 	forceresetplayers = deferencoremode = false;
 
@@ -2377,7 +2380,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 		SetPlayerSkinByNum(0, cv_chooseskin.value-1);
 
 #ifdef HAVE_BLUA
-	LUAh_MapChange();
+	mapnumber = M_MapNumber(mapname[3], mapname[4]);
+	LUAh_MapChange(mapnumber);
 #endif
 
 	G_InitNew(pencoremode, mapname, resetplayer, skipprecutscene);

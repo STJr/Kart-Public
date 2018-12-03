@@ -304,6 +304,7 @@
     <ClCompile Include="..\i_tcp.c" />
     <ClCompile Include="..\k_kart.c" />
     <ClCompile Include="..\lua_baselib.c" />
+	<ClCompile Include="..\lua_blockmaplib.c" />
     <ClCompile Include="..\lua_consolelib.c" />
     <ClCompile Include="..\lua_hooklib.c" />
     <ClCompile Include="..\lua_hudlib.c" />
