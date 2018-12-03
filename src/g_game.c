@@ -5917,9 +5917,9 @@ void G_DoPlayDemo(char *defdemoname)
 	// didn't start recording right away.
 	demo_start = false;
 
-#ifdef HAVE_BLUA
+/*#ifdef HAVE_BLUA
 	LUAh_MapChange(gamemap);
-#endif
+#endif*/
 	displayplayer = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = true;
