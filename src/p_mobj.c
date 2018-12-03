@@ -6362,7 +6362,7 @@ void P_RunShadows(void)
 		}
 
 		if (mobj->target->type == MT_FLOATINGITEM)
-			P_SetScale(mobj, mobj->scale/2);
+			P_SetScale(mobj, mobj->scale/3);
 	}
 	P_SetTarget(&shadowcap, NULL);
 }
@@ -8490,7 +8490,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 				// Give items an item-sized hitbox
 				if (mobj->target->player->kartstuff[k_comebackmode] == 1)
-					mobj->radius = 36*mobj->target->scale;
+					mobj->radius = 48*mobj->target->scale;
 				else
 					mobj->radius = 24*mobj->target->scale;
 				mobj->height = 2*mobj->radius;
