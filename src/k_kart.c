@@ -1520,7 +1520,7 @@ void K_KartMoveAnimation(player_t *player)
 	}
 }
 
-void K_TauntVoiceTimers(player_t *player)
+static void K_TauntVoiceTimers(player_t *player)
 {
 	if (!player)
 		return;
@@ -1529,7 +1529,7 @@ void K_TauntVoiceTimers(player_t *player)
 	player->kartstuff[k_voices] = 4*TICRATE;
 }
 
-void K_RegularVoiceTimers(player_t *player)
+static void K_RegularVoiceTimers(player_t *player)
 {
 	if (!player)
 		return;
@@ -1540,7 +1540,7 @@ void K_RegularVoiceTimers(player_t *player)
 		player->kartstuff[k_tauntvoices] = 4*TICRATE;
 }
 
-void K_PlayAttackTaunt(mobj_t *source)
+static void K_PlayAttackTaunt(mobj_t *source)
 {
 	sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
@@ -1554,7 +1554,7 @@ void K_PlayAttackTaunt(mobj_t *source)
 	K_TauntVoiceTimers(source->player);
 }
 
-void K_PlayBoostTaunt(mobj_t *source)
+static void K_PlayBoostTaunt(mobj_t *source)
 {
 	sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
@@ -1568,7 +1568,7 @@ void K_PlayBoostTaunt(mobj_t *source)
 	K_TauntVoiceTimers(source->player);
 }
 
-void K_PlayOvertakeSound(mobj_t *source)
+static void K_PlayOvertakeSound(mobj_t *source)
 {
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
@@ -1588,7 +1588,7 @@ void K_PlayOvertakeSound(mobj_t *source)
 	K_RegularVoiceTimers(source->player);
 }
 
-void K_PlayHitEmSound(mobj_t *source)
+static void K_PlayHitEmSound(mobj_t *source)
 {
 	if (cv_kartvoices.value)
 		S_StartSound(source, sfx_khitem);
@@ -1598,7 +1598,7 @@ void K_PlayHitEmSound(mobj_t *source)
 	K_RegularVoiceTimers(source->player);
 }
 
-void K_PlayPowerGloatSound(mobj_t *source)
+static void K_PlayPowerGloatSound(mobj_t *source)
 {
 	if (cv_kartvoices.value)
 		S_StartSound(source, sfx_kgloat);

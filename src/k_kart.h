@@ -24,13 +24,6 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master);
 void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
-void K_TauntVoiceTimers(player_t *player);
-void K_RegularVoiceTimers(player_t *player);
-void K_PlayAttackTaunt(player_t *player);
-void K_PlayBoostTaunt(player_t *player);
-void K_PlayOvertakeSound(player_t *player);
-void K_PlayHitEmSound(player_t *player);
-void K_PlayPowerGloatSound(player_t *player);
 void K_KartPlayerHUDUpdate(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);

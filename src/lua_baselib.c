@@ -2442,76 +2442,6 @@ static int lib_kMomentumToFacing(lua_State *L)
 	return 0;
 }
 
-static int lib_kTauntVoiceTimers(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_TauntVoiceTimers(player);
-	return 0;
-}
-
-static int lib_kRegularVoiceTimers(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_RegularVoiceTimers(player);
-	return 0;
-}
-
-static int lib_kPlayAttackTaunt(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_PlayAttackTaunt(player);
-	return 0;
-}
-
-static int lib_kPlayBoostTaunt(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_PlayBoostTaunt(player);
-	return 0;
-}
-
-static int lib_kPlayOvertakeSound(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_PlayOvertakeSound(player);
-	return 0;
-}
-
-static int lib_kPlayHitEmSound(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_PlayHitEmSound(player);
-	return 0;
-}
-
-static int lib_kPlayPowerGloatSound(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	K_PlayPowerGloatSound(player);
-	return 0;
-}
-
 static int lib_kGetKartSpeed(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2768,13 +2698,6 @@ static luaL_Reg lib[] = {
 	{"K_StripItems",lib_kStripItems},
 	{"K_StripOther",lib_kStripOther},
 	{"K_MomentumToFacing",lib_kMomentumToFacing},
-	{"K_TauntVoiceTimers",lib_kTauntVoiceTimers},
-	{"K_RegularVoiceTimers",lib_kRegularVoiceTimers},
-	{"K_PlayAttackTaunt",lib_kPlayAttackTaunt},
-	{"K_PlayBoostTaunt",lib_kPlayBoostTaunt},
-	{"K_PlayOvertakeSound",lib_kPlayOvertakeSound},
-	{"K_PlayHitEmSound",lib_kPlayHitEmSound},
-	{"K_PlayPowerGloatSound",lib_kPlayPowerGloatSound},
 	{"K_GetKartSpeed",lib_kGetKartSpeed},
 	{"K_GetKartAccel",lib_kGetKartAccel},
 	{"K_GetKartFlashing",lib_kGetKartFlashing},
