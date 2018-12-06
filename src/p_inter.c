@@ -131,8 +131,8 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 		else
 		{
 			// Item-specific timer going off
-			if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-				|| player->kartstuff[k_growshrinktimer] > 0	|| player->kartstuff[k_rocketsneakertimer]
+			if (player->kartstuff[k_stealingtimer] || player->kartstuff[k_stolentimer]
+				|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_rocketsneakertimer]
 				|| player->kartstuff[k_eggmanexplode])
 				return false;
 

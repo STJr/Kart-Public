@@ -1989,6 +1989,18 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 	return;
 }
 
+static void K_RemoveGrowShrink(player_t *player)
+{
+	player->kartstuff[k_growshrinktimer] = 0;
+	if (player->kartstuff[k_invincibilitytimer] == 0)
+		player->mo->color = player->skincolor;
+	player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
+	player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+	if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
+		player->mo->destscale = 6*player->mo->destscale/8;
+	P_RestoreMusic(player);
+}
+
 void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 {
 	UINT8 scoremultiply = 1;
@@ -2081,11 +2093,11 @@ void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 	player->kartstuff[k_squishedtimer] = TICRATE;
 
 	// Reduce Shrink timer
-	if (player->kartstuff[k_growshrinktimer] < -2)
+	if (player->kartstuff[k_growshrinktimer] < 0)
 	{
 		player->kartstuff[k_growshrinktimer] += TICRATE;
-		if (player->kartstuff[k_growshrinktimer] > -2)
-			player->kartstuff[k_growshrinktimer] = -2;
+		if (player->kartstuff[k_growshrinktimer] >= 0)
+			K_RemoveGrowShrink(player);
 	}
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
@@ -3277,8 +3289,8 @@ static void K_DoShrink(player_t *user)
 			}
 
 			// Grow should get taken away.
-			if (players[i].kartstuff[k_growshrinktimer] > 2)
-				players[i].kartstuff[k_growshrinktimer] = 2;
+			if (players[i].kartstuff[k_growshrinktimer] > 0)
+				K_RemoveGrowShrink(&players[i]);
 
 			//P_FlashPal(&players[i], PAL_NUKE, 10);
 			S_StartSound(players[i].mo, sfx_kc59);
@@ -4309,22 +4321,16 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_invincibilitytimer])
 		player->kartstuff[k_invincibilitytimer]--;
 
-	if (!player->kartstuff[k_respawn])
+	if (!player->kartstuff[k_respawn] && player->kartstuff[k_growshrinktimer] != 0)
 	{
 		if (player->kartstuff[k_growshrinktimer] > 0)
 			player->kartstuff[k_growshrinktimer]--;
 		if (player->kartstuff[k_growshrinktimer] < 0)
 			player->kartstuff[k_growshrinktimer]++;
-	}
 
-	if (player->kartstuff[k_growshrinktimer] == 1 || player->kartstuff[k_growshrinktimer] == -1)
-	{
-		if (player->kartstuff[k_invincibilitytimer] == 0)
-			player->mo->color = player->skincolor;
-		player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
-		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-			player->mo->destscale = 6*player->mo->destscale/8;
-		P_RestoreMusic(player);
+		// Back to normal
+		if (player->kartstuff[k_growshrinktimer] == 0)
+			K_RemoveGrowShrink(player);
 	}
 
 	if (player->kartstuff[k_stealingtimer] == 0 && player->kartstuff[k_stolentimer] == 0
@@ -4879,10 +4885,7 @@ void K_StripOther(player_t *player)
 	player->kartstuff[k_roulettetype] = 0;
 
 	player->kartstuff[k_invincibilitytimer] = 0;
-	if (player->kartstuff[k_growshrinktimer] > 0)
-		player->kartstuff[k_growshrinktimer] = 2;
-	else if (player->kartstuff[k_growshrinktimer] < 0)
-		player->kartstuff[k_growshrinktimer] = -2;
+	K_RemoveGrowShrink(player);
 
 	if (player->kartstuff[k_eggmanexplode])
 	{
@@ -5483,6 +5486,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	// Increase your size while charging your engine.
 	if (leveltime < starttime+10)
 	{
+		player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
 		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = 6*player->mo->destscale/8;
@@ -6433,7 +6437,7 @@ static void K_drawKartItem(void)
 			else
 				localpatch = kp_nodraw;
 		}
-		else if (stplyr->kartstuff[k_growshrinktimer] > 1)
+		else if (stplyr->kartstuff[k_growshrinktimer] > 0)
 		{
 			if (leveltime & 1)
 				localpatch = kp_grow[offset];

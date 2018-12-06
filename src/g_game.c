@@ -2431,7 +2431,10 @@ void G_PlayerReborn(INT32 player)
 		}
 
 		// Keep Shrink status, remove Grow status
-		growshrinktimer = min(players[player].kartstuff[k_growshrinktimer], 0);
+		if (players[player].kartstuff[k_growshrinktimer] < 0)
+			growshrinktimer = players[player].kartstuff[k_growshrinktimer];
+		else
+			growshrinktimer = 0;
 
 		bumper = players[player].kartstuff[k_bumper];
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
