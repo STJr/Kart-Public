@@ -15,7 +15,7 @@ if ["%1"] == ["/y"] (
 	set "PROCEED=1"
 ) else (
 	set PROCEED=
-	set /p PROCEED="Are you sure you want to uninstall SRB2? [yes/no] "
+	set /p PROCEED="Are you sure you want to uninstall SRB2Kart? [yes/no] "
 
 	if /I ["!PROCEED:~0,1!"] == ["n"] exit
 	if /I ["!PROCEED!"] == ["y"] (
@@ -46,7 +46,7 @@ mkdir "!INSTALLDIR!\uninstall-dummy"
 
 :: TODO elevate automatically
 if errorlevel 1 (
-	echo We need Administrator Rights to uninstall SRB2.
+	echo We need Administrator Rights to uninstall SRB2Kart.
 	echo.
 	echo Try running this uninstaller by right-clicking on the icon
 	echo and click "Run as administrator"
@@ -105,7 +105,7 @@ echo Deleting your program icons...
 echo.
 
 cd \
-rmdir /s /q "!AppData!\Microsoft\Windows\Start Menu\Programs\Sonic Robo Blast 2"
+rmdir /s /q "!AppData!\Microsoft\Windows\Start Menu\Programs\SRB2Kart"
 
 :: Check if our install folder is non-empty
 
@@ -133,7 +133,7 @@ if /I NOT ["!USERDIR!"] == ["!INSTALLDIR!"] (
 
 : Final
 
-echo All done^^! Visit http://www.srb2.org if you want to play SRB2 again^^!
+echo All done^^! Visit http://www.srb2.org if you want to play SRB2Kart again^^!
 echo.
 
 set "FINALPROMPT=Press Enter key to exit."

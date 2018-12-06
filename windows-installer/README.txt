@@ -1,5 +1,5 @@
 Windows Install Builder
-for SRB2
+for SRB2Kart
 
 This installer is much like the 7-Zip self-extracting archive, except
 this allows for scripting the post-install step.
@@ -9,7 +9,7 @@ and program shortcuts.
 
 The included install scripts manage the game data location depending on the
 install location -- if installed in Program Files or AppData\Local, the
-game data location is set to %UserProfile%\SRB2.
+game data location is set to %UserProfile%\SRB2Kart.
 
 Program shortcuts are also added, as well as an uninstaller that
 will remove the icons and also selectively uninstall the core game files.
@@ -31,7 +31,7 @@ How to Use
 
 3. Set the text in VersionFilename.txt to the version identifier for the
    installer's filename.
-    * e.g., v2121 for v2.1.21, from "SRB2-v2121-Installer.exe"
+    * e.g., v102 for v1.0.2, from "SRB2Kart-v102-Installer.exe"
     * Also look through sfx/config-installer.txt and sfx/config-patch.txt
       and update the version strings. Templating is TODO.
 

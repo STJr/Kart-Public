@@ -11,5 +11,4 @@ r_opengl.dll
 SDL2.dll
 SDL2_mixer.dll
 smpeg2.dll
-srb2dd.exe
-srb2win.exe
+srb2kart.exe

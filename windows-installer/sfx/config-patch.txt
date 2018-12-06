@@ -3,21 +3,19 @@
 GUIFlags="8+32+64+4096"
 GUIMode="1"
 
-Title="Sonic Robo Blast 2 v2.1.21"
-BeginPrompt="Sonic Robo Blast 2 v2.1.21\nPatch Installer\n\nYou must have at least v2.1.15 to use this patch.\n\nSelect your current SRB2 folder.\n\nShortcuts will be created in your Start Menu."
+Title="Sonic Robo Blast 2 Kart v1.0.2"
+BeginPrompt="Sonic Robo Blast 2 Kart v1.0.2\nPatch Installer\n\nYou must have at least v1.0.0 to use this patch.\n\nSelect your current SRB2Kart folder.\n\nShortcuts will be created in your Start Menu."
 
-ExtractPathText="Current SRB2 folder: (no exclamation points, please!)"
-InstallPath="%LocalAppData%\\SRB2"
+ExtractPathText="Current SRB2Kart folder: (no exclamation points, please!)"
+InstallPath="%LocalAppData%\\SRB2Kart"
 ExtractTitle="Installing..."
-ExtractDialogText="Installing SRB2 v2.1.21...\n\nCheck out our modding community!\nWe make levels, characters, and much more!\n\nVisit http://www.srb2.org/mods"
+ExtractDialogText="Installing SRB2Kart v1.0.2...\n\nCheck out our modding community!\nWe make levels, characters, and much more!\n\nVisit http://www.srb2.org/mods"
 
-Shortcut="Pu,{%%T\\srb2win.exe},{},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{SRB2},{%%T\\},{%%T\\srb2win.exe},{0}"
-Shortcut="Pu,{%%T\\srb2win.exe},{-win},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{SRB2 (Windowed)},{%%T\\},{%%T\\srb2win.exe},{0}"
-Shortcut="Pu,{%%T\\srb2win.exe},{-opengl},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{SRB2 (OpenGL)},{%%T\\},{%%T\\srb2win.exe},{0}"
-Shortcut="Pu,{%%T\\srb2win.exe},{-opengl -win},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{SRB2 (OpenGL, Windowed)},{%%T\\},{%%T\\srb2win.exe},{0}"
-Shortcut="Pu,{%%T\\srb2dd.exe},{},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{SRB2 (DirectDraw)},{%%T\\},{%%T\\srb2dd.exe},{0}"
-Shortcut="Pu,{%%T\\srb2dd.exe},{-win},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{SRB2 (DirectDraw, Windowed)},{%%T\\},{%%T\\srb2dd.exe},{0}"
-Shortcut="Pu,{%%T\\uninstall.exe},{},{Sonic Robo Blast 2},{Sonic Robo Blast 2 (SRB2), a 3D Sonic the Hedgehog fangame.},{Uninstall SRB2},{%%T\\},{shell32.dll},{31}"
+Shortcut="Pu,{%%T\\srb2kart.exe},{},{SRB2Kart},{Sonic Robo Blast 2 Kart (SRB2Kart), a Kart racer built on the SRB2 engine.},{SRB2Kart},{%%T\\},{%%T\\srb2kart.exe},{0}"
+Shortcut="Pu,{%%T\\srb2kart.exe},{-win},{SRB2Kart},{Sonic Robo Blast 2 Kart (SRB2Kart), a Kart racer built on the SRB2 engine.},{SRB2Kart (Windowed)},{%%T\\},{%%T\\srb2kart.exe},{0}"
+Shortcut="Pu,{%%T\\srb2kart.exe},{-opengl},{SRB2Kart},{Sonic Robo Blast 2 Kart (SRB2Kart), a Kart racer built on the SRB2 engine.},{SRB2Kart (OpenGL)},{%%T\\},{%%T\\srb2kart.exe},{0}"
+Shortcut="Pu,{%%T\\srb2kart.exe},{-opengl -win},{SRB2Kart},{Sonic Robo Blast 2 Kart (SRB2Kart), a Kart racer built on the SRB2 engine.},{SRB2Kart (OpenGL, Windowed)},{%%T\\},{%%T\\srb2kart.exe},{0}"
+Shortcut="Pu,{%%T\\uninstall.exe},{},{SRB2Kart},{Sonic Robo Blast 2 Kart (SRB2Kart), a Kart racer built on the SRB2 engine.},{Uninstall SRB2Kart},{%%T\\},{shell32.dll},{31}"
 
 RunProgram="nowait:\"%%T\\new-install\\staging.bat\""
 

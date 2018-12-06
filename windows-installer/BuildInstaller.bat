@@ -48,28 +48,28 @@ if exist "%SCRIPTDIR%\Installer.7z" (
 	if NOT ["%SVZIP%"] == [""] (
 		"%SVZIP%" a "%SCRIPTDIR%\Installer.7z" "%SCRIPTDIR%\staging\*"
 	)
-	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2.sfx" + "%SCRIPTDIR%\sfx\config-installer.txt" + "%SCRIPTDIR%\Installer.7z" "%SCRIPTDIR%\SRB2-%SRB2VERSIONNAME%-Installer.exe"
+	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2.sfx" + "%SCRIPTDIR%\sfx\config-installer.txt" + "%SCRIPTDIR%\Installer.7z" "%SCRIPTDIR%\SRB2Kart-%SRB2VERSIONNAME%-Installer.exe"
 )
 
 if exist "%SCRIPTDIR%\Patch.7z" (
 	if NOT ["%SVZIP%"] == [""] (
 		"%SVZIP%" a "%SCRIPTDIR%\Patch.7z" "%SCRIPTDIR%\staging\*"
 	)
-	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2.sfx" + "%SCRIPTDIR%\sfx\config-patch.txt" + "%SCRIPTDIR%\Patch.7z" "%SCRIPTDIR%\SRB2-%SRB2VERSIONNAME%-Patch.exe"
+	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2.sfx" + "%SCRIPTDIR%\sfx\config-patch.txt" + "%SCRIPTDIR%\Patch.7z" "%SCRIPTDIR%\SRB2Kart-%SRB2VERSIONNAME%-Patch.exe"
 )
 
 if exist "%SCRIPTDIR%\Installer_x64.7z" (
 	if NOT ["%SVZIP%"] == [""] (
 		"%SVZIP%" a "%SCRIPTDIR%\Installer_x64.7z" "%SCRIPTDIR%\staging\*"
 	)
-	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2_x64.sfx" + "%SCRIPTDIR%\sfx\config-installer.txt" + "%SCRIPTDIR%\Installer_x64.7z" "%SCRIPTDIR%\SRB2-%SRB2VERSIONNAME%-x64-Installer.exe"
+	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2_x64.sfx" + "%SCRIPTDIR%\sfx\config-installer.txt" + "%SCRIPTDIR%\Installer_x64.7z" "%SCRIPTDIR%\SRB2Kart-%SRB2VERSIONNAME%-x64-Installer.exe"
 )
 
 if exist "%SCRIPTDIR%\Patch_x64.7z" (
 	if NOT ["%SVZIP%"] == [""] (
 		"%SVZIP%" a "%SCRIPTDIR%\Patch_x64.7z" "%SCRIPTDIR%\staging\*"
 	)
-	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2_x64.sfx" + "%SCRIPTDIR%\sfx\config-patch.txt" + "%SCRIPTDIR%\Patch_x64.7z" "%SCRIPTDIR%\SRB2-%SRB2VERSIONNAME%-x64-Patch.exe"
+	copy /y /b "%SCRIPTDIR%\sfx\7zsd_LZMA2_x64.sfx" + "%SCRIPTDIR%\sfx\config-patch.txt" + "%SCRIPTDIR%\Patch_x64.7z" "%SCRIPTDIR%\SRB2Kart-%SRB2VERSIONNAME%-x64-Patch.exe"
 )
 
 del /f /q "%SCRIPTDIR%\staging\new-install\staging.txt"

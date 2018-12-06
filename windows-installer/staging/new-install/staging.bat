@@ -4,18 +4,18 @@ setlocal enabledelayedexpansion
 
 cls
 
-:: SRB2 Install Staging
+:: SRB2Kart Install Staging
 ::
 :: This accomplishes the following tasks:
 ::
-:: 1. Creates a user profile folder if SRB2 is installed in AppData or Program Files, and config.cfg is not already in the install folder
+:: 1. Creates a user profile folder if SRB2Kart is installed in AppData or Program Files, and config.cfg is not already in the install folder
 ::
 :: 2. Moves old installation files into old-install
 ::
 :: 3. Moves new installaton files into install folder
 ::
 
-:: Get Parent folder (the SRB2 install folder)
+:: Get Parent folder (the SRB2Kart install folder)
 ::
 :: https://wiert.me/2011/08/30/batch-file-to-get-parent-directory-not-the-directory-of-the-batch-file-but-the-parent-of-that-directory/
 
@@ -62,16 +62,16 @@ mkdir "!INSTALLDIR!\install-dummy"
 
 :: TODO elevate automatically
 if errorlevel 1 (
-	echo Finish installing SRB2 with these steps:
+	echo Finish installing SRB2Kart with these steps:
 	echo.
-	echo 1. Go to your SRB2 install folder
+	echo 1. Go to your SRB2Kart install folder
 	echo.
 	echo     !INSTALLDIR!
 	echo.
 	echo 2. Copy all files from the "new-install" subfolder into the main folder
 	echo    and DELETE staging.bat and staging.txt!!!
 	echo.
-	echo 3. Optionally, create a folder in your user profile named "SRB2".
+	echo 3. Optionally, create a folder in your user profile named "SRB2Kart".
 	echo    This is where your game data and addons may live.
 	echo    To create the folder, go here:
 	echo.
@@ -92,7 +92,7 @@ if errorlevel 1 (
 
 : CheckUserDir
 
-:: Check if we need to create !userprofile!\SRB2
+:: Check if we need to create !userprofile!\SRB2Kart
 
 set "USERDIR=!INSTALLDIR!"
 
@@ -130,7 +130,7 @@ goto MoveOldInstall
 : SetUserDir
 : CheckPermissionsUserDir
 
-set "USERDIR=!UserProfile!\SRB2"
+set "USERDIR=!UserProfile!\SRB2Kart"
 
 :: Check for permissions and create the folder
 if exist "!USERDIR!\*" (
@@ -170,18 +170,18 @@ echo     !INSTALLDIR! >> "!USERDIR!\^! Data and Mods Go Here ^!.txt"
 echo. >> "!USERDIR!\^! Data and Mods Go Here ^!.txt"
 echo To run SRB2, go to: >> "!USERDIR!\^! Data and Mods Go Here ^!.txt"
 echo. >> "!USERDIR!\^! Data and Mods Go Here ^!.txt"
-echo     Start Menu ^> Programs ^> Sonic Robo Blast 2 >> "!USERDIR!\^! Data and Mods Go Here ^!.txt"
+echo     Start Menu ^> Programs ^> SRB2Kart >> "!USERDIR!\^! Data and Mods Go Here ^!.txt"
 
 :: Copy path to install folder
 
 set "SCRIPT=!TEMP!\!RANDOM!-!RANDOM!-!RANDOM!-!RANDOM!.vbs"
 echo Set oWS = WScript.CreateObject("WScript.Shell") >> "!SCRIPT!"
-echo sLinkFile = "!USERDIR!\^! SRB2 Install Folder ^!.lnk" >> "!SCRIPT!"
+echo sLinkFile = "!USERDIR!\^! SRB2Kart Install Folder ^!.lnk" >> "!SCRIPT!"
 echo Set oLink = oWS.CreateShortcut(sLinkFile) >> "!SCRIPT!"
 echo oLink.TargetPath = "!INSTALLDIR!" >> "!SCRIPT!"
 echo oLink.WorkingDirectory = "!INSTALLDIR!" >> "!SCRIPT!"
 echo oLink.Arguments = "" >> "!SCRIPT!"
-echo oLink.IconLocation = "!INSTALLDIR!\srb2win.exe,0" >> "!SCRIPT!"
+echo oLink.IconLocation = "!INSTALLDIR!\srb2kart.exe,0" >> "!SCRIPT!"
 echo oLink.Save >> "!SCRIPT!"
 cscript /nologo "!SCRIPT!"
 del "!SCRIPT!"
@@ -190,12 +190,12 @@ del "!SCRIPT!"
 
 set "SCRIPT=!TEMP!\!RANDOM!-!RANDOM!-!RANDOM!-!RANDOM!.vbs"
 echo Set oWS = WScript.CreateObject("WScript.Shell") >> "!SCRIPT!"
-echo sLinkFile = "!INSTALLDIR!\^! SRB2 Data Folder ^!.lnk" >> "!SCRIPT!"
+echo sLinkFile = "!INSTALLDIR!\^! SRB2Kart Data Folder ^!.lnk" >> "!SCRIPT!"
 echo Set oLink = oWS.CreateShortcut(sLinkFile) >> "!SCRIPT!"
 echo oLink.TargetPath = "!USERDIR!" >> "!SCRIPT!"
 echo oLink.WorkingDirectory = "!USERDIR!" >> "!SCRIPT!"
 echo oLink.Arguments = "" >> "!SCRIPT!"
-echo oLink.IconLocation = "!INSTALLDIR!\srb2win.exe,0" >> "!SCRIPT!"
+echo oLink.IconLocation = "!INSTALLDIR!\srb2kart.exe,0" >> "!SCRIPT!"
 echo oLink.Save >> "!SCRIPT!"
 cscript /nologo "!SCRIPT!"
 del "!SCRIPT!"
@@ -288,9 +288,9 @@ echo !USERDIR! > "!INSTALLDIR!\uninstall-userdir.txt"
 echo uninstall.bat>> "!INSTALLDIR!\uninstall-list.txt"
 echo uninstall-list.txt>> "!INSTALLDIR!\uninstall-list.txt"
 echo uninstall-userdir.txt>> "!INSTALLDIR!\uninstall-list.txt"
-:: *ahem* Prints as ^! SRB2 Data Folder ^!.lnk
+:: *ahem* Prints as ^! SRB2Kart Data Folder ^!.lnk
 :: We need to escape the exclamations (^^!) and the carets themselves (^^^^)
-echo ^^^^^^! SRB2 Data Folder ^^^^^^!.lnk>> "!INSTALLDIR!\uninstall-list.txt"
+echo ^^^^^^! SRB2Kart Data Folder ^^^^^^!.lnk>> "!INSTALLDIR!\uninstall-list.txt"
 
 :: Add the uninstall list files to the uninstall EXE
 
@@ -317,7 +317,7 @@ for %%F in ("!STAGINGDIR!\*") DO (
 
 : Finished
 
-del /q /f "!INSTALLDIR!\^! SRB2 INSTALL INSTRUCTIONS ^!.txt"
+del /q /f "!INSTALLDIR!\^! SRB2KART INSTALL INSTRUCTIONS ^!.txt"
 
 set MSGEXE=
 if exist "!SystemRoot!\System32\msg.exe" (
@@ -330,30 +330,30 @@ if exist "!SystemRoot!\System32\msg.exe" (
 
 if ["!OLDINSTALLCHANGED!"] == ["1"] (
 	"!systemroot!\explorer.exe" /select, "!OLDINSTALLDIR!"
-	echo Finished^^! Some of your old installation files were moved to the "old-install" folder. > !TEMP!\srb2msgprompt.txt
-	echo. >> !TEMP!\srb2msgprompt.txt
-	echo If you no longer need these files, you may delete the folder safely. >> !TEMP!\srb2msgprompt.txt
-	echo. >> !TEMP!\srb2msgprompt.txt
-	echo To run SRB2, go to: Start Menu ^> Programs ^> Sonic Robo Blast 2. >> !TEMP!\srb2msgprompt.txt
-	!MSGEXE! "!username!" < !TEMP!\srb2msgprompt.txt
-	del !TEMP!\srb2msgprompt.txt
+	echo Finished^^! Some of your old installation files were moved to the "old-install" folder. > !TEMP!\srb2kartmsgprompt.txt
+	echo. >> !TEMP!\srb2kartmsgprompt.txt
+	echo If you no longer need these files, you may delete the folder safely. >> !TEMP!\srb2kartmsgprompt.txt
+	echo. >> !TEMP!\srb2kartmsgprompt.txt
+	echo To run SRB2Kart, go to: Start Menu ^> Programs ^> SRB2Kart. >> !TEMP!\srb2kartmsgprompt.txt
+	!MSGEXE! "!username!" < !TEMP!\srb2kartmsgprompt.txt
+	del !TEMP!\srb2kartmsgprompt.txt
 ) else (
 	if /I ["!USERDIR!"] == ["!INSTALLDIR!"] (
 		"!systemroot!\explorer.exe" "!INSTALLDIR!"
-		echo Finished^^! > !TEMP!\srb2msgprompt.txt
-		echo. >> !TEMP!\srb2msgprompt.txt
-		echo To run SRB2, go to: Start Menu ^> Programs ^> Sonic Robo Blast 2. >> !TEMP!\srb2msgprompt.txt
-		!MSGEXE! "!username!" < !TEMP!\srb2msgprompt.txt
-		del !TEMP!\srb2msgprompt.txt
+		echo Finished^^! > !TEMP!\srb2kartmsgprompt.txt
+		echo. >> !TEMP!\srb2kartmsgprompt.txt
+		echo To run SRB2Kart, go to: Start Menu ^> Programs ^> SRB2Kart. >> !TEMP!\srb2kartmsgprompt.txt
+		!MSGEXE! "!username!" < !TEMP!\srb2kartmsgprompt.txt
+		del !TEMP!\srb2kartmsgprompt.txt
 	) else (
 		"!systemroot!\explorer.exe" "!USERDIR!"
-		echo Finished^^! You may find your game data in this folder: > !TEMP!\srb2msgprompt.txt
-		echo. >> !TEMP!\srb2msgprompt.txt
-		echo     !USERDIR! >> !TEMP!\srb2msgprompt.txt
-		echo. >> !TEMP!\srb2msgprompt.txt
-		echo To run SRB2, go to: Start Menu ^> Programs ^> Sonic Robo Blast 2. >> !TEMP!\srb2msgprompt.txt
-		!MSGEXE! "!username!" < !TEMP!\srb2msgprompt.txt
-		del !TEMP!\srb2msgprompt.txt
+		echo Finished^^! You may find your game data in this folder: > !TEMP!\srb2kartmsgprompt.txt
+		echo. >> !TEMP!\srb2kartmsgprompt.txt
+		echo     !USERDIR! >> !TEMP!\srb2kartmsgprompt.txt
+		echo. >> !TEMP!\srb2kartmsgprompt.txt
+		echo To run SRB2Kart, go to: Start Menu ^> Programs ^> SRB2Kart. >> !TEMP!\srb2kartmsgprompt.txt
+		!MSGEXE! "!username!" < !TEMP!\srb2kartmsgprompt.txt
+		del !TEMP!\srb2kartmsgprompt.txt
 	)
 )
 
