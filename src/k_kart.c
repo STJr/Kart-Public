@@ -7888,7 +7888,7 @@ static void K_drawLapStartAnim(void)
 
 	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
 		(48 - (32*max(0, progress-76)))*FRACUNIT,
-		FRACUNIT, V_HUDTRANS,
+		FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 		(modeattacking ? kp_lapanim_emblem[1] : kp_lapanim_emblem[0]), colormap);
 
 	if (stplyr->kartstuff[k_laphand] >= 1 && stplyr->kartstuff[k_laphand] <= 3)
@@ -7896,7 +7896,7 @@ static void K_drawLapStartAnim(void)
 		V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
 			(48 - (32*max(0, progress-76))
 				+ 4 - abs((leveltime % 8) - 4))*FRACUNIT,
-			FRACUNIT, V_HUDTRANS,
+			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 			kp_lapanim_hand[stplyr->kartstuff[k_laphand]-1], NULL);
 	}
 
@@ -7904,14 +7904,14 @@ static void K_drawLapStartAnim(void)
 	{
 		V_DrawFixedPatch((62 - (32*max(0, progress-76)))*FRACUNIT, // 27
 			30*FRACUNIT, // 24
-			FRACUNIT, V_HUDTRANS,
+			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 			kp_lapanim_final[min(progress/2, 10)], NULL);
 
 		if (progress/2-12 >= 0)
 		{
 			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
 				30*FRACUNIT, // 24
-				FRACUNIT, V_HUDTRANS,
+				FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 				kp_lapanim_lap[min(progress/2-12, 6)], NULL);
 		}
 	}
@@ -7919,21 +7919,21 @@ static void K_drawLapStartAnim(void)
 	{
 		V_DrawFixedPatch((82 - (32*max(0, progress-76)))*FRACUNIT, // 61
 			30*FRACUNIT, // 24
-			FRACUNIT, V_HUDTRANS,
+			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 			kp_lapanim_lap[min(progress/2, 6)], NULL);
 
 		if (progress/2-8 >= 0)
 		{
 			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
 				30*FRACUNIT, // 24
-				FRACUNIT, V_HUDTRANS,
+				FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 				kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)], NULL);
 
 			if (progress/2-10 >= 0)
 			{
 				V_DrawFixedPatch((208 + (32*max(0, progress-76)))*FRACUNIT, // 221
 					30*FRACUNIT, // 24
-					FRACUNIT, V_HUDTRANS,
+					FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 					kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)], NULL);
 			}
 		}
