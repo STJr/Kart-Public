@@ -77,6 +77,11 @@ extern SDLJoyInfo_t JoyInfo4;
 
 void I_GetConsoleEvents(void);
 
+// So we can call this from i_video event loop
+void I_ShutdownJoystick(void);
+void I_ShutdownJoystick2(void);
+
+
 void SDLforceUngrabMouse(void);
 
 // Needed for some WIN32 functions

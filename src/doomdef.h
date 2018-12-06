@@ -140,7 +140,7 @@
 extern FILE *logstream;
 #endif
 
-//#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
 #define VERSION    0 // Game version
 #define SUBVERSION 0 // more precise version number
@@ -286,7 +286,7 @@ typedef enum
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
 	SKINCOLOR_JET,
-	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave â€“ slender aphrodite has overcome me with longing for a girl
+	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave – slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
 	SKINCOLOR_BLUE,
 	SKINCOLOR_BLUEBERRY,

@@ -8585,7 +8585,7 @@ static void M_DrawJoystick(void)
 	}
 }
 
-static void M_SetupJoystickMenu(INT32 choice)
+void M_SetupJoystickMenu(INT32 choice)
 {
 	INT32 i = 0;
 	const char *joyNA = "Unavailable";

@@ -9755,7 +9755,7 @@ static inline int lib_getenum(lua_State *L)
 	/*} else if (fastcmp(word,"admin")) { // Replaced with IsPlayerAdmin
 		if (!playeringame[adminplayer] || IsPlayerAdmin(serverplayer))
 			return 0;
-		LUA_PushUserdata(L, &players[adminplayer], META_PLAYER);
+		LUA_PushUserdata(L, &players[adminplayers[0]], META_PLAYER);
 		return 1;*/
 	} else if (fastcmp(word,"emeralds")) {
 		lua_pushinteger(L, emeralds);

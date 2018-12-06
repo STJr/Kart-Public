@@ -403,7 +403,6 @@ consvar_t cv_overtime = {"overtime", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, 
 consvar_t cv_rollingdemos = {"rollingdemos", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_timetic = {"timerres", "Normal", CV_SAVE|CV_NOSHOWHELP, timetic_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
-
 static CV_PossibleValue_t pointlimit_cons_t[] = {{0, "MIN"}, {999999990, "MAX"}, {0, NULL}};
 consvar_t cv_pointlimit = {"pointlimit", "0", CV_NETVAR|CV_CALL|CV_NOINIT, pointlimit_cons_t,
 	PointLimit_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -3533,11 +3532,7 @@ void SetAdminPlayer(INT32 playernum)
 			break; // End the loop now. If it keeps going, the same player might get assigned to two slots.
 		}
 
-		/*if (i == 3 && adminplayers[i] != -1) // End of the loop and all slots are full
-		{
-			adminplayers[0] = playernum; // Overwrite the first slot
-			break;
-		}*/
+
 	}
 }
 
@@ -3709,7 +3704,7 @@ static void Command_MotD_f(void)
 		}
 
 	if ((netgame || multiplayer) && client)
-		SendNetXCmd(XD_SETMOTD, mymotd, sizeof(motd));
+		SendNetXCmd(XD_SETMOTD, mymotd, i); // send the actual size of the motd string, not the full buffer's size
 	else
 	{
 		strcpy(motd, mymotd);
@@ -4146,6 +4141,47 @@ static void Command_Version_f(void)
 #else
 	CONS_Printf("SRB2Kart %s (%s %s %s)\n", VERSIONSTRING, compdate, comptime, comprevision);
 #endif
+
+	// Base library
+#if defined( HAVE_SDL)
+	CONS_Printf("SDL ");
+#elif defined(_WINDOWS)
+	CONS_Printf("DD ");
+#endif
+
+	// OS
+	// Would be nice to use SDL_GetPlatform for this
+#if defined(_WIN32)
+	CONS_Printf("Windows ");
+#elif defined(LINUX)
+	CONS_Printf("Linux ");
+#elif defined(MACOSX)
+	CONS_Printf("macOS" );
+#elif defined(UNIXCOMMON)
+	CONS_Printf("Unix (Common) ");
+#else
+	CONS_Printf("Other OS ");
+#endif
+
+	// Bitness
+	if (sizeof(void*) == 4)
+		CONS_Printf("32-bit ");
+	else if (sizeof(void*) == 8)
+		CONS_Printf("64-bit ");
+	else // 16-bit? 128-bit?
+		CONS_Printf("Bits Unknown ");
+
+	// No ASM?
+#ifdef NOASM
+	CONS_Printf("\x85" "NOASM " "\x80");
+#endif
+
+	// Debug build
+#ifdef _DEBUG
+	CONS_Printf("\x85" "DEBUG " "\x80");
+#endif
+
+	CONS_Printf("\n");
 }
 
 #ifdef UPDATE_ALERT
