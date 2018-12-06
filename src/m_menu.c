@@ -3409,7 +3409,7 @@ void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines)
 //
 // Draw border for the savegame description
 //
-static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
+/*static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
 {
 	INT32 i;
 
@@ -3422,7 +3422,7 @@ static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
 	}
 
 	V_DrawScaledPatch (x,y+7,0,W_CachePatchName("M_LSRGHT",PU_CACHE));
-}
+}*/
 
 // horizontally centered text
 static void M_CentreText(INT32 y, const char *string)
