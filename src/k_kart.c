@@ -2081,7 +2081,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 	player->kartstuff[k_squishedtimer] = TICRATE;
 
 	// Reduce Shrink timer
-	if (player->kartstuff[k_growshrinktimer] < 0)
+	if (player->kartstuff[k_growshrinktimer] < -2)
 	{
 		player->kartstuff[k_growshrinktimer] += TICRATE;
 		if (player->kartstuff[k_growshrinktimer] > -2)
