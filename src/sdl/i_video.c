@@ -819,6 +819,33 @@ static void Impl_HandleJoystickAxisEvent(SDL_JoyAxisEvent evt)
 	D_PostEvent(&event);
 }
 
+#if 0
+static void Impl_HandleJoystickHatEvent(SDL_JoyHatEvent evt)
+{
+	event_t event;
+	SDL_JoystickID joyid[2];
+
+	// Determine the Joystick IDs for each current open joystick
+	joyid[0] = SDL_JoystickInstanceID(JoyInfo.dev);
+	joyid[1] = SDL_JoystickInstanceID(JoyInfo2.dev);
+
+	if (evt.hat >= JOYHATS)
+		return; // ignore hats with too high an index
+
+	if (evt.which == joyid[0])
+	{
+		event.data1 = KEY_HAT1 + (evt.hat*4);
+	}
+	else if (evt.which == joyid[1])
+	{
+		event.data1 = KEY_2HAT1 + (evt.hat*4);
+	}
+	else return;
+
+	// NOTE: UNFINISHED
+}
+#endif
+
 static void Impl_HandleJoystickButtonEvent(SDL_JoyButtonEvent evt, Uint32 type)
 {
 	event_t event;
@@ -866,6 +893,8 @@ static void Impl_HandleJoystickButtonEvent(SDL_JoyButtonEvent evt, Uint32 type)
 	if (event.type != ev_console) D_PostEvent(&event);
 }
 
+
+
 void I_GetEvent(void)
 {
 	SDL_Event evt;
@@ -906,6 +935,11 @@ void I_GetEvent(void)
 			case SDL_JOYAXISMOTION:
 				Impl_HandleJoystickAxisEvent(evt.jaxis);
 				break;
+#if 0
+			case SDL_JOYHATMOTION:
+				Impl_HandleJoystickHatEvent(evt.jhat)
+				break;
+#endif
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 				Impl_HandleJoystickButtonEvent(evt.jbutton, evt.type);

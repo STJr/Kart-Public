@@ -923,8 +923,8 @@ void I_GetJoystickEvents(void)
 	UINT64 joyhats = 0;
 #if 0
 	UINT64 joybuttons = 0;
-#endif
 	Sint16 axisx, axisy;
+#endif
 
 	if (!joystick_started) return;
 
@@ -992,6 +992,7 @@ void I_GetJoystickEvents(void)
 		}
 	}
 
+#if 0
 	// send joystick axis positions
 	event.type = ev_joystick;
 
@@ -1042,6 +1043,7 @@ void I_GetJoystickEvents(void)
 		}
 		D_PostEvent(&event);
 	}
+#endif
 }
 
 /**	\brief	Open joystick handle
@@ -1206,8 +1208,8 @@ void I_GetJoystick2Events(void)
 	UINT64 joyhats = 0;
 #if 0
 	INT64 joybuttons = 0;
-#endif
 	INT32 axisx, axisy;
+#endif
 
 	if (!joystick2_started)
 		return;
@@ -1277,6 +1279,7 @@ void I_GetJoystick2Events(void)
 		}
 	}
 
+#if 0
 	// send joystick axis positions
 	event.type = ev_joystick2;
 
@@ -1327,7 +1330,7 @@ void I_GetJoystick2Events(void)
 		}
 		D_PostEvent(&event);
 	}
-
+#endif
 }
 
 /**	\brief	Open joystick handle
@@ -2083,18 +2086,28 @@ INT32 I_NumJoys(void)
 	return numjoy;
 }
 
+static char joyname[255]; // MAX_PATH; joystick name is straight from the driver
+
 const char *I_GetJoyName(INT32 joyindex)
 {
-	const char *joyname = "NA";
+	const char *tempname = NULL;
 	joyindex--; //SDL's Joystick System starts at 0, not 1
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != -1)
-			joyname = SDL_JoystickNameForIndex(joyindex);
+		{
+			tempname = SDL_JoystickNameForIndex(joyindex);
+			if (tempname)
+				strncpy(joyname, tempname, 255);
+		}
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 	}
 	else
-		joyname = SDL_JoystickNameForIndex(joyindex);
+	{
+		tempname = SDL_JoystickNameForIndex(joyindex);
+		if (tempname)
+			strncpy(joyname, tempname, 255);
+	}
 	return joyname;
 }
 
