@@ -133,16 +133,16 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 
 // Locations for searching the srb2.srb
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
-#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2"
-#define DEFAULTWADLOCATION2 "/usr/local/games/SRB2"
-#define DEFAULTWADLOCATION3 "/usr/share/games/SRB2"
-#define DEFAULTWADLOCATION4 "/usr/games/SRB2"
+#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION2 "/usr/local/games/SRB2Kart"
+#define DEFAULTWADLOCATION3 "/usr/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION4 "/usr/games/SRB2Kart"
 #define DEFAULTSEARCHPATH1 "/usr/local/games"
 #define DEFAULTSEARCHPATH2 "/usr/games"
 #define DEFAULTSEARCHPATH3 "/usr/local"
 #elif defined (_WIN32)
-#define DEFAULTWADLOCATION1 "c:\\games\\srb2"
-#define DEFAULTWADLOCATION2 "\\games\\srb2"
+#define DEFAULTWADLOCATION1 "c:\\games\\srb2kart"
+#define DEFAULTWADLOCATION2 "\\games\\srb2kart"
 #define DEFAULTSEARCHPATH1 "c:\\games"
 #define DEFAULTSEARCHPATH2 "\\games"
 #endif
@@ -2184,7 +2184,7 @@ void I_UpdateMumble(const mobj_t *mobj, const listener_t listener)
 
 	if(mumble->uiVersion != 2) {
 		wcsncpy(mumble->name, L"SRB2Kart "VERSIONSTRINGW, 256);
-		wcsncpy(mumble->description, L"Sonic Robo Blast 2 with integrated Mumble Link support.", 2048);
+		wcsncpy(mumble->description, L"Sonic Robo Blast 2 Kart with integrated Mumble Link support.", 2048);
 		mumble->uiVersion = 2;
 	}
 	mumble->uiTick++;

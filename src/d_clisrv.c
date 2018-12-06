@@ -1916,7 +1916,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 				M_StartMessage(M_GetText(
 					"You have too many WAD files loaded\n"
 					"to add ones the server is using.\n"
-					"Please restart SRB2 before connecting.\n\n"
+					"Please restart SRB2Kart before connecting.\n\n"
 					"Press ESC\n"
 				), NULL, MM_NOTHING);
 				return false;
@@ -3552,7 +3552,7 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("You have been banned\nfrom the server"));
 	else if (netbuffer->u.clientcfg.version != VERSION
 		|| netbuffer->u.clientcfg.subversion != SUBVERSION)
-		SV_SendRefuse(node, va(M_GetText("Different SRB2 versions cannot\nplay a netgame!\n(server version %d.%d.%d)"), VERSION/100, VERSION%100, SUBVERSION));
+		SV_SendRefuse(node, va(M_GetText("Different SRB2Kart versions cannot\nplay a netgame!\n(server version %d.%d.%d)"), VERSION/100, VERSION%100, SUBVERSION));
 	else if (!cv_allownewplayer.value && node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
 	else if (D_NumPlayers() >= maxplayers)

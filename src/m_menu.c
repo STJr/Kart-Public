@@ -4887,7 +4887,7 @@ static void M_HandleAddons(INT32 choice)
 						case EXT_LUA:
 #ifndef HAVE_BLUA
 							S_StartSound(NULL, sfx_s26d);
-							M_StartMessage(va("%c%s\x80\nThis copy of SRB2 was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
+							M_StartMessage(va("%c%s\x80\nThis copy of SRB2Kart was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
 							break;
 #endif
 						// else intentional fallthrough

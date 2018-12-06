@@ -1563,7 +1563,7 @@ void I_StartupGraphics(void)
 		HWD.pfnDrawScreenFinalTexture=hwSym("DrawScreenFinalTexture",NULL);
 		// check gl renderer lib
 		if (HWD.pfnGetRenderVersion() != VERSION)
-			I_Error("%s", M_GetText("The version of the renderer doesn't match the version of the executable\nBe sure you have installed SRB2 properly.\n"));
+			I_Error("%s", M_GetText("The version of the renderer doesn't match the version of the executable\nBe sure you have installed SRB2Kart properly.\n"));
 		if (!HWD.pfnInit(I_Error)) // let load the OpenGL library
 		{
 			rendermode = render_soft;
