@@ -471,6 +471,7 @@ static const char *credits[] = {
 	"\"Spherallic\"",
 	"\"VAdaPEGA\"",
 	"\"Virt\"",
+	"\"zxyspku\"",
 	"",
 	"\1Sound Design",
 	"James \"SeventhSentinel\" Hall",
@@ -585,7 +586,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(101*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(102*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
