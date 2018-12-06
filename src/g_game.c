@@ -1209,7 +1209,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
-	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, usejoystick, analogjoystickmove, gamepadjoystickmove, kbl, rd;
+	boolean turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
+	boolean invertmouse, lookaxis, usejoystick, kbl, rd;
 	player_t *player;
 	camera_t *thiscam;
 	angle_t lang;
