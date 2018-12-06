@@ -3277,7 +3277,7 @@ static void K_DoShrink(player_t *user)
 			}
 
 			// Grow should get taken away.
-			if (players[i].kartstuff[k_growshrinktimer] > 0)
+			if (players[i].kartstuff[k_growshrinktimer] > 2)
 				players[i].kartstuff[k_growshrinktimer] = 2;
 
 			//P_FlashPal(&players[i], PAL_NUKE, 10);
