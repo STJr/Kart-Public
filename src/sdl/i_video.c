@@ -72,6 +72,7 @@
 #include "../console.h"
 #include "../command.h"
 #include "sdlmain.h"
+#include "../i_system.h"
 #ifdef HWRENDER
 #include "../hardware/hw_main.h"
 #include "../hardware/hw_drv.h"

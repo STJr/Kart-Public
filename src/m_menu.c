@@ -2461,44 +2461,42 @@ boolean M_Responder(event_t *ev)
 		// (but still allow shift keyup so caps doesn't get stuck)
 		return false;
 	}
+	else if (ev->type == ev_keydown)
+	{
+		ch = ev->data1;
+
+		// added 5-2-98 remap virtual keys (mouse & joystick buttons)
+		switch (ch)
+		{
+			case KEY_MOUSE1:
+				//case KEY_JOY1:
+				//case KEY_JOY1 + 2:
+				ch = KEY_ENTER;
+				break;
+				/*case KEY_JOY1 + 3: // Brake can function as 'n' for message boxes now.
+					ch = 'n';
+					break;*/
+			case KEY_MOUSE1 + 1:
+				//case KEY_JOY1 + 1:
+				ch = KEY_BACKSPACE;
+				break;
+			case KEY_HAT1:
+				ch = KEY_UPARROW;
+				break;
+			case KEY_HAT1 + 1:
+				ch = KEY_DOWNARROW;
+				break;
+			case KEY_HAT1 + 2:
+				ch = KEY_LEFTARROW;
+				break;
+			case KEY_HAT1 + 3:
+				ch = KEY_RIGHTARROW;
+				break;
+		}
+	}
 	else if (menuactive)
 	{
-		if (ev->type == ev_keydown)
-		{
-			ch = ev->data1;
-
-			// added 5-2-98 remap virtual keys (mouse & joystick buttons)
-			switch (ch)
-			{
-				case KEY_MOUSE1:
-				case KEY_JOY1:
-					ch = KEY_ENTER;
-					break;
-				case KEY_JOY1 + 3:
-					ch = 'n';
-					break;
-				case KEY_MOUSE1 + 1:
-				case KEY_JOY1 + 1:
-					ch = KEY_ESCAPE;
-					break;
-				case KEY_JOY1 + 2:
-					ch = KEY_BACKSPACE;
-					break;
-				case KEY_HAT1:
-					ch = KEY_UPARROW;
-					break;
-				case KEY_HAT1 + 1:
-					ch = KEY_DOWNARROW;
-					break;
-				case KEY_HAT1 + 2:
-					ch = KEY_LEFTARROW;
-					break;
-				case KEY_HAT1 + 3:
-					ch = KEY_RIGHTARROW;
-					break;
-			}
-		}
-		else if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
+		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
 		{
 			const INT32 jdeadzone = JOYAXISRANGE/4;
 			if (ev->data3 != INT32_MAX)
@@ -2579,6 +2577,8 @@ boolean M_Responder(event_t *ev)
 		return false;
 	else if (ch == gamecontrol[gc_systemmenu][0] || ch == gamecontrol[gc_systemmenu][1]) // allow remappable ESC key
 		ch = KEY_ESCAPE;
+	else if (ch == gamecontrol[gc_accelerate][0] || ch == gamecontrol[gc_accelerate][1])
+		ch = KEY_ENTER;
 
 	// F-Keys
 	if (!menuactive)
@@ -2654,6 +2654,9 @@ boolean M_Responder(event_t *ev)
 		noFurtherInput = false; // turns out we didn't care
 		return false;
 	}
+
+	if (ch == gamecontrol[gc_brake][0] || ch == gamecontrol[gc_brake][1]) // do this here, otherwise brake opens the menu mid-game
+		ch = KEY_ESCAPE;
 
 	routine = currentMenu->menuitems[itemOn].itemaction;
 
@@ -2789,6 +2792,7 @@ boolean M_Responder(event_t *ev)
 			return true;
 
 		case KEY_ESCAPE:
+		//case KEY_JOY1 + 2:
 			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
 			if (currentMenu->prevMenu)
