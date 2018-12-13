@@ -3009,7 +3009,7 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 	fixed_t topz;
 	fixed_t a, b, c;
 	mobjtype_t type = MT_ROCKCRUMBLE1;
-	const fixed_t spacing = 48*mapheaderinfo[gamemap-1]->mobj_scale;
+	const fixed_t spacing = 48*mapobjectscale;
 
 	// If the control sector has a special
 	// of Section3:7-15, use the custom debris.

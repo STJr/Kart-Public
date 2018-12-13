@@ -9793,6 +9793,9 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"spbplace")) {
 		lua_pushinteger(L, spbplace);
 		return 1;
+	} else if (fastcmp(word,"mapobjectscale")) {
+		lua_pushinteger(L, mapobjectscale);
+		return 1;
 	}
 
 	return 0;
