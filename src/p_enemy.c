@@ -8276,7 +8276,7 @@ void A_JawzChase(mobj_t *actor)
 			ret->frame |= ((leveltime % 10) / 2) + 5;
 			ret->color = actor->cvmem;
 
-			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
+			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), (7*actor->movefactor)/64);
 			return;
 		}
 		else
