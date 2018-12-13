@@ -2892,7 +2892,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		return NULL;
 
 	// Figure out projectile speed by game speed
-	if (missile) // Trying to keep compatability...
+	if (missile && mapthing != MT_BALLHOG) // Trying to keep compatability...
 	{
 		PROJSPEED = mobjinfo[mapthing].speed;
 		if (gamespeed == 0)
