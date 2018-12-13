@@ -8348,11 +8348,7 @@ void A_SPBChase(mobj_t *actor)
 #endif
 
 	// Default speed
-	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
-	if (gamespeed == 0)
-		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
-	else if (gamespeed == 2)
-		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
+	wspeed = actor->movefactor;
 
 	if (actor->threshold) // Just fired, go straight.
 	{

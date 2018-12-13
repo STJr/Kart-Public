@@ -2539,8 +2539,10 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t an, I
 				th->cvmem = SKINCOLOR_KETCHUP;
 			/* FALLTHRU */
 		case MT_JAWZ_DUD:
-			th->movefactor = finalspeed;
 			S_StartSound(th, th->info->activesound);
+			/* FALLTHRU */
+		case MT_SPB:
+			th->movefactor = finalspeed;
 			break;
 		default:
 			break;
@@ -2890,7 +2892,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		return NULL;
 
 	// Figure out projectile speed by game speed
-	if (mapthing == MT_ORBINAUT || mapthing == MT_JAWZ || mapthing == MT_JAWZ_DUD) // Trying to keep compatability...
+	if (missile) // Trying to keep compatability...
 	{
 		PROJSPEED = mobjinfo[mapthing].speed;
 		if (gamespeed == 0)
