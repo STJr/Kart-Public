@@ -462,7 +462,7 @@ consvar_t cv_brakeaxis = {"joyaxis_brake", "None", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_aimaxis = {"joyaxis_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_lookaxis = {"joyaxis_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis = {"joyaxis_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_driftaxis = {"joyaxis_drift", "Z-Axis-", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_driftaxis = {"joyaxis_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis2 = {"joyaxis2_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis2 = {"joyaxis2_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -470,7 +470,7 @@ consvar_t cv_brakeaxis2 = {"joyaxis2_brake", "None", CV_SAVE, joyaxis_cons_t, NU
 consvar_t cv_aimaxis2 = {"joyaxis2_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_lookaxis2 = {"joyaxis2_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis2 = {"joyaxis2_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_driftaxis2 = {"joyaxis2_drift", "Z-Axis-", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_driftaxis2 = {"joyaxis2_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis3 = {"joyaxis3_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis3 = {"joyaxis3_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -478,7 +478,7 @@ consvar_t cv_brakeaxis3 = {"joyaxis3_brake", "None", CV_SAVE, joyaxis_cons_t, NU
 consvar_t cv_aimaxis3 = {"joyaxis3_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_lookaxis3 = {"joyaxis3_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis3 = {"joyaxis3_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_driftaxis3 = {"joyaxis3_drift", "Z-Axis-", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_driftaxis3 = {"joyaxis3_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis4 = {"joyaxis4_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis4 = {"joyaxis4_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -486,7 +486,7 @@ consvar_t cv_brakeaxis4 = {"joyaxis4_brake", "None", CV_SAVE, joyaxis_cons_t, NU
 consvar_t cv_aimaxis4 = {"joyaxis4_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_lookaxis4 = {"joyaxis4_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis4 = {"joyaxis4_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_driftaxis4 = {"joyaxis4_drift", "Z-Axis-", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_driftaxis4 = {"joyaxis4_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 
 #if MAXPLAYERS > 16

@@ -1113,7 +1113,10 @@ static int joy_open(const char *fname)
 	}
 	else
 	{
-		CONS_Printf(M_GetText("Joystick: %s\n"), SDL_JoystickName(JoyInfo.dev));
+		if (JoyInfo.gamepad)
+			CONS_Printf(M_GetText("Game Controller: %s\n"), SDL_GameControllerName(JoyInfo.gamepad));
+		else
+			CONS_Printf(M_GetText("Joystick: %s\n"), SDL_JoystickName(JoyInfo.dev));
 		JoyInfo.axises = SDL_JoystickNumAxes(JoyInfo.dev);
 		if (JoyInfo.axises > JOYAXISSET*2)
 			JoyInfo.axises = JOYAXISSET*2;
