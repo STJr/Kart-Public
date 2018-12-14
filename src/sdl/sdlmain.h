@@ -41,6 +41,8 @@ typedef struct SDLJoyInfo_s
 	SDL_Joystick *dev;
 	/// GameController handle
 	SDL_GameController *gamepad;
+	/// Joystick GUID
+	SDL_JoystickGUID guid;
 	/// number of old joystick
 	int oldjoy;
 	/// number of axies

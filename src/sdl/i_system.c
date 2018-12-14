@@ -1106,6 +1106,8 @@ static int joy_open(const char *fname)
 	else
 		JoyInfo.dev = SDL_JoystickOpen(joyindex-1);
 
+	JoyInfo.guid = SDL_JoystickGetGUID(JoyInfo.dev);
+
 	if (JoyInfo.dev == NULL)
 	{
 		CONS_Printf(M_GetText("Couldn't open joystick: %s\n"), SDL_GetError());
@@ -1114,7 +1116,10 @@ static int joy_open(const char *fname)
 	else
 	{
 		if (JoyInfo.gamepad)
+		{
 			CONS_Printf(M_GetText("Game Controller: %s\n"), SDL_GameControllerName(JoyInfo.gamepad));
+			CONS_Printf(M_GetText("Mapping: %s\n"), SDL_GameControllerMapping(JoyInfo.gamepad));
+		}
 		else
 			CONS_Printf(M_GetText("Joystick: %s\n"), SDL_JoystickName(JoyInfo.dev));
 		JoyInfo.axises = SDL_JoystickNumAxes(JoyInfo.dev);
@@ -2101,6 +2106,22 @@ INT32 I_NumJoys(void)
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
 		numjoy = SDL_NumJoysticks();
 	return numjoy;
+}
+
+INT32 I_NumGameControllers(void)
+{
+	INT32 numgc = 0;
+	INT32 numjoy = I_NumJoys();
+	INT32 i;
+	if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == SDL_INIT_GAMECONTROLLER)
+	{
+		for (i = 0; i < numjoy; i++)
+		{
+			if (SDL_IsGameController(i))
+				numgc++;
+		}
+	}
+	return numgc;
 }
 
 static char joyname[255]; // MAX_PATH; joystick name is straight from the driver
