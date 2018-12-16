@@ -832,7 +832,8 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 	FSurfaceInfo Surf;
 
 	char filename[64];
-	INT32 frame;
+	INT32 frame = 0;
+	INT32 nextFrame = -1;
 	FTransform p;
 	md2_t *md2;
 	UINT8 color[4];
@@ -1074,7 +1075,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		p.flip = atransform.flip;
 		p.mirror = atransform.mirror;
 
-		HWD.pfnDrawModel(md2->model, curr, durs, tics, next, &p, finalscale, flip, color);
+		HWD.pfnDrawModel(md2->model, frame, durs, tics, nextFrame, &p, finalscale, flip, color);
 	}
 }
 
