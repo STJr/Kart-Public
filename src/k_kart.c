@@ -2464,25 +2464,25 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 	}
 }
 
-static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle, INT32 flags2, fixed_t speed)
+static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t an, INT32 flags2, fixed_t speed)
 {
 	mobj_t *th;
-	angle_t an;
 	fixed_t x, y, z;
 	fixed_t finalspeed = speed;
 	mobj_t *throwmo;
-	//INT32 dir;
-
-	// angle at which you fire, is player angle
-	an = angle;
-
-	//if (source->player->kartstuff[k_throwdir] != 0)
-	//	dir = source->player->kartstuff[k_throwdir];
-	//else
-	//	dir = 1;
 
 	if (source->player && source->player->speed > K_GetKartSpeed(source->player, false))
-		finalspeed = FixedMul(speed, FixedDiv(source->player->speed, K_GetKartSpeed(source->player, false)));
+	{
+		angle_t input = source->angle - an;
+		boolean invert = (input > ANGLE_180);
+		if (invert)
+			input = InvAngle(input);
+
+		finalspeed = max(speed, FixedMul(speed, FixedMul(
+			FixedDiv(source->player->speed, K_GetKartSpeed(source->player, false)), // Multiply speed to be proportional to your own, boosted maxspeed.
+			(((180<<FRACBITS) - AngleFixed(input)) / 180) // multiply speed based on angle diff... i.e: don't do this for firing backward :V
+			)));
+	}
 
 	x = source->x + source->momx + FixedMul(finalspeed, FINECOSINE(an>>ANGLETOFINESHIFT));
 	y = source->y + source->momy + FixedMul(finalspeed, FINESINE(an>>ANGLETOFINESHIFT));
@@ -2499,15 +2499,8 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 
 	th->threshold = 10;
 
-#ifdef WEAPON_SFX
-	//Since rail and bounce have no thrown objects, this hack is necessary.
-	//Is creating thrown objects for rail and bounce more or less desirable than this?
-	if (th->info->seesound && !(th->flags2 & MF2_RAILRING) && !(th->flags2 & MF2_SCATTER))
-		S_StartSound(source, th->info->seesound);
-#else
 	if (th->info->seesound)
 		S_StartSound(source, th->info->seesound);
-#endif
 
 	P_SetTarget(&th->target, source);
 
@@ -2537,6 +2530,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 				th->color = source->player->skincolor;
 			else
 				th->color = SKINCOLOR_GREY;
+			th->movefactor = finalspeed;
 			break;
 		case MT_JAWZ:
 			if (source && source->player)
@@ -2546,6 +2540,9 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t angle
 			/* FALLTHRU */
 		case MT_JAWZ_DUD:
 			S_StartSound(th, th->info->activesound);
+			/* FALLTHRU */
+		case MT_SPB:
+			th->movefactor = finalspeed;
 			break;
 		default:
 			break;
@@ -2895,17 +2892,29 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		return NULL;
 
 	// Figure out projectile speed by game speed
-	switch (gamespeed)
+	if (missile && mapthing != MT_BALLHOG) // Trying to keep compatability...
 	{
-		case 0:
-			PROJSPEED = 68*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 34
-			break;
-		case 2:
-			PROJSPEED = 96*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 48
-			break;
-		default:
-			PROJSPEED = 82*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 41
-			break;
+		PROJSPEED = mobjinfo[mapthing].speed;
+		if (gamespeed == 0)
+			PROJSPEED = FixedMul(PROJSPEED, FRACUNIT-FRACUNIT/4);
+		else if (gamespeed == 2)
+			PROJSPEED = FixedMul(PROJSPEED, FRACUNIT+FRACUNIT/4);
+		PROJSPEED = FixedMul(PROJSPEED, mapheaderinfo[gamemap-1]->mobj_scale);
+	}
+	else
+	{
+		switch (gamespeed)
+		{
+			case 0:
+				PROJSPEED = 68*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 34
+				break;
+			case 2:
+				PROJSPEED = 96*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 48
+				break;
+			default:
+				PROJSPEED = 82*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 41
+				break;
+		}
 	}
 
 	if (altthrow)
@@ -2965,7 +2974,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (dir == -1 && mapthing != MT_SPB)
 			{
 				// Shoot backward
-				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/4);
+				mo = K_SpawnKartMissile(player->mo, mapthing, player->mo->angle + ANGLE_180, 0, PROJSPEED/2);
 			}
 			else
 			{
