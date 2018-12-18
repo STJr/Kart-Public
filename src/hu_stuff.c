@@ -469,7 +469,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 		const char *newmsg;
 		int spc = 1;	// used if nodenum[1] is a space.
 		char *nodenum = (char*) malloc(3);
-		strncpy(nodenum, msg+3, 5);
+		strncpy(nodenum, msg+3, 3);
 		// check for undesirable characters in our "number"
 		if 	(((nodenum[0] < '0') || (nodenum[0] > '9')) || ((nodenum[1] < '0') || (nodenum[1] > '9')))
 		{
@@ -977,7 +977,7 @@ static void HU_queueChatChar(INT32 c)
 
 			spc = 1;	// used if nodenum[1] is a space.
 			nodenum = (char*) malloc(3);
-			strncpy(nodenum, msg+3, 5);
+			strncpy(nodenum, msg+3, 3);
 			// check for undesirable characters in our "number"
 			if 	(((nodenum[0] < '0') || (nodenum[0] > '9')) || ((nodenum[1] < '0') || (nodenum[1] > '9')))
 			{
@@ -1679,7 +1679,7 @@ static void HU_DrawChat(void)
 
 
 				nodenum = (char*) malloc(3);
-				strncpy(nodenum, w_chat+3, 4);
+				strncpy(nodenum, w_chat+3, 3);
 				n = atoi((const char*) nodenum);	// turn that into a number
 				// special cases:
 
