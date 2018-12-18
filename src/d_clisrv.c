@@ -3976,7 +3976,7 @@ FILESTAMP
 				CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
 				//D_Clearticcmd(k);
 
-				buf[0] = (char)node;
+				buf[0] = (char)netconsole;
 				buf[1] = KICK_MSG_CON_FAIL;
 				SendNetXCmd(XD_KICK, &buf, 2);
 				break;
@@ -3999,7 +3999,7 @@ FILESTAMP
 					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
 					//D_Clearticcmd(k);
 
-					buf[0] = (char)node;
+					buf[0] = (char)nodetoplayer2[node];
 					buf[1] = KICK_MSG_CON_FAIL;
 					SendNetXCmd(XD_KICK, &buf, 2);
 					break;
@@ -4021,7 +4021,7 @@ FILESTAMP
 					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
 					//D_Clearticcmd(k);
 
-					buf[0] = (char)node;
+					buf[0] = (char)nodetoplayer3[node];
 					buf[1] = KICK_MSG_CON_FAIL;
 					SendNetXCmd(XD_KICK, &buf, 2);
 					break;
@@ -4042,7 +4042,7 @@ FILESTAMP
 					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
 					//D_Clearticcmd(k);
 
-					buf[0] = (char)node;
+					buf[0] = (char)nodetoplayer4[node];
 					buf[1] = KICK_MSG_CON_FAIL;
 					SendNetXCmd(XD_KICK, &buf, 2);
 					break;
