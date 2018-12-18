@@ -4796,17 +4796,8 @@ static void P_3dMovement(player_t *player)
 			cmd->forwardmove = 50;
 	}
 
-	if (cmd->forwardmove > MAXPLMOVE)
-		cmd->forwardmove = MAXPLMOVE;
-	else if (cmd->forwardmove < -MAXPLMOVE)
-		cmd->forwardmove = -MAXPLMOVE;
-
 	if (!(player->pflags & PF_FORCESTRAFE) && !player->kartstuff[k_pogospring])
 		cmd->sidemove = 0;
-	else if (cmd->sidemove > MAXPLMOVE)
-		cmd->sidemove = MAXPLMOVE;
-	else if (cmd->sidemove < -MAXPLMOVE)
-		cmd->sidemove = -MAXPLMOVE;
 
 	if (analogmove)
 	{

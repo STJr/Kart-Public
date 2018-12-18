@@ -1503,8 +1503,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	mousex = mousey = mlooky = 0;
 
-	// moved to P_3DMovement
-	/*if (forward > MAXPLMOVE)
+	if (forward > MAXPLMOVE)
 		forward = MAXPLMOVE;
 	else if (forward < -MAXPLMOVE)
 		forward = -MAXPLMOVE;
@@ -1512,7 +1511,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (side > MAXPLMOVE)
 		side = MAXPLMOVE;
 	else if (side < -MAXPLMOVE)
-		side = -MAXPLMOVE;*/
+		side = -MAXPLMOVE;
 
 	if (forward || side)
 	{
