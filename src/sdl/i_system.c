@@ -193,12 +193,11 @@ static char returnWadPath[256];
 */
 static void JoyReset(SDLJoyInfo_t *JoySet)
 {
-	if (JoySet->gamepad)
-		SDL_GameControllerClose(JoySet->gamepad);
-	else if (JoySet->dev)
+	if (JoySet->dev)
+	{
 		SDL_JoystickClose(JoySet->dev);
+	}
 	JoySet->dev = NULL;
-	JoySet->gamepad = NULL;
 	JoySet->oldjoy = -1;
 	JoySet->axises = JoySet->buttons = JoySet->hats = JoySet->balls = 0;
 	//JoySet->scale
@@ -1052,10 +1051,9 @@ static int joy_open(const char *fname)
 {
 	int joyindex = atoi(fname);
 	int num_joy = 0;
-	int num_gc = 0;
 	int i;
 
-	if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0)
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
 		CONS_Printf(M_GetText("Joystick subsystem not started\n"));
 		return -1;
@@ -1075,14 +1073,7 @@ static int joy_open(const char *fname)
 		{
 			CONS_Printf(M_GetText("Found %d joysticks on this system\n"), num_joy);
 			for (i = 0; i < num_joy; i++)
-			{
-				if (SDL_IsGameController(i))
-				{
-					num_gc++;
-					CONS_Printf("#%d/(%s) GC\n", i + 1, SDL_GameControllerNameForIndex(i));
-				}
-				CONS_Printf("#%d/(%s)\n", i + 1, SDL_JoystickNameForIndex(i));
-			}
+				CONS_Printf("#%d/(%s)\n", i+1, SDL_JoystickNameForIndex(i));
 
 			if (num_joy < joyindex)
 			{
@@ -1098,15 +1089,8 @@ static int joy_open(const char *fname)
 			return 0;
 		}
 	}
-	if (SDL_IsGameController(joyindex - 1))
-	{
-		JoyInfo.gamepad = SDL_GameControllerOpen(joyindex - 1);
-		JoyInfo.dev = SDL_GameControllerGetJoystick(JoyInfo.gamepad);
-	}
-	else
-		JoyInfo.dev = SDL_JoystickOpen(joyindex-1);
 
-	JoyInfo.guid = SDL_JoystickGetGUID(JoyInfo.dev);
+	JoyInfo.dev = SDL_JoystickOpen(joyindex-1);
 
 	if (JoyInfo.dev == NULL)
 	{
@@ -1115,13 +1099,7 @@ static int joy_open(const char *fname)
 	}
 	else
 	{
-		if (JoyInfo.gamepad)
-		{
-			CONS_Printf(M_GetText("Game Controller: %s\n"), SDL_GameControllerName(JoyInfo.gamepad));
-			CONS_Printf(M_GetText("Mapping: %s\n"), SDL_GameControllerMapping(JoyInfo.gamepad));
-		}
-		else
-			CONS_Printf(M_GetText("Joystick: %s\n"), SDL_JoystickName(JoyInfo.dev));
+		CONS_Printf(M_GetText("Joystick: %s\n"), SDL_JoystickName(JoyInfo.dev));
 		JoyInfo.axises = SDL_JoystickNumAxes(JoyInfo.dev);
 		if (JoyInfo.axises > JOYAXISSET*2)
 			JoyInfo.axises = JOYAXISSET*2;
@@ -1994,10 +1972,10 @@ void I_InitJoystick(void)
 	if (M_CheckParm("-nojoy"))
 		return;
 
-	if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0)
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
 		CONS_Printf("Initing joy system\n");
-		if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == -1)
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 		{
 			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
 			return;
@@ -2090,12 +2068,12 @@ static void I_ShutdownInput(void)
 	I_ShutdownJoystick();
 	I_ShutdownJoystick2();
 
-	if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == SDL_INIT_GAMECONTROLLER)
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
 	{
 		CONS_Printf("Shutting down joy system\n");
 		JoyReset(&JoyInfo3);
 		JoyReset(&JoyInfo4);
-		SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 		I_OutputMsg("I_Joystick: SDL's Joystick system has been shutdown\n");
 	}
 }
@@ -2106,22 +2084,6 @@ INT32 I_NumJoys(void)
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
 		numjoy = SDL_NumJoysticks();
 	return numjoy;
-}
-
-INT32 I_NumGameControllers(void)
-{
-	INT32 numgc = 0;
-	INT32 numjoy = I_NumJoys();
-	INT32 i;
-	if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == SDL_INIT_GAMECONTROLLER)
-	{
-		for (i = 0; i < numjoy; i++)
-		{
-			if (SDL_IsGameController(i))
-				numgc++;
-		}
-	}
-	return numgc;
 }
 
 static char joyname[255]; // MAX_PATH; joystick name is straight from the driver
