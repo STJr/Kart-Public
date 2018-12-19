@@ -1971,6 +1971,7 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 
 	pglEnable(GL_CULL_FACE);
 
+#ifdef USE_FTRANSFORM_MIRROR
 	// flipped is if the object is flipped
 	// pos->flip is if the screen is flipped vertically
 	// pos->mirror is if the screen is flipped horizontally
@@ -1982,6 +1983,17 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 		else
 			pglCullFace(GL_BACK);
 	}
+#else
+	// pos->flip is if the screen is flipped too
+	if (flipped != pos->flip) // If either are active, but not both, invert the model's culling
+	{
+		pglCullFace(GL_FRONT);
+	}
+	else
+	{
+		pglCullFace(GL_BACK);
+	}
+#endif
 
 #ifndef KOS_GL_COMPATIBILITY
 	pglLightfv(GL_LIGHT0, GL_POSITION, LightPos);
@@ -2006,7 +2018,9 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	pglTranslatef(pos->x, pos->z, pos->y);
 	if (flipped)
 		scaley = -scaley;
-	pglRotatef(pos->anglez, 0.0f, 0.0f, -1.0f);
+#ifdef USE_FTRANSFORM_ANGLEZ
+	pglRotatef(pos->anglez, 0.0f, 0.0f, -1.0f); // rotate by slope from Kart
+#endif
 	pglRotatef(pos->anglex, -1.0f, 0.0f, 0.0f);
 	pglRotatef(pos->angley, 0.0f, -1.0f, 0.0f);
 
@@ -2182,9 +2196,13 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
+#ifdef USE_FTRANSFORM_MIRROR
+		// mirroring from Kart
 		if (stransform->mirror)
 			pglScalef(-stransform->scalex, stransform->scaley, -stransform->scalez);
-		else if (stransform->flip)
+		else
+#endif
+		if (stransform->flip)
 			pglScalef(stransform->scalex, -stransform->scaley, -stransform->scalez);
 		else
 			pglScalef(stransform->scalex, stransform->scaley, -stransform->scalez);

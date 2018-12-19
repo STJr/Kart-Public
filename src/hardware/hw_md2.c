@@ -1048,6 +1048,8 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			p.angley = FIXED_TO_FLOAT(anglef);
 		}
 		p.anglex = 0.0f;
+#ifdef USE_FTRANSFORM_ANGLEZ
+		// Slope rotation from Kart
 		p.anglez = 0.0f;
 		if (spr->mobj->standingslope)
 		{
@@ -1059,6 +1061,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			tempangle = -AngleFixed(R_PointToAngle2(0, 0, tempz, tempy));
 			p.anglex = FIXED_TO_FLOAT(tempangle);
 		}
+#endif
 
 		color[0] = Surf.FlatColor.s.red;
 		color[1] = Surf.FlatColor.s.green;
@@ -1069,7 +1072,9 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		finalscale *= FIXED_TO_FLOAT(spr->mobj->scale);
 
 		p.flip = atransform.flip;
-		p.mirror = atransform.mirror;
+#ifdef USE_FTRANSFORM_MIRROR
+		p.mirror = atransform.mirror; // from Kart
+#endif
 
 		HWD.pfnDrawModel(md2->model, frame, durs, tics, nextFrame, &p, finalscale, flip, color);
 	}
