@@ -2037,13 +2037,11 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 				pglDrawElements(GL_TRIANGLES, mesh->numTriangles * 3, GL_UNSIGNED_SHORT, mesh->indices);
 				pglDisableClientState(GL_NORMAL_ARRAY);
 				pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				pglDisableClientState(GL_NORMAL_ARRAY);
 			}
 			else
 			{
 				// Dangit, I soooo want to do this in a GLSL shader...
-				pglBegin(GL_TRIANGLES);
-
 				short *buffer = malloc(mesh->numVertices * sizeof(short));
 				short *vertPtr = buffer;
 				char *normBuffer = malloc(mesh->numVertices * sizeof(char));
@@ -2057,24 +2055,19 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 					*normPtr++ = (short)(frame->normals[j] + (pol * (nextframe->normals[j] - frame->normals[j])));
 				}
 
-				float *uvPtr = mesh->uvs;
-				vertPtr = buffer;
-				normPtr = normBuffer;
-				for (j = 0; j < mesh->numTriangles; j++)
-				{
-					pglTexCoord2fv(uvPtr);
-					pglNormal3bv(normPtr);
-					pglVertex3sv(vertPtr);
-
-					uvPtr += 2;
-					normPtr += 3;
-					vertPtr += 3;
-				}
+				pglEnableClientState(GL_VERTEX_ARRAY);
+				pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				pglEnableClientState(GL_NORMAL_ARRAY);
+				pglVertexPointer(3, GL_SHORT, 0, buffer);
+				pglNormalPointer(GL_BYTE, 0, normBuffer);
+				pglTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs);
+				pglDrawElements(GL_TRIANGLES, mesh->numTriangles * 3, GL_UNSIGNED_SHORT, mesh->indices);
+				pglDisableClientState(GL_NORMAL_ARRAY);
+				pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				pglDisableClientState(GL_NORMAL_ARRAY);
 
 				free(buffer);
 				free(normBuffer);
-
-				pglEnd();
 			}
 		}
 		else
@@ -2097,7 +2090,7 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 				pglDrawArrays(GL_TRIANGLES, 0, mesh->numTriangles * 3);
 				pglDisableClientState(GL_NORMAL_ARRAY);
 				pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				pglDisableClientState(GL_NORMAL_ARRAY);
 			}
 			else
 			{
@@ -2134,7 +2127,7 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 						(py1 + pol * (py2 - py1)),
 						(pz1 + pol * (pz2 - pz1)));
 
-					uvPtr++;
+					uvPtr += 2;
 				}
 
 				pglEnd();
