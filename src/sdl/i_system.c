@@ -1411,7 +1411,7 @@ static UINT64 lastjoy3hats = 0;
 
 \return	void
 */
-static void I_ShutdownJoystick3(void)
+void I_ShutdownJoystick3(void)
 {
 	INT32 i;
 	event_t event;
@@ -1443,16 +1443,10 @@ static void I_ShutdownJoystick3(void)
 		D_PostEvent(&event);
 	}
 
+	joystick3_started = 0;
 	JoyReset(&JoyInfo3);
-	if (!joystick_started && !joystick2_started && !joystick3_started && !joystick4_started
-		&& SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
-	{
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-		if (cv_usejoystick3.value == 0)
-		{
-			DEBFILE("I_Joystick3: SDL's Joystick system has been shutdown\n");
-		}
-	}
+
+	// don't shutdown the subsystem here, because hotplugging
 }
 
 void I_GetJoystick3Events(void)
@@ -1600,66 +1594,59 @@ static int joy_open3(const char *fname)
 	int num_joy = 0;
 	int i;
 
-	if (joystick_started == 0 && joystick2_started == 0 && joystick3_started == 0 && joystick4_started == 0)
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
-		{
-			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
-			return -1;
-		}
-		else
-			num_joy = SDL_NumJoysticks();
+		CONS_Printf(M_GetText("Joystick subsystem not started\n"));
+		return -1;
+	}
 
-		if (num_joy < joyindex)
-		{
-			CONS_Printf(M_GetText("Cannot use joystick #%d/(%s), it doesn't exist\n"),joyindex,fname);
-			for (i = 0; i < num_joy; i++)
-				CONS_Printf("#%d/(%s)\n", i+1, SDL_JoystickNameForIndex(i));
-			I_ShutdownJoystick3();
-			return -1;
-		}
-	}
-	else
-	{
-		JoyReset(&JoyInfo3);
-		//I_ShutdownJoystick();
-		//joy_open(fname);
-	}
+	JoyReset(&JoyInfo3);
+
+	if (joyindex <= 0)
+		return 0;
 
 	num_joy = SDL_NumJoysticks();
 
-	if (joyindex <= 0 || num_joy == 0 || JoyInfo3.oldjoy == joyindex)
+	if (num_joy == 0 || JoyInfo3.oldjoy == joyindex)
 	{
 //		I_OutputMsg("Unable to use that joystick #(%s), non-number\n",fname);
 		if (num_joy != 0)
 		{
 			CONS_Printf(M_GetText("Found %d joysticks on this system\n"), num_joy);
 			for (i = 0; i < num_joy; i++)
-				CONS_Printf("#%d/(%s)\n", i+1, SDL_JoystickNameForIndex(i));
+				CONS_Printf("#%d/(%s)\n", i + 1, SDL_JoystickNameForIndex(i));
+
+			if (num_joy < joyindex)
+			{
+				CONS_Printf(M_GetText("Cannot use joystick #%d/(%s), it doesn't exist\n"), joyindex, fname);
+				for (i = 0; i < num_joy; i++)
+					CONS_Printf("#%d/(%s)\n", i + 1, SDL_JoystickNameForIndex(i));
+				return 0;
+			}
 		}
 		else
+		{
 			CONS_Printf("%s", M_GetText("Found no joysticks on this system\n"));
-		if (joyindex <= 0 || num_joy == 0) return 0;
+			return 0;
+		}
 	}
 
-	JoyInfo3.dev = SDL_JoystickOpen(joyindex-1);
+	JoyInfo3.dev = SDL_JoystickOpen(joyindex - 1);
 
-	if (!JoyInfo3.dev)
+	if (JoyInfo3.dev == NULL)
 	{
 		CONS_Printf(M_GetText("Couldn't open joystick3: %s\n"), SDL_GetError());
-		I_ShutdownJoystick3();
 		return -1;
 	}
 	else
 	{
 		CONS_Printf(M_GetText("Joystick3: %s\n"), SDL_JoystickName(JoyInfo3.dev));
 		JoyInfo3.axises = SDL_JoystickNumAxes(JoyInfo3.dev);
-		if (JoyInfo3.axises > JOYAXISSET*2)
-			JoyInfo3.axises = JOYAXISSET*2;
+		if (JoyInfo3.axises > JOYAXISSET * 2)
+			JoyInfo3.axises = JOYAXISSET * 2;
 /*		if (joyaxes < 2)
 		{
 			I_OutputMsg("Not enought axes?\n");
-			I_ShutdownJoystick3();
 			return 0;
 		}*/
 
@@ -1694,7 +1681,7 @@ static UINT64 lastjoy4hats = 0;
 
 \return	void
 */
-static void I_ShutdownJoystick4(void)
+void I_ShutdownJoystick4(void)
 {
 	INT32 i;
 	event_t event;
@@ -1726,16 +1713,10 @@ static void I_ShutdownJoystick4(void)
 		D_PostEvent(&event);
 	}
 
+	joystick4_started = 0;
 	JoyReset(&JoyInfo4);
-	if (!joystick_started && !joystick2_started && !joystick3_started && !joystick4_started
-		&& SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
-	{
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-		if (cv_usejoystick4.value == 0)
-		{
-			DEBFILE("I_Joystick4: SDL's Joystick system has been shutdown\n");
-		}
-	}
+	
+	// don't shutdown the subsystem here, because hotplugging
 }
 
 void I_GetJoystick4Events(void)
@@ -1883,66 +1864,59 @@ static int joy_open4(const char *fname)
 	int num_joy = 0;
 	int i;
 
-	if (joystick_started == 0 && joystick2_started == 0 && joystick3_started == 0 && joystick4_started == 0)
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
-		{
-			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
-			return -1;
-		}
-		else
-			num_joy = SDL_NumJoysticks();
+		CONS_Printf(M_GetText("Joystick subsystem not started\n"));
+		return -1;
+	}
 
-		if (num_joy < joyindex)
-		{
-			CONS_Printf(M_GetText("Cannot use joystick #%d/(%s), it doesn't exist\n"),joyindex,fname);
-			for (i = 0; i < num_joy; i++)
-				CONS_Printf("#%d/(%s)\n", i+1, SDL_JoystickNameForIndex(i));
-			I_ShutdownJoystick4();
-			return -1;
-		}
-	}
-	else
-	{
-		JoyReset(&JoyInfo4);
-		//I_ShutdownJoystick();
-		//joy_open(fname);
-	}
+	JoyReset(&JoyInfo4);
+
+	if (joyindex <= 0)
+		return 0;
 
 	num_joy = SDL_NumJoysticks();
 
-	if (joyindex <= 0 || num_joy == 0 || JoyInfo4.oldjoy == joyindex)
+	if (num_joy == 0 || JoyInfo4.oldjoy == joyindex)
 	{
 //		I_OutputMsg("Unable to use that joystick #(%s), non-number\n",fname);
 		if (num_joy != 0)
 		{
 			CONS_Printf(M_GetText("Found %d joysticks on this system\n"), num_joy);
 			for (i = 0; i < num_joy; i++)
-				CONS_Printf("#%d/(%s)\n", i+1, SDL_JoystickNameForIndex(i));
+				CONS_Printf("#%d/(%s)\n", i + 1, SDL_JoystickNameForIndex(i));
+
+			if (num_joy < joyindex)
+			{
+				CONS_Printf(M_GetText("Cannot use joystick #%d/(%s), it doesn't exist\n"), joyindex, fname);
+				for (i = 0; i < num_joy; i++)
+					CONS_Printf("#%d/(%s)\n", i + 1, SDL_JoystickNameForIndex(i));
+				return 0;
+			}
 		}
 		else
+		{
 			CONS_Printf("%s", M_GetText("Found no joysticks on this system\n"));
-		if (joyindex <= 0 || num_joy == 0) return 0;
+			return 0;
+		}
 	}
 
-	JoyInfo4.dev = SDL_JoystickOpen(joyindex-1);
+	JoyInfo4.dev = SDL_JoystickOpen(joyindex - 1);
 
-	if (!JoyInfo4.dev)
+	if (JoyInfo4.dev == NULL)
 	{
 		CONS_Printf(M_GetText("Couldn't open joystick4: %s\n"), SDL_GetError());
-		I_ShutdownJoystick4();
 		return -1;
 	}
 	else
 	{
 		CONS_Printf(M_GetText("Joystick4: %s\n"), SDL_JoystickName(JoyInfo4.dev));
 		JoyInfo4.axises = SDL_JoystickNumAxes(JoyInfo4.dev);
-		if (JoyInfo4.axises > JOYAXISSET*2)
-			JoyInfo4.axises = JOYAXISSET*2;
+		if (JoyInfo4.axises > JOYAXISSET * 2)
+			JoyInfo4.axises = JOYAXISSET * 2;
 /*		if (joyaxes < 2)
 		{
 			I_OutputMsg("Not enought axes?\n");
-			I_ShutdownJoystick4();
 			return 0;
 		}*/
 
@@ -1956,7 +1930,7 @@ static int joy_open4(const char *fname)
 
 		JoyInfo4.balls = SDL_JoystickNumBalls(JoyInfo4.dev);
 
-		//Joystick4.bGamepadStyle = !stricmp(SDL_JoystickName(JoyInfo4.dev), "pad");
+		//Joystick.bGamepadStyle = !stricmp(SDL_JoystickName(JoyInfo4.dev), "pad");
 
 		return JoyInfo4.axises;
 	}
@@ -1974,7 +1948,7 @@ void I_InitJoystick(void)
 
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
-		CONS_Printf("Initing joy system\n");
+		CONS_Printf("Initializing joy system\n");
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 		{
 			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
@@ -2005,7 +1979,7 @@ void I_InitJoystick2(void)
 
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
-		CONS_Printf("Initing joy system\n");
+		CONS_Printf("Initializing joy system\n");
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 		{
 			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
@@ -2030,34 +2004,64 @@ void I_InitJoystick2(void)
 
 void I_InitJoystick3(void)
 {
-	I_ShutdownJoystick3();
-	SDL_SetHintWithPriority("SDL_XINPUT_ENABLED", "0", SDL_HINT_OVERRIDE);
-	if (!strcmp(cv_usejoystick3.string, "0") || M_CheckParm("-nojoy"))
+	//I_ShutdownJoystick3();
+	//SDL_SetHintWithPriority("SDL_XINPUT_ENABLED", "0", SDL_HINT_OVERRIDE);
+	if (M_CheckParm("-nojoy"))
 		return;
-	if (joy_open3(cv_usejoystick3.string) != -1)
+
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
+	{
+		CONS_Printf("Initializing joy system\n");
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+		{
+			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
+			return;
+		}
+	}
+
+	if (strcmp(cv_usejoystick3.string, "0") || joy_open3(cv_usejoystick3.string) != -1)
+	{
 		JoyInfo3.oldjoy = atoi(cv_usejoystick3.string);
+		joystick3_started = 1;
+	}
 	else
 	{
+		if (JoyInfo3.oldjoy)
+			I_ShutdownJoystick3();
 		cv_usejoystick3.value = 0;
-		return;
+		joystick3_started = 0;
 	}
-	joystick3_started = 1;
 }
 
 void I_InitJoystick4(void)
 {
-	I_ShutdownJoystick4();
-	SDL_SetHintWithPriority("SDL_XINPUT_ENABLED", "0", SDL_HINT_OVERRIDE);
-	if (!strcmp(cv_usejoystick4.string, "0") || M_CheckParm("-nojoy"))
+	//I_ShutdownJoystick4();
+	//SDL_SetHintWithPriority("SDL_XINPUT_ENABLED", "0", SDL_HINT_OVERRIDE);
+	if (M_CheckParm("-nojoy"))
 		return;
-	if (joy_open4(cv_usejoystick4.string) != -1)
+
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
+	{
+		CONS_Printf("Initializing joy system\n");
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+		{
+			CONS_Printf(M_GetText("Couldn't initialize joystick: %s\n"), SDL_GetError());
+			return;
+		}
+	}
+
+	if (strcmp(cv_usejoystick4.string, "0") || joy_open4(cv_usejoystick4.string) != -1)
+	{
 		JoyInfo4.oldjoy = atoi(cv_usejoystick4.string);
+		joystick4_started = 1;
+	}
 	else
 	{
+		if (JoyInfo4.oldjoy)
+			I_ShutdownJoystick4();
 		cv_usejoystick4.value = 0;
-		return;
+		joystick4_started = 0;
 	}
-	joystick4_started = 1;
 }
 
 static void I_ShutdownInput(void)
@@ -2067,12 +2071,12 @@ static void I_ShutdownInput(void)
 	// Note these methods are internal to this file, not called elsewhere.
 	I_ShutdownJoystick();
 	I_ShutdownJoystick2();
+	I_ShutdownJoystick3();
+	I_ShutdownJoystick4();
 
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
 	{
 		CONS_Printf("Shutting down joy system\n");
-		JoyReset(&JoyInfo3);
-		JoyReset(&JoyInfo4);
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 		I_OutputMsg("I_Joystick: SDL's Joystick system has been shutdown\n");
 	}

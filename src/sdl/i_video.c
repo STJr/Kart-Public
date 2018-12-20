@@ -954,6 +954,8 @@ void I_GetEvent(void)
 				// recounts hotplugged joysticks
 				I_InitJoystick();
 				I_InitJoystick2();
+				I_InitJoystick3();
+				I_InitJoystick4();
 
 				// update the menu
 				if (currentMenu == &OP_JoystickSetDef)
@@ -964,9 +966,17 @@ void I_GetEvent(void)
 					// every time a device is unplugged, the "which" index increments by 1?
 					INT32 deviceIdx = evt.jdevice.which - joyunplugcount++;
 
-					CONS_Printf("Joy device %d removed%s\n", deviceIdx,
+					if (JoyInfo.oldjoy - 1 == deviceIdx)
+						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was first joystick");
+					else if (JoyInfo2.oldjoy-1 == deviceIdx)
+						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was second joystick");
+					else if (JoyInfo3.oldjoy - 1 == deviceIdx)
+						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was third joystick");
+					else if (JoyInfo4.oldjoy - 1 == deviceIdx)
+						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was fourth joystick");
+					/*CONS_Printf("Joy device %d removed%s\n", deviceIdx,
 						(JoyInfo.oldjoy-1 == deviceIdx) ? " was first joystick" :
-						(JoyInfo2.oldjoy-1 == deviceIdx) ? " was second joystick" : "");
+						(JoyInfo2.oldjoy-1 == deviceIdx) ? " was second joystick" : "");*/
 
 					// I_ShutdownJoystick doesn't shut down the subsystem
 					// It just fires neutral joy events to clean up the unplugged joy
@@ -974,6 +984,10 @@ void I_GetEvent(void)
 						I_ShutdownJoystick();
 					if (JoyInfo2.oldjoy-1 == deviceIdx)
 						I_ShutdownJoystick2();
+					if (JoyInfo3.oldjoy - 1 == deviceIdx)
+						I_ShutdownJoystick3();
+					if (JoyInfo4.oldjoy - 1 == deviceIdx)
+						I_ShutdownJoystick4();
 
 					// update the menu
 					if (currentMenu == &OP_JoystickSetDef)
