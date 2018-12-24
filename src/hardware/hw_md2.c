@@ -83,10 +83,12 @@ md2_t md2_playermodels[MAXSKINS];
 /*
  * free model
  */
+#if 0
 static void md2_freeModel (model_t *model)
 {
 	UnloadModel(model);
 }
+#endif
 
 
 //
@@ -883,7 +885,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		GLPatch_t *gpatch;
 		INT32 durs = spr->mobj->state->tics;
 		INT32 tics = spr->mobj->tics;
-		mdlframe_t *curr, *next = NULL;
+		//mdlframe_t *next = NULL;
 		const UINT8 flip = (UINT8)((spr->mobj->eflags & MFE_VERTICALFLIP) == MFE_VERTICALFLIP);
 		spritedef_t *sprdef;
 		spriteframe_t *sprframe;
@@ -997,25 +999,26 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 
 		//FIXME: this is not yet correct
 		frame = (spr->mobj->frame & FF_FRAMEMASK) % md2->model->meshes[0].numFrames;
-		curr = &md2->model->meshes[0].frames[frame];
-#if 0
+
+#ifdef USE_MODEL_NEXTFRAME
 		if (cv_grmd2.value == 1 && tics <= durs)
 		{
 			// frames are handled differently for states with FF_ANIMATE, so get the next frame differently for the interpolation
 			if (spr->mobj->frame & FF_ANIMATE)
 			{
-				UINT32 nextframe = (spr->mobj->frame & FF_FRAMEMASK) + 1;
-				if (nextframe >= (UINT32)spr->mobj->state->var1)
-					nextframe = (spr->mobj->state->frame & FF_FRAMEMASK);
-				nextframe %= md2->model->header.numFrames;
-				next = &md2->model->frames[nextframe];
+				nextFrame = (spr->mobj->frame & FF_FRAMEMASK) + 1;
+				if (nextFrame >= spr->mobj->state->var1)
+					nextFrame = (spr->mobj->state->frame & FF_FRAMEMASK);
+				nextFrame %= md2->model->meshes[0].numFrames;
+				//next = &md2->model->meshes[0].frames[nextFrame];
 			}
 			else
 			{
-				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL)
+				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL
+					&& !(spr->mobj->player && (spr->mobj->state->nextstate == S_PLAY_TAP1 || spr->mobj->state->nextstate == S_PLAY_TAP2) && spr->mobj->state == &states[S_PLAY_STND]))
 				{
-					const UINT32 nextframe = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % md2->model->header.numFrames;
-					next = &md2->model->frames[nextframe];
+					nextFrame = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % md2->model->meshes[0].numFrames;
+					//next = &md2->model->meshes[0].frames[nextFrame];
 				}
 			}
 		}
@@ -1052,6 +1055,8 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			p.angley = FIXED_TO_FLOAT(anglef);
 		}
 		p.anglex = 0.0f;
+#ifdef USE_FTRANSFORM_ANGLEZ
+		// Slope rotation from Kart
 		p.anglez = 0.0f;
 		if (spr->mobj->standingslope)
 		{
@@ -1063,6 +1068,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			tempangle = -AngleFixed(R_PointToAngle2(0, 0, tempz, tempy));
 			p.anglex = FIXED_TO_FLOAT(tempangle);
 		}
+#endif
 
 		color[0] = Surf.FlatColor.s.red;
 		color[1] = Surf.FlatColor.s.green;
@@ -1073,7 +1079,9 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		finalscale *= FIXED_TO_FLOAT(spr->mobj->scale);
 
 		p.flip = atransform.flip;
-		p.mirror = atransform.mirror;
+#ifdef USE_FTRANSFORM_MIRROR
+		p.mirror = atransform.mirror; // from Kart
+#endif
 
 		HWD.pfnDrawModel(md2->model, frame, durs, tics, nextFrame, &p, finalscale, flip, color);
 	}

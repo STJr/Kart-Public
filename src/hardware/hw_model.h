@@ -27,7 +27,7 @@ typedef struct
 {
 	float ambient[4], diffuse[4], specular[4], emissive[4];
 	float shininess;
-	bool spheremap;
+	boolean spheremap;
 //	Texture::texture_t *texture;
 //	Texture::texture_t *lightmap;
 } material_t;
@@ -38,7 +38,7 @@ typedef struct
 	float *vertices;
 	float *normals;
 	float *tangents;
-	byte *colors;
+	char *colors;
 	unsigned int vboID;
 	vector_t *polyNormals;
 } mdlframe_t;
