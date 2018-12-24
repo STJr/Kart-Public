@@ -1144,7 +1144,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	fixed_t iscale;
 	fixed_t scalestep; // toast '16
 	fixed_t offset, offset2;
-	boolean papersprite = (thing->frame & FF_PAPERSPRITE);
+	boolean papersprite = (thing->frame & FF_PAPERSPRITE) != 0;
 
 	//SoM: 3/17/2000
 	fixed_t gz, gzt;

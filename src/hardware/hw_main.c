@@ -5401,7 +5401,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	UINT8 flip;
 	angle_t ang;
 	INT32 heightsec, phs;
-	const boolean papersprite = (thing->frame & FF_PAPERSPRITE);
+	const boolean papersprite = (thing->frame & FF_PAPERSPRITE) != 0;
 	float z1, z2;
 
 	if (!thing)
