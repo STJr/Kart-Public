@@ -506,7 +506,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 		}
 		buf[0] = target;
 		newmsg = msg+5+spc;
-		memcpy(msg, newmsg, 252);
+		strlcpy(msg, newmsg, 252);
 	}
 
 	SendNetXCmd(XD_SAY, buf, strlen(msg) + 1 + msg-buf);
@@ -1014,7 +1014,7 @@ static void HU_queueChatChar(INT32 c)
 			}
 			// we need to get rid of the /pm<node>
 			newmsg = msg+5+spc;
-			memcpy(msg, newmsg, 255);
+			strlcpy(msg, newmsg, 255);
 		}
 		if (ci > 3) // don't send target+flags+empty message.
 		{
