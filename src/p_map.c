@@ -1423,7 +1423,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 	// Make sure they aren't able to damage you ANYWHERE along the Z axis, you have to be TOUCHING the person.
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
-		
+
 		if (tmthing->scale > thing->scale + (FRACUNIT/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing);
 		else if (thing->scale > tmthing->scale + (FRACUNIT/8))
@@ -3181,6 +3181,8 @@ static void P_HitBounceLine(line_t *ld)
 	angle_t lineangle, moveangle, deltaangle;
 	fixed_t movelen;
 
+	CONS_Printf("hit bounce line %d\n", leveltime);
+
 	if (ld->slopetype == ST_HORIZONTAL)
 	{
 		tmymove = -tmymove;
@@ -3840,12 +3842,14 @@ void P_BouncePlayerMove(mobj_t *mo)
 	fixed_t leadx, leady;
 	fixed_t trailx, traily;
 	fixed_t mmomx = 0, mmomy = 0;
+	fixed_t oldmomx = mo->momx, oldmomy = mo->momy;
 
 	if (!mo->player)
 		return;
 
 	if ((mo->eflags & MFE_JUSTBOUNCEDWALL) || (mo->player->spectator))
 	{
+		CONS_Printf("just bounced %d\n", leveltime);
 		P_SlideMove(mo, true);
 		return;
 	}
@@ -3899,6 +3903,8 @@ void P_BouncePlayerMove(mobj_t *mo)
 	// First calculate remainder.
 	bestslidefrac = FRACUNIT - bestslidefrac;
 
+	CONS_Printf("best bounce frac %1.6f %d\n", FIXED_TO_FLOAT(bestslidefrac), leveltime);
+
 	if (bestslidefrac > FRACUNIT)
 		bestslidefrac = FRACUNIT;
 
@@ -3928,7 +3934,12 @@ void P_BouncePlayerMove(mobj_t *mo)
 	mo->player->cmomx = tmxmove;
 	mo->player->cmomy = tmymove;
 
-	P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true);
+	//CONS_Printf("trymove attempt %s w/ %2.6f %2.6f %d\n", P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true) ? "yes" : "no ", FIXED_TO_FLOAT(tmxmove), FIXED_TO_FLOAT(tmymove), leveltime);
+
+	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true)) {
+		CONS_Printf("trymove attempt failed w/ %2.6f %2.6f %d\n", FIXED_TO_FLOAT(tmxmove), FIXED_TO_FLOAT(tmymove), leveltime);
+		P_TryMove(mo, mo->x - oldmomx, mo->y - oldmomy, true);
+	}
 }
 
 //
@@ -3952,6 +3963,7 @@ void P_BounceMove(mobj_t *mo)
 
 	if (mo->player)
 	{
+		CONS_Printf("bounce player %d\n", leveltime);
 		P_BouncePlayerMove(mo);
 		return;
 	}
@@ -4002,6 +4014,7 @@ retry:
 bounceback:
 		if (P_TryMove(mo, mo->x - mmomx, mo->y - mmomy, true))
 		{
+			CONS_Printf("bounceback %d\n", leveltime);
 			mo->momx *= -1;
 			mo->momy *= -1;
 			mo->momx = FixedMul(mo->momx, (FRACUNIT - (FRACUNIT>>2) - (FRACUNIT>>3)));
