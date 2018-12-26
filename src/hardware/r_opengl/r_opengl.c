@@ -42,6 +42,7 @@ struct GLRGBAFloat
 	GLfloat alpha;
 };
 typedef struct GLRGBAFloat GLRGBAFloat;
+static const float white[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 // ==========================================================================
 //                                                                  CONSTANTS
@@ -936,6 +937,8 @@ EXPORT void HWRAPI(ClearBuffer) (FBOOLEAN ColorMask,
 	SetBlend(DepthMask ? PF_Occlude | CurrentPolyFlags : CurrentPolyFlags&~PF_Occlude);
 
 	pglClear(ClearMask);
+	pglEnableClientState(GL_VERTEX_ARRAY); // We always use this one
+	pglEnableClientState(GL_TEXTURE_COORD_ARRAY); // And mostly this one, too
 }
 
 
@@ -976,12 +979,12 @@ EXPORT void HWRAPI(Draw2DLine) (F2DCoord * v1,
 	p[6] = v2->x + dx;  p[7] = -(v2->y - dy); p[8] = 1;
 	p[9] = v1->x + dx;  p[10] = -(v1->y - dy); p[11] = 1;
 
+	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	pglColor4fv(&c.red);    // is in RGBA float format
-	pglEnableClientState(GL_VERTEX_ARRAY);
 	pglVertexPointer(3, GL_FLOAT, 0, p);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	pglDisableClientState(GL_VERTEX_ARRAY);
 
+	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	pglEnable(GL_TEXTURE_2D);
 }
 
@@ -1094,7 +1097,7 @@ EXPORT void HWRAPI(SetBlend) (FBITFIELD PolyFlags)
 			if (oglflags & GLF_NOTEXENV)
 			{
 				if (!(PolyFlags & PF_Modulated))
-					pglColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+					pglColor4fv(white);
 			}
 			else
 #endif
@@ -1452,16 +1455,9 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo  *pSurf,
 		pglColor4fv(&c.red);
 	}
 
-	if (PolyFlags & PF_MD2)
-		return;
-
-	pglEnableClientState(GL_VERTEX_ARRAY);
-	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].x);
 	pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].sow);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, iNumPts);
-	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	pglDisableClientState(GL_VERTEX_ARRAY);
 
 	if (PolyFlags & PF_RemoveYWrap)
 		pglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -1755,8 +1751,6 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	if (useTinyFrames)
 		pglScalef(1 / 64.0f, 1 / 64.0f, 1 / 64.0f);
 
-	pglEnableClientState(GL_VERTEX_ARRAY);
-	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	pglEnableClientState(GL_NORMAL_ARRAY);
 
 	for (i = 0; i < model->numMeshes; i++)
@@ -1839,8 +1833,6 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	}
 
 	pglDisableClientState(GL_NORMAL_ARRAY);
-	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	pglDisableClientState(GL_VERTEX_ARRAY);
 
 	pglPopMatrix(); // should be the same as glLoadIdentity
 	if (color)
@@ -1959,62 +1951,56 @@ EXPORT void HWRAPI(PostImgRedraw) (float points[SCREENVERTS][SCREENVERTS][2])
 		16.0f, -16.0f, 6.0f
 	};
 
-	pglEnableClientState(GL_VERTEX_ARRAY);
-
-		// Draw a black square behind the screen texture,
-		// so nothing shows through the edges
-		pglColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	// Draw a black square behind the screen texture,
+	// so nothing shows through the edges
+	pglColor4fv(white);
 		
-		pglVertexPointer(3, GL_FLOAT, 0, blackBack);
-		pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	pglVertexPointer(3, GL_FLOAT, 0, blackBack);
+	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-		pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		for(x=0;x<SCREENVERTS-1;x++)
+	for(x=0;x<SCREENVERTS-1;x++)
+	{
+		for(y=0;y<SCREENVERTS-1;y++)
 		{
-			for(y=0;y<SCREENVERTS-1;y++)
-			{
-				// Used for texture coordinates
-				// Annoying magic numbers to scale the square texture to
-				// a non-square screen..
-				float_x = (float)(x/(xfix));
-				float_y = (float)(y/(yfix));
-				float_nextx = (float)(x+1)/(xfix);
-				float_nexty = (float)(y+1)/(yfix);
+			// Used for texture coordinates
+			// Annoying magic numbers to scale the square texture to
+			// a non-square screen..
+			float_x = (float)(x/(xfix));
+			float_y = (float)(y/(yfix));
+			float_nextx = (float)(x+1)/(xfix);
+			float_nexty = (float)(y+1)/(yfix);
 
-				float stCoords[8];
-				stCoords[0] = float_x;
-				stCoords[1] = float_y;
-				stCoords[2] = float_x;
-				stCoords[3] = float_nexty;
-				stCoords[4] = float_nextx;
-				stCoords[5] = float_nexty;
-				stCoords[6] = float_nextx;
-				stCoords[7] = float_y;
+			float stCoords[8];
+			stCoords[0] = float_x;
+			stCoords[1] = float_y;
+			stCoords[2] = float_x;
+			stCoords[3] = float_nexty;
+			stCoords[4] = float_nextx;
+			stCoords[5] = float_nexty;
+			stCoords[6] = float_nextx;
+			stCoords[7] = float_y;
 
-				pglTexCoordPointer(2, GL_FLOAT, 0, stCoords);
+			pglTexCoordPointer(2, GL_FLOAT, 0, stCoords);
 
-				float vertCoords[12];
-				vertCoords[0] = points[x][y][0];
-				vertCoords[1] = points[x][y][1];
-				vertCoords[2] = 4.4f;
-				vertCoords[3] = points[x][y + 1][0];
-				vertCoords[4] = points[x][y + 1][1];
-				vertCoords[5] = 4.4f;
-				vertCoords[6] = points[x + 1][y + 1][0];
-				vertCoords[7] = points[x + 1][y + 1][1];
-				vertCoords[8] = 4.4f;
-				vertCoords[9] = points[x + 1][y][0];
-				vertCoords[10] = points[x + 1][y][1];
-				vertCoords[11] = 4.4f;
+			float vertCoords[12];
+			vertCoords[0] = points[x][y][0];
+			vertCoords[1] = points[x][y][1];
+			vertCoords[2] = 4.4f;
+			vertCoords[3] = points[x][y + 1][0];
+			vertCoords[4] = points[x][y + 1][1];
+			vertCoords[5] = 4.4f;
+			vertCoords[6] = points[x + 1][y + 1][0];
+			vertCoords[7] = points[x + 1][y + 1][1];
+			vertCoords[8] = 4.4f;
+			vertCoords[9] = points[x + 1][y][0];
+			vertCoords[10] = points[x + 1][y][1];
+			vertCoords[11] = 4.4f;
 
-				pglVertexPointer(3, GL_FLOAT, 0, vertCoords);
+			pglVertexPointer(3, GL_FLOAT, 0, vertCoords);
 
-				pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-			}
+			pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	pglDisableClientState(GL_VERTEX_ARRAY);
+	}
 
 	pglEnable(GL_DEPTH_TEST);
 	pglEnable(GL_BLEND);
@@ -2132,15 +2118,11 @@ EXPORT void HWRAPI(DrawIntermissionBG)(void)
 	pglClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	pglBindTexture(GL_TEXTURE_2D, screentexture);
-	pglColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	pglColor4fv(white);
 
-	pglEnableClientState(GL_VERTEX_ARRAY);
-	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	pglTexCoordPointer(2, GL_FLOAT, 0, fix);
 	pglVertexPointer(3, GL_FLOAT, 0, screenVerts);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	pglDisableClientState(GL_VERTEX_ARRAY);
 
 	tex_downloaded = screentexture;
 }
@@ -2183,12 +2165,11 @@ EXPORT void HWRAPI(DoScreenWipe)(float alpha)
 	pglClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	SetBlend(PF_Modulated|PF_NoDepthTest|PF_Clip|PF_NoZClip);
+	pglEnable(GL_TEXTURE_2D);
 
 	// Draw the original screen
 	pglBindTexture(GL_TEXTURE_2D, startScreenWipe);
-	pglColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	pglEnableClientState(GL_VERTEX_ARRAY);
-	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	pglColor4fv(white);
 	pglTexCoordPointer(2, GL_FLOAT, 0, fix);
 	pglVertexPointer(3, GL_FLOAT, 0, screenVerts);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -2197,12 +2178,10 @@ EXPORT void HWRAPI(DoScreenWipe)(float alpha)
 
 	// Draw the end screen that fades in
 	pglActiveTexture(GL_TEXTURE0);
-	pglEnable(GL_TEXTURE_2D);
 	pglBindTexture(GL_TEXTURE_2D, endScreenWipe);
 	pglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	pglActiveTexture(GL_TEXTURE1);
-	pglEnable(GL_TEXTURE_2D);
 	pglBindTexture(GL_TEXTURE_2D, fademaskdownloaded);
 
 	pglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -2215,17 +2194,12 @@ EXPORT void HWRAPI(DoScreenWipe)(float alpha)
 		1.0f, 1.0f
 	};
 
-	pglColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
 	pglVertexPointer(3, GL_FLOAT, 0, screenVerts);
 	pglClientActiveTexture(GL_TEXTURE0);
 	pglTexCoordPointer(2, GL_FLOAT, 0, fix);
 	pglClientActiveTexture(GL_TEXTURE1);
 	pglTexCoordPointer(2, GL_FLOAT, 0, defaultST);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	pglDisableClientState(GL_VERTEX_ARRAY);
 
 	pglClientActiveTexture(GL_TEXTURE0);
 
@@ -2356,17 +2330,12 @@ EXPORT void HWRAPI(DrawScreenFinalTexture)(int width, int height)
 	ClearBuffer(true, false, &clearColour);
 	pglBindTexture(GL_TEXTURE_2D, finalScreenTexture);
 	
-	pglColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	pglEnableClientState(GL_VERTEX_ARRAY);
-	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	pglColor4fv(white);
 
 	pglTexCoordPointer(2, GL_FLOAT, 0, fix);
 	pglVertexPointer(3, GL_FLOAT, 0, off);
 
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	pglDisableClientState(GL_VERTEX_ARRAY);
 	
 	tex_downloaded = finalScreenTexture;
 }
