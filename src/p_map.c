@@ -3930,7 +3930,6 @@ void P_BouncePlayerMove(mobj_t *mo)
 	mo->player->cmomy = tmymove;
 
 	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true)) {
-		CONS_Printf("trymove attempt failed w/ %2.6f %2.6f %d\n", FIXED_TO_FLOAT(tmxmove), FIXED_TO_FLOAT(tmymove), leveltime);
 		P_TryMove(mo, mo->x - oldmomx, mo->y - oldmomy, true);
 	}
 }
