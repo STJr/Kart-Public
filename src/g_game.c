@@ -4942,11 +4942,11 @@ void G_ConsGhostTic(void)
 			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
 		demosynced = false;
 
-		/*P_UnsetThingPosition(testmo);
+		P_UnsetThingPosition(testmo);
 		testmo->x = oldghost.x;
 		testmo->y = oldghost.y;
 		P_SetThingPosition(testmo);
-		testmo->z = oldghost.z;*/
+		testmo->z = oldghost.z;
 	}
 
 	if (*demo_p == DEMOMARKER)
