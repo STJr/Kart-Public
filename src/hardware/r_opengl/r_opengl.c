@@ -996,7 +996,7 @@ EXPORT void HWRAPI(Draw2DLine) (F2DCoord * v1,
 	p[9] = v1->x + dx;  p[10] = -(v1->y - dy); p[11] = 1;
 
 	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	pglColor4ubv((GLbyte*)&Color);
+	pglColor4ubv((GLubyte*)&Color.s);
 	pglVertexPointer(3, GL_FLOAT, 0, p);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -1402,7 +1402,7 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo  *pSurf,
 
 	// If Modulated, mix the surface colour to the texture
 	if ((CurrentPolyFlags & PF_Modulated) && pSurf)
-		pglColor4ubv(&pSurf->FlatColor.s);
+		pglColor4ubv((GLubyte*)&pSurf->FlatColor.s);
 
 	// this test is added for new coronas' code (without depth buffer)
 	// I think I should do a separate function for drawing coronas, so it will be a little faster
@@ -2327,10 +2327,12 @@ EXPORT void HWRAPI(DoScreenWipe)(float alpha)
 
 	// Draw the end screen that fades in
 	pglActiveTexture(GL_TEXTURE0);
+	pglEnable(GL_TEXTURE_2D);
 	pglBindTexture(GL_TEXTURE_2D, endScreenWipe);
 	pglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	pglActiveTexture(GL_TEXTURE1);
+	pglEnable(GL_TEXTURE_2D);
 	pglBindTexture(GL_TEXTURE_2D, fademaskdownloaded);
 
 	pglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -2343,17 +2345,19 @@ EXPORT void HWRAPI(DoScreenWipe)(float alpha)
 		1.0f, 1.0f
 	};
 
-	pglVertexPointer(3, GL_FLOAT, 0, screenVerts);
 	pglClientActiveTexture(GL_TEXTURE0);
 	pglTexCoordPointer(2, GL_FLOAT, 0, fix);
+	pglVertexPointer(3, GL_FLOAT, 0, screenVerts);
 	pglClientActiveTexture(GL_TEXTURE1);
+	pglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	pglTexCoordPointer(2, GL_FLOAT, 0, defaultST);
 	pglDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	pglClientActiveTexture(GL_TEXTURE0);
-
 	pglDisable(GL_TEXTURE_2D); // disable the texture in the 2nd texture unit
+	pglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
 	pglActiveTexture(GL_TEXTURE0);
+	pglClientActiveTexture(GL_TEXTURE0);
 	tex_downloaded = endScreenWipe;
 }
 
