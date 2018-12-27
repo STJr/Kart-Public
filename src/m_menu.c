@@ -67,6 +67,13 @@
 // And just some randomness for the exits.
 #include "m_random.h"
 
+#if defined(HAVE_SDL)
+#include "SDL.h"
+#if SDL_VERSION_ATLEAST(2,0,0)
+#include "sdl/sdlmain.h" // JOYSTICK_HOTPLUG
+#endif
+#endif
+
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
 int	snprintf(char *str, size_t n, const char *fmt, ...);
@@ -8570,7 +8577,7 @@ static void M_ScreenshotOptions(INT32 choice)
 
 static void M_DrawJoystick(void)
 {
-	INT32 i;
+	INT32 i, compareval4, compareval3, compareval2, compareval;
 
 	M_DrawGenericMenu();
 
@@ -8579,11 +8586,38 @@ static void M_DrawJoystick(void)
 		M_DrawTextBox(OP_JoystickSetDef.x-8, OP_JoystickSetDef.y+LINEHEIGHT*i-12, 28, 1);
 		//M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
-		if ((setupcontrolplayer == 4 && (i == cv_usejoystick4.value))
-			|| (setupcontrolplayer == 3 && (i == cv_usejoystick3.value))
-			|| (setupcontrolplayer == 2 && (i == cv_usejoystick2.value))
-			|| (setupcontrolplayer == 1 && (i == cv_usejoystick.value)))
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,recommendedflags,joystickInfo[i]);
+#ifdef JOYSTICK_HOTPLUG
+		if (atoi(cv_usejoystick4.string) > I_NumJoys())
+			compareval4 = atoi(cv_usejoystick4.string);
+		else
+			compareval4 = cv_usejoystick4.value;
+
+		if (atoi(cv_usejoystick3.string) > I_NumJoys())
+			compareval3 = atoi(cv_usejoystick3.string);
+		else
+			compareval3 = cv_usejoystick3.value;
+
+		if (atoi(cv_usejoystick2.string) > I_NumJoys())
+			compareval2 = atoi(cv_usejoystick2.string);
+		else
+			compareval2 = cv_usejoystick2.value;
+
+		if (atoi(cv_usejoystick.string) > I_NumJoys())
+			compareval = atoi(cv_usejoystick.string);
+		else
+			compareval = cv_usejoystick.value;
+#else
+		compareval4 = cv_usejoystick4.value;
+		compareval3 = cv_usejoystick3.value;
+		compareval2 = cv_usejoystick2.value;
+		compareval = cv_usejoystick.value
+#endif
+
+		if ((setupcontrolplayer == 4 && (i == compareval4))
+			|| (setupcontrolplayer == 3 && (i == compareval3))
+			|| (setupcontrolplayer == 2 && (i == compareval2))
+			|| (setupcontrolplayer == 1 && (i == compareval)))
+			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,V_GREENMAP,joystickInfo[i]);
 		else
 			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,0,joystickInfo[i]);
 	}
@@ -8604,6 +8638,25 @@ void M_SetupJoystickMenu(INT32 choice)
 			strncpy(joystickInfo[i], I_GetJoyName(i), 28);
 		else
 			strcpy(joystickInfo[i], joyNA);
+
+#ifdef JOYSTICK_HOTPLUG
+		// We use cv_usejoystick.string as the USER-SET var
+		// and cv_usejoystick.value as the INTERNAL var
+		//
+		// In practice, if cv_usejoystick.string == 0, this overrides
+		// cv_usejoystick.value and always disables
+		//
+		// Update cv_usejoystick.string here so that the user can
+		// properly change this value.
+		if (i == cv_usejoystick.value)
+			CV_SetValue(&cv_usejoystick, i);
+		if (i == cv_usejoystick2.value)
+			CV_SetValue(&cv_usejoystick2, i);
+		if (i == cv_usejoystick3.value)
+			CV_SetValue(&cv_usejoystick3, i);
+		if (i == cv_usejoystick4.value)
+			CV_SetValue(&cv_usejoystick4, i);
+#endif
 	}
 
 	M_SetupNextMenu(&OP_JoystickSetDef);
@@ -8639,14 +8692,140 @@ static void M_Setup4PJoystickMenu(INT32 choice)
 
 static void M_AssignJoystick(INT32 choice)
 {
+#ifdef JOYSTICK_HOTPLUG
+	INT32 oldchoice, oldstringchoice;
+	INT32 numjoys = I_NumJoys();
+
+	if (setupcontrolplayer == 4)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick4.string) > numjoys ? atoi(cv_usejoystick4.string) : cv_usejoystick4.value;
+		CV_SetValue(&cv_usejoystick4, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick4, cv_usejoystick4.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick4.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick4, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick4.string) > numjoys ? atoi(cv_usejoystick4.string) : cv_usejoystick4.value))
+					M_StartMessage("This joystick is used by another\n"
+								   "player. Reset the joystick\n"
+								   "for that player first.\n\n"
+								   "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 3)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick3.string) > numjoys ? atoi(cv_usejoystick3.string) : cv_usejoystick3.value;
+		CV_SetValue(&cv_usejoystick3, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick3, cv_usejoystick3.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick3.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick3, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick3.string) > numjoys ? atoi(cv_usejoystick3.string) : cv_usejoystick3.value))
+					M_StartMessage("This joystick is used by another\n"
+								   "player. Reset the joystick\n"
+								   "for that player first.\n\n"
+								   "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 2)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value;
+		CV_SetValue(&cv_usejoystick2, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick2, cv_usejoystick2.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick2.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick2, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value))
+					M_StartMessage("This joystick is used by another\n"
+					               "player. Reset the joystick\n"
+					               "for that player first.\n\n"
+					               "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 1)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value;
+		CV_SetValue(&cv_usejoystick, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick, cv_usejoystick.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value))
+					M_StartMessage("This joystick is used by another\n"
+					               "player. Reset the joystick\n"
+					               "for that player first.\n\n"
+					               "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+#else
 	if (setupcontrolplayer == 4)
 		CV_SetValue(&cv_usejoystick4, choice);
 	else if (setupcontrolplayer == 3)
 		CV_SetValue(&cv_usejoystick3, choice);
 	else if (setupcontrolplayer == 2)
 		CV_SetValue(&cv_usejoystick2, choice);
-	else
+	else if (setupcontrolplayer == 1)
 		CV_SetValue(&cv_usejoystick, choice);
+#endif
 }
 
 // =============

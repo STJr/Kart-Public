@@ -117,9 +117,6 @@ static      INT32          firstEntry = 0;
 // Total mouse motion X/Y offsets
 static      INT32        mousemovex = 0, mousemovey = 0;
 
-// Keep track of joy unplugged count
-static      INT32        joyunplugcount = 0;
-
 // SDL vars
 static      SDL_Surface *vidSurface = NULL;
 static      SDL_Surface *bufSurface = NULL;
@@ -949,50 +946,407 @@ void I_GetEvent(void)
 				Impl_HandleJoystickButtonEvent(evt.jbutton, evt.type);
 				break;
 			case SDL_JOYDEVICEADDED:
-				CONS_Printf("Joy device %d added\n", evt.jdevice.which);
-
-				// recounts hotplugged joysticks
-				I_InitJoystick();
-				I_InitJoystick2();
-				I_InitJoystick3();
-				I_InitJoystick4();
-
-				// update the menu
-				if (currentMenu == &OP_JoystickSetDef)
-					M_SetupJoystickMenu(0);
-				break;
-			case SDL_JOYDEVICEREMOVED:
 				{
-					// every time a device is unplugged, the "which" index increments by 1?
-					INT32 deviceIdx = evt.jdevice.which - joyunplugcount++;
+					SDL_Joystick *newjoy = SDL_JoystickOpen(evt.jdevice.which);
 
-					if (JoyInfo.oldjoy - 1 == deviceIdx)
-						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was first joystick");
-					else if (JoyInfo2.oldjoy-1 == deviceIdx)
-						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was second joystick");
-					else if (JoyInfo3.oldjoy - 1 == deviceIdx)
-						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was third joystick");
-					else if (JoyInfo4.oldjoy - 1 == deviceIdx)
-						CONS_Printf("Joy device %d removed%s\n", deviceIdx, " was fourth joystick");
-					/*CONS_Printf("Joy device %d removed%s\n", deviceIdx,
-						(JoyInfo.oldjoy-1 == deviceIdx) ? " was first joystick" :
-						(JoyInfo2.oldjoy-1 == deviceIdx) ? " was second joystick" : "");*/
+					CONS_Debug(DBG_GAMELOGIC, "Joystick device index %d added\n", evt.jdevice.which + 1);
 
-					// I_ShutdownJoystick doesn't shut down the subsystem
-					// It just fires neutral joy events to clean up the unplugged joy
-					if (JoyInfo.oldjoy-1 == deviceIdx)
-						I_ShutdownJoystick();
-					if (JoyInfo2.oldjoy-1 == deviceIdx)
-						I_ShutdownJoystick2();
-					if (JoyInfo3.oldjoy - 1 == deviceIdx)
-						I_ShutdownJoystick3();
-					if (JoyInfo4.oldjoy - 1 == deviceIdx)
-						I_ShutdownJoystick4();
+
+					// Because SDL's device index is unstable, we're going to cheat here a bit:
+					// For the first joystick setting that is NOT active:
+					// 1. Set cv_usejoystickX.value to the new device index (this does not change what is written to config.cfg)
+					// 2. Set OTHERS' cv_usejoystickX.value to THEIR new device index, because it likely changed
+					//    * If device doesn't exist, switch cv_usejoystick back to default value (.string)
+					//      * BUT: If that default index is being occupied, use ANOTHER cv_usejoystick's default value!
+					if (newjoy && (!JoyInfo.dev || !SDL_JoystickGetAttached(JoyInfo.dev)) // PLAYER 1
+						&& JoyInfo2.dev != newjoy && JoyInfo3.dev != newjoy && JoyInfo4.dev != newjoy) // don't override a currently active device
+					{
+						cv_usejoystick.value = evt.jdevice.which + 1;
+
+						if (JoyInfo2.dev) // update joystick 2's device index
+							cv_usejoystick2.value = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
+						else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy
+								&& atoi(cv_usejoystick2.string) != cv_usejoystick.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+								&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick2.value = 0;
+
+						if (JoyInfo3.dev) // update joystick 3's device index
+							cv_usejoystick3.value = I_GetJoystickDeviceIndex(JoyInfo3.dev) + 1;
+						else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick3.value = 0;
+
+						if (JoyInfo4.dev) // update joystick 4's device index
+							cv_usejoystick4.value = I_GetJoystickDeviceIndex(JoyInfo4.dev) + 1;
+						else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick4.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick3.string);
+						else // we tried...
+							cv_usejoystick4.value = 0;
+					}
+					else if (newjoy && (!JoyInfo2.dev || !SDL_JoystickGetAttached(JoyInfo2.dev)) // PLAYER 2
+						&& JoyInfo.dev != newjoy && JoyInfo3.dev != newjoy && JoyInfo4.dev != newjoy) // don't override a currently active device
+					{
+						cv_usejoystick2.value = evt.jdevice.which + 1;
+
+						if (JoyInfo.dev) // update joystick 1's device index
+							cv_usejoystick.value = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
+						else if (atoi(cv_usejoystick.string) != JoyInfo2.oldjoy
+								&& atoi(cv_usejoystick.string) != cv_usejoystick2.value)
+							cv_usejoystick.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+								&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick.value = 0;
+
+						if (JoyInfo3.dev) // update joystick 3's device index
+							cv_usejoystick3.value = I_GetJoystickDeviceIndex(JoyInfo3.dev) + 1;
+						else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick3.value = 0;
+
+						if (JoyInfo4.dev) // update joystick 4's device index
+							cv_usejoystick4.value = I_GetJoystickDeviceIndex(JoyInfo4.dev) + 1;
+						else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick4.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick3.string);
+						else // we tried...
+							cv_usejoystick4.value = 0;
+					}
+					else if (newjoy && (!JoyInfo3.dev || !SDL_JoystickGetAttached(JoyInfo3.dev)) // PLAYER 3
+						&& JoyInfo.dev != newjoy && JoyInfo2.dev != newjoy && JoyInfo4.dev != newjoy) // don't override a currently active device
+					{
+						cv_usejoystick3.value = evt.jdevice.which + 1;
+
+						if (JoyInfo.dev) // update joystick 1's device index
+							cv_usejoystick.value = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
+						else if (atoi(cv_usejoystick.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick2.value)
+							cv_usejoystick.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick.value = 0;
+
+						if (JoyInfo2.dev) // update joystick 2's device index
+							cv_usejoystick2.value = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
+						else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick2.value = 0;
+
+						if (JoyInfo4.dev) // update joystick 4's device index
+							cv_usejoystick4.value = I_GetJoystickDeviceIndex(JoyInfo4.dev) + 1;
+						else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick4.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick4.value = atoi(cv_usejoystick3.string);
+						else // we tried...
+							cv_usejoystick4.value = 0;
+					}
+					else if (newjoy && (!JoyInfo4.dev || !SDL_JoystickGetAttached(JoyInfo4.dev)) // PLAYER 4
+						&& JoyInfo.dev != newjoy && JoyInfo2.dev != newjoy && JoyInfo3.dev != newjoy) // don't override a currently active device
+					{
+						cv_usejoystick4.value = evt.jdevice.which + 1;
+
+						if (JoyInfo.dev) // update joystick 1's device index
+							cv_usejoystick.value = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
+						else if (atoi(cv_usejoystick.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick2.value)
+							cv_usejoystick.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick.value = 0;
+
+						if (JoyInfo2.dev) // update joystick 2's device index
+							cv_usejoystick2.value = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
+						else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick2.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick2.value = 0;
+
+						if (JoyInfo3.dev) // update joystick 3's device index
+							cv_usejoystick3.value = I_GetJoystickDeviceIndex(JoyInfo3.dev) + 1;
+						else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick3.string) != cv_usejoystick.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick3.string);
+						else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+							&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick.string);
+						else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+							&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick2.string);
+						else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+							&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+							cv_usejoystick3.value = atoi(cv_usejoystick4.string);
+						else // we tried...
+							cv_usejoystick3.value = 0;
+					}
+
+					// Was cv_usejoystick disabled in settings?
+					if (!strcmp(cv_usejoystick.string, "0") || !cv_usejoystick.value)
+						cv_usejoystick.value = 0;
+					else if (atoi(cv_usejoystick.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+						     && cv_usejoystick.value) // update the cvar ONLY if a device exists
+						CV_SetValue(&cv_usejoystick, cv_usejoystick.value);
+
+					if (!strcmp(cv_usejoystick2.string, "0") || !cv_usejoystick2.value)
+						cv_usejoystick2.value = 0;
+					else if (atoi(cv_usejoystick2.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+					         && cv_usejoystick2.value) // update the cvar ONLY if a device exists
+						CV_SetValue(&cv_usejoystick2, cv_usejoystick2.value);
+
+					if (!strcmp(cv_usejoystick3.string, "0") || !cv_usejoystick3.value)
+						cv_usejoystick3.value = 0;
+					else if (atoi(cv_usejoystick3.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+						&& cv_usejoystick3.value) // update the cvar ONLY if a device exists
+						CV_SetValue(&cv_usejoystick3, cv_usejoystick3.value);
+
+					if (!strcmp(cv_usejoystick4.string, "0") || !cv_usejoystick4.value)
+						cv_usejoystick4.value = 0;
+					else if (atoi(cv_usejoystick4.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+						&& cv_usejoystick4.value) // update the cvar ONLY if a device exists
+						CV_SetValue(&cv_usejoystick4, cv_usejoystick4.value);
+
+					// Update all joysticks' init states
+					// This is a little wasteful since cv_usejoystick already calls this, but
+					// we need to do this in case CV_SetValue did nothing because the string was already same.
+					// if the device is already active, this should do nothing, effectively.
+					I_InitJoystick();
+					I_InitJoystick2();
+					I_InitJoystick3();
+					I_InitJoystick4();
+
+					CONS_Debug(DBG_GAMELOGIC, "Joystick1 device index: %d\n", JoyInfo.oldjoy);
+					CONS_Debug(DBG_GAMELOGIC, "Joystick2 device index: %d\n", JoyInfo2.oldjoy);
+					CONS_Debug(DBG_GAMELOGIC, "Joystick3 device index: %d\n", JoyInfo3.oldjoy);
+					CONS_Debug(DBG_GAMELOGIC, "Joystick4 device index: %d\n", JoyInfo4.oldjoy);
 
 					// update the menu
 					if (currentMenu == &OP_JoystickSetDef)
 						M_SetupJoystickMenu(0);
+
+					if (JoyInfo.dev != newjoy && JoyInfo2.dev != newjoy && JoyInfo3.dev != newjoy && JoyInfo4.dev != newjoy)
+						SDL_JoystickClose(newjoy);
 				}
+				break;
+			case SDL_JOYDEVICEREMOVED:
+				if (JoyInfo.dev && !SDL_JoystickGetAttached(JoyInfo.dev))
+				{
+					CONS_Debug(DBG_GAMELOGIC, "Joystick1 removed, device index: %d\n", JoyInfo.oldjoy);
+					I_ShutdownJoystick();
+				}
+
+				if (JoyInfo2.dev && !SDL_JoystickGetAttached(JoyInfo2.dev))
+				{
+					CONS_Debug(DBG_GAMELOGIC, "Joystick2 removed, device index: %d\n", JoyInfo2.oldjoy);
+					I_ShutdownJoystick2();
+				}
+
+				if (JoyInfo3.dev && !SDL_JoystickGetAttached(JoyInfo3.dev))
+				{
+					CONS_Debug(DBG_GAMELOGIC, "Joystick3 removed, device index: %d\n", JoyInfo3.oldjoy);
+					I_ShutdownJoystick3();
+				}
+
+				if (JoyInfo4.dev && !SDL_JoystickGetAttached(JoyInfo4.dev))
+				{
+					CONS_Debug(DBG_GAMELOGIC, "Joystick4 removed, device index: %d\n", JoyInfo4.oldjoy);
+					I_ShutdownJoystick4();
+				}
+
+				// Update the device indexes, because they likely changed
+				// * If device doesn't exist, switch cv_usejoystick back to default value (.string)
+				//   * BUT: If that default index is being occupied, use ANOTHER cv_usejoystick's default value!
+				if (JoyInfo.dev)
+					cv_usejoystick.value = JoyInfo.oldjoy = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
+				else if (atoi(cv_usejoystick.string) != JoyInfo2.oldjoy && atoi(cv_usejoystick.string) != JoyInfo3.oldjoy 
+					&& atoi(cv_usejoystick.string) != JoyInfo4.oldjoy)
+					cv_usejoystick.value = atoi(cv_usejoystick.string);
+				else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy)
+					cv_usejoystick.value = atoi(cv_usejoystick2.string);
+				else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy)
+					cv_usejoystick.value = atoi(cv_usejoystick3.string);
+				else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy)
+					cv_usejoystick.value = atoi(cv_usejoystick4.string);
+				else // we tried...
+					cv_usejoystick.value = 0;
+
+				if (JoyInfo2.dev)
+					cv_usejoystick2.value = JoyInfo2.oldjoy = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
+				else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy && atoi(cv_usejoystick2.string) != JoyInfo3.oldjoy
+					&& atoi(cv_usejoystick2.string) != JoyInfo4.oldjoy)
+					cv_usejoystick2.value = atoi(cv_usejoystick2.string);
+				else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy)
+					cv_usejoystick2.value = atoi(cv_usejoystick.string);
+				else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy)
+					cv_usejoystick2.value = atoi(cv_usejoystick3.string);
+				else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy)
+					cv_usejoystick2.value = atoi(cv_usejoystick4.string);
+				else // we tried...
+					cv_usejoystick2.value = 0;
+
+				if (JoyInfo3.dev)
+					cv_usejoystick3.value = JoyInfo3.oldjoy = I_GetJoystickDeviceIndex(JoyInfo3.dev) + 1;
+				else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy && atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+					&& atoi(cv_usejoystick3.string) != JoyInfo4.oldjoy)
+					cv_usejoystick3.value = atoi(cv_usejoystick3.string);
+				else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy)
+					cv_usejoystick3.value = atoi(cv_usejoystick.string);
+				else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy)
+					cv_usejoystick3.value = atoi(cv_usejoystick2.string);
+				else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy)
+					cv_usejoystick3.value = atoi(cv_usejoystick4.string);
+				else // we tried...
+					cv_usejoystick3.value = 0;
+
+				if (JoyInfo4.dev)
+					cv_usejoystick4.value = JoyInfo4.oldjoy = I_GetJoystickDeviceIndex(JoyInfo4.dev) + 1;
+				else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy && atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+					&& atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy)
+					cv_usejoystick4.value = atoi(cv_usejoystick4.string);
+				else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy)
+					cv_usejoystick4.value = atoi(cv_usejoystick.string);
+				else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy)
+					cv_usejoystick4.value = atoi(cv_usejoystick2.string);
+				else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy)
+					cv_usejoystick4.value = atoi(cv_usejoystick3.string);
+				else // we tried...
+					cv_usejoystick4.value = 0;
+
+				// Was cv_usejoystick disabled in settings?
+				if (!strcmp(cv_usejoystick.string, "0"))
+					cv_usejoystick.value = 0;
+				else if (atoi(cv_usejoystick.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+						 && cv_usejoystick.value) // update the cvar ONLY if a device exists
+					CV_SetValue(&cv_usejoystick, cv_usejoystick.value);
+
+				if (!strcmp(cv_usejoystick2.string, "0"))
+					cv_usejoystick2.value = 0;
+				else if (atoi(cv_usejoystick2.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+						 && cv_usejoystick2.value) // update the cvar ONLY if a device exists
+					CV_SetValue(&cv_usejoystick2, cv_usejoystick2.value);
+
+				if (!strcmp(cv_usejoystick3.string, "0"))
+					cv_usejoystick3.value = 0;
+				else if (atoi(cv_usejoystick3.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+					&& cv_usejoystick3.value) // update the cvar ONLY if a device exists
+					CV_SetValue(&cv_usejoystick3, cv_usejoystick3.value);
+
+				if (!strcmp(cv_usejoystick4.string, "0"))
+					cv_usejoystick4.value = 0;
+				else if (atoi(cv_usejoystick4.string) <= I_NumJoys() // don't mess if we intentionally set higher than NumJoys
+					&& cv_usejoystick4.value) // update the cvar ONLY if a device exists
+					CV_SetValue(&cv_usejoystick4, cv_usejoystick4.value);
+
+				CONS_Debug(DBG_GAMELOGIC, "Joystick1 device index: %d\n", JoyInfo.oldjoy);
+				CONS_Debug(DBG_GAMELOGIC, "Joystick2 device index: %d\n", JoyInfo2.oldjoy);
+				CONS_Debug(DBG_GAMELOGIC, "Joystick3 device index: %d\n", JoyInfo3.oldjoy);
+				CONS_Debug(DBG_GAMELOGIC, "Joystick4 device index: %d\n", JoyInfo4.oldjoy);
+
+				// update the menu
+				if (currentMenu == &OP_JoystickSetDef)
+					M_SetupJoystickMenu(0);
 			 	break;
 			case SDL_QUIT:
 				I_Quit();
