@@ -4639,22 +4639,22 @@ static void K_KartUpdatePosition(player_t *player)
 															mo->y - players[i].mo->y),
 															mo->z - players[i].mo->z) / FRACUNIT;
 
-					if (mo->health == player->starpostnum)
+					if (mo->health == player->starpostnum && (!mo->movecount || mo->movecount == player->laps+1))
 					{
 						player->kartstuff[k_prevcheck] += pmo;
 						ppcd++;
 					}
-					if (mo->health == (player->starpostnum + 1))
+					if (mo->health == (player->starpostnum + 1) && (!mo->movecount || mo->movecount == player->laps+1))
 					{
 						player->kartstuff[k_nextcheck] += pmo;
 						pncd++;
 					}
-					if (mo->health == players[i].starpostnum)
+					if (mo->health == players[i].starpostnum && (!mo->movecount || mo->movecount == players[i].laps+1))
 					{
 						players[i].kartstuff[k_prevcheck] += imo;
 						ipcd++;
 					}
-					if (mo->health == (players[i].starpostnum + 1))
+					if (mo->health == (players[i].starpostnum + 1) && (!mo->movecount || mo->movecount == players[i].laps+1))
 					{
 						players[i].kartstuff[k_nextcheck] += imo;
 						incd++;
