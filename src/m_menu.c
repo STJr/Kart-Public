@@ -8685,7 +8685,7 @@ static void M_Setup3PJoystickMenu(INT32 choice)
 
 static void M_Setup4PJoystickMenu(INT32 choice)
 {
-	setupcontrolplayer = 3;
+	setupcontrolplayer = 4;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
 	M_SetupJoystickMenu(choice);
 }
