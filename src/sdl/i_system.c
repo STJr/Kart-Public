@@ -866,7 +866,7 @@ INT32 I_GetJoystickDeviceIndex(SDL_Joystick *dev)
 		SDL_Joystick *test = SDL_JoystickOpen(i);
 		if (test && test == dev)
 			return i;
-		else if (JoyInfo.dev != test && JoyInfo2.dev != test)
+		else if (JoyInfo.dev != test && JoyInfo2.dev != test && JoyInfo3.dev != test && JoyInfo4.dev != test)
 			SDL_JoystickClose(test);
 	}
 
