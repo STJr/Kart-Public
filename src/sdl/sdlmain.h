@@ -89,6 +89,9 @@ void I_ShutdownJoystick4(void);
 // Cheat to get the device index for a joystick handle
 INT32 I_GetJoystickDeviceIndex(SDL_Joystick *dev);
 
+// Quick thing to make SDL_JOYDEVICEADDED events less of an abomination
+void I_UpdateJoystickDeviceIndices(INT32 player);
+
 void I_GetConsoleEvents(void);
 
 void SDLforceUngrabMouse(void);

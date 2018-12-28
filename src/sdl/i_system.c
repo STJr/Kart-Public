@@ -872,6 +872,92 @@ INT32 I_GetJoystickDeviceIndex(SDL_Joystick *dev)
 
 	return -1;
 }
+
+// Misleading function: updates device indices for all players BUT the one specified.
+// Necessary for SDL_JOYDEVICEADDED events
+void I_UpdateJoystickDeviceIndices(INT32 player)
+{
+	if (player != 1) // This is a fucking mess.
+	{
+		if (JoyInfo.dev) // update joystick 1's device index
+			cv_usejoystick.value = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
+		else if (atoi(cv_usejoystick.string) != JoyInfo2.oldjoy
+			&& atoi(cv_usejoystick.string) != cv_usejoystick2.value)
+			cv_usejoystick.value = atoi(cv_usejoystick.string);
+		else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+			&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+			cv_usejoystick.value = atoi(cv_usejoystick2.string);
+		else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+			&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+			cv_usejoystick.value = atoi(cv_usejoystick3.string);
+		else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+			&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+			cv_usejoystick.value = atoi(cv_usejoystick4.string);
+		else // we tried...
+			cv_usejoystick.value = 0;
+	}
+
+	if (player != 2)
+	{
+		if (JoyInfo2.dev) // update joystick 2's device index
+			cv_usejoystick2.value = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
+		else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy
+			&& atoi(cv_usejoystick2.string) != cv_usejoystick.value)
+			cv_usejoystick2.value = atoi(cv_usejoystick2.string);
+		else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+			&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+			cv_usejoystick2.value = atoi(cv_usejoystick.string);
+		else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+			&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+			cv_usejoystick2.value = atoi(cv_usejoystick3.string);
+		else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+			&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+			cv_usejoystick2.value = atoi(cv_usejoystick4.string);
+		else // we tried...
+			cv_usejoystick2.value = 0;
+	}
+
+	if (player != 3)
+	{
+		if (JoyInfo3.dev) // update joystick 3's device index
+			cv_usejoystick3.value = I_GetJoystickDeviceIndex(JoyInfo3.dev) + 1;
+		else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy
+			&& atoi(cv_usejoystick3.string) != cv_usejoystick.value)
+			cv_usejoystick3.value = atoi(cv_usejoystick3.string);
+		else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+			&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+			cv_usejoystick3.value = atoi(cv_usejoystick.string);
+		else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+			&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+			cv_usejoystick3.value = atoi(cv_usejoystick2.string);
+		else if (atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy
+			&& atoi(cv_usejoystick4.string) != cv_usejoystick4.value)
+			cv_usejoystick3.value = atoi(cv_usejoystick4.string);
+		else // we tried...
+			cv_usejoystick3.value = 0;
+	}
+
+	if (player != 4)
+	{
+		if (JoyInfo4.dev) // update joystick 4's device index
+			cv_usejoystick4.value = I_GetJoystickDeviceIndex(JoyInfo4.dev) + 1;
+		else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy
+			&& atoi(cv_usejoystick4.string) != cv_usejoystick.value)
+			cv_usejoystick4.value = atoi(cv_usejoystick4.string);
+		else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
+			&& atoi(cv_usejoystick.string) != cv_usejoystick.value)
+			cv_usejoystick4.value = atoi(cv_usejoystick.string);
+		else if (atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
+			&& atoi(cv_usejoystick2.string) != cv_usejoystick2.value)
+			cv_usejoystick4.value = atoi(cv_usejoystick2.string);
+		else if (atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy
+			&& atoi(cv_usejoystick3.string) != cv_usejoystick3.value)
+			cv_usejoystick4.value = atoi(cv_usejoystick3.string);
+		else // we tried...
+			cv_usejoystick4.value = 0;
+	}
+}
+
 /**	\brief Joystick 1 buttons states
 */
 static UINT64 lastjoybuttons = 0;
