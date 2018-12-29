@@ -6166,10 +6166,10 @@ INT32 CHEK_Y;			// CHECK graphic
 INT32 MINI_X, MINI_Y;	// Minimap
 INT32 WANT_X, WANT_Y;	// Battle WANTED poster
 
-// This is messy AND looks horrible, but I really couldn't find any other magic trick for 4 player splitscreen garbage. Sorry.
-INT32 ITEM2_X, ITEM2_Y, ITEM3_X, ITEM3_Y, ITEM4_X, ITEM4_Y;
-INT32 LAPS2_X, LAPS2_Y, LAPS3_X, LAPS3_Y, LAPS4_X, LAPS4_Y;
-INT32 POSI2_X, POSI2_Y, POSI3_X, POSI3_Y, POSI4_X, POSI4_Y;
+// This is for the P2 and P4 side of splitscreen. Then we'll flip P1's and P2's to the bottom with V_SPLITSCREEN.
+INT32 ITEM2_X, ITEM2_Y;
+INT32 LAPS2_X, LAPS2_Y;
+INT32 POSI2_X, POSI2_Y;
 
 
 static void K_initKartHUD(void)
@@ -6277,27 +6277,7 @@ static void K_initKartHUD(void)
 			POSI2_X = BASEVIDWIDTH -9;
 			POSI2_Y = (BASEVIDHEIGHT/2)- 16;
 
-			// 3P (bottom left)
-			ITEM3_X = -9;
-			ITEM3_Y = (BASEVIDHEIGHT/2) -9;
-
-			LAPS3_X = 3;
-			LAPS3_Y = (BASEVIDHEIGHT)-13;
-
-			POSI3_X = 32;
-			POSI3_Y = (BASEVIDHEIGHT)- 16;
-
-			// 4P (bottom right)
-			ITEM4_X = BASEVIDWIDTH-40;
-			ITEM4_Y = (BASEVIDHEIGHT/2) -9;
-
-			LAPS4_X = BASEVIDWIDTH-45;
-			LAPS4_Y = (BASEVIDHEIGHT)-13;
-
-			POSI4_X = BASEVIDWIDTH-9;
-			POSI4_Y = (BASEVIDHEIGHT)- 16;
-
-
+			// Reminder that 3P and 4P are just 1P and 2P splitscreen'd to the bottom.
 
 			STCD_X = BASEVIDWIDTH/4;
 
@@ -6598,29 +6578,17 @@ static void K_drawKartItem(void)
 	}
 	else				// now we're having a fun game.
 	{
-		if (stplyr == &players[displayplayer])
+		if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
 		{
 			fx = ITEM_X;
 			fy = ITEM_Y;
-			fflags = V_SNAPTOTOP|V_SNAPTOLEFT;
+			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN : V_SNAPTOTOP);	// flip P3 to the bottom.
 		}
-		else if (stplyr == &players[secondarydisplayplayer])
+		else // else, that means we're P2 or P4.
 		{
 			fx = ITEM2_X;
 			fy = ITEM2_Y;
-			fflags = V_SNAPTOTOP|V_SNAPTORIGHT;
-		}
-		else if (stplyr == &players[thirddisplayplayer])
-		{
-			fx = ITEM3_X;
-			fy = ITEM3_Y;
-			fflags = V_SNAPTOLEFT;
-		}
-		else if (stplyr == &players[fourthdisplayplayer])
-		{
-			fx = ITEM4_X;
-			fy = ITEM4_Y;
-			fflags = V_SNAPTORIGHT;
+			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN : V_SNAPTOTOP);	// flip P4 to the bottom
 		}
 	}
 
@@ -6846,7 +6814,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	W = FixedMul(W<<FRACBITS, scale)>>FRACBITS;
 
 	// pain and suffering defined below
-	if (splitscreen < 2)	// for this splitscreen, we'll be using more unique coordinates so we don't overlap the minimap :D
+	if (splitscreen < 2)	// for this splitscreen, we'll use case by case because it's a bit different.
 	{
 		fx = POSI_X;
 		if (stplyr == &players[displayplayer])	// for player 1: display this at the top right, above the minimap.
@@ -6860,31 +6828,19 @@ static void K_DrawKartPositionNum(INT32 num)
 			fflags = V_SNAPTOBOTTOM|V_SNAPTORIGHT;
 		}
 	}
-	else				// now we're having a fun game.
+	else
 	{
-		if (stplyr == &players[displayplayer])
+		if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
 		{
 			fx = POSI_X;
 			fy = POSI_Y;
-			fflags = V_SNAPTOLEFT;
+			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 		}
-		else if (stplyr == &players[secondarydisplayplayer])
+		else // else, that means we're P2 or P4.
 		{
 			fx = POSI2_X;
 			fy = POSI2_Y;
-			fflags = V_SNAPTORIGHT;
-		}
-		else if (stplyr == &players[thirddisplayplayer])
-		{
-			fx = POSI3_X;
-			fy = POSI3_Y;
-			fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
-		}
-		else if (stplyr == &players[fourthdisplayplayer])
-		{
-			fx = POSI4_X;
-			fy = POSI4_Y;
-			fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 		}
 	}
 
@@ -7188,31 +7144,19 @@ static void K_drawKartLaps(void)
 			fy = LAPS_Y;
 			fflags = splitflags;
 		}
-		else				// now we're having a fun game.
+		else
 		{
-			if (stplyr == &players[displayplayer])
+			if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
 			{
 				fx = LAPS_X;
 				fy = LAPS_Y;
-				fflags = V_SNAPTOLEFT;
+				fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 			}
-			else if (stplyr == &players[secondarydisplayplayer])
+			else // else, that means we're P2 or P4.
 			{
 				fx = LAPS2_X;
 				fy = LAPS2_Y;
-				fflags = V_SNAPTORIGHT;
-			}
-			else if (stplyr == &players[thirddisplayplayer])
-			{
-				fx = LAPS3_X;
-				fy = LAPS3_Y;
-				fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
-			}
-			else if (stplyr == &players[fourthdisplayplayer])
-			{
-				fx = LAPS4_X;
-				fy = LAPS4_Y;
-				fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+				fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 			}
 		}
 
@@ -7266,29 +7210,18 @@ static void K_drawKartBumpersOrKarma(void)
 	{
 
 		// we will reuse lap coords here since it's essentially the same shit.
-		if (stplyr == &players[displayplayer])
+
+		if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
 		{
 			fx = LAPS_X;
 			fy = LAPS_Y;
-			fflags = V_SNAPTOLEFT;
+			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 		}
-		else if (stplyr == &players[secondarydisplayplayer])
+		else // else, that means we're P2 or P4.
 		{
 			fx = LAPS2_X;
 			fy = LAPS2_Y;
-			fflags = V_SNAPTORIGHT;
-		}
-		else if (stplyr == &players[thirddisplayplayer])
-		{
-			fx = LAPS3_X;
-			fy = LAPS3_Y;
-			fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
-		}
-		else if (stplyr == &players[fourthdisplayplayer])
-		{
-			fx = LAPS4_X;
-			fy = LAPS4_Y;
-			fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 		}
 
 		if (stplyr->kartstuff[k_bumper] <= 0)
@@ -7364,31 +7297,20 @@ static void K_drawKartWanted(void)
 			fy = WANT_Y;
 			fflags =  K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 		}
-		else				// now we're having a fun game.
+		else
 		{
-			if (stplyr == &players[displayplayer])
+
+			if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
 			{
 				fx = LAPS_X;
 				fy = POSI_Y - 8;
-				fflags = V_SNAPTOLEFT;
+				fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 			}
-			else if (stplyr == &players[secondarydisplayplayer])
+			else // else, that means we're P2 or P4.
 			{
 				fx = LAPS2_X - 10;
 				fy = POSI2_Y - 8;
-				fflags = V_SNAPTORIGHT;
-			}
-			else if (stplyr == &players[thirddisplayplayer])
-			{
-				fx = LAPS3_X;
-				fy = POSI3_Y - 8;
-				fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
-			}
-			else if (stplyr == &players[fourthdisplayplayer])
-			{
-				fx = LAPS4_X - 10;
-				fy = POSI4_Y - 8;
-				fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+				fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 			}
 		}
 
