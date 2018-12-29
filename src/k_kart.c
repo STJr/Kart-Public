@@ -6166,6 +6166,12 @@ INT32 CHEK_Y;			// CHECK graphic
 INT32 MINI_X, MINI_Y;	// Minimap
 INT32 WANT_X, WANT_Y;	// Battle WANTED poster
 
+// This is messy AND looks horrible, but I really couldn't find any other magic trick for 4 player splitscreen garbage. Sorry.
+INT32 ITEM2_X, ITEM2_Y, ITEM3_X, ITEM3_Y, ITEM4_X, ITEM4_Y;
+INT32 LAPS2_X, LAPS2_Y, LAPS3_X, LAPS3_Y, LAPS4_X, LAPS4_Y;
+INT32 POSI2_X, POSI2_Y, POSI3_X, POSI3_Y, POSI4_X, POSI4_Y;
+
+
 static void K_initKartHUD(void)
 {
 	/*
@@ -6251,13 +6257,47 @@ static void K_initKartHUD(void)
 
 		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
+			// 1P (top left)
 			ITEM_X = -9;
 			ITEM_Y = -8;
 
 			LAPS_X = 3;
 			LAPS_Y = (BASEVIDHEIGHT/2)-13;
 
-			POSI_X = (BASEVIDWIDTH/2)-3;
+			POSI_X = 32;
+			POSI_Y = (BASEVIDHEIGHT/2)- 16;
+
+			// 2P (top right)
+			ITEM2_X = BASEVIDWIDTH-40;
+			ITEM2_Y = -8;
+
+			LAPS2_X = BASEVIDWIDTH-45;
+			LAPS2_Y = (BASEVIDHEIGHT/2)-13;
+
+			POSI2_X = BASEVIDWIDTH -9;
+			POSI2_Y = (BASEVIDHEIGHT/2)- 16;
+
+			// 3P (bottom left)
+			ITEM3_X = -9;
+			ITEM3_Y = (BASEVIDHEIGHT/2) -9;
+
+			LAPS3_X = 3;
+			LAPS3_Y = (BASEVIDHEIGHT)-13;
+
+			POSI3_X = 32;
+			POSI3_Y = (BASEVIDHEIGHT)- 16;
+
+			// 4P (bottom right)
+			ITEM4_X = BASEVIDWIDTH-40;
+			ITEM4_Y = (BASEVIDHEIGHT/2) -9;
+
+			LAPS4_X = BASEVIDWIDTH-45;
+			LAPS4_Y = (BASEVIDHEIGHT)-13;
+
+			POSI4_X = BASEVIDWIDTH-9;
+			POSI4_Y = (BASEVIDHEIGHT)- 16;
+
+
 
 			STCD_X = BASEVIDWIDTH/4;
 
@@ -6331,7 +6371,8 @@ static void K_drawKartItem(void)
 	patch_t *localpatch = kp_nodraw;
 	patch_t *localbg = ((offset) ? kp_itembg[2] : kp_itembg[0]);
 	patch_t *localinv = ((offset) ? kp_invincibility[((leveltime % (6*3)) / 3) + 7] : kp_invincibility[(leveltime % (7*3)) / 3]);
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	INT32 fx = 0, fy = 0, fflags = 0;	// final coords for hud and flags...
+	//INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	const INT32 numberdisplaymin = ((!offset && stplyr->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
 	INT32 itembar = 0;
 	UINT8 localcolor = SKINCOLOR_NONE;
@@ -6548,26 +6589,61 @@ static void K_drawKartItem(void)
 		}
 	}
 
+	// pain and suffering defined below
+	if (splitscreen < 2)	// don't change shit for THIS splitscreen.
+	{
+		fx = ITEM_X;
+		fy = ITEM_Y;
+		fflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
+	}
+	else				// now we're having a fun game.
+	{
+		if (stplyr == &players[displayplayer])
+		{
+			fx = ITEM_X;
+			fy = ITEM_Y;
+			fflags = V_SNAPTOTOP|V_SNAPTOLEFT;
+		}
+		else if (stplyr == &players[secondarydisplayplayer])
+		{
+			fx = ITEM2_X;
+			fy = ITEM2_Y;
+			fflags = V_SNAPTOTOP|V_SNAPTORIGHT;
+		}
+		else if (stplyr == &players[thirddisplayplayer])
+		{
+			fx = ITEM3_X;
+			fy = ITEM3_Y;
+			fflags = V_SNAPTOLEFT;
+		}
+		else if (stplyr == &players[fourthdisplayplayer])
+		{
+			fx = ITEM4_X;
+			fy = ITEM4_Y;
+			fflags = V_SNAPTORIGHT;
+		}
+	}
+
 	if (localcolor != SKINCOLOR_NONE)
 		colmap = R_GetTranslationColormap(colormode, localcolor, 0);
 
-	V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, localbg);
+	V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, localbg);
 
 	// Then, the numbers:
 	if (stplyr->kartstuff[k_itemamount] >= numberdisplaymin && !stplyr->kartstuff[k_itemroulette])
 	{
-		V_DrawScaledPatch(ITEM_X, ITEM_Y, V_HUDTRANS|splitflags, kp_itemmulsticker[offset]);
-		V_DrawFixedPatch(ITEM_X<<FRACBITS, ITEM_Y<<FRACBITS, FRACUNIT, V_HUDTRANS|splitflags, localpatch, colmap);
+		V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, kp_itemmulsticker[offset]);
+		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, FRACUNIT, V_HUDTRANS|fflags, localpatch, colmap);
 		if (offset)
-			V_DrawString(ITEM_X+24, ITEM_Y+31, V_ALLOWLOWERCASE|V_HUDTRANS|splitflags, va("x%d", stplyr->kartstuff[k_itemamount]));
+			V_DrawString(fx+24, fy+31, V_ALLOWLOWERCASE|V_HUDTRANS|fflags, va("x%d", stplyr->kartstuff[k_itemamount]));
 		else
 		{
-			V_DrawScaledPatch(ITEM_X+28, ITEM_Y+41, V_HUDTRANS|splitflags, kp_itemx);
-			V_DrawKartString(ITEM_X+38, ITEM_Y+36, V_HUDTRANS|splitflags, va("%d", stplyr->kartstuff[k_itemamount]));
+			V_DrawScaledPatch(fy+28, fy+41, V_HUDTRANS|fflags, kp_itemx);
+			V_DrawKartString(fx+38, fy+36, V_HUDTRANS|fflags, va("%d", stplyr->kartstuff[k_itemamount]));
 		}
 	}
 	else
-		V_DrawFixedPatch(ITEM_X<<FRACBITS, ITEM_Y<<FRACBITS, FRACUNIT, V_HUDTRANS|splitflags, localpatch, colmap);
+		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, FRACUNIT, V_HUDTRANS|fflags, localpatch, colmap);
 
 	// Extensible meter, currently only used for rocket sneaker...
 	if (itembar && hudtrans)
@@ -6579,22 +6655,23 @@ static void K_drawKartItem(void)
 		const INT32 height = (offset ? 1 : 2);
 		const INT32 x = (offset ? 17 : 11), y = (offset ? 27 : 35);
 
-		V_DrawScaledPatch(ITEM_X+x, ITEM_Y+y, V_HUDTRANS|splitflags, kp_itemtimer[offset]);
+		V_DrawScaledPatch(fx+x, fy+y, V_HUDTRANS|fflags, kp_itemtimer[offset]);
 		// The left dark "AA" edge
-		V_DrawFill(ITEM_X+x+1, ITEM_Y+y+1, (length == 2 ? 2 : 1), height, 12|splitflags);
+		V_DrawFill(fx+x+1, fy+y+1, (length == 2 ? 2 : 1), height, 12|fflags);
 		// The bar itself
 		if (length > 2)
 		{
-			V_DrawFill(ITEM_X+x+length, ITEM_Y+y+1, 1, height, 12|splitflags); // the right one
+			V_DrawFill(fx+x+length, fy+y+1, 1, height, 12|fflags); // the right one
 			if (height == 2)
-				V_DrawFill(ITEM_X+x+2, ITEM_Y+y+2, length-2, 1, 8|splitflags); // the dulled underside
-			V_DrawFill(ITEM_X+x+2, ITEM_Y+y+1, length-2, 1, 120|splitflags); // the shine
+				V_DrawFill(fx+x+2, fy+y+2, length-2, 1, 8|fflags); // the dulled underside
+			V_DrawFill(fx+x+2, fy+y+1, length-2, 1, 120|fflags); // the shine
 		}
 	}
 
 	// Quick Eggman numbers
 	if (stplyr->kartstuff[k_eggmanexplode] > 1 /*&& stplyr->kartstuff[k_eggmanexplode] <= 3*TICRATE*/)
-		V_DrawScaledPatch(ITEM_X+17, ITEM_Y+13-offset, V_HUDTRANS|splitflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
+		V_DrawScaledPatch(fx+17, fy+13-offset, V_HUDTRANS|fflags, kp_eggnum[min(3, G_TicsToSeconds(stplyr->kartstuff[k_eggmanexplode]))]);
+
 }
 
 void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, UINT8 mode)
@@ -6754,11 +6831,12 @@ static void K_DrawKartPositionNum(INT32 num)
 	// POSI_Y = BASEVIDHEIGHT- 64;	// 136
 
 	boolean win = (stplyr->exiting && num == 1);
-	INT32 X = POSI_X;
+	//INT32 X = POSI_X;
 	INT32 W = SHORT(kp_positionnum[0][0]->width);
 	fixed_t scale = FRACUNIT;
 	patch_t *localpatch = kp_positionnum[0][0];
-	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
+	//INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
+	INT32 fx = 0, fy = 0, fflags = 0;
 
 	if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
 		scale *= 2;
@@ -6767,10 +6845,53 @@ static void K_DrawKartPositionNum(INT32 num)
 
 	W = FixedMul(W<<FRACBITS, scale)>>FRACBITS;
 
+	// pain and suffering defined below
+	if (splitscreen < 2)	// for this splitscreen, we'll be using more unique coordinates so we don't overlap the minimap :D
+	{
+		fx = POSI_X;
+		if (stplyr == &players[displayplayer])	// for player 1: display this at the top right, above the minimap.
+		{
+			fy = 32;
+			fflags = V_SNAPTOTOP|V_SNAPTOLEFT;
+		}
+		else	// if we're not p1, that means we're p2. display this at the bottom right, below the minimap.
+		{
+			fy = BASEVIDHEIGHT - 8;
+			fflags = V_SNAPTOBOTTOM|V_SNAPTOLEFT;
+		}
+	}
+	else				// now we're having a fun game.
+	{
+		if (stplyr == &players[displayplayer])
+		{
+			fx = POSI_X;
+			fy = POSI_Y;
+			fflags = V_SNAPTOLEFT;
+		}
+		else if (stplyr == &players[secondarydisplayplayer])
+		{
+			fx = POSI2_X;
+			fy = POSI2_Y;
+			fflags = V_SNAPTORIGHT;
+		}
+		else if (stplyr == &players[thirddisplayplayer])
+		{
+			fx = POSI3_X;
+			fy = POSI3_Y;
+			fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+		}
+		else if (stplyr == &players[fourthdisplayplayer])
+		{
+			fx = POSI4_X;
+			fy = POSI4_Y;
+			fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+		}
+	}
+
 	// Special case for 0
 	if (!num)
 	{
-		V_DrawFixedPatch(X<<FRACBITS, POSI_Y<<FRACBITS, scale, V_HUDTRANSHALF|splitflags, kp_positionnum[0][0], NULL);
+		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, scale, V_HUDTRANSHALF|fflags, kp_positionnum[0][0], NULL);
 		return;
 	}
 
@@ -6812,9 +6933,9 @@ static void K_DrawKartPositionNum(INT32 num)
 		else
 			localpatch = kp_positionnum[num % 10][0];
 
-		V_DrawFixedPatch(X<<FRACBITS, POSI_Y<<FRACBITS, scale, V_HUDTRANSHALF|splitflags, localpatch, NULL);
+		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, scale, V_HUDTRANSHALF|fflags, localpatch, NULL);
 
-		X -= W;
+		fx -= W;
 		num /= 10;
 	}
 }
@@ -7055,15 +7176,52 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 static void K_drawKartLaps(void)
 {
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+	INT32 fx = 0, fy = 0, fflags = 0;	// stuff for 3p / 4p splitscreen.
 
 	if (splitscreen > 1)
 	{
-		V_DrawScaledPatch(LAPS_X, LAPS_Y, V_HUDTRANS|splitflags, kp_splitlapflag);
+
+		// pain and suffering defined below
+		if (splitscreen < 2)	// don't change shit for THIS splitscreen.
+		{
+			fx = LAPS_X;
+			fy = LAPS_Y;
+			fflags = splitflags;
+		}
+		else				// now we're having a fun game.
+		{
+			if (stplyr == &players[displayplayer])
+			{
+				fx = LAPS_X;
+				fy = LAPS_Y;
+				fflags = V_SNAPTOLEFT;
+			}
+			else if (stplyr == &players[secondarydisplayplayer])
+			{
+				fx = LAPS2_X;
+				fy = LAPS2_Y;
+				fflags = V_SNAPTORIGHT;
+			}
+			else if (stplyr == &players[thirddisplayplayer])
+			{
+				fx = LAPS3_X;
+				fy = LAPS3_Y;
+				fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+			}
+			else if (stplyr == &players[fourthdisplayplayer])
+			{
+				fx = LAPS4_X;
+				fy = LAPS4_Y;
+				fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+			}
+		}
+
+		V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, kp_splitlapflag);
 
 		if (stplyr->exiting)
-			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, "FIN");
+			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, "FIN");
 		else
-			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
 	}
 	else
 	{
@@ -7102,18 +7260,46 @@ static void K_drawKartBumpersOrKarma(void)
 {
 	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+	INT32 fx = 0, fy = 0, fflags = 0;
 
 	if (splitscreen > 1)
 	{
+
+		// we will reuse lap coords here since it's essentially the same shit.
+		if (stplyr == &players[displayplayer])
+		{
+			fx = LAPS_X;
+			fy = LAPS_Y;
+			fflags = V_SNAPTOLEFT;
+		}
+		else if (stplyr == &players[secondarydisplayplayer])
+		{
+			fx = LAPS2_X;
+			fy = LAPS2_Y;
+			fflags = V_SNAPTORIGHT;
+		}
+		else if (stplyr == &players[thirddisplayplayer])
+		{
+			fx = LAPS3_X;
+			fy = LAPS3_Y;
+			fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+		}
+		else if (stplyr == &players[fourthdisplayplayer])
+		{
+			fx = LAPS4_X;
+			fy = LAPS4_Y;
+			fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+		}
+
 		if (stplyr->kartstuff[k_bumper] <= 0)
 		{
-			V_DrawMappedPatch(LAPS_X, LAPS_Y-1, V_HUDTRANS|splitflags, kp_splitkarmabomb, colormap);
-			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
+			V_DrawMappedPatch(fx, fy-1, V_HUDTRANS|fflags, kp_splitkarmabomb, colormap);
+			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
 		}
 		else
 		{
-			V_DrawMappedPatch(LAPS_X, LAPS_Y-1, V_HUDTRANS|splitflags, kp_rankbumper, colormap);
-			V_DrawString(LAPS_X+13, LAPS_Y+1, V_HUDTRANS|splitflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
+			V_DrawMappedPatch(fx, fy-1, V_HUDTRANS|fflags, kp_rankbumper, colormap);
+			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
 		}
 	}
 	else
@@ -7166,11 +7352,53 @@ static void K_drawKartWanted(void)
 {
 	UINT8 i, numwanted = 0;
 	UINT8 *colormap = NULL;
+	INT32 fx = 0, fy = 0, fflags = 0;	// splitscreen stuff
 
 	if (splitscreen) // Can't fit the poster on screen, sadly
 	{
+
+		// wanted is a bit of a mess but don't worry.
+		if (splitscreen < 2)	// don't change shit for THIS splitscreen.
+		{
+			fx = WANT_X;
+			fy = WANT_Y;
+			fflags =  K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
+		}
+		else				// now we're having a fun game.
+		{
+			if (stplyr == &players[displayplayer])
+			{
+				fx = LAPS_X;
+				fy = POSI_Y - 8;
+				fflags = V_SNAPTOLEFT;
+			}
+			else if (stplyr == &players[secondarydisplayplayer])
+			{
+				fx = LAPS2_X - 10;
+				fy = POSI2_Y - 8;
+				fflags = V_SNAPTORIGHT;
+			}
+			else if (stplyr == &players[thirddisplayplayer])
+			{
+				fx = LAPS3_X;
+				fy = POSI3_Y - 8;
+				fflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+			}
+			else if (stplyr == &players[fourthdisplayplayer])
+			{
+				fx = LAPS4_X - 10;
+				fy = POSI4_Y - 8;
+				fflags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+			}
+		}
+
 		if (K_IsPlayerWanted(stplyr) && leveltime % 10 > 3)
-			V_DrawRightAlignedString(WANT_X, WANT_Y, K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS|V_ORANGEMAP), "WANTED");
+		{
+			if (splitscreen > 1)
+				V_DrawString(fx, fy-4, fflags|V_HUDTRANS|V_ORANGEMAP, "WANTED");
+			else
+				V_DrawRightAlignedString(fx, fy, fflags|V_HUDTRANS|V_ORANGEMAP, "WANTED");
+		}
 		return;
 	}
 
@@ -7360,7 +7588,7 @@ static void K_drawKartMinimap(void)
 	patch_t *AutomapPic;
 	INT32 i = 0;
 	INT32 x, y;
-	INT32 minimaptrans, splitflags = (splitscreen ? 0 : V_SNAPTORIGHT);
+	INT32 minimaptrans, splitflags = (splitscreen < 2 ? 0 : V_SNAPTORIGHT);
 	boolean dop1later = false;
 
 	// Draw the HUD only when playing in a level.
@@ -7383,7 +7611,7 @@ static void K_drawKartMinimap(void)
 
 	if (timeinmap > 105)
 	{
-		minimaptrans = (splitscreen ? 10 : cv_kartminimap.value);
+		minimaptrans = (splitscreen == 2 ? 10 : cv_kartminimap.value);
 		if (timeinmap <= 113)
 			minimaptrans = ((((INT32)timeinmap) - 105)*minimaptrans)/(113-105);
 		if (!minimaptrans)
@@ -7400,7 +7628,7 @@ static void K_drawKartMinimap(void)
 	else
 		V_DrawScaledPatch(x, y, splitflags, AutomapPic);
 
-	if (!splitscreen)
+	if (!(splitscreen == 2))
 	{
 		splitflags &= ~minimaptrans;
 		splitflags |= V_HUDTRANSHALF;
@@ -8092,13 +8320,13 @@ void K_drawKartHUD(void)
 		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		K_drawKartFirstPerson();
 
-	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
+/*	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
 	{
 #ifdef HAVE_BLUA
 		if (LUA_HudEnabled(hud_minimap))
 #endif
 		K_drawKartMinimap();
-	}
+	}*/
 
 	// Draw full screen stuff that turns off the rest of the HUD
 	if (mapreset && stplyr == &players[displayplayer])
@@ -8122,7 +8350,7 @@ void K_drawKartHUD(void)
 	if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
 		K_drawKartPlayerCheck();
 
-	if (splitscreen == 0 && cv_kartminimap.value && !titledemo)
+	if (cv_kartminimap.value && !titledemo)
 	{
 #ifdef HAVE_BLUA
 		if (LUA_HudEnabled(hud_minimap))
