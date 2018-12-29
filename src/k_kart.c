@@ -6852,12 +6852,12 @@ static void K_DrawKartPositionNum(INT32 num)
 		if (stplyr == &players[displayplayer])	// for player 1: display this at the top right, above the minimap.
 		{
 			fy = 32;
-			fflags = V_SNAPTOTOP|V_SNAPTOLEFT;
+			fflags = V_SNAPTOTOP|V_SNAPTORIGHT;
 		}
 		else	// if we're not p1, that means we're p2. display this at the bottom right, below the minimap.
 		{
 			fy = BASEVIDHEIGHT - 8;
-			fflags = V_SNAPTOBOTTOM|V_SNAPTOLEFT;
+			fflags = V_SNAPTOBOTTOM|V_SNAPTORIGHT;
 		}
 	}
 	else				// now we're having a fun game.
@@ -7588,7 +7588,7 @@ static void K_drawKartMinimap(void)
 	patch_t *AutomapPic;
 	INT32 i = 0;
 	INT32 x, y;
-	INT32 minimaptrans, splitflags = (splitscreen < 2 ? 0 : V_SNAPTORIGHT);
+	INT32 minimaptrans, splitflags = (splitscreen == 3 ? 0 : V_SNAPTORIGHT);	// flags should only be 0 when it's centered (4p split)
 	boolean dop1later = false;
 
 	// Draw the HUD only when playing in a level.
