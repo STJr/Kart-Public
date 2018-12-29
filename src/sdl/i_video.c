@@ -1144,19 +1144,19 @@ void I_GetEvent(void)
 
 				if (JoyInfo3.dev)
 					cv_usejoystick3.value = JoyInfo3.oldjoy = I_GetJoystickDeviceIndex(JoyInfo3.dev) + 1;
-				else if (atoi(cv_usejoystick.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick.string) != JoyInfo4.oldjoy)
 					cv_usejoystick3.value = atoi(cv_usejoystick.string);
-				else if (atoi(cv_usejoystick2.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick2.string) != JoyInfo4.oldjoy)
 					cv_usejoystick3.value = atoi(cv_usejoystick2.string);
-				else if (atoi(cv_usejoystick3.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick3.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick3.string) != JoyInfo4.oldjoy)
 					cv_usejoystick3.value = atoi(cv_usejoystick3.string);
-				else if (atoi(cv_usejoystick4.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick4.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick4.string) != JoyInfo4.oldjoy)
 					cv_usejoystick3.value = atoi(cv_usejoystick4.string);
@@ -1165,19 +1165,19 @@ void I_GetEvent(void)
 
 				if (JoyInfo4.dev)
 					cv_usejoystick4.value = JoyInfo4.oldjoy = I_GetJoystickDeviceIndex(JoyInfo4.dev) + 1;
-				else if (atoi(cv_usejoystick.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick.string) != JoyInfo3.oldjoy)
 					cv_usejoystick4.value = atoi(cv_usejoystick.string);
-				else if (atoi(cv_usejoystick2.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick2.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick2.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick2.string) != JoyInfo3.oldjoy)
 					cv_usejoystick4.value = atoi(cv_usejoystick2.string);
-				else if (atoi(cv_usejoystick3.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick3.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick3.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick3.string) != JoyInfo3.oldjoy)
 					cv_usejoystick4.value = atoi(cv_usejoystick3.string);
-				else if (atoi(cv_usejoystick4.string) != JoyInfo1.oldjoy
+				else if (atoi(cv_usejoystick4.string) != JoyInfo.oldjoy
 					&& atoi(cv_usejoystick4.string) != JoyInfo2.oldjoy
 					&& atoi(cv_usejoystick4.string) != JoyInfo3.oldjoy)
 					cv_usejoystick4.value = atoi(cv_usejoystick4.string);
