@@ -75,8 +75,8 @@ install:
 configuration:
 - SDL
 - SDL64
-- DD
-- DD64
+#- DD
+#- DD64
 
 matrix:
   allow_failures:
