@@ -8025,14 +8025,9 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			else
 			{
-				fixed_t finalspeed = mobj->info->speed;
+				fixed_t finalspeed = mobj->movefactor;
 
 				P_SpawnGhostMobj(mobj);
-
-				if (gamespeed == 0)
-					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
-				else if (gamespeed == 2)
-					finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
 
 				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
 				if (mobj->health <= 5)
@@ -8041,7 +8036,6 @@ void P_MobjThinker(mobj_t *mobj)
 					for (i = 5; i >= mobj->health; i--)
 						finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
 				}
-				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 
 				if (grounded)
@@ -8064,7 +8058,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_JAWZ:
 		{
 			sector_t *sec2;
-			fixed_t topspeed = 64*FRACUNIT;
+			fixed_t topspeed = mobj->movefactor;
 			fixed_t distbarrier = 512*FRACUNIT;
 			fixed_t distaway;
 
@@ -8076,18 +8070,10 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			if (gamespeed == 0)
-			{
-				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
-			}
 			else if (gamespeed == 2)
-			{
-				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
-			}
-
 			distbarrier = FixedMul(distbarrier, mapheaderinfo[gamemap-1]->mobj_scale);
-			topspeed = FixedMul(topspeed, mapheaderinfo[gamemap-1]->mobj_scale);
 
 			if (G_RaceGametype() && mobj->tracer)
 			{
@@ -8146,7 +8132,7 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				P_SpawnGhostMobj(mobj);
 				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
-				P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+				P_InstaThrust(mobj, mobj->angle, mobj->movefactor);
 
 				if (grounded)
 				{

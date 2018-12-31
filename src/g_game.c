@@ -1209,7 +1209,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	INT32 laim, th, tspeed, forward, side, axis; //i
 	const INT32 speed = 1;
 	// these ones used for multiple conditions
-	boolean turnleft, turnright, invertmouse, mouseaiming, lookaxis, usejoystick, analogjoystickmove, gamepadjoystickmove, kbl, rd;
+	boolean turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
+	boolean invertmouse, lookaxis, usejoystick, kbl, rd;
 	player_t *player;
 	camera_t *thiscam;
 	angle_t lang;
@@ -1800,7 +1801,7 @@ boolean G_Responder(event_t *ev)
 {
 	// allow spy mode changes even during the demo
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown
-		&& (ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
+		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
 	{
 		if (splitscreen || !netgame)
 			displayplayer = consoleplayer;
@@ -2430,7 +2431,10 @@ void G_PlayerReborn(INT32 player)
 		}
 
 		// Keep Shrink status, remove Grow status
-		growshrinktimer = min(players[player].kartstuff[k_growshrinktimer], 0);
+		if (players[player].kartstuff[k_growshrinktimer] < 0)
+			growshrinktimer = players[player].kartstuff[k_growshrinktimer];
+		else
+			growshrinktimer = 0;
 
 		bumper = players[player].kartstuff[k_bumper];
 		comebackpoints = players[player].kartstuff[k_comebackpoints];

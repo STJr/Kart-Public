@@ -59,6 +59,8 @@
 #include "k_kart.h" // SRB2kart
 #include "d_player.h" // KITEM_ constants
 
+#include "i_joy.h" // for joystick menu controls
+
 // Condition Sets
 #include "m_cond.h"
 
@@ -168,7 +170,7 @@ typedef enum
 levellist_mode_t levellistmode = LLM_CREATESERVER;
 UINT8 maplistoption = 0;
 
-static char joystickInfo[8][25];
+static char joystickInfo[8][29];
 #ifndef NONET
 static UINT32 serverlistpage;
 #endif
@@ -2443,6 +2445,7 @@ boolean M_Responder(event_t *ev)
 	INT32 ch = -1;
 //	INT32 i;
 	static tic_t joywait = 0, mousewait = 0;
+	static INT32 pjoyx = 0, pjoyy = 0;
 	static INT32 pmousex = 0, pmousey = 0;
 	static INT32 lastx = 0, lasty = 0;
 	void (*routine)(INT32 choice); // for some casting problem
@@ -2458,63 +2461,84 @@ boolean M_Responder(event_t *ev)
 		// (but still allow shift keyup so caps doesn't get stuck)
 		return false;
 	}
-	else if (ev->type == ev_keydown)
-	{
-		ch = ev->data1;
-
-		// added 5-2-98 remap virtual keys (mouse & joystick buttons)
-		switch (ch)
-		{
-			case KEY_MOUSE1:
-			case KEY_JOY1:
-			case KEY_JOY1 + 2:
-				ch = KEY_ENTER;
-				break;
-			case KEY_JOY1 + 3:
-				ch = 'n';
-				break;
-			case KEY_MOUSE1 + 1:
-			case KEY_JOY1 + 1:
-				ch = KEY_BACKSPACE;
-				break;
-			case KEY_HAT1:
-				ch = KEY_UPARROW;
-				break;
-			case KEY_HAT1 + 1:
-				ch = KEY_DOWNARROW;
-				break;
-			case KEY_HAT1 + 2:
-				ch = KEY_LEFTARROW;
-				break;
-			case KEY_HAT1 + 3:
-				ch = KEY_RIGHTARROW;
-				break;
-		}
-	}
 	else if (menuactive)
 	{
-		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
+		if (ev->type == ev_keydown)
 		{
-			if (ev->data3 == -1)
+			ch = ev->data1;
+
+			// added 5-2-98 remap virtual keys (mouse & joystick buttons)
+			switch (ch)
 			{
-				ch = KEY_UPARROW;
-				joywait = I_GetTime() + NEWTICRATE/7;
+				case KEY_MOUSE1:
+				case KEY_JOY1:
+					ch = KEY_ENTER;
+					break;
+				case KEY_JOY1 + 3:
+					ch = 'n';
+					break;
+				case KEY_MOUSE1 + 1:
+				case KEY_JOY1 + 1:
+					ch = KEY_ESCAPE;
+					break;
+				case KEY_JOY1 + 2:
+					ch = KEY_BACKSPACE;
+					break;
+				case KEY_HAT1:
+					ch = KEY_UPARROW;
+					break;
+				case KEY_HAT1 + 1:
+					ch = KEY_DOWNARROW;
+					break;
+				case KEY_HAT1 + 2:
+					ch = KEY_LEFTARROW;
+					break;
+				case KEY_HAT1 + 3:
+					ch = KEY_RIGHTARROW;
+					break;
 			}
-			else if (ev->data3 == 1)
+		}
+		else if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
+		{
+			const INT32 jdeadzone = JOYAXISRANGE/4;
+			if (ev->data3 != INT32_MAX)
 			{
-				ch = KEY_DOWNARROW;
-				joywait = I_GetTime() + NEWTICRATE/7;
+				if (Joystick.bGamepadStyle || abs(ev->data3) > jdeadzone)
+				{
+					if (ev->data3 < 0 && pjoyy >= 0)
+					{
+						ch = KEY_UPARROW;
+						joywait = I_GetTime() + NEWTICRATE/7;
+					}
+					else if (ev->data3 > 0 && pjoyy <= 0)
+					{
+						ch = KEY_DOWNARROW;
+						joywait = I_GetTime() + NEWTICRATE/7;
+					}
+					pjoyy = ev->data3;
+				}
+				else
+					pjoyy = 0;
 			}
 
-			if (ev->data2 == -1)
+			if (ev->data2 != INT32_MAX)
 			{
-				ch = KEY_LEFTARROW;
-				joywait = I_GetTime() + NEWTICRATE/17;
-			}
-			else if (ev->data2 == 1)
-			{
-				ch = KEY_RIGHTARROW;
-				joywait = I_GetTime() + NEWTICRATE/17;
+				if (Joystick.bGamepadStyle || abs(ev->data2) > jdeadzone)
+				{
+					if (ev->data2 < 0 && pjoyx >= 0)
+					{
+						ch = KEY_LEFTARROW;
+						joywait = I_GetTime() + NEWTICRATE/17;
+					}
+					else if (ev->data2 > 0 && pjoyx <= 0)
+					{
+						ch = KEY_RIGHTARROW;
+						joywait = I_GetTime() + NEWTICRATE/17;
+					}
+					pjoyx = ev->data2;
+				}
+				else
+					pjoyx = 0;
 			}
 		}
 		else if (ev->type == ev_mouse && mousewait < I_GetTime())
@@ -2548,6 +2572,8 @@ boolean M_Responder(event_t *ev)
 			}
 		}
 	}
+	else if (ev->type == ev_keydown) // Preserve event for other responders
+		ch = ev->data1;
 
 	if (ch == -1)
 		return false;
@@ -3383,7 +3409,7 @@ void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines)
 //
 // Draw border for the savegame description
 //
-static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
+/*static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
 {
 	INT32 i;
 
@@ -3396,7 +3422,7 @@ static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
 	}
 
 	V_DrawScaledPatch (x,y+7,0,W_CachePatchName("M_LSRGHT",PU_CACHE));
-}
+}*/
 
 // horizontally centered text
 static void M_CentreText(INT32 y, const char *string)
@@ -4865,7 +4891,7 @@ static void M_HandleAddons(INT32 choice)
 						case EXT_LUA:
 #ifndef HAVE_BLUA
 							S_StartSound(NULL, sfx_s26d);
-							M_StartMessage(va("%c%s\x80\nThis copy of SRB2 was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
+							M_StartMessage(va("%c%s\x80\nThis copy of SRB2Kart was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
 							break;
 #endif
 						// else intentional fallthrough
@@ -8546,35 +8572,32 @@ static void M_DrawJoystick(void)
 
 	for (i = 0; i < 8; i++)
 	{
-		M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
+		M_DrawTextBox(OP_JoystickSetDef.x-8, OP_JoystickSetDef.y+LINEHEIGHT*i-12, 28, 1);
+		//M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
 		if ((setupcontrolplayer == 4 && (i == cv_usejoystick4.value))
 			|| (setupcontrolplayer == 3 && (i == cv_usejoystick3.value))
 			|| (setupcontrolplayer == 2 && (i == cv_usejoystick2.value))
 			|| (setupcontrolplayer == 1 && (i == cv_usejoystick.value)))
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,recommendedflags,joystickInfo[i]);
+			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,recommendedflags,joystickInfo[i]);
 		else
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,0,joystickInfo[i]);
+			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,0,joystickInfo[i]);
 	}
 }
 
 static void M_SetupJoystickMenu(INT32 choice)
 {
 	INT32 i = 0;
-	const char *joyname = "None";
 	const char *joyNA = "Unavailable";
 	INT32 n = I_NumJoys();
 	(void)choice;
 
-	strcpy(joystickInfo[i], joyname);
+	strcpy(joystickInfo[i], "None");
 
 	for (i = 1; i < 8; i++)
 	{
-		if (i <= n && (joyname = I_GetJoyName(i)) != NULL)
-		{
-			strncpy(joystickInfo[i], joyname, 24);
-			joystickInfo[i][24] = '\0';
-		}
+		if (i <= n && (I_GetJoyName(i)) != NULL)
+			strncpy(joystickInfo[i], I_GetJoyName(i), 28);
 		else
 			strcpy(joystickInfo[i], joyNA);
 	}
