@@ -116,8 +116,8 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
 boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 {
 	//INT32 pflags;
-	const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - object->scale);
-	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (object->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+	const fixed_t hscale = mapobjectscale + (mapobjectscale - object->scale);
+	const fixed_t vscale = mapobjectscale + (object->scale - mapobjectscale);
 	fixed_t offx, offy;
 	fixed_t vertispeed = spring->info->mass;
 	fixed_t horizspeed = spring->info->damage;
@@ -1424,9 +1424,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		&& !(thing->z + thing->height < tmthing->z || thing->z > tmthing->z + tmthing->height))
 	{
 
-		if (tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)) // SRB2kart - Handle squishes first!
+		if (tmthing->scale > thing->scale + (mapobjectscale/8)) // SRB2kart - Handle squishes first!
 			K_SquishPlayer(thing->player, tmthing, tmthing);
-		else if (thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
+		else if (thing->scale > tmthing->scale + (mapobjectscale/8))
 			K_SquishPlayer(tmthing->player, thing, tmthing);
 		else if (tmthing->player->kartstuff[k_invincibilitytimer] && !thing->player->kartstuff[k_invincibilitytimer]) // SRB2kart - Then invincibility!
 			P_DamageMobj(thing, tmthing, tmthing, 1);
@@ -1523,9 +1523,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				return true; // underneath
 
 			if (thing->player->kartstuff[k_squishedtimer] || thing->player->kartstuff[k_hyudorotimer]
-				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8)
+				|| thing->player->kartstuff[k_justbumped] || thing->scale > tmthing->scale + (mapobjectscale/8)
 				|| tmthing->player->kartstuff[k_squishedtimer] || tmthing->player->kartstuff[k_hyudorotimer]
-				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (mapheaderinfo[gamemap-1]->mobj_scale/8))
+				|| tmthing->player->kartstuff[k_justbumped] || tmthing->scale > thing->scale + (mapobjectscale/8))
 			{
 				return true;
 			}
@@ -2706,7 +2706,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 		if (!(thing->flags & MF_NOCLIP))
 		{
 			//All things are affected by their scale.
-			fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
+			fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapobjectscale);
 
 			if (thing->player)
 			{
@@ -2909,7 +2909,7 @@ boolean P_SceneryTryMove(mobj_t *thing, fixed_t x, fixed_t y)
 
 		if (!(thing->flags & MF_NOCLIP))
 		{
-			const fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
+			const fixed_t maxstep = FixedMul(MAXSTEPMOVE, mapobjectscale);
 
 			if (tmceilingz - tmfloorz < thing->height)
 				return false; // doesn't fit
@@ -3133,8 +3133,8 @@ static void P_PlayerHitBounceLine(line_t *ld)
 
 	movelen = P_AproxDistance(tmxmove, tmymove);
 
-	if (slidemo->player && movelen < (15*mapheaderinfo[gamemap-1]->mobj_scale))
-		movelen = (15*mapheaderinfo[gamemap-1]->mobj_scale);
+	if (slidemo->player && movelen < (15*mapobjectscale))
+		movelen = (15*mapobjectscale);
 
 	tmxmove += FixedMul(movelen, FINECOSINE(lineangle));
 	tmymove += FixedMul(movelen, FINESINE(lineangle));
@@ -3392,7 +3392,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
 	if (opentop - slidemo->z < slidemo->height)
 		goto isblocking; // mobj is too high
 
-	if (openbottom - slidemo->z > FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale))
+	if (openbottom - slidemo->z > FixedMul(MAXSTEPMOVE, mapobjectscale))
 		goto isblocking; // too big a step up
 
 	// this line doesn't block movement

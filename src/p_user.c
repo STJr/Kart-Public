@@ -3033,7 +3033,7 @@ static fixed_t teeteryl, teeteryh;
 static boolean PIT_CheckSolidsTeeter(mobj_t *thing) // SRB2kart - unused.
 {
 	fixed_t blockdist;
-	fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
+	fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapobjectscale);
 	fixed_t thingtop = thing->z + thing->height;
 	fixed_t teeterertop = teeterer->z + teeterer->height;
 
@@ -3150,7 +3150,7 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 	boolean roverfloor; // solid 3d floors?
 	fixed_t floorheight, ceilingheight;
 	fixed_t topheight, bottomheight; // for 3d floor usage
-	const fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale); // Distance you have to be above the ground in order to teeter.
+	const fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapobjectscale); // Distance you have to be above the ground in order to teeter.
 
 	if (player->mo->standingslope && player->mo->standingslope->zdelta >= (FRACUNIT/2)) // Always teeter if the slope is too steep.
 		teeter = true;
@@ -5023,9 +5023,9 @@ static void P_SpectatorMovement(player_t *player)
 		player->mo->z = player->mo->floorz;
 
 	if (cmd->buttons & BT_ACCELERATE)
-		player->mo->z += 32*mapheaderinfo[gamemap-1]->mobj_scale;
+		player->mo->z += 32*mapobjectscale;
 	else if (cmd->buttons & BT_BRAKE)
-		player->mo->z -= 32*mapheaderinfo[gamemap-1]->mobj_scale;
+		player->mo->z -= 32*mapobjectscale;
 
 	// Aiming needed for SEENAMES, etc.
 	// We may not need to fire as a spectator, but this is still handy!
@@ -5034,14 +5034,14 @@ static void P_SpectatorMovement(player_t *player)
 	player->mo->momx = player->mo->momy = player->mo->momz = 0;
 	if (cmd->forwardmove != 0)
 	{
-		P_Thrust(player->mo, player->mo->angle, cmd->forwardmove*(mapheaderinfo[gamemap-1]->mobj_scale));
+		P_Thrust(player->mo, player->mo->angle, cmd->forwardmove*mapobjectscale);
 
 		// Quake-style flying spectators :D
-		player->mo->momz += FixedMul(cmd->forwardmove*(mapheaderinfo[gamemap-1]->mobj_scale), AIMINGTOSLOPE(player->aiming));
+		player->mo->momz += FixedMul(cmd->forwardmove*mapobjectscale, AIMINGTOSLOPE(player->aiming));
 	}
 	if (cmd->sidemove != 0)
 	{
-		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*(mapheaderinfo[gamemap-1]->mobj_scale));
+		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*mapobjectscale);
 	}
 }
 
@@ -7811,8 +7811,8 @@ boolean P_LookForEnemies(player_t *player)
 		if (mo->type == MT_DETON) // Don't be STUPID, Sonic!
 			continue;
 
-		if (((mo->z > player->mo->z+FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale)) && !(player->mo->eflags & MFE_VERTICALFLIP))
-		|| ((mo->z+mo->height < player->mo->z+player->mo->height-FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale)) && (player->mo->eflags & MFE_VERTICALFLIP))) // Reverse gravity check - Flame.
+		if (((mo->z > player->mo->z+FixedMul(MAXSTEPMOVE, mapobjectscale)) && !(player->mo->eflags & MFE_VERTICALFLIP))
+		|| ((mo->z+mo->height < player->mo->z+player->mo->height-FixedMul(MAXSTEPMOVE, mapobjectscale)) && (player->mo->eflags & MFE_VERTICALFLIP))) // Reverse gravity check - Flame.
 			continue; // Don't home upwards!
 
 		if (P_AproxDistance(P_AproxDistance(player->mo->x-mo->x, player->mo->y-mo->y),
@@ -8206,8 +8206,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		return true;
 	}
 
-	thiscam->radius = FixedMul(20*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
-	thiscam->height = FixedMul(16*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
+	thiscam->radius = 20*mapobjectscale;
+	thiscam->height = 16*mapobjectscale;
 
 	// Don't run while respawning from a starpost
 	// Inu 4/8/13 Why not?!
@@ -8253,8 +8253,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam_speed.value;
 		camstill = cv_cam_still.value;
 		camrotate = cv_cam_rotate.value;
-		camdist = FixedMul(cv_cam_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam_height.value, mapobjectscale);
 		lookback = camspin;
 	}
 	else if (thiscam == &camera2) // Camera 2
@@ -8262,8 +8262,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam2_speed.value;
 		camstill = cv_cam2_still.value;
 		camrotate = cv_cam2_rotate.value;
-		camdist = FixedMul(cv_cam2_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam2_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam2_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam2_height.value, mapobjectscale);
 		lookback = camspin2;
 	}
 	else if (thiscam == &camera3) // Camera 3
@@ -8271,8 +8271,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam3_speed.value;
 		camstill = cv_cam3_still.value;
 		camrotate = cv_cam3_rotate.value;
-		camdist = FixedMul(cv_cam3_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam3_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam3_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam3_height.value, mapobjectscale);
 		lookback = camspin3;
 	}
 	else // Camera 4
@@ -8280,8 +8280,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam4_speed.value;
 		camstill = cv_cam4_still.value;
 		camrotate = cv_cam4_rotate.value;
-		camdist = FixedMul(cv_cam4_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam4_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam4_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam4_height.value, mapobjectscale);
 		lookback = camspin4;
 	}
 
@@ -8294,8 +8294,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		const INT32 introcam = (introtime - leveltime);
 		camrotate += introcam*5;
-		camdist += (introcam * mapheaderinfo[gamemap-1]->mobj_scale)*3;
-		camheight += (introcam * mapheaderinfo[gamemap-1]->mobj_scale)*2;
+		camdist += (introcam * mapobjectscale)*3;
+		camheight += (introcam * mapobjectscale)*2;
 	}
 	else if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
 		camstill = true;
@@ -8603,7 +8603,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
-	dist = 64*mapheaderinfo[gamemap-1]->mobj_scale;
+	dist = 64*mapobjectscale;
 	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + xpan;
 	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + ypan;
 
