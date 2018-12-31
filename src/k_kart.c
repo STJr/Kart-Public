@@ -1997,7 +1997,7 @@ static void K_RemoveGrowShrink(player_t *player)
 	player->mo->scalespeed = mapobjectscale/TICRATE;
 	player->mo->destscale = mapobjectscale;
 	if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-		player->mo->destscale = (6*mapobjectscale)/8;
+		player->mo->destscale = (6*player->mo->destscale)/8;
 	P_RestoreMusic(player);
 }
 
