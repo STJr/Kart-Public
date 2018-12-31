@@ -321,7 +321,7 @@ static void D_Display(void)
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
 			}
 
-			if (wipegamestate == GS_LEVEL && rendermode != render_none)
+			if (wipegamestate == gamestate && rendermode != render_none)
 			{
 				V_SetPaletteLump("PLAYPAL"); // Reset the palette
 				R_ReInitColormaps(0, LUMPERROR);
@@ -821,9 +821,9 @@ void D_StartTitle(void)
 	F_StartTitleScreen();
 	CON_ToggleOff();
 
-	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
-	/*if (rendermode != render_none)
-		V_SetPaletteLump("PLAYPAL");*/
+	// Reset the palette
+	if (rendermode != render_none)
+		V_SetPaletteLump("PLAYPAL");
 }
 
 //
