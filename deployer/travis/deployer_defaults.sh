@@ -28,10 +28,9 @@
 
 # Asset File Parameters
 : ${ASSET_ARCHIVE_PATH:=https://github.com/mazmazz/Kart-Public/releases/download/kart_assets/srb2kart-v102-assets.7z}
-: ${ASSET_BASE_PATH:=https://github.com/mazmazz/Kart-Public/releases/download/kart_assets}
-: ${ASSET_FILES_REQUIRED:=srb2.srb patch.kart gfx.kart textures.kart chars.kart bonuschars.kart maps.kart sounds.kart}
+: ${ASSET_ARCHIVE_OPTIONAL_PATH:=https://github.com/mazmazz/Kart-Public/releases/download/kart_assets/srb2kart-v102-optional-assets.7z}
+: ${ASSET_FILES_HASHED:=srb2.srb patch.kart gfx.kart textures.kart chars.kart bonuschars.kart maps.kart sounds.kart}
 : ${ASSET_FILES_DOCS:=README.txt history.txt LICENSE.txt LICENSE-3RD-PARTY.txt}
-: ${ASSET_FILES_OPTIONAL:=music.kart}
 : ${ASSET_FILES_OPTIONAL_GET:=0}
 
 # FTP Parameters
@@ -78,10 +77,9 @@
 # Export Asset and Package Parameters for envsubst templating
 
 export ASSET_ARCHIVE_PATH="${ASSET_ARCHIVE_PATH}"
-export ASSET_BASE_PATH="${ASSET_BASE_PATH}"
-export ASSET_FILES_REQUIRED="${ASSET_FILES_REQUIRED}"
+export ASSET_ARCHIVE_OPTIONAL_PATH="${ASSET_ARCHIVE_OPTIONAL_PATH}"
+export ASSET_FILES_HASHED="${ASSET_FILES_HASHED}"
 export ASSET_FILES_DOCS="${ASSET_FILES_DOCS}"
-export ASSET_FILES_OPTIONAL="${ASSET_FILES_OPTIONAL}"
 export ASSET_FILES_OPTIONAL_GET="${ASSET_FILES_OPTIONAL_GET}"
 
 export PACKAGE_NAME="${PACKAGE_NAME}"
