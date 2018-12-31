@@ -155,9 +155,9 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 //#define DEFAULTSEARCHPATH3 "/pc/home/alam/srb2code/data"
 #elif defined (GP2X)
 #define DEFAULTWADLOCATION1 "/mnt/sd"
-#define DEFAULTWADLOCATION2 "/mnt/sd/SRB2"
+#define DEFAULTWADLOCATION2 "/mnt/sd/SRB2Kart"
 #define DEFAULTWADLOCATION3 "/tmp/mnt/sd"
-#define DEFAULTWADLOCATION4 "/tmp/mnt/sd/SRB2"
+#define DEFAULTWADLOCATION4 "/tmp/mnt/sd/SRB2Kart"
 #define DEFAULTSEARCHPATH1 "/mnt/sd"
 #define DEFAULTSEARCHPATH2 "/tmp/mnt/sd"
 #elif defined (_WII)
@@ -184,10 +184,10 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #define DEFAULTSEARCHPATH1 "host0:/"
 #define DEFAULTSEARCHPATH2 "ms0:/PSP/GAME/SRB2PSP"
 #elif defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
-#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2"
-#define DEFAULTWADLOCATION2 "/usr/local/games/SRB2"
-#define DEFAULTWADLOCATION3 "/usr/share/games/SRB2"
-#define DEFAULTWADLOCATION4 "/usr/games/SRB2"
+#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION2 "/usr/local/games/SRB2Kart"
+#define DEFAULTWADLOCATION3 "/usr/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION4 "/usr/games/SRB2Kart"
 #define DEFAULTSEARCHPATH1 "/usr/local/games"
 #define DEFAULTSEARCHPATH2 "/usr/games"
 #define DEFAULTSEARCHPATH3 "/usr/local"
@@ -196,21 +196,21 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #ifdef __GNUC__
 #include <openxdk/debug.h>
 #endif
-#define DEFAULTWADLOCATION1 "c:\\srb2"
-#define DEFAULTWADLOCATION2 "d:\\srb2"
-#define DEFAULTWADLOCATION3 "e:\\srb2"
-#define DEFAULTWADLOCATION4 "f:\\srb2"
-#define DEFAULTWADLOCATION5 "g:\\srb2"
-#define DEFAULTWADLOCATION6 "h:\\srb2"
-#define DEFAULTWADLOCATION7 "i:\\srb2"
+#define DEFAULTWADLOCATION1 "c:\\srb2kart"
+#define DEFAULTWADLOCATION2 "d:\\srb2kart"
+#define DEFAULTWADLOCATION3 "e:\\srb2kart"
+#define DEFAULTWADLOCATION4 "f:\\srb2kart"
+#define DEFAULTWADLOCATION5 "g:\\srb2kart"
+#define DEFAULTWADLOCATION6 "h:\\srb2kart"
+#define DEFAULTWADLOCATION7 "i:\\srb2kart"
 #elif defined (_WIN32_WCE)
 #define NOCWD
 #define NOHOME
-#define DEFAULTWADLOCATION1 "\\Storage Card\\SRB2DEMO"
+#define DEFAULTWADLOCATION1 "\\Storage Card\\SRB2Kart"
 #define DEFAULTSEARCHPATH1 "\\Storage Card"
 #elif defined (_WIN32)
-#define DEFAULTWADLOCATION1 "c:\\games\\srb2"
-#define DEFAULTWADLOCATION2 "\\games\\srb2"
+#define DEFAULTWADLOCATION1 "c:\\games\\srb2kart"
+#define DEFAULTWADLOCATION2 "\\games\\srb2kart"
 #define DEFAULTSEARCHPATH1 "c:\\games"
 #define DEFAULTSEARCHPATH2 "\\games"
 #endif
@@ -2236,18 +2236,28 @@ INT32 I_NumJoys(void)
 	return numjoy;
 }
 
+static char joyname[255]; // MAX_PATH; joystick name is straight from the driver
+
 const char *I_GetJoyName(INT32 joyindex)
 {
-	const char *joyname = "NA";
+	const char *tempname = NULL;
 	joyindex--; //SDL's Joystick System starts at 0, not 1
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != -1)
-			joyname = SDL_JoystickName(joyindex);
+		{
+			tempname = SDL_JoystickNameForIndex(joyindex);
+			if (tempname)
+				strncpy(joyname, tempname, 255);
+		}
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 	}
 	else
-		joyname = SDL_JoystickName(joyindex);
+	{
+		tempname = SDL_JoystickNameForIndex(joyindex);
+		if (tempname)
+			strncpy(joyname, tempname, 255);
+	}
 	return joyname;
 }
 
@@ -2324,7 +2334,7 @@ void I_UpdateMumble(const mobj_t *mobj, const listener_t listener)
 
 	if(mumble->uiVersion != 2) {
 		wcsncpy(mumble->name, L"SRB2Kart "VERSIONSTRING, 256);
-		wcsncpy(mumble->description, L"Sonic Robo Blast 2 with integrated Mumble Link support.", 2048);
+		wcsncpy(mumble->description, L"Sonic Robo Blast 2 Kart with integrated Mumble Link support.", 2048);
 		mumble->uiVersion = 2;
 	}
 	mumble->uiTick++;

@@ -8276,7 +8276,7 @@ void A_JawzChase(mobj_t *actor)
 			ret->frame |= ((leveltime % 10) / 2) + 5;
 			ret->color = actor->cvmem;
 
-			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
+			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), (7*actor->movefactor)/64);
 			return;
 		}
 		else
@@ -8348,11 +8348,7 @@ void A_SPBChase(mobj_t *actor)
 #endif
 
 	// Default speed
-	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
-	if (gamespeed == 0)
-		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
-	else if (gamespeed == 2)
-		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
+	wspeed = actor->movefactor;
 
 	if (actor->threshold) // Just fired, go straight.
 	{
