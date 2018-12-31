@@ -63,7 +63,7 @@
 : ${PACKAGE_GROUP_NAME_EMAIL:=Kart Krew <stjr@srb2.org>}
 : ${PACKAGE_WEBSITE:=<https://mb.srb2.org/showthread.php?p=802695>}
 
-: ${PACKAGE_ASSET_MINVERSION:=1.0.2} # Number this the version BEFORE the actual required version, because we do a > check
+: ${PACKAGE_ASSET_MINVERSION:=1.0.1} # Number this the version BEFORE the actual required version, because we do a > check
 : ${PACKAGE_ASSET_MAXVERSION:=1.0.3}  # Number this the version AFTER the actual required version, because we do a < check
 
 : ${PROGRAM_NAME:=Sonic Robo Blast 2 Kart}
