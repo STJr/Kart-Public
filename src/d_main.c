@@ -821,9 +821,9 @@ void D_StartTitle(void)
 	F_StartTitleScreen();
 	CON_ToggleOff();
 
-	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
-	/*if (rendermode != render_none)
-		V_SetPaletteLump("PLAYPAL");*/
+	// Reset the palette
+	if (rendermode != render_none)
+		V_SetPaletteLump("PLAYPAL");
 }
 
 //
