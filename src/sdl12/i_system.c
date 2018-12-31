@@ -184,10 +184,10 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #define DEFAULTSEARCHPATH1 "host0:/"
 #define DEFAULTSEARCHPATH2 "ms0:/PSP/GAME/SRB2PSP"
 #elif defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
-#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2"
-#define DEFAULTWADLOCATION2 "/usr/local/games/SRB2"
-#define DEFAULTWADLOCATION3 "/usr/share/games/SRB2"
-#define DEFAULTWADLOCATION4 "/usr/games/SRB2"
+#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION2 "/usr/local/games/SRB2Kart"
+#define DEFAULTWADLOCATION3 "/usr/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION4 "/usr/games/SRB2Kart"
 #define DEFAULTSEARCHPATH1 "/usr/local/games"
 #define DEFAULTSEARCHPATH2 "/usr/games"
 #define DEFAULTSEARCHPATH3 "/usr/local"
@@ -196,21 +196,21 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #ifdef __GNUC__
 #include <openxdk/debug.h>
 #endif
-#define DEFAULTWADLOCATION1 "c:\\srb2"
-#define DEFAULTWADLOCATION2 "d:\\srb2"
-#define DEFAULTWADLOCATION3 "e:\\srb2"
-#define DEFAULTWADLOCATION4 "f:\\srb2"
-#define DEFAULTWADLOCATION5 "g:\\srb2"
-#define DEFAULTWADLOCATION6 "h:\\srb2"
-#define DEFAULTWADLOCATION7 "i:\\srb2"
+#define DEFAULTWADLOCATION1 "c:\\srb2kart"
+#define DEFAULTWADLOCATION2 "d:\\srb2kart"
+#define DEFAULTWADLOCATION3 "e:\\srb2kart"
+#define DEFAULTWADLOCATION4 "f:\\srb2kart"
+#define DEFAULTWADLOCATION5 "g:\\srb2kart"
+#define DEFAULTWADLOCATION6 "h:\\srb2kart"
+#define DEFAULTWADLOCATION7 "i:\\srb2kart"
 #elif defined (_WIN32_WCE)
 #define NOCWD
 #define NOHOME
 #define DEFAULTWADLOCATION1 "\\Storage Card\\SRB2DEMO"
 #define DEFAULTSEARCHPATH1 "\\Storage Card"
 #elif defined (_WIN32)
-#define DEFAULTWADLOCATION1 "c:\\games\\srb2"
-#define DEFAULTWADLOCATION2 "\\games\\srb2"
+#define DEFAULTWADLOCATION1 "c:\\games\\srb2kart"
+#define DEFAULTWADLOCATION2 "\\games\\srb2kart"
 #define DEFAULTSEARCHPATH1 "c:\\games"
 #define DEFAULTSEARCHPATH2 "\\games"
 #endif
