@@ -2839,9 +2839,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 
 	// Is playernum authorized to make this kick?
-	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
-		&& !(playerpernode[playernode[playernum]] == 2
-		&& nodetoplayer2[playernode[playernum]] == pnum))
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
 		// We received a kick command from someone who isn't the
 		// server or admin, and who isn't in splitscreen removing
