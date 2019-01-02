@@ -3,6 +3,7 @@
 *.dta
 *.wad
 *.txt
+*.kart
 !README.txt
 !LICENSE.txt
 !LICENSE-3RD-PARTY.txt

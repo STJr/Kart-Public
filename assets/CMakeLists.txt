@@ -18,9 +18,7 @@ patch.kart;\
 gfx.kart;\
 textures.kart;\
 chars.kart;\
-bonuschars.kart;\
-maps.kart;\
-sounds.kart"
+maps.kart"
 	CACHE STRING "Asset filenames to apply MD5 checks. No spaces between entries!"
 )
 
