@@ -98,7 +98,7 @@ before_build:
 
 build_script:
 - cmd: mingw32-make.exe %SRB2_MFLAGS% clean
-- cmd: mingw32-make.exe %SRB2_MFLAGS% -k # ERRORMODE=1 -k
+- cmd: mingw32-make.exe %SRB2_MFLAGS% ERRORMODE=1 -k
 
 after_build:
 - if [%X86_64%] == [1] (
