@@ -24,7 +24,7 @@ maps.kart"
 
 set(SRB2_ASSET_DOCS
 "README.txt;\
-history.txt;\
+HISTORY.txt;\
 LICENSE.txt;\
 LICENSE-3RD-PARTY.txt"
 	CACHE STRING "Documentation filenames. In OS X, these are packaged separately from other assets. No spaces between entries!"
