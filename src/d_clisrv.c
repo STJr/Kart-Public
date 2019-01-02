@@ -1491,7 +1491,6 @@ static boolean SV_SendServerConfig(INT32 node)
 
 		if (!playeringame[i])
 			continue;
-		netbuffer->u.servercfg.adminplayers[i] = (SINT8)adminplayers[i];
 		netbuffer->u.servercfg.playerskins[i] = (UINT8)players[i].skin;
 		netbuffer->u.servercfg.playercolor[i] = (UINT8)players[i].skincolor;
 	}
