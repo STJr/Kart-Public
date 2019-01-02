@@ -5816,6 +5816,8 @@ static patch_t *kp_battlelose;
 static patch_t *kp_battlewait;
 static patch_t *kp_battleinfo;
 static patch_t *kp_wanted;
+static patch_t *kp_wantedsplit;
+static patch_t *kp_wantedreticle;
 
 static patch_t *kp_itembg[4];
 static patch_t *kp_itemtimer[2];
@@ -5955,6 +5957,8 @@ void K_LoadKartHUDGraphics(void)
 	kp_battlewait = 			W_CachePatchName("K_BWAIT", PU_HUDGFX);
 	kp_battleinfo = 			W_CachePatchName("K_BINFO", PU_HUDGFX);
 	kp_wanted = 				W_CachePatchName("K_WANTED", PU_HUDGFX);
+	kp_wantedsplit = 			W_CachePatchName("4PWANTED", PU_HUDGFX);
+	kp_wantedreticle =			W_CachePatchName("MMAPWANT", PU_HUDGFX);
 
 	// Kart Item Windows
 	kp_itembg[0] = 				W_CachePatchName("K_ITBG", PU_HUDGFX);
@@ -6252,9 +6256,6 @@ static void K_initKartHUD(void)
 
 		MINI_Y = (BASEVIDHEIGHT/2);
 
-		WANT_X = BASEVIDWIDTH-8;
-		WANT_Y = (BASEVIDHEIGHT/2)-12;
-
 		if (splitscreen > 1)	// 3P/4P Small Splitscreen
 		{
 			// 1P (top left)
@@ -6264,17 +6265,17 @@ static void K_initKartHUD(void)
 			LAPS_X = 3;
 			LAPS_Y = (BASEVIDHEIGHT/2)-13;
 
-			POSI_X = 32;
+			POSI_X = 24;
 			POSI_Y = (BASEVIDHEIGHT/2)- 16;
 
 			// 2P (top right)
-			ITEM2_X = BASEVIDWIDTH-40;
+			ITEM2_X = BASEVIDWIDTH-39;
 			ITEM2_Y = -8;
 
-			LAPS2_X = BASEVIDWIDTH-45;
+			LAPS2_X = BASEVIDWIDTH-40;
 			LAPS2_Y = (BASEVIDHEIGHT/2)-13;
 
-			POSI2_X = BASEVIDWIDTH -9;
+			POSI2_X = BASEVIDWIDTH -8;
 			POSI2_Y = (BASEVIDHEIGHT/2)- 16;
 
 			// Reminder that 3P and 4P are just 1P and 2P splitscreen'd to the bottom.
@@ -6283,8 +6284,6 @@ static void K_initKartHUD(void)
 
 			MINI_X = (3*BASEVIDWIDTH/4);
 			MINI_Y = (3*BASEVIDHEIGHT/4);
-
-			WANT_X = (BASEVIDWIDTH/2)-8;
 
 			if (splitscreen > 2) // 4P-only
 			{
@@ -6358,6 +6357,7 @@ static void K_drawKartItem(void)
 	UINT8 localcolor = SKINCOLOR_NONE;
 	SINT8 colormode = TC_RAINBOW;
 	UINT8 *colmap = NULL;
+	boolean flipamount = false;	// Used for 3P/4P splitscreen to flip item amount stuff
 
 	if (stplyr->kartstuff[k_itemroulette])
 	{
@@ -6589,6 +6589,7 @@ static void K_drawKartItem(void)
 			fx = ITEM2_X;
 			fy = ITEM2_Y;
 			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN : V_SNAPTOTOP);	// flip P4 to the bottom
+			flipamount = true;
 		}
 	}
 
@@ -6600,10 +6601,13 @@ static void K_drawKartItem(void)
 	// Then, the numbers:
 	if (stplyr->kartstuff[k_itemamount] >= numberdisplaymin && !stplyr->kartstuff[k_itemroulette])
 	{
-		V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, kp_itemmulsticker[offset]);
+		V_DrawScaledPatch(fx + (flipamount ? 48 : 0), fy, V_HUDTRANS|fflags|(flipamount ? V_FLIP : 0), kp_itemmulsticker[offset]);	// flip this graphic for p2 and p4 in split and shift it.
 		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, FRACUNIT, V_HUDTRANS|fflags, localpatch, colmap);
 		if (offset)
-			V_DrawString(fx+24, fy+31, V_ALLOWLOWERCASE|V_HUDTRANS|fflags, va("x%d", stplyr->kartstuff[k_itemamount]));
+			if (flipamount)	// reminder that this is for 3/4p's right end of the screen.
+				V_DrawString(fx+2, fy+31, V_ALLOWLOWERCASE|V_HUDTRANS|fflags, va("x%d", stplyr->kartstuff[k_itemamount]));
+			else
+				V_DrawString(fx+24, fy+31, V_ALLOWLOWERCASE|V_HUDTRANS|fflags, va("x%d", stplyr->kartstuff[k_itemamount]));
 		else
 		{
 			V_DrawScaledPatch(fy+28, fy+41, V_HUDTRANS|fflags, kp_itemx);
@@ -6805,9 +6809,14 @@ static void K_DrawKartPositionNum(INT32 num)
 	patch_t *localpatch = kp_positionnum[0][0];
 	//INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 	INT32 fx = 0, fy = 0, fflags = 0;
+	boolean flipdraw = false;	// flip the order we draw it in for MORE splitscreen bs. fun.
+	boolean overtake = false;
 
 	if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
+	{
 		scale *= 2;
+		overtake = true;	// this is used for splitscreen stuff in conjunction with flipdraw.
+	}
 	if (splitscreen)
 		scale /= 2;
 
@@ -6819,7 +6828,7 @@ static void K_DrawKartPositionNum(INT32 num)
 		fx = POSI_X;
 		if (stplyr == &players[displayplayer])	// for player 1: display this at the top right, above the minimap.
 		{
-			fy = 32;
+			fy = 30;
 			fflags = V_SNAPTOTOP|V_SNAPTORIGHT;
 		}
 		else	// if we're not p1, that means we're p2. display this at the bottom right, below the minimap.
@@ -6835,6 +6844,9 @@ static void K_DrawKartPositionNum(INT32 num)
 			fx = POSI_X;
 			fy = POSI_Y;
 			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
+			flipdraw = true;
+			if (num && num >= 10)
+				fx += W;	// this seems dumb, but we need to do this in order for positions above 10 going off screen.
 		}
 		else // else, that means we're P2 or P4.
 		{
@@ -6889,7 +6901,8 @@ static void K_DrawKartPositionNum(INT32 num)
 		else
 			localpatch = kp_positionnum[num % 10][0];
 
-		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, scale, V_HUDTRANSHALF|fflags, localpatch, NULL);
+		V_DrawFixedPatch((fx<<FRACBITS) + ((overtake && flipdraw) ? ((SHORT)localpatch->width*scale/2) : 0), fy<<FRACBITS, scale, V_HUDTRANSHALF|fflags, localpatch, NULL);
+		// ^ if we overtake as p1 or p3 in splitscren, we shift it so that it doesn't go off screen.
 
 		fx -= W;
 		num /= 10;
@@ -7133,6 +7146,8 @@ static void K_drawKartLaps(void)
 {
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 	INT32 fx = 0, fy = 0, fflags = 0;	// stuff for 3p / 4p splitscreen.
+	boolean flipstring = false;	// used for 3p or 4p
+	INT32 stringw = 0;	// used with the above
 
 	if (splitscreen > 1)
 	{
@@ -7157,15 +7172,30 @@ static void K_drawKartLaps(void)
 				fx = LAPS2_X;
 				fy = LAPS2_Y;
 				fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
+				flipstring = true;	// make the string right aligned and other shit
 			}
 		}
 
-		V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, kp_splitlapflag);
 
-		if (stplyr->exiting)
+
+		if (stplyr->exiting)	// draw stuff as god intended.
+		{
+			V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, kp_splitlapflag);
 			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, "FIN");
-		else
-			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+		}
+		else					// take flipstring into account here since we may have more laps than just 10
+			if (flipstring)
+			{
+				stringw = V_StringWidth(va("%d/%d", stplyr->laps+1, cv_numlaps.value), 0);
+
+				V_DrawScaledPatch(BASEVIDWIDTH-stringw-16, fy, V_HUDTRANS|fflags, kp_splitlapflag);
+				V_DrawRightAlignedString(BASEVIDWIDTH-3, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+			}
+			else	// draw stuff NORMALLY.
+			{
+				V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, kp_splitlapflag);
+				V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->laps+1, cv_numlaps.value));
+			}
 	}
 	else
 	{
@@ -7205,6 +7235,8 @@ static void K_drawKartBumpersOrKarma(void)
 	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 	INT32 fx = 0, fy = 0, fflags = 0;
+	boolean flipstring = false;	// same as laps, used for splitscreen
+	INT32 stringw = 0;	// used with the above
 
 	if (splitscreen > 1)
 	{
@@ -7222,6 +7254,7 @@ static void K_drawKartBumpersOrKarma(void)
 			fx = LAPS2_X;
 			fy = LAPS2_Y;
 			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
+			flipstring = true;
 		}
 
 		if (stplyr->kartstuff[k_bumper] <= 0)
@@ -7229,10 +7262,20 @@ static void K_drawKartBumpersOrKarma(void)
 			V_DrawMappedPatch(fx, fy-1, V_HUDTRANS|fflags, kp_splitkarmabomb, colormap);
 			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/2", stplyr->kartstuff[k_comebackpoints]));
 		}
-		else
+		else	// the above doesn't need to account for weird stuff since the max amount of karma necessary is always 2 ^^^^
 		{
-			V_DrawMappedPatch(fx, fy-1, V_HUDTRANS|fflags, kp_rankbumper, colormap);
-			V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
+			if (flipstring)	// for p2 and p4, assume we can have more than 10 bumpers. It's retarded but who knows.
+			{
+				stringw = V_StringWidth(va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value), 0);
+
+				V_DrawMappedPatch(BASEVIDWIDTH-stringw-16, fy-1, V_HUDTRANS|fflags, kp_rankbumper, colormap);
+				V_DrawRightAlignedString(BASEVIDWIDTH-3, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
+			}
+			else	// draw bumpers normally.
+			{
+				V_DrawMappedPatch(fx, fy-1, V_HUDTRANS|fflags, kp_rankbumper, colormap);
+				V_DrawString(fx+13, fy+1, V_HUDTRANS|fflags, va("%d/%d", stplyr->kartstuff[k_bumper], cv_kartbumpers.value));
+			}
 		}
 	}
 	else
@@ -7285,44 +7328,7 @@ static void K_drawKartWanted(void)
 {
 	UINT8 i, numwanted = 0;
 	UINT8 *colormap = NULL;
-	INT32 fx = 0, fy = 0, fflags = 0;	// splitscreen stuff
-
-	if (splitscreen) // Can't fit the poster on screen, sadly
-	{
-
-		// wanted is a bit of a mess but don't worry.
-		if (splitscreen < 2)	// don't change shit for THIS splitscreen.
-		{
-			fx = WANT_X;
-			fy = WANT_Y;
-			fflags =  K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
-		}
-		else
-		{
-
-			if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
-			{
-				fx = LAPS_X;
-				fy = POSI_Y - 8;
-				fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
-			}
-			else // else, that means we're P2 or P4.
-			{
-				fx = LAPS2_X - 10;
-				fy = POSI2_Y - 8;
-				fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
-			}
-		}
-
-		if (K_IsPlayerWanted(stplyr) && leveltime % 10 > 3)
-		{
-			if (splitscreen > 1)
-				V_DrawString(fx, fy-4, fflags|V_HUDTRANS|V_ORANGEMAP, "WANTED");
-			else
-				V_DrawRightAlignedString(fx, fy, fflags|V_HUDTRANS|V_ORANGEMAP, "WANTED");
-		}
-		return;
-	}
+	INT32 basex = 0, basey = 0;
 
 	for (i = 0; i < 4; i++)
 	{
@@ -7334,13 +7340,33 @@ static void K_drawKartWanted(void)
 	if (numwanted <= 0)
 		return;
 
+	// set X/Y coords depending on splitscreen.
+	if (splitscreen < 3)		// 1P and 2P use the same code.
+	{
+		basex = WANT_X;
+		basey = WANT_Y;
+		if (splitscreen == 2)
+		{
+			basey += 16;	// slight adjust for 3P
+			basex -= 6;
+		}
+	}
+	else if (splitscreen == 3)	// 4P splitscreen...
+	{
+		basex = BASEVIDWIDTH/2 - (SHORT)(kp_wantedsplit->width/2);	// center on screen
+		basey = BASEVIDHEIGHT - 55;
+		//basey2 = 4;
+	}
+
 	if (battlewanted[0] != -1)
 		colormap = R_GetTranslationColormap(0, players[battlewanted[0]].skincolor, GTC_CACHE);
-	V_DrawFixedPatch(WANT_X<<FRACBITS, WANT_Y<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, kp_wanted, colormap);
+	V_DrawFixedPatch(basex<<FRACBITS, basey<<FRACBITS, FRACUNIT, V_HUDTRANS|(splitscreen < 3 ? V_SNAPTORIGHT : 0)|V_SNAPTOBOTTOM, (splitscreen > 1 ? kp_wantedsplit : kp_wanted), colormap);
+	/*if (basey2)
+		V_DrawFixedPatch(basex<<FRACBITS, basey2<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTOTOP, (splitscreen == 3 ? kp_wantedsplit : kp_wanted), colormap);	// < used for 4p splits.*/
 
 	for (i = 0; i < numwanted; i++)
 	{
-		INT32 x = WANT_X+8, y = WANT_Y+21;
+		INT32 x = basex+(splitscreen > 1 ? 13 : 8), y = basey+(splitscreen > 1 ? 16 : 21);
 		fixed_t scale = FRACUNIT/2;
 		player_t *p = &players[battlewanted[i]];
 
@@ -7360,7 +7386,9 @@ static void K_drawKartWanted(void)
 		if (players[battlewanted[i]].skincolor)
 		{
 			colormap = R_GetTranslationColormap(TC_RAINBOW, p->skincolor, GTC_CACHE);
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTORIGHT|V_SNAPTOBOTTOM, (scale == FRACUNIT ? facewantprefix[p->skin] : facerankprefix[p->skin]), colormap);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, V_HUDTRANS|(splitscreen < 3 ? V_SNAPTORIGHT : 0)|V_SNAPTOBOTTOM, (scale == FRACUNIT ? facewantprefix[p->skin] : facerankprefix[p->skin]), colormap);
+			/*if (basey2)	// again with 4p stuff
+				V_DrawFixedPatch(x<<FRACBITS, (y - (basey-basey2))<<FRACBITS, FRACUNIT, V_HUDTRANS|V_SNAPTOTOP, (scale == FRACUNIT ? facewantprefix[p->skin] : facerankprefix[p->skin]), colormap);*/
 		}
 	}
 }
@@ -7501,6 +7529,8 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 		else
 			colormap = R_GetTranslationColormap(skin, mo->color, GTC_CACHE);
 		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
+		if (mo->player && K_IsPlayerWanted(mo->player))
+			V_DrawFixedPatch(amxpos - (4<<FRACBITS), amypos - (4<<FRACBITS), FRACUNIT, flags, kp_wantedreticle, colormap);
 	}
 }
 
@@ -7533,7 +7563,7 @@ static void K_drawKartMinimap(void)
 
 	if (timeinmap > 105)
 	{
-		minimaptrans = (splitscreen == 2 ? 10 : cv_kartminimap.value);
+		minimaptrans = cv_kartminimap.value;
 		if (timeinmap <= 113)
 			minimaptrans = ((((INT32)timeinmap) - 105)*minimaptrans)/(113-105);
 		if (!minimaptrans)
@@ -7585,7 +7615,7 @@ static void K_drawKartMinimap(void)
 			if (!players[i].mo || players[i].spectator)
 				continue;
 
-			if (!splitscreen && i == displayplayer)
+			if (i == displayplayer || i == secondarydisplayplayer || i == thirddisplayplayer || i == fourthdisplayplayer)	// don't draw our local players.
 			{
 				dop1later = true; // Do displayplayer later
 				continue;
@@ -7608,9 +7638,31 @@ static void K_drawKartMinimap(void)
 	if (!dop1later)
 		return; // Don't need this
 
+	// draw our local players here, opaque.
 	splitflags &= ~V_HUDTRANSHALF;
 	splitflags |= V_HUDTRANS;
-	K_drawKartMinimapHead(stplyr->mo, x, y, splitflags, AutomapPic);
+	for (i = MAXPLAYERS-1; i >= 0; i--)
+	{
+		if (!(i == displayplayer || i == secondarydisplayplayer || i == thirddisplayplayer || i == fourthdisplayplayer))
+			continue;	// this doesn't interrest us
+
+		if (splitscreen > 1)	// this only applies to splitscreen. When we play alone, we should always get drawn reguardless of what we're doing.
+		{
+			if (G_BattleGametype() && players[i].kartstuff[k_bumper] <= 0)
+				continue;
+			if (players[i].kartstuff[k_hyudorotimer] > 0)
+			{
+				if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
+					|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
+					&& !(leveltime & 1)))
+					continue;
+			}
+
+			K_drawKartMinimapHead(players[i].mo, x, y, splitflags, AutomapPic);
+		}
+		else
+			K_drawKartMinimapHead(players[i].mo, x, y, splitflags, AutomapPic);
+	}
 }
 
 static void K_drawKartStartCountdown(void)
