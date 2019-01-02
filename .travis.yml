@@ -635,7 +635,7 @@ before_script:
   - mkdir build
   - cd build
   - mkdir package
-  - export CFLAGS="-Wall -W $WFLAGS" # -Werror
+  - export CFLAGS="-Wall -W -Werror $WFLAGS"
   - export CCACHE_COMPRESS=true
   - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/bin -DCPACK_PACKAGE_DIRECTORY=$PWD/package
       -DSRB2_ASSET_HASHED="${SRB2_ASSET_HASHED}" -DSRB2_ASSET_DOCS="${SRB2_ASSET_DOCS}"
