@@ -321,7 +321,7 @@ static void D_Display(void)
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
 			}
 
-			if ((gamestate != GS_LEVEL && rendermode != render_none))
+			if (gamestate != GS_LEVEL && rendermode != render_none)
 			{
 				V_SetPaletteLump("PLAYPAL"); // Reset the palette
 				R_ReInitColormaps(0, LUMPERROR);
