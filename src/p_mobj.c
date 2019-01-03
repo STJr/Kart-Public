@@ -11896,6 +11896,7 @@ ML_NOCLIMB : Direction not controllable
 	else if (i == MT_BOSS3WAYPOINT) // SRB2kart 120217 - Used to store checkpoint num
 	{
 		mobj->health = mthing->angle;
+		mobj->movecount = mthing->extrainfo;
 		P_SetTarget(&mobj->tracer, waypointcap);
 		P_SetTarget(&waypointcap, mobj);
 	}
