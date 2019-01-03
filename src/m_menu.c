@@ -4650,16 +4650,14 @@ static void M_DrawAddons(void)
 	if (m > (ssize_t)sizedirmenu)
 		m = sizedirmenu;
 
-	// then top...
-	i = m - (2*numaddonsshown + 1);
-
-	// then adjust!
-	if (i < 0)
+	// then compute top and adjust bottom if needed!
+	if (m < (2*numaddonsshown + 1))
 	{
-		if ((m -= i) > (ssize_t)sizedirmenu)
-			m = sizedirmenu;
+		m = min(sizedirmenu, 2*numaddonsshown + 1);
 		i = 0;
 	}
+	else
+		i = m - (2*numaddonsshown + 1);
 
 	if (i != 0)
 		V_DrawString(19, y+4 - (skullAnimCounter/5), highlightflags, "\x1A");
