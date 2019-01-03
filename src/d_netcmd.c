@@ -2098,7 +2098,7 @@ void D_SetupVote(void)
 		else
 			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, true, votebuffer);
 		if (i < 3)
-			votebuffer[i] = m;
+			votebuffer[min(i, 2)] = m; // min() is a dumb workaround for gcc 4.4 array-bounds error
 		WRITEUINT16(p, m);
 	}
 
