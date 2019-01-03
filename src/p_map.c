@@ -3809,6 +3809,7 @@ void P_BouncePlayerMove(mobj_t *mo)
 	fixed_t leadx, leady;
 	fixed_t trailx, traily;
 	fixed_t mmomx = 0, mmomy = 0;
+	fixed_t oldmomx = mo->momx, oldmomy = mo->momy;
 
 	if (!mo->player)
 		return;
@@ -3897,7 +3898,9 @@ void P_BouncePlayerMove(mobj_t *mo)
 	mo->player->cmomx = tmxmove;
 	mo->player->cmomy = tmymove;
 
-	P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true);
+	if (!P_TryMove(mo, mo->x + tmxmove, mo->y + tmymove, true)) {
+		P_TryMove(mo, mo->x - oldmomx, mo->y - oldmomy, true);
+	}
 }
 
 //
