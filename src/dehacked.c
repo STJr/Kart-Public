@@ -3686,12 +3686,16 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					// no undo support for this insanity yet
 					//DEH_WriteUndoline(word, word2, UNDO_HEADER);
 				}
-				else if (fastcmp(word, "SRB2"))
+				else if (fastcmp(word, "SRB2KART"))
 				{
 					INT32 ver = searchvalue(strtok(NULL, "\n"));
 					if (ver != PATCHVERSION)
 						deh_warning("Patch is for SRB2Kart version %d,\nonly version %d is supported", ver, PATCHVERSION);
 					//DEH_WriteUndoline(word, va("%d", ver), UNDO_NONE);
+				}
+				else if (fastcmp(word, "SRB2"))
+				{
+					deh_warning("Patch is only compatible with base SRB2.");
 				}
 				// Clear all data in certain locations (mostly for unlocks)
 				// Unless you REALLY want to piss people off,
