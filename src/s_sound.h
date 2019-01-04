@@ -133,6 +133,8 @@ extern struct cursongcredit
 {
 	UINT16 index;
 	UINT16 anim;
+	INT32 x;
+	UINT8 trans;
 } cursongcredit;
 
 typedef struct

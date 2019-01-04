@@ -294,7 +294,7 @@ void HU_LoadGraphics(void)
 	tinyemeraldpics[5] = W_CachePatchName("TEMER6", PU_HUDGFX);
 	tinyemeraldpics[6] = W_CachePatchName("TEMER7", PU_HUDGFX);
 
-	songcreditbg = W_CachePatchName("MUSCRED", PU_HUDGFX);
+	songcreditbg = W_CachePatchName("K_SONGCR", PU_HUDGFX);
 }
 
 // Initialise Heads up
@@ -2059,45 +2059,39 @@ static void HU_DrawDemoInfo(void)
 //
 // Song credits
 //
-boolean songcreditinit = false;
-
 static void HU_DrawSongCredits(void)
 {
-	static UINT8 transparency = NUMTRANSMAPS;
-	static INT32 x = 0;
-	UINT16 len = V_ThinStringWidth(songCredits[cursongcredit.index].info, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
+	const char *str = va("\x1F"" %s", songCredits[cursongcredit.index].info);
+	INT32 len = V_ThinStringWidth(str, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
+	INT32 destx = (len+7);
+	INT32 y = (splitscreen ? (BASEVIDHEIGHT/2)-4 : 32);
 	INT32 bgt;
-
-	if (!songcreditinit)
-	{
-		memset(&cursongcredit,0,sizeof(struct cursongcredit));
-		songcreditinit = true;
-		return;
-	}
 
 	if (cursongcredit.anim)
 	{
-		if (transparency > 0)
-			transparency--;
-		if (x < (len+16))
-			x += ((len+16) - x) / 2;
+		if (cursongcredit.trans > 0)
+			cursongcredit.trans--;
+		if (cursongcredit.x < destx)
+			cursongcredit.x += (destx - cursongcredit.x) / 2;
+		if (cursongcredit.x > destx)
+			cursongcredit.x = destx;
 		cursongcredit.anim--;
 	}
 	else
 	{
-		if (transparency < NUMTRANSMAPS)
-			transparency++;
-		if (x > 0)
-			x /= 2;
+		if (cursongcredit.trans < NUMTRANSMAPS)
+			cursongcredit.trans++;
+		if (cursongcredit.x > 0)
+			cursongcredit.x /= 2;
+		if (cursongcredit.x < 0)
+			cursongcredit.x = 0;
 	}
 
-	//V_DrawThinString(0, 0, 0, transparency);
-
-	bgt = (NUMTRANSMAPS/2)+(transparency/2);
+	bgt = (NUMTRANSMAPS/2)+(cursongcredit.trans/2);
 	if (bgt < NUMTRANSMAPS)
-		V_DrawScaledPatch(x, 30, V_SNAPTOLEFT|(bgt<<V_ALPHASHIFT), songcreditbg);
-	if (transparency < NUMTRANSMAPS)
-		V_DrawThinString(x-len-10, 32, V_SNAPTOLEFT|V_ALLOWLOWERCASE|V_6WIDTHSPACE|(transparency<<V_ALPHASHIFT), va("\x1F"" %s", songCredits[cursongcredit.index].info));
+		V_DrawScaledPatch(cursongcredit.x, y-2, V_SNAPTOLEFT|(bgt<<V_ALPHASHIFT), songcreditbg);
+	if (cursongcredit.trans < NUMTRANSMAPS)
+		V_DrawRightAlignedThinString(cursongcredit.x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
 }
 
 // Heads up displays drawer, call each frame

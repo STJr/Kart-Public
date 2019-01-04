@@ -1744,6 +1744,8 @@ void S_InitMusicCredit(void)
 		{
 			cursongcredit.index = i;
 			cursongcredit.anim = 5*TICRATE;
+			cursongcredit.x = 0;
+			cursongcredit.trans = NUMTRANSMAPS;
 			return; // Don't return when there's SOC support, to see if there's any "replacement" credits?
 		}
 	}

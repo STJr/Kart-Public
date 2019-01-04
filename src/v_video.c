@@ -2266,6 +2266,7 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 {
 	INT32 c, w = 0;
 	INT32 spacewidth = 2, charwidth = 0;
+	boolean lowercase = (option & V_ALLOWLOWERCASE);
 	size_t i;
 
 	switch (option & V_SPACINGMASK)
@@ -2289,14 +2290,21 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		if ((UINT8)c >= 0x80 && (UINT8)c <= 0x8F) //color parsing! -Inuyasha 2.16.09
 			continue;
 
-		c = toupper(c) - HU_FONTSTART;
+		if (!lowercase || !tny_font[c-HU_FONTSTART])
+			c = toupper(c);
+		c -= HU_FONTSTART;
+
 		if (c < 0 || c >= HU_FONTSIZE || !tny_font[c])
 			w += spacewidth;
 		else
+		{
 			w += (charwidth ? charwidth
-				: (option & V_6WIDTHSPACE ? max(1, SHORT(tny_font[c]->width)-1) : SHORT(tny_font[c]->width))); // Reuse this flag for the alternate bunched-up spacing
+				: ((option & V_6WIDTHSPACE && i < strlen(string)-1) ? max(1, SHORT(tny_font[c]->width)-1) // Reuse this flag for the alternate bunched-up spacing
+				: SHORT(tny_font[c]->width)));
+		}
 	}
 
+	
 	return w;
 }
 

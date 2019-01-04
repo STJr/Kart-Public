@@ -2304,6 +2304,10 @@ static void P_LevelInitStuff(void)
 	// earthquake camera
 	memset(&quake,0,sizeof(struct quake));
 
+	// song credit init
+	memset(&cursongcredit,0,sizeof(struct cursongcredit));
+	cursongcredit.trans = NUMTRANSMAPS;
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 #if 0
