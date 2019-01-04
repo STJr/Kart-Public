@@ -51,6 +51,7 @@
 #include "lua_hook.h"
 #endif
 
+#include "s_sound.h" // song credits
 #include "k_kart.h"
 
 // coords are scaled
@@ -103,6 +104,8 @@ static patch_t *tokenicon;
 
 // crosshair 0 = off, 1 = cross, 2 = angle, 3 = point, see m_menu.c
 static patch_t *crosshair[HU_CROSSHAIRS]; // 3 precached crosshair graphics
+// song credits
+static patch_t *songcreditbg;
 
 // -------
 // protos.
@@ -290,6 +293,8 @@ void HU_LoadGraphics(void)
 	tinyemeraldpics[4] = W_CachePatchName("TEMER5", PU_HUDGFX);
 	tinyemeraldpics[5] = W_CachePatchName("TEMER6", PU_HUDGFX);
 	tinyemeraldpics[6] = W_CachePatchName("TEMER7", PU_HUDGFX);
+
+	songcreditbg = W_CachePatchName("MUSCRED", PU_HUDGFX);
 }
 
 // Initialise Heads up
@@ -2050,6 +2055,51 @@ static void HU_DrawDemoInfo(void)
 	}
 }
 
+
+//
+// Song credits
+//
+boolean songcreditinit = false;
+
+static void HU_DrawSongCredits(void)
+{
+	static UINT8 transparency = NUMTRANSMAPS;
+	static INT32 x = 0;
+	UINT16 len = V_ThinStringWidth(songCredits[cursongcredit.index].info, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
+	INT32 bgt;
+
+	if (!songcreditinit)
+	{
+		memset(&cursongcredit,0,sizeof(struct cursongcredit));
+		songcreditinit = true;
+		return;
+	}
+
+	if (cursongcredit.anim)
+	{
+		if (transparency > 0)
+			transparency--;
+		if (x < (len+16))
+			x += ((len+16) - x) / 2;
+		cursongcredit.anim--;
+	}
+	else
+	{
+		if (transparency < NUMTRANSMAPS)
+			transparency++;
+		if (x > 0)
+			x /= 2;
+	}
+
+	//V_DrawThinString(0, 0, 0, transparency);
+
+	bgt = (NUMTRANSMAPS/2)+(transparency/2);
+	if (bgt < NUMTRANSMAPS)
+		V_DrawScaledPatch(x, 30, V_SNAPTOLEFT|(bgt<<V_ALPHASHIFT), songcreditbg);
+	if (transparency < NUMTRANSMAPS)
+		V_DrawThinString(x-len-10, 32, V_SNAPTOLEFT|V_ALLOWLOWERCASE|V_6WIDTHSPACE|(transparency<<V_ALPHASHIFT), va("\x1F"" %s", songCredits[cursongcredit.index].info));
+}
+
 // Heads up displays drawer, call each frame
 //
 void HU_Drawer(void)
@@ -2143,6 +2193,10 @@ void HU_Drawer(void)
 		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
 			HU_DrawCrosshair4();
 	}*/
+
+	// draw song credits
+	if (cv_songcredits.value)
+		HU_DrawSongCredits();
 
 	// draw desynch text
 	if (hu_resynching)

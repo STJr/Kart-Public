@@ -128,6 +128,23 @@ boolean S_MusicExists(const char *mname, boolean checkMIDI, boolean checkDigi);
 // Set Speed of Music
 boolean S_SpeedMusic(float speed);
 
+// Music credits
+extern struct cursongcredit
+{
+	UINT16 index;
+	UINT16 anim;
+} cursongcredit;
+
+typedef struct
+{
+	const char *lump;
+	const char *info;
+} songcredits_t;
+
+extern songcredits_t songCredits[];
+
+void S_InitMusicCredit(void);
+
 //
 // Music Routines
 //

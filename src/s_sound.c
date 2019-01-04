@@ -1541,6 +1541,132 @@ static void      *music_data;
 static UINT16    music_flags;
 static boolean   music_looping;
 
+songcredits_t songCredits[] = {
+	// Race maps
+	{"kmap01","Toot Toot Sonic Warrior (Instrumental) - Sonic CD"},
+	{"kmap02","Chao Race (Extended Mix) - Sonic Adventure 2"},
+	{"kmap03","Touhou 10.5: Broken Moon (Jazz Arrangement) - Tokyo Active NEETs"},
+	{"kmap04","Mortvia Fountain - Castlevania: Curse of Darkness"},
+	{"kmap05","Let's Go Away - Daytona USA"},
+	{"kmap06","War Machine - Marvel vs. Capcom"},
+	{"kmap07","Sonic 3D Blast: Green Grove Zone, Act 1 (Remix) - Tee Lopes"},
+	{"kmap08","Sonic Drift 2: Hill Top (Remix) - SeventhSentinel"},
+	{"kmap09","Industrial District - Columns III"},
+	{"kmap10","Dream Uneven Bars - Mario & Sonic at the London 2012 Olympic Games"},
+	{"kmap11","Moon Palace 2 - Drift City"},
+	{"kmap12","Authentic Sky - Tekken 4"},
+	{"kmap13","Plant Man's Stage - Rockman 6 Complete Works"},
+	{"kmap14","Twinkle Cart - Sonic Adventure"},
+	{"kmap15","Pleasure Castle - Sonic Adventure"},
+	{"kmap16","Horizon Heights Zone, Act 2 - Sonic: After the Sequel"},
+	{"kmap17","Frost Man's Stage - Mega Man 8"},
+	{"kmap18","Foliage Furnace Zone, Act 1 - Sonic: After the Sequel"},
+	{"kmap19","Sand Ocean - F-Zero"},
+	{"kmap20","El Anoir Field South - LaTale"},
+	{"kmap21","Western GunRun - LaTale"},
+	{"kmap22","Jr. Street - Mario Hoops 3 on 3"},
+	{"kmap23","Fight or Flight (Air Armada) - Rivals of Aether"},
+	{"kmap24","White Land I - F-Zero"},
+	{"kmap25","Donkey Kong Country: Fear Factory (Remix) - Vincent Rubinetti"},
+	{"kmap26","Desert Palace - Sonic the Hedgehog 3"},
+	{"kmap27","Aurora Atoll Zone - SeventhSentinel"},
+	{"kmap28","Hol Horse - JoJo's Bizarre Adventure (Arcade)"},
+	{"kmap29","Red Barrage Area - Sonic Adventure"},
+	{"kmap30","Reach Out To The Truth - Persona 4 Arena"},
+	{"kmap31","Ave de Rapina - Beatmania IIDX 7th Style"},
+	{"kmap32","Atomic Waste Zone - Michael Staple"},
+	{"kmap33","Desert Area - LaTale"},
+	{"kmap34","DuckTales: The Moon (Remix) - Chris Holland, Luke Kwing"},
+	{"kmap35","Eggman Empire Zone - Michael Staple"},
+	{"kmap36","Shooting Star - Elwood"},
+	{"kmap37","Vigaku (Theme of Ein) - Dead or Alive 2"},
+	{"kmap38","Lovely Gate 3 - Sonic Adventure 2"},
+	{"kmap39","The Biggest Dreamer - Digimon Rumble Arena"},
+	{"kmap40","Soft Collision - Mighty Switch Force 2"},
+	{"kmap41","Ganbare Dochu - Konami Krazy Racers"},
+	{"kmap42","Theme of 'CHAO' - Sonic Adventure"},
+	{"kmap43","Join Us 4 Happy Time - Sonic Adventure"},
+	{"kmap44","Search ~ In the Midst - Ace Attorney: Justice for All"},
+	{"kmap45","Venezia, Italy - Tekken"},
+	{"kmap46","Balloon Panic - Sonic Drift 2"},
+	{"kmap47","Dimension Heist - Sonic Mania"},
+	{"kmap48","MKSC Sky Garden (Remix) - Mario Kart DS"},
+	{"kmap49","MKDS Peach Gardens (Remix) - Mario Kart Wii"},
+	{"kmap50","MKSC Rainbow Road (Remix) - Panman14"},
+	{"kmap51","Donut Plains - Super Mario Kart"},
+	{"kmap52","Mario Circuit - Super Mario Kart"},
+	{"kmap53","Ghost Valley - Super Mario Kart"},
+	{"kmap54","Bowser Castle - Super Mario Kart"},
+	{"kmap55","Vanilla Lake - Super Mario Kart"},
+	// Battle maps
+	{"kmapb0","Tropic Turf Zone, Act 1 - Karl Brueggemann"},
+	{"kmapb1","Seascape - Knuckles' Chaotix"},
+	{"kmapb2","Boss Challenge I - Diddy Kong Racing"},
+	{"kmapb3","Al's Toy Barn - Toy Story 2 (PS1)"},
+	{"kmapb4","SRB2: Techno Hill Zone, Act 1 (Remix) - SeventhSentinel"},
+	{"kmapb5","Sonic the Hedgehog: Marble Zone (Remix) - Tee Lopes"},
+	{"kmapb6","Phi Battle - Sonic Battle"},
+	{"kmapb7","Khan - JoJo's Bizarre Adventure (Arcade)"},
+	{"kmapb8","Underground - Wild Guns Reloaded"},
+	{"kmapb9","Disease Transport - DrTapeworm"},
+	{"kmapba","Shining Force II: Shrine (Remix) - gxf4c3"},
+	{"kmapbb","Bad Taste Aquarium - Sonic Adventure"},
+	{"kmapbc","Space Ship: Strut - Space Channel 5"},
+	{"kmapbd","Strollin' the City - Karl Brueggemann"},
+	{"kmapbe","Fakery Way - Sonic Adventure"},
+	{"kmapbf","Twinkle Circuit - Sonic Adventure"},
+	{"kmapbg","Never Let It Go - Sonic the Fighters"},
+	{"kmapbh","Power Plant - Sonic Heroes"},
+	{"kmapbi","Tails' Lab - Sonic Battle"},
+	{"kmapbj","Mega Man X: Armored Armadillo's Stage (Arranged) - Synthescissor"},
+	{"kmapbk","School Ordeal - Danganronpa V3: Killing Harmony"},
+	{"kmapbl","Mementos - Persona 5"},
+	{"kmapbm","Special Stage (US) - Sonic CD"},
+	{"kmapbn","Battle Mode - Super Mario Kart"},
+	{"kmapbp","Vanilla Lake (Beta) - Super Mario Kart"},
+	{"kmapbr","Choco Mountain - Mario Kart 64"},
+	// Hell maps
+	{"kmaph0","Neo City - Drift City"},
+	{"kmaph1","World Open Finals - Mario Power Tennis"},
+	{"kmaph2","Arid Sands: Day - Sonic Unleashed"},
+	{"kmaph3","Graveyard Gig - Sonic & All-Stars Racing Transformed"},
+	{"kmaph4","Dr. Robotnik's Mean Bean Machine: 2 Player (Remix) - Jonny Atma, The8BitDrummer"},
+	{"kmaph5","Living In One More City - Nib Roc"},
+	{"kmaph6","Ema Skye ~ Scientific Detective - Apollo Justice: Ace Attorney"},
+	{"kmaph7","4 Minutes Before Death - Ghost Trick: Phantom Detective"},
+	{"kmaph8","Napoleon Disappeared!? - Pop'n Music 10"},
+	{"kmaph9","Retro Maze - Pac-Man World Rally"},
+	{"kmapha","Midnight Freeze Zone - Arrow, SSNTails"},
+	{"kmaphb","Townsville Raceway - Cartoon Network Racing (DS)"},
+	{"kmaphc","F-Zero: Silence (Remix) - Tony Thai"},
+	{"kmaphd","Rainbow Road - Super Mario Kart"},
+	{"kmaphe","Meadow Match Zone - Arrow, SSNTails"},
+	{"kmaphf","merge-break - xaki"},
+	// Misc
+	{"titles","Fluvial Beat Deposits - Simon Stalenhag"}, // Stålenhag
+	{"vote",  "Chaotic World - Knuckles' Chaotix"},
+	{"voteea","Decision - Knuckles' Chaotix"},
+	{"voteeb","Decision - Knuckles' Chaotix"},
+	{"kinvnc","Invincibility - Sonic the Hedgehog 3"},
+	{"kgrow", "Surging Power - Knuckles' Chaotix"},
+	{"kstart","Race Start - Diddy Kong Racing"},
+	{"estart","Phantom Ruby Ambience - Sonic Mania"},
+	{"krwin", "Practice - Sora"},
+	{"krok",  "Practice - Sora"},
+	{"krlose","Hit 'Em Up (Instrumental) - 2Pac"},
+	{"krfail","Results - F-Zero"},
+	{"kbwin", "Wild Charabom Defeated! - Bomberman Tournament"},
+	{"kbok",  "Deadly Bomber Base Cleared! - Bomberman Tournament"},
+	{"kblose","You Lose! - Bomberman Tournament"},
+	{"racent","Menu - Metropolis Street Racer"},
+	{"wait2j","Competition Results - Sonic the Hedgehog 3"},
+	{"chalng","Sonic the Hedgehog 3: Minor Boss (Dual PCM) - MarkeyJester"},
+	{"credit","Moot Booxle - Chomp"},
+	{NULL,NULL}
+};
+
+struct cursongcredit cursongcredit;
+
 /// ------------------------
 /// Music Status
 /// ------------------------
@@ -1603,6 +1729,24 @@ boolean S_MusicExists(const char *mname, boolean checkMIDI, boolean checkDigi)
 boolean S_SpeedMusic(float speed)
 {
 	return I_SetSongSpeed(speed);
+}
+
+void S_InitMusicCredit(void)
+{
+	UINT16 i;
+
+	if (!cv_songcredits.value)
+		return;
+
+	for (i = 0; songCredits[i].lump; i++)
+	{
+		if (!stricmp(songCredits[i].lump, music_name))
+		{
+			cursongcredit.index = i;
+			cursongcredit.anim = 5*TICRATE;
+			return; // Don't return when there's SOC support, to see if there's any "replacement" credits?
+		}
+	}
 }
 
 /// ------------------------
