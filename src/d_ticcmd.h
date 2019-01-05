@@ -21,6 +21,8 @@
 #pragma interface
 #endif
 
+#define MAXPREDICTTICS 12
+
 // Button/action code definitions.
 typedef enum
 {

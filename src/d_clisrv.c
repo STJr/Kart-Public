@@ -4008,7 +4008,7 @@ FILESTAMP
 			}
 
 			{ // Store the node's latency in tics on the ticcmd right as we receive it. I think this should be sync-stable
-				UINT8 latency = min(maketic - nettics[node], 12); //@TODO add a cvar to allow setting this max
+				UINT8 latency = min(maketic - nettics[node], MAXPREDICTTICS-1); //@TODO add a cvar to allow setting this max
 
 				switch (netbuffer->packettype)
 				{
