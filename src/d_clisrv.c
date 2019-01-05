@@ -4007,6 +4007,25 @@ FILESTAMP
 					&netbuffer->u.client4pak.cmd4, 1);
 			}
 
+			{ // Store the node's latency in tics on the ticcmd right as we receive it. I think this should be sync-stable
+				UINT8 latency = min(maketic - nettics[node], 12); //@TODO add a cvar to allow setting this max
+
+				switch (netbuffer->packettype)
+				{
+				case PT_CLIENT4CMD:
+					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].latency = latency;
+
+				case PT_CLIENT3CMD:
+					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].latency = latency;
+
+				case PT_CLIENT2CMD:
+					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].latency = latency;
+
+				default:
+					netcmds[maketic%BACKUPTICS][netconsole].latency = latency;
+				}
+			}
+
 			// A delay before we check resynching
 			// Used on join or just after a synch fail
 			if (resynch_delay[node])

@@ -60,6 +60,7 @@ typedef struct
 	INT16 aiming; // vertical aiming, see G_BuildTicCmd
 	UINT16 buttons;
 	INT16 driftturn; // SRB2Kart: Used for getting drift turn speed
+	UINT8 latency; // Netgames: how many tics ago was this ticcmd generated from this player's end?
 } ATTRPACK ticcmd_t;
 
 #if defined(_MSC_VER)

@@ -4542,6 +4542,7 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 		dest[i].aiming = (INT16)SHORT(src[i].aiming);
 		dest[i].buttons = (UINT16)SHORT(src[i].buttons);
 		dest[i].driftturn = (INT16)SHORT(src[i].driftturn);
+		dest[i].latency = (INT16)SHORT(src[i].latency);
 	}
 	return dest;
 }

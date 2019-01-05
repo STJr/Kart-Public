@@ -433,10 +433,10 @@ typedef struct
 	UINT8 reserved; // Padding
 	union
 	{
-		clientcmd_pak clientpak;            //         144 bytes
-		client2cmd_pak client2pak;          //         200 bytes
-		client3cmd_pak client3pak;          //         256 bytes(?)
-		client4cmd_pak client4pak;          //         312 bytes(?)
+		clientcmd_pak clientpak;            //         145 bytes
+		client2cmd_pak client2pak;          //         202 bytes
+		client3cmd_pak client3pak;          //         258 bytes(?)
+		client4cmd_pak client4pak;          //         316 bytes(?)
 		servertics_pak serverpak;           //      132495 bytes (more around 360, no?)
 		serverconfig_pak servercfg;         //         773 bytes
 		resynchend_pak resynchend;          //
