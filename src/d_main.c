@@ -955,14 +955,10 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
-	//D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
-	MUSICTEST("sounds.kart")
-
 #ifdef USE_PATCH_KART
 	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
 #endif
-
-	//MUSICTEST("music.dta")
+	MUSICTEST("sounds.kart")
 	MUSICTEST("music.kart")
 }
 
