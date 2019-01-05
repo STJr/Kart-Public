@@ -1552,6 +1552,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	else if (cmd->driftturn < (-angleturn[1] * realtics))
 		cmd->driftturn = (-angleturn[1] * realtics);
 
+	cmd->angleturn = FixedMul(cmd->angleturn, cv_cam2_dist.value/160);
+
+	if (cv_playbackspeed.value == 1)
 	if (player->mo)
 		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
 

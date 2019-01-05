@@ -6649,6 +6649,10 @@ static void P_MovePlayer(player_t *player)
 			player->lturn_max[leveltime%MAXPREDICTTICS] = player->rturn_max[leveltime%MAXPREDICTTICS] = 0;
 		}
 
+		if (cv_soniccd.value)
+		{
+			player->mo->angle = cmd->angleturn << 16;
+		} else
 		if (leveltime >= starttime)
 		{
 			// KART: Don't directly apply angleturn! It may have been either A) forged by a malicious client, or B) not be a smooth turn due to a player dropping frames.
