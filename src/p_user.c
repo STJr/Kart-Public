@@ -6713,7 +6713,7 @@ static void P_MovePlayer(player_t *player)
 		if (player->mo->state != &states[S_KART_SPIN])
 			P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
-		if (speed == 1 && abs(player->mo->angle - player->frameangle) < ANGLE_22h)
+		if (speed == 1 && abs((signed)(player->mo->angle - player->frameangle)) < ANGLE_22h)
 			player->frameangle = player->mo->angle; // Face forward at the end of the animation
 		else
 			player->frameangle -= (ANGLE_11hh * speed);
