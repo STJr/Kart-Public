@@ -6678,7 +6678,10 @@ static void P_MovePlayer(player_t *player)
 			if (add_delta) {
 				player->mo->angle += angle_diff<<16;
 				player->mo->angle &= ~0xFFFF; // Try to keep the turning somewhat similar to how it was before?
-				CONS_Printf("leftover turn (%s): %d\n", player_names[player-players], (INT16) (cmd->angleturn - (player->mo->angle>>16)));
+				CONS_Printf("leftover turn (%s): %5d or %4d%%\n",
+								player_names[player-players],
+								(INT16) (cmd->angleturn - (player->mo->angle>>16)),
+								(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ?: 1));
 			}
 		}
 
