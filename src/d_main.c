@@ -188,7 +188,7 @@ void D_PostEvent_end(void) {};
 UINT8 shiftdown = 0; // 0x1 left, 0x2 right
 UINT8 ctrldown = 0; // 0x1 left, 0x2 right
 UINT8 altdown = 0; // 0x1 left, 0x2 right
-boolean capslock = 0; // jeez i wonder what this does.
+boolean capslock = 0;	// gee i wonder what this does.
 //
 // D_ModifierKeyResponder
 // Sets global shift/ctrl/alt variables, never actually eats events
@@ -338,8 +338,7 @@ static void D_Display(void)
 			if (!gametic)
 				break;
 			HU_Erase();
-			if (automapactive)
-				AM_Drawer();
+			AM_Drawer();
 			break;
 
 		case GS_INTERMISSION:
@@ -412,12 +411,10 @@ static void D_Display(void)
 			break;
 	}
 
-	// clean up border stuff
-	// see if the border needs to be initially drawn
 	if (gamestate == GS_LEVEL)
 	{
 		// draw the view directly
-		if (!automapactive && !dedicated && cv_renderview.value)
+		if (cv_renderview.value && !automapactive)
 		{
 			if (players[displayplayer].mo || players[displayplayer].playerstate == PST_DEAD)
 			{
@@ -536,7 +533,6 @@ static void D_Display(void)
 		}
 
 		ST_Drawer();
-
 		HU_Drawer();
 	}
 
@@ -926,20 +922,21 @@ static void IdentifyVersion(void)
 	// if you change the ordering of this or add/remove a file, be sure to update the md5
 	// checking in D_SRB2Main
 
-	// Add the maps
-	//D_AddFile(va(pandf,srb2waddir,"zones.dta"));
-
-	// Add the players
-	//D_AddFile(va(pandf,srb2waddir, "player.dta"));
-
-	// Add the weapons
-	//D_AddFile(va(pandf,srb2waddir,"rings.dta"));
-
 #ifdef USE_PATCH_DTA
 	// Add our crappy patches to fix our bugs
 	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
 #endif
 
+	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
+	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
+	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
+	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
+#ifdef USE_PATCH_KART
+	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+#endif
+
+#if !defined (HAVE_SDL) || defined (HAVE_MIXER)
+	{
 #define MUSICTEST(str) \
 	{\
 		const char *musicpath = va(pandf,srb2waddir,str);\
@@ -949,21 +946,10 @@ static void IdentifyVersion(void)
 		else if (ms == 0) \
 			I_Error("File "str" has been modified with non-music/sound lumps"); \
 	}
-
-	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
-	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
-	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
-	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
-	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
-	//D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
-	MUSICTEST("sounds.kart")
-
-#ifdef USE_PATCH_KART
-	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+		MUSICTEST("sounds.kart")
+		MUSICTEST("music.kart")
+	}
 #endif
-
-	//MUSICTEST("music.dta")
-	MUSICTEST("music.kart")
 }
 
 /* ======================================================================== */
@@ -1239,20 +1225,19 @@ void D_SRB2Main(void)
 
 	mainwads = 0;
 
-#ifndef DEVELOP // md5s last updated 12/14/14
-
+#ifndef DEVELOP
 	// Check MD5s of autoloaded files
-	// Note:Do not add any files that ignore MD5!
-	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);		// srb2.srb/srb2.wad
+	// Note: Do not add any files that ignore MD5!
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);						// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);	// patch.dta
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);		// patch.dta
 #endif
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); // gfx.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART); // textures.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); // chars.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); // maps.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);			// gfx.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART);	// textures.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);		// chars.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart
 #ifdef USE_PATCH_KART
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);	// patch.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);		// patch.kart
 #endif
 #else
 #ifdef USE_PATCH_DTA
@@ -1265,6 +1250,7 @@ void D_SRB2Main(void)
 #ifdef USE_PATCH_KART
 	mainwads++;	// patch.kart
 #endif
+
 #endif //ifndef DEVELOP
 
 	mainwadstally = packetsizetally;

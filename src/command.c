@@ -33,6 +33,7 @@
 #include "hu_stuff.h"
 #include "p_setup.h"
 #include "lua_script.h"
+#include "d_netfil.h" // findfile
 
 //========
 // protos.
@@ -49,6 +50,11 @@ static void COM_Exec_f(void);
 static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Toggle_f(void);
+
+#if USE_VERSION_FILTERING
+static void CV_EnforceExecVersion(void);
+static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr);
+#endif
 
 static boolean CV_Command(void);
 static consvar_t *CV_FindVar(const char *name);
@@ -67,6 +73,19 @@ CV_PossibleValue_t CV_Natural[] = {{1, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 CV_PossibleValue_t kartspeed_cons_t[] = {
 	{0, "Easy"}, {1, "Normal"}, {2, "Hard"},
 	{0, NULL}};
+
+// Filter consvars by EXECVERSION
+// First implementation is 26 (2.1.21), so earlier configs default at 25 (2.1.20)
+// Also set CV_HIDEN during runtime, after config is loaded
+
+#ifdef USE_VERSION_FILTERING
+static boolean execversion_enabled = false;
+consvar_t cv_execversion = {"execversion","25",CV_CALL,CV_Unsigned, CV_EnforceExecVersion, 0, NULL, NULL, 0, 0, NULL};
+
+// for default joyaxis detection
+static boolean joyaxis_default[4] = {false,false,false,false};
+static INT32 joyaxis_count[4] = {0,0,0,0};
+#endif
 
 #define COM_BUF_SIZE 8192 // command buffer size
 #define MAX_ALIAS_RECURSION 100 // max recursion allowed for aliases
@@ -635,6 +654,7 @@ static void COM_CEchoDuration_f(void)
 static void COM_Exec_f(void)
 {
 	UINT8 *buf = NULL;
+	char filename[256];
 
 	if (COM_Argc() < 2 || COM_Argc() > 3)
 	{
@@ -643,13 +663,23 @@ static void COM_Exec_f(void)
 	}
 
 	// load file
+	// Try with Argv passed verbatim first, for back compat
 	FIL_ReadFile(COM_Argv(1), &buf);
 
 	if (!buf)
 	{
-		if (!COM_CheckParm("-noerror"))
-			CONS_Printf(M_GetText("couldn't execute file %s\n"), COM_Argv(1));
-		return;
+		// Now try by searching the file path
+		// filename is modified with the full found path
+		strcpy(filename, COM_Argv(1));
+		if (findfile(filename, NULL, true) != FS_NOTFOUND)
+			FIL_ReadFile(filename, &buf);
+
+		if (!buf)
+		{
+			if (!COM_CheckParm("-noerror"))
+				CONS_Printf(M_GetText("couldn't execute file %s\n"), COM_Argv(1));
+			return;
+		}
 	}
 
 	if (!COM_CheckParm("-silent"))
@@ -1129,7 +1159,7 @@ static void Setvalue(consvar_t *var, const char *valstr, boolean stealth)
 		if (var->flags & CV_FLOAT)
 		{
 			double d = atof(valstr);
-			if (!d && valstr[0] != '0')
+			if (fpclassify(d) == FP_ZERO && valstr[0] != '0')
 				v = INT32_MIN;
 			else
 				v = (INT32)(d * FRACUNIT);
@@ -1698,6 +1728,118 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 	var->changed = 1; // user has changed it now
 }
 
+#ifdef USE_VERSION_FILTERING
+void CV_InitFilterVar(void)
+{
+	UINT8 i;
+	for (i = 0; i < 4; i++)
+	{
+		joyaxis_default[i] = true;
+		joyaxis_count[i] = 0;
+	}
+}
+
+void CV_ToggleExecVersion(boolean enable)
+{
+	execversion_enabled = enable;
+}
+
+static void CV_EnforceExecVersion(void)
+{
+	if (!execversion_enabled)
+		CV_StealthSetValue(&cv_execversion, EXECVERSION);
+}
+
+static boolean CV_FilterJoyAxisVars(consvar_t *v, const char *valstr)
+{
+	UINT8 i;
+
+	// If ALL axis settings are previous defaults, set them to the new defaults
+	// EXECVERSION < 26 (2.1.21)
+
+	for (i = 0; i < 4; i++)
+	{
+		if (joyaxis_default[i])
+		{
+			/*if (!stricmp(v->name, "joyaxis_fire"))
+			{
+				if (joyaxis_count[i] > 6) return false;
+				else if (joyaxis_count[i] == 6) return true;
+
+				if (!stricmp(valstr, "None")) joyaxis_count[i]++;
+				else joyaxis_default[i] = false;
+			}*/
+			// reset all axis settings to defaults
+			if (joyaxis_count[i] == 6)
+			{
+				switch (i)
+				{
+					default:
+						COM_BufInsertText(va("%s \"%s\"\n", cv_turnaxis.name, cv_turnaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_moveaxis.name, cv_moveaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_brakeaxis.name, cv_brakeaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_aimaxis.name, cv_aimaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_lookaxis.name, cv_lookaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_fireaxis.name, cv_fireaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_driftaxis.name, cv_driftaxis.defaultvalue));
+						break;
+				}
+				joyaxis_count[i]++;
+				return false;
+			}
+		}
+	}
+
+	// we haven't reached our counts yet, or we're not default
+	return true;
+}
+
+static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr)
+{
+	// True means allow the CV change, False means block it
+
+	// We only care about CV_SAVE because this filters the user's config files
+	// We do this same check in CV_Command
+	if (!(v->flags & CV_SAVE))
+		return true;
+
+	if (GETMAJOREXECVERSION(cv_execversion.value) < 26) // 26 = 2.1.21
+	{
+		// MOUSE SETTINGS
+		// alwaysfreelook split between first and third person (chasefreelook)
+		// mousemove was on by default, which invalidates the current approach
+		if (!stricmp(v->name, "alwaysmlook")
+			|| !stricmp(v->name, "alwaysmlook2")
+			|| !stricmp(v->name, "mousemove")
+			|| !stricmp(v->name, "mousemove2"))
+			return false;
+
+		// mousesens was changed from 35 to 20 due to oversensitivity
+		if ((!stricmp(v->name, "mousesens")
+			|| !stricmp(v->name, "mousesens2")
+			|| !stricmp(v->name, "mouseysens")
+			|| !stricmp(v->name, "mouseysens2"))
+			&& atoi(valstr) == 35)
+			return false;
+
+		// JOYSTICK DEFAULTS
+		// use_joystick was changed from 0 to 1 to automatically use a joystick if available
+#if defined(HAVE_SDL) || defined(_WINDOWS)
+		if ((!stricmp(v->name, "use_joystick")
+			|| !stricmp(v->name, "use_joystick2"))
+			&& atoi(valstr) == 0)
+			return false;
+#endif
+
+		// axis defaults were changed to be friendly to 360 controllers
+		// if ALL axis settings are defaults, then change them to new values
+		if (!CV_FilterJoyAxisVars(v, valstr))
+			return false;
+	}
+	return true;
+}
+#endif
+
 /** Displays or changes a variable from the console.
   * Since the user is presumed to have been directly responsible
   * for this change, the variable is marked as changed this game.
@@ -1722,8 +1864,15 @@ static boolean CV_Command(void)
 		return true;
 	}
 
-	CV_Set(v, COM_Argv(1));
-	v->changed = 1; // now it's been changed by (presumably) the user
+	if (!(v->flags & CV_SAVE)
+#if 0
+		|| CV_FilterVarByVersion(v, COM_Argv(1))
+#endif
+		)
+	{
+		CV_Set(v, COM_Argv(1));
+		v->changed = 1; // now it's been changed by (presumably) the user
+	}
 	return true;
 }
 
