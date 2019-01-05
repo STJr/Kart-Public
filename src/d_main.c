@@ -1242,6 +1242,7 @@ void D_SRB2Main(void)
 #ifndef DEVELOP // md5s last updated 12/14/14
 
 	// Check MD5s of autoloaded files
+	// Note:Do not add any files that ignore MD5!
 	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);		// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);	// patch.dta
@@ -1250,14 +1251,9 @@ void D_SRB2Main(void)
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART); // textures.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); // chars.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); // maps.kart
-	mainwads++; //W_VerifyFileMD5(5, ASSET_HASH_SOUNDS_KART); -- sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
 #ifdef USE_PATCH_KART
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);	// patch.kart
 #endif
-	//mainwads++; // music.dta
-	mainwads++; // music.kart
-	// don't check music.dta or kart because people like to modify it, and it doesn't matter if they do
-	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
 #else
 #ifdef USE_PATCH_DTA
 	mainwads++;	// patch.dta
@@ -1266,12 +1262,9 @@ void D_SRB2Main(void)
 	mainwads++;	// textures.kart
 	mainwads++;	// chars.kart
 	mainwads++;	// maps.kart
-	mainwads++;	// sounds.kart
 #ifdef USE_PATCH_KART
 	mainwads++;	// patch.kart
 #endif
-	//mainwads++; // music.dta
-	mainwads++; // music.kart
 #endif //ifndef DEVELOP
 
 	mainwadstally = packetsizetally;
