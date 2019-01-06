@@ -1450,12 +1450,6 @@ INT32 G_CheckDoubleUsage(INT32 keynum, boolean modify)
 
 static INT32 G_FilterKeyByVersion(INT32 numctrl, INT32 keyidx, INT32 player, INT32 *keynum1, INT32 *keynum2, boolean *nestedoverride)
 {
-#ifndef USE_VERSION_FILTERING
-	(void)numctrl;
-	(void)player;
-	(void)nestedoverride;
-#endif
-
 	// Special case: ignore KEY_PAUSE because it's hardcoded
 	if (keyidx == 0 && *keynum1 == KEY_PAUSE)
 	{
@@ -1470,7 +1464,12 @@ static INT32 G_FilterKeyByVersion(INT32 numctrl, INT32 keyidx, INT32 player, INT
 	else if (keyidx == 1 && *keynum2 == KEY_PAUSE)
 		return -1; // skip setting control
 
-#ifdef USE_VERSION_FILTERING
+#if 1
+	// We don't have changed control defaults yet
+	(void)numctrl;
+	(void)player;
+	(void)nestedoverride;
+#else
 #if !defined (DC) && !defined (_PSP) && !defined (GP2X) && !defined (_NDS) && !defined(WMINPUT) && !defined(_WII)
 	if (GETMAJOREXECVERSION(cv_execversion.value) < 27 && ( // v2.1.22
 		numctrl == gc_weaponnext || numctrl == gc_weaponprev || numctrl == gc_tossflag ||

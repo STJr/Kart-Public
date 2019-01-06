@@ -37,9 +37,7 @@
 #include "d_main.h"
 #include "m_argv.h"
 #include "i_system.h"
-#ifdef USE_VERSION_FILTERING
 #include "command.h" // cv_execversion
-#endif
 
 #include "m_anigif.h"
 
@@ -449,20 +447,16 @@ void Command_LoadConfig_f(void)
 	G_Controldefault(0);
 
 	// temporarily reset execversion to default
-#ifdef USE_VERSION_FILTERING
 	CV_ToggleExecVersion(true);
 	COM_BufInsertText(va("%s \"%s\"\n", cv_execversion.name, cv_execversion.defaultvalue));
 	CV_InitFilterVar();
-#endif
 
 	// exec the config
 	COM_BufInsertText(va("exec \"%s\"\n", configfile));
 
 	// don't filter anymore vars and don't let this convsvar be changed
-#ifdef USE_VERSION_FILTERING
 	COM_BufInsertText(va("%s \"%d\"\n", cv_execversion.name, EXECVERSION));
 	CV_ToggleExecVersion(false);
-#endif
 }
 
 /** Saves the current configuration and loads another.
@@ -500,7 +494,6 @@ void M_FirstLoadConfig(void)
 	G_Controldefault(0);
 
 	// register execversion here before we load any configs
-#ifdef USE_VERSION_FILTERING
 	CV_RegisterVar(&cv_execversion);
 
 	// temporarily reset execversion to default
@@ -508,17 +501,14 @@ void M_FirstLoadConfig(void)
 	CV_ToggleExecVersion(true);
 	COM_BufInsertText(va("%s \"%s\"\n", cv_execversion.name, cv_execversion.defaultvalue));
 	CV_InitFilterVar();
-#endif
 
 	// load config, make sure those commands doesnt require the screen...
 	COM_BufInsertText(va("exec \"%s\"\n", configfile));
 	// no COM_BufExecute() needed; that does it right away
 
 	// don't filter anymore vars and don't let this convsvar be changed
-#ifdef USE_VERSION_FILTERING
 	COM_BufInsertText(va("%s \"%d\"\n", cv_execversion.name, EXECVERSION));
 	CV_ToggleExecVersion(false);
-#endif
 
 	// make sure I_Quit() will write back the correct config
 	// (do not write back the config if it crash before)
@@ -585,9 +575,7 @@ void M_SaveConfig(const char *filename)
 
 	// print execversion FIRST, because subsequent consvars need to be filtered
 	// always print current EXECVERSION
-#ifdef USE_VERSION_FILTERING
 	fprintf(f, "%s \"%d\"\n", cv_execversion.name, EXECVERSION);
-#endif
 
 	// FIXME: save key aliases if ever implemented..
 

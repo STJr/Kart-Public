@@ -224,10 +224,6 @@ extern FILE *logstream;
 #define MODVERSION 2
 
 // Filter consvars by version
-// SRB2Kart: we don't need this YET...
-//#define USE_VERSION_FILTERING
-
-#ifdef USE_VERSION_FILTERING
 // To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
 // Increment MINOREXECVERSION whenever a config change is needed that does not correspond
 // to an increment in MODVERSION. This might never happen in practice.
@@ -241,7 +237,6 @@ extern FILE *logstream;
 #define GETMINOREXECVERSION(v) (v >> 16)
 #define GETEXECVERSION(major,minor) (major + (minor << 16))
 #define EXECVERSION GETEXECVERSION(MAJOREXECVERSION, MINOREXECVERSION)
-#endif
 
 // =========================================================================
 
