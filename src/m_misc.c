@@ -446,7 +446,7 @@ void Command_LoadConfig_f(void)
 
 	// load default control
 	G_ClearAllControlKeys();
-	G_Controldefault();
+	G_Controldefault(0);
 
 	// temporarily reset execversion to default
 #ifdef USE_VERSION_FILTERING

@@ -1450,6 +1450,12 @@ INT32 G_CheckDoubleUsage(INT32 keynum, boolean modify)
 
 static INT32 G_FilterKeyByVersion(INT32 numctrl, INT32 keyidx, INT32 player, INT32 *keynum1, INT32 *keynum2, boolean *nestedoverride)
 {
+#ifndef USE_VERSION_FILTERING
+	(void)numctrl;
+	(void)player;
+	(void)nestedoverride;
+#endif
+
 	// Special case: ignore KEY_PAUSE because it's hardcoded
 	if (keyidx == 0 && *keynum1 == KEY_PAUSE)
 	{
@@ -1573,8 +1579,17 @@ static void setcontrol(INT32 (*gc)[2])
 	INT32 numctrl;
 	const char *namectrl;
 	INT32 keynum, keynum1, keynum2;
-	INT32 player = ((void*)gc == (void*)&gamecontrolbis ? 1 : 0);
+	INT32 player;
 	boolean nestedoverride = false;
+
+	if ((void*)gc == (void*)&gamecontrol4)
+		player = 3;
+	else if ((void*)gc == (void*)&gamecontrol3)
+		player = 2;
+	else if ((void*)gc == (void*)&gamecontrolbis)
+		player = 1;
+	else
+		player = 0;
 
 	namectrl = COM_Argv(1);
 	for (numctrl = 0; numctrl < num_gamecontrols && stricmp(namectrl, gamecontrolname[numctrl]);
@@ -1664,7 +1679,7 @@ void Command_Setcontrol3_f(void)
 		return;
 	}
 
-	setcontrol(gamecontrol3, na);
+	setcontrol(gamecontrol3);
 }
 
 void Command_Setcontrol4_f(void)
@@ -1679,5 +1694,5 @@ void Command_Setcontrol4_f(void)
 		return;
 	}
 
-	setcontrol(gamecontrol4, na);
+	setcontrol(gamecontrol4);
 }

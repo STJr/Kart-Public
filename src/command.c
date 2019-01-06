@@ -51,7 +51,7 @@ static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Toggle_f(void);
 
-#if USE_VERSION_FILTERING
+#ifdef USE_VERSION_FILTERING
 static void CV_EnforceExecVersion(void);
 static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr);
 #endif

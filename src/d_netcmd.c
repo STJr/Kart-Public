@@ -281,6 +281,7 @@ consvar_t cv_usejoystick3 = {"use_joystick3", "3", CV_SAVE|CV_CALL, usejoystick_
 	I_InitJoystick3, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usejoystick4 = {"use_joystick4", "4", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick4, 0, NULL, NULL, 0, 0, NULL};
+#endif
 
 #if (defined (LJOYSTICK) || defined (HAVE_SDL))
 #ifdef LJOYSTICK
@@ -798,15 +799,6 @@ void D_RegisterClientCommands(void)
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 	//CV_RegisterVar(&cv_chasefreelook);
 	//CV_RegisterVar(&cv_chasefreelook2);
-	CV_RegisterVar(&cv_chatbacktint);
-	CV_RegisterVar(&cv_consolechat);
-	CV_RegisterVar(&cv_chatnotifications);
-	CV_RegisterVar(&cv_crosshair);
-	CV_RegisterVar(&cv_crosshair2);
-	CV_RegisterVar(&cv_alwaysfreelook);
-	CV_RegisterVar(&cv_alwaysfreelook2);
-	CV_RegisterVar(&cv_chasefreelook);
-	CV_RegisterVar(&cv_chasefreelook2);
 
 	// g_input.c
 	CV_RegisterVar(&cv_turnaxis);

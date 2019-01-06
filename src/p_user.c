@@ -7938,9 +7938,8 @@ void P_FindEmerald(void)
 //
 static void P_DeathThink(player_t *player)
 {
-	ticcmd_t *cmd = &player->cmd;
-
-	player->deltaviewheight = 0;
+	//ticcmd_t *cmd = &player->cmd;
+	//player->deltaviewheight = 0;
 
 	if (player->deadtimer < INT32_MAX)
 		player->deadtimer++;
