@@ -8281,7 +8281,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"YOUGOTEM",
 
 	"ITEMBLINK",
-	"ITEMBLINKMODE"
+	"ITEMBLINKMODE",
+	"GETSPARKS"
 };
 
 static const char *const HUDITEMS_LIST[] = {
