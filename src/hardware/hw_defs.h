@@ -107,7 +107,7 @@ typedef struct
 #define USE_FTRANSFORM_MIRROR
 
 // Vanilla features
-#define USE_MODEL_NEXTFRAME
+//#define USE_MODEL_NEXTFRAME
 
 typedef struct
 {
