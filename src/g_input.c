@@ -1328,10 +1328,10 @@ void G_Controldefault(UINT8 player)
 		gamecontrol[gc_viewpoint  ][1] = KEY_JOY1+3; // Y
 		gamecontrol[gc_pause      ][1] = KEY_JOY1+6; // Back
 		gamecontrol[gc_systemmenu ][0] = KEY_JOY1+7; // Start
-		gamecontrol[gc_camtoggle  ][1] = KEY_HAT1+0; // D-Pad Up
-		gamecontrol[gc_screenshot ][1] = KEY_HAT1+1; // D-Pad Down
-		gamecontrol[gc_talkkey    ][1] = KEY_HAT1+2; // D-Pad Left
-		gamecontrol[gc_scores     ][1] = KEY_HAT1+3; // D-Pad Right
+		//gamecontrol[gc_camtoggle  ][1] = KEY_HAT1+0; // D-Pad Up
+		//gamecontrol[gc_screenshot ][1] = KEY_HAT1+1; // D-Pad Down // absolutely fucking NOT
+		gamecontrol[gc_talkkey    ][1] = KEY_HAT1+1; // D-Pad Down
+		gamecontrol[gc_scores     ][1] = KEY_HAT1+0; // D-Pad Up
 	}
 
 	if (player == 0 || player == 2)
