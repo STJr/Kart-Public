@@ -444,6 +444,7 @@ extern mobj_t *hunt1, *hunt2, *hunt3; // Emerald hunt locations
 extern UINT32 countdown, countdown2;
 
 extern fixed_t gravity;
+extern fixed_t mapobjectscale;
 
 //for CTF balancing
 extern INT16 autobalance;

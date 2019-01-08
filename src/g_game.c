@@ -237,6 +237,7 @@ mobj_t *hunt3;
 UINT32 countdown, countdown2; // for racing
 
 fixed_t gravity;
+fixed_t mapobjectscale;
 
 INT16 autobalance; //for CTF team balance
 INT16 teamscramble; //for CTF team scramble

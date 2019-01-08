@@ -366,7 +366,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_SetTarget(&special->tracer, toucher);
 			special->flags2 |= MF2_NIGHTSPULL;
-			special->destscale = mapheaderinfo[gamemap-1]->mobj_scale>>4;
+			special->destscale = mapobjectscale>>4;
 			special->scalespeed <<= 1;
 
 			special->flags &= ~MF_SPECIAL;
