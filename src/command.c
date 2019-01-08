@@ -1852,8 +1852,11 @@ static boolean CV_Command(void)
 		return true;
 	}
 
-	CV_Set(v, COM_Argv(1));
-	v->changed = 1; // now it's been changed by (presumably) the user
+	if (!(v->flags & CV_SAVE) || CV_FilterVarByVersion(v, COM_Argv(1)))
+	{
+		CV_Set(v, COM_Argv(1));
+		v->changed = 1; // now it's been changed by (presumably) the user
+	}
 	return true;
 }
 
