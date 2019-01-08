@@ -1728,11 +1728,15 @@ int W_VerifyNMUSlumps(const char *filename)
 		{"TRANS", 5}, // Translucency map
 
 		{"LTFNT", 5}, // Level title font changes
+		{"TTL", 3}, // Act number changes
 		{"STCFN", 5}, // Console font changes
 		{"TNYFN", 5}, // Tiny console font changes
-		{"MKFNT", 5}, // Kart font changes
+		{"SBO", 3}, // Acceptable HUD changes (Score Time Rings)
+		{"RRINGS", 6}, // Rings HUD (not named as SBO)
+		{"YB_", 3}, // Intermission graphics, goes with the above
+		{"M_", 2}, // As does menu stuff
 
-		{"M_", 2}, // Menu changes
+		{"MKFNT", 5}, // Kart font changes
 		{"K_", 2}, // Kart graphic changes
 
 		{NULL, 0},

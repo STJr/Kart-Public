@@ -51,6 +51,9 @@ static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Toggle_f(void);
 
+static void CV_EnforceExecVersion(void);
+static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr);
+
 static boolean CV_Command(void);
 static consvar_t *CV_FindVar(const char *name);
 static const char *CV_StringValue(const char *var_name);
@@ -68,6 +71,19 @@ CV_PossibleValue_t CV_Natural[] = {{1, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 CV_PossibleValue_t kartspeed_cons_t[] = {
 	{0, "Easy"}, {1, "Normal"}, {2, "Hard"},
 	{0, NULL}};
+
+// Filter consvars by EXECVERSION
+// First implementation is 2 (1.0.2), so earlier configs default at 1 (1.0.0)
+// Also set CV_HIDEN during runtime, after config is loaded
+
+static boolean execversion_enabled = false;
+consvar_t cv_execversion = {"execversion","1",CV_CALL,CV_Unsigned, CV_EnforceExecVersion, 0, NULL, NULL, 0, 0, NULL};
+
+// for default joyaxis detection
+#if 0
+static boolean joyaxis_default[4] = {false,false,false,false};
+static INT32 joyaxis_count[4] = {0,0,0,0};
+#endif
 
 #define COM_BUF_SIZE 8192 // command buffer size
 #define MAX_ALIAS_RECURSION 100 // max recursion allowed for aliases
@@ -1141,7 +1157,7 @@ static void Setvalue(consvar_t *var, const char *valstr, boolean stealth)
 		if (var->flags & CV_FLOAT)
 		{
 			double d = atof(valstr);
-			if (!d && valstr[0] != '0')
+			if (fpclassify(d) == FP_ZERO && valstr[0] != '0')
 				v = INT32_MIN;
 			else
 				v = (INT32)(d * FRACUNIT);
@@ -1710,6 +1726,108 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 	var->changed = 1; // user has changed it now
 }
 
+void CV_InitFilterVar(void)
+{
+#if 0
+	UINT8 i;
+	for (i = 0; i < 4; i++)
+	{
+		joyaxis_default[i] = true;
+		joyaxis_count[i] = 0;
+	}
+#endif
+}
+
+void CV_ToggleExecVersion(boolean enable)
+{
+	execversion_enabled = enable;
+}
+
+static void CV_EnforceExecVersion(void)
+{
+	if (!execversion_enabled)
+		CV_StealthSetValue(&cv_execversion, EXECVERSION);
+}
+
+static boolean CV_FilterJoyAxisVars(consvar_t *v, const char *valstr)
+{
+#if 1
+	// We don't have changed axis defaults yet
+	(void)v;
+	(void)valstr;
+#else
+	UINT8 i;
+
+	// If ALL axis settings are previous defaults, set them to the new defaults
+	// EXECVERSION < 26 (2.1.21)
+
+	for (i = 0; i < 4; i++)
+	{
+		if (joyaxis_default[i])
+		{
+			if (!stricmp(v->name, "joyaxis_fire"))
+			{
+				if (joyaxis_count[i] > 7) return false;
+				else if (joyaxis_count[i] == 7) return true;
+
+				if (!stricmp(valstr, "None")) joyaxis_count[i]++;
+				else joyaxis_default[i] = false;
+			}
+			// reset all axis settings to defaults
+			if (joyaxis_count[i] == 7)
+			{
+				switch (i)
+				{
+					default:
+						COM_BufInsertText(va("%s \"%s\"\n", cv_turnaxis.name, cv_turnaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_moveaxis.name, cv_moveaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_brakeaxis.name, cv_brakeaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_aimaxis.name, cv_aimaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_lookaxis.name, cv_lookaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_fireaxis.name, cv_fireaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_driftaxis.name, cv_driftaxis.defaultvalue));
+						break;
+				}
+				joyaxis_count[i]++;
+				return false;
+			}
+		}
+	}
+#endif
+
+	// we haven't reached our counts yet, or we're not default
+	return true;
+}
+
+static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr)
+{
+	// True means allow the CV change, False means block it
+
+	// We only care about CV_SAVE because this filters the user's config files
+	// We do this same check in CV_Command
+	if (!(v->flags & CV_SAVE))
+		return true;
+
+	if (GETMAJOREXECVERSION(cv_execversion.value) < 2) // 2 = 1.0.2
+	{
+#if 0
+		// We don't have changed saved cvars yet
+		if (!stricmp(v->name, "alwaysmlook")
+			|| !stricmp(v->name, "alwaysmlook2")
+			|| !stricmp(v->name, "mousemove")
+			|| !stricmp(v->name, "mousemove2"))
+			return false;
+#endif
+
+		// axis defaults were changed to be friendly to 360 controllers
+		// if ALL axis settings are defaults, then change them to new values
+		if (!CV_FilterJoyAxisVars(v, valstr))
+			return false;
+	}
+
+	return true;
+}
+
 /** Displays or changes a variable from the console.
   * Since the user is presumed to have been directly responsible
   * for this change, the variable is marked as changed this game.
@@ -1734,8 +1852,11 @@ static boolean CV_Command(void)
 		return true;
 	}
 
-	CV_Set(v, COM_Argv(1));
-	v->changed = 1; // now it's been changed by (presumably) the user
+	if (!(v->flags & CV_SAVE) || CV_FilterVarByVersion(v, COM_Argv(1)))
+	{
+		CV_Set(v, COM_Argv(1));
+		v->changed = 1; // now it's been changed by (presumably) the user
+	}
 	return true;
 }
 

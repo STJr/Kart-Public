@@ -131,11 +131,6 @@ static patch_t *hud_tv2;
 
 // SRB2kart
 
-//
-
-static boolean facefreed[MAXPLAYERS];
-boolean iconfreed[MAXPLAYERS];
-
 hudinfo_t hudinfo[NUMHUDITEMS] =
 {
 	{  34, 176}, // HUD_LIVESNAME
@@ -362,7 +357,6 @@ void ST_LoadFaceGraphics(char *rankstr, char *wantstr, char *mmapstr, INT32 skin
 	facerankprefix[skinnum] = W_CachePatchName(rankstr, PU_HUDGFX);
 	facewantprefix[skinnum] = W_CachePatchName(wantstr, PU_HUDGFX);
 	facemmapprefix[skinnum] = W_CachePatchName(mmapstr, PU_HUDGFX);
-	facefreed[skinnum] = false;
 }
 
 void ST_ReloadSkinFaceGraphics(void)
@@ -411,14 +405,6 @@ lumpnum_t st_borderpatchnum;
 
 void ST_Init(void)
 {
-	INT32 i;
-
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		facefreed[i] = true;
-		iconfreed[i] = true;
-	}
-
 	if (dedicated)
 		return;
 
