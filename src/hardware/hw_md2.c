@@ -1043,7 +1043,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 
 		if (sprframe->rotate)
 		{
-			fixed_t anglef = AngleFixed(spr->mobj->angle);
+			fixed_t anglef;
 			if (spr->mobj->player)
 				anglef = AngleFixed(spr->mobj->player->frameangle);
 			else
