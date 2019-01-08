@@ -648,7 +648,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	{
 		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
 													players[first].mo->y - players[second].mo->y),
-													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale;
+													players[first].mo->z - players[second].mo->z) / mapobjectscale;
 		if (franticitems)
 			secondist = (15*secondist/14);
 		if (pingame < 8 && !G_BattleGametype())
@@ -809,7 +809,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / mapheaderinfo[gamemap-1]->mobj_scale
+													players[i].mo->z - player->mo->z) / mapobjectscale
 													* (pingame - players[i].kartstuff[k_position])
 													/ max(1, ((pingame - 1) * (pingame + 1) / 3));
 	}
@@ -1121,13 +1121,13 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	momdify = mobj1->momy - mobj2->momy;
 
 	// if the speed difference is less than this let's assume they're going proportionately faster from each other
-	if (P_AproxDistance(momdifx, momdify) < (25*mapheaderinfo[gamemap-1]->mobj_scale))
+	if (P_AproxDistance(momdifx, momdify) < (25*mapobjectscale))
 	{
 		fixed_t momdiflength = P_AproxDistance(momdifx, momdify);
 		fixed_t normalisedx = FixedDiv(momdifx, momdiflength);
 		fixed_t normalisedy = FixedDiv(momdify, momdiflength);
-		momdifx = FixedMul((25*mapheaderinfo[gamemap-1]->mobj_scale), normalisedx);
-		momdify = FixedMul((25*mapheaderinfo[gamemap-1]->mobj_scale), normalisedy);
+		momdifx = FixedMul((25*mapobjectscale), normalisedx);
+		momdify = FixedMul((25*mapobjectscale), normalisedy);
 	}
 
 	// Adds the OTHER player's momentum, so that it reduces the chance of you being "inside" the other object
@@ -1433,10 +1433,10 @@ void K_RespawnChecker(player_t *player)
 	{
 		if (player->kartstuff[k_growshrinktimer] < 0)
 		{
-			player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
-			player->mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
+			player->mo->scalespeed = mapobjectscale/TICRATE;
+			player->mo->destscale = (6*mapobjectscale)/8;
 			if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-				player->mo->destscale = 6*player->mo->destscale/8;
+				player->mo->destscale = (6*player->mo->destscale)/8;
 		}
 
 		if (!P_IsObjectOnGround(player->mo) && !mapreset)
@@ -1728,7 +1728,7 @@ fixed_t K_GetKartSpeed(player_t *player, boolean doboostpower)
 	fixed_t finalspeed;
 
 	if (doboostpower && !player->kartstuff[k_pogospring] && !P_IsObjectOnGround(player->mo))
-		return (75*mapheaderinfo[gamemap-1]->mobj_scale); // air speed cap
+		return (75*mapobjectscale); // air speed cap
 
 	switch (gamespeed)
 	{
@@ -1793,7 +1793,7 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 
 	if (player->kartstuff[k_pogospring]) // Pogo Spring minimum/maximum thrust
 	{
-		const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale /*+ (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale)*/;
+		const fixed_t hscale = mapobjectscale /*+ (mapobjectscale - player->mo->scale)*/;
 		const fixed_t minspeed = 24*hscale;
 		const fixed_t maxspeed = 28*hscale;
 
@@ -1994,10 +1994,10 @@ static void K_RemoveGrowShrink(player_t *player)
 	player->kartstuff[k_growshrinktimer] = 0;
 	if (player->kartstuff[k_invincibilitytimer] == 0)
 		player->mo->color = player->skincolor;
-	player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
-	player->mo->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+	player->mo->scalespeed = mapobjectscale/TICRATE;
+	player->mo->destscale = mapobjectscale;
 	if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-		player->mo->destscale = 6*player->mo->destscale/8;
+		player->mo->destscale = (6*player->mo->destscale)/8;
 	P_RestoreMusic(player);
 }
 
@@ -2161,7 +2161,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
 
-	player->mo->momz = 18*(mapheaderinfo[gamemap-1]->mobj_scale);
+	player->mo->momz = 18*mapobjectscale;
 	player->mo->momx = player->mo->momy = 0;
 
 	player->kartstuff[k_sneakertimer] = 0;
@@ -2813,7 +2813,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 	{
 		if (spawner->player->pflags & PF_SKIDDOWN)
 		{
-			anglediff = abs(spawner->angle - spawner->player->frameangle);
+			anglediff = abs((signed)(spawner->angle - spawner->player->frameangle));
 			if (leveltime % 6 == 0)
 				S_StartSound(spawner, sfx_screec); // repeated here because it doesn't always happen to be within the range when this is the case
 		}
@@ -2827,7 +2827,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 			if (spawner->player->cmd.forwardmove < 0)
 				playerangle += ANGLE_180;
 
-			anglediff = abs(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy));
+			anglediff = abs((signed)(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy)));
 		}
 	}
 	else
@@ -2835,7 +2835,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 		if (P_AproxDistance(spawner->momx, spawner->momy) < 5<<FRACBITS)
 			return;
 
-		anglediff = abs(spawner->angle - R_PointToAngle2(0, 0, spawner->momx, spawner->momy));
+		anglediff = abs((signed)(spawner->angle - R_PointToAngle2(0, 0, spawner->momx, spawner->momy)));
 	}
 
 	if (anglediff > ANGLE_180)
@@ -2899,20 +2899,20 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			PROJSPEED = FixedMul(PROJSPEED, FRACUNIT-FRACUNIT/4);
 		else if (gamespeed == 2)
 			PROJSPEED = FixedMul(PROJSPEED, FRACUNIT+FRACUNIT/4);
-		PROJSPEED = FixedMul(PROJSPEED, mapheaderinfo[gamemap-1]->mobj_scale);
+		PROJSPEED = FixedMul(PROJSPEED, mapobjectscale);
 	}
 	else
 	{
 		switch (gamespeed)
 		{
 			case 0:
-				PROJSPEED = 68*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 34
+				PROJSPEED = 68*mapobjectscale; // Avg Speed is 34
 				break;
 			case 2:
-				PROJSPEED = 96*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 48
+				PROJSPEED = 96*mapobjectscale; // Avg Speed is 48
 				break;
 			default:
-				PROJSPEED = 82*(mapheaderinfo[gamemap-1]->mobj_scale); // Avg Speed is 41
+				PROJSPEED = 82*mapobjectscale; // Avg Speed is 41
 				break;
 		}
 	}
@@ -3000,7 +3000,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 HEIGHT = (20 + (dir*10))*(mapheaderinfo[gamemap-1]->mobj_scale) + player->mo->momz;
+				INT32 HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
 
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
@@ -3290,10 +3290,10 @@ static void K_DoShrink(player_t *user)
 			{
 				// Start shrinking!
 				K_DropItems(&players[i]);
-				players[i].mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
-				players[i].mo->destscale = 6*(mapheaderinfo[gamemap-1]->mobj_scale)/8;
+				players[i].mo->scalespeed = mapobjectscale/TICRATE;
+				players[i].mo->destscale = (6*mapobjectscale)/8;
 				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
-					players[i].mo->destscale = 6*players[i].mo->destscale/8;
+					players[i].mo->destscale = (6*players[i].mo->destscale)/8;
 				players[i].kartstuff[k_growshrinktimer] = -(200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
 			}
 
@@ -3310,7 +3310,7 @@ static void K_DoShrink(player_t *user)
 
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 {
-	const fixed_t vscale = mapheaderinfo[gamemap-1]->mobj_scale + (mo->scale - mapheaderinfo[gamemap-1]->mobj_scale);
+	const fixed_t vscale = mapobjectscale + (mo->scale - mapobjectscale);
 
 	if (mo->player && mo->player->spectator)
 		return;
@@ -3508,8 +3508,8 @@ void K_DropHnextList(player_t *player)
 			dropwork->z += flip;
 			dropwork->momx = player->mo->momx>>1;
 			dropwork->momy = player->mo->momy>>1;
-			dropwork->momz = 3*flip*mapheaderinfo[gamemap-1]->mobj_scale;
-			P_Thrust(dropwork, work->angle - ANGLE_90, 6*(mapheaderinfo[gamemap-1]->mobj_scale));
+			dropwork->momz = 3*flip*mapobjectscale;
+			P_Thrust(dropwork, work->angle - ANGLE_90, 6*mapobjectscale);
 			dropwork->movecount = 2;
 			dropwork->movedir = work->angle - ANGLE_90;
 			P_SetMobjState(dropwork, dropwork->info->deathstate);
@@ -3565,8 +3565,8 @@ void K_DropItems(player_t *player)
 		drop->angle = player->mo->angle + ANGLE_90;
 		P_Thrust(drop,
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
-			16*(mapheaderinfo[gamemap-1]->mobj_scale));
-		drop->momz = P_MobjFlip(player->mo)*3*(mapheaderinfo[gamemap-1]->mobj_scale);
+			16*mapobjectscale);
+		drop->momz = P_MobjFlip(player->mo)*3*mapobjectscale;
 
 		drop->threshold = (thunderhack ? KITEM_THUNDERSHIELD : player->kartstuff[k_itemtype]);
 		drop->movecount = player->kartstuff[k_itemamount];
@@ -4023,7 +4023,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	if ((leveltime >= starttime-(2*TICRATE) && leveltime <= starttime) || (player->kartstuff[k_respawn] == 1)) // Startup boosts
 		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 12 : 0);
 	else
-		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed / mapheaderinfo[gamemap-1]->mobj_scale)/5))/2;
+		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed / mapobjectscale)/5))/2;
 
 	if (targetsnd < 0)
 		targetsnd = 0;
@@ -4060,7 +4060,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		dist = P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
 			player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) / 2;
 
-		dist = FixedDiv(dist, mapheaderinfo[gamemap-1]->mobj_scale);
+		dist = FixedDiv(dist, mapobjectscale);
 
 		if (dist > 1536<<FRACBITS)
 			continue;
@@ -4786,22 +4786,22 @@ void K_KartUpdatePosition(player_t *player)
 															mo->y - players[i].mo->y),
 															mo->z - players[i].mo->z) / FRACUNIT;
 
-					if (mo->health == player->starpostnum)
+					if (mo->health == player->starpostnum && (!mo->movecount || mo->movecount == player->laps+1))
 					{
 						player->kartstuff[k_prevcheck] += pmo;
 						ppcd++;
 					}
-					if (mo->health == (player->starpostnum + 1))
+					if (mo->health == (player->starpostnum + 1) && (!mo->movecount || mo->movecount == player->laps+1))
 					{
 						player->kartstuff[k_nextcheck] += pmo;
 						pncd++;
 					}
-					if (mo->health == players[i].starpostnum)
+					if (mo->health == players[i].starpostnum && (!mo->movecount || mo->movecount == players[i].laps+1))
 					{
 						players[i].kartstuff[k_prevcheck] += imo;
 						ipcd++;
 					}
-					if (mo->health == (players[i].starpostnum + 1))
+					if (mo->health == (players[i].starpostnum + 1) && (!mo->movecount || mo->movecount == players[i].laps+1))
 					{
 						players[i].kartstuff[k_nextcheck] += imo;
 						incd++;
@@ -5248,10 +5248,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
 						K_PlayPowerGloatSound(player->mo);
-						player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/TICRATE;
-						player->mo->destscale = 3*(mapheaderinfo[gamemap-1]->mobj_scale)/2;
+						player->mo->scalespeed = mapobjectscale/TICRATE;
+						player->mo->destscale = (3*mapobjectscale)/2;
 						if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-							player->mo->destscale = 6*player->mo->destscale/8;
+							player->mo->destscale = (6*player->mo->destscale)/8;
 						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
 						P_RestoreMusic(player);
 						if (!P_IsLocalPlayer(player))
@@ -5495,10 +5495,10 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	// Increase your size while charging your engine.
 	if (leveltime < starttime+10)
 	{
-		player->mo->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
-		player->mo->destscale = (mapheaderinfo[gamemap-1]->mobj_scale) + (player->kartstuff[k_boostcharge]*131);
+		player->mo->scalespeed = mapobjectscale/12;
+		player->mo->destscale = mapobjectscale + (player->kartstuff[k_boostcharge]*131);
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-			player->mo->destscale = 6*player->mo->destscale/8;
+			player->mo->destscale = (6*player->mo->destscale)/8;
 	}
 
 	// Determine the outcome of your charge.
@@ -7083,17 +7083,17 @@ static void K_drawKartSpeedometer(void)
 
 	if (cv_kartspeedometer.value == 1) // Kilometers
 	{
-		convSpeed = FixedDiv(FixedMul(stplyr->speed, 142371), mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT; // 2.172409058
+		convSpeed = FixedDiv(FixedMul(stplyr->speed, 142371), mapobjectscale)/FRACUNIT; // 2.172409058
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d km/h", convSpeed));
 	}
 	else if (cv_kartspeedometer.value == 2) // Miles
 	{
-		convSpeed = FixedDiv(FixedMul(stplyr->speed, 88465), mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT; // 1.349868774
+		convSpeed = FixedDiv(FixedMul(stplyr->speed, 88465), mapobjectscale)/FRACUNIT; // 1.349868774
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d mph", convSpeed));
 	}
 	else if (cv_kartspeedometer.value == 3) // Fracunits
 	{
-		convSpeed = FixedDiv(stplyr->speed, mapheaderinfo[gamemap-1]->mobj_scale)/FRACUNIT;
+		convSpeed = FixedDiv(stplyr->speed, mapobjectscale)/FRACUNIT;
 		V_DrawKartString(SPDM_X, SPDM_Y, V_HUDTRANS|splitflags, va("%3d fu/t", convSpeed));
 	}
 }
@@ -7916,7 +7916,7 @@ static void K_drawLapStartAnim(void)
 	{
 		V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
 			(48 - (32*max(0, progress-76))
-				+ 4 - abs((leveltime % 8) - 4))*FRACUNIT,
+				+ 4 - abs((signed)((leveltime % 8) - 4)))*FRACUNIT,
 			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 			kp_lapanim_hand[stplyr->kartstuff[k_laphand]-1], NULL);
 	}

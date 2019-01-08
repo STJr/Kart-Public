@@ -453,6 +453,10 @@ ifdef ZDEBUG
 	CPPFLAGS+=-DZDEBUG
 endif
 
+ifdef DEVELOP
+	CPPFLAGS+=-DDEVELOP
+endif
+
 OPTS+=$(CPPFLAGS)
 
 # default EXENAME if all else fails
