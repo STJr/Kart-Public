@@ -2813,7 +2813,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 	{
 		if (spawner->player->pflags & PF_SKIDDOWN)
 		{
-			anglediff = abs(spawner->angle - spawner->player->frameangle);
+			anglediff = abs((signed)(spawner->angle - spawner->player->frameangle));
 			if (leveltime % 6 == 0)
 				S_StartSound(spawner, sfx_screec); // repeated here because it doesn't always happen to be within the range when this is the case
 		}
@@ -2827,7 +2827,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 			if (spawner->player->cmd.forwardmove < 0)
 				playerangle += ANGLE_180;
 
-			anglediff = abs(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy));
+			anglediff = abs((signed)(playerangle - R_PointToAngle2(0, 0, spawner->player->rmomx, spawner->player->rmomy)));
 		}
 	}
 	else
@@ -2835,7 +2835,7 @@ void K_DriftDustHandling(mobj_t *spawner)
 		if (P_AproxDistance(spawner->momx, spawner->momy) < 5<<FRACBITS)
 			return;
 
-		anglediff = abs(spawner->angle - R_PointToAngle2(0, 0, spawner->momx, spawner->momy));
+		anglediff = abs((signed)(spawner->angle - R_PointToAngle2(0, 0, spawner->momx, spawner->momy)));
 	}
 
 	if (anglediff > ANGLE_180)
@@ -7916,7 +7916,7 @@ static void K_drawLapStartAnim(void)
 	{
 		V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
 			(48 - (32*max(0, progress-76))
-				+ 4 - abs((leveltime % 8) - 4))*FRACUNIT,
+				+ 4 - abs((signed)((leveltime % 8) - 4)))*FRACUNIT,
 			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 			kp_lapanim_hand[stplyr->kartstuff[k_laphand]-1], NULL);
 	}
