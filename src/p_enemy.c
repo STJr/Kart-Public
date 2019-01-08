@@ -3971,7 +3971,7 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 void A_GrenadeRing(mobj_t *actor)
 {
 	INT32 bx, by, xl, xh, yl, yh;
-	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	explodedist = FixedMul(actor->info->painchance, mapobjectscale);
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_GrenadeRing", actor))
 		return;
@@ -4039,7 +4039,7 @@ void A_MineExplode(mobj_t *actor)
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
-	explodedist = FixedMul((3*actor->info->painchance)/2, mapheaderinfo[gamemap-1]->mobj_scale);
+	explodedist = FixedMul((3*actor->info->painchance)/2, mapobjectscale);
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MineExplode", actor))
 		return;
@@ -4060,7 +4060,7 @@ void A_MineExplode(mobj_t *actor)
 			P_BlockThingsIterator(bx, by, PIT_MineExplode);
 
 	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, explodedist + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, explodedist + 32*mapobjectscale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
 
 	if (actor->target && actor->target->player)
 		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
@@ -8276,7 +8276,7 @@ void A_JawzChase(mobj_t *actor)
 			ret->frame |= ((leveltime % 10) / 2) + 5;
 			ret->color = actor->cvmem;
 
-			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
+			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), (7*actor->movefactor)/64);
 			return;
 		}
 		else
@@ -8348,11 +8348,7 @@ void A_SPBChase(mobj_t *actor)
 #endif
 
 	// Default speed
-	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
-	if (gamespeed == 0)
-		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
-	else if (gamespeed == 2)
-		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
+	wspeed = actor->movefactor;
 
 	if (actor->threshold) // Just fired, go straight.
 	{
@@ -10386,7 +10382,7 @@ void A_SetScale(mobj_t *actor)
 		return;
 	}
 
-	locvar1 = FixedMul(locvar1, mapheaderinfo[gamemap-1]->mobj_scale); // SRB2Kart
+	locvar1 = FixedMul(locvar1, mapobjectscale); // SRB2Kart
 
 	target->destscale = locvar1; // destination scale
 	if (!(locvar2 & 65535))

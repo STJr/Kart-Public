@@ -175,7 +175,7 @@ static void F_SkyScroll(INT32 scrollspeed)
 	{
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
-		x = -animtimer;
+		x = -((INT32)animtimer);
 		y = 0;
 		while (x < w)
 		{

@@ -1744,7 +1744,7 @@ void P_XYMovement(mobj_t *mo)
 		}
 		else
 		{
-			if (mo->scale < mapheaderinfo[gamemap-1]->mobj_scale/16)
+			if (mo->scale < mapobjectscale/16)
 			{
 				P_RemoveMobj(mo);
 				return;
@@ -3675,7 +3675,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 		postimg = postimg_mirror;
 	else if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
 		postimg = postimg_flip;
-	else if (player->awayviewtics && player->awayviewmobj != NULL)	// Camera must obviously exist
+	else if (player->awayviewtics && player->awayviewmobj && !P_MobjWasRemoved(player->awayviewmobj)) // Camera must obviously exist
 	{
 		camera_t dummycam;
 		dummycam.subsector = player->awayviewmobj->subsector;
@@ -7223,7 +7223,7 @@ void P_MobjThinker(mobj_t *mobj)
 					{
 						x = mobj->target->x;
 						y = mobj->target->y;
-						z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
+						z = mobj->target->z + (80*mapobjectscale);
 					}
 					P_TeleportMove(mobj, x, y, z);
 				}
@@ -7890,7 +7890,7 @@ void P_MobjThinker(mobj_t *mobj)
 			else
 			{
 				mobj->flags &= ~MF_NOGRAVITY;
-				if (mobj->z > mobj->watertop && mobj->z - mobj->watertop < FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale))
+				if (mobj->z > mobj->watertop && mobj->z - mobj->watertop < FixedMul(MAXSTEPMOVE, mapobjectscale))
 					mobj->z = mobj->watertop;
 			}
 			break;
@@ -7959,7 +7959,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->flags2 & MF2_NIGHTSPULL)
 				{
 					if (!mobj->tracer || !mobj->tracer->health
-					|| mobj->scale <= mapheaderinfo[gamemap-1]->mobj_scale>>4)
+					|| mobj->scale <= mapobjectscale>>4)
 					{
 						P_RemoveMobj(mobj);
 						return;
@@ -7968,7 +7968,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else
 				{
-					fixed_t adj = FixedMul(FRACUNIT - FINECOSINE((mobj->movedir>>ANGLETOFINESHIFT) & FINEMASK), (mapheaderinfo[gamemap-1]->mobj_scale<<3));
+					fixed_t adj = FixedMul(FRACUNIT - FINECOSINE((mobj->movedir>>ANGLETOFINESHIFT) & FINEMASK), (mapobjectscale<<3));
 					mobj->movedir += 2*ANG2;
 					if (mobj->eflags & MFE_VERTICALFLIP)
 						mobj->z = mobj->ceilingz - mobj->height - adj;
@@ -8025,14 +8025,9 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			else
 			{
-				fixed_t finalspeed = mobj->info->speed;
+				fixed_t finalspeed = mobj->movefactor;
 
 				P_SpawnGhostMobj(mobj);
-
-				if (gamespeed == 0)
-					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
-				else if (gamespeed == 2)
-					finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
 
 				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
 				if (mobj->health <= 5)
@@ -8041,7 +8036,7 @@ void P_MobjThinker(mobj_t *mobj)
 					for (i = 5; i >= mobj->health; i--)
 						finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
 				}
-				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
+
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 
 				if (grounded)
@@ -8064,8 +8059,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_JAWZ:
 		{
 			sector_t *sec2;
-			fixed_t topspeed = 64*FRACUNIT;
-			fixed_t distbarrier = 512*FRACUNIT;
+			fixed_t topspeed = mobj->movefactor;
+			fixed_t distbarrier = 512*mapobjectscale;
 			fixed_t distaway;
 
 			P_SpawnGhostMobj(mobj);
@@ -8076,18 +8071,9 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			if (gamespeed == 0)
-			{
-				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
-			}
 			else if (gamespeed == 2)
-			{
-				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
-			}
-
-			distbarrier = FixedMul(distbarrier, mapheaderinfo[gamemap-1]->mobj_scale);
-			topspeed = FixedMul(topspeed, mapheaderinfo[gamemap-1]->mobj_scale);
 
 			if (G_RaceGametype() && mobj->tracer)
 			{
@@ -8146,7 +8132,7 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				P_SpawnGhostMobj(mobj);
 				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
-				P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+				P_InstaThrust(mobj, mobj->angle, mobj->movefactor);
 
 				if (grounded)
 				{
@@ -8846,7 +8832,7 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj_t *head = P_SpawnMobj(mobj->x, mobj->y, mobj->z, (blue ? MT_BLUEROBRA_HEAD : MT_ROBRA_HEAD));
 						P_SetTarget(&mobj->tracer, head);
 
-						mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+						mobj->destscale = mapobjectscale;
 						P_SetTarget(&mobj->tracer->target, mobj->target);
 						P_SetTarget(&mobj->tracer->tracer, mobj);
 						mobj->tracer->extravalue2 = mobj->extravalue2;
@@ -9296,6 +9282,8 @@ void P_MobjThinker(mobj_t *mobj)
 							// Assumedly in splitscreen players will be on opposing teams
 							if (players[consoleplayer].ctfteam == 1 || splitscreen)
 								S_StartSound(NULL, sfx_hoop1);
+							else if (players[consoleplayer].ctfteam == 2)
+								S_StartSound(NULL, sfx_hoop3);
 
 							redflag = flagmo;
 						}
@@ -9307,6 +9295,8 @@ void P_MobjThinker(mobj_t *mobj)
 							// Assumedly in splitscreen players will be on opposing teams
 							if (players[consoleplayer].ctfteam == 2 || splitscreen)
 								S_StartSound(NULL, sfx_hoop1);
+							else if (players[consoleplayer].ctfteam == 1)
+								S_StartSound(NULL, sfx_hoop3);
 
 							blueflag = flagmo;
 						}
@@ -9772,10 +9762,13 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
+	mobj->scalespeed = FRACUNIT/12;
 
-	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
-		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+	if (mapobjectscale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
+	{
+		mobj->destscale = mapobjectscale;
+		mobj->scalespeed = mapobjectscale/12;
+	}
 
 	// set subsector and/or block links
 	P_SetThingPosition(mobj);
@@ -10219,10 +10212,13 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
+	mobj->scalespeed = FRACUNIT/12;
 
-	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
-		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+	if (mapobjectscale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
+	{
+		mobj->destscale = mapobjectscale;
+		mobj->scalespeed = mapobjectscale/12;
+	}
 
 	P_SetScale(mobj, mobj->destscale);
 
@@ -11128,7 +11124,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapheaderinfo[gamemap-1]->mobj_scale;
+				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
 		}
 		else
 		{
@@ -11136,7 +11132,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapheaderinfo[gamemap-1]->mobj_scale;
+				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
 		}
 
 		if (mthing->options & MTF_OBJECTFLIP) // flip the player!
@@ -11910,6 +11906,7 @@ ML_NOCLIMB : Direction not controllable
 	else if (i == MT_BOSS3WAYPOINT) // SRB2kart 120217 - Used to store checkpoint num
 	{
 		mobj->health = mthing->angle;
+		mobj->movecount = mthing->extrainfo;
 		P_SetTarget(&mobj->tracer, waypointcap);
 		P_SetTarget(&waypointcap, mobj);
 	}

@@ -237,6 +237,7 @@ mobj_t *hunt3;
 UINT32 countdown, countdown2; // for racing
 
 fixed_t gravity;
+fixed_t mapobjectscale;
 
 INT16 autobalance; //for CTF team balance
 INT16 teamscramble; //for CTF team scramble
@@ -404,6 +405,10 @@ static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 #endif
 
 // don't mind me putting these here, I was lazy to figure out where else I could put those without blowing up the compiler.
+
+// it automatically becomes compact with 20+ players, but if you like it, I guess you can turn that on!
+// SRB2Kart: irrelevant for us.
+//consvar_t cv_compactscoreboard= {"compactscoreboard", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // chat timer thingy
 static CV_PossibleValue_t chattime_cons_t[] = {{5, "MIN"}, {999, "MAX"}, {0, NULL}};
@@ -1111,7 +1116,6 @@ static INT32 Joy4Axis(axis_input_e axissel)
 			return 0;
 	}
 
-
 	if (axisval < 0) //odd -axises
 	{
 		axisval = -axisval;
@@ -1659,10 +1663,12 @@ static void Analog_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	/*if (!cv_chasecam.value && cv_analog.value) {
+	/*
+	if (!cv_chasecam.value && cv_analog.value) {
 		CV_SetValue(&cv_analog, 0);
 		return;
-	}*/
+	}
+	*/
 
 	SendWeaponPref();
 }
@@ -1674,10 +1680,12 @@ static void Analog2_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	/*if (!cv_chasecam2.value && cv_analog2.value) {
+	/*
+	if (!cv_chasecam2.value && cv_analog2.value) {
 		CV_SetValue(&cv_analog2, 0);
 		return;
-	}*/
+	}
+	*/
 
 	SendWeaponPref2();
 }
@@ -1689,10 +1697,12 @@ static void Analog3_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	/*if (!cv_chasecam3.value && cv_analog3.value) {
+	/*
+	if (!cv_chasecam3.value && cv_analog3.value) {
 		CV_SetValue(&cv_analog3, 0);
 		return;
-	}*/
+	}
+	*/
 
 	SendWeaponPref3();
 }
@@ -1704,10 +1714,12 @@ static void Analog4_OnChange(void)
 
 	// cameras are not initialized at this point
 
-	/*if (!cv_chasecam4.value && cv_analog4.value) {
+	/*
+	if (!cv_chasecam4.value && cv_analog4.value) {
 		CV_SetValue(&cv_analog4, 0);
 		return;
-	}*/
+	}
+	*/
 
 	SendWeaponPref4();
 }
@@ -4369,7 +4381,7 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 		unlocktriggers = 0;
 
 		// clear itemfinder, just in case
-		if (!dedicated) // except in dedicated servers, where it is not registered and can actually I_Error debug builds
+		if (!dedicated)	// except in dedicated servers, where it is not registered and can actually I_Error debug builds
 			CV_StealthSetValue(&cv_itemfinder, 0);
 	}
 
