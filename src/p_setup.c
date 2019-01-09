@@ -2265,8 +2265,10 @@ static void P_LevelInitStuff(void)
 
 	leveltime = 0;
 
-	localaiming = 0;
-	localaiming2 = 0;
+	localaiming = localaiming2 = localaiming3 = localaiming4 = 0;
+
+	// map object scale
+	mapobjectscale = mapheaderinfo[gamemap-1]->mobj_scale;
 
 	// special stage tokens, emeralds, and ring total
 	tokenbits = 0;

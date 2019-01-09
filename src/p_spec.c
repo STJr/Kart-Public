@@ -5717,8 +5717,6 @@ void P_SpawnSpecials(INT32 fromnetsave)
 	else
 		curWeather = PRECIP_NONE;
 
-	mapobjectscale = mapheaderinfo[gamemap-1]->mobj_scale;
-
 	P_InitTagLists();   // Create xref tables for tags
 	P_SearchForDisableLinedefs(); // Disable linedefs are now allowed to disable *any* line
 
