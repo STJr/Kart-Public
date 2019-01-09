@@ -71,7 +71,6 @@ extern patch_t *facewantprefix[MAXSKINS]; // wanted
 extern patch_t *facemmapprefix[MAXSKINS]; // minimap
 extern patch_t *livesback;
 extern patch_t *ngradeletters[7];
-extern boolean iconfreed[MAXPLAYERS];
 
 /** HUD location information (don't move this comment)
   */

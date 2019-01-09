@@ -34,14 +34,16 @@
 #else
 
 /* Manually defined asset hashes for non-CMake builds
- *              YYYY   MM   DD
- * Last updated 2018 / 11 / 14
+ * Last updated 2015 / 05 / 03 - SRB2 v2.1.15 - srb2.srb
+ * Last updated 2018 / 12 / 23 - SRB2 v2.1.22 - patch.dta
+ * Last updated 2018 / 11 / 16 - Kart v1.0.0 - Main assets
+ * Last updated 2018 / 12 / 13 - Kart v1.0.2 - patch.kart
  */
 
 // Base SRB2 hashes
 #define ASSET_HASH_SRB2_SRB      "c1b9577687f8a795104aef4600720ea7"
 #ifdef USE_PATCH_DTA
-#define ASSET_HASH_PATCH_DTA     "dbbf8bc6121618ee3be2d5b14650429b"
+#define ASSET_HASH_PATCH_DTA     "b04fd9624bfd94dc96dcf4f400f7deb4"
 #endif
 
 // SRB2Kart-specific hashes
