@@ -67,14 +67,17 @@
 // And just some randomness for the exits.
 #include "m_random.h"
 
+#if defined(HAVE_SDL)
+#include "SDL.h"
+#if SDL_VERSION_ATLEAST(2,0,0)
+#include "sdl/sdlmain.h" // JOYSTICK_HOTPLUG
+#endif
+#endif
+
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
 int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
-#endif
-
-#if defined (__GNUC__) && (__GNUC__ >= 4)
-#define FIXUPO0
 #endif
 
 #define SKULLXOFF -32
@@ -541,26 +544,26 @@ typedef enum
 // ---------------------
 static menuitem_t MPauseMenu[] =
 {
-	{IT_STRING | IT_CALL,    NULL, "Add-ons...",                M_Addons,               8},
-	{IT_STRING | IT_SUBMENU, NULL, "Scramble Teams...",   &MISC_ScrambleTeamDef, 16},
-	{IT_STRING | IT_CALL,    NULL, "Switch Map..."    ,   M_MapChange,           24},
+	{IT_STRING | IT_CALL,     NULL, "Add-ons...",        M_Addons,                8},
+	{IT_STRING | IT_SUBMENU,  NULL, "Scramble Teams...", &MISC_ScrambleTeamDef,  16},
+	{IT_STRING | IT_CALL,     NULL, "Switch Map..."    , M_MapChange,            24},
 
-	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,40},
-	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",          M_SetupMultiPlayer,    48}, // splitscreen
-	{IT_CALL | IT_STRING,    NULL, "P2 Setup...",          M_SetupMultiPlayer2,   56}, // splitscreen
-	{IT_CALL | IT_STRING,    NULL, "P3 Setup...",          M_SetupMultiPlayer3,   64}, // splitscreen
-	{IT_CALL | IT_STRING,    NULL, "P4 Setup...",          M_SetupMultiPlayer4,   72}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "Continue",           M_SelectableClearMenus, 40},
+	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",        M_SetupMultiPlayer,     48}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "P2 Setup...",        M_SetupMultiPlayer2,    56}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "P3 Setup...",        M_SetupMultiPlayer3,    64}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "P4 Setup...",        M_SetupMultiPlayer4,    72}, // splitscreen
 
-	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48}, // alone
-	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48}, // alone
-	{IT_STRING | IT_CALL,    NULL, "Cancel Join",          M_ConfirmSpectate,     48}, // alone
-	{IT_STRING | IT_SUBMENU, NULL, "Switch Team...",       &MISC_ChangeTeamDef,   48},
-	{IT_STRING | IT_SUBMENU, NULL, "Enter/Spectate...",   &MISC_ChangeSpectateDef,48},
-	{IT_CALL | IT_STRING,    NULL, "Player Setup...",      M_SetupMultiPlayer,    56}, // alone
-	{IT_CALL | IT_STRING,    NULL, "Options",              M_Options,             64},
+	{IT_STRING | IT_CALL,    NULL, "Spectate",           M_ConfirmSpectate,      48}, // alone
+	{IT_STRING | IT_CALL,    NULL, "Enter Game",         M_ConfirmEnterGame,     48}, // alone
+	{IT_STRING | IT_CALL,    NULL, "Cancel Join",        M_ConfirmSpectate,      48}, // alone
+	{IT_STRING | IT_SUBMENU, NULL, "Switch Team...",     &MISC_ChangeTeamDef,    48},
+	{IT_STRING | IT_SUBMENU, NULL, "Enter/Spectate...",  &MISC_ChangeSpectateDef,48},
+	{IT_CALL | IT_STRING,    NULL, "Player Setup...",    M_SetupMultiPlayer,     56}, // alone
+	{IT_CALL | IT_STRING,    NULL, "Options",            M_Options,              64},
 
-	{IT_CALL | IT_STRING,    NULL, "Return to Title",      M_EndGame,            80},
-	{IT_CALL | IT_STRING,    NULL, "Quit Game",            M_QuitSRB2,           88},
+	{IT_CALL | IT_STRING,    NULL, "Return to Title",    M_EndGame,              80},
+	{IT_CALL | IT_STRING,    NULL, "Quit Game",          M_QuitSRB2,             88},
 };
 
 typedef enum
@@ -1343,7 +1346,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 50},
 	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,			 60},
 
-	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 75},
+	{IT_STRING|IT_CVAR,			NULL, "Chat Notifications",		&cv_chatnotifications,	 75},
 	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			 85},
 	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
 
@@ -1439,13 +1442,16 @@ static menuitem_t OP_HUDOptionsMenu[] =
 static menuitem_t OP_ChatOptionsMenu[] =
 {
 	// will ANYONE who doesn't know how to use the console want to touch this one?
-	{IT_STRING | IT_CVAR, NULL, "Chat mode",				&cv_consolechat,		 10}, // nonetheless...
+	{IT_STRING | IT_CVAR, NULL, "Chat Mode",				&cv_consolechat,		10}, // nonetheless...
+
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Window width",		&cv_chatwidth,		 	 25},
+	                      NULL, "Chat Box Width",			&cv_chatwidth,			25},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Window height",		&cv_chatheight,		 	 35},
-	{IT_STRING | IT_CVAR, NULL, "Message fadeout time",		&cv_chattime,			 50},
-	{IT_STRING | IT_CVAR, NULL, "Show tint behind messages",&cv_chatbacktint,		 60},
+	                      NULL, "Chat Box Height",			&cv_chatheight,			35},
+
+	{IT_STRING | IT_CVAR, NULL, "Chat Background Tint",		&cv_chatbacktint,		50},
+	{IT_STRING | IT_CVAR, NULL, "Message Fadeout Time",		&cv_chattime,			60},
+	{IT_STRING | IT_CVAR, NULL, "Spam Protection",			&cv_chatspamprotection,	70},
 };
 
 static menuitem_t OP_GameOptionsMenu[] =
@@ -1459,12 +1465,12 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_basenumlaps,		 70},
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
 
-	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
-	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",				&cv_kartbumpers,		100},
-	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		110},
+	{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
+	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",				&cv_kartbumpers,		110},
+	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		120},
 
-	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          130},
-	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 140},
+	{IT_STRING | IT_CVAR, NULL, "Force Character",				&cv_forceskin,          140},
+	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 150},
 };
 
 static menuitem_t OP_ServerOptionsMenu[] =
@@ -2000,6 +2006,7 @@ menu_t OP_AdvServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_AdvServerOptions
 
 //menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
 //menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
+//menu_t OP_ChatOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_ChatOptionsMenu, &OP_GameOptionsDef, 30, 30);
 menu_t OP_MonitorToggleDef =
 {
 	"M_GAME",
@@ -2461,44 +2468,42 @@ boolean M_Responder(event_t *ev)
 		// (but still allow shift keyup so caps doesn't get stuck)
 		return false;
 	}
+	else if (ev->type == ev_keydown)
+	{
+		ch = ev->data1;
+
+		// added 5-2-98 remap virtual keys (mouse & joystick buttons)
+		switch (ch)
+		{
+			case KEY_MOUSE1:
+				//case KEY_JOY1:
+				//case KEY_JOY1 + 2:
+				ch = KEY_ENTER;
+				break;
+				/*case KEY_JOY1 + 3: // Brake can function as 'n' for message boxes now.
+					ch = 'n';
+					break;*/
+			case KEY_MOUSE1 + 1:
+				//case KEY_JOY1 + 1:
+				ch = KEY_BACKSPACE;
+				break;
+			case KEY_HAT1:
+				ch = KEY_UPARROW;
+				break;
+			case KEY_HAT1 + 1:
+				ch = KEY_DOWNARROW;
+				break;
+			case KEY_HAT1 + 2:
+				ch = KEY_LEFTARROW;
+				break;
+			case KEY_HAT1 + 3:
+				ch = KEY_RIGHTARROW;
+				break;
+		}
+	}
 	else if (menuactive)
 	{
-		if (ev->type == ev_keydown)
-		{
-			ch = ev->data1;
-
-			// added 5-2-98 remap virtual keys (mouse & joystick buttons)
-			switch (ch)
-			{
-				case KEY_MOUSE1:
-				case KEY_JOY1:
-					ch = KEY_ENTER;
-					break;
-				case KEY_JOY1 + 3:
-					ch = 'n';
-					break;
-				case KEY_MOUSE1 + 1:
-				case KEY_JOY1 + 1:
-					ch = KEY_ESCAPE;
-					break;
-				case KEY_JOY1 + 2:
-					ch = KEY_BACKSPACE;
-					break;
-				case KEY_HAT1:
-					ch = KEY_UPARROW;
-					break;
-				case KEY_HAT1 + 1:
-					ch = KEY_DOWNARROW;
-					break;
-				case KEY_HAT1 + 2:
-					ch = KEY_LEFTARROW;
-					break;
-				case KEY_HAT1 + 3:
-					ch = KEY_RIGHTARROW;
-					break;
-			}
-		}
-		else if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
+		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
 		{
 			const INT32 jdeadzone = JOYAXISRANGE/4;
 			if (ev->data3 != INT32_MAX)
@@ -2579,6 +2584,8 @@ boolean M_Responder(event_t *ev)
 		return false;
 	else if (ch == gamecontrol[gc_systemmenu][0] || ch == gamecontrol[gc_systemmenu][1]) // allow remappable ESC key
 		ch = KEY_ESCAPE;
+	else if (ch == gamecontrol[gc_accelerate][0] || ch == gamecontrol[gc_accelerate][1])
+		ch = KEY_ENTER;
 
 	// F-Keys
 	if (!menuactive)
@@ -2654,6 +2661,9 @@ boolean M_Responder(event_t *ev)
 		noFurtherInput = false; // turns out we didn't care
 		return false;
 	}
+
+	if (ch == gamecontrol[gc_brake][0] || ch == gamecontrol[gc_brake][1]) // do this here, otherwise brake opens the menu mid-game
+		ch = KEY_ESCAPE;
 
 	routine = currentMenu->menuitems[itemOn].itemaction;
 
@@ -2789,6 +2799,7 @@ boolean M_Responder(event_t *ev)
 			return true;
 
 		case KEY_ESCAPE:
+		//case KEY_JOY1 + 2:
 			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
 			if (currentMenu->prevMenu)
@@ -4451,7 +4462,9 @@ static void M_Addons(INT32 choice)
 	addonsp[EXT_TXT] = W_CachePatchName("M_FTXT", PU_STATIC);
 	addonsp[EXT_CFG] = W_CachePatchName("M_FCFG", PU_STATIC);
 	addonsp[EXT_WAD] = W_CachePatchName("M_FWAD", PU_STATIC);
+#ifdef USE_KART
 	addonsp[EXT_KART] = W_CachePatchName("M_FKART", PU_STATIC);
+#endif
 	addonsp[EXT_PK3] = W_CachePatchName("M_FPK3", PU_STATIC);
 	addonsp[EXT_SOC] = W_CachePatchName("M_FSOC", PU_STATIC);
 	addonsp[EXT_LUA] = W_CachePatchName("M_FLUA", PU_STATIC);
@@ -4584,10 +4597,6 @@ static boolean M_AddonsRefresh(void)
 	return false;
 }
 
-#ifdef FIXUPO0
-#pragma GCC optimize ("0")
-#endif
-
 static void M_DrawAddons(void)
 {
 	INT32 x, y;
@@ -4658,16 +4667,14 @@ static void M_DrawAddons(void)
 	if (m > (ssize_t)sizedirmenu)
 		m = sizedirmenu;
 
-	// then top...
-	i = m - (2*numaddonsshown + 1);
-
-	// then adjust!
-	if (i < 0)
+	// then compute top and adjust bottom if needed!
+	if (m < (2*numaddonsshown + 1))
 	{
-		if ((m -= i) > (ssize_t)sizedirmenu)
-			m = sizedirmenu;
+		m = min(sizedirmenu, 2*numaddonsshown + 1);
 		i = 0;
 	}
+	else
+		i = m - (2*numaddonsshown + 1);
 
 	if (i != 0)
 		V_DrawString(19, y+4 - (skullAnimCounter/5), highlightflags, "\x1A");
@@ -4731,10 +4738,6 @@ static void M_DrawAddons(void)
 	if (modifiedgame)
 		V_DrawSmallScaledPatch(x, y + 4, 0, addonsp[NUM_EXT+2]);
 }
-
-#ifdef FIXUPO0
-#pragma GCC reset_options
-#endif
 
 static void M_AddonExec(INT32 ch)
 {
@@ -4891,13 +4894,15 @@ static void M_HandleAddons(INT32 choice)
 						case EXT_LUA:
 #ifndef HAVE_BLUA
 							S_StartSound(NULL, sfx_s26d);
-							M_StartMessage(va("%c%s\x80\nThis copy of SRB2Kart was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
+							M_StartMessage(va("%c%s\x80\nThis version of SRB2Kart does not\nhave support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
 							break;
 #endif
 						// else intentional fallthrough
 						case EXT_SOC:
 						case EXT_WAD:
+#ifdef USE_KART
 						case EXT_KART:
+#endif
 						case EXT_PK3:
 							COM_BufAddText(va("addfile \"%s%s\"", menupath, dirmenu[dir_on[menudepthleft]]+DIR_STRING));
 							break;
@@ -8566,7 +8571,7 @@ static void M_ScreenshotOptions(INT32 choice)
 
 static void M_DrawJoystick(void)
 {
-	INT32 i;
+	INT32 i, compareval4, compareval3, compareval2, compareval;
 
 	M_DrawGenericMenu();
 
@@ -8575,17 +8580,44 @@ static void M_DrawJoystick(void)
 		M_DrawTextBox(OP_JoystickSetDef.x-8, OP_JoystickSetDef.y+LINEHEIGHT*i-12, 28, 1);
 		//M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
-		if ((setupcontrolplayer == 4 && (i == cv_usejoystick4.value))
-			|| (setupcontrolplayer == 3 && (i == cv_usejoystick3.value))
-			|| (setupcontrolplayer == 2 && (i == cv_usejoystick2.value))
-			|| (setupcontrolplayer == 1 && (i == cv_usejoystick.value)))
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,recommendedflags,joystickInfo[i]);
+#ifdef JOYSTICK_HOTPLUG
+		if (atoi(cv_usejoystick4.string) > I_NumJoys())
+			compareval4 = atoi(cv_usejoystick4.string);
+		else
+			compareval4 = cv_usejoystick4.value;
+
+		if (atoi(cv_usejoystick3.string) > I_NumJoys())
+			compareval3 = atoi(cv_usejoystick3.string);
+		else
+			compareval3 = cv_usejoystick3.value;
+
+		if (atoi(cv_usejoystick2.string) > I_NumJoys())
+			compareval2 = atoi(cv_usejoystick2.string);
+		else
+			compareval2 = cv_usejoystick2.value;
+
+		if (atoi(cv_usejoystick.string) > I_NumJoys())
+			compareval = atoi(cv_usejoystick.string);
+		else
+			compareval = cv_usejoystick.value;
+#else
+		compareval4 = cv_usejoystick4.value;
+		compareval3 = cv_usejoystick3.value;
+		compareval2 = cv_usejoystick2.value;
+		compareval = cv_usejoystick.value
+#endif
+
+		if ((setupcontrolplayer == 4 && (i == compareval4))
+			|| (setupcontrolplayer == 3 && (i == compareval3))
+			|| (setupcontrolplayer == 2 && (i == compareval2))
+			|| (setupcontrolplayer == 1 && (i == compareval)))
+			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,V_GREENMAP,joystickInfo[i]);
 		else
 			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,0,joystickInfo[i]);
 	}
 }
 
-static void M_SetupJoystickMenu(INT32 choice)
+void M_SetupJoystickMenu(INT32 choice)
 {
 	INT32 i = 0;
 	const char *joyNA = "Unavailable";
@@ -8600,6 +8632,25 @@ static void M_SetupJoystickMenu(INT32 choice)
 			strncpy(joystickInfo[i], I_GetJoyName(i), 28);
 		else
 			strcpy(joystickInfo[i], joyNA);
+
+#ifdef JOYSTICK_HOTPLUG
+		// We use cv_usejoystick.string as the USER-SET var
+		// and cv_usejoystick.value as the INTERNAL var
+		//
+		// In practice, if cv_usejoystick.string == 0, this overrides
+		// cv_usejoystick.value and always disables
+		//
+		// Update cv_usejoystick.string here so that the user can
+		// properly change this value.
+		if (i == cv_usejoystick.value)
+			CV_SetValue(&cv_usejoystick, i);
+		if (i == cv_usejoystick2.value)
+			CV_SetValue(&cv_usejoystick2, i);
+		if (i == cv_usejoystick3.value)
+			CV_SetValue(&cv_usejoystick3, i);
+		if (i == cv_usejoystick4.value)
+			CV_SetValue(&cv_usejoystick4, i);
+#endif
 	}
 
 	M_SetupNextMenu(&OP_JoystickSetDef);
@@ -8628,21 +8679,147 @@ static void M_Setup3PJoystickMenu(INT32 choice)
 
 static void M_Setup4PJoystickMenu(INT32 choice)
 {
-	setupcontrolplayer = 3;
+	setupcontrolplayer = 4;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_AssignJoystick(INT32 choice)
 {
+#ifdef JOYSTICK_HOTPLUG
+	INT32 oldchoice, oldstringchoice;
+	INT32 numjoys = I_NumJoys();
+
+	if (setupcontrolplayer == 4)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick4.string) > numjoys ? atoi(cv_usejoystick4.string) : cv_usejoystick4.value;
+		CV_SetValue(&cv_usejoystick4, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick4, cv_usejoystick4.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick4.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick4, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick4.string) > numjoys ? atoi(cv_usejoystick4.string) : cv_usejoystick4.value))
+					M_StartMessage("This joystick is used by another\n"
+								   "player. Reset the joystick\n"
+								   "for that player first.\n\n"
+								   "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 3)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick3.string) > numjoys ? atoi(cv_usejoystick3.string) : cv_usejoystick3.value;
+		CV_SetValue(&cv_usejoystick3, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick3, cv_usejoystick3.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick3.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick3, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick3.string) > numjoys ? atoi(cv_usejoystick3.string) : cv_usejoystick3.value))
+					M_StartMessage("This joystick is used by another\n"
+								   "player. Reset the joystick\n"
+								   "for that player first.\n\n"
+								   "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 2)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value;
+		CV_SetValue(&cv_usejoystick2, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick2, cv_usejoystick2.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick2.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick2, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value))
+					M_StartMessage("This joystick is used by another\n"
+					               "player. Reset the joystick\n"
+					               "for that player first.\n\n"
+					               "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 1)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value;
+		CV_SetValue(&cv_usejoystick, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick, cv_usejoystick.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value))
+					M_StartMessage("This joystick is used by another\n"
+					               "player. Reset the joystick\n"
+					               "for that player first.\n\n"
+					               "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+#else
 	if (setupcontrolplayer == 4)
 		CV_SetValue(&cv_usejoystick4, choice);
 	else if (setupcontrolplayer == 3)
 		CV_SetValue(&cv_usejoystick3, choice);
 	else if (setupcontrolplayer == 2)
 		CV_SetValue(&cv_usejoystick2, choice);
-	else
+	else if (setupcontrolplayer == 1)
 		CV_SetValue(&cv_usejoystick, choice);
+#endif
 }
 
 // =============
@@ -8894,7 +9071,7 @@ static void M_DrawControl(void)
 #undef controlheight
 
 static INT32 controltochange;
-static char controltochangetext[55];
+static char controltochangetext[33];
 
 static void M_ChangecontrolResponse(event_t *ev)
 {
@@ -8965,14 +9142,15 @@ static void M_ChangecontrolResponse(event_t *ev)
 				found = 0;
 				setupcontrols[control][1] = KEY_NULL;  //replace key 1,clear key2
 			}
-			G_CheckDoubleUsage(ch);
+			(void)G_CheckDoubleUsage(ch, true);
 			setupcontrols[control][found] = ch;
 		}
 		S_StartSound(NULL, sfx_s221);
 	}
 	else if (ch == KEY_PAUSE)
 	{
-		static char tmp[155];
+		// This buffer assumes a 125-character message plus a 32-character control name (per controltochangetext buffer size)
+		static char tmp[158];
 		menu_t *prev = currentMenu->prevMenu;
 
 		if (controltochange == gc_pause)
@@ -8996,12 +9174,14 @@ static void M_ChangecontrolResponse(event_t *ev)
 
 static void M_ChangeControl(INT32 choice)
 {
-	static char tmp[55];
+	// This buffer assumes a 35-character message (per below) plus a max control name limit of 32 chars (per controltochangetext)
+	// If you change the below message, then change the size of this buffer!
+	static char tmp[68];
 
 	controltochange = currentMenu->menuitems[choice].alphaKey;
 	sprintf(tmp, M_GetText("Hit the new key for\n%s\nESC for Cancel"),
 		currentMenu->menuitems[choice].text);
-	strncpy(controltochangetext, currentMenu->menuitems[choice].text, 55);
+	strlcpy(controltochangetext, currentMenu->menuitems[choice].text, 33);
 
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
 }

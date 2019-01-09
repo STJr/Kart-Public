@@ -59,10 +59,7 @@ static boolean consoleready;  // console prompt is ready
        INT32 con_destlines; // vid lines used by console at final position
 static INT32 con_curlines;  // vid lines currently used by console
 
-       INT32 con_clipviewtop; // clip value for planes & sprites, so that the
-                            // part of the view covered by the console is not
-                            // drawn when not needed, this must be -1 when
-                            // console is off
+       INT32 con_clipviewtop; // (useless)
 
 static INT32 con_hudlines;        // number of console heads up message lines
 static INT32 con_hudtime[MAXHUDLINES];      // remaining time of display for hud msg lines
@@ -285,6 +282,7 @@ void CON_SetupBackColormap(void)
 		case 18:	palindex = 255; shift = 7; 	break; 	// Lavender
 		// Default green
 		default:	palindex = 175; break;
+
 }
 
 	// setup background colormap
@@ -892,7 +890,7 @@ boolean CON_Responder(event_t *ev)
 
 		// ...why shouldn't it eat the key? if it doesn't, it just means you
 		// can control Sonic from the console, which is silly
-		return true; //return false;
+		return true;//return false;
 	}
 
 	// command completion forward (tab) and backward (shift-tab)
@@ -1110,7 +1108,7 @@ boolean CON_Responder(event_t *ev)
 
 	// enter a char into the command prompt
 	if (key < 32 || key > 127)
-		return true; // even if key can't be printed, eat it anyway
+		return true;
 
 	// add key to cmd line here
 	if (key >= 'A' && key <= 'Z' && !(shiftdown ^ capslock)) //this is only really necessary for dedicated servers
@@ -1495,7 +1493,7 @@ static void CON_DrawHudlines(void)
 		return;
 
 	if (chat_on && OLDCHAT)
-		y = charheight; // leave place for chat input in the first row of text
+		y = charheight; // leave place for chat input in the first row of text (only do it if consolechat is on.)
 	else
 		y = 0;
 

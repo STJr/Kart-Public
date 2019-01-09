@@ -801,8 +801,8 @@ void P_SlopeLaunch(mobj_t *mo)
 
 #ifdef GROWNEVERMISSES
 		{
-			const fixed_t xyscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - mo->scale);
-			const fixed_t zscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - mo->scale);
+			const fixed_t xyscale = mapobjectscale + (mapobjectscale - mo->scale);
+			const fixed_t zscale = mapobjectscale + (mapobjectscale - mo->scale);
 			mo->momx = FixedMul(slopemom.x, xyscale);
 			mo->momy = FixedMul(slopemom.y, xyscale);
 			mo->momz = FixedMul(slopemom.z, zscale);
