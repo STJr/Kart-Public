@@ -818,9 +818,13 @@ void HWR_InitMD2(void)
 
 	if (!f)
 	{
-		CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
@@ -885,9 +889,13 @@ void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading kmd2.dat\n");
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 
 	// Check for any MD2s that match the names of player skins!
@@ -931,9 +939,13 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading kmd2.dat\n");
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 
 	// Check for any MD2s that match the names of player skins!
