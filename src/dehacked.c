@@ -3246,9 +3246,9 @@ static void readwipes(MYFILE *f)
 				else if (fastcmp(pword, "FINAL"))
 					wipeoffset = wipe_specinter_final;
 			}
-			else if (fastncmp(word, "VOTING_", 10))
+			else if (fastncmp(word, "VOTING_", 7))
 			{
-				pword = word + 10;
+				pword = word + 7;
 				if (fastcmp(pword, "TOBLACK"))
 					wipeoffset = wipe_specinter_toblack;
 				else if (fastcmp(pword, "FINAL"))
@@ -6946,7 +6946,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_GARU1",
 	"S_GARU2",
 	"S_GARU3",
-	"S_TGARU",	
+	"S_TGARU",
 	"S_TGARU1",
 	"S_TGARU2",
 	"S_TGARU3",	// Wind attack used by Roaming Shadows on Players.

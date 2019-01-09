@@ -425,11 +425,14 @@ void ST_changeDemoView(void)
 
 boolean st_overlay;
 
+/*
 static INT32 SCZ(INT32 z)
 {
 	return FixedInt(FixedMul(z<<FRACBITS, vid.fdupy));
 }
+*/
 
+/*
 static INT32 SCY(INT32 y)
 {
 	//31/10/99: fixed by Hurdler so it _works_ also in hardware mode
@@ -444,7 +447,9 @@ static INT32 SCY(INT32 y)
 	}
 	return y;
 }
+*/
 
+/*
 static INT32 STRINGY(INT32 y)
 {
 	//31/10/99: fixed by Hurdler so it _works_ also in hardware mode
@@ -458,6 +463,7 @@ static INT32 STRINGY(INT32 y)
 	}
 	return y;
 }
+*/
 
 /*
 static INT32 SPLITFLAGS(INT32 f)
@@ -474,10 +480,12 @@ static INT32 SPLITFLAGS(INT32 f)
 }
 */
 
+/*
 static INT32 SCX(INT32 x)
 {
 	return FixedInt(FixedMul(x<<FRACBITS, vid.fdupx));
 }
+*/
 
 #if 0
 static INT32 SCR(INT32 r)
@@ -668,7 +676,8 @@ static void ST_drawTime(void)
 }
 */
 
-static inline void ST_drawRings(void)
+/*
+static inline void ST_drawRings(void) // SRB2kart - unused.
 {
 	INT32 ringnum = max(stplyr->health-1, 0);
 
@@ -687,6 +696,7 @@ static inline void ST_drawRings(void)
 
 	ST_DrawNumFromHudWS(HUD_RINGSNUM, ringnum);
 }
+*/
 
 /*
 static void ST_drawLives(void) // SRB2kart - unused.
@@ -1487,7 +1497,8 @@ static void ST_drawMatchHUD(void) // SRB2kart - unused.
 }
 */
 
-static inline void ST_drawRaceHUD(void)
+/*
+static inline void ST_drawRaceHUD(void) // SRB2kart - unused.
 {
 	if (leveltime > starttime-(3*TICRATE) && leveltime <= starttime-(2*TICRATE))
 		V_DrawScaledPatch(SCX((BASEVIDWIDTH - SHORT(race3->width))/2), (INT32)(SCY(BASEVIDHEIGHT/2)), V_NOSCALESTART, race3);
@@ -1506,6 +1517,7 @@ static inline void ST_drawRaceHUD(void)
 			V_DrawString(hudinfo[HUD_LAP].x, STRINGY(hudinfo[HUD_LAP].y), 0, va("Lap: %u/%d", stplyr->laps+1, cv_numlaps.value));
 	}
 }
+*/
 
 /*
 static void ST_drawTagHUD(void) // SRB2kart - unused.
@@ -1618,7 +1630,8 @@ static void ST_drawCTFHUD(void) // SRB2kart - unused.
 */
 
 // Draws "Red Team", "Blue Team", or "Spectator" for team gametypes.
-static inline void ST_drawTeamName(void)
+/*
+static inline void ST_drawTeamName(void) // SRB2kart - unused.
 {
 	if (stplyr->ctfteam == 1)
 		V_DrawString(256, splitscreen ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "RED TEAM");
@@ -1627,6 +1640,7 @@ static inline void ST_drawTeamName(void)
 	else
 		V_DrawString(244, splitscreen ? STRINGY(184) : STRINGY(192), V_HUDTRANSHALF, "SPECTATOR");
 }
+*/
 
 /*
 static void ST_drawSpecialStageHUD(void) // SRB2kart - unused.
