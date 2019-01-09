@@ -282,6 +282,12 @@ static void P_NetArchivePlayers(void)
 		WRITEUINT8(save_p, players[i].accelstart);
 		WRITEUINT8(save_p, players[i].acceleration);
 		WRITEFIXED(save_p, players[i].jumpfactor);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			WRITEINT16(save_p, players[i].lturn_max[j]);
+			WRITEINT16(save_p, players[i].rturn_max[j]);
+		}
 	}
 }
 
@@ -456,6 +462,12 @@ static void P_NetUnArchivePlayers(void)
 		players[i].accelstart = READUINT8(save_p);
 		players[i].acceleration = READUINT8(save_p);
 		players[i].jumpfactor = READFIXED(save_p);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			players[i].lturn_max[j] = READINT16(save_p);
+			 players[i].rturn_max[j] = READINT16(save_p);
+		}
 	}
 }
 
