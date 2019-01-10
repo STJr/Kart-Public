@@ -99,6 +99,7 @@ INT16 G_ClipAimingPitch(INT32 *aiming);
 INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 
 boolean InputDown(INT32 gc, UINT8 p);
+boolean HatDown(UINT8 dir, UINT8 p);
 INT32 JoyAxis(axis_input_e axissel, UINT8 p);
 
 extern angle_t localangle, localangle2, localangle3, localangle4;
