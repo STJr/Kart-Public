@@ -4446,7 +4446,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (P_IsLocalPlayer(player) && leveltime == (starttime + (TICRATE/2)))
 	{
 		S_ChangeMusicInternal(mapmusname, true);
-		S_InitMusicCredit();
+		S_ShowMusicCredit();
 	}
 }
 

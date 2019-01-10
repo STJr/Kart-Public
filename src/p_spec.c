@@ -2450,7 +2450,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					mapmusflags |= MUSIC_RELOADRESET;
 
 				S_ChangeMusic(mapmusname, mapmusflags, !(line->flags & ML_EFFECT4));
-				S_InitMusicCredit();
+				S_ShowMusicCredit();
 
 				// Except, you can use the ML_BLOCKMONSTERS flag to change this behavior.
 				// if (mapmusflags & MUSIC_RELOADRESET) then it will reset the music in G_PlayerReborn.

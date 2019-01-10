@@ -129,23 +129,27 @@ boolean S_MusicExists(const char *mname, boolean checkMIDI, boolean checkDigi);
 boolean S_SpeedMusic(float speed);
 
 // Music credits
+typedef struct musicdef_s
+{
+	char name[7];
+	//char usage[256];
+	char source[256];
+	struct musicdef_s *next;
+} musicdef_t;
+
 extern struct cursongcredit
 {
-	UINT16 index;
+	musicdef_t *def;
 	UINT16 anim;
 	INT32 x;
 	UINT8 trans;
 } cursongcredit;
 
-typedef struct
-{
-	const char *lump;
-	const char *info;
-} songcredits_t;
+extern musicdef_t *musicdefstart;
 
-extern songcredits_t songCredits[];
-
-void S_InitMusicCredit(void);
+void S_LoadMusicDefs(UINT16 wadnum);
+void S_InitMusicDefs(void);
+void S_ShowMusicCredit(void);
 
 //
 // Music Routines

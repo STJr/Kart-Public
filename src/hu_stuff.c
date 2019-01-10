@@ -2130,11 +2130,17 @@ static void HU_DrawDemoInfo(void)
 //
 static void HU_DrawSongCredits(void)
 {
-	const char *str = va("\x1F"" %s", songCredits[cursongcredit.index].info);
-	INT32 len = V_ThinStringWidth(str, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
-	INT32 destx = (len+7);
+	char *str;
+	INT32 len, destx;
 	INT32 y = (splitscreen ? (BASEVIDHEIGHT/2)-4 : 32);
 	INT32 bgt;
+
+	if (!cursongcredit.def) // No def
+		return;
+
+	str = va("\x1F"" %s", cursongcredit.def->source);
+	len = V_ThinStringWidth(str, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
+	destx = (len+7);
 
 	if (cursongcredit.anim)
 	{
