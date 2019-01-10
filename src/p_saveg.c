@@ -3355,6 +3355,10 @@ static inline boolean P_NetUnArchiveMisc(void)
 	totalrings = READUINT32(save_p);
 	lastmap = READINT16(save_p);
 
+	// Show music credits for mid-joiners
+	if (leveltime > (starttime + (TICRATE/2)))
+		S_ShowMusicCredit();
+
 	for (i = 0; i < 4; i++)
 	{
 		votelevels[i][0] = READINT16(save_p);
