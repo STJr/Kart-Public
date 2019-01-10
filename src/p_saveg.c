@@ -30,6 +30,7 @@
 #include "r_sky.h"
 #include "p_polyobj.h"
 #include "lua_script.h"
+#include "s_sound.h" // S_ShowMusicCredit 
 #ifdef ESLOPE
 #include "p_slopes.h"
 #endif
