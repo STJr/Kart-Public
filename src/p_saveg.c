@@ -30,7 +30,6 @@
 #include "r_sky.h"
 #include "p_polyobj.h"
 #include "lua_script.h"
-#include "s_sound.h" // S_ShowMusicCredit 
 #ifdef ESLOPE
 #include "p_slopes.h"
 #endif
@@ -3355,10 +3354,6 @@ static inline boolean P_NetUnArchiveMisc(void)
 	leveltime = READUINT32(save_p);
 	totalrings = READUINT32(save_p);
 	lastmap = READINT16(save_p);
-
-	// Show music credits for mid-joiners
-	if (leveltime > (starttime + (TICRATE/2)))
-		S_ShowMusicCredit();
 
 	for (i = 0; i < 4; i++)
 	{
