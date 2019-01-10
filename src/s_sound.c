@@ -2178,7 +2178,7 @@ void GameDigiMusic_OnChange(void)
 		if (Playing())
 			P_RestoreMusic(&players[consoleplayer]);
 		else
-			S_ChangeMusicInternal("lclear", false);
+			S_ChangeMusicInternal("titles", looptitle);
 	}
 	else
 	{
@@ -2220,7 +2220,7 @@ void GameMIDIMusic_OnChange(void)
 		if (Playing())
 			P_RestoreMusic(&players[consoleplayer]);
 		else
-			S_ChangeMusicInternal("lclear", false);
+			S_ChangeMusicInternal("titles", looptitle);
 	}
 	else
 	{
