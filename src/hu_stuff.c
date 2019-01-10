@@ -1179,6 +1179,10 @@ boolean HU_Responder(event_t *ev)
 		 || ev->data1 == KEY_LALT || ev->data1 == KEY_RALT)
 			return true;
 
+		// Ignore joystick hats
+		if (ev->data1 >= KEY_HAT1 && ev->data1 <= KEY_HAT1 + 3)
+			return false;
+
 		c = (INT32)ev->data1;
 
 		// I know this looks very messy but this works. If it ain't broke, don't fix it!
