@@ -101,7 +101,7 @@ consvar_t cv_numChannels = {"snd_channels", "64", CV_SAVE|CV_CALL, CV_Unsigned, 
 #endif
 
 consvar_t surround = {"surround", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+//consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Sound system toggles, saved into the config
 consvar_t cv_gamedigimusic = {"digimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameDigiMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -263,7 +263,7 @@ void S_RegisterSoundStuff(void)
 #endif
 	CV_RegisterVar(&surround);
 	CV_RegisterVar(&cv_samplerate);
-	CV_RegisterVar(&cv_resetmusic);
+	//CV_RegisterVar(&cv_resetmusic);
 	CV_RegisterVar(&cv_gamesounds);
 	CV_RegisterVar(&cv_gamedigimusic);
 #ifndef NO_MIDI
@@ -2043,9 +2043,13 @@ void S_Start(void)
 		mapmusflags = (mapheaderinfo[gamemap-1]->mustrack & MUSIC_TRACKMASK);
 	}
 
-	if (cv_resetmusic.value)
+	//if (cv_resetmusic.value) // Starting ambience should always be restarted
 		S_StopMusic();
-	S_ChangeMusic(mapmusname, mapmusflags, true);
+
+	if (leveltime < (starttime + (TICRATE/2))) // SRB2Kart
+		S_ChangeMusic((encoremode ? "estart" : "kstart"), 0, false);
+	else
+		S_ChangeMusic(mapmusname, mapmusflags, true);
 }
 
 static void Command_Tunes_f(void)

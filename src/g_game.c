@@ -2362,6 +2362,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
+	boolean songcredit = false;
 
 	score = players[player].score;
 	marescore = players[player].marescore;
@@ -2540,10 +2541,13 @@ void G_PlayerReborn(INT32 player)
 			strncpy(mapmusname, mapheaderinfo[gamemap-1]->musname, 7);
 			mapmusname[6] = 0;
 			mapmusflags = mapheaderinfo[gamemap-1]->mustrack & MUSIC_TRACKMASK;
+			songcredit = true;
 		}
 	}
 
 	P_RestoreMusic(p);
+	if (songcredit)
+		S_ShowMusicCredit();
 
 	if (leveltime > (starttime + (TICRATE/2)) && !p->spectator)
 		p->kartstuff[k_respawn] = 48; // Respawn effect
