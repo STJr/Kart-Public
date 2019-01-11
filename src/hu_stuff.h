@@ -66,7 +66,7 @@ typedef struct
 #ifdef NETSPLITSCREEN
 #define OLDCHAT (cv_consolechat.value == 1 || dedicated || vid.width < 640)
 #else
-#define OLDCHAT (cv_consolechat.value == 1 || dedicated || vid.width < 640 || splitscreen)
+#define OLDCHAT (cv_consolechat.value == 1 || dedicated || vid.width < 640)
 #endif
 #define CHAT_MUTE (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))	// this still allows to open the chat but not to type. That's used for scrolling and whatnot.
 #define OLD_MUTE (OLDCHAT && cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))	// this is used to prevent oldchat from opening when muted.

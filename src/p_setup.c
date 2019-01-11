@@ -2304,6 +2304,10 @@ static void P_LevelInitStuff(void)
 	// earthquake camera
 	memset(&quake,0,sizeof(struct quake));
 
+	// song credit init
+	memset(&cursongcredit,0,sizeof(struct cursongcredit));
+	cursongcredit.trans = NUMTRANSMAPS;
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 #if 0
@@ -2865,10 +2869,6 @@ boolean P_SetupLevel(boolean skipprecip)
 	// As oddly named as this is, this handles music only.
 	// We should be fine starting it here.
 	S_Start();
-	// SRB2 Kart - Yes this is weird, but we don't want the music to start until after the countdown is finished
-	// but we do still need the mapmusname to be changed
-	if (leveltime < (starttime + (TICRATE/2)))
-		S_ChangeMusicInternal((encoremode ? "estart" : "kstart"), false); //S_StopMusic();
 
 	levelfadecol = (encoremode && !ranspecialwipe ? 122 : 120);
 
@@ -3434,6 +3434,11 @@ boolean P_AddWadFile(const char *wadfilename)
 	// look for skins
 	//
 	R_AddSkins(wadnum); // faB: wadfile index in wadfiles[]
+
+	// 
+	// edit music defs
+	//
+	S_LoadMusicDefs(wadnum);
 
 	//
 	// search for maps

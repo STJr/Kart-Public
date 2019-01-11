@@ -1738,6 +1738,7 @@ int W_VerifyNMUSlumps(const char *filename)
 
 		{"MKFNT", 5}, // Kart font changes
 		{"K_", 2}, // Kart graphic changes
+		{"MUSICDEF", 8}, // Kart song definitions
 
 		{NULL, 0},
 	};
