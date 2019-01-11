@@ -1,5 +1,12 @@
-*
-*.*
+*.srb
+*.pk3
+*.dta
+*.wad
+*.txt
+*.kart
 !README.txt
+!HISTORY.txt
 !LICENSE.txt
 !LICENSE-3RD-PARTY.txt
+!CMakeLists.txt
+!debian-template/*

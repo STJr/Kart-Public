@@ -478,7 +478,6 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 		const char *newmsg;
 		INT32 spc = 1; // used if nodenum[1] is a space.
 		char *nodenum = (char*) malloc(3);
-
 		strncpy(nodenum, msg+3, 3);
 		// check for undesirable characters in our "number"
 		if 	(((nodenum[0] < '0') || (nodenum[0] > '9')) || ((nodenum[1] < '0') || (nodenum[1] > '9')))
