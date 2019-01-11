@@ -1839,6 +1839,21 @@ static int lib_sStopSoundByID(lua_State *L)
 	return 0;
 }
 
+static int lib_sShowMusicCredit(lua_State *L)
+{
+	player_t *player = NULL;
+	//HUDSAFE
+	if (!lua_isnone(L, 1) && lua_isuserdata(L, 1))
+	{
+		player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+		if (!player)
+			return LUA_ErrInvalid(L, "player_t");
+	}
+	if (!player || P_IsLocalPlayer(player))
+		S_ShowMusicCredit();
+	return 0;
+}
+
 static int lib_sChangeMusic(lua_State *L)
 {
 #ifdef MUSICSLOT_COMPATIBILITY
@@ -2666,6 +2681,7 @@ static luaL_Reg lib[] = {
 	{"S_StartSoundAtVolume",lib_sStartSoundAtVolume},
 	{"S_StopSound",lib_sStopSound},
 	{"S_StopSoundByID",lib_sStopSoundByID},
+	{"S_ShowMusicCredit",lib_sShowMusicCredit},
 	{"S_ChangeMusic",lib_sChangeMusic},
 	{"S_SpeedMusic",lib_sSpeedMusic},
 	{"S_StopMusic",lib_sStopMusic},

@@ -51,6 +51,7 @@
 #include "lua_hook.h"
 #endif
 
+#include "s_sound.h" // song credits
 #include "k_kart.h"
 
 // coords are scaled
@@ -103,6 +104,8 @@ static patch_t *tokenicon;
 
 // crosshair 0 = off, 1 = cross, 2 = angle, 3 = point, see m_menu.c
 static patch_t *crosshair[HU_CROSSHAIRS]; // 3 precached crosshair graphics
+// song credits
+static patch_t *songcreditbg;
 
 // -------
 // protos.
@@ -290,6 +293,8 @@ void HU_LoadGraphics(void)
 	tinyemeraldpics[4] = W_CachePatchName("TEMER5", PU_HUDGFX);
 	tinyemeraldpics[5] = W_CachePatchName("TEMER6", PU_HUDGFX);
 	tinyemeraldpics[6] = W_CachePatchName("TEMER7", PU_HUDGFX);
+
+	songcreditbg = W_CachePatchName("K_SONGCR", PU_HUDGFX);
 }
 
 // Initialise Heads up
@@ -2123,6 +2128,51 @@ static void HU_DrawDemoInfo(void)
 	}
 }
 
+
+//
+// Song credits
+//
+static void HU_DrawSongCredits(void)
+{
+	char *str;
+	INT32 len, destx;
+	INT32 y = (splitscreen ? (BASEVIDHEIGHT/2)-4 : 32);
+	INT32 bgt;
+
+	if (!cursongcredit.def) // No def
+		return;
+
+	str = va("\x1F"" %s", cursongcredit.def->source);
+	len = V_ThinStringWidth(str, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
+	destx = (len+7);
+
+	if (cursongcredit.anim)
+	{
+		if (cursongcredit.trans > 0)
+			cursongcredit.trans--;
+		if (cursongcredit.x < destx)
+			cursongcredit.x += (destx - cursongcredit.x) / 2;
+		if (cursongcredit.x > destx)
+			cursongcredit.x = destx;
+		cursongcredit.anim--;
+	}
+	else
+	{
+		if (cursongcredit.trans < NUMTRANSMAPS)
+			cursongcredit.trans++;
+		if (cursongcredit.x > 0)
+			cursongcredit.x /= 2;
+		if (cursongcredit.x < 0)
+			cursongcredit.x = 0;
+	}
+
+	bgt = (NUMTRANSMAPS/2)+(cursongcredit.trans/2);
+	if (bgt < NUMTRANSMAPS)
+		V_DrawScaledPatch(cursongcredit.x, y-2, V_SNAPTOLEFT|(bgt<<V_ALPHASHIFT), songcreditbg);
+	if (cursongcredit.trans < NUMTRANSMAPS)
+		V_DrawRightAlignedThinString(cursongcredit.x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
+}
+
 // Heads up displays drawer, call each frame
 //
 void HU_Drawer(void)
@@ -2215,6 +2265,10 @@ void HU_Drawer(void)
 		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
 			HU_DrawCrosshair4();
 	}*/
+
+	// draw song credits
+	if (cv_songcredits.value)
+		HU_DrawSongCredits();
 
 	// draw desynch text
 	if (hu_resynching)
