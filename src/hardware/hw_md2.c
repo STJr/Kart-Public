@@ -98,7 +98,11 @@ static void md2_freeModel (model_t *model)
 static model_t *md2_readModel(const char *filename)
 {
 	//Filename checking fixed ~Monster Iestyn and Golden
-	return LoadModel(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
+	if (FIL_FileExists(va("%s"PATHSEP"%s", srb2home, filename)))
+		return LoadModel(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
+	else if (FIL_FileExists(va("%s"PATHSEP"%s", srb2path, filename)))
+		return LoadModel(va("%s"PATHSEP"%s", srb2path, filename), PU_STATIC);
+	return NULL;
 }
 
 static inline void md2_printModelInfo (model_t *model)
@@ -166,8 +170,12 @@ static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_
 	png_FILE = fopen(pngfilename, "rb");
 	if (!png_FILE)
 	{
+		pngfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2path, filename);
+		FIL_ForceExtension(pngfilename, ".png");
+		png_FILE = fopen(pngfilename, "rb");
 		//CONS_Debug(DBG_RENDER, "M_SavePNG: Error on opening %s for loading\n", filename);
-		return 0;
+		if (!png_FILE)
+			return 0;
 	}
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
@@ -294,7 +302,13 @@ static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
 	FIL_ForceExtension(pcxfilename, ".pcx");
 	file = fopen(pcxfilename, "rb");
 	if (!file)
-		return 0;
+	{
+		pcxfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2path, filename);
+		FIL_ForceExtension(pcxfilename, ".pcx");
+		file = fopen(pcxfilename, "rb");
+		if (!file)
+			return 0;
+	}
 
 	if (fread(&header, sizeof (PcxHeader), 1, file) != 1)
 	{
@@ -484,9 +498,13 @@ void HWR_InitMD2(void)
 
 	if (!f)
 	{
-		CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
@@ -551,9 +569,13 @@ void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading kmd2.dat\n");
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 
 	// Check for any MD2s that match the names of player skins!
@@ -597,9 +619,13 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading kmd2.dat\n");
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 
 	// Check for any MD2s that match the names of sprite names!
@@ -953,7 +979,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 				md2->blendgrpatch && ((GLPatch_t *)md2->blendgrpatch)->mipmap.grInfo.format
 				&& gpatch->width == ((GLPatch_t *)md2->blendgrpatch)->width && gpatch->height == ((GLPatch_t *)md2->blendgrpatch)->height)
 			{
-				INT32 skinnum;
+				INT32 skinnum = TC_DEFAULT;
 				if ((spr->mobj->flags & MF_BOSS) && (spr->mobj->flags2 & MF2_FRET) && (leveltime & 1)) // Bosses "flash"
 				{
 					if (spr->mobj->type == MT_CYBRAKDEMON)

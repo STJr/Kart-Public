@@ -537,7 +537,8 @@ static void GLPerspective(GLfloat fovy, GLfloat aspect)
 	const GLfloat deltaZ = zFar - zNear;
 	GLfloat cotangent;
 
-	if ((deltaZ == 0.0f) || (sine == 0.0f) || (aspect == 0.0f)) {
+	if ((fabsf((float)deltaZ) < 1.0E-36f) || fpclassify(sine) == FP_ZERO || fpclassify(aspect) == FP_ZERO)
+	{
 		return;
 	}
 	cotangent = cosf(radians) / sine;
@@ -572,7 +573,7 @@ static void GLProject(GLfloat objX, GLfloat objY, GLfloat objZ,
 			out[2] * projMatrix[2*4+i] +
 			out[3] * projMatrix[3*4+i];
 	}
-	if (in[3] == 0.0f) return;
+	if (fpclassify(in[3]) == FP_ZERO) return;
 	in[0] /= in[3];
 	in[1] /= in[3];
 	in[2] /= in[3];
@@ -1881,7 +1882,7 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 			if (nextFrameIndex != -1)
 				nextframe = &mesh->frames[nextFrameIndex % mesh->numFrames];
 
-			if (!nextframe || pol == 0.0f)
+			if (!nextframe || fpclassify(pol) == FP_ZERO)
 			{
 				// Zoom! Take advantage of just shoving the entire arrays to the GPU.
 /*				pglVertexPointer(3, GL_FLOAT, 0, frame->vertices);
@@ -1953,6 +1954,7 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 	pglLoadIdentity();
 	if (stransform)
 	{
+		boolean fovx90;
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
@@ -1973,7 +1975,8 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 
 		pglMatrixMode(GL_PROJECTION);
 		pglLoadIdentity();
-		special_splitscreen = (stransform->splitscreen == 1 && stransform->fovxangle == 90.0f);
+		fovx90 = stransform->fovxangle > 0.0f && fabsf(stransform->fovxangle - 90.0f) < 0.5f;
+		special_splitscreen = (stransform->splitscreen == 1 && fovx90);
 		if (special_splitscreen)
 			GLPerspective(53.13f, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
 		else

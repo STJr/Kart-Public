@@ -272,6 +272,7 @@ INT32 cv_debug;
 consvar_t cv_usemouse = {"use_mouse", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usemouse2 = {"use_mouse2", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse2, 0, NULL, NULL, 0, 0, NULL};
 
+#if defined (DC) || defined (_XBOX) || defined (WMINPUT) || defined (_WII) || defined(HAVE_SDL) || defined(_WINDOWS) //joystick 1 and 2
 consvar_t cv_usejoystick = {"use_joystick", "1", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usejoystick2 = {"use_joystick2", "2", CV_SAVE|CV_CALL, usejoystick_cons_t,
@@ -280,6 +281,7 @@ consvar_t cv_usejoystick3 = {"use_joystick3", "3", CV_SAVE|CV_CALL, usejoystick_
 	I_InitJoystick3, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_usejoystick4 = {"use_joystick4", "4", CV_SAVE|CV_CALL, usejoystick_cons_t,
 	I_InitJoystick4, 0, NULL, NULL, 0, 0, NULL};
+#endif
 
 #if (defined (LJOYSTICK) || defined (HAVE_SDL))
 #ifdef LJOYSTICK
@@ -781,6 +783,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_usegamma);
 
 	// m_menu.c
+	//CV_RegisterVar(&cv_compactscoreboard);
 	CV_RegisterVar(&cv_chatheight);
 	CV_RegisterVar(&cv_chatwidth);
 	CV_RegisterVar(&cv_chattime);
@@ -788,6 +791,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_consolechat);
 	CV_RegisterVar(&cv_chatnotifications);
 	CV_RegisterVar(&cv_chatbacktint);
+	CV_RegisterVar(&cv_songcredits);
 	//CV_RegisterVar(&cv_crosshair);
 	//CV_RegisterVar(&cv_crosshair2);
 	//CV_RegisterVar(&cv_crosshair3);
@@ -826,6 +830,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_driftaxis2);
 	CV_RegisterVar(&cv_driftaxis3);
 	CV_RegisterVar(&cv_driftaxis4);
+
+	// filesrch.c
+	CV_RegisterVar(&cv_addons_option);
+	CV_RegisterVar(&cv_addons_folder);
+	CV_RegisterVar(&cv_addons_md5);
+	CV_RegisterVar(&cv_addons_showall);
+	CV_RegisterVar(&cv_addons_search_type);
+	CV_RegisterVar(&cv_addons_search_case);
 
 	// filesrch.c
 	CV_RegisterVar(&cv_addons_option);
@@ -2098,7 +2110,7 @@ void D_SetupVote(void)
 		else
 			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, true, votebuffer);
 		if (i < 3)
-			votebuffer[i] = m;
+			votebuffer[min(i, 2)] = m; // min() is a dumb workaround for gcc 4.4 array-bounds error
 		WRITEUINT16(p, m);
 	}
 
@@ -3532,12 +3544,6 @@ void SetAdminPlayer(INT32 playernum)
 			adminplayers[i] = playernum; // Set the player to a free spot
 			break; // End the loop now. If it keeps going, the same player might get assigned to two slots.
 		}
-
-		/*if (i == 3 && adminplayers[i] != -1) // End of the loop and all slots are full
-		{
-			adminplayers[0] = playernum; // Overwrite the first slot
-			break;
-		}*/
 	}
 }
 
@@ -3709,7 +3715,7 @@ static void Command_MotD_f(void)
 		}
 
 	if ((netgame || multiplayer) && client)
-		SendNetXCmd(XD_SETMOTD, mymotd, sizeof(motd));
+		SendNetXCmd(XD_SETMOTD, mymotd, i); // send the actual size of the motd string, not the full buffer's size
 	else
 	{
 		strcpy(motd, mymotd);
@@ -3978,6 +3984,10 @@ static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 	boolean kick = false;
 	boolean toomany = false;
 	INT32 i,j;
+	serverinfo_pak *dummycheck = NULL;
+
+	// Shut the compiler up.
+	(void)dummycheck;
 
 	READSTRINGN(*cp, filename, 240);
 	READMEM(*cp, md5sum, 16);
@@ -4146,6 +4156,52 @@ static void Command_Version_f(void)
 #else
 	CONS_Printf("SRB2Kart %s (%s %s %s)\n", VERSIONSTRING, compdate, comptime, comprevision);
 #endif
+
+	// Base library
+#if defined( HAVE_SDL)
+	CONS_Printf("SDL ");
+#elif defined(_WINDOWS)
+	CONS_Printf("DD ");
+#endif
+
+	// OS
+	// Would be nice to use SDL_GetPlatform for this
+#if defined (_WIN32) || defined (_WIN64)
+	CONS_Printf("Windows ");
+#elif defined(__linux__)
+	CONS_Printf("Linux ");
+#elif defined(MACOSX)
+	CONS_Printf("macOS ");
+#elif defined(UNIXCOMMON)
+	CONS_Printf("Unix (Common) ");
+#else
+	CONS_Printf("Other OS ");
+#endif
+
+	// Bitness
+	if (sizeof(void*) == 4)
+		CONS_Printf("32-bit ");
+	else if (sizeof(void*) == 8)
+		CONS_Printf("64-bit ");
+	else // 16-bit? 128-bit?
+		CONS_Printf("Bits Unknown ");
+
+	// No ASM?
+#ifdef NOASM
+	CONS_Printf("\x85" "NOASM " "\x80");
+#endif
+
+	// Debug build
+#ifdef _DEBUG
+	CONS_Printf("\x85" "DEBUG " "\x80");
+#endif
+
+	// DEVELOP build
+#ifdef DEVELOP
+	CONS_Printf("\x87" "DEVELOP " "\x80");
+#endif
+
+	CONS_Printf("\n");
 }
 
 #ifdef UPDATE_ALERT

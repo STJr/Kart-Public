@@ -366,7 +366,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_SetTarget(&special->tracer, toucher);
 			special->flags2 |= MF2_NIGHTSPULL;
-			special->destscale = mapheaderinfo[gamemap-1]->mobj_scale>>4;
+			special->destscale = mapobjectscale>>4;
 			special->scalespeed <<= 1;
 
 			special->flags &= ~MF_SPECIAL;
@@ -2951,7 +2951,8 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	}
 }
 
-static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
+/*
+static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage) // SRB2kart - unused.
 {
 	fixed_t fallbackspeed;
 	angle_t ang;
@@ -2997,11 +2998,10 @@ static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *so
 
 	P_InstaThrust(player->mo, ang, fallbackspeed);
 
-	/* // SRB2kart - This shouldn't be reachable, but this frame is invalid.
-	if (player->charflags & SF_SUPERANIMS)
-		P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
-	else
-	*/
+	// SRB2kart - This shouldn't be reachable, but this frame is invalid.
+	//if (player->charflags & SF_SUPERANIMS)
+	//	P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
+	//else
 		P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
 
 	P_ResetPlayer(player);
@@ -3009,6 +3009,7 @@ static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *so
 	if (player->timeshit != UINT8_MAX)
 		++player->timeshit;
 }
+*/
 
 void P_RemoveShield(player_t *player)
 {

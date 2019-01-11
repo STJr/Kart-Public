@@ -924,7 +924,8 @@ void R_ParseTEXTURESLump(UINT16 wadNum, UINT16 lumpNum, INT32 *texindex)
 	Z_Free((void *)texturesText);
 }
 
-static inline lumpnum_t R_CheckNumForNameList(const char *name, lumplist_t *list, size_t listsize)
+/*
+static inline lumpnum_t R_CheckNumForNameList(const char *name, lumplist_t *list, size_t listsize) // SRB2kart - unused.
 {
 	size_t i;
 	UINT16 lump;
@@ -939,6 +940,7 @@ static inline lumpnum_t R_CheckNumForNameList(const char *name, lumplist_t *list
 	}
 	return LUMPERROR;
 }
+*/
 
 /*static lumplist_t *colormaplumps = NULL; ///\todo free leak
 static size_t numcolormaplumps = 0;
@@ -1285,7 +1287,7 @@ INT32 R_CreateColormap(char *p1, char *p2, char *p3)
 			continue;
 		if (maskcolor == extra_colormaps[i].maskcolor
 			&& fadecolor == extra_colormaps[i].fadecolor
-			&& (float)maskamt == (float)extra_colormaps[i].maskamt
+			&& fabs(maskamt - extra_colormaps[i].maskamt) < DBL_EPSILON
 			&& fadestart == extra_colormaps[i].fadestart
 			&& fadeend == extra_colormaps[i].fadeend
 			&& fog == extra_colormaps[i].fog)

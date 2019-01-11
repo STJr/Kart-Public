@@ -164,6 +164,9 @@ extern FILE *logstream;
 // Kart has it's own, as well.
 #define USE_PATCH_KART
 
+// Use .kart extension addons
+#define USE_KART
+
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
 // to the latest version, fill these out.  Otherwise, just comment out UPDATE_ALERT and leave
@@ -219,6 +222,21 @@ extern FILE *logstream;
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
 #define MODVERSION 2
+
+// Filter consvars by version
+// To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
+// Increment MINOREXECVERSION whenever a config change is needed that does not correspond
+// to an increment in MODVERSION. This might never happen in practice.
+// If MODVERSION increases, set MINOREXECVERSION to 0.
+#define MAJOREXECVERSION MODVERSION
+#define MINOREXECVERSION 0
+// (It would have been nice to use VERSION and SUBVERSION but those are zero'd out for DEVELOP builds)
+
+// Macros
+#define GETMAJOREXECVERSION(v) (v & 0xFFFF)
+#define GETMINOREXECVERSION(v) (v >> 16)
+#define GETEXECVERSION(major,minor) (major + (minor << 16))
+#define EXECVERSION GETEXECVERSION(MAJOREXECVERSION, MINOREXECVERSION)
 
 // =========================================================================
 
@@ -286,7 +304,7 @@ typedef enum
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
 	SKINCOLOR_JET,
-	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave – slender aphrodite has overcome me with longing for a girl
+	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave - slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
 	SKINCOLOR_BLUE,
 	SKINCOLOR_BLUEBERRY,
@@ -346,9 +364,9 @@ enum {
 // Name of local directory for config files and savegames
 #if !defined(_arch_dreamcast) && !defined(_WIN32_WCE) && !defined(GP2X) && !defined(_WII) && !defined(_PS3)
 #if (((defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON)) && !defined (__CYGWIN__)) && !defined (__APPLE__)
-#define DEFAULTDIR ".srb2"
+#define DEFAULTDIR ".srb2kart"
 #else
-#define DEFAULTDIR "srb2"
+#define DEFAULTDIR "srb2kart"
 #endif
 #endif
 

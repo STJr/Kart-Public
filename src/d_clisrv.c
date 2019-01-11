@@ -1487,9 +1487,11 @@ static boolean SV_SendServerConfig(INT32 node)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		netbuffer->u.servercfg.adminplayers[i] = (SINT8)adminplayers[i];
+
 		if (!playeringame[i])
 			continue;
-		netbuffer->u.servercfg.adminplayers[i] = (SINT8)adminplayers[i];
+
 		netbuffer->u.servercfg.playerskins[i] = (UINT8)players[i].skin;
 		netbuffer->u.servercfg.playercolor[i] = (UINT8)players[i].skincolor;
 	}
@@ -2774,13 +2776,16 @@ static void Command_Kick(void)
 		if (pn == -1 || pn == 0)
 			return;
 
-		// Special case if we are trying to kick a player who is downloading the game state:
-		// trigger a timeout instead of kicking them, because a kick would only
-		// take effect after they have finished downloading
-		if (sendingsavegame[playernode[pn]])
+		if (server)
 		{
-			Net_ConnectionTimeout(playernode[pn]);
-			return;
+			// Special case if we are trying to kick a player who is downloading the game state:
+			// trigger a timeout instead of kicking them, because a kick would only
+			// take effect after they have finished downloading
+			if (sendingsavegame[playernode[pn]])
+			{
+				Net_ConnectionTimeout(playernode[pn]);
+				return;
+			}
 		}
 
 		WRITESINT8(p, pn);
@@ -2834,7 +2839,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 
 	// Is playernum authorized to make this kick?
-	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
+		/*&& !(playerpernode[playernode[playernum]] == 2
+		//&& nodetoplayer2[playernode[playernum]] == pnum)*/)
 	{
 		// We received a kick command from someone who isn't the
 		// server or admin, and who isn't in splitscreen removing
@@ -3306,14 +3313,14 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	if (netgame)
 	{
-		if (server && netgame && cv_showjoinaddress.value)
+		if (server && cv_showjoinaddress.value)
 		{
 			const char *address;
 			if (I_GetNodeAddress && (address = I_GetNodeAddress(node)) != NULL)
 				HU_AddChatText(va("\x82*Player %d has joined the game (node %d) (%s)", newplayernum+1, node, address), false);	// merge join notification + IP to avoid clogging console/chat.
 		}
 		else
-			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);
+			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);	// if you don't wanna see the join address.
 	}
 
 	if (server && multiplayer && motd[0] != '\0')
