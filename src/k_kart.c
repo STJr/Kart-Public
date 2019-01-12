@@ -6275,7 +6275,7 @@ static void K_initKartHUD(void)
 			LAPS2_X = BASEVIDWIDTH-40;
 			LAPS2_Y = (BASEVIDHEIGHT/2)-13;
 
-			POSI2_X = BASEVIDWIDTH -8;
+			POSI2_X = BASEVIDWIDTH -4;
 			POSI2_Y = (BASEVIDHEIGHT/2)- 16;
 
 			// Reminder that 3P and 4P are just 1P and 2P splitscreen'd to the bottom.
@@ -6810,6 +6810,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	//INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTORIGHT);
 	INT32 fx = 0, fy = 0, fflags = 0;
 	boolean flipdraw = false;	// flip the order we draw it in for MORE splitscreen bs. fun.
+	boolean flipvdraw = false;	// used only for 2p splitscreen so overtaking doesn't make 1P's position fly off the screen.
 	boolean overtake = false;
 
 	if (stplyr->kartstuff[k_positiondelay] || stplyr->exiting)
@@ -6830,6 +6831,8 @@ static void K_DrawKartPositionNum(INT32 num)
 		{
 			fy = 30;
 			fflags = V_SNAPTOTOP|V_SNAPTORIGHT;
+			if (overtake)
+				flipvdraw = true;	// make sure overtaking doesn't explode us
 		}
 		else	// if we're not p1, that means we're p2. display this at the bottom right, below the minimap.
 		{
@@ -6901,8 +6904,9 @@ static void K_DrawKartPositionNum(INT32 num)
 		else
 			localpatch = kp_positionnum[num % 10][0];
 
-		V_DrawFixedPatch((fx<<FRACBITS) + ((overtake && flipdraw) ? ((SHORT)localpatch->width*scale/2) : 0), fy<<FRACBITS, scale, V_HUDTRANSHALF|fflags, localpatch, NULL);
+		V_DrawFixedPatch((fx<<FRACBITS) + ((overtake && flipdraw) ? ((SHORT)localpatch->width*scale/2) : 0), (fy<<FRACBITS) + ((overtake && flipvdraw) ? ((SHORT)localpatch->height*scale/2) : 0), scale, V_HUDTRANSHALF|fflags, localpatch, NULL);
 		// ^ if we overtake as p1 or p3 in splitscren, we shift it so that it doesn't go off screen.
+		// ^ if we overtake as p1 in 2p splits, shift vertically so that this doesn't happen either.
 
 		fx -= W;
 		num /= 10;
@@ -7530,7 +7534,7 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 			colormap = R_GetTranslationColormap(skin, mo->color, GTC_CACHE);
 		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
 		if (mo->player && K_IsPlayerWanted(mo->player))
-			V_DrawFixedPatch(amxpos - (4<<FRACBITS), amypos - (4<<FRACBITS), FRACUNIT, flags, kp_wantedreticle, colormap);
+			V_DrawFixedPatch(amxpos - (4<<FRACBITS), amypos - (4<<FRACBITS), FRACUNIT, flags, kp_wantedreticle, NULL);
 	}
 }
 
@@ -8324,6 +8328,15 @@ void K_drawKartHUD(void)
 	if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
 		K_drawKartPlayerCheck();
 
+	// Draw WANTED status
+	if (G_BattleGametype())
+	{
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_wanted))
+#endif
+			K_drawKartWanted();
+	}
+	
 	if (cv_kartminimap.value && !titledemo)
 	{
 #ifdef HAVE_BLUA
@@ -8338,15 +8351,6 @@ void K_drawKartHUD(void)
 	if (LUA_HudEnabled(hud_item))
 #endif
 		K_drawKartItem();
-
-	// Draw WANTED status
-	if (G_BattleGametype())
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_wanted))
-#endif
-			K_drawKartWanted();
-	}
 
 	// If not splitscreen, draw...
 	if (!splitscreen && !titledemo)
