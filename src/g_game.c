@@ -5487,7 +5487,7 @@ void G_BeginRecording(void)
 		// Now store a SIMPLIFIED data struct for each in-game player
 		for (p = 0; p < MAXPLAYERS; p++) {
 			if (playeringame[p] && !players[p].spectator) {
-				player = players[p];
+				player = &players[p];
 
 				WRITEUINT8(demo_p, p);
 
@@ -5505,7 +5505,7 @@ void G_BeginRecording(void)
 
 				// Color
 				memset(name, 0, 16);
-				strncpy(name, COLOR_ENUMS[player->skincolor], 16);
+				strncpy(name, KartColor_Names[player->skincolor], 16);
 				M_Memcpy(demo_p,name,16);
 				demo_p += 16;
 
@@ -5985,7 +5985,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 		while (p != 0xFF)
 		{
-			player = players[p];
+			player = &players[p];
 			if (!playeringame[displayplayer])
 				displayplayer = consoleplayer = p;
 			playeringame[p] = true;
