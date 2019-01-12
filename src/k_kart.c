@@ -631,15 +631,14 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		}
 	}
 
-	if (first != -1 && second != -1) // calculate 2nd's distance from 1st, for SPB
+	if (first != -1 && second != -1 && !G_BattleGametype()) // calculate 2nd's distance from 1st, for SPB
 	{
 		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
 													players[first].mo->y - players[second].mo->y),
 													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale;
 		if (franticitems)
 			secondist = (15*secondist/14);
-		if (pingame < 8 && !G_BattleGametype())
-			secondist = ((28+(8-pingame))*secondist/28);
+		secondist = ((28+(8-pingame))*secondist/28);
 	}
 
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
@@ -647,14 +646,13 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	// Then, it multiplies it further if there's less than 5 players in game.
 	// This is done to make low player count races more fair & interesting. (1v1s are basically the same as franticitems false in a normal race)
 	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
-	// The last two are very fractional and complicated, very sorry!
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
-		odds *= 2; \
-	if (pingame < 8 && !G_BattleGametype()) \
-		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((8-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
+		odds <<= 1; \
+	if (!G_BattleGametype()) \
+		odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((8-pingame) * (FRACUNIT/25))) >> FRACBITS; \
 	if (mashed > 0) \
-		odds = FixedDiv(odds*FRACUNIT, mashed+FRACUNIT)/FRACUNIT \
+		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
 
 	switch (item)
 	{
@@ -837,8 +835,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
 			pdis = (15*pdis/14);
-		if (pingame < 8 && !G_BattleGametype())
-			pdis = ((28+(8-pingame))*pdis/28);
+		pdis = ((28+(8-pingame))*pdis/28);
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
