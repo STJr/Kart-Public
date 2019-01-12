@@ -603,6 +603,32 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
 	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
+	boolean itemenabled[NUMKARTRESULTS] = {
+		cv_sneaker.value,
+		cv_rocketsneaker.value,
+		cv_invincibility.value,
+		cv_banana.value,
+		cv_eggmanmonitor.value,
+		cv_orbinaut.value,
+		cv_jawz.value,
+		cv_mine.value,
+		cv_ballhog.value,
+		cv_selfpropelledbomb.value,
+		cv_grow.value,
+		cv_shrink.value,
+		cv_thundershield.value,
+		cv_hyudoro.value,
+		cv_kitchensink.value,
+		cv_triplesneaker.value,
+		cv_triplebanana.value,
+		cv_decabanana.value,
+		cv_tripleorbinaut.value,
+		cv_quadorbinaut.value,
+		cv_dualjawz.value
+	};
+
+	if (!itemenabled[item] && !modeattacking)
+		return 0;
 
 	if (G_BattleGametype())
 		newodds = K_KartItemOddsBattle[item-1][pos];
@@ -634,14 +660,14 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		}
 	}
 
-	if (first != -1 && second != -1 && !G_BattleGametype()) // calculate 2nd's distance from 1st, for SPB
+	if (first != -1 && second != -1) // calculate 2nd's distance from 1st, for SPB
 	{
 		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
 													players[first].mo->y - players[second].mo->y),
 													players[first].mo->z - players[second].mo->z) / mapheaderinfo[gamemap-1]->mobj_scale;
 		if (franticitems)
-			secondist = (15*secondist/14);
-		secondist = ((28+(8-pingame))*secondist/28);
+			secondist = (15 * secondist) / 14;
+		secondist = ((28 + (8-pingame)) * secondist) / 28;
 	}
 
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
@@ -658,97 +684,41 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 
 	switch (item)
 	{
-		case KITEM_SNEAKER:
-			if ((!cv_sneaker.value) && (!modeattacking)) newodds = 0;
-			break;
-		case KITEM_ROCKETSNEAKER:
-			POWERITEMODDS(newodds);
-			if (!cv_rocketsneaker.value) newodds = 0;
-			break;
 		case KITEM_INVINCIBILITY:
-			POWERITEMODDS(newodds);
-			if ((!cv_invincibility.value) || (pinvin >= 2)) newodds = 0;
-			break;
-		case KITEM_BANANA:
-			if (!cv_banana.value) newodds = 0;
-			break;
-		case KITEM_EGGMAN:
-			if (!cv_eggmanmonitor.value) newodds = 0;
-			break;
-		case KITEM_ORBINAUT:
-			if (!cv_orbinaut.value) newodds = 0;
-			break;
+		case KITEM_GROW:
+			if (pinvin >= 2)
+				newodds = 0;
+			else
+			/* FALLTHRU */
+		case KITEM_ROCKETSNEAKER:
 		case KITEM_JAWZ:
-			POWERITEMODDS(newodds);
-			if (!cv_jawz.value) newodds = 0;
-			break;
 		case KITEM_MINE:
-			POWERITEMODDS(newodds);
-			if (!cv_mine.value) newodds = 0;
-			break;
 		case KITEM_BALLHOG:
+		case KITEM_THUNDERSHIELD:
+		case KRITEM_TRIPLESNEAKER:
+		case KRITEM_TRIPLEBANANA:
+		case KRITEM_TENFOLDBANANA:
+		case KRITEM_TRIPLEORBINAUT:
+		case KRITEM_QUADORBINAUT:
+		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
-			if (!cv_ballhog.value) newodds = 0;
 			break;
 		case KITEM_SPB:
 			//POWERITEMODDS(newodds);
-			if ((!cv_selfpropelledbomb.value)
-				|| (indirectitemcooldown > 0)
-				|| (pexiting > 0)
-				|| (secondist/distvar < (4+gamespeed)))
+			if ((indirectitemcooldown > 0) || (pexiting > 0) || (secondist/distvar < 5))
 				newodds = 0;
-			newodds *= min((secondist/distvar)-(3+gamespeed), 3);
-			break;
-		case KITEM_GROW:
-			POWERITEMODDS(newodds);
-			if ((!cv_grow.value) || (pinvin >= 2)) newodds = 0;
+			else
+				newodds *= min((secondist/distvar)-4, 3);
 			break;
 		case KITEM_SHRINK:
 			POWERITEMODDS(newodds);
-			if ((!cv_shrink.value)
-				|| (indirectitemcooldown > 0)
-				|| (pingame-1 <= pexiting)) newodds = 0;
-			break;
-		case KITEM_THUNDERSHIELD:
-			POWERITEMODDS(newodds);
-			if (!cv_thundershield.value) newodds = 0;
-			break;
-		case KITEM_HYUDORO:
-			if (!cv_hyudoro.value) newodds = 0;
-			break;
-		case KITEM_POGOSPRING:
-			if (!cv_pogospring.value) newodds = 0;
-			break;
-		case KITEM_KITCHENSINK:
-			newodds = 0; // Not obtained via normal means.
-			break;
-		case KRITEM_TRIPLESNEAKER:
-			POWERITEMODDS(newodds);
-			if (!cv_triplesneaker.value) newodds = 0;
-			break;
-		case KRITEM_TRIPLEBANANA:
-			POWERITEMODDS(newodds);
-			if (!cv_triplebanana.value) newodds = 0;
-			break;
-		case KRITEM_TENFOLDBANANA:
-			POWERITEMODDS(newodds);
-			if (!cv_decabanana.value) newodds = 0;
-			break;
-		case KRITEM_TRIPLEORBINAUT:
-			POWERITEMODDS(newodds);
-			if (!cv_tripleorbinaut.value) newodds = 0;
-			break;
-		case KRITEM_QUADORBINAUT:
-			POWERITEMODDS(newodds);
-			if (!cv_quadorbinaut.value) newodds = 0;
-			break;
-		case KRITEM_DUALJAWZ:
-			POWERITEMODDS(newodds);
-			if (!cv_dualjawz.value) newodds = 0;
+			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting))
+				newodds = 0;
 			break;
 		default:
 			break;
 	}
+
 #undef POWERITEMODDS
 
 	return newodds;
