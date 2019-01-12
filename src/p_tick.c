@@ -599,9 +599,26 @@ void P_Ticker(boolean run)
 	if (run)
 	{
 		if (demorecording)
-			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
+		{
+			if (!multiplayer) {
+				G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
+			} else {
+				for (i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i] && !players[i].spectator)
+						G_WriteDemoTiccmd(&players[i].cmd, i);
+			}
+		}
 		if (demoplayback)
+		{
+
+			if (!multiplayer) {
 			G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+			} else {
+				for (i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i] && !players[i].spectator)
+						G_ReadDemoTiccmd(&players[i].cmd, i);
+			}
+		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
