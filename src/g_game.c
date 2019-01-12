@@ -5434,7 +5434,7 @@ void G_RecordMetal(void)
 
 void G_BeginRecording(void)
 {
-	UINT8 i;
+	UINT8 i, p;
 	char name[16];
 	player_t *player = &players[consoleplayer];
 
@@ -5481,8 +5481,41 @@ void G_BeginRecording(void)
 	WRITEUINT32(demo_p,P_GetInitSeed());
 
 	if (demoflags & DF_MULTIPLAYER) {
-		// Net replays don't store player info here! Just skip to the netvars and return out.
+		// Netvars first :)
 		CV_SaveNetVars(&demo_p);
+
+		// Now store a SIMPLIFIED data struct for each in-game player
+		for (p = 0; p < MAXPLAYERS; p++) {
+			if (playeringame[p] && !players[p].spectator) {
+				player = players[p];
+
+				WRITEUINT8(demo_p, p);
+
+				// Name
+				memset(name, 0, 16);
+				strncpy(name, player_names[p], 16);
+				M_Memcpy(demo_p,name,16);
+				demo_p += 16;
+
+				// Skin
+				memset(name, 0, 16);
+				strncpy(name, skins[player->skin].name, 16);
+				M_Memcpy(demo_p,name,16);
+				demo_p += 16;
+
+				// Color
+				memset(name, 0, 16);
+				strncpy(name, COLOR_ENUMS[player->skincolor], 16);
+				M_Memcpy(demo_p,name,16);
+				demo_p += 16;
+
+				// Score, since Kart uses this to determine where you start on the map
+				WRITEUINT32(demo_p, player->score);
+			}
+		}
+
+		WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
+
 		return;
 	}
 
@@ -5738,7 +5771,7 @@ void G_DeferedPlayDemo(const char *name)
 #define SKIPERRORS
 void G_DoPlayDemo(char *defdemoname)
 {
-	UINT8 i;
+	UINT8 i, p;
 	lumpnum_t l;
 	char skin[17],color[17],*n,*pdemoname;
 	UINT8 version,subversion,charability,charability2,kartspeed,kartweight,thrustfactor,accelstart,acceleration;
@@ -5943,6 +5976,46 @@ void G_DoPlayDemo(char *defdemoname)
 	displayplayer = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));
 	playeringame[0] = !multiplayer;
+
+	if (multiplayer) {
+		player_t *player;
+
+		// Load players that were in-game when the map started
+		p = READUINT8(demo_p);
+
+		while (p != 0xFF)
+		{
+			player = players[p];
+			if (!playeringame[displayplayer])
+				displayplayer = consoleplayer = p;
+			playeringame[p] = true;
+
+			// Name
+			M_Memcpy(player_names[p],demo_p,16);
+			demo_p += 16;
+
+			// Skin
+			M_Memcpy(skin,demo_p,16);
+			demo_p += 16;
+			SetPlayerSkin(p, skin);
+
+			// Color
+			M_Memcpy(color,demo_p,16);
+			demo_p += 16;
+			for (i = 0; i < MAXSKINCOLORS; i++)
+				if (!stricmp(KartColor_Names[i],color))				// SRB2kart
+				{
+					players[p].skincolor = i;
+					break;
+				}
+
+			// Score, since Kart uses this to determine where you start on the map
+			player->score = READUINT32(demo_p);
+
+			// Look for the next player
+			p = READUINT8(demo_p);
+		}
+	}
 
 	P_SetRandSeed(randseed);
 	G_InitNew(false, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
