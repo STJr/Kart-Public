@@ -438,7 +438,7 @@ static const char *credits[] = {
 	"\"ZarroTsu\"",
 	"",
 	"\1Support Programming",
-	"\"fickle\"",
+	"Colette \"fickleheart\" Bordelon",
 	"\"Lat\'\"",
 	"\"Monster Iestyn\"",
 	"\"Shuffle\"",
