@@ -8336,7 +8336,7 @@ void K_drawKartHUD(void)
 #endif
 			K_drawKartWanted();
 	}
-	
+
 	if (cv_kartminimap.value && !titledemo)
 	{
 #ifdef HAVE_BLUA
