@@ -1318,13 +1318,13 @@ void Y_VoteTicker(void)
 				&& !voteclient.playerinfo[i].delay
 				&& pickedvote == -1 && votes[p] == -1)
 			{
-				if (InputDown(gc_aimforward, i+1) || JoyAxis(AXISAIM, i+1) < 0 || HatDown(0, i+1))
+				if (InputDown(gc_aimforward, i+1) || JoyAxis(AXISAIM, i+1) < 0)
 				{
 					voteclient.playerinfo[i].selection--;
 					pressed = true;
 				}
 
-				if ((InputDown(gc_aimbackward, i+1) || JoyAxis(AXISAIM, i+1) > 0 || HatDown(1, i+1)) && !pressed)
+				if ((InputDown(gc_aimbackward, i+1) || JoyAxis(AXISAIM, i+1) > 0) && !pressed)
 				{
 					voteclient.playerinfo[i].selection++;
 					pressed = true;

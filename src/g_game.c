@@ -1180,26 +1180,6 @@ boolean InputDown(INT32 gc, UINT8 p)
 	}
 }
 
-// Returns true if the hat is pressed for the specified player
-// 0 is up, 1 is down, 2 is left, 3 is right
-// Basically a hack needed to allow the d-pad on the vote screen.
-boolean HatDown(UINT8 dir, UINT8 p)
-{
-	if (p == 1 && gamekeydown[KEY_HAT1 + dir])
-		return true;
-
-	if (p == 2 && gamekeydown[KEY_2HAT1 + dir])
-		return true;
-
-	if (p == 3 && gamekeydown[KEY_3HAT1 + dir])
-		return true;
-
-	if (p == 4 && gamekeydown[KEY_4HAT1 + dir])
-		return true;
-
-	return false;
-}
-
 INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 {
 	switch (p)
