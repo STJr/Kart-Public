@@ -5443,7 +5443,7 @@ void G_BeginRecording(void)
 	memset(name,0,sizeof(name));
 
 	demo_p = demobuffer;
-	demoflags = DF_GHOST|(multiplayer ? DF_MULTIPLAYER : (modeattacking<<DF_ATTACKSHIFT));
+	demoflags = multiplayer ? DF_MULTIPLAYER : (DF_GHOST|(modeattacking<<DF_ATTACKSHIFT));
 
 	// Setup header.
 	M_Memcpy(demo_p, DEMOHEADER, 12); demo_p += 12;
