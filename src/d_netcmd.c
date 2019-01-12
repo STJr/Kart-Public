@@ -2337,6 +2337,11 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
+	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
+	if (multiplayer) {
+		G_RecordDemo("net_replay_test");
+	}
+
 	if (chmappending)
 		chmappending--;
 
