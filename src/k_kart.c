@@ -806,8 +806,8 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
 
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
-			pdis = (15*pdis/14);
-		pdis = ((28+(8-pingame))*pdis/28);
+			pdis = (15 * pdis) / 14;
+		pdis = ((28 + (8-pingame)) * pdis) / 28;
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
