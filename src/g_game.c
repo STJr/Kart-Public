@@ -4492,7 +4492,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define ZT_DRIFT   0x20
 #define DEMOMARKER 0x80 // demoend
 
-static ticcmd_t oldcmd;
+static ticcmd_t oldcmd[MAXPLAYERS];
 
 // For Metal Sonic and time attack ghosts
 #define GZT_XYZ    0x01
@@ -4556,26 +4556,25 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 {
 	UINT8 ziptic;
-	(void)playernum;
 
 	if (!demo_p || !demo_start)
 		return;
 	ziptic = READUINT8(demo_p);
 
 	if (ziptic & ZT_FWD)
-		oldcmd.forwardmove = READSINT8(demo_p);
+		oldcmd[playernum].forwardmove = READSINT8(demo_p);
 	if (ziptic & ZT_SIDE)
-		oldcmd.sidemove = READSINT8(demo_p);
+		oldcmd[playernum].sidemove = READSINT8(demo_p);
 	if (ziptic & ZT_ANGLE)
-		oldcmd.angleturn = READINT16(demo_p);
+		oldcmd[playernum].angleturn = READINT16(demo_p);
 	if (ziptic & ZT_BUTTONS)
-		oldcmd.buttons = (oldcmd.buttons & (BT_FORWARD|BT_BACKWARD)) | (READUINT16(demo_p) & ~(BT_FORWARD|BT_BACKWARD));
+		oldcmd[playernum].buttons = (oldcmd[playernum].buttons & (BT_FORWARD|BT_BACKWARD)) | (READUINT16(demo_p) & ~(BT_FORWARD|BT_BACKWARD));
 	if (ziptic & ZT_AIMING)
-		oldcmd.aiming = READINT16(demo_p);
+		oldcmd[playernum].aiming = READINT16(demo_p);
 	if (ziptic & ZT_DRIFT)
-		oldcmd.driftturn = READINT16(demo_p);
+		oldcmd[playernum].driftturn = READINT16(demo_p);
 
-	G_CopyTiccmd(cmd, &oldcmd, 1);
+	G_CopyTiccmd(cmd, &oldcmd[playernum], 1);
 
 	// SRB2kart: Copy-pasted from ticcmd building, removes that crappy demo cam
 	if (((players[displayplayer].mo && players[displayplayer].speed > 0) // Moving
@@ -4597,51 +4596,50 @@ void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 {
 	char ziptic = 0;
 	UINT8 *ziptic_p;
-	(void)playernum;
 
 	if (!demo_p)
 		return;
 	ziptic_p = demo_p++; // the ziptic, written at the end of this function
 
-	if (cmd->forwardmove != oldcmd.forwardmove)
+	if (cmd->forwardmove != oldcmd[playernum].forwardmove)
 	{
 		WRITEUINT8(demo_p,cmd->forwardmove);
-		oldcmd.forwardmove = cmd->forwardmove;
+		oldcmd[playernum].forwardmove = cmd->forwardmove;
 		ziptic |= ZT_FWD;
 	}
 
-	if (cmd->sidemove != oldcmd.sidemove)
+	if (cmd->sidemove != oldcmd[playernum].sidemove)
 	{
 		WRITEUINT8(demo_p,cmd->sidemove);
-		oldcmd.sidemove = cmd->sidemove;
+		oldcmd[playernum].sidemove = cmd->sidemove;
 		ziptic |= ZT_SIDE;
 	}
 
-	if (cmd->angleturn != oldcmd.angleturn)
+	if (cmd->angleturn != oldcmd[playernum].angleturn)
 	{
 		WRITEINT16(demo_p,cmd->angleturn);
-		oldcmd.angleturn = cmd->angleturn;
+		oldcmd[playernum].angleturn = cmd->angleturn;
 		ziptic |= ZT_ANGLE;
 	}
 
-	if (cmd->buttons != oldcmd.buttons)
+	if (cmd->buttons != oldcmd[playernum].buttons)
 	{
 		WRITEUINT16(demo_p,cmd->buttons);
-		oldcmd.buttons = cmd->buttons;
+		oldcmd[playernum].buttons = cmd->buttons;
 		ziptic |= ZT_BUTTONS;
 	}
 
-	if (cmd->aiming != oldcmd.aiming)
+	if (cmd->aiming != oldcmd[playernum].aiming)
 	{
 		WRITEINT16(demo_p,cmd->aiming);
-		oldcmd.aiming = cmd->aiming;
+		oldcmd[playernum].aiming = cmd->aiming;
 		ziptic |= ZT_AIMING;
 	}
 
-	if (cmd->driftturn != oldcmd.driftturn)
+	if (cmd->driftturn != oldcmd[playernum].driftturn)
 	{
 		WRITEINT16(demo_p,cmd->driftturn);
-		oldcmd.driftturn = cmd->driftturn;
+		oldcmd[playernum].driftturn = cmd->driftturn;
 		ziptic |= ZT_DRIFT;
 	}
 
