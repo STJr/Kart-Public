@@ -4364,7 +4364,7 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 
 			players[i].marescore = 0;
 
-			if (resetplayer) // SRB2Kart
+			if (resetplayer && !(multiplayer && demoplayback)) // SRB2Kart
 			{
 				players[i].score = 0;
 			}
@@ -5983,7 +5983,6 @@ void G_DoPlayDemo(char *defdemoname)
 
 		while (p != 0xFF)
 		{
-			player = &players[p];
 			if (!playeringame[displayplayer])
 				displayplayer = consoleplayer = p;
 			playeringame[p] = true;
@@ -6008,7 +6007,7 @@ void G_DoPlayDemo(char *defdemoname)
 				}
 
 			// Score, since Kart uses this to determine where you start on the map
-			player->score = READUINT32(demo_p);
+			players[p].score = READUINT32(demo_p);
 
 			// Look for the next player
 			p = READUINT8(demo_p);
