@@ -1421,13 +1421,16 @@ static void HU_drawMiniChat(void)
 
 	y = chaty - charheight*(msglines+1);
 
+#ifdef NETSPLITSCREEN
 	if (splitscreen)
 	{
 		y -= BASEVIDHEIGHT/2;
 		if (splitscreen > 1)
 			y += 16;
 	}
-	y -= (cv_kartspeedometer.value ? 16 : 0);
+	else
+#endif
+		y -= (cv_kartspeedometer.value ? 16 : 0);
 
 	dx = 0;
 	dy = 0;
