@@ -673,7 +673,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
 	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
 	// Then, it multiplies it further if there's less than 5 players in game.
-	// This is done to make low player count races more fair & interesting. (1v1s are basically the same as franticitems false in a normal race)
+	// This is done to make low player count races more fair & interesting. (2P normal would be about halfway between 8P normal and 8P frantic)
 	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
