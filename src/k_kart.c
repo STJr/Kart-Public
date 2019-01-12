@@ -613,21 +613,24 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			continue;
-
-		pingame++;
+		if (!G_BattleGametype() || players[i].kartstuff[k_bumper])
+			pingame++;
 		if (players[i].exiting)
 			pexiting++;
 		if (players[i].mo)
 		{
-			if (players[i].kartstuff[k_position] == 1 && first == -1)
-				first = i;
-			if (players[i].kartstuff[k_position] == 2 && second == -1)
-				second = i;
 			if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY
 				|| players[i].kartstuff[k_itemtype] == KITEM_GROW
 				|| players[i].kartstuff[k_invincibilitytimer]
 				|| players[i].kartstuff[k_growshrinktimer] > 0)
 				pinvin++;
+			if (!G_BattleGametype())
+			{
+				if (players[i].kartstuff[k_position] == 1 && first == -1)
+					first = i;
+				if (players[i].kartstuff[k_position] == 2 && second == -1)
+					second = i;
+			}
 		}
 	}
 
