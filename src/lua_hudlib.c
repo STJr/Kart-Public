@@ -45,8 +45,10 @@ static const char *const hud_disable_options[] = {
 	"item",
 	"position",
 	"minirankings",	// Gametype rankings to the left
+	"battlerankingsbumpers",	// bumper drawer for battle. Useful if you want to make a custom battle gamemode without bumpers being involved.
 	"wanted",
 	"speedometer",
+	"freeplay",
 	"rankings",
 	NULL};
 
@@ -482,6 +484,20 @@ static int libd_drawString(lua_State *L)
 	return 0;
 }
 
+static int libd_drawKartString(lua_State *L)
+{
+	fixed_t x = luaL_checkinteger(L, 1);
+	fixed_t y = luaL_checkinteger(L, 2);
+	const char *str = luaL_checkstring(L, 3);
+	INT32 flags = luaL_optinteger(L, 4, V_ALLOWLOWERCASE);
+
+	flags &= ~V_PARAMMASK; // Don't let crashes happen.
+
+	HUDONLY
+	V_DrawKartString(x, y, flags, str);
+	return 0;
+}
+
 static int libd_stringWidth(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);
@@ -593,6 +609,7 @@ static luaL_Reg lib_draw[] = {
 	{"drawFill", libd_drawFill},
 	{"fadeScreen", libd_fadeScreen},
 	{"drawString", libd_drawString},
+	{"drawKartString", libd_drawKartString},
 	{"stringWidth", libd_stringWidth},
 	{"getColormap", libd_getColormap},
 	{"width", libd_width},

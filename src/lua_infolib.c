@@ -22,6 +22,7 @@
 #include "lua_script.h"
 #include "lua_libs.h"
 #include "lua_hud.h" // hud_running errors
+#include "lua_hook.h"	// cmd errors
 
 boolean LUA_CallAction(const char *action, mobj_t *actor);
 state_t *astate;
@@ -169,6 +170,8 @@ static int lib_setState(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter states in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter states in BuildCMD code!");
 
 	// clear the state to start with, in case of missing table elements
 	memset(state,0,sizeof(state_t));
@@ -378,6 +381,8 @@ static int state_set(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter states in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter states in BuildCMD code!");
 
 	if (fastcmp(field,"sprite")) {
 		value = luaL_checknumber(L, 3);
@@ -466,6 +471,8 @@ static int lib_setMobjInfo(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter mobjinfo in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter mobjinfo in BuildCMD code!");
 
 	// clear the mobjinfo to start with, in case of missing table elements
 	memset(info,0,sizeof(mobjinfo_t));
@@ -633,6 +640,8 @@ static int mobjinfo_set(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter mobjinfo in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter mobjinfo in BuildCMD code!");
 
 	I_Assert(info != NULL);
 	I_Assert(info >= mobjinfo);
@@ -755,6 +764,8 @@ static int lib_setSfxInfo(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter sfxinfo in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter sfxinfo in BuildCMD code!");
 
 	lua_pushnil(L);
 	while (lua_next(L, 1)) {
@@ -830,6 +841,8 @@ static int sfxinfo_set(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter S_sfx in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter S_sfx in BuildCMD code!");
 
 	I_Assert(sfx != NULL);
 

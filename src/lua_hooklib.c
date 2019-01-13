@@ -61,6 +61,7 @@ const char *const hookNames[hook_MAX+1] = {
 	"PlayerSpin",
 	"PlayerExplode",
 	"PlayerSquish",
+	"PlayerCmd",
 	NULL
 };
 
@@ -871,6 +872,47 @@ boolean LUAh_BotTiccmd(player_t *bot, ticcmd_t *cmd)
 			if (lua_toboolean(gL, -1))
 				hooked = true;
 			lua_pop(gL, 1);
+		}
+
+	lua_settop(gL, 0);
+	return hooked;
+}
+
+// Hook for G_BuildTicCmd
+boolean hook_cmd_running = false;
+boolean LUAh_PlayerCmd(player_t *player, ticcmd_t *cmd)
+{
+	hook_p hookp;
+	boolean hooked = false;
+	if (!gL || !(hooksAvailable[hook_PlayerCmd/8] & (1<<(hook_PlayerCmd%8))))
+		return false;
+
+	lua_settop(gL, 0);
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_PlayerCmd)
+		{
+			hook_cmd_running = true;
+			if (lua_gettop(gL) == 0)
+			{
+				LUA_PushUserdata(gL, player, META_PLAYER);
+				LUA_PushUserdata(gL, cmd, META_TICCMD);
+			}
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			lua_pushvalue(gL, -3);
+			lua_pushvalue(gL, -3);
+			if (lua_pcall(gL, 2, 1, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+				continue;
+			}
+			if (lua_toboolean(gL, -1))
+				hooked = true;
+			lua_pop(gL, 1);
+			hook_cmd_running = false;
 		}
 
 	lua_settop(gL, 0);

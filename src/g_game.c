@@ -1612,10 +1612,18 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 	}
 
+	// Lua: Allow this hook to overwrite ticcmd.
+	// Be aware that you can't actually write anything inside the player with this hook, only cmd may be altered.
+#ifdef HAVE_BLUA
+	if (playeringame[consoleplayer])	// safe to assume we can't do anything if consoleplayer isn't in the game.
+		LUAh_PlayerCmd(player, cmd);
+#endif
+
 	//Reset away view if a command is given.
 	if ((cmd->forwardmove || cmd->sidemove || cmd->buttons)
 		&& displayplayer != consoleplayer && ssplayer == 1)
 		displayplayer = consoleplayer;
+
 }
 
 // User has designated that they want

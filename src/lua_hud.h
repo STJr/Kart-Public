@@ -20,8 +20,10 @@ enum hud {
 	hud_item,
 	hud_position,
 	hud_minirankings,	// Rankings to the left
+	hud_battlebumpers,	// mini rankings battle bumpers.
 	hud_wanted,
 	hud_speedometer,
+	hud_freeplay,
 	hud_rankings,		// Tab rankings
 
 	hud_MAX
