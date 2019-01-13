@@ -889,10 +889,10 @@ boolean LUAh_PlayerCmd(player_t *player, ticcmd_t *cmd)
 
 	lua_settop(gL, 0);
 
+	hook_cmd_running = true;
 	for (hookp = roothook; hookp; hookp = hookp->next)
 		if (hookp->type == hook_PlayerCmd)
 		{
-			hook_cmd_running = true;
 			if (lua_gettop(gL) == 0)
 			{
 				LUA_PushUserdata(gL, player, META_PLAYER);
@@ -912,9 +912,9 @@ boolean LUAh_PlayerCmd(player_t *player, ticcmd_t *cmd)
 			if (lua_toboolean(gL, -1))
 				hooked = true;
 			lua_pop(gL, 1);
-			hook_cmd_running = false;
 		}
 
+	hook_cmd_running = false;
 	lua_settop(gL, 0);
 	return hooked;
 }
