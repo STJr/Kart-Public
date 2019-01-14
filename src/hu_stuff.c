@@ -1184,8 +1184,8 @@ boolean HU_Responder(event_t *ev)
 		 || ev->data1 == KEY_LALT || ev->data1 == KEY_RALT)
 			return true;
 
-		// Ignore joystick hats, except when the talk key is bound
-		if (ev->data1 >= KEY_HAT1 && ev->data1 <= KEY_HAT1+3 
+		// Ignore non-keyboard keys, except when the talk key is bound
+		if (ev->data1 >= KEY_MOUSE1 
 		&& (ev->data1 != gamecontrol[gc_talkkey][0] 
 		&& ev->data1 != gamecontrol[gc_talkkey][1]))
 			return false;

@@ -2076,8 +2076,8 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 		I_OsPolling();
 		key = I_GetKey();
-		// For some reason, gamekeydown[gamecontrol[gc_brake][0]] is always true here, so we're just going to check the second to fourth buttons.
-		if (key == KEY_ESCAPE || key == KEY_JOY1+1 || key == KEY_JOY1+2 || key == KEY_JOY1+3) 
+		// Any key can be used to abort network connection
+		if (key != KEY_NULL) 
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 //				M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
