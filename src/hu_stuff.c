@@ -1184,6 +1184,12 @@ boolean HU_Responder(event_t *ev)
 		 || ev->data1 == KEY_LALT || ev->data1 == KEY_RALT)
 			return true;
 
+		// Ignore non-keyboard keys, except when the talk key is bound
+		if (ev->data1 >= KEY_MOUSE1 
+		&& (ev->data1 != gamecontrol[gc_talkkey][0] 
+		&& ev->data1 != gamecontrol[gc_talkkey][1]))
+			return false;
+
 		c = (INT32)ev->data1;
 
 		// I know this looks very messy but this works. If it ain't broke, don't fix it!
