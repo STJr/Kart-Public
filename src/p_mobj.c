@@ -7441,10 +7441,10 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_SSMINE:
 		case MT_SPBEXPLOSION:
-			if (mobj->health > -100)
+			if (mobj->extravalue2 != -100)
 			{
 				P_SetMobjState(mobj, mobj->info->deathstate);
-				mobj->health = -100;
+				mobj->extravalue2 = -100;
 			}
 			else
 			{

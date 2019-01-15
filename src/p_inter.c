@@ -588,7 +588,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 				if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0)
 				{
-					player->powers[pw_flashing] = 0;
+					//player->powers[pw_flashing] = 0;
 					K_DropHnextList(player);
 					K_StripItems(player);
 				}
