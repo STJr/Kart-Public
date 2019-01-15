@@ -579,30 +579,31 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (special->health <= 0 || toucher->health <= 0)
 				return;
 
-			if (!player->mo || player->spectator)
+			if (player->spectator)
 				return;
 
-			if (special->tracer && toucher == special->tracer)
+			if (special->tracer && !P_MobjWasRemoved(special->tracer) && toucher == special->tracer)
 			{
 				mobj_t *spbexplode;
 
-				S_StopSound(special); // Don't continue playing the gurgle or the siren
-
-				if (!player->kartstuff[k_invincibilitytimer] && !player->kartstuff[k_growshrinktimer])
+				if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0)
 				{
+					player->powers[pw_flashing] = 0;
 					K_DropHnextList(player);
 					K_StripItems(player);
-					//player->powers[pw_flashing] = 0;
 				}
+
+				S_StopSound(special); // Don't continue playing the gurgle or the siren
 
 				spbexplode = P_SpawnMobj(toucher->x, toucher->y, toucher->z, MT_SPBEXPLOSION);
 				spbexplode->extravalue1 = 1; // Tell K_ExplodePlayer to use extra knockback
-				P_SetTarget(&spbexplode->target, special->target);
+				if (special->target && !P_MobjWasRemoved(special->target))
+					P_SetTarget(&spbexplode->target, special->target);
 
 				P_RemoveMobj(special);
 			}
 			else
-				K_SpinPlayer(player, NULL, 0, special, false);
+				K_SpinPlayer(player, special->target, 0, special, false);
 			return;
 		/*case MT_EERIEFOG:
 			special->frame &= ~FF_TRANS80;
