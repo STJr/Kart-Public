@@ -86,7 +86,8 @@ INT16 lastmapsaved = 0; // Last map we auto-saved at
 boolean gamecomplete = false;
 
 UINT16 mainwads = 0;
-boolean modifiedgame; // Set if homebrew PWAD stuff has been added.
+boolean modifiedgame = false; // Set if homebrew PWAD stuff has been added.
+boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been added.
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
@@ -5918,6 +5919,19 @@ void G_DoPlayDemo(char *defdemoname)
 		return;
 	}
 
+	// Skin not loaded?
+	if (!SetPlayerSkin(0, skin))
+	{
+		snprintf(msg, 1024, M_GetText("%s features a character that is not loaded.\n"), pdemoname);
+		CONS_Alert(CONS_ERROR, "%s", msg);
+		M_StartMessage(msg, NULL, MM_NOTHING);
+		Z_Free(pdemoname);
+		Z_Free(demobuffer);
+		demoplayback = false;
+		titledemo = false;
+		return;
+	}
+
 	Z_Free(pdemoname);
 
 	memset(&oldcmd,0,sizeof(oldcmd));
@@ -5948,9 +5962,6 @@ void G_DoPlayDemo(char *defdemoname)
 	playeringame[0] = true;
 	P_SetRandSeed(randseed);
 	G_InitNew(false, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
-
-	// Set skin
-	SetPlayerSkin(0, skin);
 
 	// Set color
 	for (i = 0; i < MAXSKINCOLORS; i++)
@@ -6146,6 +6157,22 @@ void G_AddGhost(char *defdemoname)
 		return;
 	}
 
+	gh->oldmo->skin = &skins[0];
+	for (i = 0; i < numskins; i++)
+		if (!stricmp(skins[i].name,skin))
+		{
+			gh->oldmo->skin = &skins[i];
+			break;
+		}
+
+	if (i == numskins)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Failed to add ghost %s: Invalid character.\n"), pdemoname);
+		Z_Free(pdemoname);
+		Z_Free(buffer);
+		return;
+	}
+
 	gh = Z_Calloc(sizeof(demoghost), PU_LEVEL, NULL);
 	gh->next = ghosts;
 	gh->buffer = buffer;
@@ -6191,14 +6218,7 @@ void G_AddGhost(char *defdemoname)
 	gh->oldmo.z = gh->mo->z;
 
 	// Set skin
-	gh->mo->skin = &skins[0];
-	for (i = 0; i < numskins; i++)
-		if (!stricmp(skins[i].name,skin))
-		{
-			gh->mo->skin = &skins[i];
-			break;
-		}
-	gh->oldmo.skin = gh->mo->skin;
+	gh->mo.skin = gh->oldmo->skin;
 
 	// Set color
 	gh->mo->color = ((skin_t*)gh->mo->skin)->prefcolor;

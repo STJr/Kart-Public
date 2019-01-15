@@ -194,7 +194,7 @@ typedef struct drawnode_s
 extern INT32 numskins;
 extern skin_t skins[MAXSKINS + 1];
 
-void SetPlayerSkin(INT32 playernum,const char *skinname);
+boolean SetPlayerSkin(INT32 playernum,const char *skinname);
 void SetPlayerSkinByNum(INT32 playernum,INT32 skinnum); // Tails 03-16-2002
 INT32 R_SkinAvailable(const char *name);
 void R_AddSkins(UINT16 wadnum);

@@ -2214,10 +2214,13 @@ static void Command_Map_f(void)
 		return;
 	}
 
-	if (!(netgame || multiplayer) && (!modifiedgame || savemoddata))
+	if (!(netgame || multiplayer) && (!majormods || savemoddata))
 	{
 		if (COM_CheckParm("-force"))
+		{
 			G_SetGameModified(false);
+			majormods = true;
+		}
 		else
 		{
 			CONS_Printf(M_GetText("Sorry, level change disabled in single player.\n"));
@@ -4915,7 +4918,7 @@ static void Command_Isgamemodified_f(void)
 {
 	if (savemoddata)
 		CONS_Printf(M_GetText("modifiedgame is true, but you can save medal and record data in this mod.\n"));
-	else if (modifiedgame)
+	else if (/*modifiedgame*/ majormods)
 		CONS_Printf(M_GetText("modifiedgame is true, extras will not be unlocked\n"));
 	else
 		CONS_Printf(M_GetText("modifiedgame is false, you can unlock extras\n"));

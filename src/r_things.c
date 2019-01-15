@@ -2635,7 +2635,7 @@ INT32 R_SkinAvailable(const char *name)
 }
 
 // network code calls this when a 'skin change' is received
-void SetPlayerSkin(INT32 playernum, const char *skinname)
+boolean SetPlayerSkin(INT32 playernum, const char *skinname)
 {
 	INT32 i;
 	player_t *player = &players[playernum];
@@ -2646,7 +2646,7 @@ void SetPlayerSkin(INT32 playernum, const char *skinname)
 		if (stricmp(skins[i].name, skinname) == 0)
 		{
 			SetPlayerSkinByNum(playernum, i);
-			return;
+			return true;
 		}
 	}
 
@@ -2656,6 +2656,7 @@ void SetPlayerSkin(INT32 playernum, const char *skinname)
 		CONS_Alert(CONS_WARNING, M_GetText("Player %d (%s) skin '%s' not found\n"), playernum, player_names[playernum], skinname);
 
 	SetPlayerSkinByNum(playernum, 0);
+	return false;
 }
 
 // Same as SetPlayerSkin, but uses the skin #.

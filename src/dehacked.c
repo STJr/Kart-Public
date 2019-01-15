@@ -3417,18 +3417,21 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			if (fastcmp(word, "FREESLOT"))
 			{
 				readfreeslots(f);
+				majormods = true;
 				continue;
 			}
 			else if (fastcmp(word, "MAINCFG"))
 			{
 				readmaincfg(f);
 				DEH_WriteUndoline(word, "", UNDO_HEADER);
+				majormods = true;
 				continue;
 			}
 			else if (fastcmp(word, "WIPES"))
 			{
 				readwipes(f);
 				DEH_WriteUndoline(word, "", UNDO_HEADER);
+				//majormods = true;
 				continue;
 			}
 			word2 = strtok(NULL, " ");
@@ -3449,6 +3452,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					ignorelines(f);
 				}
 				DEH_WriteUndoline(word, word2, UNDO_HEADER);
+				//majormods = true;
 				continue;
 			}
 			if (word2)
@@ -3462,12 +3466,14 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					// Read texture from spec file.
 					readtexture(f, word2);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true;
 				}
 				else if (fastcmp(word, "PATCH"))
 				{
 					// Read patch from spec file.
 					readpatch(f, word2, wad);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true;
 				}
 				else if (fastcmp(word, "THING") || fastcmp(word, "MOBJ") || fastcmp(word, "OBJECT"))
 				{
@@ -3481,10 +3487,12 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					majormods = true;
 				}
 /*				else if (fastcmp(word, "ANIMTEX"))
 				{
 					readAnimTex(f, i);
+					//majormods = true;
 				}*/
 				else if (fastcmp(word, "LIGHT"))
 				{
@@ -3498,6 +3506,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true;
 #endif
 				}
 				else if (fastcmp(word, "SPRITE"))
@@ -3513,6 +3522,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true;
 #endif
 				}
 				else if (fastcmp(word, "LEVEL"))
@@ -3525,7 +3535,11 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						i = M_MapNumber(word2[0], word2[1]);
 
 					if (i > 0 && i <= NUMMAPS)
+					{
+						if (mapheaderinfo[i])
+							majormods = true; // only mark as a major mod if it replaces an already-existing mapheaderinfo
 						readlevelheader(f, i);
+					}
 					else
 					{
 						deh_warning("Level number %d out of range (1 - %d)", i, NUMMAPS);
@@ -3543,6 +3557,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true; -- might have to reconsider in a future update
 				}
 				else if (fastcmp(word, "FRAME") || fastcmp(word, "STATE"))
 				{
@@ -3556,6 +3571,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					majormods = true;
 				}
 				// <Callum> Added translations to this just in case its re-enabled
 /*				else if (fastcmp(word, "POINTER"))
@@ -3578,6 +3594,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					else
 						deh_warning("pointer (Frame %d) : missing ')'", i);
+					majormods = true;
 				}*/
 				else if (fastcmp(word, "SOUND"))
 				{
@@ -3591,6 +3608,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true; -- ...this won't bite me in the ass later, will it?
 				}
 /*				else if (fastcmp(word, "SPRITE"))
 				{
@@ -3611,6 +3629,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					else
 						deh_warning("Sprite %d doesn't exist",i);
+					//majormods = true;
 				}*/
 				else if (fastcmp(word, "HUDITEM"))
 				{
@@ -3624,6 +3643,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//majormods = true;
 				}
 				else if (fastcmp(word, "EMBLEM"))
 				{
@@ -3644,6 +3664,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					majormods = true;
 				}
 				else if (fastcmp(word, "EXTRAEMBLEM"))
 				{
@@ -3664,6 +3685,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					majormods = true;
 				}
 				else if (fastcmp(word, "UNLOCKABLE"))
 				{
@@ -3680,6 +3702,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					majormods = true;
 				}
 				else if (fastcmp(word, "CONDITIONSET"))
 				{
@@ -3697,6 +3720,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					// no undo support for this insanity yet
 					//DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					majormods = true;
 				}
 				else if (fastcmp(word, "SRB2KART"))
 				{
@@ -3743,6 +3767,8 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 
 					if (clearall || fastcmp(word2, "LEVELS"))
 						clear_levels();
+
+					majormods = true;
 				}
 				else
 					deh_warning("Unknown word: %s", word);
@@ -9737,7 +9763,7 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushboolean(L, devparm);
 		return 1;
 	} else if (fastcmp(word,"modifiedgame")) {
-		lua_pushboolean(L, modifiedgame && !savemoddata);
+		lua_pushboolean(L, /*modifiedgame*/ majormods && !savemoddata);
 		return 1;
 	} else if (fastcmp(word,"menuactive")) {
 		lua_pushboolean(L, menuactive);

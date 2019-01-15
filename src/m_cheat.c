@@ -1268,6 +1268,7 @@ void Command_ObjectPlace_f(void)
 	REQUIRE_NOULTIMATE;
 
 	G_SetGameModified(multiplayer);
+	majormods = true;
 
 	// Entering objectplace?
 	if (!objectplacing)
