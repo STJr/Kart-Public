@@ -8364,13 +8364,13 @@ void A_SPBChase(mobj_t *actor)
 		if (!playeringame[i] || players[i].spectator || players[i].exiting)
 			continue; // not in-game
 
-		if (!players[i].mo)
+		/*if (!players[i].mo)
 			continue; // no mobj
 
 		if (players[i].mo->health <= 0)
 			continue; // dead
 
-		/*if (players[i].kartstuff[k_respawn])
+		if (players[i].kartstuff[k_respawn])
 			continue;*/ // respawning
 
 		if (players[i].kartstuff[k_position] < bestrank)
@@ -8386,18 +8386,35 @@ void A_SPBChase(mobj_t *actor)
 		{
 			fixed_t defspeed = wspeed;
 			fixed_t range = (160*actor->tracer->scale);
+			fixed_t cx = 0, cy =0;
+
+			// Play the intimidating gurgle
+			if (!S_SoundPlaying(actor, actor->info->activesound))
+				S_StartSound(actor, actor->info->activesound);
 
 			// Maybe we want SPB to target an object later? IDK lol
-			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
+			if (actor->tracer->player)
 			{
+				UINT8 fracmax = 32;
+				UINT8 spark = ((10-actor->tracer->player->kartspeed) + actor->tracer->player->kartweight) / 2;
+				fixed_t easiness = ((actor->tracer->player->kartspeed + (10-spark)) << FRACBITS) / 2;
+
 				actor->lastlook = actor->tracer->player-players; // Save the player num for death scumming...
 
 				if (!P_IsObjectOnGround(actor->tracer) /*&& !actor->tracer->player->kartstuff[k_pogospring]*/)
-					defspeed = (7*actor->tracer->player->speed)/8; // In the air you have no control; basically don't hit unless you make a near complete stop
+				{
+					// In the air you have no control; basically don't hit unless you make a near complete stop
+					defspeed = (7 * actor->tracer->player->speed) / 8;
+				}
 				else
-					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
+				{
+					// 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
+					defspeed = FixedMul(((fracmax+1)<<FRACBITS) - easiness, K_GetKartSpeed(actor->tracer->player, false)) / fracmax;
+				}
 
-				defspeed -= (9*R_PointToDist2(0, 0, actor->tracer->player->cmomx, actor->tracer->player->cmomy))/8; // Be fairer on conveyors
+				// Be fairer on conveyors
+				cx = actor->tracer->player->cmomx;
+				cy = actor->tracer->player->cmomy;
 
 				// Switch targets if you're no longer 1st for long enough
 				if (actor->tracer->player->kartstuff[k_position] <= bestrank)
@@ -8408,10 +8425,6 @@ void A_SPBChase(mobj_t *actor)
 				spbplace = actor->tracer->player->kartstuff[k_position];
 			}
 
-			// Play the intimidating gurgle
-			if (!S_SoundPlaying(actor, actor->info->activesound))
-				S_StartSound(actor, actor->info->activesound);
-
 			dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
 
 			wspeed = FixedMul(defspeed, FRACUNIT + FixedDiv(dist-range, range));
@@ -8419,9 +8432,17 @@ void A_SPBChase(mobj_t *actor)
 				wspeed = defspeed;
 			if (wspeed > (3*defspeed)/2)
 				wspeed = (3*defspeed)/2;
+			if (wspeed < 20*actor->tracer->scale)
+				wspeed = 20*actor->tracer->scale;
 
 			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+			// Modify stored speed
+			if (wspeed > actor->cvmem)
+				actor->cvmem += (wspeed - actor->cvmem) / TICRATE;
+			else
+				actor->cvmem = wspeed;
 
 			{
 				// Smoothly rotate horz angle
@@ -8431,7 +8452,7 @@ void A_SPBChase(mobj_t *actor)
 					input = InvAngle(input);
 
 				// Slow down when turning; it looks better and makes U-turns not unfair
-				xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+				xyspeed = FixedMul(actor->cvmem, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
 
 				input = FixedAngle(AngleFixed(input)/4);
 				if (invert)
@@ -8446,7 +8467,7 @@ void A_SPBChase(mobj_t *actor)
 					input = InvAngle(input);
 
 				// Slow down when turning; might as well do it for momz, since we do it above too
-				zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+				zspeed = FixedMul(actor->cvmem, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
 
 				input = FixedAngle(AngleFixed(input)/4);
 				if (invert)
@@ -8455,8 +8476,8 @@ void A_SPBChase(mobj_t *actor)
 				actor->movedir += input;
 			}
 
-			actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
-			actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momx = cx + FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momy = cy + FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
 			actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
 
 			// Red speed lines for when it's gaining on its target. A tell for when you're starting to lose too much speed!
@@ -8491,15 +8512,18 @@ void A_SPBChase(mobj_t *actor)
 	{
 		actor->momx = actor->momy = actor->momz = 0; // Stoooop
 
-		if (actor->lastlook != -1 && playeringame[actor->lastlook] && players[actor->lastlook].mo)
+		if (actor->lastlook != -1
+			&& playeringame[actor->lastlook]
+			&& !players[actor->lastlook].spectator
+			&& !players[actor->lastlook].exiting)
 		{
 			spbplace = players[actor->lastlook].kartstuff[k_position];
-			if (actor->extravalue2-- <= 0)
+			if (actor->extravalue2-- <= 0 && players[actor->lastlook].mo)
 			{
 				P_SetTarget(&actor->tracer, players[actor->lastlook].mo);
-				actor->extravalue1 = 1; // TARGETING
+				actor->extravalue1 = 1; // TARGET ACQUIRED
 				actor->extravalue2 = 7*TICRATE;
-				actor->extravalue2 = 0;
+				actor->cvmem = wspeed;
 			}
 		}
 		else
@@ -8513,22 +8537,12 @@ void A_SPBChase(mobj_t *actor)
 	{
 		actor->lastlook = -1; // Just make sure this is reset
 
-		// No one there?
-		if (player == NULL || !player->mo)
+		if (!player || !player->mo || player->mo->health <= 0 || player->kartstuff[k_respawn])
 		{
-#if 0
-			// SELF-DESTRUCT?
-			mobj_t *spbexplode;
-
-			S_StopSound(actor); // Don't continue playing the gurgle or the siren
-			spbexplode = P_SpawnMobj(actor->x, actor->y, actor->z, MT_SPBEXPLOSION);
-			P_SetTarget(&spbexplode->target, actor->target);
-
-			P_RemoveMobj(actor);
-#else
+			// No one there? Completely STOP.
 			actor->momx = actor->momy = actor->momz = 0;
-#endif
-			spbplace = -1;
+			if (!player)
+				spbplace = -1;
 			return;
 		}
 
@@ -8582,6 +8596,7 @@ void A_SPBChase(mobj_t *actor)
 			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
 			actor->extravalue1 = 1; // TARGET ACQUIRED
 			actor->extravalue2 = 7*TICRATE;
+			actor->cvmem = wspeed;
 		}
 	}
 
