@@ -7334,6 +7334,9 @@ static void K_drawKartWanted(void)
 	UINT8 *colormap = NULL;
 	INT32 basex = 0, basey = 0;
 
+	if (stplyr != &players[displayplayer])
+		return;
+
 	for (i = 0; i < 4; i++)
 	{
 		if (battlewanted[i] == -1)
