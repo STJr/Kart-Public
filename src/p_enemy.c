@@ -8404,7 +8404,7 @@ void A_SPBChase(mobj_t *actor)
 				if (!P_IsObjectOnGround(actor->tracer) /*&& !actor->tracer->player->kartstuff[k_pogospring]*/)
 				{
 					// In the air you have no control; basically don't hit unless you make a near complete stop
-					defspeed = FixedMul(((fracmax+1)<<FRACBITS) - easiness, actor->tracer->player->speed) / fracmax;
+					defspeed = (7 * actor->tracer->player->speed) / 8;
 				}
 				else
 				{
@@ -8440,7 +8440,7 @@ void A_SPBChase(mobj_t *actor)
 
 			// Modify stored speed
 			if (wspeed > actor->cvmem)
-				actor->cvmem += (wspeed - actor->cvmem) / (3*TICRATE);
+				actor->cvmem += (wspeed - actor->cvmem) / TICRATE;
 			else
 				actor->cvmem = wspeed;
 
