@@ -2584,7 +2584,7 @@ boolean M_Responder(event_t *ev)
 		return false;
 	else if (ch == gamecontrol[gc_systemmenu][0] || ch == gamecontrol[gc_systemmenu][1]) // allow remappable ESC key
 		ch = KEY_ESCAPE;
-	else if (ch == gamecontrol[gc_accelerate][0] || ch == gamecontrol[gc_accelerate][1])
+	else if ((ch == gamecontrol[gc_accelerate][0] || ch == gamecontrol[gc_accelerate][1])  && ch >= KEY_MOUSE1)
 		ch = KEY_ENTER;
 
 	// F-Keys
@@ -2662,7 +2662,7 @@ boolean M_Responder(event_t *ev)
 		return false;
 	}
 
-	if (ch == gamecontrol[gc_brake][0] || ch == gamecontrol[gc_brake][1]) // do this here, otherwise brake opens the menu mid-game
+	if ((ch == gamecontrol[gc_brake][0] || ch == gamecontrol[gc_brake][1]) && ch >= KEY_MOUSE1) // do this here, otherwise brake opens the menu mid-game
 		ch = KEY_ESCAPE;
 
 	routine = currentMenu->menuitems[itemOn].itemaction;
