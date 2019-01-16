@@ -3887,6 +3887,32 @@ static void HandlePacketFromAwayNode(SINT8 node)
 #undef SERVERONLY
 }
 
+/** Checks ticcmd for "speed hacks"
+  *
+  * \param p Which player
+  * \return True if player is hacking
+  * \sa HandlePacketFromPlayer
+  *
+  */
+static boolean CheckForSpeedHacks(UINT8 p)
+{
+	if (netcmds[maketic%BACKUPTICS][p].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][p].forwardmove < -MAXPLMOVE
+		|| netcmds[maketic%BACKUPTICS][p].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][p].sidemove < -MAXPLMOVE
+		|| netcmds[maketic%BACKUPTICS][p].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][p].driftturn < -KART_FULLTURN)
+	{
+		XBOXSTATIC char buf[2];
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), playernode[p]);
+		//D_Clearticcmd(k);
+
+		buf[0] = (char)p;
+		buf[1] = KICK_MSG_CON_FAIL;
+		SendNetXCmd(XD_KICK, &buf, 2);
+		return true;
+	}
+
+	return false;
+}
+
 /** Handles a packet received from a node that is in game
   *
   * \param node The packet sender
@@ -3981,19 +4007,8 @@ FILESTAMP
 			G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][netconsole], &netbuffer->u.clientpak.cmd, 1);
 
 			// Check ticcmd for "speed hacks"
-			if (netcmds[maketic%BACKUPTICS][netconsole].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].forwardmove < -MAXPLMOVE
-				|| netcmds[maketic%BACKUPTICS][netconsole].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].sidemove < -MAXPLMOVE ||
-				netcmds[maketic%BACKUPTICS][netconsole].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][netconsole].driftturn < -KART_FULLTURN)
-			{
-				XBOXSTATIC char buf[2];
-				CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
-				//D_Clearticcmd(k);
-
-				buf[0] = (char)netconsole;
-				buf[1] = KICK_MSG_CON_FAIL;
-				SendNetXCmd(XD_KICK, &buf, 2);
+			if (CheckForSpeedHacks((UINT8)netconsole))
 				break;
-			}
 
 			// Splitscreen cmd
 			if (((netbuffer->packettype == PT_CLIENT2CMD || netbuffer->packettype == PT_CLIENT2MIS)
@@ -4004,20 +4019,8 @@ FILESTAMP
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]],
 					&netbuffer->u.client2pak.cmd2, 1);
 
-				// more "speed hacks"
-				if (netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].forwardmove < -MAXPLMOVE
-					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].sidemove < -MAXPLMOVE ||
-					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].driftturn < -KART_FULLTURN)
-				{
-					XBOXSTATIC char buf[2];
-					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
-					//D_Clearticcmd(k);
-
-					buf[0] = (char)nodetoplayer2[node];
-					buf[1] = KICK_MSG_CON_FAIL;
-					SendNetXCmd(XD_KICK, &buf, 2);
+				if (CheckForSpeedHacks((UINT8)nodetoplayer2[node]))
 					break;
-				}
 			}
 
 			if (((netbuffer->packettype == PT_CLIENT3CMD || netbuffer->packettype == PT_CLIENT3MIS)
@@ -4027,20 +4030,8 @@ FILESTAMP
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]],
 					&netbuffer->u.client3pak.cmd3, 1);
 
-				// more "speed hacks"
-				if (netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].forwardmove < -MAXPLMOVE
-					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].sidemove < -MAXPLMOVE ||
-					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].driftturn < -KART_FULLTURN)
-				{
-					XBOXSTATIC char buf[2];
-					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
-					//D_Clearticcmd(k);
-
-					buf[0] = (char)nodetoplayer3[node];
-					buf[1] = KICK_MSG_CON_FAIL;
-					SendNetXCmd(XD_KICK, &buf, 2);
+				if (CheckForSpeedHacks((UINT8)nodetoplayer3[node]))
 					break;
-				}
 			}
 
 			if ((netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS)
@@ -4049,20 +4040,8 @@ FILESTAMP
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]],
 					&netbuffer->u.client4pak.cmd4, 1);
 
-				// more "speed hacks"
-				if (netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].forwardmove < -MAXPLMOVE
-					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].sidemove < -MAXPLMOVE ||
-					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].driftturn < -KART_FULLTURN)
-				{
-					XBOXSTATIC char buf[2];
-					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
-					//D_Clearticcmd(k);
-
-					buf[0] = (char)nodetoplayer4[node];
-					buf[1] = KICK_MSG_CON_FAIL;
-					SendNetXCmd(XD_KICK, &buf, 2);
+				if (CheckForSpeedHacks((UINT8)nodetoplayer4[node]))
 					break;
-				}
 			}
 
 			// A delay before we check resynching
