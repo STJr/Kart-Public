@@ -911,41 +911,7 @@ static menuitem_t SP_LevelStatsMenu[] =
 // External files modify this menu, so we can't call it static.
 // And I'm too lazy to go through and rename it everywhere. ARRGH!
 #define M_ChoosePlayer NULL
-menuitem_t PlayerMenu[32] =
-{
-	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0}
-};
+menuitem_t PlayerMenu[MAXSKINS];
 
 // -----------------------------------
 // Multiplayer and all of its submenus
@@ -3188,6 +3154,8 @@ void M_Ticker(void)
 //
 void M_Init(void)
 {
+	UINT8 i;
+
 	COM_AddCommand("manual", Command_Manual_f);
 
 	CV_RegisterVar(&cv_nextmap);
@@ -3234,6 +3202,15 @@ void M_Init(void)
 	quitmsg[QUIT3MSG4] = M_GetText("Every time you press 'Y', an\nSRB2Kart Developer cries...\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT3MSG5] = M_GetText("You'll be back to play soon, though...\n...right?\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT3MSG6] = M_GetText("Aww, is Eggman's Nightclub too\ndifficult for you?\n\n(Press 'Y' to quit)");
+
+	// Setup PlayerMenu table
+	for (i = 0; i < MAXSKINS; i++)
+	{
+		PlayerMenu[i].status = (i == 0 ? IT_CALL : IT_DISABLED);
+		PlayerMenu[i].patch = PlayerMenu[i].text = NULL;
+		PlayerMenu[i].itemaction = M_ChoosePlayer;
+		PlayerMenu[i].alphaKey = 0;
+	}
 
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
