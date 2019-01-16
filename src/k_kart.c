@@ -7792,7 +7792,7 @@ static void K_drawBattleFullscreen(void)
 	{
 		if (stplyr == &players[displayplayer])
 			V_DrawFadeScreen(0xFF00, 16);
-		if (stplyr->exiting < 6*TICRATE)
+		if (stplyr->exiting < 6*TICRATE && !stplyr->spectator)
 		{
 			if (stplyr->kartstuff[k_position] == 1)
 				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
