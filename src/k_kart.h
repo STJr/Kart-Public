@@ -9,6 +9,8 @@
 #include "doomdef.h"
 #include "d_player.h" // Need for player_t
 
+#define KART_FULLTURN 800
+
 UINT8 colortranslations[MAXSKINCOLORS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
 extern const UINT8 KartColor_Opposite[MAXSKINCOLORS*2];

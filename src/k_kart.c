@@ -5499,7 +5499,12 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime >= starttime-(2*TICRATE) && leveltime <= starttime)
 	{
 		if (cmd->buttons & BT_ACCELERATE)
+		{
+			if (player->kartstuff[k_boostcharge] == 0)
+				player->kartstuff[k_boostcharge] = cmd->latency;
+
 			player->kartstuff[k_boostcharge]++;
+		}
 		else
 			player->kartstuff[k_boostcharge] = 0;
 	}
@@ -8484,7 +8489,7 @@ void K_drawKartHUD(void)
 	{
 		UINT8 p;
 		for (p = 0; p < MAXPLAYERS; p++)
-			V_DrawString(8, 64+(8*p), V_YELLOWMAP, va("%d - %d", p, playernode[p]));
+			V_DrawString(8, 64+(8*p), V_YELLOWMAP, va("%d - %d (%dl)", p, playernode[p], players[p].cmd.latency));
 	}
 }
 

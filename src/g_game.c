@@ -1209,7 +1209,7 @@ boolean camspin, camspin2, camspin3, camspin4;
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {2<<FRACBITS>>16, 4<<FRACBITS>>16};
-static fixed_t angleturn[3] = {400, 800, 200}; // + slow turn
+static fixed_t angleturn[3] = {KART_FULLTURN/2, KART_FULLTURN, KART_FULLTURN/4}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
@@ -1352,27 +1352,27 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// let movement keys cancel each other out
 	if (turnright && !(turnleft))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed] * realtics));
-		cmd->driftturn = (INT16)(cmd->driftturn - (angleturn[tspeed] * realtics));
+		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed]));
+		cmd->driftturn = (INT16)(cmd->driftturn - (angleturn[tspeed]));
 	}
 	else if (turnleft && !(turnright))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed] * realtics));
-		cmd->driftturn = (INT16)(cmd->driftturn + (angleturn[tspeed] * realtics));
+		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed]));
+		cmd->driftturn = (INT16)(cmd->driftturn + (angleturn[tspeed]));
 	}
 
 	if (analogjoystickmove && axis != 0)
 	{
 		// JOYAXISRANGE should be 1023 (divide by 1024)
-		cmd->angleturn = (INT16)(cmd->angleturn - (((axis * angleturn[1]) >> 10) * realtics)); // ANALOG!
-		cmd->driftturn = (INT16)(cmd->driftturn - (((axis * angleturn[1]) >> 10) * realtics));
+		cmd->angleturn = (INT16)(cmd->angleturn - (((axis * angleturn[1]) >> 10))); // ANALOG!
+		cmd->driftturn = (INT16)(cmd->driftturn - (((axis * angleturn[1]) >> 10)));
 	}
 
 	// Specator mouse turning
 	if (player->spectator)
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - ((mousex*(encoremode ? -1 : 1)*8) * realtics));
-		cmd->driftturn = (INT16)(cmd->driftturn - ((mousex*(encoremode ? -1 : 1)*8) * realtics));
+		cmd->angleturn = (INT16)(cmd->angleturn - ((mousex*(encoremode ? -1 : 1)*8)));
+		cmd->driftturn = (INT16)(cmd->driftturn - ((mousex*(encoremode ? -1 : 1)*8)));
 	}
 
 	// Speed bump strafing
@@ -1549,18 +1549,20 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	//{ SRB2kart - Drift support
 	// Not grouped with the rest of turn stuff because it needs to know what buttons you're pressing for rubber-burn turn
 	// limit turning to angleturn[1] to stop mouselook letting you look too fast
-	if (cmd->angleturn > (angleturn[1] * realtics))
-		cmd->angleturn = (angleturn[1] * realtics);
-	else if (cmd->angleturn < (-angleturn[1] * realtics))
-		cmd->angleturn = (-angleturn[1] * realtics);
+	if (cmd->angleturn > (angleturn[1]))
+		cmd->angleturn = (angleturn[1]);
+	else if (cmd->angleturn < (-angleturn[1]))
+		cmd->angleturn = (-angleturn[1]);
 
-	if (cmd->driftturn > (angleturn[1] * realtics))
-		cmd->driftturn = (angleturn[1] * realtics);
-	else if (cmd->driftturn < (-angleturn[1] * realtics))
-		cmd->driftturn = (-angleturn[1] * realtics);
+	if (cmd->driftturn > (angleturn[1]))
+		cmd->driftturn = (angleturn[1]);
+	else if (cmd->driftturn < (-angleturn[1]))
+		cmd->driftturn = (-angleturn[1]);
 
 	if (player->mo)
 		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
+
+	cmd->angleturn *= realtics;
 
 	// SRB2kart - no additional angle if not moving
 	if (((player->mo && player->speed > 0) // Moving
@@ -1571,6 +1573,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		lang += (cmd->angleturn<<16);
 
 	cmd->angleturn = (INT16)(lang >> 16);
+	cmd->latency = modeattacking ? 0 : (leveltime & 0xFF); // Send leveltime when this tic was generated to the server for control lag calculations
 
 	if (!hu_stopped)
 	{
@@ -2154,6 +2157,9 @@ void G_Ticker(boolean run)
 					players[i].kartstuff[k_throwdir] = 0;
 
 			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
+
+			// Use the leveltime sent in the player's ticcmd to determine control lag
+			cmd->latency = modeattacking ? 0 : min((leveltime & 0xFF) - cmd->latency, MAXPREDICTTICS-1); //@TODO add a cvar to allow setting this max
 		}
 	}
 
@@ -4561,6 +4567,7 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 		dest[i].aiming = (INT16)SHORT(src[i].aiming);
 		dest[i].buttons = (UINT16)SHORT(src[i].buttons);
 		dest[i].driftturn = (INT16)SHORT(src[i].driftturn);
+		dest[i].latency = (INT16)SHORT(src[i].latency);
 	}
 	return dest;
 }
