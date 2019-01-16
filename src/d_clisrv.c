@@ -4006,7 +4006,8 @@ FILESTAMP
 
 				// more "speed hacks"
 				if (netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].forwardmove < -MAXPLMOVE
-					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].sidemove < -MAXPLMOVE)
+					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].sidemove < -MAXPLMOVE ||
+					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]].driftturn < -KART_FULLTURN)
 				{
 					XBOXSTATIC char buf[2];
 					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
@@ -4028,7 +4029,8 @@ FILESTAMP
 
 				// more "speed hacks"
 				if (netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].forwardmove < -MAXPLMOVE
-					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].sidemove < -MAXPLMOVE)
+					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].sidemove < -MAXPLMOVE ||
+					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]].driftturn < -KART_FULLTURN)
 				{
 					XBOXSTATIC char buf[2];
 					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
@@ -4049,7 +4051,8 @@ FILESTAMP
 
 				// more "speed hacks"
 				if (netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].forwardmove < -MAXPLMOVE
-					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].sidemove < -MAXPLMOVE)
+					|| netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].sidemove < -MAXPLMOVE ||
+					netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]].driftturn < -KART_FULLTURN)
 				{
 					XBOXSTATIC char buf[2];
 					CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
