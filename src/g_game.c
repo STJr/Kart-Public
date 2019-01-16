@@ -1354,11 +1354,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	{
 		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed]));
 		cmd->driftturn = (INT16)(cmd->driftturn - (angleturn[tspeed]));
+		side += sidemove[1];
 	}
 	else if (turnleft && !(turnright))
 	{
 		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed]));
 		cmd->driftturn = (INT16)(cmd->driftturn + (angleturn[tspeed]));
+		side -= sidemove[1];
 	}
 
 	if (analogjoystickmove && axis != 0)
@@ -1366,6 +1368,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		// JOYAXISRANGE should be 1023 (divide by 1024)
 		cmd->angleturn = (INT16)(cmd->angleturn - (((axis * angleturn[1]) >> 10))); // ANALOG!
 		cmd->driftturn = (INT16)(cmd->driftturn - (((axis * angleturn[1]) >> 10)));
+		side += ((axis * sidemove[0]) >> 10);
 	}
 
 	// Specator mouse turning
@@ -1373,20 +1376,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	{
 		cmd->angleturn = (INT16)(cmd->angleturn - ((mousex*(encoremode ? -1 : 1)*8)));
 		cmd->driftturn = (INT16)(cmd->driftturn - ((mousex*(encoremode ? -1 : 1)*8)));
-	}
-
-	// Speed bump strafing
-	if (!demoplayback && ((player->pflags & PF_FORCESTRAFE) || (player->kartstuff[k_pogospring])))
-	{
-		if (turnright)
-			side += sidemove[1];
-		if (turnleft)
-			side -= sidemove[1];
-		if (analogjoystickmove && axis != 0)
-		{
-			// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-			side += ((axis * sidemove[0]) >> 10);
-		}
 	}
 
 	if (player->spectator || objectplacing) // SRB2Kart: spectators need special controls
@@ -1530,15 +1519,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		side = MAXPLMOVE;
 	else if (side < -MAXPLMOVE)
 		side = -MAXPLMOVE;
-
-	// No additional acceleration when moving forward/backward and strafing simultaneously.
-	// do this AFTER we cap to MAXPLMOVE so people can't find ways to cheese around this.
-	// SRB2Kart: We don't need this; we WANT bounce strafing to plain stack on top of normal movement.
-	/*if (!bouncestrafe && forward && side)
-	{
-		forward = FixedMul(forward, 3*FRACUNIT/4);
-		side = FixedMul(side, 3*FRACUNIT/4);
-	}*/
 
 	if (forward || side)
 	{
