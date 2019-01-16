@@ -466,7 +466,7 @@ static void P_NetUnArchivePlayers(void)
 		for (j = 0; j < MAXPREDICTTICS; j++)
 		{
 			players[i].lturn_max[j] = READINT16(save_p);
-			 players[i].rturn_max[j] = READINT16(save_p);
+			players[i].rturn_max[j] = READINT16(save_p);
 		}
 	}
 }
