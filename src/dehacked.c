@@ -436,11 +436,11 @@ static void readAnimTex(MYFILE *f, INT32 num)
 static boolean findFreeSlot(INT32 *num)
 {
 	// Send the character select entry to a free slot.
-	while (*num < 32 && PlayerMenu[*num].status != IT_DISABLED)
+	while (*num < MAXSKINS && PlayerMenu[*num].status != IT_DISABLED)
 		*num = *num+1;
 
 	// No more free slots. :(
-	if (*num >= 32)
+	if (*num >= MAXSKINS)
 		return false;
 
 	// Found one! ^_^
@@ -3246,9 +3246,9 @@ static void readwipes(MYFILE *f)
 				else if (fastcmp(pword, "FINAL"))
 					wipeoffset = wipe_specinter_final;
 			}
-			else if (fastncmp(word, "VOTING_", 10))
+			else if (fastncmp(word, "VOTING_", 7))
 			{
-				pword = word + 10;
+				pword = word + 7;
 				if (fastcmp(pword, "TOBLACK"))
 					wipeoffset = wipe_specinter_toblack;
 				else if (fastcmp(pword, "FINAL"))
@@ -3698,12 +3698,16 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					// no undo support for this insanity yet
 					//DEH_WriteUndoline(word, word2, UNDO_HEADER);
 				}
-				else if (fastcmp(word, "SRB2"))
+				else if (fastcmp(word, "SRB2KART"))
 				{
 					INT32 ver = searchvalue(strtok(NULL, "\n"));
 					if (ver != PATCHVERSION)
 						deh_warning("Patch is for SRB2Kart version %d,\nonly version %d is supported", ver, PATCHVERSION);
 					//DEH_WriteUndoline(word, va("%d", ver), UNDO_NONE);
+				}
+				else if (fastcmp(word, "SRB2"))
+				{
+					deh_warning("Patch is only compatible with base SRB2.");
 				}
 				// Clear all data in certain locations (mostly for unlocks)
 				// Unless you REALLY want to piss people off,
@@ -6946,7 +6950,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_GARU1",
 	"S_GARU2",
 	"S_GARU3",
-	"S_TGARU",	
+	"S_TGARU",
 	"S_TGARU1",
 	"S_TGARU2",
 	"S_TGARU3",	// Wind attack used by Roaming Shadows on Players.
@@ -8293,7 +8297,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"YOUGOTEM",
 
 	"ITEMBLINK",
-	"ITEMBLINKMODE"
+	"ITEMBLINKMODE",
+	"GETSPARKS"
 };
 
 static const char *const HUDITEMS_LIST[] = {

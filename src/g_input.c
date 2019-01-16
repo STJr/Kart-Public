@@ -120,7 +120,7 @@ void G_MapEventsToControls(event_t *ev)
 
 		case ev_joystick2: // buttons are virtual keys
 			i = ev->data1;
-			if (i >= JOYAXISSET || menuactive || CON_Ready() || chat_on)
+			if (i >= JOYAXISSET || menuactive)
 				break;
 			if (ev->data2 != INT32_MAX) joy2xmove[i] = ev->data2;
 			if (ev->data3 != INT32_MAX) joy2ymove[i] = ev->data3;

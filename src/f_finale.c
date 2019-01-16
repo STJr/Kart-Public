@@ -479,40 +479,10 @@ static const char *credits[] = {
 	"\"VAdaPEGA\"",
 	"\"VelocitOni\"",
 	"",
-	"\1Music", // Can't list song names here, so we're listing artists
-	"\"Arrow\"",
-	"Jonny Atma",
-	"Moot Booxle", // Booxlé, add the accent char later?
-	"Malcolm Brown",
-	"Karl Brueggemann",
+	"\1Music",
 	"\"DrTapeworm\"",
-	"\"Elwood\"",
 	"Wesley \"Charyb\" Gillebaard",
-	"\"gxf4c3\"",
 	"James \"SeventhSentinel\" Hall",
-	"Chris Holland",
-	"Johnny \"J\"",
-	"Masato Kouda",
-	"Fumie Kumatani",
-	"Luke Kwing",
-	"James Landino",
-	"\"Lange\"",
-	"Takenobu Mitsuyoshi",
-	"\"Nib Roc\"",
-	"Tomoya Ohtani",
-	"Vincent Rubinetti",
-	"Jun Senoue",
-	"\"SSNTails\"",
-	"Michael \"MaxieDaMan\" Staple",
-	"Simon Stalenhag", // Stålenhag, add the accent char later?
-	"\"Synthescissor\"",
-	"Yuko Takehara",
-	"Tony Thai",
-	"\"The8BitDrummer\"",
-	"Kenichi Tokoi",
-	"\"Tokyo Active NEETs\"",
-	"\"xaki\"",
-	"Michiru Yamane",
 	"",
 	"\1Lead Level Design",
 	"\"Blitz-T\"",
@@ -586,7 +556,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(102*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(72*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
