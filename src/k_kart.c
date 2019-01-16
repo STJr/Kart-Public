@@ -6841,7 +6841,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	W = FixedMul(W<<FRACBITS, scale)>>FRACBITS;
 
 	// pain and suffering defined below
-	if (splitscreen < 2)	// for this splitscreen, we'll use case by case because it's a bit different.
+	if (splitscreen == 1)	// for this splitscreen, we'll use case by case because it's a bit different.
 	{
 		fx = POSI_X;
 		if (stplyr == &players[displayplayer])	// for player 1: display this at the top right, above the minimap.
