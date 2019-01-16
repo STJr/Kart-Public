@@ -1487,9 +1487,11 @@ static boolean SV_SendServerConfig(INT32 node)
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
+		netbuffer->u.servercfg.adminplayers[i] = (SINT8)adminplayers[i];
+
 		if (!playeringame[i])
 			continue;
-		netbuffer->u.servercfg.adminplayers[i] = (SINT8)adminplayers[i];
+
 		netbuffer->u.servercfg.playerskins[i] = (UINT8)players[i].skin;
 		netbuffer->u.servercfg.playercolor[i] = (UINT8)players[i].skincolor;
 	}
@@ -2074,7 +2076,8 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 		I_OsPolling();
 		key = I_GetKey();
-		if (key == KEY_ESCAPE || key == KEY_JOY1+1)
+		// Only ESC and non-keyboard keys abort connection
+		if (key == KEY_ESCAPE || key >= KEY_MOUSE1) 
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 //				M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
@@ -2774,13 +2777,16 @@ static void Command_Kick(void)
 		if (pn == -1 || pn == 0)
 			return;
 
-		// Special case if we are trying to kick a player who is downloading the game state:
-		// trigger a timeout instead of kicking them, because a kick would only
-		// take effect after they have finished downloading
-		if (sendingsavegame[playernode[pn]])
+		if (server)
 		{
-			Net_ConnectionTimeout(playernode[pn]);
-			return;
+			// Special case if we are trying to kick a player who is downloading the game state:
+			// trigger a timeout instead of kicking them, because a kick would only
+			// take effect after they have finished downloading
+			if (sendingsavegame[playernode[pn]])
+			{
+				Net_ConnectionTimeout(playernode[pn]);
+				return;
+			}
 		}
 
 		WRITESINT8(p, pn);
@@ -2834,7 +2840,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 
 	// Is playernum authorized to make this kick?
-	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
+	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
+		/*&& !(playerpernode[playernode[playernum]] == 2
+		//&& nodetoplayer2[playernode[playernum]] == pnum)*/)
 	{
 		// We received a kick command from someone who isn't the
 		// server or admin, and who isn't in splitscreen removing
@@ -3017,6 +3025,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 }
 
+static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}};
+consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_allownewplayer = {"allowjoin", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
 #ifdef VANILLAJOINNEXTROUND
 consvar_t cv_joinnextround = {"joinnextround", "Off", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
@@ -3068,6 +3079,7 @@ void D_ClientServerInit(void)
 	RegisterNetXCmd(XD_REMOVEPLAYER, Got_RemovePlayer);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
+	CV_RegisterVar(&cv_netticbuffer);
 #ifdef VANILLAJOINNEXTROUND
 	CV_RegisterVar(&cv_joinnextround);
 #endif
@@ -3306,14 +3318,14 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	if (netgame)
 	{
-		if (server && netgame && cv_showjoinaddress.value)
+		if (server && cv_showjoinaddress.value)
 		{
 			const char *address;
 			if (I_GetNodeAddress && (address = I_GetNodeAddress(node)) != NULL)
 				HU_AddChatText(va("\x82*Player %d has joined the game (node %d) (%s)", newplayernum+1, node, address), false);	// merge join notification + IP to avoid clogging console/chat.
 		}
 		else
-			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);
+			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);	// if you don't wanna see the join address.
 	}
 
 	if (server && multiplayer && motd[0] != '\0')
@@ -3970,7 +3982,8 @@ FILESTAMP
 
 			// Check ticcmd for "speed hacks"
 			if (netcmds[maketic%BACKUPTICS][netconsole].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].forwardmove < -MAXPLMOVE
-				|| netcmds[maketic%BACKUPTICS][netconsole].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].sidemove < -MAXPLMOVE)
+				|| netcmds[maketic%BACKUPTICS][netconsole].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].sidemove < -MAXPLMOVE ||
+				netcmds[maketic%BACKUPTICS][netconsole].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][netconsole].driftturn < -KART_FULLTURN)
 			{
 				XBOXSTATIC char buf[2];
 				CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), node);
@@ -4967,6 +4980,10 @@ void TryRunTics(tic_t realtics)
 				ExtraDataTicker();
 				gametic++;
 				consistancy[gametic%BACKUPTICS] = Consistancy();
+
+				// Leave a certain amount of tics present in the net buffer as long as we've ran at least one tic this frame.
+				if (client && gamestate == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
+					break;
 			}
 	}
 	else

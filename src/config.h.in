@@ -34,23 +34,25 @@
 #else
 
 /* Manually defined asset hashes for non-CMake builds
- *              YYYY   MM   DD
- * Last updated 2018 / 11 / 14
+ * Last updated 2015 / 05 / 03 - SRB2 v2.1.15 - srb2.srb
+ * Last updated 2018 / 12 / 23 - SRB2 v2.1.22 - patch.dta
+ * Last updated 2019 / 01 / 15 - Kart v1.0.2 - Main assets
+ * Last updated 2019 / 01 / 15 - Kart v1.0.2 - patch.kart
  */
 
 // Base SRB2 hashes
 #define ASSET_HASH_SRB2_SRB      "c1b9577687f8a795104aef4600720ea7"
 #ifdef USE_PATCH_DTA
-#define ASSET_HASH_PATCH_DTA     "dbbf8bc6121618ee3be2d5b14650429b"
+#define ASSET_HASH_PATCH_DTA     "b04fd9624bfd94dc96dcf4f400f7deb4"
 #endif
 
 // SRB2Kart-specific hashes
 #define ASSET_HASH_GFX_KART      "99c39f223d84ebc78e67ab68f3bead95"
 #define ASSET_HASH_TEXTURES_KART "ec8e9b7535cf585afe72ef277b08f490"
 #define ASSET_HASH_CHARS_KART    "784ee9177b01c8cb26edff43eaf93d87"
-#define ASSET_HASH_MAPS_KART     "84018d9b35d181ca9fcc2be5a9d43a45"
+#define ASSET_HASH_MAPS_KART     "1335cd064656aedca359cfbb5233ac4a"
 #ifdef USE_PATCH_KART
-#define ASSET_HASH_PATCH_KART    "843a13a73935dc4df721427a8948fb89"
+#define ASSET_HASH_PATCH_KART    "899aee1b63e731b7e2098406c85608b4"
 #endif
 
 #endif

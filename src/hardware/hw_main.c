@@ -4153,7 +4153,7 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 	swallVerts[0].z = swallVerts[3].z = spr->z1;
 	swallVerts[2].z = swallVerts[1].z = spr->z2;
 
-	if (spr->mobj && this_scale != 1.0f)
+	if (spr->mobj && fabsf(this_scale - 1.0f) > 1.0E-36f)
 	{
 		// Always a pixel above the floor, perfectly flat.
 		swallVerts[0].y = swallVerts[1].y = swallVerts[2].y = swallVerts[3].y = spr->ty - gpatch->topoffset * this_scale - (floorheight+3);
@@ -4321,7 +4321,7 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	wallVerts[1].z = wallVerts[2].z = spr->z2;
 
 	wallVerts[2].y = wallVerts[3].y = spr->ty;
-	if (spr->mobj && this_scale != 1.0f)
+	if (spr->mobj && fabsf(this_scale - 1.0f) > 1.0E-36f)
 		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height * this_scale;
 	else
 		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height;
@@ -4348,6 +4348,16 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	}else{
 		wallVerts[3].tow = wallVerts[2].tow = 0;
 		wallVerts[0].tow = wallVerts[1].tow = gpatch->max_t;
+	}
+
+	// if it has a dispoffset, push it a little towards the camera
+	if (spr->dispoffset) {
+		float co = -gr_viewcos*(0.05f*spr->dispoffset);
+		float si = -gr_viewsin*(0.05f*spr->dispoffset);
+		wallVerts[0].z = wallVerts[3].z = wallVerts[0].z+si;
+		wallVerts[1].z = wallVerts[2].z = wallVerts[1].z+si;
+		wallVerts[0].x = wallVerts[3].x = wallVerts[0].x+co;
+		wallVerts[1].x = wallVerts[2].x = wallVerts[1].x+co;
 	}
 
 	realtop = top = wallVerts[3].y;
@@ -4602,7 +4612,7 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 	wallVerts[0].x = wallVerts[3].x = spr->x1;
 	wallVerts[2].x = wallVerts[1].x = spr->x2;
 	wallVerts[2].y = wallVerts[3].y = spr->ty;
-	if (spr->mobj && this_scale != 1.0f)
+	if (spr->mobj && fabsf(this_scale - 1.0f) > 1.0E-36f)
 		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height * this_scale;
 	else
 		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height;
@@ -4650,6 +4660,16 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 		// SHADOW SPRITE! //
 		////////////////////
 		HWR_DrawSpriteShadow(spr, gpatch, this_scale);
+	}
+
+	// if it has a dispoffset, push it a little towards the camera
+	if (spr->dispoffset) {
+		float co = -gr_viewcos*(0.05f*spr->dispoffset);
+		float si = -gr_viewsin*(0.05f*spr->dispoffset);
+		wallVerts[0].z = wallVerts[3].z = wallVerts[0].z+si;
+		wallVerts[1].z = wallVerts[2].z = wallVerts[1].z+si;
+		wallVerts[0].x = wallVerts[3].x = wallVerts[0].x+co;
+		wallVerts[1].x = wallVerts[2].x = wallVerts[1].x+co;
 	}
 
 	// This needs to be AFTER the shadows so that the regular sprites aren't drawn completely black.
@@ -4848,7 +4868,7 @@ static void HWR_SortVisSprites(void)
 				best = ds;
 			}
 			// order visprites of same scale by dispoffset, smallest first
-			else if (ds->tz == bestdist && ds->dispoffset < bestdispoffset)
+			else if (fabsf(ds->tz - bestdist) < 1.0E-36f && ds->dispoffset < bestdispoffset)
 			{
 				bestdispoffset = ds->dispoffset;
 				best = ds;
@@ -5243,7 +5263,8 @@ static void HWR_DrawSprites(void)
 #endif
 				if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 				{
-					if (!cv_grmd2.value || md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f)
+					// 8/1/19: Only don't display player models if no default SPR_PLAY is found.
+					if (!cv_grmd2.value || ((md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f) && (md2_models[SPR_PLAY].notfound || md2_models[SPR_PLAY].scale < 0.0f)))
 						HWR_DrawSprite(spr);
 					else
 						HWR_DrawMD2(spr);

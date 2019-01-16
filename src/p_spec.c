@@ -2450,6 +2450,8 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					mapmusflags |= MUSIC_RELOADRESET;
 
 				S_ChangeMusic(mapmusname, mapmusflags, !(line->flags & ML_EFFECT4));
+				if (!(line->flags & ML_EFFECT3))
+					S_ShowMusicCredit();
 
 				// Except, you can use the ML_BLOCKMONSTERS flag to change this behavior.
 				// if (mapmusflags & MUSIC_RELOADRESET) then it will reset the music in G_PlayerReborn.
@@ -3262,7 +3264,7 @@ void P_SetupSignExit(player_t *player)
 	// SRB2Kart: FINALLY, add in an alternative if no place is found
 	if (player->mo)
 	{
-		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapheaderinfo[gamemap-1]->mobj_scale), MT_SIGN);
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapobjectscale), MT_SIGN);
 
 		P_SetTarget(&sign->target, player->mo);
 		P_SetMobjState(sign, S_SIGN1);
@@ -3770,7 +3772,7 @@ DoneSection2:
 		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
@@ -3790,7 +3792,7 @@ DoneSection2:
 		case 3: // SRB2kart: Spring Panel (capped speed)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
 				const fixed_t maxspeed = 28*hscale;
 
@@ -3829,8 +3831,8 @@ DoneSection2:
 
 				// SRB2Kart: Scale the speed you get from them!
 				// This is scaled differently from other horizontal speed boosts from stuff like springs, because of how this is used for some ramp jumps.
-				if (player->mo->scale > mapheaderinfo[gamemap-1]->mobj_scale)
-					linespeed = FixedMul(linespeed, mapheaderinfo[gamemap-1]->mobj_scale + (player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale));
+				if (player->mo->scale > mapobjectscale)
+					linespeed = FixedMul(linespeed, mapobjectscale + (player->mo->scale - mapobjectscale));
 
 				if (!demoplayback || P_AnalogMove(player))
 				{

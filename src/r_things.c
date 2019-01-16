@@ -1927,7 +1927,7 @@ static void R_CreateDrawNodes(void)
 			plane = ds->curline->polyseg->visplane;
 			R_PlaneBounds(plane);
 
-			if (plane->low < con_clipviewtop || plane->high > vid.height || plane->high > plane->low)
+			if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low)
 				;
 			else {
 				// Put it in!
@@ -1956,7 +1956,7 @@ static void R_CreateDrawNodes(void)
 					plane = ds->ffloorplanes[p];
 					R_PlaneBounds(plane);
 
-					if (plane->low < con_clipviewtop || plane->high > vid.height || plane->high > plane->low || plane->polyobj)
+					if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low || plane->polyobj)
 					{
 						ds->ffloorplanes[p] = NULL;
 						continue;
@@ -1993,7 +1993,7 @@ static void R_CreateDrawNodes(void)
 		plane = PolyObjects[i].visplane;
 		R_PlaneBounds(plane);
 
-		if (plane->low < con_clipviewtop || plane->high > vid.height || plane->high > plane->low)
+		if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low)
 		{
 			PolyObjects[i].visplane = NULL;
 			continue;
@@ -2500,7 +2500,7 @@ void R_DrawMasked(void)
 // ==========================================================================
 
 INT32 numskins = 0;
-skin_t skins[MAXSKINS+1];
+skin_t skins[MAXSKINS];
 // FIXTHIS: don't work because it must be inistilised before the config load
 //#define SKINVALUES
 #ifdef SKINVALUES
@@ -2771,7 +2771,7 @@ void R_AddSkins(UINT16 wadnum)
 		// advance by default
 		lastlump = lump + 1;
 
-		if (numskins > MAXSKINS)
+		if (numskins >= MAXSKINS)
 		{
 			CONS_Debug(DBG_RENDER, "ignored skin (%d skins maximum)\n", MAXSKINS);
 			continue; // so we know how many skins couldn't be added

@@ -433,10 +433,10 @@ typedef struct
 	UINT8 reserved; // Padding
 	union
 	{
-		clientcmd_pak clientpak;            //         144 bytes
-		client2cmd_pak client2pak;          //         200 bytes
-		client3cmd_pak client3pak;          //         256 bytes(?)
-		client4cmd_pak client4pak;          //         312 bytes(?)
+		clientcmd_pak clientpak;            //         145 bytes
+		client2cmd_pak client2pak;          //         202 bytes
+		client3cmd_pak client3pak;          //         258 bytes(?)
+		client4cmd_pak client4pak;          //         316 bytes(?)
 		servertics_pak serverpak;           //      132495 bytes (more around 360, no?)
 		serverconfig_pak servercfg;         //         773 bytes
 		resynchend_pak resynchend;          //
@@ -478,9 +478,9 @@ extern doomdata_t *netbuffer;
 extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
-#define BASEPACKETSIZE ((size_t)&(((doomdata_t *)0)->u))
-#define FILETXHEADER ((size_t)((filetx_pak *)0)->data)
-#define BASESERVERTICSSIZE ((size_t)&(((doomdata_t *)0)->u.serverpak.cmds[0]))
+#define BASEPACKETSIZE      offsetof(doomdata_t, u)
+#define FILETXHEADER        offsetof(filetx_pak, data)
+#define BASESERVERTICSSIZE  offsetof(doomdata_t, u.serverpak.cmds[0])
 
 #define KICK_MSG_GO_AWAY     1
 #define KICK_MSG_CON_FAIL    2

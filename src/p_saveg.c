@@ -282,6 +282,12 @@ static void P_NetArchivePlayers(void)
 		WRITEUINT8(save_p, players[i].accelstart);
 		WRITEUINT8(save_p, players[i].acceleration);
 		WRITEFIXED(save_p, players[i].jumpfactor);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			WRITEINT16(save_p, players[i].lturn_max[j]);
+			WRITEINT16(save_p, players[i].rturn_max[j]);
+		}
 	}
 }
 
@@ -456,6 +462,12 @@ static void P_NetUnArchivePlayers(void)
 		players[i].accelstart = READUINT8(save_p);
 		players[i].acceleration = READUINT8(save_p);
 		players[i].jumpfactor = READFIXED(save_p);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			players[i].lturn_max[j] = READINT16(save_p);
+			players[i].rturn_max[j] = READINT16(save_p);
+		}
 	}
 }
 
@@ -1132,7 +1144,7 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		diff |= MD_SCALE;
 	if (mobj->destscale != mobj->scale)
 		diff |= MD_DSCALE;
-	if (mobj->scalespeed != mapheaderinfo[gamemap-1]->mobj_scale/12)
+	if (mobj->scalespeed != mapobjectscale/12)
 		diff2 |= MD2_SCALESPEED;
 
 	if (mobj == redflag)
@@ -2139,7 +2151,7 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	if (diff2 & MD2_SCALESPEED)
 		mobj->scalespeed = READFIXED(save_p);
 	else
-		mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
+		mobj->scalespeed = mapobjectscale/12;
 	if (diff2 & MD2_CUSVAL)
 		mobj->cusval = READINT32(save_p);
 	if (diff2 & MD2_CVMEM)
@@ -3282,6 +3294,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT32(save_p, countdown2);
 
 	WRITEFIXED(save_p, gravity);
+	WRITEFIXED(save_p, mapobjectscale);
 
 	WRITEUINT32(save_p, countdowntimer);
 	WRITEUINT8(save_p, countdowntimeup);
@@ -3389,6 +3402,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	countdown2 = READUINT32(save_p);
 
 	gravity = READFIXED(save_p);
+	mapobjectscale = READFIXED(save_p);
 
 	countdowntimer = (tic_t)READUINT32(save_p);
 	countdowntimeup = (boolean)READUINT8(save_p);
