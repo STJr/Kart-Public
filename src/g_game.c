@@ -5922,7 +5922,7 @@ void G_DoPlayDemo(char *defdemoname)
 	// Skin not loaded?
 	if (!SetPlayerSkin(0, skin))
 	{
-		snprintf(msg, 1024, M_GetText("%s features a character that is not loaded.\n"), pdemoname);
+		snprintf(msg, 1024, M_GetText("%s features a character that is not currently loaded.\n"), pdemoname);
 		CONS_Alert(CONS_ERROR, "%s", msg);
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
@@ -6157,11 +6157,11 @@ void G_AddGhost(char *defdemoname)
 		return;
 	}
 
-	gh->oldmo->skin = &skins[0];
+	gh->oldmo.skin = &skins[0];
 	for (i = 0; i < numskins; i++)
 		if (!stricmp(skins[i].name,skin))
 		{
-			gh->oldmo->skin = &skins[i];
+			gh->oldmo.skin = &skins[i];
 			break;
 		}
 
@@ -6218,7 +6218,7 @@ void G_AddGhost(char *defdemoname)
 	gh->oldmo.z = gh->mo->z;
 
 	// Set skin
-	gh->mo.skin = gh->oldmo->skin;
+	gh->mo->skin = gh->oldmo.skin;
 
 	// Set color
 	gh->mo->color = ((skin_t*)gh->mo->skin)->prefcolor;
