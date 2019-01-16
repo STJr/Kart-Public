@@ -3159,7 +3159,7 @@ INT16 G_SometimesGetDifferentGametype(void)
 					break;
 				case 1: // sometimes
 				default:
-					encorepossible = M_RandomChance(FRACUNIT>>3);
+					encorepossible = M_RandomChance(FRACUNIT>>2);
 					break;
 			}
 			if (encorepossible != (boolean)cv_kartencore.value)
@@ -3174,12 +3174,12 @@ INT16 G_SometimesGetDifferentGametype(void)
 			randmapbuffer[NUMMAPS] = 1; // every other vote (or always if !encorepossible)
 			break;
 		case 1: // sometimes
-			randmapbuffer[NUMMAPS] = 10; // ...every two cups?
+			randmapbuffer[NUMMAPS] = 5; // per "cup"
 			break;
 		default:
 			// fallthrough - happens when clearing buffer, but needs a reasonable countdown if cvar is modified
 		case 2: // frequent
-			randmapbuffer[NUMMAPS] = 5; // per "cup"
+			randmapbuffer[NUMMAPS] = 3; // ...every 1/2th-ish cup?
 			break;
 	}
 
