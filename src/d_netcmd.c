@@ -483,6 +483,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"SETUPVOTE",
 	"MODIFYVOTE",
 	"PICKVOTE",
+	"REMOVEPLAYER",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
