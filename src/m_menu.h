@@ -150,7 +150,7 @@ typedef struct menuitem_s
 	UINT8 alphaKey;
 } menuitem_t;
 
-extern menuitem_t PlayerMenu[32];
+extern menuitem_t PlayerMenu[MAXSKINS];
 
 typedef struct menu_s
 {
