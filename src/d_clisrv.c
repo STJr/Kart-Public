@@ -3982,7 +3982,8 @@ FILESTAMP
 
 			// Check ticcmd for "speed hacks"
 			if (netcmds[maketic%BACKUPTICS][netconsole].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].forwardmove < -MAXPLMOVE
-				|| netcmds[maketic%BACKUPTICS][netconsole].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].sidemove < -MAXPLMOVE)
+				|| netcmds[maketic%BACKUPTICS][netconsole].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].sidemove < -MAXPLMOVE ||
+				netcmds[maketic%BACKUPTICS][netconsole].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][netconsole].driftturn < -KART_FULLTURN)
 			{
 				XBOXSTATIC char buf[2];
 				CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), netconsole);
