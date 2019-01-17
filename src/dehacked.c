@@ -602,6 +602,14 @@ done:
 	Z_Free(s);
 }
 
+static int freeslotusage[2][2] = {{0, 0}, {0, 0}}; // [S_, MT_][max, previous .wad's max]
+
+void DEH_UpdateMaxFreeslots(void)
+{
+	freeslotusage[0][1] = freeslotusage[0][0];
+	freeslotusage[1][1] = freeslotusage[1][0];
+}
+
 // TODO: Figure out how to do undolines for this....
 // TODO: Warnings for running out of freeslots
 static void readfreeslots(MYFILE *f)
@@ -664,6 +672,7 @@ static void readfreeslots(MYFILE *f)
 					if (!FREE_STATES[i]) {
 						FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_STATES[i],word);
+						freeslotusage[0][0]++;
 						break;
 					}
 			}
@@ -673,6 +682,7 @@ static void readfreeslots(MYFILE *f)
 					if (!FREE_MOBJS[i]) {
 						FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_MOBJS[i],word);
+						freeslotusage[1][0]++;
 						break;
 					}
 			}
@@ -3417,7 +3427,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			if (fastcmp(word, "FREESLOT"))
 			{
 				readfreeslots(f);
-				majormods = true;
+				//majormods = true;
 				continue;
 			}
 			else if (fastcmp(word, "MAINCFG"))
@@ -3480,14 +3490,17 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					if (i == 0 && word2[0] != '0') // If word2 isn't a number
 						i = get_mobjtype(word2); // find a thing by name
 					if (i < NUMMOBJTYPES && i >= 0)
+					{
+						if (i < (MT_FIRSTFREESLOT+freeslotusage[1][1]))
+							majormods = true; // affecting something earlier than the first freeslot allocated in this .wad? DENIED
 						readthing(f, i);
+					}
 					else
 					{
 						deh_warning("Thing %d out of range (0 - %d)", i, NUMMOBJTYPES-1);
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					majormods = true;
 				}
 /*				else if (fastcmp(word, "ANIMTEX"))
 				{
@@ -3564,14 +3577,17 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					if (i == 0 && word2[0] != '0') // If word2 isn't a number
 						i = get_state(word2); // find a state by name
 					if (i < NUMSTATES && i >= 0)
+					{
+						if (i < (S_FIRSTFREESLOT+freeslotusage[0][1]))
+							majormods = true; // affecting something earlier than the first freeslot allocated in this .wad? DENIED
 						readframe(f, i);
+					}
 					else
 					{
 						deh_warning("Frame %d out of range (0 - %d)", i, NUMSTATES-1);
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					majormods = true;
 				}
 				// <Callum> Added translations to this just in case its re-enabled
 /*				else if (fastcmp(word, "POINTER"))
@@ -3657,6 +3673,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						if (numemblems < i)
 							numemblems = i;
 						reademblemdata(f, i);
+						majormods = true;
 					}
 					else
 					{
@@ -3664,7 +3681,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					majormods = true;
 				}
 				else if (fastcmp(word, "EXTRAEMBLEM"))
 				{
@@ -3678,6 +3694,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						if (numextraemblems < i)
 							numextraemblems = i;
 						readextraemblemdata(f, i);
+						majormods = true;
 					}
 					else
 					{
@@ -3685,7 +3702,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					majormods = true;
 				}
 				else if (fastcmp(word, "UNLOCKABLE"))
 				{
@@ -3695,14 +3711,16 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					else if (i > 0 && i <= MAXUNLOCKABLES)
+					{
 						readunlockable(f, i - 1);
+						majormods = true;
+					}
 					else
 					{
 						deh_warning("Unlockable number %d out of range (1 - %d)", i, MAXUNLOCKABLES);
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					majormods = true;
 				}
 				else if (fastcmp(word, "CONDITIONSET"))
 				{
@@ -3712,7 +3730,10 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					else if (i > 0 && i <= MAXCONDITIONSETS)
+					{
 						readconditionset(f, (UINT8)i);
+						majormods = true;
+					}
 					else
 					{
 						deh_warning("Condition set number %d out of range (1 - %d)", i, MAXCONDITIONSETS);
@@ -3720,7 +3741,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					// no undo support for this insanity yet
 					//DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					majormods = true;
 				}
 				else if (fastcmp(word, "SRB2KART"))
 				{
@@ -9381,6 +9401,7 @@ static inline int lib_freeslot(lua_State *L)
 					CONS_Printf("State S_%s allocated.\n",word);
 					FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_STATES[i],word);
+					freeslotusage[0][0]++;
 					lua_pushinteger(L, i);
 					r++;
 					break;
@@ -9396,6 +9417,7 @@ static inline int lib_freeslot(lua_State *L)
 					CONS_Printf("MobjType MT_%s allocated.\n",word);
 					FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_MOBJS[i],word);
+					freeslotusage[1][0]++;
 					lua_pushinteger(L, i);
 					r++;
 					break;

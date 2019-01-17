@@ -4551,9 +4551,14 @@ static char *M_AddonsHeaderPath(void)
 #define CLEARNAME Z_Free(refreshdirname);\
 					refreshdirname = NULL
 
+static boolean prevmajormods = false;
+
 static void M_AddonsClearName(INT32 choice)
 {
-	CLEARNAME;
+	if (majormods == prevmajormods || savemoddata)
+	{
+		CLEARNAME;
+	}
 	M_StopMessage(choice);
 }
 
@@ -4566,7 +4571,7 @@ static boolean M_AddonsRefresh(void)
 		return true;
 	}
 
-	if (refreshdirmenu & REFRESHDIR_ADDFILE)
+	if ((refreshdirmenu & REFRESHDIR_ADDFILE) || (majormods != prevmajormods && !savemoddata))
 	{
 		char *message = NULL;
 
@@ -4582,6 +4587,12 @@ static boolean M_AddonsRefresh(void)
 		{
 			S_StartSound(NULL, sfx_s224);
 			message = va("%c%s\x80\nA file was loaded with %s.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname, ((refreshdirmenu & REFRESHDIR_ERROR) ? "errors" : "warnings"));
+		}
+		else if (majormods != prevmajormods && !savemoddata)
+		{
+			S_StartSound(NULL, sfx_s221);
+			message = va("%c%s\x80\nGameplay has now been modified.\nIf you want to play record attack mode, restart the game to clear existing add-ons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+			prevmajormods = majormods;
 		}
 
 		if (message)

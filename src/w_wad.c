@@ -799,6 +799,8 @@ UINT16 W_InitFile(const char *filename)
 		break;
 	}
 
+	DEH_UpdateMaxFreeslots();
+
 	W_InvalidateLumpnumCache();
 	return wadfile->numlumps;
 }
