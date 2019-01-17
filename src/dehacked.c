@@ -3671,7 +3671,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						if (numemblems < i)
 							numemblems = i;
 						reademblemdata(f, i);
-						G_SetGameModified(multiplayer, true);
 					}
 					else
 					{
@@ -3692,7 +3691,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						if (numextraemblems < i)
 							numextraemblems = i;
 						readextraemblemdata(f, i);
-						G_SetGameModified(multiplayer, true);
 					}
 					else
 					{
@@ -3709,10 +3707,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					else if (i > 0 && i <= MAXUNLOCKABLES)
-					{
 						readunlockable(f, i - 1);
-						G_SetGameModified(multiplayer, true);
-					}
 					else
 					{
 						deh_warning("Unlockable number %d out of range (1 - %d)", i, MAXUNLOCKABLES);
@@ -3728,10 +3723,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					else if (i > 0 && i <= MAXCONDITIONSETS)
-					{
 						readconditionset(f, (UINT8)i);
-						G_SetGameModified(multiplayer, true);
-					}
 					else
 					{
 						deh_warning("Condition set number %d out of range (1 - %d)", i, MAXCONDITIONSETS);
@@ -3785,8 +3777,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 
 					if (clearall || fastcmp(word2, "LEVELS"))
 						clear_levels();
-
-					G_SetGameModified(multiplayer, true);
 				}
 				else
 					deh_warning("Unknown word: %s", word);
