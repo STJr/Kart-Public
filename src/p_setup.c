@@ -3459,7 +3459,7 @@ boolean P_AddWadFile(const char *wadfilename)
 			if (num <= NUMMAPS && mapheaderinfo[num-1])
 			{
 				if (mapheaderinfo[num-1]->menuflags & LF2_EXISTSHACK)
-					majormods = true; // oops, double-defined - no record attack privileges for you
+					G_SetGameModified(multiplayer, true); // oops, double-defined - no record attack privileges for you
 				mapheaderinfo[num-1]->menuflags |= LF2_EXISTSHACK;
 			}
 
@@ -3488,6 +3488,8 @@ boolean P_AddWadFile(const char *wadfilename)
 		if (server)
 			SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 	}
+
+	refreshdirmenu &= ~REFRESHDIR_GAMEDATA; // Under usual circumstances we'd wait for REFRESHDIR_GAMEDATA to disappear the next frame, but it's a bit too dangerous for that...
 
 	return true;
 }

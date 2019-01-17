@@ -4555,7 +4555,7 @@ static boolean prevmajormods = false;
 
 static void M_AddonsClearName(INT32 choice)
 {
-	if (majormods == prevmajormods || savemoddata)
+	if (!majormods || prevmajormods)
 	{
 		CLEARNAME;
 	}
@@ -4568,10 +4568,14 @@ static boolean M_AddonsRefresh(void)
 	if ((refreshdirmenu & REFRESHDIR_NORMAL) && !preparefilemenu(true))
 	{
 		UNEXIST;
+		CLEARNAME;
 		return true;
 	}
 
-	if ((refreshdirmenu & REFRESHDIR_ADDFILE) || (majormods != prevmajormods && !savemoddata))
+	if (!majormods && prevmajormods)
+		prevmajormods = false;
+
+	if ((refreshdirmenu & REFRESHDIR_ADDFILE) || (majormods && !prevmajormods))
 	{
 		char *message = NULL;
 
@@ -4588,7 +4592,7 @@ static boolean M_AddonsRefresh(void)
 			S_StartSound(NULL, sfx_s224);
 			message = va("%c%s\x80\nA file was loaded with %s.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname, ((refreshdirmenu & REFRESHDIR_ERROR) ? "errors" : "warnings"));
 		}
-		else if (majormods != prevmajormods && !savemoddata)
+		else if (majormods && !prevmajormods && !savemoddata)
 		{
 			S_StartSound(NULL, sfx_s221);
 			message = va("%c%s\x80\nGameplay has now been modified.\nIf you want to play record attack mode, restart the game to clear existing add-ons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
@@ -5141,7 +5145,7 @@ static void M_GetAllEmeralds(INT32 choice)
 	emeralds = ((EMERALD7)*2)-1;
 	M_StartMessage(M_GetText("You now have all 7 emeralds.\nUse them wisely.\nWith great power comes great ring drain.\n"),NULL,MM_NOTHING);
 
-	G_SetGameModified(multiplayer);
+	G_SetGameModified(multiplayer, true);
 }
 
 static void M_DestroyRobotsResponse(INT32 ch)
@@ -5152,7 +5156,7 @@ static void M_DestroyRobotsResponse(INT32 ch)
 	// Destroy all robots
 	P_DestroyRobots();
 
-	G_SetGameModified(multiplayer);
+	G_SetGameModified(multiplayer, true);
 }
 
 static void M_DestroyRobots(INT32 choice)

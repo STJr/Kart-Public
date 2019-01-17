@@ -16,6 +16,7 @@
 #include "d_main.h"
 #include "d_player.h"
 #include "f_finale.h"
+#include "filesrch.h" // for refreshdirmenu
 #include "p_setup.h"
 #include "p_saveg.h"
 #include "i_system.h"
@@ -753,16 +754,21 @@ void G_SetNightsRecords(void)
 }*/
 
 // for consistency among messages: this modifies the game and removes savemoddata.
-void G_SetGameModified(boolean silent)
+void G_SetGameModified(boolean silent, boolean major)
 {
-	if (modifiedgame && !savemoddata)
+	if ((majormods && modifiedgame && !savemoddata) || (refreshdirmenu & REFRESHDIR_GAMEDATA)) // new gamedata amnesty?
 		return;
 
 	modifiedgame = true;
 	savemoddata = false;
 
+	if (!major)
+		return;
+
+	majormods = true;
+
 	if (!silent)
-		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to record statistics.\n"));
+		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to play record attack.\n"));
 
 	// If in record attack recording, cancel it.
 	if (modeattacking)
