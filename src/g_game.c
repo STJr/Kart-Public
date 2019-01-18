@@ -756,7 +756,7 @@ void G_SetNightsRecords(void)
 // for consistency among messages: this modifies the game and removes savemoddata.
 void G_SetGameModified(boolean silent, boolean major)
 {
-	if ((majormods && modifiedgame && !savemoddata) || (refreshdirmenu & REFRESHDIR_GAMEDATA)) // new gamedata amnesty?
+	if ((majormods && modifiedgame && !savemoddata) || !mainwads || (refreshdirmenu & REFRESHDIR_GAMEDATA)) // new gamedata amnesty?
 		return;
 
 	modifiedgame = true;

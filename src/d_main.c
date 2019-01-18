@@ -1253,7 +1253,6 @@ void D_SRB2Main(void)
 #endif //ifndef DEVELOP
 
 	mainwadstally = packetsizetally;
-	majormods = false;
 
 	cht_Init();
 
