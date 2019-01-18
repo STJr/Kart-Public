@@ -6018,6 +6018,7 @@ void G_AddGhost(char *defdemoname)
 	UINT8 *buffer,*p;
 	mapthing_t *mthing;
 	UINT16 count, ghostversion;
+	skin_t *ghskin = &skins[0];
 
 	name[16] = '\0';
 	skin[16] = '\0';
@@ -6163,11 +6164,10 @@ void G_AddGhost(char *defdemoname)
 		return;
 	}
 
-	gh->oldmo.skin = &skins[0];
 	for (i = 0; i < numskins; i++)
 		if (!stricmp(skins[i].name,skin))
 		{
-			gh->oldmo.skin = &skins[i];
+			ghskin = &skins[i];
 			break;
 		}
 
@@ -6224,7 +6224,7 @@ void G_AddGhost(char *defdemoname)
 	gh->oldmo.z = gh->mo->z;
 
 	// Set skin
-	gh->mo->skin = gh->oldmo.skin;
+	gh->mo->skin = gh->oldmo.skin = ghskin;
 
 	// Set color
 	gh->mo->color = ((skin_t*)gh->mo->skin)->prefcolor;
