@@ -3167,7 +3167,6 @@ void M_Init(void)
 		return;
 
 	// Menu hacks
-	CV_RegisterVar(&cv_splitplayers);
 	CV_RegisterVar(&cv_dummymenuplayer);
 	CV_RegisterVar(&cv_dummyteam);
 	CV_RegisterVar(&cv_dummyspectate);

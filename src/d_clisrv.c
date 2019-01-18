@@ -3079,12 +3079,10 @@ void D_ClientServerInit(void)
 	RegisterNetXCmd(XD_REMOVEPLAYER, Got_RemovePlayer);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
-	CV_RegisterVar(&cv_netticbuffer);
 #ifdef VANILLAJOINNEXTROUND
 	CV_RegisterVar(&cv_joinnextround);
 #endif
 	CV_RegisterVar(&cv_showjoinaddress);
-	CV_RegisterVar(&cv_resynchattempts);
 	CV_RegisterVar(&cv_blamecfail);
 #ifdef DUMPCONSISTENCY
 	CV_RegisterVar(&cv_dumpconsistency);

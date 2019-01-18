@@ -3179,7 +3179,7 @@ INT16 G_SometimesGetDifferentGametype(void)
 		default:
 			// fallthrough - happens when clearing buffer, but needs a reasonable countdown if cvar is modified
 		case 2: // frequent
-			randmapbuffer[NUMMAPS] = 3; // ...every 1/2th-ish cup?
+			randmapbuffer[NUMMAPS] = 2; // ...every 1/2th-ish cup?
 			break;
 	}
 

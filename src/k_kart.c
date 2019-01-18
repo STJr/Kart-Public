@@ -7571,7 +7571,8 @@ static void K_drawKartMinimap(void)
 	INT32 i = 0;
 	INT32 x, y;
 	INT32 minimaptrans, splitflags = (splitscreen == 3 ? 0 : V_SNAPTORIGHT);	// flags should only be 0 when it's centered (4p split)
-	boolean dop1later = false;
+	SINT8 localplayers[4];
+	SINT8 numlocalplayers = 0;
 
 	// Draw the HUD only when playing in a level.
 	// hu_stuff needs this, unlike st_stuff.
@@ -7623,6 +7624,10 @@ static void K_drawKartMinimap(void)
 		x -= SHORT(AutomapPic->leftoffset);
 	y -= SHORT(AutomapPic->topoffset);
 
+	// initialize
+	for (i = 0; i < 4; i++)
+		localplayers[i] = -1;
+
 	// Player's tiny icons on the Automap. (drawn opposite direction so player 1 is drawn last in splitscreen)
 	if (ghosts)
 	{
@@ -7632,9 +7637,12 @@ static void K_drawKartMinimap(void)
 			K_drawKartMinimapHead(g->mo, x, y, splitflags, AutomapPic);
 			g = g->next;
 		}
+
 		if (!stplyr->mo || stplyr->spectator) // do we need the latter..?
 			return;
-		dop1later = true;
+
+		localplayers[numlocalplayers] = stplyr-players;
+		numlocalplayers++;
 	}
 	else
 	{
@@ -7645,53 +7653,41 @@ static void K_drawKartMinimap(void)
 			if (!players[i].mo || players[i].spectator)
 				continue;
 
-			if (i == displayplayer || i == secondarydisplayplayer || i == thirddisplayplayer || i == fourthdisplayplayer)	// don't draw our local players.
+			if (i != displayplayer || splitscreen)
 			{
-				dop1later = true; // Do displayplayer later
-				continue;
+				if (G_BattleGametype() && players[i].kartstuff[k_bumper] <= 0)
+					continue;
+
+				if (players[i].kartstuff[k_hyudorotimer] > 0)
+				{
+					if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
+						|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
+						&& !(leveltime & 1)))
+						continue;
+				}
 			}
 
-			if (G_BattleGametype() && players[i].kartstuff[k_bumper] <= 0)
-				continue;
-			if (players[i].kartstuff[k_hyudorotimer] > 0)
+			if (i == displayplayer || i == secondarydisplayplayer || i == thirddisplayplayer || i == fourthdisplayplayer)
 			{
-				if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
-					|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
-					&& !(leveltime & 1)))
-					continue;
+				// Draw display players on top of everything else
+				localplayers[numlocalplayers] = i;
+				numlocalplayers++;
+				continue;
 			}
 
 			K_drawKartMinimapHead(players[i].mo, x, y, splitflags, AutomapPic);
 		}
 	}
 
-	if (!dop1later)
-		return; // Don't need this
-
 	// draw our local players here, opaque.
 	splitflags &= ~V_HUDTRANSHALF;
 	splitflags |= V_HUDTRANS;
-	for (i = MAXPLAYERS-1; i >= 0; i--)
+
+	for (i = 0; i < numlocalplayers; i++)
 	{
-		if (!(i == displayplayer || i == secondarydisplayplayer || i == thirddisplayplayer || i == fourthdisplayplayer))
-			continue;	// this doesn't interrest us
-
-		if (splitscreen > 1)	// this only applies to splitscreen. When we play alone, we should always get drawn reguardless of what we're doing.
-		{
-			if (G_BattleGametype() && players[i].kartstuff[k_bumper] <= 0)
-				continue;
-			if (players[i].kartstuff[k_hyudorotimer] > 0)
-			{
-				if (!((players[i].kartstuff[k_hyudorotimer] < 1*TICRATE/2
-					|| players[i].kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))
-					&& !(leveltime & 1)))
-					continue;
-			}
-
-			K_drawKartMinimapHead(players[i].mo, x, y, splitflags, AutomapPic);
-		}
-		else
-			K_drawKartMinimapHead(players[i].mo, x, y, splitflags, AutomapPic);
+		if (i == -1)
+			continue; // this doesn't interest us
+		K_drawKartMinimapHead(players[localplayers[i]].mo, x, y, splitflags, AutomapPic);
 	}
 }
 
