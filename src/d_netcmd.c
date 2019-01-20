@@ -2489,6 +2489,12 @@ static void Command_Respawn(void)
 	UINT8 *cp = buf;
 
 	WRITEINT32(cp, consoleplayer);
+	
+	if (players[consoleplayer].kartstuff[k_spinouttimer])	// KART: Nice try, but no, you won't be cheesing spb anymore.
+	{	
+		CONS_Printf(M_GetText("Cannot use this while hurt.\n"));
+		return;
+	}
 
 	if (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING))
 	{
