@@ -1208,6 +1208,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 
 	// MD2 colormap fix
 	// colormap test
+	if (spr->mobj->subsector)
 	{
 		sector_t *sector = spr->mobj->subsector->sector;
 		UINT8 lightlevel = 255;
@@ -1238,6 +1239,10 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, colormap->rgba, colormap->fadergba, false, false);
 		else
 			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
+	}
+	else
+	{
+		Surf.FlatColor.rgba = 0xFFFFFFFF;
 	}
 
 	// Look at HWR_ProjectSprite for more
