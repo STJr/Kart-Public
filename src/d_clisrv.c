@@ -2076,8 +2076,8 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 		I_OsPolling();
 		key = I_GetKey();
-		// Any key can be used to abort network connection
-		if (key != KEY_NULL) 
+		// Only ESC and non-keyboard keys abort connection
+		if (key == KEY_ESCAPE || key >= KEY_MOUSE1)
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 //				M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
@@ -3025,6 +3025,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 }
 
+static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}, {0, NULL}};
+consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_allownewplayer = {"allowjoin", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
 #ifdef VANILLAJOINNEXTROUND
 consvar_t cv_joinnextround = {"joinnextround", "Off", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
@@ -3080,7 +3083,6 @@ void D_ClientServerInit(void)
 	CV_RegisterVar(&cv_joinnextround);
 #endif
 	CV_RegisterVar(&cv_showjoinaddress);
-	CV_RegisterVar(&cv_resynchattempts);
 	CV_RegisterVar(&cv_blamecfail);
 #ifdef DUMPCONSISTENCY
 	CV_RegisterVar(&cv_dumpconsistency);
@@ -3883,6 +3885,32 @@ static void HandlePacketFromAwayNode(SINT8 node)
 #undef SERVERONLY
 }
 
+/** Checks ticcmd for "speed hacks"
+  *
+  * \param p Which player
+  * \return True if player is hacking
+  * \sa HandlePacketFromPlayer
+  *
+  */
+static boolean CheckForSpeedHacks(UINT8 p)
+{
+	if (netcmds[maketic%BACKUPTICS][p].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][p].forwardmove < -MAXPLMOVE
+		|| netcmds[maketic%BACKUPTICS][p].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][p].sidemove < -MAXPLMOVE
+		|| netcmds[maketic%BACKUPTICS][p].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][p].driftturn < -KART_FULLTURN)
+	{
+		XBOXSTATIC char buf[2];
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), playernode[p]);
+		//D_Clearticcmd(k);
+
+		buf[0] = (char)p;
+		buf[1] = KICK_MSG_CON_FAIL;
+		SendNetXCmd(XD_KICK, &buf, 2);
+		return true;
+	}
+
+	return false;
+}
+
 /** Handles a packet received from a node that is in game
   *
   * \param node The packet sender
@@ -3977,18 +4005,8 @@ FILESTAMP
 			G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][netconsole], &netbuffer->u.clientpak.cmd, 1);
 
 			// Check ticcmd for "speed hacks"
-			if (netcmds[maketic%BACKUPTICS][netconsole].forwardmove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].forwardmove < -MAXPLMOVE
-				|| netcmds[maketic%BACKUPTICS][netconsole].sidemove > MAXPLMOVE || netcmds[maketic%BACKUPTICS][netconsole].sidemove < -MAXPLMOVE)
-			{
-				XBOXSTATIC char buf[2];
-				CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), netconsole);
-				//D_Clearticcmd(k);
-
-				buf[0] = (char)netconsole;
-				buf[1] = KICK_MSG_CON_FAIL;
-				SendNetXCmd(XD_KICK, &buf, 2);
+			if (CheckForSpeedHacks((UINT8)netconsole))
 				break;
-			}
 
 			// Splitscreen cmd
 			if (((netbuffer->packettype == PT_CLIENT2CMD || netbuffer->packettype == PT_CLIENT2MIS)
@@ -3998,6 +4016,9 @@ FILESTAMP
 			{
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer2[node]],
 					&netbuffer->u.client2pak.cmd2, 1);
+
+				if (CheckForSpeedHacks((UINT8)nodetoplayer2[node]))
+					break;
 			}
 
 			if (((netbuffer->packettype == PT_CLIENT3CMD || netbuffer->packettype == PT_CLIENT3MIS)
@@ -4006,6 +4027,9 @@ FILESTAMP
 			{
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer3[node]],
 					&netbuffer->u.client3pak.cmd3, 1);
+
+				if (CheckForSpeedHacks((UINT8)nodetoplayer3[node]))
+					break;
 			}
 
 			if ((netbuffer->packettype == PT_CLIENT4CMD || netbuffer->packettype == PT_CLIENT4MIS)
@@ -4013,6 +4037,9 @@ FILESTAMP
 			{
 				G_MoveTiccmd(&netcmds[maketic%BACKUPTICS][(UINT8)nodetoplayer4[node]],
 					&netbuffer->u.client4pak.cmd4, 1);
+
+				if (CheckForSpeedHacks((UINT8)nodetoplayer4[node]))
+					break;
 			}
 
 			// A delay before we check resynching
@@ -4933,6 +4960,10 @@ void TryRunTics(tic_t realtics)
 				ExtraDataTicker();
 				gametic++;
 				consistancy[gametic%BACKUPTICS] = Consistancy();
+
+				// Leave a certain amount of tics present in the net buffer as long as we've ran at least one tic this frame.
+				if (client && gamestate == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
+					break;
 			}
 	}
 	else

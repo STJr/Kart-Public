@@ -357,7 +357,7 @@ consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_
 consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartComeback_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartencore = {"kartencore", "Off", CV_NETVAR|CV_CALL|CV_NOINIT, CV_OnOff, KartEncore_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartvoterulechanges_cons_t[] = {{0, "Never"}, {1, "Sometimes"}, {2, "Frequent"}, {3, "Always"}, {0, NULL}};
-consvar_t cv_kartvoterulechanges = {"kartvoterulechanges", "Sometimes", CV_NETVAR, kartvoterulechanges_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartvoterulechanges = {"kartvoterulechanges", "Frequent", CV_NETVAR, kartvoterulechanges_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartspeedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
@@ -483,6 +483,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"SETUPVOTE",
 	"MODIFYVOTE",
 	"PICKVOTE",
+	"REMOVEPLAYER",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
@@ -646,6 +647,7 @@ void D_RegisterServerCommands(void)
 
 	// d_clisrv
 	CV_RegisterVar(&cv_maxplayers);
+	CV_RegisterVar(&cv_resynchattempts);
 	CV_RegisterVar(&cv_maxsend);
 	CV_RegisterVar(&cv_noticedownload);
 	CV_RegisterVar(&cv_downloadspeed);
@@ -761,6 +763,7 @@ void D_RegisterClientCommands(void)
 #endif
 	CV_RegisterVar(&cv_rollingdemos);
 	CV_RegisterVar(&cv_netstat);
+	CV_RegisterVar(&cv_netticbuffer);
 
 #ifdef NETGAME_DEVMODE
 	CV_RegisterVar(&cv_fishcake);
@@ -830,14 +833,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_driftaxis2);
 	CV_RegisterVar(&cv_driftaxis3);
 	CV_RegisterVar(&cv_driftaxis4);
-
-	// filesrch.c
-	CV_RegisterVar(&cv_addons_option);
-	CV_RegisterVar(&cv_addons_folder);
-	CV_RegisterVar(&cv_addons_md5);
-	CV_RegisterVar(&cv_addons_showall);
-	CV_RegisterVar(&cv_addons_search_type);
-	CV_RegisterVar(&cv_addons_search_case);
 
 	// filesrch.c
 	CV_RegisterVar(&cv_addons_option);

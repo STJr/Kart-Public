@@ -4509,7 +4509,7 @@ boolean P_AnalogMove(player_t *player)
 // 1 = pressing in the direction of movement
 // 2 = pressing in the opposite direction of movement
 //
-INT32 P_GetPlayerControlDirection(player_t *player)
+/*INT32 P_GetPlayerControlDirection(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 	angle_t controllerdirection, controlplayerdirection;
@@ -4584,7 +4584,7 @@ INT32 P_GetPlayerControlDirection(player_t *player)
 }
 
 // Control scheme for 2d levels.
-/*static void P_2dMovement(player_t *player)
+static void P_2dMovement(player_t *player)
 {
 	ticcmd_t *cmd;
 	INT32 topspeed, acceleration, thrustfactor;
@@ -4794,23 +4794,10 @@ static void P_3dMovement(player_t *player)
 		cmd->forwardmove = cmd->sidemove = 0;
 		if (player->kartstuff[k_sneakertimer])
 			cmd->forwardmove = 50;
-		if (player->pflags & PF_GLIDING)
-		{
-			if (!player->skidtime)
-				player->pflags &= ~PF_GLIDING;
-			else if (player->exiting || mapreset)
-			{
-				player->pflags &= ~PF_GLIDING;
-				P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
-				player->skidtime = 0;
-			}
-		}
-		if (player->pflags & PF_SPINNING && !(player->exiting || mapreset))
-		{
-			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
-		}
 	}
+
+	if (!(player->pflags & PF_FORCESTRAFE) && !player->kartstuff[k_pogospring])
+		cmd->sidemove = 0;
 
 	if (analogmove)
 	{
@@ -4819,9 +4806,7 @@ static void P_3dMovement(player_t *player)
 	else
 	{
 		if (player->kartstuff[k_drift] != 0)
-		{
 			movepushangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
-		}
 		else
 			movepushangle = player->mo->angle;
 	}
@@ -5039,10 +5024,10 @@ static void P_SpectatorMovement(player_t *player)
 		// Quake-style flying spectators :D
 		player->mo->momz += FixedMul(cmd->forwardmove*mapobjectscale, AIMINGTOSLOPE(player->aiming));
 	}
-	if (cmd->sidemove != 0)
+	/*if (cmd->sidemove != 0) -- was disabled in practice anyways, since sidemove was suppressed
 	{
 		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*mapobjectscale);
-	}
+	}*/
 }
 
 //
@@ -6633,8 +6618,53 @@ static void P_MovePlayer(player_t *player)
 		P_2dMovement(player);
 	else*/
 	{
-		if (!player->climbing && (!P_AnalogMove(player)))
-			player->mo->angle = (cmd->angleturn<<16 /* not FRACBITS */);
+		INT16 angle_diff, max_left_turn, max_right_turn;
+		boolean add_delta = true;
+
+		// Kart: store the current turn range for later use
+		if (((player->mo && player->speed > 0) // Moving
+			|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+			|| (player->kartstuff[k_respawn]) // Respawning
+			|| (player->spectator || objectplacing)) // Not a physical player
+			&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out turning
+		{
+			player->lturn_max[leveltime%MAXPREDICTTICS] = K_GetKartTurnValue(player, KART_FULLTURN)+1;
+			player->rturn_max[leveltime%MAXPREDICTTICS] = K_GetKartTurnValue(player, -KART_FULLTURN)-1;
+		} else {
+			player->lturn_max[leveltime%MAXPREDICTTICS] = player->rturn_max[leveltime%MAXPREDICTTICS] = 0;
+		}
+
+		if (leveltime >= starttime)
+		{
+			// KART: Don't directly apply angleturn! It may have been either A) forged by a malicious client, or B) not be a smooth turn due to a player dropping frames.
+			// Instead, turn the player only up to the amount they're supposed to turn accounting for latency. Allow exactly 1 extra turn unit to try to keep old replays synced.
+			angle_diff = cmd->angleturn - (player->mo->angle>>16);
+			max_left_turn = player->lturn_max[(leveltime + MAXPREDICTTICS - cmd->latency) % MAXPREDICTTICS];
+			max_right_turn = player->rturn_max[(leveltime + MAXPREDICTTICS - cmd->latency) % MAXPREDICTTICS];
+
+			//CONS_Printf("----------------\nangle diff: %d - turning options: %d to %d - ", angle_diff, max_left_turn, max_right_turn);
+
+			if (angle_diff > max_left_turn)
+				angle_diff = max_left_turn;
+			else if (angle_diff < max_right_turn)
+				angle_diff = max_right_turn;
+			else
+			{
+				// Try to keep normal turning as accurate to 1.0.1 as possible to reduce replay desyncs.
+				player->mo->angle = cmd->angleturn<<16;
+				add_delta = false;
+			}
+			//CONS_Printf("applied turn: %d\n", angle_diff);
+
+			if (add_delta) {
+				player->mo->angle += angle_diff<<16;
+				player->mo->angle &= ~0xFFFF; // Try to keep the turning somewhat similar to how it was before?
+				//CONS_Printf("leftover turn (%s): %5d or %4d%%\n",
+				//				player_names[player-players],
+				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)),
+				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ?: 1));
+			}
+		}
 
 		ticruned++;
 		if ((cmd->angleturn & TICCMD_RECEIVED) == 0)
@@ -7032,6 +7062,7 @@ static void P_MovePlayer(player_t *player)
 	//ANALOG CONTROL//
 	//////////////////
 
+#if 0
 	// This really looks like it should be moved to P_3dMovement. -Red
 	if (P_AnalogMove(player)
 		&& (cmd->forwardmove != 0 || cmd->sidemove != 0) && !player->climbing && !twodlevel && !(player->mo->flags2 & MF2_TWOD))
@@ -7088,6 +7119,7 @@ static void P_MovePlayer(player_t *player)
 		else if (player == &players[fourthdisplayplayer])
 			localangle4 = player->mo->angle;
 	}
+#endif
 
 	///////////////////////////
 	//BOMB SHIELD ACTIVATION,//

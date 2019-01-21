@@ -435,11 +435,11 @@ static void readAnimTex(MYFILE *f, INT32 num)
 static boolean findFreeSlot(INT32 *num)
 {
 	// Send the character select entry to a free slot.
-	while (*num < 32 && PlayerMenu[*num].status != IT_DISABLED)
+	while (*num < MAXSKINS && PlayerMenu[*num].status != IT_DISABLED)
 		*num = *num+1;
 
 	// No more free slots. :(
-	if (*num >= 32)
+	if (*num >= MAXSKINS)
 		return false;
 
 	// Found one! ^_^
@@ -3741,7 +3741,8 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				}
 				else if (fastcmp(word, "SRB2"))
 				{
-					deh_warning("Patch is only compatible with base SRB2.");
+					if (mainwads) // srb2.srb triggers this warning otherwise
+						deh_warning("Patch is only compatible with base SRB2.");
 				}
 				// Clear all data in certain locations (mostly for unlocks)
 				// Unless you REALLY want to piss people off,
