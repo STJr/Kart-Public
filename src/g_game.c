@@ -760,11 +760,11 @@ void G_SetGameModified(boolean silent, boolean major)
 		return;
 
 	modifiedgame = true;
-	savemoddata = false;
 
 	if (!major)
 		return;
 
+	savemoddata = false;
 	majormods = true;
 
 	if (!silent)
