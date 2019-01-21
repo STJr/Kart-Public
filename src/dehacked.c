@@ -9773,7 +9773,10 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushboolean(L, devparm);
 		return 1;
 	} else if (fastcmp(word,"modifiedgame")) {
-		lua_pushboolean(L, /*modifiedgame*/ majormods && !savemoddata);
+		lua_pushboolean(L, modifiedgame && !savemoddata);
+		return 1;
+	} else if (fastcmp(word,"majormods")) {
+		lua_pushboolean(L, majormods);
 		return 1;
 	} else if (fastcmp(word,"menuactive")) {
 		lua_pushboolean(L, menuactive);
