@@ -2077,7 +2077,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		I_OsPolling();
 		key = I_GetKey();
 		// Only ESC and non-keyboard keys abort connection
-		if (key == KEY_ESCAPE || key >= KEY_MOUSE1) 
+		if (key == KEY_ESCAPE || key >= KEY_MOUSE1)
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 //				M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
@@ -3025,7 +3025,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 }
 
-static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}};
+static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}, {0, NULL}};
 consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_allownewplayer = {"allowjoin", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
