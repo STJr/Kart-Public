@@ -7964,7 +7964,7 @@ static void M_HandleConnectIP(INT32 choice)
 				break;
 
 			// Rudimentary number and period enforcing - also allows letters so hostnames can be used instead
-			if ((choice >= 45 && choice <= 58) || (choice >= 65 && choice <= 90) || (choice >= 97 && choice <= 122))
+			if ((choice >= '-' && choice <= ':') || (choice >= 'A' && choice <= 'Z') || (choice >= 'a' && choice <= 'z'))
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_ip[l] = (char)choice;
