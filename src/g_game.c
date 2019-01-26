@@ -1612,10 +1612,18 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 	}
 
-	// Lua: Allow this hook to overwrite ticcmd.
-	// Be aware that you can't actually write anything inside the player with this hook, only cmd may be altered.
+	/* 	Lua: Allow this hook to overwrite ticcmd.
+		We check if we're actually in a level because for some reason this Hook would run in menus and on the titlescreen otherwise.
+		Be aware that within this hook, nothing but this player's cmd can be edited (otherwise we'd run in some pretty bad synching problems since this is clientsided, or something)
+
+		Possible usages for this are:
+			-Forcing the player to perform an action, which could otherwise require terrible, terrible hacking to replicate.
+			-Preventing the player to perform an action, which would ALSO require some weirdo hacks.
+			-Making some galaxy brain autopilot Lua if you're a masochist
+			-Making a Mario Kart 8 Deluxe tier baby mode that steers you away from walls and whatnot. You know what, do what you want!
+	*/
 #ifdef HAVE_BLUA
-	if (playeringame[consoleplayer])	// safe to assume we can't do anything if consoleplayer isn't in the game.
+	if (gamestate == GS_LEVEL)
 		LUAh_PlayerCmd(player, cmd);
 #endif
 
