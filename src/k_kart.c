@@ -1548,7 +1548,7 @@ static void K_RegularVoiceTimers(player_t *player)
 		player->kartstuff[k_tauntvoices] = 4*TICRATE;
 }
 
-static void K_PlayAttackTaunt(mobj_t *source)
+void K_PlayAttackTaunt(mobj_t *source)
 {
 	sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
@@ -1562,7 +1562,7 @@ static void K_PlayAttackTaunt(mobj_t *source)
 	K_TauntVoiceTimers(source->player);
 }
 
-static void K_PlayBoostTaunt(mobj_t *source)
+void K_PlayBoostTaunt(mobj_t *source)
 {
 	sfxenum_t pick = P_RandomKey(2); // Gotta roll the RNG every time this is called for sync reasons
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_tauntvoices]);
@@ -1576,7 +1576,7 @@ static void K_PlayBoostTaunt(mobj_t *source)
 	K_TauntVoiceTimers(source->player);
 }
 
-static void K_PlayOvertakeSound(mobj_t *source)
+void K_PlayOvertakeSound(mobj_t *source)
 {
 	boolean tasteful = (!source->player || !source->player->kartstuff[k_voices]);
 
@@ -1596,7 +1596,7 @@ static void K_PlayOvertakeSound(mobj_t *source)
 	K_RegularVoiceTimers(source->player);
 }
 
-static void K_PlayHitEmSound(mobj_t *source)
+void K_PlayHitEmSound(mobj_t *source)
 {
 	if (cv_kartvoices.value)
 		S_StartSound(source, sfx_khitem);
@@ -1606,7 +1606,7 @@ static void K_PlayHitEmSound(mobj_t *source)
 	K_RegularVoiceTimers(source->player);
 }
 
-static void K_PlayPowerGloatSound(mobj_t *source)
+void K_PlayPowerGloatSound(mobj_t *source)
 {
 	if (cv_kartvoices.value)
 		S_StartSound(source, sfx_kgloat);
@@ -4670,7 +4670,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 			player->kartstuff[k_driftend] = 0;
 	}
 
-	
+
 
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
@@ -7038,15 +7038,23 @@ static boolean K_drawKartPositionFaces(void)
 				colormap = R_GetTranslationColormap(players[rankplayer[i]].skin, players[rankplayer[i]].mo->color, GTC_CACHE);
 
 			V_DrawMappedPatch(FACE_X, Y, V_HUDTRANS|V_SNAPTOLEFT, facerankprefix[players[rankplayer[i]].skin], colormap);
-			if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
+
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_battlebumpers))
 			{
-				V_DrawMappedPatch(bumperx-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumper[0], colormap);
-				for (j = 1; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
+#endif
+				if (G_BattleGametype() && players[rankplayer[i]].kartstuff[k_bumper] > 0)
 				{
-					bumperx += 5;
-					V_DrawMappedPatch(bumperx, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumper[1], colormap);
+					V_DrawMappedPatch(bumperx-2, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumper[0], colormap);
+					for (j = 1; j < players[rankplayer[i]].kartstuff[k_bumper]; j++)
+					{
+						bumperx += 5;
+						V_DrawMappedPatch(bumperx, Y, V_HUDTRANS|V_SNAPTOLEFT, kp_tinybumper[1], colormap);
+					}
 				}
-			}
+#ifdef HAVE_BLUA
+			}	// A new level of stupidity: checking if lua is enabled to close a bracket. :Fascinating:
+#endif
 		}
 
 		if (i == strank)
@@ -7857,7 +7865,10 @@ static void K_drawBattleFullscreen(void)
 				return;
 		}
 
-		K_drawKartFreePlay(leveltime);
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_freeplay))
+#endif
+			K_drawKartFreePlay(leveltime);
 	}
 }
 
@@ -8479,7 +8490,12 @@ void K_drawKartHUD(void)
 
 	// Draw FREE PLAY.
 	if (isfreeplay && !stplyr->spectator && timeinmap > 113)
-		K_drawKartFreePlay(leveltime);
+	{
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_freeplay))
+#endif
+			K_drawKartFreePlay(leveltime);
+	}
 
 	if (cv_kartdebugdistribution.value)
 		K_drawDistributionDebugger();
