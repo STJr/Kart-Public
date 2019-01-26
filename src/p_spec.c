@@ -1758,12 +1758,12 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 
 	switch (specialtype)
 	{
-		case 305: // continuous
+		/*case 305: // continuous
 		case 306: // each time
 		case 307: // once
 			if (!(actor && actor->player && actor->player->charability == dist/10))
 				return false;
-			break;
+			break;*/
 		case 309: // continuous
 		case 310: // each time
 			// Only red team members can activate this.
@@ -3864,14 +3864,6 @@ DoneSection2:
 
 				P_InstaThrust(player->mo, player->mo->angle, linespeed);
 
-				/*if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH)) // SRB2kart
-				{
-					if (!(player->pflags & PF_SPINNING))
-						player->pflags |= PF_SPINNING;
-
-					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-				}*/
-
 				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
 				player->kartstuff[k_drift] = 0;
 				player->kartstuff[k_driftcharge] = 0;
@@ -5781,7 +5773,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 				lines[i].special = 0;
 				continue;
 			}
-			/*else -- commented out because irrelevant to kart
+			/*else -- commented out because irrelevant to kart. keeping here because we can use these flags for something else now
 			{
 				if ((players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
 				|| (players[consoleplayer].charability == CA_FLY && (lines[i].flags & ML_NOTAILS))
@@ -7997,12 +7989,13 @@ static void P_SearchForDisableLinedefs(void)
 			}
 			else if ((lines[i].flags & ML_NETONLY) == ML_NETONLY)
 				continue; // Net-only never triggers in single player
-			else if (players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
+			// commented out because irrelevant to kart. keeping here because we can use these flags for something else now
+			/*else if (players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
 				continue;
 			else if (players[consoleplayer].charability == CA_FLY && (lines[i].flags & ML_NOTAILS))
 				continue;
 			else if (players[consoleplayer].charability == CA_GLIDEANDCLIMB && (lines[i].flags & ML_NOKNUX))
-				continue;
+				continue;*/
 
 			// Disable any linedef specials with our tag.
 			for (j = -1; (j = P_FindLineFromLineTag(&lines[i], j)) >= 0;)
