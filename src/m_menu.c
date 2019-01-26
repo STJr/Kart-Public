@@ -7959,12 +7959,21 @@ static void M_HandleConnectIP(INT32 choice)
 			break;
 
 		default:
-			if (choice < 32 || choice > 127) // also allows letters to be typed in so hostnames can be used instead of an IP
+			l = strlen(setupm_ip);
+			if (l >= 28-1)
 				break;
 
-			l = strlen(setupm_ip);
-			if (l < 28-1)
+			// Rudimentary number and period enforcing - also allows letters so hostnames can be used instead
+			if ((choice >= 45 && choice <= 58) || (choice >= 65 && choice <= 90) || (choice >= 97 && choice <= 122))
 			{
+				S_StartSound(NULL,sfx_menu1); // Tails
+				setupm_ip[l] = (char)choice;
+				setupm_ip[l+1] = 0;
+			}
+			else if (choice >= 199 && choice <= 211 && choice != 202 && choice != 206) //numpad too!
+			{
+				char keypad_translation[] = {'7','8','9','-','4','5','6','+','1','2','3','0','.'};
+				choice = keypad_translation[choice - 199];
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_ip[l] = (char)choice;
 				setupm_ip[l+1] = 0;
