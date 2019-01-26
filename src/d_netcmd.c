@@ -2209,7 +2209,7 @@ static void Command_Map_f(void)
 		return;
 	}
 
-	if (!(netgame || multiplayer) && (!majormods || savemoddata))
+	if (!(netgame || multiplayer) && !majormods)
 	{
 		if (COM_CheckParm("-force"))
 		{

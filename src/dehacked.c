@@ -3425,7 +3425,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			if (fastcmp(word, "FREESLOT"))
 			{
 				readfreeslots(f);
-				//G_SetGameModified(multiplayer, true);
+				// This is not a major mod.
 				continue;
 			}
 			else if (fastcmp(word, "MAINCFG"))
@@ -3439,7 +3439,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			{
 				readwipes(f);
 				DEH_WriteUndoline(word, "", UNDO_HEADER);
-				//G_SetGameModified(multiplayer, true);
+				// This is not a major mod.
 				continue;
 			}
 			word2 = strtok(NULL, " ");
@@ -3460,7 +3460,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					ignorelines(f);
 				}
 				DEH_WriteUndoline(word, word2, UNDO_HEADER);
-				//G_SetGameModified(multiplayer, true);
+				// This is not a major mod.
 				continue;
 			}
 			if (word2)
@@ -3474,14 +3474,14 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					// Read texture from spec file.
 					readtexture(f, word2);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 				}
 				else if (fastcmp(word, "PATCH"))
 				{
 					// Read patch from spec file.
 					readpatch(f, word2, wad);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 				}
 				else if (fastcmp(word, "THING") || fastcmp(word, "MOBJ") || fastcmp(word, "OBJECT"))
 				{
@@ -3503,7 +3503,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 /*				else if (fastcmp(word, "ANIMTEX"))
 				{
 					readAnimTex(f, i);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 				}*/
 				else if (fastcmp(word, "LIGHT"))
 				{
@@ -3517,7 +3517,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 #endif
 				}
 				else if (fastcmp(word, "SPRITE"))
@@ -3533,7 +3533,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 #endif
 				}
 				else if (fastcmp(word, "LEVEL"))
@@ -3622,7 +3622,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					//G_SetGameModified(multiplayer, true); -- ...this won't bite me in the ass later, will it?
+					// This is not a major mod.
 				}
 /*				else if (fastcmp(word, "SPRITE"))
 				{
@@ -3643,7 +3643,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					else
 						deh_warning("Sprite %d doesn't exist",i);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 				}*/
 				else if (fastcmp(word, "HUDITEM"))
 				{
@@ -3657,7 +3657,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-					//G_SetGameModified(multiplayer, true);
+					// This is not a major mod.
 				}
 				else if (fastcmp(word, "EMBLEM"))
 				{
