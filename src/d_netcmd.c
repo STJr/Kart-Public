@@ -2496,9 +2496,9 @@ static void Command_Respawn(void)
 		return;
 	}
 
-	if (players[consoleplayer].kartstuff[k_spinouttimer] && !P_IsObjectOnGround(players[consoleplayer].mo))	// KART: Nice try, but no, you won't be cheesing spb anymore.
+	if (players[consoleplayer].mo && !P_IsObjectOnGround(players[consoleplayer].mo))	// KART: Nice try, but no, you won't be cheesing spb anymore.
 	{
-		CONS_Printf(M_GetText("Cannot use this while hurt.\n"));
+		CONS_Printf(M_GetText("You must be on the floor to use this.\n"));
 		return;
 	}
 
@@ -2523,8 +2523,8 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 {
 	INT32 respawnplayer = READINT32(*cp);
 
-	// You can't respawn someone else or cheat your way by removing the send checks above :)  Nice try, there.
-	if ((respawnplayer != playernum) || (players[respawnplayer].mo && players[respawnplayer].kartstuff[k_spinouttimer] && !P_IsObjectOnGround(players[respawnplayer].mo))) // srb2kart: "|| (!G_RaceGametype())"
+	// You can't respawn someone else. Nice try, there.
+	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
 		if (server)
@@ -2537,6 +2537,10 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 		}
 		return;
 	}
+
+	// incase the above checks were modified to allow sending a respawn on these occasions:
+	if (players[respawnplayer].mo && !P_IsObjectOnGround(players[respawnplayer].mo))
+		return;
 
 	if (players[respawnplayer].mo)
 		P_DamageMobj(players[respawnplayer].mo, NULL, NULL, 10000);
