@@ -1372,7 +1372,19 @@ void CV_SaveNetVars(UINT8 **p, boolean demorecording)
 			// UGLY HACK: Save proper lap count in net replays
 			if (demorecording && cvar->netid == cv_numlaps.netid)
 			{
-				WRITESTRING(*p, cv_basenumlaps.string);
+				if (cv_basenumlaps.value &&
+					(!(mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
+					|| (mapheaderinfo[gamemap - 1]->numlaps > cv_basenumlaps.value))
+				)
+				{
+					WRITESTRING(*p, cv_basenumlaps.string);
+				}
+				else
+				{
+					char buf[9];
+					sprintf(buf, "%d", mapheaderinfo[gamemap - 1]->numlaps);
+					WRITESTRING(*p, buf);
+				}
 			}
 			else
 			{
