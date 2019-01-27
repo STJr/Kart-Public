@@ -4483,6 +4483,8 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DF_ATTACKSHIFT  1
 #define DF_MULTIPLAYER  0x80 // This demo contains a dynamic number of players!
 
+#define DEMO_SPECTATOR 0x40
+
 // For demos
 #define ZT_FWD     0x01
 #define ZT_SIDE    0x02
@@ -5498,10 +5500,10 @@ void G_BeginRecording(void)
 
 		// Now store a SIMPLIFIED data struct for each in-game player
 		for (p = 0; p < MAXPLAYERS; p++) {
-			if (playeringame[p] && !players[p].spectator) {
+			if (playeringame[p]) {
 				player = &players[p];
 
-				WRITEUINT8(demo_p, p);
+				WRITEUINT8(demo_p, p | (player->spectator ? DEMO_SPECTATOR : 0));
 
 				// Name
 				memset(name, 0, 16);
@@ -5991,15 +5993,23 @@ void G_DoPlayDemo(char *defdemoname)
 
 	if (multiplayer) {
 		player_t *player;
+		boolean spectator;
 
 		// Load players that were in-game when the map started
 		p = READUINT8(demo_p);
 
 		while (p != 0xFF)
 		{
-			if (!playeringame[displayplayer])
+			spectator = false;
+			if (p & DEMO_SPECTATOR) {
+				spectator = true;
+				p &= ~DEMO_SPECTATOR;
+			}
+
+			if (!playeringame[displayplayer] || players[displayplayer].spectator)
 				displayplayer = consoleplayer = p;
 			playeringame[p] = true;
+			players[p].spectator = spectator;
 
 			// Name
 			M_Memcpy(player_names[p],demo_p,16);
