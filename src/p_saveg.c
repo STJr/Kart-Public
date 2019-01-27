@@ -3447,7 +3447,7 @@ void P_SaveNetGame(void)
 	mobj_t *mobj;
 	INT32 i = 1; // don't start from 0, it'd be confused with a blank pointer otherwise
 
-	CV_SaveNetVars(&save_p);
+	CV_SaveNetVars(&save_p, false);
 	P_NetArchiveMisc();
 
 	// Assign the mobjnumber for pointer tracking

@@ -1500,7 +1500,7 @@ static boolean SV_SendServerConfig(INT32 node)
 	op = p = netbuffer->u.servercfg.varlengthinputs;
 
 	CV_SavePlayerNames(&p);
-	CV_SaveNetVars(&p);
+	CV_SaveNetVars(&p, false);
 	{
 		const size_t len = sizeof (serverconfig_pak) + (size_t)(p - op);
 

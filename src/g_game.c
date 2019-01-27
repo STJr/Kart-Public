@@ -5494,7 +5494,7 @@ void G_BeginRecording(void)
 
 	if (demoflags & DF_MULTIPLAYER) {
 		// Netvars first :)
-		CV_SaveNetVars(&demo_p);
+		CV_SaveNetVars(&demo_p, true);
 
 		// Now store a SIMPLIFIED data struct for each in-game player
 		for (p = 0; p < MAXPLAYERS; p++) {
@@ -5576,7 +5576,7 @@ void G_BeginRecording(void)
 	WRITEFIXED(demo_p, player->jumpfactor);
 
 	// Save netvar data (SONICCD, etc)
-	CV_SaveNetVars(&demo_p);
+	CV_SaveNetVars(&demo_p, false); //@TODO can this be true? it's not necessary for now but would be nice for consistency
 
 	memset(&oldcmd,0,sizeof(oldcmd));
 	memset(&oldghost,0,sizeof(oldghost));
