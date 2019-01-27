@@ -700,7 +700,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	{
 		case KITEM_INVINCIBILITY:
 		case KITEM_GROW:
-			if (pinvin >= 2)
+			if (pinvin >= max(1, (pingame+2) / 4))
 				newodds = 0;
 			else
 			/* FALLTHRU */
