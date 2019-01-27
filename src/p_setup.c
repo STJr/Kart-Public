@@ -3156,6 +3156,11 @@ boolean P_SetupLevel(boolean skipprecip)
 			? cv_basenumlaps.value
 			: mapheaderinfo[gamemap - 1]->numlaps);
 
+	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
+	if (!demoplayback && multiplayer) {
+		G_RecordDemo("net_replay_test");
+	}
+
 	// ===========
 	// landing point for netgames.
 	netgameskip:
@@ -3435,7 +3440,7 @@ boolean P_AddWadFile(const char *wadfilename)
 	//
 	R_AddSkins(wadnum); // faB: wadfile index in wadfiles[]
 
-	// 
+	//
 	// edit music defs
 	//
 	S_LoadMusicDefs(wadnum);
