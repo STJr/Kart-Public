@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -408,6 +408,29 @@ fixed_t R_PointToDist(fixed_t x, fixed_t y)
 	return R_PointToDist2(viewx, viewy, x, y);
 }
 
+angle_t R_PointToAngleEx(INT32 x2, INT32 y2, INT32 x1, INT32 y1)
+{
+	INT64 dx = x1-x2;
+	INT64 dy = y1-y2;
+	if (dx < INT32_MIN || dx > INT32_MAX || dy < INT32_MIN || dy > INT32_MAX)
+	{
+		x1 = (int)(dx / 2 + x2);
+		y1 = (int)(dy / 2 + y2);
+	}
+	return (y1 -= y2, (x1 -= x2) || y1) ?
+	x1 >= 0 ?
+	y1 >= 0 ?
+		(x1 > y1) ? tantoangle[SlopeDivEx(y1,x1)] :                            // octant 0
+		ANGLE_90-tantoangle[SlopeDivEx(x1,y1)] :                               // octant 1
+		x1 > (y1 = -y1) ? 0-tantoangle[SlopeDivEx(y1,x1)] :                    // octant 8
+		ANGLE_270+tantoangle[SlopeDivEx(x1,y1)] :                              // octant 7
+		y1 >= 0 ? (x1 = -x1) > y1 ? ANGLE_180-tantoangle[SlopeDivEx(y1,x1)] :  // octant 3
+		ANGLE_90 + tantoangle[SlopeDivEx(x1,y1)] :                             // octant 2
+		(x1 = -x1) > (y1 = -y1) ? ANGLE_180+tantoangle[SlopeDivEx(y1,x1)] :    // octant 4
+		ANGLE_270-tantoangle[SlopeDivEx(x1,y1)] :                              // octant 5
+		0;
+}
+
 //
 // R_ScaleFromGlobalAngle
 // Returns the texture mapping scale for the current line (horizontal span)
@@ -604,13 +627,11 @@ void R_SetViewSize(void)
 //
 void R_ExecuteSetViewSize(void)
 {
-	fixed_t cosadj;
 	fixed_t dy;
 	INT32 i;
 	INT32 j;
 	INT32 level;
 	INT32 startmapl;
-	INT32 aspectx;  //added : 02-02-98 : for aspect ratio calc. below...
 
 	setsizeneeded = false;
 
@@ -656,29 +677,20 @@ void R_ExecuteSetViewSize(void)
 	for (i = 0; i < viewwidth; i++)
 		screenheightarray[i] = (INT16)viewheight;
 
-	// setup sky scaling (uses pspriteyscale)
+	// setup sky scaling
 	R_SetSkyScale();
 
 	// planes
-	//aspectx = (((vid.height*centerx*BASEVIDWIDTH)/BASEVIDHEIGHT)/vid.width);
-	aspectx = centerx;
-
 	if (rendermode == render_soft)
 	{
 		// this is only used for planes rendering in software mode
-		j = viewheight*4;
+		j = viewheight*16;
 		for (i = 0; i < j; i++)
 		{
-			dy = ((i - viewheight*2)<<FRACBITS) + FRACUNIT/2;
+			dy = ((i - viewheight*8)<<FRACBITS) + FRACUNIT/2;
 			dy = abs(dy);
-			yslopetab[i] = FixedDiv(aspectx*FRACUNIT, dy);
+			yslopetab[i] = FixedDiv(centerx*FRACUNIT, dy);
 		}
-	}
-
-	for (i = 0; i < viewwidth; i++)
-	{
-		cosadj = abs(FINECOSINE(xtoviewangle[i]>>ANGLETOFINESHIFT));
-		distscale[i] = FixedDiv(FRACUNIT, cosadj);
 	}
 
 	memset(scalelight, 0xFF, sizeof(scalelight));
@@ -793,9 +805,28 @@ static mobj_t *viewmobj;
 // WARNING: a should be unsigned but to add with 2048, it isn't!
 #define AIMINGTODY(a) ((FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)>>FRACBITS)
 
-void R_SkyboxFrame(player_t *player)
+// recalc necessary stuff for mouseaiming
+// slopes are already calculated for the full possible view (which is 4*viewheight).
+// 18/08/18: (No it's actually 16*viewheight, thanks Jimita for finding this out)
+static void R_SetupFreelook(void)
 {
 	INT32 dy = 0;
+	if (rendermode == render_soft)
+	{
+		// clip it in the case we are looking a hardware 90 degrees full aiming
+		// (lmps, network and use F12...)
+		G_SoftwareClipAimingPitch((INT32 *)&aimingangle);
+		dy = AIMINGTODY(aimingangle) * viewwidth/BASEVIDWIDTH;
+		yslope = &yslopetab[viewheight*8 - (viewheight/2 + dy)];
+	}
+	centery = (viewheight/2) + dy;
+	centeryfrac = centery<<FRACBITS;
+}
+
+#undef AIMINGTODY
+
+void R_SkyboxFrame(player_t *player)
+{
 	camera_t *thiscam;
 
 	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
@@ -1022,26 +1053,11 @@ void R_SkyboxFrame(player_t *player)
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
-	// recalc necessary stuff for mouseaiming
-	// slopes are already calculated for the full possible view (which is 4*viewheight).
-
-	if (rendermode == render_soft)
-	{
-		// clip it in the case we are looking a hardware 90 degrees full aiming
-		// (lmps, network and use F12...)
-		G_SoftwareClipAimingPitch((INT32 *)&aimingangle);
-
-		dy = AIMINGTODY(aimingangle) * viewwidth/BASEVIDWIDTH;
-
-		yslope = &yslopetab[(3*viewheight/2) - dy];
-	}
-	centery = (viewheight/2) + dy;
-	centeryfrac = centery<<FRACBITS;
+	R_SetupFreelook();
 }
 
 void R_SetupFrame(player_t *player, boolean skybox)
 {
-	INT32 dy = 0;
 	camera_t *thiscam;
 	boolean chasecam = false;
 
@@ -1164,21 +1180,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);
 
-	// recalc necessary stuff for mouseaiming
-	// slopes are already calculated for the full possible view (which is 4*viewheight).
-
-	if (rendermode == render_soft)
-	{
-		// clip it in the case we are looking a hardware 90 degrees full aiming
-		// (lmps, network and use F12...)
-		G_SoftwareClipAimingPitch((INT32 *)&aimingangle);
-
-		dy = AIMINGTODY(aimingangle) * viewwidth/BASEVIDWIDTH;
-
-		yslope = &yslopetab[(3*viewheight/2) - dy];
-	}
-	centery = (viewheight/2) + dy;
-	centeryfrac = centery<<FRACBITS;
+	R_SetupFreelook();
 }
 
 #define ANGLED_PORTALS

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -3009,7 +3009,7 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 	fixed_t topz;
 	fixed_t a, b, c;
 	mobjtype_t type = MT_ROCKCRUMBLE1;
-	const fixed_t spacing = 48*mapheaderinfo[gamemap-1]->mobj_scale;
+	const fixed_t spacing = 48*mapobjectscale;
 
 	// If the control sector has a special
 	// of Section3:7-15, use the custom debris.

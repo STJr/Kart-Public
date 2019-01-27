@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -348,6 +348,11 @@ typedef enum
 	k_wanted, 			// Timer for determining WANTED status, lowers when hitting people, prevents the game turning into Camp Lazlo
 	k_yougotem, 		// "You Got Em" gfx when hitting someone as a karma player via a method that gets you back in the game instantly
 
+	// v1.0.2 vars
+	k_itemblink,		// Item flashing after roulette, prevents Hyudoro stealing AND serves as a mashing indicator
+	k_itemblinkmode,	// Type of flashing: 0 = white (normal), 1 = red (mashing), 2 = rainbow (enhanced items)
+	k_getsparks,		// Disable drift sparks at low speed, JUST enough to give acceleration the actual headstart above speed
+
 	NUMKARTSTUFF
 } kartstufftype_t;
 //}
@@ -411,6 +416,8 @@ typedef struct player_s
 	// SRB2kart stuff
 	INT32 kartstuff[NUMKARTSTUFF];
 	angle_t frameangle; // for the player add the ability to have the sprite only face other angles
+	INT16 lturn_max[MAXPREDICTTICS]; // What's the expected turn value for full-left for a number of frames back (to account for netgame latency)?
+	INT16 rturn_max[MAXPREDICTTICS]; // Ditto but for full-right
 
 	// Bit flags.
 	// See pflags_t, above.
@@ -511,7 +518,6 @@ typedef struct player_s
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum; // The number of the last starpost you hit
-	INT32 starpostcount; // SRB2kart: how many did you hit?
 	tic_t starposttime; // Your time when you hit the starpost
 	angle_t starpostangle; // Angle that the starpost is facing - you respawn facing this way
 

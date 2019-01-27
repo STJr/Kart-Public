@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -285,10 +285,13 @@ void P_InitPicAnims(void)
 				Z_Free(animatedLump);
 			}
 
-			// Now find ANIMDEFS
+			// Find ANIMDEFS lump in the WAD
 			animdefsLumpNum = W_CheckNumForNamePwad("ANIMDEFS", w, 0);
-			if (animdefsLumpNum != INT16_MAX)
+			while (animdefsLumpNum != INT16_MAX)
+			{
 				P_ParseANIMDEFSLump(w, animdefsLumpNum);
+				animdefsLumpNum = W_CheckNumForNamePwad("ANIMDEFS", (UINT16)w, animdefsLumpNum + 1);
+			}
 		}
 		// Define the last one
 		animdefs[maxanims].istexture = -1;
@@ -2447,6 +2450,8 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 					mapmusflags |= MUSIC_RELOADRESET;
 
 				S_ChangeMusic(mapmusname, mapmusflags, !(line->flags & ML_EFFECT4));
+				if (!(line->flags & ML_EFFECT3))
+					S_ShowMusicCredit();
 
 				// Except, you can use the ML_BLOCKMONSTERS flag to change this behavior.
 				// if (mapmusflags & MUSIC_RELOADRESET) then it will reset the music in G_PlayerReborn.
@@ -3259,7 +3264,7 @@ void P_SetupSignExit(player_t *player)
 	// SRB2Kart: FINALLY, add in an alternative if no place is found
 	if (player->mo)
 	{
-		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapheaderinfo[gamemap-1]->mobj_scale), MT_SIGN);
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapobjectscale), MT_SIGN);
 
 		P_SetTarget(&sign->target, player->mo);
 		P_SetMobjState(sign, S_SIGN1);
@@ -3767,7 +3772,7 @@ DoneSection2:
 		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
 
 				if (player->mo->eflags & MFE_SPRUNG)
@@ -3787,7 +3792,7 @@ DoneSection2:
 		case 3: // SRB2kart: Spring Panel (capped speed)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
 				const fixed_t maxspeed = 28*hscale;
 
@@ -3826,8 +3831,8 @@ DoneSection2:
 
 				// SRB2Kart: Scale the speed you get from them!
 				// This is scaled differently from other horizontal speed boosts from stuff like springs, because of how this is used for some ramp jumps.
-				if (player->mo->scale > mapheaderinfo[gamemap-1]->mobj_scale)
-					linespeed = FixedMul(linespeed, mapheaderinfo[gamemap-1]->mobj_scale + (player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale));
+				if (player->mo->scale > mapobjectscale)
+					linespeed = FixedMul(linespeed, mapobjectscale + (player->mo->scale - mapobjectscale));
 
 				if (!demoplayback || P_AnalogMove(player))
 				{
@@ -3868,6 +3873,9 @@ DoneSection2:
 				}*/
 
 				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
+				player->kartstuff[k_drift] = 0;
+				player->kartstuff[k_driftcharge] = 0;
+				player->kartstuff[k_pogospring] = 0;
 				S_StartSound(player->mo, sfx_spdpad);
 
 				{
@@ -4027,10 +4035,10 @@ DoneSection2:
 			}
 			break;
 
-		case 7: // SRB2kart 190117 - Oil Slick
+		case 7: // SRB2kart 190117 - Oil Slick (deprecated)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				K_SpinPlayer(player, NULL, 0, false);
+				K_SpinPlayer(player, NULL, 0, NULL, false);
 			}
 			break;
 
@@ -4095,7 +4103,6 @@ DoneSection2:
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
 				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
-				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 				player->pflags &= ~PF_GLIDING;
 				player->climbing = 0;
@@ -4173,7 +4180,6 @@ DoneSection2:
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
 				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
-				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 
 				if (!(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
@@ -4189,12 +4195,12 @@ DoneSection2:
 
 		case 10: // Finish Line
 			// SRB2kart - 150117
-			if (G_RaceGametype() && (player->starpostcount >= numstarposts/2 || player->exiting))
+			if (G_RaceGametype() && (player->starpostnum >= (numstarposts - (numstarposts/2)) || player->exiting))
 				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
 			//
 			if (G_RaceGametype() && !player->exiting)
 			{
-				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
+				if (player->starpostnum >= (numstarposts - (numstarposts/2))) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
 					UINT8 nump = 0;
 
@@ -4239,13 +4245,24 @@ DoneSection2:
 						curlap = 0;
 					}
 
-					// Reset starposts (checkpoints) info
-					// SRB2kart 200117
-					player->starpostangle = player->starpostnum = 0;
-					player->starpostx = player->starposty = player->starpostz = 0;
-					player->starpostcount = 0;
-					//except the time!
 					player->starposttime = player->realtime;
+					player->starpostnum = 0;
+
+					if (mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
+					{
+						// SRB2Kart 281118
+						// Save the player's time and position.
+						player->starpostx = player->mo->x>>FRACBITS;
+						player->starposty = player->mo->y>>FRACBITS;
+						player->starpostz = player->mo->floorz>>FRACBITS;
+						player->starpostangle = player->mo->angle; //R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy); torn; a momentum-based guess is less likely to be wrong in general, but when it IS wrong, it fucks you over entirely...
+					}
+					else
+					{
+						// SRB2kart 200117
+						// Reset starposts (checkpoints) info
+						player->starpostangle = player->starpostx = player->starposty = player->starpostz = 0;
+					}
 
 					if (P_IsLocalPlayer(player))
 					{
@@ -6404,8 +6421,20 @@ void P_SpawnSpecials(INT32 fromnetsave)
 			case 259: // Make-Your-Own FOF!
 				if (lines[i].sidenum[1] != 0xffff)
 				{
-					UINT8 *data = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS,PU_STATIC);
+					UINT8 *data;
 					UINT16 b;
+
+					if (W_IsLumpWad(lastloadedmaplumpnum)) // welp it's a map wad in a pk3
+					{ // HACK: Open wad file rather quickly so we can get the data from the sidedefs lump
+						UINT8 *wadData = W_CacheLumpNum(lastloadedmaplumpnum, PU_STATIC);
+						filelump_t *fileinfo = (filelump_t *)(wadData + ((wadinfo_t *)wadData)->infotableofs);
+						fileinfo += ML_SIDEDEFS; // we only need the SIDEDEFS lump
+						data = Z_Malloc(fileinfo->size, PU_STATIC, NULL);
+						M_Memcpy(data, wadData + fileinfo->filepos, fileinfo->size); // copy data
+						Z_Free(wadData); // we're done with this now
+					}
+					else // phew it's just a WAD
+						data = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS,PU_STATIC);
 
 					for (b = 0; b < (INT16)numsides; b++)
 					{

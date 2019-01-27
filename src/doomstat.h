@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -247,6 +247,7 @@ typedef struct
 	SINT8 unlockrequired; ///< Is an unlockable required to play this level? -1 if no.
 	UINT8 levelselect;    ///< Is this map available in the level select? If so, which map list is it available in?
 	SINT8 bonustype;      ///< What type of bonus does this level have? (-1 for null.)
+	SINT8 saveoverride;   ///< Set how the game is allowed to save (1 for always, -1 for never, 0 is 2.1 default)
 
 	UINT8 levelflags;     ///< LF_flags:  merged eight booleans into one UINT8 for space, see below
 	UINT8 menuflags;      ///< LF2_flags: options that affect record attack / nights mode menus
@@ -278,6 +279,11 @@ typedef struct
 #define LF2_RECORDATTACK   4 ///< Show this map in Time Attack
 #define LF2_NIGHTSATTACK   8 ///< Show this map in NiGHTS mode menu
 #define LF2_NOVISITNEEDED 16 ///< Available in time attack/nights mode without visiting the level
+
+// Save override
+#define SAVE_NEVER   -1
+#define SAVE_DEFAULT  0
+#define SAVE_ALWAYS   1
 
 extern mapheader_t* mapheaderinfo[NUMMAPS];
 
@@ -438,6 +444,7 @@ extern mobj_t *hunt1, *hunt2, *hunt3; // Emerald hunt locations
 extern UINT32 countdown, countdown2;
 
 extern fixed_t gravity;
+extern fixed_t mapobjectscale;
 
 //for CTF balancing
 extern INT16 autobalance;
@@ -461,6 +468,7 @@ extern tic_t indirectitemcooldown;
 extern tic_t mapreset;
 extern UINT8 nospectategrief;
 extern boolean thwompsactive;
+extern SINT8 spbplace;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;
@@ -530,6 +538,11 @@ extern boolean singletics;
 extern consvar_t cv_timetic; // display high resolution timer
 extern consvar_t cv_forceskin; // force clients to use the server's skin
 extern consvar_t cv_downloading; // allow clients to downloading WADs.
+extern consvar_t cv_nettimeout; // SRB2Kart: Advanced server options menu
+extern consvar_t cv_jointimeout;
+#ifdef NEWPING
+extern consvar_t cv_maxping;
+#endif
 extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 extern INT32 serverplayer;
 extern INT32 adminplayers[MAXPLAYERS];

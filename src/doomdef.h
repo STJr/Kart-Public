@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -150,9 +150,9 @@ extern FILE *logstream;
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    100 // Game version
-#define SUBVERSION 1 // more precise version number
-#define VERSIONSTRING "v1.0.1"
-#define VERSIONSTRINGW L"v1.0.1"
+#define SUBVERSION 2 // more precise version number
+#define VERSIONSTRING "v1.0.2"
+#define VERSIONSTRINGW L"v1.0.2"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
@@ -163,6 +163,9 @@ extern FILE *logstream;
 
 // Kart has it's own, as well.
 #define USE_PATCH_KART
+
+// Use .kart extension addons
+#define USE_KART
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
@@ -218,7 +221,22 @@ extern FILE *logstream;
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 1
+#define MODVERSION 2
+
+// Filter consvars by version
+// To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
+// Increment MINOREXECVERSION whenever a config change is needed that does not correspond
+// to an increment in MODVERSION. This might never happen in practice.
+// If MODVERSION increases, set MINOREXECVERSION to 0.
+#define MAJOREXECVERSION MODVERSION
+#define MINOREXECVERSION 0
+// (It would have been nice to use VERSION and SUBVERSION but those are zero'd out for DEVELOP builds)
+
+// Macros
+#define GETMAJOREXECVERSION(v) (v & 0xFFFF)
+#define GETMINOREXECVERSION(v) (v >> 16)
+#define GETEXECVERSION(major,minor) (major + (minor << 16))
+#define EXECVERSION GETEXECVERSION(MAJOREXECVERSION, MINOREXECVERSION)
 
 // =========================================================================
 
@@ -226,7 +244,7 @@ extern FILE *logstream;
 // NOTE: it needs more than this to increase the number of players...
 
 #define MAXPLAYERS 16
-#define MAXSKINS 32
+#define MAXSKINS 64
 #define PLAYERSMASK (MAXPLAYERS-1)
 #define MAXPLAYERNAME 21
 
@@ -286,7 +304,7 @@ typedef enum
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
 	SKINCOLOR_JET,
-	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave – slender aphrodite has overcome me with longing for a girl
+	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave - slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
 	SKINCOLOR_BLUE,
 	SKINCOLOR_BLUEBERRY,
@@ -346,9 +364,9 @@ enum {
 // Name of local directory for config files and savegames
 #if !defined(_arch_dreamcast) && !defined(_WIN32_WCE) && !defined(GP2X) && !defined(_WII) && !defined(_PS3)
 #if (((defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON)) && !defined (__CYGWIN__)) && !defined (__APPLE__)
-#define DEFAULTDIR ".srb2"
+#define DEFAULTDIR ".srb2kart"
 #else
-#define DEFAULTDIR "srb2"
+#define DEFAULTDIR "srb2kart"
 #endif
 #endif
 
@@ -451,6 +469,15 @@ INT32 I_GetKey(void);
 #endif
 #ifndef max // Double-Check with WATTCP-32's cdefs.h
 #define max(x, y) (((x) > (y)) ? (x) : (y))
+#endif
+
+// Floating point comparison epsilons from float.h
+#ifndef FLT_EPSILON
+#define FLT_EPSILON 1.1920928955078125e-7f
+#endif
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
 // An assert-type mechanism.

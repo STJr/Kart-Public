@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -38,6 +38,7 @@
 
 #ifdef HAVE_BLUA
 #include "v_video.h" // video flags (for lua)
+#include "r_draw.h" // translation colormap consts (for lua)
 #endif
 
 #ifdef HWRENDER
@@ -435,11 +436,11 @@ static void readAnimTex(MYFILE *f, INT32 num)
 static boolean findFreeSlot(INT32 *num)
 {
 	// Send the character select entry to a free slot.
-	while (*num < 32 && PlayerMenu[*num].status != IT_DISABLED)
+	while (*num < MAXSKINS && PlayerMenu[*num].status != IT_DISABLED)
 		*num = *num+1;
 
 	// No more free slots. :(
-	if (*num >= 32)
+	if (*num >= MAXSKINS)
 		return false;
 
 	// Found one! ^_^
@@ -1258,6 +1259,18 @@ static void readlevelheader(MYFILE *f, INT32 num)
 					mapheaderinfo[num-1]->bonustype = (SINT8)i;
 				else
 					deh_warning("Level header %d: invalid bonus type number %d", num, i);
+			}
+
+			else if (fastcmp(word, "SAVEOVERRIDE"))
+			{
+				if      (fastcmp(word2, "DEFAULT")) i = SAVE_DEFAULT;
+				else if (fastcmp(word2, "ALWAYS"))  i = SAVE_ALWAYS;
+				else if (fastcmp(word2, "NEVER"))   i = SAVE_NEVER;
+
+				if (i >= SAVE_NEVER && i <= SAVE_ALWAYS)
+					mapheaderinfo[num-1]->saveoverride = (SINT8)i;
+				else
+					deh_warning("Level header %d: invalid save override number %d", num, i);
 			}
 
 			else if (fastcmp(word, "LEVELFLAGS"))
@@ -2992,7 +3005,7 @@ static void readmaincfg(MYFILE *f)
 			else if (fastcmp(word, "USENIGHTSSS"))
 			{
 				DEH_WriteUndoline(word, va("%d", useNightsSS), UNDO_NONE);
-				useNightsSS = (UINT8)(value || word2[0] == 'T' || word2[0] == 'Y');
+				useNightsSS = (value || word2[0] == 'T' || word2[0] == 'Y');
 			}
 			else if (fastcmp(word, "REDTEAM"))
 			{
@@ -3066,7 +3079,7 @@ static void readmaincfg(MYFILE *f)
 			else if (fastcmp(word, "LOOPTITLE"))
 			{
 				DEH_WriteUndoline(word, va("%d", looptitle), UNDO_NONE);
-				looptitle = (boolean)(value || word2[0] == 'T' || word2[0] == 'Y');
+				looptitle = (value || word2[0] == 'T' || word2[0] == 'Y');
 			}
 			else if (fastcmp(word, "TITLESCROLLSPEED"))
 			{
@@ -3084,7 +3097,7 @@ static void readmaincfg(MYFILE *f)
 			else if (fastcmp(word, "DISABLESPEEDADJUST"))
 			{
 				DEH_WriteUndoline(word, va("%d", disableSpeedAdjust), UNDO_NONE);
-				disableSpeedAdjust = (UINT8)get_number(word2);
+				disableSpeedAdjust = (value || word2[0] == 'T' || word2[0] == 'Y');
 			}
 			else if (fastcmp(word, "NUMDEMOS"))
 			{
@@ -3133,7 +3146,7 @@ static void readmaincfg(MYFILE *f)
 				strncpy(timeattackfolder, gamedatafilename, filenamelen);
 				timeattackfolder[min(filenamelen, sizeof (timeattackfolder) - 1)] = '\0';
 
-				strncpy(savegamename, timeattackfolder, filenamelen);
+				strcpy(savegamename, timeattackfolder);
 				strlcat(savegamename, "%u.ssg", sizeof(savegamename));
 				// can't use sprintf since there is %u in savegamename
 				strcatbf(savegamename, srb2home, PATHSEP);
@@ -3233,9 +3246,9 @@ static void readwipes(MYFILE *f)
 				else if (fastcmp(pword, "FINAL"))
 					wipeoffset = wipe_specinter_final;
 			}
-			else if (fastncmp(word, "VOTING_", 10))
+			else if (fastncmp(word, "VOTING_", 7))
 			{
-				pword = word + 10;
+				pword = word + 7;
 				if (fastcmp(pword, "TOBLACK"))
 					wipeoffset = wipe_specinter_toblack;
 				else if (fastcmp(pword, "FINAL"))
@@ -3685,12 +3698,17 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					// no undo support for this insanity yet
 					//DEH_WriteUndoline(word, word2, UNDO_HEADER);
 				}
-				else if (fastcmp(word, "SRB2"))
+				else if (fastcmp(word, "SRB2KART"))
 				{
 					INT32 ver = searchvalue(strtok(NULL, "\n"));
 					if (ver != PATCHVERSION)
 						deh_warning("Patch is for SRB2Kart version %d,\nonly version %d is supported", ver, PATCHVERSION);
 					//DEH_WriteUndoline(word, va("%d", ver), UNDO_NONE);
+				}
+				else if (fastcmp(word, "SRB2"))
+				{
+					if (mainwads) // srb2.srb triggers this warning otherwise
+						deh_warning("Patch is only compatible with base SRB2.");
 				}
 				// Clear all data in certain locations (mostly for unlocks)
 				// Unless you REALLY want to piss people off,
@@ -6933,7 +6951,7 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_GARU1",
 	"S_GARU2",
 	"S_GARU3",
-	"S_TGARU",	
+	"S_TGARU",
 	"S_TGARU1",
 	"S_TGARU2",
 	"S_TGARU3",	// Wind attack used by Roaming Shadows on Players.
@@ -7091,6 +7109,12 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_BOOSTON2",
 	"S_LIZARDMAN",
 	"S_LIONMAN",
+
+	"S_KARMAFIREWORK1",
+	"S_KARMAFIREWORK2",
+	"S_KARMAFIREWORK3",
+	"S_KARMAFIREWORK4",
+	"S_KARMAFIREWORKTRAIL",
 
 #ifdef SEENAMES
 	"S_NAMECHECK",
@@ -7877,6 +7901,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_LIZARDMAN",
 	"MT_LIONMAN",
 
+	"MT_KARMAFIREWORK",
+
 #ifdef SEENAMES
 	"MT_NAMECHECK",
 #endif
@@ -8270,6 +8296,10 @@ static const char *const KARTSTUFF_LIST[] = {
 	"COMEBACKMODE",
 	"WANTED",
 	"YOUGOTEM",
+
+	"ITEMBLINK",
+	"ITEMBLINKMODE",
+	"GETSPARKS"
 };
 
 static const char *const HUDITEMS_LIST[] = {
@@ -8428,6 +8458,11 @@ struct {
 	{"LF2_RECORDATTACK",LF2_RECORDATTACK},
 	{"LF2_NIGHTSATTACK",LF2_NIGHTSATTACK},
 	{"LF2_NOVISITNEEDED",LF2_NOVISITNEEDED},
+
+	// Save override
+	{"SAVE_NEVER",SAVE_NEVER},
+	{"SAVE_DEFAULT",SAVE_DEFAULT},
+	{"SAVE_ALWAYS",SAVE_ALWAYS},
 
 	// NiGHTS grades
 	{"GRADE_F",GRADE_F},
@@ -8819,6 +8854,14 @@ struct {
 	{"KRITEM_QUADORBINAUT",KRITEM_QUADORBINAUT},
 	{"KRITEM_DUALJAWZ",KRITEM_DUALJAWZ},
 	{"NUMKARTRESULTS",NUMKARTRESULTS},
+
+	// translation colormaps
+	{"TC_DEFAULT",TC_DEFAULT},
+	{"TC_BOSS",TC_BOSS},
+	{"TC_METALSONIC",TC_METALSONIC},
+	{"TC_ALLWHITE",TC_ALLWHITE},
+	{"TC_RAINBOW",TC_RAINBOW},
+	{"TC_BLINK",TC_BLINK},
 #endif
 
 	{NULL,0}
@@ -9163,7 +9206,7 @@ static fixed_t find_const(const char **rword)
 		free(word);
 		return r;
 	}
-	else if (fastncmp("SKINCOLOR_",word,20)) {
+	else if (fastncmp("SKINCOLOR_",word,10)) {
 		char *p = word+10;
 		for (i = 0; i < MAXTRANSLATIONS; i++)
 			if (fastcmp(p, COLOR_ENUMS[i])) {
@@ -9595,7 +9638,7 @@ static inline int lib_getenum(lua_State *L)
 		if (mathlib) return luaL_error(L, "huditem '%s' could not be found.\n", word);
 		return 0;
 	}
-	else if (fastncmp("SKINCOLOR_",word,20)) {
+	else if (fastncmp("SKINCOLOR_",word,10)) {
 		p = word+10;
 		for (i = 0; i < MAXTRANSLATIONS; i++)
 			if (fastcmp(p, COLOR_ENUMS[i])) {
@@ -9732,10 +9775,11 @@ static inline int lib_getenum(lua_State *L)
 			return 0;
 		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
 		return 1;
-	/*} else if (fastcmp(word,"admin")) { // Replaced with IsPlayerAdmin
-		if (!playeringame[adminplayer] || IsPlayerAdmin(serverplayer))
+	/*} else if (fastcmp(word,"admin")) {
+		LUA_Deprecated(L, "admin", "IsPlayerAdmin(player)");
+		if (!playeringame[adminplayers[0]] || IsPlayerAdmin(serverplayer))
 			return 0;
-		LUA_PushUserdata(L, &players[adminplayer], META_PLAYER);
+		LUA_PushUserdata(L, &players[adminplayers[0]], META_PLAYER);
 		return 1;*/
 	} else if (fastcmp(word,"emeralds")) {
 		lua_pushinteger(L, emeralds);
@@ -9770,8 +9814,13 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);
 		return 1;
+	} else if (fastcmp(word,"spbplace")) {
+		lua_pushinteger(L, spbplace);
+		return 1;
+	} else if (fastcmp(word,"mapobjectscale")) {
+		lua_pushinteger(L, mapobjectscale);
+		return 1;
 	}
-
 	return 0;
 }
 

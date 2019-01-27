@@ -1,7 +1,7 @@
 // Emacs style mode select   -*- C++ -*-
 //-----------------------------------------------------------------------------
 //
-// Copyright (C) 1998-2006 by Sonic Team Junior.
+// Copyright (C) 1998-2018 by Sonic Team Junior.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -112,10 +112,10 @@ static GLint       viewport[4];
 //			These need to start at 0 and be set to their number, and be reset to 0 when deleted so that intel GPUs
 //			can know when the textures aren't there, as textures are always considered resident in their virtual memory
 // TODO:	Store them in a more normal way
-#define SCRTEX_SCREENTEXTURE 4294967295
-#define SCRTEX_STARTSCREENWIPE 4294967294
-#define SCRTEX_ENDSCREENWIPE 4294967293
-#define SCRTEX_FINALSCREENTEXTURE 4294967292
+#define SCRTEX_SCREENTEXTURE 4294967295U
+#define SCRTEX_STARTSCREENWIPE 4294967294U
+#define SCRTEX_ENDSCREENWIPE 4294967293U
+#define SCRTEX_FINALSCREENTEXTURE 4294967292U
 static GLuint screentexture = 0;
 static GLuint startScreenWipe = 0;
 static GLuint endScreenWipe = 0;
@@ -602,7 +602,8 @@ static void GLPerspective(GLdouble fovy, GLdouble aspect)
 	const GLdouble deltaZ = zFar - zNear;
 	GLdouble cotangent;
 
-	if ((deltaZ == 0.0f) || (sine == 0.0f) || (aspect == 0.0f)) {
+	if ((fabsf((float)deltaZ) < 1.0E-36f) || fpclassify(sine) == FP_ZERO || fpclassify(aspect) == FP_ZERO)
+	{
 		return;
 	}
 	cotangent = cos(radians) / sine;
@@ -641,7 +642,7 @@ static void GLProject(GLdouble objX, GLdouble objY, GLdouble objZ,
 			out[2] * projMatrix[2*4+i] +
 			out[3] * projMatrix[3*4+i];
 	}
-	if (in[3] == 0.0f) return;
+	if (fpclassify(in[3]) == FP_ZERO) return;
 	in[0] /= in[3];
 	in[1] /= in[3];
 	in[2] /= in[3];
@@ -1962,8 +1963,9 @@ static  void DrawMD2Ex(INT32 *gl_cmd_buffer, md2_frame_t *frame, INT32 duration,
 	pglTranslatef(pos->x, pos->z, pos->y);
 	if (flipped)
 		scaley = -scaley;
-	pglRotatef(pos->angley, 0.0f, -1.0f, 0.0f);
+	pglRotatef(pos->anglez, 0.0f, 0.0f, -1.0f);
 	pglRotatef(pos->anglex, -1.0f, 0.0f, 0.0f);
+	pglRotatef(pos->angley, 0.0f, -1.0f, 0.0f);
 
 	val = *gl_cmd_buffer++;
 
@@ -1988,7 +1990,7 @@ static  void DrawMD2Ex(INT32 *gl_cmd_buffer, md2_frame_t *frame, INT32 duration,
 
 			pglTexCoord2f(s, t);
 
-			if (!nextframe || pol == 0.0f)
+			if (!nextframe || fpclassify(pol) == FP_ZERO)
 			{
 				pglNormal3f(frame->vertices[pindex].normal[0],
 				            frame->vertices[pindex].normal[1],
@@ -2057,6 +2059,7 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 	pglLoadIdentity();
 	if (stransform)
 	{
+		boolean fovx90;
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
@@ -2073,7 +2076,8 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 
 		pglMatrixMode(GL_PROJECTION);
 		pglLoadIdentity();
-		special_splitscreen = (stransform->splitscreen == 1 && stransform->fovxangle == 90.0f);
+		fovx90 = stransform->fovxangle > 0.0f && fabsf(stransform->fovxangle - 90.0f) < 0.5f;
+		special_splitscreen = (stransform->splitscreen == 1 && fovx90);
 		if (special_splitscreen)
 			GLPerspective(53.13l, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
 		else

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -54,10 +54,11 @@ extern tic_t timeinmap; // Ticker for time spent in level (used for levelcard di
 extern INT16 rw_maximums[NUM_WEAPONS];
 
 // used in game menu
-extern consvar_t cv_chatwidth, cv_chatnotifications, cv_chatheight, cv_chattime, cv_consolechat, cv_chatspamprotection, cv_chatbacktint;
+extern consvar_t cv_chatwidth, cv_chatnotifications, cv_chatheight, cv_chattime, cv_consolechat, cv_chatbacktint, cv_chatspamprotection/*, cv_compactscoreboard*/;
+extern consvar_t cv_songcredits;
 //extern consvar_t cv_crosshair, cv_crosshair2, cv_crosshair3, cv_crosshair4;
-extern consvar_t cv_invertmouse, cv_alwaysfreelook, cv_mousemove;
-extern consvar_t cv_invertmouse2, cv_alwaysfreelook2, cv_mousemove2;
+extern consvar_t cv_invertmouse/*, cv_alwaysfreelook, cv_chasefreelook, cv_mousemove*/;
+extern consvar_t cv_invertmouse2/*, cv_alwaysfreelook2, cv_chasefreelook2, cv_mousemove2*/;
 extern consvar_t cv_useranalog, cv_useranalog2, cv_useranalog3, cv_useranalog4;
 extern consvar_t cv_analog, cv_analog2, cv_analog3, cv_analog4;
 extern consvar_t cv_turnaxis,cv_moveaxis,cv_brakeaxis,cv_aimaxis,cv_lookaxis,cv_fireaxis,cv_driftaxis;
@@ -65,7 +66,6 @@ extern consvar_t cv_turnaxis2,cv_moveaxis2,cv_brakeaxis2,cv_aimaxis2,cv_lookaxis
 extern consvar_t cv_turnaxis3,cv_moveaxis3,cv_brakeaxis3,cv_aimaxis3,cv_lookaxis3,cv_fireaxis3,cv_driftaxis3;
 extern consvar_t cv_turnaxis4,cv_moveaxis4,cv_brakeaxis4,cv_aimaxis4,cv_lookaxis4,cv_fireaxis4,cv_driftaxis4;
 extern consvar_t cv_ghost_besttime, cv_ghost_bestlap, cv_ghost_last, cv_ghost_guest, cv_ghost_staff;
-extern consvar_t cv_splitplayers;
 
 typedef enum
 {
@@ -255,6 +255,7 @@ FUNCMATH INT32 G_TicsToMilliseconds(tic_t tics);
 // Don't split up TOL handling
 INT16 G_TOLFlag(INT32 pgametype);
 
-INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean dontadd, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon);
+INT16 G_RandMap(INT16 tolflags, INT16 pprevmap, boolean ignorebuffer, UINT8 maphell, boolean callagainsoon, INT16 *extbuffer);
+void G_AddMapToBuffer(INT16 map);
 
 #endif

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -50,6 +50,13 @@ static void SetChannelsNum(void);
 static void Command_Tunes_f(void);
 static void Command_RestartAudio_f(void);
 
+// Sound system toggles
+#ifndef NO_MIDI
+static void GameMIDIMusic_OnChange(void);
+#endif
+static void GameSounds_OnChange(void);
+static void GameDigiMusic_OnChange(void);
+
 // commands for music and sound servers
 #ifdef MUSSERV
 consvar_t musserver_cmd = {"musserver_cmd", "musserver", CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -94,7 +101,14 @@ consvar_t cv_numChannels = {"snd_channels", "64", CV_SAVE|CV_CALL, CV_Unsigned, 
 #endif
 
 consvar_t surround = {"surround", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+//consvar_t cv_resetmusic = {"resetmusic", "No", CV_SAVE|CV_NOSHOWHELP, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// Sound system toggles, saved into the config
+consvar_t cv_gamedigimusic = {"digimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameDigiMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#ifndef NO_MIDI
+consvar_t cv_gamemidimusic = {"midimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameMIDIMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
+#endif
+consvar_t cv_gamesounds = {"sounds", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameSounds_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 #define S_MAX_VOLUME 127
 
@@ -249,7 +263,12 @@ void S_RegisterSoundStuff(void)
 #endif
 	CV_RegisterVar(&surround);
 	CV_RegisterVar(&cv_samplerate);
-	CV_RegisterVar(&cv_resetmusic);
+	//CV_RegisterVar(&cv_resetmusic);
+	CV_RegisterVar(&cv_gamesounds);
+	CV_RegisterVar(&cv_gamedigimusic);
+#ifndef NO_MIDI
+	CV_RegisterVar(&cv_gamemidimusic);
+#endif
 
 	COM_AddCommand("tunes", Command_Tunes_f);
 	COM_AddCommand("restartaudio", Command_RestartAudio_f);
@@ -1199,7 +1218,7 @@ fixed_t S_CalculateSoundDistance(fixed_t sx1, fixed_t sy1, fixed_t sz1, fixed_t 
 
 	approx_dist <<= FRACBITS;
 
-	return approx_dist;
+	return FixedDiv(approx_dist, mapobjectscale); // approx_dist
 }
 
 //
@@ -1523,6 +1542,210 @@ static UINT16    music_flags;
 static boolean   music_looping;
 
 /// ------------------------
+/// Music Definitions
+/// ------------------------
+
+musicdef_t *musicdefstart = NULL; // First music definition
+struct cursongcredit cursongcredit; // Currently displayed song credit info
+
+//
+// search for music definition in wad
+//
+static UINT16 W_CheckForMusicDefInPwad(UINT16 wadid)
+{
+	UINT16 i;
+	lumpinfo_t *lump_p;
+
+	lump_p = wadfiles[wadid]->lumpinfo;
+	for (i = 0; i < wadfiles[wadid]->numlumps; i++, lump_p++)
+		if (memcmp(lump_p->name, "MUSICDEF", 8) == 0)
+			return i;
+
+	return INT16_MAX; // not found
+}
+
+void S_LoadMusicDefs(UINT16 wadnum)
+{
+	UINT16 lump;
+	char *buf;
+	char *buf2;
+	char *stoken;
+	char *value;
+	size_t size;
+	musicdef_t *def, *prev;
+	UINT16 line = 1; // for better error msgs
+
+	lump = W_CheckForMusicDefInPwad(wadnum);
+	if (lump == INT16_MAX)
+		return;
+
+	buf = W_CacheLumpNumPwad(wadnum, lump, PU_CACHE);
+	size = W_LumpLengthPwad(wadnum, lump);
+
+	// for strtok
+	buf2 = malloc(size+1);
+	if (!buf2)
+		I_Error("S_LoadMusicDefs: No more free memory\n");
+	M_Memcpy(buf2,buf,size);
+	buf2[size] = '\0';
+
+	def = prev = NULL;
+
+	stoken = strtok (buf2, "\r\n ");
+	// Find music def
+	while (stoken)
+	{
+		/*if ((stoken[0] == '/' && stoken[1] == '/')
+			|| (stoken[0] == '#')) // skip comments
+		{
+			stoken = strtok(NULL, "\r\n"); // skip end of line
+			if (def)
+				stoken = strtok(NULL, "\r\n= ");
+			else
+				stoken = strtok(NULL, "\r\n ");
+			line++;
+		}
+		else*/ if (!stricmp(stoken, "lump"))
+		{
+			value = strtok(NULL, "\r\n ");
+
+			if (!value)
+			{
+				CONS_Alert(CONS_WARNING, "MUSICDEF: Lump '%s' is missing name. (file %s, line %d)\n", stoken, wadfiles[wadnum]->filename, line);
+				stoken = strtok(NULL, "\r\n"); // skip end of line
+				goto skip_lump;
+			}
+
+			// No existing musicdefs
+			if (!musicdefstart)
+			{
+				musicdefstart = Z_Calloc(sizeof (musicdef_t), PU_STATIC, NULL);
+				STRBUFCPY(musicdefstart->name, value);
+				strlwr(musicdefstart->name);
+				def = musicdefstart;
+				//CONS_Printf("S_LoadMusicDefs: Initialized musicdef w/ song '%s'\n", def->name);
+			}
+			else
+			{
+				def = musicdefstart;
+
+				// Search if this is a replacement
+				//CONS_Printf("S_LoadMusicDefs: Searching for song replacement...\n");
+				while (def)
+				{
+					if (!stricmp(def->name, value))
+					{
+						//CONS_Printf("S_LoadMusicDefs: Found song replacement '%s'\n", def->name);
+						break;
+					}
+
+					prev = def;
+					def = def->next;
+				}
+
+				// Nothing found, add to the end.
+				if (!def)
+				{
+					def = Z_Calloc(sizeof (musicdef_t), PU_STATIC, NULL);
+					STRBUFCPY(def->name, value);
+					strlwr(def->name);
+					if (prev != NULL)
+						prev->next = def;
+					//CONS_Printf("S_LoadMusicDefs: Added song '%s'\n", def->name);
+				}
+			}
+
+skip_lump:
+			stoken = strtok(NULL, "\r\n ");
+			line++;
+		}
+		else
+		{
+			value = strtok(NULL, "\r\n= ");
+
+			if (!value)
+			{
+				CONS_Alert(CONS_WARNING, "MUSICDEF: Field '%s' is missing value. (file %s, line %d)\n", stoken, wadfiles[wadnum]->filename, line);
+				stoken = strtok(NULL, "\r\n"); // skip end of line
+				goto skip_field;
+			}
+
+			if (!def)
+			{
+				CONS_Alert(CONS_ERROR, "MUSICDEF: No music definition before field '%s'. (file %s, line %d)\n", stoken, wadfiles[wadnum]->filename, line);
+				free(buf2);
+				return;
+			}
+
+			if (!stricmp(stoken, "usage")) {
+#if 0 // Ignore for now
+				STRBUFCPY(def->usage, value);
+				for (value = def->usage; *value; value++)
+					if (*value == '_') *value = ' '; // turn _ into spaces.
+				//CONS_Printf("S_LoadMusicDefs: Set usage to '%s'\n", def->usage);
+#endif
+			} else if (!stricmp(stoken, "source")) {
+				STRBUFCPY(def->source, value);
+				for (value = def->source; *value; value++)
+					if (*value == '_') *value = ' '; // turn _ into spaces.
+				//CONS_Printf("S_LoadMusicDefs: Set source to '%s'\n", def->source);
+			} else {
+				CONS_Alert(CONS_WARNING, "MUSICDEF: Invalid field '%s'. (file %s, line %d)\n", stoken, wadfiles[wadnum]->filename, line);
+			}
+
+skip_field:
+			stoken = strtok(NULL, "\r\n= ");
+			line++;
+		}
+	}
+
+	free(buf2);
+	return;
+}
+
+//
+// S_InitMusicDefs
+//
+// Simply load music defs in all wads.
+//
+void S_InitMusicDefs(void)
+{
+	UINT16 i;
+	for (i = 0; i < numwadfiles; i++)
+		S_LoadMusicDefs(i);
+}
+
+//
+// S_ShowMusicCredit
+//
+// Display current song's credit on screen
+//
+void S_ShowMusicCredit(void)
+{
+	musicdef_t *def = musicdefstart;
+
+	if (!cv_songcredits.value)
+		return;
+
+	if (!def) // No definitions
+		return;
+
+	while (def)
+	{
+		if (!stricmp(def->name, music_name))
+		{
+			cursongcredit.def = def;
+			cursongcredit.anim = 5*TICRATE;
+			cursongcredit.x = 0;
+			cursongcredit.trans = NUMTRANSMAPS;
+			return;
+		}
+		else
+			def = def->next;
+	}
+}
+
+/// ------------------------
 /// Music Status
 /// ------------------------
 
@@ -1820,9 +2043,13 @@ void S_Start(void)
 		mapmusflags = (mapheaderinfo[gamemap-1]->mustrack & MUSIC_TRACKMASK);
 	}
 
-	if (cv_resetmusic.value)
+	//if (cv_resetmusic.value) // Starting ambience should always be restarted
 		S_StopMusic();
-	S_ChangeMusic(mapmusname, mapmusflags, true);
+
+	if (leveltime < (starttime + (TICRATE/2))) // SRB2Kart
+		S_ChangeMusic((encoremode ? "estart" : "kstart"), 0, false);
+	else
+		S_ChangeMusic(mapmusname, mapmusflags, true);
 }
 
 static void Command_Tunes_f(void)
@@ -1921,3 +2148,106 @@ static void Command_RestartAudio_f(void)
 	else
 		S_ChangeMusicInternal("titles", looptitle);
 }
+
+void GameSounds_OnChange(void)
+{
+	if (M_CheckParm("-nosound"))
+		return;
+
+	if (sound_disabled)
+	{
+		sound_disabled = false;
+		S_InitSfxChannels(cv_soundvolume.value);
+		S_StartSound(NULL, sfx_strpst);
+	}
+	else
+	{
+		sound_disabled = true;
+		S_StopSounds();
+	}
+}
+
+void GameDigiMusic_OnChange(void)
+{
+	if (M_CheckParm("-nomusic"))
+		return;
+	else if (M_CheckParm("-nodigmusic"))
+		return;
+
+	if (digital_disabled)
+	{
+		digital_disabled = false;
+		I_InitMusic();
+		S_StopMusic();
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("titles", looptitle);
+	}
+	else
+	{
+		digital_disabled = true;
+		if (S_MusicType() != MU_MID)
+		{
+			if (midi_disabled)
+				S_StopMusic();
+			else
+			{
+				char mmusic[7];
+				UINT16 mflags;
+				boolean looping;
+
+				if (S_MusicInfo(mmusic, &mflags, &looping) && S_MIDIExists(mmusic))
+				{
+					S_StopMusic();
+					S_ChangeMusic(mmusic, mflags, looping);
+				}
+				else
+					S_StopMusic();
+			}
+		}
+	}
+}
+
+#ifndef NO_MIDI
+void GameMIDIMusic_OnChange(void)
+{
+	if (M_CheckParm("-nomusic"))
+		return;
+	else if (M_CheckParm("-nomidimusic"))
+		return;
+
+	if (midi_disabled)
+	{
+		midi_disabled = false;
+		I_InitMusic();
+		if (Playing())
+			P_RestoreMusic(&players[consoleplayer]);
+		else
+			S_ChangeMusicInternal("titles", looptitle);
+	}
+	else
+	{
+		midi_disabled = true;
+		if (S_MusicType() == MU_MID)
+		{
+			if (digital_disabled)
+				S_StopMusic();
+			else
+			{
+				char mmusic[7];
+				UINT16 mflags;
+				boolean looping;
+
+				if (S_MusicInfo(mmusic, &mflags, &looping) && S_DigExists(mmusic))
+				{
+					S_StopMusic();
+					S_ChangeMusic(mmusic, mflags, looping);
+				}
+				else
+					S_StopMusic();
+			}
+		}
+	}
+}
+#endif

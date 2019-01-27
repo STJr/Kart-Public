@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -792,6 +792,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"itrol7",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"itrol8",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR},
   {"itrolf",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end
+  {"itrolm",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (mashed)
+  {"itrolk",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (karma enhanced)
   {"itrole",  true,  96,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Roulette end (Eggman)
   {"vroom",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Kart Krew opening vroom
   {"chaooo", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Chao audience cheer

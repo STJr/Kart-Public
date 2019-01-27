@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -188,7 +188,7 @@ void D_PostEvent_end(void) {};
 UINT8 shiftdown = 0; // 0x1 left, 0x2 right
 UINT8 ctrldown = 0; // 0x1 left, 0x2 right
 UINT8 altdown = 0; // 0x1 left, 0x2 right
-boolean capslock = 0; // jeez i wonder what this does.
+boolean capslock = 0;	// gee i wonder what this does.
 //
 // D_ModifierKeyResponder
 // Sets global shift/ctrl/alt variables, never actually eats events
@@ -321,7 +321,7 @@ static void D_Display(void)
 				F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
 			}
 
-			if (wipegamestate == GS_LEVEL && rendermode != render_none)
+			if (gamestate != GS_LEVEL && rendermode != render_none)
 			{
 				V_SetPaletteLump("PLAYPAL"); // Reset the palette
 				R_ReInitColormaps(0, LUMPERROR);
@@ -338,8 +338,7 @@ static void D_Display(void)
 			if (!gametic)
 				break;
 			HU_Erase();
-			if (automapactive)
-				AM_Drawer();
+			AM_Drawer();
 			break;
 
 		case GS_INTERMISSION:
@@ -412,12 +411,10 @@ static void D_Display(void)
 			break;
 	}
 
-	// clean up border stuff
-	// see if the border needs to be initially drawn
 	if (gamestate == GS_LEVEL)
 	{
 		// draw the view directly
-		if (!automapactive && !dedicated && cv_renderview.value)
+		if (cv_renderview.value && !automapactive)
 		{
 			if (players[displayplayer].mo || players[displayplayer].playerstate == PST_DEAD)
 			{
@@ -536,7 +533,6 @@ static void D_Display(void)
 		}
 
 		ST_Drawer();
-
 		HU_Drawer();
 	}
 
@@ -662,7 +658,6 @@ void D_SRB2Loop(void)
 	"===========================================================================\n"
 	"                   We hope you enjoy this game as\n"
 	"                     much as we did making it!\n"
-	"                            ...wait. =P\n"
 	"===========================================================================\n");
 
 	// hack to start on a nice clear console screen.
@@ -917,7 +912,7 @@ static void IdentifyVersion(void)
 	else if (srb2wad1 != NULL && FIL_ReadFileOK(srb2wad1))
 		D_AddFile(srb2wad1);
 	else
-		I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s and %s\n", srb2waddir, srb2wad1, srb2wad2);
+		I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s or %s\n", srb2waddir, srb2wad1, srb2wad2);
 
 	if (srb2wad1)
 		free(srb2wad1);
@@ -927,20 +922,20 @@ static void IdentifyVersion(void)
 	// if you change the ordering of this or add/remove a file, be sure to update the md5
 	// checking in D_SRB2Main
 
-	// Add the maps
-	//D_AddFile(va(pandf,srb2waddir,"zones.dta"));
-
-	// Add the players
-	//D_AddFile(va(pandf,srb2waddir, "player.dta"));
-
-	// Add the weapons
-	//D_AddFile(va(pandf,srb2waddir,"rings.dta"));
-
 #ifdef USE_PATCH_DTA
 	// Add our crappy patches to fix our bugs
 	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
 #endif
 
+	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
+	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
+	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
+	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
+#ifdef USE_PATCH_KART
+	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+#endif
+
+#if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 #define MUSICTEST(str) \
 	{\
 		const char *musicpath = va(pandf,srb2waddir,str);\
@@ -950,21 +945,10 @@ static void IdentifyVersion(void)
 		else if (ms == 0) \
 			I_Error("File "str" has been modified with non-music/sound lumps"); \
 	}
-
-	// SRB2kart - Add graphics (temp)            // The command for md5 checks is "W_VerifyFileMD5" - looks for ASSET_HASH_SRB2_SRB in config.h.in
-	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
-	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
-	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
-	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
-	//D_AddFile(va(pandf,srb2waddir,"sounds.kart"));
 	MUSICTEST("sounds.kart")
-
-#ifdef USE_PATCH_KART
-	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
-#endif
-
-	//MUSICTEST("music.dta")
 	MUSICTEST("music.kart")
+#undef MUSICTEST
+#endif
 }
 
 /* ======================================================================== */
@@ -1028,6 +1012,20 @@ void D_SRB2Main(void)
 
 	INT32 pstartmap = 1;
 	boolean autostart = false;
+
+	// Print GPL notice for our console users (Linux)
+	CONS_Printf(
+	"\n\nSonic Robo Blast 2 Kart\n"
+	"Copyright (C) 1998-2018 by Kart Krew & STJr\n\n"
+	"This program comes with ABSOLUTELY NO WARRANTY.\n\n"
+	"This is free software, and you are welcome to redistribute it\n"
+	"and/or modify it under the terms of the GNU General Public License\n"
+	"as published by the Free Software Foundation; either version 2 of\n"
+	"the License, or (at your option) any later version.\n"
+	"See the 'LICENSE.txt' file for details.\n\n"
+	"Sonic the Hedgehog and related characters are trademarks of SEGA.\n"
+	"We do not claim ownership of SEGA's intellectual property used\n"
+	"in this program.\n\n");
 
 	// keep error messages until the final flush(stderr)
 #if !defined (PC_DOS) && !defined (_WIN32_WCE) && !defined(NOTERMIOS)
@@ -1226,25 +1224,20 @@ void D_SRB2Main(void)
 
 	mainwads = 0;
 
-#ifndef DEVELOP // md5s last updated 12/14/14
-
+#ifndef DEVELOP
 	// Check MD5s of autoloaded files
-	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);		// srb2.srb/srb2.wad
+	// Note: Do not add any files that ignore MD5!
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);						// srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);	// patch.dta
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);		// patch.dta
 #endif
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART); // gfx.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART); // textures.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART); // chars.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART); // maps.kart
-	mainwads++; //W_VerifyFileMD5(5, ASSET_HASH_SOUNDS_KART); -- sounds.kart - doesn't trigger modifiedgame, doesn't need an MD5...?
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);			// gfx.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART);	// textures.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);		// chars.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart
 #ifdef USE_PATCH_KART
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);	// patch.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);		// patch.kart
 #endif
-	//mainwads++; // music.dta
-	mainwads++; // music.kart
-	// don't check music.dta or kart because people like to modify it, and it doesn't matter if they do
-	// ...except it does if they slip maps in there, and that's what W_VerifyNMUSlumps is for.
 #else
 #ifdef USE_PATCH_DTA
 	mainwads++;	// patch.dta
@@ -1253,12 +1246,10 @@ void D_SRB2Main(void)
 	mainwads++;	// textures.kart
 	mainwads++;	// chars.kart
 	mainwads++;	// maps.kart
-	mainwads++;	// sounds.kart
 #ifdef USE_PATCH_KART
 	mainwads++;	// patch.kart
 #endif
-	//mainwads++; // music.dta
-	mainwads++; // music.kart
+
 #endif //ifndef DEVELOP
 
 	mainwadstally = packetsizetally;
@@ -1359,6 +1350,7 @@ void D_SRB2Main(void)
 	I_StartupSound();
 	I_InitMusic();
 	S_InitSfxChannels(cv_soundvolume.value);
+	S_InitMusicDefs();
 
 	CONS_Printf("ST_Init(): Init status bar.\n");
 	ST_Init();

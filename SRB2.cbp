@@ -1545,8 +1545,15 @@ HW3SOUND for 3D hardware sound  support
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/info.h" />
+		<Unit filename="src/k_kart.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/k_kart.h" />
 		<Unit filename="src/keys.h" />
 		<Unit filename="src/lua_baselib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lua_blockmaplib.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/lua_consolelib.c">

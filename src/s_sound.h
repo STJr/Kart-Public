@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -27,7 +27,12 @@ extern consvar_t stereoreverse;
 extern consvar_t cv_soundvolume, cv_digmusicvolume;//, cv_midimusicvolume;
 extern consvar_t cv_numChannels;
 extern consvar_t surround;
-extern consvar_t cv_resetmusic;
+//extern consvar_t cv_resetmusic;
+extern consvar_t cv_gamedigimusic;
+#ifndef NO_MIDI
+extern consvar_t cv_gamemidimusic;
+#endif
+extern consvar_t cv_gamesounds;
 
 #ifdef SNDSERV
 extern consvar_t sndserver_cmd, sndserver_arg;
@@ -122,6 +127,29 @@ boolean S_MusicExists(const char *mname, boolean checkMIDI, boolean checkDigi);
 
 // Set Speed of Music
 boolean S_SpeedMusic(float speed);
+
+// Music credits
+typedef struct musicdef_s
+{
+	char name[7];
+	//char usage[256];
+	char source[256];
+	struct musicdef_s *next;
+} musicdef_t;
+
+extern struct cursongcredit
+{
+	musicdef_t *def;
+	UINT16 anim;
+	INT32 x;
+	UINT8 trans;
+} cursongcredit;
+
+extern musicdef_t *musicdefstart;
+
+void S_LoadMusicDefs(UINT16 wadnum);
+void S_InitMusicDefs(void);
+void S_ShowMusicCredit(void);
 
 //
 // Music Routines

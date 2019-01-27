@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -131,8 +131,8 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 		else
 		{
 			// Item-specific timer going off
-			if (player->kartstuff[k_stealingtimer]				|| player->kartstuff[k_stolentimer]
-				|| player->kartstuff[k_growshrinktimer] > 0	|| player->kartstuff[k_rocketsneakertimer]
+			if (player->kartstuff[k_stealingtimer] || player->kartstuff[k_stolentimer]
+				|| player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_rocketsneakertimer]
 				|| player->kartstuff[k_eggmanexplode])
 				return false;
 
@@ -366,7 +366,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			P_SetTarget(&special->tracer, toucher);
 			special->flags2 |= MF2_NIGHTSPULL;
-			special->destscale = mapheaderinfo[gamemap-1]->mobj_scale>>4;
+			special->destscale = mapobjectscale>>4;
 			special->scalespeed <<= 1;
 
 			special->flags &= ~MF_SPECIAL;
@@ -497,8 +497,20 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			else if (special->target->player->kartstuff[k_comebackmode] == 1 && P_CanPickupItem(player, 1))
 			{
-				mobj_t *poof = P_SpawnMobj(tmthing->x, tmthing->y, tmthing->z, MT_EXPLODE);
+				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
 				S_StartSound(poof, special->info->seesound);
+
+				// Karma fireworks
+				for (i = 0; i < 5; i++)
+				{
+					mobj_t *firework = P_SpawnMobj(special->x, special->y, special->z, MT_KARMAFIREWORK);
+					firework->momx = (special->target->momx + toucher->momx) / 2;
+					firework->momy = (special->target->momy + toucher->momy) / 2;
+					firework->momz = (special->target->momz + toucher->momz) / 2;
+					P_Thrust(firework, FixedAngle((72*i)<<FRACBITS), P_RandomRange(1,8)*special->scale);
+					P_SetObjectMomZ(firework, P_RandomRange(1,8)*special->scale, false);
+					firework->color = special->target->color;
+				}
 
 				special->target->player->kartstuff[k_comebackmode] = 0;
 				special->target->player->kartstuff[k_comebackpoints]++;
@@ -567,30 +579,31 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (special->health <= 0 || toucher->health <= 0)
 				return;
 
-			if (!player->mo || player->spectator)
+			if (player->spectator)
 				return;
 
-			if (special->tracer && toucher == special->tracer)
+			if (special->tracer && !P_MobjWasRemoved(special->tracer) && toucher == special->tracer)
 			{
 				mobj_t *spbexplode;
 
-				S_StopSound(special); // Don't continue playing the gurgle or the siren
-
-				if (!player->kartstuff[k_invincibilitytimer] && !player->kartstuff[k_growshrinktimer])
+				if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->kartstuff[k_hyudorotimer] > 0)
 				{
+					//player->powers[pw_flashing] = 0;
 					K_DropHnextList(player);
 					K_StripItems(player);
-					//player->powers[pw_flashing] = 0;
 				}
+
+				S_StopSound(special); // Don't continue playing the gurgle or the siren
 
 				spbexplode = P_SpawnMobj(toucher->x, toucher->y, toucher->z, MT_SPBEXPLOSION);
 				spbexplode->extravalue1 = 1; // Tell K_ExplodePlayer to use extra knockback
-				P_SetTarget(&spbexplode->target, special->target);
+				if (special->target && !P_MobjWasRemoved(special->target))
+					P_SetTarget(&spbexplode->target, special->target);
 
 				P_RemoveMobj(special);
 			}
 			else
-				K_SpinPlayer(player, special, 0, false);
+				K_SpinPlayer(player, special->target, 0, special, false);
 			return;
 		/*case MT_EERIEFOG:
 			special->frame &= ~FF_TRANS80;
@@ -628,6 +641,18 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 
 			player->kartstuff[k_itemroulette] = 1;
 			player->kartstuff[k_roulettetype] = 1;
+
+			// Karma fireworks
+			for (i = 0; i < 5; i++)
+			{
+				mobj_t *firework = P_SpawnMobj(special->x, special->y, special->z, MT_KARMAFIREWORK);
+				firework->momx = toucher->momx;
+				firework->momy = toucher->momy;
+				firework->momz = toucher->momz;
+				P_Thrust(firework, FixedAngle((72*i)<<FRACBITS), P_RandomRange(1,8)*special->scale);
+				P_SetObjectMomZ(firework, P_RandomRange(1,8)*special->scale, false);
+				firework->color = toucher->color;
+			}
 
 			S_StartSound(toucher, sfx_cdfm73); // they don't make this sound in the original game but it's nice to have a "reward" for good play
 
@@ -1416,8 +1441,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			//
 			// SRB2kart: make sure the player will have enough checkpoints to touch
-			if (circuitmap
-				&& special->health >= (numstarposts/2 + player->starpostnum))
+			if (circuitmap && special->health >= ((numstarposts/2) + player->starpostnum))
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
@@ -1444,7 +1468,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostz = special->z>>FRACBITS;
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
-			player->starpostcount++;
 
 			//S_StartSound(toucher, special->info->painsound);
 			return;
@@ -2031,6 +2054,28 @@ boolean P_CheckRacers(void)
 				return true;
 			}
 		}
+	}
+
+	if (!countdown) // Check to see if the winners have finished, to set countdown.
+	{
+		UINT8 numingame = 0, numexiting = 0;
+		UINT8 winningpos = 1;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+				continue;
+			numingame++;
+			if (players[i].exiting)
+				numexiting++;
+		}
+
+		winningpos = max(1, numingame/2);
+		if (numingame % 2) // any remainder?
+			winningpos++;
+
+		if (numexiting >= winningpos)
+			countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
 	}
 
 	return false;
@@ -2907,7 +2952,8 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 	}
 }
 
-static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage)
+/*
+static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage) // SRB2kart - unused.
 {
 	fixed_t fallbackspeed;
 	angle_t ang;
@@ -2953,11 +2999,10 @@ static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *so
 
 	P_InstaThrust(player->mo, ang, fallbackspeed);
 
-	/* // SRB2kart - This shouldn't be reachable, but this frame is invalid.
-	if (player->charflags & SF_SUPERANIMS)
-		P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
-	else
-	*/
+	// SRB2kart - This shouldn't be reachable, but this frame is invalid.
+	//if (player->charflags & SF_SUPERANIMS)
+	//	P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
+	//else
 		P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
 
 	P_ResetPlayer(player);
@@ -2965,6 +3010,7 @@ static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *so
 	if (player->timeshit != UINT8_MAX)
 		++player->timeshit;
 }
+*/
 
 void P_RemoveShield(player_t *player)
 {
@@ -3230,6 +3276,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return true;
 		}
 
+#ifdef HAVE_BLUA	// Add this back here for ACTUAL NORMAL DAMAGE. The funny shit is that the player is barely ever "actually" damaged.
+		if (LUAh_MobjDamage(target, inflictor, source, damage))
+			return true;
+#endif
+
 		if (!force && inflictor && (inflictor->flags & MF_FIRE))
 		{
 			if ((player->powers[pw_shield] & SH_NOSTACK) == SH_ELEMENTAL)
@@ -3262,8 +3313,11 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			P_KillPlayer(player, source, damage);
 		else if (player->kartstuff[k_invincibilitytimer] > 0 || player->kartstuff[k_growshrinktimer] > 0 || player->powers[pw_flashing])
 		{
-			K_DoInstashield(player);
-			return false;
+			if (!force)	// shoulddamage bypasses all of that.
+			{
+				K_DoInstashield(player);
+				return false;
+			}
 		}
 		else
 		{
@@ -3272,7 +3326,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| inflictor->type == MT_SMK_THWOMP || inflictor->player))
 			{
 				player->kartstuff[k_sneakertimer] = 0;
-				K_SpinPlayer(player, source, 1, false);
+				K_SpinPlayer(player, source, 1, inflictor, false);
 				damage = player->mo->health - 1;
 				P_RingDamage(player, inflictor, source, damage);
 				P_PlayerRingBurst(player, 5);
@@ -3284,7 +3338,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			}
 			else
 			{
-				K_SpinPlayer(player, source, 0, false);
+				K_SpinPlayer(player, source, 0, inflictor, false);
 			}
 			return true;
 		}

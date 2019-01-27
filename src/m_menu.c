@@ -3,7 +3,7 @@
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2011-2016 by Matthew "Inuyasha" Walsh.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -59,20 +59,25 @@
 #include "k_kart.h" // SRB2kart
 #include "d_player.h" // KITEM_ constants
 
+#include "i_joy.h" // for joystick menu controls
+
 // Condition Sets
 #include "m_cond.h"
 
 // And just some randomness for the exits.
 #include "m_random.h"
 
+#if defined(HAVE_SDL)
+#include "SDL.h"
+#if SDL_VERSION_ATLEAST(2,0,0)
+#include "sdl/sdlmain.h" // JOYSTICK_HOTPLUG
+#endif
+#endif
+
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
 int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
-#endif
-
-#if defined (__GNUC__) && (__GNUC__ >= 4)
-#define FIXUPO0
 #endif
 
 #define SKULLXOFF -32
@@ -168,7 +173,7 @@ typedef enum
 levellist_mode_t levellistmode = LLM_CREATESERVER;
 UINT8 maplistoption = 0;
 
-static char joystickInfo[8][25];
+static char joystickInfo[8][29];
 #ifndef NONET
 static UINT32 serverlistpage;
 #endif
@@ -180,9 +185,7 @@ INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
 
-static  boolean setupcontrols_secondaryplayer;
-static  boolean setupcontrols_thirdplayer;
-static  boolean setupcontrols_fourthplayer;
+static  UINT8 setupcontrolplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
 
 // shhh... what am I doing... nooooo!
@@ -304,6 +307,7 @@ static void M_Setup4PJoystickMenu(INT32 choice);
 
 static void M_AssignJoystick(INT32 choice);
 static void M_ChangeControl(INT32 choice);
+static void M_ResetControls(INT32 choice);
 
 // Video & Sound
 menu_t OP_VideoOptionsDef, OP_VideoModeDef;
@@ -311,17 +315,15 @@ menu_t OP_VideoOptionsDef, OP_VideoModeDef;
 menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
 #endif
 menu_t OP_SoundOptionsDef;
-static void M_ToggleSFX(INT32 choice);
-static void M_ToggleDigital(INT32 choice);
-#ifndef NO_MIDI
-static void M_ToggleMIDI(INT32 choice);
-#endif
 //static void M_RestartAudio(void);
 
 //Misc
 menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
+#ifndef NONET
+menu_t OP_AdvServerOptionsDef;
+#endif
 //menu_t OP_NetgameOptionsDef, OP_GametypeOptionsDef;
 menu_t OP_MonitorToggleDef;
 static void M_ScreenshotOptions(INT32 choice);
@@ -542,26 +544,26 @@ typedef enum
 // ---------------------
 static menuitem_t MPauseMenu[] =
 {
-	{IT_STRING | IT_CALL,    NULL, "Add-ons...",                M_Addons,               8},
-	{IT_STRING | IT_SUBMENU, NULL, "Scramble Teams...",   &MISC_ScrambleTeamDef, 16},
-	{IT_STRING | IT_CALL,    NULL, "Switch Map..."    ,   M_MapChange,           24},
+	{IT_STRING | IT_CALL,     NULL, "Add-ons...",        M_Addons,                8},
+	{IT_STRING | IT_SUBMENU,  NULL, "Scramble Teams...", &MISC_ScrambleTeamDef,  16},
+	{IT_STRING | IT_CALL,     NULL, "Switch Map..."    , M_MapChange,            24},
 
-	{IT_CALL | IT_STRING,    NULL, "Continue",             M_SelectableClearMenus,40},
-	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",          M_SetupMultiPlayer,    48}, // splitscreen
-	{IT_CALL | IT_STRING,    NULL, "P2 Setup...",          M_SetupMultiPlayer2,   56}, // splitscreen
-	{IT_CALL | IT_STRING,    NULL, "P3 Setup...",          M_SetupMultiPlayer3,   64}, // splitscreen
-	{IT_CALL | IT_STRING,    NULL, "P4 Setup...",          M_SetupMultiPlayer4,   72}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "Continue",           M_SelectableClearMenus, 40},
+	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",        M_SetupMultiPlayer,     48}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "P2 Setup...",        M_SetupMultiPlayer2,    56}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "P3 Setup...",        M_SetupMultiPlayer3,    64}, // splitscreen
+	{IT_CALL | IT_STRING,    NULL, "P4 Setup...",        M_SetupMultiPlayer4,    72}, // splitscreen
 
-	{IT_STRING | IT_CALL,    NULL, "Spectate",             M_ConfirmSpectate,     48}, // alone
-	{IT_STRING | IT_CALL,    NULL, "Enter Game",           M_ConfirmEnterGame,    48}, // alone
-	{IT_STRING | IT_CALL,    NULL, "Cancel Join",          M_ConfirmSpectate,     48}, // alone
-	{IT_STRING | IT_SUBMENU, NULL, "Switch Team...",       &MISC_ChangeTeamDef,   48},
-	{IT_STRING | IT_SUBMENU, NULL, "Enter/Spectate...",   &MISC_ChangeSpectateDef,48},
-	{IT_CALL | IT_STRING,    NULL, "Player Setup...",      M_SetupMultiPlayer,    56}, // alone
-	{IT_CALL | IT_STRING,    NULL, "Options",              M_Options,             64},
+	{IT_STRING | IT_CALL,    NULL, "Spectate",           M_ConfirmSpectate,      48}, // alone
+	{IT_STRING | IT_CALL,    NULL, "Enter Game",         M_ConfirmEnterGame,     48}, // alone
+	{IT_STRING | IT_CALL,    NULL, "Cancel Join",        M_ConfirmSpectate,      48}, // alone
+	{IT_STRING | IT_SUBMENU, NULL, "Switch Team...",     &MISC_ChangeTeamDef,    48},
+	{IT_STRING | IT_SUBMENU, NULL, "Enter/Spectate...",  &MISC_ChangeSpectateDef,48},
+	{IT_CALL | IT_STRING,    NULL, "Player Setup...",    M_SetupMultiPlayer,     56}, // alone
+	{IT_CALL | IT_STRING,    NULL, "Options",            M_Options,              64},
 
-	{IT_CALL | IT_STRING,    NULL, "Return to Title",      M_EndGame,            80},
-	{IT_CALL | IT_STRING,    NULL, "Quit Game",            M_QuitSRB2,           88},
+	{IT_CALL | IT_STRING,    NULL, "Return to Title",    M_EndGame,              80},
+	{IT_CALL | IT_STRING,    NULL, "Quit Game",          M_QuitSRB2,             88},
 };
 
 typedef enum
@@ -909,41 +911,7 @@ static menuitem_t SP_LevelStatsMenu[] =
 // External files modify this menu, so we can't call it static.
 // And I'm too lazy to go through and rename it everywhere. ARRGH!
 #define M_ChoosePlayer NULL
-menuitem_t PlayerMenu[32] =
-{
-	{IT_CALL, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0},
-	{IT_DISABLED, NULL, NULL, M_ChoosePlayer, 0}
-};
+menuitem_t PlayerMenu[MAXSKINS];
 
 // -----------------------------------
 // Multiplayer and all of its submenus
@@ -1093,12 +1061,13 @@ static menuitem_t OP_ControlsMenu[] =
 	{IT_CALL | IT_STRING, NULL, "Player 3 Controls...", &M_Setup3PControlsMenu,  30},
 	{IT_CALL | IT_STRING, NULL, "Player 4 Controls...", &M_Setup4PControlsMenu,  40},
 
-	{IT_STRING  | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
+	{IT_STRING | IT_CVAR, NULL, "Controls per key", &cv_controlperkey, 60},
 };
 
 static menuitem_t OP_AllControlsMenu[] =
 {
 	{IT_SUBMENU|IT_STRING, NULL, "Gamepad Options...", &OP_Joystick1Def, 0},
+	{IT_CALL|IT_STRING, NULL, "Reset to defaults", M_ResetControls, 8},
 	//{IT_SPACE, NULL, NULL, NULL, 0},
 	{IT_HEADER, NULL, "Gameplay Controls", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0},
@@ -1202,13 +1171,14 @@ static menuitem_t OP_JoystickSetMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Use Mouse",        &cv_usemouse,         10},
 
 
-	{IT_STRING | IT_CVAR, NULL, "Always MouseLook", &cv_alwaysfreelook,   30},
-	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove,        40},
-	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse,      50},
+	{IT_STRING | IT_CVAR, NULL, "First-Person MouseLook", &cv_alwaysfreelook,   30},
+	{IT_STRING | IT_CVAR, NULL, "Third-Person MouseLook", &cv_chasefreelook,   40},
+	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove,        50},
+	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse,      60},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse X Speed",    &cv_mousesens,        60},
+	                      NULL, "Mouse X Speed",    &cv_mousesens,        70},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse Y Speed",    &cv_mouseysens,        70},
+	                      NULL, "Mouse Y Speed",    &cv_mouseysens,        80},
 };
 
 static menuitem_t OP_Mouse2OptionsMenu[] =
@@ -1216,13 +1186,14 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Use Mouse 2",      &cv_usemouse2,        10},
 	{IT_STRING | IT_CVAR, NULL, "Second Mouse Serial Port",
 	                                                &cv_mouse2port,       20},
-	{IT_STRING | IT_CVAR, NULL, "Always MouseLook", &cv_alwaysfreelook2,  30},
-	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove2,       40},
-	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse2,     50},
+	{IT_STRING | IT_CVAR, NULL, "First-Person MouseLook", &cv_alwaysfreelook2,  30},
+	{IT_STRING | IT_CVAR, NULL, "Third-Person MouseLook", &cv_chasefreelook2,  40},
+	{IT_STRING | IT_CVAR, NULL, "Mouse Move",       &cv_mousemove2,       50},
+	{IT_STRING | IT_CVAR, NULL, "Invert Mouse",     &cv_invertmouse2,     60},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse X Speed",    &cv_mousesens2,       60},
+	                      NULL, "Mouse X Speed",    &cv_mousesens2,       70},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Mouse Y Speed",    &cv_mouseysens2,      70},
+	                      NULL, "Mouse Y Speed",    &cv_mouseysens2,      80},
 };*/
 
 static menuitem_t OP_VideoOptionsMenu[] =
@@ -1319,16 +1290,16 @@ static menuitem_t OP_OpenGLColorMenu[] =
 
 static menuitem_t OP_SoundOptionsMenu[] =
 {
-	{IT_KEYHANDLER|IT_STRING,	NULL, "SFX",					M_ToggleSFX,			 10},
+	{IT_STRING|IT_CVAR,			NULL, "SFX",					&cv_gamesounds,			 10},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "SFX Volume",			&cv_soundvolume,		 18},
+								NULL, "SFX Volume",				&cv_soundvolume,		 18},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Music",					M_ToggleDigital,		 30},
+	{IT_STRING|IT_CVAR,			NULL, "Music",					&cv_gamedigimusic,		 30},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
 								NULL, "Music Volume",			&cv_digmusicvolume,		 38},
 
 /* -- :nonnathisshit:
-	{IT_KEYHANDLER|IT_STRING,	NULL, "MIDI",					M_ToggleMIDI,			 50},
+	{IT_STRING|IT_CVAR,			NULL, "MIDI",					&cv_gamemidimusic,		 50},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
 								NULL, "MIDI Volume",			&cv_midimusicvolume,	 58},
 #ifdef PC_DOS
@@ -1341,11 +1312,11 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 50},
 	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,			 60},
 
-	{IT_STRING|IT_CVAR,			NULL, "Chat sounds",			&cv_chatnotifications,	 75},
+	{IT_STRING|IT_CVAR,			NULL, "Chat Notifications",		&cv_chatnotifications,	 75},
 	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			 85},
 	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",			M_HandleSoundTest,		110},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		110},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -1437,13 +1408,16 @@ static menuitem_t OP_HUDOptionsMenu[] =
 static menuitem_t OP_ChatOptionsMenu[] =
 {
 	// will ANYONE who doesn't know how to use the console want to touch this one?
-	{IT_STRING | IT_CVAR, NULL, "Chat mode",				&cv_consolechat,		 10}, // nonetheless...
+	{IT_STRING | IT_CVAR, NULL, "Chat Mode",				&cv_consolechat,		10}, // nonetheless...
+
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Window width",		&cv_chatwidth,		 	 25},
+	                      NULL, "Chat Box Width",			&cv_chatwidth,			25},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Window height",		&cv_chatheight,		 	 35},
-	{IT_STRING | IT_CVAR, NULL, "Message fadeout time",		&cv_chattime,			 50},
-	{IT_STRING | IT_CVAR, NULL, "Show tint behind messages",&cv_chatbacktint,		 60},
+	                      NULL, "Chat Box Height",			&cv_chatheight,			35},
+
+	{IT_STRING | IT_CVAR, NULL, "Chat Background Tint",		&cv_chatbacktint,		50},
+	{IT_STRING | IT_CVAR, NULL, "Message Fadeout Time",		&cv_chattime,			60},
+	{IT_STRING | IT_CVAR, NULL, "Spam Protection",			&cv_chatspamprotection,	70},
 };
 
 static menuitem_t OP_GameOptionsMenu[] =
@@ -1457,12 +1431,12 @@ static menuitem_t OP_GameOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Number of Laps",				&cv_basenumlaps,		 70},
 	{IT_STRING | IT_CVAR, NULL, "Exit Countdown Timer",			&cv_countdowntime,		 80},
 
-	//{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
-	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",				&cv_kartbumpers,		100},
-	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		110},
+	{IT_STRING | IT_CVAR, NULL, "Time Limit",					&cv_timelimit,			100},
+	{IT_STRING | IT_CVAR, NULL, "Starting Bumpers",				&cv_kartbumpers,		110},
+	{IT_STRING | IT_CVAR, NULL, "Karma Comeback",				&cv_kartcomeback,		120},
 
-	{IT_STRING | IT_CVAR, NULL, "Force Character #",			&cv_forceskin,          130},
-	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 140},
+	{IT_STRING | IT_CVAR, NULL, "Force Character",				&cv_forceskin,          140},
+	{IT_STRING | IT_CVAR, NULL, "Restrict Character Changes",	&cv_restrictskinchange, 150},
 };
 
 static menuitem_t OP_ServerOptionsMenu[] =
@@ -1480,14 +1454,33 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
-#ifdef VANILLAJOINNEXTROUND
-	{IT_STRING | IT_CVAR,    NULL, "Join on Map Change",			&cv_joinnextround,		110},
-#endif
+	{IT_STRING | IT_CVAR,    NULL, "Allow Add-on Downloading",		&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Pause Permission",				&cv_pause,				120},
+	{IT_STRING | IT_CVAR,    NULL, "Mute All Chat",					&cv_mute,				130},
 
-	{IT_STRING | IT_CVAR,    NULL, "Allow WAD Downloading",			&cv_downloading,		110},
-	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	120},
+	{IT_SUBMENU|IT_STRING,   NULL, "Advanced Options...",			&OP_AdvServerOptionsDef,150},
 #endif
 };
+
+#ifndef NONET
+static menuitem_t OP_AdvServerOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR | IT_CV_STRING,
+	                         NULL, "Server Browser Address",		&cv_masterserver,		 10},
+
+	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	 40},
+	{IT_STRING | IT_CVAR,    NULL, "Ping limit (ms)",				&cv_maxping,			 50},
+	{IT_STRING | IT_CVAR,    NULL, "Connection timeout (tics)",		&cv_nettimeout,			 60},
+	{IT_STRING | IT_CVAR,    NULL, "Join timeout (tics)",			&cv_jointimeout,		 70},
+
+	{IT_STRING | IT_CVAR,    NULL, "Max. file transfer send (KB)",	&cv_maxsend,			 90},
+	{IT_STRING | IT_CVAR,    NULL, "File transfer packet rate",		&cv_downloadspeed,		100},
+
+	{IT_STRING | IT_CVAR,    NULL, "Log join addresses",			&cv_showjoinaddress,	120},
+	{IT_STRING | IT_CVAR,    NULL, "Log resyncs",					&cv_blamecfail,			130},
+	{IT_STRING | IT_CVAR,    NULL, "Log file transfers",			&cv_noticedownload,		140},
+};
+#endif
 
 /*static menuitem_t OP_NetgameOptionsMenu[] =
 {
@@ -1973,9 +1966,13 @@ menu_t OP_ChatOptionsDef = DEFAULTMENUSTYLE("M_HUD", OP_ChatOptionsMenu, &OP_HUD
 
 menu_t OP_GameOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_GameOptionsMenu, &OP_MainDef, 30, 30);
 menu_t OP_ServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_ServerOptionsMenu, &OP_MainDef, 24, 30);
+#ifndef NONET
+menu_t OP_AdvServerOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_AdvServerOptionsMenu, &OP_ServerOptionsDef, 24, 30);
+#endif
 
 //menu_t OP_NetgameOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_NetgameOptionsMenu, &OP_ServerOptionsDef, 30, 30);
 //menu_t OP_GametypeOptionsDef = DEFAULTMENUSTYLE("M_SERVER", OP_GametypeOptionsMenu, &OP_ServerOptionsDef, 30, 30);
+//menu_t OP_ChatOptionsDef = DEFAULTMENUSTYLE("M_GAME", OP_ChatOptionsMenu, &OP_GameOptionsDef, 30, 30);
 menu_t OP_MonitorToggleDef =
 {
 	"M_GAME",
@@ -2312,7 +2309,19 @@ static void M_ChangeCvar(INT32 choice)
 		CV_Set(cv,s);
 	}
 	else
+	{
+#ifndef NONET
+		if (cv == &cv_nettimeout || cv == &cv_jointimeout)
+			choice *= (TICRATE/7);
+		else if (cv == &cv_maxsend)
+			choice *= 512;
+#ifdef NEWPING
+		else if (cv == &cv_maxping)
+			choice *= 50;
+#endif
+#endif
 		CV_AddValue(cv,choice);
+	}
 }
 
 static boolean M_ChangeStringCvar(INT32 choice)
@@ -2409,6 +2418,7 @@ boolean M_Responder(event_t *ev)
 	INT32 ch = -1;
 //	INT32 i;
 	static tic_t joywait = 0, mousewait = 0;
+	static INT32 pjoyx = 0, pjoyy = 0;
 	static INT32 pmousex = 0, pmousey = 0;
 	static INT32 lastx = 0, lasty = 0;
 	void (*routine)(INT32 choice); // for some casting problem
@@ -2432,15 +2442,15 @@ boolean M_Responder(event_t *ev)
 		switch (ch)
 		{
 			case KEY_MOUSE1:
-			case KEY_JOY1:
-			case KEY_JOY1 + 2:
+				//case KEY_JOY1:
+				//case KEY_JOY1 + 2:
 				ch = KEY_ENTER;
 				break;
-			case KEY_JOY1 + 3:
-				ch = 'n';
-				break;
+				/*case KEY_JOY1 + 3: // Brake can function as 'n' for message boxes now.
+					ch = 'n';
+					break;*/
 			case KEY_MOUSE1 + 1:
-			case KEY_JOY1 + 1:
+				//case KEY_JOY1 + 1:
 				ch = KEY_BACKSPACE;
 				break;
 			case KEY_HAT1:
@@ -2461,26 +2471,45 @@ boolean M_Responder(event_t *ev)
 	{
 		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
 		{
-			if (ev->data3 == -1)
+			const INT32 jdeadzone = JOYAXISRANGE/4;
+			if (ev->data3 != INT32_MAX)
 			{
-				ch = KEY_UPARROW;
-				joywait = I_GetTime() + NEWTICRATE/7;
-			}
-			else if (ev->data3 == 1)
-			{
-				ch = KEY_DOWNARROW;
-				joywait = I_GetTime() + NEWTICRATE/7;
+				if (Joystick.bGamepadStyle || abs(ev->data3) > jdeadzone)
+				{
+					if (ev->data3 < 0 && pjoyy >= 0)
+					{
+						ch = KEY_UPARROW;
+						joywait = I_GetTime() + NEWTICRATE/7;
+					}
+					else if (ev->data3 > 0 && pjoyy <= 0)
+					{
+						ch = KEY_DOWNARROW;
+						joywait = I_GetTime() + NEWTICRATE/7;
+					}
+					pjoyy = ev->data3;
+				}
+				else
+					pjoyy = 0;
 			}
 
-			if (ev->data2 == -1)
+			if (ev->data2 != INT32_MAX)
 			{
-				ch = KEY_LEFTARROW;
-				joywait = I_GetTime() + NEWTICRATE/17;
-			}
-			else if (ev->data2 == 1)
-			{
-				ch = KEY_RIGHTARROW;
-				joywait = I_GetTime() + NEWTICRATE/17;
+				if (Joystick.bGamepadStyle || abs(ev->data2) > jdeadzone)
+				{
+					if (ev->data2 < 0 && pjoyx >= 0)
+					{
+						ch = KEY_LEFTARROW;
+						joywait = I_GetTime() + NEWTICRATE/17;
+					}
+					else if (ev->data2 > 0 && pjoyx <= 0)
+					{
+						ch = KEY_RIGHTARROW;
+						joywait = I_GetTime() + NEWTICRATE/17;
+					}
+					pjoyx = ev->data2;
+				}
+				else
+					pjoyx = 0;
 			}
 		}
 		else if (ev->type == ev_mouse && mousewait < I_GetTime())
@@ -2514,11 +2543,15 @@ boolean M_Responder(event_t *ev)
 			}
 		}
 	}
+	else if (ev->type == ev_keydown) // Preserve event for other responders
+		ch = ev->data1;
 
 	if (ch == -1)
 		return false;
 	else if (ch == gamecontrol[gc_systemmenu][0] || ch == gamecontrol[gc_systemmenu][1]) // allow remappable ESC key
 		ch = KEY_ESCAPE;
+	else if ((ch == gamecontrol[gc_accelerate][0] || ch == gamecontrol[gc_accelerate][1])  && ch >= KEY_MOUSE1)
+		ch = KEY_ENTER;
 
 	// F-Keys
 	if (!menuactive)
@@ -2594,6 +2627,9 @@ boolean M_Responder(event_t *ev)
 		noFurtherInput = false; // turns out we didn't care
 		return false;
 	}
+
+	if ((ch == gamecontrol[gc_brake][0] || ch == gamecontrol[gc_brake][1]) && ch >= KEY_MOUSE1) // do this here, otherwise brake opens the menu mid-game
+		ch = KEY_ESCAPE;
 
 	routine = currentMenu->menuitems[itemOn].itemaction;
 
@@ -2729,6 +2765,7 @@ boolean M_Responder(event_t *ev)
 			return true;
 
 		case KEY_ESCAPE:
+		//case KEY_JOY1 + 2:
 			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
 			if (currentMenu->prevMenu)
@@ -3117,6 +3154,8 @@ void M_Ticker(void)
 //
 void M_Init(void)
 {
+	UINT8 i;
+
 	COM_AddCommand("manual", Command_Manual_f);
 
 	CV_RegisterVar(&cv_nextmap);
@@ -3128,7 +3167,6 @@ void M_Init(void)
 		return;
 
 	// Menu hacks
-	CV_RegisterVar(&cv_splitplayers);
 	CV_RegisterVar(&cv_dummymenuplayer);
 	CV_RegisterVar(&cv_dummyteam);
 	CV_RegisterVar(&cv_dummyspectate);
@@ -3163,6 +3201,15 @@ void M_Init(void)
 	quitmsg[QUIT3MSG4] = M_GetText("Every time you press 'Y', an\nSRB2Kart Developer cries...\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT3MSG5] = M_GetText("You'll be back to play soon, though...\n...right?\n\n(Press 'Y' to quit)");
 	quitmsg[QUIT3MSG6] = M_GetText("Aww, is Eggman's Nightclub too\ndifficult for you?\n\n(Press 'Y' to quit)");
+
+	// Setup PlayerMenu table
+	for (i = 0; i < MAXSKINS; i++)
+	{
+		PlayerMenu[i].status = (i == 0 ? IT_CALL : IT_DISABLED);
+		PlayerMenu[i].patch = PlayerMenu[i].text = NULL;
+		PlayerMenu[i].itemaction = M_ChoosePlayer;
+		PlayerMenu[i].alphaKey = 0;
+	}
 
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
@@ -3349,7 +3396,7 @@ void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines)
 //
 // Draw border for the savegame description
 //
-static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
+/*static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
 {
 	INT32 i;
 
@@ -3362,7 +3409,7 @@ static void M_DrawSaveLoadBorder(INT32 x,INT32 y)
 	}
 
 	V_DrawScaledPatch (x,y+7,0,W_CachePatchName("M_LSRGHT",PU_CACHE));
-}
+}*/
 
 // horizontally centered text
 static void M_CentreText(INT32 y, const char *string)
@@ -4391,8 +4438,10 @@ static void M_Addons(INT32 choice)
 	addonsp[EXT_TXT] = W_CachePatchName("M_FTXT", PU_STATIC);
 	addonsp[EXT_CFG] = W_CachePatchName("M_FCFG", PU_STATIC);
 	addonsp[EXT_WAD] = W_CachePatchName("M_FWAD", PU_STATIC);
+#ifdef USE_KART
 	addonsp[EXT_KART] = W_CachePatchName("M_FKART", PU_STATIC);
-	//addonsp[EXT_PK3] = W_CachePatchName("M_FPK3", PU_STATIC);
+#endif
+	addonsp[EXT_PK3] = W_CachePatchName("M_FPK3", PU_STATIC);
 	addonsp[EXT_SOC] = W_CachePatchName("M_FSOC", PU_STATIC);
 	addonsp[EXT_LUA] = W_CachePatchName("M_FLUA", PU_STATIC);
 	addonsp[NUM_EXT] = W_CachePatchName("M_FUNKN", PU_STATIC);
@@ -4524,10 +4573,6 @@ static boolean M_AddonsRefresh(void)
 	return false;
 }
 
-#ifdef FIXUPO0
-#pragma GCC optimize ("0")
-#endif
-
 static void M_DrawAddons(void)
 {
 	INT32 x, y;
@@ -4598,16 +4643,14 @@ static void M_DrawAddons(void)
 	if (m > (ssize_t)sizedirmenu)
 		m = sizedirmenu;
 
-	// then top...
-	i = m - (2*numaddonsshown + 1);
-
-	// then adjust!
-	if (i < 0)
+	// then compute top and adjust bottom if needed!
+	if (m < (2*numaddonsshown + 1))
 	{
-		if ((m -= i) > (ssize_t)sizedirmenu)
-			m = sizedirmenu;
+		m = min(sizedirmenu, 2*numaddonsshown + 1);
 		i = 0;
 	}
+	else
+		i = m - (2*numaddonsshown + 1);
 
 	if (i != 0)
 		V_DrawString(19, y+4 - (skullAnimCounter/5), highlightflags, "\x1A");
@@ -4671,10 +4714,6 @@ static void M_DrawAddons(void)
 	if (modifiedgame)
 		V_DrawSmallScaledPatch(x, y + 4, 0, addonsp[NUM_EXT+2]);
 }
-
-#ifdef FIXUPO0
-#pragma GCC reset_options
-#endif
 
 static void M_AddonExec(INT32 ch)
 {
@@ -4831,14 +4870,16 @@ static void M_HandleAddons(INT32 choice)
 						case EXT_LUA:
 #ifndef HAVE_BLUA
 							S_StartSound(NULL, sfx_s26d);
-							M_StartMessage(va("%c%s\x80\nThis copy of SRB2 was compiled\nwithout support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
+							M_StartMessage(va("%c%s\x80\nThis version of SRB2Kart does not\nhave support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
 							break;
 #endif
 						// else intentional fallthrough
 						case EXT_SOC:
 						case EXT_WAD:
+#ifdef USE_KART
 						case EXT_KART:
-						//case EXT_PK3:
+#endif
+						case EXT_PK3:
 							COM_BufAddText(va("addfile \"%s%s\"", menupath, dirmenu[dir_on[menudepthleft]]+DIR_STRING));
 							break;
 						default:
@@ -7316,7 +7357,7 @@ void M_SortServerList(void)
 
 #ifndef NONET
 #ifdef UPDATE_ALERT
-static int M_CheckMODVersion(void)
+static boolean M_CheckMODVersion(void)
 {
 	char updatestring[500];
 	const char *updatecheck = GetMODVersion();
@@ -7454,7 +7495,7 @@ static void M_StartServer(INT32 choice)
 		G_StopMetalDemo();
 
 	if (!cv_nextmap.value)
-		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, false, 0, false)+1);
+		CV_SetValue(&cv_nextmap, G_RandMap(G_TOLFlag(cv_newgametype.value), -1, false, 0, false, NULL)+1);
 
 	if (cv_maxplayers.value < ssplayers+1)
 		CV_SetValue(&cv_maxplayers, ssplayers+1);
@@ -7667,7 +7708,7 @@ static void M_StartServerMenu(INT32 choice)
 // CONNECT VIA IP
 // ==============
 
-static char setupm_ip[16];
+static char setupm_ip[28];
 #endif
 static UINT8 setupm_pselect = 1;
 
@@ -7700,12 +7741,12 @@ Update the maxplayers label...
 	V_DrawFill(x+5, y+4+5, /*16*8 + 6,*/ BASEVIDWIDTH - 2*(x+5), 8+6, 239);
 
 	// draw name string
-	V_DrawString(x+8,y+12, V_MONOSPACE, setupm_ip);
+	V_DrawString(x+8,y+12, V_ALLOWLOWERCASE, setupm_ip);
 
 	// draw text cursor for name
 	if (itemOn == 8
 	    && skullAnimCounter < 4)   //blink cursor
-		V_DrawCharacter(x+8+V_StringWidth(setupm_ip, V_MONOSPACE),y+12,'_',false);
+		V_DrawCharacter(x+8+V_StringWidth(setupm_ip, V_ALLOWLOWERCASE),y+12,'_',false);
 #endif
 
 	// character bar, ripped off the color bar :V
@@ -7919,10 +7960,11 @@ static void M_HandleConnectIP(INT32 choice)
 
 		default:
 			l = strlen(setupm_ip);
-			if (l >= 16-1)
+			if (l >= 28-1)
 				break;
 
-			if (choice == 46 || (choice >= 48 && choice <= 57)) // Rudimentary number and period enforcing
+			// Rudimentary number and period enforcing - also allows letters so hostnames can be used instead
+			if ((choice >= '-' && choice <= ':') || (choice >= 'A' && choice <= 'Z') || (choice >= 'a' && choice <= 'z'))
 			{
 				S_StartSound(NULL,sfx_menu1); // Tails
 				setupm_ip[l] = (char)choice;
@@ -7936,7 +7978,6 @@ static void M_HandleConnectIP(INT32 choice)
 				setupm_ip[l] = (char)choice;
 				setupm_ip[l+1] = 0;
 			}
-
 			break;
 	}
 
@@ -8506,43 +8547,86 @@ static void M_ScreenshotOptions(INT32 choice)
 
 static void M_DrawJoystick(void)
 {
-	INT32 i;
+	INT32 i, compareval4, compareval3, compareval2, compareval;
 
 	M_DrawGenericMenu();
 
 	for (i = 0; i < 8; i++)
 	{
-		M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
+		M_DrawTextBox(OP_JoystickSetDef.x-8, OP_JoystickSetDef.y+LINEHEIGHT*i-12, 28, 1);
+		//M_DrawSaveLoadBorder(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i);
 
-		if ((setupcontrols_fourthplayer && (i == cv_usejoystick4.value))
-			|| (setupcontrols_thirdplayer && (i == cv_usejoystick3.value))
-			|| (setupcontrols_secondaryplayer && (i == cv_usejoystick2.value))
-			|| (!(setupcontrols_secondaryplayer || setupcontrols_thirdplayer || setupcontrols_fourthplayer) && (i == cv_usejoystick.value)))
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,recommendedflags,joystickInfo[i]);
+#ifdef JOYSTICK_HOTPLUG
+		if (atoi(cv_usejoystick4.string) > I_NumJoys())
+			compareval4 = atoi(cv_usejoystick4.string);
 		else
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i,0,joystickInfo[i]);
+			compareval4 = cv_usejoystick4.value;
+
+		if (atoi(cv_usejoystick3.string) > I_NumJoys())
+			compareval3 = atoi(cv_usejoystick3.string);
+		else
+			compareval3 = cv_usejoystick3.value;
+
+		if (atoi(cv_usejoystick2.string) > I_NumJoys())
+			compareval2 = atoi(cv_usejoystick2.string);
+		else
+			compareval2 = cv_usejoystick2.value;
+
+		if (atoi(cv_usejoystick.string) > I_NumJoys())
+			compareval = atoi(cv_usejoystick.string);
+		else
+			compareval = cv_usejoystick.value;
+#else
+		compareval4 = cv_usejoystick4.value;
+		compareval3 = cv_usejoystick3.value;
+		compareval2 = cv_usejoystick2.value;
+		compareval = cv_usejoystick.value
+#endif
+
+		if ((setupcontrolplayer == 4 && (i == compareval4))
+			|| (setupcontrolplayer == 3 && (i == compareval3))
+			|| (setupcontrolplayer == 2 && (i == compareval2))
+			|| (setupcontrolplayer == 1 && (i == compareval)))
+			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,V_GREENMAP,joystickInfo[i]);
+		else
+			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,0,joystickInfo[i]);
 	}
 }
 
-static void M_SetupJoystickMenu(INT32 choice)
+void M_SetupJoystickMenu(INT32 choice)
 {
 	INT32 i = 0;
-	const char *joyname = "None";
 	const char *joyNA = "Unavailable";
 	INT32 n = I_NumJoys();
 	(void)choice;
 
-	strcpy(joystickInfo[i], joyname);
+	strcpy(joystickInfo[i], "None");
 
 	for (i = 1; i < 8; i++)
 	{
-		if (i <= n && (joyname = I_GetJoyName(i)) != NULL)
-		{
-			strncpy(joystickInfo[i], joyname, 24);
-			joystickInfo[i][24] = '\0';
-		}
+		if (i <= n && (I_GetJoyName(i)) != NULL)
+			strncpy(joystickInfo[i], I_GetJoyName(i), 28);
 		else
 			strcpy(joystickInfo[i], joyNA);
+
+#ifdef JOYSTICK_HOTPLUG
+		// We use cv_usejoystick.string as the USER-SET var
+		// and cv_usejoystick.value as the INTERNAL var
+		//
+		// In practice, if cv_usejoystick.string == 0, this overrides
+		// cv_usejoystick.value and always disables
+		//
+		// Update cv_usejoystick.string here so that the user can
+		// properly change this value.
+		if (i == cv_usejoystick.value)
+			CV_SetValue(&cv_usejoystick, i);
+		if (i == cv_usejoystick2.value)
+			CV_SetValue(&cv_usejoystick2, i);
+		if (i == cv_usejoystick3.value)
+			CV_SetValue(&cv_usejoystick3, i);
+		if (i == cv_usejoystick4.value)
+			CV_SetValue(&cv_usejoystick4, i);
+#endif
 	}
 
 	M_SetupNextMenu(&OP_JoystickSetDef);
@@ -8550,45 +8634,168 @@ static void M_SetupJoystickMenu(INT32 choice)
 
 static void M_Setup1PJoystickMenu(INT32 choice)
 {
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 1;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick1Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_Setup2PJoystickMenu(INT32 choice)
 {
-	setupcontrols_secondaryplayer = true;
-	setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 2;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick2Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_Setup3PJoystickMenu(INT32 choice)
 {
-	setupcontrols_thirdplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 3;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick3Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_Setup4PJoystickMenu(INT32 choice)
 {
-	setupcontrols_fourthplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = false;
+	setupcontrolplayer = 4;
 	OP_JoystickSetDef.prevMenu = &OP_Joystick4Def;
 	M_SetupJoystickMenu(choice);
 }
 
 static void M_AssignJoystick(INT32 choice)
 {
-	if (setupcontrols_fourthplayer)
+#ifdef JOYSTICK_HOTPLUG
+	INT32 oldchoice, oldstringchoice;
+	INT32 numjoys = I_NumJoys();
+
+	if (setupcontrolplayer == 4)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick4.string) > numjoys ? atoi(cv_usejoystick4.string) : cv_usejoystick4.value;
 		CV_SetValue(&cv_usejoystick4, choice);
-	else if (setupcontrols_thirdplayer)
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick4, cv_usejoystick4.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick4.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick4, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick4.string) > numjoys ? atoi(cv_usejoystick4.string) : cv_usejoystick4.value))
+					M_StartMessage("This joystick is used by another\n"
+								   "player. Reset the joystick\n"
+								   "for that player first.\n\n"
+								   "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 3)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick3.string) > numjoys ? atoi(cv_usejoystick3.string) : cv_usejoystick3.value;
 		CV_SetValue(&cv_usejoystick3, choice);
-	else if (setupcontrols_secondaryplayer)
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick3, cv_usejoystick3.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick3.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick3, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick3.string) > numjoys ? atoi(cv_usejoystick3.string) : cv_usejoystick3.value))
+					M_StartMessage("This joystick is used by another\n"
+								   "player. Reset the joystick\n"
+								   "for that player first.\n\n"
+								   "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 2)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value;
 		CV_SetValue(&cv_usejoystick2, choice);
-	else
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick2, cv_usejoystick2.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick2.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick2, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value))
+					M_StartMessage("This joystick is used by another\n"
+					               "player. Reset the joystick\n"
+					               "for that player first.\n\n"
+					               "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+	else if (setupcontrolplayer == 1)
+	{
+		oldchoice = oldstringchoice = atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value;
 		CV_SetValue(&cv_usejoystick, choice);
+
+		// Just in case last-minute changes were made to cv_usejoystick.value,
+		// update the string too
+		// But don't do this if we're intentionally setting higher than numjoys
+		if (choice <= numjoys)
+		{
+			CV_SetValue(&cv_usejoystick, cv_usejoystick.value);
+
+			// reset this so the comparison is valid
+			if (oldchoice > numjoys)
+				oldchoice = cv_usejoystick.value;
+
+			if (oldchoice != choice)
+			{
+				if (choice && oldstringchoice > numjoys) // if we did not select "None", we likely selected a used device
+					CV_SetValue(&cv_usejoystick, (oldstringchoice > numjoys ? oldstringchoice : oldchoice));
+
+				if (oldstringchoice ==
+					(atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value))
+					M_StartMessage("This joystick is used by another\n"
+					               "player. Reset the joystick\n"
+					               "for that player first.\n\n"
+					               "(Press a key)\n", NULL, MM_NOTHING);
+			}
+		}
+	}
+#else
+	if (setupcontrolplayer == 4)
+		CV_SetValue(&cv_usejoystick4, choice);
+	else if (setupcontrolplayer == 3)
+		CV_SetValue(&cv_usejoystick3, choice);
+	else if (setupcontrolplayer == 2)
+		CV_SetValue(&cv_usejoystick2, choice);
+	else if (setupcontrolplayer == 1)
+		CV_SetValue(&cv_usejoystick, choice);
+#endif
 }
 
 // =============
@@ -8598,7 +8805,7 @@ static void M_AssignJoystick(INT32 choice)
 static void M_Setup1PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 1;
 	setupcontrols = gamecontrol;        // was called from main Options (for console player, then)
 	currentMenu->lastOn = itemOn;
 
@@ -8606,22 +8813,22 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[0].itemaction = &OP_Joystick1Def;
 
 	// Unhide P1-only controls
-	OP_AllControlsMenu[14].status = IT_CONTROL; // Chat
-	//OP_AllControlsMenu[15].status = IT_CONTROL; // Team-chat
-	OP_AllControlsMenu[15].status = IT_CONTROL; // Rankings
-	OP_AllControlsMenu[16].status = IT_CONTROL; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_CONTROL; // Pause
-	OP_AllControlsMenu[20].status = IT_CONTROL; // Screenshot
-	OP_AllControlsMenu[21].status = IT_CONTROL; // GIF
-	OP_AllControlsMenu[22].status = IT_CONTROL; // System Menu
-	OP_AllControlsMenu[23].status = IT_CONTROL; // Console
-	/*OP_AllControlsMenu[24].status = IT_HEADER; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_SPACE; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_CONTROL; // Spectate
-	OP_AllControlsMenu[27].status = IT_CONTROL; // Look Up
-	OP_AllControlsMenu[28].status = IT_CONTROL; // Look Down
-	OP_AllControlsMenu[29].status = IT_CONTROL; // Center View
+	OP_AllControlsMenu[15].status = IT_CONTROL; // Chat
+	//OP_AllControlsMenu[16].status = IT_CONTROL; // Team-chat
+	OP_AllControlsMenu[16].status = IT_CONTROL; // Rankings
+	OP_AllControlsMenu[17].status = IT_CONTROL; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_CONTROL; // Pause
+	OP_AllControlsMenu[21].status = IT_CONTROL; // Screenshot
+	OP_AllControlsMenu[22].status = IT_CONTROL; // GIF
+	OP_AllControlsMenu[23].status = IT_CONTROL; // System Menu
+	OP_AllControlsMenu[24].status = IT_CONTROL; // Console
+	/*OP_AllControlsMenu[25].status = IT_HEADER; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_SPACE; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_CONTROL; // Spectate
+	OP_AllControlsMenu[28].status = IT_CONTROL; // Look Up
+	OP_AllControlsMenu[29].status = IT_CONTROL; // Look Down
+	OP_AllControlsMenu[30].status = IT_CONTROL; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8630,8 +8837,7 @@ static void M_Setup1PControlsMenu(INT32 choice)
 static void M_Setup2PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_secondaryplayer = true;
-	setupcontrols_thirdplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 2;
 	setupcontrols = gamecontrolbis;
 	currentMenu->lastOn = itemOn;
 
@@ -8639,22 +8845,22 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[0].itemaction = &OP_Joystick2Def;
 
 	// Hide P1-only controls
-	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
-	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
-	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
-	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
-	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
-	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
-	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
-	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
-	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
-	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Console
+	/*OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[30].status = IT_GRAYEDOUT2; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8663,8 +8869,7 @@ static void M_Setup2PControlsMenu(INT32 choice)
 static void M_Setup3PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_thirdplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_fourthplayer = false;
+	setupcontrolplayer = 3;
 	setupcontrols = gamecontrol3;
 	currentMenu->lastOn = itemOn;
 
@@ -8672,22 +8877,22 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[0].itemaction = &OP_Joystick3Def;
 
 	// Hide P1-only controls
-	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
-	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
-	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
-	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
-	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
-	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
-	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
-	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
-	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
-	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Console
+	/*OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[30].status = IT_GRAYEDOUT2; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8696,8 +8901,7 @@ static void M_Setup3PControlsMenu(INT32 choice)
 static void M_Setup4PControlsMenu(INT32 choice)
 {
 	(void)choice;
-	setupcontrols_fourthplayer = true;
-	setupcontrols_secondaryplayer = setupcontrols_thirdplayer = false;
+	setupcontrolplayer = 4;
 	setupcontrols = gamecontrol4;
 	currentMenu->lastOn = itemOn;
 
@@ -8705,22 +8909,22 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[0].itemaction = &OP_Joystick4Def;
 
 	// Hide P1-only controls
-	OP_AllControlsMenu[14].status = IT_GRAYEDOUT2; // Chat
-	//OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Team-chat
-	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Viewpoint
-	// 17 is Reset Camera, 18 is Toggle Chasecam
-	OP_AllControlsMenu[19].status = IT_GRAYEDOUT2; // Pause
-	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Screenshot
-	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // GIF
-	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // System Menu
-	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // Console
-	/*OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Spectator Controls header
-	OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls space
-	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectate
-	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Look Up
-	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Down
-	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Center View
+	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
+	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
+	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
+	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	// 18 is Reset Camera, 19 is Toggle Chasecam
+	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
+	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
+	OP_AllControlsMenu[22].status = IT_GRAYEDOUT2; // GIF
+	OP_AllControlsMenu[23].status = IT_GRAYEDOUT2; // System Menu
+	OP_AllControlsMenu[24].status = IT_GRAYEDOUT2; // Console
+	/*OP_AllControlsMenu[25].status = IT_GRAYEDOUT2; // Spectator Controls header
+	OP_AllControlsMenu[26].status = IT_GRAYEDOUT2; // Spectator Controls space
+	OP_AllControlsMenu[27].status = IT_GRAYEDOUT2; // Spectate
+	OP_AllControlsMenu[28].status = IT_GRAYEDOUT2; // Look Up
+	OP_AllControlsMenu[29].status = IT_GRAYEDOUT2; // Look Down
+	OP_AllControlsMenu[30].status = IT_GRAYEDOUT2; // Center View
 	*/
 
 	M_SetupNextMenu(&OP_AllControlsDef);
@@ -8783,10 +8987,8 @@ static void M_DrawControl(void)
 	M_DrawMenuTitle();
 
 	M_CentreText(28,
-		(setupcontrols_fourthplayer ? "\x86""Set controls for ""\x82""Player 4" :
-		(setupcontrols_thirdplayer ? "\x86""Set controls for ""\x82""Player 3" :
-		(setupcontrols_secondaryplayer ? "\x86""Set controls for ""\x82""Player 2" :
-										"\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"))));
+		(setupcontrolplayer > 1 ? va("\x86""Set controls for ""\x82""Player %d", setupcontrolplayer) :
+		                          "\x86""Press ""\x82""ENTER""\x86"" to change, ""\x82""BACKSPACE""\x86"" to clear"));
 
 	if (i)
 		V_DrawCharacter(currentMenu->x - 16, y-(skullAnimCounter/5),
@@ -8845,6 +9047,7 @@ static void M_DrawControl(void)
 #undef controlheight
 
 static INT32 controltochange;
+static char controltochangetext[33];
 
 static void M_ChangecontrolResponse(event_t *ev)
 {
@@ -8852,8 +9055,8 @@ static void M_ChangecontrolResponse(event_t *ev)
 	INT32        found;
 	INT32        ch = ev->data1;
 
-	// ESCAPE cancels
-	if (ch != KEY_ESCAPE)
+	// ESCAPE cancels; dummy out PAUSE
+	if (ch != KEY_ESCAPE && ch != KEY_PAUSE)
 	{
 
 		switch (ev->type)
@@ -8903,19 +9106,41 @@ static void M_ChangecontrolResponse(event_t *ev)
 				setupcontrols[control][found] = ch-KEY_4JOY1+KEY_DBL4JOY1;
 		}
 		else
-        {
-            // check if change key1 or key2, or shuffle them along in a queue
-            found = 0;
-            if (setupcontrols[control][0] != KEY_NULL)
-            {
-                found++;
-                if (setupcontrols[control][1] != KEY_NULL)
-                    setupcontrols[control][0] = setupcontrols[control][1];
-             }
-            G_CheckDoubleUsage(ch);
-            setupcontrols[control][found] = ch;
-        }
+		{
+			// check if change key1 or key2, or replace the two by the new
+			found = 0;
+			if (setupcontrols[control][0] == KEY_NULL)
+				found++;
+			if (setupcontrols[control][1] == KEY_NULL)
+				found++;
+			if (found == 2)
+			{
+				found = 0;
+				setupcontrols[control][1] = KEY_NULL;  //replace key 1,clear key2
+			}
+			(void)G_CheckDoubleUsage(ch, true);
+			setupcontrols[control][found] = ch;
+		}
 		S_StartSound(NULL, sfx_s221);
+	}
+	else if (ch == KEY_PAUSE)
+	{
+		// This buffer assumes a 125-character message plus a 32-character control name (per controltochangetext buffer size)
+		static char tmp[158];
+		menu_t *prev = currentMenu->prevMenu;
+
+		if (controltochange == gc_pause)
+			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nyou may select another key. \n\nHit another key for\n%s\nESC for Cancel"),
+				controltochangetext);
+		else
+			sprintf(tmp, M_GetText("The \x82Pause Key \x80is enabled, but \nit is not configurable. \n\nHit another key for\n%s\nESC for Cancel"),
+				controltochangetext);
+
+		M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
+		currentMenu->prevMenu = prev;
+
+		S_StartSound(NULL, sfx_s3k42);
+		return;
 	}
 	else
 		S_StartSound(NULL, sfx_s224);
@@ -8925,187 +9150,107 @@ static void M_ChangecontrolResponse(event_t *ev)
 
 static void M_ChangeControl(INT32 choice)
 {
-	static char tmp[55];
+	// This buffer assumes a 35-character message (per below) plus a max control name limit of 32 chars (per controltochangetext)
+	// If you change the below message, then change the size of this buffer!
+	static char tmp[68];
 
 	controltochange = currentMenu->menuitems[choice].alphaKey;
 	sprintf(tmp, M_GetText("Hit the new key for\n%s\nESC for Cancel"),
 		currentMenu->menuitems[choice].text);
+	strlcpy(controltochangetext, currentMenu->menuitems[choice].text, 33);
 
 	M_StartMessage(tmp, M_ChangecontrolResponse, MM_EVENTHANDLER);
+}
+
+static void M_ResetControlsResponse(INT32 ch)
+{
+	INT32 i;
+
+	if (ch != 'y' && ch != KEY_ENTER)
+		return;
+
+	// clear all controls
+	for (i = 0; i < num_gamecontrols; i++)
+	{
+		switch (setupcontrolplayer)
+		{
+			case 4:
+				G_ClearControlKeys(gamecontrol4, i);
+				break;
+			case 3:
+				G_ClearControlKeys(gamecontrol3, i);
+				break;
+			case 2:
+				G_ClearControlKeys(gamecontrolbis, i);
+				break;
+			case 1:
+			default:
+				G_ClearControlKeys(gamecontrol, i);
+				break;
+		}
+	}
+
+	// Setup original defaults
+	G_Controldefault(setupcontrolplayer);
+
+	// Setup gamepad option defaults (yucky)
+	switch (setupcontrolplayer)
+	{
+		case 4:
+			CV_StealthSet(&cv_usejoystick4, cv_usejoystick4.defaultvalue);
+			CV_StealthSet(&cv_turnaxis4, cv_turnaxis4.defaultvalue);
+			CV_StealthSet(&cv_moveaxis4, cv_moveaxis4.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis4, cv_brakeaxis4.defaultvalue);
+			CV_StealthSet(&cv_aimaxis4, cv_aimaxis4.defaultvalue);
+			CV_StealthSet(&cv_lookaxis4, cv_lookaxis4.defaultvalue);
+			CV_StealthSet(&cv_fireaxis4, cv_fireaxis4.defaultvalue);
+			CV_StealthSet(&cv_driftaxis4, cv_driftaxis4.defaultvalue);
+			break;
+		case 3:
+			CV_StealthSet(&cv_usejoystick3, cv_usejoystick3.defaultvalue);
+			CV_StealthSet(&cv_turnaxis3, cv_turnaxis3.defaultvalue);
+			CV_StealthSet(&cv_moveaxis3, cv_moveaxis3.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis3, cv_brakeaxis3.defaultvalue);
+			CV_StealthSet(&cv_aimaxis3, cv_aimaxis3.defaultvalue);
+			CV_StealthSet(&cv_lookaxis3, cv_lookaxis3.defaultvalue);
+			CV_StealthSet(&cv_fireaxis3, cv_fireaxis3.defaultvalue);
+			CV_StealthSet(&cv_driftaxis3, cv_driftaxis3.defaultvalue);
+			break;
+		case 2:
+			CV_StealthSet(&cv_usejoystick2, cv_usejoystick2.defaultvalue);
+			CV_StealthSet(&cv_turnaxis2, cv_turnaxis2.defaultvalue);
+			CV_StealthSet(&cv_moveaxis2, cv_moveaxis2.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis2, cv_brakeaxis2.defaultvalue);
+			CV_StealthSet(&cv_aimaxis2, cv_aimaxis2.defaultvalue);
+			CV_StealthSet(&cv_lookaxis2, cv_lookaxis2.defaultvalue);
+			CV_StealthSet(&cv_fireaxis2, cv_fireaxis2.defaultvalue);
+			CV_StealthSet(&cv_driftaxis2, cv_driftaxis2.defaultvalue);
+			break;
+		case 1:
+		default:
+			CV_StealthSet(&cv_usejoystick, cv_usejoystick.defaultvalue);
+			CV_StealthSet(&cv_turnaxis, cv_turnaxis.defaultvalue);
+			CV_StealthSet(&cv_moveaxis, cv_moveaxis.defaultvalue);
+			CV_StealthSet(&cv_brakeaxis, cv_brakeaxis.defaultvalue);
+			CV_StealthSet(&cv_aimaxis, cv_aimaxis.defaultvalue);
+			CV_StealthSet(&cv_lookaxis, cv_lookaxis.defaultvalue);
+			CV_StealthSet(&cv_fireaxis, cv_fireaxis.defaultvalue);
+			CV_StealthSet(&cv_driftaxis, cv_driftaxis.defaultvalue);
+			break;
+	}
+
+	S_StartSound(NULL, sfx_s224);
+}
+
+static void M_ResetControls(INT32 choice)
+{
+	(void)choice;
+	M_StartMessage(va(M_GetText("Reset Player %d's controls to defaults?\n\n(Press 'Y' to confirm)\n"), setupcontrolplayer), M_ResetControlsResponse, MM_YESNO);
 }
 
 // =====
 // SOUND
 // =====
-
-// Toggles sound systems in-game.
-static void M_ToggleSFX(INT32 choice)
-{
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			return;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn = currentMenu->numitems-1;
-			return;
-
-		case KEY_ESCAPE:
-			currentMenu->lastOn = itemOn;
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
-			else
-				M_ClearMenus(true);
-			return;
-		default:
-			break;
-	}
-
-	if (sound_disabled)
-	{
-		sound_disabled = false;
-		S_InitSfxChannels(cv_soundvolume.value);
-		S_StartSound(NULL, sfx_s221);
-		//M_StartMessage(M_GetText("SFX Enabled\n"), NULL, MM_NOTHING);
-	}
-	else
-	{
-		sound_disabled = true;
-		S_StopSounds();
-		//M_StartMessage(M_GetText("SFX Disabled\n"), NULL, MM_NOTHING);
-	}
-}
-
-static void M_ToggleDigital(INT32 choice)
-{
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			return;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
-			return;
-
-		case KEY_ESCAPE:
-			currentMenu->lastOn = itemOn;
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
-			else
-				M_ClearMenus(true);
-			return;
-		default:
-			break;
-	}
-
-	if (digital_disabled)
-	{
-		digital_disabled = false;
-		I_InitMusic();
-		S_StopMusic();
-		if (Playing())
-			P_RestoreMusic(&players[consoleplayer]);
-		else
-			S_ChangeMusicInternal("titles", looptitle);
-		//M_StartMessage(M_GetText("Digital Music Enabled\n"), NULL, MM_NOTHING);
-	}
-	else
-	{
-		digital_disabled = true;
-#ifndef NO_MIDI
-		if (S_MusicType() != MU_MID)
-		{
-			if (midi_disabled)
-				S_StopMusic();
-			else
-			{
-				char mmusic[7];
-				UINT16 mflags;
-				boolean looping;
-
-				if (S_MusicInfo(mmusic, &mflags, &looping) && S_MIDIExists(mmusic))
-				{
-					S_StopMusic();
-					S_ChangeMusic(mmusic, mflags, looping);
-				}
-				else
-					S_StopMusic();
-			}
-		}
-#else
-		S_StopMusic();
-#endif
-		//M_StartMessage(M_GetText("Digital Music Disabled\n"), NULL, MM_NOTHING);
-	}
-}
-
-#ifndef NO_MIDI
-static void M_ToggleMIDI(INT32 choice)
-{
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			return;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
-			return;
-
-		case KEY_ESCAPE:
-			if (currentMenu->prevMenu)
-				M_SetupNextMenu(currentMenu->prevMenu);
-			else
-				M_ClearMenus(true);
-			return;
-		default:
-			break;
-	}
-
-	if (midi_disabled)
-	{
-		midi_disabled = false;
-		I_InitMusic();
-		if (Playing())
-			P_RestoreMusic(&players[consoleplayer]);
-		else
-			S_ChangeMusicInternal("titles", looptitle);
-		//M_StartMessage(M_GetText("MIDI Music Enabled\n"), NULL, MM_NOTHING);
-	}
-	else
-	{
-		midi_disabled = true;
-		if (S_MusicType() == MU_MID)
-		{
-			if (digital_disabled)
-				S_StopMusic();
-			else
-			{
-				char mmusic[7];
-				UINT16 mflags;
-				boolean looping;
-
-				if (S_MusicInfo(mmusic, &mflags, &looping) && S_DigExists(mmusic))
-				{
-					S_StopMusic();
-					S_ChangeMusic(mmusic, mflags, looping);
-				}
-				else
-					S_StopMusic();
-			}
-		}
-		//M_StartMessage(M_GetText("MIDI Music Disabled\n"), NULL, MM_NOTHING);
-	}
-}
-#endif
 
 /*static void M_RestartAudio(void)
 {

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -20,6 +20,8 @@
 #ifdef __GNUG__
 #pragma interface
 #endif
+
+#define MAXPREDICTTICS 12
 
 // Button/action code definitions.
 typedef enum
@@ -60,6 +62,7 @@ typedef struct
 	INT16 aiming; // vertical aiming, see G_BuildTicCmd
 	UINT16 buttons;
 	INT16 driftturn; // SRB2Kart: Used for getting drift turn speed
+	UINT8 latency; // Netgames: how many tics ago was this ticcmd generated from this player's end?
 } ATTRPACK ticcmd_t;
 
 #if defined(_MSC_VER)

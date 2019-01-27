@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -175,7 +175,7 @@ static void F_SkyScroll(INT32 scrollspeed)
 	{
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
-		x = -animtimer;
+		x = -((INT32)animtimer);
 		y = 0;
 		while (x < w)
 		{
@@ -438,7 +438,7 @@ static const char *credits[] = {
 	"\"ZarroTsu\"",
 	"",
 	"\1Support Programming",
-	"\"fickle\"",
+	"Colette \"fickleheart\" Bordelon",
 	"\"Lat\'\"",
 	"\"Monster Iestyn\"",
 	"\"Shuffle\"",
@@ -450,10 +450,12 @@ static const char *credits[] = {
 	"\1Support Artists",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Sherman \"CoatRack\" DesJardins",
+	"\"DrTapeworm\"",
 	"Jesse \"Jeck Jims\" Emerick",
 	"Wesley \"Charyb\" Gillebaard",
 	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
+	"\"Lat\'\"",
 	"\"Tyrannosaur Chao\"",
 	"\"ZarroTsu\"",
 	"",
@@ -465,8 +467,11 @@ static const char *credits[] = {
 	"\"Ritz\"",
 	"\"Rob\"",
 	"\"SmithyGNC\"",
+	"\"Snu\"",
 	"\"Spherallic\"",
 	"\"VAdaPEGA\"",
+	"\"Virt\"",
+	"\"zxyspku\"",
 	"",
 	"\1Sound Design",
 	"James \"SeventhSentinel\" Hall",
@@ -474,40 +479,10 @@ static const char *credits[] = {
 	"\"VAdaPEGA\"",
 	"\"VelocitOni\"",
 	"",
-	"\1Music", // Can't list song names here, so we're listing artists
-	"\"Arrow\"",
-	"Jonny Atma",
-	"Moot Booxle", // Booxlé, add the accent char later?
-	"Malcolm Brown",
-	"Karl Brueggemann",
+	"\1Music",
 	"\"DrTapeworm\"",
-	"\"Elwood\"",
 	"Wesley \"Charyb\" Gillebaard",
-	"\"gxf4c3\"",
 	"James \"SeventhSentinel\" Hall",
-	"Chris Holland",
-	"Johnny \"J\"",
-	"Masato Kouda",
-	"Fumie Kumatani",
-	"Luke Kwing",
-	"James Landino",
-	"\"Lange\"",
-	"Takenobu Mitsuyoshi",
-	"\"Nib Roc\"",
-	"Tomoya Ohtani",
-	"Vincent Rubinetti",
-	"Jun Senoue",
-	"\"SSNTails\"",
-	"Michael \"MaxieDaMan\" Staple",
-	"Simon Stalenhag", // Stålenhag, add the accent char later?
-	"\"Synthescissor\"",
-	"Yuko Takehara",
-	"Tony Thai",
-	"\"The8BitDrummer\"",
-	"Kenichi Tokoi",
-	"\"Tokyo Active NEETs\"",
-	"\"xaki\"",
-	"Michiru Yamane",
 	"",
 	"\1Lead Level Design",
 	"\"Blitz-T\"",
@@ -581,7 +556,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(97*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(72*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
@@ -642,6 +617,9 @@ void F_CreditDrawer(void)
 
 		V_DrawFixedPatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, sc, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), colormap);
 	}
+
+	// Dim the background
+	//V_DrawFadeScreen();
 
 	// Draw credits text on top
 	for (i = 0; credits[i]; i++)
@@ -1068,7 +1046,7 @@ void F_TitleScreenTicker(boolean run)
 			return;
 		}*/
 
-		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, false, 0, false)+1);
+		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, 0, false, NULL)+1);
 
 		numstaff = 1;
 		while (numstaff < 99 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)

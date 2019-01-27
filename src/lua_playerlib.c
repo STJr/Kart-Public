@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -246,8 +246,6 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->starpostz);
 	else if (fastcmp(field,"starpostnum"))
 		lua_pushinteger(L, plr->starpostnum);
-	else if (fastcmp(field,"starpostcount"))
-		lua_pushinteger(L, plr->starpostcount);
 	else if (fastcmp(field,"starposttime"))
 		lua_pushinteger(L, plr->starposttime);
 	else if (fastcmp(field,"starpostangle"))
@@ -519,8 +517,6 @@ static int player_set(lua_State *L)
 		plr->starpostz = (INT16)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starpostnum"))
 		plr->starpostnum = (INT32)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"starpostcount"))
-		plr->starpostcount = (INT32)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starposttime"))
 		plr->starposttime = (tic_t)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starpostangle"))

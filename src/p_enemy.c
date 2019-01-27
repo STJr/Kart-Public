@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -3971,11 +3971,14 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 void A_GrenadeRing(mobj_t *actor)
 {
 	INT32 bx, by, xl, xh, yl, yh;
-	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	explodedist = FixedMul(actor->info->painchance, mapobjectscale);
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_GrenadeRing", actor))
 		return;
 #endif
+
+	if (actor->state == &states[S_SSMINE_DEPLOY8])
+		explodedist = (3*explodedist)/2;
 
 	if (leveltime % 35 == 0)
 		S_StartSound(actor, actor->info->activesound);
@@ -4036,7 +4039,7 @@ void A_MineExplode(mobj_t *actor)
 	INT32 d;
 	INT32 locvar1 = var1;
 	mobjtype_t type;
-	explodedist = FixedMul(actor->info->painchance, mapheaderinfo[gamemap-1]->mobj_scale);
+	explodedist = FixedMul((3*actor->info->painchance)/2, mapobjectscale);
 #ifdef HAVE_BLUA
 	if (LUA_CallAction("A_MineExplode", actor))
 		return;
@@ -4057,7 +4060,7 @@ void A_MineExplode(mobj_t *actor)
 			P_BlockThingsIterator(bx, by, PIT_MineExplode);
 
 	for (d = 0; d < 16; d++)
-		K_SpawnKartExplosion(actor->x, actor->y, actor->z, explodedist + 32*mapheaderinfo[gamemap-1]->mobj_scale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
+		K_SpawnKartExplosion(actor->x, actor->y, actor->z, explodedist + 32*mapobjectscale, 32, type, d*(ANGLE_45/4), true, false, actor->target); // 32 <-> 64
 
 	if (actor->target && actor->target->player)
 		K_SpawnMineExplosion(actor, actor->target->player->skincolor);
@@ -8273,7 +8276,7 @@ void A_JawzChase(mobj_t *actor)
 			ret->frame |= ((leveltime % 10) / 2) + 5;
 			ret->color = actor->cvmem;
 
-			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), actor->info->speed);
+			P_Thrust(actor, R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y), (7*actor->movefactor)/64);
 			return;
 		}
 		else
@@ -8345,37 +8348,82 @@ void A_SPBChase(mobj_t *actor)
 #endif
 
 	// Default speed
-	wspeed = FixedMul(actor->info->speed, mapheaderinfo[gamemap-1]->mobj_scale);
-	if (gamespeed == 0)
-		wspeed = FixedMul(wspeed, FRACUNIT-FRACUNIT/4);
-	else if (gamespeed == 2)
-		wspeed = FixedMul(wspeed, FRACUNIT+FRACUNIT/4);
+	wspeed = actor->movefactor;
 
 	if (actor->threshold) // Just fired, go straight.
 	{
+		actor->lastlook = -1;
+		spbplace = -1;
 		P_InstaThrust(actor, actor->angle, wspeed);
 		return;
 	}
 
-	if (actor->extravalue1) // MODE: TARGETING
+	// Find the player with the best rank
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator || players[i].exiting)
+			continue; // not in-game
+
+		/*if (!players[i].mo)
+			continue; // no mobj
+
+		if (players[i].mo->health <= 0)
+			continue; // dead
+
+		if (players[i].kartstuff[k_respawn])
+			continue;*/ // respawning
+
+		if (players[i].kartstuff[k_position] < bestrank)
+		{
+			bestrank = players[i].kartstuff[k_position];
+			player = &players[i];
+		}
+	}
+
+	if (actor->extravalue1 == 1) // MODE: TARGETING
 	{
 		if (actor->tracer && actor->tracer->health)
 		{
 			fixed_t defspeed = wspeed;
 			fixed_t range = (160*actor->tracer->scale);
-
-			// Maybe we want SPB to target an object later? IDK lol
-			if (actor->tracer->player) // 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
-			{
-				if (!P_IsObjectOnGround(actor->tracer) && !actor->tracer->player->kartstuff[k_pogospring])
-					defspeed = 7*actor->tracer->player->speed/8; // In the air you have no control; basically don't hit unless you make a near complete stop
-				else
-					defspeed = ((33 - actor->tracer->player->kartspeed) * K_GetKartSpeed(actor->tracer->player, false)) / 32;
-			}
+			fixed_t cx = 0, cy =0;
 
 			// Play the intimidating gurgle
 			if (!S_SoundPlaying(actor, actor->info->activesound))
 				S_StartSound(actor, actor->info->activesound);
+
+			// Maybe we want SPB to target an object later? IDK lol
+			if (actor->tracer->player)
+			{
+				UINT8 fracmax = 32;
+				UINT8 spark = ((10-actor->tracer->player->kartspeed) + actor->tracer->player->kartweight) / 2;
+				fixed_t easiness = ((actor->tracer->player->kartspeed + (10-spark)) << FRACBITS) / 2;
+
+				actor->lastlook = actor->tracer->player-players; // Save the player num for death scumming...
+
+				if (!P_IsObjectOnGround(actor->tracer) /*&& !actor->tracer->player->kartstuff[k_pogospring]*/)
+				{
+					// In the air you have no control; basically don't hit unless you make a near complete stop
+					defspeed = (7 * actor->tracer->player->speed) / 8;
+				}
+				else
+				{
+					// 7/8ths max speed for Knuckles, 3/4ths max speed for min accel, exactly max speed for max accel
+					defspeed = FixedMul(((fracmax+1)<<FRACBITS) - easiness, K_GetKartSpeed(actor->tracer->player, false)) / fracmax;
+				}
+
+				// Be fairer on conveyors
+				cx = actor->tracer->player->cmomx;
+				cy = actor->tracer->player->cmomy;
+
+				// Switch targets if you're no longer 1st for long enough
+				if (actor->tracer->player->kartstuff[k_position] <= bestrank)
+					actor->extravalue2 = 7*TICRATE;
+				else if (actor->extravalue2-- <= 0)
+					actor->extravalue1 = 0; // back to SEEKING
+
+				spbplace = actor->tracer->player->kartstuff[k_position];
+			}
 
 			dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
 
@@ -8384,9 +8432,17 @@ void A_SPBChase(mobj_t *actor)
 				wspeed = defspeed;
 			if (wspeed > (3*defspeed)/2)
 				wspeed = (3*defspeed)/2;
+			if (wspeed < 20*actor->tracer->scale)
+				wspeed = 20*actor->tracer->scale;
 
 			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
+
+			// Modify stored speed
+			if (wspeed > actor->cvmem)
+				actor->cvmem += (wspeed - actor->cvmem) / TICRATE;
+			else
+				actor->cvmem = wspeed;
 
 			{
 				// Smoothly rotate horz angle
@@ -8396,7 +8452,7 @@ void A_SPBChase(mobj_t *actor)
 					input = InvAngle(input);
 
 				// Slow down when turning; it looks better and makes U-turns not unfair
-				xyspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+				xyspeed = FixedMul(actor->cvmem, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
 
 				input = FixedAngle(AngleFixed(input)/4);
 				if (invert)
@@ -8411,7 +8467,7 @@ void A_SPBChase(mobj_t *actor)
 					input = InvAngle(input);
 
 				// Slow down when turning; might as well do it for momz, since we do it above too
-				zspeed = FixedMul(wspeed, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
+				zspeed = FixedMul(actor->cvmem, max(0, (((180<<FRACBITS) - AngleFixed(input)) / 90) - FRACUNIT));
 
 				input = FixedAngle(AngleFixed(input)/4);
 				if (invert)
@@ -8420,8 +8476,8 @@ void A_SPBChase(mobj_t *actor)
 				actor->movedir += input;
 			}
 
-			actor->momx = FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
-			actor->momy = FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momx = cx + FixedMul(FixedMul(xyspeed, FINECOSINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
+			actor->momy = cy + FixedMul(FixedMul(xyspeed, FINESINE(actor->angle>>ANGLETOFINESHIFT)), FINECOSINE(actor->movedir>>ANGLETOFINESHIFT));
 			actor->momz = FixedMul(zspeed, FINESINE(actor->movedir>>ANGLETOFINESHIFT));
 
 			// Red speed lines for when it's gaining on its target. A tell for when you're starting to lose too much speed!
@@ -8434,9 +8490,9 @@ void A_SPBChase(mobj_t *actor)
 					actor->z + (actor->height/2) + (P_RandomRange(-24,24) * actor->scale),
 					MT_FASTLINE);
 				fast->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
-				//fast->momx = 3*actor->momx/4;
-				//fast->momy = 3*actor->momy/4;
-				//fast->momz = 3*actor->momz/4;
+				//fast->momx = (3*actor->momx)/4;
+				//fast->momy = (3*actor->momy)/4;
+				//fast->momz = (3*actor->momz)/4;
 				fast->color = SKINCOLOR_RED;
 				fast->colorized = true;
 				K_MatchGenericExtraFlags(fast, actor);
@@ -8447,54 +8503,52 @@ void A_SPBChase(mobj_t *actor)
 		else // Target's gone, return to SEEKING
 		{
 			P_SetTarget(&actor->tracer, NULL);
-			actor->extravalue1 = 0; // Find someone new next tic
+			actor->extravalue1 = 2; // WAIT...
+			actor->extravalue2 = 52; // Slightly over the respawn timer length
 			return;
+		}
+	}
+	else if (actor->extravalue1 == 2) // MODE: WAIT...
+	{
+		actor->momx = actor->momy = actor->momz = 0; // Stoooop
+
+		if (actor->lastlook != -1
+			&& playeringame[actor->lastlook]
+			&& !players[actor->lastlook].spectator
+			&& !players[actor->lastlook].exiting)
+		{
+			spbplace = players[actor->lastlook].kartstuff[k_position];
+			if (actor->extravalue2-- <= 0 && players[actor->lastlook].mo)
+			{
+				P_SetTarget(&actor->tracer, players[actor->lastlook].mo);
+				actor->extravalue1 = 1; // TARGET ACQUIRED
+				actor->extravalue2 = 7*TICRATE;
+				actor->cvmem = wspeed;
+			}
+		}
+		else
+		{
+			actor->extravalue1 = 0; // SEEKING
+			actor->extravalue2 = 0;
+			spbplace = -1;
 		}
 	}
 	else // MODE: SEEKING
 	{
-		// Find the player with the best rank
-		for (i = 0; i < MAXPLAYERS; i++)
+		actor->lastlook = -1; // Just make sure this is reset
+
+		if (!player || !player->mo || player->mo->health <= 0 || player->kartstuff[k_respawn])
 		{
-			if (!playeringame[i] || players[i].spectator || players[i].exiting)
-				continue; // not in-game
-
-			if (!players[i].mo)
-				continue; // no mobj
-
-			if (players[i].mo->health <= 0)
-				continue; // dead
-
-			if (players[i].kartstuff[k_respawn])
-				continue; // respawning
-
-			if (players[i].kartstuff[k_position] < bestrank)
-			{
-				bestrank = players[i].kartstuff[k_position];
-				player = &players[i];
-			}
-		}
-
-		// No one there?
-		if (player == NULL || !player->mo)
-		{
-#if 0
-			// SELF-DESTRUCT?
-			mobj_t *spbexplode;
-
-			S_StopSound(actor); // Don't continue playing the gurgle or the siren
-			spbexplode = P_SpawnMobj(actor->x, actor->y, actor->z, MT_SPBEXPLOSION);
-			P_SetTarget(&spbexplode->target, actor->target);
-
-			P_RemoveMobj(actor);
-#else
+			// No one there? Completely STOP.
 			actor->momx = actor->momy = actor->momz = 0;
-#endif
+			if (!player)
+				spbplace = -1;
 			return;
 		}
 
 		// Found someone, now get close enough to initiate the slaughter...
 		P_SetTarget(&actor->tracer, player->mo);
+		spbplace = bestrank;
 
 		dist = P_AproxDistance(P_AproxDistance(actor->x-actor->tracer->x, actor->y-actor->tracer->y), actor->z-actor->tracer->z);
 
@@ -8541,6 +8595,8 @@ void A_SPBChase(mobj_t *actor)
 		{
 			S_StartSound(actor, actor->info->attacksound); // Siren sound; might not need this anymore, but I'm keeping it for now just for debugging.
 			actor->extravalue1 = 1; // TARGET ACQUIRED
+			actor->extravalue2 = 7*TICRATE;
+			actor->cvmem = wspeed;
 		}
 	}
 
@@ -10341,7 +10397,7 @@ void A_SetScale(mobj_t *actor)
 		return;
 	}
 
-	locvar1 = FixedMul(locvar1, mapheaderinfo[gamemap-1]->mobj_scale); // SRB2Kart
+	locvar1 = FixedMul(locvar1, mapobjectscale); // SRB2Kart
 
 	target->destscale = locvar1; // destination scale
 	if (!(locvar2 & 65535))

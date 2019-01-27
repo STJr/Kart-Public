@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1413,6 +1413,9 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_SIGN:
 					gravityadd /= 8;
 					break;
+				case MT_KARMAFIREWORK:
+					gravityadd /= 3;
+					break;
 				default:
 					break;
 			}
@@ -1741,7 +1744,7 @@ void P_XYMovement(mobj_t *mo)
 		}
 		else
 		{
-			if (mo->scale < mapheaderinfo[gamemap-1]->mobj_scale/16)
+			if (mo->scale < mapobjectscale/16)
 			{
 				P_RemoveMobj(mo);
 				return;
@@ -1938,7 +1941,9 @@ void P_XYMovement(mobj_t *mo)
 						FIXED_TO_FLOAT(AngleFixed(newangle)),
 						FIXED_TO_FLOAT(AngleFixed(oldangle-newangle))
 						);*/
-		} else if (predictedz-mo->z > abs(slopemom.z/2)) { // Now check if we were supposed to stick to this slope
+		// Sryder 2018-11-26: Don't launch here if it's a slope without physics, we stick to those like glue anyway
+		} else if (predictedz-mo->z > abs(slopemom.z/2)
+			&& !(mo->standingslope->flags & SL_NOPHYSICS)) { // Now check if we were supposed to stick to this slope
 			//CONS_Printf("%d-%d > %d\n", (predictedz), (mo->z), (slopemom.z/2));
 			P_SlopeLaunch(mo);
 		}
@@ -2523,7 +2528,7 @@ static boolean P_ZMovement(mobj_t *mo)
 					if (P_MobjFlip(mo)*mom.z < 0)
 					{
 						// If going slower than a fracunit, just stop.
-						if (abs(mom.z) < FixedMul(FRACUNIT, mo->scale))
+						if (abs(mom.z) < mo->scale)
 						{
 							mom.x = mom.y = mom.z = 0;
 
@@ -3670,7 +3675,7 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 		postimg = postimg_mirror;
 	else if (player->pflags & PF_FLIPCAM && !(player->pflags & PF_NIGHTSMODE) && player->mo->eflags & MFE_VERTICALFLIP)
 		postimg = postimg_flip;
-	else if (player->awayviewtics && player->awayviewmobj != NULL)	// Camera must obviously exist
+	else if (player->awayviewtics && player->awayviewmobj && !P_MobjWasRemoved(player->awayviewmobj)) // Camera must obviously exist
 	{
 		camera_t dummycam;
 		dummycam.subsector = player->awayviewmobj->subsector;
@@ -6357,7 +6362,7 @@ void P_RunShadows(void)
 		}
 
 		if (mobj->target->type == MT_FLOATINGITEM)
-			P_SetScale(mobj, mobj->scale/2);
+			P_SetScale(mobj, mobj->scale/3);
 	}
 	P_SetTarget(&shadowcap, NULL);
 }
@@ -6832,6 +6837,18 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetScale(mobj->tracer, (mobj->tracer->destscale = mobj->scale));
 					}
 
+					// Do this in an easy way
+					if (mobj->target->player->kartstuff[k_itemroulette])
+					{
+						mobj->tracer->color = mobj->target->player->skincolor;
+						mobj->tracer->colorized = true;
+					}
+					else
+					{
+						mobj->tracer->color = SKINCOLOR_NONE;
+						mobj->tracer->colorized = false;
+					}
+
 					if (!(mobj->flags2 & MF2_DONTDRAW))
 					{
 						const INT32 numberdisplaymin = ((mobj->target->player->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
@@ -7193,23 +7210,24 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				break;
 			case MT_FIREDITEM:
-			{
-				fixed_t x, y, z;
-				if (mobj->movecount)
+				if (mobj->target && !P_MobjWasRemoved(mobj->target))
 				{
-					x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
-					y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
-					z = mobj->target->z + mobj->target->height/3;
+					fixed_t x, y, z;
+					if (mobj->movecount)
+					{
+						x = mobj->target->x + P_ReturnThrustX(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+						y = mobj->target->y + P_ReturnThrustY(mobj->target, mobj->target->angle + mobj->movedir, mobj->target->radius + mobj->radius);
+						z = mobj->target->z + mobj->target->height/3;
+					}
+					else
+					{
+						x = mobj->target->x;
+						y = mobj->target->y;
+						z = mobj->target->z + (80*mapobjectscale);
+					}
+					P_TeleportMove(mobj, x, y, z);
 				}
-				else
-				{
-					x = mobj->target->x;
-					y = mobj->target->y;
-					z = mobj->target->z + 80*(mapheaderinfo[gamemap-1]->mobj_scale);
-				}
-				P_TeleportMove(mobj, x, y, z);
 				break;
-			}
 			default:
 				if (mobj->fuse)
 				{ // Scenery object fuse! Very basic!
@@ -7423,10 +7441,10 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_SSMINE:
 		case MT_SPBEXPLOSION:
-			if (mobj->health > -100)
+			if (mobj->extravalue2 != -100)
 			{
 				P_SetMobjState(mobj, mobj->info->deathstate);
-				mobj->health = -100;
+				mobj->extravalue2 = -100;
 			}
 			else
 			{
@@ -7872,7 +7890,7 @@ void P_MobjThinker(mobj_t *mobj)
 			else
 			{
 				mobj->flags &= ~MF_NOGRAVITY;
-				if (mobj->z > mobj->watertop && mobj->z - mobj->watertop < FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale))
+				if (mobj->z > mobj->watertop && mobj->z - mobj->watertop < FixedMul(MAXSTEPMOVE, mapobjectscale))
 					mobj->z = mobj->watertop;
 			}
 			break;
@@ -7922,7 +7940,12 @@ void P_MobjThinker(mobj_t *mobj)
 		{
 			if (mobj->flags & MF_NOCLIPTHING)
 			{
-				if (P_IsObjectOnGround(mobj))
+				if (P_CheckDeathPitCollide(mobj))
+				{
+					P_RemoveMobj(mobj);
+					return;
+				}
+				else if (P_IsObjectOnGround(mobj))
 				{
 					mobj->momx = 1;
 					mobj->momy = 0;
@@ -7936,7 +7959,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->flags2 & MF2_NIGHTSPULL)
 				{
 					if (!mobj->tracer || !mobj->tracer->health
-					|| mobj->scale <= mapheaderinfo[gamemap-1]->mobj_scale>>4)
+					|| mobj->scale <= mapobjectscale>>4)
 					{
 						P_RemoveMobj(mobj);
 						return;
@@ -7945,7 +7968,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else
 				{
-					fixed_t adj = FixedMul(FRACUNIT - FINECOSINE((mobj->movedir>>ANGLETOFINESHIFT) & FINEMASK), (mapheaderinfo[gamemap-1]->mobj_scale<<3));
+					fixed_t adj = FixedMul(FRACUNIT - FINECOSINE((mobj->movedir>>ANGLETOFINESHIFT) & FINEMASK), (mapobjectscale<<3));
 					mobj->movedir += 2*ANG2;
 					if (mobj->eflags & MFE_VERTICALFLIP)
 						mobj->z = mobj->ceilingz - mobj->height - adj;
@@ -7968,11 +7991,15 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE;
 					break;
+				case KITEM_SPB:
+				case KITEM_SHRINK:
+					indirectitemcooldown = 20*TICRATE;
+					/* FALLTHRU */
 				default:
 					mobj->sprite = SPR_ITEM;
 					mobj->frame = FF_FULLBRIGHT|FF_PAPERSPRITE|(mobj->threshold);
 					break;
-				}
+			}
 			break;
 		}
 		case MT_ORBINAUT:
@@ -7998,14 +8025,9 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 			else
 			{
-				fixed_t finalspeed = mobj->info->speed;
+				fixed_t finalspeed = mobj->movefactor;
 
 				P_SpawnGhostMobj(mobj);
-
-				if (gamespeed == 0)
-					finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
-				else if (gamespeed == 2)
-					finalspeed = FixedMul(finalspeed, FRACUNIT+FRACUNIT/4);
 
 				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
 				if (mobj->health <= 5)
@@ -8014,7 +8036,7 @@ void P_MobjThinker(mobj_t *mobj)
 					for (i = 5; i >= mobj->health; i--)
 						finalspeed = FixedMul(finalspeed, FRACUNIT-FRACUNIT/4);
 				}
-				finalspeed = FixedMul(finalspeed, mapheaderinfo[gamemap-1]->mobj_scale);
+
 				P_InstaThrust(mobj, mobj->angle, finalspeed);
 
 				if (grounded)
@@ -8037,8 +8059,8 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_JAWZ:
 		{
 			sector_t *sec2;
-			fixed_t topspeed = 64*FRACUNIT;
-			fixed_t distbarrier = 512*FRACUNIT;
+			fixed_t topspeed = mobj->movefactor;
+			fixed_t distbarrier = 512*mapobjectscale;
 			fixed_t distaway;
 
 			P_SpawnGhostMobj(mobj);
@@ -8049,18 +8071,9 @@ void P_MobjThinker(mobj_t *mobj)
 				S_StartSound(mobj, mobj->info->activesound);
 
 			if (gamespeed == 0)
-			{
-				topspeed = FixedMul(topspeed, FRACUNIT-FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT-FRACUNIT/4);
-			}
 			else if (gamespeed == 2)
-			{
-				topspeed = FixedMul(topspeed, FRACUNIT+FRACUNIT/4);
 				distbarrier = FixedMul(distbarrier, FRACUNIT+FRACUNIT/4);
-			}
-
-			distbarrier = FixedMul(distbarrier, mapheaderinfo[gamemap-1]->mobj_scale);
-			topspeed = FixedMul(topspeed, mapheaderinfo[gamemap-1]->mobj_scale);
 
 			if (G_RaceGametype() && mobj->tracer)
 			{
@@ -8119,7 +8132,7 @@ void P_MobjThinker(mobj_t *mobj)
 			{
 				P_SpawnGhostMobj(mobj);
 				mobj->angle = R_PointToAngle2(0, 0, mobj->momx, mobj->momy);
-				P_InstaThrust(mobj, mobj->angle, mobj->info->speed);
+				P_InstaThrust(mobj, mobj->angle, mobj->movefactor);
 
 				if (grounded)
 				{
@@ -8463,7 +8476,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 				// Give items an item-sized hitbox
 				if (mobj->target->player->kartstuff[k_comebackmode] == 1)
-					mobj->radius = 36*mobj->target->scale;
+					mobj->radius = 48*mobj->target->scale;
 				else
 					mobj->radius = 24*mobj->target->scale;
 				mobj->height = 2*mobj->radius;
@@ -8599,7 +8612,9 @@ void P_MobjThinker(mobj_t *mobj)
 			if (!S_SoundPlaying(mobj, mobj->info->attacksound))
 				S_StartSound(mobj, mobj->info->attacksound);
 
-			if (mobj->extravalue2 > 70) // fire + smoke pillar
+			if (mobj->extravalue2 <= 8) // Short delay
+				mobj->extravalue2++; // flametimer
+			else // fire + smoke pillar
 			{
 				UINT8 i;
 				mobj_t *fire = P_SpawnMobj(mobj->x + (P_RandomRange(-32, 32)*mobj->scale), mobj->y + (P_RandomRange(-32, 32)*mobj->scale), mobj->z, MT_THOK);
@@ -8621,20 +8636,6 @@ void P_MobjThinker(mobj_t *mobj)
 					smoke->momz = P_RandomRange(3, 10)*mobj->scale;
 					smoke->destscale = mobj->scale*4;
 					smoke->scalespeed = mobj->scale/24;
-				}
-			}
-			else
-			{
-				mobj->extravalue2++; // flametimer
-
-				if (mobj->extravalue2 > 8)
-				{
-					mobj_t *smoke = P_SpawnMobj(mobj->x + (P_RandomRange(-31, 31)*mobj->scale), mobj->y + (P_RandomRange(-31, 31)*mobj->scale),
-						mobj->z + (P_RandomRange(0, 48)*mobj->scale), MT_THOK);
-
-					P_SetMobjState(smoke, S_FZEROSMOKE1);
-					smoke->tics += P_RandomRange(-3, 4);
-					smoke->scale = mobj->scale*2;
 				}
 			}
 			break;
@@ -8831,7 +8832,7 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj_t *head = P_SpawnMobj(mobj->x, mobj->y, mobj->z, (blue ? MT_BLUEROBRA_HEAD : MT_ROBRA_HEAD));
 						P_SetTarget(&mobj->tracer, head);
 
-						mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+						mobj->destscale = mapobjectscale;
 						P_SetTarget(&mobj->tracer->target, mobj->target);
 						P_SetTarget(&mobj->tracer->tracer, mobj);
 						mobj->tracer->extravalue2 = mobj->extravalue2;
@@ -9081,6 +9082,22 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 			break;
+		case MT_KARMAFIREWORK:
+			if (mobj->momz == 0)
+			{
+				P_RemoveMobj(mobj);
+				return;
+			}
+			else
+			{
+				mobj_t *trail = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_THOK);
+				P_SetMobjState(trail, S_KARMAFIREWORKTRAIL);
+				P_SetScale(trail, mobj->scale);
+				trail->destscale = 1;
+				trail->scalespeed = mobj->scale/12;
+				trail->color = mobj->color;
+			}
+			break;
 		//}
 		case MT_TURRET:
 			P_MobjCheckWater(mobj);
@@ -9265,6 +9282,8 @@ void P_MobjThinker(mobj_t *mobj)
 							// Assumedly in splitscreen players will be on opposing teams
 							if (players[consoleplayer].ctfteam == 1 || splitscreen)
 								S_StartSound(NULL, sfx_hoop1);
+							else if (players[consoleplayer].ctfteam == 2)
+								S_StartSound(NULL, sfx_hoop3);
 
 							redflag = flagmo;
 						}
@@ -9276,6 +9295,8 @@ void P_MobjThinker(mobj_t *mobj)
 							// Assumedly in splitscreen players will be on opposing teams
 							if (players[consoleplayer].ctfteam == 2 || splitscreen)
 								S_StartSound(NULL, sfx_hoop1);
+							else if (players[consoleplayer].ctfteam == 1)
+								S_StartSound(NULL, sfx_hoop3);
 
 							blueflag = flagmo;
 						}
@@ -9741,10 +9762,13 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
+	mobj->scalespeed = FRACUNIT/12;
 
-	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
-		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+	if (mapobjectscale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
+	{
+		mobj->destscale = mapobjectscale;
+		mobj->scalespeed = mapobjectscale/12;
+	}
 
 	// set subsector and/or block links
 	P_SetThingPosition(mobj);
@@ -10188,10 +10212,13 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 	// All mobjs are created at 100% scale.
 	mobj->scale = FRACUNIT;
 	mobj->destscale = mobj->scale;
-	mobj->scalespeed = mapheaderinfo[gamemap-1]->mobj_scale/12;
+	mobj->scalespeed = FRACUNIT/12;
 
-	if (mapheaderinfo[gamemap-1] && mapheaderinfo[gamemap-1]->mobj_scale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
-		mobj->destscale = mapheaderinfo[gamemap-1]->mobj_scale;
+	if (mapobjectscale != FRACUNIT) //&& !(mobj->type == MT_BLACKEGGMAN)
+	{
+		mobj->destscale = mapobjectscale;
+		mobj->scalespeed = mapobjectscale/12;
+	}
 
 	P_SetScale(mobj, mobj->destscale);
 
@@ -10377,6 +10404,9 @@ void P_RemoveMobj(mobj_t *mobj)
 
 	if (mobj->type == MT_SHADOW)
 		P_RemoveShadow(mobj);
+
+	if (mobj->type == MT_SPB)
+		spbplace = -1;
 
 	mobj->health = 0; // Just because
 
@@ -11094,7 +11124,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapheaderinfo[gamemap-1]->mobj_scale;
+				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
 		}
 		else
 		{
@@ -11102,7 +11132,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapheaderinfo[gamemap-1]->mobj_scale;
+				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
 		}
 
 		if (mthing->options & MTF_OBJECTFLIP) // flip the player!
@@ -11876,6 +11906,7 @@ ML_NOCLIMB : Direction not controllable
 	else if (i == MT_BOSS3WAYPOINT) // SRB2kart 120217 - Used to store checkpoint num
 	{
 		mobj->health = mthing->angle;
+		mobj->movecount = mthing->extrainfo;
 		P_SetTarget(&mobj->tracer, waypointcap);
 		P_SetTarget(&waypointcap, mobj);
 	}

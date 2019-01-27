@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -162,6 +162,7 @@ void V_DrawFadeConsBack(INT32 plines);
 void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed);
 // draw a single character, but for the chat
 void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UINT8 *colormap);
+
 UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);

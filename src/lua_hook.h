@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -44,12 +44,18 @@ enum hook {
 	hook_HurtMsg,
 	hook_PlayerSpawn,
 	hook_PlayerQuit,
+	hook_ShouldSpin,	//SRB2KART
+	hook_ShouldExplode,	//SRB2KART
+	hook_ShouldSquish,	//SRB2KART
+	hook_PlayerSpin,	//SRB2KART
+	hook_PlayerExplode,	//SRB2KART
+	hook_PlayerSquish,	//SRB2KART
 
 	hook_MAX // last hook
 };
 extern const char *const hookNames[];
 
-void LUAh_MapChange(void); // Hook for map change (before load)
+void LUAh_MapChange(INT16 mapnumber); // Hook for map change (before load)
 void LUAh_MapLoad(void); // Hook for map load
 void LUAh_PlayerJoin(int playernum); // Hook for Got_AddPlayer
 void LUAh_ThinkFrame(void); // Hook for frame (after mobj and player thinkers)
@@ -80,4 +86,11 @@ boolean LUAh_HurtMsg(player_t *player, mobj_t *inflictor, mobj_t *source); // Ho
 #define LUAh_PlayerSpawn(player) LUAh_PlayerHook(player, hook_PlayerSpawn) // Hook for G_SpawnPlayer
 void LUAh_PlayerQuit(player_t *plr, int reason); // Hook for player quitting
 
+UINT8 LUAh_ShouldSpin(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be spun out?
+UINT8 LUAh_ShouldExplode(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be exploded?
+UINT8 LUAh_ShouldSquish(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be squished?
+
+boolean LUAh_PlayerSpin(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_SpinPlayer. Allows Lua to execute code and/or overwrite its behavior.
+boolean LUAh_PlayerExplode(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_ExplodePlayer. Allows Lua to execute code and/or overwrite its behavior.
+boolean LUAh_PlayerSquish(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_SquishPlayer. Allows Lua to execute code and/or overwrite its behavior.
 #endif

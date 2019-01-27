@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -26,7 +26,11 @@
 
 // SOME numpty changed all the gametype constants and it fell out of sync with vanilla and now we have to pretend to be vanilla when talking to the master server...
 #define VANILLA_GT_RACE 2
+#if VERSION < 210
+#define VANILLA_GT_MATCH 1
+#else
 #define VANILLA_GT_MATCH 3
+#endif
 
 // Networking and tick handling related.
 #define BACKUPTICS 32
@@ -251,7 +255,6 @@ typedef struct
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum;
-	INT32 starpostcount;
 	tic_t starposttime;
 	angle_t starpostangle;
 
@@ -430,10 +433,10 @@ typedef struct
 	UINT8 reserved; // Padding
 	union
 	{
-		clientcmd_pak clientpak;            //         144 bytes
-		client2cmd_pak client2pak;          //         200 bytes
-		client3cmd_pak client3pak;          //         256 bytes(?)
-		client4cmd_pak client4pak;          //         312 bytes(?)
+		clientcmd_pak clientpak;            //         145 bytes
+		client2cmd_pak client2pak;          //         202 bytes
+		client3cmd_pak client3pak;          //         258 bytes(?)
+		client4cmd_pak client4pak;          //         316 bytes(?)
 		servertics_pak serverpak;           //      132495 bytes (more around 360, no?)
 		serverconfig_pak servercfg;         //         773 bytes
 		resynchend_pak resynchend;          //
@@ -472,11 +475,12 @@ extern INT32 mapchangepending;
 // Points inside doomcom
 extern doomdata_t *netbuffer;
 
+extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
-#define BASEPACKETSIZE ((size_t)&(((doomdata_t *)0)->u))
-#define FILETXHEADER ((size_t)((filetx_pak *)0)->data)
-#define BASESERVERTICSSIZE ((size_t)&(((doomdata_t *)0)->u.serverpak.cmds[0]))
+#define BASEPACKETSIZE      offsetof(doomdata_t, u)
+#define FILETXHEADER        offsetof(filetx_pak, data)
+#define BASESERVERTICSSIZE  offsetof(doomdata_t, u.serverpak.cmds[0])
 
 #define KICK_MSG_GO_AWAY     1
 #define KICK_MSG_CON_FAIL    2
@@ -520,7 +524,7 @@ extern consvar_t
 #ifdef VANILLAJOINNEXTROUND
 	cv_joinnextround,
 #endif
-	cv_allownewplayer, cv_maxplayers, cv_resynchattempts, cv_blamecfail, cv_maxsend, cv_noticedownload, cv_downloadspeed;
+	cv_netticbuffer, cv_allownewplayer, cv_maxplayers, cv_resynchattempts, cv_blamecfail, cv_maxsend, cv_noticedownload, cv_downloadspeed;
 
 // Used in d_net, the only dependence
 tic_t ExpandTics(INT32 low);

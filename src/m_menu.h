@@ -3,7 +3,7 @@
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2011-2016 by Matthew "Inuyasha" Walsh.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -68,7 +68,6 @@ void M_QuitResponse(INT32 ch);
 
 // Determines whether to show a level in the list
 boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt);
-
 
 // flags for items in the menu
 // menu handle (what we do when key is pressed
@@ -151,7 +150,7 @@ typedef struct menuitem_s
 	UINT8 alphaKey;
 } menuitem_t;
 
-extern menuitem_t PlayerMenu[32];
+extern menuitem_t PlayerMenu[MAXSKINS];
 
 typedef struct menu_s
 {
@@ -172,6 +171,10 @@ extern menu_t *currentMenu;
 
 extern menu_t MainDef;
 extern menu_t SP_LoadDef;
+
+// Call upon joystick hotplug
+void M_SetupJoystickMenu(INT32 choice);
+extern menu_t OP_JoystickSetDef;
 
 // Stuff for customizing the player select screen
 typedef struct

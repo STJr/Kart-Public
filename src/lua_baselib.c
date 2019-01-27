@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -23,7 +23,7 @@
 #include "m_random.h"
 #include "s_sound.h"
 #include "g_game.h"
-#include "hu_stuff.h"
+#include "hu_stuff.h"	// HU_AddChatText
 #include "console.h"
 #include "k_kart.h" // SRB2Kart
 #include "d_netcmd.h" // IsPlayerAdmin
@@ -96,16 +96,16 @@ static int lib_print(lua_State *L)
 static int lib_chatprint(lua_State *L)
 {
 	const char *str = luaL_checkstring(L, 1);	// retrieve string
-	boolean sound = luaL_checkboolean(L, 2);	// retrieve sound boolean
-	int len;
+	boolean sound = lua_optboolean(L, 2);	// retrieve sound boolean
+	int len = strlen(str);
+
 	if (str == NULL)	// error if we don't have a string!
 		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprint"));
-	len = strlen(str);
+
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
 	HU_AddChatText(str, sound);
-
 	return 0;
 }
 
@@ -113,10 +113,11 @@ static int lib_chatprint(lua_State *L)
 static int lib_chatprintf(lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
+	const char *str = luaL_checkstring(L, 2);	// retrieve string
+	boolean sound = lua_optboolean(L, 3);	// sound?
+	int len = strlen(str);
 	player_t *plr;
-	const char *str;
-	boolean sound = luaL_checkboolean(L, 3);
-	int len;
+
 	if (n < 2)
 		return luaL_error(L, "chatprintf requires at least two arguments: player and text.");
 
@@ -126,15 +127,13 @@ static int lib_chatprintf(lua_State *L)
 	if (plr != &players[consoleplayer])
 		return 0;
 
-	str = luaL_checkstring(L, 2);	// retrieve string
 	if (str == NULL)	// error if we don't have a string!
 		return luaL_error(L, LUA_QL("tostring") " must return a string to " LUA_QL("chatprintf"));
-	len = strlen(str);
+
 	if (len > 255)	// string is too long!!!
 		return luaL_error(L, "String exceeds the 255 characters limit of the chat buffer.");
 
 	HU_AddChatText(str, sound);
-
 	return 0;
 }
 
@@ -675,16 +674,6 @@ static int lib_pGetPlayerSpinHeight(lua_State *L)
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushfixed(L, P_GetPlayerSpinHeight(player));
-	return 1;
-}
-
-static int lib_pGetPlayerControlDirection(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	//HUDSAFE
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	lua_pushinteger(L, P_GetPlayerControlDirection(player));
 	return 1;
 }
 
@@ -1767,7 +1756,7 @@ static int lib_sStartSound(lua_State *L)
 	const void *origin = NULL;
 	sfxenum_t sound_id = luaL_checkinteger(L, 2);
 	player_t *player = NULL;
-	NOHUD
+	//NOHUD // kys @whoever did this.
 	if (sound_id >= NUMSFX)
 		return luaL_error(L, "sfx %d out of range (0 - %d)", sound_id, NUMSFX-1);
 	if (!lua_isnil(L, 1))
@@ -1783,7 +1772,12 @@ static int lib_sStartSound(lua_State *L)
 			return LUA_ErrInvalid(L, "player_t");
 	}
 	if (!player || P_IsLocalPlayer(player))
+	{
+		if (hud_running)
+			origin = NULL;	// HUD rendering startsound shouldn't have an origin, just remove it instead of having a retarded error.
+
 		S_StartSound(origin, sound_id);
+	}
 	return 0;
 }
 
@@ -1832,6 +1826,21 @@ static int lib_sStopSoundByID(lua_State *L)
 	if (!origin)
 		return LUA_ErrInvalid(L, "mobj_t");
 	S_StopSoundByID(origin, sound_id);
+	return 0;
+}
+
+static int lib_sShowMusicCredit(lua_State *L)
+{
+	player_t *player = NULL;
+	//HUDSAFE
+	if (!lua_isnone(L, 1) && lua_isuserdata(L, 1))
+	{
+		player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+		if (!player)
+			return LUA_ErrInvalid(L, "player_t");
+	}
+	if (!player || P_IsLocalPlayer(player))
+		S_ShowMusicCredit();
 	return 0;
 }
 
@@ -1985,28 +1994,45 @@ static int lib_gDoReborn(lua_State *L)
 	return 0;
 }
 
-static int lib_gExitLevel(lua_State *L)
+// Another Lua function that doesn't actually exist!
+// Sets nextmapoverride & skipstats without instantly ending the level, for instances where other sources should be exiting the level, like normal signposts.
+static int lib_gSetCustomExitVars(lua_State *L)
 {
 	int n = lua_gettop(L); // Num arguments
 	NOHUD
 
 	// LUA EXTENSION: Custom exit like support
 	// Supported:
-	//	G_ExitLevel();			[no modifications]
-	//	G_ExitLevel(int)		[nextmap override only]
-	//	G_ExitLevel(bool)		[skipstats only]
-	//	G_ExitLevel(int, bool)	[both of the above]
+	//	G_SetCustomExitVars();			[reset to defaults]
+	//	G_SetCustomExitVars(int)		[nextmap override only]
+	//	G_SetCustomExitVars(bool)		[skipstats only]
+	//	G_SetCustomExitVars(int, bool)	[both of the above]
 	if (n >= 1)
 	{
 		if (lua_isnumber(L, 1) || n >= 2)
 		{
 			nextmapoverride = (INT16)luaL_checknumber(L, 1);
-			lua_pop(L, 1); // pop nextmapoverride; skipstats now 1 if available
+			lua_remove(L, 1); // remove nextmapoverride; skipstats now 1 if available
 		}
 		skipstats = lua_optboolean(L, 1);
 	}
+	else
+	{
+		nextmapoverride = 0;
+		skipstats = false;
+	}
 	// ---
 
+	return 0;
+}
+
+static int lib_gExitLevel(lua_State *L)
+{
+	int n = lua_gettop(L); // Num arguments
+	NOHUD
+	// Moved this bit to G_SetCustomExitVars
+	if (n >= 1) // Don't run the reset to defaults option
+		lib_gSetCustomExitVars(L);
 	G_ExitLevel();
 	return 0;
 }
@@ -2190,13 +2216,16 @@ static int lib_kSpinPlayer(lua_State *L)
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = NULL;
 	INT32 type = (INT32)luaL_optinteger(L, 3, 0);
-	boolean trapitem = lua_optboolean(L, 4);
+	mobj_t *inflictor = NULL;
+	boolean trapitem = lua_optboolean(L, 5);
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	K_SpinPlayer(player, source, type, trapitem);
+	if (!lua_isnone(L, 4) && lua_isuserdata(L, 4))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 4, META_MOBJ));
+	K_SpinPlayer(player, source, type, inflictor, trapitem);
 	return 0;
 }
 
@@ -2204,12 +2233,15 @@ static int lib_kSquishPlayer(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
 	mobj_t *source = NULL;
+	mobj_t *inflictor = NULL;
 	NOHUD
 	if (!player)
 		return LUA_ErrInvalid(L, "player_t");
 	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
 		source = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
-	K_SquishPlayer(player, source);
+	if (!lua_isnone(L, 2) && lua_isuserdata(L, 2))
+		inflictor = *((mobj_t **)luaL_checkudata(L, 2, META_MOBJ));
+	K_SquishPlayer(player, source, inflictor);
 	return 0;
 }
 
@@ -2248,7 +2280,7 @@ static int lib_kSpawnKartExplosion(lua_State *L)
 	fixed_t x = luaL_checkfixed(L, 1);
 	fixed_t y = luaL_checkfixed(L, 2);
 	fixed_t z = luaL_checkfixed(L, 3);
-	fixed_t radius = (fixed_t)luaL_optinteger(L, 4, 32*FRACUNIT); 
+	fixed_t radius = (fixed_t)luaL_optinteger(L, 4, 32*FRACUNIT);
 	INT32 number = (INT32)luaL_optinteger(L, 5, 32);
 	mobjtype_t type = luaL_optinteger(L, 6, MT_MINEEXPLOSION);
 	angle_t rotangle = luaL_optinteger(L, 7, 0);
@@ -2384,6 +2416,16 @@ static int lib_kGetKartDriftSparkValue(lua_State *L)
 		return LUA_ErrInvalid(L, "player_t");
 	lua_pushinteger(L, K_GetKartDriftSparkValue(player));
 	return 1;
+}
+
+static int lib_kKartUpdatePosition(lua_State *L)
+{
+	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
+	NOHUD
+	if (!player)
+		return LUA_ErrInvalid(L, "player_t");
+	K_KartUpdatePosition(player);
+	return 0;
 }
 
 static int lib_kDropItems(lua_State *L)
@@ -2524,7 +2566,6 @@ static luaL_Reg lib[] = {
 	// p_user
 	{"P_GetPlayerHeight",lib_pGetPlayerHeight},
 	{"P_GetPlayerSpinHeight",lib_pGetPlayerSpinHeight},
-	{"P_GetPlayerControlDirection",lib_pGetPlayerControlDirection},
 	{"P_AddPlayerScore",lib_pAddPlayerScore},
 	{"P_PlayerInPain",lib_pPlayerInPain},
 	{"P_DoPlayerPain",lib_pDoPlayerPain},
@@ -2629,6 +2670,7 @@ static luaL_Reg lib[] = {
 	{"S_StartSoundAtVolume",lib_sStartSoundAtVolume},
 	{"S_StopSound",lib_sStopSound},
 	{"S_StopSoundByID",lib_sStopSoundByID},
+	{"S_ShowMusicCredit",lib_sShowMusicCredit},
 	{"S_ChangeMusic",lib_sChangeMusic},
 	{"S_SpeedMusic",lib_sSpeedMusic},
 	{"S_StopMusic",lib_sStopMusic},
@@ -2639,6 +2681,7 @@ static luaL_Reg lib[] = {
 	// g_game
 	{"G_BuildMapName",lib_gBuildMapName},
 	{"G_DoReborn",lib_gDoReborn},
+	{"G_SetCustomExitVars",lib_gSetCustomExitVars},
 	{"G_ExitLevel",lib_gExitLevel},
 	{"G_IsSpecialStage",lib_gIsSpecialStage},
 	{"G_GametypeUsesLives",lib_gGametypeUsesLives},
@@ -2677,6 +2720,7 @@ static luaL_Reg lib[] = {
 	{"K_RepairOrbitChain",lib_kRepairOrbitChain},
 	{"K_FindJawzTarget",lib_kFindJawzTarget},
 	{"K_GetKartDriftSparkValue",lib_kGetKartDriftSparkValue},
+	{"K_KartUpdatePosition",lib_kKartUpdatePosition},
 	{"K_DropItems",lib_kDropItems},
 	{"K_StripItems",lib_kStripItems},
 	{"K_StripOther",lib_kStripOther},

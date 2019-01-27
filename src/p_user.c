@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -1778,22 +1778,8 @@ void P_DoPlayerExit(player_t *player)
 
 	if (G_RaceGametype()) // If in Race Mode, allow
 	{
-		if (!countdown)
-		{
-			UINT8 i;
-
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (!playeringame[i] || players[i].spectator)
-					continue;
-				if (players[i].exiting || K_IsPlayerLosing(&players[i])) // Only start countdown when all winners are declared
-					continue;
-				break;
-			}
-
-			if (i == MAXPLAYERS)
-				countdown = (((netgame || multiplayer) ? cv_countdowntime.value : 30)*TICRATE) + 1; // 30 seconds to finish, get going!
-		}
+		player->exiting = raceexittime+2;
+		K_KartUpdatePosition(player);
 
 		if (cv_kartvoices.value)
 		{
@@ -1814,8 +1800,6 @@ void P_DoPlayerExit(player_t *player)
 					S_StartSound(player->mo, sfx_kwin);
 			}
 		}
-
-		player->exiting = raceexittime+2;
 
 		if (cv_inttime.value > 0)
 			P_EndingMusic(player);
@@ -3049,7 +3033,7 @@ static fixed_t teeteryl, teeteryh;
 static boolean PIT_CheckSolidsTeeter(mobj_t *thing) // SRB2kart - unused.
 {
 	fixed_t blockdist;
-	fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale);
+	fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapobjectscale);
 	fixed_t thingtop = thing->z + thing->height;
 	fixed_t teeterertop = teeterer->z + teeterer->height;
 
@@ -3166,7 +3150,7 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 	boolean roverfloor; // solid 3d floors?
 	fixed_t floorheight, ceilingheight;
 	fixed_t topheight, bottomheight; // for 3d floor usage
-	const fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale); // Distance you have to be above the ground in order to teeter.
+	const fixed_t tiptop = FixedMul(MAXSTEPMOVE, mapobjectscale); // Distance you have to be above the ground in order to teeter.
 
 	if (player->mo->standingslope && player->mo->standingslope->zdelta >= (FRACUNIT/2)) // Always teeter if the slope is too steep.
 		teeter = true;
@@ -4525,7 +4509,7 @@ boolean P_AnalogMove(player_t *player)
 // 1 = pressing in the direction of movement
 // 2 = pressing in the opposite direction of movement
 //
-INT32 P_GetPlayerControlDirection(player_t *player)
+/*INT32 P_GetPlayerControlDirection(player_t *player)
 {
 	ticcmd_t *cmd = &player->cmd;
 	angle_t controllerdirection, controlplayerdirection;
@@ -4600,7 +4584,7 @@ INT32 P_GetPlayerControlDirection(player_t *player)
 }
 
 // Control scheme for 2d levels.
-/*static void P_2dMovement(player_t *player)
+static void P_2dMovement(player_t *player)
 {
 	ticcmd_t *cmd;
 	INT32 topspeed, acceleration, thrustfactor;
@@ -4810,23 +4794,10 @@ static void P_3dMovement(player_t *player)
 		cmd->forwardmove = cmd->sidemove = 0;
 		if (player->kartstuff[k_sneakertimer])
 			cmd->forwardmove = 50;
-		if (player->pflags & PF_GLIDING)
-		{
-			if (!player->skidtime)
-				player->pflags &= ~PF_GLIDING;
-			else if (player->exiting || mapreset)
-			{
-				player->pflags &= ~PF_GLIDING;
-				P_SetPlayerMobjState(player->mo, S_KART_WALK1); // SRB2kart - was S_PLAY_RUN1
-				player->skidtime = 0;
-			}
-		}
-		if (player->pflags & PF_SPINNING && !(player->exiting || mapreset))
-		{
-			player->pflags &= ~PF_SPINNING;
-			P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
-		}
 	}
+
+	if (!(player->pflags & PF_FORCESTRAFE) && !player->kartstuff[k_pogospring])
+		cmd->sidemove = 0;
 
 	if (analogmove)
 	{
@@ -4835,9 +4806,7 @@ static void P_3dMovement(player_t *player)
 	else
 	{
 		if (player->kartstuff[k_drift] != 0)
-		{
 			movepushangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
-		}
 		else
 			movepushangle = player->mo->angle;
 	}
@@ -5039,9 +5008,9 @@ static void P_SpectatorMovement(player_t *player)
 		player->mo->z = player->mo->floorz;
 
 	if (cmd->buttons & BT_ACCELERATE)
-		player->mo->z += 32*mapheaderinfo[gamemap-1]->mobj_scale;
+		player->mo->z += 32*mapobjectscale;
 	else if (cmd->buttons & BT_BRAKE)
-		player->mo->z -= 32*mapheaderinfo[gamemap-1]->mobj_scale;
+		player->mo->z -= 32*mapobjectscale;
 
 	// Aiming needed for SEENAMES, etc.
 	// We may not need to fire as a spectator, but this is still handy!
@@ -5050,15 +5019,15 @@ static void P_SpectatorMovement(player_t *player)
 	player->mo->momx = player->mo->momy = player->mo->momz = 0;
 	if (cmd->forwardmove != 0)
 	{
-		P_Thrust(player->mo, player->mo->angle, cmd->forwardmove*(mapheaderinfo[gamemap-1]->mobj_scale));
+		P_Thrust(player->mo, player->mo->angle, cmd->forwardmove*mapobjectscale);
 
 		// Quake-style flying spectators :D
-		player->mo->momz += FixedMul(cmd->forwardmove*(mapheaderinfo[gamemap-1]->mobj_scale), AIMINGTOSLOPE(player->aiming));
+		player->mo->momz += FixedMul(cmd->forwardmove*mapobjectscale, AIMINGTOSLOPE(player->aiming));
 	}
-	if (cmd->sidemove != 0)
+	/*if (cmd->sidemove != 0) -- was disabled in practice anyways, since sidemove was suppressed
 	{
-		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*(mapheaderinfo[gamemap-1]->mobj_scale));
-	}
+		P_Thrust(player->mo, player->mo->angle-ANGLE_90, cmd->sidemove*mapobjectscale);
+	}*/
 }
 
 //
@@ -6649,8 +6618,53 @@ static void P_MovePlayer(player_t *player)
 		P_2dMovement(player);
 	else*/
 	{
-		if (!player->climbing && (!P_AnalogMove(player)))
-			player->mo->angle = (cmd->angleturn<<16 /* not FRACBITS */);
+		INT16 angle_diff, max_left_turn, max_right_turn;
+		boolean add_delta = true;
+
+		// Kart: store the current turn range for later use
+		if (((player->mo && player->speed > 0) // Moving
+			|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
+			|| (player->kartstuff[k_respawn]) // Respawning
+			|| (player->spectator || objectplacing)) // Not a physical player
+			&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out turning
+		{
+			player->lturn_max[leveltime%MAXPREDICTTICS] = K_GetKartTurnValue(player, KART_FULLTURN)+1;
+			player->rturn_max[leveltime%MAXPREDICTTICS] = K_GetKartTurnValue(player, -KART_FULLTURN)-1;
+		} else {
+			player->lturn_max[leveltime%MAXPREDICTTICS] = player->rturn_max[leveltime%MAXPREDICTTICS] = 0;
+		}
+
+		if (leveltime >= starttime)
+		{
+			// KART: Don't directly apply angleturn! It may have been either A) forged by a malicious client, or B) not be a smooth turn due to a player dropping frames.
+			// Instead, turn the player only up to the amount they're supposed to turn accounting for latency. Allow exactly 1 extra turn unit to try to keep old replays synced.
+			angle_diff = cmd->angleturn - (player->mo->angle>>16);
+			max_left_turn = player->lturn_max[(leveltime + MAXPREDICTTICS - cmd->latency) % MAXPREDICTTICS];
+			max_right_turn = player->rturn_max[(leveltime + MAXPREDICTTICS - cmd->latency) % MAXPREDICTTICS];
+
+			//CONS_Printf("----------------\nangle diff: %d - turning options: %d to %d - ", angle_diff, max_left_turn, max_right_turn);
+
+			if (angle_diff > max_left_turn)
+				angle_diff = max_left_turn;
+			else if (angle_diff < max_right_turn)
+				angle_diff = max_right_turn;
+			else
+			{
+				// Try to keep normal turning as accurate to 1.0.1 as possible to reduce replay desyncs.
+				player->mo->angle = cmd->angleturn<<16;
+				add_delta = false;
+			}
+			//CONS_Printf("applied turn: %d\n", angle_diff);
+
+			if (add_delta) {
+				player->mo->angle += angle_diff<<16;
+				player->mo->angle &= ~0xFFFF; // Try to keep the turning somewhat similar to how it was before?
+				//CONS_Printf("leftover turn (%s): %5d or %4d%%\n",
+				//				player_names[player-players],
+				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)),
+				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ?: 1));
+			}
+		}
 
 		ticruned++;
 		if ((cmd->angleturn & TICCMD_RECEIVED) == 0)
@@ -7048,6 +7062,7 @@ static void P_MovePlayer(player_t *player)
 	//ANALOG CONTROL//
 	//////////////////
 
+#if 0
 	// This really looks like it should be moved to P_3dMovement. -Red
 	if (P_AnalogMove(player)
 		&& (cmd->forwardmove != 0 || cmd->sidemove != 0) && !player->climbing && !twodlevel && !(player->mo->flags2 & MF2_TWOD))
@@ -7104,6 +7119,7 @@ static void P_MovePlayer(player_t *player)
 		else if (player == &players[fourthdisplayplayer])
 			localangle4 = player->mo->angle;
 	}
+#endif
 
 	///////////////////////////
 	//BOMB SHIELD ACTIVATION,//
@@ -7259,7 +7275,7 @@ static void P_MovePlayer(player_t *player)
 				P_DamageMobj(player->mo, NULL, NULL, 42000); // Respawn crushed spectators
 			else
 			{
-				K_SquishPlayer(player, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
+				K_SquishPlayer(player, NULL, NULL); // SRB2kart - we don't kill when squished, we squish when squished.
 				/*
 				mobj_t *killer = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_NULL);
 				killer->threshold = 44; // Special flag that it was crushing which killed you.
@@ -7775,13 +7791,16 @@ void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 		}
 
 		if (mo->type == MT_SPB) // If you destroy a SPB, you don't get the luxury of a cooldown.
+		{
+			spbplace = -1;
 			indirectitemcooldown = 0;
+		}
 
 		if (mo == inflictor) // Don't nuke yourself, dummy!
 			continue;
 
 		if (mo->type == MT_PLAYER) // Players wipe out in Kart
-			K_SpinPlayer(mo->player, source, 0, false);
+			K_SpinPlayer(mo->player, source, 0, inflictor, false);
 		//}
 		else
 			P_DamageMobj(mo, inflictor, source, 1000);
@@ -7824,8 +7843,8 @@ boolean P_LookForEnemies(player_t *player)
 		if (mo->type == MT_DETON) // Don't be STUPID, Sonic!
 			continue;
 
-		if (((mo->z > player->mo->z+FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale)) && !(player->mo->eflags & MFE_VERTICALFLIP))
-		|| ((mo->z+mo->height < player->mo->z+player->mo->height-FixedMul(MAXSTEPMOVE, mapheaderinfo[gamemap-1]->mobj_scale)) && (player->mo->eflags & MFE_VERTICALFLIP))) // Reverse gravity check - Flame.
+		if (((mo->z > player->mo->z+FixedMul(MAXSTEPMOVE, mapobjectscale)) && !(player->mo->eflags & MFE_VERTICALFLIP))
+		|| ((mo->z+mo->height < player->mo->z+player->mo->height-FixedMul(MAXSTEPMOVE, mapobjectscale)) && (player->mo->eflags & MFE_VERTICALFLIP))) // Reverse gravity check - Flame.
 			continue; // Don't home upwards!
 
 		if (P_AproxDistance(P_AproxDistance(player->mo->x-mo->x, player->mo->y-mo->y),
@@ -7951,6 +7970,15 @@ void P_FindEmerald(void)
 //
 static void P_DeathThink(player_t *player)
 {
+	//ticcmd_t *cmd = &player->cmd;
+	//player->deltaviewheight = 0;
+
+	if (player->deadtimer < INT32_MAX)
+		player->deadtimer++;
+
+	if (player->bot) // don't allow bots to do any of the below, B_CheckRespawn does all they need for respawning already
+		goto notrealplayer;
+
 	if (player->pflags & PF_TIMEOVER)
 	{
 		player->kartstuff[k_timeovercam]++;
@@ -7963,8 +7991,7 @@ static void P_DeathThink(player_t *player)
 	else
 		player->kartstuff[k_timeovercam] = 0;
 
-	if (player->deadtimer < INT32_MAX)
-		player->deadtimer++;
+	K_KartPlayerHUDUpdate(player);
 
 	// Force respawn if idle for more than 30 seconds in shooter modes.
 	if (player->lives > 0 /*&& leveltime >= starttime*/) // *could* you respawn?
@@ -7998,8 +8025,13 @@ static void P_DeathThink(player_t *player)
 		}
 	}
 
+notrealplayer:
+
 	if (!player->mo)
 		return;
+
+	player->mo->colorized = false;
+	player->mo->color = player->skincolor;
 
 	P_CalcHeight(player);
 }
@@ -8052,18 +8084,21 @@ consvar_t cv_cam_still = {"cam_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 
 consvar_t cv_cam_speed = {"cam_speed", "0.4", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_rotate = {"cam_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam_rotspeed = {"cam_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_cam2_dist = {"cam2_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_height = {"cam2_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_still = {"cam2_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_speed = {"cam2_speed", "0.4", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_rotate = {"cam2_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate2_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam2_rotspeed = {"cam2_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_cam3_dist = {"cam3_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_height = {"cam3_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_still = {"cam3_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_speed = {"cam3_speed", "0.4", CV_FLOAT|CV_SAVE, CV_CamSpeed, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_rotate = {"cam3_rotate", "0", CV_CALL|CV_NOINIT, CV_CamRotate, CV_CamRotate3_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam3_rotspeed = {"cam3_rotspeed", "10", CV_SAVE, rotation_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_cam4_dist = {"cam4_dist", "160", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_height = {"cam4_height", "50", CV_FLOAT|CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_cam4_still = {"cam4_still", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -8214,8 +8249,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		return true;
 	}
 
-	thiscam->radius = FixedMul(20*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
-	thiscam->height = FixedMul(16*FRACUNIT, mapheaderinfo[gamemap-1]->mobj_scale);
+	thiscam->radius = 20*mapobjectscale;
+	thiscam->height = 16*mapobjectscale;
 
 	// Don't run while respawning from a starpost
 	// Inu 4/8/13 Why not?!
@@ -8261,8 +8296,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam_speed.value;
 		camstill = cv_cam_still.value;
 		camrotate = cv_cam_rotate.value;
-		camdist = FixedMul(cv_cam_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam_height.value, mapobjectscale);
 		lookback = camspin;
 	}
 	else if (thiscam == &camera2) // Camera 2
@@ -8270,8 +8305,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam2_speed.value;
 		camstill = cv_cam2_still.value;
 		camrotate = cv_cam2_rotate.value;
-		camdist = FixedMul(cv_cam2_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam2_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam2_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam2_height.value, mapobjectscale);
 		lookback = camspin2;
 	}
 	else if (thiscam == &camera3) // Camera 3
@@ -8279,8 +8314,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam3_speed.value;
 		camstill = cv_cam3_still.value;
 		camrotate = cv_cam3_rotate.value;
-		camdist = FixedMul(cv_cam3_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam3_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam3_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam3_height.value, mapobjectscale);
 		lookback = camspin3;
 	}
 	else // Camera 4
@@ -8288,8 +8323,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camspeed = cv_cam4_speed.value;
 		camstill = cv_cam4_still.value;
 		camrotate = cv_cam4_rotate.value;
-		camdist = FixedMul(cv_cam4_dist.value, mapheaderinfo[gamemap-1]->mobj_scale);
-		camheight = FixedMul(cv_cam4_height.value, mapheaderinfo[gamemap-1]->mobj_scale);
+		camdist = FixedMul(cv_cam4_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam4_height.value, mapobjectscale);
 		lookback = camspin4;
 	}
 
@@ -8302,8 +8337,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		const INT32 introcam = (introtime - leveltime);
 		camrotate += introcam*5;
-		camdist += (introcam * mapheaderinfo[gamemap-1]->mobj_scale)*3;
-		camheight += (introcam * mapheaderinfo[gamemap-1]->mobj_scale)*2;
+		camdist += (introcam * mapobjectscale)*3;
+		camheight += (introcam * mapobjectscale)*2;
 	}
 	else if (player->exiting) // SRB2Kart: Leave the camera behind while exiting, for dramatic effect!
 		camstill = true;
@@ -8611,7 +8646,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	// point viewed by the camera
 	// this point is just 64 unit forward the player
-	dist = 64*mapheaderinfo[gamemap-1]->mobj_scale;
+	dist = 64*mapobjectscale;
 	viewpointx = mo->x + FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + xpan;
 	viewpointy = mo->y + FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist) + ypan;
 
@@ -8776,7 +8811,7 @@ static void P_CalcPostImg(player_t *player)
 	else
 		pviewheight = player->mo->z + player->viewheight;
 
-	if (player->awayviewtics)
+	if (player->awayviewtics && player->awayviewmobj && !P_MobjWasRemoved(player->awayviewmobj))
 	{
 		sector = player->awayviewmobj->subsector->sector;
 		pviewheight = player->awayviewmobj->z + 20*FRACUNIT;
@@ -8984,6 +9019,13 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 #endif
+
+	if (player->awayviewmobj && P_MobjWasRemoved(player->awayviewmobj))
+	{
+		P_SetTarget(&player->awayviewmobj, NULL); // remove awayviewmobj asap if invalid
+		player->awayviewtics = 0; // reset to zero
+	}
+
 	/*
 	if (player->pflags & PF_GLIDING)
 	{
@@ -8997,9 +9039,14 @@ void P_PlayerThink(player_t *player)
 	if (player->flashcount)
 		player->flashcount--;
 
-	// By the time P_MoveChaseCamera is called, this might be zero. Do not do it here.
-	//if (player->awayviewtics)
-	//	player->awayviewtics--;
+	// Re-fixed by Jimita (11-12-2018)
+	if (player->awayviewtics)
+	{
+		player->awayviewtics--;
+		if (!player->awayviewtics)
+			player->awayviewtics = -1;
+		// The timer might've reached zero, but we'll run the remote view camera anyway by setting it to -1.
+	}
 
 	/// \note do this in the cheat code
 	if (player->pflags & PF_NOCLIP)
@@ -9115,7 +9162,10 @@ void P_PlayerThink(player_t *player)
 
 	if (player->playerstate == PST_DEAD)
 	{
-		player->mo->flags2 &= ~MF2_SHADOW;
+		if (player->spectator)
+			player->mo->flags2 |= MF2_SHADOW;
+		else
+			player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
 
 		return;
@@ -9811,8 +9861,8 @@ void P_PlayerAfterThink(player_t *player)
 		}
 	}
 
-	if (player->awayviewtics)
-		player->awayviewtics--;
+	if (player->awayviewtics < 0)
+		player->awayviewtics = 0;
 
 	// spectator invisibility and nogravity.
 	if ((netgame || multiplayer) && player->spectator)

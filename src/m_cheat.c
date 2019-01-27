@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -97,7 +97,7 @@ static UINT8 cheatf_warp(void)
 
 	if (success)
 	{
-		G_SetGameModified(false);
+		G_SaveGameData(true); //G_SetGameModified(false);
 		S_StartSound(0, sfx_kc42);
 	}
 
@@ -1130,12 +1130,12 @@ void OP_ObjectplaceMovement(player_t *player)
 		P_TeleportMove(player->mo, player->mo->x+player->mo->momx, player->mo->y+player->mo->momy, player->mo->z);
 		player->mo->momx = player->mo->momy = 0;
 	}
-	if (cmd->sidemove != 0)
+	/*if (cmd->sidemove != 0) -- was disabled in practice anyways, since sidemove was suppressed
 	{
 		P_Thrust(player->mo, player->mo->angle-ANGLE_90, (cmd->sidemove*FRACUNIT/MAXPLMOVE)*cv_speed.value);
 		P_TeleportMove(player->mo, player->mo->x+player->mo->momx, player->mo->y+player->mo->momy, player->mo->z);
 		player->mo->momx = player->mo->momy = 0;
-	}
+	}*/
 
 	if (player->mo->z > player->mo->ceilingz - player->mo->height)
 		player->mo->z = player->mo->ceilingz - player->mo->height;

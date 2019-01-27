@@ -9,6 +9,8 @@
 #include "doomdef.h"
 #include "d_player.h" // Need for player_t
 
+#define KART_FULLTURN 800
+
 UINT8 colortranslations[MAXSKINCOLORS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
 extern const UINT8 KartColor_Opposite[MAXSKINCOLORS*2];
@@ -24,12 +26,13 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master);
 void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
+void K_KartPlayerHUDUpdate(player_t *player);
 void K_KartPlayerThink(player_t *player, ticcmd_t *cmd);
 void K_KartPlayerAfterThink(player_t *player);
 void K_DoInstashield(player_t *player);
 void K_SpawnBattlePoints(player_t *source, player_t *victim, UINT8 amount);
-void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, boolean trapitem);
-void K_SquishPlayer(player_t *player, mobj_t *source);
+void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflictor, boolean trapitem);
+void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor);
 void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor);
 void K_StealBumper(player_t *player, player_t *victim, boolean force);
 void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32 number, mobjtype_t type, angle_t rotangle, boolean spawncenter, boolean ghostit, mobj_t *source);
@@ -48,6 +51,7 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source);
 boolean K_CheckPlayersRespawnColliding(INT32 playernum, fixed_t x, fixed_t y);
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
 INT32 K_GetKartDriftSparkValue(player_t *player);
+void K_KartUpdatePosition(player_t *player);
 void K_DropItems(player_t *player);
 void K_StripItems(player_t *player);
 void K_StripOther(player_t *player);
