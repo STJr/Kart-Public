@@ -4490,6 +4490,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define ZT_BUTTONS 0x08
 #define ZT_AIMING  0x10
 #define ZT_DRIFT   0x20
+#define ZT_LATENCY 0x40
 #define DEMOMARKER 0x80 // demoend
 
 static ticcmd_t oldcmd[MAXPLAYERS];
@@ -4573,6 +4574,8 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 		oldcmd[playernum].aiming = READINT16(demo_p);
 	if (ziptic & ZT_DRIFT)
 		oldcmd[playernum].driftturn = READINT16(demo_p);
+	if (ziptic & ZT_LATENCY)
+		oldcmd[playernum].latency = READUINT8(demo_p);
 
 	G_CopyTiccmd(cmd, &oldcmd[playernum], 1);
 
@@ -4641,6 +4644,13 @@ void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 		WRITEINT16(demo_p,cmd->driftturn);
 		oldcmd[playernum].driftturn = cmd->driftturn;
 		ziptic |= ZT_DRIFT;
+	}
+
+	if (cmd->latency != oldcmd[playernum].latency)
+	{
+		WRITEUINT8(demo_p,cmd->latency);
+		oldcmd[playernum].latency = cmd->latency;
+		ziptic |= ZT_LATENCY;
 	}
 
 	*ziptic_p = ziptic;
@@ -5017,6 +5027,8 @@ void G_GhostTicker(void)
 			g->p += 2;
 		if (ziptic & ZT_DRIFT)
 			g->p += 2;
+		if (ziptic & ZT_LATENCY)
+			g->p += 1;
 
 		// Grab ghost data.
 		ziptic = READUINT8(g->p);
@@ -5403,6 +5415,8 @@ void G_WriteMetalTic(mobj_t *metal)
 void G_RecordDemo(const char *name)
 {
 	INT32 maxsize;
+
+	CONS_Printf("Recording demo %s\n", name);
 
 	strcpy(demoname, name);
 	strcat(demoname, ".lmp");
