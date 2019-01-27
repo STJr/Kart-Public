@@ -5530,6 +5530,11 @@ void G_BeginRecording(void)
 
 		WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
 
+		memset(&oldcmd,0,sizeof(oldcmd));
+		// Lower two lines aren't useful until ghost replays for mp are implemented, but eh
+		memset(&oldghost,0,sizeof(oldghost));
+		memset(&ghostext,0,sizeof(ghostext));
+
 		return;
 	}
 
