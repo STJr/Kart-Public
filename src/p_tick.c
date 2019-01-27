@@ -612,7 +612,7 @@ void P_Ticker(boolean run)
 		{
 
 			if (!multiplayer) {
-			G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+				G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
 			} else {
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
