@@ -4481,6 +4481,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DF_NIGHTSATTACK 0x04 // This demo is from NiGHTS attack and contains its time left, score, and mares!
 #define DF_ATTACKMASK   0x06 // This demo is from ??? attack and contains ???
 #define DF_ATTACKSHIFT  1
+#define DF_MULTIPLAYER  0x80 // This demo contains a dynamic number of players!
 
 // For demos
 #define ZT_FWD     0x01
@@ -5442,7 +5443,7 @@ void G_BeginRecording(void)
 	memset(name,0,sizeof(name));
 
 	demo_p = demobuffer;
-	demoflags = DF_GHOST|(modeattacking<<DF_ATTACKSHIFT);
+	demoflags = DF_GHOST|(multiplayer ? DF_MULTIPLAYER : (modeattacking<<DF_ATTACKSHIFT));
 
 	// Setup header.
 	M_Memcpy(demo_p, DEMOHEADER, 12); demo_p += 12;
@@ -5478,6 +5479,12 @@ void G_BeginRecording(void)
 	}
 
 	WRITEUINT32(demo_p,P_GetInitSeed());
+
+	if (demoflags & DF_MULTIPLAYER) {
+		// Net replays don't store player info here! Just skip to the netvars and return out.
+		CV_SaveNetVars(&demo_p);
+		return;
+	}
 
 	// Name
 	for (i = 0; i < 16 && cv_playername.string[i]; i++)
@@ -5836,6 +5843,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	demoflags = READUINT8(demo_p);
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
+	multiplayer = !!(demoflags & DF_MULTIPLAYER);
 	CON_ToggleOff();
 
 	hu_demotime = UINT32_MAX;
@@ -5861,33 +5869,35 @@ void G_DoPlayDemo(char *defdemoname)
 	// Random seed
 	randseed = READUINT32(demo_p);
 
-	// Player name
-	M_Memcpy(player_names[0],demo_p,16);
-	demo_p += 16;
+	if (!multiplayer) {
+		// Player name
+		M_Memcpy(player_names[0],demo_p,16);
+		demo_p += 16;
 
-	// Skin
-	M_Memcpy(skin,demo_p,16);
-	demo_p += 16;
+		// Skin
+		M_Memcpy(skin,demo_p,16);
+		demo_p += 16;
 
-	// Color
-	M_Memcpy(color,demo_p,16);
-	demo_p += 16;
+		// Color
+		M_Memcpy(color,demo_p,16);
+		demo_p += 16;
 
-	charability = READUINT8(demo_p);
-	charability2 = READUINT8(demo_p);
-	actionspd = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	// SRB2kart
-	kartspeed = READUINT8(demo_p);
-	kartweight = READUINT8(demo_p);
-	//
-	normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	thrustfactor = READUINT8(demo_p);
-	accelstart = READUINT8(demo_p);
-	acceleration = READUINT8(demo_p);
-	jumpfactor = READFIXED(demo_p);
+		charability = READUINT8(demo_p);
+		charability2 = READUINT8(demo_p);
+		actionspd = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+		mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+		maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+		// SRB2kart
+		kartspeed = READUINT8(demo_p);
+		kartweight = READUINT8(demo_p);
+		//
+		normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+		runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+		thrustfactor = READUINT8(demo_p);
+		accelstart = READUINT8(demo_p);
+		acceleration = READUINT8(demo_p);
+		jumpfactor = READFIXED(demo_p);
+	}
 
 	// net var data
 	CV_LoadNetVars(&demo_p);
@@ -5932,47 +5942,50 @@ void G_DoPlayDemo(char *defdemoname)
 #endif*/
 	displayplayer = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));
-	playeringame[0] = true;
+	playeringame[0] = !multiplayer;
+
 	P_SetRandSeed(randseed);
 	G_InitNew(false, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
 
-	// Set skin
-	SetPlayerSkin(0, skin);
+	if (!multiplayer) {
+		// Set skin
+		SetPlayerSkin(0, skin);
 
-	// Set color
-	for (i = 0; i < MAXSKINCOLORS; i++)
-		if (!stricmp(KartColor_Names[i],color))				// SRB2kart
+		// Set color
+		for (i = 0; i < MAXSKINCOLORS; i++)
+			if (!stricmp(KartColor_Names[i],color))				// SRB2kart
+			{
+				players[0].skincolor = i;
+				break;
+			}
+		//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
+		if (players[0].mo)
 		{
-			players[0].skincolor = i;
-			break;
+			players[0].mo->color = players[0].skincolor;
+			oldghost.x = players[0].mo->x;
+			oldghost.y = players[0].mo->y;
+			oldghost.z = players[0].mo->z;
 		}
-	//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
-	if (players[0].mo)
-	{
-		players[0].mo->color = players[0].skincolor;
-		oldghost.x = players[0].mo->x;
-		oldghost.y = players[0].mo->y;
-		oldghost.z = players[0].mo->z;
-	}
 
-	// Set saved attribute values
-	// No cheat checking here, because even if they ARE wrong...
-	// it would only break the replay if we clipped them.
-	players[0].charability = charability;
-	players[0].charability2 = charability2;
-	players[0].actionspd = actionspd;
-	players[0].mindash = mindash;
-	players[0].maxdash = maxdash;
-	// SRB2kart
-	players[0].kartspeed = kartspeed;
-	players[0].kartweight = kartweight;
-	//
-	players[0].normalspeed = normalspeed;
-	players[0].runspeed = runspeed;
-	players[0].thrustfactor = thrustfactor;
-	players[0].accelstart = accelstart;
-	players[0].acceleration = acceleration;
-	players[0].jumpfactor = jumpfactor;
+		// Set saved attribute values
+		// No cheat checking here, because even if they ARE wrong...
+		// it would only break the replay if we clipped them.
+		players[0].charability = charability;
+		players[0].charability2 = charability2;
+		players[0].actionspd = actionspd;
+		players[0].mindash = mindash;
+		players[0].maxdash = maxdash;
+		// SRB2kart
+		players[0].kartspeed = kartspeed;
+		players[0].kartweight = kartweight;
+		//
+		players[0].normalspeed = normalspeed;
+		players[0].runspeed = runspeed;
+		players[0].thrustfactor = thrustfactor;
+		players[0].accelstart = accelstart;
+		players[0].acceleration = acceleration;
+		players[0].jumpfactor = jumpfactor;
+	}
 
 	demo_start = true;
 }
