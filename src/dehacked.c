@@ -8825,6 +8825,7 @@ struct {
 	{"KR_TIMEOUT",KR_TIMEOUT},
 	{"KR_BAN",KR_BAN},
 	{"KR_LEAVE",KR_LEAVE},
+	{"KR_CRASH",KR_CRASH},
 
 	// SRB2Kart
 	// kartitems_t
