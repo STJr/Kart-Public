@@ -1287,7 +1287,7 @@ static void K_UpdateOffroad(player_t *player)
 
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			offroad = (FRACUNIT * offroadstrength) / TICRATE;
+			offroad = (FRACUNIT * offroadstrength) / (TICRATE/2);
 
 			//if (player->kartstuff[k_growshrinktimer] > 1) // grow slows down half as fast
 			//	offroad /= 2;
@@ -5425,10 +5425,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	// Friction
-	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
-		player->mo->friction += 4608;
-	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
-		player->mo->friction += 1608;
+	if (!player->kartstuff[k_offroad])
+	{
+		if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
+			player->mo->friction += 4608;
+		if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
+			player->mo->friction += 1608;
+	}
 
 	// Karma ice physics
 	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
