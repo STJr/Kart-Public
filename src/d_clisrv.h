@@ -454,6 +454,7 @@ typedef struct
 #ifdef NEWPING
 		UINT32 pingtable[MAXPLAYERS];       //         128 bytes
 #endif
+		UINT8 abnormalquit;                 //
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
 
@@ -492,6 +493,7 @@ extern consvar_t cv_playbackspeed;
 #endif
 #define KICK_MSG_CUSTOM_KICK 7
 #define KICK_MSG_CUSTOM_BAN  8
+#define KICK_MSG_PLAYER_CRASH 9
 
 typedef enum
 {
@@ -501,6 +503,7 @@ typedef enum
 	KR_TIMEOUT       = 4, //Connection Timeout
 	KR_BAN           = 5, //Banned by server
 	KR_LEAVE         = 6, //Quit the game
+	KR_CRASH         = 7, //Client problem
 
 } kickreason_t;
 
@@ -555,7 +558,7 @@ boolean Playing(void);
 
 // Broadcasts special packets to other players
 //  to notify of game exit
-void D_QuitNetGame(void);
+void D_QuitNetGame(boolean abnormal);
 
 //? How many ticks to run?
 void TryRunTics(tic_t realtic);

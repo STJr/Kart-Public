@@ -1898,7 +1898,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 		// Quit here rather than downloading files and being refused later.
 		if (serverlist[i].info.numberofplayer >= serverlist[i].info.maxplayer)
 		{
-			D_QuitNetGame();
+			D_QuitNetGame(false);
 			CL_Reset();
 			D_StartTitle();
 			M_StartMessage(va(M_GetText("Maximum players reached: %d\n\nPress ESC\n"), serverlist[i].info.maxplayer), NULL, MM_NOTHING);
@@ -1913,7 +1913,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 			i = CL_CheckFiles();
 			if (i == 3) // too many files
 			{
-				D_QuitNetGame();
+				D_QuitNetGame(false);
 				CL_Reset();
 				D_StartTitle();
 				M_StartMessage(M_GetText(
@@ -1926,7 +1926,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 			}
 			else if (i == 2) // cannot join for some reason
 			{
-				D_QuitNetGame();
+				D_QuitNetGame(false);
 				CL_Reset();
 				D_StartTitle();
 				M_StartMessage(M_GetText(
@@ -1947,7 +1947,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 				// can we, though?
 				if (!CL_CheckDownloadable()) // nope!
 				{
-					D_QuitNetGame();
+					D_QuitNetGame(false);
 					CL_Reset();
 					D_StartTitle();
 					M_StartMessage(M_GetText(
@@ -2081,7 +2081,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 //				M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
-			D_QuitNetGame();
+			D_QuitNetGame(false);
 			CL_Reset();
 			D_StartTitle();
 			return false;
@@ -2955,6 +2955,10 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 				HU_AddChatText(va("\x82*%s left the game", player_names[pnum]), false);
 			kickreason = KR_LEAVE;
 			break;
+		case KICK_MSG_PLAYER_CRASH:
+			HU_AddChatText(va("\x82*%s left the game (Program crash)", player_names[pnum]), false);
+			kickreason = KR_CRASH;
+			break;
 		case KICK_MSG_BANNED:
 			HU_AddChatText(va("\x82*%s has been banned (Don't come back)", player_names[pnum]), false);
 			kickreason = KR_BAN;
@@ -2976,7 +2980,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 #ifdef DUMPCONSISTENCY
 		if (msg == KICK_MSG_CON_FAIL) SV_SavedGame();
 #endif
-		D_QuitNetGame();
+		D_QuitNetGame(false);
 		CL_Reset();
 		D_StartTitle();
 		if (msg == KICK_MSG_CON_FAIL)
@@ -3187,7 +3191,7 @@ static inline void SV_GenContext(void)
 // Called before quitting to leave a net game
 // without hanging the other players
 //
-void D_QuitNetGame(void)
+void D_QuitNetGame(boolean abnormal)
 {
 	if (!netgame || !netbuffer)
 		return;
@@ -3204,16 +3208,18 @@ void D_QuitNetGame(void)
 		INT32 i;
 
 		netbuffer->packettype = PT_SERVERSHUTDOWN;
+		netbuffer->u.abnormalquit = abnormal;
 		for (i = 0; i < MAXNETNODES; i++)
 			if (nodeingame[i])
-				HSendPacket(i, true, 0, 0);
+				HSendPacket(i, true, 0, sizeof (UINT8));
 		if (serverrunning && ms_RoomId > 0)
 			UnregisterServer();
 	}
 	else if (servernode > 0 && servernode < MAXNETNODES && nodeingame[(UINT8)servernode])
 	{
 		netbuffer->packettype = PT_CLIENTQUIT;
-		HSendPacket(servernode, true, 0, 0);
+		netbuffer->u.abnormalquit = abnormal;
+		HSendPacket(servernode, true, 0, sizeof (UINT8));
 	}
 
 	D_CloseConnection();
@@ -3642,10 +3648,14 @@ static void HandleConnect(SINT8 node)
 static void HandleShutdown(SINT8 node)
 {
 	(void)node;
-	D_QuitNetGame();
+	const char *shutdown_message;
+	shutdown_message = ( (netbuffer->u.abnormalquit) ?
+			"Server has crashed!\n\nPress Esc\n" :// exclaim says this is important
+			"Server has shutdown\n\nPress Esc\n" );
+	D_QuitNetGame(netbuffer->u.abnormalquit);
 	CL_Reset();
 	D_StartTitle();
-	M_StartMessage(M_GetText("Server has shutdown\n\nPress Esc\n"), NULL, MM_NOTHING);
+	M_StartMessage(M_GetText(shutdown_message), NULL, MM_NOTHING);
 }
 
 /** Called when a PT_NODETIMEOUT packet is received
@@ -3656,7 +3666,7 @@ static void HandleShutdown(SINT8 node)
 static void HandleTimeout(SINT8 node)
 {
 	(void)node;
-	D_QuitNetGame();
+	D_QuitNetGame(false);
 	CL_Reset();
 	D_StartTitle();
 	M_StartMessage(M_GetText("Server Timeout\n\nPress Esc\n"), NULL, MM_NOTHING);
@@ -3757,7 +3767,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				if (!reason)
 					I_Error("Out of memory!\n");
 
-				D_QuitNetGame();
+				D_QuitNetGame(false);
 				CL_Reset();
 				D_StartTitle();
 
@@ -4172,7 +4182,12 @@ FILESTAMP
 				if (netbuffer->packettype == PT_NODETIMEOUT)
 					buf[1] = KICK_MSG_TIMEOUT;
 				else
-					buf[1] = KICK_MSG_PLAYER_QUIT;
+				{
+					if (netbuffer->u.abnormalquit)
+						buf[1] = KICK_MSG_PLAYER_CRASH;
+					else
+						buf[1] = KICK_MSG_PLAYER_QUIT;
+				}
 				SendNetXCmd(XD_KICK, &buf, 2);
 				//nodetoplayer[node] = -1;
 

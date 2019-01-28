@@ -4845,7 +4845,7 @@ void Command_ExitGame_f(void)
 {
 	INT32 i;
 
-	D_QuitNetGame();
+	D_QuitNetGame(false);
 	CL_Reset();
 	CV_ClearChangedFlags();
 

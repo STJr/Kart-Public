@@ -252,7 +252,7 @@ FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
 	const char *      sigmsg;
 	char        sigdef[32];
 
-	D_QuitNetGame(); // Fix server freezes
+	D_QuitNetGame(true); // Fix server freezes
 
 	switch (num)
 	{
@@ -3066,7 +3066,7 @@ void I_Quit(void)
 	if (metalrecording)
 		G_StopMetalRecording();
 
-	D_QuitNetGame();
+	D_QuitNetGame(false);
 	I_ShutdownMusic();
 	I_ShutdownSound();
 	I_ShutdownCD();
@@ -3184,7 +3184,7 @@ void I_Error(const char *error, ...)
 	if (metalrecording)
 		G_StopMetalRecording();
 
-	D_QuitNetGame();
+	D_QuitNetGame(true);
 	I_ShutdownMusic();
 	I_ShutdownSound();
 	I_ShutdownCD();
