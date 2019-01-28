@@ -1264,7 +1264,6 @@ static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
 */
 static void K_UpdateOffroad(player_t *player)
 {
-	fixed_t kartweight = player->kartweight;
 	fixed_t offroad;
 	sector_t *nextsector = R_PointInSubsector(
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
@@ -1284,13 +1283,11 @@ static void K_UpdateOffroad(player_t *player)
 	if (offroadstrength)
 	{
 		if (K_CheckOffroadCollide(player->mo, player->mo->subsector->sector) && player->kartstuff[k_offroad] == 0)
-			player->kartstuff[k_offroad] = 16;
+			player->kartstuff[k_offroad] = (TICRATE/2);
 
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
-			// A higher kart weight means you can stay offroad for longer without losing speed
-			offroad = (1872 + 5*156 - kartweight*156)*offroadstrength;
+			offroad = (FRACUNIT * offroadstrength) / TICRATE;
 
 			//if (player->kartstuff[k_growshrinktimer] > 1) // grow slows down half as fast
 			//	offroad /= 2;
