@@ -1146,6 +1146,7 @@ static void SetPlayerName(INT32 playernum, char *newname)
 				HU_AddChatText(va("\x82*%s renamed to %s", player_names[playernum], newname), false);
 
 			strcpy(player_names[playernum], newname);
+			demo_extradata[playernum] |= DXD_NAME;
 		}
 	}
 	else
@@ -1749,6 +1750,7 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	p->skincolor = color % MAXSKINCOLORS;
 	if (p->mo)
 		p->mo->color = (UINT8)p->skincolor;
+	demo_extradata[playernum] |= DXD_COLOR;
 
 	// normal player colors
 	if (server && (p != &players[consoleplayer] && p != &players[secondarydisplayplayer]

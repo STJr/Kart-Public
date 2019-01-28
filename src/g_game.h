@@ -154,7 +154,20 @@ typedef enum
 	GHC_INVINCIBLE
 } ghostcolor_t;
 
+extern UINT8 demo_extradata[MAXPLAYERS];
+#define DXD_RESPAWN 0x01 // "respawn" command in console
+#define DXD_SKIN 0x02 // skin changed
+#define DXD_NAME 0x04 // name changed
+#define DXD_COLOR 0x08 // color changed
+#define DXD_PLAYSTATE 0x10 // state changed between playing, spectating, or not in-game
+
+#define DXD_PST_PLAYING 0x01
+#define DXD_PST_SPECTATING 0x02
+#define DXD_PST_LEFT 0x03
+
 // Record/playback tics
+void G_ReadDemoExtraData(void);
+void G_WriteDemoExtraData(void);
 void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum);
 void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum);
 void G_GhostAddThok(void);

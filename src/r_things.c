@@ -2713,6 +2713,9 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 
 		if (player->mo)
 			P_SetScale(player->mo, player->mo->scale);
+
+		demo_extradata[playernum] |= DXD_SKIN;
+
 		return;
 	}
 

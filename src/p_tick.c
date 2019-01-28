@@ -606,6 +606,7 @@ void P_Ticker(boolean run)
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
 						G_WriteDemoTiccmd(&players[i].cmd, i);
+				G_WriteDemoExtraData();
 			}
 		}
 		if (demoplayback)
@@ -617,6 +618,7 @@ void P_Ticker(boolean run)
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
 						G_ReadDemoTiccmd(&players[i].cmd, i);
+				G_ReadDemoExtraData();
 			}
 		}
 

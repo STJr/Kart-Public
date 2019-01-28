@@ -4495,6 +4495,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define ZT_LATENCY 0x40
 #define DEMOMARKER 0x80 // demoend
 
+UINT8 demo_extradata[MAXPLAYERS];
 static ticcmd_t oldcmd[MAXPLAYERS];
 
 // For Metal Sonic and time attack ghosts
@@ -4554,6 +4555,119 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 		dest[i].latency = (INT16)SHORT(src[i].latency);
 	}
 	return dest;
+}
+
+void G_ReadDemoExtraData(void)
+{
+	INT32 p, extradata, i;
+	char name[17];
+
+	memset(name, '\0', 17);
+
+	p = READUINT8(demo_p);
+
+	while (p != 0xFF)
+	{
+		extradata = READUINT8(demo_p);
+
+		if (extradata & DXD_RESPAWN)
+		{
+			if (players[p].mo)
+				P_DamageMobj(players[p].mo, NULL, NULL, 10000); // Is this how this should work..?
+		}
+		if (extradata & DXD_SKIN)
+		{
+			CONS_Printf("change skin\n");
+			// Skin
+			M_Memcpy(name, demo_p, 16);
+			demo_p += 16;
+			SetPlayerSkin(p, name);
+		}
+		if (extradata & DXD_COLOR)
+		{
+			CONS_Printf("change color\n");
+			// Color
+			M_Memcpy(name, demo_p, 16);
+			demo_p += 16;
+			for (i = 0; i < MAXSKINCOLORS; i++)
+				if (!stricmp(KartColor_Names[i], name))				// SRB2kart
+				{
+					players[p].skincolor = i;
+					if (players[p].mo)
+						players[p].mo->color = i;
+					break;
+				}
+		}
+		if (extradata & DXD_NAME)
+		{
+			// Name
+			M_Memcpy(player_names[p],demo_p,16);
+			demo_p += 16;
+		}
+		if (extradata & DXD_PLAYSTATE)
+		{
+			extradata = READUINT8(demo_p);
+
+			// @TODO uhhhhh do something here
+		}
+
+
+		p = READUINT8(demo_p);
+	}
+}
+
+void G_WriteDemoExtraData(void)
+{
+	INT32 i;
+	char name[16];
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (demo_extradata[i])
+		{
+			WRITEUINT8(demo_p, i);
+			WRITEUINT8(demo_p, demo_extradata[i]);
+
+			//if (demo_extradata[i] & DXD_RESPAWN) has no extra data
+			if (demo_extradata[i] & DXD_SKIN)
+			{
+				// Skin
+				memset(name, 0, 16);
+				strncpy(name, skins[players[i].skin].name, 16);
+				M_Memcpy(demo_p,name,16);
+				demo_p += 16;
+			}
+			if (demo_extradata[i] & DXD_COLOR)
+			{
+				// Color
+				memset(name, 0, 16);
+				strncpy(name, KartColor_Names[players[i].skincolor], 16);
+				M_Memcpy(demo_p,name,16);
+				demo_p += 16;
+			}
+			if (demo_extradata[i] & DXD_NAME)
+			{
+				// Name
+				memset(name, 0, 16);
+				strncpy(name, player_names[i], 16);
+				M_Memcpy(demo_p,name,16);
+				demo_p += 16;
+			}
+			if (demo_extradata[i] & DXD_PLAYSTATE)
+			{
+				if (!playeringame[i])
+					WRITEUINT8(demo_p, DXD_PST_LEFT);
+				else if (players[i].spectator)
+					WRITEUINT8(demo_p, DXD_PST_SPECTATING);
+				else
+					WRITEUINT8(demo_p, DXD_PST_PLAYING);
+			}
+		}
+
+		demo_extradata[i] = 0;
+	}
+
+	WRITEUINT8(demo_p, 0xFF);
 }
 
 void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
@@ -5531,6 +5645,7 @@ void G_BeginRecording(void)
 		WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
 
 		memset(&oldcmd,0,sizeof(oldcmd));
+		memset(&demo_extradata, 0, sizeof(demo_extradata));
 		// Lower two lines aren't useful until ghost replays for mp are implemented, but eh
 		memset(&oldghost,0,sizeof(oldghost));
 		memset(&ghostext,0,sizeof(ghostext));
