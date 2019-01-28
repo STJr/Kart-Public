@@ -4577,7 +4577,6 @@ void G_ReadDemoExtraData(void)
 		}
 		if (extradata & DXD_SKIN)
 		{
-			CONS_Printf("change skin\n");
 			// Skin
 			M_Memcpy(name, demo_p, 16);
 			demo_p += 16;
@@ -4585,7 +4584,6 @@ void G_ReadDemoExtraData(void)
 		}
 		if (extradata & DXD_COLOR)
 		{
-			CONS_Printf("change color\n");
 			// Color
 			M_Memcpy(name, demo_p, 16);
 			demo_p += 16;
