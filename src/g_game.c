@@ -4690,7 +4690,7 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 	if (ziptic & ZT_ANGLE)
 		oldcmd[playernum].angleturn = READINT16(demo_p);
 	if (ziptic & ZT_BUTTONS)
-		oldcmd[playernum].buttons = (oldcmd[playernum].buttons & (BT_FORWARD|BT_BACKWARD)) | (READUINT16(demo_p) & ~(BT_FORWARD|BT_BACKWARD));
+		oldcmd[playernum].buttons = READUINT16(demo_p);
 	if (ziptic & ZT_AIMING)
 		oldcmd[playernum].aiming = READINT16(demo_p);
 	if (ziptic & ZT_DRIFT)
