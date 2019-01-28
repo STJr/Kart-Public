@@ -34,6 +34,8 @@ static UINT8 hud_enabled[(hud_MAX/8)+1];
 
 static UINT8 hudAvailable; // hud hooks field
 
+static UINT8 camnum = 1;
+
 // must match enum hud in lua_hud.h
 static const char *const hud_disable_options[] = {
 	"stagetitle",
@@ -134,7 +136,8 @@ enum cameraf {
 	camera_height,
 	camera_momx,
 	camera_momy,
-	camera_momz
+	camera_momz,
+	camera_pnum
 };
 
 
@@ -153,6 +156,7 @@ static const char *const camera_opt[] = {
 	"momx",
 	"momy",
 	"momz",
+	"pnum",
 	NULL};
 
 static int lib_getHudInfo(lua_State *L)
@@ -307,6 +311,9 @@ static int camera_get(lua_State *L)
 		break;
 	case camera_momz:
 		lua_pushinteger(L, cam->momz);
+		break;
+	case camera_pnum:
+		lua_pushinteger(L, camnum);
 		break;
 	}
 	return 1;
@@ -772,13 +779,25 @@ void LUAh_GameHUD(player_t *stplayr)
 	LUA_PushUserdata(gL, stplayr, META_PLAYER);
 
 	if (splitscreen > 2 && stplayr == &players[fourthdisplayplayer])
+	{
 		LUA_PushUserdata(gL, &camera4, META_CAMERA);
+		camnum = 4;
+	}
 	else if (splitscreen > 1 && stplayr == &players[thirddisplayplayer])
+	{
 		LUA_PushUserdata(gL, &camera3, META_CAMERA);
+		camnum = 3;
+	}
 	else if (splitscreen && stplayr == &players[secondarydisplayplayer])
+	{
 		LUA_PushUserdata(gL, &camera2, META_CAMERA);
+		camnum = 2;
+	}
 	else
+	{
 		LUA_PushUserdata(gL, &camera, META_CAMERA);
+		camnum = 1;
+	}
 
 	lua_pushnil(gL);
 	while (lua_next(gL, -5) != 0) {
