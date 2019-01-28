@@ -5429,6 +5429,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		player->mo->friction += 4608;
 	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
 		player->mo->friction += 1608;
+
+	// Karma ice physics
 	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 	{
 		player->mo->friction += 1228;
@@ -5448,11 +5450,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->mo->movefactor < 32)
 			player->mo->movefactor = 32;
 	}
+
+	// Wipeout slowdown
 	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
 	{
-		player->mo->friction -= FixedMul(1228, player->kartstuff[k_offroad]);
+		player->mo->friction -= FixedMul(2456, player->kartstuff[k_offroad]);
 		if (player->kartstuff[k_wipeoutslow] == 1)
-			player->mo->friction -= 4912;
+			player->mo->friction -= 9824;
 	}
 
 	K_KartDrift(player, onground);
