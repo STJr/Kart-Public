@@ -4614,6 +4614,13 @@ void G_ReadDemoExtraData(void)
 
 		p = READUINT8(demo_p);
 	}
+
+	if (!(demoflags & DF_GHOST) && *demo_p == DEMOMARKER)
+	{
+		// end of demo data stream
+		G_CheckDemoStatus();
+		return;
+	}
 }
 
 void G_WriteDemoExtraData(void)
