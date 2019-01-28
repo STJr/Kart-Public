@@ -4667,8 +4667,6 @@ static void K_KartDrift(player_t *player, boolean onground)
 			player->kartstuff[k_driftend] = 0;
 	}
 
-
-
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
 	{
@@ -4700,7 +4698,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		// Disable drift-sparks until you're going fast enough
 		if (player->kartstuff[k_getsparks] == 0)
 			driftadditive = 0;
-		if (player->speed > minspeed*2)
+		if (player->speed > minspeed*2 && !player->kartstuff[k_offroad])
 			player->kartstuff[k_getsparks] = 1;
 
 		// This spawns the drift sparks
