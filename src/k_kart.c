@@ -1211,8 +1211,8 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj1->player->kartstuff[k_justbumped] = bumptime;
 		if (mobj1->player->kartstuff[k_spinouttimer])
 		{
-			mobj1->player->kartstuff[k_wipeoutslow] += wipeoutslowtime+1;
-			mobj1->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
+			mobj1->player->kartstuff[k_wipeoutslow] = wipeoutslowtime+1;
+			mobj1->player->kartstuff[k_spinouttimer] = max(wipeoutslowtime+1, mobj1->player->kartstuff[k_spinouttimer]);
 		}
 	}
 
@@ -1223,8 +1223,8 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj2->player->kartstuff[k_justbumped] = bumptime;
 		if (mobj2->player->kartstuff[k_spinouttimer])
 		{
-			mobj2->player->kartstuff[k_wipeoutslow] += wipeoutslowtime+1;
-			mobj2->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
+			mobj2->player->kartstuff[k_wipeoutslow] = wipeoutslowtime+1;
+			mobj2->player->kartstuff[k_spinouttimer] = max(wipeoutslowtime+1, mobj2->player->kartstuff[k_spinouttimer]);
 		}
 	}
 }
