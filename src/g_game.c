@@ -764,7 +764,7 @@ void G_SetGameModified(boolean silent, boolean major)
 	if (!major)
 		return;
 
-	savemoddata = false;
+	//savemoddata = false; -- there is literally no reason to do this anymore.
 	majormods = true;
 
 	if (!silent)
@@ -3933,7 +3933,6 @@ void G_LoadGameData(void)
 // Saves the main data file, which stores information such as emblems found, etc.
 void G_SaveGameData(boolean force)
 {
-	const boolean wasmodified = modifiedgame;
 	size_t length;
 	INT32 i, j;
 	UINT8 btemp;
@@ -3950,9 +3949,7 @@ void G_SaveGameData(boolean force)
 		return;
 	}
 
-	if (force) // SRB2Kart: for enabling unlocks online, even if the game is modified
-		modifiedgame = savemoddata; // L-let's just sort of... hack around the cheat protection, because I'm too worried about just removing it @@;
-	else if (modifiedgame && !savemoddata)
+	if (majormods && !force)
 	{
 		free(savebuffer);
 		save_p = savebuffer = NULL;
@@ -3965,7 +3962,7 @@ void G_SaveGameData(boolean force)
 	WRITEUINT32(save_p, totalplaytime);
 	WRITEUINT32(save_p, matchesplayed);
 
-	btemp = (UINT8)(savemoddata || modifiedgame);
+	btemp = (UINT8)(savemoddata); // what used to be here was profoundly dunderheaded
 	WRITEUINT8(save_p, btemp);
 
 	// TODO put another cipher on these things? meh, I don't care...
@@ -4051,9 +4048,6 @@ void G_SaveGameData(boolean force)
 	FIL_WriteFile(va(pandf, srb2home, gamedatafilename), savebuffer, length);
 	free(savebuffer);
 	save_p = savebuffer = NULL;
-
-	if (force) // Eeeek, I'm sorry for my sins!
-		modifiedgame = wasmodified;
 }
 
 #define VERSIONSIZE 16
@@ -5916,6 +5910,19 @@ void G_DoPlayDemo(char *defdemoname)
 	if (!SetPlayerSkin(0, skin))
 	{
 		snprintf(msg, 1024, M_GetText("%s features a character that is not currently loaded.\n"), pdemoname);
+		CONS_Alert(CONS_ERROR, "%s", msg);
+		M_StartMessage(msg, NULL, MM_NOTHING);
+		Z_Free(pdemoname);
+		Z_Free(demobuffer);
+		demoplayback = false;
+		titledemo = false;
+		return;
+	}
+
+	// ...*map* not loaded?
+	if (!gamemap || (gamemap > NUMMAPS) || !mapheaderinfo[gamemap-1] || !(mapheaderinfo[gamemap-1]->menuflags & LF2_EXISTSHACK))
+	{
+		snprintf(msg, 1024, M_GetText("%s features a course that is not currently loaded.\n"), pdemoname);
 		CONS_Alert(CONS_ERROR, "%s", msg);
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
