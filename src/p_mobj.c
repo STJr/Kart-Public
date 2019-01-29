@@ -6651,6 +6651,7 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t y = P_RandomRange(-35, 35)*mobj->scale;
 					fixed_t z = P_RandomRange(0, 70)*mobj->scale;
 					mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+					K_MatchGenericExtraFlags(smoke, mobj);
 					smoke->scale = mobj->scale * 2;
 					smoke->destscale = mobj->scale * 6;
 					smoke->momz = P_RandomRange(4, 9)*FRACUNIT;
@@ -6660,10 +6661,11 @@ void P_MobjThinker(mobj_t *mobj)
 				{
 					fixed_t x = P_RandomRange(-16, 16)*mobj->scale;
 					fixed_t y = P_RandomRange(-16, 16)*mobj->scale;
-					fixed_t z = P_RandomRange(0, 32)*mobj->scale;
+					fixed_t z = P_RandomRange(0, 32)*mobj->scale*P_MobjFlip(mobj);
 					if (leveltime % 2 == 0)
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_BOSSEXPLODE);
+						K_MatchGenericExtraFlags(smoke, mobj);
 						P_SetMobjState(smoke, S_QUICKBOOM1);
 						smoke->scale = mobj->scale/2;
 						smoke->destscale = mobj->scale;
@@ -6672,6 +6674,7 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+						K_MatchGenericExtraFlags(smoke, mobj);
 						smoke->scale = mobj->scale;
 						smoke->destscale = mobj->scale*2;
 					}

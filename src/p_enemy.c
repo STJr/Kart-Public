@@ -8640,6 +8640,7 @@ void A_LightningFollowPlayer(mobj_t *actor)
 		else	// else just teleport to player directly
 			P_TeleportMove(actor, actor->target->x, actor->target->y, actor->target->z);
 
+		K_MatchGenericExtraFlags(actor, actor->target);	// copy our target for graviflip
 		actor->momx = actor->target->momx;
 		actor->momy = actor->target->momy;
 		actor->momz = actor->target->momz;	// Give momentum since we don't teleport to our player literally every frame.
