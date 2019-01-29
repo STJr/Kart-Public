@@ -2914,7 +2914,7 @@ void I_StartupTimer(void)
 void I_Sleep(void)
 {
 #if !(defined (_arch_dreamcast) || defined (_XBOX))
-	if (cv_sleep.value != -1)
+	if (cv_sleep.value > 0)
 		SDL_Delay(cv_sleep.value);
 #endif
 }
