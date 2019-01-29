@@ -2496,6 +2496,12 @@ static void Command_Respawn(void)
 		return;
 	}
 
+	if (players[consoleplayer].mo && !P_IsObjectOnGround(players[consoleplayer].mo))	// KART: Nice try, but no, you won't be cheesing spb anymore.
+	{
+		CONS_Printf(M_GetText("You must be on the floor to use this.\n"));
+		return;
+	}
+
 	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
@@ -2517,7 +2523,7 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 {
 	INT32 respawnplayer = READINT32(*cp);
 
-	// You can't respawn someone else.  Nice try, there.
+	// You can't respawn someone else. Nice try, there.
 	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
@@ -2531,6 +2537,10 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 		}
 		return;
 	}
+
+	// incase the above checks were modified to allow sending a respawn on these occasions:
+	if (players[respawnplayer].mo && !P_IsObjectOnGround(players[respawnplayer].mo))
+		return;
 
 	if (players[respawnplayer].mo)
 		P_DamageMobj(players[respawnplayer].mo, NULL, NULL, 10000);

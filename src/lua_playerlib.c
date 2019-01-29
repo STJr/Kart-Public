@@ -21,6 +21,7 @@
 #include "lua_script.h"
 #include "lua_libs.h"
 #include "lua_hud.h" // hud_running errors
+#include "lua_hook.h"	// hook_cmd_running
 
 static int lib_iteratePlayers(lua_State *L)
 {
@@ -356,6 +357,9 @@ static int player_set(lua_State *L)
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
 
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
+
 	if (fastcmp(field,"mo")) {
 		mobj_t *newmo = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
 		plr->mo->player = NULL; // remove player pointer from old mobj
@@ -667,6 +671,8 @@ static int power_set(lua_State *L)
 		return luaL_error(L, LUA_QL("powertype_t") " cannot be %u", p);
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 	powers[p] = i;
 	return 0;
 }
@@ -699,6 +705,8 @@ static int kartstuff_set(lua_State *L)
 		return luaL_error(L, LUA_QL("kartstufftype_t") " cannot be %u", ks);
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 	kartstuff[ks] = i;
 	return 0;
 }
