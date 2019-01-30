@@ -1068,6 +1068,21 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		|| (mobj2->player && mobj2->player->kartstuff[k_respawn]))
 		return;
 
+	// Don't bump if you're flashing
+	if (mobj1->player && mobj1->player->powers[pw_flashing] > 0
+		&& mobj1->player->powers[pw_flashing] < K_GetKartFlashing(mobj1->player)-1)
+	{
+		mobj1->player->powers[pw_flashing]++;
+		return;
+	}
+
+	if (mobj2->player && mobj2->player->powers[pw_flashing] > 0
+		&& mobj2->player->powers[pw_flashing] < K_GetKartFlashing(mobj2->player)-1)
+	{
+		mobj2->player->powers[pw_flashing]++;
+		return;
+	}
+
 	// Don't bump if you've recently bumped
 	if (mobj1->player && mobj1->player->kartstuff[k_justbumped])
 	{
