@@ -3932,13 +3932,14 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 		if (thisang > ANGLE_180)
 			thisang = InvAngle(thisang);
 
-		if (thisang > (G_RaceGametype() ? ANGLE_67h : ANGLE_45)) // Don't go for people who are behind you
-			continue;
-
 		// Jawz only go after the person directly ahead of you in race... sort of literally now!
 		if (G_RaceGametype())
 		{
-			if (player->kartstuff[k_position] >= source->kartstuff[k_position]) // Don't pay attention to people behind you
+			// Don't go for people who are behind you
+			if (thisang > ANGLE_67h)
+				continue;
+			// Don't pay attention to people who aren't above your position
+			if (player->kartstuff[k_position] >= source->kartstuff[k_position])
 				continue;
 			if ((best == -1) || (player->kartstuff[k_position] > best))
 			{
@@ -3951,6 +3952,11 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 			fixed_t thisdist;
 			fixed_t thisavg;
 
+			// Don't go for people who are behind you
+			if (thisang > ANGLE_45)
+				continue;
+
+			// Don't pay attention to dead players
 			if (player->kartstuff[k_bumper] <= 0)
 				continue;
 
