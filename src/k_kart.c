@@ -3932,7 +3932,7 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 		if (thisang > ANGLE_180)
 			thisang = InvAngle(thisang);
 
-		if (thisang > ANGLE_45) // Don't go for people who are behind you
+		if (thisang > (G_RaceGametype() ? ANGLE_67h : ANGLE_45)) // Don't go for people who are behind you
 			continue;
 
 		// Jawz only go after the person directly ahead of you in race... sort of literally now!
