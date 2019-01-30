@@ -443,7 +443,7 @@ static CV_PossibleValue_t serversort_cons_t[] = {
 	{5,"Gametype"},
 	{0,NULL}
 };
-consvar_t cv_serversort = {"serversort", "Ping", CV_HIDEN | CV_CALL, serversort_cons_t, M_SortServerList, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_serversort = {"serversort", "Ping", CV_CALL, serversort_cons_t, M_SortServerList, 0, NULL, NULL, 0, 0, NULL};
 
 // autorecord demos for time attack
 static consvar_t cv_autorecord = {"autorecord", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
