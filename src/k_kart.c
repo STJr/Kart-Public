@@ -2517,7 +2517,17 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t an, I
 			break;
 		case MT_JAWZ:
 			if (source && source->player)
+			{
+				INT32 lasttarg = source->player->kartstuff[k_lastjawztarget];
 				th->cvmem = source->player->skincolor;
+				if ((lasttarg >= 0 && lasttarg < MAXPLAYERS)
+					&& playeringame[lasttarg]
+					&& !players[lasttarg].spectator
+					&& players[lasttarg].mo)
+				{
+					P_SetTarget(&th->tracer, players[lasttarg].mo);
+				}
+			}
 			else
 				th->cvmem = SKINCOLOR_KETCHUP;
 			/* FALLTHRU */
@@ -4454,12 +4464,22 @@ void K_KartPlayerAfterThink(player_t *player)
 	// Jawz reticule (seeking)
 	if (player->kartstuff[k_itemtype] == KITEM_JAWZ && player->kartstuff[k_itemheld])
 	{
-		player_t *targ = K_FindJawzTarget(player->mo, player);
+		INT32 lasttarg = player->kartstuff[k_lastjawztarget];
+		player_t *targ;
 		mobj_t *ret;
 
-		if (!targ)
+		if (player->kartstuff[k_jawztargetdelay] && playeringame[lasttarg] && !players[lasttarg].spectator)
+		{
+			targ = &players[lasttarg];
+			player->kartstuff[k_jawztargetdelay]--;
+		}
+		else
+			targ = K_FindJawzTarget(player->mo, player);
+
+		if (!targ || !targ->mo || P_MobjWasRemoved(targ->mo))
 		{
 			player->kartstuff[k_lastjawztarget] = -1;
+			player->kartstuff[k_jawztargetdelay] = 0;
 			return;
 		}
 
@@ -4469,7 +4489,7 @@ void K_KartPlayerAfterThink(player_t *player)
 		ret->tics = 1;
 		ret->color = player->skincolor;
 
-		if (targ-players != player->kartstuff[k_lastjawztarget])
+		if (targ-players != lasttarg)
 		{
 			if (P_IsLocalPlayer(player) || P_IsLocalPlayer(targ))
 				S_StartSound(NULL, sfx_s3k89);
@@ -4477,11 +4497,13 @@ void K_KartPlayerAfterThink(player_t *player)
 				S_StartSound(targ->mo, sfx_s3k89);
 
 			player->kartstuff[k_lastjawztarget] = targ-players;
+			player->kartstuff[k_jawztargetdelay] = 5;
 		}
 	}
 	else
 	{
 		player->kartstuff[k_lastjawztarget] = -1;
+		player->kartstuff[k_jawztargetdelay] = 0;
 	}
 }
 

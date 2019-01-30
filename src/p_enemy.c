@@ -8264,8 +8264,8 @@ void A_JawzChase(mobj_t *actor)
 
 	if (actor->tracer)
 	{
-		if (G_RaceGametype()) // Stop looking after first target in race
-			actor->extravalue1 = 1;
+		/*if (G_RaceGametype()) // Stop looking after first target in race
+			actor->extravalue1 = 1;*/
 
 		if (actor->tracer->health)
 		{
