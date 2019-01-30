@@ -274,14 +274,13 @@ static menu_t SP_TimeAttackDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
 #ifndef NONET
 static void M_StartServerMenu(INT32 choice);
 static void M_ConnectMenu(INT32 choice);
-#endif
-static void M_StartOfflineServerMenu(INT32 choice);
-static void M_StartServer(INT32 choice);
-#ifndef NONET
+static void M_ConnectMenuModChecks(INT32 choice);
 static void M_Refresh(INT32 choice);
 static void M_Connect(INT32 choice);
 static void M_ChooseRoom(INT32 choice);
 #endif
+static void M_StartOfflineServerMenu(INT32 choice);
+static void M_StartServer(INT32 choice);
 static void M_SetupMultiPlayer(INT32 choice);
 static void M_SetupMultiPlayer2(INT32 choice);
 static void M_SetupMultiPlayer3(INT32 choice);
@@ -935,11 +934,11 @@ static menuitem_t MP_MainMenu[] =
 
 	{IT_HEADER, NULL, "Join a game", NULL, 132-24},
 #ifndef NONET
-	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenu,            142-24},
+	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenuModChecks,   142-24},
 	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,        150-24},
 #else
-	{IT_GRAYEDOUT,            NULL, "Internet server browser...",M_ConnectMenu,            142-24},
-	{IT_GRAYEDOUT,            NULL, "Specify IPv4 address:",     M_HandleConnectIP,        150-24},
+	{IT_GRAYEDOUT,            NULL, "Internet server browser...",NULL,                     142-24},
+	{IT_GRAYEDOUT,            NULL, "Specify IPv4 address:",     NULL,                     150-24},
 #endif
 	//{IT_HEADER, NULL, "Player setup", NULL, 80},
 	//{IT_STRING|IT_CALL,       NULL, "Name, character, color...", M_SetupMultiPlayer,       90},
@@ -2739,10 +2738,10 @@ boolean M_Responder(event_t *ev)
 				 || (currentMenu->menuitems[itemOn].status & IT_TYPE)==IT_SUBMENU)
                  && (currentMenu->menuitems[itemOn].status & IT_CALLTYPE))
 				{
-					if (((currentMenu->menuitems[itemOn].status & IT_CALLTYPE) & IT_CALL_NOTMODIFIED) && modifiedgame && !savemoddata)
+					if (((currentMenu->menuitems[itemOn].status & IT_CALLTYPE) & IT_CALL_NOTMODIFIED) && majormods)
 					{
 						S_StartSound(NULL, sfx_menu1);
-						M_StartMessage(M_GetText("This cannot be done with add-ons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
+						M_StartMessage(M_GetText("This cannot be done with complex add-ons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
 						return true;
 					}
 				}
@@ -4527,9 +4526,14 @@ static char *M_AddonsHeaderPath(void)
 #define CLEARNAME Z_Free(refreshdirname);\
 					refreshdirname = NULL
 
+static boolean prevmajormods = false;
+
 static void M_AddonsClearName(INT32 choice)
 {
-	CLEARNAME;
+	if (!majormods || prevmajormods)
+	{
+		CLEARNAME;
+	}
 	M_StopMessage(choice);
 }
 
@@ -4539,10 +4543,17 @@ static boolean M_AddonsRefresh(void)
 	if ((refreshdirmenu & REFRESHDIR_NORMAL) && !preparefilemenu(true))
 	{
 		UNEXIST;
+		if (refreshdirname)
+		{
+			CLEARNAME;
+		}
 		return true;
 	}
 
-	if (refreshdirmenu & REFRESHDIR_ADDFILE)
+	if (!majormods && prevmajormods)
+		prevmajormods = false;
+
+	if ((refreshdirmenu & REFRESHDIR_ADDFILE) || (majormods && !prevmajormods))
 	{
 		char *message = NULL;
 
@@ -4550,7 +4561,7 @@ static boolean M_AddonsRefresh(void)
 		{
 			S_StartSound(NULL, sfx_s26d);
 			if (refreshdirmenu & REFRESHDIR_MAX)
-				message = va("%c%s\x80\nMaximum number of add-ons reached.\nA file could not be loaded.\nIf you want to play with this add-on, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+				message = va("%c%s\x80\nMaximum number of add-ons reached.\nA file could not be loaded.\nif you wish to play with this add-on, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			else
 				message = va("%c%s\x80\nA file was not loaded.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 		}
@@ -4558,6 +4569,12 @@ static boolean M_AddonsRefresh(void)
 		{
 			S_StartSound(NULL, sfx_s224);
 			message = va("%c%s\x80\nA file was loaded with %s.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname, ((refreshdirmenu & REFRESHDIR_ERROR) ? "errors" : "warnings"));
+		}
+		else if (majormods && !prevmajormods)
+		{
+			S_StartSound(NULL, sfx_s221);
+			message = va("%c%s\x80\nGameplay has now been modified.\nif you wish to play record attack mode, restart the game to clear existing add-ons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+			prevmajormods = majormods;
 		}
 
 		if (message)
@@ -4709,7 +4726,7 @@ static void M_DrawAddons(void)
 	V_DrawSmallScaledPatch(x, y + 4, (menusearch[0] ? 0 : V_TRANSLUCENT), addonsp[NUM_EXT+3]);
 
 	x = BASEVIDWIDTH - x - 16;
-	V_DrawSmallScaledPatch(x, y + 4, ((!modifiedgame || savemoddata) ? 0 : V_TRANSLUCENT), addonsp[NUM_EXT+4]);
+	V_DrawSmallScaledPatch(x, y + 4, ((!majormods) ? 0 : V_TRANSLUCENT), addonsp[NUM_EXT+4]);
 
 	if (modifiedgame)
 		V_DrawSmallScaledPatch(x, y + 4, 0, addonsp[NUM_EXT+2]);
@@ -5106,7 +5123,7 @@ static void M_GetAllEmeralds(INT32 choice)
 	emeralds = ((EMERALD7)*2)-1;
 	M_StartMessage(M_GetText("You now have all 7 emeralds.\nUse them wisely.\nWith great power comes great ring drain.\n"),NULL,MM_NOTHING);
 
-	G_SetGameModified(multiplayer);
+	G_SetGameModified(multiplayer, true);
 }
 
 static void M_DestroyRobotsResponse(INT32 ch)
@@ -5117,7 +5134,7 @@ static void M_DestroyRobotsResponse(INT32 ch)
 	// Destroy all robots
 	P_DestroyRobots();
 
-	G_SetGameModified(multiplayer);
+	G_SetGameModified(multiplayer, true);
 }
 
 static void M_DestroyRobots(INT32 choice)
@@ -7382,6 +7399,20 @@ static void M_ConnectMenu(INT32 choice)
 	M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
 	M_Refresh(0);
+}
+
+static void M_ConnectMenuModChecks(INT32 choice)
+{
+	(void)choice;
+	// okay never mind we want to COMMUNICATE to the player pre-emptively instead of letting them try and then get confused when it doesn't work
+
+	if (modifiedgame)
+	{
+		M_StartMessage(M_GetText("Add-ons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing add-ons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
+		return;
+	}
+
+	M_ConnectMenu(-1);
 }
 
 static UINT32 roomIds[NUM_LIST_ROOMS];

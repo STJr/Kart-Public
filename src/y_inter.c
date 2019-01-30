@@ -782,7 +782,7 @@ void Y_StartIntermission(void)
 		}
 		case int_race: // (time-only race)
 		{
-			if ((!modifiedgame || savemoddata) && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
+			if (!majormods && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
 			{
 				// Update visitation flags
 				mapvisited[gamemap-1] |= MV_BEATEN;
