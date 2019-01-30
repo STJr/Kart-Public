@@ -7145,12 +7145,24 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 		if (G_RaceGametype())
 		{
 #define timestring(time) va("%i'%02i\"%02i", G_TicsToMinutes(time, true), G_TicsToSeconds(time), G_TicsToCentiseconds(time))
-			if (players[tab[i].num].exiting)
-				V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
-			else if (players[tab[i].num].pflags & PF_TIMEOVER)
-				V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "NO CONTEST.");
-			else if (circuitmap)
-				V_DrawRightAlignedString(x+rightoffset, y, 0, va("Lap %d", tab[i].count));
+			if (scorelines > 8)
+			{
+				if (players[tab[i].num].exiting)
+					V_DrawRightAlignedThinString(x+rightoffset, y-1, hilicol|V_6WIDTHSPACE, timestring(players[tab[i].num].realtime));
+				else if (players[tab[i].num].pflags & PF_TIMEOVER)
+					V_DrawRightAlignedThinString(x+rightoffset, y-1, V_6WIDTHSPACE, "NO CONTEST.");
+				else if (circuitmap)
+					V_DrawRightAlignedThinString(x+rightoffset, y-1, V_6WIDTHSPACE, va("Lap %d", tab[i].count));
+			}
+			else
+			{
+				if (players[tab[i].num].exiting)
+					V_DrawRightAlignedString(x+rightoffset, y, hilicol, timestring(players[tab[i].num].realtime));
+				else if (players[tab[i].num].pflags & PF_TIMEOVER)
+					V_DrawRightAlignedThinString(x+rightoffset, y-1, 0, "NO CONTEST.");
+				else if (circuitmap)
+					V_DrawRightAlignedString(x+rightoffset, y, 0, va("Lap %d", tab[i].count));
+			}
 #undef timestring
 		}
 		else
