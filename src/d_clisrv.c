@@ -4083,6 +4083,21 @@ FILESTAMP
 			else if (resynch_score[node])
 				--resynch_score[node];
 			break;
+		case PT_WIPETIME:
+			if (client)
+				break;
+
+			// This should probably still timeout though, as the node should always have a player 1 number
+			if (netconsole == -1)
+				break;
+
+			// If a client sends this it should mean they are done receiving the savegame
+			sendingsavegame[node] = false;
+
+			// As long as clients send keep alives, the server can keep running, so reset the timeout
+			/// \todo Use a separate cvar for that kind of timeout?
+			freezetimeout[node] = I_GetTime() + connectiontimeout;
+			break;
 		case PT_TEXTCMD:
 		case PT_TEXTCMD2:
 		case PT_TEXTCMD3:
@@ -4586,6 +4601,15 @@ static INT16 Consistancy(void)
 	return (INT16)(ret & 0xFFFF);
 }
 
+// confusing, but this DOESN'T send PT_NODEKEEPALIVE, it sends PT_WIPETIME
+// used during wipes to tell the server that a node is still connected
+static void CL_SendClientKeepAlive(void)
+{
+	netbuffer->packettype = PT_WIPETIME;
+
+	HSendPacket(servernode, false, 0, 0);
+}
+
 // send the client packet to the server
 static void CL_SendClientCmd(void)
 {
@@ -5032,9 +5056,77 @@ static inline void PingUpdate(void)
 }
 #endif
 
+static tic_t gametime = 0;
+
+#ifdef NEWPING
+static void UpdatePingTable(void)
+{
+	INT32 i;
+	if (server)
+	{
+		if (netgame && !(gametime % 255))
+			PingUpdate();
+		// update node latency values so we can take an average later.
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i])
+				realpingtable[i] += G_TicsToMilliseconds(GetLag(playernode[i]));
+		pingmeasurecount++;
+	}
+}
+#endif
+
+// Handle timeouts to prevent definitive freezes from happenning
+static void HandleNodeTimeouts(void)
+{
+	INT32 i;
+	if (server)
+		for (i = 1; i < MAXNETNODES; i++)
+			if (nodeingame[i] && freezetimeout[i] < I_GetTime())
+				Net_ConnectionTimeout(i);
+}
+
+// Keep the network alive while not advancing tics!
+void NetKeepAlive(void)
+{
+	tic_t nowtime;
+	INT32 realtics;
+
+	nowtime = I_GetTime();
+	realtics = nowtime - gametime;
+
+	// return if there's no time passed since the last call
+	if (realtics <= 0) // nothing new to update
+		return;
+
+#ifdef NEWPING
+	UpdatePingTable();
+#endif
+
+	if (server)
+		CL_SendClientKeepAlive();
+
+// Sryder: What is FILESTAMP???
+FILESTAMP
+	GetPackets();
+FILESTAMP
+
+	MasterClient_Ticker();
+
+	if (client)
+	{
+		// send keep alive
+		CL_SendClientKeepAlive();
+		// No need to check for resynch because we aren't running any tics
+	}
+	// No else because no tics are being run and we can't resynch during this
+
+	Net_AckTicker();
+	HandleNodeTimeouts();
+	SV_FileSendTicker();
+}
+
 void NetUpdate(void)
 {
-	static tic_t gametime = 0;
 	static tic_t resptime = 0;
 	tic_t nowtime;
 	INT32 i;
@@ -5056,16 +5148,7 @@ void NetUpdate(void)
 	gametime = nowtime;
 
 #ifdef NEWPING
-	if (server)
-	{
-		if (netgame && !(gametime % 255))
-			PingUpdate();
-		// update node latency values so we can take an average later.
-		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i])
-				realpingtable[i] += G_TicsToMilliseconds(GetLag(playernode[i]));
-		pingmeasurecount++;
-	}
+	UpdatePingTable();
 #endif
 
 	if (client)
@@ -5133,12 +5216,7 @@ FILESTAMP
 		}
 	}
 	Net_AckTicker();
-	// Handle timeouts to prevent definitive freezes from happenning
-	if (server)
-		for (i = 1; i < MAXNETNODES; i++)
-			if (nodeingame[i] && freezetimeout[i] < I_GetTime())
-				Net_ConnectionTimeout(i);
-	nowtime /= NEWTICRATERATIO;
+	HandleNodeTimeouts();
 	if (nowtime > resptime)
 	{
 		resptime = nowtime;

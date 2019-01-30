@@ -903,6 +903,9 @@ static void DebugPrintpacket(const char *header)
 				(UINT32)ExpandTics(netbuffer->u.clientpak.client_tic),
 				(UINT32)ExpandTics (netbuffer->u.clientpak.resendfrom));
 			break;
+		case PT_WIPETIME:
+			fprintf(debugfile, "    wipetime\n");
+			break;
 		case PT_TEXTCMD:
 		case PT_TEXTCMD2:
 		case PT_TEXTCMD3:

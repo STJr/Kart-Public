@@ -26,6 +26,7 @@
 #include "console.h"
 #include "d_main.h"
 #include "m_misc.h" // movie mode
+#include "d_clisrv.h" // So the network state can be updated during the wipe
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -375,6 +376,8 @@ void F_RunWipe(UINT8 wipetype, boolean drawMenu)
 
 		if (moviemode)
 			M_SaveFrame();
+
+		NetKeepAlive(); // Update the network so we don't cause timeouts
 	}
 	WipeInAction = false;
 #endif
