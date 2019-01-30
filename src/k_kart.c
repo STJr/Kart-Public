@@ -3626,6 +3626,7 @@ static void K_MoveHeldObjects(player_t *player)
 		case MT_JAWZ_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
+				fixed_t speed = ((8 - min(4, player->kartstuff[k_itemamount])) * cur->info->speed) / 7;
 
 				player->kartstuff[k_bananadrag] = 0; // Just to make sure
 
@@ -3643,7 +3644,7 @@ static void K_MoveHeldObjects(player_t *player)
 					cur->color = player->skincolor;
 
 					cur->angle -= ANGLE_90;
-					cur->angle += FixedAngle(cur->info->speed);
+					cur->angle += FixedAngle(speed);
 
 					if (cur->extravalue1 < radius)
 						cur->extravalue1 += P_AproxDistance(cur->extravalue1, radius) / 12;
