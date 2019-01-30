@@ -474,16 +474,12 @@ void Y_IntermissionDrawer(void)
 					V_DrawScaledPatch(x+16, y-4, 0, W_CachePatchName(va("K_CHILI%d", cursorframe+1), PU_CACHE));
 				}
 
-				if (!gutter)
-					strlcpy(strtime, data.match.name[i], 6);
-				else
-					STRBUFCPY(strtime, data.match.name[i]);
+				STRBUFCPY(strtime, data.match.name[i]);
 
-				V_DrawString(x+36, y,
-					((data.match.num[i] == whiteplayer)
-						? hilicol|V_ALLOWLOWERCASE
-						: V_ALLOWLOWERCASE),
-					strtime);
+				if (!gutter)
+					V_DrawThinString(x+36, y, ((data.match.num[i] == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE|V_6WIDTHSPACE, strtime);
+				else
+					V_DrawString(x+36, y, ((data.match.num[i] == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE, strtime);
 
 				if (data.match.rankingsmode)
 				{

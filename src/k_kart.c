@@ -7108,19 +7108,15 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			continue; //ignore them.
 
 		if (netgame // don't draw it offline
-        && tab[i].num != serverplayer)
+		&& tab[i].num != serverplayer)
 			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
 
-		if (scorelines > 8)
-			strlcpy(strtime, tab[i].name, 6);
-		else
-			STRBUFCPY(strtime, tab[i].name);
+		STRBUFCPY(strtime, tab[i].name);
 
-		V_DrawString(x + 20, y,
-			((tab[i].num == whiteplayer)
-				? hilicol|V_ALLOWLOWERCASE
-				: V_ALLOWLOWERCASE),
-			strtime);
+		if (scorelines > 8)
+			V_DrawThinString(x + 20, y, ((tab[i].num == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE|V_6WIDTHSPACE, strtime);
+		else
+			V_DrawString(x + 20, y, ((tab[i].num == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE, strtime);
 
 		if (players[tab[i].num].mo->color)
 		{
