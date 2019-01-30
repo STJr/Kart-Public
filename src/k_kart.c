@@ -1211,8 +1211,8 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj1->player->kartstuff[k_justbumped] = bumptime;
 		if (mobj1->player->kartstuff[k_spinouttimer])
 		{
-			mobj1->player->kartstuff[k_wipeoutslow] += wipeoutslowtime+1;
-			mobj1->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
+			mobj1->player->kartstuff[k_wipeoutslow] = wipeoutslowtime+1;
+			mobj1->player->kartstuff[k_spinouttimer] = max(wipeoutslowtime+1, mobj1->player->kartstuff[k_spinouttimer]);
 		}
 	}
 
@@ -1223,8 +1223,8 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		mobj2->player->kartstuff[k_justbumped] = bumptime;
 		if (mobj2->player->kartstuff[k_spinouttimer])
 		{
-			mobj2->player->kartstuff[k_wipeoutslow] += wipeoutslowtime+1;
-			mobj2->player->kartstuff[k_spinouttimer] += wipeoutslowtime+1;
+			mobj2->player->kartstuff[k_wipeoutslow] = wipeoutslowtime+1;
+			mobj2->player->kartstuff[k_spinouttimer] = max(wipeoutslowtime+1, mobj2->player->kartstuff[k_spinouttimer]);
 		}
 	}
 }
@@ -1264,7 +1264,6 @@ static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
 */
 static void K_UpdateOffroad(player_t *player)
 {
-	fixed_t kartweight = player->kartweight;
 	fixed_t offroad;
 	sector_t *nextsector = R_PointInSubsector(
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
@@ -1284,13 +1283,11 @@ static void K_UpdateOffroad(player_t *player)
 	if (offroadstrength)
 	{
 		if (K_CheckOffroadCollide(player->mo, player->mo->subsector->sector) && player->kartstuff[k_offroad] == 0)
-			player->kartstuff[k_offroad] = 16;
+			player->kartstuff[k_offroad] = (TICRATE/2);
 
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			// 1872 is the magic number - 35 frames adds up to approximately 65536. 1872/4 = 468/3 = 156
-			// A higher kart weight means you can stay offroad for longer without losing speed
-			offroad = (1872 + 5*156 - kartweight*156)*offroadstrength;
+			offroad = (FRACUNIT * offroadstrength) / (TICRATE/2);
 
 			//if (player->kartstuff[k_growshrinktimer] > 1) // grow slows down half as fast
 			//	offroad /= 2;
@@ -4670,8 +4667,6 @@ static void K_KartDrift(player_t *player, boolean onground)
 			player->kartstuff[k_driftend] = 0;
 	}
 
-
-
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
 	{
@@ -4703,7 +4698,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		// Disable drift-sparks until you're going fast enough
 		if (player->kartstuff[k_getsparks] == 0)
 			driftadditive = 0;
-		if (player->speed > minspeed*2)
+		if (player->speed > minspeed*2 && !player->kartstuff[k_offroad])
 			player->kartstuff[k_getsparks] = 1;
 
 		// This spawns the drift sparks
@@ -5428,10 +5423,15 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	// Friction
-	if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
-		player->mo->friction += 4608;
-	if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
-		player->mo->friction += 1608;
+	if (!player->kartstuff[k_offroad])
+	{
+		if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
+			player->mo->friction += 4608;
+		if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
+			player->mo->friction += 1608;
+	}
+
+	// Karma ice physics
 	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
 	{
 		player->mo->friction += 1228;
@@ -5451,11 +5451,14 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		if (player->mo->movefactor < 32)
 			player->mo->movefactor = 32;
 	}
+
+	// Wipeout slowdown
 	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
 	{
-		player->mo->friction -= FixedMul(1228, player->kartstuff[k_offroad]);
-		if (player->kartstuff[k_wipeoutslow] == 1)
+		if (player->kartstuff[k_offroad])
 			player->mo->friction -= 4912;
+		if (player->kartstuff[k_wipeoutslow] == 1)
+			player->mo->friction -= 9824;
 	}
 
 	K_KartDrift(player, onground);
@@ -7105,19 +7108,15 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 			continue; //ignore them.
 
 		if (netgame // don't draw it offline
-        && tab[i].num != serverplayer)
+		&& tab[i].num != serverplayer)
 			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
 
-		if (scorelines > 8)
-			strlcpy(strtime, tab[i].name, 6);
-		else
-			STRBUFCPY(strtime, tab[i].name);
+		STRBUFCPY(strtime, tab[i].name);
 
-		V_DrawString(x + 20, y,
-			((tab[i].num == whiteplayer)
-				? hilicol|V_ALLOWLOWERCASE
-				: V_ALLOWLOWERCASE),
-			strtime);
+		if (scorelines > 8)
+			V_DrawThinString(x + 20, y, ((tab[i].num == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE|V_6WIDTHSPACE, strtime);
+		else
+			V_DrawString(x + 20, y, ((tab[i].num == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE, strtime);
 
 		if (players[tab[i].num].mo->color)
 		{
