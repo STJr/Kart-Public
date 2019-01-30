@@ -499,9 +499,9 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][10] =
 			   /*Sneaker*/ {20, 0, 0, 4, 6, 6, 0, 0, 0, 0 }, // Sneaker
 		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3, 0 }, // Rocket Sneaker
 		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,14, 0 }, // Invincibility
-				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0, 0 }, // Banana
-		/*Eggman Monitor*/ { 0, 4, 3, 2, 0, 0, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 6, 5, 3, 2, 0, 0, 0, 0, 0 }, // Orbinaut
+				/*Banana*/ { 0,10, 4, 2, 1, 0, 0, 0, 0, 0 }, // Banana
+		/*Eggman Monitor*/ { 0, 3, 2, 1, 0, 0, 0, 0, 0, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 0, 8, 6, 4, 2, 0, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 1, 1, 0, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 0, 2, 1, 0, 0, 0, 0, 0 }, // Ballhog
@@ -616,6 +616,32 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
 	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
+	boolean itemenabled[NUMKARTRESULTS] = {
+		cv_sneaker.value,
+		cv_rocketsneaker.value,
+		cv_invincibility.value,
+		cv_banana.value,
+		cv_eggmanmonitor.value,
+		cv_orbinaut.value,
+		cv_jawz.value,
+		cv_mine.value,
+		cv_ballhog.value,
+		cv_selfpropelledbomb.value,
+		cv_grow.value,
+		cv_shrink.value,
+		cv_thundershield.value,
+		cv_hyudoro.value,
+		cv_kitchensink.value,
+		cv_triplesneaker.value,
+		cv_triplebanana.value,
+		cv_decabanana.value,
+		cv_tripleorbinaut.value,
+		cv_quadorbinaut.value,
+		cv_dualjawz.value
+	};
+
+	if (!itemenabled[item] && !modeattacking)
+		return 0;
 
 	if (G_BattleGametype())
 		newodds = K_KartItemOddsBattle[item-1][pos];
@@ -626,21 +652,24 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			continue;
-
-		pingame++;
+		if (!G_BattleGametype() || players[i].kartstuff[k_bumper])
+			pingame++;
 		if (players[i].exiting)
 			pexiting++;
 		if (players[i].mo)
 		{
-			if (players[i].kartstuff[k_position] == 1 && first == -1)
-				first = i;
-			if (players[i].kartstuff[k_position] == 2 && second == -1)
-				second = i;
 			if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY
 				|| players[i].kartstuff[k_itemtype] == KITEM_GROW
 				|| players[i].kartstuff[k_invincibilitytimer]
 				|| players[i].kartstuff[k_growshrinktimer] > 0)
 				pinvin++;
+			if (!G_BattleGametype())
+			{
+				if (players[i].kartstuff[k_position] == 1 && first == -1)
+					first = i;
+				if (players[i].kartstuff[k_position] == 2 && second == -1)
+					second = i;
+			}
 		}
 	}
 
@@ -650,120 +679,61 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 													players[first].mo->y - players[second].mo->y),
 													players[first].mo->z - players[second].mo->z) / mapobjectscale;
 		if (franticitems)
-			secondist = (15*secondist/14);
-		if (pingame < 8 && !G_BattleGametype())
-			secondist = ((28+(8-pingame))*secondist/28);
+			secondist = (15 * secondist) / 14;
+		secondist = ((28 + (8-pingame)) * secondist) / 28;
 	}
 
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
 	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
 	// Next, it multiplies it again if it's in SPB mode and 2nd needs to apply pressure to 1st.
-	// Then, it multiplies it further if there's less than 8 players in game.
-	// This is done to make low player count races more fair & interesting. (1v1s are basically the same as franticitems false in a normal race)
+	// Then, it multiplies it further if there's less than 5 players in game.
+	// This is done to make low player count races more fair & interesting. (2P normal would be about halfway between 8P normal and 8P frantic)
 	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
-	// The last two are very fractional and complicated, very sorry!
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
-		odds *= 2; \
-	if (pingame < 8 && !G_BattleGametype()) \
-		odds = FixedMul(odds*FRACUNIT, FRACUNIT+min((8-pingame)*(FRACUNIT/25), FRACUNIT))/FRACUNIT; \
+		odds <<= 1; \
+	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((8-pingame) * (FRACUNIT/25))) >> FRACBITS; \
 	if (mashed > 0) \
-		odds = FixedDiv(odds*FRACUNIT, mashed+FRACUNIT)/FRACUNIT \
+		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
 
 	switch (item)
 	{
-		case KITEM_SNEAKER:
-			if ((!cv_sneaker.value) && (!modeattacking)) newodds = 0;
-			break;
-		case KITEM_ROCKETSNEAKER:
-			POWERITEMODDS(newodds);
-			if (!cv_rocketsneaker.value) newodds = 0;
-			break;
 		case KITEM_INVINCIBILITY:
-			POWERITEMODDS(newodds);
-			if ((!cv_invincibility.value) || (pinvin >= 2)) newodds = 0;
-			break;
-		case KITEM_BANANA:
-			if (!cv_banana.value) newodds = 0;
-			break;
-		case KITEM_EGGMAN:
-			if (!cv_eggmanmonitor.value) newodds = 0;
-			break;
-		case KITEM_ORBINAUT:
-			if (!cv_orbinaut.value) newodds = 0;
-			break;
+		case KITEM_GROW:
+			if (pinvin >= max(1, (pingame+2) / 4))
+				newodds = 0;
+			else
+			/* FALLTHRU */
+		case KITEM_ROCKETSNEAKER:
 		case KITEM_JAWZ:
-			POWERITEMODDS(newodds);
-			if (!cv_jawz.value) newodds = 0;
-			break;
 		case KITEM_MINE:
-			POWERITEMODDS(newodds);
-			if (!cv_mine.value) newodds = 0;
-			break;
 		case KITEM_BALLHOG:
+		case KITEM_THUNDERSHIELD:
+		case KRITEM_TRIPLESNEAKER:
+		case KRITEM_TRIPLEBANANA:
+		case KRITEM_TENFOLDBANANA:
+		case KRITEM_TRIPLEORBINAUT:
+		case KRITEM_QUADORBINAUT:
+		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
-			if (!cv_ballhog.value) newodds = 0;
 			break;
 		case KITEM_SPB:
 			//POWERITEMODDS(newodds);
-			if (((!cv_selfpropelledbomb.value)
-				|| (indirectitemcooldown > 0)
-				|| (pexiting > 0)
-				|| (secondist/distvar < 3))
+			if (((indirectitemcooldown > 0) || (pexiting > 0) || (secondist/distvar < 3))
 				&& (pos != 9)) // Force SPB
 				newodds = 0;
-			newodds *= min((secondist/distvar)-4, 3);
-			break;
-		case KITEM_GROW:
-			POWERITEMODDS(newodds);
-			if ((!cv_grow.value) || (pinvin >= 2)) newodds = 0;
+			else
+				newodds *= min((secondist/distvar)-4, 3);
 			break;
 		case KITEM_SHRINK:
 			POWERITEMODDS(newodds);
-			if ((!cv_shrink.value)
-				|| (indirectitemcooldown > 0)
-				|| (pingame-1 <= pexiting)) newodds = 0;
-			break;
-		case KITEM_THUNDERSHIELD:
-			POWERITEMODDS(newodds);
-			if (!cv_thundershield.value) newodds = 0;
-			break;
-		case KITEM_HYUDORO:
-			if (!cv_hyudoro.value) newodds = 0;
-			break;
-		case KITEM_POGOSPRING:
-			if (!cv_pogospring.value) newodds = 0;
-			break;
-		case KITEM_KITCHENSINK:
-			newodds = 0; // Not obtained via normal means.
-			break;
-		case KRITEM_TRIPLESNEAKER:
-			POWERITEMODDS(newodds);
-			if (!cv_triplesneaker.value) newodds = 0;
-			break;
-		case KRITEM_TRIPLEBANANA:
-			POWERITEMODDS(newodds);
-			if (!cv_triplebanana.value) newodds = 0;
-			break;
-		case KRITEM_TENFOLDBANANA:
-			POWERITEMODDS(newodds);
-			if (!cv_decabanana.value) newodds = 0;
-			break;
-		case KRITEM_TRIPLEORBINAUT:
-			POWERITEMODDS(newodds);
-			if (!cv_tripleorbinaut.value) newodds = 0;
-			break;
-		case KRITEM_QUADORBINAUT:
-			POWERITEMODDS(newodds);
-			if (!cv_quadorbinaut.value) newodds = 0;
-			break;
-		case KRITEM_DUALJAWZ:
-			POWERITEMODDS(newodds);
-			if (!cv_dualjawz.value) newodds = 0;
+			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting))
+				newodds = 0;
 			break;
 		default:
 			break;
 	}
+
 #undef POWERITEMODDS
 
 	return newodds;
@@ -851,11 +821,12 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
 
 		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
-			pdis = (15*pdis)/14;
+			pdis = (15 * pdis) / 14;
+
 		if (spbrush) // SPB Rush Mode: It's 2nd place's job to catch-up items and make 1st place's job hell
-			pdis = (3*pdis)/2;
-		if (pingame < 8)
-			pdis = ((28+(8-pingame))*pdis)/28;
+			pdis = (3 * pdis) / 2;
+
+		pdis = ((28 + (8-pingame)) * pdis) / 28;
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
