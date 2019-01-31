@@ -6133,6 +6133,19 @@ void G_DoPlayDemo(char *defdemoname)
 
 			if (!playeringame[displayplayer] || players[displayplayer].spectator)
 				displayplayer = consoleplayer = p;
+			else if (!spectator && splitscreen < 3) {
+				if (splitscreen == 0) {
+					splitscreen = 1;
+					secondarydisplayplayer = p;
+				} else if (splitscreen == 1) {
+					splitscreen = 2;
+					thirddisplayplayer = p;
+				} else {
+					splitscreen = 3;
+					fourthdisplayplayer = p;
+					R_ExecuteSetViewSize();
+				}
+			}
 			playeringame[p] = true;
 			players[p].spectator = spectator;
 
