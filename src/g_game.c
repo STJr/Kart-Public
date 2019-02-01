@@ -1227,6 +1227,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
 	static boolean resetdown, resetdown2, resetdown3, resetdown4; // don't cam reset every frame
 
+	if (demoplayback) return;
+
 	switch (ssplayer)
 	{
 		case 2:
@@ -1802,7 +1804,7 @@ boolean G_Responder(event_t *ev)
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown
 		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
 	{
-		if (splitscreen || !netgame)
+		if (!demoplayback && (splitscreen || !netgame))
 			displayplayer = consoleplayer;
 		else
 		{
@@ -1813,8 +1815,11 @@ boolean G_Responder(event_t *ev)
 				if (displayplayer == MAXPLAYERS)
 					displayplayer = 0;
 
-				if (displayplayer == consoleplayer)
+				if (!demoplayback && displayplayer == consoleplayer)
 					break; // End loop
+
+				if (displayplayer == secondarydisplayplayer || displayplayer == thirddisplayplayer || displayplayer == fourthdisplayplayer)
+					continue;
 
 				if (!playeringame[displayplayer])
 					continue;
@@ -1874,7 +1879,7 @@ boolean G_Responder(event_t *ev)
 
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
-		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
+		((demoplayback && !modeattacking && !titledemo && !multiplayer) || gamestate == GS_TITLESCREEN))
 	{
 		if (ev->type == ev_keydown && ev->data1 != 301)
 		{
