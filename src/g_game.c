@@ -4628,7 +4628,10 @@ void G_ReadDemoExtraData(void)
 					playeringame[p] = true;
 					G_AddPlayer(p);
 					players[p].spectator = true;
-					P_RandomByte(); // I'm pretty sure this ISN'T right, but it syncs my one test replay.
+
+					// There's likely an off-by-one error in timing recording or playback of joins. This hacks around it so I don't have to find out where that is. \o/
+					if (oldcmd[p].forwardmove)
+						P_RandomByte();
 				}
 				else
 				{
