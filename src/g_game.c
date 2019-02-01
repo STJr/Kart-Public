@@ -5141,15 +5141,13 @@ void G_GhostTicker(void)
 				for (i = 0; i < count; i++)
 				{
 					g->p += 4; // reserved
-					type = READUINT32(g->p);
+					demo_p += 4; // backwards compat.
 					health = READUINT16(g->p);
 					x = READFIXED(g->p);
 					y = READFIXED(g->p);
 					z = READFIXED(g->p);
 					angle = READANGLE(g->p);
-					if (!(mobjinfo[type].flags & MF_SHOOTABLE)
-					|| !(mobjinfo[type].flags & (MF_ENEMY|MF_MONITOR))
-					|| health != 0 || i >= 4) // only spawn for the first 4 hits per frame, to prevent ghosts from splode-spamming too bad.
+					if (health != 0 || i >= 4) // only spawn for the first 4 hits per frame, to prevent ghosts from splode-spamming too bad.
 						continue;
 					poof = P_SpawnMobj(x, y, z, MT_GHOST);
 					poof->angle = angle;
