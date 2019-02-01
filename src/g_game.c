@@ -14,6 +14,7 @@
 #include "doomdef.h"
 #include "console.h"
 #include "d_main.h"
+#include "d_clisrv.h"
 #include "d_player.h"
 #include "f_finale.h"
 #include "p_setup.h"
@@ -3032,6 +3033,8 @@ void G_AddPlayer(INT32 playernum)
 
 	p->jointime = 0;
 	p->playerstate = PST_REBORN;
+
+	demo_extradata[playernum] |= DXD_PLAYSTATE|DXD_COLOR|DXD_NAME|DXD_SKIN; // Set everything
 }
 
 void G_ExitLevel(void)
@@ -3118,7 +3121,7 @@ boolean G_GametypeHasSpectators(void)
 #if 0
 	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
 #else
-	return (netgame); //true
+	return (netgame || (multiplayer && demoplayback)); //true
 #endif
 }
 
@@ -4607,6 +4610,43 @@ void G_ReadDemoExtraData(void)
 			extradata = READUINT8(demo_p);
 
 			// @TODO uhhhhh do something here
+
+			switch (extradata) {
+			case DXD_PST_PLAYING:
+				players[p].pflags |= PF_WANTSTOJOIN; // fuck you
+				break;
+
+			case DXD_PST_SPECTATING:
+				if (!playeringame[p])
+				{
+					CL_ClearPlayer(p);
+					playeringame[p] = true;
+					G_AddPlayer(p);
+					players[p].spectator = true;
+					P_RandomByte(); // I'm pretty sure this ISN'T right, but it syncs my one test replay.
+				}
+				else
+				{
+					players[p].spectator = true;
+					if (players[p].mo)
+						P_DamageMobj(players[p].mo, NULL, NULL, 10000);
+					else
+						players[p].playerstate = PST_REBORN;
+				}
+				break;
+
+			case DXD_PST_LEFT:
+				CL_RemovePlayer(p, 0);
+				break;
+			}
+
+			// maybe these are necessary?
+			if (G_BattleGametype())
+				K_CheckBumpers(); // SRB2Kart
+			else if (G_RaceGametype())
+				P_CheckRacers(); // also SRB2Kart
+
+			CONS_Printf("Change state @ %d\n", leveltime);
 		}
 
 
@@ -4662,7 +4702,10 @@ void G_WriteDemoExtraData(void)
 			{
 				if (!playeringame[i])
 					WRITEUINT8(demo_p, DXD_PST_LEFT);
-				else if (players[i].spectator)
+				else if (
+					players[i].spectator &&
+					!(players[i].pflags & PF_WANTSTOJOIN) // <= fuck you specifically
+				)
 					WRITEUINT8(demo_p, DXD_PST_SPECTATING);
 				else
 					WRITEUINT8(demo_p, DXD_PST_PLAYING);
@@ -6173,6 +6216,7 @@ void G_DoPlayDemo(char *defdemoname)
 			// Look for the next player
 			p = READUINT8(demo_p);
 		}
+
 		R_ExecuteSetViewSize();
 	}
 

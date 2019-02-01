@@ -3362,6 +3362,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	if (gamestate != GS_LEVEL)
 		return;
 
+	demo_extradata[playernum] |= DXD_PLAYSTATE;
+
 	// Clear player score and rings if a spectator.
 	if (players[playernum].spectator)
 	{
