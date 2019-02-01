@@ -3158,7 +3158,10 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
 	if (!demoplayback && multiplayer) {
-		G_RecordDemo("net_replay_test");
+#include "time.h"
+		static char buf[256];
+		sprintf(buf, "net_replay_test_%d", time(NULL));
+		G_RecordDemo(buf);
 	}
 
 	// ===========
