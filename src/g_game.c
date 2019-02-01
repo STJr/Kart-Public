@@ -6143,7 +6143,6 @@ void G_DoPlayDemo(char *defdemoname)
 				} else {
 					splitscreen = 3;
 					fourthdisplayplayer = p;
-					R_ExecuteSetViewSize();
 				}
 			}
 			playeringame[p] = true;
@@ -6174,6 +6173,7 @@ void G_DoPlayDemo(char *defdemoname)
 			// Look for the next player
 			p = READUINT8(demo_p);
 		}
+		R_ExecuteSetViewSize();
 	}
 
 	P_SetRandSeed(randseed);
