@@ -5134,7 +5134,7 @@ void G_GhostTicker(void)
 			if (ziptic & EZT_HIT)
 			{ // Spawn hit poofs for killing things!
 				UINT16 i, count = READUINT16(g->p), health;
-				UINT32 type;
+				//UINT32 type;
 				fixed_t x,y,z;
 				angle_t angle;
 				mobj_t *poof;
