@@ -5141,7 +5141,7 @@ void G_GhostTicker(void)
 				for (i = 0; i < count; i++)
 				{
 					g->p += 4; // reserved
-					type = READUINT32(g->p);
+					g->p += 4; // backwards compat., type used to be here
 					health = READUINT16(g->p);
 					x = READFIXED(g->p);
 					y = READFIXED(g->p);
