@@ -1808,66 +1808,8 @@ boolean G_Responder(event_t *ev)
 			displayplayer = consoleplayer;
 		else
 		{
-			UINT8 i = 0; // spy mode
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				displayplayer++;
-				if (displayplayer == MAXPLAYERS)
-					displayplayer = 0;
-
-				if (!demoplayback && displayplayer == consoleplayer)
-					break; // End loop
-
-				if (displayplayer == secondarydisplayplayer || displayplayer == thirddisplayplayer || displayplayer == fourthdisplayplayer)
-					continue;
-
-				if (!playeringame[displayplayer])
-					continue;
-
-				if (players[displayplayer].spectator)
-					continue;
-
-				// SRB2Kart: Only go through players who are actually playing
-				if (players[displayplayer].exiting)
-					continue;
-
-				if (players[displayplayer].pflags & PF_TIMEOVER)
-					continue;
-
-				// I don't know if we want this actually, but I'll humor the suggestion anyway
-				if (G_BattleGametype())
-				{
-					if (players[displayplayer].kartstuff[k_bumper] <= 0)
-						continue;
-				}
-
-				// SRB2Kart: we have no team-based modes, YET...
-				/*if (G_GametypeHasTeams())
-				{
-					if (players[consoleplayer].ctfteam
-					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
-						continue;
-				}
-				else if (gametype == GT_HIDEANDSEEK)
-				{
-					if (players[consoleplayer].pflags & PF_TAGIT)
-						continue;
-				}
-				// Other Tag-based gametypes?
-				else if (G_TagGametype())
-				{
-					if (!players[consoleplayer].spectator
-					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
-						continue;
-				}
-				else if (G_GametypeHasSpectators() && G_BattleGametype())
-				{
-					if (!players[consoleplayer].spectator)
-						continue;
-				}*/
-
-				break;
-			}
+			displayplayer++;
+			G_ResetViews();
 
 			// change statusbar also if playing back demo
 			if (singledemo)
@@ -2074,6 +2016,102 @@ boolean G_Responder(event_t *ev)
 	}
 
 	return false;
+}
+
+static INT32 G_FindView(INT32 startview)
+{
+	UINT8 i = 0; // spy mode
+
+	startview--; // Ensures view doesn't move if the current view is valid
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		startview++;
+		if (startview == MAXPLAYERS)
+			startview = 0;
+
+		if (!demoplayback && startview == consoleplayer)
+			break; // End loop
+
+		if (startview == displayplayer || startview == secondarydisplayplayer || startview == thirddisplayplayer || startview == fourthdisplayplayer)
+			continue;
+
+		if (!playeringame[startview])
+			continue;
+
+		if (players[startview].spectator)
+			continue;
+
+		// SRB2Kart: Only go through players who are actually playing
+		if (players[startview].exiting)
+			continue;
+
+		if (players[startview].pflags & PF_TIMEOVER)
+			continue;
+
+		// I don't know if we want this actually, but I'll humor the suggestion anyway
+		if (G_BattleGametype())
+		{
+			if (players[startview].kartstuff[k_bumper] <= 0)
+				continue;
+		}
+
+		// SRB2Kart: we have no team-based modes, YET...
+		/*if (G_GametypeHasTeams())
+		{
+			if (players[consoleplayer].ctfteam
+			 && players[startview].ctfteam != players[consoleplayer].ctfteam)
+				continue;
+		}
+		else if (gametype == GT_HIDEANDSEEK)
+		{
+			if (players[consoleplayer].pflags & PF_TAGIT)
+				continue;
+		}
+		// Other Tag-based gametypes?
+		else if (G_TagGametype())
+		{
+			if (!players[consoleplayer].spectator
+			 && (players[consoleplayer].pflags & PF_TAGIT) != (players[startview].pflags & PF_TAGIT))
+				continue;
+		}
+		else if (G_GametypeHasSpectators() && G_BattleGametype())
+		{
+			if (!players[consoleplayer].spectator)
+				continue;
+		}*/
+
+		break;
+	}
+
+	return startview;
+}
+
+//
+// G_ResetViews
+// Ensures all viewpoints are valid
+//
+void G_ResetViews(void)
+{
+	INT32 tempplayer;
+
+	tempplayer = displayplayer;
+	displayplayer = INT32_MAX;
+	displayplayer = G_FindView(tempplayer);
+
+	tempplayer = secondarydisplayplayer;
+	secondarydisplayplayer = INT32_MAX;
+	secondarydisplayplayer = G_FindView(tempplayer);
+
+	tempplayer = thirddisplayplayer;
+	thirddisplayplayer = INT32_MAX;
+	thirddisplayplayer = G_FindView(tempplayer);
+
+	tempplayer = fourthdisplayplayer;
+	fourthdisplayplayer = INT32_MAX;
+	fourthdisplayplayer = G_FindView(tempplayer);
+
+	if (demoplayback)
+		consoleplayer = displayplayer;
 }
 
 //
