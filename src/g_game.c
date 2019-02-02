@@ -5151,22 +5151,20 @@ void G_GhostTicker(void)
 			if (ziptic & EZT_HIT)
 			{ // Spawn hit poofs for killing things!
 				UINT16 i, count = READUINT16(g->p), health;
-				UINT32 type;
+				//UINT32 type;
 				fixed_t x,y,z;
 				angle_t angle;
 				mobj_t *poof;
 				for (i = 0; i < count; i++)
 				{
 					g->p += 4; // reserved
-					type = READUINT32(g->p);
+					g->p += 4; // backwards compat., type used to be here
 					health = READUINT16(g->p);
 					x = READFIXED(g->p);
 					y = READFIXED(g->p);
 					z = READFIXED(g->p);
 					angle = READANGLE(g->p);
-					if (!(mobjinfo[type].flags & MF_SHOOTABLE)
-					|| !(mobjinfo[type].flags & (MF_ENEMY|MF_MONITOR))
-					|| health != 0 || i >= 4) // only spawn for the first 4 hits per frame, to prevent ghosts from splode-spamming too bad.
+					if (health != 0 || i >= 4) // only spawn for the first 4 hits per frame, to prevent ghosts from splode-spamming too bad.
 						continue;
 					poof = P_SpawnMobj(x, y, z, MT_GHOST);
 					poof->angle = angle;
