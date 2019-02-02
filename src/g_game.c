@@ -1819,6 +1819,31 @@ boolean G_Responder(event_t *ev)
 		}
 	}
 
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demoplayback)
+	{
+		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
+		{
+			secondarydisplayplayer++;
+			G_ResetViews();
+
+			return true;
+		}
+		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
+		{
+			thirddisplayplayer++;
+			G_ResetViews();
+
+			return true;
+		}
+		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
+		{
+			fourthdisplayplayer++;
+			G_ResetViews();
+
+			return true;
+		}
+	}
+
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
 		((demoplayback && !modeattacking && !titledemo && !multiplayer) || gamestate == GS_TITLESCREEN))

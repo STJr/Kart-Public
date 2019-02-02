@@ -8816,7 +8816,7 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_CONTROL; // Chat
 	//OP_AllControlsMenu[16].status = IT_CONTROL; // Team-chat
 	OP_AllControlsMenu[16].status = IT_CONTROL; // Rankings
-	OP_AllControlsMenu[17].status = IT_CONTROL; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_CONTROL; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_CONTROL; // Pause
 	OP_AllControlsMenu[21].status = IT_CONTROL; // Screenshot
@@ -8848,7 +8848,7 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
 	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
 	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
@@ -8880,7 +8880,7 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
 	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
 	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
@@ -8912,7 +8912,7 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
 	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
 	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
