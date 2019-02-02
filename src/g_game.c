@@ -3589,9 +3589,9 @@ static void G_DoCompleted(void)
 
 	S_StopSounds();
 
-	if (demoplayback) goto demointermission;
-
 	prevmap = (INT16)(gamemap-1);
+
+	if (demoplayback) goto demointermission;
 
 	// go to next level
 	// nextmap is 0-based, unlike gamemap
