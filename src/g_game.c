@@ -1809,7 +1809,7 @@ boolean G_Responder(event_t *ev)
 		else
 		{
 			displayplayer++;
-			G_ResetViews();
+			G_ResetViews(1);
 
 			// change statusbar also if playing back demo
 			if (singledemo)
@@ -1823,22 +1823,58 @@ boolean G_Responder(event_t *ev)
 	{
 		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
 		{
+			if (!splitscreen)
+			{
+				splitscreen = 1;
+				secondarydisplayplayer = displayplayer;
+				G_ResetViews(2);
+
+				P_ResetCamera(&players[secondarydisplayplayer], &camera2);
+				R_ExecuteSetViewSize();
+
+				return true;
+			}
+
 			secondarydisplayplayer++;
-			G_ResetViews();
+			G_ResetViews(2);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
 		{
+			if (splitscreen == 1)
+			{
+				splitscreen = 2;
+				thirddisplayplayer = displayplayer;
+				G_ResetViews(3);
+
+				P_ResetCamera(&players[thirddisplayplayer], &camera3);
+				R_ExecuteSetViewSize();
+
+				return true;
+			}
+
 			thirddisplayplayer++;
-			G_ResetViews();
+			G_ResetViews(3);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
 		{
+			if (splitscreen == 2)
+			{
+				splitscreen = 3;
+				fourthdisplayplayer = displayplayer;
+				G_ResetViews(4);
+
+				P_ResetCamera(&players[fourthdisplayplayer], &camera4);
+				R_ExecuteSetViewSize();
+
+				return true;
+			}
+
 			fourthdisplayplayer++;
-			G_ResetViews();
+			G_ResetViews(4);
 
 			return true;
 		}
@@ -2057,7 +2093,16 @@ static INT32 G_FindView(INT32 startview)
 		if (!demoplayback && startview == consoleplayer)
 			break; // End loop
 
-		if (startview == displayplayer || startview == secondarydisplayplayer || startview == thirddisplayplayer || startview == fourthdisplayplayer)
+		if (startview == displayplayer)
+			continue;
+
+		if (splitscreen && startview == secondarydisplayplayer)
+			continue;
+
+		if (splitscreen >= 2 && startview == thirddisplayplayer)
+			continue;
+
+		if (splitscreen == 3 && startview == fourthdisplayplayer)
 			continue;
 
 		if (!playeringame[startview])
@@ -2115,26 +2160,47 @@ static INT32 G_FindView(INT32 startview)
 // G_ResetViews
 // Ensures all viewpoints are valid
 //
-void G_ResetViews(void)
+void G_ResetViews(UINT8 viewnum)
 {
 	INT32 tempplayer;
 
-	tempplayer = displayplayer;
-	displayplayer = INT32_MAX;
-	displayplayer = G_FindView(tempplayer);
+	if (!viewnum || viewnum == 1)
+	{
+		tempplayer = displayplayer;
+		displayplayer = INT32_MAX;
+		displayplayer = G_FindView(tempplayer);
+	}
 
-	tempplayer = secondarydisplayplayer;
-	secondarydisplayplayer = INT32_MAX;
-	secondarydisplayplayer = G_FindView(tempplayer);
+	if (splitscreen && demoplayback)
+	{
 
-	tempplayer = thirddisplayplayer;
-	thirddisplayplayer = INT32_MAX;
-	thirddisplayplayer = G_FindView(tempplayer);
+		if (!viewnum || viewnum == 2)
+		{
+			tempplayer = secondarydisplayplayer;
+			secondarydisplayplayer = INT32_MAX;
+			secondarydisplayplayer = G_FindView(tempplayer);
+		}
 
-	tempplayer = fourthdisplayplayer;
-	fourthdisplayplayer = INT32_MAX;
-	fourthdisplayplayer = G_FindView(tempplayer);
+		if (splitscreen >= 2)
+		{
+			if (!viewnum || viewnum == 3)
+			{
+				tempplayer = thirddisplayplayer;
+				thirddisplayplayer = INT32_MAX;
+				thirddisplayplayer = G_FindView(tempplayer);
+			}
 
+			if (splitscreen == 3)
+			{
+				if (!viewnum || viewnum == 4)
+				{
+					tempplayer = fourthdisplayplayer;
+					fourthdisplayplayer = INT32_MAX;
+					fourthdisplayplayer = G_FindView(tempplayer);
+				}
+			}
+		}
+	}
 	if (demoplayback)
 		consoleplayer = displayplayer;
 }
@@ -6246,8 +6312,8 @@ void G_DoPlayDemo(char *defdemoname)
 			}
 
 			if (!playeringame[displayplayer] || players[displayplayer].spectator)
-				displayplayer = consoleplayer = p;
-			else if (!spectator && splitscreen < 3) {
+				displayplayer = consoleplayer = secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = p;
+			/*else if (!spectator && splitscreen < 3) {
 				if (splitscreen == 0) {
 					splitscreen = 1;
 					secondarydisplayplayer = p;
@@ -6258,7 +6324,7 @@ void G_DoPlayDemo(char *defdemoname)
 					splitscreen = 3;
 					fourthdisplayplayer = p;
 				}
-			}
+			}*/
 			playeringame[p] = true;
 			players[p].spectator = spectator;
 
@@ -6288,6 +6354,7 @@ void G_DoPlayDemo(char *defdemoname)
 			p = READUINT8(demo_p);
 		}
 
+		splitscreen = 0;
 		R_ExecuteSetViewSize();
 	}
 
