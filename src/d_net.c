@@ -903,7 +903,7 @@ static void DebugPrintpacket(const char *header)
 				(UINT32)ExpandTics(netbuffer->u.clientpak.client_tic),
 				(UINT32)ExpandTics (netbuffer->u.clientpak.resendfrom));
 			break;
-		case PT_WIPETIME:
+		case PT_BASICKEEPALIVE:
 			fprintf(debugfile, "    wipetime\n");
 			break;
 		case PT_TEXTCMD:

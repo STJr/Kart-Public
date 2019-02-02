@@ -71,7 +71,7 @@ typedef enum
 	PT_CLIENT3MIS,
 	PT_CLIENT4CMD,    // 4P
 	PT_CLIENT4MIS,
-	PT_WIPETIME,      // Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
+	PT_BASICKEEPALIVE,// Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
 
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.

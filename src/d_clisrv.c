@@ -4083,7 +4083,7 @@ FILESTAMP
 			else if (resynch_score[node])
 				--resynch_score[node];
 			break;
-		case PT_WIPETIME:
+		case PT_BASICKEEPALIVE:
 			if (client)
 				break;
 
@@ -4601,11 +4601,11 @@ static INT16 Consistancy(void)
 	return (INT16)(ret & 0xFFFF);
 }
 
-// confusing, but this DOESN'T send PT_NODEKEEPALIVE, it sends PT_WIPETIME
+// confusing, but this DOESN'T send PT_NODEKEEPALIVE, it sends PT_BASICKEEPALIVE
 // used during wipes to tell the server that a node is still connected
 static void CL_SendClientKeepAlive(void)
 {
-	netbuffer->packettype = PT_WIPETIME;
+	netbuffer->packettype = PT_BASICKEEPALIVE;
 
 	HSendPacket(servernode, false, 0, 0);
 }
