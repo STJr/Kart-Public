@@ -1068,6 +1068,26 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		|| (mobj2->player && mobj2->player->kartstuff[k_respawn]))
 		return;
 
+	{ // Don't bump if you're flashing
+		INT32 flash;
+
+		flash = K_GetKartFlashing(mobj1->player);
+		if (mobj1->player && mobj1->player->powers[pw_flashing] > 0 && mobj1->player->powers[pw_flashing] < flash)
+		{
+			if (mobj1->player->powers[pw_flashing] < flash-1)
+				mobj1->player->powers[pw_flashing]++;
+			return;
+		}
+
+		flash = K_GetKartFlashing(mobj2->player);
+		if (mobj2->player && mobj2->player->powers[pw_flashing] > 0 && mobj2->player->powers[pw_flashing] < flash)
+		{
+			if (mobj2->player->powers[pw_flashing] < flash-1)
+				mobj2->player->powers[pw_flashing]++;
+			return;
+		}
+	}
+
 	// Don't bump if you've recently bumped
 	if (mobj1->player && mobj1->player->kartstuff[k_justbumped])
 	{
@@ -1219,9 +1239,8 @@ static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
 	for (i = 2; i < 5; i++)
 	{
 		if ((sec2 && GETSECSPECIAL(sec2->special, 1) == i)
-			|| (P_IsObjectOnRealGround(mo, sec)
-			&& GETSECSPECIAL(sec->special, 1) == i))
-			return i;
+			|| (P_IsObjectOnRealGround(mo, sec) && GETSECSPECIAL(sec->special, 1) == i))
+			return i-1;
 	}
 
 	return 0;
@@ -1238,19 +1257,9 @@ static void K_UpdateOffroad(player_t *player)
 	fixed_t offroad;
 	sector_t *nextsector = R_PointInSubsector(
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
+	UINT8 offroadstrength = K_CheckOffroadCollide(player->mo, nextsector);
 
-	fixed_t offroadstrength = 0;
-
-	if (K_CheckOffroadCollide(player->mo, nextsector) == 2)	// Weak Offroad
-		offroadstrength = 1;
-	else if (K_CheckOffroadCollide(player->mo, nextsector) == 3)	// Mid Offroad
-		offroadstrength = 2;
-	else if (K_CheckOffroadCollide(player->mo, nextsector) == 4)	// Strong Offroad
-		offroadstrength = 3;
-
-	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
-	//if ((nextsector->special & 256) && nextsector->special != 768
-	//	&& nextsector->special != 1024 && nextsector->special != 4864)
+	// If you are in offroad, a timer starts.
 	if (offroadstrength)
 	{
 		if (K_CheckOffroadCollide(player->mo, player->mo->subsector->sector) && player->kartstuff[k_offroad] == 0)
@@ -1258,7 +1267,7 @@ static void K_UpdateOffroad(player_t *player)
 
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			offroad = (FRACUNIT * offroadstrength) / (TICRATE/2);
+			offroad = (offroadstrength << FRACBITS) / (TICRATE/2);
 
 			//if (player->kartstuff[k_growshrinktimer] > 1) // grow slows down half as fast
 			//	offroad /= 2;
@@ -1266,8 +1275,8 @@ static void K_UpdateOffroad(player_t *player)
 			player->kartstuff[k_offroad] += offroad;
 		}
 
-		if (player->kartstuff[k_offroad] > FRACUNIT*offroadstrength)
-			player->kartstuff[k_offroad] = FRACUNIT*offroadstrength;
+		if (player->kartstuff[k_offroad] > (offroadstrength << FRACBITS))
+			player->kartstuff[k_offroad] = (offroadstrength << FRACBITS);
 	}
 	else
 		player->kartstuff[k_offroad] = 0;
@@ -1617,10 +1626,8 @@ static void K_GetKartBoostPower(player_t *player)
 		&& player->kartstuff[k_offroad] >= 0)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_itemtype] == KITEM_KITCHENSINK)
-		boostpower = max((TICRATE/2), (5*TICRATE)-(player->kartstuff[k_bananadrag]/2))*boostpower/(5*TICRATE);
-	else if (player->kartstuff[k_bananadrag] > TICRATE)
-		boostpower = 4*boostpower/5;
+	if (player->kartstuff[k_bananadrag] > TICRATE)
+		boostpower = (4*boostpower)/5;
 
 	// Banana drag/offroad dust
 	if (boostpower < FRACUNIT
@@ -2502,7 +2509,17 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t an, I
 			break;
 		case MT_JAWZ:
 			if (source && source->player)
+			{
+				INT32 lasttarg = source->player->kartstuff[k_lastjawztarget];
 				th->cvmem = source->player->skincolor;
+				if ((lasttarg >= 0 && lasttarg < MAXPLAYERS)
+					&& playeringame[lasttarg]
+					&& !players[lasttarg].spectator
+					&& players[lasttarg].mo)
+				{
+					P_SetTarget(&th->tracer, players[lasttarg].mo);
+				}
+			}
 			else
 				th->cvmem = SKINCOLOR_KETCHUP;
 			/* FALLTHRU */
@@ -3626,6 +3643,7 @@ static void K_MoveHeldObjects(player_t *player)
 		case MT_JAWZ_SHIELD:
 			{
 				mobj_t *cur = player->mo->hnext;
+				fixed_t speed = ((8 - min(4, player->kartstuff[k_itemamount])) * cur->info->speed) / 7;
 
 				player->kartstuff[k_bananadrag] = 0; // Just to make sure
 
@@ -3643,10 +3661,10 @@ static void K_MoveHeldObjects(player_t *player)
 					cur->color = player->skincolor;
 
 					cur->angle -= ANGLE_90;
-					cur->angle += FixedAngle(cur->info->speed);
+					cur->angle += FixedAngle(speed);
 
 					if (cur->extravalue1 < radius)
-						cur->extravalue1 += FixedMul(P_AproxDistance(cur->extravalue1, radius), FRACUNIT/12);
+						cur->extravalue1 += P_AproxDistance(cur->extravalue1, radius) / 12;
 					if (cur->extravalue1 > radius)
 						cur->extravalue1 = radius;
 
@@ -3906,13 +3924,14 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 		if (thisang > ANGLE_180)
 			thisang = InvAngle(thisang);
 
-		if (thisang > ANGLE_45) // Don't go for people who are behind you
-			continue;
-
 		// Jawz only go after the person directly ahead of you in race... sort of literally now!
 		if (G_RaceGametype())
 		{
-			if (player->kartstuff[k_position] >= source->kartstuff[k_position]) // Don't pay attention to people behind you
+			// Don't go for people who are behind you
+			if (thisang > ANGLE_67h)
+				continue;
+			// Don't pay attention to people who aren't above your position
+			if (player->kartstuff[k_position] >= source->kartstuff[k_position])
 				continue;
 			if ((best == -1) || (player->kartstuff[k_position] > best))
 			{
@@ -3925,6 +3944,11 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 			fixed_t thisdist;
 			fixed_t thisavg;
 
+			// Don't go for people who are behind you
+			if (thisang > ANGLE_45)
+				continue;
+
+			// Don't pay attention to dead players
 			if (player->kartstuff[k_bumper] <= 0)
 				continue;
 
@@ -4438,12 +4462,22 @@ void K_KartPlayerAfterThink(player_t *player)
 	// Jawz reticule (seeking)
 	if (player->kartstuff[k_itemtype] == KITEM_JAWZ && player->kartstuff[k_itemheld])
 	{
-		player_t *targ = K_FindJawzTarget(player->mo, player);
+		INT32 lasttarg = player->kartstuff[k_lastjawztarget];
+		player_t *targ;
 		mobj_t *ret;
 
-		if (!targ)
+		if (player->kartstuff[k_jawztargetdelay] && playeringame[lasttarg] && !players[lasttarg].spectator)
+		{
+			targ = &players[lasttarg];
+			player->kartstuff[k_jawztargetdelay]--;
+		}
+		else
+			targ = K_FindJawzTarget(player->mo, player);
+
+		if (!targ || !targ->mo || P_MobjWasRemoved(targ->mo))
 		{
 			player->kartstuff[k_lastjawztarget] = -1;
+			player->kartstuff[k_jawztargetdelay] = 0;
 			return;
 		}
 
@@ -4453,7 +4487,7 @@ void K_KartPlayerAfterThink(player_t *player)
 		ret->tics = 1;
 		ret->color = player->skincolor;
 
-		if (targ-players != player->kartstuff[k_lastjawztarget])
+		if (targ-players != lasttarg)
 		{
 			if (P_IsLocalPlayer(player) || P_IsLocalPlayer(targ))
 				S_StartSound(NULL, sfx_s3k89);
@@ -4461,11 +4495,13 @@ void K_KartPlayerAfterThink(player_t *player)
 				S_StartSound(targ->mo, sfx_s3k89);
 
 			player->kartstuff[k_lastjawztarget] = targ-players;
+			player->kartstuff[k_jawztargetdelay] = 5;
 		}
 	}
 	else
 	{
 		player->kartstuff[k_lastjawztarget] = -1;
+		player->kartstuff[k_jawztargetdelay] = 0;
 	}
 }
 
@@ -4667,9 +4703,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 		}
 
 		// Disable drift-sparks until you're going fast enough
-		if (player->kartstuff[k_getsparks] == 0)
+		if (player->kartstuff[k_getsparks] == 0 || player->kartstuff[k_offroad])
 			driftadditive = 0;
-		if (player->speed > minspeed*2 && !player->kartstuff[k_offroad])
+		if (player->speed > minspeed*2)
 			player->kartstuff[k_getsparks] = 1;
 
 		// This spawns the drift sparks
@@ -5109,7 +5145,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
-							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
+							newangle = (player->mo->angle + ANGLE_157h) + FixedAngle(((360 / player->kartstuff[k_itemamount]) * moloop) << FRACBITS) + ANGLE_90;
 							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_ORBINAUT_SHIELD);
 							if (!mo)
 							{
@@ -5150,7 +5186,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 						for (moloop = 0; moloop < player->kartstuff[k_itemamount]; moloop++)
 						{
-							newangle = FixedAngle(((360/player->kartstuff[k_itemamount])*moloop)*FRACUNIT) + ANGLE_90;
+							newangle = (player->mo->angle + ANGLE_157h) + FixedAngle(((360 / player->kartstuff[k_itemamount]) * moloop) << FRACBITS) + ANGLE_90;
 							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_JAWZ_SHIELD);
 							if (!mo)
 							{
