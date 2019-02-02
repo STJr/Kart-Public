@@ -3589,6 +3589,8 @@ static void G_DoCompleted(void)
 
 	S_StopSounds();
 
+	if (demoplayback) goto demointermission;
+
 	prevmap = (INT16)(gamemap-1);
 
 	// go to next level
@@ -3693,11 +3695,14 @@ static void G_DoCompleted(void)
 			nextmap = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, false, NULL);
 	}
 
+
 	// We are committed to this map now.
 	// We may as well allocate its header if it doesn't exist
 	// (That is, if it's a real map)
 	if (nextmap < NUMMAPS && !mapheaderinfo[nextmap])
 		P_AllocMapHeader(nextmap);
+
+demointermission:
 
 	if (skipstats && !modeattacking) // Don't skip stats if we're in record attack
 		G_AfterIntermission();
@@ -3713,6 +3718,12 @@ void G_AfterIntermission(void)
 	HU_ClearCEcho();
 	//G_NextLevel();
 
+	if (demoplayback)
+	{
+		G_StopDemo();
+		D_StartTitle();
+		return;
+	}
 	if (modeattacking) // End the run.
 	{
 		M_EndModeAttackRun();
@@ -4782,8 +4793,6 @@ void G_ReadDemoExtraData(void)
 				K_CheckBumpers(); // SRB2Kart
 			else if (G_RaceGametype())
 				P_CheckRacers(); // also SRB2Kart
-
-			CONS_Printf("Change state @ %d\n", leveltime);
 		}
 
 
@@ -6892,12 +6901,18 @@ boolean G_CheckDemoStatus(void)
 	{
 		if (singledemo)
 			I_Quit();
-		G_StopDemo();
 
-		if (modeattacking)
-			M_EndModeAttackRun();
+		if (multiplayer)
+			G_ExitLevel();
 		else
-			D_AdvanceDemo();
+		{
+			G_StopDemo();
+
+			if (modeattacking)
+				M_EndModeAttackRun();
+			else
+				D_AdvanceDemo();
+		}
 
 		return true;
 	}

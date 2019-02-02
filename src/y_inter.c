@@ -360,7 +360,7 @@ void Y_IntermissionDrawer(void)
 	else
 		hilicol = ((intertype == int_race) ? V_SKYMAP : V_REDMAP);
 
-	if (sorttic != -1 && intertic > sorttic)
+	if (sorttic != -1 && intertic > sorttic && !demoplayback)
 	{
 		INT32 count = (intertic - sorttic);
 
@@ -540,9 +540,16 @@ void Y_IntermissionDrawer(void)
 dotimer:
 	if (timer)
 	{
+		char *string;
 		INT32 tickdown = (timer+1)/TICRATE;
+
+		if (multiplayer && demoplayback)
+			string = va("Replay ends in %d", tickdown);
+		else
+			string = va("%s starts in %d", cv_advancemap.string, tickdown);
+
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
-			va("%s starts in %d", cv_advancemap.string, tickdown));
+			string);
 	}
 
 	// Make it obvious that scrambling is happening next round.
@@ -603,7 +610,7 @@ void Y_Ticker(void)
 		{
 			if (sorttic == -1)
 				sorttic = intertic + max((cv_inttime.value/2)-2, 2)*TICRATE; // 8 second pause after match results
-			else
+			else if (!(multiplayer && demoplayback)) // Don't advance to rankings in replays
 			{
 				if (!data.match.rankingsmode && (intertic >= sorttic + 8))
 					Y_CalculateMatchData(1, Y_CompareRank);

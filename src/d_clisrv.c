@@ -4919,7 +4919,7 @@ void TryRunTics(tic_t realtics)
 
 	if (demoplayback)
 	{
-		neededtic = gametic + (realtics * cv_playbackspeed.value);
+		neededtic = gametic + realtics * (gamestate == GS_LEVEL ? cv_playbackspeed.value : 1);
 		// start a game after a demo
 		maketic += realtics;
 		firstticstosend = maketic;
