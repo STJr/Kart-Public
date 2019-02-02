@@ -226,7 +226,7 @@ boolean G_GetRetryFlag(void);
 void G_LoadGameData(void);
 void G_LoadGameSettings(void);
 
-void G_SetGameModified(boolean silent);
+void G_SetGameModified(boolean silent, boolean major);
 
 void G_SetGamestate(gamestate_t newstate);
 

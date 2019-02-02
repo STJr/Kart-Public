@@ -15449,7 +15449,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_ORBINAUT_SHIELDDEAD, // deathstate
 		S_NULL,         // xdeathstate
 		sfx_None,       // deathsound
-		10*FRACUNIT,	// speed
+		4*FRACUNIT,     // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset
@@ -15530,7 +15530,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		S_JAWZ_DEAD1,   // deathstate
 		S_JAWZ_DEAD2,   // xdeathstate
 		sfx_None,       // deathsound
-		10*FRACUNIT,    // speed
+		4*FRACUNIT,     // speed
 		16*FRACUNIT,    // radius
 		32*FRACUNIT,    // height
 		0,              // display offset

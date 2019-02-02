@@ -21,6 +21,7 @@
 #include "w_wad.h"
 #include "m_menu.h"
 #include "m_misc.h"
+#include "filesrch.h" // for refreshdirmenu
 #include "f_finale.h"
 #include "dehacked.h"
 #include "st_stuff.h"
@@ -78,8 +79,6 @@ static powertype_t get_power(const char *word);
 
 boolean deh_loaded = false;
 static int dbg_line;
-
-static boolean gamedataadded = false;
 
 #ifdef DELFILE
 typedef struct undehacked_s
@@ -602,6 +601,14 @@ done:
 	Z_Free(s);
 }
 
+static int freeslotusage[2][2] = {{0, 0}, {0, 0}}; // [S_, MT_][max, previous .wad's max]
+
+void DEH_UpdateMaxFreeslots(void)
+{
+	freeslotusage[0][1] = freeslotusage[0][0];
+	freeslotusage[1][1] = freeslotusage[1][0];
+}
+
 // TODO: Figure out how to do undolines for this....
 // TODO: Warnings for running out of freeslots
 static void readfreeslots(MYFILE *f)
@@ -664,6 +671,7 @@ static void readfreeslots(MYFILE *f)
 					if (!FREE_STATES[i]) {
 						FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_STATES[i],word);
+						freeslotusage[0][0]++;
 						break;
 					}
 			}
@@ -673,6 +681,7 @@ static void readfreeslots(MYFILE *f)
 					if (!FREE_MOBJS[i]) {
 						FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_MOBJS[i],word);
+						freeslotusage[1][0]++;
 						break;
 					}
 			}
@@ -3139,6 +3148,7 @@ static void readmaincfg(MYFILE *f)
 				strlcpy(gamedatafilename, word2, sizeof (gamedatafilename));
 				strlwr(gamedatafilename);
 				savemoddata = true;
+				majormods = false;
 
 				// Also save a time attack folder
 				filenamelen = strlen(gamedatafilename)-4;  // Strip off the extension
@@ -3151,7 +3161,7 @@ static void readmaincfg(MYFILE *f)
 				// can't use sprintf since there is %u in savegamename
 				strcatbf(savegamename, srb2home, PATHSEP);
 
-				gamedataadded = true;
+				refreshdirmenu |= REFRESHDIR_GAMEDATA;
 			}
 			else if (fastcmp(word, "RESETDATA"))
 			{
@@ -3382,8 +3392,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 	for (i = 0; i < NUMSFX; i++)
 		savesfxnames[i] = S_sfx[i].name;
 
-	gamedataadded = false;
-
 	// it doesn't test the version of SRB2 and version of dehacked file
 	dbg_line = -1; // start at -1 so the first line is 0.
 	while (!myfeof(f))
@@ -3417,10 +3425,12 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			if (fastcmp(word, "FREESLOT"))
 			{
 				readfreeslots(f);
+				// This is not a major mod.
 				continue;
 			}
 			else if (fastcmp(word, "MAINCFG"))
 			{
+				G_SetGameModified(multiplayer, true);
 				readmaincfg(f);
 				DEH_WriteUndoline(word, "", UNDO_HEADER);
 				continue;
@@ -3429,6 +3439,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			{
 				readwipes(f);
 				DEH_WriteUndoline(word, "", UNDO_HEADER);
+				// This is not a major mod.
 				continue;
 			}
 			word2 = strtok(NULL, " ");
@@ -3449,6 +3460,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					ignorelines(f);
 				}
 				DEH_WriteUndoline(word, word2, UNDO_HEADER);
+				// This is not a major mod.
 				continue;
 			}
 			if (word2)
@@ -3462,19 +3474,25 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					// Read texture from spec file.
 					readtexture(f, word2);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					// This is not a major mod.
 				}
 				else if (fastcmp(word, "PATCH"))
 				{
 					// Read patch from spec file.
 					readpatch(f, word2, wad);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					// This is not a major mod.
 				}
 				else if (fastcmp(word, "THING") || fastcmp(word, "MOBJ") || fastcmp(word, "OBJECT"))
 				{
 					if (i == 0 && word2[0] != '0') // If word2 isn't a number
 						i = get_mobjtype(word2); // find a thing by name
 					if (i < NUMMOBJTYPES && i >= 0)
+					{
+						if (i < (MT_FIRSTFREESLOT+freeslotusage[1][1]))
+							G_SetGameModified(multiplayer, true); // affecting something earlier than the first freeslot allocated in this .wad? DENIED
 						readthing(f, i);
+					}
 					else
 					{
 						deh_warning("Thing %d out of range (0 - %d)", i, NUMMOBJTYPES-1);
@@ -3485,6 +3503,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 /*				else if (fastcmp(word, "ANIMTEX"))
 				{
 					readAnimTex(f, i);
+					// This is not a major mod.
 				}*/
 				else if (fastcmp(word, "LIGHT"))
 				{
@@ -3498,6 +3517,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					// This is not a major mod.
 #endif
 				}
 				else if (fastcmp(word, "SPRITE"))
@@ -3513,6 +3533,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					// This is not a major mod.
 #endif
 				}
 				else if (fastcmp(word, "LEVEL"))
@@ -3525,7 +3546,11 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						i = M_MapNumber(word2[0], word2[1]);
 
 					if (i > 0 && i <= NUMMAPS)
+					{
+						if (mapheaderinfo[i])
+							G_SetGameModified(multiplayer, true); // only mark as a major mod if it replaces an already-existing mapheaderinfo
 						readlevelheader(f, i);
+					}
 					else
 					{
 						deh_warning("Level number %d out of range (1 - %d)", i, NUMMAPS);
@@ -3543,13 +3568,18 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					//G_SetGameModified(multiplayer, true); -- might have to reconsider in a future update
 				}
 				else if (fastcmp(word, "FRAME") || fastcmp(word, "STATE"))
 				{
 					if (i == 0 && word2[0] != '0') // If word2 isn't a number
 						i = get_state(word2); // find a state by name
 					if (i < NUMSTATES && i >= 0)
+					{
+						if (i < (S_FIRSTFREESLOT+freeslotusage[0][1]))
+							G_SetGameModified(multiplayer, true); // affecting something earlier than the first freeslot allocated in this .wad? DENIED
 						readframe(f, i);
+					}
 					else
 					{
 						deh_warning("Frame %d out of range (0 - %d)", i, NUMSTATES-1);
@@ -3578,6 +3608,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					else
 						deh_warning("pointer (Frame %d) : missing ')'", i);
+					G_SetGameModified(multiplayer, true);
 				}*/
 				else if (fastcmp(word, "SOUND"))
 				{
@@ -3591,6 +3622,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					// This is not a major mod.
 				}
 /*				else if (fastcmp(word, "SPRITE"))
 				{
@@ -3611,6 +3643,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					}
 					else
 						deh_warning("Sprite %d doesn't exist",i);
+					// This is not a major mod.
 				}*/
 				else if (fastcmp(word, "HUDITEM"))
 				{
@@ -3624,10 +3657,11 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 						ignorelines(f);
 					}
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+					// This is not a major mod.
 				}
 				else if (fastcmp(word, "EMBLEM"))
 				{
-					if (!gamedataadded)
+					if (!(refreshdirmenu & REFRESHDIR_GAMEDATA))
 					{
 						deh_warning("You must define a custom gamedata to use \"%s\"", word);
 						ignorelines(f);
@@ -3647,7 +3681,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				}
 				else if (fastcmp(word, "EXTRAEMBLEM"))
 				{
-					if (!gamedataadded)
+					if (!(refreshdirmenu & REFRESHDIR_GAMEDATA))
 					{
 						deh_warning("You must define a custom gamedata to use \"%s\"", word);
 						ignorelines(f);
@@ -3667,7 +3701,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				}
 				else if (fastcmp(word, "UNLOCKABLE"))
 				{
-					if (!gamedataadded)
+					if (!(refreshdirmenu & REFRESHDIR_GAMEDATA))
 					{
 						deh_warning("You must define a custom gamedata to use \"%s\"", word);
 						ignorelines(f);
@@ -3683,7 +3717,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				}
 				else if (fastcmp(word, "CONDITIONSET"))
 				{
-					if (!gamedataadded)
+					if (!(refreshdirmenu & REFRESHDIR_GAMEDATA))
 					{
 						deh_warning("You must define a custom gamedata to use \"%s\"", word);
 						ignorelines(f);
@@ -3718,7 +3752,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				{
 					boolean clearall = (fastcmp(word2, "ALL"));
 
-					if (!gamedataadded)
+					if (!(refreshdirmenu & REFRESHDIR_GAMEDATA))
 					{
 						deh_warning("You must define a custom gamedata to use \"%s\"", word);
 						continue;
@@ -3755,8 +3789,8 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 			deh_warning("No word in this line: %s", s);
 	} // end while
 
-	if (gamedataadded)
-		G_LoadGameData();
+	/*if (gamedataadded) -- REFRESHDIR_GAMEDATA murdered this
+		G_LoadGameData();*/
 
 	dbg_line = -1;
 	if (deh_num_warning)
@@ -8299,7 +8333,8 @@ static const char *const KARTSTUFF_LIST[] = {
 
 	"ITEMBLINK",
 	"ITEMBLINKMODE",
-	"GETSPARKS"
+	"GETSPARKS",
+	"JAWZTARGETDELAY"
 };
 
 static const char *const HUDITEMS_LIST[] = {
@@ -9356,6 +9391,7 @@ static inline int lib_freeslot(lua_State *L)
 					CONS_Printf("State S_%s allocated.\n",word);
 					FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_STATES[i],word);
+					freeslotusage[0][0]++;
 					lua_pushinteger(L, i);
 					r++;
 					break;
@@ -9371,6 +9407,7 @@ static inline int lib_freeslot(lua_State *L)
 					CONS_Printf("MobjType MT_%s allocated.\n",word);
 					FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_MOBJS[i],word);
+					freeslotusage[1][0]++;
 					lua_pushinteger(L, i);
 					r++;
 					break;
@@ -9739,6 +9776,9 @@ static inline int lib_getenum(lua_State *L)
 		return 1;
 	} else if (fastcmp(word,"modifiedgame")) {
 		lua_pushboolean(L, modifiedgame && !savemoddata);
+		return 1;
+	} else if (fastcmp(word,"majormods")) {
+		lua_pushboolean(L, majormods);
 		return 1;
 	} else if (fastcmp(word,"menuactive")) {
 		lua_pushboolean(L, menuactive);
