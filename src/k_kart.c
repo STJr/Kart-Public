@@ -1239,9 +1239,8 @@ static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
 	for (i = 2; i < 5; i++)
 	{
 		if ((sec2 && GETSECSPECIAL(sec2->special, 1) == i)
-			|| (P_IsObjectOnRealGround(mo, sec)
-			&& GETSECSPECIAL(sec->special, 1) == i))
-			return i;
+			|| (P_IsObjectOnRealGround(mo, sec) && GETSECSPECIAL(sec->special, 1) == i))
+			return i-1;
 	}
 
 	return 0;
@@ -1258,19 +1257,9 @@ static void K_UpdateOffroad(player_t *player)
 	fixed_t offroad;
 	sector_t *nextsector = R_PointInSubsector(
 		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
+	UINT8 offroadstrength = K_CheckOffroadCollide(player->mo, nextsector);
 
-	fixed_t offroadstrength = 0;
-
-	if (K_CheckOffroadCollide(player->mo, nextsector) == 2)	// Weak Offroad
-		offroadstrength = 1;
-	else if (K_CheckOffroadCollide(player->mo, nextsector) == 3)	// Mid Offroad
-		offroadstrength = 2;
-	else if (K_CheckOffroadCollide(player->mo, nextsector) == 4)	// Strong Offroad
-		offroadstrength = 3;
-
-	// If you are offroad, a timer starts. Depending on your weight value, the timer increments differently.
-	//if ((nextsector->special & 256) && nextsector->special != 768
-	//	&& nextsector->special != 1024 && nextsector->special != 4864)
+	// If you are in offroad, a timer starts.
 	if (offroadstrength)
 	{
 		if (K_CheckOffroadCollide(player->mo, player->mo->subsector->sector) && player->kartstuff[k_offroad] == 0)
@@ -1278,7 +1267,7 @@ static void K_UpdateOffroad(player_t *player)
 
 		if (player->kartstuff[k_offroad] > 0)
 		{
-			offroad = (FRACUNIT * offroadstrength) / (TICRATE/2);
+			offroad = (offroadstrength << FRACBITS) / (TICRATE/2);
 
 			//if (player->kartstuff[k_growshrinktimer] > 1) // grow slows down half as fast
 			//	offroad /= 2;
@@ -1286,8 +1275,8 @@ static void K_UpdateOffroad(player_t *player)
 			player->kartstuff[k_offroad] += offroad;
 		}
 
-		if (player->kartstuff[k_offroad] > FRACUNIT*offroadstrength)
-			player->kartstuff[k_offroad] = FRACUNIT*offroadstrength;
+		if (player->kartstuff[k_offroad] > (offroadstrength << FRACBITS))
+			player->kartstuff[k_offroad] = (offroadstrength << FRACBITS);
 	}
 	else
 		player->kartstuff[k_offroad] = 0;
