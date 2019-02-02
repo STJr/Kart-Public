@@ -4670,7 +4670,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 			player->kartstuff[k_driftend] = 0;
 	}
 
-	
+
 
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
@@ -6333,9 +6333,9 @@ INT32 K_calcSplitFlags(INT32 snapflags)
 		}
 		else if (splitscreen > 1)
 		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+			if (stplyr == &players[thirddisplayplayer] || (splitscreen == 3 && stplyr == &players[fourthdisplayplayer]))
 				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+			if (stplyr == &players[secondarydisplayplayer] || (splitscreen == 3 && stplyr == &players[fourthdisplayplayer]))
 				splitflags |= V_HORZSCREEN;
 		}
 	}
