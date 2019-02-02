@@ -1637,10 +1637,8 @@ static void K_GetKartBoostPower(player_t *player)
 		&& player->kartstuff[k_offroad] >= 0)
 		boostpower = FixedDiv(boostpower, player->kartstuff[k_offroad] + FRACUNIT);
 
-	if (player->kartstuff[k_itemtype] == KITEM_KITCHENSINK)
-		boostpower = max((TICRATE/2), (5*TICRATE)-(player->kartstuff[k_bananadrag]/2))*boostpower/(5*TICRATE);
-	else if (player->kartstuff[k_bananadrag] > TICRATE)
-		boostpower = 4*boostpower/5;
+	if (player->kartstuff[k_bananadrag] > TICRATE)
+		boostpower = (4*boostpower)/5;
 
 	// Banana drag/offroad dust
 	if (boostpower < FRACUNIT
@@ -4716,9 +4714,9 @@ static void K_KartDrift(player_t *player, boolean onground)
 		}
 
 		// Disable drift-sparks until you're going fast enough
-		if (player->kartstuff[k_getsparks] == 0)
+		if (player->kartstuff[k_getsparks] == 0 || player->kartstuff[k_offroad])
 			driftadditive = 0;
-		if (player->speed > minspeed*2 && !player->kartstuff[k_offroad])
+		if (player->speed > minspeed*2)
 			player->kartstuff[k_getsparks] = 1;
 
 		// This spawns the drift sparks

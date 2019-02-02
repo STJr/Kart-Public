@@ -1408,10 +1408,8 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_JAWZ:
 				case MT_JAWZ_DUD:
 				case MT_SSMINE:
-					gravityadd = (5*gravityadd)/2;
-					break;
 				case MT_SINK:
-					gravityadd = (5*gravityadd); // Double gravity
+					gravityadd = (5*gravityadd)/2;
 					break;
 				case MT_SIGN:
 					gravityadd /= 8;
