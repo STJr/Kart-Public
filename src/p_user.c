@@ -1147,6 +1147,9 @@ boolean P_EndingMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return false;
 
+	if (multiplayer && demoplayback) // Don't play this in multiplayer replays
+		return false;
+
 	// Event - Level Finish
 	// Check for if this is valid or not
 	if (splitscreen)
