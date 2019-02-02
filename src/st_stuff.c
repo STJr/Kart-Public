@@ -1894,15 +1894,39 @@ static void ST_overlayDrawer(void)
 			V_DrawScaledPatch(hudinfo[HUD_GRAVBOOTSICO].x, STRINGY(hudinfo[HUD_GRAVBOOTSICO].y), V_SNAPTORIGHT, gravboots);
 		*/
 
-		if(!P_IsLocalPlayer(stplyr))
+		if (!(multiplayer && demoplayback))
 		{
-			/*char name[MAXPLAYERNAME+1];
-			// shorten the name if its more than twelve characters.
-			strlcpy(name, player_names[stplyr-players], 13);*/
+			if(!P_IsLocalPlayer(stplyr))
+			{
+				/*char name[MAXPLAYERNAME+1];
+				// shorten the name if its more than twelve characters.
+				strlcpy(name, player_names[stplyr-players], 13);*/
 
-			// Show name of player being displayed
-			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Viewpoint:"));
-			V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[stplyr-players]);
+				// Show name of player being displayed
+				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Viewpoint:"));
+				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[stplyr-players]);
+			}
+		}
+		else
+		{
+
+			if (!splitscreen)
+			{
+				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, V_HUDTRANSHALF, M_GetText("Viewpoint:"));
+				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_HUDTRANSHALF|V_ALLOWLOWERCASE, player_names[stplyr-players]);
+			}
+			else if (splitscreen == 1)
+			{
+				char name[MAXPLAYERNAME+12];
+				sprintf(name, "VIEWPOINT: %s", player_names[stplyr-players]);
+
+				INT32 y = (stplyr == &players[displayplayer]) ? 8 : BASEVIDHEIGHT/2-16;
+				V_DrawRightAlignedThinString(BASEVIDWIDTH-40, y, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOBOTTOM|V_SNAPTORIGHT), name);
+			}
+			else if (splitscreen)
+			{
+				V_DrawCenteredThinString(BASEVIDWIDTH/4, 4, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOTOP), player_names[stplyr-players]);
+			}
 		}
 
 		// This is where we draw all the fun cheese if you have the chasecam off!

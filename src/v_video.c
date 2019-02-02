@@ -1872,6 +1872,12 @@ void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string)
 	}
 }
 
+void V_DrawCenteredThinString(INT32 x, INT32 y, INT32 option, const char *string)
+{
+	x -= V_ThinStringWidth(string, option)/2;
+	V_DrawThinString(x, y, option, string);
+}
+
 void V_DrawRightAlignedThinString(INT32 x, INT32 y, INT32 option, const char *string)
 {
 	x -= V_ThinStringWidth(string, option);
@@ -2305,7 +2311,7 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		}
 	}
 
-	
+
 	return w;
 }
 
