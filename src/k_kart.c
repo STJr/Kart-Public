@@ -8348,14 +8348,6 @@ void K_drawKartHUD(void)
 		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		K_drawKartFirstPerson();
 
-/*	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_minimap))
-#endif
-		K_drawKartMinimap();
-	}*/
-
 	// Draw full screen stuff that turns off the rest of the HUD
 	if (mapreset && stplyr == &players[displayplayer])
 	{
@@ -8371,7 +8363,9 @@ void K_drawKartHUD(void)
 		&& stplyr->playerstate == PST_LIVE)))
 	{
 		K_drawBattleFullscreen();
-		return;
+		if (!splitscreen)
+			return;
+		isfreeplay = true; // variable reuse, since isfreeplay will not be otherwise set until after everything we want to happen
 	}
 
 	// Draw the CHECK indicator before the other items, so it's overlapped by everything else
@@ -8392,9 +8386,11 @@ void K_drawKartHUD(void)
 #ifdef HAVE_BLUA
 		if (LUA_HudEnabled(hud_minimap))
 #endif
-			K_drawKartMinimap(); // 3P splitscreen is handled above
-
+			K_drawKartMinimap();
 	}
+
+	if (isfreeplay)
+		return;
 
 	// Draw the item window
 #ifdef HAVE_BLUA
