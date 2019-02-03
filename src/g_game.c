@@ -4629,6 +4629,9 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DF_NIGHTSATTACK 0x04 // This demo is from NiGHTS attack and contains its time left, score, and mares!
 #define DF_ATTACKMASK   0x06 // This demo is from ??? attack and contains ???
 #define DF_ATTACKSHIFT  1
+#define DF_GAMETYPEMASK 0x30
+#define DF_GAMESHIFT    4
+#define DF_ENCORE       0x40
 #define DF_MULTIPLAYER  0x80 // This demo contains a dynamic number of players!
 
 #define DEMO_SPECTATOR 0x40
@@ -5767,6 +5770,11 @@ void G_BeginRecording(void)
 	demo_p = demobuffer;
 	demoflags = multiplayer ? DF_MULTIPLAYER : (DF_GHOST|(modeattacking<<DF_ATTACKSHIFT));
 
+	demoflags |= gametype<<DF_GAMESHIFT;
+
+	if (encoremode)
+		demoflags |= DF_ENCORE;
+
 	// Setup header.
 	M_Memcpy(demo_p, DEMOHEADER, 12); demo_p += 12;
 	WRITEUINT8(demo_p,VERSION);
@@ -6205,6 +6213,7 @@ void G_DoPlayDemo(char *defdemoname)
 	demoflags = READUINT8(demo_p);
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
 	multiplayer = !!(demoflags & DF_MULTIPLAYER);
+	gametype = (demoflags & DF_GAMETYPEMASK)>>DF_GAMESHIFT;
 	CON_ToggleOff();
 
 	hu_demotime = UINT32_MAX;
@@ -6368,7 +6377,7 @@ void G_DoPlayDemo(char *defdemoname)
 	}
 
 	P_SetRandSeed(randseed);
-	G_InitNew(false, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
+	G_InitNew(demoflags & DF_ENCORE, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
 
 	if (!multiplayer) {
 		// Set skin
