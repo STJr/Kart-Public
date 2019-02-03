@@ -5795,6 +5795,7 @@ void K_CheckSpectateStatus(void)
 		return;
 
 	// Organize by spectate wait timer
+	if (cv_ingamecap.value)
 	{
 		UINT8 oldrespawnlist[MAXPLAYERS];
 
