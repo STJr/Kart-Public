@@ -3158,9 +3158,13 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
 	if (!demoplayback && multiplayer) {
+// lol sorry
 #include "time.h"
 		static char buf[256];
-		sprintf(buf, "net_replay_test_%d", time(NULL));
+		sprintf(buf, "replay"PATHSEP"online"PATHSEP"%d-%s", time(NULL), G_BuildMapName(gamemap));
+
+		I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
+		I_mkdir(va("%s"PATHSEP"replay"PATHSEP"online", srb2home), 0755);
 		G_RecordDemo(buf);
 	}
 

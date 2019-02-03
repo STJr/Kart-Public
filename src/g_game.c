@@ -5729,7 +5729,7 @@ void G_RecordDemo(const char *name)
 {
 	INT32 maxsize;
 
-	CONS_Printf("Recording demo %s\n", name);
+	CONS_Printf("Recording demo %s.lmp\n", name);
 
 	strcpy(demoname, name);
 	strcat(demoname, ".lmp");
