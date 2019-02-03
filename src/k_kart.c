@@ -8336,6 +8336,7 @@ static void K_drawCheckpointDebugger(void)
 void K_drawKartHUD(void)
 {
 	boolean isfreeplay = false;
+	boolean battlefullscreen = false;
 
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
@@ -8355,42 +8356,42 @@ void K_drawKartHUD(void)
 		return;
 	}
 
-	if ((G_BattleGametype())
+	battlefullscreen = ((G_BattleGametype())
 		&& (stplyr->exiting
 		|| (stplyr->kartstuff[k_bumper] <= 0
 		&& stplyr->kartstuff[k_comebacktimer]
 		&& comeback
-		&& stplyr->playerstate == PST_LIVE)))
+		&& stplyr->playerstate == PST_LIVE)));
+
+	if (!battlefullscreen || splitscreen)
+	{
+		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
+		if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
+			K_drawKartPlayerCheck();
+
+		// Draw WANTED status
+		if (G_BattleGametype())
+		{
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_wanted))
+#endif
+				K_drawKartWanted();
+		}
+
+		if (cv_kartminimap.value && !titledemo)
+		{
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_minimap))
+#endif
+				K_drawKartMinimap();
+		}
+	}
+
+	if (battlefullscreen)
 	{
 		K_drawBattleFullscreen();
-		if (!splitscreen)
-			return;
-		isfreeplay = true; // variable reuse, since isfreeplay will not be otherwise set until after everything we want to happen
-	}
-
-	// Draw the CHECK indicator before the other items, so it's overlapped by everything else
-	if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
-		K_drawKartPlayerCheck();
-
-	// Draw WANTED status
-	if (G_BattleGametype())
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_wanted))
-#endif
-			K_drawKartWanted();
-	}
-
-	if (cv_kartminimap.value && !titledemo)
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_minimap))
-#endif
-			K_drawKartMinimap();
-	}
-
-	if (isfreeplay)
 		return;
+	}
 
 	// Draw the item window
 #ifdef HAVE_BLUA
