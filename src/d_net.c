@@ -904,7 +904,7 @@ static void DebugPrintpacket(const char *header)
 				(UINT32)ExpandTics (netbuffer->u.clientpak.resendfrom));
 			break;
 		case PT_BASICKEEPALIVE:
-			fprintf(debugfile, "    wipetime\n");
+			fprintf(debugfile, "    keep alive\n");
 			break;
 		case PT_TEXTCMD:
 		case PT_TEXTCMD2:
