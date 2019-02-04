@@ -5753,9 +5753,22 @@ void K_CheckBumpers(void)
 void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];
-	UINT8 i, numingame = 0, numjoiners = 0;
+	UINT8 i, j, numingame = 0, numjoiners = 0;
 
-	if (!cv_allowteamchange.value) return;
+	// Maintain spectate wait timer
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
+		if (players[i].spectator && (players[i].pflags & PF_WANTSTOJOIN))
+			players[i].kartstuff[k_spectatewait]++;
+		else
+			players[i].kartstuff[k_spectatewait] = 0;
+	}
+
+	// No one's allowed to join
+	if (!cv_allowteamchange.value)
+		return;
 
 	// Get the number of players in game, and the players to be de-spectated.
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -5766,16 +5779,18 @@ void K_CheckSpectateStatus(void)
 		if (!players[i].spectator)
 		{
 			numingame++;
+			if (cv_ingamecap.value && numingame >= cv_ingamecap.value) // DON'T allow if you've hit the in-game player cap
+				return;
 			if (gamestate != GS_LEVEL) // Allow if you're not in a level
-                continue;
+				continue;
 			if (players[i].exiting) // DON'T allow if anyone's exiting
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
-                continue;
+				continue;
 			if (leveltime > (starttime + 20*TICRATE)) // DON'T allow if the match is 20 seconds in
-                return;
-            if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
-                return;
+				return;
+			if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
+				return;
 			continue;
 		}
 		else if (!(players[i].pflags & PF_WANTSTOJOIN))
@@ -5788,16 +5803,45 @@ void K_CheckSpectateStatus(void)
 	if (!numjoiners)
 		return;
 
-	// Reset the match if you're in an empty server
-	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (numingame < 2 && numingame+numjoiners >= 2))
+	// Organize by spectate wait timer
+	if (cv_ingamecap.value)
 	{
-		S_ChangeMusicInternal("chalng", false); // COME ON
-		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD in the future
+		UINT8 oldrespawnlist[MAXPLAYERS];
+		memcpy(oldrespawnlist, respawnlist, numjoiners);
+		for (i = 0; i < numjoiners; i++)
+		{
+			UINT8 pos = 0;
+			INT32 ispecwait = players[oldrespawnlist[i]].kartstuff[k_spectatewait];
+
+			for (j = 0; j < numjoiners; j++)
+			{
+				INT32 jspecwait = players[oldrespawnlist[j]].kartstuff[k_spectatewait];
+				if (j == i)
+					continue;
+				if (jspecwait > ispecwait)
+					pos++;
+				else if (jspecwait == ispecwait && j < i)
+					pos++;
+			}
+
+			respawnlist[pos] = oldrespawnlist[i];
+		}
 	}
 
 	// Finally, we can de-spectate everyone!
 	for (i = 0; i < numjoiners; i++)
+	{
+		if (cv_ingamecap.value && numingame+i >= cv_ingamecap.value) // Hit the in-game player cap while adding people?
+			break;
 		P_SpectatorJoinGame(&players[respawnlist[i]]);
+	}
+
+	// Reset the match if you're in an empty server
+	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (numingame < 2 && numingame+i >= 2)) // use previous i value
+	{
+		S_ChangeMusicInternal("chalng", false); // COME ON
+		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD
+	}
 }
 
 //}
