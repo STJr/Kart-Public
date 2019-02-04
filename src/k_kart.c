@@ -3021,7 +3021,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				newz = player->mo->z;
 			}
 
-			mo = P_SpawnMobj(newx, newy, newz, mapthing);
+			mo = P_SpawnMobj(newx, newy, newz, mapthing); // this will never return null because collision isn't processed here
 
 			if (P_MobjFlip(player->mo) < 0)
 				mo->z = player->mo->z + player->mo->height - mo->height;
@@ -3033,7 +3033,9 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			{
 				// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 				// This should set it for FOFs
-				P_TeleportMove(mo, mo->x, mo->y, mo->z);
+				P_TeleportMove(mo, mo->x, mo->y, mo->z); // however, THIS can fuck up your day. just absolutely ruin you.
+				if (P_MobjWasRemoved(mo))
+					return NULL;
 
 				if (P_MobjFlip(mo) > 0)
 				{
@@ -3051,11 +3053,8 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				}
 			}
 
-			if (mo)
-			{
-				if (player->mo->eflags & MFE_VERTICALFLIP)
-					mo->eflags |= MFE_VERTICALFLIP;
-			}
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+				mo->eflags |= MFE_VERTICALFLIP;
 		}
 	}
 
@@ -5754,9 +5753,22 @@ void K_CheckBumpers(void)
 void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];
-	UINT8 i, numingame = 0, numjoiners = 0;
+	UINT8 i, j, numingame = 0, numjoiners = 0;
 
-	if (!cv_allowteamchange.value) return;
+	// Maintain spectate wait timer
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i])
+			continue;
+		if (players[i].spectator && (players[i].pflags & PF_WANTSTOJOIN))
+			players[i].kartstuff[k_spectatewait]++;
+		else
+			players[i].kartstuff[k_spectatewait] = 0;
+	}
+
+	// No one's allowed to join
+	if (!cv_allowteamchange.value)
+		return;
 
 	// Get the number of players in game, and the players to be de-spectated.
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -5767,16 +5779,18 @@ void K_CheckSpectateStatus(void)
 		if (!players[i].spectator)
 		{
 			numingame++;
+			if (cv_ingamecap.value && numingame >= cv_ingamecap.value) // DON'T allow if you've hit the in-game player cap
+				return;
 			if (gamestate != GS_LEVEL) // Allow if you're not in a level
-                continue;
+				continue;
 			if (players[i].exiting) // DON'T allow if anyone's exiting
 				return;
 			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
-                continue;
+				continue;
 			if (leveltime > (starttime + 20*TICRATE)) // DON'T allow if the match is 20 seconds in
-                return;
-            if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
-                return;
+				return;
+			if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
+				return;
 			continue;
 		}
 		else if (!(players[i].pflags & PF_WANTSTOJOIN))
@@ -5789,16 +5803,45 @@ void K_CheckSpectateStatus(void)
 	if (!numjoiners)
 		return;
 
-	// Reset the match if you're in an empty server
-	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (numingame < 2 && numingame+numjoiners >= 2))
+	// Organize by spectate wait timer
+	if (cv_ingamecap.value)
 	{
-		S_ChangeMusicInternal("chalng", false); // COME ON
-		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD in the future
+		UINT8 oldrespawnlist[MAXPLAYERS];
+		memcpy(oldrespawnlist, respawnlist, numjoiners);
+		for (i = 0; i < numjoiners; i++)
+		{
+			UINT8 pos = 0;
+			INT32 ispecwait = players[oldrespawnlist[i]].kartstuff[k_spectatewait];
+
+			for (j = 0; j < numjoiners; j++)
+			{
+				INT32 jspecwait = players[oldrespawnlist[j]].kartstuff[k_spectatewait];
+				if (j == i)
+					continue;
+				if (jspecwait > ispecwait)
+					pos++;
+				else if (jspecwait == ispecwait && j < i)
+					pos++;
+			}
+
+			respawnlist[pos] = oldrespawnlist[i];
+		}
 	}
 
 	// Finally, we can de-spectate everyone!
 	for (i = 0; i < numjoiners; i++)
+	{
+		if (cv_ingamecap.value && numingame+i >= cv_ingamecap.value) // Hit the in-game player cap while adding people?
+			break;
 		P_SpectatorJoinGame(&players[respawnlist[i]]);
+	}
+
+	// Reset the match if you're in an empty server
+	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (numingame < 2 && numingame+i >= 2)) // use previous i value
+	{
+		S_ChangeMusicInternal("chalng", false); // COME ON
+		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD
+	}
 }
 
 //}
@@ -8337,6 +8380,7 @@ static void K_drawCheckpointDebugger(void)
 void K_drawKartHUD(void)
 {
 	boolean isfreeplay = false;
+	boolean battlefullscreen = false;
 
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
@@ -8349,14 +8393,6 @@ void K_drawKartHUD(void)
 		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
 		K_drawKartFirstPerson();
 
-/*	if (splitscreen == 2) // Player 4 in 3P is the minimap :p
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_minimap))
-#endif
-		K_drawKartMinimap();
-	}*/
-
 	// Draw full screen stuff that turns off the rest of the HUD
 	if (mapreset && stplyr == &players[displayplayer])
 	{
@@ -8364,37 +8400,41 @@ void K_drawKartHUD(void)
 		return;
 	}
 
-	if ((G_BattleGametype())
+	battlefullscreen = ((G_BattleGametype())
 		&& (stplyr->exiting
 		|| (stplyr->kartstuff[k_bumper] <= 0
 		&& stplyr->kartstuff[k_comebacktimer]
 		&& comeback
-		&& stplyr->playerstate == PST_LIVE)))
+		&& stplyr->playerstate == PST_LIVE)));
+
+	if (!battlefullscreen || splitscreen)
+	{
+		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
+		if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
+			K_drawKartPlayerCheck();
+
+		// Draw WANTED status
+		if (G_BattleGametype())
+		{
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_wanted))
+#endif
+				K_drawKartWanted();
+		}
+
+		if (cv_kartminimap.value && !titledemo)
+		{
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_minimap))
+#endif
+				K_drawKartMinimap();
+		}
+	}
+
+	if (battlefullscreen)
 	{
 		K_drawBattleFullscreen();
 		return;
-	}
-
-	// Draw the CHECK indicator before the other items, so it's overlapped by everything else
-	if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
-		K_drawKartPlayerCheck();
-
-	// Draw WANTED status
-	if (G_BattleGametype())
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_wanted))
-#endif
-			K_drawKartWanted();
-	}
-
-	if (cv_kartminimap.value && !titledemo)
-	{
-#ifdef HAVE_BLUA
-		if (LUA_HudEnabled(hud_minimap))
-#endif
-			K_drawKartMinimap(); // 3P splitscreen is handled above
-
 	}
 
 	// Draw the item window
