@@ -5808,19 +5808,20 @@ void K_CheckSpectateStatus(void)
 	if (cv_ingamecap.value)
 	{
 		UINT8 oldrespawnlist[MAXPLAYERS];
-
-		for (i = 0; i < numjoiners; i++) // copy old table before modifying
-			oldrespawnlist[i] = respawnlist[i];
-
+		memcpy(oldrespawnlist, respawnlist, numjoiners);
 		for (i = 0; i < numjoiners; i++)
 		{
 			UINT8 pos = 0;
+			INT32 ispecwait = players[oldrespawnlist[i]].kartstuff[k_spectatewait];
 
 			for (j = 0; j < numjoiners; j++)
 			{
+				INT32 jspecwait = players[oldrespawnlist[j]].kartstuff[k_spectatewait];
 				if (j == i)
 					continue;
-				if (players[oldrespawnlist[j]].kartstuff[k_spectatewait] > players[oldrespawnlist[i]].kartstuff[k_spectatewait])
+				if (jspecwait > ispecwait)
+					pos++;
+				else if (jspecwait == ispecwait && j < i)
 					pos++;
 			}
 
