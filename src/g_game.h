@@ -226,6 +226,8 @@ void G_EndGame(void); // moved from y_inter.c/h and renamed
 void G_Ticker(boolean run);
 boolean G_Responder(event_t *ev);
 
+INT32 * G_GetDisplayplayerPtr (UINT8 viewnum);
+
 void G_ResetViews(UINT8 viewnum);
 
 void G_AddPlayer(INT32 playernum);

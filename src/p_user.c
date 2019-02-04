@@ -8124,6 +8124,18 @@ fixed_t t_cam4_rotate = -42;
 
 #define MAXCAMERADIST 140*FRACUNIT // Max distance the camera can be in front of the player (2D mode)
 
+camera_t *
+P_GetCameraPtr (UINT8 viewnum)
+{
+	switch (viewnum)
+	{
+		case 2: return &camera2;
+		case 3: return &camera3;
+		case 4: return &camera4;
+	}
+	return &camera;
+}
+
 void P_ResetCamera(player_t *player, camera_t *thiscam)
 {
 	tic_t tries = 0;

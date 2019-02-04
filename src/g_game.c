@@ -1825,12 +1825,8 @@ boolean G_Responder(event_t *ev)
 		{
 			if (!splitscreen)
 			{
-				splitscreen = 1;
 				secondarydisplayplayer = displayplayer;
 				G_ResetViews(2);
-
-				P_ResetCamera(&players[secondarydisplayplayer], &camera2);
-				R_ExecuteSetViewSize();
 
 				return true;
 			}
@@ -1844,12 +1840,8 @@ boolean G_Responder(event_t *ev)
 		{
 			if (splitscreen == 1)
 			{
-				splitscreen = 2;
 				thirddisplayplayer = displayplayer;
 				G_ResetViews(3);
-
-				P_ResetCamera(&players[thirddisplayplayer], &camera3);
-				R_ExecuteSetViewSize();
 
 				return true;
 			}
@@ -1863,12 +1855,8 @@ boolean G_Responder(event_t *ev)
 		{
 			if (splitscreen == 2)
 			{
-				splitscreen = 3;
 				fourthdisplayplayer = displayplayer;
 				G_ResetViews(4);
-
-				P_ResetCamera(&players[fourthdisplayplayer], &camera4);
-				R_ExecuteSetViewSize();
 
 				return true;
 			}
@@ -2156,6 +2144,18 @@ static INT32 G_FindView(INT32 startview)
 	return startview;
 }
 
+INT32 *
+G_GetDisplayplayerPtr (UINT8 viewnum)
+{
+	switch (viewnum)
+	{
+		case 2: return &secondarydisplayplayer;
+		case 3: return &thirddisplayplayer;
+		case 4: return &fourthdisplayplayer;
+	}
+	return &displayplayer;
+}
+
 //
 // G_ResetViews
 // Ensures all viewpoints are valid
@@ -2163,12 +2163,26 @@ static INT32 G_FindView(INT32 startview)
 void G_ResetViews(UINT8 viewnum)
 {
 	INT32 tempplayer;
+	INT32 *displayplayerp;
+	camera_t *camerap;
 
 	if (!viewnum || viewnum == 1)
 	{
 		tempplayer = displayplayer;
 		displayplayer = INT32_MAX;
 		displayplayer = G_FindView(tempplayer);
+	}
+
+	if (viewnum > 1 && multiplayer && demoplayback)
+		if (viewnum == splitscreen+2)
+	{
+		splitscreen = viewnum-1;
+
+		displayplayerp = (G_GetDisplayplayerPtr(viewnum));
+		camerap = (P_GetCameraPtr(viewnum));
+
+		P_ResetCamera(&players[(*displayplayerp)], camerap);
+		R_ExecuteSetViewSize();
 	}
 
 	if (splitscreen && demoplayback)

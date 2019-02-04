@@ -129,6 +129,8 @@ static void Command_StopMovie_f(void);
 static void Command_Map_f(void);
 static void Command_ResetCamera_f(void);
 
+static void Command_View_f (void);
+
 static void Command_Addfile(void);
 static void Command_ListWADS_f(void);
 #ifdef DELFILE
@@ -707,6 +709,11 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("playintro", Command_Playintro_f);
 
 	COM_AddCommand("resetcamera", Command_ResetCamera_f);
+
+	COM_AddCommand("view", Command_View_f);
+	COM_AddCommand("view2", Command_View_f);
+	COM_AddCommand("view3", Command_View_f);
+	COM_AddCommand("view4", Command_View_f);
 
 	COM_AddCommand("setcontrol", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol2", Command_Setcontrol2_f);
@@ -1884,6 +1891,138 @@ static void Command_ResetCamera_f(void)
 {
 	P_ResetCamera(&players[displayplayer], &camera);
 }
+
+static INT32
+RoundToValidPlayerNum (INT32 playernum)
+{
+	INT32 playernuml, playernumr;
+	for (playernuml = playernum; --playernuml > 0; )
+	{
+		if (playeringame[playernuml])
+			break;
+	}
+	for (playernumr = playernum ;; )
+	{
+		if (++playernumr == MAXPLAYERS)
+		{
+			playernum = playernuml;
+			break;
+		}
+		if (playeringame[playernumr])
+		{
+			if (playernum - playernuml < playernumr - playernum)
+				playernum = playernuml;/* "round" down */
+			else
+				playernum = playernumr;
+			break;
+		}
+	}
+	return playernum;
+}
+
+static INT32/* Consider replacing nametonum with this */
+LookupPlayer (const char *s)
+{
+	INT32 playernum;
+
+	if (*s == '0')/* clever way to bypass atoi */
+		return 0;
+
+	if (( playernum = atoi(s) ))
+	{
+		playernum = max(min(playernum, MAXPLAYERS-1), 0);/* not out of range */
+		return playernum;
+	}
+
+	for (playernum = 0; playernum < MAXPLAYERS; ++playernum)
+	{
+		/* Consider strcasestr? */
+		/* Match name (case-insensitively) fully, or partially the start. */
+		if (playeringame[playernum])
+			if (stricmp(player_names[playernum], s) == 0 ||
+					strstr(player_names[playernum], s) == player_names[playernum] )
+		{
+			return playernum;
+		}
+	}
+	return -1;/* We can't "round" a name! */
+}
+
+#define PRINTVIEWPOINT( pre,suf ) \
+	CONS_Printf(pre"viewing \x84(%d) \x83%s\x80"suf".\n",\
+			(*displayplayerp), player_names[(*displayplayerp)]);
+static void
+Command_View_f (void)
+{
+	INT32 *displayplayerp;
+	int viewnum;
+	INT32 playernum, oldplayernum;
+	char c;
+	/* easy peasy */
+	c = COM_Argv(0)[strlen(COM_Argv(0))-1];/* may be digit */
+	switch (c)
+	{
+		case '2': viewnum = 2; break;
+		case '3': viewnum = 3; break;
+		case '4': viewnum = 4; break;
+		default:  viewnum = 1;
+	}
+	displayplayerp = G_GetDisplayplayerPtr(viewnum);
+
+	if (COM_Argc() > 1)/* switch to player */
+	{
+		if (viewnum > splitscreen+2)/* We must arrange in order. */
+		{
+			CONS_Alert(CONS_WARNING,
+					"You may not change viewpoints more than "
+					"once ahead the current number of splits. "
+					"Use view%d instead.\n", splitscreen+2);
+			return;
+		}
+
+		if (( playernum = LookupPlayer(COM_Argv(1)) ) == -1)
+		{
+			CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
+			return;
+		}
+
+		oldplayernum = playernum;
+
+		if (!playeringame[playernum])
+		{
+			playernum = RoundToValidPlayerNum(playernum);
+		}
+
+		if ((*displayplayerp) == playernum)
+			return;
+
+		(*displayplayerp) = playernum;
+		G_ResetViews(viewnum);
+
+		if ((*displayplayerp) != oldplayernum)/* differ parameter */
+		{
+			if (playernum == oldplayernum)/* skipped some */
+			{
+				CONS_Alert(CONS_NOTICE,
+						"Another viewpoint is already set to that player.\n");
+			}
+			else
+			{
+				CONS_Alert(CONS_NOTICE, "There is no player using that slot.\n");
+			}
+			PRINTVIEWPOINT ("Now "," instead")
+		}
+		else
+			PRINTVIEWPOINT ("Now ",)
+	}
+	else/* print current view */
+	{
+		if (splitscreen < viewnum-1)/* We can't see those guys! */
+			return;
+		PRINTVIEWPOINT ("Currently ",)
+	}
+}
+#undef PRINTVIEWPOINT
 
 // ========================================================================
 
