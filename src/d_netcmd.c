@@ -1963,7 +1963,7 @@ Command_View_f (void)
 		if ((*displayplayerp) == olddisplayplayer)
 			return;
 
-		if ((*displayplayerp) != oldplayernum)/* differ parameter */
+		if ((*displayplayerp) != playernum)/* differ parameter */
 		{
 			/* skipped some */
 			CONS_Alert(CONS_NOTICE,
