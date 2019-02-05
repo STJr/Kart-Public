@@ -2109,8 +2109,11 @@ UINT32 hu_demolap;
 
 static void HU_DrawDemoInfo(void)
 {
-	V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Replay:"));
-	V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[0]);
+	if (!multiplayer)/* netreplay */
+	{
+		V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-40, 0, M_GetText("Replay:"));
+		V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[0]);
+	}
 	if (modeattacking)
 	{
 		V_DrawRightAlignedString((BASEVIDWIDTH/2)-4, BASEVIDHEIGHT-24, V_YELLOWMAP|V_MONOSPACE, "BEST TIME:");
@@ -2227,10 +2230,7 @@ void HU_Drawer(void)
 	if (cechotimer)
 		HU_DrawCEcho();
 
-	if (demoplayback && hu_showscores)
-		HU_DrawDemoInfo();
-
-	if (!Playing()
+	if (!( Playing() || demoplayback )
 	 || gamestate == GS_INTERMISSION || gamestate == GS_CUTSCENE
 	 || gamestate == GS_CREDITS      || gamestate == GS_EVALUATION
 	 || gamestate == GS_GAMEEND
@@ -2249,6 +2249,10 @@ void HU_Drawer(void)
 #ifdef HAVE_BLUA
 		LUAh_ScoresHUD();
 #endif
+		}
+		if (demoplayback)
+		{
+			HU_DrawDemoInfo();
 		}
 	}
 
