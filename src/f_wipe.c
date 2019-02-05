@@ -97,7 +97,7 @@ static fixed_t paldiv;
   * \return	fademask_t for lump
   */
 static fademask_t *F_GetFadeMask(UINT8 masknum, UINT8 scrnnum) {
-	static char lumpname[10] = "FADEmmss";
+	static char lumpname[9] = "FADEmmss";
 	static fademask_t fm = {NULL,0,0,0,0,0};
 	lumpnum_t lumpnum;
 	UINT8 *lump, *mask;
@@ -107,7 +107,14 @@ static fademask_t *F_GetFadeMask(UINT8 masknum, UINT8 scrnnum) {
 	if (masknum > 99 || scrnnum > 99)
 		goto freemask;
 
-	sprintf(&lumpname[4], "%.2hu%.2hu", (UINT16)masknum, (UINT16)scrnnum);
+	// SRB2Kart: This suddenly triggers ERRORMODE now
+	//sprintf(&lumpname[4], "%.2hu%.2hu", (UINT16)masknum, (UINT16)scrnnum);
+
+	lumpname[4] = '0'+(masknum/10);
+	lumpname[5] = '0'+(masknum%10);
+
+	lumpname[6] = '0'+(scrnnum/10);
+	lumpname[7] = '0'+(scrnnum%10);
 
 	lumpnum = W_CheckNumForName(lumpname);
 	if (lumpnum == LUMPERROR)
