@@ -1940,6 +1940,13 @@ Command_View_f (void)
 		case '4': viewnum = 4; break;
 		default:  viewnum = 1;
 	}
+
+	if (viewnum > 1 && !( multiplayer && demoplayback ))
+	{
+		CONS_Alert(CONS_NOTICE, "You must be viewing a multiplayer replay.\n");
+		return;
+	}
+
 	displayplayerp = G_GetDisplayplayerPtr(viewnum);
 
 	if (COM_Argc() > 1)/* switch to player */
