@@ -2857,6 +2857,9 @@ boolean P_SetupLevel(boolean skipprecip)
 			lastwipetic = nowtime;
 			if (moviemode) // make sure we save frames for the white hold too
 				M_SaveFrame();
+
+			// Keep the network alive
+			NetKeepAlive();
 		}
 
 		ranspecialwipe = 1;
@@ -3435,7 +3438,7 @@ boolean P_AddWadFile(const char *wadfilename)
 	//
 	R_AddSkins(wadnum); // faB: wadfile index in wadfiles[]
 
-	// 
+	//
 	// edit music defs
 	//
 	S_LoadMusicDefs(wadnum);
