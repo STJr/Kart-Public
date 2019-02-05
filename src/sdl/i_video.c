@@ -1229,7 +1229,7 @@ void I_GetEvent(void)
 				// update the menu
 				if (currentMenu == &OP_JoystickSetDef)
 					M_SetupJoystickMenu(0);
-			 	break;
+				break;
 			case SDL_QUIT:
 				I_Quit();
 				M_QuitResponse('y');
