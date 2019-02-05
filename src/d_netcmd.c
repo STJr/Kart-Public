@@ -1955,6 +1955,7 @@ static void
 Command_View_f (void)
 {
 	INT32 *displayplayerp;
+	INT32 olddisplayplayer;
 	int viewnum;
 	INT32 playernum, oldplayernum;
 	char c;
@@ -1971,15 +1972,6 @@ Command_View_f (void)
 
 	if (COM_Argc() > 1)/* switch to player */
 	{
-		if (viewnum > splitscreen+2)/* We must arrange in order. */
-		{
-			CONS_Alert(CONS_WARNING,
-					"You may not change viewpoints more than "
-					"once ahead the current number of splits. "
-					"Use view%d instead.\n", splitscreen+2);
-			return;
-		}
-
 		if (( playernum = LookupPlayer(COM_Argv(1)) ) == -1)
 		{
 			CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
@@ -1993,11 +1985,13 @@ Command_View_f (void)
 			playernum = RoundToValidPlayerNum(playernum);
 		}
 
-		if ((*displayplayerp) == playernum)
-			return;
-
+		olddisplayplayer = (*displayplayerp);
 		(*displayplayerp) = playernum;
 		G_ResetViews(viewnum);
+
+		/* The player we wanted was corrected to who it already was. */
+		if ((*displayplayerp) == olddisplayplayer)
+			return;
 
 		if ((*displayplayerp) != oldplayernum)/* differ parameter */
 		{
