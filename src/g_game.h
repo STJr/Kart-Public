@@ -228,7 +228,8 @@ boolean G_Responder(event_t *ev);
 
 INT32 * G_GetDisplayplayerPtr (UINT8 viewnum);
 
-void G_ResetViews(UINT8 viewnum);
+void G_ResetViews(void);
+void G_ResetView (UINT8 viewnum);
 
 void G_AddPlayer(INT32 playernum);
 

@@ -1987,7 +1987,7 @@ Command_View_f (void)
 
 		olddisplayplayer = (*displayplayerp);
 		(*displayplayerp) = playernum;
-		G_ResetViews(viewnum);
+		G_ResetView(viewnum);
 
 		/* The player we wanted was corrected to who it already was. */
 		if ((*displayplayerp) == olddisplayplayer)

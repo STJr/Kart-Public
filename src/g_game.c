@@ -1809,7 +1809,7 @@ boolean G_Responder(event_t *ev)
 		else
 		{
 			displayplayer++;
-			G_ResetViews(1);
+			G_ResetView(1);
 
 			// change statusbar also if playing back demo
 			if (singledemo)
@@ -1824,21 +1824,21 @@ boolean G_Responder(event_t *ev)
 		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
 		{
 			secondarydisplayplayer++;
-			G_ResetViews(2);
+			G_ResetView(2);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
 		{
 			thirddisplayplayer++;
-			G_ResetViews(3);
+			G_ResetView(3);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
 		{
 			fourthdisplayplayer++;
-			G_ResetViews(4);
+			G_ResetView(4);
 
 			return true;
 		}
@@ -2132,8 +2132,10 @@ G_GetDisplayplayerPtr (UINT8 viewnum)
 	return &displayplayer;
 }
 
-/* Reset only one view */
-static void
+/*
+Ensure a viewpoint is valid.
+*/
+void
 G_ResetView (UINT8 viewnum)
 {
 	INT32    *displayplayerp;
@@ -2173,30 +2175,23 @@ G_ResetView (UINT8 viewnum)
 			(*displayplayerp) = G_FindView((*displayplayerp));
 		}
 	}
+
+	if (viewnum == 1 && demoplayback)
+		consoleplayer = displayplayer;
 }
 
 //
 // G_ResetViews
 // Ensures all viewpoints are valid
 //
-void G_ResetViews(UINT8 viewnum)
+void G_ResetViews(void)
 {
-	UINT8 splits = splitscreen+1;
-
-	if (viewnum == 0)
-	{
-		while (viewnum++ < splits)
-		{
-			G_ResetView(viewnum);
-		}
-	}
-	else
+	UINT8 viewnum = splitscreen+1;
+	do
 	{
 		G_ResetView(viewnum);
 	}
-
-	if (demoplayback)
-		consoleplayer = displayplayer;
+	while (--viewnum > 0) ;
 }
 
 //
