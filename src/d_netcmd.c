@@ -1892,34 +1892,6 @@ static void Command_ResetCamera_f(void)
 	P_ResetCamera(&players[displayplayer], &camera);
 }
 
-static INT32
-RoundToValidPlayerNum (INT32 playernum)
-{
-	INT32 playernuml, playernumr;
-	for (playernuml = playernum; --playernuml > 0; )
-	{
-		if (playeringame[playernuml])
-			break;
-	}
-	for (playernumr = playernum ;; )
-	{
-		if (++playernumr == MAXPLAYERS)
-		{
-			playernum = playernuml;
-			break;
-		}
-		if (playeringame[playernumr])
-		{
-			if (playernum - playernuml < playernumr - playernum)
-				playernum = playernuml;/* "round" down */
-			else
-				playernum = playernumr;
-			break;
-		}
-	}
-	return playernum;
-}
-
 static INT32/* Consider replacing nametonum with this */
 LookupPlayer (const char *s)
 {
@@ -1945,7 +1917,7 @@ LookupPlayer (const char *s)
 			return playernum;
 		}
 	}
-	return -1;/* We can't "round" a name! */
+	return -1;
 }
 
 #define PRINTVIEWPOINT( pre,suf ) \
@@ -1957,7 +1929,7 @@ Command_View_f (void)
 	INT32 *displayplayerp;
 	INT32 olddisplayplayer;
 	int viewnum;
-	INT32 playernum, oldplayernum;
+	INT32 playernum;
 	char c;
 	/* easy peasy */
 	c = COM_Argv(0)[strlen(COM_Argv(0))-1];/* may be digit */
@@ -1977,12 +1949,10 @@ Command_View_f (void)
 			CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
 			return;
 		}
-
-		oldplayernum = playernum;
-
 		if (!playeringame[playernum])
 		{
-			playernum = RoundToValidPlayerNum(playernum);
+			CONS_Alert(CONS_WARNING, "There is no player using that slot!\n");
+			return;
 		}
 
 		olddisplayplayer = (*displayplayerp);
@@ -1995,15 +1965,9 @@ Command_View_f (void)
 
 		if ((*displayplayerp) != oldplayernum)/* differ parameter */
 		{
-			if (playernum == oldplayernum)/* skipped some */
-			{
-				CONS_Alert(CONS_NOTICE,
-						"Another viewpoint is already set to that player.\n");
-			}
-			else
-			{
-				CONS_Alert(CONS_NOTICE, "There is no player using that slot.\n");
-			}
+			/* skipped some */
+			CONS_Alert(CONS_NOTICE,
+					"Another viewpoint is already set to that player.\n");
 			PRINTVIEWPOINT ("Now "," instead")
 		}
 		else
