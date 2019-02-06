@@ -2305,7 +2305,7 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		}
 	}
 
-	
+
 	return w;
 }
 

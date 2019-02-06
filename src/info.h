@@ -608,7 +608,7 @@ typedef enum sprite
 	// Kart Items
 	SPR_RSHE, // Rocket sneaker
 	SPR_FITM, // Eggman Monitor
- 	SPR_BANA, // Banana Peel
+	SPR_BANA, // Banana Peel
 	SPR_ORBN, // Orbinaut
 	SPR_JAWZ, // Jawz
 	SPR_SSMN, // SS Mine
@@ -3871,7 +3871,7 @@ typedef enum state
 	S_GARU1,
 	S_GARU2,
 	S_GARU3,
-	S_TGARU0,	
+	S_TGARU0,
 	S_TGARU1,
 	S_TGARU2,
 	S_TGARU3,	// Wind attack used by Roaming Shadows on Players.
@@ -4612,14 +4612,14 @@ typedef enum mobj_type
 	MT_EGGMANITEM_SHIELD,
 
 	MT_BANANA, // Banana Stuff
-	MT_BANANA_SHIELD, 
+	MT_BANANA_SHIELD,
 
 	MT_ORBINAUT, // Orbinaut stuff
 	MT_ORBINAUT_SHIELD,
 
 	MT_JAWZ, // Jawz stuff
 	MT_JAWZ_DUD,
-	MT_JAWZ_SHIELD, 
+	MT_JAWZ_SHIELD,
 
 	MT_PLAYERRETICULE, // Jawz reticule
 
