@@ -88,7 +88,8 @@ typedef enum
 	REFRESHDIR_WARNING = 4,
 	REFRESHDIR_ERROR = 8,
 	REFRESHDIR_NOTLOADED = 16,
-	REFRESHDIR_MAX = 32
+	REFRESHDIR_MAX = 32,
+	REFRESHDIR_GAMEDATA = 64
 } refreshdir_enum;
 
 void closefilemenu(boolean validsize);

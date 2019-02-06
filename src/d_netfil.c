@@ -426,7 +426,7 @@ void CL_LoadServerFiles(void)
 		else if (fileneeded[i].status == FS_FOUND)
 		{
 			P_AddWadFile(fileneeded[i].filename);
-			G_SetGameModified(true);
+			G_SetGameModified(true, false);
 			fileneeded[i].status = FS_OPEN;
 		}
 		else if (fileneeded[i].status == FS_MD5SUMBAD)

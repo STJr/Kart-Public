@@ -1162,7 +1162,7 @@ void D_SRB2Main(void)
 				if (s) // Check for NULL?
 				{
 					if (!W_VerifyNMUSlumps(s))
-						G_SetGameModified(true);
+						G_SetGameModified(true, false);
 					D_AddFile(s);
 				}
 			}
@@ -1189,7 +1189,7 @@ void D_SRB2Main(void)
 		else
 		{
 			if (!M_CheckParm("-server"))
-				G_SetGameModified(true);
+				G_SetGameModified(true, true);
 			autostart = true;
 		}
 	}

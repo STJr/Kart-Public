@@ -37,6 +37,8 @@ void DEH_UnloadDehackedWad(UINT16 wad);
 void DEH_LoadDehackedLump(lumpnum_t lumpnum);
 void DEH_LoadDehackedLumpPwad(UINT16 wad, UINT16 lump);
 
+void DEH_UpdateMaxFreeslots(void);
+
 void DEH_Check(void);
 
 fixed_t get_number(const char *word);
