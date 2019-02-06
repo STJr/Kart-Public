@@ -1746,11 +1746,17 @@ fixed_t K_GetKartAccel(player_t *player)
 
 UINT16 K_GetKartFlashing(player_t *player)
 {
-    UINT16 tics = flashingtics;
-    if (G_BattleGametype())
-        tics *= 2;
-    tics += (flashingtics/8) * (player->kartspeed);
-    return tics;
+	UINT16 tics = flashingtics;
+
+	if (!player)
+		return tics;
+
+	if (G_BattleGametype())
+		tics *= 2;
+
+	tics += (flashingtics/8) * (player->kartspeed);
+
+	return tics;
 }
 
 fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove)
