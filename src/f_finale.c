@@ -181,7 +181,7 @@ static void F_SkyScroll(INT32 scrollspeed)
 		{
 			V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, V_SNAPTOTOP|V_SNAPTOLEFT, pat, NULL);
 			x += SHORT(pat->width);
-		} 
+		}
 
 		x = -anim2;
 		y = BASEVIDHEIGHT - SHORT(pat2->height);

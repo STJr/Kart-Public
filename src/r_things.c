@@ -2635,7 +2635,7 @@ INT32 R_SkinAvailable(const char *name)
 }
 
 // network code calls this when a 'skin change' is received
-void SetPlayerSkin(INT32 playernum, const char *skinname)
+boolean SetPlayerSkin(INT32 playernum, const char *skinname)
 {
 	INT32 i;
 	player_t *player = &players[playernum];
@@ -2646,7 +2646,7 @@ void SetPlayerSkin(INT32 playernum, const char *skinname)
 		if (stricmp(skins[i].name, skinname) == 0)
 		{
 			SetPlayerSkinByNum(playernum, i);
-			return;
+			return true;
 		}
 	}
 
@@ -2656,6 +2656,7 @@ void SetPlayerSkin(INT32 playernum, const char *skinname)
 		CONS_Alert(CONS_WARNING, M_GetText("Player %d (%s) skin '%s' not found\n"), playernum, player_names[playernum], skinname);
 
 	SetPlayerSkinByNum(playernum, 0);
+	return false;
 }
 
 // Same as SetPlayerSkin, but uses the skin #.
@@ -2897,27 +2898,27 @@ void R_AddSkins(UINT16 wadnum)
 #define FULLPROCESS(field) else if (!stricmp(stoken, #field)) skin->field = get_number(value);
 			// character type identification
 			FULLPROCESS(flags)
-			FULLPROCESS(ability)
-			FULLPROCESS(ability2)
+			//FULLPROCESS(ability)
+			//FULLPROCESS(ability2)
 
-			FULLPROCESS(thokitem)
-			FULLPROCESS(spinitem)
-			FULLPROCESS(revitem)
+			//FULLPROCESS(thokitem)
+			//FULLPROCESS(spinitem)
+			//FULLPROCESS(revitem)
 #undef FULLPROCESS
 
 #define GETSPEED(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value)<<FRACBITS;
-			GETSPEED(normalspeed)
+			//GETSPEED(normalspeed)
 			GETSPEED(runspeed)
-			GETSPEED(mindash)
-			GETSPEED(maxdash)
-			GETSPEED(actionspd)
+			//GETSPEED(mindash)
+			//GETSPEED(maxdash)
+			//GETSPEED(actionspd)
 #undef GETSPEED
 
-#define GETINT(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value);
+/*#define GETINT(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value);
 			GETINT(thrustfactor)
 			GETINT(accelstart)
 			GETINT(acceleration)
-#undef GETINT
+#undef GETINT*/
 
 #define GETKARTSTAT(field) \
 	else if (!stricmp(stoken, #field)) \
@@ -2936,8 +2937,8 @@ void R_AddSkins(UINT16 wadnum)
 
 			else if (!stricmp(stoken, "prefcolor"))
 				skin->prefcolor = K_GetKartColorByName(value);
-			else if (!stricmp(stoken, "jumpfactor"))
-				skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
+			//else if (!stricmp(stoken, "jumpfactor"))
+				//skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
 			else if (!stricmp(stoken, "highresscale"))
 				skin->highresscale = FLOAT_TO_FIXED(atof(value));
 			else
@@ -3046,6 +3047,9 @@ next_token:
 		if (rendermode == render_opengl)
 			HWR_AddPlayerMD2(numskins);
 #endif
+
+		if (skin->flags & SF_RUNONWATER) // this is literally the only way a skin can be a major mod... this might be a bit heavy handed
+			G_SetGameModified(multiplayer, true);
 
 		numskins++;
 	}

@@ -17,6 +17,7 @@
 #include "d_clisrv.h"
 #include "d_player.h"
 #include "f_finale.h"
+#include "filesrch.h" // for refreshdirmenu
 #include "p_setup.h"
 #include "p_saveg.h"
 #include "i_system.h"
@@ -87,7 +88,8 @@ INT16 lastmapsaved = 0; // Last map we auto-saved at
 boolean gamecomplete = false;
 
 UINT16 mainwads = 0;
-boolean modifiedgame; // Set if homebrew PWAD stuff has been added.
+boolean modifiedgame = false; // Set if homebrew PWAD stuff has been added.
+boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been added.
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
@@ -753,16 +755,21 @@ void G_SetNightsRecords(void)
 }*/
 
 // for consistency among messages: this modifies the game and removes savemoddata.
-void G_SetGameModified(boolean silent)
+void G_SetGameModified(boolean silent, boolean major)
 {
-	if (modifiedgame && !savemoddata)
+	if ((majormods && modifiedgame) || !mainwads || (refreshdirmenu & REFRESHDIR_GAMEDATA)) // new gamedata amnesty?
 		return;
 
 	modifiedgame = true;
-	savemoddata = false;
+
+	if (!major)
+		return;
+
+	//savemoddata = false; -- there is literally no reason to do this anymore.
+	majormods = true;
 
 	if (!silent)
-		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to record statistics.\n"));
+		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to play record attack.\n"));
 
 	// If in record attack recording, cancel it.
 	if (modeattacking)
@@ -1598,10 +1605,26 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 	}
 
+	/* 	Lua: Allow this hook to overwrite ticcmd.
+		We check if we're actually in a level because for some reason this Hook would run in menus and on the titlescreen otherwise.
+		Be aware that within this hook, nothing but this player's cmd can be edited (otherwise we'd run in some pretty bad synching problems since this is clientsided, or something)
+
+		Possible usages for this are:
+			-Forcing the player to perform an action, which could otherwise require terrible, terrible hacking to replicate.
+			-Preventing the player to perform an action, which would ALSO require some weirdo hacks.
+			-Making some galaxy brain autopilot Lua if you're a masochist
+			-Making a Mario Kart 8 Deluxe tier baby mode that steers you away from walls and whatnot. You know what, do what you want!
+	*/
+#ifdef HAVE_BLUA
+	if (gamestate == GS_LEVEL)
+		LUAh_PlayerCmd(player, cmd);
+#endif
+
 	//Reset away view if a command is given.
 	if ((cmd->forwardmove || cmd->sidemove || cmd->buttons)
 		&& displayplayer != consoleplayer && ssplayer == 1)
 		displayplayer = consoleplayer;
+
 }
 
 // User has designated that they want
@@ -4062,7 +4085,6 @@ void G_LoadGameData(void)
 // Saves the main data file, which stores information such as emblems found, etc.
 void G_SaveGameData(boolean force)
 {
-	const boolean wasmodified = modifiedgame;
 	size_t length;
 	INT32 i, j;
 	UINT8 btemp;
@@ -4079,9 +4101,7 @@ void G_SaveGameData(boolean force)
 		return;
 	}
 
-	if (force) // SRB2Kart: for enabling unlocks online, even if the game is modified
-		modifiedgame = savemoddata; // L-let's just sort of... hack around the cheat protection, because I'm too worried about just removing it @@;
-	else if (modifiedgame && !savemoddata)
+	if (majormods && !force)
 	{
 		free(savebuffer);
 		save_p = savebuffer = NULL;
@@ -4094,7 +4114,7 @@ void G_SaveGameData(boolean force)
 	WRITEUINT32(save_p, totalplaytime);
 	WRITEUINT32(save_p, matchesplayed);
 
-	btemp = (UINT8)(savemoddata || modifiedgame);
+	btemp = (UINT8)(savemoddata); // what used to be here was profoundly dunderheaded
 	WRITEUINT8(save_p, btemp);
 
 	// TODO put another cipher on these things? meh, I don't care...
@@ -4180,9 +4200,6 @@ void G_SaveGameData(boolean force)
 	FIL_WriteFile(va(pandf, srb2home, gamedatafilename), savebuffer, length);
 	free(savebuffer);
 	save_p = savebuffer = NULL;
-
-	if (force) // Eeeek, I'm sorry for my sins!
-		modifiedgame = wasmodified;
 }
 
 #define VERSIONSIZE 16
@@ -5446,22 +5463,20 @@ void G_GhostTicker(void)
 			if (ziptic & EZT_HIT)
 			{ // Spawn hit poofs for killing things!
 				UINT16 i, count = READUINT16(g->p), health;
-				UINT32 type;
+				//UINT32 type;
 				fixed_t x,y,z;
 				angle_t angle;
 				mobj_t *poof;
 				for (i = 0; i < count; i++)
 				{
 					g->p += 4; // reserved
-					type = READUINT32(g->p);
+					g->p += 4; // backwards compat., type used to be here
 					health = READUINT16(g->p);
 					x = READFIXED(g->p);
 					y = READFIXED(g->p);
 					z = READFIXED(g->p);
 					angle = READANGLE(g->p);
-					if (!(mobjinfo[type].flags & MF_SHOOTABLE)
-					|| !(mobjinfo[type].flags & (MF_ENEMY|MF_MONITOR))
-					|| health != 0 || i >= 4) // only spawn for the first 4 hits per frame, to prevent ghosts from splode-spamming too bad.
+					if (health != 0 || i >= 4) // only spawn for the first 4 hits per frame, to prevent ghosts from splode-spamming too bad.
 						continue;
 					poof = P_SpawnMobj(x, y, z, MT_GHOST);
 					poof->angle = angle;
@@ -6098,9 +6113,8 @@ void G_DoPlayDemo(char *defdemoname)
 	UINT8 i, p;
 	lumpnum_t l;
 	char skin[17],color[17],*n,*pdemoname;
-	UINT8 version,subversion,charability,charability2,kartspeed,kartweight,thrustfactor,accelstart,acceleration;
+	UINT8 version,subversion,kartspeed,kartweight;
 	UINT32 randseed;
-	fixed_t actionspd,mindash,maxdash,normalspeed,runspeed,jumpfactor;
 	char msg[1024];
 #if defined(SKIPERRORS) && !defined(DEVELOP)
 	boolean skiperrors = false;
@@ -6240,21 +6254,46 @@ void G_DoPlayDemo(char *defdemoname)
 		M_Memcpy(color,demo_p,16);
 		demo_p += 16;
 
-		charability = READUINT8(demo_p);
-		charability2 = READUINT8(demo_p);
-		actionspd = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-		mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-		maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+		demo_p += 5; // Backwards compat - some stats
 		// SRB2kart
 		kartspeed = READUINT8(demo_p);
 		kartweight = READUINT8(demo_p);
 		//
-		normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-		runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-		thrustfactor = READUINT8(demo_p);
-		accelstart = READUINT8(demo_p);
-		acceleration = READUINT8(demo_p);
-		jumpfactor = READFIXED(demo_p);
+		demo_p += 9; // Backwards compat - more stats
+
+		// Skin not loaded?
+		if (!SetPlayerSkin(0, skin))
+		{
+			snprintf(msg, 1024, M_GetText("%s features a character that is not currently loaded.\n"), pdemoname);
+			CONS_Alert(CONS_ERROR, "%s", msg);
+			M_StartMessage(msg, NULL, MM_NOTHING);
+			Z_Free(pdemoname);
+			Z_Free(demobuffer);
+			demoplayback = false;
+			titledemo = false;
+			return;
+		}
+
+		// ...*map* not loaded?
+		if (!gamemap || (gamemap > NUMMAPS) || !mapheaderinfo[gamemap-1] || !(mapheaderinfo[gamemap-1]->menuflags & LF2_EXISTSHACK))
+		{
+			snprintf(msg, 1024, M_GetText("%s features a course that is not currently loaded.\n"), pdemoname);
+			CONS_Alert(CONS_ERROR, "%s", msg);
+			M_StartMessage(msg, NULL, MM_NOTHING);
+			Z_Free(pdemoname);
+			Z_Free(demobuffer);
+			demoplayback = false;
+			titledemo = false;
+			return;
+		}
+
+		// Set color
+		for (i = 0; i < MAXSKINCOLORS; i++)
+			if (!stricmp(KartColor_Names[i],color))				// SRB2kart
+			{
+				players[0].skincolor = i;
+				break;
+			}
 	}
 
 	// net var data
@@ -6368,16 +6407,6 @@ void G_DoPlayDemo(char *defdemoname)
 	G_InitNew(demoflags & DF_ENCORE, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
 
 	if (!multiplayer) {
-		// Set skin
-		SetPlayerSkin(0, skin);
-
-		// Set color
-		for (i = 0; i < MAXSKINCOLORS; i++)
-			if (!stricmp(KartColor_Names[i],color))				// SRB2kart
-			{
-				players[0].skincolor = i;
-				break;
-			}
 		//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
 		if (players[0].mo)
 		{
@@ -6390,21 +6419,8 @@ void G_DoPlayDemo(char *defdemoname)
 		// Set saved attribute values
 		// No cheat checking here, because even if they ARE wrong...
 		// it would only break the replay if we clipped them.
-		players[0].charability = charability;
-		players[0].charability2 = charability2;
-		players[0].actionspd = actionspd;
-		players[0].mindash = mindash;
-		players[0].maxdash = maxdash;
-		// SRB2kart
 		players[0].kartspeed = kartspeed;
 		players[0].kartweight = kartweight;
-		//
-		players[0].normalspeed = normalspeed;
-		players[0].runspeed = runspeed;
-		players[0].thrustfactor = thrustfactor;
-		players[0].accelstart = accelstart;
-		players[0].acceleration = acceleration;
-		players[0].jumpfactor = jumpfactor;
 	}
 
 	demo_start = true;
@@ -6421,6 +6437,7 @@ void G_AddGhost(char *defdemoname)
 	UINT8 *buffer,*p;
 	mapthing_t *mthing;
 	UINT16 count, ghostversion;
+	skin_t *ghskin = &skins[0];
 
 	name[16] = '\0';
 	skin[16] = '\0';
@@ -6566,6 +6583,21 @@ void G_AddGhost(char *defdemoname)
 		return;
 	}
 
+	for (i = 0; i < numskins; i++)
+		if (!stricmp(skins[i].name,skin))
+		{
+			ghskin = &skins[i];
+			break;
+		}
+
+	if (i == numskins)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Failed to add ghost %s: Invalid character.\n"), pdemoname);
+		Z_Free(pdemoname);
+		Z_Free(buffer);
+		return;
+	}
+
 	gh = Z_Calloc(sizeof(demoghost), PU_LEVEL, NULL);
 	gh->next = ghosts;
 	gh->buffer = buffer;
@@ -6611,14 +6643,7 @@ void G_AddGhost(char *defdemoname)
 	gh->oldmo.z = gh->mo->z;
 
 	// Set skin
-	gh->mo->skin = &skins[0];
-	for (i = 0; i < numskins; i++)
-		if (!stricmp(skins[i].name,skin))
-		{
-			gh->mo->skin = &skins[i];
-			break;
-		}
-	gh->oldmo.skin = gh->mo->skin;
+	gh->mo->skin = gh->oldmo.skin = ghskin;
 
 	// Set color
 	gh->mo->color = ((skin_t*)gh->mo->skin)->prefcolor;

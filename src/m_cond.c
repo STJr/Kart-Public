@@ -385,8 +385,7 @@ UINT8 M_UpdateUnlockablesAndExtraEmblems(boolean force)
 	char cechoText[992] = "";
 	UINT8 cechoLines = 0;
 
-	if (modifiedgame && !savemoddata
-		&& !force) // SRB2Kart: for enabling unlocks online in modified servers
+	if (majormods && !force) // SRB2Kart: for enabling unlocks online in modified servers
 		return false;
 
 	M_CheckUnlockConditions();

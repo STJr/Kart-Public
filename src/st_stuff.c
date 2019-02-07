@@ -1976,31 +1976,38 @@ static void ST_overlayDrawer(void)
 #endif
 		)
 		{
+			const char *itemtxt = M_GetText("Item - Join Game");
+
+			if (stplyr->powers[pw_flashing])
+				itemtxt = M_GetText("Item - . . .");
+			else if (stplyr->pflags & PF_WANTSTOJOIN)
+				itemtxt = M_GetText("Item - Cancel Join");
+			else if (G_GametypeHasTeams())
+				itemtxt = M_GetText("Item - Join Team");
+
+			if (cv_ingamecap.value)
+			{
+				UINT8 numingame = 0;
+				UINT8 i;
+
+				for (i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i] && !players[i].spectator)
+						numingame++;
+
+				itemtxt = va("%s (%s: %d)", itemtxt, M_GetText("Slots left"), max(0, cv_ingamecap.value - numingame));
+			}
+
 			// SRB2kart: changed positions & text
 			if (splitscreen)
 			{
 				INT32 splitflags = K_calcSplitFlags(0);
 				V_DrawThinString(2, (BASEVIDHEIGHT/2)-20, V_YELLOWMAP|V_HUDTRANSHALF|splitflags, M_GetText("- SPECTATING -"));
-				if (stplyr->powers[pw_flashing])
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - . . ."));
-				else if (stplyr->pflags & PF_WANTSTOJOIN)
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Cancel Join"));
-				/*else if (G_GametypeHasTeams())
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Join Team"));*/
-				else
-					V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, M_GetText("Item - Join Game"));
+				V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, itemtxt);
 			}
 			else
 			{
 				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
-				if (stplyr->powers[pw_flashing])
-					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - . . ."));
-				else if (stplyr->pflags & PF_WANTSTOJOIN)
-					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Cancel Join"));
-				/*else if (G_GametypeHasTeams())
-					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Join Team"));*/
-				else
-					V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, M_GetText("Item - Join Game"));
+				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, itemtxt);
 				V_DrawString(2, BASEVIDHEIGHT-20, V_HUDTRANSHALF, M_GetText("Accelerate - Float"));
 				V_DrawString(2, BASEVIDHEIGHT-10, V_HUDTRANSHALF, M_GetText("Brake - Sink"));
 			}

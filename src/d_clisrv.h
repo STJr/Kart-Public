@@ -71,6 +71,7 @@ typedef enum
 	PT_CLIENT3MIS,
 	PT_CLIENT4CMD,    // 4P
 	PT_CLIENT4MIS,
+	PT_BASICKEEPALIVE,// Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
 
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.
@@ -538,6 +539,7 @@ void SendNetXCmd3(netxcmd_t id, const void *param, size_t nparam); // splitsreen
 void SendNetXCmd4(netxcmd_t id, const void *param, size_t nparam); // splitsreen4 player
 
 // Create any new ticcmds and broadcast to other players.
+void NetKeepAlive(void);
 void NetUpdate(void);
 
 void SV_StartSinglePlayerServer(void);

@@ -34,6 +34,7 @@
 #include "z_zone.h"
 #include "fastcmp.h"
 
+#include "g_game.h" // G_LoadGameData
 #include "filesrch.h"
 
 #include "i_video.h" // rendermode
@@ -798,6 +799,10 @@ UINT16 W_InitFile(const char *filename)
 	default:
 		break;
 	}
+
+	if (refreshdirmenu & REFRESHDIR_GAMEDATA)
+		G_LoadGameData();
+	DEH_UpdateMaxFreeslots();
 
 	W_InvalidateLumpnumCache();
 	return wadfile->numlumps;
