@@ -1892,8 +1892,8 @@ static void Command_ResetCamera_f(void)
 	P_ResetCamera(&players[displayplayer], &camera);
 }
 
-static INT32/* Consider replacing nametonum with this */
-LookupPlayer (const char *s)
+/* Consider replacing nametonum with this */
+static INT32 LookupPlayer(const char *s)
 {
 	INT32 playernum;
 
@@ -1923,8 +1923,7 @@ LookupPlayer (const char *s)
 #define PRINTVIEWPOINT( pre,suf ) \
 	CONS_Printf(pre"viewing \x84(%d) \x83%s\x80"suf".\n",\
 			(*displayplayerp), player_names[(*displayplayerp)]);
-static void
-Command_View_f (void)
+static void Command_View_f(void)
 {
 	INT32 *displayplayerp;
 	INT32 olddisplayplayer;

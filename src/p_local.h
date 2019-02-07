@@ -126,7 +126,7 @@ extern fixed_t t_cam2_dist, t_cam2_height, t_cam2_rotate;
 extern fixed_t t_cam3_dist, t_cam3_height, t_cam3_rotate;
 extern fixed_t t_cam4_dist, t_cam4_height, t_cam4_rotate;
 
-camera_t * P_GetCameraPtr (UINT8 viewnum);
+camera_t *P_GetCameraPtr(UINT8 viewnum);
 
 fixed_t P_GetPlayerHeight(player_t *player);
 fixed_t P_GetPlayerSpinHeight(player_t *player);

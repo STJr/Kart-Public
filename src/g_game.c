@@ -2120,8 +2120,7 @@ static INT32 G_FindView(INT32 startview)
 	return startview;
 }
 
-INT32 *
-G_GetDisplayplayerPtr (UINT8 viewnum)
+INT32 *G_GetDisplayplayerPtr(UINT8 viewnum)
 {
 	switch (viewnum)
 	{
@@ -2132,11 +2131,11 @@ G_GetDisplayplayerPtr (UINT8 viewnum)
 	return &displayplayer;
 }
 
-/*
-Ensure a viewpoint is valid.
-*/
-void
-G_ResetView (UINT8 viewnum)
+//
+// G_ResetView
+// Ensures a viewpoint is valid.
+//
+void G_ResetView(UINT8 viewnum)
 {
 	INT32    *displayplayerp;
 	camera_t *camerap;
