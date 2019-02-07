@@ -1794,7 +1794,7 @@ void P_CheckTimeLimit(void)
 	//Optional tie-breaker for Match/CTF
 	else*/ if (cv_overtime.value)
 	{
-		INT32 playerarray[MAXPLAYERS];
+		INT32 playerarray[MAXPLAYERS+1];
 		INT32 tempplayer = 0;
 		INT32 spectators = 0;
 		INT32 playercount = 0;
