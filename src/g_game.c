@@ -2166,14 +2166,14 @@ G_ResetView (UINT8 viewnum)
 			camerap = (P_GetCameraPtr(viewd));
 
 			P_ResetCamera(&players[(*displayplayerp)], camerap);
-			R_ExecuteSetViewSize();
 
 			if (++viewd > viewnum)
 				break;
 
 			/* Correct up to but viewnum */
-			(*displayplayerp) = G_FindView((*displayplayerp));
+			(*displayplayerp) = G_FindView(displayplayer);
 		}
+		R_ExecuteSetViewSize();
 	}
 
 	if (viewnum == 1 && demoplayback)
