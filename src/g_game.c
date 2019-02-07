@@ -6113,7 +6113,7 @@ void G_DoPlayDemo(char *defdemoname)
 	UINT8 i, p;
 	lumpnum_t l;
 	char skin[17],color[17],*n,*pdemoname;
-	UINT8 version,subversion,kartspeed,kartweight;
+	UINT8 version,subversion,kartspeed=5,kartweight=5;
 	UINT32 randseed;
 	char msg[1024];
 #if defined(SKIPERRORS) && !defined(DEVELOP)
@@ -6342,7 +6342,6 @@ void G_DoPlayDemo(char *defdemoname)
 	playeringame[0] = !multiplayer;
 
 	if (multiplayer) {
-		player_t *player;
 		boolean spectator;
 
 		// Load players that were in-game when the map started

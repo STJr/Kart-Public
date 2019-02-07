@@ -65,6 +65,10 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 
+#if !defined (UNDER_CE)
+#include <time.h>
+#endif
+
 #if defined (_WIN32) || defined (_WIN32_WCE)
 #include <malloc.h>
 #include <math.h>
@@ -3161,10 +3165,8 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
 	if (!demoplayback && multiplayer) {
-// lol sorry
-#include "time.h"
 		static char buf[256];
-		sprintf(buf, "replay"PATHSEP"online"PATHSEP"%d-%s", time(NULL), G_BuildMapName(gamemap));
+		sprintf(buf, "replay"PATHSEP"online"PATHSEP"%d-%s", (int) (time(NULL)), G_BuildMapName(gamemap));
 
 		I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
 		I_mkdir(va("%s"PATHSEP"replay"PATHSEP"online", srb2home), 0755);
