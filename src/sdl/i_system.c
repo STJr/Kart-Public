@@ -251,8 +251,7 @@ FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
 	//static char msg[] = "oh no! back to reality!\r\n";
 	const char *      sigmsg;
 	char        sigdef[32];
-
-	D_QuitNetGame(true); // Fix server freezes
+	boolean crash;
 
 	switch (num)
 	{
@@ -261,12 +260,15 @@ FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
 //		break;
 	case SIGILL:
 		sigmsg = "SIGILL - illegal instruction - invalid function image";
+		crash = true;
 		break;
 	case SIGFPE:
 		sigmsg = "SIGFPE - mathematical exception";
+		crash = true;
 		break;
 	case SIGSEGV:
 		sigmsg = "SIGSEGV - segment violation";
+		crash = true;
 		break;
 //	case SIGTERM:
 //		sigmsg = "SIGTERM - Software termination signal from kill";
@@ -276,11 +278,15 @@ FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
 //		break;
 	case SIGABRT:
 		sigmsg = "SIGABRT - abnormal termination triggered by abort call";
+		crash = true;
 		break;
 	default:
 		sprintf(sigdef,"signal number %d", num);
 		sigmsg = sigdef;
+		crash = false;
 	}
+
+	D_QuitNetGame(crash); // Fix server freezes
 
 	I_OutputMsg("\nsignal_handler() error: %s\n", sigmsg);
 
