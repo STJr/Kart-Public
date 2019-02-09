@@ -700,7 +700,13 @@ static INT32 AddToMasterServer(boolean firstadd)
 		return MS_CONNECT_ERROR;
 	}
 	retry = 0;
-	if (res == ERRSOCKET)
+	/*
+	Somehow we can still select our old socket despite it being closed(?).
+	Atleast, that's what I THINK is happening. Anyway, we have to check that we
+	haven't open a socket, and actually open it!
+	*/
+	/*if (res == ERRSOCKET)*//* wtf? no! */
+	if (socket_fd == ERRSOCKET)
 	{
 		if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
 		{
@@ -714,6 +720,13 @@ static INT32 AddToMasterServer(boolean firstadd)
 	// ok, or bad... let see that!
 	j = (socklen_t)sizeof (i);
 	getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, (char *)&i, &j);
+	/*
+	This is also wrong. If getsockopt fails, i doesn't have to be set. Plus, if
+	it is set (which it appearantly is on linux), we check errno anyway. And in
+	the case that i is returned as normal, we don't even report the correct
+	value! So we accomplish NOTHING, except returning due to dumb luck.
+	If you care, fix this--I don't. -James (R.)
+	*/
 	if (i) // it was bad
 	{
 		CONS_Alert(CONS_ERROR, M_GetText("Master Server socket error #%u: %s\n"), errno, strerror(errno));
