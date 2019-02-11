@@ -1,0 +1,69 @@
+/*
+Copyright 2018, James R.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#ifndef APNG_H
+#define APNG_H
+
+#include <png.h>
+
+typedef struct apng_info_def apng_info;
+typedef apng_info * apng_infop;
+typedef const apng_info * apng_const_infop;
+typedef apng_info * * apng_infopp;
+
+typedef apng_info * PNG_RESTRICT apng_inforp;
+typedef const apng_info * PNG_RESTRICT apng_const_inforp;
+
+typedef void   (*apng_seek_ptr)(png_structrp, size_t);
+typedef size_t (*apng_tell_ptr)(png_structrp);
+
+typedef png_uint_32 (*apng_set_acTL_ptr)(png_structrp, png_inforp,
+		png_uint_32, png_uint_32);
+
+apng_infop apng_create_info_struct (png_structrp png_ptr);
+
+void apng_destroy_info_struct (png_structrp png_ptr,
+		apng_infopp info_ptr_ptr);
+
+/* Call the following functions in place of the libpng counterparts. */
+
+png_uint_32 apng_set_acTL (png_structp png_ptr, png_infop info_ptr,
+		apng_infop ainfo_ptr,
+		png_uint_32 num_frames, png_uint_32 num_plays);
+
+void apng_write_info_before_PLTE (png_structrp png_ptr, png_inforp info_ptr,
+		apng_inforp ainfo_ptr);
+void apng_write_info (png_structrp png_ptr, png_inforp info_ptr,
+		apng_inforp ainfo_ptr);
+
+void apng_write_end (png_structrp png_ptr, png_inforp info_ptr,
+		apng_inforp ainfo_ptr);
+
+void apng_set_write_fn (png_structrp png_ptr, apng_inforp ainfo_ptr,
+		png_voidp io_ptr,
+		png_rw_ptr write_data_fn, png_flush_ptr output_flush_fn,
+		apng_seek_ptr output_seek_fn, apng_tell_ptr output_tell_fn);
+
+void apng_set_set_acTL_fn (png_structrp png_ptr, apng_inforp ainfo_ptr,
+		apng_set_acTL_ptr set_acTL_fn);
+
+#endif/* APNG_H */
