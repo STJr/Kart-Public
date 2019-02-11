@@ -45,23 +45,23 @@ struct apng_info_def
 };
 
 /* PROTOS (FUCK COMPILER) */
-void   apng_seek  (png_structrp, apng_const_inforp, size_t);
-size_t apng_tell  (png_structrp, apng_const_inforp);
+void   apng_seek  (png_structp, apng_const_infop, size_t);
+size_t apng_tell  (png_structp, apng_const_infop);
 #ifdef PNG_WRITE_FLUSH_SUPPORTED
-void   apng_flush (png_structrp, apng_inforp);
+void   apng_flush (png_structp, apng_infop);
 #ifdef PNG_STDIO_SUPPORTED
-void   apng_default_flush (png_structrp);
+void   apng_default_flush (png_structp);
 #endif/* PNG_STDIO_SUPPORTED */
 #endif/* PNG_WRITE_FLUSH_SUPPORTED */
 #ifdef PNG_STDIO_SUPPORTED
-void   apng_default_seek  (png_structrp, size_t);
-size_t apng_default_tell  (png_structrp);
+void   apng_default_seek  (png_structp, size_t);
+size_t apng_default_tell  (png_structp);
 #endif/* PNG_STDIO_SUPPORTED */
-void   apng_write_IEND (png_structrp);
-void   apng_write_acTL (png_structrp, png_uint_32, png_uint_32);
+void   apng_write_IEND (png_structp);
+void   apng_write_acTL (png_structp, png_uint_32, png_uint_32);
 
 apng_infop
-apng_create_info_struct (png_structrp pngp)
+apng_create_info_struct (png_structp pngp)
 {
 	apng_infop ainfop;
 	(void)pngp;
@@ -74,7 +74,7 @@ apng_create_info_struct (png_structrp pngp)
 }
 
 void
-apng_destroy_info_struct (png_structrp pngp, apng_infopp ainfopp)
+apng_destroy_info_struct (png_structp pngp, apng_infopp ainfopp)
 {
 	(void)pngp;
 	if (!( pngp && ainfopp ))
@@ -84,20 +84,20 @@ apng_destroy_info_struct (png_structrp pngp, apng_infopp ainfopp)
 }
 
 void
-apng_seek (png_structrp pngp, apng_const_inforp ainfop, size_t l)
+apng_seek (png_structp pngp, apng_const_infop ainfop, size_t l)
 {
 	(*(ainfop->output_seek_fn))(pngp, l);
 }
 
 size_t
-apng_tell (png_structrp pngp, apng_const_inforp ainfop)
+apng_tell (png_structp pngp, apng_const_infop ainfop)
 {
 	return (*(ainfop->output_tell_fn))(pngp);
 }
 
 #ifdef PNG_WRITE_FLUSH_SUPPORTED
 void
-apng_flush (png_structrp pngp, apng_inforp ainfop)
+apng_flush (png_structp pngp, apng_infop ainfop)
 {
 	if (ainfop->output_flush_fn)
 		(*(ainfop->output_flush_fn))(pngp);
@@ -105,7 +105,7 @@ apng_flush (png_structrp pngp, apng_inforp ainfop)
 
 #ifdef PNG_STDIO_SUPPORTED
 void
-apng_default_flush (png_structrp pngp)
+apng_default_flush (png_structp pngp)
 {
 	if (!( pngp ))
 		return;
@@ -117,7 +117,7 @@ apng_default_flush (png_structrp pngp)
 
 #ifdef PNG_STDIO_SUPPORTED
 void
-apng_default_seek (png_structrp pngp, size_t l)
+apng_default_seek (png_structp pngp, size_t l)
 {
 	if (!( pngp ))
 		return;
@@ -127,7 +127,7 @@ apng_default_seek (png_structrp pngp, size_t l)
 }
 
 size_t
-apng_default_tell (png_structrp pngp)
+apng_default_tell (png_structp pngp)
 {
 	long l;
 
@@ -144,7 +144,7 @@ apng_default_tell (png_structrp pngp)
 #endif/* PNG_STDIO_SUPPORTED */
 
 void
-apng_set_write_fn (png_structrp pngp, apng_inforp ainfop, png_voidp iop,
+apng_set_write_fn (png_structp pngp, apng_infop ainfop, png_voidp iop,
 		png_rw_ptr write_f, png_flush_ptr flush_f, 
 		apng_seek_ptr seek_f, apng_tell_ptr tell_f)
 {
@@ -176,18 +176,20 @@ apng_set_write_fn (png_structrp pngp, apng_inforp ainfop, png_voidp iop,
 }
 
 void
-apng_write_IEND (png_structrp pngp)
+apng_write_IEND (png_structp pngp)
 {
-	png_write_chunk(pngp, (png_const_bytep)"IEND", 0, 0);
+	png_byte chunkc[] = "IEND";
+	png_write_chunk(pngp, chunkc, 0, 0);
 }
 
 void
-apng_write_acTL (png_structrp pngp, png_uint_32 frames, png_uint_32 plays)
+apng_write_acTL (png_structp pngp, png_uint_32 frames, png_uint_32 plays)
 {
+	png_byte chunkc[] = "acTL";
 	png_byte buf[8];
 	png_save_uint_32(buf, frames);
 	png_save_uint_32(buf + 4, plays);
-	png_write_chunk(pngp, (png_const_bytep)"acTL", buf, 8);
+	png_write_chunk(pngp, chunkc, buf, 8);
 }
 
 png_uint_32
@@ -208,8 +210,8 @@ apng_set_acTL (png_structp pngp, png_infop infop, apng_infop ainfop,
 }
 
 void
-apng_write_info_before_PLTE (png_structrp pngp, png_inforp infop,
-		apng_inforp ainfop)
+apng_write_info_before_PLTE (png_structp pngp, png_infop infop,
+		apng_infop ainfop)
 {
 	if (!( pngp && infop && ainfop ))
 		return;
@@ -229,15 +231,15 @@ apng_write_info_before_PLTE (png_structrp pngp, png_inforp infop,
 }
 
 void
-apng_write_info (png_structrp pngp, png_inforp infop,
-		apng_inforp ainfop)
+apng_write_info (png_structp pngp, png_infop infop,
+		apng_infop ainfop)
 {
 	apng_write_info_before_PLTE(pngp, infop, ainfop);
 	png_write_info(pngp, infop);
 }
 
 void
-apng_write_end (png_structp pngp, png_inforp infop, apng_inforp ainfop)
+apng_write_end (png_structp pngp, png_infop infop, apng_infop ainfop)
 {
 	(void)infop;
 	apng_write_IEND(pngp);
@@ -253,7 +255,7 @@ apng_write_end (png_structp pngp, png_inforp infop, apng_inforp ainfop)
 
 /* Dynamic runtime linking capable! (Hopefully.) */
 void
-apng_set_set_acTL_fn (png_structrp pngp, apng_inforp ainfop,
+apng_set_set_acTL_fn (png_structp pngp, apng_infop ainfop,
 		apng_set_acTL_ptr set_acTL_f)
 {
 	(void)pngp;

@@ -30,18 +30,15 @@ typedef apng_info * apng_infop;
 typedef const apng_info * apng_const_infop;
 typedef apng_info * * apng_infopp;
 
-typedef apng_info * PNG_RESTRICT apng_inforp;
-typedef const apng_info * PNG_RESTRICT apng_const_inforp;
+typedef void   (*apng_seek_ptr)(png_structp, size_t);
+typedef size_t (*apng_tell_ptr)(png_structp);
 
-typedef void   (*apng_seek_ptr)(png_structrp, size_t);
-typedef size_t (*apng_tell_ptr)(png_structrp);
-
-typedef png_uint_32 (*apng_set_acTL_ptr)(png_structrp, png_inforp,
+typedef png_uint_32 (*apng_set_acTL_ptr)(png_structp, png_infop,
 		png_uint_32, png_uint_32);
 
-apng_infop apng_create_info_struct (png_structrp png_ptr);
+apng_infop apng_create_info_struct (png_structp png_ptr);
 
-void apng_destroy_info_struct (png_structrp png_ptr,
+void apng_destroy_info_struct (png_structp png_ptr,
 		apng_infopp info_ptr_ptr);
 
 /* Call the following functions in place of the libpng counterparts. */
@@ -50,20 +47,20 @@ png_uint_32 apng_set_acTL (png_structp png_ptr, png_infop info_ptr,
 		apng_infop ainfo_ptr,
 		png_uint_32 num_frames, png_uint_32 num_plays);
 
-void apng_write_info_before_PLTE (png_structrp png_ptr, png_inforp info_ptr,
-		apng_inforp ainfo_ptr);
-void apng_write_info (png_structrp png_ptr, png_inforp info_ptr,
-		apng_inforp ainfo_ptr);
+void apng_write_info_before_PLTE (png_structp png_ptr, png_infop info_ptr,
+		apng_infop ainfo_ptr);
+void apng_write_info (png_structp png_ptr, png_infop info_ptr,
+		apng_infop ainfo_ptr);
 
-void apng_write_end (png_structrp png_ptr, png_inforp info_ptr,
-		apng_inforp ainfo_ptr);
+void apng_write_end (png_structp png_ptr, png_infop info_ptr,
+		apng_infop ainfo_ptr);
 
-void apng_set_write_fn (png_structrp png_ptr, apng_inforp ainfo_ptr,
+void apng_set_write_fn (png_structp png_ptr, apng_infop ainfo_ptr,
 		png_voidp io_ptr,
 		png_rw_ptr write_data_fn, png_flush_ptr output_flush_fn,
 		apng_seek_ptr output_seek_fn, apng_tell_ptr output_tell_fn);
 
-void apng_set_set_acTL_fn (png_structrp png_ptr, apng_inforp ainfo_ptr,
+void apng_set_set_acTL_fn (png_structp png_ptr, apng_infop ainfo_ptr,
 		apng_set_acTL_ptr set_acTL_fn);
 
 #endif/* APNG_H */
