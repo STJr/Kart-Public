@@ -2499,7 +2499,10 @@ void R_DrawMasked(void)
 //
 // ==========================================================================
 
+// We can assume those are tied to skins somewhat, hence why they're defined here.
 INT32 numskins = 0;
+follower_t followers[MAXSKINS];
+
 skin_t skins[MAXSKINS];
 // FIXTHIS: don't work because it must be inistilised before the config load
 //#define SKINVALUES

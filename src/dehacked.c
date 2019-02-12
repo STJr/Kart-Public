@@ -33,6 +33,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "d_clisrv.h"
+#include "r_things.h"	// for followers
 
 #include "m_cond.h"
 
@@ -683,6 +684,71 @@ static void readfreeslots(MYFILE *f)
 
 	Z_Free(s);
 }
+
+// This here is our current only way to make followers.
+INT32 numfollowers = 0;
+
+static void readfollower(MYFILE *f)
+{
+	
+	if (numfollowers > MAXSKINS)
+	{	
+		CONS_Printf("Error: Too many followers, cannot add anymore.\n");
+		return;
+	}	
+	
+	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
+	char *word, *word2;
+	char *tmp;
+	
+	CONS_Printf("Adding follower, please bear with me...\n");
+
+	do
+	{
+		if (myfgets(s, MAXLINELEN, f))
+		{
+			if (s[0] == '\n')
+				break;
+
+			tmp = strchr(s, '#');
+			if (tmp)
+				*tmp = '\0';
+			if (s == tmp)
+				continue; // Skip comment lines, but don't break.
+
+			word = strtok(s, " ");
+			if (word)
+				strupr(word);
+			else
+				break;
+
+			word2 = strtok(NULL, " = ");
+			if (word2)
+				strupr(word2);
+			else
+				break;
+			if (word2[strlen(word2)-1] == '\n')
+				word2[strlen(word2)-1] = '\0';
+
+			if (fastcmp(word, "ATANGLE"))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].atangle), UNDO_NONE);
+				followers[numfollowers].atangle = (INT32)atoi(word2);
+			}
+			else if (fastcmp(word, "ZOFFSET") || (fastcmp(word, "ZOFFS")))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].zoffs), UNDO_NONE);
+				followers[numfollowers].zoffs = (INT32)atoi(word2);
+			}
+			else
+				deh_warning("Follower %d: unknown word '%s'", numfollowers, word);
+		}
+	} while (!myfeof(f)); // finish when the line is empty
+	
+	CONS_Printf("We are done adding the follower.\n");
+	numfollowers++;
+	Z_Free(s);	
+}	
 
 static void readthing(MYFILE *f, INT32 num)
 {
@@ -3469,6 +3535,11 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					readpatch(f, word2, wad);
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
 				}
+				else if (fastcmp(word, "FOLLOWER"))
+				{
+					readfollower(f);	// at the same time this will be our only way to ADD followers for now. Yikes.
+					DEH_WriteUndoline(word, word2, UNDO_HEADER);
+				}				
 				else if (fastcmp(word, "THING") || fastcmp(word, "MOBJ") || fastcmp(word, "OBJECT"))
 				{
 					if (i == 0 && word2[0] != '0') // If word2 isn't a number

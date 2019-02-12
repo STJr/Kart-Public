@@ -442,6 +442,9 @@ typedef struct player_s
 	// SRB2kart
 	UINT8 kartspeed; // Kart speed stat between 1 and 9
 	UINT8 kartweight; // Kart weight stat between 1 and 9
+	
+	mobj_t *follower;		// Kart: This is the follower object we have. (If any)
+	
 	//
 
 	fixed_t normalspeed; // Normal ground

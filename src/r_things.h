@@ -115,6 +115,30 @@ typedef struct
 	sfxenum_t soundsid[NUMSKINSOUNDS]; // sound # in S_sfx table
 } skin_t;
 
+//
+// for followers.
+//
+// We'll define these here because they're really just a mobj that'll follow some rules behind a player
+//
+typedef struct follower_s
+{
+	char name[SKINNAMESIZE+1];	// Name. This is used for the menus. We'll just follow the same rules as skins for this.
+	
+	// some position shenanigans:
+	INT32 atangle;			// angle the object will be at around the player. The object itself will always face the same direction as the player.
+	INT32 zoffs;			// Z offset relative to the player's height. Cannot be negative.
+	
+	// from there on out, everything is STATES to allow customization
+	// these are only set once when the action is performed and are then free to animate however they want.
+	
+	INT32 idlestate;		// state when the player is at a standstill
+	INT32 followstate;		// state when the player is moving
+	INT32 hurtstate;		// state when the player is being hurt
+	INT32 winstate;			// state when the player has won
+	INT32 losestate;		// state when the player has lost
+	
+} follower_t;
+
 // -----------
 // NOT SKINS STUFF !
 // -----------
@@ -193,6 +217,8 @@ typedef struct drawnode_s
 
 extern INT32 numskins;
 extern skin_t skins[MAXSKINS];
+extern INT32 numfollowers;
+extern follower_t followers[MAXSKINS];	// again, use the same rules as skins, no reason not to.
 
 void SetPlayerSkin(INT32 playernum,const char *skinname);
 void SetPlayerSkinByNum(INT32 playernum,INT32 skinnum); // Tails 03-16-2002
