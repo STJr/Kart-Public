@@ -236,6 +236,9 @@ static consvar_t cv_dummyconsvar = {"dummyconsvar", "Off", CV_CALL|CV_NOSHOWHELP
 consvar_t cv_restrictskinchange = {"restrictskinchange", "No", CV_NETVAR|CV_CHEAT, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowteamchange = {"allowteamchange", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+static CV_PossibleValue_t ingamecap_cons_t[] = {{0, "MIN"}, {MAXPLAYERS-1, "MAX"}, {0, NULL}};
+consvar_t cv_ingamecap = {"ingamecap", "0", CV_NETVAR, ingamecap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t respawntime_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
@@ -642,6 +645,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_allowexitlevel);
 	CV_RegisterVar(&cv_restrictskinchange);
 	CV_RegisterVar(&cv_allowteamchange);
+	CV_RegisterVar(&cv_ingamecap);
 	CV_RegisterVar(&cv_respawntime);
 	CV_RegisterVar(&cv_killingdead);
 
@@ -2209,10 +2213,12 @@ static void Command_Map_f(void)
 		return;
 	}
 
-	if (!(netgame || multiplayer) && (!modifiedgame || savemoddata))
+	if (!(netgame || multiplayer) && !majormods)
 	{
 		if (COM_CheckParm("-force"))
-			G_SetGameModified(false);
+		{
+			G_SetGameModified(false, true);
+		}
 		else
 		{
 			CONS_Printf(M_GetText("Sorry, level change disabled in single player.\n"));
@@ -2496,6 +2502,12 @@ static void Command_Respawn(void)
 		return;
 	}
 
+	if (players[consoleplayer].mo && !P_IsObjectOnGround(players[consoleplayer].mo))	// KART: Nice try, but no, you won't be cheesing spb anymore.
+	{
+		CONS_Printf(M_GetText("You must be on the floor to use this.\n"));
+		return;
+	}
+
 	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
@@ -2517,7 +2529,7 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 {
 	INT32 respawnplayer = READINT32(*cp);
 
-	// You can't respawn someone else.  Nice try, there.
+	// You can't respawn someone else. Nice try, there.
 	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
@@ -2531,6 +2543,10 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 		}
 		return;
 	}
+
+	// incase the above checks were modified to allow sending a respawn on these occasions:
+	if (players[respawnplayer].mo && !P_IsObjectOnGround(players[respawnplayer].mo))
+		return;
 
 	if (players[respawnplayer].mo)
 		P_DamageMobj(players[respawnplayer].mo, NULL, NULL, 10000);
@@ -3781,7 +3797,7 @@ static void Command_RunSOC(void)
 		if (!P_RunSOC(fn))
 			CONS_Printf(M_GetText("Could not find SOC.\n"));
 		else
-			G_SetGameModified(multiplayer);
+			G_SetGameModified(multiplayer, false);
 		return;
 	}
 
@@ -3835,7 +3851,7 @@ static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum)
 	}
 
 	P_RunSOC(filename);
-	G_SetGameModified(true);
+	G_SetGameModified(true, false);
 }
 
 /** Adds a pwad at runtime.
@@ -3872,7 +3888,7 @@ static void Command_Addfile(void)
 			CONS_Printf(M_GetText("Only the server or a remote admin can use this.\n"));
 			return;
 		}
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, false);
 	}
 
 	// Add file on your client directly if it is trivial, or you aren't in a netgame.
@@ -4118,7 +4134,7 @@ static void Got_Addfilecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	G_SetGameModified(true);
+	G_SetGameModified(true, false);
 }
 
 static void Command_ListWADS_f(void)
@@ -4475,7 +4491,7 @@ static void Ringslinger_OnChange(void)
 	}
 
 	if (cv_ringslinger.value) // Only if it's been turned on
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, true);
 }
 
 static void Gravity_OnChange(void)
@@ -4496,7 +4512,7 @@ static void Gravity_OnChange(void)
 #endif
 
 	if (!CV_IsSetToDefault(&cv_gravity))
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, true);
 	gravity = cv_gravity.value;
 }
 
@@ -4892,7 +4908,7 @@ static void Fishcake_OnChange(void)
 	// so don't make modifiedgame always on!
 	if (cv_debug)
 	{
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, true);
 	}
 
 	else if (cv_debug != cv_fishcake.value)
@@ -4908,12 +4924,14 @@ static void Fishcake_OnChange(void)
   */
 static void Command_Isgamemodified_f(void)
 {
-	if (savemoddata)
-		CONS_Printf(M_GetText("modifiedgame is true, but you can save medal and record data in this mod.\n"));
+	if (majormods)
+		CONS_Printf("The game has been modified with major add-ons, so you cannot play Record Attack.\n");
+	else if (savemoddata)
+		CONS_Printf("The game has been modified with an add-on with its own save data, so you can play Record Attack and earn medals.\n");
 	else if (modifiedgame)
-		CONS_Printf(M_GetText("modifiedgame is true, extras will not be unlocked\n"));
+		CONS_Printf("The game has been modified with only minor add-ons. You can play Record Attack, earn medals and unlock extras.\n");
 	else
-		CONS_Printf(M_GetText("modifiedgame is false, you can unlock extras\n"));
+		CONS_Printf("The game has not been modified. You can play Record Attack, earn medals and unlock extras.\n");
 }
 
 static void Command_Cheats_f(void)

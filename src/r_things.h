@@ -220,7 +220,7 @@ extern skin_t skins[MAXSKINS];
 extern INT32 numfollowers;
 extern follower_t followers[MAXSKINS];	// again, use the same rules as skins, no reason not to.
 
-void SetPlayerSkin(INT32 playernum,const char *skinname);
+boolean SetPlayerSkin(INT32 playernum,const char *skinname);
 void SetPlayerSkinByNum(INT32 playernum,INT32 skinnum); // Tails 03-16-2002
 INT32 R_SkinAvailable(const char *name);
 void R_AddSkins(UINT16 wadnum);

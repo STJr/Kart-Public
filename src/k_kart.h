@@ -65,6 +65,13 @@ void K_CalculateBattleWanted(void);
 void K_CheckBumpers(void);
 void K_CheckSpectateStatus(void);
 
+// sound stuff for lua
+void K_PlayAttackTaunt(mobj_t *source);
+void K_PlayBoostTaunt(mobj_t *source);
+void K_PlayOvertakeSound(mobj_t *source);
+void K_PlayHitEmSound(mobj_t *source);
+void K_PlayPowerGloatSound(mobj_t *source);
+
 const char *K_GetItemPatch(UINT8 item, boolean tiny);
 INT32 K_calcSplitFlags(INT32 snapflags);
 void K_LoadKartHUDGraphics(void);
