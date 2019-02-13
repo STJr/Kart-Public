@@ -631,6 +631,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		cv_shrink.value,
 		cv_thundershield.value,
 		cv_hyudoro.value,
+		cv_pogospring.value,
 		cv_kitchensink.value,
 		cv_triplesneaker.value,
 		cv_triplebanana.value,
