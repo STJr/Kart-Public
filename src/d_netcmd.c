@@ -1912,11 +1912,10 @@ static INT32 LookupPlayer(const char *s)
 
 	for (playernum = 0; playernum < MAXPLAYERS; ++playernum)
 	{
-		/* Consider strcasestr? */
-		/* Match name (case-insensitively) fully, or partially the start. */
+		/* Match name case-insensitively: fully, or partially the start. */
 		if (playeringame[playernum])
 			if (stricmp(player_names[playernum], s) == 0 ||
-					strstr(player_names[playernum], s) == player_names[playernum] )
+					strnicmp(player_names[playernum], s, strlen(s)) == 0)
 		{
 			return playernum;
 		}
