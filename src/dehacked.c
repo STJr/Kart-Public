@@ -699,18 +699,21 @@ INT32 numfollowers = 0;
 
 static void readfollower(MYFILE *f)
 {
-	
+
 	if (numfollowers > MAXSKINS)
-	{	
-		CONS_Printf("Error: Too many followers, cannot add anymore.\n");
+	{
+		deh_warning("Error: Too many followers, cannot add anymore.\n");
 		return;
-	}	
-	
+	}
+
 	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
-	char *word, *word2;
+	char *word, *word2, *dname = malloc(SKINNAMESIZE+1);
 	char *tmp;
-	
-	CONS_Printf("Adding follower, please bear with me...\n");
+
+	boolean nameset;
+	INT32 fallbackstate = 0;
+
+	CONS_Printf("Adding follower...\n");
 
 	do
 	{
@@ -732,14 +735,20 @@ static void readfollower(MYFILE *f)
 				break;
 
 			word2 = strtok(NULL, " = ");
-			if (word2)
-				strupr(word2);
-			else
+
+			if (!word2)
 				break;
+
 			if (word2[strlen(word2)-1] == '\n')
 				word2[strlen(word2)-1] = '\0';
 
-			if (fastcmp(word, "ATANGLE"))
+			if (fastcmp(word, "NAME"))
+			{
+				DEH_WriteUndoline(word, va("%s", followers[numfollowers].name), UNDO_NONE);
+				strcpy(followers[numfollowers].name, word2);
+				nameset = true;
+			}
+			else if (fastcmp(word, "ATANGLE"))
 			{
 				DEH_WriteUndoline(word, va("%d", followers[numfollowers].atangle), UNDO_NONE);
 				followers[numfollowers].atangle = (INT32)atoi(word2);
@@ -749,15 +758,105 @@ static void readfollower(MYFILE *f)
 				DEH_WriteUndoline(word, va("%d", followers[numfollowers].zoffs), UNDO_NONE);
 				followers[numfollowers].zoffs = (INT32)atoi(word2);
 			}
+			else if (fastcmp(word, "IDLESTATE"))
+			{
+				if (word2)
+					strupr(word2);
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].idlestate), UNDO_NONE);
+				followers[numfollowers].idlestate = get_number(word2);
+				fallbackstate = followers[numfollowers].idlestate;
+			}
+			else if (fastcmp(word, "FOLLOWSTATE"))
+			{
+				if (word2)
+					strupr(word2);
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].followstate), UNDO_NONE);
+				followers[numfollowers].followstate = get_number(word2);
+			}
+			else if (fastcmp(word, "HURTSTATE"))
+			{
+				if (word2)
+					strupr(word2);
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].hurtstate), UNDO_NONE);
+				followers[numfollowers].hurtstate = get_number(word2);
+			}
+			else if (fastcmp(word, "LOSESTATE"))
+			{
+				if (word2)
+					strupr(word2);
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].losestate), UNDO_NONE);
+				followers[numfollowers].losestate = get_number(word2);
+			}
+			else if (fastcmp(word, "WINSTATE"))
+			{
+				if (word2)
+					strupr(word2);
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].winstate), UNDO_NONE);
+				followers[numfollowers].winstate = get_number(word2);
+			}
 			else
 				deh_warning("Follower %d: unknown word '%s'", numfollowers, word);
 		}
 	} while (!myfeof(f)); // finish when the line is empty
-	
-	CONS_Printf("We are done adding the follower.\n");
-	numfollowers++;
-	Z_Free(s);	
-}	
+
+	if (!nameset)	// well this is problematic.
+	{
+		strcpy(followers[numfollowers].name, va("Follower%d", numfollowers));	// this is lazy, so what
+	}
+
+	// set skin name (this is just the follower's name in lowercases):
+	// but before we do, let's... actually check if another follower isn't doing the same shit...
+
+	char testname[SKINNAMESIZE];
+	strcpy(testname, followers[numfollowers].name);
+
+	// lower testname for skin checks...
+	strlwr(testname);
+	INT32 res = R_FollowerAvailable(testname);
+	if (res > -1)	// yikes, someone else has stolen our name already
+	{
+		deh_warning("There was already a follower with the same name. (%s)", testname);
+		INT32 startlen = strlen(testname);
+		char cpy[2];
+		sprintf(cpy, "%d", numfollowers);
+		memcpy(&testname[startlen], cpy, 2);
+		// in that case, we'll be very lazy and copy numfollowers to the end of our skin name.
+	}
+
+	strcpy(followers[numfollowers].skinname, testname);
+
+	// get ready to print the name...
+	strcpy(dname, followers[numfollowers].skinname);
+
+	// check for atangle and zoffs. But don't error if they aren't set, just give them logical values.
+	if (!followers[numfollowers].atangle && followers[numfollowers].atangle != 0)
+		followers[numfollowers].atangle = 300;
+
+	if ((!followers[numfollowers].zoffs || followers[numfollowers].zoffs < 0) && followers[numfollowers].zoffs != 0)	// yikes, no offset or negative offset
+		followers[numfollowers].zoffs = 64;
+
+
+	// also check if we forgot states :V
+#define NOSTATE(field, field2) \
+if (!followers[numfollowers].field) \
+{ \
+	followers[numfollowers].field = fallbackstate ? fallbackstate : S_INVISIBLE; \
+	if (!fallbackstate) \
+		deh_warning("Follower %s is missing state definition for %s, no idlestate fallback was found", dname, field2); \
+} \
+
+	NOSTATE(idlestate, "idlestate");
+	NOSTATE(followstate, "followstate");
+	NOSTATE(hurtstate, "hurtstate");
+	NOSTATE(losestate, "losestate");
+	NOSTATE(winstate, "winstate");
+#undef NOSTATE
+
+	CONS_Printf("Added follower '%s'\n", dname);
+	numfollowers++;	// add 1 follower
+	free(dname);	// free name memory
+	Z_Free(s);
+}
 
 static void readthing(MYFILE *f, INT32 num)
 {
@@ -3508,6 +3607,13 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 				// This is not a major mod.
 				continue;
 			}
+			else if (fastcmp(word, "FOLLOWER"))
+			{
+				readfollower(f);	// at the same time this will be our only way to ADD followers for now. Yikes.
+				DEH_WriteUndoline(word, "", UNDO_HEADER);
+				// This is not a major mod either.
+				continue;	// continue so that we don't error.
+			}
 			word2 = strtok(NULL, " ");
 			if (fastcmp(word, "CHARACTER"))
 			{
@@ -3549,11 +3655,6 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 					DEH_WriteUndoline(word, word2, UNDO_HEADER);
 					// This is not a major mod.
 				}
-				else if (fastcmp(word, "FOLLOWER"))
-				{
-					readfollower(f);	// at the same time this will be our only way to ADD followers for now. Yikes.
-					DEH_WriteUndoline(word, word2, UNDO_HEADER);
-				}				
 				else if (fastcmp(word, "THING") || fastcmp(word, "MOBJ") || fastcmp(word, "OBJECT"))
 				{
 					if (i == 0 && word2[0] != '0') // If word2 isn't a number

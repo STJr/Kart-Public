@@ -103,6 +103,10 @@ static void Skin_OnChange(void);
 static void Skin2_OnChange(void);
 static void Skin3_OnChange(void);
 static void Skin4_OnChange(void);
+static void Follower_OnChange(void);
+static void Follower2_OnChange(void);
+static void Follower3_OnChange(void);
+static void Follower4_OnChange(void);
 static void Color_OnChange(void);
 static void Color2_OnChange(void);
 static void Color3_OnChange(void);
@@ -267,6 +271,12 @@ consvar_t cv_skin = {"skin", DEFAULTSKIN, CV_SAVE|CV_CALL|CV_NOINIT, NULL, Skin_
 consvar_t cv_skin2 = {"skin2", DEFAULTSKIN2, CV_SAVE|CV_CALL|CV_NOINIT, NULL, Skin2_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_skin3 = {"skin3", DEFAULTSKIN3, CV_SAVE|CV_CALL|CV_NOINIT, NULL, Skin3_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_skin4 = {"skin4", DEFAULTSKIN4, CV_SAVE|CV_CALL|CV_NOINIT, NULL, Skin4_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
+// player's followers. Also saved.
+consvar_t cv_follower = {"follower", "-1", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Follower_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_follower2 = {"follower2", "-1", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Follower2_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_follower3 = {"follower3", "-1", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Follower3_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_follower4 = {"follower4", "-1", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Follower4_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_skipmapcheck = {"skipmapcheck", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -747,18 +757,22 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_playername);
 	CV_RegisterVar(&cv_playercolor);
 	CV_RegisterVar(&cv_skin); // r_things.c (skin NAME)
+	CV_RegisterVar(&cv_follower);
 	// secondary player (splitscreen)
 	CV_RegisterVar(&cv_playername2);
 	CV_RegisterVar(&cv_playercolor2);
 	CV_RegisterVar(&cv_skin2);
+	CV_RegisterVar(&cv_follower2);
 	// third player
 	CV_RegisterVar(&cv_playername3);
 	CV_RegisterVar(&cv_playercolor3);
 	CV_RegisterVar(&cv_skin3);
+	CV_RegisterVar(&cv_follower3);
 	// fourth player
 	CV_RegisterVar(&cv_playername4);
 	CV_RegisterVar(&cv_playercolor4);
 	CV_RegisterVar(&cv_skin4);
+	CV_RegisterVar(&cv_follower4);
 	// preferred number of players
 	CV_RegisterVar(&cv_splitplayers);
 
@@ -1241,9 +1255,9 @@ static INT32 snacpending = 0, snac2pending = 0, snac3pending = 0, snac4pending =
 //
 static void SendNameAndColor(void)
 {
-	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	XBOXSTATIC char buf[MAXPLAYERNAME+3];
 	char *p;
-
+	
 	p = buf;
 
 	// normal player colors
@@ -1268,7 +1282,8 @@ static void SendNameAndColor(void)
 
 	if (!strcmp(cv_playername.string, player_names[consoleplayer])
 		&& cv_playercolor.value == players[consoleplayer].skincolor
-		&& !strcmp(cv_skin.string, skins[players[consoleplayer].skin].name))
+		&& !strcmp(cv_skin.string, skins[players[consoleplayer].skin].name)
+		&& cv_follower.value == players[consoleplayer].followerskin)
 		return;
 
 	// We'll handle it later if we're not playing.
@@ -1351,6 +1366,7 @@ static void SendNameAndColor(void)
 	WRITESTRINGN(p, cv_playername.zstring, MAXPLAYERNAME);
 	WRITEUINT8(p, (UINT8)cv_playercolor.value);
 	WRITEUINT8(p, (UINT8)cv_skin.value);
+	WRITESINT8(p, (UINT8)cv_follower.value);
 	SendNetXCmd(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
@@ -1358,7 +1374,7 @@ static void SendNameAndColor(void)
 static void SendNameAndColor2(void)
 {
 	INT32 secondplaya = -1;
-	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	XBOXSTATIC char buf[MAXPLAYERNAME+3];
 	char *p;
 
 	if (splitscreen < 1 && !botingame)
@@ -1475,13 +1491,14 @@ static void SendNameAndColor2(void)
 	WRITESTRINGN(p, cv_playername2.zstring, MAXPLAYERNAME);
 	WRITEUINT8(p, (UINT8)cv_playercolor2.value);
 	WRITEUINT8(p, (UINT8)cv_skin2.value);
+	WRITESINT8(p, (UINT8)cv_follower2.value);
 	SendNetXCmd2(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void SendNameAndColor3(void)
 {
 	INT32 thirdplaya = -1;
-	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	XBOXSTATIC char buf[MAXPLAYERNAME+3];
 	char *p;
 
 	if (splitscreen < 2)
@@ -1590,13 +1607,14 @@ static void SendNameAndColor3(void)
 	WRITESTRINGN(p, cv_playername3.zstring, MAXPLAYERNAME);
 	WRITEUINT8(p, (UINT8)cv_playercolor3.value);
 	WRITEUINT8(p, (UINT8)cv_skin3.value);
+	WRITESINT8(p, (UINT8)cv_follower3.value);
 	SendNetXCmd3(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
 static void SendNameAndColor4(void)
 {
 	INT32 fourthplaya = -1;
-	XBOXSTATIC char buf[MAXPLAYERNAME+2];
+	XBOXSTATIC char buf[MAXPLAYERNAME+3];
 	char *p;
 
 	if (splitscreen < 3)
@@ -1713,6 +1731,7 @@ static void SendNameAndColor4(void)
 	WRITESTRINGN(p, cv_playername4.zstring, MAXPLAYERNAME);
 	WRITEUINT8(p, (UINT8)cv_playercolor4.value);
 	WRITEUINT8(p, (UINT8)cv_skin4.value);
+	WRITESINT8(p, (UINT8)cv_follower4.value);
 	SendNetXCmd4(XD_NAMEANDCOLOR, buf, p - buf);
 }
 
@@ -1721,7 +1740,8 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	player_t *p = &players[playernum];
 	char name[MAXPLAYERNAME+1];
 	UINT8 color, skin;
-
+	SINT8 follower;
+	
 #ifdef PARANOIA
 	if (playernum < 0 || playernum > MAXPLAYERS)
 		I_Error("There is no player %d!", playernum);
@@ -1744,6 +1764,7 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	READSTRINGN(*cp, name, MAXPLAYERNAME);
 	color = READUINT8(*cp);
 	skin = READUINT8(*cp);
+	follower = READSINT8(*cp);
 
 	// set name
 	if (strcasecmp(player_names[playernum], name) != 0)
@@ -1802,6 +1823,9 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	}
 	else
 		SetPlayerSkinByNum(playernum, skin);
+	
+	// set follower:
+	SetFollower(playernum, follower);
 }
 
 void SendWeaponPref(void)
@@ -5088,6 +5112,97 @@ static void Name4_OnChange(void)
 	}
 	else
 		SendNameAndColor4();
+}
+
+// sends the follower change for players
+static void Follower_OnChange(void)
+{
+	if (!Playing())
+		return; // do whatever you want
+	
+	// there is a slight chance that we will actually use a string instead so...
+	// let's investigate the string...
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
+	strcpy(str, cv_follower.string);
+	strcpy(cpy, cv_follower.string);
+	strlwr(str);
+	if (!atoi(cpy))	// yep, that's a string alright...
+	{
+		INT32 num = R_FollowerAvailable(str);
+		if (num == -1)	// that's an error.
+			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
+		
+		char set[10];
+		sprintf(set, "%d", num);
+		CV_StealthSet(&cv_follower, set);	// set it to a number. It's easier for us to send later :)
+	}
+	SendNameAndColor();
+}
+
+static void Follower2_OnChange(void)
+{
+	if (!Playing() || !splitscreen)
+		return; // do whatever you want
+	
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
+	strcpy(str, cv_follower2.string);
+	strcpy(cpy, cv_follower2.string);
+	strlwr(str);
+	if (!atoi(cpy))	// yep, that's a string alright...
+	{
+		INT32 num = R_FollowerAvailable(str);
+		if (num == -1)	// that's an error.
+			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
+		
+		char set[10];
+		sprintf(set, "%d", num);
+		CV_StealthSet(&cv_follower2, set);	// set it to a number. It's easier for us to send later :)
+	}
+	SendNameAndColor2();
+}
+
+static void Follower3_OnChange(void)
+{
+	if (!Playing() || !splitscreen)
+		return; // do whatever you want
+
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
+	strcpy(str, cv_follower3.string);
+	strcpy(cpy, cv_follower3.string);
+	strlwr(str);
+	if (!atoi(cpy))	// yep, that's a string alright...
+	{
+		INT32 num = R_FollowerAvailable(str);
+		if (num == -1)	// that's an error.
+			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
+		
+		char set[10];
+		sprintf(set, "%d", num);
+		CV_StealthSet(&cv_follower3, set);	// set it to a number. It's easier for us to send later :)
+	}	
+	SendNameAndColor3();
+}
+
+static void Follower4_OnChange(void)
+{
+	if (!Playing() || !splitscreen)
+		return; // do whatever you want
+
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
+	strcpy(str, cv_follower4.string);
+	strcpy(cpy, cv_follower4.string);
+	strlwr(str);
+	if (!atoi(cpy))	// yep, that's a string alright...
+	{
+		INT32 num = R_FollowerAvailable(str);
+		if (num == -1)	// that's an error.
+			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
+		
+		char set[10];
+		sprintf(set, "%d", num);
+		CV_StealthSet(&cv_follower4, set);	// set it to a number. It's easier for us to send later :)
+	}	
+	SendNameAndColor4();
 }
 
 /** Sends a skin change for the console player, unless that player is moving.

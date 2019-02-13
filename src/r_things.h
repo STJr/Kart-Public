@@ -122,21 +122,22 @@ typedef struct
 //
 typedef struct follower_s
 {
-	char name[SKINNAMESIZE+1];	// Name. This is used for the menus. We'll just follow the same rules as skins for this.
-	
+	char skinname[SKINNAMESIZE+1];	// Skin Name. This is what to refer to when asking the commands anything.
+	char name[SKINNAMESIZE+1];		// Name. This is used for the menus. We'll just follow the same rules as skins for this.
+
 	// some position shenanigans:
 	INT32 atangle;			// angle the object will be at around the player. The object itself will always face the same direction as the player.
 	INT32 zoffs;			// Z offset relative to the player's height. Cannot be negative.
-	
+
 	// from there on out, everything is STATES to allow customization
 	// these are only set once when the action is performed and are then free to animate however they want.
-	
+
 	INT32 idlestate;		// state when the player is at a standstill
 	INT32 followstate;		// state when the player is moving
 	INT32 hurtstate;		// state when the player is being hurt
 	INT32 winstate;			// state when the player has won
 	INT32 losestate;		// state when the player has lost
-	
+
 } follower_t;
 
 // -----------
@@ -224,6 +225,10 @@ boolean SetPlayerSkin(INT32 playernum,const char *skinname);
 void SetPlayerSkinByNum(INT32 playernum,INT32 skinnum); // Tails 03-16-2002
 INT32 R_SkinAvailable(const char *name);
 void R_AddSkins(UINT16 wadnum);
+
+INT32 R_FollowerAvailable(const char *name);
+boolean SetPlayerFollower(INT32 playernum,const char *skinname);
+void SetFollower(INT32 playernum,INT32 skinnum);
 
 #ifdef DELFILE
 void R_DelSkins(UINT16 wadnum);

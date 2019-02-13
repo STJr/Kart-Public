@@ -445,6 +445,7 @@ typedef struct player_s
 	UINT8 kartspeed; // Kart speed stat between 1 and 9
 	UINT8 kartweight; // Kart weight stat between 1 and 9
 	
+	INT32 followerskin;		// Kart: This player's follower "skin"
 	mobj_t *follower;		// Kart: This is the follower object we have. (If any)
 	
 	//
