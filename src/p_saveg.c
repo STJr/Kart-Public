@@ -52,10 +52,11 @@ typedef enum
 {
 //	RFLAGPOINT = 0x01,
 //	BFLAGPOINT = 0x02,
-	CAPSULE    = 0x04,
-	AWAYVIEW   = 0x08,
-	FIRSTAXIS  = 0x10,
-	SECONDAXIS = 0x20,
+	CAPSULE    = 4,
+	AWAYVIEW   = 8,
+	FIRSTAXIS  = 16,
+	SECONDAXIS = 32,
+	FOLLOWER   = 64,
 } player_saveflags;
 
 //
@@ -113,6 +114,8 @@ static void P_NetArchivePlayers(void)
 	INT32 i, j;
 	UINT16 flags;
 //	size_t q;
+
+	CONS_Printf("SENDING NET INFO\n");
 
 	WRITEUINT32(save_p, ARCHIVEBLOCK_PLAYERS);
 
@@ -238,6 +241,9 @@ static void P_NetArchivePlayers(void)
 		if (players[i].axis2)
 			flags |= SECONDAXIS;
 
+		if (players[i].follower)
+			flags |= FOLLOWER;
+
 		WRITEINT16(save_p, players[i].lastsidehit);
 		WRITEINT16(save_p, players[i].lastlinehit);
 
@@ -275,6 +281,13 @@ static void P_NetArchivePlayers(void)
 		// SRB2kart
 		WRITEUINT8(save_p, players[i].kartspeed);
 		WRITEUINT8(save_p, players[i].kartweight);
+
+		WRITEUINT8(save_p, players[i].followerskin);
+		WRITEUINT8(save_p, players[i].followerready);	// booleans are really just numbers eh??
+		if (flags & FOLLOWER)
+			WRITEUINT32(save_p, players[i].follower->mobjnum);
+
+
 		//
 		WRITEFIXED(save_p, players[i].normalspeed);
 		WRITEFIXED(save_p, players[i].runspeed);
@@ -298,6 +311,8 @@ static void P_NetUnArchivePlayers(void)
 {
 	INT32 i, j;
 	UINT16 flags;
+
+	CONS_Printf("FETCHING NET INFO\n");
 
 	if (READUINT32(save_p) != ARCHIVEBLOCK_PLAYERS)
 		I_Error("Bad $$$.sav at archive block Players");
@@ -455,6 +470,12 @@ static void P_NetUnArchivePlayers(void)
 		// SRB2kart
 		players[i].kartspeed = READUINT8(save_p);
 		players[i].kartweight = READUINT8(save_p);
+
+		players[i].followerskin = READUINT8(save_p);
+		players[i].followerready = READUINT8(save_p);
+		if (flags & FOLLOWER)
+			players[i].follower = (mobj_t *)(size_t)READUINT32(save_p);
+
 		//
 		players[i].normalspeed = READFIXED(save_p);
 		players[i].runspeed = READFIXED(save_p);

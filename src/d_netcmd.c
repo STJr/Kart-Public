@@ -1257,7 +1257,7 @@ static void SendNameAndColor(void)
 {
 	XBOXSTATIC char buf[MAXPLAYERNAME+3];
 	char *p;
-	
+
 	p = buf;
 
 	// normal player colors
@@ -1279,6 +1279,10 @@ static void SendNameAndColor(void)
 		else
 			CV_StealthSet(&cv_playercolor, cv_playercolor.defaultvalue);
 	}
+
+	// so like, this is sent before we even use anything like cvars or w/e so it's possible that follower is set to a pretty yikes value, so let's fix that before we send garbage that could crash the game:
+	if (cv_follower.value > numfollowers-1 || cv_follower.value < -1)
+		CV_StealthSet(&cv_follower, "-1");
 
 	if (!strcmp(cv_playername.string, player_names[consoleplayer])
 		&& cv_playercolor.value == players[consoleplayer].skincolor
@@ -1410,6 +1414,10 @@ static void SendNameAndColor2(void)
 			CV_StealthSet(&cv_playercolor2, cv_playercolor2.defaultvalue);
 	}
 
+	// so like, this is sent before we even use anything like cvars or w/e so it's possible that follower is set to a pretty yikes value, so let's fix that before we send garbage that could crash the game:
+	if (cv_follower2.value > numfollowers-1 || cv_follower2.value < -1)
+		CV_StealthSet(&cv_follower2, "-1");
+
 	// We'll handle it later if we're not playing.
 	if (!Playing())
 		return;
@@ -1534,6 +1542,10 @@ static void SendNameAndColor3(void)
 			CV_StealthSet(&cv_playercolor3, cv_playercolor3.defaultvalue);
 	}
 
+	// so like, this is sent before we even use anything like cvars or w/e so it's possible that follower is set to a pretty yikes value, so let's fix that before we send garbage that could crash the game:
+	if (cv_follower3.value > numfollowers-1 || cv_follower3.value < -1)
+		CV_StealthSet(&cv_follower3, "-1");
+
 	// We'll handle it later if we're not playing.
 	if (!Playing())
 		return;
@@ -1650,6 +1662,10 @@ static void SendNameAndColor4(void)
 			CV_StealthSet(&cv_playercolor4, cv_playercolor4.defaultvalue);
 	}
 
+	// so like, this is sent before we even use anything like cvars or w/e so it's possible that follower is set to a pretty yikes value, so let's fix that before we send garbage that could crash the game:
+	if (cv_follower4.value > numfollowers-1 || cv_follower4.value < -1)
+		CV_StealthSet(&cv_follower4, "-1");
+
 	// We'll handle it later if we're not playing.
 	if (!Playing())
 		return;
@@ -1741,7 +1757,7 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	char name[MAXPLAYERNAME+1];
 	UINT8 color, skin;
 	SINT8 follower;
-	
+
 #ifdef PARANOIA
 	if (playernum < 0 || playernum > MAXPLAYERS)
 		I_Error("There is no player %d!", playernum);
@@ -1823,7 +1839,7 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	}
 	else
 		SetPlayerSkinByNum(playernum, skin);
-	
+
 	// set follower:
 	SetFollower(playernum, follower);
 }
@@ -1885,6 +1901,7 @@ static void Got_WeaponPref(UINT8 **cp,INT32 playernum)
 		players[playernum].pflags |= PF_FLIPCAM;
 	if (prefs & 2)
 		players[playernum].pflags |= PF_ANALOGMODE;
+
 }
 
 void D_SendPlayerConfig(void)
@@ -5119,19 +5136,19 @@ static void Follower_OnChange(void)
 {
 	if (!Playing())
 		return; // do whatever you want
-	
+
 	// there is a slight chance that we will actually use a string instead so...
 	// let's investigate the string...
 	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	strcpy(str, cv_follower.string);
 	strcpy(cpy, cv_follower.string);
 	strlwr(str);
-	if (!atoi(cpy))	// yep, that's a string alright...
+	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
 		if (num == -1)	// that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
-		
+
 		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower, set);	// set it to a number. It's easier for us to send later :)
@@ -5143,17 +5160,17 @@ static void Follower2_OnChange(void)
 {
 	if (!Playing() || !splitscreen)
 		return; // do whatever you want
-	
+
 	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	strcpy(str, cv_follower2.string);
 	strcpy(cpy, cv_follower2.string);
 	strlwr(str);
-	if (!atoi(cpy))	// yep, that's a string alright...
+	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
 		if (num == -1)	// that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
-		
+
 		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower2, set);	// set it to a number. It's easier for us to send later :)
@@ -5170,16 +5187,16 @@ static void Follower3_OnChange(void)
 	strcpy(str, cv_follower3.string);
 	strcpy(cpy, cv_follower3.string);
 	strlwr(str);
-	if (!atoi(cpy))	// yep, that's a string alright...
+	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
 		if (num == -1)	// that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
-		
+
 		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower3, set);	// set it to a number. It's easier for us to send later :)
-	}	
+	}
 	SendNameAndColor3();
 }
 
@@ -5192,16 +5209,16 @@ static void Follower4_OnChange(void)
 	strcpy(str, cv_follower4.string);
 	strcpy(cpy, cv_follower4.string);
 	strlwr(str);
-	if (!atoi(cpy))	// yep, that's a string alright...
+	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
 		if (num == -1)	// that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
-		
+
 		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower4, set);	// set it to a number. It's easier for us to send later :)
-	}	
+	}
 	SendNameAndColor4();
 }
 

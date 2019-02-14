@@ -8933,6 +8933,162 @@ void P_DoTimeOver(player_t *player)
 		countdown2 = 5*TICRATE;
 }
 
+/* 	set follower state with our weird hacks
+	the reason we do this is to avoid followers ever using actions (majormods, yikes!)
+	without having to touch p_mobj.c.
+	so we give it 1more tic and change the state when tic == 1 instead of 0
+	cool beans?
+	cool beans.
+*/
+static void P_SetFollowerState(mobj_t *f, INT32 state)
+{
+	P_SetMobjStateNF(f, state);
+	if (f->state->tics > 0)
+		f->tics++;
+}
+
+//
+//P_HandleFllower
+//
+//Handle the follower's spawning and moving along with the player. Do note that some of the stuff like the removal if a player doesn't exist anymore is handled in MT_FOLLOWER's thinker.
+static void P_HandleFollower(player_t *player)
+{
+
+	if (!player->followerready)
+		return;	// we aren't ready to perform anything follower related yet.
+
+	// How about making sure our follower exists and is added before trying to spawn it n' all?
+	if (player->followerskin > numfollowers-1 || player->followerskin < -1)
+	{
+		CONS_Printf("Follower skin invlaid. Setting to -1.\n");
+		player->followerskin = -1;
+		return;
+	}
+
+	// don't do anything if we can't have a follower to begin with. (It gets removed under those conditions)
+	if (player->spectator)
+		return;
+	if (player->followerskin < 0)
+		return;
+
+	// Before we do anything, let's be sure of where we're supposed to be
+	follower_t fl = followers[player->followerskin];
+
+	angle_t an = player->mo->angle + (fl.atangle)*ANG1;		// it's aproximative but it really doesn't matter in the grand scheme of things...
+	fixed_t zoffs = (fl.zoffs)*FRACUNIT;
+
+	// do you like angle maths? I certainly don't...
+	fixed_t sx, sy, sz;
+	sx = player->mo->x + FixedMul((player->mo->scale*fl.dist), FINECOSINE((an)>>ANGLETOFINESHIFT));
+	sy = player->mo->y + FixedMul((player->mo->scale*fl.dist), FINESINE((an)>>ANGLETOFINESHIFT));
+
+	// for the z coordinate, don't be a doof like Steel and forget that MFE_VERTICALFLIP exists :P
+	sz = player->mo->z + FixedMul(player->mo->scale, zoffs);
+	/*if (player->mo->eflags & MFE_VERTICALFLIP)	// it's safe to assume that VERTICALFLIP accounts for MF2_OBJECTFLIP too
+		sz -= (player->mo->height + FixedMul(player->mo->scale, zoffs*2));*/
+	// ^ handled by K_matchgenericextraflags oops
+
+
+	// finally, add a cool floating effect to the z height, unless we have no zoffs, in which case I guess this means we WANT to be on the ground...???
+	if (fl.zoffs)
+	{
+		// not stolen from k_kart I swear!!
+		const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
+		fixed_t sine = 4 * FINESINE((((8*pi*(TICRATE*2)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
+		sz += sine;
+	}
+
+	if (!player->follower)	// follower doesn't exist / isn't valid
+	{
+		CONS_Printf("Spawning follower...\n");
+		// so let's spawn one!
+		player->follower = P_SpawnMobj(sx, sy, sz, MT_FOLLOWER);
+		P_SetFollowerState(player->follower, fl.idlestate);
+		P_SetTarget(&player->follower->target, player->mo);	// we need that to know when we need to disappear
+
+		player->follower->extravalue1 = 0;	// extravalue1 is used to know what "state set" to use.
+		/*
+			0 = idle
+			1 = forwards
+			2 = hurt
+			3 = win
+			4 = lose
+		*/
+	}
+	else	// follower exists, woo!
+	{
+		// first of all, handle states following the same model as above:
+		if (player->follower->tics == 1)
+			P_SetFollowerState(player->follower, player->follower->state->nextstate);
+
+		// move the follower next to us (yes, this is really basic maths but it looks pretty damn clean in practice)!
+		player->follower->momx = (sx - player->follower->x)/2;
+		player->follower->momy = (sy - player->follower->y)/2;
+		player->follower->momz = (sz - player->follower->z)/6;	// make z momentum a bit floatier, it'll look cute I promise!
+		player->follower->angle = player->mo->angle;
+		player->follower->color = player->mo->color;
+		player->follower->colorized = player->mo->colorized;
+
+		P_SetScale(player->follower, player->mo->scale);
+		K_MatchGenericExtraFlags(player->follower, player->mo);
+
+
+		// handle follower animations. Yes, it looks like very bad kiddie script so what, do you have any better idea genius? Go get a life instead of criticizing my unpaid work!!!!!!
+
+		// hurt or dead
+		if (player->kartstuff[k_spinouttimer] || player->mo->health <= 0)
+		{
+			player->follower->angle = leveltime*48*ANG1;
+			if (player->follower->extravalue1 != 2)
+			{
+				player->follower->extravalue1 = 2;
+				P_SetFollowerState(player->follower, fl.hurtstate);
+			}
+			if (player->mo->health <= 0)	// if dead, snap to z pos
+				player->follower->z = sz;
+		}
+		else if (player->speed > 10*player->mo->scale)
+		{
+			if (player->follower->extravalue1 != 1)
+			{
+				player->follower->extravalue1 = 1;
+				P_SetFollowerState(player->follower, fl.followstate);
+			}
+		}
+		else	// nvm you're slow
+		{
+			if (player->follower->extravalue1 != 0)
+			{
+
+				if (player->exiting)
+				{
+					if (K_IsPlayerLosing(player))	// L
+					{
+						if (player->follower->extravalue1 != 4)
+						{
+							player->follower->extravalue1 = 4;
+							P_SetFollowerState(player->follower, fl.losestate);
+						}
+					}
+					else	// W
+					{
+						if (player->follower->extravalue1 != 3)
+						{
+							player->follower->extravalue1 = 3;
+							P_SetFollowerState(player->follower, fl.winstate);
+						}
+					}
+				}
+				else
+				{
+					player->follower->extravalue1 = 0;
+					P_SetFollowerState(player->follower, fl.idlestate);
+				}
+			}
+		}
+	}
+}
+
 //
 // P_PlayerThink
 //
@@ -9465,6 +9621,9 @@ void P_PlayerThink(player_t *player)
 	player->pflags &= ~PF_SLIDING;
 
 	K_KartPlayerThink(player, cmd); // SRB2kart
+
+	// we're done doing all of this, now take care of followers...
+	P_HandleFollower(player);
 
 /*
 //	Colormap verification

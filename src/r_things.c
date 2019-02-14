@@ -2502,6 +2502,8 @@ void R_DrawMasked(void)
 // We can assume those are tied to skins somewhat, hence why they're defined here.
 INT32 numskins = 0;
 follower_t followers[MAXSKINS];
+// default followers are defined in SOC_FLWR in followers.kart / gfx.kart (depending on what exe this is, at this point)
+
 
 skin_t skins[MAXSKINS];
 // FIXTHIS: don't work because it must be inistilised before the config load
@@ -2706,7 +2708,6 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 {
 	player_t *player = &players[playernum];
 	skin_t *skin = &skins[skinnum];
-	CONS_Printf("skin\n");
 	if (skinnum >= 0 && skinnum < numskins) // Make sure it exists!
 	{
 		player->skin = skinnum;
@@ -2769,16 +2770,22 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 void SetFollower(INT32 playernum, INT32 skinnum)
 {
 	player_t *player = &players[playernum];
-	
+
+	player->followerready = true;	// we are ready to perform follower related actions in the player thinker, now.
 	if (skinnum >= -1 && skinnum <= numfollowers) // Make sure it exists!
 	{
 		player->followerskin = skinnum;
 		CONS_Printf("Updated player follower num\n");
 		/*
-			We don't actually set anything there, becasuse we need to be sure that a proper player->mo is available to spawn the follower.
-			Moreover, the follower will self-handle itself the rest of the time, hence, its skinnum stored to the player is all we need right now.
+			We don't spawn the follower here since it'll be easier to handle all of it in the Player thinker itself.
+			However, we will despawn it right here if there's any to make it easy for the player thinker to replace it or delete it.
 		*/
-		
+		if (player->follower)
+		{
+			P_RemoveMobj(player->follower);
+			player->follower = NULL;
+		}
+
 		return;
 	}
 

@@ -707,7 +707,7 @@ static void readfollower(MYFILE *f)
 	}
 
 	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
-	char *word, *word2, *dname = malloc(SKINNAMESIZE+1);
+	char *word, *word2, dname[SKINNAMESIZE+1];
 	char *tmp;
 
 	boolean nameset;
@@ -757,6 +757,11 @@ static void readfollower(MYFILE *f)
 			{
 				DEH_WriteUndoline(word, va("%d", followers[numfollowers].zoffs), UNDO_NONE);
 				followers[numfollowers].zoffs = (INT32)atoi(word2);
+			}
+			else if (fastcmp(word, "DISTANCE") || (fastcmp(word, "DIST")))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].dist), UNDO_NONE);
+				followers[numfollowers].dist = (INT32)atoi(word2);
 			}
 			else if (fastcmp(word, "IDLESTATE"))
 			{
@@ -828,12 +833,11 @@ static void readfollower(MYFILE *f)
 	// get ready to print the name...
 	strcpy(dname, followers[numfollowers].skinname);
 
-	// check for atangle and zoffs. But don't error if they aren't set, just give them logical values.
-	if (!followers[numfollowers].atangle && followers[numfollowers].atangle != 0)
-		followers[numfollowers].atangle = 300;
+	if (followers[numfollowers].dist < 0)
+		followers[numfollowers].dist = 0;
 
-	if ((!followers[numfollowers].zoffs || followers[numfollowers].zoffs < 0) && followers[numfollowers].zoffs != 0)	// yikes, no offset or negative offset
-		followers[numfollowers].zoffs = 64;
+	if (followers[numfollowers].zoffs < 0)
+		followers[numfollowers].zoffs = 0;
 
 
 	// also check if we forgot states :V
@@ -854,7 +858,6 @@ if (!followers[numfollowers].field) \
 
 	CONS_Printf("Added follower '%s'\n", dname);
 	numfollowers++;	// add 1 follower
-	free(dname);	// free name memory
 	Z_Free(s);
 }
 
@@ -7322,6 +7325,28 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARMAFIREWORK4",
 	"S_KARMAFIREWORKTRAIL",
 
+	"S_GCHAOIDLE",
+	"S_GCHAOFLY",
+	"S_GCHAOSAD1",
+	"S_GCHAOSAD2",
+	"S_GCHAOSAD3",
+	"S_GCHAOSAD4",
+	"S_GCHAOHAPPY1",
+	"S_GCHAOHAPPY2",
+	"S_GCHAOHAPPY3",
+	"S_GCHAOHAPPY4",
+
+	"S_CHEESEIDLE",
+	"S_CHEESEFLY",
+	"S_CHEESESAD1",
+	"S_CHEESESAD2",
+	"S_CHEESESAD3",
+	"S_CHEESESAD4",
+	"S_CHEESEHAPPY1",
+	"S_CHEESEHAPPY2",
+	"S_CHEESEHAPPY3",
+	"S_CHEESEHAPPY4",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -8108,6 +8133,8 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_LIONMAN",
 
 	"MT_KARMAFIREWORK",
+
+	"MT_FOLLOWER",
 
 #ifdef SEENAMES
 	"MT_NAMECHECK",

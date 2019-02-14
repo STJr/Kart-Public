@@ -127,6 +127,7 @@ typedef struct follower_s
 
 	// some position shenanigans:
 	INT32 atangle;			// angle the object will be at around the player. The object itself will always face the same direction as the player.
+	INT32 dist;				// distance relative to the player. (In a circle)
 	INT32 zoffs;			// Z offset relative to the player's height. Cannot be negative.
 
 	// from there on out, everything is STATES to allow customization

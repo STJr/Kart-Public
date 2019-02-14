@@ -8530,6 +8530,11 @@ static void M_SetupMultiPlayer(INT32 choice)
 	setupm_cvfollower = &cv_follower;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
+
+	// yikes, we don't want none of that...
+	if (setupm_fakefollower > numfollowers-1)
+		setupm_fakefollower = -1;
+
 	M_GetFollowerState();	// update follower state
 
 	// For whatever reason this doesn't work right if you just use ->value
@@ -8565,6 +8570,11 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	setupm_cvfollower = &cv_follower;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
+
+	// yikes, we don't want none of that...
+	if (setupm_fakefollower > numfollowers-1)
+		setupm_fakefollower = -1;
+
 	M_GetFollowerState();	// update follower state
 
 	// For whatever reason this doesn't work right if you just use ->value
@@ -8600,6 +8610,11 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	setupm_cvfollower = &cv_follower;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
+
+	// yikes, we don't want none of that...
+	if (setupm_fakefollower > numfollowers-1)
+		setupm_fakefollower = -1;
+
 	M_GetFollowerState();	// update follower state
 
 	// For whatever reason this doesn't work right if you just use ->value
@@ -8635,6 +8650,11 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	setupm_cvfollower = &cv_follower;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
+
+	// yikes, we don't want none of that...
+	if (setupm_fakefollower > numfollowers-1)
+		setupm_fakefollower = -1;
+
 	M_GetFollowerState();	// update follower state
 
 	// For whatever reason this doesn't work right if you just use ->value
