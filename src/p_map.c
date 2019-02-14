@@ -751,6 +751,17 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		{
 			// Player Damage
 			P_DamageMobj(thing, tmthing, tmthing->target, 1);
+			
+			// This is a ghetto fix. It's not necessarily mathematically correct but it does prevent magnet hands from happening.
+            P_UnsetThingPosition(tmthing);
+            
+            // Let's just normalise the thing's position:
+            tmthing->x = thing->x - (tmthing->momx/32);
+            tmthing->y = thing->y - (tmthing->momy/32);
+            tmthing->z = thing->z - (tmthing->momz/32);
+            
+            P_SetThingPosition(tmthing);    // Now we're back on track and shouldn't be weird!
+			
 			K_KartBouncing(thing, tmthing, false, false);
 			S_StartSound(thing, sfx_s3k7b);
 
@@ -1032,6 +1043,17 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			// Player Damage
 			P_DamageMobj(tmthing, thing, thing->target, 1);
+			
+			// This is a ghetto fix. It's not necessarily mathematically correct but it does prevent magnet hands from happening.
+            P_UnsetThingPosition(tmthing);
+            
+            // Let's just normalise the thing's position:
+            tmthing->x = thing->x - (tmthing->momx/32);
+            tmthing->y = thing->y - (tmthing->momy/32);
+            tmthing->z = thing->z - (tmthing->momz/32);
+            
+            P_SetThingPosition(tmthing);    // Now we're back on track and shouldn't be weird!
+			
 			K_KartBouncing(tmthing, thing, false, false);
 			S_StartSound(tmthing, sfx_s3k7b);
 
