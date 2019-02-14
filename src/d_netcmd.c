@@ -1925,6 +1925,44 @@ static INT32 LookupPlayer(const char *s)
 	return -1;
 }
 
+static INT32 FindPlayerByPlace(INT32 place)
+{
+	INT32 playernum;
+	for (playernum = 0; playernum < MAXPLAYERS; ++playernum)
+		if (playeringame[playernum])
+	{
+		if (players[playernum].kartstuff[k_position] == place)
+		{
+			return playernum;
+		}
+	}
+	return -1;
+}
+
+//
+// GetViewablePlayerPlaceRange
+// Return in first and last, that player available to view, sorted by placement
+// in the race.
+//
+static void GetViewablePlayerPlaceRange(INT32 *first, INT32 *last)
+{
+	INT32 i;
+	INT32 place;
+
+	(*first) = MAXPLAYERS;
+	(*last) = 0;
+
+	for (i = 0; i < MAXPLAYERS; ++i)
+		if (G_CouldView(i))
+	{
+		place = players[i].kartstuff[k_position];
+		if (place < (*first))
+			(*first) = place;
+		if (place > (*last))
+			(*last) = place;
+	}
+}
+
 #define PRINTVIEWPOINT( pre,suf ) \
 	CONS_Printf(pre"viewing \x84(%d) \x83%s\x80"suf".\n",\
 			(*displayplayerp), player_names[(*displayplayerp)]);
@@ -1933,7 +1971,10 @@ static void Command_View_f(void)
 	INT32 *displayplayerp;
 	INT32 olddisplayplayer;
 	int viewnum;
+	const char *playerparam;
+	INT32 placenum;
 	INT32 playernum;
+	INT32 firstplace, lastplace;
 	char c;
 	/* easy peasy */
 	c = COM_Argv(0)[strlen(COM_Argv(0))-1];/* may be digit */
@@ -1947,7 +1988,8 @@ static void Command_View_f(void)
 
 	if (viewnum > 1 && !( multiplayer && demoplayback ))
 	{
-		CONS_Alert(CONS_NOTICE, "You must be viewing a multiplayer replay.\n");
+		CONS_Alert(CONS_NOTICE,
+				"You must be viewing a multiplayer replay to use this.\n");
 		return;
 	}
 
@@ -1955,15 +1997,41 @@ static void Command_View_f(void)
 
 	if (COM_Argc() > 1)/* switch to player */
 	{
-		if (( playernum = LookupPlayer(COM_Argv(1)) ) == -1)
+		playerparam = COM_Argv(1);
+		if (playerparam[0] == '#')/* search by placement */
 		{
-			CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
-			return;
+			placenum = atoi(&playerparam[1]);
+			playernum = FindPlayerByPlace(placenum);
+			if (playernum == -1 || !G_CouldView(playernum))
+			{
+				GetViewablePlayerPlaceRange(&firstplace, &lastplace);
+				if (playernum == -1)
+				{
+					CONS_Alert(CONS_WARNING, "There is no player in that place! ");
+				}
+				else
+				{
+					CONS_Alert(CONS_WARNING,
+							"That player cannot be viewed currently! "
+							"The first player that you can view is \x82#%d\x80; ",
+							firstplace);
+				}
+				CONS_Printf("Last place is \x82#%d\x80.\n", lastplace);
+				return;
+			}
 		}
-		if (!playeringame[playernum])
+		else
 		{
-			CONS_Alert(CONS_WARNING, "There is no player using that slot!\n");
-			return;
+			if (( playernum = LookupPlayer(COM_Argv(1)) ) == -1)
+			{
+				CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
+				return;
+			}
+			if (!playeringame[playernum])
+			{
+				CONS_Alert(CONS_WARNING, "There is no player using that slot!\n");
+				return;
+			}
 		}
 
 		olddisplayplayer = (*displayplayerp);
@@ -1976,8 +2044,7 @@ static void Command_View_f(void)
 		if ((*displayplayerp) != playernum)/* differ parameter */
 		{
 			/* skipped some */
-			CONS_Alert(CONS_NOTICE,
-					"Another viewpoint is already set to that player.\n");
+			CONS_Alert(CONS_NOTICE, "That player cannot be viewed currently.\n");
 			PRINTVIEWPOINT ("Now "," instead")
 		}
 		else
