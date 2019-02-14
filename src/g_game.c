@@ -1823,50 +1823,6 @@ static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 //
 boolean G_Responder(event_t *ev)
 {
-	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown
-		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
-	{
-		if (!demoplayback && (splitscreen || !netgame))
-			displayplayer = consoleplayer;
-		else
-		{
-			displayplayer++;
-			G_ResetView(1);
-
-			// change statusbar also if playing back demo
-			if (singledemo)
-				ST_changeDemoView();
-
-			return true;
-		}
-	}
-
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demoplayback)
-	{
-		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
-		{
-			secondarydisplayplayer++;
-			G_ResetView(2);
-
-			return true;
-		}
-		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
-		{
-			thirddisplayplayer++;
-			G_ResetView(3);
-
-			return true;
-		}
-		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
-		{
-			fourthdisplayplayer++;
-			G_ResetView(4);
-
-			return true;
-		}
-	}
-
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
 		((demoplayback && !modeattacking && !titledemo && !multiplayer) || gamestate == GS_TITLESCREEN))
@@ -1943,6 +1899,50 @@ boolean G_Responder(event_t *ev)
 	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
+
+	// allow spy mode changes even during the demo
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown
+		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
+	{
+		if (!demoplayback && (splitscreen || !netgame))
+			displayplayer = consoleplayer;
+		else
+		{
+			displayplayer++;
+			G_ResetView(1);
+
+			// change statusbar also if playing back demo
+			if (singledemo)
+				ST_changeDemoView();
+
+			return true;
+		}
+	}
+
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demoplayback)
+	{
+		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
+		{
+			secondarydisplayplayer++;
+			G_ResetView(2);
+
+			return true;
+		}
+		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
+		{
+			thirddisplayplayer++;
+			G_ResetView(3);
+
+			return true;
+		}
+		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
+		{
+			fourthdisplayplayer++;
+			G_ResetView(4);
+
+			return true;
+		}
+	}
 
 	// update keys current state
 	G_MapEventsToControls(ev);
