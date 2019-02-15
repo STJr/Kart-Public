@@ -2204,7 +2204,7 @@ static void HU_DrawSongCredits(void)
 
 void HU_drawLocalPing(void)
 {
-	if (!cv_showping.value || !netgame || consoleplayer != serverplayer)	// we don't want to see it or aren't in a netgame, or are the server
+	if (!cv_showping.value || !netgame || consoleplayer == serverplayer)	// we don't want to see it or aren't in a netgame, or are the server
 		return;
 
 	INT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
