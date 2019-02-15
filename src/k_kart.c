@@ -616,7 +616,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
 	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
-	boolean itemenabled[NUMKARTRESULTS] = {
+	boolean itemenabled[NUMKARTRESULTS-1] = {
 		cv_sneaker.value,
 		cv_rocketsneaker.value,
 		cv_invincibility.value,
@@ -631,6 +631,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		cv_shrink.value,
 		cv_thundershield.value,
 		cv_hyudoro.value,
+		cv_pogospring.value,
 		cv_kitchensink.value,
 		cv_triplesneaker.value,
 		cv_triplebanana.value,
@@ -640,7 +641,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		cv_dualjawz.value
 	};
 
-	if (!itemenabled[item] && !modeattacking)
+	I_Assert(item > KITEM_NONE); // too many off by one scenarioes.
+
+	if (!itemenabled[item-1] && !modeattacking)
 		return 0;
 
 	if (G_BattleGametype())
@@ -761,7 +764,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 			break;
 		}
 
-		for (j = 0; j < NUMKARTRESULTS; j++)
+		for (j = 1; j < NUMKARTRESULTS; j++)
 		{
 			if (K_KartGetItemOdds(i, j, mashed) > 0)
 			{
