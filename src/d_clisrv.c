@@ -4358,7 +4358,6 @@ FILESTAMP
 						playerpingtable[i] = (tic_t)netbuffer->u.pingtable[i];
 
 				servermaxping = (tic_t)netbuffer->u.pingtable[i++];
-				CONS_Printf("got server maxping: %d\n", servermaxping);
 			}
 
 			break;
