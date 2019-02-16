@@ -722,10 +722,43 @@ void P_Ticker(boolean run)
 			G_ReadMetalTic(metalplayback);
 		if (metalrecording)
 			G_WriteMetalTic(players[consoleplayer].mo);
-		if (demorecording)
-			G_WriteGhostTic(players[consoleplayer].mo);
-		if (demoplayback) // Use Ghost data for consistency checks.
-			G_ConsGhostTic();
+
+		if (multiplayer)
+		{
+			if (demorecording)
+			{
+				for (i = 0; i < MAXPLAYERS; i++)
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+
+					if (!players[i].mo)
+						continue;
+
+					G_WriteGhostTic(players[i].mo, i);
+				}
+			}
+			if (demoplayback) // Use Ghost data for consistency checks.
+			{
+				for (i = 0; i < MAXPLAYERS; i++)
+				{
+					if (!playeringame[i] || players[i].spectator)
+						continue;
+
+					if (!players[i].mo)
+						continue;
+
+					G_ConsGhostTic(i);
+				}
+			}
+		}
+		else
+		{
+			if (demorecording)
+				G_WriteGhostTic(players[consoleplayer].mo, consoleplayer);
+			if (demoplayback) // Use Ghost data for consistency checks.
+				G_ConsGhostTic(0);
+		}
 		if (modeattacking)
 			G_GhostTicker();
 
