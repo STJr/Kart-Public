@@ -317,6 +317,9 @@ static struct {
 	// EZT_SCALE
 	fixed_t scale, lastscale;
 
+	// EZT_KART
+	INT32 kartitem, kartamount, kartbumpers;
+
 	// EZT_HIT
 	UINT16 hits;
 	mobj_t **hitlist;
@@ -4674,6 +4677,7 @@ static ticcmd_t oldcmd[MAXPLAYERS];
 #define EZT_SCALE  0x10 // Changed size
 #define EZT_HIT    0x20 // Damaged a mobj
 #define EZT_SPRITE 0x40 // Changed sprite set completely out of PLAY (NiGHTS, SOCs, whatever)
+#define EZT_KART   0x80 // SRB2Kart: Changed current held item/quantity and bumpers for battle
 
 static mobj_t oldmetal, oldghost[MAXPLAYERS];
 
@@ -5146,6 +5150,22 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 		ghostext[playernum].flags |= EZT_SPRITE;
 	}
 
+	if (ghost->player)
+	{
+		if (
+			ghostext[playernum].kartitem != ghost->player->kartstuff[k_itemtype] ||
+			ghostext[playernum].kartamount != ghost->player->kartstuff[k_itemamount] ||
+			ghostext[playernum].kartbumpers != ghost->player->kartstuff[k_bumper]
+		)
+		{
+			ghostext[playernum].flags |= EZT_KART;
+			ghostext[playernum].kartitem = ghost->player->kartstuff[k_itemtype];
+			ghostext[playernum].kartamount = ghost->player->kartstuff[k_itemamount];
+			ghostext[playernum].kartbumpers = ghost->player->kartstuff[k_bumper];
+
+		}
+	}
+
 	if (ghostext[playernum].color == ghostext[playernum].lastcolor)
 		ghostext[playernum].flags &= ~EZT_COLOR;
 	if (ghostext[playernum].scale == ghostext[playernum].lastscale)
@@ -5186,6 +5206,12 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 		}
 		if (ghostext[playernum].flags & EZT_SPRITE)
 			WRITEUINT8(demo_p,sprite);
+		if (ghostext[playernum].flags & EZT_KART)
+		{
+			WRITEINT32(demo_p, ghostext[playernum].kartitem);
+			WRITEINT32(demo_p, ghostext[playernum].kartamount);
+			WRITEINT32(demo_p, ghostext[playernum].kartbumpers);
+		}
 		ghostext[playernum].flags = 0;
 	}
 
@@ -5301,6 +5327,12 @@ void G_ConsGhostTic(INT32 playernum)
 		}
 		if (ziptic & EZT_SPRITE)
 			demo_p++;
+		if (ziptic & EZT_KART)
+		{
+			ghostext[playernum].kartitem = READINT32(demo_p);
+			ghostext[playernum].kartamount = READINT32(demo_p);
+			ghostext[playernum].kartbumpers = READINT32(demo_p);
+		}
 	}
 
 	// Re-synchronise
@@ -5314,7 +5346,7 @@ void G_ConsGhostTic(INT32 playernum)
 	if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
 	{
 		if (demosynced)
-			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced! %d>%d %d>%d %d>%d\n"), px, gx, py, gy, pz, gz);
+			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
 		demosynced = false;
 
 		P_UnsetThingPosition(testmo);
@@ -5322,6 +5354,21 @@ void G_ConsGhostTic(INT32 playernum)
 		testmo->y = oldghost[playernum].y;
 		P_SetThingPosition(testmo);
 		testmo->z = oldghost[playernum].z;
+	}
+
+	if (
+		players[playernum].kartstuff[k_itemtype] != ghostext[playernum].kartitem ||
+		players[playernum].kartstuff[k_itemamount] != ghostext[playernum].kartamount ||
+		players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers
+	)
+	{
+		if (demosynced)
+			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
+		demosynced = false;
+
+		players[playernum].kartstuff[k_itemtype] = ghostext[playernum].kartitem;
+		players[playernum].kartstuff[k_itemamount] = ghostext[playernum].kartamount;
+		players[playernum].kartstuff[k_bumper] = ghostext[playernum].kartbumpers;
 	}
 
 	if (*demo_p == DEMOMARKER)
@@ -5493,6 +5540,8 @@ void G_GhostTicker(void)
 			}
 			if (ziptic & EZT_SPRITE)
 				g->mo->sprite = READUINT8(g->p);
+			if (ziptic & EZT_KART)
+				g->p += 12; // kartitem, kartamount, kartbumpers
 		}
 
 		// Tick ghost colors (Super and Mario Invincibility flashing)
@@ -6321,6 +6370,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	memset(&oldcmd,0,sizeof(oldcmd));
 	memset(&oldghost,0,sizeof(oldghost));
+	memset(&ghostext,0,sizeof(ghostext));
 
 #if defined(SKIPERRORS) && !defined(DEVELOP)
 	if ((VERSION != version || SUBVERSION != subversion) && !skiperrors)
