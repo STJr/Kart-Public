@@ -4656,7 +4656,13 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DEMOMARKER 0x80 // demoend
 
 UINT8 demo_extradata[MAXPLAYERS];
+UINT8 demo_writerng; // 0=no, 1=yes, 2=yes but on a timeout
 static ticcmd_t oldcmd[MAXPLAYERS];
+
+#define DW_END        0xFF // End of extradata block
+#define DW_RNG        0xFE // Check RNG seed!
+
+#define DW_EXTRASTUFF 0xFE // Numbers below this are reserved for writing player slot data
 
 // For Metal Sonic and time attack ghosts
 #define GZT_XYZ    0x01
@@ -4727,7 +4733,7 @@ void G_ReadDemoExtraData(void)
 
 	p = READUINT8(demo_p);
 
-	while (p != 0xFF)
+	while (p < DW_EXTRASTUFF)
 	{
 		extradata = READUINT8(demo_p);
 
@@ -4810,6 +4816,24 @@ void G_ReadDemoExtraData(void)
 		p = READUINT8(demo_p);
 	}
 
+	while (p != DW_END)
+	{
+		INT32 rng;
+
+		switch (p)
+		{
+		case DW_RNG:
+			rng = READUINT32(demo_p);
+			if (P_GetRandSeed() != rng)
+			{
+				P_SetRandSeed(rng);
+				CONS_Alert(CONS_WARNING, "Random seed has desynced!\n");
+			}
+		}
+
+		p = READUINT8(demo_p);
+	}
+
 	if (!(demoflags & DF_GHOST) && *demo_p == DEMOMARKER)
 	{
 		// end of demo data stream
@@ -4857,6 +4881,7 @@ void G_WriteDemoExtraData(void)
 			}
 			if (demo_extradata[i] & DXD_PLAYSTATE)
 			{
+				demo_writerng = 1;
 				if (!playeringame[i])
 					WRITEUINT8(demo_p, DXD_PST_LEFT);
 				else if (
@@ -4872,7 +4897,25 @@ void G_WriteDemoExtraData(void)
 		demo_extradata[i] = 0;
 	}
 
-	WRITEUINT8(demo_p, 0xFF);
+	// May not be necessary, but might as well play it safe...
+	if ((leveltime & 255) == 128)
+		demo_writerng = 1;
+
+	{
+		static UINT8 timeout = 0;
+
+		if (timeout) timeout--;
+
+		if (demo_writerng == 1 || (demo_writerng == 2 && timeout == 0))
+		{
+			demo_writerng = 0;
+			timeout = 16;
+			WRITEUINT8(demo_p, DW_RNG);
+			WRITEUINT32(demo_p, P_GetRandSeed());
+		}
+	}
+
+	WRITEUINT8(demo_p, DW_END);
 }
 
 void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)

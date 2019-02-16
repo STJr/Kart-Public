@@ -155,6 +155,7 @@ typedef enum
 } ghostcolor_t;
 
 extern UINT8 demo_extradata[MAXPLAYERS];
+extern UINT8 demo_writerng;
 #define DXD_RESPAWN 0x01 // "respawn" command in console
 #define DXD_SKIN 0x02 // skin changed
 #define DXD_NAME 0x04 // name changed
