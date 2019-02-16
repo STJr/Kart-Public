@@ -5833,7 +5833,8 @@ void G_RecordDemo(const char *name)
 
 	strcpy(demoname, name);
 	strcat(demoname, ".lmp");
-	maxsize = 1024*1024;
+	//@TODO make a maxdemosize cvar
+	maxsize = 1024*1024*2;
 	if (M_CheckParm("-maxdemo") && M_IsNextParm())
 		maxsize = atoi(M_GetNextParm()) * 1024;
 //	if (demobuffer)
