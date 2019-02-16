@@ -932,7 +932,7 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
 #ifdef USE_PATCH_KART
-	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+	D_AddFile(va(pandf,srb2waddir,"patchping.kart"));	// also don't forget to change that, this is to avoid conflicting with our regular patch.kart
 #endif
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)

@@ -80,7 +80,11 @@ extern boolean chat_on;
 
 extern patch_t *hu_font[HU_FONTSIZE], *kart_font[KART_FONTSIZE], *tny_font[HU_FONTSIZE];	// SRB2kart
 extern patch_t *tallnum[10];
+extern patch_t *pingnum[10];
+extern patch_t *pinggfx[5];
 extern patch_t *nightsnum[10];
+extern patch_t *framecounter;
+extern patch_t *frameslash;
 extern patch_t *lt_font[LT_FONTSIZE];
 extern patch_t *cred_font[CRED_FONTSIZE];
 extern patch_t *emeraldpics[7];
@@ -109,7 +113,7 @@ void HU_Drawer(void);
 char HU_dequeueChatChar(void);
 void HU_Erase(void);
 void HU_clearChatChars(void);
-void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext);	// Lat': Ping drawer for scoreboard.
+void HU_drawPing(INT32 x, INT32 y, INT32 ping, INT32 flags);	// Lat': Ping drawer for scoreboard.
 //void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
 //void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
 void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol);
