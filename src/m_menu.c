@@ -438,7 +438,7 @@ static CV_PossibleValue_t serversort_cons_t[] = {
 	{1,"Modified State"},
 	{2,"Most Players"},
 	{3,"Least Players"},
-	{4,"Max Players"},
+	{4,"Max Player Slots"},
 	{5,"Gametype"},
 	{0,NULL}
 };
@@ -1830,7 +1830,6 @@ static menu_t SP_NightsGhostDef =
 	NULL
 };*/
 
-#ifndef NONET
 // Multiplayer
 menu_t MP_MainDef =
 {
@@ -1841,12 +1840,18 @@ menu_t MP_MainDef =
 	M_DrawMPMainMenu,
 	42, 30,
 	0,
-	M_CancelConnect
-};
-menu_t MP_ServerDef = MAPICONMENUSTYLE("M_MULTI", MP_ServerMenu, &MP_MainDef);
-#endif
-menu_t MP_OfflineServerDef = MAPICONMENUSTYLE("M_MULTI", MP_OfflineServerMenu, &MP_MainDef);
 #ifndef NONET
+	M_CancelConnect
+#else
+	NULL
+#endif
+};
+
+menu_t MP_OfflineServerDef = MAPICONMENUSTYLE("M_MULTI", MP_OfflineServerMenu, &MP_MainDef);
+
+#ifndef NONET
+menu_t MP_ServerDef = MAPICONMENUSTYLE("M_MULTI", MP_ServerMenu, &MP_MainDef);
+
 menu_t MP_ConnectDef =
 {
 	"M_MULTI",
