@@ -25,6 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "apng.h"
 
+#define APNG_INFO_acTL 0x20000U
+
 #define APNG_WROTE_acTL 0x10000U
 
 struct apng_info_def
@@ -59,6 +61,10 @@ size_t apng_default_tell  (png_structp);
 #endif/* PNG_STDIO_SUPPORTED */
 void   apng_write_IEND (png_structp);
 void   apng_write_acTL (png_structp, png_uint_32, png_uint_32);
+#ifndef PNG_WRITE_APNG_SUPPORTED
+void   apng_set_acTL_dummy (png_structp, png_infop, apng_infop,
+		png_uint_32, png_uint_32);
+#endif/* PNG_WRITE_APNG_SUPPORTED */
 
 apng_infop
 apng_create_info_struct (png_structp pngp)
@@ -204,7 +210,7 @@ apng_set_acTL (png_structp pngp, png_infop infop, apng_infop ainfop,
 	ainfop->num_frames = frames;
 	ainfop->num_plays  = plays;
 
-	ainfop->valid |= PNG_INFO_acTL;
+	ainfop->valid |= APNG_INFO_acTL;
 
 	return 1;
 }
@@ -218,7 +224,7 @@ apng_write_info_before_PLTE (png_structp pngp, png_infop infop,
 
 	png_write_info_before_PLTE(pngp, infop);
 
-	if (( ainfop->valid & PNG_INFO_acTL ) &&!( ainfop->mode & APNG_WROTE_acTL ))
+	if (( ainfop->valid & APNG_INFO_acTL )&&!( ainfop->mode & APNG_WROTE_acTL ))
 	{
 		ainfop->start_acTL = apng_tell(pngp, ainfop);
 
@@ -252,6 +258,19 @@ apng_write_end (png_structp pngp, png_infop infop, apng_infop ainfop)
 #endif/* PNG_WRITE_FLUSH_SUPPORTED */
 #endif/* PNG_WRITE_FLUSH_AFTER_IEND_SUPPORTED */
 }
+
+#ifndef PNG_WRITE_APNG_SUPPORTED
+void
+apng_set_acTL_dummy (png_structp pngp, png_infop infop, apng_infop ainfop,
+		png_uint_32 frames, png_uint_32 plays)
+{
+	(void)pngp;
+	(void)infop;
+	(void)ainfop;
+	(void)frames;
+	(void)plays;
+}
+#endif/* PNG_WRITE_APNG_SUPPORTED */
 
 /* Dynamic runtime linking capable! (Hopefully.) */
 void
