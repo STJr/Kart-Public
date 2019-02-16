@@ -651,6 +651,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	else
 		newodds = K_KartItemOddsRace[item-1][pos];
 
+	// Base multiplication to ALL item odds to simulate fractional precision
+	newodds *= 4;
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i] || players[i].spectator)
@@ -867,8 +870,8 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	UINT8 pingame = 0;
 	UINT8 roulettestop;
 	INT32 useodds = 0;
-	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
-	INT32 chance = 0, numchoices = 0;
+	INT32 spawnchance[NUMKARTRESULTS];
+	INT32 totalspawnchance = 0;
 	INT32 bestbumper = 0;
 	fixed_t mashed = 0;
 	boolean dontforcespb = false;
@@ -965,24 +968,23 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	}
 
 	// Initializes existing spawnchance values
-	for (i = 0; i < (NUMKARTRESULTS * NUMKARTODDS); i++)
+	for (i = 0; i < NUMKARTRESULTS; i++)
 		spawnchance[i] = 0;
 
 	// Split into another function for a debug function below
 	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, (spbplace != -1 && player->kartstuff[k_position] == spbplace+1), dontforcespb);
 
-#define SETITEMRESULT(itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
-		spawnchance[numchoices++] = itemnum
-
 	for (i = 1; i < NUMKARTRESULTS; i++)
-		SETITEMRESULT(i);
-
-#undef SETITEMRESULT
+		spawnchance[i] = (totalspawnchance += K_KartGetItemOdds(useodds, i, mashed));
 
 	// Award the player whatever power is rolled
-	if (numchoices > 0)
-		K_KartGetItemResult(player, spawnchance[P_RandomKey(numchoices)]);
+	if (totalspawnchance > 0)
+	{
+		totalspawnchance = P_RandomKey(totalspawnchance);
+		for (i = 0; i < NUMKARTRESULTS && spawnchance[i] <= totalspawnchance; i++);
+
+		K_KartGetItemResult(player, i);
+	}
 	else
 	{
 		player->kartstuff[k_itemtype] = KITEM_SAD;
