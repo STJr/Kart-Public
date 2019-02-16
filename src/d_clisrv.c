@@ -5046,8 +5046,6 @@ static inline void PingUpdate(void)
 				if (playeringame[i] && laggers[i])
 				{
 					pingtimeout[i]++;
-					CONS_Printf("Player %d is lagging, incrementing timeout... %d/%d\n", i, pingtimeout[i], cv_pingtimeout.value);	// debug print, don't forget to remove this...
-
 					if (pingtimeout[i] > cv_pingtimeout.value)	// ok your net has been bad for too long, you deserve to die.
 					{
 						pingtimeout[i] = 0;
