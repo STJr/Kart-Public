@@ -3079,7 +3079,7 @@ void A_Invincibility(mobj_t *actor)
 	{
 		S_StopMusic();
 		if (mariomode)
-			G_GhostAddColor(GHC_INVINCIBLE);
+			G_GhostAddColor((INT32) (player - players), GHC_INVINCIBLE);
 		S_ChangeMusicInternal((mariomode) ? "minvnc" : "invinc", false);
 	}
 }

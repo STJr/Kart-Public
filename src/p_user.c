@@ -1708,7 +1708,7 @@ void P_SpawnThokMobj(player_t *player)
 
 	P_SetTarget(&mobj->target, player->mo); // the one thing P_SpawnGhostMobj doesn't do
 	if (demorecording)
-		G_GhostAddThok();
+		G_GhostAddThok((INT32) (player - players));
 }
 
 //
@@ -2416,12 +2416,12 @@ static void P_CheckInvincibilityTimer(player_t *player)
 				//if (player->powers[pw_shield] & SH_FIREFLOWER)
 				//{
 				//	player->mo->color = SKINCOLOR_WHITE;
-				//	G_GhostAddColor(GHC_FIREFLOWER);
+				//	G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 				//}
 				//else
 				{
 					player->mo->color = player->skincolor;
-					G_GhostAddColor(GHC_NORMAL);
+					G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 				}
 			}
 
@@ -3673,12 +3673,12 @@ static void P_DoSuperStuff(player_t *player)
 			if (player->powers[pw_shield] & SH_FIREFLOWER)
 			{
 				player->mo->color = SKINCOLOR_WHITE;
-				G_GhostAddColor(GHC_FIREFLOWER);
+				G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 			}
 			else
 			{
 				player->mo->color = player->skincolor;
-				G_GhostAddColor(GHC_NORMAL);
+				G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 			}
 
 			if (gametype != GT_COOP)
@@ -3714,7 +3714,7 @@ static void P_DoSuperStuff(player_t *player)
 			P_SetScale(spark, player->mo->scale);
 		}
 
-		G_GhostAddColor(GHC_SUPER);
+		G_GhostAddColor((INT32) (player - players), GHC_SUPER);
 
 		// Ran out of rings while super!
 		if (player->health <= 1 || player->exiting)
@@ -3728,12 +3728,12 @@ static void P_DoSuperStuff(player_t *player)
 			if (player->powers[pw_shield] & SH_FIREFLOWER)
 			{
 				player->mo->color = SKINCOLOR_WHITE;
-				G_GhostAddColor(GHC_FIREFLOWER);
+				G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 			}
 			else
 			{
 				player->mo->color = player->skincolor;
-				G_GhostAddColor(GHC_NORMAL);
+				G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 			}
 
 			if (gametype != GT_COOP)
@@ -4035,7 +4035,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 				// Now spawn the color thok circle.
 				P_SpawnSpinMobj(player, player->revitem);
 				if (demorecording)
-					G_GhostAddRev();
+					G_GhostAddRev((INT32) (player - players));
 			}
 		}
 		// If not moving up or down, and travelling faster than a speed of four while not holding
@@ -7017,7 +7017,7 @@ static void P_MovePlayer(player_t *player)
 	{
 		P_SpawnSpinMobj(player, player->spinitem);
 		if (demorecording)
-			G_GhostAddSpin();
+			G_GhostAddSpin((INT32) (player - players));
 	}
 	*/
 

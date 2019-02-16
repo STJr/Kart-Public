@@ -1424,7 +1424,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			player->powers[pw_shield] |= SH_FIREFLOWER;
 			toucher->color = SKINCOLOR_WHITE;
-			G_GhostAddColor(GHC_FIREFLOWER);
+			G_GhostAddColor(player - players, GHC_FIREFLOWER);
 			break;
 
 // *************** //
@@ -3028,7 +3028,7 @@ void P_RemoveShield(player_t *player)
 		if (!player->powers[pw_super])
 		{
 			player->mo->color = player->skincolor;
-			G_GhostAddColor(GHC_NORMAL);
+			G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 		}
 	}
 	else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_BOMB) // Give them what's coming to them!
@@ -3459,7 +3459,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		target->health -= damage;
 
 	if (source && source->player && target)
-		G_GhostAddHit(target);
+		G_GhostAddHit((INT32) (source->player - players), target);
 
 	if (target->health <= 0)
 	{

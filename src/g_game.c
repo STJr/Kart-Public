@@ -320,7 +320,7 @@ static struct {
 	// EZT_HIT
 	UINT16 hits;
 	mobj_t **hitlist;
-} ghostext;
+} ghostext[MAXPLAYERS];
 
 // Your naming conventions are stupid and useless.
 // There is no conflict here.
@@ -4675,7 +4675,7 @@ static ticcmd_t oldcmd[MAXPLAYERS];
 #define EZT_HIT    0x20 // Damaged a mobj
 #define EZT_SPRITE 0x40 // Changed sprite set completely out of PLAY (NiGHTS, SOCs, whatever)
 
-static mobj_t oldmetal, oldghost;
+static mobj_t oldmetal, oldghost[MAXPLAYERS];
 
 void G_SaveMetal(UINT8 **buffer)
 {
@@ -4737,6 +4737,7 @@ void G_ReadDemoExtraData(void)
 			M_Memcpy(name, demo_p, 16);
 			demo_p += 16;
 			SetPlayerSkin(p, name);
+			CONS_Printf("new skin %d %d\n", players[p].kartspeed, players[p].kartweight);
 		}
 		if (extradata & DXD_COLOR)
 		{
@@ -4761,6 +4762,7 @@ void G_ReadDemoExtraData(void)
 		if (extradata & DXD_PLAYSTATE)
 		{
 			extradata = READUINT8(demo_p);
+			CONS_Printf("player state %d %d\n", p, extradata);
 
 			// @TODO uhhhhh do something here
 
@@ -4982,71 +4984,71 @@ void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 	}
 }
 
-void G_GhostAddThok(void)
+void G_GhostAddThok(INT32 playernum)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	ghostext.flags = (ghostext.flags & ~EZT_THOKMASK) | EZT_THOK;
+	ghostext[playernum].flags = (ghostext[playernum].flags & ~EZT_THOKMASK) | EZT_THOK;
 }
 
-void G_GhostAddSpin(void)
+void G_GhostAddSpin(INT32 playernum)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	ghostext.flags = (ghostext.flags & ~EZT_THOKMASK) | EZT_SPIN;
+	ghostext[playernum].flags = (ghostext[playernum].flags & ~EZT_THOKMASK) | EZT_SPIN;
 }
 
-void G_GhostAddRev(void)
+void G_GhostAddRev(INT32 playernum)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	ghostext.flags = (ghostext.flags & ~EZT_THOKMASK) | EZT_REV;
+	ghostext[playernum].flags = (ghostext[playernum].flags & ~EZT_THOKMASK) | EZT_REV;
 }
 
-void G_GhostAddFlip(void)
+void G_GhostAddFlip(INT32 playernum)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	ghostext.flags |= EZT_FLIP;
+	ghostext[playernum].flags |= EZT_FLIP;
 }
 
-void G_GhostAddColor(ghostcolor_t color)
+void G_GhostAddColor(INT32 playernum, ghostcolor_t color)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	if (ghostext.lastcolor == (UINT8)color)
+	if (ghostext[playernum].lastcolor == (UINT8)color)
 	{
-		ghostext.flags &= ~EZT_COLOR;
+		ghostext[playernum].flags &= ~EZT_COLOR;
 		return;
 	}
-	ghostext.flags |= EZT_COLOR;
-	ghostext.color = (UINT8)color;
+	ghostext[playernum].flags |= EZT_COLOR;
+	ghostext[playernum].color = (UINT8)color;
 }
 
-void G_GhostAddScale(fixed_t scale)
+void G_GhostAddScale(INT32 playernum, fixed_t scale)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	if (ghostext.lastscale == scale)
+	if (ghostext[playernum].lastscale == scale)
 	{
-		ghostext.flags &= ~EZT_SCALE;
+		ghostext[playernum].flags &= ~EZT_SCALE;
 		return;
 	}
-	ghostext.flags |= EZT_SCALE;
-	ghostext.scale = scale;
+	ghostext[playernum].flags |= EZT_SCALE;
+	ghostext[playernum].scale = scale;
 }
 
-void G_GhostAddHit(mobj_t *victim)
+void G_GhostAddHit(INT32 playernum, mobj_t *victim)
 {
 	if (!demorecording || !(demoflags & DF_GHOST))
 		return;
-	ghostext.flags |= EZT_HIT;
-	ghostext.hits++;
-	ghostext.hitlist = Z_Realloc(ghostext.hitlist, ghostext.hits * sizeof(mobj_t *), PU_LEVEL, NULL);
-	ghostext.hitlist[ghostext.hits-1] = victim;
+	ghostext[playernum].flags |= EZT_HIT;
+	ghostext[playernum].hits++;
+	ghostext[playernum].hitlist = Z_Realloc(ghostext[playernum].hitlist, ghostext[playernum].hits * sizeof(mobj_t *), PU_LEVEL, NULL);
+	ghostext[playernum].hitlist[ghostext[playernum].hits-1] = victim;
 }
 
-void G_WriteGhostTic(mobj_t *ghost)
+void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 {
 	char ziptic = 0;
 	UINT8 *ziptic_p;
@@ -5071,38 +5073,38 @@ void G_WriteGhostTic(mobj_t *ghost)
 	#define MAXMOM (0xFFFF<<8)
 
 	// GZT_XYZ is only useful if you've moved 256 FRACUNITS or more in a single tic.
-	if (abs(ghost->x-oldghost.x) > MAXMOM
-	|| abs(ghost->y-oldghost.y) > MAXMOM
-	|| abs(ghost->z-oldghost.z) > MAXMOM
-	|| leveltime & 255 == 1) // Hack to enable slightly nicer resyncing
+	if (abs(ghost->x-oldghost[playernum].x) > MAXMOM
+	|| abs(ghost->y-oldghost[playernum].y) > MAXMOM
+	|| abs(ghost->z-oldghost[playernum].z) > MAXMOM
+	|| (leveltime & 255) == 1) // Hack to enable slightly nicer resyncing
 	{
-		oldghost.x = ghost->x;
-		oldghost.y = ghost->y;
-		oldghost.z = ghost->z;
+		oldghost[playernum].x = ghost->x;
+		oldghost[playernum].y = ghost->y;
+		oldghost[playernum].z = ghost->z;
 		ziptic |= GZT_XYZ;
-		WRITEFIXED(demo_p,oldghost.x);
-		WRITEFIXED(demo_p,oldghost.y);
-		WRITEFIXED(demo_p,oldghost.z);
+		WRITEFIXED(demo_p,oldghost[playernum].x);
+		WRITEFIXED(demo_p,oldghost[playernum].y);
+		WRITEFIXED(demo_p,oldghost[playernum].z);
 	}
 	else
 	{
 		// For moving normally:
 		// Store one full byte of movement, plus one byte of fractional movement.
-		INT16 momx = (INT16)((ghost->x-oldghost.x + (1<<4))>>8);
-		INT16 momy = (INT16)((ghost->y-oldghost.y + (1<<4))>>8);
-		if (momx != oldghost.momx
-		|| momy != oldghost.momy)
+		INT16 momx = (INT16)((ghost->x-oldghost[playernum].x + (1<<4))>>8);
+		INT16 momy = (INT16)((ghost->y-oldghost[playernum].y + (1<<4))>>8);
+		if (momx != oldghost[playernum].momx
+		|| momy != oldghost[playernum].momy)
 		{
-			oldghost.momx = momx;
-			oldghost.momy = momy;
+			oldghost[playernum].momx = momx;
+			oldghost[playernum].momy = momy;
 			ziptic |= GZT_MOMXY;
 			WRITEINT16(demo_p,momx);
 			WRITEINT16(demo_p,momy);
 		}
-		momx = (INT16)((ghost->z-oldghost.z + (1<<4))>>8);
-		if (momx != oldghost.momz)
+		momx = (INT16)((ghost->z-oldghost[playernum].z + (1<<4))>>8);
+		if (momx != oldghost[playernum].momz)
 		{
-			oldghost.momz = momx;
+			oldghost[playernum].momz = momx;
 			ziptic |= GZT_MOMZ;
 			WRITEINT16(demo_p,momx);
 		}
@@ -5110,9 +5112,9 @@ void G_WriteGhostTic(mobj_t *ghost)
 		// This SHOULD set oldghost.x/y/z to match ghost->x/y/z
 		// but it keeps the fractional loss of one byte,
 		// so it will hopefully be made up for in future tics.
-		oldghost.x += oldghost.momx<<8;
-		oldghost.y += oldghost.momy<<8;
-		oldghost.z += oldghost.momz<<8;
+		oldghost[playernum].x += oldghost[playernum].momx<<8;
+		oldghost[playernum].y += oldghost[playernum].momy<<8;
+		oldghost[playernum].z += oldghost[playernum].momz<<8;
 	}
 
 	#undef MAXMOM
@@ -5120,56 +5122,56 @@ void G_WriteGhostTic(mobj_t *ghost)
 	// Only store the 8 most relevant bits of angle
 	// because exact values aren't too easy to discern to begin with when only 8 angles have different sprites
 	// and it does not affect this mode of movement at all anyway.
-	if (ghost->angle>>24 != oldghost.angle)
+	if (ghost->angle>>24 != oldghost[playernum].angle)
 	{
-		oldghost.angle = ghost->angle>>24;
+		oldghost[playernum].angle = ghost->angle>>24;
 		ziptic |= GZT_ANGLE;
-		WRITEUINT8(demo_p,oldghost.angle);
+		WRITEUINT8(demo_p,oldghost[playernum].angle);
 	}
 
 	// Store the sprite frame.
 	frame = ghost->frame & 0xFF;
-	if (frame != oldghost.frame)
+	if (frame != oldghost[playernum].frame)
 	{
-		oldghost.frame = frame;
+		oldghost[playernum].frame = frame;
 		ziptic |= GZT_SPRITE;
-		WRITEUINT8(demo_p,oldghost.frame);
+		WRITEUINT8(demo_p,oldghost[playernum].frame);
 	}
 
 	// Check for sprite set changes
 	sprite = ghost->sprite;
-	if (sprite != oldghost.sprite)
+	if (sprite != oldghost[playernum].sprite)
 	{
-		oldghost.sprite = sprite;
-		ghostext.flags |= EZT_SPRITE;
+		oldghost[playernum].sprite = sprite;
+		ghostext[playernum].flags |= EZT_SPRITE;
 	}
 
-	if (ghostext.flags)
+	if (ghostext[playernum].color == ghostext[playernum].lastcolor)
+		ghostext[playernum].flags &= ~EZT_COLOR;
+	if (ghostext[playernum].scale == ghostext[playernum].lastscale)
+		ghostext[playernum].flags &= ~EZT_SCALE;
+
+	if (ghostext[playernum].flags)
 	{
 		ziptic |= GZT_EXTRA;
+		WRITEUINT8(demo_p,ghostext[playernum].flags);
 
-		if (ghostext.color == ghostext.lastcolor)
-			ghostext.flags &= ~EZT_COLOR;
-		if (ghostext.scale == ghostext.lastscale)
-			ghostext.flags &= ~EZT_SCALE;
-
-		WRITEUINT8(demo_p,ghostext.flags);
-		if (ghostext.flags & EZT_COLOR)
+		if (ghostext[playernum].flags & EZT_COLOR)
 		{
-			WRITEUINT8(demo_p,ghostext.color);
-			ghostext.lastcolor = ghostext.color;
+			WRITEUINT8(demo_p,ghostext[playernum].color);
+			ghostext[playernum].lastcolor = ghostext[playernum].color;
 		}
-		if (ghostext.flags & EZT_SCALE)
+		if (ghostext[playernum].flags & EZT_SCALE)
 		{
-			WRITEFIXED(demo_p,ghostext.scale);
-			ghostext.lastscale = ghostext.scale;
+			WRITEFIXED(demo_p,ghostext[playernum].scale);
+			ghostext[playernum].lastscale = ghostext[playernum].scale;
 		}
-		if (ghostext.flags & EZT_HIT)
+		if (ghostext[playernum].flags & EZT_HIT)
 		{
-			WRITEUINT16(demo_p,ghostext.hits);
-			for (i = 0; i < ghostext.hits; i++)
+			WRITEUINT16(demo_p,ghostext[playernum].hits);
+			for (i = 0; i < ghostext[playernum].hits; i++)
 			{
-				mobj_t *mo = ghostext.hitlist[i];
+				mobj_t *mo = ghostext[playernum].hitlist[i];
 				WRITEUINT32(demo_p,UINT32_MAX); // reserved for some method of determining exactly which mobj this is. (mobjnum doesn't work here.)
 				WRITEUINT32(demo_p,mo->type);
 				WRITEUINT16(demo_p,(UINT16)mo->health);
@@ -5178,13 +5180,13 @@ void G_WriteGhostTic(mobj_t *ghost)
 				WRITEFIXED(demo_p,mo->z);
 				WRITEANGLE(demo_p,mo->angle);
 			}
-			Z_Free(ghostext.hitlist);
-			ghostext.hits = 0;
-			ghostext.hitlist = NULL;
+			Z_Free(ghostext[playernum].hitlist);
+			ghostext[playernum].hits = 0;
+			ghostext[playernum].hitlist = NULL;
 		}
-		if (ghostext.flags & EZT_SPRITE)
+		if (ghostext[playernum].flags & EZT_SPRITE)
 			WRITEUINT8(demo_p,sprite);
-		ghostext.flags = 0;
+		ghostext[playernum].flags = 0;
 	}
 
 	*ziptic_p = ziptic;
@@ -5200,7 +5202,7 @@ void G_WriteGhostTic(mobj_t *ghost)
 
 // Uses ghost data to do consistency checks on your position.
 // This fixes desynchronising demos when fighting eggman.
-void G_ConsGhostTic(void)
+void G_ConsGhostTic(INT32 playernum)
 {
 	UINT8 ziptic;
 	UINT32 px,py,pz,gx,gy,gz;
@@ -5213,29 +5215,29 @@ void G_ConsGhostTic(void)
 	if (!(demoflags & DF_GHOST))
 		return; // No ghost data to use.
 
-	testmo = players[0].mo;
+	testmo = players[playernum].mo;
 
 	// Grab ghost data.
 	ziptic = READUINT8(demo_p);
 	if (ziptic & GZT_XYZ)
 	{
-		oldghost.x = READFIXED(demo_p);
-		oldghost.y = READFIXED(demo_p);
-		oldghost.z = READFIXED(demo_p);
+		oldghost[playernum].x = READFIXED(demo_p);
+		oldghost[playernum].y = READFIXED(demo_p);
+		oldghost[playernum].z = READFIXED(demo_p);
 		syncleeway = 0;
 	}
 	else
 	{
 		if (ziptic & GZT_MOMXY)
 		{
-			oldghost.momx = READINT16(demo_p)<<8;
-			oldghost.momy = READINT16(demo_p)<<8;
+			oldghost[playernum].momx = READINT16(demo_p)<<8;
+			oldghost[playernum].momy = READINT16(demo_p)<<8;
 		}
 		if (ziptic & GZT_MOMZ)
-			oldghost.momz = READINT16(demo_p)<<8;
-		oldghost.x += oldghost.momx;
-		oldghost.y += oldghost.momy;
-		oldghost.z += oldghost.momz;
+			oldghost[playernum].momz = READINT16(demo_p)<<8;
+		oldghost[playernum].x += oldghost[playernum].momx;
+		oldghost[playernum].y += oldghost[playernum].momy;
+		oldghost[playernum].z += oldghost[playernum].momz;
 		syncleeway = FRACUNIT;
 	}
 	if (ziptic & GZT_ANGLE)
@@ -5305,21 +5307,21 @@ void G_ConsGhostTic(void)
 	px = testmo->x;
 	py = testmo->y;
 	pz = testmo->z;
-	gx = oldghost.x;
-	gy = oldghost.y;
-	gz = oldghost.z;
+	gx = oldghost[playernum].x;
+	gy = oldghost[playernum].y;
+	gz = oldghost[playernum].z;
 
 	if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
 	{
 		if (demosynced)
-			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
+			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced! %d>%d %d>%d %d>%d\n"), px, gx, py, gy, pz, gz);
 		demosynced = false;
 
 		P_UnsetThingPosition(testmo);
-		testmo->x = oldghost.x;
-		testmo->y = oldghost.y;
+		testmo->x = oldghost[playernum].x;
+		testmo->y = oldghost[playernum].y;
 		P_SetThingPosition(testmo);
-		testmo->z = oldghost.z;
+		testmo->z = oldghost[playernum].z;
 	}
 
 	if (*demo_p == DEMOMARKER)
@@ -5775,7 +5777,7 @@ void G_BeginRecording(void)
 	memset(name,0,sizeof(name));
 
 	demo_p = demobuffer;
-	demoflags = multiplayer ? DF_MULTIPLAYER : (DF_GHOST|(modeattacking<<DF_ATTACKSHIFT));
+	demoflags = DF_GHOST|(multiplayer ? DF_MULTIPLAYER : (modeattacking<<DF_ATTACKSHIFT));
 
 	demoflags |= gametype<<DF_GAMESHIFT;
 
@@ -5853,13 +5855,7 @@ void G_BeginRecording(void)
 
 		WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
 
-		memset(&oldcmd,0,sizeof(oldcmd));
-		memset(&demo_extradata, 0, sizeof(demo_extradata));
-		// Lower two lines aren't useful until ghost replays for mp are implemented, but eh
-		memset(&oldghost,0,sizeof(oldghost));
-		memset(&ghostext,0,sizeof(ghostext));
-
-		return;
+		goto initcmdandghost;
 	}
 
 	// Name
@@ -5909,22 +5905,27 @@ void G_BeginRecording(void)
 	// Save netvar data (SONICCD, etc)
 	CV_SaveNetVars(&demo_p, false); //@TODO can this be true? it's not necessary for now but would be nice for consistency
 
+initcmdandghost:
 	memset(&oldcmd,0,sizeof(oldcmd));
 	memset(&oldghost,0,sizeof(oldghost));
 	memset(&ghostext,0,sizeof(ghostext));
-	ghostext.lastcolor = ghostext.color = GHC_NORMAL;
-	ghostext.lastscale = ghostext.scale = FRACUNIT;
 
-	if (player->mo)
+	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		oldghost.x = player->mo->x;
-		oldghost.y = player->mo->y;
-		oldghost.z = player->mo->z;
-		oldghost.angle = player->mo->angle;
+		ghostext[i].lastcolor = ghostext[i].color = GHC_NORMAL;
+		ghostext[i].lastscale = ghostext[i].scale = FRACUNIT;
 
-		// preticker started us gravity flipped
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			ghostext.flags |= EZT_FLIP;
+		if (players[i].mo)
+		{
+			oldghost[i].x = players[i].mo->x;
+			oldghost[i].y = players[i].mo->y;
+			oldghost[i].z = players[i].mo->z;
+			oldghost[i].angle = players[i].mo->angle;
+
+			// preticker started us gravity flipped
+			if (players[i].mo->eflags & MFE_VERTICALFLIP)
+				ghostext[i].flags |= EZT_FLIP;
+		}
 	}
 }
 
@@ -6409,15 +6410,19 @@ void G_DoPlayDemo(char *defdemoname)
 	P_SetRandSeed(randseed);
 	G_InitNew(demoflags & DF_ENCORE, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
 
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (players[i].mo)
+		{
+			players[i].mo->color = players[i].skincolor;
+			oldghost[i].x = players[i].mo->x;
+			oldghost[i].y = players[i].mo->y;
+			oldghost[i].z = players[i].mo->z;
+		}
+	}
+
 	if (!multiplayer) {
 		//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
-		if (players[0].mo)
-		{
-			players[0].mo->color = players[0].skincolor;
-			oldghost.x = players[0].mo->x;
-			oldghost.y = players[0].mo->y;
-			oldghost.z = players[0].mo->z;
-		}
 
 		// Set saved attribute values
 		// No cheat checking here, because even if they ARE wrong...
