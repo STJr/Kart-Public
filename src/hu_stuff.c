@@ -2178,6 +2178,22 @@ static void HU_DrawSongCredits(void)
 		V_DrawRightAlignedThinString(cursongcredit.x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
 }
 
+// HU_drawLocalPing
+// Used to draw the user's local ping next to the framerate for a quick check without having to hold TAB for instance. By default, it only shows up if your ping is too high and risks getting you kicked.
+
+void HU_drawLocalPing(void)
+{
+	if (!cv_showping.value || !netgame || consoleplayer == serverplayer)	// we don't want to see it or aren't in a netgame, or are the server
+		return;
+
+	INT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
+	if (cv_showping.value == 1 || (cv_showping.value == 2 && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
+	{
+		INT32 dispx = cv_ticrate.value ? 260 : 290;
+		HU_drawPing(dispx, 190, ping, false);
+	}
+}
+
 // Heads up displays drawer, call each frame
 //
 void HU_Drawer(void)
@@ -2290,6 +2306,9 @@ void HU_Drawer(void)
 
 		V_DrawCenteredString(BASEVIDWIDTH/2, 180, V_YELLOWMAP | V_ALLOWLOWERCASE, resynch_text);
 	}
+
+	// draw the ping if the user wishes to
+	HU_drawLocalPing();
 }
 
 //======================================================================
@@ -2376,6 +2395,7 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 	SINT8 i = 0;
 	SINT8 yoffset = 6;
 	INT32 dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
+	boolean highping = (servermaxping && ping > servermaxping) ? true : false;
 
 	if (ping < 128)
 	{
@@ -2387,13 +2407,17 @@ void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
 		numbars = 2; // Apparently ternaries w/ multiple statements don't look good in C so I decided against it.
 		barcolor = 103;
 	}
+	else if (highping)	// yikes...!
+	{
+		numbars = 0;
+	}
 
 	if (!notext || vid.width >= 640) // how sad, we're using a shit resolution.
-		V_DrawSmallString(dx, y+4, V_ALLOWLOWERCASE, va("%dms", ping));
+		V_DrawSmallString(dx, y+4, V_ALLOWLOWERCASE|((highping && hu_tick < 4) ? V_REDMAP : 0), va("%dms", ping));
 
 	for (i=0; (i<3); i++) // Draw the ping bar
 	{
-		V_DrawFill(x+2 *(i-1), y+yoffset-4, 2, 8-yoffset, 31);
+		V_DrawFill(x+2 *(i-1), y+yoffset-4, 2, 8-yoffset, (highping && hu_tick < 4) ? 128 : 31);
 		if (i < numbars)
 			V_DrawFill(x+2 *(i-1), y+yoffset-3, 1, 8-yoffset-1, barcolor);
 

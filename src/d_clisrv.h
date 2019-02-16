@@ -519,6 +519,7 @@ extern tic_t jointimeout;
 extern UINT16 pingmeasurecount;
 extern UINT32 realpingtable[MAXPLAYERS];
 extern UINT32 playerpingtable[MAXPLAYERS];
+extern tic_t servermaxping;
 #endif
 
 extern consvar_t
