@@ -2207,7 +2207,7 @@ void HU_drawLocalPing(void)
 	if (!cv_showping.value || !netgame || consoleplayer == serverplayer)	// we don't want to see it or aren't in a netgame, or are the server
 		return;
 
-	INT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
+	UINT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
 	if (cv_showping.value == 1 || (cv_showping.value == 2 && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
 	{
 		INT32 dispy = cv_ticrate.value ? 160 : 181;
@@ -2410,7 +2410,7 @@ void HU_Erase(void)
 //
 // HU_drawPing
 //
-void HU_drawPing(INT32 x, INT32 y, INT32 ping, INT32 flags)
+void HU_drawPing(INT32 x, INT32 y, UINT32 ping, INT32 flags)
 {
 	INT32 gfxnum = 4;	// gfx to draw
 	UINT8 const *colormap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SALMON, GTC_CACHE);
