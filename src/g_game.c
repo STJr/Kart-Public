@@ -4742,7 +4742,6 @@ void G_ReadDemoExtraData(void)
 			M_Memcpy(name, demo_p, 16);
 			demo_p += 16;
 			SetPlayerSkin(p, name);
-			CONS_Printf("new skin %d %d\n", players[p].kartspeed, players[p].kartweight);
 		}
 		if (extradata & DXD_COLOR)
 		{
@@ -4767,9 +4766,6 @@ void G_ReadDemoExtraData(void)
 		if (extradata & DXD_PLAYSTATE)
 		{
 			extradata = READUINT8(demo_p);
-			CONS_Printf("player state %d %d\n", p, extradata);
-
-			// @TODO uhhhhh do something here
 
 			switch (extradata) {
 			case DXD_PST_PLAYING:
