@@ -191,8 +191,10 @@ static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 	{
 		posEnd = W_CheckNumForFolderEndPK3("Lua/", wadnum, posStart);
 		posStart++;
+#ifdef HAVE_BLUA
 		for (; posStart < posEnd; posStart++)
 			LUA_LoadLump(wadnum, posStart);
+#endif
 	}
 	posStart = W_CheckNumForFolderStartPK3("SOC/", wadnum, 0);
 	if (posStart != INT16_MAX)
@@ -794,7 +796,9 @@ UINT16 W_InitFile(const char *filename)
 		DEH_LoadDehackedLumpPwad(numwadfiles - 1, 0);
 		break;
 	case RET_LUA:
+#ifdef HAVE_BLUA
 		LUA_LoadLump(numwadfiles - 1, 0);
+#endif
 		break;
 	default:
 		break;
