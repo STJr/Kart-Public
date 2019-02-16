@@ -2329,7 +2329,8 @@ void HU_Drawer(void)
 	}
 
 	// draw the ping if the user wishes to
-	HU_drawLocalPing();
+	// THIS IS NOW HANDLED IN I_VIDEO
+	//HU_drawLocalPing();
 }
 
 //======================================================================
