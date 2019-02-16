@@ -7113,7 +7113,7 @@ static void M_ExitGameResponse(INT32 ch)
 static void M_EndGame(INT32 choice)
 {
 	(void)choice;
-	if (demoplayback || demorecording)
+	if (demoplayback || ( demorecording && !multiplayer ))/* hack for now */
 		return;
 
 	if (!Playing())
