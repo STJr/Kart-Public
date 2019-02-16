@@ -111,6 +111,7 @@ UINT8 window_notinfocus = false;
 //static INT32 demosequence;
 static const char *pagename = "MAP1PIC";
 static char *startupwadfiles[MAX_WADFILES];
+static char *startuppwads[MAX_WADFILES];
 
 boolean devparm = false; // started game with -devparm
 
@@ -824,12 +825,12 @@ void D_StartTitle(void)
 //
 // D_AddFile
 //
-static void D_AddFile(const char *file)
+static void D_AddFile(const char *file, char **filearray)
 {
 	size_t pnumwadfiles;
 	char *newfile;
 
-	for (pnumwadfiles = 0; startupwadfiles[pnumwadfiles]; pnumwadfiles++)
+	for (pnumwadfiles = 0; filearray[pnumwadfiles]; pnumwadfiles++)
 		;
 
 	newfile = malloc(strlen(file) + 1);
@@ -839,16 +840,16 @@ static void D_AddFile(const char *file)
 	}
 	strcpy(newfile, file);
 
-	startupwadfiles[pnumwadfiles] = newfile;
+	filearray[pnumwadfiles] = newfile;
 }
 
-static inline void D_CleanFile(void)
+static inline void D_CleanFile(char **filearray)
 {
 	size_t pnumwadfiles;
-	for (pnumwadfiles = 0; startupwadfiles[pnumwadfiles]; pnumwadfiles++)
+	for (pnumwadfiles = 0; filearray[pnumwadfiles]; pnumwadfiles++)
 	{
-		free(startupwadfiles[pnumwadfiles]);
-		startupwadfiles[pnumwadfiles] = NULL;
+		free(filearray[pnumwadfiles]);
+		filearray[pnumwadfiles] = NULL;
 	}
 }
 
@@ -908,9 +909,9 @@ static void IdentifyVersion(void)
 
 	// Load the IWAD
 	if (srb2wad2 != NULL && FIL_ReadFileOK(srb2wad2))
-		D_AddFile(srb2wad2);
+		D_AddFile(srb2wad2, startupwadfiles);
 	else if (srb2wad1 != NULL && FIL_ReadFileOK(srb2wad1))
-		D_AddFile(srb2wad1);
+		D_AddFile(srb2wad1, startupwadfiles);
 	else
 		I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s or %s\n", srb2waddir, srb2wad1, srb2wad2);
 
@@ -927,12 +928,12 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
 #endif
 
-	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
-	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
-	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
-	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
+	D_AddFile(va(pandf,srb2waddir,"gfx.kart"), startupwadfiles);
+	D_AddFile(va(pandf,srb2waddir,"textures.kart"), startupwadfiles);
+	D_AddFile(va(pandf,srb2waddir,"chars.kart"), startupwadfiles);
+	D_AddFile(va(pandf,srb2waddir,"maps.kart"), startupwadfiles);
 #ifdef USE_PATCH_KART
-	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+	D_AddFile(va(pandf,srb2waddir,"patch.kart"), startupwadfiles);
 #endif
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
@@ -941,7 +942,7 @@ static void IdentifyVersion(void)
 		const char *musicpath = va(pandf,srb2waddir,str);\
 		int ms = W_VerifyNMUSlumps(musicpath); \
 		if (ms == 1) \
-			D_AddFile(musicpath); \
+			D_AddFile(musicpath, startupwadfiles); \
 		else if (ms == 0) \
 			I_Error("File "str" has been modified with non-music/sound lumps"); \
 	}
@@ -1163,7 +1164,7 @@ void D_SRB2Main(void)
 				{
 					if (!W_VerifyNMUSlumps(s))
 						G_SetGameModified(true, false);
-					D_AddFile(s);
+					D_AddFile(s, startuppwads);
 				}
 			}
 		}
@@ -1220,7 +1221,7 @@ void D_SRB2Main(void)
 #else
 		I_Error("A WAD file was not found or not valid.\nCheck the log to see which ones.\n");
 #endif
-	D_CleanFile();
+	D_CleanFile(startupwadfiles);
 
 	mainwads = 0;
 
@@ -1253,6 +1254,10 @@ void D_SRB2Main(void)
 #endif //ifndef DEVELOP
 
 	mainwadstally = packetsizetally;
+
+	if (!W_InitMultipleFiles(startuppwads))
+		CONS_Error("A PWAD file was not found or not valid.\nCheck the log to see which ones.\n");
+	D_CleanFile(startuppwads);
 
 	cht_Init();
 
