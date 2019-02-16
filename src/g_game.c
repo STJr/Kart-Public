@@ -4763,7 +4763,8 @@ void G_WriteGhostTic(mobj_t *ghost)
 	// GZT_XYZ is only useful if you've moved 256 FRACUNITS or more in a single tic.
 	if (abs(ghost->x-oldghost.x) > MAXMOM
 	|| abs(ghost->y-oldghost.y) > MAXMOM
-	|| abs(ghost->z-oldghost.z) > MAXMOM)
+	|| abs(ghost->z-oldghost.z) > MAXMOM
+	|| leveltime & 255 == 1) // Hack to enable slightly nicer resyncing
 	{
 		oldghost.x = ghost->x;
 		oldghost.y = ghost->y;
@@ -4777,8 +4778,8 @@ void G_WriteGhostTic(mobj_t *ghost)
 	{
 		// For moving normally:
 		// Store one full byte of movement, plus one byte of fractional movement.
-		INT16 momx = (INT16)((ghost->x-oldghost.x)>>8);
-		INT16 momy = (INT16)((ghost->y-oldghost.y)>>8);
+		INT16 momx = (INT16)((ghost->x-oldghost.x + (1<<4))>>8);
+		INT16 momy = (INT16)((ghost->y-oldghost.y + (1<<4))>>8);
 		if (momx != oldghost.momx
 		|| momy != oldghost.momy)
 		{
@@ -4788,7 +4789,7 @@ void G_WriteGhostTic(mobj_t *ghost)
 			WRITEINT16(demo_p,momx);
 			WRITEINT16(demo_p,momy);
 		}
-		momx = (INT16)((ghost->z-oldghost.z)>>8);
+		momx = (INT16)((ghost->z-oldghost.z + (1<<4))>>8);
 		if (momx != oldghost.momz)
 		{
 			oldghost.momz = momx;
@@ -4892,8 +4893,9 @@ void G_WriteGhostTic(mobj_t *ghost)
 void G_ConsGhostTic(void)
 {
 	UINT8 ziptic;
-	UINT16 px,py,pz,gx,gy,gz;
+	UINT32 px,py,pz,gx,gy,gz;
 	mobj_t *testmo;
+	UINT32 syncleeway;
 	boolean nightsfail = false;
 
 	if (!demo_p || !demo_start)
@@ -4910,6 +4912,7 @@ void G_ConsGhostTic(void)
 		oldghost.x = READFIXED(demo_p);
 		oldghost.y = READFIXED(demo_p);
 		oldghost.z = READFIXED(demo_p);
+		syncleeway = 0;
 	}
 	else
 	{
@@ -4923,6 +4926,7 @@ void G_ConsGhostTic(void)
 		oldghost.x += oldghost.momx;
 		oldghost.y += oldghost.momy;
 		oldghost.z += oldghost.momz;
+		syncleeway = FRACUNIT;
 	}
 	if (ziptic & GZT_ANGLE)
 		demo_p++;
@@ -4988,14 +4992,14 @@ void G_ConsGhostTic(void)
 	}
 
 	// Re-synchronise
-	px = testmo->x>>FRACBITS;
-	py = testmo->y>>FRACBITS;
-	pz = testmo->z>>FRACBITS;
-	gx = oldghost.x>>FRACBITS;
-	gy = oldghost.y>>FRACBITS;
-	gz = oldghost.z>>FRACBITS;
+	px = testmo->x;
+	py = testmo->y;
+	pz = testmo->z;
+	gx = oldghost.x;
+	gy = oldghost.y;
+	gz = oldghost.z;
 
-	if (nightsfail || px != gx || py != gy || pz != gz)
+	if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
 	{
 		if (demosynced)
 			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
