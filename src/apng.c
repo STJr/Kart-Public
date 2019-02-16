@@ -279,7 +279,11 @@ apng_set_set_acTL_fn (png_structp pngp, apng_infop ainfop,
 {
 	(void)pngp;
 	if (!ainfop->set_acTL_fn)
+#ifndef PNG_WRITE_APNG_SUPPORTED
+		ainfop->set_acTL_fn = &apng_set_acTL_dummy;
+#else
 		ainfop->set_acTL_fn = &png_set_acTL;
+#endif/* PNG_WRITE_APNG_SUPPORTED */
 	else
 		ainfop->set_acTL_fn = set_acTL_f;
 }
