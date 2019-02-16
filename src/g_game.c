@@ -319,6 +319,7 @@ static struct {
 
 	// EZT_KART
 	INT32 kartitem, kartamount, kartbumpers;
+	boolean kartresync; //@TODO backwards compat with old replays. remove eventually
 
 	// EZT_HIT
 	UINT16 hits;
@@ -5332,6 +5333,7 @@ void G_ConsGhostTic(INT32 playernum)
 			ghostext[playernum].kartitem = READINT32(demo_p);
 			ghostext[playernum].kartamount = READINT32(demo_p);
 			ghostext[playernum].kartbumpers = READINT32(demo_p);
+			ghostext[playernum].kartresync = true;
 		}
 	}
 
@@ -5357,9 +5359,10 @@ void G_ConsGhostTic(INT32 playernum)
 	}
 
 	if (
+		ghostext[playernum].kartresync && (
 		players[playernum].kartstuff[k_itemtype] != ghostext[playernum].kartitem ||
 		players[playernum].kartstuff[k_itemamount] != ghostext[playernum].kartamount ||
-		players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers
+		players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers)
 	)
 	{
 		if (demosynced)
