@@ -6055,7 +6055,7 @@ void G_BeginRecording(void)
 
 	totalfiles = 0;
 	for (i = mainwads; ++i < numwadfiles; )
-		if (!wadfiles[i]->important)
+		if (wadfiles[i]->important)
 	{
 		nameonly(( filename = va("%s", wadfiles[i]->filename) ));
 		WRITESTRINGN(demo_p, filename, 64);
