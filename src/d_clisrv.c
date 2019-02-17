@@ -2563,8 +2563,6 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 
 	if (playernum == displayplayer && !demoplayback)
 		displayplayer = consoleplayer; // don't look through someone's view who isn't there
-	else
-		G_ResetViews();
 
 #ifdef HAVE_BLUA
 	LUA_InvalidatePlayer(&players[playernum]);
