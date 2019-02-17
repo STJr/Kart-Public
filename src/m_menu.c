@@ -6897,6 +6897,7 @@ static void M_HandleStaffReplay(INT32 choice)
 				break;
 			M_ClearMenus(true);
 			modeattacking = ATTACKING_RECORD;
+			demo_loadfiles = false; demo_ignorefiles = true; // Just assume that record attack replays have the files needed
 			G_DoPlayDemo(va("%sS%02u",G_BuildMapName(cv_nextmap.value),cv_dummystaff.value));
 			break;
 		default:
@@ -6917,6 +6918,7 @@ static void M_ReplayTimeAttack(INT32 choice)
 	const char *which;
 	M_ClearMenus(true);
 	modeattacking = ATTACKING_RECORD; // set modeattacking before G_DoPlayDemo so the map loader knows
+	demo_loadfiles = false; demo_ignorefiles = true; // Just assume that record attack replays have the files needed
 
 	if (currentMenu == &SP_ReplayDef)
 	{

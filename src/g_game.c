@@ -287,8 +287,10 @@ UINT32 timesBeaten;
 UINT32 timesBeatenWithEmeralds;
 //UINT32 timesBeatenUltimate;
 
+//@TODO put these all in a struct for namespacing purposes?
 static char demoname[64];
 boolean demorecording, demosaved, demodefersave, demoplayback;
+boolean demo_loadfiles, demo_ignorefiles; // Demo file loading options
 tic_t demosavebutton;
 boolean titledemo; // Title Screen demo can be cancelled by any key
 boolean fromtitledemo; // SRB2Kart: Don't stop the music
@@ -6053,11 +6055,10 @@ void G_BeginRecording(void)
 
 	totalfiles = 0;
 	for (i = mainwads; ++i < numwadfiles; )
-		if (!W_VerifyNMUSlumps(wadfiles[i]->filename))
+		if (!wadfiles[i]->important)
 	{
 		nameonly(( filename = va("%s", wadfiles[i]->filename) ));
-		/* FIXME: maximum size? */
-		WRITESTRING(demo_p, filename);
+		WRITESTRINGN(demo_p, filename, 64);
 		WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
 
 		totalfiles++;
@@ -6316,6 +6317,87 @@ static void G_SkipDemoExtraFiles(UINT8 **pp)
 	}
 }
 
+// G_CheckDemoExtraFiles: checks if our loaded WAD list matches the demo's.
+#define DFILE_ERROR_NOTLOADED            0x01 // Files are not loaded, but can be without a restart.
+#define DFILE_ERROR_OUTOFORDER           0x02 // Files are loaded, but out of order.
+#define DFILE_ERROR_INCOMPLETEOUTOFORDER 0x03 // Some files are loaded out of order, but others are not.
+#define DFILE_ERROR_CANNOTLOAD           0x04 // Files are missing and cannot be loaded.
+#define DFILE_ERROR_EXTRAFILES           0x05 // Extra files outside of the replay's file list are loaded.
+static UINT8 G_CheckDemoExtraFiles(UINT8 **pp)
+{
+	UINT8 totalfiles, filesloaded, nmusfilecount;
+	char filename[MAX_WADPATH];
+	UINT8 md5sum[16];
+	boolean toomany = false;
+	boolean alreadyloaded;
+	UINT8 i, j;
+	UINT8 error = 0;
+
+	totalfiles = READUINT8((*pp));
+	filesloaded = 0;
+	for (i = 0; i < totalfiles; ++i)
+	{
+		if (toomany)
+			SKIPSTRING((*pp));
+		else
+		{
+			strlcpy(filename, (char *)(*pp), sizeof filename);
+			SKIPSTRING((*pp));
+		}
+		READMEM((*pp), md5sum, 16);
+
+		if (!toomany)
+		{
+			alreadyloaded = false;
+			nmusfilecount = 0;
+
+			for (j = 0; j < numwadfiles; ++j)
+			{
+				if (wadfiles[j]->important && j > mainwads)
+					nmusfilecount++;
+				else
+					continue;
+
+				if (memcmp(md5sum, wadfiles[j]->md5sum, 16) == 0)
+				{
+					alreadyloaded = true;
+
+					if (i != nmusfilecount-1 && error < DFILE_ERROR_OUTOFORDER)
+						error |= DFILE_ERROR_OUTOFORDER;
+
+					break;
+				}
+			}
+
+			if (alreadyloaded)
+			{
+				filesloaded++;
+				continue;
+			}
+
+			if (numwadfiles >= MAX_WADFILES)
+				error = DFILE_ERROR_CANNOTLOAD;
+			else if (findfile(filename, md5sum, false) != FS_FOUND)
+				error = DFILE_ERROR_CANNOTLOAD;
+			else if (error < DFILE_ERROR_INCOMPLETEOUTOFORDER)
+				error |= DFILE_ERROR_NOTLOADED;
+		} else
+			error = DFILE_ERROR_CANNOTLOAD;
+	}
+
+	// Get final file count
+	nmusfilecount = 0;
+
+	for (j = 0; j < numwadfiles; ++j)
+		if (wadfiles[j]->important && j > mainwads)
+			nmusfilecount++;
+
+	if (!error && filesloaded < nmusfilecount)
+		error = DFILE_ERROR_EXTRAFILES;
+
+	return error;
+}
+
 // Returns bitfield:
 // 1 == new demo has lower time
 // 2 == new demo has higher score
@@ -6455,7 +6537,7 @@ void G_DeferedPlayDemo(const char *name)
 {
 	COM_BufAddText("playdemo \"");
 	COM_BufAddText(name);
-	COM_BufAddText("\"\n");
+	COM_BufAddText("\" -addfiles\n");
 }
 
 //
@@ -6569,7 +6651,61 @@ void G_DoPlayDemo(char *defdemoname)
 	demoflags = READUINT8(demo_p);
 	if (demoflags & DF_FILELIST)
 	{
-		G_LoadDemoExtraFiles(&demo_p);
+		if (titledemo) // Titledemos should always play and ought to always be compatible with whatever wadlist is running.
+			G_SkipDemoExtraFiles(&demo_p);
+		if (demo_loadfiles)
+			G_LoadDemoExtraFiles(&demo_p);
+		else if (demo_ignorefiles)
+			G_SkipDemoExtraFiles(&demo_p);
+		else
+		{
+			UINT8 error = G_CheckDemoExtraFiles(&demo_p);
+
+			if (error)
+			{
+				switch (error)
+				{
+				case DFILE_ERROR_NOTLOADED:
+					snprintf(msg, 1024,
+						M_GetText("Required files for this demo are not loaded.\n\nUse\n\"playdemo %s -addfiles\"\nto load them and play the demo.\n"),
+					pdemoname);
+					break;
+
+				case DFILE_ERROR_OUTOFORDER:
+					snprintf(msg, 1024,
+						M_GetText("Required files for this demo are loaded out of order.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
+					pdemoname);
+					break;
+
+				case DFILE_ERROR_INCOMPLETEOUTOFORDER:
+					snprintf(msg, 1024,
+						M_GetText("Required files for this demo are not loaded, and some are out of order.\n\nUse\n\"playdemo %s -addfiles\"\nto load needed files and play the demo.\n"),
+					pdemoname);
+					break;
+
+				case DFILE_ERROR_CANNOTLOAD:
+					snprintf(msg, 1024,
+						M_GetText("Required files for this demo cannot be loaded.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
+					pdemoname);
+					break;
+
+				case DFILE_ERROR_EXTRAFILES:
+					snprintf(msg, 1024,
+						M_GetText("You have additional files loaded beyond the demo's file list.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
+					pdemoname);
+					break;
+				}
+
+				CONS_Alert(CONS_ERROR, "%s", msg);
+				if (!CON_Ready()) // In the console they'll just see the notice there! No point pulling them out.
+					M_StartMessage(msg, NULL, MM_NOTHING);
+				Z_Free(pdemoname);
+				Z_Free(demobuffer);
+				demoplayback = false;
+				titledemo = false;
+				return;
+			}
+		}
 	}
 
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
@@ -6879,7 +7015,7 @@ void G_AddGhost(char *defdemoname)
 	flags = READUINT8(p);
 	if (flags & DF_FILELIST)
 	{
-		G_LoadDemoExtraFiles(&p);
+		G_SkipDemoExtraFiles(&p); // Don't wanna modify the file list for ghosts.
 	}
 	if (!(flags & DF_GHOST))
 	{
@@ -6959,6 +7095,7 @@ void G_AddGhost(char *defdemoname)
 
 	if (i == numskins)
 	{
+		//@TODO nah this should fallback
 		CONS_Alert(CONS_NOTICE, M_GetText("Failed to add ghost %s: Invalid character.\n"), pdemoname);
 		Z_Free(pdemoname);
 		Z_Free(buffer);

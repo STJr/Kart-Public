@@ -36,7 +36,7 @@ extern boolean playeringame[MAXPLAYERS];
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo, demosaved, demodefersave;
+extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo, demosaved, demodefersave, demo_loadfiles, demo_ignorefiles;
 extern tic_t demosavebutton;
 extern consvar_t cv_recordmultiplayerdemos;
 

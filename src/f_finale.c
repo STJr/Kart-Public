@@ -1080,6 +1080,8 @@ void F_TitleScreenTicker(boolean run)
 		}*/
 
 		titledemo = fromtitledemo = true;
+		demo_ignorefiles = true;
+		demo_loadfiles = false;
 		G_DoPlayDemo(dname);
 	}
 }

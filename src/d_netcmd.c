@@ -2003,7 +2003,7 @@ static void Command_Playdemo_f(void)
 {
 	char name[256];
 
-	if (COM_Argc() != 2)
+	if (COM_Argc() < 2)
 	{
 		CONS_Printf(M_GetText("playdemo <demoname>: playback a demo\n"));
 		return;
@@ -2026,6 +2026,9 @@ static void Command_Playdemo_f(void)
 	// dont add .lmp so internal game demos can be played
 
 	CONS_Printf(M_GetText("Playing back demo '%s'.\n"), name);
+
+	demo_loadfiles = strcmp(COM_Argv(2), "-addfiles") == 0;
+	demo_ignorefiles = strcmp(COM_Argv(2), "-force") == 0;
 
 	// Internal if no extension, external if one exists
 	// If external, convert the file name to a path in SRB2's home directory
