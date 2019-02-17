@@ -283,6 +283,8 @@ typedef struct
 
 	tic_t jointime;
 
+	UINT8 splitscreen;
+
 	//player->mo stuff
 	UINT8 hasmo; // Boolean
 

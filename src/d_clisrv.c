@@ -648,6 +648,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 
 	rsp->jointime = (tic_t)LONG(players[i].jointime);
 
+	rsp->splitscreen = players[i].splitscreen;
+
 	rsp->hasmo = false;
 	//Transfer important mo information if the player has a body.
 	//This lets us resync players even if they are dead.
@@ -782,6 +784,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].onconveyor = LONG(rsp->onconveyor);
 
 	players[i].jointime = (tic_t)LONG(rsp->jointime);
+
+	players[i].splitscreen = rsp->splitscreen;
 
 	//We get a packet for each player in game.
 	if (!playeringame[i])
@@ -3315,6 +3319,8 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		D_SendPlayerConfig();
 		addedtogame = true;
 	}
+
+	players[newplayernum].splitscreen = splitscreenplayer;
 
 	if (netgame)
 	{
