@@ -5402,6 +5402,13 @@ void G_ConsAllGhostTics(void)
 		G_ConsGhostTic(p);
 		p = READUINT8(demo_p);
 	}
+
+	if (*demo_p == DEMOMARKER)
+	{
+		// end of demo data stream
+		G_CheckDemoStatus();
+		return;
+	}
 }
 
 // Uses ghost data to do consistency checks on your position.
