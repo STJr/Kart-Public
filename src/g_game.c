@@ -6653,7 +6653,7 @@ void G_DoPlayDemo(char *defdemoname)
 	{
 		if (titledemo) // Titledemos should always play and ought to always be compatible with whatever wadlist is running.
 			G_SkipDemoExtraFiles(&demo_p);
-		if (demo_loadfiles)
+		else if (demo_loadfiles)
 			G_LoadDemoExtraFiles(&demo_p);
 		else if (demo_ignorefiles)
 			G_SkipDemoExtraFiles(&demo_p);
@@ -6839,6 +6839,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	if (multiplayer) {
 		boolean spectator;
+		UINT8 slots[MAXPLAYERS], numslots = 0;
 
 		// Load players that were in-game when the map started
 		p = READUINT8(demo_p);
@@ -6850,6 +6851,7 @@ void G_DoPlayDemo(char *defdemoname)
 				spectator = true;
 				p &= ~DEMO_SPECTATOR;
 			}
+			slots[numslots] = p; numslots++;
 
 			if (!playeringame[displayplayer] || players[displayplayer].spectator)
 				displayplayer = consoleplayer = secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = p;
@@ -6895,6 +6897,17 @@ void G_DoPlayDemo(char *defdemoname)
 		}
 
 		splitscreen = 0;
+
+		if (titledemo)
+		{
+			splitscreen = min(min(3, numslots-1), max(0, M_RandomKey(6)-1)); // Bias toward 1p and 4p views
+
+			for (p = 0; p <= splitscreen; p++)
+				G_ResetView(p+1, slots[M_RandomKey(numslots)], false);
+
+			CONS_Printf("%d - %d %d %d %d\n", splitscreen, displayplayer, secondarydisplayplayer, thirddisplayplayer, fourthdisplayplayer);
+		}
+
 		R_ExecuteSetViewSize();
 	}
 
@@ -7438,7 +7451,7 @@ boolean G_CheckDemoStatus(void)
 		if (singledemo)
 			I_Quit();
 
-		if (multiplayer)
+		if (multiplayer && !titledemo)
 			G_ExitLevel();
 		else
 		{

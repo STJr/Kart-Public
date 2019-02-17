@@ -8107,17 +8107,10 @@ static void K_drawInput(void)
 	if (timeinmap < 113)
 	{
 		INT32 count = ((INT32)(timeinmap) - 105);
-		offs = (titledemo ? 128 : 64);
+		offs = 64;
 		while (count-- > 0)
 			offs >>= 1;
 		x += offs;
-	}
-
-	if (titledemo)
-	{
-		V_DrawTinyScaledPatch(x-54, 128, splitflags, W_CachePatchName("TTKBANNR", PU_CACHE));
-		V_DrawTinyScaledPatch(x-54, 128+25, splitflags, W_CachePatchName("TTKART", PU_CACHE));
-		return;
 	}
 
 #define BUTTW 8
@@ -8413,7 +8406,7 @@ void K_drawKartHUD(void)
 		&& comeback
 		&& stplyr->playerstate == PST_LIVE)));
 
-	if (!battlefullscreen || splitscreen)
+	if (!titledemo && (!battlefullscreen || splitscreen))
 	{
 		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
 		if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
@@ -8428,7 +8421,7 @@ void K_drawKartHUD(void)
 				K_drawKartWanted();
 		}
 
-		if (cv_kartminimap.value && !titledemo)
+		if (cv_kartminimap.value)
 		{
 #ifdef HAVE_BLUA
 			if (LUA_HudEnabled(hud_minimap))
@@ -8470,25 +8463,44 @@ void K_drawKartHUD(void)
 
 	if (!stplyr->spectator) // Bottom of the screen elements, don't need in spectate mode
 	{
-		if (G_RaceGametype()) // Race-only elements
+		if (titledemo) // Draw title logo instead in titledemos
 		{
-			if (!titledemo)
-			{
-				// Draw the lap counter
-#ifdef HAVE_BLUA
-				if (LUA_HudEnabled(hud_gametypeinfo))
-#endif
-					K_drawKartLaps();
+			INT32 x = BASEVIDWIDTH - 32, y = 128, offs;
 
-				if (!splitscreen)
-				{
-					// Draw the speedometer
-					// TODO: Make a better speedometer.
+			if (splitscreen == 3)
+			{
+				x = BASEVIDWIDTH/2 + 10;
+				y = BASEVIDHEIGHT/2 - 30;
+			}
+
+			if (timeinmap < 113)
+			{
+				INT32 count = ((INT32)(timeinmap) - 104);
+				offs = 256;
+				while (count-- > 0)
+					offs >>= 1;
+				x += offs;
+			}
+
+			V_DrawTinyScaledPatch(x-54, y, 0, W_CachePatchName("TTKBANNR", PU_CACHE));
+			V_DrawTinyScaledPatch(x-54, y+25, 0, W_CachePatchName("TTKART", PU_CACHE));
+		}
+		else if (G_RaceGametype()) // Race-only elements
+		{
+			// Draw the lap counter
 #ifdef HAVE_BLUA
-				if (LUA_HudEnabled(hud_speedometer))
+			if (LUA_HudEnabled(hud_gametypeinfo))
 #endif
-					K_drawKartSpeedometer();
-				}
+				K_drawKartLaps();
+
+			if (!splitscreen)
+			{
+				// Draw the speedometer
+				// TODO: Make a better speedometer.
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_speedometer))
+#endif
+				K_drawKartSpeedometer();
 			}
 
 			if (isfreeplay)

@@ -1024,10 +1024,27 @@ void F_TitleScreenTicker(boolean run)
 	// is it time?
 	if (!(--demoIdleLeft))
 	{
+		static boolean use_netreplay = false;
+
 		char dname[9];
 		lumpnum_t l;
 		const char *mapname;
 		UINT8 numstaff;
+
+		if ((use_netreplay = !use_netreplay))
+		{
+			numstaff = 1;
+			while ((l = W_CheckNumForName(va("TDEMO%03u", numstaff))) != LUMPERROR)
+				numstaff++;
+			numstaff--;
+
+			if (numstaff)
+			{
+				numstaff = M_RandomKey(numstaff)+1;
+				snprintf(dname, 9, "TDEMO%03u", numstaff);
+				goto loadreplay;
+			}
+		}
 
 		// prevent console spam if failed
 		demoIdleLeft = demoIdleTime;
@@ -1079,6 +1096,7 @@ void F_TitleScreenTicker(boolean run)
 			return;
 		}*/
 
+loadreplay:
 		titledemo = fromtitledemo = true;
 		demo_ignorefiles = true;
 		demo_loadfiles = false;
