@@ -562,6 +562,11 @@ dotimer:
 			string);
 	}
 
+	if (demorecording && cv_recordmultiplayerdemos.value == 1)
+		V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_ALLOWLOWERCASE|hilicol, "Press Look Backward to save the replay");
+	else if (demosaved)
+		V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_ALLOWLOWERCASE|hilicol, "Replay saved!");
+
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
 		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, hilicol, M_GetText("Teams will be scrambled next round!"));
@@ -576,6 +581,12 @@ void Y_Ticker(void)
 {
 	if (intertype == int_none)
 		return;
+
+	if (demorecording && cv_recordmultiplayerdemos.value == 1 && (demodefersave || InputDown(gc_lookback, 1)))
+	{
+		demodefersave = false;
+		G_SaveDemo();
+	}
 
 	// Check for pause or menu up in single player
 	if (paused || P_AutoPause())

@@ -13,6 +13,7 @@
 
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_input.h"
 #include "p_local.h"
 #include "z_zone.h"
 #include "s_sound.h"
@@ -737,6 +738,9 @@ void P_Ticker(boolean run)
 
 					G_WriteGhostTic(players[i].mo, i);
 				}
+
+				if (demosavebutton && demosavebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
+					demodefersave = true;
 			}
 			if (demoplayback) // Use Ghost data for consistency checks.
 			{

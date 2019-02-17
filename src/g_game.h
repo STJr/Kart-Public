@@ -36,7 +36,9 @@ extern boolean playeringame[MAXPLAYERS];
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo;
+extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo, demosaved, demodefersave;
+extern tic_t demosavebutton;
+extern consvar_t cv_recordmultiplayerdemos;
 
 // Quit after playing a demo from cmdline.
 extern boolean singledemo;
@@ -207,6 +209,7 @@ void G_StopMetalDemo(void);
 ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void);
 void G_StopDemo(void);
 boolean G_CheckDemoStatus(void);
+void G_SaveDemo(void);
 
 boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);

@@ -288,8 +288,8 @@ UINT32 timesBeatenWithEmeralds;
 //UINT32 timesBeatenUltimate;
 
 static char demoname[64];
-boolean demorecording;
-boolean demoplayback;
+boolean demorecording, demosaved, demodefersave, demoplayback;
+tic_t demosavebutton;
 boolean titledemo; // Title Screen demo can be cancelled by any key
 boolean fromtitledemo; // SRB2Kart: Don't stop the music
 static UINT8 *demobuffer = NULL;
@@ -333,6 +333,9 @@ demoghost *ghosts = NULL;
 boolean precache = true; // if true, load all graphics at start
 
 INT16 prevmap, nextmap;
+
+static CV_PossibleValue_t recordmultiplayerdemos_cons_t[] = {{0, "Disabled"}, {1, "Manual Save"}, {2, "Auto Save"}, {0, NULL}};
+consvar_t cv_recordmultiplayerdemos = {"recordmultiplayerdemos", "Manual Save", CV_SAVE, recordmultiplayerdemos_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static UINT8 *savebuffer;
 
@@ -3206,6 +3209,9 @@ void G_ExitLevel(void)
 
 		// Remove CEcho text on round end.
 		HU_ClearCEcho();
+
+		if (multiplayer && demorecording && cv_recordmultiplayerdemos.value == 2)
+			G_SaveDemo();
 	}
 }
 
@@ -6990,8 +6996,6 @@ void G_StopDemo(void)
 
 boolean G_CheckDemoStatus(void)
 {
-	boolean saved;
-
 	while (ghosts)
 	{
 		demoghost *next = ghosts->next;
@@ -7040,33 +7044,39 @@ boolean G_CheckDemoStatus(void)
 		return true;
 	}
 
-	if (demorecording)
+	if (demorecording && (!multiplayer || cv_recordmultiplayerdemos.value == 2))
 	{
-		UINT8 *p = demobuffer+16; // checksum position
-#ifdef NOMD5
-		UINT8 i;
-		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
-		for (i = 0; i < 16; i++, p++)
-			*p = P_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
-#else
-		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
-		md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
-#endif
-		saved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
-		free(demobuffer);
-		demorecording = false;
-
-		if (modeattacking != ATTACKING_RECORD)
-		{
-			if (saved)
-				CONS_Printf(M_GetText("Demo %s recorded\n"), demoname);
-			else
-				CONS_Alert(CONS_WARNING, M_GetText("Demo %s not saved\n"), demoname);
-		}
+		G_SaveDemo();
 		return true;
 	}
+	demorecording = false;
 
 	return false;
+}
+
+void G_SaveDemo(void)
+{
+	UINT8 *p = demobuffer+16; // checksum position
+#ifdef NOMD5
+	UINT8 i;
+	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
+	for (i = 0; i < 16; i++, p++)
+		*p = P_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
+#else
+	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
+	md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
+#endif
+	demosaved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
+	free(demobuffer);
+	demorecording = false;
+
+	if (modeattacking != ATTACKING_RECORD)
+	{
+		if (demosaved)
+			CONS_Printf(M_GetText("Demo %s recorded\n"), demoname);
+		else
+			CONS_Alert(CONS_WARNING, M_GetText("Demo %s not saved\n"), demoname);
+	}
 }
 
 //

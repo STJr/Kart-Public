@@ -1835,6 +1835,9 @@ void P_DoPlayerExit(player_t *player)
 	player->powers[pw_spacetime] = 0;
 	player->kartstuff[k_cardanimation] = 0; // srb2kart: reset battle animation
 
+	if (player == &players[consoleplayer])
+		demosavebutton = leveltime;
+
 	/*if (playeringame[player-players] && netgame && !circuitmap)
 		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
 }

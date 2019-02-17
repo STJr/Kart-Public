@@ -793,6 +793,8 @@ void D_RegisterClientCommands(void)
 
 	COM_AddCommand("displayplayer", Command_Displayplayer_f);
 
+	CV_RegisterVar(&cv_recordmultiplayerdemos);
+
 	// FIXME: not to be here.. but needs be done for config loading
 	CV_RegisterVar(&cv_usegamma);
 
@@ -2502,6 +2504,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	LUAh_MapChange(mapnumber);
 #endif*/
 
+	demosaved = demodefersave = false;
+	demosavebutton = 0;
 	G_InitNew(pencoremode, mapname, resetplayer, skipprecutscene);
 	if (demoplayback && !timingdemo)
 		precache = true;
