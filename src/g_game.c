@@ -5196,6 +5196,23 @@ void G_GhostAddHit(INT32 playernum, mobj_t *victim)
 	ghostext[playernum].hitlist[ghostext[playernum].hits-1] = victim;
 }
 
+void G_WriteAllGhostTics(void)
+{
+	INT32 i;
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+			continue;
+
+		if (!players[i].mo)
+			continue;
+
+		WRITEUINT8(demo_p, i);
+		G_WriteGhostTic(players[i].mo, i);
+	}
+	WRITEUINT8(demo_p, 0xFF);
+}
+
 void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 {
 	char ziptic = 0;
@@ -5370,6 +5387,17 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 	}
 }
 
+void G_ConsAllGhostTics(void)
+{
+	UINT8 p = READUINT8(demo_p);
+
+	while (p != 0xFF)
+	{
+		G_ConsGhostTic(p);
+		p = READUINT8(demo_p);
+	}
+}
+
 // Uses ghost data to do consistency checks on your position.
 // This fixes desynchronising demos when fighting eggman.
 void G_ConsGhostTic(INT32 playernum)
@@ -5415,7 +5443,7 @@ void G_ConsGhostTic(INT32 playernum)
 	if (ziptic & GZT_SPRITE)
 		demo_p++;
 	if(ziptic & GZT_NIGHTS) {
-		if (!testmo->player || !(testmo->player->pflags & PF_NIGHTSMODE) || !testmo->tracer)
+		if (!testmo || !testmo->player || !(testmo->player->pflags & PF_NIGHTSMODE) || !testmo->tracer)
 			nightsfail = true;
 		else
 			testmo = testmo->tracer;
@@ -5480,41 +5508,44 @@ void G_ConsGhostTic(INT32 playernum)
 		}
 	}
 
-	// Re-synchronise
-	px = testmo->x;
-	py = testmo->y;
-	pz = testmo->z;
-	gx = oldghost[playernum].x;
-	gy = oldghost[playernum].y;
-	gz = oldghost[playernum].z;
-
-	if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
+	if (testmo)
 	{
-		if (demosynced)
-			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
-		demosynced = false;
+		// Re-synchronise
+		px = testmo->x;
+		py = testmo->y;
+		pz = testmo->z;
+		gx = oldghost[playernum].x;
+		gy = oldghost[playernum].y;
+		gz = oldghost[playernum].z;
 
-		P_UnsetThingPosition(testmo);
-		testmo->x = oldghost[playernum].x;
-		testmo->y = oldghost[playernum].y;
-		P_SetThingPosition(testmo);
-		testmo->z = oldghost[playernum].z;
-	}
+		if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
+		{
+			if (demosynced)
+				CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
+			demosynced = false;
 
-	if (
-		ghostext[playernum].kartresync && (
-		players[playernum].kartstuff[k_itemtype] != ghostext[playernum].kartitem ||
-		players[playernum].kartstuff[k_itemamount] != ghostext[playernum].kartamount ||
-		players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers)
-	)
-	{
-		if (demosynced)
-			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
-		demosynced = false;
+			P_UnsetThingPosition(testmo);
+			testmo->x = oldghost[playernum].x;
+			testmo->y = oldghost[playernum].y;
+			P_SetThingPosition(testmo);
+			testmo->z = oldghost[playernum].z;
+		}
 
-		players[playernum].kartstuff[k_itemtype] = ghostext[playernum].kartitem;
-		players[playernum].kartstuff[k_itemamount] = ghostext[playernum].kartamount;
-		players[playernum].kartstuff[k_bumper] = ghostext[playernum].kartbumpers;
+		if (
+			ghostext[playernum].kartresync && (
+			players[playernum].kartstuff[k_itemtype] != ghostext[playernum].kartitem ||
+			players[playernum].kartstuff[k_itemamount] != ghostext[playernum].kartamount ||
+			players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers)
+		)
+		{
+			if (demosynced)
+				CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
+			demosynced = false;
+
+			players[playernum].kartstuff[k_itemtype] = ghostext[playernum].kartitem;
+			players[playernum].kartstuff[k_itemamount] = ghostext[playernum].kartamount;
+			players[playernum].kartstuff[k_bumper] = ghostext[playernum].kartbumpers;
+		}
 	}
 
 	if (*demo_p == DEMOMARKER)

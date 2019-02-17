@@ -728,32 +728,14 @@ void P_Ticker(boolean run)
 		{
 			if (demorecording)
 			{
-				for (i = 0; i < MAXPLAYERS; i++)
-				{
-					if (!playeringame[i] || players[i].spectator)
-						continue;
-
-					if (!players[i].mo)
-						continue;
-
-					G_WriteGhostTic(players[i].mo, i);
-				}
+				G_WriteAllGhostTics();
 
 				if (demosavebutton && demosavebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
 					demodefersave = true;
 			}
 			if (demoplayback) // Use Ghost data for consistency checks.
 			{
-				for (i = 0; i < MAXPLAYERS; i++)
-				{
-					if (!playeringame[i] || players[i].spectator)
-						continue;
-
-					if (!players[i].mo)
-						continue;
-
-					G_ConsGhostTic(i);
-				}
+				G_ConsAllGhostTics();
 			}
 		}
 		else
