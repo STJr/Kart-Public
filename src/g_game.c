@@ -2133,13 +2133,13 @@ boolean G_CouldView(INT32 playernum)
 // G_CanView
 // Return whether a player can be viewed on a particular view (splitscreen).
 //
-boolean G_CanView(INT32 playernum, UINT8 viewnum)
+boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive)
 {
 	UINT8 splits;
 	UINT8 viewd;
 	INT32 *displayplayerp;
 
-	if (!G_CouldView(playernum))
+	if (!(onlyactive ? G_CouldView(playernum) : (playeringame[playernum] && !players[playernum].spectator)))
 		return false;
 
 	splits = splitscreen+1;
@@ -2173,12 +2173,12 @@ INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive)
 	startview = min(max(startview, 0), MAXPLAYERS);
 	for (i = startview; i < MAXPLAYERS; ++i)
 	{
-		if (onlyactive ? G_CanView(i, viewnum) : (playeringame[i] && !players[i].spectator))
+		if (G_CanView(i, viewnum, onlyactive))
 			return i;
 	}
 	for (i = 0; i < startview; ++i)
 	{
-		if (onlyactive ? G_CanView(i, viewnum) : (playeringame[i] && !players[i].spectator))
+		if (G_CanView(i, viewnum, onlyactive))
 			return i;
 	}
 	return -1;
