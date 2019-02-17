@@ -1915,7 +1915,7 @@ boolean G_Responder(event_t *ev)
 			displayplayer = consoleplayer;
 		else
 		{
-			G_AdjustView(1, 1);
+			G_AdjustView(1, 1, true);
 
 			// change statusbar also if playing back demo
 			if (singledemo)
@@ -1929,19 +1929,19 @@ boolean G_Responder(event_t *ev)
 	{
 		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
 		{
-			G_AdjustView(2, 1);
+			G_AdjustView(2, 1, true);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
 		{
-			G_AdjustView(3, 1);
+			G_AdjustView(3, 1, true);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
 		{
-			G_AdjustView(4, 1);
+			G_AdjustView(4, 1, true);
 
 			return true;
 		}
@@ -2167,30 +2167,30 @@ boolean G_CanView(INT32 playernum, UINT8 viewnum)
 // Return the next player that can be viewed on a view, wraps forward.
 // An out of range startview is corrected.
 //
-INT32 G_FindView(INT32 startview, UINT8 viewnum)
+INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive)
 {
 	INT32 i;
 	startview = min(max(startview, 0), MAXPLAYERS);
 	for (i = startview; i < MAXPLAYERS; ++i)
 	{
-		if (G_CanView(i, viewnum))
+		if (onlyactive ? G_CanView(i, viewnum) : (playeringame[i] && !players[i].spectator))
 			return i;
 	}
 	for (i = 0; i < startview; ++i)
 	{
-		if (G_CanView(i, viewnum))
+		if (onlyactive ? G_CanView(i, viewnum) : (playeringame[i] && !players[i].spectator))
 			return i;
 	}
 	return -1;
 }
 
-INT32 G_CountPlayersPotentiallyViewable(void)
+INT32 G_CountPlayersPotentiallyViewable(boolean active)
 {
 	INT32 total = 0;
 	INT32 i;
 	for (i = 0; i < MAXPLAYERS; ++i)
 	{
-		if (G_CouldView(i))
+		if (active ? G_CouldView(i) : (playeringame[i] && !players[i].spectator))
 			total++;
 	}
 	return total;
@@ -2213,7 +2213,7 @@ INT32 *G_GetDisplayplayerPtr(UINT8 viewnum)
 // Also promotes splitscreen up to available viewable players.
 // An out of range playernum is corrected.
 //
-void G_ResetView(UINT8 viewnum, INT32 playernum)
+void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 {
 	UINT8 splits;
 	UINT8 viewd;
@@ -2229,7 +2229,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum)
 	/* Promote splits */
 	if (viewnum > splits)
 	{
-		playersviewable = G_CountPlayersPotentiallyViewable();
+		playersviewable = G_CountPlayersPotentiallyViewable(onlyactive);
 		if (playersviewable < splits)/* do not demote */
 			return;
 
@@ -2250,7 +2250,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum)
 	/* Focus our target view first so that we don't take its player. */
 	displayplayerp = (G_GetDisplayplayerPtr(viewnum));
 	olddisplayplayer = (*displayplayerp);
-	(*displayplayerp) = G_FindView(playernum, viewnum);
+	(*displayplayerp) = G_FindView(playernum, viewnum, onlyactive);
 	if ((*displayplayerp) != olddisplayplayer)
 	{
 		camerap = (P_GetCameraPtr(viewnum));
@@ -2264,7 +2264,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum)
 			displayplayerp = (G_GetDisplayplayerPtr(viewd));
 			camerap = (P_GetCameraPtr(viewd));
 
-			(*displayplayerp) = G_FindView(0, viewd);
+			(*displayplayerp) = G_FindView(0, viewd, onlyactive);
 
 			P_ResetCamera(&players[(*displayplayerp)], camerap);
 		}
@@ -2279,11 +2279,16 @@ void G_ResetView(UINT8 viewnum, INT32 playernum)
 // Increment a viewpoint by offset from the current player. A negative value
 // decrements.
 //
-void G_AdjustView(UINT8 viewnum, INT32 offset)
+void G_AdjustView(UINT8 viewnum, INT32 offset, boolean onlyactive)
 {
-	INT32 *displayplayerp;
+	INT32 *displayplayerp, oldview;
 	displayplayerp = G_GetDisplayplayerPtr(viewnum);
-	G_ResetView(viewnum, ( (*displayplayerp) + offset ));
+	oldview = (*displayplayerp);
+	G_ResetView(viewnum, ( (*displayplayerp) + offset ), onlyactive);
+
+	// If no other view could be found, go back to what we had.
+	if ((*displayplayerp) == -1)
+		(*displayplayerp) = oldview;
 }
 
 //
@@ -2300,7 +2305,7 @@ void G_ResetViews(void)
 
 	splits = splitscreen+1;
 
-	playersviewable = G_CountPlayersPotentiallyViewable();
+	playersviewable = G_CountPlayersPotentiallyViewable(false);
 	/* Demote splits */
 	if (playersviewable < splits)
 	{
@@ -2315,7 +2320,7 @@ void G_ResetViews(void)
 	*/
 	for (viewd = 1; viewd <= splits; ++viewd)
 	{
-		G_AdjustView(viewd, 0);
+		G_AdjustView(viewd, 0, false);
 	}
 }
 
@@ -4909,6 +4914,7 @@ void G_ReadDemoExtraData(void)
 			}
 
 			G_ResetViews();
+
 			// maybe these are necessary?
 			if (G_BattleGametype())
 				K_CheckBumpers(); // SRB2Kart

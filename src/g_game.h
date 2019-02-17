@@ -237,12 +237,12 @@ INT32 *G_GetDisplayplayerPtr(UINT8 viewnum);
 boolean G_CouldView(INT32 playernum);
 boolean G_CanView(INT32 playernum, UINT8 viewnum);
 
-INT32 G_FindView(INT32 startview, UINT8 viewnum);
-INT32 G_CountPlayersPotentiallyViewable(void);
+INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive);
+INT32 G_CountPlayersPotentiallyViewable(boolean active);
 
 void G_ResetViews(void);
-void G_ResetView(UINT8 viewnum, INT32 playernum);
-void G_AdjustView(UINT8 viewnum, INT32 offset);
+void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive);
+void G_AdjustView(UINT8 viewnum, INT32 offset, boolean onlyactive);
 
 void G_AddPlayer(INT32 playernum);
 
