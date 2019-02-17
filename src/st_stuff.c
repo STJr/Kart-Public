@@ -2014,6 +2014,15 @@ static void ST_overlayDrawer(void)
 		}
 	}
 
+	// Replay manual-save stuff
+	if (demorecording && multiplayer && demosavebutton && demosavebutton + 3*TICRATE < leveltime)
+	{
+		if (demodefersave || cv_recordmultiplayerdemos.value == 2)
+			V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_HUDTRANSHALF|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved.");
+		else
+			V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_HUDTRANSHALF|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Press Look Backward to save the replay");
+	}
+
 	ST_drawDebugInfo();
 }
 

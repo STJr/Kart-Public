@@ -1915,8 +1915,7 @@ boolean G_Responder(event_t *ev)
 			displayplayer = consoleplayer;
 		else
 		{
-			displayplayer++;
-			G_ResetView(1);
+			G_AdjustView(1, 1);
 
 			// change statusbar also if playing back demo
 			if (singledemo)
@@ -1930,22 +1929,19 @@ boolean G_Responder(event_t *ev)
 	{
 		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
 		{
-			secondarydisplayplayer++;
-			G_ResetView(2);
+			G_AdjustView(2, 1);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol3[gc_viewpoint][0] || ev->data1 == gamecontrol3[gc_viewpoint][1])
 		{
-			thirddisplayplayer++;
-			G_ResetView(3);
+			G_AdjustView(3, 1);
 
 			return true;
 		}
 		else if (ev->data1 == gamecontrol4[gc_viewpoint][0] || ev->data1 == gamecontrol4[gc_viewpoint][1])
 		{
-			fourthdisplayplayer++;
-			G_ResetView(4);
+			G_AdjustView(4, 1);
 
 			return true;
 		}
@@ -2073,81 +2069,131 @@ boolean G_Responder(event_t *ev)
 	return false;
 }
 
-static INT32 G_FindView(INT32 startview)
+//
+// G_CouldView
+// Return whether a player could be viewed by any means.
+//
+boolean G_CouldView(INT32 playernum)
 {
-	UINT8 i = 0; // spy mode
+	player_t *player;
 
-	startview--; // Ensures view doesn't move if the current view is valid
-	for (i = 0; i < MAXPLAYERS; i++)
+	if (playernum < 0 || playernum > MAXPLAYERS-1)
+		return false;
+
+	if (!playeringame[playernum])
+		return false;
+
+	player = &players[playernum];
+
+	if (player->spectator)
+		return false;
+
+	// SRB2Kart: Only go through players who are actually playing
+	if (player->exiting)
+		return false;
+	if (( player->pflags & PF_TIMEOVER ))
+		return false;
+
+	// I don't know if we want this actually, but I'll humor the suggestion anyway
+	if (G_BattleGametype())
 	{
-		startview++;
-		if (startview == MAXPLAYERS)
-			startview = 0;
-
-		if (!demoplayback && startview == consoleplayer)
-			break; // End loop
-
-		if (startview == displayplayer)
-			continue;
-
-		if (splitscreen && startview == secondarydisplayplayer)
-			continue;
-
-		if (splitscreen >= 2 && startview == thirddisplayplayer)
-			continue;
-
-		if (splitscreen == 3 && startview == fourthdisplayplayer)
-			continue;
-
-		if (!playeringame[startview])
-			continue;
-
-		if (players[startview].spectator)
-			continue;
-
-		// SRB2Kart: Only go through players who are actually playing
-		if (players[startview].exiting)
-			continue;
-
-		if (players[startview].pflags & PF_TIMEOVER)
-			continue;
-
-		// I don't know if we want this actually, but I'll humor the suggestion anyway
-		if (G_BattleGametype())
-		{
-			if (players[startview].kartstuff[k_bumper] <= 0)
-				continue;
-		}
-
-		// SRB2Kart: we have no team-based modes, YET...
-		/*if (G_GametypeHasTeams())
-		{
-			if (players[consoleplayer].ctfteam
-			 && players[startview].ctfteam != players[consoleplayer].ctfteam)
-				continue;
-		}
-		else if (gametype == GT_HIDEANDSEEK)
-		{
-			if (players[consoleplayer].pflags & PF_TAGIT)
-				continue;
-		}
-		// Other Tag-based gametypes?
-		else if (G_TagGametype())
-		{
-			if (!players[consoleplayer].spectator
-			 && (players[consoleplayer].pflags & PF_TAGIT) != (players[startview].pflags & PF_TAGIT))
-				continue;
-		}
-		else if (G_GametypeHasSpectators() && G_BattleGametype())
-		{
-			if (!players[consoleplayer].spectator)
-				continue;
-		}*/
-
-		break;
+		if (player->kartstuff[k_bumper] <= 0)
+			return false;
 	}
 
-	return startview;
+	// SRB2Kart: we have no team-based modes, YET...
+	/*if (G_GametypeHasTeams())
+	{
+		if (players[consoleplayer].ctfteam
+		 && player->ctfteam != players[consoleplayer].ctfteam)
+			return false;
+	}
+	else if (gametype == GT_HIDEANDSEEK)
+	{
+		if (players[consoleplayer].pflags & PF_TAGIT)
+			return false;
+	}
+	// Other Tag-based gametypes?
+	else if (G_TagGametype())
+	{
+		if (!players[consoleplayer].spectator
+		 && (players[consoleplayer].pflags & PF_TAGIT) != (player->pflags & PF_TAGIT))
+			return false;
+	}
+	else if (G_GametypeHasSpectators() && G_BattleGametype())
+	{
+		if (!players[consoleplayer].spectator)
+			return false;
+	}*/
+
+	return true;
+}
+
+//
+// G_CanView
+// Return whether a player can be viewed on a particular view (splitscreen).
+//
+boolean G_CanView(INT32 playernum, UINT8 viewnum)
+{
+	UINT8 splits;
+	UINT8 viewd;
+	INT32 *displayplayerp;
+
+	if (!G_CouldView(playernum))
+		return false;
+
+	splits = splitscreen+1;
+	if (viewnum > splits)
+		viewnum = splits;
+
+	for (viewd = 1; viewd < viewnum; ++viewd)
+	{
+		displayplayerp = (G_GetDisplayplayerPtr(viewd));
+		if ((*displayplayerp) == playernum)
+			return false;
+	}
+	for (viewd = viewnum + 1; viewd <= splits; ++viewd)
+	{
+		displayplayerp = (G_GetDisplayplayerPtr(viewd));
+		if ((*displayplayerp) == playernum)
+			return false;
+	}
+
+	return true;
+}
+
+//
+// G_FindView
+// Return the next player that can be viewed on a view, wraps forward.
+// An out of range startview is corrected.
+//
+INT32 G_FindView(INT32 startview, UINT8 viewnum)
+{
+	INT32 i;
+	startview = min(max(startview, 0), MAXPLAYERS);
+	for (i = startview; i < MAXPLAYERS; ++i)
+	{
+		if (G_CanView(i, viewnum))
+			return i;
+	}
+	for (i = 0; i < startview; ++i)
+	{
+		if (G_CanView(i, viewnum))
+			return i;
+	}
+	return -1;
+}
+
+INT32 G_CountPlayersPotentiallyViewable(void)
+{
+	INT32 total = 0;
+	INT32 i;
+	for (i = 0; i < MAXPLAYERS; ++i)
+	{
+		if (G_CouldView(i))
+			total++;
+	}
+	return total;
 }
 
 INT32 *G_GetDisplayplayerPtr(UINT8 viewnum)
@@ -2163,46 +2209,65 @@ INT32 *G_GetDisplayplayerPtr(UINT8 viewnum)
 
 //
 // G_ResetView
-// Ensures a viewpoint is valid.
+// Correct a viewpoint to playernum or the next available, wraps forward.
+// Also promotes splitscreen up to available viewable players.
+// An out of range playernum is corrected.
 //
-void G_ResetView(UINT8 viewnum)
+void G_ResetView(UINT8 viewnum, INT32 playernum)
 {
+	UINT8 splits;
+	UINT8 viewd;
+
 	INT32    *displayplayerp;
 	camera_t *camerap;
 
-	INT32 newdisplayplayer;
-	UINT8 viewd, splits;
+	INT32 olddisplayplayer;
+	INT32 playersviewable;
 
 	splits = splitscreen+1;
 
+	/* Promote splits */
+	if (viewnum > splits)
+	{
+		playersviewable = G_CountPlayersPotentiallyViewable();
+		if (playersviewable < splits)/* do not demote */
+			return;
+
+		if (viewnum > playersviewable)
+			viewnum = playersviewable;
+		splitscreen = viewnum-1;
+
+		/* Prepare extra views for G_FindView to pass. */
+		for (viewd = splits+1; viewd < viewnum; ++viewd)
+		{
+			displayplayerp = (G_GetDisplayplayerPtr(viewd));
+			(*displayplayerp) = INT32_MAX;
+		}
+
+		R_ExecuteSetViewSize();
+	}
+
+	/* Focus our target view first so that we don't take its player. */
 	displayplayerp = (G_GetDisplayplayerPtr(viewnum));
-	newdisplayplayer = (*displayplayerp);
-	(*displayplayerp) = INT32_MAX;
-	(*displayplayerp) = G_FindView(newdisplayplayer);
+	olddisplayplayer = (*displayplayerp);
+	(*displayplayerp) = G_FindView(playernum, viewnum);
+	if ((*displayplayerp) != olddisplayplayer)
+	{
+		camerap = (P_GetCameraPtr(viewnum));
+		P_ResetCamera(&players[(*displayplayerp)], camerap);
+	}
 
 	if (viewnum > splits)
 	{
-		splitscreen = viewnum-1;
-
 		for (viewd = splits+1; viewd < viewnum; ++viewd)
-		{
-			(*(G_GetDisplayplayerPtr(viewd))) = INT32_MAX;/* ensure clean */
-		}
-		/* Initialise views up from current splitscreen. */
-		for (viewd = splits+1 ;; )
 		{
 			displayplayerp = (G_GetDisplayplayerPtr(viewd));
 			camerap = (P_GetCameraPtr(viewd));
 
+			(*displayplayerp) = G_FindView(0, viewd);
+
 			P_ResetCamera(&players[(*displayplayerp)], camerap);
-
-			if (++viewd > viewnum)
-				break;
-
-			/* Correct up to but viewnum */
-			(*displayplayerp) = G_FindView(displayplayer);
 		}
-		R_ExecuteSetViewSize();
 	}
 
 	if (viewnum == 1 && demoplayback)
@@ -2210,17 +2275,48 @@ void G_ResetView(UINT8 viewnum)
 }
 
 //
+// G_AdjustView
+// Increment a viewpoint by offset from the current player. A negative value
+// decrements.
+//
+void G_AdjustView(UINT8 viewnum, INT32 offset)
+{
+	INT32 *displayplayerp;
+	displayplayerp = G_GetDisplayplayerPtr(viewnum);
+	G_ResetView(viewnum, ( (*displayplayerp) + offset ));
+}
+
+//
 // G_ResetViews
 // Ensures all viewpoints are valid
+// Also demotes splitscreen down to one player.
 //
 void G_ResetViews(void)
 {
-	UINT8 viewnum = splitscreen+1;
-	do
+	UINT8 splits;
+	UINT8 viewd;
+
+	INT32 playersviewable;
+
+	splits = splitscreen+1;
+
+	playersviewable = G_CountPlayersPotentiallyViewable();
+	/* Demote splits */
+	if (playersviewable < splits)
 	{
-		G_ResetView(viewnum);
+		splits = playersviewable;
+		splitscreen = max(splits-1, 0);
+		R_ExecuteSetViewSize();
 	}
-	while (--viewnum > 0) ;
+
+	/*
+	Consider installing a method to focus the last
+	view elsewhere if all players spectate?
+	*/
+	for (viewd = 1; viewd <= splits; ++viewd)
+	{
+		G_AdjustView(viewd, 0);
+	}
 }
 
 //

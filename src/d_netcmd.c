@@ -1914,11 +1914,10 @@ static INT32 LookupPlayer(const char *s)
 
 	for (playernum = 0; playernum < MAXPLAYERS; ++playernum)
 	{
-		/* Consider strcasestr? */
-		/* Match name (case-insensitively) fully, or partially the start. */
+		/* Match name case-insensitively: fully, or partially the start. */
 		if (playeringame[playernum])
 			if (stricmp(player_names[playernum], s) == 0 ||
-					strstr(player_names[playernum], s) == player_names[playernum] )
+					strnicmp(player_names[playernum], s, strlen(s)) == 0)
 		{
 			return playernum;
 		}
@@ -1969,7 +1968,7 @@ static void Command_View_f(void)
 
 		olddisplayplayer = (*displayplayerp);
 		(*displayplayerp) = playernum;
-		G_ResetView(viewnum);
+		G_ResetView(viewnum, playernum);
 
 		/* The player we wanted was corrected to who it already was. */
 		if ((*displayplayerp) == olddisplayplayer)
