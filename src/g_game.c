@@ -4745,6 +4745,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DF_NIGHTSATTACK 0x04 // This demo is from NiGHTS attack and contains its time left, score, and mares!
 #define DF_ATTACKMASK   0x06 // This demo is from ??? attack and contains ???
 #define DF_ATTACKSHIFT  1
+#define DF_FILELIST     0x08 // This demo contains an extra files list
 #define DF_GAMETYPEMASK 0x30
 #define DF_GAMESHIFT    4
 #define DF_ENCORE       0x40
@@ -6012,6 +6013,10 @@ void G_BeginRecording(void)
 	char name[16];
 	player_t *player = &players[consoleplayer];
 
+	char *filename;
+	UINT8 totalfiles;
+	UINT8 *m;
+
 	if (demo_p)
 		return;
 	memset(name,0,sizeof(name));
@@ -6020,6 +6025,8 @@ void G_BeginRecording(void)
 	demoflags = DF_GHOST|(multiplayer ? DF_MULTIPLAYER : (modeattacking<<DF_ATTACKSHIFT));
 
 	demoflags |= gametype<<DF_GAMESHIFT;
+
+	demoflags |= DF_FILELIST;/* new versions */
 
 	if (encoremode)
 		demoflags |= DF_ENCORE;
@@ -6039,6 +6046,25 @@ void G_BeginRecording(void)
 	M_Memcpy(demo_p, mapmd5, 16); demo_p += 16;
 
 	WRITEUINT8(demo_p,demoflags);
+
+	// file list
+	m = demo_p;/* file count */
+	demo_p += 1;
+
+	totalfiles = 0;
+	for (i = mainwads; ++i < numwadfiles; )
+		if (!W_VerifyNMUSlumps(wadfiles[i]->filename))
+	{
+		nameonly(( filename = va("%s", wadfiles[i]->filename) ));
+		/* FIXME: maximum size? */
+		WRITESTRING(demo_p, filename);
+		WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
+
+		totalfiles++;
+	}
+
+	WRITEUINT8(m, totalfiles);
+
 	switch ((demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
 	{
 	case ATTACKING_NONE: // 0
@@ -6215,6 +6241,81 @@ void G_SetDemoTime(UINT32 ptime, UINT32 plap)
 	}*/
 }
 
+static void G_LoadDemoExtraFiles(UINT8 **pp)
+{
+	UINT8 totalfiles;
+	char filename[MAX_WADPATH];
+	UINT8 md5sum[16];
+	filestatus_t ncs;
+	boolean toomany = false;
+	boolean alreadyloaded;
+	UINT8 i, j;
+
+	totalfiles = READUINT8((*pp));
+	for (i = 0; i < totalfiles; ++i)
+	{
+		if (toomany)
+			SKIPSTRING((*pp));
+		else
+		{
+			strlcpy(filename, (char *)(*pp), sizeof filename);
+			SKIPSTRING((*pp));
+		}
+		READMEM((*pp), md5sum, 16);
+
+		if (!toomany)
+		{
+			alreadyloaded = false;
+
+			for (j = 0; j < numwadfiles; ++j)
+			{
+				if (memcmp(md5sum, wadfiles[j]->md5sum, 16) == 0)
+				{
+					alreadyloaded = true;
+					break;
+				}
+			}
+
+			if (alreadyloaded)
+				continue;
+
+			if (numwadfiles >= MAX_WADFILES)
+				toomany = true;
+			else
+				ncs = findfile(filename, md5sum, false);
+
+			if (toomany || ncs != FS_FOUND)
+			{
+				if (toomany)
+					CONS_Printf("Too many files loaded\n");
+				else if (ncs == FS_NOTFOUND)
+					CONS_Printf("You do not have a copy of %s\n", filename);
+				else if (ncs == FS_MD5SUMBAD)
+					CONS_Printf("Checksum mismatch on %s\n", filename);
+				else
+					CONS_Printf("Unknown error finding file (%s)\n", filename);
+			}
+			else
+			{
+				P_AddWadFile(filename);
+			}
+		}
+	}
+}
+
+static void G_SkipDemoExtraFiles(UINT8 **pp)
+{
+	UINT8 totalfiles;
+	UINT8 i;
+
+	totalfiles = READUINT8((*pp));
+	for (i = 0; i < totalfiles; ++i)
+	{
+		SKIPSTRING((*pp));// file name
+		(*pp) += 16;// md5
+	}
+}
+
 // Returns bitfield:
 // 1 == new demo has lower time
 // 2 == new demo has higher score
@@ -6251,6 +6352,10 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	p += 2; // gamemap
 	p += 16; // map md5
 	flags = READUINT8(p); // demoflags
+	if (flags & DF_FILELIST) // file list
+	{
+		G_SkipDemoExtraFiles(&p);
+	}
 
 	aflags = flags & (DF_RECORDATTACK|DF_NIGHTSATTACK);
 	I_Assert(aflags);
@@ -6308,6 +6413,10 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	p += 2; // gamemap
 	p += 16; // mapmd5
 	flags = READUINT8(p);
+	if (flags & DF_FILELIST) // file list
+	{
+		G_SkipDemoExtraFiles(&p);
+	}
 	if (!(flags & aflags))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("File '%s' not from same game mode. It will be overwritten.\n"), oldname);
@@ -6458,6 +6567,11 @@ void G_DoPlayDemo(char *defdemoname)
 	demo_p += 16; // mapmd5
 
 	demoflags = READUINT8(demo_p);
+	if (demoflags & DF_FILELIST)
+	{
+		G_LoadDemoExtraFiles(&demo_p);
+	}
+
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
 	multiplayer = !!(demoflags & DF_MULTIPLAYER);
 	gametype = (demoflags & DF_GAMETYPEMASK)>>DF_GAMESHIFT;
@@ -6763,6 +6877,10 @@ void G_AddGhost(char *defdemoname)
 	p += 2; // gamemap
 	p += 16; // mapmd5 (possibly check for consistency?)
 	flags = READUINT8(p);
+	if (flags & DF_FILELIST)
+	{
+		G_LoadDemoExtraFiles(&p);
+	}
 	if (!(flags & DF_GHOST))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: No ghost data in this demo.\n"), pdemoname);
@@ -6915,6 +7033,9 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 	UINT16 ghostversion;
 	UINT8 flags;
 
+	UINT8 totalfiles;
+	UINT8 md5sum[16];
+
 	buffer = p = W_CacheLumpNum(l, PU_CACHE);
 
 	// read demo header
@@ -6941,6 +7062,15 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 	p += 2; // gamemap
 	p += 16; // mapmd5 (possibly check for consistency?)
 	flags = READUINT8(p);
+	if (flags & DF_FILELIST) // file list
+	{
+		totalfiles = READUINT8(p);
+		for (; totalfiles > 0; --totalfiles)
+		{
+			SKIPSTRING(p);
+			READMEM(p, md5sum, 16);
+		}
+	}
 	if (!(flags & DF_GHOST))
 	{
 		goto fail; // we don't NEED to do it here, but whatever
