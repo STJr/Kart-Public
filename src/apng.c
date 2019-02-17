@@ -62,7 +62,7 @@ size_t apng_default_tell  (png_structp);
 void   apng_write_IEND (png_structp);
 void   apng_write_acTL (png_structp, png_uint_32, png_uint_32);
 #ifndef PNG_WRITE_APNG_SUPPORTED
-void   apng_set_acTL_dummy (png_structp, png_infop, apng_infop,
+png_uint_32 apng_set_acTL_dummy (png_structp, png_infop,
 		png_uint_32, png_uint_32);
 #endif/* PNG_WRITE_APNG_SUPPORTED */
 
@@ -260,15 +260,15 @@ apng_write_end (png_structp pngp, png_infop infop, apng_infop ainfop)
 }
 
 #ifndef PNG_WRITE_APNG_SUPPORTED
-void
-apng_set_acTL_dummy (png_structp pngp, png_infop infop, apng_infop ainfop,
+png_uint_32
+apng_set_acTL_dummy (png_structp pngp, png_infop infop,
 		png_uint_32 frames, png_uint_32 plays)
 {
 	(void)pngp;
 	(void)infop;
-	(void)ainfop;
 	(void)frames;
 	(void)plays;
+	return 0;
 }
 #endif/* PNG_WRITE_APNG_SUPPORTED */
 
