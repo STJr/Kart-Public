@@ -4908,6 +4908,7 @@ void G_ReadDemoExtraData(void)
 				break;
 			}
 
+			G_ResetViews();
 			// maybe these are necessary?
 			if (G_BattleGametype())
 				K_CheckBumpers(); // SRB2Kart
