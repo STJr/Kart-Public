@@ -4881,6 +4881,7 @@ void G_ReadDemoExtraData(void)
 				break;
 
 			case DXD_PST_SPECTATING:
+				players[p].pflags &= ~PF_WANTSTOJOIN; // double-fuck you
 				if (!playeringame[p])
 				{
 					CL_ClearPlayer(p);
