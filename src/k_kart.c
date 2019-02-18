@@ -3294,7 +3294,7 @@ static void K_DoShrink(player_t *user)
 				players[i].mo->destscale = (6*mapobjectscale)/8;
 				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
 					players[i].mo->destscale = (6*players[i].mo->destscale)/8;
-				players[i].kartstuff[k_growshrinktimer] = -(200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
+				players[i].kartstuff[k_growshrinktimer] = -(20*TICRATE);
 			}
 
 			// Grow should get taken away.
