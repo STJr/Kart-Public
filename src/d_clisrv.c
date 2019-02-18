@@ -2756,6 +2756,32 @@ static void Command_Ban(void)
 
 }
 
+static void Command_BanIP(void)
+{
+	if (COM_Argc() < 2)
+	{
+		CONS_Printf(M_GetText("banip <ip> <reason>: ban an ip address\n"));
+		return;
+	}
+
+	if (server) // Only the server can use this, otherwise does nothing.
+	{
+		const char *address = (COM_Argv(1));
+		const char *reason = (COM_Argv(2));
+
+		if (I_SetBanAddress && I_SetBanAddress(address, NULL))
+		{
+			CONS_Printf("Banned ip address for:%s\n", reason);
+			Ban_Add(reason);
+			D_SaveBan();
+		}
+		else
+		{
+			return;
+		}
+	}
+}
+
 static void Command_Kick(void)
 {
 	if (COM_Argc() < 2)
@@ -3062,6 +3088,7 @@ void D_ClientServerInit(void)
 	COM_AddCommand("getplayernum", Command_GetPlayerNum);
 	COM_AddCommand("kick", Command_Kick);
 	COM_AddCommand("ban", Command_Ban);
+	COM_AddCommand("banip", Command_BanIP);
 	COM_AddCommand("clearbans", Command_ClearBans);
 	COM_AddCommand("showbanlist", Command_ShowBan);
 	COM_AddCommand("reloadbans", Command_ReloadBan);
