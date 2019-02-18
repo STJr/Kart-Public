@@ -1051,7 +1051,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			tmthing->x = thing->x - (tmthing->momx/32);
 			tmthing->y = thing->y - (tmthing->momy/32);
 			tmthing->z = thing->z - (tmthing->momz/32);
-            
+			
 			P_SetThingPosition(tmthing);    // Now we're back on track and shouldn't be weird!
 			
 			K_KartBouncing(tmthing, thing, false, false);
