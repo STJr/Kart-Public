@@ -699,17 +699,19 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	if (mashed > 0) \
 		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
 
+#define COOLDOWNONSTART (leveltime < (31*TICRATE)+starttime)
+
 	switch (item)
 	{
 		case KITEM_INVINCIBILITY:
 		case KITEM_GROW:
-			if (pinvin >= max(1, (pingame+2) / 4))
+			if (pinvin >= max(1, (pingame+2) / 4) || COOLDOWNONSTART)
 				newodds = 0;
 			else
-			/* FALLTHRU */
+				POWERITEMODDS(newodds);
+			break;
 		case KITEM_ROCKETSNEAKER:
 		case KITEM_JAWZ:
-		case KITEM_MINE:
 		case KITEM_BALLHOG:
 		case KITEM_THUNDERSHIELD:
 		case KRITEM_TRIPLESNEAKER:
@@ -720,17 +722,27 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
 			break;
+		case KITEM_MINE:
+			if (COOLDOWNONSTART)
+				newodds = 0;
+			else
+				POWERITEMODDS(newodds);
+			break;
 		case KITEM_SPB:
-			//POWERITEMODDS(newodds);
 			if (((indirectitemcooldown > 0) || (pexiting > 0) || (secondist/distvar < 3))
 				&& (pos != 9)) // Force SPB
 				newodds = 0;
 			else
-				newodds *= min((secondist/distvar)-4, 3);
+				newodds *= min((secondist/distvar)-4, 3); // POWERITEMODDS(newodds);
 			break;
 		case KITEM_SHRINK:
-			POWERITEMODDS(newodds);
-			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting))
+			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting) || COOLDOWNONSTART)
+				newodds = 0;
+			else
+				POWERITEMODDS(newodds);
+			break;
+		case KITEM_HYUDORO:
+			if (COOLDOWNONSTART)
 				newodds = 0;
 			break;
 		default:
