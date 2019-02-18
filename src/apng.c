@@ -151,7 +151,7 @@ apng_default_tell (png_structp pngp)
 
 void
 apng_set_write_fn (png_structp pngp, apng_infop ainfop, png_voidp iop,
-		png_rw_ptr write_f, png_flush_ptr flush_f, 
+		png_rw_ptr write_f, png_flush_ptr flush_f,
 		apng_seek_ptr seek_f, apng_tell_ptr tell_f)
 {
 	if (!( pngp && ainfop ))
