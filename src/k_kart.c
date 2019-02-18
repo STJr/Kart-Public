@@ -1285,11 +1285,23 @@ static void K_UpdateOffroad(player_t *player)
 		player->kartstuff[k_offroad] = 0;
 }
 
+// Adds gravity flipping to an object relative to its master and shifts the z coordinate accordingly.
+void K_FlipFromObject(mobj_t *mo, mobj_t *master)
+{
+	mo->eflags = (mo->eflags & ~MFE_VERTICALFLIP)|(master->eflags & MFE_VERTICALFLIP);
+	mo->flags2 = (mo->flags2 & ~MF2_OBJECTFLIP)|(master->flags2 & MF2_OBJECTFLIP);
+
+	if (mo->eflags & MFE_VERTICALFLIP)
+		mo->z += master->height - FixedMul(master->scale, mo->height);
+}
+
 // These have to go earlier than its sisters because of K_RespawnChecker...
 void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
 {
 	// flipping
-	mo->eflags = (mo->eflags & ~MFE_VERTICALFLIP)|(master->eflags & MFE_VERTICALFLIP);
+	// handle z shifting from there too;
+	K_FlipFromObject(mo, master);
+
 	// visibility (usually for hyudoro)
 	mo->flags2 = (mo->flags2 & ~MF2_DONTDRAW)|(master->flags2 & MF2_DONTDRAW);
 	mo->eflags = (mo->eflags & ~MFE_DRAWONLYFORP1)|(master->eflags & MFE_DRAWONLYFORP1);
@@ -2151,7 +2163,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
 
-	player->mo->momz = 18*mapobjectscale;
+	player->mo->momz = 18*mapobjectscale*P_MobjFlip(player->mo);	// please stop forgetting mobjflip checks!!!!
 	player->mo->momx = player->mo->momy = 0;
 
 	player->kartstuff[k_sneakertimer] = 0;
@@ -2390,6 +2402,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 {
 	INT32 i, radius, height;
 	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
+	K_MatchGenericExtraFlags(smoldering, source);
+
 	mobj_t *dust;
 	mobj_t *truc;
 	INT32 speed, speed2;
@@ -2413,6 +2427,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMEXPLODE);
+		K_MatchGenericExtraFlags(truc, source);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*6;
 		truc->scalespeed = source->scale/12;
@@ -2420,7 +2435,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momx = P_RandomRange(-speed, speed)*FRACUNIT;
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
-		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT*P_MobjFlip(truc);
 		truc->color = color;
 	}
 
@@ -2438,6 +2453,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_BOOMPARTICLE);
+		K_MatchGenericExtraFlags(truc, source);
 		P_SetScale(truc, source->scale);
 		truc->destscale = source->scale*5;
 		truc->scalespeed = source->scale/12;
@@ -2446,7 +2462,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
 		speed = FixedMul(15*FRACUNIT, source->scale)>>FRACBITS;
 		speed2 = FixedMul(45*FRACUNIT, source->scale)>>FRACBITS;
-		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
+		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT*P_MobjFlip(truc);
 		if (P_RandomChance(FRACUNIT/2))
 			truc->momz = -truc->momz;
 		truc->tics = TICRATE*2;
@@ -2720,7 +2736,8 @@ void K_SpawnBoostTrail(player_t *player)
 		flame->fuse = TICRATE*2;
 		flame->destscale = player->mo->scale;
 		P_SetScale(flame, player->mo->scale);
-		flame->eflags = (flame->eflags & ~MFE_VERTICALFLIP)|(player->mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags so that a stolen sneaker can be seen
+		// not K_MatchGenericExtraFlags so that a stolen sneaker can be seen
+		K_FlipFromObject(flame, player->mo);
 
 		flame->momx = 8;
 		P_XYMovement(flame);
@@ -2753,6 +2770,7 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		fixed_t newz = mo->z + mo->momz + (P_RandomRange(0, mo->height>>FRACBITS)<<FRACBITS);
 
 		sparkle = P_SpawnMobj(newx, newy, newz, MT_SPARKLETRAIL);
+		K_FlipFromObject(sparkle, mo);
 
 		//if (i == 0)
 			//P_SetMobjState(sparkle, S_KARTINVULN_LARGE1);
@@ -2760,7 +2778,6 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 		P_SetTarget(&sparkle->target, mo);
 		sparkle->destscale = mo->destscale;
 		P_SetScale(sparkle, mo->scale);
-		sparkle->eflags = (sparkle->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags so that a stolen invincibility can be seen
 		sparkle->color = mo->color;
 		//sparkle->colorized = mo->colorized;
 	}
@@ -2781,7 +2798,7 @@ void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
 	dust->destscale = mo->scale;
 	P_SetScale(dust, mo->scale);
-	dust->eflags = (dust->eflags & ~MFE_VERTICALFLIP)|(mo->eflags & MFE_VERTICALFLIP); // not K_MatchGenericExtraFlags because hyudoro shouldn't be able to wipeout
+	K_FlipFromObject(dust, mo);
 
 	if (translucent) // offroad effect
 	{
@@ -2847,10 +2864,10 @@ void K_DriftDustHandling(mobj_t *spawner)
 		fixed_t spawny = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
 		INT32 speedrange = 2;
 		mobj_t *dust = P_SpawnMobj(spawner->x + spawnx, spawner->y + spawny, spawner->z, MT_DRIFTDUST);
-		if (spawner->eflags & MFE_VERTICALFLIP)
+		/*if (spawner->eflags & MFE_VERTICALFLIP)	And say something actually bothered supporting it! MatchGenericExtraFlags does this for us now :D
 		{
 			dust->z += spawner->height - dust->height;
-		}
+		}*/
 		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
 		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
 		dust->momz = P_MobjFlip(spawner) * (P_RandomRange(1, 4) * (spawner->scale));
@@ -2991,6 +3008,14 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 		{
 			// Shoot forward
 			mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, mapthing);
+			//K_FlipFromObject(mo, player->mo);
+			// These are really weird so let's make it a very specific case to make SURE it works...
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+			{
+				mo->z -= player->mo->height;
+				mo->flags2 |= MF2_OBJECTFLIP;
+				mo->eflags |= MFE_VERTICALFLIP;
+			}
 
 			mo->threshold = 10;
 			P_SetTarget(&mo->target, player->mo);
@@ -3000,18 +3025,24 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
+				INT32 HEIGHT = (20 + (dir*10))*mapobjectscale + (player->mo->momz*P_MobjFlip(player->mo));
 
+				P_SetObjectMomZ(mo, HEIGHT, false);
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
-				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
-
-				if (player->mo->eflags & MFE_VERTICALFLIP)
-					mo->eflags |= MFE_VERTICALFLIP;
 			}
 
+			// this is the small graphic effect that plops in you when you throw an item:
 			throwmo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FIREDITEM);
 			P_SetTarget(&throwmo->target, player->mo);
+			// Ditto:
+			if (player->mo->eflags & MFE_VERTICALFLIP)
+			{
+				throwmo->z -= player->mo->height;
+				throwmo->flags2 |= MF2_OBJECTFLIP;
+				throwmo->eflags |= MFE_VERTICALFLIP;
+			}
+
 			throwmo->movecount = 0; // above player
 		}
 		else
@@ -3037,9 +3068,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			}
 
 			mo = P_SpawnMobj(newx, newy, newz, mapthing); // this will never return null because collision isn't processed here
-
-			if (P_MobjFlip(player->mo) < 0)
-				mo->z = player->mo->z + player->mo->height - mo->height;
+			K_FlipFromObject(mo, player->mo);
 
 			mo->threshold = 10;
 			P_SetTarget(&mo->target, player->mo);
@@ -3355,7 +3384,7 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 				thrust = 32<<FRACBITS;
 		}
 
-		mo->momz = FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, vscale));
+		mo->momz = P_MobjFlip(mo)*FixedMul(FINESINE(ANGLE_22h>>ANGLETOFINESHIFT), FixedMul(thrust, vscale));
 	}
 	else
 		mo->momz = FixedMul(vertispeed, vscale);
@@ -3778,6 +3807,7 @@ static void K_MoveHeldObjects(player_t *player)
 					targx = targ->x + P_ReturnThrustX(cur, ang + ANGLE_180, dist);
 					targy = targ->y + P_ReturnThrustY(cur, ang + ANGLE_180, dist);
 					targz = targ->z;
+
 					speed = FixedMul(R_PointToDist2(cur->x, cur->y, targx, targy), 3*FRACUNIT/4);
 					if (P_IsObjectOnGround(targ))
 						targz = cur->floorz;
@@ -3865,11 +3895,15 @@ static void K_MoveHeldObjects(player_t *player)
 
 					targx = player->mo->x + P_ReturnThrustX(cur, cur->angle + angoffset, cur->extravalue1);
 					targy = player->mo->y + P_ReturnThrustY(cur, cur->angle + angoffset, cur->extravalue1);
+					K_MatchGenericExtraFlags(cur, player->mo);	// Update graviflip in real time thanks.
 
 					{ // bobbing, copy pasted from my kimokawaiii entry
 						const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
 						fixed_t sine = 8 * FINESINE((((2*pi*(4*TICRATE)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
 						targz = (player->mo->z + (player->mo->height/2)) + sine;
+						if (player->mo->eflags & MFE_VERTICALFLIP)
+							targz -= player->mo->height/2 - FixedMul(player->mo->scale, cur->height);
+
 					}
 
 					if (cur->tracer)
@@ -4431,8 +4465,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	if (player->kartstuff[k_comebacktimer])
 		player->kartstuff[k_comebackmode] = 0;
 
-	if (P_IsObjectOnGround(player->mo) && player->mo->momz <= 0 && player->kartstuff[k_pogospring])
-		player->kartstuff[k_pogospring] = 0;
+	if (P_IsObjectOnGround(player->mo) && player->kartstuff[k_pogospring])
+	{
+		if ((player->mo->eflags & MFE_VERTICALFLIP && player->mo->momz >= 0) || (!(player->mo->eflags & MFE_VERTICALFLIP) && player->mo->momz <= 0))
+			player->kartstuff[k_pogospring] = 0;
+	}
 
 	if (cmd->buttons & BT_DRIFT)
 		player->kartstuff[k_jmp] = 1;
@@ -4688,6 +4725,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		else
 			player->kartstuff[k_driftend] = 0;
 	}
+
 
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
@@ -5060,6 +5098,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 						for (moloop = 0; moloop < 2; moloop++)
 						{
 							mo = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_ROCKETSNEAKER);
+							K_MatchGenericExtraFlags(mo, player->mo);
 							mo->flags |= MF_NOCLIPTHING;
 							mo->angle = player->mo->angle;
 							mo->threshold = 10;

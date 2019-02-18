@@ -6637,7 +6637,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_SINK_SHIELD:
 				if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
-					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| (mobj->health <= 0 && P_IsObjectOnGround(mobj))
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
 					P_RemoveMobj(mobj);
@@ -6651,19 +6651,21 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t y = P_RandomRange(-35, 35)*mobj->scale;
 					fixed_t z = P_RandomRange(0, 70)*mobj->scale;
 					mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+					K_MatchGenericExtraFlags(smoke, mobj);
 					smoke->scale = mobj->scale * 2;
 					smoke->destscale = mobj->scale * 6;
-					smoke->momz = P_RandomRange(4, 9)*FRACUNIT;
+					smoke->momz = P_RandomRange(4, 9)*FRACUNIT*P_MobjFlip(smoke);
 				}
 				break;
 			case MT_BOOMPARTICLE:
 				{
 					fixed_t x = P_RandomRange(-16, 16)*mobj->scale;
 					fixed_t y = P_RandomRange(-16, 16)*mobj->scale;
-					fixed_t z = P_RandomRange(0, 32)*mobj->scale;
+					fixed_t z = P_RandomRange(0, 32)*mobj->scale*P_MobjFlip(mobj);
 					if (leveltime % 2 == 0)
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_BOSSEXPLODE);
+						K_MatchGenericExtraFlags(smoke, mobj);
 						P_SetMobjState(smoke, S_QUICKBOOM1);
 						smoke->scale = mobj->scale/2;
 						smoke->destscale = mobj->scale;
@@ -6672,6 +6674,7 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+						K_MatchGenericExtraFlags(smoke, mobj);
 						smoke->scale = mobj->scale;
 						smoke->destscale = mobj->scale*2;
 					}
@@ -6777,7 +6780,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
-					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| (mobj->health <= 0 && P_IsObjectOnGround(mobj))
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
 					P_RemoveMobj(mobj);
@@ -7225,6 +7228,9 @@ void P_MobjThinker(mobj_t *mobj)
 						y = mobj->target->y;
 						z = mobj->target->z + (80*mapobjectscale);
 					}
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
+						z += mobj->target->height - FixedMul(mobj->target->scale, mobj->height);
+
 					P_TeleportMove(mobj, x, y, z);
 				}
 				break;
@@ -7420,7 +7426,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BANANA:
 		case MT_EGGMANITEM:
 		case MT_SPB:
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -7433,7 +7439,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 				P_SetMobjState(mobj, mobj->info->xdeathstate);
 			// fallthru
 		case MT_JAWZ_SHIELD:
@@ -7467,7 +7473,7 @@ void P_MobjThinker(mobj_t *mobj)
 			/* FALLTHRU */
 		case MT_SMK_MOLE:
 			mobj->flags2 ^= MF2_DONTDRAW;
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -7488,7 +7494,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			mobj->flags2 ^= MF2_DONTDRAW;
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -8157,7 +8163,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->friction = ORIG_FRICTION/4;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (mobj->z <= mobj->floorz && mobj->health > 1)
+			if (P_IsObjectOnGround(mobj) && mobj->health > 1)
 			{
 				S_StartSound(mobj, mobj->info->activesound);
 				mobj->momx = mobj->momy = 0;
@@ -8177,7 +8183,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_SINK:
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				S_StartSound(mobj, mobj->info->deathsound);
 				P_SetMobjState(mobj, S_NULL);
@@ -8355,6 +8361,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_INSTASHIELDB:
 			mobj->flags2 ^= MF2_DONTDRAW;
+			K_MatchGenericExtraFlags(mobj, mobj->target);
 			/* FALLTHRU */
 		case MT_INSTASHIELDA:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_instashield]))
@@ -8363,6 +8370,7 @@ void P_MobjThinker(mobj_t *mobj)
 				return;
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			K_MatchGenericExtraFlags(mobj, mobj->target);
 			break;
 		case MT_BATTLEPOINT:
 			if (!mobj->target || P_MobjWasRemoved(mobj->target))
@@ -8383,7 +8391,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->movefactor < mobj->target->height)
 					mobj->movefactor = mobj->target->height;
 			}
-
+			K_MatchGenericExtraFlags(mobj, mobj->target);
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z + (mobj->target->height/2) + mobj->movefactor);
 			break;
 		case MT_THUNDERSHIELD:
@@ -8508,6 +8516,10 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->flags2 &= ~MF2_DONTDRAW;
 				}
 
+				// Update mobj antigravity status:
+				mobj->eflags = (mobj->eflags & ~MFE_VERTICALFLIP)|(mobj->target->eflags & MFE_VERTICALFLIP);
+				mobj->flags2 = (mobj->flags2 & ~MF2_OBJECTFLIP)|(mobj->target->flags2 & MF2_OBJECTFLIP);
+
 				// Now for the wheels
 				{
 					const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
@@ -8529,6 +8541,7 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetScale(cur, mobj->target->scale);
 						cur->color = mobj->target->color;
 						cur->colorized = true;
+						K_FlipFromObject(cur, mobj->target);
 
 						if (mobj->flags2 & MF2_DONTDRAW)
 							cur->flags2 |= MF2_DONTDRAW;
