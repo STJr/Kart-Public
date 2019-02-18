@@ -2770,11 +2770,21 @@ static void Command_BanIP(void)
 	if (server) // Only the server can use this, otherwise does nothing.
 	{
 		const char *address = (COM_Argv(1));
-		const char *reason = (COM_Argv(2));
+		const char *reason;
+
+		if (COM_Argc() == 2)
+			reason = NULL;
+		else
+			reason = COM_Argv(2);
+
 
 		if (I_SetBanAddress && I_SetBanAddress(address, NULL))
 		{
-			CONS_Printf("Banned ip address for:%s\n", reason);
+			if (reason)
+				CONS_Printf("Banned ip address %s for: %s\n", address, reason);
+			else
+				CONS_Printf("Banned ip address %s\n", address);
+
 			Ban_Add(reason);
 			D_SaveBan();
 		}
