@@ -11137,7 +11137,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
+				z -= 128*mapobjectscale;
 		}
 		else
 		{
@@ -11145,7 +11145,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
+				z += 128*mapobjectscale;
 		}
 
 		if (mthing->options & MTF_OBJECTFLIP) // flip the player!
@@ -11206,7 +11206,14 @@ void P_MovePlayerToStarpost(INT32 playernum)
 #endif
 	sector->ceilingheight;
 
-	z = (p->starpostz + 128) << FRACBITS; // Respawn off the ground
+	if (mobj->player->kartstuff[k_starpostflip])
+		z = (p->starpostz<<FRACBITS) - FixedMul(128<<FRACBITS, mapobjectscale) - mobj->height;
+	else
+		z = (p->starpostz<<FRACBITS) + FixedMul(128<<FRACBITS, mapobjectscale);
+
+	//z = (p->starpostz + 128) << FRACBITS; // reverse gravity exists, pls
+	mobj->player->kartstuff[k_starpostflip] = 0;
+
 	if (z < floor)
 		z = floor;
 	else if (z > ceiling - mobjinfo[MT_PLAYER].height)

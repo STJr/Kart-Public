@@ -2371,6 +2371,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
+	INT32 respawnflip;
 	boolean songcredit = false;
 
 	score = players[player].score;
@@ -2411,6 +2412,7 @@ void G_PlayerReborn(INT32 player)
 	starposty = players[player].starposty;
 	starpostz = players[player].starpostz;
 	starpostnum = players[player].starpostnum;
+	respawnflip = players[player].kartstuff[k_starpostflip];	//SRB2KART
 	starpostangle = players[player].starpostangle;
 	jumpfactor = players[player].jumpfactor;
 	thokitem = players[player].thokitem;
@@ -2530,6 +2532,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
+	p->kartstuff[k_starpostflip] = respawnflip;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
