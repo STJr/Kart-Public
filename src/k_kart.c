@@ -5440,43 +5440,46 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 	}
 
-	// Friction
-	if (!player->kartstuff[k_offroad])
+	if (onground)
 	{
-		if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
-			player->mo->friction += 4608;
-		if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
-			player->mo->friction += 1608;
-	}
+		// Friction
+		if (!player->kartstuff[k_offroad])
+		{
+			if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
+				player->mo->friction += 4608;
+			if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
+				player->mo->friction += 1608;
+		}
 
-	// Karma ice physics
-	if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
-	{
-		player->mo->friction += 1228;
+		// Karma ice physics
+		if (G_BattleGametype() && player->kartstuff[k_bumper] <= 0)
+		{
+			player->mo->friction += 1228;
 
-		if (player->mo->friction > FRACUNIT)
-			player->mo->friction = FRACUNIT;
-		if (player->mo->friction < 0)
-			player->mo->friction = 0;
+			if (player->mo->friction > FRACUNIT)
+				player->mo->friction = FRACUNIT;
+			if (player->mo->friction < 0)
+				player->mo->friction = 0;
 
-		player->mo->movefactor = FixedDiv(ORIG_FRICTION, player->mo->friction);
+			player->mo->movefactor = FixedDiv(ORIG_FRICTION, player->mo->friction);
 
-		if (player->mo->movefactor < FRACUNIT)
-			player->mo->movefactor = 19*player->mo->movefactor - 18*FRACUNIT;
-		else
-			player->mo->movefactor = FRACUNIT; //player->mo->movefactor = ((player->mo->friction - 0xDB34)*(0xA))/0x80;
+			if (player->mo->movefactor < FRACUNIT)
+				player->mo->movefactor = 19*player->mo->movefactor - 18*FRACUNIT;
+			else
+				player->mo->movefactor = FRACUNIT; //player->mo->movefactor = ((player->mo->friction - 0xDB34)*(0xA))/0x80;
 
-		if (player->mo->movefactor < 32)
-			player->mo->movefactor = 32;
-	}
+			if (player->mo->movefactor < 32)
+				player->mo->movefactor = 32;
+		}
 
-	// Wipeout slowdown
-	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] && P_IsObjectOnGround(player->mo))
-	{
-		if (player->kartstuff[k_offroad])
-			player->mo->friction -= 4912;
-		if (player->kartstuff[k_wipeoutslow] == 1)
-			player->mo->friction -= 9824;
+		// Wipeout slowdown
+		if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+		{
+			if (player->kartstuff[k_offroad])
+				player->mo->friction -= 4912;
+			if (player->kartstuff[k_wipeoutslow] == 1)
+				player->mo->friction -= 9824;
+		}
 	}
 
 	K_KartDrift(player, onground);
