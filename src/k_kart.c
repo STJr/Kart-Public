@@ -5476,7 +5476,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	// Wipeout slowdown
-	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+	if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow] && player->mo->friction > FRACUNIT/2)
 	{
 		if (player->kartstuff[k_offroad])
 			player->mo->friction -= 4912;
