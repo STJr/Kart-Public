@@ -1130,11 +1130,6 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		distx = FixedMul(mobj1->radius+mobj2->radius, nx);
 		disty = FixedMul(mobj1->radius+mobj2->radius, ny);
 
-		CONS_Printf("dist %f %f %d %d %d %d\n",
-					FIXED_TO_FLOAT(P_AproxDistance(distx, disty)),
-					FIXED_TO_FLOAT(P_AproxDistance(momdifx, momdify)),
-					mobj1->momx, mobj1->momy, mobj2->momx, mobj2->momy);
-
 		if (momdifx == 0 && momdify == 0)
 		{
 			// If there's no momentum difference, they're moving at exactly the same rate. Pretend they moved into each other.
