@@ -1979,7 +1979,7 @@ static void K_RemoveGrowShrink(player_t *player)
 {
 	player->kartstuff[k_growshrinktimer] = 0;
 
-	if (!P_MobjWasRemoved(player->mo))
+	if (player->mo && !P_MobjWasRemoved(player->mo))
 	{
 		if (player->kartstuff[k_invincibilitytimer] == 0)
 			player->mo->color = player->skincolor;
