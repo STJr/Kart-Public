@@ -169,7 +169,7 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 boolean P_AutoPause(void)
 {
 	// Don't pause even on menu-up or focus-lost in netgames or record attack
-	if (netgame || modeattacking)
+	if (netgame || modeattacking || titledemo)
 		return false;
 
 	return (menuactive || window_notinfocus);
