@@ -1114,9 +1114,9 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
 
-	// Adds the OTHER player's momentum, so that it reduces the chance of you being "inside" the other object
-	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
-	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
+	// Adds the OTHER player's momentum times a bunch, for the best chance of getting the correct direction
+	distx = (mobj1->x + mobj2->momx*3) - (mobj2->x + mobj1->momx*3);
+	disty = (mobj1->y + mobj2->momy*3) - (mobj2->y + mobj1->momy*3);
 
 	if (distx == 0 && disty == 0)
 		// if there's no distance between the 2, they're directly on top of each other, don't run this
