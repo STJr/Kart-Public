@@ -1056,7 +1056,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	mobj_t *fx;
 	fixed_t momdifx, momdify;
 	fixed_t distx, disty;
-	fixed_t dot, p;
+	fixed_t dot, force;
 	fixed_t mass1, mass2;
 
 	if (!mobj1 || !mobj2)
@@ -1114,6 +1114,35 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	momdifx = mobj1->momx - mobj2->momx;
 	momdify = mobj1->momy - mobj2->momy;
 
+	// Adds the OTHER player's momentum, so that it reduces the chance of you being "inside" the other object
+	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
+	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
+
+	if (distx == 0 && disty == 0)
+		// if there's no distance between the 2, they're directly on top of each other, don't run this
+		return;
+
+	{ // Normalize distance to the sum of the two objects' radii, since in a perfect world that would be the distance at the point of collision...
+		fixed_t dist = P_AproxDistance(distx, disty) ?: 1;
+		fixed_t nx = FixedDiv(distx, dist);
+		fixed_t ny = FixedDiv(disty, dist);
+
+		distx = FixedMul(mobj1->radius+mobj2->radius, nx);
+		disty = FixedMul(mobj1->radius+mobj2->radius, ny);
+
+		CONS_Printf("dist %f %f %d %d %d %d\n",
+					FIXED_TO_FLOAT(P_AproxDistance(distx, disty)),
+					FIXED_TO_FLOAT(P_AproxDistance(momdifx, momdify)),
+					mobj1->momx, mobj1->momy, mobj2->momx, mobj2->momy);
+
+		if (momdifx == 0 && momdify == 0)
+		{
+			// If there's no momentum difference, they're moving at exactly the same rate. Pretend they moved into each other.
+			momdifx = -nx;
+			momdify = -ny;
+		}
+	}
+
 	// if the speed difference is less than this let's assume they're going proportionately faster from each other
 	if (P_AproxDistance(momdifx, momdify) < (25*mapobjectscale))
 	{
@@ -1124,34 +1153,6 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		momdify = FixedMul((25*mapobjectscale), normalisedy);
 	}
 
-	// Adds the OTHER player's momentum, so that it reduces the chance of you being "inside" the other object
-	distx = (mobj1->x + mobj2->momx) - (mobj2->x + mobj1->momx);
-	disty = (mobj1->y + mobj2->momy) - (mobj2->y + mobj1->momy);
-
-	{ // Don't allow dist to get WAY too low, that it pushes you stupidly huge amounts, or backwards...
-		fixed_t dist = P_AproxDistance(distx, disty);
-		fixed_t nx = FixedDiv(distx, dist);
-		fixed_t ny = FixedDiv(disty, dist);
-
-		if (P_AproxDistance(distx, disty) < (3*mobj1->radius)/4)
-		{
-			distx = FixedMul((3*mobj1->radius)/4, nx);
-			disty = FixedMul((3*mobj1->radius)/4, ny);
-		}
-
-		if (P_AproxDistance(distx, disty) < (3*mobj2->radius)/4)
-		{
-			distx = FixedMul((3*mobj2->radius)/4, nx);
-			disty = FixedMul((3*mobj2->radius)/4, ny);
-		}
-	}
-
-	if (distx == 0 && disty == 0)
-	{
-		// if there's no distance between the 2, they're directly on top of each other, don't run this
-		return;
-	}
-
 	dot = FixedMul(momdifx, distx) + FixedMul(momdify, disty);
 
 	if (dot >= 0)
@@ -1160,7 +1161,7 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		return;
 	}
 
-	p = FixedDiv(dot, FixedMul(distx, distx)+FixedMul(disty, disty));
+	force = FixedDiv(dot, FixedMul(distx, distx)+FixedMul(disty, disty));
 
 	if (bounce == true && mass2 > 0) // Perform a Goomba Bounce.
 		mobj1->momz = -mobj1->momz;
@@ -1175,14 +1176,14 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 
 	if (mass2 > 0)
 	{
-		mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), distx);
-		mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), p), disty);
+		mobj1->momx = mobj1->momx - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), force), distx);
+		mobj1->momy = mobj1->momy - FixedMul(FixedMul(FixedDiv(2*mass2, mass1 + mass2), force), disty);
 	}
 
 	if (mass1 > 0 && solid == false)
 	{
-		mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -distx);
-		mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), p), -disty);
+		mobj2->momx = mobj2->momx - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), force), -distx);
+		mobj2->momy = mobj2->momy - FixedMul(FixedMul(FixedDiv(2*mass1, mass1 + mass2), force), -disty);
 	}
 
 	// Do the bump fx when we've CONFIRMED we can bump.
