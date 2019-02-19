@@ -6907,8 +6907,6 @@ void G_DoPlayDemo(char *defdemoname)
 
 			for (p = 0; p <= splitscreen; p++)
 				G_ResetView(p+1, slots[M_RandomKey(numslots)], false);
-
-			CONS_Printf("%d - %d %d %d %d\n", splitscreen, displayplayer, secondarydisplayplayer, thirddisplayplayer, fourthdisplayplayer);
 		}
 
 		R_ExecuteSetViewSize();
