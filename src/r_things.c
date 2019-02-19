@@ -651,7 +651,7 @@ void R_DrawMaskedColumn(column_t *column)
 
 	basetexturemid = dc_texturemid;
 
-	for (; column->topdelta != 0xff ;)
+	for (; column && column->topdelta != 0xff ;)
 	{
 		// calculate unclipped screen coordinates
 		// for post
