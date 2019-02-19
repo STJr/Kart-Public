@@ -8190,28 +8190,39 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->color = mobj->target->player->skincolor;
 			else
 				mobj->color = SKINCOLOR_KETCHUP;
+
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
+
 			if (P_IsObjectOnGround(mobj))
 			{
-				if (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2])
-					P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
-				if (mobj->reactiontime >= mobj->info->reactiontime)
+				if (mobj->extravalue1 > 0)
+					mobj->extravalue1--;
+				else
 				{
-					mobj->momx = mobj->momy = 0;
-					S_StartSound(mobj, mobj->info->activesound);
-					mobj->reactiontime--;
+					if (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2])
+						P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
+
+					if (mobj->reactiontime >= mobj->info->reactiontime)
+					{
+						mobj->momx = mobj->momy = 0;
+						S_StartSound(mobj, mobj->info->activesound);
+						mobj->reactiontime--;
+					}
 				}
 			}
+
 			if (mobj->reactiontime && mobj->reactiontime < mobj->info->reactiontime)
 			{
 				mobj->reactiontime--;
 				if (!mobj->reactiontime)
 					P_KillMobj(mobj, NULL, NULL);
 			}
+
 			if ((mobj->state >= &states[S_SSMINE1] && mobj->state <= &states[S_SSMINE4])
 				|| (mobj->state >= &states[S_SSMINE_DEPLOY8] && mobj->state <= &states[S_SSMINE_DEPLOY13]))
 				A_GrenadeRing(mobj);
+
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;

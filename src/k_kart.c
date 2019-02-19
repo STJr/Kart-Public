@@ -2895,7 +2895,8 @@ static mobj_t *K_FindLastTrailMobj(player_t *player)
 static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, INT32 altthrow)
 {
 	mobj_t *mo;
-	INT32 dir, PROJSPEED;
+	INT32 dir;
+	fixed_t PROJSPEED;
 	angle_t newangle;
 	fixed_t newx, newy, newz;
 	mobj_t *throwmo;
@@ -3012,10 +3013,10 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
+				fixed_t HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
 
-				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
-				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
+				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
+				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
@@ -3082,10 +3083,66 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 			if (player->mo->eflags & MFE_VERTICALFLIP)
 				mo->eflags |= MFE_VERTICALFLIP;
+
+			if (mapthing == MT_SSMINE)
+				mo->extravalue1 = 14; // Pads the start-up length from 21 frames to a full second
 		}
 	}
 
 	return mo;
+}
+
+void K_PuntMine(mobj_t *thismine, mobj_t *punter)
+{
+	angle_t fa = R_PointToAngle2(0, 0, punter->momx, punter->momy) >> ANGLETOFINESHIFT;
+	fixed_t z = 30*mapobjectscale + punter->momz;
+	fixed_t spd;
+	mobj_t *mine;
+
+	if (!thismine || P_MobjWasRemoved(thismine))
+		return;
+
+	if (thismine->type == MT_SSMINE_SHIELD) // Create a new mine
+	{
+		mine = P_SpawnMobj(thismine->x, thismine->y, thismine->z, MT_SSMINE);
+		P_SetTarget(&mine->target, thismine->target);
+		mine->angle = thismine->angle;
+		mine->flags2 = thismine->flags2;
+		mine->floorz = thismine->floorz;
+		mine->ceilingz = thismine->ceilingz;
+		P_RemoveMobj(thismine);
+	}
+	else
+		mine = thismine;
+
+	if (!mine || P_MobjWasRemoved(mine))
+		return;
+
+	switch (gamespeed)
+	{
+		case 0:
+			spd = 68*mapobjectscale; // Avg Speed is 34
+			break;
+		case 2:
+			spd = 96*mapobjectscale; // Avg Speed is 48
+			break;
+		default:
+			spd = 82*mapobjectscale; // Avg Speed is 41
+			break;
+	}
+
+	mine->flags |= MF_NOCLIPTHING;
+
+	P_SetMobjState(mine, S_SSMINE_AIR1);
+	mine->threshold = 10;
+	mine->extravalue1 = 0;
+	mine->reactiontime = mine->info->reactiontime;
+
+	mine->momx = punter->momx + FixedMul(FINECOSINE(fa), spd);
+	mine->momy = punter->momy + FixedMul(FINESINE(fa), spd);
+	mine->momz = P_MobjFlip(mine) * z;
+
+	mine->flags &= ~MF_NOCLIPTHING;
 }
 
 #define THUNDERRADIUS 320
