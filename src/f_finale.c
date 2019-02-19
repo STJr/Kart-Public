@@ -1024,14 +1024,15 @@ void F_TitleScreenTicker(boolean run)
 	// is it time?
 	if (!(--demoIdleLeft))
 	{
-		static boolean use_netreplay = false;
+		//static boolean use_netreplay = false;
 
 		char dname[9];
 		lumpnum_t l;
 		const char *mapname;
 		UINT8 numstaff;
 
-		if ((use_netreplay = !use_netreplay))
+		//@TODO uncomment this when this goes into vanilla
+		/*if ((use_netreplay = !use_netreplay))*/
 		{
 			numstaff = 1;
 			while ((l = W_CheckNumForName(va("TDEMO%03u", numstaff))) != LUMPERROR)
