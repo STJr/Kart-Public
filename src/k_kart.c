@@ -1978,12 +1978,16 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 static void K_RemoveGrowShrink(player_t *player)
 {
 	player->kartstuff[k_growshrinktimer] = 0;
-	if (player->kartstuff[k_invincibilitytimer] == 0)
-		player->mo->color = player->skincolor;
-	player->mo->scalespeed = mapobjectscale/TICRATE;
-	player->mo->destscale = mapobjectscale;
-	if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-		player->mo->destscale = (6*player->mo->destscale)/8;
+
+	if (player->mo && !P_MobjWasRemoved(player->mo))
+	{
+		if (player->kartstuff[k_invincibilitytimer] == 0)
+			player->mo->color = player->skincolor;
+		player->mo->scalespeed = mapobjectscale/TICRATE;
+		player->mo->destscale = mapobjectscale;
+		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
+			player->mo->destscale = (6*player->mo->destscale)/8;
+	}
 	P_RestoreMusic(player);
 }
 
@@ -3290,11 +3294,15 @@ static void K_DoShrink(player_t *user)
 			{
 				// Start shrinking!
 				K_DropItems(&players[i]);
-				players[i].mo->scalespeed = mapobjectscale/TICRATE;
-				players[i].mo->destscale = (6*mapobjectscale)/8;
-				if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
-					players[i].mo->destscale = (6*players[i].mo->destscale)/8;
-				players[i].kartstuff[k_growshrinktimer] = -(200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
+
+				if (!P_MobjWasRemoved(players[i].mo))
+				{
+					players[i].mo->scalespeed = mapobjectscale/TICRATE;
+					players[i].mo->destscale = (6*mapobjectscale)/8;
+					if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
+						players[i].mo->destscale = (6*players[i].mo->destscale)/8;
+					players[i].kartstuff[k_growshrinktimer] = -(200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
+				}
 			}
 
 			// Grow should get taken away.
@@ -3419,7 +3427,7 @@ void K_DropHnextList(player_t *player)
 	mobjtype_t type;
 	boolean orbit, ponground, dropall = true;
 
-	if (!work)
+	if (!work || P_MobjWasRemoved(work))
 		return;
 
 	flip = P_MobjFlip(player->mo);
@@ -3556,7 +3564,7 @@ void K_DropItems(player_t *player)
 
 	K_DropHnextList(player);
 
-	if (player->mo && player->kartstuff[k_itemamount])
+	if (player->mo && !P_MobjWasRemoved(player->mo) && player->kartstuff[k_itemamount])
 	{
 		mobj_t *drop = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height/2, MT_FLOATINGITEM);
 		P_SetScale(drop, drop->scale>>4);
