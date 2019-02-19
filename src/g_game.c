@@ -2097,7 +2097,7 @@ boolean G_CouldView(INT32 playernum)
 		return false;
 
 	// I don't know if we want this actually, but I'll humor the suggestion anyway
-	if (G_BattleGametype())
+	if (G_BattleGametype() && !demoplayback)
 	{
 		if (player->kartstuff[k_bumper] <= 0)
 			return false;
