@@ -4940,7 +4940,10 @@ void G_ReadDemoExtraData(void)
 			if (P_GetRandSeed() != rng)
 			{
 				P_SetRandSeed(rng);
-				CONS_Alert(CONS_WARNING, "Random seed has desynced!\n");
+
+				if (demosynced)
+					CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
+				demosynced = false;
 			}
 		}
 
