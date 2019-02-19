@@ -780,6 +780,8 @@ void Y_StartIntermission(void)
 	{
 		if (cv_inttime.value == 0 && gametype == GT_COOP)
 			timer = 0;
+		else if (demoplayback) // Override inttime (which is pulled from the replay anyway
+			timer = 10*TICRATE;
 		else
 		{
 			timer = cv_inttime.value*TICRATE;
