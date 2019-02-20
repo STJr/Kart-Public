@@ -28,7 +28,6 @@
 #include "../m_argv.h"
 #include "../v_video.h"
 #include "../st_stuff.h"
-#include "../hu_stuff.h"
 #include "../i_video.h"
 #include "../z_zone.h"
 #include "fabdxlib.h"
@@ -366,10 +365,6 @@ void I_FinishUpdate(void)
 	// display a graph of ticrate
 	if (cv_ticrate.value)
 		SCR_DisplayTicRate();
-	
-	// this is now handled here so that wipes and other things don't overlap it for the sake of consistency.
-	// no additional checks are needed here, this function does them all so no need to worry. :)
-	HU_drawLocalPing();
 
 	//
 	if (bDIBMode)

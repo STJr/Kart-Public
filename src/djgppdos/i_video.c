@@ -41,7 +41,6 @@
 #include "../m_argv.h"
 #include "vid_vesa.h"
 #include "../i_video.h"
-#include "../hu_stuff.h"
 
 
 //dosstuff -newly added
@@ -94,10 +93,6 @@ void I_FinishUpdate (void)
 	// draw FPS if enabled
 	if (cv_ticrate.value)
 		SCR_DisplayTicRate();
-	
-	// this is now handled here so that wipes and other things don't overlap it for the sake of consistency.
-	// no additional checks are needed here, this function does them all so no need to worry. :)
-	HU_drawLocalPing();
 
 	//blast it to the screen
 	// this code sucks

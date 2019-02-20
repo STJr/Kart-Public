@@ -434,3 +434,16 @@ void SCR_DisplayTicRate(void)
 
 	lasttic = ontic;
 }
+
+// SCR_DisplayLocalPing
+// Used to draw the user's local ping next to the framerate for a quick check without having to hold TAB for instance. By default, it only shows up if your ping is too high and risks getting you kicked.
+
+void SCR_DisplayLocalPing(void)
+{
+	UINT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
+	if (cv_showping.value == 1 || (cv_showping.value == 2 && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
+	{
+		INT32 dispy = cv_ticrate.value ? 160 : 181;
+		HU_drawPing(307, dispy, ping, V_SNAPTORIGHT | V_SNAPTOBOTTOM);
+	}
+}

@@ -67,7 +67,6 @@
 #include "../i_sound.h"  	// midi pause/unpause
 #include "../i_joy.h"
 #include "../st_stuff.h"
-#include "../hu_stuff.h"	// ping drawer
 #include "../g_game.h"
 #include "../i_video.h"
 #include "../console.h"
@@ -1361,10 +1360,9 @@ void I_FinishUpdate(void)
 
 	if (cv_ticrate.value)
 		SCR_DisplayTicRate();
-	
-	// this is now handled here so that wipes and other things don't overlap it for the sake of consistency.
-	// no additional checks are needed here, this function does them all so no need to worry. :)
-	HU_drawLocalPing();
+
+	if (cv_showping.value && netgame && consoleplayer != serverplayer)
+		SCR_DisplayLocalPing();
 
 	if (rendermode == render_soft && screens[0])
 	{
