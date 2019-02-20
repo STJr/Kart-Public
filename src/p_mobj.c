@@ -8202,6 +8202,7 @@ void P_MobjThinker(mobj_t *mobj)
 				{
 					mobj->momx = mobj->momy = 0;
 					S_StartSound(mobj, mobj->info->activesound);
+					P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
 				}
 			}
 
