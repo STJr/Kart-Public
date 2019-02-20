@@ -2771,11 +2771,24 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 {
 	mobj_t *dust;
+	angle_t aoff;
 
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25) * mo->scale), mo->y + (P_RandomRange(-25,25) * mo->scale), mo->z, MT_WIPEOUTTRAIL);
+	if (mo->player)
+		aoff = (mo->player->frameangle + ANGLE_180);
+	else
+		aoff = (mo->angle + ANGLE_180);
+
+	if ((leveltime / 2) & 1)
+		aoff -= ANGLE_45;
+	else
+		aoff += ANGLE_45;
+
+	dust = P_SpawnMobj(mo->x + FixedMul(24*mo->scale, FINECOSINE(aoff>>ANGLETOFINESHIFT)) + (P_RandomRange(-8,8) << FRACBITS),
+		mo->y + FixedMul(24*mo->scale, FINESINE(aoff>>ANGLETOFINESHIFT)) + (P_RandomRange(-8,8) << FRACBITS),
+		mo->z, MT_WIPEOUTTRAIL);
 
 	P_SetTarget(&dust->target, mo);
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
