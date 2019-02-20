@@ -15574,10 +15574,10 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		1,						// spawnhealth
 		S_NULL,					// seestate
 		sfx_tossed,				// seesound
-		6*TICRATE,				// reactiontime
+		0,						// reactiontime
 		sfx_None,				// attacksound
 		S_NULL,					// painstate
-		192*FRACUNIT,			// painchance
+		128*FRACUNIT,			// painchance
 		sfx_None,				// painsound
 		S_NULL,					// meleestate
 		S_NULL,					// missilestate
@@ -15604,7 +15604,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		8,              // reactiontime
 		sfx_None,       // attacksound
 		S_NULL,         // painstate
-		192*FRACUNIT,   // painchance
+		128*FRACUNIT,   // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
 		S_NULL,         // missilestate

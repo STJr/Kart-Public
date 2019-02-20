@@ -8194,29 +8194,15 @@ void P_MobjThinker(mobj_t *mobj)
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
 
-			if (P_IsObjectOnGround(mobj))
+			if (P_IsObjectOnGround(mobj) && (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2]))
 			{
 				if (mobj->extravalue1 > 0)
 					mobj->extravalue1--;
 				else
 				{
-					if (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2])
-						P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
-
-					if (mobj->reactiontime >= mobj->info->reactiontime)
-					{
-						mobj->momx = mobj->momy = 0;
-						S_StartSound(mobj, mobj->info->activesound);
-						mobj->reactiontime--;
-					}
+					mobj->momx = mobj->momy = 0;
+					S_StartSound(mobj, mobj->info->activesound);
 				}
-			}
-
-			if (mobj->reactiontime && mobj->reactiontime < mobj->info->reactiontime)
-			{
-				mobj->reactiontime--;
-				if (!mobj->reactiontime)
-					P_KillMobj(mobj, NULL, NULL);
 			}
 
 			if ((mobj->state >= &states[S_SSMINE1] && mobj->state <= &states[S_SSMINE4])
