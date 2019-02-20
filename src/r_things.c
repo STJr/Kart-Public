@@ -925,13 +925,6 @@ static void R_DrawVisSprite(vissprite_t *vis)
 	if (vis->x2 >= vid.width)
 		vis->x2 = vid.width-1;
 
-#if 1
-	// Something is occasionally setting 1px-wide sprites whose frac is exactly the width of the sprite, causing crashes due to
-	// accessing invalid column info. Until the cause is found, let's try to correct those manually...
-	while (frac + vis->xiscale*(vis->x2-vis->x1) > SHORT(patch->width)<<FRACBITS && vis->x2 >= vis->x1)
-		vis->x2--;
-#endif
-
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{
 		if (vis->scalestep) // currently papersprites only
@@ -1321,7 +1314,7 @@ static void R_ProjectSprite(mobj_t *thing)
 		if (max(tz, tz2) < FixedMul(MINZ, this_scale)) // non-papersprite clipping is handled earlier
 			return;
 
-		scalestep = (yscale2 - yscale)/(x2 - x1);
+		scalestep = (yscale2 - yscale)/(x2 - x1) ?: 1;
 
 		// The following two are alternate sorting methods which might be more applicable in some circumstances. TODO - maybe enable via MF2?
 		// sortscale = max(yscale, yscale2);
