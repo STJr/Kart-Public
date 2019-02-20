@@ -556,6 +556,11 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 */
 static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 {
+	if (getitem == KITEM_SPB || getitem == KITEM_SHRINK) // Indirect items
+		indirectitemcooldown = 20*TICRATE;
+	if (getitem == KITEM_HYUDORO) // Hyudoro cooldown
+		hyubgone = 5*TICRATE;
+
 	switch (getitem)
 	{
 		// Special roulettes first, then the generic ones are handled by default
@@ -583,10 +588,6 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 			player->kartstuff[k_itemtype] = KITEM_JAWZ;
 			player->kartstuff[k_itemamount] = 2;
 			break;
-		case KITEM_SPB:
-		case KITEM_SHRINK: // Indirect items
-			indirectitemcooldown = 20*TICRATE;
-			/* FALLTHRU */
 		default:
 			if (getitem <= 0 || getitem >= NUMKARTRESULTS) // Sad (Fallback)
 			{
@@ -742,7 +743,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 				POWERITEMODDS(newodds);
 			break;
 		case KITEM_HYUDORO:
-			if (COOLDOWNONSTART)
+			if ((hyubgone > 0) || COOLDOWNONSTART)
 				newodds = 0;
 			break;
 		default:

@@ -9852,6 +9852,9 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"indirectitemcooldown")) {
 		lua_pushinteger(L, indirectitemcooldown);
 		return 1;
+	} else if (fastcmp(word,"hyubgone")) {
+		lua_pushinteger(L, hyubgone);
+		return 1;
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);
 		return 1;
