@@ -1399,7 +1399,7 @@ void K_RespawnChecker(player_t *player)
 						mo->eflags |= MFE_VERTICALFLIP;
 					P_SetTarget(&mo->target, player->mo);
 					mo->angle = newangle+ANGLE_90;
-					mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+					mo->momz = (8<<FRACBITS) * P_MobjFlip(player->mo);
 					P_SetScale(mo, (mo->destscale = FRACUNIT));
 				}
 			}
@@ -2212,6 +2212,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		player->mo->momz *= 2;
 	}
 
+	if (player->mo->eflags & MFE_UNDERWATER)
+		player->mo->momz = (117 * player->mo->momz) / 200;
+
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
@@ -2421,6 +2424,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+		if (truc->eflags & MFE_UNDERWATER)
+			truc->momz = (117 * truc->momz) / 200;
 		truc->color = color;
 	}
 
@@ -2449,6 +2454,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
 		if (P_RandomChance(FRACUNIT/2))
 			truc->momz = -truc->momz;
+		if (truc->eflags & MFE_UNDERWATER)
+			truc->momz = (117 * truc->momz) / 200;
 		truc->tics = TICRATE*2;
 		truc->color = color;
 	}
@@ -3006,6 +3013,9 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
 
+				if (mo->eflags & MFE_UNDERWATER)
+					mo->momz = (117 * mo->momz) / 200;
+
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
 			}
@@ -3364,6 +3374,9 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 	else
 		mo->momz = FixedMul(vertispeed, vscale);
 
+	if (mo->eflags & MFE_UNDERWATER)
+		mo->momz = (117 * mo->momz) / 200;
+
 	if (sound)
 		S_StartSound(mo, (sound == 1 ? sfx_kc2f : sfx_kpogos));
 }
@@ -3513,6 +3526,8 @@ void K_DropHnextList(player_t *player)
 			dropwork->momx = player->mo->momx>>1;
 			dropwork->momy = player->mo->momy>>1;
 			dropwork->momz = 3*flip*mapobjectscale;
+			if (dropwork->eflags & MFE_UNDERWATER)
+				dropwork->momz = (117 * dropwork->momz) / 200;
 			P_Thrust(dropwork, work->angle - ANGLE_90, 6*mapobjectscale);
 			dropwork->movecount = 2;
 			dropwork->movedir = work->angle - ANGLE_90;
@@ -3571,6 +3586,8 @@ void K_DropItems(player_t *player)
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
 			16*mapobjectscale);
 		drop->momz = P_MobjFlip(player->mo)*3*mapobjectscale;
+		if (drop->eflags & MFE_UNDERWATER)
+			drop->momz = (117 * drop->momz) / 200;
 
 		drop->threshold = (thunderhack ? KITEM_THUNDERSHIELD : player->kartstuff[k_itemtype]);
 		drop->movecount = player->kartstuff[k_itemamount];
