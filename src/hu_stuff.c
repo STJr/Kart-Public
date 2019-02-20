@@ -2312,10 +2312,6 @@ void HU_Drawer(void)
 
 		V_DrawCenteredString(BASEVIDWIDTH/2, 180, V_YELLOWMAP | V_ALLOWLOWERCASE, resynch_text);
 	}
-
-	// draw the ping if the user wishes to
-	// THIS IS NOW HANDLED IN I_VIDEO
-	//HU_drawLocalPing();
 }
 
 //======================================================================
