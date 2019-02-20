@@ -2781,9 +2781,9 @@ static void Command_BanIP(void)
 		if (I_SetBanAddress && I_SetBanAddress(address, NULL))
 		{
 			if (reason)
-				CONS_Printf("Banned ip address %s for: %s\n", address, reason);
+				CONS_Printf("Banned IP address %s for: %s\n", address, reason);
 			else
-				CONS_Printf("Banned ip address %s\n", address);
+				CONS_Printf("Banned IP address %s\n", address);
 
 			Ban_Add(reason);
 			D_SaveBan();
