@@ -106,7 +106,7 @@ static UINT16 lumpnumcacheindex = 0;
 //===========================================================================
 //                                                                    GLOBALS
 //===========================================================================
-UINT16 numwadfiles; // number of active wadfiles
+UINT16 numwadfiles = 0; // number of active wadfiles
 wadfile_t *wadfiles[MAX_WADFILES]; // 0 to numwadfiles-1 are valid
 
 // W_Shutdown
@@ -858,10 +858,6 @@ void W_UnloadWadFile(UINT16 num)
 INT32 W_InitMultipleFiles(char **filenames)
 {
 	INT32 rc = 1;
-
-	// open all the files, load headers, and count lumps
-	if (!numwadfiles)
-		numwadfiles = 0;
 
 	// will be realloced as lumps are added
 	for (; *filenames; filenames++)
