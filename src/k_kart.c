@@ -1991,6 +1991,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 static void K_RemoveGrowShrink(player_t *player)
 {
 	player->kartstuff[k_growshrinktimer] = 0;
+	player->kartstuff[k_growcancel] = 0;
 	if (player->kartstuff[k_invincibilitytimer] == 0)
 		player->mo->color = player->skincolor;
 	player->mo->scalespeed = mapobjectscale/TICRATE;
@@ -5093,6 +5094,18 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
 				player->kartstuff[k_rocketsneakertimer] = 1;
 		}
+		// Grow Canceling
+		else if (player->kartstuff[k_growshrinktimer] > 0)
+		{
+			if (cmd->buttons & BT_ATTACK)
+			{
+				player->kartstuff[k_growcancel]++;
+				if (player->kartstuff[k_growcancel] > 26)
+					K_RemoveGrowShrink(player);
+			}
+			else
+				player->kartstuff[k_growcancel] = 0;
+		}
 		else if (player->kartstuff[k_itemamount] <= 0)
 		{
 			player->kartstuff[k_itemamount] = player->kartstuff[k_itemheld] = 0;
@@ -5448,6 +5461,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->kartstuff[k_itemtype] != KITEM_THUNDERSHIELD)
 			player->kartstuff[k_curshield] = 0;
+
+		if (player->kartstuff[k_growshrinktimer] <= 0)
+			player->kartstuff[k_growcancel] = 0;
 
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
@@ -6510,6 +6526,8 @@ static void K_drawKartItem(void)
 	//INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	const INT32 numberdisplaymin = ((!offset && stplyr->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
 	INT32 itembar = 0;
+	INT32 maxl = 0; // itembar's normal highest value
+	const INT32 barlength = (splitscreen > 1 ? 12 : 26);
 	UINT8 localcolor = SKINCOLOR_NONE;
 	SINT8 colormode = TC_RAINBOW;
 	UINT8 *colmap = NULL;
@@ -6618,6 +6636,8 @@ static void K_drawKartItem(void)
 		else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
 		{
 			itembar = stplyr->kartstuff[k_rocketsneakertimer];
+			maxl = (itemtime*3) - barlength;
+
 			if (leveltime & 1)
 				localpatch = kp_rocketsneaker[offset];
 			else
@@ -6625,6 +6645,12 @@ static void K_drawKartItem(void)
 		}
 		else if (stplyr->kartstuff[k_growshrinktimer] > 0)
 		{
+			if (stplyr->kartstuff[k_growcancel])
+			{
+				itembar = stplyr->kartstuff[k_growcancel];
+				maxl = 26;
+			}
+
 			if (leveltime & 1)
 				localpatch = kp_grow[offset];
 			else
@@ -6776,8 +6802,6 @@ static void K_drawKartItem(void)
 	// Extensible meter, currently only used for rocket sneaker...
 	if (itembar && hudtrans)
 	{
-		const INT32 barlength = (splitscreen > 1 ? 12 : 26);
-		const INT32 maxl = (itemtime*3) - barlength; // timer's normal highest value
 		const INT32 fill = ((itembar*barlength)/maxl);
 		const INT32 length = min(barlength, fill);
 		const INT32 height = (offset ? 1 : 2);
