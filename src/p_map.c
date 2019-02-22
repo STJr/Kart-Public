@@ -912,6 +912,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (thing->type == MT_PLAYER)
 		{
+			// Banana snipe!
+			if (tmthing->type == MT_BANANA && tmthing->health > 1)
+				S_StartSound(thing, sfx_bsnipe);
+
 			// Player Damage
 			K_SpinPlayer(thing->player, tmthing->target, 0, tmthing, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD));
 
@@ -1060,6 +1064,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (tmthing->health <= 0 || thing->health <= 0)
 				return true;
+
+			// Banana snipe!
+			if (thing->type == MT_BANANA && thing->health > 1)
+				S_StartSound(tmthing, sfx_bsnipe);
 
 			// Player Damage
 			K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
