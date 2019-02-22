@@ -648,7 +648,7 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 
 	rsp->jointime = (tic_t)LONG(players[i].jointime);
 
-	rsp->splitscreen = players[i].splitscreen;
+	rsp->splitscreenindex = players[i].splitscreenindex;
 
 	rsp->hasmo = false;
 	//Transfer important mo information if the player has a body.
@@ -785,7 +785,7 @@ static void resynch_read_player(resynch_pak *rsp)
 
 	players[i].jointime = (tic_t)LONG(rsp->jointime);
 
-	players[i].splitscreen = rsp->splitscreen;
+	players[i].splitscreenindex = rsp->splitscreenindex;
 
 	//We get a packet for each player in game.
 	if (!playeringame[i])
@@ -3320,7 +3320,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		addedtogame = true;
 	}
 
-	players[newplayernum].splitscreen = splitscreenplayer;
+	players[newplayernum].splitscreenindex = splitscreenplayer;
 
 	if (netgame)
 	{

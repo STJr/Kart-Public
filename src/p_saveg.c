@@ -249,7 +249,7 @@ static void P_NetArchivePlayers(void)
 
 		WRITEUINT32(save_p, players[i].jointime);
 
-		WRITEUINT8(save_p, players[i].splitscreen);
+		WRITEUINT8(save_p, players[i].splitscreenindex);
 
 		WRITEUINT16(save_p, flags);
 
@@ -428,7 +428,7 @@ static void P_NetUnArchivePlayers(void)
 
 		players[i].jointime = READUINT32(save_p);
 
-		players[i].splitscreen = READUINT8(save_p);
+		players[i].splitscreenindex = READUINT8(save_p);
 
 		flags = READUINT16(save_p);
 
