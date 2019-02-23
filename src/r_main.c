@@ -56,6 +56,7 @@ INT32 centerx, centery;
 fixed_t centerxfrac, centeryfrac;
 fixed_t projection;
 fixed_t projectiony; // aspect ratio
+fixed_t fovtan; // field of view
 
 // just for profiling purposes
 size_t framecount;
@@ -529,7 +530,7 @@ static void R_InitTextureMapping(void)
 	//
 	// Calc focallength
 	//  so FIELDOFVIEW angles covers SCREENWIDTH.
-	focallength = FixedDiv(centerxfrac,
+	focallength = FixedDiv(projection,
 		FINETANGENT(FINEANGLES/4+/*cv_fov.value*/ FIELDOFVIEW/2));
 
 #ifdef ESLOPE
@@ -644,6 +645,7 @@ void R_ExecuteSetViewSize(void)
 	INT32 j;
 	INT32 level;
 	INT32 startmapl;
+	angle_t fov;
 
 	setsizeneeded = false;
 
@@ -672,9 +674,12 @@ void R_ExecuteSetViewSize(void)
 	centerxfrac = centerx<<FRACBITS;
 	centeryfrac = centery<<FRACBITS;
 
-	projection = centerxfrac;
-	//projectiony = (((vid.height*centerx*BASEVIDWIDTH)/BASEVIDHEIGHT)/vid.width)<<FRACBITS;
-	projectiony = centerxfrac;
+	fov = FixedAngle(cv_fov.value/2) + ANGLE_90;
+	fovtan = FINETANGENT(fov >> ANGLETOFINESHIFT);
+	if (splitscreen == 1) // Splitscreen FOV should be adjusted to maintain expected vertical view
+		fovtan *= 2;
+
+	projection = projectiony = FixedDiv(centerxfrac, fovtan);
 
 	R_InitViewBuffer(scaledviewwidth, viewheight);
 
@@ -700,7 +705,7 @@ void R_ExecuteSetViewSize(void)
 		for (i = 0; i < j; i++)
 		{
 			dy = ((i - viewheight*8)<<FRACBITS) + FRACUNIT/2;
-			dy = abs(dy);
+			dy = FixedMul(abs(dy), fovtan);
 			yslopetab[i] = FixedDiv(centerx*FRACUNIT, dy);
 		}
 	}
@@ -815,7 +820,7 @@ subsector_t *R_IsPointInSubsector(fixed_t x, fixed_t y)
 static mobj_t *viewmobj;
 
 // WARNING: a should be unsigned but to add with 2048, it isn't!
-#define AIMINGTODY(a) ((FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)>>FRACBITS)
+#define AIMINGTODY(a) FixedDiv((FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)>>FRACBITS, fovtan)
 
 // recalc necessary stuff for mouseaiming
 // slopes are already calculated for the full possible view (which is 4*viewheight).
