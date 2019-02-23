@@ -145,6 +145,8 @@ extern consvar_t cv_specialrings, cv_powerstones, cv_matchboxes, cv_competitionb
 
 #ifdef NEWPING
 extern consvar_t cv_maxping;
+extern consvar_t cv_pingtimeout;
+extern consvar_t cv_showping;
 #endif
 
 extern consvar_t cv_skipmapcheck;
