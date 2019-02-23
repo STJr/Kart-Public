@@ -2357,6 +2357,7 @@ void G_PlayerReborn(INT32 player)
 	UINT8 skincolor;
 	INT32 skin;
 	tic_t jointime;
+	UINT8 splitscreenindex;
 	boolean spectator;
 	INT16 bot;
 	SINT8 pity;
@@ -2380,6 +2381,7 @@ void G_PlayerReborn(INT32 player)
 	ctfteam = players[player].ctfteam;
 	exiting = players[player].exiting;
 	jointime = players[player].jointime;
+	splitscreenindex = players[player].splitscreenindex;
 	spectator = players[player].spectator;
 	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE|PF_WANTSTOJOIN));
 
@@ -2476,6 +2478,7 @@ void G_PlayerReborn(INT32 player)
 	p->pflags = pflags;
 	p->ctfteam = ctfteam;
 	p->jointime = jointime;
+	p->splitscreenindex = splitscreenindex;
 	p->spectator = spectator;
 
 	// save player config truth reborn
