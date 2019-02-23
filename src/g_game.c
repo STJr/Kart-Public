@@ -4898,7 +4898,7 @@ void G_ConsGhostTic(void)
 	UINT8 ziptic;
 	fixed_t px,py,pz,gx,gy,gz;
 	mobj_t *testmo;
-	UINT32 syncleeway;
+	fixed_t syncleeway;
 	boolean nightsfail = false;
 
 	if (!demo_p || !demo_start)
