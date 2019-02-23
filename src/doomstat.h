@@ -226,6 +226,7 @@ typedef struct
 	char actnum[3];        ///< SRB2Kart: Now a 2 character long string.
 	UINT16 typeoflevel;    ///< Combination of typeoflevel flags.
 	INT16 nextlevel;       ///< Map number of next level, or 1100-1102 to end.
+	char keyword[33];      ///< Keywords separated by space to search for. 32 characters.
 	char musname[7];       ///< Music track to play. "" for no music.
 	UINT16 mustrack;       ///< Subsong to play. Only really relevant for music modules and specific formats supported by GME. 0 to ignore.
 	char forcecharacter[17];  ///< (SKINNAMESIZE+1) Skin to switch to or "" to disable.

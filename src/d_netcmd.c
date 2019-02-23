@@ -2181,6 +2181,25 @@ void D_PickVote(void)
 }
 
 /*
+Return the number of times a series of keywords, delimited by spaces, matched.
+*/
+static int measurekeywords(const char *s, const char *q)
+{
+	int r = 0;
+	char *qp;
+	for (qp = strtok(va("%s", q), " ");
+			qp;
+			qp = strtok(0, " "))
+	{
+		if (strcasestr(s, qp))
+		{
+			r++;
+		}
+	}
+	return r;
+}
+
+/*
 Easy macro; declare parm_*id* and define acceptableargc; put in the parameter
 to match as a string as *name*. Set *argn* to the number of extra arguments
 following the parameter. parm_*id* is filled with the index of the parameter
@@ -2218,8 +2237,6 @@ static void Command_Map_f(void)
 	char   *apromapname = NULL;
 
 	/* Keyword matching */
-	char *query;
-	char *key;
 	UINT8 *freq;
 	UINT8 freqc;
 
@@ -2319,13 +2336,13 @@ static void Command_Map_f(void)
 		}
 		else
 		{
-			query = ZZ_Alloc(strlen(mapname)+1);
 			freq = ZZ_Calloc(NUMMAPS * sizeof (UINT8));
 
 			for (i = 0, newmapnum = 1; i < NUMMAPS; ++i, ++newmapnum)
 				if (mapheaderinfo[i])
 			{
-				realmapname = G_BuildMapTitle(newmapnum);
+				if (!( realmapname = G_BuildMapTitle(newmapnum) ))
+					continue;
 
 				/* Now that we found a perfect match no need to fucking guess. */
 				if (strnicmp(realmapname, mapname, mapnamelen) == 0)
@@ -2345,16 +2362,9 @@ static void Command_Map_f(void)
 					}
 					else/* ...match individual keywords */
 					{
-						strcpy(query, mapname);
-						for (key = strtok(query, " ");
-								key;
-								key = strtok(0, " "))
-						{
-							if (strcasestr(realmapname, key))
-							{
-								freq[i]++;
-							}
-						}
+						freq[i] += measurekeywords(realmapname, mapname);
+						freq[i] += measurekeywords(mapheaderinfo[i]->keyword,
+								mapname);
 					}
 				}
 
@@ -2385,7 +2395,6 @@ static void Command_Map_f(void)
 			}
 
 			Z_Free(freq);
-			Z_Free(query);
 		}
 	}
 
