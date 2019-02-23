@@ -4767,7 +4767,7 @@ void G_WriteGhostTic(mobj_t *ghost)
 	if (abs(ghost->x-oldghost.x) > MAXMOM
 	|| abs(ghost->y-oldghost.y) > MAXMOM
 	|| abs(ghost->z-oldghost.z) > MAXMOM
-	|| (leveltime & 255 == 1)) // Hack to enable slightly nicer resyncing
+	|| (leveltime & 255) == 1) // Hack to enable slightly nicer resyncing
 	{
 		oldghost.x = ghost->x;
 		oldghost.y = ghost->y;
