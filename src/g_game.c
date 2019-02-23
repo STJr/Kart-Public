@@ -4896,7 +4896,7 @@ void G_WriteGhostTic(mobj_t *ghost)
 void G_ConsGhostTic(void)
 {
 	UINT8 ziptic;
-	UINT32 px,py,pz,gx,gy,gz;
+	fixed_t px,py,pz,gx,gy,gz;
 	mobj_t *testmo;
 	UINT32 syncleeway;
 	boolean nightsfail = false;
