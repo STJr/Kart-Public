@@ -677,7 +677,7 @@ void R_ExecuteSetViewSize(void)
 	fov = FixedAngle(cv_fov.value/2) + ANGLE_90;
 	fovtan = FINETANGENT(fov >> ANGLETOFINESHIFT);
 	if (splitscreen == 1) // Splitscreen FOV should be adjusted to maintain expected vertical view
-		fovtan *= 2;
+		fovtan = 17*fovtan/10;
 
 	projection = projectiony = FixedDiv(centerxfrac, fovtan);
 
