@@ -1355,7 +1355,7 @@ static void Got_NetVar(UINT8 **p, INT32 playernum)
 	Setvalue(cvar, svalue, stealth);
 }
 
-void CV_SaveNetVars(UINT8 **p, boolean demorecording)
+void CV_SaveNetVars(UINT8 **p, boolean isdemorecording)
 {
 	consvar_t *cvar;
 	UINT8 *count_p = *p;
@@ -1365,12 +1365,12 @@ void CV_SaveNetVars(UINT8 **p, boolean demorecording)
 	// the client will reset all netvars to default before loading
 	WRITEUINT16(*p, 0x0000);
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		if (((cvar->flags & CV_NETVAR) && !CV_IsSetToDefault(cvar)) || (demorecording && cvar->netid == cv_numlaps.netid))
+		if (((cvar->flags & CV_NETVAR) && !CV_IsSetToDefault(cvar)) || (isdemorecording && cvar->netid == cv_numlaps.netid))
 		{
 			WRITEUINT16(*p, cvar->netid);
 
 			// UGLY HACK: Save proper lap count in net replays
-			if (demorecording && cvar->netid == cv_numlaps.netid)
+			if (isdemorecording && cvar->netid == cv_numlaps.netid)
 			{
 				if (cv_basenumlaps.value &&
 					(!(mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
