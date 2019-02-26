@@ -1326,10 +1326,6 @@ void D_SRB2Main(void)
 		midi_disabled = true;
 #endif
 	}
-	else
-	{
-		CONS_Printf("S_InitSfxChannels(): Setting up sound channels.\n");
-	}
 	if (M_CheckParm("-nosound"))
 		sound_disabled = true;
 	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
@@ -1348,10 +1344,18 @@ void D_SRB2Main(void)
 		if (M_CheckParm("-nodigmusic"))
 			digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
 	}
-	I_StartupSound();
-	I_InitMusic();
-	S_InitSfxChannels(cv_soundvolume.value);
-	S_InitMusicDefs();
+	if (!( sound_disabled && digital_disabled
+#ifndef NO_MIDI
+				&& midi_disabled
+#endif
+	 ))
+	{
+		CONS_Printf("S_InitSfxChannels(): Setting up sound channels.\n");
+		I_StartupSound();
+		I_InitMusic();
+		S_InitSfxChannels(cv_soundvolume.value);
+		S_InitMusicDefs();
+	}
 
 	CONS_Printf("ST_Init(): Init status bar.\n");
 	ST_Init();

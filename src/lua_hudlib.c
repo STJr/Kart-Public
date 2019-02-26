@@ -410,6 +410,24 @@ static int libd_drawPaddedNum(lua_State *L)
 	return 0;
 }
 
+
+static int libd_drawPingNum(lua_State *L)
+{
+	INT32 x, y, flags, num;
+	const UINT8 *colormap = NULL;
+	HUDONLY
+	x = luaL_checkinteger(L, 1);
+	y = luaL_checkinteger(L, 2);
+	num = luaL_checkinteger(L, 3);
+	flags = luaL_optinteger(L, 4, 0);
+	flags &= ~V_PARAMMASK; // Don't let crashes happen.
+	if (!lua_isnoneornil(L, 5))
+		colormap = *((UINT8 **)luaL_checkudata(L, 5, META_COLORMAP));
+
+	V_DrawPingNum(x, y, flags, num, colormap);
+	return 0;
+}
+
 static int libd_drawFill(lua_State *L)
 {
 	INT32 x = luaL_optinteger(L, 1, 0);
@@ -613,6 +631,7 @@ static luaL_Reg lib_draw[] = {
 	{"drawScaled", libd_drawScaled},
 	{"drawNum", libd_drawNum},
 	{"drawPaddedNum", libd_drawPaddedNum},
+	{"drawPingNum", libd_drawPingNum},
 	{"drawFill", libd_drawFill},
 	{"fadeScreen", libd_fadeScreen},
 	{"drawString", libd_drawString},
