@@ -11,7 +11,7 @@
 
 #define KART_FULLTURN 800
 
-UINT8 colortranslations[MAXSKINCOLORS][16];
+UINT8 colortranslations[MAXTRANSLATIONS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
 extern const UINT8 KartColor_Opposite[MAXSKINCOLORS*2];
 void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor);
