@@ -8948,7 +8948,7 @@ static void P_SetFollowerState(mobj_t *f, INT32 state)
 }
 
 //
-//P_HandleFllower
+//P_HandleFollower
 //
 //Handle the follower's spawning and moving along with the player. Do note that some of the stuff like the removal if a player doesn't exist anymore is handled in MT_FOLLOWER's thinker.
 static void P_HandleFollower(player_t *player)
