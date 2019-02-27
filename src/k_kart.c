@@ -496,17 +496,17 @@ boolean K_IsPlayerWanted(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][10] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8  9
-			   /*Sneaker*/ {20, 0, 0, 4, 6, 6, 0, 0, 0, 0 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,14, 0 }, // Invincibility
-				/*Banana*/ { 0,10, 4, 2, 1, 0, 0, 0, 0, 0 }, // Banana
+			   /*Sneaker*/ {20, 0, 0, 4, 6, 7, 0, 0, 0, 0 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 1, 4, 5, 3, 0 }, // Rocket Sneaker
+		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,10, 0 }, // Invincibility
+				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 3, 2, 1, 0, 0, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 8, 6, 4, 2, 0, 0, 0, 0, 0 }, // Orbinaut
+			  /*Orbinaut*/ { 0, 7, 6, 4, 2, 0, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 1, 1, 0, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 0, 2, 1, 0, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 2, 3, 4, 2, 2, 0,20 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3, 0 }, // Grow
+				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 2, 5, 7, 0 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 2, 0, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0, 0 }, // Hyudoro
@@ -1414,7 +1414,7 @@ void K_RespawnChecker(player_t *player)
 						mo->eflags |= MFE_VERTICALFLIP;
 					P_SetTarget(&mo->target, player->mo);
 					mo->angle = newangle+ANGLE_90;
-					mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+					mo->momz = (8<<FRACBITS) * P_MobjFlip(player->mo);
 					P_SetScale(mo, (mo->destscale = FRACUNIT));
 				}
 			}
@@ -2230,6 +2230,9 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		player->mo->momz *= 2;
 	}
 
+	if (player->mo->eflags & MFE_UNDERWATER)
+		player->mo->momz = (117 * player->mo->momz) / 200;
+
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
 
@@ -2439,6 +2442,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+		if (truc->eflags & MFE_UNDERWATER)
+			truc->momz = (117 * truc->momz) / 200;
 		truc->color = color;
 	}
 
@@ -2467,6 +2472,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
 		if (P_RandomChance(FRACUNIT/2))
 			truc->momz = -truc->momz;
+		if (truc->eflags & MFE_UNDERWATER)
+			truc->momz = (117 * truc->momz) / 200;
 		truc->tics = TICRATE*2;
 		truc->color = color;
 	}
@@ -2789,11 +2796,24 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 {
 	mobj_t *dust;
+	angle_t aoff;
 
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25) * mo->scale), mo->y + (P_RandomRange(-25,25) * mo->scale), mo->z, MT_WIPEOUTTRAIL);
+	if (mo->player)
+		aoff = (mo->player->frameangle + ANGLE_180);
+	else
+		aoff = (mo->angle + ANGLE_180);
+
+	if ((leveltime / 2) & 1)
+		aoff -= ANGLE_45;
+	else
+		aoff += ANGLE_45;
+
+	dust = P_SpawnMobj(mo->x + FixedMul(24*mo->scale, FINECOSINE(aoff>>ANGLETOFINESHIFT)) + (P_RandomRange(-8,8) << FRACBITS),
+		mo->y + FixedMul(24*mo->scale, FINESINE(aoff>>ANGLETOFINESHIFT)) + (P_RandomRange(-8,8) << FRACBITS),
+		mo->z, MT_WIPEOUTTRAIL);
 
 	P_SetTarget(&dust->target, mo);
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
@@ -3024,6 +3044,9 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
+
+				if (mo->eflags & MFE_UNDERWATER)
+					mo->momz = (117 * mo->momz) / 200;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
@@ -3439,6 +3462,9 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 	else
 		mo->momz = FixedMul(vertispeed, vscale);
 
+	if (mo->eflags & MFE_UNDERWATER)
+		mo->momz = (117 * mo->momz) / 200;
+
 	if (sound)
 		S_StartSound(mo, (sound == 1 ? sfx_kc2f : sfx_kpogos));
 }
@@ -3588,6 +3614,8 @@ void K_DropHnextList(player_t *player)
 			dropwork->momx = player->mo->momx>>1;
 			dropwork->momy = player->mo->momy>>1;
 			dropwork->momz = 3*flip*mapobjectscale;
+			if (dropwork->eflags & MFE_UNDERWATER)
+				dropwork->momz = (117 * dropwork->momz) / 200;
 			P_Thrust(dropwork, work->angle - ANGLE_90, 6*mapobjectscale);
 			dropwork->movecount = 2;
 			dropwork->movedir = work->angle - ANGLE_90;
@@ -3646,6 +3674,8 @@ void K_DropItems(player_t *player)
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
 			16*mapobjectscale);
 		drop->momz = P_MobjFlip(player->mo)*3*mapobjectscale;
+		if (drop->eflags & MFE_UNDERWATER)
+			drop->momz = (117 * drop->momz) / 200;
 
 		drop->threshold = (thunderhack ? KITEM_THUNDERSHIELD : player->kartstuff[k_itemtype]);
 		drop->movecount = player->kartstuff[k_itemamount];
@@ -4767,6 +4797,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 		else
 			player->kartstuff[k_driftend] = 0;
 	}
+
 
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
@@ -7280,7 +7311,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 		if (netgame // don't draw it offline
 		&& tab[i].num != serverplayer)
-			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
+			HU_drawPing(x + ((i < 8) ? -17 : rightoffset + 11), y-4, playerpingtable[tab[i].num], 0);
 
 		STRBUFCPY(strtime, tab[i].name);
 
