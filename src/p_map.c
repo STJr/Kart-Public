@@ -747,6 +747,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			&& !(tmthing->type == MT_ORBINAUT || tmthing->type == MT_JAWZ || tmthing->type == MT_JAWZ_DUD))
 			return true;
 
+		if (thing->player && thing->player->kartstuff[k_hyudorotimer])
+			return true; // no interaction
+
 		if (thing->type == MT_PLAYER)
 		{
 			// Player Damage
@@ -1029,6 +1032,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->player && tmthing->player->powers[pw_flashing]
 			&& !(thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD))
 			return true;
+
+		if (tmthing->player && tmthing->player->kartstuff[k_hyudorotimer]) // I thought about doing this for just the objects below but figured it should apply to everything.
+			return true; // no interaction
 
 		if (thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD
 			|| thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD)
