@@ -1249,7 +1249,7 @@ static menuitem_t OP_OpenGLOptionsMenu[] =
 	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,      10},
 	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,    20},
 
-	{IT_STRING|IT_CVAR,         NULL, "Field of View",   &cv_grfov,             35},
+	{IT_STRING|IT_CVAR,         NULL, "Field of View",   &cv_fov,               35},
 	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         45},
 	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      55},
 	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 65},
