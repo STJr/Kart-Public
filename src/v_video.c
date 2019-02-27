@@ -1316,6 +1316,44 @@ UINT8 *V_GetStringColormap(INT32 colorflags)
 #endif
 }
 
+const char *V_ApproximateSkinColorCode(INT32 color)
+{
+	const char *cstart;
+	if (color <= SKINCOLOR_SILVER || color == SKINCOLOR_SLATE)
+		cstart = "\x80"; // white
+	else if (color <= SKINCOLOR_BLACK || color == SKINCOLOR_JET)
+		cstart = "\x86"; // V_GRAYMAP
+	else if (color <= SKINCOLOR_LEATHER)
+		cstart = "\x8e"; // V_BROWNMAP
+	else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_LILAC)
+		cstart = "\x8d"; // V_PINKMAP
+	else if (color <= SKINCOLOR_KETCHUP)
+		cstart = "\x85"; // V_REDMAP
+	else if (color <= SKINCOLOR_TANGERINE)
+		cstart = "\x87"; // V_ORANGEMAP
+	else if (color <= SKINCOLOR_CARAMEL)
+		cstart = "\x8f"; // V_PEACHMAP
+	else if (color <= SKINCOLOR_BRONZE)
+		cstart = "\x8A"; // V_GOLDMAP
+	else if (color <= SKINCOLOR_OLIVE)
+		cstart = "\x82"; // V_YELLOWMAP
+	else if (color <= SKINCOLOR_PISTACHIO)
+		cstart = "\x8b"; // V_TEAMAP
+	else if (color <= SKINCOLOR_DREAM || color == SKINCOLOR_LIME)
+		cstart = "\x83"; // V_GREENMAP
+	else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
+		cstart = "\x88"; // V_SKYMAP
+	else if (color <= SKINCOLOR_STEEL)
+		cstart = "\x8c"; // V_STEELMAP
+	else if (color <= SKINCOLOR_BLUEBERRY)
+		cstart = "\x84"; // V_BLUEMAP
+	else if (color == SKINCOLOR_PURPLE)
+		cstart = "\x81"; // V_PURPLEMAP
+	else //if (color <= SKINCOLOR_POMEGRANATE)
+		cstart = "\x89"; // V_LAVENDERMAP
+	return cstart;
+}
+
 // Writes a single character (draw WHITE if bit 7 set)
 //
 void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed)
