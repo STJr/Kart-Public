@@ -186,6 +186,7 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 {
 	UINT16 posStart, posEnd;
+#ifdef HAVE_BLUA
 	posStart = W_CheckNumForFolderStartPK3("Lua/", wadnum, 0);
 	if (posStart != INT16_MAX)
 	{
@@ -196,6 +197,7 @@ static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 			LUA_LoadLump(wadnum, posStart);
 #endif
 	}
+#endif
 	posStart = W_CheckNumForFolderStartPK3("SOC/", wadnum, 0);
 	if (posStart != INT16_MAX)
 	{
@@ -795,11 +797,13 @@ UINT16 W_InitFile(const char *filename)
 		CONS_Printf(M_GetText("Loading SOC from %s\n"), wadfile->filename);
 		DEH_LoadDehackedLumpPwad(numwadfiles - 1, 0);
 		break;
+#ifdef HAVE_BLUA
 	case RET_LUA:
 #ifdef HAVE_BLUA
 		LUA_LoadLump(numwadfiles - 1, 0);
 #endif
 		break;
+#endif
 	default:
 		break;
 	}
