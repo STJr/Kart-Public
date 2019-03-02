@@ -8046,7 +8046,7 @@ static state_t   *multi_state;
 
 // used for follower display on player setup menu
 static INT32 follower_tics;
-static INT32 follower_frame;	// used for FF_ANIMATE garbo
+static UINT32 follower_frame;	// used for FF_ANIMATE garbo
 static state_t *follower_state;
 
 // this is set before entering the MultiPlayer setup menu,
