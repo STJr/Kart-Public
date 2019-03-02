@@ -8301,6 +8301,7 @@ static const char *const POWERS_LIST[] = {
 	"INGOOP" // In goop
 };
 
+#ifdef HAVE_BLUA
 static const char *const KARTSTUFF_LIST[] = {
 	"POSITION",
 	"OLDPOSITION",
@@ -8384,6 +8385,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"JAWZTARGETDELAY",
 	"SPECTATEWAIT"
 };
+#endif
 
 static const char *const HUDITEMS_LIST[] = {
 	"LIVESNAME",
@@ -9087,20 +9089,6 @@ static powertype_t get_power(const char *word)
 			return i;
 	deh_warning("Couldn't find power named 'pw_%s'",word);
 	return pw_invulnerability;
-}
-
-static kartstufftype_t get_kartstuff(const char *word)
-{ // Returns the vlaue of k_ enumerations
-	kartstufftype_t i;
-	if (*word >= '0' && *word <= '9')
-		return atoi(word);
-	if (fastncmp("K_",word,2))
-		word += 2; // take off the k_
-	for (i = 0; i < NUMKARTSTUFF; i++)
-		if (fastcmp(word, KARTSTUFF_LIST[i]))
-			return i;
-	deh_warning("Couldn't find power named 'k_%s'",word);
-	return k_position;
 }
 
 /// \todo Make ANY of this completely over-the-top math craziness obey the order of operations.
