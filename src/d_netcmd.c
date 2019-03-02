@@ -1317,6 +1317,10 @@ static void SendNameAndColor(void)
 		if (players[consoleplayer].mo)
 			players[consoleplayer].mo->color = players[consoleplayer].skincolor;
 
+		// Update follower for local games:
+		if (cv_follower.value >= 0 && cv_follower.value != players[consoleplayer].followerskin)
+			SetFollower(consoleplayer, cv_follower.value);
+
 		if (metalrecording)
 		{ // Metal Sonic is Sonic, obviously.
 			SetPlayerSkinByNum(consoleplayer, 0);
@@ -1453,6 +1457,10 @@ static void SendNameAndColor2(void)
 		if (players[secondplaya].mo)
 			players[secondplaya].mo->color = players[secondplaya].skincolor;
 
+		// Update follower for local games:
+		if (cv_follower2.value >= 0 && cv_follower2.value != players[secondplaya].followerskin)
+			SetFollower(secondplaya, cv_follower2.value);
+
 		if ((foundskin = R_SkinAvailable(cv_skin2.string)) != -1)
 		{
 			//boolean notsame;
@@ -1572,6 +1580,10 @@ static void SendNameAndColor3(void)
 		players[thirdplaya].skincolor = cv_playercolor3.value;
 		if (players[thirdplaya].mo)
 			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
+
+		// Update follower for local games:
+		if (cv_follower3.value >= 0 && cv_follower3.value != players[thirdplaya].followerskin)
+			SetFollower(thirdplaya, cv_follower3.value);
 
 		if ((foundskin = R_SkinAvailable(cv_skin3.string)) != -1)
 		{
@@ -1700,6 +1712,10 @@ static void SendNameAndColor4(void)
 		players[fourthplaya].skincolor = cv_playercolor4.value;
 		if (players[fourthplaya].mo)
 			players[fourthplaya].mo->color = players[fourthplaya].skincolor;
+
+		// Update follower for local games:
+		if (cv_follower4.value >= 0 && cv_follower4.value != players[fourthplaya].followerskin)
+			SetFollower(fourthplaya, cv_follower4.value);
 
 		if ((foundskin = R_SkinAvailable(cv_skin4.string)) != -1)
 		{
@@ -2129,6 +2145,9 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean r
 		}
 
 		chmappending++;
+
+		// send infos. This seems very dumb but we use this for offline games and followers as some kind of band aid
+
 		if (netgame)
 			WRITEUINT32(buf_p, M_RandomizedSeed()); // random seed
 		SendNetXCmd(XD_MAP, buf, buf_p - buf);

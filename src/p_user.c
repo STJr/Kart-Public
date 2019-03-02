@@ -9044,8 +9044,8 @@ static void P_HandleFollower(player_t *player)
 				player->follower->extravalue1 = 2;
 				P_SetFollowerState(player->follower, fl.hurtstate);
 			}
-			if (player->mo->health <= 0)	// if dead, snap to z pos
-				player->follower->z = sz;
+			if (player->mo->health <= 0)	// if dead, follow the player's z momentum exactly so they both look like they die at the same speed.
+				player->follower->momz = player->mo->momz;
 		}
 		else if (player->speed > 10*player->mo->scale)
 		{
@@ -9150,6 +9150,9 @@ void P_PlayerThink(player_t *player)
 		P_SetTarget(&player->awayviewmobj, NULL); // remove awayviewmobj asap if invalid
 		player->awayviewtics = 0; // reset to zero
 	}
+
+	// Run followes here. We need them to run even when we're dead to follow through what we're doing.
+	P_HandleFollower(player);
 
 	/*
 	if (player->pflags & PF_GLIDING)
@@ -9621,9 +9624,6 @@ void P_PlayerThink(player_t *player)
 	player->pflags &= ~PF_SLIDING;
 
 	K_KartPlayerThink(player, cmd); // SRB2kart
-
-	// we're done doing all of this, now take care of followers...
-	P_HandleFollower(player);
 
 /*
 //	Colormap verification

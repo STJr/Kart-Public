@@ -8576,7 +8576,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	setupm_cvskin = &cv_skin2;
 	setupm_cvcolor = &cv_playercolor2;
 	setupm_cvname = &cv_playername2;
-	setupm_cvfollower = &cv_follower;
+	setupm_cvfollower = &cv_follower2;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
 
@@ -8616,7 +8616,7 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	setupm_cvskin = &cv_skin3;
 	setupm_cvcolor = &cv_playercolor3;
 	setupm_cvname = &cv_playername3;
-	setupm_cvfollower = &cv_follower;
+	setupm_cvfollower = &cv_follower3;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
 
@@ -8656,7 +8656,7 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	setupm_cvskin = &cv_skin4;
 	setupm_cvcolor = &cv_playercolor4;
 	setupm_cvname = &cv_playername4;
-	setupm_cvfollower = &cv_follower;
+	setupm_cvfollower = &cv_follower4;
 
 	setupm_fakefollower = atoi(setupm_cvfollower->string);	// update fake follower value
 
