@@ -2146,8 +2146,6 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean r
 
 		chmappending++;
 
-		// send infos. This seems very dumb but we use this for offline games and followers as some kind of band aid
-
 		if (netgame)
 			WRITEUINT32(buf_p, M_RandomizedSeed()); // random seed
 		SendNetXCmd(XD_MAP, buf, buf_p - buf);
