@@ -8940,6 +8940,10 @@ static void P_SetFollowerState(mobj_t *f, INT32 state)
 //Handle the follower's spawning and moving along with the player. Do note that some of the stuff like the removal if a player doesn't exist anymore is handled in MT_FOLLOWER's thinker.
 static void P_HandleFollower(player_t *player)
 {
+	follower_t fl;
+	angle_t an;
+	fixed_t zoffs;
+	fixed_t sx, sy, sz;
 
 	if (!player->followerready)
 		return;	// we aren't ready to perform anything follower related yet.
@@ -8959,13 +8963,12 @@ static void P_HandleFollower(player_t *player)
 		return;
 
 	// Before we do anything, let's be sure of where we're supposed to be
-	follower_t fl = followers[player->followerskin];
+	fl = followers[player->followerskin];
 
-	angle_t an = player->mo->angle + (fl.atangle)*ANG1;		// it's aproximative but it really doesn't matter in the grand scheme of things...
-	fixed_t zoffs = (fl.zoffs)*FRACUNIT;
+	an = player->mo->angle + (fl.atangle)*ANG1;		// it's aproximative but it really doesn't matter in the grand scheme of things...
+	zoffs = (fl.zoffs)*FRACUNIT;
 
 	// do you like angle maths? I certainly don't...
-	fixed_t sx, sy, sz;
 	sx = player->mo->x + FixedMul((player->mo->scale*fl.dist), FINECOSINE((an)>>ANGLETOFINESHIFT));
 	sy = player->mo->y + FixedMul((player->mo->scale*fl.dist), FINESINE((an)>>ANGLETOFINESHIFT));
 

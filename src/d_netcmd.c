@@ -5162,22 +5162,24 @@ static void Name4_OnChange(void)
 // sends the follower change for players
 static void Follower_OnChange(void)
 {
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
+
 	if (!Playing())
 		return; // do whatever you want
 
 	// there is a slight chance that we will actually use a string instead so...
 	// let's investigate the string...
-	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	strcpy(str, cv_follower.string);
 	strcpy(cpy, cv_follower.string);
 	strlwr(str);
 	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
-		if (num == -1)	// that's an error.
+		char set[10];
+
+		if (num == -1) // that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
 
-		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower, set);	// set it to a number. It's easier for us to send later :)
 	}
@@ -5186,20 +5188,20 @@ static void Follower_OnChange(void)
 
 static void Follower2_OnChange(void)
 {
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
-	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	strcpy(str, cv_follower2.string);
 	strcpy(cpy, cv_follower2.string);
 	strlwr(str);
 	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
-		if (num == -1)	// that's an error.
+		char set[10];
+		if (num == -1) // that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
 
-		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower2, set);	// set it to a number. It's easier for us to send later :)
 	}
@@ -5208,20 +5210,20 @@ static void Follower2_OnChange(void)
 
 static void Follower3_OnChange(void)
 {
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
-	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	strcpy(str, cv_follower3.string);
 	strcpy(cpy, cv_follower3.string);
 	strlwr(str);
 	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
-		if (num == -1)	// that's an error.
+		char set[10];
+		if (num == -1) // that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
 
-		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower3, set);	// set it to a number. It's easier for us to send later :)
 	}
@@ -5230,20 +5232,20 @@ static void Follower3_OnChange(void)
 
 static void Follower4_OnChange(void)
 {
+	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
-	char str[SKINNAMESIZE+1], cpy[SKINNAMESIZE+1];
 	strcpy(str, cv_follower4.string);
 	strcpy(cpy, cv_follower4.string);
 	strlwr(str);
 	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
 		INT32 num = R_FollowerAvailable(str);
-		if (num == -1)	// that's an error.
+		char set[10];
+		if (num == -1) // that's an error.
 			CONS_Alert(CONS_WARNING, M_GetText("Follower '%s' not found\n"), str);
 
-		char set[10];
 		sprintf(set, "%d", num);
 		CV_StealthSet(&cv_follower4, set);	// set it to a number. It's easier for us to send later :)
 	}

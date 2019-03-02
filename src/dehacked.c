@@ -699,6 +699,14 @@ INT32 numfollowers = 0;
 
 static void readfollower(MYFILE *f)
 {
+	char *s;
+	char *word, *word2, dname[SKINNAMESIZE+1];
+	char *tmp;
+	char testname[SKINNAMESIZE];
+
+	boolean nameset;
+	INT32 fallbackstate = 0;
+	INT32 res;
 
 	if (numfollowers > MAXSKINS)
 	{
@@ -706,12 +714,7 @@ static void readfollower(MYFILE *f)
 		return;
 	}
 
-	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
-	char *word, *word2, dname[SKINNAMESIZE+1];
-	char *tmp;
-
-	boolean nameset;
-	INT32 fallbackstate = 0;
+	s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
 
 	CONS_Printf("Adding follower...\n");
 
@@ -812,17 +815,16 @@ static void readfollower(MYFILE *f)
 	// set skin name (this is just the follower's name in lowercases):
 	// but before we do, let's... actually check if another follower isn't doing the same shit...
 
-	char testname[SKINNAMESIZE];
 	strcpy(testname, followers[numfollowers].name);
 
 	// lower testname for skin checks...
 	strlwr(testname);
-	INT32 res = R_FollowerAvailable(testname);
+	res = R_FollowerAvailable(testname);
 	if (res > -1)	// yikes, someone else has stolen our name already
 	{
-		deh_warning("There was already a follower with the same name. (%s)", testname);
 		INT32 startlen = strlen(testname);
 		char cpy[2];
+		deh_warning("There was already a follower with the same name. (%s)", testname);
 		sprintf(cpy, "%d", numfollowers);
 		memcpy(&testname[startlen], cpy, 2);
 		// in that case, we'll be very lazy and copy numfollowers to the end of our skin name.

@@ -8077,6 +8077,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	UINT8 i;
 	const UINT8 *flashcol = V_GetStringColormap(highlightflags);
 	INT32 statx, staty;
+	char *fname;
 
 	mx = MP_PlayerSetupDef.x;
 	my = MP_PlayerSetupDef.y;
@@ -8109,7 +8110,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	}
 
 	// draw follower string
-	char *fname = malloc(SKINNAMESIZE+1);
+	fname = malloc(SKINNAMESIZE+1);
 
 	if (setupm_fakefollower == -1)
 		strcpy(fname, "None");
