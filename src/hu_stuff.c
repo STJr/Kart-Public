@@ -795,15 +795,15 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x85"; // V_REDMAP
 			else if (color <= SKINCOLOR_TANGERINE)
 				cstart = "\x87"; // V_ORANGEMAP
-			else if (color <= SKINCOLOR_CARAMEL)
+			else if (color <= SKINCOLOR_CREAM)
 				cstart = "\x8f"; // V_PEACHMAP
-			else if (color <= SKINCOLOR_BRONZE)
+			else if (color <= SKINCOLOR_COPPER)
 				cstart = "\x8A"; // V_GOLDMAP
 			else if (color <= SKINCOLOR_OLIVE)
 				cstart = "\x82"; // V_YELLOWMAP
 			else if (color <= SKINCOLOR_PISTACHIO)
 				cstart = "\x8b"; // V_TEAMAP
-			else if (color <= SKINCOLOR_DREAM || color == SKINCOLOR_LIME)
+			else if (color <= SKINCOLOR_ALGAE || color == SKINCOLOR_LIME || color == SKINCOLOR_HANDHELD)
 				cstart = "\x83"; // V_GREENMAP
 			else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
 				cstart = "\x88"; // V_SKYMAP
