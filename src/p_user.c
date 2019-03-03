@@ -8979,18 +8979,15 @@ static void P_HandleFollower(player_t *player)
 	// ^ handled by K_matchgenericextraflags oops
 
 
-	// finally, add a cool floating effect to the z height, unless we have no zoffs, in which case I guess this means we WANT to be on the ground...???
-	if (fl.zoffs)
-	{
-		// not stolen from k_kart I swear!!
-		const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
-		fixed_t sine = 4 * FINESINE((((8*pi*(TICRATE*2)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
-		sz += sine;
-	}
+	// finally, add a cool floating effect to the z height.
+	// not stolen from k_kart I swear!!
+	const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
+	fixed_t sine = fl.bobamp * FINESINE((((8*pi*(fl.bobspeed)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
+	sz += sine;
 
 	if (!player->follower)	// follower doesn't exist / isn't valid
 	{
-		CONS_Printf("Spawning follower...\n");
+		//CONS_Printf("Spawning follower...\n");
 		// so let's spawn one!
 		player->follower = P_SpawnMobj(sx, sy, sz, MT_FOLLOWER);
 		P_SetFollowerState(player->follower, fl.idlestate);
@@ -9012,14 +9009,14 @@ static void P_HandleFollower(player_t *player)
 			P_SetFollowerState(player->follower, player->follower->state->nextstate);
 
 		// move the follower next to us (yes, this is really basic maths but it looks pretty damn clean in practice)!
-		player->follower->momx = (sx - player->follower->x)/2;
-		player->follower->momy = (sy - player->follower->y)/2;
-		player->follower->momz = (sz - player->follower->z)/6;	// make z momentum a bit floatier, it'll look cute I promise!
+		player->follower->momx = (sx - player->follower->x)/fl.horzlag;
+		player->follower->momy = (sy - player->follower->y)/fl.horzlag;
+		player->follower->momz = (sz - player->follower->z)/fl.vertlag;	// make z momentum a bit floatier, it'll look cute I promise!
 		player->follower->angle = player->mo->angle;
 		player->follower->color = player->mo->color;
 		player->follower->colorized = player->mo->colorized;
 
-		P_SetScale(player->follower, player->mo->scale);
+		P_SetScale(player->follower, FixedMul(fl.scale, player->mo->scale));
 		K_MatchGenericExtraFlags(player->follower, player->mo);
 
 
@@ -9028,7 +9025,7 @@ static void P_HandleFollower(player_t *player)
 		// hurt or dead
 		if (player->kartstuff[k_spinouttimer] || player->mo->health <= 0)
 		{
-			player->follower->angle = leveltime*48*ANG1;
+			player->follower->angle = -leveltime*48*ANG1;	// spin out
 			if (player->follower->extravalue1 != 2)
 			{
 				player->follower->extravalue1 = 2;
@@ -9037,20 +9034,23 @@ static void P_HandleFollower(player_t *player)
 			if (player->mo->health <= 0)	// if dead, follow the player's z momentum exactly so they both look like they die at the same speed.
 				player->follower->momz = player->mo->momz;
 		}
-		else if (player->speed > 10*player->mo->scale)
+		else if (player->speed > 10*player->mo->scale)	// animation for moving fast enough
 		{
+			// if we're moving fast enough, let's make the angle the direction we're moving towards. This is to avoid drifting looking awkward.
+			player->follower->angle = R_PointToAngle2(0, 0, player->follower->momx, player->follower->momy);
+
 			if (player->follower->extravalue1 != 1)
 			{
 				player->follower->extravalue1 = 1;
 				P_SetFollowerState(player->follower, fl.followstate);
 			}
 		}
-		else	// nvm you're slow
+		else	// animations when nearly still. This includes winning and losing.
 		{
 			if (player->follower->extravalue1 != 0)
 			{
 
-				if (player->exiting)
+				if (player->exiting)	// win/ loss animations
 				{
 					if (K_IsPlayerLosing(player))	// L
 					{
@@ -9069,7 +9069,7 @@ static void P_HandleFollower(player_t *player)
 						}
 					}
 				}
-				else
+				else	// normal standstill
 				{
 					player->follower->extravalue1 = 0;
 					P_SetFollowerState(player->follower, fl.idlestate);

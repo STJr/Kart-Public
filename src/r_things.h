@@ -124,11 +124,20 @@ typedef struct follower_s
 {
 	char skinname[SKINNAMESIZE+1];	// Skin Name. This is what to refer to when asking the commands anything.
 	char name[SKINNAMESIZE+1];		// Name. This is used for the menus. We'll just follow the same rules as skins for this.
-
+	
+	fixed_t scale;			// Scale relative to the player's.
+	
 	// some position shenanigans:
 	INT32 atangle;			// angle the object will be at around the player. The object itself will always face the same direction as the player.
 	INT32 dist;				// distance relative to the player. (In a circle)
 	INT32 zoffs;			// Z offset relative to the player's height. Cannot be negative.
+	
+	// movement options
+	
+	INT32 horzlag;			// Lag for X/Y displacement. Default is 2. Must be > 0 because we divide by this number.
+	INT32 vertlag;			// not Vert from Neptunia lagging, this is for Z displacement lag Default is 4. Must be > 0 because we divide by this number.
+	INT32 bobamp;			// Bob amplitude. Default is 4.
+	INT32 bobspeed;			// Arbitrary modifier for bobbing speed, default is TICRATE*2 (70).
 
 	// from there on out, everything is STATES to allow customization
 	// these are only set once when the action is performed and are then free to animate however they want.
@@ -138,7 +147,6 @@ typedef struct follower_s
 	INT32 hurtstate;		// state when the player is being hurt
 	INT32 winstate;			// state when the player has won
 	INT32 losestate;		// state when the player has lost
-
 } follower_t;
 
 // -----------

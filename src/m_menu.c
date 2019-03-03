@@ -8348,12 +8348,14 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		if (setupm_fakecolor) // inverse should never happen
 		{
 
+			// Fake the follower's in game appearance by now also applying some of its variables! coolio, eh?
+			follower_t fl = followers[setupm_fakefollower];	// shortcut for our sanity
 			// smooth floating, totally not stolen from rocket sneakers.
 			const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
-			fixed_t sine = 8 * FINESINE((((4*pi*(TICRATE)) * followertimer)>>ANGLETOFINESHIFT) & FINEMASK);
+			fixed_t sine = fl.bobamp * FINESINE((((8*pi*(fl.bobspeed)) * followertimer)>>ANGLETOFINESHIFT) & FINEMASK);
 
 			UINT8 *colormap = R_GetTranslationColormap(-1, setupm_fakecolor, 0);
-			V_DrawMappedPatch(mx+65, my+90+(sine/FRACUNIT), flags, patch, colormap);
+			V_DrawFixedPatch((mx+65)*FRACUNIT, (my+131-fl.zoffs)*FRACUNIT+sine, fl.scale, flags, patch, colormap);
 			Z_Free(colormap);
 		}
 	}

@@ -716,7 +716,15 @@ static void readfollower(MYFILE *f)
 
 	s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
 
-	CONS_Printf("Adding follower...\n");
+	// Ready the default variables for followers. We will overwrite them as we go! We won't set the name or states RIGHT HERE as this is handled down instead.
+	followers[numfollowers].scale = FRACUNIT;
+	followers[numfollowers].atangle = 230;
+	followers[numfollowers].dist = 16;
+	followers[numfollowers].zoffs = 32;
+	followers[numfollowers].horzlag = 2;
+	followers[numfollowers].vertlag = 4;
+	followers[numfollowers].bobspeed = TICRATE*2;
+	followers[numfollowers].bobamp = 4;
 
 	do
 	{
@@ -751,10 +759,35 @@ static void readfollower(MYFILE *f)
 				strcpy(followers[numfollowers].name, word2);
 				nameset = true;
 			}
+			else if (fastcmp(word, "SCALE"))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].scale), UNDO_NONE);
+				followers[numfollowers].scale = get_number(word2);
+			}
 			else if (fastcmp(word, "ATANGLE"))
 			{
 				DEH_WriteUndoline(word, va("%d", followers[numfollowers].atangle), UNDO_NONE);
 				followers[numfollowers].atangle = (INT32)atoi(word2);
+			}
+			else if (fastcmp(word, "HORZLAG"))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].horzlag), UNDO_NONE);
+				followers[numfollowers].horzlag = (INT32)atoi(word2);
+			}
+			else if (fastcmp(word, "VERTLAG"))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].vertlag), UNDO_NONE);
+				followers[numfollowers].vertlag = (INT32)atoi(word2);
+			}
+			else if (fastcmp(word, "BOBSPEED"))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].bobspeed), UNDO_NONE);
+				followers[numfollowers].bobspeed = (INT32)atoi(word2);
+			}
+			else if (fastcmp(word, "BOBAMP"))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].bobamp), UNDO_NONE);
+				followers[numfollowers].bobamp = (INT32)atoi(word2);
 			}
 			else if (fastcmp(word, "ZOFFSET") || (fastcmp(word, "ZOFFS")))
 			{
@@ -824,7 +857,7 @@ static void readfollower(MYFILE *f)
 	{
 		INT32 startlen = strlen(testname);
 		char cpy[2];
-		deh_warning("There was already a follower with the same name. (%s)", testname);
+		//deh_warning("There was already a follower with the same name. (%s)", testname);	This warning probably isn't necessary anymore?
 		sprintf(cpy, "%d", numfollowers);
 		memcpy(&testname[startlen], cpy, 2);
 		// in that case, we'll be very lazy and copy numfollowers to the end of our skin name.
@@ -841,8 +874,28 @@ static void readfollower(MYFILE *f)
 	if (followers[numfollowers].zoffs < 0)
 		followers[numfollowers].zoffs = 0;
 
+	// HORZLAG and VERTLAG must ABSOLUTELY be higher than 0. If 0, the game crashes, if negative, weird shit happens!
+	if (followers[numfollowers].horzlag <= 0)
+		followers[numfollowers].horzlag = 1;
 
-	// also check if we forgot states :V
+	if (followers[numfollowers].vertlag <= 0)
+		followers[numfollowers].vertlag = 1;
+
+	// scale must be positive for obvious reasons, and so must both of the bob related variables
+	if (followers[numfollowers].scale <= 0)
+		followers[numfollowers].scale = 1;
+
+	// Bob amplitude can totally be 0
+	if (followers[numfollowers].bobamp < 0)
+		followers[numfollowers].bobamp = 1;
+
+	// so can bob speed
+	if (followers[numfollowers].bobspeed < 0)
+		followers[numfollowers].bobspeed = 1;
+
+	// also check if we forgot states. If we did, we will set any missing state to the follower's idlestate.
+	// Print a warning in case we don't have a fallback and set the state to S_INVISIBLE (rather than S_NULL) if unavailable.
+
 #define NOSTATE(field, field2) \
 if (!followers[numfollowers].field) \
 { \
