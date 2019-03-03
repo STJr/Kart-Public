@@ -135,7 +135,7 @@ typedef struct follower_s
 	// movement options
 	
 	INT32 horzlag;			// Lag for X/Y displacement. Default is 2. Must be > 0 because we divide by this number.
-	INT32 vertlag;			// not Vert from Neptunia lagging, this is for Z displacement lag Default is 4. Must be > 0 because we divide by this number.
+	INT32 vertlag;			// not Vert from Neptunia lagging, this is for Z displacement lag Default is 6. Must be > 0 because we divide by this number.
 	INT32 bobamp;			// Bob amplitude. Default is 4.
 	INT32 bobspeed;			// Arbitrary modifier for bobbing speed, default is TICRATE*2 (70).
 
