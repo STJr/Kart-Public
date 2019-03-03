@@ -722,7 +722,7 @@ static void readfollower(MYFILE *f)
 	followers[numfollowers].dist = 16;
 	followers[numfollowers].zoffs = 32;
 	followers[numfollowers].horzlag = 2;
-	followers[numfollowers].vertlag = 4;
+	followers[numfollowers].vertlag = 6;
 	followers[numfollowers].bobspeed = TICRATE*2;
 	followers[numfollowers].bobamp = 4;
 
