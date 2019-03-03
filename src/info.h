@@ -779,10 +779,10 @@ typedef enum sprite
 	// Xmas-specific sprites that don't fit aboxe
 	SPR_XMS4,
 	SPR_XMS5,
-	
+
 	SPR_GCHA,	// follower: generic chao
 	SPR_CHEZ,	// follower: cheese
-	
+
 	// First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw later
 	SPR_VIEW,
 
@@ -4054,9 +4054,9 @@ typedef enum state
 	S_KARMAFIREWORK3,
 	S_KARMAFIREWORK4,
 	S_KARMAFIREWORKTRAIL,
-	
+
 	// followers:
-	
+
 	// generic chao:
 	S_GCHAOIDLE,
 	S_GCHAOFLY,
@@ -4068,7 +4068,7 @@ typedef enum state
 	S_GCHAOHAPPY2,
 	S_GCHAOHAPPY3,
 	S_GCHAOHAPPY4,
-	
+
 	// cheese:
 	S_CHEESEIDLE,
 	S_CHEESEFLY,
@@ -4882,9 +4882,9 @@ typedef enum mobj_type
 	MT_BOOSTON,
 	MT_LIZARDMAN,
 	MT_LIONMAN,
-	
+
 	MT_KARMAFIREWORK,
-	
+
 	MT_FOLLOWER,
 
 #ifdef SEENAMES

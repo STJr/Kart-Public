@@ -3393,9 +3393,9 @@ state_t states[NUMSTATES] =
 	{SPR_FWRK, 2|FF_FULLBRIGHT, 2, {NULL}, 0, 0, S_KARMAFIREWORK4}, // S_KARMAFIREWORK3
 	{SPR_FWRK, 3|FF_FULLBRIGHT, 2, {NULL}, 0, 0, S_KARMAFIREWORK1}, // S_KARMAFIREWORK4
 	{SPR_FWRK, 4|FF_FULLBRIGHT, TICRATE, {NULL}, 0, 0, S_NULL}, // S_KARMAFIREWORKTRAIL
-	
+
 	// followers:
-	
+
 	// generic chao:
 	{SPR_GCHA, FF_ANIMATE, -1, {NULL}, 1, 4, S_GCHAOIDLE},		//S_GCHAOIDLE
 	{SPR_GCHA, 2|FF_ANIMATE, -1, {NULL}, 1, 2, S_GCHAOFLY},	//S_GCHAOFLY
@@ -3407,7 +3407,7 @@ state_t states[NUMSTATES] =
 	{SPR_GCHA, 5, 4, {NULL}, 0, 0, S_GCHAOHAPPY3},	//S_GCHAOHAPPY2
 	{SPR_GCHA, 6, 8, {NULL}, 0, 0, S_GCHAOHAPPY4},	//S_GCHAOHAPPY3
 	{SPR_GCHA, 5, 4, {NULL}, 0, 0, S_GCHAOHAPPY1},	//S_GCHAOHAPPY4
-	
+
 	// cheese:
 	{SPR_CHEZ, FF_ANIMATE, -1, {NULL}, 1, 4, S_CHEESEIDLE},		//S_CHEESEIDLE
 	{SPR_CHEZ, 2|FF_ANIMATE, -1, {NULL}, 1, 2, S_CHEESEFLY},	//S_CHEESEFLY
@@ -3419,7 +3419,7 @@ state_t states[NUMSTATES] =
 	{SPR_CHEZ, 5, 4, {NULL}, 0, 0, S_CHEESEHAPPY3},	//S_CHEESEHAPPY2
 	{SPR_CHEZ, 6, 8, {NULL}, 0, 0, S_CHEESEHAPPY4},	//S_CHEESEHAPPY3
 	{SPR_CHEZ, 5, 4, {NULL}, 0, 0, S_CHEESEHAPPY1},	//S_CHEESEHAPPY4
-	
+
 #ifdef SEENAMES
 	{SPR_NULL, 0, 1, {NULL}, 0, 0, S_NULL}, // S_NAMECHECK
 #endif
@@ -20103,7 +20103,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	    sfx_None,       // activesound
 	    MF_NOCLIPTHING|MF_NOGRAVITY|MF_NOCLIP|MF_NOCLIPHEIGHT, // flags
 	    S_NULL          // raisestate
-	},	
+	},
 
 	// ============================================================================================================================//
 
