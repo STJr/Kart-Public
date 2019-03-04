@@ -1919,8 +1919,7 @@ static INT32 LookupPlayer(const char *s)
 	{
 		/* Match name case-insensitively: fully, or partially the start. */
 		if (playeringame[playernum])
-			if (stricmp(player_names[playernum], s) == 0 ||
-					strnicmp(player_names[playernum], s, strlen(s)) == 0)
+			if (strnicmp(player_names[playernum], s, strlen(s)) == 0)
 		{
 			return playernum;
 		}
