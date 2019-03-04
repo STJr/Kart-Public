@@ -6031,7 +6031,10 @@ void G_BeginRecording(void)
 
 	demoflags |= gametype<<DF_GAMESHIFT;
 
-	demoflags |= DF_FILELIST;/* new versions */
+	// Demo compat: don't write filelist in record attack for now so those replays can still be submitted to the records site
+	//@TODO remove this check eventually and always write the file list
+	if (!modeattacking)
+		demoflags |= DF_FILELIST;/* new versions */
 
 	if (encoremode)
 		demoflags |= DF_ENCORE;
@@ -6052,22 +6055,25 @@ void G_BeginRecording(void)
 
 	WRITEUINT8(demo_p,demoflags);
 
-	// file list
-	m = demo_p;/* file count */
-	demo_p += 1;
-
-	totalfiles = 0;
-	for (i = mainwads; ++i < numwadfiles; )
-		if (wadfiles[i]->important)
+	if (demoflags & DF_FILELIST)
 	{
-		nameonly(( filename = va("%s", wadfiles[i]->filename) ));
-		WRITESTRINGN(demo_p, filename, 64);
-		WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
+		// file list
+		m = demo_p;/* file count */
+		demo_p += 1;
 
-		totalfiles++;
+		totalfiles = 0;
+		for (i = mainwads; ++i < numwadfiles; )
+			if (wadfiles[i]->important)
+		{
+			nameonly(( filename = va("%s", wadfiles[i]->filename) ));
+			WRITESTRINGN(demo_p, filename, 64);
+			WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
+
+			totalfiles++;
+		}
+
+		WRITEUINT8(m, totalfiles);
 	}
-
-	WRITEUINT8(m, totalfiles);
 
 	switch ((demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
 	{
