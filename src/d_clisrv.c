@@ -2211,8 +2211,10 @@ static void CL_ConnectToServer(boolean viams)
 	}
 	while (!(cl_mode == CL_CONNECTED && (client || (server && nodewaited <= pnumnodes))));
 
+#ifndef NONET
 	if (netgame)
 		F_StartWaitingPlayers();
+#endif
 	DEBFILE(va("Synchronisation Finished\n"));
 
 	displayplayer = consoleplayer;
@@ -2542,6 +2544,8 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 
 #ifdef HAVE_BLUA
 	LUAh_PlayerQuit(&players[playernum], reason); // Lua hook for player quitting
+#else
+	(void)reason;
 #endif
 
 	// Reset player data

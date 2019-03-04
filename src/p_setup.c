@@ -3228,10 +3228,9 @@ boolean P_SetupLevel(boolean skipprecip)
 		if (!cv_analog4.changed)
 			CV_SetValue(&cv_analog4, 0);*/
 
-#ifdef HWRENDER
-		if (rendermode != render_soft && rendermode != render_none)
-			CV_Set(&cv_grfov, cv_grfov.defaultvalue);
-#endif
+		// Shouldn't be necessary with render parity?
+		/*if (rendermode != render_none)
+			CV_Set(&cv_fov, cv_fov.defaultvalue);*/
 
 		displayplayer = consoleplayer; // Start with your OWN view, please!
 	}
