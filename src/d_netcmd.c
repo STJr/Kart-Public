@@ -2084,7 +2084,7 @@ static void Command_SetViews_f(void)
 	newsplits = atoi(COM_Argv(1));
 	newsplits = min(max(newsplits, 1), 4);
 	if (newsplits > splits)
-		G_AdjustView(newsplits, 0);
+		G_AdjustView(newsplits, 0, true);
 	else
 	{
 		splitscreen = newsplits-1;
