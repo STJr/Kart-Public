@@ -130,6 +130,7 @@ static void Command_Map_f(void);
 static void Command_ResetCamera_f(void);
 
 static void Command_View_f (void);
+static void Command_SetViews_f(void);
 
 static void Command_Addfile(void);
 static void Command_ListWADS_f(void);
@@ -718,6 +719,8 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("view2", Command_View_f);
 	COM_AddCommand("view3", Command_View_f);
 	COM_AddCommand("view4", Command_View_f);
+
+	COM_AddCommand("setviews", Command_SetViews_f);
 
 	COM_AddCommand("setcontrol", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol2", Command_Setcontrol2_f);
@@ -1991,6 +1994,37 @@ static void Command_View_f(void)
 	}
 }
 #undef PRINTVIEWPOINT
+
+static void Command_SetViews_f(void)
+{
+	UINT8 splits;
+	UINT8 newsplits;
+
+	if (!( demoplayback && multiplayer ))
+	{
+		CONS_Alert(CONS_NOTICE,
+				"You must be viewing a multiplayer replay to use this.\n");
+		return;
+	}
+
+	if (COM_Argc() != 2)
+	{
+		CONS_Printf("setviews <views>: set the number of split screens\n");
+		return;
+	}
+
+	splits = splitscreen+1;
+
+	newsplits = atoi(COM_Argv(1));
+	newsplits = min(max(newsplits, 1), 4);
+	if (newsplits > splits)
+		G_AdjustView(newsplits, 0);
+	else
+	{
+		splitscreen = newsplits-1;
+		R_ExecuteSetViewSize();
+	}
+}
 
 // ========================================================================
 
