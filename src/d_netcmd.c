@@ -130,6 +130,7 @@ static void Command_Map_f(void);
 static void Command_ResetCamera_f(void);
 
 static void Command_View_f (void);
+static void Command_SetViews_f(void);
 
 static void Command_Addfile(void);
 static void Command_ListWADS_f(void);
@@ -719,6 +720,8 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("view3", Command_View_f);
 	COM_AddCommand("view4", Command_View_f);
 
+	COM_AddCommand("setviews", Command_SetViews_f);
+
 	COM_AddCommand("setcontrol", Command_Setcontrol_f);
 	COM_AddCommand("setcontrol2", Command_Setcontrol2_f);
 	COM_AddCommand("setcontrol3", Command_Setcontrol3_f);
@@ -792,6 +795,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_ghost_staff);
 
 	COM_AddCommand("displayplayer", Command_Displayplayer_f);
+
+	CV_RegisterVar(&cv_recordmultiplayerdemos);
 
 	// FIXME: not to be here.. but needs be done for config loading
 	CV_RegisterVar(&cv_usegamma);
@@ -1912,16 +1917,52 @@ static INT32 LookupPlayer(const char *s)
 
 	for (playernum = 0; playernum < MAXPLAYERS; ++playernum)
 	{
-		/* Consider strcasestr? */
-		/* Match name (case-insensitively) fully, or partially the start. */
+		/* Match name case-insensitively: fully, or partially the start. */
 		if (playeringame[playernum])
-			if (stricmp(player_names[playernum], s) == 0 ||
-					strstr(player_names[playernum], s) == player_names[playernum] )
+			if (strnicmp(player_names[playernum], s, strlen(s)) == 0)
 		{
 			return playernum;
 		}
 	}
 	return -1;
+}
+
+static INT32 FindPlayerByPlace(INT32 place)
+{
+	INT32 playernum;
+	for (playernum = 0; playernum < MAXPLAYERS; ++playernum)
+		if (playeringame[playernum])
+	{
+		if (players[playernum].kartstuff[k_position] == place)
+		{
+			return playernum;
+		}
+	}
+	return -1;
+}
+
+//
+// GetViewablePlayerPlaceRange
+// Return in first and last, that player available to view, sorted by placement
+// in the race.
+//
+static void GetViewablePlayerPlaceRange(INT32 *first, INT32 *last)
+{
+	INT32 i;
+	INT32 place;
+
+	(*first) = MAXPLAYERS;
+	(*last) = 0;
+
+	for (i = 0; i < MAXPLAYERS; ++i)
+		if (G_CouldView(i))
+	{
+		place = players[i].kartstuff[k_position];
+		if (place < (*first))
+			(*first) = place;
+		if (place > (*last))
+			(*last) = place;
+	}
 }
 
 #define PRINTVIEWPOINT( pre,suf ) \
@@ -1932,7 +1973,10 @@ static void Command_View_f(void)
 	INT32 *displayplayerp;
 	INT32 olddisplayplayer;
 	int viewnum;
+	const char *playerparam;
+	INT32 placenum;
 	INT32 playernum;
+	INT32 firstplace, lastplace;
 	char c;
 	/* easy peasy */
 	c = COM_Argv(0)[strlen(COM_Argv(0))-1];/* may be digit */
@@ -1946,7 +1990,8 @@ static void Command_View_f(void)
 
 	if (viewnum > 1 && !( multiplayer && demoplayback ))
 	{
-		CONS_Alert(CONS_NOTICE, "You must be viewing a multiplayer replay.\n");
+		CONS_Alert(CONS_NOTICE,
+				"You must be viewing a multiplayer replay to use this.\n");
 		return;
 	}
 
@@ -1954,20 +1999,45 @@ static void Command_View_f(void)
 
 	if (COM_Argc() > 1)/* switch to player */
 	{
-		if (( playernum = LookupPlayer(COM_Argv(1)) ) == -1)
+		playerparam = COM_Argv(1);
+		if (playerparam[0] == '#')/* search by placement */
 		{
-			CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
-			return;
+			placenum = atoi(&playerparam[1]);
+			playernum = FindPlayerByPlace(placenum);
+			if (playernum == -1 || !G_CouldView(playernum))
+			{
+				GetViewablePlayerPlaceRange(&firstplace, &lastplace);
+				if (playernum == -1)
+				{
+					CONS_Alert(CONS_WARNING, "There is no player in that place! ");
+				}
+				else
+				{
+					CONS_Alert(CONS_WARNING,
+							"That player cannot be viewed currently! "
+							"The first player that you can view is \x82#%d\x80; ",
+							firstplace);
+				}
+				CONS_Printf("Last place is \x82#%d\x80.\n", lastplace);
+				return;
+			}
 		}
-		if (!playeringame[playernum])
+		else
 		{
-			CONS_Alert(CONS_WARNING, "There is no player using that slot!\n");
-			return;
+			if (( playernum = LookupPlayer(COM_Argv(1)) ) == -1)
+			{
+				CONS_Alert(CONS_WARNING, "There is no player by that name!\n");
+				return;
+			}
+			if (!playeringame[playernum])
+			{
+				CONS_Alert(CONS_WARNING, "There is no player using that slot!\n");
+				return;
+			}
 		}
 
 		olddisplayplayer = (*displayplayerp);
-		(*displayplayerp) = playernum;
-		G_ResetView(viewnum);
+		G_ResetView(viewnum, playernum, false);
 
 		/* The player we wanted was corrected to who it already was. */
 		if ((*displayplayerp) == olddisplayplayer)
@@ -1976,8 +2046,7 @@ static void Command_View_f(void)
 		if ((*displayplayerp) != playernum)/* differ parameter */
 		{
 			/* skipped some */
-			CONS_Alert(CONS_NOTICE,
-					"Another viewpoint is already set to that player.\n");
+			CONS_Alert(CONS_NOTICE, "That player cannot be viewed currently.\n");
 			PRINTVIEWPOINT ("Now "," instead")
 		}
 		else
@@ -1992,6 +2061,37 @@ static void Command_View_f(void)
 }
 #undef PRINTVIEWPOINT
 
+static void Command_SetViews_f(void)
+{
+	UINT8 splits;
+	UINT8 newsplits;
+
+	if (!( demoplayback && multiplayer ))
+	{
+		CONS_Alert(CONS_NOTICE,
+				"You must be viewing a multiplayer replay to use this.\n");
+		return;
+	}
+
+	if (COM_Argc() != 2)
+	{
+		CONS_Printf("setviews <views>: set the number of split screens\n");
+		return;
+	}
+
+	splits = splitscreen+1;
+
+	newsplits = atoi(COM_Argv(1));
+	newsplits = min(max(newsplits, 1), 4);
+	if (newsplits > splits)
+		G_AdjustView(newsplits, 0, true);
+	else
+	{
+		splitscreen = newsplits-1;
+		R_ExecuteSetViewSize();
+	}
+}
+
 // ========================================================================
 
 // play a demo, add .lmp for external demos
@@ -2002,9 +2102,14 @@ static void Command_Playdemo_f(void)
 {
 	char name[256];
 
-	if (COM_Argc() != 2)
+	if (COM_Argc() < 2)
 	{
-		CONS_Printf(M_GetText("playdemo <demoname>: playback a demo\n"));
+		CONS_Printf("playdemo <demoname> [-addfiles / -force]:\n");
+		CONS_Printf(M_GetText(
+					"Play back a demo file. The full path from your Kart directory must be given.\n\n"
+
+					"* With \"-addfiles\", any required files are added from a list contained within the demo file.\n"
+					"* With \"-force\", the demo is played even if the necessary files have not been added.\n"));
 		return;
 	}
 
@@ -2025,6 +2130,9 @@ static void Command_Playdemo_f(void)
 	// dont add .lmp so internal game demos can be played
 
 	CONS_Printf(M_GetText("Playing back demo '%s'.\n"), name);
+
+	demo_loadfiles = strcmp(COM_Argv(2), "-addfiles") == 0;
+	demo_ignorefiles = strcmp(COM_Argv(2), "-force") == 0;
 
 	// Internal if no extension, external if one exists
 	// If external, convert the file name to a path in SRB2's home directory
@@ -2502,6 +2610,8 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	LUAh_MapChange(mapnumber);
 #endif*/
 
+	demosaved = demodefersave = false;
+	demosavebutton = 0;
 	G_InitNew(pencoremode, mapname, resetplayer, skipprecutscene);
 	if (demoplayback && !timingdemo)
 		precache = true;

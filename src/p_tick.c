@@ -13,6 +13,7 @@
 
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_input.h"
 #include "p_local.h"
 #include "z_zone.h"
 #include "s_sound.h"
@@ -722,10 +723,28 @@ void P_Ticker(boolean run)
 			G_ReadMetalTic(metalplayback);
 		if (metalrecording)
 			G_WriteMetalTic(players[consoleplayer].mo);
-		if (demorecording)
-			G_WriteGhostTic(players[consoleplayer].mo);
-		if (demoplayback) // Use Ghost data for consistency checks.
-			G_ConsGhostTic();
+
+		if (multiplayer)
+		{
+			if (demorecording)
+			{
+				G_WriteAllGhostTics();
+
+				if (demosavebutton && demosavebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
+					demodefersave = true;
+			}
+			if (demoplayback) // Use Ghost data for consistency checks.
+			{
+				G_ConsAllGhostTics();
+			}
+		}
+		else
+		{
+			if (demorecording)
+				G_WriteGhostTic(players[consoleplayer].mo, consoleplayer);
+			if (demoplayback) // Use Ghost data for consistency checks.
+				G_ConsGhostTic(0);
+		}
 		if (modeattacking)
 			G_GhostTicker();
 

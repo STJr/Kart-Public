@@ -1907,7 +1907,7 @@ static void ST_overlayDrawer(void)
 				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[stplyr-players]);
 			}
 		}
-		else
+		else if (!titledemo)
 		{
 
 			if (!splitscreen)
@@ -2012,6 +2012,15 @@ static void ST_overlayDrawer(void)
 				V_DrawString(2, BASEVIDHEIGHT-10, V_HUDTRANSHALF, M_GetText("Brake - Sink"));
 			}
 		}
+	}
+
+	// Replay manual-save stuff
+	if (demorecording && multiplayer && demosavebutton && demosavebutton + 3*TICRATE < leveltime)
+	{
+		if (demodefersave || cv_recordmultiplayerdemos.value == 2)
+			V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_HUDTRANSHALF|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved.");
+		else
+			V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_HUDTRANSHALF|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Press Look Backward to save the replay");
 	}
 
 	ST_drawDebugInfo();

@@ -169,7 +169,7 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 boolean P_AutoPause(void)
 {
 	// Don't pause even on menu-up or focus-lost in netgames or record attack
-	if (netgame || modeattacking)
+	if (netgame || modeattacking || titledemo)
 		return false;
 
 	return (menuactive || window_notinfocus);
@@ -1708,7 +1708,7 @@ void P_SpawnThokMobj(player_t *player)
 
 	P_SetTarget(&mobj->target, player->mo); // the one thing P_SpawnGhostMobj doesn't do
 	if (demorecording)
-		G_GhostAddThok();
+		G_GhostAddThok((INT32) (player - players));
 }
 
 //
@@ -1834,6 +1834,9 @@ void P_DoPlayerExit(player_t *player)
 	player->powers[pw_underwater] = 0;
 	player->powers[pw_spacetime] = 0;
 	player->kartstuff[k_cardanimation] = 0; // srb2kart: reset battle animation
+
+	if (player == &players[consoleplayer])
+		demosavebutton = leveltime;
 
 	/*if (playeringame[player-players] && netgame && !circuitmap)
 		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
@@ -2416,12 +2419,12 @@ static void P_CheckInvincibilityTimer(player_t *player)
 				//if (player->powers[pw_shield] & SH_FIREFLOWER)
 				//{
 				//	player->mo->color = SKINCOLOR_WHITE;
-				//	G_GhostAddColor(GHC_FIREFLOWER);
+				//	G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 				//}
 				//else
 				{
 					player->mo->color = player->skincolor;
-					G_GhostAddColor(GHC_NORMAL);
+					G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 				}
 			}
 
@@ -3673,12 +3676,12 @@ static void P_DoSuperStuff(player_t *player)
 			if (player->powers[pw_shield] & SH_FIREFLOWER)
 			{
 				player->mo->color = SKINCOLOR_WHITE;
-				G_GhostAddColor(GHC_FIREFLOWER);
+				G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 			}
 			else
 			{
 				player->mo->color = player->skincolor;
-				G_GhostAddColor(GHC_NORMAL);
+				G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 			}
 
 			if (gametype != GT_COOP)
@@ -3714,7 +3717,7 @@ static void P_DoSuperStuff(player_t *player)
 			P_SetScale(spark, player->mo->scale);
 		}
 
-		G_GhostAddColor(GHC_SUPER);
+		G_GhostAddColor((INT32) (player - players), GHC_SUPER);
 
 		// Ran out of rings while super!
 		if (player->health <= 1 || player->exiting)
@@ -3728,12 +3731,12 @@ static void P_DoSuperStuff(player_t *player)
 			if (player->powers[pw_shield] & SH_FIREFLOWER)
 			{
 				player->mo->color = SKINCOLOR_WHITE;
-				G_GhostAddColor(GHC_FIREFLOWER);
+				G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 			}
 			else
 			{
 				player->mo->color = player->skincolor;
-				G_GhostAddColor(GHC_NORMAL);
+				G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 			}
 
 			if (gametype != GT_COOP)
@@ -4035,7 +4038,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 				// Now spawn the color thok circle.
 				P_SpawnSpinMobj(player, player->revitem);
 				if (demorecording)
-					G_GhostAddRev();
+					G_GhostAddRev((INT32) (player - players));
 			}
 		}
 		// If not moving up or down, and travelling faster than a speed of four while not holding
@@ -7017,7 +7020,7 @@ static void P_MovePlayer(player_t *player)
 	{
 		P_SpawnSpinMobj(player, player->spinitem);
 		if (demorecording)
-			G_GhostAddSpin();
+			G_GhostAddSpin((INT32) (player - players));
 	}
 	*/
 
@@ -8309,9 +8312,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
 
-	if (splitscreen == 1)
-		camspeed = (3*camspeed)/4;
-
 	if (camspeed > FRACUNIT)
 		camspeed = FRACUNIT;
 
@@ -8363,13 +8363,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		dist -= FixedMul(11*dist/16, player->kartstuff[k_boostcam]);
 		height -= FixedMul(height, player->kartstuff[k_boostcam]);
-	}
-
-	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
-	if (splitscreen == 1) // widescreen splits should get x1.5 distance
-	{
-		dist = FixedMul(dist, 3*FRACUNIT/2);
-		height = FixedMul(height, 3*FRACUNIT/2);
 	}
 
 	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
@@ -8637,10 +8630,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		thiscam->momx = x - thiscam->x;
 		thiscam->momy = y - thiscam->y;
-		if (splitscreen == 1) // Wide-screen needs to follow faster, due to a smaller vertical:horizontal ratio of screen space
-			thiscam->momz = FixedMul(z - thiscam->z, (3*camspeed)/4);
-		else
-			thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
+		thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
 	}
 
 	thiscam->pan = pan;

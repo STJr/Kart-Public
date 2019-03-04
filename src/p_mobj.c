@@ -1220,7 +1220,7 @@ static void P_PlayerFlip(mobj_t *mo)
 	if (!mo->player)
 		return;
 
-	G_GhostAddFlip();
+	G_GhostAddFlip((INT32) (mo->player - players));
 	// Flip aiming to match!
 
 	if (mo->player->pflags & PF_NIGHTSMODE) // NiGHTS doesn't use flipcam
@@ -6010,7 +6010,7 @@ void P_SetScale(mobj_t *mobj, fixed_t newscale)
 
 	if (player)
 	{
-		G_GhostAddScale(newscale);
+		G_GhostAddScale((INT32) (player - players), newscale);
 		player->viewheight = FixedMul(FixedDiv(player->viewheight, oldscale), newscale); // Nonono don't calculate viewheight elsewhere, this is the best place for it!
 		player->dashspeed = FixedMul(FixedDiv(player->dashspeed, oldscale), newscale); // Prevents the player from having to re-charge up spindash if the player grew in size
 	}

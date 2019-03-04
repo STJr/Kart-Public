@@ -36,7 +36,9 @@ extern boolean playeringame[MAXPLAYERS];
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo;
+extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo, demosaved, demodefersave, demo_loadfiles, demo_ignorefiles;
+extern tic_t demosavebutton;
+extern consvar_t cv_recordmultiplayerdemos;
 
 // Quit after playing a demo from cmdline.
 extern boolean singledemo;
@@ -155,6 +157,7 @@ typedef enum
 } ghostcolor_t;
 
 extern UINT8 demo_extradata[MAXPLAYERS];
+extern UINT8 demo_writerng;
 #define DXD_RESPAWN 0x01 // "respawn" command in console
 #define DXD_SKIN 0x02 // skin changed
 #define DXD_NAME 0x04 // name changed
@@ -170,15 +173,17 @@ void G_ReadDemoExtraData(void);
 void G_WriteDemoExtraData(void);
 void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum);
 void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum);
-void G_GhostAddThok(void);
-void G_GhostAddSpin(void);
-void G_GhostAddRev(void);
-void G_GhostAddColor(ghostcolor_t color);
-void G_GhostAddFlip(void);
-void G_GhostAddScale(fixed_t scale);
-void G_GhostAddHit(mobj_t *victim);
-void G_WriteGhostTic(mobj_t *ghost);
-void G_ConsGhostTic(void);
+void G_GhostAddThok(INT32 playernum);
+void G_GhostAddSpin(INT32 playernum);
+void G_GhostAddRev(INT32 playernum);
+void G_GhostAddColor(INT32 playernum, ghostcolor_t color);
+void G_GhostAddFlip(INT32 playernum);
+void G_GhostAddScale(INT32 playernum, fixed_t scale);
+void G_GhostAddHit(INT32 playernum, mobj_t *victim);
+void G_WriteAllGhostTics(void);
+void G_WriteGhostTic(mobj_t *ghost, INT32 playernum);
+void G_ConsAllGhostTics(void);
+void G_ConsGhostTic(INT32 playernum);
 void G_GhostTicker(void);
 void G_ReadMetalTic(mobj_t *metal);
 void G_WriteMetalTic(mobj_t *metal);
@@ -206,6 +211,7 @@ void G_StopMetalDemo(void);
 ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void);
 void G_StopDemo(void);
 boolean G_CheckDemoStatus(void);
+void G_SaveDemo(void);
 
 boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);
@@ -228,8 +234,15 @@ boolean G_Responder(event_t *ev);
 
 INT32 *G_GetDisplayplayerPtr(UINT8 viewnum);
 
+boolean G_CouldView(INT32 playernum);
+boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive);
+
+INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive);
+INT32 G_CountPlayersPotentiallyViewable(boolean active);
+
 void G_ResetViews(void);
-void G_ResetView(UINT8 viewnum);
+void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive);
+void G_AdjustView(UINT8 viewnum, INT32 offset, boolean onlyactive);
 
 void G_AddPlayer(INT32 playernum);
 
