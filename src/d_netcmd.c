@@ -2104,7 +2104,12 @@ static void Command_Playdemo_f(void)
 
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf(M_GetText("playdemo <demoname>: playback a demo\n"));
+		CONS_Printf("playdemo <demoname> [-addfiles / -force]:\n");
+		CONS_Printf(M_GetText(
+					"Play back a demo file. The full path from your Kart directory must be given.\n\n"
+
+					"* With \"-addfiles\", any required files are added from a list contained within the demo file.\n"
+					"* With \"-force\", the demo is played even if the necessary files have not been added.\n"));
 		return;
 	}
 
