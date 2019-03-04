@@ -6847,6 +6847,8 @@ void G_DoPlayDemo(char *defdemoname)
 		// Load players that were in-game when the map started
 		p = READUINT8(demo_p);
 
+		secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = INT32_MAX;
+
 		while (p != 0xFF)
 		{
 			spectator = false;
@@ -6857,7 +6859,7 @@ void G_DoPlayDemo(char *defdemoname)
 			slots[numslots] = p; numslots++;
 
 			if (!playeringame[displayplayer] || players[displayplayer].spectator)
-				displayplayer = consoleplayer = secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = p;
+				displayplayer = consoleplayer = serverplayer = p;
 			/*else if (!spectator && splitscreen < 3) {
 				if (splitscreen == 0) {
 					splitscreen = 1;

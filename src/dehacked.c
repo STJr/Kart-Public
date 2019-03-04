@@ -9812,7 +9812,7 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushinteger(L, mapmusflags);
 		return 1;
 	} else if (fastcmp(word,"server")) {
-		if ((!multiplayer || !netgame) && !playeringame[serverplayer])
+		if ((!multiplayer || !(netgame || demoplayback)) && !playeringame[serverplayer])
 			return 0;
 		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
 		return 1;
