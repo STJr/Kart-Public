@@ -6901,7 +6901,7 @@ void G_DoPlayDemo(char *defdemoname)
 		if (titledemo)
 		{
 			splitscreen = M_RandomKey(6)-1;
-			splitscreen = min(min(3, numslots-1), max(0, splitscreen)); // Bias toward 1p and 4p views
+			splitscreen = min(min(3, numslots-1), splitscreen); // Bias toward 1p and 4p views
 
 			for (p = 0; p <= splitscreen; p++)
 				G_ResetView(p+1, slots[M_RandomKey(numslots)], false);
