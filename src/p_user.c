@@ -8929,6 +8929,15 @@ void P_DoTimeOver(player_t *player)
 */
 static void P_SetFollowerState(mobj_t *f, INT32 state)
 {
+	// extravalue2 stores the last "first state" we used.
+	// because states default to idlestates, if we use an animation that uses an "ongoing" state line, don't reset it!
+	// this prevents it from looking very dumb
+	if (state == f->extravalue2)
+		return;
+
+	// we will save the state into extravalue2.
+	f->extravalue2 = state;
+
 	P_SetMobjStateNF(f, state);
 	if (f->state->tics > 0)
 		f->tics++;
@@ -9000,6 +9009,7 @@ static void P_HandleFollower(player_t *player)
 			2 = hurt
 			3 = win
 			4 = lose
+			5 = hitconfirm (< this one uses ->movecount as timer to know when to end, and goes back to normal states afterwards, unless hurt)
 		*/
 	}
 	else	// follower exists, woo!
@@ -9019,13 +9029,19 @@ static void P_HandleFollower(player_t *player)
 		P_SetScale(player->follower, FixedMul(fl.scale, player->mo->scale));
 		K_MatchGenericExtraFlags(player->follower, player->mo);
 
+		// Make the follower invisible if we no contest'd rather than removing it. No one will notice the diff seriously.
+
+		if (player->pflags & PF_TIMEOVER)	// there is more to it than that to check for a full no contest but this isn't used for anything else.
+			player->follower->flags2 &= MF2_DONTDRAW;
+
+
 
 		// handle follower animations. Yes, it looks like very bad kiddie script so what, do you have any better idea genius? Go get a life instead of criticizing my unpaid work!!!!!!
-
 		// hurt or dead
-		if (player->kartstuff[k_spinouttimer] || player->mo->health <= 0)
+		if (player->kartstuff[k_spinouttimer] || player->mo->state == &states[S_KART_SPIN] || player->mo->health <= 0)
 		{
-			player->follower->angle = -leveltime*48*ANG1;	// spin out
+			player->follower->movecount = 0;	// cancel hit confirm.
+			player->follower->angle = player->frameangle;	// spin out
 			if (player->follower->extravalue1 != 2)
 			{
 				player->follower->extravalue1 = 2;
@@ -9033,6 +9049,15 @@ static void P_HandleFollower(player_t *player)
 			}
 			if (player->mo->health <= 0)	// if dead, follow the player's z momentum exactly so they both look like they die at the same speed.
 				player->follower->momz = player->mo->momz;
+		}
+		else if (player->follower->movecount)
+		{
+			if (player->follower->extravalue1 != 5)
+			{
+				player->follower->extravalue1 = 5;
+				P_SetFollowerState(player->follower, fl.hitconfirmstate);
+			}
+			player->follower->movecount--;
 		}
 		else if (player->speed > 10*player->mo->scale)	// animation for moving fast enough
 		{

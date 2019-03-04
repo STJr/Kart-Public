@@ -725,6 +725,7 @@ static void readfollower(MYFILE *f)
 	followers[numfollowers].vertlag = 6;
 	followers[numfollowers].bobspeed = TICRATE*2;
 	followers[numfollowers].bobamp = 4;
+	followers[numfollowers].hitconfirmtime = TICRATE;
 
 	do
 	{
@@ -835,6 +836,18 @@ static void readfollower(MYFILE *f)
 				DEH_WriteUndoline(word, va("%d", followers[numfollowers].winstate), UNDO_NONE);
 				followers[numfollowers].winstate = get_number(word2);
 			}
+			else if (fastcmp(word, "HITSTATE") || (fastcmp(word, "HITCONFIRMSTATE")))
+			{
+				if (word2)
+					strupr(word2);
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].hitconfirmstate), UNDO_NONE);
+				followers[numfollowers].hitconfirmstate = get_number(word2);
+			}
+			else if (fastcmp(word, "HITTIME") || (fastcmp(word, "HITCONFIRMTIME")))
+			{
+				DEH_WriteUndoline(word, va("%d", followers[numfollowers].hitconfirmtime), UNDO_NONE);
+				followers[numfollowers].hitconfirmtime = (INT32)atoi(word2);
+			}
 			else
 				deh_warning("Follower %d: unknown word '%s'", numfollowers, word);
 		}
@@ -893,6 +906,10 @@ static void readfollower(MYFILE *f)
 	if (followers[numfollowers].bobspeed < 0)
 		followers[numfollowers].bobspeed = 1;
 
+	// hit confirm time must be > 0
+	if (followers[numfollowers].hitconfirmtime < 1)
+		followers[numfollowers].hitconfirmtime = 1;
+
 	// also check if we forgot states. If we did, we will set any missing state to the follower's idlestate.
 	// Print a warning in case we don't have a fallback and set the state to S_INVISIBLE (rather than S_NULL) if unavailable.
 
@@ -909,6 +926,7 @@ if (!followers[numfollowers].field) \
 	NOSTATE(hurtstate, "hurtstate");
 	NOSTATE(losestate, "losestate");
 	NOSTATE(winstate, "winstate");
+	NOSTATE(winstate, "hitconfirmstate");
 #undef NOSTATE
 
 	CONS_Printf("Added follower '%s'\n", dname);

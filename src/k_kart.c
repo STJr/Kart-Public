@@ -1642,6 +1642,13 @@ void K_PlayOvertakeSound(mobj_t *source)
 
 void K_PlayHitEmSound(mobj_t *source)
 {
+	
+	if (source->player->follower)
+	{
+		follower_t fl = followers[source->player->followerskin];
+		source->player->follower->movecount = fl.hitconfirmtime;	// movecount is used to play the hitconfirm animation for followers.
+	}
+	
 	if (cv_kartvoices.value)
 		S_StartSound(source, sfx_khitem);
 	else

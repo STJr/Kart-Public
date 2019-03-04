@@ -319,6 +319,10 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->awayviewtics);
 	else if (fastcmp(field,"awayviewaiming"))
 		lua_pushangle(L, plr->awayviewaiming);
+	else if (fastcmp(field,"follower"))
+		LUA_PushUserdata(L, plr->follower, META_MOBJ);
+	else if (fastcmp(field,"followerskin"))
+		lua_pushinteger(L, plr->followerskin);
 	else if (fastcmp(field,"spectator"))
 		lua_pushboolean(L, plr->spectator);
 	else if (fastcmp(field,"bot"))
@@ -609,6 +613,10 @@ static int player_set(lua_State *L)
 	}
 	else if (fastcmp(field,"awayviewaiming"))
 		plr->awayviewaiming = luaL_checkangle(L, 3);
+	else if (fastcmp(field,"follower"))	// it's probably best we don't allow the follower mobj to change.
+		return NOSET;
+	else if (fastcmp(field,"followerskin"))
+		plr->followerskin = luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"spectator"))
 		plr->spectator = lua_toboolean(L, 3);
 	else if (fastcmp(field,"bot"))
