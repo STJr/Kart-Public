@@ -4931,7 +4931,7 @@ void G_ReadDemoExtraData(void)
 
 	while (p != DW_END)
 	{
-		INT32 rng;
+		UINT32 rng;
 
 		switch (p)
 		{
