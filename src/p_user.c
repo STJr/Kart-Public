@@ -6662,7 +6662,7 @@ static void P_MovePlayer(player_t *player)
 				//CONS_Printf("leftover turn (%s): %5d or %4d%%\n",
 				//				player_names[player-players],
 				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)),
-				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ?: 1));
+				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ? angle_diff : 1));
 			}
 		}
 
