@@ -7218,8 +7218,8 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 		totalfiles = READUINT8(p);
 		for (; totalfiles > 0; --totalfiles)
 		{
-			SKIPSTRING(p);
-			READMEM(p, md5sum, 16);
+			SKIPSTRING(p)
+			READMEM(p, md5sum, 16)
 		}
 	}
 	if (!(flags & DF_GHOST))
