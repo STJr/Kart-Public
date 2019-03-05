@@ -926,7 +926,7 @@ if (!followers[numfollowers].field) \
 	NOSTATE(hurtstate, "hurtstate");
 	NOSTATE(losestate, "losestate");
 	NOSTATE(winstate, "winstate");
-	NOSTATE(winstate, "hitconfirmstate");
+	NOSTATE(hitconfirmstate, "hitconfirmstate");
 #undef NOSTATE
 
 	CONS_Printf("Added follower '%s'\n", dname);
