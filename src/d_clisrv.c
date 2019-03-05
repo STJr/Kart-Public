@@ -3414,10 +3414,10 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		{
 			const char *address;
 			if (I_GetNodeAddress && (address = I_GetNodeAddress(node)) != NULL)
-				HU_AddChatText(va("\x82*Player %d has joined the game (node %d) (%s)", newplayernum+1, node, address), false);	// merge join notification + IP to avoid clogging console/chat.
+				HU_AddChatText(va("\x82*Player %d has joined the game (%s)", newplayernum+1, address), false);	// merge join notification + IP to avoid clogging console/chat.
 		}
 		else
-			HU_AddChatText(va("\x82*Player %d has joined the game (node %d)", newplayernum+1, node), false);	// if you don't wanna see the join address.
+			HU_AddChatText(va("\x82*Player %d has joined the game", newplayernum+1), false);	// if you don't wanna see the join address.
 	}
 
 	if (server && multiplayer && motd[0] != '\0')
@@ -3993,7 +3993,7 @@ static boolean CheckForSpeedHacks(UINT8 p)
 		|| netcmds[maketic%BACKUPTICS][p].driftturn > KART_FULLTURN || netcmds[maketic%BACKUPTICS][p].driftturn < -KART_FULLTURN)
 	{
 		XBOXSTATIC char buf[2];
-		CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from node %d\n"), playernode[p]);
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal movement value received from player %d\n"), p);
 		//D_Clearticcmd(k);
 
 		buf[0] = (char)p;
