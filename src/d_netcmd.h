@@ -126,7 +126,7 @@ extern consvar_t cv_karteliminatelast;
 extern consvar_t cv_votetime;
 
 extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugshrink, cv_kartdebugdistribution, cv_kartdebughuddrop;
-extern consvar_t cv_kartdebugcheckpoint, cv_kartdebugnodes;
+extern consvar_t cv_kartdebugcheckpoint, cv_kartdebugnodes, cv_kartdebugcolorize;
 
 extern consvar_t cv_itemfinder;
 
@@ -145,6 +145,8 @@ extern consvar_t cv_specialrings, cv_powerstones, cv_matchboxes, cv_competitionb
 
 #ifdef NEWPING
 extern consvar_t cv_maxping;
+extern consvar_t cv_pingtimeout;
+extern consvar_t cv_showping;
 #endif
 
 extern consvar_t cv_skipmapcheck;

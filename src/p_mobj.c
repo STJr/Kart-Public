@@ -3399,8 +3399,8 @@ void P_MobjCheckWater(mobj_t *mobj)
 
 			// skipping stone!
 			if (p && p->kartstuff[k_waterskip] < 2
-				&& ((p->speed/2 > abs(mobj->momz)) // Going more forward than horizontal, so you can skip across the water.
-				|| (p->speed > K_GetKartSpeed(p,false)/4 && p->kartstuff[k_waterskip])) // Already skipped once, so you can skip once more!
+				&& ((p->speed/3 > abs(mobj->momz)) // Going more forward than horizontal, so you can skip across the water.
+				|| (p->speed > K_GetKartSpeed(p,false)/3 && p->kartstuff[k_waterskip])) // Already skipped once, so you can skip once more!
 				&& ((!(mobj->eflags & MFE_VERTICALFLIP) && thingtop - mobj->momz > mobj->watertop)
 				|| ((mobj->eflags & MFE_VERTICALFLIP) && mobj->z - mobj->momz < mobj->waterbottom)))
 			{

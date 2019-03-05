@@ -74,6 +74,14 @@ patch_t *nightsnum[10]; // 0-9
 patch_t *lt_font[LT_FONTSIZE];
 patch_t *cred_font[CRED_FONTSIZE];
 
+// ping font
+// Note: I'd like to adress that at this point we might *REALLY* want to work towards a common drawString function that can take any font we want because this is really turning into a MESS. :V -Lat'
+patch_t *pingnum[10];
+patch_t *pinggfx[5];	// small ping graphic
+
+patch_t *framecounter;
+patch_t *frameslash;	// framerate stuff. Used in screen.c
+
 static player_t *plr;
 boolean chat_on; // entering a chat message?
 static char w_chat[HU_MAXMSGLEN];
@@ -263,6 +271,8 @@ void HU_LoadGraphics(void)
 		tallnum[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 		sprintf(buffer, "NGTNUM%d", i);
 		nightsnum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+		sprintf(buffer, "PINGN%d", i);
+		pingnum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
 	// minus for negative tallnums
@@ -295,6 +305,17 @@ void HU_LoadGraphics(void)
 	tinyemeraldpics[6] = W_CachePatchName("TEMER7", PU_HUDGFX);
 
 	songcreditbg = W_CachePatchName("K_SONGCR", PU_HUDGFX);
+
+	// cache ping gfx:
+	for (i = 0; i < 5; i++)
+	{
+		sprintf(buffer, "PINGGFX%d", i+1);
+		pinggfx[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	// fps stuff
+	framecounter = W_CachePatchName("FRAMER", PU_HUDGFX);
+	frameslash  = W_CachePatchName("FRAMESL", PU_HUDGFX);;
 }
 
 // Initialise Heads up
@@ -774,15 +795,15 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 				cstart = "\x85"; // V_REDMAP
 			else if (color <= SKINCOLOR_TANGERINE)
 				cstart = "\x87"; // V_ORANGEMAP
-			else if (color <= SKINCOLOR_CARAMEL)
+			else if (color <= SKINCOLOR_CREAM)
 				cstart = "\x8f"; // V_PEACHMAP
-			else if (color <= SKINCOLOR_BRONZE)
+			else if (color <= SKINCOLOR_COPPER)
 				cstart = "\x8A"; // V_GOLDMAP
 			else if (color <= SKINCOLOR_OLIVE)
 				cstart = "\x82"; // V_YELLOWMAP
 			else if (color <= SKINCOLOR_PISTACHIO)
 				cstart = "\x8b"; // V_TEAMAP
-			else if (color <= SKINCOLOR_DREAM || color == SKINCOLOR_LIME)
+			else if (color <= SKINCOLOR_ALGAE || color == SKINCOLOR_LIME || color == SKINCOLOR_HANDHELD)
 				cstart = "\x83"; // V_GREENMAP
 			else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
 				cstart = "\x88"; // V_SKYMAP
@@ -1612,9 +1633,9 @@ static void HU_drawChatLog(INT32 offset)
 
 	// draw arrows to indicate that we can (or not) scroll.
 	if (chat_scroll > 0)
-		V_DrawThinString(chatx-9, ((justscrolledup) ? (chat_topy-1) : (chat_topy)), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight, "\x1A"); // up arrow
+		V_DrawCharacter(chatx-9, ((justscrolledup) ? (chat_topy-1) : (chat_topy)), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight | '\x1A', false); // up arrow
 	if (chat_scroll < chat_maxscroll)
-		V_DrawThinString(chatx-9, chat_bottomy-((justscrolleddown) ? 5 : 6), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight, "\x1B"); // down arrow
+		V_DrawCharacter(chatx-9, chat_bottomy-((justscrolleddown) ? 5 : 6), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight | '\x1B', false); // down arrow
 
 	justscrolleddown = false;
 	justscrolledup = false;
@@ -2178,6 +2199,7 @@ static void HU_DrawSongCredits(void)
 		V_DrawRightAlignedThinString(cursongcredit.x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
 }
 
+
 // Heads up displays drawer, call each frame
 //
 void HU_Drawer(void)
@@ -2369,36 +2391,25 @@ void HU_Erase(void)
 //
 // HU_drawPing
 //
-void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
+void HU_drawPing(INT32 x, INT32 y, UINT32 ping, INT32 flags)
 {
-	UINT8 numbars = 1; // how many ping bars do we draw?
-	UINT8 barcolor = 128; // color we use for the bars (green, yellow or red)
-	SINT8 i = 0;
-	SINT8 yoffset = 6;
-	INT32 dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
+	INT32 gfxnum = 4;	// gfx to draw
+	UINT8 const *colormap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SALMON, GTC_CACHE);
 
-	if (ping < 128)
-	{
-		numbars = 3;
-		barcolor = 184;
-	}
+	if (ping < 76)
+		gfxnum = 0;
+	else if (ping < 137)
+		gfxnum = 1;
 	else if (ping < 256)
-	{
-		numbars = 2; // Apparently ternaries w/ multiple statements don't look good in C so I decided against it.
-		barcolor = 103;
-	}
+		gfxnum = 2;
+	else if (ping < 500)
+		gfxnum = 3;
 
-	if (!notext || vid.width >= 640) // how sad, we're using a shit resolution.
-		V_DrawSmallString(dx, y+4, V_ALLOWLOWERCASE, va("%dms", ping));
-
-	for (i=0; (i<3); i++) // Draw the ping bar
-	{
-		V_DrawFill(x+2 *(i-1), y+yoffset-4, 2, 8-yoffset, 31);
-		if (i < numbars)
-			V_DrawFill(x+2 *(i-1), y+yoffset-3, 1, 8-yoffset-1, barcolor);
-
-		yoffset -= 2;
-	}
+	V_DrawScaledPatch(x, y, flags, pinggfx[gfxnum]);
+	if (servermaxping && ping > servermaxping && hu_tick < 4)		// flash ping red if too high
+		V_DrawPingNum(x, y+9, flags, ping, colormap);
+	else
+		V_DrawPingNum(x, y+9, flags, ping, NULL);
 }
 
 //
