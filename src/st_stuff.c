@@ -1918,9 +1918,9 @@ static void ST_overlayDrawer(void)
 			else if (splitscreen == 1)
 			{
 				char name[MAXPLAYERNAME+12];
-				sprintf(name, "VIEWPOINT: %s", player_names[stplyr-players]);
 
 				INT32 y = (stplyr == &players[displayplayer]) ? 8 : BASEVIDHEIGHT/2-16;
+				sprintf(name, "VIEWPOINT: %s", player_names[stplyr-players]);
 				V_DrawRightAlignedThinString(BASEVIDWIDTH-40, y, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOBOTTOM|V_SNAPTORIGHT), name);
 			}
 			else if (splitscreen)
