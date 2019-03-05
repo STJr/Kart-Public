@@ -6294,11 +6294,13 @@ static void G_LoadDemoExtraFiles(UINT8 **pp)
 			else
 				ncs = findfile(filename, md5sum, false);
 
-			if (toomany || ncs != FS_FOUND)
+			if (toomany)
 			{
-				if (toomany)
-					CONS_Printf("Too many files loaded\n");
-				else if (ncs == FS_NOTFOUND)
+				CONS_Printf("Too many files loaded\n");
+			}
+			else if (ncs != FS_FOUND)
+			{
+				if (ncs == FS_NOTFOUND)
 					CONS_Printf("You do not have a copy of %s\n", filename);
 				else if (ncs == FS_MD5SUMBAD)
 					CONS_Printf("Checksum mismatch on %s\n", filename);
