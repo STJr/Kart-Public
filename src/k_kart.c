@@ -681,6 +681,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	INT32 newodds;
 	INT32 i;
 	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
+	boolean thunderisout = false;
 	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
 	boolean itemenabled[NUMKARTRESULTS-1] = {
@@ -725,10 +726,13 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			continue;
+
 		if (!G_BattleGametype() || players[i].kartstuff[k_bumper])
 			pingame++;
+
 		if (players[i].exiting)
 			pexiting++;
+
 		if (players[i].mo)
 		{
 			if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY
@@ -736,6 +740,10 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 				|| players[i].kartstuff[k_invincibilitytimer]
 				|| players[i].kartstuff[k_growshrinktimer] > 0)
 				pinvin++;
+
+			if (players[i].kartstuff[k_itemtype] == KITEM_THUNDERSHIELD)
+				thunderisout = true;
+
 			if (!G_BattleGametype())
 			{
 				if (players[i].kartstuff[k_position] == 1 && first == -1)
@@ -759,9 +767,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
 	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
 	// Next, it multiplies it again if it's in SPB mode and 2nd needs to apply pressure to 1st.
-	// Then, it multiplies it further if there's less than 5 players in game.
-	// This is done to make low player count races more fair & interesting. (2P normal would be about halfway between 8P normal and 8P frantic)
-	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
+	// Then, it multiplies it further if the player count isn't equal to 8.
+	// This is done to make low player count races more interesting and high player count rates more fair. (2P normal would be about halfway between 8P normal and 8P frantic)
+	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, for lesser items needed in a pinch.
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
 		odds <<= 1; \
@@ -769,13 +777,13 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	if (mashed > 0) \
 		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
 
-#define COOLDOWNONSTART (leveltime < (31*TICRATE)+starttime)
+#define COOLDOWNONSTART (leveltime < (30*TICRATE)+starttime)
 
 	switch (item)
 	{
 		case KITEM_INVINCIBILITY:
 		case KITEM_GROW:
-			if (pinvin >= max(1, (pingame+2) / 4) || COOLDOWNONSTART)
+			if (pinvin >= max(1, (pingame+3) / 4) || COOLDOWNONSTART)
 				newodds = 0;
 			else
 				POWERITEMODDS(newodds);
@@ -783,7 +791,6 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		case KITEM_ROCKETSNEAKER:
 		case KITEM_JAWZ:
 		case KITEM_BALLHOG:
-		case KITEM_THUNDERSHIELD:
 		case KRITEM_TRIPLESNEAKER:
 		case KRITEM_TRIPLEBANANA:
 		case KRITEM_TENFOLDBANANA:
@@ -811,6 +818,11 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 			else
 				POWERITEMODDS(newodds);
 			break;
+		case KITEM_THUNDERSHIELD:
+			if (thunderisout)
+				newodds = 0;
+			else
+				POWERITEMODDS(newodds);
 		case KITEM_HYUDORO:
 			if ((hyubgone > 0) || COOLDOWNONSTART)
 				newodds = 0;
