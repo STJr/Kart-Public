@@ -169,6 +169,7 @@ static void Got_Verification(UINT8 **cp, INT32 playernum);
 static void Got_Removal(UINT8 **cp, INT32 playernum);
 static void Command_Verify_f(void);
 static void Command_RemoveAdmin_f(void);
+static void Command_ChangeJoinPassword_f(void);
 static void Command_MotD_f(void);
 static void Got_MotD_f(UINT8 **cp, INT32 playernum);
 
@@ -534,6 +535,7 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
+	COM_AddCommand("joinpassword", Command_ChangeJoinPassword_f);
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
 	COM_AddCommand("login", Command_Login_f); // useful in dedicated to kick off remote admin
@@ -3427,6 +3429,7 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 
 	if (len > 256-sl)
 		len = 256-sl;
+
 	memcpy(tmpbuf, buffer, len);
 	memmove(&tmpbuf[len], salt, sl);
 	//strcpy(&tmpbuf[len], salt);
@@ -3700,6 +3703,107 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 		return;
 
 	CONS_Printf(M_GetText("You are no longer a server administrator.\n"));
+}
+
+// Join password stuff
+#define NUMJOINCHALLENGES 32
+static UINT8 joinpassmd5[17];
+static boolean joinpasswordset = false;
+static UINT8 joinpasschallenges[NUMJOINCHALLENGES][17];
+static boolean joinpasschallengeson[NUMJOINCHALLENGES];
+
+boolean D_IsJoinPasswordOn(void)
+{
+	return joinpasswordset;
+}
+
+static inline void GetChallengeAnswer(UINT8 *question, UINT8 *passwordmd5, UINT8 *answer)
+{
+	D_MD5PasswordPass(question, 16, (char *) passwordmd5, answer);
+}
+
+void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer)
+{
+	static UINT8 passwordmd5[17];
+
+	memset(passwordmd5, 0x00, 17);
+	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &passwordmd5);
+	GetChallengeAnswer(question, passwordmd5, answer);
+}
+
+void D_SetJoinPassword(const char *pw)
+{
+	memset(joinpassmd5, 0x00, 17);
+	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &joinpassmd5);
+	joinpasswordset = true;
+}
+
+boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
+{
+	boolean passed = false;
+
+	num %= NUMJOINCHALLENGES;
+
+	//@TODO use a constant-time memcmp....
+	if (joinpasschallengeson[num] && memcmp(answer, joinpasschallenges[num], 16) == 0)
+		passed = true;
+
+	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
+	memset(joinpasschallenges[num], 0x00, 17);
+	joinpasschallengeson[num] = false;
+
+	return passed;
+}
+
+void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
+{
+	size_t i;
+
+	for (i = 0; i < NUMJOINCHALLENGES; i++)
+	{
+		(*num) = M_RandomKey(NUMJOINCHALLENGES);
+
+		if (!joinpasschallengeson[(*num)])
+			break;
+	}
+
+	// If the above loop never breaks, then uh.... we're obliterating one random stored challenge. Sorry (:
+	joinpasschallengeson[(*num)] = true;
+
+	memset(question, 0x00, 17);
+	for (i = 0; i < 16; i++)
+		question[i] = M_RandomByte();
+
+	// Store the answer in memory. What was the question again?
+	GetChallengeAnswer(question, joinpassmd5, joinpasschallenges[(*num)]);
+
+	// This ensures that num is always non-zero and will be valid when used for the answer
+	if ((*num) == 0)
+		(*num) = NUMJOINCHALLENGES;
+}
+
+// Remote Administration
+static void Command_ChangeJoinPassword_f(void)
+{
+#ifdef NOMD5
+	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
+	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
+#else
+	if (client) // cannot change remotely
+	{
+		CONS_Printf(M_GetText("Only the server can use this.\n"));
+		return;
+	}
+
+	if (COM_Argc() != 2)
+	{
+		CONS_Printf(M_GetText("joinpassword <password>: set a password to join the server\n"));
+		return;
+	}
+
+	D_SetJoinPassword(COM_Argv(1));
+	CONS_Printf(M_GetText("Join password set.\n"));
+#endif
 }
 
 static void Command_MotD_f(void)

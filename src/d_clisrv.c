@@ -1126,12 +1126,54 @@ typedef enum
 	CL_DOWNLOADSAVEGAME,
 #endif
 	CL_CONNECTED,
-	CL_ABORTED
+	CL_ABORTED,
+	CL_CHALLENGE
 } cl_mode_t;
 
 static void GetPackets(void);
 
 static cl_mode_t cl_mode = CL_SEARCHING;
+
+static UINT8 cl_challengenum = 0;
+static UINT8 cl_challengequestion[17];
+static char cl_challengepassword[65];
+static UINT8 cl_challengeanswer[17];
+
+static void D_JoinChallengeInput(INT32 ch)
+{
+	size_t len;
+
+	while (ch)
+	{
+		if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && hu_font[ch-HU_FONTSTART])
+		  || ch == ' ') // Allow spaces, of course
+		{
+			len = strlen(cl_challengepassword);
+			if (len < 64)
+			{
+				cl_challengepassword[len+1] = 0;
+				cl_challengepassword[len] = ch;
+			}
+		}
+		else if (ch == KEY_BACKSPACE)
+		{
+			len = strlen(cl_challengepassword);
+
+			if (len > 0)
+				cl_challengepassword[len-1] = 0;
+		}
+		else if (ch == KEY_ENTER)
+		{
+			// Done?
+			D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
+			cl_mode = CL_ASKJOIN;
+			return;
+		}
+
+		ch = I_GetKey();
+	}
+
+}
 
 // Player name send/load
 
@@ -1191,11 +1233,25 @@ static inline void CL_DrawConnectionStatus(void)
 		// 15 pal entries total.
 		const char *cltext;
 
-		for (i = 0; i < 16; ++i)
-			V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
+		if (cl_mode != CL_CHALLENGE)
+			for (i = 0; i < 16; ++i)
+				V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
 
 		switch (cl_mode)
 		{
+			case CL_CHALLENGE:
+				{
+					char asterisks[65];
+					size_t sl = strlen(cl_challengepassword);
+
+					memset(asterisks, '*', sl);
+					memset(asterisks+sl, 0, 65-sl);
+
+					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
+
+					cltext = M_GetText("Please enter the server password.");
+				}
+				break;
 #ifdef JOININGAME
 			case CL_DOWNLOADSAVEGAME:
 				if (lastfilenum != -1)
@@ -1292,6 +1348,8 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.localplayers = localplayers;
 	netbuffer->u.clientcfg.version = VERSION;
 	netbuffer->u.clientcfg.subversion = SUBVERSION;
+	netbuffer->u.clientcfg.challengenum = cl_challengenum;
+	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, 16);
 
 	return HSendPacket(servernode, true, 0, sizeof (clientconfig_pak));
 }
@@ -2059,6 +2117,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 				break;
 #endif
 
+		case CL_CHALLENGE:
 		case CL_WAITJOINRESPONSE:
 		case CL_CONNECTED:
 		default:
@@ -2091,6 +2150,8 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			D_StartTitle();
 			return false;
 		}
+		else if (cl_mode == CL_CHALLENGE)
+			D_JoinChallengeInput(key);
 
 		// why are these here? this is for servers, we're a client
 		//if (key == 's' && server)
@@ -3142,6 +3203,9 @@ void D_ClientServerInit(void)
 	gametic = 0;
 	localgametic = 0;
 
+	memset(cl_challengequestion, 0x00, 17);
+	memset(cl_challengeanswer, 0x00, 17);
+
 	// do not send anything before the real begin
 	SV_StopServer();
 	SV_ResetServer();
@@ -3631,6 +3695,26 @@ static void HandleConnect(SINT8 node)
 		boolean newnode = false;
 #endif
 
+		if (D_IsJoinPasswordOn())
+		{
+			// Ensure node sent the correct password challenge
+			boolean passed = false;
+
+			if (netbuffer->u.clientcfg.challengenum && D_VerifyJoinPasswordChallenge(netbuffer->u.clientcfg.challengenum, netbuffer->u.clientcfg.challengeanswer))
+				passed = true;
+
+			if (!passed)
+			{
+				D_MakeJoinPasswordChallenge(&netbuffer->u.joinchallenge.challengenum, netbuffer->u.joinchallenge.question);
+
+				netbuffer->packettype = PT_JOINCHALLENGE;
+				HSendPacket(node, true, 0, sizeof(joinchallenge_pak));
+				//Net_CloseConnection(node);
+
+				return;
+			}
+		}
+
 		// client authorised to join
 		nodewaiting[node] = (UINT8)(netbuffer->u.clientcfg.localplayers - playerpernode[node]);
 		if (!nodeingame[node])
@@ -3792,6 +3876,22 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				SV_SendPlayerInfo(node); // Send extra info
 			}
 			Net_CloseConnection(node);
+			break;
+
+		case PT_JOINCHALLENGE:
+			if (server && serverrunning)
+			{ // But wait I thought I'm the server?
+				Net_CloseConnection(node);
+				break;
+			}
+			SERVERONLY
+			if (cl_mode == CL_WAITJOINRESPONSE)
+			{
+				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
+				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
+
+				cl_mode = CL_CHALLENGE;
+			}
 			break;
 
 		case PT_SERVERREFUSE: // Negative response of client join request

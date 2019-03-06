@@ -73,6 +73,8 @@ typedef enum
 	PT_CLIENT4MIS,
 	PT_BASICKEEPALIVE,// Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
 
+	PT_JOINCHALLENGE, // You must give a password to joinnnnn
+
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.
 	                  // In addition, this packet can't occupy all the available slots.
@@ -354,7 +356,15 @@ typedef struct
 	UINT8 subversion; // Contains build version
 	UINT8 localplayers;
 	UINT8 mode;
+	UINT8 challengenum; // Non-zero if trying to join with a password attempt
+	UINT8 challengeanswer[16]; // Join challenge
 } ATTRPACK clientconfig_pak;
+
+typedef struct
+{
+	UINT8 challengenum; // Number to send back in join attempt
+	UINT8 question[16]; // Challenge data to be manipulated and answered with
+} ATTRPACK joinchallenge_pak;
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
@@ -447,7 +457,8 @@ typedef struct
 		UINT8 resynchgot;                   //
 		UINT8 textcmd[MAXTEXTCMD+1];        //       66049 bytes (wut??? 64k??? More like 257 bytes...)
 		filetx_pak filetxpak;               //         139 bytes
-		clientconfig_pak clientcfg;         //         136 bytes
+		clientconfig_pak clientcfg;         //         153 bytes
+		joinchallenge_pak joinchallenge;    //          17 bytes
 		serverinfo_pak serverinfo;          //        1024 bytes
 		serverrefuse_pak serverrefuse;      //       65025 bytes (somehow I feel like those values are garbage...)
 		askinfo_pak askinfo;                //          61 bytes
