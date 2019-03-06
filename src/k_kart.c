@@ -2515,6 +2515,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 	for (i = 0; i < 32; i++)
 	{
 		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
+		P_SetMobjState(dust, S_OPAQUESMOKE1);
 		dust->angle = (ANGLE_180/16) * i;
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
@@ -2542,6 +2543,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		dust = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
+		P_SetMobjState(dust, S_OPAQUESMOKE1);
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
 		dust->scalespeed = source->scale/12;
