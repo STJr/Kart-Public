@@ -1406,7 +1406,8 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 				case MT_EGGMANITEM:
 				case MT_SSMINE:
 				case MT_SINK:
-					gravityadd *= mo->extravalue2;
+					if (mo->extravalue2 > 0)
+						gravityadd *= mo->extravalue2;
 					/* FALLTHRU */
 				case MT_ORBINAUT:
 				case MT_JAWZ:
