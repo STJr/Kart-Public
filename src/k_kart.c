@@ -675,7 +675,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
+static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean spbrush)
 {
 	const INT32 distvar = (64*14);
 	INT32 newodds;
@@ -768,12 +768,17 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
 	// Next, it multiplies it again if it's in SPB mode and 2nd needs to apply pressure to 1st.
 	// Then, it multiplies it further if the player count isn't equal to 8.
-	// This is done to make low player count races more interesting and high player count rates more fair. (2P normal would be about halfway between 8P normal and 8P frantic)
+	// This is done to make low player count races more interesting and high player count rates more fair.
+	// (2P normal would be about halfway between 8P normal and 8P frantic.)
+	// (This scaling is not done for SPB Rush, so that catchup strength is not weakened.)
 	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, for lesser items needed in a pinch.
+
+#define PLAYERSCALING (8 - (spbrush ? 2 : pingame))
+
 #define POWERITEMODDS(odds) \
 	if (franticitems) \
 		odds <<= 1; \
-	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((8-pingame) * (FRACUNIT/25))) >> FRACBITS; \
+	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((PLAYERSCALING << FRACBITS) / 25)) >> FRACBITS; \
 	if (mashed > 0) \
 		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
 
@@ -860,7 +865,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		for (j = 1; j < NUMKARTRESULTS; j++)
 		{
-			if (K_KartGetItemOdds(i, j, mashed) > 0)
+			if (K_KartGetItemOdds(i, j, mashed, spbrush) > 0)
 			{
 				available = true;
 				break;
@@ -966,6 +971,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	INT32 bestbumper = 0;
 	fixed_t mashed = 0;
 	boolean dontforcespb = false;
+	boolean spbrush = false;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -1058,15 +1064,18 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		return;
 	}
 
+	if (G_RaceGametype())
+		spbrush = (spbplace != -1 && player->kartstuff[k_position] == spbplace+1);
+
 	// Initializes existing spawnchance values
 	for (i = 0; i < NUMKARTRESULTS; i++)
 		spawnchance[i] = 0;
 
 	// Split into another function for a debug function below
-	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, (spbplace != -1 && player->kartstuff[k_position] == spbplace+1), dontforcespb);
+	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, spbrush, dontforcespb);
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
-		spawnchance[i] = (totalspawnchance += K_KartGetItemOdds(useodds, i, mashed));
+		spawnchance[i] = (totalspawnchance += K_KartGetItemOdds(useodds, i, mashed, spbrush));
 
 	// Award the player whatever power is rolled
 	if (totalspawnchance > 0)
@@ -7859,8 +7868,12 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 		else
 			colormap = R_GetTranslationColormap(skin, mo->color, GTC_CACHE);
 		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
-		if (mo->player && K_IsPlayerWanted(mo->player))
+		if (mo->player
+			&& ((G_RaceGametype() && mo->player->kartstuff[k_position] == spbplace)
+			|| (G_BattleGametype() && K_IsPlayerWanted(mo->player))))
+		{
 			V_DrawFixedPatch(amxpos - (4<<FRACBITS), amypos - (4<<FRACBITS), FRACUNIT, flags, kp_wantedreticle, NULL);
+		}
 	}
 }
 
@@ -8536,6 +8549,7 @@ static void K_drawDistributionDebugger(void)
 	INT32 i;
 	INT32 x = -9, y = -9;
 	boolean dontforcespb = false;
+	boolean spbrush = false;
 
 	if (stplyr != &players[displayplayer]) // only for p1
 		return;
@@ -8552,11 +8566,14 @@ static void K_drawDistributionDebugger(void)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
 
-	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (spbplace != -1 && stplyr->kartstuff[k_position] == spbplace+1), dontforcespb);
+	if (G_RaceGametype())
+		spbrush = (spbplace != -1 && stplyr->kartstuff[k_position] == spbplace+1);
+
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, spbrush, dontforcespb);
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
 	{
-		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0);
+		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0, spbrush);
 		if (itemodds <= 0)
 			continue;
 
