@@ -1355,8 +1355,9 @@ void I_FinishUpdate(void)
 	if (rendermode == render_none)
 		return; //Alam: No software or OpenGl surface
 
-	if (I_SkipFrame())
-		return;
+	// Don't skip frames
+	//if (I_SkipFrame())
+		//return;
 
 	if (cv_ticrate.value)
 		SCR_DisplayTicRate();
