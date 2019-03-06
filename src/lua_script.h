@@ -68,7 +68,16 @@ void COM_Lua_f(void);
 	}\
 }
 
-#define LUA_ErrInvalid(L, type) luaL_error(L, "accessed " type " doesn't exist anymore, please check 'valid' before using " type ".");
+/* 	Invalidity error, happens when you access something that doesn't exist. (eg: "player.mo.variable" when "player.mo" doesn't exist)
+	Except it's a pretty stupid error because the game knows to stop proceeding when something doesn't exist (it would crash otherwise)
+	These P_MobjWasRemoved (.valid in Lua equivalent) checks are NECESSARY in hardcode because the game would crash otherwise, but obviously NOT HERE since the game does it FOR US.
+	And also has no impact on the script aside of returning nil when something dosn't exist, obviously.
+	All it does is turn something like
+	"if player.mo.mobj.variable" into "if player.mo and player.mo.valid and player.mo.mobj and player.mo.mobj.valid and player.mo.mobj.variable"
+	No, I am not stretching that, and yes, it looks absolutely ridiculous.
+	Thus, it's hidden under debug now, and returns 0 otherwise (this is what lua_error ends up doing)
+*/
+#define LUA_ErrInvalid(L, type) (cv_debug & DBG_LUA) ? (luaL_error(L, "accessed " type " doesn't exist anymore, returning nil.")) : (0);
 
 // Deprecation warnings
 // Shows once upon use. Then doesn't show again.
