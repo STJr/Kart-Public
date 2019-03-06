@@ -2217,6 +2217,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 #ifdef HAVE_BLUA
 	boolean force = false;	// Used to check if Lua ShouldExplode should get us damaged reguardless of flashtics or heck knows what.
 	UINT8 shouldForce = LUAh_ShouldExplode(player, inflictor, source);
+
 	if (P_MobjWasRemoved(player->mo))
 		return; // mobj was removed (in theory that shouldn't happen)
 	if (shouldForce == 1)
@@ -2227,6 +2228,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 #else
 	static const boolean force = false;
 #endif
+
 	if (G_BattleGametype())
 	{
 		if (K_IsPlayerWanted(player))
@@ -2308,13 +2310,13 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 	}
 
 	player->kartstuff[k_spinouttype] = 1;
-	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
+	player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2;
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (inflictor && inflictor->type == MT_SPBEXPLOSION && inflictor->extravalue1)
 	{
-		player->kartstuff[k_spinouttimer] = ((3*player->kartstuff[k_spinouttimer])/2)+1;
+		player->kartstuff[k_spinouttimer] = ((5*player->kartstuff[k_spinouttimer])/2)+1;
 		player->mo->momz *= 2;
 	}
 
@@ -3048,12 +3050,19 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	{
 		if (altthrow == 2) // Kitchen sink throwing
 		{
+#if 0
 			if (player->kartstuff[k_throwdir] == 1)
 				dir = 3;
 			else if (player->kartstuff[k_throwdir] == -1)
 				dir = 1;
 			else
 				dir = 2;
+#else
+			if (player->kartstuff[k_throwdir] == 1)
+				dir = 2;
+			else
+				dir = 1;
+#endif
 		}
 		else
 		{
@@ -3129,9 +3138,11 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
 				fixed_t HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
 
-				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED);
-				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED);
+				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED*dir);
+				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED*dir);
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
+
+				mo->extravalue2 = dir;
 
 				if (mo->eflags & MFE_UNDERWATER)
 					mo->momz = (117 * mo->momz) / 200;

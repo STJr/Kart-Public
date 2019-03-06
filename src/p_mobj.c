@@ -1404,11 +1404,13 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					break;
 				case MT_BANANA:
 				case MT_EGGMANITEM:
+				case MT_SSMINE:
+				case MT_SINK:
+					gravityadd *= mo->extravalue2;
+					/* FALLTHRU */
 				case MT_ORBINAUT:
 				case MT_JAWZ:
 				case MT_JAWZ_DUD:
-				case MT_SSMINE:
-				case MT_SINK:
 					gravityadd = (5*gravityadd)/2;
 					break;
 				case MT_SIGN:
