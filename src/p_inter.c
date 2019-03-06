@@ -411,9 +411,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				player->kartstuff[k_roulettetype] = 2;
 			}
 
+#if 0
 			// Eggbox snipe!
 			if (special->type == MT_EGGMANITEM && special->health > 1)
 				S_StartSound(toucher, sfx_bsnipe);
+#endif
 
 			{
 				mobj_t *poof = P_SpawnMobj(special->x, special->y, special->z, MT_EXPLODE);
