@@ -931,10 +931,10 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
 	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
 	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
-	D_AddFile(va(pandf,srb2waddir,"followers.kart"));	// merge this in GFX later, this is mostly to avoid uploading a MASSIVE patch.kart /gfx.kart for testing. -Lat'
 #ifdef USE_PATCH_KART
 	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
 #endif
+	D_AddFile(va(pandf,srb2waddir,"followers.kart"));       // merge this in GFX later, this is mostly to avoid uploading a MASSIVE patch.kart /gfx.kart for testing. -Lat'
 
 #if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 #define MUSICTEST(str) \
