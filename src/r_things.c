@@ -2537,23 +2537,6 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	skin->kartweight = 5;
 	//
 
-	//skin->normalspeed = 36<<FRACBITS;
-	//skin->runspeed = 28<<FRACBITS;
-	//skin->thrustfactor = 5;
-	//skin->accelstart = 96;
-	//skin->acceleration = 40;
-
-	//skin->ability = CA_NONE;
-	//skin->ability2 = CA2_SPINDASH;
-	//skin->jumpfactor = FRACUNIT;
-	//skin->actionspd = 30<<FRACBITS;
-	//skin->mindash = 15<<FRACBITS;
-	//skin->maxdash = 90<<FRACBITS;
-
-	//skin->thokitem = -1;
-	//skin->spinitem = -1;
-	//skin->revitem = -1;
-
 	skin->highresscale = FRACUNIT>>1;
 
 	for (i = 0; i < sfx_skinsoundslot0; i++)
@@ -2596,19 +2579,10 @@ void R_InitSkins(void)
 	strncpy(skin->facemmap, "PLAYMMAP", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
-	//skin->ability =   CA_THOK;
-	//skin->actionspd = 60<<FRACBITS;
-
 	// SRB2kart
 	skin->kartspeed = 8;
 	skin->kartweight = 2;
 	//
-
-	//skin->normalspeed =  36<<FRACBITS;
-	//skin->runspeed =     28<<FRACBITS;
-	//skin->thrustfactor =  5;
-	//skin->accelstart =   96;
-	//skin->acceleration = 40;
 
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
@@ -2673,30 +2647,11 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		if (player->mo)
 			player->mo->skin = skin;
 
-		//player->charability = (UINT8)skin->ability;
-		//player->charability2 = (UINT8)skin->ability2;
-
 		player->charflags = (UINT32)skin->flags;
-
-		//player->thokitem = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
-		//player->spinitem = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
-		//player->revitem = skin->revitem < 0 ? (mobjtype_t)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
-
-		//player->actionspd = skin->actionspd;
-		//player->mindash = skin->mindash;
-		//player->maxdash = skin->maxdash;
 
 		// SRB2kart
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
-
-		//player->normalspeed = skin->normalspeed;
-		//player->runspeed = skin->runspeed;
-		//player->thrustfactor = skin->thrustfactor;
-		//player->accelstart = skin->accelstart;
-		//player->acceleration = skin->acceleration;
-
-		//player->jumpfactor = skin->jumpfactor;
 
 		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
 		{
@@ -2896,27 +2851,7 @@ void R_AddSkins(UINT16 wadnum)
 #define FULLPROCESS(field) else if (!stricmp(stoken, #field)) skin->field = get_number(value);
 			// character type identification
 			FULLPROCESS(flags)
-			//FULLPROCESS(ability)
-			//FULLPROCESS(ability2)
-
-			//FULLPROCESS(thokitem)
-			//FULLPROCESS(spinitem)
-			//FULLPROCESS(revitem)
 #undef FULLPROCESS
-
-#define GETSPEED(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value)<<FRACBITS;
-			//GETSPEED(normalspeed)
-			//GETSPEED(runspeed)
-			//GETSPEED(mindash)
-			//GETSPEED(maxdash)
-			//GETSPEED(actionspd)
-#undef GETSPEED
-
-/*#define GETINT(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value);
-			GETINT(thrustfactor)
-			GETINT(accelstart)
-			GETINT(acceleration)
-#undef GETINT*/
 
 #define GETKARTSTAT(field) \
 	else if (!stricmp(stoken, #field)) \
@@ -2935,8 +2870,6 @@ void R_AddSkins(UINT16 wadnum)
 
 			else if (!stricmp(stoken, "prefcolor"))
 				skin->prefcolor = K_GetKartColorByName(value);
-			//else if (!stricmp(stoken, "jumpfactor"))
-				//skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
 			else if (!stricmp(stoken, "highresscale"))
 				skin->highresscale = FLOAT_TO_FIXED(atof(value));
 			else
@@ -3045,9 +2978,6 @@ next_token:
 		if (rendermode == render_opengl)
 			HWR_AddPlayerMD2(numskins);
 #endif
-
-		/*if (skin->flags & SF_RUNONWATER) // this is literally the only way a skin can be a major mod... this might be a bit heavy handed
-			G_SetGameModified(multiplayer, true);*/
 
 		numskins++;
 	}

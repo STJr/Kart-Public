@@ -5113,17 +5113,16 @@ void G_GhostTicker(void)
 				INT32 type = -1;
 				if (g->mo->skin)
 				{
-					//skin_t *skin = (skin_t *)g->mo->skin;
 					switch (ziptic & EZT_THOKMASK)
 					{
 					case EZT_THOK:
-						type = (UINT32)mobjinfo[MT_PLAYER].painchance; // skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].painchance;
 						break;
 					case EZT_SPIN:
-						type = (UINT32)mobjinfo[MT_PLAYER].damage; // skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].damage;
 						break;
 					case EZT_REV:
-						type = (UINT32)mobjinfo[MT_PLAYER].raisestate; // skin->revitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].raisestate;
 						break;
 					}
 				}
