@@ -3797,12 +3797,20 @@ static void Command_ChangeJoinPassword_f(void)
 
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf(M_GetText("joinpassword <password>: set a password to join the server\n"));
+		CONS_Printf(M_GetText("joinpassword <password>: set a password to join the server\nUse -remove to disable the password.\n"));
 		return;
 	}
 
-	D_SetJoinPassword(COM_Argv(1));
-	CONS_Printf(M_GetText("Join password set.\n"));
+	if (strcmp(COM_Argv(1), "-remove") == 0)
+	{
+		joinpasswordset = false;
+		CONS_Printf(M_GetText("Join password removed.\n"));
+	}
+	else
+	{
+		D_SetJoinPassword(COM_Argv(1));
+		CONS_Printf(M_GetText("Join password set.\n"));
+	}
 #endif
 }
 
