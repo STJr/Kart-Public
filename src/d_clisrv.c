@@ -1207,11 +1207,11 @@ static inline void CL_DrawConnectionStatus(void)
 		{
 			case CL_CHALLENGE:
 				{
-					char asterisks[65];
-					size_t sl = strlen(cl_challengepassword);
+					char asterisks[33];
+					size_t sl = min(32, strlen(cl_challengepassword));
 
 					memset(asterisks, '*', sl);
-					memset(asterisks+sl, 0, 65-sl);
+					memset(asterisks+sl, 0, 33-sl);
 
 					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
 
