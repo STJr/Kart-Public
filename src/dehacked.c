@@ -877,38 +877,32 @@ static void readfollower(MYFILE *f)
 	}
 
 	strcpy(followers[numfollowers].skinname, testname);
+	strcpy(dname, followers[numfollowers].skinname);	// display name, just used for printing succesful stuff or errors later down the line.
 
-	// get ready to print the name...
-	strcpy(dname, followers[numfollowers].skinname);
+	// now that the skin name is ready, post process the actual name to turn the underscores into spaces!
+	for (INT32 i = 0; followers[numfollowers].name[i]; i++)
+	{
+		if (followers[numfollowers].name[i] == '_')
+			followers[numfollowers].name[i] = ' ';
+	}
 
-	if (followers[numfollowers].dist < 0)
-		followers[numfollowers].dist = 0;
+	// fallbacks for variables
+	// Print a warning if the variable is on a weird value and set it back to the minimum available if that's the case.
+#define FALLBACK(field, field2, threshold, set) \
+if (followers[numfollowers].field < threshold) \
+{ \
+	followers[numfollowers].field = set; \
+	deh_warning("Follower '%s': Value for '%s' is too low! Minimum should be %d. Value was overwritten to %d.", dname, field2, set, set); \
+} \
 
-	if (followers[numfollowers].zoffs < 0)
-		followers[numfollowers].zoffs = 0;
-
-	// HORZLAG and VERTLAG must ABSOLUTELY be higher than 0. If 0, the game crashes, if negative, weird shit happens!
-	if (followers[numfollowers].horzlag <= 0)
-		followers[numfollowers].horzlag = 1;
-
-	if (followers[numfollowers].vertlag <= 0)
-		followers[numfollowers].vertlag = 1;
-
-	// scale must be positive for obvious reasons, and so must both of the bob related variables
-	if (followers[numfollowers].scale <= 0)
-		followers[numfollowers].scale = 1;
-
-	// Bob amplitude can totally be 0
-	if (followers[numfollowers].bobamp < 0)
-		followers[numfollowers].bobamp = 1;
-
-	// so can bob speed
-	if (followers[numfollowers].bobspeed < 0)
-		followers[numfollowers].bobspeed = 1;
-
-	// hit confirm time must be > 0
-	if (followers[numfollowers].hitconfirmtime < 1)
-		followers[numfollowers].hitconfirmtime = 1;
+	FALLBACK(dist, "DIST", 0, 0);
+	FALLBACK(zoffs, "ZOFFS", 0, 0);
+	FALLBACK(horzlag, "HORZLAG", 1, 1);
+	FALLBACK(vertlag, "VERTLAG", 1, 1);
+	FALLBACK(bobamp, "BOBAMP", 0, 0);
+	FALLBACK(bobspeed, "BOBSPEED", 0, 0);
+	FALLBACK(hitconfirmtime, "HITCONFIRMTIME", 1, 1);
+#undef FALLBACK
 
 	// also check if we forgot states. If we did, we will set any missing state to the follower's idlestate.
 	// Print a warning in case we don't have a fallback and set the state to S_INVISIBLE (rather than S_NULL) if unavailable.
@@ -918,15 +912,15 @@ if (!followers[numfollowers].field) \
 { \
 	followers[numfollowers].field = fallbackstate ? fallbackstate : S_INVISIBLE; \
 	if (!fallbackstate) \
-		deh_warning("Follower %s is missing state definition for %s, no idlestate fallback was found", dname, field2); \
+		deh_warning("Follower '%s' is missing state definition for '%s', no idlestate fallback was found", dname, field2); \
 } \
 
-	NOSTATE(idlestate, "idlestate");
-	NOSTATE(followstate, "followstate");
-	NOSTATE(hurtstate, "hurtstate");
-	NOSTATE(losestate, "losestate");
-	NOSTATE(winstate, "winstate");
-	NOSTATE(hitconfirmstate, "hitconfirmstate");
+	NOSTATE(idlestate, "IDLESTATE");
+	NOSTATE(followstate, "FOLLOWSTATE");
+	NOSTATE(hurtstate, "HURTSTATE");
+	NOSTATE(losestate, "LOSESTATE");
+	NOSTATE(winstate, "WINSTATE");
+	NOSTATE(hitconfirmstate, "HITCONFIRMSTATE");
 #undef NOSTATE
 
 	CONS_Printf("Added follower '%s'\n", dname);

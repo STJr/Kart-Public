@@ -2356,6 +2356,9 @@ static void P_LevelInitStuff(void)
 
 		// and this stupid flag as a result
 		players[i].pflags &= ~PF_TRANSFERTOCLOSEST;
+
+		// Wipe follower from existence to avoid crashes
+		players[i].follower = NULL;
 	}
 
 	// SRB2Kart: map load variables

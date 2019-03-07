@@ -8960,7 +8960,7 @@ static void P_HandleFollower(player_t *player)
 	// How about making sure our follower exists and is added before trying to spawn it n' all?
 	if (player->followerskin > numfollowers-1 || player->followerskin < -1)
 	{
-		CONS_Printf("Follower skin invlaid. Setting to -1.\n");
+		//CONS_Printf("Follower skin invlaid. Setting to -1.\n");
 		player->followerskin = -1;
 		return;
 	}
@@ -8970,7 +8970,6 @@ static void P_HandleFollower(player_t *player)
 		return;
 	if (player->followerskin < 0)
 		return;
-
 	// Before we do anything, let's be sure of where we're supposed to be
 	fl = followers[player->followerskin];
 
@@ -9029,12 +9028,17 @@ static void P_HandleFollower(player_t *player)
 		P_SetScale(player->follower, FixedMul(fl.scale, player->mo->scale));
 		K_MatchGenericExtraFlags(player->follower, player->mo);
 
+		// For comeback in battle.
+		player->follower->flags2 = (player->follower->flags2 & ~MF2_SHADOW)|(player->mo->flags2 & MF2_SHADOW);
+
 		// Make the follower invisible if we no contest'd rather than removing it. No one will notice the diff seriously.
 
 		if (player->pflags & PF_TIMEOVER)	// there is more to it than that to check for a full no contest but this isn't used for anything else.
 			player->follower->flags2 &= MF2_DONTDRAW;
 
-
+		if (player->speed)
+			player->follower->angle = R_PointToAngle2(0, 0, player->follower->momx, player->follower->momy);
+			// if we're moving let's make the angle the direction we're moving towards. This is to avoid drifting / reverse looking awkward.
 
 		// handle follower animations. Yes, it looks like very bad kiddie script so what, do you have any better idea genius? Go get a life instead of criticizing my unpaid work!!!!!!
 		// hurt or dead
@@ -9061,8 +9065,6 @@ static void P_HandleFollower(player_t *player)
 		}
 		else if (player->speed > 10*player->mo->scale)	// animation for moving fast enough
 		{
-			// if we're moving fast enough, let's make the angle the direction we're moving towards. This is to avoid drifting looking awkward.
-			player->follower->angle = R_PointToAngle2(0, 0, player->follower->momx, player->follower->momy);
 
 			if (player->follower->extravalue1 != 1)
 			{

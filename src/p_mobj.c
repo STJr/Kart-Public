@@ -6556,6 +6556,13 @@ void P_MobjThinker(mobj_t *mobj)
 #endif
 		switch (mobj->type)
 		{
+			case MT_FOLLOWER:
+				// small thinker for follower:
+				// We cleanse ourselves from existence if our target player doesn't exist for whatever reason. (generally players leaving)
+				if (!mobj->target || P_MobjWasRemoved(mobj->target) || !mobj->target->player || mobj->target->player->spectator || mobj->target->player->followerskin < 0)
+					P_RemoveMobj(mobj);
+				
+				return;
 			case MT_HOOP:
 				if (mobj->fuse > 1)
 					P_MoveHoop(mobj);
@@ -10962,6 +10969,8 @@ void P_SpawnPlayer(INT32 playernum)
 	//awayview stuff
 	p->awayviewmobj = NULL;
 	p->awayviewtics = 0;
+	
+	p->follower = NULL;	// cleanse follower from existence
 
 	// set the scale to the mobj's destscale so settings get correctly set.  if we don't, they sometimes don't.
 	if (cv_kartdebugshrink.value && !modeattacking && !p->bot)
