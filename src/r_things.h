@@ -83,28 +83,28 @@ typedef struct
 	char hudname[SKINNAMESIZE+1]; // HUD name to display (officially exactly 5 characters long)
 	char facerank[9], facewant[9], facemmap[9]; // Arbitrarily named patch lumps
 
-	UINT8 ability; // ability definition
-	UINT8 ability2; // secondary ability definition
-	INT32 thokitem;
-	INT32 spinitem;
-	INT32 revitem;
-	fixed_t actionspd;
-	fixed_t mindash;
-	fixed_t maxdash;
+	//UINT8 ability; // ability definition
+	//UINT8 ability2; // secondary ability definition
+	//INT32 thokitem;
+	//INT32 spinitem;
+	//INT32 revitem;
+	//fixed_t actionspd;
+	//fixed_t mindash;
+	//fixed_t maxdash;
 
 	// SRB2kart
 	UINT8 kartspeed;
 	UINT8 kartweight;
 	//
 
-	fixed_t normalspeed; // Normal ground
-	fixed_t runspeed; // Speed that you break into your run animation
+	//fixed_t normalspeed; // Normal ground
+	//fixed_t runspeed; // Speed that you break into your run animation
 
-	UINT8 thrustfactor; // Thrust = thrustfactor * acceleration
-	UINT8 accelstart; // Acceleration if speed = 0
-	UINT8 acceleration; // Acceleration
+	//UINT8 thrustfactor; // Thrust = thrustfactor * acceleration
+	//UINT8 accelstart; // Acceleration if speed = 0
+	//UINT8 acceleration; // Acceleration
 
-	fixed_t jumpfactor; // multiple of standard jump height
+	//fixed_t jumpfactor; // multiple of standard jump height
 
 	// Definable color translation table
 	UINT8 starttranscolor;

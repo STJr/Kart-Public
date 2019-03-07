@@ -30,24 +30,24 @@ enum skin {
 	skin_facerank,
 	skin_facewant,
 	skin_facemmap,
-	skin_ability,
+	/*skin_ability,
 	skin_ability2,
 	skin_thokitem,
 	skin_spinitem,
 	skin_revitem,
 	skin_actionspd,
 	skin_mindash,
-	skin_maxdash,
+	skin_maxdash,*/
 	// SRB2kart
 	skin_kartspeed,
 	skin_kartweight,
 	//
-	skin_normalspeed,
+	/*skin_normalspeed,
 	skin_runspeed,
 	skin_thrustfactor,
 	skin_accelstart,
 	skin_acceleration,
-	skin_jumpfactor,
+	skin_jumpfactor,*/
 	skin_starttranscolor,
 	skin_prefcolor,
 	skin_highresscale,
@@ -64,24 +64,24 @@ static const char *const skin_opt[] = {
 	"facerank",
 	"facewant",
 	"facemmap",
-	"ability",
+	/*"ability",
 	"ability2",
 	"thokitem",
 	"spinitem",
 	"revitem",
 	"actionspd",
 	"mindash",
-	"maxdash",
+	"maxdash",*/
 	// SRB2kart
 	"kartspeed",
 	"kartweight",
 	//
-	"normalspeed",
+	/*"normalspeed",
 	"runspeed",
 	"thrustfactor",
 	"accelstart",
 	"acceleration",
-	"jumpfactor",
+	"jumpfactor",*/
 	"starttranscolor",
 	"prefcolor",
 	"highresscale",
@@ -139,7 +139,7 @@ static int skin_get(lua_State *L)
 				break;
 		lua_pushlstring(L, skin->facemmap, i);
 		break;
-	case skin_ability:
+	/*case skin_ability:
 		lua_pushinteger(L, skin->ability);
 		break;
 	case skin_ability2:
@@ -162,7 +162,7 @@ static int skin_get(lua_State *L)
 		break;
 	case skin_maxdash:
 		lua_pushfixed(L, skin->maxdash);
-		break;
+		break;*/
 	// SRB2kart
 	case skin_kartspeed:
 		lua_pushinteger(L, skin->kartspeed);
@@ -171,7 +171,7 @@ static int skin_get(lua_State *L)
 		lua_pushinteger(L, skin->kartweight);
 		break;
 	//
-	case skin_normalspeed:
+	/*case skin_normalspeed:
 		lua_pushfixed(L, skin->normalspeed);
 		break;
 	case skin_runspeed:
@@ -188,7 +188,7 @@ static int skin_get(lua_State *L)
 		break;
 	case skin_jumpfactor:
 		lua_pushfixed(L, skin->jumpfactor);
-		break;
+		break;*/
 	case skin_starttranscolor:
 		lua_pushinteger(L, skin->starttranscolor);
 		break;

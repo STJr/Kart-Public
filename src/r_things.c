@@ -2537,22 +2537,22 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	skin->kartweight = 5;
 	//
 
-	skin->normalspeed = 36<<FRACBITS;
-	skin->runspeed = 28<<FRACBITS;
-	skin->thrustfactor = 5;
-	skin->accelstart = 96;
-	skin->acceleration = 40;
+	//skin->normalspeed = 36<<FRACBITS;
+	//skin->runspeed = 28<<FRACBITS;
+	//skin->thrustfactor = 5;
+	//skin->accelstart = 96;
+	//skin->acceleration = 40;
 
-	skin->ability = CA_NONE;
-	skin->ability2 = CA2_SPINDASH;
-	skin->jumpfactor = FRACUNIT;
-	skin->actionspd = 30<<FRACBITS;
-	skin->mindash = 15<<FRACBITS;
-	skin->maxdash = 90<<FRACBITS;
+	//skin->ability = CA_NONE;
+	//skin->ability2 = CA2_SPINDASH;
+	//skin->jumpfactor = FRACUNIT;
+	//skin->actionspd = 30<<FRACBITS;
+	//skin->mindash = 15<<FRACBITS;
+	//skin->maxdash = 90<<FRACBITS;
 
-	skin->thokitem = -1;
-	skin->spinitem = -1;
-	skin->revitem = -1;
+	//skin->thokitem = -1;
+	//skin->spinitem = -1;
+	//skin->revitem = -1;
 
 	skin->highresscale = FRACUNIT>>1;
 
@@ -2596,19 +2596,19 @@ void R_InitSkins(void)
 	strncpy(skin->facemmap, "PLAYMMAP", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
-	skin->ability =   CA_THOK;
-	skin->actionspd = 60<<FRACBITS;
+	//skin->ability =   CA_THOK;
+	//skin->actionspd = 60<<FRACBITS;
 
 	// SRB2kart
 	skin->kartspeed = 8;
 	skin->kartweight = 2;
 	//
 
-	skin->normalspeed =  36<<FRACBITS;
-	skin->runspeed =     28<<FRACBITS;
-	skin->thrustfactor =  5;
-	skin->accelstart =   96;
-	skin->acceleration = 40;
+	//skin->normalspeed =  36<<FRACBITS;
+	//skin->runspeed =     28<<FRACBITS;
+	//skin->thrustfactor =  5;
+	//skin->accelstart =   96;
+	//skin->acceleration = 40;
 
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
@@ -2673,30 +2673,30 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		if (player->mo)
 			player->mo->skin = skin;
 
-		player->charability = (UINT8)skin->ability;
-		player->charability2 = (UINT8)skin->ability2;
+		//player->charability = (UINT8)skin->ability;
+		//player->charability2 = (UINT8)skin->ability2;
 
 		player->charflags = (UINT32)skin->flags;
 
-		player->thokitem = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
-		player->spinitem = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
-		player->revitem = skin->revitem < 0 ? (mobjtype_t)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
+		//player->thokitem = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
+		//player->spinitem = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
+		//player->revitem = skin->revitem < 0 ? (mobjtype_t)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
 
-		player->actionspd = skin->actionspd;
-		player->mindash = skin->mindash;
-		player->maxdash = skin->maxdash;
+		//player->actionspd = skin->actionspd;
+		//player->mindash = skin->mindash;
+		//player->maxdash = skin->maxdash;
 
 		// SRB2kart
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
 
-		player->normalspeed = skin->normalspeed;
-		player->runspeed = skin->runspeed;
-		player->thrustfactor = skin->thrustfactor;
-		player->accelstart = skin->accelstart;
-		player->acceleration = skin->acceleration;
+		//player->normalspeed = skin->normalspeed;
+		//player->runspeed = skin->runspeed;
+		//player->thrustfactor = skin->thrustfactor;
+		//player->accelstart = skin->accelstart;
+		//player->acceleration = skin->acceleration;
 
-		player->jumpfactor = skin->jumpfactor;
+		//player->jumpfactor = skin->jumpfactor;
 
 		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
 		{
@@ -2906,7 +2906,7 @@ void R_AddSkins(UINT16 wadnum)
 
 #define GETSPEED(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value)<<FRACBITS;
 			//GETSPEED(normalspeed)
-			GETSPEED(runspeed)
+			//GETSPEED(runspeed)
 			//GETSPEED(mindash)
 			//GETSPEED(maxdash)
 			//GETSPEED(actionspd)
