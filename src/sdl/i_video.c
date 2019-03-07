@@ -1325,7 +1325,8 @@ void I_UpdateNoBlit(void)
 //
 // Returns true if it thinks we can afford to skip this frame
 // from PrBoom's src/SDL/i_video.c
-/*static inline boolean I_SkipFrame(void)
+#if 0
+static inline boolean I_SkipFrame(void)
 {
 	static boolean skip = false;
 
@@ -1340,12 +1341,13 @@ void I_UpdateNoBlit(void)
 			if (!paused)
 				return false;
 			/* FALLTHRU */
-		/*case GS_WAITINGPLAYERS:
+		case GS_WAITINGPLAYERS:
 			return skip; // Skip odd frames
 		default:
 			return false;
 	}
-}*/
+}
+#endif
 
 //
 // I_FinishUpdate
