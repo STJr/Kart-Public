@@ -2249,10 +2249,13 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 		R_ExecuteSetViewSize();
 	}
 
+	/* Check if anyone is available to view. */
+	if (( playernum = G_FindView(playernum, viewnum, onlyactive) ) == -1)
+		return;
 	/* Focus our target view first so that we don't take its player. */
 	displayplayerp = (G_GetDisplayplayerPtr(viewnum));
 	olddisplayplayer = (*displayplayerp);
-	(*displayplayerp) = G_FindView(playernum, viewnum, onlyactive);
+	(*displayplayerp) = playernum;
 	if ((*displayplayerp) != olddisplayplayer)
 	{
 		camerap = (P_GetCameraPtr(viewnum));
