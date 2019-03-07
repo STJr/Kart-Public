@@ -3733,7 +3733,7 @@ static void HandleConnect(SINT8 node)
 		boolean newnode = false;
 #endif
 
-		if (D_IsJoinPasswordOn())
+		if (node != servernode && D_IsJoinPasswordOn())
 		{
 			// Ensure node sent the correct password challenge
 			boolean passed = false;
