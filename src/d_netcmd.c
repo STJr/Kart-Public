@@ -3710,7 +3710,7 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 static UINT8 joinpassmd5[17];
 static boolean joinpasswordset = false;
 static UINT8 joinpasschallenges[NUMJOINCHALLENGES][17];
-static boolean joinpasschallengeson[NUMJOINCHALLENGES];
+static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
 
 boolean D_IsJoinPasswordOn(void)
 {
@@ -3745,12 +3745,12 @@ boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
 	num %= NUMJOINCHALLENGES;
 
 	//@TODO use a constant-time memcmp....
-	if (joinpasschallengeson[num] && memcmp(answer, joinpasschallenges[num], 16) == 0)
+	if (joinpasschallengeson[num] > 0 && memcmp(answer, joinpasschallenges[num], 16) == 0)
 		passed = true;
 
 	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
 	memset(joinpasschallenges[num], 0x00, 17);
-	joinpasschallengeson[num] = false;
+	joinpasschallengeson[num] = 0;
 
 	return passed;
 }
@@ -3763,12 +3763,26 @@ void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
 	{
 		(*num) = M_RandomKey(NUMJOINCHALLENGES);
 
-		if (!joinpasschallengeson[(*num)])
+		if (joinpasschallengeson[(*num)] == 0)
 			break;
 	}
 
-	// If the above loop never breaks, then uh.... we're obliterating one random stored challenge. Sorry (:
-	joinpasschallengeson[(*num)] = true;
+	if (joinpasschallengeson[(*num)] > 0)
+	{
+		// Ugh, all challenges are (probably) taken. Let's find the oldest one and overwrite it.
+		tic_t oldesttic = INT32_MAX;
+
+		for (i = 0; i < NUMJOINCHALLENGES; i++)
+		{
+			if (joinpasschallengeson[i] < oldesttic)
+			{
+				(*num) = i;
+				oldesttic = joinpasschallengeson[i];
+			}
+		}
+	}
+
+	joinpasschallengeson[(*num)] = I_GetTime();
 
 	memset(question, 0x00, 17);
 	for (i = 0; i < 16; i++)
