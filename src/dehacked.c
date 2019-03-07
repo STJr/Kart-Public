@@ -707,6 +707,7 @@ static void readfollower(MYFILE *f)
 	boolean nameset;
 	INT32 fallbackstate = 0;
 	INT32 res;
+	INT32 i;
 
 	if (numfollowers > MAXSKINS)
 	{
@@ -880,7 +881,7 @@ static void readfollower(MYFILE *f)
 	strcpy(dname, followers[numfollowers].skinname);	// display name, just used for printing succesful stuff or errors later down the line.
 
 	// now that the skin name is ready, post process the actual name to turn the underscores into spaces!
-	for (INT32 i = 0; followers[numfollowers].name[i]; i++)
+	for (i = 0; followers[numfollowers].name[i]; i++)
 	{
 		if (followers[numfollowers].name[i] == '_')
 			followers[numfollowers].name[i] = ' ';
