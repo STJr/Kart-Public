@@ -13,6 +13,7 @@
 #ifndef __D_CLISRV__
 #define __D_CLISRV__
 
+#include "d_event.h"
 #include "d_ticcmd.h"
 #include "d_netcmd.h"
 #include "tables.h"
