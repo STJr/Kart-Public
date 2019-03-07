@@ -1139,6 +1139,7 @@ static UINT8 cl_challengenum = 0;
 static UINT8 cl_challengequestion[17];
 static char cl_challengepassword[65];
 static UINT8 cl_challengeanswer[17];
+static boolean cl_challengeattempted;
 
 // Player name send/load
 
@@ -1214,7 +1215,7 @@ static inline void CL_DrawConnectionStatus(void)
 
 					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
 
-					cltext = M_GetText("Please enter the server password.");
+					cltext = M_GetText(cl_challengeattempted ? "Incorrect password. Please try again." : "Please enter the server password.");
 				}
 				break;
 #ifdef JOININGAME
@@ -2191,6 +2192,8 @@ boolean CL_Responder(event_t *ev)
 			cl_challengepassword[len+1] = 0;
 			cl_challengepassword[len] = ch;
 		}
+
+		cl_challengeattempted = false;
 	}
 	else if (ch == KEY_BACKSPACE)
 	{
@@ -2198,12 +2201,15 @@ boolean CL_Responder(event_t *ev)
 
 		if (len > 0)
 			cl_challengepassword[len-1] = 0;
+
+		cl_challengeattempted = false;
 	}
 	else if (ch == KEY_ENTER)
 	{
 		// Done?
 		D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
 		cl_mode = CL_ASKJOIN;
+		cl_challengeattempted = true;
 	}
 
 	return true;
@@ -2285,6 +2291,8 @@ static void CL_ConnectToServer(boolean viams)
 	}
 	SL_ClearServerList(servernode);
 #endif
+
+	cl_challengeattempted = false;
 
 	do
 	{
