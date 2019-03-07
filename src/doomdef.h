@@ -585,4 +585,7 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 ///      	SRB2CB itself ported this from PrBoom+
 #define NEWCLIP
 
+// You must use reentrant functions. This is a big hack for now, though.
+extern boolean mustbereentrant;
+
 #endif // __DOOMDEF__

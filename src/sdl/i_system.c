@@ -246,14 +246,24 @@ SDL_bool framebuffer = SDL_FALSE;
 
 UINT8 keyboard_started = false;
 
-FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
+/*
+I hope you know that you can only call reentrant functions in signal handlers.
+If your function doesn't do that, check here that false before you do anything.
+*/
+boolean mustbereentrant = false;
+
+static void signal_handler(INT32 num)
 {
 	//static char msg[] = "oh no! back to reality!\r\n";
-	const char *      sigmsg;
-	char        sigdef[32];
+	//const char *      sigmsg;
+	//char        sigdef[32];
+
+	mustbereentrant = true;/* and we about to die anyway */
 
 	D_QuitNetGame(); // Fix server freezes
 
+	/* nixed cause it's fucked!!!! */
+#if 0
 	switch (num)
 	{
 //	case SIGINT:
@@ -288,9 +298,11 @@ FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
 		"Signal caught",
 		sigmsg, NULL);
 	I_ShutdownSystem();
+#endif
 	signal(num, SIG_DFL);               //default signal action
 	raise(num);
-	I_Quit();
+	//I_Quit();
+	mustbereentrant = false;/* ytho */
 }
 
 FUNCNORETURN static ATTRNORETURN void quit_handler(int num)
@@ -3117,6 +3129,13 @@ void I_Error(const char *error, ...)
 {
 	va_list argptr;
 	char buffer[8192];
+
+	/*
+	For now; there's a way to print from within
+	signal handlers, but you're not going to like it!
+	*/
+	if (mustbereentrant)
+		return;
 
 	// recursive error detecting
 	if (shutdowning)

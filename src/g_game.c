@@ -6423,7 +6423,7 @@ void G_StopMetalDemo(void)
 }
 
 // Stops metal sonic recording.
-ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void)
+void G_StopMetalRecording(void)
 {
 	boolean saved = false;
 	if (demo_p)

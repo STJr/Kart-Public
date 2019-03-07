@@ -152,7 +152,7 @@ mapthing_t *redctfstarts[MAXPLAYERS];
   *       not be called log.txt.
   * \sa CON_LogMessage, I_Error
   */
-FUNCNORETURN static ATTRNORETURN void CorruptMapError(const char *msg)
+static void CorruptMapError(const char *msg)
 {
 	// don't use va() because the calling function probably uses it
 	char mapnum[10];

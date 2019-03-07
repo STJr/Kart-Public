@@ -418,6 +418,9 @@ static const char *SOCK_AddrToStr(mysockaddr_t *sk)
 #ifdef HAVE_NTOP
 	void *addr;
 
+	if (mustbereentrant)
+		return NULL;
+
 	if(sk->any.sa_family == AF_INET)
 		addr = &sk->ip4.sin_addr;
 #ifdef HAVE_IPV6
@@ -790,7 +793,8 @@ static void SOCK_FreeNodenum(INT32 numnode)
 	nodesocket[numnode] = ERRSOCKET;
 
 	// put invalid address
-	memset(&clientaddress[numnode], 0, sizeof (clientaddress[numnode]));
+	if (!mustbereentrant)
+		memset(&clientaddress[numnode], 0, sizeof (clientaddress[numnode]));
 }
 #endif
 

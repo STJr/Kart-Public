@@ -1260,6 +1260,9 @@ void CONS_Printf(const char *fmt, ...)
 	va_list argptr;
 	static char *txt = NULL;
 
+	if (mustbereentrant)
+		return;
+
 	if (txt == NULL)
 		txt = malloc(8192);
 
