@@ -3046,8 +3046,8 @@ next_token:
 			HWR_AddPlayerMD2(numskins);
 #endif
 
-		if (skin->flags & SF_RUNONWATER) // this is literally the only way a skin can be a major mod... this might be a bit heavy handed
-			G_SetGameModified(multiplayer, true);
+		/*if (skin->flags & SF_RUNONWATER) // this is literally the only way a skin can be a major mod... this might be a bit heavy handed
+			G_SetGameModified(multiplayer, true);*/
 
 		numskins++;
 	}
