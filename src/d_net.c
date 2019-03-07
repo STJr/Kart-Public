@@ -642,9 +642,10 @@ void Net_WaitAllAckReceived(UINT32 timeout)
 #ifdef NONET
 	(void)timeout;
 #else
+	tic_t tictac;
 	if (mustbereentrant)
 		return;
-	tic_t tictac = I_GetTime();
+	tictac = I_GetTime();
 	timeout = tictac + timeout*NEWTICRATE;
 
 	HGetPacket();
