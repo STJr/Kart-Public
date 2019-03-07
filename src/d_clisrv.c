@@ -22,6 +22,7 @@
 #include "i_video.h"
 #include "d_net.h"
 #include "d_main.h"
+#include "d_event.h"
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "keys.h"
@@ -1139,42 +1140,6 @@ static UINT8 cl_challengequestion[17];
 static char cl_challengepassword[65];
 static UINT8 cl_challengeanswer[17];
 
-static void D_JoinChallengeInput(INT32 ch)
-{
-	size_t len;
-
-	while (ch)
-	{
-		if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && hu_font[ch-HU_FONTSTART])
-		  || ch == ' ') // Allow spaces, of course
-		{
-			len = strlen(cl_challengepassword);
-			if (len < 64)
-			{
-				cl_challengepassword[len+1] = 0;
-				cl_challengepassword[len] = ch;
-			}
-		}
-		else if (ch == KEY_BACKSPACE)
-		{
-			len = strlen(cl_challengepassword);
-
-			if (len > 0)
-				cl_challengepassword[len-1] = 0;
-		}
-		else if (ch == KEY_ENTER)
-		{
-			// Done?
-			D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-			cl_mode = CL_ASKJOIN;
-			return;
-		}
-
-		ch = I_GetKey();
-	}
-
-}
-
 // Player name send/load
 
 static void CV_SavePlayerNames(UINT8 **p)
@@ -2136,22 +2101,10 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 	// Call it only once by tic
 	if (*oldtic != I_GetTime())
 	{
-		INT32 key;
-
 		I_OsPolling();
-		key = I_GetKey();
-		// Only ESC and non-keyboard keys abort connection
-		if (key == KEY_ESCAPE || key >= KEY_MOUSE1)
-		{
-			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
-//				M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
-			D_QuitNetGame();
-			CL_Reset();
-			D_StartTitle();
+		D_ProcessEvents();
+		if (gamestate != GS_WAITINGPLAYERS)
 			return false;
-		}
-		else if (cl_mode == CL_CHALLENGE)
-			D_JoinChallengeInput(key);
 
 		// why are these here? this is for servers, we're a client
 		//if (key == 's' && server)
@@ -2176,6 +2129,82 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 	}
 	else
 		I_Sleep();
+
+	return true;
+}
+
+boolean CL_Responder(event_t *ev)
+{
+	size_t len;
+	INT32 ch;
+
+	if (!(client && cl_mode != CL_CONNECTED && cl_mode != CL_ABORTED))
+		return false; // Don't do anything outside of the connection screen
+
+	if (ev->type != ev_keydown)
+		return false;
+
+	ch = (INT32)ev->data1;
+
+	if (ch == KEY_CAPSLOCK) // it's a toggle.
+	{
+		capslock = !capslock;
+		return true;
+	}
+
+	// Only ESC and non-keyboard keys abort connection
+	if (ch == KEY_ESCAPE || ch >= KEY_MOUSE1)
+	{
+		CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
+		//M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
+		D_QuitNetGame();
+		CL_Reset();
+		D_StartTitle();
+		return true;
+	}
+
+	if (cl_mode != CL_CHALLENGE)
+		return false;
+
+	if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && hu_font[ch-HU_FONTSTART])
+	  || ch == ' ') // Allow spaces, of course
+	{
+		len = strlen(cl_challengepassword);
+		if (len < 64)
+		{
+
+			// shifting code stolen from lat by fickle, thx :)
+
+			// I know this looks very messy but this works. If it ain't broke, don't fix it!
+			// shift LETTERS to uppercase if we have capslock or are holding shift
+			if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+			{
+				if (shiftdown ^ capslock)
+					ch = shiftxform[ch];
+			}
+			else	// if we're holding shift we should still shift non letter symbols
+			{
+				if (shiftdown)
+					ch = shiftxform[ch];
+			}
+
+			cl_challengepassword[len+1] = 0;
+			cl_challengepassword[len] = ch;
+		}
+	}
+	else if (ch == KEY_BACKSPACE)
+	{
+		len = strlen(cl_challengepassword);
+
+		if (len > 0)
+			cl_challengepassword[len-1] = 0;
+	}
+	else if (ch == KEY_ENTER)
+	{
+		// Done?
+		D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
+		cl_mode = CL_ASKJOIN;
+	}
 
 	return true;
 }

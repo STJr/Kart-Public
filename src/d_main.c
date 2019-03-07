@@ -236,6 +236,9 @@ void D_ProcessEvents(void)
 		if (M_ScreenshotResponder(ev))
 			continue; // ate the event
 
+		if (CL_Responder(ev))
+			continue;
+
 		if (gameaction == ga_nothing && gamestate == GS_TITLESCREEN)
 		{
 			if (cht_Responder(ev))

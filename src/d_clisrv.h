@@ -566,6 +566,7 @@ void CL_RemoveSplitscreenPlayer(UINT8 p);
 void CL_Reset(void);
 void CL_ClearPlayer(INT32 playernum);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);
+boolean CL_Responder(event_t *ev);
 // Is there a game running
 boolean Playing(void);
 
