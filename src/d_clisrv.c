@@ -93,6 +93,7 @@ static tic_t freezetimeout[MAXNETNODES]; // Until when can this node freeze the 
 UINT16 pingmeasurecount = 1;
 UINT32 realpingtable[MAXPLAYERS]; //the base table of ping where an average will be sent to everyone.
 UINT32 playerpingtable[MAXPLAYERS]; //table of player latency values.
+tic_t servermaxping = 800;			// server's max ping. Defaults to 800
 #endif
 SINT8 nodetoplayer[MAXNETNODES];
 SINT8 nodetoplayer2[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
@@ -648,6 +649,8 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 
 	rsp->jointime = (tic_t)LONG(players[i].jointime);
 
+	rsp->splitscreenindex = players[i].splitscreenindex;
+
 	rsp->hasmo = false;
 	//Transfer important mo information if the player has a body.
 	//This lets us resync players even if they are dead.
@@ -782,6 +785,8 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].onconveyor = LONG(rsp->onconveyor);
 
 	players[i].jointime = (tic_t)LONG(rsp->jointime);
+
+	players[i].splitscreenindex = rsp->splitscreenindex;
 
 	//We get a packet for each player in game.
 	if (!playeringame[i])
@@ -2542,6 +2547,8 @@ static void CL_RemovePlayer(INT32 playernum, INT32 reason)
 
 #ifdef HAVE_BLUA
 	LUAh_PlayerQuit(&players[playernum], reason); // Lua hook for player quitting
+#else
+	(void)reason;
 #endif
 
 	// Reset player data
@@ -2725,7 +2732,10 @@ static void Command_Ban(void)
 		else
 		{
 			if (server) // only the server is allowed to do this right now
+			{
 				Ban_Add(COM_Argv(2));
+				D_SaveBan(); // save the ban list
+			}
 
 			if (COM_Argc() == 2)
 			{
@@ -2754,6 +2764,42 @@ static void Command_Ban(void)
 	else
 		CONS_Printf(M_GetText("Only the server or a remote admin can use this.\n"));
 
+}
+
+static void Command_BanIP(void)
+{
+	if (COM_Argc() < 2)
+	{
+		CONS_Printf(M_GetText("banip <ip> <reason>: ban an ip address\n"));
+		return;
+	}
+
+	if (server) // Only the server can use this, otherwise does nothing.
+	{
+		const char *address = (COM_Argv(1));
+		const char *reason;
+
+		if (COM_Argc() == 2)
+			reason = NULL;
+		else
+			reason = COM_Argv(2);
+
+
+		if (I_SetBanAddress && I_SetBanAddress(address, NULL))
+		{
+			if (reason)
+				CONS_Printf("Banned IP address %s for: %s\n", address, reason);
+			else
+				CONS_Printf("Banned IP address %s\n", address);
+
+			Ban_Add(reason);
+			D_SaveBan();
+		}
+		else
+		{
+			return;
+		}
+	}
 }
 
 static void Command_Kick(void)
@@ -3062,6 +3108,7 @@ void D_ClientServerInit(void)
 	COM_AddCommand("getplayernum", Command_GetPlayerNum);
 	COM_AddCommand("kick", Command_Kick);
 	COM_AddCommand("ban", Command_Ban);
+	COM_AddCommand("banip", Command_BanIP);
 	COM_AddCommand("clearbans", Command_ClearBans);
 	COM_AddCommand("showbanlist", Command_ShowBan);
 	COM_AddCommand("reloadbans", Command_ReloadBan);
@@ -3315,6 +3362,8 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		D_SendPlayerConfig();
 		addedtogame = true;
 	}
+
+	players[newplayernum].splitscreenindex = splitscreenplayer;
 
 	if (netgame)
 	{
@@ -4353,10 +4402,12 @@ FILESTAMP
 			//Update client ping table from the server.
 			if (client)
 			{
-				INT32 i;
+				UINT8 i;
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
 						playerpingtable[i] = (tic_t)netbuffer->u.pingtable[i];
+
+				servermaxping = (tic_t)netbuffer->u.pingtable[MAXPLAYERS];
 			}
 
 			break;
@@ -4999,6 +5050,18 @@ void TryRunTics(tic_t realtics)
 }
 
 #ifdef NEWPING
+
+/* 	Ping Update except better:
+	We call this once per second and check for people's pings. If their ping happens to be too high, we increment some timer and kick them out.
+	If they're not lagging, decrement the timer by 1. Of course, reset all of this if they leave.
+
+	Why do we do that? Well, I'm a person with unfortunately sometimes unstable internet and happen to keep getting kicked very unconveniently for very short high spikes. (700+ ms)
+	Because my spikes are so high, the average ping is exponentially higher too (700s really add up...!) which leads me to getting kicked for a short burst of spiking.
+	With this change here, this doesn't happen anymore as it checks if my ping has been CONSISTENTLY bad for long enough before killing me.
+*/
+
+static INT32 pingtimeout[MAXPLAYERS];
+
 static inline void PingUpdate(void)
 {
 	INT32 i;
@@ -5019,6 +5082,9 @@ static inline void PingUpdate(void)
 					laggers[i] = true;
 				numlaggers++;
 			}
+			else
+				pingtimeout[i] = 0;
+
 		}
 
 		//kick lagging players... unless everyone but the server's ping sucks.
@@ -5029,12 +5095,20 @@ static inline void PingUpdate(void)
 			{
 				if (playeringame[i] && laggers[i])
 				{
-					XBOXSTATIC char buf[2];
+					pingtimeout[i]++;
+					if (pingtimeout[i] > cv_pingtimeout.value)	// ok your net has been bad for too long, you deserve to die.
+					{
+						XBOXSTATIC char buf[2];
 
-					buf[0] = (char)i;
-					buf[1] = KICK_MSG_PING_HIGH;
-					SendNetXCmd(XD_KICK, &buf, 2);
+						pingtimeout[i] = 0;
+
+						buf[0] = (char)i;
+						buf[1] = KICK_MSG_PING_HIGH;
+						SendNetXCmd(XD_KICK, &buf, 2);
+					}
 				}
+				else	// you aren't lagging, but you aren't free yet. In case you'll keep spiking, we just make the timer go back down. (Very unstable net must still get kicked).
+					pingtimeout[i] = (pingtimeout[i] == 0 ? 0 : pingtimeout[i]-1);
 			}
 		}
 	}
@@ -5049,10 +5123,13 @@ static inline void PingUpdate(void)
 		realpingtable[i] = 0; //Reset each as we go.
 	}
 
+	// send the server's maxping as last element of our ping table. This is useful to let us know when we're about to get kicked.
+	netbuffer->u.pingtable[MAXPLAYERS] = cv_maxping.value;
+
 	//send out our ping packets
 	for (i = 0; i < MAXNETNODES; i++)
 		if (nodeingame[i])
-			HSendPacket(i, true, 0, sizeof(INT32) * MAXPLAYERS);
+			HSendPacket(i, true, 0, sizeof(INT32) * (MAXPLAYERS+1));
 
 	pingmeasurecount = 1; //Reset count
 }
@@ -5066,7 +5143,7 @@ static void UpdatePingTable(void)
 	INT32 i;
 	if (server)
 	{
-		if (netgame && !(gametime % 255))
+		if (netgame && !(gametime % 35))	// update once per second.
 			PingUpdate();
 		// update node latency values so we can take an average later.
 		for (i = 0; i < MAXPLAYERS; i++)

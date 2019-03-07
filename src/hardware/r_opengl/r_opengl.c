@@ -2056,10 +2056,11 @@ EXPORT void HWRAPI(DrawMD2) (INT32 *gl_cmd_buffer, md2_frame_t *frame, FTransfor
 EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 {
 	static boolean special_splitscreen;
+	double used_fov;
 	pglLoadIdentity();
 	if (stransform)
 	{
-		boolean fovx90;
+		used_fov = stransform->fovxangle;
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
@@ -2074,35 +2075,28 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 		pglRotatef(stransform->angley+270.0f, 0.0f, 1.0f, 0.0f);
 		pglTranslatef(-stransform->x, -stransform->z, -stransform->y);
 
-		pglMatrixMode(GL_PROJECTION);
-		pglLoadIdentity();
-		fovx90 = stransform->fovxangle > 0.0f && fabsf(stransform->fovxangle - 90.0f) < 0.5f;
-		special_splitscreen = (stransform->splitscreen == 1 && fovx90);
-		if (special_splitscreen)
-			GLPerspective(53.13l, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
-		else
-			GLPerspective(stransform->fovxangle, ASPECT_RATIO);
-#ifndef MINI_GL_COMPATIBILITY
-		pglGetDoublev(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
-#endif
-		pglMatrixMode(GL_MODELVIEW);
+		special_splitscreen = (stransform->splitscreen == 1);
 	}
 	else
 	{
+		//Hurdler: is "fov" correct?
+		used_fov = fov;
 		pglScalef(1.0f, 1.0f, -1.0f);
-
-		pglMatrixMode(GL_PROJECTION);
-		pglLoadIdentity();
-		if (special_splitscreen)
-			GLPerspective(53.13l, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
-		else
-			//Hurdler: is "fov" correct?
-			GLPerspective(fov, ASPECT_RATIO);
-#ifndef MINI_GL_COMPATIBILITY
-		pglGetDoublev(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
-#endif
-		pglMatrixMode(GL_MODELVIEW);
 	}
+
+	pglMatrixMode(GL_PROJECTION);
+	pglLoadIdentity();
+	if (special_splitscreen)
+	{
+		used_fov = atan(tan(used_fov*M_PIl/360)*0.8)*360/M_PIl;
+		GLPerspective(used_fov, 2*ASPECT_RATIO);
+	}
+	else
+		GLPerspective(used_fov, ASPECT_RATIO);
+#ifndef MINI_GL_COMPATIBILITY
+	pglGetDoublev(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
+#endif
+	pglMatrixMode(GL_MODELVIEW);
 
 #ifndef MINI_GL_COMPATIBILITY
 	pglGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix); // added for new coronas' code (without depth buffer)

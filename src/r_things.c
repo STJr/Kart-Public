@@ -1315,6 +1315,7 @@ static void R_ProjectSprite(mobj_t *thing)
 			return;
 
 		scalestep = (yscale2 - yscale)/(x2 - x1);
+		scalestep = scalestep ? scalestep : 1;
 
 		// The following two are alternate sorting methods which might be more applicable in some circumstances. TODO - maybe enable via MF2?
 		// sortscale = max(yscale, yscale2);

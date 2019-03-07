@@ -6662,7 +6662,7 @@ static void P_MovePlayer(player_t *player)
 				//CONS_Printf("leftover turn (%s): %5d or %4d%%\n",
 				//				player_names[player-players],
 				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)),
-				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ?: 1));
+				//				(INT16) (cmd->angleturn - (player->mo->angle>>16)) * 100 / (angle_diff ? angle_diff : 1));
 			}
 		}
 
@@ -8295,9 +8295,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
 
-	if (splitscreen == 1)
-		camspeed = (3*camspeed)/4;
-
 	if (camspeed > FRACUNIT)
 		camspeed = FRACUNIT;
 
@@ -8349,13 +8346,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		dist -= FixedMul(11*dist/16, player->kartstuff[k_boostcam]);
 		height -= FixedMul(height, player->kartstuff[k_boostcam]);
-	}
-
-	// in splitscreen modes, mess with the camera distances to make it feel proportional to how it feels normally
-	if (splitscreen == 1) // widescreen splits should get x1.5 distance
-	{
-		dist = FixedMul(dist, 3*FRACUNIT/2);
-		height = FixedMul(height, 3*FRACUNIT/2);
 	}
 
 	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
@@ -8623,10 +8613,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		thiscam->momx = x - thiscam->x;
 		thiscam->momy = y - thiscam->y;
-		if (splitscreen == 1) // Wide-screen needs to follow faster, due to a smaller vertical:horizontal ratio of screen space
-			thiscam->momz = FixedMul(z - thiscam->z, (3*camspeed)/4);
-		else
-			thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
+		thiscam->momz = FixedMul(z - thiscam->z, camspeed/2);
 	}
 
 	thiscam->pan = pan;
