@@ -725,7 +725,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 	const INT32 distvar = (64*14);
 	INT32 newodds;
 	INT32 i;
-	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
+	UINT8 pingame = 0, pexiting = 0;
 	boolean thunderisout = false;
 	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
@@ -780,12 +780,6 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 
 		if (players[i].mo)
 		{
-			if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY
-				|| players[i].kartstuff[k_itemtype] == KITEM_GROW
-				|| players[i].kartstuff[k_invincibilitytimer]
-				|| players[i].kartstuff[k_growshrinktimer] > 0)
-				pinvin++;
-
 			if (players[i].kartstuff[k_itemtype] == KITEM_THUNDERSHIELD)
 				thunderisout = true;
 
@@ -831,13 +825,6 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 
 	switch (item)
 	{
-		case KITEM_INVINCIBILITY:
-		case KITEM_GROW:
-			if (pinvin >= max(1, (pingame+3) / 4) || COOLDOWNONSTART)
-				newodds = 0;
-			else
-				POWERITEMODDS(newodds);
-			break;
 		case KITEM_ROCKETSNEAKER:
 		case KITEM_JAWZ:
 		case KITEM_BALLHOG:
@@ -849,7 +836,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
 			break;
+		case KITEM_INVINCIBILITY:
 		case KITEM_MINE:
+		case KITEM_GROW:
 			if (COOLDOWNONSTART)
 				newodds = 0;
 			else
