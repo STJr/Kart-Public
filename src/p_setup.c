@@ -3246,6 +3246,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	wantedcalcdelay = wantedfrequency*2;
 	indirectitemcooldown = 0;
+	hyubgone = 0;
 	mapreset = 0;
 	nospectategrief = 0;
 	thwompsactive = false;

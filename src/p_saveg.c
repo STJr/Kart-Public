@@ -3348,6 +3348,7 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, wantedcalcdelay);
 	WRITEUINT32(save_p, indirectitemcooldown);
+	WRITEUINT32(save_p, hyubgone);
 	WRITEUINT32(save_p, mapreset);
 	WRITEUINT8(save_p, nospectategrief);
 	WRITEUINT8(save_p, thwompsactive);
@@ -3456,6 +3457,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 
 	wantedcalcdelay = READUINT32(save_p);
 	indirectitemcooldown = READUINT32(save_p);
+	hyubgone = READUINT32(save_p);
 	mapreset = READUINT32(save_p);
 	nospectategrief = READUINT8(save_p);
 	thwompsactive = (boolean)READUINT8(save_p);
