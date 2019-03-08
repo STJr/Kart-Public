@@ -7150,6 +7150,13 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_KARMAFIREWORK4",
 	"S_KARMAFIREWORKTRAIL",
 
+	// Opaque smoke version, to prevent lag
+	"S_OPAQUESMOKE1",
+	"S_OPAQUESMOKE2",
+	"S_OPAQUESMOKE3",
+	"S_OPAQUESMOKE4",
+	"S_OPAQUESMOKE5",
+
 #ifdef SEENAMES
 	"S_NAMECHECK",
 #endif
@@ -8383,7 +8390,8 @@ static const char *const KARTSTUFF_LIST[] = {
 	"ITEMBLINKMODE",
 	"GETSPARKS",
 	"JAWZTARGETDELAY",
-	"SPECTATEWAIT"
+	"SPECTATEWAIT",
+	"GROWCANCEL"
 };
 #endif
 
@@ -9886,6 +9894,9 @@ static inline int lib_getenum(lua_State *L)
 		return 1;
 	} else if (fastcmp(word,"indirectitemcooldown")) {
 		lua_pushinteger(L, indirectitemcooldown);
+		return 1;
+	} else if (fastcmp(word,"hyubgone")) {
+		lua_pushinteger(L, hyubgone);
 		return 1;
 	} else if (fastcmp(word,"thwompsactive")) {
 		lua_pushboolean(L, thwompsactive);

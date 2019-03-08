@@ -853,7 +853,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (thing->type == MT_PLAYER)
 		{
-			S_StartSound(NULL, sfx_cgot); //let all players hear it.
+			S_StartSound(NULL, sfx_bsnipe); //let all players hear it.
 			HU_SetCEchoFlags(0);
 			HU_SetCEchoDuration(5);
 			HU_DoCEcho(va("%s\\was hit by a kitchen sink.\\\\\\\\", player_names[thing->player-players]));
@@ -915,6 +915,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (thing->type == MT_PLAYER)
 		{
+			// Banana snipe!
+			if (tmthing->type == MT_BANANA && tmthing->health > 1)
+				S_StartSound(thing, sfx_bsnipe);
+
 			// Player Damage
 			K_SpinPlayer(thing->player, tmthing->target, 0, tmthing, (tmthing->type == MT_BANANA || tmthing->type == MT_BANANA_SHIELD));
 
@@ -983,7 +987,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 		if (thing->type == MT_PLAYER)
 		{
-			P_KillMobj(tmthing, thing, thing);
+			// Bomb punting
+			if ((tmthing->state >= &states[S_SSMINE1] && tmthing->state <= &states[S_SSMINE4])
+				|| (tmthing->state >= &states[S_SSMINE_DEPLOY8] && tmthing->state <= &states[S_SSMINE_DEPLOY13]))
+				P_KillMobj(tmthing, thing, thing);
+			else
+				K_PuntMine(tmthing, thing);
 		}
 		else if (thing->type == MT_ORBINAUT || thing->type == MT_JAWZ || thing->type == MT_JAWZ_DUD
 			|| thing->type == MT_ORBINAUT_SHIELD || thing->type == MT_JAWZ_SHIELD)
@@ -1062,6 +1071,10 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->health <= 0 || thing->health <= 0)
 				return true;
 
+			// Banana snipe!
+			if (thing->type == MT_BANANA && thing->health > 1)
+				S_StartSound(tmthing, sfx_bsnipe);
+
 			// Player Damage
 			K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
 
@@ -1085,7 +1098,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (tmthing->health <= 0 || thing->health <= 0)
 				return true;
 
-			P_KillMobj(thing, tmthing, tmthing);
+			// Bomb punting
+			if ((thing->state >= &states[S_SSMINE1] && thing->state <= &states[S_SSMINE4])
+				|| (thing->state >= &states[S_SSMINE_DEPLOY8] && thing->state <= &states[S_SSMINE_DEPLOY13]))
+				P_KillMobj(thing, tmthing, tmthing);
+			else
+				K_PuntMine(thing, tmthing);
 		}
 		else if (thing->type == MT_MINEEXPLOSION && tmthing->player)
 		{

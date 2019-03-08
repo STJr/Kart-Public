@@ -41,6 +41,7 @@ void K_SpawnBoostTrail(player_t *player);
 void K_SpawnSparkleTrail(mobj_t *mo);
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent);
 void K_DriftDustHandling(mobj_t *spawner);
+void K_PuntMine(mobj_t *mine, mobj_t *punter);
 void K_DoSneaker(player_t *player, INT32 type);
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound);
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source);
