@@ -1325,9 +1325,9 @@ void I_UpdateNoBlit(void)
 //
 // Returns true if it thinks we can afford to skip this frame
 // from PrBoom's src/SDL/i_video.c
-#if 0
 static inline boolean I_SkipFrame(void)
 {
+#if 0
 	static boolean skip = false;
 
 	if (rendermode != render_soft)
@@ -1346,8 +1346,9 @@ static inline boolean I_SkipFrame(void)
 		default:
 			return false;
 	}
-}
 #endif
+	return false;
+}
 
 //
 // I_FinishUpdate
@@ -1357,9 +1358,8 @@ void I_FinishUpdate(void)
 	if (rendermode == render_none)
 		return; //Alam: No software or OpenGl surface
 
-	// Don't skip frames
-	//if (I_SkipFrame())
-		//return;
+	if (I_SkipFrame())
+		return;
 
 	if (cv_ticrate.value)
 		SCR_DisplayTicRate();
