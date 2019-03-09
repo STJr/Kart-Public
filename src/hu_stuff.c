@@ -1130,8 +1130,6 @@ static INT16 typelines = 1; // number of drawfill lines we need when drawing the
 //
 boolean HU_Responder(event_t *ev)
 {
-	INT32 c=0;
-
 	if (ev->type != ev_keydown)
 		return false;
 
@@ -1156,8 +1154,6 @@ boolean HU_Responder(event_t *ev)
 		if (i == num_gamecontrols)
 			return false;
 	}
-
-	c = (INT32)ev->data1;
 
 #ifndef NONET
 	if (!chat_on)
@@ -1186,6 +1182,7 @@ boolean HU_Responder(event_t *ev)
 	}
 	else // if chat_on
 	{
+		INT32 c = (INT32)ev->data1;
 
 		// Ignore modifier keys
 		// Note that we do this here so users can still set
@@ -1200,8 +1197,6 @@ boolean HU_Responder(event_t *ev)
 		&& (ev->data1 != gamecontrol[gc_talkkey][0]
 		&& ev->data1 != gamecontrol[gc_talkkey][1]))
 			return false;
-
-		c = (INT32)ev->data1;
 
 		// I know this looks very messy but this works. If it ain't broke, don't fix it!
 		// shift LETTERS to uppercase if we have capslock or are holding shift
