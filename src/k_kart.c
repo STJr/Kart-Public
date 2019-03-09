@@ -820,12 +820,13 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 
 #define PLAYERSCALING (8 - (spbrush ? 2 : pingame))
 
-#define POWERITEMODDS(odds) \
+#define POWERITEMODDS(odds) {\
 	if (franticitems) \
 		odds <<= 1; \
 	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((PLAYERSCALING << FRACBITS) / 25)) >> FRACBITS; \
 	if (mashed > 0) \
-		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
+		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS; \
+}
 
 #define COOLDOWNONSTART (leveltime < (30*TICRATE)+starttime)
 
