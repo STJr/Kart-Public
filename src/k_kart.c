@@ -1299,7 +1299,7 @@ void K_FlipFromObject(mobj_t *mo, mobj_t *master)
 void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master)
 {
 	// flipping
-	// handle z shifting from there too;
+	// handle z shifting from there too. This is here since there's no reason not to flip us if needed when we do this anyway;
 	K_FlipFromObject(mo, master);
 
 	// visibility (usually for hyudoro)
@@ -3274,6 +3274,7 @@ void K_DoSneaker(player_t *player, INT32 type)
 						P_SetTarget(&overlay->target, cur);
 						P_SetTarget(&cur->tracer, overlay);
 						P_SetScale(overlay, (overlay->destscale = 3*cur->scale/4));
+						K_FlipFromObject(overlay, cur);
 					}
 					cur = cur->hnext;
 				}
@@ -3284,6 +3285,7 @@ void K_DoSneaker(player_t *player, INT32 type)
 			mobj_t *overlay = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_BOOSTFLAME);
 			P_SetTarget(&overlay->target, player->mo);
 			P_SetScale(overlay, (overlay->destscale = player->mo->scale));
+			K_FlipFromObject(overlay, player->mo);
 		}
 	}
 
@@ -3895,14 +3897,13 @@ static void K_MoveHeldObjects(player_t *player)
 
 					targx = player->mo->x + P_ReturnThrustX(cur, cur->angle + angoffset, cur->extravalue1);
 					targy = player->mo->y + P_ReturnThrustY(cur, cur->angle + angoffset, cur->extravalue1);
-					K_MatchGenericExtraFlags(cur, player->mo);	// Update graviflip in real time thanks.
 
 					{ // bobbing, copy pasted from my kimokawaiii entry
 						const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
 						fixed_t sine = 8 * FINESINE((((2*pi*(4*TICRATE)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
 						targz = (player->mo->z + (player->mo->height/2)) + sine;
 						if (player->mo->eflags & MFE_VERTICALFLIP)
-							targz -= player->mo->height/2 - FixedMul(player->mo->scale, cur->height);
+							targz += (player->mo->height/2 - FixedMul(player->mo->scale, 32*FRACUNIT))*6;	// No I don't understand why this works either, but it does.
 
 					}
 
@@ -3920,7 +3921,7 @@ static void K_MoveHeldObjects(player_t *player)
 					}
 
 					P_TeleportMove(cur, targx, targy, targz);
-
+					K_FlipFromObject(cur, player->mo);	// Update graviflip in real time thanks.
 					num = (num+1) % 2;
 					cur = cur->hnext;
 				}
