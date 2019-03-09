@@ -368,6 +368,10 @@ typedef struct
 	UINT8 question[16]; // Challenge data to be manipulated and answered with
 } ATTRPACK joinchallenge_pak;
 
+#define SV_SPEEDMASK 0x03
+#define SV_DEDICATED 0x40
+#define SV_PASSWORD 0x80
+
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
 // This packet is too large
@@ -380,7 +384,7 @@ typedef struct
 	UINT8 gametype;
 	UINT8 modifiedgame;
 	UINT8 cheatsenabled;
-	UINT8 isdedicated;
+	UINT8 kartvars; // Previously isdedicated, now appropriated for our own nefarious purposes
 	UINT8 fileneedednum;
 	SINT8 adminplayer;
 	tic_t time;

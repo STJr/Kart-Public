@@ -1343,7 +1343,13 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.gametype = (UINT8)(G_BattleGametype() ? VANILLA_GT_MATCH : VANILLA_GT_RACE); // SRB2Kart: Vanilla's gametype constants for MS support
 	netbuffer->u.serverinfo.modifiedgame = (UINT8)modifiedgame;
 	netbuffer->u.serverinfo.cheatsenabled = CV_CheatsEnabled();
-	netbuffer->u.serverinfo.isdedicated = (UINT8)dedicated;
+
+	netbuffer->u.serverinfo.kartvars = (UINT8) (
+		cv_kartspeed.value |
+		(dedicated ? SV_DEDICATED : 0) |
+		(D_IsJoinPasswordOn() ? SV_PASSWORD : 0)
+	);
+
 	strncpy(netbuffer->u.serverinfo.servername, cv_servername.string,
 		MAXSERVERNAME);
 	strncpy(netbuffer->u.serverinfo.mapname, G_BuildMapName(gamemap), 7);

@@ -7241,6 +7241,7 @@ static void M_DrawConnectMenu(void)
 {
 	UINT16 i, j;
 	const char *gt = "Unknown";
+	const char *spd = "";
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
 
 	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
@@ -7294,7 +7295,17 @@ static void M_DrawConnectMenu(void)
 		V_DrawSmallString(currentMenu->x+46,S_LINEY(i)+8, globalflags,
 		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
 
-		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, va("Gametype: %s", gt));
+		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
+
+		if (serverlist[slindex].info.gametype == GT_RACE)
+		{
+			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
+
+			V_DrawSmallString(currentMenu->x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
+		}
+
+		if (serverlist[slindex].info.kartvars & SV_PASSWORD)
+			V_DrawFixedPatch((currentMenu->x - 10) << FRACBITS, (S_LINEY(i)) << FRACBITS, FRACUNIT, globalflags & (~V_ALLOWLOWERCASE), W_CachePatchName("SERVLOCK", PU_CACHE), NULL);
 
 		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
 	}
