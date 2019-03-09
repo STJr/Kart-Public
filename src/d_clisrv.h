@@ -75,6 +75,7 @@ typedef enum
 	PT_BASICKEEPALIVE,// Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
 
 	PT_JOINCHALLENGE, // You must give a password to joinnnnn
+	PT_DOWNLOADFILESOKAY, // You can download files from the server....
 
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.
@@ -356,7 +357,7 @@ typedef struct
 	UINT8 version; // Different versions don't work
 	UINT8 subversion; // Contains build version
 	UINT8 localplayers;
-	UINT8 mode;
+	UINT8 needsdownload;
 	UINT8 challengenum; // Non-zero if trying to join with a password attempt
 	UINT8 challengeanswer[16]; // Join challenge
 } ATTRPACK clientconfig_pak;

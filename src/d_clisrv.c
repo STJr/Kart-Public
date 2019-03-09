@@ -1128,18 +1128,21 @@ typedef enum
 #endif
 	CL_CONNECTED,
 	CL_ABORTED,
+	CL_ASKDOWNLOADFILES,
+	CL_WAITDOWNLOADFILESRESPONSE,
 	CL_CHALLENGE
 } cl_mode_t;
 
 static void GetPackets(void);
 
 static cl_mode_t cl_mode = CL_SEARCHING;
+static boolean cl_needsdownload = false;
 
 static UINT8 cl_challengenum = 0;
 static UINT8 cl_challengequestion[17];
 static char cl_challengepassword[65];
 static UINT8 cl_challengeanswer[17];
-static boolean cl_challengeattempted;
+static UINT8 cl_challengeattempted = 0;
 
 // Player name send/load
 
@@ -1237,6 +1240,9 @@ static inline void CL_DrawConnectionStatus(void)
 			case CL_WAITJOINRESPONSE:
 				cltext = M_GetText("Requesting to join...");
 				break;
+			case CL_ASKDOWNLOADFILES:
+			case CL_WAITDOWNLOADFILESRESPONSE:
+				cltext = M_GetText("Waiting to download files...");
 			default:
 				cltext = M_GetText("Connecting to server...");
 				break;
@@ -1314,6 +1320,7 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.localplayers = localplayers;
 	netbuffer->u.clientcfg.version = VERSION;
 	netbuffer->u.clientcfg.subversion = SUBVERSION;
+	netbuffer->u.clientcfg.needsdownload = cl_needsdownload;
 	netbuffer->u.clientcfg.challengenum = cl_challengenum;
 	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, 16);
 
@@ -1989,9 +1996,12 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 					), NULL, MM_NOTHING);
 					return false;
 				}
+
+				cl_mode = CL_ASKDOWNLOADFILES;
+
 				// no problem if can't send packet, we will retry later
-				if (CL_SendRequestFile())
-					cl_mode = CL_DOWNLOADFILES;
+				//if (CL_SendRequestFile())
+				//	cl_mode = CL_DOWNLOADFILES;
 			}
 		}
 		else
@@ -2059,6 +2069,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			/* FALLTHRU */
 
 		case CL_ASKJOIN:
+			cl_needsdownload = false;
 			CL_LoadServerFiles();
 #ifdef JOININGAME
 			// prepare structures to save the file
@@ -2069,6 +2080,14 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (CL_SendJoin())
 				cl_mode = CL_WAITJOINRESPONSE;
 			break;
+
+		case CL_ASKDOWNLOADFILES:
+			cl_needsdownload = true;
+
+			if (CL_SendJoin())
+				cl_mode = CL_WAITDOWNLOADFILESRESPONSE;
+			break;
+
 
 #ifdef JOININGAME
 		case CL_DOWNLOADSAVEGAME:
@@ -2085,6 +2104,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 		case CL_CHALLENGE:
 		case CL_WAITJOINRESPONSE:
+		case CL_WAITDOWNLOADFILESRESPONSE:
 		case CL_CONNECTED:
 		default:
 			break;
@@ -2193,7 +2213,7 @@ boolean CL_Responder(event_t *ev)
 			cl_challengepassword[len] = ch;
 		}
 
-		cl_challengeattempted = false;
+		cl_challengeattempted = 0;
 	}
 	else if (ch == KEY_BACKSPACE)
 	{
@@ -2202,14 +2222,14 @@ boolean CL_Responder(event_t *ev)
 		if (len > 0)
 			cl_challengepassword[len-1] = 0;
 
-		cl_challengeattempted = false;
+		cl_challengeattempted = 0;
 	}
 	else if (ch == KEY_ENTER)
 	{
 		// Done?
 		D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-		cl_mode = CL_ASKJOIN;
-		cl_challengeattempted = true;
+		cl_mode = cl_needsdownload ? CL_ASKDOWNLOADFILES : CL_ASKJOIN;
+		cl_challengeattempted = 1;
 	}
 
 	return true;
@@ -2293,7 +2313,7 @@ static void CL_ConnectToServer(boolean viams)
 	SL_ClearServerList(servernode);
 #endif
 
-	cl_challengeattempted = false;
+	cl_challengeattempted = 0;
 
 	do
 	{
@@ -3753,6 +3773,13 @@ static void HandleConnect(SINT8 node)
 			}
 		}
 
+		if (netbuffer->u.clientcfg.needsdownload)
+		{
+			netbuffer->packettype = PT_DOWNLOADFILESOKAY;
+			HSendPacket(node, true, 0, 0);
+			return;
+		}
+
 		// client authorised to join
 		nodewaiting[node] = (UINT8)(netbuffer->u.clientcfg.localplayers - playerpernode[node]);
 		if (!nodeingame[node])
@@ -3761,6 +3788,7 @@ static void HandleConnect(SINT8 node)
 #ifndef NONET
 			newnode = true;
 #endif
+
 			SV_AddNode(node);
 
 			/// \note Wait what???
@@ -3927,12 +3955,19 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				break;
 			}
 			SERVERONLY
-			if (cl_mode == CL_WAITJOINRESPONSE)
+			if (cl_mode == CL_WAITJOINRESPONSE || cl_mode == CL_WAITDOWNLOADFILESRESPONSE)
 			{
 				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
 				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
 
 				cl_mode = CL_CHALLENGE;
+
+				if (cl_challengeattempted == 2)
+				{
+					// We already sent a correct password, so throw it back up again.
+					D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
+					cl_mode = CL_ASKJOIN;
+				}
 			}
 			break;
 
@@ -3962,6 +3997,38 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				// Will be reset by caller. Signals refusal.
 				cl_mode = CL_ABORTED;
 			}
+			break;
+
+		case PT_DOWNLOADFILESOKAY:
+			if (server && serverrunning)
+			{ // But wait I thought I'm the server?
+				Net_CloseConnection(node);
+				break;
+			}
+
+			SERVERONLY
+
+			// This should've already been checked, but just to be safe...
+			if (!CL_CheckDownloadable())
+			{
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
+				M_StartMessage(M_GetText(
+					"You cannot connect to this server\n"
+					"because you cannot download the files\n"
+					"that you are missing from the server.\n\n"
+					"See the console or log file for\n"
+					"more details.\n\n"
+					"Press ESC\n"
+				), NULL, MM_NOTHING);
+				break;
+			}
+
+			cl_challengeattempted = 2;
+			CONS_Printf("trying to download\n");
+			if (CL_SendRequestFile())
+					cl_mode = CL_DOWNLOADFILES;
 			break;
 
 		case PT_SERVERCFG: // Positive response of client join request
