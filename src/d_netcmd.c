@@ -535,6 +535,7 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
+	CV_RegisterVar(&cv_dummyjoinpassword);
 	COM_AddCommand("joinpassword", Command_ChangeJoinPassword_f);
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
@@ -3706,9 +3707,11 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 }
 
 // Join password stuff
+consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 #define NUMJOINCHALLENGES 32
 static UINT8 joinpassmd5[17];
-static boolean joinpasswordset = false;
+boolean joinpasswordset = false;
 static UINT8 joinpasschallenges[NUMJOINCHALLENGES][17];
 static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
 

@@ -248,6 +248,8 @@ void RemoveAdminPlayer(INT32 playernum);
 void ItemFinder_OnChange(void);
 void D_SetPassword(const char *pw);
 
+extern consvar_t cv_dummyjoinpassword;
+extern boolean joinpasswordset;
 boolean D_IsJoinPasswordOn(void);
 void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer);
 void D_SetJoinPassword(const char *pw);
