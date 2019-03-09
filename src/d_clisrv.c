@@ -5052,8 +5052,8 @@ static inline void PingUpdate(void)
 					pingtimeout[i]++;
 					if (pingtimeout[i] > cv_pingtimeout.value)	// ok your net has been bad for too long, you deserve to die.
 					{
-						pingtimeout[i] = 0;
 						XBOXSTATIC char buf[2];
+						pingtimeout[i] = 0;
 
 						buf[0] = (char)i;
 						buf[1] = KICK_MSG_PING_HIGH;
