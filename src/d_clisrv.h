@@ -19,6 +19,8 @@
 #include "tables.h"
 #include "d_player.h"
 
+#include "md5.h"
+
 // Network play related stuff.
 // There is a data struct that stores network
 //  communication related stuff, and another

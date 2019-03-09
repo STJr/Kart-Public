@@ -1139,9 +1139,9 @@ static cl_mode_t cl_mode = CL_SEARCHING;
 static boolean cl_needsdownload = false;
 
 static UINT8 cl_challengenum = 0;
-static UINT8 cl_challengequestion[17];
+static UINT8 cl_challengequestion[MD5_LEN+1];
 static char cl_challengepassword[65];
-static UINT8 cl_challengeanswer[17];
+static UINT8 cl_challengeanswer[MD5_LEN+1];
 static UINT8 cl_challengeattempted = 0;
 
 // Player name send/load
@@ -1322,7 +1322,7 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.subversion = SUBVERSION;
 	netbuffer->u.clientcfg.needsdownload = cl_needsdownload;
 	netbuffer->u.clientcfg.challengenum = cl_challengenum;
-	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, 16);
+	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, MD5_LEN);
 
 	return HSendPacket(servernode, true, 0, sizeof (clientconfig_pak));
 }
@@ -3267,8 +3267,8 @@ void D_ClientServerInit(void)
 	gametic = 0;
 	localgametic = 0;
 
-	memset(cl_challengequestion, 0x00, 17);
-	memset(cl_challengeanswer, 0x00, 17);
+	memset(cl_challengequestion, 0x00, MD5_LEN+1);
+	memset(cl_challengeanswer, 0x00, MD5_LEN+1);
 
 	// do not send anything before the real begin
 	SV_StopServer();
