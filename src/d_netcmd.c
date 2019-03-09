@@ -3444,7 +3444,7 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 }
 
 #define BASESALT "basepasswordstorage"
-static UINT8 adminpassmd5[16];
+static UINT8 adminpassmd5[MD5_LEN];
 static boolean adminpasswordset = false;
 
 void D_SetPassword(const char *pw)
@@ -3483,7 +3483,7 @@ static void Command_Login_f(void)
 	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
 	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
 #else
-	XBOXSTATIC UINT8 finalmd5[16];
+	XBOXSTATIC UINT8 finalmd5[MD5_LEN];
 	const char *pw;
 
 	if (!netgame)
@@ -3506,11 +3506,11 @@ static void Command_Login_f(void)
 	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &finalmd5);
 
 	// Do the final pass to get the comparison the server will come up with
-	D_MD5PasswordPass(finalmd5, 16, va("PNUM%02d", consoleplayer), &finalmd5);
+	D_MD5PasswordPass(finalmd5, MD5_LEN, va("PNUM%02d", consoleplayer), &finalmd5);
 
 	CONS_Printf(M_GetText("Sending login... (Notice only given if password is correct.)\n"));
 
-	SendNetXCmd(XD_LOGIN, finalmd5, 16);
+	SendNetXCmd(XD_LOGIN, finalmd5, MD5_LEN);
 #endif
 }
 
@@ -3521,9 +3521,9 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	(void)cp;
 	(void)playernum;
 #else
-	UINT8 sentmd5[16], finalmd5[16];
+	UINT8 sentmd5[MD5_LEN], finalmd5[MD5_LEN];
 
-	READMEM(*cp, sentmd5, 16);
+	READMEM(*cp, sentmd5, MD5_LEN);
 
 	if (client)
 		return;
@@ -3535,9 +3535,9 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	}
 
 	// Do the final pass to compare with the sent md5
-	D_MD5PasswordPass(adminpassmd5, 16, va("PNUM%02d", playernum), &finalmd5);
+	D_MD5PasswordPass(adminpassmd5, MD5_LEN, va("PNUM%02d", playernum), &finalmd5);
 
-	if (!memcmp(sentmd5, finalmd5, 16))
+	if (!memcmp(sentmd5, finalmd5, MD5_LEN))
 	{
 		CONS_Printf(M_GetText("%s passed authentication.\n"), player_names[playernum]);
 		COM_BufInsertText(va("promote %d\n", playernum)); // do this immediately
@@ -3710,9 +3710,9 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 #define NUMJOINCHALLENGES 32
-static UINT8 joinpassmd5[17];
+static UINT8 joinpassmd5[MD5_LEN+1];
 boolean joinpasswordset = false;
-static UINT8 joinpasschallenges[NUMJOINCHALLENGES][17];
+static UINT8 joinpasschallenges[NUMJOINCHALLENGES][MD5_LEN+1];
 static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
 
 boolean D_IsJoinPasswordOn(void)
@@ -3722,21 +3722,21 @@ boolean D_IsJoinPasswordOn(void)
 
 static inline void GetChallengeAnswer(UINT8 *question, UINT8 *passwordmd5, UINT8 *answer)
 {
-	D_MD5PasswordPass(question, 16, (char *) passwordmd5, answer);
+	D_MD5PasswordPass(question, MD5_LEN, (char *) passwordmd5, answer);
 }
 
 void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer)
 {
-	static UINT8 passwordmd5[17];
+	static UINT8 passwordmd5[MD5_LEN+1];
 
-	memset(passwordmd5, 0x00, 17);
+	memset(passwordmd5, 0x00, MD5_LEN+1);
 	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &passwordmd5);
 	GetChallengeAnswer(question, passwordmd5, answer);
 }
 
 void D_SetJoinPassword(const char *pw)
 {
-	memset(joinpassmd5, 0x00, 17);
+	memset(joinpassmd5, 0x00, MD5_LEN+1);
 	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &joinpassmd5);
 	joinpasswordset = true;
 }
@@ -3748,11 +3748,11 @@ boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
 	num %= NUMJOINCHALLENGES;
 
 	//@TODO use a constant-time memcmp....
-	if (joinpasschallengeson[num] > 0 && memcmp(answer, joinpasschallenges[num], 16) == 0)
+	if (joinpasschallengeson[num] > 0 && memcmp(answer, joinpasschallenges[num], MD5_LEN) == 0)
 		passed = true;
 
 	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
-	memset(joinpasschallenges[num], 0x00, 17);
+	memset(joinpasschallenges[num], 0x00, MD5_LEN+1);
 	joinpasschallengeson[num] = 0;
 
 	return passed;
@@ -3787,8 +3787,8 @@ void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
 
 	joinpasschallengeson[(*num)] = I_GetTime();
 
-	memset(question, 0x00, 17);
-	for (i = 0; i < 16; i++)
+	memset(question, 0x00, MD5_LEN+1);
+	for (i = 0; i < MD5_LEN; i++)
 		question[i] = M_RandomByte();
 
 	// Store the answer in memory. What was the question again?

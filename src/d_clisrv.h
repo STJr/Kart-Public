@@ -359,13 +359,13 @@ typedef struct
 	UINT8 localplayers;
 	UINT8 needsdownload;
 	UINT8 challengenum; // Non-zero if trying to join with a password attempt
-	UINT8 challengeanswer[16]; // Join challenge
+	UINT8 challengeanswer[MD5_LEN]; // Join challenge
 } ATTRPACK clientconfig_pak;
 
 typedef struct
 {
 	UINT8 challengenum; // Number to send back in join attempt
-	UINT8 question[16]; // Challenge data to be manipulated and answered with
+	UINT8 question[MD5_LEN]; // Challenge data to be manipulated and answered with
 } ATTRPACK joinchallenge_pak;
 
 #define SV_SPEEDMASK 0x03
