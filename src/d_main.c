@@ -203,6 +203,8 @@ static inline void D_ModifierKeyResponder(event_t *ev)
 		case KEY_RCTRL: ctrldown |= 0x2; return;
 		case KEY_LALT: altdown |= 0x1; return;
 		case KEY_RALT: altdown |= 0x2; return;
+		case KEY_CAPSLOCK: capslock = !capslock; return;
+
 		default: return;
 	}
 	else if (ev->type == ev_keyup) switch (ev->data1)

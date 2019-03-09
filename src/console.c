@@ -1084,16 +1084,6 @@ boolean CON_Responder(event_t *ev)
 	else if (key == KEY_KPADSLASH)
 		key = '/';
 
-	// capslock
-	if (key == KEY_CAPSLOCK)	// it's a toggle.
-	{
-		if (capslock)
-			capslock = false;
-		else
-			capslock = true;
-		return true;
-	}
-
 	// same capslock code as hu_stuff.c's HU_responder. Check there for details.
 	if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z'))
 	{
