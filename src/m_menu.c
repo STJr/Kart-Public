@@ -2691,7 +2691,7 @@ boolean M_Responder(event_t *ev)
 	{
 		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING || (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
 		{
-			if (ch == KEY_TAB)
+			if (ch == KEY_TAB && (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
 				((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value ^= 1;
 
 			if (shiftdown && ch >= 32 && ch <= 127)
