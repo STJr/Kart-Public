@@ -3707,7 +3707,7 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 }
 
 // Join password stuff
-consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP|CV_PASSWORD, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 #define NUMJOINCHALLENGES 32
 static UINT8 joinpassmd5[MD5_LEN+1];

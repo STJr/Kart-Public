@@ -2173,12 +2173,6 @@ boolean CL_Responder(event_t *ev)
 
 	ch = (INT32)ev->data1;
 
-	if (ch == KEY_CAPSLOCK) // it's a toggle.
-	{
-		capslock = !capslock;
-		return true;
-	}
-
 	// Only ESC and non-keyboard keys abort connection
 	if (ch == KEY_ESCAPE || ch >= KEY_MOUSE1)
 	{
