@@ -468,6 +468,7 @@ extern boolean comeback;
 extern SINT8 battlewanted[4];
 extern tic_t wantedcalcdelay;
 extern tic_t indirectitemcooldown;
+extern tic_t hyubgone;
 extern tic_t mapreset;
 extern UINT8 nospectategrief;
 extern boolean thwompsactive;

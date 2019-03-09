@@ -1404,11 +1404,14 @@ fixed_t P_GetMobjGravity(mobj_t *mo)
 					break;
 				case MT_BANANA:
 				case MT_EGGMANITEM:
+				case MT_SSMINE:
+				case MT_SINK:
+					if (mo->extravalue2 > 0)
+						gravityadd *= mo->extravalue2;
+					/* FALLTHRU */
 				case MT_ORBINAUT:
 				case MT_JAWZ:
 				case MT_JAWZ_DUD:
-				case MT_SSMINE:
-				case MT_SINK:
 					gravityadd = (5*gravityadd)/2;
 					break;
 				case MT_SIGN:
@@ -6651,6 +6654,7 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t y = P_RandomRange(-35, 35)*mobj->scale;
 					fixed_t z = P_RandomRange(0, 70)*mobj->scale;
 					mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+					P_SetMobjState(smoke, S_OPAQUESMOKE1);
 					smoke->scale = mobj->scale * 2;
 					smoke->destscale = mobj->scale * 6;
 					smoke->momz = P_RandomRange(4, 9)*FRACUNIT;
@@ -6672,6 +6676,7 @@ void P_MobjThinker(mobj_t *mobj)
 					else
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
+						P_SetMobjState(smoke, S_OPAQUESMOKE1);
 						smoke->scale = mobj->scale;
 						smoke->destscale = mobj->scale*2;
 					}
@@ -8190,28 +8195,26 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->color = mobj->target->player->skincolor;
 			else
 				mobj->color = SKINCOLOR_KETCHUP;
+
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (P_IsObjectOnGround(mobj))
+
+			if (P_IsObjectOnGround(mobj) && (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2]))
 			{
-				if (mobj->state == &states[S_SSMINE_AIR1] || mobj->state == &states[S_SSMINE_AIR2])
-					P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
-				if (mobj->reactiontime >= mobj->info->reactiontime)
+				if (mobj->extravalue1 > 0)
+					mobj->extravalue1--;
+				else
 				{
 					mobj->momx = mobj->momy = 0;
 					S_StartSound(mobj, mobj->info->activesound);
-					mobj->reactiontime--;
+					P_SetMobjState(mobj, S_SSMINE_DEPLOY1);
 				}
 			}
-			if (mobj->reactiontime && mobj->reactiontime < mobj->info->reactiontime)
-			{
-				mobj->reactiontime--;
-				if (!mobj->reactiontime)
-					P_KillMobj(mobj, NULL, NULL);
-			}
+
 			if ((mobj->state >= &states[S_SSMINE1] && mobj->state <= &states[S_SSMINE4])
 				|| (mobj->state >= &states[S_SSMINE_DEPLOY8] && mobj->state <= &states[S_SSMINE_DEPLOY13]))
 				A_GrenadeRing(mobj);
+
 			if (mobj->threshold > 0)
 				mobj->threshold--;
 			break;
