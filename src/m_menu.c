@@ -2384,6 +2384,9 @@ static void M_NextOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
 
+	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
+		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
+
 	do
 	{
 		if (itemOn + 1 > currentMenu->numitems - 1)
@@ -2396,6 +2399,9 @@ static void M_NextOpt(void)
 static void M_PrevOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
+
+	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
+		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
 
 	do
 	{
@@ -2685,6 +2691,9 @@ boolean M_Responder(event_t *ev)
 	{
 		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING || (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
 		{
+			if (ch == KEY_TAB)
+				((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value ^= 1;
+
 			if (shiftdown && ch >= 32 && ch <= 127)
 				ch = shiftxform[ch];
 			if (M_ChangeStringCvar(ch))
@@ -3567,23 +3576,32 @@ static void M_DrawGenericMenu(void)
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
+							case IT_CV_PASSWORD:
+								if (i == itemOn)
+								{
+									V_DrawRightAlignedThinString(x + MAXSTRINGLENGTH*8 + 10, y, V_ALLOWLOWERCASE, va(M_GetText("Tab: %s password"), cv->value ? "hide" : "show"));
+								}
+
+								if (!cv->value || i != itemOn)
+								{
+									sl = strlen(cv->string);
+									memset(asterisks, '*', sl);
+									memset(asterisks + sl, 0, MAXSTRINGLENGTH+1-sl);
+
+									M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
+									V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, asterisks);
+									if (skullAnimCounter < 4 && i == itemOn)
+										V_DrawCharacter(x + 8 + V_StringWidth(asterisks, 0), y + 12,
+											'_' | 0x80, false);
+									y += 16;
+									break;
+								}
+								/* fallthru */
 							case IT_CV_STRING:
 								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
 								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
 								if (skullAnimCounter < 4 && i == itemOn)
 									V_DrawCharacter(x + 8 + V_StringWidth(cv->string, 0), y + 12,
-										'_' | 0x80, false);
-								y += 16;
-								break;
-							case IT_CV_PASSWORD:
-								sl = strlen(cv->string);
-								memset(asterisks, '*', sl);
-								memset(asterisks + sl, 0, MAXSTRINGLENGTH+1-sl);
-
-								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
-								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, asterisks);
-								if (skullAnimCounter < 4 && i == itemOn)
-									V_DrawCharacter(x + 8 + V_StringWidth(asterisks, 0), y + 12,
 										'_' | 0x80, false);
 								y += 16;
 								break;
