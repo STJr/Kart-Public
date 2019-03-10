@@ -1179,6 +1179,8 @@ static void CV_LoadPlayerNames(UINT8 **p)
 }
 
 #ifdef CLIENT_LOADINGSCREEN
+static UINT32 SL_SearchServer(INT32 node);
+
 //
 // CL_DrawConnectionStatus
 //
@@ -1212,11 +1214,27 @@ static inline void CL_DrawConnectionStatus(void)
 				{
 					char asterisks[33];
 					size_t sl = min(32, strlen(cl_challengepassword));
+					UINT32 i;
 
 					memset(asterisks, '*', sl);
 					memset(asterisks+sl, 0, 33-sl);
 
 					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
+
+					i = SL_SearchServer(servernode);
+
+					if (i == -1)
+					{
+						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8, 32, 1);
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_REDMAP, M_GetText("This server is password protected."));
+					}
+					else
+					{
+						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8-8, 32, 3);
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2-8, V_REDMAP, M_GetText("This server,"));
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_ALLOWLOWERCASE, serverlist[i].info.servername);
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+8, V_REDMAP, M_GetText("is password protected."));
+					}
 
 					cltext = M_GetText(cl_challengeattempted ? "Incorrect password. Please try again." : "Please enter the server password.");
 				}
