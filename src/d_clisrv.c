@@ -1364,7 +1364,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.cheatsenabled = CV_CheatsEnabled();
 
 	netbuffer->u.serverinfo.kartvars = (UINT8) (
-		cv_kartspeed.value |
+		(cv_kartspeed.value & SV_SPEEDMASK) |
 		(dedicated ? SV_DEDICATED : 0) |
 		(D_IsJoinPasswordOn() ? SV_PASSWORD : 0)
 	);
