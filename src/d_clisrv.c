@@ -3944,10 +3944,6 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			Net_CloseConnection(node);
 			break;
 
-		case PT_CLIENTJOIN:
-			if (server)
-				HandleConnect(node);
-			break;
 		case PT_JOINCHALLENGE:
 			if (server && serverrunning)
 			{ // But wait I thought I'm the server?
@@ -4663,6 +4659,12 @@ FILESTAMP
 	while (HGetPacket())
 	{
 		node = (SINT8)doomcom->remotenode;
+
+		if (netbuffer->packettype == PT_CLIENTJOIN && server)
+		{
+			HandleConnect(node);
+			continue;
+		}
 		if (node == servernode && client && cl_mode != CL_SEARCHING)
 		{
 			if (netbuffer->packettype == PT_SERVERSHUTDOWN)
