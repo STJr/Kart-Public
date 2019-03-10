@@ -1214,7 +1214,7 @@ static inline void CL_DrawConnectionStatus(void)
 				{
 					char asterisks[33];
 					size_t sl = min(32, strlen(cl_challengepassword));
-					UINT32 i;
+					UINT32 serverid;
 
 					memset(asterisks, '*', sl);
 					memset(asterisks+sl, 0, 33-sl);
@@ -1222,9 +1222,9 @@ static inline void CL_DrawConnectionStatus(void)
 					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
 					V_DrawFixedPatch((BASEVIDWIDTH/2) << FRACBITS, (BASEVIDHEIGHT/2) << FRACBITS, FRACUNIT, 0, W_CachePatchName("BSRVLOCK", PU_CACHE), NULL);
 
-					i = SL_SearchServer(servernode);
+					serverid = SL_SearchServer(servernode);
 
-					if (i == -1)
+					if (serverid == UINT32_MAX)
 					{
 						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8, 32, 1);
 						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_REDMAP, M_GetText("This server is password protected."));
@@ -1233,7 +1233,7 @@ static inline void CL_DrawConnectionStatus(void)
 					{
 						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8, 32, 3);
 						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_REDMAP, M_GetText("This server,"));
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+8, V_ALLOWLOWERCASE, serverlist[i].info.servername);
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+8, V_ALLOWLOWERCASE, serverlist[serverid].info.servername);
 						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+16, V_REDMAP, M_GetText("is password protected."));
 					}
 
