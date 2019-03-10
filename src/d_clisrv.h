@@ -283,6 +283,8 @@ typedef struct
 
 	tic_t jointime;
 
+	UINT8 splitscreenindex;
+
 	//player->mo stuff
 	UINT8 hasmo; // Boolean
 
@@ -450,10 +452,10 @@ typedef struct
 		serverrefuse_pak serverrefuse;      //       65025 bytes (somehow I feel like those values are garbage...)
 		askinfo_pak askinfo;                //          61 bytes
 		msaskinfo_pak msaskinfo;            //          22 bytes
-		plrinfo playerinfo[MAXPLAYERS];     //        1152 bytes (I'd say 36~38)
-		plrconfig playerconfig[MAXPLAYERS]; // (up to) 896 bytes (welp they ARE)
+		plrinfo playerinfo[MAXPLAYERS];     //         576 bytes(?)
+		plrconfig playerconfig[MAXPLAYERS]; // (up to) 528 bytes(?)
 #ifdef NEWPING
-		UINT32 pingtable[MAXPLAYERS+1];       //         128 bytes
+		UINT32 pingtable[MAXPLAYERS+1];     //          68 bytes
 #endif
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
