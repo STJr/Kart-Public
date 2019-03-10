@@ -3789,7 +3789,7 @@ static void HandleConnect(SINT8 node)
 
 				netbuffer->packettype = PT_JOINCHALLENGE;
 				HSendPacket(node, true, 0, sizeof(joinchallenge_pak));
-				//Net_CloseConnection(node);
+				Net_CloseConnection(node);
 
 				return;
 			}
