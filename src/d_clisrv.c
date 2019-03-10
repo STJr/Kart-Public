@@ -2084,14 +2084,20 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
 			if (CL_SendJoin())
+			{
+				*asksent = I_GetTime();
 				cl_mode = CL_WAITJOINRESPONSE;
+			}
 			break;
 
 		case CL_ASKDOWNLOADFILES:
 			cl_needsdownload = true;
 
 			if (CL_SendJoin())
+			{
+				*asksent = I_GetTime();
 				cl_mode = CL_WAITDOWNLOADFILESRESPONSE;
+			}
 			break;
 
 
@@ -2114,6 +2120,13 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 		case CL_WAITJOINRESPONSE:
 		case CL_WAITDOWNLOADFILESRESPONSE:
+			if (*asksent + NEWTICRATE < I_GetTime() && CL_SendJoin())
+			{
+				*asksent = I_GetTime();
+			}
+
+			break;
+
 		case CL_CONNECTED:
 		default:
 			break;
