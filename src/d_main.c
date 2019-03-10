@@ -1007,9 +1007,12 @@ static inline void D_MakeTitleString(char *s)
 //
 void D_SRB2Main(void)
 {
-	INT32 p;
+	INT32 p, i;
 	char srb2[82]; // srb2 title banner
 	char title[82];
+	lumpinfo_t *lumpinfo;
+	UINT16 wadnum;
+	char *name;
 
 	INT32 pstartmap = 1;
 	boolean autostart = false;
@@ -1235,7 +1238,7 @@ void D_SRB2Main(void)
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);			// gfx.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART);	// textures.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);		// chars.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart -- 4 - If you touch this, make sure to touch up the majormods stuff below.
 #ifdef USE_PATCH_KART
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);		// patch.kart
 #endif
@@ -1255,9 +1258,68 @@ void D_SRB2Main(void)
 
 	mainwadstally = packetsizetally;
 
+	//
+	// search for maps
+	//
+	for (wadnum = 4; wadnum < 6; wadnum++) // fucking arbitrary numbers
+	{
+		lumpinfo = wadfiles[wadnum]->lumpinfo;
+		for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lumpinfo++)
+		{
+			name = lumpinfo->name;
+
+			if (name[0] == 'M' && name[1] == 'A' && name[2] == 'P') // Ignore the headers
+			{
+				INT16 num;
+				if (name[5] != '\0')
+					continue;
+				num = (INT16)M_MapNumber(name[3], name[4]);
+
+				// we want to record whether this map exists. if it doesn't have a header, we can assume it's not relephant
+				if (num <= NUMMAPS && mapheaderinfo[num - 1])
+				{
+					mapheaderinfo[num - 1]->menuflags |= LF2_EXISTSHACK;
+				}
+
+				CONS_Printf("%s\n", name);
+				//mapsadded = true;
+			}
+		}
+	}
+
 	if (!W_InitMultipleFiles(startuppwads))
 		CONS_Error("A PWAD file was not found or not valid.\nCheck the log to see which ones.\n");
 	D_CleanFile(startuppwads);
+
+	//
+	// search for maps... again.
+	//
+	for (wadnum = mainwads; wadnum < numwadfiles; wadnum++)
+	{
+		lumpinfo = wadfiles[wadnum]->lumpinfo;
+		for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lumpinfo++)
+		{
+			name = lumpinfo->name;
+
+			if (name[0] == 'M' && name[1] == 'A' && name[2] == 'P') // Ignore the headers
+			{
+				INT16 num;
+				if (name[5] != '\0')
+					continue;
+				num = (INT16)M_MapNumber(name[3], name[4]);
+
+				// we want to record whether this map exists. if it doesn't have a header, we can assume it's not relephant
+				if (num <= NUMMAPS && mapheaderinfo[num - 1])
+				{
+					if (mapheaderinfo[num - 1]->menuflags & LF2_EXISTSHACK)
+						G_SetGameModified(multiplayer, true); // oops, double-defined - no record attack privileges for you
+					mapheaderinfo[num - 1]->menuflags |= LF2_EXISTSHACK;
+				}
+
+				CONS_Printf("%s\n", name);
+			}
+		}
+	}
 
 	cht_Init();
 
