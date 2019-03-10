@@ -4001,11 +4001,23 @@ static void HandlePacketFromAwayNode(SINT8 node)
 
 				cl_mode = CL_CHALLENGE;
 
-				if (cl_challengeattempted == 2)
+				switch (cl_challengeattempted)
 				{
-					// We already sent a correct password, so throw it back up again.
-					D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-					cl_mode = CL_ASKJOIN;
+					case 2:
+						// We already sent a correct password, so throw it back up again.
+						D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
+						cl_mode = CL_ASKJOIN;
+						break;
+
+					case 1:
+						// We entered the wrong password!
+						S_StartSound(NULL, sfx_s26d);
+						break;
+
+					default:
+						// First entry to the password screen.
+						S_StartSound(NULL, sfx_s224);
+						break;
 				}
 			}
 			break;
@@ -4064,6 +4076,9 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				break;
 			}
 
+			if (cl_challengeattempted == 1) // Successful password noise.
+				S_StartSound(NULL, sfx_s221);
+
 			cl_challengeattempted = 2;
 			CONS_Printf("trying to download\n");
 			if (CL_SendRequestFile())
@@ -4084,6 +4099,9 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// \note how would this happen? and is it doing the right thing if it does?
 			if (cl_mode != CL_WAITJOINRESPONSE)
 				break;
+
+			if (cl_challengeattempted == 1) // Successful password noise.
+				S_StartSound(NULL, sfx_s221);
 
 			if (client)
 			{
