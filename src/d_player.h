@@ -32,12 +32,7 @@
 // Extra abilities/settings for skins (combinable stuff)
 typedef enum
 {
-	SF_SUPER            = 1, // Can turn super in singleplayer/co-op mode.
-	SF_SUPERANIMS       = 1<<1, // If super, use the super sonic animations
-	SF_SUPERSPIN        = 1<<2, // Should spin frames be played while super?
-	SF_HIRES            = 1<<3, // Draw the sprite 2x as small?
-	SF_NOSKID           = 1<<4, // No skid particles etc
-	SF_NOSPEEDADJUST    = 1<<5, // Skin-specific version of disablespeedadjust
+	SF_HIRES = 1, // Draw the sprite 2x as small?
 } skinflags_t;
 
 //Primary and secondary skin abilities

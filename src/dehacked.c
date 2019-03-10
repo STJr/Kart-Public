@@ -8608,12 +8608,7 @@ struct {
 	{"RW_RAIL",RW_RAIL},
 
 	// Character flags (skinflags_t)
-	{"SF_SUPER",SF_SUPER},
-	{"SF_SUPERANIMS",SF_SUPERANIMS},
-	{"SF_SUPERSPIN",SF_SUPERSPIN},
 	{"SF_HIRES",SF_HIRES},
-	{"SF_NOSKID",SF_NOSKID},
-	{"SF_NOSPEEDADJUST",SF_NOSPEEDADJUST},
 
 	// Character abilities!
 	// Primary

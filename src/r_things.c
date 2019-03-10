@@ -2570,7 +2570,7 @@ void R_InitSkins(void)
 #ifdef SKINVALUES
 	skin_cons_t[0].strvalue = skins[0].name;
 #endif
-	skin->flags = SF_SUPER|SF_SUPERANIMS|SF_SUPERSPIN;
+	skin->flags = 0;
 	strcpy(skin->realname,   "Sonic");
 	strcpy(skin->hudname,    "SONIC");
 
