@@ -5077,7 +5077,7 @@ static inline void PingUpdate(void)
 	}
 
 	// send the server's maxping as last element of our ping table. This is useful to let us know when we're about to get kicked.
-	netbuffer->u.pingtable[i++] = cv_maxping.value;
+	netbuffer->u.pingtable[MAXPLAYERS] = cv_maxping.value;
 
 	//send out our ping packets
 	for (i = 0; i < MAXNETNODES; i++)

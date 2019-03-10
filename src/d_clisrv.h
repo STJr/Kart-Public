@@ -453,7 +453,7 @@ typedef struct
 		plrinfo playerinfo[MAXPLAYERS];     //        1152 bytes (I'd say 36~38)
 		plrconfig playerconfig[MAXPLAYERS]; // (up to) 896 bytes (welp they ARE)
 #ifdef NEWPING
-		UINT32 pingtable[MAXPLAYERS];       //         128 bytes
+		UINT32 pingtable[MAXPLAYERS+1];       //         128 bytes
 #endif
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
