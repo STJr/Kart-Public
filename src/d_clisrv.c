@@ -1220,6 +1220,7 @@ static inline void CL_DrawConnectionStatus(void)
 					memset(asterisks+sl, 0, 33-sl);
 
 					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
+					V_DrawFixedPatch((BASEVIDWIDTH/2) << FRACBITS, (BASEVIDHEIGHT/2) << FRACBITS, FRACUNIT, 0, W_CachePatchName("BSRVLOCK", PU_CACHE), NULL);
 
 					i = SL_SearchServer(servernode);
 
@@ -1230,10 +1231,10 @@ static inline void CL_DrawConnectionStatus(void)
 					}
 					else
 					{
-						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8-8, 32, 3);
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2-8, V_REDMAP, M_GetText("This server,"));
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_ALLOWLOWERCASE, serverlist[i].info.servername);
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+8, V_REDMAP, M_GetText("is password protected."));
+						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8, 32, 3);
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_REDMAP, M_GetText("This server,"));
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+8, V_ALLOWLOWERCASE, serverlist[i].info.servername);
+						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+16, V_REDMAP, M_GetText("is password protected."));
 					}
 
 					cltext = M_GetText(cl_challengeattempted ? "Incorrect password. Please try again." : "Please enter the server password.");
@@ -2133,7 +2134,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 #endif
 
 		case CL_CHALLENGE:
-			(*asksent) = I_GetTime() - NEWTICRATE; // This is SUPPOSED to remove the delay from sending the password but it doesn't work...
+			(*asksent) = I_GetTime() - NEWTICRATE; // Send password immediately upon entering
 			break;
 
 		case CL_WAITJOINRESPONSE:
