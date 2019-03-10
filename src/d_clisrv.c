@@ -2228,24 +2228,8 @@ boolean CL_Responder(event_t *ev)
 		len = strlen(cl_challengepassword);
 		if (len < 64)
 		{
-
-			// shifting code stolen from lat by fickle, thx :)
-
-			// I know this looks very messy but this works. If it ain't broke, don't fix it!
-			// shift LETTERS to uppercase if we have capslock or are holding shift
-			if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
-			{
-				if (shiftdown ^ capslock)
-					ch = shiftxform[ch];
-			}
-			else	// if we're holding shift we should still shift non letter symbols
-			{
-				if (shiftdown)
-					ch = shiftxform[ch];
-			}
-
 			cl_challengepassword[len+1] = 0;
-			cl_challengepassword[len] = ch;
+			cl_challengepassword[len] = CON_ShiftChar(ch);
 		}
 
 		cl_challengeattempted = 0;
