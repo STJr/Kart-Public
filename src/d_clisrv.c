@@ -2109,7 +2109,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 #endif
 
 		case CL_CHALLENGE:
-			(*asksent) = I_GetTime() - NEWTICRATE + 2; // This is SUPPOSED to remove the delay from sending the password but it doesn't work...
+			(*asksent) = I_GetTime() - NEWTICRATE; // This is SUPPOSED to remove the delay from sending the password but it doesn't work...
 			break;
 
 		case CL_WAITJOINRESPONSE:
@@ -2229,26 +2229,16 @@ boolean CL_Responder(event_t *ev)
 	}
 	else if (ch == KEY_ENTER)
 	{
-		// Done? Try to reconnect to the server...
-		if (!netgame && I_NetOpenSocket)
-		{
-			MSCloseUDPSocket();		// Tidy up before wiping the slate.
-			if (I_NetOpenSocket())
-			{
-				netgame = true;
-				multiplayer = true;
+		netgame = true;
+		multiplayer = true;
 
 #ifndef NONET
-				SL_ClearServerList(servernode);
+		SL_ClearServerList(servernode);
 #endif
-				cl_mode = CL_SEARCHING;
+		cl_mode = CL_SEARCHING;
 
-				D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-				cl_challengeattempted = 1;
-			}
-		}
-		else
-			I_Error("haha that ain't it");
+		D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
+		cl_challengeattempted = 1;
 	}
 
 	return true;
@@ -3975,7 +3965,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
 				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
 
-				D_CloseConnection(); // Don't need to stay connected while challenging
+				Net_CloseConnection(node|FORCECLOSE); // Don't need to stay connected while challenging
 
 				cl_mode = CL_CHALLENGE;
 
