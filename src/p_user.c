@@ -7654,11 +7654,13 @@ static void P_NukeAllPlayers(player_t *player)
 //
 void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius)
 {
-	const fixed_t ns = 60 << FRACBITS;
+	const fixed_t ns = 60 * mapobjectscale;
 	mobj_t *mo;
 	angle_t fa;
 	thinker_t *think;
 	INT32 i;
+
+	radius = FixedMul(radius, mapobjectscale);
 
 	for (i = 0; i < 16; i++)
 	{

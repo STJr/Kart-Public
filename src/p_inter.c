@@ -141,6 +141,9 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 				|| (weapon != 3 && player->kartstuff[k_itemamount])
 				|| player->kartstuff[k_itemheld])
 				return false;
+
+			if (weapon == 3 && player->kartstuff[k_itemtype] == KITEM_THUNDERSHIELD)
+				return false; // No stacking thunder shields!
 		}
 	}
 
