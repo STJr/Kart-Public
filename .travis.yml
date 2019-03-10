@@ -54,6 +54,7 @@ matrix:
               - p7zip-full
               - gcc-4.7
           compiler: gcc-4.7
+          env: GCC47=1
           if: env(DPL_ENABLED) != "1" OR env(DPL_TERMINATE_TESTS) != "1" OR NOT branch =~ /^.*deployer.*$/
           #gcc-4.7
         - os: linux
