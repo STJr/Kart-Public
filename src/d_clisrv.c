@@ -1909,7 +1909,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 /** Called by CL_ServerConnectionTicker
   *
   * \param viams ???
-  * \param asksent ???
+  * \param asksent The last time we asked the server to join. We re-ask every second in case our request got lost in transmit.
   * \return False if the connection was aborted
   * \sa CL_ServerConnectionTicker
   * \sa CL_ConnectToServer
@@ -2037,7 +2037,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
   * \param viams ???
   * \param tmpsave The name of the gamestate file???
   * \param oldtic Used for knowing when to poll events and redraw
-  * \param asksent ???
+  * \param asksent The last time we asked the server to join. We re-ask every second in case our request got lost in transmit.
   * \return False if the connection was aborted
   * \sa CL_ServerConnectionSearchTicker
   * \sa CL_ConnectToServer
@@ -2109,6 +2109,9 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 #endif
 
 		case CL_CHALLENGE:
+			(*asksent) = I_GetTime() - NEWTICRATE; // This is SUPPOSED to remove the delay from sending the password but it doesn't work...
+			break;
+
 		case CL_WAITJOINRESPONSE:
 		case CL_WAITDOWNLOADFILESRESPONSE:
 		case CL_CONNECTED:
@@ -2226,9 +2229,15 @@ boolean CL_Responder(event_t *ev)
 	}
 	else if (ch == KEY_ENTER)
 	{
-		// Done?
+		netgame = true;
+		multiplayer = true;
+
+#ifndef NONET
+		SL_ClearServerList(servernode);
+#endif
+		cl_mode = CL_SEARCHING;
+
 		D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-		cl_mode = cl_needsdownload ? CL_ASKDOWNLOADFILES : CL_ASKJOIN;
 		cl_challengeattempted = 1;
 	}
 
@@ -3944,10 +3953,6 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			Net_CloseConnection(node);
 			break;
 
-		case PT_CLIENTJOIN:
-			if (server)
-				HandleConnect(node);
-			break;
 		case PT_JOINCHALLENGE:
 			if (server && serverrunning)
 			{ // But wait I thought I'm the server?
@@ -3959,6 +3964,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			{
 				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
 				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
+
+				Net_CloseConnection(node|FORCECLOSE); // Don't need to stay connected while challenging
 
 				cl_mode = CL_CHALLENGE;
 
@@ -4663,6 +4670,12 @@ FILESTAMP
 	while (HGetPacket())
 	{
 		node = (SINT8)doomcom->remotenode;
+
+		if (netbuffer->packettype == PT_CLIENTJOIN && server)
+		{
+			HandleConnect(node);
+			continue;
+		}
 		if (node == servernode && client && cl_mode != CL_SEARCHING)
 		{
 			if (netbuffer->packettype == PT_SERVERSHUTDOWN)
