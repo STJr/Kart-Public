@@ -3712,7 +3712,7 @@ consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHEL
 #define NUMJOINCHALLENGES 32
 static UINT8 joinpassmd5[MD5_LEN+1];
 boolean joinpasswordset = false;
-static UINT8 joinpasschallenges[NUMJOINCHALLENGES][MD5_LEN+1];
+static UINT8 joinpasschallenges[NUMJOINCHALLENGES][MD5_LEN];
 static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
 
 boolean D_IsJoinPasswordOn(void)
@@ -3752,7 +3752,7 @@ boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
 		passed = true;
 
 	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
-	memset(joinpasschallenges[num], 0x00, MD5_LEN+1);
+	memset(joinpasschallenges[num], 0x00, MD5_LEN);
 	joinpasschallengeson[num] = 0;
 
 	return passed;
@@ -3787,7 +3787,7 @@ void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
 
 	joinpasschallengeson[(*num)] = I_GetTime();
 
-	memset(question, 0x00, MD5_LEN+1);
+	memset(question, 0x00, MD5_LEN);
 	for (i = 0; i < MD5_LEN; i++)
 		question[i] = M_RandomByte();
 
