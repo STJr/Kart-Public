@@ -4247,7 +4247,7 @@ DoneSection2:
 						player->starpostx = player->mo->x>>FRACBITS;
 						player->starposty = player->mo->y>>FRACBITS;
 						player->starpostz = player->mo->floorz>>FRACBITS;
-						player->kartstuff[k_starpostflip] = player->mo->flags2 = MF2_OBJECTFLIP;	// store flipping
+						player->kartstuff[k_starpostflip] = player->mo->flags2 & MF2_OBJECTFLIP;	// store flipping
 						player->starpostangle = player->mo->angle; //R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy); torn; a momentum-based guess is less likely to be wrong in general, but when it IS wrong, it fucks you over entirely...
 					}
 					else

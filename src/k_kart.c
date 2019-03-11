@@ -2864,10 +2864,6 @@ void K_DriftDustHandling(mobj_t *spawner)
 		fixed_t spawny = P_RandomRange(-spawnrange, spawnrange)<<FRACBITS;
 		INT32 speedrange = 2;
 		mobj_t *dust = P_SpawnMobj(spawner->x + spawnx, spawner->y + spawny, spawner->z, MT_DRIFTDUST);
-		/*if (spawner->eflags & MFE_VERTICALFLIP)	And say something actually bothered supporting it! MatchGenericExtraFlags does this for us now :D
-		{
-			dust->z += spawner->height - dust->height;
-		}*/
 		dust->momx = FixedMul(spawner->momx + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
 		dust->momy = FixedMul(spawner->momy + (P_RandomRange(-speedrange, speedrange)<<FRACBITS), 3*(spawner->scale)/4);
 		dust->momz = P_MobjFlip(spawner) * (P_RandomRange(1, 4) * (spawner->scale));
@@ -3900,10 +3896,10 @@ static void K_MoveHeldObjects(player_t *player)
 
 					{ // bobbing, copy pasted from my kimokawaiii entry
 						const fixed_t pi = (22<<FRACBITS) / 7; // loose approximation, this doesn't need to be incredibly precise
-						fixed_t sine = 8 * FINESINE((((2*pi*(4*TICRATE)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK);
+						fixed_t sine = FixedMul(player->mo->scale, 8 * FINESINE((((2*pi*(4*TICRATE)) * leveltime)>>ANGLETOFINESHIFT) & FINEMASK));
 						targz = (player->mo->z + (player->mo->height/2)) + sine;
 						if (player->mo->eflags & MFE_VERTICALFLIP)
-							targz += (player->mo->height/2 - FixedMul(player->mo->scale, 32*FRACUNIT))*6;	// No I don't understand why this works either, but it does.
+							targz += (player->mo->height/2 - 32*player->mo->scale)*6;
 
 					}
 
@@ -4468,7 +4464,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (P_IsObjectOnGround(player->mo) && player->kartstuff[k_pogospring])
 	{
-		if ((player->mo->eflags & MFE_VERTICALFLIP && player->mo->momz >= 0) || (!(player->mo->eflags & MFE_VERTICALFLIP) && player->mo->momz <= 0))
+		if (P_MobjFlip(player->mo)*player->mo->momz <= 0)
 			player->kartstuff[k_pogospring] = 0;
 	}
 
