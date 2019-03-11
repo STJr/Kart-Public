@@ -399,6 +399,8 @@ static void Dummystaff_OnChange(void);
 // CONSOLE VARIABLES AND THEIR POSSIBLE VALUES GO HERE.
 // ==========================================================================
 
+consvar_t cv_showfocuslost = {"showfocuslost", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL };
+
 static CV_PossibleValue_t map_cons_t[] = {
 	{0,"MIN"},
 	{NUMMAPS, "MAX"},
@@ -1402,6 +1404,8 @@ static menuitem_t OP_HUDOptionsMenu[] =
 	// highlight info - (GOOD HIGHLIGHT, WARNING HIGHLIGHT) - 105 (see M_DrawHUDOptions)
 
 	{IT_STRING | IT_CVAR, NULL,	"Console Text Size",		&cv_constextsize,		120},
+
+	{IT_STRING | IT_CVAR, NULL,   "Show \"FOCUS LOST\"",  &cv_showfocuslost,   135},
 };
 
 static menuitem_t OP_ChatOptionsMenu[] =
@@ -2880,7 +2884,7 @@ void M_Drawer(void)
 	}
 
 	// focus lost notification goes on top of everything, even the former everything
-	if (window_notinfocus)
+	if (window_notinfocus && cv_showfocuslost.value)
 	{
 		M_DrawTextBox((BASEVIDWIDTH/2) - (60), (BASEVIDHEIGHT/2) - (16), 13, 2);
 		if (gamestate == GS_LEVEL && (P_AutoPause() || paused))
@@ -3161,6 +3165,8 @@ void M_Init(void)
 	UINT8 i;
 
 	COM_AddCommand("manual", Command_Manual_f);
+
+	CV_RegisterVar(&cv_showfocuslost);
 
 	CV_RegisterVar(&cv_nextmap);
 	CV_RegisterVar(&cv_newgametype);
