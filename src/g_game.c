@@ -92,7 +92,6 @@ boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been a
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
-boolean disableSpeedAdjust = true;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 
