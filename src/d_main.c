@@ -1280,9 +1280,6 @@ void D_SRB2Main(void)
 				{
 					mapheaderinfo[num - 1]->menuflags |= LF2_EXISTSHACK;
 				}
-
-				CONS_Printf("%s\n", name);
-				//mapsadded = true;
 			}
 		}
 	}
@@ -1294,7 +1291,7 @@ void D_SRB2Main(void)
 	//
 	// search for maps... again.
 	//
-	for (wadnum = mainwads; wadnum < numwadfiles; wadnum++)
+	for (wadnum = mainwads+1; wadnum < numwadfiles; wadnum++)
 	{
 		lumpinfo = wadfiles[wadnum]->lumpinfo;
 		for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lumpinfo++)
