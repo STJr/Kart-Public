@@ -73,6 +73,7 @@
 #define PREDICTIONQUEUE BACKUPTICS
 #define PREDICTIONMASK (PREDICTIONQUEUE-1)
 #define MAX_REASONLENGTH 30
+#define FORCECLOSE 0x8000
 
 boolean server = true; // true or false but !server == client
 #define client (!server)
@@ -1800,8 +1801,6 @@ static void SendAskInfo(INT32 node, boolean viams)
 
 serverelem_t serverlist[MAXSERVERLIST];
 UINT32 serverlistcount = 0;
-
-#define FORCECLOSE 0x8000
 
 static void SL_ClearServerList(INT32 connectedserver)
 {
