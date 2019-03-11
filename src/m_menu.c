@@ -1318,6 +1318,9 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
 
 	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		110},
+
+	{IT_STRING|IT_CVAR,        NULL, "Play Music While Unfocused", &cv_playmusicifunfocused, 125},
+	{IT_STRING|IT_CVAR,        NULL, "Play SFX While Unfocused", &cv_playsoundifunfocused, 135},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -3165,8 +3168,6 @@ void M_Init(void)
 	UINT8 i;
 
 	COM_AddCommand("manual", Command_Manual_f);
-
-	CV_RegisterVar(&cv_showfocuslost);
 
 	CV_RegisterVar(&cv_nextmap);
 	CV_RegisterVar(&cv_newgametype);
