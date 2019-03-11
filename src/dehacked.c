@@ -3103,11 +3103,6 @@ static void readmaincfg(MYFILE *f)
 				if (creditscutscene > 128)
 					creditscutscene = 128;
 			}
-			else if (fastcmp(word, "DISABLESPEEDADJUST"))
-			{
-				DEH_WriteUndoline(word, va("%d", disableSpeedAdjust), UNDO_NONE);
-				disableSpeedAdjust = (value || word2[0] == 'T' || word2[0] == 'Y');
-			}
 			else if (fastcmp(word, "NUMDEMOS"))
 			{
 				DEH_WriteUndoline(word, va("%d", numDemos), UNDO_NONE);
@@ -8644,13 +8639,7 @@ struct {
 	{"RW_RAIL",RW_RAIL},
 
 	// Character flags (skinflags_t)
-	{"SF_SUPER",SF_SUPER},
-	{"SF_SUPERANIMS",SF_SUPERANIMS},
-	{"SF_SUPERSPIN",SF_SUPERSPIN},
 	{"SF_HIRES",SF_HIRES},
-	{"SF_NOSKID",SF_NOSKID},
-	{"SF_NOSPEEDADJUST",SF_NOSPEEDADJUST},
-	{"SF_RUNONWATER",SF_RUNONWATER},
 
 	// Character abilities!
 	// Primary

@@ -167,58 +167,8 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		I_Error("P_SetPlayerMobjState used for non-player mobj. Use P_SetMobjState instead!\n(Mobj type: %d, State: %d)", mobj->type, state);
 #endif
 
-	// Catch state changes for Super Sonic
-	/* // SRB2kart - don't need
-	if (player->powers[pw_super] && (player->charflags & SF_SUPERANIMS))
-	{
-		switch (state)
-		{
-		case S_PLAY_STND:
-		case S_PLAY_TAP1:
-		case S_PLAY_TAP2:
-		case S_PLAY_GASP:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERSTAND);
-			return true;
-		case S_PLAY_FALL1:
-		case S_PLAY_SPRING:
-		case S_PLAY_RUN1:
-		case S_PLAY_RUN2:
-		case S_PLAY_RUN3:
-		case S_PLAY_RUN4:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERWALK1);
-			return true;
-		case S_PLAY_FALL2:
-		case S_PLAY_RUN5:
-		case S_PLAY_RUN6:
-		case S_PLAY_RUN7:
-		case S_PLAY_RUN8:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERWALK2);
-			return true;
-		case S_PLAY_SPD1:
-		case S_PLAY_SPD2:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERFLY1);
-			return true;
-		case S_PLAY_SPD3:
-		case S_PLAY_SPD4:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERFLY2);
-			return true;
-		case S_PLAY_TEETER1:
-		case S_PLAY_TEETER2:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERTEETER);
-			return true;
-		case S_PLAY_ATK1:
-		case S_PLAY_ATK2:
-		case S_PLAY_ATK3:
-		case S_PLAY_ATK4:
-			if (!(player->charflags & SF_SUPERSPIN))
-				return true;
-			break;
-		default:
-			break;
-		}
-	}
 	// You were in pain state after taking a hit, and you're moving out of pain state now?
-	else */if (mobj->state == &states[mobj->info->painstate] && player->powers[pw_flashing] == K_GetKartFlashing(player) && state != mobj->info->painstate)
+	if (mobj->state == &states[mobj->info->painstate] && player->powers[pw_flashing] == K_GetKartFlashing(player) && state != mobj->info->painstate)
 	{
 		// Start flashing, since you've landed.
 		player->powers[pw_flashing] = K_GetKartFlashing(player)-1;
@@ -260,51 +210,6 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		st = &states[state];
 		mobj->state = st;
 		mobj->tics = st->tics;
-
-		// Adjust the player's animation speed to match their velocity.
-		if (!(disableSpeedAdjust || player->charflags & SF_NOSPEEDADJUST))
-		{
-			fixed_t speed = FixedDiv(player->speed, FixedMul(mobj->scale, player->mo->movefactor)); // fixed_t speed = FixedDiv(player->speed, mobj->scale);
-			if (player->panim == PA_ROLL)
-			{
-				if (speed > 16<<FRACBITS)
-					mobj->tics = 1;
-				else
-					mobj->tics = 2;
-			}
-			else if (player->panim == PA_FALL)
-			{
-				speed = FixedDiv(abs(mobj->momz), mobj->scale);
-				if (speed < 10<<FRACBITS)
-					mobj->tics = 4;
-				else if (speed < 20<<FRACBITS)
-					mobj->tics = 3;
-				else if (speed < 30<<FRACBITS)
-					mobj->tics = 2;
-				else
-					mobj->tics = 1;
-			}
-			else if (P_IsObjectOnGround(mobj) || player->powers[pw_super]) // Only if on the ground or superflying.
-			{
-				if (player->panim == PA_WALK)
-				{
-					if (speed > 12<<FRACBITS)
-						mobj->tics = 2;
-					else if (speed > 6<<FRACBITS)
-						mobj->tics = 3;
-					else
-						mobj->tics = 4;
-				}
-				else if (player->panim == PA_RUN)
-				{
-					if (speed > 52<<FRACBITS)
-						mobj->tics = 1;
-					else
-						mobj->tics = 2;
-				}
-			}
-		}
-
 		mobj->sprite = st->sprite;
 		mobj->frame = st->frame;
 		mobj->anim_duration = (UINT16)st->var2; // only used if FF_ANIMATE is set
@@ -2102,7 +2007,7 @@ static void P_AdjustMobjFloorZ_FFloors(mobj_t *mo, sector_t *sector, UINT8 motyp
 		topheight = P_GetFOFTopZ(mo, sector, rover, mo->x, mo->y, NULL);
 		bottomheight = P_GetFOFBottomZ(mo, sector, rover, mo->x, mo->y, NULL);
 
-		if (mo->player && (P_CheckSolidLava(mo, rover) || P_CanRunOnWater(mo->player, rover))) // only the player should be affected
+		if (mo->player && P_CheckSolidLava(mo, rover)) // only the player should be affected
 			;
 		else if (motype != 0 && rover->flags & FF_SWIMMABLE) // "scenery" only
 			continue;
@@ -3223,27 +3128,6 @@ static boolean P_SceneryZMovement(mobj_t *mo)
 	}
 
 	return true;
-}
-
-// P_CanRunOnWater
-//
-// Returns true if player can waterrun on the 3D floor
-//
-boolean P_CanRunOnWater(player_t *player, ffloor_t *rover)
-{
-	fixed_t topheight =
-#ifdef ESLOPE
-		*rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) :
-#endif
-		*rover->topheight;
-
-	if (((player->charflags & SF_RUNONWATER) && player->mo->ceilingz-topheight >= player->mo->height)
-		&& (rover->flags & FF_SWIMMABLE) && !(player->pflags & PF_SPINNING) && player->speed > FixedMul(player->runspeed, player->mo->scale)
-		&& !(player->pflags & PF_SLIDING)
-		&& abs(player->mo->z - topheight) < FixedMul(30*FRACUNIT, player->mo->scale))
-		return true;
-
-	return false;
 }
 
 //
