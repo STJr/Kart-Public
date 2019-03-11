@@ -1164,11 +1164,7 @@ void D_SRB2Main(void)
 				const char *s = M_GetNextParm();
 
 				if (s) // Check for NULL?
-				{
-					if (!W_VerifyNMUSlumps(s))
-						G_SetGameModified(true, false);
 					D_AddFile(s, startuppwads);
-				}
 			}
 		}
 	}
@@ -1218,7 +1214,7 @@ void D_SRB2Main(void)
 
 	// load wad, including the main wad file
 	CONS_Printf("W_InitMultipleFiles(): Adding IWAD and main PWADs.\n");
-	if (!W_InitMultipleFiles(startupwadfiles))
+	if (!W_InitMultipleFiles(startupwadfiles, false))
 #ifdef _DEBUG
 		CONS_Error("A WAD file was not found or not valid.\nCheck the log to see which ones.\n");
 #else
@@ -1284,7 +1280,7 @@ void D_SRB2Main(void)
 		}
 	}
 
-	if (!W_InitMultipleFiles(startuppwads))
+	if (!W_InitMultipleFiles(startuppwads, true))
 		CONS_Error("A PWAD file was not found or not valid.\nCheck the log to see which ones.\n");
 	D_CleanFile(startuppwads);
 

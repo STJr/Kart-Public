@@ -855,13 +855,16 @@ void W_UnloadWadFile(UINT16 num)
   * \return 1 if all files were loaded, 0 if at least one was missing or
   *           invalid.
   */
-INT32 W_InitMultipleFiles(char **filenames)
+INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 {
 	INT32 rc = 1;
 
 	// will be realloced as lumps are added
 	for (; *filenames; filenames++)
 	{
+		if (addons && !W_VerifyNMUSlumps(*filenames))
+			G_SetGameModified(true, false);
+
 		//CONS_Debug(DBG_SETUP, "Loading %s\n", *filenames);
 		rc &= (W_InitFile(*filenames) != INT16_MAX) ? 1 : 0;
 	}
