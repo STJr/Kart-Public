@@ -269,6 +269,7 @@ typedef enum
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
+	k_starpostflip,		// the last starpost we hit requires flipping?
 	k_respawn,			// Timer for the DEZ laser respawn effect
 	k_dropdash,			// Charge up for respawn Drop Dash
 
