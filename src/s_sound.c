@@ -1906,6 +1906,10 @@ static boolean S_PlayMusic(boolean looping)
 	}
 
 	S_InitMusicVolume(); // switch between digi and sequence volume
+
+	if (window_notinfocus && !cv_playmusicifunfocused.value)
+		I_PauseSong();
+
 	return true;
 }
 
