@@ -40,7 +40,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
 #endif
 
-CV_PossibleValue_t Forceskin_cons_t[MAXSKINS+1];
+CV_PossibleValue_t Forceskin_cons_t[MAXSKINS+2];
 
 static void R_InitSkins(void);
 

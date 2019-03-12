@@ -514,10 +514,16 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
   */
 void D_RegisterServerCommands(void)
 {
+	int i;
 	Forceskin_cons_t[0].value = -1;
 	Forceskin_cons_t[0].strvalue = "Off";
-	Forceskin_cons_t[MAXSKINS].value = 0;
-	Forceskin_cons_t[MAXSKINS].strvalue = NULL;
+
+	// Set the values to 0/NULl, it will be overwritten later when a skin is assigned to the slot.
+	for (i = 1; i < MAXSKINS; i++)
+	{
+		Forceskin_cons_t[i].value = 0;
+		Forceskin_cons_t[i].strvalue = NULL;
+	}
 
 	RegisterNetXCmd(XD_NAMEANDCOLOR, Got_NameAndColor);
 	RegisterNetXCmd(XD_WEAPONPREF, Got_WeaponPref);
