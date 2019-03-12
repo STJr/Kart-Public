@@ -9355,12 +9355,6 @@ void DEH_Check(void)
 	const size_t dehpowers = sizeof(POWERS_LIST)/sizeof(const char*);
 	const size_t dehkartstuff = sizeof(KARTSTUFF_LIST)/sizeof(const char*);
 	const size_t dehcolors = sizeof(COLOR_ENUMS)/sizeof(const char*);
-#ifdef HAVE_BLUA
-	const size_t dehkartstuff = sizeof(KARTSTUFF_LIST)/sizeof(const char *);
-
-	if (dehkartstuff != NUMKARTSTUFF)
-		I_Error("You forgot to update the Dehacked kartstuff list, you dolt!\n(%d props defined, versus %s in the Dehacked list)\n", NUMKARTSTUFF, sizeu1(dehstates));
-#endif
 
 	if (dehstates != S_FIRSTFREESLOT)
 		I_Error("You forgot to update the Dehacked states list, you dolt!\n(%d states defined, versus %s in the Dehacked list)\n", S_FIRSTFREESLOT, sizeu1(dehstates));
