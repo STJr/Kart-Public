@@ -1556,7 +1556,6 @@ void *W_CachePatchName(const char *name, INT32 tag)
 	return W_CachePatchNum(num, tag);
 }
 #ifndef NOMD5
-#define MD5_LEN 16
 
 /**
   * Prints an MD5 string into a human-readable textual format.

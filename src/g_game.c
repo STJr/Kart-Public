@@ -92,7 +92,6 @@ boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been a
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
-boolean disableSpeedAdjust = true;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 
@@ -267,6 +266,7 @@ SINT8 pickedvote; // What vote the host rolls
 SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
 tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
+tic_t hyubgone; // Cooldown before hyudoro is allowed to be rerolled
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
 UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 boolean thwompsactive; // Thwomps activate on lap 2
@@ -5113,17 +5113,16 @@ void G_GhostTicker(void)
 				INT32 type = -1;
 				if (g->mo->skin)
 				{
-					skin_t *skin = (skin_t *)g->mo->skin;
 					switch (ziptic & EZT_THOKMASK)
 					{
 					case EZT_THOK:
-						type = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].painchance;
 						break;
 					case EZT_SPIN:
-						type = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].damage;
 						break;
 					case EZT_REV:
-						type = skin->revitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].raisestate;
 						break;
 					}
 				}
