@@ -43,218 +43,328 @@
 // These should be within 14 characters to fit on the character select screen
 const char *KartColor_Names[MAXSKINCOLORS] =
 {
-	"None",           // 00 // SKINCOLOR_NONE
-	"White",          // 01 // SKINCOLOR_WHITE
-	"Silver",         // 02 // SKINCOLOR_SILVER
-	"Grey",           // 03 // SKINCOLOR_GREY
-	"Nickel",         // 04 // SKINCOLOR_NICKEL
-	"Black",          // 05 // SKINCOLOR_BLACK
-	"Sepia",          // 06 // SKINCOLOR_SEPIA
-	"Beige",          // 07 // SKINCOLOR_BEIGE
-	"Brown",          // 08 // SKINCOLOR_BROWN
-	"Leather",        // 09 // SKINCOLOR_LEATHER
-	"Salmon",         // 10 // SKINCOLOR_SALMON
-	"Pink",           // 11 // SKINCOLOR_PINK
-	"Rose",           // 12 // SKINCOLOR_ROSE
-	"Ruby",           // 13 // SKINCOLOR_RUBY
-	"Raspberry",      // 14 // SKINCOLOR_RASPBERRY
-	"Red",            // 15 // SKINCOLOR_RED
-	"Crimson",        // 16 // SKINCOLOR_CRIMSON
-	"Ketchup",        // 17 // SKINCOLOR_KETCHUP
-	"Dawn",           // 18 // SKINCOLOR_DAWN
-	"Creamsicle",     // 19 // SKINCOLOR_CREAMSICLE
-	"Orange",         // 20 // SKINCOLOR_ORANGE
-	"Pumpkin",        // 21 // SKINCOLOR_PUMPKIN
-	"Rosewood",       // 22 // SKINCOLOR_ROSEWOOD
-	"Burgundy",       // 23 // SKINCOLOR_BURGUNDY
-	"Tangerine",      // 24 // SKINCOLOR_TANGERINE
-	"Peach",          // 25 // SKINCOLOR_PEACH
-	"Caramel",        // 26 // SKINCOLOR_CARAMEL
-	"Gold",           // 27 // SKINCOLOR_GOLD
-	"Bronze",         // 28 // SKINCOLOR_BRONZE
-	"Yellow",         // 29 // SKINCOLOR_YELLOW
-	"Mustard",        // 30 // SKINCOLOR_MUSTARD
-	"Olive",          // 31 // SKINCOLOR_OLIVE
-	"Vomit",          // 32 // SKINCOLOR_VOMIT
-	"Garden",         // 33 // SKINCOLOR_GARDEN
-	"Lime",           // 34 // SKINCOLOR_LIME
-	"Tea",            // 35 // SKINCOLOR_TEA
-	"Pistachio",      // 36 // SKINCOLOR_PISTACHIO
-	"Robo-Hood",      // 37 // SKINCOLOR_ROBOHOOD
-	"Moss",           // 38 // SKINCOLOR_MOSS
-	"Mint",           // 39 // SKINCOLOR_MINT
-	"Green",          // 40 // SKINCOLOR_GREEN
-	"Pinetree",       // 41 // SKINCOLOR_PINETREE
-	"Emerald",        // 42 // SKINCOLOR_EMERALD
-	"Swamp",          // 43 // SKINCOLOR_SWAMP
-	"Dream",          // 44 // SKINCOLOR_DREAM
-	"Aqua",           // 45 // SKINCOLOR_AQUA
-	"Teal",           // 46 // SKINCOLOR_TEAL
-	"Cyan",           // 47 // SKINCOLOR_CYAN
-	"Jawz",           // 48 // SKINCOLOR_JAWZ
-	"Cerulean",       // 49 // SKINCOLOR_CERULEAN
-	"Navy",           // 50 // SKINCOLOR_NAVY
-	"Slate",          // 51 // SKINCOLOR_SLATE
-	"Steel",          // 52 // SKINCOLOR_STEEL
-	"Jet",            // 53 // SKINCOLOR_JET
-	"Sapphire",       // 54 // SKINCOLOR_SAPPHIRE
-	"Periwinkle",     // 55 // SKINCOLOR_PERIWINKLE
-	"Blue",           // 56 // SKINCOLOR_BLUE
-	"Blueberry",      // 57 // SKINCOLOR_BLUEBERRY
-	"Dusk",           // 58 // SKINCOLOR_DUSK
-	"Purple",         // 59 // SKINCOLOR_PURPLE
-	"Lavender",       // 60 // SKINCOLOR_LAVENDER
-	"Byzantium",      // 61 // SKINCOLOR_BYZANTIUM
-	"Pomegranate",    // 62 // SKINCOLOR_POMEGRANATE
-	"Lilac"           // 63 // SKINCOLOR_LILAC
+	"None",           // SKINCOLOR_NONE
+	"White",          // SKINCOLOR_WHITE
+	"Silver",         // SKINCOLOR_SILVER
+	"Grey",           // SKINCOLOR_GREY
+	"Nickel",         // SKINCOLOR_NICKEL
+	"Black",          // SKINCOLOR_BLACK
+	"Fairy",          // SKINCOLOR_FAIRY
+	"Popcorn",        // SKINCOLOR_POPCORN
+	"Sepia",          // SKINCOLOR_SEPIA
+	"Beige",          // SKINCOLOR_BEIGE
+	"Brown",          // SKINCOLOR_BROWN
+	"Leather",        // SKINCOLOR_LEATHER
+	"Salmon",         // SKINCOLOR_SALMON
+	"Pink",           // SKINCOLOR_PINK
+	"Rose",           // SKINCOLOR_ROSE
+	"Brick",          // SKINCOLOR_BRICK
+	"Ruby",           // SKINCOLOR_RUBY
+	"Raspberry",      // SKINCOLOR_RASPBERRY
+	"Cherry",         // SKINCOLOR_CHERRY
+	"Red",            // SKINCOLOR_RED
+	"Crimson",        // SKINCOLOR_CRIMSON
+	"Maroon",         // SKINCOLOR_MAROON
+	"Flame",          // SKINCOLOR_FLAME
+	"Scarlet",        // SKINCOLOR_SCARLET
+	"Ketchup",        // SKINCOLOR_KETCHUP
+	"Dawn",           // SKINCOLOR_DAWN
+	"Sunset",         // SKINCOLOR_SUNSET
+	"Creamsicle",     // SKINCOLOR_CREAMSICLE
+	"Orange",         // SKINCOLOR_ORANGE
+	"Pumpkin",        // SKINCOLOR_PUMPKIN
+	"Rosewood",       // SKINCOLOR_ROSEWOOD
+	"Burgundy",       // SKINCOLOR_BURGUNDY
+	"Tangerine",      // SKINCOLOR_TANGERINE
+	"Peach",          // SKINCOLOR_PEACH
+	"Caramel",        // SKINCOLOR_CARAMEL
+	"Cream",          // SKINCOLOR_CREAM
+	"Gold",           // SKINCOLOR_GOLD
+	"Royal",          // SKINCOLOR_ROYAL
+	"Bronze",         // SKINCOLOR_BRONZE
+	"Copper",         // SKINCOLOR_COPPER
+	"Yellow",         // SKINCOLOR_YELLOW
+	"Mustard",        // SKINCOLOR_MUSTARD
+	"Olive",          // SKINCOLOR_OLIVE
+	"Vomit",          // SKINCOLOR_VOMIT
+	"Garden",         // SKINCOLOR_GARDEN
+	"Lime",           // SKINCOLOR_LIME
+	"Handheld",       // SKINCOLOR_HANDHELD
+	"Tea",            // SKINCOLOR_TEA
+	"Pistachio",      // SKINCOLOR_PISTACHIO
+	"Moss",           // SKINCOLOR_MOSS
+	"Camouflage",     // SKINCOLOR_CAMOUFLAGE
+	"Robo-Hood",      // SKINCOLOR_ROBOHOOD
+	"Mint",           // SKINCOLOR_MINT
+	"Green",          // SKINCOLOR_GREEN
+	"Pinetree",       // SKINCOLOR_PINETREE
+	"Emerald",        // SKINCOLOR_EMERALD
+	"Swamp",          // SKINCOLOR_SWAMP
+	"Dream",          // SKINCOLOR_DREAM
+	"Plague",         // SKINCOLOR_PLAGUE
+	"Algae",          // SKINCOLOR_ALGAE
+	"Caribbean",      // SKINCOLOR_CARIBBEAN
+	"Aqua",           // SKINCOLOR_AQUA
+	"Teal",           // SKINCOLOR_TEAL
+	"Cyan",           // SKINCOLOR_CYAN
+	"Jawz",           // SKINCOLOR_JAWZ
+	"Cerulean",       // SKINCOLOR_CERULEAN
+	"Navy",           // SKINCOLOR_NAVY
+	"Platinum",       // SKINCOLOR_PLATINUM
+	"Slate",          // SKINCOLOR_SLATE
+	"Steel",          // SKINCOLOR_STEEL
+	"Rust",           // SKINCOLOR_RUST
+	"Jet",            // SKINCOLOR_JET
+	"Sapphire",       // SKINCOLOR_SAPPHIRE
+	"Periwinkle",     // SKINCOLOR_PERIWINKLE
+	"Blue",           // SKINCOLOR_BLUE
+	"Blueberry",      // SKINCOLOR_BLUEBERRY
+	"Nova",           // SKINCOLOR_NOVA
+	"Pastel",         // SKINCOLOR_PASTEL
+	"Moonslam",       // SKINCOLOR_MOONSLAM
+	"Ultraviolet",    // SKINCOLOR_ULTRAVIOLET
+	"Dusk",           // SKINCOLOR_DUSK
+	"Bubblegum",      // SKINCOLOR_BUBBLEGUM
+	"Purple",         // SKINCOLOR_PURPLE
+	"Fuchsia",        // SKINCOLOR_FUCHSIA
+	"Toxic",          // SKINCOLOR_TOXIC
+	"Mauve",          // SKINCOLOR_MAUVE
+	"Lavender",       // SKINCOLOR_LAVENDER
+	"Byzantium",      // SKINCOLOR_BYZANTIUM
+	"Pomegranate",    // SKINCOLOR_POMEGRANATE
+	"Lilac"           // SKINCOLOR_LILAC
 };
 
 // Color_Opposite replacement; frame setting has not been changed from 8 for most, should be done later
 const UINT8 KartColor_Opposite[MAXSKINCOLORS*2] =
 {
-	SKINCOLOR_NONE,8,         // 00 // SKINCOLOR_NONE
-	SKINCOLOR_BLACK,8,        // 01 // SKINCOLOR_WHITE
-	SKINCOLOR_NICKEL,8,       // 02 // SKINCOLOR_SILVER
-	SKINCOLOR_GREY,8,         // 03 // SKINCOLOR_GREY
-	SKINCOLOR_SILVER,8,       // 04 // SKINCOLOR_NICKEL
-	SKINCOLOR_WHITE,8,        // 05 // SKINCOLOR_BLACK
-	SKINCOLOR_LEATHER,6,      // 06 // SKINCOLOR_SEPIA
-	SKINCOLOR_BROWN,2,        // 07 // SKINCOLOR_BEIGE
-	SKINCOLOR_BEIGE,8,        // 08 // SKINCOLOR_BROWN
-	SKINCOLOR_SEPIA,8,        // 09 // SKINCOLOR_LEATHER
-	SKINCOLOR_TEA,8,          // 10 // SKINCOLOR_SALMON
-	SKINCOLOR_PISTACHIO,8,    // 11 // SKINCOLOR_PINK
-	SKINCOLOR_MOSS,8,         // 12 // SKINCOLOR_ROSE
-	SKINCOLOR_SAPPHIRE,8,     // 13 // SKINCOLOR_RUBY
-	SKINCOLOR_MINT,8,         // 14 // SKINCOLOR_RASPBERRY
-	SKINCOLOR_GREEN,6,        // 15 // SKINCOLOR_RED
-	SKINCOLOR_PINETREE,6,     // 16 // SKINCOLOR_CRIMSON
-	SKINCOLOR_MUSTARD,10,     // 17 // SKINCOLOR_KETCHUP
-	SKINCOLOR_DUSK,8,         // 18 // SKINCOLOR_DAWN
-	SKINCOLOR_PERIWINKLE,8,   // 19 // SKINCOLOR_CREAMSICLE
-	SKINCOLOR_BLUE,8,         // 20 // SKINCOLOR_ORANGE
-	SKINCOLOR_BLUEBERRY,8,    // 21 // SKINCOLOR_PUMPKIN
-	SKINCOLOR_NAVY,6,         // 22 // SKINCOLOR_ROSEWOOD
-	SKINCOLOR_JET,8,          // 23 // SKINCOLOR_BURGUNDY
-	SKINCOLOR_LIME,8,         // 24 // SKINCOLOR_TANGERINE
-	SKINCOLOR_CYAN,8,         // 25 // SKINCOLOR_PEACH
-	SKINCOLOR_CERULEAN,8,     // 26 // SKINCOLOR_CARAMEL
-	SKINCOLOR_SLATE,8,        // 27 // SKINCOLOR_GOLD
-	SKINCOLOR_STEEL,8,        // 28 // SKINCOLOR_BRONZE
-	SKINCOLOR_AQUA,8,         // 29 // SKINCOLOR_YELLOW
-	SKINCOLOR_KETCHUP,8,      // 30 // SKINCOLOR_MUSTARD
-	SKINCOLOR_TEAL,8,         // 31 // SKINCOLOR_OLIVE
-	SKINCOLOR_ROBOHOOD,8,     // 32 // SKINCOLOR_VOMIT
-	SKINCOLOR_LAVENDER,6,     // 33 // SKINCOLOR_GARDEN
-	SKINCOLOR_TANGERINE,8,    // 34 // SKINCOLOR_LIME
-	SKINCOLOR_SALMON,8,       // 35 // SKINCOLOR_TEA
-	SKINCOLOR_PINK,6,         // 36 // SKINCOLOR_PISTACHIO
-	SKINCOLOR_VOMIT,8,        // 37 // SKINCOLOR_ROBOHOOD
-	SKINCOLOR_ROSE,8,         // 38 // SKINCOLOR_MOSS
-	SKINCOLOR_RASPBERRY,8,    // 39 // SKINCOLOR_MINT
-	SKINCOLOR_RED,8,          // 40 // SKINCOLOR_GREEN
-	SKINCOLOR_CRIMSON,8,      // 41 // SKINCOLOR_PINETREE
-	SKINCOLOR_PURPLE,8,       // 42 // SKINCOLOR_EMERALD
-	SKINCOLOR_BYZANTIUM,8,    // 43 // SKINCOLOR_SWAMP
-	SKINCOLOR_POMEGRANATE,8,  // 44 // SKINCOLOR_DREAM
-	SKINCOLOR_YELLOW,8,       // 45 // SKINCOLOR_AQUA
-	SKINCOLOR_OLIVE,8,        // 46 // SKINCOLOR_TEAL
-	SKINCOLOR_PEACH,8,        // 47 // SKINCOLOR_CYAN
-	SKINCOLOR_LILAC,10,       // 48 // SKINCOLOR_JAWZ
-	SKINCOLOR_CARAMEL,8,      // 49 // SKINCOLOR_CERULEAN
-	SKINCOLOR_ROSEWOOD,8,     // 50 // SKINCOLOR_NAVY
-	SKINCOLOR_GOLD,10,        // 51 // SKINCOLOR_SLATE
-	SKINCOLOR_BRONZE,10,      // 52 // SKINCOLOR_STEEL
-	SKINCOLOR_BURGUNDY,8,     // 53 // SKINCOLOR_JET
-	SKINCOLOR_RUBY,6,         // 54 // SKINCOLOR_SAPPHIRE
-	SKINCOLOR_CREAMSICLE,8,   // 55 // SKINCOLOR_PERIWINKLE
-	SKINCOLOR_ORANGE,8,       // 56 // SKINCOLOR_BLUE
-	SKINCOLOR_PUMPKIN,8,      // 57 // SKINCOLOR_BLUEBERRY
-	SKINCOLOR_DAWN,6,         // 58 // SKINCOLOR_DUSK
-	SKINCOLOR_EMERALD,8,      // 59 // SKINCOLOR_PURPLE
-	SKINCOLOR_GARDEN,6,       // 60 // SKINCOLOR_LAVENDER
-	SKINCOLOR_SWAMP,8,        // 61 // SKINCOLOR_BYZANTIUM
-	SKINCOLOR_DREAM,8,        // 62 // SKINCOLOR_POMEGRANATE
-	SKINCOLOR_JAWZ,6          // 63 // SKINCOLOR_LILAC
+	SKINCOLOR_NONE,8,         // SKINCOLOR_NONE
+	SKINCOLOR_BLACK,8,        // SKINCOLOR_WHITE
+	SKINCOLOR_NICKEL,8,       // SKINCOLOR_SILVER
+	SKINCOLOR_GREY,8,         // SKINCOLOR_GREY
+	SKINCOLOR_SILVER,8,       // SKINCOLOR_NICKEL
+	SKINCOLOR_WHITE,8,        // SKINCOLOR_BLACK
+	SKINCOLOR_CAMOUFLAGE,8,   // SKINCOLOR_FAIRY
+	SKINCOLOR_BUBBLEGUM,8,    // SKINCOLOR_POPCORN
+	SKINCOLOR_LEATHER,6,      // SKINCOLOR_SEPIA
+	SKINCOLOR_BROWN,2,        // SKINCOLOR_BEIGE
+	SKINCOLOR_BEIGE,8,        // SKINCOLOR_BROWN
+	SKINCOLOR_SEPIA,8,        // SKINCOLOR_LEATHER
+	SKINCOLOR_TEA,8,          // SKINCOLOR_SALMON
+	SKINCOLOR_PISTACHIO,8,    // SKINCOLOR_PINK
+	SKINCOLOR_MOSS,8,         // SKINCOLOR_ROSE
+	SKINCOLOR_RUST,8,         // SKINCOLOR_BRICK
+	SKINCOLOR_SAPPHIRE,8,     // SKINCOLOR_RUBY
+	SKINCOLOR_MINT,8,         // SKINCOLOR_RASPBERRY
+	SKINCOLOR_HANDHELD,10,    // SKINCOLOR_CHERRY
+	SKINCOLOR_GREEN,6,        // SKINCOLOR_RED
+	SKINCOLOR_PINETREE,6,     // SKINCOLOR_CRIMSON
+	SKINCOLOR_TOXIC,8,        // SKINCOLOR_MAROON
+	SKINCOLOR_CARIBBEAN,10,   // SKINCOLOR_FLAME
+	SKINCOLOR_ALGAE,10,       // SKINCOLOR_SCARLET
+	SKINCOLOR_MUSTARD,10,     // SKINCOLOR_KETCHUP
+	SKINCOLOR_DUSK,8,         // SKINCOLOR_DAWN
+	SKINCOLOR_MOONSLAM,8,     // SKINCOLOR_SUNSET
+	SKINCOLOR_PERIWINKLE,8,   // SKINCOLOR_CREAMSICLE
+	SKINCOLOR_BLUE,8,         // SKINCOLOR_ORANGE
+	SKINCOLOR_BLUEBERRY,8,    // SKINCOLOR_PUMPKIN
+	SKINCOLOR_NAVY,6,         // SKINCOLOR_ROSEWOOD
+	SKINCOLOR_JET,8,          // SKINCOLOR_BURGUNDY
+	SKINCOLOR_LIME,8,         // SKINCOLOR_TANGERINE
+	SKINCOLOR_CYAN,8,         // SKINCOLOR_PEACH
+	SKINCOLOR_CERULEAN,8,     // SKINCOLOR_CARAMEL
+	SKINCOLOR_COPPER,10,      // SKINCOLOR_CREAM
+	SKINCOLOR_SLATE,8,        // SKINCOLOR_GOLD
+	SKINCOLOR_PLATINUM,6,     // SKINCOLOR_ROYAL
+	SKINCOLOR_STEEL,8,        // SKINCOLOR_BRONZE
+	SKINCOLOR_CREAM,6,        // SKINCOLOR_COPPER
+	SKINCOLOR_AQUA,8,         // SKINCOLOR_YELLOW
+	SKINCOLOR_KETCHUP,8,      // SKINCOLOR_MUSTARD
+	SKINCOLOR_TEAL,8,         // SKINCOLOR_OLIVE
+	SKINCOLOR_ROBOHOOD,8,     // SKINCOLOR_VOMIT
+	SKINCOLOR_LAVENDER,6,     // SKINCOLOR_GARDEN
+	SKINCOLOR_TANGERINE,8,    // SKINCOLOR_LIME
+	SKINCOLOR_CHERRY,8,       // SKINCOLOR_HANDHELD
+	SKINCOLOR_SALMON,8,       // SKINCOLOR_TEA
+	SKINCOLOR_PINK,6,         // SKINCOLOR_PISTACHIO
+	SKINCOLOR_ROSE,8,         // SKINCOLOR_MOSS
+	SKINCOLOR_FAIRY,10,       // SKINCOLOR_CAMOUFLAGE
+	SKINCOLOR_VOMIT,8,        // SKINCOLOR_ROBOHOOD
+	SKINCOLOR_RASPBERRY,8,    // SKINCOLOR_MINT
+	SKINCOLOR_RED,8,          // SKINCOLOR_GREEN
+	SKINCOLOR_CRIMSON,8,      // SKINCOLOR_PINETREE
+	SKINCOLOR_PURPLE,8,       // SKINCOLOR_EMERALD
+	SKINCOLOR_BYZANTIUM,8,    // SKINCOLOR_SWAMP
+	SKINCOLOR_POMEGRANATE,8,  // SKINCOLOR_DREAM
+	SKINCOLOR_NOVA,8,         // SKINCOLOR_PLAGUE
+	SKINCOLOR_SCARLET,10,     // SKINCOLOR_ALGAE
+	SKINCOLOR_FLAME,8,        // SKINCOLOR_CARIBBEAN
+	SKINCOLOR_YELLOW,8,       // SKINCOLOR_AQUA
+	SKINCOLOR_OLIVE,8,        // SKINCOLOR_TEAL
+	SKINCOLOR_PEACH,8,        // SKINCOLOR_CYAN
+	SKINCOLOR_LILAC,10,       // SKINCOLOR_JAWZ
+	SKINCOLOR_CARAMEL,8,      // SKINCOLOR_CERULEAN
+	SKINCOLOR_ROSEWOOD,8,     // SKINCOLOR_NAVY
+	SKINCOLOR_ROYAL,8,        // SKINCOLOR_PLATINUM
+	SKINCOLOR_GOLD,10,        // SKINCOLOR_SLATE
+	SKINCOLOR_BRONZE,10,      // SKINCOLOR_STEEL
+	SKINCOLOR_BRICK,10,       // SKINCOLOR_RUST
+	SKINCOLOR_BURGUNDY,8,     // SKINCOLOR_JET
+	SKINCOLOR_RUBY,6,         // SKINCOLOR_SAPPHIRE
+	SKINCOLOR_CREAMSICLE,8,   // SKINCOLOR_PERIWINKLE
+	SKINCOLOR_ORANGE,8,       // SKINCOLOR_BLUE
+	SKINCOLOR_PUMPKIN,8,      // SKINCOLOR_BLUEBERRY
+	SKINCOLOR_PLAGUE,10,      // SKINCOLOR_NOVA
+	SKINCOLOR_FUCHSIA,11,     // SKINCOLOR_PASTEL
+	SKINCOLOR_SUNSET,10,      // SKINCOLOR_MOONSLAM
+	SKINCOLOR_MAUVE,10,       // SKINCOLOR_ULTRAVIOLET
+	SKINCOLOR_DAWN,6,         // SKINCOLOR_DUSK
+	SKINCOLOR_EMERALD,8,      // SKINCOLOR_PURPLE
+	SKINCOLOR_PASTEL,11,      // SKINCOLOR_FUCHSIA
+	SKINCOLOR_MAROON,8,       // SKINCOLOR_TOXIC
+	SKINCOLOR_ULTRAVIOLET,8,  // SKINCOLOR_MAUVE
+	SKINCOLOR_GARDEN,6,       // SKINCOLOR_LAVENDER
+	SKINCOLOR_SWAMP,8,        // SKINCOLOR_BYZANTIUM
+	SKINCOLOR_DREAM,8,        // SKINCOLOR_POMEGRANATE
+	SKINCOLOR_JAWZ,6          // SKINCOLOR_LILAC
 };
 
-UINT8 colortranslations[MAXSKINCOLORS][16] = {
+UINT8 colortranslations[MAXTRANSLATIONS][16] = {
 	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}, // SKINCOLOR_NONE
-	{120, 120, 120, 120,   0,   1,   3,   4,   6,   7,  10,  14,  18,  22,  25,  28}, // SKINCOLOR_WHITE
-	{  0,   1,   2,   4,   5,   7,   8,  10,  13,  15,  18,  20,  23,  25,  28,  30}, // SKINCOLOR_SILVER
+	{120, 120, 120, 120,   0,   2,   5,   8,   9,  11,  14,  17,  20,  22,  25,  28}, // SKINCOLOR_WHITE
+	{  0,   1,   2,   3,   5,   7,   9,  12,  13,  15,  18,  20,  23,  25,  27,  30}, // SKINCOLOR_SILVER
 	{  1,   3,   5,   7,   9,  11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31}, // SKINCOLOR_GREY
-	{ 12,  14,  16,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31}, // SKINCOLOR_NICKEL
-	{ 16,  17,  19,  21,  22,  24,  26,  27,  27,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_BLACK
+	{  3,   5,   8,  11,  15,  17,  19,  21,  23,  24,  25,  26,  27,  29,  30,  31}, // SKINCOLOR_NICKEL
+	{  4,   7,  11,  15,  20,  22,  24,  27,  28,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_BLACK
+	{120, 120, 121, 121, 122, 123,  10,  14,  16,  18,  20,  22,  24,  26,  28,  31}, // SKINCOLOR_FAIRY
+	{120,  96,  97,  98,  99,  71,  32,  11,  13,  16,  18,  21,  23,  26,  28,  31}, // SKINCOLOR_POPCORN
 	{  0,   1,   3,   5,   7,   9,  34,  36,  38,  40,  42,  44,  60,  61,  62,  63}, // SKINCOLOR_SEPIA
-	{ 32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47}, // SKINCOLOR_BEIGE
-	{ 48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63}, // SKINCOLOR_BROWN
-	{ 51,  52,  53,  55,  56,  57,  58,  60,  61,  63,  28,  28,  29,  29,  30,  31}, // SKINCOLOR_LEATHER
-	{120, 120, 120, 121, 121, 122, 122, 123, 124, 125, 126, 128, 129, 131, 133, 135}, // SKINCOLOR_SALMON
+	{120,  65,  67,  69,  32,  34,  36,  38,  40,  42,  44,  45,  46,  47,  62,  63}, // SKINCOLOR_BEIGE
+	{ 67,  70,  73,  76,  48,  49,  51,  53,  54,  56,  58,  59,  61,  63,  29,  30}, // SKINCOLOR_BROWN
+	{ 72,  76,  48,  51,  53,  55,  57,  59,  61,  63,  28,  28,  29,  29,  30,  31}, // SKINCOLOR_LEATHER
+	{120, 120, 120, 121, 121, 122, 123, 124, 126, 127, 129, 131, 133, 135, 137, 139}, // SKINCOLOR_SALMON
 	{120, 121, 121, 122, 144, 145, 146, 147, 148, 149, 150, 151, 134, 136, 138, 140}, // SKINCOLOR_PINK
 	{144, 145, 146, 147, 148, 149, 150, 151, 134, 135, 136, 137, 138, 139, 140, 141}, // SKINCOLOR_ROSE
-	{121, 122, 145, 146, 147, 149, 131, 132, 133, 134, 135, 197, 197, 198, 199, 255}, // SKINCOLOR_RUBY
-	{120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 131, 133, 134, 136, 137, 139}, // SKINCOLOR_RASPBERRY
-	{125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140}, // SKINCOLOR_RED
-	{130, 131, 132, 133, 134, 136, 137, 138, 139, 139, 140, 140, 141, 141, 142, 143}, // SKINCOLOR_CRIMSON
-	{104, 113, 113,  85,  86,  88, 128, 129, 131, 133, 134, 136, 138, 139, 141, 143}, // SKINCOLOR_KETCHUP
+	{ 64,  67,  70,  73, 146, 147, 148, 150, 118, 118, 119, 119, 156, 159, 141, 143}, // SKINCOLOR_BRICK
+	{120, 121, 144, 145, 147, 149, 132, 133, 134, 136, 198, 198, 199, 255,  30,  31}, // SKINCOLOR_RUBY
+	{120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 131, 134, 136, 137, 139, 140}, // SKINCOLOR_RASPBERRY
+	{120,  65,  67,  69,  71, 124, 125, 127, 132, 133, 135, 136, 138, 139, 140, 141}, // SKINCOLOR_CHERRY
+	{122, 123, 124, 126, 129, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142}, // SKINCOLOR_RED
+	{123, 125, 128, 131, 133, 135, 136, 138, 140, 140, 141, 141, 142, 142, 143,  31}, // SKINCOLOR_CRIMSON
+	{123, 124, 126, 128, 132, 135, 137,  27,  28,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_MAROON
+	{120,  97, 112, 113, 113,  85,  87, 126, 149, 150, 151, 252, 253, 254, 255,  29}, // SKINCOLOR_FLAME
+	{ 99, 113, 113,  84,  85,  87, 126, 128, 130, 196, 197, 198, 199, 240, 243, 246}, // SKINCOLOR_SCARLET
+	{103, 113, 113,  84,  85,  88, 127, 130, 131, 133, 134, 136, 138, 139, 141, 143}, // SKINCOLOR_KETCHUP
 	{120, 121, 122, 123, 124, 147, 147, 148,  90,  91,  92,  93,  94,  95, 152, 154}, // SKINCOLOR_DAWN
+	{ 98, 112, 113,  84,  85,  87,  89, 149, 150, 251, 252, 206, 238, 240, 243, 246}, // SKINCOLOR_SUNSET
 	{120, 120,  80,  80,  81,  82,  83,  83,  84,  85,  86,  88,  89,  91,  93,  95}, // SKINCOLOR_CREAMSICLE
 	{ 80,  81,  82,  83,  84,  85,  86,  88,  89,  91,  94,  95, 154, 156, 158, 159}, // SKINCOLOR_ORANGE
-	{ 84,  85,  86,  87,  88,  90,  92,  93,  94,  95, 152, 153, 154, 156, 157, 159}, // SKINCOLOR_PUMPKIN
-	{ 90,  91,  92,  93,  94, 152, 153, 154, 155, 156, 157, 158, 159, 139, 141, 143}, // SKINCOLOR_ROSEWOOD
-	{ 94,  95, 152, 153, 154, 156, 157, 159, 141, 141, 141, 142, 142, 143, 143,  31}, // SKINCOLOR_BURGUNDY
+	{ 82,  83,  84,  85,  87,  89,  90,  92,  94, 152, 153, 155, 157, 159, 141, 142}, // SKINCOLOR_PUMPKIN
+	{ 83,  85,  88,  90,  92,  94, 152, 153, 154, 156, 157, 159, 140, 141, 142, 143}, // SKINCOLOR_ROSEWOOD
+	{ 84,  86,  89,  91, 152, 154, 155, 157, 158, 159, 140, 141, 142, 143,  31,  31}, // SKINCOLOR_BURGUNDY
 	{ 98,  98, 112, 112, 113, 113,  84,  85,  87,  89,  91,  93,  95, 153, 156, 159}, // SKINCOLOR_TANGERINE
-	{ 64,  65,  67,  68,  70,  71,  73,  74,  76,  77,  79,  48,  50,  53,  56,  59}, // SKINCOLOR_PEACH
+	{120,  80,  66,  70,  72,  76, 148, 149, 150, 151, 153, 154, 156,  61,  62,  63}, // SKINCOLOR_PEACH
 	{ 64,  66,  68,  70,  72,  74,  76,  78,  48,  50,  52,  54,  56,  58,  60,  62}, // SKINCOLOR_CARAMEL
+	{120, 120,  96,  96,  97,  82,  84,  77,  50,  54,  57,  59,  61,  63,  29,  31}, // SKINCOLOR_CREAM
 	{112, 112, 112, 113, 113, 114, 114, 115, 115, 116, 116, 117, 117, 118, 118, 119}, // SKINCOLOR_GOLD
+	{ 97, 112, 113, 113, 114,  78,  53, 252, 252, 253, 253, 254, 255,  29,  30,  31}, // SKINCOLOR_ROYAL
 	{112, 113, 114, 115, 116, 117, 118, 119, 156, 157, 158, 159, 141, 141, 142, 143}, // SKINCOLOR_BRONZE
+	{120,  99, 113, 114, 116, 117, 119,  61,  63,  28,  28,  29,  29,  30,  30,  31}, // SKINCOLOR_COPPER
 	{ 96,  97,  98, 100, 101, 102, 104, 113, 114, 115, 116, 117, 118, 119, 156, 159}, // SKINCOLOR_YELLOW
 	{ 96,  98,  99, 112, 113, 114, 114, 106, 106, 107, 107, 108, 108, 109, 110, 111}, // SKINCOLOR_MUSTARD
 	{105, 105, 105, 106, 106, 107, 107, 108, 108, 109, 109, 110, 110, 111, 111,  31}, // SKINCOLOR_OLIVE
 	{121, 144, 145,  72,  73,  84, 114, 115, 107, 108, 109, 183, 223, 207,  30, 246}, // SKINCOLOR_VOMIT
 	{ 98,  99, 112, 101, 113, 114, 106, 179, 180, 180, 181, 182, 183, 173, 174, 175}, // SKINCOLOR_GARDEN
 	{ 96,  97,  99, 100, 102, 104, 160, 162, 164, 166, 168, 171, 223, 223, 207,  31}, // SKINCOLOR_LIME
+	{ 98, 104, 105, 105, 106, 167, 168, 169, 170, 171, 172, 173, 174, 175,  30,  31}, // SKINCOLOR_HANDHELD
 	{120, 120, 176, 176, 176, 177, 177, 178, 178, 179, 179, 180, 180, 181, 182, 183}, // SKINCOLOR_TEA
 	{120, 120, 176, 176, 177, 177, 178, 179, 165, 166, 167, 168, 169, 170, 171, 172}, // SKINCOLOR_PISTACHIO
-	{176, 176, 177, 178, 165, 166, 167, 167, 168, 169, 182, 182, 182, 183, 183, 183}, // SKINCOLOR_ROBOHOOD
 	{178, 178, 178, 179, 179, 180, 181, 182, 183, 172, 172, 173, 173, 174, 174, 175}, // SKINCOLOR_MOSS
+	{ 64,  66,  69,  32,  34,  37,  40, 182, 171, 172, 172, 173, 173, 174, 174, 175}, // SKINCOLOR_CAMOUFLAGE
+	{120, 176, 160, 165, 167, 168, 169, 182, 182, 171,  60,  61,  63,  29,  30,  31}, // SKINCOLOR_ROBOHOOD
 	{120, 176, 176, 176, 177, 163, 164, 165, 167, 221, 221, 222, 223, 207, 207,  31}, // SKINCOLOR_MINT
 	{160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175}, // SKINCOLOR_GREEN
-	{160, 161, 162, 164, 165, 167, 169, 170, 171, 171, 172, 173, 174, 175,  30,  31}, // SKINCOLOR_PINETREE
+	{161, 163, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175,  30,  30,  31}, // SKINCOLOR_PINETREE
 	{160, 184, 184, 185, 185, 186, 186, 187, 187, 188, 188, 189, 189, 190, 191, 175}, // SKINCOLOR_EMERALD
-	{186, 187, 188, 188, 188, 189, 189, 190, 190, 191, 175, 175,  30,  30,  31,  31}, // SKINCOLOR_SWAMP
+	{160, 184, 185, 186, 187, 188, 189, 190, 191, 191,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_SWAMP
 	{120, 120,  80,  80,  81, 177, 162, 164, 228, 228, 204, 204, 205, 205, 206, 207}, // SKINCOLOR_DREAM
+	{176, 160, 184, 185, 186, 187, 188, 230, 230, 206, 206, 207,  28,  29,  30,  31}, // SKINCOLOR_PLAGUE
+	{208, 209, 210, 211, 213, 220, 216, 167, 168, 188, 188, 189, 190, 191,  30,  31}, // SKINCOLOR_ALGAE
+	{120, 176, 177, 160, 185, 220, 216, 217, 221, 230, 206, 206, 254, 255,  29,  31}, // SKINCOLOR_CARIBBEAN
 	{120, 208, 208, 210, 212, 214, 220, 220, 220, 221, 221, 222, 222, 223, 223, 191}, // SKINCOLOR_AQUA
 	{210, 213, 220, 220, 220, 216, 216, 221, 221, 221, 222, 222, 223, 223, 191,  31}, // SKINCOLOR_TEAL
 	{120, 120, 208, 208, 209, 210, 211, 212, 213, 215, 216, 217, 218, 219, 222, 223}, // SKINCOLOR_CYAN
 	{120, 120, 208, 209, 210, 226, 215, 216, 217, 229, 229, 205, 205, 206, 207,  31}, // SKINCOLOR_JAWZ
 	{208, 209, 211, 213, 215, 216, 216, 217, 217, 218, 218, 219, 205, 206, 207, 207}, // SKINCOLOR_CERULEAN
 	{211, 212, 213, 215, 216, 218, 219, 205, 206, 206, 207, 207,  28,  29,  30,  31}, // SKINCOLOR_NAVY
+	{120,   0,   0, 200, 200, 201,  11,  14,  17, 218, 222, 223, 238, 240, 243, 246}, // SKINCOLOR_PLATINUM
 	{120, 120, 200, 200, 200, 201, 201, 201, 202, 202, 202, 203, 204, 205, 206, 207}, // SKINCOLOR_SLATE
 	{120, 200, 200, 201, 201, 202, 202, 203, 203, 204, 204, 205, 205, 206, 207,  31}, // SKINCOLOR_STEEL
+	{ 64,  66,  68,  70,  32,  34,  36, 203, 204, 205,  24,  25,  26,  28,  29,  31}, // SKINCOLOR_RUST
 	{225, 226, 227, 228, 229, 205, 205, 206, 207, 207,  28,  28,  29,  29,  30,  31}, // SKINCOLOR_JET
 	{208, 209, 211, 213, 215, 217, 229, 230, 232, 234, 236, 238, 240, 242, 244, 246}, // SKINCOLOR_SAPPHIRE
-	{120, 224, 225, 226, 226, 227, 228, 228, 229, 230, 231, 234, 235, 237, 239, 241}, // SKINCOLOR_PERIWINKLE
-	{224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239}, // SKINCOLOR_BLUE
-	{228, 229, 230, 231, 232, 233, 234, 235, 237, 238, 239, 240, 242, 243, 244, 245}, // SKINCOLOR_BLUEBERRY
-	{192, 192, 248, 249, 250, 251, 204, 204, 205, 205, 206, 206, 207,  29,  30,  31}, // SKINCOLOR_DUSK
-	{192, 192, 192, 193, 193, 194, 194, 195, 195, 196, 196, 197, 197, 198, 198, 199}, // SKINCOLOR_PURPLE
-	{248, 248, 248, 249, 249, 250, 250, 251, 251, 252, 252, 253, 253, 254, 254, 255}, // SKINCOLOR_LAVENDER
-	{192, 248, 249, 250, 251, 252, 253, 254, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_BYZANTIUM
+	{120, 120, 224, 225, 226, 202, 227, 228, 229, 230, 231, 233, 235, 237, 239, 241}, // SKINCOLOR_PERIWINKLE
+	{224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 235, 236, 238, 242, 244, 246}, // SKINCOLOR_BLUE
+	{226, 228, 229, 230, 232, 233, 235, 237, 239, 240, 242, 244, 246,  31,  31,  31}, // SKINCOLOR_BLUEBERRY
+	{120, 112,  82,  83,  84, 124, 248, 228, 228, 204, 205, 206, 207,  29,  30,  31}, // SKINCOLOR_NOVA
+	{120, 208, 209, 210, 211, 226, 202, 249, 194, 195, 196, 197, 198, 199, 255,  30}, // SKINCOLOR_PASTEL
+	{120, 224, 201, 226, 202, 249, 250, 196, 197, 198, 199, 140, 141, 142, 143,  31}, // SKINCOLOR_MOONSLAM
+	{120,  64,  81, 122, 192, 249, 203, 221, 221, 219, 219, 223, 223, 191, 191,  31}, // SKINCOLOR_ULTRAVIOLET
+	{121, 145, 192, 249, 250, 251, 204, 204, 205, 205, 206, 206, 207,  29,  30,  31}, // SKINCOLOR_DUSK
+	{120,  96,  64, 121,  67, 144, 123, 192, 193, 194, 195, 196, 197, 198, 199,  30}, // SKINCOLOR_BUBBLEGUM
+	{121, 145, 192, 192, 193, 194, 195, 196, 196, 197, 197, 198, 198, 199,  30,  31}, // SKINCOLOR_PURPLE
+	{120, 122, 124, 125, 126, 150, 196, 197, 198, 198, 199, 199, 240, 242, 244, 246}, // SKINCOLOR_FUCHSIA
+	{120, 120, 176, 176, 177,   6,   8,  10, 249, 250, 196, 197, 198, 199, 143,  31}, // SKINCOLOR_TOXIC
+	{ 96,  97,  98, 112, 113,  73, 146, 248, 249, 251, 205, 205, 206, 207,  29,  31}, // SKINCOLOR_MAUVE
+	{121, 145, 192, 248, 249, 250, 251, 252, 252, 253, 253, 254, 254, 255,  30,  31}, // SKINCOLOR_LAVENDER
+	{144, 248, 249, 250, 251, 252, 253, 254, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_BYZANTIUM
 	{144, 145, 146, 147, 148, 149, 150, 251, 251, 252, 252, 253, 254, 255,  29,  30}, // SKINCOLOR_POMEGRANATE
 	{120, 120, 120, 121, 121, 122, 122, 123, 192, 248, 249, 250, 251, 252, 253, 254}, // SKINCOLOR_LILAC
-	/* Removed Colours
-		{120, 121, 123, 124, 126, 127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143}, // old SKINCOLOR_RUBY, removed for other colors
-		{224, 225, 226, 228, 229, 231, 232, 234, 235, 237, 238, 240, 241, 243, 244, 246}, // old SKINCOLOR_SAPPHIRE, removed for other colors
-		{ 72,  73,  74,  75,  76,  77,  78,  79,  48,  49,  50,  51,  52,  53,  54,  55}, // old SKINCOLOR_CARAMEL, new Caramel was previously Shiny Caramel
-		{215, 216, 217, 218, 204, 205, 206, 237, 238, 239, 240, 241, 242, 243, 244, 245}, // old SKINCOLOR_NAVY, too similar to Jet
-		{ 80,  81,  83,  85,  86,  88,  90,  91,  93,  95, 152, 153, 154, 156, 157, 159}, // SKINCOLOR_AMBER, removed for other colors
-		{160, 160, 160, 184, 184, 184, 185, 185, 185, 186, 187, 187, 188, 188, 189, 190}, // SKINCOLOR_JADE, removed for other colors
-		{224, 225, 226, 212, 213, 213, 214, 215, 220, 221, 172, 222, 173, 223, 174, 175}, // SKINCOLOR_FROST, merged into Aqua
-		{ 96,  97,  99, 100, 102, 104, 105, 105, 106, 107, 107, 108, 109, 109, 110, 111}, // SKINCOLOR_CANARY, replaced with Mustard
-		{192, 193, 194, 195, 196, 197, 198, 199, 255, 255,  29,  29,  30,  30,  31,  31}, // SKINCOLOR_INDIGO, too similar to Byzantium
-		{  1, 145, 125,  73,  83, 114, 106, 180, 187, 168, 219, 205, 236, 206, 199, 255}, // SKINCOLOR_RAINBOW, is Vomit 2.0
-	*/
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120,  96, 100, 104, 113, 116, 119}, // SKINCOLOR_SUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120,  96,  98, 101, 104, 113, 115, 117, 119}, // SKINCOLOR_SUPER2
+	{120, 120, 120, 120, 120, 120,  96,  98, 100, 102, 104, 113, 114, 116, 117, 119}, // SKINCOLOR_SUPER3
+	{120, 120, 120, 120,  96,  97,  99, 100, 102, 104, 113, 114, 115, 116, 117, 119}, // SKINCOLOR_SUPER4
+	{120, 120,  96, 120, 120, 120, 120, 120, 104, 113, 114, 115, 116, 117, 118, 119}, // SKINCOLOR_SUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120,  80,  82,  85, 115, 117, 119}, // SKINCOLOR_TSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120,  80,  81,  83,  85, 115, 116, 117, 119}, // SKINCOLOR_TSUPER2
+	{120, 120, 120, 120, 120, 120,  80,  81,  82,  83,  85, 115, 116, 117, 118, 119}, // SKINCOLOR_TSUPER3
+	{120, 120, 120, 120,  80,  81,  82,  83,  84,  85, 115, 115, 116, 117, 118, 119}, // SKINCOLOR_TSUPER4
+	{120, 120,  80,  80,  81,  82,  83,  84,  85, 115, 115, 116, 117, 117, 118, 119}, // SKINCOLOR_TSUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 121, 123, 125, 127, 129, 132}, // SKINCOLOR_KSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120, 121, 122, 124, 125, 127, 128, 130, 132}, // SKINCOLOR_KSUPER2
+	{120, 120, 120, 120, 120, 120, 121, 122, 123, 124, 125, 127, 128, 129, 130, 132}, // SKINCOLOR_KSUPER3
+	{120, 120, 120, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132}, // SKINCOLOR_KSUPER4
+	{120, 120, 121, 121, 122, 123, 124, 125, 126, 126, 127, 128, 129, 130, 131, 132}, // SKINCOLOR_KSUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120,   0, 122, 124, 248, 251, 255}, // SKINCOLOR_PSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120,   0, 121, 122, 124, 248, 250, 252, 255}, // SKINCOLOR_PSUPER2
+	{120, 120, 120, 120, 120, 120,   0, 121, 122, 123, 124, 248, 249, 251, 253, 255}, // SKINCOLOR_PSUPER3
+	{120, 120, 120, 120,   0, 121, 122, 123, 124, 248, 249, 250, 251, 252, 253, 255}, // SKINCOLOR_PSUPER4
+	{120, 120,   0, 121, 122, 123, 124, 248, 248, 249, 250, 251, 252, 253, 254, 255}, // SKINCOLOR_PSUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 224, 225, 227, 228, 230, 232}, // SKINCOLOR_BSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120, 224, 225, 226, 227, 228, 229, 230, 232}, // SKINCOLOR_BSUPER2
+	{120, 120, 120, 120, 120, 120, 224, 224, 225, 226, 227, 228, 229, 230, 231, 232}, // SKINCOLOR_BSUPER3
+	{120, 120, 120, 120, 224, 224, 225, 226, 226, 227, 228, 229, 229, 230, 231, 232}, // SKINCOLOR_BSUPER4
+	{120, 120, 224, 224, 225, 225, 226, 227, 227, 228, 228, 229, 230, 230, 231, 232}, // SKINCOLOR_BSUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 208, 210, 212, 215, 220, 222}, // SKINCOLOR_ASUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120, 208, 209, 211, 213, 215, 220, 221, 223}, // SKINCOLOR_ASUPER2
+	{120, 120, 120, 120, 120, 120, 208, 209, 210, 211, 212, 213, 215, 220, 221, 223}, // SKINCOLOR_ASUPER3
+	{120, 120, 120, 120, 208, 209, 210, 211, 212, 213, 214, 215, 220, 221, 222, 223}, // SKINCOLOR_ASUPER4
+	{120, 120, 208, 208, 209, 210, 211, 211, 212, 213, 214, 215, 220, 221, 222, 223}, // SKINCOLOR_ASUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 176, 160, 163, 167, 171, 175}, // SKINCOLOR_GSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120, 176, 176, 160, 163, 166, 169, 172, 175}, // SKINCOLOR_GSUPER2
+	{120, 120, 120, 120, 120, 120, 176, 176, 160, 162, 164, 166, 168, 170, 172, 175}, // SKINCOLOR_GSUPER3
+	{120, 120, 120, 120, 176, 176, 176, 160, 161, 163, 165, 167, 169, 171, 173, 175}, // SKINCOLOR_GSUPER4
+	{120, 120, 176, 176, 176, 160, 161, 163, 164, 166, 167, 169, 170, 172, 173, 175}, // SKINCOLOR_GSUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120}, // SKINCOLOR_WSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120,   0,   4,   9}, // SKINCOLOR_WSUPER2
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120,   0,   2,   4,   6,   8,  11}, // SKINCOLOR_WSUPER3
+	{120, 120, 120, 120, 120, 120, 120,   0,   1,   3,   4,   6,   8,   9,  11,  13}, // SKINCOLOR_WSUPER4
+	{120, 120, 120, 120,   0,   1,   2,   4,   5,   6,   8,   9,  10,  12,  13,  15}, // SKINCOLOR_WSUPER5
+	{120, 120, 120, 120, 120, 120, 120, 120, 120, 120,  96,  98,  99,  81,  73,  79}, // SKINCOLOR_CSUPER1
+	{120, 120, 120, 120, 120, 120, 120, 120,  96,  97,  98,  81,  81,  71,  75,  79}, // SKINCOLOR_CSUPER2
+	{120, 120, 120, 120, 120, 120,  96,  97,  98,  99,  81,  81,  70,  73,  76,  79}, // SKINCOLOR_CSUPER3
+	{120, 120, 120, 120,  96,  96,  97,  98,  99,  81,  81,  70,  72,  74,  76,  79}, // SKINCOLOR_CSUPER4
+	{120, 120,  96,  96,  97,  98,  98,  99,  81,  81,  69,  71,  73,  75,  77,  79}, // SKINCOLOR_CSUPER5
 };
 
 // Define for getting accurate color brightness readings according to how the human eye sees them.
@@ -443,6 +553,7 @@ void K_RegisterKartStuff(void)
 
 	CV_RegisterVar(&cv_kartdebugcheckpoint);
 	CV_RegisterVar(&cv_kartdebugnodes);
+	CV_RegisterVar(&cv_kartdebugcolorize);
 }
 
 //}
@@ -496,17 +607,17 @@ boolean K_IsPlayerWanted(player_t *player)
 static INT32 K_KartItemOddsRace[NUMKARTRESULTS][10] =
 {
 				//P-Odds	 0  1  2  3  4  5  6  7  8  9
-			   /*Sneaker*/ {20, 0, 0, 4, 6, 6, 0, 0, 0, 0 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,14, 0 }, // Invincibility
-				/*Banana*/ { 0,10, 4, 2, 1, 0, 0, 0, 0, 0 }, // Banana
+			   /*Sneaker*/ {20, 0, 0, 4, 6, 7, 0, 0, 0, 0 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 1, 4, 5, 3, 0 }, // Rocket Sneaker
+		 /*Invincibility*/ { 0, 0, 0, 0, 0, 1, 4, 6,10, 0 }, // Invincibility
+				/*Banana*/ { 0, 9, 4, 2, 1, 0, 0, 0, 0, 0 }, // Banana
 		/*Eggman Monitor*/ { 0, 3, 2, 1, 0, 0, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 0, 8, 6, 4, 2, 0, 0, 0, 0, 0 }, // Orbinaut
+			  /*Orbinaut*/ { 0, 7, 6, 4, 2, 0, 0, 0, 0, 0 }, // Orbinaut
 				  /*Jawz*/ { 0, 0, 3, 2, 1, 1, 0, 0, 0, 0 }, // Jawz
 				  /*Mine*/ { 0, 0, 2, 2, 1, 0, 0, 0, 0, 0 }, // Mine
 			   /*Ballhog*/ { 0, 0, 0, 2, 1, 0, 0, 0, 0, 0 }, // Ballhog
    /*Self-Propelled Bomb*/ { 0, 0, 1, 2, 3, 4, 2, 2, 0,20 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 0, 0, 0, 1, 3, 5, 3, 0 }, // Grow
+				  /*Grow*/ { 0, 0, 0, 0, 0, 0, 2, 5, 7, 0 }, // Grow
 				/*Shrink*/ { 0, 0, 0, 0, 0, 0, 0, 2, 0, 0 }, // Shrink
 		/*Thunder Shield*/ { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // Thunder Shield
 			   /*Hyudoro*/ { 0, 0, 0, 0, 1, 2, 1, 0, 0, 0 }, // Hyudoro
@@ -556,6 +667,11 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 */
 static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 {
+	if (getitem == KITEM_SPB || getitem == KITEM_SHRINK) // Indirect items
+		indirectitemcooldown = 20*TICRATE;
+	if (getitem == KITEM_HYUDORO) // Hyudoro cooldown
+		hyubgone = 5*TICRATE;
+
 	switch (getitem)
 	{
 		// Special roulettes first, then the generic ones are handled by default
@@ -583,10 +699,6 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 			player->kartstuff[k_itemtype] = KITEM_JAWZ;
 			player->kartstuff[k_itemamount] = 2;
 			break;
-		case KITEM_SPB:
-		case KITEM_SHRINK: // Indirect items
-			indirectitemcooldown = 20*TICRATE;
-			/* FALLTHRU */
 		default:
 			if (getitem <= 0 || getitem >= NUMKARTRESULTS) // Sad (Fallback)
 			{
@@ -608,12 +720,13 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	\return	void
 */
 
-static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
+static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean spbrush)
 {
 	const INT32 distvar = (64*14);
 	INT32 newodds;
 	INT32 i;
-	UINT8 pingame = 0, pexiting = 0, pinvin = 0;
+	UINT8 pingame = 0, pexiting = 0;
+	boolean thunderisout = false;
 	SINT8 first = -1, second = -1;
 	INT32 secondist = 0;
 	boolean itemenabled[NUMKARTRESULTS-1] = {
@@ -651,21 +764,25 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	else
 		newodds = K_KartItemOddsRace[item-1][pos];
 
+	// Base multiplication to ALL item odds to simulate fractional precision
+	newodds *= 4;
+
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			continue;
+
 		if (!G_BattleGametype() || players[i].kartstuff[k_bumper])
 			pingame++;
+
 		if (players[i].exiting)
 			pexiting++;
+
 		if (players[i].mo)
 		{
-			if (players[i].kartstuff[k_itemtype] == KITEM_INVINCIBILITY
-				|| players[i].kartstuff[k_itemtype] == KITEM_GROW
-				|| players[i].kartstuff[k_invincibilitytimer]
-				|| players[i].kartstuff[k_growshrinktimer] > 0)
-				pinvin++;
+			if (players[i].kartstuff[k_itemtype] == KITEM_THUNDERSHIELD)
+				thunderisout = true;
+
 			if (!G_BattleGametype())
 			{
 				if (players[i].kartstuff[k_position] == 1 && first == -1)
@@ -689,29 +806,29 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
 	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
 	// Next, it multiplies it again if it's in SPB mode and 2nd needs to apply pressure to 1st.
-	// Then, it multiplies it further if there's less than 5 players in game.
-	// This is done to make low player count races more fair & interesting. (2P normal would be about halfway between 8P normal and 8P frantic)
-	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, to punish those who are impatient.
-#define POWERITEMODDS(odds) \
+	// Then, it multiplies it further if the player count isn't equal to 8.
+	// This is done to make low player count races more interesting and high player count rates more fair.
+	// (2P normal would be about halfway between 8P normal and 8P frantic.)
+	// (This scaling is not done for SPB Rush, so that catchup strength is not weakened.)
+	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, for lesser items needed in a pinch.
+
+#define PLAYERSCALING (8 - (spbrush ? 2 : pingame))
+
+#define POWERITEMODDS(odds) {\
 	if (franticitems) \
 		odds <<= 1; \
-	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((8-pingame) * (FRACUNIT/25))) >> FRACBITS; \
+	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((PLAYERSCALING << FRACBITS) / 25)) >> FRACBITS; \
 	if (mashed > 0) \
-		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS \
+		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS; \
+}
+
+#define COOLDOWNONSTART (leveltime < (30*TICRATE)+starttime)
 
 	switch (item)
 	{
-		case KITEM_INVINCIBILITY:
-		case KITEM_GROW:
-			if (pinvin >= max(1, (pingame+2) / 4))
-				newodds = 0;
-			else
-			/* FALLTHRU */
 		case KITEM_ROCKETSNEAKER:
 		case KITEM_JAWZ:
-		case KITEM_MINE:
 		case KITEM_BALLHOG:
-		case KITEM_THUNDERSHIELD:
 		case KRITEM_TRIPLESNEAKER:
 		case KRITEM_TRIPLEBANANA:
 		case KRITEM_TENFOLDBANANA:
@@ -720,17 +837,34 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed)
 		case KRITEM_DUALJAWZ:
 			POWERITEMODDS(newodds);
 			break;
+		case KITEM_INVINCIBILITY:
+		case KITEM_MINE:
+		case KITEM_GROW:
+			if (COOLDOWNONSTART)
+				newodds = 0;
+			else
+				POWERITEMODDS(newodds);
+			break;
 		case KITEM_SPB:
-			//POWERITEMODDS(newodds);
 			if (((indirectitemcooldown > 0) || (pexiting > 0) || (secondist/distvar < 3))
 				&& (pos != 9)) // Force SPB
 				newodds = 0;
 			else
-				newodds *= min((secondist/distvar)-4, 3);
+				newodds *= min((secondist/distvar)-4, 3); // POWERITEMODDS(newodds);
 			break;
 		case KITEM_SHRINK:
-			POWERITEMODDS(newodds);
-			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting))
+			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting) || COOLDOWNONSTART)
+				newodds = 0;
+			else
+				POWERITEMODDS(newodds);
+			break;
+		case KITEM_THUNDERSHIELD:
+			if (thunderisout)
+				newodds = 0;
+			else
+				POWERITEMODDS(newodds);
+		case KITEM_HYUDORO:
+			if ((hyubgone > 0) || COOLDOWNONSTART)
 				newodds = 0;
 			break;
 		default:
@@ -766,7 +900,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		for (j = 1; j < NUMKARTRESULTS; j++)
 		{
-			if (K_KartGetItemOdds(i, j, mashed) > 0)
+			if (K_KartGetItemOdds(i, j, mashed, spbrush) > 0)
 			{
 				available = true;
 				break;
@@ -867,11 +1001,12 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	UINT8 pingame = 0;
 	UINT8 roulettestop;
 	INT32 useodds = 0;
-	INT32 spawnchance[NUMKARTRESULTS * NUMKARTODDS];
-	INT32 chance = 0, numchoices = 0;
+	INT32 spawnchance[NUMKARTRESULTS];
+	INT32 totalspawnchance = 0;
 	INT32 bestbumper = 0;
 	fixed_t mashed = 0;
 	boolean dontforcespb = false;
+	boolean spbrush = false;
 
 	// This makes the roulette cycle through items - if this is 0, you shouldn't be here.
 	if (player->kartstuff[k_itemroulette])
@@ -964,25 +1099,27 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		return;
 	}
 
+	if (G_RaceGametype())
+		spbrush = (spbplace != -1 && player->kartstuff[k_position] == spbplace+1);
+
 	// Initializes existing spawnchance values
-	for (i = 0; i < (NUMKARTRESULTS * NUMKARTODDS); i++)
+	for (i = 0; i < NUMKARTRESULTS; i++)
 		spawnchance[i] = 0;
 
 	// Split into another function for a debug function below
-	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, (spbplace != -1 && player->kartstuff[k_position] == spbplace+1), dontforcespb);
-
-#define SETITEMRESULT(itemnum) \
-	for (chance = 0; chance < K_KartGetItemOdds(useodds, itemnum, mashed); chance++) \
-		spawnchance[numchoices++] = itemnum
+	useodds = K_FindUseodds(player, mashed, pingame, bestbumper, spbrush, dontforcespb);
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
-		SETITEMRESULT(i);
-
-#undef SETITEMRESULT
+		spawnchance[i] = (totalspawnchance += K_KartGetItemOdds(useodds, i, mashed, spbrush));
 
 	// Award the player whatever power is rolled
-	if (numchoices > 0)
-		K_KartGetItemResult(player, spawnchance[P_RandomKey(numchoices)]);
+	if (totalspawnchance > 0)
+	{
+		totalspawnchance = P_RandomKey(totalspawnchance);
+		for (i = 0; i < NUMKARTRESULTS && spawnchance[i] <= totalspawnchance; i++);
+
+		K_KartGetItemResult(player, i);
+	}
 	else
 	{
 		player->kartstuff[k_itemtype] = KITEM_SAD;
@@ -1123,10 +1260,11 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 		return;
 
 	{ // Normalize distance to the sum of the two objects' radii, since in a perfect world that would be the distance at the point of collision...
-		fixed_t dist = P_AproxDistance(distx, disty) ?: 1;
+		fixed_t dist = P_AproxDistance(distx, disty);
 		fixed_t nx = FixedDiv(distx, dist);
 		fixed_t ny = FixedDiv(disty, dist);
 
+		dist = dist ? dist : 1;
 		distx = FixedMul(mobj1->radius+mobj2->radius, nx);
 		disty = FixedMul(mobj1->radius+mobj2->radius, ny);
 
@@ -1399,7 +1537,7 @@ void K_RespawnChecker(player_t *player)
 						mo->eflags |= MFE_VERTICALFLIP;
 					P_SetTarget(&mo->target, player->mo);
 					mo->angle = newangle+ANGLE_90;
-					mo->momz = (8*FRACUNIT)*P_MobjFlip(player->mo);
+					mo->momz = (8<<FRACBITS) * P_MobjFlip(player->mo);
 					P_SetScale(mo, (mo->destscale = FRACUNIT));
 				}
 			}
@@ -1974,16 +2112,19 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 static void K_RemoveGrowShrink(player_t *player)
 {
 	player->kartstuff[k_growshrinktimer] = 0;
+	player->kartstuff[k_growcancel] = 0;
 
 	if (player->mo && !P_MobjWasRemoved(player->mo))
 	{
 		if (player->kartstuff[k_invincibilitytimer] == 0)
 			player->mo->color = player->skincolor;
+
 		player->mo->scalespeed = mapobjectscale/TICRATE;
 		player->mo->destscale = mapobjectscale;
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = (6*player->mo->destscale)/8;
 	}
+
 	P_RestoreMusic(player);
 }
 
@@ -2111,6 +2252,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 #ifdef HAVE_BLUA
 	boolean force = false;	// Used to check if Lua ShouldExplode should get us damaged reguardless of flashtics or heck knows what.
 	UINT8 shouldForce = LUAh_ShouldExplode(player, inflictor, source);
+
 	if (P_MobjWasRemoved(player->mo))
 		return; // mobj was removed (in theory that shouldn't happen)
 	if (shouldForce == 1)
@@ -2121,6 +2263,7 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 #else
 	static const boolean force = false;
 #endif
+
 	if (G_BattleGametype())
 	{
 		if (K_IsPlayerWanted(player))
@@ -2202,15 +2345,18 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 	}
 
 	player->kartstuff[k_spinouttype] = 1;
-	player->kartstuff[k_spinouttimer] = 2*TICRATE+(TICRATE/2);
+	player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2;
 
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
 
 	if (inflictor && inflictor->type == MT_SPBEXPLOSION && inflictor->extravalue1)
 	{
-		player->kartstuff[k_spinouttimer] = ((3*player->kartstuff[k_spinouttimer])/2)+1;
+		player->kartstuff[k_spinouttimer] = ((5*player->kartstuff[k_spinouttimer])/2)+1;
 		player->mo->momz *= 2;
 	}
+
+	if (player->mo->eflags & MFE_UNDERWATER)
+		player->mo->momz = (117 * player->mo->momz) / 200;
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -2404,6 +2550,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 	for (i = 0; i < 32; i++)
 	{
 		dust = P_SpawnMobj(source->x, source->y, source->z, MT_SMOKE);
+		P_SetMobjState(dust, S_OPAQUESMOKE1);
 		dust->angle = (ANGLE_180/16) * i;
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
@@ -2421,6 +2568,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momy = P_RandomRange(-speed, speed)*FRACUNIT;
 		speed = FixedMul(20*FRACUNIT, source->scale)>>FRACBITS;
 		truc->momz = P_RandomRange(-speed, speed)*FRACUNIT;
+		if (truc->eflags & MFE_UNDERWATER)
+			truc->momz = (117 * truc->momz) / 200;
 		truc->color = color;
 	}
 
@@ -2429,6 +2578,7 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		dust = P_SpawnMobj(source->x + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->y + P_RandomRange(-radius, radius)*FRACUNIT,
 			source->z + P_RandomRange(0, height)*FRACUNIT, MT_SMOKE);
+		P_SetMobjState(dust, S_OPAQUESMOKE1);
 		P_SetScale(dust, source->scale);
 		dust->destscale = source->scale*10;
 		dust->scalespeed = source->scale/12;
@@ -2449,6 +2599,8 @@ void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 		truc->momz = P_RandomRange(speed, speed2)*FRACUNIT;
 		if (P_RandomChance(FRACUNIT/2))
 			truc->momz = -truc->momz;
+		if (truc->eflags & MFE_UNDERWATER)
+			truc->momz = (117 * truc->momz) / 200;
 		truc->tics = TICRATE*2;
 		truc->color = color;
 	}
@@ -2771,11 +2923,24 @@ void K_SpawnSparkleTrail(mobj_t *mo)
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent)
 {
 	mobj_t *dust;
+	angle_t aoff;
 
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	dust = P_SpawnMobj(mo->x + (P_RandomRange(-25,25) * mo->scale), mo->y + (P_RandomRange(-25,25) * mo->scale), mo->z, MT_WIPEOUTTRAIL);
+	if (mo->player)
+		aoff = (mo->player->frameangle + ANGLE_180);
+	else
+		aoff = (mo->angle + ANGLE_180);
+
+	if ((leveltime / 2) & 1)
+		aoff -= ANGLE_45;
+	else
+		aoff += ANGLE_45;
+
+	dust = P_SpawnMobj(mo->x + FixedMul(24*mo->scale, FINECOSINE(aoff>>ANGLETOFINESHIFT)) + (P_RandomRange(-8,8) << FRACBITS),
+		mo->y + FixedMul(24*mo->scale, FINESINE(aoff>>ANGLETOFINESHIFT)) + (P_RandomRange(-8,8) << FRACBITS),
+		mo->z, MT_WIPEOUTTRAIL);
 
 	P_SetTarget(&dust->target, mo);
 	dust->angle = R_PointToAngle2(0,0,mo->momx,mo->momy);
@@ -2883,7 +3048,8 @@ static mobj_t *K_FindLastTrailMobj(player_t *player)
 static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t mapthing, INT32 defaultDir, INT32 altthrow)
 {
 	mobj_t *mo;
-	INT32 dir, PROJSPEED;
+	INT32 dir;
+	fixed_t PROJSPEED;
 	angle_t newangle;
 	fixed_t newx, newy, newz;
 	mobj_t *throwmo;
@@ -2921,12 +3087,19 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 	{
 		if (altthrow == 2) // Kitchen sink throwing
 		{
+#if 0
 			if (player->kartstuff[k_throwdir] == 1)
 				dir = 3;
 			else if (player->kartstuff[k_throwdir] == -1)
 				dir = 1;
 			else
 				dir = 2;
+#else
+			if (player->kartstuff[k_throwdir] == 1)
+				dir = 2;
+			else
+				dir = 1;
+#endif
 		}
 		else
 		{
@@ -3000,11 +3173,16 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			if (mo)
 			{
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
-				INT32 HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
+				fixed_t HEIGHT = (20 + (dir*10))*mapobjectscale + player->mo->momz;
 
-				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
-				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), (altthrow == 2 ? 2*PROJSPEED/3 : PROJSPEED));
+				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED*dir);
+				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED*dir);
 				mo->momz = P_MobjFlip(player->mo) * HEIGHT;
+
+				mo->extravalue2 = dir;
+
+				if (mo->eflags & MFE_UNDERWATER)
+					mo->momz = (117 * mo->momz) / 200;
 
 				if (player->mo->eflags & MFE_VERTICALFLIP)
 					mo->eflags |= MFE_VERTICALFLIP;
@@ -3070,10 +3248,66 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 
 			if (player->mo->eflags & MFE_VERTICALFLIP)
 				mo->eflags |= MFE_VERTICALFLIP;
+
+			if (mapthing == MT_SSMINE)
+				mo->extravalue1 = 49; // Pads the start-up length from 21 frames to a full 2 seconds
 		}
 	}
 
 	return mo;
+}
+
+void K_PuntMine(mobj_t *thismine, mobj_t *punter)
+{
+	angle_t fa = R_PointToAngle2(0, 0, punter->momx, punter->momy) >> ANGLETOFINESHIFT;
+	fixed_t z = 30*mapobjectscale + punter->momz;
+	fixed_t spd;
+	mobj_t *mine;
+
+	if (!thismine || P_MobjWasRemoved(thismine))
+		return;
+
+	if (thismine->type == MT_SSMINE_SHIELD) // Create a new mine
+	{
+		mine = P_SpawnMobj(thismine->x, thismine->y, thismine->z, MT_SSMINE);
+		P_SetTarget(&mine->target, thismine->target);
+		mine->angle = thismine->angle;
+		mine->flags2 = thismine->flags2;
+		mine->floorz = thismine->floorz;
+		mine->ceilingz = thismine->ceilingz;
+		P_RemoveMobj(thismine);
+	}
+	else
+		mine = thismine;
+
+	if (!mine || P_MobjWasRemoved(mine))
+		return;
+
+	switch (gamespeed)
+	{
+		case 0:
+			spd = 68*mapobjectscale; // Avg Speed is 34
+			break;
+		case 2:
+			spd = 96*mapobjectscale; // Avg Speed is 48
+			break;
+		default:
+			spd = 82*mapobjectscale; // Avg Speed is 41
+			break;
+	}
+
+	mine->flags |= MF_NOCLIPTHING;
+
+	P_SetMobjState(mine, S_SSMINE_AIR1);
+	mine->threshold = 10;
+	mine->extravalue1 = 0;
+	mine->reactiontime = mine->info->reactiontime;
+
+	mine->momx = punter->momx + FixedMul(FINECOSINE(fa), spd);
+	mine->momy = punter->momy + FixedMul(FINESINE(fa), spd);
+	mine->momz = P_MobjFlip(mine) * z;
+
+	mine->flags &= ~MF_NOCLIPTHING;
 }
 
 #define THUNDERRADIUS 320
@@ -3290,14 +3524,14 @@ static void K_DoShrink(player_t *user)
 			{
 				// Start shrinking!
 				K_DropItems(&players[i]);
+				players[i].kartstuff[k_growshrinktimer] = -(20*TICRATE);
 
-				if (!P_MobjWasRemoved(players[i].mo))
+				if (players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				{
 					players[i].mo->scalespeed = mapobjectscale/TICRATE;
 					players[i].mo->destscale = (6*mapobjectscale)/8;
 					if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
 						players[i].mo->destscale = (6*players[i].mo->destscale)/8;
-					players[i].kartstuff[k_growshrinktimer] = -(200+(40*(MAXPLAYERS-players[i].kartstuff[k_position])));
 				}
 			}
 
@@ -3363,6 +3597,9 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 	}
 	else
 		mo->momz = FixedMul(vertispeed, vscale);
+
+	if (mo->eflags & MFE_UNDERWATER)
+		mo->momz = (117 * mo->momz) / 200;
 
 	if (sound)
 		S_StartSound(mo, (sound == 1 ? sfx_kc2f : sfx_kpogos));
@@ -3513,6 +3750,8 @@ void K_DropHnextList(player_t *player)
 			dropwork->momx = player->mo->momx>>1;
 			dropwork->momy = player->mo->momy>>1;
 			dropwork->momz = 3*flip*mapobjectscale;
+			if (dropwork->eflags & MFE_UNDERWATER)
+				dropwork->momz = (117 * dropwork->momz) / 200;
 			P_Thrust(dropwork, work->angle - ANGLE_90, 6*mapobjectscale);
 			dropwork->movecount = 2;
 			dropwork->movedir = work->angle - ANGLE_90;
@@ -3571,6 +3810,8 @@ void K_DropItems(player_t *player)
 			FixedAngle(P_RandomFixed()*180) + player->mo->angle + ANGLE_90,
 			16*mapobjectscale);
 		drop->momz = P_MobjFlip(player->mo)*3*mapobjectscale;
+		if (drop->eflags & MFE_UNDERWATER)
+			drop->momz = (117 * drop->momz) / 200;
 
 		drop->threshold = (thunderhack ? KITEM_THUNDERSHIELD : player->kartstuff[k_itemtype]);
 		drop->movecount = player->kartstuff[k_itemamount];
@@ -4693,6 +4934,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 			player->kartstuff[k_driftend] = 0;
 	}
 
+
 	// Incease/decrease the drift value to continue drifting in that direction
 	if (player->kartstuff[k_spinouttimer] == 0 && player->kartstuff[k_jmp] == 1 && onground && player->kartstuff[k_drift] != 0)
 	{
@@ -5026,6 +5268,18 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->kartstuff[k_rocketsneakertimer] -= 2*TICRATE;
 			if (player->kartstuff[k_rocketsneakertimer] < 1)
 				player->kartstuff[k_rocketsneakertimer] = 1;
+		}
+		// Grow Canceling
+		else if (player->kartstuff[k_growshrinktimer] > 0)
+		{
+			if (cmd->buttons & BT_ATTACK)
+			{
+				player->kartstuff[k_growcancel]++;
+				if (player->kartstuff[k_growcancel] > 26)
+					K_RemoveGrowShrink(player);
+			}
+			else
+				player->kartstuff[k_growcancel] = 0;
 		}
 		else if (player->kartstuff[k_itemamount] <= 0)
 		{
@@ -5382,6 +5636,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 		if (player->kartstuff[k_itemtype] != KITEM_THUNDERSHIELD)
 			player->kartstuff[k_curshield] = 0;
+
+		if (player->kartstuff[k_growshrinktimer] <= 0)
+			player->kartstuff[k_growcancel] = 0;
 
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
@@ -6447,6 +6704,8 @@ static void K_drawKartItem(void)
 	//INT32 splitflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	const INT32 numberdisplaymin = ((!offset && stplyr->kartstuff[k_itemtype] == KITEM_ORBINAUT) ? 5 : 2);
 	INT32 itembar = 0;
+	INT32 maxl = 0; // itembar's normal highest value
+	const INT32 barlength = (splitscreen > 1 ? 12 : 26);
 	UINT8 localcolor = SKINCOLOR_NONE;
 	SINT8 colormode = TC_RAINBOW;
 	UINT8 *colmap = NULL;
@@ -6555,6 +6814,8 @@ static void K_drawKartItem(void)
 		else if (stplyr->kartstuff[k_rocketsneakertimer] > 1)
 		{
 			itembar = stplyr->kartstuff[k_rocketsneakertimer];
+			maxl = (itemtime*3) - barlength;
+
 			if (leveltime & 1)
 				localpatch = kp_rocketsneaker[offset];
 			else
@@ -6562,6 +6823,12 @@ static void K_drawKartItem(void)
 		}
 		else if (stplyr->kartstuff[k_growshrinktimer] > 0)
 		{
+			if (stplyr->kartstuff[k_growcancel])
+			{
+				itembar = stplyr->kartstuff[k_growcancel];
+				maxl = 26;
+			}
+
 			if (leveltime & 1)
 				localpatch = kp_grow[offset];
 			else
@@ -6713,8 +6980,6 @@ static void K_drawKartItem(void)
 	// Extensible meter, currently only used for rocket sneaker...
 	if (itembar && hudtrans)
 	{
-		const INT32 barlength = (splitscreen > 1 ? 12 : 26);
-		const INT32 maxl = (itemtime*3) - barlength; // timer's normal highest value
 		const INT32 fill = ((itembar*barlength)/maxl);
 		const INT32 length = min(barlength, fill);
 		const INT32 height = (offset ? 1 : 2);
@@ -7182,7 +7447,7 @@ void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, I
 
 		if (netgame // don't draw it offline
 		&& tab[i].num != serverplayer)
-			HU_drawPing(x + ((i < 8) ? -19 : rightoffset + 13), y+2, playerpingtable[tab[i].num], false);
+			HU_drawPing(x + ((i < 8) ? -17 : rightoffset + 11), y-4, playerpingtable[tab[i].num], 0);
 
 		STRBUFCPY(strtime, tab[i].name);
 
@@ -7651,8 +7916,12 @@ static void K_drawKartMinimapHead(mobj_t *mo, INT32 x, INT32 y, INT32 flags, pat
 		else
 			colormap = R_GetTranslationColormap(skin, mo->color, GTC_CACHE);
 		V_DrawFixedPatch(amxpos, amypos, FRACUNIT, flags, facemmapprefix[skin], colormap);
-		if (mo->player && K_IsPlayerWanted(mo->player))
+		if (mo->player
+			&& ((G_RaceGametype() && mo->player->kartstuff[k_position] == spbplace)
+			|| (G_BattleGametype() && K_IsPlayerWanted(mo->player))))
+		{
 			V_DrawFixedPatch(amxpos - (4<<FRACBITS), amypos - (4<<FRACBITS), FRACUNIT, flags, kp_wantedreticle, NULL);
+		}
 	}
 }
 
@@ -8328,6 +8597,7 @@ static void K_drawDistributionDebugger(void)
 	INT32 i;
 	INT32 x = -9, y = -9;
 	boolean dontforcespb = false;
+	boolean spbrush = false;
 
 	if (stplyr != &players[displayplayer]) // only for p1
 		return;
@@ -8344,11 +8614,14 @@ static void K_drawDistributionDebugger(void)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
 
-	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, (spbplace != -1 && stplyr->kartstuff[k_position] == spbplace+1), dontforcespb);
+	if (G_RaceGametype())
+		spbrush = (spbplace != -1 && stplyr->kartstuff[k_position] == spbplace+1);
+
+	useodds = K_FindUseodds(stplyr, 0, pingame, bestbumper, spbrush, dontforcespb);
 
 	for (i = 1; i < NUMKARTRESULTS; i++)
 	{
-		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0);
+		const INT32 itemodds = K_KartGetItemOdds(useodds, i, 0, spbrush);
 		if (itemodds <= 0)
 			continue;
 
@@ -8589,6 +8862,25 @@ void K_drawKartHUD(void)
 		UINT8 p;
 		for (p = 0; p < MAXPLAYERS; p++)
 			V_DrawString(8, 64+(8*p), V_YELLOWMAP, va("%d - %d (%dl)", p, playernode[p], players[p].cmd.latency));
+	}
+
+	if (cv_kartdebugcolorize.value && stplyr->mo && stplyr->mo->skin)
+	{
+		INT32 x = 0, y = 0;
+		UINT8 c;
+
+		for (c = 1; c < MAXSKINCOLORS; c++)
+		{
+			UINT8 *cm = R_GetTranslationColormap(TC_RAINBOW, c, 0);
+			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT>>1, 0, facewantprefix[stplyr->skin], cm);
+
+			x += 16;
+			if (x > BASEVIDWIDTH-16)
+			{
+				x = 0;
+				y += 16;
+			}
+		}
 	}
 }
 

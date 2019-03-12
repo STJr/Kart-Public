@@ -74,6 +74,14 @@ patch_t *nightsnum[10]; // 0-9
 patch_t *lt_font[LT_FONTSIZE];
 patch_t *cred_font[CRED_FONTSIZE];
 
+// ping font
+// Note: I'd like to adress that at this point we might *REALLY* want to work towards a common drawString function that can take any font we want because this is really turning into a MESS. :V -Lat'
+patch_t *pingnum[10];
+patch_t *pinggfx[5];	// small ping graphic
+
+patch_t *framecounter;
+patch_t *frameslash;	// framerate stuff. Used in screen.c
+
 static player_t *plr;
 boolean chat_on; // entering a chat message?
 static char w_chat[HU_MAXMSGLEN];
@@ -263,6 +271,8 @@ void HU_LoadGraphics(void)
 		tallnum[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 		sprintf(buffer, "NGTNUM%d", i);
 		nightsnum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
+		sprintf(buffer, "PINGN%d", i);
+		pingnum[i] = (patch_t *) W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
 	// minus for negative tallnums
@@ -295,6 +305,17 @@ void HU_LoadGraphics(void)
 	tinyemeraldpics[6] = W_CachePatchName("TEMER7", PU_HUDGFX);
 
 	songcreditbg = W_CachePatchName("K_SONGCR", PU_HUDGFX);
+
+	// cache ping gfx:
+	for (i = 0; i < 5; i++)
+	{
+		sprintf(buffer, "PINGGFX%d", i+1);
+		pinggfx[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
+	}
+
+	// fps stuff
+	framecounter = W_CachePatchName("FRAMER", PU_HUDGFX);
+	frameslash  = W_CachePatchName("FRAMESL", PU_HUDGFX);;
 }
 
 // Initialise Heads up
@@ -757,44 +778,139 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			}
 		}
 		else
-        {
+		{
 			const UINT8 color = players[playernum].skincolor;
 
 			cstart = "\x83";
 
-			if (color <= SKINCOLOR_SILVER || color == SKINCOLOR_SLATE)
-				cstart = "\x80"; // white
-			else if (color <= SKINCOLOR_BLACK || color == SKINCOLOR_JET)
-				cstart = "\x86"; // V_GRAYMAP
-			else if (color <= SKINCOLOR_LEATHER)
-				cstart = "\x8e"; // V_BROWNMAP
-			else if (color <= SKINCOLOR_ROSE || color == SKINCOLOR_LILAC)
-				cstart = "\x8d"; // V_PINKMAP
-			else if (color <= SKINCOLOR_KETCHUP)
-				cstart = "\x85"; // V_REDMAP
-			else if (color <= SKINCOLOR_TANGERINE)
-				cstart = "\x87"; // V_ORANGEMAP
-			else if (color <= SKINCOLOR_CARAMEL)
-				cstart = "\x8f"; // V_PEACHMAP
-			else if (color <= SKINCOLOR_BRONZE)
-				cstart = "\x8A"; // V_GOLDMAP
-			else if (color <= SKINCOLOR_OLIVE)
-				cstart = "\x82"; // V_YELLOWMAP
-			else if (color <= SKINCOLOR_PISTACHIO)
-				cstart = "\x8b"; // V_TEAMAP
-			else if (color <= SKINCOLOR_DREAM || color == SKINCOLOR_LIME)
-				cstart = "\x83"; // V_GREENMAP
-			else if (color <= SKINCOLOR_NAVY || color == SKINCOLOR_SAPPHIRE)
-				cstart = "\x88"; // V_SKYMAP
-			else if (color <= SKINCOLOR_STEEL)
-				cstart = "\x8c"; // V_STEELMAP
-			else if (color <= SKINCOLOR_BLUEBERRY)
-				cstart = "\x84"; // V_BLUEMAP
-			else if (color == SKINCOLOR_PURPLE)
-				cstart = "\x81"; // V_PURPLEMAP
-			else //if (color <= SKINCOLOR_POMEGRANATE)
-				cstart = "\x89"; // V_LAVENDERMAP
-        }
+			switch (color)
+			{
+				case SKINCOLOR_WHITE:
+				case SKINCOLOR_SILVER:
+				case SKINCOLOR_SLATE:
+					cstart = "\x80"; // White
+					break;
+				case SKINCOLOR_GREY:
+				case SKINCOLOR_NICKEL:
+				case SKINCOLOR_BLACK:
+				case SKINCOLOR_JET:
+					cstart = "\x86"; // V_GRAYMAP
+					break;
+				case SKINCOLOR_SEPIA:
+				case SKINCOLOR_BEIGE:
+				case SKINCOLOR_BROWN:
+				case SKINCOLOR_LEATHER:
+				case SKINCOLOR_RUST:
+					cstart = "\x8e"; // V_BROWNMAP
+					break;
+				case SKINCOLOR_FAIRY:
+				case SKINCOLOR_SALMON:
+				case SKINCOLOR_PINK:
+				case SKINCOLOR_ROSE:
+				case SKINCOLOR_BRICK:
+				case SKINCOLOR_BUBBLEGUM:
+				case SKINCOLOR_LILAC:
+					cstart = "\x8d"; // V_PINKMAP
+					break;
+				case SKINCOLOR_RUBY:
+				case SKINCOLOR_RASPBERRY:
+				case SKINCOLOR_CHERRY:
+				case SKINCOLOR_RED:
+				case SKINCOLOR_CRIMSON:
+				case SKINCOLOR_MAROON:
+				case SKINCOLOR_FLAME:
+				case SKINCOLOR_SCARLET:
+				case SKINCOLOR_KETCHUP:
+					cstart = "\x85"; // V_REDMAP
+					break;
+				case SKINCOLOR_DAWN:
+				case SKINCOLOR_SUNSET:
+				case SKINCOLOR_CREAMSICLE:
+				case SKINCOLOR_ORANGE:
+				case SKINCOLOR_PUMPKIN:
+				case SKINCOLOR_ROSEWOOD:
+				case SKINCOLOR_BURGUNDY:
+				case SKINCOLOR_TANGERINE:
+					cstart = "\x87"; // V_ORANGEMAP
+					break;
+				case SKINCOLOR_PEACH:
+				case SKINCOLOR_CARAMEL:
+				case SKINCOLOR_CREAM:
+					cstart = "\x8f"; // V_PEACHMAP
+					break;
+				case SKINCOLOR_GOLD:
+				case SKINCOLOR_ROYAL:
+				case SKINCOLOR_BRONZE:
+				case SKINCOLOR_COPPER:
+					cstart = "\x8A"; // V_GOLDMAP
+					break;
+				case SKINCOLOR_POPCORN:
+				case SKINCOLOR_YELLOW:
+				case SKINCOLOR_MUSTARD:
+				case SKINCOLOR_OLIVE:
+					cstart = "\x82"; // V_YELLOWMAP
+					break;
+				case SKINCOLOR_VOMIT:
+				case SKINCOLOR_GARDEN:
+				case SKINCOLOR_TEA:
+				case SKINCOLOR_PISTACHIO:
+					cstart = "\x8b"; // V_TEAMAP
+					break;
+				case SKINCOLOR_LIME:
+				case SKINCOLOR_HANDHELD:
+				case SKINCOLOR_MOSS:
+				case SKINCOLOR_CAMOUFLAGE:
+				case SKINCOLOR_ROBOHOOD:
+				case SKINCOLOR_MINT:
+				case SKINCOLOR_GREEN:
+				case SKINCOLOR_PINETREE:
+				case SKINCOLOR_EMERALD:
+				case SKINCOLOR_SWAMP:
+				case SKINCOLOR_DREAM:
+				case SKINCOLOR_PLAGUE:
+				case SKINCOLOR_ALGAE:
+					cstart = "\x83"; // V_GREENMAP
+					break;
+				case SKINCOLOR_CARIBBEAN:
+				case SKINCOLOR_AQUA:
+				case SKINCOLOR_TEAL:
+				case SKINCOLOR_CYAN:
+				case SKINCOLOR_JAWZ:
+				case SKINCOLOR_CERULEAN:
+				case SKINCOLOR_NAVY:
+				case SKINCOLOR_SAPPHIRE:
+					cstart = "\x88"; // V_SKYMAP
+					break;
+				case SKINCOLOR_PLATINUM:
+				case SKINCOLOR_STEEL:
+					cstart = "\x8c"; // V_STEELMAP
+					break;
+				case SKINCOLOR_PERIWINKLE:
+				case SKINCOLOR_BLUE:
+				case SKINCOLOR_BLUEBERRY:
+				case SKINCOLOR_NOVA:
+					cstart = "\x84"; // V_BLUEMAP
+					break;
+				case SKINCOLOR_ULTRAVIOLET:
+				case SKINCOLOR_PURPLE:
+				case SKINCOLOR_FUCHSIA:
+					cstart = "\x81"; // V_PURPLEMAP
+					break;
+				case SKINCOLOR_PASTEL:
+				case SKINCOLOR_MOONSLAM:
+				case SKINCOLOR_DUSK:
+				case SKINCOLOR_TOXIC:
+				case SKINCOLOR_MAUVE:
+				case SKINCOLOR_LAVENDER:
+				case SKINCOLOR_BYZANTIUM:
+				case SKINCOLOR_POMEGRANATE:
+					cstart = "\x89"; // V_LAVENDERMAP
+					break;
+				default:
+					break;
+			}
+		}
+
 		prefix = cstart;
 
 		// Give admins and remote admins their symbols.
@@ -1109,8 +1225,6 @@ static INT16 typelines = 1; // number of drawfill lines we need when drawing the
 //
 boolean HU_Responder(event_t *ev)
 {
-	INT32 c=0;
-
 	if (ev->type != ev_keydown)
 		return false;
 
@@ -1134,18 +1248,6 @@ boolean HU_Responder(event_t *ev)
 
 		if (i == num_gamecontrols)
 			return false;
-	}
-
-	c = (INT32)ev->data1;
-
-	// capslock (now handled outside of chat on so that it works everytime......)
-	if (c && c == KEY_CAPSLOCK) // it's a toggle.
-	{
-		if (capslock)
-			capslock = false;
-		else
-			capslock = true;
-		return true;
 	}
 
 #ifndef NONET
@@ -1175,6 +1277,7 @@ boolean HU_Responder(event_t *ev)
 	}
 	else // if chat_on
 	{
+		INT32 c = (INT32)ev->data1;
 
 		// Ignore modifier keys
 		// Note that we do this here so users can still set
@@ -1190,20 +1293,7 @@ boolean HU_Responder(event_t *ev)
 		&& ev->data1 != gamecontrol[gc_talkkey][1]))
 			return false;
 
-		c = (INT32)ev->data1;
-
-		// I know this looks very messy but this works. If it ain't broke, don't fix it!
-		// shift LETTERS to uppercase if we have capslock or are holding shift
-		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-		{
-			if (shiftdown ^ capslock)
-				c = shiftxform[c];
-		}
-		else	// if we're holding shift we should still shift non letter symbols
-		{
-			if (shiftdown)
-				c = shiftxform[c];
-		}
+		c = CON_ShiftChar(c);
 
 		// pasting. pasting is cool. chat is a bit limited, though :(
 		if (((c == 'v' || c == 'V') && ctrldown) && !CHAT_MUTE)
@@ -1612,9 +1702,9 @@ static void HU_drawChatLog(INT32 offset)
 
 	// draw arrows to indicate that we can (or not) scroll.
 	if (chat_scroll > 0)
-		V_DrawThinString(chatx-9, ((justscrolledup) ? (chat_topy-1) : (chat_topy)), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight, "\x1A"); // up arrow
+		V_DrawCharacter(chatx-9, ((justscrolledup) ? (chat_topy-1) : (chat_topy)), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight | '\x1A', false); // up arrow
 	if (chat_scroll < chat_maxscroll)
-		V_DrawThinString(chatx-9, chat_bottomy-((justscrolleddown) ? 5 : 6), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight, "\x1B"); // down arrow
+		V_DrawCharacter(chatx-9, chat_bottomy-((justscrolleddown) ? 5 : 6), V_SNAPTOBOTTOM | V_SNAPTOLEFT | highlight | '\x1B', false); // down arrow
 
 	justscrolleddown = false;
 	justscrolledup = false;
@@ -2178,6 +2268,7 @@ static void HU_DrawSongCredits(void)
 		V_DrawRightAlignedThinString(cursongcredit.x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
 }
 
+
 // Heads up displays drawer, call each frame
 //
 void HU_Drawer(void)
@@ -2369,36 +2460,25 @@ void HU_Erase(void)
 //
 // HU_drawPing
 //
-void HU_drawPing(INT32 x, INT32 y, INT32 ping, boolean notext)
+void HU_drawPing(INT32 x, INT32 y, UINT32 ping, INT32 flags)
 {
-	UINT8 numbars = 1; // how many ping bars do we draw?
-	UINT8 barcolor = 128; // color we use for the bars (green, yellow or red)
-	SINT8 i = 0;
-	SINT8 yoffset = 6;
-	INT32 dx = x+1 - (V_SmallStringWidth(va("%dms", ping), V_ALLOWLOWERCASE)/2);
+	INT32 gfxnum = 4;	// gfx to draw
+	UINT8 const *colormap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SALMON, GTC_CACHE);
 
-	if (ping < 128)
-	{
-		numbars = 3;
-		barcolor = 184;
-	}
+	if (ping < 76)
+		gfxnum = 0;
+	else if (ping < 137)
+		gfxnum = 1;
 	else if (ping < 256)
-	{
-		numbars = 2; // Apparently ternaries w/ multiple statements don't look good in C so I decided against it.
-		barcolor = 103;
-	}
+		gfxnum = 2;
+	else if (ping < 500)
+		gfxnum = 3;
 
-	if (!notext || vid.width >= 640) // how sad, we're using a shit resolution.
-		V_DrawSmallString(dx, y+4, V_ALLOWLOWERCASE, va("%dms", ping));
-
-	for (i=0; (i<3); i++) // Draw the ping bar
-	{
-		V_DrawFill(x+2 *(i-1), y+yoffset-4, 2, 8-yoffset, 31);
-		if (i < numbars)
-			V_DrawFill(x+2 *(i-1), y+yoffset-3, 1, 8-yoffset-1, barcolor);
-
-		yoffset -= 2;
-	}
+	V_DrawScaledPatch(x, y, flags, pinggfx[gfxnum]);
+	if (servermaxping && ping > servermaxping && hu_tick < 4)		// flash ping red if too high
+		V_DrawPingNum(x, y+9, flags, ping, colormap);
+	else
+		V_DrawPingNum(x, y+9, flags, ping, NULL);
 }
 
 //
