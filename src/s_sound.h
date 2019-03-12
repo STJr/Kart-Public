@@ -33,6 +33,8 @@ extern consvar_t cv_gamedigimusic;
 extern consvar_t cv_gamemidimusic;
 #endif
 extern consvar_t cv_gamesounds;
+extern consvar_t cv_playmusicifunfocused;
+extern consvar_t cv_playsoundifunfocused;
 
 #ifdef SNDSERV
 extern consvar_t sndserver_cmd, sndserver_arg;
@@ -168,6 +170,10 @@ void S_StopMusic(void);
 // Stop and resume music, during game PAUSE.
 void S_PauseAudio(void);
 void S_ResumeAudio(void);
+
+// Enable and disable sound effects
+void S_EnableSound(void);
+void S_DisableSound(void);
 
 //
 // Updates music & sounds
