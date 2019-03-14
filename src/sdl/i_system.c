@@ -252,18 +252,10 @@ If your function doesn't do that, check here that false before you do anything.
 */
 boolean mustbereentrant = false;
 
-static void signal_handler(INT32 num)
+void I_ReportSignal(INT32 num)
 {
-	//static char msg[] = "oh no! back to reality!\r\n";
-	//const char *      sigmsg;
-	//char        sigdef[32];
-
-	mustbereentrant = true;/* and we about to die anyway */
-
-	D_QuitNetGame(); // Fix server freezes
-
-	/* nixed cause it's fucked!!!! */
-#if 0
+	const char *      sigmsg;
+	char        sigdef[32];
 	switch (num)
 	{
 //	case SIGINT:
@@ -297,11 +289,17 @@ static void signal_handler(INT32 num)
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 		"Signal caught",
 		sigmsg, NULL);
-	I_ShutdownSystem();
-#endif
+}
+
+static void signal_handler(INT32 num)
+{
+	mustbereentrant = true;/* and we about to die anyway */
+
+	D_QuitNetGame(); // Fix server freezes
+
 	signal(num, SIG_DFL);               //default signal action
 	raise(num);
-	//I_Quit();
+
 	mustbereentrant = false;/* ytho */
 }
 

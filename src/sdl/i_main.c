@@ -26,6 +26,13 @@
 #include <unistd.h>
 #endif
 
+#if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
+#include <errno.h>
+
+#include <unistd.h>
+#include <sys/wait.h>
+#endif
+
 #ifdef HAVE_SDL
 
 #ifdef HAVE_TTF
@@ -96,6 +103,8 @@ static inline VOID MakeCodeWritable(VOID)
 #endif
 
 
+extern void I_ReportSignal(INT32);
+
 /**	\brief	The main function
 
 	\param	argc	number of arg
@@ -116,6 +125,12 @@ int main(int argc, char **argv)
 	const char *logdir = NULL;
 	myargc = argc;
 	myargv = argv; /// \todo pull out path to exe from this string
+
+#if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
+	/* child info */
+	pid_t  cpid;
+	int cstatus;
+#endif
 
 #ifdef HAVE_TTF
 #ifdef _WIN32
@@ -138,6 +153,47 @@ int main(int argc, char **argv)
 
 	//I_OutputMsg("I_StartupSystem() ...\n");
 	I_StartupSystem();
+
+#if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
+	/*
+	Now we can fork into a child process and do actual work while the parent
+	waits for him to exit. Then we check for a signal termination and report
+	signals that way--the PROPER WAY. Yesh
+	*/
+	if (( cpid = fork() ) == -1)
+	{
+		I_OutputMsg("Error when setting up signal reporting: fork(): %s\n",
+				strerror(errno));
+	}
+	else
+	{
+		if (cpid != 0)/* we are the parent */
+		{
+			if (waitpid(cpid, &cstatus, 0) == -1)
+			{
+				I_OutputMsg("Error when setting up signal reporting: waitpid(): %s\n",
+						strerror(errno));
+			}
+			else
+			{
+				if (WIFSIGNALED(cstatus))
+				{
+					I_ReportSignal(WTERMSIG(cstatus));
+					I_Quit();
+					if (WIFEXITED(cstatus))
+						exit(WEXITSTATUS(cstatus));
+					else
+						exit(EXIT_FAILURE);
+				}
+				if (WIFEXITED(cstatus))
+					exit(WEXITSTATUS(cstatus));
+				else
+					exit(EXIT_SUCCESS);
+			}
+		}
+	}
+#endif
+
 #if defined (_WIN32)
 	{
 #if 0 // just load the DLL
