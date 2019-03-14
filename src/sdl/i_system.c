@@ -297,8 +297,13 @@ static void signal_handler(INT32 num)
 
 	D_QuitNetGame(); // Fix server freezes
 
+	/*
+	On Windows raising a signal seems to disable a dialogue box from showing.
+	*/
+#ifndef _WIN32
 	signal(num, SIG_DFL);               //default signal action
 	raise(num);
+#endif
 
 	mustbereentrant = false;/* ytho */
 }
