@@ -8324,8 +8324,6 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		}
 		else
 			V_DrawMappedPatch(mx+43, my+131, flags, patch, colormap);
-
-		Z_Free(colormap);
 	}
 #undef charw
 }
