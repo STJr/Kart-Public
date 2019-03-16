@@ -6989,7 +6989,7 @@ static void K_drawKartItem(void)
 	}
 
 	if (localcolor != SKINCOLOR_NONE)
-		colmap = R_GetTranslationColormap(colormode, localcolor, 0);
+		colmap = R_GetTranslationColormap(colormode, localcolor, GTC_CACHE);
 
 	V_DrawScaledPatch(fx, fy, V_HUDTRANS|fflags, localbg);
 
@@ -7651,7 +7651,7 @@ static void K_drawKartSpeedometer(void)
 
 static void K_drawKartBumpersOrKarma(void)
 {
-	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
+	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, GTC_CACHE);
 	INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
 	INT32 fx = 0, fy = 0, fflags = 0;
 	boolean flipstring = false;	// same as laps, used for splitscreen
@@ -7859,7 +7859,7 @@ static void K_drawKartPlayerCheck(void)
 			else if (x > 306)
 				x = 306;
 
-			colormap = R_GetTranslationColormap(TC_DEFAULT, players[i].mo->color, 0);
+			colormap = R_GetTranslationColormap(TC_DEFAULT, players[i].mo->color, GTC_CACHE);
 			V_DrawMappedPatch(x, CHEK_Y, V_HUDTRANS|splitflags, kp_check[pnum], colormap);
 		}
 	}
@@ -8388,16 +8388,16 @@ static void K_drawKartFirstPerson(void)
 
 		// drift sparks!
 		if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsthree))
-			colmap = R_GetTranslationColormap(TC_RAINBOW, (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1))), 0);
+			colmap = R_GetTranslationColormap(TC_RAINBOW, (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1))), GTC_CACHE);
 		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dstwo))
-			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_KETCHUP, 0);
+			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_KETCHUP, GTC_CACHE);
 		else if ((leveltime & 1) && (stplyr->kartstuff[k_driftcharge] >= dsone))
-			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SAPPHIRE, 0);
+			colmap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SAPPHIRE, GTC_CACHE);
 		else
 #endif
 		// invincibility/grow/shrink!
 		if (stplyr->mo->colorized && stplyr->mo->color)
-			colmap = R_GetTranslationColormap(TC_RAINBOW, stplyr->mo->color, 0);
+			colmap = R_GetTranslationColormap(TC_RAINBOW, stplyr->mo->color, GTC_CACHE);
 	}
 
 	V_DrawFixedPatch(x, y, scale, splitflags, kp_fpview[target], colmap);
@@ -8507,7 +8507,7 @@ static void K_drawInput(void)
 	else
 	{
 		UINT8 *colormap;
-		colormap = R_GetTranslationColormap(0, stplyr->skincolor, 0);
+		colormap = R_GetTranslationColormap(0, stplyr->skincolor, GTC_CACHE);
 		V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, splitflags, kp_inputwheel[target], colormap);
 	}
 }
@@ -8532,7 +8532,7 @@ static void K_drawLapStartAnim(void)
 {
 	// This is an EVEN MORE insanely complicated animation.
 	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
-	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, 0);
+	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, GTC_CACHE);
 
 	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
 		(48 - (32*max(0, progress-76)))*FRACUNIT,
@@ -8906,7 +8906,7 @@ void K_drawKartHUD(void)
 
 		for (c = 1; c < MAXSKINCOLORS; c++)
 		{
-			UINT8 *cm = R_GetTranslationColormap(TC_RAINBOW, c, 0);
+			UINT8 *cm = R_GetTranslationColormap(TC_RAINBOW, c, GTC_CACHE);
 			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT>>1, 0, facewantprefix[stplyr->skin], cm);
 
 			x += 16;
