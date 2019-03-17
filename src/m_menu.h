@@ -212,6 +212,7 @@ typedef struct
 
 extern description_t description[32];
 
+extern consvar_t cv_showfocuslost;
 extern consvar_t cv_newgametype, cv_nextmap, cv_chooseskin, cv_serversort;
 extern CV_PossibleValue_t gametype_cons_t[];
 

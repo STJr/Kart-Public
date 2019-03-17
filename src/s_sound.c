@@ -57,6 +57,9 @@ static void GameMIDIMusic_OnChange(void);
 static void GameSounds_OnChange(void);
 static void GameDigiMusic_OnChange(void);
 
+static void PlayMusicIfUnfocused_OnChange(void);
+static void PlaySoundIfUnfocused_OnChange(void);
+
 // commands for music and sound servers
 #ifdef MUSSERV
 consvar_t musserver_cmd = {"musserver_cmd", "musserver", CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -109,6 +112,9 @@ consvar_t cv_gamedigimusic = {"digimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_O
 consvar_t cv_gamemidimusic = {"midimusic", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameMIDIMusic_OnChange, 0, NULL, NULL, 0, 0, NULL};
 #endif
 consvar_t cv_gamesounds = {"sounds", "On", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, GameSounds_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
+consvar_t cv_playmusicifunfocused = {"playmusicifunfocused",  "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, PlayMusicIfUnfocused_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_playsoundifunfocused = {"playsoundsifunfocused", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, PlaySoundIfUnfocused_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 #define S_MAX_VOLUME 127
 
@@ -269,6 +275,9 @@ void S_RegisterSoundStuff(void)
 #ifndef NO_MIDI
 	CV_RegisterVar(&cv_gamemidimusic);
 #endif
+
+	CV_RegisterVar(&cv_playmusicifunfocused);
+	CV_RegisterVar(&cv_playsoundifunfocused);
 
 	COM_AddCommand("tunes", Command_Tunes_f);
 	COM_AddCommand("restartaudio", Command_RestartAudio_f);
@@ -1897,6 +1906,10 @@ static boolean S_PlayMusic(boolean looping)
 	}
 
 	S_InitMusicVolume(); // switch between digi and sequence volume
+
+	if (window_notinfocus && !cv_playmusicifunfocused.value)
+		I_PauseSong();
+
 	return true;
 }
 
@@ -1976,6 +1989,24 @@ void S_ResumeAudio(void)
 
 	// resume cd music
 	I_ResumeCD();
+}
+
+void S_DisableSound(void)
+{
+	if (sound_started && !sound_disabled)
+	{
+		sound_disabled = true;
+		S_StopSounds();
+	}
+}
+
+void S_EnableSound(void)
+{
+	if (sound_started && sound_disabled)
+	{
+		sound_disabled = false;
+		S_InitSfxChannels(cv_soundvolume.value);
+	}
 }
 
 void S_SetMusicVolume(INT32 digvolume, INT32 seqvolume)
@@ -2156,15 +2187,11 @@ void GameSounds_OnChange(void)
 
 	if (sound_disabled)
 	{
-		sound_disabled = false;
-		S_InitSfxChannels(cv_soundvolume.value);
-		S_StartSound(NULL, sfx_strpst);
+		if (!( cv_playsoundifunfocused.value && window_notinfocus ))
+			S_EnableSound();
 	}
 	else
-	{
-		sound_disabled = true;
-		S_StopSounds();
-	}
+		S_DisableSound();
 }
 
 void GameDigiMusic_OnChange(void)
@@ -2251,3 +2278,28 @@ void GameMIDIMusic_OnChange(void)
 	}
 }
 #endif
+
+static void PlayMusicIfUnfocused_OnChange(void)
+{
+	if (window_notinfocus)
+	{
+		if (cv_playmusicifunfocused.value)
+			I_PauseSong();
+		else
+			I_ResumeSong();
+	}
+}
+
+static void PlaySoundIfUnfocused_OnChange(void)
+{
+	if (!cv_gamesounds.value)
+		return;
+
+	if (window_notinfocus)
+	{
+		if (cv_playsoundifunfocused.value)
+			S_DisableSound();
+		else
+			S_EnableSound();
+	}
+}
