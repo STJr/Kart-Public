@@ -515,7 +515,7 @@ static GLuint gl_currentshaderprogram = 0;
 static GLuint gl_shaderprograms[MAXSHADERPROGRAMS];
 
 typedef GLuint 	(APIENTRY *PFNglCreateShader)		(GLenum);
-typedef void 	(APIENTRY *PFNglShaderSource)		(GLuint, GLsizei, GLchar**, GLint*);
+typedef void 	(APIENTRY *PFNglShaderSource)		(GLuint, GLsizei, const GLchar**, GLint*);
 typedef void 	(APIENTRY *PFNglCompileShader)		(GLuint);
 typedef void 	(APIENTRY *PFNglGetShaderiv)		(GLuint, GLenum, GLint*);
 typedef void 	(APIENTRY *PFNglDeleteShader)		(GLuint);
@@ -532,7 +532,7 @@ typedef void 	(APIENTRY *PFNglUniform4f)			(GLint, GLfloat, GLfloat, GLfloat, GL
 typedef void 	(APIENTRY *PFNglUniform1fv)			(GLint, GLsizei, const GLfloat*);
 typedef void 	(APIENTRY *PFNglUniform2fv)			(GLint, GLsizei, const GLfloat*);
 typedef void 	(APIENTRY *PFNglUniform3fv)			(GLint, GLsizei, const GLfloat*);
-typedef GLint 	(APIENTRY *PFNglGetUniformLocation)	(GLuint, GLchar*);
+typedef GLint 	(APIENTRY *PFNglGetUniformLocation)	(GLuint, const GLchar*);
 
 static PFNglCreateShader pglCreateShader;
 static PFNglShaderSource pglShaderSource;
@@ -602,7 +602,7 @@ static PFNglGetUniformLocation pglGetUniformLocation;
 		"}\n" \
 	"}\0"
 
-static char *fragment_shaders[] = {
+static const char *fragment_shaders[] = {
 	// Default shader
 	"uniform sampler2D tex;\n"
 	"uniform vec4 mix_color;\n"
@@ -672,7 +672,7 @@ static char *fragment_shaders[] = {
 		"gl_ClipVertex = gl_ModelViewMatrix*gl_Vertex;\n" \
 	"}\0"
 
-static char *vertex_shaders[] = {
+static const char *vertex_shaders[] = {
 	// Default shader
 	SHARED_VERTEX_SHADER,
 
@@ -740,8 +740,8 @@ EXPORT void HWRAPI(LoadShaders) (void)
 
 	for (i = 0; vertex_shaders[i] && fragment_shaders[i]; i++)
 	{
-		GLchar* vert_shader = vertex_shaders[i];
-		GLchar* frag_shader = fragment_shaders[i];
+		const GLchar* vert_shader = vertex_shaders[i];
+		const GLchar* frag_shader = fragment_shaders[i];
 		if (i >= MAXSHADERS || i >= MAXSHADERPROGRAMS)
 			break;
 
@@ -1922,13 +1922,6 @@ EXPORT void HWRAPI(CreateModelVBOs) (model_t *model)
 	}
 }
 
-// Macro to
-
-// Macro to what? Why isn't this comment finished?
-// Did I accidentally delete the rest of the line?
-// Did it decide it didn't want to be part of the code anymore?
-// Did the macro hurt its feelings?
-
 #define BUFFER_OFFSET(i) ((void*)(i))
 
 static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 tics, INT32 nextFrameIndex, FTransform *pos, float scale, UINT8 flipped, FSurfaceInfo *Surface)
@@ -2110,7 +2103,7 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 			if (nextFrameIndex != -1)
 				nextframe = &mesh->frames[nextFrameIndex % mesh->numFrames];
 
-			if (!nextframe || pol == 0.0f)
+			if (!nextframe || fpclassify(pol) == FP_ZERO)
 			{
 				// Zoom! Take advantage of just shoving the entire arrays to the GPU.
 				pglBindBuffer(GL_ARRAY_BUFFER, frame->vboID);
@@ -2179,6 +2172,7 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 	pglLoadIdentity();
 	if (stransform)
 	{
+		boolean fovx90;
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
@@ -2199,7 +2193,8 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 
 		pglMatrixMode(GL_PROJECTION);
 		pglLoadIdentity();
-		special_splitscreen = (stransform->splitscreen == 1 && stransform->fovxangle == 90.0f);
+		fovx90 = stransform->fovxangle > 0.0f && fabsf(stransform->fovxangle - 90.0f) < 0.5f;
+		special_splitscreen = (stransform->splitscreen && fovx90);
 		if (special_splitscreen)
 			GLPerspective(53.13f, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
 		else
@@ -2602,6 +2597,9 @@ EXPORT void HWRAPI(DrawScreenFinalTexture)(int width, int height)
 	FRGBAFloat clearColour;
 	INT32 texsize = 2048;
 
+	float off[12];
+	float fix[8];
+
 	if(screen_width <= 1024)
 		texsize = 1024;
 	if(screen_width <= 512)
@@ -2623,7 +2621,6 @@ EXPORT void HWRAPI(DrawScreenFinalTexture)(int width, int height)
 		yoff = newaspect / origaspect;
 	}
 
-	float off[12];
 	off[0] = -xoff;
 	off[1] = -yoff;
 	off[2] = 1.0f;
@@ -2637,7 +2634,7 @@ EXPORT void HWRAPI(DrawScreenFinalTexture)(int width, int height)
 	off[10] = -yoff;
 	off[11] = 1.0f;
 
-	float fix[8];
+
 	fix[0] = 0.0f;
 	fix[1] = 0.0f;
 	fix[2] = 0.0f;
