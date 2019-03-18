@@ -89,15 +89,15 @@ boolean LoadGL(void)
 	const char *OGLLibname = NULL;
 	const char *GLULibname = NULL;
 
-	if (M_CheckParm ("-OGLlib") && M_IsNextParm())
+	if (M_CheckParm("-OGLlib") && M_IsNextParm())
 		OGLLibname = M_GetNextParm();
 
 	if (SDL_GL_LoadLibrary(OGLLibname) != 0)
 	{
-		I_OutputMsg("Could not load OpenGL Library: %s\n"
+		CONS_Alert(CONS_ERROR, "Could not load OpenGL Library: %s\n"
 					"Falling back to Software mode.\n", SDL_GetError());
-		if (!M_CheckParm ("-OGLlib"))
-			I_OutputMsg("If you know what is the OpenGL library's name, use -OGLlib\n");
+		if (!M_CheckParm("-OGLlib"))
+			CONS_Printf("If you know what is the OpenGL library's name, use -OGLlib\n");
 		return 0;
 	}
 
@@ -117,7 +117,7 @@ boolean LoadGL(void)
 	GLULibname = NULL;
 #endif
 
-	if (M_CheckParm ("-GLUlib") && M_IsNextParm())
+	if (M_CheckParm("-GLUlib") && M_IsNextParm())
 		GLULibname = M_GetNextParm();
 
 	if (GLULibname)
@@ -127,15 +127,15 @@ boolean LoadGL(void)
 			return SetupGLfunc();
 		else
 		{
-			I_OutputMsg("Could not load GLU Library: %s\n", GLULibname);
-			if (!M_CheckParm ("-GLUlib"))
-				I_OutputMsg("If you know what is the GLU library's name, use -GLUlib\n");
+			CONS_Alert(CONS_ERROR, "Could not load GLU Library: %s\n", GLULibname);
+			if (!M_CheckParm("-GLUlib"))
+				CONS_Printf("If you know what is the GLU library's name, use -GLUlib\n");
 		}
 	}
 	else
 	{
-		I_OutputMsg("Could not load GLU Library\n");
-		I_OutputMsg("If you know what is the GLU library's name, use -GLUlib\n");
+		CONS_Alert(CONS_ERROR, "Could not load GLU Library\n");
+		CONS_Printf("If you know what is the GLU library's name, use -GLUlib\n");
 	}
 #endif
 	return SetupGLfunc();
@@ -151,31 +151,37 @@ boolean LoadGL(void)
 */
 boolean OglSdlSurface(INT32 w, INT32 h)
 {
-	INT32 cbpp;
-	const GLvoid *glvendor = NULL, *glrenderer = NULL, *glversion = NULL;
+	INT32 cbpp = cv_scr_depth.value < 16 ? 16 : cv_scr_depth.value;
+	const GLvoid *gl_version = NULL, *gl_renderer = NULL;
+	static boolean first_init = false;
 
-	cbpp = cv_scr_depth.value < 16 ? 16 : cv_scr_depth.value;
-
-	glvendor = pglGetString(GL_VENDOR);
-	// Get info and extensions.
-	//BP: why don't we make it earlier ?
-	//Hurdler: we cannot do that before intialising gl context
-	glrenderer = pglGetString(GL_RENDERER);
-	glversion = pglGetString(GL_VERSION);
+	gl_version = pglGetString(GL_VERSION);
+	gl_renderer = pglGetString(GL_RENDERER);
 	gl_extensions = pglGetString(GL_EXTENSIONS);
-
-	DBG_Printf("Vendor     : %s\n", glvendor);
-	DBG_Printf("Renderer   : %s\n", glrenderer);
-	DBG_Printf("Version    : %s\n", glversion);
-	DBG_Printf("Extensions : %s\n", gl_extensions);
 	oglflags = 0;
+
+	if (!first_init)
+	{
+		GL_DBG_Printf("OpenGL %s\n", (char *)gl_version);
+		GL_DBG_Printf("GPU: %s\n", (char *)gl_renderer);
+		GL_DBG_Printf("Extensions: %s\n", gl_extensions);
+	}
+	first_init = true;
 
 	if (isExtAvailable("GL_EXT_texture_filter_anisotropic", gl_extensions))
 		pglGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAnisotropy);
 	else
 		maximumAnisotropy = 1;
 
-	SetupGLFunc13();
+	SetupGLFunc4();
+
+	// jimita
+	if (isExtAvailable("GL_ARB_compatibility", gl_extensions))
+		GLEXT_legacy = true;
+
+	if (isExtAvailable("GL_ARB_fragment_shader", gl_extensions)
+	&& isExtAvailable("GL_ARB_vertex_shader", gl_extensions))
+		GLEXT_shaders = true;
 
 	granisotropicmode_cons_t[1].value = maximumAnisotropy;
 
@@ -221,7 +227,7 @@ void OglSdlFinishUpdate(boolean waitvbl)
 	HWR_DrawScreenFinalTexture(realwidth, realheight);
 }
 
-EXPORT void HWRAPI( OglSdlSetPalette) (RGBA_t *palette, RGBA_t *pgamma)
+EXPORT void HWRAPI(OglSdlSetPalette) (RGBA_t *palette, RGBA_t *pgamma)
 {
 	INT32 i = -1;
 	UINT32 redgamma = pgamma->s.red, greengamma = pgamma->s.green,

@@ -3168,7 +3168,7 @@ typedef enum mobj_type
 
 	// Castle Eggman Scenery
 	MT_CHAIN, // CEZ Chain
-	MT_FLAME, // Flame (has corona)
+	MT_FLAME, // Flame
 	MT_EGGSTATUE, // Eggman Statue
 	MT_MACEPOINT, // Mace rotation point
 	MT_SWINGMACEPOINT, // Mace swinging point

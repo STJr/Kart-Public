@@ -1,17 +1,12 @@
-// Emacs style mode select   -*- C++ -*-
+// SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-//
+// Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
+// Copyright (C) 1999-2019 by Sonic Team Junior.
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// This program is free software distributed under the
+// terms of the GNU General Public License, version 2.
+// See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
 /// \file
 /// \brief hardware renderer, using the standard HardWareRender driver DLL for SRB2
@@ -48,11 +43,6 @@
 #include "hw_clip.h"
 #endif
 
-#define R_FAKEFLOORS
-#define HWPRECIP
-#define SORTING
-//#define POLYSKY
-
 // ==========================================================================
 // the hardware driver object
 // ==========================================================================
@@ -65,27 +55,17 @@ struct hwdriver_s hwdriver;
 
 static void HWR_AddSprites(sector_t *sec);
 static void HWR_ProjectSprite(mobj_t *thing);
-#ifdef HWPRECIP
 static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing);
-#endif
 
-#ifdef SORTING
 void HWR_AddTransparentFloor(lumpnum_t lumpnum, extrasubsector_t *xsub, boolean isceiling, fixed_t fixedheight,
                              INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, boolean fogplane, extracolormap_t *planecolormap);
 void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector, boolean isceiling, fixed_t fixedheight,
                              INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, extracolormap_t *planecolormap);
-#else
-static void HWR_Add3DWater(lumpnum_t lumpnum, extrasubsector_t *xsub, fixed_t fixedheight,
-                           INT32 lightlevel, INT32 alpha, sector_t *FOFSector);
-static void HWR_Render3DWater(void);
-static void HWR_RenderTransparentWalls(void);
-#endif
+
 static void HWR_FoggingOn(void);
-static UINT32 atohex(const char *s);
 
 static void CV_filtermode_ONChange(void);
 static void CV_anisotropic_ONChange(void);
-static void CV_FogDensity_ONChange(void);
 static void CV_grFov_OnChange(void);
 // ==========================================================================
 //                                          3D ENGINE COMMANDS & CONSOLE VARS
@@ -110,25 +90,16 @@ static consvar_t cv_grclipwalls = {"gr_clipwalls", "Off", 0, CV_OnOff, NULL, 0, 
 static consvar_t cv_gralpha = {"gr_alpha", "160", 0, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
 static consvar_t cv_grbeta = {"gr_beta", "0", 0, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-static float HWRWipeCounter = 1.0f;
 consvar_t cv_grrounddown = {"gr_rounddown", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grfov = {"gr_fov", "90", CV_FLOAT|CV_CALL, grfov_cons_t, CV_grFov_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_grfogdensity = {"gr_fogdensity", "150", CV_CALL|CV_NOINIT, CV_Unsigned,
-                             CV_FogDensity_ONChange, 0, NULL, NULL, 0, 0, NULL};
 
 // Unfortunately, this can no longer be saved..
 consvar_t cv_grfiltermode = {"gr_filtermode", "Nearest", CV_CALL, grfiltermode_cons_t,
                              CV_filtermode_ONChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_granisotropicmode = {"gr_anisotropicmode", "1", CV_CALL, granisotropicmode_cons_t,
                              CV_anisotropic_ONChange, 0, NULL, NULL, 0, 0, NULL};
-//static consvar_t cv_grzbuffer = {"gr_zbuffer", "On", 0, CV_OnOff};
 consvar_t cv_grcorrecttricks = {"gr_correcttricks", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grsolvetjoin = {"gr_solvetjoin", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-
-static void CV_FogDensity_ONChange(void)
-{
-	HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, cv_grfogdensity.value);
-}
 
 static void CV_filtermode_ONChange(void)
 {
@@ -139,159 +110,6 @@ static void CV_anisotropic_ONChange(void)
 {
 	HWD.pfnSetSpecialState(HWD_SET_TEXTUREANISOTROPICMODE, cv_granisotropicmode.value);
 }
-
-/*
- * lookuptable for lightvalues
- * calculated as follow:
- * floatlight = (1.0-exp((light^3)*gamma)) / (1.0-exp(1.0*gamma));
- * gamma=-0,2;-2,0;-4,0;-6,0;-8,0
- * light = 0,0 .. 1,0
- */
-static const float lighttable[5][256] =
-{
-  {
-    0.00000f,0.00000f,0.00000f,0.00000f,0.00000f,0.00001f,0.00001f,0.00002f,0.00003f,0.00004f,
-    0.00006f,0.00008f,0.00010f,0.00013f,0.00017f,0.00020f,0.00025f,0.00030f,0.00035f,0.00041f,
-    0.00048f,0.00056f,0.00064f,0.00073f,0.00083f,0.00094f,0.00106f,0.00119f,0.00132f,0.00147f,
-    0.00163f,0.00180f,0.00198f,0.00217f,0.00237f,0.00259f,0.00281f,0.00305f,0.00331f,0.00358f,
-    0.00386f,0.00416f,0.00447f,0.00479f,0.00514f,0.00550f,0.00587f,0.00626f,0.00667f,0.00710f,
-    0.00754f,0.00800f,0.00848f,0.00898f,0.00950f,0.01003f,0.01059f,0.01117f,0.01177f,0.01239f,
-    0.01303f,0.01369f,0.01437f,0.01508f,0.01581f,0.01656f,0.01734f,0.01814f,0.01896f,0.01981f,
-    0.02069f,0.02159f,0.02251f,0.02346f,0.02444f,0.02544f,0.02647f,0.02753f,0.02862f,0.02973f,
-    0.03088f,0.03205f,0.03325f,0.03448f,0.03575f,0.03704f,0.03836f,0.03971f,0.04110f,0.04252f,
-    0.04396f,0.04545f,0.04696f,0.04851f,0.05009f,0.05171f,0.05336f,0.05504f,0.05676f,0.05852f,
-    0.06031f,0.06214f,0.06400f,0.06590f,0.06784f,0.06981f,0.07183f,0.07388f,0.07597f,0.07810f,
-    0.08027f,0.08248f,0.08473f,0.08702f,0.08935f,0.09172f,0.09414f,0.09659f,0.09909f,0.10163f,
-    0.10421f,0.10684f,0.10951f,0.11223f,0.11499f,0.11779f,0.12064f,0.12354f,0.12648f,0.12946f,
-    0.13250f,0.13558f,0.13871f,0.14188f,0.14511f,0.14838f,0.15170f,0.15507f,0.15850f,0.16197f,
-    0.16549f,0.16906f,0.17268f,0.17635f,0.18008f,0.18386f,0.18769f,0.19157f,0.19551f,0.19950f,
-    0.20354f,0.20764f,0.21179f,0.21600f,0.22026f,0.22458f,0.22896f,0.23339f,0.23788f,0.24242f,
-    0.24702f,0.25168f,0.25640f,0.26118f,0.26602f,0.27091f,0.27587f,0.28089f,0.28596f,0.29110f,
-    0.29630f,0.30156f,0.30688f,0.31226f,0.31771f,0.32322f,0.32879f,0.33443f,0.34013f,0.34589f,
-    0.35172f,0.35761f,0.36357f,0.36960f,0.37569f,0.38185f,0.38808f,0.39437f,0.40073f,0.40716f,
-    0.41366f,0.42022f,0.42686f,0.43356f,0.44034f,0.44718f,0.45410f,0.46108f,0.46814f,0.47527f,
-    0.48247f,0.48974f,0.49709f,0.50451f,0.51200f,0.51957f,0.52721f,0.53492f,0.54271f,0.55058f,
-    0.55852f,0.56654f,0.57463f,0.58280f,0.59105f,0.59937f,0.60777f,0.61625f,0.62481f,0.63345f,
-    0.64217f,0.65096f,0.65984f,0.66880f,0.67783f,0.68695f,0.69615f,0.70544f,0.71480f,0.72425f,
-    0.73378f,0.74339f,0.75308f,0.76286f,0.77273f,0.78268f,0.79271f,0.80283f,0.81304f,0.82333f,
-    0.83371f,0.84417f,0.85472f,0.86536f,0.87609f,0.88691f,0.89781f,0.90880f,0.91989f,0.93106f,
-    0.94232f,0.95368f,0.96512f,0.97665f,0.98828f,1.00000f
-  },
-  {
-    0.00000f,0.00000f,0.00000f,0.00000f,0.00001f,0.00002f,0.00003f,0.00005f,0.00007f,0.00010f,
-    0.00014f,0.00019f,0.00024f,0.00031f,0.00038f,0.00047f,0.00057f,0.00069f,0.00081f,0.00096f,
-    0.00112f,0.00129f,0.00148f,0.00170f,0.00193f,0.00218f,0.00245f,0.00274f,0.00306f,0.00340f,
-    0.00376f,0.00415f,0.00456f,0.00500f,0.00547f,0.00597f,0.00649f,0.00704f,0.00763f,0.00825f,
-    0.00889f,0.00957f,0.01029f,0.01104f,0.01182f,0.01264f,0.01350f,0.01439f,0.01532f,0.01630f,
-    0.01731f,0.01836f,0.01945f,0.02058f,0.02176f,0.02298f,0.02424f,0.02555f,0.02690f,0.02830f,
-    0.02974f,0.03123f,0.03277f,0.03436f,0.03600f,0.03768f,0.03942f,0.04120f,0.04304f,0.04493f,
-    0.04687f,0.04886f,0.05091f,0.05301f,0.05517f,0.05738f,0.05964f,0.06196f,0.06434f,0.06677f,
-    0.06926f,0.07181f,0.07441f,0.07707f,0.07979f,0.08257f,0.08541f,0.08831f,0.09126f,0.09428f,
-    0.09735f,0.10048f,0.10368f,0.10693f,0.11025f,0.11362f,0.11706f,0.12056f,0.12411f,0.12773f,
-    0.13141f,0.13515f,0.13895f,0.14281f,0.14673f,0.15072f,0.15476f,0.15886f,0.16303f,0.16725f,
-    0.17153f,0.17587f,0.18028f,0.18474f,0.18926f,0.19383f,0.19847f,0.20316f,0.20791f,0.21272f,
-    0.21759f,0.22251f,0.22748f,0.23251f,0.23760f,0.24274f,0.24793f,0.25318f,0.25848f,0.26383f,
-    0.26923f,0.27468f,0.28018f,0.28573f,0.29133f,0.29697f,0.30266f,0.30840f,0.31418f,0.32001f,
-    0.32588f,0.33179f,0.33774f,0.34374f,0.34977f,0.35585f,0.36196f,0.36810f,0.37428f,0.38050f,
-    0.38675f,0.39304f,0.39935f,0.40570f,0.41207f,0.41847f,0.42490f,0.43136f,0.43784f,0.44434f,
-    0.45087f,0.45741f,0.46398f,0.47057f,0.47717f,0.48379f,0.49042f,0.49707f,0.50373f,0.51041f,
-    0.51709f,0.52378f,0.53048f,0.53718f,0.54389f,0.55061f,0.55732f,0.56404f,0.57075f,0.57747f,
-    0.58418f,0.59089f,0.59759f,0.60429f,0.61097f,0.61765f,0.62432f,0.63098f,0.63762f,0.64425f,
-    0.65086f,0.65746f,0.66404f,0.67060f,0.67714f,0.68365f,0.69015f,0.69662f,0.70307f,0.70948f,
-    0.71588f,0.72224f,0.72857f,0.73488f,0.74115f,0.74739f,0.75359f,0.75976f,0.76589f,0.77199f,
-    0.77805f,0.78407f,0.79005f,0.79599f,0.80189f,0.80774f,0.81355f,0.81932f,0.82504f,0.83072f,
-    0.83635f,0.84194f,0.84747f,0.85296f,0.85840f,0.86378f,0.86912f,0.87441f,0.87964f,0.88482f,
-    0.88995f,0.89503f,0.90005f,0.90502f,0.90993f,0.91479f,0.91959f,0.92434f,0.92903f,0.93366f,
-    0.93824f,0.94276f,0.94723f,0.95163f,0.95598f,0.96027f,0.96451f,0.96868f,0.97280f,0.97686f,
-    0.98086f,0.98481f,0.98869f,0.99252f,0.99629f,1.00000f
-  },
-  {
-    0.00000f,0.00000f,0.00000f,0.00001f,0.00002f,0.00003f,0.00005f,0.00008f,0.00013f,0.00018f,
-    0.00025f,0.00033f,0.00042f,0.00054f,0.00067f,0.00083f,0.00101f,0.00121f,0.00143f,0.00168f,
-    0.00196f,0.00227f,0.00261f,0.00299f,0.00339f,0.00383f,0.00431f,0.00483f,0.00538f,0.00598f,
-    0.00661f,0.00729f,0.00802f,0.00879f,0.00961f,0.01048f,0.01140f,0.01237f,0.01340f,0.01447f,
-    0.01561f,0.01680f,0.01804f,0.01935f,0.02072f,0.02215f,0.02364f,0.02520f,0.02682f,0.02850f,
-    0.03026f,0.03208f,0.03397f,0.03594f,0.03797f,0.04007f,0.04225f,0.04451f,0.04684f,0.04924f,
-    0.05172f,0.05428f,0.05691f,0.05963f,0.06242f,0.06530f,0.06825f,0.07129f,0.07441f,0.07761f,
-    0.08089f,0.08426f,0.08771f,0.09125f,0.09487f,0.09857f,0.10236f,0.10623f,0.11019f,0.11423f,
-    0.11836f,0.12257f,0.12687f,0.13125f,0.13571f,0.14027f,0.14490f,0.14962f,0.15442f,0.15931f,
-    0.16427f,0.16932f,0.17445f,0.17966f,0.18496f,0.19033f,0.19578f,0.20130f,0.20691f,0.21259f,
-    0.21834f,0.22417f,0.23007f,0.23605f,0.24209f,0.24820f,0.25438f,0.26063f,0.26694f,0.27332f,
-    0.27976f,0.28626f,0.29282f,0.29944f,0.30611f,0.31284f,0.31962f,0.32646f,0.33334f,0.34027f,
-    0.34724f,0.35426f,0.36132f,0.36842f,0.37556f,0.38273f,0.38994f,0.39718f,0.40445f,0.41174f,
-    0.41907f,0.42641f,0.43378f,0.44116f,0.44856f,0.45598f,0.46340f,0.47084f,0.47828f,0.48573f,
-    0.49319f,0.50064f,0.50809f,0.51554f,0.52298f,0.53042f,0.53784f,0.54525f,0.55265f,0.56002f,
-    0.56738f,0.57472f,0.58203f,0.58932f,0.59658f,0.60381f,0.61101f,0.61817f,0.62529f,0.63238f,
-    0.63943f,0.64643f,0.65339f,0.66031f,0.66717f,0.67399f,0.68075f,0.68746f,0.69412f,0.70072f,
-    0.70726f,0.71375f,0.72017f,0.72653f,0.73282f,0.73905f,0.74522f,0.75131f,0.75734f,0.76330f,
-    0.76918f,0.77500f,0.78074f,0.78640f,0.79199f,0.79751f,0.80295f,0.80831f,0.81359f,0.81880f,
-    0.82393f,0.82898f,0.83394f,0.83883f,0.84364f,0.84836f,0.85301f,0.85758f,0.86206f,0.86646f,
-    0.87078f,0.87502f,0.87918f,0.88326f,0.88726f,0.89118f,0.89501f,0.89877f,0.90245f,0.90605f,
-    0.90957f,0.91301f,0.91638f,0.91966f,0.92288f,0.92601f,0.92908f,0.93206f,0.93498f,0.93782f,
-    0.94059f,0.94329f,0.94592f,0.94848f,0.95097f,0.95339f,0.95575f,0.95804f,0.96027f,0.96244f,
-    0.96454f,0.96658f,0.96856f,0.97049f,0.97235f,0.97416f,0.97591f,0.97760f,0.97924f,0.98083f,
-    0.98237f,0.98386f,0.98530f,0.98669f,0.98803f,0.98933f,0.99058f,0.99179f,0.99295f,0.99408f,
-    0.99516f,0.99620f,0.99721f,0.99817f,0.99910f,1.00000f
-  },
-  {
-    0.00000f,0.00000f,0.00000f,0.00001f,0.00002f,0.00005f,0.00008f,0.00012f,0.00019f,0.00026f,
-    0.00036f,0.00048f,0.00063f,0.00080f,0.00099f,0.00122f,0.00148f,0.00178f,0.00211f,0.00249f,
-    0.00290f,0.00335f,0.00386f,0.00440f,0.00500f,0.00565f,0.00636f,0.00711f,0.00793f,0.00881f,
-    0.00975f,0.01075f,0.01182f,0.01295f,0.01416f,0.01543f,0.01678f,0.01821f,0.01971f,0.02129f,
-    0.02295f,0.02469f,0.02652f,0.02843f,0.03043f,0.03252f,0.03469f,0.03696f,0.03933f,0.04178f,
-    0.04433f,0.04698f,0.04973f,0.05258f,0.05552f,0.05857f,0.06172f,0.06498f,0.06834f,0.07180f,
-    0.07537f,0.07905f,0.08283f,0.08672f,0.09072f,0.09483f,0.09905f,0.10337f,0.10781f,0.11236f,
-    0.11701f,0.12178f,0.12665f,0.13163f,0.13673f,0.14193f,0.14724f,0.15265f,0.15817f,0.16380f,
-    0.16954f,0.17538f,0.18132f,0.18737f,0.19351f,0.19976f,0.20610f,0.21255f,0.21908f,0.22572f,
-    0.23244f,0.23926f,0.24616f,0.25316f,0.26023f,0.26739f,0.27464f,0.28196f,0.28935f,0.29683f,
-    0.30437f,0.31198f,0.31966f,0.32740f,0.33521f,0.34307f,0.35099f,0.35896f,0.36699f,0.37506f,
-    0.38317f,0.39133f,0.39952f,0.40775f,0.41601f,0.42429f,0.43261f,0.44094f,0.44929f,0.45766f,
-    0.46604f,0.47443f,0.48283f,0.49122f,0.49962f,0.50801f,0.51639f,0.52476f,0.53312f,0.54146f,
-    0.54978f,0.55807f,0.56633f,0.57457f,0.58277f,0.59093f,0.59905f,0.60713f,0.61516f,0.62314f,
-    0.63107f,0.63895f,0.64676f,0.65452f,0.66221f,0.66984f,0.67739f,0.68488f,0.69229f,0.69963f,
-    0.70689f,0.71407f,0.72117f,0.72818f,0.73511f,0.74195f,0.74870f,0.75536f,0.76192f,0.76839f,
-    0.77477f,0.78105f,0.78723f,0.79331f,0.79930f,0.80518f,0.81096f,0.81664f,0.82221f,0.82768f,
-    0.83305f,0.83832f,0.84347f,0.84853f,0.85348f,0.85832f,0.86306f,0.86770f,0.87223f,0.87666f,
-    0.88098f,0.88521f,0.88933f,0.89334f,0.89726f,0.90108f,0.90480f,0.90842f,0.91194f,0.91537f,
-    0.91870f,0.92193f,0.92508f,0.92813f,0.93109f,0.93396f,0.93675f,0.93945f,0.94206f,0.94459f,
-    0.94704f,0.94941f,0.95169f,0.95391f,0.95604f,0.95810f,0.96009f,0.96201f,0.96386f,0.96564f,
-    0.96735f,0.96900f,0.97059f,0.97212f,0.97358f,0.97499f,0.97634f,0.97764f,0.97888f,0.98007f,
-    0.98122f,0.98231f,0.98336f,0.98436f,0.98531f,0.98623f,0.98710f,0.98793f,0.98873f,0.98949f,
-    0.99021f,0.99090f,0.99155f,0.99218f,0.99277f,0.99333f,0.99387f,0.99437f,0.99486f,0.99531f,
-    0.99575f,0.99616f,0.99654f,0.99691f,0.99726f,0.99759f,0.99790f,0.99819f,0.99847f,0.99873f,
-    0.99897f,0.99920f,0.99942f,0.99963f,0.99982f,1.00000f
-  },
-  {
-    0.00000f,0.00000f,0.00000f,0.00001f,0.00003f,0.00006f,0.00010f,0.00017f,0.00025f,0.00035f,
-    0.00048f,0.00064f,0.00083f,0.00106f,0.00132f,0.00163f,0.00197f,0.00237f,0.00281f,0.00330f,
-    0.00385f,0.00446f,0.00513f,0.00585f,0.00665f,0.00751f,0.00845f,0.00945f,0.01054f,0.01170f,
-    0.01295f,0.01428f,0.01569f,0.01719f,0.01879f,0.02048f,0.02227f,0.02415f,0.02614f,0.02822f,
-    0.03042f,0.03272f,0.03513f,0.03765f,0.04028f,0.04303f,0.04589f,0.04887f,0.05198f,0.05520f,
-    0.05855f,0.06202f,0.06561f,0.06933f,0.07318f,0.07716f,0.08127f,0.08550f,0.08987f,0.09437f,
-    0.09900f,0.10376f,0.10866f,0.11369f,0.11884f,0.12414f,0.12956f,0.13512f,0.14080f,0.14662f,
-    0.15257f,0.15865f,0.16485f,0.17118f,0.17764f,0.18423f,0.19093f,0.19776f,0.20471f,0.21177f,
-    0.21895f,0.22625f,0.23365f,0.24117f,0.24879f,0.25652f,0.26435f,0.27228f,0.28030f,0.28842f,
-    0.29662f,0.30492f,0.31329f,0.32175f,0.33028f,0.33889f,0.34756f,0.35630f,0.36510f,0.37396f,
-    0.38287f,0.39183f,0.40084f,0.40989f,0.41897f,0.42809f,0.43723f,0.44640f,0.45559f,0.46479f,
-    0.47401f,0.48323f,0.49245f,0.50167f,0.51088f,0.52008f,0.52927f,0.53843f,0.54757f,0.55668f,
-    0.56575f,0.57479f,0.58379f,0.59274f,0.60164f,0.61048f,0.61927f,0.62799f,0.63665f,0.64524f,
-    0.65376f,0.66220f,0.67056f,0.67883f,0.68702f,0.69511f,0.70312f,0.71103f,0.71884f,0.72655f,
-    0.73415f,0.74165f,0.74904f,0.75632f,0.76348f,0.77053f,0.77747f,0.78428f,0.79098f,0.79756f,
-    0.80401f,0.81035f,0.81655f,0.82264f,0.82859f,0.83443f,0.84013f,0.84571f,0.85117f,0.85649f,
-    0.86169f,0.86677f,0.87172f,0.87654f,0.88124f,0.88581f,0.89026f,0.89459f,0.89880f,0.90289f,
-    0.90686f,0.91071f,0.91445f,0.91807f,0.92157f,0.92497f,0.92826f,0.93143f,0.93450f,0.93747f,
-    0.94034f,0.94310f,0.94577f,0.94833f,0.95081f,0.95319f,0.95548f,0.95768f,0.95980f,0.96183f,
-    0.96378f,0.96565f,0.96744f,0.96916f,0.97081f,0.97238f,0.97388f,0.97532f,0.97669f,0.97801f,
-    0.97926f,0.98045f,0.98158f,0.98266f,0.98369f,0.98467f,0.98560f,0.98648f,0.98732f,0.98811f,
-    0.98886f,0.98958f,0.99025f,0.99089f,0.99149f,0.99206f,0.99260f,0.99311f,0.99359f,0.99404f,
-    0.99446f,0.99486f,0.99523f,0.99559f,0.99592f,0.99623f,0.99652f,0.99679f,0.99705f,0.99729f,
-    0.99751f,0.99772f,0.99792f,0.99810f,0.99827f,0.99843f,0.99857f,0.99871f,0.99884f,0.99896f,
-    0.99907f,0.99917f,0.99926f,0.99935f,0.99943f,0.99951f,0.99958f,0.99964f,0.99970f,0.99975f,
-    0.99980f,0.99985f,0.99989f,0.99993f,0.99997f,1.00000f
-  }
-};
-
-#define gld_CalcLightLevel(lightlevel) (lighttable[1][max(min((lightlevel),255),0)])
 
 // ==========================================================================
 //                                                               VIEW GLOBALS
@@ -317,17 +135,6 @@ static angle_t gr_xtoviewangle[MAXVIDWIDTH+1];
 //                                                                    GLOBALS
 // ==========================================================================
 
-// uncomment to remove the plane rendering
-#define DOPLANES
-//#define DOWALLS
-
-// test of drawing sky by polygons like in software with visplane, unfortunately
-// this doesn't work since we must have z for pixel and z for texture (not like now with z = oow)
-//#define POLYSKY
-
-// test change fov when looking up/down but bsp projection messup :(
-//#define NOCRAPPYMLOOK
-
 // base values set at SetViewSize
 static float gr_basecentery;
 
@@ -339,8 +146,6 @@ static float gr_centerx, gr_centery;
 static float gr_viewwindowy; // top left corner of view window
 static float gr_windowcenterx; // center of view window, for projection
 static float gr_windowcentery;
-
-static float gr_pspritexscale, gr_pspriteyscale;
 
 static seg_t *gr_curline;
 static side_t *gr_sidedef;
@@ -361,140 +166,109 @@ static angle_t dup_viewangle;
 static float gr_viewx, gr_viewy, gr_viewz;
 static float gr_viewsin, gr_viewcos;
 
-// Maybe not necessary with the new T&L code (needs to be checked!)
-static float gr_viewludsin, gr_viewludcos; // look up down kik test
-static float gr_fovlud;
-
 // ==========================================================================
 //                                    LIGHT stuffs
 // ==========================================================================
 
-static UINT8 lightleveltonumlut[256];
-
-// added to SRB2's sector lightlevel to make things a bit brighter (sprites/walls/planes)
-FUNCMATH UINT8 LightLevelToLum(INT32 l)
-{
-	return (UINT8)(255*gld_CalcLightLevel(l));
-}
-
-static inline void InitLumLut(void)
-{
-	INT32 i, k = 0;
-	for (i = 0; i < 256; i++)
-	{
-		if (i > 128)
-			k += 2;
-		else
-			k = 1;
-		lightleveltonumlut[i] = (UINT8)(k);
-	}
-}
-
-//#define FOGFACTOR 300 //was 600 >> Covered by cv_grfogdensity
+#define CALCLIGHT(x,y) ((float)(x)*((y)/255.0f))
 #define NORMALFOG 0x00000000
 #define FADEFOG 0x19000000
-#define CALCFOGDENSITY(x) ((float)((5220.0f*(1.0f/((x)/41.0f+1.0f)))-(5220.0f*(1.0f/(255.0f/41.0f+1.0f))))) // Approximate fog calculation based off of software walls
-#define CALCFOGDENSITYFLOOR(x) ((float)((40227.0f*(1.0f/((x)/11.0f+1.0f)))-(40227.0f*(1.0f/(255.0f/11.0f+1.0f))))) // Approximate fog calculation based off of software floors
-#define CALCLIGHT(x,y) ((float)(x)*((y)/255.0f))
-UINT32 HWR_Lighting(INT32 light, UINT32 color, UINT32 fadecolor, boolean fogblockpoly, boolean plane)
+
+void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor)
 {
-	RGBA_t realcolor, fogcolor, surfcolor;
-	INT32 alpha, fogalpha;
+	RGBA_t mix_color, fog_color, final_color;
+	INT32 mix;
+	float fog_alpha;
 
-	(void)fogblockpoly;
+	mix_color.rgba = mixcolor;
+	fog_color.rgba = fadecolor;
 
-	// Don't go out of bounds
-	if (light < 0)
-		light = 0;
-	else if (light > 255)
-		light = 255;
+	mix = mix_color.s.alpha*10/4;
+	if (mix > 25) mix = 25;
+	mix *= 255;
+	mix /= 25;
 
-	realcolor.rgba = color;
-	fogcolor.rgba = fadecolor;
+	// Modulate the colors by alpha.
+	mix_color.s.red = (UINT8)(CALCLIGHT(mix,mix_color.s.red));
+	mix_color.s.green = (UINT8)(CALCLIGHT(mix,mix_color.s.green));
+	mix_color.s.blue = (UINT8)(CALCLIGHT(mix,mix_color.s.blue));
 
-	alpha = (realcolor.s.alpha*255)/25;
-	fogalpha = (fogcolor.s.alpha*255)/25;
+	// Set the surface colors and further modulate the colors by light.
+	final_color.s.red = (UINT8)(CALCLIGHT((0xFF-mix),0xFF)+CALCLIGHT(mix_color.s.red,0xFF));
+	final_color.s.green = (UINT8)(CALCLIGHT((0xFF-mix),0xFF)+CALCLIGHT(mix_color.s.green,0xFF));
+	final_color.s.blue = (UINT8)(CALCLIGHT((0xFF-mix),0xFF)+CALCLIGHT(mix_color.s.blue,0xFF));
+	final_color.s.alpha = 0xFF;
 
-	if (cv_grfog.value && cv_grsoftwarefog.value) // Only do this when fog is on, software fog mode is on, and the poly is not from a fog block
-	{
-		// Modulate the colors by alpha.
-		realcolor.s.red = (UINT8)(CALCLIGHT(alpha,realcolor.s.red));
-		realcolor.s.green = (UINT8)(CALCLIGHT(alpha,realcolor.s.green));
-		realcolor.s.blue = (UINT8)(CALCLIGHT(alpha,realcolor.s.blue));
+	// Fog.
+	fog_alpha = (0xFF - fog_color.s.alpha) / 255.0f;
 
-		// Set the surface colors and further modulate the colors by light.
-		surfcolor.s.red = (UINT8)(CALCLIGHT((0xFF-alpha),255)+CALCLIGHT(realcolor.s.red,255));
-		surfcolor.s.green = (UINT8)(CALCLIGHT((0xFF-alpha),255)+CALCLIGHT(realcolor.s.green,255));
-		surfcolor.s.blue = (UINT8)(CALCLIGHT((0xFF-alpha),255)+CALCLIGHT(realcolor.s.blue,255));
-		surfcolor.s.alpha = 0xFF;
+	// Set the surface colors and further modulate the colors by light.
+	fog_color.s.red = (UINT8)(((float)fog_color.s.red) * fog_alpha);
+	fog_color.s.green = (UINT8)(((float)fog_color.s.green) * fog_alpha);
+	fog_color.s.blue = (UINT8)(((float)fog_color.s.blue) * fog_alpha);
 
-		// Modulate the colors by alpha.
-		fogcolor.s.red = (UINT8)(CALCLIGHT(fogalpha,fogcolor.s.red));
-		fogcolor.s.green = (UINT8)(CALCLIGHT(fogalpha,fogcolor.s.green));
-		fogcolor.s.blue = (UINT8)(CALCLIGHT(fogalpha,fogcolor.s.blue));
-	}
-	else
-	{
-		// Modulate the colors by alpha.
-		realcolor.s.red = (UINT8)(CALCLIGHT(alpha,realcolor.s.red));
-		realcolor.s.green = (UINT8)(CALCLIGHT(alpha,realcolor.s.green));
-		realcolor.s.blue = (UINT8)(CALCLIGHT(alpha,realcolor.s.blue));
-
-		// Set the surface colors and further modulate the colors by light.
-		surfcolor.s.red = (UINT8)(CALCLIGHT((0xFF-alpha),light)+CALCLIGHT(realcolor.s.red,light));
-		surfcolor.s.green = (UINT8)(CALCLIGHT((0xFF-alpha),light)+CALCLIGHT(realcolor.s.green,light));
-		surfcolor.s.blue = (UINT8)(CALCLIGHT((0xFF-alpha),light)+CALCLIGHT(realcolor.s.blue,light));
-
-		// Modulate the colors by alpha.
-		fogcolor.s.red = (UINT8)(CALCLIGHT(fogalpha,fogcolor.s.red));
-		fogcolor.s.green = (UINT8)(CALCLIGHT(fogalpha,fogcolor.s.green));
-		fogcolor.s.blue = (UINT8)(CALCLIGHT(fogalpha,fogcolor.s.blue));
-
-		// Set the surface colors and further modulate the colors by light.
-		surfcolor.s.red = surfcolor.s.red+((UINT8)(CALCLIGHT((0xFF-fogalpha),(255-light))+CALCLIGHT(fogcolor.s.red,(255-light))));
-		surfcolor.s.green = surfcolor.s.green+((UINT8)(CALCLIGHT((0xFF-fogalpha),(255-light))+CALCLIGHT(fogcolor.s.green,(255-light))));
-		surfcolor.s.blue = surfcolor.s.blue+((UINT8)(CALCLIGHT((0xFF-fogalpha),(255-light))+CALCLIGHT(fogcolor.s.blue,(255-light))));
-		surfcolor.s.alpha = 0xFF;
-	}
-
-	if(cv_grfog.value)
-	{
-		if (cv_grsoftwarefog.value)
-		{
-			fogcolor.s.red = (UINT8)((CALCLIGHT(fogcolor.s.red,(255-light)))+(CALCLIGHT(realcolor.s.red,light)));
-			fogcolor.s.green = (UINT8)((CALCLIGHT(fogcolor.s.green,(255-light)))+(CALCLIGHT(realcolor.s.green,light)));
-			fogcolor.s.blue = (UINT8)((CALCLIGHT(fogcolor.s.blue,(255-light)))+(CALCLIGHT(realcolor.s.blue,light)));
-
-			// Set the fog options.
-			if (cv_grsoftwarefog.value == 1 && plane) // With floors, software draws them way darker for their distance
-				HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, (INT32)(CALCFOGDENSITYFLOOR(light)));
-			else // everything else is drawn like walls
-				HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, (INT32)(CALCFOGDENSITY(light)));
-		}
-		else
-		{
-			fogcolor.s.red = (UINT8)((CALCLIGHT(fogcolor.s.red,(255-light)))+(CALCLIGHT(realcolor.s.red,light)));
-			fogcolor.s.green = (UINT8)((CALCLIGHT(fogcolor.s.green,(255-light)))+(CALCLIGHT(realcolor.s.green,light)));
-			fogcolor.s.blue = (UINT8)((CALCLIGHT(fogcolor.s.blue,(255-light)))+(CALCLIGHT(realcolor.s.blue,light)));
-
-			fogalpha = (UINT8)((CALCLIGHT(fogalpha,(255-light)))+(CALCLIGHT(alpha,light)));
-
-			// Set the fog options.
-			light = (UINT8)(CALCLIGHT(light,(255-fogalpha)));
-			HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, (INT32)(cv_grfogdensity.value-(cv_grfogdensity.value*(float)light/255.0f)));
-		}
-
-		HWD.pfnSetSpecialState(HWD_SET_FOG_COLOR, (fogcolor.s.red*0x10000)+(fogcolor.s.green*0x100)+fogcolor.s.blue);
-		HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 1);
-	}
-	return surfcolor.rgba;
+	Surface->PolyColor.rgba = final_color.rgba;
+	Surface->FadeColor.rgba = fog_color.rgba;
+	Surface->LightInfo.light_level = light_level;
 }
 
+void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor)
+{
+	RGBA_t mix_color, fog_color, final_color;
+	INT32 mix, fogmix, lightmix;
+	float fog_alpha;
+
+	// You see the problem is that darker light isn't actually as dark as it SHOULD be.
+	lightmix = 255 - ((255 - light_level)*100/96);
+
+	mix_color.rgba = mixcolor;
+	fog_color.rgba = fadecolor;
+
+	mix = (mix_color.s.alpha*255)/25;
+	fogmix = (fog_color.s.alpha*255)/25;
+
+	// Modulate the colors by alpha.
+	mix_color.s.red = (UINT8)(CALCLIGHT(mix,mix_color.s.red));
+	mix_color.s.green = (UINT8)(CALCLIGHT(mix,mix_color.s.green));
+	mix_color.s.blue = (UINT8)(CALCLIGHT(mix,mix_color.s.blue));
+
+	// Set the surface colors and further modulate the colors by light.
+	final_color.s.red = (UINT8)(CALCLIGHT((0xFF-mix),lightmix)+CALCLIGHT(mix_color.s.red,lightmix));
+	final_color.s.green = (UINT8)(CALCLIGHT((0xFF-mix),lightmix)+CALCLIGHT(mix_color.s.green,lightmix));
+	final_color.s.blue = (UINT8)(CALCLIGHT((0xFF-mix),lightmix)+CALCLIGHT(mix_color.s.blue,lightmix));
+
+	// Modulate the colors by alpha.
+	fog_color.s.red = (UINT8)(CALCLIGHT(fogmix,fog_color.s.red));
+	fog_color.s.green = (UINT8)(CALCLIGHT(fogmix,fog_color.s.green));
+	fog_color.s.blue = (UINT8)(CALCLIGHT(fogmix,fog_color.s.blue));
+
+	// Set the surface colors and further modulate the colors by light.
+	final_color.s.red = final_color.s.red+((UINT8)(CALCLIGHT((0xFF-fogmix),(0xFF-lightmix))+CALCLIGHT(fog_color.s.red,(0xFF-lightmix))));
+	final_color.s.green = final_color.s.green+((UINT8)(CALCLIGHT((0xFF-fogmix),(0xFF-lightmix))+CALCLIGHT(fog_color.s.green,(0xFF-lightmix))));
+	final_color.s.blue = final_color.s.blue+((UINT8)(CALCLIGHT((0xFF-fogmix),(0xFF-lightmix))+CALCLIGHT(fog_color.s.blue,(0xFF-lightmix))));
+	final_color.s.alpha = 0xFF;
+
+	// Fog.
+	fog_color.rgba = fadecolor;
+	fog_alpha = (0xFF - fog_color.s.alpha) / 255.0f;
+
+	// Set the surface colors and further modulate the colors by light.
+	fog_color.s.red = (UINT8)(((float)fog_color.s.red) * fog_alpha);
+	fog_color.s.green = (UINT8)(((float)fog_color.s.green) * fog_alpha);
+	fog_color.s.blue = (UINT8)(((float)fog_color.s.blue) * fog_alpha);
+
+	Surface->PolyColor.rgba = final_color.rgba;
+	Surface->FadeColor.rgba = fog_color.rgba;
+	Surface->LightInfo.light_level = light_level;
+}
 
 static UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color) // Let's see if this can work
 {
 	RGBA_t realcolor, surfcolor;
 	INT32 alpha;
+
+	// You see the problem is that darker light isn't actually as dark as it SHOULD be.
+	light = light - ((255 - light)*24/22);
 
 	// Don't go out of bounds
 	if (light < 0)
@@ -515,8 +289,6 @@ static UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color) // Let's see if this c
 // ==========================================================================
 //                                   FLOOR/CEILING GENERATION FROM SUBSECTORS
 // ==========================================================================
-
-#ifdef DOPLANES
 
 // -----------------+
 // HWR_RenderPlane  : Render a floor or ceiling convex polygon
@@ -717,124 +489,24 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 #endif
 	}
 
-	// only useful for flat coloured triangles
-	//Surf.FlatColor = 0xff804020;
-
-	// use different light tables
-	// for horizontal / vertical / diagonal
-	// note: try to get the same visual feel as the original
-	Surf.FlatColor.s.red = Surf.FlatColor.s.green =
-	Surf.FlatColor.s.blue = LightLevelToLum(lightlevel); //  Don't take from the frontsector, or the game will crash
-
-#if 0 // no colormap test
-	// colormap test
-	if (gr_frontsector)
-	{
-		sector_t *psector = gr_frontsector;
-
-#ifdef ESLOPE
-		if (slope)
-			fixedheight = P_GetZAt(slope, psector->soundorg.x, psector->soundorg.y);
-#endif
-
-		if (psector->ffloors)
-		{
-			ffloor_t *caster = psector->lightlist[R_GetPlaneLight(psector, fixedheight, false)].caster;
-			psector = caster ? &sectors[caster->secnum] : psector;
-
-			if (caster)
-			{
-				lightlevel = psector->lightlevel;
-				Surf.FlatColor.s.red = Surf.FlatColor.s.green = Surf.FlatColor.s.blue = LightLevelToLum(lightlevel);
-			}
-		}
-		if (psector->extra_colormap)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel,psector->extra_colormap->rgba,psector->extra_colormap->fadergba, false, true);
-		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel,NORMALFOG,FADEFOG, false, true);
-	}
-	else
-		Surf.FlatColor.rgba = HWR_Lighting(lightlevel,NORMALFOG,FADEFOG, false, true);
-
-#endif // NOPE
-
 	if (planecolormap)
-	{
-		if (fogplane)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, planecolormap->rgba, planecolormap->fadergba, true, false);
-		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, planecolormap->rgba, planecolormap->fadergba, false, true);
-	}
+		HWR_Lighting(&Surf, lightlevel, planecolormap->rgba, planecolormap->fadergba);
 	else
-	{
-		if (fogplane)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, true, false);
-		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, true);
-	}
+		HWR_NoColormapLighting(&Surf, lightlevel, NORMALFOG, FADEFOG);
 
 	if (PolyFlags & (PF_Translucent|PF_Fog))
 	{
-		Surf.FlatColor.s.alpha = (UINT8)alpha;
-		PolyFlags |= PF_Modulated|PF_Clip;
+		Surf.PolyColor.s.alpha = (UINT8)alpha;
+		PolyFlags |= PF_Modulated;
 	}
 	else
-		PolyFlags |= PF_Masked|PF_Modulated|PF_Clip;
+		PolyFlags |= PF_Masked|PF_Modulated;
 
+	HWD.pfnSetShader(1);	// jimita: floor shader
+	if (PolyFlags & PF_Ripple)
+		HWD.pfnSetShader(4);	// jimita: water shader
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, PolyFlags);
-
-#ifdef ALAM_LIGHTING
-	// add here code for dynamic lighting on planes
-	HWR_PlaneLighting(planeVerts, nrPlaneVerts);
-#endif
 }
-
-#ifdef POLYSKY
-// this don't draw anything it only update the z-buffer so there isn't problem with
-// wall/things upper that sky (map12)
-static void HWR_RenderSkyPlane(extrasubsector_t *xsub, fixed_t fixedheight)
-{
-	polyvertex_t *pv;
-	float height; //constant y for all points on the convex flat polygon
-	FOutVector *v3d;
-	INT32 nrPlaneVerts;   //verts original define of convex flat polygon
-	INT32 i;
-
-	// no convex poly were generated for this subsector
-	if (!xsub->planepoly)
-		return;
-
-	height = FIXED_TO_FLOAT(fixedheight);
-
-	pv  = xsub->planepoly->pts;
-	nrPlaneVerts = xsub->planepoly->numpts;
-
-	if (nrPlaneVerts < 3) // not even a triangle?
-		return;
-
-	if (nrPlaneVerts > MAXPLANEVERTICES) // FIXME: exceeds plVerts size
-	{
-		CONS_Debug(DBG_RENDER, "polygon size of %d exceeds max value of %d vertices\n", nrPlaneVerts, MAXPLANEVERTICES);
-		return;
-	}
-
-	// transform
-	v3d = planeVerts;
-	for (i = 0; i < nrPlaneVerts; i++,v3d++,pv++)
-	{
-		v3d->sow = 0.0f;
-		v3d->tow = 0.0f;
-		v3d->x = pv->x;
-		v3d->y = height;
-		v3d->z = pv->y;
-	}
-
-	HWD.pfnDrawPolygon(NULL, planeVerts, nrPlaneVerts,
-	 PF_Clip|PF_Invisible|PF_NoTexture|PF_Occlude);
-}
-#endif //polysky
-
-#endif //doplanes
 
 /*
    wallVerts order is :
@@ -907,20 +579,21 @@ static void HWR_DrawSegsSplats(FSurfaceInfo * pSurf)
 		switch (splat->flags & SPLATDRAWMODE_MASK)
 		{
 			case SPLATDRAWMODE_OPAQUE :
-				pSurf2.FlatColor.s.alpha = 0xff;
+				pSurf2.PolyColor.s.alpha = 0xff;
 				i = PF_Translucent;
 				break;
 			case SPLATDRAWMODE_TRANS :
-				pSurf2.FlatColor.s.alpha = 128;
+				pSurf2.PolyColor.s.alpha = 128;
 				i = PF_Translucent;
 				break;
 			case SPLATDRAWMODE_SHADE :
-				pSurf2.FlatColor.s.alpha = 0xff;
+				pSurf2.PolyColor.s.alpha = 0xff;
 				i = PF_Substractive;
 				break;
 		}
 
-		HWD.pfnDrawPolygon(&pSurf2, trVerts, 4, i|PF_Modulated|PF_Clip|PF_Decal);
+		HWD.pfnSetShader(2);	// jimita: wall shader
+		HWD.pfnDrawPolygon(&pSurf2, trVerts, 4, i|PF_Modulated|PF_Decal);
 	}
 }
 #endif
@@ -934,15 +607,15 @@ FBITFIELD HWR_TranstableToAlpha(INT32 transtablenum, FSurfaceInfo *pSurf)
 {
 	switch (transtablenum)
 	{
-		case tr_trans10 : pSurf->FlatColor.s.alpha = 0xe6;return  PF_Translucent;
-		case tr_trans20 : pSurf->FlatColor.s.alpha = 0xcc;return  PF_Translucent;
-		case tr_trans30 : pSurf->FlatColor.s.alpha = 0xb3;return  PF_Translucent;
-		case tr_trans40 : pSurf->FlatColor.s.alpha = 0x99;return  PF_Translucent;
-		case tr_trans50 : pSurf->FlatColor.s.alpha = 0x80;return  PF_Translucent;
-		case tr_trans60 : pSurf->FlatColor.s.alpha = 0x66;return  PF_Translucent;
-		case tr_trans70 : pSurf->FlatColor.s.alpha = 0x4c;return  PF_Translucent;
-		case tr_trans80 : pSurf->FlatColor.s.alpha = 0x33;return  PF_Translucent;
-		case tr_trans90 : pSurf->FlatColor.s.alpha = 0x19;return  PF_Translucent;
+		case tr_trans10 : pSurf->PolyColor.s.alpha = 0xe6;return  PF_Translucent;
+		case tr_trans20 : pSurf->PolyColor.s.alpha = 0xcc;return  PF_Translucent;
+		case tr_trans30 : pSurf->PolyColor.s.alpha = 0xb3;return  PF_Translucent;
+		case tr_trans40 : pSurf->PolyColor.s.alpha = 0x99;return  PF_Translucent;
+		case tr_trans50 : pSurf->PolyColor.s.alpha = 0x80;return  PF_Translucent;
+		case tr_trans60 : pSurf->PolyColor.s.alpha = 0x66;return  PF_Translucent;
+		case tr_trans70 : pSurf->PolyColor.s.alpha = 0x4c;return  PF_Translucent;
+		case tr_trans80 : pSurf->PolyColor.s.alpha = 0x33;return  PF_Translucent;
+		case tr_trans90 : pSurf->PolyColor.s.alpha = 0x19;return  PF_Translucent;
 	}
 	return PF_Translucent;
 }
@@ -1003,27 +676,16 @@ static void HWR_ProjectWall(wallVert3D   * wallVerts,
 	wv->z   = wallVerts->z;
 
 	if (wallcolormap)
-	{
-		pSurf->FlatColor.rgba = HWR_Lighting(lightlevel, wallcolormap->rgba, wallcolormap->fadergba, false, false);
-	}
+		HWR_Lighting(pSurf, lightlevel, wallcolormap->rgba, wallcolormap->fadergba);
 	else
-	{
-		pSurf->FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
-	}
+		HWR_NoColormapLighting(pSurf, lightlevel, NORMALFOG, FADEFOG);
 
-	HWD.pfnDrawPolygon(pSurf, trVerts, 4, blendmode|PF_Modulated|PF_Occlude|PF_Clip);
+	HWD.pfnSetShader(2);	// jimita: wall shader
+	HWD.pfnDrawPolygon(pSurf, trVerts, 4, blendmode|PF_Modulated|PF_Occlude);
 
 #ifdef WALLSPLATS
 	if (gr_curline->linedef->splats && cv_splats.value)
 		HWR_DrawSegsSplats(pSurf);
-#endif
-#ifdef ALAM_LIGHTING
-	//Hurdler: TDOD: do static lighting using gr_curline->lm
-	HWR_WallLighting(trVerts);
-
-	//Hurdler: for better dynamic light in dark area, we should draw the light first
-	//         and then the wall all that with the right blending func
-	//HWD.pfnDrawPolygon(pSurf, trVerts, 4, PF_Additive|PF_Modulated|PF_Occlude|PF_Clip);
 #endif
 }
 
@@ -1095,7 +757,7 @@ static void HWR_SplitWall(sector_t *sector, wallVert3D *wallVerts, INT32 texnum,
 
 	INT32   solid, i;
 	lightlist_t *  list = sector->lightlist;
-	const UINT8 alpha = Surf->FlatColor.s.alpha;
+	const UINT8 alpha = Surf->PolyColor.s.alpha;
 	FUINT lightnum = sector->lightlevel;
 	extracolormap_t *colormap = NULL;
 
@@ -1241,7 +903,7 @@ static void HWR_SplitWall(sector_t *sector, wallVert3D *wallVerts, INT32 texnum,
 		if (endbot < endrealbot)
 			endbot = endrealbot;
 #endif
-		Surf->FlatColor.s.alpha = alpha;
+		Surf->PolyColor.s.alpha = alpha;
 
 #ifdef ESLOPE
 		wallVerts[3].t = pegt + ((realtop - top) * pegmul);
@@ -1284,7 +946,7 @@ static void HWR_SplitWall(sector_t *sector, wallVert3D *wallVerts, INT32 texnum,
 	if (top <= realbot)
 		return;
 
-	Surf->FlatColor.s.alpha = alpha;
+	Surf->PolyColor.s.alpha = alpha;
 
 #ifdef ESLOPE
 	wallVerts[3].t = pegt + ((realtop - top) * pegmul);
@@ -1327,7 +989,7 @@ static void HWR_DrawSkyWall(wallVert3D *wallVerts, FSurfaceInfo *Surf, fixed_t b
 	// set top/bottom coords
 	wallVerts[2].y = wallVerts[3].y = FIXED_TO_FLOAT(top); // No real way to find the correct height of this
 	wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(bottom); // worldlow/bottom because it needs to cover up the lower thok barrier wall
-	HWR_ProjectWall(wallVerts, Surf, PF_Invisible|PF_Clip|PF_NoTexture, 255, NULL);
+	HWR_ProjectWall(wallVerts, Surf, PF_Invisible|PF_NoTexture, 255, NULL);
 	// PF_Invisible so it's not drawn into the colour buffer
 	// PF_NoTexture for no texture
 	// PF_Occlude is set in HWR_ProjectWall to draw into the depth buffer
@@ -1442,7 +1104,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 
 	if (gr_frontsector)
 	{
-		Surf.FlatColor.s.alpha = 255;
+		Surf.PolyColor.s.alpha = 255;
 	}
 
 	if (gr_backsector)
@@ -1882,7 +1544,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 			{
 				if (gr_curline->polyseg->translucency >= NUMTRANSMAPS) // wall not drawn
 				{
-					Surf.FlatColor.s.alpha = 0x00; // This shouldn't draw anything regardless of blendmode
+					Surf.PolyColor.s.alpha = 0x00; // This shouldn't draw anything regardless of blendmode
 					blendmode = PF_Masked;
 				}
 				else
@@ -1903,13 +1565,6 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				HWR_AddTransparentWall(wallVerts, &Surf, gr_midtexture, blendmode, false, lightnum, colormap);
 			else
 				HWR_ProjectWall(wallVerts, &Surf, blendmode, lightnum, colormap);
-
-			// If there is a colormap change, remove it.
-/*			if (!(Surf.FlatColor.s.red + Surf.FlatColor.s.green + Surf.FlatColor.s.blue == Surf.FlatColor.s.red/3)
-			{
-				Surf.FlatColor.s.red = Surf.FlatColor.s.green = Surf.FlatColor.s.blue = 0xff;
-				Surf.FlatColor.rgba = 0xffffffff;
-			}*/
 		}
 
 		// Isn't this just the most lovely mess
@@ -2068,7 +1723,6 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 
 
 	//Hurdler: 3d-floors test
-#ifdef R_FAKEFLOORS
 	if (gr_frontsector && gr_backsector && gr_frontsector->tag != gr_backsector->tag && (gr_backsector->ffloors || gr_frontsector->ffloors))
 	{
 		ffloor_t * rover;
@@ -2214,11 +1868,11 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 					if (rover->master->frontsector->extra_colormap)
 					{
 
-						Surf.FlatColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,rover->master->frontsector->extra_colormap->rgba);
+						Surf.PolyColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,rover->master->frontsector->extra_colormap->rgba);
 					}
 					else
 					{
-						Surf.FlatColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,NORMALFOG);
+						Surf.PolyColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,NORMALFOG);
 					}
 
 					if (gr_frontsector->numlights)
@@ -2233,7 +1887,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 					if (rover->flags & FF_TRANSLUCENT && rover->alpha < 256)
 					{
 						blendmode = PF_Translucent;
-						Surf.FlatColor.s.alpha = (UINT8)rover->alpha-1 > 255 ? 255 : rover->alpha-1;
+						Surf.PolyColor.s.alpha = (UINT8)rover->alpha-1 > 255 ? 255 : rover->alpha-1;
 					}
 
 					if (gr_frontsector->numlights)
@@ -2333,11 +1987,11 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 
 					if (rover->master->frontsector->extra_colormap)
 					{
-						Surf.FlatColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,rover->master->frontsector->extra_colormap->rgba);
+						Surf.PolyColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,rover->master->frontsector->extra_colormap->rgba);
 					}
 					else
 					{
-						Surf.FlatColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,NORMALFOG);
+						Surf.PolyColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel,NORMALFOG);
 					}
 
 					if (gr_backsector->numlights)
@@ -2352,7 +2006,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 					if (rover->flags & FF_TRANSLUCENT && rover->alpha < 256)
 					{
 						blendmode = PF_Translucent;
-						Surf.FlatColor.s.alpha = (UINT8)rover->alpha-1 > 255 ? 255 : rover->alpha-1;
+						Surf.PolyColor.s.alpha = (UINT8)rover->alpha-1 > 255 ? 255 : rover->alpha-1;
 					}
 
 					if (gr_backsector->numlights)
@@ -2368,7 +2022,6 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 			}
 		}
 	}
-#endif
 //Hurdler: end of 3d-floors test
 }
 
@@ -3293,20 +2946,20 @@ static void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, 
 		v3d->z = FIXED_TO_FLOAT(polysector->vertices[i]->y);
 	}
 
-
 	if (planecolormap)
-		Surf.FlatColor.rgba = HWR_Lighting(lightlevel, planecolormap->rgba, planecolormap->fadergba, false, true);
+		HWR_Lighting(&Surf, lightlevel, planecolormap->rgba, planecolormap->fadergba);
 	else
-		Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, true);
+		HWR_NoColormapLighting(&Surf, lightlevel, NORMALFOG, FADEFOG);
 
 	if (blendmode & PF_Translucent)
 	{
-		Surf.FlatColor.s.alpha = (UINT8)alpha;
-		blendmode |= PF_Modulated|PF_Occlude|PF_Clip;
+		Surf.PolyColor.s.alpha = (UINT8)alpha;
+		blendmode |= PF_Modulated|PF_Occlude;
 	}
 	else
-		blendmode |= PF_Masked|PF_Modulated|PF_Clip;
+		blendmode |= PF_Masked|PF_Modulated;
 
+	HWD.pfnSetShader(1);	// jimita: floor shader
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, blendmode);
 }
 
@@ -3337,7 +2990,7 @@ static void HWR_AddPolyObjectPlanes(void)
 				FSurfaceInfo Surf;
 				FBITFIELD blendmode = HWR_TranstableToAlpha(po_ptrs[i]->translucency, &Surf);
 				HWR_AddTransparentPolyobjectFloor(levelflats[polyobjsector->floorpic].lumpnum, po_ptrs[i], false, polyobjsector->floorheight,
-													polyobjsector->lightlevel, Surf.FlatColor.s.alpha, polyobjsector, blendmode, NULL);
+													polyobjsector->lightlevel, Surf.PolyColor.s.alpha, polyobjsector, blendmode, NULL);
 			}
 			else
 			{
@@ -3359,7 +3012,7 @@ static void HWR_AddPolyObjectPlanes(void)
 				memset(&Surf, 0x00, sizeof(Surf));
 				blendmode = HWR_TranstableToAlpha(po_ptrs[i]->translucency, &Surf);
 				HWR_AddTransparentPolyobjectFloor(levelflats[polyobjsector->ceilingpic].lumpnum, po_ptrs[i], true, polyobjsector->ceilingheight,
-				                                  polyobjsector->lightlevel, Surf.FlatColor.s.alpha, polyobjsector, blendmode, NULL);
+				                                  polyobjsector->lightlevel, Surf.PolyColor.s.alpha, polyobjsector, blendmode, NULL);
 			}
 			else
 			{
@@ -3432,16 +3085,6 @@ static void HWR_Subsector(size_t num)
 
 	floorcolormap = ceilingcolormap = gr_frontsector->extra_colormap;
 
-	// ------------------------------------------------------------------------
-	// sector lighting, DISABLED because it's done in HWR_StoreWallRange
-	// ------------------------------------------------------------------------
-	/// \todo store a RGBA instead of just intensity, allow coloured sector lighting
-	//light = (FUBYTE)(sub->sector->lightlevel & 0xFF) / 255.0f;
-	//gr_cursectorlight.red   = light;
-	//gr_cursectorlight.green = light;
-	//gr_cursectorlight.blue  = light;
-	//gr_cursectorlight.alpha = light;
-
 // ----- for special tricks with HW renderer -----
 	if (gr_frontsector->pseudoSector)
 	{
@@ -3508,7 +3151,6 @@ static void HWR_Subsector(size_t num)
 	sub->sector->extra_colormap = gr_frontsector->extra_colormap;
 
 	// render floor ?
-#ifdef DOPLANES
 	// yeah, easy backface cull! :)
 	if (cullFloorHeight < dup_viewz)
 	{
@@ -3523,12 +3165,6 @@ static void HWR_Subsector(size_t num)
 					// We now return you to your regularly scheduled rendering.
 					PF_Occlude, floorlightlevel, levelflats[gr_frontsector->floorpic].lumpnum, NULL, 255, false, floorcolormap);
 			}
-		}
-		else
-		{
-#ifdef POLYSKY
-			HWR_RenderSkyPlane(&extrasubsectors[num], locFloorHeight);
-#endif
 		}
 	}
 
@@ -3546,21 +3182,12 @@ static void HWR_Subsector(size_t num)
 					PF_Occlude, ceilinglightlevel, levelflats[gr_frontsector->ceilingpic].lumpnum,NULL, 255, false, ceilingcolormap);
 			}
 		}
-		else
-		{
-#ifdef POLYSKY
-			HWR_RenderSkyPlane(&extrasubsectors[num], locCeilingHeight);
-#endif
-		}
 	}
 
-#ifndef POLYSKY
 	// Moved here because before, when above the ceiling and the floor does not have the sky flat, it doesn't draw the sky
 	if (gr_frontsector->ceilingpic == skyflatnum || gr_frontsector->floorpic == skyflatnum)
 		drawsky = true;
-#endif
 
-#ifdef R_FAKEFLOORS
 	if (gr_frontsector->ffloors)
 	{
 		/// \todo fix light, xoffs, yoffs, extracolormap ?
@@ -3613,27 +3240,19 @@ static void HWR_Subsector(size_t num)
 				else if (rover->flags & FF_TRANSLUCENT && rover->alpha < 256) // SoM: Flags are more efficient
 				{
 					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
-#ifndef SORTING
-					HWR_Add3DWater(levelflats[*rover->bottompic].lumpnum,
-					               &extrasubsectors[num],
-					               *rover->bottomheight,
-					               *gr_frontsector->lightlist[light].lightlevel,
-					               rover->alpha-1, rover->master->frontsector);
-#else
 					HWR_AddTransparentFloor(levelflats[*rover->bottompic].lumpnum,
 					                       &extrasubsectors[num],
 										   false,
 					                       *rover->bottomheight,
 					                       *gr_frontsector->lightlist[light].lightlevel,
-					                       rover->alpha-1 > 255 ? 255 : rover->alpha-1, rover->master->frontsector, PF_Translucent,
+					                       rover->alpha-1 > 255 ? 255 : rover->alpha-1, rover->master->frontsector, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Translucent,
 					                       false, gr_frontsector->lightlist[light].extra_colormap);
-#endif
 				}
 				else
 				{
 					HWR_GetFlat(levelflats[*rover->bottompic].lumpnum);
 					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
-					HWR_RenderPlane(NULL, &extrasubsectors[num], false, *rover->bottomheight, PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->bottompic].lumpnum,
+					HWR_RenderPlane(NULL, &extrasubsectors[num], false, *rover->bottomheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->bottompic].lumpnum,
 					                rover->master->frontsector, 255, false, gr_frontsector->lightlist[light].extra_colormap);
 				}
 			}
@@ -3676,35 +3295,24 @@ static void HWR_Subsector(size_t num)
 				else if (rover->flags & FF_TRANSLUCENT && rover->alpha < 256)
 				{
 					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
-#ifndef SORTING
-					HWR_Add3DWater(levelflats[*rover->toppic].lumpnum,
-					                          &extrasubsectors[num],
-					                          *rover->topheight,
-					                          *gr_frontsector->lightlist[light].lightlevel,
-					                          rover->alpha-1, rover->master->frontsector);
-#else
 					HWR_AddTransparentFloor(levelflats[*rover->toppic].lumpnum,
 					                        &extrasubsectors[num],
 											true,
 					                        *rover->topheight,
 					                        *gr_frontsector->lightlist[light].lightlevel,
-					                        rover->alpha-1 > 255 ? 255 : rover->alpha-1, rover->master->frontsector, PF_Translucent,
+					                        rover->alpha-1 > 255 ? 255 : rover->alpha-1, rover->master->frontsector, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Translucent,
 					                        false, gr_frontsector->lightlist[light].extra_colormap);
-#endif
-
 				}
 				else
 				{
 					HWR_GetFlat(levelflats[*rover->toppic].lumpnum);
 					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
-					HWR_RenderPlane(NULL, &extrasubsectors[num], true, *rover->topheight, PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->toppic].lumpnum,
+					HWR_RenderPlane(NULL, &extrasubsectors[num], true, *rover->topheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->toppic].lumpnum,
 					                  rover->master->frontsector, 255, false, gr_frontsector->lightlist[light].extra_colormap);
 				}
 			}
 		}
 	}
-#endif
-#endif //doplanes
 
 #ifdef POLYOBJECTS
 	// Draw all the polyobjects in this subsector
@@ -3773,59 +3381,8 @@ static void HWR_Subsector(size_t num)
 //  traversing subtree recursively.
 // Just call with BSP root.
 
-#ifdef coolhack
-//t;b;l;r
-static fixed_t hackbbox[4];
-//BOXTOP,
-//BOXBOTTOM,
-//BOXLEFT,
-//BOXRIGHT
-static boolean HWR_CheckHackBBox(fixed_t *bb)
-{
-	if (bb[BOXTOP] < hackbbox[BOXBOTTOM]) //y up
-		return false;
-	if (bb[BOXBOTTOM] > hackbbox[BOXTOP])
-		return false;
-	if (bb[BOXLEFT] > hackbbox[BOXRIGHT])
-		return false;
-	if (bb[BOXRIGHT] < hackbbox[BOXLEFT])
-		return false;
-	return true;
-}
-#endif
-
-// BP: big hack for a test in lighning ref : 1249753487AB
-fixed_t *hwbbox;
-
 static void HWR_RenderBSPNode(INT32 bspnum)
 {
-	/*//GZDoom code
-	if(bspnum == -1)
-	{
-		HWR_Subsector(subsectors);
-		return;
-	}
-	while(!((size_t)bspnum&(~NF_SUBSECTOR))) // Keep going until found a subsector
-	{
-		node_t *bsp = &nodes[bspnum];
-
-		// Decide which side the view point is on
-		INT32 side = R_PointOnSide(dup_viewx, dup_viewy, bsp);
-
-		// Recursively divide front space (toward the viewer)
-		HWR_RenderBSPNode(bsp->children[side]);
-
-		// Possibly divide back space (away from viewer)
-		side ^= 1;
-
-		if (!HWR_CheckBBox(bsp->bbox[side]))
-			return;
-
-		bspnum = bsp->children[side];
-	}
-
-	HWR_Subsector(bspnum-1);
-*/
 	node_t *bsp = &nodes[bspnum];
 
 	// Decide which side the view point is on
@@ -3834,35 +3391,20 @@ static void HWR_RenderBSPNode(INT32 bspnum)
 	// Found a subsector?
 	if (bspnum & NF_SUBSECTOR)
 	{
-		if (bspnum == -1)
-		{
-			//*(gr_drawsubsector_p++) = 0;
-			HWR_Subsector(0);
-		}
-		else
-		{
-			//*(gr_drawsubsector_p++) = bspnum&(~NF_SUBSECTOR);
+		if (bspnum != -1)
 			HWR_Subsector(bspnum&(~NF_SUBSECTOR));
-		}
 		return;
 	}
 
 	// Decide which side the view point is on.
 	side = R_PointOnSide(dup_viewx, dup_viewy, bsp);
 
-	// BP: big hack for a test in lighning ref : 1249753487AB
-	hwbbox = bsp->bbox[side];
-
 	// Recursively divide front space.
 	HWR_RenderBSPNode(bsp->children[side]);
 
 	// Possibly divide back space.
 	if (HWR_CheckBBox(bsp->bbox[side^1]))
-	{
-		// BP: big hack for a test in lighning ref : 1249753487AB
-		hwbbox = bsp->bbox[side^1];
 		HWR_RenderBSPNode(bsp->children[side^1]);
-	}
 }
 
 /*
@@ -4192,57 +3734,28 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 		swallVerts[0].tow = swallVerts[1].tow = gpatch->max_t;
 	}
 
-	sSurf.FlatColor.s.red = 0x00;
-	sSurf.FlatColor.s.blue = 0x00;
-	sSurf.FlatColor.s.green = 0x00;
-
-	/*if (spr->mobj->frame & FF_TRANSMASK || spr->mobj->flags2 & MF2_SHADOW)
-	{
-		sector_t *sector = spr->mobj->subsector->sector;
-		UINT8 lightlevel = 255;
-		extracolormap_t *colormap = sector->extra_colormap;
-
-		if (sector->numlights)
-		{
-			INT32 light = R_GetPlaneLight(sector, spr->mobj->floorz, false);
-
-			if (!(spr->mobj->frame & FF_FULLBRIGHT))
-				lightlevel = *sector->lightlist[light].lightlevel;
-
-			if (sector->lightlist[light].extra_colormap)
-				colormap = sector->lightlist[light].extra_colormap;
-		}
-		else
-		{
-			lightlevel = sector->lightlevel;
-
-			if (sector->extra_colormap)
-				colormap = sector->extra_colormap;
-		}
-
-		if (colormap)
-			sSurf.FlatColor.rgba = HWR_Lighting(lightlevel/2, colormap->rgba, colormap->fadergba, false, true);
-		else
-			sSurf.FlatColor.rgba = HWR_Lighting(lightlevel/2, NORMALFOG, FADEFOG, false, true);
-	}*/
+	sSurf.PolyColor.s.red = 0x00;
+	sSurf.PolyColor.s.blue = 0x00;
+	sSurf.PolyColor.s.green = 0x00;
 
 	// shadow is always half as translucent as the sprite itself
 	if (!cv_translucency.value) // use default translucency (main sprite won't have any translucency)
-		sSurf.FlatColor.s.alpha = 0x80; // default
+		sSurf.PolyColor.s.alpha = 0x80; // default
 	else if (spr->mobj->flags2 & MF2_SHADOW)
-		sSurf.FlatColor.s.alpha = 0x20;
+		sSurf.PolyColor.s.alpha = 0x20;
 	else if (spr->mobj->frame & FF_TRANSMASK)
 	{
 		HWR_TranstableToAlpha((spr->mobj->frame & FF_TRANSMASK)>>FF_TRANSSHIFT, &sSurf);
-		sSurf.FlatColor.s.alpha /= 2; //cut alpha in half!
+		sSurf.PolyColor.s.alpha /= 2; //cut alpha in half!
 	}
 	else
-		sSurf.FlatColor.s.alpha = 0x80; // default
+		sSurf.PolyColor.s.alpha = 0x80; // default
 
-	if (sSurf.FlatColor.s.alpha > floorheight/4)
+	if (sSurf.PolyColor.s.alpha > floorheight/4)
 	{
-		sSurf.FlatColor.s.alpha = (UINT8)(sSurf.FlatColor.s.alpha - floorheight/4);
-		HWD.pfnDrawPolygon(&sSurf, swallVerts, 4, PF_Translucent|PF_Modulated|PF_Clip);
+		sSurf.PolyColor.s.alpha = (UINT8)(sSurf.PolyColor.s.alpha - floorheight/4);
+		HWD.pfnSetShader(1);	// jimita: floor shader
+		HWD.pfnDrawPolygon(&sSurf, swallVerts, 4, PF_Translucent|PF_Modulated);
 	}
 }
 
@@ -4287,10 +3800,6 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	if (cv_shadow.value // Shadows enabled
 		&& (spr->mobj->flags & (MF_SCENERY|MF_SPAWNCEILING|MF_NOGRAVITY)) != (MF_SCENERY|MF_SPAWNCEILING|MF_NOGRAVITY) // Ceiling scenery have no shadow.
 		&& !(spr->mobj->flags2 & MF2_DEBRIS) // Debris have no corona or shadow.
-#ifdef ALAM_LIGHTING
-		&& !(t_lspr[spr->mobj->sprite]->type // Things with dynamic lights have no shadow.
-		&& (!spr->mobj->player || spr->mobj->player->powers[pw_super])) // Except for non-super players.
-#endif
 		&& (spr->mobj->z >= spr->mobj->floorz)) // Without this, your shadow shows on the floor, even after you die and fall through the ground.
 	{
 		////////////////////
@@ -4357,12 +3866,12 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 
 	if (!cv_translucency.value) // translucency disabled
 	{
-		Surf.FlatColor.s.alpha = 0xFF;
+		Surf.PolyColor.s.alpha = 0xFF;
 		blend = PF_Translucent|PF_Occlude;
 	}
 	else if (spr->mobj->flags2 & MF2_SHADOW)
 	{
-		Surf.FlatColor.s.alpha = 0x40;
+		Surf.PolyColor.s.alpha = 0x40;
 		blend = PF_Translucent;
 	}
 	else if (spr->mobj->frame & FF_TRANSMASK)
@@ -4373,11 +3882,11 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		//     work properly under glide nor with fogcolor to ffffff :(
 		// Hurdler: PF_Environement would be cool, but we need to fix
 		//          the issue with the fog before
-		Surf.FlatColor.s.alpha = 0xFF;
+		Surf.PolyColor.s.alpha = 0xFF;
 		blend = PF_Translucent|PF_Occlude;
 	}
 
-	alpha = Surf.FlatColor.s.alpha;
+	alpha = Surf.PolyColor.s.alpha;
 
 	// Start with the lightlevel and colormap from the top of the sprite
 	lightlevel = *list[sector->numlights - 1].lightlevel;
@@ -4490,13 +3999,14 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 #endif
 
 		if (colormap)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, colormap->rgba, colormap->fadergba, false, false);
+			HWR_Lighting(&Surf, lightlevel, colormap->rgba, colormap->fadergba);
 		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
+			HWR_NoColormapLighting(&Surf, lightlevel, NORMALFOG, FADEFOG);
 
-		Surf.FlatColor.s.alpha = alpha;
+		Surf.PolyColor.s.alpha = alpha;
 
-		HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated|PF_Clip);
+		HWD.pfnSetShader(3);	// jimita: sprite shader
+		HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 
 		top = bot;
 #ifdef ESLOPE
@@ -4532,13 +4042,14 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 #endif
 
 	if (colormap)
-		Surf.FlatColor.rgba = HWR_Lighting(lightlevel, colormap->rgba, colormap->fadergba, false, false);
+		HWR_Lighting(&Surf, lightlevel, colormap->rgba, colormap->fadergba);
 	else
-		Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
+		HWR_NoColormapLighting(&Surf, lightlevel, NORMALFOG, FADEFOG);
 
-	Surf.FlatColor.s.alpha = alpha;
+	Surf.PolyColor.s.alpha = alpha;
 
-	HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated|PF_Clip);
+	HWD.pfnSetShader(3);	// jimita: sprite shader
+	HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 }
 
 // -----------------+
@@ -4577,12 +4088,6 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 	//          in memory and we add the md2 model if it exists for that sprite
 
 	gpatch = W_CachePatchNum(spr->patchlumpnum, PU_CACHE);
-
-#ifdef ALAM_LIGHTING
-	if (!(spr->mobj->flags2 & MF2_DEBRIS) && (spr->mobj->sprite != SPR_PLAY ||
-	 (spr->mobj->player && spr->mobj->player->powers[pw_super])))
-		HWR_DL_AddLight(spr, gpatch);
-#endif
 
 	// create the sprite billboard
 	//
@@ -4633,10 +4138,6 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 	if (cv_shadow.value // Shadows enabled
 		&& (spr->mobj->flags & (MF_SCENERY|MF_SPAWNCEILING|MF_NOGRAVITY)) != (MF_SCENERY|MF_SPAWNCEILING|MF_NOGRAVITY) // Ceiling scenery have no shadow.
 		&& !(spr->mobj->flags2 & MF2_DEBRIS) // Debris have no corona or shadow.
-#ifdef ALAM_LIGHTING
-		&& !(t_lspr[spr->mobj->sprite]->type // Things with dynamic lights have no shadow.
-		&& (!spr->mobj->player || spr->mobj->player->powers[pw_super])) // Except for non-super players.
-#endif
 		&& (spr->mobj->z >= spr->mobj->floorz)) // Without this, your shadow shows on the floor, even after you die and fall through the ground.
 	{
 		////////////////////
@@ -4669,21 +4170,21 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 			lightlevel = sector->lightlevel;
 
 		if (colormap)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, colormap->rgba, colormap->fadergba, false, false);
+			HWR_Lighting(&Surf, lightlevel, colormap->rgba, colormap->fadergba);
 		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
+			HWR_NoColormapLighting(&Surf, lightlevel, NORMALFOG, FADEFOG);
 	}
 
 	{
 		FBITFIELD blend = 0;
 		if (!cv_translucency.value) // translucency disabled
 		{
-			Surf.FlatColor.s.alpha = 0xFF;
+			Surf.PolyColor.s.alpha = 0xFF;
 			blend = PF_Translucent|PF_Occlude;
 		}
 		else if (spr->mobj->flags2 & MF2_SHADOW)
 		{
-			Surf.FlatColor.s.alpha = 0x40;
+			Surf.PolyColor.s.alpha = 0x40;
 			blend = PF_Translucent;
 		}
 		else if (spr->mobj->frame & FF_TRANSMASK)
@@ -4694,15 +4195,15 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 			//     work properly under glide nor with fogcolor to ffffff :(
 			// Hurdler: PF_Environement would be cool, but we need to fix
 			//          the issue with the fog before
-			Surf.FlatColor.s.alpha = 0xFF;
+			Surf.PolyColor.s.alpha = 0xFF;
 			blend = PF_Translucent|PF_Occlude;
 		}
 
-		HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated|PF_Clip);
+		HWD.pfnSetShader(3);	// jimita: sprite shader
+		HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 	}
 }
 
-#ifdef HWPRECIP
 // Sprite drawer for precipitation
 static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 {
@@ -4775,14 +4276,14 @@ static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 		}
 
 		if (colormap)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, colormap->rgba, colormap->fadergba, false, false);
+			HWR_Lighting(&Surf, lightlevel, colormap->rgba, colormap->fadergba);
 		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
+			HWR_NoColormapLighting(&Surf, lightlevel, NORMALFOG, FADEFOG);
 	}
 
 	if (spr->mobj->flags2 & MF2_SHADOW)
 	{
-		Surf.FlatColor.s.alpha = 0x40;
+		Surf.PolyColor.s.alpha = 0x40;
 		blend = PF_Translucent;
 	}
 	else if (spr->mobj->frame & FF_TRANSMASK)
@@ -4793,13 +4294,13 @@ static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 		//     work properly under glide nor with fogcolor to ffffff :(
 		// Hurdler: PF_Environement would be cool, but we need to fix
 		//          the issue with the fog before
-		Surf.FlatColor.s.alpha = 0xFF;
+		Surf.PolyColor.s.alpha = 0xFF;
 		blend = PF_Translucent|PF_Occlude;
 	}
 
-	HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated|PF_Clip);
+	HWD.pfnSetShader(3);	// jimita: sprite shader
+	HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 }
-#endif
 
 // --------------------------------------------------------------------------
 // Sort vissprites by distance
@@ -4905,9 +4406,6 @@ typedef struct
 	INT32         texnum;
 	FBITFIELD     blend;
 	INT32         drawcount;
-#ifndef SORTING
-	fixed_t       fixedheight;
-#endif
 	boolean fogwall;
 	INT32 lightlevel;
 	extracolormap_t *wallcolormap; // Doing the lighting in HWR_RenderWall now for correct fog after sorting
@@ -4955,11 +4453,6 @@ typedef struct
 static size_t numpolyplanes = 0; // a list of transparent poyobject floors to be drawn
 static polyplaneinfo_t *polyplaneinfo = NULL;
 
-#ifndef SORTING
-size_t numfloors = 0;
-#else
-//static floorinfo_t *floorinfo = NULL;
-//static size_t numfloors = 0;
 //Hurdler: 3D water sutffs
 typedef struct gr_drawnode_s
 {
@@ -4967,9 +4460,6 @@ typedef struct gr_drawnode_s
 	polyplaneinfo_t *polyplane;
 	wallinfo_t *wall;
 	gr_vissprite_t *sprite;
-
-//	struct gr_drawnode_s *next;
-//	struct gr_drawnode_s *prev;
 } gr_drawnode_t;
 
 static INT32 drawcount = 0;
@@ -5180,6 +4670,7 @@ static void HWR_CreateDrawNodes(void)
 	} // loop++
 
 	HWD.pfnSetTransform(&atransform);
+	HWD.pfnSetShader(0);	// jimita
 	// Okay! Let's draw it all! Woo!
 	for (i = 0; i < p; i++)
 	{
@@ -5221,12 +4712,9 @@ static void HWR_CreateDrawNodes(void)
 	Z_Free(sortindex);
 }
 
-#endif
-
 // --------------------------------------------------------------------------
 //  Draw all vissprites
 // --------------------------------------------------------------------------
-#ifdef SORTING
 // added the stransform so they can be switched as drawing happenes so MD2s and sprites are sorted correctly with each other
 static void HWR_DrawSprites(void)
 {
@@ -5239,11 +4727,9 @@ static void HWR_DrawSprites(void)
 		     spr != &gr_vsprsortedhead;
 		     spr = spr->next)
 		{
-#ifdef HWPRECIP
 			if (spr->precip)
 				HWR_DrawPrecipitationSprite(spr);
 			else
-#endif
 				if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 				{
 					if (!cv_grmd2.value || md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f)
@@ -5261,7 +4747,6 @@ static void HWR_DrawSprites(void)
 		}
 	}
 }
-#endif
 
 // --------------------------------------------------------------------------
 // HWR_AddSprites
@@ -5271,9 +4756,7 @@ static UINT8 sectorlight;
 static void HWR_AddSprites(sector_t *sec)
 {
 	mobj_t *thing;
-#ifdef HWPRECIP
 	precipmobj_t *precipthing;
-#endif
 	fixed_t approx_dist, limit_dist;
 
 	// BSP is traversed by subsector.
@@ -5314,7 +4797,6 @@ static void HWR_AddSprites(sector_t *sec)
 				HWR_ProjectSprite(thing);
 	}
 
-#ifdef HWPRECIP
 	// Someone seriously wants infinite draw distance for precipitation?
 	if ((limit_dist = (fixed_t)cv_drawdist_precip.value << FRACBITS))
 	{
@@ -5338,7 +4820,6 @@ static void HWR_AddSprites(sector_t *sec)
 			if (!(precipthing->precipflags & PCF_INVISIBLE))
 				HWR_ProjectPrecipitationSprite(precipthing);
 	}
-#endif
 }
 
 // --------------------------------------------------------------------------
@@ -5540,7 +5021,6 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	vis->precip = false;
 }
 
-#ifdef HWPRECIP
 // Precipitation projector for hardware mode
 static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 {
@@ -5644,7 +5124,6 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 
 	vis->precip = true;
 }
-#endif
 
 // ==========================================================================
 //
@@ -5726,7 +5205,9 @@ static void HWR_DrawSkyBackground(void)
 		v[0].tow = v[1].tow -= ((float) angle / angleturn);
 	}
 
+	HWD.pfnSetShader(5);	// jimita: sky shader
 	HWD.pfnDrawPolygon(NULL, v, 4, 0);
+	HWD.pfnSetShader(0);	// jimita
 }
 
 
@@ -5783,9 +5264,6 @@ void HWR_SetViewSize(void)
 		gr_basewindowcentery = (float)(vid.height / 2);
 	}
 
-	gr_pspritexscale = gr_viewwidth / BASEVIDWIDTH;
-	gr_pspriteyscale = ((vid.height*gr_pspritexscale*BASEVIDWIDTH)/BASEVIDHEIGHT)/vid.width;
-
 	HWD.pfnFlushScreenTextures();
 }
 
@@ -5808,9 +5286,6 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 		stplyr = player;
 		ST_doPaletteStuff();
 		stplyr = saved_player;
-#ifdef ALAM_LIGHTING
-		HWR_SetLights(viewnumber);
-#endif
 	}
 
 	// note: sets viewangle, viewx, viewy, viewz
@@ -5841,9 +5316,6 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	gr_viewsin = FIXED_TO_FLOAT(viewsin);
 	gr_viewcos = FIXED_TO_FLOAT(viewcos);
 
-	gr_viewludsin = FIXED_TO_FLOAT(FINECOSINE(aimingangle>>ANGLETOFINESHIFT));
-	gr_viewludcos = FIXED_TO_FLOAT(-FINESINE(aimingangle>>ANGLETOFINESHIFT));
-
 	//04/01/2000: Hurdler: added for T&L
 	//                     It should replace all other gr_viewxxx when finished
 	atransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
@@ -5864,18 +5336,8 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 	atransform.fovyangle = fpov; // Tails
 	atransform.splitscreen = splitscreen;
 
-	gr_fovlud = (float)(1.0l/tan((double)(fpov*M_PIl/360l)));
-
 	//------------------------------------------------------------------------
 	HWR_ClearView();
-
-if (0)
-{ // I don't think this is ever used.
-	if (cv_grfog.value)
-		HWR_FoggingOn(); // First of all, turn it on, set the default user settings too
-	else
-		HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 0); // Turn it off
-}
 
 	if (drawsky)
 		HWR_DrawSkyBackground();
@@ -5885,9 +5347,7 @@ if (0)
 
 	HWR_ClearSprites();
 
-#ifdef SORTING
 	drawcount = 0;
-#endif
 #ifdef NEWCLIP
 	if (rendermode == render_opengl)
 	{
@@ -5905,6 +5365,12 @@ if (0)
 	//04/01/2000: Hurdler: added for T&L
 	//                     Actually it only works on Walls and Planes
 	HWD.pfnSetTransform(&atransform);
+	HWD.pfnSetShader(0);	// jimita
+
+	if (cv_grfog.value)
+		HWR_FoggingOn(); // First of all, turn it on, set the default user settings too
+	else
+		HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 0); // Turn it off
 
 	validcount++;
 
@@ -5942,42 +5408,15 @@ if (0)
 	// Check for new console commands.
 	NetUpdate();
 
-#ifdef ALAM_LIGHTING
-	//14/11/99: Hurdler: moved here because it doesn't work with
-	// subsector, see other comments;
-	HWR_ResetLights();
-#endif
-
 	// Draw MD2 and sprites
-#ifdef SORTING
 	HWR_SortVisSprites();
-#endif
-
-#ifdef SORTING
 	HWR_DrawSprites();
-#endif
-#ifdef NEWCORONAS
-	//Hurdler: they must be drawn before translucent planes, what about gl fog?
-	HWR_DrawCoronas();
-#endif
 
-#ifdef SORTING
 	if (numplanes || numpolyplanes || numwalls) //Hurdler: render 3D water and transparent walls after everything
-	{
 		HWR_CreateDrawNodes();
-	}
-#else
-	if (numfloors || numwalls)
-	{
-		HWD.pfnSetTransform(&atransform);
-		if (numfloors)
-			HWR_Render3DWater();
-		if (numwalls)
-			HWR_RenderTransparentWalls();
-	}
-#endif
 
 	HWD.pfnSetTransform(NULL);
+	HWD.pfnUnSetShader();	// jimita
 
 	// put it off for menus etc
 	if (cv_grfog.value)
@@ -6001,20 +5440,21 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value); // True if there's a skybox object and skyboxes are on
 
-	FRGBAFloat ClearColor;
-
 	if (splitscreen && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
 	else
 		type = &postimgtype;
 
-	ClearColor.red = 0.0f;
-	ClearColor.green = 0.0f;
-	ClearColor.blue = 0.0f;
-	ClearColor.alpha = 1.0f;
-
 	if (viewnumber == 0) // Only do it if it's the first screen being rendered
-		HWD.pfnClearBuffer(true, false, &ClearColor); // Clear the Color Buffer, stops HOMs. Also seems to fix the skybox issue on Intel GPUs.
+	{
+		FRGBAFloat ClearColor;
+		ClearColor.red = 0.0f;
+		ClearColor.green = 0.0f;
+		ClearColor.blue = 0.0f;
+		ClearColor.alpha = 1.0f;
+		// Clear the Color Buffer, stops HOMs. Also seems to fix the skybox issue on Intel GPUs.
+		HWD.pfnClearBuffer(true, false, &ClearColor);
+	}
 
 	if (skybox && drawsky) // If there's a skybox and we should be drawing the sky, draw the skybox
 		HWR_RenderSkyboxView(viewnumber, player); // This is drawn before everything else so it is placed behind
@@ -6025,9 +5465,6 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 		stplyr = player;
 		ST_doPaletteStuff();
 		stplyr = saved_player;
-#ifdef ALAM_LIGHTING
-		HWR_SetLights(viewnumber);
-#endif
 	}
 
 	// note: sets viewangle, viewx, viewy, viewz
@@ -6058,9 +5495,6 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	gr_viewsin = FIXED_TO_FLOAT(viewsin);
 	gr_viewcos = FIXED_TO_FLOAT(viewcos);
 
-	gr_viewludsin = FIXED_TO_FLOAT(FINECOSINE(aimingangle>>ANGLETOFINESHIFT));
-	gr_viewludcos = FIXED_TO_FLOAT(-FINESINE(aimingangle>>ANGLETOFINESHIFT));
-
 	//04/01/2000: Hurdler: added for T&L
 	//                     It should replace all other gr_viewxxx when finished
 	atransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
@@ -6081,18 +5515,8 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	atransform.fovyangle = fpov; // Tails
 	atransform.splitscreen = splitscreen;
 
-	gr_fovlud = (float)(1.0l/tan((double)(fpov*M_PIl/360l)));
-
 	//------------------------------------------------------------------------
 	HWR_ClearView(); // Clears the depth buffer and resets the view I believe
-
-if (0)
-{ // I don't think this is ever used.
-	if (cv_grfog.value)
-		HWR_FoggingOn(); // First of all, turn it on, set the default user settings too
-	else
-		HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 0); // Turn it off
-}
 
 	if (!skybox && drawsky) // Don't draw the regular sky if there's a skybox
 		HWR_DrawSkyBackground();
@@ -6102,9 +5526,7 @@ if (0)
 
 	HWR_ClearSprites();
 
-#ifdef SORTING
 	drawcount = 0;
-#endif
 #ifdef NEWCLIP
 	if (rendermode == render_opengl)
 	{
@@ -6122,6 +5544,16 @@ if (0)
 	//04/01/2000: Hurdler: added for T&L
 	//                     Actually it only works on Walls and Planes
 	HWD.pfnSetTransform(&atransform);
+
+	// jimita
+	HWD.pfnSetShader(0);
+
+	gl_leveltime = leveltime;
+
+	if (cv_grfog.value)
+		HWR_FoggingOn(); // First of all, turn it on, set the default user settings too
+	else
+		HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 0); // Turn it off
 
 	validcount++;
 
@@ -6159,42 +5591,15 @@ if (0)
 	// Check for new console commands.
 	NetUpdate();
 
-#ifdef ALAM_LIGHTING
-	//14/11/99: Hurdler: moved here because it doesn't work with
-	// subsector, see other comments;
-	HWR_ResetLights();
-#endif
-
 	// Draw MD2 and sprites
-#ifdef SORTING
 	HWR_SortVisSprites();
-#endif
-
-#ifdef SORTING
 	HWR_DrawSprites();
-#endif
-#ifdef NEWCORONAS
-	//Hurdler: they must be drawn before translucent planes, what about gl fog?
-	HWR_DrawCoronas();
-#endif
 
-#ifdef SORTING
 	if (numplanes || numpolyplanes || numwalls) //Hurdler: render 3D water and transparent walls after everything
-	{
 		HWR_CreateDrawNodes();
-	}
-#else
-	if (numfloors || numpolyplanes || numwalls)
-	{
-		HWD.pfnSetTransform(&atransform);
-		if (numfloors)
-			HWR_Render3DWater();
-		if (numwalls)
-			HWR_RenderTransparentWalls();
-	}
-#endif
 
 	HWD.pfnSetTransform(NULL);
+	HWD.pfnUnSetShader();	// jimita
 
 	// put it off for menus etc
 	if (cv_grfog.value)
@@ -6214,43 +5619,10 @@ if (0)
 //                                                                        FOG
 // ==========================================================================
 
-/// \author faB
-
-static UINT32 atohex(const char *s)
-{
-	INT32 iCol;
-	const char *sCol;
-	char cCol;
-	INT32 i;
-
-	if (strlen(s)<6)
-		return 0;
-
-	iCol = 0;
-	sCol = s;
-	for (i = 0; i < 6; i++, sCol++)
-	{
-		iCol <<= 4;
-		cCol = *sCol;
-		if (cCol >= '0' && cCol <= '9')
-			iCol |= cCol - '0';
-		else
-		{
-			if (cCol >= 'F')
-				cCol -= 'a' - 'A';
-			if (cCol >= 'A' && cCol <= 'F')
-				iCol = iCol | (cCol - 'A' + 10);
-		}
-	}
-	//CONS_Debug(DBG_RENDER, "col %x\n", iCol);
-	return iCol;
-}
-
 static void HWR_FoggingOn(void)
 {
-	HWD.pfnSetSpecialState(HWD_SET_FOG_COLOR, atohex(cv_grfogcolor.string));
+	HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, cv_grsoftwarefog.value ? 2 : 1);
 	HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, cv_grfogdensity.value);
-	HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 1);
 }
 
 // ==========================================================================
@@ -6286,7 +5658,6 @@ void HWR_AddCommands(void)
 {
 	CV_RegisterVar(&cv_grrounddown);
 	CV_RegisterVar(&cv_grfov);
-	CV_RegisterVar(&cv_grfogdensity);
 	CV_RegisterVar(&cv_grfiltermode);
 	CV_RegisterVar(&cv_granisotropicmode);
 	CV_RegisterVar(&cv_grcorrecttricks);
@@ -6318,27 +5689,15 @@ void HWR_Startup(void)
 {
 	static boolean startupdone = false;
 
-	// setup GLPatch_t scaling
-	gr_patch_scalex = (float)(1.0f / vid.width);
-	gr_patch_scaley = (float)(1.0f / vid.height);
-
-	// initalze light lut translation
-	InitLumLut();
-
 	// do this once
 	if (!startupdone)
 	{
 		CONS_Printf("HWR_Startup()\n");
-		HWR_InitPolyPool();
 		// add console cmds & vars
 		HWR_AddEngineCommands();
 		HWR_InitTextureCache();
 
 		HWR_InitMD2();
-
-#ifdef ALAM_LIGHTING
-		HWR_InitLight();
-#endif
 	}
 
 	if (rendermode == render_opengl)
@@ -6350,6 +5709,10 @@ void HWR_Startup(void)
 #endif
 
 	startupdone = true;
+
+	// jimita
+	HWD.pfnKillShaders();
+	HWD.pfnLoadShaders();
 }
 
 
@@ -6360,135 +5723,9 @@ void HWR_Shutdown(void)
 {
 	CONS_Printf("HWR_Shutdown()\n");
 	HWR_FreeExtraSubsectors();
-	HWR_FreePolyPool();
 	HWR_FreeTextureCache();
 	HWD.pfnFlushScreenTextures();
 }
-
-void transform(float *cx, float *cy, float *cz)
-{
-	float tr_x,tr_y;
-	// translation
-	tr_x = *cx - gr_viewx;
-	tr_y = *cz - gr_viewy;
-//	*cy = *cy;
-
-	// rotation around vertical y axis
-	*cx = (tr_x * gr_viewsin) - (tr_y * gr_viewcos);
-	tr_x = (tr_x * gr_viewcos) + (tr_y * gr_viewsin);
-
-	//look up/down ----TOTAL SUCKS!!!--- do the 2 in one!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	tr_y = *cy - gr_viewz;
-
-	*cy = (tr_x * gr_viewludcos) + (tr_y * gr_viewludsin);
-	*cz = (tr_x * gr_viewludsin) - (tr_y * gr_viewludcos);
-
-	//scale y before frustum so that frustum can be scaled to screen height
-	*cy *= ORIGINAL_ASPECT * gr_fovlud;
-	*cx *= gr_fovlud;
-}
-
-
-//Hurdler: 3D Water stuff
-#define MAX_3DWATER 512
-
-#ifndef SORTING
-static void HWR_Add3DWater(lumpnum_t lumpnum, extrasubsector_t *xsub,
-	fixed_t fixedheight, INT32 lightlevel, INT32 alpha, sector_t *FOFSector)
-{
-	static size_t allocedplanes = 0;
-
-	// Force realloc if buffer has been freed
-	if (!planeinfo)
-		allocedplanes = 0;
-
-	if (allocedplanes < numfloors + 1)
-	{
-		allocedplanes += MAX_3DWATER;
-		Z_Realloc(planeinfo, allocedplanes * sizeof (*planeinfo), PU_LEVEL, &planeinfo);
-	}
-	planeinfo[numfloors].fixedheight = fixedheight;
-	planeinfo[numfloors].lightlevel = lightlevel;
-	planeinfo[numfloors].lumpnum = lumpnum;
-	planeinfo[numfloors].xsub = xsub;
-	planeinfo[numfloors].alpha = alpha;
-	planeinfo[numfloors].FOFSector = FOFSector;
-	numfloors++;
-}
-#endif
-
-#define DIST_PLANE(i) ABS(planeinfo[(i)].fixedheight-dup_viewz)
-
-#if 0
-static void HWR_QuickSortPlane(INT32 start, INT32 finish)
-{
-	INT32 left = start;
-	INT32 right = finish;
-	INT32 starterval = (INT32)((right+left)/2); //pick a starter
-
-	planeinfo_t temp;
-
-	//'sort of sort' the two halves of the data list about starterval
-	while (right > left);
-	{
-		while (DIST_PLANE(left) < DIST_PLANE(starterval)) left++; //attempt to find a bigger value on the left
-		while (DIST_PLANE(right) > DIST_PLANE(starterval)) right--; //attempt to find a smaller value on the right
-
-		if (left < right) //if we haven't gone too far
-		{
-			//switch them
-			M_Memcpy(&temp, &planeinfo[left], sizeof (planeinfo_t));
-			M_Memcpy(&planeinfo[left], &planeinfo[right], sizeof (planeinfo_t));
-			M_Memcpy(&planeinfo[right], &temp, sizeof (planeinfo_t));
-			//move the bounds
-			left++;
-			right--;
-		}
-	}
-
-	if (start < right) HWR_QuickSortPlane(start, right);
-	if (left < finish) HWR_QuickSortPlane(left, finish);
-}
-#endif
-
-#ifndef SORTING
-static void HWR_Render3DWater(void)
-{
-	size_t i;
-
-	//bubble sort 3D Water for correct alpha blending
-	{
-		boolean permut = true;
-		while (permut)
-		{
-			size_t j;
-			for (j = 0, permut= false; j < numfloors-1; j++)
-			{
-				if (ABS(planeinfo[j].fixedheight-dup_viewz) < ABS(planeinfo[j+1].fixedheight-dup_viewz))
-				{
-					planeinfo_t temp;
-					M_Memcpy(&temp, &planeinfo[j+1], sizeof (planeinfo_t));
-					M_Memcpy(&planeinfo[j+1], &planeinfo[j], sizeof (planeinfo_t));
-					M_Memcpy(&planeinfo[j], &temp, sizeof (planeinfo_t));
-					permut = true;
-				}
-			}
-		}
-	}
-#if 0 //thanks epat, but it's goes looping forever on CTF map Silver Cascade Zone
-	HWR_QuickSortPlane(0, numplanes-1);
-#endif
-
-	gr_frontsector = NULL; //Hurdler: gr_fronsector is no longer valid
-	for (i = 0; i < numfloors; i++)
-	{
-		HWR_GetFlat(planeinfo[i].lumpnum);
-		HWR_RenderPlane(NULL, planeinfo[i].xsub, planeinfo[i].isceiling, planeinfo[i].fixedheight, PF_Translucent, planeinfo[i].lightlevel, planeinfo[i].lumpnum,
-			planeinfo[i].FOFSector, planeinfo[i].alpha, planeinfo[i].fogplane, planeinfo[i].planecolormap);
-	}
-	numfloors = 0;
-}
-#endif
 
 static void HWR_AddTransparentWall(wallVert3D *wallVerts, FSurfaceInfo *pSurf, INT32 texnum, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
 {
@@ -6508,46 +5745,13 @@ static void HWR_AddTransparentWall(wallVert3D *wallVerts, FSurfaceInfo *pSurf, I
 	M_Memcpy(&wallinfo[numwalls].Surf, pSurf, sizeof (FSurfaceInfo));
 	wallinfo[numwalls].texnum = texnum;
 	wallinfo[numwalls].blend = blend;
-#ifdef SORTING
 	wallinfo[numwalls].drawcount = drawcount++;
-#endif
 	wallinfo[numwalls].fogwall = fogwall;
 	wallinfo[numwalls].lightlevel = lightlevel;
 	wallinfo[numwalls].wallcolormap = wallcolormap;
 	numwalls++;
 }
-#ifndef SORTING
-static void HWR_RenderTransparentWalls(void)
-{
-	size_t i;
 
-	/*{ // sorting is disbale for now, do it!
-		INT32 permut = 1;
-		while (permut)
-		{
-			INT32 j;
-			for (j = 0, permut = 0; j < numwalls-1; j++)
-			{
-				if (ABS(wallinfo[j].fixedheight-dup_viewz) < ABS(wallinfo[j+1].fixedheight-dup_viewz))
-				{
-					wallinfo_t temp;
-					M_Memcpy(&temp, &wallinfo[j+1], sizeof (wallinfo_t));
-					M_Memcpy(&wallinfo[j+1], &wallinfo[j], sizeof (wallinfo_t));
-					M_Memcpy(&wallinfo[j], &temp, sizeof (wallinfo_t));
-					permut = 1;
-				}
-			}
-		}
-	}*/
-
-	for (i = 0; i < numwalls; i++)
-	{
-		HWR_GetTexture(wallinfo[i].texnum);
-		HWR_RenderWall(wallinfo[i].wallVerts, &wallinfo[i].Surf, wallinfo[i].blend, wallinfo[i].wall->fogwall, wallinfo[i].wall->lightlevel, wallinfo[i].wall->wallcolormap);
-	}
-	numwalls = 0;
-}
-#endif
 static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
 {
 	FOutVector  trVerts[4];
@@ -6563,52 +5767,33 @@ static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 	// also remove the light copy
 	for (i = 0; i < 4; i++, wv++, wallVerts++)
 	{
+		wv->x = wallVerts->x;
+		wv->y = wallVerts->y;
+		wv->z = wallVerts->z;
 		wv->sow = wallVerts->s;
 		wv->tow = wallVerts->t;
-		wv->x   = wallVerts->x;
-		wv->y   = wallVerts->y;
-		wv->z = wallVerts->z;
 	}
 
-	alpha = pSurf->FlatColor.s.alpha; // retain the alpha
+	alpha = pSurf->PolyColor.s.alpha; // retain the alpha
 
 	// Lighting is done here instead so that fog isn't drawn incorrectly on transparent walls after sorting
 	if (wallcolormap)
-	{
-		if (fogwall)
-			pSurf->FlatColor.rgba = HWR_Lighting(lightlevel, wallcolormap->rgba, wallcolormap->fadergba, true, false);
-		else
-			pSurf->FlatColor.rgba = HWR_Lighting(lightlevel, wallcolormap->rgba, wallcolormap->fadergba, false, false);
-	}
+		HWR_Lighting(pSurf, lightlevel, wallcolormap->rgba, wallcolormap->fadergba);
 	else
-	{
-		if (fogwall)
-			pSurf->FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, true, false);
-		else
-			pSurf->FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
-	}
+		HWR_NoColormapLighting(pSurf, lightlevel, NORMALFOG, FADEFOG);
 
-	pSurf->FlatColor.s.alpha = alpha; // put the alpha back after lighting
+	pSurf->PolyColor.s.alpha = alpha; // put the alpha back after lighting
 
+	HWD.pfnSetShader(2);	// jimita: wall shader
 	if (blend & PF_Environment)
-		HWD.pfnDrawPolygon(pSurf, trVerts, 4, blend|PF_Modulated|PF_Clip|PF_Occlude); // PF_Occlude must be used for solid objects
+		HWD.pfnDrawPolygon(pSurf, trVerts, 4, blend|PF_Modulated|PF_Occlude); // PF_Occlude must be used for solid objects
 	else
-		HWD.pfnDrawPolygon(pSurf, trVerts, 4, blend|PF_Modulated|PF_Clip); // No PF_Occlude means overlapping (incorrect) transparency
+		HWD.pfnDrawPolygon(pSurf, trVerts, 4, blend|PF_Modulated); // No PF_Occlude means overlapping (incorrect) transparency
 
 #ifdef WALLSPLATS
 	if (gr_curline->linedef->splats && cv_splats.value)
 		HWR_DrawSegsSplats(pSurf);
-
-#ifdef ALAM_LIGHTING
-	//Hurdler: TODO: do static lighting using gr_curline->lm
-	HWR_WallLighting(trVerts);
 #endif
-#endif
-}
-
-void HWR_SetPaletteColor(INT32 palcolor)
-{
-	HWD.pfnSetSpecialState(HWD_SET_PALETTECOLOR, palcolor);
 }
 
 INT32 HWR_GetTextureUsed(void)
@@ -6639,15 +5824,16 @@ void HWR_DoPostProcessor(player_t *player)
 		// This won't change if the flash palettes are changed unfortunately, but it works for its purpose
 		if (player->flashpal == PAL_NUKE)
 		{
-			Surf.FlatColor.s.red = 0xff;
-			Surf.FlatColor.s.green = Surf.FlatColor.s.blue = 0x7F; // The nuke palette is kind of pink-ish
+			Surf.PolyColor.s.red = 0xff;
+			Surf.PolyColor.s.green = Surf.PolyColor.s.blue = 0x7F; // The nuke palette is kind of pink-ish
 		}
 		else
-			Surf.FlatColor.s.red = Surf.FlatColor.s.green = Surf.FlatColor.s.blue = 0xff;
+			Surf.PolyColor.s.red = Surf.PolyColor.s.green = Surf.PolyColor.s.blue = 0xff;
 
-		Surf.FlatColor.s.alpha = 0xc0; // match software mode
+		Surf.PolyColor.s.alpha = 0xc0; // match software mode
 
-		HWD.pfnDrawPolygon(&Surf, v, 4, PF_Modulated|PF_Additive|PF_NoTexture|PF_NoDepthTest|PF_Clip|PF_NoZClip);
+		HWD.pfnSetShader(0);	// jimita
+		HWD.pfnDrawPolygon(&Surf, v, 4, PF_Modulated|PF_Additive|PF_NoTexture|PF_NoDepthTest);
 	}
 
 	// Capture the screen for intermission and screen waving
@@ -6657,13 +5843,12 @@ void HWR_DoPostProcessor(player_t *player)
 	if (splitscreen) // Not supported in splitscreen - someone want to add support?
 		return;
 
-#ifdef SHUFFLE
 	// Drunken vision! WooOOooo~
 	if (*type == postimg_water || *type == postimg_heat)
 	{
 		// 10 by 10 grid. 2 coordinates (xy)
 		float v[SCREENVERTS][SCREENVERTS][2];
-		static double disStart = 0;
+		double disStart = leveltime;
 		UINT8 x, y;
 		INT32 WAVELENGTH;
 		INT32 AMPLITUDE;
@@ -6693,26 +5878,21 @@ void HWR_DoPostProcessor(player_t *player)
 			}
 		}
 		HWD.pfnPostImgRedraw(v);
-		disStart += 1;
 
 		// Capture the screen again for screen waving on the intermission
 		if(gamestate != GS_INTERMISSION)
 			HWD.pfnMakeScreenTexture();
 	}
 	// Flipping of the screen isn't done here anymore
-#endif // SHUFFLE
 }
 
 void HWR_StartScreenWipe(void)
 {
-	//CONS_Debug(DBG_RENDER, "In HWR_StartScreenWipe()\n");
 	HWD.pfnStartScreenWipe();
 }
 
 void HWR_EndScreenWipe(void)
 {
-	HWRWipeCounter = 0.0f;
-	//CONS_Debug(DBG_RENDER, "In HWR_EndScreenWipe()\n");
 	HWD.pfnEndScreenWipe();
 }
 
@@ -6746,13 +5926,7 @@ void HWR_DoWipe(UINT8 wipenum, UINT8 scrnnum)
 	}
 
 	HWR_GetFadeMask(lumpnum);
-
-	HWD.pfnDoScreenWipe(HWRWipeCounter); // Still send in wipecounter since old stuff might not support multitexturing
-
-	HWRWipeCounter += 0.05f; // increase opacity of end screen
-
-	if (HWRWipeCounter > 1.0f)
-		HWRWipeCounter = 1.0f;
+	HWD.pfnDoScreenWipe();
 }
 
 void HWR_MakeScreenFinalTexture(void)

@@ -1,21 +1,15 @@
-// Emacs style mode select   -*- C++ -*-
+// SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-//
+// Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
+// Copyright (C) 1999-2019 by Sonic Team Junior.
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
+// This program is free software distributed under the
+// terms of the GNU General Public License, version 2.
+// See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
 /// \file
-/// \brief imports/exports for the 3D hardware low-level interface API
+/// \brief imports/exports for the GPU hardware low-level interface API
 
 #ifndef __HWR_DRV_H__
 #define __HWR_DRV_H__
@@ -32,7 +26,7 @@
 //                                                       STANDARD DLL EXPORTS
 // ==========================================================================
 
-EXPORT boolean HWRAPI(Init) (I_Error_t ErrorFunction);
+EXPORT boolean HWRAPI(Init) (void);
 #ifndef HAVE_SDL
 EXPORT void HWRAPI(Shutdown) (void);
 #endif
@@ -58,24 +52,29 @@ EXPORT void HWRAPI(ClearMipMapCache) (void);
 EXPORT void HWRAPI(SetSpecialState) (hwdspecialstate_t IdState, INT32 Value);
 
 //Hurdler: added for new development
-EXPORT void HWRAPI(DrawMD2) (INT32 *gl_cmd_buffer, md2_frame_t *frame, FTransform *pos, float scale);
-EXPORT void HWRAPI(DrawMD2i) (INT32 *gl_cmd_buffer, md2_frame_t *frame, INT32 duration, INT32 tics, md2_frame_t *nextframe, FTransform *pos, float scale, UINT8 flipped, UINT8 *color);
+EXPORT void HWRAPI(DrawMD2) (INT32 *gl_cmd_buffer, md2_frame_t *frame, INT32 duration, INT32 tics, md2_frame_t *nextframe, FTransform *pos, float scale, UINT8 flipped, FSurfaceInfo *Surface);
 EXPORT void HWRAPI(SetTransform) (FTransform *ptransform);
 EXPORT INT32 HWRAPI(GetTextureUsed) (void);
 EXPORT INT32 HWRAPI(GetRenderVersion) (void);
 
-#ifdef SHUFFLE
-#define SCREENVERTS 10
-EXPORT void HWRAPI(PostImgRedraw) (float points[SCREENVERTS][SCREENVERTS][2]);
-#endif
 EXPORT void HWRAPI(FlushScreenTextures) (void);
 EXPORT void HWRAPI(StartScreenWipe) (void);
 EXPORT void HWRAPI(EndScreenWipe) (void);
-EXPORT void HWRAPI(DoScreenWipe) (float alpha);
+EXPORT void HWRAPI(DoScreenWipe) (void);
 EXPORT void HWRAPI(DrawIntermissionBG) (void);
 EXPORT void HWRAPI(MakeScreenTexture) (void);
 EXPORT void HWRAPI(MakeScreenFinalTexture) (void);
 EXPORT void HWRAPI(DrawScreenFinalTexture) (int width, int height);
+
+#define SCREENVERTS 10
+EXPORT void HWRAPI(PostImgRedraw) (float points[SCREENVERTS][SCREENVERTS][2]);
+
+// jimita
+EXPORT void HWRAPI(LoadShaders) (void);
+EXPORT void HWRAPI(KillShaders) (void);
+EXPORT void HWRAPI(SetShader) (int shader);
+EXPORT void HWRAPI(UnSetShader) (void);
+
 // ==========================================================================
 //                                      HWR DRIVER OBJECT, FOR CLIENT PROGRAM
 // ==========================================================================
@@ -95,9 +94,8 @@ struct hwdriver_s
 	ReadRect            pfnReadRect;
 	GClipRect           pfnGClipRect;
 	ClearMipMapCache    pfnClearMipMapCache;
-	SetSpecialState     pfnSetSpecialState;//Hurdler: added for backward compatibility
+	SetSpecialState     pfnSetSpecialState;
 	DrawMD2             pfnDrawMD2;
-	DrawMD2i            pfnDrawMD2i;
 	SetTransform        pfnSetTransform;
 	GetTextureUsed      pfnGetTextureUsed;
 	GetRenderVersion    pfnGetRenderVersion;
@@ -107,9 +105,7 @@ struct hwdriver_s
 #ifndef HAVE_SDL
 	Shutdown            pfnShutdown;
 #endif
-#ifdef SHUFFLE
 	PostImgRedraw       pfnPostImgRedraw;
-#endif
 	FlushScreenTextures pfnFlushScreenTextures;
 	StartScreenWipe     pfnStartScreenWipe;
 	EndScreenWipe       pfnEndScreenWipe;
@@ -118,12 +114,15 @@ struct hwdriver_s
 	MakeScreenTexture   pfnMakeScreenTexture;
 	MakeScreenFinalTexture  pfnMakeScreenFinalTexture;
 	DrawScreenFinalTexture  pfnDrawScreenFinalTexture;
+
+	// jimita
+	LoadShaders pfnLoadShaders;
+	KillShaders pfnKillShaders;
+	SetShader pfnSetShader;
+	UnSetShader pfnUnSetShader;
 };
 
 extern struct hwdriver_s hwdriver;
-
-//Hurdler: 16/10/99: added for OpenGL gamma correction
-//extern RGBA_t  gamma_correction;
 
 #define HWD hwdriver
 

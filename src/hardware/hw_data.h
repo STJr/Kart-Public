@@ -1,21 +1,15 @@
-// Emacs style mode select   -*- C++ -*-
+// SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-//
+// Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
+// Copyright (C) 1999-2019 by Sonic Team Junior.
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
+// This program is free software distributed under the
+// terms of the GNU General Public License, version 2.
+// See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
 /// \file
-/// \brief defines structures and exports for the standard 3D driver DLL used by Doom Legacy
+/// \brief defines structures and exports for the standard GPU driver
 
 #ifndef _HWR_DATA_
 #define _HWR_DATA_
@@ -40,38 +34,32 @@
 //                NULL if the texture is not in Doom heap cache.
 struct GLMipmap_s
 {
-	GrTexInfo       grInfo;         //for TexDownloadMipMap
-	FxU32           flags;
-	UINT16          height;
-	UINT16          width;
-	UINT32          downloaded;     // the dll driver have it in there cache ?
+	GrTexInfo 				grInfo;
+	FxU32 					flags;
+	UINT16 					width, height;
+	UINT32 					downloaded;		// tex_downloaded
 
-	struct GLMipmap_s    *nextcolormap;
-	const UINT8          *colormap;
-
-	// opengl
-	struct GLMipmap_s *nextmipmap; // opengl : liste of all texture in opengl driver
+	struct 	GLMipmap_s 		*nextmipmap;
+	struct 	GLMipmap_s 		*nextcolormap;
+	const 	UINT8 			*colormap;
 };
 typedef struct GLMipmap_s GLMipmap_t;
-
 
 //
 // Doom texture info, as cached for hardware rendering
 //
 struct GLTexture_s
 {
-	GLMipmap_t  mipmap;
-	float       scaleX;             //used for scaling textures on walls
-	float       scaleY;
+	GLMipmap_t		mipmap;
+	float			scaleX;             //used for scaling textures on walls
+	float			scaleY;
 };
 typedef struct GLTexture_s GLTexture_t;
-
 
 // a cached patch as converted to hardware format, holding the original patch_t
 // header so that the existing code can retrieve ->width, ->height as usual
 // This is returned by W_CachePatchNum()/W_CachePatchName(), when rendermode
 // is 'render_opengl'. Else it returns the normal patch_t data.
-
 struct GLPatch_s
 {
 	// the 4 first fields come right away from the original patch_t

@@ -37,11 +37,9 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#ifndef MINI_GL_COMPATIBILITY
 #ifdef STATIC_OPENGL // Because of the 1.3 functions, you'll need GLext to compile it if static
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glext.h>
-#endif
 #endif
 #endif
 
@@ -59,22 +57,8 @@
 #undef DEBUG_TO_FILE            // maybe defined in previous *.h
 #define DEBUG_TO_FILE           // output debugging msgs to ogllog.txt
 
-// todo: find some way of getting SDL to log to ogllog.txt, without
-// interfering with r_opengl.dll
-#ifdef HAVE_SDL
-#undef DEBUG_TO_FILE
-#endif
-//#if defined(HAVE_SDL) && !defined(_DEBUG)
-//#undef DEBUG_TO_FILE
-//#endif
-
 #ifdef DEBUG_TO_FILE
 extern FILE             *gllogstream;
-#endif
-
-#ifndef DRIVER_STRING
-//    #define USE_PALETTED_TEXTURE
-#define DRIVER_STRING "HWRAPI Init(): SRB2 OpenGL renderer" // Tails
 #endif
 
 // ==========================================================================
@@ -84,13 +68,12 @@ extern FILE             *gllogstream;
 boolean LoadGL(void);
 void *GetGLFunc(const char *proc);
 boolean SetupGLfunc(void);
-boolean SetupGLFunc13(void);
+void SetupGLFunc4(void);
 void Flush(void);
 INT32 isExtAvailable(const char *extension, const GLubyte *start);
 int SetupPixelFormat(INT32 WantColorBits, INT32 WantStencilBits, INT32 WantDepthBits);
 void SetModelView(GLint w, GLint h);
 void SetStates(void);
-FUNCMATH float byteasfloat(UINT8 fbyte);
 #ifdef USE_PALETTED_TEXTURE
 extern PFNGLCOLORTABLEEXTPROC glColorTableEXT;
 extern GLubyte                palette_tex[256*3];
@@ -132,6 +115,10 @@ extern GLint            screen_width;
 extern GLint            screen_height;
 extern GLbyte           screen_depth;
 extern GLint            maximumAnisotropy;
+
+// jimita
+extern boolean GLEXT_legacy;
+extern boolean GLEXT_shaders;
 
 /**	\brief OpenGL flags for video driver
 */

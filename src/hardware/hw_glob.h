@@ -1,18 +1,12 @@
-// Emacs style mode select   -*- C++ -*-
+// SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-//
+// Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
+// Copyright (C) 1999-2019 by Sonic Team Junior.
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
+// This program is free software distributed under the
+// terms of the GNU General Public License, version 2.
+// See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
 /// \file
 /// \brief globals (shared data & code) for hw_ modules
@@ -23,9 +17,6 @@
 #include "hw_defs.h"
 #include "hw_main.h"
 #include "../m_misc.h"
-
-// the original aspect ratio of Doom graphics isn't square
-#define ORIGINAL_ASPECT (320.0f/200.0f)
 
 // Uncomment this to enable the OpenGL loading screen
 //#define HWR_LOADING_SCREEN
@@ -90,9 +81,6 @@ typedef struct gr_vissprite_s
 extern extrasubsector_t *extrasubsectors;
 extern size_t addsubsector;
 
-void HWR_InitPolyPool(void);
-void HWR_FreePolyPool(void);
-
 // --------
 // hw_cache.c
 // --------
@@ -111,12 +99,12 @@ GLPatch_t *HWR_GetCachedGLPatchPwad(UINT16 wad, UINT16 lump);
 GLPatch_t *HWR_GetCachedGLPatch(lumpnum_t lumpnum);
 void HWR_GetFadeMask(lumpnum_t fademasklumpnum);
 
+// jimita
+extern INT32 gl_leveltime;
+
 // --------
 // hw_draw.c
 // --------
-extern float gr_patch_scalex;
-extern float gr_patch_scaley;
-
 extern consvar_t cv_grrounddown; // on/off
 
 extern INT32 patchformat;

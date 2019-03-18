@@ -39,7 +39,6 @@
 #ifdef DEBUG_TO_FILE
 static unsigned long nb_frames = 0;
 static clock_t my_clock;
-FILE *gllogstream;
 #endif
 
 static  HDC     hDC           = NULL;       // the window's device context
@@ -365,8 +364,6 @@ static INT32 WINAPI SetRes(viddef_t *lvid, vmode_t *pcurrentmode)
 		pglGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAnisotropy);
 	else
 		maximumAnisotropy = 0;
-
-	SetupGLFunc13();
 
 	screen_depth = (GLbyte)(lvid->bpp*8);
 	if (screen_depth > 16)
