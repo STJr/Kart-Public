@@ -317,6 +317,7 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 	static UINT16 numAllocedPlaneVerts = 0;
 
 	(void)sector; ///@TODO remove shitty unused variable
+	(void)fogplane; ///@TODO remove shitty unused variable
 
 	// no convex poly were generated for this subsector
 	if (!xsub->planepoly)
@@ -5758,6 +5759,8 @@ static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 	UINT8       i;
 	FOutVector  *wv;
 	UINT8 alpha;
+
+	(void)fogwall; ///@TODO remove shitty unused variable
 
 	// transform
 	wv = trVerts;

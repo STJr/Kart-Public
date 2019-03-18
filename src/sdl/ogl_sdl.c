@@ -152,18 +152,18 @@ boolean LoadGL(void)
 boolean OglSdlSurface(INT32 w, INT32 h)
 {
 	INT32 cbpp = cv_scr_depth.value < 16 ? 16 : cv_scr_depth.value;
-	const GLvoid *gl_version = NULL, *gl_renderer = NULL;
 	static boolean first_init = false;
 
-	gl_version = pglGetString(GL_VERSION);
-	gl_renderer = pglGetString(GL_RENDERER);
-	gl_extensions = pglGetString(GL_EXTENSIONS);
 	oglflags = 0;
 
 	if (!first_init)
 	{
-		GL_DBG_Printf("OpenGL %s\n", (char *)gl_version);
-		GL_DBG_Printf("GPU: %s\n", (char *)gl_renderer);
+		gl_version = pglGetString(GL_VERSION);
+		gl_renderer = pglGetString(GL_RENDERER);
+		gl_extensions = pglGetString(GL_EXTENSIONS);
+
+		GL_DBG_Printf("OpenGL %s\n", gl_version);
+		GL_DBG_Printf("GPU: %s\n", gl_renderer);
 		GL_DBG_Printf("Extensions: %s\n", gl_extensions);
 	}
 	first_init = true;

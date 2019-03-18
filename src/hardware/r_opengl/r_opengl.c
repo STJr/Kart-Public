@@ -77,6 +77,8 @@ static GLint mag_filter = GL_LINEAR;
 static GLint anisotropic_filter = 0;
 static FTransform  md2_transform;
 
+const GLubyte *gl_version = NULL;
+const GLubyte *gl_renderer = NULL;
 const GLubyte *gl_extensions = NULL;
 
 //Hurdler: 04/10/2000: added for the kick ass coronas as Boris wanted;-)
@@ -552,6 +554,10 @@ static PFNglUniform2fv pglUniform2fv;
 static PFNglUniform3fv pglUniform3fv;
 static PFNglGetUniformLocation pglGetUniformLocation;
 
+//
+// Fragment shaders
+//
+
 // Macro to reduce boilerplate code
 #define GLSL_SHARED_FOG_FUNCTION \
 	"float fog(const float dist, const float density, const float globaldensity) {\n" \
@@ -652,6 +658,40 @@ static char *fragment_shaders[] = {
 	"}\0",
 };
 
+//
+// Vertex shaders
+//
+
+// Macro to reduce boilerplate code
+#define SHARED_VERTEX_SHADER \
+	"void main()\n" \
+	"{\n" \
+		"gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;\n" \
+		"gl_FrontColor = gl_Color;\n" \
+		"gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;\n" \
+		"gl_ClipVertex = gl_ModelViewMatrix*gl_Vertex;\n" \
+	"}\0"
+
+static char *vertex_shaders[] = {
+	// Default shader
+	SHARED_VERTEX_SHADER,
+
+	// Floor shader
+	SHARED_VERTEX_SHADER,
+
+	// Wall shader
+	SHARED_VERTEX_SHADER,
+
+	// Sprite shader
+	SHARED_VERTEX_SHADER,
+
+	// Water shader
+	SHARED_VERTEX_SHADER,
+
+	// Sky shader
+	SHARED_VERTEX_SHADER,
+};
+
 #endif	// USE_SHADERS
 
 void SetupGLFunc4(void)
@@ -695,20 +735,39 @@ void SetupGLFunc4(void)
 EXPORT void HWRAPI(LoadShaders) (void)
 {
 #ifdef USE_SHADERS
-	GLuint gl_fragShader;
+	GLuint gl_vertShader, gl_fragShader;
 	GLint i, result;
 
-	for (i = 0; fragment_shaders[i]; i++)
+	for (i = 0; vertex_shaders[i] && fragment_shaders[i]; i++)
 	{
-		GLchar* shader = fragment_shaders[i];
+		GLchar* vert_shader = vertex_shaders[i];
+		GLchar* frag_shader = fragment_shaders[i];
 		if (i >= MAXSHADERS || i >= MAXSHADERPROGRAMS)
 			break;
 
+		//
+		// Load and compile vertex shader
+		//
+		gl_vertShader = gl_shaders[gl_totalshaders++] = pglCreateShader(GL_VERTEX_SHADER);
+		if (!gl_vertShader)
+			I_Error("Hardware driver: Error creating vertex shader %d", i);
+
+		pglShaderSource(gl_vertShader, 1, &vert_shader, NULL);
+		pglCompileShader(gl_vertShader);
+
+		// check for compile errors
+		pglGetShaderiv(gl_vertShader, GL_COMPILE_STATUS, &result);
+		if (result == GL_FALSE)
+			I_Error("Hardware driver: Error compiling vertex shader %d", i);
+
+		//
+		// Load and compile fragment shader
+		//
 		gl_fragShader = gl_shaders[gl_totalshaders++] = pglCreateShader(GL_FRAGMENT_SHADER);
 		if (!gl_fragShader)
 			I_Error("Hardware driver: Error creating fragment shader %d", i);
 
-		pglShaderSource(gl_fragShader, 1, &shader, NULL);
+		pglShaderSource(gl_fragShader, 1, &frag_shader, NULL);
 		pglCompileShader(gl_fragShader);
 
 		// check for compile errors
@@ -717,6 +776,7 @@ EXPORT void HWRAPI(LoadShaders) (void)
 			I_Error("Hardware driver: Error compiling fragment shader %d", i);
 
 		gl_shaderprograms[i] = pglCreateProgram();
+		pglAttachShader(gl_shaderprograms[i], gl_vertShader);
 		pglAttachShader(gl_shaderprograms[i], gl_fragShader);
 		pglLinkProgram(gl_shaderprograms[i]);
 
@@ -1863,6 +1923,12 @@ EXPORT void HWRAPI(CreateModelVBOs) (model_t *model)
 }
 
 // Macro to
+
+// Macro to what? Why isn't this comment finished?
+// Did I accidentally delete the rest of the line?
+// Did it decide it didn't want to be part of the code anymore?
+// Did the macro hurt its feelings?
+
 #define BUFFER_OFFSET(i) ((void*)(i))
 
 static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 tics, INT32 nextFrameIndex, FTransform *pos, float scale, UINT8 flipped, FSurfaceInfo *Surface)
