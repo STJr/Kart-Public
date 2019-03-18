@@ -89,14 +89,29 @@ typedef struct
 
 //Hurdler: Transform (coords + angles)
 //BP: transform order : scale(rotation_x(rotation_y(translation(v))))
+
+// Kart features
+//#define USE_FTRANSFORM_ANGLEZ
+//#define USE_FTRANSFORM_MIRROR
+
+// Vanilla features
+#define USE_MODEL_NEXTFRAME
+
 typedef struct
 {
 	FLOAT       x,y,z;           // position
+#ifdef USE_FTRANSFORM_ANGLEZ
+	FLOAT       anglex,angley,anglez;   // aimingangle / viewangle
+#else
 	FLOAT       anglex,angley;   // aimingangle / viewangle
+#endif
 	FLOAT       scalex,scaley,scalez;
 	FLOAT       fovxangle, fovyangle;
-	INT32       splitscreen;
+	UINT8       splitscreen;
 	boolean     flip;            // screenflip
+#ifdef USE_FTRANSFORM_MIRROR
+	boolean     mirror;          // SRB2Kart: Encore Mode
+#endif
 } FTransform;
 
 // Transformed vector, as passed to HWR API
@@ -107,14 +122,6 @@ typedef struct
 	FLOAT       tow;            // t texture ordinate (t over w)
 	FUINT       argb;           // flat-shaded color
 } FOutVector;
-
-// jimita
-typedef struct
-{
-	float       vx, vy, vz;
-	float       nx, ny, nz;
-	float       s, t;
-} FOutVectorMD2;
 
 // ==========================================================================
 //                                                               RENDER MODES

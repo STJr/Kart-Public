@@ -88,7 +88,8 @@ void *hwSym(const char *funcName,void *handle)
 	GETFUNC(ClearMipMapCache);
 	GETFUNC(SetSpecialState);
 	GETFUNC(GetTextureUsed);
-	GETFUNC(DrawMD2);
+	GETFUNC(DrawModel);
+	GETFUNC(CreateModelVBOs);
 	GETFUNC(SetTransform);
 	GETFUNC(GetRenderVersion);
 	GETFUNC(PostImgRedraw);

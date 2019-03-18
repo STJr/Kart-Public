@@ -411,6 +411,19 @@ boolean FV3_Equal(const vector3_t *a_1, const vector3_t *a_2)
 	return false;
 }
 
+// ClosestPointOnVector
+//
+// Similar to ClosestPointOnLine, but uses a vector instead of two points.
+//
+void FV3_ClosestPointOnVector(const vector3_t *dir, const vector3_t *p, vector3_t *out)
+{
+	fixed_t t = FV3_Dot(dir, p);
+
+	// Return the point on the line closest
+	FV3_MulEx(dir, t, out);
+	return;
+}
+
 fixed_t FV3_Dot(const vector3_t *a_1, const vector3_t *a_2)
 {
 	return (FixedMul(a_1->x, a_2->x) + FixedMul(a_1->y, a_2->y) + FixedMul(a_1->z, a_2->z));
@@ -519,7 +532,7 @@ vector3_t *FV3_Point2Vec (const vector3_t *point1, const vector3_t *point2, vect
 //
 // Calculates the normal of a polygon.
 //
-void FV3_Normal (const vector3_t *a_triangle, vector3_t *a_normal)
+fixed_t FV3_Normal (const vector3_t *a_triangle, vector3_t *a_normal)
 {
 	vector3_t a_1;
 	vector3_t a_2;
@@ -529,7 +542,28 @@ void FV3_Normal (const vector3_t *a_triangle, vector3_t *a_normal)
 
 	FV3_Cross(&a_1, &a_2, a_normal);
 
-	FV3_NormalizeEx(a_normal, a_normal);
+	return FV3_NormalizeEx(a_normal, a_normal);
+}
+
+//
+// Strength
+//
+// Measures the 'strength' of a vector in a particular direction.
+//
+fixed_t FV3_Strength(const vector3_t *a_1, const vector3_t *dir)
+{
+	vector3_t normal;
+	fixed_t dist = FV3_NormalizeEx(a_1, &normal);
+	fixed_t dot = FV3_Dot(&normal, dir);
+
+	FV3_ClosestPointOnVector(dir, a_1, &normal);
+
+	dist = FV3_Magnitude(&normal);
+
+	if (dot < 0) // Not facing same direction, so negate result.
+		dist = -dist;
+
+	return dist;
 }
 
 //
