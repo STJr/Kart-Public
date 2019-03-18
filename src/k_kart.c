@@ -2546,13 +2546,13 @@ void K_SpawnKartExplosion(fixed_t x, fixed_t y, fixed_t z, fixed_t radius, INT32
 // Spawns the purely visual explosion
 void K_SpawnMineExplosion(mobj_t *source, UINT8 color)
 {
-	INT32 i, radius, height;
-	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
-	K_MatchGenericExtraFlags(smoldering, source);
-
 	mobj_t *dust;
 	mobj_t *truc;
 	INT32 speed, speed2;
+
+	INT32 i, radius, height;
+	mobj_t *smoldering = P_SpawnMobj(source->x, source->y, source->z, MT_SMOLDERING);
+	K_MatchGenericExtraFlags(smoldering, source);
 
 	smoldering->tics = TICRATE*3;
 	radius = source->radius>>FRACBITS;
