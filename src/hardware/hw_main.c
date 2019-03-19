@@ -353,12 +353,6 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 	if (nrPlaneVerts < 3)   //not even a triangle ?
 		return;
 
-	if (nrPlaneVerts > UINT16_MAX) // FIXME: exceeds plVerts size
-	{
-		CONS_Debug(DBG_RENDER, "polygon size of %d exceeds max value of %d vertices\n", nrPlaneVerts, UINT16_MAX);
-		return;
-	}
-
 	// Allocate plane-vertex buffer if we need to
 	if (!planeVerts || nrPlaneVerts > numAllocedPlaneVerts)
 	{
@@ -505,7 +499,7 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 
 	HWD.pfnSetShader(1);	// jimita: floor shader
 	if (PolyFlags & PF_Ripple)
-		HWD.pfnSetShader(4);	// jimita: water shader
+		HWD.pfnSetShader(5);	// jimita: water shader
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, PolyFlags);
 }
 
@@ -5206,7 +5200,7 @@ static void HWR_DrawSkyBackground(void)
 		v[0].tow = v[1].tow -= ((float) angle / angleturn);
 	}
 
-	HWD.pfnSetShader(5);	// jimita: sky shader
+	HWD.pfnSetShader(6);	// jimita: sky shader
 	HWD.pfnDrawPolygon(NULL, v, 4, 0);
 	HWD.pfnSetShader(0);	// jimita
 }
@@ -5940,6 +5934,12 @@ void HWR_MakeScreenFinalTexture(void)
 void HWR_DrawScreenFinalTexture(int width, int height)
 {
     HWD.pfnDrawScreenFinalTexture(width, height);
+}
+
+// jimita 18032019
+void HWR_LoadShader(int number, char *shader, size_t size, boolean fragment)
+{
+	HWD.pfnLoadCustomShader(number, shader, size, fragment);
 }
 
 #endif // HWRENDER

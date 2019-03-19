@@ -514,10 +514,15 @@ static boolean gl_shadersenabled = false;
 static GLuint gl_currentshaderprogram = 0;
 static GLuint gl_shaderprograms[MAXSHADERPROGRAMS];
 
+// 18032019
+static char *gl_customvertexshaders[MAXSHADERS];
+static char *gl_customfragmentshaders[MAXSHADERS];
+
 typedef GLuint 	(APIENTRY *PFNglCreateShader)		(GLenum);
 typedef void 	(APIENTRY *PFNglShaderSource)		(GLuint, GLsizei, const GLchar**, GLint*);
 typedef void 	(APIENTRY *PFNglCompileShader)		(GLuint);
 typedef void 	(APIENTRY *PFNglGetShaderiv)		(GLuint, GLenum, GLint*);
+typedef void 	(APIENTRY *PFNglGetShaderInfoLog)	(GLuint, GLsizei, GLsizei*, GLchar*);
 typedef void 	(APIENTRY *PFNglDeleteShader)		(GLuint);
 typedef GLuint 	(APIENTRY *PFNglCreateProgram)		(void);
 typedef void 	(APIENTRY *PFNglAttachShader)		(GLuint, GLuint);
@@ -538,6 +543,7 @@ static PFNglCreateShader pglCreateShader;
 static PFNglShaderSource pglShaderSource;
 static PFNglCompileShader pglCompileShader;
 static PFNglGetShaderiv pglGetShaderiv;
+static PFNglGetShaderInfoLog pglGetShaderInfoLog;
 static PFNglDeleteShader pglDeleteShader;
 static PFNglCreateProgram pglCreateProgram;
 static PFNglAttachShader pglAttachShader;
@@ -603,7 +609,7 @@ static PFNglGetUniformLocation pglGetUniformLocation;
 	"}\0"
 
 static const char *fragment_shaders[] = {
-	// Default shader
+	// Default fragment shader
 	"uniform sampler2D tex;\n"
 	"uniform vec4 mix_color;\n"
 	"void main(void) {\n"
@@ -612,48 +618,27 @@ static const char *fragment_shaders[] = {
 		"gl_FragColor = mixed_color;\n"
 	"}\0",
 
-	// Floor shader
+	// Floor fragment shader
 	SHARED_FRAGMENT_SHADER,
 
-	// Wall shader
+	// Wall fragment shader
 	SHARED_FRAGMENT_SHADER,
 
-	// Sprite shader
+	// Sprite fragment shader
 	SHARED_FRAGMENT_SHADER,
 
-	// Water shader
-	"uniform sampler2D tex;\n"
-	"uniform vec4 mix_color;\n"
-	"uniform vec4 fade_color;\n"
-	"uniform float lighting;\n"
-	"uniform int fog_mode;\n"
-	"uniform int fog_density;\n"
-	"uniform float leveltime;\n"
+	// Model fragment shader
+	SHARED_FRAGMENT_SHADER,
 
-	GLSL_SHARED_FOG_FUNCTION
+	// Water fragment shader
+	SHARED_FRAGMENT_SHADER,
 
-	"void main(void) {\n"
-		"float texU = gl_TexCoord[0].s;\n"
-		"float texV = gl_TexCoord[0].t;\n"
-		"float wtofs = leveltime/16;\n"
-		"float pi = 3.14159265358979323846;\n"
-		"texU += cos(pi * 2.0 * (texV/4 + wtofs * 0.125)) * 0.3;\n"
-		"texV += sin(pi * 2.0 * (texV/6 + wtofs * 0.125)) * 0.4;\n"
-		"vec4 color = texture2D(tex, vec2(texU, texV));\n"
-
-		GLSL_SHARED_FOG_MIX
-
-		"gl_FragColor = final_color;\n"
-	"}\0",
-
-	// Sky shader
+	// Sky fragment shader
 	"uniform sampler2D tex;\n"
 	"uniform vec2 resolution;\n"
 	"void main(void) {\n"
 		"float texU = gl_TexCoord[0].s;\n"
 		"float texV = gl_TexCoord[0].t;\n"
-		//"float scale = abs(gl_FragCoord.x - (resolution.x/2.0));\n"
-		//"scale /= resolution.x;\n"
 		"gl_FragColor = texture2D(tex, vec2(texU, texV));\n"
 	"}\0",
 };
@@ -663,7 +648,7 @@ static const char *fragment_shaders[] = {
 //
 
 // Macro to reduce boilerplate code
-#define SHARED_VERTEX_SHADER \
+#define DEFAULT_VERTEX_SHADER \
 	"void main()\n" \
 	"{\n" \
 		"gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;\n" \
@@ -673,23 +658,26 @@ static const char *fragment_shaders[] = {
 	"}\0"
 
 static const char *vertex_shaders[] = {
-	// Default shader
-	SHARED_VERTEX_SHADER,
+	// Default vertex shader
+	DEFAULT_VERTEX_SHADER,
 
-	// Floor shader
-	SHARED_VERTEX_SHADER,
+	// Floor vertex shader
+	DEFAULT_VERTEX_SHADER,
 
-	// Wall shader
-	SHARED_VERTEX_SHADER,
+	// Wall vertex shader
+	DEFAULT_VERTEX_SHADER,
 
-	// Sprite shader
-	SHARED_VERTEX_SHADER,
+	// Sprite vertex shader
+	DEFAULT_VERTEX_SHADER,
 
-	// Water shader
-	SHARED_VERTEX_SHADER,
+	// Model vertex shader
+	DEFAULT_VERTEX_SHADER,
 
-	// Sky shader
-	SHARED_VERTEX_SHADER,
+	// Water vertex shader
+	DEFAULT_VERTEX_SHADER,
+
+	// Sky vertex shader
+	DEFAULT_VERTEX_SHADER,
 };
 
 #endif	// USE_SHADERS
@@ -710,6 +698,7 @@ void SetupGLFunc4(void)
 	pglShaderSource = GetGLFunc("glShaderSource");
 	pglCompileShader = GetGLFunc("glCompileShader");
 	pglGetShaderiv = GetGLFunc("glGetShaderiv");
+	pglGetShaderInfoLog = GetGLFunc("glGetShaderInfoLog");
 	pglDeleteShader = GetGLFunc("glDeleteShader");
 	pglCreateProgram = GetGLFunc("glCreateProgram");
 	pglAttachShader = GetGLFunc("glAttachShader");
@@ -742,6 +731,14 @@ EXPORT void HWRAPI(LoadShaders) (void)
 	{
 		const GLchar* vert_shader = vertex_shaders[i];
 		const GLchar* frag_shader = fragment_shaders[i];
+
+		// 18032019
+		if (gl_customvertexshaders[i])
+			vert_shader = gl_customvertexshaders[i];
+
+		if (gl_customfragmentshaders[i])
+			frag_shader = gl_customfragmentshaders[i];
+
 		if (i >= MAXSHADERS || i >= MAXSHADERPROGRAMS)
 			break;
 
@@ -758,7 +755,17 @@ EXPORT void HWRAPI(LoadShaders) (void)
 		// check for compile errors
 		pglGetShaderiv(gl_vertShader, GL_COMPILE_STATUS, &result);
 		if (result == GL_FALSE)
-			I_Error("Hardware driver: Error compiling vertex shader %d", i);
+		{
+			GLchar* infoLog;
+			GLint logLength;
+
+			pglGetShaderiv(gl_vertShader, GL_INFO_LOG_LENGTH, &logLength);
+
+			infoLog = malloc(logLength);
+			pglGetShaderInfoLog(gl_vertShader, logLength, NULL, infoLog);
+
+			I_Error("Hardware driver: Error compiling vertex shader %d\n%s", i, infoLog);
+		}
 
 		//
 		// Load and compile fragment shader
@@ -773,7 +780,17 @@ EXPORT void HWRAPI(LoadShaders) (void)
 		// check for compile errors
 		pglGetShaderiv(gl_fragShader, GL_COMPILE_STATUS, &result);
 		if (result == GL_FALSE)
-			I_Error("Hardware driver: Error compiling fragment shader %d", i);
+		{
+			GLchar* infoLog;
+			GLint logLength;
+
+			pglGetShaderiv(gl_fragShader, GL_INFO_LOG_LENGTH, &logLength);
+
+			infoLog = malloc(logLength);
+			pglGetShaderInfoLog(gl_fragShader, logLength, NULL, infoLog);
+
+			I_Error("Hardware driver: Error compiling fragment shader %d\n%s", i, infoLog);
+		}
 
 		gl_shaderprograms[i] = pglCreateProgram();
 		pglAttachShader(gl_shaderprograms[i], gl_vertShader);
@@ -785,6 +802,33 @@ EXPORT void HWRAPI(LoadShaders) (void)
 		if (result != GL_TRUE)
 			I_Error("Hardware driver: Error linking shader program %d", i);
 	}
+#endif
+}
+
+EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment)
+{
+#ifdef USE_SHADERS
+	(void)shader;
+	(void)size;
+	(void)fragment;
+	if (number < 1 || number > MAXSHADERS)
+		I_Error("LoadCustomShader(): cannot load shader %d (max %d)", number, MAXSHADERS);
+
+	if (fragment)
+	{
+		gl_customfragmentshaders[number] = malloc(size+1);
+		strncpy(gl_customfragmentshaders[number], shader, size);
+		gl_customfragmentshaders[number][size] = 0;
+	}
+	else
+	{
+		gl_customvertexshaders[number] = malloc(size+1);
+		strncpy(gl_customvertexshaders[number], shader, size);
+		gl_customvertexshaders[number][size] = 0;
+	}
+
+	KillShaders();
+	LoadShaders();
 #endif
 }
 

@@ -860,7 +860,7 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, con
 
 // -----------------+
 // HWR_DrawMD2      : Draw MD2
-//                  : (monsters, bonuses, weapons, lights, ...)
+//                  :
 // Returns          :
 // -----------------+
 
@@ -1096,6 +1096,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		p.mirror = atransform.mirror; // from Kart
 #endif
 
+		HWD.pfnSetShader(4);	// jimita: model shader
 		HWD.pfnDrawModel(md2->model, frame, durs, tics, nextFrame, &p, finalscale, flip, &Surf);
 	}
 }

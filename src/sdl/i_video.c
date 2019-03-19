@@ -1505,6 +1505,8 @@ void I_StartupGraphics(void)
 		HWD.pfnSetShader = hwSym("SetShader",NULL);
 		HWD.pfnUnSetShader = hwSym("UnSetShader",NULL);
 
+		HWD.pfnLoadCustomShader = hwSym("LoadCustomShader",NULL);
+
 		// check gl renderer lib
 		if (HWD.pfnGetRenderVersion() != VERSION)
 			I_Error("%s", M_GetText("The version of the renderer doesn't match the version of the executable\nBe sure you have installed SRB2 properly.\n"));
