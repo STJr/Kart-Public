@@ -5995,6 +5995,13 @@ void HWR_LoadShaders(UINT16 wadnum, boolean PK3)
 	stoken = strtok(line, "\r\n ");
 	while (stoken)
 	{
+		if ((stoken[0] == '/' && stoken[1] == '/')
+			|| (stoken[0] == '#'))// skip comments
+		{
+			stoken = strtok(NULL, "\r\n");
+			goto skip_field;
+		}
+
 		if (!stricmp(stoken, "GLSL"))
 		{
 			value = strtok(NULL, "\r\n ");
@@ -6019,14 +6026,14 @@ skip_lump:
 			value = strtok(NULL, "\r\n= ");
 			if (!value)
 			{
-				CONS_Alert(CONS_WARNING, "HWR_LoadShaders: Missing shader source (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
+				CONS_Alert(CONS_WARNING, "HWR_LoadShaders: Missing shader target (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
 				stoken = strtok(NULL, "\r\n"); // skip end of line
 				goto skip_field;
 			}
 
 			if (!shadertype)
 			{
-				CONS_Alert(CONS_ERROR, "HWR_LoadShaders: Missing shader target (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
+				CONS_Alert(CONS_ERROR, "HWR_LoadShaders: Missing shader type (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
 				Z_Free(line);
 				return;
 			}
