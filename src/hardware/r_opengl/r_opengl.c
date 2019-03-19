@@ -808,9 +808,6 @@ EXPORT void HWRAPI(LoadShaders) (void)
 EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment)
 {
 #ifdef USE_SHADERS
-	(void)shader;
-	(void)size;
-	(void)fragment;
 	if (number < 1 || number > MAXSHADERS)
 		I_Error("LoadCustomShader(): cannot load shader %d (max %d)", number, MAXSHADERS);
 
