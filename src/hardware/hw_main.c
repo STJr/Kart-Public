@@ -5937,9 +5937,139 @@ void HWR_DrawScreenFinalTexture(int width, int height)
 }
 
 // jimita 18032019
-void HWR_LoadShader(int number, char *shader, size_t size, boolean fragment)
+typedef struct
 {
-	HWD.pfnLoadCustomShader(number, shader, size, fragment);
+	char type[16];
+	INT32 id;
+} shaderxlat_t;
+
+static inline UINT16 HWR_CheckShader(UINT16 wadnum)
+{
+	UINT16 i;
+	lumpinfo_t *lump_p;
+
+	lump_p = wadfiles[wadnum]->lumpinfo;
+	for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lump_p++)
+		if (memcmp(lump_p->name, "SHADERS", 7) == 0)
+			return i;
+
+	return INT16_MAX;
+}
+
+void HWR_LoadShaders(UINT16 wadnum)
+{
+	UINT16 lump;
+	char *shaderdef, *line;
+	char *stoken;
+	char *value;
+	size_t size;
+	int linenum = 1;
+	int shadertype = 0;
+	int i;
+
+	#define SHADER_TYPES 6
+	shaderxlat_t shaderxlat[SHADER_TYPES] =
+	{
+		{"Flat", 1},
+		{"WallTexture", 2},
+		{"Sprite", 3},
+		{"Model", 4},
+		{"WaterRipple", 5},
+		{"Sky", 6},
+	};
+
+	lump = HWR_CheckShader(wadnum);
+	if (lump == INT16_MAX)
+		return;
+
+	shaderdef = W_CacheLumpNumPwad(wadnum, lump, PU_CACHE);
+	size = W_LumpLengthPwad(wadnum, lump);
+
+	line = Z_Malloc(size+1, PU_STATIC, NULL);
+	if (!line)
+		I_Error("HWR_LoadShaders: No more free memory\n");
+
+	M_Memcpy(line, shaderdef, size);
+	line[size] = '\0';
+
+	stoken = strtok(line, "\r\n ");
+	while (stoken)
+	{
+		if (!stricmp(stoken, "GLSL"))
+		{
+			value = strtok(NULL, "\r\n ");
+			if (!value)
+			{
+				CONS_Alert(CONS_WARNING, "HWR_LoadShaders: Missing shader type (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
+				stoken = strtok(NULL, "\r\n"); // skip end of line
+				goto skip_lump;
+			}
+
+			if (!stricmp(value, "VERTEX"))
+				shadertype = 1;
+			else if (!stricmp(value, "FRAGMENT"))
+				shadertype = 2;
+
+skip_lump:
+			stoken = strtok(NULL, "\r\n ");
+			linenum++;
+		}
+		else
+		{
+			value = strtok(NULL, "\r\n= ");
+			if (!value)
+			{
+				CONS_Alert(CONS_WARNING, "HWR_LoadShaders: Missing shader source (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
+				stoken = strtok(NULL, "\r\n"); // skip end of line
+				goto skip_field;
+			}
+
+			if (!shadertype)
+			{
+				CONS_Alert(CONS_ERROR, "HWR_LoadShaders: Missing shader target (file %s, line %d)\n", wadfiles[wadnum]->filename, linenum);
+				Z_Free(line);
+				return;
+			}
+
+			for (i = 0; i < SHADER_TYPES; i++)
+			{
+				if (!stricmp(shaderxlat[i].type, stoken))
+				{
+					size_t shader_size;
+					char *shader_source;
+					char shader_lumpname[9];
+					UINT16 shader_lumpnum;
+
+					strcpy(shader_lumpname, "SH_");
+					strcat(shader_lumpname, value);
+					shader_lumpnum = W_CheckNumForNamePwad(shader_lumpname, wadnum, 0);
+
+					if (shader_lumpnum == INT16_MAX)
+					{
+						CONS_Alert(CONS_ERROR, "HWR_LoadShaders: Missing shader source %s (file %s, line %d)\n", shader_lumpname, wadfiles[wadnum]->filename, linenum);
+						break;
+					}
+
+					shader_size = W_LumpLengthPwad(wadnum, shader_lumpnum);
+					shader_source = Z_Malloc(shader_size, PU_STATIC, NULL);
+					W_ReadLumpPwad(wadnum, shader_lumpnum, shader_source);
+
+					HWD.pfnLoadCustomShader(shaderxlat[i].id, shader_source, shader_size, (shadertype == 2));
+
+					Z_Free(shader_source);
+				}
+			}
+
+skip_field:
+			stoken = strtok(NULL, "\r\n= ");
+			linenum++;
+		}
+	}
+
+	HWD.pfnInitCustomShaders();
+
+	Z_Free(line);
+	return;
 }
 
 #endif // HWRENDER

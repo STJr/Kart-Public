@@ -77,6 +77,7 @@ EXPORT void HWRAPI(SetShader) (int shader);
 EXPORT void HWRAPI(UnSetShader) (void);
 
 EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment);
+EXPORT void HWRAPI(InitCustomShaders) (void);
 
 // ==========================================================================
 //                                      HWR DRIVER OBJECT, FOR CLIENT PROGRAM
@@ -126,6 +127,7 @@ struct hwdriver_s
 	UnSetShader pfnUnSetShader;
 
 	LoadCustomShader pfnLoadCustomShader;
+	InitCustomShaders pfnInitCustomShaders;
 };
 
 extern struct hwdriver_s hwdriver;

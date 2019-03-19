@@ -823,7 +823,12 @@ EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boo
 		strncpy(gl_customvertexshaders[number], shader, size);
 		gl_customvertexshaders[number][size] = 0;
 	}
+#endif
+}
 
+EXPORT void HWRAPI(InitCustomShaders) (void)
+{
+#ifdef USE_SHADERS
 	KillShaders();
 	LoadShaders();
 #endif

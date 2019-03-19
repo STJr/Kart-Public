@@ -181,24 +181,6 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 	return handle;
 }
 
-static inline void W_LoadShader(UINT16 wadnum, UINT16 lump, char *name, boolean fragment)
-{
-	size_t shader_size;
-	char *shader_string;
-	char shader_number[2];
-
-	shader_size = W_LumpLengthPwad(wadnum, lump);
-	shader_string = Z_Malloc(shader_size, PU_STATIC, NULL);
-	W_ReadLumpPwad(wadnum, lump, shader_string);
-
-	shader_number[0] = name[6];
-	shader_number[1] = name[7];
-
-	HWR_LoadShader(atoi(shader_number), shader_string, shader_size, fragment);
-
-	Z_Free(shader_string);
-}
-
 // Look for all DEHACKED and Lua scripts inside a PK3 archive.
 static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 {
@@ -231,21 +213,6 @@ static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 			free(name);
 		}
 	}
-
-	// jimita 18032019
-#ifdef HWRENDER
-	posStart = W_CheckNumForFolderStartPK3("Shaders/", wadnum, 0);
-	if (posStart != INT16_MAX)
-	{
-		posEnd = W_CheckNumForFolderEndPK3("Shaders/", wadnum, posStart);
-		posStart++;
-		for (; posStart < posEnd; posStart++)
-		{
-			lumpinfo_t *lump_p = &wadfiles[wadnum]->lumpinfo[posStart];
-			W_LoadShader(wadnum, posStart, lump_p->name2, !(memcmp(lump_p->name2,"FRGSHD",6)));
-		}
-	}
-#endif
 }
 
 // search for all DEHACKED lump in all wads and load it
@@ -288,20 +255,6 @@ static inline void W_LoadDehackedLumps(UINT16 wadnum)
 				DEH_LoadDehackedLumpPwad(wadnum, lump);
 			}
 	}
-
-	// jimita 18032019
-#ifdef HWRENDER
-	{
-		lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo;
-		for (lump = 0; lump < wadfiles[wadnum]->numlumps; lump++, lump_p++)
-		{
-			boolean vertex = (!(memcmp(lump_p->name,"VRTSHD",6)));
-			boolean fragment = (!(memcmp(lump_p->name,"FRGSHD",6)));
-			if (vertex || fragment)
-				W_LoadShader(wadnum, lump, lump_p->name, fragment);
-		}
-	}
-#endif
 
 #ifdef SCANTHINGS
 	// Scan maps for emblems 'n shit
@@ -827,6 +780,11 @@ UINT16 W_InitFile(const char *filename)
 	CONS_Printf(M_GetText("Added file %s (%u lumps)\n"), filename, numlumps);
 	wadfiles[numwadfiles] = wadfile;
 	numwadfiles++; // must come BEFORE W_LoadDehackedLumps, so any addfile called by COM_BufInsertText called by Lua doesn't overwrite what we just loaded
+
+#ifdef HWRENDER
+	if (rendermode == render_opengl)
+		HWR_LoadShaders(numwadfiles - 1);
+#endif
 
 	// TODO: HACK ALERT - Load Lua & SOC stuff right here. I feel like this should be out of this place, but... Let's stick with this for now.
 	switch (wadfile->type)
@@ -1741,8 +1699,7 @@ int W_VerifyNMUSlumps(const char *filename)
 		{"PAL", 3},
 		{"CLM", 3},
 		{"TRANS", 5},
-		{"VRTSHD", 6},
-		{"FRGSHD", 6},
+		{"SH_", 3},
 		{NULL, 0},
 	};
 	return W_VerifyFile(filename, NMUSlist, false);

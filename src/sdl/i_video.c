@@ -1506,6 +1506,7 @@ void I_StartupGraphics(void)
 		HWD.pfnUnSetShader = hwSym("UnSetShader",NULL);
 
 		HWD.pfnLoadCustomShader = hwSym("LoadCustomShader",NULL);
+		HWD.pfnInitCustomShaders = hwSym("InitCustomShaders",NULL);
 
 		// check gl renderer lib
 		if (HWD.pfnGetRenderVersion() != VERSION)
