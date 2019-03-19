@@ -5956,7 +5956,7 @@ static inline UINT16 HWR_CheckShader(UINT16 wadnum)
 	return INT16_MAX;
 }
 
-void HWR_LoadShaders(UINT16 wadnum)
+void HWR_LoadShaders(UINT16 wadnum, boolean PK3)
 {
 	UINT16 lump;
 	char *shaderdef, *line;
@@ -6037,17 +6037,29 @@ skip_lump:
 				{
 					size_t shader_size;
 					char *shader_source;
-					char shader_lumpname[9];
+					char *shader_lumpname;
 					UINT16 shader_lumpnum;
 
-					strcpy(shader_lumpname, "SH_");
-					strcat(shader_lumpname, value);
-					shader_lumpnum = W_CheckNumForNamePwad(shader_lumpname, wadnum, 0);
+					if (PK3)
+					{
+						shader_lumpname = Z_Malloc(strlen(value) + 12, PU_STATIC, NULL);
+						strcpy(shader_lumpname, "Shaders/sh_");
+						strcat(shader_lumpname, value);
+						shader_lumpnum = W_CheckNumForFullNamePK3(shader_lumpname, wadnum, 0);
+					}
+					else
+					{
+						shader_lumpname = Z_Malloc(strlen(value) + 4, PU_STATIC, NULL);
+						strcpy(shader_lumpname, "SH_");
+						strcat(shader_lumpname, value);
+						shader_lumpnum = W_CheckNumForNamePwad(shader_lumpname, wadnum, 0);
+					}
 
 					if (shader_lumpnum == INT16_MAX)
 					{
 						CONS_Alert(CONS_ERROR, "HWR_LoadShaders: Missing shader source %s (file %s, line %d)\n", shader_lumpname, wadfiles[wadnum]->filename, linenum);
-						break;
+						Z_Free(shader_lumpname);
+						continue;
 					}
 
 					shader_size = W_LumpLengthPwad(wadnum, shader_lumpnum);
@@ -6057,6 +6069,7 @@ skip_lump:
 					HWD.pfnLoadCustomShader(shaderxlat[i].id, shader_source, shader_size, (shadertype == 2));
 
 					Z_Free(shader_source);
+					Z_Free(shader_lumpname);
 				}
 			}
 

@@ -783,7 +783,7 @@ UINT16 W_InitFile(const char *filename)
 
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
-		HWR_LoadShaders(numwadfiles - 1);
+		HWR_LoadShaders(numwadfiles - 1, (wadfile->type == RET_PK3));
 #endif
 
 	// TODO: HACK ALERT - Load Lua & SOC stuff right here. I feel like this should be out of this place, but... Let's stick with this for now.
@@ -1699,7 +1699,10 @@ int W_VerifyNMUSlumps(const char *filename)
 		{"PAL", 3},
 		{"CLM", 3},
 		{"TRANS", 5},
+#ifdef HWRENDER
+		{"SHADERS", 7},
 		{"SH_", 3},
+#endif
 		{NULL, 0},
 	};
 	return W_VerifyFile(filename, NMUSlist, false);

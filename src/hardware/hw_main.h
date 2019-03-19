@@ -65,7 +65,7 @@ void HWR_DrawIntermissionBG(void);
 void HWR_DoWipe(UINT8 wipenum, UINT8 scrnnum);
 void HWR_MakeScreenFinalTexture(void);
 void HWR_DrawScreenFinalTexture(int width, int height);
-void HWR_LoadShaders(UINT16 wadnum);
+void HWR_LoadShaders(UINT16 wadnum, boolean PK3);
 
 // This stuff is put here so MD2's can use them
 void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor);
