@@ -700,6 +700,8 @@ void P_Ticker(boolean run)
 
 		if (indirectitemcooldown)
 			indirectitemcooldown--;
+		if (hyubgone)
+			hyubgone--;
 
 		if (G_BattleGametype())
 		{

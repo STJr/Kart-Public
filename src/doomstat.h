@@ -57,7 +57,6 @@ extern boolean modifiedgame;
 extern boolean majormods;
 extern UINT16 mainwads;
 extern boolean savemoddata; // This mod saves time/emblem data.
-extern boolean disableSpeedAdjust; // Don't alter the duration of player states if true
 extern boolean imcontinuing; // Temporary flag while continuing
 extern boolean metalrecording;
 
@@ -468,6 +467,7 @@ extern boolean comeback;
 extern SINT8 battlewanted[4];
 extern tic_t wantedcalcdelay;
 extern tic_t indirectitemcooldown;
+extern tic_t hyubgone;
 extern tic_t mapreset;
 extern UINT8 nospectategrief;
 extern boolean thwompsactive;

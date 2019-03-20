@@ -172,6 +172,7 @@ static void Got_Verification(UINT8 **cp, INT32 playernum);
 static void Got_Removal(UINT8 **cp, INT32 playernum);
 static void Command_Verify_f(void);
 static void Command_RemoveAdmin_f(void);
+static void Command_ChangeJoinPassword_f(void);
 static void Command_MotD_f(void);
 static void Got_MotD_f(UINT8 **cp, INT32 playernum);
 
@@ -381,6 +382,7 @@ consvar_t cv_kartdebughuddrop = {"kartdebughuddrop", "Off", CV_NETVAR|CV_CHEAT|C
 
 consvar_t cv_kartdebugcheckpoint = {"kartdebugcheckpoint", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartdebugnodes = {"kartdebugnodes", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugcolorize = {"kartdebugcolorize", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -438,6 +440,14 @@ consvar_t cv_jointimeout = {"jointimeout", "105", CV_CALL|CV_SAVE, nettimeout_co
 #ifdef NEWPING
 static CV_PossibleValue_t maxping_cons_t[] = {{0, "MIN"}, {1000, "MAX"}, {0, NULL}};
 consvar_t cv_maxping = {"maxping", "800", CV_SAVE, maxping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+static CV_PossibleValue_t pingtimeout_cons_t[] = {{8, "MIN"}, {120, "MAX"}, {0, NULL}};
+consvar_t cv_pingtimeout = {"pingtimeout", "10", CV_SAVE, pingtimeout_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// show your ping on the HUD next to framerate. Defaults to warning only (shows up if your ping is > maxping)
+static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "Warning"}, {0, NULL}};
+consvar_t cv_showping = {"showping", "Always", CV_SAVE, showping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 #endif
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
@@ -528,6 +538,8 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
+	CV_RegisterVar(&cv_dummyjoinpassword);
+	COM_AddCommand("joinpassword", Command_ChangeJoinPassword_f);
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
 	COM_AddCommand("login", Command_Login_f); // useful in dedicated to kick off remote admin
@@ -667,6 +679,8 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_sleep);
 #ifdef NEWPING
 	CV_RegisterVar(&cv_maxping);
+	CV_RegisterVar(&cv_pingtimeout);
+	CV_RegisterVar(&cv_showping);
 #endif
 
 #ifdef SEENAMES
@@ -819,6 +833,8 @@ void D_RegisterClientCommands(void)
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 	//CV_RegisterVar(&cv_chasefreelook);
 	//CV_RegisterVar(&cv_chasefreelook2);
+	CV_RegisterVar(&cv_showfocuslost);
+	CV_RegisterVar(&cv_pauseifunfocused);
 
 	// g_input.c
 	CV_RegisterVar(&cv_turnaxis);
@@ -3634,6 +3650,7 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 
 	if (len > 256-sl)
 		len = 256-sl;
+
 	memcpy(tmpbuf, buffer, len);
 	memmove(&tmpbuf[len], salt, sl);
 	//strcpy(&tmpbuf[len], salt);
@@ -3647,7 +3664,7 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 }
 
 #define BASESALT "basepasswordstorage"
-static UINT8 adminpassmd5[16];
+static UINT8 adminpassmd5[MD5_LEN];
 static boolean adminpasswordset = false;
 
 void D_SetPassword(const char *pw)
@@ -3686,7 +3703,7 @@ static void Command_Login_f(void)
 	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
 	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
 #else
-	XBOXSTATIC UINT8 finalmd5[16];
+	XBOXSTATIC UINT8 finalmd5[MD5_LEN];
 	const char *pw;
 
 	if (!netgame)
@@ -3709,11 +3726,11 @@ static void Command_Login_f(void)
 	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &finalmd5);
 
 	// Do the final pass to get the comparison the server will come up with
-	D_MD5PasswordPass(finalmd5, 16, va("PNUM%02d", consoleplayer), &finalmd5);
+	D_MD5PasswordPass(finalmd5, MD5_LEN, va("PNUM%02d", consoleplayer), &finalmd5);
 
 	CONS_Printf(M_GetText("Sending login... (Notice only given if password is correct.)\n"));
 
-	SendNetXCmd(XD_LOGIN, finalmd5, 16);
+	SendNetXCmd(XD_LOGIN, finalmd5, MD5_LEN);
 #endif
 }
 
@@ -3724,9 +3741,9 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	(void)cp;
 	(void)playernum;
 #else
-	UINT8 sentmd5[16], finalmd5[16];
+	UINT8 sentmd5[MD5_LEN], finalmd5[MD5_LEN];
 
-	READMEM(*cp, sentmd5, 16);
+	READMEM(*cp, sentmd5, MD5_LEN);
 
 	if (client)
 		return;
@@ -3738,9 +3755,9 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	}
 
 	// Do the final pass to compare with the sent md5
-	D_MD5PasswordPass(adminpassmd5, 16, va("PNUM%02d", playernum), &finalmd5);
+	D_MD5PasswordPass(adminpassmd5, MD5_LEN, va("PNUM%02d", playernum), &finalmd5);
 
-	if (!memcmp(sentmd5, finalmd5, 16))
+	if (!memcmp(sentmd5, finalmd5, MD5_LEN))
 	{
 		CONS_Printf(M_GetText("%s passed authentication.\n"), player_names[playernum]);
 		COM_BufInsertText(va("promote %d\n", playernum)); // do this immediately
@@ -3907,6 +3924,131 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 		return;
 
 	CONS_Printf(M_GetText("You are no longer a server administrator.\n"));
+}
+
+// Join password stuff
+consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP|CV_PASSWORD, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+#define NUMJOINCHALLENGES 32
+static UINT8 joinpassmd5[MD5_LEN+1];
+boolean joinpasswordset = false;
+static UINT8 joinpasschallenges[NUMJOINCHALLENGES][MD5_LEN];
+static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
+
+boolean D_IsJoinPasswordOn(void)
+{
+	return joinpasswordset;
+}
+
+static inline void GetChallengeAnswer(UINT8 *question, UINT8 *passwordmd5, UINT8 *answer)
+{
+	D_MD5PasswordPass(question, MD5_LEN, (char *) passwordmd5, answer);
+}
+
+void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer)
+{
+	static UINT8 passwordmd5[MD5_LEN+1];
+
+	memset(passwordmd5, 0x00, MD5_LEN+1);
+	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &passwordmd5);
+	GetChallengeAnswer(question, passwordmd5, answer);
+}
+
+void D_SetJoinPassword(const char *pw)
+{
+	memset(joinpassmd5, 0x00, MD5_LEN+1);
+	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &joinpassmd5);
+	joinpasswordset = true;
+}
+
+boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
+{
+	boolean passed = false;
+
+	num %= NUMJOINCHALLENGES;
+
+	//@TODO use a constant-time memcmp....
+	if (joinpasschallengeson[num] > 0 && memcmp(answer, joinpasschallenges[num], MD5_LEN) == 0)
+		passed = true;
+
+	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
+	memset(joinpasschallenges[num], 0x00, MD5_LEN);
+	joinpasschallengeson[num] = 0;
+
+	return passed;
+}
+
+void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
+{
+	size_t i;
+
+	for (i = 0; i < NUMJOINCHALLENGES; i++)
+	{
+		(*num) = M_RandomKey(NUMJOINCHALLENGES);
+
+		if (joinpasschallengeson[(*num)] == 0)
+			break;
+	}
+
+	if (joinpasschallengeson[(*num)] > 0)
+	{
+		// Ugh, all challenges are (probably) taken. Let's find the oldest one and overwrite it.
+		tic_t oldesttic = INT32_MAX;
+
+		for (i = 0; i < NUMJOINCHALLENGES; i++)
+		{
+			if (joinpasschallengeson[i] < oldesttic)
+			{
+				(*num) = i;
+				oldesttic = joinpasschallengeson[i];
+			}
+		}
+	}
+
+	joinpasschallengeson[(*num)] = I_GetTime();
+
+	memset(question, 0x00, MD5_LEN);
+	for (i = 0; i < MD5_LEN; i++)
+		question[i] = M_RandomByte();
+
+	// Store the answer in memory. What was the question again?
+	GetChallengeAnswer(question, joinpassmd5, joinpasschallenges[(*num)]);
+
+	// This ensures that num is always non-zero and will be valid when used for the answer
+	if ((*num) == 0)
+		(*num) = NUMJOINCHALLENGES;
+}
+
+// Remote Administration
+static void Command_ChangeJoinPassword_f(void)
+{
+#ifdef NOMD5
+	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
+	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
+#else
+	if (client) // cannot change remotely
+	{
+		CONS_Printf(M_GetText("Only the server can use this.\n"));
+		return;
+	}
+
+	if (COM_Argc() != 2)
+	{
+		CONS_Printf(M_GetText("joinpassword <password>: set a password to join the server\nUse -remove to disable the password.\n"));
+		return;
+	}
+
+	if (strcmp(COM_Argv(1), "-remove") == 0)
+	{
+		joinpasswordset = false;
+		CONS_Printf(M_GetText("Join password removed.\n"));
+	}
+	else
+	{
+		D_SetJoinPassword(COM_Argv(1));
+		CONS_Printf(M_GetText("Join password set.\n"));
+	}
+#endif
 }
 
 static void Command_MotD_f(void)

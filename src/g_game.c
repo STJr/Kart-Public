@@ -93,7 +93,6 @@ boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been a
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
-boolean disableSpeedAdjust = true;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 
@@ -268,6 +267,7 @@ SINT8 pickedvote; // What vote the host rolls
 SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
 tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
+tic_t hyubgone; // Cooldown before hyudoro is allowed to be rerolled
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
 UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 boolean thwompsactive; // Thwomps activate on lap 2
@@ -446,6 +446,9 @@ consvar_t cv_chatbacktint = {"chatbacktint", "On", CV_SAVE, CV_OnOff, NULL, 0, N
 // old shit console chat. (mostly exists for stuff like terminal, not because I cared if anyone liked the old chat.)
 static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {2, "Window (Hidden)"}, {0, NULL}};
 consvar_t cv_consolechat = {"chatmode", "Window", CV_SAVE, consolechat_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// Pause game upon window losing focus
+consvar_t cv_pauseifunfocused = {"pauseifunfocused", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Display song credits
 consvar_t cv_songcredits = {"songcredits", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -2395,7 +2398,7 @@ void G_Ticker(boolean run)
 			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
 
 			// Use the leveltime sent in the player's ticcmd to determine control lag
-			cmd->latency = modeattacking ? 0 : min((leveltime & 0xFF) - cmd->latency, MAXPREDICTTICS-1); //@TODO add a cvar to allow setting this max
+			cmd->latency = modeattacking ? 0 : min(((leveltime & 0xFF) - cmd->latency) & 0xFF, MAXPREDICTTICS-1); //@TODO add a cvar to allow setting this max
 		}
 	}
 
@@ -2590,6 +2593,7 @@ void G_PlayerReborn(INT32 player)
 	UINT8 skincolor;
 	INT32 skin;
 	tic_t jointime;
+	UINT8 splitscreenindex;
 	boolean spectator;
 	INT16 bot;
 	SINT8 pity;
@@ -2604,6 +2608,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
+	INT32 respawnflip;
 	boolean songcredit = false;
 
 	score = players[player].score;
@@ -2613,6 +2618,7 @@ void G_PlayerReborn(INT32 player)
 	ctfteam = players[player].ctfteam;
 	exiting = players[player].exiting;
 	jointime = players[player].jointime;
+	splitscreenindex = players[player].splitscreenindex;
 	spectator = players[player].spectator;
 	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE|PF_WANTSTOJOIN));
 
@@ -2644,6 +2650,7 @@ void G_PlayerReborn(INT32 player)
 	starposty = players[player].starposty;
 	starpostz = players[player].starpostz;
 	starpostnum = players[player].starpostnum;
+	respawnflip = players[player].kartstuff[k_starpostflip];	//SRB2KART
 	starpostangle = players[player].starpostangle;
 	jumpfactor = players[player].jumpfactor;
 	thokitem = players[player].thokitem;
@@ -2709,6 +2716,7 @@ void G_PlayerReborn(INT32 player)
 	p->pflags = pflags;
 	p->ctfteam = ctfteam;
 	p->jointime = jointime;
+	p->splitscreenindex = splitscreenindex;
 	p->spectator = spectator;
 
 	// save player config truth reborn
@@ -2763,6 +2771,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
+	p->kartstuff[k_starpostflip] = respawnflip;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -5667,17 +5676,16 @@ void G_GhostTicker(void)
 				INT32 type = -1;
 				if (g->mo->skin)
 				{
-					skin_t *skin = (skin_t *)g->mo->skin;
 					switch (ziptic & EZT_THOKMASK)
 					{
 					case EZT_THOK:
-						type = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].painchance;
 						break;
 					case EZT_SPIN:
-						type = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].damage;
 						break;
 					case EZT_REV:
-						type = skin->revitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].raisestate;
 						break;
 					}
 				}

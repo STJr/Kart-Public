@@ -639,19 +639,6 @@ static int lib_pCheckSolidLava(lua_State *L)
 	return 1;
 }
 
-static int lib_pCanRunOnWater(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	ffloor_t *rover = *((ffloor_t **)luaL_checkudata(L, 2, META_FFLOOR));
-	//HUDSAFE
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	if (!rover)
-		return LUA_ErrInvalid(L, "ffloor_t");
-	lua_pushboolean(L, P_CanRunOnWater(player, rover));
-	return 1;
-}
-
 static int lib_pSpawnShadowMobj(lua_State *L)
 {
 	mobj_t *caster = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
@@ -2634,7 +2621,6 @@ static luaL_Reg lib[] = {
 	{"P_InsideANonSolidFFloor",lib_pInsideANonSolidFFloor},
 	{"P_CheckDeathPitCollide",lib_pCheckDeathPitCollide},
 	{"P_CheckSolidLava",lib_pCheckSolidLava},
-	{"P_CanRunOnWater",lib_pCanRunOnWater},
 	{"P_SpawnShadowMobj",lib_pSpawnShadowMobj},
 
 	// p_user

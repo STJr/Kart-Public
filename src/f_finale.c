@@ -611,7 +611,7 @@ void F_CreditDrawer(void)
 
 		if (credits_pics[i].colorize != SKINCOLOR_NONE)
 		{
-			colormap = R_GetTranslationColormap(TC_RAINBOW, credits_pics[i].colorize, 0);
+			colormap = R_GetTranslationColormap(TC_RAINBOW, credits_pics[i].colorize, GTC_MENUCACHE);
 			sc = FRACUNIT; // quick hack so I don't have to add another field to credits_pics
 		}
 
@@ -1124,6 +1124,10 @@ void F_StartWaitingPlayers(void)
 	finalecount = 0;
 
 	randskin = M_RandomKey(numskins);
+
+	if (waitcolormap)
+		Z_Free(waitcolormap);
+
 	waitcolormap = R_GetTranslationColormap(randskin, skins[randskin].prefcolor, 0);
 
 	for (i = 0; i < 2; i++)

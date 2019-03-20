@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 # DO NOT CHANGE THIS SRB2 STRING! Some variable names depend on this string.
 # Version change is fine.
 project(SRB2
-	VERSION 1.0.2
+	VERSION 1.0.4
 	LANGUAGES C)
 
 if(${PROJECT_SOURCE_DIR} MATCHES ${PROJECT_BINARY_DIR})
@@ -57,7 +57,8 @@ macro(copy_files_to_build_dir target dlllist_var)
 endmacro()
 
 # 64-bit check
-if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+message(STATUS "CMAKE_SIZEOF_VOID_P=" ${CMAKE_SIZEOF_VOID_P})
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	message(STATUS "Target is 64-bit")
 	set(SRB2_SYSTEM_BITS 64)
 else()
