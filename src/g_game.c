@@ -323,6 +323,8 @@ static struct {
 	INT32 kartitem, kartamount, kartbumpers;
 	boolean kartresync; //@TODO backwards compat with old replays. remove eventually
 
+	UINT8 desyncframes; // Don't try to resync unless we've been off for two frames, to monkeypatch a few trouble spots
+
 	// EZT_HIT
 	UINT16 hits;
 	mobj_t **hitlist;
@@ -5548,16 +5550,25 @@ void G_ConsGhostTic(INT32 playernum)
 
 		if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
 		{
-			if (demosynced)
-				CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
-			demosynced = false;
+			ghostext[playernum].desyncframes++;
 
-			P_UnsetThingPosition(testmo);
-			testmo->x = oldghost[playernum].x;
-			testmo->y = oldghost[playernum].y;
-			P_SetThingPosition(testmo);
-			testmo->z = oldghost[playernum].z;
+			if (ghostext[playernum].desyncframes >= 2)
+			{
+				if (demosynced)
+					CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
+				demosynced = false;
+
+				P_UnsetThingPosition(testmo);
+				testmo->x = oldghost[playernum].x;
+				testmo->y = oldghost[playernum].y;
+				P_SetThingPosition(testmo);
+				testmo->z = oldghost[playernum].z;
+
+				ghostext[playernum].desyncframes = 2;
+			}
 		}
+		else
+			ghostext[playernum].desyncframes = 0;
 
 		if (
 			ghostext[playernum].kartresync && (
