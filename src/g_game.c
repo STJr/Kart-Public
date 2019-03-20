@@ -5258,7 +5258,7 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 
 	ziptic_p = demo_p++; // the ziptic, written at the end of this function
 
-	#define MAXMOM (0xFFFF<<8)
+	#define MAXMOM (0x7FFF<<8)
 
 	// GZT_XYZ is only useful if you've moved 256 FRACUNITS or more in a single tic.
 	if (abs(ghost->x-oldghost[playernum].x) > MAXMOM
