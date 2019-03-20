@@ -5337,9 +5337,11 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 	if (ghost->player)
 	{
 		if (
-			ghostext[playernum].kartitem != ghost->player->kartstuff[k_itemtype] ||
-			ghostext[playernum].kartamount != ghost->player->kartstuff[k_itemamount] ||
-			ghostext[playernum].kartbumpers != ghost->player->kartstuff[k_bumper]
+			!modeattacking && ( //@TODO: This is a temporary check to keep netreplays EXE record attack replays compatible with base Kart.
+				ghostext[playernum].kartitem != ghost->player->kartstuff[k_itemtype] ||
+				ghostext[playernum].kartamount != ghost->player->kartstuff[k_itemamount] ||
+				ghostext[playernum].kartbumpers != ghost->player->kartstuff[k_bumper]
+			)
 		)
 		{
 			ghostext[playernum].flags |= EZT_KART;
