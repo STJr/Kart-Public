@@ -3164,6 +3164,7 @@ boolean P_SetupLevel(boolean skipprecip)
 			: mapheaderinfo[gamemap - 1]->numlaps);
 
 	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
+	//@TODO I'd like to fix dedis crashing when recording replays for the future too...
 	if (!demoplayback && multiplayer && !dedicated) {
 		static char buf[256];
 		sprintf(buf, "replay"PATHSEP"online"PATHSEP"%d-%s", (int) (time(NULL)), G_BuildMapName(gamemap));
