@@ -38,7 +38,7 @@ extern boolean playeringame[MAXPLAYERS];
 // demoplaying back and demo recording
 extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo, demosaved, demodefersave, demo_loadfiles, demo_ignorefiles;
 extern tic_t demosavebutton;
-extern consvar_t cv_recordmultiplayerdemos;
+extern consvar_t cv_recordmultiplayerdemos, cv_netdemosyncquality;
 
 // Quit after playing a demo from cmdline.
 extern boolean singledemo;

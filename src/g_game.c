@@ -341,6 +341,9 @@ INT16 prevmap, nextmap;
 static CV_PossibleValue_t recordmultiplayerdemos_cons_t[] = {{0, "Disabled"}, {1, "Manual Save"}, {2, "Auto Save"}, {0, NULL}};
 consvar_t cv_recordmultiplayerdemos = {"netdemo_record", "Manual Save", CV_SAVE, recordmultiplayerdemos_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+static CV_PossibleValue_t netdemosyncquality_cons_t[] = {{1, "MIN"}, {35, "MAX"}, {0, NULL}};
+consvar_t cv_netdemosyncquality = {"netdemo_syncquality", "1", CV_SAVE, netdemosyncquality_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 static UINT8 *savebuffer;
 
 // Analog Control
@@ -5221,13 +5224,18 @@ void G_GhostAddHit(INT32 playernum, mobj_t *victim)
 
 void G_WriteAllGhostTics(void)
 {
-	INT32 i;
+	INT32 i, counter = leveltime;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i] || players[i].spectator)
 			continue;
 
 		if (!players[i].mo)
+			continue;
+
+		counter++;
+
+		if (counter % cv_netdemosyncquality.value != 0) // Only write 1 in this many ghost datas per tic to cut down on multiplayer replay size.
 			continue;
 
 		WRITEUINT8(demo_p, i);
@@ -5264,7 +5272,7 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 	if (abs(ghost->x-oldghost[playernum].x) > MAXMOM
 	|| abs(ghost->y-oldghost[playernum].y) > MAXMOM
 	|| abs(ghost->z-oldghost[playernum].z) > MAXMOM
-	|| (leveltime & 255) == 1) // Hack to enable slightly nicer resyncing
+	|| ((UINT8)(leveltime & 255) > 0 && (UINT8)(leveltime & 255) <= (UINT8)cv_netdemosyncquality.value)) // Hack to enable slightly nicer resyncing
 	{
 		oldghost[playernum].x = ghost->x;
 		oldghost[playernum].y = ghost->y;
