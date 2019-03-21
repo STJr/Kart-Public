@@ -1518,6 +1518,7 @@ void *W_CachePatchName(const char *name, INT32 tag)
 		return W_CachePatchNum(W_GetNumForName("MISSING"), tag);
 	return W_CachePatchNum(num, tag);
 }
+
 #ifndef NOMD5
 #define MD5_LEN 16
 
