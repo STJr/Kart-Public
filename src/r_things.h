@@ -83,28 +83,10 @@ typedef struct
 	char hudname[SKINNAMESIZE+1]; // HUD name to display (officially exactly 5 characters long)
 	char facerank[9], facewant[9], facemmap[9]; // Arbitrarily named patch lumps
 
-	UINT8 ability; // ability definition
-	UINT8 ability2; // secondary ability definition
-	INT32 thokitem;
-	INT32 spinitem;
-	INT32 revitem;
-	fixed_t actionspd;
-	fixed_t mindash;
-	fixed_t maxdash;
-
 	// SRB2kart
 	UINT8 kartspeed;
 	UINT8 kartweight;
 	//
-
-	fixed_t normalspeed; // Normal ground
-	fixed_t runspeed; // Speed that you break into your run animation
-
-	UINT8 thrustfactor; // Thrust = thrustfactor * acceleration
-	UINT8 accelstart; // Acceleration if speed = 0
-	UINT8 acceleration; // Acceleration
-
-	fixed_t jumpfactor; // multiple of standard jump height
 
 	// Definable color translation table
 	UINT8 starttranscolor;
@@ -192,9 +174,9 @@ typedef struct drawnode_s
 } drawnode_t;
 
 extern INT32 numskins;
-extern skin_t skins[MAXSKINS + 1];
+extern skin_t skins[MAXSKINS];
 
-void SetPlayerSkin(INT32 playernum,const char *skinname);
+boolean SetPlayerSkin(INT32 playernum,const char *skinname);
 void SetPlayerSkinByNum(INT32 playernum,INT32 skinnum); // Tails 03-16-2002
 INT32 R_SkinAvailable(const char *name);
 void R_AddSkins(UINT16 wadnum);

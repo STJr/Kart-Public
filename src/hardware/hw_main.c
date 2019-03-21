@@ -86,12 +86,10 @@ static UINT32 atohex(const char *s);
 static void CV_filtermode_ONChange(void);
 static void CV_anisotropic_ONChange(void);
 static void CV_FogDensity_ONChange(void);
-static void CV_grFov_OnChange(void);
 // ==========================================================================
 //                                          3D ENGINE COMMANDS & CONSOLE VARS
 // ==========================================================================
 
-static CV_PossibleValue_t grfov_cons_t[] = {{0, "MIN"}, {179*FRACUNIT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t grfiltermode_cons_t[]= {{HWD_SET_TEXTUREFILTER_POINTSAMPLED, "Nearest"},
 	{HWD_SET_TEXTUREFILTER_BILINEAR, "Bilinear"}, {HWD_SET_TEXTUREFILTER_TRILINEAR, "Trilinear"},
 	{HWD_SET_TEXTUREFILTER_MIXED1, "Linear_Nearest"},
@@ -112,7 +110,6 @@ static consvar_t cv_grbeta = {"gr_beta", "0", 0, CV_Unsigned, NULL, 0, NULL, NUL
 
 static float HWRWipeCounter = 1.0f;
 consvar_t cv_grrounddown = {"gr_rounddown", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_grfov = {"gr_fov", "90", CV_FLOAT|CV_CALL, grfov_cons_t, CV_grFov_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grfogdensity = {"gr_fogdensity", "150", CV_CALL|CV_NOINIT, CV_Unsigned,
                              CV_FogDensity_ONChange, 0, NULL, NULL, 0, 0, NULL};
 
@@ -5263,7 +5260,8 @@ static void HWR_DrawSprites(void)
 #endif
 				if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 				{
-					if (!cv_grmd2.value || md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f)
+					// 8/1/19: Only don't display player models if no default SPR_PLAY is found.
+					if (!cv_grmd2.value || ((md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f) && (md2_models[SPR_PLAY].notfound || md2_models[SPR_PLAY].scale < 0.0f)))
 						HWR_DrawSprite(spr);
 					else
 						HWR_DrawMD2(spr);
@@ -5906,7 +5904,7 @@ void HWR_SetViewSize(void)
 // ==========================================================================
 void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 {
-	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);
+	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
 	postimg_t *type;
 	UINT8 ssplayer = 0;
 
@@ -6072,7 +6070,7 @@ if (0)
 		viewangle = localaiming4;
 
 	// Handle stuff when you are looking farther up or down.
-	if ((aimingangle || cv_grfov.value+player->fovadd > 90*FRACUNIT))
+	if ((aimingangle || cv_fov.value+player->fovadd > 90*FRACUNIT))
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
@@ -6150,7 +6148,7 @@ if (0)
 // ==========================================================================
 void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 {
-	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);
+	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
 	postimg_t *type;
 	UINT8 ssplayer = 0;
 
@@ -6331,7 +6329,7 @@ if (0)
 		viewangle = localaiming4;
 
 	// Handle stuff when you are looking farther up or down.
-	if ((aimingangle || cv_grfov.value+player->fovadd > 90*FRACUNIT))
+	if ((aimingangle || cv_fov.value+player->fovadd > 90*FRACUNIT))
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
@@ -6454,11 +6452,6 @@ static void HWR_FoggingOn(void)
 // ==========================================================================
 
 
-static void CV_grFov_OnChange(void)
-{
-	if ((netgame || multiplayer) && !cv_debug && cv_grfov.value != 90*FRACUNIT)
-		CV_Set(&cv_grfov, cv_grfov.defaultvalue);
-}
 
 static void Command_GrStats_f(void)
 {
@@ -6481,7 +6474,6 @@ static void Command_GrStats_f(void)
 void HWR_AddCommands(void)
 {
 	CV_RegisterVar(&cv_grrounddown);
-	CV_RegisterVar(&cv_grfov);
 	CV_RegisterVar(&cv_grfogdensity);
 	CV_RegisterVar(&cv_grfiltermode);
 	CV_RegisterVar(&cv_granisotropicmode);

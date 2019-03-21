@@ -821,10 +821,6 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"CLIENTMIS",
 	"CLIENT2CMD",
 	"CLIENT2MIS",
-	"CLIENT3CMD",
-	"CLIENT3MIS",
-	"CLIENT4CMD",
-	"CLIENT4MIS",
 	"NODEKEEPALIVE",
 	"NODEKEEPALIVEMIS",
 	"SERVERTICS",
@@ -840,6 +836,15 @@ static const char *packettypename[NUMPACKETTYPE] =
 
 	"RESYNCHEND",
 	"RESYNCHGET",
+
+	"CLIENT3CMD",
+	"CLIENT3MIS",
+	"CLIENT4CMD",
+	"CLIENT4MIS",
+	"BASICKEEPALIVE",
+
+	"JOINCHALLENGE",
+	"DOWNLOADFILESOKAY",
 
 	"FILEFRAGMENT",
 	"TEXTCMD",
@@ -868,7 +873,7 @@ static void DebugPrintpacket(const char *header)
 			break;
 		case PT_CLIENTJOIN:
 			fprintf(debugfile, "    number %d mode %d\n", netbuffer->u.clientcfg.localplayers,
-				netbuffer->u.clientcfg.mode);
+				netbuffer->u.clientcfg.needsdownload);
 			break;
 		case PT_SERVERTICS:
 		{
@@ -902,6 +907,9 @@ static void DebugPrintpacket(const char *header)
 			fprintf(debugfile, "    tic %4u resendfrom %u\n",
 				(UINT32)ExpandTics(netbuffer->u.clientpak.client_tic),
 				(UINT32)ExpandTics (netbuffer->u.clientpak.resendfrom));
+			break;
+		case PT_BASICKEEPALIVE:
+			fprintf(debugfile, "    keep alive\n");
 			break;
 		case PT_TEXTCMD:
 		case PT_TEXTCMD2:

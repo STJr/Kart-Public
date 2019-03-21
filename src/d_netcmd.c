@@ -169,6 +169,7 @@ static void Got_Verification(UINT8 **cp, INT32 playernum);
 static void Got_Removal(UINT8 **cp, INT32 playernum);
 static void Command_Verify_f(void);
 static void Command_RemoveAdmin_f(void);
+static void Command_ChangeJoinPassword_f(void);
 static void Command_MotD_f(void);
 static void Got_MotD_f(UINT8 **cp, INT32 playernum);
 
@@ -214,7 +215,7 @@ static CV_PossibleValue_t autobalance_cons_t[] = {{0, "MIN"}, {4, "MAX"}, {0, NU
 static CV_PossibleValue_t teamscramble_cons_t[] = {{0, "Off"}, {1, "Random"}, {2, "Points"}, {0, NULL}};
 
 static CV_PossibleValue_t startingliveslimit_cons_t[] = {{1, "MIN"}, {99, "MAX"}, {0, NULL}};
-static CV_PossibleValue_t sleeping_cons_t[] = {{-1, "MIN"}, {1000/TICRATE, "MAX"}, {0, NULL}};
+static CV_PossibleValue_t sleeping_cons_t[] = {{0, "MIN"}, {1000/TICRATE, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t competitionboxes_cons_t[] = {{0, "Normal"}, {1, "Random"}, {2, "Teleports"},
 	{3, "None"}, {0, NULL}};
 
@@ -235,6 +236,9 @@ static consvar_t cv_dummyconsvar = {"dummyconsvar", "Off", CV_CALL|CV_NOSHOWHELP
 
 consvar_t cv_restrictskinchange = {"restrictskinchange", "No", CV_NETVAR|CV_CHEAT, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowteamchange = {"allowteamchange", "Yes", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+static CV_PossibleValue_t ingamecap_cons_t[] = {{0, "MIN"}, {MAXPLAYERS-1, "MAX"}, {0, NULL}};
+consvar_t cv_ingamecap = {"ingamecap", "0", CV_NETVAR, ingamecap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -357,7 +361,7 @@ consvar_t cv_kartfrantic = {"kartfrantic", "Off", CV_NETVAR|CV_CHEAT|CV_CALL|CV_
 consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV_NOINIT, CV_OnOff, KartComeback_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartencore = {"kartencore", "Off", CV_NETVAR|CV_CALL|CV_NOINIT, CV_OnOff, KartEncore_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartvoterulechanges_cons_t[] = {{0, "Never"}, {1, "Sometimes"}, {2, "Frequent"}, {3, "Always"}, {0, NULL}};
-consvar_t cv_kartvoterulechanges = {"kartvoterulechanges", "Sometimes", CV_NETVAR, kartvoterulechanges_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartvoterulechanges = {"kartvoterulechanges", "Frequent", CV_NETVAR, kartvoterulechanges_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartspeedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
@@ -375,6 +379,7 @@ consvar_t cv_kartdebughuddrop = {"kartdebughuddrop", "Off", CV_NETVAR|CV_CHEAT|C
 
 consvar_t cv_kartdebugcheckpoint = {"kartdebugcheckpoint", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_kartdebugnodes = {"kartdebugnodes", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_kartdebugcolorize = {"kartdebugcolorize", "Off", CV_NOSHOWHELP, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t votetime_cons_t[] = {{10, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_votetime = {"votetime", "20", CV_NETVAR, votetime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -432,6 +437,14 @@ consvar_t cv_jointimeout = {"jointimeout", "105", CV_CALL|CV_SAVE, nettimeout_co
 #ifdef NEWPING
 static CV_PossibleValue_t maxping_cons_t[] = {{0, "MIN"}, {1000, "MAX"}, {0, NULL}};
 consvar_t cv_maxping = {"maxping", "800", CV_SAVE, maxping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+static CV_PossibleValue_t pingtimeout_cons_t[] = {{8, "MIN"}, {120, "MAX"}, {0, NULL}};
+consvar_t cv_pingtimeout = {"pingtimeout", "10", CV_SAVE, pingtimeout_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// show your ping on the HUD next to framerate. Defaults to warning only (shows up if your ping is > maxping)
+static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "Warning"}, {0, NULL}};
+consvar_t cv_showping = {"showping", "Always", CV_SAVE, showping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 #endif
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
@@ -447,7 +460,7 @@ consvar_t cv_runscripts = {"runscripts", "Yes", 0, CV_YesNo, NULL, 0, NULL, NULL
 consvar_t cv_pause = {"pausepermission", "Server", CV_NETVAR, pause_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_mute = {"mute", "Off", CV_NETVAR|CV_CALL, CV_OnOff, Mute_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_sleep = {"cpusleep", "-1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
+consvar_t cv_sleep = {"cpusleep", "1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
 
 INT16 gametype = GT_RACE; // SRB2kart
 boolean forceresetplayers = false;
@@ -483,6 +496,7 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
 	"SETUPVOTE",
 	"MODIFYVOTE",
 	"PICKVOTE",
+	"REMOVEPLAYER",
 #ifdef HAVE_BLUA
 	"LUACMD",
 	"LUAVAR"
@@ -521,6 +535,8 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
+	CV_RegisterVar(&cv_dummyjoinpassword);
+	COM_AddCommand("joinpassword", Command_ChangeJoinPassword_f);
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
 	COM_AddCommand("login", Command_Login_f); // useful in dedicated to kick off remote admin
@@ -641,11 +657,13 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_allowexitlevel);
 	CV_RegisterVar(&cv_restrictskinchange);
 	CV_RegisterVar(&cv_allowteamchange);
+	CV_RegisterVar(&cv_ingamecap);
 	CV_RegisterVar(&cv_respawntime);
 	CV_RegisterVar(&cv_killingdead);
 
 	// d_clisrv
 	CV_RegisterVar(&cv_maxplayers);
+	CV_RegisterVar(&cv_resynchattempts);
 	CV_RegisterVar(&cv_maxsend);
 	CV_RegisterVar(&cv_noticedownload);
 	CV_RegisterVar(&cv_downloadspeed);
@@ -658,6 +676,8 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_sleep);
 #ifdef NEWPING
 	CV_RegisterVar(&cv_maxping);
+	CV_RegisterVar(&cv_pingtimeout);
+	CV_RegisterVar(&cv_showping);
 #endif
 
 #ifdef SEENAMES
@@ -761,6 +781,7 @@ void D_RegisterClientCommands(void)
 #endif
 	CV_RegisterVar(&cv_rollingdemos);
 	CV_RegisterVar(&cv_netstat);
+	CV_RegisterVar(&cv_netticbuffer);
 
 #ifdef NETGAME_DEVMODE
 	CV_RegisterVar(&cv_fishcake);
@@ -800,6 +821,8 @@ void D_RegisterClientCommands(void)
 	//CV_RegisterVar(&cv_alwaysfreelook2);
 	//CV_RegisterVar(&cv_chasefreelook);
 	//CV_RegisterVar(&cv_chasefreelook2);
+	CV_RegisterVar(&cv_showfocuslost);
+	CV_RegisterVar(&cv_pauseifunfocused);
 
 	// g_input.c
 	CV_RegisterVar(&cv_turnaxis);
@@ -830,14 +853,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_driftaxis2);
 	CV_RegisterVar(&cv_driftaxis3);
 	CV_RegisterVar(&cv_driftaxis4);
-
-	// filesrch.c
-	CV_RegisterVar(&cv_addons_option);
-	CV_RegisterVar(&cv_addons_folder);
-	CV_RegisterVar(&cv_addons_md5);
-	CV_RegisterVar(&cv_addons_showall);
-	CV_RegisterVar(&cv_addons_search_type);
-	CV_RegisterVar(&cv_addons_search_case);
 
 	// filesrch.c
 	CV_RegisterVar(&cv_addons_option);
@@ -2214,10 +2229,12 @@ static void Command_Map_f(void)
 		return;
 	}
 
-	if (!(netgame || multiplayer) && (!modifiedgame || savemoddata))
+	if (!(netgame || multiplayer) && !majormods)
 	{
 		if (COM_CheckParm("-force"))
-			G_SetGameModified(false);
+		{
+			G_SetGameModified(false, true);
+		}
 		else
 		{
 			CONS_Printf(M_GetText("Sorry, level change disabled in single player.\n"));
@@ -2501,6 +2518,12 @@ static void Command_Respawn(void)
 		return;
 	}
 
+	if (players[consoleplayer].mo && !P_IsObjectOnGround(players[consoleplayer].mo))	// KART: Nice try, but no, you won't be cheesing spb anymore.
+	{
+		CONS_Printf(M_GetText("You must be on the floor to use this.\n"));
+		return;
+	}
+
 	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
@@ -2522,7 +2545,7 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 {
 	INT32 respawnplayer = READINT32(*cp);
 
-	// You can't respawn someone else.  Nice try, there.
+	// You can't respawn someone else. Nice try, there.
 	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
@@ -2536,6 +2559,10 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 		}
 		return;
 	}
+
+	// incase the above checks were modified to allow sending a respawn on these occasions:
+	if (players[respawnplayer].mo && !P_IsObjectOnGround(players[respawnplayer].mo))
+		return;
 
 	if (players[respawnplayer].mo)
 		P_DamageMobj(players[respawnplayer].mo, NULL, NULL, 10000);
@@ -3405,6 +3432,7 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 
 	if (len > 256-sl)
 		len = 256-sl;
+
 	memcpy(tmpbuf, buffer, len);
 	memmove(&tmpbuf[len], salt, sl);
 	//strcpy(&tmpbuf[len], salt);
@@ -3418,7 +3446,7 @@ static void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt,
 }
 
 #define BASESALT "basepasswordstorage"
-static UINT8 adminpassmd5[16];
+static UINT8 adminpassmd5[MD5_LEN];
 static boolean adminpasswordset = false;
 
 void D_SetPassword(const char *pw)
@@ -3457,7 +3485,7 @@ static void Command_Login_f(void)
 	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
 	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
 #else
-	XBOXSTATIC UINT8 finalmd5[16];
+	XBOXSTATIC UINT8 finalmd5[MD5_LEN];
 	const char *pw;
 
 	if (!netgame)
@@ -3480,11 +3508,11 @@ static void Command_Login_f(void)
 	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &finalmd5);
 
 	// Do the final pass to get the comparison the server will come up with
-	D_MD5PasswordPass(finalmd5, 16, va("PNUM%02d", consoleplayer), &finalmd5);
+	D_MD5PasswordPass(finalmd5, MD5_LEN, va("PNUM%02d", consoleplayer), &finalmd5);
 
 	CONS_Printf(M_GetText("Sending login... (Notice only given if password is correct.)\n"));
 
-	SendNetXCmd(XD_LOGIN, finalmd5, 16);
+	SendNetXCmd(XD_LOGIN, finalmd5, MD5_LEN);
 #endif
 }
 
@@ -3495,9 +3523,9 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	(void)cp;
 	(void)playernum;
 #else
-	UINT8 sentmd5[16], finalmd5[16];
+	UINT8 sentmd5[MD5_LEN], finalmd5[MD5_LEN];
 
-	READMEM(*cp, sentmd5, 16);
+	READMEM(*cp, sentmd5, MD5_LEN);
 
 	if (client)
 		return;
@@ -3509,9 +3537,9 @@ static void Got_Login(UINT8 **cp, INT32 playernum)
 	}
 
 	// Do the final pass to compare with the sent md5
-	D_MD5PasswordPass(adminpassmd5, 16, va("PNUM%02d", playernum), &finalmd5);
+	D_MD5PasswordPass(adminpassmd5, MD5_LEN, va("PNUM%02d", playernum), &finalmd5);
 
-	if (!memcmp(sentmd5, finalmd5, 16))
+	if (!memcmp(sentmd5, finalmd5, MD5_LEN))
 	{
 		CONS_Printf(M_GetText("%s passed authentication.\n"), player_names[playernum]);
 		COM_BufInsertText(va("promote %d\n", playernum)); // do this immediately
@@ -3680,6 +3708,131 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 	CONS_Printf(M_GetText("You are no longer a server administrator.\n"));
 }
 
+// Join password stuff
+consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP|CV_PASSWORD, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+#define NUMJOINCHALLENGES 32
+static UINT8 joinpassmd5[MD5_LEN+1];
+boolean joinpasswordset = false;
+static UINT8 joinpasschallenges[NUMJOINCHALLENGES][MD5_LEN];
+static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
+
+boolean D_IsJoinPasswordOn(void)
+{
+	return joinpasswordset;
+}
+
+static inline void GetChallengeAnswer(UINT8 *question, UINT8 *passwordmd5, UINT8 *answer)
+{
+	D_MD5PasswordPass(question, MD5_LEN, (char *) passwordmd5, answer);
+}
+
+void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer)
+{
+	static UINT8 passwordmd5[MD5_LEN+1];
+
+	memset(passwordmd5, 0x00, MD5_LEN+1);
+	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &passwordmd5);
+	GetChallengeAnswer(question, passwordmd5, answer);
+}
+
+void D_SetJoinPassword(const char *pw)
+{
+	memset(joinpassmd5, 0x00, MD5_LEN+1);
+	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &joinpassmd5);
+	joinpasswordset = true;
+}
+
+boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
+{
+	boolean passed = false;
+
+	num %= NUMJOINCHALLENGES;
+
+	//@TODO use a constant-time memcmp....
+	if (joinpasschallengeson[num] > 0 && memcmp(answer, joinpasschallenges[num], MD5_LEN) == 0)
+		passed = true;
+
+	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
+	memset(joinpasschallenges[num], 0x00, MD5_LEN);
+	joinpasschallengeson[num] = 0;
+
+	return passed;
+}
+
+void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
+{
+	size_t i;
+
+	for (i = 0; i < NUMJOINCHALLENGES; i++)
+	{
+		(*num) = M_RandomKey(NUMJOINCHALLENGES);
+
+		if (joinpasschallengeson[(*num)] == 0)
+			break;
+	}
+
+	if (joinpasschallengeson[(*num)] > 0)
+	{
+		// Ugh, all challenges are (probably) taken. Let's find the oldest one and overwrite it.
+		tic_t oldesttic = INT32_MAX;
+
+		for (i = 0; i < NUMJOINCHALLENGES; i++)
+		{
+			if (joinpasschallengeson[i] < oldesttic)
+			{
+				(*num) = i;
+				oldesttic = joinpasschallengeson[i];
+			}
+		}
+	}
+
+	joinpasschallengeson[(*num)] = I_GetTime();
+
+	memset(question, 0x00, MD5_LEN);
+	for (i = 0; i < MD5_LEN; i++)
+		question[i] = M_RandomByte();
+
+	// Store the answer in memory. What was the question again?
+	GetChallengeAnswer(question, joinpassmd5, joinpasschallenges[(*num)]);
+
+	// This ensures that num is always non-zero and will be valid when used for the answer
+	if ((*num) == 0)
+		(*num) = NUMJOINCHALLENGES;
+}
+
+// Remote Administration
+static void Command_ChangeJoinPassword_f(void)
+{
+#ifdef NOMD5
+	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
+	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
+#else
+	if (client) // cannot change remotely
+	{
+		CONS_Printf(M_GetText("Only the server can use this.\n"));
+		return;
+	}
+
+	if (COM_Argc() != 2)
+	{
+		CONS_Printf(M_GetText("joinpassword <password>: set a password to join the server\nUse -remove to disable the password.\n"));
+		return;
+	}
+
+	if (strcmp(COM_Argv(1), "-remove") == 0)
+	{
+		joinpasswordset = false;
+		CONS_Printf(M_GetText("Join password removed.\n"));
+	}
+	else
+	{
+		D_SetJoinPassword(COM_Argv(1));
+		CONS_Printf(M_GetText("Join password set.\n"));
+	}
+#endif
+}
+
 static void Command_MotD_f(void)
 {
 	size_t i, j;
@@ -3786,7 +3939,7 @@ static void Command_RunSOC(void)
 		if (!P_RunSOC(fn))
 			CONS_Printf(M_GetText("Could not find SOC.\n"));
 		else
-			G_SetGameModified(multiplayer);
+			G_SetGameModified(multiplayer, false);
 		return;
 	}
 
@@ -3840,7 +3993,7 @@ static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum)
 	}
 
 	P_RunSOC(filename);
-	G_SetGameModified(true);
+	G_SetGameModified(true, false);
 }
 
 /** Adds a pwad at runtime.
@@ -3877,7 +4030,7 @@ static void Command_Addfile(void)
 			CONS_Printf(M_GetText("Only the server or a remote admin can use this.\n"));
 			return;
 		}
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, false);
 	}
 
 	// Add file on your client directly if it is trivial, or you aren't in a netgame.
@@ -4123,7 +4276,7 @@ static void Got_Addfilecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	G_SetGameModified(true);
+	G_SetGameModified(true, false);
 }
 
 static void Command_ListWADS_f(void)
@@ -4480,7 +4633,7 @@ static void Ringslinger_OnChange(void)
 	}
 
 	if (cv_ringslinger.value) // Only if it's been turned on
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, true);
 }
 
 static void Gravity_OnChange(void)
@@ -4501,7 +4654,7 @@ static void Gravity_OnChange(void)
 #endif
 
 	if (!CV_IsSetToDefault(&cv_gravity))
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, true);
 	gravity = cv_gravity.value;
 }
 
@@ -4897,7 +5050,7 @@ static void Fishcake_OnChange(void)
 	// so don't make modifiedgame always on!
 	if (cv_debug)
 	{
-		G_SetGameModified(multiplayer);
+		G_SetGameModified(multiplayer, true);
 	}
 
 	else if (cv_debug != cv_fishcake.value)
@@ -4913,12 +5066,14 @@ static void Fishcake_OnChange(void)
   */
 static void Command_Isgamemodified_f(void)
 {
-	if (savemoddata)
-		CONS_Printf(M_GetText("modifiedgame is true, but you can save medal and record data in this mod.\n"));
+	if (majormods)
+		CONS_Printf("The game has been modified with major add-ons, so you cannot play Record Attack.\n");
+	else if (savemoddata)
+		CONS_Printf("The game has been modified with an add-on with its own save data, so you can play Record Attack and earn medals.\n");
 	else if (modifiedgame)
-		CONS_Printf(M_GetText("modifiedgame is true, extras will not be unlocked\n"));
+		CONS_Printf("The game has been modified with only minor add-ons. You can play Record Attack, earn medals and unlock extras.\n");
 	else
-		CONS_Printf(M_GetText("modifiedgame is false, you can unlock extras\n"));
+		CONS_Printf("The game has not been modified. You can play Record Attack, earn medals and unlock extras.\n");
 }
 
 static void Command_Cheats_f(void)

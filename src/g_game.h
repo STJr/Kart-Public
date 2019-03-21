@@ -56,6 +56,7 @@ extern INT16 rw_maximums[NUM_WEAPONS];
 // used in game menu
 extern consvar_t cv_chatwidth, cv_chatnotifications, cv_chatheight, cv_chattime, cv_consolechat, cv_chatbacktint, cv_chatspamprotection/*, cv_compactscoreboard*/;
 extern consvar_t cv_songcredits;
+extern consvar_t cv_pauseifunfocused;
 //extern consvar_t cv_crosshair, cv_crosshair2, cv_crosshair3, cv_crosshair4;
 extern consvar_t cv_invertmouse/*, cv_alwaysfreelook, cv_chasefreelook, cv_mousemove*/;
 extern consvar_t cv_invertmouse2/*, cv_alwaysfreelook2, cv_chasefreelook2, cv_mousemove2*/;
@@ -66,7 +67,6 @@ extern consvar_t cv_turnaxis2,cv_moveaxis2,cv_brakeaxis2,cv_aimaxis2,cv_lookaxis
 extern consvar_t cv_turnaxis3,cv_moveaxis3,cv_brakeaxis3,cv_aimaxis3,cv_lookaxis3,cv_fireaxis3,cv_driftaxis3;
 extern consvar_t cv_turnaxis4,cv_moveaxis4,cv_brakeaxis4,cv_aimaxis4,cv_lookaxis4,cv_fireaxis4,cv_driftaxis4;
 extern consvar_t cv_ghost_besttime, cv_ghost_bestlap, cv_ghost_last, cv_ghost_guest, cv_ghost_staff;
-extern consvar_t cv_splitplayers;
 
 typedef enum
 {
@@ -227,7 +227,7 @@ boolean G_GetRetryFlag(void);
 void G_LoadGameData(void);
 void G_LoadGameSettings(void);
 
-void G_SetGameModified(boolean silent);
+void G_SetGameModified(boolean silent, boolean major);
 
 void G_SetGamestate(gamestate_t newstate);
 

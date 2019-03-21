@@ -128,7 +128,6 @@ extern fixed_t t_cam4_dist, t_cam4_height, t_cam4_rotate;
 
 fixed_t P_GetPlayerHeight(player_t *player);
 fixed_t P_GetPlayerSpinHeight(player_t *player);
-INT32 P_GetPlayerControlDirection(player_t *player);
 void P_AddPlayerScore(player_t *player, UINT32 amount);
 void P_ResetCamera(player_t *player, camera_t *thiscam);
 boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam);
@@ -274,8 +273,6 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 void P_Attract(mobj_t *source, mobj_t *enemy, boolean nightsgrab);
 mobj_t *P_GetClosestAxis(mobj_t *source);
-
-boolean P_CanRunOnWater(player_t *player, ffloor_t *rover);
 
 void P_FlashPal(player_t *pl, UINT16 type, UINT16 duration);
 #define PAL_WHITE    1

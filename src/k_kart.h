@@ -9,7 +9,9 @@
 #include "doomdef.h"
 #include "d_player.h" // Need for player_t
 
-UINT8 colortranslations[MAXSKINCOLORS][16];
+#define KART_FULLTURN 800
+
+UINT8 colortranslations[MAXTRANSLATIONS][16];
 extern const char *KartColor_Names[MAXSKINCOLORS];
 extern const UINT8 KartColor_Opposite[MAXSKINCOLORS*2];
 void K_RainbowColormap(UINT8 *dest_colormap, UINT8 skincolor);
@@ -21,6 +23,7 @@ void K_RegisterKartStuff(void);
 boolean K_IsPlayerLosing(player_t *player);
 boolean K_IsPlayerWanted(player_t *player);
 void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid);
+void K_FlipFromObject(mobj_t *mo, mobj_t *master);
 void K_MatchGenericExtraFlags(mobj_t *mo, mobj_t *master);
 void K_RespawnChecker(player_t *player);
 void K_KartMoveAnimation(player_t *player);
@@ -39,6 +42,7 @@ void K_SpawnBoostTrail(player_t *player);
 void K_SpawnSparkleTrail(mobj_t *mo);
 void K_SpawnWipeoutTrail(mobj_t *mo, boolean translucent);
 void K_DriftDustHandling(mobj_t *spawner);
+void K_PuntMine(mobj_t *mine, mobj_t *punter);
 void K_DoSneaker(player_t *player, INT32 type);
 void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound);
 void K_KillBananaChain(mobj_t *banana, mobj_t *inflictor, mobj_t *source);
@@ -62,6 +66,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground);
 void K_CalculateBattleWanted(void);
 void K_CheckBumpers(void);
 void K_CheckSpectateStatus(void);
+
+// sound stuff for lua
+void K_PlayAttackTaunt(mobj_t *source);
+void K_PlayBoostTaunt(mobj_t *source);
+void K_PlayOvertakeSound(mobj_t *source);
+void K_PlayHitEmSound(mobj_t *source);
+void K_PlayPowerGloatSound(mobj_t *source);
 
 const char *K_GetItemPatch(UINT8 item, boolean tiny);
 INT32 K_calcSplitFlags(INT32 snapflags);

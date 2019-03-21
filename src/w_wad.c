@@ -34,6 +34,7 @@
 #include "z_zone.h"
 #include "fastcmp.h"
 
+#include "g_game.h" // G_LoadGameData
 #include "filesrch.h"
 
 #include "i_video.h" // rendermode
@@ -105,7 +106,7 @@ static UINT16 lumpnumcacheindex = 0;
 //===========================================================================
 //                                                                    GLOBALS
 //===========================================================================
-UINT16 numwadfiles; // number of active wadfiles
+UINT16 numwadfiles = 0; // number of active wadfiles
 wadfile_t *wadfiles[MAX_WADFILES]; // 0 to numwadfiles-1 are valid
 
 // W_Shutdown
@@ -185,6 +186,7 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 {
 	UINT16 posStart, posEnd;
+#ifdef HAVE_BLUA
 	posStart = W_CheckNumForFolderStartPK3("Lua/", wadnum, 0);
 	if (posStart != INT16_MAX)
 	{
@@ -193,6 +195,7 @@ static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 		for (; posStart < posEnd; posStart++)
 			LUA_LoadLump(wadnum, posStart);
 	}
+#endif
 	posStart = W_CheckNumForFolderStartPK3("SOC/", wadnum, 0);
 	if (posStart != INT16_MAX)
 	{
@@ -792,12 +795,18 @@ UINT16 W_InitFile(const char *filename)
 		CONS_Printf(M_GetText("Loading SOC from %s\n"), wadfile->filename);
 		DEH_LoadDehackedLumpPwad(numwadfiles - 1, 0);
 		break;
+#ifdef HAVE_BLUA
 	case RET_LUA:
 		LUA_LoadLump(numwadfiles - 1, 0);
 		break;
+#endif
 	default:
 		break;
 	}
+
+	if (refreshdirmenu & REFRESHDIR_GAMEDATA)
+		G_LoadGameData();
+	DEH_UpdateMaxFreeslots();
 
 	W_InvalidateLumpnumCache();
 	return wadfile->numlumps;
@@ -846,16 +855,16 @@ void W_UnloadWadFile(UINT16 num)
   * \return 1 if all files were loaded, 0 if at least one was missing or
   *           invalid.
   */
-INT32 W_InitMultipleFiles(char **filenames)
+INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 {
 	INT32 rc = 1;
-
-	// open all the files, load headers, and count lumps
-	numwadfiles = 0;
 
 	// will be realloced as lumps are added
 	for (; *filenames; filenames++)
 	{
+		if (addons && !W_VerifyNMUSlumps(*filenames))
+			G_SetGameModified(true, false);
+
 		//CONS_Debug(DBG_SETUP, "Loading %s\n", *filenames);
 		rc &= (W_InitFile(*filenames) != INT16_MAX) ? 1 : 0;
 	}
@@ -1547,7 +1556,6 @@ void *W_CachePatchName(const char *name, INT32 tag)
 	return W_CachePatchNum(num, tag);
 }
 #ifndef NOMD5
-#define MD5_LEN 16
 
 /**
   * Prints an MD5 string into a human-readable textual format.

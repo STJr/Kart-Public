@@ -234,7 +234,7 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	DEH_WriteUndoline("LEVELFLAGS", va("%d", mapheaderinfo[num]->levelflags), UNDO_NONE);
 	mapheaderinfo[num]->levelflags = 0;
 	DEH_WriteUndoline("MENUFLAGS", va("%d", mapheaderinfo[num]->menuflags), UNDO_NONE);
-	mapheaderinfo[num]->menuflags = 0;
+	mapheaderinfo[num]->menuflags = (mainwads ? 0 : LF2_EXISTSHACK); // see p_setup.c - prevents replacing maps in addons with easier versions
 	// TODO grades support for delfile (pfft yeah right)
 	P_DeleteGrades(num);
 	// SRB2Kart
@@ -1120,7 +1120,7 @@ static inline void P_SpawnEmblems(void)
 static void P_SpawnSecretItems(boolean loademblems)
 {
 	// Now let's spawn those funky emblem things! Tails 12-08-2002
-	if (netgame || multiplayer || (modifiedgame && !savemoddata)) // No cheating!!
+	if (netgame || multiplayer || majormods) // No cheating!!
 		return;
 
 	if (loademblems)
@@ -2857,6 +2857,9 @@ boolean P_SetupLevel(boolean skipprecip)
 			lastwipetic = nowtime;
 			if (moviemode) // make sure we save frames for the white hold too
 				M_SaveFrame();
+
+			// Keep the network alive
+			NetKeepAlive();
 		}
 
 		ranspecialwipe = 1;
@@ -3211,10 +3214,9 @@ boolean P_SetupLevel(boolean skipprecip)
 		if (!cv_analog4.changed)
 			CV_SetValue(&cv_analog4, 0);*/
 
-#ifdef HWRENDER
-		if (rendermode != render_soft && rendermode != render_none)
-			CV_Set(&cv_grfov, cv_grfov.defaultvalue);
-#endif
+		// Shouldn't be necessary with render parity?
+		/*if (rendermode != render_none)
+			CV_Set(&cv_fov, cv_fov.defaultvalue);*/
 
 		displayplayer = consoleplayer; // Start with your OWN view, please!
 	}
@@ -3241,6 +3243,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	wantedcalcdelay = wantedfrequency*2;
 	indirectitemcooldown = 0;
+	hyubgone = 0;
 	mapreset = 0;
 	nospectategrief = 0;
 	thwompsactive = false;
@@ -3272,7 +3275,7 @@ boolean P_SetupLevel(boolean skipprecip)
 	nextmapoverride = 0;
 	skipstats = false;
 
-	if (!(netgame || multiplayer) && (!modifiedgame || savemoddata))
+	if (!(netgame || multiplayer) && !majormods)
 		mapvisited[gamemap-1] |= MV_VISITED;
 
 	levelloading = false;
@@ -3435,7 +3438,7 @@ boolean P_AddWadFile(const char *wadfilename)
 	//
 	R_AddSkins(wadnum); // faB: wadfile index in wadfiles[]
 
-	// 
+	//
 	// edit music defs
 	//
 	S_LoadMusicDefs(wadnum);
@@ -3454,6 +3457,14 @@ boolean P_AddWadFile(const char *wadfilename)
 			if (name[5]!='\0')
 				continue;
 			num = (INT16)M_MapNumber(name[3], name[4]);
+
+			// we want to record whether this map exists. if it doesn't have a header, we can assume it's not relephant
+			if (num <= NUMMAPS && mapheaderinfo[num-1])
+			{
+				if (mapheaderinfo[num-1]->menuflags & LF2_EXISTSHACK)
+					G_SetGameModified(multiplayer, true); // oops, double-defined - no record attack privileges for you
+				mapheaderinfo[num-1]->menuflags |= LF2_EXISTSHACK;
+			}
 
 			//If you replaced the map you're on, end the level when done.
 			if (num == gamemap)
@@ -3480,6 +3491,8 @@ boolean P_AddWadFile(const char *wadfilename)
 		if (server)
 			SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 	}
+
+	refreshdirmenu &= ~REFRESHDIR_GAMEDATA; // Under usual circumstances we'd wait for REFRESHDIR_GAMEDATA to disappear the next frame, but it's a bit too dangerous for that...
 
 	return true;
 }

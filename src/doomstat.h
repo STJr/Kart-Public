@@ -54,9 +54,9 @@ extern boolean gamecomplete;
 
 // Set if homebrew PWAD stuff has been added.
 extern boolean modifiedgame;
+extern boolean majormods;
 extern UINT16 mainwads;
 extern boolean savemoddata; // This mod saves time/emblem data.
-extern boolean disableSpeedAdjust; // Don't alter the duration of player states if true
 extern boolean imcontinuing; // Temporary flag while continuing
 extern boolean metalrecording;
 
@@ -280,6 +280,8 @@ typedef struct
 #define LF2_NIGHTSATTACK   8 ///< Show this map in NiGHTS mode menu
 #define LF2_NOVISITNEEDED 16 ///< Available in time attack/nights mode without visiting the level
 
+#define LF2_EXISTSHACK   128 ///< Map lump exists; as noted, a single-bit hack that can be freely movable to other variables without concern.
+
 // Save override
 #define SAVE_NEVER   -1
 #define SAVE_DEFAULT  0
@@ -465,6 +467,7 @@ extern boolean comeback;
 extern SINT8 battlewanted[4];
 extern tic_t wantedcalcdelay;
 extern tic_t indirectitemcooldown;
+extern tic_t hyubgone;
 extern tic_t mapreset;
 extern UINT8 nospectategrief;
 extern boolean thwompsactive;

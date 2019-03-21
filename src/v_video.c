@@ -1341,8 +1341,8 @@ void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed)
 		V_DrawScaledPatch(x, y, flags, hu_font[c]);
 }
 
-// Writes a single character for the chat. (draw WHITE if bit 7 set)
-// Essentially the same as the above but it's small or big depending on what resolution you've chosen to huge..
+// Writes a single character for the chat (half scaled). (draw WHITE if bit 7 set)
+// 16/02/19: Scratch the scaling thing, chat doesn't work anymore under 2x res -Lat'
 //
 void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UINT8 *colormap)
 {
@@ -1358,13 +1358,11 @@ void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UI
 	if (c < 0 || c >= HU_FONTSIZE || !hu_font[c])
 		return;
 
-	w = (vid.width < 640 ) ? (SHORT(hu_font[c]->width)/2) : (SHORT(hu_font[c]->width));	// use normal sized characters if we're using a terribly low resolution.
+	w = SHORT(hu_font[c]->width)/2;
 	if (x + w > vid.width)
 		return;
 
-	V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, (vid.width < 640) ? (FRACUNIT) : (FRACUNIT/2), flags, hu_font[c], colormap);
-
-
+	V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT/2, flags, hu_font[c], colormap);
 }
 
 // Precompile a wordwrapped string to any given width.
@@ -2014,6 +2012,28 @@ void V_DrawPaddedTallNum(INT32 x, INT32 y, INT32 flags, INT32 num, INT32 digits)
 	} while (--digits);
 }
 
+// Draws a number using the PING font thingy.
+// TODO: Merge number drawing functions into one with "font name" selection.
+
+void V_DrawPingNum(INT32 x, INT32 y, INT32 flags, INT32 num, const UINT8 *colormap)
+{
+	INT32 w = SHORT(pingnum[0]->width);	// this SHOULD always be 5 but I guess custom graphics exist.
+
+	if (flags & V_NOSCALESTART)
+		w *= vid.dupx;
+
+	if (num < 0)
+		num = -num;
+
+	// draw the number
+	do
+	{
+		x -= (w-1);	// Oni wanted their outline to intersect.
+		V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, flags, pingnum[num%10], colormap);
+		num /= 10;
+	} while (num);
+}
+
 // Write a string using the credit font
 // NOTE: the text is centered for screens larger than the base width
 //
@@ -2304,7 +2324,7 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 		}
 	}
 
-	
+
 	return w;
 }
 

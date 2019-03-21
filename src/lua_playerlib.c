@@ -21,6 +21,7 @@
 #include "lua_script.h"
 #include "lua_libs.h"
 #include "lua_hud.h" // hud_running errors
+#include "lua_hook.h"	// hook_cmd_running
 
 static int lib_iteratePlayers(lua_State *L)
 {
@@ -324,6 +325,8 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->bot);
 	else if (fastcmp(field,"jointime"))
 		lua_pushinteger(L, plr->jointime);
+	else if (fastcmp(field,"splitscreenindex"))
+		lua_pushinteger(L, plr->splitscreenindex);
 #ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		lua_pushfixed(L, plr->fovadd);
@@ -355,6 +358,9 @@ static int player_set(lua_State *L)
 
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 
 	if (fastcmp(field,"mo")) {
 		mobj_t *newmo = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
@@ -609,6 +615,8 @@ static int player_set(lua_State *L)
 		return NOSET;
 	else if (fastcmp(field,"jointime"))
 		plr->jointime = (tic_t)luaL_checkinteger(L, 3);
+	else if (fastcmp(field,"splitscreenindex"))
+		return NOSET;
 #ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		plr->fovadd = luaL_checkfixed(L, 3);
@@ -667,6 +675,8 @@ static int power_set(lua_State *L)
 		return luaL_error(L, LUA_QL("powertype_t") " cannot be %u", p);
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 	powers[p] = i;
 	return 0;
 }
@@ -699,6 +709,8 @@ static int kartstuff_set(lua_State *L)
 		return luaL_error(L, LUA_QL("kartstufftype_t") " cannot be %u", ks);
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 	kartstuff[ks] = i;
 	return 0;
 }
@@ -731,6 +743,8 @@ static int ticcmd_get(lua_State *L)
 		lua_pushinteger(L, cmd->buttons);
 	else if (fastcmp(field,"driftturn"))
 		lua_pushinteger(L, cmd->driftturn);
+	else if (fastcmp(field,"latency"))
+		lua_pushinteger(L, cmd->latency);
 	else
 		return NOFIELD;
 

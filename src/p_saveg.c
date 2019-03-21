@@ -249,6 +249,8 @@ static void P_NetArchivePlayers(void)
 
 		WRITEUINT32(save_p, players[i].jointime);
 
+		WRITEUINT8(save_p, players[i].splitscreenindex);
+
 		WRITEUINT16(save_p, flags);
 
 		if (flags & CAPSULE)
@@ -282,6 +284,12 @@ static void P_NetArchivePlayers(void)
 		WRITEUINT8(save_p, players[i].accelstart);
 		WRITEUINT8(save_p, players[i].acceleration);
 		WRITEFIXED(save_p, players[i].jumpfactor);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			WRITEINT16(save_p, players[i].lturn_max[j]);
+			WRITEINT16(save_p, players[i].rturn_max[j]);
+		}
 	}
 }
 
@@ -420,6 +428,8 @@ static void P_NetUnArchivePlayers(void)
 
 		players[i].jointime = READUINT32(save_p);
 
+		players[i].splitscreenindex = READUINT8(save_p);
+
 		flags = READUINT16(save_p);
 
 		if (flags & CAPSULE)
@@ -456,6 +466,12 @@ static void P_NetUnArchivePlayers(void)
 		players[i].accelstart = READUINT8(save_p);
 		players[i].acceleration = READUINT8(save_p);
 		players[i].jumpfactor = READFIXED(save_p);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			players[i].lturn_max[j] = READINT16(save_p);
+			players[i].rturn_max[j] = READINT16(save_p);
+		}
 	}
 }
 
@@ -663,8 +679,6 @@ static void P_NetArchiveWorld(void)
 
 	WRITEUINT16(put, 0xffff);
 
-	mld = W_CacheLumpNum(lastloadedmaplumpnum+ML_LINEDEFS, PU_CACHE);
-	msd = W_CacheLumpNum(lastloadedmaplumpnum+ML_SIDEDEFS, PU_CACHE);
 	// do lines
 	for (i = 0; i < numlines; i++, mld++, li++)
 	{
@@ -683,13 +697,13 @@ static void P_NetArchiveWorld(void)
 				diff |= LD_S1TEXOFF;
 			//SoM: 4/1/2000: Some textures are colormaps. Don't worry about invalid textures.
 			if (R_CheckTextureNumForName(msd[li->sidenum[0]].toptexture) != -1
-				&& si->toptexture != R_TextureNumForName(msd[li->sidenum[0]].toptexture))
+					&& si->toptexture != R_TextureNumForName(msd[li->sidenum[0]].toptexture))
 				diff |= LD_S1TOPTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[0]].bottomtexture) != -1
-				&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[0]].bottomtexture))
+					&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[0]].bottomtexture))
 				diff |= LD_S1BOTTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[0]].midtexture) != -1
-				&& si->midtexture != R_TextureNumForName(msd[li->sidenum[0]].midtexture))
+					&& si->midtexture != R_TextureNumForName(msd[li->sidenum[0]].midtexture))
 				diff |= LD_S1MIDTEX;
 		}
 		if (li->sidenum[1] != 0xffff)
@@ -698,13 +712,13 @@ static void P_NetArchiveWorld(void)
 			if (si->textureoffset != SHORT(msd[li->sidenum[1]].textureoffset)<<FRACBITS)
 				diff2 |= LD_S2TEXOFF;
 			if (R_CheckTextureNumForName(msd[li->sidenum[1]].toptexture) != -1
-				&& si->toptexture != R_TextureNumForName(msd[li->sidenum[1]].toptexture))
+					&& si->toptexture != R_TextureNumForName(msd[li->sidenum[1]].toptexture))
 				diff2 |= LD_S2TOPTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[1]].bottomtexture) != -1
-				&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[1]].bottomtexture))
+					&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[1]].bottomtexture))
 				diff2 |= LD_S2BOTTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[1]].midtexture) != -1
-				&& si->midtexture != R_TextureNumForName(msd[li->sidenum[1]].midtexture))
+					&& si->midtexture != R_TextureNumForName(msd[li->sidenum[1]].midtexture))
 				diff2 |= LD_S2MIDTEX;
 			if (diff2)
 				diff |= LD_DIFF2;
@@ -3301,6 +3315,7 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, wantedcalcdelay);
 	WRITEUINT32(save_p, indirectitemcooldown);
+	WRITEUINT32(save_p, hyubgone);
 	WRITEUINT32(save_p, mapreset);
 	WRITEUINT8(save_p, nospectategrief);
 	WRITEUINT8(save_p, thwompsactive);
@@ -3409,6 +3424,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 
 	wantedcalcdelay = READUINT32(save_p);
 	indirectitemcooldown = READUINT32(save_p);
+	hyubgone = READUINT32(save_p);
 	mapreset = READUINT32(save_p);
 	nospectategrief = READUINT8(save_p);
 	thwompsactive = (boolean)READUINT8(save_p);

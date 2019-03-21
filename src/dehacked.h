@@ -37,6 +37,8 @@ void DEH_UnloadDehackedWad(UINT16 wad);
 void DEH_LoadDehackedLump(lumpnum_t lumpnum);
 void DEH_LoadDehackedLumpPwad(UINT16 wad, UINT16 lump);
 
+void DEH_UpdateMaxFreeslots(void);
+
 void DEH_Check(void);
 
 fixed_t get_number(const char *word);
@@ -54,7 +56,7 @@ extern const char *superactions[MAXRECURSION];
 extern UINT8 superstack;
 
 // If the dehacked patch does not match this version, we throw a warning
-#define PATCHVERSION 210
+#define PATCHVERSION 1
 
 #define MAXLINELEN 1024
 

@@ -2166,6 +2166,12 @@ void I_InitJoystick(void)
 	if (M_CheckParm("-nojoy"))
 		return;
 
+	if (M_CheckParm("-noxinput"))
+		SDL_SetHintWithPriority("SDL_XINPUT_ENABLED", "0", SDL_HINT_OVERRIDE);
+
+	if (M_CheckParm("-nohidapi"))
+		SDL_SetHintWithPriority("SDL_JOYSTICK_HIDAPI", "0", SDL_HINT_OVERRIDE);
+
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
 	{
 		CONS_Printf("I_InitJoystick()...\n");
@@ -2968,8 +2974,8 @@ static void I_ShutdownTimer(void)
 //
 tic_t I_GetTime (void)
 {
-	static Uint32 basetime = 0;
-		   Uint32 ticks = SDL_GetTicks();
+	static Uint64 basetime = 0;
+		   Uint64 ticks = SDL_GetTicks();
 
 	if (!basetime)
 		basetime = ticks;
@@ -3012,7 +3018,7 @@ void I_StartupTimer(void)
 
 void I_Sleep(void)
 {
-	if (cv_sleep.value != -1)
+	if (cv_sleep.value > 0)
 		SDL_Delay(cv_sleep.value);
 }
 

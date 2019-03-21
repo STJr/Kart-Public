@@ -37,7 +37,7 @@ INT32 mlooky; // like mousey but with a custom sensitivity for mlook
 INT32 mouse2x, mouse2y, mlook2y;
 
 // joystick values are repeated
-INT32 joyxmove[JOYAXISSET], joyymove[JOYAXISSET], joy2xmove[JOYAXISSET], joy2ymove[JOYAXISSET], 
+INT32 joyxmove[JOYAXISSET], joyymove[JOYAXISSET], joy2xmove[JOYAXISSET], joy2ymove[JOYAXISSET],
 joy3xmove[JOYAXISSET], joy3ymove[JOYAXISSET], joy4xmove[JOYAXISSET], joy4ymove[JOYAXISSET];
 
 // current state of the keys: true if pushed
@@ -120,7 +120,7 @@ void G_MapEventsToControls(event_t *ev)
 
 		case ev_joystick2: // buttons are virtual keys
 			i = ev->data1;
-			if (i >= JOYAXISSET || menuactive || CON_Ready() || chat_on)
+			if (i >= JOYAXISSET || menuactive)
 				break;
 			if (ev->data2 != INT32_MAX) joy2xmove[i] = ev->data2;
 			if (ev->data3 != INT32_MAX) joy2ymove[i] = ev->data3;
@@ -1308,7 +1308,7 @@ void G_Controldefault(UINT8 player)
 		gamecontrol[gc_brake      ][1] = KEY_JOY1+1; // B
 		gamecontrol[gc_fire       ][1] = KEY_JOY1+4; // LB
 		gamecontrol[gc_drift      ][1] = KEY_JOY1+5; // RB
-		
+
 		// Extra controls
 		gamecontrol[gc_pause      ][0] = KEY_PAUSE;
 		gamecontrol[gc_console    ][0] = KEY_CONSOLE;

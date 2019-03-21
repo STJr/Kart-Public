@@ -432,7 +432,7 @@ void Y_IntermissionDrawer(void)
 		if (data.match.encore)
 			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12-8, hilicol, "ENCORE MODE");
 
-		if (!gutter)
+		if (data.match.numplayers > NUMFORNEWCOLUMN)
 		{
 			V_DrawFill(x+156, 24, 1, 158, 0);
 			V_DrawFill((x-3) - duptweak, 182, dupadjust-2, 1, 0);
@@ -474,16 +474,12 @@ void Y_IntermissionDrawer(void)
 					V_DrawScaledPatch(x+16, y-4, 0, W_CachePatchName(va("K_CHILI%d", cursorframe+1), PU_CACHE));
 				}
 
-				if (!gutter)
-					strlcpy(strtime, data.match.name[i], 6);
-				else
-					STRBUFCPY(strtime, data.match.name[i]);
+				STRBUFCPY(strtime, data.match.name[i]);
 
-				V_DrawString(x+36, y,
-					((data.match.num[i] == whiteplayer)
-						? hilicol|V_ALLOWLOWERCASE
-						: V_ALLOWLOWERCASE),
-					strtime);
+				if (data.match.numplayers > NUMFORNEWCOLUMN)
+					V_DrawThinString(x+36, y-1, ((data.match.num[i] == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE|V_6WIDTHSPACE, strtime);
+				else
+					V_DrawString(x+36, y, ((data.match.num[i] == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE, strtime);
 
 				if (data.match.rankingsmode)
 				{
@@ -494,17 +490,23 @@ void Y_IntermissionDrawer(void)
 						else
 							snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[data.match.num[i]]);
 
-						V_DrawRightAlignedString(x+120+gutter, y, 0, strtime);
+						if (data.match.numplayers > NUMFORNEWCOLUMN)
+							V_DrawRightAlignedThinString(x+135+gutter, y-1, V_6WIDTHSPACE, strtime);
+						else
+							V_DrawRightAlignedString(x+120+gutter, y, 0, strtime);
 					}
 
 					snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
 
-					V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
+					if (data.match.numplayers > NUMFORNEWCOLUMN)
+						V_DrawRightAlignedThinString(x+152+gutter, y-1, V_6WIDTHSPACE, strtime);
+					else
+						V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 				}
 				else
 				{
 					if (data.match.val[i] == (UINT32_MAX-1))
-						V_DrawRightAlignedThinString(x+152+gutter, y-1, 0, "NO CONTEST.");
+						V_DrawRightAlignedThinString(x+152+gutter, y-1, (data.match.numplayers > NUMFORNEWCOLUMN ? V_6WIDTHSPACE : 0), "NO CONTEST.");
 					else
 					{
 						if (intertype == int_race)
@@ -513,10 +515,18 @@ void Y_IntermissionDrawer(void)
 							G_TicsToSeconds(data.match.val[i]), G_TicsToCentiseconds(data.match.val[i]));
 							strtime[sizeof strtime - 1] = '\0';
 
-							V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
+							if (data.match.numplayers > NUMFORNEWCOLUMN)
+								V_DrawRightAlignedThinString(x+152+gutter, y-1, V_6WIDTHSPACE, strtime);
+							else
+								V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 						}
 						else
-							V_DrawRightAlignedString(x+152+gutter, y, 0, va("%i", data.match.val[i]));
+						{
+							if (data.match.numplayers > NUMFORNEWCOLUMN)
+								V_DrawRightAlignedThinString(x+152+gutter, y-1, V_6WIDTHSPACE, va("%i", data.match.val[i]));
+							else
+								V_DrawRightAlignedString(x+152+gutter, y, 0, va("%i", data.match.val[i]));
+						}
 					}
 				}
 
@@ -786,7 +796,7 @@ void Y_StartIntermission(void)
 		}
 		case int_race: // (time-only race)
 		{
-			if ((!modifiedgame || savemoddata) && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
+			if (!majormods && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
 			{
 				// Update visitation flags
 				mapvisited[gamemap-1] |= MV_BEATEN;
@@ -1037,7 +1047,7 @@ void Y_VoteDrawer(void)
 				V_DrawFixedPatch((BASEVIDWIDTH-60)<<FRACBITS, ((y+25)<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTORIGHT, rubyicon, NULL);
 			}
 
-			V_DrawRightAlignedThinString(BASEVIDWIDTH-22, 40+y, V_SNAPTORIGHT|V_6WIDTHSPACE, str);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-21, 40+y, V_SNAPTORIGHT|V_6WIDTHSPACE, str);
 
 			if (levelinfo[i].gts)
 			{

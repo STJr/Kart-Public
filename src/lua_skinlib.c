@@ -30,24 +30,10 @@ enum skin {
 	skin_facerank,
 	skin_facewant,
 	skin_facemmap,
-	skin_ability,
-	skin_ability2,
-	skin_thokitem,
-	skin_spinitem,
-	skin_revitem,
-	skin_actionspd,
-	skin_mindash,
-	skin_maxdash,
 	// SRB2kart
 	skin_kartspeed,
 	skin_kartweight,
 	//
-	skin_normalspeed,
-	skin_runspeed,
-	skin_thrustfactor,
-	skin_accelstart,
-	skin_acceleration,
-	skin_jumpfactor,
 	skin_starttranscolor,
 	skin_prefcolor,
 	skin_highresscale,
@@ -64,24 +50,10 @@ static const char *const skin_opt[] = {
 	"facerank",
 	"facewant",
 	"facemmap",
-	"ability",
-	"ability2",
-	"thokitem",
-	"spinitem",
-	"revitem",
-	"actionspd",
-	"mindash",
-	"maxdash",
 	// SRB2kart
 	"kartspeed",
 	"kartweight",
 	//
-	"normalspeed",
-	"runspeed",
-	"thrustfactor",
-	"accelstart",
-	"acceleration",
-	"jumpfactor",
 	"starttranscolor",
 	"prefcolor",
 	"highresscale",
@@ -139,30 +111,6 @@ static int skin_get(lua_State *L)
 				break;
 		lua_pushlstring(L, skin->facemmap, i);
 		break;
-	case skin_ability:
-		lua_pushinteger(L, skin->ability);
-		break;
-	case skin_ability2:
-		lua_pushinteger(L, skin->ability2);
-		break;
-	case skin_thokitem:
-		lua_pushinteger(L, skin->thokitem);
-		break;
-	case skin_spinitem:
-		lua_pushinteger(L, skin->spinitem);
-		break;
-	case skin_revitem:
-		lua_pushinteger(L, skin->revitem);
-		break;
-	case skin_actionspd:
-		lua_pushfixed(L, skin->actionspd);
-		break;
-	case skin_mindash:
-		lua_pushfixed(L, skin->mindash);
-		break;
-	case skin_maxdash:
-		lua_pushfixed(L, skin->maxdash);
-		break;
 	// SRB2kart
 	case skin_kartspeed:
 		lua_pushinteger(L, skin->kartspeed);
@@ -171,24 +119,6 @@ static int skin_get(lua_State *L)
 		lua_pushinteger(L, skin->kartweight);
 		break;
 	//
-	case skin_normalspeed:
-		lua_pushfixed(L, skin->normalspeed);
-		break;
-	case skin_runspeed:
-		lua_pushfixed(L, skin->runspeed);
-		break;
-	case skin_thrustfactor:
-		lua_pushinteger(L, skin->thrustfactor);
-		break;
-	case skin_accelstart:
-		lua_pushinteger(L, skin->accelstart);
-		break;
-	case skin_acceleration:
-		lua_pushinteger(L, skin->acceleration);
-		break;
-	case skin_jumpfactor:
-		lua_pushfixed(L, skin->jumpfactor);
-		break;
 	case skin_starttranscolor:
 		lua_pushinteger(L, skin->starttranscolor);
 		break;

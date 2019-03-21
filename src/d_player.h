@@ -32,13 +32,7 @@
 // Extra abilities/settings for skins (combinable stuff)
 typedef enum
 {
-	SF_SUPER            = 1, // Can turn super in singleplayer/co-op mode.
-	SF_SUPERANIMS       = 1<<1, // If super, use the super sonic animations
-	SF_SUPERSPIN        = 1<<2, // Should spin frames be played while super?
-	SF_HIRES            = 1<<3, // Draw the sprite 2x as small?
-	SF_NOSKID           = 1<<4, // No skid particles etc
-	SF_NOSPEEDADJUST    = 1<<5, // Skin-specific version of disablespeedadjust
-	SF_RUNONWATER       = 1<<6, // Run on top of water FOFs?
+	SF_HIRES = 1, // Draw the sprite 2x as small?
 } skinflags_t;
 
 //Primary and secondary skin abilities
@@ -275,6 +269,7 @@ typedef enum
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
+	k_starpostflip,		// the last starpost we hit requires flipping?
 	k_respawn,			// Timer for the DEZ laser respawn effect
 	k_dropdash,			// Charge up for respawn Drop Dash
 
@@ -348,10 +343,13 @@ typedef enum
 	k_wanted, 			// Timer for determining WANTED status, lowers when hitting people, prevents the game turning into Camp Lazlo
 	k_yougotem, 		// "You Got Em" gfx when hitting someone as a karma player via a method that gets you back in the game instantly
 
-	// v1.0.2 vars
+	// v1.0.2+ vars
 	k_itemblink,		// Item flashing after roulette, prevents Hyudoro stealing AND serves as a mashing indicator
 	k_itemblinkmode,	// Type of flashing: 0 = white (normal), 1 = red (mashing), 2 = rainbow (enhanced items)
 	k_getsparks,		// Disable drift sparks at low speed, JUST enough to give acceleration the actual headstart above speed
+	k_jawztargetdelay,	// Delay for Jawz target switching, to make it less twitchy
+	k_spectatewait,		// How long have you been waiting as a spectator
+	k_growcancel,		// Hold the item button down to cancel Grow
 
 	NUMKARTSTUFF
 } kartstufftype_t;
@@ -416,6 +414,8 @@ typedef struct player_s
 	// SRB2kart stuff
 	INT32 kartstuff[NUMKARTSTUFF];
 	angle_t frameangle; // for the player add the ability to have the sprite only face other angles
+	INT16 lturn_max[MAXPREDICTTICS]; // What's the expected turn value for full-left for a number of frames back (to account for netgame latency)?
+	INT16 rturn_max[MAXPREDICTTICS]; // Ditto but for full-right
 
 	// Bit flags.
 	// See pflags_t, above.
@@ -567,6 +567,8 @@ typedef struct player_s
 	UINT8 bot;
 
 	tic_t jointime; // Timer when player joins game to change skin/color
+
+	UINT8 splitscreenindex;
 #ifdef HWRENDER
 	fixed_t fovadd; // adjust FOV for hw rendering
 #endif

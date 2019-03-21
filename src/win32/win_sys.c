@@ -261,7 +261,7 @@ tic_t I_GetTime(void)
 
 void I_Sleep(void)
 {
-	if (cv_sleep.value != -1)
+	if (cv_sleep.value > 0)
 		Sleep(cv_sleep.value);
 }
 
@@ -639,9 +639,6 @@ void I_Error(const char *error, ...)
 	if (!errorcount)
 	{
 		M_SaveConfig(NULL); // save game config, cvars..
-#ifndef NONET
-		D_SaveBan(); // save the ban list
-#endif
 		G_SaveGameData();
 	}
 
