@@ -1988,10 +1988,10 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 	if (special_splitscreen)
 	{
 		used_fov = atan(tan(used_fov*M_PIl/360.0l)*0.8l)*360/M_PIl;
-		GLPerspective(used_fov, 2*ASPECT_RATIO);
+		GLPerspective((GLfloat)used_fov, 2*ASPECT_RATIO);
 	}
 	else
-		GLPerspective(used_fov, ASPECT_RATIO);
+		GLPerspective((GLfloat)used_fov, ASPECT_RATIO);
 	pglGetFloatv(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
 	pglMatrixMode(GL_MODELVIEW);
 
