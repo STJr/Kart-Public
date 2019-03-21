@@ -5802,6 +5802,8 @@ void HWR_DoPostProcessor(player_t *player)
 {
 	postimg_t *type;
 
+	HWD.pfnUnSetShader();
+
 	if (splitscreen && player == &players[secondarydisplayplayer])
 		type = &postimgtype2;
 	else
@@ -5829,8 +5831,7 @@ void HWR_DoPostProcessor(player_t *player)
 
 		Surf.PolyColor.s.alpha = 0xc0; // match software mode
 
-		HWD.pfnSetShader(0);	// jimita
-		HWD.pfnDrawPolygon(&Surf, v, 4, PF_Modulated|PF_Additive|PF_NoTexture|PF_NoDepthTest);
+		HWD.pfnDrawPolygon(&Surf, v, 4, PF_Modulated|PF_Translucent|PF_NoTexture|PF_NoDepthTest);
 	}
 
 	// Capture the screen for intermission and screen waving
