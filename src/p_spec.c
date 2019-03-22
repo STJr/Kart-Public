@@ -3778,8 +3778,8 @@ DoneSection2:
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
-				if (player->speed < minspeed) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+				if (player->speed < minspeed) // Push forward to prevent getting stuck. Unless we are drifting, in which case, match our momentum angle. Otherwise shrink has a really hard time :(
+					P_InstaThrust(player->mo, player->kartstuff[k_drift] ? R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy) : player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
 				K_DoPogoSpring(player->mo, 0, 1);
@@ -3801,8 +3801,8 @@ DoneSection2:
 
 				if (player->speed > maxspeed) // Prevent overshooting jumps
 					P_InstaThrust(player->mo, R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy), maxspeed);
-				else if (player->speed < minspeed) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+				else if (player->speed < minspeed) // Push forward to prevent getting stuck. Unless we are drifting, in which case, match our momentum angle. Otherwise shrink has a really hard time :(
+					P_InstaThrust(player->mo, player->kartstuff[k_drift] ? R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy) : player->mo->angle, minspeed);
 
 				player->kartstuff[k_pogospring] = 2;
 				K_DoPogoSpring(player->mo, 0, 1);
