@@ -544,6 +544,22 @@ static void CON_MoveConsole(void)
 	}
 }
 
+INT32 CON_ShiftChar(INT32 ch)
+{
+	if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+	{
+		if (shiftdown ^ capslock)
+			ch = shiftxform[ch];
+	}
+	else	// if we're holding shift we should still shift non letter symbols
+	{
+		if (shiftdown)
+			ch = shiftxform[ch];
+	}
+
+	return ch;
+}
+
 // Clear time of console heads up messages
 //
 void CON_ClearHUD(void)
@@ -1083,16 +1099,6 @@ boolean CON_Responder(event_t *ev)
 	}
 	else if (key == KEY_KPADSLASH)
 		key = '/';
-
-	// capslock
-	if (key == KEY_CAPSLOCK)	// it's a toggle.
-	{
-		if (capslock)
-			capslock = false;
-		else
-			capslock = true;
-		return true;
-	}
 
 	// same capslock code as hu_stuff.c's HU_responder. Check there for details.
 	if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z'))

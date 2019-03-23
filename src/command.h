@@ -95,7 +95,8 @@ typedef enum
 	CV_HIDEN = 1024, // variable is not part of the cvar list so cannot be accessed by the console
 	                 // can only be set when we have the pointer to it
                    // used on menus
-	CV_CHEAT = 2048 // Don't let this be used in multiplayer unless cheats are on.
+	CV_CHEAT = 2048, // Don't let this be used in multiplayer unless cheats are on.
+	CV_PASSWORD = 4096 // Password field
 } cvflags_t;
 
 typedef struct CV_PossibleValue_s

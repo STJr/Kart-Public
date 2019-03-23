@@ -13,10 +13,13 @@
 #ifndef __D_CLISRV__
 #define __D_CLISRV__
 
+#include "d_event.h"
 #include "d_ticcmd.h"
 #include "d_netcmd.h"
 #include "tables.h"
 #include "d_player.h"
+
+#include "md5.h"
 
 // Network play related stuff.
 // There is a data struct that stores network
@@ -72,6 +75,9 @@ typedef enum
 	PT_CLIENT4CMD,    // 4P
 	PT_CLIENT4MIS,
 	PT_BASICKEEPALIVE,// Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
+
+	PT_JOINCHALLENGE, // You must give a password to joinnnnn
+	PT_DOWNLOADFILESOKAY, // You can download files from the server....
 
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.
@@ -283,6 +289,8 @@ typedef struct
 
 	tic_t jointime;
 
+	UINT8 splitscreenindex;
+
 	//player->mo stuff
 	UINT8 hasmo; // Boolean
 
@@ -351,8 +359,20 @@ typedef struct
 	UINT8 version; // Different versions don't work
 	UINT8 subversion; // Contains build version
 	UINT8 localplayers;
-	UINT8 mode;
+	UINT8 needsdownload;
+	UINT8 challengenum; // Non-zero if trying to join with a password attempt
+	UINT8 challengeanswer[MD5_LEN]; // Join challenge
 } ATTRPACK clientconfig_pak;
+
+typedef struct
+{
+	UINT8 challengenum; // Number to send back in join attempt
+	UINT8 question[MD5_LEN]; // Challenge data to be manipulated and answered with
+} ATTRPACK joinchallenge_pak;
+
+#define SV_SPEEDMASK 0x03
+#define SV_DEDICATED 0x40
+#define SV_PASSWORD 0x80
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
@@ -366,7 +386,7 @@ typedef struct
 	UINT8 gametype;
 	UINT8 modifiedgame;
 	UINT8 cheatsenabled;
-	UINT8 isdedicated;
+	UINT8 kartvars; // Previously isdedicated, now appropriated for our own nefarious purposes
 	UINT8 fileneedednum;
 	SINT8 adminplayer;
 	tic_t time;
@@ -445,15 +465,16 @@ typedef struct
 		UINT8 resynchgot;                   //
 		UINT8 textcmd[MAXTEXTCMD+1];        //       66049 bytes (wut??? 64k??? More like 257 bytes...)
 		filetx_pak filetxpak;               //         139 bytes
-		clientconfig_pak clientcfg;         //         136 bytes
+		clientconfig_pak clientcfg;         //         153 bytes
+		joinchallenge_pak joinchallenge;    //          17 bytes
 		serverinfo_pak serverinfo;          //        1024 bytes
 		serverrefuse_pak serverrefuse;      //       65025 bytes (somehow I feel like those values are garbage...)
 		askinfo_pak askinfo;                //          61 bytes
 		msaskinfo_pak msaskinfo;            //          22 bytes
-		plrinfo playerinfo[MAXPLAYERS];     //        1152 bytes (I'd say 36~38)
-		plrconfig playerconfig[MAXPLAYERS]; // (up to) 896 bytes (welp they ARE)
+		plrinfo playerinfo[MAXPLAYERS];     //         576 bytes(?)
+		plrconfig playerconfig[MAXPLAYERS]; // (up to) 528 bytes(?)
 #ifdef NEWPING
-		UINT32 pingtable[MAXPLAYERS];       //         128 bytes
+		UINT32 pingtable[MAXPLAYERS+1];     //          68 bytes
 #endif
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
@@ -519,6 +540,7 @@ extern tic_t jointimeout;
 extern UINT16 pingmeasurecount;
 extern UINT32 realpingtable[MAXPLAYERS];
 extern UINT32 playerpingtable[MAXPLAYERS];
+extern tic_t servermaxping;
 #endif
 
 extern consvar_t
@@ -552,6 +574,7 @@ void CL_RemoveSplitscreenPlayer(UINT8 p);
 void CL_Reset(void);
 void CL_ClearPlayer(INT32 playernum);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);
+boolean CL_Responder(event_t *ev);
 // Is there a game running
 boolean Playing(void);
 

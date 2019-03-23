@@ -92,7 +92,6 @@ boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been a
 boolean savemoddata = false;
 UINT8 paused;
 UINT8 modeattacking = ATTACKING_NONE;
-boolean disableSpeedAdjust = true;
 boolean imcontinuing = false;
 boolean runemeraldmanager = false;
 
@@ -267,6 +266,7 @@ SINT8 pickedvote; // What vote the host rolls
 SINT8 battlewanted[4]; // WANTED players in battle, worth x2 points
 tic_t wantedcalcdelay; // Time before it recalculates WANTED
 tic_t indirectitemcooldown; // Cooldown before any more Shrink, SPB, or any other item that works indirectly is awarded
+tic_t hyubgone; // Cooldown before hyudoro is allowed to be rerolled
 tic_t mapreset; // Map reset delay when enough players have joined an empty game
 UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 boolean thwompsactive; // Thwomps activate on lap 2
@@ -436,6 +436,9 @@ consvar_t cv_chatbacktint = {"chatbacktint", "On", CV_SAVE, CV_OnOff, NULL, 0, N
 // old shit console chat. (mostly exists for stuff like terminal, not because I cared if anyone liked the old chat.)
 static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {2, "Window (Hidden)"}, {0, NULL}};
 consvar_t cv_consolechat = {"chatmode", "Window", CV_SAVE, consolechat_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+// Pause game upon window losing focus
+consvar_t cv_pauseifunfocused = {"pauseifunfocused", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Display song credits
 consvar_t cv_songcredits = {"songcredits", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -1820,80 +1823,6 @@ static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 //
 boolean G_Responder(event_t *ev)
 {
-	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown
-		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
-	{
-		if (splitscreen || !netgame)
-			displayplayer = consoleplayer;
-		else
-		{
-			UINT8 i = 0; // spy mode
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				displayplayer++;
-				if (displayplayer == MAXPLAYERS)
-					displayplayer = 0;
-
-				if (displayplayer == consoleplayer)
-					break; // End loop
-
-				if (!playeringame[displayplayer])
-					continue;
-
-				if (players[displayplayer].spectator)
-					continue;
-
-				// SRB2Kart: Only go through players who are actually playing
-				if (players[displayplayer].exiting)
-					continue;
-
-				if (players[displayplayer].pflags & PF_TIMEOVER)
-					continue;
-
-				// I don't know if we want this actually, but I'll humor the suggestion anyway
-				if (G_BattleGametype())
-				{
-					if (players[displayplayer].kartstuff[k_bumper] <= 0)
-						continue;
-				}
-
-				// SRB2Kart: we have no team-based modes, YET...
-				/*if (G_GametypeHasTeams())
-				{
-					if (players[consoleplayer].ctfteam
-					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
-						continue;
-				}
-				else if (gametype == GT_HIDEANDSEEK)
-				{
-					if (players[consoleplayer].pflags & PF_TAGIT)
-						continue;
-				}
-				// Other Tag-based gametypes?
-				else if (G_TagGametype())
-				{
-					if (!players[consoleplayer].spectator
-					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
-						continue;
-				}
-				else if (G_GametypeHasSpectators() && G_BattleGametype())
-				{
-					if (!players[consoleplayer].spectator)
-						continue;
-				}*/
-
-				break;
-			}
-
-			// change statusbar also if playing back demo
-			if (singledemo)
-				ST_changeDemoView();
-
-			return true;
-		}
-	}
-
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
 		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
@@ -1970,6 +1899,80 @@ boolean G_Responder(event_t *ev)
 	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
+
+	// allow spy mode changes even during the demo
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown
+		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
+	{
+		if (splitscreen || !netgame)
+			displayplayer = consoleplayer;
+		else
+		{
+			UINT8 i = 0; // spy mode
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				displayplayer++;
+				if (displayplayer == MAXPLAYERS)
+					displayplayer = 0;
+
+				if (displayplayer == consoleplayer)
+					break; // End loop
+
+				if (!playeringame[displayplayer])
+					continue;
+
+				if (players[displayplayer].spectator)
+					continue;
+
+				// SRB2Kart: Only go through players who are actually playing
+				if (players[displayplayer].exiting)
+					continue;
+
+				if (players[displayplayer].pflags & PF_TIMEOVER)
+					continue;
+
+				// I don't know if we want this actually, but I'll humor the suggestion anyway
+				if (G_BattleGametype())
+				{
+					if (players[displayplayer].kartstuff[k_bumper] <= 0)
+						continue;
+				}
+
+				// SRB2Kart: we have no team-based modes, YET...
+				/*if (G_GametypeHasTeams())
+				{
+					if (players[consoleplayer].ctfteam
+					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
+						continue;
+				}
+				else if (gametype == GT_HIDEANDSEEK)
+				{
+					if (players[consoleplayer].pflags & PF_TAGIT)
+						continue;
+				}
+				// Other Tag-based gametypes?
+				else if (G_TagGametype())
+				{
+					if (!players[consoleplayer].spectator
+					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
+						continue;
+				}
+				else if (G_GametypeHasSpectators() && G_BattleGametype())
+				{
+					if (!players[consoleplayer].spectator)
+						continue;
+				}*/
+
+				break;
+			}
+
+			// change statusbar also if playing back demo
+			if (singledemo)
+				ST_changeDemoView();
+
+			return true;
+		}
+	}
 
 	// update keys current state
 	G_MapEventsToControls(ev);
@@ -2162,7 +2165,7 @@ void G_Ticker(boolean run)
 			G_CopyTiccmd(cmd, &netcmds[buf][i], 1);
 
 			// Use the leveltime sent in the player's ticcmd to determine control lag
-			cmd->latency = modeattacking ? 0 : min((leveltime & 0xFF) - cmd->latency, MAXPREDICTTICS-1); //@TODO add a cvar to allow setting this max
+			cmd->latency = modeattacking ? 0 : min(((leveltime & 0xFF) - cmd->latency) & 0xFF, MAXPREDICTTICS-1); //@TODO add a cvar to allow setting this max
 		}
 	}
 
@@ -2357,6 +2360,7 @@ void G_PlayerReborn(INT32 player)
 	UINT8 skincolor;
 	INT32 skin;
 	tic_t jointime;
+	UINT8 splitscreenindex;
 	boolean spectator;
 	INT16 bot;
 	SINT8 pity;
@@ -2371,6 +2375,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
+	INT32 respawnflip;
 	boolean songcredit = false;
 
 	score = players[player].score;
@@ -2380,6 +2385,7 @@ void G_PlayerReborn(INT32 player)
 	ctfteam = players[player].ctfteam;
 	exiting = players[player].exiting;
 	jointime = players[player].jointime;
+	splitscreenindex = players[player].splitscreenindex;
 	spectator = players[player].spectator;
 	pflags = (players[player].pflags & (PF_TIMEOVER|PF_FLIPCAM|PF_TAGIT|PF_TAGGED|PF_ANALOGMODE|PF_WANTSTOJOIN));
 
@@ -2411,6 +2417,7 @@ void G_PlayerReborn(INT32 player)
 	starposty = players[player].starposty;
 	starpostz = players[player].starpostz;
 	starpostnum = players[player].starpostnum;
+	respawnflip = players[player].kartstuff[k_starpostflip];	//SRB2KART
 	starpostangle = players[player].starpostangle;
 	jumpfactor = players[player].jumpfactor;
 	thokitem = players[player].thokitem;
@@ -2476,6 +2483,7 @@ void G_PlayerReborn(INT32 player)
 	p->pflags = pflags;
 	p->ctfteam = ctfteam;
 	p->jointime = jointime;
+	p->splitscreenindex = splitscreenindex;
 	p->spectator = spectator;
 
 	// save player config truth reborn
@@ -2530,6 +2538,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
+	p->kartstuff[k_starpostflip] = respawnflip;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -4763,7 +4772,8 @@ void G_WriteGhostTic(mobj_t *ghost)
 	// GZT_XYZ is only useful if you've moved 256 FRACUNITS or more in a single tic.
 	if (abs(ghost->x-oldghost.x) > MAXMOM
 	|| abs(ghost->y-oldghost.y) > MAXMOM
-	|| abs(ghost->z-oldghost.z) > MAXMOM)
+	|| abs(ghost->z-oldghost.z) > MAXMOM
+	|| (leveltime & 255) == 1) // Hack to enable slightly nicer resyncing
 	{
 		oldghost.x = ghost->x;
 		oldghost.y = ghost->y;
@@ -4777,8 +4787,8 @@ void G_WriteGhostTic(mobj_t *ghost)
 	{
 		// For moving normally:
 		// Store one full byte of movement, plus one byte of fractional movement.
-		INT16 momx = (INT16)((ghost->x-oldghost.x)>>8);
-		INT16 momy = (INT16)((ghost->y-oldghost.y)>>8);
+		INT16 momx = (INT16)((ghost->x-oldghost.x + (1<<4))>>8);
+		INT16 momy = (INT16)((ghost->y-oldghost.y + (1<<4))>>8);
 		if (momx != oldghost.momx
 		|| momy != oldghost.momy)
 		{
@@ -4788,7 +4798,7 @@ void G_WriteGhostTic(mobj_t *ghost)
 			WRITEINT16(demo_p,momx);
 			WRITEINT16(demo_p,momy);
 		}
-		momx = (INT16)((ghost->z-oldghost.z)>>8);
+		momx = (INT16)((ghost->z-oldghost.z + (1<<4))>>8);
 		if (momx != oldghost.momz)
 		{
 			oldghost.momz = momx;
@@ -4892,8 +4902,9 @@ void G_WriteGhostTic(mobj_t *ghost)
 void G_ConsGhostTic(void)
 {
 	UINT8 ziptic;
-	UINT16 px,py,pz,gx,gy,gz;
+	fixed_t px,py,pz,gx,gy,gz;
 	mobj_t *testmo;
+	fixed_t syncleeway;
 	boolean nightsfail = false;
 
 	if (!demo_p || !demo_start)
@@ -4910,6 +4921,7 @@ void G_ConsGhostTic(void)
 		oldghost.x = READFIXED(demo_p);
 		oldghost.y = READFIXED(demo_p);
 		oldghost.z = READFIXED(demo_p);
+		syncleeway = 0;
 	}
 	else
 	{
@@ -4923,6 +4935,7 @@ void G_ConsGhostTic(void)
 		oldghost.x += oldghost.momx;
 		oldghost.y += oldghost.momy;
 		oldghost.z += oldghost.momz;
+		syncleeway = FRACUNIT;
 	}
 	if (ziptic & GZT_ANGLE)
 		demo_p++;
@@ -4988,14 +5001,14 @@ void G_ConsGhostTic(void)
 	}
 
 	// Re-synchronise
-	px = testmo->x>>FRACBITS;
-	py = testmo->y>>FRACBITS;
-	pz = testmo->z>>FRACBITS;
-	gx = oldghost.x>>FRACBITS;
-	gy = oldghost.y>>FRACBITS;
-	gz = oldghost.z>>FRACBITS;
+	px = testmo->x;
+	py = testmo->y;
+	pz = testmo->z;
+	gx = oldghost.x;
+	gy = oldghost.y;
+	gz = oldghost.z;
 
-	if (nightsfail || px != gx || py != gy || pz != gz)
+	if (nightsfail || abs(px-gx) > syncleeway || abs(py-gy) > syncleeway || abs(pz-gz) > syncleeway)
 	{
 		if (demosynced)
 			CONS_Alert(CONS_WARNING, M_GetText("Demo playback has desynced!\n"));
@@ -5106,17 +5119,16 @@ void G_GhostTicker(void)
 				INT32 type = -1;
 				if (g->mo->skin)
 				{
-					skin_t *skin = (skin_t *)g->mo->skin;
 					switch (ziptic & EZT_THOKMASK)
 					{
 					case EZT_THOK:
-						type = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].painchance;
 						break;
 					case EZT_SPIN:
-						type = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].damage;
 						break;
 					case EZT_REV:
-						type = skin->revitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
+						type = (UINT32)mobjinfo[MT_PLAYER].raisestate;
 						break;
 					}
 				}

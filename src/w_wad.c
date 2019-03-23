@@ -106,7 +106,7 @@ static UINT16 lumpnumcacheindex = 0;
 //===========================================================================
 //                                                                    GLOBALS
 //===========================================================================
-UINT16 numwadfiles; // number of active wadfiles
+UINT16 numwadfiles = 0; // number of active wadfiles
 wadfile_t *wadfiles[MAX_WADFILES]; // 0 to numwadfiles-1 are valid
 
 // W_Shutdown
@@ -855,16 +855,16 @@ void W_UnloadWadFile(UINT16 num)
   * \return 1 if all files were loaded, 0 if at least one was missing or
   *           invalid.
   */
-INT32 W_InitMultipleFiles(char **filenames)
+INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 {
 	INT32 rc = 1;
-
-	// open all the files, load headers, and count lumps
-	numwadfiles = 0;
 
 	// will be realloced as lumps are added
 	for (; *filenames; filenames++)
 	{
+		if (addons && !W_VerifyNMUSlumps(*filenames))
+			G_SetGameModified(true, false);
+
 		//CONS_Debug(DBG_SETUP, "Loading %s\n", *filenames);
 		rc &= (W_InitFile(*filenames) != INT16_MAX) ? 1 : 0;
 	}
@@ -1556,7 +1556,6 @@ void *W_CachePatchName(const char *name, INT32 tag)
 	return W_CachePatchNum(num, tag);
 }
 #ifndef NOMD5
-#define MD5_LEN 16
 
 /**
   * Prints an MD5 string into a human-readable textual format.

@@ -102,6 +102,8 @@ extern lumpnum_t viewborderlump[8];
 // ------------------------------------------------
 
 #define GTC_CACHE 1
+#define GTC_MENUCACHE GTC_CACHE
+//@TODO Add a separate caching mechanism for menu colormaps distinct from in-level GTC_CACHE. For now this is still preferable to memory leaks...
 
 #define TC_DEFAULT    -1
 #define TC_BOSS       -2
