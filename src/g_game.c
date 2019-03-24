@@ -289,6 +289,7 @@ UINT32 timesBeatenWithEmeralds;
 
 //@TODO put these all in a struct for namespacing purposes?
 static char demoname[64];
+char demotitle[65];
 boolean demorecording, demosaved, demodefersave, demoplayback;
 boolean demo_loadfiles, demo_ignorefiles; // Demo file loading options
 tic_t demosavebutton;
@@ -6061,13 +6062,6 @@ void G_BeginRecording(void)
 	demo_p = demobuffer;
 	demoflags = DF_GHOST|(multiplayer ? DF_MULTIPLAYER : (modeattacking<<DF_ATTACKSHIFT));
 
-	demoflags |= gametype<<DF_GAMESHIFT;
-
-	// Demo compat: don't write filelist in record attack for now so those replays can still be submitted to the records site
-	//@TODO remove this check eventually and always write the file list
-	if (!modeattacking)
-		demoflags |= DF_FILELIST;/* new versions */
-
 	if (encoremode)
 		demoflags |= DF_ENCORE;
 
@@ -6077,6 +6071,10 @@ void G_BeginRecording(void)
 	WRITEUINT8(demo_p,SUBVERSION);
 	WRITEUINT16(demo_p,DEMOVERSION);
 
+	// Full replay title
+	demo_p += 64;
+	snprintf(demotitle, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Record Attack" : connectedservername);
+
 	// demo checksum
 	demo_p += 16;
 
@@ -6085,27 +6083,25 @@ void G_BeginRecording(void)
 	WRITEINT16(demo_p,gamemap);
 	M_Memcpy(demo_p, mapmd5, 16); demo_p += 16;
 
-	WRITEUINT8(demo_p,demoflags);
+	WRITEUINT8(demo_p, demoflags);
+	WRITEUINT8(demo_p, gametype & 0xFF);
 
-	if (demoflags & DF_FILELIST)
+	// file list
+	m = demo_p;/* file count */
+	demo_p += 1;
+
+	totalfiles = 0;
+	for (i = mainwads; ++i < numwadfiles; )
+		if (wadfiles[i]->important)
 	{
-		// file list
-		m = demo_p;/* file count */
-		demo_p += 1;
+		nameonly(( filename = va("%s", wadfiles[i]->filename) ));
+		WRITESTRINGN(demo_p, filename, 64);
+		WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
 
-		totalfiles = 0;
-		for (i = mainwads; ++i < numwadfiles; )
-			if (wadfiles[i]->important)
-		{
-			nameonly(( filename = va("%s", wadfiles[i]->filename) ));
-			WRITESTRINGN(demo_p, filename, 64);
-			WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
-
-			totalfiles++;
-		}
-
-		WRITEUINT8(m, totalfiles);
+		totalfiles++;
 	}
+
+	WRITEUINT8(m, totalfiles);
 
 	switch ((demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
 	{
@@ -6471,6 +6467,7 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	I_Assert(c == SUBVERSION);
 	s = READUINT16(p);
 	I_Assert(s == DEMOVERSION);
+	p += 64; // full demo title
 	p += 16; // demo checksum
 	I_Assert(!memcmp(p, "PLAY", 4));
 	p += 4; // PLAY
@@ -6521,10 +6518,11 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	switch(oldversion) // demoversion
 	{
 	case DEMOVERSION: // latest always supported
+		p += 64; // full demo title
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
 #endif
 	// too old, cannot support.
 	default:
@@ -6667,10 +6665,15 @@ void G_DoPlayDemo(char *defdemoname)
 	switch(demoversion)
 	{
 	case DEMOVERSION: // latest always supported
+		// demo title
+		M_Memcpy(demotitle, demo_p, 64);
+		CONS_Printf("Demo title: %s\n", demotitle);
+		demo_p += 64;
+
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
 #endif
 	// too old, cannot support.
 	default:
@@ -6700,68 +6703,73 @@ void G_DoPlayDemo(char *defdemoname)
 	demo_p += 16; // mapmd5
 
 	demoflags = READUINT8(demo_p);
-	if (demoflags & DF_FILELIST)
+#ifdef DEMO_COMPAT_100
+	if (demoversion != 0x0001)
 	{
-		if (titledemo) // Titledemos should always play and ought to always be compatible with whatever wadlist is running.
-			G_SkipDemoExtraFiles(&demo_p);
-		else if (demo_loadfiles)
-			G_LoadDemoExtraFiles(&demo_p);
-		else if (demo_ignorefiles)
-			G_SkipDemoExtraFiles(&demo_p);
-		else
+#endif
+	gametype = READUINT8(demo_p);
+
+	if (titledemo) // Titledemos should always play and ought to always be compatible with whatever wadlist is running.
+		G_SkipDemoExtraFiles(&demo_p);
+	else if (demo_loadfiles)
+		G_LoadDemoExtraFiles(&demo_p);
+	else if (demo_ignorefiles)
+		G_SkipDemoExtraFiles(&demo_p);
+	else
+	{
+		UINT8 error = G_CheckDemoExtraFiles(&demo_p);
+
+		if (error)
 		{
-			UINT8 error = G_CheckDemoExtraFiles(&demo_p);
-
-			if (error)
+			switch (error)
 			{
-				switch (error)
-				{
-				case DFILE_ERROR_NOTLOADED:
-					snprintf(msg, 1024,
-						M_GetText("Required files for this demo are not loaded.\n\nUse\n\"playdemo %s -addfiles\"\nto load them and play the demo.\n"),
-					pdemoname);
-					break;
+			case DFILE_ERROR_NOTLOADED:
+				snprintf(msg, 1024,
+					M_GetText("Required files for this demo are not loaded.\n\nUse\n\"playdemo %s -addfiles\"\nto load them and play the demo.\n"),
+				pdemoname);
+				break;
 
-				case DFILE_ERROR_OUTOFORDER:
-					snprintf(msg, 1024,
-						M_GetText("Required files for this demo are loaded out of order.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
-					pdemoname);
-					break;
+			case DFILE_ERROR_OUTOFORDER:
+				snprintf(msg, 1024,
+					M_GetText("Required files for this demo are loaded out of order.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
+				pdemoname);
+				break;
 
-				case DFILE_ERROR_INCOMPLETEOUTOFORDER:
-					snprintf(msg, 1024,
-						M_GetText("Required files for this demo are not loaded, and some are out of order.\n\nUse\n\"playdemo %s -addfiles\"\nto load needed files and play the demo.\n"),
-					pdemoname);
-					break;
+			case DFILE_ERROR_INCOMPLETEOUTOFORDER:
+				snprintf(msg, 1024,
+					M_GetText("Required files for this demo are not loaded, and some are out of order.\n\nUse\n\"playdemo %s -addfiles\"\nto load needed files and play the demo.\n"),
+				pdemoname);
+				break;
 
-				case DFILE_ERROR_CANNOTLOAD:
-					snprintf(msg, 1024,
-						M_GetText("Required files for this demo cannot be loaded.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
-					pdemoname);
-					break;
+			case DFILE_ERROR_CANNOTLOAD:
+				snprintf(msg, 1024,
+					M_GetText("Required files for this demo cannot be loaded.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
+				pdemoname);
+				break;
 
-				case DFILE_ERROR_EXTRAFILES:
-					snprintf(msg, 1024,
-						M_GetText("You have additional files loaded beyond the demo's file list.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
-					pdemoname);
-					break;
-				}
-
-				CONS_Alert(CONS_ERROR, "%s", msg);
-				if (!CON_Ready()) // In the console they'll just see the notice there! No point pulling them out.
-					M_StartMessage(msg, NULL, MM_NOTHING);
-				Z_Free(pdemoname);
-				Z_Free(demobuffer);
-				demoplayback = false;
-				titledemo = false;
-				return;
+			case DFILE_ERROR_EXTRAFILES:
+				snprintf(msg, 1024,
+					M_GetText("You have additional files loaded beyond the demo's file list.\n\nUse\n\"playdemo %s -force\"\nto play the demo anyway.\n"),
+				pdemoname);
+				break;
 			}
+
+			CONS_Alert(CONS_ERROR, "%s", msg);
+			if (!CON_Ready()) // In the console they'll just see the notice there! No point pulling them out.
+				M_StartMessage(msg, NULL, MM_NOTHING);
+			Z_Free(pdemoname);
+			Z_Free(demobuffer);
+			demoplayback = false;
+			titledemo = false;
+			return;
 		}
 	}
+#ifdef DEMO_COMPAT_100
+	}
+#endif
 
 	modeattacking = (demoflags & DF_ATTACKMASK)>>DF_ATTACKSHIFT;
 	multiplayer = !!(demoflags & DF_MULTIPLAYER);
-	gametype = (demoflags & DF_GAMETYPEMASK)>>DF_GAMESHIFT;
 	CON_ToggleOff();
 
 	hu_demotime = UINT32_MAX;
@@ -7043,7 +7051,7 @@ void G_AddGhost(char *defdemoname)
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
 #endif
 	// too old, cannot support.
 	default:
@@ -7244,10 +7252,11 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 	switch(ghostversion)
 	{
 	case DEMOVERSION: // latest always supported
+		p += 64; // full demo title
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+		CONS_Printf("You need to implement demo compat here, doofus! %s:%d\n", __FILE__, __LINE__);
 #endif
 	// too old, cannot support.
 	default:
@@ -7362,7 +7371,7 @@ void G_DoPlayMetal(void)
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
 #endif
 	// too old, cannot support.
 	default:
@@ -7534,13 +7543,19 @@ void G_SaveDemo(void)
 	UINT8 *p = demobuffer+16; // checksum position
 #ifdef NOMD5
 	UINT8 i;
+#endif
+
 	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
+	M_Memcpy(p, demotitle, 64); // Write demo title here
+	p += 64;
+
+#ifdef NOMD5
 	for (i = 0; i < 16; i++, p++)
-		*p = P_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
+		*p = M_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
 #else
-	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 	md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
 #endif
+
 	demosaved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
 	free(demobuffer);
 	demorecording = false;

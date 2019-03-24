@@ -532,6 +532,7 @@ extern boolean dedicated; // For dedicated server
 extern UINT16 software_MAXPACKETLENGTH;
 extern boolean acceptnewnode;
 extern SINT8 servernode;
+extern char connectedservername[MAXSERVERNAME];
 
 void Command_Ping_f(void);
 extern tic_t connectiontimeout;

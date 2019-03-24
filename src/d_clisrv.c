@@ -140,6 +140,7 @@ static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen == 2
 static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen == 3
 static tic_t neededtic;
 SINT8 servernode = 0; // the number of the server node
+char connectedservername[MAXSERVERNAME];
 /// \brief do we accept new players?
 /// \todo WORK!
 boolean acceptnewnode = true;
@@ -2320,6 +2321,9 @@ static void CL_ConnectToServer(boolean viams)
 	{
 		INT32 j;
 		const char *gametypestr = NULL;
+
+		strncpy(connectedservername, serverlist[i].info.servername, MAXSERVERNAME);
+
 		CONS_Printf(M_GetText("Connecting to: %s\n"), serverlist[i].info.servername);
 		for (j = 0; gametype_cons_t[j].strvalue; j++)
 		{
