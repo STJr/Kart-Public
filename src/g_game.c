@@ -4756,7 +4756,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 // DEMO RECORDING
 //
 
-#define DEMOVERSION 0x0001
+#define DEMOVERSION 0x0002
 #define DEMOHEADER  "\xF0" "KartReplay" "\x0F"
 
 #define DF_GHOST        0x01 // This demo contains ghost data too!
@@ -6522,6 +6522,10 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	{
 	case DEMOVERSION: // latest always supported
 		break;
+#ifdef DEMO_COMPAT_100
+	case 0x0001:
+		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+#endif
 	// too old, cannot support.
 	default:
 		CONS_Alert(CONS_NOTICE, M_GetText("File '%s' invalid format. It will be overwritten.\n"), oldname);
@@ -6664,6 +6668,10 @@ void G_DoPlayDemo(char *defdemoname)
 	{
 	case DEMOVERSION: // latest always supported
 		break;
+#ifdef DEMO_COMPAT_100
+	case 0x0001:
+		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+#endif
 	// too old, cannot support.
 	default:
 		snprintf(msg, 1024, M_GetText("%s is an incompatible replay format and cannot be played.\n"), pdemoname);
@@ -7033,6 +7041,10 @@ void G_AddGhost(char *defdemoname)
 	{
 	case DEMOVERSION: // latest always supported
 		break;
+#ifdef DEMO_COMPAT_100
+	case 0x0001:
+		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+#endif
 	// too old, cannot support.
 	default:
 		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Demo version incompatible.\n"), pdemoname);
@@ -7233,6 +7245,10 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 	{
 	case DEMOVERSION: // latest always supported
 		break;
+#ifdef DEMO_COMPAT_100
+	case 0x0001:
+		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+#endif
 	// too old, cannot support.
 	default:
 		goto fail;
@@ -7344,6 +7360,10 @@ void G_DoPlayMetal(void)
 	{
 	case DEMOVERSION: // latest always supported
 		break;
+#ifdef DEMO_COMPAT_100
+	case 0x0001:
+		I_Error("You need to implement demo compat here, doofus! %s:%s", __FILE__, __LINE__);
+#endif
 	// too old, cannot support.
 	default:
 		CONS_Alert(CONS_WARNING, M_GetText("Failed to load bot recording for this map, format version incompatible.\n"));
