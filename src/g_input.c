@@ -1239,6 +1239,8 @@ void G_ClearAllControlKeys(void)
 	{
 		G_ClearControlKeys(gamecontrol, i);
 		G_ClearControlKeys(gamecontrolbis, i);
+		G_ClearControlKeys(gamecontrol3, i);
+		G_ClearControlKeys(gamecontrol4, i);
 	}
 }
 
