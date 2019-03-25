@@ -2660,7 +2660,7 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
 
-		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
+		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demo.playback || modeattacking))
 		{
 			if (playernum == consoleplayer)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);

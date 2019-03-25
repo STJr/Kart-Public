@@ -487,8 +487,6 @@ extern UINT32 timesBeaten; // # of times the game has been beaten.
 extern UINT32 timesBeatenWithEmeralds;
 //extern UINT32 timesBeatenUltimate;
 
-extern char demotitle[65];
-
 // ===========================
 // Internal parameters, fixed.
 // ===========================

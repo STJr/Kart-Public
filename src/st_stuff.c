@@ -1894,7 +1894,7 @@ static void ST_overlayDrawer(void)
 			V_DrawScaledPatch(hudinfo[HUD_GRAVBOOTSICO].x, STRINGY(hudinfo[HUD_GRAVBOOTSICO].y), V_SNAPTORIGHT, gravboots);
 		*/
 
-		if (!(multiplayer && demoplayback))
+		if (!(multiplayer && demo.playback))
 		{
 			if(!P_IsLocalPlayer(stplyr))
 			{
@@ -1907,7 +1907,7 @@ static void ST_overlayDrawer(void)
 				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[stplyr-players]);
 			}
 		}
-		else if (!titledemo)
+		else if (!demo.title)
 		{
 
 			if (!splitscreen)
@@ -2015,7 +2015,7 @@ static void ST_overlayDrawer(void)
 	}
 
 	// Replay manual-save stuff
-	if (demorecording && multiplayer && demosavebutton && demosavebutton + 3*TICRATE < leveltime)
+	if (demo.recording && multiplayer && demo.savebutton && demo.savebutton + 3*TICRATE < leveltime)
 	{
 		if (demodefersave || cv_recordmultiplayerdemos.value == 2)
 			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_HUDTRANS|V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved.");

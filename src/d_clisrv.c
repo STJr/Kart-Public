@@ -1742,8 +1742,8 @@ static void CL_LoadReceivedSavegame(void)
 	}
 
 	paused = false;
-	demoplayback = false;
-	titledemo = false;
+	demo.playback = false;
+	demo.title = false;
 	automapactive = false;
 
 	// load a base level
@@ -2541,7 +2541,7 @@ static void Command_connect(void)
 		return;
 	}
 
-	if (Playing() || titledemo)
+	if (Playing() || demo.title)
 	{
 		CONS_Printf(M_GetText("You cannot connect while in a game. End this game first.\n"));
 		return;
@@ -2642,7 +2642,7 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 
 	demo_extradata[playernum] |= DXD_PLAYSTATE;
 
-	if (server && !demoplayback)
+	if (server && !demo.playback)
 	{
 		INT32 node = playernode[playernum];
 		//playerpernode[node] = 0; // It'd be better to remove them all at once, but ghosting happened, so continue to let CL_RemovePlayer do it one-by-one
@@ -2717,7 +2717,7 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		RemoveAdminPlayer(playernum); // don't stay admin after you're gone
 	}
 
-	if (playernum == displayplayer && !demoplayback)
+	if (playernum == displayplayer && !demo.playback)
 		displayplayer = consoleplayer; // don't look through someone's view who isn't there
 
 #ifdef HAVE_BLUA
@@ -2738,7 +2738,7 @@ void CL_Reset(void)
 		G_StopMetalRecording();
 	if (metalplayback)
 		G_StopMetalDemo();
-	if (demorecording)
+	if (demo.recording)
 		G_CheckDemoStatus();
 
 	// reset client/server code
@@ -3657,7 +3657,7 @@ boolean Playing(void)
 
 boolean SV_SpawnServer(void)
 {
-	if (demoplayback)
+	if (demo.playback)
 		G_StopDemo(); // reset engine parameter
 	if (metalplayback)
 		G_StopMetalDemo();
@@ -5245,7 +5245,7 @@ void TryRunTics(tic_t realtics)
 
 	NetUpdate();
 
-	if (demoplayback)
+	if (demo.playback)
 	{
 		neededtic = gametic + realtics * (gamestate == GS_LEVEL ? cv_playbackspeed.value : 1);
 		// start a game after a demo
@@ -5508,7 +5508,7 @@ FILESTAMP
 	}
 	else
 	{
-		if (!demoplayback)
+		if (!demo.playback)
 		{
 			INT32 counts;
 

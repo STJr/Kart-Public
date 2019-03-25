@@ -193,7 +193,7 @@ void SplitScreen_OnChange(void)
 	// recompute screen size
 	R_ExecuteSetViewSize();
 
-	if (!demoplayback && !botingame)
+	if (!demo.playback && !botingame)
 	{
 		for (i = 1; i < 3; i++)
 		{
@@ -879,7 +879,7 @@ void R_SkyboxFrame(player_t *player)
 	{
 		aimingangle = player->aiming;
 		viewangle = player->mo->angle;
-		if (/*!demoplayback && */player->playerstate != PST_DEAD)
+		if (/*!demo.playback && */player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{
@@ -1141,7 +1141,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		aimingangle = player->aiming;
 		viewangle = viewmobj->angle;
 
-		if (/*!demoplayback && */player->playerstate != PST_DEAD)
+		if (/*!demo.playback && */player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{

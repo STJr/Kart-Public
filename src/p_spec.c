@@ -3834,7 +3834,7 @@ DoneSection2:
 				if (player->mo->scale > mapobjectscale)
 					linespeed = FixedMul(linespeed, mapobjectscale + (player->mo->scale - mapobjectscale));
 
-				if (!demoplayback || P_AnalogMove(player))
+				if (!demo.playback || P_AnalogMove(player))
 				{
 					if (player == &players[consoleplayer])
 						localangle = player->mo->angle;
@@ -7841,7 +7841,7 @@ void T_Pusher(pusher_t *p)
 				thing->player->pflags |= PF_SLIDING;
 				thing->angle = R_PointToAngle2 (0, 0, xspeed<<(FRACBITS-PUSH_FACTOR), yspeed<<(FRACBITS-PUSH_FACTOR));
 
-				if (!demoplayback || P_AnalogMove(thing->player))
+				if (!demo.playback || P_AnalogMove(thing->player))
 				{
 					if (thing->player == &players[consoleplayer])
 					{

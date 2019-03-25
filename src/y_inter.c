@@ -351,7 +351,7 @@ void Y_IntermissionDrawer(void)
 		V_DrawFadeScreen(0xFF00, 22);
 
 	if (!splitscreen)
-		whiteplayer = demoplayback ? displayplayer : consoleplayer;
+		whiteplayer = demo.playback ? displayplayer : consoleplayer;
 
 	if (cons_menuhighlight.value)
 		hilicol = cons_menuhighlight.value;
@@ -360,7 +360,7 @@ void Y_IntermissionDrawer(void)
 	else
 		hilicol = ((intertype == int_race) ? V_SKYMAP : V_REDMAP);
 
-	if (sorttic != -1 && intertic > sorttic && !demoplayback)
+	if (sorttic != -1 && intertic > sorttic && !demo.playback)
 	{
 		INT32 count = (intertic - sorttic);
 
@@ -553,7 +553,7 @@ dotimer:
 		char *string;
 		INT32 tickdown = (timer+1)/TICRATE;
 
-		if (multiplayer && demoplayback)
+		if (multiplayer && demo.playback)
 			string = va("Replay ends in %d", tickdown);
 		else
 			string = va("%s starts in %d", cv_advancemap.string, tickdown);
@@ -562,9 +562,9 @@ dotimer:
 			string);
 	}
 
-	if (demorecording && cv_recordmultiplayerdemos.value == 1)
+	if (demo.recording && cv_recordmultiplayerdemos.value == 1)
 		V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Look Backward: Save replay");
-	else if (demosaved && !demoplayback)
+	else if (demosaved && !demo.playback)
 		V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Replay saved!");
 
 	// Make it obvious that scrambling is happening next round.
@@ -582,7 +582,7 @@ void Y_Ticker(void)
 	if (intertype == int_none)
 		return;
 
-	if (demorecording && cv_recordmultiplayerdemos.value == 1 && (demodefersave || InputDown(gc_lookback, 1)))
+	if (demo.recording && cv_recordmultiplayerdemos.value == 1 && (demodefersave || InputDown(gc_lookback, 1)))
 	{
 		demodefersave = false;
 		G_SaveDemo();
@@ -631,7 +631,7 @@ void Y_Ticker(void)
 		{
 			if (sorttic == -1)
 				sorttic = intertic + max((cv_inttime.value/2)-2, 2)*TICRATE; // 8 second pause after match results
-			else if (!(multiplayer && demoplayback)) // Don't advance to rankings in replays
+			else if (!(multiplayer && demo.playback)) // Don't advance to rankings in replays
 			{
 				if (!data.match.rankingsmode && (intertic >= sorttic + 8))
 					Y_CalculateMatchData(1, Y_CompareRank);
@@ -780,7 +780,7 @@ void Y_StartIntermission(void)
 	{
 		if (cv_inttime.value == 0 && gametype == GT_COOP)
 			timer = 0;
-		else if (demoplayback) // Override inttime (which is pulled from the replay anyway
+		else if (demo.playback) // Override inttime (which is pulled from the replay anyway
 			timer = 10*TICRATE;
 		else
 		{
@@ -816,7 +816,7 @@ void Y_StartIntermission(void)
 		}
 		case int_race: // (time-only race)
 		{
-			if (!majormods && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
+			if (!majormods && !multiplayer && !demo.playback) // remove this once we have a proper time attack screen
 			{
 				// Update visitation flags
 				mapvisited[gamemap-1] |= MV_BEATEN;

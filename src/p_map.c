@@ -212,7 +212,7 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 		{
 			object->angle = spring->angle;
 
-			if (!demoplayback || P_AnalogMove(object->player))
+			if (!demo.playback || P_AnalogMove(object->player))
 			{
 				if (object->player == &players[consoleplayer])
 					localangle = spring->angle;
@@ -1264,7 +1264,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			thing->angle = tmthing->angle;
 
-			if (!demoplayback || P_AnalogMove(thing->player))
+			if (!demo.playback || P_AnalogMove(thing->player))
 			{
 				if (thing->player == &players[consoleplayer])
 					localangle = thing->angle;

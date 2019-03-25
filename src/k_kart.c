@@ -7115,7 +7115,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, UI
 	else if ((drawtime/TICRATE) & 1)
 		V_DrawKartString(TX, TY+3, splitflags, va("99'59\"99"));
 
-	if (emblemmap && (modeattacking || (mode == 1)) && !demoplayback) // emblem time!
+	if (emblemmap && (modeattacking || (mode == 1)) && !demo.playback) // emblem time!
 	{
 		INT32 workx = TX + 96, worky = TY+18;
 		SINT8 curemb = 0;
@@ -8731,7 +8731,7 @@ void K_drawKartHUD(void)
 		&& comeback
 		&& stplyr->playerstate == PST_LIVE)));
 
-	if (!titledemo && (!battlefullscreen || splitscreen))
+	if (!demo.title && (!battlefullscreen || splitscreen))
 	{
 		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
 		if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
@@ -8768,7 +8768,7 @@ void K_drawKartHUD(void)
 		K_drawKartItem();
 
 	// If not splitscreen, draw...
-	if (!splitscreen && !titledemo)
+	if (!splitscreen && !demo.title)
 	{
 		// Draw the timestamp
 #ifdef HAVE_BLUA
@@ -8788,7 +8788,7 @@ void K_drawKartHUD(void)
 
 	if (!stplyr->spectator) // Bottom of the screen elements, don't need in spectate mode
 	{
-		if (titledemo) // Draw title logo instead in titledemos
+		if (demo.title) // Draw title logo instead in demo.titles
 		{
 			INT32 x = BASEVIDWIDTH - 32, y = 128, offs;
 
@@ -8838,7 +8838,7 @@ void K_drawKartHUD(void)
 #endif
 					K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 			}
-			else //if (!(demoplayback && hu_showscores))
+			else //if (!(demo.playback && hu_showscores))
 			{
 				// Draw the input UI
 #ifdef HAVE_BLUA

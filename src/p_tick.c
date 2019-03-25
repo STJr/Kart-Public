@@ -599,7 +599,7 @@ void P_Ticker(boolean run)
 
 	if (run)
 	{
-		if (demorecording)
+		if (demo.recording)
 		{
 			if (!multiplayer) {
 				G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
@@ -610,7 +610,7 @@ void P_Ticker(boolean run)
 						G_WriteDemoTiccmd(&players[i].cmd, i);
 			}
 		}
-		if (demoplayback)
+		if (demo.playback)
 		{
 
 			if (!multiplayer) {
@@ -629,7 +629,7 @@ void P_Ticker(boolean run)
 	}
 
 	// Keep track of how long they've been playing!
-	if (!demoplayback) // Don't increment if a demo is playing.
+	if (!demo.playback) // Don't increment if a demo is playing.
 		totalplaytime++;
 
 	/*if (!useNightsSS && G_IsSpecialStage(gamemap))
@@ -728,23 +728,23 @@ void P_Ticker(boolean run)
 
 		if (multiplayer)
 		{
-			if (demorecording)
+			if (demo.recording)
 			{
 				G_WriteAllGhostTics();
 
-				if (demosavebutton && demosavebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
+				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
 					demodefersave = true;
 			}
-			if (demoplayback) // Use Ghost data for consistency checks.
+			if (demo.playback) // Use Ghost data for consistency checks.
 			{
 				G_ConsAllGhostTics();
 			}
 		}
 		else
 		{
-			if (demorecording)
+			if (demo.recording)
 				G_WriteGhostTic(players[consoleplayer].mo, consoleplayer);
-			if (demoplayback) // Use Ghost data for consistency checks.
+			if (demo.playback) // Use Ghost data for consistency checks.
 				G_ConsGhostTic(0);
 		}
 		if (modeattacking)

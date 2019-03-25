@@ -2445,7 +2445,7 @@ boolean M_Responder(event_t *ev)
 	static INT32 lastx = 0, lasty = 0;
 	void (*routine)(INT32 choice); // for some casting problem
 
-	if (dedicated || (demoplayback && titledemo)
+	if (dedicated || (demo.playback && demo.title)
 	|| gamestate == GS_INTRO || gamestate == GS_CUTSCENE || gamestate == GS_GAMEEND
 	|| gamestate == GS_CREDITS || gamestate == GS_EVALUATION)
 		return false;
@@ -2917,7 +2917,7 @@ void M_Drawer(void)
 void M_StartControlPanel(void)
 {
 	// time attack HACK
-	if (modeattacking && demoplayback)
+	if (modeattacking && demo.playback)
 	{
 		G_CheckDemoStatus();
 		S_ChangeMusicInternal("racent", true);
@@ -6946,7 +6946,7 @@ static void M_HandleStaffReplay(INT32 choice)
 				break;
 			M_ClearMenus(true);
 			modeattacking = ATTACKING_RECORD;
-			demo_loadfiles = false; demo_ignorefiles = true; // Just assume that record attack replays have the files needed
+			demo.loadfiles = false; demo.ignorefiles = true; // Just assume that record attack replays have the files needed
 			G_DoPlayDemo(va("%sS%02u",G_BuildMapName(cv_nextmap.value),cv_dummystaff.value));
 			break;
 		default:
@@ -6967,7 +6967,7 @@ static void M_ReplayTimeAttack(INT32 choice)
 	const char *which;
 	M_ClearMenus(true);
 	modeattacking = ATTACKING_RECORD; // set modeattacking before G_DoPlayDemo so the map loader knows
-	demo_loadfiles = false; demo_ignorefiles = true; // Just assume that record attack replays have the files needed
+	demo.loadfiles = false; demo.ignorefiles = true; // Just assume that record attack replays have the files needed
 
 	if (currentMenu == &SP_ReplayDef)
 	{
@@ -7164,7 +7164,7 @@ static void M_ExitGameResponse(INT32 ch)
 static void M_EndGame(INT32 choice)
 {
 	(void)choice;
-	if (demoplayback)
+	if (demo.playback)
 		return;
 
 	if (!Playing())
@@ -7589,7 +7589,7 @@ static void M_StartServer(INT32 choice)
 	else
 		joinpasswordset = false;
 
-	if (demoplayback)
+	if (demo.playback)
 		G_StopDemo();
 	if (metalrecording)
 		G_StopMetalDemo();

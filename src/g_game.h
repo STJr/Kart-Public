@@ -36,13 +36,31 @@ extern boolean playeringame[MAXPLAYERS];
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo, demosaved, demodefersave, demo_loadfiles, demo_ignorefiles;
-extern tic_t demosavebutton;
+extern boolean demosaved, demodefersave;
 extern consvar_t cv_recordmultiplayerdemos, cv_netdemosyncquality;
 
-// Quit after playing a demo from cmdline.
-extern boolean singledemo;
-extern boolean demo_start;
+// Publicly-accessible demo vars
+struct demovars_s {
+	char titlename[65];
+	boolean recording, playback, timing;
+	boolean title; // Title Screen demo can be cancelled by any key
+
+	boolean loadfiles, ignorefiles; // Demo file loading options
+	boolean fromtitle; // SRB2Kart: Don't stop the music
+	boolean quitafterplaying; // quit after playing a demo from cmdline
+	boolean deferstart; // don't start playing demo right away
+
+	tic_t savebutton; // Used to determine when the local player can choose to save the replay while the race is still going
+	enum {
+		DSM_NOTSAVING,
+		DSM_WILLAUTOSAVE,
+		DSM_TITLEENTRY,
+		DSM_WILLSAVE,
+		DSM_SAVED
+	} savemode;
+};
+
+extern struct demovars_s demo;
 
 extern mobj_t *metalplayback;
 

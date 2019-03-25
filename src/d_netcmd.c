@@ -2005,7 +2005,7 @@ static void Command_View_f(void)
 		default:  viewnum = 1;
 	}
 
-	if (viewnum > 1 && !( multiplayer && demoplayback ))
+	if (viewnum > 1 && !( multiplayer && demo.playback ))
 	{
 		CONS_Alert(CONS_NOTICE,
 				"You must be viewing a multiplayer replay to use this.\n");
@@ -2083,7 +2083,7 @@ static void Command_SetViews_f(void)
 	UINT8 splits;
 	UINT8 newsplits;
 
-	if (!( demoplayback && multiplayer ))
+	if (!( demo.playback && multiplayer ))
 	{
 		CONS_Alert(CONS_NOTICE,
 				"You must be viewing a multiplayer replay to use this.\n");
@@ -2137,7 +2137,7 @@ static void Command_Playdemo_f(void)
 	}
 
 	// disconnect from server here?
-	if (demoplayback)
+	if (demo.playback)
 		G_StopDemo();
 	if (metalplayback)
 		G_StopMetalDemo();
@@ -2148,8 +2148,8 @@ static void Command_Playdemo_f(void)
 
 	CONS_Printf(M_GetText("Playing back demo '%s'.\n"), name);
 
-	demo_loadfiles = strcmp(COM_Argv(2), "-addfiles") == 0;
-	demo_ignorefiles = strcmp(COM_Argv(2), "-force") == 0;
+	demo.loadfiles = strcmp(COM_Argv(2), "-addfiles") == 0;
+	demo.ignorefiles = strcmp(COM_Argv(2), "-force") == 0;
 
 	// Internal if no extension, external if one exists
 	// If external, convert the file name to a path in SRB2's home directory
@@ -2176,7 +2176,7 @@ static void Command_Timedemo_f(void)
 	}
 
 	// disconnect from server here?
-	if (demoplayback)
+	if (demo.playback)
 		G_StopDemo();
 	if (metalplayback)
 		G_StopMetalDemo();
@@ -2610,7 +2610,7 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	CON_ToggleOff();
 	CON_ClearHUD();
 
-	if (demoplayback && !timingdemo)
+	if (demo.playback && !demo.timing)
 		precache = false;
 
 	if (resetplayer)
@@ -2628,18 +2628,18 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 #endif*/
 
 	demosaved = demodefersave = false;
-	demosavebutton = 0;
+	demo.savebutton = 0;
 	G_InitNew(pencoremode, mapname, resetplayer, skipprecutscene);
-	if (demoplayback && !timingdemo)
+	if (demo.playback && !demo.timing)
 		precache = true;
-	if (timingdemo)
+	if (demo.timing)
 		G_DoneLevelLoad();
 
 	if (metalrecording)
 		G_BeginMetal();
-	if (demorecording) // Okay, level loaded, character spawned and skinned,
+	if (demo.recording) // Okay, level loaded, character spawned and skinned,
 		G_BeginRecording(); // I AM NOW READY TO RECORD.
-	demo_start = true;
+	demo.deferstart = true;
 }
 
 static void Command_Pause(void)
@@ -2695,7 +2695,7 @@ static void Got_Pause(UINT8 **cp, INT32 playernum)
 	paused = READUINT8(*cp);
 	dedicatedpause = READUINT8(*cp);
 
-	if (!demoplayback)
+	if (!demo.playback)
 	{
 		if (netgame)
 		{
@@ -4668,7 +4668,7 @@ static void PointLimit_OnChange(void)
 
 static void NumLaps_OnChange(void)
 {
-	if (!G_RaceGametype() || (modeattacking || demoplayback))
+	if (!G_RaceGametype() || (modeattacking || demo.playback))
 		return;
 
 	if (server && Playing()
@@ -5108,7 +5108,7 @@ static void Command_ExitLevel_f(void)
 		CONS_Printf(M_GetText("This only works in a netgame.\n"));
 	else if (!(server || (IsPlayerAdmin(consoleplayer))))
 		CONS_Printf(M_GetText("Only the server or a remote admin can use this.\n"));
-	else if (gamestate != GS_LEVEL || demoplayback)
+	else if (gamestate != GS_LEVEL || demo.playback)
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));
 	else
 		SendNetXCmd(XD_EXITLEVEL, NULL, 0);

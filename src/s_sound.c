@@ -1920,7 +1920,7 @@ void S_ChangeMusic(const char *mmusic, UINT16 mflags, boolean looping)
 #endif
 
 	if (S_MusicDisabled()
-		|| titledemo) // SRB2Kart: Demos don't interrupt title screen music
+		|| demo.title) // SRB2Kart: Demos don't interrupt title screen music
 		return;
 
 	// No Music (empty string)
@@ -1955,7 +1955,7 @@ void S_ChangeMusic(const char *mmusic, UINT16 mflags, boolean looping)
 void S_StopMusic(void)
 {
 	if (!I_SongPlaying()
-		|| titledemo) // SRB2Kart: Demos don't interrupt title screen music
+		|| demo.title) // SRB2Kart: Demos don't interrupt title screen music
 		return;
 
 	if (I_SongPaused())

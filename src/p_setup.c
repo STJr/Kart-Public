@@ -2729,7 +2729,7 @@ static boolean P_CanSave(void)
 	if ((cursaveslot < 0) // Playing without saving
 		|| (modifiedgame && !savemoddata) // Game is modified
 		|| (netgame || multiplayer) // Not in single-player
-		|| (demoplayback || demorecording || metalrecording) // Currently in demo
+		|| (demo.playback || demo.recording || metalrecording) // Currently in demo
 		|| (players[consoleplayer].lives <= 0) // Completely dead
 		|| (modeattacking || ultimatemode || G_IsSpecialStage(gamemap))) // Specialized instances
 		return false;
@@ -3113,9 +3113,9 @@ boolean P_SetupLevel(boolean skipprecip)
 			}
 		}
 
-	if (modeattacking == ATTACKING_RECORD && !demoplayback)
+	if (modeattacking == ATTACKING_RECORD && !demo.playback)
 		P_LoadRecordGhosts();
-	/*else if (modeattacking == ATTACKING_NIGHTS && !demoplayback)
+	/*else if (modeattacking == ATTACKING_NIGHTS && !demo.playback)
 		P_LoadNightsGhosts();*/
 
 	if (G_TagGametype())
@@ -3163,9 +3163,9 @@ boolean P_SetupLevel(boolean skipprecip)
 			? cv_basenumlaps.value
 			: mapheaderinfo[gamemap - 1]->numlaps);
 
-	//@TODO NET REPLAYS NEED BETTER FILE NAMING STUFF. ALSO OPTIONS. FUCK.
+	// Start recording replay in multiplayer with a temp filename
 	//@TODO I'd like to fix dedis crashing when recording replays for the future too...
-	if (!demoplayback && multiplayer && !dedicated) {
+	if (!demo.playback && multiplayer && !dedicated) {
 		static char buf[256];
 		sprintf(buf, "replay"PATHSEP"online"PATHSEP"%d-%s", (int) (time(NULL)), G_BuildMapName(gamemap));
 

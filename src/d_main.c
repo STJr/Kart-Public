@@ -1502,7 +1502,7 @@ void D_SRB2Main(void)
 
 		if (M_CheckParm("-playdemo"))
 		{
-			singledemo = true; // quit after one demo
+			demo.quitafterplaying = true; // quit after one demo
 			G_DeferedPlayDemo(tmp);
 		}
 		else

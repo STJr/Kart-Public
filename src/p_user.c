@@ -169,7 +169,7 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 boolean P_AutoPause(void)
 {
 	// Don't pause even on menu-up or focus-lost in netgames or record attack
-	if (netgame || modeattacking || titledemo)
+	if (netgame || modeattacking || demo.title)
 		return false;
 
 	return (menuactive || ( window_notinfocus && cv_pauseifunfocused.value ));
@@ -1147,7 +1147,7 @@ boolean P_EndingMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return false;
 
-	if (multiplayer && demoplayback) // Don't play this in multiplayer replays
+	if (multiplayer && demo.playback) // Don't play this in multiplayer replays
 		return false;
 
 	// Event - Level Finish
@@ -1707,7 +1707,7 @@ void P_SpawnThokMobj(player_t *player)
 	}
 
 	P_SetTarget(&mobj->target, player->mo); // the one thing P_SpawnGhostMobj doesn't do
-	if (demorecording)
+	if (demo.recording)
 		G_GhostAddThok((INT32) (player - players));
 }
 
@@ -1776,7 +1776,7 @@ void P_DoPlayerExit(player_t *player)
 		|| (splitscreen && player == &players[secondarydisplayplayer])
 		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
 		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-		&& (!player->spectator && !demoplayback))
+		&& (!player->spectator && !demo.playback))
 		legitimateexit = true;
 
 	if (G_RaceGametype()) // If in Race Mode, allow
@@ -1836,7 +1836,7 @@ void P_DoPlayerExit(player_t *player)
 	player->kartstuff[k_cardanimation] = 0; // srb2kart: reset battle animation
 
 	if (player == &players[consoleplayer])
-		demosavebutton = leveltime;
+		demo.savebutton = leveltime;
 
 	/*if (playeringame[player-players] && netgame && !circuitmap)
 		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
@@ -3878,7 +3878,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 
 				// Now spawn the color thok circle.
 				P_SpawnSpinMobj(player, player->revitem);
-				if (demorecording)
+				if (demo.recording)
 					G_GhostAddRev((INT32) (player - players));
 			}
 		}
@@ -6767,7 +6767,7 @@ static void P_MovePlayer(player_t *player)
 	if (player->pflags & PF_SPINNING && player->speed > FixedMul(15<<FRACBITS, player->mo->scale) && !(player->pflags & PF_JUMPED))
 	{
 		P_SpawnSpinMobj(player, player->spinitem);
-		if (demorecording)
+		if (demo.recording)
 			G_GhostAddSpin((INT32) (player - players));
 	}
 	*/
@@ -7958,7 +7958,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 //	if (leveltime > 0 && timeinmap <= 0)
 //		return true;
 
-	if (demoplayback)
+	if (demo.playback)
 	{
 		focusangle = mo->angle;
 		focusaiming = 0;
@@ -8670,7 +8670,7 @@ void P_DoTimeOver(player_t *player)
 		|| (splitscreen && player == &players[secondarydisplayplayer])
 		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
 		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-		&& !demoplayback)
+		&& !demo.playback)
 		legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
 
 	if (player->mo)

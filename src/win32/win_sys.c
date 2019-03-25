@@ -644,7 +644,7 @@ void I_Error(const char *error, ...)
 
 	// save demo, could be useful for debug
 	// NOTE: demos are normally not saved here.
-	if (demorecording)
+	if (demo.recording)
 		G_CheckDemoStatus();
 	if (metalrecording)
 		G_StopMetalRecording();
@@ -730,7 +730,7 @@ void I_Quit(void)
 	DWORD mode;
 	// when recording a demo, should exit using 'q',
 	// but sometimes we forget and use Alt+F4, so save here too.
-	if (demorecording)
+	if (demo.recording)
 		G_CheckDemoStatus();
 	if (metalrecording)
 		G_StopMetalRecording();

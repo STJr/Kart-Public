@@ -101,7 +101,6 @@ UINT8  numDemos      = 0; //3; -- i'm FED UP of losing my skincolour to a broken
 UINT32 demoDelayTime = 15*TICRATE;
 UINT32 demoIdleTime  = 3*TICRATE;
 
-boolean timingdemo; // if true, exit with report on completion
 boolean nodrawers; // for comparative timing purposes
 boolean noblit; // for comparative timing purposes
 static tic_t demostarttime; // for comparative timing purposes
@@ -289,20 +288,15 @@ UINT32 timesBeatenWithEmeralds;
 
 //@TODO put these all in a struct for namespacing purposes?
 static char demoname[128];
-char demotitle[65];
-boolean demorecording, demosaved, demodefersave, demoplayback;
-boolean demo_loadfiles, demo_ignorefiles; // Demo file loading options
-tic_t demosavebutton;
-boolean titledemo; // Title Screen demo can be cancelled by any key
-boolean fromtitledemo; // SRB2Kart: Don't stop the music
+boolean demosaved, demodefersave;
 static UINT8 *demobuffer = NULL;
 static UINT8 *demo_p, *demotime_p;
 static UINT8 *demoend;
 static UINT8 demoflags;
 static UINT16 demoversion;
-boolean singledemo; // quit after playing a demo from cmdline
-boolean demo_start; // don't start playing demo right away
 static boolean demosynced = true; // console warning message
+
+struct demovars_s demo;
 
 boolean metalrecording; // recording as metal sonic
 mobj_t *metalplayback;
@@ -1252,7 +1246,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
 	static boolean resetdown, resetdown2, resetdown3, resetdown4; // don't cam reset every frame
 
-	if (demoplayback) return;
+	if (demo.playback) return;
 
 	switch (ssplayer)
 	{
@@ -1842,8 +1836,8 @@ static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 boolean G_Responder(event_t *ev)
 {
 	// any other key pops up menu if in demos
-	if (gameaction == ga_nothing && !singledemo &&
-		((demoplayback && !modeattacking && !titledemo && !multiplayer) || gamestate == GS_TITLESCREEN))
+	if (gameaction == ga_nothing && !demo.quitafterplaying &&
+		((demo.playback && !modeattacking && !demo.title && !multiplayer) || gamestate == GS_TITLESCREEN))
 	{
 		if (ev->type == ev_keydown && ev->data1 != 301)
 		{
@@ -1852,7 +1846,7 @@ boolean G_Responder(event_t *ev)
 		}
 		return false;
 	}
-	else if (demoplayback && titledemo)
+	else if (demo.playback && demo.title)
 	{
 		// Title demo uses intro responder
 		if (F_IntroResponder(ev))
@@ -1922,21 +1916,21 @@ boolean G_Responder(event_t *ev)
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown
 		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
 	{
-		if (!demoplayback && (splitscreen || !netgame))
+		if (!demo.playback && (splitscreen || !netgame))
 			displayplayer = consoleplayer;
 		else
 		{
 			G_AdjustView(1, 1, true);
 
 			// change statusbar also if playing back demo
-			if (singledemo)
+			if (demo.quitafterplaying)
 				ST_changeDemoView();
 
 			return true;
 		}
 	}
 
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demoplayback)
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demo.playback)
 	{
 		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
 		{
@@ -2106,7 +2100,7 @@ boolean G_CouldView(INT32 playernum)
 		return false;
 
 	// I don't know if we want this actually, but I'll humor the suggestion anyway
-	if (G_BattleGametype() && !demoplayback)
+	if (G_BattleGametype() && !demo.playback)
 	{
 		if (player->kartstuff[k_bumper] <= 0)
 			return false;
@@ -2284,7 +2278,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 		}
 	}
 
-	if (viewnum == 1 && demoplayback)
+	if (viewnum == 1 && demo.playback)
 		consoleplayer = displayplayer;
 }
 
@@ -2415,7 +2409,7 @@ void G_Ticker(boolean run)
 	switch (gamestate)
 	{
 		case GS_LEVEL:
-			if (titledemo)
+			if (demo.title)
 				F_TitleDemoTicker();
 			P_Ticker(run); // tic the game
 			ST_Ticker();
@@ -2545,7 +2539,7 @@ static inline void G_PlayerFinishLevel(INT32 player)
 	// SRB2kart: Increment the "matches played" counter.
 	if (player == consoleplayer)
 	{
-		if (legitimateexit && !demoplayback && !mapreset) // (yes you're allowed to unlock stuff this way when the game is modified)
+		if (legitimateexit && !demo.playback && !mapreset) // (yes you're allowed to unlock stuff this way when the game is modified)
 		{
 			matchesplayed++;
 			if (M_UpdateUnlockablesAndExtraEmblems(true))
@@ -3331,7 +3325,7 @@ void G_ExitLevel(void)
 		// Remove CEcho text on round end.
 		HU_ClearCEcho();
 
-		if (multiplayer && demorecording && cv_recordmultiplayerdemos.value == 2)
+		if (multiplayer && demo.recording && cv_recordmultiplayerdemos.value == 2)
 			G_SaveDemo();
 	}
 }
@@ -3397,7 +3391,7 @@ boolean G_GametypeHasSpectators(void)
 #if 0
 	return (gametype != GT_COOP && gametype != GT_COMPETITION && gametype != GT_RACE);
 #else
-	return (netgame || (multiplayer && demoplayback)); //true
+	return (netgame || (multiplayer && demo.playback)); //true
 #endif
 }
 
@@ -3723,7 +3717,7 @@ static void G_DoCompleted(void)
 		}
 
 	// play some generic music if there's no win/cool/lose music going on (for exitlevel commands)
-	if (G_RaceGametype() && ((multiplayer && demoplayback) || j == splitscreen+1) && (cv_inttime.value > 0))
+	if (G_RaceGametype() && ((multiplayer && demo.playback) || j == splitscreen+1) && (cv_inttime.value > 0))
 		S_ChangeMusicInternal("racent", true);
 
 	if (automapactive)
@@ -3733,7 +3727,7 @@ static void G_DoCompleted(void)
 
 	prevmap = (INT16)(gamemap-1);
 
-	if (demoplayback) goto demointermission;
+	if (demo.playback) goto demointermission;
 
 	// go to next level
 	// nextmap is 0-based, unlike gamemap
@@ -3860,7 +3854,7 @@ void G_AfterIntermission(void)
 	HU_ClearCEcho();
 	//G_NextLevel();
 
-	if (demoplayback)
+	if (demo.playback)
 	{
 		G_StopDemo();
 		D_StartTitle();
@@ -4441,7 +4435,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 	}
 	save_p += VERSIONSIZE;
 
-	if (demoplayback) // reset game engine
+	if (demo.playback) // reset game engine
 		G_StopDemo();
 
 //	paused = false;
@@ -4540,7 +4534,7 @@ void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar
 	UINT8 color = 0;
 	paused = false;
 
-	if (demoplayback)
+	if (demo.playback)
 		COM_BufAddText("stopdemo\n");
 
 	while (ghosts)
@@ -4602,7 +4596,7 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	legitimateexit = false; // SRB2Kart
 	comebackshowninfo = false;
 
-	if (!demoplayback && !netgame) // Netgame sets random seed elsewhere, demo playback sets seed just before us!
+	if (!demo.playback && !netgame) // Netgame sets random seed elsewhere, demo playback sets seed just before us!
 		P_SetRandSeed(M_RandomizedSeed()); // Use a more "Random" random seed
 
 	//SRB2Kart - Score is literally the only thing you SHOULDN'T reset at all times
@@ -4648,7 +4642,7 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 
 			players[i].marescore = 0;
 
-			if (resetplayer && !(multiplayer && demoplayback)) // SRB2Kart
+			if (resetplayer && !(multiplayer && demo.playback)) // SRB2Kart
 			{
 				players[i].score = 0;
 			}
@@ -5094,7 +5088,7 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 {
 	UINT8 ziptic;
 
-	if (!demo_p || !demo_start)
+	if (!demo_p || !demo.deferstart)
 		return;
 	ziptic = READUINT8(demo_p);
 
@@ -5202,35 +5196,35 @@ void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 
 void G_GhostAddThok(INT32 playernum)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	ghostext[playernum].flags = (ghostext[playernum].flags & ~EZT_THOKMASK) | EZT_THOK;
 }
 
 void G_GhostAddSpin(INT32 playernum)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	ghostext[playernum].flags = (ghostext[playernum].flags & ~EZT_THOKMASK) | EZT_SPIN;
 }
 
 void G_GhostAddRev(INT32 playernum)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	ghostext[playernum].flags = (ghostext[playernum].flags & ~EZT_THOKMASK) | EZT_REV;
 }
 
 void G_GhostAddFlip(INT32 playernum)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	ghostext[playernum].flags |= EZT_FLIP;
 }
 
 void G_GhostAddColor(INT32 playernum, ghostcolor_t color)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	if (ghostext[playernum].lastcolor == (UINT8)color)
 	{
@@ -5243,7 +5237,7 @@ void G_GhostAddColor(INT32 playernum, ghostcolor_t color)
 
 void G_GhostAddScale(INT32 playernum, fixed_t scale)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	if (ghostext[playernum].lastscale == scale)
 	{
@@ -5256,7 +5250,7 @@ void G_GhostAddScale(INT32 playernum, fixed_t scale)
 
 void G_GhostAddHit(INT32 playernum, mobj_t *victim)
 {
-	if (!demorecording || !(demoflags & DF_GHOST))
+	if (!demo.recording || !(demoflags & DF_GHOST))
 		return;
 	ghostext[playernum].flags |= EZT_HIT;
 	ghostext[playernum].hits++;
@@ -5490,7 +5484,7 @@ void G_ConsGhostTic(INT32 playernum)
 	fixed_t syncleeway;
 	boolean nightsfail = false;
 
-	if (!demo_p || !demo_start)
+	if (!demo_p || !demo.deferstart)
 		return;
 	if (!(demoflags & DF_GHOST))
 		return; // No ghost data to use.
@@ -6068,7 +6062,7 @@ void G_RecordDemo(const char *name)
 	demobuffer = malloc(maxsize);
 	demoend = demobuffer + maxsize;
 
-	demorecording = true;
+	demo.recording = true;
 }
 
 void G_RecordMetal(void)
@@ -6111,7 +6105,7 @@ void G_BeginRecording(void)
 
 	// Full replay title
 	demo_p += 64;
-	snprintf(demotitle, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Record Attack" : connectedservername);
+	snprintf(demo.titlename, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Record Attack" : connectedservername);
 
 	// demo checksum
 	demo_p += 16;
@@ -6253,7 +6247,7 @@ void G_BeginMetal(void)
 
 void G_SetDemoTime(UINT32 ptime, UINT32 plap)
 {
-	if (!demorecording || !demotime_p)
+	if (!demo.recording || !demotime_p)
 		return;
 	if (demoflags & DF_RECORDATTACK)
 	{
@@ -6637,7 +6631,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	// read demo header
 	gameaction = ga_nothing;
-	demoplayback = true;
+	demo.playback = true;
 	if (memcmp(demo_p, DEMOHEADER, 12))
 	{
 		snprintf(msg, 1024, M_GetText("%s is not a SRB2Kart replay file.\n"), pdemoname);
@@ -6645,8 +6639,8 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
-		demoplayback = false;
-		titledemo = false;
+		demo.playback = false;
+		demo.title = false;
 		return;
 	}
 	demo_p += 12; // DEMOHEADER
@@ -6658,8 +6652,8 @@ void G_DoPlayDemo(char *defdemoname)
 	{
 	case DEMOVERSION: // latest always supported
 		// demo title
-		M_Memcpy(demotitle, demo_p, 64);
-		CONS_Printf("Demo title: %s\n", demotitle);
+		M_Memcpy(demo.titlename, demo_p, 64);
+		CONS_Printf("Demo title: %s\n", demo.titlename);
 		demo_p += 64;
 
 		break;
@@ -6675,8 +6669,8 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
-		demoplayback = false;
-		titledemo = false;
+		demo.playback = false;
+		demo.title = false;
 		return;
 	}
 	demo_p += 16; // demo checksum
@@ -6687,8 +6681,8 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
-		demoplayback = false;
-		titledemo = false;
+		demo.playback = false;
+		demo.title = false;
 		return;
 	}
 	demo_p += 4; // "PLAY"
@@ -6706,8 +6700,8 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
-			demoplayback = false;
-			titledemo = false;
+			demo.playback = false;
+			demo.title = false;
 			return;
 		}
 	}
@@ -6716,11 +6710,11 @@ void G_DoPlayDemo(char *defdemoname)
 #endif
 	gametype = READUINT8(demo_p);
 
-	if (titledemo) // Titledemos should always play and ought to always be compatible with whatever wadlist is running.
+	if (demo.title) // Titledemos should always play and ought to always be compatible with whatever wadlist is running.
 		G_SkipDemoExtraFiles(&demo_p);
-	else if (demo_loadfiles)
+	else if (demo.loadfiles)
 		G_LoadDemoExtraFiles(&demo_p);
-	else if (demo_ignorefiles)
+	else if (demo.ignorefiles)
 		G_SkipDemoExtraFiles(&demo_p);
 	else
 	{
@@ -6766,8 +6760,8 @@ void G_DoPlayDemo(char *defdemoname)
 				M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
-			demoplayback = false;
-			titledemo = false;
+			demo.playback = false;
+			demo.title = false;
 			return;
 		}
 	}
@@ -6831,8 +6825,8 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
-			demoplayback = false;
-			titledemo = false;
+			demo.playback = false;
+			demo.title = false;
 			return;
 		}
 
@@ -6844,8 +6838,8 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
-			demoplayback = false;
-			titledemo = false;
+			demo.playback = false;
+			demo.title = false;
 			return;
 		}
 
@@ -6868,8 +6862,8 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
-			demoplayback = false;
-			titledemo = false;
+			demo.playback = false;
+			demo.title = false;
 			return;
 		}
 
@@ -6889,7 +6883,7 @@ void G_DoPlayDemo(char *defdemoname)
 #endif
 
 		// didn't start recording right away.
-		demo_start = false;
+		demo.deferstart = false;
 
 		displayplayer = consoleplayer = 0;
 		memset(playeringame, 0, sizeof(playeringame));
@@ -6910,8 +6904,8 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
-		demoplayback = false;
-		titledemo = false;
+		demo.playback = false;
+		demo.title = false;
 		return;
 	}
 
@@ -6936,7 +6930,7 @@ void G_DoPlayDemo(char *defdemoname)
 #endif
 
 	// didn't start recording right away.
-	demo_start = false;
+	demo.deferstart = false;
 
 /*#ifdef HAVE_BLUA
 	LUAh_MapChange(gamemap);
@@ -6964,8 +6958,8 @@ void G_DoPlayDemo(char *defdemoname)
 				M_StartMessage(msg, NULL, MM_NOTHING);
 				Z_Free(pdemoname);
 				Z_Free(demobuffer);
-				demoplayback = false;
-				titledemo = false;
+				demo.playback = false;
+				demo.title = false;
 				return;
 			}
 		}
@@ -6979,8 +6973,8 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
-			demoplayback = false;
-			titledemo = false;
+			demo.playback = false;
+			demo.title = false;
 			return;
 		}
 
@@ -7025,7 +7019,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	splitscreen = 0;
 
-	if (titledemo)
+	if (demo.title)
 	{
 		splitscreen = M_RandomKey(6)-1;
 		splitscreen = min(min(3, numslots-1), splitscreen); // Bias toward 1p and 4p views
@@ -7060,7 +7054,7 @@ post_compat:
 		players[i].kartweight = kartweight[i];
 	}
 
-	demo_start = true;
+	demo.deferstart = true;
 }
 #undef SKIPERRORS
 
@@ -7397,7 +7391,7 @@ void G_TimeDemo(const char *name)
 	restorecv_vidwait = cv_vidwait.value;
 	if (cv_vidwait.value)
 		CV_Set(&cv_vidwait, "0");
-	timingdemo = true;
+	demo.timing = true;
 	singletics = true;
 	framecount = 0;
 	demostarttime = I_GetTime();
@@ -7531,11 +7525,11 @@ void G_StopDemo(void)
 {
 	Z_Free(demobuffer);
 	demobuffer = NULL;
-	demoplayback = false;
-	if (titledemo)
+	demo.playback = false;
+	if (demo.title)
 		modeattacking = false;
-	titledemo = false;
-	timingdemo = false;
+	demo.title = false;
+	demo.timing = false;
 	singletics = false;
 
 	if (gamestate == GS_LEVEL && rendermode != render_none)
@@ -7566,7 +7560,7 @@ boolean G_CheckDemoStatus(void)
 
 	// DO NOT end metal sonic demos here
 
-	if (timingdemo)
+	if (demo.timing)
 	{
 		INT32 demotime;
 		double f1, f2;
@@ -7574,7 +7568,7 @@ boolean G_CheckDemoStatus(void)
 		if (!demotime)
 			return true;
 		G_StopDemo();
-		timingdemo = false;
+		demo.timing = false;
 		f1 = (double)demotime;
 		f2 = (double)framecount*TICRATE;
 		CONS_Printf(M_GetText("timed %u gametics in %d realtics\n%f seconds, %f avg fps\n"), leveltime,demotime,f1/TICRATE,f2/f1);
@@ -7584,12 +7578,12 @@ boolean G_CheckDemoStatus(void)
 		return true;
 	}
 
-	if (demoplayback)
+	if (demo.playback)
 	{
-		if (singledemo)
+		if (demo.quitafterplaying)
 			I_Quit();
 
-		if (multiplayer && !titledemo)
+		if (multiplayer && !demo.title)
 			G_ExitLevel();
 		else
 		{
@@ -7604,12 +7598,12 @@ boolean G_CheckDemoStatus(void)
 		return true;
 	}
 
-	if (demorecording && (!multiplayer || cv_recordmultiplayerdemos.value == 2))
+	if (demo.recording && (!multiplayer || cv_recordmultiplayerdemos.value == 2))
 	{
 		G_SaveDemo();
 		return true;
 	}
-	demorecording = false;
+	demo.recording = false;
 
 	return false;
 }
@@ -7622,7 +7616,7 @@ void G_SaveDemo(void)
 #endif
 
 	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
-	M_Memcpy(p, demotitle, 64); // Write demo title here
+	M_Memcpy(p, demo.titlename, 64); // Write demo title here
 	p += 64;
 
 	if (multiplayer)
@@ -7633,17 +7627,18 @@ void G_SaveDemo(void)
 		size_t i, strindex = 0;
 		boolean dash = true;
 
-		for (i = 0; demotitle[i] && i < 127; i++)
+		for (i = 0; demo.titlename[i] && i < 127; i++)
 		{
-			if ((demotitle[i] >= 'a' && demotitle[i] <= 'z') || (demotitle[i] >= '0' && demotitle[i] <= '9'))
+			if ((demo.titlename[i] >= 'a' && demo.titlename[i] <= 'z') ||
+				(demo.titlename[i] >= '0' && demo.titlename[i] <= '9'))
 			{
-				demo_slug[strindex] = demotitle[i];
+				demo_slug[strindex] = demo.titlename[i];
 				strindex++;
 				dash = false;
 			}
-			else if (demotitle[i] >= 'A' && demotitle[i] <= 'Z')
+			else if (demo.titlename[i] >= 'A' && demo.titlename[i] <= 'Z')
 			{
-				demo_slug[strindex] = demotitle[i] + 'a' - 'A';
+				demo_slug[strindex] = demo.titlename[i] + 'a' - 'A';
 				strindex++;
 				dash = false;
 			}
@@ -7657,7 +7652,6 @@ void G_SaveDemo(void)
 
 		demo_slug[strindex] = 0;
 		if (dash) demo_slug[strindex-1] = 0;
-		CONS_Printf("%s\n%s\n", demotitle, demo_slug);
 
 		writepoint = strstr(demoname, "-") + 1;
 		demo_slug[128 - (writepoint - demoname) - 4] = 0;
@@ -7673,7 +7667,7 @@ void G_SaveDemo(void)
 
 	demosaved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
 	free(demobuffer);
-	demorecording = false;
+	demo.recording = false;
 
 	if (modeattacking != ATTACKING_RECORD)
 	{

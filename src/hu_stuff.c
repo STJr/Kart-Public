@@ -2206,7 +2206,7 @@ static void HU_DrawDemoInfo(void)
 	}
 	else
 	{
-		V_DrawRightAlignedThinString(BASEVIDWIDTH-2, BASEVIDHEIGHT-10, V_ALLOWLOWERCASE, demotitle);
+		V_DrawRightAlignedThinString(BASEVIDWIDTH-2, BASEVIDHEIGHT-10, V_ALLOWLOWERCASE, demo.titlename);
 	}
 
 	if (modeattacking)
@@ -2326,7 +2326,7 @@ void HU_Drawer(void)
 	if (cechotimer)
 		HU_DrawCEcho();
 
-	if (!( Playing() || demoplayback )
+	if (!( Playing() || demo.playback )
 	 || gamestate == GS_INTERMISSION || gamestate == GS_CUTSCENE
 	 || gamestate == GS_CREDITS      || gamestate == GS_EVALUATION
 	 || gamestate == GS_GAMEEND
@@ -2346,7 +2346,7 @@ void HU_Drawer(void)
 		LUAh_ScoresHUD();
 #endif
 		}
-		if (demoplayback)
+		if (demo.playback)
 		{
 			HU_DrawDemoInfo();
 		}
@@ -2356,7 +2356,7 @@ void HU_Drawer(void)
 		return;
 
 	// draw the crosshair, not when viewing demos nor with chasecam
-	/*if (!automapactive && !demoplayback)
+	/*if (!automapactive && !demo.playback)
 	{
 		if (cv_crosshair.value && !camera.chase && !players[displayplayer].spectator)
 			HU_DrawCrosshair();
@@ -3009,7 +3009,7 @@ static void HU_DrawRankings(void)
 	// When you play, you quickly see your score because your name is displayed in white.
 	// When playing back a demo, you quickly see who's the view.
 	if (!splitscreen)
-		whiteplayer = demoplayback ? displayplayer : consoleplayer;
+		whiteplayer = demo.playback ? displayplayer : consoleplayer;
 
 	scorelines = 0;
 	memset(completed, 0, sizeof (completed));
