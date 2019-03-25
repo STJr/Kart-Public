@@ -6630,7 +6630,8 @@ void G_DoPlayDemo(char *defdemoname)
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
+		CONS_Printf("You need to implement demo compat here, doofus! %s:%d\n", __FILE__, __LINE__);
+		break;
 #endif
 	// too old, cannot support.
 	default:
@@ -6661,7 +6662,21 @@ void G_DoPlayDemo(char *defdemoname)
 
 	demoflags = READUINT8(demo_p);
 #ifdef DEMO_COMPAT_100
-	if (demoversion != 0x0001)
+	if (demoversion == 0x0001)
+	{
+		if (demoflags & DF_MULTIPLAYER)
+		{
+			snprintf(msg, 1024, M_GetText("%s is an alpha multiplayer replay and cannot be played.\n"), pdemoname);
+			CONS_Alert(CONS_ERROR, "%s", msg);
+			M_StartMessage(msg, NULL, MM_NOTHING);
+			Z_Free(pdemoname);
+			Z_Free(demobuffer);
+			demoplayback = false;
+			titledemo = false;
+			return;
+		}
+	}
+	else
 	{
 #endif
 	gametype = READUINT8(demo_p);
@@ -6902,11 +6917,37 @@ void G_DoPlayDemo(char *defdemoname)
 	while (p != 0xFF)
 	{
 		spectator = false;
-		if (p & DEMO_SPECTATOR) {
+		if (p & DEMO_SPECTATOR)
+		{
 			spectator = true;
 			p &= ~DEMO_SPECTATOR;
+
+			if (modeattacking)
+			{
+				snprintf(msg, 1024, M_GetText("%s is a record attack replay with spectators, and is thus invalid.\n"), pdemoname);
+				CONS_Alert(CONS_ERROR, "%s", msg);
+				M_StartMessage(msg, NULL, MM_NOTHING);
+				Z_Free(pdemoname);
+				Z_Free(demobuffer);
+				demoplayback = false;
+				titledemo = false;
+				return;
+			}
 		}
 		slots[numslots] = p; numslots++;
+
+
+		if (modeattacking && numslots > 1)
+		{
+			snprintf(msg, 1024, M_GetText("%s is a record attack replay with multiple players, and is thus invalid.\n"), pdemoname);
+			CONS_Alert(CONS_ERROR, "%s", msg);
+			M_StartMessage(msg, NULL, MM_NOTHING);
+			Z_Free(pdemoname);
+			Z_Free(demobuffer);
+			demoplayback = false;
+			titledemo = false;
+			return;
+		}
 
 		if (!playeringame[displayplayer] || players[displayplayer].spectator)
 			displayplayer = consoleplayer = serverplayer = p;
