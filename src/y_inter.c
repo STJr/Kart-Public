@@ -563,9 +563,9 @@ dotimer:
 	}
 
 	if (demorecording && cv_recordmultiplayerdemos.value == 1)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_ALLOWLOWERCASE|hilicol, "Press Look Backward to save the replay");
-	else if (demosaved)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_ALLOWLOWERCASE|hilicol, "Replay saved!");
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Look Backward: Save replay");
+	else if (demosaved && !demoplayback)
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Replay saved!");
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))

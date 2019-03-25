@@ -2018,9 +2018,9 @@ static void ST_overlayDrawer(void)
 	if (demorecording && multiplayer && demosavebutton && demosavebutton + 3*TICRATE < leveltime)
 	{
 		if (demodefersave || cv_recordmultiplayerdemos.value == 2)
-			V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_HUDTRANSHALF|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved.");
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_HUDTRANS|V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved.");
 		else
-			V_DrawCenteredString(BASEVIDWIDTH/2, 178, V_HUDTRANSHALF|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Press Look Backward to save the replay");
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_HUDTRANS|V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Look Backward: Save replay");
 	}
 
 	ST_drawDebugInfo();
