@@ -288,7 +288,7 @@ UINT32 timesBeatenWithEmeralds;
 //UINT32 timesBeatenUltimate;
 
 //@TODO put these all in a struct for namespacing purposes?
-static char demoname[64];
+static char demoname[128];
 char demotitle[65];
 boolean demorecording, demosaved, demodefersave, demoplayback;
 boolean demo_loadfiles, demo_ignorefiles; // Demo file loading options
@@ -7624,6 +7624,45 @@ void G_SaveDemo(void)
 	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
 	M_Memcpy(p, demotitle, 64); // Write demo title here
 	p += 64;
+
+	if (multiplayer)
+	{
+		// Change the demo's name to be a slug of the title
+		char demo_slug[128];
+		char *writepoint;
+		size_t i, strindex = 0;
+		boolean dash = true;
+
+		for (i = 0; demotitle[i] && i < 127; i++)
+		{
+			if ((demotitle[i] >= 'a' && demotitle[i] <= 'z') || (demotitle[i] >= '0' && demotitle[i] <= '9'))
+			{
+				demo_slug[strindex] = demotitle[i];
+				strindex++;
+				dash = false;
+			}
+			else if (demotitle[i] >= 'A' && demotitle[i] <= 'Z')
+			{
+				demo_slug[strindex] = demotitle[i] + 'a' - 'A';
+				strindex++;
+				dash = false;
+			}
+			else if (!dash)
+			{
+				demo_slug[strindex] = '-';
+				strindex++;
+				dash = true;
+			}
+		}
+
+		demo_slug[strindex] = 0;
+		if (dash) demo_slug[strindex-1] = 0;
+		CONS_Printf("%s\n%s\n", demotitle, demo_slug);
+
+		writepoint = strstr(demoname, "-") + 1;
+		demo_slug[128 - (writepoint - demoname) - 4] = 0;
+		sprintf(writepoint, "%s.lmp", demo_slug);
+	}
 
 #ifdef NOMD5
 	for (i = 0; i < 16; i++, p++)
