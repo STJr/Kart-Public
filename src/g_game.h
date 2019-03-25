@@ -230,6 +230,7 @@ ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void);
 void G_StopDemo(void);
 boolean G_CheckDemoStatus(void);
 void G_SaveDemo(void);
+boolean G_DemoTitleResponder(event_t *ev);
 
 boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);

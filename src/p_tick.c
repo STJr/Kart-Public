@@ -733,7 +733,7 @@ void P_Ticker(boolean run)
 				G_WriteAllGhostTics();
 
 				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
-					demo.savemode = DSM_WILLSAVE; // DSM_TITLEENTRY
+					demo.savemode = DSM_TITLEENTRY;
 			}
 			if (demo.playback) // Use Ghost data for consistency checks.
 			{

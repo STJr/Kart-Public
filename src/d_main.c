@@ -248,6 +248,12 @@ void D_ProcessEvents(void)
 				continue;
 		}
 
+		if (demo.savemode == DSM_TITLEENTRY)
+		{
+			if (G_DemoTitleResponder(ev))
+				continue;
+		}
+
 		// Menu input
 		if (M_Responder(ev))
 			continue; // menu ate the event

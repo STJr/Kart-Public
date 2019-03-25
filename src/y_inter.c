@@ -573,6 +573,10 @@ dotimer:
 			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Replay saved!");
 			break;
 
+		case DSM_TITLEENTRY:
+			ST_DrawDemoTitleEntry();
+			break;
+
 		default: // Don't render any text here
 			break;
 		}
@@ -595,7 +599,7 @@ void Y_Ticker(void)
 	if (demo.recording)
 	{
 		if (demo.savemode == DSM_NOTSAVING && InputDown(gc_lookback, 1))
-			demo.savemode = DSM_WILLSAVE; // DSM_TITLEENTRY
+			demo.savemode = DSM_TITLEENTRY;
 
 		if (demo.savemode == DSM_WILLSAVE || demo.savemode == DSM_WILLAUTOSAVE)
 			G_SaveDemo();

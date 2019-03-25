@@ -2024,11 +2024,15 @@ static void ST_overlayDrawer(void)
 			break;
 
 		case DSM_WILLAUTOSAVE:
-			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_HUDTRANS|V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved." /*" (Look Backward: Change title)"*/);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_HUDTRANS|V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved. (Look Backward: Change title)");
 			break;
 
 		case DSM_WILLSAVE:
 			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_HUDTRANS|V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|(G_BattleGametype() ? V_REDMAP : V_SKYMAP), "Replay will be saved.");
+			break;
+
+		case DSM_TITLEENTRY:
+			ST_DrawDemoTitleEntry();
 			break;
 
 		default: // Don't render anything
@@ -2037,6 +2041,36 @@ static void ST_overlayDrawer(void)
 	}
 
 	ST_drawDebugInfo();
+}
+
+void ST_DrawDemoTitleEntry(void)
+{
+	static UINT8 skullAnimCounter = 0;
+	char *nametodraw;
+
+	skullAnimCounter++;
+	skullAnimCounter %= 8;
+
+	nametodraw = demo.titlename;
+	while (V_StringWidth(nametodraw, 0) > MAXSTRINGLENGTH*8 - 8)
+		nametodraw++;
+
+#define x (BASEVIDWIDTH/2 - 139)
+#define y (BASEVIDHEIGHT/2)
+	M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
+	V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, nametodraw);
+	if (skullAnimCounter < 4)
+		V_DrawCharacter(x + 8 + V_StringWidth(nametodraw, 0), y + 12,
+			'_' | 0x80, false);
+
+	M_DrawTextBox(x + 30, y - 24, 26, 1);
+	V_DrawString(x + 38, y - 16, V_ALLOWLOWERCASE, "Enter the name of the replay.");
+
+	M_DrawTextBox(x + 50, y + 20, 20, 1);
+	V_DrawThinString(x + 58, y + 28, V_ALLOWLOWERCASE, "Escape - Cancel");
+	V_DrawRightAlignedThinString(x + 220, y + 28, V_ALLOWLOWERCASE, "Enter - Confirm");
+#undef x
+#undef y
 }
 
 // MayonakaStatic: draw Midnight Channel's TV-like borders

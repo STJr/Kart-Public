@@ -7603,7 +7603,7 @@ boolean G_CheckDemoStatus(void)
 		return true;
 	}
 
-	if (demo.recording && (!multiplayer || cv_recordmultiplayerdemos.value == 2))
+	if (demo.recording && demo.savemode != DSM_NOTSAVING)
 	{
 		G_SaveDemo();
 		return true;
@@ -7682,6 +7682,55 @@ void G_SaveDemo(void)
 		else
 			CONS_Alert(CONS_WARNING, M_GetText("Demo %s not saved\n"), demoname);
 	}
+}
+
+boolean G_DemoTitleResponder(event_t *ev)
+{
+	size_t len;
+	INT32 ch;
+
+	if (ev->type != ev_keydown)
+		return false;
+
+	ch = (INT32)ev->data1;
+
+	// Only ESC and non-keyboard keys abort connection
+	if (ch == KEY_ESCAPE)
+	{
+		demo.savemode = (cv_recordmultiplayerdemos.value == 2) ? DSM_WILLAUTOSAVE : DSM_NOTSAVING;
+		return true;
+	}
+
+	if (ch == KEY_ENTER || ch >= KEY_MOUSE1)
+	{
+		demo.savemode = DSM_WILLSAVE;
+		return true;
+	}
+
+	if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && hu_font[ch-HU_FONTSTART])
+	  || ch == ' ') // Allow spaces, of course
+	{
+		len = strlen(demo.titlename);
+		if (len < 64)
+		{
+			demo.titlename[len+1] = 0;
+			demo.titlename[len] = CON_ShiftChar(ch);
+		}
+	}
+	else if (ch == KEY_BACKSPACE)
+	{
+		if (shiftdown)
+			memset(demo.titlename, 0, sizeof(demo.titlename));
+		else
+		{
+			len = strlen(demo.titlename);
+
+			if (len > 0)
+				demo.titlename[len-1] = 0;
+		}
+	}
+
+	return true;
 }
 
 //
