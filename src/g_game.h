@@ -36,7 +36,6 @@ extern boolean playeringame[MAXPLAYERS];
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demosaved, demodefersave;
 extern consvar_t cv_recordmultiplayerdemos, cv_netdemosyncquality;
 
 // Publicly-accessible demo vars

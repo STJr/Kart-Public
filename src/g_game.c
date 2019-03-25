@@ -288,7 +288,6 @@ UINT32 timesBeatenWithEmeralds;
 
 //@TODO put these all in a struct for namespacing purposes?
 static char demoname[128];
-boolean demosaved, demodefersave;
 static UINT8 *demobuffer = NULL;
 static UINT8 *demo_p, *demotime_p;
 static UINT8 *demoend;
@@ -3325,7 +3324,7 @@ void G_ExitLevel(void)
 		// Remove CEcho text on round end.
 		HU_ClearCEcho();
 
-		if (multiplayer && demo.recording && cv_recordmultiplayerdemos.value == 2)
+		if (multiplayer && demo.recording && (demo.savemode == DSM_WILLSAVE || demo.savemode == DSM_WILLAUTOSAVE))
 			G_SaveDemo();
 	}
 }
@@ -3860,6 +3859,9 @@ void G_AfterIntermission(void)
 		D_StartTitle();
 		return;
 	}
+	else if (demo.recording && demo.savemode != DSM_NOTSAVING)
+		G_SaveDemo();
+
 	if (modeattacking) // End the run.
 	{
 		M_EndModeAttackRun();
@@ -4004,6 +4006,9 @@ static void G_DoContinued(void)
 // when something new is added.
 void G_EndGame(void)
 {
+	if (demo.recording && demo.savemode != DSM_NOTSAVING)
+		G_SaveDemo();
+
 	// Only do evaluation and credits in coop games.
 	if (gametype == GT_COOP)
 	{
@@ -7665,13 +7670,14 @@ void G_SaveDemo(void)
 	md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
 #endif
 
-	demosaved = FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer); // finally output the file.
+	if (FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer)) // finally output the file.
+		demo.savemode = DSM_SAVED;
 	free(demobuffer);
 	demo.recording = false;
 
 	if (modeattacking != ATTACKING_RECORD)
 	{
-		if (demosaved)
+		if (demo.savemode == DSM_SAVED)
 			CONS_Printf(M_GetText("Demo %s recorded\n"), demoname);
 		else
 			CONS_Alert(CONS_WARNING, M_GetText("Demo %s not saved\n"), demoname);

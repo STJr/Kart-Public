@@ -562,10 +562,20 @@ dotimer:
 			string);
 	}
 
-	if (demo.recording && cv_recordmultiplayerdemos.value == 1)
-		V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Look Backward: Save replay");
-	else if (demosaved && !demo.playback)
-		V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Replay saved!");
+	if ((demo.recording || demo.savemode == DSM_SAVED) && !demo.playback)
+		switch (demo.savemode)
+		{
+		case DSM_NOTSAVING:
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Look Backward: Save replay");
+			break;
+
+		case DSM_SAVED:
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Replay saved!");
+			break;
+
+		default: // Don't render any text here
+			break;
+		}
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
@@ -582,10 +592,13 @@ void Y_Ticker(void)
 	if (intertype == int_none)
 		return;
 
-	if (demo.recording && cv_recordmultiplayerdemos.value == 1 && (demodefersave || InputDown(gc_lookback, 1)))
+	if (demo.recording)
 	{
-		demodefersave = false;
-		G_SaveDemo();
+		if (demo.savemode == DSM_NOTSAVING && InputDown(gc_lookback, 1))
+			demo.savemode = DSM_WILLSAVE; // DSM_TITLEENTRY
+
+		if (demo.savemode == DSM_WILLSAVE || demo.savemode == DSM_WILLAUTOSAVE)
+			G_SaveDemo();
 	}
 
 	// Check for pause or menu up in single player
