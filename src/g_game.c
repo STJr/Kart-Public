@@ -4765,11 +4765,14 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DF_NIGHTSATTACK 0x04 // This demo is from NiGHTS attack and contains its time left, score, and mares!
 #define DF_ATTACKMASK   0x06 // This demo is from ??? attack and contains ???
 #define DF_ATTACKSHIFT  1
+#define DF_ENCORE       0x40
+#define DF_MULTIPLAYER  0x80 // This demo was recorded in multiplayer mode!
+
+#ifdef DEMO_COMPAT_100
 #define DF_FILELIST     0x08 // This demo contains an extra files list
 #define DF_GAMETYPEMASK 0x30
 #define DF_GAMESHIFT    4
-#define DF_ENCORE       0x40
-#define DF_MULTIPLAYER  0x80 // This demo contains a dynamic number of players!
+#endif
 
 #define DEMO_SPECTATOR 0x40
 
@@ -6123,93 +6126,45 @@ void G_BeginRecording(void)
 
 	WRITEUINT32(demo_p,P_GetInitSeed());
 
-	if (demoflags & DF_MULTIPLAYER) {
-		// Netvars first :)
-		CV_SaveNetVars(&demo_p, true);
+	// Save netvars
+	CV_SaveNetVars(&demo_p, true);
 
-		// Now store a SIMPLIFIED data struct for each in-game player
-		for (p = 0; p < MAXPLAYERS; p++) {
-			if (playeringame[p]) {
-				player = &players[p];
+	// Now store some info for each in-game player
+	for (p = 0; p < MAXPLAYERS; p++) {
+		if (playeringame[p]) {
+			player = &players[p];
 
-				WRITEUINT8(demo_p, p | (player->spectator ? DEMO_SPECTATOR : 0));
+			WRITEUINT8(demo_p, p | (player->spectator ? DEMO_SPECTATOR : 0));
 
-				// Name
-				memset(name, 0, 16);
-				strncpy(name, player_names[p], 16);
-				M_Memcpy(demo_p,name,16);
-				demo_p += 16;
+			// Name
+			memset(name, 0, 16);
+			strncpy(name, player_names[p], 16);
+			M_Memcpy(demo_p,name,16);
+			demo_p += 16;
 
-				// Skin
-				memset(name, 0, 16);
-				strncpy(name, skins[player->skin].name, 16);
-				M_Memcpy(demo_p,name,16);
-				demo_p += 16;
+			// Skin
+			memset(name, 0, 16);
+			strncpy(name, skins[player->skin].name, 16);
+			M_Memcpy(demo_p,name,16);
+			demo_p += 16;
 
-				// Color
-				memset(name, 0, 16);
-				strncpy(name, KartColor_Names[player->skincolor], 16);
-				M_Memcpy(demo_p,name,16);
-				demo_p += 16;
+			// Color
+			memset(name, 0, 16);
+			strncpy(name, KartColor_Names[player->skincolor], 16);
+			M_Memcpy(demo_p,name,16);
+			demo_p += 16;
 
-				// Score, since Kart uses this to determine where you start on the map
-				WRITEUINT32(demo_p, player->score);
-			}
+			// Score, since Kart uses this to determine where you start on the map
+			WRITEUINT32(demo_p, player->score);
+
+			// Kart speed and weight
+			WRITEUINT8(demo_p, skins[player->skin].kartspeed);
+			WRITEUINT8(demo_p, skins[player->skin].kartweight);
 		}
-
-		WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
-
-		goto initcmdandghost;
 	}
 
-	// Name
-	for (i = 0; i < 16 && cv_playername.string[i]; i++)
-		name[i] = cv_playername.string[i];
-	for (; i < 16; i++)
-		name[i] = '\0';
-	M_Memcpy(demo_p,name,16);
-	demo_p += 16;
+	WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
 
-	// Skin
-	for (i = 0; i < 16 && cv_skin.string[i]; i++)
-		name[i] = cv_skin.string[i];
-	for (; i < 16; i++)
-		name[i] = '\0';
-	M_Memcpy(demo_p,name,16);
-	demo_p += 16;
-
-	// Color
-	for (i = 0; i < 16 && cv_playercolor.string[i]; i++)
-		name[i] = cv_playercolor.string[i];
-	for (; i < 16; i++)
-		name[i] = '\0';
-	M_Memcpy(demo_p,name,16);
-	demo_p += 16;
-
-	// Stats
-	WRITEUINT8(demo_p,player->charability);
-	WRITEUINT8(demo_p,player->charability2);
-	WRITEUINT8(demo_p,player->actionspd>>FRACBITS);
-	WRITEUINT8(demo_p,player->mindash>>FRACBITS);
-	WRITEUINT8(demo_p,player->maxdash>>FRACBITS);
-	// SRB2kart
-	WRITEUINT8(demo_p,player->kartspeed);
-	WRITEUINT8(demo_p,player->kartweight);
-	//
-	WRITEUINT8(demo_p,player->normalspeed>>FRACBITS);
-	WRITEUINT8(demo_p,player->runspeed>>FRACBITS);
-	WRITEUINT8(demo_p,player->thrustfactor);
-	WRITEUINT8(demo_p,player->accelstart);
-	WRITEUINT8(demo_p,player->acceleration);
-
-	// Trying to convert it back to % causes demo desync due to precision loss.
-	// Don't do it.
-	WRITEFIXED(demo_p, player->jumpfactor);
-
-	// Save netvar data (SONICCD, etc)
-	CV_SaveNetVars(&demo_p, false); //@TODO can this be true? it's not necessary for now but would be nice for consistency
-
-initcmdandghost:
 	memset(&oldcmd,0,sizeof(oldcmd));
 	memset(&oldghost,0,sizeof(oldghost));
 	memset(&ghostext,0,sizeof(ghostext));
@@ -6594,12 +6549,14 @@ void G_DoPlayDemo(char *defdemoname)
 	UINT8 i, p;
 	lumpnum_t l;
 	char skin[17],color[17],*n,*pdemoname;
-	UINT8 version,subversion,kartspeed=5,kartweight=5;
+	UINT8 version,subversion;
 	UINT32 randseed;
 	char msg[1024];
 #if defined(SKIPERRORS) && !defined(DEVELOP)
 	boolean skiperrors = false;
 #endif
+	boolean spectator;
+	UINT8 slots[MAXPLAYERS], kartspeed[MAXPLAYERS], kartweight[MAXPLAYERS], numslots = 0;
 
 	skin[16] = '\0';
 	color[16] = '\0';
@@ -6795,7 +6752,8 @@ void G_DoPlayDemo(char *defdemoname)
 	// Random seed
 	randseed = READUINT32(demo_p);
 
-	if (!multiplayer) {
+#ifdef DEMO_COMPAT_100
+	if (demoversion == 0x0001) {
 		// Player name
 		M_Memcpy(player_names[0],demo_p,16);
 		demo_p += 16;
@@ -6810,8 +6768,8 @@ void G_DoPlayDemo(char *defdemoname)
 
 		demo_p += 5; // Backwards compat - some stats
 		// SRB2kart
-		kartspeed = READUINT8(demo_p);
-		kartweight = READUINT8(demo_p);
+		kartspeed[0] = READUINT8(demo_p);
+		kartweight[0] = READUINT8(demo_p);
 		//
 		demo_p += 9; // Backwards compat - more stats
 
@@ -6848,7 +6806,48 @@ void G_DoPlayDemo(char *defdemoname)
 				players[0].skincolor = i;
 				break;
 			}
+
+		// net var data
+		CV_LoadNetVars(&demo_p);
+
+		// Sigh ... it's an empty demo.
+		if (*demo_p == DEMOMARKER)
+		{
+			snprintf(msg, 1024, M_GetText("%s contains no data to be played.\n"), pdemoname);
+			CONS_Alert(CONS_ERROR, "%s", msg);
+			M_StartMessage(msg, NULL, MM_NOTHING);
+			Z_Free(pdemoname);
+			Z_Free(demobuffer);
+			demoplayback = false;
+			titledemo = false;
+			return;
+		}
+
+		Z_Free(pdemoname);
+
+		memset(&oldcmd,0,sizeof(oldcmd));
+		memset(&oldghost,0,sizeof(oldghost));
+		memset(&ghostext,0,sizeof(ghostext));
+
+		CONS_Alert(CONS_WARNING, M_GetText("Demo version does not match game version. Desyncs may occur.\n"));
+
+		// console warning messages
+#if defined(SKIPERRORS) && !defined(DEVELOP)
+		demosynced = (!skiperrors);
+#else
+		demosynced = true;
+#endif
+
+		// didn't start recording right away.
+		demo_start = false;
+
+		displayplayer = consoleplayer = 0;
+		memset(playeringame, 0, sizeof(playeringame));
+		playeringame[0] = true;
+
+		goto post_compat;
 	}
+#endif
 
 	// net var data
 	CV_LoadNetVars(&demo_p);
@@ -6894,71 +6893,73 @@ void G_DoPlayDemo(char *defdemoname)
 #endif*/
 	displayplayer = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));
-	playeringame[0] = !multiplayer;
 
-	if (multiplayer) {
-		boolean spectator;
-		UINT8 slots[MAXPLAYERS], numslots = 0;
+	// Load players that were in-game when the map started
+	p = READUINT8(demo_p);
 
-		// Load players that were in-game when the map started
-		p = READUINT8(demo_p);
+	secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = INT32_MAX;
 
-		secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = INT32_MAX;
+	while (p != 0xFF)
+	{
+		spectator = false;
+		if (p & DEMO_SPECTATOR) {
+			spectator = true;
+			p &= ~DEMO_SPECTATOR;
+		}
+		slots[numslots] = p; numslots++;
 
-		while (p != 0xFF)
-		{
-			spectator = false;
-			if (p & DEMO_SPECTATOR) {
-				spectator = true;
-				p &= ~DEMO_SPECTATOR;
+		if (!playeringame[displayplayer] || players[displayplayer].spectator)
+			displayplayer = consoleplayer = serverplayer = p;
+
+		playeringame[p] = true;
+		players[p].spectator = spectator;
+
+		// Name
+		M_Memcpy(player_names[p],demo_p,16);
+		demo_p += 16;
+
+		// Skin
+		M_Memcpy(skin,demo_p,16);
+		demo_p += 16;
+		SetPlayerSkin(p, skin);
+
+		// Color
+		M_Memcpy(color,demo_p,16);
+		demo_p += 16;
+		for (i = 0; i < MAXSKINCOLORS; i++)
+			if (!stricmp(KartColor_Names[i],color))				// SRB2kart
+			{
+				players[p].skincolor = i;
+				break;
 			}
-			slots[numslots] = p; numslots++;
 
-			if (!playeringame[displayplayer] || players[displayplayer].spectator)
-				displayplayer = consoleplayer = serverplayer = p;
+		// Score, since Kart uses this to determine where you start on the map
+		players[p].score = READUINT32(demo_p);
 
-			playeringame[p] = true;
-			players[p].spectator = spectator;
+		// Kart stats, temporarily
+		kartspeed[p] = READUINT8(demo_p);
+		kartweight[p] = READUINT8(demo_p);
 
-			// Name
-			M_Memcpy(player_names[p],demo_p,16);
-			demo_p += 16;
-
-			// Skin
-			M_Memcpy(skin,demo_p,16);
-			demo_p += 16;
-			SetPlayerSkin(p, skin);
-
-			// Color
-			M_Memcpy(color,demo_p,16);
-			demo_p += 16;
-			for (i = 0; i < MAXSKINCOLORS; i++)
-				if (!stricmp(KartColor_Names[i],color))				// SRB2kart
-				{
-					players[p].skincolor = i;
-					break;
-				}
-
-			// Score, since Kart uses this to determine where you start on the map
-			players[p].score = READUINT32(demo_p);
-
-			// Look for the next player
-			p = READUINT8(demo_p);
-		}
-
-		splitscreen = 0;
-
-		if (titledemo)
-		{
-			splitscreen = M_RandomKey(6)-1;
-			splitscreen = min(min(3, numslots-1), splitscreen); // Bias toward 1p and 4p views
-
-			for (p = 0; p <= splitscreen; p++)
-				G_ResetView(p+1, slots[M_RandomKey(numslots)], false);
-		}
-
-		R_ExecuteSetViewSize();
+		// Look for the next player
+		p = READUINT8(demo_p);
 	}
+
+	splitscreen = 0;
+
+	if (titledemo)
+	{
+		splitscreen = M_RandomKey(6)-1;
+		splitscreen = min(min(3, numslots-1), splitscreen); // Bias toward 1p and 4p views
+
+		for (p = 0; p <= splitscreen; p++)
+			G_ResetView(p+1, slots[M_RandomKey(numslots)], false);
+	}
+
+	R_ExecuteSetViewSize();
+
+#ifdef DEMO_COMPAT_100
+post_compat:
+#endif
 
 	P_SetRandSeed(randseed);
 	G_InitNew(demoflags & DF_ENCORE, G_BuildMapName(gamemap), true, true); // Doesn't matter whether you reset or not here, given changes to resetplayer.
@@ -6972,16 +6973,12 @@ void G_DoPlayDemo(char *defdemoname)
 			oldghost[i].y = players[i].mo->y;
 			oldghost[i].z = players[i].mo->z;
 		}
-	}
-
-	if (!multiplayer) {
-		//CV_StealthSetValue(&cv_playercolor, players[0].skincolor); -- as far as I can tell this is more trouble than it's worth
 
 		// Set saved attribute values
 		// No cheat checking here, because even if they ARE wrong...
 		// it would only break the replay if we clipped them.
-		players[0].kartspeed = kartspeed;
-		players[0].kartweight = kartweight;
+		players[i].kartspeed = kartspeed[i];
+		players[i].kartweight = kartweight[i];
 	}
 
 	demo_start = true;
