@@ -4855,6 +4855,26 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 	return dest;
 }
 
+// Finds a skin with the closest stats if the expected skin doesn't exist.
+static void FindClosestSkinForStats(UINT32 p, UINT8 kartspeed, UINT8 kartweight)
+{
+	INT32 i, closest_skin = 0;
+	UINT8 closest_stats = UINT8_MAX, stat_diff;
+
+	for (i = 0; i < numskins; i++)
+	{
+		stat_diff = abs(skins[i].kartspeed - kartspeed) + abs(skins[i].kartweight - kartweight);
+		if (stat_diff < closest_stats)
+		{
+			closest_stats = stat_diff;
+			closest_skin = i;
+		}
+	}
+
+	CONS_Printf("Using %s instead...\n", skins[closest_skin].name);
+	SetPlayerSkinByNum(p, closest_skin);
+}
+
 void G_ReadDemoExtraData(void)
 {
 	INT32 p, extradata, i;
@@ -4875,10 +4895,22 @@ void G_ReadDemoExtraData(void)
 		}
 		if (extradata & DXD_SKIN)
 		{
+			UINT8 kartspeed, kartweight;
+
 			// Skin
 			M_Memcpy(name, demo_p, 16);
 			demo_p += 16;
 			SetPlayerSkin(p, name);
+
+			kartspeed = READUINT8(demo_p);
+			kartweight = READUINT8(demo_p);
+
+
+			if (stricmp(skins[players[p].skin].name, name) != 0)
+				FindClosestSkinForStats(p, kartspeed, kartweight);
+
+			players[p].kartspeed = kartspeed;
+			players[p].kartweight = kartweight;
 		}
 		if (extradata & DXD_COLOR)
 		{
@@ -4999,6 +5031,9 @@ void G_WriteDemoExtraData(void)
 				strncpy(name, skins[players[i].skin].name, 16);
 				M_Memcpy(demo_p,name,16);
 				demo_p += 16;
+
+				WRITEUINT8(demo_p, skins[players[i].skin].kartspeed);
+				WRITEUINT8(demo_p, skins[players[i].skin].kartweight);
 			}
 			if (demo_extradata[i] & DXD_COLOR)
 			{
@@ -6980,6 +7015,9 @@ void G_DoPlayDemo(char *defdemoname)
 		// Kart stats, temporarily
 		kartspeed[p] = READUINT8(demo_p);
 		kartweight[p] = READUINT8(demo_p);
+
+		if (stricmp(skins[players[p].skin].name, skin) != 0)
+			FindClosestSkinForStats(p, kartspeed[p], kartweight[p]);
 
 		// Look for the next player
 		p = READUINT8(demo_p);
