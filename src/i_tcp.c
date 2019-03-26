@@ -524,7 +524,7 @@ static void cleanupnodes(void)
 	// Why can't I start at zero?
 	for (j = 1; j < MAXNETNODES; j++)
 		if (!(nodeingame[j] || SV_SendingFile(j)))
-			nodeconnected[j] = false;
+			SOCK_FreeNodenum(j); // At least free this PROPERLY
 }
 
 static SINT8 getfreenode(void)
