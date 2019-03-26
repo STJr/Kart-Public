@@ -254,10 +254,15 @@ matrix:
 #          osx_image: xcode7.2
 #          if: env(DPL_ENABLED) != "1" OR env(DPL_TERMINATE_TESTS) != "1" OR NOT branch =~ /^.*deployer.*$/
 #          #Apple LLVM version 7.0.2 (clang-700.1.81)
-        - os: osx
-          osx_image: xcode7.3
+#        - os: osx
+#          osx_image: xcode7.3
+#          #Apple LLVM version 7.3.0 (clang-703.0.31)
+#        - os: osx
+#          osx_image: xcode7.3
+#          #Apple LLVM version 7.3.0 (clang-703.0.31)
+        - osx: osx
           if: env(DPL_ENABLED) != "1" OR env(DPL_TERMINATE_TESTS) != "1" OR NOT branch =~ /^.*deployer.*$/
-          #Apple LLVM version 7.3.0 (clang-703.0.31)
+          #Default: macOS 10.13 and Xcode 9.4.1
 
 
 ################################
@@ -564,6 +569,16 @@ addons:
     - libgme-dev
     - zlib1g-dev
     - p7zip-full
+  homebrew:
+    taps:
+    - mazmazz/srb2
+    packages:
+    - sdl2_mixer
+    - game-music-emu
+    - p7zip
+    - cmake
+    update: true
+
 
 
 before_install:
@@ -596,18 +611,10 @@ install:
   #     * `sdl2_mixer` requires options from the formula tap https://github.com/mazmazz/homebrew-srb2
   #     * `brew postinstall` runs post-install scripts after building a bottle
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update;
-      brew tap mazmazz/srb2;
-    fi;
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      if [[ "$__DPL_ACTIVE" != "1" ]]; then
-        brew install sdl2 sdl2_mixer game-music-emu p7zip;
-        brew install cmake||true;
-      else
-        brew install --build-bottle sdl2 game-music-emu p7zip;
+      if [[ "$__DPL_ACTIVE" == "1" ]]; then
+        brew install --build-bottle sdl2 game-music-emu;
         brew install --build-bottle mazmazz/srb2/sdl2_mixer --with-flac --with-mpg123;
-        brew postinstall sdl2 game-music-emu p7zip mazmazz/srb2/sdl2_mixer;
-        brew install cmake||true;
+        brew postinstall sdl2 game-music-emu mazmazz/srb2/sdl2_mixer;
       fi;
     fi
   - mkdir -p $HOME/srb2_cache
@@ -671,7 +678,6 @@ before_script:
       -DCPACK_PACKAGE_DESCRIPTION_SUMMARY="${PROGRAM_NAME}"
       -DCPACK_PACKAGE_VENDOR="${PROGRAM_VENDOR}"
       -DSRB2_SDL2_EXE_NAME="${PROGRAM_FILENAME}"
-
 
 script:
   # Build our Makefile from Cmake!
