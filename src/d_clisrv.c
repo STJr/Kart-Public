@@ -1374,8 +1374,6 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.challengenum = cl_challengenum;
 	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, MD5_LEN);
 
-	nodes[servernode].flags &= ~NF_CLOSE; // Hell if I know.
-
 	return HSendPacket(servernode, true, 0, sizeof (clientconfig_pak));
 }
 
@@ -3831,9 +3829,6 @@ static void HandleConnect(SINT8 node)
 				return;
 			}
 		}
-
-		// The connecting node may be
-		nodes[node].flags &= ~NF_CLOSE;
 
 		if (netbuffer->u.clientcfg.needsdownload)
 		{

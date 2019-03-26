@@ -1110,6 +1110,10 @@ boolean HSendPacket(INT32 node, boolean reliable, UINT8 acknum, size_t packetlen
 	netbuffer->checksum = NetbufferChecksum();
 	sendbytes += packetheaderlength + doomcom->datalength; // For stat
 
+	// Joinpasswords close nodes, this may try to send to a waiting-to-close node, so cancel closing?
+	if (netbuffer->packettype == PT_CLIENTJOIN)
+		nodes[node].flags &= ~NF_CLOSE;
+
 #ifdef PACKETDROP
 	// Simulate internet :)
 	//if (rand() >= (INT32)(RAND_MAX * (PACKETLOSSRATE / 100.f)))
@@ -1190,6 +1194,10 @@ boolean HGetPacket(void)
 			InitNode(&nodes[doomcom->remotenode]);
 			SV_AbortSendFiles(doomcom->remotenode);
 		}
+
+		// Joinpasswords close nodes, this may receive from a waiting-to-close node, so cancel closing?
+		if (netbuffer->packettype == PT_CLIENTJOIN)
+			nodes[doomcom->remotenode].flags &= ~NF_CLOSE;
 
 		getbytes += packetheaderlength + doomcom->datalength; // For stat
 

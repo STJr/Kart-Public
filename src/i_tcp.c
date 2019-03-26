@@ -508,6 +508,8 @@ static boolean SOCK_cmpaddr(mysockaddr_t *a, mysockaddr_t *b, UINT8 mask)
 		return false;
 }
 
+static void SOCK_FreeNodenum(INT32 numnode);
+
 // This is a hack. For some reason, nodes aren't being freed properly.
 // This goes through and cleans up what nodes were supposed to be freed.
 /** \warning This function causes the file downloading to stop if someone joins.
