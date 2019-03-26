@@ -688,7 +688,7 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 static void resynch_read_player(resynch_pak *rsp)
 {
 	INT32 i = rsp->playernum, j;
-	mobj_t *savedmo = players[i].mo;
+	//mobj_t *savedmo = players[i].mo;
 
 	// Do not send anything visual related.
 	// Only send data that we need to know for physics.
@@ -795,11 +795,17 @@ static void resynch_read_player(resynch_pak *rsp)
 		return;
 
 	//...but keep old mo even if it is corrupt or null!
-	players[i].mo = savedmo;
+	//players[i].mo = savedmo;
 
 	//Transfer important mo information if they have a valid mo.
 	if (!rsp->hasmo)
+	{
+		// Get rid of their object if they aren't supposed to have one.....??
+		if (players[i].mo)
+			P_RemoveMobj(players[i].mo);
+
 		return;
+	}
 
 	//server thinks player has a body.
 	//Give them a new body that can be then manipulated by the server's info.
