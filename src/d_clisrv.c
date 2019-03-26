@@ -1052,6 +1052,7 @@ static void SV_SendResynch(INT32 node)
 		return;
 	}
 
+	resynch_inprogress[node] = false; // Let's see if there's REALLY anyone left to sync.....
 	netbuffer->packettype = PT_RESYNCHING;
 	for (i = 0, j = 0; i < MAXPLAYERS; ++i)
 	{
@@ -1059,10 +1060,24 @@ static void SV_SendResynch(INT32 node)
 		if (!(resynch_status[node] & 1<<i))
 			continue;
 
+		if (!playeringame[i])
+			continue; // Player doesn't exist any more, so no need to resync them!
+
+		resynch_inprogress[node] = true;
+
 		// waiting for a reply or just waiting in general
 		if (resynch_sent[node][i])
 		{
 			--resynch_sent[node][i];
+
+			if (resynch_sent[node][i] > TICRATE)
+			{
+				CONS_Alert(CONS_ERROR, "Node %d (%s) somehow had a stupidly-long resync delay?! (%d tics to resync player %d)\n",
+					node, player_names[nodetoplayer[node]], resynch_sent[node][i], i
+				);
+				resynch_sent[node][i] = TICRATE;
+			}
+
 			continue;
 		}
 
@@ -1074,6 +1089,15 @@ static void SV_SendResynch(INT32 node)
 
 		if (++j > 3)
 			break;
+	}
+
+	if (!resynch_inprogress[node])
+	{
+		CONS_Alert(CONS_ERROR, "Node %d (%s) somehow had resync status for nonexistent players?! (%08x)\n",
+			node, player_names[nodetoplayer[node]], resynch_status[node] = 0x00
+		);
+		resynch_status[node] = 0x00;
+		resynch_inprogress[node] = true; // So they get the PT_RESYNCHEND...
 	}
 
 	if (resynch_score[node] > (unsigned)cv_resynchattempts.value*250)
