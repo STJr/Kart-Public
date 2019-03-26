@@ -1184,6 +1184,13 @@ boolean HGetPacket(void)
 				return false;
 		}
 
+		if (nodejustjoined)
+		{
+			// Reinitialize vars for the new node just in case there's anything left over from other players.....
+			InitNode(&nodes[doomcom->remotenode]);
+			SV_AbortSendFiles(doomcom->remotenode);
+		}
+
 		getbytes += packetheaderlength + doomcom->datalength; // For stat
 
 		if (doomcom->remotenode >= MAXNETNODES)
@@ -1197,8 +1204,8 @@ boolean HGetPacket(void)
 		if (netbuffer->checksum != NetbufferChecksum())
 		{
 			DEBFILE("Bad packet checksum\n");
-			//Net_CloseConnection(nodejustjoined ? (doomcom->remotenode | FORCECLOSE) : doomcom->remotenode);
-			Net_CloseConnection(doomcom->remotenode);
+			Net_CloseConnection(nodejustjoined ? (doomcom->remotenode | FORCECLOSE) : doomcom->remotenode);
+			//Net_CloseConnection(doomcom->remotenode);
 			continue;
 		}
 
@@ -1207,7 +1214,7 @@ boolean HGetPacket(void)
 			DebugPrintpacket("GET");
 #endif
 
-		/*// If a new node sends an unexpected packet, just ignore it
+		// If a new node sends an unexpected packet, just ignore it
 		if (nodejustjoined && server
 			&& !(netbuffer->packettype == PT_ASKINFO
 				|| netbuffer->packettype == PT_SERVERINFO
@@ -1220,7 +1227,7 @@ boolean HGetPacket(void)
 			//CONS_Alert(CONS_NOTICE, "New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]);
 			Net_CloseConnection(doomcom->remotenode | FORCECLOSE);
 			continue;
-		}*/
+		}
 
 		// Proceed the ack and ackreturn field
 		if (!Processackpak())
