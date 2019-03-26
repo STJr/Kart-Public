@@ -3980,7 +3980,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
 				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
 
-				Net_CloseConnection(node|FORCECLOSE); // Don't need to stay connected while challenging
+				Net_CloseConnection(node); // Don't need to stay connected while challenging
 
 				cl_mode = CL_CHALLENGE;
 
