@@ -3413,6 +3413,7 @@ void D_QuitNetGame(void)
 		HSendPacket(servernode, true, 0, 0);
 	}
 
+	resynch_local_inprogress = false; // No more resyncing!
 	D_CloseConnection();
 	ClearAdminPlayers();
 

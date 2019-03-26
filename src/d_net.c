@@ -1474,7 +1474,6 @@ void D_CloseConnection(void)
 		I_NetMakeNodewPort = NULL;
 		netgame = false;
 		addedtogame = false;
-		resynch_local_inprogress = false; // No more resyncing!
 	}
 
 	D_ResetTiccmds();
