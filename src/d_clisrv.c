@@ -2304,6 +2304,8 @@ static void CL_ConnectToServer(boolean viams)
 	if (gamestate == GS_VOTING)
 		Y_EndVote();
 
+	resynch_local_inprogress = false; // Just in case this was never cleared...
+
 	DEBFILE(va("waiting %d nodes\n", doomcom->numnodes));
 	G_SetGamestate(GS_WAITINGPLAYERS);
 	wipegamestate = GS_WAITINGPLAYERS;
