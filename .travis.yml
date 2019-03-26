@@ -260,7 +260,7 @@ matrix:
 #        - os: osx
 #          osx_image: xcode7.3
 #          #Apple LLVM version 7.3.0 (clang-703.0.31)
-        - osx: osx
+        - os: osx
           if: env(DPL_ENABLED) != "1" OR env(DPL_TERMINATE_TESTS) != "1" OR NOT branch =~ /^.*deployer.*$/
           #Default: macOS 10.13 and Xcode 9.4.1
 
