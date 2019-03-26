@@ -1146,7 +1146,7 @@ boolean HSendPacket(INT32 node, boolean reliable, UINT8 acknum, size_t packetlen
 //
 boolean HGetPacket(void)
 {
-	//boolean nodejustjoined;
+	boolean nodejustjoined;
 
 	// Get a packet from self
 	if (rebound_tail != rebound_head)
@@ -1173,11 +1173,16 @@ boolean HGetPacket(void)
 
 	while(true)
 	{
-		//nodejustjoined = I_NetGet();
-		I_NetGet();
+		nodejustjoined = I_NetGet();
+		//I_NetGet();
 
 		if (doomcom->remotenode == -1) // No packet received
-			return false;
+		{
+			if (nodejustjoined) // _This_ means we did receive a packet, but either from a node we couldn't allocate or a gone player ackreting...
+				continue;
+			else
+				return false;
+		}
 
 		getbytes += packetheaderlength + doomcom->datalength; // For stat
 

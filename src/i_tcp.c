@@ -624,6 +624,13 @@ static boolean SOCK_Get(void)
 			}
 			// not found
 
+			if (netbuffer->packettype == PT_NOTHING)
+			{
+				DEBFILE(va("Ackret received from disconnected address:%s, ignoring...\n", SOCK_AddrToStr(&fromaddress)));
+				doomcom->remotenode = -1; // no packet
+				return true;
+			}
+
 			// find a free slot
 			j = getfreenode();
 			if (j > 0)
@@ -650,7 +657,11 @@ static boolean SOCK_Get(void)
 				return true;
 			}
 			else
+			{
 				DEBFILE("New node detected: No more free slots\n");
+				doomcom->remotenode = -1; // no packet
+				return true;
+			}
 		}
 	}
 
