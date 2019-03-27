@@ -437,6 +437,9 @@ consvar_t cv_chatbacktint = {"chatbacktint", "On", CV_SAVE, CV_OnOff, NULL, 0, N
 static CV_PossibleValue_t consolechat_cons_t[] = {{0, "Window"}, {1, "Console"}, {2, "Window (Hidden)"}, {0, NULL}};
 consvar_t cv_consolechat = {"chatmode", "Window", CV_SAVE, consolechat_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+// Pause game upon window losing focus
+consvar_t cv_pauseifunfocused = {"pauseifunfocused", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 // Display song credits
 consvar_t cv_songcredits = {"songcredits", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -1820,80 +1823,6 @@ static INT32 spectatedelay, spectatedelay2, spectatedelay3, spectatedelay4 = 0;
 //
 boolean G_Responder(event_t *ev)
 {
-	// allow spy mode changes even during the demo
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown
-		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
-	{
-		if (splitscreen || !netgame)
-			displayplayer = consoleplayer;
-		else
-		{
-			UINT8 i = 0; // spy mode
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				displayplayer++;
-				if (displayplayer == MAXPLAYERS)
-					displayplayer = 0;
-
-				if (displayplayer == consoleplayer)
-					break; // End loop
-
-				if (!playeringame[displayplayer])
-					continue;
-
-				if (players[displayplayer].spectator)
-					continue;
-
-				// SRB2Kart: Only go through players who are actually playing
-				if (players[displayplayer].exiting)
-					continue;
-
-				if (players[displayplayer].pflags & PF_TIMEOVER)
-					continue;
-
-				// I don't know if we want this actually, but I'll humor the suggestion anyway
-				if (G_BattleGametype())
-				{
-					if (players[displayplayer].kartstuff[k_bumper] <= 0)
-						continue;
-				}
-
-				// SRB2Kart: we have no team-based modes, YET...
-				/*if (G_GametypeHasTeams())
-				{
-					if (players[consoleplayer].ctfteam
-					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
-						continue;
-				}
-				else if (gametype == GT_HIDEANDSEEK)
-				{
-					if (players[consoleplayer].pflags & PF_TAGIT)
-						continue;
-				}
-				// Other Tag-based gametypes?
-				else if (G_TagGametype())
-				{
-					if (!players[consoleplayer].spectator
-					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
-						continue;
-				}
-				else if (G_GametypeHasSpectators() && G_BattleGametype())
-				{
-					if (!players[consoleplayer].spectator)
-						continue;
-				}*/
-
-				break;
-			}
-
-			// change statusbar also if playing back demo
-			if (singledemo)
-				ST_changeDemoView();
-
-			return true;
-		}
-	}
-
 	// any other key pops up menu if in demos
 	if (gameaction == ga_nothing && !singledemo &&
 		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
@@ -1970,6 +1899,80 @@ boolean G_Responder(event_t *ev)
 	else if (gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)
 		if (HU_Responder(ev))
 			return true; // chat ate the event
+
+	// allow spy mode changes even during the demo
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown
+		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
+	{
+		if (splitscreen || !netgame)
+			displayplayer = consoleplayer;
+		else
+		{
+			UINT8 i = 0; // spy mode
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				displayplayer++;
+				if (displayplayer == MAXPLAYERS)
+					displayplayer = 0;
+
+				if (displayplayer == consoleplayer)
+					break; // End loop
+
+				if (!playeringame[displayplayer])
+					continue;
+
+				if (players[displayplayer].spectator)
+					continue;
+
+				// SRB2Kart: Only go through players who are actually playing
+				if (players[displayplayer].exiting)
+					continue;
+
+				if (players[displayplayer].pflags & PF_TIMEOVER)
+					continue;
+
+				// I don't know if we want this actually, but I'll humor the suggestion anyway
+				if (G_BattleGametype())
+				{
+					if (players[displayplayer].kartstuff[k_bumper] <= 0)
+						continue;
+				}
+
+				// SRB2Kart: we have no team-based modes, YET...
+				/*if (G_GametypeHasTeams())
+				{
+					if (players[consoleplayer].ctfteam
+					 && players[displayplayer].ctfteam != players[consoleplayer].ctfteam)
+						continue;
+				}
+				else if (gametype == GT_HIDEANDSEEK)
+				{
+					if (players[consoleplayer].pflags & PF_TAGIT)
+						continue;
+				}
+				// Other Tag-based gametypes?
+				else if (G_TagGametype())
+				{
+					if (!players[consoleplayer].spectator
+					 && (players[consoleplayer].pflags & PF_TAGIT) != (players[displayplayer].pflags & PF_TAGIT))
+						continue;
+				}
+				else if (G_GametypeHasSpectators() && G_BattleGametype())
+				{
+					if (!players[consoleplayer].spectator)
+						continue;
+				}*/
+
+				break;
+			}
+
+			// change statusbar also if playing back demo
+			if (singledemo)
+				ST_changeDemoView();
+
+			return true;
+		}
+	}
 
 	// update keys current state
 	G_MapEventsToControls(ev);
@@ -2372,6 +2375,7 @@ void G_PlayerReborn(INT32 player)
 	INT32 bumper;
 	INT32 comebackpoints;
 	INT32 wanted;
+	INT32 respawnflip;
 	boolean songcredit = false;
 
 	score = players[player].score;
@@ -2413,6 +2417,7 @@ void G_PlayerReborn(INT32 player)
 	starposty = players[player].starposty;
 	starpostz = players[player].starpostz;
 	starpostnum = players[player].starpostnum;
+	respawnflip = players[player].kartstuff[k_starpostflip];	//SRB2KART
 	starpostangle = players[player].starpostangle;
 	jumpfactor = players[player].jumpfactor;
 	thokitem = players[player].thokitem;
@@ -2533,6 +2538,7 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_comebacktimer] = comebacktime;
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
+	p->kartstuff[k_starpostflip] = respawnflip;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
