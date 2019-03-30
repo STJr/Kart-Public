@@ -233,7 +233,9 @@ static char *M_GetConditionString(condition_t cond);
 menu_t SR_MainDef, SR_UnlockChecklistDef;
 
 // Misc. Main Menu
+#if 0 // Bring this back when we have actual single-player
 static void M_SinglePlayerMenu(INT32 choice);
+#endif
 static void M_Options(INT32 choice);
 static void M_Manual(INT32 choice);
 static void M_SelectableClearMenus(INT32 choice);
@@ -500,12 +502,13 @@ static consvar_t cv_dummystaff = {"dummystaff", "0", CV_HIDEN|CV_CALL, dummystaf
 // ---------
 static menuitem_t MainMenu[] =
 {
-	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_UnlockChecklistDef, 76},
-	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu,     84},
-	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,            92},
-	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,             100},
-	{IT_CALL   |IT_STRING, NULL, "Addons",      M_Addons,              108},
-	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,            116},
+	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_MainDef,        76},
+	//{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu, 84},
+	{IT_CALL   |IT_STRING, NULL, "Time Attack", M_TimeAttack,       84},
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,        92},
+	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,          100},
+	{IT_CALL   |IT_STRING, NULL, "Addons",      M_Addons,           108},
+	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,         116},
 };
 
 typedef enum
@@ -695,7 +698,9 @@ static menuitem_t SR_PandorasBox[] =
 // Sky Room Custom Unlocks
 static menuitem_t SR_MainMenu[] =
 {
-	{IT_STRING|IT_SUBMENU,NULL, "Secrets Checklist", &SR_UnlockChecklistDef, 0},
+	{IT_STRING|IT_SUBMENU,                  NULL, "Unlockables", &SR_UnlockChecklistDef, 0},
+	{IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED, NULL, "Statistics",  M_Statistics,           10},
+	{IT_CALL|IT_STRING,                     NULL, "Replay Hut",  M_Statistics,           20},
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom1
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom2
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom3
@@ -1681,7 +1686,8 @@ menu_t SR_MainDef =
 	sizeof (SR_MainMenu)/sizeof (menuitem_t),
 	&MainDef,
 	SR_MainMenu,
-	M_DrawSkyRoom,
+	M_DrawGenericMenu,
+	//M_DrawSkyRoom,
 	60, 40,
 	0,
 	NULL
@@ -1693,7 +1699,7 @@ menu_t SR_UnlockChecklistDef =
 {
 	NULL,
 	1,
-	&MainDef, //&SR_MainDef
+	&SR_MainDef,
 	SR_UnlockChecklistMenu,
 	M_DrawChecklist,
 	280, 185,
@@ -1731,7 +1737,7 @@ menu_t SP_LevelStatsDef =
 {
 	"M_STATS",
 	1,
-	&SP_MainDef,
+	&SR_MainDef,
 	SP_LevelStatsMenu,
 	M_DrawLevelStats,
 	280, 185,
@@ -5619,6 +5625,7 @@ static void M_Credits(INT32 choice)
 // SINGLE PLAYER MENU
 // ==================
 
+#if 0 // Bring this back when we have actual single-player
 static void M_SinglePlayerMenu(INT32 choice)
 {
 	(void)choice;
@@ -5629,6 +5636,7 @@ static void M_SinglePlayerMenu(INT32 choice)
 
 	M_SetupNextMenu(&SP_MainDef);
 }
+#endif
 
 /*static void M_LoadGameLevelSelect(INT32 choice)
 {
