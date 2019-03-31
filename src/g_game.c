@@ -6346,12 +6346,8 @@ static void G_SkipDemoExtraFiles(UINT8 **pp)
 }
 
 // G_CheckDemoExtraFiles: checks if our loaded WAD list matches the demo's.
-#define DFILE_ERROR_NOTLOADED            0x01 // Files are not loaded, but can be without a restart.
-#define DFILE_ERROR_OUTOFORDER           0x02 // Files are loaded, but out of order.
-#define DFILE_ERROR_INCOMPLETEOUTOFORDER 0x03 // Some files are loaded out of order, but others are not.
-#define DFILE_ERROR_CANNOTLOAD           0x04 // Files are missing and cannot be loaded.
-#define DFILE_ERROR_EXTRAFILES           0x05 // Extra files outside of the replay's file list are loaded.
-static UINT8 G_CheckDemoExtraFiles(UINT8 **pp)
+// Enabling quick prevents filesystem checks to see if needed files are available to load.
+static UINT8 G_CheckDemoExtraFiles(UINT8 **pp, boolean quick)
 {
 	UINT8 totalfiles, filesloaded, nmusfilecount;
 	char filename[MAX_WADPATH];
@@ -6405,7 +6401,7 @@ static UINT8 G_CheckDemoExtraFiles(UINT8 **pp)
 
 			if (numwadfiles >= MAX_WADFILES)
 				error = DFILE_ERROR_CANNOTLOAD;
-			else if (findfile(filename, md5sum, false) != FS_FOUND)
+			else if (!quick && findfile(filename, md5sum, false) != FS_FOUND)
 				error = DFILE_ERROR_CANNOTLOAD;
 			else if (error < DFILE_ERROR_INCOMPLETEOUTOFORDER)
 				error |= DFILE_ERROR_NOTLOADED;
@@ -6633,9 +6629,9 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 		Z_Free(infobuffer);
 		return;
 	}
-	demo_p += 4; // "PLAY"
+	info_p += 4; // "PLAY"
 	pdemo->map = READINT16(info_p);
-	demo_p += 16; // mapmd5
+	info_p += 16; // mapmd5
 
 	pdemoflags = READUINT8(info_p);
 
@@ -6649,8 +6645,8 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 
 	pdemo->gametype = READUINT8(info_p);
 
-	G_SkipDemoExtraFiles(&info_p); //@TODO see if this information is useful for display?
-	demo_p += 4; // RNG seed
+	pdemo->addonstatus = G_CheckDemoExtraFiles(&info_p, true);
+	info_p += 4; // RNG seed
 
 	// Pared down version of CV_LoadNetVars to find the kart speed
 	cvarcount = READUINT16(info_p);
@@ -6666,9 +6662,9 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 
 		if (netid == cv_kartspeed.netid)
 		{
-			for (cvarcount = 0; kartspeed_cons_t[cvarcount].value; cvarcount++)
+			for (cvarcount = 0; kartspeed_cons_t[cvarcount].strvalue; cvarcount++)
 			{
-				if (!strcasecmp(kartspeed_cons_t[cvarcount].strvalue, svalue))
+				if (!stricmp(kartspeed_cons_t[cvarcount].strvalue, svalue))
 				{
 					pdemo->kartspeed = kartspeed_cons_t[cvarcount].value;
 					break;
@@ -6681,6 +6677,12 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 
 	if (pdemoflags & DF_ENCORE)
 		pdemo->kartspeed |= DF_ENCORE;
+
+	// Temporary info until this is actually present in replays.
+	sprintf(pdemo->winnername, "transrights420");
+	pdemo->winnerskin = 1;
+	pdemo->winnercolor = SKINCOLOR_MOONSLAM;
+	pdemo->winnertime = 6666;
 
 	// I think that's everything we need?
 	free(infobuffer);
@@ -6845,7 +6847,7 @@ void G_DoPlayDemo(char *defdemoname)
 		G_SkipDemoExtraFiles(&demo_p);
 	else
 	{
-		UINT8 error = G_CheckDemoExtraFiles(&demo_p);
+		UINT8 error = G_CheckDemoExtraFiles(&demo_p, false);
 
 		if (error)
 		{

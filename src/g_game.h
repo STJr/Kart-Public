@@ -75,8 +75,13 @@ typedef struct menudemo_s {
 
 	char title[65]; // Null-terminated for string prints
 	UINT16 map;
+	UINT8 addonstatus; // What do we need to do addon-wise to play this demo?
 	UINT8 gametype;
 	UINT8 kartspeed; // Add OR DF_ENCORE for encore mode, idk
+
+	char winnername[17];
+	UINT8 winnerskin, winnercolor;
+	UINT32 winnertime;
 } menudemo_t;
 
 
@@ -238,6 +243,13 @@ typedef struct demoghost {
 	struct demoghost *next;
 } demoghost;
 extern demoghost *ghosts;
+
+// G_CheckDemoExtraFiles: checks if our loaded WAD list matches the demo's.
+#define DFILE_ERROR_NOTLOADED            0x01 // Files are not loaded, but can be without a restart.
+#define DFILE_ERROR_OUTOFORDER           0x02 // Files are loaded, but out of order.
+#define DFILE_ERROR_INCOMPLETEOUTOFORDER 0x03 // Some files are loaded out of order, but others are not.
+#define DFILE_ERROR_CANNOTLOAD           0x04 // Files are missing and cannot be loaded.
+#define DFILE_ERROR_EXTRAFILES           0x05 // Extra files outside of the replay's file list are loaded.
 
 void G_DoPlayDemo(char *defdemoname);
 void G_TimeDemo(const char *name);

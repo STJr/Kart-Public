@@ -5012,7 +5012,10 @@ static void M_HandleAddons(INT32 choice)
 // ---- REPLAY HUT -----
 menudemo_t *demolist;
 
+#define DF_ENCORE       0x40
 static INT16 replayOn = 0;
+static INT16 replayScrollTitle = 0;
+static INT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
 
 static void PrepReplayList(void)
 {
@@ -5073,6 +5076,7 @@ static void M_HandleReplayHutList(INT32 choice)
 			M_PrevOpt();
 
 		S_StartSound(NULL, sfx_menu1);
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
 		break;
 
 	case KEY_DOWNARROW:
@@ -5082,6 +5086,7 @@ static void M_HandleReplayHutList(INT32 choice)
 			itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
 
 		S_StartSound(NULL, sfx_menu1);
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
 		break;
 	}
 }
@@ -5096,7 +5101,6 @@ static void M_DrawReplayHut(void)
 	static UINT16 replayhutmenuy = 0;
 
 	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
-	M_DrawMenuTitle();
 
 	// Draw menu choices
 	x = currentMenu->x;
@@ -5106,10 +5110,12 @@ static void M_DrawReplayHut(void)
 	{
 		itemOn = replaylistitem;
 		replayOn = sizedirmenu-1;
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
 	}
 	else if (itemOn < replaylistitem)
 	{
 		replayOn = 0;
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
 	}
 
 	if (itemOn == replaylistitem)
@@ -5123,9 +5129,9 @@ static void M_DrawReplayHut(void)
 			cursory = maxy - 20;
 
 		if (cursory - replayhutmenuy > 150)
-			replayhutmenuy += (cursory-150-replayhutmenuy)/2;
+			replayhutmenuy += (cursory-150-replayhutmenuy + 1)/2;
 		else if (cursory - replayhutmenuy < 110)
-			replayhutmenuy += (max(0, cursory-110)-replayhutmenuy)/2;
+			replayhutmenuy += (max(0, cursory-110)-replayhutmenuy - 1)/2;
 	}
 	else
 		replayhutmenuy /= 2;
@@ -5149,7 +5155,13 @@ static void M_DrawReplayHut(void)
 	for (i = 0; i < (INT16)sizedirmenu; i++)
 	{
 		INT32 localy = y+i*10;
-		if (localy >= 0 && localy < 200 && demolist[i].type == MD_NOTLOADED && !processed_one_this_frame)
+
+		if (localy < 65)
+			continue;
+		if (localy >= 200)
+			break;
+
+		if (demolist[i].type == MD_NOTLOADED && !processed_one_this_frame)
 		{
 			processed_one_this_frame = true;
 			G_LoadDemoInfo(&demolist[i]);
@@ -5158,7 +5170,31 @@ static void M_DrawReplayHut(void)
 		if (itemOn == replaylistitem && i == replayOn)
 		{
 			cursory = localy;
-			V_DrawString(x, localy, highlightflags|V_ALLOWLOWERCASE, demolist[i].title);
+
+			if (replayScrollDelay)
+				replayScrollDelay--;
+			else if (replayScrollDir > 0)
+			{
+				if (replayScrollTitle < (V_StringWidth(demolist[i].title, 0) - (BASEVIDWIDTH - (x<<1)))<<1)
+					replayScrollTitle++;
+				else
+				{
+					replayScrollDelay = TICRATE;
+					replayScrollDir = -1;
+				}
+			}
+			else
+			{
+				if (replayScrollTitle > 0)
+					replayScrollTitle--;
+				else
+				{
+					replayScrollDelay = TICRATE;
+					replayScrollDir = 1;
+				}
+			}
+
+			V_DrawString(x - (replayScrollTitle>>1), localy, highlightflags|V_ALLOWLOWERCASE, demolist[i].title);
 		}
 		else
 			V_DrawString(x, localy, V_ALLOWLOWERCASE, demolist[i].title);
@@ -5168,6 +5204,92 @@ static void M_DrawReplayHut(void)
 	V_DrawScaledPatch(currentMenu->x - 24, cursory, 0,
 		W_CachePatchName("M_CURSOR", PU_CACHE));
 	V_DrawString(currentMenu->x, cursory, highlightflags, currentMenu->menuitems[itemOn].text);
+
+	// Now draw some replay info!
+	V_DrawFill(10, 10, 300, 60, 239);
+
+	if (itemOn == replaylistitem)
+	{
+		switch (demolist[replayOn].type)
+		{
+		case MD_NOTLOADED:
+			V_DrawCenteredString(160, 40, 0, "Loading replay information...");
+			break;
+
+		case MD_INVALID:
+			V_DrawCenteredString(160, 40, warningflags, "This replay cannot be played.");
+			break;
+
+		case MD_SUBDIR:
+			break; // Can't think of anything to draw here right now
+
+		case MD_OUTDATED:
+			V_DrawThinString(17, 60, V_ALLOWLOWERCASE|V_TRANSLUCENT|highlightflags, "Recorded on an outdated version.");
+			/*fallthru*/
+		default:
+			{ // Draw level stuff
+				lumpnum_t lumpnum;
+				patch_t *PictureOfLevel;
+				INT32 w, h;
+				x = 15; y = 15;
+				//INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
+
+				//  A 160x100 image of the level as entry MAPxxP
+				CONS_Printf("%d %s\n", demolist[replayOn].map, G_BuildMapName(demolist[replayOn].map));
+				lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[replayOn].map)));
+				if (lumpnum != LUMPERROR)
+					PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+				else
+					PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+
+				if (!(demolist[replayOn].kartspeed & DF_ENCORE))
+					V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+				else
+				{
+					w = SHORT(PictureOfLevel->width);
+					h = SHORT(PictureOfLevel->height);
+					V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, 0);
+
+					{
+						static angle_t rubyfloattime = 0;
+						const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+						V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+h/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+						rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+					}
+				}
+
+				x += 85;
+
+				if (mapheaderinfo[demolist[replayOn].map-1])
+					V_DrawString(x, y, 0, G_BuildMapTitle(demolist[replayOn].map));
+				else
+					V_DrawString(x, y, V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
+
+				V_DrawString(x, y+20, V_ALLOWLOWERCASE, demolist[replayOn].gametype == GT_RACE ?
+					va("Race (%s speed)", kartspeed_cons_t[demolist[replayOn].kartspeed & ~DF_ENCORE].strvalue) :
+					"Battle Mode");
+
+				V_DrawThinString(x, y+29, highlightflags, "WINNER");
+				V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[replayOn].winnername);
+
+				V_DrawThinString(x, y+39, highlightflags, "TIME");
+				V_DrawString(x+28, y+40, 0, va("%2d'%02d\"%02d",
+												G_TicsToMinutes(demolist[replayOn].winnertime, true),
+												G_TicsToSeconds(demolist[replayOn].winnertime),
+												G_TicsToCentiseconds(demolist[replayOn].winnertime)
+				));
+
+				// Character face!
+				if (W_CheckNumForName(skins[demolist[replayOn].winnerskin].facewant) != LUMPERROR)
+				{
+					UINT8 *colormap = R_GetTranslationColormap(demolist[replayOn].winnerskin, demolist[replayOn].winnercolor, GTC_MENUCACHE);
+					V_DrawMappedPatch(BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[replayOn].winnerskin]->width), y+20, 0, facewantprefix[demolist[replayOn].winnerskin], colormap);
+				}
+			}
+
+			break;
+		}
+	}
 }
 
 static void M_PandorasBox(INT32 choice)
