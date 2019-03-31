@@ -336,6 +336,10 @@ static patch_t *addonsp[NUM_EXT+5];
 
 #define numaddonsshown 4
 
+// Replay hut
+static void M_ReplayHut(INT32 choice);
+static void M_DrawReplayHut(void);
+
 // Drawing functions
 static void M_DrawGenericMenu(void);
 static void M_DrawCenteredMenu(void);
@@ -526,6 +530,13 @@ static menuitem_t MISC_AddonsMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleAddons, 0},     // dummy menuitem for the control func
 };
 
+static menuitem_t MISC_ReplayHutMenu[] =
+{
+	{IT_SUBMENU   |IT_STRING,  NULL, "Replay Options...", NULL, 0},
+
+	{IT_KEYHANDLER|IT_NOTHING, NULL, "",                  NULL, 20}, // Dummy menuitem for the replay list
+};
+
 // ---------------------------------
 // Pause Menu Mode Attacking Edition
 // ---------------------------------
@@ -700,7 +711,7 @@ static menuitem_t SR_MainMenu[] =
 {
 	{IT_STRING|IT_SUBMENU,                  NULL, "Unlockables", &SR_UnlockChecklistDef, 0},
 	{IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED, NULL, "Statistics",  M_Statistics,           10},
-	{IT_CALL|IT_STRING,                     NULL, "Replay Hut",  M_Statistics,           20},
+	{IT_CALL|IT_STRING,                     NULL, "Replay Hut",  M_ReplayHut,            20},
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom1
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom2
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom3
@@ -1579,6 +1590,18 @@ menu_t MISC_AddonsDef =
 	MISC_AddonsMenu,
 	M_DrawAddons,
 	50, 28,
+	0,
+	NULL
+};
+
+menu_t MISC_ReplayHutDef =
+{
+	"M_REPLAY",
+	sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t),
+	&MainDef,
+	MISC_ReplayHutMenu,
+	M_DrawReplayHut,
+	30, 80,
 	0,
 	NULL
 };
@@ -4471,7 +4494,7 @@ static void M_Addons(INT32 choice)
 	else
 		--menupathindex[menudepthleft];
 
-	if (!preparefilemenu(false))
+	if (!preparefilemenu(false, false))
 	{
 		M_StartMessage(va("No files/folders found.\n\n%s\n\n(Press a key)\n", (recommendedflags == V_SKYMAP ? LOCATIONSTRING2 : LOCATIONSTRING1)),NULL,MM_NOTHING);
 		return;
@@ -4595,7 +4618,7 @@ static void M_AddonsClearName(INT32 choice)
 // returns whether to do message draw
 static boolean M_AddonsRefresh(void)
 {
-	if ((refreshdirmenu & REFRESHDIR_NORMAL) && !preparefilemenu(true))
+	if ((refreshdirmenu & REFRESHDIR_NORMAL) && !preparefilemenu(true, false))
 	{
 		UNEXIST;
 		if (refreshdirname)
@@ -4844,7 +4867,7 @@ static void M_HandleAddons(INT32 choice)
 		if (dirmenu && dirmenu[dir_on[menudepthleft]])
 			tempname = Z_StrDup(dirmenu[dir_on[menudepthleft]]+DIR_STRING); // don't need to I_Error if can't make - not important, just QoL
 #if 0 // much slower
-		if (!preparefilemenu(true))
+		if (!preparefilemenu(true, false))
 		{
 			UNEXIST;
 			return;
@@ -4898,13 +4921,13 @@ static void M_HandleAddons(INT32 choice)
 								menupathindex[--menudepthleft] = strlen(menupath);
 								menupath[menupathindex[menudepthleft]] = 0;
 
-								if (!preparefilemenu(false))
+								if (!preparefilemenu(false, false))
 								{
 									S_StartSound(NULL, sfx_s224);
 									M_StartMessage(va("%c%s\x80\nThis folder is empty.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
 									menupath[menupathindex[++menudepthleft]] = 0;
 
-									if (!preparefilemenu(true))
+									if (!preparefilemenu(true, false))
 									{
 										UNEXIST;
 										return;
@@ -4927,7 +4950,7 @@ static void M_HandleAddons(INT32 choice)
 						case EXT_UP:
 							S_StartSound(NULL, sfx_menu1);
 							menupath[menupathindex[++menudepthleft]] = 0;
-							if (!preparefilemenu(false))
+							if (!preparefilemenu(false, false))
 							{
 								UNEXIST;
 								return;
@@ -4982,6 +5005,84 @@ static void M_HandleAddons(INT32 choice)
 		else
 			M_ClearMenus(true);
 	}
+}
+
+// ---- REPLAY HUT -----
+
+static INT16 replayOn = 0;
+
+static void M_ReplayHut(INT32 choice)
+{
+	(void)choice;
+
+	snprintf(menupath, 1024, "%s"PATHSEP"replay"PATHSEP"online"PATHSEP, srb2home);
+	menupathindex[(menudepthleft = menudepth-1)] = strlen(menupath);
+
+	if (!preparefilemenu(false, true))
+	{
+		M_StartMessage("No replays found.\n\n(Press a key)\n", NULL, MM_NOTHING);
+		return;
+	}
+	else
+		dir_on[menudepthleft] = 0;
+
+	M_SetupNextMenu(&MISC_ReplayHutDef);
+	G_SetGamestate(GS_TIMEATTACK);
+
+	S_ChangeMusicInternal("replst", true);
+}
+
+static void M_DrawReplayHut(void)
+{
+	INT32 x, y, cursory = 0;
+	INT16 i;
+
+	(void)cursory;
+
+	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
+	M_DrawMenuTitle();
+
+	// Draw menu choices
+	x = currentMenu->x;
+	y = currentMenu->y;
+
+	if (itemOn == currentMenu->numitems-1)
+	{
+		INT32 maxy;
+		// Scroll menu items if needed
+		cursory = y + currentMenu->menuitems[currentMenu->numitems-1].alphaKey + replayOn*10;
+		maxy = y + currentMenu->menuitems[currentMenu->numitems-1].alphaKey + sizedirmenu*10;
+
+		if (cursory > maxy - 70)
+			cursory = maxy - 70;
+
+		if (cursory > 130)
+			y -= (cursory-130);
+	}
+
+	// Draw static menu items
+	for (i = 0; i < currentMenu->numitems-1; i++)
+	{
+		if (i == itemOn)
+			cursory = y;
+
+		if ((currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
+			V_DrawString(x, y + currentMenu->menuitems[i].alphaKey, 0, currentMenu->menuitems[i].text);
+		else
+			V_DrawString(x, y + currentMenu->menuitems[i].alphaKey, highlightflags, currentMenu->menuitems[i].text);
+	}
+
+	y += currentMenu->menuitems[currentMenu->numitems-1].alphaKey;
+
+	for (i = 0; i < (INT16)sizedirmenu; i++)
+	{
+		V_DrawString(x, y+i*10, V_ALLOWLOWERCASE, dirmenu[i]+DIR_STRING);
+	}
+
+	// Draw the cursor
+	V_DrawScaledPatch(currentMenu->x - 24, cursory, 0,
+		W_CachePatchName("M_CURSOR", PU_CACHE));
+	V_DrawString(currentMenu->x, cursory, highlightflags, currentMenu->menuitems[itemOn].text);
 }
 
 static void M_PandorasBox(INT32 choice)
