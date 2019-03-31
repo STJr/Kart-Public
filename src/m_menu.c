@@ -337,11 +337,14 @@ static patch_t *addonsp[NUM_EXT+5];
 #define numaddonsshown 4
 
 // Replay hut
+menu_t MISC_ReplayHutDef;
 static void M_ReplayHut(INT32 choice);
 static void M_HandleReplayHutList(INT32 choice);
 static void M_DrawReplayHut(void);
+static void M_DrawReplayStartMenu(void);
 static boolean M_QuitReplayHut(void);
 static void M_EnterReplayOptions(INT32 choice);
+static void M_HutStartReplay(INT32 choice);
 
 // Drawing functions
 static void M_DrawGenericMenu(void);
@@ -540,6 +543,14 @@ static menuitem_t MISC_ReplayHutMenu[] =
 
 	{IT_KEYHANDLER|IT_NOTHING, NULL, "",                  M_HandleReplayHutList, 20}, // Dummy menuitem for the replay list
 	{IT_NOTHING,               NULL, "",                  NULL,                  20}, // Dummy for handling wrapping to the top of the menu..
+};
+
+static menuitem_t MISC_ReplayStartMenu[] =
+{
+	{IT_CALL      |IT_STRING,  NULL, "Load Addons and Watch", M_HutStartReplay,   0},
+	{IT_CALL      |IT_STRING,  NULL, "Watch Without Addons",  M_HutStartReplay,   10},
+	{IT_CALL      |IT_STRING,  NULL, "Watch Replay",          M_HutStartReplay,   10},
+	{IT_SUBMENU   |IT_STRING,  NULL, "Back",                  &MISC_ReplayHutDef, 30},
 };
 
 static menuitem_t MISC_ReplayOptionsMenu[] =
@@ -1616,6 +1627,7 @@ menu_t MISC_ReplayHutDef =
 	(sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t)) - 2, // Start on the replay list
 	M_QuitReplayHut
 };
+
 menu_t MISC_ReplayOptionsDef =
 {
 	NULL,
@@ -1624,6 +1636,18 @@ menu_t MISC_ReplayOptionsDef =
 	MISC_ReplayOptionsMenu,
 	M_DrawGenericBackgroundMenu,
 	27, 40,
+	0,
+	NULL
+};
+
+menu_t MISC_ReplayStartDef =
+{
+	NULL,
+	sizeof (MISC_ReplayStartMenu)/sizeof (menuitem_t),
+	&MISC_ReplayHutDef,
+	MISC_ReplayStartMenu,
+	M_DrawReplayStartMenu,
+	30, 90,
 	0,
 	NULL
 };
@@ -5174,11 +5198,137 @@ static void M_HandleReplayHutList(INT32 choice)
 				PrepReplayList();
 				break;
 			default:
+				// We can't just use M_SetupNextMenu because that'll run ReplayDef's quitroutine and boot us back to the title screen!
 				currentMenu->lastOn = itemOn;
-				M_ClearMenus(false);
-				demo.loadfiles = true; demo.ignorefiles = false; //@TODO prompt
+				currentMenu = &MISC_ReplayStartDef;
 
-				G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);
+				switch (demolist[dir_on[menudepthleft]].addonstatus)
+				{
+				case DFILE_ERROR_CANNOTLOAD:
+					// Only show "Watch Replay Without Addons"
+					MISC_ReplayStartMenu[0].status = IT_DISABLED;
+					MISC_ReplayStartMenu[1].status = IT_CALL|IT_STRING;
+					//MISC_ReplayStartMenu[1].alphaKey = 0;
+					MISC_ReplayStartMenu[2].status = IT_DISABLED;
+					itemOn = 1;
+					break;
+
+				case DFILE_ERROR_NOTLOADED:
+				case DFILE_ERROR_INCOMPLETEOUTOFORDER:
+					// Show "Load Addons and Watch Replay" and "Watch Replay Without Addons"
+					MISC_ReplayStartMenu[0].status = IT_CALL|IT_STRING;
+					MISC_ReplayStartMenu[1].status = IT_CALL|IT_STRING;
+					//MISC_ReplayStartMenu[1].alphaKey = 10;
+					MISC_ReplayStartMenu[2].status = IT_DISABLED;
+					itemOn = 0;
+					break;
+
+				case DFILE_ERROR_EXTRAFILES:
+				case DFILE_ERROR_OUTOFORDER:
+				default:
+					// Show "Watch Replay"
+					MISC_ReplayStartMenu[0].status = IT_DISABLED;
+					MISC_ReplayStartMenu[1].status = IT_DISABLED;
+					MISC_ReplayStartMenu[2].status = IT_CALL|IT_STRING;
+					//MISC_ReplayStartMenu[2].alphaKey = 0;
+					itemOn = 2;
+					break;
+				}
+
+				/*demo.loadfiles = true; demo.ignorefiles = false; //@TODO prompt
+
+				G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);*/
+		}
+
+		break;
+	}
+}
+
+static void DrawReplayHutReplayInfo(void)
+{
+	lumpnum_t lumpnum;
+	patch_t *PictureOfLevel;
+	INT32 x, y, w, h;
+
+	switch (demolist[dir_on[menudepthleft]].type)
+	{
+	case MD_NOTLOADED:
+		V_DrawCenteredString(160, 40, 0, "Loading replay information...");
+		break;
+
+	case MD_INVALID:
+		V_DrawCenteredString(160, 40, warningflags, "This replay cannot be played.");
+		break;
+
+	case MD_SUBDIR:
+		break; // Can't think of anything to draw here right now
+
+	case MD_OUTDATED:
+		V_DrawThinString(17, 64, V_ALLOWLOWERCASE|V_TRANSLUCENT|highlightflags, "Recorded on an outdated version.");
+		/*fallthru*/
+	default:
+		// Draw level stuff
+		x = 15; y = 15;
+
+		//  A 160x100 image of the level as entry MAPxxP
+		//CONS_Printf("%d %s\n", demolist[dir_on[menudepthleft]].map, G_BuildMapName(demolist[dir_on[menudepthleft]].map));
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[dir_on[menudepthleft]].map)));
+		if (lumpnum != LUMPERROR)
+			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+		else
+			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+
+		if (!(demolist[dir_on[menudepthleft]].kartspeed & DF_ENCORE))
+			V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+		else
+		{
+			w = SHORT(PictureOfLevel->width);
+			h = SHORT(PictureOfLevel->height);
+			V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, 0);
+
+			{
+				static angle_t rubyfloattime = 0;
+				const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+				V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+h/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+				rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+			}
+		}
+
+		x += 85;
+
+		if (mapheaderinfo[demolist[dir_on[menudepthleft]].map-1])
+			V_DrawString(x, y, 0, G_BuildMapTitle(demolist[dir_on[menudepthleft]].map));
+		else
+			V_DrawString(x, y, V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
+
+		V_DrawString(x, y+20, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].gametype == GT_RACE ?
+			va("Race (%s speed)", kartspeed_cons_t[demolist[dir_on[menudepthleft]].kartspeed & ~DF_ENCORE].strvalue) :
+			"Battle Mode");
+
+		V_DrawThinString(x, y+29, highlightflags, "WINNER");
+		V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].winnername);
+
+		V_DrawThinString(x, y+39, highlightflags, "TIME");
+		V_DrawString(x+28, y+40, 0, va("%2d'%02d\"%02d",
+										G_TicsToMinutes(demolist[dir_on[menudepthleft]].winnertime, true),
+										G_TicsToSeconds(demolist[dir_on[menudepthleft]].winnertime),
+										G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].winnertime)
+		));
+
+		// Character face!
+		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].winnerskin].facewant) != LUMPERROR)
+		{
+			UINT8 *colormap = R_GetTranslationColormap(
+				demolist[dir_on[menudepthleft]].winnerskin,
+				demolist[dir_on[menudepthleft]].winnercolor,
+				GTC_MENUCACHE);
+			V_DrawMappedPatch(
+				BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[dir_on[menudepthleft]].winnerskin]->width),
+				y+20,
+				0,
+				facewantprefix[demolist[dir_on[menudepthleft]].winnerskin],
+				colormap
+			);
 		}
 
 		break;
@@ -5304,95 +5454,45 @@ static void M_DrawReplayHut(void)
 
 	if (itemOn == replaylistitem)
 	{
-		switch (demolist[dir_on[menudepthleft]].type)
-		{
-		case MD_NOTLOADED:
-			V_DrawCenteredString(160, 40, 0, "Loading replay information...");
-			break;
-
-		case MD_INVALID:
-			V_DrawCenteredString(160, 40, warningflags, "This replay cannot be played.");
-			break;
-
-		case MD_SUBDIR:
-			break; // Can't think of anything to draw here right now
-
-		case MD_OUTDATED:
-			V_DrawThinString(17, 60, V_ALLOWLOWERCASE|V_TRANSLUCENT|highlightflags, "Recorded on an outdated version.");
-			/*fallthru*/
-		default:
-			{ // Draw level stuff
-				lumpnum_t lumpnum;
-				patch_t *PictureOfLevel;
-				INT32 w, h;
-				x = 15; y = 15;
-				//INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
-
-				//  A 160x100 image of the level as entry MAPxxP
-				//CONS_Printf("%d %s\n", demolist[dir_on[menudepthleft]].map, G_BuildMapName(demolist[dir_on[menudepthleft]].map));
-				lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[dir_on[menudepthleft]].map)));
-				if (lumpnum != LUMPERROR)
-					PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
-				else
-					PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
-
-				if (!(demolist[dir_on[menudepthleft]].kartspeed & DF_ENCORE))
-					V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
-				else
-				{
-					w = SHORT(PictureOfLevel->width);
-					h = SHORT(PictureOfLevel->height);
-					V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, 0);
-
-					{
-						static angle_t rubyfloattime = 0;
-						const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
-						V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+h/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
-						rubyfloattime += (ANGLE_MAX/NEWTICRATE);
-					}
-				}
-
-				x += 85;
-
-				if (mapheaderinfo[demolist[dir_on[menudepthleft]].map-1])
-					V_DrawString(x, y, 0, G_BuildMapTitle(demolist[dir_on[menudepthleft]].map));
-				else
-					V_DrawString(x, y, V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
-
-				V_DrawString(x, y+20, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].gametype == GT_RACE ?
-					va("Race (%s speed)", kartspeed_cons_t[demolist[dir_on[menudepthleft]].kartspeed & ~DF_ENCORE].strvalue) :
-					"Battle Mode");
-
-				V_DrawThinString(x, y+29, highlightflags, "WINNER");
-				V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].winnername);
-
-				V_DrawThinString(x, y+39, highlightflags, "TIME");
-				V_DrawString(x+28, y+40, 0, va("%2d'%02d\"%02d",
-												G_TicsToMinutes(demolist[dir_on[menudepthleft]].winnertime, true),
-												G_TicsToSeconds(demolist[dir_on[menudepthleft]].winnertime),
-												G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].winnertime)
-				));
-
-				// Character face!
-				if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].winnerskin].facewant) != LUMPERROR)
-				{
-					UINT8 *colormap = R_GetTranslationColormap(
-						demolist[dir_on[menudepthleft]].winnerskin,
-						demolist[dir_on[menudepthleft]].winnercolor,
-						GTC_MENUCACHE);
-					V_DrawMappedPatch(
-						BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[dir_on[menudepthleft]].winnerskin]->width),
-						y+20,
-						0,
-						facewantprefix[demolist[dir_on[menudepthleft]].winnerskin],
-						colormap
-					);
-				}
-			}
-
-			break;
-		}
+		DrawReplayHutReplayInfo();
 	}
+}
+
+static void M_DrawReplayStartMenu(void)
+{
+	const char *warning;
+
+	M_DrawGenericBackgroundMenu();
+	V_DrawFill(10, 10, 300, 60, 239);
+	DrawReplayHutReplayInfo();
+
+	V_DrawString(10, 72, highlightflags|V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].title);
+
+	// Draw a warning prompt if needed
+	switch (demolist[dir_on[menudepthleft]].addonstatus)
+	{
+	case DFILE_ERROR_CANNOTLOAD:
+		warning = "Some addons in this replay cannot be loaded.\nYou can watch anyway, but desyncs may occur.";
+		break;
+
+	case DFILE_ERROR_NOTLOADED:
+	case DFILE_ERROR_INCOMPLETEOUTOFORDER:
+		warning = "Loading addons will mark your game as modified, and record attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
+		break;
+
+	case DFILE_ERROR_EXTRAFILES:
+		warning = "You have addons loaded that were not present in this replay.\nYou can watch anyway, but desyncs may occur.";
+		break;
+
+	case DFILE_ERROR_OUTOFORDER:
+		warning = "You have this replay's addons loaded, but they are out of order.\nYou can watch anyway, but desyncs may occur.";
+		break;
+
+	default:
+		return;
+	}
+
+	V_DrawSmallString(4, BASEVIDHEIGHT-14, V_ALLOWLOWERCASE, warning);
 }
 
 static boolean M_QuitReplayHut(void)
@@ -5418,6 +5518,18 @@ static void M_EnterReplayOptions(INT32 choice)
 	currentMenu = &MISC_ReplayOptionsDef;
 	itemOn = currentMenu->lastOn;
 }
+
+static void M_HutStartReplay(INT32 choice)
+{
+	(void)choice;
+
+	M_ClearMenus(false);
+	demo.loadfiles = (itemOn == 0);
+	demo.ignorefiles = (itemOn != 0);
+
+	G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);
+}
+
 
 static void M_PandorasBox(INT32 choice)
 {
