@@ -172,7 +172,7 @@ boolean P_AutoPause(void)
 	if (netgame || modeattacking || demo.title)
 		return false;
 
-	return (menuactive || ( window_notinfocus && cv_pauseifunfocused.value ));
+	return ((menuactive && !demo.playback) || ( window_notinfocus && cv_pauseifunfocused.value ));
 }
 
 //
