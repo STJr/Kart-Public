@@ -341,9 +341,11 @@ static void M_ReplayHut(INT32 choice);
 static void M_HandleReplayHutList(INT32 choice);
 static void M_DrawReplayHut(void);
 static boolean M_QuitReplayHut(void);
+static void M_EnterReplayOptions(INT32 choice);
 
 // Drawing functions
 static void M_DrawGenericMenu(void);
+static void M_DrawGenericBackgroundMenu(void);
 static void M_DrawCenteredMenu(void);
 static void M_DrawAddons(void);
 static void M_DrawSkyRoom(void);
@@ -534,10 +536,16 @@ static menuitem_t MISC_AddonsMenu[] =
 
 static menuitem_t MISC_ReplayHutMenu[] =
 {
-	{IT_SUBMENU   |IT_STRING,  NULL, "Replay Options...", NULL,                  0},
+	{IT_CALL      |IT_STRING,  NULL, "Replay Options...", M_EnterReplayOptions,  0},
 
 	{IT_KEYHANDLER|IT_NOTHING, NULL, "",                  M_HandleReplayHutList, 20}, // Dummy menuitem for the replay list
 	{IT_NOTHING,               NULL, "",                  NULL,                  20}, // Dummy for handling wrapping to the top of the menu..
+};
+
+static menuitem_t MISC_ReplayOptionsMenu[] =
+{
+	{IT_CVAR|IT_STRING, NULL, "Record Replays",      &cv_recordmultiplayerdemos, 0},
+	{IT_CVAR|IT_STRING, NULL, "Sync Check Interval", &cv_netdemosyncquality,     10},
 };
 
 // ---------------------------------
@@ -1607,6 +1615,17 @@ menu_t MISC_ReplayHutDef =
 	30, 80,
 	(sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t)) - 2, // Start on the replay list
 	M_QuitReplayHut
+};
+menu_t MISC_ReplayOptionsDef =
+{
+	NULL,
+	sizeof (MISC_ReplayOptionsMenu)/sizeof (menuitem_t),
+	&MISC_ReplayHutDef,
+	MISC_ReplayOptionsMenu,
+	M_DrawGenericBackgroundMenu,
+	27, 40,
+	0,
+	NULL
 };
 
 menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
@@ -3713,6 +3732,12 @@ static void M_DrawGenericMenu(void)
 	}
 }
 
+static void M_DrawGenericBackgroundMenu(void)
+{
+	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
+	M_DrawGenericMenu();
+}
+
 static void M_DrawPauseMenu(void)
 {
 #if 0
@@ -5322,6 +5347,15 @@ static boolean M_QuitReplayHut(void)
 	inreplayhut = false;
 
 	return true;
+}
+
+static void M_EnterReplayOptions(INT32 choice)
+{
+	(void)choice;
+
+	// We can't just use M_SetupNextMenu because that'll boot us back to the title screen!
+	currentMenu = &MISC_ReplayOptionsDef;
+	itemOn = currentMenu->lastOn;
 }
 
 static void M_PandorasBox(INT32 choice)
