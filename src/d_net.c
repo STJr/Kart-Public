@@ -364,10 +364,7 @@ static boolean Processackpak(void)
 		UINT8 ack = netbuffer->ack;
 		getackpacket++;
 
-		if (cmpack(ack, node->firstacktosend) <= 0
-			// UGLY PROBABLY-BAD HACK: If we get PT_CLIENTJOIN, assume this is an in-order packet?
-			&& netbuffer->packettype != PT_CLIENTJOIN
-		)
+		if (cmpack(ack, node->firstacktosend) <= 0)
 		{
 			DEBFILE(va("Discard(1) ack %d (duplicated)\n", ack));
 			duppacket++;
@@ -389,10 +386,6 @@ static boolean Processackpak(void)
 				// Is a good packet so increment the acknowledge number,
 				// Then search for a "hole" in the queue
 				UINT8 nextfirstack = (UINT8)(node->firstacktosend + 1);
-
-				// UGLY PROBABLY-BAD HACK: If we get PT_CLIENTJOIN, assume this is an in-order packet?
-				if (netbuffer->packettype == PT_CLIENTJOIN)
-					node->firstacktosend = (UINT8)((ack-1+MAXACKTOSEND) % MAXACKTOSEND);
 
 				if (!nextfirstack)
 					nextfirstack = 1;
@@ -1213,6 +1206,10 @@ boolean HGetPacket(void)
 				Net_CloseConnection(doomcom->remotenode | FORCECLOSE);
 				continue;
 			}
+
+			// UGLY PROBABLY-BAD HACK: If we get PT_CLIENTJOIN, assume this is an in-order packet?
+			if (netbuffer->packettype == PT_CLIENTJOIN)
+				nodes[doomcom->remotenode].firstacktosend = (UINT8)((netbuffer->ack-1+MAXACKTOSEND) % MAXACKTOSEND);
 
 			if (netbuffer->ack > 1 && !(server && netbuffer->packettype == PT_CLIENTJOIN))
 			{
