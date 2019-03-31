@@ -340,6 +340,7 @@ static patch_t *addonsp[NUM_EXT+5];
 static void M_ReplayHut(INT32 choice);
 static void M_HandleReplayHutList(INT32 choice);
 static void M_DrawReplayHut(void);
+static boolean M_QuitReplayHut(void);
 
 // Drawing functions
 static void M_DrawGenericMenu(void);
@@ -1598,14 +1599,14 @@ menu_t MISC_AddonsDef =
 
 menu_t MISC_ReplayHutDef =
 {
-	"M_REPLAY",
+	NULL,
 	sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t),
-	&MainDef,
+	NULL,
 	MISC_ReplayHutMenu,
 	M_DrawReplayHut,
 	30, 80,
 	(sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t)) - 2, // Start on the replay list
-	NULL
+	M_QuitReplayHut
 };
 
 menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
@@ -5016,6 +5017,7 @@ menudemo_t *demolist;
 static INT16 replayOn = 0;
 static INT16 replayScrollTitle = 0;
 static INT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
+static boolean inreplayhut = false;
 
 static void PrepReplayList(void)
 {
@@ -5046,8 +5048,12 @@ static void M_ReplayHut(INT32 choice)
 {
 	(void)choice;
 
-	snprintf(menupath, 1024, "%s"PATHSEP"replay"PATHSEP"online"PATHSEP, srb2home);
-	menupathindex[(menudepthleft = menudepth-1)] = strlen(menupath);
+	if (!inreplayhut)
+	{
+		snprintf(menupath, 1024, "%s"PATHSEP"replay"PATHSEP"online"PATHSEP, srb2home);
+		menupathindex[(menudepthleft = menudepth-1)] = strlen(menupath);
+	}
+	inreplayhut = true;
 
 	if (!preparefilemenu(false, true))
 	{
@@ -5087,6 +5093,17 @@ static void M_HandleReplayHutList(INT32 choice)
 
 		S_StartSound(NULL, sfx_menu1);
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+		break;
+
+	case KEY_ESCAPE:
+		M_QuitReplayHut();
+		break;
+
+	case KEY_ENTER:
+		M_ClearMenus(false);
+		demo.loadfiles = true; demo.ignorefiles = false; //@TODO prompt
+
+		G_DoPlayDemo(demolist[replayOn].filepath);
 		break;
 	}
 }
@@ -5290,6 +5307,21 @@ static void M_DrawReplayHut(void)
 			break;
 		}
 	}
+}
+
+static boolean M_QuitReplayHut(void)
+{
+	// D_StartTitle does its own wipe, since GS_TIMEATTACK is now a complete gamestate.
+	menuactive = false;
+	D_StartTitle();
+
+	if (demolist)
+		Z_Free(demolist);
+	demolist = NULL;
+
+	inreplayhut = false;
+
+	return true;
 }
 
 static void M_PandorasBox(INT32 choice)
