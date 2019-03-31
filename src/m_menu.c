@@ -5039,7 +5039,6 @@ static void M_HandleAddons(INT32 choice)
 menudemo_t *demolist;
 
 #define DF_ENCORE       0x40
-static INT16 replayOn = 0;
 static INT16 replayScrollTitle = 0;
 static INT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
 static boolean inreplayhut = false;
@@ -5055,7 +5054,12 @@ static void PrepReplayList(void)
 
 	for (i = 0; i < sizedirmenu; i++)
 	{
-		if (dirmenu[i][DIR_TYPE] == EXT_FOLDER)
+		if (dirmenu[i][DIR_TYPE] == EXT_UP)
+		{
+			demolist[i].type = MD_SUBDIR;
+			sprintf(demolist[i].title, "UP");
+		}
+		else if (dirmenu[i][DIR_TYPE] == EXT_FOLDER)
 		{
 			demolist[i].type = MD_SUBDIR;
 			strncpy(demolist[i].title, dirmenu[i] + DIR_STRING, 64);
@@ -5078,15 +5082,14 @@ static void M_ReplayHut(INT32 choice)
 		snprintf(menupath, 1024, "%s"PATHSEP"replay"PATHSEP"online"PATHSEP, srb2home);
 		menupathindex[(menudepthleft = menudepth-1)] = strlen(menupath);
 	}
-	inreplayhut = true;
-
 	if (!preparefilemenu(false, true))
 	{
 		M_StartMessage("No replays found.\n\n(Press a key)\n", NULL, MM_NOTHING);
 		return;
 	}
-	else
+	else if (!inreplayhut)
 		dir_on[menudepthleft] = 0;
+	inreplayhut = true;
 
 	PrepReplayList();
 
@@ -5101,8 +5104,8 @@ static void M_HandleReplayHutList(INT32 choice)
 	switch (choice)
 	{
 	case KEY_UPARROW:
-		if (replayOn)
-			replayOn--;
+		if (dir_on[menudepthleft])
+			dir_on[menudepthleft]--;
 		else
 			M_PrevOpt();
 
@@ -5111,8 +5114,8 @@ static void M_HandleReplayHutList(INT32 choice)
 		break;
 
 	case KEY_DOWNARROW:
-		if (replayOn < (INT16)sizedirmenu-1)
-			replayOn++;
+		if (dir_on[menudepthleft] < sizedirmenu-1)
+			dir_on[menudepthleft]++;
 		else
 			itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
 
@@ -5125,10 +5128,59 @@ static void M_HandleReplayHutList(INT32 choice)
 		break;
 
 	case KEY_ENTER:
-		M_ClearMenus(false);
-		demo.loadfiles = true; demo.ignorefiles = false; //@TODO prompt
+		switch (dirmenu[dir_on[menudepthleft]][DIR_TYPE])
+		{
+			case EXT_FOLDER:
+				strcpy(&menupath[menupathindex[menudepthleft]],dirmenu[dir_on[menudepthleft]]+DIR_STRING);
+				if (menudepthleft)
+				{
+					menupathindex[--menudepthleft] = strlen(menupath);
+					menupath[menupathindex[menudepthleft]] = 0;
 
-		G_DoPlayDemo(demolist[replayOn].filepath);
+					if (!preparefilemenu(false, true))
+					{
+						S_StartSound(NULL, sfx_s224);
+						M_StartMessage(va("%c%s\x80\nThis folder is empty.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
+						menupath[menupathindex[++menudepthleft]] = 0;
+
+						if (!preparefilemenu(true, true))
+						{
+							M_QuitReplayHut();
+							return;
+						}
+					}
+					else
+					{
+						S_StartSound(NULL, sfx_menu1);
+						dir_on[menudepthleft] = 1;
+						PrepReplayList();
+					}
+				}
+				else
+				{
+					S_StartSound(NULL, sfx_s26d);
+					M_StartMessage(va("%c%s\x80\nThis folder is too deep to navigate to!\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
+					menupath[menupathindex[menudepthleft]] = 0;
+				}
+				break;
+			case EXT_UP:
+				S_StartSound(NULL, sfx_menu1);
+				menupath[menupathindex[++menudepthleft]] = 0;
+				if (!preparefilemenu(false, true))
+				{
+					M_QuitReplayHut();
+					return;
+				}
+				PrepReplayList();
+				break;
+			default:
+				currentMenu->lastOn = itemOn;
+				M_ClearMenus(false);
+				demo.loadfiles = true; demo.ignorefiles = false; //@TODO prompt
+
+				G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);
+		}
+
 		break;
 	}
 }
@@ -5151,12 +5203,12 @@ static void M_DrawReplayHut(void)
 	if (itemOn > replaylistitem)
 	{
 		itemOn = replaylistitem;
-		replayOn = sizedirmenu-1;
+		dir_on[menudepthleft] = sizedirmenu-1;
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
 	}
 	else if (itemOn < replaylistitem)
 	{
-		replayOn = 0;
+		dir_on[menudepthleft] = 0;
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
 	}
 
@@ -5164,7 +5216,7 @@ static void M_DrawReplayHut(void)
 	{
 		INT32 maxy;
 		// Scroll menu items if needed
-		cursory = y + currentMenu->menuitems[replaylistitem].alphaKey + replayOn*10;
+		cursory = y + currentMenu->menuitems[replaylistitem].alphaKey + dir_on[menudepthleft]*10;
 		maxy = y + currentMenu->menuitems[replaylistitem].alphaKey + sizedirmenu*10;
 
 		if (cursory > maxy - 20)
@@ -5209,7 +5261,7 @@ static void M_DrawReplayHut(void)
 			G_LoadDemoInfo(&demolist[i]);
 		}
 
-		if (itemOn == replaylistitem && i == replayOn)
+		if (itemOn == replaylistitem && i == (INT16)dir_on[menudepthleft])
 		{
 			cursory = localy;
 
@@ -5252,7 +5304,7 @@ static void M_DrawReplayHut(void)
 
 	if (itemOn == replaylistitem)
 	{
-		switch (demolist[replayOn].type)
+		switch (demolist[dir_on[menudepthleft]].type)
 		{
 		case MD_NOTLOADED:
 			V_DrawCenteredString(160, 40, 0, "Loading replay information...");
@@ -5277,14 +5329,14 @@ static void M_DrawReplayHut(void)
 				//INT32 x, y, w, i, oldval, trans, dupadjust = ((vid.width/vid.dupx) - BASEVIDWIDTH)>>1;
 
 				//  A 160x100 image of the level as entry MAPxxP
-				CONS_Printf("%d %s\n", demolist[replayOn].map, G_BuildMapName(demolist[replayOn].map));
-				lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[replayOn].map)));
+				//CONS_Printf("%d %s\n", demolist[dir_on[menudepthleft]].map, G_BuildMapName(demolist[dir_on[menudepthleft]].map));
+				lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[dir_on[menudepthleft]].map)));
 				if (lumpnum != LUMPERROR)
 					PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
 				else
 					PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
 
-				if (!(demolist[replayOn].kartspeed & DF_ENCORE))
+				if (!(demolist[dir_on[menudepthleft]].kartspeed & DF_ENCORE))
 					V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
 				else
 				{
@@ -5302,30 +5354,39 @@ static void M_DrawReplayHut(void)
 
 				x += 85;
 
-				if (mapheaderinfo[demolist[replayOn].map-1])
-					V_DrawString(x, y, 0, G_BuildMapTitle(demolist[replayOn].map));
+				if (mapheaderinfo[demolist[dir_on[menudepthleft]].map-1])
+					V_DrawString(x, y, 0, G_BuildMapTitle(demolist[dir_on[menudepthleft]].map));
 				else
 					V_DrawString(x, y, V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
 
-				V_DrawString(x, y+20, V_ALLOWLOWERCASE, demolist[replayOn].gametype == GT_RACE ?
-					va("Race (%s speed)", kartspeed_cons_t[demolist[replayOn].kartspeed & ~DF_ENCORE].strvalue) :
+				V_DrawString(x, y+20, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].gametype == GT_RACE ?
+					va("Race (%s speed)", kartspeed_cons_t[demolist[dir_on[menudepthleft]].kartspeed & ~DF_ENCORE].strvalue) :
 					"Battle Mode");
 
 				V_DrawThinString(x, y+29, highlightflags, "WINNER");
-				V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[replayOn].winnername);
+				V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].winnername);
 
 				V_DrawThinString(x, y+39, highlightflags, "TIME");
 				V_DrawString(x+28, y+40, 0, va("%2d'%02d\"%02d",
-												G_TicsToMinutes(demolist[replayOn].winnertime, true),
-												G_TicsToSeconds(demolist[replayOn].winnertime),
-												G_TicsToCentiseconds(demolist[replayOn].winnertime)
+												G_TicsToMinutes(demolist[dir_on[menudepthleft]].winnertime, true),
+												G_TicsToSeconds(demolist[dir_on[menudepthleft]].winnertime),
+												G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].winnertime)
 				));
 
 				// Character face!
-				if (W_CheckNumForName(skins[demolist[replayOn].winnerskin].facewant) != LUMPERROR)
+				if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].winnerskin].facewant) != LUMPERROR)
 				{
-					UINT8 *colormap = R_GetTranslationColormap(demolist[replayOn].winnerskin, demolist[replayOn].winnercolor, GTC_MENUCACHE);
-					V_DrawMappedPatch(BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[replayOn].winnerskin]->width), y+20, 0, facewantprefix[demolist[replayOn].winnerskin], colormap);
+					UINT8 *colormap = R_GetTranslationColormap(
+						demolist[dir_on[menudepthleft]].winnerskin,
+						demolist[dir_on[menudepthleft]].winnercolor,
+						GTC_MENUCACHE);
+					V_DrawMappedPatch(
+						BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[dir_on[menudepthleft]].winnerskin]->width),
+						y+20,
+						0,
+						facewantprefix[demolist[dir_on[menudepthleft]].winnerskin],
+						colormap
+					);
 				}
 			}
 

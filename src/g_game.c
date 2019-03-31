@@ -6642,6 +6642,16 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 		Z_Free(infobuffer);
 		return;
 	}
+#ifdef DEMO_COMPAT_100
+	else if (pdemoversion == 0x0001)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("%s is a legacy multiplayer replay and cannot be played.\n"), pdemo->filepath);
+		pdemo->type = MD_INVALID;
+		sprintf(pdemo->title, "INVALID REPLAY");
+		Z_Free(infobuffer);
+		return;
+	}
+#endif
 
 	pdemo->gametype = READUINT8(info_p);
 
