@@ -584,6 +584,7 @@ void F_StartCredits(void)
 	S_StopMusic();
 
 	S_ChangeMusicInternal("credit", false);
+	S_ShowMusicCredit();
 
 	finalecount = 0;
 	animtimer = 0;
@@ -643,6 +644,10 @@ void F_CreditDrawer(void)
 		if (((y>>FRACBITS) * vid.dupy) > vid.height)
 			break;
 	}
+
+	// draw song credits
+	if (cv_songcredits.value)
+		HU_DrawSongCredits();
 
 	if (!credits[i] && y <= 120<<FRACBITS && !finalecount)
 	{

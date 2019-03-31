@@ -2235,7 +2235,7 @@ static void HU_DrawDemoInfo(void)
 //
 // Song credits
 //
-static void HU_DrawSongCredits(void)
+void HU_DrawSongCredits(void)
 {
 	char *str;
 	INT32 len, destx;
