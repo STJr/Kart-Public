@@ -6564,6 +6564,128 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	return c;
 }
 
+void G_LoadDemoInfo(menudemo_t *pdemo)
+{
+	UINT8 *infobuffer, *info_p;
+	UINT8 version, subversion, pdemoflags;
+	UINT16 pdemoversion, cvarcount;
+
+	if (!FIL_ReadFile(pdemo->filepath, &infobuffer))
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Failed to read file '%s'.\n"), pdemo->filepath);
+		pdemo->type = MD_INVALID;
+		sprintf(pdemo->title, "INVALID REPLAY");
+
+		return;
+	}
+
+	info_p = infobuffer;
+
+	if (memcmp(info_p, DEMOHEADER, 12))
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("%s is not a SRB2Kart replay file.\n"), pdemo->filepath);
+		pdemo->type = MD_INVALID;
+		sprintf(pdemo->title, "INVALID REPLAY");
+		Z_Free(infobuffer);
+		return;
+	}
+
+	pdemo->type = MD_LOADED;
+
+	info_p += 12; // DEMOHEADER
+
+	version = READUINT8(info_p);
+	subversion = READUINT8(info_p);
+	pdemoversion = READUINT16(info_p);
+
+	switch(pdemoversion)
+	{
+	case DEMOVERSION: // latest always supported
+		// demo title
+		M_Memcpy(pdemo->title, info_p, 64);
+		info_p += 64;
+
+		break;
+#ifdef DEMO_COMPAT_100
+	case 0x0001:
+		pdemo->type = MD_OUTDATED;
+		sprintf(pdemo->title, "Legacy Replay");
+		break;
+#endif
+	// too old, cannot support.
+	default:
+		CONS_Alert(CONS_ERROR, M_GetText("%s is an incompatible replay format and cannot be played.\n"), pdemo->filepath);
+		pdemo->type = MD_INVALID;
+		sprintf(pdemo->title, "INVALID REPLAY");
+		Z_Free(infobuffer);
+		return;
+	}
+
+	if (version != VERSION || subversion != SUBVERSION)
+		pdemo->type = MD_OUTDATED;
+
+	info_p += 16; // demo checksum
+	if (memcmp(info_p, "PLAY", 4))
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("%s is the wrong type of recording and cannot be played.\n"), pdemo->filepath);
+		pdemo->type = MD_INVALID;
+		sprintf(pdemo->title, "INVALID REPLAY");
+		Z_Free(infobuffer);
+		return;
+	}
+	demo_p += 4; // "PLAY"
+	pdemo->map = READINT16(info_p);
+	demo_p += 16; // mapmd5
+
+	pdemoflags = READUINT8(info_p);
+
+	// temp?
+	if (!(pdemoflags & DF_MULTIPLAYER))
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("%s is not a multiplayer replay and can't be listed on this menu fully yet.\n"), pdemo->filepath);
+		Z_Free(infobuffer);
+		return;
+	}
+
+	pdemo->gametype = READUINT8(info_p);
+
+	G_SkipDemoExtraFiles(&info_p); //@TODO see if this information is useful for display?
+	demo_p += 4; // RNG seed
+
+	// Pared down version of CV_LoadNetVars to find the kart speed
+	cvarcount = READUINT16(info_p);
+	while (cvarcount--)
+	{
+		UINT16 netid;
+		char *svalue;
+
+		netid = READUINT16(info_p);
+		svalue = (char *)info_p;
+		SKIPSTRING(info_p);
+		info_p++; // stealth
+
+		if (netid == cv_kartspeed.netid)
+		{
+			for (cvarcount = 0; kartspeed_cons_t[cvarcount].value; cvarcount++)
+			{
+				if (!strcasecmp(kartspeed_cons_t[cvarcount].strvalue, svalue))
+				{
+					pdemo->kartspeed = kartspeed_cons_t[cvarcount].value;
+					break;
+				}
+			}
+
+			break;
+		}
+	}
+
+	if (pdemoflags & DF_ENCORE)
+		pdemo->kartspeed |= DF_ENCORE;
+
+	// I think that's everything we need?
+	free(infobuffer);
+}
+
 //
 // G_PlayDemo
 //

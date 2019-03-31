@@ -61,6 +61,25 @@ struct demovars_s {
 
 extern struct demovars_s demo;
 
+typedef enum {
+	MD_NOTLOADED,
+	MD_LOADED,
+	MD_SUBDIR,
+	MD_OUTDATED,
+	MD_INVALID
+} menudemotype_e;
+
+typedef struct menudemo_s {
+	char filepath[256];
+	menudemotype_e type;
+
+	char title[65]; // Null-terminated for string prints
+	UINT16 map;
+	UINT8 gametype;
+	UINT8 kartspeed; // Add OR DF_ENCORE for encore mode, idk
+} menudemo_t;
+
+
 extern mobj_t *metalplayback;
 
 // gametic at level start
@@ -147,6 +166,7 @@ void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar
 	UINT8 ssplayers, boolean FLS);
 void G_DoLoadLevel(boolean resetplayer);
 
+void G_LoadDemoInfo(menudemo_t *pdemo);
 void G_DeferedPlayDemo(const char *demo);
 
 // Can be called by the startup code or M_Responder, calls P_SetupLevel.

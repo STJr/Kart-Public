@@ -896,6 +896,8 @@ boolean preparefilemenu(boolean samedepth, boolean replayhut)
 				strcpy(temp+len, PATHSEP);
 				coredirmenu[folderpos++] = temp;
 			}
+			else if (replayhut) // Reverse-alphabetical on just the files; acts as a fake "most recent first" with the current filename format
+				coredirmenu[sizecoredirmenu - 1 - pos++] = temp;
 			else
 				coredirmenu[numfolders + pos++] = temp;
 		}

@@ -338,6 +338,7 @@ static patch_t *addonsp[NUM_EXT+5];
 
 // Replay hut
 static void M_ReplayHut(INT32 choice);
+static void M_HandleReplayHutList(INT32 choice);
 static void M_DrawReplayHut(void);
 
 // Drawing functions
@@ -532,9 +533,10 @@ static menuitem_t MISC_AddonsMenu[] =
 
 static menuitem_t MISC_ReplayHutMenu[] =
 {
-	{IT_SUBMENU   |IT_STRING,  NULL, "Replay Options...", NULL, 0},
+	{IT_SUBMENU   |IT_STRING,  NULL, "Replay Options...", NULL,                  0},
 
-	{IT_KEYHANDLER|IT_NOTHING, NULL, "",                  NULL, 20}, // Dummy menuitem for the replay list
+	{IT_KEYHANDLER|IT_NOTHING, NULL, "",                  M_HandleReplayHutList, 20}, // Dummy menuitem for the replay list
+	{IT_NOTHING,               NULL, "",                  NULL,                  20}, // Dummy for handling wrapping to the top of the menu..
 };
 
 // ---------------------------------
@@ -1602,7 +1604,7 @@ menu_t MISC_ReplayHutDef =
 	MISC_ReplayHutMenu,
 	M_DrawReplayHut,
 	30, 80,
-	0,
+	(sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t)) - 2, // Start on the replay list
 	NULL
 };
 
@@ -5008,8 +5010,34 @@ static void M_HandleAddons(INT32 choice)
 }
 
 // ---- REPLAY HUT -----
+menudemo_t *demolist;
 
 static INT16 replayOn = 0;
+
+static void PrepReplayList(void)
+{
+	size_t i;
+
+	if (demolist)
+		Z_Free(demolist);
+
+	demolist = Z_Calloc(sizeof(menudemo_t) * sizedirmenu, PU_STATIC, NULL);
+
+	for (i = 0; i < sizedirmenu; i++)
+	{
+		if (dirmenu[i][DIR_TYPE] == EXT_FOLDER)
+		{
+			demolist[i].type = MD_SUBDIR;
+			strncpy(demolist[i].title, dirmenu[i] + DIR_STRING, 64);
+		}
+		else
+		{
+			demolist[i].type = MD_NOTLOADED;
+			snprintf(demolist[i].filepath, 255, "%s%s", menupath, dirmenu[i] + DIR_STRING);
+			sprintf(demolist[i].title, ".....");
+		}
+	}
+}
 
 static void M_ReplayHut(INT32 choice)
 {
@@ -5026,18 +5054,46 @@ static void M_ReplayHut(INT32 choice)
 	else
 		dir_on[menudepthleft] = 0;
 
+	PrepReplayList();
+
 	M_SetupNextMenu(&MISC_ReplayHutDef);
 	G_SetGamestate(GS_TIMEATTACK);
 
 	S_ChangeMusicInternal("replst", true);
 }
 
+static void M_HandleReplayHutList(INT32 choice)
+{
+	switch (choice)
+	{
+	case KEY_UPARROW:
+		if (replayOn)
+			replayOn--;
+		else
+			M_PrevOpt();
+
+		S_StartSound(NULL, sfx_menu1);
+		break;
+
+	case KEY_DOWNARROW:
+		if (replayOn < (INT16)sizedirmenu-1)
+			replayOn++;
+		else
+			itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
+
+		S_StartSound(NULL, sfx_menu1);
+		break;
+	}
+}
+
 static void M_DrawReplayHut(void)
 {
 	INT32 x, y, cursory = 0;
 	INT16 i;
+	INT16 replaylistitem = currentMenu->numitems-2;
+	boolean processed_one_this_frame = false;
 
-	(void)cursory;
+	static UINT16 replayhutmenuy = 0;
 
 	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
 	M_DrawMenuTitle();
@@ -5046,25 +5102,41 @@ static void M_DrawReplayHut(void)
 	x = currentMenu->x;
 	y = currentMenu->y;
 
-	if (itemOn == currentMenu->numitems-1)
+	if (itemOn > replaylistitem)
+	{
+		itemOn = replaylistitem;
+		replayOn = sizedirmenu-1;
+	}
+	else if (itemOn < replaylistitem)
+	{
+		replayOn = 0;
+	}
+
+	if (itemOn == replaylistitem)
 	{
 		INT32 maxy;
 		// Scroll menu items if needed
-		cursory = y + currentMenu->menuitems[currentMenu->numitems-1].alphaKey + replayOn*10;
-		maxy = y + currentMenu->menuitems[currentMenu->numitems-1].alphaKey + sizedirmenu*10;
+		cursory = y + currentMenu->menuitems[replaylistitem].alphaKey + replayOn*10;
+		maxy = y + currentMenu->menuitems[replaylistitem].alphaKey + sizedirmenu*10;
 
-		if (cursory > maxy - 70)
-			cursory = maxy - 70;
+		if (cursory > maxy - 20)
+			cursory = maxy - 20;
 
-		if (cursory > 130)
-			y -= (cursory-130);
+		if (cursory - replayhutmenuy > 150)
+			replayhutmenuy += (cursory-150-replayhutmenuy)/2;
+		else if (cursory - replayhutmenuy < 110)
+			replayhutmenuy += (max(0, cursory-110)-replayhutmenuy)/2;
 	}
+	else
+		replayhutmenuy /= 2;
+
+	y -= replayhutmenuy;
 
 	// Draw static menu items
-	for (i = 0; i < currentMenu->numitems-1; i++)
+	for (i = 0; i < replaylistitem; i++)
 	{
 		if (i == itemOn)
-			cursory = y;
+			cursory = y + currentMenu->menuitems[i].alphaKey;
 
 		if ((currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
 			V_DrawString(x, y + currentMenu->menuitems[i].alphaKey, 0, currentMenu->menuitems[i].text);
@@ -5076,7 +5148,20 @@ static void M_DrawReplayHut(void)
 
 	for (i = 0; i < (INT16)sizedirmenu; i++)
 	{
-		V_DrawString(x, y+i*10, V_ALLOWLOWERCASE, dirmenu[i]+DIR_STRING);
+		INT32 localy = y+i*10;
+		if (localy >= 0 && localy < 200 && demolist[i].type == MD_NOTLOADED && !processed_one_this_frame)
+		{
+			processed_one_this_frame = true;
+			G_LoadDemoInfo(&demolist[i]);
+		}
+
+		if (itemOn == replaylistitem && i == replayOn)
+		{
+			cursory = localy;
+			V_DrawString(x, localy, highlightflags|V_ALLOWLOWERCASE, demolist[i].title);
+		}
+		else
+			V_DrawString(x, localy, V_ALLOWLOWERCASE, demolist[i].title);
 	}
 
 	// Draw the cursor
