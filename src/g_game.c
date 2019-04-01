@@ -289,7 +289,7 @@ UINT32 timesBeatenWithEmeralds;
 //@TODO put these all in a struct for namespacing purposes?
 static char demoname[128];
 static UINT8 *demobuffer = NULL;
-static UINT8 *demo_p, *demotime_p;
+static UINT8 *demo_p, *demotime_p, *demoinfo_p;
 static UINT8 *demoend;
 static UINT8 demoflags;
 static UINT16 demoversion;
@@ -6165,6 +6165,10 @@ void G_BeginRecording(void)
 
 	WRITEUINT32(demo_p,P_GetInitSeed());
 
+	// Reserved for extrainfo location from start of file
+	demoinfo_p = demo_p;
+	WRITEUINT32(demo_p, 0);
+
 	// Save netvars
 	CV_SaveNetVars(&demo_p, true);
 
@@ -6567,7 +6571,7 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 
 void G_LoadDemoInfo(menudemo_t *pdemo)
 {
-	UINT8 *infobuffer, *info_p;
+	UINT8 *infobuffer, *info_p, *extrainfo_p;
 	UINT8 version, subversion, pdemoflags;
 	UINT16 pdemoversion, cvarcount;
 
@@ -6663,6 +6667,8 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 	pdemo->addonstatus = G_CheckDemoExtraFiles(&info_p, true);
 	info_p += 4; // RNG seed
 
+	extrainfo_p = infobuffer + READUINT32(info_p);
+
 	// Pared down version of CV_LoadNetVars to find the kart speed
 	pdemo->kartspeed = 1; // Default to normal speed
 	cvarcount = READUINT16(info_p);
@@ -6690,6 +6696,7 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 		pdemo->kartspeed |= DF_ENCORE;
 
 	// Temporary info until this is actually present in replays.
+	(void)extrainfo_p;
 	sprintf(pdemo->winnername, "transrights420");
 	pdemo->winnerskin = 1;
 	pdemo->winnercolor = SKINCOLOR_MOONSLAM;
@@ -6935,6 +6942,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	// Random seed
 	randseed = READUINT32(demo_p);
+	demo_p += 4; // Extrainfo location
 
 #ifdef DEMO_COMPAT_100
 	if (demoversion == 0x0001) {
