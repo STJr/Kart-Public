@@ -3856,7 +3856,12 @@ void G_AfterIntermission(void)
 	if (demo.playback)
 	{
 		G_StopDemo();
-		D_StartTitle();
+
+		if (demo.inreplayhut)
+			M_ReplayHut(0);
+		else
+			D_StartTitle();
+
 		return;
 	}
 	else if (demo.recording && demo.savemode != DSM_NOTSAVING)

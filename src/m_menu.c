@@ -338,7 +338,6 @@ static patch_t *addonsp[NUM_EXT+5];
 
 // Replay hut
 menu_t MISC_ReplayHutDef;
-static void M_ReplayHut(INT32 choice);
 static void M_HandleReplayHutList(INT32 choice);
 static void M_DrawReplayHut(void);
 static void M_DrawReplayStartMenu(void);
@@ -5065,7 +5064,6 @@ menudemo_t *demolist;
 #define DF_ENCORE       0x40
 static INT16 replayScrollTitle = 0;
 static INT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
-static boolean inreplayhut = false;
 
 static void PrepReplayList(void)
 {
@@ -5097,11 +5095,11 @@ static void PrepReplayList(void)
 	}
 }
 
-static void M_ReplayHut(INT32 choice)
+void M_ReplayHut(INT32 choice)
 {
 	(void)choice;
 
-	if (!inreplayhut)
+	if (!demo.inreplayhut)
 	{
 		snprintf(menupath, 1024, "%s"PATHSEP"replay"PATHSEP"online"PATHSEP, srb2home);
 		menupathindex[(menudepthleft = menudepth-1)] = strlen(menupath);
@@ -5111,12 +5109,13 @@ static void M_ReplayHut(INT32 choice)
 		M_StartMessage("No replays found.\n\n(Press a key)\n", NULL, MM_NOTHING);
 		return;
 	}
-	else if (!inreplayhut)
+	else if (!demo.inreplayhut)
 		dir_on[menudepthleft] = 0;
-	inreplayhut = true;
+	demo.inreplayhut = true;
 
 	PrepReplayList();
 
+	menuactive = true;
 	M_SetupNextMenu(&MISC_ReplayHutDef);
 	G_SetGamestate(GS_TIMEATTACK);
 
@@ -5505,7 +5504,7 @@ static boolean M_QuitReplayHut(void)
 		Z_Free(demolist);
 	demolist = NULL;
 
-	inreplayhut = false;
+	demo.inreplayhut = false;
 
 	return true;
 }
