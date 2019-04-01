@@ -81,9 +81,12 @@ typedef struct menudemo_s {
 	UINT8 kartspeed; // Add OR DF_ENCORE for encore mode, idk
 	UINT8 numlaps;
 
-	char winnername[17];
-	UINT8 winnerskin, winnercolor;
-	UINT32 winnertime;
+	struct {
+		UINT8 ranking;
+		char name[17];
+		UINT8 skin, color;
+		UINT32 timeorscore;
+	} standings[MAXPLAYERS];
 } menudemo_t;
 
 
@@ -190,6 +193,7 @@ void G_BeginRecording(void);
 void G_BeginMetal(void);
 
 // Only called by shutdown code.
+void G_WriteStanding(UINT8 ranking, char *name, INT32 skinnum, UINT8 color, UINT32 val);
 void G_SetDemoTime(UINT32 ptime, UINT32 plap);
 UINT8 G_CmpDemoTime(char *oldname, char *newname);
 

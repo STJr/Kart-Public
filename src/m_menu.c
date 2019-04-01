@@ -5113,6 +5113,8 @@ void M_ReplayHut(INT32 choice)
 		dir_on[menudepthleft] = 0;
 	demo.inreplayhut = true;
 
+	replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+
 	PrepReplayList();
 
 	menuactive = true;
@@ -5201,6 +5203,8 @@ static void M_HandleReplayHutList(INT32 choice)
 				currentMenu->lastOn = itemOn;
 				currentMenu = &MISC_ReplayStartDef;
 
+				replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+
 				switch (demolist[dir_on[menudepthleft]].addonstatus)
 				{
 				case DFILE_ERROR_CANNOTLOAD:
@@ -5233,10 +5237,6 @@ static void M_HandleReplayHutList(INT32 choice)
 					itemOn = 2;
 					break;
 				}
-
-				/*demo.loadfiles = true; demo.ignorefiles = false; //@TODO prompt
-
-				G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);*/
 		}
 
 		break;
@@ -5308,27 +5308,35 @@ static void DrawReplayHutReplayInfo(void)
 			"Battle Mode");
 
 		V_DrawThinString(x, y+29, highlightflags, "WINNER");
-		V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].winnername);
+		V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].standings[0].name);
 
-		V_DrawThinString(x, y+39, highlightflags, "TIME");
-		V_DrawString(x+28, y+40, 0, va("%2d'%02d\"%02d",
-										G_TicsToMinutes(demolist[dir_on[menudepthleft]].winnertime, true),
-										G_TicsToSeconds(demolist[dir_on[menudepthleft]].winnertime),
-										G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].winnertime)
-		));
+		if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
+		{
+			V_DrawThinString(x, y+39, highlightflags, "TIME");
+			V_DrawRightAlignedString(x+84, y+40, 0, va("%d'%02d\"%02d",
+											G_TicsToMinutes(demolist[dir_on[menudepthleft]].standings[0].timeorscore, true),
+											G_TicsToSeconds(demolist[dir_on[menudepthleft]].standings[0].timeorscore),
+											G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].standings[0].timeorscore)
+			));
+		}
+		else
+		{
+			V_DrawThinString(x, y+39, highlightflags, "SCORE");
+			V_DrawString(x+32, y+40, 0, va("%d", demolist[dir_on[menudepthleft]].standings[0].timeorscore));
+		}
 
 		// Character face!
-		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].winnerskin].facewant) != LUMPERROR)
+		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
 		{
 			UINT8 *colormap = R_GetTranslationColormap(
-				demolist[dir_on[menudepthleft]].winnerskin,
-				demolist[dir_on[menudepthleft]].winnercolor,
+				demolist[dir_on[menudepthleft]].standings[0].skin,
+				demolist[dir_on[menudepthleft]].standings[0].color,
 				GTC_MENUCACHE);
 			V_DrawMappedPatch(
-				BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[dir_on[menudepthleft]].winnerskin]->width),
+				BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin]->width),
 				y+20,
 				0,
-				facewantprefix[demolist[dir_on[menudepthleft]].winnerskin],
+				facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin],
 				colormap
 			);
 		}
@@ -5422,7 +5430,7 @@ static void M_DrawReplayHut(void)
 		if (demolist[i].type == MD_SUBDIR)
 		{
 			localx += 8;
-			V_DrawFixedPatch(x<<FRACBITS, localy<<FRACBITS, FRACUNIT/4, 0, W_CachePatchName(dirmenu[i][DIR_TYPE] == EXT_UP ? "M_FBACK" : "M_FFLDR", PU_CACHE), NULL);
+			V_DrawFixedPatch((x - 4)<<FRACBITS, localy<<FRACBITS, FRACUNIT/4, 0, W_CachePatchName(dirmenu[i][DIR_TYPE] == EXT_UP ? "M_FBACK" : "M_FFLDR", PU_CACHE), NULL);
 		}
 
 		if (itemOn == replaylistitem && i == (INT16)dir_on[menudepthleft])
@@ -5475,8 +5483,70 @@ static void M_DrawReplayHut(void)
 static void M_DrawReplayStartMenu(void)
 {
 	const char *warning;
+	UINT8 i;
 
 	M_DrawGenericBackgroundMenu();
+
+#define STARTY 62-(replayScrollTitle>>1)
+	// Draw rankings beyond first
+	for (i = 1; i < MAXPLAYERS && demolist[dir_on[menudepthleft]].standings[i].ranking; i++)
+	{
+		V_DrawRightAlignedString(BASEVIDWIDTH-100, STARTY + i*20, highlightflags, va("%2d", demolist[dir_on[menudepthleft]].standings[i].ranking));
+		V_DrawThinString(BASEVIDWIDTH-96, STARTY + i*20, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].standings[i].name);
+
+		if (demolist[dir_on[menudepthleft]].standings[i].timeorscore == UINT32_MAX-1)
+			V_DrawThinString(BASEVIDWIDTH-96, STARTY + i*20 + 9, 0, "NO CONTEST");
+		else if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
+			V_DrawRightAlignedString(BASEVIDWIDTH-40, STARTY + i*20 + 9, 0, va("%d'%02d\"%02d",
+											G_TicsToMinutes(demolist[dir_on[menudepthleft]].standings[i].timeorscore, true),
+											G_TicsToSeconds(demolist[dir_on[menudepthleft]].standings[i].timeorscore),
+											G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].standings[i].timeorscore)
+			));
+		else
+			V_DrawString(BASEVIDWIDTH-96, STARTY + i*20 + 9, 0, va("%d", demolist[dir_on[menudepthleft]].standings[i].timeorscore));
+
+		// Character face!
+		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[i].skin].facerank) != LUMPERROR)
+		{
+			UINT8 *colormap = R_GetTranslationColormap(
+				demolist[dir_on[menudepthleft]].standings[i].skin,
+				demolist[dir_on[menudepthleft]].standings[i].color,
+				GTC_MENUCACHE);
+			V_DrawMappedPatch(
+				BASEVIDWIDTH-5 - SHORT(facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin]->width),
+				STARTY + i*20,
+				0,
+				facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin],
+				colormap
+			);
+		}
+	}
+#undef STARTY
+
+	// Handle scrolling rankings
+	if (replayScrollDelay)
+		replayScrollDelay--;
+	else if (replayScrollDir > 0)
+	{
+		if (replayScrollTitle < (i*20 - 100)<<1)
+			replayScrollTitle++;
+		else
+		{
+			replayScrollDelay = TICRATE;
+			replayScrollDir = -1;
+		}
+	}
+	else
+	{
+		if (replayScrollTitle > 0)
+			replayScrollTitle--;
+		else
+		{
+			replayScrollDelay = TICRATE;
+			replayScrollDir = 1;
+		}
+	}
+
 	V_DrawFill(10, 10, 300, 60, 239);
 	DrawReplayHutReplayInfo();
 

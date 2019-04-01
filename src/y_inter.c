@@ -304,6 +304,15 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 			players[i].score += data.match.increase[i];
 		}
 
+		if (demo.recording)
+			G_WriteStanding(
+				data.match.pos[data.match.numplayers],
+				data.match.name[data.match.numplayers],
+				*data.match.character[data.match.numplayers],
+				*data.match.color[data.match.numplayers],
+				data.match.val[data.match.numplayers]
+			);
+
 		data.match.numplayers++;
 	}
 }

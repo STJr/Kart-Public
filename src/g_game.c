@@ -3324,8 +3324,7 @@ void G_ExitLevel(void)
 		// Remove CEcho text on round end.
 		HU_ClearCEcho();
 
-		if (multiplayer && demo.recording && (demo.savemode == DSM_WILLSAVE || demo.savemode == DSM_WILLAUTOSAVE))
-			G_SaveDemo();
+		// Don't save demos immediately here! Let standings write first
 	}
 }
 
@@ -4799,6 +4798,9 @@ static ticcmd_t oldcmd[MAXPLAYERS];
 
 #define DW_EXTRASTUFF 0xFE // Numbers below this are reserved for writing player slot data
 
+// Below consts are only used for demo extrainfo sections
+#define DW_STANDING 0x00
+
 // For Metal Sonic and time attack ghosts
 #define GZT_XYZ    0x01
 #define GZT_MOMXY  0x02
@@ -6259,6 +6261,41 @@ void G_BeginMetal(void)
 	oldmetal.angle = mo->angle;
 }
 
+void G_WriteStanding(UINT8 ranking, char *name, INT32 skinnum, UINT8 color, UINT32 val)
+{
+	char temp[16];
+
+	if (demoinfo_p && (UINT32)(*demoinfo_p) == 0)
+	{
+		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
+		WRITEUINT32(demoinfo_p, demo_p - demobuffer);
+	}
+
+	WRITEUINT8(demo_p, DW_STANDING);
+	WRITEUINT8(demo_p, ranking);
+
+	// Name
+	memset(temp, 0, 16);
+	strncpy(temp, name, 16);
+	M_Memcpy(demo_p,temp,16);
+	demo_p += 16;
+
+	// Skin
+	memset(temp, 0, 16);
+	strncpy(temp, skins[skinnum].name, 16);
+	M_Memcpy(demo_p,temp,16);
+	demo_p += 16;
+
+	// Color
+	memset(temp, 0, 16);
+	strncpy(temp, KartColor_Names[color], 16);
+	M_Memcpy(demo_p,temp,16);
+	demo_p += 16;
+
+	// Score/time/whatever
+	WRITEUINT32(demo_p, val);
+}
+
 void G_SetDemoTime(UINT32 ptime, UINT32 plap)
 {
 	if (!demo.recording || !demotime_p)
@@ -6573,7 +6610,7 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 {
 	UINT8 *infobuffer, *info_p, *extrainfo_p;
 	UINT8 version, subversion, pdemoflags;
-	UINT16 pdemoversion, cvarcount;
+	UINT16 pdemoversion, count;
 
 	if (!FIL_ReadFile(pdemo->filepath, &infobuffer))
 	{
@@ -6671,8 +6708,8 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 
 	// Pared down version of CV_LoadNetVars to find the kart speed
 	pdemo->kartspeed = 1; // Default to normal speed
-	cvarcount = READUINT16(info_p);
-	while (cvarcount--)
+	count = READUINT16(info_p);
+	while (count--)
 	{
 		UINT16 netid;
 		char *svalue;
@@ -6684,9 +6721,10 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 
 		if (netid == cv_kartspeed.netid)
 		{
-			for (cvarcount = 0; kartspeed_cons_t[cvarcount].strvalue; cvarcount++)
-				if (!stricmp(kartspeed_cons_t[cvarcount].strvalue, svalue))
-					pdemo->kartspeed = kartspeed_cons_t[cvarcount].value;
+			UINT8 j;
+			for (j = 0; kartspeed_cons_t[j].strvalue; j++)
+				if (!stricmp(kartspeed_cons_t[j].strvalue, svalue))
+					pdemo->kartspeed = kartspeed_cons_t[j].value;
 		}
 		else if (netid == cv_basenumlaps.netid && pdemo->gametype == GT_RACE)
 			pdemo->numlaps = atoi(svalue);
@@ -6695,12 +6733,53 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 	if (pdemoflags & DF_ENCORE)
 		pdemo->kartspeed |= DF_ENCORE;
 
-	// Temporary info until this is actually present in replays.
+	/*// Temporary info until this is actually present in replays.
 	(void)extrainfo_p;
 	sprintf(pdemo->winnername, "transrights420");
 	pdemo->winnerskin = 1;
 	pdemo->winnercolor = SKINCOLOR_MOONSLAM;
-	pdemo->winnertime = 6666;
+	pdemo->winnertime = 6666;*/
+
+	// Read standings!
+	count = 0;
+
+	while (READUINT8(extrainfo_p) == DW_STANDING) // Assume standings are always first in the extrainfo
+	{
+		INT32 i;
+		char temp[16];
+
+		pdemo->standings[count].ranking = READUINT8(extrainfo_p);
+
+		// Name
+		M_Memcpy(pdemo->standings[count].name, extrainfo_p, 16);
+		extrainfo_p += 16;
+
+		// Skin
+		M_Memcpy(temp,extrainfo_p,16);
+		extrainfo_p += 16;
+		pdemo->standings[count].skin = UINT8_MAX;
+		for (i = 0; i < numskins; i++)
+			if (stricmp(skins[i].name, temp) == 0)
+			{
+				pdemo->standings[count].skin = i;
+				break;
+			}
+
+		// Color
+		M_Memcpy(temp,extrainfo_p,16);
+		extrainfo_p += 16;
+		for (i = 0; i < MAXSKINCOLORS; i++)
+			if (!stricmp(KartColor_Names[i],temp))				// SRB2kart
+			{
+				pdemo->standings[count].color = i;
+				break;
+			}
+
+		// Score/time/whatever
+		pdemo->standings[count].timeorscore = READUINT32(extrainfo_p);
+
+		count++;
+	}
 
 	// I think that's everything we need?
 	free(infobuffer);
@@ -7763,7 +7842,14 @@ void G_SaveDemo(void)
 	UINT8 i;
 #endif
 
-	WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
+	// Ensure extrainfo pointer is always available, even if no info is present.
+	if (demoinfo_p && (UINT32)(*demoinfo_p) == 0)
+	{
+		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
+		WRITEUINT32(demoinfo_p, (UINT32)(demo_p - demobuffer));
+	}
+	WRITEUINT8(demo_p, DW_END); // Mark end of demo extra data.
+
 	M_Memcpy(p, demo.titlename, 64); // Write demo title here
 	p += 64;
 
@@ -7810,8 +7896,10 @@ void G_SaveDemo(void)
 	for (i = 0; i < 16; i++, p++)
 		*p = M_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
 #else
-	md5_buffer((char *)p+16, demo_p - (p+16), p); // make a checksum of everything after the checksum in the file.
+	// Make a checksum of everything after the checksum in the file up to the end of the standard data. Extrainfo is freely modifiable.
+	md5_buffer((char *)p+16, (demobuffer + (UINT32)*demoinfo_p) - (p+16), p);
 #endif
+
 
 	if (FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer)) // finally output the file.
 		demo.savemode = DSM_SAVED;
