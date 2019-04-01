@@ -6679,16 +6679,11 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 		if (netid == cv_kartspeed.netid)
 		{
 			for (cvarcount = 0; kartspeed_cons_t[cvarcount].strvalue; cvarcount++)
-			{
 				if (!stricmp(kartspeed_cons_t[cvarcount].strvalue, svalue))
-				{
 					pdemo->kartspeed = kartspeed_cons_t[cvarcount].value;
-					break;
-				}
-			}
-
-			break;
 		}
+		else if (netid == cv_basenumlaps.netid && pdemo->gametype == GT_RACE)
+			pdemo->numlaps = atoi(svalue);
 	}
 
 	if (pdemoflags & DF_ENCORE)

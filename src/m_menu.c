@@ -5300,6 +5300,9 @@ static void DrawReplayHutReplayInfo(void)
 		else
 			V_DrawString(x, y, V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
 
+		if (demolist[dir_on[menudepthleft]].numlaps)
+			V_DrawThinString(x, y+9, V_ALLOWLOWERCASE, va("(%d laps)", demolist[dir_on[menudepthleft]].numlaps));
+
 		V_DrawString(x, y+20, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].gametype == GT_RACE ?
 			va("Race (%s speed)", kartspeed_cons_t[demolist[dir_on[menudepthleft]].kartspeed & ~DF_ENCORE].strvalue) :
 			"Battle Mode");
