@@ -5384,13 +5384,18 @@ static void M_DrawReplayHut(void)
 	// Draw static menu items
 	for (i = 0; i < replaylistitem; i++)
 	{
+		INT32 localy = y + currentMenu->menuitems[i].alphaKey;
+
+		if (localy < 65)
+			continue;
+
 		if (i == itemOn)
-			cursory = y + currentMenu->menuitems[i].alphaKey;
+			cursory = localy;
 
 		if ((currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
-			V_DrawString(x, y + currentMenu->menuitems[i].alphaKey, 0, currentMenu->menuitems[i].text);
+			V_DrawString(x, localy, 0, currentMenu->menuitems[i].text);
 		else
-			V_DrawString(x, y + currentMenu->menuitems[i].alphaKey, highlightflags, currentMenu->menuitems[i].text);
+			V_DrawString(x, localy, highlightflags, currentMenu->menuitems[i].text);
 	}
 
 	y += currentMenu->menuitems[currentMenu->numitems-1].alphaKey;
