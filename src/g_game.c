@@ -7021,6 +7021,9 @@ void G_DoPlayDemo(char *defdemoname)
 
 	// Random seed
 	randseed = READUINT32(demo_p);
+#ifdef DEMO_COMPAT_100
+	if (demoversion != 0x0001)
+#endif
 	demo_p += 4; // Extrainfo location
 
 #ifdef DEMO_COMPAT_100
