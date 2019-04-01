@@ -5403,6 +5403,7 @@ static void M_DrawReplayHut(void)
 	for (i = 0; i < (INT16)sizedirmenu; i++)
 	{
 		INT32 localy = y+i*10;
+		INT32 localx = x;
 
 		if (localy < 65)
 			continue;
@@ -5413,6 +5414,12 @@ static void M_DrawReplayHut(void)
 		{
 			processed_one_this_frame = true;
 			G_LoadDemoInfo(&demolist[i]);
+		}
+
+		if (demolist[i].type == MD_SUBDIR)
+		{
+			localx += 8;
+			V_DrawFixedPatch(x<<FRACBITS, localy<<FRACBITS, FRACUNIT/4, 0, W_CachePatchName(dirmenu[i][DIR_TYPE] == EXT_UP ? "M_FBACK" : "M_FFLDR", PU_CACHE), NULL);
 		}
 
 		if (itemOn == replaylistitem && i == (INT16)dir_on[menudepthleft])
@@ -5442,10 +5449,10 @@ static void M_DrawReplayHut(void)
 				}
 			}
 
-			V_DrawString(x - (replayScrollTitle>>1), localy, highlightflags|V_ALLOWLOWERCASE, demolist[i].title);
+			V_DrawString(localx - (replayScrollTitle>>1), localy, highlightflags|V_ALLOWLOWERCASE, demolist[i].title);
 		}
 		else
-			V_DrawString(x, localy, V_ALLOWLOWERCASE, demolist[i].title);
+			V_DrawString(localx, localy, V_ALLOWLOWERCASE, demolist[i].title);
 	}
 
 	// Draw the cursor
