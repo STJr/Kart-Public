@@ -6664,6 +6664,7 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 	info_p += 4; // RNG seed
 
 	// Pared down version of CV_LoadNetVars to find the kart speed
+	pdemo->kartspeed = 1; // Default to normal speed
 	cvarcount = READUINT16(info_p);
 	while (cvarcount--)
 	{
