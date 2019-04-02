@@ -5307,6 +5307,15 @@ static void DrawReplayHutReplayInfo(void)
 			va("Race (%s speed)", kartspeed_cons_t[demolist[dir_on[menudepthleft]].kartspeed & ~DF_ENCORE].strvalue) :
 			"Battle Mode");
 
+		if (!demolist[dir_on[menudepthleft]].standings[0].ranking)
+		{
+			// No standings were loaded!
+			V_DrawString(x, y+39, V_ALLOWLOWERCASE|V_TRANSLUCENT, "No standings available.");
+
+
+			break;
+		}
+
 		V_DrawThinString(x, y+29, highlightflags, "WINNER");
 		V_DrawString(x+38, y+30, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].standings[0].name);
 
