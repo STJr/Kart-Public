@@ -5283,12 +5283,12 @@ static void DrawReplayHutReplayInfo(void)
 		{
 			w = SHORT(PictureOfLevel->width);
 			h = SHORT(PictureOfLevel->height);
-			V_DrawFixedPatch((x+w)<<FRACBITS, (y)<<FRACBITS, FRACUNIT/2, V_FLIP, PictureOfLevel, 0);
+			V_DrawSmallScaledPatch(x+(w>>1), y, V_FLIP, PictureOfLevel);
 
 			{
 				static angle_t rubyfloattime = 0;
 				const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
-				V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+h/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+				V_DrawFixedPatch((x+(w>>2))<<FRACBITS, ((y+(h>>2))<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
 				rubyfloattime += (ANGLE_MAX/NEWTICRATE);
 			}
 		}
