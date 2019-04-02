@@ -5246,7 +5246,8 @@ static void M_HandleReplayHutList(INT32 choice)
 static void DrawReplayHutReplayInfo(void)
 {
 	lumpnum_t lumpnum;
-	patch_t *PictureOfLevel;
+	patch_t *patch;
+	UINT8 *colormap;
 	INT32 x, y, w, h;
 
 	switch (demolist[dir_on[menudepthleft]].type)
@@ -5273,17 +5274,17 @@ static void DrawReplayHutReplayInfo(void)
 		//CONS_Printf("%d %s\n", demolist[dir_on[menudepthleft]].map, G_BuildMapName(demolist[dir_on[menudepthleft]].map));
 		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[dir_on[menudepthleft]].map)));
 		if (lumpnum != LUMPERROR)
-			PictureOfLevel = W_CachePatchNum(lumpnum, PU_CACHE);
+			patch = W_CachePatchNum(lumpnum, PU_CACHE);
 		else
-			PictureOfLevel = W_CachePatchName("BLANKLVL", PU_CACHE);
+			patch = W_CachePatchName("BLANKLVL", PU_CACHE);
 
 		if (!(demolist[dir_on[menudepthleft]].kartspeed & DF_ENCORE))
-			V_DrawSmallScaledPatch(x, y, 0, PictureOfLevel);
+			V_DrawSmallScaledPatch(x, y, 0, patch);
 		else
 		{
-			w = SHORT(PictureOfLevel->width);
-			h = SHORT(PictureOfLevel->height);
-			V_DrawSmallScaledPatch(x+(w>>1), y, V_FLIP, PictureOfLevel);
+			w = SHORT(patch->width);
+			h = SHORT(patch->height);
+			V_DrawSmallScaledPatch(x+(w>>1), y, V_FLIP, patch);
 
 			{
 				static angle_t rubyfloattime = 0;
@@ -5337,18 +5338,22 @@ static void DrawReplayHutReplayInfo(void)
 		// Character face!
 		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
 		{
-			UINT8 *colormap = R_GetTranslationColormap(
+			patch = facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin];
+			colormap = R_GetTranslationColormap(
 				demolist[dir_on[menudepthleft]].standings[0].skin,
 				demolist[dir_on[menudepthleft]].standings[0].color,
 				GTC_MENUCACHE);
-			V_DrawMappedPatch(
-				BASEVIDWIDTH-15 - SHORT(facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin]->width),
-				y+20,
-				0,
-				facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin],
-				colormap
-			);
 		}
+		else
+		{
+			patch = W_CachePatchName("MISSINGW", PU_CACHE);
+			colormap = R_GetTranslationColormap(
+				TC_RAINBOW,
+				demolist[dir_on[menudepthleft]].standings[0].color,
+				GTC_MENUCACHE);
+		}
+
+		V_DrawMappedPatch(BASEVIDWIDTH-15 - SHORT(patch->width), y+20, 0, patch, colormap);
 
 		break;
 	}
@@ -5500,11 +5505,14 @@ static void M_DrawReplayStartMenu(void)
 	// Draw rankings beyond first
 	for (i = 1; i < MAXPLAYERS && demolist[dir_on[menudepthleft]].standings[i].ranking; i++)
 	{
+		patch_t *patch;
+		UINT8 *colormap;
+
 		V_DrawRightAlignedString(BASEVIDWIDTH-100, STARTY + i*20, highlightflags, va("%2d", demolist[dir_on[menudepthleft]].standings[i].ranking));
 		V_DrawThinString(BASEVIDWIDTH-96, STARTY + i*20, V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].standings[i].name);
 
 		if (demolist[dir_on[menudepthleft]].standings[i].timeorscore == UINT32_MAX-1)
-			V_DrawThinString(BASEVIDWIDTH-96, STARTY + i*20 + 9, 0, "NO CONTEST");
+			V_DrawThinString(BASEVIDWIDTH-92, STARTY + i*20 + 9, 0, "NO CONTEST");
 		else if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
 			V_DrawRightAlignedString(BASEVIDWIDTH-40, STARTY + i*20 + 9, 0, va("%d'%02d\"%02d",
 											G_TicsToMinutes(demolist[dir_on[menudepthleft]].standings[i].timeorscore, true),
@@ -5512,23 +5520,48 @@ static void M_DrawReplayStartMenu(void)
 											G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].standings[i].timeorscore)
 			));
 		else
-			V_DrawString(BASEVIDWIDTH-96, STARTY + i*20 + 9, 0, va("%d", demolist[dir_on[menudepthleft]].standings[i].timeorscore));
+			V_DrawString(BASEVIDWIDTH-92, STARTY + i*20 + 9, 0, va("%d", demolist[dir_on[menudepthleft]].standings[i].timeorscore));
+/*
 
+		// Character face!
+		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
+		{
+			patch = facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin];
+			colormap = R_GetTranslationColormap(
+				demolist[dir_on[menudepthleft]].standings[0].skin,
+				demolist[dir_on[menudepthleft]].standings[0].color,
+				GTC_MENUCACHE);
+		}
+		else
+		{
+			patch = W_CachePatchName("MISSING", PU_CACHE);
+			colormap = R_GetTranslationColormap(
+				TC_RAINBOW,
+				demolist[dir_on[menudepthleft]].standings[0].color,
+				GTC_MENUCACHE);
+		}
+
+		V_DrawMappedPatch(BASEVIDWIDTH-15 - SHORT(patch->width), y+20, 0, patch, colormap);
+*/
 		// Character face!
 		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[i].skin].facerank) != LUMPERROR)
 		{
-			UINT8 *colormap = R_GetTranslationColormap(
+			patch = facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin];
+			colormap = R_GetTranslationColormap(
 				demolist[dir_on[menudepthleft]].standings[i].skin,
 				demolist[dir_on[menudepthleft]].standings[i].color,
 				GTC_MENUCACHE);
-			V_DrawMappedPatch(
-				BASEVIDWIDTH-5 - SHORT(facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin]->width),
-				STARTY + i*20,
-				0,
-				facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin],
-				colormap
-			);
 		}
+		else
+		{
+			patch = W_CachePatchName("MISSINGR", PU_CACHE);
+			colormap = R_GetTranslationColormap(
+				TC_RAINBOW,
+				demolist[dir_on[menudepthleft]].standings[i].color,
+				GTC_MENUCACHE);
+		}
+
+		V_DrawMappedPatch(BASEVIDWIDTH-5 - SHORT(patch->width), STARTY + i*20, 0, patch, colormap);
 	}
 #undef STARTY
 
