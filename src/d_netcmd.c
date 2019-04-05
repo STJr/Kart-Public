@@ -2689,7 +2689,7 @@ static void Got_Pause(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
-	if (modeattacking)
+	if (modeattacking && !demo.playback)
 		return;
 
 	paused = READUINT8(*cp);

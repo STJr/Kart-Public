@@ -556,7 +556,7 @@ static void D_Display(void)
 	wipegamestate = gamestate;
 
 	// draw pause pic
-	if (paused && cv_showhud.value)
+	if (paused && cv_showhud.value && !demo.playback)
 	{
 		INT32 py;
 		patch_t *patch;

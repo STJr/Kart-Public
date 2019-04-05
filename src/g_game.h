@@ -294,7 +294,7 @@ INT32 *G_GetDisplayplayerPtr(UINT8 viewnum);
 boolean G_CouldView(INT32 playernum);
 boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive);
 
-INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive);
+INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive, boolean reverse);
 INT32 G_CountPlayersPotentiallyViewable(boolean active);
 
 void G_ResetViews(void);

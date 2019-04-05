@@ -1949,6 +1949,33 @@ boolean G_Responder(event_t *ev)
 
 			return true;
 		}
+
+		// Allow pausing
+		if (
+			ev->data1 == gamecontrol[gc_pause][0]
+			|| ev->data1 == gamecontrol[gc_pause][1]
+			|| ev->data1 == KEY_PAUSE
+		)
+		{
+			paused = !paused;
+			if (paused)
+				S_PauseAudio();
+			else
+				S_ResumeAudio();
+
+			return true;
+		}
+
+		// Anything else opens the menu if not already open, except for a few keys...
+		if (!(
+			// Rankings
+			ev->data1 == gamecontrol[gc_scores][0] || ev->data1 == gamecontrol[gc_scores][1]
+		))
+		{
+			M_StartControlPanel();
+
+			return true;
+		}
 	}
 
 	// update keys current state
@@ -2171,16 +2198,16 @@ boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive)
 // Return the next player that can be viewed on a view, wraps forward.
 // An out of range startview is corrected.
 //
-INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive)
+INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive, boolean reverse)
 {
-	INT32 i;
+	INT32 i, dir = reverse ? -1 : 1;
 	startview = min(max(startview, 0), MAXPLAYERS);
-	for (i = startview; i < MAXPLAYERS; ++i)
+	for (i = startview; i < MAXPLAYERS && i >= 0; i += dir)
 	{
 		if (G_CanView(i, viewnum, onlyactive))
 			return i;
 	}
-	for (i = 0; i < startview; ++i)
+	for (i = (reverse ? MAXPLAYERS-1 : 0); i != startview; i += dir)
 	{
 		if (G_CanView(i, viewnum, onlyactive))
 			return i;
@@ -2251,12 +2278,14 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 		R_ExecuteSetViewSize();
 	}
 
-	/* Check if anyone is available to view. */
-	if (( playernum = G_FindView(playernum, viewnum, onlyactive) ) == -1)
-		return;
-	/* Focus our target view first so that we don't take its player. */
 	displayplayerp = (G_GetDisplayplayerPtr(viewnum));
 	olddisplayplayer = (*displayplayerp);
+
+	/* Check if anyone is available to view. */
+	if (( playernum = G_FindView(playernum, viewnum, onlyactive, playernum < olddisplayplayer) ) == -1)
+		return;
+
+	/* Focus our target view first so that we don't take its player. */
 	(*displayplayerp) = playernum;
 	if ((*displayplayerp) != olddisplayplayer)
 	{
@@ -2271,7 +2300,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 			displayplayerp = (G_GetDisplayplayerPtr(viewd));
 			camerap = (P_GetCameraPtr(viewd));
 
-			(*displayplayerp) = G_FindView(0, viewd, onlyactive);
+			(*displayplayerp) = G_FindView(0, viewd, onlyactive, false);
 
 			P_ResetCamera(&players[(*displayplayerp)], camerap);
 		}

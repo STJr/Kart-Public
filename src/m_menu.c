@@ -345,6 +345,13 @@ static boolean M_QuitReplayHut(void);
 static void M_EnterReplayOptions(INT32 choice);
 static void M_HutStartReplay(INT32 choice);
 
+static void M_DrawPlaybackMenu(void);
+static void M_PlaybackPause(INT32 choice);
+static void M_PlaybackFastForward(INT32 choice);
+static void M_PlaybackAdvance(INT32 choice);
+static void M_PlaybackSetViews(INT32 choice);
+static void M_PlaybackAdjustView(INT32 choice);
+
 // Drawing functions
 static void M_DrawGenericMenu(void);
 static void M_DrawGenericBackgroundMenu(void);
@@ -557,6 +564,43 @@ static menuitem_t MISC_ReplayOptionsMenu[] =
 	{IT_CVAR|IT_STRING, NULL, "Record Replays",      &cv_recordmultiplayerdemos, 0},
 	{IT_CVAR|IT_STRING, NULL, "Sync Check Interval", &cv_netdemosyncquality,     10},
 };
+
+static menuitem_t PlaybackMenu[] =
+{
+	{IT_CALL | IT_STRING, NULL, "Hide Menu", M_SelectableClearMenus, 0},
+
+	{IT_CALL | IT_STRING, NULL, "Rewind",        M_SelectableClearMenus, 24},
+	{IT_CALL | IT_STRING, NULL, "Pause",         M_PlaybackPause,        40},
+	{IT_CALL | IT_STRING, NULL, "Resume",        M_PlaybackPause,        40},
+	{IT_CALL | IT_STRING, NULL, "Fast-Foward",   M_PlaybackFastForward,  56},
+	{IT_CALL | IT_STRING, NULL, "Advance Frame", M_PlaybackAdvance,      56},
+
+	{IT_ARROWS | IT_STRING, NULL, "View Count",  M_PlaybackSetViews, 80},
+	{IT_ARROWS | IT_STRING, NULL, "Viewpoint",   M_PlaybackAdjustView, 96},
+	{IT_ARROWS | IT_STRING, NULL, "Viewpoint 2", M_PlaybackAdjustView, 112},
+	{IT_ARROWS | IT_STRING, NULL, "Viewpoint 3", M_PlaybackAdjustView, 128},
+	{IT_ARROWS | IT_STRING, NULL, "Viewpoint 4", M_PlaybackAdjustView, 144},
+
+
+	{IT_CALL | IT_STRING, NULL, "More Options...", M_ReplayHut, 168},
+	{IT_CALL | IT_STRING, NULL, "Stop Playback",   M_ReplayHut, 184},
+};
+typedef enum
+{
+	playback_hide,
+	playback_rewind,
+	playback_pause,
+	playback_resume,
+	playback_fastforward,
+	playback_advanceframe,
+	playback_viewcount,
+	playback_view1,
+	playback_view2,
+	playback_view3,
+	playback_view4,
+	playback_moreoptions,
+	playback_quit
+} playback_e;
 
 // ---------------------------------
 // Pause Menu Mode Attacking Edition
@@ -1651,6 +1695,17 @@ menu_t MISC_ReplayStartDef =
 	NULL
 };
 
+menu_t PlaybackMenuDef = {
+	NULL,
+	sizeof (PlaybackMenu)/sizeof (menuitem_t),
+	NULL,
+	PlaybackMenu,
+	M_DrawPlaybackMenu,
+	BASEVIDWIDTH/2 - 100, 2,
+	0,
+	NULL
+};
+
 menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
 menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 40, 72);
 menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 72);
@@ -2639,8 +2694,6 @@ boolean M_Responder(event_t *ev)
 			}
 		}
 	}
-	else if (ev->type == ev_keydown) // Preserve event for other responders
-		ch = ev->data1;
 
 	if (ch == -1)
 		return false;
@@ -2784,6 +2837,19 @@ boolean M_Responder(event_t *ev)
 		}
 		else
 			routine = M_ChangeCvar;
+	}
+
+	if (currentMenu == &PlaybackMenuDef)
+	{
+		// Flip left/right with up/down for the playback menu, since it's a horizontal icon row.
+		switch (ch)
+		{
+		case KEY_LEFTARROW: ch = KEY_UPARROW; break;
+		case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
+		case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
+		case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
+		default: break;
+		}
 	}
 
 	// Keys usable within menu
@@ -2944,7 +3010,7 @@ void M_Drawer(void)
 	if (menuactive)
 	{
 		// now that's more readable with a faded background (yeah like Quake...)
-		if (!WipeInAction)
+		if (!WipeInAction && currentMenu != &PlaybackMenuDef) // Replay playback has its own background
 			V_DrawFadeScreen(0xFF00, 16);
 
 		if (currentMenu->drawroutine)
@@ -3007,7 +3073,11 @@ void M_StartControlPanel(void)
 
 	menuactive = true;
 
-	if (!Playing())
+	if (demo.playback)
+	{
+		currentMenu = &PlaybackMenuDef;
+	}
+	else if (!Playing())
 	{
 		// Secret menu!
 		//MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
@@ -5656,6 +5726,123 @@ static void M_HutStartReplay(INT32 choice)
 	G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);
 }
 
+static void M_DrawPlaybackMenu(void)
+{
+	INT16 i;
+	patch_t *icon;
+	UINT8 *activemap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_GOLD, GTC_MENUCACHE);
+
+	// Toggle items
+	if (paused)
+	{
+		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = IT_DISABLED;
+		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = IT_CALL|IT_STRING;
+	}
+	else
+	{
+		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = IT_CALL|IT_STRING;
+		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = IT_DISABLED;
+	}
+	for (i = 0; i <= splitscreen; i++)
+		PlaybackMenu[playback_view1+i].status = IT_ARROWS|IT_STRING;
+	for (i = splitscreen+1; i < 4; i++)
+		PlaybackMenu[playback_view1+i].status = IT_DISABLED;
+
+	// wip
+	//M_DrawTextBox(currentMenu->x-68, currentMenu->y-7, 15, 15);
+	//M_DrawCenteredMenu();
+
+	for (i = 0; i < currentMenu->numitems; i++)
+	{
+		UINT8 *inactivemap = NULL;
+
+		if (i >= playback_view1 && i <= playback_view4)
+		{
+			if (splitscreen >= i - playback_view1)
+			{
+				INT32 ply = *G_GetDisplayplayerPtr(i - playback_view1 + 1);
+
+				icon = facerankprefix[players[ply].skin];
+				if (i != itemOn)
+					inactivemap = R_GetTranslationColormap(players[ply].skin, players[ply].skincolor, GTC_MENUCACHE);
+			}
+			else if (currentMenu->menuitems[i].patch && W_GetNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
+				icon = W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE);
+			else
+				icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
+		}
+		else if (currentMenu->menuitems[i].status == IT_DISABLED)
+			continue;
+		else if (currentMenu->menuitems[i].patch && W_GetNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
+			icon = W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE);
+		else
+			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
+
+		if (i == playback_fastforward && cv_playbackspeed.value > 1)
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SILVER, GTC_MENUCACHE));
+		else
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, (i == itemOn) ? activemap : inactivemap);
+
+		if (i == itemOn)
+			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
+	}
+}
+
+static void M_PlaybackPause(INT32 choice)
+{
+	(void)choice;
+
+	paused = !paused;
+
+	if (paused)
+	{
+		itemOn = playback_resume;
+		S_PauseAudio();
+	}
+	else
+	{
+		itemOn = playback_pause;
+		S_ResumeAudio();
+	}
+
+	CV_SetValue(&cv_playbackspeed, 1);
+}
+
+static void M_PlaybackFastForward(INT32 choice)
+{
+	(void)choice;
+
+	CV_SetValue(&cv_playbackspeed, cv_playbackspeed.value == 1 ? 4 : 1);
+}
+
+static void M_PlaybackAdvance(INT32 choice)
+{
+	(void)choice;
+
+	paused = false;
+	TryRunTics(1);
+	paused = true;
+}
+
+
+static void M_PlaybackSetViews(INT32 choice)
+{
+	if (choice > 0)
+	{
+		if (splitscreen < 3)
+			G_AdjustView(splitscreen + 2, 0, true);
+	}
+	else if (splitscreen)
+	{
+		splitscreen--;
+		R_ExecuteSetViewSize();
+	}
+}
+
+static void M_PlaybackAdjustView(INT32 choice)
+{
+	G_AdjustView(itemOn - playback_viewcount, (choice > 0) ? 1 : -1, true);
+}
 
 static void M_PandorasBox(INT32 choice)
 {
