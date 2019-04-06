@@ -106,7 +106,7 @@ static UINT16 lumpnumcacheindex = 0;
 //===========================================================================
 //                                                                    GLOBALS
 //===========================================================================
-UINT16 numwadfiles; // number of active wadfiles
+UINT16 numwadfiles = 0; // number of active wadfiles
 wadfile_t *wadfiles[MAX_WADFILES]; // 0 to numwadfiles-1 are valid
 
 // W_Shutdown
@@ -855,16 +855,16 @@ void W_UnloadWadFile(UINT16 num)
   * \return 1 if all files were loaded, 0 if at least one was missing or
   *           invalid.
   */
-INT32 W_InitMultipleFiles(char **filenames)
+INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 {
 	INT32 rc = 1;
-
-	// open all the files, load headers, and count lumps
-	numwadfiles = 0;
 
 	// will be realloced as lumps are added
 	for (; *filenames; filenames++)
 	{
+		if (addons && !W_VerifyNMUSlumps(*filenames))
+			G_SetGameModified(true, false);
+
 		//CONS_Debug(DBG_SETUP, "Loading %s\n", *filenames);
 		rc &= (W_InitFile(*filenames) != INT16_MAX) ? 1 : 0;
 	}
@@ -1187,23 +1187,17 @@ void zerr(int ret)
 #define NO_PNG_LUMPS
 
 #ifdef NO_PNG_LUMPS
-static void ErrorIfPNG(void *d, size_t s, char *f, char *l)
+static void ErrorIfPNG(UINT8 *d, size_t s, char *f, char *l)
 {
     if (s < 67) // http://garethrees.org/2007/11/14/pngcrush/
         return;
-#define sigcheck ((UINT8 *)d)
-    if (sigcheck[0] == 0x89
-        && sigcheck[1] == 0x50
-        && sigcheck[2] == 0x4e
-        && sigcheck[3] == 0x47
-        && sigcheck[4] == 0x0d
-        && sigcheck[5] == 0x0a
-        && sigcheck[6] == 0x1a
-        && sigcheck[7] == 0x0a)
+    // Check for PNG file signature using memcmp
+    // As it may be faster on CPUs with slow unaligned memory access
+    // Ref: http://www.libpng.org/pub/png/spec/1.2/PNG-Rationale.html#R.PNG-file-signature
+    if (memcmp(&d[0], "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a", 8) == 0)
     {
         I_Error("W_Wad: Lump \"%s\" in file \"%s\" is a .PNG - please convert to either Doom or Flat (raw) image format.", l, f);
     }
-#undef sigcheck
 }
 #endif
 
@@ -1297,6 +1291,7 @@ size_t W_ReadLumpHeaderPwad(UINT16 wad, UINT16 lump, void *dest, size_t size, si
 			//I_Error("ZWAD files not supported on this platform.");
 			return 0;
 #endif
+
 		}
 #ifdef HAVE_ZLIB
 	case CM_DEFLATE: // Is it compressed via DEFLATE? Very common in ZIPs/PK3s, also what most doom-related editors support.
@@ -1556,7 +1551,6 @@ void *W_CachePatchName(const char *name, INT32 tag)
 	return W_CachePatchNum(num, tag);
 }
 #ifndef NOMD5
-#define MD5_LEN 16
 
 /**
   * Prints an MD5 string into a human-readable textual format.

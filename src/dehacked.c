@@ -3339,11 +3339,6 @@ static void readmaincfg(MYFILE *f)
 				if (creditscutscene > 128)
 					creditscutscene = 128;
 			}
-			else if (fastcmp(word, "DISABLESPEEDADJUST"))
-			{
-				DEH_WriteUndoline(word, va("%d", disableSpeedAdjust), UNDO_NONE);
-				disableSpeedAdjust = (value || word2[0] == 'T' || word2[0] == 'Y');
-			}
 			else if (fastcmp(word, "NUMDEMOS"))
 			{
 				DEH_WriteUndoline(word, va("%d", numDemos), UNDO_NONE);
@@ -8493,11 +8488,15 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"PURPLE",		// SKINCOLOR_PURPLE
 	"FUCHSIA",		// SKINCOLOR_FUCHSIA
 	"TOXIC",		// SKINCOLOR_TOXIC
+	"MAUVE",		// SKINCOLOR_MAUVE
 	"LAVENDER",		// SKINCOLOR_LAVENDER
 	"BYZANTIUM",	// SKINCOLOR_BYZANTIUM
-	"MAUVE",		// SKINCOLOR_MAUVE
 	"POMEGRANATE",	// SKINCOLOR_POMEGRANATE
 	"LILAC",		// SKINCOLOR_LILAC
+
+
+
+
 
 	// Special super colors
 	// Super Sonic Yellow
@@ -8506,48 +8505,56 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"SUPER3",		// SKINCOLOR_SUPER3,
 	"SUPER4",		// SKINCOLOR_SUPER4,
 	"SUPER5",		// SKINCOLOR_SUPER5,
+
 	// Super Tails Orange
 	"TSUPER1",		// SKINCOLOR_TSUPER1,
 	"TSUPER2",		// SKINCOLOR_TSUPER2,
 	"TSUPER3",		// SKINCOLOR_TSUPER3,
 	"TSUPER4",		// SKINCOLOR_TSUPER4,
 	"TSUPER5",		// SKINCOLOR_TSUPER5,
+
 	// Super Knuckles Red
 	"KSUPER1",		// SKINCOLOR_KSUPER1,
 	"KSUPER2",		// SKINCOLOR_KSUPER2,
 	"KSUPER3",		// SKINCOLOR_KSUPER3,
 	"KSUPER4",		// SKINCOLOR_KSUPER4,
 	"KSUPER5",		// SKINCOLOR_KSUPER5,
+
 	// Hyper Sonic Pink
 	"PSUPER1",		// SKINCOLOR_PSUPER1,
 	"PSUPER2",		// SKINCOLOR_PSUPER2,
 	"PSUPER3",		// SKINCOLOR_PSUPER3,
 	"PSUPER4",		// SKINCOLOR_PSUPER4,
 	"PSUPER5",		// SKINCOLOR_PSUPER5,
+
 	// Hyper Sonic Blue
 	"BSUPER1",		// SKINCOLOR_BSUPER1,
 	"BSUPER2",		// SKINCOLOR_BSUPER2,
 	"BSUPER3",		// SKINCOLOR_BSUPER3,
 	"BSUPER4",		// SKINCOLOR_BSUPER4,
-	"BSUPER5"		// SKINCOLOR_BSUPER5,
+	"BSUPER5",		// SKINCOLOR_BSUPER5,
+
 	// Aqua Super
 	"ASUPER1",		// SKINCOLOR_ASUPER1,
 	"ASUPER2",		// SKINCOLOR_ASUPER2,
 	"ASUPER3",		// SKINCOLOR_ASUPER3,
 	"ASUPER4",		// SKINCOLOR_ASUPER4,
 	"ASUPER5",		// SKINCOLOR_ASUPER5,
+
 	// Hyper Sonic Green
 	"GSUPER1",		// SKINCOLOR_GSUPER1,
 	"GSUPER2",		// SKINCOLOR_GSUPER2,
 	"GSUPER3",		// SKINCOLOR_GSUPER3,
 	"GSUPER4",		// SKINCOLOR_GSUPER4,
 	"GSUPER5",		// SKINCOLOR_GSUPER5,
+
 	// Hyper Sonic White
 	"WSUPER1",		// SKINCOLOR_WSUPER1,
 	"WSUPER2",		// SKINCOLOR_WSUPER2,
 	"WSUPER3",		// SKINCOLOR_WSUPER3,
 	"WSUPER4",		// SKINCOLOR_WSUPER4,
 	"WSUPER5",		// SKINCOLOR_WSUPER5,
+
 	// Creamy Super (Shadow?)
 	"CSUPER1",		// SKINCOLOR_CSUPER1,
 	"CSUPER2",		// SKINCOLOR_CSUPER2,
@@ -8600,6 +8607,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"NEXTCHECK",
 	"WAYPOINT",
 	"STARPOSTWP",
+	"STARPOSTFLIP",
 	"RESPAWN",
 	"DROPDASH",
 
@@ -8899,13 +8907,7 @@ struct {
 	{"RW_RAIL",RW_RAIL},
 
 	// Character flags (skinflags_t)
-	{"SF_SUPER",SF_SUPER},
-	{"SF_SUPERANIMS",SF_SUPERANIMS},
-	{"SF_SUPERSPIN",SF_SUPERSPIN},
 	{"SF_HIRES",SF_HIRES},
-	{"SF_NOSKID",SF_NOSKID},
-	{"SF_NOSPEEDADJUST",SF_NOSPEEDADJUST},
-	{"SF_RUNONWATER",SF_RUNONWATER},
 
 	// Character abilities!
 	// Primary

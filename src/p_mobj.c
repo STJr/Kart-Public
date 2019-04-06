@@ -167,58 +167,8 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		I_Error("P_SetPlayerMobjState used for non-player mobj. Use P_SetMobjState instead!\n(Mobj type: %d, State: %d)", mobj->type, state);
 #endif
 
-	// Catch state changes for Super Sonic
-	/* // SRB2kart - don't need
-	if (player->powers[pw_super] && (player->charflags & SF_SUPERANIMS))
-	{
-		switch (state)
-		{
-		case S_PLAY_STND:
-		case S_PLAY_TAP1:
-		case S_PLAY_TAP2:
-		case S_PLAY_GASP:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERSTAND);
-			return true;
-		case S_PLAY_FALL1:
-		case S_PLAY_SPRING:
-		case S_PLAY_RUN1:
-		case S_PLAY_RUN2:
-		case S_PLAY_RUN3:
-		case S_PLAY_RUN4:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERWALK1);
-			return true;
-		case S_PLAY_FALL2:
-		case S_PLAY_RUN5:
-		case S_PLAY_RUN6:
-		case S_PLAY_RUN7:
-		case S_PLAY_RUN8:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERWALK2);
-			return true;
-		case S_PLAY_SPD1:
-		case S_PLAY_SPD2:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERFLY1);
-			return true;
-		case S_PLAY_SPD3:
-		case S_PLAY_SPD4:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERFLY2);
-			return true;
-		case S_PLAY_TEETER1:
-		case S_PLAY_TEETER2:
-			P_SetPlayerMobjState(mobj, S_PLAY_SUPERTEETER);
-			return true;
-		case S_PLAY_ATK1:
-		case S_PLAY_ATK2:
-		case S_PLAY_ATK3:
-		case S_PLAY_ATK4:
-			if (!(player->charflags & SF_SUPERSPIN))
-				return true;
-			break;
-		default:
-			break;
-		}
-	}
 	// You were in pain state after taking a hit, and you're moving out of pain state now?
-	else */if (mobj->state == &states[mobj->info->painstate] && player->powers[pw_flashing] == K_GetKartFlashing(player) && state != mobj->info->painstate)
+	if (mobj->state == &states[mobj->info->painstate] && player->powers[pw_flashing] == K_GetKartFlashing(player) && state != mobj->info->painstate)
 	{
 		// Start flashing, since you've landed.
 		player->powers[pw_flashing] = K_GetKartFlashing(player)-1;
@@ -260,51 +210,6 @@ boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state)
 		st = &states[state];
 		mobj->state = st;
 		mobj->tics = st->tics;
-
-		// Adjust the player's animation speed to match their velocity.
-		if (!(disableSpeedAdjust || player->charflags & SF_NOSPEEDADJUST))
-		{
-			fixed_t speed = FixedDiv(player->speed, FixedMul(mobj->scale, player->mo->movefactor)); // fixed_t speed = FixedDiv(player->speed, mobj->scale);
-			if (player->panim == PA_ROLL)
-			{
-				if (speed > 16<<FRACBITS)
-					mobj->tics = 1;
-				else
-					mobj->tics = 2;
-			}
-			else if (player->panim == PA_FALL)
-			{
-				speed = FixedDiv(abs(mobj->momz), mobj->scale);
-				if (speed < 10<<FRACBITS)
-					mobj->tics = 4;
-				else if (speed < 20<<FRACBITS)
-					mobj->tics = 3;
-				else if (speed < 30<<FRACBITS)
-					mobj->tics = 2;
-				else
-					mobj->tics = 1;
-			}
-			else if (P_IsObjectOnGround(mobj) || player->powers[pw_super]) // Only if on the ground or superflying.
-			{
-				if (player->panim == PA_WALK)
-				{
-					if (speed > 12<<FRACBITS)
-						mobj->tics = 2;
-					else if (speed > 6<<FRACBITS)
-						mobj->tics = 3;
-					else
-						mobj->tics = 4;
-				}
-				else if (player->panim == PA_RUN)
-				{
-					if (speed > 52<<FRACBITS)
-						mobj->tics = 1;
-					else
-						mobj->tics = 2;
-				}
-			}
-		}
-
 		mobj->sprite = st->sprite;
 		mobj->frame = st->frame;
 		mobj->anim_duration = (UINT16)st->var2; // only used if FF_ANIMATE is set
@@ -2102,7 +2007,7 @@ static void P_AdjustMobjFloorZ_FFloors(mobj_t *mo, sector_t *sector, UINT8 motyp
 		topheight = P_GetFOFTopZ(mo, sector, rover, mo->x, mo->y, NULL);
 		bottomheight = P_GetFOFBottomZ(mo, sector, rover, mo->x, mo->y, NULL);
 
-		if (mo->player && (P_CheckSolidLava(mo, rover) || P_CanRunOnWater(mo->player, rover))) // only the player should be affected
+		if (mo->player && P_CheckSolidLava(mo, rover)) // only the player should be affected
 			;
 		else if (motype != 0 && rover->flags & FF_SWIMMABLE) // "scenery" only
 			continue;
@@ -3223,27 +3128,6 @@ static boolean P_SceneryZMovement(mobj_t *mo)
 	}
 
 	return true;
-}
-
-// P_CanRunOnWater
-//
-// Returns true if player can waterrun on the 3D floor
-//
-boolean P_CanRunOnWater(player_t *player, ffloor_t *rover)
-{
-	fixed_t topheight =
-#ifdef ESLOPE
-		*rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) :
-#endif
-		*rover->topheight;
-
-	if (((player->charflags & SF_RUNONWATER) && player->mo->ceilingz-topheight >= player->mo->height)
-		&& (rover->flags & FF_SWIMMABLE) && !(player->pflags & PF_SPINNING) && player->speed > FixedMul(player->runspeed, player->mo->scale)
-		&& !(player->pflags & PF_SLIDING)
-		&& abs(player->mo->z - topheight) < FixedMul(30*FRACUNIT, player->mo->scale))
-		return true;
-
-	return false;
 }
 
 //
@@ -6647,7 +6531,7 @@ void P_MobjThinker(mobj_t *mobj)
 			case MT_SINK_SHIELD:
 				if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || mobj->target->player->health <= 0 || mobj->target->player->spectator))
-					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| (mobj->health <= 0 && P_IsObjectOnGround(mobj))
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
 					P_RemoveMobj(mobj);
@@ -6662,19 +6546,21 @@ void P_MobjThinker(mobj_t *mobj)
 					fixed_t z = P_RandomRange(0, 70)*mobj->scale;
 					mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
 					P_SetMobjState(smoke, S_OPAQUESMOKE1);
+					K_MatchGenericExtraFlags(smoke, mobj);
 					smoke->scale = mobj->scale * 2;
 					smoke->destscale = mobj->scale * 6;
-					smoke->momz = P_RandomRange(4, 9)*FRACUNIT;
+					smoke->momz = P_RandomRange(4, 9)*FRACUNIT*P_MobjFlip(smoke);
 				}
 				break;
 			case MT_BOOMPARTICLE:
 				{
 					fixed_t x = P_RandomRange(-16, 16)*mobj->scale;
 					fixed_t y = P_RandomRange(-16, 16)*mobj->scale;
-					fixed_t z = P_RandomRange(0, 32)*mobj->scale;
+					fixed_t z = P_RandomRange(0, 32)*mobj->scale*P_MobjFlip(mobj);
 					if (leveltime % 2 == 0)
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_BOSSEXPLODE);
+						K_MatchGenericExtraFlags(smoke, mobj);
 						P_SetMobjState(smoke, S_QUICKBOOM1);
 						smoke->scale = mobj->scale/2;
 						smoke->destscale = mobj->scale;
@@ -6684,6 +6570,7 @@ void P_MobjThinker(mobj_t *mobj)
 					{
 						mobj_t *smoke = P_SpawnMobj(mobj->x + x, mobj->y + y, mobj->z + z, MT_SMOKE);
 						P_SetMobjState(smoke, S_OPAQUESMOKE1);
+						K_MatchGenericExtraFlags(smoke, mobj);
 						smoke->scale = mobj->scale;
 						smoke->destscale = mobj->scale*2;
 					}
@@ -6789,7 +6676,7 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 				else if ((mobj->health > 0
 					&& (!mobj->target || !mobj->target->player || !mobj->target->player->mo || mobj->target->player->health <= 0 || mobj->target->player->spectator))
-					|| (mobj->health <= 0 && mobj->z <= mobj->floorz)
+					|| (mobj->health <= 0 && P_IsObjectOnGround(mobj))
 					|| P_CheckDeathPitCollide(mobj)) // When in death state
 				{
 					P_RemoveMobj(mobj);
@@ -7237,6 +7124,9 @@ void P_MobjThinker(mobj_t *mobj)
 						y = mobj->target->y;
 						z = mobj->target->z + (80*mapobjectscale);
 					}
+					if (mobj->target->eflags & MFE_VERTICALFLIP)
+						z += mobj->target->height - FixedMul(mobj->target->scale, mobj->height);
+
 					P_TeleportMove(mobj, x, y, z);
 				}
 				break;
@@ -7432,7 +7322,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_BANANA:
 		case MT_EGGMANITEM:
 		case MT_SPB:
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -7445,7 +7335,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_JAWZ:
 		case MT_JAWZ_DUD:
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 				P_SetMobjState(mobj, mobj->info->xdeathstate);
 			// fallthru
 		case MT_JAWZ_SHIELD:
@@ -7479,7 +7369,7 @@ void P_MobjThinker(mobj_t *mobj)
 			/* FALLTHRU */
 		case MT_SMK_MOLE:
 			mobj->flags2 ^= MF2_DONTDRAW;
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -7500,7 +7390,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			mobj->flags2 ^= MF2_DONTDRAW;
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				P_RemoveMobj(mobj);
 				return;
@@ -8169,7 +8059,7 @@ void P_MobjThinker(mobj_t *mobj)
 			mobj->friction = ORIG_FRICTION/4;
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (mobj->z <= mobj->floorz && mobj->health > 1)
+			if (P_IsObjectOnGround(mobj) && mobj->health > 1)
 			{
 				S_StartSound(mobj, mobj->info->activesound);
 				mobj->momx = mobj->momy = 0;
@@ -8189,7 +8079,7 @@ void P_MobjThinker(mobj_t *mobj)
 		case MT_SINK:
 			if (mobj->momx || mobj->momy)
 				P_SpawnGhostMobj(mobj);
-			if (mobj->z <= mobj->floorz)
+			if (P_IsObjectOnGround(mobj))
 			{
 				S_StartSound(mobj, mobj->info->deathsound);
 				P_SetMobjState(mobj, S_NULL);
@@ -8365,6 +8255,7 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_INSTASHIELDB:
 			mobj->flags2 ^= MF2_DONTDRAW;
+			K_MatchGenericExtraFlags(mobj, mobj->target);
 			/* FALLTHRU */
 		case MT_INSTASHIELDA:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_instashield]))
@@ -8373,6 +8264,7 @@ void P_MobjThinker(mobj_t *mobj)
 				return;
 			}
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			K_MatchGenericExtraFlags(mobj, mobj->target);
 			break;
 		case MT_BATTLEPOINT:
 			if (!mobj->target || P_MobjWasRemoved(mobj->target))
@@ -8393,7 +8285,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->movefactor < mobj->target->height)
 					mobj->movefactor = mobj->target->height;
 			}
-
+			K_MatchGenericExtraFlags(mobj, mobj->target);
 			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z + (mobj->target->height/2) + mobj->movefactor);
 			break;
 		case MT_THUNDERSHIELD:
@@ -8518,6 +8410,10 @@ void P_MobjThinker(mobj_t *mobj)
 						mobj->flags2 &= ~MF2_DONTDRAW;
 				}
 
+				// Update mobj antigravity status:
+				mobj->eflags = (mobj->eflags & ~MFE_VERTICALFLIP)|(mobj->target->eflags & MFE_VERTICALFLIP);
+				mobj->flags2 = (mobj->flags2 & ~MF2_OBJECTFLIP)|(mobj->target->flags2 & MF2_OBJECTFLIP);
+
 				// Now for the wheels
 				{
 					const fixed_t rad = FixedMul(mobjinfo[MT_PLAYER].radius, mobj->target->scale);
@@ -8539,6 +8435,7 @@ void P_MobjThinker(mobj_t *mobj)
 						P_SetScale(cur, mobj->target->scale);
 						cur->color = mobj->target->color;
 						cur->colorized = true;
+						K_FlipFromObject(cur, mobj->target);
 
 						if (mobj->flags2 & MF2_DONTDRAW)
 							cur->flags2 |= MF2_DONTDRAW;
@@ -11136,7 +11033,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z -= ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z -= 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
+				z -= 128*mapobjectscale;
 		}
 		else
 		{
@@ -11144,7 +11041,7 @@ void P_MovePlayerToSpawn(INT32 playernum, mapthing_t *mthing)
 			if (mthing->options >> ZSHIFT)
 				z += ((mthing->options >> ZSHIFT) << FRACBITS);
 			if (p->kartstuff[k_respawn])
-				z += 128*FRACUNIT; // Too late for v1, but for later: 128*mapobjectscale;
+				z += 128*mapobjectscale;
 		}
 
 		if (mthing->options & MTF_OBJECTFLIP) // flip the player!
@@ -11205,7 +11102,14 @@ void P_MovePlayerToStarpost(INT32 playernum)
 #endif
 	sector->ceilingheight;
 
-	z = (p->starpostz + 128) << FRACBITS; // Respawn off the ground
+	if (mobj->player->kartstuff[k_starpostflip])
+		z = (p->starpostz<<FRACBITS) - FixedMul(128<<FRACBITS, mapobjectscale) - mobj->height;
+	else
+		z = (p->starpostz<<FRACBITS) + FixedMul(128<<FRACBITS, mapobjectscale);
+
+	//z = (p->starpostz + 128) << FRACBITS; // reverse gravity exists, pls
+	mobj->player->kartstuff[k_starpostflip] = 0;
+
 	if (z < floor)
 		z = floor;
 	else if (z > ceiling - mobjinfo[MT_PLAYER].height)

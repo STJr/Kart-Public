@@ -111,6 +111,7 @@ UINT8 window_notinfocus = false;
 //static INT32 demosequence;
 static const char *pagename = "MAP1PIC";
 static char *startupwadfiles[MAX_WADFILES];
+static char *startuppwads[MAX_WADFILES];
 
 boolean devparm = false; // started game with -devparm
 
@@ -203,6 +204,8 @@ static inline void D_ModifierKeyResponder(event_t *ev)
 		case KEY_RCTRL: ctrldown |= 0x2; return;
 		case KEY_LALT: altdown |= 0x1; return;
 		case KEY_RALT: altdown |= 0x2; return;
+		case KEY_CAPSLOCK: capslock = !capslock; return;
+
 		default: return;
 	}
 	else if (ev->type == ev_keyup) switch (ev->data1)
@@ -235,6 +238,9 @@ void D_ProcessEvents(void)
 		// Screenshots over everything so that they can be taken anywhere.
 		if (M_ScreenshotResponder(ev))
 			continue; // ate the event
+
+		if (CL_Responder(ev))
+			continue;
 
 		if (gameaction == ga_nothing && gamestate == GS_TITLESCREEN)
 		{
@@ -824,12 +830,12 @@ void D_StartTitle(void)
 //
 // D_AddFile
 //
-static void D_AddFile(const char *file)
+static void D_AddFile(const char *file, char **filearray)
 {
 	size_t pnumwadfiles;
 	char *newfile;
 
-	for (pnumwadfiles = 0; startupwadfiles[pnumwadfiles]; pnumwadfiles++)
+	for (pnumwadfiles = 0; filearray[pnumwadfiles]; pnumwadfiles++)
 		;
 
 	newfile = malloc(strlen(file) + 1);
@@ -839,16 +845,16 @@ static void D_AddFile(const char *file)
 	}
 	strcpy(newfile, file);
 
-	startupwadfiles[pnumwadfiles] = newfile;
+	filearray[pnumwadfiles] = newfile;
 }
 
-static inline void D_CleanFile(void)
+static inline void D_CleanFile(char **filearray)
 {
 	size_t pnumwadfiles;
-	for (pnumwadfiles = 0; startupwadfiles[pnumwadfiles]; pnumwadfiles++)
+	for (pnumwadfiles = 0; filearray[pnumwadfiles]; pnumwadfiles++)
 	{
-		free(startupwadfiles[pnumwadfiles]);
-		startupwadfiles[pnumwadfiles] = NULL;
+		free(filearray[pnumwadfiles]);
+		filearray[pnumwadfiles] = NULL;
 	}
 }
 
@@ -908,9 +914,9 @@ static void IdentifyVersion(void)
 
 	// Load the IWAD
 	if (srb2wad2 != NULL && FIL_ReadFileOK(srb2wad2))
-		D_AddFile(srb2wad2);
+		D_AddFile(srb2wad2, startupwadfiles);
 	else if (srb2wad1 != NULL && FIL_ReadFileOK(srb2wad1))
-		D_AddFile(srb2wad1);
+		D_AddFile(srb2wad1, startupwadfiles);
 	else
 		I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s or %s\n", srb2waddir, srb2wad1, srb2wad2);
 
@@ -927,12 +933,12 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"patch.dta"));
 #endif
 
-	D_AddFile(va(pandf,srb2waddir,"gfx.kart"));
-	D_AddFile(va(pandf,srb2waddir,"textures.kart"));
-	D_AddFile(va(pandf,srb2waddir,"chars.kart"));
-	D_AddFile(va(pandf,srb2waddir,"maps.kart"));
+	D_AddFile(va(pandf,srb2waddir,"gfx.kart"), startupwadfiles);
+	D_AddFile(va(pandf,srb2waddir,"textures.kart"), startupwadfiles);
+	D_AddFile(va(pandf,srb2waddir,"chars.kart"), startupwadfiles);
+	D_AddFile(va(pandf,srb2waddir,"maps.kart"), startupwadfiles);
 #ifdef USE_PATCH_KART
-	D_AddFile(va(pandf,srb2waddir,"patch.kart"));
+	D_AddFile(va(pandf,srb2waddir,"patch.kart"), startupwadfiles);
 #endif
 	D_AddFile(va(pandf,srb2waddir,"followers.kart"));       // merge this in GFX later, this is mostly to avoid uploading a MASSIVE patch.kart /gfx.kart for testing. -Lat'
 
@@ -942,7 +948,7 @@ static void IdentifyVersion(void)
 		const char *musicpath = va(pandf,srb2waddir,str);\
 		int ms = W_VerifyNMUSlumps(musicpath); \
 		if (ms == 1) \
-			D_AddFile(musicpath); \
+			D_AddFile(musicpath, startupwadfiles); \
 		else if (ms == 0) \
 			I_Error("File "str" has been modified with non-music/sound lumps"); \
 	}
@@ -1007,9 +1013,12 @@ static inline void D_MakeTitleString(char *s)
 //
 void D_SRB2Main(void)
 {
-	INT32 p;
+	INT32 p, i;
 	char srb2[82]; // srb2 title banner
 	char title[82];
+	lumpinfo_t *lumpinfo;
+	UINT16 wadnum;
+	char *name;
 
 	INT32 pstartmap = 1;
 	boolean autostart = false;
@@ -1161,11 +1170,7 @@ void D_SRB2Main(void)
 				const char *s = M_GetNextParm();
 
 				if (s) // Check for NULL?
-				{
-					if (!W_VerifyNMUSlumps(s))
-						G_SetGameModified(true, false);
-					D_AddFile(s);
-				}
+					D_AddFile(s, startuppwads);
 			}
 		}
 	}
@@ -1215,13 +1220,13 @@ void D_SRB2Main(void)
 
 	// load wad, including the main wad file
 	CONS_Printf("W_InitMultipleFiles(): Adding IWAD and main PWADs.\n");
-	if (!W_InitMultipleFiles(startupwadfiles))
+	if (!W_InitMultipleFiles(startupwadfiles, false))
 #ifdef _DEBUG
 		CONS_Error("A WAD file was not found or not valid.\nCheck the log to see which ones.\n");
 #else
 		I_Error("A WAD file was not found or not valid.\nCheck the log to see which ones.\n");
 #endif
-	D_CleanFile();
+	D_CleanFile(startupwadfiles);
 
 	mainwads = 0;
 
@@ -1235,7 +1240,7 @@ void D_SRB2Main(void)
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);			// gfx.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART);	// textures.kart
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);		// chars.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart -- 4 - If you touch this, make sure to touch up the majormods stuff below.
 #ifdef USE_PATCH_KART
 	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);		// patch.kart
 #endif
@@ -1254,6 +1259,66 @@ void D_SRB2Main(void)
 #endif //ifndef DEVELOP
 
 	mainwadstally = packetsizetally;
+
+	//
+	// search for maps
+	//
+	for (wadnum = 4; wadnum < 6; wadnum++) // fucking arbitrary numbers
+	{
+		lumpinfo = wadfiles[wadnum]->lumpinfo;
+		for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lumpinfo++)
+		{
+			name = lumpinfo->name;
+
+			if (name[0] == 'M' && name[1] == 'A' && name[2] == 'P') // Ignore the headers
+			{
+				INT16 num;
+				if (name[5] != '\0')
+					continue;
+				num = (INT16)M_MapNumber(name[3], name[4]);
+
+				// we want to record whether this map exists. if it doesn't have a header, we can assume it's not relephant
+				if (num <= NUMMAPS && mapheaderinfo[num - 1])
+				{
+					mapheaderinfo[num - 1]->menuflags |= LF2_EXISTSHACK;
+				}
+			}
+		}
+	}
+
+	if (!W_InitMultipleFiles(startuppwads, true))
+		CONS_Error("A PWAD file was not found or not valid.\nCheck the log to see which ones.\n");
+	D_CleanFile(startuppwads);
+
+	//
+	// search for maps... again.
+	//
+	for (wadnum = mainwads+1; wadnum < numwadfiles; wadnum++)
+	{
+		lumpinfo = wadfiles[wadnum]->lumpinfo;
+		for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lumpinfo++)
+		{
+			name = lumpinfo->name;
+
+			if (name[0] == 'M' && name[1] == 'A' && name[2] == 'P') // Ignore the headers
+			{
+				INT16 num;
+				if (name[5] != '\0')
+					continue;
+				num = (INT16)M_MapNumber(name[3], name[4]);
+
+				// we want to record whether this map exists. if it doesn't have a header, we can assume it's not relephant
+				if (num <= NUMMAPS && mapheaderinfo[num - 1])
+				{
+					if (mapheaderinfo[num - 1]->menuflags & LF2_EXISTSHACK)
+						G_SetGameModified(multiplayer, true); // oops, double-defined - no record attack privileges for you
+					mapheaderinfo[num - 1]->menuflags |= LF2_EXISTSHACK;
+				}
+
+				CONS_Printf("%s\n", name);
+			}
+		}
+	}
 
 	cht_Init();
 

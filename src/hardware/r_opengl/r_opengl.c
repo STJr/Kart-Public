@@ -2056,7 +2056,7 @@ EXPORT void HWRAPI(DrawMD2) (INT32 *gl_cmd_buffer, md2_frame_t *frame, FTransfor
 EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 {
 	static boolean special_splitscreen;
-	double used_fov;
+	GLdouble used_fov;
 	pglLoadIdentity();
 	if (stransform)
 	{

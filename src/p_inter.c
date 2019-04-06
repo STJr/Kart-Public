@@ -141,6 +141,9 @@ boolean P_CanPickupItem(player_t *player, UINT8 weapon)
 				|| (weapon != 3 && player->kartstuff[k_itemamount])
 				|| player->kartstuff[k_itemheld])
 				return false;
+
+			if (weapon == 3 && player->kartstuff[k_itemtype] == KITEM_THUNDERSHIELD)
+				return false; // No stacking thunder shields!
 		}
 	}
 
@@ -1474,6 +1477,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostz = special->z>>FRACBITS;
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
+			player->kartstuff[k_starpostflip] = special->spawnpoint->options & MTF_OBJECTFLIP;	// store flipping
 
 			//S_StartSound(toucher, special->info->painsound);
 			return;
@@ -2957,66 +2961,6 @@ static void P_KillPlayer(player_t *player, mobj_t *source, INT32 damage)
 		K_CheckBumpers();
 	}
 }
-
-/*
-static inline void P_SuperDamage(player_t *player, mobj_t *inflictor, mobj_t *source, INT32 damage) // SRB2kart - unused.
-{
-	fixed_t fallbackspeed;
-	angle_t ang;
-
-	P_ForceFeed(player, 40, 10, TICRATE, 40 + min(damage, 100)*2);
-
-	if (player->mo->eflags & MFE_VERTICALFLIP)
-		player->mo->z--;
-	else
-		player->mo->z++;
-
-	if (player->mo->eflags & MFE_UNDERWATER)
-		P_SetObjectMomZ(player->mo, FixedDiv(10511*FRACUNIT,2600*FRACUNIT), false);
-	else
-		P_SetObjectMomZ(player->mo, FixedDiv(69*FRACUNIT,10*FRACUNIT), false);
-
-	ang = R_PointToAngle2(inflictor->x,	inflictor->y, player->mo->x, player->mo->y);
-
-	// explosion and rail rings send you farther back, making it more difficult
-	// to recover
-	if (inflictor->flags2 & MF2_SCATTER && source)
-	{
-		fixed_t dist = P_AproxDistance(P_AproxDistance(source->x-player->mo->x, source->y-player->mo->y), source->z-player->mo->z);
-
-		dist = FixedMul(128*FRACUNIT, inflictor->scale) - dist/4;
-
-		if (dist < FixedMul(4*FRACUNIT, inflictor->scale))
-			dist = FixedMul(4*FRACUNIT, inflictor->scale);
-
-		fallbackspeed = dist;
-	}
-	else if (inflictor->flags2 & MF2_EXPLOSION)
-	{
-		if (inflictor->flags2 & MF2_RAILRING)
-			fallbackspeed = FixedMul(28*FRACUNIT, inflictor->scale); // 7x
-		else
-			fallbackspeed = FixedMul(20*FRACUNIT, inflictor->scale); // 5x
-	}
-	else if (inflictor->flags2 & MF2_RAILRING)
-		fallbackspeed = FixedMul(16*FRACUNIT, inflictor->scale); // 4x
-	else
-		fallbackspeed = FixedMul(4*FRACUNIT, inflictor->scale); // the usual amount of force
-
-	P_InstaThrust(player->mo, ang, fallbackspeed);
-
-	// SRB2kart - This shouldn't be reachable, but this frame is invalid.
-	//if (player->charflags & SF_SUPERANIMS)
-	//	P_SetPlayerMobjState(player->mo, S_PLAY_SUPERHIT);
-	//else
-		P_SetPlayerMobjState(player->mo, player->mo->info->painstate);
-
-	P_ResetPlayer(player);
-
-	if (player->timeshit != UINT8_MAX)
-		++player->timeshit;
-}
-*/
 
 void P_RemoveShield(player_t *player)
 {

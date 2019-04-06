@@ -751,6 +751,8 @@ static int ticcmd_get(lua_State *L)
 		lua_pushinteger(L, cmd->buttons);
 	else if (fastcmp(field,"driftturn"))
 		lua_pushinteger(L, cmd->driftturn);
+	else if (fastcmp(field,"latency"))
+		lua_pushinteger(L, cmd->latency);
 	else
 		return NOFIELD;
 

@@ -44,6 +44,8 @@ extern UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *or
 // Console bg color (auto updated to match)
 extern UINT8 *consolebgmap;
 
+INT32 CON_ShiftChar(INT32 ch);
+
 void CON_SetupBackColormap(void);
 void CON_ClearHUD(void); // clear heads up messages
 
