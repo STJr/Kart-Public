@@ -5759,7 +5759,7 @@ static void M_DrawPlaybackMenu(void)
 		else
 			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
 
-		if (i == playback_fastforward && cv_playbackspeed.value > 1)
+		if ((i == playback_fastforward && cv_playbackspeed.value > 1) || (i == playback_rewind && demo.rewinding))
 			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SILVER, GTC_MENUCACHE));
 		else
 			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, (i == itemOn) ? activemap : inactivemap);
@@ -5771,6 +5771,8 @@ static void M_DrawPlaybackMenu(void)
 
 static void M_PlaybackRewind(INT32 choice)
 {
+	static tic_t lastconfirmtime;
+
 	(void)choice;
 
 	if (!demo.rewinding)
@@ -5784,11 +5786,13 @@ static void M_PlaybackRewind(INT32 choice)
 		else
 			demo.rewinding = paused = true;
 	}
-	else
+	else if (lastconfirmtime + TICRATE/2 < I_GetTime())
+	{
+		lastconfirmtime = I_GetTime();
 		G_ConfirmRewind(leveltime);
+	}
 
-	// temp
-	//G_ConfirmRewind(starttime + 90*TICRATE);
+	CV_SetValue(&cv_playbackspeed, 1);
 }
 
 static void M_PlaybackPause(INT32 choice)

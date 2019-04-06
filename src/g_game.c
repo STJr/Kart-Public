@@ -5939,6 +5939,10 @@ void G_PreviewRewind(tic_t previewtime)
 	size_t i, j;
 	fixed_t tweenvalue = 0;
 	rewindinfo_t *info = rewindhead, *next_info = rewindhead;
+
+	if (!info)
+		return;
+
 	while (info->leveltime > previewtime && info->prev)
 	{
 		next_info = info;
@@ -5946,6 +5950,7 @@ void G_PreviewRewind(tic_t previewtime)
 	}
 	if (info != next_info)
 		tweenvalue = FixedDiv(previewtime - info->leveltime, next_info->leveltime - info->leveltime);
+
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
@@ -5998,16 +6003,23 @@ void G_PreviewRewind(tic_t previewtime)
 void G_ConfirmRewind(tic_t rewindtime)
 {
 	tic_t i;
-	boolean oldmenuactive = menuactive, oldsounddisabled = sound_disabled, olddigitaldisabled = digital_disabled;
+	boolean oldmenuactive = menuactive, oldsounddisabled = sound_disabled;
 
 	INT32 olddp1 = displayplayer, olddp2 = secondarydisplayplayer, olddp3 = thirddisplayplayer, olddp4 = fourthdisplayplayer;
 	UINT8 oldss = splitscreen;
 
-	cv_renderview.value = 0;
-
 	menuactive = false; // Prevent loops
-	sound_disabled = /*digital_disabled =*/ true; // Prevent sound spam
-	demo.rewinding = true; // may not need later
+
+	CV_StealthSetValue(&cv_renderview, 0);
+
+	if (rewindtime > starttime)
+	{
+		sound_disabled = true; // Prevent sound spam
+		demo.rewinding = true;
+	}
+	else
+		demo.rewinding = false;
+
 	G_DoPlayDemo(NULL); // Restart the current demo
 
 	for (i = 0; i < rewindtime && leveltime < rewindtime; i++)
@@ -6019,11 +6031,10 @@ void G_ConfirmRewind(tic_t rewindtime)
 	demo.rewinding = false;
 	menuactive = oldmenuactive; // Bring the menu back up
 	sound_disabled = oldsounddisabled; // Re-enable SFX
-	digital_disabled = olddigitaldisabled;
 
 	wipegamestate = gamestate; // No fading back in!
 
-	cv_renderview.value = 1;
+	COM_BufInsertText("renderview on\n");
 
 	splitscreen = oldss;
 	displayplayer = olddp1;
