@@ -568,6 +568,9 @@ static void D_Display(void)
 		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - SHORT(patch->width))/2, py, 0, patch);
 	}
 
+	if (demo.rewinding)
+		V_DrawFadeScreen(TC_RAINBOW, (leveltime & 0x20) ? SKINCOLOR_PASTEL : SKINCOLOR_MOONSLAM);
+
 	// vid size change is now finished if it was on...
 	vid.recalc = 0;
 

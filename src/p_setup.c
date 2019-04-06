@@ -2829,7 +2829,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Encore mode fade to pink to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && encoremode && !prevencoremode)
+	if (rendermode != render_none && encoremode && !prevencoremode && !demo.rewinding)
 	{
 		tic_t locstarttime, endtime, nowtime;
 
@@ -2881,7 +2881,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Let's fade to white here
 	// But only if we didn't do the encore startup wipe
-	if (rendermode != render_none && !ranspecialwipe)
+	if (rendermode != render_none && !ranspecialwipe && !demo.rewinding)
 	{
 		F_WipeStartScreen();
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);

@@ -346,6 +346,7 @@ static void M_EnterReplayOptions(INT32 choice);
 static void M_HutStartReplay(INT32 choice);
 
 static void M_DrawPlaybackMenu(void);
+static void M_PlaybackRewind(INT32 choice);
 static void M_PlaybackPause(INT32 choice);
 static void M_PlaybackFastForward(INT32 choice);
 static void M_PlaybackAdvance(INT32 choice);
@@ -569,11 +570,11 @@ static menuitem_t PlaybackMenu[] =
 {
 	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
 
-	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_SelectableClearMenus, 24},
-	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,        40},
-	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,        40},
-	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward,  56},
-	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,      56},
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      24},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       40},
+	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       40},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward, 56},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     56},
 
 	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 80},
 	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 96},
@@ -5713,7 +5714,7 @@ static void M_DrawPlaybackMenu(void)
 	UINT8 *activemap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_GOLD, GTC_MENUCACHE);
 
 	// Toggle items
-	if (paused)
+	if (paused && !demo.rewinding)
 	{
 		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = IT_DISABLED;
 		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = IT_CALL|IT_STRING;
@@ -5768,13 +5769,32 @@ static void M_DrawPlaybackMenu(void)
 	}
 }
 
+static void M_PlaybackRewind(INT32 choice)
+{
+	(void)choice;
+
+	if (!demo.rewinding)
+		demo.rewinding = paused = true;
+	else
+		G_ConfirmRewind(leveltime);
+
+	// temp
+	//G_ConfirmRewind(starttime + 90*TICRATE);
+}
+
 static void M_PlaybackPause(INT32 choice)
 {
 	(void)choice;
 
 	paused = !paused;
 
-	if (paused)
+	if (demo.rewinding)
+	{
+		G_ConfirmRewind(leveltime);
+		paused = true;
+		S_PauseAudio();
+	}
+	else if (paused)
 	{
 		itemOn = playback_resume;
 		S_PauseAudio();
@@ -5792,6 +5812,12 @@ static void M_PlaybackFastForward(INT32 choice)
 {
 	(void)choice;
 
+	if (demo.rewinding)
+	{
+		G_ConfirmRewind(leveltime);
+		paused = false;
+		S_ResumeAudio();
+	}
 	CV_SetValue(&cv_playbackspeed, cv_playbackspeed.value == 1 ? 4 : 1);
 }
 

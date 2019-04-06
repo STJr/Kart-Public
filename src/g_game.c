@@ -5875,6 +5875,168 @@ void G_GhostTicker(void)
 	}
 }
 
+// Demo rewinding functions
+typedef struct rewindinfo_s {
+	tic_t leveltime;
+
+	struct {
+		boolean ingame;
+		player_t player;
+		mobj_t mobj;
+	} playerinfo[MAXPLAYERS];
+
+	struct rewindinfo_s *prev;
+} rewindinfo_t;
+
+static tic_t currentrewindnum;
+static rewindinfo_t *rewindhead = NULL; // Reverse chronological order
+
+void G_InitDemoRewind(void)
+{
+	while (rewindhead)
+	{
+		rewindinfo_t *p = rewindhead->prev;
+		Z_Free(rewindhead);
+		rewindhead = p;
+	}
+
+	currentrewindnum = 0;
+}
+
+void G_StoreRewindInfo(void)
+{
+	static UINT8 timetolog = 8;
+	rewindinfo_t *info;
+	size_t i;
+
+	if (timetolog-- > 0)
+		return;
+	timetolog = 8;
+
+	info = Z_Calloc(sizeof(rewindinfo_t), PU_STATIC, NULL);
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+		{
+			info->playerinfo[i].ingame = false;
+			continue;
+		}
+
+		info->playerinfo[i].ingame = true;
+		memcpy(&info->playerinfo[i].player, &players[i], sizeof(player_t));
+		if (players[i].mo)
+			memcpy(&info->playerinfo[i].mobj, players[i].mo, sizeof(mobj_t));
+	}
+
+	info->leveltime = leveltime;
+	info->prev = rewindhead;
+	rewindhead = info;
+}
+
+void G_PreviewRewind(tic_t previewtime)
+{
+	size_t i, j;
+	fixed_t tweenvalue = 0;
+	rewindinfo_t *info = rewindhead, *next_info = rewindhead;
+	while (info->leveltime > previewtime && info->prev)
+	{
+		next_info = info;
+		info = info->prev;
+	}
+	if (info != next_info)
+		tweenvalue = FixedDiv(previewtime - info->leveltime, next_info->leveltime - info->leveltime);
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+		{
+			if (info->playerinfo[i].player.mo)
+			{
+				//@TODO spawn temp object to act as a player display
+			}
+
+			continue;
+		}
+
+		if (!info->playerinfo[i].ingame || !info->playerinfo[i].player.mo)
+		{
+			if (players[i].mo)
+				players[i].mo->flags2 |= MF2_DONTDRAW;
+
+			continue;
+		}
+
+		if (!players[i].mo)
+			continue; //@TODO spawn temp object to act as a player display
+
+		players[i].mo->flags2 &= ~MF2_DONTDRAW;
+
+		P_UnsetThingPosition(players[i].mo);
+#define TWEEN(pr) info->playerinfo[i].mobj.pr + FixedMul((INT32) (next_info->playerinfo[i].mobj.pr - info->playerinfo[i].mobj.pr), tweenvalue)
+		players[i].mo->x = TWEEN(x);
+		players[i].mo->y = TWEEN(y);
+		players[i].mo->z = TWEEN(z);
+		players[i].mo->angle = TWEEN(angle);
+#undef TWEEN
+		P_SetThingPosition(players[i].mo);
+
+		players[i].frameangle = info->playerinfo[i].player.frameangle + FixedMul((INT32) (next_info->playerinfo[i].player.frameangle - info->playerinfo[i].player.frameangle), tweenvalue);
+
+		players[i].mo->sprite = info->playerinfo[i].mobj.sprite;
+		players[i].mo->frame = info->playerinfo[i].mobj.frame;
+
+		players[i].realtime = info->playerinfo[i].player.realtime;
+		for (j = 0; j < NUMKARTSTUFF; j++)
+			players[i].kartstuff[j] = info->playerinfo[i].player.kartstuff[j];
+	}
+
+	for (i = splitscreen+1; i > 0; i--)
+		P_ResetCamera(&players[(*G_GetDisplayplayerPtr(i))], P_GetCameraPtr(i));
+}
+
+void G_ConfirmRewind(tic_t rewindtime)
+{
+	tic_t i;
+	boolean oldmenuactive = menuactive, oldsounddisabled = sound_disabled, olddigitaldisabled = digital_disabled;
+
+	INT32 olddp1 = displayplayer, olddp2 = secondarydisplayplayer, olddp3 = thirddisplayplayer, olddp4 = fourthdisplayplayer;
+	UINT8 oldss = splitscreen;
+
+	cv_renderview.value = 0;
+
+	menuactive = false; // Prevent loops
+	sound_disabled = /*digital_disabled =*/ true; // Prevent sound spam
+	demo.rewinding = true; // may not need later
+	G_DoPlayDemo(NULL); // Restart the current demo
+
+	for (i = 0; i < rewindtime && leveltime < rewindtime; i++)
+	{
+		//TryRunTics(1);
+		G_Ticker((i % NEWTICRATERATIO) == 0);
+	}
+
+	demo.rewinding = false;
+	menuactive = oldmenuactive; // Bring the menu back up
+	sound_disabled = oldsounddisabled; // Re-enable SFX
+	digital_disabled = olddigitaldisabled;
+
+	wipegamestate = gamestate; // No fading back in!
+
+	cv_renderview.value = 1;
+
+	splitscreen = oldss;
+	displayplayer = olddp1;
+	secondarydisplayplayer = olddp2;
+	thirddisplayplayer = olddp3;
+	fourthdisplayplayer = olddp4;
+	R_ExecuteSetViewSize();
+	G_ResetViews();
+
+	for (i = splitscreen+1; i > 0; i--)
+		P_ResetCamera(&players[(*G_GetDisplayplayerPtr(i))], P_GetCameraPtr(i));
+}
+
 void G_ReadMetalTic(mobj_t *metal)
 {
 	UINT8 ziptic;
@@ -6842,46 +7004,57 @@ void G_DoPlayDemo(char *defdemoname)
 	boolean spectator;
 	UINT8 slots[MAXPLAYERS], kartspeed[MAXPLAYERS], kartweight[MAXPLAYERS], numslots = 0;
 
+	G_InitDemoRewind();
+
 	skin[16] = '\0';
 	color[16] = '\0';
 
-	n = defdemoname+strlen(defdemoname);
-	while (*n != '/' && *n != '\\' && n != defdemoname)
-		n--;
-	if (n != defdemoname)
-		n++;
-	pdemoname = ZZ_Alloc(strlen(n)+1);
-	strcpy(pdemoname,n);
-
-	// Internal if no extension, external if one exists
-	if (FIL_CheckExtension(defdemoname))
+	// No demo name means we're restarting the current demo
+	if (defdemoname == NULL)
 	{
-		//FIL_DefaultExtension(defdemoname, ".lmp");
-		if (!FIL_ReadFile(defdemoname, &demobuffer))
+		demo_p = demobuffer;
+		pdemoname = ZZ_Alloc(1); // Easier than adding checks for this everywhere it's freed
+	}
+	else
+	{
+		n = defdemoname+strlen(defdemoname);
+		while (*n != '/' && *n != '\\' && n != defdemoname)
+			n--;
+		if (n != defdemoname)
+			n++;
+		pdemoname = ZZ_Alloc(strlen(n)+1);
+		strcpy(pdemoname,n);
+
+		// Internal if no extension, external if one exists
+		if (FIL_CheckExtension(defdemoname))
 		{
-			snprintf(msg, 1024, M_GetText("Failed to read file '%s'.\n"), defdemoname);
+			//FIL_DefaultExtension(defdemoname, ".lmp");
+			if (!FIL_ReadFile(defdemoname, &demobuffer))
+			{
+				snprintf(msg, 1024, M_GetText("Failed to read file '%s'.\n"), defdemoname);
+				CONS_Alert(CONS_ERROR, "%s", msg);
+				gameaction = ga_nothing;
+				M_StartMessage(msg, NULL, MM_NOTHING);
+				return;
+			}
+			demo_p = demobuffer;
+		}
+		// load demo resource from WAD
+		else if ((l = W_CheckNumForName(defdemoname)) == LUMPERROR)
+		{
+			snprintf(msg, 1024, M_GetText("Failed to read lump '%s'.\n"), defdemoname);
 			CONS_Alert(CONS_ERROR, "%s", msg);
 			gameaction = ga_nothing;
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			return;
 		}
-		demo_p = demobuffer;
-	}
-	// load demo resource from WAD
-	else if ((l = W_CheckNumForName(defdemoname)) == LUMPERROR)
-	{
-		snprintf(msg, 1024, M_GetText("Failed to read lump '%s'.\n"), defdemoname);
-		CONS_Alert(CONS_ERROR, "%s", msg);
-		gameaction = ga_nothing;
-		M_StartMessage(msg, NULL, MM_NOTHING);
-		return;
-	}
-	else // it's an internal demo
-	{
-		demobuffer = demo_p = W_CacheLumpNum(l, PU_STATIC);
+		else // it's an internal demo
+		{
+			demobuffer = demo_p = W_CacheLumpNum(l, PU_STATIC);
 #if defined(SKIPERRORS) && !defined(DEVELOP)
-		skiperrors = true; // SRB2Kart: Don't print warnings for staff ghosts, since they'll inevitably happen when we make bugfixes/changes...
+			skiperrors = true; // SRB2Kart: Don't print warnings for staff ghosts, since they'll inevitably happen when we make bugfixes/changes...
 #endif
+		}
 	}
 
 	// read demo header

@@ -1733,7 +1733,7 @@ void S_ShowMusicCredit(void)
 {
 	musicdef_t *def = musicdefstart;
 
-	if (!cv_songcredits.value)
+	if (!cv_songcredits.value || demo.rewinding)
 		return;
 
 	if (!def) // No definitions
@@ -1920,6 +1920,7 @@ void S_ChangeMusic(const char *mmusic, UINT16 mflags, boolean looping)
 #endif
 
 	if (S_MusicDisabled()
+		|| demo.rewinding // Don't mess with music while rewinding!
 		|| demo.title) // SRB2Kart: Demos don't interrupt title screen music
 		return;
 
@@ -1955,6 +1956,7 @@ void S_ChangeMusic(const char *mmusic, UINT16 mflags, boolean looping)
 void S_StopMusic(void)
 {
 	if (!I_SongPlaying()
+		|| demo.rewinding // Don't mess with music while rewinding!
 		|| demo.title) // SRB2Kart: Demos don't interrupt title screen music
 		return;
 

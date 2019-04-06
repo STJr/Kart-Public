@@ -43,6 +43,7 @@ struct demovars_s {
 	char titlename[65];
 	boolean recording, playback, timing;
 	boolean title; // Title Screen demo can be cancelled by any key
+	boolean rewinding; // Rewind in progress
 
 	boolean loadfiles, ignorefiles; // Demo file loading options
 	boolean fromtitle; // SRB2Kart: Don't stop the music
@@ -234,6 +235,12 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum);
 void G_ConsAllGhostTics(void);
 void G_ConsGhostTic(INT32 playernum);
 void G_GhostTicker(void);
+
+void G_InitDemoRewind(void);
+void G_StoreRewindInfo(void);
+void G_PreviewRewind(tic_t previewtime);
+void G_ConfirmRewind(tic_t rewindtime);
+
 void G_ReadMetalTic(mobj_t *metal);
 void G_WriteMetalTic(mobj_t *metal);
 void G_SaveMetal(UINT8 **buffer);

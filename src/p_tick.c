@@ -591,7 +591,15 @@ void P_Ticker(boolean run)
 
 	// Check for pause or menu up in single player
 	if (paused || P_AutoPause())
+	{
+		if (demo.rewinding && leveltime > 0)
+		{
+			leveltime = (leveltime-1) & ~3;
+			G_PreviewRewind(leveltime);
+		}
+
 		return;
+	}
 
 	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
 
@@ -767,6 +775,9 @@ void P_Ticker(boolean run)
 		P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
 
 	P_MapEnd();
+
+	if (demo.playback)
+		G_StoreRewindInfo();
 
 //	Z_CheckMemCleanup();
 }
