@@ -567,23 +567,22 @@ static menuitem_t MISC_ReplayOptionsMenu[] =
 
 static menuitem_t PlaybackMenu[] =
 {
-	{IT_CALL | IT_STRING, NULL, "Hide Menu", M_SelectableClearMenus, 0},
+	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
 
-	{IT_CALL | IT_STRING, NULL, "Rewind",        M_SelectableClearMenus, 24},
-	{IT_CALL | IT_STRING, NULL, "Pause",         M_PlaybackPause,        40},
-	{IT_CALL | IT_STRING, NULL, "Resume",        M_PlaybackPause,        40},
-	{IT_CALL | IT_STRING, NULL, "Fast-Foward",   M_PlaybackFastForward,  56},
-	{IT_CALL | IT_STRING, NULL, "Advance Frame", M_PlaybackAdvance,      56},
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_SelectableClearMenus, 24},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,        40},
+	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,        40},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward,  56},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,      56},
 
-	{IT_ARROWS | IT_STRING, NULL, "View Count",  M_PlaybackSetViews, 80},
-	{IT_ARROWS | IT_STRING, NULL, "Viewpoint",   M_PlaybackAdjustView, 96},
-	{IT_ARROWS | IT_STRING, NULL, "Viewpoint 2", M_PlaybackAdjustView, 112},
-	{IT_ARROWS | IT_STRING, NULL, "Viewpoint 3", M_PlaybackAdjustView, 128},
-	{IT_ARROWS | IT_STRING, NULL, "Viewpoint 4", M_PlaybackAdjustView, 144},
+	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 80},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 96},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 112},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 128},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 144},
 
-
-	{IT_CALL | IT_STRING, NULL, "More Options...", M_ReplayHut, 168},
-	{IT_CALL | IT_STRING, NULL, "Stop Playback",   M_ReplayHut, 184},
+	{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 168},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_ReplayHut, 184},
 };
 typedef enum
 {
@@ -1673,7 +1672,7 @@ menu_t MISC_ReplayHutDef =
 
 menu_t MISC_ReplayOptionsDef =
 {
-	NULL,
+	"M_REPOPT",
 	sizeof (MISC_ReplayOptionsMenu)/sizeof (menuitem_t),
 	&MISC_ReplayHutDef,
 	MISC_ReplayOptionsMenu,
@@ -5346,7 +5345,7 @@ static void DrawReplayHutReplayInfo(void)
 		if (lumpnum != LUMPERROR)
 			patch = W_CachePatchNum(lumpnum, PU_CACHE);
 		else
-			patch = W_CachePatchName("BLANKLVL", PU_CACHE);
+			patch = W_CachePatchName("M_NOLVL", PU_CACHE);
 
 		if (!(demolist[dir_on[menudepthleft]].kartspeed & DF_ENCORE))
 			V_DrawSmallScaledPatch(x, y, 0, patch);
@@ -5416,7 +5415,7 @@ static void DrawReplayHutReplayInfo(void)
 		}
 		else
 		{
-			patch = W_CachePatchName("MISSINGW", PU_CACHE);
+			patch = W_CachePatchName("M_NOWANT", PU_CACHE);
 			colormap = R_GetTranslationColormap(
 				TC_RAINBOW,
 				demolist[dir_on[menudepthleft]].standings[0].color,
@@ -5514,7 +5513,7 @@ static void M_DrawReplayHut(void)
 		if (demolist[i].type == MD_SUBDIR)
 		{
 			localx += 8;
-			V_DrawFixedPatch((x - 4)<<FRACBITS, localy<<FRACBITS, FRACUNIT/4, 0, W_CachePatchName(dirmenu[i][DIR_TYPE] == EXT_UP ? "M_FBACK" : "M_FFLDR", PU_CACHE), NULL);
+			V_DrawScaledPatch(x - 4, localy, 0, W_CachePatchName(dirmenu[i][DIR_TYPE] == EXT_UP ? "M_RBACK" : "M_RFLDR", PU_CACHE));
 		}
 
 		if (itemOn == replaylistitem && i == (INT16)dir_on[menudepthleft])
@@ -5591,28 +5590,7 @@ static void M_DrawReplayStartMenu(void)
 			));
 		else
 			V_DrawString(BASEVIDWIDTH-92, STARTY + i*20 + 9, 0, va("%d", demolist[dir_on[menudepthleft]].standings[i].timeorscore));
-/*
 
-		// Character face!
-		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
-		{
-			patch = facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin];
-			colormap = R_GetTranslationColormap(
-				demolist[dir_on[menudepthleft]].standings[0].skin,
-				demolist[dir_on[menudepthleft]].standings[0].color,
-				GTC_MENUCACHE);
-		}
-		else
-		{
-			patch = W_CachePatchName("MISSING", PU_CACHE);
-			colormap = R_GetTranslationColormap(
-				TC_RAINBOW,
-				demolist[dir_on[menudepthleft]].standings[0].color,
-				GTC_MENUCACHE);
-		}
-
-		V_DrawMappedPatch(BASEVIDWIDTH-15 - SHORT(patch->width), y+20, 0, patch, colormap);
-*/
 		// Character face!
 		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[i].skin].facerank) != LUMPERROR)
 		{
@@ -5624,7 +5602,7 @@ static void M_DrawReplayStartMenu(void)
 		}
 		else
 		{
-			patch = W_CachePatchName("MISSINGR", PU_CACHE);
+			patch = W_CachePatchName("M_NORANK", PU_CACHE);
 			colormap = R_GetTranslationColormap(
 				TC_RAINBOW,
 				demolist[dir_on[menudepthleft]].standings[i].color,
@@ -5766,14 +5744,14 @@ static void M_DrawPlaybackMenu(void)
 				if (i != itemOn)
 					inactivemap = R_GetTranslationColormap(players[ply].skin, players[ply].skincolor, GTC_MENUCACHE);
 			}
-			else if (currentMenu->menuitems[i].patch && W_GetNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
+			else if (currentMenu->menuitems[i].patch && W_CheckNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
 				icon = W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE);
 			else
 				icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
 		}
 		else if (currentMenu->menuitems[i].status == IT_DISABLED)
 			continue;
-		else if (currentMenu->menuitems[i].patch && W_GetNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
+		else if (currentMenu->menuitems[i].patch && W_CheckNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
 			icon = W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE);
 		else
 			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
