@@ -1460,8 +1460,11 @@ void V_DrawString(INT32 x, INT32 y, INT32 option, const char *string)
 	{
 		dupx = dupy = 1;
 		scrwidth = vid.width/vid.dupx;
-		left = (scrwidth - BASEVIDWIDTH)/2;
-		scrwidth -= left;
+		if (!(option & V_SNAPTOLEFT))
+		{
+			left = (scrwidth - BASEVIDWIDTH)/2;
+			scrwidth -= left;
+		}
 	}
 
 	charflags = (option & V_CHARCOLORMASK);
