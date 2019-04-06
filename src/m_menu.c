@@ -5774,7 +5774,16 @@ static void M_PlaybackRewind(INT32 choice)
 	(void)choice;
 
 	if (!demo.rewinding)
-		demo.rewinding = paused = true;
+	{
+		if (paused)
+		{
+			G_ConfirmRewind(leveltime-1);
+			paused = true;
+			S_PauseAudio();
+		}
+		else
+			demo.rewinding = paused = true;
+	}
 	else
 		G_ConfirmRewind(leveltime);
 
@@ -5792,6 +5801,7 @@ static void M_PlaybackPause(INT32 choice)
 	{
 		G_ConfirmRewind(leveltime);
 		paused = true;
+		itemOn = playback_resume;
 		S_PauseAudio();
 	}
 	else if (paused)
