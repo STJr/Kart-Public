@@ -352,6 +352,7 @@ static void M_PlaybackFastForward(INT32 choice);
 static void M_PlaybackAdvance(INT32 choice);
 static void M_PlaybackSetViews(INT32 choice);
 static void M_PlaybackAdjustView(INT32 choice);
+static void M_PlaybackQuit(INT32 choice);
 
 // Drawing functions
 static void M_DrawGenericMenu(void);
@@ -583,7 +584,7 @@ static menuitem_t PlaybackMenu[] =
 	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 144},
 
 	{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 168},
-	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_ReplayHut, 184},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 184},
 };
 typedef enum
 {
@@ -5862,6 +5863,19 @@ static void M_PlaybackSetViews(INT32 choice)
 static void M_PlaybackAdjustView(INT32 choice)
 {
 	G_AdjustView(itemOn - playback_viewcount, (choice > 0) ? 1 : -1, true);
+}
+
+static void M_PlaybackQuit(INT32 choice)
+{
+	(void)choice;
+	G_StopDemo();
+
+	if (demo.inreplayhut)
+		M_ReplayHut(choice);
+	else if (modeattacking)
+		S_ChangeMusicInternal("racent", true); // ???
+	else
+		D_StartTitle();
 }
 
 static void M_PandorasBox(INT32 choice)
