@@ -7036,6 +7036,8 @@ void G_DoPlayDemo(char *defdemoname)
 		pdemoname = ZZ_Alloc(strlen(n)+1);
 		strcpy(pdemoname,n);
 
+		M_SetPlaybackMenuPointer();
+
 		// Internal if no extension, external if one exists
 		if (FIL_CheckExtension(defdemoname))
 		{

@@ -571,20 +571,20 @@ static menuitem_t PlaybackMenu[] =
 {
 	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
 
-	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      24},
-	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       40},
-	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       40},
-	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward, 56},
-	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     56},
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
 
-	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 80},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 96},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 112},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 128},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 144},
+	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 72},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 88},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 104},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 120},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 136},
 
-	{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 168},
-	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 184},
+	{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
 };
 typedef enum
 {
@@ -1702,7 +1702,7 @@ menu_t PlaybackMenuDef = {
 	NULL,
 	PlaybackMenu,
 	M_DrawPlaybackMenu,
-	BASEVIDWIDTH/2 - 100, 2,
+	BASEVIDWIDTH/2 - 94, 2,
 	0,
 	NULL
 };
@@ -3057,14 +3057,6 @@ void M_Drawer(void)
 //
 void M_StartControlPanel(void)
 {
-	// time attack HACK
-	if (modeattacking && demo.playback)
-	{
-		G_CheckDemoStatus();
-		S_ChangeMusicInternal("racent", true);
-		return;
-	}
-
 	// intro might call this repeatedly
 	if (menuactive)
 	{
@@ -5708,6 +5700,11 @@ static void M_HutStartReplay(INT32 choice)
 	G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);
 }
 
+void M_SetPlaybackMenuPointer(void)
+{
+	itemOn = playback_pause;
+}
+
 static void M_DrawPlaybackMenu(void)
 {
 	INT16 i;
@@ -5725,10 +5722,29 @@ static void M_DrawPlaybackMenu(void)
 		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = IT_CALL|IT_STRING;
 		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = IT_DISABLED;
 	}
-	for (i = 0; i <= splitscreen; i++)
-		PlaybackMenu[playback_view1+i].status = IT_ARROWS|IT_STRING;
-	for (i = splitscreen+1; i < 4; i++)
-		PlaybackMenu[playback_view1+i].status = IT_DISABLED;
+
+	if (modeattacking)
+	{
+		for (i = playback_viewcount; i <= playback_view4; i++)
+			PlaybackMenu[i].status = IT_DISABLED;
+
+		PlaybackMenu[playback_moreoptions].alphaKey = 72;
+		PlaybackMenu[playback_quit].alphaKey = 88;
+
+		currentMenu->x = BASEVIDWIDTH/2 - 52;
+	}
+	else
+	{
+		for (i = 0; i <= splitscreen; i++)
+			PlaybackMenu[playback_view1+i].status = IT_ARROWS|IT_STRING;
+		for (i = splitscreen+1; i < 4; i++)
+			PlaybackMenu[playback_view1+i].status = IT_DISABLED;
+
+		PlaybackMenu[playback_moreoptions].alphaKey = 156;
+		PlaybackMenu[playback_quit].alphaKey = 172;
+
+		currentMenu->x = BASEVIDWIDTH/2 - 94;
+	}
 
 	// wip
 	//M_DrawTextBox(currentMenu->x-68, currentMenu->y-7, 15, 15);
@@ -5740,6 +5756,8 @@ static void M_DrawPlaybackMenu(void)
 
 		if (i >= playback_view1 && i <= playback_view4)
 		{
+			if (modeattacking) continue;
+
 			if (splitscreen >= i - playback_view1)
 			{
 				INT32 ply = *G_GetDisplayplayerPtr(i - playback_view1 + 1);
@@ -5873,7 +5891,10 @@ static void M_PlaybackQuit(INT32 choice)
 	if (demo.inreplayhut)
 		M_ReplayHut(choice);
 	else if (modeattacking)
-		S_ChangeMusicInternal("racent", true); // ???
+	{
+		M_EndModeAttackRun();
+		S_ChangeMusicInternal("racent", true);
+	}
 	else
 		D_StartTitle();
 }
