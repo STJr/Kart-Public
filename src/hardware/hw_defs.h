@@ -139,7 +139,7 @@ enum EPolyFlags
 	PF_Decal            = 0x00000800,   // Enable polygon offset
 	PF_Modulated        = 0x00001000,   // Modulation (multiply output with constant ARGB)
 	                                    // When set, pass the color constant into the FSurfaceInfo -> FlatColor
-	PF_NoTexture        = 0x00002000,   // Use the small white texture
+	PF_NoTexture        = 0x00002000,   // Disable texture
 	PF_Ripple           = 0x00004000,	// Water shader effect
 	//                    0x00008000
 	PF_RemoveYWrap      = 0x00010000,   // Force clamp texture on Y

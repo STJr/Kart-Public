@@ -43,7 +43,7 @@ static const GLubyte white[4] = { 255, 255, 255, 255 };
 // ==========================================================================
 
 // With OpenGL 1.1+, the first texture should be 1
-#define NOTEXTURE_NUM     1     // small white texture
+#define NOTEXTURE_NUM     0
 #define FIRST_TEX_AVAIL   (NOTEXTURE_NUM + 1)
 
 #define      N_PI_DEMI               (M_PIl/2.0f) //(1.5707963268f)
@@ -630,9 +630,13 @@ static const char *fragment_shaders[] = {
 	// Water fragment shader
 	SHARED_FRAGMENT_SHADER,
 
+	// Fog fragment shader
+	"void main(void) {\n"
+		"gl_FragColor = gl_Color;\n"
+	"}\0",
+
 	// Sky fragment shader
 	"uniform sampler2D tex;\n"
-	"uniform vec2 resolution;\n"
 	"void main(void) {\n"
 		"float texU = gl_TexCoord[0].s;\n"
 		"float texV = gl_TexCoord[0].t;\n"
@@ -671,6 +675,9 @@ static const char *vertex_shaders[] = {
 	DEFAULT_VERTEX_SHADER,
 
 	// Water vertex shader
+	DEFAULT_VERTEX_SHADER,
+
+	// Fog vertex shader
 	DEFAULT_VERTEX_SHADER,
 
 	// Sky vertex shader
@@ -875,7 +882,7 @@ EXPORT void HWRAPI(KillShaders) (void)
 // -----------------+
 static void SetNoTexture(void)
 {
-	// Set small white texture.
+	// Disable texture.
 	if (tex_downloaded != NOTEXTURE_NUM)
 	{
 		pglBindTexture(GL_TEXTURE_2D, NOTEXTURE_NUM);

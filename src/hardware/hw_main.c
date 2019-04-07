@@ -470,7 +470,9 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 	else
 		PolyFlags |= PF_Masked|PF_Modulated;
 
-	if (PolyFlags & PF_Ripple)
+	if (PolyFlags & PF_Fog)
+		HWD.pfnSetShader(6);	// fog shader
+	else if (PolyFlags & PF_Ripple)
 		HWD.pfnSetShader(5);	// water shader
 	else
 		HWD.pfnSetShader(1);	// floor shader
@@ -3651,7 +3653,7 @@ typedef struct
 static wallinfo_t *wallinfo = NULL;
 static size_t numwalls = 0; // a list of transparent walls to be drawn
 
-static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, INT32 lightlevel, extracolormap_t *wallcolormap);
+static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap);
 
 #define MAX_TRANSPARENTWALL 256
 
@@ -3935,7 +3937,7 @@ static void HWR_RenderDrawNodes(void)
 		{
 			if (!(sortnode[sortindex[i]].wall->blend & PF_NoTexture))
 				HWR_GetTexture(sortnode[sortindex[i]].wall->texnum);
-			HWR_RenderWall(sortnode[sortindex[i]].wall->wallVerts, &sortnode[sortindex[i]].wall->Surf, sortnode[sortindex[i]].wall->blend,
+			HWR_RenderWall(sortnode[sortindex[i]].wall->wallVerts, &sortnode[sortindex[i]].wall->Surf, sortnode[sortindex[i]].wall->blend, sortnode[sortindex[i]].wall->fogwall,
 				sortnode[sortindex[i]].wall->lightlevel, sortnode[sortindex[i]].wall->wallcolormap);
 		}
 	}
@@ -4442,7 +4444,7 @@ static void HWR_DrawSkyBackground(void)
 		v[0].t = v[1].t -= ((float) angle / angleturn);
 	}
 
-	HWD.pfnSetShader(6);	// sky shader
+	HWD.pfnSetShader(7);	// sky shader
 	HWD.pfnDrawPolygon(NULL, v, 4, 0);
 	HWD.pfnSetShader(0);
 }
@@ -4752,8 +4754,9 @@ static void HWR_AddTransparentWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, I
 	numwalls++;
 }
 
-static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, INT32 lightlevel, extracolormap_t *wallcolormap)
+static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
 {
+	FBITFIELD blendmode = blend;
 	UINT8 alpha = pSurf->PolyColor.s.alpha; // retain the alpha
 
 	// Lighting is done here instead so that fog isn't drawn incorrectly on transparent walls after sorting
@@ -4765,10 +4768,19 @@ static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 	pSurf->PolyColor.s.alpha = alpha; // put the alpha back after lighting
 
 	HWD.pfnSetShader(2);	// wall shader
+
 	if (blend & PF_Environment)
-		HWD.pfnDrawPolygon(pSurf, wallVerts, 4, blend|PF_Modulated|PF_Occlude); // PF_Occlude must be used for solid objects
-	else
-		HWD.pfnDrawPolygon(pSurf, wallVerts, 4, blend|PF_Modulated); // No PF_Occlude means overlapping (incorrect) transparency
+		blendmode |= PF_Occlude;	// PF_Occlude must be used for solid objects
+
+	if (fogwall)
+	{
+		blendmode |= PF_Fog;
+		HWD.pfnSetShader(6);	// fog shader
+	}
+
+	blendmode |= PF_Modulated;	// No PF_Occlude means overlapping (incorrect) transparency
+
+	HWD.pfnDrawPolygon(pSurf, wallVerts, 4, blendmode);
 
 #ifdef WALLSPLATS
 	if (gr_curline->linedef->splats && cv_splats.value)
@@ -4946,7 +4958,7 @@ void HWR_LoadShaders(UINT16 wadnum, boolean PK3)
 	int shadertype = 0;
 	int i;
 
-	#define SHADER_TYPES 6
+	#define SHADER_TYPES 7
 	shaderxlat_t shaderxlat[SHADER_TYPES] =
 	{
 		{"Flat", 1},
@@ -4954,7 +4966,8 @@ void HWR_LoadShaders(UINT16 wadnum, boolean PK3)
 		{"Sprite", 3},
 		{"Model", 4},
 		{"WaterRipple", 5},
-		{"Sky", 6},
+		{"Fog", 6},
+		{"Sky", 7},
 	};
 
 	lump = HWR_CheckShader(wadnum);
