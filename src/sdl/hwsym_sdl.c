@@ -91,7 +91,6 @@ void *hwSym(const char *funcName,void *handle)
 	GETFUNC(DrawModel);
 	GETFUNC(CreateModelVBOs);
 	GETFUNC(SetTransform);
-	GETFUNC(GetRenderVersion);
 	GETFUNC(PostImgRedraw);
 	GETFUNC(FlushScreenTextures);
 	GETFUNC(StartScreenWipe);

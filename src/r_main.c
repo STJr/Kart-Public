@@ -609,11 +609,6 @@ void R_ExecuteSetViewSize(void)
 
 	R_InitTextureMapping();
 
-#ifdef HWRENDER
-	if (rendermode != render_soft)
-		HWR_InitTextureMapping();
-#endif
-
 	// thing clipping
 	for (i = 0; i < viewwidth; i++)
 		screenheightarray[i] = (INT16)viewheight;

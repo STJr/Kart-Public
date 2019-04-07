@@ -351,7 +351,7 @@ angle_t gld_FrustumAngle(void)
 }
 
 // SRB2CB I don't think used any of this stuff, let's disable for now since SRB2 probably doesn't want it either
-// compiler complains about (p)glGetDoublev anyway, in case anyone wants this
+// compiler complains about (p)glGetFloatv anyway, in case anyone wants this
 // only r_opengl.c can use the base gl funcs as it turns out, that's a problem for whoever wants sphere frustum checks
 // btw to renable define HAVE_SPHEREFRUSTRUM in hw_clip.h
 #ifdef HAVE_SPHEREFRUSTRUM

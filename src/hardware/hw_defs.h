@@ -74,21 +74,11 @@ typedef struct
 	FLOAT x,y;
 } F2DCoord, v2d_t;
 
-// Simple 3D vector
-typedef struct FVector
-{
-		FLOAT x,y,z;
-} FVector;
-
-// 3D model vector (coords + texture coords)
-typedef struct
-{
-	FLOAT       x,y,z;
-	FLOAT       s,t,w;            // texture coordinates
-} wallVert3D;
-
-//Hurdler: Transform (coords + angles)
-//BP: transform order : scale(rotation_x(rotation_y(translation(v))))
+// ======================
+//      wallVert3D
+// ----------------------
+// :crab: IS GONE! :crab:
+// ======================
 
 // Kart features
 //#define USE_FTRANSFORM_ANGLEZ
@@ -118,9 +108,7 @@ typedef struct
 typedef struct
 {
 	FLOAT       x,y,z;
-	FLOAT       sow;            // s texture ordinate (s over w)
-	FLOAT       tow;            // t texture ordinate (t over w)
-	FUINT       argb;           // flat-shaded color
+	FLOAT       s,t;
 } FOutVector;
 
 // ==========================================================================
@@ -202,6 +190,9 @@ enum hwdsetspecialstate
 	HWD_NUMSTATE
 };
 typedef enum hwdsetspecialstate hwdspecialstate_t;
+
+#define GL_NORMALFOG 0x00000000
+#define GL_FADEFOG 0x19000000
 
 enum hwdfiltermode
 {
