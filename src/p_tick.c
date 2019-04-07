@@ -609,26 +609,29 @@ void P_Ticker(boolean run)
 	{
 		if (demo.recording)
 		{
-			if (!multiplayer) {
-				G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
-			} else {
-				G_WriteDemoExtraData();
-				for (i = 0; i < MAXPLAYERS; i++)
-					if (playeringame[i])
-						G_WriteDemoTiccmd(&players[i].cmd, i);
-			}
+			G_WriteDemoExtraData();
+			for (i = 0; i < MAXPLAYERS; i++)
+				if (playeringame[i])
+					G_WriteDemoTiccmd(&players[i].cmd, i);
 		}
 		if (demo.playback)
 		{
 
-			if (!multiplayer) {
+#ifdef DEMO_COMPAT_100
+			if (demo.version == 0x0001)
+			{
 				G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
-			} else {
+			}
+			else
+			{
+#endif
 				G_ReadDemoExtraData();
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
 						G_ReadDemoTiccmd(&players[i].cmd, i);
+#ifdef DEMO_COMPAT_100
 			}
+#endif
 		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -734,27 +737,24 @@ void P_Ticker(boolean run)
 		if (metalrecording)
 			G_WriteMetalTic(players[consoleplayer].mo);
 
-		if (multiplayer)
+		if (demo.recording)
 		{
-			if (demo.recording)
-			{
-				G_WriteAllGhostTics();
+			G_WriteAllGhostTics();
 
+			if (cv_recordmultiplayerdemos.value && (demo.savemode == DSM_NOTSAVING || demo.savemode == DSM_WILLAUTOSAVE))
 				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
 					demo.savemode = DSM_TITLEENTRY;
-			}
-			if (demo.playback) // Use Ghost data for consistency checks.
-			{
-				G_ConsAllGhostTics();
-			}
 		}
-		else
+		else if (demo.playback) // Use Ghost data for consistency checks.
 		{
-			if (demo.recording)
-				G_WriteGhostTic(players[consoleplayer].mo, consoleplayer);
-			if (demo.playback) // Use Ghost data for consistency checks.
+#ifdef DEMO_COMPAT_100
+			if (demo.version == 0x0001)
 				G_ConsGhostTic(0);
+			else
+#endif
+			G_ConsAllGhostTics();
 		}
+
 		if (modeattacking)
 			G_GhostTicker();
 

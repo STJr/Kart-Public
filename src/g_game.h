@@ -42,6 +42,7 @@ extern consvar_t cv_recordmultiplayerdemos, cv_netdemosyncquality;
 struct demovars_s {
 	char titlename[65];
 	boolean recording, playback, timing;
+	UINT16 version; // Current file format of the demo being played
 	boolean title; // Title Screen demo can be cancelled by any key
 	boolean rewinding; // Rewind in progress
 

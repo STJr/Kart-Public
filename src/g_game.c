@@ -292,7 +292,6 @@ static UINT8 *demobuffer = NULL;
 static UINT8 *demo_p, *demotime_p, *demoinfo_p;
 static UINT8 *demoend;
 static UINT8 demoflags;
-static UINT16 demoversion;
 static boolean demosynced = true; // console warning message
 
 struct demovars_s demo;
@@ -315,7 +314,6 @@ static struct {
 
 	// EZT_KART
 	INT32 kartitem, kartamount, kartbumpers;
-	boolean kartresync; //@TODO backwards compat with old replays. remove eventually
 
 	UINT8 desyncframes; // Don't try to resync unless we've been off for two frames, to monkeypatch a few trouble spots
 
@@ -5422,11 +5420,9 @@ void G_WriteGhostTic(mobj_t *ghost, INT32 playernum)
 	if (ghost->player)
 	{
 		if (
-			!modeattacking && ( //@TODO: This is a temporary check to keep netreplays EXE record attack replays compatible with base Kart.
-				ghostext[playernum].kartitem != ghost->player->kartstuff[k_itemtype] ||
-				ghostext[playernum].kartamount != ghost->player->kartstuff[k_itemamount] ||
-				ghostext[playernum].kartbumpers != ghost->player->kartstuff[k_bumper]
-			)
+			ghostext[playernum].kartitem != ghost->player->kartstuff[k_itemtype] ||
+			ghostext[playernum].kartamount != ghost->player->kartstuff[k_itemamount] ||
+			ghostext[playernum].kartbumpers != ghost->player->kartstuff[k_bumper]
 		)
 		{
 			ghostext[playernum].flags |= EZT_KART;
@@ -5621,7 +5617,6 @@ void G_ConsGhostTic(INT32 playernum)
 			ghostext[playernum].kartitem = READINT32(demo_p);
 			ghostext[playernum].kartamount = READINT32(demo_p);
 			ghostext[playernum].kartbumpers = READINT32(demo_p);
-			ghostext[playernum].kartresync = true;
 		}
 	}
 
@@ -5651,6 +5646,9 @@ void G_ConsGhostTic(INT32 playernum)
 				P_SetThingPosition(testmo);
 				testmo->z = oldghost[playernum].z;
 
+				if (abs(testmo->z - testmo->floorz) < 4*FRACUNIT)
+					testmo->z = testmo->floorz; // Sync players to the ground when they're likely supposed to be there...
+
 				ghostext[playernum].desyncframes = 2;
 			}
 		}
@@ -5658,10 +5656,14 @@ void G_ConsGhostTic(INT32 playernum)
 			ghostext[playernum].desyncframes = 0;
 
 		if (
-			ghostext[playernum].kartresync && (
-			players[playernum].kartstuff[k_itemtype] != ghostext[playernum].kartitem ||
-			players[playernum].kartstuff[k_itemamount] != ghostext[playernum].kartamount ||
-			players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers)
+#ifdef DEMO_COMPAT_100
+			demo.version != 0x0001 &&
+#endif
+			(
+				players[playernum].kartstuff[k_itemtype] != ghostext[playernum].kartitem ||
+				players[playernum].kartstuff[k_itemamount] != ghostext[playernum].kartamount ||
+				players[playernum].kartstuff[k_bumper] != ghostext[playernum].kartbumpers
+			)
 		)
 		{
 			if (demosynced)
@@ -7088,19 +7090,17 @@ void G_DoPlayDemo(char *defdemoname)
 
 	version = READUINT8(demo_p);
 	subversion = READUINT8(demo_p);
-	demoversion = READUINT16(demo_p);
-	switch(demoversion)
+	demo.version = READUINT16(demo_p);
+	switch(demo.version)
 	{
 	case DEMOVERSION: // latest always supported
 		// demo title
 		M_Memcpy(demo.titlename, demo_p, 64);
-		CONS_Printf("Demo title: %s\n", demo.titlename);
 		demo_p += 64;
 
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		CONS_Printf("You need to implement demo compat here, doofus! %s:%d\n", __FILE__, __LINE__);
 		break;
 #endif
 	// too old, cannot support.
@@ -7132,7 +7132,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 	demoflags = READUINT8(demo_p);
 #ifdef DEMO_COMPAT_100
-	if (demoversion == 0x0001)
+	if (demo.version == 0x0001)
 	{
 		if (demoflags & DF_MULTIPLAYER)
 		{
@@ -7237,12 +7237,13 @@ void G_DoPlayDemo(char *defdemoname)
 	// Random seed
 	randseed = READUINT32(demo_p);
 #ifdef DEMO_COMPAT_100
-	if (demoversion != 0x0001)
+	if (demo.version != 0x0001)
 #endif
 	demo_p += 4; // Extrainfo location
 
 #ifdef DEMO_COMPAT_100
-	if (demoversion == 0x0001) {
+	if (demo.version == 0x0001)
+	{
 		// Player name
 		M_Memcpy(player_names[0],demo_p,16);
 		demo_p += 16;
