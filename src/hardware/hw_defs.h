@@ -140,7 +140,7 @@ enum EPolyFlags
 	PF_Modulated        = 0x00001000,   // Modulation (multiply output with constant ARGB)
 	                                    // When set, pass the color constant into the FSurfaceInfo -> FlatColor
 	PF_NoTexture        = 0x00002000,   // Use the small white texture
-	PF_Ripple           = 0x00004000,	// jimita: water shader effect
+	PF_Ripple           = 0x00004000,	// Water shader effect
 	//                    0x00008000
 	PF_RemoveYWrap      = 0x00010000,   // Force clamp texture on Y
 	PF_ForceWrapX       = 0x00020000,   // Force repeat texture on X
@@ -181,6 +181,8 @@ typedef struct FSurfaceInfo FSurfaceInfo;
 
 enum hwdsetspecialstate
 {
+	HWD_SET_SHADERS,
+
 	HWD_SET_FOG_MODE,
 	HWD_SET_FOG_DENSITY,
 

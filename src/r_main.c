@@ -1395,6 +1395,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_grsoftwarefog);
 	CV_RegisterVar(&cv_grfogdensity);
 	CV_RegisterVar(&cv_grmd2);
+	CV_RegisterVar(&cv_grshaders);
 #endif
 
 #ifdef HWRENDER

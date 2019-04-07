@@ -119,10 +119,6 @@ extern GLint			screen_height;
 extern GLbyte			screen_depth;
 extern GLint			maximumAnisotropy;
 
-// jimita
-extern boolean GLEXT_legacy;
-extern boolean GLEXT_shaders;
-
 /**	\brief OpenGL flags for video driver
 */
 extern INT32            oglflags;

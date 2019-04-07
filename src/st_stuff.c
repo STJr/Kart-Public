@@ -605,15 +605,6 @@ static void ST_drawDebugInfo(void)
 
 	if (cv_debug & DBG_MEMORY)
 		V_DrawRightAlignedString(320, height,     V_MONOSPACE, va("Heap used: %7sKB", sizeu1(Z_TagsUsage(0, INT32_MAX)>>10)));
-
-	// jimita
-	if (cv_debug & DBG_RENDER)
-	{
-		height = 0;
-#ifdef HWRENDER
-		V_DrawString(0, height, V_MONOSPACE|V_ALLOWLOWERCASE|V_NOSCALESTART, va("glstate_fog: %d", cv_grfog.value ? (cv_grsoftwarefog.value ? 2 : 1) : 0));
-#endif // HWRENDER
-	}
 }
 
 static void ST_drawScore(void)

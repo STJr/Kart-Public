@@ -67,6 +67,7 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 
 extern CV_PossibleValue_t granisotropicmode_cons_t[];
 
+extern consvar_t cv_grshaders;
 extern consvar_t cv_grfov;
 extern consvar_t cv_grmd2;
 extern consvar_t cv_grfog;

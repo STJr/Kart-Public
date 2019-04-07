@@ -188,6 +188,11 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 
 	// You see the problem is that darker light isn't actually as dark as it SHOULD be.
 	lightmix = 255 - ((255 - light_level)*100/96);
+	// fml
+	if (lightmix < 0)
+		lightmix = 0;
+	if (lightmix > 255)
+		lightmix = 255;
 
 	mix_color.rgba = mixcolor;
 	fog_color.rgba = fadecolor;
@@ -465,9 +470,11 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 	else
 		PolyFlags |= PF_Masked|PF_Modulated;
 
-	HWD.pfnSetShader(1);	// jimita: floor shader
 	if (PolyFlags & PF_Ripple)
-		HWD.pfnSetShader(5);	// jimita: water shader
+		HWD.pfnSetShader(5);	// water shader
+	else
+		HWD.pfnSetShader(1);	// floor shader
+
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, PolyFlags);
 }
 
@@ -538,7 +545,7 @@ static void HWR_DrawSegsSplats(FSurfaceInfo * pSurf)
 				break;
 		}
 
-		HWD.pfnSetShader(2);	// jimita: wall shader
+		HWD.pfnSetShader(2);	// wall shader
 		HWD.pfnDrawPolygon(&pSurf, wallVerts, 4, i|PF_Modulated|PF_Decal);
 	}
 }
@@ -591,7 +598,7 @@ static void HWR_ProjectWall(FOutVector   * wallVerts,
 	else
 		HWR_NoColormapLighting(pSurf, lightlevel, GL_NORMALFOG, GL_FADEFOG);
 
-	HWD.pfnSetShader(2);	// jimita: wall shader
+	HWD.pfnSetShader(2);	// wall shader
 	HWD.pfnDrawPolygon(pSurf, wallVerts, 4, blendmode|PF_Modulated|PF_Occlude);
 
 #ifdef WALLSPLATS
@@ -2283,7 +2290,7 @@ static void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, 
 	else
 		blendmode |= PF_Masked|PF_Modulated;
 
-	HWD.pfnSetShader(1);	// jimita: floor shader
+	HWD.pfnSetShader(1);	// floor shader
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, blendmode);
 }
 
@@ -2980,7 +2987,7 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 	if (sSurf.PolyColor.s.alpha > floorheight/4)
 	{
 		sSurf.PolyColor.s.alpha = (UINT8)(sSurf.PolyColor.s.alpha - floorheight/4);
-		HWD.pfnSetShader(1);	// jimita: floor shader
+		HWD.pfnSetShader(1);	// floor shader
 		HWD.pfnDrawPolygon(&sSurf, swallVerts, 4, PF_Translucent|PF_Modulated);
 	}
 }
@@ -3235,7 +3242,7 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 
 		Surf.PolyColor.s.alpha = alpha;
 
-		HWD.pfnSetShader(3);	// jimita: sprite shader
+		HWD.pfnSetShader(3);	// sprite shader
 		HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 
 		top = bot;
@@ -3278,7 +3285,7 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 
 	Surf.PolyColor.s.alpha = alpha;
 
-	HWD.pfnSetShader(3);	// jimita: sprite shader
+	HWD.pfnSetShader(3);	// sprite shader
 	HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 }
 
@@ -3429,7 +3436,7 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 			blend = PF_Translucent|PF_Occlude;
 		}
 
-		HWD.pfnSetShader(3);	// jimita: sprite shader
+		HWD.pfnSetShader(3);	// sprite shader
 		HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 	}
 }
@@ -3528,7 +3535,7 @@ static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 		blend = PF_Translucent|PF_Occlude;
 	}
 
-	HWD.pfnSetShader(3);	// jimita: sprite shader
+	HWD.pfnSetShader(3);	// sprite shader
 	HWD.pfnDrawPolygon(&Surf, wallVerts, 4, blend|PF_Modulated);
 }
 
@@ -3900,7 +3907,7 @@ static void HWR_RenderDrawNodes(void)
 	} // loop++
 
 	HWD.pfnSetTransform(&atransform);
-	HWD.pfnSetShader(0);	// jimita
+	HWD.pfnSetShader(0);
 	// Okay! Let's draw it all! Woo!
 	for (i = 0; i < p; i++)
 	{
@@ -4435,9 +4442,9 @@ static void HWR_DrawSkyBackground(void)
 		v[0].t = v[1].t -= ((float) angle / angleturn);
 	}
 
-	HWD.pfnSetShader(6);	// jimita: sky shader
+	HWD.pfnSetShader(6);	// sky shader
 	HWD.pfnDrawPolygon(NULL, v, 4, 0);
-	HWD.pfnSetShader(0);	// jimita
+	HWD.pfnSetShader(0);
 }
 
 
@@ -4565,6 +4572,9 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	// Set transform and shader
 	HWD.pfnSetTransform(&atransform);
 	HWD.pfnSetShader(0);
+
+	// Check for shaders
+	HWD.pfnSetSpecialState(HWD_SET_SHADERS, cv_grshaders.value);
 
 	// Check for fog (shader)
 	if (cv_grfog.value)
@@ -4754,7 +4764,7 @@ static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 
 	pSurf->PolyColor.s.alpha = alpha; // put the alpha back after lighting
 
-	HWD.pfnSetShader(2);	// jimita: wall shader
+	HWD.pfnSetShader(2);	// wall shader
 	if (blend & PF_Environment)
 		HWD.pfnDrawPolygon(pSurf, wallVerts, 4, blend|PF_Modulated|PF_Occlude); // PF_Occlude must be used for solid objects
 	else

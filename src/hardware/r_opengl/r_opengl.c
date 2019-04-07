@@ -492,10 +492,6 @@ boolean SetupGLfunc(void)
 static INT32 glstate_fog_mode = 0;
 static float glstate_fog_density = 0;
 
-// glEXT
-boolean GLEXT_legacy = false;
-boolean GLEXT_shaders = false;
-
 // hw_glob.h
 INT32 gl_leveltime = 0;
 
@@ -510,6 +506,7 @@ INT32 gl_leveltime = 0;
 static GLuint gl_shaders[MAXSHADERS];
 static GLint gl_totalshaders = 0;
 
+static boolean gl_allowshaders = false;
 static boolean gl_shadersenabled = false;
 static GLuint gl_currentshaderprogram = 0;
 static GLuint gl_shaderprograms[MAXSHADERPROGRAMS];
@@ -837,12 +834,14 @@ EXPORT void HWRAPI(InitCustomShaders) (void)
 EXPORT void HWRAPI(SetShader) (int shader)
 {
 #ifdef USE_SHADERS
-	if (GLEXT_shaders)
+	if (gl_allowshaders)
 	{
 		gl_shadersenabled = true;
 		gl_currentshaderprogram = shader;
 	}
+	else
 #endif
+		gl_shadersenabled = false;
 }
 
 EXPORT void HWRAPI(UnSetShader) (void)
@@ -945,16 +944,11 @@ void SetModelView(GLint w, GLint h)
 	pglGetFloatv(GL_PROJECTION_MATRIX, projMatrix);
 }
 
-
 // -----------------+
 // SetStates        : Set permanent states
 // -----------------+
 void SetStates(void)
 {
-#ifdef GL_LIGHT_MODEL_AMBIENT
-	GLfloat LightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-#endif
-
 	pglShadeModel(GL_SMOOTH);      // iterate vertice colors
 
 	pglEnable(GL_TEXTURE_2D);      // two-dimensional texturing
@@ -979,12 +973,6 @@ void SetStates(void)
 	SetNoTexture();
 
 	pglPolygonOffset(-1.0f, -1.0f);
-
-	// Lighting for models
-#ifdef GL_LIGHT_MODEL_AMBIENT
-	pglLightModelfv(GL_LIGHT_MODEL_AMBIENT, LightDiffuse);
-	pglEnable(GL_LIGHT0);
-#endif
 
 	// bp : when no t&l :)
 	pglLoadIdentity();
@@ -1594,7 +1582,6 @@ EXPORT void HWRAPI(SetTexture) (FTextureInfo *pTexInfo)
 }
 
 // jimita
-
 static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *fade)
 {
 #ifdef USE_SHADERS
@@ -1653,7 +1640,9 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 		else
 			pglUseProgram(0);
 	}
+	else
 #endif
+		pglUseProgram(0);
 }
 
 // -----------------+
@@ -1716,6 +1705,18 @@ EXPORT void HWRAPI(SetSpecialState) (hwdspecialstate_t IdState, INT32 Value)
 {
 	switch (IdState)
 	{
+		case HWD_SET_SHADERS:
+			switch (Value)
+			{
+				case 1:
+					gl_allowshaders = true;
+					break;
+				default:
+					gl_allowshaders = false;
+					break;
+			}
+			break;
+
 		case HWD_SET_FOG_MODE:
 			glstate_fog_mode = Value;
 			break;
@@ -1975,20 +1976,12 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	static GLRGBAFloat mix = {0,0,0,0};
 	static GLRGBAFloat fade = {0,0,0,0};
 
-#ifdef GL_LIGHT_MODEL_AMBIENT
-	GLfloat ambient[4];
-	GLfloat diffuse[4];
-#endif
-
 	float pol = 0.0f;
 	float scalex, scaley, scalez;
 
 	boolean useTinyFrames;
 
 	int i;
-
-	// Because Otherwise, scaling the screen negatively vertically breaks the lighting
-	GLfloat LightPos[] = {0.0f, 1.0f, 0.0f, 0.0f};
 
 	// Affect input model scaling
 	scale *= 0.5f;
@@ -2014,29 +2007,12 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	mix.blue   = byte2float[Surface->PolyColor.s.blue];
 	mix.alpha  = byte2float[Surface->PolyColor.s.alpha];
 
-#ifdef GL_LIGHT_MODEL_AMBIENT
-	ambient[0] = (mix.red/255.0f);
-	ambient[1] = (mix.green/255.0f);
-	ambient[2] = (mix.blue/255.0f);
-	ambient[3] = (mix.alpha/255.0f);
-
-	diffuse[0] = (mix.red/255.0f);
-	diffuse[1] = (mix.green/255.0f);
-	diffuse[2] = (mix.blue/255.0f);
-	diffuse[3] = (mix.alpha/255.0f);
-
-	if (ambient[0] > 0.75f)
-		ambient[0] = 0.75f;
-	if (ambient[1] > 0.75f)
-		ambient[1] = 0.75f;
-	if (ambient[2] > 0.75f)
-		ambient[2] = 0.75f;
-#endif
-
 	if (mix.alpha < 1)
 		SetBlend(PF_Translucent|PF_Modulated);
 	else
 		SetBlend(PF_Masked|PF_Modulated|PF_Occlude);
+
+	pglColor4ubv((GLubyte*)&Surface->PolyColor.s);
 
 	fade.red   = byte2float[Surface->FadeColor.s.red];
 	fade.green = byte2float[Surface->FadeColor.s.green];
@@ -2067,14 +2043,6 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 		pglCullFace(GL_FRONT);
 	else
 		pglCullFace(GL_BACK);
-#endif
-
-	pglLightfv(GL_LIGHT0, GL_POSITION, LightPos);
-	pglShadeModel(GL_SMOOTH);
-#ifdef GL_LIGHT_MODEL_AMBIENT
-	pglEnable(GL_LIGHTING);
-	pglMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
-	pglMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
 #endif
 
 	pglPushMatrix(); // should be the same as glLoadIdentity
@@ -2189,10 +2157,6 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	pglDisableClientState(GL_NORMAL_ARRAY);
 
 	pglPopMatrix(); // should be the same as glLoadIdentity
-#ifdef GL_LIGHT_MODEL_AMBIENT
-	pglDisable(GL_LIGHTING);
-#endif
-	pglShadeModel(GL_FLAT);
 	pglDisable(GL_CULL_FACE);
 	pglDisable(GL_NORMALIZE);
 

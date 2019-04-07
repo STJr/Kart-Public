@@ -1092,7 +1092,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		p.mirror = atransform.mirror; // from Kart
 #endif
 
-		HWD.pfnSetShader(4);	// jimita: model shader
+		HWD.pfnSetShader(4);	// model shader
 		HWD.pfnDrawModel(md2->model, frame, durs, tics, nextFrame, &p, finalscale, flip, &Surf);
 	}
 }

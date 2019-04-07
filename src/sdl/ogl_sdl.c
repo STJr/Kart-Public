@@ -175,14 +175,6 @@ boolean OglSdlSurface(INT32 w, INT32 h)
 
 	SetupGLFunc4();
 
-	// jimita
-	if (isExtAvailable("GL_ARB_compatibility", gl_extensions))
-		GLEXT_legacy = true;
-
-	if (isExtAvailable("GL_ARB_fragment_shader", gl_extensions)
-	&& isExtAvailable("GL_ARB_vertex_shader", gl_extensions))
-		GLEXT_shaders = true;
-
 	granisotropicmode_cons_t[1].value = maximumAnisotropy;
 
 	SDL_GL_SetSwapInterval(cv_vidwait.value ? 1 : 0);
