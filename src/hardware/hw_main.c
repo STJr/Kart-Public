@@ -127,12 +127,8 @@ static sector_t *gr_backsector;
 // --------------------------------------------------------------------------
 
 FTransform atransform;
-// duplicates of the main code, set after R_SetupFrame() passed them into sharedstruct,
-// copied here for local use
-// (why?)
-static fixed_t dup_viewx, dup_viewy, dup_viewz;
-static angle_t dup_viewangle;
 
+// Float variants of viewx, viewy, viewz etc...
 static float gr_viewx, gr_viewy, gr_viewz;
 static float gr_viewsin, gr_viewcos;
 
@@ -2058,16 +2054,16 @@ static boolean HWR_CheckBBox(fixed_t *bspcoord)
 
 	// Find the corners of the box
 	// that define the edges from current viewpoint.
-	if (dup_viewx <= bspcoord[BOXLEFT])
+	if (viewx <= bspcoord[BOXLEFT])
 		boxpos = 0;
-	else if (dup_viewx < bspcoord[BOXRIGHT])
+	else if (viewx < bspcoord[BOXRIGHT])
 		boxpos = 1;
 	else
 		boxpos = 2;
 
-	if (dup_viewy >= bspcoord[BOXTOP])
+	if (viewy >= bspcoord[BOXTOP])
 		boxpos |= 0;
-	else if (dup_viewy > bspcoord[BOXBOTTOM])
+	else if (viewy > bspcoord[BOXBOTTOM])
 		boxpos |= 1<<2;
 	else
 		boxpos |= 2<<2;
@@ -2080,8 +2076,8 @@ static boolean HWR_CheckBBox(fixed_t *bspcoord)
 	px2 = bspcoord[checkcoord[boxpos][2]];
 	py2 = bspcoord[checkcoord[boxpos][3]];
 
-	angle1 = R_PointToAngle(px1, py1);
-	angle2 = R_PointToAngle(px2, py2);
+	angle1 = R_PointToAngleEx(viewx, viewy, px1, py1);
+	angle2 = R_PointToAngleEx(viewx, viewy, px2, py2);
 	return gld_clipper_SafeCheckRange(angle2, angle1);
 }
 
@@ -2485,7 +2481,7 @@ static void HWR_Subsector(size_t num)
 
 	// render floor ?
 	// yeah, easy backface cull! :)
-	if (cullFloorHeight < dup_viewz)
+	if (cullFloorHeight < viewz)
 	{
 		if (gr_frontsector->floorpic != skyflatnum)
 		{
@@ -2501,7 +2497,7 @@ static void HWR_Subsector(size_t num)
 		}
 	}
 
-	if (cullCeilingHeight > dup_viewz)
+	if (cullCeilingHeight > viewz)
 	{
 		if (gr_frontsector->ceilingpic != skyflatnum)
 		{
@@ -2544,14 +2540,14 @@ static void HWR_Subsector(size_t num)
 
 			if (centerHeight <= locCeilingHeight &&
 			    centerHeight >= locFloorHeight &&
-			    ((dup_viewz < cullHeight && !(rover->flags & FF_INVERTPLANES)) ||
-			     (dup_viewz > cullHeight && (rover->flags & FF_BOTHPLANES || rover->flags & FF_INVERTPLANES))))
+			    ((viewz < cullHeight && !(rover->flags & FF_INVERTPLANES)) ||
+			     (viewz > cullHeight && (rover->flags & FF_BOTHPLANES || rover->flags & FF_INVERTPLANES))))
 			{
 				if (rover->flags & FF_FOG)
 				{
 					UINT8 alpha;
 
-					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
+					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
 
 					if (rover->master->frontsector->extra_colormap)
 						alpha = HWR_FogBlockAlpha(*gr_frontsector->lightlist[light].lightlevel, rover->master->frontsector->extra_colormap->rgba);
@@ -2568,7 +2564,7 @@ static void HWR_Subsector(size_t num)
 				}
 				else if (rover->flags & FF_TRANSLUCENT && rover->alpha < 256) // SoM: Flags are more efficient
 				{
-					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
+					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
 					HWR_AddTransparentFloor(levelflats[*rover->bottompic].lumpnum,
 					                       &extrasubsectors[num],
 										   false,
@@ -2580,7 +2576,7 @@ static void HWR_Subsector(size_t num)
 				else
 				{
 					HWR_GetFlat(levelflats[*rover->bottompic].lumpnum);
-					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
+					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
 					HWR_RenderPlane(NULL, &extrasubsectors[num], false, *rover->bottomheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->bottompic].lumpnum,
 					                rover->master->frontsector, 255, false, gr_frontsector->lightlist[light].extra_colormap);
 				}
@@ -2599,14 +2595,14 @@ static void HWR_Subsector(size_t num)
 
 			if (centerHeight >= locFloorHeight &&
 			    centerHeight <= locCeilingHeight &&
-			    ((dup_viewz > cullHeight && !(rover->flags & FF_INVERTPLANES)) ||
-			     (dup_viewz < cullHeight && (rover->flags & FF_BOTHPLANES || rover->flags & FF_INVERTPLANES))))
+			    ((viewz > cullHeight && !(rover->flags & FF_INVERTPLANES)) ||
+			     (viewz < cullHeight && (rover->flags & FF_BOTHPLANES || rover->flags & FF_INVERTPLANES))))
 			{
 				if (rover->flags & FF_FOG)
 				{
 					UINT8 alpha;
 
-					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
+					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
 
 					if (rover->master->frontsector->extra_colormap)
 						alpha = HWR_FogBlockAlpha(*gr_frontsector->lightlist[light].lightlevel, rover->master->frontsector->extra_colormap->rgba);
@@ -2623,7 +2619,7 @@ static void HWR_Subsector(size_t num)
 				}
 				else if (rover->flags & FF_TRANSLUCENT && rover->alpha < 256)
 				{
-					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
+					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
 					HWR_AddTransparentFloor(levelflats[*rover->toppic].lumpnum,
 					                        &extrasubsectors[num],
 											true,
@@ -2635,7 +2631,7 @@ static void HWR_Subsector(size_t num)
 				else
 				{
 					HWR_GetFlat(levelflats[*rover->toppic].lumpnum);
-					light = R_GetPlaneLight(gr_frontsector, centerHeight, dup_viewz < cullHeight ? true : false);
+					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
 					HWR_RenderPlane(NULL, &extrasubsectors[num], true, *rover->topheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->toppic].lumpnum,
 					                  rover->master->frontsector, 255, false, gr_frontsector->lightlist[light].extra_colormap);
 				}
@@ -2726,7 +2722,7 @@ static void HWR_RenderBSPNode(INT32 bspnum)
 	}
 
 	// Decide which side the view point is on.
-	side = R_PointOnSide(dup_viewx, dup_viewy, bsp);
+	side = R_PointOnSide(viewx, viewy, bsp);
 
 	// Recursively divide front space.
 	HWR_RenderBSPNode(bsp->children[side]);
@@ -3082,8 +3078,9 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		wallVerts[0].t = wallVerts[1].t = gpatch->max_t;
 	}
 
-	// if it has a dispoffset, push it a little tards the camera
-	if (spr->dispoffset) {
+	// if it has a dispoffset, push it a little towards the camera
+	if (spr->dispoffset)
+	{
 		float co = -gr_viewcos*(0.05f*spr->dispoffset);
 		float si = -gr_viewsin*(0.05f*spr->dispoffset);
 		wallVerts[0].z = wallVerts[3].z = wallVerts[0].z+si;
@@ -3385,8 +3382,9 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 		HWR_DrawSpriteShadow(spr, gpatch, this_scale);
 	}
 
-	// if it has a dispoffset, push it a little tards the camera
-	if (spr->dispoffset) {
+	// if it has a dispoffset, push it a little towards the camera
+	if (spr->dispoffset)
+	{
 		float co = -gr_viewcos*(0.05f*spr->dispoffset);
 		float si = -gr_viewsin*(0.05f*spr->dispoffset);
 		wallVerts[0].z = wallVerts[3].z = wallVerts[0].z+si;
@@ -3772,7 +3770,7 @@ void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector,
 static void HWR_RenderDrawNodes(void)
 {
 	UINT32 i = 0, p = 0, prev = 0, loop;
-	const fixed_t pviewz = dup_viewz;
+	const fixed_t pviewz = viewz;
 
 	// Dump EVERYTHING into a huge drawnode list. Then we'll sort it!
 	// Could this be optimized into _AddTransparentWall/_AddTransparentPlane?
@@ -4400,7 +4398,7 @@ static void HWR_DrawSkyBackground(void)
 	// software doesn't draw any further than 1024 for skies anyway, but this doesn't overlap properly
 	// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
 
-	angle = (dup_viewangle + xtoviewangle[0]);
+	angle = (viewangle + xtoviewangle[0]);
 	dimensionmultiply = ((float)textures[skytexture]->width/256.0f);
 
 	v[0].s = v[3].s = ((float) angle / ((ANGLE_90-1)*dimensionmultiply));
@@ -4504,12 +4502,6 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);
 	postimg_t *postprocessor;
 
-	// copy view cam position for local use
-	dup_viewx = viewx;
-	dup_viewy = viewy;
-	dup_viewz = viewz;
-	dup_viewangle = viewangle;
-
 	// set window position
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
@@ -4523,9 +4515,9 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	// check for new console commands.
 	NetUpdate();
 
-	gr_viewx = FIXED_TO_FLOAT(dup_viewx);
-	gr_viewy = FIXED_TO_FLOAT(dup_viewy);
-	gr_viewz = FIXED_TO_FLOAT(dup_viewz);
+	gr_viewx = FIXED_TO_FLOAT(viewx);
+	gr_viewy = FIXED_TO_FLOAT(viewy);
+	gr_viewz = FIXED_TO_FLOAT(viewz);
 	gr_viewsin = FIXED_TO_FLOAT(viewsin);
 	gr_viewcos = FIXED_TO_FLOAT(viewcos);
 
