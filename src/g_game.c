@@ -3890,7 +3890,7 @@ void G_AfterIntermission(void)
 
 		return;
 	}
-	else if (demo.recording && demo.savemode != DSM_NOTSAVING)
+	else if (demo.recording && (modeattacking || demo.savemode != DSM_NOTSAVING))
 		G_SaveDemo();
 
 	if (modeattacking) // End the run.
@@ -4037,7 +4037,7 @@ static void G_DoContinued(void)
 // when something new is added.
 void G_EndGame(void)
 {
-	if (demo.recording && demo.savemode != DSM_NOTSAVING)
+	if (demo.recording && (modeattacking || demo.savemode != DSM_NOTSAVING))
 		G_SaveDemo();
 
 	// Only do evaluation and credits in coop games.
@@ -7411,7 +7411,6 @@ void G_DoPlayDemo(char *defdemoname)
 		}
 		slots[numslots] = p; numslots++;
 
-
 		if (modeattacking && numslots > 1)
 		{
 			snprintf(msg, 1024, M_GetText("%s is a record attack replay with multiple players, and is thus invalid.\n"), pdemoname);
@@ -7752,53 +7751,62 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 	UINT16 ghostversion;
 	UINT8 flags;
 
-	UINT8 totalfiles;
-	UINT8 md5sum[16];
-
 	buffer = p = W_CacheLumpNum(l, PU_CACHE);
 
 	// read demo header
 	if (memcmp(p, DEMOHEADER, 12))
 	{
 		goto fail;
-	} p += 12; // DEMOHEADER
+	}
+
+	p += 12; // DEMOHEADER
 	p++; // VERSION
 	p++; // SUBVERSION
+
 	ghostversion = READUINT16(p);
 	switch(ghostversion)
 	{
 	case DEMOVERSION: // latest always supported
 		p += 64; // full demo title
 		break;
+
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		CONS_Printf("You need to implement demo compat here, doofus! %s:%d\n", __FILE__, __LINE__);
+		break;
 #endif
+
 	// too old, cannot support.
 	default:
 		goto fail;
 	}
+
 	p += 16; // demo checksum
+
 	if (memcmp(p, "PLAY", 4))
 	{
 		goto fail;
-	} p += 4; // "PLAY"
+	}
+
+	p += 4; // "PLAY"
 	p += 2; // gamemap
 	p += 16; // mapmd5 (possibly check for consistency?)
+
 	flags = READUINT8(p);
-	if (flags & DF_FILELIST) // file list
-	{
-		totalfiles = READUINT8(p);
-		for (; totalfiles > 0; --totalfiles)
-		{
-			SKIPSTRING(p)
-			READMEM(p, md5sum, 16)
-		}
-	}
 	if (!(flags & DF_GHOST))
 	{
 		goto fail; // we don't NEED to do it here, but whatever
 	}
+
+#ifdef DEMO_COMPAT_100
+	if (ghostversion != 0x0001)
+#endif
+	p++; // Gametype
+
+#ifdef DEMO_COMPAT_100
+	if (ghostversion != 0x0001)
+#endif
+	G_SkipDemoExtraFiles(&p);
+
 	switch ((flags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
 	{
 	case ATTACKING_NONE: // 0
@@ -7812,9 +7820,34 @@ void G_UpdateStaffGhostName(lumpnum_t l)
 	default: // 3
 		break;
 	}
+
 	p += 4; // random seed
 
-	// Player name
+
+#ifdef DEMO_COMPAT_100
+	if (ghostversion == 0x0001)
+	{
+		// Player name
+		M_Memcpy(dummystaffname, p,16);
+		dummystaffname[16] = '\0';
+		goto fail; // Not really a failure but whatever
+	}
+#endif
+
+	p += 4; // Extrainfo location marker
+
+	// Ehhhh don't need ghostversion here (?) so I'll reuse the var here
+	ghostversion = READUINT16(p);
+	while (ghostversion--)
+	{
+		p += 2;
+		SKIPSTRING(p);
+		p++; // stealth
+	}
+
+	// Assert first player is in and then read name
+	if (READUINT8(p) != 0)
+		goto fail;
 	M_Memcpy(dummystaffname, p,16);
 	dummystaffname[16] = '\0';
 
@@ -8044,7 +8077,7 @@ boolean G_CheckDemoStatus(void)
 		return true;
 	}
 
-	if (demo.recording && demo.savemode != DSM_NOTSAVING)
+	if (demo.recording && (modeattacking || demo.savemode != DSM_NOTSAVING))
 	{
 		G_SaveDemo();
 		return true;
