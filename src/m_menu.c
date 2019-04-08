@@ -2331,10 +2331,8 @@ static void M_ChangeCvar(INT32 choice)
 			choice *= (TICRATE/7);
 		else if (cv == &cv_maxsend)
 			choice *= 512;
-#ifdef NEWPING
 		else if (cv == &cv_maxping)
 			choice *= 50;
-#endif
 #endif
 		CV_AddValue(cv,choice);
 	}
