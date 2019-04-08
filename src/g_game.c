@@ -6772,10 +6772,8 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	p += 2; // gamemap
 	p += 16; // map md5
 	flags = READUINT8(p); // demoflags
-	if (flags & DF_FILELIST) // file list
-	{
-		G_SkipDemoExtraFiles(&p);
-	}
+	p++; // gametype
+	G_SkipDemoExtraFiles(&p);
 
 	aflags = flags & (DF_RECORDATTACK|DF_NIGHTSATTACK);
 	I_Assert(aflags);
@@ -6820,7 +6818,10 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
+		// Old replays gotta go :]
+		CONS_Alert(CONS_NOTICE, M_GetText("File '%s' outdated version. It will be overwritten. Nyeheheh.\n"), oldname);
+		Z_Free(buffer);
+		return UINT8_MAX;
 #endif
 	// too old, cannot support.
 	default:
@@ -6838,10 +6839,8 @@ UINT8 G_CmpDemoTime(char *oldname, char *newname)
 	p += 2; // gamemap
 	p += 16; // mapmd5
 	flags = READUINT8(p);
-	if (flags & DF_FILELIST) // file list
-	{
-		G_SkipDemoExtraFiles(&p);
-	}
+	p++; // gametype
+	G_SkipDemoExtraFiles(&p);
 	if (!(flags & aflags))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("File '%s' not from same game mode. It will be overwritten.\n"), oldname);
