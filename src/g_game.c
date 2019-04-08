@@ -4889,7 +4889,7 @@ ticcmd_t *G_MoveTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 }
 
 // Finds a skin with the closest stats if the expected skin doesn't exist.
-static void FindClosestSkinForStats(UINT32 p, UINT8 kartspeed, UINT8 kartweight)
+static INT32 GetSkinNumClosestToStats(UINT8 kartspeed, UINT8 kartweight)
 {
 	INT32 i, closest_skin = 0;
 	UINT8 closest_stats = UINT8_MAX, stat_diff;
@@ -4903,6 +4903,13 @@ static void FindClosestSkinForStats(UINT32 p, UINT8 kartspeed, UINT8 kartweight)
 			closest_skin = i;
 		}
 	}
+
+	return closest_skin;
+}
+
+static void FindClosestSkinForStats(UINT32 p, UINT8 kartspeed, UINT8 kartweight)
+{
+	INT32 closest_skin = GetSkinNumClosestToStats(kartspeed, kartweight);
 
 	CONS_Printf("Using %s instead...\n", skins[closest_skin].name);
 	SetPlayerSkinByNum(p, closest_skin);
@@ -5691,6 +5698,38 @@ void G_GhostTicker(void)
 	{
 		// Skip normal demo data.
 		UINT8 ziptic = READUINT8(g->p);
+
+#ifdef DEMO_COMPAT_100
+		if (g->version != 0x0001)
+		{
+#endif
+		while (ziptic != DW_END) // Get rid of extradata stuff
+		{
+			if (ziptic == 0) // Only support player 0 info for now
+			{
+				ziptic = READUINT8(g->p);
+				if (ziptic & DXD_SKIN)
+					g->p += 18; // We _could_ read this info, but it shouldn't change anything in record attack...
+				if (ziptic & DXD_COLOR)
+					g->p += 16; // Same tbh
+				if (ziptic & DXD_NAME)
+					g->p += 16; // yea
+				if (ziptic & DXD_PLAYSTATE && READUINT8(g->p) != DXD_PST_PLAYING)
+					I_Error("Ghost is not a record attack ghost"); //@TODO lmao don't blow up like this
+			}
+			else if (ziptic == DW_RNG)
+				g->p += 4; // RNG seed
+			else
+				I_Error("Ghost is not a record attack ghost"); //@TODO lmao don't blow up like this
+
+			ziptic = READUINT8(g->p);
+		}
+
+		ziptic = READUINT8(g->p); // Back to actual ziptic stuff
+#ifdef DEMO_COMPAT_100
+		}
+#endif
+
 		if (ziptic & ZT_FWD)
 			g->p++;
 		if (ziptic & ZT_SIDE)
@@ -5708,6 +5747,19 @@ void G_GhostTicker(void)
 
 		// Grab ghost data.
 		ziptic = READUINT8(g->p);
+
+#ifdef DEMO_COMPAT_100
+		if (g->version != 0x0001)
+		{
+#endif
+		if (ziptic == 0xFF)
+			goto skippedghosttic; // Didn't write ghost info this frame
+		else if (ziptic != 0)
+			I_Error("Ghost is not a record attack ghost"); //@TODO lmao don't blow up like this
+		ziptic = READUINT8(g->p);
+#ifdef DEMO_COMPAT_100
+		}
+#endif
 		if (ziptic & GZT_XYZ)
 		{
 			g->oldmo.x = READFIXED(g->p);
@@ -5848,6 +5900,17 @@ void G_GhostTicker(void)
 				g->p += 12; // kartitem, kartamount, kartbumpers
 		}
 
+#ifdef DEMO_COMPAT_100
+		if (g->version != 0x0001)
+		{
+#endif
+		if (READUINT8(g->p) != 0xFF) // Make sure there isn't other ghost data here.
+			I_Error("Ghost is not a record attack ghost"); //@TODO lmao don't blow up like this
+#ifdef DEMO_COMPAT_100
+		}
+#endif
+
+skippedghosttic:
 		// Tick ghost colors (Super and Mario Invincibility flashing)
 		switch(g->color)
 		{
@@ -7514,6 +7577,7 @@ void G_AddGhost(char *defdemoname)
 	mapthing_t *mthing;
 	UINT16 count, ghostversion;
 	skin_t *ghskin = &skins[0];
+	UINT8 kartspeed = UINT8_MAX, kartweight = UINT8_MAX;
 
 	name[16] = '\0';
 	skin[16] = '\0';
@@ -7556,17 +7620,21 @@ void G_AddGhost(char *defdemoname)
 		Z_Free(pdemoname);
 		Z_Free(buffer);
 		return;
-	} p += 12; // DEMOHEADER
+	}
+
+	p += 12; // DEMOHEADER
 	p++; // VERSION
 	p++; // SUBVERSION
+
 	ghostversion = READUINT16(p);
 	switch(ghostversion)
 	{
 	case DEMOVERSION: // latest always supported
+		p += 64; // title
 		break;
 #ifdef DEMO_COMPAT_100
 	case 0x0001:
-		I_Error("You need to implement demo compat here, doofus! %s:%d", __FILE__, __LINE__);
+		break;
 #endif
 	// too old, cannot support.
 	default:
@@ -7575,6 +7643,7 @@ void G_AddGhost(char *defdemoname)
 		Z_Free(buffer);
 		return;
 	}
+
 	M_Memcpy(md5, p, 16); p += 16; // demo checksum
 	for (gh = ghosts; gh; gh = gh->next)
 		if (!memcmp(md5, gh->checksum, 16)) // another ghost in the game already has this checksum?
@@ -7584,20 +7653,21 @@ void G_AddGhost(char *defdemoname)
 			Z_Free(buffer);
 			return;
 		}
+
 	if (memcmp(p, "PLAY", 4))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Demo format unacceptable.\n"), pdemoname);
 		Z_Free(pdemoname);
 		Z_Free(buffer);
 		return;
-	} p += 4; // "PLAY"
+	}
+
+	p += 4; // "PLAY"
 	p += 2; // gamemap
 	p += 16; // mapmd5 (possibly check for consistency?)
+
 	flags = READUINT8(p);
-	if (flags & DF_FILELIST)
-	{
-		G_SkipDemoExtraFiles(&p); // Don't wanna modify the file list for ghosts.
-	}
+
 	if (!(flags & DF_GHOST))
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: No ghost data in this demo.\n"), pdemoname);
@@ -7605,6 +7675,16 @@ void G_AddGhost(char *defdemoname)
 		Z_Free(buffer);
 		return;
 	}
+
+#ifdef DEMO_COMPAT_100
+	if (ghostversion != 0x0001)
+#endif
+		p++; // gametype
+
+#ifdef DEMO_COMPAT_100
+	if (ghostversion != 0x0001)
+#endif
+		G_SkipDemoExtraFiles(&p); // Don't wanna modify the file list for ghosts.
 	switch ((flags & DF_ATTACKMASK)>>DF_ATTACKSHIFT)
 	{
 	case ATTACKING_NONE: // 0
@@ -7621,34 +7701,41 @@ void G_AddGhost(char *defdemoname)
 
 	p += 4; // random seed
 
-	// Player name (TODO: Display this somehow if it doesn't match cv_playername!)
-	M_Memcpy(name, p,16);
-	p += 16;
+#ifdef DEMO_COMPAT_100
+	if (ghostversion == 0x0001)
+	{
+		// Player name (TODO: Display this somehow if it doesn't match cv_playername!)
+		M_Memcpy(name, p,16);
+		p += 16;
 
-	// Skin
-	M_Memcpy(skin, p,16);
-	p += 16;
+		// Skin
+		M_Memcpy(skin, p,16);
+		p += 16;
 
-	// Color
-	M_Memcpy(color, p,16);
-	p += 16;
+		// Color
+		M_Memcpy(color, p,16);
+		p += 16;
 
-	// Ghosts do not have a player structure to put this in.
-	p++; // charability
-	p++; // charability2
-	p++; // actionspd
-	p++; // mindash
-	p++; // maxdash
-	// SRB2kart
-	p++; // kartspeed
-	p++; // kartweight
-	//
-	p++; // normalspeed
-	p++; // runspeed
-	p++; // thrustfactor
-	p++; // accelstart
-	p++; // acceleration
-	p += 4; // jumpfactor
+		// Ghosts do not have a player structure to put this in.
+		p++; // charability
+		p++; // charability2
+		p++; // actionspd
+		p++; // mindash
+		p++; // maxdash
+		// SRB2kart
+		p++; // kartspeed
+		p++; // kartweight
+		//
+		p++; // normalspeed
+		p++; // runspeed
+		p++; // thrustfactor
+		p++; // accelstart
+		p++; // acceleration
+		p += 4; // jumpfactor
+	}
+	else
+#endif
+	p += 4; // Extra data location reference
 
 	// net var data
 	count = READUINT16(p);
@@ -7667,6 +7754,46 @@ void G_AddGhost(char *defdemoname)
 		return;
 	}
 
+#ifdef DEMO_COMPAT_100
+	if (ghostversion != 0x0001)
+	{
+#endif
+	if (READUINT8(p) != 0)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Failed to add ghost %s: Invalid player slot.\n"), pdemoname);
+		Z_Free(pdemoname);
+		Z_Free(buffer);
+		return;
+	}
+
+	// Player name (TODO: Display this somehow if it doesn't match cv_playername!)
+	M_Memcpy(name, p, 16);
+	p += 16;
+
+	// Skin
+	M_Memcpy(skin, p, 16);
+	p += 16;
+
+	// Color
+	M_Memcpy(color, p, 16);
+	p += 16;
+
+	p += 4; // score
+
+	kartspeed = READUINT8(p);
+	kartweight = READUINT8(p);
+
+	if (READUINT8(p) != 0xFF)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("Failed to add ghost %s: Invalid player slot.\n"), pdemoname);
+		Z_Free(pdemoname);
+		Z_Free(buffer);
+		return;
+	}
+#ifdef DEMO_COMPAT_100
+	}
+#endif
+
 	for (i = 0; i < numskins; i++)
 		if (!stricmp(skins[i].name,skin))
 		{
@@ -7676,11 +7803,10 @@ void G_AddGhost(char *defdemoname)
 
 	if (i == numskins)
 	{
-		//@TODO nah this should fallback
-		CONS_Alert(CONS_NOTICE, M_GetText("Failed to add ghost %s: Invalid character.\n"), pdemoname);
-		Z_Free(pdemoname);
-		Z_Free(buffer);
-		return;
+		if (kartspeed != UINT8_MAX && kartweight != UINT8_MAX)
+			ghskin = &skins[GetSkinNumClosestToStats(kartspeed, kartweight)];
+
+		CONS_Alert(CONS_NOTICE, M_GetText("Ghost %s: Invalid character. Falling back to %s.\n"), pdemoname, ghskin->name);
 	}
 
 	gh = Z_Calloc(sizeof(demoghost), PU_LEVEL, NULL);
