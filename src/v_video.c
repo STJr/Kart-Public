@@ -1223,7 +1223,9 @@ void V_DrawVhsEffect(boolean rewind)
 	UINT32 pos = 0;
 
 	UINT8 *normalmapstart = ((UINT8 *)transtables + (8<<FF_TRANSSHIFT|(19<<8)));
-	//UINT8 *barmapstart = ((UINT8 *)transtables + (6<<FF_TRANSSHIFT|(25<<8)));
+#ifdef HQ_VHS
+	UINT8 *tmapstart = ((UINT8 *)transtables + (6<<FF_TRANSSHIFT));
+#endif
 	UINT8 *thismapstart;
 	UINT16 randommask;
 	INT8 offs;
@@ -1248,14 +1250,11 @@ void V_DrawVhsEffect(boolean rewind)
 
 		if (y >= upbary && y < upbary+barsize)
 		{
-			//randommask = 0x0300;
 			thismapstart -= (2<<FF_TRANSSHIFT) - (5<<8);
 			offs += updistort * 2.0f * min(y-upbary, upbary+barsize-y) / barsize;
 		}
 		if (y >= downbary && y < downbary+barsize)
 		{
-			//randommask = 0x0300;
-			//thismapstart = barmapstart;
 			thismapstart -= (2<<FF_TRANSSHIFT) - (5<<8);
 			offs -= downdistort * 2.0f * min(y-downbary, downbary+barsize-y) / barsize;
 		}
@@ -1266,9 +1265,13 @@ void V_DrawVhsEffect(boolean rewind)
 		else if (y == vid.height-1 && offs > 0) offs = 0;
 
 		for (x = 0; x < vid.rowbytes; x++, pos++)
-			tmp[pos] = thismapstart[/*(M_RandomFixed()&randommask)|*/buf[pos+offs]];
+		{
+			tmp[pos] = thismapstart[buf[pos+offs]];
+#ifdef HQ_VHS
+			tmp[pos] = tmapstart[buf[pos]<<8 | tmp[pos]];
+#endif
+		}
 	}
-	(void)randommask;
 
 	memcpy(buf, tmp, vid.rowbytes*vid.height);
 }
