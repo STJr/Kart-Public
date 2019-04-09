@@ -1227,7 +1227,6 @@ void V_DrawVhsEffect(boolean rewind)
 	UINT8 *tmapstart = ((UINT8 *)transtables + (6<<FF_TRANSSHIFT));
 #endif
 	UINT8 *thismapstart;
-	UINT16 randommask;
 	INT8 offs;
 
 	UINT8 barsize = vid.dupy<<5;
@@ -1244,7 +1243,6 @@ void V_DrawVhsEffect(boolean rewind)
 
 	for (y = 0; y < vid.height; y++)
 	{
-		randommask = 0x0700;
 		thismapstart = normalmapstart;
 		offs = 0;
 
