@@ -5126,7 +5126,7 @@ menudemo_t *demolist;
 
 #define DF_ENCORE       0x40
 static INT16 replayScrollTitle = 0;
-static INT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
+static SINT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
 
 static void PrepReplayList(void)
 {
