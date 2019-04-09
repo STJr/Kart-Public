@@ -571,6 +571,9 @@ static void D_Display(void)
 	if (demo.rewinding)
 		V_DrawFadeScreen(TC_RAINBOW, (leveltime & 0x20) ? SKINCOLOR_PASTEL : SKINCOLOR_MOONSLAM);
 
+	if (cv_vhseffect.value && (paused || (demo.playback && cv_playbackspeed.value > 1)))
+		V_DrawVhsEffect(demo.rewinding);
+
 	// vid size change is now finished if it was on...
 	vid.recalc = 0;
 
@@ -627,6 +630,9 @@ static void D_Display(void)
 			snprintf(s, sizeof s - 1, "SysMiss %.2f%%", lostpercent);
 			V_DrawRightAlignedString(BASEVIDWIDTH, BASEVIDHEIGHT-ST_HEIGHT-10, V_YELLOWMAP, s);
 		}
+
+		if (cv_shittyscreen.value)
+			V_DrawVhsEffect(cv_shittyscreen.value == 2);
 
 		I_FinishUpdate(); // page flip or blit buffer
 	}

@@ -1214,6 +1214,65 @@ void V_DrawPatchFill(patch_t *pat)
 	}
 }
 
+void V_DrawVhsEffect(boolean rewind)
+{
+	static fixed_t upbary = 100, downbary = 150;
+
+	UINT8 *buf = screens[0], *tmp = screens[4];
+	UINT16 x, y;
+	UINT32 pos = 0;
+
+	UINT8 *normalmapstart = ((UINT8 *)transtables + (8<<FF_TRANSSHIFT|(19<<8)));
+	//UINT8 *barmapstart = ((UINT8 *)transtables + (6<<FF_TRANSSHIFT|(25<<8)));
+	UINT8 *thismapstart;
+	UINT16 randommask;
+	INT8 offs;
+
+	UINT8 barsize = vid.dupy<<5;
+	UINT8 updistort = vid.dupx<<(rewind ? 5 : 3);
+	UINT8 downdistort = updistort>>1;
+
+	if (rewind)
+		V_DrawVhsEffect(false); // experimentation
+
+	upbary -= vid.dupy * (rewind ? 3 : 1.8f);
+	downbary += vid.dupy * (rewind ? 2 : 1);
+	if (upbary < -barsize) upbary = vid.height;
+	if (downbary > vid.height) downbary = -barsize;
+
+	for (y = 0; y < vid.height; y++)
+	{
+		randommask = 0x0700;
+		thismapstart = normalmapstart;
+		offs = 0;
+
+		if (y >= upbary && y < upbary+barsize)
+		{
+			//randommask = 0x0300;
+			thismapstart -= (2<<FF_TRANSSHIFT) - (5<<8);
+			offs += updistort * 2.0f * min(y-upbary, upbary+barsize-y) / barsize;
+		}
+		if (y >= downbary && y < downbary+barsize)
+		{
+			//randommask = 0x0300;
+			//thismapstart = barmapstart;
+			thismapstart -= (2<<FF_TRANSSHIFT) - (5<<8);
+			offs -= downdistort * 2.0f * min(y-downbary, downbary+barsize-y) / barsize;
+		}
+		offs += M_RandomKey(vid.dupx<<1);
+
+		// lazy way to avoid crashes
+		if (y == 0 && offs < 0) offs = 0;
+		else if (y == vid.height-1 && offs > 0) offs = 0;
+
+		for (x = 0; x < vid.rowbytes; x++, pos++)
+			tmp[pos] = thismapstart[/*(M_RandomFixed()&randommask)|*/buf[pos+offs]];
+	}
+	(void)randommask;
+
+	memcpy(buf, tmp, vid.rowbytes*vid.height);
+}
+
 //
 // Fade all the screen buffer, so that the menu is more readable,
 // especially now that we use the small hufont in the menus...
