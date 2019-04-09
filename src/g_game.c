@@ -7048,7 +7048,7 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 	}
 
 	// I think that's everything we need?
-	free(infobuffer);
+	Z_Free(infobuffer);
 }
 
 //
