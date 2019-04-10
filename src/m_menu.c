@@ -5435,6 +5435,9 @@ static void M_DrawReplayHut(void)
 
 	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
 
+	if (cv_vhseffect.value)
+		V_DrawVhsEffect(false);
+
 	// Draw menu choices
 	x = currentMenu->x;
 	y = currentMenu->y;
