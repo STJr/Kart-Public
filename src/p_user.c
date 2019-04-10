@@ -8779,6 +8779,19 @@ void P_PlayerThink(player_t *player)
 
 	cmd = &player->cmd;
 
+	//@TODO This fixes a one-tic latency on direction handling, AND makes behavior consistent while paused, but is not BC with 1.0.4. Do this for 1.1!
+#if 0
+	// SRB2kart
+	// Save the dir the player is holding
+	//  to allow items to be thrown forward or backward.
+	if (cmd->buttons & BT_FORWARD)
+		player->kartstuff[k_throwdir] = 1;
+	else if (cmd->buttons & BT_BACKWARD)
+		player->kartstuff[k_throwdir] = -1;
+	else
+		player->kartstuff[k_throwdir] = 0;
+#endif
+
 	// Add some extra randomization.
 	if (cmd->forwardmove)
 		P_RandomFixed();
