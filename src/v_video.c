@@ -1227,7 +1227,7 @@ void V_DrawVhsEffect(boolean rewind)
 	UINT8 *tmapstart = ((UINT8 *)transtables + (6<<FF_TRANSSHIFT));
 #endif
 	UINT8 *thismapstart;
-	INT8 offs;
+	SINT8 offs;
 
 	UINT8 barsize = vid.dupy<<5;
 	UINT8 updistort = vid.dupx<<(rewind ? 5 : 3);
