@@ -1219,8 +1219,8 @@ void V_DrawVhsEffect(boolean rewind)
 	static fixed_t upbary = 100, downbary = 150;
 
 	UINT8 *buf = screens[0], *tmp = screens[4];
-	UINT16 x, y;
-	UINT32 pos = 0;
+	UINT16 y;
+	UINT32 x, pos = 0;
 
 	UINT8 *normalmapstart = ((UINT8 *)transtables + (8<<FF_TRANSSHIFT|(19<<8)));
 #ifdef HQ_VHS
@@ -1241,7 +1241,7 @@ void V_DrawVhsEffect(boolean rewind)
 	if (upbary < -barsize) upbary = vid.height;
 	if (downbary > vid.height) downbary = -barsize;
 
-	for (y = 0; y < vid.height; y++)
+	for (y = 0; y < vid.height; y+=2)
 	{
 		thismapstart = normalmapstart;
 		offs = 0;
@@ -1260,9 +1260,9 @@ void V_DrawVhsEffect(boolean rewind)
 
 		// lazy way to avoid crashes
 		if (y == 0 && offs < 0) offs = 0;
-		else if (y == vid.height-1 && offs > 0) offs = 0;
+		else if (y >= vid.height-2 && offs > 0) offs = 0;
 
-		for (x = 0; x < vid.rowbytes; x++, pos++)
+		for (x = pos+vid.rowbytes*2; pos < x; pos++)
 		{
 			tmp[pos] = thismapstart[buf[pos+offs]];
 #ifdef HQ_VHS
