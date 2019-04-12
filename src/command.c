@@ -537,10 +537,48 @@ static void COM_ExecuteString(char *ptext)
 			{
 				CONS_Alert(CONS_WARNING, M_GetText("Alias recursion cycle detected!\n"));
 				recursion = 0;
-				return;
 			}
-			recursion++;
-			COM_BufInsertText(a->value);
+			else
+			{
+				char buf[1024];
+				char *write = buf, *read = a->value, *seek = read;
+
+				while (*seek != '\0')
+				{
+					if (*seek == '$')
+					{
+						memcpy(write, read, seek-read);
+						write += seek-read;
+
+						seek++;
+
+						if (*seek >= '1' && *seek <= '9')
+						{
+							if (com_argc > (size_t)(*seek - '0'))
+							{
+								memcpy(write, com_argv[*seek - '0'], strlen(com_argv[*seek - '0']));
+								write += strlen(com_argv[*seek - '0']);
+							}
+							seek++;
+						}
+						else
+						{
+							*write = '$';
+							write++;
+						}
+
+						read = seek;
+					}
+					else
+						seek++;
+				}
+				memcpy(write, read, seek-read);
+				write += seek-read;
+				*write = '\0';
+
+				recursion++;
+				COM_BufInsertText(buf);
+			}
 			return;
 		}
 	}
