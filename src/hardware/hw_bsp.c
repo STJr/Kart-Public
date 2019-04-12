@@ -14,6 +14,7 @@
 #include "../doomdef.h"
 #include "../doomstat.h"
 #ifdef HWRENDER
+#include "hw_main.h"
 #include "hw_glob.h"
 #include "../r_local.h"
 #include "../z_zone.h"

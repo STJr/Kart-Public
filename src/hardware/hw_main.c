@@ -16,6 +16,7 @@
 #include "../doomstat.h"
 
 #ifdef HWRENDER
+#include "hw_main.h"
 #include "hw_glob.h"
 #include "hw_drv.h"
 #include "hw_md2.h"
@@ -49,26 +50,12 @@
 struct hwdriver_s hwdriver;
 
 // ==========================================================================
-//                                                                     PROTOS
+// Commands and console variables
 // ==========================================================================
-
-static void HWR_AddSprites(sector_t *sec);
-static void HWR_ProjectSprite(mobj_t *thing);
-static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing);
-
-void HWR_AddTransparentFloor(lumpnum_t lumpnum, extrasubsector_t *xsub, boolean isceiling, fixed_t fixedheight,
-                             INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, boolean fogplane, extracolormap_t *planecolormap);
-void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector, boolean isceiling, fixed_t fixedheight,
-                             INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, extracolormap_t *planecolormap);
-
-static void HWR_FoggingOn(void);
 
 static void CV_filtermode_ONChange(void);
 static void CV_anisotropic_ONChange(void);
 static void CV_grFov_OnChange(void);
-// ==========================================================================
-//                                          3D ENGINE COMMANDS & CONSOLE VARS
-// ==========================================================================
 
 static CV_PossibleValue_t grfov_cons_t[] = {{0, "MIN"}, {179*FRACUNIT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t grfiltermode_cons_t[]= {{HWD_SET_TEXTUREFILTER_POINTSAMPLED, "Nearest"},
@@ -101,7 +88,7 @@ static void CV_anisotropic_ONChange(void)
 }
 
 // ==========================================================================
-//                                                                    GLOBALS
+// Globals
 // ==========================================================================
 
 // base values set at SetViewSize
@@ -122,18 +109,20 @@ static line_t *gr_linedef;
 static sector_t *gr_frontsector;
 static sector_t *gr_backsector;
 
-// --------------------------------------------------------------------------
-//                                              STUFF FOR THE PROJECTION CODE
-// --------------------------------------------------------------------------
+// ==========================================================================
+// View position
+// ==========================================================================
 
 FTransform atransform;
 
-// Float variants of viewx, viewy, viewz etc...
+// Float variants of viewx, viewy, viewz, etc.
 static float gr_viewx, gr_viewy, gr_viewz;
 static float gr_viewsin, gr_viewcos;
 
+static INT32 drawcount = 0;
+
 // ==========================================================================
-//                                    LIGHT stuffs
+// Lighting
 // ==========================================================================
 
 #define CALCLIGHT(x,y) ((float)(x)*((y)/255.0f))
@@ -184,10 +173,11 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 
 	// You see the problem is that darker light isn't actually as dark as it SHOULD be.
 	lightmix = 255 - ((255 - light_level)*100/96);
-	// fml
+
+	// Don't go out of bounds
 	if (lightmix < 0)
 		lightmix = 0;
-	if (lightmix > 255)
+	else if (lightmix > 255)
 		lightmix = 255;
 
 	mix_color.rgba = mixcolor;
@@ -231,7 +221,7 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 	Surface->LightInfo.light_level = light_level;
 }
 
-static UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color) // Let's see if this can work
+UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color) // Let's see if this can work
 {
 	RGBA_t realcolor, surfcolor;
 	INT32 alpha;
@@ -256,14 +246,12 @@ static UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color) // Let's see if this c
 }
 
 // ==========================================================================
-//                                   FLOOR/CEILING GENERATION FROM SUBSECTORS
+// Floor and ceiling generation from subsectors
 // ==========================================================================
 
-// -----------------+
-// HWR_RenderPlane  : Render a floor or ceiling convex polygon
-// -----------------+
-static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean isceiling, fixed_t fixedheight,
-                           FBITFIELD PolyFlags, INT32 lightlevel, lumpnum_t lumpnum, sector_t *FOFsector, UINT8 alpha, boolean fogplane, extracolormap_t *planecolormap)
+// HWR_RenderPlane
+// Render a floor or ceiling convex polygon
+void HWR_RenderPlane(extrasubsector_t *xsub, boolean isceiling, fixed_t fixedheight, FBITFIELD PolyFlags, INT32 lightlevel, lumpnum_t lumpnum, sector_t *FOFsector, UINT8 alpha, extracolormap_t *planecolormap)
 {
 	polyvertex_t *  pv;
 	float           height; //constant y for all points on the convex flat polygon
@@ -284,9 +272,6 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 
 	static FOutVector *planeVerts = NULL;
 	static UINT16 numAllocedPlaneVerts = 0;
-
-	(void)sector; ///@TODO remove shitty unused variable
-	(void)fogplane; ///@TODO remove shitty unused variable
 
 	// no convex poly were generated for this subsector
 	if (!xsub->planepoly)
@@ -476,13 +461,6 @@ static void HWR_RenderPlane(sector_t *sector, extrasubsector_t *xsub, boolean is
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, PolyFlags);
 }
 
-/*
-   wallVerts order is :
-		3--2
-		| /|
-		|/ |
-		0--1
-*/
 #ifdef WALLSPLATS
 static void HWR_DrawSegsSplats(FSurfaceInfo * pSurf)
 {
@@ -549,11 +527,6 @@ static void HWR_DrawSegsSplats(FSurfaceInfo * pSurf)
 }
 #endif
 
-// ==========================================================================
-//                                        WALL GENERATION FROM SUBSECTOR SEGS
-// ==========================================================================
-
-
 FBITFIELD HWR_TranstableToAlpha(INT32 transtablenum, FSurfaceInfo *pSurf)
 {
 	switch (transtablenum)
@@ -571,25 +544,14 @@ FBITFIELD HWR_TranstableToAlpha(INT32 transtablenum, FSurfaceInfo *pSurf)
 	return PF_Translucent;
 }
 
-// v1,v2 : the start & end vertices along the original wall segment, that may have been
-//         clipped so that only a visible portion of the wall seg is drawn.
-// floorheight, ceilingheight : depend on wall upper/lower/middle, comes from the sectors.
+// ==========================================================================
+// Wall generation from subsector segs
+// ==========================================================================
 
-static void HWR_AddTransparentWall(FOutVector *wallVerts, FSurfaceInfo * pSurf, INT32 texnum, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap);
-
-// -----------------+
-// HWR_ProjectWall  :
-// -----------------+
-/*
-   wallVerts order is :
-		3--2
-		| /|
-		|/ |
-		0--1
-*/
-static void HWR_ProjectWall(FOutVector   * wallVerts,
-                                    FSurfaceInfo * pSurf,
-                                    FBITFIELD blendmode, INT32 lightlevel, extracolormap_t *wallcolormap)
+//
+// HWR_ProjectWall
+//
+void HWR_ProjectWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blendmode, INT32 lightlevel, extracolormap_t *wallcolormap)
 {
 	if (wallcolormap)
 		HWR_Lighting(pSurf, lightlevel, wallcolormap->rgba, wallcolormap->fadergba);
@@ -605,14 +567,10 @@ static void HWR_ProjectWall(FOutVector   * wallVerts,
 #endif
 }
 
-// ==========================================================================
-//                                                          BSP, CULL, ETC..
-// ==========================================================================
-
 //
 // HWR_SplitWall
 //
-static void HWR_SplitWall(sector_t *sector, FOutVector *wallVerts, INT32 texnum, FSurfaceInfo* Surf, INT32 cutflag, ffloor_t *pfloor)
+void HWR_SplitWall(sector_t *sector, FOutVector *wallVerts, INT32 texnum, FSurfaceInfo* Surf, INT32 cutflag, ffloor_t *pfloor)
 {
 	/* SoM: split up and light walls according to the
 	 lightlist. This may also include leaving out parts
@@ -659,12 +617,11 @@ static void HWR_SplitWall(sector_t *sector, FOutVector *wallVerts, INT32 texnum,
 	for (i = 0; i < sector->numlights; i++)
 	{
 #ifdef ESLOPE
-        if (endtop < endrealbot)
+		if (endtop < endrealbot)
 #endif
 		if (top < realbot)
 			return;
 
-	// There's a compiler warning here if this comment isn't here because of indentation
 		if (!(list[i].flags & FF_NOSHADE))
 		{
 			if (pfloor && (pfloor->flags & FF_FOG))
@@ -859,7 +816,7 @@ static void HWR_SplitWall(sector_t *sector, FOutVector *wallVerts, INT32 texnum,
 
 // HWR_DrawSkyWalls
 // Draw walls into the depth buffer so that anything behind is culled properly
-static void HWR_DrawSkyWall(FOutVector *wallVerts, FSurfaceInfo *Surf, fixed_t bottom, fixed_t top)
+void HWR_DrawSkyWall(FOutVector *wallVerts, FSurfaceInfo *Surf, fixed_t bottom, fixed_t top)
 {
 	HWD.pfnSetTexture(NULL);
 	// no texture
@@ -883,7 +840,7 @@ static void HWR_DrawSkyWall(FOutVector *wallVerts, FSurfaceInfo *Surf, fixed_t b
 // Anything between means the wall segment has been clipped with solidsegs,
 //  reducing wall overdraw to a minimum
 //
-static void HWR_ProcessSeg(void) // Sort of like GLWall::Process in GZDoom
+void HWR_ProcessSeg(void) // Sort of like GLWall::Process in GZDoom
 {
 	FOutVector wallVerts[4];
 	v2d_t vs, ve; // start, end vertices of 2d line (view from above)
@@ -1976,12 +1933,9 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 	return false;
 }
 
-// -----------------+
-// HWR_AddLine      : Clips the given segment and adds any visible pieces to the line list.
-// Notes            : gr_cursectorlight is set to the current subsector -> sector -> light value
-//                  : (it may be mixed with the wall's own flat colour in the future ...)
-// -----------------+
-static void HWR_AddLine(seg_t * line)
+// HWR_AddLine
+// Clips the given segment and adds any visible pieces to the line list.
+void HWR_AddLine(seg_t *line)
 {
 	angle_t angle1, angle2;
 
@@ -2046,7 +2000,7 @@ static void HWR_AddLine(seg_t * line)
 //
 // modified to use local variables
 
-static boolean HWR_CheckBBox(fixed_t *bspcoord)
+boolean HWR_CheckBBox(fixed_t *bspcoord)
 {
 	INT32 boxpos;
 	fixed_t px1, py1, px2, py2;
@@ -2090,7 +2044,7 @@ static boolean HWR_CheckBBox(fixed_t *bspcoord)
 // Adds all segs in all polyobjects in the given subsector.
 // Modified for hardware rendering.
 //
-static inline void HWR_AddPolyObjectSegs(void)
+void HWR_AddPolyObjectSegs(void)
 {
 	size_t i, j;
 	seg_t *gr_fakeline = Z_Calloc(sizeof(seg_t), PU_STATIC, NULL);
@@ -2126,9 +2080,7 @@ static inline void HWR_AddPolyObjectSegs(void)
 }
 
 #ifdef POLYOBJECTS_PLANES
-static void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, fixed_t fixedheight,
-									FBITFIELD blendmode, UINT8 lightlevel, lumpnum_t lumpnum, sector_t *FOFsector,
-									UINT8 alpha, extracolormap_t *planecolormap)
+void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, fixed_t fixedheight, FBITFIELD blendmode, UINT8 lightlevel, lumpnum_t lumpnum, sector_t *FOFsector, UINT8 alpha, extracolormap_t *planecolormap)
 {
 	float           height; //constant y for all points on the convex flat polygon
 	FOutVector      *v3d;
@@ -2292,7 +2244,7 @@ static void HWR_RenderPolyObjectPlane(polyobj_t *polysector, boolean isceiling, 
 	HWD.pfnDrawPolygon(&Surf, planeVerts, nrPlaneVerts, blendmode);
 }
 
-static void HWR_AddPolyObjectPlanes(void)
+void HWR_AddPolyObjectPlanes(void)
 {
 	size_t i;
 	sector_t *polyobjsector;
@@ -2360,9 +2312,8 @@ static void HWR_AddPolyObjectPlanes(void)
 // HWR_Subsector    : Determine floor/ceiling planes.
 //                  : Add sprites of things in sector.
 //                  : Draw one or more line segments.
-// Notes            : Sets gr_cursectorlight to the light of the parent sector, to modulate wall textures
 // -----------------+
-static void HWR_Subsector(size_t num)
+void HWR_Subsector(size_t num)
 {
 	INT16 count;
 	seg_t *line;
@@ -2380,11 +2331,6 @@ static void HWR_Subsector(size_t num)
 	if (num >= addsubsector)
 		I_Error("HWR_Subsector: ss %s with numss = %s, addss = %s\n",
 			sizeu1(num), sizeu2(numsubsectors), sizeu3(addsubsector));
-
-	/*if (num >= numsubsectors)
-		I_Error("HWR_Subsector: ss %i with numss = %i",
-		        num,
-		        numsubsectors);*/
 #endif
 
 	if (num < numsubsectors)
@@ -2488,11 +2434,11 @@ static void HWR_Subsector(size_t num)
 			if (sub->validcount != validcount)
 			{
 				HWR_GetFlat(levelflats[gr_frontsector->floorpic].lumpnum);
-				HWR_RenderPlane(gr_frontsector, &extrasubsectors[num], false,
+				HWR_RenderPlane(&extrasubsectors[num], false,
 					// Hack to make things continue to work around slopes.
 					locFloorHeight == cullFloorHeight ? locFloorHeight : gr_frontsector->floorheight,
 					// We now return you to your regularly scheduled rendering.
-					PF_Occlude, floorlightlevel, levelflats[gr_frontsector->floorpic].lumpnum, NULL, 255, false, floorcolormap);
+					PF_Occlude, floorlightlevel, levelflats[gr_frontsector->floorpic].lumpnum, NULL, 255, floorcolormap);
 			}
 		}
 	}
@@ -2504,11 +2450,11 @@ static void HWR_Subsector(size_t num)
 			if (sub->validcount != validcount)
 			{
 				HWR_GetFlat(levelflats[gr_frontsector->ceilingpic].lumpnum);
-				HWR_RenderPlane(NULL, &extrasubsectors[num], true,
+				HWR_RenderPlane(&extrasubsectors[num], true,
 					// Hack to make things continue to work around slopes.
 					locCeilingHeight == cullCeilingHeight ? locCeilingHeight : gr_frontsector->ceilingheight,
 					// We now return you to your regularly scheduled rendering.
-					PF_Occlude, ceilinglightlevel, levelflats[gr_frontsector->ceilingpic].lumpnum,NULL, 255, false, ceilingcolormap);
+					PF_Occlude, ceilinglightlevel, levelflats[gr_frontsector->ceilingpic].lumpnum,NULL, 255, ceilingcolormap);
 			}
 		}
 	}
@@ -2577,8 +2523,8 @@ static void HWR_Subsector(size_t num)
 				{
 					HWR_GetFlat(levelflats[*rover->bottompic].lumpnum);
 					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
-					HWR_RenderPlane(NULL, &extrasubsectors[num], false, *rover->bottomheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->bottompic].lumpnum,
-					                rover->master->frontsector, 255, false, gr_frontsector->lightlist[light].extra_colormap);
+					HWR_RenderPlane(&extrasubsectors[num], false, *rover->bottomheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->bottompic].lumpnum,
+					                rover->master->frontsector, 255, gr_frontsector->lightlist[light].extra_colormap);
 				}
 			}
 
@@ -2632,8 +2578,8 @@ static void HWR_Subsector(size_t num)
 				{
 					HWR_GetFlat(levelflats[*rover->toppic].lumpnum);
 					light = R_GetPlaneLight(gr_frontsector, centerHeight, viewz < cullHeight ? true : false);
-					HWR_RenderPlane(NULL, &extrasubsectors[num], true, *rover->topheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->toppic].lumpnum,
-					                  rover->master->frontsector, 255, false, gr_frontsector->lightlist[light].extra_colormap);
+					HWR_RenderPlane(&extrasubsectors[num], true, *rover->topheight, (rover->flags & FF_RIPPLE ? PF_Ripple : 0)|PF_Occlude, *gr_frontsector->lightlist[light].lightlevel, levelflats[*rover->toppic].lumpnum,
+					                  rover->master->frontsector, 255, gr_frontsector->lightlist[light].extra_colormap);
 				}
 			}
 		}
@@ -2706,7 +2652,7 @@ static void HWR_Subsector(size_t num)
 //  traversing subtree recursively.
 // Just call with BSP root.
 
-static void HWR_RenderBSPNode(INT32 bspnum)
+void HWR_RenderBSPNode(INT32 bspnum)
 {
 	node_t *bsp = &nodes[bspnum];
 
@@ -3651,10 +3597,6 @@ typedef struct
 static wallinfo_t *wallinfo = NULL;
 static size_t numwalls = 0; // a list of transparent walls to be drawn
 
-static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap);
-
-#define MAX_TRANSPARENTWALL 256
-
 typedef struct
 {
 	extrasubsector_t *xsub;
@@ -3690,7 +3632,6 @@ typedef struct
 static size_t numpolyplanes = 0; // a list of transparent poyobject floors to be drawn
 static polyplaneinfo_t *polyplaneinfo = NULL;
 
-//Hurdler: 3D water sutffs
 typedef struct gr_drawnode_s
 {
 	planeinfo_t *plane;
@@ -3699,13 +3640,11 @@ typedef struct gr_drawnode_s
 	gr_vissprite_t *sprite;
 } gr_drawnode_t;
 
-static INT32 drawcount = 0;
-
+#define MAX_TRANSPARENTWALL 256
 #define MAX_TRANSPARENTFLOOR 512
 
 // This will likely turn into a copy of HWR_Add3DWater and replace it.
-void HWR_AddTransparentFloor(lumpnum_t lumpnum, extrasubsector_t *xsub, boolean isceiling,
-	fixed_t fixedheight, INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, boolean fogplane, extracolormap_t *planecolormap)
+void HWR_AddTransparentFloor(lumpnum_t lumpnum, extrasubsector_t *xsub, boolean isceiling, fixed_t fixedheight, INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, boolean fogplane, extracolormap_t *planecolormap)
 {
 	static size_t allocedplanes = 0;
 
@@ -3736,8 +3675,7 @@ void HWR_AddTransparentFloor(lumpnum_t lumpnum, extrasubsector_t *xsub, boolean 
 
 // Adding this for now until I can create extrasubsector info for polyobjects
 // When that happens it'll just be done through HWR_AddTransparentFloor and HWR_RenderPlane
-void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector, boolean isceiling,
-	fixed_t fixedheight, INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, extracolormap_t *planecolormap)
+void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector, boolean isceiling, fixed_t fixedheight, INT32 lightlevel, INT32 alpha, sector_t *FOFSector, FBITFIELD blend, extracolormap_t *planecolormap)
 {
 	static size_t allocedpolyplanes = 0;
 
@@ -3764,10 +3702,9 @@ void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector,
 	numpolyplanes++;
 }
 
-//
 // HWR_RenderDrawNodes
 // Creates, sorts and renders a list of drawnodes for the current frame.
-static void HWR_RenderDrawNodes(void)
+void HWR_RenderDrawNodes(void)
 {
 	UINT32 i = 0, p = 0, prev = 0, loop;
 	const fixed_t pviewz = viewz;
@@ -3918,8 +3855,8 @@ static void HWR_RenderDrawNodes(void)
 
 			if (!(sortnode[sortindex[i]].plane->blend & PF_NoTexture))
 				HWR_GetFlat(sortnode[sortindex[i]].plane->lumpnum);
-			HWR_RenderPlane(NULL, sortnode[sortindex[i]].plane->xsub, sortnode[sortindex[i]].plane->isceiling, sortnode[sortindex[i]].plane->fixedheight, sortnode[sortindex[i]].plane->blend, sortnode[sortindex[i]].plane->lightlevel,
-				sortnode[sortindex[i]].plane->lumpnum, sortnode[sortindex[i]].plane->FOFSector, sortnode[sortindex[i]].plane->alpha, sortnode[sortindex[i]].plane->fogplane, sortnode[sortindex[i]].plane->planecolormap);
+			HWR_RenderPlane(sortnode[sortindex[i]].plane->xsub, sortnode[sortindex[i]].plane->isceiling, sortnode[sortindex[i]].plane->fixedheight, sortnode[sortindex[i]].plane->blend, sortnode[sortindex[i]].plane->lightlevel,
+				sortnode[sortindex[i]].plane->lumpnum, sortnode[sortindex[i]].plane->FOFSector, sortnode[sortindex[i]].plane->alpha, /*sortnode[sortindex[i]].plane->fogplane,*/ sortnode[sortindex[i]].plane->planecolormap);
 		}
 		else if (sortnode[sortindex[i]].polyplane)
 		{
@@ -3952,8 +3889,7 @@ static void HWR_RenderDrawNodes(void)
 // --------------------------------------------------------------------------
 //  Draw all vissprites
 // --------------------------------------------------------------------------
-// added the stransform so they can be switched as drawing happenes so MD2s and sprites are sorted correctly with each other
-static void HWR_DrawSprites(void)
+void HWR_DrawSprites(void)
 {
 	if (gr_visspritecount > 0)
 	{
@@ -3989,8 +3925,7 @@ static void HWR_DrawSprites(void)
 // HWR_AddSprites
 // During BSP traversal, this adds sprites by sector.
 // --------------------------------------------------------------------------
-static UINT8 sectorlight;
-static void HWR_AddSprites(sector_t *sec)
+void HWR_AddSprites(sector_t *sec)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing;
@@ -4005,9 +3940,6 @@ static void HWR_AddSprites(sector_t *sec)
 
 	// Well, now it will be done.
 	sec->validcount = validcount;
-
-	// sprite lighting
-	sectorlight = sec->lightlevel & 0xff;
 
 	// Handle all things in sector.
 	// If a limit exists, handle things a tiny bit different.
@@ -4064,7 +3996,7 @@ static void HWR_AddSprites(sector_t *sec)
 //  Generates a vissprite for a thing if it might be visible.
 // --------------------------------------------------------------------------
 // BP why not use xtoviexangle/viewangletox like in bsp ?....
-static void HWR_ProjectSprite(mobj_t *thing)
+void HWR_ProjectSprite(mobj_t *thing)
 {
 	gr_vissprite_t *vis;
 	float tr_x, tr_y;
@@ -4259,7 +4191,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 }
 
 // Precipitation projector for hardware mode
-static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
+void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 {
 	gr_vissprite_t *vis;
 	float tr_x, tr_y;
@@ -4362,16 +4294,18 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->precip = true;
 }
 
-// ==========================================================================
-//
-// ==========================================================================
-static void HWR_DrawSkyBackground(void)
+static boolean drewsky = false;
+
+void HWR_DrawSkyBackground(void)
 {
 	FOutVector v[4];
 	angle_t angle;
 	float dimensionmultiply;
 	float aspectratio;
 	float angleturn;
+
+	if (drewsky)
+		return;
 
 	HWR_GetTexture(skytexture);
 	aspectratio = (float)vid.width/(float)vid.height;
@@ -4555,6 +4489,8 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 
 	// Draw the sky background.
 	HWR_DrawSkyBackground();
+	if (skybox)
+		drewsky = true;
 
 	a1 = gld_FrustumAngle();
 	gld_clipper_Clear();
@@ -4633,6 +4569,7 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	// Render the skybox if there is one.
 	if (skybox)
 	{
+		drewsky = false;
 		R_SkyboxFrame(player);
 		HWR_RenderFrame(viewnumber, player, true);
 	}
@@ -4645,7 +4582,7 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 //                                                                        FOG
 // ==========================================================================
 
-static void HWR_FoggingOn(void)
+void HWR_FoggingOn(void)
 {
 	HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, cv_grsoftwarefog.value ? 2 : 1);
 	HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, cv_grfogdensity.value);
@@ -4721,7 +4658,7 @@ void HWR_Shutdown(void)
 	HWD.pfnFlushScreenTextures();
 }
 
-static void HWR_AddTransparentWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, INT32 texnum, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
+void HWR_AddTransparentWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, INT32 texnum, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
 {
 	static size_t allocedwalls = 0;
 
@@ -4746,7 +4683,7 @@ static void HWR_AddTransparentWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, I
 	numwalls++;
 }
 
-static void HWR_RenderWall(FOutVector   *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
+void HWR_RenderWall(FOutVector *wallVerts, FSurfaceInfo *pSurf, FBITFIELD blend, boolean fogwall, INT32 lightlevel, extracolormap_t *wallcolormap)
 {
 	FBITFIELD blendmode = blend;
 	UINT8 alpha = pSurf->PolyColor.s.alpha; // retain the alpha

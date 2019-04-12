@@ -70,6 +70,7 @@
 
 #include <math.h>
 #include "../v_video.h"
+#include "hw_main.h"
 #include "hw_clip.h"
 #include "hw_glob.h"
 #include "../r_state.h"
