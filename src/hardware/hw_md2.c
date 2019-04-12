@@ -164,13 +164,13 @@ static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_
 #endif
 	volatile png_FILE_p png_FILE;
 	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pngfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2home, filename);
+	char *pngfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pngfilename, ".png");
 	png_FILE = fopen(pngfilename, "rb");
 	if (!png_FILE)
 	{
-		pngfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2path, filename);
+		pngfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2path, filename);
 		FIL_ForceExtension(pngfilename, ".png");
 		png_FILE = fopen(pngfilename, "rb");
 		//CONS_Debug(DBG_RENDER, "M_SavePNG: Error on opening %s for loading\n", filename);
@@ -297,13 +297,13 @@ static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
 	INT32 ch, rep;
 	FILE *file;
 	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pcxfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2home, filename);
+	char *pcxfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pcxfilename, ".pcx");
 	file = fopen(pcxfilename, "rb");
 	if (!file)
 	{
-		pcxfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2path, filename);
+		pcxfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2path, filename);
 		FIL_ForceExtension(pcxfilename, ".pcx");
 		file = fopen(pcxfilename, "rb");
 		if (!file)
@@ -492,16 +492,16 @@ void HWR_InitMD2(void)
 		md2_models[i].error = false;
 	}
 
-	// read the md2.dat file
+	// read the mdls.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "mdls.dat"), "rt");
 
 	if (!f)
 	{
-		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "mdls.dat"), "rt");
 		if (!f)
 		{
-			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			CONS_Printf("%s %s\n", M_GetText("Error while loading mdls.dat:"), strerror(errno));
 			nomd2s = true;
 			return;
 		}
@@ -510,7 +510,7 @@ void HWR_InitMD2(void)
 	{
 		/*if (stricmp(name, "PLAY") == 0)
 		{
-			CONS_Printf("MD2 for sprite PLAY detected in kmd2.dat, use a player skin instead!\n");
+			CONS_Printf("MD2 for sprite PLAY detected in mdls.dat, use a player skin instead!\n");
 			continue;
 		}*/
 		// 8/1/19: Allow PLAY to load for default MD2.
@@ -545,7 +545,7 @@ void HWR_InitMD2(void)
 			}
 		}
 		// no sprite/player skin name found?!?
-		CONS_Printf("Unknown sprite/player skin %s detected in kmd2.dat\n", name);
+		CONS_Printf("Unknown sprite/player skin %s detected in mdls.dat\n", name);
 md2found:
 		// move on to next line...
 		continue;
@@ -564,16 +564,16 @@ void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 
 	CONS_Printf("AddPlayerMD2()...\n");
 
-	// read the md2.dat file
+	// read the mdls.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "mdls.dat"), "rt");
 
 	if (!f)
 	{
-		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "mdls.dat"), "rt");
 		if (!f)
 		{
-			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			CONS_Printf("%s %s\n", M_GetText("Error while loading mdls.dat:"), strerror(errno));
 			nomd2s = true;
 			return;
 		}
@@ -603,7 +603,7 @@ playermd2found:
 void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startup
 {
 	FILE *f;
-	// name[18] is used to check for names in the kmd2.dat file that match with sprites or player skins
+	// name[18] is used to check for names in the mdls.dat file that match with sprites or player skins
 	// sprite names are always 4 characters long, and names is for player skins can be up to 19 characters long
 	char name[18], filename[32];
 	float scale, offset;
@@ -616,14 +616,14 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 
 	// Read the md2.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "mdls.dat"), "rt");
 
 	if (!f)
 	{
-		f = fopen(va("%s"PATHSEP"%s", srb2path, "kmd2.dat"), "rt");
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "mdls.dat"), "rt");
 		if (!f)
 		{
-			CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
+			CONS_Printf("%s %s\n", M_GetText("Error while loading mdls.dat:"), strerror(errno));
 			nomd2s = true;
 			return;
 		}
@@ -867,7 +867,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 	md2_t *md2;
 	UINT8 color[4];
 
-	if (!cv_grmd2.value)
+	if (!cv_grmdls.value)
 		return;
 
 	if (spr->precip)
@@ -951,8 +951,8 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			return; // we already failed loading this before :(
 		if (!md2->model)
 		{
-			CONS_Debug(DBG_RENDER, "Loading MD2... (%s, %s)", sprnames[spr->mobj->sprite], md2->filename);
-			sprintf(filename, "md2/%s", md2->filename);
+			CONS_Debug(DBG_RENDER, "Loading model... (%s, %s)", sprnames[spr->mobj->sprite], md2->filename);
+			sprintf(filename, "mdls/%s", md2->filename);
 			md2->model = md2_readModel(filename);
 
 			if (md2->model)
@@ -1034,7 +1034,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		frame = (spr->mobj->frame & FF_FRAMEMASK) % md2->model->meshes[0].numFrames;
 
 #ifdef USE_MODEL_NEXTFRAME
-		if (cv_grmd2.value == 1 && tics <= durs)
+		if (cv_grmdls.value == 1 && tics <= durs)
 		{
 			// frames are handled differently for states with FF_ANIMATE, so get the next frame differently for the interpolation
 			if (spr->mobj->frame & FF_ANIMATE)
