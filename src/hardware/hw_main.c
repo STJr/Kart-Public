@@ -4567,9 +4567,9 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	}
 
 	// Render the skybox if there is one.
+	drewsky = false;
 	if (skybox)
 	{
-		drewsky = false;
 		R_SkyboxFrame(player);
 		HWR_RenderFrame(viewnumber, player, true);
 	}
