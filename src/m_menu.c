@@ -5184,6 +5184,8 @@ void M_ReplayHut(INT32 choice)
 	M_SetupNextMenu(&MISC_ReplayHutDef);
 	G_SetGamestate(GS_TIMEATTACK);
 
+	demo.rewinding = false;
+
 	S_ChangeMusicInternal("replst", true);
 }
 

@@ -1956,7 +1956,14 @@ boolean G_Responder(event_t *ev)
 		)
 		{
 			paused = !paused;
-			if (paused)
+
+			if (demo.rewinding)
+			{
+				G_ConfirmRewind(leveltime);
+				paused = true;
+				S_PauseAudio();
+			}
+			else if (paused)
 				S_PauseAudio();
 			else
 				S_ResumeAudio();
