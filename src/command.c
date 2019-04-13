@@ -594,8 +594,6 @@ static void COM_ExecuteString(char *ptext)
 static void COM_Alias_f(void)
 {
 	cmdalias_t *a;
-	char cmd[1024];
-	size_t i, c;
 
 	if (COM_Argc() < 3)
 	{
@@ -608,19 +606,9 @@ static void COM_Alias_f(void)
 	com_alias = a;
 
 	a->name = Z_StrDup(COM_Argv(1));
-
-	// copy the rest of the command line
-	cmd[0] = 0; // start out with a null string
-	c = COM_Argc();
-	for (i = 2; i < c; i++)
-	{
-		strcat(cmd, COM_Argv(i));
-		if (i != c)
-			strcat(cmd, " ");
-	}
-	strcat(cmd, "\n");
-
-	a->value = Z_StrDup(cmd);
+	// Just use arg 2 if it's the only other argument, in case the alias is wrapped in quotes (backward compat, or multiple commands in one string).
+	// Otherwise pull the whole string and seek to the end of the alias name. The strctr is in case the alias is quoted.
+	a->value = Z_StrDup(COM_Argc() == 3 ? COM_Argv(2) : (strchr(COM_Args() + strlen(a->name), ' ') + 1));
 }
 
 /** Prints a line of text to the console.
