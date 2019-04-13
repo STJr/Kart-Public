@@ -584,8 +584,9 @@ static menuitem_t PlaybackMenu[] =
 	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 120},
 	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 136},
 
-	{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
-	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
+	//{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
+	//{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 156},
 };
 typedef enum
 {
@@ -601,7 +602,7 @@ typedef enum
 	playback_view2,
 	playback_view3,
 	playback_view4,
-	playback_moreoptions,
+	//playback_moreoptions,
 	playback_quit
 } playback_e;
 
@@ -1704,7 +1705,8 @@ menu_t PlaybackMenuDef = {
 	NULL,
 	PlaybackMenu,
 	M_DrawPlaybackMenu,
-	BASEVIDWIDTH/2 - 94, 2,
+	//BASEVIDWIDTH/2 - 94, 2,
+	BASEVIDWIDTH/2 - 88, 2,
 	0,
 	NULL
 };
@@ -5741,10 +5743,12 @@ static void M_DrawPlaybackMenu(void)
 		for (i = playback_viewcount; i <= playback_view4; i++)
 			PlaybackMenu[i].status = IT_DISABLED;
 
-		PlaybackMenu[playback_moreoptions].alphaKey = 72;
-		PlaybackMenu[playback_quit].alphaKey = 88;
+		//PlaybackMenu[playback_moreoptions].alphaKey = 72;
+		//PlaybackMenu[playback_quit].alphaKey = 88;
+		PlaybackMenu[playback_quit].alphaKey = 72;
 
-		currentMenu->x = BASEVIDWIDTH/2 - 52;
+		//currentMenu->x = BASEVIDWIDTH/2 - 52;
+		currentMenu->x = BASEVIDWIDTH/2 - 44;
 	}
 	else
 	{
@@ -5753,10 +5757,12 @@ static void M_DrawPlaybackMenu(void)
 		for (i = splitscreen+1; i < 4; i++)
 			PlaybackMenu[playback_view1+i].status = IT_DISABLED;
 
-		PlaybackMenu[playback_moreoptions].alphaKey = 156;
-		PlaybackMenu[playback_quit].alphaKey = 172;
+		//PlaybackMenu[playback_moreoptions].alphaKey = 156;
+		//PlaybackMenu[playback_quit].alphaKey = 172;
+		PlaybackMenu[playback_quit].alphaKey = 156;
 
-		currentMenu->x = BASEVIDWIDTH/2 - 94;
+		//currentMenu->x = BASEVIDWIDTH/2 - 94;
+		currentMenu->x = BASEVIDWIDTH/2 - 88;
 	}
 
 	// wip
