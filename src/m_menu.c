@@ -573,8 +573,9 @@ static menuitem_t PlaybackMenu[] =
 
 	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
 	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
 	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame",  M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
 	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
 
 	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 72},
@@ -591,8 +592,9 @@ typedef enum
 	playback_hide,
 	playback_rewind,
 	playback_pause,
-	playback_resume,
 	playback_fastforward,
+	playback_backframe,
+	playback_resume,
 	playback_advanceframe,
 	playback_viewcount,
 	playback_view1,
@@ -5719,13 +5721,19 @@ static void M_DrawPlaybackMenu(void)
 	// Toggle items
 	if (paused && !demo.rewinding)
 	{
-		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = IT_DISABLED;
-		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = IT_CALL|IT_STRING;
+		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = PlaybackMenu[playback_rewind].status = IT_DISABLED;
+		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = PlaybackMenu[playback_backframe].status = IT_CALL|IT_STRING;
+
+		if (itemOn >= playback_rewind && itemOn <= playback_fastforward)
+			itemOn += playback_backframe - playback_rewind;
 	}
 	else
 	{
-		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = IT_CALL|IT_STRING;
-		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = IT_DISABLED;
+		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = PlaybackMenu[playback_rewind].status = IT_CALL|IT_STRING;
+		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = PlaybackMenu[playback_backframe].status = IT_DISABLED;
+
+		if (itemOn >= playback_backframe && itemOn <= playback_advanceframe)
+			itemOn -= playback_backframe - playback_rewind;
 	}
 
 	if (modeattacking)
@@ -5789,7 +5797,50 @@ static void M_DrawPlaybackMenu(void)
 			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, (i == itemOn) ? activemap : inactivemap);
 
 		if (i == itemOn)
+		{
 			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
+
+			if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_ARROWS)
+			{
+				char *str;
+
+				if (!(i == playback_viewcount && splitscreen == 3))
+					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 28 - (skullAnimCounter/5),
+						'\x1A' | highlightflags, false); // up arrow
+
+				if (!(i == playback_viewcount && splitscreen == 0))
+					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 48 + (skullAnimCounter/5),
+						'\x1B' | highlightflags, false); // down arrow
+
+				switch (i)
+				{
+				case playback_viewcount:
+					str = va("%d", splitscreen+1);
+					break;
+
+				case playback_view1:
+					str = player_names[displayplayer];
+					break;
+
+				case playback_view2:
+					str = player_names[secondarydisplayplayer];
+					break;
+
+				case playback_view3:
+					str = player_names[thirddisplayplayer];
+					break;
+
+				case playback_view4:
+					str = player_names[fourthdisplayplayer];
+					break;
+
+				default: // shouldn't ever be reached but whatever
+					continue;
+				}
+
+				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, V_ALLOWLOWERCASE|highlightflags, str);
+			}
+		}
 	}
 }
 
@@ -5829,19 +5880,12 @@ static void M_PlaybackPause(INT32 choice)
 	{
 		G_ConfirmRewind(leveltime);
 		paused = true;
-		itemOn = playback_resume;
 		S_PauseAudio();
 	}
 	else if (paused)
-	{
-		itemOn = playback_resume;
 		S_PauseAudio();
-	}
 	else
-	{
-		itemOn = playback_pause;
 		S_ResumeAudio();
-	}
 
 	CV_SetValue(&cv_playbackspeed, 1);
 }
