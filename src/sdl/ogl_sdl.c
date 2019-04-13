@@ -36,6 +36,7 @@
 
 #ifdef HWRENDER
 #include "../hardware/r_opengl/r_opengl.h"
+#include "../hardware/hw_main.h"
 #include "ogl_sdl.h"
 #include "../i_system.h"
 #include "hwsym_sdl.h"

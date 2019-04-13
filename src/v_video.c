@@ -27,7 +27,7 @@
 #include "doomstat.h"
 
 #ifdef HWRENDER
-#include "hardware/hw_glob.h"
+#include "hardware/hw_main.h"
 #endif
 
 // Each screen is [vid.width*vid.height];
@@ -340,7 +340,7 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 
 #ifdef HWRENDER
 	//if (rendermode != render_soft && !con_startup)		// Why?
-	if (rendermode != render_soft)
+	if (rendermode == render_opengl)
 	{
 		HWR_DrawFixedPatch((GLPatch_t *)patch, x, y, pscale, scrn, colormap);
 		return;
@@ -553,8 +553,7 @@ void V_DrawCroppedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_
 		return;
 
 #ifdef HWRENDER
-	// Done
-	if (rendermode != render_soft && !con_startup)
+	if (rendermode == render_opengl)
 	{
 		HWR_DrawCroppedPatch((GLPatch_t*)patch,x,y,pscale,scrn,sx,sy,w,h);
 		return;
@@ -710,7 +709,7 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 		return;
 
 #ifdef HWRENDER
-	if (rendermode != render_soft && !con_startup)
+	if (rendermode == render_opengl)
 	{
 		HWR_DrawFill(x, y, w, h, c);
 		return;
@@ -828,7 +827,7 @@ void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 		return;
 
 #ifdef HWRENDER
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode == render_opengl)
 	{
 		UINT32 hwcolor = V_GetHWConsBackColor();
 		HWR_DrawConsoleFill(x, y, w, h, hwcolor, c);	// we still use the regular color stuff but only for flags. actual draw color is "hwcolor" for this.
@@ -932,7 +931,7 @@ void V_DrawFlatFill(INT32 x, INT32 y, INT32 w, INT32 h, lumpnum_t flatnum)
 	size_t size, lflatsize, flatshift;
 
 #ifdef HWRENDER
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode == render_opengl)
 	{
 		HWR_DrawFlatFill(x, y, w, h, flatnum);
 		return;
@@ -1041,7 +1040,7 @@ void V_DrawFadeScreen(void)
 	UINT8 *buf = screens[0];
 
 #ifdef HWRENDER
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode == render_opengl)
 	{
 		HWR_FadeScreenMenuBack(0x01010160, 0); // hack, 0 means full height
 		return;
@@ -1060,7 +1059,7 @@ void V_DrawFadeConsBack(INT32 plines)
 	UINT8 *deststop, *buf;
 
 #ifdef HWRENDER // not win32 only 19990829 by Kin
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode == render_opengl)
 	{
 		UINT32 hwcolor = V_GetHWConsBackColor();
 		HWR_DrawConsoleBack(hwcolor, plines);
@@ -1991,8 +1990,7 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 	INT32 height, yoffset;
 
 #ifdef HWRENDER
-	// draw a hardware converted patch
-	if (rendermode != render_soft && rendermode != render_none)
+	if (rendermode != render_soft)
 		return;
 #endif
 
