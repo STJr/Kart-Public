@@ -7056,6 +7056,9 @@ void G_LoadDemoInfo(menudemo_t *pdemo)
 		pdemo->standings[count].timeorscore = READUINT32(extrainfo_p);
 
 		count++;
+
+		if (count >= MAXPLAYERS)
+			break; //@TODO still cycle through the rest of these if extra demo data is ever used
 	}
 
 	// I think that's everything we need?
