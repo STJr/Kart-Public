@@ -157,6 +157,7 @@ typedef struct
 #ifdef USE_FTRANSFORM_MIRROR
 	boolean     mirror;          // SRB2Kart: Encore Mode
 #endif
+	boolean     shearing;        // 14042019
 } FTransform;
 
 // Transformed vector, as passed to HWR API

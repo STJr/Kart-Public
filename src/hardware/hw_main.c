@@ -118,6 +118,7 @@ FTransform atransform;
 // Float variants of viewx, viewy, viewz, etc.
 static float gr_viewx, gr_viewy, gr_viewz;
 static float gr_viewsin, gr_viewcos;
+static angle_t gr_aimingangle;
 
 static INT32 drawcount = 0;
 
@@ -3843,9 +3844,10 @@ void HWR_RenderDrawNodes(void)
 		} //i++
 	} // loop++
 
-	HWD.pfnSetTransform(&atransform);
-	HWD.pfnSetShader(0);
 	// Okay! Let's draw it all! Woo!
+	HWD.pfnSetTransform(&atransform, aimingangle);
+	HWD.pfnSetShader(0);
+
 	for (i = 0; i < p; i++)
 	{
 		if (sortnode[sortindex[i]].plane)
@@ -4464,7 +4466,19 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	atransform.scaley = (float)vid.width/vid.height;
 	atransform.scalez = 1;
 
-	atransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+	// 14042019
+	if (!cv_grshearing.value)
+	{
+		gr_aimingangle = aimingangle;
+		atransform.shearing = false;
+	}
+	else
+	{
+		gr_aimingangle = 0;
+		atransform.shearing = true;
+	}
+
+	atransform.anglex = (float)(gr_aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
 	atransform.angley = (float)(viewangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
 
 	atransform.fovxangle = fpov; // Tails
@@ -4492,7 +4506,7 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	if (skybox)
 		drewsky = true;
 
-	a1 = gld_FrustumAngle();
+	a1 = gld_FrustumAngle(gr_aimingangle);
 	gld_clipper_Clear();
 	gld_clipper_SafeAddClipRange(viewangle + a1, viewangle - a1);
 #ifdef HAVE_SPHEREFRUSTRUM
@@ -4500,7 +4514,7 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 #endif
 
 	// Set transform and shader
-	HWD.pfnSetTransform(&atransform);
+	HWD.pfnSetTransform(&atransform, aimingangle);
 	HWD.pfnSetShader(0);
 
 	// Check for shaders
@@ -4529,7 +4543,7 @@ static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 		HWR_RenderDrawNodes();
 
 	// Unset transform and shader
-	HWD.pfnSetTransform(NULL);
+	HWD.pfnSetTransform(NULL, 0.0f);
 	HWD.pfnUnSetShader();
 
 	// Disable fog

@@ -185,8 +185,6 @@ FUNCPRINTF void GL_DBG_Printf(const char *format, ...)
 #define pglEnable glEnable
 #define pglDisable glDisable
 #define pglGetFloatv glGetFloatv
-//glGetIntegerv
-//glGetString
 
 /* Depth Buffer */
 #define pglClearDepth glClearDepth
@@ -253,7 +251,6 @@ FUNCPRINTF void GL_DBG_Printf(const char *format, ...)
 /* Miscellaneous */
 typedef void (APIENTRY * PFNglClearColor) (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 static PFNglClearColor pglClearColor;
-//glClear
 typedef void (APIENTRY * PFNglColorMask) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 static PFNglColorMask pglColorMask;
 typedef void (APIENTRY * PFNglAlphaFunc) (GLenum func, GLclampf ref);
@@ -272,8 +269,6 @@ typedef void (APIENTRY * PFNglDisable) (GLenum cap);
 static PFNglDisable pglDisable;
 typedef void (APIENTRY * PFNglGetFloatv) (GLenum pname, GLfloat *params);
 static PFNglGetFloatv pglGetFloatv;
-//glGetIntegerv
-//glGetString
 
 /* Depth Buffer */
 typedef void (APIENTRY * PFNglClearDepth) (GLclampd depth);
@@ -2183,7 +2178,7 @@ EXPORT void HWRAPI(DrawModel) (model_t *model, INT32 frameIndex, INT32 duration,
 // -----------------+
 // SetTransform     :
 // -----------------+
-EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
+EXPORT void HWRAPI(SetTransform) (FTransform *stransform, angle_t viewaiming)
 {
 	static boolean special_splitscreen;
 	pglLoadIdentity();
@@ -2204,12 +2199,27 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 		else
 			pglScalef(stransform->scalex, stransform->scaley, -stransform->scalez);
 
+		pglMatrixMode(GL_MODELVIEW);
 		pglRotatef(stransform->anglex, 1.0f, 0.0f, 0.0f);
 		pglRotatef(stransform->angley+270.0f, 0.0f, 1.0f, 0.0f);
 		pglTranslatef(-stransform->x, -stransform->z, -stransform->y);
 
 		pglMatrixMode(GL_PROJECTION);
 		pglLoadIdentity();
+
+		// jimita 14042019
+		// Simulate Software's y-shearing
+		// https://zdoom.org/wiki/Y-shearing
+		if (stransform->shearing)
+		{
+			float tilt = (float)(viewaiming>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+			if (tilt >= 270.0f)
+				tilt = -(90.0f - (tilt - 270.0f));
+			tilt /= 24.0f;		// ?????????
+
+			pglTranslatef(0.0f, -tilt, 0.0f);
+		}
+
 		fovx90 = stransform->fovxangle > 0.0f && fabsf(stransform->fovxangle - 90.0f) < 0.5f;
 		special_splitscreen = (stransform->splitscreen && fovx90);
 		if (special_splitscreen)

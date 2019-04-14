@@ -71,7 +71,6 @@ boolean SetupGLfunc(void);
 void SetupGLFunc4(void);
 void Flush(void);
 INT32 isExtAvailable(const char *extension, const GLubyte *start);
-int SetupPixelFormat(INT32 WantColorBits, INT32 WantStencilBits, INT32 WantDepthBits);
 void SetModelView(GLint w, GLint h);
 void SetStates(void);
 #ifdef USE_PALETTED_TEXTURE
