@@ -1292,13 +1292,15 @@ static menuitem_t OP_OpenGLColorMenu[] =
 
 static menuitem_t OP_SoundOptionsMenu[] =
 {
-	{IT_STRING|IT_CVAR,			NULL, "SFX",					&cv_gamesounds,			 10},
+	{IT_STRING|IT_CVAR,			NULL, "SFX",				   &cv_gamesounds,			 10},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "SFX Volume",				&cv_soundvolume,		 18},
+								NULL, "SFX Volume",			   &cv_soundvolume,		     18},
+	{IT_STRING|IT_CVAR,         NULL, "SFX While Unfocused",   &cv_playsoundifunfocused, 26},
 
-	{IT_STRING|IT_CVAR,			NULL, "Music",					&cv_gamedigimusic,		 30},
+	{IT_STRING|IT_CVAR,			NULL, "Music",				   &cv_gamedigimusic,		 38},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER,
-								NULL, "Music Volume",			&cv_digmusicvolume,		 38},
+								NULL, "Music Volume",		   &cv_digmusicvolume,	     46},
+	{IT_STRING|IT_CVAR,         NULL, "Music While Unfocused", &cv_playmusicifunfocused, 54},
 
 /* -- :nonnathisshit:
 	{IT_STRING|IT_CVAR,			NULL, "MIDI",					&cv_gamemidimusic,		 50},
@@ -1311,17 +1313,14 @@ static menuitem_t OP_SoundOptionsMenu[] =
 
 	//{IT_STRING|IT_CALL,			NULL, "Restart Audio System",	M_RestartAudio,			 50},
 
-	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 50},
-	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,			 60},
+	{IT_STRING|IT_CVAR,			NULL, "Reverse L/R Channels",	&stereoreverse,			 66},
+	{IT_STRING|IT_CVAR,			NULL, "Surround Sound",			&surround,			     76},
 
-	{IT_STRING|IT_CVAR,			NULL, "Chat Notifications",		&cv_chatnotifications,	 75},
-	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			 85},
-	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		 95},
+	{IT_STRING|IT_CVAR,			NULL, "Chat Notifications",		&cv_chatnotifications,	 90},
+	{IT_STRING|IT_CVAR,			NULL, "Character voices",		&cv_kartvoices,			100},
+	{IT_STRING|IT_CVAR,			NULL, "Powerup Warning",		&cv_kartinvinsfx,		110},
 
-	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		110},
-
-	{IT_STRING|IT_CVAR,        NULL, "Play Music While Unfocused", &cv_playmusicifunfocused, 125},
-	{IT_STRING|IT_CVAR,        NULL, "Play SFX While Unfocused", &cv_playsoundifunfocused, 135},
+	{IT_KEYHANDLER|IT_STRING,	NULL, "Sound Test",				M_HandleSoundTest,		124},
 };
 
 /*static menuitem_t OP_DataOptionsMenu[] =
@@ -5123,6 +5122,14 @@ static void M_Options(INT32 choice)
 	M_SetupNextMenu(&OP_MainDef);
 }
 
+void M_DisableSoundStuff(void)
+{
+	if (sound_disabled)
+		OP_SoundOptionsMenu[0].status = IT_GRAYEDOUT;
+	if (digital_disabled)
+		OP_SoundOptionsMenu[3].status = IT_GRAYEDOUT;
+}
+
 static void M_Manual(INT32 choice)
 {
 	(void)choice;
@@ -5390,58 +5397,27 @@ static void M_DrawSkyRoom(void)
 
 	M_DrawGenericMenu();
 
-	if (currentMenu == &OP_SoundOptionsDef)
-	{
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
-			currentMenu->y+currentMenu->menuitems[0].alphaKey,
-			(sound_disabled ? warningflags : highlightflags),
-			(sound_disabled ? "OFF" : "ON"));
-
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
-			currentMenu->y+currentMenu->menuitems[2].alphaKey,
-			(digital_disabled ? warningflags : highlightflags),
-			(digital_disabled ? "OFF" : "ON"));
-
-		/*V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x,
-			currentMenu->y+currentMenu->menuitems[5].alphaKey,
-			(midi_disabled ? warningflags : highlightflags),
-			(midi_disabled ? "OFF" : "ON"));*/
-
-		if (itemOn == 0)
-			lengthstring = 8*(sound_disabled ? 3 : 2);
-		else if (itemOn == 2)
-			lengthstring = 8*(digital_disabled ? 3 : 2);
-		/*else if (itemOn == 5)
-			lengthstring = 8*(midi_disabled ? 3 : 2);*/
-	}
-
 	for (i = 0; i < currentMenu->numitems; ++i)
 	{
 		if (currentMenu->menuitems[i].itemaction == M_HandleSoundTest)
 		{
-			y = currentMenu->menuitems[i].alphaKey;
+			y = currentMenu->menuitems[i].alphaKey + currentMenu->y;
+
+			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y, highlightflags, cv_soundtest.string);
+			if (cv_soundtest.value)
+				V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y + 8, highlightflags, S_sfx[cv_soundtest.value].name);
+
+			if (i != itemOn)
+				break;
+
+			lengthstring = V_StringWidth(cv_soundtest.string, 0);
+			V_DrawCharacter(BASEVIDWIDTH - currentMenu->x - 10 - lengthstring - (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
+				'\x1C' | highlightflags, false); // left arrow
+			V_DrawCharacter(BASEVIDWIDTH - currentMenu->x + 2 + (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
+				'\x1D' | highlightflags, false); // right arrow
+
 			break;
 		}
-	}
-
-	if (y)
-	{
-		y += currentMenu->y;
-
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y, highlightflags, cv_soundtest.string);
-		if (cv_soundtest.value)
-			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y + 8, highlightflags, S_sfx[cv_soundtest.value].name);
-
-		if (i == itemOn)
-			lengthstring = V_StringWidth(cv_soundtest.string, 0);
-	}
-
-	if (lengthstring)
-	{
-		V_DrawCharacter(BASEVIDWIDTH - currentMenu->x - 10 - lengthstring - (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
-			'\x1C' | highlightflags, false); // left arrow
-		V_DrawCharacter(BASEVIDWIDTH - currentMenu->x + 2 + (skullAnimCounter/5), currentMenu->y+currentMenu->menuitems[itemOn].alphaKey,
-			'\x1D' | highlightflags, false); // right arrow
 	}
 }
 
