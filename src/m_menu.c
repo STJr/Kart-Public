@@ -5497,7 +5497,7 @@ static void M_DrawReplayHut(void)
 			V_DrawString(x, localy, V_SNAPTOTOP|V_SNAPTOLEFT|highlightflags, currentMenu->menuitems[i].text);
 	}
 
-	y += currentMenu->menuitems[currentMenu->numitems-1].alphaKey;
+	y += currentMenu->menuitems[replaylistitem].alphaKey;
 
 	for (i = 0; i < (INT16)sizedirmenu; i++)
 	{
@@ -5552,6 +5552,14 @@ static void M_DrawReplayHut(void)
 		}
 		else
 			V_DrawString(localx, localy, V_SNAPTOTOP|V_SNAPTOLEFT|V_ALLOWLOWERCASE, demolist[i].title);
+	}
+
+	// Draw scrollbar
+	y = sizedirmenu*10 + currentMenu->menuitems[replaylistitem].alphaKey + 30;
+	if (y > SCALEDVIEWHEIGHT-80)
+	{
+		V_DrawFill(BASEVIDWIDTH-4, 75, 4, SCALEDVIEWHEIGHT-80, V_SNAPTOTOP|V_SNAPTORIGHT|239);
+		V_DrawFill(BASEVIDWIDTH-3, 76 + (SCALEDVIEWHEIGHT-80) * replayhutmenuy / y, 2, (((SCALEDVIEWHEIGHT-80) * (SCALEDVIEWHEIGHT-80))-1) / y - 1, V_SNAPTOTOP|V_SNAPTORIGHT|229);
 	}
 
 	// Draw the cursor
