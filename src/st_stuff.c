@@ -1919,13 +1919,13 @@ static void ST_overlayDrawer(void)
 			{
 				char name[MAXPLAYERNAME+12];
 
-				INT32 y = (stplyr == &players[displayplayer]) ? 8 : BASEVIDHEIGHT/2-16;
+				INT32 y = (stplyr == &players[displayplayer]) ? 4 : BASEVIDHEIGHT/2-12;
 				sprintf(name, "VIEWPOINT: %s", player_names[stplyr-players]);
 				V_DrawRightAlignedThinString(BASEVIDWIDTH-40, y, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOBOTTOM|V_SNAPTORIGHT), name);
 			}
 			else if (splitscreen)
 			{
-				V_DrawCenteredThinString(BASEVIDWIDTH/4, 4, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOTOP), player_names[stplyr-players]);
+				V_DrawCenteredThinString((vid.width/vid.dupx)/4, BASEVIDHEIGHT/2 - 12, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT), player_names[stplyr-players]);
 			}
 		}
 
