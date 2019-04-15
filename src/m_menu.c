@@ -5806,16 +5806,16 @@ static void M_DrawPlaybackMenu(void)
 			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
 
 		if ((i == playback_fastforward && cv_playbackspeed.value > 1) || (i == playback_rewind && demo.rewinding))
-			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
 		else
-			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, 0, icon, (i == itemOn) ? activemap : inactivemap);
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, (i == itemOn) ? activemap : inactivemap);
 
 		if (i == itemOn)
 		{
 			V_DrawCharacter(currentMenu->x + currentMenu->menuitems[i].alphaKey + 4, currentMenu->y + 14,
-				'\x1A' | highlightflags, false);
+				'\x1A' | V_SNAPTOTOP|highlightflags, false);
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
+			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_SNAPTOTOP|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
 
 			if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_ARROWS)
 			{
@@ -5823,11 +5823,11 @@ static void M_DrawPlaybackMenu(void)
 
 				if (!(i == playback_viewcount && splitscreen == 3))
 					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 28 - (skullAnimCounter/5),
-						'\x1A' | highlightflags, false); // up arrow
+						'\x1A' | V_SNAPTOTOP|highlightflags, false); // up arrow
 
 				if (!(i == playback_viewcount && splitscreen == 0))
 					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 48 + (skullAnimCounter/5),
-						'\x1B' | highlightflags, false); // down arrow
+						'\x1B' | V_SNAPTOTOP|highlightflags, false); // down arrow
 
 				switch (i)
 				{
@@ -5855,7 +5855,7 @@ static void M_DrawPlaybackMenu(void)
 					continue;
 				}
 
-				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, V_ALLOWLOWERCASE|highlightflags, str);
+				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, V_SNAPTOTOP|V_ALLOWLOWERCASE|highlightflags, str);
 			}
 		}
 	}
