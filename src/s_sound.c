@@ -438,7 +438,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	listener_t listener3 = {0,0,0,0};
 	listener_t listener4 = {0,0,0,0};
 
-	mobj_t *listenmobj = players[displayplayer].mo;
+	mobj_t *listenmobj = players[displayplayers[0]].mo;
 	mobj_t *listenmobj2 = NULL;
 	mobj_t *listenmobj3 = NULL;
 	mobj_t *listenmobj4 = NULL;
@@ -450,26 +450,26 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	if (sfx_id == sfx_None)
 		return;
 
-	if (players[displayplayer].awayviewtics)
-		listenmobj = players[displayplayer].awayviewmobj;
+	if (players[displayplayers[0]].awayviewtics)
+		listenmobj = players[displayplayers[0]].awayviewmobj;
 
 	if (splitscreen)
 	{
-		listenmobj2 = players[secondarydisplayplayer].mo;
-		if (players[secondarydisplayplayer].awayviewtics)
-			listenmobj2 = players[secondarydisplayplayer].awayviewmobj;
+		listenmobj2 = players[displayplayers[1]].mo;
+		if (players[displayplayers[1]].awayviewtics)
+			listenmobj2 = players[displayplayers[1]].awayviewmobj;
 
 		if (splitscreen > 1)
 		{
-			listenmobj3 = players[thirddisplayplayer].mo;
-			if (players[thirddisplayplayer].awayviewtics)
-				listenmobj3 = players[thirddisplayplayer].awayviewmobj;
+			listenmobj3 = players[displayplayers[2]].mo;
+			if (players[displayplayers[2]].awayviewtics)
+				listenmobj3 = players[displayplayers[2]].awayviewmobj;
 
 			if (splitscreen > 2)
 			{
-				listenmobj4 = players[fourthdisplayplayer].mo;
-				if (players[fourthdisplayplayer].awayviewtics)
-					listenmobj4 = players[fourthdisplayplayer].awayviewmobj;
+				listenmobj4 = players[displayplayers[3]].mo;
+				if (players[displayplayers[3]].awayviewtics)
+					listenmobj4 = players[displayplayers[3]].awayviewmobj;
 			}
 		}
 	}
@@ -482,12 +482,12 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	};
 #endif
 
-	if (camera.chase && !players[displayplayer].awayviewtics)
+	if (camera[0].chase && !players[displayplayers[0]].awayviewtics)
 	{
-		listener.x = camera.x;
-		listener.y = camera.y;
-		listener.z = camera.z;
-		listener.angle = camera.angle;
+		listener.x = camera[0].x;
+		listener.y = camera[0].y;
+		listener.z = camera[0].z;
+		listener.angle = camera[0].angle;
 	}
 	else if (listenmobj)
 	{
@@ -501,12 +501,12 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 
 	if (listenmobj2)
 	{
-		if (camera2.chase && !players[secondarydisplayplayer].awayviewtics)
+		if (camera[1].chase && !players[displayplayers[1]].awayviewtics)
 		{
-			listener2.x = camera2.x;
-			listener2.y = camera2.y;
-			listener2.z = camera2.z;
-			listener2.angle = camera2.angle;
+			listener2.x = camera[1].x;
+			listener2.y = camera[1].y;
+			listener2.z = camera[1].z;
+			listener2.angle = camera[1].angle;
 		}
 		else
 		{
@@ -519,12 +519,12 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 
 	if (listenmobj3)
 	{
-		if (camera3.chase && !players[thirddisplayplayer].awayviewtics)
+		if (camera[2].chase && !players[displayplayers[2]].awayviewtics)
 		{
-			listener3.x = camera3.x;
-			listener3.y = camera3.y;
-			listener3.z = camera3.z;
-			listener3.angle = camera3.angle;
+			listener3.x = camera[2].x;
+			listener3.y = camera[2].y;
+			listener3.z = camera[2].z;
+			listener3.angle = camera[2].angle;
 		}
 		else
 		{
@@ -537,12 +537,12 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 
 	if (listenmobj4)
 	{
-		if (camera4.chase && !players[fourthdisplayplayer].awayviewtics)
+		if (camera[3].chase && !players[displayplayers[3]].awayviewtics)
 		{
-			listener4.x = camera4.x;
-			listener4.y = camera4.y;
-			listener4.z = camera4.z;
-			listener4.angle = camera4.angle;
+			listener4.x = camera[3].x;
+			listener4.y = camera[3].y;
+			listener4.z = camera[3].z;
+			listener4.angle = camera[3].angle;
 		}
 		else
 		{
@@ -899,7 +899,7 @@ void S_UpdateSounds(void)
 	listener_t listener3;
 	listener_t listener4;
 
-	mobj_t *listenmobj = players[displayplayer].mo;
+	mobj_t *listenmobj = players[displayplayers[0]].mo;
 	mobj_t *listenmobj2 = NULL;
 	mobj_t *listenmobj3 = NULL;
 	mobj_t *listenmobj4 = NULL;
@@ -940,31 +940,31 @@ void S_UpdateSounds(void)
 
 	if (splitscreen)
 	{
-		listenmobj2 = players[secondarydisplayplayer].mo;
-		if (players[secondarydisplayplayer].awayviewtics)
-			listenmobj2 = players[secondarydisplayplayer].awayviewmobj;
+		listenmobj2 = players[displayplayers[1]].mo;
+		if (players[displayplayers[1]].awayviewtics)
+			listenmobj2 = players[displayplayers[1]].awayviewmobj;
 
 		if (splitscreen > 1)
 		{
-			listenmobj3 = players[thirddisplayplayer].mo;
-			if (players[thirddisplayplayer].awayviewtics)
-				listenmobj3 = players[thirddisplayplayer].awayviewmobj;
+			listenmobj3 = players[displayplayers[2]].mo;
+			if (players[displayplayers[2]].awayviewtics)
+				listenmobj3 = players[displayplayers[2]].awayviewmobj;
 
 			if (splitscreen > 2)
 			{
-				listenmobj4 = players[fourthdisplayplayer].mo;
-				if (players[fourthdisplayplayer].awayviewtics)
-					listenmobj4 = players[fourthdisplayplayer].awayviewmobj;
+				listenmobj4 = players[displayplayers[3]].mo;
+				if (players[displayplayers[3]].awayviewtics)
+					listenmobj4 = players[displayplayers[3]].awayviewmobj;
 			}
 		}
 	}
 
-	if (camera.chase && !players[displayplayer].awayviewtics)
+	if (camera[0].chase && !players[displayplayers[0]].awayviewtics)
 	{
-		listener.x = camera.x;
-		listener.y = camera.y;
-		listener.z = camera.z;
-		listener.angle = camera.angle;
+		listener.x = camera[0].x;
+		listener.y = camera[0].y;
+		listener.z = camera[0].z;
+		listener.angle = camera[0].angle;
 	}
 	else if (listenmobj)
 	{
@@ -989,12 +989,12 @@ void S_UpdateSounds(void)
 
 	if (listenmobj2)
 	{
-		if (camera2.chase && !players[secondarydisplayplayer].awayviewtics)
+		if (camera[1].chase && !players[displayplayers[1]].awayviewtics)
 		{
-			listener2.x = camera2.x;
-			listener2.y = camera2.y;
-			listener2.z = camera2.z;
-			listener2.angle = camera2.angle;
+			listener2.x = camera[1].x;
+			listener2.y = camera[1].y;
+			listener2.z = camera[1].z;
+			listener2.angle = camera[1].angle;
 		}
 		else
 		{
@@ -1007,12 +1007,12 @@ void S_UpdateSounds(void)
 
 	if (listenmobj3)
 	{
-		if (camera3.chase && !players[thirddisplayplayer].awayviewtics)
+		if (camera[2].chase && !players[displayplayers[2]].awayviewtics)
 		{
-			listener3.x = camera3.x;
-			listener3.y = camera3.y;
-			listener3.z = camera3.z;
-			listener3.angle = camera3.angle;
+			listener3.x = camera[2].x;
+			listener3.y = camera[2].y;
+			listener3.z = camera[2].z;
+			listener3.angle = camera[2].angle;
 		}
 		else
 		{
@@ -1025,12 +1025,12 @@ void S_UpdateSounds(void)
 
 	if (listenmobj4)
 	{
-		if (camera4.chase && !players[fourthdisplayplayer].awayviewtics)
+		if (camera[3].chase && !players[displayplayers[3]].awayviewtics)
 		{
-			listener4.x = camera4.x;
-			listener4.y = camera4.y;
-			listener4.z = camera4.z;
-			listener4.angle = camera4.angle;
+			listener4.x = camera[3].x;
+			listener4.y = camera[3].y;
+			listener4.z = camera[3].z;
+			listener4.angle = camera[3].angle;
 		}
 		else
 		{
@@ -1060,9 +1060,9 @@ void S_UpdateSounds(void)
 				// check non-local sounds for distance clipping
 				//  or modify their params
 				if (c->origin && ((c->origin != players[consoleplayer].mo)
-					|| (splitscreen && c->origin != players[secondarydisplayplayer].mo)
-					|| (splitscreen > 1 && c->origin != players[thirddisplayplayer].mo)
-					|| (splitscreen > 2 && c->origin != players[fourthdisplayplayer].mo)))
+					|| (splitscreen && c->origin != players[displayplayers[1]].mo)
+					|| (splitscreen > 1 && c->origin != players[displayplayers[2]].mo)
+					|| (splitscreen > 2 && c->origin != players[displayplayers[3]].mo)))
 				{
 					// Whomever is closer gets the sound, but only in splitscreen.
 					if (splitscreen)
@@ -1071,12 +1071,9 @@ void S_UpdateSounds(void)
 						fixed_t recdist = -1;
 						INT32 i, p = -1;
 
-						for (i = 0; i < 4; i++)
+						for (i = 0; i <= splitscreen; i++)
 						{
 							fixed_t thisdist = -1;
-
-							if (i > splitscreen)
-								break;
 
 							if (i == 0 && listenmobj)
 								thisdist = P_AproxDistance(listener.x-soundmobj->x, listener.y-soundmobj->y);
@@ -1250,33 +1247,33 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 	if (!listener)
 		return false;
 
-	if (listener == players[displayplayer].mo && camera.chase)
+	if (listener == players[displayplayers[0]].mo && camera[0].chase)
 	{
-		listensource.x = camera.x;
-		listensource.y = camera.y;
-		listensource.z = camera.z;
-		listensource.angle = camera.angle;
+		listensource.x = camera[0].x;
+		listensource.y = camera[0].y;
+		listensource.z = camera[0].z;
+		listensource.angle = camera[0].angle;
 	}
-	else if (splitscreen && listener == players[secondarydisplayplayer].mo && camera2.chase)
+	else if (splitscreen && listener == players[displayplayers[1]].mo && camera[1].chase)
 	{
-		listensource.x = camera2.x;
-		listensource.y = camera2.y;
-		listensource.z = camera2.z;
-		listensource.angle = camera2.angle;
+		listensource.x = camera[1].x;
+		listensource.y = camera[1].y;
+		listensource.z = camera[1].z;
+		listensource.angle = camera[1].angle;
 	}
-	else if (splitscreen > 1 && listener == players[thirddisplayplayer].mo && camera3.chase)
+	else if (splitscreen > 1 && listener == players[displayplayers[2]].mo && camera[2].chase)
 	{
-		listensource.x = camera3.x;
-		listensource.y = camera3.y;
-		listensource.z = camera3.z;
-		listensource.angle = camera3.angle;
+		listensource.x = camera[2].x;
+		listensource.y = camera[2].y;
+		listensource.z = camera[2].z;
+		listensource.angle = camera[2].angle;
 	}
-	else if (splitscreen > 2 && listener == players[fourthdisplayplayer].mo && camera4.chase)
+	else if (splitscreen > 2 && listener == players[displayplayers[3]].mo && camera[3].chase)
 	{
-		listensource.x = camera4.x;
-		listensource.y = camera4.y;
-		listensource.z = camera4.z;
-		listensource.angle = camera4.angle;
+		listensource.x = camera[3].x;
+		listensource.y = camera[3].y;
+		listensource.z = camera[3].z;
+		listensource.angle = camera[3].angle;
 	}
 	else
 	{

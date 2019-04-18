@@ -1336,13 +1336,13 @@ static void Polyobj_rotateThings(polyobj_t *po, vertex_t origin, angle_t delta, 
 					if (turnthings == 2 || (turnthings == 1 && !mo->player)) {
 						mo->angle += delta;
 						if (mo->player == &players[consoleplayer])
-							localangle = mo->angle;
-						else if (mo->player == &players[secondarydisplayplayer])
-							localangle2 = mo->angle;
-						else if (mo->player == &players[thirddisplayplayer])
-							localangle3 = mo->angle;
-						else if (mo->player == &players[fourthdisplayplayer])
-							localangle4 = mo->angle;
+							localangle[0] = mo->angle;
+						else if (mo->player == &players[displayplayers[1]])
+							localangle[1] = mo->angle;
+						else if (mo->player == &players[displayplayers[2]])
+							localangle[2] = mo->angle;
+						else if (mo->player == &players[displayplayers[3]])
+							localangle[3] = mo->angle;
 					}
 				}
 			}

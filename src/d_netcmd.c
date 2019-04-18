@@ -1145,11 +1145,11 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
 	// spaces may have been removed
 	if (playernum == consoleplayer)
 		CV_StealthSet(&cv_playername, tmpname);
-	else if (playernum == secondarydisplayplayer || (!netgame && playernum == 1))
+	else if (playernum == displayplayers[1] || (!netgame && playernum == 1))
 		CV_StealthSet(&cv_playername2, tmpname);
-	else if (playernum == thirddisplayplayer || (!netgame && playernum == 2))
+	else if (playernum == displayplayers[2] || (!netgame && playernum == 2))
 		CV_StealthSet(&cv_playername3, tmpname);
-	else if (playernum == fourthdisplayplayer || (!netgame && playernum == 3))
+	else if (playernum == displayplayers[3] || (!netgame && playernum == 3))
 		CV_StealthSet(&cv_playername4, tmpname);
 	else I_Assert(((void)"CleanupPlayerName used on non-local player", 0));
 
@@ -1257,11 +1257,11 @@ static void ForceAllSkins(INT32 forcedskin)
 		{
 			if (i == consoleplayer)
 				CV_StealthSet(&cv_skin, skins[forcedskin].name);
-			else if (i == secondarydisplayplayer)
+			else if (i == displayplayers[1])
 				CV_StealthSet(&cv_skin2, skins[forcedskin].name);
-			else if (i == thirddisplayplayer)
+			else if (i == displayplayers[2])
 				CV_StealthSet(&cv_skin3, skins[forcedskin].name);
-			else if (i == fourthdisplayplayer)
+			else if (i == displayplayers[3])
 				CV_StealthSet(&cv_skin4, skins[forcedskin].name);
 		}
 	}
@@ -1396,8 +1396,8 @@ static void SendNameAndColor2(void)
 	if (splitscreen < 1 && !botingame)
 		return; // can happen if skin2/color2/name2 changed
 
-	if (secondarydisplayplayer != consoleplayer)
-		secondplaya = secondarydisplayplayer;
+	if (displayplayers[1] != consoleplayer)
+		secondplaya = displayplayers[1];
 	else if (!netgame) // HACK
 		secondplaya = 1;
 
@@ -1446,7 +1446,7 @@ static void SendNameAndColor2(void)
 		CleanupPlayerName(secondplaya, cv_playername2.zstring);
 		strcpy(player_names[secondplaya], cv_playername2.zstring);
 
-		// don't use secondarydisplayplayer: the second player must be 1
+		// don't use displayplayers[1]: the second player must be 1
 		players[secondplaya].skincolor = cv_playercolor2.value;
 		if (players[secondplaya].mo)
 			players[secondplaya].mo->color = players[secondplaya].skincolor;
@@ -1485,14 +1485,14 @@ static void SendNameAndColor2(void)
 	snac2pending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(secondarydisplayplayer)))
-		CV_StealthSet(&cv_playername2, player_names[secondarydisplayplayer]);
+	if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[1])))
+		CV_StealthSet(&cv_playername2, player_names[displayplayers[1]]);
 	else // Cleanup name if changing it
-		CleanupPlayerName(secondarydisplayplayer, cv_playername2.zstring);
+		CleanupPlayerName(displayplayers[1], cv_playername2.zstring);
 
 	// Don't change skin if the server doesn't want you to.
-	if (!CanChangeSkin(secondarydisplayplayer))
-		CV_StealthSet(&cv_skin2, skins[players[secondarydisplayplayer].skin].name);
+	if (!CanChangeSkin(displayplayers[1]))
+		CV_StealthSet(&cv_skin2, skins[players[displayplayers[1]].skin].name);
 
 	// check if player has the skin loaded (cv_skin2 may have
 	// the name of a skin that was available in the previous game)
@@ -1519,8 +1519,8 @@ static void SendNameAndColor3(void)
 	if (splitscreen < 2)
 		return; // can happen if skin3/color3/name3 changed
 
-	if (thirddisplayplayer != consoleplayer)
-		thirdplaya = thirddisplayplayer;
+	if (displayplayers[2] != consoleplayer)
+		thirdplaya = displayplayers[2];
 	else if (!netgame) // HACK
 		thirdplaya = 2;
 
@@ -1561,7 +1561,7 @@ static void SendNameAndColor3(void)
 		CleanupPlayerName(thirdplaya, cv_playername3.zstring);
 		strcpy(player_names[thirdplaya], cv_playername3.zstring);
 
-		// don't use thirddisplayplayer: the third player must be 2
+		// don't use displayplayers[2]: the third player must be 2
 		players[thirdplaya].skincolor = cv_playercolor3.value;
 		if (players[thirdplaya].mo)
 			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
@@ -1600,14 +1600,14 @@ static void SendNameAndColor3(void)
 	snac3pending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(thirddisplayplayer)))
-		CV_StealthSet(&cv_playername3, player_names[thirddisplayplayer]);
+	if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[2])))
+		CV_StealthSet(&cv_playername3, player_names[displayplayers[2]]);
 	else // Cleanup name if changing it
-		CleanupPlayerName(thirddisplayplayer, cv_playername3.zstring);
+		CleanupPlayerName(displayplayers[2], cv_playername3.zstring);
 
 	// Don't change skin if the server doesn't want you to.
-	if (!CanChangeSkin(thirddisplayplayer))
-		CV_StealthSet(&cv_skin3, skins[players[thirddisplayplayer].skin].name);
+	if (!CanChangeSkin(displayplayers[2]))
+		CV_StealthSet(&cv_skin3, skins[players[displayplayers[2]].skin].name);
 
 	// check if player has the skin loaded (cv_skin3 may have
 	// the name of a skin that was available in the previous game)
@@ -1634,8 +1634,8 @@ static void SendNameAndColor4(void)
 	if (splitscreen < 3)
 		return; // can happen if skin4/color4/name4 changed
 
-	if (fourthdisplayplayer != consoleplayer)
-		fourthplaya = fourthdisplayplayer;
+	if (displayplayers[3] != consoleplayer)
+		fourthplaya = displayplayers[3];
 	else if (!netgame) // HACK
 		fourthplaya = 3;
 
@@ -1684,7 +1684,7 @@ static void SendNameAndColor4(void)
 		CleanupPlayerName(fourthplaya, cv_playername4.zstring);
 		strcpy(player_names[fourthplaya], cv_playername4.zstring);
 
-		// don't use fourthdisplayplayer: the second player must be 4
+		// don't use displayplayers[3]: the second player must be 4
 		players[fourthplaya].skincolor = cv_playercolor4.value;
 		if (players[fourthplaya].mo)
 			players[fourthplaya].mo->color = players[fourthplaya].skincolor;
@@ -1723,14 +1723,14 @@ static void SendNameAndColor4(void)
 	snac4pending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(fourthdisplayplayer)))
-		CV_StealthSet(&cv_playername4, player_names[fourthdisplayplayer]);
+	if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[3])))
+		CV_StealthSet(&cv_playername4, player_names[displayplayers[3]]);
 	else // Cleanup name if changing it
-		CleanupPlayerName(fourthdisplayplayer, cv_playername4.zstring);
+		CleanupPlayerName(displayplayers[3], cv_playername4.zstring);
 
 	// Don't change skin if the server doesn't want you to.
-	if (!CanChangeSkin(fourthdisplayplayer))
-		CV_StealthSet(&cv_skin4, skins[players[fourthdisplayplayer].skin].name);
+	if (!CanChangeSkin(displayplayers[3]))
+		CV_StealthSet(&cv_skin4, skins[players[displayplayers[3]].skin].name);
 
 	// check if player has the skin loaded (cv_skin4 may have
 	// the name of a skin that was available in the previous game)
@@ -1760,12 +1760,12 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 #endif
 
 	if (playernum == consoleplayer)
-		snacpending--;
-	else if (playernum == secondarydisplayplayer)
+		snacpending--; // TODO: make snacpending an array instead of 4 separate vars?
+	else if (playernum == displayplayers[1])
 		snac2pending--;
-	else if (playernum == thirddisplayplayer)
+	else if (playernum == displayplayers[2])
 		snac3pending--;
-	else if (playernum == fourthdisplayplayer)
+	else if (playernum == displayplayers[3])
 		snac4pending--;
 
 #ifdef PARANOIA
@@ -1788,8 +1788,8 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	demo_extradata[playernum] |= DXD_COLOR;
 
 	// normal player colors
-	if (server && (p != &players[consoleplayer] && p != &players[secondarydisplayplayer]
-		&& p != &players[thirddisplayplayer] && p != &players[fourthdisplayplayer]))
+	if (server && (p != &players[consoleplayer] && p != &players[displayplayers[1]]
+		&& p != &players[displayplayers[2]] && p != &players[displayplayers[3]]))
 	{
 		boolean kick = false;
 
@@ -1826,11 +1826,11 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 
 		if (playernum == consoleplayer)
 			CV_StealthSet(&cv_skin, skins[forcedskin].name);
-		else if (playernum == secondarydisplayplayer)
+		else if (playernum == displayplayers[1])
 			CV_StealthSet(&cv_skin2, skins[forcedskin].name);
-		else if (playernum == thirddisplayplayer)
+		else if (playernum == displayplayers[2])
 			CV_StealthSet(&cv_skin3, skins[forcedskin].name);
-		else if (playernum == fourthdisplayplayer)
+		else if (playernum == displayplayers[3])
 			CV_StealthSet(&cv_skin4, skins[forcedskin].name);
 	}
 	else
@@ -1917,7 +1917,7 @@ void D_SendPlayerConfig(void)
 // Only works for displayplayer, sorry!
 static void Command_ResetCamera_f(void)
 {
-	P_ResetCamera(&players[displayplayer], &camera);
+	P_ResetCamera(&players[displayplayers[0]], &camera[0]);
 }
 
 /* Consider replacing nametonum with this */
@@ -2014,7 +2014,7 @@ static void Command_View_f(void)
 		return;
 	}
 
-	displayplayerp = G_GetDisplayplayerPtr(viewnum);
+	displayplayerp = &displayplayers[viewnum];
 
 	if (COM_Argc() > 1)/* switch to player */
 	{
@@ -2302,7 +2302,7 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean r
 			{
 				//CL_AddSplitscreenPlayer();
 				botingame = true;
-				secondarydisplayplayer = 1;
+				displayplayers[1] = 1;
 				playeringame[1] = true;
 				players[1].bot = 1;
 				SendNameAndColor2();
@@ -2354,12 +2354,8 @@ void D_ModifyClientVote(SINT8 voted, UINT8 splitplayer)
 	char *p = buf;
 	UINT8 player = consoleplayer;
 
-	if (splitplayer == 1)
-		player = secondarydisplayplayer;
-	else if (splitplayer == 2)
-		player = thirddisplayplayer;
-	else if (splitplayer == 3)
-		player = fourthdisplayplayer;
+	if (splitplayer > 0)
+		player = displayplayers[splitplayer];
 
 	WRITESINT8(p, voted);
 	WRITEUINT8(p, player);
@@ -3006,11 +3002,11 @@ static void Command_Teamchange2_f(void)
 		return;
 	}
 
-	if (players[secondarydisplayplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[secondarydisplayplayer].pflags & PF_WANTSTOJOIN));
+	if (players[displayplayers[1]].spectator)
+		error = !(NetPacket.packet.newteam || (players[displayplayers[1]].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
-		error = (NetPacket.packet.newteam == (unsigned)players[secondarydisplayplayer].ctfteam);
-	else if (G_GametypeHasSpectators() && !players[secondarydisplayplayer].spectator)
+		error = (NetPacket.packet.newteam == (unsigned)players[displayplayers[1]].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[displayplayers[1]].spectator)
 		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
@@ -3097,11 +3093,11 @@ static void Command_Teamchange3_f(void)
 		return;
 	}
 
-	if (players[thirddisplayplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[thirddisplayplayer].pflags & PF_WANTSTOJOIN));
+	if (players[displayplayers[2]].spectator)
+		error = !(NetPacket.packet.newteam || (players[displayplayers[2]].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
-		error = (NetPacket.packet.newteam == (unsigned)players[thirddisplayplayer].ctfteam);
-	else if (G_GametypeHasSpectators() && !players[thirddisplayplayer].spectator)
+		error = (NetPacket.packet.newteam == (unsigned)players[displayplayers[2]].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[displayplayers[2]].spectator)
 		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
@@ -3188,11 +3184,11 @@ static void Command_Teamchange4_f(void)
 		return;
 	}
 
-	if (players[fourthdisplayplayer].spectator)
-		error = !(NetPacket.packet.newteam || (players[fourthdisplayplayer].pflags & PF_WANTSTOJOIN));
+	if (players[displayplayers[3]].spectator)
+		error = !(NetPacket.packet.newteam || (players[displayplayers[3]].pflags & PF_WANTSTOJOIN));
 	else if (G_GametypeHasTeams())
-		error = (NetPacket.packet.newteam == (unsigned)players[fourthdisplayplayer].ctfteam);
-	else if (G_GametypeHasSpectators() && !players[fourthdisplayplayer].spectator)
+		error = (NetPacket.packet.newteam == (unsigned)players[displayplayers[3]].ctfteam);
+	else if (G_GametypeHasSpectators() && !players[displayplayers[3]].spectator)
 		error = (NetPacket.packet.newteam == 3);
 #ifdef PARANOIA
 	else
@@ -3589,8 +3585,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		HU_AddChatText(va("\x82*%s became a spectator.", player_names[playernum]), false); // "entered the game" text was moved to P_SpectatorJoinGame
 
 	//reset view if you are changed, or viewing someone who was changed.
-	if (playernum == consoleplayer || displayplayer == playernum)
-		displayplayer = consoleplayer;
+	if (playernum == consoleplayer || displayplayers[0] == playernum)
+		displayplayers[0] = consoleplayer;
 
 	if (G_GametypeHasTeams())
 	{
@@ -3598,11 +3594,11 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		{
 			if (playernum == consoleplayer) //CTF and Team Match colors.
 				CV_SetValue(&cv_playercolor, NetPacket.packet.newteam + 5);
-			else if (playernum == secondarydisplayplayer)
+			else if (playernum == displayplayers[1])
 				CV_SetValue(&cv_playercolor2, NetPacket.packet.newteam + 5);
-			else if (playernum == thirddisplayplayer)
+			else if (playernum == displayplayers[2])
 				CV_SetValue(&cv_playercolor3, NetPacket.packet.newteam + 5);
-			else if (playernum == fourthdisplayplayer)
+			else if (playernum == displayplayers[3])
 				CV_SetValue(&cv_playercolor4, NetPacket.packet.newteam + 5);
 		}
 	}
@@ -5208,13 +5204,13 @@ static void Got_PickVotecmd(UINT8 **cp, INT32 playernum)
 	Y_SetupVoteFinish(pick, level);
 }
 
-/** Prints the number of the displayplayer.
+/** Prints the number of displayplayers[0].
   *
   * \todo Possibly remove this; it was useful for debugging at one point.
   */
 static void Command_Displayplayer_f(void)
 {
-	CONS_Printf(M_GetText("Displayplayer is %d\n"), displayplayer);
+	CONS_Printf(M_GetText("Displayplayer is %d\n"), displayplayers[0]);
 }
 
 /** Quits a game and returns to the title screen.
@@ -5425,7 +5421,7 @@ static void Name2_OnChange(void)
 	if (cv_mute.value) //Secondary player can't be admin.
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You may not change your name when chat is muted.\n"));
-		CV_StealthSet(&cv_playername2, player_names[secondarydisplayplayer]);
+		CV_StealthSet(&cv_playername2, player_names[displayplayers[1]]);
 	}
 	else
 		SendNameAndColor2();
@@ -5436,7 +5432,7 @@ static void Name3_OnChange(void)
 	if (cv_mute.value) //Third player can't be admin.
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You may not change your name when chat is muted.\n"));
-		CV_StealthSet(&cv_playername3, player_names[thirddisplayplayer]);
+		CV_StealthSet(&cv_playername3, player_names[displayplayers[2]]);
 	}
 	else
 		SendNameAndColor3();
@@ -5447,7 +5443,7 @@ static void Name4_OnChange(void)
 	if (cv_mute.value) //Secondary player can't be admin.
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You may not change your name when chat is muted.\n"));
-		CV_StealthSet(&cv_playername4, player_names[fourthdisplayplayer]);
+		CV_StealthSet(&cv_playername4, player_names[displayplayers[3]]);
 	}
 	else
 		SendNameAndColor4();
@@ -5488,12 +5484,12 @@ static void Skin2_OnChange(void)
 	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
-	if (CanChangeSkin(secondarydisplayplayer) && !P_PlayerMoving(secondarydisplayplayer))
+	if (CanChangeSkin(displayplayers[1]) && !P_PlayerMoving(displayplayers[1]))
 		SendNameAndColor2();
 	else
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You can't change your skin at the moment.\n"));
-		CV_StealthSet(&cv_skin2, skins[players[secondarydisplayplayer].skin].name);
+		CV_StealthSet(&cv_skin2, skins[players[displayplayers[1]].skin].name);
 	}
 }
 
@@ -5502,12 +5498,12 @@ static void Skin3_OnChange(void)
 	if (!Playing() || splitscreen < 2)
 		return; // do whatever you want
 
-	if (CanChangeSkin(thirddisplayplayer) && !P_PlayerMoving(thirddisplayplayer))
+	if (CanChangeSkin(displayplayers[2]) && !P_PlayerMoving(displayplayers[2]))
 		SendNameAndColor3();
 	else
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You can't change your skin at the moment.\n"));
-		CV_StealthSet(&cv_skin3, skins[players[thirddisplayplayer].skin].name);
+		CV_StealthSet(&cv_skin3, skins[players[displayplayers[2]].skin].name);
 	}
 }
 
@@ -5516,12 +5512,12 @@ static void Skin4_OnChange(void)
 	if (!Playing() || splitscreen < 3)
 		return; // do whatever you want
 
-	if (CanChangeSkin(fourthdisplayplayer) && !P_PlayerMoving(fourthdisplayplayer))
+	if (CanChangeSkin(displayplayers[3]) && !P_PlayerMoving(displayplayers[3]))
 		SendNameAndColor4();
 	else
 	{
 		CONS_Alert(CONS_NOTICE, M_GetText("You can't change your skin at the moment.\n"));
-		CV_StealthSet(&cv_skin4, skins[players[fourthdisplayplayer].skin].name);
+		CV_StealthSet(&cv_skin4, skins[players[displayplayers[3]].skin].name);
 	}
 }
 
@@ -5562,7 +5558,7 @@ static void Color2_OnChange(void)
 	if (!Playing() || !splitscreen)
 		return; // do whatever you want
 
-	if (!P_PlayerMoving(secondarydisplayplayer))
+	if (!P_PlayerMoving(displayplayers[1]))
 	{
 		// Color change menu scrolling fix is no longer necessary
 		SendNameAndColor2();
@@ -5570,7 +5566,7 @@ static void Color2_OnChange(void)
 	else
 	{
 		CV_StealthSetValue(&cv_playercolor2,
-			players[secondarydisplayplayer].skincolor);
+			players[displayplayers[1]].skincolor);
 	}
 }
 
@@ -5579,7 +5575,7 @@ static void Color3_OnChange(void)
 	if (!Playing() || splitscreen < 2)
 		return; // do whatever you want
 
-	if (!P_PlayerMoving(thirddisplayplayer))
+	if (!P_PlayerMoving(displayplayers[2]))
 	{
 		// Color change menu scrolling fix is no longer necessary
 		SendNameAndColor3();
@@ -5587,7 +5583,7 @@ static void Color3_OnChange(void)
 	else
 	{
 		CV_StealthSetValue(&cv_playercolor3,
-			players[thirddisplayplayer].skincolor);
+			players[displayplayers[2]].skincolor);
 	}
 }
 
@@ -5596,7 +5592,7 @@ static void Color4_OnChange(void)
 	if (!Playing() || splitscreen < 3)
 		return; // do whatever you want
 
-	if (!P_PlayerMoving(fourthdisplayplayer))
+	if (!P_PlayerMoving(displayplayers[3]))
 	{
 		// Color change menu scrolling fix is no longer necessary
 		SendNameAndColor4();
@@ -5604,7 +5600,7 @@ static void Color4_OnChange(void)
 	else
 	{
 		CV_StealthSetValue(&cv_playercolor4,
-			players[fourthdisplayplayer].skincolor);
+			players[displayplayers[3]].skincolor);
 	}
 }
 

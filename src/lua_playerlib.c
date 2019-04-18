@@ -382,13 +382,13 @@ static int player_set(lua_State *L)
 	else if (fastcmp(field,"aiming")) {
 		plr->aiming = luaL_checkangle(L, 3);
 		if (plr == &players[consoleplayer])
-			localaiming = plr->aiming;
-		else if (plr == &players[secondarydisplayplayer])
-			localaiming2 = plr->aiming;
-		else if (plr == &players[thirddisplayplayer])
-			localaiming3 = plr->aiming;
-		else if (plr == &players[fourthdisplayplayer])
-			localaiming4 = plr->aiming;
+			localaiming[0] = plr->aiming;
+		else if (plr == &players[displayplayers[1]])
+			localaiming[1] = plr->aiming;
+		else if (plr == &players[displayplayers[2]])
+			localaiming[2] = plr->aiming;
+		else if (plr == &players[displayplayers[3]])
+			localaiming[3] = plr->aiming;
 	}
 	else if (fastcmp(field,"health"))
 		plr->health = (INT32)luaL_checkinteger(L, 3);

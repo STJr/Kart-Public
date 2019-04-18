@@ -5787,7 +5787,7 @@ static void M_DrawPlaybackMenu(void)
 
 			if (splitscreen >= i - playback_view1)
 			{
-				INT32 ply = *G_GetDisplayplayerPtr(i - playback_view1 + 1);
+				INT32 ply = displayplayers[i - playback_view1 + 1];
 
 				icon = facerankprefix[players[ply].skin];
 				if (i != itemOn)
@@ -5836,19 +5836,10 @@ static void M_DrawPlaybackMenu(void)
 					break;
 
 				case playback_view1:
-					str = player_names[displayplayer];
-					break;
-
 				case playback_view2:
-					str = player_names[secondarydisplayplayer];
-					break;
-
 				case playback_view3:
-					str = player_names[thirddisplayplayer];
-					break;
-
 				case playback_view4:
-					str = player_names[fourthdisplayplayer];
+					str = player_names[displayplayers[i - playback_view1]]; // 0 to 3
 					break;
 
 				default: // shouldn't ever be reached but whatever
@@ -9472,7 +9463,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	strcpy (setupm_name, cv_playername2.string);
 
 	// set for splitscreen secondary player
-	setupm_player = &players[secondarydisplayplayer];
+	setupm_player = &players[displayplayers[1]];
 	setupm_cvskin = &cv_skin2;
 	setupm_cvcolor = &cv_playercolor2;
 	setupm_cvname = &cv_playername2;
@@ -9484,7 +9475,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen && !CanChangeSkin(secondarydisplayplayer))
+	if (splitscreen && !CanChangeSkin(displayplayers[1]))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
@@ -9503,7 +9494,7 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	strcpy(setupm_name, cv_playername3.string);
 
 	// set for splitscreen third player
-	setupm_player = &players[thirddisplayplayer];
+	setupm_player = &players[displayplayers[2]];
 	setupm_cvskin = &cv_skin3;
 	setupm_cvcolor = &cv_playercolor3;
 	setupm_cvname = &cv_playername3;
@@ -9515,7 +9506,7 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen > 1 && !CanChangeSkin(thirddisplayplayer))
+	if (splitscreen > 1 && !CanChangeSkin(displayplayers[2]))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
@@ -9534,7 +9525,7 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	strcpy(setupm_name, cv_playername4.string);
 
 	// set for splitscreen fourth player
-	setupm_player = &players[fourthdisplayplayer];
+	setupm_player = &players[displayplayers[3]];
 	setupm_cvskin = &cv_skin4;
 	setupm_cvcolor = &cv_playercolor4;
 	setupm_cvname = &cv_playername4;
@@ -9546,7 +9537,7 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen > 2 && !CanChangeSkin(fourthdisplayplayer))
+	if (splitscreen > 2 && !CanChangeSkin(displayplayers[3]))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);

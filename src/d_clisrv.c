@@ -2369,7 +2369,7 @@ static void CL_ConnectToServer(boolean viams)
 #endif
 	DEBFILE(va("Synchronisation Finished\n"));
 
-	displayplayer = consoleplayer;
+	displayplayers[0] = consoleplayer;
 }
 
 #ifndef NONET
@@ -2717,8 +2717,8 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		RemoveAdminPlayer(playernum); // don't stay admin after you're gone
 	}
 
-	if (playernum == displayplayer && !demo.playback)
-		displayplayer = consoleplayer; // don't look through someone's view who isn't there
+	if (playernum == displayplayers[0] && !demo.playback)
+		displayplayers[0] = consoleplayer; // don't look through someone's view who isn't there
 
 #ifdef HAVE_BLUA
 	LUA_InvalidatePlayer(&players[playernum]);
@@ -3448,6 +3448,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 {
 	INT16 node, newplayernum;
 	UINT8 splitscreenplayer = 0;
+	UINT8 i;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -3481,34 +3482,19 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	if (node == mynode)
 	{
 		playernode[newplayernum] = 0; // for information only
+
 		if (splitscreenplayer)
 		{
-			if (splitscreenplayer == 1)
-			{
-				secondarydisplayplayer = newplayernum;
-				DEBFILE("spawning my brother\n");
-				if (botingame)
-					players[newplayernum].bot = 1;
-				// Same goes for player 2 when relevant
-			}
-			else if (splitscreenplayer == 2)
-			{
-				thirddisplayplayer = newplayernum;
-				DEBFILE("spawning my sister\n");
-			}
-			else if (splitscreenplayer == 3)
-			{
-				fourthdisplayplayer = newplayernum;
-				DEBFILE("spawning my trusty pet dog\n");
-			}
+			displayplayers[splitscreenplayer] = newplayernum;
+			DEBFILE(va("spawning one of my sister number %d\n", splitscreenplayer));
+			if (splitscreenplayer == 1 && botingame)
+				players[newplayernum].bot = 1;
 		}
 		else
 		{
 			consoleplayer = newplayernum;
-			displayplayer = newplayernum;
-			secondarydisplayplayer = newplayernum;
-			thirddisplayplayer = newplayernum;
-			fourthdisplayplayer = newplayernum;
+			for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+				displayplayers[i] = newplayernum;
 			DEBFILE("spawning me\n");
 		}
 		D_SendPlayerConfig();

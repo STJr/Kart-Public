@@ -39,7 +39,7 @@
 #include "am_map.h"
 #include "d_main.h"
 
-#include "p_local.h" // camera, camera2, camera3, camera4
+#include "p_local.h" // camera[]
 #include "p_tick.h"
 
 #ifdef HWRENDER
@@ -1987,7 +1987,7 @@ static void HU_DrawChat_Old(void)
 	if (!i)
 		return;
 
-	if ((netgame || multiplayer) && players[displayplayer].spectator)
+	if ((netgame || multiplayer) && players[displayplayers[0]].spectator)
 		return;
 
 #ifdef HWRENDER
@@ -2014,7 +2014,7 @@ static inline void HU_DrawCrosshair2(void)
 	if (!i)
 		return;
 
-	if ((netgame || multiplayer) && players[secondarydisplayplayer].spectator)
+	if ((netgame || multiplayer) && players[displayplayers[1]].spectator)
 		return;
 
 #ifdef HWRENDER
@@ -2061,7 +2061,7 @@ static inline void HU_DrawCrosshair3(void)
 	if (!i)
 		return;
 
-	if ((netgame || multiplayer) && players[thirddisplayplayer].spectator)
+	if ((netgame || multiplayer) && players[displayplayers[2]].spectator)
 		return;
 
 #ifdef HWRENDER
@@ -2098,7 +2098,7 @@ static inline void HU_DrawCrosshair4(void)
 	if (!i)
 		return;
 
-	if ((netgame || multiplayer) && players[fourthdisplayplayer].spectator)
+	if ((netgame || multiplayer) && players[displayplayers[3]].spectator)
 		return;
 
 #ifdef HWRENDER
@@ -2358,16 +2358,16 @@ void HU_Drawer(void)
 	// draw the crosshair, not when viewing demos nor with chasecam
 	/*if (!automapactive && !demo.playback)
 	{
-		if (cv_crosshair.value && !camera.chase && !players[displayplayer].spectator)
+		if (cv_crosshair.value && !camera[0].chase && !players[displayplayers[0]].spectator)
 			HU_DrawCrosshair();
 
-		if (cv_crosshair2.value && !camera2.chase && !players[secondarydisplayplayer].spectator)
+		if (cv_crosshair2.value && !camera[1].chase && !players[displayplayers[1]].spectator)
 			HU_DrawCrosshair2();
 
-		if (cv_crosshair3.value && !camera3.chase && !players[thirddisplayplayer].spectator)
+		if (cv_crosshair3.value && !camera[2].chase && !players[displayplayers[2]].spectator)
 			HU_DrawCrosshair3();
 
-		if (cv_crosshair4.value && !camera4.chase && !players[fourthdisplayplayer].spectator)
+		if (cv_crosshair4.value && !camera[3].chase && !players[displayplayers[3]].spectator)
 			HU_DrawCrosshair4();
 	}*/
 
@@ -3009,7 +3009,7 @@ static void HU_DrawRankings(void)
 	// When you play, you quickly see your score because your name is displayed in white.
 	// When playing back a demo, you quickly see who's the view.
 	if (!splitscreen)
-		whiteplayer = demo.playback ? displayplayer : consoleplayer;
+		whiteplayer = demo.playback ? displayplayers[0] : consoleplayer;
 
 	scorelines = 0;
 	memset(completed, 0, sizeof (completed));

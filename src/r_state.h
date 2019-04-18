@@ -88,8 +88,9 @@ extern side_t *sides;
 //
 extern fixed_t viewx, viewy, viewz;
 extern angle_t viewangle, aimingangle;
+extern UINT8 viewnumber; // splitscreen view number
 extern boolean viewsky, skyVisible;
-extern boolean skyVisible1, skyVisible2, skyVisible3, skyVisible4; // saved values of skyVisible for P1 and P2, for splitscreen
+extern boolean skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible of each splitscreen player
 extern sector_t *viewsector;
 extern player_t *viewplayer;
 extern UINT8 portalrender;

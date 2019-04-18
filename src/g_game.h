@@ -152,9 +152,9 @@ INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 boolean InputDown(INT32 gc, UINT8 p);
 INT32 JoyAxis(axis_input_e axissel, UINT8 p);
 
-extern angle_t localangle, localangle2, localangle3, localangle4;
-extern INT32 localaiming, localaiming2, localaiming3, localaiming4; // should be an angle_t but signed
-extern boolean camspin, camspin2, camspin3, camspin4; // SRB2Kart
+extern angle_t localangle[MAXSPLITSCREENPLAYERS];
+extern INT32 localaiming[MAXSPLITSCREENPLAYERS]; // should be an angle_t but signed
+extern boolean camspin[MAXSPLITSCREENPLAYERS]; // SRB2Kart
 
 //
 // GAME
@@ -296,8 +296,6 @@ void G_EndGame(void); // moved from y_inter.c/h and renamed
 
 void G_Ticker(boolean run);
 boolean G_Responder(event_t *ev);
-
-INT32 *G_GetDisplayplayerPtr(UINT8 viewnum);
 
 boolean G_CouldView(INT32 playernum);
 boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive);

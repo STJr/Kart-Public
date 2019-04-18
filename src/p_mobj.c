@@ -1136,44 +1136,18 @@ static void P_PlayerFlip(mobj_t *mo)
 	else if (mo->player->pflags & PF_FLIPCAM)
 	{
 		mo->player->aiming = InvAngle(mo->player->aiming);
-		if (mo->player-players == displayplayer)
+
+		for (i = 0; i <= splitscreen; i++)
 		{
-			localaiming = mo->player->aiming;
-			if (camera.chase) {
-				camera.aiming = InvAngle(camera.aiming);
-				camera.z = mo->z - camera.z + mo->z;
-				if (mo->eflags & MFE_VERTICALFLIP)
-					camera.z += FixedMul(20*FRACUNIT, mo->scale);
-			}
-		}
-		else if (mo->player-players == secondarydisplayplayer)
-		{
-			localaiming2 = mo->player->aiming;
-			if (camera2.chase) {
-				camera2.aiming = InvAngle(camera2.aiming);
-				camera2.z = mo->z - camera2.z + mo->z;
-				if (mo->eflags & MFE_VERTICALFLIP)
-					camera2.z += FixedMul(20*FRACUNIT, mo->scale);
-			}
-		}
-		else if (mo->player-players == thirddisplayplayer)
-		{
-			localaiming3 = mo->player->aiming;
-			if (camera3.chase) {
-				camera3.aiming = InvAngle(camera3.aiming);
-				camera3.z = mo->z - camera3.z + mo->z;
-				if (mo->eflags & MFE_VERTICALFLIP)
-					camera3.z += FixedMul(20*FRACUNIT, mo->scale);
-			}
-		}
-		else if (mo->player-players == fourthdisplayplayer)
-		{
-			localaiming4 = mo->player->aiming;
-			if (camera4.chase) {
-				camera4.aiming = InvAngle(camera4.aiming);
-				camera4.z = mo->z - camera4.z + mo->z;
-				if (mo->eflags & MFE_VERTICALFLIP)
-					camera4.z += FixedMul(20*FRACUNIT, mo->scale);
+			if (mo->player-players == displayplayers[i])
+			{
+				localaiming[i] = mo->player->aiming;
+				if (camera[i].chase) {
+					camera[i].aiming = InvAngle(camera[i].aiming);
+					camera[i].z = mo->z - camera[i].z + mo->z;
+					if (mo->eflags & MFE_VERTICALFLIP)
+						camera[i].z += FixedMul(20*FRACUNIT, mo->scale);
+				}
 			}
 		}
 	}
@@ -3546,17 +3520,26 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 {
 	boolean itsatwodlevel = false;
 	postimg_t postimg = postimg_none;
+	UINT8 i;
 
 	// This can happen when joining
 	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
 		return true;
 
-	if (twodlevel
-		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera3 && players[thirddisplayplayer].mo && (players[thirddisplayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
+	if (twodlevel)
 		itsatwodlevel = true;
+	else
+	{
+		for (i = 0; i <= splitscreen; i++)
+		{
+			if (thiscam == &camera[i] && players[displayplayers[i]].mo
+				&& (players[displayplayers[i]].mo->flags2 & MF2_TWOD))
+			{
+				itsatwodlevel = true;
+				break;
+			}
+		}
+	}
 
 	if (encoremode)
 		postimg = postimg_mirror;
@@ -3588,14 +3571,11 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 	if (postimg != postimg_none)
 	{
-		if (splitscreen && player == &players[secondarydisplayplayer])
-			postimgtype2 = postimg;
-		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-			postimgtype3 = postimg;
-		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-			postimgtype4 = postimg;
-		else
-			postimgtype = postimg;
+		for (i = 0; i <= splitscreen; i++)
+		{
+			if (player == &players[displayplayers[i]])
+				postimgtype[i] = postimg;
+		}
 	}
 
 	if (thiscam->momx || thiscam->momy)
@@ -3641,11 +3621,11 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 				fixed_t cam_height = cv_cam_height.value;
 				thiscam->z = thiscam->floorz;
 
-				if (player == &players[secondarydisplayplayer])
+				if (player == &players[displayplayers[1]])
 					cam_height = cv_cam2_height.value;
-				if (player == &players[thirddisplayplayer])
+				if (player == &players[displayplayers[2]])
 					cam_height = cv_cam3_height.value;
-				if (player == &players[fourthdisplayplayer])
+				if (player == &players[displayplayers[3]])
 					cam_height = cv_cam4_height.value;
 				if (thiscam->z > player->mo->z + player->mo->height + FixedMul(cam_height*FRACUNIT + 16*FRACUNIT, player->mo->scale))
 				{
@@ -6101,12 +6081,12 @@ void P_RunOverlays(void)
 		{
 			angle_t viewingangle;
 
-			if (players[displayplayer].awayviewtics)
-				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, players[displayplayer].awayviewmobj->x, players[displayplayer].awayviewmobj->y);
-			else if (!camera.chase && players[displayplayer].mo)
-				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, players[displayplayer].mo->x, players[displayplayer].mo->y);
+			if (players[displayplayers[0]].awayviewtics)
+				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, players[displayplayers[0]].awayviewmobj->x, players[displayplayers[0]].awayviewmobj->y);
+			else if (!camera[0].chase && players[displayplayers[0]].mo)
+				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, players[displayplayers[0]].mo->x, players[displayplayers[0]].mo->y);
 			else
-				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, camera.x, camera.y);
+				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, camera[0].x, camera[0].y);
 
 			if (!(mo->state->frame & FF_ANIMATE) && mo->state->var1)
 				viewingangle += ANGLE_180;
@@ -6680,7 +6660,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->target && mobj->target->health
 					&& mobj->target->player && !mobj->target->player->spectator
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
-					/*&& players[displayplayer].mo && !players[displayplayer].spectator*/)
+					/*&& players[displayplayers[0]].mo && !players[displayplayers[0]].spectator*/)
 				{
 					fixed_t scale = 3*mobj->target->scale;
 					mobj->color = mobj->target->color;
@@ -6688,7 +6668,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if ((G_RaceGametype() || mobj->target->player->kartstuff[k_bumper] <= 0)
 #if 1 // Set to 0 to test without needing to host
-						|| ((mobj->target->player == &players[displayplayer]) || P_IsLocalPlayer(mobj->target->player))
+						|| ((mobj->target->player == &players[displayplayers[0]]) || P_IsLocalPlayer(mobj->target->player))
 #endif
 						)
 						mobj->flags2 |= MF2_DONTDRAW;
@@ -6699,10 +6679,10 @@ void P_MobjThinker(mobj_t *mobj)
 
 					mobj->angle = R_PointToAngle(mobj->x, mobj->y) + ANGLE_90; // literally only happened because i wanted to ^L^R the SPR_ITEM's
 
-					if (!splitscreen && players[displayplayer].mo)
+					if (!splitscreen && players[displayplayers[0]].mo)
 					{
-						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
-							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayers[0]].mo->x-mobj->target->x,
+							players[displayplayers[0]].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
 						if (scale > 16*mobj->target->scale)
 							scale = 16*mobj->target->scale;
 					}
@@ -6887,7 +6867,7 @@ void P_MobjThinker(mobj_t *mobj)
 				if (mobj->target && mobj->target->health && mobj->tracer
 					&& mobj->target->player && !mobj->target->player->spectator
 					&& mobj->target->player->health && mobj->target->player->playerstate != PST_DEAD
-					&& players[displayplayer].mo && !players[displayplayer].spectator)
+					&& players[displayplayers[0]].mo && !players[displayplayers[0]].spectator)
 				{
 					fixed_t scale = 3*mobj->target->scale;
 
@@ -6909,8 +6889,8 @@ void P_MobjThinker(mobj_t *mobj)
 
 					if (!splitscreen)
 					{
-						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayer].mo->x-mobj->target->x,
-							players[displayplayer].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
+						scale = mobj->target->scale + FixedMul(FixedDiv(abs(P_AproxDistance(players[displayplayers[0]].mo->x-mobj->target->x,
+							players[displayplayers[0]].mo->y-mobj->target->y)), RING_DIST), mobj->target->scale);
 						if (scale > 16*mobj->target->scale)
 							scale = 16*mobj->target->scale;
 					}
@@ -8296,12 +8276,12 @@ void P_MobjThinker(mobj_t *mobj)
 				angle_t viewingangle;
 				statenum_t curstate = ((mobj->tics == 1) ? (mobj->state->nextstate) : ((statenum_t)(mobj->state-states)));
 
-				if (players[displayplayer].awayviewtics)
-					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, players[displayplayer].awayviewmobj->x, players[displayplayer].awayviewmobj->y);
-				else if (!camera.chase && players[displayplayer].mo)
-					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, players[displayplayer].mo->x, players[displayplayer].mo->y);
+				if (players[displayplayers[0]].awayviewtics)
+					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, players[displayplayers[0]].awayviewmobj->x, players[displayplayers[0]].awayviewmobj->y);
+				else if (!camera[0].chase && players[displayplayers[0]].mo)
+					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, players[displayplayers[0]].mo->x, players[displayplayers[0]].mo->y);
 				else
-					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, camera.x, camera.y);
+					viewingangle = R_PointToAngle2(mobj->target->x, mobj->target->y, camera[0].x, camera[0].y);
 
 				if (curstate > S_THUNDERSHIELD15)
 					viewingangle += ANGLE_180;
@@ -10562,13 +10542,13 @@ void P_PrecipitationEffects(void)
 
 	// Local effects from here on out!
 	// If we're not in game fully yet, we don't worry about them.
-	if (!playeringame[displayplayer] || !players[displayplayer].mo)
+	if (!playeringame[displayplayers[0]] || !players[displayplayers[0]].mo)
 		return;
 
 	if (sound_disabled)
 		return; // Sound off? D'aw, no fun.
 
-	if (players[displayplayer].mo->subsector->sector->ceilingpic == skyflatnum)
+	if (players[displayplayers[0]].mo->subsector->sector->ceilingpic == skyflatnum)
 		volume = 255; // Sky above? We get it full blast.
 	else
 	{
@@ -10576,17 +10556,17 @@ void P_PrecipitationEffects(void)
 		fixed_t closedist, newdist;
 
 		// Essentially check in a 1024 unit radius of the player for an outdoor area.
-		yl = players[displayplayer].mo->y - 1024*FRACUNIT;
-		yh = players[displayplayer].mo->y + 1024*FRACUNIT;
-		xl = players[displayplayer].mo->x - 1024*FRACUNIT;
-		xh = players[displayplayer].mo->x + 1024*FRACUNIT;
+		yl = players[displayplayers[0]].mo->y - 1024*FRACUNIT;
+		yh = players[displayplayers[0]].mo->y + 1024*FRACUNIT;
+		xl = players[displayplayers[0]].mo->x - 1024*FRACUNIT;
+		xh = players[displayplayers[0]].mo->x + 1024*FRACUNIT;
 		closedist = 2048*FRACUNIT;
 		for (y = yl; y <= yh; y += FRACUNIT*64)
 			for (x = xl; x <= xh; x += FRACUNIT*64)
 			{
 				if (R_PointInSubsector(x, y)->sector->ceilingpic == skyflatnum) // Found the outdoors!
 				{
-					newdist = S_CalculateSoundDistance(players[displayplayer].mo->x, players[displayplayer].mo->y, 0, x, y, 0);
+					newdist = S_CalculateSoundDistance(players[displayplayers[0]].mo->x, players[displayplayers[0]].mo->y, 0, x, y, 0);
 					if (newdist < closedist)
 						closedist = newdist;
 				}
@@ -10601,7 +10581,7 @@ void P_PrecipitationEffects(void)
 		volume = 255;
 
 	if (sounds_rain && (!leveltime || leveltime % 80 == 1))
-		S_StartSoundAtVolume(players[displayplayer].mo, sfx_rainin, volume);
+		S_StartSoundAtVolume(players[displayplayers[0]].mo, sfx_rainin, volume);
 
 	if (!sounds_thunder)
 		return;
@@ -10609,7 +10589,7 @@ void P_PrecipitationEffects(void)
 	if (effects_lightning && lightningStrike && volume)
 	{
 		// Large, close thunder sounds to go with our lightning.
-		S_StartSoundAtVolume(players[displayplayer].mo, sfx_litng1 + M_RandomKey(4), volume);
+		S_StartSoundAtVolume(players[displayplayers[0]].mo, sfx_litng1 + M_RandomKey(4), volume);
 	}
 	else if (thunderchance < 20)
 	{
@@ -10617,7 +10597,7 @@ void P_PrecipitationEffects(void)
 		if (volume < 80)
 			volume = 80;
 
-		S_StartSoundAtVolume(players[displayplayer].mo, sfx_athun1 + M_RandomKey(2), volume);
+		S_StartSoundAtVolume(players[displayplayers[0]].mo, sfx_athun1 + M_RandomKey(2), volume);
 	}
 }
 
@@ -10924,15 +10904,21 @@ void P_AfterPlayerSpawn(INT32 playernum)
 {
 	player_t *p = &players[playernum];
 	mobj_t *mobj = p->mo;
+	UINT8 i;
 
 	if (playernum == consoleplayer)
-		localangle = mobj->angle;
-	else if (playernum == secondarydisplayplayer)
-		localangle2 = mobj->angle;
-	else if (playernum == thirddisplayplayer)
-		localangle3 = mobj->angle;
-	else if (playernum == fourthdisplayplayer)
-		localangle4 = mobj->angle;
+		localangle[0] = mobj->angle;
+	else if (splitscreen)
+	{
+		for (i = 1; i <= splitscreen; i++)
+		{
+			if (playernum == displayplayers[i])
+			{
+				localangle[i] = mobj->angle;
+				break;
+			}
+		}
+	}
 
 	p->viewheight = 32<<FRACBITS;
 
@@ -10954,25 +10940,13 @@ void P_AfterPlayerSpawn(INT32 playernum)
 
 	SV_SpawnPlayer(playernum, mobj->x, mobj->y, mobj->angle);
 
-	if (camera.chase)
+	for (i = 0; i <= splitscreen; i++)
 	{
-		if (displayplayer == playernum)
-			P_ResetCamera(p, &camera);
-	}
-	if (camera2.chase && splitscreen)
-	{
-		if (secondarydisplayplayer == playernum)
-			P_ResetCamera(p, &camera2);
-	}
-	if (camera3.chase && splitscreen > 1)
-	{
-		if (thirddisplayplayer == playernum)
-			P_ResetCamera(p, &camera3);
-	}
-	if (camera4.chase && splitscreen > 2)
-	{
-		if (fourthdisplayplayer == playernum)
-			P_ResetCamera(p, &camera4);
+		if (camera[i].chase)
+		{
+			if (displayplayers[i] == playernum)
+				P_ResetCamera(p, &camera[i]);
+		}
 	}
 
 	if (CheckForReverseGravity)

@@ -112,10 +112,7 @@ boolean addedtogame;
 player_t players[MAXPLAYERS];
 
 INT32 consoleplayer; // player taking events and displaying
-INT32 displayplayer; // view being displayed
-INT32 secondarydisplayplayer; // for splitscreen
-INT32 thirddisplayplayer;
-INT32 fourthdisplayplayer;
+INT32 displayplayers[MAXSPLITSCREENPLAYERS]; // view being displayed
 
 tic_t gametic;
 tic_t levelstarttic; // gametic at level start
@@ -1220,9 +1217,9 @@ INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 //
 // set secondaryplayer true to build player 2's ticcmd in splitscreen mode
 //
-INT32 localaiming, localaiming2, localaiming3, localaiming4;
-angle_t localangle, localangle2, localangle3, localangle4;
-boolean camspin, camspin2, camspin3, camspin4;
+INT32 localaiming[MAXSPLITSCREENPLAYERS]; // TODO: convert these 3 into MAXSPLITSCREENPLAYERS arrays
+angle_t localangle[MAXSPLITSCREENPLAYERS];
+boolean camspin[MAXSPLITSCREENPLAYERS];
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {2<<FRACBITS>>16, 4<<FRACBITS>>16};
@@ -1239,53 +1236,36 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	camera_t *thiscam;
 	angle_t lang;
 
-	static INT32 turnheld, turnheld2, turnheld3, turnheld4; // for accelerative turning
-	static boolean keyboard_look, keyboard_look2, keyboard_look3, keyboard_look4; // true if lookup/down using keyboard
-	static boolean resetdown, resetdown2, resetdown3, resetdown4; // don't cam reset every frame
+	static INT32 turnheld[MAXSPLITSCREENPLAYERS]; // for accelerative turning
+	static boolean keyboard_look[MAXSPLITSCREENPLAYERS]; // true if lookup/down using keyboard
+	static boolean resetdown[MAXSPLITSCREENPLAYERS]; // don't cam reset every frame
 
 	if (demo.playback) return;
+
+	player = &players[displayplayers[ssplayer-1]];
+	if (ssplayer == 2)
+		thiscam = (player->bot == 2 ? &camera[0] : &camera[ssplayer-1]);
+	else
+		thiscam = &camera[ssplayer-1];
+	lang = localangle[ssplayer-1];
+	laim = localaiming[ssplayer-1];
+	th = turnheld[ssplayer-1];
+	kbl = keyboard_look[ssplayer-1];
+	rd = resetdown[ssplayer-1];
 
 	switch (ssplayer)
 	{
 		case 2:
-			player = &players[secondarydisplayplayer];
-			thiscam = (player->bot == 2 ? &camera : &camera2);
-			lang = localangle2;
-			laim = localaiming2;
-			th = turnheld2;
-			kbl = keyboard_look2;
-			rd = resetdown2;
 			G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1);
 			break;
 		case 3:
-			player = &players[thirddisplayplayer];
-			thiscam = &camera3;
-			lang = localangle3;
-			laim = localaiming3;
-			th = turnheld3;
-			kbl = keyboard_look3;
-			rd = resetdown3;
 			G_CopyTiccmd(cmd, I_BaseTiccmd3(), 1);
 			break;
 		case 4:
-			player = &players[fourthdisplayplayer];
-			thiscam = &camera4;
-			lang = localangle4;
-			laim = localaiming4;
-			th = turnheld4;
-			kbl = keyboard_look4;
-			rd = resetdown4;
 			G_CopyTiccmd(cmd, I_BaseTiccmd4(), 1);
 			break;
 		case 1:
 		default:
-			player = &players[consoleplayer];
-			thiscam = &camera;
-			lang = localangle;
-			laim = localaiming;
-			th = turnheld;
-			kbl = keyboard_look;
-			rd = resetdown;
 			G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
 			break;
 	}
@@ -1576,42 +1556,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	if (!hu_stopped)
 	{
-		switch (ssplayer)
-		{
-		case 2:
-			localangle2 = lang;
-			localaiming2 = laim;
-			keyboard_look2 = kbl;
-			turnheld2 = th;
-			resetdown2 = rd;
-			camspin2 = InputDown(gc_lookback, ssplayer);
-			break;
-		case 3:
-			localangle3 = lang;
-			localaiming3 = laim;
-			keyboard_look3 = kbl;
-			turnheld3 = th;
-			resetdown3 = rd;
-			camspin3 = InputDown(gc_lookback, ssplayer);
-			break;
-		case 4:
-			localangle4 = lang;
-			localaiming4 = laim;
-			keyboard_look4 = kbl;
-			turnheld4 = th;
-			resetdown4 = rd;
-			camspin4 = InputDown(gc_lookback, ssplayer);
-			break;
-		case 1:
-		default:
-			localangle = lang;
-			localaiming = laim;
-			keyboard_look = kbl;
-			turnheld = th;
-			resetdown = rd;
-			camspin = InputDown(gc_lookback, ssplayer);
-			break;
-		}
+		localangle[ssplayer-1] = lang;
+		localaiming[ssplayer-1] = laim;
+		keyboard_look[ssplayer-1] = kbl;
+		turnheld[ssplayer-1] = th;
+		resetdown[ssplayer-1] = rd;
+		camspin[ssplayer-1] = InputDown(gc_lookback, ssplayer);
 	}
 
 	/* 	Lua: Allow this hook to overwrite ticcmd.
@@ -1631,8 +1581,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	//Reset away view if a command is given.
 	if ((cmd->forwardmove || cmd->sidemove || cmd->buttons)
-		&& displayplayer != consoleplayer && ssplayer == 1)
-		displayplayer = consoleplayer;
+		&& displayplayers[0] != consoleplayer && ssplayer == 1)
+		displayplayers[0] = consoleplayer;
 
 }
 
@@ -1784,27 +1734,24 @@ void G_DoLoadLevel(boolean resetplayer)
 	if (!resetplayer)
 		P_FindEmerald();
 
-	displayplayer = consoleplayer; // view the guy you are playing
-	if (!splitscreen && !botingame)
-		secondarydisplayplayer = consoleplayer;
-	if (splitscreen < 2)
-		thirddisplayplayer = consoleplayer;
-	if (splitscreen < 3)
-		fourthdisplayplayer = consoleplayer;
+	displayplayers[0] = consoleplayer; // view the guy you are playing
+
+	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	{
+		if (i > 0 && !(i == 1 && botingame) && splitscreen < i)
+			displayplayers[i] = consoleplayer;
+	}
 
 	gameaction = ga_nothing;
 #ifdef PARANOIA
 	Z_CheckHeap(-2);
 #endif
 
-	if (camera.chase)
-		P_ResetCamera(&players[displayplayer], &camera);
-	if (camera2.chase && splitscreen)
-		P_ResetCamera(&players[secondarydisplayplayer], &camera2);
-	if (camera3.chase && splitscreen > 1)
-		P_ResetCamera(&players[thirddisplayplayer], &camera3);
-	if (camera4.chase && splitscreen > 2)
-		P_ResetCamera(&players[fourthdisplayplayer], &camera4);
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (camera[i].chase)
+			P_ResetCamera(&players[displayplayers[i]], &camera[i]);
+	}
 
 	// clear cmd building stuff
 	memset(gamekeydown, 0, sizeof (gamekeydown));
@@ -1914,7 +1861,7 @@ boolean G_Responder(event_t *ev)
 		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
 	{
 		if (!demo.playback && (splitscreen || !netgame))
-			displayplayer = consoleplayer;
+			displayplayers[0] = consoleplayer;
 		else
 		{
 			G_AdjustView(1, 1, true);
@@ -2184,13 +2131,13 @@ boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive)
 
 	for (viewd = 1; viewd < viewnum; ++viewd)
 	{
-		displayplayerp = (G_GetDisplayplayerPtr(viewd));
+		displayplayerp = (&displayplayers[viewd-1]);
 		if ((*displayplayerp) == playernum)
 			return false;
 	}
 	for (viewd = viewnum + 1; viewd <= splits; ++viewd)
 	{
-		displayplayerp = (G_GetDisplayplayerPtr(viewd));
+		displayplayerp = (&displayplayers[viewd-1]);
 		if ((*displayplayerp) == playernum)
 			return false;
 	}
@@ -2232,17 +2179,6 @@ INT32 G_CountPlayersPotentiallyViewable(boolean active)
 	return total;
 }
 
-INT32 *G_GetDisplayplayerPtr(UINT8 viewnum)
-{
-	switch (viewnum)
-	{
-		case 2: return &secondarydisplayplayer;
-		case 3: return &thirddisplayplayer;
-		case 4: return &fourthdisplayplayer;
-	}
-	return &displayplayer;
-}
-
 //
 // G_ResetView
 // Correct a viewpoint to playernum or the next available, wraps forward.
@@ -2276,14 +2212,14 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 		/* Prepare extra views for G_FindView to pass. */
 		for (viewd = splits+1; viewd < viewnum; ++viewd)
 		{
-			displayplayerp = (G_GetDisplayplayerPtr(viewd));
+			displayplayerp = (&displayplayers[viewd-1]);
 			(*displayplayerp) = INT32_MAX;
 		}
 
 		R_ExecuteSetViewSize();
 	}
 
-	displayplayerp = (G_GetDisplayplayerPtr(viewnum));
+	displayplayerp = (&displayplayers[viewnum-1]);
 	olddisplayplayer = (*displayplayerp);
 
 	/* Check if anyone is available to view. */
@@ -2294,7 +2230,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 	(*displayplayerp) = playernum;
 	if ((*displayplayerp) != olddisplayplayer)
 	{
-		camerap = (P_GetCameraPtr(viewnum));
+		camerap = &camera[viewnum-1];
 		P_ResetCamera(&players[(*displayplayerp)], camerap);
 	}
 
@@ -2302,8 +2238,8 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 	{
 		for (viewd = splits+1; viewd < viewnum; ++viewd)
 		{
-			displayplayerp = (G_GetDisplayplayerPtr(viewd));
-			camerap = (P_GetCameraPtr(viewd));
+			displayplayerp = (&displayplayers[viewd-1]);
+			camerap = &camera[viewd];
 
 			(*displayplayerp) = G_FindView(0, viewd, onlyactive, false);
 
@@ -2312,7 +2248,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 	}
 
 	if (viewnum == 1 && demo.playback)
-		consoleplayer = displayplayer;
+		consoleplayer = displayplayers[0];
 }
 
 //
@@ -2323,7 +2259,7 @@ void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive)
 void G_AdjustView(UINT8 viewnum, INT32 offset, boolean onlyactive)
 {
 	INT32 *displayplayerp, oldview;
-	displayplayerp = G_GetDisplayplayerPtr(viewnum);
+	displayplayerp = &displayplayers[viewnum-1];
 	oldview = (*displayplayerp);
 	G_ResetView(viewnum, ( (*displayplayerp) + offset ), onlyactive);
 
@@ -2864,22 +2800,22 @@ void G_PlayerReborn(INT32 player)
 		{
 			if (p == &players[consoleplayer])
 				CV_SetValue(&cv_playercolor, skincolor_redteam);
-			else if (p == &players[secondarydisplayplayer])
+			else if (p == &players[displayplayers[1]])
 				CV_SetValue(&cv_playercolor2, skincolor_redteam);
-			else if (p == &players[thirddisplayplayer])
+			else if (p == &players[displayplayers[2]])
 				CV_SetValue(&cv_playercolor3, skincolor_redteam);
-			else if (p == &players[fourthdisplayplayer])
+			else if (p == &players[displayplayers[3]])
 				CV_SetValue(&cv_playercolor4, skincolor_redteam);
 		}
 		else if (p->ctfteam == 2 && p->skincolor != skincolor_blueteam)
 		{
 			if (p == &players[consoleplayer])
 				CV_SetValue(&cv_playercolor, skincolor_blueteam);
-			else if (p == &players[secondarydisplayplayer])
+			else if (p == &players[displayplayers[1]])
 				CV_SetValue(&cv_playercolor2, skincolor_blueteam);
-			else if (p == &players[thirddisplayplayer])
+			else if (p == &players[displayplayers[2]])
 				CV_SetValue(&cv_playercolor3, skincolor_blueteam);
-			else if (p == &players[fourthdisplayplayer])
+			else if (p == &players[displayplayers[3]])
 				CV_SetValue(&cv_playercolor4, skincolor_blueteam);
 		}
 	}*/
@@ -2984,18 +2920,18 @@ void G_SpawnPlayer(INT32 playernum, boolean starpost)
 		if (nummapthings)
 		{
 			if (playernum == consoleplayer
-				|| (splitscreen && playernum == secondarydisplayplayer)
-				|| (splitscreen > 1 && playernum == thirddisplayplayer)
-				|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+				|| (splitscreen && playernum == displayplayers[1])
+				|| (splitscreen > 1 && playernum == displayplayers[2])
+				|| (splitscreen > 2 && playernum == displayplayers[3]))
 				CONS_Alert(CONS_ERROR, M_GetText("No player spawns found, spawning at the first mapthing!\n"));
 			spawnpoint = &mapthings[0];
 		}
 		else
 		{
 			if (playernum == consoleplayer
-			|| (splitscreen && playernum == secondarydisplayplayer)
-			|| (splitscreen > 1 && playernum == thirddisplayplayer)
-			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == displayplayers[1])
+			|| (splitscreen > 1 && playernum == displayplayers[2])
+			|| (splitscreen > 2 && playernum == displayplayers[3]))
 				CONS_Alert(CONS_ERROR, M_GetText("No player spawns found, spawning at the origin!\n"));
 			//P_MovePlayerToSpawn handles this fine if the spawnpoint is NULL.
 		}
@@ -3015,9 +2951,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 	if (!numredctfstarts && !numbluectfstarts) //why even bother, eh?
 	{
 		if (playernum == consoleplayer
-			|| (splitscreen && playernum == secondarydisplayplayer)
-			|| (splitscreen > 1 && playernum == thirddisplayplayer)
-			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == displayplayers[1])
+			|| (splitscreen > 1 && playernum == displayplayers[2])
+			|| (splitscreen > 2 && playernum == displayplayers[3]))
 			CONS_Alert(CONS_WARNING, M_GetText("No CTF starts in this map!\n"));
 		return NULL;
 	}
@@ -3027,9 +2963,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		if (!numredctfstarts)
 		{
 			if (playernum == consoleplayer
-				|| (splitscreen && playernum == secondarydisplayplayer)
-				|| (splitscreen > 1 && playernum == thirddisplayplayer)
-				|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+				|| (splitscreen && playernum == displayplayers[1])
+				|| (splitscreen > 1 && playernum == displayplayers[2])
+				|| (splitscreen > 2 && playernum == displayplayers[3]))
 				CONS_Alert(CONS_WARNING, M_GetText("No Red Team starts in this map!\n"));
 			return NULL;
 		}
@@ -3042,9 +2978,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		}
 
 		if (playernum == consoleplayer
-			|| (splitscreen && playernum == secondarydisplayplayer)
-			|| (splitscreen > 1 && playernum == thirddisplayplayer)
-			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == displayplayers[1])
+			|| (splitscreen > 1 && playernum == displayplayers[2])
+			|| (splitscreen > 2 && playernum == displayplayers[3]))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Red Team starts!\n"));
 		return NULL;
 	}
@@ -3053,9 +2989,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 		if (!numbluectfstarts)
 		{
 			if (playernum == consoleplayer
-				|| (splitscreen && playernum == secondarydisplayplayer)
-				|| (splitscreen > 1 && playernum == thirddisplayplayer)
-				|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+				|| (splitscreen && playernum == displayplayers[1])
+				|| (splitscreen > 1 && playernum == displayplayers[2])
+				|| (splitscreen > 2 && playernum == displayplayers[3]))
 				CONS_Alert(CONS_WARNING, M_GetText("No Blue Team starts in this map!\n"));
 			return NULL;
 		}
@@ -3067,9 +3003,9 @@ mapthing_t *G_FindCTFStart(INT32 playernum)
 				return bluectfstarts[i];
 		}
 		if (playernum == consoleplayer
-			|| (splitscreen && playernum == secondarydisplayplayer)
-			|| (splitscreen > 1 && playernum == thirddisplayplayer)
-			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == displayplayers[1])
+			|| (splitscreen > 1 && playernum == displayplayers[2])
+			|| (splitscreen > 2 && playernum == displayplayers[3]))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Blue Team starts!\n"));
 		return NULL;
 	}
@@ -3090,17 +3026,17 @@ mapthing_t *G_FindMatchStart(INT32 playernum)
 				return deathmatchstarts[i];
 		}
 		if (playernum == consoleplayer
-			|| (splitscreen && playernum == secondarydisplayplayer)
-			|| (splitscreen > 1 && playernum == thirddisplayplayer)
-			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == displayplayers[1])
+			|| (splitscreen > 1 && playernum == displayplayers[2])
+			|| (splitscreen > 2 && playernum == displayplayers[3]))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Deathmatch starts!\n"));
 		return NULL;
 	}
 
 	if (playernum == consoleplayer
-		|| (splitscreen && playernum == secondarydisplayplayer)
-		|| (splitscreen > 1 && playernum == thirddisplayplayer)
-		|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+		|| (splitscreen && playernum == displayplayers[1])
+		|| (splitscreen > 1 && playernum == displayplayers[2])
+		|| (splitscreen > 2 && playernum == displayplayers[3]))
 		CONS_Alert(CONS_WARNING, M_GetText("No Deathmatch starts in this map!\n"));
 	return NULL;
 }
@@ -3166,17 +3102,17 @@ mapthing_t *G_FindRaceStart(INT32 playernum)
 		//return playerstarts[0];
 
 		if (playernum == consoleplayer
-			|| (splitscreen && playernum == secondarydisplayplayer)
-			|| (splitscreen > 1 && playernum == thirddisplayplayer)
-			|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+			|| (splitscreen && playernum == displayplayers[1])
+			|| (splitscreen > 1 && playernum == displayplayers[2])
+			|| (splitscreen > 2 && playernum == displayplayers[3]))
 			CONS_Alert(CONS_WARNING, M_GetText("Could not spawn at any Race starts!\n"));
 		return NULL;
 	}
 
 	if (playernum == consoleplayer
-		|| (splitscreen && playernum == secondarydisplayplayer)
-		|| (splitscreen > 1 && playernum == thirddisplayplayer)
-		|| (splitscreen > 2 && playernum == fourthdisplayplayer))
+		|| (splitscreen && playernum == displayplayers[1])
+		|| (splitscreen > 1 && playernum == displayplayers[2])
+		|| (splitscreen > 2 && playernum == displayplayers[3]))
 		CONS_Alert(CONS_WARNING, M_GetText("No Race starts in this map!\n"));
 	return NULL;
 }
@@ -3268,14 +3204,11 @@ void G_DoReborn(INT32 playernum)
 			if (player->starpostnum) // SRB2kart
 				starpost = true;
 
-			if (camera.chase)
-				P_ResetCamera(&players[displayplayer], &camera);
-			if (camera2.chase && splitscreen > 0)
-				P_ResetCamera(&players[secondarydisplayplayer], &camera2);
-			if (camera3.chase && splitscreen > 1)
-				P_ResetCamera(&players[thirddisplayplayer], &camera3);
-			if (camera4.chase && splitscreen > 2)
-				P_ResetCamera(&players[fourthdisplayplayer], &camera4);
+			for (i = 0; i <= splitscreen; i++)
+			{
+				if (camera[i].chase)
+					P_ResetCamera(&players[displayplayers[i]], &camera[i]);
+			}
 
 			// clear cmd building stuff
 			memset(gamekeydown, 0, sizeof (gamekeydown));
@@ -3297,8 +3230,8 @@ void G_DoReborn(INT32 playernum)
 
 			if (botingame)
 			{ // Bots respawn next to their master.
-				players[secondarydisplayplayer].playerstate = PST_REBORN;
-				G_SpawnPlayer(secondarydisplayplayer, false);
+				players[displayplayers[1]].playerstate = PST_REBORN;
+				G_SpawnPlayer(displayplayers[1], false);
 			}
 		}
 		else
@@ -4418,7 +4351,7 @@ static void M_ForceLoadGameResponse(INT32 ch)
 	//set cursaveslot to -1 so nothing gets saved.
 	cursaveslot = -1;
 
-	displayplayer = consoleplayer;
+	displayplayers[0] = consoleplayer;
 	multiplayer = false;
 	splitscreen = 0;
 	SplitScreen_OnChange(); // not needed?
@@ -4508,7 +4441,7 @@ void G_LoadGame(UINT32 slot, INT16 mapoverride)
 
 //	gameaction = ga_nothing;
 //	G_SetGamestate(GS_LEVEL);
-	displayplayer = consoleplayer;
+	displayplayers[0] = consoleplayer;
 	multiplayer = false;
 	splitscreen = 0;
 	SplitScreen_OnChange(); // not needed?
@@ -4573,7 +4506,7 @@ void G_SaveGame(UINT32 savegameslot)
 //
 // G_DeferedInitNew
 // Can be called by the startup code or the menu task,
-// consoleplayer, displayplayer, playeringame[] should be set.
+// consoleplayer, displayplayers[], playeringame[] should be set.
 //
 void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar, UINT8 ssplayers, boolean FLS)
 {
@@ -5167,12 +5100,12 @@ void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum)
 	G_CopyTiccmd(cmd, &oldcmd[playernum], 1);
 
 	// SRB2kart: Copy-pasted from ticcmd building, removes that crappy demo cam
-	if (((players[displayplayer].mo && players[displayplayer].speed > 0) // Moving
+	if (((players[displayplayers[0]].mo && players[displayplayers[0]].speed > 0) // Moving
 		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
-		|| (players[displayplayer].kartstuff[k_respawn]) // Respawning
-		|| (players[displayplayer].spectator || objectplacing)) // Not a physical player
-		&& !(players[displayplayer].kartstuff[k_spinouttimer] && players[displayplayer].kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
-		localangle += (cmd->angleturn<<16);
+		|| (players[displayplayers[0]].kartstuff[k_respawn]) // Respawning
+		|| (players[displayplayers[0]].spectator || objectplacing)) // Not a physical player
+		&& !(players[displayplayers[0]].kartstuff[k_spinouttimer] && players[displayplayers[0]].kartstuff[k_sneakertimer])) // Spinning and boosting cancels out spinout
+		localangle[0] += (cmd->angleturn<<16);
 
 	if (!(demoflags & DF_GHOST) && *demo_p == DEMOMARKER)
 	{
@@ -6073,7 +6006,7 @@ void G_PreviewRewind(tic_t previewtime)
 	}
 
 	for (i = splitscreen+1; i > 0; i--)
-		P_ResetCamera(&players[(*G_GetDisplayplayerPtr(i))], P_GetCameraPtr(i));
+		P_ResetCamera(&players[displayplayers[i]], &camera[i]);
 }
 
 void G_ConfirmRewind(tic_t rewindtime)
@@ -6081,7 +6014,7 @@ void G_ConfirmRewind(tic_t rewindtime)
 	tic_t i;
 	boolean oldmenuactive = menuactive, oldsounddisabled = sound_disabled;
 
-	INT32 olddp1 = displayplayer, olddp2 = secondarydisplayplayer, olddp3 = thirddisplayplayer, olddp4 = fourthdisplayplayer;
+	INT32 olddp1 = displayplayers[0], olddp2 = displayplayers[1], olddp3 = displayplayers[2], olddp4 = displayplayers[3];
 	UINT8 oldss = splitscreen;
 
 	menuactive = false; // Prevent loops
@@ -6113,15 +6046,15 @@ void G_ConfirmRewind(tic_t rewindtime)
 	COM_BufInsertText("renderview on\n");
 
 	splitscreen = oldss;
-	displayplayer = olddp1;
-	secondarydisplayplayer = olddp2;
-	thirddisplayplayer = olddp3;
-	fourthdisplayplayer = olddp4;
+	displayplayers[0] = olddp1;
+	displayplayers[1] = olddp2;
+	displayplayers[2] = olddp3;
+	displayplayers[3] = olddp4;
 	R_ExecuteSetViewSize();
 	G_ResetViews();
 
 	for (i = splitscreen+1; i > 0; i--)
-		P_ResetCamera(&players[(*G_GetDisplayplayerPtr(i))], P_GetCameraPtr(i));
+		P_ResetCamera(&players[displayplayers[i]], &camera[i]);
 }
 
 void G_ReadMetalTic(mobj_t *metal)
@@ -7407,7 +7340,8 @@ void G_DoPlayDemo(char *defdemoname)
 		// didn't start recording right away.
 		demo.deferstart = false;
 
-		displayplayer = consoleplayer = 0;
+		consoleplayer = 0;
+		memset(displayplayers, 0, sizeof(displayplayers));
 		memset(playeringame, 0, sizeof(playeringame));
 		playeringame[0] = true;
 
@@ -7457,13 +7391,14 @@ void G_DoPlayDemo(char *defdemoname)
 /*#ifdef HAVE_BLUA
 	LUAh_MapChange(gamemap);
 #endif*/
-	displayplayer = consoleplayer = 0;
+	displayplayers[0] = consoleplayer = 0;
 	memset(playeringame,0,sizeof(playeringame));
 
 	// Load players that were in-game when the map started
 	p = READUINT8(demo_p);
 
-	secondarydisplayplayer = thirddisplayplayer = fourthdisplayplayer = INT32_MAX;
+	for (i = 1; i < MAXSPLITSCREENPLAYERS; i++);
+		displayplayers[i] = INT32_MAX;
 
 	while (p != 0xFF)
 	{
@@ -7499,8 +7434,8 @@ void G_DoPlayDemo(char *defdemoname)
 			return;
 		}
 
-		if (!playeringame[displayplayer] || players[displayplayer].spectator)
-			displayplayer = consoleplayer = serverplayer = p;
+		if (!playeringame[displayplayers[0]] || players[displayplayers[0]].spectator)
+			displayplayers[0] = consoleplayer = serverplayer = p;
 
 		playeringame[p] = true;
 		players[p].spectator = spectator;

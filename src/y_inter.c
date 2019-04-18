@@ -360,7 +360,7 @@ void Y_IntermissionDrawer(void)
 		V_DrawFadeScreen(0xFF00, 22);
 
 	if (!splitscreen)
-		whiteplayer = demo.playback ? displayplayer : consoleplayer;
+		whiteplayer = demo.playback ? displayplayers[0] : consoleplayer;
 
 	if (cons_menuhighlight.value)
 		hilicol = cons_menuhighlight.value;
@@ -1051,19 +1051,19 @@ void Y_VoteDrawer(void)
 					{
 						case 1:
 							thiscurs = cursor2;
-							p = secondarydisplayplayer;
+							p = displayplayers[1];
 							break;
 						case 2:
 							thiscurs = cursor3;
-							p = thirddisplayplayer;
+							p = displayplayers[2];
 							break;
 						case 3:
 							thiscurs = cursor4;
-							p = fourthdisplayplayer;
+							p = displayplayers[3];
 							break;
 						default:
 							thiscurs = cursor1;
-							p = displayplayer;
+							p = displayplayers[0];
 							break;
 					}
 
@@ -1218,10 +1218,7 @@ static void Y_VoteStops(SINT8 pick, SINT8 level)
 		S_StartSound(NULL, sfx_noooo2); // gasp
 	else if (mapheaderinfo[nextmap] && (mapheaderinfo[nextmap]->menuflags & LF2_HIDEINMENU))
 		S_StartSound(NULL, sfx_noooo1); // this is bad
-	else if (netgame && (pick == consoleplayer
-		|| pick == secondarydisplayplayer
-		|| pick == thirddisplayplayer
-		|| pick == fourthdisplayplayer))
+	else if (netgame && P_IsLocalPlayer(&players[pick]))
 		S_StartSound(NULL, sfx_yeeeah); // yeeeah!
 	else
 		S_StartSound(NULL, sfx_kc48); // just a cool sound
@@ -1354,13 +1351,13 @@ void Y_VoteTicker(void)
 			switch (i)
 			{
 				case 1:
-					p = secondarydisplayplayer;
+					p = displayplayers[1];
 					break;
 				case 2:
-					p = thirddisplayplayer;
+					p = displayplayers[2];
 					break;
 				case 3:
-					p = fourthdisplayplayer;
+					p = displayplayers[3];
 					break;
 				default:
 					p = consoleplayer;

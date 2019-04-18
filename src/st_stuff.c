@@ -372,7 +372,7 @@ static inline void ST_InitData(void)
 	// 'link' the statusbar display to a player, which could be
 	// another player than consoleplayer, for example, when you
 	// change the view in a multiplayer demo with F12.
-	stplyr = &players[displayplayer];
+	stplyr = &players[displayplayers[0]];
 
 	st_palette = -1;
 }
@@ -442,7 +442,7 @@ static INT32 SCY(INT32 y)
 	if (splitscreen)
 	{
 		y >>= 1;
-		if (stplyr != &players[displayplayer])
+		if (stplyr != &players[displayplayers[0]])
 			y += vid.height / 2;
 	}
 	return y;
@@ -458,7 +458,7 @@ static INT32 STRINGY(INT32 y)
 	if (splitscreen)
 	{
 		y >>= 1;
-		if (stplyr != &players[displayplayer])
+		if (stplyr != &players[displayplayers[0]])
 			y += BASEVIDHEIGHT / 2;
 	}
 	return y;
@@ -471,7 +471,7 @@ static INT32 SPLITFLAGS(INT32 f)
 	// Pass this V_SNAPTO(TOP|BOTTOM) and it'll trim them to account for splitscreen! -Red
 	if (splitscreen)
 	{
-		if (stplyr != &players[displayplayer])
+		if (stplyr != &players[displayplayers[0]])
 			f &= ~V_SNAPTOTOP;
 		else
 			f &= ~V_SNAPTOBOTTOM;
@@ -498,7 +498,7 @@ static INT32 SCR(INT32 r)
 	if (splitscreen)
 	{
 		y >>= 1;
-		if (stplyr != &players[displayplayer])
+		if (stplyr != &players[displayplayers[0]])
 			y += vid.height / 2;
 	}
 	return FixedInt(FixedDiv(y, vid.fdupy));
@@ -701,7 +701,7 @@ static inline void ST_drawRings(void) // SRB2kart - unused.
 /*
 static void ST_drawLives(void) // SRB2kart - unused.
 {
-	const INT32 v_splitflag = (splitscreen && stplyr == &players[displayplayer] ? V_SPLITSCREEN : 0);
+	const INT32 v_splitflag = (splitscreen && stplyr == &players[displayplayers[0]] ? V_SPLITSCREEN : 0);
 
 	if (!stplyr->skincolor)
 		return; // Just joined a server, skin isn't loaded yet!
@@ -1019,7 +1019,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 	if (G_IsSpecialStage(gamemap))
 	{ // Since special stages share score, time, rings, etc.
 		// disable splitscreen mode for its HUD.
-		if (stplyr != &players[displayplayer])
+		if (stplyr != &players[displayplayers[0]])
 			return;
 		nosshack = splitscreen;
 		splitscreen = 0;
@@ -1124,7 +1124,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 			V_DrawScaledPatch(locx, STRINGY(locy)-3, V_HUDTRANS, drillbar);
 			for (dfill = 0; dfill < stplyr->drillmeter/20 && dfill < 96; ++dfill)
 				V_DrawScaledPatch(locx + 2 + dfill, STRINGY(locy + 3), V_HUDTRANS, drillfill[fillpatch]);
-			stplyr = &players[secondarydisplayplayer];
+			stplyr = &players[displayplayers[1]];
 			if (stplyr->pflags & PF_DRILLING)
 				fillpatch = (stplyr->drillmeter & 1) + 1;
 			else
@@ -1132,7 +1132,7 @@ static void ST_drawNiGHTSHUD(void) // SRB2kart - unused.
 			V_DrawScaledPatch(locx, STRINGY(locy-3), V_SNAPTOBOTTOM|V_HUDTRANS, drillbar);
 			for (dfill = 0; dfill < stplyr->drillmeter/20 && dfill < 96; ++dfill)
 				V_DrawScaledPatch(locx + 2 + dfill, STRINGY(locy + 3), V_SNAPTOBOTTOM|V_HUDTRANS, drillfill[fillpatch]);
-			stplyr = &players[displayplayer];
+			stplyr = &players[displayplayers[0]];
 			splitscreen = 0;
 		}
 		else
@@ -1881,7 +1881,7 @@ static void ST_overlayDrawer(void)
 			ST_drawTeamName();
 
 		// Special Stage HUD
-		if (!useNightsSS && G_IsSpecialStage(gamemap) && stplyr == &players[displayplayer])
+		if (!useNightsSS && G_IsSpecialStage(gamemap) && stplyr == &players[displayplayers[0]])
 			ST_drawSpecialStageHUD();
 
 		// Emerald Hunt Indicators
@@ -1919,7 +1919,7 @@ static void ST_overlayDrawer(void)
 			{
 				char name[MAXPLAYERNAME+12];
 
-				INT32 y = (stplyr == &players[displayplayer]) ? 4 : BASEVIDHEIGHT/2-12;
+				INT32 y = (stplyr == &players[displayplayers[0]]) ? 4 : BASEVIDHEIGHT/2-12;
 				sprintf(name, "VIEWPOINT: %s", player_names[stplyr-players]);
 				V_DrawRightAlignedThinString(BASEVIDWIDTH-40, y, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOBOTTOM|V_SNAPTORIGHT), name);
 			}
@@ -1930,10 +1930,10 @@ static void ST_overlayDrawer(void)
 		}
 
 		// This is where we draw all the fun cheese if you have the chasecam off!
-		/*if ((stplyr == &players[displayplayer] && !camera.chase)
-			|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
-			|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
-			|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
+		/*if ((stplyr == &players[displayplayers[0]] && !camera[0].chase)
+			|| ((splitscreen && stplyr == &players[displayplayers[1]]) && !camera[1].chase)
+			|| ((splitscreen > 1 && stplyr == &players[displayplayers[2]]) && !camera[2].chase)
+			|| ((splitscreen > 2 && stplyr == &players[displayplayers[3]]) && !camera[3].chase))
 		{
 			ST_drawFirstPersonHUD();
 		}*/
@@ -2086,8 +2086,10 @@ static void ST_MayonakaStatic(void)
 
 void ST_Drawer(void)
 {
+	UINT8 i;
+
 #ifdef SEENAMES
-	if (cv_seenames.value && cv_allowseenames.value && displayplayer == consoleplayer && seenplayer && seenplayer->mo && !mapreset)
+	if (cv_seenames.value && cv_allowseenames.value && displayplayers[0] == consoleplayer && seenplayer && seenplayer->mo && !mapreset)
 	{
 		if (cv_seenames.value == 1)
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2 + 15, V_HUDTRANSHALF, player_names[seenplayer-players]);
@@ -2121,26 +2123,12 @@ void ST_Drawer(void)
 	if (st_overlay)
 	{
 		// No deadview!
-		stplyr = &players[displayplayer];
-		ST_overlayDrawer();
-
-		if (splitscreen)
+		for (i = 0; i <= splitscreen; i++)
 		{
-			stplyr = &players[secondarydisplayplayer];
+			stplyr = &players[displayplayers[i]];
 			ST_overlayDrawer();
-
-			if (splitscreen > 1)
-			{
-				stplyr = &players[thirddisplayplayer];
-				ST_overlayDrawer();
-
-				if (splitscreen > 2)
-				{
-					stplyr = &players[fourthdisplayplayer];
-					ST_overlayDrawer();
-				}
-			}
 		}
+
 		// draw Midnight Channel's overlay ontop
 		if (mapheaderinfo[gamemap-1]->typeoflevel & TOL_TV)	// Very specific Midnight Channel stuff.
 			ST_MayonakaStatic();

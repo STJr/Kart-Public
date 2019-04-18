@@ -2106,13 +2106,13 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		mobj->player->mo = mobj;
 		// added for angle prediction
 		if (consoleplayer == i)
-			localangle = mobj->angle;
-		if (secondarydisplayplayer == i)
-			localangle2 = mobj->angle;
-		if (thirddisplayplayer == i)
-			localangle3 = mobj->angle;
-		if (fourthdisplayplayer == i)
-			localangle4 = mobj->angle;
+			localangle[0] = mobj->angle;
+		if (displayplayers[1] == i)
+			localangle[1] = mobj->angle;
+		if (displayplayers[2] == i)
+			localangle[2] = mobj->angle;
+		if (displayplayers[3] == i)
+			localangle[3] = mobj->angle;
 	}
 	if (diff & MD_MOVEDIR)
 		mobj->movedir = READANGLE(save_p);

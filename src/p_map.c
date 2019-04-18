@@ -215,13 +215,13 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object)
 			if (!demo.playback || P_AnalogMove(object->player))
 			{
 				if (object->player == &players[consoleplayer])
-					localangle = spring->angle;
-				else if (object->player == &players[secondarydisplayplayer])
-					localangle2 = spring->angle;
-				else if (object->player == &players[thirddisplayplayer])
-					localangle3 = spring->angle;
-				else if (object->player == &players[fourthdisplayplayer])
-					localangle4 = spring->angle;
+					localangle[0] = spring->angle;
+				else if (object->player == &players[displayplayers[1]])
+					localangle[1] = spring->angle;
+				else if (object->player == &players[displayplayers[2]])
+					localangle[2] = spring->angle;
+				else if (object->player == &players[displayplayers[3]])
+					localangle[3] = spring->angle;
 			}
 		}
 
@@ -1267,13 +1267,13 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (!demo.playback || P_AnalogMove(thing->player))
 			{
 				if (thing->player == &players[consoleplayer])
-					localangle = thing->angle;
-				else if (thing->player == &players[secondarydisplayplayer])
-					localangle2 = thing->angle;
-				else if (thing->player == &players[thirddisplayplayer])
-					localangle3 = thing->angle;
-				else if (thing->player == &players[fourthdisplayplayer])
-					localangle4 = thing->angle;
+					localangle[0] = thing->angle;
+				else if (thing->player == &players[displayplayers[1]])
+					localangle[1] = thing->angle;
+				else if (thing->player == &players[displayplayers[2]])
+					localangle[2] = thing->angle;
+				else if (thing->player == &players[displayplayers[3]])
+					localangle[3] = thing->angle;
 			}
 
 			return true;
@@ -2504,41 +2504,46 @@ boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam)
 	subsector_t *s = R_PointInSubsector(x, y);
 	boolean retval = true;
 	boolean itsatwodlevel = false;
+	UINT8 i;
 
 	floatok = false;
 
-	if (twodlevel
-		|| (thiscam == &camera && players[displayplayer].mo && (players[displayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera2 && players[secondarydisplayplayer].mo && (players[secondarydisplayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera3 && players[thirddisplayplayer].mo && (players[thirddisplayplayer].mo->flags2 & MF2_TWOD))
-		|| (thiscam == &camera4 && players[fourthdisplayplayer].mo && (players[fourthdisplayplayer].mo->flags2 & MF2_TWOD)))
+	if (twodlevel)
 		itsatwodlevel = true;
+	else
+	{
+		for (i = 0; i <= splitscreen; i++)
+		{
+			if (thiscam == &camera[i] && players[displayplayers[i]].mo
+				&& (players[displayplayers[i]].mo->flags2 & MF2_TWOD))
+			{
+				itsatwodlevel = true;
+				break;
+			}
+		}
+	}
 
-	if (!itsatwodlevel && players[displayplayer].mo)
+	if (!itsatwodlevel && players[displayplayers[0]].mo)
 	{
 		fixed_t tryx = thiscam->x;
 		fixed_t tryy = thiscam->y;
 
+		for (i = 0; i <= splitscreen; i++)
+		{
 #ifndef NOCLIPCAM
-		if ((thiscam == &camera && (players[displayplayer].pflags & PF_NOCLIP))
-		|| (thiscam == &camera2 && (players[secondarydisplayplayer].pflags & PF_NOCLIP))
-		|| (thiscam == &camera3 && (players[thirddisplayplayer].pflags & PF_NOCLIP))
-		|| (thiscam == &camera4 && (players[fourthdisplayplayer].pflags & PF_NOCLIP))
-		|| (leveltime < introtime))
+			if ((thiscam == &camera[i] && (players[displayplayers[i]].pflags & PF_NOCLIP)) || (leveltime < introtime)) // Noclipping player camera noclips too!!
 #else
-		if ((thiscam == &camera && !(players[displayplayer].pflags & PF_TIMEOVER))
-		|| (thiscam == &camera2 && !(players[secondarydisplayplayer].pflags & PF_TIMEOVER))
-		|| (thiscam == &camera3 && !(players[thirddisplayplayer].pflags & PF_TIMEOVER))
-		|| (thiscam == &camera4 && !(players[fourthdisplayplayer].pflags & PF_TIMEOVER)))
+			if (thiscam == &camera[i] && !(players[displayplayers[i]].pflags & PF_TIMEOVER)) // Time Over should not clip through walls
 #endif
-		{ // Noclipping player camera noclips too!!
-			floatok = true;
-			thiscam->floorz = thiscam->z;
-			thiscam->ceilingz = thiscam->z + thiscam->height;
-			thiscam->x = x;
-			thiscam->y = y;
-			thiscam->subsector = s;
-			return true;
+			{
+				floatok = true;
+				thiscam->floorz = thiscam->z;
+				thiscam->ceilingz = thiscam->z + thiscam->height;
+				thiscam->x = x;
+				thiscam->y = y;
+				thiscam->subsector = s;
+				return true;
+			}
 		}
 
 		do {
