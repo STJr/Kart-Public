@@ -93,6 +93,9 @@ typedef enum
 	PT_NODETIMEOUT,   // Packet sent to self if the connection times out.
 	PT_RESYNCHING,    // Packet sent to resync players.
 	                  // Blocks game advance until synched.
+
+	PT_TELLFILESNEEDED, // Client, to server: "what other files do I need starting from this number?"
+	PT_MOREFILESNEEDED, // Server, to client: "you need these (+ more on top of those)"
 #ifdef NEWPING
 	PT_PING,          // Packet sent to tell clients the other client's latency to server.
 #endif
@@ -442,6 +445,14 @@ typedef struct
 	UINT8 ctfteam;
 } ATTRPACK plrconfig;
 
+typedef struct
+{
+	INT32 first;
+	UINT8 num;
+	UINT8 more;
+	UINT8 files[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
+} ATTRPACK filesneededconfig_pak;
+
 //
 // Network packet data
 //
@@ -474,6 +485,8 @@ typedef struct
 		msaskinfo_pak msaskinfo;            //          22 bytes
 		plrinfo playerinfo[MAXPLAYERS];     //         576 bytes(?)
 		plrconfig playerconfig[MAXPLAYERS]; // (up to) 528 bytes(?)
+		INT32 filesneedednum;               //           4 bytes
+		filesneededconfig_pak filesneededcfg; //       ??? bytes
 #ifdef NEWPING
 		UINT32 pingtable[MAXPLAYERS+1];     //          68 bytes
 #endif
