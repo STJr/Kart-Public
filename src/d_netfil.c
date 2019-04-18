@@ -101,46 +101,39 @@ char downloaddir[512] = "DOWNLOAD";
 INT32 lastfilenum = -1;
 #endif
 
-UINT16 fileneededpages = 0;
-static size_t fileneededpagestart[MAXFILENEEDEDPAGES];
-
 /** Fills a serverinfo packet with information about wad files loaded.
   *
   * \todo Give this function a better name since it is in global scope.
   * Used to have size limiting built in - now handed via W_LoadWadFile in w_wad.c
   *
   */
-UINT8 *PutFileNeeded(UINT16 page)
+UINT8 *PutFileNeeded(UINT16 firstfile)
 {
 	size_t i;
 	UINT8 count = 0;
-	UINT8 *p = netbuffer->u.serverinfo.fileneeded;
+	UINT8 *p_start = netbuffer->u.serverinfo.fileneeded;
+	UINT8 *p = p_start;
 	char wadfilename[MAX_WADPATH] = "";
 	UINT8 filestatus;
 
-	if (page > fileneededpages)
-			I_Error("Fileneeded page %d accessed before a prior page", page);
-	else if (page == 0)
-	{
-		fileneededpages = 0;
-		memset(fileneededpagestart, 0, sizeof(fileneededpagestart)); // ??? I guess.
-		fileneededpagestart[0] = mainwads;
-	}
-
-	for (i = fileneededpagestart[page]; i < (fileneededpagestart[page+1] ?: numwadfiles); i++)
+	for (i = mainwads; i < numwadfiles; i++)
 	{
 		// If it has only music/sound lumps, don't put it in the list
 		if (!wadfiles[i]->important)
 			continue;
 
+		if (firstfile)
+		{ // Skip files until we reach the first file.
+			firstfile--;
+			continue;
+		}
+
 		nameonly(strcpy(wadfilename, wadfiles[i]->filename));
 
-		if (p + 1 + 4 + strlen(wadfilename) + 16 > netbuffer->u.serverinfo.fileneeded + MAXFILENEEDED)
+		if (p + 1 + 4 + strlen(wadfilename) + 16 > p_start + MAXFILENEEDED)
 		{
-			// Too many files for this page, so mark the next page to start here and finish up.
-			fileneededpagestart[page+1] = i;
-			fileneededpages = page+1;
-			count |= FILENEEDED_MORE;
+			// Too many files to send all at once
+			netbuffer->u.serverinfo.kartvars |= SV_LOTSOFADDONS;
 			break;
 		}
 
@@ -178,7 +171,7 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 fi
 	UINT8 *p;
 	UINT8 filestatus;
 
-	fileneedednum = firstfile + (fileneedednum_parm & ~FILENEEDED_MORE);
+	fileneedednum = firstfile + fileneedednum_parm;
 	p = (UINT8 *)fileneededstr;
 	for (i = firstfile; i < fileneedednum; i++)
 	{

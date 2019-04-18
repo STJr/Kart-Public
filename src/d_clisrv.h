@@ -371,13 +371,12 @@ typedef struct
 } ATTRPACK joinchallenge_pak;
 
 #define SV_SPEEDMASK 0x03
+#define SV_LOTSOFADDONS 0x20
 #define SV_DEDICATED 0x40
 #define SV_PASSWORD 0x80
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
-#define MAXFILENEEDEDPAGES MAX_WADFILES
-#define FILENEEDED_MORE 0x80
 // This packet is too large
 typedef struct
 {

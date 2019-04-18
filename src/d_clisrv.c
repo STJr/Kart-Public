@@ -2029,7 +2029,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 		if (client)
 		{
 			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
-			if (serverlist[i].info.fileneedednum & FILENEEDED_MORE)
+			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
 			{
 				cl_mode = CL_ASKFULLFILELIST;
 				return true;
