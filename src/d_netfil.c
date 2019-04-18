@@ -373,9 +373,6 @@ INT32 CL_CheckFiles(void)
 		return 1;
 	}
 
-	// See W_LoadWadFile in w_wad.c
-	packetsize = packetsizetally;
-
 	for (i = 1; i < fileneedednum; i++)
 	{
 		CONS_Debug(DBG_NETPLAY, "searching for '%s' ", fileneeded[i].filename);
