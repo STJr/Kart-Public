@@ -1259,6 +1259,9 @@ static inline void CL_DrawConnectionStatus(void)
 					cltext = M_GetText("Waiting to download game state...");
 				break;
 #endif
+			case CL_ASKFULLFILELIST:
+				cltext = M_GetText("This server has a LOT of files!");
+				break;
 			case CL_ASKJOIN:
 			case CL_WAITJOINRESPONSE:
 				cltext = M_GetText("Requesting to join...");
