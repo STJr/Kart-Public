@@ -2381,6 +2381,8 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 
 					if (mo->player)
 					{
+						UINT8 i;
+
 						if (bot) // This might put poor Tails in a wall if he's too far behind! D: But okay, whatever! >:3
 							P_TeleportMove(bot, bot->x + x, bot->y + y, bot->z + z);
 

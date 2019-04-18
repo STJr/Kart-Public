@@ -77,7 +77,10 @@ extern boolean addedtogame; // true after the server has added you
 extern boolean multiplayer;
 
 extern INT16 gametype;
+
+#define MAXSPLITSCREENPLAYERS 4 // Max number of players on a single computer
 extern UINT8 splitscreen;
+
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
 extern boolean forceresetplayers, deferencoremode;

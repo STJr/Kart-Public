@@ -7944,13 +7944,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		else
 			focusangle = mo->angle;
 
-		if (thiscam == &camera)
+		if (thiscam == &camera[0])
 			camrotate = cv_cam_rotate.value;
-		else if (thiscam == &camera2)
+		else if (thiscam == &camera[1])
 			camrotate = cv_cam2_rotate.value;
-		else if (thiscam == &camera3)
+		else if (thiscam == &camera[2])
 			camrotate = cv_cam3_rotate.value;
-		else if (thiscam == &camera4)
+		else if (thiscam == &camera[3])
 			camrotate = cv_cam4_rotate.value;
 		else
 			camrotate = 0;
@@ -8542,7 +8542,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 static void P_CalcPostImg(player_t *player)
 {
 	sector_t *sector = player->mo->subsector->sector;
-	postimg_t *type;
+	postimg_t *type = postimg_none;
 	INT32 *param;
 	fixed_t pviewheight;
 	UINT8 i;

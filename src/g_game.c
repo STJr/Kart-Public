@@ -7397,7 +7397,7 @@ void G_DoPlayDemo(char *defdemoname)
 	// Load players that were in-game when the map started
 	p = READUINT8(demo_p);
 
-	for (i = 1; i < MAXSPLITSCREENPLAYERS; i++);
+	for (i = 1; i < MAXSPLITSCREENPLAYERS; i++)
 		displayplayers[i] = INT32_MAX;
 
 	while (p != 0xFF)

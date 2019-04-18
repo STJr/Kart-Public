@@ -8224,7 +8224,7 @@ static void K_drawBattleFullscreen(void)
 		// check to see if there's anyone else at all
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (i == displayplayer)
+			if (i == displayplayers[0])
 				continue;
 			if (playeringame[i] && !stplyr->spectator)
 				return;

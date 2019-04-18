@@ -935,8 +935,8 @@ void S_UpdateSounds(void)
 	if (dedicated || sound_disabled)
 		return;
 
-	if (players[displayplayer].awayviewtics)
-		listenmobj = players[displayplayer].awayviewmobj;
+	if (players[displayplayers[0]].awayviewtics)
+		listenmobj = players[displayplayers[0]].awayviewmobj;
 
 	if (splitscreen)
 	{

@@ -30,6 +30,7 @@
 #include "p_spec.h" // skyboxmo
 #include "z_zone.h"
 #include "m_random.h" // quake camera shake
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -65,7 +66,7 @@ size_t loopcount;
 
 fixed_t viewx, viewy, viewz;
 angle_t viewangle, aimingangle;
-UINT8 viewnumber;
+UINT8 viewssnum;
 fixed_t viewcos, viewsin;
 boolean viewsky, skyVisible;
 boolean skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible for each splitscreen player
@@ -1151,6 +1152,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 			}
 			else if (splitscreen)
 			{
+				UINT8 i;
 				for (i = 1; i <= splitscreen; i++)
 				{
 					if (player == &players[displayplayers[i]])
@@ -1323,20 +1325,6 @@ void R_RenderPlayerView(player_t *player)
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value);
 	UINT8 i;
 
-	viewnumber = 0; // default
-
-	if (splitscreen)
-	{
-		for (i = 1; i <= splitscreen; i++)
-		{
-			if (player == &players[i])
-			{
-				viewnumber = i;
-				break;
-			}
-		}
-	}
-
 	// if this is display player 1
 	if (cv_homremoval.value && player == &players[displayplayers[0]])
 	{
@@ -1367,7 +1355,7 @@ void R_RenderPlayerView(player_t *player)
 	// load previous saved value of skyVisible for the player
 	for (i = 0; i <= splitscreen; i++)
 	{
-		if (player == &players[displayplayers[i]]
+		if (player == &players[displayplayers[i]])
 		{
 			skyVisible = skyVisiblePerPlayer[i];
 			break;

@@ -1748,19 +1748,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewnumber != 0)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewnumber != 1)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewnumber != 2)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewnumber != 3)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -1783,19 +1783,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewnumber != 0)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewnumber != 1)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewnumber != 2)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewnumber != 3)
+					if (viewssnum != 3)
 						continue;
 			}
 

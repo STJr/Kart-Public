@@ -1135,6 +1135,8 @@ static void P_PlayerFlip(mobj_t *mo)
 	}
 	else if (mo->player->pflags & PF_FLIPCAM)
 	{
+		UINT8 i;
+
 		mo->player->aiming = InvAngle(mo->player->aiming);
 
 		for (i = 0; i <= splitscreen; i++)

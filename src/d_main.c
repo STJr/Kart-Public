@@ -436,6 +436,8 @@ static void D_Display(void)
 						objectsdrawn = 0;
 					}
 
+					viewssnum = i;
+
 #ifdef HWRENDER
 					if (rendermode != render_soft)
 						HWR_RenderPlayerView(i, &players[displayplayers[i]]);

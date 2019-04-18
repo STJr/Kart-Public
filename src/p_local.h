@@ -22,6 +22,7 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "p_maputl.h"
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
 #define FLOATSPEED (FRACUNIT*4)
 
@@ -137,6 +138,7 @@ boolean P_PlayerInPain(player_t *player);
 void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor);
 void P_ResetPlayer(player_t *player);
 boolean P_IsLocalPlayer(player_t *player);
+boolean P_IsDisplayPlayer(player_t *player);
 boolean P_SpectatorJoinGame(player_t *player);
 
 boolean P_IsObjectInGoop(mobj_t *mo);
