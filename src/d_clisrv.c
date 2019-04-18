@@ -1129,6 +1129,7 @@ typedef enum
 #endif
 	CL_CONNECTED,
 	CL_ABORTED,
+	CL_ASKFULLFILELIST,
 	CL_ASKDOWNLOADFILES,
 	CL_WAITDOWNLOADFILESRESPONSE,
 	CL_CHALLENGE
@@ -1924,6 +1925,66 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
+static boolean CL_FinishedFileList(void)
+{
+	INT32 i;
+	CONS_Printf(M_GetText("Checking files...\n"));
+	i = CL_CheckFiles();
+	if (i == 3) // too many files
+	{
+		D_QuitNetGame();
+		CL_Reset();
+		D_StartTitle();
+		M_StartMessage(M_GetText(
+			"You have too many WAD files loaded\n"
+			"to add ones the server is using.\n"
+			"Please restart SRB2Kart before connecting.\n\n"
+			"Press ESC\n"
+		), NULL, MM_NOTHING);
+		return false;
+	}
+	else if (i == 2) // cannot join for some reason
+	{
+		D_QuitNetGame();
+		CL_Reset();
+		D_StartTitle();
+		M_StartMessage(M_GetText(
+			"You have WAD files loaded or have\n"
+			"modified the game in some way, and\n"
+			"your file list does not match\n"
+			"the server's file list.\n"
+			"Please restart SRB2Kart before connecting.\n\n"
+			"Press ESC\n"
+		), NULL, MM_NOTHING);
+		return false;
+	}
+	else if (i == 1)
+		cl_mode = CL_ASKJOIN;
+	else
+	{
+		// must download something
+		// can we, though?
+		if (!CL_CheckDownloadable()) // nope!
+		{
+			D_QuitNetGame();
+			CL_Reset();
+			D_StartTitle();
+			M_StartMessage(M_GetText(
+				"You cannot connect to this server\n"
+				"because you cannot download the files\n"
+				"that you are missing from the server.\n\n"
+				"See the console or log file for\n"
+				"more details.\n\n"
+				"Press ESC\n"
+			), NULL, MM_NOTHING);
+			return false;
+		}
+
+		cl_mode = CL_ASKDOWNLOADFILES;
+	}
+	return true;
+}
+
 /** Called by CL_ServerConnectionTicker
   *
   * \param viams ???
@@ -1967,62 +2028,15 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 
 		if (client)
 		{
-			D_ParseFileneeded(serverlist[i].info.fileneedednum,
-				serverlist[i].info.fileneeded);
-			CONS_Printf(M_GetText("Checking files...\n"));
-			i = CL_CheckFiles();
-			if (i == 3) // too many files
+			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
+			if (serverlist[i].info.fileneedednum & FILENEEDED_MORE)
 			{
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
-				M_StartMessage(M_GetText(
-					"You have too many WAD files loaded\n"
-					"to add ones the server is using.\n"
-					"Please restart SRB2Kart before connecting.\n\n"
-					"Press ESC\n"
-				), NULL, MM_NOTHING);
-				return false;
+				cl_mode = CL_ASKFULLFILELIST;
+				return true;
 			}
-			else if (i == 2) // cannot join for some reason
-			{
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
-				M_StartMessage(M_GetText(
-					"You have WAD files loaded or have\n"
-					"modified the game in some way, and\n"
-					"your file list does not match\n"
-					"the server's file list.\n"
-					"Please restart SRB2Kart before connecting.\n\n"
-					"Press ESC\n"
-				), NULL, MM_NOTHING);
-				return false;
-			}
-			else if (i == 1)
-				cl_mode = CL_ASKJOIN;
-			else
-			{
-				// must download something
-				// can we, though?
-				if (!CL_CheckDownloadable()) // nope!
-				{
-					D_QuitNetGame();
-					CL_Reset();
-					D_StartTitle();
-					M_StartMessage(M_GetText(
-						"You cannot connect to this server\n"
-						"because you cannot download the files\n"
-						"that you are missing from the server.\n\n"
-						"See the console or log file for\n"
-						"more details.\n\n"
-						"Press ESC\n"
-					), NULL, MM_NOTHING);
-					return false;
-				}
 
-				cl_mode = CL_ASKDOWNLOADFILES;
-			}
+			if (!CL_FinishedFileList())
+				return false;
 		}
 		else
 			cl_mode = CL_ASKJOIN; // files need not be checked for the server.

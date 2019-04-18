@@ -168,19 +168,19 @@ UINT8 *PutFileNeeded(UINT16 page)
 
 /** Parses the serverinfo packet and fills the fileneeded table on client
   *
-  * \param fileneedednum_parm The number of files needed to join the server
+  * \param fileneedednum_parm The number of files (sent in this page) needed to join the server
   * \param fileneededstr The memory block containing the list of needed files
-  *
+  * \param firstfile The first file index to read from
   */
-void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr)
+void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 firstfile)
 {
 	INT32 i;
 	UINT8 *p;
 	UINT8 filestatus;
 
-	fileneedednum = fileneedednum_parm;
+	fileneedednum = firstfile + (fileneedednum_parm & ~FILENEEDED_MORE);
 	p = (UINT8 *)fileneededstr;
-	for (i = 0; i < fileneedednum; i++)
+	for (i = firstfile; i < fileneedednum; i++)
 	{
 		fileneeded[i].status = FS_NOTFOUND; // We haven't even started looking for the file yet
 		filestatus = READUINT8(p); // The first byte is the file status
