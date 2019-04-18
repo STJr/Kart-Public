@@ -53,7 +53,8 @@ extern char downloaddir[512];
 extern INT32 lastfilenum;
 #endif
 
-UINT8 *PutFileNeeded(void);
+extern UINT16 fileneededpages;
+UINT8 *PutFileNeeded(UINT16 page);
 void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr);
 void CL_PrepareDownloadSaveGame(const char *tmpsave);
 

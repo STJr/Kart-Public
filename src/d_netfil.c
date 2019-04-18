@@ -101,24 +101,48 @@ char downloaddir[512] = "DOWNLOAD";
 INT32 lastfilenum = -1;
 #endif
 
+UINT16 fileneededpages = 0;
+static size_t fileneededpagestart[MAXFILENEEDEDPAGES];
+
 /** Fills a serverinfo packet with information about wad files loaded.
   *
   * \todo Give this function a better name since it is in global scope.
   * Used to have size limiting built in - now handed via W_LoadWadFile in w_wad.c
   *
   */
-UINT8 *PutFileNeeded(void)
+UINT8 *PutFileNeeded(UINT16 page)
 {
-	size_t i, count = 0;
+	size_t i;
+	UINT8 count = 0;
 	UINT8 *p = netbuffer->u.serverinfo.fileneeded;
 	char wadfilename[MAX_WADPATH] = "";
 	UINT8 filestatus;
 
-	for (i = 0; i < numwadfiles; i++)
+	if (page > fileneededpages)
+			I_Error("Fileneeded page %d accessed before a prior page", page);
+	else if (page == 0)
+	{
+		fileneededpages = 0;
+		memset(fileneededpagestart, 0, sizeof(fileneededpagestart)); // ??? I guess.
+		fileneededpagestart[0] = mainwads;
+	}
+
+	for (i = fileneededpagestart[page]; i < (fileneededpagestart[page+1] ?: numwadfiles); i++)
 	{
 		// If it has only music/sound lumps, don't put it in the list
 		if (!wadfiles[i]->important)
 			continue;
+
+		nameonly(strcpy(wadfilename, wadfiles[i]->filename));
+
+		if (p + 1 + 4 + strlen(wadfilename) + 16 > netbuffer->u.serverinfo.fileneeded + MAXFILENEEDED)
+		{
+			// Too many files for this page, so mark the next page to start here and finish up.
+			fileneededpagestart[page+1] = i;
+			fileneededpages = page+1;
+			count |= FILENEEDED_MORE;
+			break;
+		}
 
 		filestatus = 1; // Importance - not really used any more, holds 1 by default for backwards compat with MS
 
@@ -134,11 +158,10 @@ UINT8 *PutFileNeeded(void)
 
 		count++;
 		WRITEUINT32(p, wadfiles[i]->filesize);
-		nameonly(strcpy(wadfilename, wadfiles[i]->filename));
 		WRITESTRINGN(p, wadfilename, MAX_WADPATH);
 		WRITEMEM(p, wadfiles[i]->md5sum, 16);
 	}
-	netbuffer->u.serverinfo.fileneedednum = (UINT8)count;
+	netbuffer->u.serverinfo.fileneedednum = count;
 
 	return p;
 }

@@ -376,6 +376,8 @@ typedef struct
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
+#define MAXFILENEEDEDPAGES MAX_WADFILES
+#define FILENEEDED_MORE 0x80
 // This packet is too large
 typedef struct
 {

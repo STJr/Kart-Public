@@ -1433,7 +1433,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
-	p = PutFileNeeded();
+	p = PutFileNeeded(0);
 
 	HSendPacket(node, false, 0, p - ((UINT8 *)&netbuffer->u));
 }
@@ -2022,10 +2022,6 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 				}
 
 				cl_mode = CL_ASKDOWNLOADFILES;
-
-				// no problem if can't send packet, we will retry later
-				//if (CL_SendRequestFile())
-				//	cl_mode = CL_DOWNLOADFILES;
 			}
 		}
 		else
