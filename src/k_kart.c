@@ -3526,7 +3526,6 @@ void K_DoSneaker(player_t *player, INT32 type)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		K_PlayBoostTaunt(player->mo);
-		player->powers[pw_flashing] = 0; // Stop flashing after boosting
 	}
 }
 
