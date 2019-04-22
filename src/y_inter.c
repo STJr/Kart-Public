@@ -40,6 +40,7 @@
 #include "g_input.h" // PLAYER1INPUTDOWN
 #include "k_kart.h" // colortranslations
 #include "console.h" // cons_menuhighlight
+#include "lua_hook.h" // IntermissionThinker hook
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -574,13 +575,17 @@ void Y_Ticker(void)
 	if (paused || P_AutoPause())
 		return;
 
+#ifdef HAVE_BLUA
+	LUAh_IntermissionThinker();
+#endif
+
 	intertic++;
 
 	// Team scramble code for team match and CTF.
-	// Don't do this if we're going to automatically scramble teams next round.
+	// Don't do this if we'
+		// If we run out re going to automatically scramble teams next round.
 	/*if (G_GametypeHasTeams() && cv_teamscramble.value && !cv_scrambleonchange.value && server)
-	{
-		// If we run out of time in intermission, the beauty is that
+	{of time in intermission, the beauty is that
 		// the P_Ticker() team scramble code will pick it up.
 		if ((intertic % (TICRATE/7)) == 0)
 			P_DoTeamscrambling();
