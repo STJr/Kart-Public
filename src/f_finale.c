@@ -611,7 +611,7 @@ void F_CreditDrawer(void)
 
 		if (credits_pics[i].colorize != SKINCOLOR_NONE)
 		{
-			colormap = R_GetTranslationColormap(TC_RAINBOW, credits_pics[i].colorize, 0);
+			colormap = R_GetTranslationColormap(TC_RAINBOW, credits_pics[i].colorize, GTC_MENUCACHE);
 			sc = FRACUNIT; // quick hack so I don't have to add another field to credits_pics
 		}
 
@@ -643,16 +643,34 @@ void F_CreditDrawer(void)
 		if (((y>>FRACBITS) * vid.dupy) > vid.height)
 			break;
 	}
+}
 
+void F_CreditTicker(void)
+{
+	// "Simulate" the drawing of the credits so that dedicated mode doesn't get stuck
+	UINT16 i;
+	fixed_t y = (80<<FRACBITS) - 5*(animtimer<<FRACBITS)/8;
+
+	// Draw credits text on top
+	for (i = 0; credits[i]; i++)
+	{
+		switch(credits[i][0])
+		{
+			case 0: y += 80<<FRACBITS; break;
+			case 1: y += 30<<FRACBITS; break;
+			default: y += 12<<FRACBITS; break;
+		}
+		if (FixedMul(y,vid.dupy) > vid.height)
+			break;
+	}
+
+	// Do this here rather than in the drawer you doofus! (this is why dedicated mode broke at credits)
 	if (!credits[i] && y <= 120<<FRACBITS && !finalecount)
 	{
 		timetonext = 5*TICRATE+1;
 		finalecount = 5*TICRATE;
 	}
-}
 
-void F_CreditTicker(void)
-{
 	if (timetonext)
 		timetonext--;
 	else
@@ -1103,6 +1121,10 @@ void F_StartWaitingPlayers(void)
 	finalecount = 0;
 
 	randskin = M_RandomKey(numskins);
+
+	if (waitcolormap)
+		Z_Free(waitcolormap);
+
 	waitcolormap = R_GetTranslationColormap(randskin, skins[randskin].prefcolor, 0);
 
 	for (i = 0; i < 2; i++)

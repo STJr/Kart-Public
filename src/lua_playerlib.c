@@ -325,6 +325,8 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->bot);
 	else if (fastcmp(field,"jointime"))
 		lua_pushinteger(L, plr->jointime);
+	else if (fastcmp(field,"splitscreenindex"))
+		lua_pushinteger(L, plr->splitscreenindex);
 #ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		lua_pushfixed(L, plr->fovadd);
@@ -613,6 +615,8 @@ static int player_set(lua_State *L)
 		return NOSET;
 	else if (fastcmp(field,"jointime"))
 		plr->jointime = (tic_t)luaL_checkinteger(L, 3);
+	else if (fastcmp(field,"splitscreenindex"))
+		return NOSET;
 #ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		plr->fovadd = luaL_checkfixed(L, 3);
@@ -739,6 +743,8 @@ static int ticcmd_get(lua_State *L)
 		lua_pushinteger(L, cmd->buttons);
 	else if (fastcmp(field,"driftturn"))
 		lua_pushinteger(L, cmd->driftturn);
+	else if (fastcmp(field,"latency"))
+		lua_pushinteger(L, cmd->latency);
 	else
 		return NOFIELD;
 
