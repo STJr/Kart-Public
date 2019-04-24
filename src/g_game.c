@@ -87,6 +87,7 @@ INT16 lastmapsaved = 0; // Last map we auto-saved at
 boolean gamecomplete = false;
 
 UINT16 mainwads = 0;
+UINT16 basewads = 0;
 boolean modifiedgame = false; // Set if homebrew PWAD stuff has been added.
 boolean majormods = false; // Set if Lua/Gameplay SOC/replacement map has been added.
 boolean savemoddata = false;

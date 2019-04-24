@@ -114,7 +114,16 @@ UINT8 *PutFileNeeded(void)
 	char wadfilename[MAX_WADPATH] = "";
 	UINT8 filestatus;
 
-	for (i = 0; i < numwadfiles; i++)
+#ifdef USE_PATCH_KART
+	WRITEUINT8(p, 1);/* We will never send patch.kart! */
+	count++;
+	WRITEUINT32(p, wadfiles[mainwads]->filesize);
+	nameonly(strcpy(wadfilename, wadfiles[mainwads]->filename));
+	WRITESTRINGN(p, wadfilename, MAX_WADPATH);
+	WRITEMEM(p, wadfiles[mainwads]->md5sum, 16);
+#endif
+
+	for (i = mainwads+1; i < numwadfiles; i++)
 	{
 		// If it has only music/sound lumps, don't put it in the list
 		if (!wadfiles[i]->important)
@@ -140,6 +149,14 @@ UINT8 *PutFileNeeded(void)
 	}
 	netbuffer->u.serverinfo.fileneedednum = (UINT8)count;
 
+	for (i = 0; i < basewads; ++i)
+	{
+		if (!wadfiles[i]->important)
+			continue;
+
+		WRITEMEM(p, wadfiles[i]->md5sum, 16);
+	}
+
 	return p;
 }
 
@@ -155,9 +172,9 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr)
 	UINT8 *p;
 	UINT8 filestatus;
 
-	fileneedednum = fileneedednum_parm;
+	fileneedednum = basewads + fileneedednum_parm;
 	p = (UINT8 *)fileneededstr;
-	for (i = 0; i < fileneedednum; i++)
+	for (i = basewads; i < fileneedednum; i++)
 	{
 		fileneeded[i].status = FS_NOTFOUND; // We haven't even started looking for the file yet
 		filestatus = READUINT8(p); // The first byte is the file status
@@ -166,6 +183,12 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr)
 		fileneeded[i].file = NULL; // The file isn't open yet
 		READSTRINGN(p, fileneeded[i].filename, MAX_WADPATH); // The next bytes are the file name
 		READMEM(p, fileneeded[i].md5sum, 16); // The last 16 bytes are the file checksum
+	}
+	for (i = 0; i < basewads; ++i)
+	{
+		fileneeded[i].status = FS_NOTFOUND;
+		fileneeded[i].willsend = 0;
+		READMEM(p, fileneeded[i].md5sum, 16);
 	}
 }
 
@@ -189,7 +212,7 @@ boolean CL_CheckDownloadable(void)
 {
 	UINT8 i,dlstatus = 0;
 
-	for (i = 0; i < fileneedednum; i++)
+	for (i = basewads; i < fileneedednum; i++)
 		if (fileneeded[i].status != FS_FOUND && fileneeded[i].status != FS_OPEN)
 		{
 			if (fileneeded[i].willsend == 1)
@@ -210,7 +233,7 @@ boolean CL_CheckDownloadable(void)
 
 	// not downloadable, put reason in console
 	CONS_Alert(CONS_NOTICE, M_GetText("You need additional files to connect to this server:\n"));
-	for (i = 0; i < fileneedednum; i++)
+	for (i = basewads; i < fileneedednum; i++)
 		if (fileneeded[i].status != FS_FOUND && fileneeded[i].status != FS_OPEN)
 		{
 			CONS_Printf(" * \"%s\" (%dK)", fileneeded[i].filename, fileneeded[i].totalsize >> 10);
@@ -262,7 +285,7 @@ boolean CL_SendRequestFile(void)
 	if (M_CheckParm("-nodownload"))
 		I_Error("Attempted to download files in -nodownload mode");
 
-	for (i = 0; i < fileneedednum; i++)
+	for (i = basewads; i < fileneedednum; i++)
 		if (fileneeded[i].status != FS_FOUND && fileneeded[i].status != FS_OPEN
 			&& (fileneeded[i].willsend == 0 || fileneeded[i].willsend == 2))
 		{
@@ -272,7 +295,7 @@ boolean CL_SendRequestFile(void)
 
 	netbuffer->packettype = PT_REQUESTFILE;
 	p = (char *)netbuffer->u.textcmd;
-	for (i = 0; i < fileneedednum; i++)
+	for (i = basewads; i < fileneedednum; i++)
 		if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD))
 		{
 			totalfreespaceneeded += fileneeded[i].totalsize;
@@ -335,18 +358,15 @@ INT32 CL_CheckFiles(void)
 //	if (M_CheckParm("-nofiles"))
 //		return 1;
 
-	// the first is the iwad (the main wad file)
-	// we don't care if it's called srb2.srb or srb2.wad.
-	// Never download the IWAD, just assume it's there and identical
-	fileneeded[0].status = FS_OPEN;
-
 	// Modified game handling -- check for an identical file list
 	// must be identical in files loaded AND in order
 	// Return 2 on failure -- disconnect from server
+	//
+	// Also, don't download any base files! Including patch.kart.
 	if (modifiedgame)
 	{
 		CONS_Debug(DBG_NETPLAY, "game is modified; only doing basic checks\n");
-		for (i = 1, j = 1; i < fileneedednum || j < numwadfiles;)
+		for (i = basewads, j = basewads; i < fileneedednum || j < numwadfiles;)
 		{
 			if (j < numwadfiles && !wadfiles[j]->important)
 			{
@@ -376,12 +396,20 @@ INT32 CL_CheckFiles(void)
 	// See W_LoadWadFile in w_wad.c
 	packetsize = packetsizetally;
 
-	for (i = 1; i < fileneedednum; i++)
+	for (i = 0; i < basewads; ++i)
+	{
+		if (memcmp(wadfiles[i]->md5sum, fileneeded[i].md5sum, 16) == 0)
+			fileneeded[i].status = FS_OPEN;
+		else
+			fileneeded[i].status = FS_MD5SUMBAD;
+	}
+
+	for (i = basewads; i < fileneedednum; i++)
 	{
 		CONS_Debug(DBG_NETPLAY, "searching for '%s' ", fileneeded[i].filename);
 
 		// Check in already loaded files
-		for (j = 1; wadfiles[j]; j++)
+		for (j = basewads; wadfiles[j]; j++)
 		{
 			nameonly(strcpy(wadfilename, wadfiles[j]->filename));
 			if (!stricmp(wadfilename, fileneeded[i].filename) &&
@@ -419,7 +447,7 @@ void CL_LoadServerFiles(void)
 //	if (M_CheckParm("-nofiles"))
 //		return;
 
-	for (i = 1; i < fileneedednum; i++)
+	for (i = basewads; i < fileneedednum; i++)
 	{
 		if (fileneeded[i].status == FS_OPEN)
 			continue; // Already loaded
@@ -754,20 +782,6 @@ void Got_Filetxpak(void)
 	fileneeded_t *file = &fileneeded[filenum];
 	char *filename = file->filename;
 	static INT32 filetime = 0;
-
-	if (!(strcmp(filename, "srb2.srb")
-		&& strcmp(filename, "srb2.wad")
-		&& strcmp(filename, "patch.dta")
-		//&& strcmp(filename, "music.dta")
-		&& strcmp(filename, "gfx.kart")
-		&& strcmp(filename, "textures.kart")
-		&& strcmp(filename, "chars.kart")
-		&& strcmp(filename, "maps.kart")
-		&& strcmp(filename, "sounds.kart")
-		&& strcmp(filename, "music.kart")
-		&& strcmp(filename, "patch.kart")
-		))
-		I_Error("Tried to download \"%s\"", filename);
 
 	if (filenum >= fileneedednum)
 	{

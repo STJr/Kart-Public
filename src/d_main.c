@@ -1228,31 +1228,32 @@ void D_SRB2Main(void)
 	D_CleanFile(startupwadfiles);
 
 	mainwads = 0;
+	basewads = 0;
 
 #ifndef DEVELOP
 	// Check MD5s of autoloaded files
 	// Note: Do not add any files that ignore MD5!
-	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);						// srb2.srb/srb2.wad
+	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);                  basewads++;  // srb2.srb/srb2.wad
 #ifdef USE_PATCH_DTA
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);		// patch.dta
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);     basewads++;  // patch.dta
 #endif
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);			// gfx.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART);	// textures.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);		// chars.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart -- 4 - If you touch this, make sure to touch up the majormods stuff below.
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);      basewads++;  // gfx.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART); basewads++;  // textures.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);    basewads++;  // chars.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);     basewads++;  // maps.kart -- 4 - If you touch this, make sure to touch up the majormods stuff below.
 #ifdef USE_PATCH_KART
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);		// patch.kart
+	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);                 // patch.kart
 #endif
 #else
 #ifdef USE_PATCH_DTA
-	mainwads++;	// patch.dta
+	mainwads++; basewads++; // patch.dta
 #endif
-	mainwads++;	// gfx.kart
-	mainwads++;	// textures.kart
-	mainwads++;	// chars.kart
-	mainwads++;	// maps.kart
+	mainwads++; basewads++; // gfx.kart
+	mainwads++; basewads++; // textures.kart
+	mainwads++; basewads++; // chars.kart
+	mainwads++; basewads++; // maps.kart
 #ifdef USE_PATCH_KART
-	mainwads++;	// patch.kart
+	mainwads++;             // patch.kart
 #endif
 
 #endif //ifndef DEVELOP

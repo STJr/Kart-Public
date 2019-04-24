@@ -56,6 +56,7 @@ extern boolean gamecomplete;
 extern boolean modifiedgame;
 extern boolean majormods;
 extern UINT16 mainwads;
+extern UINT16 basewads;
 extern boolean savemoddata; // This mod saves time/emblem data.
 extern boolean imcontinuing; // Temporary flag while continuing
 extern boolean metalrecording;

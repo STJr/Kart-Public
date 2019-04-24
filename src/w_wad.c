@@ -644,7 +644,7 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 //
 // Can now load dehacked files (.soc)
 //
-UINT16 W_InitFile(const char *filename)
+UINT16 W_InitFile(const char *filename, boolean addon)
 {
 	FILE *handle;
 	lumpinfo_t *lumpinfo = NULL;
@@ -689,7 +689,10 @@ UINT16 W_InitFile(const char *filename)
 	// see PutFileNeeded in d_netfil.c
 	if ((important = !W_VerifyNMUSlumps(filename)))
 	{
-		packetsize = packetsizetally + nameonlylength(filename) + 22;
+		if (addon)
+			packetsize = packetsizetally + 16;/* only md5sum--for base files! */
+		else
+			packetsize = packetsizetally + nameonlylength(filename) + 22;
 
 		if (packetsize > MAXFILENEEDED*sizeof(UINT8))
 		{
@@ -866,7 +869,7 @@ INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 			G_SetGameModified(true, false);
 
 		//CONS_Debug(DBG_SETUP, "Loading %s\n", *filenames);
-		rc &= (W_InitFile(*filenames) != INT16_MAX) ? 1 : 0;
+		rc &= (W_InitFile(*filenames, addons) != INT16_MAX) ? 1 : 0;
 	}
 
 	if (!numwadfiles)
