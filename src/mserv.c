@@ -661,10 +661,18 @@ FUNCMATH static const char *int2str(INT32 n)
 #ifndef NONET
 static INT32 ConnectionFailed(void)
 {
+	time(&MSLastPing);
 	con_state = MSCS_FAILED;
 	CONS_Alert(CONS_ERROR, M_GetText("Connection to Master Server failed\n"));
 	CloseConnection();
 	return MS_CONNECT_ERROR;
+}
+
+static INT32 ConnectionFailedwerrno(int no)
+{
+	CONS_Alert(CONS_ERROR, M_GetText("Master Server socket error: %s\n"),
+			strerror(no));
+	return ConnectionFailed();
 }
 #endif
 
@@ -682,44 +690,41 @@ static INT32 AddToMasterServer(boolean firstadd)
 	msg_server_t *info = (msg_server_t *)msg.buffer;
 	INT32 room = -1;
 	fd_set tset;
-	time_t timestamp = time(NULL);
 	UINT32 signature, tmp;
 	const char *insname;
 
+	if (socket_fd == ERRSOCKET)/* Woah, our socket was closed! */
+	{
+		if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
+			return ConnectionFailedwerrno(errno);
+	}
+
 	M_Memcpy(&tset, &wset, sizeof (tset));
 	res = select(255, NULL, &tset, NULL, &select_timeout);
-	if (res != ERRSOCKET && !res)
+	if (res == 0)/* nothing selected */
 	{
-		if (retry++ > 30) // an about 30 second timeout
+		/*
+		Timeout next call because SendPingToMasterServer
+		(our calling function) already calls this once
+		every two minutes.
+		*/
+		if (retry++ == 1)
 		{
 			retry = 0;
 			CONS_Alert(CONS_ERROR, M_GetText("Master Server timed out\n"));
-			MSLastPing = timestamp;
 			return ConnectionFailed();
 		}
 		return MS_CONNECT_ERROR;
 	}
 	retry = 0;
-	if (res == ERRSOCKET)
-	{
-		if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
-		{
-			CONS_Alert(CONS_ERROR, M_GetText("Master Server socket error #%u: %s\n"), errno, strerror(errno));
-			MSLastPing = timestamp;
-			return ConnectionFailed();
-		}
-	}
 
 	// so, the socket is writable, but what does that mean, that the connection is
 	// ok, or bad... let see that!
 	j = (socklen_t)sizeof (i);
-	getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, (char *)&i, &j);
+	if (getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, (char *)&i, &j) == ERRSOCKET)
+		return ConnectionFailedwerrno(errno);
 	if (i) // it was bad
-	{
-		CONS_Alert(CONS_ERROR, M_GetText("Master Server socket error #%u: %s\n"), errno, strerror(errno));
-		MSLastPing = timestamp;
-		return ConnectionFailed();
-	}
+		return ConnectionFailedwerrno(i);
 
 #ifdef PARANOIA
 	if (ms_RoomId <= 0)
@@ -752,15 +757,12 @@ static INT32 AddToMasterServer(boolean firstadd)
 	msg.length = (UINT32)sizeof (msg_server_t);
 	msg.room = 0;
 	if (MS_Write(&msg) < 0)
-	{
-		MSLastPing = timestamp;
 		return ConnectionFailed();
-	}
 
 	if(con_state != MSCS_REGISTERED)
 		CONS_Printf(M_GetText("Master Server update successful.\n"));
 
-	MSLastPing = timestamp;
+	time(&MSLastPing);
 	con_state = MSCS_REGISTERED;
 	CloseConnection();
 #endif
