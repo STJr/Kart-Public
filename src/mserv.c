@@ -701,6 +701,8 @@ static INT32 AddToMasterServer(boolean firstadd)
 
 	M_Memcpy(&tset, &wset, sizeof (tset));
 	res = select(255, NULL, &tset, NULL, &select_timeout);
+	if (res == -1)
+		return ConnectionFailedwerrno(errno);
 	if (res == 0)/* nothing selected */
 	{
 		/*
