@@ -7456,7 +7456,10 @@ static void M_ConnectMenu(INT32 choice)
 
 	// first page of servers
 	serverlistpage = 0;
-	M_SetupNextMenu(&MP_ConnectDef);
+	if (ms_RoomId < 0)
+		M_RoomMenu(0); // Select a room instead of staring at an empty list
+	else
+		M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
 	M_Refresh(0);
 }
@@ -7529,7 +7532,15 @@ static void M_ChooseRoom(INT32 choice)
 	}
 
 	serverlistpage = 0;
-	M_SetupNextMenu(currentMenu->prevMenu);
+	/*
+	We were on the Multiplayer menu? That means that we must have been trying to
+	view the server browser, but we hadn't selected a room yet. So we need to go
+	to the browser next, not back there.
+	*/
+	if (currentMenu->prevMenu == &MP_MainDef)
+		M_SetupNextMenu(&MP_ConnectDef);
+	else
+		M_SetupNextMenu(currentMenu->prevMenu);
 	if (currentMenu == &MP_ConnectDef)
 		M_Refresh(0);
 }
