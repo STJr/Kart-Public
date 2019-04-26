@@ -62,6 +62,7 @@ const char *const hookNames[hook_MAX+1] = {
 	"PlayerExplode",
 	"PlayerSquish",
 	"PlayerCmd",
+	"IntermissionThinker",
 	NULL
 };
 
@@ -419,6 +420,28 @@ void LUAh_ThinkFrame(void)
 			}
 		}
 }
+
+// Hook for Y_Ticker
+void LUAh_IntermissionThinker(void)
+{
+	hook_p hookp;
+	if (!gL || !(hooksAvailable[hook_IntermissionThinker/8] & (1<<(hook_IntermissionThinker%8))))
+		return;
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+		if (hookp->type == hook_IntermissionThinker)
+		{
+			lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+			lua_gettable(gL, LUA_REGISTRYINDEX);
+			if (lua_pcall(gL, 0, 0, 0)) {
+				if (!hookp->error || cv_debug & DBG_LUA)
+					CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+				hookp->error = true;
+			}
+		}
+}
+
 
 // Hook for mobj collisions
 UINT8 LUAh_MobjCollideHook(mobj_t *thing1, mobj_t *thing2, enum hook which)
