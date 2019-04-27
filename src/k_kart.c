@@ -5031,6 +5031,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 
 	if ((!player->kartstuff[k_sneakertimer])
 	|| (!player->cmd.driftturn)
+	|| (!player->kartstuff[k_aizdriftstrat])
 	|| (player->cmd.driftturn > 0) != (player->kartstuff[k_aizdriftstrat] > 0))
 	{
 		if (!player->kartstuff[k_drift])
