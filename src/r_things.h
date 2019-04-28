@@ -97,6 +97,8 @@ typedef struct
 	sfxenum_t soundsid[NUMSKINSOUNDS]; // sound # in S_sfx table
 } skin_t;
 
+extern CV_PossibleValue_t Forceskin_cons_t[];
+
 // -----------
 // NOT SKINS STUFF !
 // -----------

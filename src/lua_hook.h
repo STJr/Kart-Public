@@ -51,6 +51,7 @@ enum hook {
 	hook_PlayerExplode,	//SRB2KART
 	hook_PlayerSquish,	//SRB2KART
 	hook_PlayerCmd,		//SRB2KART
+	hook_IntermissionThinker, //SRB2KART
 
 	hook_MAX // last hook
 };
@@ -98,5 +99,7 @@ boolean LUAh_PlayerExplode(player_t *player, mobj_t *inflictor, mobj_t *source);
 boolean LUAh_PlayerSquish(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Hook for K_SquishPlayer. Allows Lua to execute code and/or overwrite its behavior.
 
 boolean LUAh_PlayerCmd(player_t *player, ticcmd_t *cmd);	// Allows to write to player cmd before the game does anything with them.
+
+void LUAh_IntermissionThinker(void); // Hook for Y_Ticker
 
 #endif

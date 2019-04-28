@@ -423,7 +423,7 @@ consvar_t cv_numlaps = {"numlaps", "3", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_con
 static CV_PossibleValue_t basenumlaps_cons_t[] = {{1, "MIN"}, {50, "MAX"}, {0, "Map default"}, {0, NULL}};
 consvar_t cv_basenumlaps = {"basenumlaps", "Map default", CV_NETVAR|CV_CALL|CV_CHEAT, basenumlaps_cons_t, BaseNumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_forceskin = {"forceskin", "-1", CV_NETVAR|CV_CALL|CV_CHEAT, NULL, ForceSkin_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_forceskin = {"forceskin", "Off", CV_NETVAR|CV_CALL|CV_CHEAT, Forceskin_cons_t, ForceSkin_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_downloading = {"downloading", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowexitlevel = {"allowexitlevel", "No", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -514,6 +514,17 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
   */
 void D_RegisterServerCommands(void)
 {
+	int i;
+	Forceskin_cons_t[0].value = -1;
+	Forceskin_cons_t[0].strvalue = "Off";
+
+	// Set the values to 0/NULl, it will be overwritten later when a skin is assigned to the slot.
+	for (i = 1; i < MAXSKINS; i++)
+	{
+		Forceskin_cons_t[i].value = 0;
+		Forceskin_cons_t[i].strvalue = NULL;
+	}
+
 	RegisterNetXCmd(XD_NAMEANDCOLOR, Got_NameAndColor);
 	RegisterNetXCmd(XD_WEAPONPREF, Got_WeaponPref);
 	RegisterNetXCmd(XD_MAP, Got_Mapcmd);
@@ -5152,27 +5163,11 @@ static void Command_Archivetest_f(void)
 
 /** Makes a change to ::cv_forceskin take effect immediately.
   *
-  * \todo Move the enforcement code out of SendNameAndColor() so this hack
-  *       isn't needed.
   * \sa Command_SetForcedSkin_f, cv_forceskin, forcedskin
   * \author Graue <graue@oceanbase.org>
   */
 static void ForceSkin_OnChange(void)
 {
-	if ((server || IsPlayerAdmin(consoleplayer)) && (cv_forceskin.value < -1 || cv_forceskin.value >= numskins))
-	{
-		if (cv_forceskin.value == -2)
-			CV_SetValue(&cv_forceskin, numskins-1);
-		else
-		{
-			// hack because I can't restrict this and still allow added skins to be used with forceskin.
-			if (!menuactive)
-				CONS_Printf(M_GetText("Valid skin numbers are 0 to %d (-1 disables)\n"), numskins - 1);
-			CV_SetValue(&cv_forceskin, -1);
-		}
-		return;
-	}
-
 	// NOT in SP, silly!
 	if (!(netgame || multiplayer))
 		return;
@@ -5181,7 +5176,7 @@ static void ForceSkin_OnChange(void)
 		CONS_Printf("The server has lifted the forced skin restrictions.\n");
 	else
 	{
-		CONS_Printf("The server is restricting all players to skin \"%s\".\n",skins[cv_forceskin.value].name);
+		CONS_Printf("The server is restricting all players to skin \"%s\".\n",cv_forceskin.string);
 		ForceAllSkins(cv_forceskin.value);
 	}
 }

@@ -2752,7 +2752,7 @@ static luaL_Reg lib[] = {
 	// k_kart
 	{"K_PlayAttackTaunt", lib_kAttackSound},
 	{"K_PlayBoostTaunt", lib_kBoostSound},
-	{"K_PlayPowerGloatSund", lib_kGloatSound},
+	{"K_PlayPowerGloatSound", lib_kGloatSound},
 	{"K_PlayOvertakeSound", lib_kOvertakeSound},
 	{"K_PlayLossSound", lib_kLossSound},
 	{"K_PlayHitEmSound", lib_kHitEmSound},
