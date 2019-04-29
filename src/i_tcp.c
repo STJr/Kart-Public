@@ -909,9 +909,9 @@ static SOCKET_TYPE UDP_Bind(int family, struct sockaddr *addr, socklen_t addrlen
 	}
 
 	if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
-    	CONS_Alert(CONS_WARNING, M_GetText("Failed to get port number\n"));
+		CONS_Alert(CONS_WARNING, M_GetText("Failed to get port number\n"));
 	else
-    	current_port = (UINT16)ntohs(sin.sin_port);
+		current_port = (UINT16)ntohs(sin.sin_port);
 
 	return s;
 }
