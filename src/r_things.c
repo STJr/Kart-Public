@@ -1796,7 +1796,7 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 		}
 	}
 
-	// Someone seriously wants infinite draw distance for precipitation?
+	// no, no infinite draw distance for precipitation. this option at zero is supposed to turn it off
 	if ((limit_dist = (fixed_t)cv_drawdist_precip.value << FRACBITS))
 	{
 		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
@@ -1811,13 +1811,6 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 
 			R_ProjectPrecipitationSprite(precipthing);
 		}
-	}
-	else
-	{
-		// Draw everything in sector, no checks
-		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
-			if (!(precipthing->precipflags & PCF_INVISIBLE))
-				R_ProjectPrecipitationSprite(precipthing);
 	}
 }
 
