@@ -1894,6 +1894,10 @@ static void CreateModelVBO(mesh_t *mesh, mdlframe_t *frame)
 	pglBindBuffer(GL_ARRAY_BUFFER, frame->vboID);
 	pglBufferData(GL_ARRAY_BUFFER, bufferSize, buffer, GL_STATIC_DRAW);
 	free(buffer);
+
+	// Don't leave the array buffer bound to the model,
+	// since this is called mid-frame
+	pglBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 static void CreateModelVBOTiny(mesh_t *mesh, tinyframe_t *frame)
@@ -1935,6 +1939,10 @@ static void CreateModelVBOTiny(mesh_t *mesh, tinyframe_t *frame)
 	pglBindBuffer(GL_ARRAY_BUFFER, frame->vboID);
 	pglBufferData(GL_ARRAY_BUFFER, bufferSize, buffer, GL_STATIC_DRAW);
 	free(buffer);
+
+	// Don't leave the array buffer bound to the model,
+	// since this is called mid-frame
+	pglBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 EXPORT void HWRAPI(CreateModelVBOs) (model_t *model)
@@ -2181,10 +2189,13 @@ EXPORT void HWRAPI(DrawModel) (model_t *model, INT32 frameIndex, INT32 duration,
 EXPORT void HWRAPI(SetTransform) (FTransform *stransform, angle_t viewaiming)
 {
 	static boolean special_splitscreen;
+	GLdouble used_fov;
+	boolean shearing = false;
 	pglLoadIdentity();
 	if (stransform)
 	{
-		boolean fovx90;
+		used_fov = stransform->fovxangle;
+		shearing = stransform->shearing;
 		// keep a trace of the transformation for md2
 		memcpy(&md2_transform, stransform, sizeof (md2_transform));
 
@@ -2204,45 +2215,40 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform, angle_t viewaiming)
 		pglRotatef(stransform->angley+270.0f, 0.0f, 1.0f, 0.0f);
 		pglTranslatef(-stransform->x, -stransform->z, -stransform->y);
 
-		pglMatrixMode(GL_PROJECTION);
-		pglLoadIdentity();
-
-		// jimita 14042019
-		// Simulate Software's y-shearing
-		// https://zdoom.org/wiki/Y-shearing
-		if (stransform->shearing)
-		{
-			float tilt = (float)(viewaiming>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
-			if (tilt >= 270.0f)
-				tilt = -(90.0f - (tilt - 270.0f));
-			tilt /= 24.0f;		// ?????????
-
-			pglTranslatef(0.0f, -tilt, 0.0f);
-		}
-
-		fovx90 = stransform->fovxangle > 0.0f && fabsf(stransform->fovxangle - 90.0f) < 0.5f;
-		special_splitscreen = (stransform->splitscreen && fovx90);
-		if (special_splitscreen)
-			GLPerspective(53.13f, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
-		else
-			GLPerspective(stransform->fovxangle, ASPECT_RATIO);
-		pglGetFloatv(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
-		pglMatrixMode(GL_MODELVIEW);
+		special_splitscreen = (stransform->splitscreen == 1);
 	}
 	else
 	{
+		//Hurdler: is "fov" correct?
+		used_fov = fov;
 		pglScalef(1.0f, 1.0f, -1.0f);
-
-		pglMatrixMode(GL_PROJECTION);
-		pglLoadIdentity();
-		if (special_splitscreen)
-			GLPerspective(53.13f, 2*ASPECT_RATIO);  // 53.13 = 2*atan(0.5)
-		else
-			//Hurdler: is "fov" correct?
-			GLPerspective(fov, ASPECT_RATIO);
-		pglGetFloatv(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
-		pglMatrixMode(GL_MODELVIEW);
 	}
+
+	pglMatrixMode(GL_PROJECTION);
+	pglLoadIdentity();
+
+	// jimita 14042019
+	// Simulate Software's y-shearing
+	// https://zdoom.org/wiki/Y-shearing
+	if (shearing)
+	{
+		float tilt = (float)(viewaiming>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+		if (tilt >= 270.0f)
+			tilt = -(90.0f - (tilt - 270.0f));
+		tilt /= 24.0f;		// ?????????
+
+		pglTranslatef(0.0f, -tilt, 0.0f);
+	}
+
+	if (special_splitscreen)
+	{
+		used_fov = atan(tan(used_fov*M_PIl/360)*0.8)*360/M_PIl;
+		GLPerspective((GLfloat)used_fov, 2*ASPECT_RATIO);
+	}
+	else
+		GLPerspective((GLfloat)used_fov, ASPECT_RATIO);
+	pglGetFloatv(GL_PROJECTION_MATRIX, projMatrix); // added for new coronas' code (without depth buffer)
+	pglMatrixMode(GL_MODELVIEW);
 
 	pglGetFloatv(GL_MODELVIEW_MATRIX, modelMatrix); // added for new coronas' code (without depth buffer)
 }

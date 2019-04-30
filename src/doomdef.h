@@ -428,13 +428,17 @@ INT32 I_GetKey(void);
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #endif
 
+#ifndef M_PIl
+#define M_PIl 3.1415926535897932384626433832795029L
+#endif
+
 // Floating point comparison epsilons from float.h
 #ifndef FLT_EPSILON
 #define FLT_EPSILON 1.1920928955078125e-7f
 #endif
 
 #ifndef DBL_EPSILON
-#define DBL_EPSILON 2.2204460492503131e-16
+#define DBL_EPSILON 2.2204460492503131e-16l
 #endif
 
 // An assert-type mechanism.
