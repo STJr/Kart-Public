@@ -693,7 +693,7 @@ static INT32 AddToMasterServer(boolean firstadd)
 	UINT32 signature, tmp;
 	const char *insname;
 
-	if (socket_fd == ERRSOCKET)/* Woah, our socket was closed! */
+	if (socket_fd == (SOCKET_TYPE)ERRSOCKET)/* Woah, our socket was closed! */
 	{
 		if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
 			return ConnectionFailedwerrno(errno);
