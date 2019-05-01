@@ -1514,9 +1514,10 @@ void HWR_ProcessSeg(void) // Sort of like GLWall::Process in GZDoom
 			wallVerts[2].y = wallVerts[3].y = FIXED_TO_FLOAT(worldtop);
 			wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(worldbottom);
 #endif
-			// I don't think that solid walls can use translucent linedef types...
+
 			if (gr_frontsector->numlights)
 				HWR_SplitWall(gr_frontsector, wallVerts, gr_midtexture, &Surf, FF_CUTLEVEL, NULL);
+			// I don't think that solid walls can use translucent linedef types...
 			else
 			{
 				if (grTex->mipmap.flags & TF_TRANSPARENT)
@@ -4432,7 +4433,7 @@ void HWR_SetViewSize(void)
 // ==========================================================================
 // Render the current frame.
 // ==========================================================================
-static void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
+void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 {
 	angle_t a1;
 	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);

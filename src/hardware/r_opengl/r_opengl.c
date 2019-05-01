@@ -223,6 +223,7 @@ FUNCPRINTF void GL_DBG_Printf(const char *format, ...)
 #define pglLightfv glLightfv
 #define pglLightModelfv glLightModelfv
 #define pglMaterialfv glMaterialfv
+#define pglMateriali glMateriali
 
 /* Raster functions */
 #define pglPixelStorei glPixelStorei
@@ -239,6 +240,7 @@ FUNCPRINTF void GL_DBG_Printf(const char *format, ...)
 
 /* 1.1 functions */
 /* texture objects */ //GL_EXT_texture_object
+#define pglGenTextures glGenTextures
 #define pglDeleteTextures glDeleteTextures
 #define pglBindTexture glBindTexture
 /* texture mapping */ //GL_EXT_copy_texture
@@ -335,6 +337,8 @@ typedef void (APIENTRY * PFNglLightModelfv) (GLenum pname, GLfloat *params);
 static PFNglLightModelfv pglLightModelfv;
 typedef void (APIENTRY * PFNglMaterialfv) (GLint face, GLenum pname, GLfloat *params);
 static PFNglMaterialfv pglMaterialfv;
+typedef void (APIENTRY * PFNglMateriali) (GLint face, GLenum pname, GLint param);
+static PFNglMateriali pglMateriali;
 
 /* Raster functions */
 typedef void (APIENTRY * PFNglPixelStorei) (GLenum pname, GLint param);
@@ -358,6 +362,8 @@ static PFNglFogfv pglFogfv;
 
 /* 1.1 functions */
 /* texture objects */ //GL_EXT_texture_object
+typedef void (APIENTRY * PFNglGenTextures) (GLsizei n, const GLuint *textures);
+static PFNglGenTextures pglGenTextures;
 typedef void (APIENTRY * PFNglDeleteTextures) (GLsizei n, const GLuint *textures);
 static PFNglDeleteTextures pglDeleteTextures;
 typedef void (APIENTRY * PFNglBindTexture) (GLenum target, GLuint texture);
@@ -459,6 +465,7 @@ boolean SetupGLfunc(void)
 	GETOPENGLFUNC(pglLightfv, glLightfv)
 	GETOPENGLFUNC(pglLightModelfv, glLightModelfv)
 	GETOPENGLFUNC(pglMaterialfv, glMaterialfv)
+	GETOPENGLFUNC(pglMateriali, glMateriali)
 
 	GETOPENGLFUNC(pglPixelStorei, glPixelStorei)
 	GETOPENGLFUNC(pglReadPixels, glReadPixels)
@@ -470,6 +477,7 @@ boolean SetupGLfunc(void)
 	GETOPENGLFUNC(pglFogf, glFogf)
 	GETOPENGLFUNC(pglFogfv, glFogfv)
 
+	GETOPENGLFUNC(pglGenTextures, glGenTextures)
 	GETOPENGLFUNC(pglDeleteTextures, glDeleteTextures)
 	GETOPENGLFUNC(pglBindTexture, glBindTexture)
 
@@ -481,19 +489,13 @@ boolean SetupGLfunc(void)
 	return true;
 }
 
-// jtc
-
-// glstate
 static INT32 glstate_fog_mode = 0;
 static float glstate_fog_density = 0;
 
-// hw_glob.h
 INT32 gl_leveltime = 0;
 
-#define USE_SHADERS
-
-// shaders
-#ifdef USE_SHADERS
+// GL4
+#ifdef GL_SHADERS
 
 #define MAXSHADERS 16
 #define MAXSHADERPROGRAMS 16
@@ -556,7 +558,6 @@ static PFNglGetUniformLocation pglGetUniformLocation;
 // Fragment shaders
 //
 
-// Macro to reduce boilerplate code
 #define GLSL_SHARED_FOG_FUNCTION \
 	"float fog(const float dist, const float density, const float globaldensity) {\n" \
 		"const float LOG2 = -1.442695;\n" \
@@ -569,30 +570,31 @@ static PFNglGetUniformLocation pglGetUniformLocation;
 		"return 1.0 - clamp(exp2(d * d * globaldensity * LOG2), 0.0, 1.0);\n" \
 	"}\n"
 
-// Macro to reduce boilerplate code
 #define GLSL_SHARED_FOG_MIX \
 	"float fog_distance = gl_FragCoord.z / gl_FragCoord.w;\n" \
 	"float fog_attenuation = fog(fog_distance, 0.0001 * ((256-lighting)/24), fog_density);\n" \
 	"if (fog_mode == 2)\n" \
 		"fog_attenuation = floor(fog_attenuation*10)/10;\n" \
 	"vec4 fog_color = vec4(fade_color[0], fade_color[1], fade_color[2], 1.0);\n" \
-	"vec4 mixed_color = color * mix_color;\n" \
+	"vec4 mixed_color = texel * mix_color;\n" \
 	"vec4 final_color = mix(mixed_color, fog_color, fog_attenuation);\n" \
 	"final_color[3] = mixed_color[3];\n"
 
-// Macro to reduce boilerplate code
-#define SHARED_FRAGMENT_SHADER \
+#define GLSL_FRAGMENT_SHADER_HEADER \
 	"uniform sampler2D tex;\n" \
 	"uniform vec4 mix_color;\n" \
 	"uniform vec4 fade_color;\n" \
 	"uniform float lighting;\n" \
 	"uniform int fog_mode;\n" \
 	"uniform float fog_density;\n" \
+
+#define SHARED_FRAGMENT_SHADER \
+	GLSL_FRAGMENT_SHADER_HEADER \
 	GLSL_SHARED_FOG_FUNCTION \
 	"void main(void) {\n" \
-		"vec4 color = texture2D(tex, gl_TexCoord[0].st);\n" \
+		"vec4 texel = texture2D(tex, gl_TexCoord[0].st);\n" \
 		"if (fog_mode == 0)\n" \
-			"gl_FragColor = color * mix_color;\n" \
+			"gl_FragColor = texel * mix_color;\n" \
 		"else\n" \
 		"{\n" \
 			GLSL_SHARED_FOG_MIX \
@@ -643,7 +645,6 @@ static const char *fragment_shaders[] = {
 // Vertex shaders
 //
 
-// Macro to reduce boilerplate code
 #define DEFAULT_VERTEX_SHADER \
 	"void main()\n" \
 	"{\n" \
@@ -679,7 +680,7 @@ static const char *vertex_shaders[] = {
 	DEFAULT_VERTEX_SHADER,
 };
 
-#endif	// USE_SHADERS
+#endif	// GL_SHADERS
 
 void SetupGLFunc4(void)
 {
@@ -692,7 +693,7 @@ void SetupGLFunc4(void)
 	pglBufferData = GetGLFunc("glBufferData");
 	pglDeleteBuffers = GetGLFunc("glDeleteBuffers");
 
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	pglCreateShader = GetGLFunc("glCreateShader");
 	pglShaderSource = GetGLFunc("glShaderSource");
 	pglCompileShader = GetGLFunc("glCompileShader");
@@ -722,7 +723,7 @@ void SetupGLFunc4(void)
 // jimita
 EXPORT void HWRAPI(LoadShaders) (void)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	GLuint gl_vertShader, gl_fragShader;
 	GLint i, result;
 
@@ -806,7 +807,7 @@ EXPORT void HWRAPI(LoadShaders) (void)
 
 EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	if (number < 1 || number > MAXSHADERS)
 		I_Error("LoadCustomShader(): cannot load shader %d (max %d)", number, MAXSHADERS);
 
@@ -827,7 +828,7 @@ EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boo
 
 EXPORT void HWRAPI(InitCustomShaders) (void)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	KillShaders();
 	LoadShaders();
 #endif
@@ -835,7 +836,7 @@ EXPORT void HWRAPI(InitCustomShaders) (void)
 
 EXPORT void HWRAPI(SetShader) (int shader)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	if (gl_allowshaders)
 	{
 		gl_shadersenabled = true;
@@ -848,7 +849,7 @@ EXPORT void HWRAPI(SetShader) (int shader)
 
 EXPORT void HWRAPI(UnSetShader) (void)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	gl_shadersenabled = false;
 	gl_currentshaderprogram = 0;
 #endif
@@ -856,7 +857,7 @@ EXPORT void HWRAPI(UnSetShader) (void)
 
 EXPORT void HWRAPI(KillShaders) (void)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	GLint total_shaders = gl_totalshaders;
 	GLint i;
 
@@ -951,8 +952,6 @@ void SetModelView(GLint w, GLint h)
 // -----------------+
 void SetStates(void)
 {
-	pglShadeModel(GL_SMOOTH);      // iterate vertice colors
-
 	pglEnable(GL_TEXTURE_2D);      // two-dimensional texturing
 	pglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
@@ -981,7 +980,6 @@ void SetStates(void)
 	pglScalef(1.0f, 1.0f, -1.0f);
 	pglGetFloatv(GL_MODELVIEW_MATRIX, modelMatrix); // added for new coronas' code (without depth buffer)
 }
-
 
 // -----------------+
 // Flush            : flush OpenGL textures
@@ -1586,7 +1584,7 @@ EXPORT void HWRAPI(SetTexture) (FTextureInfo *pTexInfo)
 // jimita
 static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *fade)
 {
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	if (gl_shadersenabled)
 	{
 		if (gl_shaderprograms[gl_currentshaderprogram])
@@ -1596,15 +1594,17 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 			//
 			// set uniforms
 			//
-			GLint UNIFORM_fog_mode 		= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "fog_mode");
-			GLint UNIFORM_fog_density 	= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "fog_density");
+#define GETUNI(uniform) pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], uniform);
+			GLint UNIFORM_fog_mode = GETUNI("fog_mode");
+			GLint UNIFORM_fog_density = GETUNI("fog_density");
 
-			GLint UNIFORM_mix_color 	= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "mix_color");
-			GLint UNIFORM_fade_color 	= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "fade_color");
-			GLint UNIFORM_lighting 		= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "lighting");
+			GLint UNIFORM_mix_color = GETUNI("mix_color");
+			GLint UNIFORM_fade_color = GETUNI("fade_color");
+			GLint UNIFORM_lighting = GETUNI("lighting");
 
-			GLint UNIFORM_resolution 	= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "resolution");
-			GLint UNIFORM_leveltime 	= pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], "leveltime");
+			GLint UNIFORM_resolution = GETUNI("resolution");
+			GLint UNIFORM_leveltime = GETUNI("leveltime");
+#undef GETUNI
 
 			#define UNIFORM_1(uniform, a, function) \
 				if (uniform != -1) \
@@ -1695,7 +1695,7 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 	if (PolyFlags & PF_ForceWrapY)
 		Clamp2D(GL_TEXTURE_WRAP_T);
 
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	pglUseProgram(0);
 #endif
 }
@@ -2170,7 +2170,7 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	pglDisable(GL_CULL_FACE);
 	pglDisable(GL_NORMALIZE);
 
-#ifdef USE_SHADERS
+#ifdef GL_SHADERS
 	pglUseProgram(0);
 #endif
 }
@@ -2359,6 +2359,7 @@ EXPORT void HWRAPI(FlushScreenTextures) (void)
 	pglDeleteTextures(1, &startScreenWipe);
 	pglDeleteTextures(1, &endScreenWipe);
 	pglDeleteTextures(1, &finalScreenTexture);
+
 	screentexture = 0;
 	startScreenWipe = 0;
 	endScreenWipe = 0;

@@ -106,7 +106,6 @@ struct hwdriver_s
 	MakeScreenFinalTexture  pfnMakeScreenFinalTexture;
 	DrawScreenFinalTexture  pfnDrawScreenFinalTexture;
 
-	// jimita
 	LoadShaders pfnLoadShaders;
 	KillShaders pfnKillShaders;
 	SetShader pfnSetShader;

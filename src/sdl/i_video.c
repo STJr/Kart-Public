@@ -1499,7 +1499,6 @@ void I_StartupGraphics(void)
 		HWD.pfnMakeScreenFinalTexture=hwSym("MakeScreenFinalTexture",NULL);
 		HWD.pfnDrawScreenFinalTexture=hwSym("DrawScreenFinalTexture",NULL);
 
-		// jimita
 		HWD.pfnLoadShaders = hwSym("LoadShaders",NULL);
 		HWD.pfnKillShaders = hwSym("KillShaders",NULL);
 		HWD.pfnSetShader = hwSym("SetShader",NULL);

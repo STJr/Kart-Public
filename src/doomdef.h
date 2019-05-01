@@ -535,4 +535,8 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 ///      	SRB2CB itself ported this from PrBoom+
 //#define NEWCLIP
 
+// GL4
+#define GL_SHADERS
+//#define GL_PORTALS
+
 #endif // __DOOMDEF__

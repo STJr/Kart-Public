@@ -52,6 +52,7 @@ UINT8 *HWR_GetScreenshot(void);
 boolean HWR_Screenshot(const char *lbmname);
 
 // hw_main.c
+void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox);
 void HWR_RenderPlayerView(INT32 viewnumber, player_t *player);
 void HWR_LoadShaders(UINT16 wadnum, boolean PK3);
 void HWR_SetViewSize(void);
@@ -107,8 +108,8 @@ void HWR_AddPolyObjectSegs(void);
 void HWR_RenderBSPNode(INT32 bspnum);
 void HWR_Subsector(size_t num);
 void HWR_AddLine(seg_t *line);
-void HWR_RenderDrawNodes(void);
 boolean HWR_CheckBBox(fixed_t *bspcoord);
+void HWR_RenderDrawNodes(void);
 
 // hw_main.c: Sprites
 void HWR_AddSprites(sector_t *sec);
