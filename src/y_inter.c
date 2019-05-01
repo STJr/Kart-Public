@@ -1505,10 +1505,10 @@ void Y_EndVote(void)
 //
 static void Y_UnloadVoteData(void)
 {
+	voteclient.loaded = false;
+
 	if (rendermode != render_soft)
 		return;
-
-	voteclient.loaded = false;
 
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
