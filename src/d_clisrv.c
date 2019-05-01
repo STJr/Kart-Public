@@ -3583,14 +3583,31 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	if (netgame)
 	{
-		if (server && cv_showjoinaddress.value)
+		char *text;
+		if (server)
 		{
 			const char *address;
-			if (I_GetNodeAddress && (address = I_GetNodeAddress(node)) != NULL)
-				HU_AddChatText(va("\x82*Player %d has joined the game (%s)", newplayernum+1, address), false);	// merge join notification + IP to avoid clogging console/chat.
+			if (cv_showjoinaddress.value &&
+					I_GetNodeAddress && ( address = I_GetNodeAddress(node) ))
+			{
+				text = va(
+						"\x82*Player %d (num %d) has joined the game (%s)",
+						newplayernum+1, newplayernum, address);
+			}
+			else
+			{
+				text = va(
+						"\x82Player %d (num %d) has joined the game",
+						newplayernum+1, newplayernum);
+			}
 		}
 		else
-			HU_AddChatText(va("\x82*Player %d has joined the game", newplayernum+1), false);	// if you don't wanna see the join address.
+		{
+			text = va(
+					"\x82Player %d has joined the game",
+					newplayernum+1);
+		}
+		HU_AddChatText(text, false);
 	}
 
 	if (server && multiplayer && motd[0] != '\0')
