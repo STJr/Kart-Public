@@ -8091,6 +8091,7 @@ void G_StopDemo(void)
 	singletics = false;
 
 	CV_SetValue(&cv_playbackspeed, 1);
+	demo.rewinding = false;
 
 	if (gamestate == GS_LEVEL && rendermode != render_none)
 	{
